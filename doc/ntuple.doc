@@ -322,7 +322,7 @@ Below there is a description of a  ntuple.
  * I*4  *             * ANTIRAWC * antirawupdown(nantiraw)   //0 - up 1 -down
  * R*4  *             * ANTIRAWC * antirawsignal(nantiraw)   // (mev)
 
- * I*4  * [0,20]      * TOFRAWCL * ntofraw                   // tofrawclnum
+ * I*4  * [0,20]      * TOFRAWCL * ntofraw                   // tofrawclnum (used)
  * I*4  *             * TOFRAWCL * tofrstatus(ntofraw)       // status
  * I*4  *             * TOFRAWCL * tofrplane(ntofraw)        // tof plane1-4
  * I*4  *             * TOFRAWCL * tofrbar(ntofraw)          // tof bar 1-14
@@ -332,6 +332,10 @@ Below there is a description of a  ntuple.
                                                              //over_thresh (ns)
  * R*4  *             * TOFRAWCL * tofrsdtm(2,ntofraw)       // A-noncorrected
                                                              //  side times
+ * R*4  *             * TOFRAWCL * tofreda(ntofraw)       // Edep-A (mev)
+ * R*4  *             * TOFRAWCL * tofredd(ntofraw)       // Edep-D (mev)
+ * R*4  *             * TOFRAWCL * tofrtm(ntofraw)        // Time (ns)
+ * R*4  *             * TOFRAWCL * tofrcoo(ntofraw)       // Long.coord.(cm)
 
 
 

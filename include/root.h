@@ -547,6 +547,10 @@ public:
   float tovta[MAXTOFRAW][2];
   float tovtd[MAXTOFRAW][2];
   float sdtm[MAXTOFRAW][2];
+  float edepa[MAXTOFRAW];
+  float edepd[MAXTOFRAW];
+  float time[MAXTOFRAW];
+  float cool[MAXTOFRAW];
 
 friend class AMSTOFRawCluster;
 friend class AMSNtuple;

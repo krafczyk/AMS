@@ -1249,6 +1249,10 @@ void AMSTOFRawCluster::_writeEl(){
       TN->tovtd[TN->Ntofraw][i]=_tovtd[i];
       TN->sdtm[TN->Ntofraw][i]=_sdtm[i];
     }
+    TN->edepa[TN->Ntofraw]=_edep;
+    TN->edepd[TN->Ntofraw]=_edepd;
+    TN->time[TN->Ntofraw]=_time;
+    TN->cool[TN->Ntofraw]=_timeD;
     TN->Ntofraw++;
   }
 
@@ -1318,7 +1322,7 @@ void AMSTOFCluster::build(int &stat){
   static number eplane[SCMXBR+2],edplane[SCMXBR+2];
   static AMSTOFRawCluster * membp[3];
   geant dummy,edep,edepl,edepa,edepd,asatl,time,etime,speedl,err;
-  integer ntof,barn,status,plrot;
+  integer ntof,barn,status,mstatus,plrot;
   geant barl,barw,bars,cofg,cofgl,yloc,eyloc,ylocm,c0,ct,cl,ed;
   geant errx,erry,erx1(2.);//tempor errors on cl.transv.coord.
   AMSPoint coo,ecoo;
@@ -1375,7 +1379,6 @@ void AMSTOFCluster::build(int &stat){
       scbrcal[ilay][ibar].getd2p(speedl,err);//get light speed
       yloc=ptr->gettimeD();// get yloc/err for "peak" bar
       eyloc=ptr->getetimeD();
-      status=ptr->getstatus();//may be !=0(bad history/t_meas or single-sided)
       ylocm=0.5*barl;// limit on max. long. coord.
       status=ptr->getstatus();//may be !=0(bad history/t_meas or single-sided)
       if(fabs(yloc) > ylocm){//out of bar size
@@ -1477,6 +1480,9 @@ void AMSTOFCluster::build(int &stat){
           }
         }
 //
+        for(j=0;j<nmemb;j++)membp[j]->setstatus(AMSDBc::USED);// set "used" bit for members
+        edep=ptr->getedep();// finaly: Edep is taken from "peak" bar
+        edepd=ptr->getedepd();
         if((status & SCBADB3)!=0)status|=AMSDBc::BAD; 
 //          bad=(peak bar has severe problem with t-measurement)
         if((status & SCBADB2)!=0 && (status & SCBADB5)==0)status|=AMSDBc::BAD;
