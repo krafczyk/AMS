@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.144 2003/01/22 11:31:58 choutko Exp $
+//  $Id: amsgeom.C,v 1.145 2003/01/24 10:09:49 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1013,18 +1013,24 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  AMSNode * dau;
 //
 // ----------------------------> Radiators:
-// -------------> #1(vertical at +Y):
+// -------------> #1(vertical at +Y(Wake)):
 //
- geant r11dx=180.;//section 11 (should match to us1x1 !!!)
- geant r1dy=2.1;
- geant r11dz=180.4;
- geant r1cy=(170.5+r1dy/2.);//Y0
+ geant r13dx=184.5;//section 13(top) width(-0.4 wrt drawing! Should match to us1x1 !!!)
+ geant r1dy=2.6;//thickness
+ geant r13dz=58.;//height
+ geant r1cy=(173.5+r1dy/2.);//Y0
  geant r1cx=0.;//X0 
- geant r11cz=-18.;//Z0 of bott.part
+ geant r13cz=81.5;//Z0
 //
- geant r12dx=210.;//section 12
- geant r12dz=36.;
- geant r12cz=90.2;//Z0 of top part
+ geant r12xcut=29.;//x-width of the hole
+ geant r12dx=r13dx-r12xcut;//section 12(mid) width
+ geant r12dz=82.;//height
+ geant r12cz=11.5;//Z0
+ geant r12cx=r12xcut/2;//X0
+//
+ geant r11dx=209.9;//section 11(bot) width
+ geant r11dz=81.;//height
+ geant r11cz=-70.;//Z0
 //
  nrot=TOF2GC::SCROTN+200;
 //
@@ -1041,26 +1047,31 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  gid=2;
  par[0]=r12dx/2.;
  par[2]=r12dz/2.;
+ coo[0]=r12cx;
  coo[2]=r12cz;  
+ dau=mother.add(new AMSgvolume(
+     "RADMED1",0,"RA1M","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//radiator #1,mid.
+//
+ gid=3;
+ par[0]=r13dx/2.;
+ par[2]=r13dz/2.;
+ coo[0]=r1cx;
+ coo[2]=r13cz;  
  dau=mother.add(new AMSgvolume(
      "RADMED1",0,"RA1T","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//radiator #1,top.
 //
-// ------------> #2(vertical at -Y):
+// ------------> #2(vertical at -Y(Ram)):
 //
- geant r21dx=210.;//section 21
- geant r2dy=r1dy;
- geant r21dz=50.8;
+ geant r21dx=r11dx;//section 21(bot) width
+ geant r2dy=r1dy;//thickness
+ geant r21dz=r11dz;//height
  geant r2cx=0.;//X0
- geant r2cy=-(170.5+r2dy/2.);//Y0
- geant r21cz=-82.8;//Z0
+ geant r2cy=-r1cy;//Y0
+ geant r21cz=r11cz;//Z0
 //
- geant r22dx=r11dx;// section 22
- geant r22dz=129.6;
- geant r22cz=7.4;//Z0
-//
- geant r23dx=210.;//section 23
- geant r23dz=36.;
- geant r23cz=90.2;//Z0
+ geant r22dx=r13dx;// section 22(top) width
+ geant r22dz=140.;
+ geant r22cz=40.5;//Z0
 //
  par[0]=r21dx/2.;
  par[1]=r2dy/2.;
@@ -1077,58 +1088,51 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  par[2]=r22dz/2.;
  coo[2]=r22cz;  
  dau=mother.add(new AMSgvolume(
-     "RADMED1",0,"RA2M","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//radiator #2,midd.
-//
- gid=3;
- par[0]=r23dx/2.;
- par[2]=r23dz/2.;
- coo[2]=r23cz;  
- dau=mother.add(new AMSgvolume(
      "RADMED1",0,"RA2T","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//radiator #2,top.
 //
-// ------------> #3(inclined at +Y):
+// ------------> #3(inclined at +Y(Wake)):
 //
-// geant r3cy1=112.;// top/unner corner y-pos.(r of TRD  top honeycomb)
- geant r3cy1=120.9;// top/unner corner y-pos.(r of TRD  top honeycomb)
-// geant r3cz1=152.;// top/inner corner z-pos(midd. of TRD top honeycomb)
- geant r3cz1=154.2;// top/inner corner z-pos(midd. of TRD top honeycomb)
- geant r3cy2=r1cy;// bot/inner corner y-pos.
- geant r3cz2=r11cz+r11dz/2.+r12dz;//bot/inner corner z-pos
- geant r3dz=2.1;// thickness
- geant r3dx=r12dx;// dx
+ geant r3cy1=120.9;// top/unner(wrt AMS"0") corner y-pos.(~ r of TRD  top honeycomb)
+ geant r3cz1=154.15;// top/inner corner z-pos(~ midd. of TRD top honeycomb)
+ geant r3cy2=174.1;// bot/inner corner y-pos.
+ geant r3cz2=112.6;//bot/inner corner z-pos
+ geant r3dy=2.6;// thickness
+ geant r3dx1=250.;// dx1(top edge)
+ geant r3dx2=225.;// dx2(bot edge)
  geant alp3=atan((r3cz1-r3cz2)/(r3cy2-r3cy1));
  geant cosa=cos(alp3);
  geant sina=sin(alp3);
- number nrm3[3][3]={1.,0.,0.,0.,cosa,sina,0.,-sina,cosa};//rot matrix.v#3
+ number nrm3[3][3]={-1.,0.,0.,0.,sina,cosa,0.,cosa,-sina};//rot matrix.v#3
 //
- par[0]=r3dx/2.;
- par[1]=sqrt(pow((r3cz1-r3cz2),2)+pow((r3cy2-r3cy1),2))/2.-0.001;//"0.001" for safety
- par[2]=r3dz/2.;
+ par[0]=r3dx1/2.;//dx at -z of TRD1
+ par[1]=r3dx2/2.;//dx at +z
+ par[2]=r3dy/2.;
+ par[3]=sqrt(pow((r3cz1-r3cz2),2)+pow((r3cy2-r3cy1),2))/2.;//dz(local)
  coo[0]=0.;
- coo[1]=0.5*(r3cy2+r3cy1)+0.5*r3dz*sina;
- coo[2]=0.5*(r3cz1+r3cz2)+0.5*r3dz*cosa;
+ coo[1]=0.5*(r3cy2+r3cy1)+0.5*r3dy*sina;
+ coo[2]=0.5*(r3cz1+r3cz2)+0.5*r3dy*cosa;
  gid=1;
  dau=mother.add(new AMSgvolume(
-     "RADMED1",nrot++,"RA3T","BOX",par,3,coo,nrm3,"ONLY",1,gid,1));//radiator #3,top.
+     "RADMED1",1,"RA3T","TRD1",par,4,coo,nrm3,"ONLY",1,gid,1));//radiator #3,top.
 //
 // ------------> #4(inclined at -Y):
 //
- number nrm4[3][3]={1.,0.,0.,0.,cosa,-sina,0.,sina,cosa};//rot matrix.v#4
+ number nrm4[3][3]={1.,0.,0.,0.,-sina,-cosa,0.,cosa,-sina};//rot matrix.v#4
 //
  coo[1]=-coo[1];
  gid=1;
  dau=mother.add(new AMSgvolume(
-     "RADMED1",nrot++,"RA4T","BOX",par,3,coo,nrm4,"ONLY",1,gid,1));//radiator #4,top.
+     "RADMED1",1,"RA4T","TRD1",par,4,coo,nrm4,"ONLY",1,gid,1));//radiator #4,top.
 //
 // -----------------------------> Crates:
 //
-//----> big top crates:
+//----> Horizontal top crates(Attached to vert.radiators):
 //
- geant cr1dx=210.;// for +Y/top crate
- geant cr1dy=23.;
- geant cr1dz=26.2;
- geant cr1cy=142.5;//inner wall y-pos.
- geant cr1cz=78.3;// bot wall z-pos
+ geant cr1dx=r13dx;// +Y(Wake) top crate-1(2)
+ geant cr1dy=23.;//tempor
+ geant cr1dz=26.3;
+ geant cr1cy=r1cy-r1dy/2-cr1dy;//inner wall y-pos.
+ geant cr1cz=(r11dz+r12dz+r13dz)/2-cr1dz-4.4;// bot wall z-pos
 //
  par[0]=cr1dx/2.;
  par[1]=cr1dy/2.;
@@ -1138,22 +1142,52 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  coo[2]=cr1cz+cr1dz/2.;
  gid=1;
  dau=mother.add(new AMSgvolume(
-     "CRATEMED1",0,"CRB1","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//crate +Y/top
+     "CRATEMED1",0,"CRH1","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//crate +Y/top
  coo[1]=-coo[1];
  dau=mother.add(new AMSgvolume(
-     "CRATEMED1",0,"CRB2","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//crate -Y/top
+     "CRATEMED1",0,"CRH2","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//crate -Y/top
 //
-//----> big bot. crates:
+//----> Horizontal bot crates(Attached to vert.radiators):
 //
- coo[1]=-coo[1];
+ geant cr3dx=r11dx;// +Y(Wake) bot crate-3(4)
+ par[0]=cr3dx/2.;
+ coo[1]=-coo[1];//imply symmetric +-y/+-z pos !!! 
  coo[2]=-coo[2];
  dau=mother.add(new AMSgvolume(
-     "CRATEMED1",0,"CRB3","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//crate +Y/bot
+     "CRATEMED1",0,"CRH3","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//crate +Y/bot
  coo[1]=-coo[1];
  dau=mother.add(new AMSgvolume(
-     "CRATEMED1",0,"CRB4","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//crate -Y/bot
+     "CRATEMED1",0,"CRH4","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//crate -Y/bot
 //
-//----> small crates:
+//----> Vertical +X(-X) crates(attached to vert.radiators):
+//
+ geant crh1dx=18.5;//x-width
+ geant crh1dz=2*(cr1cz-3);//y-height(and imply symm. +-z pos)
+ geant crh1dy=cr1dy;// tempor
+ geant crh1cx=38.9;//inner(wrt rad-midd) wall pos
+ geant crh1cy=r1cy-r1dy/2-crh1dy;//inner(wrt AMS"0") wall y-pos.
+ par[0]=crh1dx/2;
+ par[1]=crh1dy/2;
+ par[2]=crh1dz/2;
+ coo[0]=crh1cx+crh1dx/2;
+ coo[1]=crh1cy+crh1dy/2;
+ coo[2]=0;
+ gid=1;
+ dau=mother.add(new AMSgvolume(
+     "CRATEMED1",0,"CRV1","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//crate +Y/+X
+ coo[0]=-coo[0];    
+ dau=mother.add(new AMSgvolume(
+     "CRATEMED1",0,"CRV2","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//crate +Y/-X
+ coo[1]=-coo[1];    
+ dau=mother.add(new AMSgvolume(
+     "CRATEMED1",0,"CRV4","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//crate -Y/-X
+ coo[0]=-coo[0];    
+ dau=mother.add(new AMSgvolume(
+     "CRATEMED1",0,"CRV3","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//crate -Y/+X
+//
+//---------------
+//
+//----> small horizontal crates near ECAL:
 //
  geant cr2dx=134.;//for +Y crate
  geant cr2dy=28.;
@@ -1307,11 +1341,12 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
 //------------> USS :
 //
 //----> bar-1 type(attached to magnet top + TOF/TRD interface):
+//
  geant us1dz=18.4;//final
  geant us1dx=15.2;//final
- geant us1x1=99.5-us1dx/2.;//(final)inner(wrt AMS "0") edge x-pos
- geant us1y1=99.5;//(final) inner edge y-pos(with us1x1 are defined by attach to VC
-//                             at R=140.7cm and angle 45 degr.)                            
+ geant us1x1=99.9-us1dx/2.;//(final)inner(wrt AMS "0") edge x-pos
+ geant us1y1=99.9;//(final) inner edge y-pos(with us1x1 are defined by attach to VC
+//                             at R=141.3cm and angle 45 degr.)                            
  geant us1z1=68.12-us1dz/2.;//(final) inner/bot edge z-pos 
  geant us1x2=us1x1;// outer edge x-pos
  geant us1y2=192.;//(final+cutted) outer edge y-pos
@@ -1328,7 +1363,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant us2aan=46.3/180.*AMSDBc::pi;//beams angle abs.value
  geant us2dx=12.6;//(final)
  geant us2dz=15.2;//(final)
- geant us2x1=99.5-us2dx/2.;//(final)inner(wrt AMS "0") edge x-pos
+ geant us2x1=99.9-us2dx/2.;//(final)inner(wrt AMS "0") edge x-pos
  geant us2y1=us1y1;// inner edge y-pos
  geant us2z1=-90.14+0.5*us2dz*cos(us2aan);//(final) inner edge  z-pos
  geant us2x2=us2x1;// outer edge x-pos
@@ -1428,7 +1463,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant us4dx=11.5;//final
  geant us4dz=14.2;//final
  geant us4r1=106.5;//(final)radial pos. of low end(center)(check matching with low frame)
- geant us4r2=140.7;//(final)radial pos. of high end(center)(match top/bot USS joint radious)
+ geant us4r2=141.3;//(final)radial pos. of high end(center)(match top/bot USS joint radious)
  geant us4z1=-135.9;//final                               ................................
  geant us4z2=-95.;//final(to have 50.1 degr. slope)        ................................
  geant us4dy=sqrt(pow(us4r2-us4r1,2)+pow(us4z2-us4z1,2));
