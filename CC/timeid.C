@@ -180,6 +180,9 @@ integer AMSTimeID::write(char * dir){
 
 
 integer AMSTimeID::read(char * dir, integer reenter){
+
+
+
   enum open_mode{binary=0x80};
     fstream fbin;
     AString fnam(dir);
@@ -208,6 +211,10 @@ integer AMSTimeID::read(char * dir, integer reenter){
       _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
       }
       delete [] pdata;
+
+
+
+
       return fbin.good();
      }
      else cerr<<"AMSTimeID::read-E-Failed to allocate memory "<<_Nbytes<<endl;

@@ -914,7 +914,7 @@ void AMSJob::init(){
 
 AMSEvent::debug=AMSFFKEY.Debug;
 
-if(isSimulation())_siamsinitjob();
+_siamsinitjob();
 
 _reamsinitjob();
 
@@ -1471,6 +1471,12 @@ TID.add (new AMSTimeID(AMSID("TrackerIndNoise",isRealData()),
    begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::indnoise));
 }
+
+
+
+
+
+
 //---------------------------------------
 //
 //   TOF : calibration parameters for all sc.bars

@@ -841,9 +841,9 @@ void AMSEvent:: _retrigevent(){
   // Backup solution to "simulate" trigger 1 & 3 for rec data
   
   AMSContainer *pc= getC("TriggerLVL1",0);
-  if(pc && pc->getnelem()==0)TriggerLVL1::build();
+   if(pc && pc->getnelem()==0)TriggerLVL1::build();
   pc= getC("TriggerLVL3",0);
-  if(pc && pc->getnelem()==0)TriggerLVL3::build();
+    if(pc && pc->getnelem()==0)TriggerLVL3::build();
 
 }
 

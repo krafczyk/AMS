@@ -39,7 +39,7 @@ PROTOCCALLSFSUB0(UGLAST,uglast)
 void (handler)(int);
 main(){
      set_new_handler(UPool.StHandler);
-      //*signal(SIGFPE, handler);
+     *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
      *signal(SIGINT, handler);
