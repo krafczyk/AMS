@@ -2893,8 +2893,9 @@ void AMSEvent::_collectstatus(){
     }
     else if(ptr1){
       ptr=ptr1;     
-      AMSContainer *ptrc=getC("AMSParticle",1);
+      ptrc=getC("AMSParticle",1);
     }
+    if(ptr){
       npart=ptrc->getnelem();
       if(npart>3)npart=3;
       __status= __status | (npart<<21);
@@ -2930,6 +2931,7 @@ void AMSEvent::_collectstatus(){
        uinteger localdb=0;
        if((ptr->getptrack())->checkstatus(AMSDBc::LocalDB))localdb=1;
       __status=__status | (localdb<<29);
+   }
   }
   {
     integer ctcl[2]={0,0};
