@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.42 2003/04/22 11:22:05 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.43 2003/04/23 11:40:33 choutko Exp $
 
 #
 #
@@ -396,8 +396,8 @@ my $sql;
          $journal     = trimblanks($journal);
          $dbh->do("insert into Cites values($cid,$name,0,$status,$run,$stat,$description,$time)")
          or die "cannot do: ".$dbh->errstr();
-         my $dirpath=$journal."/".$name    
-         $dbh->do("insert into journals values($cid,$dirpath,' ',$time)          
+         my $dirpath=$journal."/".$name;    
+         $dbh->do("insert into journals values($cid,$dirpath,' ',$time)")    
          or die "cannot do: ".$dbh->errstr();    
          $n++;
          $run=($n<<27)+1;
