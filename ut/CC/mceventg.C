@@ -229,7 +229,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
     GFPART(ipart,chp,itrtyp,mass,charge,tlife,ub,nwb);
     charge=fabs(charge);
 
-    if(ipart == 3 && low ){
+    if(ipart == 3 && low==3 ){
       HBOOK1(_hid,"Low Electron Spectrum",12,0.,6.,0.);
       HF1(_hid,0.75,12900.);
       HF1(_hid,1.25,4550.);
@@ -247,9 +247,25 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       cout <<"AMSMceventg::setspectra-W-Sea Level muons Generator Chosen"<<endl;
       CMINIT();
     }
+    else if(low==1){
+      cout <<"AMSMceventg::setspectra-W-UnderCutoffParticleGeneratorChosen"<<endl;
+   
+      integer nchan=200;
+      geant binw;
+      if(mass < 0.938)binw=100;
+      else  binw=100*mass/0.938;
+      geant al=binw/2;
+      geant bl=binw/2+nchan*binw;
+      HBOOK1(_hid,"Spectrum",nchan,al,bl,0.);
+      for(int i=0;i<nchan;i++){
+        geant xm=i*binw+al+binw/2;
+        number xmom=xm/1000;
+        geant y=exp(-3.5*xmom);
+        HF1(_hid,xm,y);
+     }
+    }
     else {
       integer nchan=1000;
-      
       geant binw;
       if(mass < 0.938)binw=100;
       else  binw=100*mass/0.938;
