@@ -1,0 +1,7 @@
+/*! \example select_entries.doc
+ *  The program below (select_entries.C) illustrates how to write 
+ *  your selected events into a new AMS Root file. 
+ *    - To run it: root -b -q select_entries.C
+ *
+ *  \include select_entries.C
+ */ 
