@@ -270,6 +270,8 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     fSubDetMenu[7]->AddEntry("TOF Length",171);
     fSubDetMenu[7]->AddEntry("TRK (red) Length",172);
     fSubDetMenu[7]->AddEntry("TRK (raw,mix) Length",173);
+    fSubDetMenu[7]->AddEntry("Event Time difference",174);
+    fSubDetMenu[7]->AddEntry("Shuttle Parameters",175);
     
     fMenuBarLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 0, 0, 1, 1);
     fMenuBarItemLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0);
