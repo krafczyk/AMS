@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.9 2003/07/18 13:48:51 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.10 2003/07/21 11:11:16 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -416,8 +416,6 @@ RichRingV::RichRingV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPolyLine3D(){
 //
 static TNode *mirror=gAMSDisplay->GetGeometry()->GetNode("OMIR1");
 static TNode *rich=gAMSDisplay->GetGeometry()->GetNode("RICH1");
-for(int i=0;i<ev->nParticle();i++){
- if( ev->pParticle(i)->iRichRing() == ref){
            TCONE * pcone= (TCONE*)mirror->GetShape();
            double r1=pcone->GetRmin2();
            double r2=pcone->GetRmin();
@@ -437,8 +435,11 @@ for(int i=0;i<ev->nParticle();i++){
   const double n_aero=1.02998;
   const double n_naf=1.33;
   const double n_naf_Spread=0.01; 
+   if(ev->Version() <89){
   double refi;
    double rad_posz;
+for(int i=0;i<ev->nParticle();i++){
+ if( ev->pParticle(i)->iRichRing() == ref){
   if(fabs(ev->pParticle(i)->RichCoo[0][0])<11.3*3/2 && fabs(ev->pParticle(i)->RichCoo[0][1])<11.3*3/2){
     refi=n_naf;
     rad_posz=-2.5;
@@ -450,7 +451,7 @@ for(int i=0;i<ev->nParticle();i++){
    rad_thick=-3;
   }
   double    cc=1./ev->pRichRing(ref)->Beta/refi;
-  // cout <<" refi "<<refi<<" "<<cc<<" "<<ev->pParticle(i)->RichCoo[0][0]<<" "<<ev->pParticle(i)->RichCoo[0][1]<<" "<<ev->pParticle(i)->RichCoo[0][2]<<" "<<ev->pParticle(i)->RichCoo[1][2]<<" "<<ev->pRichRing(ref)->UsedM<<endl;
+//   cout <<" refi "<<refi<<" "<<cc<<" "<<ev->pParticle(i)->RichCoo[0][0]<<" "<<ev->pParticle(i)->RichCoo[0][1]<<" "<<ev->pParticle(i)->RichCoo[0][2]<<" "<<ev->pParticle(i)->RichCoo[1][2]<<" "<<ev->pRichRing(ref)->Beta<<endl;
   if(cc<1){
    double theta=acos(cc);
     TVector3 z(ev->pParticle(i)->RichCoo[1][0]-ev->pParticle(i)->RichCoo[0][0],ev->pParticle(i)->RichCoo[1][1]-ev->pParticle(i)->RichCoo[0][1],ev->pParticle(i)->RichCoo[1][2]-ev->pParticle(i)->RichCoo[0][2]);
@@ -545,17 +546,122 @@ for(int i=0;i<ev->nParticle();i++){
 //    cout <<" ray "<<ray.X()<<" "<<ray.Y()<<" "<<ray.Z()<<endl;
 //    cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
    }   
+
    SetPolyLine(npoint,array);
    SetLineColor(6);
    int size=gAMSDisplay->Focus()==0?2:1;
    SetLineWidth(size*2);
    SetLineStyle(1);
    return;
+   }
+   }
+   }
+   return;
+   }
+   else{
+   double refi=pcl->Beta*cos(pcl->Theta);
+    refi=1/refi;
+    if(refi>1.1){
+    rad_thick=-0.5;
   }
-  else{
-   cerr<<"RichRingV-E-ProblemWithRefIndex "<<refi<<" "<<ev->pRichRing(ref)->Beta<<" "<<cc<<endl;
+  else {
+   rad_thick=-3;
   }
-  break;
- }
+   double theta=pcl->Theta;
+    //cout <<" theta "<<pcl->Theta<<"  " <<refi<<endl;
+    TVector3 z(pcl->TrPMTPos[0]-pcl->TrRadPos[0],pcl->TrPMTPos[1]-pcl->TrRadPos[1],pcl->TrPMTPos[2]-pcl->TrRadPos[2]);
+    //cout << pcl->TrRadPos[2]<<"  "<<pcl->TrPMTPos[2]<<endl;
+    double rcoo[3];
+    TRotation r;
+    r.SetZAxis(z);
+   double dphi=2*3.1415926/(npoint-1);
+   double phi=-dphi;
+   for( int k=0;k<npoint;k++){
+   double posz=rad_thick*(float(rand())/RAND_MAX-0.5);
+   double thick=rad_thick*0.5-posz;  
+    rcoo[0]=pcl->TrRadPos[0]+z.X()/z.Z()*posz;
+    rcoo[1]=pcl->TrRadPos[1]+z.Y()/z.Z()*posz;
+    rcoo[2]=pcl->TrRadPos[2]+posz;
+    phi+=dphi;
+    double u=sin(theta)*cos(phi);
+    double v=sin(theta)*sin(phi);
+    double w=cos(theta);
+    TVector3 ray(u,v,w);
+    ray.Transform(r);
+
+    rcoo[0]+=ray.X()/ray.Z()*thick;
+    rcoo[1]+=ray.Y()/ray.Z()*thick;
+    rcoo[2]+=ray.Z()/ray.Z()*thick;
+//  Now refraction
+    double st=refi*sin(ray.Theta());
+    if(st>=1){
+      cerr<< "full refl "<<st<<endl;
+      k=k-1;
+      npoint--;
+      continue;
+    }
+     
+    double u1=st*cos(ray.Phi());
+    double v1=st*sin(ray.Phi());
+    double w1=-sqrt(1-st*st);
+     ray=TVector3(u1,v1,w1);
+     double addon=4;
+     double zl=pcl->TrPMTPos[2]-rcoo[2]+addon;
+    array[k*3+0]=rcoo[0]+ray.X()/ray.Z()*zl;
+    array[k*3+1]=rcoo[1]+ray.Y()/ray.Z()*zl;
+    array[k*3+2]=pcl->TrPMTPos[2]+addon;
+    double rp=sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1]);
+    double rc=sqrt(xc*xc+yc*yc)+r2+(array[k*3+2]-z2)*tc;
+    while(rp>rc && ray.Z()<0){
+      zl=pcl->TrPMTPos[2]-rcoo[2]+addon;
+      // take iterations
+       double rp2=rp;
+       double rc2=rc;
+       double eps=1.e-2;
+       while(fabs(rp2-rc2)>eps && fabs(zl)>eps){       
+        zl=zl/2;
+        rcoo[0]+=ray.X()/ray.Z()*zl;
+        rcoo[1]+=ray.Y()/ray.Z()*zl;
+        rcoo[2]+=zl;
+        rp2=sqrt(rcoo[0]*rcoo[0]+rcoo[1]*rcoo[1]);
+        rc2=sqrt(xc*xc+yc*yc)+r2+(rcoo[2]-z2)*tc;
+        if(rp2>rc2 && zl<0)zl=-zl;
+        else if(rp2<rc2 && zl>0)zl=-zl;
+      }           
+     // get norm vector to cone
+     double cw=sin(atan(-tc));
+     double phin=atan2(rcoo[1],rcoo[0]);
+     double cu=cos(atan(-tc))*cos(phin);
+     double cv=cos(atan(-tc))*sin(phin);
+     //  reflect
+     double cc=ray.X()*cu+ray.Y()*cv+ray.Z()*cw;
+     double ru=ray.X()-2*cc*cu;
+     double rv=ray.Y()-2*cc*cv;
+     double rw=ray.Z()-2*cc*cw;
+     ray=TVector3(ru,rv,rw);
+     array[k*3+0]=rcoo[0]+ru/rw*(pcl->TrPMTPos[2]+addon-rcoo[2]);
+     array[k*3+1]=rcoo[1]+rv/rw*(pcl->TrPMTPos[2]+addon-rcoo[2]);
+     rp=sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1]);
+    }
+     if(ray.Z()>0){
+      k--;
+      npoint--;
+      continue;
+     }
+     const double hole=32;
+     if(fabs(array[k*3+0])<hole && fabs(array[k*3+1])<hole){
+       // in the hole
+      k--;
+      npoint--;
+      continue;
+     }
+    //cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
+   }   
 }
+   SetPolyLine(npoint,array);
+   SetLineColor(6);
+   int size=gAMSDisplay->Focus()==0?2:1;
+   SetLineWidth(size*2);
+   SetLineStyle(1);
+   return;
 }
