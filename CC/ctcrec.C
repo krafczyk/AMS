@@ -738,6 +738,7 @@ void AMSCTCRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 //
   crate=(blid>>6)&7;// node_address (0-7 -> DAQ crate #)
   dtyp=1-(blid&63);// data_type ("0"->RawTDC; "1"->ReducedTDC)
+
 #ifdef __AMSDEBUG__
   if(CTCRECFFKEY.reprtf[1]>=1){
     cout<<"CTC::decoding: crate/format="<<crate<<" "<<dtyp<<"  bias="<<bias<<endl;

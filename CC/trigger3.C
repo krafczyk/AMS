@@ -588,8 +588,8 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
      if(side != 0 && (LVL3FFKEY.NoK || _TrackerAux[drp][half])){
       integer layer=_TrackerDRP2Layer[drp][half];
       integer num = ((*ptr)&63);
-      if(LVL3FFKEY.SeedThr>0){
-        if(((*((int16u*)ptr)>>6) & 63) <LVL3FFKEY.SeedThr)goto next;
+      if(LVL3FFKEY.SeedThr>0 ){
+        if(((*((int16u*)ptr)>>6) & 63) <LVL3FFKEY.SeedThr && ((*((int16u*)ptr)>>6) & 63)>0)goto next;
         int count=0;
         for(int k=2;k<num+3;k++){
           if(*(ptr+k)>=16)count++;

@@ -169,7 +169,7 @@
          call hbook1(702,' ',100,0.,50.,0.)
          call hbook1(703,'TOFclusters',50,-0.5,49.5,0.)
          call hbook1(1702,' ',100,0.,50.,0.)
-         call hbook1(801,'dchi',100,0.,2.,0.)
+         call hbook1(801,'dchi',200,0.,10.,0.)
          call hbook1(901, 'p1/p2',200,-1.,3.,0.)
          call hbook1(902 ,'theta dif',200,-0.02,0.02,0.)
          call hbook1(903,'phi diff',200,-0.05,0.05,0.)
@@ -312,7 +312,7 @@
        if(cuts(1))then
         r=float(ntrcl)/nhits(iptr)
         call hf1(101,r,1.)
-        cuts(2)=r.lt.8.
+        cuts(2)=r.lt.20.
         if(cuts(2))then
          cuts(3)=chi2circle(iptr).lt.2.5.and.
      +   chi2fastfit(iptr).lt.10.
@@ -369,7 +369,7 @@ c                   cuts(8)=.true.
                     r=chi2fastfit(iptr)-hchi2(1,iptr)-hchi2(2,iptr)
                     call hf1(801,r,1.)
                     cuts(9)=panti.lt.0.5.and.tofclusters.lt.5.and.
-     +              betachi2(pbetap(1)).lt.5..and.r.lt.0.5
+     +              betachi2(pbetap(1)).lt.5..and.r.lt.2.
 *
 * Cerenkov cuts
 *
@@ -389,7 +389,7 @@ c                   cuts(8)=.true.
                     call hf1(970,xx,1.)
                     if(cuts(9))call hf1(972,xx,1.)
                     call hf2(971,cooctc(1,1,1),cooctc(2,1,1),1.)
-                    cuts(9)=cuts(9).and.xx.lt.4   
+                    cuts(9)=cuts(9).and.xx.lt.1   
                     if(cuts(9))then
                     do i=1,ntrclmc
                      call hf1(702,float(itra(i)),1.)
