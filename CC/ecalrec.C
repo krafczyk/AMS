@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.67 2002/10/17 16:01:46 choutko Exp $
+//  $Id: ecalrec.C,v 1.68 2002/10/23 13:49:04 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -2504,6 +2504,7 @@ void AMSEcalRawEvent::buildrawRaw(integer n, int16u *p){
   int dynode=0;
   int dead=0;
   static geant sum_dynode=0;
+  uinteger ecalflag;
   if(ic==0)sum_dynode=0;
   for(int16u* ptr=p+1;ptr<p+n;ptr++){  
    int16u pmt=count%36;
@@ -2515,10 +2516,12 @@ void AMSEcalRawEvent::buildrawRaw(integer n, int16u *p){
                channel=0;
                gain=3;
             }
-  
            AMSECIdSoft id(ic,pmt,channel);//create id's
        if(id.dead()){
          dead++;
+         if(ic==1 && pmt==34 && !anode){
+          ecalflag=value;
+         }
        }
 
        if(!id.dead()){
@@ -2571,7 +2574,7 @@ void AMSEcalRawEvent::buildrawRaw(integer n, int16u *p){
       if(ic==getmaxblocks()-1){
        uinteger tofpatt[4]={0,0,0,0};
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-          new Trigger2LVL1(999,0,tofpatt,0,12,sum_dynode/1000));
+          new Trigger2LVL1(999,0,tofpatt,0,ecalflag,sum_dynode/1000));
 
       }
 }
