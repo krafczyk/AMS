@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.9 2003/06/18 15:36:58 choutko Exp $
+#  $Id: 00index.txt,v 1.10 2003/06/18 16:43:27 choutko Exp $
 
 =========================================================================
 
@@ -39,7 +39,7 @@ of AMS offline monitor into it.
 ----------------------
 $AMSWD/offmon{c} path/xyz.root  where path/xyz.root is the ams root file
 
-Not that multiple files may be read at once using wildcards, e.g.
+Note that multiple files may be read at once using wildcards, e.g.
 
 $AMSWD/offmon{c} "path/*.root"  
 
@@ -55,7 +55,6 @@ Dynamic  program allows user to load/run his/her own selection program via AMSNt
 the desired selection then click on "Load UF" button.
 Please note the offmonc should be relinked in case opsys is not rh7.3  
 
-To run it, please make sure you have the environment to run ROOT.
 
 -------------------------------------------------------------------------
 4. Tutorial
@@ -72,5 +71,7 @@ main                //main
 *Hist               // Subdet book/fill/draw 
 AMSHist             // abstract class for the *Hist
 AMSNtuple           // Ntuple def
-AMSDisplay          // Dispatcher
-AMSNtupleSelect.C   //  user selection function
+AMSDisplay          // Main GUI Class & Dispatcher
+ControlFrame        // Control Frame
+ AMSNtupleSelect.C   //  user selection function
+
