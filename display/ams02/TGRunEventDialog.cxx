@@ -1,13 +1,11 @@
-//  $Id: TGRunEventDialog.cxx,v 1.3 2001/06/25 20:21:17 kscholbe Exp $
+//  $Id: TGRunEventDialog.cxx,v 1.4 2001/06/26 16:25:34 kscholbe Exp $
 #include "TGRunEventDialog.h"
-#include <TGView.h>
 #include <TGTextView.h>
 #include <TGLabel.h>
 #include <TGTextEntry.h>
 #include <TGButton.h>
 #include <stdlib.h>
 #include <iostream.h>
-#include <TGScrollBar.h>
 
 enum {
    kIDF_OK,
@@ -21,6 +19,7 @@ const char *TGRunEventDialog::fLines =
 ClassImp(TGRunEventDialog)
 
 //_____________________________________________________________________________
+
 TGRunEventDialog::TGRunEventDialog(const TGWindow *p, const TGWindow *main,
                    Int_t *pRun, Int_t *pEvent) :
    TGTransientFrame(p, main, 10, 10, kMainFrame | kVerticalFrame)
@@ -32,10 +31,7 @@ TGRunEventDialog::TGRunEventDialog(const TGWindow *p, const TGWindow *main,
    //
    fLmain  = new TGLayoutHints( kLHintsTop | kLHintsExpandX, 4, 4, 5, 5);
 
- // Something wrong with kNoHSB and kNoVSB??
-//   fText   = new TGTextView(this, 10, 10, -1,kNoHSB | kNoVSB, fgDefaultFrameBackground);
-// Temp:
-   fText   = new TGTextView(this, 10, 10, -1,BIT(0) | BIT(1), fgDefaultFrameBackground);
+   fText   = new TGTextView(this, 10, 10, -1,TGView::kNoHSB | TGView::kNoVSB, fgDefaultFrameBackground);
    fText->ChangeOptions(0);
    fText->LoadBuffer(fLines);
    fText->Resize(350, 50);
