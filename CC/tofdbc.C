@@ -208,17 +208,20 @@ geant TOFDBc::_plnstr[15]={
   dz=_plnstr[5]+2.*_plnstr[6];// counter thickness
   if(il==0)
     zc=_supstr[0]+_supstr[6]+_plnstr[0]+dz/2.;
-  if(il==1)
+  else if(il==1)
     zc=_supstr[0]-_plnstr[1]-dz/2.;
-  if(il==2)
+  else if(il==2)
     zc=_supstr[1]+_plnstr[1]+dz/2.;
-  if(il==3)
+  else if(il==3)
     zc=_supstr[1]-_supstr[6]-_plnstr[0]-dz/2.;
   if(il==0)zc=zc+(ib%2)*_plnstr[2];
-  if(il==2)zc=zc+(ib%2)*_plnstr[2];//new (correct ?)
-  if(il==3)zc=zc-(ib%2)*_plnstr[2];
-  if(il==1)zc=zc-((ib+1)%2)*_plnstr[2];
-//  if(il==2)zc=zc+((ib+1)%2)*_plnstr[2];//old (wrong ?)
+  else if(il==2){
+          if((AMSJob::gethead()->isRealData()) && (AMSEvent::gethead() && AMSEvent::gethead()->getrun()>889992398))
+          zc=zc+(ib%2)*_plnstr[2];//new (correct ?)
+          else zc=zc+((ib+1)%2)*_plnstr[2];//old (wrong ?)
+  }
+  else if(il==3)zc=zc-(ib%2)*_plnstr[2];
+  else if(il==1)zc=zc-((ib+1)%2)*_plnstr[2];
   return(zc);
   }  
 // function to get transv. position of scint. bar=ib in layer=il

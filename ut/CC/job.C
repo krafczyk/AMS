@@ -105,7 +105,6 @@ extern CTCCCcal ctcfcal[CTCCCMX];//  CTC calibr. objects
 void AMSJob::data(){
 #ifdef __HPUX__
   AMSTrIdSoft::init();
-  //AMSCharge::init();
   AMSgObj::GTrMedMap=*(new  AMSNodeMap() );
   AMSgObj::GVolMap= *(new  AMSNodeMap() );
   AMSgObj::BookTimer= *(new AMSStat() );
@@ -600,8 +599,8 @@ TRFITFFKEY.pattern[21]=1;
 }
 TRFITFFKEY.UseTOF=2;
 TRFITFFKEY.Chi2FastFit=2000;
-TRFITFFKEY.Chi2StrLine=99;
-TRFITFFKEY.Chi2Circle=99;
+TRFITFFKEY.Chi2StrLine=199;
+TRFITFFKEY.Chi2Circle=199;
 TRFITFFKEY.ResCutFastFit=0.5;
 TRFITFFKEY.ResCutStrLine=0.5;
 TRFITFFKEY.ResCutCircle=0.5;
@@ -1256,7 +1255,7 @@ AMSgObj::BookTimer.book("RECTCEVENT");
 
 void AMSJob::_reaxinitjob(){
 AMSgObj::BookTimer.book("REAXEVENT");
-AMSCharge::init();
+if(AMSFFKEY.Update)AMSCharge::init();
 }
 
 void AMSJob::_retrdinitjob(){
