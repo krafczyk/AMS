@@ -199,7 +199,9 @@ void AMSEcalCluster::build(int &stat){
   maxcl=2*ECALDBc::slstruc(4);//real SubCells per plane
   ecogz=0.01;//(cm) hope not more
 //
-  for(i=0;i<(2*ECSLMX);i++)zprof[i]=0.;// clear z-profile array
+  for(i=0;i<(2*ECSLMX);i++){
+    zprof[i]=0.;// clear z-profile array
+  }
 //
   for(ipl=0;ipl<maxpl;ipl++){ // <-------------- SubCell-plane loop
     ptr=(AMSEcalHit*)AMSEvent::gethead()->
@@ -220,6 +222,7 @@ void AMSEcalCluster::build(int &stat){
       status=ptr->getstatus();
       tprof[cell]+=edep;//Gev-profile
       zprof[ipl]+=edep;
+      EcalJobStat::zprofa[ipl]+=edep;
       if(edep>edepthr){ //<-- for primitive cluster
         cogt+=coot*edep;
 	ecogt+=coot*coot*edep;

@@ -537,15 +537,17 @@ geant ECALDBc::_mev2mev=36.16; // MC: dE/dX(MeV)->Emeas(MeV) conv.factor(at 50ge
 //
 integer EcalJobStat::mccount[ECJSTA];
 integer EcalJobStat::recount[ECJSTA];
-// function to print Job-statistics at the end of JOB(RUN):
+geant EcalJobStat::zprofa[2*ECSLMX];// average Z-profile
 //
 //------------------------------------------
 void EcalJobStat::clear(){
   int i,j;
   for(i=0;i<ECJSTA;i++)mccount[i]=0;
   for(i=0;i<ECJSTA;i++)recount[i]=0;
+  for(i=0;i<2*ECSLMX;i++)zprofa[i]=0;
 }
 //------------------------------------------
+// function to print Job-statistics at the end of JOB(RUN):
 void EcalJobStat::printstat(){
 //
   printf("\n");
@@ -587,6 +589,7 @@ void EcalJobStat::bookhist(){
       }
       HBOOK1(ECHIST+22,"EcalCluster value(tot,Mev)",200,0.,1000000,0.);
       HBOOK1(ECHIST+23,"EcalCluster value(tot,Mev)",100,0.,50000,0.);
+      HBOOK1(ECHIST+24,"Z-profile(average)",maxpl,1.,geant(maxpl+1),0.);
     }
 //
 }
@@ -615,6 +618,9 @@ void EcalJobStat::outp(){
       HPRINT(ECHIST+18);
       HPRINT(ECHIST+22);
       HPRINT(ECHIST+23);
+      if(recount[2]>0)for(int i=0;i<2*ECSLMX;i++)zprofa[i]/=geant(recount[2]);
+      HPAK(ECHIST+24,zprofa);
+      HPRINT(ECHIST+24);
     }
 }
 //----------------------------

@@ -168,7 +168,7 @@ for (integer k=0;k<2;k++){
   else{
     //slow algo
     for(int kk=0;kk<floor(xpr);kk++){
-     geant e,dummy;
+     geant e,dummy=0;
      e=entry[k]-dentry[k]+2*RNDM(dummy)*dentry[k];
      number a1,a2;
      for (int ii=_left[k];ii<=_right[k];ii++){
@@ -257,7 +257,7 @@ number AMSTrMCCluster::sitknoiseprobU(number threshold, number step){
 
 void  AMSTrMCCluster::sitknoisespectrum(const AMSTrIdSoft & id, number ss[],
                                         number prob){
-   geant d;
+   geant d=0;
    if(RNDM(d)>=prob)ss[0]=id.getsig()*HRNDM1(hid(id.getside()));
    else  ss[0]=id.getsig()*rnormx();
 }
@@ -296,7 +296,7 @@ integer idsoft , geant vect[],geant edep, geant step, integer itra ){
 void AMSTrMCCluster::sitknoise(){
   // Only add noise when not in raw mode
   AMSgObj::BookTimer.start("SITKNOISE");
-   geant dummy;
+   geant dummy=0;
    number noise,oldone=0;
    integer itra=_NoiseMarker;
    number ss[5];

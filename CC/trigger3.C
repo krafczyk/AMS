@@ -23,7 +23,7 @@ void TriggerAuxLVL3::fill(integer crate){
   integer ierr=0;
   integer nn=0;
   int16u drp,strip,va,side;
-  geant d;
+  geant d=0;
   for(i=0;i<2;i++){
    geant xn=LVL3SIMFFKEY.NoiseProb[i]*NTRHDRP/2*TKDBc::NStripsDrp(1,i);
    POISSN(xn,nn,ierr);

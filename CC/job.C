@@ -594,7 +594,7 @@ FFKEY("CTCMC",(float*)&CTCMCFFKEY,sizeof(CTCMCFFKEY_DEF)/sizeof(integer),"MIXED"
 }
 //================================================================================
 void AMSJob::_siantidata(){
-  ANTIGEOMFFKEY.scradi=54.385; // internal radious of ANTI sc. cylinder (cm)
+  ANTIGEOMFFKEY.scradi=54.4;   // internal radious of ANTI sc. cylinder (cm)
   ANTIGEOMFFKEY.scinth=1.;     // thickness of scintillator (cm)
   ANTIGEOMFFKEY.scleng=83.;    //(ams01) scintillator paddle length (glob. Z-dim)
   ANTIGEOMFFKEY.wrapth=0.04;   // wrapper thickness (cm)
@@ -781,7 +781,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.reprtf[1]=0; //(4) print flag for DAQ (1/2-> print for decoding/dec+encoding)
   TOFRECFFKEY.reprtf[2]=0; //(5) print flag for histograms
   TOFRECFFKEY.reprtf[3]=0; //(6) print flag for TDC-hit multiplicity histograms 
-  TOFRECFFKEY.reprtf[4]=3102; //(7) if non-zero (LBBS) print stretcher T1/T2 for LBBS
+  TOFRECFFKEY.reprtf[4]=0; //(7) if non-zero (LBBS) print stretcher T1/T2 for LBBS
 //
   TOFRECFFKEY.relogic[0]=0;//(8) 0/1/2/3/4 ->normal/STRR+AVSD-/TDIF-/TZSL-/AMPL-calibr. run. 
   TOFRECFFKEY.relogic[1]=0;//(9) 0/1/2-> full_fTDC_use/no_time_matching/not_use 
@@ -1413,15 +1413,15 @@ void AMSJob::_siantiinitjob(){
     HBOOK1(2000,"ANTI_counters total energy (geant,Mev)",60,0.,30.,0.); 
   }
 //
-  AMSgvolume *pg=AMSJob::gethead()->getgeomvolume(AMSID("ANTS",1));
-     number par[5];
-if(pg){
-     for(int i=0;i<5;i++)par[i]=pg->getpar(i);
-     ANTIMCFFKEY.PMulZPos=par[2];// half-length (in Z)
-}
-else{
-cerr<<" AMSJob::_siantiinitjob-E-NoAntiGeomDefined "<<endl;
-}
+//  AMSgvolume *pg=AMSJob::gethead()->getgeomvolume(AMSID("ANTS",1));
+//     number par[5];
+//if(pg){
+//     for(int i=0;i<5;i++)par[i]=pg->getpar(i);
+//     ANTIMCFFKEY.PMulZPos=par[2];// half-length (in Z)
+//}
+//else{
+//cerr<<" AMSJob::_siantiinitjob-E-NoAntiGeomDefined "<<endl;
+//}
 }
 
 void AMSJob::_sictcinitjob(){

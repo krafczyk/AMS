@@ -66,6 +66,7 @@ ANTIPcal antisccal[MAXANTI];// create empty array of antipaddles calibr. objects
           cout <<" ANTIGeom-I-AMS02 setup selected."<<endl;
           _scleng=86.; //tempor solution
           _stleng=86.; //tempor solution
+          ANTIMCFFKEY.PMulZPos=_scleng;// half-length (in Z) for PMT-position
     }
     else
     {

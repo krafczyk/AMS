@@ -2682,8 +2682,8 @@ AMSgvolume *dummy;
 //
    cout<<"ANTI-geometry(G4) done !.."<<endl;
 }
-//---------------------------------------------------------------------
 #endif
+//---------------------------------------------------------------------
 void ecalgeom02(AMSgvolume & mother){
 //
   geant par[6]={0.,0.,0.,0.,0.,0.};
@@ -2856,7 +2856,7 @@ void ecalgeom02(AMSgvolume & mother){
                "EC_RADIATOR",nrot,vname,"BOX",par,3,coo,nrm,"ONLY",0,gid,1));//cr. f-layer in ECrad
 //-----------
         for(ifib=0;ifib<nf;ifib++){ // <--- fiber loop in layer
-          par[0]=0;
+          par[0]=0.;
           par[1]=ECALDBc::rdcell(4)/2.+ECALDBc::rdcell(8);// fiber radious(+glue)
 	  par[2]=flen;
           if(iproj==0){
@@ -2870,24 +2870,17 @@ void ecalgeom02(AMSgvolume & mother){
 	  coo[2]=0.;
 	  gid=(ifib+1)+(ifibl+1)*1000+(isupl+1)*100000;
           pECfib=pECfbl->add(new AMSgvolume(
-
           "EC_FWALL",0,"ECFW","TUBE",par,3,coo,nrm0,"ONLY",isupl==0 && ifibl==0 && ifib==0?1:-1,gid,1));
-#ifndef __G4AMS__
-          if((isupl==0 && ifibl==0 && ifib==0) ){
-#else
-          if((isupl==0 && ifibl==0 && ifib==0) || MISCFFKEY.G4On){
-#endif
-            par[0]=0;
+//
+          if(isupl==0 && ifibl==0 && ifib==0){
             par[1]=ECALDBc::rdcell(4)/2.;// fiber-core radious
-            coo[0]=0.;
-            coo[1]=0.;
-//            gid=1;
-            pECfsen=pECfib->add(new AMSgvolume(
+	    coo[0]=0.;
+	    coo[1]=0.;
+	    gid=1;
+	    pECfsen=pECfib->add(new AMSgvolume(
             "EC_FCORE",0,"ECFC","TUBE",par,3,coo,nrm0,"ONLY",0,gid,1));
-          }
-
+	  }	 
 	} // ---> end of fiber loop
-//	GSNEXT(vname,0,3,vlist);
 //-----------
         zposfl-=fpitz;// f-layer z-shifts inside of super-layer 
       } // ---> end of layer loop

@@ -1506,10 +1506,12 @@ void TOFJobStat::bookhist(){
       HBOOK1(1139,htit1,60,0.,6000.,0.);
     }
 //
-    HBOOK1(1532,"(T1-T3)(ns),corr,trl-normalized,ideal evnt",80,1.,9.,0.);
-//    HBOOK1(1533,"L=1,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
-//    HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
-    HBOOK1(1534,"(T2-T4)(ns),corr,trl-normalized,ideal evnt",80,1.,9.,0.);
+    HBOOK1(1532,"(T1-T3)(ns),corr,trl-corr,1b/L evnt",80,1.,9.,0.);
+/*
+    HBOOK1(1533,"L=1,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
+    HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
+*/
+    HBOOK1(1534,"(T2-T4)(ns),corr,trl-corr,1b/L evnt",80,1.,9.,0.);
     HBOOK1(1544,"(T1-T3)-(T2-T4),(ns),corr,ideal evnt",80,-4.,4.,0.);
     HBOOK1(1535,"L=1,TOF Eclust(mev)",80,0.,24.,0.);
     HBOOK1(1536,"L=3,TOF Eclust(mev)",80,0.,24.,0.);
@@ -1876,35 +1878,26 @@ geant tsum=0;
 switch (crate){
 case 1:
 return float(tftt.tofav[0])/10.;
-break;
 case 31:
 return float(tftt.tofav[1])/10.;
-break;
 case 41:
 return float(tftt.tofav[2])/10.;
-break;
 case 71:
 return float(tftt.tofav[3])/10.;
-break;
 case 3:
 return float(tftt.tofav[4])/10.;
-break;
 case 33:
 return float(tftt.tofav[5])/10.;
-break;
 case 43:
 return float(tftt.tofav[6])/10.;
-break;
 case 73:
 return float(tftt.tofav[7])/10.;
-break;
 case 0:
 int i;
 for(i=0;i<8;i++){
  tsum+=tftt.tofav[i]/10.;
 }
 return tsum;
-break;
 default:
 cerr <<"TOFVarp::getmeantoftemp-E-NoCrateFound "<<crate<<endl;
 return 0.;

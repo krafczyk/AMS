@@ -247,16 +247,16 @@ void AMSTOFTovt::build()
     seres=TOFDBc::seresp();
     sesig=seres*TOFDBc::seresv();
     AMSTOFTovt::inipsh(npshbn,pmplsh); // prepare PM s.e. pulse shape arr.
-    HBOOK1(1111,"Single electron spectrum,mV",65,0.,13.,0.);
+    HBOOK1(1099,"Single electron spectrum,mV",65,0.,13.,0.);
     for(i=0;i<3000;i++){
 //      rnd=RNDM(dummy);
 //      am=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
       am=seres+sesig*rnormx();// tempor use simple goussian
       if(am<0)am=0;
-      HF1(1111,am,1.);
+      HF1(1099,am,1.);
     }
-    HPRINT(1111);
-    HDELET(1111);
+    HPRINT(1099);
+    HDELET(1099);
     for(i=0;i<SCTBMX+1;i++)tslice1[i]=0.;// clear flash ADC arrays
     for(i=0;i<SCTBMX+1;i++)tslice2[i]=0.;
     for(i=0;i<SCTBMX+1;i++)tslice[i]=0.;

@@ -102,6 +102,7 @@ private:
 //          i=0 -> entries
 //          i=1 -> 
 public:
+  static geant zprofa[2*ECSLMX];// average profile
   static void clear();
   inline static void addmc(int i){
     assert(i>=0 && i< ECJSTA);

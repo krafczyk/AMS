@@ -617,18 +617,18 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
   try{
   // Now one has decide based on the names of volumes (or their parents)
      G4VPhysicalVolume * Mother=PrePV->GetMother();
-     G4VPhysicalVolume * GrandMother= Mother?Mother->GetMother():0;      
-  // Tracker
+     G4VPhysicalVolume * GrandMother= Mother?Mother->GetMother():0;
+//-----------------------      
+//  Tracker
      if(GCTRAK.destep && GrandMother && GrandMother->GetName()[0]=='S' 
      &&  GrandMother->GetName()[1]=='T' && GrandMother->GetName()[2]=='K'){
 //       cout <<" tracker "<<endl;
       AMSTrMCCluster::sitkhits(PrePV->GetCopyNo(),GCTRAK.vect,
       GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
      }
-
-  //TOF
-
-
+//-----------------------
+//    TOF:
+//
       geant t,x,y,z;
       char name[5]="dumm";
       char media[21]="dummy_media         ";
@@ -640,7 +640,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
       static int numvo(-999),iprto(-999);
 
      if(PrePV->GetName()[0]== 'T' &&PrePV->GetName()[1]=='O' &&
-      PrePV->GetName()[2]=='F' &&PrePV->GetName()[3]=='S'){
+      PrePV->GetName()[2]=='F' &&PrePV->GetName()[3]=='S'){ // step starts in TOFS
        numv=PrePV->GetCopyNo();
        iprt=GCKINE.ipart;
        x=GCTRAK.vect[0];
@@ -688,11 +688,11 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
         zpr=z;
         tpr=t;
       }// end of "same part/vol, de>0"
-  }// end of "in TOFS"
+  }// <--- end of "in TOFS-pre"
 
 
       if(PostPV->GetName()[0]== 'T' &&PostPV->GetName()[1]=='O' &&
-      PostPV->GetName()[2]=='F' &&PostPV->GetName()[3]=='S'){
+      PostPV->GetName()[2]=='F' &&PostPV->GetName()[3]=='S'){ // step ends in TOFS
        numv=PostPV->GetCopyNo();
        iprt=GCKINE.ipart;
        x=GCTRAK.vect[0];
@@ -708,11 +708,21 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
         zpr=z;
         tpr=t;
        }
-     }
-
-
-
-  }
+     }// <--- end of "in TOFS-post"
+//-------------------------------
+//  ANTI :
+//
+     if(PrePV->GetName()[0]== 'A' && PrePV->GetName()[1]=='N' &&
+       PrePV->GetName()[2]=='T' && PrePV->GetName()[3]=='S' && GCTRAK.destep>0.){
+//cout<<"... in ANTI: numv="<<PrePV->GetCopyNo()<<endl;
+       dee=GCTRAK.destep;
+//       GBIRK(dee);
+       AMSAntiMCCluster::siantihits(PrePV->GetCopyNo(),GCTRAK.vect,
+                                                   dee,GCTRAK.tofg);
+     }// <--- end of "in ANTS"
+//------------------------------------------------------------------
+  } // <--- end of "try" ---
+//
    catch (AMSuPoolError e){
     cerr << "GUSTEP  "<< e.getmessage();
     GCTRAK.istop =1;

@@ -16,7 +16,7 @@
 extern "C" number rnormx(){
 double const pi=3.1415926;
 number qq,qq2;
-geant dummy;
+geant dummy=0;
  do {
   qq=RNDM(dummy);
   qq2=2*pi*RNDM(dummy);
