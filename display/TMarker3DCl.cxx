@@ -1,4 +1,4 @@
-//  $Id: TMarker3DCl.cxx,v 1.6 2004/02/22 15:27:16 choutko Exp $
+//  $Id: TMarker3DCl.cxx,v 1.7 2005/02/23 15:33:14 choutko Exp $
 
 #include "Riostream.h"
 #include "TROOT.h"
@@ -261,8 +261,10 @@ void TMarker3DCl::Paint(Option_t *option)
    TPadView3D *view3D = (TPadView3D*)gPad->GetView3D();
    Bool_t rangeView = option && *option && strcmp(option,"range")==0 ? kTRUE : kFALSE;
    if (view3D && !rangeView) {
-     gVirtualGL->SetLineAttr(GetLineColor(),GetLineWidth());
-     PaintGLPoints(points);
+     if(gVirtualGL){
+       gVirtualGL->SetLineAttr(GetLineColor(),GetLineWidth());
+       PaintGLPoints(points);
+     }
    }
 
    Int_t c = ((GetLineColor() % 8) - 1) * 4;  // Basic colors: 0, 1, ... 7

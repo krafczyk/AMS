@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.21 2005/01/26 12:57:50 choutko Exp $
+#  $Id: Makefile,v 1.22 2005/02/23 15:33:14 choutko Exp $
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 PLATFORM      =  Linux
@@ -20,16 +20,16 @@ ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
  RH9add=
 endif
 ifeq ($(ARCH),linuxicc)
-CXX           =  icc
+CXX           =  /opt/intel/compiler80/bin/icc
 CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -tpp6 -mp1 -xi 
 OPT           = -O2
 OPTC          = -O2
 NOOPT         = -g
 NOOPTC         = -g
-LD            = icc
+LD            = /opt/intel/compiler80/bin/icc
 LDFLAGS       = 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift
+ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift
 LIBS          =  $(ROOTLIBS) -lm -ldl
 LIBSA          =  $(ROOTLIBSA) -lm -ldl
 else
@@ -41,8 +41,8 @@ NOOPT         = -g
 NOOPTC         = -g
 LD            = g++
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift
+ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift
 LIBS          =  $(ROOTLIBS) -lm -ldl
 LIBSA          =  $(ROOTLIBSA) -lm -ldl
 endif
@@ -189,7 +189,7 @@ $(OBJSC): $(PREFIX)%.o : ../online/%.cxx
 	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(DICTO): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(OPT) $(CXXFLAGS)  -c $(<)  -o $(@)
+	$(CXX) $(NOOPT) $(CXXFLAGS)  -c $(<)  -o $(@)
 
 
 ##### DEPENDENCIES #####

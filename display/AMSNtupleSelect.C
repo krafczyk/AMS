@@ -1,6 +1,7 @@
 #include "AMSNtupleHelper.h"
 static AMSNtupleHelper * fgHelper=0;
 extern "C" AMSNtupleHelper * gethelper();
+void* __dso_handle=0;
 class AMSNtupleSelect: public AMSNtupleHelper{
 public:
 AMSNtupleSelect(){};
@@ -25,6 +26,7 @@ extern "C" void fgSelect(){
   AMSNtupleHelper::fgHelper=new AMSNtupleSelect(); 
   cout <<"  Handle Loadedd "<<endl;
 }
+
 #else
 #include <windows.h>
 BOOL DllMain(HINSTANCE hinstDLL,  // DLL module handle
@@ -56,4 +58,5 @@ break;
      return TRUE;
 }
 extern "C" AMSNtupleHelper * gethelper(){return fgHelper;}
+
 #endif

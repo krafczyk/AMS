@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.15 2004/01/31 16:41:19 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.16 2005/02/23 15:33:14 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -31,13 +31,15 @@ Int_t DistancetoPrimitive(Int_t px, Int_t py){
    
    const Int_t numPoints = 8;
    Int_t dist = 9999;
-   Float_t points[3*numPoints];
+   Double_t points[3*numPoints];
+//   Float_t  points[3*numPoints];
 
    TView *view = gPad->GetView();
    if (!view) return dist;
    SetPoints(points);
    double  sum[3]={0,0,0};
-   Float_t xndc[3];
+   Double_t xndc[3];
+//   Float_t xndc[3];
    for (int i = 0; i < 8; i++) {
       view->WCtoNDC(points+i*3, xndc);
       for(int k=0;k<3;k++)sum[k]+=xndc[k];
