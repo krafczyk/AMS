@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.402 2002/04/10 10:35:47 choutko Exp $
+// $Id: job.C,v 1.403 2002/04/23 14:10:42 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -69,11 +69,13 @@ extern LMS* lms;
 //-
 //
 char AMSJob::_ntuplefilename[256]="";
+char AMSJob::_rootfilename[256]="";
 
 long AMSJob::GetNtupleFileSize(){
  struct stat buffer;
- 
- return stat(_ntuplefilename,&buffer)?0:buffer.st_size;
+ long size_n=stat(_ntuplefilename,&buffer)? 0:buffer.st_size;
+ long size_r=stat(_rootfilename,&buffer)? 0:buffer.st_size;
+ return size_n>size_r?size_n:size_r;
 }
 AMSNtuple* AMSJob::_pntuple=0;
 AMSJob* AMSJob::_Head=0;
@@ -2639,31 +2641,30 @@ void AMSJob::urinit(integer run, integer eventno, time_t tt)
 throw (amsglobalerror){
   if(_pntuple)_pntuple->endR();
   if(IOPA.WriteRoot){
-    char filename[512];
-    strcpy(filename,(const char*)_rextname);
+    strcpy(_rootfilename,(const char*)_rextname);
      AString mdir("mkdir -p ");
-     mdir+=filename;
+     mdir+=_rootfilename;
     integer iostat;
     integer rsize=8000;
     if(eventno){
       char event[80];  
       if(isProduction()){
        system((const char*)mdir);
-       strcat(filename,"/");
+       strcat(_rootfilename,"/");
       }
       sprintf(event,"%d",run);
-      strcat(filename,event);
+      strcat(_rootfilename,event);
       sprintf(event,".%d",eventno);
-      strcat(filename,event);
-      strcat(filename,".root");
+      strcat(_rootfilename,event);
+      strcat(_rootfilename,".root");
      }
-    if(_pntuple)_pntuple->initR(filename);
+    if(_pntuple)_pntuple->initR(_rootfilename);
     else{
-        _pntuple = new AMSNtuple(filename);
-        _pntuple->initR(filename);
+        _pntuple = new AMSNtuple(_rootfilename);
+        _pntuple->initR(_rootfilename);
     }
 #ifdef __CORBA__
-      AMSProducer::gethead()->sendNtupleStart(DPS::Producer::RootFile,filename,run,eventno,tt);
+      AMSProducer::gethead()->sendNtupleStart(DPS::Producer::RootFile,_rootfilename,run,eventno,tt);
 #endif
   }
 }

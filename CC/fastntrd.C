@@ -8,8 +8,8 @@
 #include <iostream.h>
 #include <fstream.h>
 //
- PROTOCCALLSFFUN2(INT,IFNTREAD,ifntread,STRING,INT)
-#define IFNTREAD(A2,A3)  CCALLSFFUN2(IFNTREAD,ifntread,STRING,INT,A2,A3)
+ PROTOCCALLSFFUN3(INT,IFNTREAD,ifntread,STRING,INT,INT)
+#define IFNTREAD(A2,A3,A4)  CCALLSFFUN3(IFNTREAD,ifntread,STRING,INT,INT,A2,A3,A4)
 //
 //-----------------------------------------------------------------|
 //output:a) Bit 8 is set -> bad ntuple(+bits (1-7)=1->open problem;|
@@ -26,15 +26,17 @@
    char fname[256];
 //
    bool verbose=false;
+   int iver=0;
    iflg=0;
    if(argc>2){
      strcpy(fname,argv[1]);
      int nevents=atoi(argv[2]);
      if(argc>3){
       verbose=true;
+      iver=1;
      }
 //     cout<<"Requested file: "<<fname<<" imply "<<nevents<<" events"<<endl;
-     iflg=IFNTREAD(fname,nevents);
+     iflg=IFNTREAD(fname,nevents,iver);
      if(iflg>=0){
 //       float proc;
 //       proc=float(iflg%128);

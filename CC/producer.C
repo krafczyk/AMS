@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.58 2002/04/10 10:35:48 choutko Exp $
+//  $Id: producer.C,v 1.59 2002/04/23 14:10:43 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -1217,6 +1217,7 @@ return 0;
 }
 
 bool AMSProducer::getior(const char * getiorvar){
+_OnAir=false;
 char iort[1024];
 const char *exedir=getenv("ExeDir");
 const char *nve=getenv(getiorvar);

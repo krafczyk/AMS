@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.97 2002/04/19 15:23:52 delgadom Exp $
+//  $Id: ntuple.C,v 1.98 2002/04/23 14:10:43 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -93,7 +93,7 @@ void AMSNtuple::init(){
   HBNAME(_lun,"TrRecHit",&_trrh02.Ntrrh,
   "ntrrh[0,666],px(ntrrh)[-1,30000]:I,py(ntrrh)[-1,30000]:I,statusr(ntrrh):I,Layer(ntrrh)[0,10]:I,hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh),cofgx(ntrrh),cofgy(ntrrh)");
   HBNAME(_lun,"TrTrack",&_trtr02.Ntrtr,
-  "ntrtr[0,100],trstatus(ntrtr):I,pattern(ntrtr)[0,100]:I,address(ntrtr):I,nhits(ntrtr)[0,8],phits(8,ntrtr)[-1,30000]:I,LocDBAver(ntrtr):R,GeaneFitDone(ntrtr)[0,1000]:I,AdvancedFitDone(ntrtr)[0,1000]:I,Chi2StrLine(ntrtr),Chi2Circle(ntrtr),CircleRidgidity(ntrtr),Chi2FastFit(ntrtr),Ridgidity(ntrtr),ErrRidgidity(ntrtr),Theta(ntrtr),phi(ntrtr),p0(3,ntrtr),gchi2(ntrtr),gridgidity(ntrtr),gerrridgidity(ntrtr),hchi2(2,ntrtr),HRidgidity(2,ntrtr),HErrRidgidity(2,ntrtr),htheta(2,ntrtr),hphi(2,ntrtr),hp0(3,2,ntrtr),fchi2ms(ntrtr),pirigerr(ntrtr),ridgidityms(ntrtr),pirigidity(ntrtr)");
+  "ntrtr[0,100],trstatus(ntrtr):I,pattern(ntrtr)[0,100]:I,address(ntrtr):I,nhits(ntrtr)[0,8],phits(8,ntrtr)[-1,30000]:I,LocDBAver(ntrtr):R,GeaneFitDone(ntrtr)[0,1000]:I,AdvFitDone(ntrtr)[0,1000]:I,Chi2StrLine(ntrtr),Chi2Circle(ntrtr),CircleRig(ntrtr),Chi2FastFit(ntrtr),Rigidity(ntrtr),ErrRig(ntrtr),Theta(ntrtr),phi(ntrtr),p0(3,ntrtr),gchi2(ntrtr),grig(ntrtr),gerrrig(ntrtr),hchi2(2,ntrtr),HRigidity(2,ntrtr),HErrRigidity(2,ntrtr),htheta(2,ntrtr),hphi(2,ntrtr),hp0(3,2,ntrtr),fchi2ms(ntrtr),pirigerr(ntrtr),rigms(ntrtr),pirig(ntrtr)");
 
   HBNAME(_lun,"MCEventG",&_mcg02.Nmcg,
   "nmcg[0,100],nskip(nmcg):I,Particle(nmcg)[-200,500]:I,coo(3,nmcg),dir(3,nmcg),momentum(nmcg):R,mass(nmcg):R,charge(nmcg):R");
@@ -105,7 +105,7 @@ void AMSNtuple::init(){
   "nanti[0,16],AntiStatus(nanti):I,AntiSector(nanti)[0,100]:I,AntiEdep(nanti),AntiCoo(3,nanti),AntiErCoo(3,nanti)");
 
   HBNAME(_lun,"AntiMCCl",&_antimc.Nantimc,
-  "nantimc[0,200],AntiMCIdsoft(nantimc):I,AntiMCXcoo(3,nantimc),AntiMCtof(nantimc),AntiMCedep(nantimc)");
+  "nantimc[0,200],AMCIdsoft(nantimc):I,AMCXcoo(3,nantimc),AMCtof(nantimc),AMCedep(nantimc)");
 
   HBNAME(_lun,"LVL3",&_lvl302.Nlvl3,
   "nlvl3[0,2],LVL3TOF(nlvl3)[-1,255],LVL3TRD(nlvl3)[0,15],LVL3Tr(nlvl3)[0,15],LVL3Main(nlvl3),LVL3Dir(nlvl3)[-1,1],LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pat(2,nlvl3)[-1,250],LVL3Res(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R,LVL3TRDHits(nlvl3)[0,63],LVL3HMult(nlvl3)[0,31],LVL3TRDPar(2,nlvl3):R");
@@ -123,16 +123,16 @@ void AMSNtuple::init(){
   "ntofraw[0,20],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,7]:I,tofrbar(ntofraw)[0,31]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
   HBNAME(_lun,"RICMCCl",&_richmc.NMC,
   	 "nsignals[0,300],sid(nsignals):I,"
-  	 "origin(3,nsignals),direction(3,nsignals),RICstatus(nsignals):I,"
-         "nphgen:I,phit(nsignals):I");
+  	 "rimcorg(3,nsignals),rimcdir(3,nsignals),rimcstatus(nsignals):I,"
+         "rimcnphg:I,rimcphit(nsignals):I");
 
   HBNAME(_lun,"RICEvent",&_richevent.Nhits,
-    	 "Rhits[0,100]:I,Rchtchannel(Rhits):I,Rchtadc(Rhits):I,"
+    	 "Rhits[0,100]:I,Rchtch(Rhits):I,Rchtadc(Rhits):I,"
   	 "Rchtx(Rhits),Rchty(Rhits)");
 
   HBNAME(_lun,"Ring",&_ring.NRings,
-  	 "nrings[0,10]:I,rcritrackn(nrings):I,"
-  	 "rcrihused(nrings):I,rcrimhused(nrings):I,"
+  	 "nrings[0,10]:I,rctrkn(nrings):I,"
+  	 "rcrihu(nrings):I,rcrimhu(nrings):I,"
 	 "rcribeta(nrings),rcriebeta(nrings),"
 	 "rcrichi2(nrings)");
 
