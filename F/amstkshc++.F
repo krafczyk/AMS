@@ -6729,7 +6729,9 @@ CDECK  ID>, TKFITPARCYL.
           sdist=point(7)-sqrt(s1-s2**2)
           if(sdist.lt.0)then
            stept=1.e10
+#if defined(__AMSDEBUG__)
            write(*,*)'tkfitparcyl-E-outside of cyl',sdist,point(7)
+#endif
            return
           endif
          step=0
@@ -9093,9 +9095,12 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.58 2000/09/05 13:41:00 choutko Exp $
+* $Id: amstkshc++.F,v 1.59 2000/11/22 07:41:25 choumilo Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.59  2000/11/22 07:41:25  choumilo
+* *** empty log message ***
+*
 * Revision 1.58  2000/09/05 13:41:00  choutko
 * TR radiation g4
 *

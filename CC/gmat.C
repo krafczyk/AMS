@@ -370,8 +370,9 @@ mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
 //--------------------------------
 //  Magnet materials:
 {
-  mat.add (new AMSgmat("MCOPPER", 63.54,29.,8.96  ,1.43,14.8));//magnet_coil copper
-//                                                               reduced dens.(?)
+  mat.add (new AMSgmat("MVACUUM",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
+  mat.add (new AMSgmat("MALUMINIUM",26.98, 13., 2.7, 8.9, 39.4));// AL
+  mat.add (new AMSgmat("MCOPPER", 63.54,29.,8.96,1.43,14.8));//magnet_coil copper
 }
 //-------------------------------
 #ifdef __AMSDEBUG__
@@ -711,26 +712,27 @@ tmed.add (new AMSgtmed("SRDPMT","PMT_WINDOW",1));
 //--------------------
 {
 // ---> AMS02 Magnet Media:
-AMSgtmed * magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MVACMED","VACUUM",0));
-  magmed->CUTGAM(0.002);// increased Egamma cut
-  magmed->CUTELE(0.002);// increased Eelect cut
 //
-magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MVCASEMED","ALUMINIUM",0));//tempor 1/2 aluminium
-  magmed->CUTGAM(0.002);// increased Egamma cut
-  magmed->CUTELE(0.002);// increased Eelect cut
+geant cutge=0.002;// increased EgammaEelectron cut
+AMSgtmed * magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MVACMED","MVACUUM",0));
+  magmed->CUTGAM(cutge);
+  magmed->CUTELE(cutge);
+//
+magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MVCASEMED","MALUMINIUM",0));
+  magmed->CUTGAM(cutge);
+  magmed->CUTELE(cutge);
 //
 magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MCOILMED","MCOPPER",0));
-  magmed->CUTGAM(0.002);// increased Egamma cut
-  magmed->CUTELE(0.002);// increased Eelect cut
+  magmed->CUTGAM(cutge);
+  magmed->CUTELE(cutge);
 //
 magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MLHEMED","HELIUM",0));
-  magmed->CUTGAM(0.002);// increased Egamma cut
-  magmed->CUTELE(0.002);// increased Eelect cut
+  magmed->CUTGAM(cutge);
+  magmed->CUTELE(cutge);
 //
 }
 //--------------------
 
-//---------------
 AMSgObj::GTrMedMap.map(tmed);
 #ifdef __AMSDEBUG__
 if(AMSgtmed::debug)AMSgObj::GTrMedMap.print();
