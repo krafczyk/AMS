@@ -1,4 +1,4 @@
-//  $Id: AMSR_Root.cxx,v 1.5 2001/08/10 16:18:50 choutko Exp $
+//  $Id: AMSR_Root.cxx,v 1.6 2001/08/18 20:01:47 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -183,6 +183,7 @@
 #include "AMSR_ToFClusterReader.h"
 #include "AMSR_TrdClusterReader.h"
 #include "AMSR_TrackReader.h"
+#include "AMSR_TrdTrackReader.h"
 #include "AMSR_EcalShowerReader.h"
 #include "AMSR_SiHitReader.h"
 #include "AMSR_AntiClusterReader.h"
@@ -251,6 +252,7 @@ AMSR_Root::AMSR_Root() : TNamed("AMSR_Root","The AMS Display with Root")
    m_AntiClusterMaker = 0;
    m_TrMCClusterMaker = 0;
    m_TrackMaker      = 0;
+   m_TrdTrackMaker      = 0;
    m_EcalShowerMaker      = 0;
    m_ParticleMaker   = 0;
    m_MCParticleMaker   = 0;
@@ -311,6 +313,9 @@ AMSR_Root::AMSR_Root(const char *name, const char *title)
 
    m_TrackMaker       = new AMSR_TrackReader("TrackReader","Read AMSR_Root tracks");
    m_Makers->Add(m_TrackMaker);
+
+   m_TrdTrackMaker       = new AMSR_TrdTrackReader("TrdTrackReader","Read AMSR_Root Trdtracks");
+   m_Makers->Add(m_TrdTrackMaker);
 
    m_EcalShowerMaker       = new AMSR_EcalShowerReader("EcalShowerReader","Read AMSR_Root ecsh");
    m_Makers->Add(m_EcalShowerMaker);

@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.15 2001/08/18 17:01:54 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.16 2001/08/18 20:01:46 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -61,6 +61,7 @@ TRRECHIT_DEF blkTrrechit;
 TRDCLMC_DEF blkTrdclmc;
 TRDCL_DEF blkTrdcl;
 TRTRACK_DEF blkTrtrack;
+TRDTRK_DEF blkTrdtrk;
 ECALSHOWER_DEF blkecsh;
 MCEVENTG_DEF blkMceventg;
 ANTICLUS_DEF blkAnticlus;
@@ -111,7 +112,7 @@ AMSR_Ntuple::AMSR_Ntuple(const char *name, const char *title)
    m_BlkTrrechit = &blkTrrechit;
    m_BlkTrdclmc  = &blkTrdclmc;
    m_BlkTrdcl    = &blkTrdcl;
-//   m_BlkTrdtrk    = &blkTrdtrk;
+   m_BlkTrdtrk   = &blkTrdtrk;
    m_BlkTrtrack  = &blkTrtrack;
    m_Blkecsh  =    &blkecsh;
    m_BlkMceventg = &blkMceventg;
@@ -288,14 +289,26 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("Tofercoo", m_BlkTofclust->Tofercoo, "Tofercoo[ntof][3]/F");
 
    m_Tree->Branch("ntrdcl", &m_BlkTrdcl->ntrdcl, "ntrdcl/I");
-   m_Tree->Branch("Trdclstatus", m_BlkTrdcl->status, "trdclstatus/I");
-   m_Tree->Branch("Trdclcoo", m_BlkTrdcl->coo, "trdclcoo/I");
-   m_Tree->Branch("Trdcllayer", m_BlkTrdcl->layer, "trdcllayer/I");
-   m_Tree->Branch("Trdcldir", m_BlkTrdcl->coodir, "trddir/I");
-   m_Tree->Branch("Trdmultip", m_BlkTrdcl->multip, "trdmul/I");
-   m_Tree->Branch("Trdhmultip", m_BlkTrdcl->hmultip, "trdhmul/I");
-   m_Tree->Branch("Trdedep", m_BlkTrdcl->edep, "trdedep/I");
-   m_Tree->Branch("Trdprawhit", m_BlkTrdcl->prawhit, "ptrdrht/I");
+   m_Tree->Branch("Trdclstatus", m_BlkTrdcl->status, "trdclstatus[ntrdcl]/I");
+   m_Tree->Branch("Trdclcoo", m_BlkTrdcl->coo, "trdclcoo[3][ntrdcl]/F");
+   m_Tree->Branch("Trdcllayer", m_BlkTrdcl->layer, "trdcllayer[ntrdcl]/I");
+   m_Tree->Branch("Trdcldir", m_BlkTrdcl->coodir, "trddir[3][ntrdcl]/F");
+   m_Tree->Branch("Trdmultip", m_BlkTrdcl->multip, "trdmul[ntrdcl]/I");
+   m_Tree->Branch("Trdhmultip", m_BlkTrdcl->hmultip, "trdhmul[ntrdcl]/I");
+   m_Tree->Branch("Trdedep", m_BlkTrdcl->edep, "trdedep[ntrdcl]/F");
+   m_Tree->Branch("Trdprawhit", m_BlkTrdcl->prawhit, "ptrdrht[ntrdcl]/I");
+
+   m_Tree->Branch("ntrdtrk", &m_BlkTrdtrk->ntrdtrk, "ntrdtrk/I");
+   m_Tree->Branch("Trdtrkstatus", m_BlkTrdtrk->status, "trdtrkstatus[ntrdtrk]/I");
+   m_Tree->Branch("Trdtrkcoo", m_BlkTrdtrk->coo, "trdtrkcoo[3][ntrdtrk]/F");
+   m_Tree->Branch("Trdtrkercoo", m_BlkTrdtrk->ercoo, "trdtrkercoo[3][ntrdtrk]/F");
+   m_Tree->Branch("Trdtrkphi", m_BlkTrdtrk->phi, "trdtrkphi[ntrdtrk]/F");
+   m_Tree->Branch("Trdtrktheta", m_BlkTrdtrk->theta, "trdtrktheta[ntrdtrk]/F");
+   m_Tree->Branch("Trdtrkchi2", m_BlkTrdtrk->chi2, "trdtrkchi2[ntrdtrk]/F");
+   m_Tree->Branch("Trdtrkns", m_BlkTrdtrk->ns, "trdtrkns[ntrdtrk]/I");
+   m_Tree->Branch("Trdtrkpat", m_BlkTrdtrk->pat, "trdtrkpat[ntrdtrk]/I");
+   m_Tree->Branch("Trdtrkps", m_BlkTrdtrk->ps, "trdtrkps[5][ntrdtrk]/I");
+
 
    m_Tree->Branch("ntofmc", &m_BlkTofmcclu->ntofmc, "ntofmc/I");
    m_Tree->Branch("Tofmcidsoft", m_BlkTofmcclu->Tofmcidsoft, "Tofmcidsoft[ntofmc]/I");
@@ -585,6 +598,7 @@ Int_t AMSR_Ntuple::OpenNtuple(char *ntpfile)
    HBNAME(m_MemID, "TRMCCLUS", &(m_BlkTrmcclus->ntrclmc), "$SET");
    HBNAME(m_MemID, "TRRECHIT", &(m_BlkTrrechit->ntrrh), "$SET");
    HBNAME(m_MemID, "TRTRACK", &(m_BlkTrtrack->ntrtr), "$SET");
+   HBNAME(m_MemID, "TRDTRK", &(m_BlkTrdtrk->ntrdtrk), "$SET");
    HBNAME(m_MemID, "ECALSHOW", &(m_Blkecsh->Necsh), "$SET");
    HBNAME(m_MemID, "MCEVENTG", &(m_BlkMceventg->nmcg), "$SET");
    HBNAME(m_MemID, "ANTICLUS", &(m_BlkAnticlus->nanti), "$SET");

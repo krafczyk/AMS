@@ -1,4 +1,4 @@
-#  $Id: Make-bin,v 1.6 2001/08/10 16:18:50 choutko Exp $
+#  $Id: Make-bin,v 1.7 2001/08/18 20:01:49 kscholbe Exp $
 ##### MACROS #####
 
 ROOTH         = TTree.h TFile.h TH1.h
@@ -12,6 +12,7 @@ SRCS          = AMSR_Root.cxx AMSR_Maker.cxx \
 		AMSR_AntiCluster.cxx AMSR_AntiClusterReader.cxx \
 		AMSR_TrMCCluster.cxx AMSR_TrMCClusterReader.cxx \
 		AMSR_Track.cxx AMSR_TrackReader.cxx \
+		AMSR_TrdTrack.cxx AMSR_TrdTrackReader.cxx \
 		AMSR_EcalShower.cxx AMSR_EcalShowerReader.cxx \
 		AMSR_SiHit.cxx AMSR_SiHitReader.cxx \
 		AMSR_Particle.cxx AMSR_ParticleReader.cxx \
@@ -37,6 +38,7 @@ HDRS          = TRadioButton.h TSwitch.h \
 		AMSR_AntiCluster.h AMSR_AntiClusterReader.h \
 		AMSR_TrMCCluster.h AMSR_TrMCClusterReader.h \
 		AMSR_Track.h AMSR_TrackReader.h \
+		AMSR_TrdTrack.h AMSR_TrdTrackReader.h \
 		AMSR_EcalShower.h AMSR_EcalShowerReader.h \
 		AMSR_SiHit.h AMSR_SiHitReader.h \
 		AMSR_Particle.h AMSR_ParticleReader.h \

@@ -1,4 +1,4 @@
-//  $Id: AMSR_Root.h,v 1.6 2001/08/10 16:18:50 choutko Exp $
+//  $Id: AMSR_Root.h,v 1.7 2001/08/18 20:01:47 kscholbe Exp $
 #ifndef AMSR_Root_H
 #define AMSR_Root_H
 
@@ -36,6 +36,7 @@ class TBrowser;
 class AMSR_ToFClusterReader;
 class AMSR_TrdClusterReader;
 class AMSR_TrackReader;
+class AMSR_TrdTrackReader;
 class AMSR_EcalShowerReader;
 class AMSR_SiHitReader;
 class AMSR_AntiClusterReader;
@@ -69,6 +70,7 @@ private:
    AMSR_ToFClusterReader *m_ToFClusterMaker;   //Pointer to ToFClusterMaker
    AMSR_TrdClusterReader *m_TrdClusterMaker;   //Pointer to TrdClusterMaker
    AMSR_TrackReader      *m_TrackMaker;        //Pointer to TrackMaker
+   AMSR_TrdTrackReader      *m_TrdTrackMaker;        //Pointer to TrdTrackMaker
    AMSR_EcalShowerReader      *m_EcalShowerMaker;        //Pointer to TrackMaker
    AMSR_SiHitReader      *m_SiHitMaker;        //Pointer to SiHitMaker
    AMSR_AntiClusterReader *m_AntiClusterMaker;   //Pointer to AntiClusterMaker
@@ -133,6 +135,7 @@ public:
    AMSR_ToFClusterReader *ToFClusterMaker() {return m_ToFClusterMaker;}
    AMSR_TrdClusterReader *TrdClusterMaker() {return m_TrdClusterMaker;}
    AMSR_TrackReader      *TrackMaker()      {return m_TrackMaker;}
+   AMSR_TrdTrackReader      *TrdTrackMaker()      {return m_TrdTrackMaker;}
    AMSR_EcalShowerReader      *EcalShowerMaker()      {return m_EcalShowerMaker;}
    AMSR_SiHitReader      *SiHitMaker()      {return m_SiHitMaker;}
    AMSR_AntiClusterReader *AntiClusterMaker() {return m_AntiClusterMaker;}
