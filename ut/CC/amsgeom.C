@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.117 2001/03/26 18:07:22 kscholbe Exp $
+//  $Id: amsgeom.C,v 1.118 2001/03/29 12:17:05 kscholbe Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2922,6 +2922,7 @@ ostrstream ost(name,sizeof(name));
 
 #include <trddbc.h>
 void amsgeom::trdgeom02(AMSgvolume & mother){
+using trdconst::maxbulk;
 using trdconst::maxlay;
 using trdconst::maxlad;
 using trdconst::maxo;
@@ -2952,9 +2953,12 @@ for ( i=0;i<TRDDBc::PrimaryOctagonNo();i++){
  TRDDBc::GetOctagon(i,status,coo,nrm,rgid);
  gid=i+1;
  int ip;
+
+
  for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
        oct[i]=mother.add(new AMSgvolume(TRDDBc::OctagonMedia(i),
        nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+
 }
 
 
@@ -2965,6 +2969,7 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo();i++){
  gid=i+1;
  int ip;
  int po=TRDDBc::GetPrimaryOctagon(i);
+
  for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
        oct[i]=oct[po]->add(new AMSgvolume(TRDDBc::OctagonMedia(i),
        nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
@@ -2973,7 +2978,28 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo();i++){
 
 // trd 
 for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
- int j,k;
+
+  // Put in the bulkheads
+ int j;
+ for(j=0;j<TRDDBc::BulkheadsNo(i);j++){
+
+   int ip;
+   gid=i+1;
+   ost.seekp(0);  
+   // Need to modify if TRDOctagonNo()>1
+   ost << "TRB"<<j<<ends;
+   TRDDBc::GetBulkhead(j,i,status,coo,nrm,rgid);
+   for(ip=0;ip<4;ip++)par[ip]=TRDDBc::BulkheadsDimensions(i,j,ip);
+   int itrd=TRDDBc::NoTRDOctagons(i);
+   //         cout <<name<<" "<<j<<" "<<
+   //coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
+   //	   par[0]<<" "<<par[1]<<" "<<par[2]<<" "<<par[4]<<endl;
+   //   dau=oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
+   //    nrot++,name,"TRD1",par,4,coo,nrm,"ONLY",0,gid,1));
+ }
+
+  // Now the ladders and their contents
+ int k;
  for(j=0;j<TRDDBc::LayersNo(i);j++){
   for(k=0;k<TRDDBc::LaddersNo(i,j);k++){
    int ip;
@@ -2983,9 +3009,10 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    TRDDBc::GetLadder(k,j,i,status,coo,nrm,rgid);
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::LaddersDimensions(i,j,k,ip);
    int itrd=TRDDBc::NoTRDOctagons(i);
-//   cout <<name<<" "<<j<<" "<<k<<" "<<
-//   coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
-//   par[0]<<" "<<par[1]<<" "<<par[2]<<endl;
+   //   cout <<name<<" "<<j<<" "<<k<<" "<<
+   // coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
+   //par[0]<<" "<<par[1]<<" "<<par[2]<<endl;
+
    dau=oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
        nrot++,name,"BOX",par,3,coo,nrm, "ONLY",0,gid,1));
 #ifdef __G4AMS__
@@ -2996,10 +3023,9 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 // This can be changed in any time
 //
 
-
    // Radiators not radiators any more since now
    // inner octagon is made of radiator ... just vacuum boxes for the bottom
-   // (and possibly other holes).
+   // ladders (and possibly other holes).
    ost.seekp(0);  
    ost << "TRDR"<<ends;
    // Bottom layer has no radiator below the higher tubes
@@ -3008,6 +3034,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
        TRDDBc::GetRadiator(k,j,i,status,coo,nrm,rgid);
        for(ip=0;ip<3;ip++)par[ip]=TRDDBc::RadiatorDimensions(i,j,k,ip);
        gid=i+mtrdo*j+mtrdo*maxlay*k+1;
+
        dau->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
 	0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
      }
@@ -3027,6 +3054,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::TubesDimensions(i,j,k,ip);
    AMSTRDIdGeom  tmp(j,k,l,i);
    gid=tmp.cmpt();
+   //   cout << "Tube "<<i<<" "<<j<<" "<<k<<" "<<l<<" gid "<<gid<<endl;
    dau->add(new AMSgvolume(TRDDBc::TubesMedia(),
       0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
    }
@@ -3037,6 +3065,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    TRDDBc::GetTube(l,k,j,i,status,coo,nrm,rgid);
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::ITubesDimensions(i,j,k,ip);
    gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l+1;
+   //   cout << "Inner Tube "<<i<<" "<<j<<" "<<k<<" "<<l<<" gid "<<gid<<endl;
    dau->add(new AMSgvolume(TRDDBc::ITubesMedia(),
       0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
    }

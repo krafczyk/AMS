@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.13 2001/03/27 17:07:37 kscholbe Exp $
+//  $Id: trddbc.C,v 1.14 2001/03/29 12:17:05 kscholbe Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -6,6 +6,7 @@ using namespace trdconst;
 char * TRDDBc::_OctagonMedia[maxo]={"TRDCarbonFiber", "TRDCarbonFiber",
 "TRDCarbonFiber","TRDCarbonFiber","TRDCarbonFiber","TRDHC","TRDHC",
 "TRDHC","TRDRadiator"};
+char * TRDDBc::_BulkheadsMedia="TRDCarbonFiber";
 char * TRDDBc::_TubesMedia="TRDCapton";
 char * TRDDBc::_ITubesMedia="TRDGas";
 char * TRDDBc::_RadiatorMedia="VACUUM";  // Really hole in radiator
@@ -16,6 +17,7 @@ uinteger TRDDBc::_PrimaryOctagon[maxo]={0,1,2,3,4,3,4,1,1};
 uinteger TRDDBc::_PrimaryOctagonNo=5;
 uinteger TRDDBc::_TRDOctagonNo=1;
 uinteger TRDDBc::_OctagonNo=maxo;
+uinteger TRDDBc::_BulkheadsNo[mtrdo]={maxbulk};
 uinteger TRDDBc::_LayersNo[mtrdo]={maxlay};
 uinteger TRDDBc::_LaddersNo[mtrdo][maxlay]={14,14,14,14,16,16,16,16,16,16,16,16,18,18,18,18,18,18,18,18};
 
@@ -23,6 +25,7 @@ uinteger TRDDBc::_TubesNo[mtrdo][maxlay][maxlad];
 
 uinteger   TRDDBc::_NumberTubes=0;
 uinteger   TRDDBc::_NumberLadders=0;
+uinteger   TRDDBc::_NumberBulkheads=0;
 
 
 const number  TRDDBc::_TubeWallThickness=75e-4;
@@ -38,6 +41,7 @@ const number TRDDBc::_BulkheadGap = 0.78; // Gap between ladders at bulkhead
 
 const integer TRDDBc::_LadderOrientation[mtrdo][maxlay]={0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0};   // 0 -x 1 -y    
 number TRDDBc::_OctagonDimensions[maxo][10]; 
+number TRDDBc::_BulkheadsDimensions[mtrdo][maxbulk][4];
 number TRDDBc::_LaddersDimensions[mtrdo][maxlay][maxlad][3];
 number TRDDBc::_TubesDimensions[mtrdo][maxlay][maxlad][3];    
 number TRDDBc::_TubesBoxDimensions[mtrdo][maxlay][maxlad][10];    
@@ -46,6 +50,7 @@ number TRDDBc::_RadiatorDimensions[mtrdo][maxlay][maxlad][3];
   // Positions & Orientations
   
 TRDDBc* TRDDBc::_HeadOctagonPos=0;
+TRDDBc* TRDDBc::_HeadBulkheadPos=0;
 TRDDBc* TRDDBc::_HeadLadderPos=0;
 TRDDBc* TRDDBc::_HeadRadiatorPos=0;
 TRDDBc* TRDDBc::_HeadTubeBoxPos=0;
@@ -84,10 +89,15 @@ void TRDDBc::init(){
         }
        }
        cout <<"TRDDBcI-I-Total of " <<_NumberLadders<< "  ladders initialized."<<endl;
-
+  // calculate bulkhead #
+       for ( i=0;i<TRDOctagonNo();i++){
+        for ( j=0;j<BulkheadsNo(i);j++)_NumberBulkheads++;
+       }
+       cout <<"TRDDBcI-I-Total of " <<_NumberBulkheads<< "  bulkheads initialized."<<endl;
 
 
        _HeadLadderPos=new TRDDBc[_NumberLadders];
+       _HeadBulkheadPos=new TRDDBc[_NumberBulkheads];
        _HeadRadiatorPos=new TRDDBc[_NumberLadders];
        _HeadTubeBoxPos=new TRDDBc[_NumberLadders];
        _HeadTubePos=new TRDDBc[_NumberTubes];
@@ -289,6 +299,149 @@ void TRDDBc::init(){
       }
 
 
+      number blknrm[2][3][3]={1,0,0,0,1,0,0,0,1,
+                            0,1,0,1,0,0,0,0,1};
+
+
+      // Bulkheads
+      for(i=0;i<TRDOctagonNo();i++){
+
+	// Note: this doesn't quite match the diagram
+	number bulkhead_pos = 3.*ManifoldWidth()+BulkheadGap()/2.;
+	
+        // Central bulkheads  in x direction
+
+	// Bulkhead 0
+
+        // Bottom half-width	
+	BulkheadsDimensions(i,0,0)= OctagonDimensions(8,6);
+
+        // dy
+	BulkheadsDimensions(i,0,2)= 3./20.;
+
+	//dz
+	// Not sure what this is for the moment
+	// Look like it stops half a layer above the top layer line
+        // Top layer line is 35 mm below top 
+
+	BulkheadsDimensions(i,0,3)= OctagonDimensions(8,7)-35./20.+
+                   LadderThickness()/4.;
+
+        // Top half-width
+	BulkheadsDimensions(i,0,1)= BulkheadsDimensions(i,0,0)+
+                                     2.*tan(ang)*BulkheadsDimensions(i,0,3);
+
+
+        // Position it
+	coo[0] = 0.;
+	coo[1] = -bulkhead_pos;
+	coo[2] = -(fabs(OctagonDimensions(8,4))-BulkheadsDimensions(i,0,3));
+
+	SetBulkhead(0,i,status,coo,blknrm[0],gid);
+
+	// Bulkhead 1
+
+	for (j=0;j<4;j++)
+	  {
+	    BulkheadsDimensions(i,1,j)= BulkheadsDimensions(i,0,j);
+	  }
+
+        // Position it
+	coo[0] = 0.;
+	coo[1] = bulkhead_pos;
+	coo[2] = -(fabs(OctagonDimensions(8,4))-BulkheadsDimensions(i,1,3));
+
+	SetBulkhead(1,i,status,coo,blknrm[0],gid);
+
+	// Top bulkheads in y direction
+
+	// Bulkhead 2
+
+	// dz half-height.. also not sure what this is exactly
+	BulkheadsDimensions(i,2,3)= 4.*LadderThickness()/2.;
+
+        // Top half-width
+	BulkheadsDimensions(i,2,1)= OctagonDimensions(8,9);
+
+        // Bottom half-width
+	BulkheadsDimensions(i,2,0)= BulkheadsDimensions(i,2,1)
+	  -2.*BulkheadsDimensions(i,2,3)*tan(ang);
+
+
+	BulkheadsDimensions(i,2,2)= 3./20.;
+
+        // Position it wrt main octagon
+	coo[0] = -bulkhead_pos;
+	coo[1] = 0.;
+	coo[2] = OctagonDimensions(8,7)-35./10.+LadderThickness()/2.
+                        -BulkheadsDimensions(i,2,3);
+
+	SetBulkhead(2,i,status,coo,blknrm[1],gid);
+
+	// Bulkhead 3
+
+	for (j=0;j<4;j++)
+	  {
+	    BulkheadsDimensions(i,3,j)= BulkheadsDimensions(i,2,j);
+	  }
+
+        // Position it
+	coo[0] = bulkhead_pos;
+	coo[1] = 0.;
+	coo[2] = OctagonDimensions(8,7)-35./10.+LadderThickness()/2.
+                         -BulkheadsDimensions(i,3,3);
+
+	SetBulkhead(3,i,status,coo,blknrm[1],gid);
+
+	// Bottom bulkheads in y direction
+
+
+	// Bulkhead 4
+
+	// dz half-height.. also not sure what this is exactly
+	BulkheadsDimensions(i,4,3)= 3.5*LadderThickness()/2.
+	     +FirstLayerHeight()/2.;
+
+        // Bottom half-width
+	BulkheadsDimensions(i,4,0)= OctagonDimensions(8,6);
+
+        // Top half-width
+	BulkheadsDimensions(i,4,1)= BulkheadsDimensions(i,4,0)
+	 +2.*BulkheadsDimensions(i,4,3)*tan(ang);
+
+
+        // dy
+	BulkheadsDimensions(i,4,2)= 3./20.;
+
+
+        // Position it
+	coo[0] = -bulkhead_pos;
+	coo[1] = 0.;
+	coo[2] = OctagonDimensions(8,4)+BulkheadsDimensions(i,4,3);
+
+	SetBulkhead(4,i,status,coo,blknrm[1],gid);
+
+	// Bulkhead 5
+
+	for (j=0;j<4;j++)
+	  {
+	    BulkheadsDimensions(i,5,j)= BulkheadsDimensions(i,4,j);
+	  }
+
+        // Position it
+	coo[0] = bulkhead_pos;
+	coo[1] = 0.;
+	coo[2] = OctagonDimensions(8,4)+BulkheadsDimensions(i,5,3);
+
+	SetBulkhead(5,i,status,coo,blknrm[1],gid);
+
+      }
+
+
+      number nrmxy[2][3][3]={0,0,1,1,0,0,0,1,0,
+                            1,0,0,0,0,-1,0,1,0};
+
+
      // LadderSizes
       for(i=0;i<TRDOctagonNo();i++){
 
@@ -303,10 +456,12 @@ void TRDDBc::init(){
 
 	  for(k=0;k<LaddersNo(i,j);k++){
 
-	    coo[0]=TubeInnerDiameter()
-                      +2*TubeWallThickness()+2*TubeBoxThickness();
-	    coo[0]*=TubesNo(i,j,k);
-	    coo[1]=LadderThickness();
+	    //	    coo[0]=TubeInnerDiameter()
+            //          +2*TubeWallThickness()+2*TubeBoxThickness();
+
+	    // coo[0]*=TubesNo(i,j,k);
+	    coo[0] = ManifoldWidth();
+	    coo[1] = LadderThickness();
 
 	    // This is the inner tangent radius of the octagon
             //  at the center of the side inner skin
@@ -461,9 +616,8 @@ void TRDDBc::init(){
 	    for(int l=0;l<3;l++)LaddersDimensions(i,j,k,l)=coo[l]/2;          
 	  }  
 	}
+
       }
-     number nrmxy[2][3][3]={0,0,1,1,0,0,0,1,0,
-                            1,0,0,0,0,-1,0,1,0};
      number nrm[3][3];
     //Ladder Position & Orientation
       for(i=0;i<TRDOctagonNo();i++){
@@ -657,6 +811,26 @@ assert(oct<OctagonNo());
 return oct;
 }
 
+uinteger TRDDBc::getnumBulkhead(uinteger bulkhead,uinteger oct){
+       int num=0;
+       int i,j;
+       for ( i=0;i<oct;i++){
+        for ( j=0;j<BulkheadsNo(i);j++)num++;
+       }
+
+       for ( i=oct;i<oct+1;i++){
+        for ( j=0;j<bulkhead;j++)num++;
+       }
+
+
+#ifdef __AMSDEBUG__
+   assert(num<_NumberBulkheads);
+#endif
+   return num;
+
+}
+
+
 uinteger TRDDBc::getnumTube(uinteger tube,uinteger ladder, uinteger layer, uinteger oct){
        int num=0;
        int i,j,k,l;
@@ -719,7 +893,7 @@ uinteger TRDDBc::getnumLadder(uinteger ladder, uinteger layer, uinteger oct){
        }
 
 #ifdef __AMSDEBUG__
-   assert(num<_NumberLadders);
+   assert(num<_NumberBulkheads);
 #endif
      return num;
 }
@@ -759,6 +933,41 @@ assert(oct<OctagonNo());
    }
 
 }
+
+
+void TRDDBc::SetBulkhead(uinteger bulkhead,uinteger oct,
+             uinteger  status, geant coo[],number nrm[3][3], uinteger gid){
+
+    oct=getnumBulkhead(bulkhead,oct);    
+   _HeadBulkheadPos[oct]._status=status;     
+   _HeadBulkheadPos[oct]._gid=gid;     
+   int i,j;
+   for(i=0;i<3;i++){
+    _HeadBulkheadPos[oct]._coo[i]=coo[i];
+    for(j=0;j<3;j++){
+     _HeadBulkheadPos[oct]._nrm[i][j]=nrm[i][j];
+    }
+   }
+}
+
+
+void TRDDBc::GetBulkhead(uinteger bulkhead, uinteger oct,
+                          uinteger & status, geant coo[],number nrm[3][3],
+                          uinteger &gid){
+
+   oct=getnumBulkhead(bulkhead,oct);    
+   status=_HeadBulkheadPos[oct]._status;     
+   gid=_HeadBulkheadPos[oct]._gid;     
+   int i,j;
+   for(i=0;i<3;i++){
+    coo[i]=_HeadBulkheadPos[oct]._coo[i];
+    for(j=0;j<3;j++){
+     nrm[i][j]=_HeadBulkheadPos[oct]._nrm[i][j];
+    }
+   }
+
+}
+
 
 void TRDDBc::SetLadder(uinteger ladder, uinteger layer,uinteger oct,
              uinteger  status, geant coo[],number nrm[3][3], uinteger gid){
@@ -927,6 +1136,10 @@ uinteger TRDDBc::_check(uinteger oct,uinteger layer,uinteger ladder, uinteger tu
  return 1;
 }
 
+number & TRDDBc::BulkheadsDimensions(uinteger toct, uinteger bulkhead ,uinteger index){
+return _BulkheadsDimensions[toct][bulkhead][index];
+}
+
 number & TRDDBc::RadiatorDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index){
 #ifdef __AMSDEBUG__
 _check(toct,lay,lad);
@@ -985,7 +1198,7 @@ return _OctagonDimensions[toct][index];
 
 char* TRDDBc::CodeLad(uinteger gid){
  static char output[3]={'\0','\0','\0'};
- static char code[]="QWERTYUIOPASFGHJKLZXCVBNM1234567890";
+ static char code[]="QWERTYUIOPASFGHJKLZXCVNM1234567890";
  integer size=strlen(code);
  if(gid<size*size){
   output[0]=code[gid%size]; 
