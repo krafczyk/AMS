@@ -36,7 +36,7 @@
  */
 
 #!/usr/bin/env python2.2
-# If the previous command does not work, look for something like: 
+# If the previous commans does not work, look for something like: 
 #  /afs/cern.ch/asis/packages/GNU.LANG/python-2.2.2/i386_redhat73/usr.local/bin/python2.2
 #
 #   Program to plot any AMS variable
@@ -49,7 +49,7 @@ def process_cut(cut):
       try:
             float(cut)
       except ValueError:
-            print 'Wrong value of cut "' + cut + '", EXIT'
+            print 'Wrong value of cut "' + cut + '"; EXIT'
             sys.exit()
       else:
             return cut
@@ -70,7 +70,7 @@ def process_operator(op):
       elif op=="<>":
             op = "!="
       else:
-            print 'Wrong value of operand "' + op + '", EXIT'
+            print 'Wrong value of operand "' + op + '"; EXIT'
             sys.exit()
       return op
 
@@ -78,7 +78,7 @@ def process_variable(variable,root_h_file):
       splitvar = variable.split(".")
       if len(splitvar)==1:
             if splitvar[0]=="nHeader":
-                  print 'Variable "nHeader" not allowed, EXIT'
+                  print 'Variable "nHeader" not allowed; EXIT'
                   sys.exit()
             elif splitvar[0][0:1]=="n":
                   splitvar[0]= splitvar[0][1:]
@@ -92,7 +92,7 @@ def process_variable(variable,root_h_file):
       if match:
             splittest0 = match.group(1)
       else:
-            print 'Wrong variable "' + variable + '", EXIT'
+            print 'Wrong variable "' + variable + '"; EXIT'
             sys.exit()
       
       if len(splitvar)>1:
@@ -100,7 +100,7 @@ def process_variable(variable,root_h_file):
             if match2:
                   splittest1 = match2.group(1)
             else:
-                  print 'Wrong variable "' + variable + '", EXIT'
+                  print 'Wrong variable "' + variable + '"; EXIT'
                   sys.exit()
 
       line = root_h_file.readline()
@@ -128,7 +128,7 @@ def process_variable(variable,root_h_file):
                         if found==2: break
 
       if found<len(splitvar):
-            print 'Wrong variable "' + variable + '", EXIT'
+            print 'Wrong variable "' + variable + '"; EXIT'
             sys.exit()
 
       return variable
@@ -138,7 +138,7 @@ def make_amsplot_file(filearray, options, full_variable):
       if os.path.exists(root_h):
             root_h_file = file(root_h,"r")
       else:
-            print "Header file \"" + root_h + "\" does not exist, EXIT"
+            print "Header file \"" + root_h + "\" does not exist; EXIT"
             sys.exit()
 
       amsplot_file = file("amsplot.C","w")
@@ -211,10 +211,10 @@ def make_amsplot_file(filearray, options, full_variable):
                   amsplot_file.write("\t\t}\n")
             else:
                   if  mincut:
-                        amsplot_file.write("\t\tif (!(" + mincut + minop + "Event." + splitvar[1] + "())) return;\n")
+                        amsplot_file.write("\t\tif (!(" + mincut + minop + "Event.fHeader." + splitvar[1] + ")) return;\n")
                   if  maxcut:
-                        amsplot_file.write("\t\tif (!(Event." + splitvar[1] + "()" + maxop + maxcut + ")) return;\n")
-                  amsplot_file.write("\t\th_test->Fill(Event." + splitvar[1] + "());\n")
+                        amsplot_file.write("\t\tif (!(Event.fHeader." + splitvar[1] + maxop + maxcut + ")) return;\n")
+                  amsplot_file.write("\t\th_test->Fill(Event.fHeader." + splitvar[1] + ");\n")
 
       else:
             if  mincut:
@@ -288,13 +288,13 @@ if not os.environ["AMSDir"]:
 
 for opt in options:
       if opt != "--list" and opt != "--test":
-            print "Wrong option \"" + opt + "\", EXIT"
+            print "Wrong option \"" + opt + "\"; EXIT"
             sys.exit()
 
 filearray = parameters[1:]
 for filename in filearray:
       if not os.path.exists(filename):
-            print 'Root file "' + filename + '" does not exist, EXIT'
+            print 'Root file "' + filename + '" does not exist; EXIT'
             sys.exit()
 full_variable = parameters[0]
 make_amsplot_file(filearray, options, full_variable)

@@ -174,10 +174,10 @@ def make_amsplot_file(filearray, options, full_variable):
                   amsplot_file.write("\t\t}\n")
             else:
                   if  mincut:
-                        amsplot_file.write("\t\tif (!(" + mincut + minop + "Event." + splitvar[1] + "())) return;\n")
+                        amsplot_file.write("\t\tif (!(" + mincut + minop + "Event.fHeader." + splitvar[1] + ")) return;\n")
                   if  maxcut:
-                        amsplot_file.write("\t\tif (!(Event." + splitvar[1] + "()" + maxop + maxcut + ")) return;\n")
-                  amsplot_file.write("\t\th_test->Fill(Event." + splitvar[1] + "());\n")
+                        amsplot_file.write("\t\tif (!(Event.fHeader." + splitvar[1] + maxop + maxcut + ")) return;\n")
+                  amsplot_file.write("\t\th_test->Fill(Event.fHeader." + splitvar[1] + ");\n")
 
       else:
             if  mincut:
