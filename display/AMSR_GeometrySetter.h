@@ -1,4 +1,4 @@
-//  $Id: AMSR_GeometrySetter.h,v 1.2 2003/07/08 16:24:56 choutko Exp $
+//  $Id: AMSR_GeometrySetter.h,v 1.1 2003/07/08 16:20:38 choutko Exp $
 #ifndef AMSR_GeometrySetter_H
 #define AMSR_GeometrySetter_H
 
@@ -13,6 +13,7 @@
 #ifndef ROOT_TGeometry_H
 #include <TGeometry.h>
 #endif
+#include "TSwitch.h"
 #include "TList.h"
 //
 // AMS Geometry:
@@ -54,7 +55,7 @@ enum EVisibility {
 
 
 struct AMSR_GeoToggle {  
-  char * name;  EVisibility vis; void * sw;  // TNode * node;
+  char * name;  EVisibility vis; TSwitch * sw;  // TNode * node;
 };
 
 static const Int_t nToggle=6;
