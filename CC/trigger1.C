@@ -81,11 +81,19 @@ void TriggerLVL1::build(){
 
 
 
-integer TriggerLVL1::checktofpatt(integer tof, integer paddle){
+integer TriggerLVL1::checktofpattor(integer tof, integer paddle){
 #ifdef __AMSDEBUG__
  assert(tof >=0 && tof <SCLRS);
 #endif
  return (_tofpatt[tof]) & (1 << paddle);
+}
+
+
+integer TriggerLVL1::checktofpattand(integer tof, integer paddle){
+#ifdef __AMSDEBUG__
+ assert(tof >=0 && tof <SCLRS);
+#endif
+ return (_tofpatt[tof]) & (1 << (paddle+16));
 }
 
 

@@ -103,6 +103,7 @@ out:
        if(!amsroot.GetEvent(i)){
         if(i){
           i=0;
+          theApp->SetIdleTimer(30,"");
           continue;
         }
         else break;

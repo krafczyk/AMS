@@ -86,6 +86,7 @@ return _ctr < _ltr ? _ptr+_ctr : 0;
   TriggerExpertLVL3 * TriggerExpertLVL3::pExpert=0;
   integer TriggerLVL3::_TOFPattern[SCMXBR][SCMXBR];
   integer TriggerLVL3::_TOFStatus[SCLRS][SCMXBR];
+  integer TriggerLVL3::_TOFOr[SCLRS][SCMXBR];
   integer TriggerLVL3::_TrackerStatus[NTRHDRP2];
   integer TriggerLVL3::_TrackerAux[NTRHDRP][2];
   integer TriggerLVL3::_TOFAux[SCLRS][SCMXBR];
@@ -205,6 +206,9 @@ void TriggerLVL3::init(){
     for(i=0;i<SCMXBR;i++){
       for(j=0;j<SCMXBR;j++)iftxt>>_TOFPattern[j][i];
     }
+    for(i=0;i<SCLRS;i++){
+      for(j=0;j<SCMXBR;j++)iftxt>>_TOFOr[i][j];
+    }
     if(iftxt.eof() ){
       cerr<< "TriggerLVL3::init-F-Unexpected EOF"<<endl;
       exit(1);
@@ -213,6 +217,7 @@ void TriggerLVL3::init(){
   else{
     for(i=0;i<SCMXBR;i++){
       for (j=0;j<SCMXBR;j++)_TOFPattern[i][j]=1;
+      for(j=0;j<SCLRS;j++)_TOFOr[j][i]=1;
     }
   }
 
@@ -341,6 +346,14 @@ void TriggerLVL3::init(){
       for(i=0;i<SCMXBR;i++){
         oftxt <<"i "<<i<<" ";
         for(j=0;j<SCMXBR;j++)oftxt <<_TOFPattern[i][j]<<" ";
+        oftxt <<endl;
+      }    
+      oftxt<<endl;
+      oftxt<<endl;
+      oftxt << "_TOFOr[i][14]"<<endl;
+      for(i=0;i<SCLRS;i++){
+        oftxt <<"i "<<i<<" ";
+        for(j=0;j<SCMXBR;j++)oftxt <<_TOFOr[i][j]<<" ";
         oftxt <<endl;
       }    
       oftxt<<endl;
@@ -541,7 +554,8 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
     int i,j;
     for(i=0;i<SCLRS;i++){
       for(j=0;j<SCMXBR;j++){
-        if(plvl1->checktofpatt(i,j)){
+        if(plvl1->checktofpattand(i,j) ||
+            (_TOFOr[i][j] && plvl1->checktofpattor(i,j))){
           plvl3->addtof(i,j);
         }
       }
