@@ -20,15 +20,9 @@
 #include <ctcdbc.h>
 
 
-// MC bank for TOF & anti  - skeleton only
 
 class AMSTOFMCCluster: public AMSlink{
 public:
-//+
-#ifdef __DB__
-   friend class AMSTOFMCClusterD;
-#endif
-//-
 
  integer  idsoft;
  AMSPoint xcoo;
@@ -50,30 +44,41 @@ public:
  }
  static void sitofhits(integer idsoft , geant vect[],geant edep, geant tofg);
   AMSTOFMCCluster *  next(){return (AMSTOFMCCluster*)_next;}
+#ifdef __DB__
+   friend class AMSTOFMCClusterD;
+#endif
 };
+
+
 class AMSAntiMCCluster: public AMSlink{
+protected:
+ integer  _idsoft;
+ AMSPoint _xcoo;
+ number _tof;
+ number _edep;
+
 public:
+ 
+ AMSAntiMCCluster(integer idsoft,AMSPoint xcoo,number edep, number tof) :
+ _idsoft(idsoft), _xcoo(xcoo),_edep(edep),_tof(tof){_next=0;};
+ AMSAntiMCCluster(){_next=0;};
+ ~AMSAntiMCCluster(){};
+ void _printEl(ostream &stream){stream <<"AMSAntiMCCluster "<<_idsoft<<" "<<_edep<<endl;}
+ void _writeEl();
+ void _copyEl(){};
+ static void siantihits(integer idsoft , geant vect[],geant edep, geant tofg);
+ AMSAntiMCCluster *  next(){return (AMSAntiMCCluster*)_next;}
+ integer operator < (AMSlink & o)const{
+ return _idsoft < ((AMSAntiMCCluster*)(&o)) ->_idsoft;}
+
+ integer getid() const {return _idsoft;}
+ number getedep() const {return _edep;}
+ number getcoo(integer i) {return i>=0 && i<3 ? _xcoo[i]:0;}
+ static integer Out(integer);
 
 #ifdef __DB__
    friend class AMSAntiMCClusterD;
 #endif
-
- AMSPoint xcoo;
-
- number tof;
- number edep;
-
- integer  idsoft;
-
- AMSAntiMCCluster(integer _idsoft,AMSPoint _xcoo,number _edep, number _tof) :
- idsoft(_idsoft), xcoo(_xcoo),edep(_edep),tof(_tof){_next=0;};
- AMSAntiMCCluster(){_next=0;};
- ~AMSAntiMCCluster(){};
- void _printEl(ostream &stream){stream <<"AMSAntiMCCluster "<<idsoft<<" "<<edep<<endl;}
- void _writeEl(){};
- void _copyEl(){};
- static void siantihits(integer idsoft , geant vect[],geant edep, geant tofg);
-  AMSAntiMCCluster *  next(){return (AMSAntiMCCluster*)_next;}
 };
 
 // MC bank for CTC

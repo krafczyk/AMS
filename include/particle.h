@@ -45,14 +45,13 @@ protected:
   number  _Theta;
   number  _Phi;
   AMSPoint _Coo;
-  number  _SumAnti;
   CTC    _Value[2];
 
   void _copyEl();
   void _printEl(ostream & stream){ stream << " Mass "<<_Mass<<
   " Error Mass "<<_ErrMass<<" Momentum "<<_Momentum<<" ErrMomentum "<<
    _ErrMomentum<<" Charge "<<_Charge<<" Theta "<<_Theta<<" Phi"<<_Phi<<
-   " Coo "<<_Coo<<" SumAnti "<<_SumAnti<<endl;}
+   " Coo "<<_Coo<<endl;}
  void _writeEl();
  static geant _massP[19];
  static integer _chargeP[10];
@@ -68,11 +67,11 @@ public:
  }
   AMSParticle(AMSBeta * pbeta, AMSCharge * pcharge, AMSTrTrack * ptrack,
   number mass, number errmass, number momentum, number errmomentum,
-  number charge, number theta, number phi, AMSPoint coo, number sumanti): 
+  number charge, number theta, number phi, AMSPoint coo): 
   AMSlink(0),_pbeta(pbeta), _pcharge(pcharge), _ptrack(ptrack), 
   _Mass(mass),
   _ErrMass(errmass), _Momentum(momentum), _ErrMomentum(errmomentum),
-  _Charge(charge), _Theta(theta), _Phi(phi), _Coo(coo), _SumAnti(sumanti)
+  _Charge(charge), _Theta(theta), _Phi(phi), _Coo(coo)
  {
     for(int i=0;i<2;i++){
      _Value[i]=CTC(0.,0.,1.,AMSPoint());
@@ -98,7 +97,6 @@ public:
    number  gettheta() {return _Theta;}
    number  getphi() {return _Phi;}
    AMSPoint getcoo() {return _Coo;}
-   number   getsumanti() {return _SumAnti;}
 
 
 #endif

@@ -26,7 +26,7 @@
 
 *
       REAL Beta,BetaError,BetaChi2,ProbTOF,ProbTracker,PMass
-     + ,PErrMass,PMom,PErrMom,PCharge,PTheta,PPhi,PCoo,PAnti
+     + ,PErrMass,PMom,PErrMom,PCharge,PTheta,PPhi,PCoo
      + ,SignalCTC,BetaCTC,ErrorBetaCTC,CooCTC,TOFEdep,TOFTime
      + ,TOFETime,TOFCoo,TOFErCoo,TOFMCXcoo,TOFMCtof,TOFMCedep
      + ,Sumt,Sigmat,Meant,RMSt,ErrorMeant,SS,Xca,Xcb,Xgl,SumMC
@@ -37,7 +37,8 @@
      + ,FChi2MS,GChi2MS,RidgidityMS,GRidgidityMS,Coo,Dir,Momentum
      + ,Mass,Charge,CTCCoo,CTCErCoo,CTCRawSignal,CTCSignal
      + ,CTCESignal,CTCMCXcoo,CTCMCXdir,CTCstep,CTCcharge,CTCbeta
-     + ,Amplitude,CTCedep,PolePhi,ThetaS,PhiS
+     + ,Amplitude,CTCedep,PolePhi,ThetaS,PhiS,
+     + AntiEdep,Anticoo,AntiErCoo,AntiMCXcoo,AntiMCtof,AntiMCedep
       INTEGER EventNo,Run,RunType,Time(2) ,BetaEvent,BetaPattern
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
@@ -49,7 +50,8 @@
      + ,CTCStatus,CTCLayer,CTCMCEvent,CTCMCIdsoft,bar,px,py,
      +  Particles, Tracks, Betas, Charges ,TrRecHits, TrClusters,
      +  TrMCClusters, TOFClusters, TOFMCClusters, CTCClusters,
-     +  CTCMCClusters,Nskip
+     +  CTCMCClusters,Nskip,AntiMCClusters,AntiClusters,
+     +  AntiMCEvent,AntiMCIdsoft,AntiCluster, AntiSector, AntiStatus
 *
 *
 *
@@ -62,6 +64,8 @@
       parameter (maxpa=10)
       parameter(maxtof=20)
       parameter(maxtofmc=200)
+      parameter(maxanti=16)
+      parameter(maxantimc=200)
       parameter(maxtrcl=50)
       parameter(maxtrclmc=200)
       parameter(maxtrrh=200)
@@ -73,7 +77,7 @@
       common /eventhC/eventno,run,runtype,time,PolePhi,ThetaS,PhiS,
      +    Particles, Tracks, Betas, Charges ,TrRecHits,
      +    TrClusters, TrMCClusters, TOFClusters, TOFMCClusters,
-     +    CTCClusters, CTCMCClusters
+     +    CTCClusters, CTCMCClusters, AntiMCClusters, AntiClusters
 
       common /betaC/nbeta,
      + betapattern(maxbeta),beta(maxbeta),
@@ -88,7 +92,7 @@
      + ptrackpointer(maxpa),particleid(maxpa),pmass(maxpa),
      + perrmass(maxpa),
      + pmom(maxpa),perrmom(maxpa),pcharge(maxpa),
-     + ptheta(maxpa),pphi(maxpa),pcoo(3,maxpa),panti(maxpa),
+     + ptheta(maxpa),pphi(maxpa),pcoo(3,maxpa),
      + signalctc(2,maxpa),
      + betactc(2,maxpa),errorbetactc(2,maxpa),cooctc(3,2,maxpa)
 
@@ -150,8 +154,20 @@
      + CTCMCXdir(3,maxctcclmc),CTCstep(maxctcclmc),
      + ctccharge(maxctcclmc),
      + ctcbeta(maxctcclmc),ctcedep(maxctcclmc)
+
+
+      common /anticlustC/ nanti,
+     + AntiStatus(maxanti),Antisector(maxanti),
+     + AntiEdep(maxanti), AntiCoo(3,maxanti), AntiErCoo(3,maxanti)
+
+       common /antimcccluC/nantimc, 
+     + AntiMCIdsoft(maxantimc) ,AntiMCXcoo(3,maxantimc),
+     + AntiMCtof(maxantimc),  AntiMCedep(maxantimc)
+
+
+
       character *64 cdet
-      parameter (ndet=13)
+      parameter (ndet=15)
       character *64 cblock(ndet)
       integer events(ndet),eof(ndet)
       common /quest/iquest(100)
@@ -179,6 +195,9 @@ c       iquest(10)=128000
        cblock(11)='MCEVENTG'
        cblock(12)='CTCCLUST'
        cblock(13)='CTCMCCLU'
+       cblock(14)='ANTICLUS'
+       cblock(15)='ANTIMCCL'
+
        do idet=1,ndet
         open(40+idet,file=cblock(idet),status='old',
      +  form='unformatted',err=998)
@@ -191,7 +210,8 @@ c       iquest(10)=128000
      + 'PolePhi:R ,ThetaS:R ,PhiS:R, Particles:I,'//
      + 'Tracks:I, Betas:I, Charges:I ,TrRecHits:I, TrClusters:I,'//
      + 'TrMCClusters:I, TOFClusters:I, TOFMCClusters:I,'//
-     + 'CTCClusters:I, CTCMCClusters:I')
+     + 'CTCClusters:I, CTCMCClusters:I,'//
+     + 'AntiMCClusters:I, AntiClusters:I')
 
       call hbname(1,cblock(2),nbeta,
      + 'nbeta[0,10],betapattern(nbeta):I,beta(nbeta),'//
@@ -208,7 +228,7 @@ c       iquest(10)=128000
      + 'ptrackp(npart):I,pid(npart):I,pmass(npart),'//
      + 'perrmass(npart),'//
      + 'pmom(npart),perrmom(npart),pcharge(npart),'//
-     + 'ptheta(npart),pphi(npart),pcoo(3,npart),panti(npart),'//
+     + 'ptheta(npart),pphi(npart),pcoo(3,npart),'//
      + 'signalctc(2,npart),'//
      + 'betactc(2,npart),errorbetactc(2,npart),cooctc(3,2,npart)')
 
@@ -275,7 +295,15 @@ c       iquest(10)=128000
      + 'CTCMCXcoo(3,nctcclmc),'//
      + 'CTCMCXdir(3,nctcclmc),CTCstep(nctcclmc),'//
      + 'ctccharge(nctcclmc),ctcbeta(nctcclmc),ctcedep(nctcclmc)')
+       
+      call hbname(1,cblock(14), nanti,
+     + 'nanti[0,16],AntiStatus(nanti):I, AntiSector(nanti):I,'//
+     + 'AntiEdep(nanti), AntiCoo(3,nanti), AntiErCoo(3,nanti)')
 
+      call hbname(1,cblock(15), nantimc,
+     + 'nantimc[0,200],AntiMCIdsoft(nantimc):I,'//
+     + 'AntiMCXcoo(3,nantimc),AntiMCtof(nantimc),'//
+     + 'AntiMCedep(nantimc)')
         runold=-1
         do i=1,ndet
           events(idet)=0
@@ -287,7 +315,8 @@ c       iquest(10)=128000
      +   PhiS,Particles ,
      +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
      +   TrMCClusters , TOFClusters , TOFMCClusters , 
-     +   CTCClusters , CTCMCClusters 
+     +   CTCClusters , CTCMCClusters, AntiMCClusters,
+     +   AntiClusters
         if(run.ne.runold)then
           write(*,*)' New run # ',run
           runold=run
@@ -366,7 +395,6 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
      +     ptrackpointer(npart),particleid(npart),pmass(npart),
      +     perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),
      +     ptheta(npart),pphi(npart),(pcoo(k,npart),k=1,3),
-     +     panti(npart),
      +     (signalctc(kk,npart),kk=1,2),
      +     (betactc(kk,npart),kk=1,2),(errorbetactc(kk,npart),kk=1,2),
      +     ((cooctc(k,kk,npart),k=1,3),kk=1,2)
@@ -675,6 +703,65 @@ c            write(*,*)' ntrrh eq 0 ', events
            nctcclmc=min(nctcclmc+1,maxctcclmc)
         enddo   
  120     continue
+        idet=14
+        lun=40+idet
+        nanti=1
+        do while(truth)
+           iostat=1
+           if(eof(idet).eq.0)read(lun,end=145)
+     +     ne,AntiStatus(nanti), 
+     +     Antisector(nanti), AntiEdep(nanti),
+     +     (AntiCoo(k,nanti),k=1,3),
+     +     (AntiErCoo(k,nanti),k=1,3)
+           goto 146
+ 145       eof(idet)=1
+ 146       continue
+          if(eof(idet).ne.0)then
+             events(idet)=0
+           else
+            if(events(idet).gt.ne)newrun=.true.
+            events(idet)=ne
+           endif              
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
+          if(eof(idet).eq.0)backspace lun
+           nanti=nanti-1
+           newrun=.false.
+          goto 130
+          else if (events(idet).lt.events(1))then
+              nanti=nanti-1
+         endif
+           nanti=min(nanti+1,maxanti)
+        enddo   
+ 130     continue
+        idet=15
+        lun=40+idet
+        nantimc=1
+        do while(truth)
+           iostat=1
+           if(eof(idet).eq.0)read(lun,end=155)
+     +     ne,AntiMCIdsoft(nantimc),(AntiMCXcoo(k,nantimc),k=1,3),
+     +     AntiMCtof(nantimc), AntiMCedep(nantimc)
+
+           goto 156
+ 155       eof(idet)=1
+ 156       continue
+          if(eof(idet).ne.0)then
+             events(idet)=0
+           else
+            if(events(idet).gt.ne)newrun=.true.
+            events(idet)=ne
+           endif              
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
+          if(eof(idet).eq.0)backspace lun
+           nantimc=nantimc-1
+           newrun=.false.
+          goto 140
+          else if (events(idet).lt.events(1))then
+              nantimc=nantimc-1
+         endif
+           nantimc=min(nantimc+1,maxantimc)
+        enddo   
+ 140     continue
 c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
        call hfnt(1)
        enddo 
@@ -721,10 +808,11 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
 *
 
       REAL Beta,BetaError,BetaChi2,ProbTOF(7),ProbTracker(7),PMass
-     + ,PErrMass,PMom,PErrMom,PCharge,PTheta,PPhi,PCoo(3),PAnti
+     + ,PErrMass,PMom,PErrMom,PCharge,PTheta,PPhi,PCoo(3)
      + ,SignalCTC(2),BetaCTC(2),ErrorBetaCTC(2),
-     +  CooCTC(3,2),TOFEdep,TOFTime
+     +  CooCTC(3,2),AntiEdep,Anticoo(3),AntiErCoo(3),TOFEdep,TOFTime
      + ,TOFETime,TOFCoo(3),TOFErCoo(3),TOFMCXcoo(3),TOFMCtof,TOFMCedep
+     + ,AntiMCXcoo(3),AntiMCtof,AntiMCedep
      + ,Sumt,Sigmat,Meant,RMSt,ErrorMeant,
      +  SS(5,2),Xca(3),Xcb(3),Xgl(3),SumMC,Amplitude(5)
      + ,HitR(3),EhitR(3),SumR,DifoSum,Chi2StrLine,Chi2Circle
@@ -737,17 +825,17 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
       INTEGER EventNo,Run,RunType,Time(2),BetaEvent,BetaPattern
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
-     + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft
+     + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft,
+     +  AntiMCEvent,AntiMCIdsoft,AntiCluster, AntiSector, AntiStatus
      + ,Status,Nelem,TrMCCluster,IdsoftMC,Itra,Left(2),Center(2)
      + ,Right(2),TrRecHit,StatusR,Layer,TrTrack,TrStatus,Pattern,NHits,
      +  phits(6),pctcpointer(2),FastFitdone
      + ,GeaneFitDone,AdvancedFitDone,EventNoMCEventG,Particle,CTCCluster
      + ,CTCStatus,CTCLayer,CTCMCEvent,CTCMCIdsoft,px,py,Particles ,
-     +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
-     +   TrMCClusters , TOFClusters , TOFMCClusters , 
-     +   CTCClusters , CTCMCClusters 
+     +  Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
+     +  TrMCClusters , TOFClusters , TOFMCClusters , 
+     +  CTCClusters , CTCMCClusters, AntiMCClusters, AntiClusters
 *
-
 *
 *
 *
@@ -758,7 +846,7 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
      +   Particles ,
      +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
      +   TrMCClusters , TOFClusters , TOFMCClusters , 
-     +   CTCClusters , CTCMCClusters 
+     +   CTCClusters , CTCMCClusters, AntiMCClusters, AntiClusters
 
 *
 *    idet=2
@@ -778,7 +866,7 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
       common/particleC/particleevent,pctcpointer,
      + pbetapointer,pchargepointer,
      + ptrackpointer,particleid,pmass,perrmass,pmom,perrmom,pcharge,
-     + ptheta,pphi,pcoo,panti,signalctc,betactc,errorbetactc,cooctc
+     + ptheta,pphi,pcoo,signalctc,betactc,errorbetactc,cooctc
 *
 *    idet=5
 *
@@ -840,8 +928,25 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
 
       common /ctcmccluC/CTCMCEvent, CTCMCIdsoft,CTCMCXcoo,
      + CTCMCXdir,CTCstep,ctccharge,ctcbeta,ctcedep
+
+
+*
+*    idet=14
+*
+
+      common /anticlustC/ AntiCluster,AntiStatus,Antisector,
+     + AntiEdep,AntiCoo,AntiErCoo
+
+*
+*    idet=15
+*
+       common /antimcccluC/AntiMCEvent,AntiMCIdsoft,AntiMCXcoo,
+     +AntiMCtof, AntiMCedep
+
+
+
       character *64 cdet
-      parameter (ndet=13)
+      parameter (ndet=15)
       character *64 cblock(ndet)
       integer events(10000),nevent
 *
@@ -869,6 +974,8 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
        cblock(11)='MCEVENTG'
        cblock(12)='CTCCLUST'
        cblock(13)='CTCMCCLU'
+       cblock(14)='ANTICLUS'
+       cblock(15)='ANTIMCCL'
        do idet=1,ndet
         open(21,file=cblock(idet),status='unknown',
      +  form='unformatted',position='append')
@@ -901,6 +1008,10 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
      +  call hbname(1,cblock(idet),ctccluster,'$SET') 
         if(cblock(idet).eq.'CTCMCCLU')
      +  call hbname(1,cblock(idet),ctcmcevent,'$SET') 
+        if(cblock(idet).eq.'ANTICLUS')
+     +  call hbname(1,cblock(idet),anticluster,'$SET') 
+        if(cblock(idet).eq.'ANTIMCCL')
+     +  call hbname(1,cblock(idet),antimcevent,'$SET') 
         do i=1,nmax
          if(i.eq.1)write(*,*)cblock(idet)(1:8),' Started'
          call hgntb(1,cblock(idet),i,ierr)
@@ -916,7 +1027,7 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
      +   Particles ,
      +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
      +   TrMCClusters , TOFClusters , TOFMCClusters , 
-     +   CTCClusters , CTCMCClusters 
+     +   CTCClusters , CTCMCClusters, AntiMCClusters, AntiClusters 
            else if( cblock(idet).eq.'BETA')then
             write(21)betaevent,betapattern,beta,betaerror,betachi2
            else if( cblock(idet).eq.'CHARGE')then
@@ -926,7 +1037,7 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
             write(21) particleevent,pctcpointer,
      + pbetapointer,pchargepointer,
      + ptrackpointer,particleid,pmass,perrmass,pmom,perrmom,pcharge,
-     + ptheta,pphi,pcoo,panti,signalctc,betactc,errorbetactc,cooctc   
+     + ptheta,pphi,pcoo,signalctc,betactc,errorbetactc,cooctc   
            else if( cblock(idet).eq.'TOFCLUST')then
             write(21) TOFCluster,TOFStatus,Ntof,Plane,TOFEdep,
      + TOFTime,TOFETime,TOFCoo,TOFErCoo
@@ -960,6 +1071,13 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
            else if( cblock(idet).eq.'CTCMCCLU')then
             write(21)CTCMCEvent, CTCMCIdsoft,CTCMCXcoo,
      + CTCMCXdir,CTCstep,ctccharge,ctcbeta,ctcedep
+           else if( cblock(idet).eq.'ANTICLUS')then
+            write(21)AntiCluster,AntiStatus,Antisector,
+     +       AntiEdep,AntiCoo,AntiErCoo
+
+           else if( cblock(idet).eq.'ANTIMCCL')then
+            write(21)AntiMCEvent,AntiMCIdsoft,antiMCXcoo,
+     +      AntiMCtof,AntiMCedep
            else
             write(*,*)' Invalid cblock ',idet,' ',cblock(idet)
            endif

@@ -39,9 +39,23 @@ I45    TriggerC('AMSParticle')   // Container names, separated by
                                  // & or | to trigger write 
                                  // the ntuple and/or db
 I85    mode(0)                   // simple i/0 mode switch
-                                 // 0 - nothing 1 -read 2 - write
+                                 // 0 - nothing 1 -read 2 - write 3 - append
 I86   ffile(' ')                 // file name
-//-----------------------------------------------------------------------------
+
+//Anti Simulation
+
+ANTIMC
+R 1   SigmaPed(1.)        // Noise sigma in p.e.
+R 2   GeV2PhEl(20e3)      // conversion gev ->p.e. 
+R 3   LZero(120.)         // saturation length in cm
+
+//Anti Reconstruction
+
+ANTIREC
+R 1 ThrS(5)               // Threshold in p.e. on up+down hits
+R 2 PhEl2MeV(0.05)        // Conversion p.e. -> mev
+
+
 // TOF  Simulation
 
 TOFMC      

@@ -67,6 +67,8 @@ int TOFClusters;
 int TOFMCClusters;
 int CTCClusters;
 int CTCMCClusters;
+int AntiMCClusters;
+int AntiClusters;
 friend class AMSEvent;
 
 };
@@ -97,6 +99,7 @@ float TOF;
 float Edep;
 
 friend class AMSTOFMCCluster;
+friend class AMSAntiMCCluster;
 
 };
 
@@ -143,7 +146,6 @@ float Charge;
 float Theta;
 float Phi;
 float Coo[3];
-float Anti;
 float Value[3][2];
 float CooCTC[2][3];
 
@@ -166,6 +168,18 @@ float Coo[3];
 float ErrorCoo[3];
 
 friend class AMSTOFCluster;
+
+};
+
+class AntiClusterNtuple: public AMSNtuple{
+private:
+int Status;
+int Sector;
+float Edep;
+float Coo[3];   // R, phi, Z
+float ErrorCoo[3];
+
+friend class AMSAntiCluster;
 
 };
 

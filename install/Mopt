@@ -44,8 +44,8 @@ endif
 #
 #
 SCC=../CC/
-FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C $(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C  $(SCC)gsen.C $(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C $(SCC)amsgeom.C $(SCC)geant.C $(SCC)mceventg.C ../F/tkmccl.F $(SCC)rnormx.C  $(SCC)trid.C $(SCC)link.C $(SCC)trrec.C $(SCC)uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F $(SCC)job.C $(SCC)event.C $(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F $(SCC)tofrec.C $(SCC)tofsim.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C $(SCC)commons.C $(SCC)apool.C $(SCC)tofdbc.C $(SCC)ctcrec.C $(SCC)ctcdbc.C $(SCC)tofcalib.C $(SCC)timeid.C $(SCC)io.C $(SCC)trcalib.C ../F/mtx2.F ../F/e04ccf.f $(SCC)trigger.C
-OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)link.o $(BIN)trrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec.o $(BIN)tofsim.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc.o $(BIN)ctcrec.o $(BIN)ctcdbc.o $(BIN)tofcalib.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger.o
+FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C $(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C  $(SCC)gsen.C $(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C $(SCC)amsgeom.C $(SCC)geant.C $(SCC)mceventg.C ../F/tkmccl.F $(SCC)rnormx.C  $(SCC)trid.C $(SCC)link.C $(SCC)trrec.C $(SCC)uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F $(SCC)job.C $(SCC)event.C $(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F $(SCC)tofrec.C $(SCC)antirec.C $(SCC)tofsim.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C $(SCC)commons.C $(SCC)apool.C $(SCC)tofdbc.C $(SCC)ctcrec.C $(SCC)ctcdbc.C $(SCC)tofcalib.C $(SCC)timeid.C $(SCC)io.C $(SCC)trcalib.C ../F/mtx2.F ../F/e04ccf.f $(SCC)trigger.C
+OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)link.o $(BIN)trrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec.o $(BIN)antirec.o $(BIN)tofsim.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc.o $(BIN)ctcrec.o $(BIN)ctcdbc.o $(BIN)tofcalib.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger.o
 ..$(EXE)/gbatch.exe:	$(OBJECTS)
 	$(FF) -c $(FFLAGS) ../F/timel.F -o $(BIN)timel.o
 	$(LD) -v -o ..$(EXE)/gbatch.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
@@ -199,6 +199,9 @@ $(BIN)trcalib.o: 	 $(SCC)trcalib.C
 
 $(BIN)tofrec.o: 	         $(SCC)tofrec.C
 	$(CC) -c $(CFLAGS) $(SCC)tofrec.C -o $(BIN)tofrec.o
+
+$(BIN)antirec.o: 	         $(SCC)antirec.C
+	$(CC) -c $(CFLAGS) $(SCC)antirec.C -o $(BIN)antirec.o
 
 $(BIN)tofsim.o: 	         $(SCC)tofsim.C
 	$(CC) -c $(CFLAGS) $(SCC)tofsim.C -o $(BIN)tofsim.o
@@ -952,6 +955,7 @@ depend:
 ../bin/osf1/event.o: ../include/ctc.h ../include/tofsim.h
 ../bin/osf1/event.o: ../include/tofcalib.h ../include/ntuple.h
 ../bin/osf1/event.o: ../include/trcalib.h ../include/trigger.h
+../bin/osf1/event.o: ../include/antirec.h
 ../bin/osf1/cont.o: ../include/cont.h ../include/typedefs.h
 ../bin/osf1/cont.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/cont.o: /usr/include/cxx/iostream.h
@@ -1143,6 +1147,57 @@ depend:
 ../bin/osf1/tofrec.o: ../include/tofdbc.h ../include/tofsim.h
 ../bin/osf1/tofrec.o: ../include/trrec.h ../include/tofrec.h
 ../bin/osf1/tofrec.o: ../include/tofcalib.h ../include/ntuple.h
+../bin/osf1/antirec.o: ../include/point.h ../include/typedefs.h
+../bin/osf1/antirec.o: /usr/include/assert.h /usr/include/standards.h
+../bin/osf1/antirec.o: /usr/include/cxx/iostream.h
+../bin/osf1/antirec.o: /usr/include/cxx/iostream.hxx
+../bin/osf1/antirec.o: /usr/include/cxx/cxxl.hxx
+../bin/osf1/antirec.o: /usr/include/cxx/cxxl_share.hxx
+../bin/osf1/antirec.o: /usr/include/cxx/messages.hxx
+../bin/osf1/antirec.o: /usr/include/stddef.h /usr/include/stdio.h
+../bin/osf1/antirec.o: /usr/include/sys/seek.h /usr/include/va_list.h
+../bin/osf1/antirec.o: /usr/include/sys/types.h
+../bin/osf1/antirec.o: /usr/include/mach/machine/vm_types.h
+../bin/osf1/antirec.o: /usr/include/sys/select.h /usr/include/getopt.h
+../bin/osf1/antirec.o: /usr/include/sys/limits.h
+../bin/osf1/antirec.o: /usr/include/sys/machine/machlimits.h
+../bin/osf1/antirec.o: /usr/include/sys/syslimits.h
+../bin/osf1/antirec.o: /usr/include/sys/machine/machtime.h
+../bin/osf1/antirec.o: /usr/include/sys/rt_limits.h
+../bin/osf1/antirec.o: /usr/include/limits.h /usr/include/memory.h
+../bin/osf1/antirec.o: /usr/include/string.h /usr/include/strings.h
+../bin/osf1/antirec.o: /usr/include/math.h /usr/include/stdlib.h
+../bin/osf1/antirec.o: ../include/event.h ../include/job.h
+../bin/osf1/antirec.o: ../include/node.h ../include/id.h
+../bin/osf1/antirec.o: /usr/include/cxx/strstream.h
+../bin/osf1/antirec.o: /usr/include/cxx/strstream.hxx
+../bin/osf1/antirec.o: ../include/snode.h ../include/upool.h
+../bin/osf1/antirec.o: /usr/include/cxx/new.h /usr/include/cxx/new.hxx
+../bin/osf1/antirec.o: ../include/gvolume.h ../include/cern.h
+../bin/osf1/antirec.o: ../include/cfortran.h ../include/hbook.h
+../bin/osf1/antirec.o: ../include/geant321.h ../include/geant321g.h
+../bin/osf1/antirec.o: ../include/amsdbc.h ../include/gmat.h
+../bin/osf1/antirec.o: /usr/include/cxx/iomanip.h
+../bin/osf1/antirec.o: /usr/include/cxx/iomanip.hxx
+../bin/osf1/antirec.o: /usr/include/cxx/generic.hxx
+../bin/osf1/antirec.o: /usr/include/cxx/mutex.hxx ../include/amsgobj.h
+../bin/osf1/antirec.o: ../include/uzstat.h ../include/timeid.h
+../bin/osf1/antirec.o: /usr/include/time.h /usr/include/sys/timers.h
+../bin/osf1/antirec.o: /usr/include/sys/sysmisc.h ../include/link.h
+../bin/osf1/antirec.o: ../include/apool.h ../include/cont.h
+../bin/osf1/antirec.o: /usr/include/sys/time.h
+../bin/osf1/antirec.o: /usr/include/sys/signal.h
+../bin/osf1/antirec.o: /usr/include/sys/siginfo.h
+../bin/osf1/antirec.o: /usr/include/machine/signal.h
+../bin/osf1/antirec.o: /usr/include/machine/context.h
+../bin/osf1/antirec.o: /usr/include/sys/procset.h ../include/mceventg.h
+../bin/osf1/antirec.o: ../include/io.h /usr/include/cxx/fstream.h
+../bin/osf1/antirec.o: /usr/include/cxx/fstream.hxx
+../bin/osf1/antirec.o: /usr/include/sys/times.h ../include/commons.h
+../bin/osf1/antirec.o: ../include/mccluster.h ../include/gsen.h
+../bin/osf1/antirec.o: ../include/trid.h ../include/amsstl.h
+../bin/osf1/antirec.o: ../include/ctcdbc.h ../include/extC.h
+../bin/osf1/antirec.o: ../include/antirec.h ../include/ntuple.h
 ../bin/osf1/tofsim.o: /usr/include/cxx/iostream.h
 ../bin/osf1/tofsim.o: /usr/include/cxx/iostream.hxx
 ../bin/osf1/tofsim.o: /usr/include/cxx/cxxl.hxx
@@ -1605,17 +1660,18 @@ depend:
 ../bin/osf1/timeid.o: /usr/include/cxx/generic.hxx
 ../bin/osf1/timeid.o: /usr/include/cxx/mutex.hxx ../include/amsgobj.h
 ../bin/osf1/timeid.o: ../include/uzstat.h
-../bin/osf1/io.o: ../include/io.h ../include/point.h
-../bin/osf1/io.o: ../include/typedefs.h /usr/include/assert.h
-../bin/osf1/io.o: /usr/include/standards.h /usr/include/cxx/iostream.h
+../bin/osf1/io.o: /usr/include/sys/types.h /usr/include/standards.h
+../bin/osf1/io.o: /usr/include/mach/machine/vm_types.h
+../bin/osf1/io.o: /usr/include/sys/select.h /usr/include/sys/stat.h
+../bin/osf1/io.o: /usr/include/sys/mode.h ../include/io.h
+../bin/osf1/io.o: ../include/point.h ../include/typedefs.h
+../bin/osf1/io.o: /usr/include/assert.h /usr/include/cxx/iostream.h
 ../bin/osf1/io.o: /usr/include/cxx/iostream.hxx
 ../bin/osf1/io.o: /usr/include/cxx/cxxl.hxx
 ../bin/osf1/io.o: /usr/include/cxx/cxxl_share.hxx
 ../bin/osf1/io.o: /usr/include/cxx/messages.hxx /usr/include/stddef.h
 ../bin/osf1/io.o: /usr/include/stdio.h /usr/include/sys/seek.h
-../bin/osf1/io.o: /usr/include/va_list.h /usr/include/sys/types.h
-../bin/osf1/io.o: /usr/include/mach/machine/vm_types.h
-../bin/osf1/io.o: /usr/include/sys/select.h /usr/include/getopt.h
+../bin/osf1/io.o: /usr/include/va_list.h /usr/include/getopt.h
 ../bin/osf1/io.o: /usr/include/sys/limits.h
 ../bin/osf1/io.o: /usr/include/sys/machine/machlimits.h
 ../bin/osf1/io.o: /usr/include/sys/syslimits.h
@@ -1639,7 +1695,7 @@ depend:
 ../bin/osf1/io.o: /usr/include/machine/context.h
 ../bin/osf1/io.o: /usr/include/sys/procset.h /usr/include/time.h
 ../bin/osf1/io.o: /usr/include/sys/timers.h /usr/include/sys/times.h
-../bin/osf1/io.o: ../include/commons.h
+../bin/osf1/io.o: ../include/commons.h ../include/amsdbc.h
 ../bin/osf1/trcalib.o: ../include/trcalib.h ../include/typedefs.h
 ../bin/osf1/trcalib.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/trcalib.o: /usr/include/cxx/iostream.h

@@ -17,14 +17,16 @@ M A I N  ->      gbatch.C
  |    |   |    |
  |    |   |    |->_sitkdata   Tracker datacards
  |    |   |    |->_signdata   MCGen datacards
- |    |   |    |->_sitofdata  TOF/Anti datacards
+ |    |   |    |->_sitofdata  TOF datacards
+ |    |   |    |->_siantidata Anti datacards
  |    |   |    |->_sitrddata  TRD datacards
  |    |   |    |->_sictcdata  CTC datacards
  |    |   |    
  |    |   |->_reamsdata   Reconstruction specific datacards    
  |    |        |
  |    |        |->_retkdata   Tracker datacards
- |    |        |->_retofdata  TOF/Anti datacards
+ |    |        |->_retofdata  TOF datacards
+ |    |        |->_reantidata Antidatacards
  |    |        |->_retrddata  TRD datacards
  |    |        |->_rectcdata  CTC datacards
  |    |        |->_reaxdata   AMS datacards
@@ -48,6 +50,7 @@ M A I N  ->      gbatch.C
  |    |   |    |->_sitkinitjob
  |    |   |    |->_signinitjob
  |    |   |    |->_sitofinitjob
+ |    |   |    |->_siantiinitjob
  |    |   |    |->_sitrdinitjob
  |    |   |    |->_sictcinitjob
  |    |   |    
@@ -55,6 +58,7 @@ M A I N  ->      gbatch.C
  |    |   |    | 
  |    |   |    |->_retkinitjob
  |    |   |    |->_retofinitjob
+ |    |   |    |->_reantiinitjob
  |    |   |    |->_retrdinitjob
  |    |   |    |->_rectcinitjob
  |    |   |    |->_reaxinitjob
@@ -85,6 +89,7 @@ M A I N  ->      gbatch.C
  |    |   |    |    |
  |    |   |    |    |->_sitkinitrun
  |    |   |    |    |->_sitofinitrun
+ |    |   |    |    |->_siantiinitrun
  |    |   |    |    |->_sitrdinitrun
  |    |   |    |    |->_sictcinitrun
  |    |   |    |    |->_signinitrun
@@ -93,6 +98,7 @@ M A I N  ->      gbatch.C
  |    |   |    |    |
  |    |   |    |    |->_retkinitrun
  |    |   |    |    |->_retofinitrun
+ |    |   |    |    |->_reantiinitrun
  |    |   |    |    |->_retrdinitrun
  |    |   |    |    |->_rectcinitrun
  |    |   |    |    |->_reaxinitrun
@@ -103,6 +109,7 @@ M A I N  ->      gbatch.C
  |    |   |    |    |->_signinitevent
  |    |   |    |    |->_sitkinitevent
  |    |   |    |    |->_sitofinitevent
+ |    |   |    |    |->_siantiinitevent
  |    |   |    |    |->_sitrdinitevent
  |    |   |    |    |->_sictcinitevent
  |    |   |    |    |
@@ -110,6 +117,7 @@ M A I N  ->      gbatch.C
  |    |   |    |    |
  |    |   |    |    |->_retkinitevent
  |    |   |    |    |->_retofinitevent
+ |    |   |    |    |->_reantiinitevent
  |    |   |    |    |->_retrdinitevent
  |    |   |    |    |->_rectcinitevent
  |    |   |    |    |->_reaxinitevent
@@ -133,11 +141,16 @@ M A I N  ->      gbatch.C
  |        |    |   |
  |        |    |   |->_sitkevent      simulate Tracker
  |        |    |   |     |
- |        |    |   |     |->AMSTrMCCluster::sitknoise       Noise
- |        |    |   |     |->AMSTrMCCluster::sitkcrosstalk   Crosstalk
- |        |    |   |     |->AMSTrMCCluster::sitkdigi        Digitization
+ |        |    |   |     |->AMSTrRawCluster::sitknoise       Noise
+ |        |    |   |     |->AMSTrRawCluster::sitkcrosstalk   Crosstalk
+ |        |    |   |     |->AMSTrRawCluster::sitkdigi        Digitization
  |        |    |   |                          
  |        |    |   |->_sitrdevent     Simulate TRD
+ |        |    |   |->_siantievent     Simulate Anti
+ |        |    |   |       |
+ |        |    |   |       |->AMSAntiRawCluster::siantidigi
+ |        |    |   |                    |->siantinoise      
+ |        |    |   |       
  |        |    |   |->_sitofevent     Simulate TOF
  |        |    |   |       |
  |        |    |   |       |->AMSTOFTovt::build           Geant_hits-->Tovt_hits
@@ -148,6 +161,11 @@ M A I N  ->      gbatch.C
  |        |    |         
  |        |    |
  |        |    |->_reamsevent         Reconstruct event
+ |        |    |    |     
+ |        |    |    |->_reantievent     Reconstruct Anti
+ |        |    |    |     |
+ |        |    |    |     |->AMSAntiRawCluster::build;
+ |        |    |    |     |->AMSAntiCluster::build;
  |        |    |    |     
  |        |    |    |->_retofevent     Reconstruct TOF
  |        |    |    |     |

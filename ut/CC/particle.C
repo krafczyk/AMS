@@ -24,7 +24,7 @@ else return -1;
 
 void AMSParticle::build(){
   //Particle mass rec, momentum etc.
-     number mass,emass,charge,momentum,emomentum,sumanti,theta(0),phi(0);
+     number mass,emass,charge,momentum,emomentum,theta(0),phi(0);
      AMSPoint coo;
      AMSParticle * ppart(0);
      AMSAntiMCCluster * pcl(0);
@@ -80,20 +80,8 @@ void AMSParticle::build(){
            pow(ebeta/beta,2));
            if(beta<0)momentum=-momentum;
           }
-#if 1  
-         // change to 0 when Eugeni writes a proper code
-           pcl=(AMSAntiMCCluster*)AMSEvent::gethead()->
-           getheadC("AMSAntiMCCluster",0);
-          sumanti=0;
-          while(pcl){
-           sumanti+=pcl->edep*1000;
-           pcl=pcl->next();
-          } 
-#else  
-       // Eugeni code here
-#endif
           ppart=new AMSParticle(pbeta, pcharge, ptrack,
-          mass,emass,momentum,emomentum,charge,theta,phi,coo,sumanti);
+          mass,emass,momentum,emomentum,charge,theta,phi,coo);
           ptrack->setstatus(AMSDBc::USED);
           ppart->pid();
           ppart->refit();
@@ -184,7 +172,7 @@ if(init++==0){
   // get memory
   //book the ntuple block
   HBNAME(IOPA.ntuple,"Particle",PN.getaddress(),
-  "ParticleEvent:I*4, PCTCPointer(2):I*4,PBetaPointer:I*4, PChargePointer:I*4, PtrackPointer:I*4,   ParticleId:I*4,  PMass:R*4, PErrMass:R*4, PMom:R*4, PErrMom:R*4, PCharge:R*4, PTheta:R*4, PPhi:R*4, PCoo(3):R*4, PAnti:R*4,SignalCTC(2):R*4, BetaCTC(2):R*4, ErrorBetaCTC(2):R*4, CooCTC(3,2):R*4");
+  "ParticleEvent:I*4, PCTCPointer(2):I*4,PBetaPointer:I*4, PChargePointer:I*4, PtrackPointer:I*4,   ParticleId:I*4,  PMass:R*4, PErrMass:R*4, PMom:R*4, PErrMom:R*4, PCharge:R*4, PTheta:R*4, PPhi:R*4, PCoo(3):R*4, SignalCTC(2):R*4, BetaCTC(2):R*4, ErrorBetaCTC(2):R*4, CooCTC(3,2):R*4");
 
 }
  PN.ChargeP=_pcharge->getpos();
@@ -232,7 +220,6 @@ if(init++==0){
  PN.Theta=_Theta;
  PN.Phi=_Phi;
  for(i=0;i<3;i++)PN.Coo[i]=_Coo[i];
- PN.Anti=_SumAnti;
  for(i=0;i<CTCDBc::getnlay();i++){
   PN.CTCP[i]=_pctc[i]?_pctc[i]->getpos():0;
   PN.Value[0][i]=_Value[i].getsignal();

@@ -667,7 +667,7 @@ for (int i=0;i<maxpl;i++){
 
 integer AMSTOFCluster::Out(integer status){
 static integer init=0;
-static integer WriteAll=0;
+static integer WriteAll=1;
 if(init == 0){
  init=1;
  integer ntrig=AMSJob::gethead()->gettriggerN();

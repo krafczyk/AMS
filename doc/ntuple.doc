@@ -26,6 +26,9 @@ Below there is a description of a converted ntuple.
 * I*4  *              * EVENTH   * TOFMCClusters    // No of TOF MC Hits
 * I*4  *              * EVENTH   * CTCClusters      // No of Cerenkov clusters
 * I*4  *              * EVENTH   * CTCMCClusters    // No of Cerenkov MC hits
+* I*4  *              * EVENTH   * AntiMCClusters   // No of Anti MC Hits
+* I*4  *              * EVENTH   * AntiClusters     // No of Amti clusters
+
 * I*4  * [0,10]       * BETA     * nbeta            // betas number
 * I*4  *              * BETA     * betapattern(nbeta) // beta pattern(beta.doc) 
 * R*4  *              * BETA     * beta(nbeta)        // velocity
@@ -55,7 +58,6 @@ Below there is a description of a converted ntuple.
 * R*4  *              * PARTICLE * ptheta(npart)     // theta (on entry)
 * R*4  *              * PARTICLE * pphi(npart)       // phi  -----------
 * R*4  *              * PARTICLE * pcoo(3,npart)     // coo  -----------
-* R*4  *              * PARTICLE * panti(npart)      // sum of anti energy(mev)
 * R*4  *              * PARTICLE * signalctc(2,npart)  // ctcsignal(s)
 * R*4  *              * PARTICLE * betactc(2,npart)   // ctc beta            
 * R*4  *              * PARTICLE * errorbetactc(2,npart)   // ctcerror beta
@@ -181,6 +183,20 @@ Below there is a description of a converted ntuple.
 * R*4  *              * CTCMCCLU * ctccharge(nctcclmc)   // particle charge
 * R*4  *              * CTCMCCLU * ctcbeta(nctcclmc)     // velocity
 * R*4  *              * CTCMCCLU * ctcedep(nctcclmc)     // energy dep (MeV)
+
+
+* I*4  * [0,16]       * ANTICLUS * nanti                 // Anti clusters number
+* I*4  *              * ANTICLUS * AntiStatus(nanti)     // Status
+* I*4  *              * ANTICLUS * AntiSector(nanti)     // Sector no(1-16)
+* R*4  *              * ANTICLUS * AntiEdep(nanti)       // Energy dep (MeV)   
+* R*4  *              * ANTICLUS * AntiCoo(3,nanti)      // Coo (cm)
+* R*4  *              * ANTICLUS * AntiErCoo(3,nanti)    // Err to Coo
+* I*4  * [0,200]      * ANTIMCCL * nantimc               // MC Anti hits number
+* I*4  *              * ANTIMCCL * AntiMCIdsoft(nantimc) // idsoft 
+* R*4  *              * ANTIMCCL * AntiMCXcoo(3,nantimc) // coo
+* R*4  *              * ANTIMCCL * AntiMCtof(nantimc)    // Tof
+* R*4  *              * ANTIMCCL * AntiMCedep(nantimc)   // energy dep (GeV)
+
 
 ---------------------------------------------------------------------------
 

@@ -103,6 +103,7 @@ FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
 _sitkdata();
 _signdata();
 _sitofdata();
+_siantidata();
 _sitrddata();
 _sictcdata();
 }
@@ -221,7 +222,16 @@ void AMSJob::_sitofdata(){
   UCTOH(tfname,TOFMCFFKEY.tdfnam,4,12);
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
-//=================================================================================
+
+void AMSJob::_siantidata(){
+  ANTIMCFFKEY.SigmaPed=1;
+  ANTIMCFFKEY.GeV2PhEl=20e3;
+  ANTIMCFFKEY.LZero=120;
+  FFKEY("ANTIMC",(float*)&ANTIMCFFKEY,sizeof(ANTIMCFFKEY_DEF)/sizeof(integer),
+  "MIXED");
+  
+}
+
 
 void AMSJob::_sictcdata(){
 
@@ -296,6 +306,7 @@ void AMSJob::_sitrddata(){
 void AMSJob:: _reamsdata(){
 _retkdata();
 _retofdata();
+_reantidata();
 _retrddata();
 _rectcdata();
 _reaxdata();
@@ -406,7 +417,7 @@ TRFITFFKEY.FastTracking=0;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }
-//-----------------------------------------------------------------------------
+
 void AMSJob::_retofdata(){
   char cfname[12]="geomconf";//geomconfig-file generic name (max 11 letters)
 //                          (version #01/02-> shuttle/Alpha will be added autom.)
@@ -491,7 +502,14 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.refbid[4]=108; 
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
-//----------------------------------------------------------------------------------
+
+void AMSJob::_reantidata(){
+  ANTIRECFFKEY.ThrS=6;
+  ANTIRECFFKEY.PhEl2MeV=0.05;
+  FFKEY("ANTIREC",(float*)&ANTIRECFFKEY,sizeof(ANTIRECFFKEY_DEF)/
+  sizeof(integer),"MIXED");
+}
+
 void AMSJob::_rectcdata(){
   CTCRECFFKEY.Thr1=1.;
   CTCRECFFKEY.ThrS=1.;
@@ -641,6 +659,7 @@ void AMSJob::_siamsinitjob(){
   _sitkinitjob();
   _signinitjob();
   _sitofinitjob();
+  _siantiinitjob();
   _sitrdinitjob();
   _sictcinitjob();
 }
@@ -718,6 +737,18 @@ void AMSJob::_sitofinitjob(){
                         // using MC t/eff-distributions from ext. files
 }
 //----------------------------------------------------------------------------------
+void AMSJob::_siantiinitjob(){
+
+  AMSgvolume *pg=AMSJob::gethead()->getgeomvolume(AMSID("ASCI",1));
+      #ifdef __AMSDEBUG__
+       assert (pg != NULL);
+      #endif
+     number par[5];
+     for(int i=0;i<5;i++)par[i]=pg->getpar(i);
+     ANTIMCFFKEY.PMulZPos=par[2];
+
+}
+
 void AMSJob::_sictcinitjob(){
      AMSgObj::BookTimer.book("SICTCDIGI");
      AMSCTCRawCluster::init();
@@ -730,6 +761,7 @@ void AMSJob::_sitrdinitjob(){
 void AMSJob::_reamsinitjob(){
 _retkinitjob();
 _retofinitjob();
+_reantiinitjob();
 _retrdinitjob();
 _rectcinitjob();
 _reaxinitjob();
@@ -873,7 +905,12 @@ void AMSJob::_retofinitjob(){
     TOFBrcal::build(); 
 //-----------
 }
-//-------------------------------------------------------------------------------
+
+void AMSJob::_reantiinitjob(){
+      number c0=exp(-ANTIMCFFKEY.PMulZPos/ANTIMCFFKEY.LZero);
+      ANTIRECFFKEY.PhEl2MeV=ANTIRECFFKEY.PhEl2MeV/c0;
+}
+
 void AMSJob::_rectcinitjob(){
 AMSgObj::BookTimer.book("RECTCEVENT");
 }

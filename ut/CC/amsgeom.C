@@ -302,47 +302,18 @@ integer gid=0;
 AMSNode * cur;
 AMSNode * dau;
 AMSgtmed *p;
-      gid=1;
-      par[0]=111.4/2.-1.;
-      par[1]=111.4/2.;
-      par[2]=40;
-      dau=mother.add(new AMSgvolume(
-      "ANTI_SCINT",0,"ASC1","TUBE",par,3,coo,nrm, "ONLY",0,gid));
-      ++gid;
-      par[0]=111.4/2-1;
-      par[1]=65.5;
-      par[2]=0.5;
-      coo[2]=40.5;
-      // dau=mother.add(new AMSgvolume(
-      // "ANTI_SCINT",0,"ASC2","TUBE",par,3,coo,nrm, "ONLY",0,gid));
-
-      ++gid;
-      par[0]=111.4/2-1;
-      par[1]=65.5;
-      par[2]=0.5;
-      coo[2]=-40.5;
-      // dau=mother.add(new AMSgvolume(
-      // "ANTI_SCINT",0,"ASC3","TUBE",par,3,coo,nrm, "ONLY",0,gid));
-      ++gid;
-      par[0]=25./2.;
-      par[1]=65.+20.;
-      par[2]=66.4+20.;
-      par[3]=par[1]-20;
-      par[4]=par[2]-20.;
-      coo[2]=-40.-par[0];
-      // Remove cone now
-      //      dau=mother.add(new AMSgvolume(
-      //      "ANTI_SCINT",0,"ASC4","CONE",par,5,coo,nrm, "ONLY",0,gid));
-      //      ++gid;
-      par[0]=25./2.;
-      par[1]=65.;
-      par[2]=66.4;
-      par[3]=par[1]+20;
-      par[4]=par[2]+20.;
-      coo[2]=+40.+par[0];
-      //      dau=mother.add(new AMSgvolume(
-      //      "ANTI_SCINT",0,"ASC5","CONE",par,5,coo,nrm, "ONLY",0,gid));
-
+//  put 16 cyl blocks of anti
+      int i;
+      geant dp=360./16.;
+      for(i=0;i<16;i++){
+       par[0]=111.4/2.-1.;
+       par[1]=111.4/2.;
+       par[2]=41.5;
+       par[3]=dp*i;
+       par[4]=dp*(i+1);
+       dau=mother.add(new AMSgvolume(
+       "ANTI_SCINT",0,"ASCI","TUBS",par,5,coo,nrm, "ONLY",1,++gid));
+      }
 
 
 

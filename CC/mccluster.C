@@ -365,6 +365,28 @@ if(init++==0){
 
 }
 
+void AMSAntiMCCluster::_writeEl(){
+
+if(AMSAntiMCCluster::Out( IOPA.WriteAll)){
+static integer init=0;
+static TOFMCClusterNtuple AntiMCClusterN;
+int i;
+if(init++==0){
+  //book the ntuple block
+  HBNAME(IOPA.ntuple,"AntiMCCl",AntiMCClusterN.getaddress(),
+  "AntiMCEvent:I*4,AntiMCIdsoft:I*4, AntiMCXcoo(3):R*4, AntiMCtof:R*4, AntiMCedep:R*4");
+}
+  AntiMCClusterN.Event()=AMSEvent::gethead()->getid();
+  AntiMCClusterN.Idsoft=_idsoft;
+  for(i=0;i<3;i++)AntiMCClusterN.Coo[i]=_xcoo[i];
+  AntiMCClusterN.TOF=_tof;
+  AntiMCClusterN.Edep=_edep;
+  HFNTB(IOPA.ntuple,"AntiMCCl");
+}
+
+}
+
+
 void AMSCTCMCCluster::sictchits(integer idsoft , geant vect[],geant charge, 
 geant stepc, geant getot, geant edep){
    AMSPoint pnt(vect[0],vect[1],vect[2]);
@@ -443,6 +465,24 @@ if(init == 0){
  integer ntrig=AMSJob::gethead()->gettriggerN();
  for(int n=0;n<ntrig;n++){
    if(strcmp("AMSCTCMCCluster",AMSJob::gethead()->gettriggerC(n))==0){
+     WriteAll=1;
+     break;
+   }
+ }
+}
+return (WriteAll || status);
+}
+
+
+
+integer AMSAntiMCCluster::Out(integer status){
+static integer init=0;
+static integer WriteAll=0;
+if(init == 0){
+ init=1;
+ integer ntrig=AMSJob::gethead()->gettriggerN();
+ for(int n=0;n<ntrig;n++){
+   if(strcmp("AMSAntiMCCluster",AMSJob::gethead()->gettriggerC(n))==0){
      WriteAll=1;
      break;
    }

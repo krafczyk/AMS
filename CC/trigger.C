@@ -12,10 +12,10 @@ void Trigger::build(){
 #if 1
   // change to 0 when xxx writes a proper code
   AMSAntiMCCluster* pcl=(AMSAntiMCCluster*)AMSEvent::gethead()->
-       getheadC("AMSAntiMCCluster",0);
+       getheadC("AMSAntiCluster",0);
   number sumanti=0;
   while(pcl){
-   sumanti+=pcl->edep*1000;
+   sumanti+=pcl->getedep()*1000;
    pcl=pcl->next();
   }
 #else

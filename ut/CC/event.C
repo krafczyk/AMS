@@ -24,9 +24,10 @@
 #include <timeid.h>
 #include <trcalib.h>
 #include <trigger.h>
+#include <antirec.h>
 //
 //
-integer AMSEvent::debug=1;
+integer AMSEvent::debug=0;
 AMSEvent* AMSEvent::_Head=0;
 AMSNodeMap AMSEvent::EventMap;
 integer AMSEvent::SRun=0;
@@ -52,6 +53,7 @@ void AMSEvent::_init(){
 void AMSEvent::_siamsinitrun(){
 _sitkinitrun();
 _sitofinitrun();
+_siantiinitrun();
 _sictcinitrun();
 _sitrdinitrun();
 }
@@ -60,6 +62,7 @@ void AMSEvent::_reamsinitrun(){
 _retkinitrun();
 _retrdinitrun();
 _retofinitrun();
+_reantiinitrun();
 _rectcinitrun();
 _reaxinitrun();
 }
@@ -70,6 +73,7 @@ void AMSEvent::_siamsinitevent(){
  _sitkinitevent();
  _sitrdinitevent();
  _sitofinitevent();
+ _siantiinitevent();
  _sictcinitevent();
 }
 
@@ -77,6 +81,7 @@ void AMSEvent::_reamsinitevent(){
  _retkinitevent();
  _retrdinitevent();
  _retofinitevent();
+ _reantiinitevent();
  _rectcinitevent();
  _reaxinitevent();
 }
@@ -128,7 +133,14 @@ void AMSEvent::_sitkinitevent(){
   new AMSContainer(AMSID("AMSContainer:AMSTrMCCluster",0),0));
 }
 
-//====================================================================
+
+void AMSEvent::_siantiinitevent(){
+ AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSAntiMCCluster",0),0));
+}
+
+
+
 void AMSEvent::_sitofinitevent(){
   int il;
   AMSNode *ptr;
@@ -146,10 +158,6 @@ void AMSEvent::_sitofinitevent(){
     ptr=AMSEvent::gethead()->add(
         new AMSContainer(AMSID("AMSContainer:AMSTOFTovt",il),0));
   }
-//
-//--- temporarily !!! here for Anti :
-  ptr = AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSAntiMCCluster",0),0));
 }
 
 void AMSEvent::_sictcinitevent(){
@@ -168,6 +176,16 @@ void AMSEvent::_retrdinitevent(){
 }
 
 
+void AMSEvent::_reantiinitevent(){
+      AMSEvent::gethead()->add(
+      new AMSContainer(AMSID("AMSContainer:AMSAntiRawCluster",0),0));
+
+      AMSEvent::gethead()->add(
+      new AMSContainer(AMSID("AMSContainer:AMSAntiRawCluster",1),0));
+
+      AMSEvent::gethead()->add(
+      new AMSContainer(AMSID("AMSContainer:AMSAntiCluster",0),0));
+}
 
 void AMSEvent::_retofinitevent(){
   integer i;
@@ -279,15 +297,15 @@ AMSNode * cur;
 for (int i=0;;){
   cur=AMSEvent::EventMap.getid(i++);   // get one by one
  if(cur){
-   if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->
-   printC(cout);
+   if(strncmp(cur->getname(),"AMSContainer:",13)==0 && strcmp(cur->getname(),"MC")!=0)
+   ((AMSContainer*)cur)->printC(cout);
+
  }
  else break;
 }
 }
 else{
 _printEl(cerr);
-if(debugl==0)return;
 AMSNode * cur;
 for (int i=0;;){
   cur=AMSEvent::EventMap.getid(i++);   // get one by one
@@ -328,11 +346,13 @@ void AMSEvent::_siamsevent(){
 _sitkevent(); 
 _sitrdevent();
 _sitofevent(); 
+_siantievent(); 
 _sictcevent(); 
 }
 
 void AMSEvent::_reamsevent(){
   _retofevent();
+  _reantievent();
   _rectcevent(); 
   _retkevent(); 
   _retrdevent(); 
@@ -432,7 +452,14 @@ if(refit==0 && AMSTrTrack::RefitIsNeeded())_retkevent(1);
 
 void AMSEvent::_retrdevent(){
 }
-//========================================================================
+
+void AMSEvent::_reantievent(){
+  AMSAntiCluster::build();
+  #ifdef __AMSDEBUG__
+   if(AMSEvent::debug)AMSAntiCluster::print();
+  #endif
+}
+
 void AMSEvent::_retofevent(){
 int stat;
 //
@@ -524,6 +551,9 @@ void AMSEvent::_sitrdinitrun(){
 void AMSEvent::_sitofinitrun(){
 }
 
+void AMSEvent::_siantiinitrun(){
+}
+
 void AMSEvent::_sictcinitrun(){
 }
 
@@ -544,6 +574,9 @@ void AMSEvent::_retrdinitrun(){
 void AMSEvent::_retofinitrun(){
 }
 
+void AMSEvent::_reantiinitrun(){
+}
+
 void AMSEvent::_rectcinitrun(){
 }
 
@@ -555,18 +588,27 @@ void AMSEvent:: _sitkevent(){
   AMSTrMCCluster::sitkcrosstalk();
 #ifdef __AMSDEBUG__
   AMSContainer *p =getC("AMSTrMCCluster",0);
-  if(p && AMSEvent::debug)p->printC(cout);
+  if(p && AMSEvent::debug>1 )p->printC(cout);
 #endif
     AMSTrRawCluster::sitkdigi();
 #ifdef __AMSDEBUG__
   p =getC("AMSTrRawCluster",0);
-  if(p && AMSEvent::debug)p->printC(cout);
+  if(p && AMSEvent::debug>1)p->printC(cout);
 #endif
 }
 
 void AMSEvent:: _sitrdevent(){
 }
-//===================================================================
+
+void AMSEvent:: _siantievent(){
+  AMSAntiRawCluster::siantidigi();//Geant_hit->RawCluster
+#ifdef __AMSDEBUG__
+  AMSContainer *p;
+  p=getC("AMSAntiMCCluster",0);
+  if(p && AMSEvent::debug>1)p->printC(cout);
+#endif
+}
+
 void AMSEvent:: _sitofevent(){
   AMSContainer *p;
 //
@@ -591,11 +633,9 @@ void AMSEvent:: _sitofevent(){
   //  p =getC("AMSTOFRawEvent",0);
   //  if(p && AMSEvent::debug)p->printC(cout);
   p =getC("AMSTOFRawCluster",0);
-  if(p && AMSEvent::debug)p->printC(cout);
+  if(p && AMSEvent::debug>1)p->printC(cout);
   p=getC("AMSTOFMCCluster",0);
-  if(p && AMSEvent::debug)p->printC(cout);
-  p=getC("AMSAntiMCCluster",0);
-  if(p&& AMSEvent::debug)p->printC(cout);
+  if(p && AMSEvent::debug>1)p->printC(cout);
 #endif
 }
 //===================================================================
@@ -603,7 +643,7 @@ void AMSEvent:: _sictcevent(){
    AMSCTCRawCluster::sictcdigi();
 #ifdef __AMSDEBUG__
   AMSContainer *p =getC("AMSCTCRawCluster",0);
-  if(p && AMSEvent::debug)p->printC(cout);
+  if(p && AMSEvent::debug>1)p->printC(cout);
 #endif
 }
 
@@ -697,7 +737,7 @@ static EventNtuple EN;
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"EventH",EN.getaddress(),
-  "EventNo:I*4, Run:I*4,  RunType:I*4 ,Time(2):I*4, PolePhi:R, ThetaS:R, PhiS:R, Particles:I, Tracks:I, Betas:I, Charges:I ,TrRecHits:I, TrClusters:I, TrMCClusters:I, TOFClusters:I, TOFMCClusters:I, CTCClusters:I, CTCMCClusters:I"); 
+  "EventNo:I*4, Run:I*4,  RunType:I*4 ,Time(2):I*4, PolePhi:R, ThetaS:R, PhiS:R, Particles:I, Tracks:I, Betas:I, Charges:I ,TrRecHits:I, TrClusters:I, TrMCClusters:I, TOFClusters:I, TOFMCClusters:I, CTCClusters:I, CTCMCClusters:I, AntiMCClusters:I, AntiClusters:I"); 
 
 }
   EN.Event()=_id;
@@ -720,6 +760,8 @@ if(init++==0){
   EN.TOFMCClusters=0;
   EN.CTCClusters=0;
   EN.CTCMCClusters=0;
+  EN.AntiClusters=0;
+  EN.AntiMCClusters=0;
 
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSParticle",i);
@@ -784,6 +826,18 @@ if(init++==0){
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSCTCMCCluster",i);
    if(p) EN.CTCMCClusters+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSAntiCluster",i);
+   if(p) EN.AntiClusters+=p->getnelem();
+   else break;
+  }
+  
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSAntiMCCluster",i);
+   if(p) EN.AntiMCClusters+=p->getnelem();
    else break;
   }
 
