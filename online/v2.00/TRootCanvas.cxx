@@ -196,21 +196,22 @@ TRootCanvas::TRootCanvas(TCanvas *c, const char *name, Int_t x, Int_t y, UInt_t 
 //______________________________________________________________________________
 void TRootCanvas::CreateCanvas(const char *name)
 {
-  char sSubDetMenu[7][]={ "&AntiCounters",
+  char sSubDetMenu[8][]={ "&AntiCounters",
                           "T&racker",
                           "Level&1",
                           "Level&3",
                           "&TOF",
                           "&CTC",
-                          "A&xAMS"};
-   static TGPopupMenu         *fSubDetMenu[7];      //sub det
-   static TGPopupMenu         *fSubDetCascadeMenu[7];
+                          "A&xAMS",
+                          "General"};
+   static TGPopupMenu         *fSubDetMenu[8];      //sub det
+   static TGPopupMenu         *fSubDetCascadeMenu[8];
    static TGPopupMenu         *fSaveAsMenu;        //  saveas
 
    // Create the actual canvas.
    int i;
-   for(i=0;i<7;i++)fSubDetMenu[i]=0;
-   for( i=0;i<7;i++)fSubDetCascadeMenu[i]=0;
+   for(i=0;i<8;i++)fSubDetMenu[i]=0;
+   for( i=0;i<8;i++)fSubDetCascadeMenu[i]=0;
    fButton  = 0;
    fCwidth  = 0;
    fCheight = 0;
@@ -321,6 +322,12 @@ void TRootCanvas::CreateCanvas(const char *name)
  
    fSubDetMenu[6]->AddEntry("Set 0",160);
    fSubDetMenu[6]->AddEntry("Set 1",161);
+
+   fSubDetMenu[7]->AddEntry("Length",170);
+   fSubDetMenu[7]->AddEntry("TOF Length",171);
+   fSubDetMenu[7]->AddEntry("TRK (red) Length",172);
+   fSubDetMenu[7]->AddEntry("TRK (raw,mix) Length",173);
+
 
    fHelpMenu = new TGPopupMenu(fClient->GetRoot());
    fHelpMenu->AddEntry("&About ROOT...",        kHelpAbout);

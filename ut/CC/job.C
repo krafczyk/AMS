@@ -2048,7 +2048,7 @@ integer AMSJob::FillJobTDV(integer nobj, tdv_time *tdv)
 
 void       _genonlinebookhist() 
 {
-const   int nids = 18;
+const   int nids = 19;
 
 int16u ids[nids] =
   { 0x200,
@@ -2056,33 +2056,35 @@ int16u ids[nids] =
     0x1680, 0x1740,                                           //  TRK Reduced
     0x1681, 0x1741,                                           //  TRK Raw
     0x168C, 0x174C,                                           //  TRK Mixed
-    0x0440                                                    //  Level-3
+    0x0440,                                                   //  Level-1
+    0x1200                                                    //  Level-3
   };
 
 
 char   *ids_names[]  = {"Length (words) GenBlock    ",
-                        "Length (words) TOF(raw) 0 ",
-                        "Length (words) TOF(raw) 1 ",
-                        "Length (words) TOF(raw) 2 ",
-                        "Length (words) TOF(raw) 3 ",
-                        "Length (words) TOF(raw) 4 ",
-                        "Length (words) TOF(raw) 5 ",
-                        "Length (words) TOF(raw) 6 ",
-                        "Length (words) TOF(raw) 7 ",
+                        "Length (words) TOF(raw) 01 ",
+                        "Length (words) TOF(raw) 31 ",
+                        "Length (words) TOF(raw) 41 ",
+                        "Length (words) TOF(raw) 71 ",
+                        "Length (words) TOF(raw) 03 ",
+                        "Length (words) TOF(raw) 33 ",
+                        "Length (words) TOF(raw) 43 ",
+                        "Length (words) TOF(raw) 73 ",
                         "Length (words) TRK(red) 32",
                         "Length (words) TRK(red) 72",
                         "Length (words) TRK(raw) 32",
                         "Length (words) TRK(raw) 72",
                         "Length (words) TRK(mix) 32",
                         "Length (words) TRK(mix) 72",
-                        "Length (words) Level1 block "};
+                        "Length (words) Level1 block ",
+                        "Length (words) Level3 block "};
 
   int nchans[nids] ={100,
                     100.,100.,100.,100.,100.,100.,100.,100.,
                     1000.,1000.,
                     800.,800.,
                     800.,800.,
-                    100.};
+                    100., 100.};
                     
   for (int i=0; i<nids; i++) {
      int hid  = 300000 + ids[i];
