@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.74 2004/02/16 12:05:01 alcaraz Exp $
+//  $Id: root.C,v 1.75 2004/02/16 14:31:47 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2274,7 +2274,6 @@ AMSEventR* AMSChain::GetEvent(Int_t entry){
            _EVENT->GetBranch((TTree*)this);
       }
       if (_EVENT->ReadHeader(entry)==false) {
-              return (AMSEventR*) NULL;
               delete _EVENT; _EVENT = NULL;
       }
       _ENTRY = entry;
@@ -2287,8 +2286,8 @@ AMSEventR* AMSChain::GetEvent(){
 };
 
 AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
-      for (int entry=0; entry<GetEntries(); entry++) {
-            if (!GetEvent(entry)) break;
+      for (Int_t entry=0; entry<GetEntries(); entry++) {
+            if (GetEvent(entry)==NULL) break;
             if (_EVENT->Run()==run && _EVENT->Event()==ev) {
                   _ENTRY = entry;
                   break;
