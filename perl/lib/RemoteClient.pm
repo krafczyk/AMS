@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.154 2003/05/07 17:06:26 alexei Exp $
+# $Id: RemoteClient.pm,v 1.155 2003/05/07 18:30:42 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -848,7 +848,7 @@ sub ValidateRuns {
        print "<td><b><font color=\"black\" >$run->{Status}</font></b></td>";
        print "</tr>\n";
       htmlTableEnd();
-   } 
+  }
      if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") && 
          (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked"))
         ){
@@ -861,9 +861,10 @@ sub ValidateRuns {
          if (not defined $r1->[0][0]) { 
           $sql = "UPDATE runs SET status='Failed' WHERE run=$run->{Run}"; 
           $self->{sqlserver}->Update($sql);
-          $warn = "cannot find status, content in Jobs for JID=$run->{Run} \n";
+          $warn = "cannot find status, content in Jobs for JID=$run->{Run}. Delete Run=$run->{Run} from server \n";
           htmlWarning("ValidateRuns",$warn);
           print FILE $warn;
+          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
          } else {
           my $jobstatus  = $r1->[0][0];
           my $jobcontent = $r1->[0][1];
@@ -963,6 +964,7 @@ sub ValidateRuns {
                                                 $status,
                                                 $outputpath,
                                                 $ntuple->{crc});
+                            print FILE "insert $run->{Run}, $outputpath \n";
                             $copied++;
                             push @cpntuples, $fpath;
                             $runupdate = "UPDATE runs SET FEVENT = $fevent, LEVENT=$levent, ";
@@ -6584,10 +6586,12 @@ foreach my $block (@blocks) {
      $dstsize = sprintf("%.1f",$dstsize/1000/1000);
      $closedst[0] = "CloseDST";
      $timestamp = time();
-     my $sql = "SELECT run, path FROM ntuples 
-                   WHERE run=$closedst[10] AND path like '%$filename%'";
-     my $ret = $self->{sqlserver}->Query($sql);
-     if(not defined $ret->[0][0]){
+#- mv to insertNtuple 
+#     my $sql = "SELECT run, path FROM ntuples 
+#                   WHERE run=$closedst[10] AND path like '%$filename%'";
+#     my $ret = $self->{sqlserver}->Query($sql);
+#     if(not defined $ret->[0][0]){
+#-
       print FILE "$dstfile.... \n";
       my $badevents=$closedst[14];
       my $ntevents =$closedst[13];
@@ -6667,10 +6671,10 @@ foreach my $block (@blocks) {
         }
        }
       }
-     } else {
-        print FILE "parseJournalFile -W- CloseDST: ntuple exist - $closedst[3]\n";
+#     } else {
+#        print FILE "parseJournalFile -W- CloseDST: ntuple exist - $closedst[3]\n";
+#     }
      }
-    }
    } else  {
      print FILE "parseJournalFiles -W- CloseDST - cannot find all patterns \n";
    }
@@ -7152,13 +7156,28 @@ sub insertNtuple {
   my $path     = shift;
   my $crc      = shift;
 #
+  my $sql      = undef;
+  my $ret      = undef;
+#
+  my @junk    = split "/",$path;
+  my $filename = trimblanks($junk[$#junk]);
+
+  $sql = "SELECT run, path FROM ntuples 
+          WHERE run=$run AND path like '%$filename%'";
+  $ret = $self->{sqlserver}->Query($sql);
+  if (defined $ret->[0][0]) {
+    $sql = "DELETE ntuples WHERE run=$run AND path like '%$filename%'";
+    print "------------- $sql \n";
+    print "------------- $ret->[0][1] \n";
+#   $self->{sqlserver}->Update($sql);
+  }
   my $sizemb = $ntsize; # since May 7.03 size in bytes
   if ($ntsize > 2000) {
     $ntsize = $ntsize/1024/1024;
     $sizemb = sprintf("%.f",$ntsize);
   }
 #              
-  my $sql = "INSERT INTO ntuples VALUES( $run,
+  $sql = "INSERT INTO ntuples VALUES( $run,
                                          '$version',
                                          '$type',
                                           $jid,
