@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.1 2003/10/29 15:28:53 choutko Exp $
+*  $Id: rkms.F,v 1.2 2003/10/30 09:35:02 choutko Exp $
 *--------1---------2---------3---------4---------5---------6---------7--
       subroutine rkms_rig(npo,npl,xyz,dxyz,ipa,Rini,Out)
 *   A.Chikanian, Yale, 2003
@@ -35,8 +35,7 @@
         dx(i)=dxyz(1,i)
         dy(i)=dxyz(2,i)
       enddo
-
-c      call R_ini(Rini)
+c      call R_init(Rini)
       call  rkms_fit(npo,npl,x,y,z,dx,dy,ipa,Rini,Xout,Eout,Chi2)
 
       R = dsqrt(Xout(1)**2+Xout(2)**2+Xout(3)**2)
@@ -50,9 +49,8 @@ c      call R_ini(Rini)
       Out(5) = atan2(sngl(Xout(2)),sngl(Xout(1))) ! Phi
       Out(6) = R                                  ! Rigidity
       Out(7) = Chi2                               ! Chi2
-*     Out(8)                                      ! Nothing
+      Out(8) =0                                   ! Nothing
       Out(9) = dR/R/R                             ! (1/Rig) Error
-      write(*,*)' rig,err',out(6),out(7),out(9)
 *     =============================================
       end
 
@@ -797,3 +795,486 @@ C.
       Field(2)=F(2)
       Field(3)=F(3)
       end
+
+
+*--------1---------2---------3---------4---------5---------6---------7--
+      subroutine R_init(npo,x,y,z,Rc)
+*--- calculate Initial Rigidity by circular fit
+*----------------------------------------------
+* Input:   npo - # points
+*          x(npl),y(npl),z(npl) - 3d coordinates
+* Output:  Rc  - reconstructed Rigidity by fiting Circle
+*-------------------------------------------------------
+      implicit none
+      integer npo
+      integer cfit,utcfit
+      real x(npo),y(npo),z(npo)
+*-------------------------------------------
+#include "rkms.h"
+*-------------------------------------
+      real gauss,Fu,Bx
+      external   Fu
+      real Chi2,Rc,sgn,Rad,Rx,Ry,w1(NPma)
+      data                       w1/NPma*1./
+      real Sl,dSl,AA,dAA,Cor,Ch2L  ! for linear fit
+
+      logical first
+      data    first/.true./
+      save first,w1,Bx
+
+      if(first) then
+        first = .false.
+        Bx=gauss(Fu,trkz0(1),trkZ0(NPma),1.e-3)/(trkZ0(NPma)-trkZ0(1))! <Bx>
+        write(6,*)'=== R_init: < Bx > =',Bx
+      endif ! first
+
+      if(npo.lt.3) return                            !!!!
+      cfit = utcfit(z,y,w1,npo,sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
+      if(cfit.ne.0) write(6,*)'### utcfit: cfit.ne.0 !!!'
+      Rc = 0.0003*Bx*Rad ! *sgn                      ! ragidity (GeV)
+      call LinFit(z,x,w1,npo,Sl,dSl,AA,dAA,Cor,Ch2L) ! Liniar fit
+      Rc = abs(Rc)*sqrt(Sl**2+1.)                    ! in space
+      end
+
+*--------1---------2---------3---------4---------5---------6---------7--
+      Real function Fu(z) ! For integration Mag.Field by Gauss
+*     --------------------------------------------------------
+      Implicit none
+      real x,y,z
+      data x/0./,y/0./
+      real xyz(3)   ,fld(3)
+      data xyz/3*0./,fld/3*0./
+      save xyz,fld
+
+      xyz(3)=z
+      call Gufld(xyz,fld)
+      Fu = fld(1)
+      end
+
+*=======================================================================
+      Subroutine LinFit(X,Y,SigmaY,Npts,B,SigmaB,A,SigmaA,R,Chi2)
+*                       <--- input ---> <------- output ------->
+*     A.Chikanian (Yale University)
+* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+*     The least-squares fit to a line ( y = A + B*x ) through points X,Y
+* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+*      The input & output are REAL*4 variables. 
+*      This version handle the high precision requirements.
+*      All internal calculations used the REAL*8 variables only.
+* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+*   Input:  X, Y   -  1d arrays with points coordinates
+*           SigmaY -  1d array with Y errors
+*           Npts   -  # of points
+*   Output: A      -  intercept
+*           SigmaA -  error on intercept
+*           B      -  slope
+*           SigmaB -  error on slope
+*           R      -  correlation coefficient <A,B>/SigmaA/SigmaB
+*           Chi2   -  chi square
+*        if Chi2 = -2.  number of points with SIGMAY>0. less then 2
+*                  -4.  singularity
+* ----------------------------------------------------------------------
+      Implicit NONE
+
+* input variables
+      Integer          Npts
+      Real*4           X(Npts),Y(Npts),SigmaY(Npts)
+* output variables
+      Real*4           A,SigmaA,B,SigmaB,R,Chi2
+* internal variables
+      Real*8           Sum,SumX,SumY,SumX2,SumXY,Weight,Det
+      Integer          Np,I
+
+      Sum   = 0.
+      SumX  = 0.
+      SumY  = 0.
+      SumX2 = 0.
+      SumXY = 0.
+
+      Np = 0
+      Do I=1,Npts
+        If(SigmaY(I).gt.1.E-15) Then
+          Np = Np + 1
+          Weight = 1./SigmaY(I)**2
+          Sum   = Sum   + Weight
+          SumX  = SumX  + Weight*X(I)
+          SumY  = SumY  + Weight*Y(I)
+          SumX2 = SumX2 + Weight*X(I)**2
+          SumXY = SumXY + Weight*X(I)*Y(I)
+        EndIf
+      EndDo
+
+      Chi2 = -2.                       !
+      If(Np.le.1) Return               ! not enough points
+
+      Det=Sum*SumX2-SumX**2
+      Chi2 = -4.                       !
+      if(Det.le.0.) Return             ! singularity checking
+
+      B=(SumXY*Sum -SumY *SumX)/Det    ! Slope
+      A=(SumY*SumX2-SumXY*SumX)/Det    ! Intercept
+      SigmaB= dsqrt(Sum/Det)           ! Slope Error
+      SigmaA= dsqrt(SumX2/Det)         ! Intercept Error
+      R     = -SumX/Det/SigmaB/SigmaA  ! correlation coeff.
+
+      Chi2=0.
+      do i=1,Npts
+        if(SigmaY(i).gt.1.e-15)
+     +     Chi2=Chi2+((A+B*X(i)-Y(i))/SigmaY(i))**2
+      enddo
+
+      END
+
+*---  /group/yaug1/prj/shik/MYLIB/GENERAL/circle_fit.f
+*===========================================================================
+* shik: SGN is not realyable !!! (Why?, see next line)
+*       ASSUMED ORIGIN OF TRACK in the (0,0), if so no problem with SIG !!!!
+*       But still: WHAT DOES mean SGN in case of full circle ?????
+
+* it is probably not right in case dX not eq. dY
+* for example Xav = Sum(Wx(i)*X(i))/Sum(Wx(i)),
+*     but not Xav = Sum( W(i)*X(i))/Sum( W(i)) !!!!!!!!!!!!!!! 
+* unic w(i) is only possible in case dX(i)=dY(i)
+*===========================================================================
+
+
+* $Id: rkms.F,v 1.2 2003/10/30 09:35:02 choutko Exp $
+* $Log: rkms.F,v $
+* Revision 1.2  2003/10/30 09:35:02  choutko
+* yale algo ++ ( start working)
+*
+* Revision 1.2  1998/01/27 00:35:54  fisyak
+* Split sources
+*
+      INTEGER FUNCTION UTCFIT(XCIR,YCIR,WCIR,NCIR,
+     >                           SGN,R0,ACENT,BCENT,CHISQ)
+*>-----------------------------------------------------------------
+
+* UTCFIT - circle fit
+
+* DESCRIPTION:
+* Subroutine that fits circle parameters using algorithm
+* described by Chernov and Oskov in Computer Physics
+* Communications.
+
+* INPUT ARGUMENTS:
+* OUTPUT ARGUMENTS:
+* AUTHOR:
+*<----------------------------------------------------------------
+*
+* Modified: 13-NOV-1997 by R.Bossingham
+*           Eliminate unused variables.
+
+        IMPLICIT DOUBLE PRECISION (A-H , O-Z)
+        INTEGER ITRY, NTRY, NCIR, IERR
+
+        REAL    SGN,R0,ACENT,BCENT,CHISQ
+        REAL    XCIR(*),YCIR(*),WCIR(*)
+
+        DOUBLE PRECISION  LAMDA,KAPPA,KAPPA1
+        COMMON /CIRCOM/ XAV   ,YAV   ,WSUM  ,RSCALE,COSROT,SINROT,
+     +                XXAV  ,XYAV  ,YYAV  ,XRRAV ,YRRAV ,RRRRAV,
+     +                ALPHA ,BETA  ,KAPPA
+
+        DATA DBL1 / 1.0D0/,DBL2 / 2.0D0/, DBL4/ 4.0D0/, DBL64/6.4D1/
+        DATA NTRY / 5/
+        Save DBL1,DBL2,DBL4,DBL64,NTRY ! Ch
+
+*-->  FIRST CALCULATE THE H MATRIX AND OTHER THINGS
+
+        UTCFIT = 0
+        IERR = 0
+
+        CALL UTCMAT(XCIR,YCIR,WCIR,NCIR)
+
+*-->  USE THESE TO GET THE COEFFICIENTS OF THE 4-TH ORDER POLYNIMIAL
+*-->  DON'T PANIC - THE THIRD ORDER TERM IS ZERO !
+
+        XRRXRR= XRRAV  * XRRAV
+        YRRYRR= YRRAV  * YRRAV
+        RRRRM1= RRRRAV - DBL1
+        XXYY  = XXAV   * YYAV
+
+        C0  =          RRRRM1*XXYY - XRRXRR*YYAV - YRRYRR*XXAV
+        C1  =        - RRRRM1      + XRRXRR      + YRRYRR   - DBL4*XXYY
+        C2  =   DBL4 + RRRRM1                               - DBL4*XXYY
+        C4  = - DBL4
+
+*-->  COEFFICIENTS OF THE DERIVATIVE - USED IN NEWTON-RAPHSON ITERATIONS
+
+        C2D =   DBL2 * C2
+        C4D =   DBL4 * C4
+
+*-->  0'TH VALUE OF LAMDA - LINEAR INTERPOLATION BETWEEN P(0) & P(YYAV)
+
+CCCC  LAMDA = YYAV * C0 / (C0 + YRRSQ * (XXAV-YYAV))
+        LAMDA = 0.0D0
+        DLAMDA= 0.0D0
+
+        CHISCL= WSUM * RSCALE**2
+        DLAMAX= 0.001 / CHISCL
+
+        DO 30 ITRY = 1,NTRY
+
+            P = C0 + LAMDA * (C1 + LAMDA * (C2 + LAMDA * LAMDA * C4 ))
+            PD = (C1 + LAMDA * (C2D + LAMDA * LAMDA * C4D))
+
+            DLAMDA= - P / PD
+            LAMDA = LAMDA + DLAMDA
+
+            IF (DABS(DLAMDA).LT.DLAMAX) GO TO 35
+
+   30   CONTINUE
+
+        ITRY = NTRY
+
+   35   CONTINUE
+
+        CHISQ = CHISCL * LAMDA
+
+        DCHISQ= CHISCL * DLAMDA
+
+*-->  NOW CALCULATE THE MATRIX ELEMENTS FOR ALPHA, BETA & KAPPA
+
+        H11   = XXAV  -     LAMDA
+        H14   = XRRAV
+        H22   = YYAV  -     LAMDA
+        H24   = YRRAV
+        H34   = DBL1   + DBL2*LAMDA
+        IF(H11.EQ.0.0D0.OR.H22.EQ.0.0D0) THEN
+           UTCFIT = 1
+C          write(6,*) 'Problems in the UTCFIT' ! Ch
+           RETURN
+        ENDIF
+
+        ROOTSQ= (H14/H11)**2 + DBL4*H34
+
+        IF (DABS(H22).GE.DABS(H24)) THEN
+            RATIO = H24/H22
+            ROOTSQ=        RATIO**2  + ROOTSQ
+            KAPPA = DBL1 / DSQRT(ROOTSQ)
+            BETA  = - RATIO * KAPPA
+        ELSE
+            RATIO = H22/H24
+            ROOTSQ= DBL1 + (RATIO**2) * ROOTSQ
+            BETA  = DBL1 / DSQRT(ROOTSQ)
+            IF (H24   .GT. 0.0) BETA  = - BETA
+            KAPPA = - RATIO * BETA
+        ENDIF
+
+        ALPHA = - (H14/H11) * KAPPA
+
+*-->  transform these into the lab coordinate system
+*-->  first get kappa and back to real dimensions
+
+        KAPPA1 = KAPPA / RSCALE
+        DBR0  =   0.5D0 / KAPPA1
+
+*-->  next rotate alpha and beta and scale
+
+        ALPHAR=     (COSROT * ALPHA - SINROT * BETA)*DBR0
+        BETAR =     (SINROT * ALPHA + COSROT * BETA)*DBR0
+
+*-->  then translate by (xav,yav)
+
+        ACENT=-( ALPHAR - XAV)
+        BCENT=-( BETAR  - YAV)
+        R0   = DBR0
+
+        IF(YRRAV .GT. 0) SGN = -1.0
+        IF(YRRAV .LT. 0) SGN =  1.0
+
+        RETURN
+        END
+
+* $Id: rkms.F,v 1.2 2003/10/30 09:35:02 choutko Exp $
+* $Log: rkms.F,v $
+* Revision 1.2  2003/10/30 09:35:02  choutko
+* yale algo ++ ( start working)
+*
+* Revision 1.2  1998/01/27 00:35:54  fisyak
+* Split sources
+*
+      SUBROUTINE UTCMAT(xcir,ycir,wcir,ncir)
+*>----------------------------------------------------------------------
+* UTCMAT - auxiliary routine for the circle fitting
+*<----------------------------------------------------------------------
+
+*      calculates weighted averages needed                    *
+*      for circle fitting, shifts, rotates and scales coordi  *
+*      nate system so the whole procedure is simpler          *
+
+      IMPLICIT DOUBLE PRECISION   (A-H , O-Z)
+      DOUBLE PRECISION   KAPPA
+      INTEGER NCIR,I
+
+      COMMON /CIRCOM/ XAV   ,YAV   ,WSUM  ,RSCALE,COSROT,SINROT,
+     >                XXAV  ,XYAV  ,YYAV  ,XRRAV ,YRRAV ,RRRRAV,
+     >                ALPHA ,BETA  ,KAPPA
+      real xcir(*),ycir(*),wcir(*)
+
+*-->  CIRCLH CALCULATES AVERAGES USED IN THE H MATRIX OF THE CIRCLE FIT
+*-->  H IS CALCULATED IN THE COORDINATE SYSTEM WHERE :
+*-->  <X>    = 0
+*-->  <Y>    = 0
+*-->  <XY>   = 0
+*-->  <R**2> = 1
+
+*-->  IN THIS COORDINATE SYSTEM ONLY 5 ELEMENTS OF H ARE NEITHER 0 OR 1
+*-->  THEY ARE : <X**2>, <Y**2>, <X R**2>, <Y R**2> & <R**4>
+*-->  <X>  AND <Y>  BEFORE TRANSLATION ARE NEEDED TO GET BACK TO THE LAB
+*-->  COSROT & SINROT ARE NEEDED TO GET BACK TO THE LAB
+*-->  SIGN(Q) CAN BE DETERMINED WITH THE SIGNS CHOSEN FOR CROT & SINROT
+*-->  WSUM   IS REQUIRED TO SCALE THE CHISQUARE
+*-->  RSCALE IS REQUIRED TO SCALE KAPPA and CHISQUARE
+
+*-->  FIRST CALCULATE <X> AND <Y> IN THE ORIGINAL CORRDINATE SYSTEM
+
+        WSUM  = 0.0D0
+
+        XAV   = 0.0D0
+        YAV   = 0.0D0
+
+        DO 10 I = 1,NCIR
+
+            WI = WCIR(I)
+            XI = XCIR(I)
+            YI = YCIR(I)
+
+            WSUM = WSUM + WI
+
+            XAV = XAV + WI * XI
+            YAV = YAV + WI * YI
+
+   10   CONTINUE
+
+        XAV   = XAV    / WSUM
+        YAV   = YAV    / WSUM
+
+*-->  CALCULATE <X**2>, <XY>, AND <Y**2> WITH <X> = 0, & <Y> = 0
+
+        XXAV  = 0.0D0
+        XYAV  = 0.0D0
+        YYAV  = 0.0D0
+
+        DO 20 I = 1,NCIR
+
+            WI = WCIR(I)
+            XI = XCIR(I)
+            YI = YCIR(I)
+
+            XI = XI - XAV
+            YI = YI - YAV
+
+            WIXI = WI * XI
+            WIYI = WI * YI
+
+            XXAV = XXAV + WIXI*XI
+            XYAV = XYAV + WIXI*YI
+            YYAV = YYAV + WIYI*YI
+
+   20   CONTINUE
+
+        XXAV  = XXAV   / WSUM
+        XYAV  = XYAV   / WSUM
+        YYAV  = YYAV   / WSUM
+
+*-->  ROTATE COORDINATES SO THAT <XY> = 0
+
+*-->  SIGN(C**2 - S**2) = SIGN(XXAV - YYAV) >
+*-->  &                                     > ==> NEW : (XXAV-YYAV) > 0
+*-->  SIGN(S) = SIGN(XYAV)                  >
+
+        A     = DABS( XXAV - YYAV )
+        B     = 4.0 * XYAV * XYAV
+
+        ASQPB = A**2 + B
+        RASQPB= DSQRT(ASQPB)
+
+        SPLUS  = 1.0D0 + A / RASQPB
+        SMINUS = B / (ASQPB * SPLUS)
+
+        SPLUS = DSQRT(0.5 * SPLUS )
+        SMINUS= DSQRT(0.5 * SMINUS)
+
+*-->  FIRST REQUIRE : SIGN(C**2 - S**2) = SIGN(XXAV - YYAV)
+
+        IF (XXAV .LE.YYAV ) THEN
+           COSROT= SMINUS
+           SINROT= SPLUS
+        ELSE
+           COSROT= SPLUS
+           SINROT= SMINUS
+        ENDIF
+
+*-->  REQUIRE : SIGN(S) = SIGN(XYAV) * SIGN(C) (ASSUMING SIGN(C) > 0)
+
+        IF (XYAV  .LT. 0.0D0) SINROT = - SINROT
+
+*-->  WE NOW HAVE THE SMALLEST ANGLE THAT GUARANTEES <X**2> > <Y**2>
+*-->  TO GET THE SIGN OF THE CHARGE RIGHT, THE NEW X-AXIS MUST POINT
+*-->  OUTWARD FROM THE ORGIN.  WE ARE FREE TO CHANGE SIGNS OF BOTH
+*-->  COSROT AND SINROT SIMULTANEOUSLY TO ACCOMPLISH THIS.
+
+*-->  CHOOSE SIGN OF C WISELY TO BE ABLE TO GET THE SIGN OF THE CHARGE
+
+        IF((COSROT*XAV + SINROT*YAV).GT. 0.0D0) GO TO 35
+
+        COSROT= - COSROT
+        SINROT= - SINROT
+
+   35   CONTINUE
+
+*-->  NOW GET <R**2> AND RSCALE= SQRT(<R**2>)
+
+        RRAV  = XXAV  + YYAV
+        RSCALE= DSQRT(RRAV)
+
+        XXAV  = 0.0D0
+        YYAV  = 0.0D0
+        XRRAV = 0.0D0
+        YRRAV = 0.0D0
+        RRRRAV= 0.0D0
+        XYAV  = 0.0D0
+
+        DO 40 I = 1,NCIR
+
+            WI = WCIR(I)
+            XOLD = XCIR(I)
+            YOLD = YCIR(I)
+
+            XOLD = XOLD - XAV
+            YOLD = YOLD - YAV
+
+*-->  ROTATE SO THAT <XY> = 0 & DIVIDE BY RSCALE SO THAT <R**2> = 1
+
+            XI = ( COSROT * XOLD + SINROT * YOLD ) / RSCALE
+            YI = ( - SINROT * XOLD + COSROT * YOLD ) / RSCALE
+
+            XIXI = XI * XI
+            YIYI = YI * YI
+            RIRI = XIXI + YIYI
+
+            WIRIRI= WI * RIRI
+
+            XYAV = XYAV + WI * XI * YI
+            XXAV = XXAV + WI * XIXI
+            YYAV = YYAV + WI * YIYI
+
+            XRRAV = XRRAV + WIRIRI * XI
+            YRRAV = YRRAV + WIRIRI * YI
+            RRRRAV= RRRRAV + WIRIRI * RIRI
+
+   40   CONTINUE
+
+*-->  DIVIDE BY WSUM TO MAKE AVERAGES
+
+        XXAV  = XXAV   / WSUM
+        YYAV  = YYAV   / WSUM
+        XRRAV = XRRAV  / WSUM
+        YRRAV = YRRAV  / WSUM
+        RRRRAV= RRRRAV / WSUM
+        XYAV  = XYAV   / WSUM
+
+        RETURN
+        END
