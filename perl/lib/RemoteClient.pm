@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.54 2002/07/18 14:50:08 alexei Exp $
+# $Id: RemoteClient.pm,v 1.55 2002/07/19 16:07:21 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -11,7 +11,7 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll queryDB DownloadSA);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks queryDB DownloadSA);
 
 my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
 my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
@@ -3597,6 +3597,17 @@ sub listAll {
     htmlBottom();
 }
 
+sub listAllDisks {
+    my $self = shift;
+    my $show = shift;
+    htmlTop();
+    $self->ht_init();
+    
+    $self -> listDisksAMS();
+
+    htmlBottom();
+}
+
 sub queryDB {
     my $self = shift;
     my $q=$self->{q};
@@ -3828,6 +3839,114 @@ sub listCites {
      print_bar($bluebar,3);
      print "<p></p>\n";
 }
+sub listDisksAMS {
+    my $self = shift;
+    my $lastupd=>undef; 
+    my $sql;
+    $sql="SELECT MAX(timestamp) FROM m_nominal_disks";
+    my $r4=$self->{sqlserver}->Query($sql);
+    if( defined $r4->[0][0]){
+      $lastupd=localtime($r4->[0][0]);
+     }
+     print "<b><h2><A Name = \"disks\"> </a></h2></b> \n";
+     print "<TR><B><font color=green size= 5><b><font color=green> Disks and Filesystems </font></b>";
+     if (defined $lastupd) {
+      print "<font color=green size=3><b><i> (Checked : $lastupd) </i></b></font>";
+     }
+     print "<p>\n";
+     print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+              print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+              print "<td><b><font color=\"blue\" >Filesystem </font></b></td>";
+              print "<td><b><font color=\"blue\" >GBytes </font></b></td>";
+              print "<td><b><font color=\"blue\" >Used [GB] </font></b></td>";
+              print "<td><b><font color=\"blue\" >Free [GB] </font></b></td>";
+              print "<td><b><font color=\"blue\" >Status </font></b></td>";
+     print_bar($bluebar,3);
+     $sql="SELECT host, mntpoint, capacity, occupied, available, status, timestamp 
+              FROM m_nominal_disks WHERE checkflag=1 ORDER BY host ";
+     my $r3=$self->{sqlserver}->Query($sql);
+     if(defined $r3->[0][0]){
+      foreach my $dd (@{$r3}){
+          my $fs     = $dd->[0].":".$dd->[1];
+          my $size   = $dd->[2];
+          my $used   = $dd->[3];
+          my $avail  = $dd->[4];
+          my $status   = $dd->[5];
+          print "<tr><font size=\"2\">\n";
+          my $color=statusColor($status);
+          print "<td><b> $fs </b></td><td align=middle><b> $size </td><td align=middle><b> $used </td><td align=middle><b> $avail </b></td>
+                 <td><font color=$color><b> $status </font></b></td>\n";
+          print "</font></tr>\n";
+      }
+  }
+       htmlTableEnd();
+      htmlTableEnd();
+     print_bar($bluebar,3);
+     
+    print "<TR><TD><font size=\"6\" color=\"red\"><b> Daily Graphs (2 hours average) </b></font></TD></TR>\n";
+    print "<P>\n";
+     if(defined $r3->[0][0]){
+      my $j;
+      my $host=>undef;
+      my $disk=>undef;
+      foreach my $dd (@{$r3}){
+          my $fs     = $dd->[0].":".$dd->[1];
+          my $size   = $dd->[2];
+          my $used   = $dd->[3];
+          my $avail  = $dd->[4];
+          my $status   = $dd->[5];
+
+          if ($host ne $dd->[0]) {
+           if (defined $host) {
+            if ($j == 1) {
+             print "</TR>\n";
+             print "</TABLE>\n";
+             print "<TABLE CELLPADDING=0 CELLSPACING=0>\n";
+             print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$disk</FONT></SMALL></TD>\n";
+             print "</TR>\n";
+             print "</TABLE>\n";
+            }
+           }
+           print "<B>$dd->[0].cern.ch </B><BR>\n";
+           $host=$dd->[0];
+           $j=0;
+          }
+
+          my $src="http://ams.cern.ch/AMS/daily-graphs".$dd->[1]."-day.gif";
+          if ($j==0) {
+           print "<TABLE CELLPADDING=0 CELLSPACING=0>\n";
+           print "<TR>\n";
+           print "<IMG VSPACE=10 WIDTH=500 HEIGHT=135 ALIGN=TOP SRC=$src>\n";
+           $j=1;
+          } else {
+           print "<IMG VSPACE=10 WIDTH=500 HEIGHT=135 ALIGN=TOP ";
+           print " SRC=$src\n";
+           print "<TD WIDTH=5></TD>\n";
+           print "</TR>\n";
+           print "</TABLE>\n";
+           print "<TABLE CELLPADDING=0 CELLSPACING=0>\n";
+           print "<TR>\n";
+           print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$disk</FONT></SMALL></TD>\n";
+           print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$dd->[1]</FONT></SMALL></TD>\n";
+           print "<TD WIDTH=5></TD>\n";
+           print "</TR>\n";
+           print "</TABLE>\n";
+           $j=0;
+          }
+        $disk = $dd->[1];
+      }
+            if ($j == 1) {
+             print "</TR>\n";
+             print "</TABLE>\n";
+             print "<TABLE CELLPADDING=0 CELLSPACING=0>\n";
+             print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$disk</FONT></SMALL></TD>\n";
+             print "</TR>\n";
+             print "</TABLE>\n";
+            }
+     }          
+     print "<p></p>\n";
+}
+
 sub listDisks {
     my $self = shift;
     my $lastupd=>undef; 
