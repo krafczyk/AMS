@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.7 1999/11/18 11:43:31 choutko Exp $
+// $Id: g4physics.C,v 1.8 1999/11/19 14:51:01 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -79,9 +79,6 @@ void AMSG4Physics::ConstructProcess()
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
 //    pmanager->AddDiscreteProcess(new G4UserSpecialCuts());
-//    pmanager->AddDiscreteProcess(new ExN05MaxTimeCuts());
-//    pmanager->AddDiscreteProcess(new ExN05MinEkineCuts());
-//    pmanager->AddDiscreteProcess(new ExN05MinRangeCuts());
   }
 
 

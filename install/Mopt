@@ -119,7 +119,7 @@ OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o
 
 
 $(BIN)gbatch.o:         $(SCC)gbatch.C
-	$(CC) -c $(CFLAGS) $(SCC)gbatch.C -o $(BIN)gbatch.o
+	$(CC) -c $(CFLAGS) -D__USE_STD_IOSTREAM $(SCC)gbatch.C -o $(BIN)gbatch.o
 
 $(BIN)job.o:    	 $(SCC)job.C
 	$(CC) -c $(CFLAGS) $(SCC)job.C -o $(BIN)job.o

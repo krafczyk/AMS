@@ -74,7 +74,7 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
             call vzero(b(1),3)
             goto 999
         ENDIF
-#ifdef __G4AMS__
+#ifdef __G4AMSU__
         b(1)=7
         b(2)=0
         b(3)=0
@@ -116,7 +116,7 @@ C
            call vzero (hxy(1,1),9)
            goto 999
           endif
-#ifdef __G4AMS__
+#ifdef __G4AMSU__
            call vzero (hxy(1,1),9)
            goto 999
 #endif          

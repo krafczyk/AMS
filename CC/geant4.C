@@ -13,7 +13,7 @@
 #include "G4ImplicitEuler.hh"
 #include "G4ExplicitEuler.hh"
 #include "G4ClassicalRK4.hh"
-
+#include "G4TransportationManager.hh"
 #include "G4Material.hh"
 #include "G4Box.hh"
 #include "G4LogicalVolume.hh"

@@ -38,7 +38,7 @@ try{
 #endif
 } 
 catch (std::bad_alloc a){
- cerr <<"catch-F-NoMemoryAvailable "<<endl;
+ std::cerr <<"catch-F-NoMemoryAvailable "<<endl;
 }
     UGLAST();
     
