@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.242 2004/02/05 16:28:28 choutko Exp $
+# $Id: RemoteClient.pm,v 1.243 2004/02/09 17:00:10 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -685,9 +685,10 @@ foreach my $file (@allfiles){
         }        
     } 
 
-
+ print "-I- get IOR from Server or DB \n";
  my $ior=$self->getior();
 if(not defined $ior){ 
+  print "-I- IOR not defined \n"; 
 
   foreach my $chop  (@ARGV){
     if($chop =~/^-I/){
@@ -696,6 +697,7 @@ if(not defined $ior){
   }
 }
     if(defined $ior ){
+      print "-I- IOR got it \n"; 
       chomp $ior;
       if($self->{IOR} ne $ior){
         $self->{IOR}=$ior;
@@ -6841,9 +6843,14 @@ sub parseJournalFiles {
     if( not $self->Init()){
         die "parseJournalFiles -F- Unable To Init";
         
+    } else {
+        print "parseJournalFiles -I- Init done \n";
     }
+    print "parseJournalFiles -I- connect to server \n";
     if (not $self->ServerConnect()){
         die "parseJournalFiles -F- Unable To Connect To Server";
+    } else {
+     print "parseJournalFiles -I- connected to server. done \n";
     }
     $self->set_root_env();
 

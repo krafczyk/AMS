@@ -25,7 +25,7 @@ my $helpCastorCopy = "
 # -u       - copy file if it doesn't exist or file size is changed (default)
 # -force   - copy ALL files (even if it exist in output directory)
 #
-# ./castor.cp -v -from /f2dat1/MC/AMS02/ZH -to /castor/cern.ch/ams/MC/AMS02/ZH 
+# ./castor.cp -v -u -from  /f2dah1/MC/AMS02/2004A/ -to /castor/cern.ch/ams/MC/AMS02/2004A/
 ";
 my $helpCmp = "
 #
