@@ -8,10 +8,10 @@ LOADLIBES=-lforms -lX11 -lm
 
 CC= gcc
 
-OBJS =	xprocess_3x3.c
+OBJS =	xprocess_10comp.c
 
 xprocess: 
-	$(CC) $(CFLAGS) -o xprocess xprocess_3x3.c $(LDFLAGS) $(LOADLIBES)
+	$(CC) $(CFLAGS) -o xprocess xprocess_10comp.c $(LDFLAGS) $(LOADLIBES)
 
 
 

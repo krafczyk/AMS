@@ -29,16 +29,26 @@ pid_t pid;
   cpu_lim=50;
   N_lim_log_length=100000000;
   user_name="ams";
-  sprintf(host_name[0],"helium");
-  sprintf(host_name[1],"ahelium");
-  sprintf(host_name[2],"carbon");
-  sprintf(host_name[3],"acarbon");
-  sprintf(host_name[4],"proton");
-  sprintf(host_name[5],"afl3u1");
-  sprintf(host_name[6],"ams");
-  sprintf(host_name[7],"pcamsa0");
-  sprintf(host_name[8],"pcamsp1");
-  sprintf(host_name[9],"pcamsp0");
+
+    fp=fopen("/afs/cern.ch/user/a/ams/.xprocess","r");
+if (fp==NULL) {
+    fclose(fp);
+     puts("read_status: cannot open status file\n");
+    exit(1);
+  }
+  for (i=0; i<N_comp; i++) {
+    ch1=fgets(ch,256,fp);
+    if (feof(fp)){
+     fclose(fp);
+      puts("read_status: unexpected oef\n");
+     exit(1);
+     }
+    token=strtok(ch,delim);
+    sprintf(host_name[i],token);
+  }
+
+ N_pc=3;     /* number of PCs (they must me in the end of the above list*/
+
   N_pc=3;     /* number of PCs (they must me in the end of the above list*/
   N_exclude=4; /* excluding computer */
 
@@ -505,7 +515,7 @@ char del[]=" \n";
   system(ch);
   er = stat(temp_name,&stat_buf);
   if (stat_buf.st_size<9) {
-    puts("\athere is not log file");
+    puts("\athere is no log file 0");
     return -1;
   }
   fp=fopen(temp_name,"r");
@@ -519,7 +529,7 @@ char del[]=" \n";
   ch1=fgets(ch,256,fp);
 CONT:
   if (feof(fp)) {
-    puts("\athere is not log file");
+   /* puts("\athere is no log file 1"); */
     fclose(fp);
     sprintf(chbuf,"rm %s",temp_name);
     system(chbuf);
@@ -598,7 +608,7 @@ char del[]=" \n";
   system(ch);
   er = stat(temp_name,&stat_buf);
   if (stat_buf.st_size<9) {
-    puts("\athere is not log file");
+    puts("\athere is no log file 2");
     return -1;
   }
   fp=fopen(temp_name,"r");
@@ -612,7 +622,7 @@ char del[]=" \n";
   ch1=fgets(ch,256,fp);
 CONT:
   if (feof(fp)) {
-    puts("\athere is not log file");
+    puts("\athere is no log file 3");
     fclose(fp);
     sprintf(chbuf,"rm %s",temp_name);
     system(chbuf);
