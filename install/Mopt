@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.220 2002/07/11 07:59:37 choutko Exp $
+#  $Id: Mopt,v 1.221 2002/07/11 09:32:22 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -225,29 +225,27 @@ PFLAGS+=-pg
 endif
 
 ifdef AMSDEBUG
-CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include   -I../db  $(PFLAGS) -D_WRITEROOTCLONES__ -I$(ROOTSYS)/include
 CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db   $(PFLAGS)
 else
 CFLAGSB=      -D__BATCH__      -I../include   -I../db   $(PFLAGS)
 endif
 
 ifdef AMSICC
-CFLAGSB+=  -D__ICC__ -tpp7
-CFLAGS+=  -D__ICC__ -tpp7
-PFLAGS+=  -D__ICC__ -tpp7
+PFLAGS+=  -D__ICC__ -tpp6 -mp1 -xi 
 ifdef AMSDEBUG
+CFLAGS=      $(CFLAGSB) 
 CFLAGSTOFSIM= $(CFLAGS)
 CFLAGSn=      $(CFLAGS)
 CFLAGSDAQ=    $(CFLAGS)
-FFLAGS=     -mp1 -fp_port  -g -I../include   $(PFLAGS)
-FFLAGSn=   -mp1 -fp_port   -g -I../include   $(PFLAGS)
+FFLAGS=     -fp_port  -g -I../include   $(PFLAGS)
+FFLAGSn=    -fp_port   -g -I../include   $(PFLAGS)
 else
 CFLAGSTOFSIM= $(CFLAGSB)     -O2  
 CFLAGSDAQ=    $(CFLAGSB) -O2
 CFLAGSn=      $(CFLAGSB) -O2
-CFLAGS=      $(CFLAGSB) -O2
-FFLAGS=   -mp1 -fp_port  -O -I../include  $(PFLAGS)
-FFLAGSn=  -mp1 -fp_port  -O   -I../include  $(PFLAGS)
+CFLAGS=      $(CFLAGSB) -O3
+FFLAGS=    -fp_port  -O3 -I../include  $(PFLAGS)
+FFLAGSn=   -fp_port  -O   -I../include  $(PFLAGS)
 endif
 
 else
