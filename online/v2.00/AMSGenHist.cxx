@@ -6,7 +6,8 @@
 #include <TPaveText.h>
 ClassImp(AMSGenHist)
 
-const   int nids = 20;
+const   int nids    =     20;
+const   int tdiffId = 300003;
 
 unsigned int hids[nids] =
   { 0, 1, 2, 0x200,
@@ -43,14 +44,14 @@ void AMSGenHist::_Fetch(){
         _fetched2[i]->SetXTitle("Bytes*2");
         _fetched2[i]->SetFillColor(41);
         if (ii == tdiffId) {
-          TF1 f1
-          ("vcg","[0]*exp(-x*[1])+[2]*exp(-(x-[3])/[4]*(x-[3])/[4]/2)",0,20);
-          f1.SetParameter(0,1.);
-          f1.SetParameter(1,0.7);
-          f1.SetParameter(2,10.);
-          f1.SetParameter(3,6.);
-          f1.SetParameter(4,1.5);
-          _fetched2[i]->Fit("vcg","Q");
+          //TF1 f1
+          //("vcg","[0]*exp(-x*[1])+[2]*exp(-(x-[3])/[4]*(x-[3])/[4]/2)",0,20);
+          //f1.SetParameter(0,1.);
+          //f1.SetParameter(1,0.7);
+          //f1.SetParameter(2,10.);
+          //f1.SetParameter(3,6.);
+          //f1.SetParameter(4,1.5);
+          //_fetched2[i]->Fit("vcg","Q");
         }
       }
     }
