@@ -4,6 +4,19 @@
  *        - Add this file to the list of "includes":  
  *              - #include <SimpleFit.h>
  * 
+ *        - Example:
+ *                - for (int i=0; i<nTrTrack(); i++) {
+ *                    - TrTrackR track = TrTrack(i);
+ *                    - SimpleTrack new_track;
+ *                    - new_track.use_hits_from(&track);
+ *                    - for (int j=5; j<track.NTrRecHit(); j++) {new_track.del_hit(track.pTrRecHit(j));}
+ *                    - new_track.SimpleFit();
+ *                    - cout << "Track number= " << i; 
+ *                    - cout << ", Old rig:" << track.Rigidity; 
+ *                    - cout << ", New Rig:" << new_track.Rigidity;
+ *                    - cout << endl;
+ *                - }
+ *        
  *        - Constructor:
  *              - SimpleTrack new_track;
  * 
@@ -35,6 +48,7 @@
  *                    - Phi at first layer
  *              - float P0[3];           
  *                    - Reference point (cm, first layer)
+ *                    
  */
 #include </afs/ams.cern.ch/Offline/vdev/include/root.h>
 #include "TMatrixD.h"
@@ -68,7 +82,8 @@ void SimpleTrack::add_hit(TrRecHitR* phit) {
             cout << "SimpleTrack WARNING: Can not add more than ";
             cout << MAXLAY << " hits; new hit ignored" << endl;
             return;
-        } else if (NHits==0 || (phit->Layer > pHit[NHits-1]->Layer)) {
+        } else if (NHits<=0 || (phit->Layer > pHit[NHits-1]->Layer)) {
+            if (NHits<0) NHits = 0;
             pHit[NHits] = phit;
             NHits++;
             return;
