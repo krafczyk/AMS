@@ -9,7 +9,7 @@
 
 extern "C" void spectra_();
 AMSPoint AMSmceventg::_coorange[2];
-AMSPoint AMSmceventg::_dirrange[2];
+AMSDir AMSmceventg::_dirrange[2];
 number   AMSmceventg::_momrange[2];
 integer  AMSmceventg::_fixedpoint;
 integer  AMSmceventg::_fixedplane;
@@ -50,7 +50,7 @@ else {
 }
 
 if(_fixeddir){
- _dir=AMSDir(_dirrange[0]);
+ _dir=_dirrange[0];
  if(_fixedpoint){
   _coo=_coorange[0];
   return;
@@ -120,8 +120,8 @@ void AMSmceventg::setcuts(geant coo[6], geant dir[6],
     _albedocz=albedocz;
     _coorange[0]=AMSPoint(coo[0],coo[1],coo[2]);
     _coorange[1]=AMSPoint(coo[3],coo[4],coo[5]);
-    _dirrange[0]=AMSPoint(dir[0],dir[1],dir[2]);
-    _dirrange[1]=AMSPoint(dir[3],dir[4],dir[5]);
+    _dirrange[0]=AMSDir(dir[0],dir[1],dir[2]);
+    _dirrange[1]=AMSDir(dir[3],dir[4],dir[5]);
     _fixedplane=fxp;
     _momrange[0]=momr[0];
     _momrange[1]=momr[1];
