@@ -2102,7 +2102,11 @@ else if (update==3)fnam+=".3";
 else if (update==4)fnam+=".4";
 ofstream iftxt;
 if(update)iftxt.open((const char *)fnam,ios::out|ios::trunc);
+#ifdef __USE_STD_IOSTREAM
+else iftxt.open((const char *)fnam,ios::out);
+#else
 else iftxt.open((const char *)fnam,ios::out|ios::noreplace);
+#endif
 if(iftxt){
   // Write file
   iftxt <<setprecision(12);

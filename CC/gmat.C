@@ -95,7 +95,7 @@ void AMSgtmed::_init(){
     GSTPAR(_itmed,"STRA",1);
    }
   }
-  if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd ){
+  else if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd ){
    if(IsSensitive()){
     GSTPAR(_itmed,"CUTELE",35.01e-6);
    }
@@ -377,7 +377,16 @@ tmed.add (new AMSgtmed("MAGNET","MAGNET",0));
 // vacuum has to be trd aware
  geant uwbuf[5];
  integer nwbuf=5;
+#ifdef __G4AMS__
+if (MISCFFKEY.G4On){
+uwbuf[0]=0;
+}
+else{
+#endif
  uwbuf[0]=TRDMCFFKEY.g3trd;
+#ifdef __G4AMS__
+}
+#endif
  uwbuf[1]=TRDMCFFKEY.mode;
  if(TRDMCFFKEY.mode<2){
   uwbuf[3]=TRDMCFFKEY.cor;
@@ -539,7 +548,16 @@ GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
 { // TRD Media by V. Choutko  seems to be also wrong
 geant uwbuf[5];
 integer nwbuf=5;
+#ifdef __G4AMS__
+if (MISCFFKEY.G4On){
+uwbuf[0]=0;
+}
+else{
+#endif
 uwbuf[0]=TRDMCFFKEY.g3trd;
+#ifdef __G4AMS__
+}
+#endif
 uwbuf[1]=TRDMCFFKEY.mode;
 if(TRDMCFFKEY.mode<2){
 uwbuf[3]=TRDMCFFKEY.cor;

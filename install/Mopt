@@ -30,8 +30,8 @@ SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolv
 ROOTLIBS =
 
 ifdef AMSDEBUG
-O4=g -D__AMSDEBUG__
-O4F=g -D__AMSDEBUG__
+O4=-g -D__AMSDEBUG__
+O4F=-g -D__AMSDEBUG__
 else
 ifdef O4
 O4=O4

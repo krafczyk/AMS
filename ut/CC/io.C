@@ -77,7 +77,7 @@ void AMSIO::init(integer mode,integer format){
           }
           // pos back if fbin.good
           if(ok){
-            fbin.seekg(fbin.tellg()-sizeof(io));
+            fbin.seekg(integer(fbin.tellg())-sizeof(io));
             cout<<"AMSIO::init-I-Selected Run = "<<SELECTFFKEY.Run<<
               " Event = "<<io.getevent()<< " Position = "<<ipos<<endl;
           
@@ -86,7 +86,7 @@ void AMSIO::init(integer mode,integer format){
             if(format==0)cerr <<"AMSIO::init-F-Failed to select Run = "<<SELECTFFKEY.Run<<
               " Event >= "<<SELECTFFKEY.Event<<endl;
           if(format==1){
-            fbin.seekg(fbin.tellg()-sizeof(io));
+            fbin.seekg(integer(fbin.tellg())-sizeof(io));
             fbin.clear();
             ok=io.read();
             theta=theta*AMSDBc::raddeg;
@@ -124,7 +124,7 @@ void AMSIO::init(integer mode,integer format){
           integer ok;
           number otheta;
              fbin.clear();
-             fbin.seekg(fbin.tellg()-2*sizeof(AMSIO)-fs%sizeof(AMSIO));
+             fbin.seekg(integer(fbin.tellg())-2*sizeof(AMSIO)-fs%sizeof(AMSIO));
              ok=io.read();
              otheta=io.getstheta()*AMSDBc::raddeg;
              ok=io.read();
@@ -170,7 +170,7 @@ void AMSIO::init(integer mode,integer format){
      if(fs%sizeof(AMSIO) == 0)fbin.open(fnam,ios::out|binary|ios::app);
              else {
                fbin.open(fnam,ios::out|binary|ios::ate);
-               fbin.seekg(fbin.tellg()-fs%sizeof(AMSIO));
+               fbin.seekg(integer(fbin.tellg())-fs%sizeof(AMSIO));
                cerr <<"AMSIO-init-I-Recovering... "<<endl;
              }
     }
@@ -179,9 +179,11 @@ void AMSIO::init(integer mode,integer format){
       cerr<<"AMSIO::init-F-cannot open file "<<fnam<<" in mode "<<mode<<endl;
       exit(1);
     }
+#ifndef __USE_STD_IOSTREAM
     // Associate buffer
     static char buffer[32*sizeof(AMSIO)+1];
     fbin.setbuf(buffer,32*sizeof(AMSIO));
+#endif
   }
   else {
     cerr <<"AMSIO::init-F-no file to init "<<endl;

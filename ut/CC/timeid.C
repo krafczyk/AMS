@@ -472,7 +472,8 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
             fbin.open((const char *)ffile,ios::in);
             uinteger temp[3];
             if(fbin){
-              fbin.seekg(fbin.tellg()+_Nbytes+sizeof(_CRC));
+              
+              fbin.seekg(integer(fbin.tellg())+_Nbytes+sizeof(_CRC));
               fbin.read((char*)temp,3*sizeof(temp[0]));
               if(fbin.good()){
                 _convert(temp,3);

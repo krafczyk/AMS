@@ -36,7 +36,8 @@ CFLAGS4P=      -D__BATCH__    -g -D__AMSDEBUG__   -I../include     $(CPPFLAGS)
 CFLAGS4O1=      -D__BATCH__    -g -D__AMSDEBUG__   -I../include    $(CPPFLAGS)
 CFLAGS=  -D__BATCH__ -D__ALPHA__   -g     -I../include -I$(ROOTSYS)/include
 CFLAGSTOFSIM=  -D__BATCH__ -D__ALPHA__  -D__AMSDEBUG__ -g     -I../include -I$(ROOTSYS)/include  
-CFLAGSn=  -D__BATCH__ -D__ALPHA__ -D__AMSDEBUG__ -g     -I../include -I$(ROOTSYS)/include  
+CFLAGSn=  -D__BATCH__ -D__ALPHA__ -D__
+AMSDEBUG__ -g     -I../include -I$(ROOTSYS)/include  
 FFLAGS=   -g -I../include  -d -static -nofor_main -convert big_endian -fpe2
 DFLAGS=  -g   -I/usr/include  -I../include  -I/usr/include/cxx
 else
@@ -51,8 +52,14 @@ DFLAGS=  -g   -I/usr/include  -I../include  -I/usr/include/cxx
 endif
 ifeq "$(shell cxx -V | grep -c 6.)" "1"
 CC=cxx  
+ifdef G4USE_OSPACE
+
 CP1F=-D__NAMESPACE__  -D__G4AMS__ -ieee -nostdnew -timplicit_local -DOS_OSF1_4 -DOS_NEW_CHECK -DOS_STL_ASSERT -DOS_NO_WSTRING -DOS_NO_ALLOCATORS -D__NO_EDG_EXCEPTION_CLASSES
 CP2F=-D__NAMESPACE__  -D__G4AMS__ -ieee -nostdnew -timplicit_local 
+else
+CP1F=-D__NAMESPACE__  -D__G4AMS__ -ieee -nostdnew -timplicit_local -D__USE_STD_IOSTREAM
+CP2F=-D__NAMESPACE__  -D__G4AMS__ -D__USE_STD_IOSTREAM -ieee -nostdnew -timplicit_local 
+endif
 endif
 XLDFLAGS=      -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm    -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
 LD=cxx -L/usr/local/lib -L/usr/lib

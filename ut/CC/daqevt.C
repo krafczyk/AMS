@@ -290,7 +290,7 @@ void DAQEvent::buildRawStructures(){
 void DAQEvent::write(){
   if(_Length){
     _convert();
-    fbout.write((unsigned char*)_pData,sizeof(_pData[0])*_Length);
+    fbout.write((char*)_pData,sizeof(_pData[0])*_Length);
    // Unfortunately we shoulf flush output for each event
    //
    fbout.flush();
@@ -299,7 +299,7 @@ void DAQEvent::write(){
 }
 
 integer DAQEvent::getoffset(){
-   if(fbin)return fbin.tellg()-sizeof(_pData[0])*(_Length);
+   if(fbin)return integer(fbin.tellg())-sizeof(_pData[0])*(_Length);
    else {
     cerr<<"DAQEvent::getoffset-E-fbinNotOPened"<<endl;
     return -1;
@@ -329,7 +329,7 @@ integer DAQEvent::read(){
     }
     if(fbin.good() && !fbin.eof()){
      int16u l16[2];
-     fbin.read((unsigned char*)(l16),sizeof(l16));
+     fbin.read(( char*)(l16),sizeof(l16));
      _convertl(l16[0]);
      _Length=l16[0]+_OffsetL;
      // get more length (if any)
@@ -343,7 +343,7 @@ integer DAQEvent::read(){
      fbin.open(ifnam[++KIFiles],ios::in|binary);
      if(fbin){ 
        cout <<"DAQEvent::read-I-opened file "<<ifnam[KIFiles]<<endl;
-      fbin.read((unsigned char*)(l16),sizeof(l16));
+      fbin.read(( char*)(l16),sizeof(l16));
       _convertl(l16[0]);
       _Length=l16[0]+_OffsetL;
       _convertl(l16[1]);
@@ -362,12 +362,12 @@ integer DAQEvent::read(){
     }
      if(fbin.good() && !fbin.eof()){
       if(_create()){
-       fbin.seekg(fbin.tellg()-2*sizeof(_pData[0]));
-       fbin.read((unsigned char*)(_pData),sizeof(_pData[0])*(_Length));
+       fbin.seekg(integer(fbin.tellg())-2*sizeof(_pData[0]));
+       fbin.read(( char*)(_pData),sizeof(_pData[0])*(_Length));
        _convert();
       }
       else{
-       fbin.seekg(fbin.tellg()+sizeof(_pData[0])*(_Length-1));
+       fbin.seekg(integer(fbin.tellg())+sizeof(_pData[0])*(_Length-1));
        _Length=0;
       }
      }
@@ -416,7 +416,7 @@ void DAQEvent::init(integer mode, integer format){
      }
      // pos back if fbin.good
      if(ok){
-            fbin.seekg(fbin.tellg()-daq.getlength());
+            fbin.seekg(integer(fbin.tellg())-daq.getlength());
             cout<<"DAQEvent::init-I-Selected Run = "<<SELECTFFKEY.Run<<
               " Event = "<<daq.eventno()<< " Position = "<<iposr<<endl;
 
@@ -459,12 +459,18 @@ void DAQEvent::initO(integer run){
      // else ost << ofnam<<ends;
      if(fbout)fbout.close();
      if(ofnam[strlen(ofnam)-1]!='/')ost << ofnam<<ends;
+#ifndef __USE_STD_IOSTREAM
     if((mode/10)%10 ==1)fbout.open(name,ios::out|binary|ios::noreplace);
+#else
+    if((mode/10)%10 ==1)fbout.open(name,ios::out|binary);
+#endif
     if((mode/10)%10 ==2)fbout.open(name,ios::out|binary|ios::app);
      if(fbout){ 
+#ifndef __USE_STD_IOSTREAM
        // Associate buffer
       static char buffer[1000+1];
       fbout.setbuf(buffer,1000);
+#endif
       cout<<"DAQEvent::initO-I- opened file "<<name<<" in mode "<<mode<<endl;
 
      }

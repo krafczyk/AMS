@@ -13,7 +13,7 @@ setenv CLHEP_BASE_DIR  /afs/cern.ch/sw/lhcxx/specific/$OS/CLHEP/pro
 setenv OGLHOME /usr/local
 endif
 
-setenv G4INSTALL /afs/cern.ch/exp/ams/Offline/geant4.1.0 
+setenv G4INSTALL /afs/cern.ch/exp/ams/Offline/geant4.1.1 
 setenv G4LIB $G4INSTALL/lib
 setenv G4_NO_VERBOSE 1
 setenv  G4WORKDIR /amsdat1/scratch/choutko/tmp
@@ -29,5 +29,5 @@ setenv G4VIS_USE_RAYX         1
 #setenv G4VIS_USE_OPACS         1
 #setenv G4DAWNFILE_VIEWER david
 setenv G4LEVELGAMMADATA $G4INSTALL/data/PhotonEvaporation
-setenv G4LEDATA $G4INSTALL/data/G4EMLOW0.2
-setenv NeutronHPCrossSections $G4INSTALL/data/G4NDL0.1
+setenv G4LEDATA $G4INSTALL/data/G4EMLOW0.3
+setenv NeutronHPCrossSections $G4INSTALL/data/G4NDL0.2

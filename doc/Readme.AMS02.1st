@@ -133,10 +133,10 @@ c. SoftWare/DataAccess
 
 d.  Misc
     you may need to override some default shell limits to run offline program;
-    recommended settings are (in c-shell)
+    recommended settings are (in c-shell) for ams-geant3 (geant4)
     limit stack 8191
-    limit data 256000
-
+    limit data 256000 (512000, yes, 512 megabytes) 
+    
 
 
 Comments, questions to shoutko@vxcern.cern.ch
