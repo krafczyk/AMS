@@ -21,16 +21,24 @@ void AMSStatus::create(){
   AMSJob::gethead()->addup(&tstatus);
 }
 
-integer AMSStatus::isFull(uinteger run, uinteger evt){
+integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time){
+  static time_t oldtime=0;
+  integer timechanged= time!=oldtime?1:0;
+  oldtime=time;
   if(_Nelem>0 && evt<_Status[0][_Nelem-1]){
     cerr <<"AMSStatus::isFull-E-EventSequenceBroken "<<_Nelem<<" "<<run<<" "<<evt<<" "<<_Status[0][_Nelem-1]<<endl;
    return 1;
   }
-  return _Nelem>=50000 || (run!=_Run && _Nelem>0) ;
+  if(_Nelem>=MAXDAQRATE+STATUSSIZE){
+        cerr <<"AMSSTatus::isFull-E-MaxDAQRateExceeds "<<MAXDAQRATE<<
+        " some of the events will be lost"<<endl;
+        return 1;
+}
+  return (_Nelem>=STATUSSIZE && timechanged ) || (run!=_Run && _Nelem>0) ;
 }
 
 void AMSStatus::update(uinteger run, uinteger evt, uinteger status, time_t time){
-  if(_Nelem==0  || isFull(run,evt)){
+  if(_Nelem==0  || isFull(run,evt,time)){
     _Nelem=0;
     _Run=run;
     _Begin=time;

@@ -6,13 +6,15 @@
 #include <cern.h>
 #include <amsdbc.h>
 #include <time.h>
+const integer STATUSSIZE=50000;
+const integer MAXDAQRATE=1500;
 class AMSStatus : public AMSNode {
 protected:
   time_t _Begin;
   time_t _End;
   uinteger _Run;
   integer  _Nelem;
-  uinteger _Status[2][50000];
+  uinteger _Status[2][STATUSSIZE+MAXDAQRATE];
   void _init();
   AMSStatus (const AMSStatus&);   // do not want cc
   AMSStatus &operator=(const AMSStatus&); // do not          
@@ -33,7 +35,7 @@ public:
   static void init();
   void setmode(integer mode){_Mode=mode;}
   static integer isDBUpdate(){return _Mode==2;}
-  integer isFull(uinteger run, uinteger evt);
+  integer isFull(uinteger run, uinteger evt, time_t time);
   time_t getbegin(){return _Begin;}
   time_t getend(){return _End;}
 };

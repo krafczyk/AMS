@@ -83,7 +83,7 @@ Below there is a description of a  ntuple.
                                                      //  (signed)
 * R*4  *              * PARTICLE * perrmom(npart)    // error in momentum
 * R*4  *              * PARTICLE * pcharge(npart)    // charge
-* R*4  *              * PARTICLE * ptheta(npart)     // theta (on entry)
+* R*4  *              * PARTICLE * ptheta(npart)     // theta (1st(last) tracker plane)
 * R*4  *              * PARTICLE * pphi(npart)       // phi  -----------
 * R*4  *              * PARTICLE * pcoo(3,npart)     // coo  -----------
 * R*4  *              * PARTICLE * signalctc(2,npart)  // ctcsignal(s)

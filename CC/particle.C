@@ -394,6 +394,18 @@ void AMSParticle::refit(){
     for(int layer=0;layer<nl;layer++){
        number theta,phi;
       _ptrack->intercept(_TrCoo[layer],layer,theta,phi);
+// Change theta,phi,coo 
+      if(_pbeta->getbeta()>0 && layer==0){
+          _Theta=theta;    
+          _Phi=phi;    
+          _Coo=_TrCoo[0];
+      }       
+      else if(_pbeta->getbeta()<=0 && layer==nl-1){
+          _Theta=theta;    
+          _Phi=phi;    
+          _Coo=_TrCoo[nl-1];
+          
+      }
     }
 
   if(_GPart !=14 ){

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "AMSNtuple.h"
 ClassImp(AMSNtuple)
 
@@ -118,6 +119,7 @@ ClassImp(AMSNtuple)
     }
     else{
       cerr<<"AMSNtuple::AMSNtuple-S-UnableInitializeNtuple"<<endl;
+      exit(1);
       _Event.Run=0;
       _Event.Time[0]=0;
     }

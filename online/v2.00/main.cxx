@@ -56,7 +56,7 @@ void main(int argc, char *argv[])
 
   
   printf("opening file %s...\n", filename);
-  TFile f(filename);
+  TFile f =  TFile(filename);
   AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Offline Display",&f);
   AMSAntiHist  antih("ANTI","Anti counter Hists",1,1);
   amd->AddSubDet(antih);

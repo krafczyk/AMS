@@ -54,7 +54,7 @@ void AMSEvent::_init(){
   SetTimeCoo(0);
   // Status stuff
   if( AMSFFKEY.Update && AMSStatus::isDBUpdate()){
-    if(AMSJob::gethead()->getstatustable()->isFull(getrun(),getid())){
+    if(AMSJob::gethead()->getstatustable()->isFull(getrun(),getid(),gettime())){
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVStatus());
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
