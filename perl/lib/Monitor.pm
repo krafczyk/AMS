@@ -579,7 +579,7 @@ sub getntuples{
      if($hash->{Type} eq "Ntuple"){
          if($hash->{Status} eq $sort[$j]){
      my $ctime=localtime($hash->{Insert});
-     push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$hash->{Status};
+     push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Status},$hash->{Name},$hash->{Status};
      push @output, [@text];
  }
  }

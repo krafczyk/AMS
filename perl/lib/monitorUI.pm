@@ -711,8 +711,8 @@ sub Update{
 
 }
 
-     notebook_update_pages $monitorUI::Singleton->{notebookw}, 0, 2;
     warn "herehere ";
+     notebook_update_pages $monitorUI::Singleton->{notebookw}, 0, 2;
 }
 
 sub Warning(){
