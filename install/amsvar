@@ -8,5 +8,6 @@ setenv CVSEDITOR  emacs
 setenv RunsDir $Offline/RunsDir
 setenv AMSDataNtuplesDir $Offline/AMSDataNtuplesDir
 setenv AMSMCNtuplesDir   $Offline/AMSMCNtuplesDir
+setenv SlowRateDataDir   $Offline/SlowRateDataDir
 limit core 0
 
