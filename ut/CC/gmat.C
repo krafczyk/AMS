@@ -283,6 +283,10 @@ GSCKOV(16,44,p,abs_l,dummy,index);
 // Light lead for ECAL test :
 {
 mat.add (new AMSgmat(45,"LIGHTLEAD",207.19,82., 6.36 ,1.,32.5));
+a[0]=12.;a[1]=1.;
+z[0]=6.; z[1]=1.;
+w[0]=8.; w[1]=8.;
+mat.add (new AMSgmat(46,"ECSCINT",a,z,w,2,1.032));
 }
 //-------------------
 #ifdef __AMSDEBUG__
@@ -357,12 +361,23 @@ tmed.add (new AMSgtmed(++ip,"TOF_PMT_WINDOW",37,1));//31
   tmed.add (new AMSgtmed(++ip,"RICH MIRRORS",39,0));//33
   tmed.add (new AMSgtmed(++ip,"RICH WALLS",41,0)); //34
   tmed.add (new AMSgtmed(++ip,"RICH PMTS",40,0));   //35
-// DON'T use media numbers above 39 !!!!
 }
 //---------------
-//  ECAL nedia
+//  ECAL media
 //
-tmed.add (new AMSgtmed(40,"EC_DUMMYMOTH",45,0));// tempor for ECAL test(not sens !!!)
+{
+geant birks[]={1.,0.013,9.6e-6};
+tmed.add (new AMSgtmed(++ip,"EC_EFFRAD",45,0));// 36 eff.radiator for fast sim(not sens !!!)
+//tmed.add (new AMSgtmed(++ip,"EC_RADIATOR",13,0)); // 37
+tmed.add (new AMSgtmed(++ip,"EC_RADIATOR",13,0,'N',birks,2,20.,10.,1000.,
+                                    -1.,0.001,-1.)); // 37 simplif.tracking in magn.f
+GSTPAR(ip,"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_RADIATOR
+GSTPAR(ip,"CUTELE",ECMCFFKEY.cutge);
+tmed.add (new AMSgtmed(++ip,"EC_FIBER",46,1,'Y',birks));// 38
+tmed.add (new AMSgtmed(++ip,"EC_ELBOX",25,0));// 39 tempor as for TOF
+GSTPAR(ip,"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_ELBOX
+GSTPAR(ip,"CUTELE",ECMCFFKEY.cutge);
+} 
 //---------------
 AMSgObj::GTrMedMap.map(tmed);
 #ifdef __AMSDEBUG__

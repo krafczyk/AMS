@@ -1,5 +1,6 @@
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
+//  ECAL edded 28-sep-1999 by E.Choumilov
 // add TDV/dbase version October 1, 1997. a.k.
 // Jan 07, 1999. ak.
 //   print EOF statistics, compare number of processed and expected 
@@ -40,6 +41,8 @@
 #include <ctcsim.h>
 #include <user.h>
 #include <signal.h>
+#include <ecaldbc.h>
+#include <ecalrec.h>
 extern "C" void uglast_();
 
 static geant   Tcpu0 = 0; 
@@ -335,6 +338,7 @@ _sitkinitrun();
 _sitofinitrun();
 _siantiinitrun();
 _sictcinitrun();
+if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_siecalinitrun();
 }
 
 
@@ -359,6 +363,7 @@ _retkinitrun();
 _retofinitrun();
 _reantiinitrun();
 _rectcinitrun();
+if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_reecalinitrun();
 _reaxinitrun();
 AMSUser::InitRun();
 }
@@ -368,6 +373,7 @@ void AMSEvent::_siamsinitevent(){
  _sitofinitevent();
  _siantiinitevent();
  _sictcinitevent();
+ if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_siecalinitevent();
 }
 
 void AMSEvent::_reamsinitevent(){
@@ -379,6 +385,7 @@ void AMSEvent::_reamsinitevent(){
  _retofinitevent();
  _reantiinitevent();
  _rectcinitevent();
+ if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_reecalinitevent();
  _reaxinitevent();
 }
 
@@ -656,6 +663,17 @@ void AMSEvent::_siantiinitevent(){
 }
 
 
+void AMSEvent::_siecalinitevent(){
+  int i;
+  AMSNode *ptr;
+//
+  for(i=0;i<ECALDBc::slstruc(3);i++){// book containers for EcalMCHit-object
+    ptr = AMSEvent::gethead()->add (
+      new AMSContainer(AMSID("AMSContainer:AMSEcalMCHit",i),0));
+  }
+}
+
+
 
 void AMSEvent::_sitofinitevent(){
   int il;
@@ -688,7 +706,7 @@ void AMSEvent::_sictcinitevent(){
 
 
 
-
+//=====================================================================
 
 void AMSEvent::_reantiinitevent(){
 
@@ -746,10 +764,18 @@ void AMSEvent::_rectcinitevent(){
     AMSEvent::gethead()->add (
      new AMSContainer(AMSID("AMSContainer:AMSCTCCluster",i),0));
    }
+  }
 }
-
+//=====================================================================
+void AMSEvent::_reecalinitevent(){
+  integer i;
+  AMSNode *ptr;
+  for(i=0;i<ECALDBc::slstruc(3);i++){// book containers for EcalRawEvent
+    ptr=AMSEvent::gethead()->add (
+      new AMSContainer(AMSID("AMSContainer:AMSEcalRawEvent",i),0));
+  }
 }
-
+//=====================================================================
 void AMSEvent::_reaxinitevent(){
   integer i;
   AMSNode *ptr;
@@ -991,6 +1017,7 @@ void AMSEvent::event(){
     _siantievent(); 
     _sictcevent(); 
     _sitkevent(); 
+    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_siecalevent(); 
     _sitrigevent(); 
     if(TOFMCFFKEY.fast==0)_sidaqevent(); //DAQ-simulation only for slow algorithm
   }
@@ -1026,6 +1053,7 @@ void AMSEvent::_reamsevent(){
   _retofevent();
   _reantievent();
   _rectcevent(); 
+  if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_reecalevent();
 if(AMSJob::gethead()->isReconstruction() )_retrigevent();
   _retkevent(); 
   _reaxevent();
@@ -1351,7 +1379,18 @@ void AMSEvent::_rectcevent(){
   AMSgObj::BookTimer.stop("RECTCEVENT");
 }
 }
-
+//========================================================================
+void AMSEvent::_reecalevent(){
+  integer trflag(0);
+  TriggerLVL1 *ptr;
+  int stat;
+//
+  AMSgObj::BookTimer.start("REECALEVENT");
+//
+  EcalJobStat::addre(0);
+//
+  AMSgObj::BookTimer.stop("REECALEVENT");
+}
 //========================================================================
 void AMSEvent::_reaxevent(){
 AMSgObj::BookTimer.start("REAXEVENT");
@@ -1419,6 +1458,9 @@ void AMSEvent::_siantiinitrun(){
 void AMSEvent::_sictcinitrun(){
 }
 
+void AMSEvent::_siecalinitrun(){
+}
+
 void AMSEvent::_retkinitrun(){
   // Warning if TRFITFFKEY.FastTracking is on...
   if(TRFITFFKEY.FastTracking){
@@ -1441,6 +1483,9 @@ void AMSEvent::_reantiinitrun(){
 }
 
 void AMSEvent::_rectcinitrun(){
+}
+
+void AMSEvent::_reecalinitrun(){
 }
 
 void AMSEvent::_reaxinitrun(){
@@ -1489,6 +1534,34 @@ void AMSEvent:: _siantievent(){
   if(p && AMSEvent::debug>1)p->printC(cout);
 #endif
   AMSgObj::BookTimer.stop("SIANTIEVENT");
+}
+//----------------------------------------------------------------
+void AMSEvent:: _siecalevent(){
+  int stat;
+  AMSgObj::BookTimer.start("SIECALEVENT");
+  EcalJobStat::addmc(0);
+//
+  if(ECMCFFKEY.fastsim==0){//           ===> slow algorithm:
+//
+    AMSEcalRawEvent::mc_build(stat);// Geant_hit->RawEvent
+    if(stat!=0){
+      AMSgObj::BookTimer.stop("SIECALEVENT");
+      return;
+    }
+    EcalJobStat::addmc(1);
+//
+  }
+  else{    //                         ===> fast algorithm:
+//
+//    to be done
+  }
+//
+#ifdef __AMSDEBUG__
+  AMSContainer *p;
+  p=getC("AMSEcalMCHit",0);
+  if(p && AMSEvent::debug>1)p->printC(cout);
+#endif
+  AMSgObj::BookTimer.stop("SIECALEVENT");
 }
 //----------------------------------------------------------------
 

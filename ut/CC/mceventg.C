@@ -140,11 +140,11 @@ else {   // <--- random dir
   number lx=xb-xa;
   number ly=yb-ya;
   number lz=zb-za;
-//  number zanti=49.;// uncoment for fast tests (not for accept.calculations !)
-//  number ranti=54.;
-//  number zcal=-141.;
-//  number calhs=30.;//cal.half-size(-5cm from edge)
-//  number xin,yin,dxy,xcr,ycr;
+  number zanti=43.;// uncoment for fast tests (not for accept.calculations !!!)
+  number ranti=54.;
+  number zcal=-150.8;
+  number calhs=32.;//cal.half-size(-3cm from edge)
+  number xin,yin,dxy,xcr,ycr;
  switch(curp){
  case 1:
 //   while(1){ //<-- loop to check crossings with top/bot anti(magnet) holes and calor.
@@ -168,8 +168,8 @@ else {   // <--- random dir
 //     break;
 //   }
   _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
-  _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),zb);
-//  _coo=AMSPoint(xin,yin,zb);
+  _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),zb);// comment for fast tests
+//  _coo=AMSPoint(xin,yin,zb);//uncoment for fast tests
   break;
  case 2:  
   _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),cos(theta));

@@ -1,7 +1,7 @@
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
-// Primitive(tempor) ECAL Geometry E. Choumilov 14-07-1999 
+// ECAL 1.0-version Geometry E. Choumilov 15-09-1999 
 // Passive Shield Geometry V. Choutko 22-jul-1996
 // CTC (Cherenkov Thresh. Counter) geometry E.Choumilov 26-sep-1996
 // ATC (Aerogel Threshold Cerenkov) geometry A.K.Gougas 14-Mar-1997
@@ -84,7 +84,7 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  antigeom02(mother);
  pshgeom02(mother);
  tkgeom02(mother);
- richgeom02(mother);
+// richgeom02(mother);
  ecalgeom02(mother);
  trdgeom02(mother);
  srdgeom02(mother);
@@ -2412,36 +2412,177 @@ void antigeom02(AMSgvolume & mother){
 void ecalgeom02(AMSgvolume & mother){
 //
   geant par[6]={0.,0.,0.,0.,0.,0.};
-  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
-  number nrm1[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};
-  number nrm2[3][3]={0.,-1.,0.,1.,0.,0., 0.,0.,1.};// for rotated layers (90degr)
+  number nrm[3][3];
+  number nrm0[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+  number nrm1[3][3]={1.,0.,0., 0.,0.,1., 0.,-1.,0.};// for X-proj fibers wrt ECMO
+  number nrm2[3][3]={0.,0.,1.,0.,1.,0., -1.,0.,0.}; // for Y-proj fibers
   geant coo[3]={0.,0.,0.};
-  geant dx1,dy1,dx2,dy2,dz,xpos,ypos,zpos;
-  integer i,nrot,gid(0);
-  AMSNode * pECmother;
+  geant dx1,dy1,dx2,dy2,dz,xpos,ypos,zpos,cleft,fpitx,fpitz,fpitzz,zfl1;
+  geant flen,zposfl,dxe;
+  integer nrot,gid(0),nsupl,nflpsl,nfpl[2],nf;
+  integer isupl,ifibl,ifib,iproj,ip;
+  int i,j,k;
+  integer vlist[10]={0,0,0,0,0,0,0,0,0,0};
+  char inum[11];
+  char in[2]="0";
+  char vname[5];
+  AMSNode * pECrad;
+  AMSNode * pECfbl;
+  AMSNode * pECfib;
+  AMSNode * ECmother;
+  AMSNode * p;
 //
-  dx1=ECALDBc::gendim(1);// x-size at -DZ
-  dx2=ECALDBc::gendim(2);// x-size at +DZ
-  dy1=ECALDBc::gendim(3);// y-size at -DZ
-  dy2=ECALDBc::gendim(4);// y-size at +DZ
-  dz=ECALDBc::gendim(5);// Z-size
-  xpos=ECALDBc::gendim(6);// x-pos
-  ypos=ECALDBc::gendim(7);// y-pos
-  zpos=ECALDBc::gendim(8)-dz/2.;// z-pos
-//
-// create Ecal mother volume as trapezoid TRD2:
-//
-  par[0]=dx1/2.;
-  par[1]=dx2/2.;
-  par[2]=dy1/2.;
-  par[3]=dy2/2.;
-  par[4]=dz/2.;
+  strcpy(inum,"0123456789");
+  dx1=ECALDBc::gendim(1);// x-size of EC-radiator
+  dxe=ECALDBc::gendim(4);// dx(dy)-thickness of (PMT+electronics)-volume 
+  dy1=ECALDBc::gendim(2);// y-size of EC-rad
+  dz=ECALDBc::gendim(3);// Z-size
+  xpos=ECALDBc::gendim(5);// x-pos EC-radiator center
+  ypos=ECALDBc::gendim(6);// y-pos
+  zpos=ECALDBc::gendim(7)-dz/2.;// z-pos of ECAL-center
+  nsupl=ECALDBc::slstruc(3);// numb.of super-layers
+  nflpsl=ECALDBc::slstruc(2);// numb.of fiber-layers per super-layerr
+  nfpl[0]=ECALDBc::nfibpl(1);// fiber/(1st layer) 
+  nfpl[1]=ECALDBc::nfibpl(2);// fiber/(2nd layer)
+  fpitx=ECALDBc::fpitch(1);
+  fpitz=ECALDBc::fpitch(2);
+  fpitzz=ECALDBc::fpitch(3);
+  zfl1=(nsupl*(nflpsl-1)*fpitz+(nsupl-1)*fpitzz)/2.;//1st f-layer zpos in ECAL r.s.
+//------------------------------------
+  par[0]=dx1/2.+dxe;
+  par[1]=dy1/2.+dxe;
+  par[2]=dz/2.;
   coo[0]=xpos;
   coo[1]=ypos;
   coo[2]=zpos;
-  gid=100;
-  pECmother=mother.add(new AMSgvolume(
-       "EC_DUMMYMOTH",0,"ECDM","TRD2",par,5,coo,nrm1,"ONLY",0,gid,1));
+  gid=1;
+  ECmother=mother.add(new AMSgvolume(
+       "VACUUM",0,"ECMO","BOX",par,3,coo,nrm0,"MANY",0,gid,1));// ECAL mother volume
+//------------------------------------
+//
+// create EC-electronics boxes in ECAL-mother:
+//
+  coo[2]=0.;
+  par[2]=dz/2.;
+  par[0]=dxe/2.;
+  par[1]=dy1/2.;
+  coo[0]=-dx1/2.-dxe/2.;
+  coo[1]=0.;
+  gid=1;
+  p=ECmother->add(new AMSgvolume(
+       "EC_ELBOX",0,"ECEB","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));//-X box
+  coo[0]=dx1/2.+dxe/2.;
+  gid=2;
+  p=ECmother->add(new AMSgvolume(
+       "EC_ELBOX",0,"ECEB","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));//+X box
+//
+  par[0]=dx1/2.;
+  par[1]=dxe/2.;
+  coo[0]=0.;
+  coo[1]=-dy1/2.-dxe/2.;
+  gid=3;
+  p=ECmother->add(new AMSgvolume(
+       "EC_ELBOX",0,"ECEB","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));//-Y box
+  coo[1]=dy1/2.+dxe/2.;
+  gid=4;
+  p=ECmother->add(new AMSgvolume(
+       "EC_ELBOX",0,"ECEB","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));//+Y box
+//------------------------------------
+  if(ECMCFFKEY.fastsim==1){ // <--- simplified (fast) geometri
+//
+// create Ecal EFFECTIVE Radiator volume as box:
+//
+    par[0]=dx1/2.;
+    par[1]=dy1/2.;
+    par[2]=dz/2.;
+    coo[0]=0.;
+    coo[1]=0.;
+    coo[2]=0.;
+    gid=100;
+    pECrad=ECmother->add(new AMSgvolume(
+       "EC_EFFRAD",0,"ECER","BOX",par,3,coo,nrm0,"ONLY",0,gid,1));
+  }
+//----------------------------------------------------------
+  else{                     // <--- accurate (slow) geometry
+//---> create/put Radiator
+    par[0]=dx1/2.;
+    par[1]=dy1/2.;
+    par[2]=dz/2.;
+    coo[0]=0.;
+    coo[1]=0.;
+    coo[2]=0.;
+    gid=100;
+    pECrad=ECmother->add(new AMSgvolume(
+       "EC_RADIATOR",0,"ECRD","BOX",par,3,coo,nrm0,"MANY",0,gid,1));//cr. EC_rad in ECmother
+//
+//---> create/put fiber-layer(s) and individual fibers in ECmother:
+//
+    zposfl=zfl1;// init current pos. of fiber-layer
+//
+    for(isupl=0;isupl<nsupl;isupl++){ // <--- super-layers loop
+      ip=isupl%2;
+      if(ip==0)iproj=ECALDBc::slstruc(1);// iproj=0 ->X, =1 ->Y
+      if(ip==1)iproj=1-ECALDBc::slstruc(1);
+      if(iproj==0){ // in X-proj fiber goes along Y-axis
+        flen=dy1/2.;
+        for(i=0;i<3;i++)for(j=0;j<3;j++)nrm[i][j]=nrm1[i][j];
+      }
+      else{         // in Y-proj fiber goes along X-axis
+        flen=dx1/2.;
+        for(i=0;i<3;i++)for(j=0;j<3;j++)nrm[i][j]=nrm2[i][j];
+      }
+//------
+      for(ifibl=0;ifibl<nflpsl;ifibl++){ // <--- fiber-layers loop in s-layer
+        nrot=ECROTN+isupl*nflpsl+ifibl;
+        ip=ifibl%2;
+	nf=nfpl[ip];// total fibers in layer
+	cleft=-(nf-1)*fpitx/2.;// tempor imply nfpl[1]=nfpl[0]+-1 sceme !!!
+        par[0]=dx1/2.;
+        par[1]=dy1/2.;
+//        par[2]=fpitz/2.;
+        par[2]=ECALDBc::rdcell(4)/2.;// fiber radious(0.05) 
+	coo[0]=0.;
+	coo[1]=0.;
+	coo[2]=zposfl;
+	gid=(ifibl+1)+(isupl+1)*100;
+        strcpy(vname,"FL");
+	k=isupl*nflpsl+ifibl+1;//solid numbering of f-layers
+	i=k/10;
+	in[0]=inum[i];
+	strcat(vname,in);
+	i=k%10;
+	in[0]=inum[i];
+	strcat(vname,in);
+        pECfbl=ECmother->add(new AMSgvolume(
+               "EC_RADIATOR",0,vname,"BOX",par,3,coo,nrm0,"ONLY",0,gid,1));//cr. f-layer in ECmother
+//-----------
+        for(ifib=0;ifib<nf;ifib++){ // <--- fiber loop in layer
+          par[0]=0.;
+          par[1]=ECALDBc::rdcell(4)/2.;// fiber radious
+	  par[2]=flen;
+          if(iproj==0){
+	    coo[0]=cleft+ifib*fpitx;
+	    coo[1]=0.;
+          }
+          else{
+  	    coo[0]=0.;
+   	    coo[1]=cleft+ifib*fpitx;
+          }
+	  coo[2]=0.;
+	  gid=(ifib+1)+(ifibl+1)*1000+(isupl+1)*100000;
+          pECfib=pECfbl->add(new AMSgvolume(
+                 "EC_FIBER",nrot,"ECFB","TUBE",par,3,coo,nrm,"ONLY",1,gid,1));
+	} // ---> end of fiber loop
+//	GSNEXT(vname,0,3,vlist);
+//-----------
+        zposfl-=fpitz;// f-layer z-shifts inside of super-layer 
+      } // ---> end of layer loop
+//------
+      zposfl+=fpitz;// remove extra z-shift
+      zposfl-=fpitzz;// add zz-shifts
+    } // ---> end of superlayer loop
+  }
+//
   cout<<"AMSGEOM: ECAL-geometry done!"<<endl;
 }
 //------------------------------------------------------------

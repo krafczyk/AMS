@@ -4,11 +4,11 @@
 #define __AMSCOMMONS__
 #include <cern.h>
 
-const int NWPAW=1000000;
+const int NWPAW=2000000;
 struct PAWC_DEF{
 float q[NWPAW];
 };
-const int NWGEAN=1000000;
+const int NWGEAN=4000000;
 struct GCBANK_DEF{
 integer  IQ[NWGEAN];
 };
@@ -143,6 +143,7 @@ integer rfile[40];
 };
 #define IOPA COMMON_BLOCK(IOPA,iopa)
 COMMON_BLOCK_DEF(IOPA_DEF,IOPA);
+//---
 class TOFMCFFKEY_DEF {
 public:
 geant TimeSigma;
@@ -162,7 +163,23 @@ geant hfnoise;     // high freq. noise
 };
 #define TOFMCFFKEY COMMON_BLOCK(TOFMCFFKEY,tofmcffkey)
 COMMON_BLOCK_DEF(TOFMCFFKEY_DEF,TOFMCFFKEY);
-
+//----------------------
+class ECMCFFKEY_DEF {
+public:
+integer fastsim;  //1/0-> fast/slow simulation
+integer mcprtf;   //1/0-> print/not mc-histogr.
+geant cutge;// cutgam=cutele cut in EC_radiator
+};
+#define ECMCFFKEY COMMON_BLOCK(ECMCFFKEY,ecmcffkey)
+COMMON_BLOCK_DEF(ECMCFFKEY_DEF,ECMCFFKEY);
+//---
+class ECREFFKEY_DEF {
+public:
+integer reprtf[3];   //reco print-flags
+};
+#define ECREFFKEY COMMON_BLOCK(ECREFFKEY,ecreffkey)
+COMMON_BLOCK_DEF(ECREFFKEY_DEF,ECREFFKEY);
+//-----------------------
 class TKGEOMFFKEY_DEF{
 public:
   integer ReadGeomFromFile;

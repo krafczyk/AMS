@@ -1,0 +1,63 @@
+    Classes :
+//
+class AMSEcalMCHit: public AMSlink{
+protected:
+ integer  _idsoft;// SSLLFFF (SS->s-layer,LL->f-layer in SS, FFF->fiber in LL)
+ AMSPoint _xcoo;
+ number _tof;
+ number _edep;
+
+public:
+ 
+ AMSEcalMCHit(integer idsoft,AMSPoint xcoo,number edep, number tof) :
+ _idsoft(idsoft), _xcoo(xcoo),_edep(edep),_tof(tof){_next=0;};
+ AMSEcalMCHit(){_next=0;};
+ ~AMSEcalMCHit(){};
+ void _printEl(ostream &stream){stream <<"AMSEcalMCHit "<<_idsoft<<" "<<_edep<<endl;}
+ void _writeEl();
+ void _copyEl(){};
+ static void siecalhits(integer idsoft , geant vect[],geant edep, geant tofg);
+ AMSEcalMCHit *  next(){return (AMSEcalMCHit*)_next;}
+ integer operator < (AMSlink & o)const{
+ return _idsoft < ((AMSEcalMCHit*)(&o)) ->_idsoft;}
+
+ integer getid() const {return _idsoft;}
+ number getedep() const {return _edep;}
+ number gettime() const {return _tof;}
+ number getcoo(integer i) {return i>=0 && i<3 ? _xcoo[i]:0;}
+// static integer Out(integer);
+
+//#ifdef __DB__
+//   friend class AMSEcalMCHitD;
+//#endif
+};
+//----------------------------------------------
+class AMSEcalRawEvent: public AMSlink{
+private:
+  static integer trpatt; // 
+  int16u idsoft; // SSCC (SS->S-layer, CC->Cell)
+  int16u status; // status (0/1/... -> alive/dead/...)
+  int16u padc;// Pulse hight (ADC-channels)
+public:
+  AMSEcalRawEvent(int16u _idsoft, int16u _status,
+        int16u _padc):idsoft(_idsoft),status(_status),padc(_padc)
+  {};
+  ~AMSEcalRawEvent(){};
+  AMSEcalRawEvent * next(){return (AMSEcalRawEvent*)_next;}
+//
+  integer operator < (AMSlink & o)const{
+                return idsoft<((AMSEcalRawEvent*)(&o))->idsoft;}
+//
+  int16u getid() const {return idsoft;}
+  int16u getstat() const {return status;}
+  int16u getpadc(){return padc;}
+//
+  static void setpatt(integer patt){
+    trpatt=patt;
+  }
+  static integer getpatt(){
+    return trpatt;
+  }
+  static void mc_build(int &stat);
+  static void validate(int &stat);
+//

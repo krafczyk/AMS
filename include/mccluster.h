@@ -79,7 +79,39 @@ public:
    friend class AMSAntiMCClusterD;
 #endif
 };
+//=====================================================
+class AMSEcalMCHit: public AMSlink{
+protected:
+ integer  _idsoft;// SSLLFFF (SS->s-layer,LL->f-layer in SS, FFF->fiber in LL)
+ AMSPoint _xcoo;
+ number _tof;
+ number _edep;
 
+public:
+ 
+ AMSEcalMCHit(integer idsoft,AMSPoint xcoo,number edep, number tof) :
+ _idsoft(idsoft), _xcoo(xcoo),_edep(edep),_tof(tof){_next=0;};
+ AMSEcalMCHit(){_next=0;};
+ ~AMSEcalMCHit(){};
+ void _printEl(ostream &stream){stream <<"AMSEcalMCHit "<<_idsoft<<" "<<_edep<<endl;}
+ void _writeEl();
+ void _copyEl(){};
+ static void siecalhits(integer idsoft , geant vect[],geant edep, geant tofg);
+ AMSEcalMCHit *  next(){return (AMSEcalMCHit*)_next;}
+ integer operator < (AMSlink & o)const{
+ return _idsoft < ((AMSEcalMCHit*)(&o)) ->_idsoft;}
+
+ integer getid() const {return _idsoft;}
+ number getedep() const {return _edep;}
+ number gettime() const {return _tof;}
+ number getcoo(integer i) {return i>=0 && i<3 ? _xcoo[i]:0;}
+// static integer Out(integer);
+
+//#ifdef __DB__
+//   friend class AMSEcalMCHitD;
+//#endif
+};
+//=======================================================
 // MC bank for CTC
 
 class AMSCTCMCCluster: public AMSlink{

@@ -162,7 +162,7 @@ GDINIT();
 
 
 extern "C" void gustep_(){
-  //  cout <<" gustep in"<<endl;
+//    cout <<"    ----> in gustep "<<endl;
   try{
 
   //  Tracker
@@ -292,12 +292,16 @@ extern "C" void gustep_(){
 //     HF1(1510,geant(iprt),1.);
   }
 //
-//  ECAL, temp. by E.C.
-  int mecal(0);
-  if(lvl==3 && GCVOLU.names[lvl][0]== 'E' && GCVOLU.names[lvl][1]=='C'
-                                       && GCVOLU.names[lvl][2]=='_')mecal=1;
-  if(GCTRAK.destep != 0 && mecal==1){
+// -----> ECAL 1.0-version by E.C.
+  if(GCTRAK.destep != 0.){
+    if(lvl==4 && GCVOLU.names[lvl][0]== 'E' && GCVOLU.names[lvl][1]=='C'
+       && GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]=='B'){
+//       cout<<"lev/vol="<<numl<<" "<<numv<<" x/y="<<x<<" "<<y<<" z="<<z<<" de="<<de<<endl;
+     GBIRK(dee);
+     AMSEcalMCHit::siecalhits(numv,GCTRAK.vect,dee,GCTRAK.tofg);
+    } 
   }
+//
   GSKING(0);
 #ifndef __BATCH__
   GSXYZ();

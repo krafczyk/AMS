@@ -64,8 +64,8 @@ ANTIPcal antisccal[MAXANTI];// create empty array of antipaddles calibr. objects
     }
     else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
           cout <<" ANTIGeom-I-AMS02 setup selected."<<endl;
-          _scleng=83.+19.; //(old+19) tempor solution
-          _stleng=83.+19.; //(old+19) tempor solution
+          _scleng=86.; //tempor solution
+          _stleng=86.; //tempor solution
     }
     else
     {

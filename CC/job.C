@@ -31,6 +31,7 @@
 #include <tofsim.h>
 #include <tofrec.h>
 #include <tofcalib.h>
+#include <ecaldbc.h>
 #include <trigger1.h>
 #include <trigger3.h>
 #include <bcorr.h>
@@ -178,6 +179,7 @@ _sitkdata();
 _signdata();
 _sitofdata();
 _siantidata();
+_siecaldata();
 _sitrddata();
 _sictcdata();
 _sitrigdata();
@@ -462,6 +464,20 @@ void AMSJob::_sitofdata(){
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
+void AMSJob::_siecaldata(){
+  ECMCFFKEY.fastsim=0.; // 1/0-> fast/slow simulation algorithm
+  ECMCFFKEY.mcprtf=0;     // print_hist flag (0/1->no/yes)
+  ECMCFFKEY.cutge=0.001; // cutgam=cutele cut for EC_radiator
+FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
+}
+//===============================================================================
+void AMSJob::_reecaldata(){
+  ECREFFKEY.reprtf[0]=0;     // print_hist flag (0/1->no/yes)
+  ECREFFKEY.reprtf[1]=0;     // spare
+  ECREFFKEY.reprtf[2]=0;     // spare
+FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
+}
+//===============================================================================
 
 
 void AMSJob::_sictcdata(){
@@ -573,6 +589,7 @@ _remfdata();
 _retkdata();
 _retofdata();
 _reantidata();
+_reecaldata();
 _retrddata();
 _rectcdata();
 _reaxdata();
@@ -1208,6 +1225,7 @@ void AMSJob::_siamsinitjob(){
   _sitkinitjob();
   _signinitjob();
   _sitofinitjob();
+  if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_siecalinitjob();
   _siantiinitjob();
   _sitrdinitjob();
   _sictcinitjob();
@@ -1310,6 +1328,19 @@ void AMSJob::_sitofinitjob(){
 //
     TOFJobStat::bookhistmc();
 }
+//----------------------------------------------------------------------------------------
+void AMSJob::_siecalinitjob(){
+  if(ECMCFFKEY.fastsim==1)cout <<"_siecinit-I-Fast(Crude) simulation algorithm selected."<<endl;
+  else cout <<"_siecinit-I-Slow(Accurate) simulation algorithm selected."<<endl;
+//
+//
+    AMSgObj::BookTimer.book("SIECALDIGI");
+    AMSgObj::BookTimer.book("SIECALEVENT");
+//
+// ===> Book histograms for MC :
+//
+    EcalJobStat::bookhistmc();
+}
 //---------------------------------------------------------------------------------------
 void AMSJob::_siantiinitjob(){
   AMSgObj::BookTimer.book("SIANTIEVENT");
@@ -1347,6 +1378,7 @@ _redaqinitjob();
 _retkinitjob();
 _retofinitjob();
 _reantiinitjob();
+if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_reecalinitjob();
 _retrdinitjob();
 _rectcinitjob();
 _reaxinitjob();
@@ -1497,6 +1529,16 @@ void AMSJob::_reantiinitjob(){
   else{ // Constants will be taken from DB (TDV)
     ANTIRECFFKEY.year[1]=ANTIRECFFKEY.year[0]-1;    
   } 
+}
+//===================================================================
+void AMSJob::_reecalinitjob(){
+//
+    AMSgObj::BookTimer.book("REECALEVENT");
+//
+    EcalJobStat::clear();// Clear JOB-statistics counters for SIM/REC
+//
+    EcalJobStat::bookhist();// Book histograms for REC
+// 
 }
 //===================================================================
 void AMSJob::_rectcinitjob(){
@@ -2097,6 +2139,10 @@ _tofendjob();
   cout <<"tofendjob finished"<<endl;
 _antiendjob();
   cout <<"antiendjob finished"<<endl;
+if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+  _ecalendjob();
+  cout <<"ecalendjob finished"<<endl;
+}
 _trdendjob();
   cout <<"trdendjob finished"<<endl;
 _dbendjob();
@@ -2266,6 +2312,13 @@ void AMSJob::_antiendjob(){
     HPRINT(2500);
     HPRINT(2501);
   }
+}
+//-----------------------------------------------------------------------
+void AMSJob::_ecalendjob(){
+//
+       EcalJobStat::printstat(); // Print JOB-Ecal statistics
+       if(isSimulation())EcalJobStat::outpmc();
+       EcalJobStat::outp();
 }
 //-----------------------------------------------------------------------
 void AMSJob::_trdendjob(){

@@ -371,12 +371,6 @@ geant tofg){
   AMSPoint pnt(vect[0],vect[1],vect[2]);
    AMSEvent::gethead()->addnext(AMSID("AMSTOFMCCluster",0),
    new AMSTOFMCCluster(idsoft,pnt,edep,tofg));
-
- 
-
-
-
-
 }
 
 void AMSAntiMCCluster::siantihits(integer idsoft , geant vect[],geant edep, 
@@ -385,10 +379,21 @@ geant tofg){
   AMSPoint pnt(vect[0],vect[1],vect[2]);
    AMSEvent::gethead()->addnext(AMSID("AMSAntiMCCluster",0),
    new AMSAntiMCCluster(idsoft,pnt,edep,tofg));
-
 }
 
 
+void AMSEcalMCHit::siecalhits(integer idsoft , geant vect[],geant edep, 
+                                                           geant tofg){
+//     
+  AMSPoint pnt(vect[0],vect[1],vect[2]);
+  int isl;
+//
+  isl=idsoft/100000;//s-layer(1-8)  
+  AMSEvent::gethead()->addnext(AMSID("AMSEcalMCHit",isl-1),
+                      new AMSEcalMCHit(idsoft,pnt,edep,tofg));
+}
+void AMSEcalMCHit::_writeEl(){
+}
 
 
 void AMSTOFMCCluster::_writeEl(){
@@ -422,8 +427,9 @@ void AMSAntiMCCluster::_writeEl(){
     AntiMCClusterN->Edep[AntiMCClusterN->Nantimc]=_edep;
     AntiMCClusterN->Nantimc++;
   }
-
 }
+
+
 
 integer AMSCTCMCCluster::getdetno(){
    integer dt=(_idsoft/10)%10;
@@ -540,6 +546,8 @@ if(init == 0){
 }
 return (WriteAll || status);
 }
+
+
 
 
 // write some trmc cluster to daq files

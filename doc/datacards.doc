@@ -224,8 +224,19 @@ R  4   Path2PhEl(11.,38.,0.)        // Path to photoelectrons conv factor
 R  7   AbsLengt(15, 100,100)         // Abs length in cm 
 R 10   Edep2Phel(0,0,0)       //  Edep to phelectrons conv factor
 I 13   mcprtf(0)                // print MC-hist. if !=0
+//-------------------------------------------------------------------------------
+    ECAL simulation:
+    
+ECMC
+I 1    fastsim(0)                // =1 for fast(non-accurate) simulation
+I 1    mcprtf(0)                 // =1 to print MC-histograms
+R 1    cutge(0.001)              // Geant(cutele=cutgam) cut for EC_radiator+El_box
 
+    ECAL reconstruction:
 
+ECRE
+I 1    reprtf[0](0)              // =1 to print Reco-histograms    
+//--------------------------------------------------------------------------------
 
 // Tracker Cluster  Simulation
 
