@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.273 2004/06/12 10:29:11 alexei Exp $
+# $Id: RemoteClient.pm,v 1.274 2004/06/28 15:40:32 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -60,7 +60,8 @@
 #                  functions to keep and update information about DSTs 
 #                  copied to remote cites.
 #
-
+# June 16, 2004  : pcamss0.cern.ch is a primary HTTP server
+#
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
 
@@ -79,7 +80,7 @@ use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 use File::Find;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs getEventsLeft getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateCopyStatus updateHostsMips);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateCopyStatus updateHostsMips);
 
 
 my     $webmode         = 1; # 1- cgi is executed from Web interface and 
@@ -181,9 +182,9 @@ my %fields=(
         AMSDSTOutputDir=>undef,
         CERN_ROOT=>undef,
         ROOTSYS  =>'/afs/ams.cern.ch/Offline/root/Linux/pro/',
-        HTTPserver=>'pcamsf0.cern.ch',
-        HTTPhtml  =>'http://pcamsf0.cern.ch/',
-        HTTPcgi   =>'http://pcamsf0.cern.ch/cgi-bin/mon',
+        HTTPserver=>'pcamss0.cern.ch',
+        HTTPhtml  =>'http://pcamss0.cern.ch/',
+        HTTPcgi   =>'http://pcamss0.cern.ch/cgi-bin/mon',
         UploadsDir=>undef,
         UploadsHREF=>undef,
         FileDB=>undef,
@@ -5675,7 +5676,7 @@ sub updateHostsMips {
      -v    - verbose mode
      -u    - update table 
      
-     from pcamsf0 only :
+     from pcamsf0 and pcamss0 only :
 
      ./updatemips.cgi -p -v -u
 ";
@@ -9340,7 +9341,7 @@ sub getHostsList {
      -s    - print short list (no hosts info per cite)
      -v    - verbose mode
      
-     from pcamsf0 only :
+     from pcamsf0 and pcamss0 only :
 
      ./gethostslist.cgi -c:ciemat -v
 ";
@@ -10820,3 +10821,227 @@ sub updateMCDSTCopy {
  return 1;
 }
 
+sub deleteDST {
+ my $HelpTxt = "
+     deleteDST deletes files from online disks
+               marks filepath as filepath
+               updates timestamp in Ntuples table
+     -h    - print help
+     -d    - dirpath (-d:directory) - mandatory
+     -v    - verbose mode
+     -u    - update mode
+
+     ./deleteDST.cgi -v -u -d:/s0dah1/MC/AMS02/2004A/C/c.pl1.12005366
+";
+
+  my $self         = shift;
+  my $topdir       = undef;
+  my $updateDB     = 0;
+  my $sql          = undef;
+  my $nupd         = 0;
+
+  my $whoami = getlogin();
+  if ($whoami =~ 'ams') {
+  } else {
+   print  "deleteDST -ERROR- script cannot be run from account : $whoami \n";
+   return 1;
+  }
+
+  foreach my $chop  (@ARGV){
+    if($chop =~/^-d:/){
+       $topdir=unpack("x3 A*",$chop);
+    } 
+
+    if ($chop =~/^-u/) {
+     $updateDB = 1;
+    }
+    if ($chop =~/^-v/) {
+     $verbose = 1;
+    }
+    if ($chop =~/^-h/) {
+      print "$HelpTxt \n";
+      return 1;
+    }
+   }
+
+  
+   if (not defined $topdir) {
+       print "deleteDST -E- -d option is mandatory. Quit.\n";
+   }
+
+ my $timenow = time();
+ if ($updateDB) {
+  my $vdir=$self->getValidationDir();
+  if (not defined $vdir) {
+   die " deleteDST -F- cannot get path to ValidationDir \n";
+  }
+  my $vlog = $vdir."/deleteDST.log.".$timenow;   
+  open(FILE,">".$vlog) or die "Unable to open file $vlog\n";
+}
+#
+
+
+   find (\&inputList, $topdir);
+    my $i= 0;
+    while ($i <= $#inputFiles) {
+      if (-d $inputFiles[$i]) {
+          if ($verbose == 1) {print "Directory : $inputFiles[$i] \n";}
+      } else {
+       my $n = 0; # files found
+       my $filename = trimblanks($inputFiles[$i]);
+       $sql = "SELECT COUNT(PATH) FROM ntuples WHERE PATH LIKE '$filename'";
+       my $ret=$self->{sqlserver}->Query($sql);
+       if (not defined $ret->[0]) {
+           print "File : $filename \n";
+           print "$sql \n";
+           print "N O T     F O U N D   I N     D B \n";
+           print "correct it and rerun. Bye \n";
+           return 1;
+       } else {
+         $n = $ret->[0][0];
+         if ($n > 1) {
+           print "File : $filename \n";
+           print "$sql \n";
+           print "F O U N D   I N     D B, $n times \n";
+           print "correct it and rerun. Bye \n";
+           return 1;
+         }
+       }
+       my $newpath = "# ".$filename;
+       $sql = "UPDATE ntuples SET PATH='$newpath', timestamp=$timenow WHERE PATH LIKE '$filename'";
+       if ($verbose) {
+           print "$sql \n";
+       }
+       if ($updateDB) {
+         $self->{sqlserver}->Update($sql);
+         print FILE "$sql \n";         
+         $nupd++;
+       }         
+   }
+      $i++;
+  }
+ if ($updateDB == 1) {
+  print "deleteDST - All DST paths like $topdir are marked (total files $nupd) \n";
+  print "deleteDST - you can do :  rm -r $topdir \n";
+  print FILE "deleteDST - you can do :  rm -r $topdir \n";
+  close FILE;
+ } else {
+     print "deleteDST - you run in NO UPDATE mode \n";
+     print "deleteDST - to update DB run with -u \n";
+ }
+
+}
+
+sub restoreDST {
+ my $HelpTxt = "
+     restoreDST updates DB content for files restored from CASTOR
+
+     -crc  - calculate CRC
+     -h    - print help
+     -d    - dirpath (-d:directory) - mandatory
+     -v    - verbose mode
+     -u    - update mode
+
+     ./restoreDST.cgi -v -u -d:/s0dah1/MC/AMS02/2004A/C/c.pl1.12005366
+";
+
+  my $self         = shift;
+  my $topdir       = undef;
+  my $updateDB     = 0;
+  my $sql          = undef;
+  my $checkCRC     = 0;
+  my $ncrcerr      = 0;
+
+  my $whoami = getlogin();
+  if ($whoami =~ 'ams') {
+  } else {
+   print  "restoreDST -ERROR- script cannot be run from account : $whoami \n";
+   return 1;
+  }
+
+  foreach my $chop  (@ARGV){
+     if ($chop =~/^-crc/) {
+        $checkCRC = 1;
+    }
+   if($chop =~/^-d:/){
+       $topdir=unpack("x3 A*",$chop);
+    } 
+
+    if ($chop =~/^-u/) {
+     $updateDB = 1;
+    }
+    if ($chop =~/^-v/) {
+     $verbose = 1;
+    }
+    if ($chop =~/^-h/) {
+      print "$HelpTxt \n";
+      return 1;
+    }
+   }
+
+  
+   if (not defined $topdir) {
+       print "restoreDST -E- -d option is mandatory. Quit.\n";
+   }
+  my $timenow = time();
+  find (\&inputList, $topdir);
+    my $i= 0;
+    while ($i <= $#inputFiles) {
+      if (-d $inputFiles[$i]) {
+          if ($verbose == 1) {print "Directory : $inputFiles[$i] \n";}
+      } else {
+       my $n = 0; # files found
+       my $filename = trimblanks($inputFiles[$i]);
+       $sql = "SELECT COUNT(PATH) FROM ntuples WHERE PATH LIKE '%$filename'";
+       my $ret=$self->{sqlserver}->Query($sql);
+       if (not defined $ret->[0][0]) {
+           print "File : $filename \n";
+           print "$sql \n";
+           print "N O T     F O U N D   I N     D B \n";
+           print "correct it and rerun. Bye \n";
+           return 1;
+       } else {
+         $n = $ret->[0][0];
+         if ($n > 1) {
+           print "File : $filename \n";
+           print "$sql \n";
+           print "F O U N D   I N     D B, $n times \n";
+           print "correct it and rerun. Bye \n";
+           return 1;
+         }
+       }
+       $sql = "UPDATE ntuples set path='$filename', timestamp=$timenow ";
+       if ($checkCRC == 1) {
+        my $sqlcrc = "SELECT CRC FROM ntuples WHERE PATH like '# $filename'";
+        my $rc=$self->{sqlserver}->Query($sqlcrc);
+        if (defined $rc->[0][0]) {
+         my $crc = $rc->[0][0];
+         my $rstatus = $self->calculateCRC($filename,$crc);
+         if ($rstatus != 1) {
+            print "restoreDST -ERROR- CRC error for $filename \n";
+            $ncrcerr++;
+         } else {
+            $sql = $sql.", crctime=$timenow ";
+         }
+     } else {
+           print "$sqlcrc \n";
+           print "N O T     F O U N D   I N     D B \n";
+           print "correct it and rerun. Bye \n";
+           return 1;
+     }
+    }
+    $sql = $sql."WHERE PATH LIKE '%$filename'";
+    if (updateDB) {
+        $self->{sqlserver}->Update($sql);
+    }
+    if ($verbose) {
+            print "$sql \n";
+        }
+   }
+   $i++;
+  }
+ if ($checkCRC) {
+     print "Files checked : $#inputFiles \n";
+     print "CRC error     : $ncrcerr \n";
+ }
+}
