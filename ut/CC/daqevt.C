@@ -4,13 +4,15 @@
 #include <event.h>
 #include <commons.h>
 
+integer DAQEvent::_Buffer[512];
 const integer lover=2;
 DAQEvent::~DAQEvent(){
-UPool.udelete(_pData);
+if(_Length*sizeof(_pData[0])>sizeof(_Buffer))UPool.udelete(_pData);
 }
 
 void DAQEvent::shrink(){
-UPool.udelete(_pData);
+
+if(_Length*sizeof(_pData[0])>sizeof(_Buffer))UPool.udelete(_pData);
 _pData=0;
 _Length=0;
 _pcur=0;
@@ -355,7 +357,9 @@ integer DAQEvent::_create(){
 assert (_Length >0);
 #endif
 if(_pData)shrink();
+if(_Length*sizeof(_pData[0])> sizeof(_Buffer))
 _pData= (int16u*)UPool.insert(sizeof(_pData[0])*_Length);
+else _pData=(int16u*)_Buffer;
 if(_pData){
  _pData[0]=_Length-_OffsetL;
  _pData[1]=0x0;

@@ -88,6 +88,7 @@ I 12   Trig.logic-flag(0)  //  use ANY3/ALL4(if=0/1) coinc. for 4 TOF-layers
 I 13   fast(1)             //  fast/slow(i.e. accurate) (1/0) algorithm switch
 I 14   daqfmt(1)           // Raw/Reduced(0/1) TDC format for DAQ simulation
 I 15-17  file-name         // (<=11 letters) contains map of t-distr. file names
+I 18   birks(1)            // apply or not birks correction
 
 
 // TOF Reconstruction
@@ -186,7 +187,7 @@ R 6   ped[2](100,100)       // pedestals for x & y
 R 8   sigma[2](4.2,3.)      // noise for x & y
 R10   gain[2](8,8)          // gains for x & y
 R12   cmn[2](50,50)         // common noise for x & y
-I14   adcoverflow(32767)    // 16 bit adc
+I14   adcoverflow(32767)    // 12 bit adc * 8
 I15   NoiseOn(1)            // Generate(1) do not generate(0) noise in tracker
 I16   sec[2](0,0)           // 
 I18   min[2](0,0)           //
@@ -352,11 +353,15 @@ I 1 Pattern[9](5*1,4*0)
   //    4                   234               3           on
   //    5                   13                2           off
   //    6                   14                2           off
-  //    7                   23                2           off
+  //    7                   23                2           on
   //    8                   24                2           off
 R10 Chi2(10.)       //  Max acceptable chi2 for betafit
 R11 SearchReg[3](3.,3.,3.) // Max distance between track & tof hit in sigma's
                            // Used also in TOF-track matching for pat # 16
+
+R14 LowBetaThr(0.4)        // below this the refit will be done using pat #7 
+                              if possible 
+
 
 CHARGEFIT
 R 1 Thr(1.)   // Refit charge if Fisher's criterium is satisfied(1.=67%,2.=95%)

@@ -127,12 +127,12 @@ void uhinit(){
     }
     else cout <<"Histo file opened."<<endl;
   }
-   HBOOK1(101,"Number of Nois Hits x",100,-0.5,99.5,0.);
-   HBOOK1(102,"Number of Nois Hits y",100,-0.5,99.5,0.);
-   HBOOK1(103,"Normal Spectrum  x",200,-50.5,49.5,0.);
-   HBOOK1(104,"Normal Spectrum y",200,-50.5,49.5,0.);
-   HBOOK1(105,"Above threshold spectrum x",200,-0.5,49.5,0.);
-   HBOOK1(106,"Above threshold spectrum y",200,-0.5,49.5,0.);
+   HBOOK1(200101,"Number of Nois Hits x",100,-0.5,99.5,0.);
+   HBOOK1(200102,"Number of Nois Hits y",100,-0.5,99.5,0.);
+   HBOOK1(200103,"Normal Spectrum  x",200,-50.5,49.5,0.);
+   HBOOK1(200104,"Normal Spectrum y",200,-50.5,49.5,0.);
+   HBOOK1(200105,"Above threshold spectrum x",200,-0.5,49.5,0.);
+   HBOOK1(200106,"Above threshold spectrum y",200,-0.5,49.5,0.);
    HBNT(IOPA.ntuple,"Simulation"," ");
 }
 extern "C" void uginit_(){
@@ -223,12 +223,14 @@ extern "C" void gustep_(){
             vect[2]=zpr+(z-zpr)*div;
             GCTRAK.destep=de/geant(nd);
             tof=tpr+(t-tpr)*div;
-            GBIRK(dee);
+            dee=GCTRAK.destep;
+            if(TOFMCFFKEY.birks)GBIRK(dee);
             AMSTOFMCCluster::sitofhits(numv,vect,dee,tof);
           }
         }
         else{
-          GBIRK(dee);
+          dee=GCTRAK.destep;
+          if(TOFMCFFKEY.birks)GBIRK(dee);
           AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,t);
         }
       }// end of "same part/vol, de>0"

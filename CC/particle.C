@@ -38,6 +38,7 @@ void AMSParticle::build(){
           assert (ptrack && pbeta && pcharge);
 #endif   
          
+          if(pbeta->checkstatus(AMSDBc::AMBIG)==0){
           number chi2(0),rid(0),err(0);
           ptrack->getParFastFit( chi2, rid, err, theta,  phi,  coo);
             if(ptrack->AdvancedFitDone() && ptrack->GeaneFitDone()){
@@ -87,7 +88,8 @@ void AMSParticle::build(){
           ppart->refit();
           ppart->ctcfit();
           AMSEvent::gethead()->addnext(AMSID("AMSParticle",0),ppart);
-      }
+          }
+        }
 out:
        pcharge=pcharge->next();
       }

@@ -34,10 +34,10 @@ C
 *
 ***   Load constants to be used in the program
 *
-      EMININ=0.2
-      EMINOU=0.2
+      EMININ=0.1
+      EMINOU=0.1
       ZMIN=90
-      RADIUS=90
+      RADIUS=105
       CALL INCONS
 *
 ***   Decode character option

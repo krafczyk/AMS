@@ -100,8 +100,9 @@ void AMSBeta::build(){
       }
       
      }
-    }
 out:
+     continue;
+    }
     ptrack=ptrack->next();
    } 
 } 
@@ -128,12 +129,21 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
     AMSBeta *pbeta=new AMSBeta(pat,  pthit, ptrack);
 #endif
     pbeta->SimpleFit(nhit, sleng);
-    if(pbeta->getchi2()< BETAFITFFKEY.Chi2 && pbeta->getbeta()<1.41){
+    if(pbeta->getchi2()< BETAFITFFKEY.Chi2 && fabs(pbeta->getbeta())<1.41){
          // Mark hits as USED
          int i;
          for( i=0;i<nhit;i++)pthit[i]->setstatus(AMSDBc::USED);
-         
+         if(fabs(pbeta->getbeta()) < BETAFITFFKEY.LowBetaThr && pat !=7){
+          // release hits if pat # 7 and low beta
+          for( i=0;i<nhit;i++){
+           if(pthit[i]->getntof() ==2)pthit[i]->clearstatus(AMSDBc::USED);
+           if(pthit[i]->getntof() ==3)pthit[i]->clearstatus(AMSDBc::USED);
+          }
+          // set AMBIG flag on beta here if pat = 0,1 or 4
+          if(pat==0 || pat==1 || pat==4)pbeta->setstatus(AMSDBc::AMBIG);
+         }                  
          // permanently add;
+         
 #ifdef __UPOOL__
           pbeta=new AMSBeta(beta);
 #endif

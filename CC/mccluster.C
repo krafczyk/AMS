@@ -284,14 +284,14 @@ void AMSTrMCCluster::sitknoise(){
               if(pid){
                  sitknoisespectrum(id,5,ss);
 #ifdef __AMSDEBUG__
-                 //                           static integer i14(0);
+                 //                  static integer i14(0);
                  //                 cout << i14++<<" "<<ss[2]<<endl;
                  //                 cout <<id<<endl;    
-                 HF1(103+id.getside(),ss[0],1.);
-                 HF1(103+id.getside(),ss[1],1.);
-                 HF1(103+id.getside(),ss[3],1.);
-                 HF1(103+id.getside(),ss[4],1.);
-                 HF1(105+id.getside(),ss[2],1.);
+                 HF1(200103+id.getside(),ss[0],1.);
+                 HF1(200103+id.getside(),ss[1],1.);
+                 HF1(200103+id.getside(),ss[3],1.);
+                 HF1(200103+id.getside(),ss[4],1.);
+                 HF1(200105+id.getside(),ss[2],1.);
 #endif
                   AMSEvent::gethead()->addnext(AMSID("AMSTrMCCluster",0),
                   new AMSTrMCCluster(*pid,id.getside(),5,ss,itra));
@@ -303,7 +303,7 @@ void AMSTrMCCluster::sitknoise(){
        }
 
      }
-       HF1(101+l,totn[l],1.);
+       HF1(200101+l,totn[l],1.);
 
    }
 

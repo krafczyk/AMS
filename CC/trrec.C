@@ -48,7 +48,6 @@ integer AMSTrTrack::patconf[npat][6]={1,2,3,4,5,6,   // 123456  0
 integer AMSTrTrack::patpoints[npat]=
               {6,5,5,5,5,5,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4};
 
-const integer AMSTrTrack::AMBIG=4;
 
 void AMSTrCluster::build(integer refit=0){
   AMSlink * OriginalLast[2];
@@ -659,7 +658,7 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
          // Mark hits as USED
          for( i=0;i<nhit;i++){
            if(pthit[i]->checkstatus(AMSDBc::USED))
-            pthit[i]->setstatus(AMSTrTrack::AMBIG);
+            pthit[i]->setstatus(AMSDBc::AMBIG);
            else pthit[i]->setstatus(AMSDBc::USED);
          }
           number dc[2];

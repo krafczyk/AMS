@@ -1,4 +1,3 @@
-//
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -177,7 +176,7 @@ TRMCFFKEY.sigma[1]=110/20/sqrt(3.); // sig/noise ratio is about 20 for y
 TRMCFFKEY.sigma[0]=TRMCFFKEY.sigma[1]*1.41;   // x strip two times larger y
 TRMCFFKEY.cmn[0]=50;
 TRMCFFKEY.cmn[1]=50;
-TRMCFFKEY.adcoverflow=4095;
+TRMCFFKEY.adcoverflow=32767;
 TRMCFFKEY.NoiseOn=1;
 TRMCFFKEY.sec[0]=0;
 TRMCFFKEY.sec[1]=0;
@@ -279,7 +278,8 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.mcprtf[4]=0;     // spare
   TOFMCFFKEY.trlogic[0]=0; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
   TOFMCFFKEY.trlogic[1]=0; // ......................(=0/1-> ANY3/ALL4 layer coincidence) 
-  TOFMCFFKEY.fast=0;       // 1/0-> fast/slow simulation algorithm
+  TOFMCFFKEY.fast=0;       // 0/1-> fast/slow simulation algorithm
+  TOFMCFFKEY.birks=1;       // 0/1->  not apply/apply birks corrections
   TOFMCFFKEY.daqfmt=1;     // 0/1-> raw/reduced TDC format for DAQ simulation
   UCTOH(tfname,TOFMCFFKEY.tdfnam,4,12);
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -658,12 +658,13 @@ BETAFITFFKEY.pattern[3]=1;
 BETAFITFFKEY.pattern[4]=1;
 BETAFITFFKEY.pattern[5]=0;
 BETAFITFFKEY.pattern[6]=0;
-BETAFITFFKEY.pattern[7]=0;
+BETAFITFFKEY.pattern[7]=1;
 BETAFITFFKEY.pattern[8]=0;
 BETAFITFFKEY.Chi2=10;
 BETAFITFFKEY.SearchReg[0]=3.;
 BETAFITFFKEY.SearchReg[1]=3.;
 BETAFITFFKEY.SearchReg[2]=3.;
+BETAFITFFKEY.LowBetaThr=0.4;
 FFKEY("BETAFIT",(float*)&BETAFITFFKEY,sizeof(BETAFITFFKEY_DEF)/sizeof(integer),"MIXED");
 FFKEY("CHARGEFIT",(float*)&CHARGEFITFFKEY,sizeof(CHARGEFITFFKEY_DEF)/sizeof(integer),"MIXED");
 }

@@ -74,6 +74,7 @@ integer _create();
 void _copyEl();
 void _writeEl(){}
 void _printEl(ostream& o){}
+static integer _Buffer[512];
 public:
 ~DAQEvent();
 DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0),

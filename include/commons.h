@@ -132,6 +132,7 @@ integer trlogic[2]; // to control trigger logic
 integer fast;    // 1/0 fast/slow algo;
 integer daqfmt;  // 0/1 raw/reduced TDC format for DAQ
 integer tdfnam[3];// f-name for PMT t-distr. files map
+integer birks;     // 0/1  not apply/apply birks corrections
 };
 #define TOFMCFFKEY COMMON_BLOCK(TOFMCFFKEY,tofmcffkey)
 COMMON_BLOCK_DEF(TOFMCFFKEY_DEF,TOFMCFFKEY);
@@ -326,12 +327,14 @@ public:
   //    2                   124               3           on
   //    3                   134               3           on
   //    4                   234               3           on
-  //    5                   13                2           off
-  //    6                   14                2           off
-  //    7                   23                2           off
-  //    8                   24                2           off
+  //    5                   13                2           on
+  //    6                   14                2           on
+  //    7                   23                2           on
+  //    8                   24                2           on
   geant Chi2;  //  Max acceptable chi2 for betafit
   geant SearchReg[3]; // Max distance between track & tof hit
+  geant LowBetaThr;   // Threshold below refit should be done if possible 
+                           // using 2 & 3 (comb # 7)
 };
 //
 

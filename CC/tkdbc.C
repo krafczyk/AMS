@@ -105,6 +105,7 @@ void TKDBc::GetSensor(integer layer, integer ladder, integer sensor,
 
 integer TKDBc::getnum(integer layer, integer ladder, integer sensor){
   // calculate sensor #
+  // layer, ladder , sensor from 0
        int num=0;
        int i,j,k;
        for ( i=0;i<layer;i++){

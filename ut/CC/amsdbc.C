@@ -5,6 +5,7 @@
 #include <amsstl.h>
 //
 
+const integer AMSDBc::AMBIG=4;
 const integer AMSDBc::BAD=16;
 const integer AMSDBc::USED=32;
 const integer AMSDBc::DELETED=64;
@@ -44,13 +45,13 @@ const number AMSDBc::twopi=2*pi;
                                  7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
                                  15,20,23,26,28,29,30,30,30,30,30,
                                  29,28,26,23,20,15};
-   const integer AMSDBc::_nhalf[_nlay][_maxnlad]={8,10,12,13,14,15,15,15,15,15,15,
-                                 15,14,13,12,10,8,
-                                 4,7,9,11,12,12,12,12,12,12,11,9,7,4,0,0,0,
-                                 4,7,9,11,12,12,12,12,12,12,11,9,7,4,0,0,0,
-                                 4,7,9,11,12,12,12,12,12,12,11,9,7,4,0,0,0,
-                                 4,7,9,11,12,12,12,12,12,12,11,9,7,4,0,0,0,
-                                 8,10,12,13,14,15,15,15,15,15,15,15,14,13,12,10,8};
+   const integer AMSDBc::_nhalf[_nlay][_maxnlad]={7,10,11,13,14,14,15,15,15,15,15,
+                                 14,14,13,11,10,7,
+                                 3,7,9,10,11,12,12,12,12,11,10,9,7,3,0,0,0,
+                                 3,7,9,10,11,12,12,12,12,11,10,9,7,3,0,0,0,
+                                 3,7,9,10,11,12,12,12,12,11,10,9,7,3,0,0,0,
+                                 3,7,9,10,11,12,12,12,12,11,10,9,7,3,0,0,0,
+                                 7,10,11,13,14,14,15,15,15,15,15,14,14,13,11,10,7};
    const number  AMSDBc::_zpos[_nlay]={50.95,29.15,7.75,-7.75,-29.15,-50.95};
     
    const number  AMSDBc::_ssize_active[_nlay][2]={3.9884,7.04,3.9884,7.04,
@@ -131,25 +132,25 @@ integer AMSDBc::activeladdshuttle(int i,int j, int s){
   if(j>=7 && j<=10) return 1;
   else return 0;
  }
- if( i=2){
+ if( i==2){
   if(j>=5 && j<=10) return 1;
   else return 0;
  }
- if( i=3){
+ if( i==3){
   if(j>=6 && j<=10){
    if(j==10 && s==0)   return 0;
    else return 1;
   }
   return 0;
  }
- if( i=4){
+ if( i==4){
   if(j>=5 && j<=10){
     if((j==5 || j==10) && s==0)return 0;
     else return 1;
   }
   return 0;
  }
- if( i=5){
+ if( i==5){
   if(j>=5 && j<=10) return 1;
   else return 0;
  }

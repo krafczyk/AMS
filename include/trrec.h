@@ -253,7 +253,6 @@ integer operator < (AMSlink & o) const {
 }
 
 integer getpattern()const{return _Pattern;}
-static const integer AMBIG;
 static integer Out(integer);
 number Fit(integer i=0, integer ipart=14);
 AMSTrTrack(const AMSTrTrack & o):AMSlink(o._status,o._next),_Pattern(o._Pattern),

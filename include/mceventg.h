@@ -71,6 +71,7 @@ void run();
 void InitSeed();
 void gener();
 integer accept();
+integer acceptio();
 integer EarthModulation();
 static void setcuts( geant [],geant[],geant[],integer,geant,geant);
 static void setspectra(integer begind, integer begint, integer endd, 

@@ -330,6 +330,16 @@ integer AMSmceventg::accept(){
   }
   return 0;
 }
+integer AMSmceventg::acceptio(){
+  if(_coo >= _coorange[0] && _coo <= _coorange[1]){
+    if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){
+      if(_mom>=_momrange[0] && _mom <= _momrange[1]){
+          return 1;
+      }
+    }
+  }
+  return 0;
+}
 
 integer AMSmceventg::EarthModulation(){
   // Get current station position from event bank
@@ -433,15 +443,16 @@ _charge=charge;
    _coo=coo;
    _dir=dir;
    _mom=mom;
-   vertex[0]=_coo[0];
-   vertex[1]=_coo[1];
-   vertex[2]=_coo[2];
-   plab[0]=_mom*_dir[0];
-   plab[1]=_mom*_dir[1];
-   plab[2]=_mom*_dir[2];
-   GSVERT(vertex,0,0,0,0,nvert);
-   GSKINE(plab,_ipart,nvert,0,0,nt);
-   
+   if(acceptio()){
+    vertex[0]=_coo[0];
+    vertex[1]=_coo[1];
+    vertex[2]=_coo[2];
+    plab[0]=_mom*_dir[0];
+    plab[1]=_mom*_dir[1];
+    plab[2]=_mom*_dir[2];
+    GSVERT(vertex,0,0,0,0,nvert);
+    GSKINE(plab,_ipart,nvert,0,0,nt);
+   }   
   }
 
 void AMSmceventg::InitSeed(){

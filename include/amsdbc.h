@@ -46,6 +46,7 @@ public:
      static const char ams_name[129];
      static  geant ams_coo[3];
 //bits
+     static const integer AMBIG;
      static const integer BAD;
      static const integer USED;
      static const integer DELETED;

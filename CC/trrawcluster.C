@@ -162,6 +162,8 @@ for ( i=0;i<ms;i++){
           for (int k=nleft;k<=nright;k++){
             *(ida[i]+k)=idd.getgain()*(
             *(ida[i]+k)+(TRMCFFKEY.CalcCmnNoise[0]==0?idd.getsig()*rnormx():0));
+            if(*(ida[i]+k) > TRMCFFKEY.adcoverflow)*(ida[i]+k)=TRMCFFKEY.adcoverflow;
+            if(*(ida[i]+k) < -TRMCFFKEY.adcoverflow)*(ida[i]+k)=-TRMCFFKEY.adcoverflow;
           }
            pcl= new
            AMSTrRawCluster(i,nleft,nright,ida[i]+nleft);

@@ -425,13 +425,13 @@ void ctcgeom(AMSgvolume & mother){
 extern void ctcgeomE(AMSgvolume &, integer iflag);
 extern void ctcgeomAG(AMSgvolume& );
 extern void ctcgeomAGPlus(AMSgvolume& );
-if(strstr(AMSJob::gethead()->getsetup(),"CTCAnnecyPlus")){
-ctcgeomAGPlus(mother);
-  cout<<" CTCGeom-I-AnnecyPlus setup for CTC selected"<<endl;
+if(strstr(AMSJob::gethead()->getsetup(),"CTCAnnecyBasic")){
+ctcgeomAG(mother);
+  cout<<" CTCGeom-I-Annecy setup for CTC selected"<<endl;
 }
 else{
-  ctcgeomAG(mother);
-  cout<<" CTCGeom-I-Annecy setup for CTC selected"<<endl;
+  ctcgeomAGPlus(mother);
+  cout<<" CTCGeom-I-AnnecyPlus setup for CTC selected"<<endl;
 }
 }
 
