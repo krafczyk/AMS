@@ -1,4 +1,5 @@
-export AMSProdOutputDir=/f2dat1/AMS01/amsdatantuple/rn
+export AMSProdDir=$AMSDataDir/DataManagement
+export AMSProdOutputDir=/f4dat1/AMS02/amsdatantuple/rn
 export AMSProdPerl=$AMSProdDir/perl
 export AMSServerJob=$AMSProdDir/datacards/StandardServerMT.job
 export AMSServerExec=amsprodservermt.exe

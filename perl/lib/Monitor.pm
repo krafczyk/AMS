@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.51 2002/03/28 14:33:44 choutko Exp $
+# $Id: Monitor.pm,v 1.52 2002/04/10 10:36:17 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -83,7 +83,7 @@ foreach my $chop  (@ARGV){
             $self->{AMSDataDir}=$dir;
         }
         else{
-            $self->{AMSDataDir}="/f2dat1/AMS01/AMSDataDir";
+            $self->{AMSDataDir}="/f0dat1/AMSDataDir";
             $ENV{AMSDataDir}=$self->{AMSDataDir};
         }
         $self->{sqlserver}=new DBSQLServer();
@@ -175,10 +175,6 @@ sub ResetFailedRuns{
         my %rdst=%{${$ref->{rtb}}[$j]};
        if($rdst{Status} eq "Failed"){
          $rdst{Status}="ToBeRerun";
-         $rdst{History}="ToBeRerun";
-         $rdst{cuid}=0;
-         my $rdstc=$rdst{cinfo};
-         $rdstc->{HostName}="      ";
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
             try{
@@ -189,6 +185,16 @@ sub ResetFailedRuns{
                 warn "sendback corba exc";
             };
         }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                $arsref->sendRunEvInfo(\%rdst,"Update");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+
 
      }
 }

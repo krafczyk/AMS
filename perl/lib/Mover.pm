@@ -183,7 +183,7 @@ if (defined $dir){
     $self->{AMSDataDir}=$dir;
 }
 else{
-    $self->{AMSDataDir}="/f2dat1/AMS01/AMSDataDir";
+    $self->{AMSDataDir}="/f0dat1/AMSDataDir";
     $ENV{AMSDataDir}=$self->{AMSDataDir};
 }
    $dir=$ENV{AMSSoftwareDir};

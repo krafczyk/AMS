@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.212 2002/03/20 09:43:12 choumilo Exp $
+#  $Id: Mopt,v 1.213 2002/04/10 10:36:08 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -85,7 +85,7 @@ IDLMT=orbit-idl-mt
 IDLCPP=orbit-idl -l c++
 CPP=g++ 
 CCC=gcc
-CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT -I/usr/include/ORBit-mt
+CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT -I/usr/include/ORBit-mt -fpermissive 
 SRC=$(BIN)
 SRCMT=$(BINMT)
 INCLUDE=../include/

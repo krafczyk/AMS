@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.40 2002/04/03 11:04:58 choutko Exp $
+# $Id: RemoteClient.pm,v 1.41 2002/04/10 10:36:17 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -182,7 +182,7 @@ my %mv=(
      $self->{AMSDataDir}=$dir;
  }
  else{
-     $self->{AMSDataDir}="/f2dat1/AMS01/AMSDataDir";
+     $self->{AMSDataDir}="/f0dat1/AMSDataDir";
      $ENV{AMSDataDir}=$self->{AMSDataDir};
  }
 #sqlserver

@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.20 2002/04/03 11:04:58 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.21 2002/04/10 10:36:17 choutko Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -240,7 +240,7 @@ sub Create{
     }
 }
     if ($cnt == 0) {
-     $dbh->do("insert into Environment values('AMSDataDir','/f2dat1/AMS01/AMSDataDir')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('AMSDataDir','/f0dat1/AMSDataDir')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('CERN_ROOT','/cern/2001')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('UploadsDir','/home/httpd/cgi-bin/AMS02MCUploads')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('AMSSoftwareDir','DataManagement')") or die "cannot do: ".$dbh->errstr();     
