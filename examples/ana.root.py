@@ -7,7 +7,7 @@ sys.path.append("/afs/ams.cern.ch/Offline/vdev/python/linux")
 
 from AMS import *
 
-#app = TRint("", 0, [])
+app = TRint("", 0, [])
 
 ams = AMSChain()
 ams.Add("/f2users/choutko/g3v1g3.root")
@@ -24,8 +24,8 @@ for entry in range(ndata):
       part = ev.Particle(i)
       hrig.Fill(part.Momentum) 
 
-#hrig.Draw()
+hrig.Draw()
 
 print "We have processed %d events" % ndata
 
-#app.Run()
+app.Run()

@@ -31,6 +31,6 @@
             }
       }
 
-      //hrig->Draw();
+      hrig->Draw();
       cout << "We have processed: " << ndata << " events" << endl;
 }

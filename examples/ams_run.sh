@@ -32,7 +32,7 @@ fi
 
 OS=`uname`
 if [ "${OS}" = "Linux" ]; then
-   GC="g++ -Wno-deprecated"
+   GC="g++"
    EXTRALIBS="-ldl -lcrypt"
    AMSOBJS="${AMSWD}/bin/linux/icc/root_rs.o ${AMSWD}/bin/linux/icc/rootdict_s.o"
 elif [ "${OS}" = "OSF1" ]; then

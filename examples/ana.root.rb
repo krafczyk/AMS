@@ -7,7 +7,7 @@ $LOAD_PATH << "/afs/ams.cern.ch/Offline/vdev/ruby/linux"
 require 'AMS'
 include AMS
 
-#app = TRint.new("", 0, [])
+app = TRint.new("", 0, [])
 
 ams = AMSChain.new
 ams.Add("/f2users/choutko/g3v1g3.root")
@@ -26,8 +26,8 @@ ndata.times do
   end
 end
 
-#hrig.Draw
+hrig.Draw
 
 puts "We have processed %d events" % ndata
 
-#app.Run
+app.Run
