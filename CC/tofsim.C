@@ -25,13 +25,12 @@ geant AMSDistr::getrand(const geant &rnd)
 {
   geant val;
   integer i=AMSbins(distr,rnd,nbin);
-  if(i==0){val=bnl+bnw*rnd/distr[i];}
-  else if(i>0){val=bnl+bnw*i;}
-  else
-  {
+  if(i<0){
     i=-i;
     val=bnl+bnw*i+bnw*(rnd-distr[i-1])/(distr[i]-distr[i-1]);
   }
+  else if(i==0){val=bnl+bnw*rnd/distr[i];}
+  else {val=bnl+bnw*i;}
   return val;
 }
 //------------------------------------------------------------------------------
@@ -740,7 +739,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
 //
 // ====> convert flash-ADC array "tslice" to shaper pulse array "tshap2":
 //                 
-// a) rebinning of "tslice[]" into shaper binned "tshap1[]" + 
+// a) rebinning of "tslice[]" into shaper-binned "tshap1[]"  
         for(j=0;j<mxcon;j++)tshap1[j]=0.; // clear shaper input array
         j=0;                 
         for(i=0;i<imax;i++){
@@ -1273,11 +1272,13 @@ void AMSTOFRawEvent::mc_build(int &status)
   int trcode,trcode3;
   integer trflag(0),trpatt[SCLRS],trpatt3[SCLRS];
   integer it,it1,it2,it3,it4,it0;
-  static int16u phbit=32768;
+  int16u phbit,maxv;
   static geant ftpw=TOFDBc::daqpwd(12);// FT-pulse width
   AMSTOFTovt *ptr;
   AMSTOFTovt *ptrN;
   status=1;// bad
+  phbit=SCPHBP;
+  maxv=phbit-1;//max possible TDC value (16383)
 //
   trflag=0;
   ttrig1=AMSTOFTovt::tr1time(trcode,trpatt);//get abs.trig1("z>=1") signal time/patt
@@ -1322,9 +1323,9 @@ void AMSTOFRawEvent::mc_build(int &status)
         t2=tftdcd[jj];
         dt=tlev1-t2;// follow LIFO mode of readout : down-edge - first hit
         it=integer(dt/TOFDBc::tdcbin(0)); // conv. to fast-TDC (history) t-binning
-        if(it>32767){
+        if(it>maxv){
           cout<<"TOFRawEvent_mc: warning : Hist-TDC down-time overflow !!!"<<'\n';
-          it=32767;
+          it=maxv;
         }
         itt=int16u(it);
         if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
@@ -1332,9 +1333,9 @@ void AMSTOFRawEvent::mc_build(int &status)
         _nftdc+=1;
         dt=tlev1-t1;// follow LIFO mode of readout : leading(up) edge - second
         it=integer(dt/TOFDBc::tdcbin(0)); // conv. to fast-TDC (history) t-binning
-        if(it>32767){
+        if(it>maxv){
           cout<<"TOFRawEvent_mc: warning : Hist-TDC up-time overflow !!!"<<'\n';
-          it=32767;
+          it=maxv;
         }
         itt=int16u(it);
         if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
@@ -1357,9 +1358,9 @@ void AMSTOFRawEvent::mc_build(int &status)
 //  prepare 4-th component("end-mark") of "4-edge" TOF-hit:
           it4=integer(t4/TOFDBc::tdcbin(1));
           it=it0-it4;// time wrt lev-1 signal
-          if(it>32767){
+          if(it>maxv){
             cout<<"TOFRawEvent_mc: warning : 4-th edge TDC overflow !!!"<<'\n';
-            it=32767;
+            it=maxv;
           }
           itt=int16u(it);
           if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit on down-edge,if necessary
@@ -1368,9 +1369,9 @@ void AMSTOFRawEvent::mc_build(int &status)
 //  prepare 3-d component("dummy"):
           it3=integer(t3/TOFDBc::tdcbin(1));
           it=it0-it3;// time wrt lev-1 signal
-          if(it>32767){
+          if(it>maxv){
             cout<<"TOFRawEvent_mc: warning : 3-rd edge TDC overflow !!!"<<'\n';
-            it=32767;
+            it=maxv;
           }
           itt=int16u(it);
           if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit on up-edge,if necessary
@@ -1379,9 +1380,9 @@ void AMSTOFRawEvent::mc_build(int &status)
 //  prepare 2-nd component("stop"):
           it2=integer(t2/TOFDBc::tdcbin(1));
           it=it0-it2;// time wrt lev-1 signal
-          if(it>32767){
+          if(it>maxv){
             cout<<"TOFRawEvent_mc: warning : 2-nd edge TDC overflow !!!"<<'\n';
-            it=32767;
+            it=maxv;
           }
           itt=int16u(it);
           if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit on down-edge,if necessary
@@ -1390,9 +1391,9 @@ void AMSTOFRawEvent::mc_build(int &status)
 //  prepare 1-st component("start") of "4-edge" TOF-hit:
           it1=integer(t1/TOFDBc::tdcbin(1));
           it=it0-it1;// time wrt lev-1 signal
-          if(it>32767){
+          if(it>maxv){
             cout<<"TOFRawEvent_mc: warning : 1-st edge TDC overflow !!!"<<'\n';
-            it=32767;
+            it=maxv;
           }
           itt=int16u(it);
           if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit on up-edge,if necessary
@@ -1409,9 +1410,9 @@ void AMSTOFRawEvent::mc_build(int &status)
         t2=tadcad[jj];
         dt=tl1d-t2;// follow LIFO mode of readout : down-edge - first hit
         it=integer(dt/TOFDBc::tdcbin(2));
-        if(it>32767){
+        if(it>maxv){
           cout<<"TOFRawEvent_mc: warning :  anode down-time out of range !!!"<<'\n';
-          it=32767;
+          it=maxv;
         }
         itt=int16u(it);
         if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
@@ -1419,9 +1420,9 @@ void AMSTOFRawEvent::mc_build(int &status)
         _nadca+=1;
         dt=tl1d-t1;// follow LIFO mode of readout : up-edge - second hit
         it=integer(dt/TOFDBc::tdcbin(2));
-        if(it>32767){
+        if(it>maxv){
           cout<<"TOFRawEvent_mc: warning :  anode up-time out of range !!!"<<'\n';
-          it=32767;
+          it=maxv;
         }
         itt=int16u(it);
         if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
@@ -1437,9 +1438,9 @@ void AMSTOFRawEvent::mc_build(int &status)
         t2=tadcdd[jj];
         dt=tl1d-t2;// follow LIFO mode of readout : down-edge - first hit
         it=integer(dt/TOFDBc::tdcbin(3));
-        if(it>32767){
+        if(it>maxv){
           cout<<"TOFRawEvent_mc: warning :  dinode down-time out of range !!!"<<'\n';
-          it=32767;
+          it=maxv;
         }
         itt=int16u(it);
         if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
@@ -1447,9 +1448,9 @@ void AMSTOFRawEvent::mc_build(int &status)
         _nadcd+=1;
         dt=tl1d-t1;// follow LIFO mode of readout : up-edge - second hit
         it=integer(dt/TOFDBc::tdcbin(3));
-        if(it>32767){
+        if(it>maxv){
           cout<<"TOFRawEvent_mc: warning :  dinode up-time out of range !!!"<<'\n';
-          it=32767;
+          it=maxv;
         }
         itt=int16u(it);
         if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary

@@ -51,11 +51,42 @@ Word4  8 bit pattern + 8 bit nhits
 
 c.TOF Event Format
 
-To be defined
+ ----> Reduced format (upto 8 blocks):
+    one block consists of :
+    
+    Block_Length
+    Block_id: 000 0100 nnn 000001   // nnn=0-7
+    TOF_data_SFET-1
+    TOF_data_SFET-2
+    TOF_data_SFET-3
+    TOF_data_SFET-4
+    
+  where any TOF_data_SFET-n block has the following structure:
+  
+    hit_mask //16bits, always present, each bit means non-empty TDC channel 
+    hit_counters // one 16bits word : 4x4bits hit-counters for first 4 nonempty TDC channel
+    TDC_value    // tdc-hits for first four non empty TDC channels
+       .
+       . 
+    hit_counters // 4x4bits hit-counters for second 4 nonempty TDC channel (if needed)
+    TDC_value    // tdc-hits for second four non empty TDC channels
+       .
+       . 
 
 
+  Each TDC_value is 16 bits word: bits (0-13)-> edge time, (14)->edge phase, (15)->reserved
+  
+ ----> Raw format: 
 
-
+    Block_Length
+    Block_id: 000 0100 nnn 000000   // nnn=0-7
+    header_word // Temporarily !!! :  
+    TDC_value    //
+       .
+       .
+       .
+    
+    
 d.Anti Event Format
 
 

@@ -297,7 +297,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  geant r,eff1,eff2;
  integer sid,brt;
  geant gna[2],gnd[2],qath,qdth,a2dr[2],tth,strat[2];
- geant slope,fstrd,tzer,mip2q;
+ geant slope,fstrd,tzer,tdif,mip2q;
  geant tzerf[SCLRS][SCMXBR],slpf,strf[SCBLMX][2]; 
  char fname[80];
  char name[80];
@@ -426,10 +426,11 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     strat[1]=strf[cnum][1];
     slope=slpf;//from ext. file
     tzer=tzerf[ila][ibr];//from ext. file
+    tdif=0.;// for MC only ( use calibr. ext. file for RealData)
     sta[0]=0;//status ok, really should be taken from slow-control data or manually
     sta[1]=0;
     scbrcal[ila][ibr]=TOFBrcal(sid,sta,gna,gnd,qath,qdth,a2dr,asatl,tth,
-                              strat,fstrd,tzer,slope,td2p,mip2q,scp,rlo,
+                              strat,fstrd,tzer,slope,tdif,td2p,mip2q,scp,rlo,
                               logqin,tovta,tovtd);
 //
   } // --- end of bar loop --->
@@ -536,11 +537,19 @@ void TOFBrcal::tmd2p(number tmf[2], number amf[2],
   geant shft;
   number time,coo;
   shft=TOFDBc::shftim();
-  coo=-0.5*(tmf[0]-tmf[1])*td2pos[0]   // tempor, suppose 2-ends delays are equal !!!
+  coo=-0.5*(tmf[0]-tmf[1]-yctdif)*td2pos[0]  
                      -slope*(exp(-amf[0]/shft)-exp(-amf[1]/shft));
 //  ("-" is due to the fact that Tmeas=Ttrig-Tabs and coo-loc is prop. to Tabs1-Tabs2)
   co=geant(coo);                     
   eco=td2pos[1];
+}
+//-----
+void TOFBrcal::td2ctd(number tdo, number amf[2],
+                                   number &tdn){//(time_diff(ns))->(corrected_time_diff)
+  geant shft;
+  shft=TOFDBc::shftim();
+  tdn=tdo-slope*(exp(-amf[0]/shft)-exp(-amf[1]/shft));
+//  ("-" is due to the fact that Tmeas=Ttrig-Tabs and coord_loc is prop. to Tabs1-Tabs2)
 }
 //==========================================================================
 //
@@ -563,7 +572,7 @@ void TOFJobStat::print(){
   printf(" MC: TovT->RawEvent OK   : % 6d\n",mccount[1]);
   printf(" MC: Ghits->RawCluster OK: % 6d\n",mccount[2]);
   printf(" RECO-entries            : % 6d\n",recount[0]);
-  printf(" DAQ->RawEvent OK        : % 6d\n",recount[1]);
+  printf(" H/W TOF-trigger OK      : % 6d\n",recount[1]);
   printf(" RawEvent-validation OK  : % 6d\n",recount[2]);
   printf(" RawEvent->RawCluster OK : % 6d\n",recount[3]);
   printf(" RawCluster->Cluster OK  : % 6d\n",recount[4]);
@@ -574,6 +583,9 @@ void TOFJobStat::print(){
   printf(" AMPL: multiplicity OK   : % 6d\n",recount[11]);
   printf(" AMPL: matching OK       : % 6d\n",recount[12]);
   printf(" Entries to STRR-calibr. : % 6d\n",recount[15]);
+  printf(" Entries to TDIF-calibr. : % 6d\n",recount[17]);
+  printf(" TDIF: multiplicity OK   : % 6d\n",recount[18]);
+  printf(" AMPL: matching OK       : % 6d\n",recount[19]);
   printf("\n\n");
 //
   if(!AMSJob::gethead()->isRealData() && TOFMCFFKEY.fast==1)return;

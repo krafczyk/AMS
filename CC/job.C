@@ -29,6 +29,7 @@
 #include <trigger3.h>
 #include <trrawcluster.h>
 #include <daqevt.h>
+#include <daqblock.h>
 
 realorbit AMSJob::Orbit;
 AMSJob* AMSJob::_Head=0;
@@ -266,6 +267,7 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.trlogic[0]=0; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
   TOFMCFFKEY.trlogic[1]=0; // ......................(=0/1-> ANY3/ALL4 layer coincidence) 
   TOFMCFFKEY.fast=0;       // 0/1-> fast/slow simulation algorithm
+  TOFMCFFKEY.daqfmt=1;     // 0/1-> raw/reduced TDC format for DAQ simulation
   UCTOH(tfname,TOFMCFFKEY.tdfnam,4,12);
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -1491,6 +1493,9 @@ void AMSJob::_setorbit(){
 }    
 {
     //tof
+    DAQEvent::addsubdetector(&DAQSBlock::checkblockid,&DAQSBlock::buildraw);
+    DAQEvent::addblocktype(&DAQSBlock::getmaxblocks,&DAQSBlock::calcblocklength,
+                           &DAQSBlock::buildblock);
 }    
 {
     //anti

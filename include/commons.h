@@ -120,6 +120,7 @@ geant Thr;
 integer mcprtf[5];     // TOF MC-print flag (=0 -> no_printing)
 integer trlogic[2]; // to control trigger logic
 integer fast;    // 1/0 fast/slow algo;
+integer daqfmt;  // 0/1 raw/reduced TDC format for DAQ
 integer tdfnam[3];// f-name for PMT t-distr. files map
 };
 #define TOFMCFFKEY COMMON_BLOCK(TOFMCFFKEY,tofmcffkey)

@@ -448,8 +448,13 @@ void AMSEvent::_cactcevent(){
 }
 //---------------------------------------------------------------------------
 void AMSEvent::_catofevent(){
+  integer trflag(0);
+  TriggerLVL1 *ptr;
 //
-if(TOFRECFFKEY.relogic[0]==1)
+  ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  if(ptr)trflag=ptr->gettoflg();
+  if(trflag != 1)return;// use only "z>=1" trigger
+  if(TOFRECFFKEY.relogic[0]==1)
            TOFTZSLcalib::select();// event selection for TOF TZSL-calibration
 }
 //---------------------------------------------------------------------------
@@ -495,27 +500,23 @@ void AMSEvent::_reantievent(){
    if(AMSEvent::debug)AMSAntiCluster::print();
   #endif
 }
-
+//---------------------------------------------------------------------
 void AMSEvent::_retofevent(){
 integer trflag(0);
 int stat;
+TriggerLVL1 *ptr;
 //
   AMSgObj::BookTimer.start("RETOFEVENT");
-//
     TOFJobStat::addre(0);
-    if(AMSJob::gethead()->isRealData()){// Real Event
-      AMSgObj::BookTimer.start("TOF:DAQ->RwEv");
-      AMSTOFRawEvent::re_build(stat);// DAQ-->RawEvent
-      if(stat!=0)return;
-      TOFJobStat::addre(1);
-      AMSgObj::BookTimer.stop("TOF:DAQ->RwEv");
-    }
+    ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+    if(ptr)trflag=ptr->gettoflg();
+    if(trflag<=0)return;// "no h/w TOF-trigger"
+    TOFJobStat::addre(1);
 //
-    if(!AMSJob::gethead()->isRealData() && TOFMCFFKEY.fast==1){
+    if(AMSJob::gethead()->isSimulation() && TOFMCFFKEY.fast==1){
+//
 //                   ===> reco of events, simulated by fast MC :
 //
-      trflag=AMSTOFRawCluster::gettrfl();
-      if(trflag<=0)return;// "no h/w MC-trigger"
       AMSgObj::BookTimer.start("TOF:RwCl->Cl");
       AMSTOFCluster::build(stat);    // "RawCluster-->Cluster"
       if(stat!=0)return;
@@ -525,10 +526,7 @@ int stat;
     else{
 //                   ===> reco of real events or simulated by slow MC:
 //
-      if(!AMSJob::gethead()->isRealData()){ // MC-slow events
-        trflag=AMSTOFRawEvent::gettrfl();
-        if(trflag<=0)return;// "no h/w MC-trigger"
-      }
+//
       AMSgObj::BookTimer.start("TOF:validation");
       AMSTOFRawEvent::validate(stat);// RawEvent-->RawEvent
       AMSgObj::BookTimer.stop("TOF:validation");
@@ -659,7 +657,7 @@ void AMSEvent:: _sitrigevent(){
   TriggerLVL3::build();
 
 }
-
+//---------------------------------------------------------------
 void AMSEvent:: _sitofevent(){
   AMSContainer *p;
   int stat;

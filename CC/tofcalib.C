@@ -325,7 +325,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     ibar=(ptr->getplane())-1;
     ptr->gettovta(ama);
     ptr->gettovtd(amd);
-    ptr->getsdtm(tm);
+    ptr->getsdtm(tm);// raw side-times
     nbrl[ilay]+=1;
     brnl[ilay]=ibar;
     scbrcal[ilay][ibar].gtstrat(strr);
@@ -472,6 +472,109 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     betm=TOFCAFFKEY.bmean;// tempor! use mean value for beta
 //
     TOFTZSLcalib::fill(betm,brnl,tld,tdi,dum); // fill calib.working arrays
+}
+//=============================================================================
+//
+number TOFTDIFcalib::tdiff[SCBLMX][SCTDBM];
+number TOFTDIFcalib::tdif2[SCBLMX][SCTDBM];
+number TOFTDIFcalib::clong[SCBLMX][SCTDBM];
+integer TOFTDIFcalib::nevnt[SCBLMX][SCTDBM];
+integer TOFTDIFcalib::nbins[SCBTPN]={7,9,11,13,13};//coord-bins vs bar-type(<=SCTDBM)
+//                                                   to have bin width = 10-11cm
+//--------------------------
+void TOFTDIFcalib::init(){ // ----> initialization for TDIF-calibration
+  int i,j,id,il,ib,ii,jj;
+  char htit1[60];
+  char htit2[60];
+  char htit3[7];
+  char inum[11];
+  char in[2]="0";
+//
+  for(i=0;i<SCBLMX;i++){
+  for(j=0;j<SCTDBM;j++){
+    tdiff[i][j]=0.;
+    tdif2[i][j]=0.;
+    clong[i][j]=0.;
+    nevnt[i][j]=0;
+  }
+  }
+// ---> book histograms for "Tdiff vs Clong"
+  strcpy(inum,"0123456789");
+  for(il=0;i<SCLRS;il++){   // book hist. for side-signals
+    for(ib=0;j<SCMXBR;ib++){
+      strcpy(htit1,"Time difference(ns) vs coord(cm) for chan(LBB) ");
+      in[0]=inum[il];
+      strcat(htit1,in);
+      ii=ib/10;
+      jj=ib%10;
+      in[0]=inum[ii];
+      strcat(htit1,in);
+      in[0]=inum[jj];
+      strcat(htit1,in);
+      id=1600+il*SCMXBR+ib;
+      HBOOK1(id,htit1,35,-70.,70.,0.);
+    }
+  }
+}
+//------------------------- 
+void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
+  integer i,ilay,ibar,nbrl[SCLRS],brnl[SCLRS],bad;
+  integer il,ib,ix,iy,chan;
+  geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy;
+  number sdtm[2],tmsd[SCLRS],tmsdc[SCLRS],ama[2];
+  AMSTOFRawCluster *ptr;
+  ptr=(AMSTOFRawCluster*)AMSEvent::gethead()->
+                           getheadC("AMSTOFRawCluster",0);
+//----
+  TOFJobStat::addre(17);
+  for(i=0;i<SCLRS;i++)nbrl[i]=0;
+//
+  while (ptr){ // <--- loop over AMSTOFRawCluster hits
+    ilay=(ptr->getntof())-1;
+    ibar=(ptr->getplane())-1;
+    nbrl[ilay]+=1;
+    brnl[ilay]=ibar;
+    ptr->getsdtm(sdtm);// get raw side-times(ns)
+    tmsd[ilay]=sdtm[0]-sdtm[1];
+    scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,tmsdc[ilay]);//get corrected(by ampl) time_diff
+    ptr=ptr->next();
+  }// --- end of hits loop --->
+//
+//------> Select events with bars/layer=1 :
+  bad=0;
+  for(i=0;i<SCLRS;i++)if(nbrl[i] != 1)bad=1;
+  if(bad==1)return; // remove events with bars/layer != 1
+  TOFJobStat::addre(18);
+//
+//------> find track slope(in projection) using only scint.info :
+  ix=0;
+  iy=0;
+  for(il=0;il<SCLRS;il++){
+    ib=brnl[il];
+    zc[il]=TOFDBc::getzsc(il,ib);
+    if(TOFDBc::plrotm(il)==0){// unrotated (X-meas) planes
+      x[ix]=TOFDBc::gettsc(il,ib);
+      zx[ix]=zc[il];
+      ix+=1;
+    }
+    else{                    // rotated (Y-meas) planes
+      y[iy]=TOFDBc::gettsc(il,ib);
+      zy[iy]=zc[il];
+      iy+=1;
+    }
+  }
+  tgx=(x[0]-x[1])/(zx[0]-zx[1]);
+  tgy=(y[0]-y[1])/(zy[0]-zy[1]);
+//
+//-----> find track crossing points (long.coord):
+  for(il=0;il<SCLRS;il++){
+    ib=brnl[il];
+    zc[il]=TOFDBc::getzsc(il,ib);
+    if(TOFDBc::plrotm(il)==0){// unrotated (X-meas) planes
+    }
+    else{                     // rotated (Y-meas) planes
+    }
+  }
 }
 //=============================================================================
 //
