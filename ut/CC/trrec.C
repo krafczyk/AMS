@@ -28,16 +28,6 @@
 
 integer AMSTrTrack::_RefitIsNeeded=0;
 
-const integer AMSTrCluster::WIDE=1;
-const integer AMSTrCluster::NEAR=2;
-const integer AMSTrCluster::REFITTED=4;
-const integer AMSTrCluster::WEAK=8;
-const integer AMSTrCluster::AwayTOF=128;
-
-const integer AMSTrRecHit::FalseX=1;
-const integer AMSTrRecHit::FalseTOFX=2;
-const integer AMSTrRecHit::AwayTOF=128;
-
 integer AMSTrTrack::patconf[npat][6]={1,2,3,4,5,6,   // 123456  0
                                       1,2,3,4,6,0,   // 12346   1
                                       1,2,3,5,6,0,   // 12356   2
@@ -194,7 +184,7 @@ integer AMSTrCluster::build(integer refit){
       // cluster cand found
       if( adc[i]< adc[i+1] && adc[i+1]> TRCLFFKEY.Thr1A[side]){
       // "wide" cluster
-      status=AMSTrCluster::WIDE;
+      status=AMSDBc::WIDE;
       left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
       i-TRCLFFKEY.ThrClNEl[side]/2);
       center=i;
@@ -203,7 +193,7 @@ integer AMSTrCluster::build(integer refit){
       } 
       else if(adc[i+1]<adc[i+2] && adc[i+2]>TRCLFFKEY.Thr1A[side]){
        // two clusters near each other; take care about rightmost strip;
-      status=AMSTrCluster::NEAR;
+      status=AMSDBc::NEAR;
       left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
       i-1-TRCLFFKEY.ThrClNEl[side]/2);
       center=i-1;
@@ -266,7 +256,7 @@ integer AMSTrCluster::build(integer refit){
       for (j=left;j<right+1;j++){
        id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
        if(adc[j]>TRCLFFKEY.Thr2A[side])above++;
-        if(j==ro+1 && status==AMSTrCluster::NEAR)sum+=adc[j]/2;
+        if(j==ro+1 && status==AMSDBc::NEAR)sum+=adc[j]/2;
         else sum+=adc[j];
         ssum=ssum+pow(id.getsig(),2.);
         pos=pos+1*(j-center)*adc[j];
@@ -289,7 +279,7 @@ integer AMSTrCluster::build(integer refit){
          _addnext(
          id,status,left-center,right-center+1,sum,ssum,pos,rms,adc+left);
            for (int j=left;j<right+1;j++){
-             if(j==right+1 && status==AMSTrCluster::NEAR)adc[j]=adc[j]/2;
+             if(j==right+1 && status==AMSDBc::NEAR)adc[j]=adc[j]/2;
              else adc[j]=0;
            }
       }                      
@@ -336,7 +326,7 @@ integer AMSTrCluster::build(integer refit){
 
        AMSTrCluster *pcl=(AMSTrCluster*)pct[i]->gethead();
        while(pcl){
-         if(pcl->checkstatus(REFITTED)){
+         if(pcl->checkstatus(AMSDBc::REFITTED)){
           pclnew=((AMSTrCluster*)OriginalLast[i])->next();
           AMSTrIdSoft pclid=pcl->getid();
           while(pclnew){
@@ -344,7 +334,7 @@ integer AMSTrCluster::build(integer refit){
               // mark
               pcl->setstatus(AMSDBc::DELETED);
               pclnew->clearstatus(AMSDBc::DELETED);
-              pclnew->setstatus(REFITTED);
+              pclnew->setstatus(AMSDBc::REFITTED);
             }     
             pclnew=pclnew->next();
           }
@@ -436,7 +426,7 @@ integer AMSTrCluster::buildWeak(integer refit){
       // cluster cand found
       if( adc[i]< adc[i+1] && adc[i+1]> TRCLFFKEY.Thr1A[side]){
       // "wide" cluster
-      status=AMSTrCluster::WIDE;
+      status=AMSDBc::WIDE;
       left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
       i-TRCLFFKEY.ThrClNEl[side]/2);
       center=i;
@@ -445,7 +435,7 @@ integer AMSTrCluster::buildWeak(integer refit){
       } 
       else if(adc[i+1]<adc[i+2] && adc[i+2]>TRCLFFKEY.Thr1A[side]){
        // two clusters near each other; take care about rightmost strip;
-      status=AMSTrCluster::NEAR;
+      status=AMSDBc::NEAR;
       left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
       i-1-TRCLFFKEY.ThrClNEl[side]/2);
       center=i-1;
@@ -506,7 +496,7 @@ integer AMSTrCluster::buildWeak(integer refit){
       for (j=left;j<right+1;j++){
        id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
        if(adc[j]>TRCLFFKEY.Thr2A[side])above++;
-        if(j==ro+1 && status==AMSTrCluster::NEAR)sum+=adc[j]/2;
+        if(j==ro+1 && status==AMSDBc::NEAR)sum+=adc[j]/2;
         else sum+=adc[j];
         ssum=ssum+pow(id.getsig(),2.);
         pos=pos+1*(j-center)*adc[j];
@@ -529,7 +519,7 @@ integer AMSTrCluster::buildWeak(integer refit){
            else left++;
          }
            for (int j=left;j<right+1;j++){
-             if(j==right+1 && status==AMSTrCluster::NEAR)adc[j]=adc[j]/2;
+             if(j==right+1 && status==AMSDBc::NEAR)adc[j]=adc[j]/2;
              else adc[j]=0;
            }
       }                      
@@ -568,7 +558,7 @@ integer AMSTrCluster::buildWeak(integer refit){
       // cluster cand found
       if( adc[i]< adc[i+1] && adc[i+1]> TRCLFFKEY.Thr1A[side]){
       // "wide" cluster
-      status= AMSTrCluster::WIDE;
+      status= AMSDBc::WIDE;
       left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
       i-TRCLFFKEY.ThrClNEl[side]/2);
       center=i;
@@ -577,7 +567,7 @@ integer AMSTrCluster::buildWeak(integer refit){
       } 
       else if(adc[i+1]<adc[i+2] && adc[i+2]>TRCLFFKEY.Thr1A[side]){
        // two clusters near each other; take care about rightmost strip;
-      status=AMSTrCluster::NEAR;
+      status=AMSDBc::NEAR;
       left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
       i-1-TRCLFFKEY.ThrClNEl[side]/2);
       center=i-1;
@@ -628,7 +618,7 @@ integer AMSTrCluster::buildWeak(integer refit){
            continue;
         }
        if(adc[j]>TRCLFFKEY.Thr2A[side])above++;
-        if(j==right+1 && status==AMSTrCluster::NEAR)sum+=adc[j]/2;
+        if(j==right+1 && status==AMSDBc::NEAR)sum+=adc[j]/2;
         else sum+=adc[j];
         ssum=ssum+pow(id.getsig(),2.);
         pos=pos+1*(j-center)*adc[j];
@@ -651,12 +641,12 @@ integer AMSTrCluster::buildWeak(integer refit){
            if(adc[left]>adc[right])right--;
            else left++;
          }
-         status=status | AMSTrCluster::WEAK;
+         status=status | AMSDBc::WEAK;
          if(id.getsig()!=0 )_addnext(
          id,status,left-center,right-center+1,sum,ssum,pos,rms,adc+left);
-         status=status &  (~AMSTrCluster::WEAK);
+         status=status &  (~AMSDBc::WEAK);
            for (int j=left;j<right+1;j++){
-             if(j==right+1 && status==AMSTrCluster::NEAR)adc[j]=adc[j]/2;
+             if(j==right+1 && status==AMSDBc::NEAR)adc[j]=adc[j]/2;
              else adc[j]=0;
            }
       }                      
@@ -786,7 +776,7 @@ void AMSTrCluster::_writeEl(){
 // Fill the ntuple : check on IOPA.WriteAll%10 
   integer flag =    (IOPA.WriteAll%10==1)
                  || (IOPA.WriteAll%10==0 && checkstatus(AMSDBc::USED))
-                 || (IOPA.WriteAll%10==2 && !checkstatus(AMSTrCluster::AwayTOF));
+                 || (IOPA.WriteAll%10==2 && !checkstatus(AMSDBc::AwayTOF));
 
   if(AMSTrCluster::Out(flag) ){
     TrN->Idsoft[TrN->Ntrcl]=_Id.cmpt();
@@ -892,12 +882,12 @@ integer AMSTrRecHit::buildWeak(integer refit){
    idy=y->getid();
    ilay=idy.getlayer();
    if(y->checkstatus(AMSDBc::BAD)==0 && 
-      y->checkstatus(AMSTrCluster::WEAK)==0){
+      y->checkstatus(AMSDBc::WEAK)==0){
    x=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",0);
    while(x){
       idx=x->getid();  
       if(x->checkstatus(AMSDBc::BAD) ==0 &&
-       x->checkstatus(AMSTrCluster::WEAK)){
+       x->checkstatus(AMSDBc::WEAK)){
       if(idx.getlayer() == idy.getlayer() && 
          idx.getdrp() == idy.getdrp() && idx.gethalf() == idy.gethalf()
          && fabs(y->getVal()-x->getVal())/(y->getVal()+x->getVal()) < 
@@ -915,7 +905,7 @@ integer AMSTrRecHit::buildWeak(integer refit){
          }
          else{
            //           cout <<" rec hit weak added "<<endl;
-          _addnext(p,AMSTrCluster::WEAK,ilay,x,y,
+          _addnext(p,AMSDBc::WEAK,ilay,x,y,
           p->str2pnt(x->getcofg(0,pid+i),y->getcofg(1,pid+i)),
           AMSPoint(x->getecofg(),y->getecofg(),(number)TRCLFFKEY.ErrZ));
          }
@@ -1031,7 +1021,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
     for (i=0;i<1;i++) {
       pclus = (AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
       for (; pclus!=NULL; pclus=pclus->next()) {
-        pclus->setstatus(AMSTrCluster::AwayTOF);
+        pclus->setstatus(AMSDBc::AwayTOF);
       }
     }
 
@@ -1046,13 +1036,13 @@ integer AMSTrRecHit::markAwayTOFHits(){
         number yres = fabs(hit[1]-intercept_y - slope_y*hit[2]);
         if (    xres > searchregtof
              || yres > searchregtof    ) {
-          ptrhit->setstatus(AMSTrRecHit::AwayTOF);
+          ptrhit->setstatus(AMSDBc::AwayTOF);
         }
         else {
           pclus = ptrhit->getClusterP(0);
-          if (pclus) pclus->clearstatus(AMSTrCluster::AwayTOF);
+          if (pclus) pclus->clearstatus(AMSDBc::AwayTOF);
           pclus = ptrhit->getClusterP(1);
-          if (pclus) pclus->clearstatus(AMSTrCluster::AwayTOF);
+          if (pclus) pclus->clearstatus(AMSDBc::AwayTOF);
         }
       }
     }
@@ -1087,7 +1077,7 @@ void AMSTrRecHit::_writeEl(){
 // Fill the ntuple 
   integer flag =    (IOPA.WriteAll%10==1)
                  || (IOPA.WriteAll%10==0 && checkstatus(AMSDBc::USED))
-                 || (IOPA.WriteAll%10==2 && !checkstatus(AMSTrRecHit::AwayTOF));
+                 || (IOPA.WriteAll%10==2 && !checkstatus(AMSDBc::AwayTOF));
 
   if(AMSTrRecHit::Out(flag) ){
     if(_Xcl)THN->pX[THN->Ntrrh]=_Xcl->getpos();
@@ -1119,7 +1109,7 @@ void AMSTrRecHit::_writeEl(){
       //Write only hits consistent with TOF
       for(int i=0;i<pat;i++){
         AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
-        while(ptr && !(ptr->checkstatus(AMSTrCluster::AwayTOF)) ){
+        while(ptr && !(ptr->checkstatus(AMSDBc::AwayTOF)) ){
           THN->pY[THN->Ntrrh]++;
           ptr=ptr->next();
         }
@@ -1127,7 +1117,7 @@ void AMSTrRecHit::_writeEl(){
     }
     else return;
   
-    if(!checkstatus(AMSTrRecHit::FalseX) && !checkstatus(AMSTrRecHit::FalseTOFX) &&
+    if(!checkstatus(AMSDBc::FalseX) && !checkstatus(AMSDBc::FalseTOFX) &&
         ((_Xcl->getid()).getlayer() != _Layer) || 
        ((_Ycl->getid()).getlayer() != _Layer) ){
       cerr << "AMSTrRecHit-S-Logic Error "<<(_Xcl->getid()).getlayer()<<" "<<
@@ -1315,10 +1305,10 @@ integer AMSTrTrack::buildWeak(integer refit){
       phit[0]=AMSTrRecHit::gethead(first);
       number par[2][2];
       while( phit[0]){
-       if(phit[0]->Good() && phit[0]->checkstatus(AMSTrCluster::WEAK)==0){
+       if(phit[0]->Good() && phit[0]->checkstatus(AMSDBc::WEAK)==0){
        phit[fp]=AMSTrRecHit::gethead(second);
        while( phit[fp]){
-        if(phit[fp]->Good() && phit[fp]->checkstatus(AMSTrCluster::WEAK)==0){
+        if(phit[fp]->Good() && phit[fp]->checkstatus(AMSDBc::WEAK)==0){
         par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
         par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
@@ -1386,10 +1376,10 @@ integer AMSTrTrack::buildFalseX(integer patstart){
       phit[0]=AMSTrRecHit::gethead(first);
       number par[2][2];
       while( phit[0]){
-       if(phit[0]->Good() && phit[0]->checkstatus(AMSTrCluster::WEAK)==0){
+       if(phit[0]->Good() && phit[0]->checkstatus(AMSDBc::WEAK)==0){
        phit[fp]=AMSTrRecHit::gethead(second);
        while( phit[fp]){
-        if(phit[fp]->Good() && phit[fp]->checkstatus(AMSTrCluster::WEAK)==0){
+        if(phit[fp]->Good() && phit[fp]->checkstatus(AMSDBc::WEAK)==0){
         par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
         par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
@@ -1553,12 +1543,12 @@ void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrR
            if(pthit[i]->checkstatus(AMSDBc::USED))
             pthit[i]->setstatus(AMSDBc::AMBIG);
            else pthit[i]->setstatus(AMSDBc::USED);
-           if(pthit[i]->checkstatus(AMSTrRecHit::FalseX))
-            ptrack->setstatus(AMSTrRecHit::FalseX);
-           if(pthit[i]->checkstatus(AMSTrCluster::WEAK))
-            ptrack->setstatus(AMSTrCluster::WEAK);
-           if(pthit[i]->checkstatus(AMSTrRecHit::FalseTOFX))
-            ptrack->setstatus(AMSTrRecHit::FalseTOFX);
+           if(pthit[i]->checkstatus(AMSDBc::FalseX))
+            ptrack->setstatus(AMSDBc::FalseX);
+           if(pthit[i]->checkstatus(AMSDBc::WEAK))
+            ptrack->setstatus(AMSDBc::WEAK);
+           if(pthit[i]->checkstatus(AMSDBc::FalseTOFX))
+            ptrack->setstatus(AMSDBc::FalseTOFX);
          }
           number dc[2];
           dc[0]=fabs(sin(ptrack->gettheta())*cos(ptrack->getphi()));
@@ -1568,7 +1558,7 @@ void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrR
            if(dc[n] > TRFITFFKEY.MinRefitCos[n]){
              for( i=0;i<nhit;i++){
               AMSTrCluster *pcl= pthit[i]->getClusterP(n);
-              if(pcl)pcl->setstatus(AMSTrCluster::REFITTED);
+              if(pcl)pcl->setstatus(AMSDBc::REFITTED);
               _RefitIsNeeded++;
              }
            }
@@ -1658,7 +1648,7 @@ AMSgObj::BookTimer.start("TrFalseX");
                         AMSPoint Err(TRFITFFKEY.SearchRegStrLine,
                                      TRFITFFKEY.SearchRegStrLine,TRFITFFKEY.SearchRegStrLine);
                         if((hit-P1).abs() < Err){
-                          AMSTrRecHit::_addnext(pls,AMSTrRecHit::FalseX,id.getlayer(),0,py,hit,
+                          AMSTrRecHit::_addnext(pls,AMSDBc::FalseX,id.getlayer(),0,py,hit,
                                                 AMSPoint((number)TRCLFFKEY.ErrZ*2,py->getecofg(),(number)TRCLFFKEY.ErrZ));
                           pointfound++;
                         } 
@@ -1754,8 +1744,8 @@ void AMSTrTrack::AdvancedFit(int forced){
 
 integer AMSTrTrack::TOFOK(){
     if (TRFITFFKEY.UseTOF && (_Pattern > 6 || 
-                              checkstatus(AMSTrRecHit::FalseX) ||
-                              checkstatus(AMSTrRecHit::FalseTOFX))){
+                              checkstatus(AMSDBc::FalseX) ||
+                              checkstatus(AMSDBc::FalseTOFX))){
   //  if (TRFITFFKEY.UseTOF && (_Pattern == 17 || _Pattern > 21)){
   //   if (TRFITFFKEY.UseTOF ){
    // Cycle thru all TOF clusters;
@@ -2187,7 +2177,7 @@ void AMSTrTrack::_writeEl(){
       //WriteUsedOnly
         for(i=0;i<pat;i++){
           AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
-          while(ptr && !(ptr->checkstatus(AMSTrRecHit::AwayTOF)) ){
+          while(ptr && !(ptr->checkstatus(AMSDBc::AwayTOF)) ){
             TrTN->pHits[TrTN->Ntrtr][k]++;
             ptr=ptr->next();
           }
@@ -2581,7 +2571,7 @@ integer AMSTrTrack::makeFalseTOFXHits(){
 // Create a new Fake hit with TOF on X
       AMSTrRecHit::_addnext(
         psensor,
-        AMSTrRecHit::FalseTOFX,
+        AMSDBc::FalseTOFX,
         idsoft.getlayer(),
         0,
         py,
@@ -2618,7 +2608,7 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
     for (int kk=0;kk<6;kk++){
       AMSTrRecHit * phit;
       for (phit=AMSTrRecHit::gethead(kk); phit!=NULL; phit=phit->next()){
-        if (phit->Good() && phit->getstatus()==AMSTrRecHit::FalseTOFX) {
+        if (phit->Good() && phit->getstatus()==AMSDBc::FalseTOFX) {
           xs++; 
           break;
         }
@@ -2638,10 +2628,10 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
       phit[0]=AMSTrRecHit::gethead(first);
       number par[2][2];
       while( phit[0]){
-       if(phit[0]->Good() && phit[0]->checkstatus(AMSTrRecHit::FalseTOFX)!=0){
+       if(phit[0]->Good() && phit[0]->checkstatus(AMSDBc::FalseTOFX)!=0){
        phit[fp]=AMSTrRecHit::gethead(second);
        while( phit[fp]){
-        if(phit[fp]->Good() && phit[fp]->checkstatus(AMSTrRecHit::FalseTOFX)!=0){
+        if(phit[fp]->Good() && phit[fp]->checkstatus(AMSDBc::FalseTOFX)!=0){
         par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
         par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
@@ -2652,7 +2642,7 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
         // Search for others
         phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
         while(phit[1]){
-         if(phit[1]->Good() && phit[1]->checkstatus(AMSTrRecHit::FalseTOFX)!=0){
+         if(phit[1]->Good() && phit[1]->checkstatus(AMSDBc::FalseTOFX)!=0){
           // Check if the point lies near the str line
            if(AMSTrTrack::DistanceTOF(par,phit[1]))
            {phit[1]=phit[1]->next();continue;}
@@ -2660,19 +2650,19 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
          phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
          while(phit[2]){
           // Check if the point lies near the str line
-          if(phit[2]->Good() && phit[2]->checkstatus(AMSTrRecHit::FalseTOFX)!=0){
+          if(phit[2]->Good() && phit[2]->checkstatus(AMSDBc::FalseTOFX)!=0){
           if(AMSTrTrack::DistanceTOF(par,phit[2]))
           {phit[2]=phit[2]->next();continue;}
           if(AMSTrTrack::patpoints[pat] >4){         
           phit[3]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][3]-1);
           while(phit[3]){
-           if(phit[3]->Good() && phit[3]->checkstatus(AMSTrRecHit::FalseTOFX)!=0){
+           if(phit[3]->Good() && phit[3]->checkstatus(AMSDBc::FalseTOFX)!=0){
            if(AMSTrTrack::DistanceTOF(par,phit[3]))
            {phit[3]=phit[3]->next();continue;}
            if(AMSTrTrack::patpoints[pat]>5){
            phit[4]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][4]-1);
            while(phit[4]){
-             if(phit[4]->Good() && phit[4]->checkstatus(AMSTrRecHit::FalseTOFX)!=0){
+             if(phit[4]->Good() && phit[4]->checkstatus(AMSDBc::FalseTOFX)!=0){
               if(AMSTrTrack::DistanceTOF(par,phit[4]))
               {phit[4]=phit[4]->next();continue;}
                 // 6 point combination found

@@ -62,6 +62,17 @@ public:
      static const integer USED;
      static const integer DELETED;
      static const integer RELEASED;
+     static const integer REFITTED;
+     static const integer WIDE;
+     static const integer BADHIS;
+     static const integer ONESIDE;
+     static const integer BADTIME;
+     static const integer NEAR;
+     static const integer WEAK;
+     static const integer AwayTOF;
+     static const integer FalseX;
+     static const integer FalseTOFX;
+
 
 // machine dependent values
 

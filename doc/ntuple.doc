@@ -326,39 +326,22 @@ Below there is a description of a  ntuple.
 
 *) Status bits (counting from 1 to 32)
 
-All:
-5 - BAD (status&16!=0)
-6 - USED (status&32!=0)
-7 - Service bit (status&64!=0)
+ 1 - REFITTED object                                     (status&1     !=0)
+ 2 - WIDE in shape (Tracker)                             (status&2     !=0)
+ 3 - AMBIGously associated                               (status&4     !=0)
+ 4 - RELEASED object                                     (status&8     !=0)
+ 5 - BAD                                                 (status&16    !=0)
+ 6 - USED as a component of a larger object              (status&32    !=0)
+ 7 - DELETED object                                      (status&64    !=0)
+ 8 - BADHIStory (TOF)                                    (status&128   !=0)
+ 9 - ONESIDE measurement (TOF)                           (status&256   !=0)
+10 - BADTIME information (TOF)                           (status&512   !=0)
+11 - NEAR, close to another object (Trck)                (status&1024  !=0)
+12 - WEAK, defined with looser criteria (Trck)           (status&2046  !=0)
+13 - AwayTOF, away from TOF predictions (Trck)           (status&4096  !=0)
+14 - FalseX, x-coordinate built but not measured (Trck)  (status&8192  !=0)
+15 - FalseTOFX, x-coordinates from TOF (Trck)            (status&16384 !=0)
 
-Tracker clusters:
-1 - WIDE cluster (status&1!=0)
-2 - two clusters near each other (status&2!=0)
-3 - cluster was refitted (status&4!=0)
-4 - "weak" cluster (status&8!=0)
-5 - BAD (status&16!=0)
-6 - USED (status&32!=0)
-7 - Service bit (status&64!=0)
-8 - Cluster NOT consistent with TOF info (status&128!=0)
-
- TrRecHits:
-1 - FalseX (status&1!=0)
-2 - FalseTOFX (status&2!=0)
-3 - Ambiguous hit, i.e. several tracks are used it (status&4!=0)
-4 - "Weak" cluster on it (status&8!=0)
-5 - BAD (status&16!=0)
-6 - USED (status&32!=0)
-7 - Service bit (status&64!=0)
-8 - Hit NOT consistent with TOF info (status&128!=0)
-
-Tracks:
-1 - FalseX (status&1!=0)
-2 - FalseTOFX (status&2!=0)
-3 - Ambiguous track, i.e. several betas can used it (status&4!=0)
-4 - At least one "weak" cluster (status&8!=0)
-5 - BAD (status&16!=0)
-6 - USED (status&32!=0)
-7 - Service bit (status&64!=0)
 
 **) Pointers to beta, charge, track, trrechit, trclusters are OK now
 

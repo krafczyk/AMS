@@ -24,96 +24,108 @@ integer AMSBeta::patpoints[npatb]={4,3,3,3,3,2,2,2,2};
 
 
 integer AMSBeta::build(integer refit){
-  // pattern recognition + fit
-  AMSPoint SearchReg(BETAFITFFKEY.SearchReg[0],BETAFITFFKEY.SearchReg[1],
-  BETAFITFFKEY.SearchReg[2]);
-  int patb;
-  for ( patb=0;patb<npatb;patb++){
-   int patt;
+
+// Pattern recognition + fit
+ AMSPoint SearchReg(BETAFITFFKEY.SearchReg[0],BETAFITFFKEY.SearchReg[1],
+ BETAFITFFKEY.SearchReg[2]);
+
+// Loop on TOF patterns
+ for ( int patb=0; patb<npatb; patb++){
+   if(!BETAFITFFKEY.pattern[patb]) continue;
    number theta=0;
    number td;
-   for( patt=0;patt<npat;patt++){
-    AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->
-    getheadC("AMSTrTrack",patt);
-    while(ptrack ){   
-    
-      if(BETAFITFFKEY.FullReco || ptrack->checkstatus(AMSDBc::USED)==0){        
-   // Now TOF hits 
 
-     AMSTOFCluster * phit[4]={0,0,0,0};
-     number sleng[4];
-     if(BETAFITFFKEY.pattern[patb]){
-      phit[0]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][0]-1);
-      while( phit[0]){
-       number chi2space=0;
-       if(phit[0]->checkstatus(AMSDBc::BAD)==0 && (BETAFITFFKEY.FullReco || phit[0]->checkstatus(AMSDBc::USED)==0) ){
-           AMSPoint dst=AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
-           ptrack,sleng[0],td);
-        if(dst<SearchReg){
+// Loop first on tracks with K-hits, second on FalseTOFX
+   for( int Sonly=0; Sonly<2; Sonly++){
+
+// Loop on track patterns
+    for( int patt=0; patt<npat; patt++){
+
+// Loop on tracks
+     AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",patt);
+     for ( ; ptrack ; ptrack=ptrack->next()) {
+
+       if (Sonly==0 && ptrack->checkstatus(AMSDBc::FalseTOFX)) continue;
+       if (Sonly==1 && !ptrack->checkstatus(AMSDBc::FalseTOFX)) continue;
+       if(!BETAFITFFKEY.FullReco && ptrack->checkstatus(AMSDBc::USED)) continue;
+       AMSTOFCluster * phit[4]={0,0,0,0};
+       number sleng[4];
+
+// Loop on first TOF plane
+       phit[0]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][0]-1);
+       for ( ; phit[0]; phit[0]=phit[0]->next()) {
+         number chi2space=0;
+         if(phit[0]->checkstatus(AMSDBc::BAD)) continue;
+         if (!BETAFITFFKEY.FullReco && !ptrack->checkstatus(AMSDBc::FalseTOFX)) {
+           if (phit[0]->checkstatus(AMSDBc::USED)) continue;
+         }
+         AMSPoint dst=AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
+         ptrack,sleng[0],td);
+         if (dst>=SearchReg) continue;
          chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
+
+// Loop on second TOF plane
          phit[1]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][1]-1);
-         while( phit[1]){
-          if(phit[1]->checkstatus(AMSDBc::BAD)==0 &&(BETAFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0) ){
+         for ( ; phit[1]; phit[1]=phit[1]->next()) {
+           if(phit[1]->checkstatus(AMSDBc::BAD)) continue;
+           if (!BETAFITFFKEY.FullReco && !ptrack->checkstatus(AMSDBc::FalseTOFX)) {
+             if (phit[1]->checkstatus(AMSDBc::USED)) continue;
+           }
            AMSPoint dst=AMSBeta::Distance(phit[1]->getcoo(),phit[1]->getecoo(),
            ptrack,sleng[1],td);
-           if(dst<SearchReg){
-            chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
-            if(AMSBeta::patpoints[patb] >2){
-             phit[2]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][2]-1);
-             while( phit[2]){
-              if(phit[2]->checkstatus(AMSDBc::BAD)==0 && (BETAFITFFKEY.FullReco || phit[2]->checkstatus(AMSDBc::USED)==0 )){
-               AMSPoint dst=AMSBeta::Distance(phit[2]->getcoo(),phit[2]->
-               getecoo(),ptrack,sleng[2],td);
-               if(dst < SearchReg){
-                chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
-                if(AMSBeta::patpoints[patb] >3){
-                phit[3]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][3]-1);
-                while( phit[3]){
-                if(phit[3]->checkstatus(AMSDBc::BAD)==0 &&(BETAFITFFKEY.FullReco || phit[3]->checkstatus(AMSDBc::USED)==0 )){
-                 AMSPoint dst=AMSBeta::Distance(phit[3]->getcoo(),phit[3]->
-                 getecoo(),ptrack,sleng[3],td);
-                 if(dst < SearchReg){
-                 chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
-                   //4  point combination found
-                  if(AMSBeta::_addnext(patb,4,sleng,phit,ptrack,theta,chi2space)){
-                   goto out;
-                  }
-                 
-                 }        
-                }
-                phit[3]=phit[3]->next();
-                }
-                }
-                else{
-                   //3  point combination found
-                  if(AMSBeta::_addnext(patb,3,sleng,phit,ptrack,theta,chi2space))goto out;
-
-                }     
-               }
-              }
-              phit[2]=phit[2]->next();
-             }
-            }
-            else{
-                   //2  point combination found
-                  if(AMSBeta::_addnext(patb,2,sleng,phit,ptrack,theta,chi2space))goto out;
-            }  
+           if (dst>=SearchReg) continue;
+           chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
+// 2-point combination found
+           if(AMSBeta::patpoints[patb]==2){
+             if(AMSBeta::_addnext(patb,2,sleng,phit,ptrack,theta,chi2space))
+               goto nexttrack;
+             continue;
            }
-          }
-          phit[1]=phit[1]->next();
-         }  
-        }
+
+// Loop on third TOF plane
+           phit[2]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][2]-1);
+           for ( ; phit[2]; phit[2]=phit[2]->next()) {
+             if(phit[2]->checkstatus(AMSDBc::BAD)) continue;
+             if (!BETAFITFFKEY.FullReco && !ptrack->checkstatus(AMSDBc::FalseTOFX)) {
+             if (phit[2]->checkstatus(AMSDBc::USED)) continue;
+               }
+             AMSPoint dst=AMSBeta::Distance(phit[2]->getcoo(),phit[2]->
+             getecoo(),ptrack,sleng[2],td);
+             if(dst>=SearchReg) continue;
+             chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
+// 3-point combination found
+             if(AMSBeta::patpoints[patb]==3){
+               if(AMSBeta::_addnext(patb,3,sleng,phit,ptrack,theta,chi2space))
+                 goto nexttrack;
+               continue;
+             }
+
+// Loop on fourth TOF plane
+             phit[3]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][3]-1);
+             for ( ; phit[3]; phit[3]=phit[3]->next()) {
+               if(phit[3]->checkstatus(AMSDBc::BAD)) continue;
+               if (!BETAFITFFKEY.FullReco && !ptrack->checkstatus(AMSDBc::FalseTOFX)){
+                 if (phit[3]->checkstatus(AMSDBc::USED)) continue;
+               }
+               AMSPoint dst=AMSBeta::Distance(phit[3]->getcoo(),phit[3]->
+               getecoo(),ptrack,sleng[3],td);
+               if(dst>=SearchReg) continue;
+               chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
+// 4-point combination found
+               if(AMSBeta::_addnext(patb,4,sleng,phit,ptrack,theta,chi2space))
+                 goto nexttrack;
+               continue;
+             }
+           }
+         }
        }
-       phit[0]=phit[0]->next();
-      }
-      
+nexttrack: 
+       continue;
      }
-      }
-out:
-     ptrack=ptrack->next();
     }
    }
-  }
+ }
+
 return 1;
 }
 
@@ -141,34 +153,46 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
     pbeta->SimpleFit(nhit, sleng);
     if(pbeta->getchi2()< BETAFITFFKEY.Chi2 && fabs(pbeta->getbeta())<1.41){
       // Mark Track as used
-         if(ptrack->checkstatus(AMSDBc::RELEASED))
-         ptrack->setstatus(AMSDBc::AMBIG);
-         if(ptrack->checkstatus(AMSDBc::USED))
-         ptrack->setstatus(AMSDBc::AMBIG);
+         if(ptrack->checkstatus(AMSDBc::USED)) 
+           ptrack->setstatus(AMSDBc::AMBIG);
+         if(ptrack->checkstatus(AMSDBc::RELEASED)) 
+           ptrack->setstatus(AMSDBc::AMBIG);
          ptrack->setstatus(AMSDBc::USED);
-         // Mark hits as USED
+      // Mark TOF hits as USED
          int i;
          for( i=0;i<nhit;i++){
-           if(pthit[i]->checkstatus(AMSDBc::USED))
-           pthit[i]->setstatus(AMSDBc::AMBIG);
+           if(pthit[i]->checkstatus(AMSDBc::USED)) 
+             pthit[i]->setstatus(AMSDBc::AMBIG);
            if(pthit[i]->checkstatus(AMSDBc::RELEASED))
-           pthit[i]->setstatus(AMSDBc::AMBIG);
+             pthit[i]->setstatus(AMSDBc::AMBIG);
            pthit[i]->setstatus(AMSDBc::USED);
          }
+
+/* RELEASE hits for 1234, 123, 234 patters if beta is too low */
+/* and wait for use with pattern 23 */
          if(fabs(pbeta->getbeta()) < BETAFITFFKEY.LowBetaThr && pat !=7){
            //release track
-          ptrack->clearstatus(AMSDBc::USED);
-          ptrack->setstatus(AMSDBc::RELEASED);
-          // release hits if pat # 7 and low beta
-          for( i=0;i<nhit;i++){
-           if(pthit[i]->getntof() ==2)pthit[i]->clearstatus(AMSDBc::USED);
-           if(pthit[i]->getntof() ==3)pthit[i]->clearstatus(AMSDBc::USED);
-           if(pthit[i]->getntof() ==2)pthit[i]->setstatus(AMSDBc::RELEASED);
-           if(pthit[i]->getntof() ==3)pthit[i]->setstatus(AMSDBc::RELEASED);
-          }
+           ptrack->clearstatus(AMSDBc::USED);
+           ptrack->setstatus(AMSDBc::RELEASED);
+           // release hits if pat # 7 and low beta
+           for( i=0;i<nhit;i++){
+            if(pthit[i]->getntof() ==2)pthit[i]->clearstatus(AMSDBc::USED);
+            if(pthit[i]->getntof() ==3)pthit[i]->clearstatus(AMSDBc::USED);
+            if(pthit[i]->getntof() ==2)pthit[i]->setstatus(AMSDBc::RELEASED);
+            if(pthit[i]->getntof() ==3)pthit[i]->setstatus(AMSDBc::RELEASED);
+           }
           // set AMBIG flag on beta here if pat = 0,1 or 4
-          if(pat==0 || pat==1 || pat==4)pbeta->setstatus(AMSDBc::AMBIG);
+           if(pat==0 || pat==1 || pat==4)pbeta->setstatus(AMSDBc::AMBIG);
          }                  
+
+/* Set the ambiguity bit for tracks sharing the same TOF hits */
+/* This is necessary for FalseTOFX tracks */
+         for (i=0;i<nhit;i++){
+           if (pthit[i]->checkstatus(AMSDBc::AMBIG)) {
+             pbeta->setstatus(AMSDBc::AMBIG);
+           }
+         }
+
          // permanently add;
          
 #ifdef __UPOOL__
@@ -176,7 +200,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 #endif
           AMSEvent::gethead()->addnext(AMSID("AMSBeta",pat),pbeta);
           return 1;
-    }   
+   }
 #ifndef __UPOOL__
        delete pbeta;
 #endif

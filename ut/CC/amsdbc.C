@@ -5,11 +5,21 @@
 #include <amsstl.h>
 //
 
+const integer AMSDBc::REFITTED=1;
+const integer AMSDBc::WIDE=2;
 const integer AMSDBc::AMBIG=4;
+const integer AMSDBc::RELEASED=8;
 const integer AMSDBc::BAD=16;
 const integer AMSDBc::USED=32;
 const integer AMSDBc::DELETED=64;
-const integer AMSDBc::RELEASED=64;
+const integer AMSDBc::BADHIS=128;
+const integer AMSDBc::ONESIDE=256;
+const integer AMSDBc::BADTIME=512;
+const integer AMSDBc::NEAR=1024;
+const integer AMSDBc::WEAK=2048;
+const integer AMSDBc::AwayTOF=4096;
+const integer AMSDBc::FalseX=8192;
+const integer AMSDBc::FalseTOFX=16384;
 
 integer AMSDBc::debug=1;
 integer AMSDBc::BigEndian=0;

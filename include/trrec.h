@@ -69,11 +69,6 @@ static void _addnext(const AMSTrIdSoft& id, integer status, integer nelemL,
 
 
 public:
-     static const integer WIDE;
-     static const integer NEAR;
-     static const integer REFITTED;
-     static const integer WEAK;
-     static const integer AwayTOF;
 static integer Out(integer);
 number getVal(){return _Sum;}
 number getcofg(integer side, AMSTrIdGeom * id);
@@ -121,9 +116,9 @@ integer operator < (AMSlink & o) const {
   AMSTrCluster * p= (AMSTrCluster*)(&o);
 
  integer ithis =   (!checkstatus(AMSDBc::USED))
-                 + 2*(checkstatus(AMSTrCluster::AwayTOF));
+                 + 2*(checkstatus(AMSDBc::AwayTOF));
  integer iother =   (!p->checkstatus(AMSDBc::USED))
-                  + 2*(p->checkstatus(AMSTrCluster::AwayTOF));
+                  + 2*(p->checkstatus(AMSDBc::AwayTOF));
 
  if (ithis<iother)return 1;
  else return 0;
@@ -134,9 +129,6 @@ integer operator < (AMSlink & o) const {
 
 class AMSTrRecHit: public AMSlink{
 public:
-     static const integer FalseX;
-     static const integer FalseTOFX;
-     static const integer AwayTOF;
 protected:
 AMSgSen * _pSen;
 AMSTrCluster *_Xcl;
@@ -161,9 +153,9 @@ integer operator < (AMSlink & o) const {
   AMSTrRecHit * p= (AMSTrRecHit*)(&o);
 
   integer ithis =   (!checkstatus(AMSDBc::USED))
-                  + 2*(checkstatus(AMSTrRecHit::AwayTOF));
+                  + 2*(checkstatus(AMSDBc::AwayTOF));
   integer iother =   (!p->checkstatus(AMSDBc::USED))
-                   + 2*(p->checkstatus(AMSTrRecHit::AwayTOF));
+                   + 2*(p->checkstatus(AMSDBc::AwayTOF));
 
   if (ithis<iother)return 1;
   else return 0;
@@ -174,7 +166,7 @@ integer operator < (AMSlink & o) const {
 
 inline integer Good() { 
   return (TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0) 
-            && checkstatus(AMSTrRecHit::AwayTOF)==0;
+            && checkstatus(AMSDBc::AwayTOF)==0;
 }
 static integer markAwayTOFHits();
 

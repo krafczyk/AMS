@@ -106,8 +106,8 @@ integer AMSCharge::build(integer refit){
           AMSPoint SenPnt=phit->getHit();
            ptrack->interpolate(SenPnt, SenDir, P1, theta, phi, sleng);
            AMSDir DTr(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));
-           int good=!phit->checkstatus(AMSTrRecHit::FalseX) && 
-             !phit->checkstatus(AMSTrRecHit::FalseTOFX);
+           int good=!phit->checkstatus(AMSDBc::FalseX) && 
+             !phit->checkstatus(AMSDBc::FalseTOFX);
            geant sum=phit->getsum();
            _TrMeanTracker+=good?sum:2*sum;
            if(smax<good?sum:2*sum)smax=good?sum:2*sum;
@@ -182,7 +182,7 @@ void AMSCharge::Fit(number rid, integer nhitTOF, integer nhitTracker,
   _ChargeTOF=_chargeTOF[iTOF];
   _ChargeTracker=_chargeTracker[iTracker];
   if(_refit(rid,EdepTOF,nhitTOF)){
-   setstatus(1);
+   setstatus(AMSDBc::REFITTED);
    number beta=fabs(_pbeta->getbeta());    
    if(beta < 1 && beta !=0){
     number momentum=fabs(rid*(_ChargeTOF+_ChargeTracker)/2);

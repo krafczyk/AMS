@@ -1808,9 +1808,9 @@ void AMSEvent::_collectstatus(){
       else srig=3;
       _status=_status | (srig<<23);
       uinteger trquality;
-      if(ptr->checkstatus(AMSTrRecHit::FalseTOFX))trquality=3;
-      else if( ptr->checkstatus(AMSTrRecHit::FalseX))trquality=2;
-      else if(ptr->checkstatus(AMSTrCluster::WEAK) )trquality=1;
+      if(ptr->checkstatus(AMSDBc::FalseTOFX))trquality=3;
+      else if( ptr->checkstatus(AMSDBc::FalseX))trquality=2;
+      else if(ptr->checkstatus(AMSDBc::WEAK) )trquality=1;
       else trquality=0;   
       _status=_status | (trquality<<25);
     }
