@@ -33,5 +33,5 @@ extern "C" void tkfitpar_(geant init[7], geant & chrg, geant point[6],
 
 extern "C" void initDB();
 extern "C" void readDB();
-extern "C" void readGeomDB();
-extern "C" void writeGeomDB();
+extern "C" void readSetup();
+extern "C" void writeSetup();

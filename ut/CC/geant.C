@@ -91,6 +91,7 @@ class AMSEventList;
 #include <anticlusterV_ref.h>
 #include <anticlusterV.h>
 
+
 //#include <timeidD_ref.h>
 //#include <timeidD.h>
 
@@ -143,8 +144,8 @@ extern "C" void uginit_(){
   GPIONS(4);
 #ifdef __DB__
    initDB();
-   readGeomDB();
-   dbout.CheckConstants();
+   readSetup();
+   if ((AMSFFKEY.Read%2) == 1) dbout.CheckConstants();
 #else
    AMSgmat::amsmat();
    AMSgvolume::amsgeom();
@@ -157,8 +158,8 @@ GDINIT();
 #endif
 
 #ifdef __DB__
-  dbout.CheckCommons();
-  writeGeomDB();
+  if ((AMSFFKEY.Read%2) == 1) dbout.CheckCommons();
+  writeSetup();
 #endif
 
   GPHYSI();
@@ -512,7 +513,7 @@ ooStatus               rstatus;
 #endif
 }
 
-extern "C" void writeGeomDB(){
+extern "C" void writeSetup(){
 
 #ifdef __DB__
      if ( (AMSFFKEY.Write%2) == 1) {
@@ -531,7 +532,7 @@ extern "C" void writeGeomDB(){
 #endif
 }
 
-extern "C" void readGeomDB(){
+extern "C" void readSetup(){
 
 #ifdef __DB__
 
