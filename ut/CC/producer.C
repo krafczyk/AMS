@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.69 2003/05/13 15:12:05 choutko Exp $
+//  $Id: producer.C,v 1.70 2003/05/14 17:00:24 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -120,7 +120,9 @@ again:
        sleep(10);
       if(!((*li)->sendId(_pid,cput))){
        // dieHard
-       FMessage("Server Requested Termination after sendID ",DPS::Client::SInAbort);
+       AString pc="Server Requested Termination after sendID Because Of ";
+       pc+=(const char*)_pid.Interface;
+       FMessage((const char*)pc,DPS::Client::SInAbort);
       }
      }
      IMessage(AMSClient::print(_pid,"sendID-I-Success"));

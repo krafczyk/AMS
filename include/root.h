@@ -1,9 +1,6 @@
-//  $Id: root.h,v 1.85 2003/05/13 11:35:30 choutko Exp $
+//  $Id: root.h,v 1.86 2003/05/14 17:00:41 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
-//#define __WRITEROOT__
-//#define __ROOTSHAREDLIBRARY__
-#ifdef __WRITEROOT__
 #include <TObject.h>
 #include <TTree.h>
 #include <TFile.h>
@@ -227,12 +224,13 @@ public:
   float SideLeak;  ///< side leak estimation (mev)
   float DeadLeak;  ///<  dead hit leak est (mev)
   float Coo[3];    ///< cluster coo (cm)
-  int NHits;       ///< number of hits in cluster
 protected:
   vector <int> fEcalHit;   ///< pointers to EcalHitR collection, protected
 public:
-  /// access function to EcalHitR collection  
-  /// \sa AMSEventR  EcalHitR
+  /// access function to EcalHitR objects used
+  /// \return number of EcalHitR used
+  int NEcalHit()const {return fEcalHit.size();}
+  /// access function to EcalHitR objects used
   /// \param i index of fEcalHit vector
   /// \return index of EcalHitR object in collection or -1
   int EcalHit(unsigned int i){return i<fEcalHit.size()?fEcalHit[i]:-1;}
@@ -259,7 +257,6 @@ class Ecal2DClusterR: public TObject {
 public:
   int Status;   ///< statusword
   int Proj;     ///< projection 0-x 1-y
-  int Nmemb;    ///< number of 1d clusters
   float Edep;   ///< energy (mev)
   float Coo;    ///< str line fit coo (cm)
   float Tan;    ///< str line fit tangent
@@ -268,13 +265,15 @@ public:
 protected:
   vector <int> fEcalCluster;   ///< indexes of EcalClsterR collection
 public:
+  /// access function to EcalClusterR objects used
+  /// \return number of EcalClusterR used
+  int NEcalCluster()const {return fEcalCluster.size();}
   /// access function to EcalClusterR collection  
-  /// \sa AMSEventR  EcalClusterR
-  /// \param i index of fEcalCluster vector  < Nmemb
+  /// \param i index of fEcalCluster vector  
   /// \return index of EcalClusterR collection or -1
   int EcalCluster(unsigned int i){return i<fEcalCluster.size()?fEcalCluster[i]:-1;}
   /// access function to EcalClusterR collection   
-  /// \param i index of fEcalCluster vector < Nmemb
+  /// \param i index of fEcalCluster vector 
   /// \return pointer to EcalClusterR collection or 0
   EcalClusterR * pEcalCluster(unsigned int i);
 
@@ -320,13 +319,14 @@ public:
   float ParProfile[4]; ///< normalization, shower max (cm), rad length, rel rear leak ) for profile fit
   float Chi2Trans;     ///< chi2 transverse fit (sum of two exp)
   float SphericityEV[3]; ///< sphericity tensor eigen values
-  int   N2dCl;            ///< number of Ecal2DClusterR attached
 
 protected:
   vector <int> fEcal2DCluster;  ///< indexes to Ecal2DClusterR collection
 public:
+  /// access function to Ecal2DClusterR objects used
+  /// \return number of Ecal2DClusterR used
+  int NEcal2DCluster()const {return fEcal2DCluster.size();}
   /// access function to Ecal2DClusterR objects
-  /// \sa AMSEventR  Ecal2DClusterR
   /// \param i index of fEcal2DCluster vector
   /// \return index of Ecal2DClusterR object in collection or -1
   int Ecal2DCluster(unsigned int i){return i<fEcal2DCluster.size()?fEcal2DCluster[i]:-1;}
@@ -483,7 +483,6 @@ public:
    */
   int Layer;    ///<  Tof plane 1(top)...4
   int Bar;      ///< Tof Bar number 1...14
-  int Nmemb;   ///< number of TofRawClusters (max 3)
   float Edep;  ///< TOF energy loss (MeV) from anode
   float Edepd; ///< TOF energy loss (MeV) from dinode
   float Time;  ///<TOF time (sec, wrt FastTrig-time)
@@ -493,8 +492,10 @@ public:
 protected:
   vector<int> fTofRawCluster;   //indexes of TofRawclusterR's current object is made of.
 public:
-  /// access function to TofRawClusterR's   current object is made of.
-  /// \sa AMSEventR  TofRawClusterR
+  /// access function to TofRawClusterR objects used
+  /// \return number of TofRawClusterR used
+  int NTofRawCluster()const {return fTofRawCluster.size();}
+  /// access function to TofRawClusterR    used
   /// \param i index of fTofRawCluster vector
   /// \return index of TofRawClusterR object in TofRawCluster collection or -1
   int TofRawCluster(unsigned int i){return i<fTofRawCluster.size()?fTofRawCluster[i]:-1;}
@@ -663,7 +664,6 @@ public:
   int Status;   ///< statusword \sa TrClusterR
   int Pattern;  ///< see datacards.doc
   int Address;  ///< ladders combination code (see trrec.C buildaddress)
-  int NHits;     ///< number of hits 
   float LocDBAver;   ///< mean ratio of true momentum to measured one from testbeam
   int   GeaneFitDone; ///<  != 0 if done
   int   AdvancedFitDone;  ///< != 0 if done
@@ -694,8 +694,10 @@ public:
 protected:
   vector<int> fTrRecHit;
 public:
-  /// access function to TrRecHitR objects
-  /// \sa AMSEventR  TrRecHitR
+  /// access function to TrRecHitR objects used
+  /// \return number of TrRecHitR used
+  int NTrRecHit()const {return fTrRecHit.size();}
+  /// access function to TrRecHitR objects used
   /// \param i index of fTrRecHit vector
   /// \return index of TrRecHitR object in collection or -1
   int TrRecHit(unsigned int i){return i<fTrRecHit.size()?fTrRecHit[i]:-1;}
@@ -745,7 +747,6 @@ public:
   int fTrdRawHit;   ///< pointer to trdrawhit with max ampl
   public:
   /// access function to TrdRawHitR object used
-  /// \sa AMSEventR  TrdRawHitR
   /// \return index of TrdRawHitR object in collection or -1
   int TrdRawHit()const {return fTrdRawHit;}
   /// access function to TrdRawHitR object used
@@ -771,13 +772,14 @@ public:
   float FitPar[2];         ///< str line fit pars
   float Chi2;              ///< str line chi2
   int   Pattern;           ///< segment pattern no
-  int   Nhits;             ///< number of clusters in segment
  
   protected:
   vector<int> fTrdCluster;   // used TrdClusterR's indexes
   public:
-  /// access function to TrdClusterR collection  
-  /// \sa AMSEventR  TrdClusterR
+  /// access function to TrdClusterR objects used
+  /// \return number of TrdClusterR used
+  int NTrdCluster()const {return fTrdCluster.size();}
+  /// access function to TrdClusterR objects used
   /// \param i index of fTrdCluster vector
   /// \return index of TrdClusterR object in collection or -1
   int TrdCluster(unsigned int i){return i<fTrdCluster.size()?fTrdCluster[i]:-1;}
@@ -807,13 +809,14 @@ public:
   float Phi;     ///<  phi (rads)
   float Theta;   ///< Theta
   float Chi2;   ///<  Chi2
-  int   NSeg;   ///< number of segments in track
   int   Pattern;  ///< pattern no
   protected:
   vector<int> fTrdSegment;
   public:
-  /// access function to TrdSegmentR collection  
-  /// \sa AMSEventR  TrdSegmentR
+  /// access function to TrdSegmentR objects used
+  /// \return number of TrdSegmentR used
+  int NTrdSegment()const {return fTrdSegment.size();}
+  /// access function to TrdSegmentR objects used
   /// \param i index of fTrdSegment vector
   /// \return index of TrdSegmentR object in collection or -1
   int TrdSegment(unsigned int i){return i<fTrdSegment.size()?fTrdSegment[i]:-1;}
@@ -1430,6 +1433,7 @@ ClassDef(MCEventgR,1)       //MCEventgR
         corresponding  collection. This element may be later accessed by functions described above.
       - XYZ* pXYZ(int i=0) return pointer to i-th used XYZR element or 0.
         For advanced users only.
+      -  (optionally)  int NXYZ() const returns number of XYZR objects used
 
     \author v.choutko@cern.ch
 */
@@ -2486,7 +2490,6 @@ ClassDef(AMSEventR,1)       //AMSEventR
 
 
 
-#endif
 #endif
 
 

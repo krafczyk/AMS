@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.90 2003/05/02 09:28:08 choutko Exp $
+//  $Id: server.C,v 1.91 2003/05/14 17:00:25 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -2465,6 +2465,8 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
          //  run not found, aborting client
         _parent->EMessage(AMSClient::print(cid,"Producer_impl::sendId-E-RegClientNotFoundAndForeignClientTestFailed "));
          cid.uid=0;
+         if(dstinfo->DieHard==1)cid.Interface=(const char*)"AnotherInstanceOfMCProducerActiveWaitForTimeOutIfCrashed";
+         else cid.Interface=(const char*)"DBProblemFound";
          return false;
         }
         else {
@@ -2476,6 +2478,7 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
        else _parent->EMessage(AMSClient::print(cid,"Producer_impl::sendId-E-RegClientNotFound "));
 //         cid.uid=0;
 //         cout <<" exiting Producer_impl::sendId 3"<<endl;
+           cid.Interface=(const char*)" RegisteredClientNotFound";
      return false;
 
 

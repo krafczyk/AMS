@@ -5,6 +5,9 @@
 #include <TChain.h>
 #include <TFile.h>
 #include <TSelector.h>
+#include <TF1.h>
+#include <TH2.h>
+
 #include "/offline/vdev/include/root_RVS.h"
    const Int_t kMaxevroot02 = 1;
 
@@ -36,10 +39,19 @@ class stlv : public TSelector {
    TTree          *fChain;   ///<pointer to the analyzed TTree or TChain
    AMSEventR      ev;        ///< AMSEventR instance      
    
-   
 
-   stlv(TTree *tree=0){ };
-   ~stlv() {  }
+//  some Services for (future) Use
+//
+   
+    TFile *pOutFile;    ///<Pointer to TFile to store histos etc.
+    vector<TH1F*>   h1A;   ///< An (alt) way of having array of histos
+    
+   stlv(TTree *tree=0):pOutFile(0){ };
+
+   ~stlv() { 
+    for(unsigned int i=0;i<h1A.size();i++)delete h1A[i];
+        h1A.clear(); 
+   }
 
    /// User Function called before starting the event loop.
    /// Initialize the tree branches.
@@ -73,6 +85,7 @@ class stlv : public TSelector {
 #ifdef stlv_cxx
 void stlv::Init(TTree *tree)
 {
+    cout << " init called "<<endl;
 //   Set branch addresses
    if (tree == 0) return;
    fChain    = tree;
@@ -85,6 +98,7 @@ void stlv::Init(TTree *tree)
 
 Bool_t stlv::Notify()
 {
+    cout << " notify called "<<endl;
    // Called when loading a new file.
    // Get branch pointers.
    

@@ -21,13 +21,15 @@ static    TStopwatch  * _pw;
 
 
 
+//create here pointers to histos and/or array of histos
 
-//create here pointers to histos and array of histos
     TH1F * acc[20]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; 
 
 
 
+
 void stlv::Begin(TTree *tree){
+    cout << " Begin called "<<endl;
    // User Function called before starting the event loop.
    // Initialize the tree branches.
    // Book Histos
@@ -35,24 +37,34 @@ void stlv::Begin(TTree *tree){
 
    TString option = GetOption();
 
+   // open file if...
+   
+   if(option.Length()>1){
+    pOutFile=new TFile(option,"RECREATE");
+    cout <<" write file opened"<<endl;
+   }
+
    //here create histograms
 
-   Float_t al1=log(0.5);
-   Float_t al2=log(200.);
-   Int_t nch=12;
-   Float_t step=(al2-al1)/nch; 
-   
-    for (Int_t j = 0; j < 20; j++) {
-      char AccName[80];
-      sprintf(AccName,"acc%d",(j+1));
+   float al1=log(0.5);
+   float al2=log(200.);
+   int nch=12;
+    
+    for (int j = 0; j < sizeof(acc)/sizeof(acc[0]); j++) {
+      char AccName[255];
+      sprintf(AccName,"acc%03d",j);
       if(acc[j])delete acc[j];
       acc[j] = new TH1F(AccName,"acceptance",nch,al1,al2);
-   
+//
+//    another way of def histos
+//
+      sprintf(AccName,"accv%03d",j);
+      h1A.push_back(new TH1F(AccName,"acceptance",nch,al1,al2));         
    } 
    
      
    
-          _pw =new TStopwatch();
+        _pw =new TStopwatch();
         _pw->Start(); 
    
    
@@ -69,10 +81,10 @@ Bool_t stlv::ProcessCut(Int_t entry)
    // May return kFALSE as soon as a bad entry is detected.
    // Should Not be modified by (Non)Advanced User
 
-   ev.ReadHeader(entry);
+  ev.ReadHeader(entry);
 
    return kTRUE;
-}
+ }
 
 void stlv::ProcessFill(Int_t entry)
 {
@@ -80,23 +92,20 @@ void stlv::ProcessFill(Int_t entry)
    // Entry is the entry number in the current tree.
    // Fills histograms.
    
-
-    
-       
     
     Float_t xm=0;
     if(ev.nMCEventg()>0){		
      MCEventgR mc_ev=ev.MCEventg(0);
       xm = log(mc_ev.Momentum);
       acc[0]->Fill(xm,1);
+      h1A[0]-> Fill(xm,1);
      if(ev.nParticle()>0){
-       
        int ptrack = ev.Particle(0).TrTrack();
        int ptrd = ev.Particle(0).TrdTrack();
-       
-       
+        cout <<"qq"<<ptrack<<ev.nParticle()<<ev.NParticle()<<" "<<ev.Particle(0).Momentum<<" "<<endl;
        if(ev.NParticle()== 1 && ptrack>=0 && ptrd>=0){ //final if
          acc[1]->Fill(xm,1);
+         h1A[1]-> Fill(xm,1);
      
         int pbeta = ev.Particle(0).iBeta();   // here iBeta, not Beta
        
@@ -119,7 +128,7 @@ void stlv::ProcessFill(Int_t entry)
 
                   TrRecHitR* pph=tr_tr.pTrRecHit(tr_tr.NHits-1);
                   int l2=pph->Layer;
-         
+                           
 }
 }
 }
@@ -134,5 +143,8 @@ void stlv::Terminate()
 
   _pw->Stop();
    cout <<_pw->CpuTime()<<endl;
-
+   if(pOutFile){
+     pOutFile->Write();
+     pOutFile->Close();
+   }
 }

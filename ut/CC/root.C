@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.41 2003/05/12 13:11:18 choutko Exp $
+//  $Id: root.C,v 1.42 2003/05/14 17:00:25 choutko Exp $
 //
 #include <root.h>
 #include <ntuple.h>
@@ -1051,7 +1051,6 @@ Ecal2DClusterR::Ecal2DClusterR(AMSEcal2DCluster *ptr) {
 #ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->getstatus();
   Proj   = ptr->_proj;
-  Nmemb  = ptr->_NClust;
   Edep   = ptr->_EnergyC;
   Coo    = ptr->_Coo;
   Tan    = ptr->_Tan;
@@ -1071,7 +1070,6 @@ EcalClusterR::EcalClusterR(Ecal1DCluster *ptr){
   SideLeak = ptr->_SideLeak;
   DeadLeak = ptr->_DeadLeak;
   for (int i=0; i<3; i++) {Coo[i] = ptr->_Coo[i];}
-  NHits = ptr->_NHits;
 #endif
 }
 
@@ -1104,7 +1102,6 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
   for (int i=0; i<4; i++) ParProfile[i] = ptr->_ProfilePar[i+ptr->_Direction*5];
   Chi2Trans = ptr->_TransFitChi2;
   for (int i=0; i<3; i++) SphericityEV[i] = ptr->_SphericityEV[i];
-  N2dCl       = ptr->_N2dCl;
 #endif
 }
 
@@ -1254,7 +1251,6 @@ TofClusterR::TofClusterR(AMSTOFCluster *ptr){
   Status = ptr->_status;
   Layer  = ptr->_ntof;
   Bar    = ptr->_plane;
-  Nmemb  = ptr->_nmemb;
   Edep   = ptr->_edep;
   Edepd  = ptr->_edepd;
   Time   = ptr->_time;
@@ -1334,7 +1330,6 @@ TrdSegmentR::TrdSegmentR(AMSTRDSegment *ptr){
   for (int i=0; i<2; i++) {FitPar[i] = ptr->_FitPar[i];}
   Chi2          = ptr->_Chi2;
   Pattern       = ptr->_Pattern;
-  Nhits         = ptr->_NHits;
 #endif
 }
 
@@ -1348,7 +1343,6 @@ TrdTrackR::TrdTrackR(AMSTRDTrack *ptr){
   Phi   = ptr->_StrLine._Phi;
   Theta = ptr->_StrLine._Theta;
   Chi2  = ptr->_StrLine._Chi2;
-  NSeg  = ptr->_BaseS._NSeg;
   Pattern = ptr->_BaseS._Pattern;
 #endif
 }
@@ -1419,7 +1413,6 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
   Status    = ptr->_status;
   Pattern   = ptr->_Pattern;
   Address   = ptr->_Address;
-  NHits     = ptr->_NHits;
 
   LocDBAver       = ptr->_Dbase[0];
   GeaneFitDone    = ptr->_GeaneFitDone;

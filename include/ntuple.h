@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.83 2003/05/09 16:00:15 choutko Exp $
+//  $Id: ntuple.h,v 1.84 2003/05/14 17:00:41 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -46,8 +46,9 @@ using namespace root;
 #include <trddbc.h>
 #include <ecaldbc.h>
 #include <antidbc02.h>
+#ifdef __WRITEROOT__
 #include <root.h>
-
+#endif
 
 class BetaNtuple02 {
 public:

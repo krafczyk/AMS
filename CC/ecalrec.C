@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.83 2003/05/12 21:40:31 choutko Exp $
+//  $Id: ecalrec.C,v 1.84 2003/05/14 17:00:23 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -948,7 +948,7 @@ void Ecal1DCluster::_writeEl(){
 void Ecal1DCluster::_copyEl(){
 #ifdef __WRITEROOT__ 
  if(PointerNotSet())return; 
- EcalClusterR ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->EcalCluster(_vpos);
+ EcalClusterR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->EcalCluster(_vpos);
     for (int i=0; i<_NHits; i++) {
        if(_pHit[i])ptr.fEcalHit.push_back(_pHit[i]->GetClonePointer());
   }
@@ -1318,7 +1318,7 @@ void AMSEcal2DCluster::_writeEl(){
 void AMSEcal2DCluster::_copyEl(){
 #ifdef __WRITEROOT__
  if(PointerNotSet())return;
-  Ecal2DClusterR ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->Ecal2DCluster(_vpos);
+  Ecal2DClusterR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->Ecal2DCluster(_vpos);
     for (int i=0; i<_NClust; i++) {
       if(_pCluster[i])ptr.fEcalCluster.push_back(_pCluster[i]->GetClonePointer());
     }
@@ -2697,7 +2697,7 @@ void AMSEcalShower::_AttCorr(){
 void AMSEcalShower::_copyEl(){
 #ifdef __WRITEROOT__
  if(PointerNotSet())return;
- EcalShowerR ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->EcalShower(_vpos);
+ EcalShowerR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->EcalShower(_vpos);
     for (int i=0; i<_N2dCl; i++) {
        ptr.fEcal2DCluster.push_back(_pCl[i]->GetClonePointer());
    }

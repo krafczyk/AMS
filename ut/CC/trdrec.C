@@ -173,7 +173,7 @@ void AMSTRDCluster::_writeEl(){
 void AMSTRDCluster::_copyEl(){
 #ifdef __WRITEROOT__
  if(PointerNotSet())return;
-   TrdClusterR ptr=AMSJob::gethead()->getntuple()->Get_evroot02()->TrdCluster(_vpos);
+   TrdClusterR & ptr=AMSJob::gethead()->getntuple()->Get_evroot02()->TrdCluster(_vpos);
     if (_pmaxhit) ptr.fTrdRawHit= _pmaxhit->GetClonePointer();
     else ptr.fTrdRawHit=-1;
 #endif
@@ -407,7 +407,7 @@ void AMSTRDSegment::_writeEl(){
 void AMSTRDSegment::_copyEl(){
 #ifdef __WRITEROOT__
  if(PointerNotSet())return;
-  TrdSegmentR ptr =AMSJob::gethead()->getntuple()->Get_evroot02()->TrdSegment(_vpos); 
+  TrdSegmentR & ptr =AMSJob::gethead()->getntuple()->Get_evroot02()->TrdSegment(_vpos); 
    
     for (int i=0; i<_NHits; i++) {
       if (_pCl[i]) ptr.fTrdCluster.push_back(_pCl[i]->GetClonePointer());
@@ -571,7 +571,7 @@ void AMSTRDTrack::_writeEl(){
 void AMSTRDTrack::_copyEl(){
 #ifdef __WRITEROOT__
  if(PointerNotSet())return;
-  TrdTrackR ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->TrdTrack(_vpos);
+  TrdTrackR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->TrdTrack(_vpos);
     for (int i=0; i<_BaseS._NSeg; i++) {
        if(_BaseS._PSeg[i])ptr.fTrdSegment.push_back(_BaseS._PSeg[i]->GetClonePointer()); 
     }

@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.75 2003/05/13 11:05:14 choutko Exp $
+//  $Id: gbatch.C,v 1.76 2003/05/14 17:00:24 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -38,7 +38,14 @@ void (handler)(int);
  namespace glconst{
   integer cpul=1;
  }
- main(int argc, char * argv[] ){
+int main(int argc, char * argv[] ){
+for (char *pchar=0; argc>1 &&(pchar=argv[1],*pchar=='-'); (argv++,argc--)){
+  pchar++;
+  switch (*pchar){
+   case 'v':    //version , return buildno
+   return AMSCommonsI::getbuildno();
+  } 
+}
       using namespace gams;
      *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
