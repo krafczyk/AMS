@@ -1,6 +1,6 @@
                                                      Alexei Klimentov
                                                     (alexei.klimentov@cern.ch)
-Filename : dbase_objy.doc                            Last Edit : Feb 22, 1998.
+Filename : dbase_objy.doc                           Last Edit : March 12, 1998.
 
 
 
@@ -38,7 +38,7 @@ AMS Database prototype
 machines (federation of databases in Objectivity argo). The Database server 
 host machine is boronams.ethz.ch
  
- Federation has name LOM, the boot file is /DBase/trk/calib/boot/LOM. Database 
+ Federation has name LOM, the boot file is /offdata/database/boot/LOM. Database 
 applications use system name and boot file when referring to federated 
 database.
 
@@ -48,7 +48,7 @@ database.
  A schema is a physical representation of Objectivity/DB data model. With some 
 extent schemas are the translation of AMS C++ classes to Objectivity. 
 
- The production version of the databases is placed in  /DBase/trk/calib/dbs
+ The production version of the databases is placed in  /offdata/database/dbs
  (you can use the production database or build your own version) 
 
  Databases :
@@ -259,3 +259,15 @@ AddEvent
 //                      -2 - start&end trasaction
 //
 
+
+How to do backup :
+
+    setenv OO_FD_BOOT /offdata/database/boot/LOM
+    cd /offdata/database
+    oocreateset -set testBackup /offdata/database/boot/LOM
+    ls /offdata/database/boot
+    oobackup -set testBackup -backup 1stBackup -volume 1st -device /offdata/database/backup /offdata/database/boot/LOM
+    /usr0/users/alexei/AMS/exe/osf1/printTDV S TrackerPedestals.l
+   oorestore -set testBackup -backup 1stBackup -device /offdata/database/backup -volume 1st /offdata/database/boot/LOM
+   /usr0/users/alexei/AMS/exe/osf1/printTDV S TrackerPedestals.l
+   

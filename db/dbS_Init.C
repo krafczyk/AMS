@@ -63,7 +63,8 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
 
     _catdbH = db("DbList");
     ContainersC(_catdbH, dbTabH);
-    if (dbTabH == NULL) Fatal("ClusteringInit: catalog of databases not found");
+    if (dbTabH == NULL) 
+     Fatal("ClusteringInit: catalog of databases not found");
     _dbTabH = dbTabH;
     
     if (setup(mode)) {
