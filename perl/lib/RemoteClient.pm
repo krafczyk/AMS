@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.7 2002/03/11 16:23:43 choutko Exp $
+# $Id: RemoteClient.pm,v 1.8 2002/03/11 16:41:46 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -48,12 +48,17 @@ my %fields=(
     };
 
 foreach my $chop  (@ARGV){
-    if($chop =~/^-D/){
+    if($chop =~/^-d/){
         $self->{debug}=1;
     }
+    if($chop =~/^-N/){
+       $self->{Name}= unpack("x2 A*",$chop);
+    }
+
+
 }
      $self->{q}=new CGI;
-    $self->{Name}="/cgi-bin/mon/validate.cgi";
+#    $self->{Name}="/cgi-bin/mon/validate.cgi";
     my $mybless=bless $self,$type;
     if(ref($RemoteClient::Singleton)){
         croak "Only Single RemoteClient Allowed\n";
@@ -334,7 +339,7 @@ foreach my $file (@allfiles){
      my $cite={};
      my $i=0;
      foreach my $field (@{$fields}){
-      $cite->{$field}=$row->[$i++];
+      $cite->{lc($field)}=$row->[$i++];
      }
      push @{$self->{CiteT}}, $cite; 
     }
@@ -344,13 +349,15 @@ foreach my $file (@allfiles){
     $sql="select * from Mails";
      ($values, $fields)=$self->{sqlserver}->QueryAll($sql);
     foreach my $row (@{$values})  {
+     
      my $cite={};
      my $i=0;
      foreach my $field (@{$fields}){
-      $cite->{$field}=$row->[$i++];
+#         warn " fileds $field $row->[$i] \n";
+      $cite->{lc($field)}=$row->[$i++];
      }
      push @{$self->{MailT}}, $cite; 
-    }
+ }
 
 
 #try to get ior
@@ -655,7 +662,7 @@ sub Connect{
         $self->{ok}=1;
     }
  ; 
-    $self->{Name}="/cgi-bin/mon/rc.cgi";
+#    $self->{Name}="/cgi-bin/mon/rc.o.cgi";
 
 #understand parameters
 
@@ -692,7 +699,7 @@ sub Connect{
              print "<TR><B><font color=green size= 5> Select Form Type : </font>";
             }
             print "<p>\n";
-            print "<FORM METHOD=\"POST\" action=\"/cgi-bin/mon/rc.cgi\">\n";
+            print "<FORM METHOD=\"POST\" action=\"$self->{Name}\">\n";
             print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
             print "<tr><td>\n";
             print "<b><font color=\"magenta\" size=\"3\">User's Info </font><font size=\"2\"> (if in <i>italic</i> then cannot be changed)</font></b>\n";
@@ -939,7 +946,7 @@ sub Connect{
 # check form type
             if($self->{q}->param("CTT") eq "Basic"){
              htmlTop();
-             htmlTemplateTable("Select Basic Template File and Run Parameters");
+             $self->htmlTemplateTable("Select Basic Template File and Run Parameters");
 # print templates
              my @tempnam=();
              my $hash={};
@@ -1003,7 +1010,7 @@ sub Connect{
          htmlBottom();
          } elsif($self->{q}->param("CTT") eq "Advanced"){
              htmlTop();
-             htmlTemplateTable("Select  Parameters for Advanced Request");
+             $self->htmlTemplateTable("Select  Parameters for Advanced Request");
 # Run Parameters
               print "<tr><td><b><font color=\"blue\">Run Parameters</font></b>\n";
               print "</td><td>\n";
@@ -1145,7 +1152,7 @@ sub Connect{
                  }
              }
              htmlTop();
-             htmlTemplateTable("Select  Parameters for Dataset Request");
+             $self->htmlTemplateTable("Select  Parameters for Dataset Request");
 # Job Template
              print "<tr><td><b><font color=\"red\">Job Template</font></b>\n";
              print "</td><td>\n";
@@ -2182,12 +2189,11 @@ sub ErrorPlus{
     Warning::error($ref->{q},shift);
   }
 
-
 sub findemail(){
     my $self=shift;
         my $cem=shift;
         foreach my $chop (@{$self->{MailT}}) {
-            if($chop->{address} eq $cem  and $cem ne "" and $cem ne " " and defined $cem){
+            if($chop->{address} eq $cem and $cem ne "" and $cem ne " " and defined $cem){
                 $self->{CEM}=$cem;
                 $self->{CEMA}=$chop->{status};
                 $self->{CEMID}=$chop->{mid};
@@ -2197,7 +2203,6 @@ sub findemail(){
                         $self->{CCA}=$cite->{name};
                         $self->{CCT}=$cite->{status};
                         $self->{CCID}=$cite->{cid};
-                        $self->{CCR}=$chop->{rSite} ;
                         last;
                     }
                 }  
@@ -2214,7 +2219,6 @@ sub findemail(){
                         $self->{CCA}=$cite->{name};
                         $self->{CCT}=$cite->{status};
                         $self->{CCID}=$cite->{cid};
-                        $self->{CCR}=$chop->{rSite};
                         last;
                     }
                 }  
@@ -2385,10 +2389,11 @@ sub htmlBottom {
 }
 
 sub htmlTemplateTable {
-   my ($text) = @_;
+   my ($self) = shift;
+   my ($text) = shift;
    print "<TR><B><font color=green size= 5> $text </font>";
    print "<p>\n";
-   print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.cgi\">\n";
+   print "<FORM METHOD=\"GET\" action=\"$self->{Name}\">\n";
    print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
 }
 
@@ -2412,3 +2417,12 @@ sub htmlReturnToMain {
             print "Return to <a href=\"http://ams.cern.ch/AMS/Computing/mcproduction/rc.html\"> MC02 Remote Client Request</a>\n";
             print "</i></td></tr>\n";
         }
+
+sub trimblanks {
+    my @inp_string = @_;
+    for (@inp_string) {
+        s/^\s+//;        
+        s/\s+$//;
+    }
+    return wantarray ? @inp_string : $inp_string[0];
+}

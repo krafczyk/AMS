@@ -1,5 +1,4 @@
-
-# $Id: DBSQLServer.pm,v 1.2 2002/02/26 13:28:41 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.3 2002/03/11 16:41:46 alexei Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -13,7 +12,7 @@ use POSIX qw(tmpnam);
 use MLDBM qw(DB_File Storable);
 use DBI;
 
-@DBSQLServer::EXPORT= qw(new Connect QueryAll Query Update);
+@DBSQLServer::EXPORT= qw(new Connect QueryAll Query Update set_oracle_env);
 my %fields=(
      start=>undef,
      cid=>undef,
@@ -59,10 +58,10 @@ foreach my $chop  (@ARGV){
         $self->{dbfile}=$self->{dbdefaultfile};
     }
     my $dir=$ENV{AMSDataDir};
-    if(defined $dir){
+    if(defined $dir and $self->{dbdriver} =~ m/CSV/){
         $self->{dbfile}=$dir.'/'.$self->{dbfile};
     }        
-    else{
+    elsif(not defined $dir){
         die "DBSQL Server AMSDataDir Not Defined";
     }
 
@@ -76,13 +75,46 @@ return $mybless;
 
 sub Connect{
     my $self=shift;
-    $self->{dbhandler}=DBI->connect('DBI:'.$self->{dbdriver}.$self->{dbfile},,{PrintError => 1, AutoCommit => 1}) or die "Cannot connect: ".$DBI::errstr;
+    my $user   = "amsdes";
+    my $pwd    = "ams";
+    if($self->{dbdriver} =~ m/Oracle/){
+     set_oracle_env();
+    }
+    $self->{dbhandler}=DBI->connect('DBI:'.$self->{dbdriver}.$self->{dbfile},$user,$pwd,{PrintError => 1, AutoCommit => 1}) or die "Cannot connect: ".$DBI::errstr;
     if($self->{dbinit}){
       $self->Create();
     }
     else{
         return 1;
     }
+}
+
+
+sub test_connect_to_oracle {
+
+    my $user   = "amsdes";
+    my $pwd    = "ams";
+    my $dbname = "DBI:Oracle:amsdb";
+
+# This sets up the HTML header and table
+
+
+    print "Content-Type: text/html\n";
+    print "Pragma: no-cache\n\n";
+    print "<HTML>\n<HEAD><CENTER>\n\n";
+    print "<H2>\ntest</H2>\n</HEAD>\n";
+    print "<BODY>\n<CENTER>";
+
+    my $dbh = DBI->connect( $dbname,$user, $pwd, 'Oracle'
+                      ) || die print "Can't connect : $DBI::errstr";
+
+
+    print "connected";
+
+    print "</BODY>\n</HTML>\n";
+
+    my $rc = $dbh->disconnect  || warn $dbh->errstr;
+
 }
 
 
@@ -93,7 +125,6 @@ sub Create{
 
 
     my @tables=("filesystems", "Cites","Mails" ,"Jobs", "Servers", "Runs","Ntuples","DataSets");
-
     my @createtables=("    CREATE TABLE filesystems
     (fid         CHAR(4) NOT NULL,
      path    CHAR(255),
@@ -101,7 +132,7 @@ sub Create{
      occupied     INT,
      free         INT,
      allowed      INT,
-     mode    CHAR(2))",
+     modetype    CHAR(2))",
      "CREATE TABLE Cites
      (cid      INT NOT NULL,
       name     VARCHAR(64),
@@ -128,12 +159,12 @@ sub Create{
        time    INT,
        triggers INT,
        timeout  INT,
-       content TEXT )",
+       content TEXT(4000) )",
       "CREATE TABLE Servers
        (dbfilename VARCHAR(255) NOT NULL,
-        IORS   TEXT,
-        IORP   TEXT,
-        IORD   TEXT,
+        IORS   TEXT(4000),
+        IORP   TEXT(4000),
+        IORD   TEXT(4000),
         status VARCHAR(64),
         createtime INT,
         lastupdate INT)",
@@ -155,7 +186,7 @@ sub Create{
          LEvent INT,
          NEvents INT,
          NEventsErr INT,
-         date   INT,
+         timestamp   INT,
          sizemb   INT,
          status   VARCHAR(64),
          path   VARCHAR(255))",
@@ -181,10 +212,14 @@ sub Create{
          system "mkdir -p $self->{dbfile}";
          system "rm -f $self->{dbfile}"."/"."$table";
      }
-        
+     elsif($self->{dbdriver}=~ m/Oracle/){
+         $createtables[$i] =~ s/TEXT/VARCHAR2/g;
+     }        
+    $dbh->do("drop table ".$tables[$i]);
     my $sth=$dbh->prepare($createtables[$i]) or die "cannot prepare: ".$dbh->errstr();
     $sth->execute() or die "cannot execute: ".$dbh->errstr();
     $sth->finish();    
+    print "$tables[$i]\n";
      if($self->{dbdriver} =~ m/CSV/){
          system "chmod o+w $self->{dbfile}"."/"."$table";
      }
@@ -292,6 +327,16 @@ sub Update{
     $dbh->do($query) or die "Cannot do ".$dbh->errstr();
 }
 
+
+# this function sets up the necessary environement variables
+# to be able to connect to Oracle
+sub set_oracle_env {
+    $ENV{"ORACLE_HOME"}='/afs/cern.ch/project/oracle/@sys/prod';
+    $ENV{"TNS_ADMIN"}='/afs/cern.ch/project/oracle/admin';
+    $ENV{"LD_LIBRARY_PATH"}=$ENV{"ORACLE_HOME"}."/lib";
+    1;
+}
+
 sub DESTROY{
 
     my $self=shift;
@@ -300,4 +345,3 @@ sub DESTROY{
     }
     warn "DESTROYING $self";
 }
-
