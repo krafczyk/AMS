@@ -278,14 +278,13 @@ extern "C" void gustep_(){
 #endif
 
     // RICH simulation code
-
-    if(GCVOLU.names[lvl][0]=='R' && GCVOLU.names[lvl][1]=='I' &&
-       GCVOLU.names[lvl][2]=='C' && GCVOLU.names[lvl][3]=='H' &&
-       GCKINE.ipart==Cerenkov_photon){
+    if(GCKINE.ipart==Cerenkov_photon){
+     if(GCVOLU.names[lvl][0]=='R' && GCVOLU.names[lvl][1]=='I' &&
+       GCVOLU.names[lvl][2]=='C' && GCVOLU.names[lvl][3]=='H'){
       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
-
-      for(integer i=0;i<GCTRAK.nmec;i++)
-       if(GCTRAK.lmec[i]==106) RICHDB::numrefm++;
+      for(integer i=0;i<GCTRAK.nmec;i++){
+        if(GCTRAK.lmec[i]==106) RICHDB::numrefm++;
+      }
       if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
     }
 
@@ -294,30 +293,30 @@ extern "C" void gustep_(){
      GCVOLU.names[lvl][2]=='D' && GCVOLU.names[lvl][3]==' '){
       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
 
-      if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep!=0)
+      if(GCTRAK.nstep!=0){
        for(integer i=0;i<GCTRAK.nmec;i++)
           if(GCTRAK.lmec[i]==1999) RICHDB::numrayl++;
-        
-      if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep==0){
+      }        
+      else{
 	RICHDB::numrayl=0;
 	RICHDB::numrefm=0;
 
         if(!RICHDB::detcer(GCTRAK.vect[6])) GCTRAK.istop=1; 
 //          else RICHDB::nphgen++; 
          RICHDB::nphgen++;
-          
-
-      }
-
+      }          
       if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
-    } 
 
-    if(GCTRAK.inwvol==1 && GCVOLU.names[lvl][0]=='P' &&
-       GCVOLU.names[lvl][1]=='M' && GCVOLU.names[lvl][2]=='T' &&
-       GCVOLU.names[lvl][3]=='B'){
-      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
-      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
+     }
+
     }
+
+//    if(GCTRAK.inwvol==1 && GCVOLU.names[lvl][0]=='P' &&
+//       GCVOLU.names[lvl][1]=='M' && GCVOLU.names[lvl][2]=='T' &&
+//       GCVOLU.names[lvl][3]=='B'){
+//      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
+//      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
+//    }
     
 
 

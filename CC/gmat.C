@@ -498,7 +498,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
 pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH PMTS","PMT_WINDOW",1));   //35  
   for(iw=0;iw<RICHDB::entries;iw++)
     {
-      abs_l[iw]=1e5;
+      abs_l[iw]=1.e-10;     //changed by VC 7-sep-2000
       index[iw]=1.458;
     }
   pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);

@@ -548,6 +548,8 @@ void AMSG4SteppingAction::UserSteppingAction(const G4Step * Step){
 
 // just do as in example N04
 // don't really understand the stuff
+     
+     GCTRAK.istop=0;
 
 /* 
     Some stuff about step
@@ -599,6 +601,34 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
     GCTMED.isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0 ||
                  PrePV->GetLogicalVolume()->GetSensitiveDetector()!=0;
      GCTRAK.destep=Step->GetTotalEnergyDeposit()/GeV;
+//   if(PrePoint->GetProcessDefinedStep())cout<<" b "<<PrePoint->GetProcessDefinedStep()->GetProcessName()<<endl;
+//   if(PostPoint->GetProcessDefinedStep())cout<<"a "<<PostPoint->GetProcessDefinedStep()->GetProcessName()<<endl;
+     G4Track * Track = Step->GetTrack();
+   GCTRAK.nstep=Track->GetCurrentStepNumber()-1;
+   GCKINE.itra=Track->GetParentID();
+//   cout << " track id "<<GCKINE.itra<<" "<<GCTRAK.nstep<<endl;
+    if(GCKINE.ipart==Cerenkov_photon){
+      if(PrePV->GetName()[0]=='R' && PrePV->GetName()[1]=='I' &&
+        PrePV->GetName()[2]=='C' && PrePV->GetName()[3]=='H'){
+        if(PostPoint->GetProcessDefinedStep() && PostPoint->GetProcessDefinedStep()->GetProcessName() == "Boundary")RICHDB::numrefm++;
+      }
+
+      if(PrePV->GetName()[0]=='R' && PrePV->GetName()[1]=='A' &&
+        PrePV->GetName()[2]=='D' && PrePV->GetName()[3]==' '){
+        if(GCTRAK.nstep){
+        if(PostPoint->GetProcessDefinedStep() && PostPoint->GetProcessDefinedStep()->GetProcessName() == "Rayleigh Scattering")RICHDB::numrayl++;
+        else{
+         RICHDB::numrayl=0;
+	 RICHDB::numrefm=0;
+          RICHDB::nphgen++;  
+         if(!RICHDB::detcer(GCTRAK.vect[6])) GCTRAK.istop=1;
+        }
+
+        }
+      }
+   }
+    
+
     if(GCTMED.isvol){
 //      cout << "Stepping  sensitive"<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
      // gothering some info and put it into geant3 commons
@@ -615,7 +645,6 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      GCTRAK.gekin=PostPoint->GetKineticEnergy()/GeV;
      GCTRAK.vect[6]=GCTRAK.getot*PostPoint->GetBeta();
      GCTRAK.tofg=PostPoint->GetGlobalTime()/second;
-     G4Track * Track = Step->GetTrack();
      { int i;
        for(i=0;i<3;i++)GCKINE.vert[i]=Track->GetVertexPosition()[i]/cm; 
        for(i=0;i<3;i++)GCKINE.pvert[i]=Track->GetVertexMomentumDirection()[i]; 
@@ -824,38 +853,17 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 // CJM : RICH (preliminary and slow version)
 //
 
-   GCTRAK.nstep=Track->GetCurrentStepNumber()-1;
-   GCKINE.itra=Track->GetTrackID();
-//   cout << " track id "<<GCKINE.itra<<" "<<GCTRAK.nstep<<endl;
-   if(PrePV->GetName()[0]=='R' && PrePV->GetName()[1]=='I' &&
-      PrePV->GetName()[2]=='C' && PrePV->GetName()[3]=='H' &&
-      GCKINE.ipart==Cerenkov_photon){
-        if(PostPoint->GetProcessDefinedStep()->GetProcessName() == "Boundary")RICHDB::numrefm++;
-   }
-
-
-   if(PrePV->GetName()[0]=='R' && PrePV->GetName()[1]=='A' &&
-      PrePV->GetName()[2]=='D' && PrePV->GetName()[3]==' '){
-     if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep){
-        if(PostPoint->GetProcessDefinedStep()->GetProcessName() == "Rayleigh Scattering")RICHDB::numrayl++;
-     }
-   }
-    
-      if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep==0){
-	RICHDB::numrayl=0;
-	RICHDB::numrefm=0;
-      }
-
 
     if(PrePV->GetName()[0]=='C' && PrePV->GetName()[1]=='A' &&
        PrePV->GetName()[2]=='T' && PrePV->GetName()[3]=='O' && 
        GCTRAK.inwvol==1){
 
 
-      if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep==0){
-        GCTRAK.istop=1;
-        if(RICHDB::detcer(GCTRAK.vect[6])) {
-          GCTRAK.istop=2;
+      if(GCKINE.ipart==Cerenkov_photon){
+        if( GCTRAK.nstep==0){
+//        GCTRAK.istop=1;
+         if(RICHDB::detcer(GCTRAK.vect[6])) {
+//          GCTRAK.istop=2;
           AMSRichMCHit::sirichhits(GCKINE.ipart,
                                    Mother->GetCopyNo()-1,
                                    GCTRAK.vect,
@@ -863,13 +871,10 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
                                    GCKINE.pvert,
                                    Status_Window-
                                    (GCKINE.itra!=1?100:0));
-        }
-      }
-
-
-
-      if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep!=0){
-        GCTRAK.istop=2; // Absorb it
+         }
+       }
+       else{
+//        GCTRAK.istop=2; // Absorb it
         AMSRichMCHit::sirichhits(GCKINE.ipart,
                 		 Mother->GetCopyNo()-1,
 				 GCTRAK.vect,
@@ -878,6 +883,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
                                  (GCKINE.itra!=1?100:0)+
                                  RICHDB::numrefm*10+
                                  (RICHDB::numrayl>0?Status_Rayleigh:0));
+       }
       }
       else if(GCTRAK.nstep!=0){	 
         AMSRichMCHit::sirichhits(GCKINE.ipart,
@@ -895,9 +901,6 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 // end of RICH
 //----------------------------------------------------------------
 
-    if(GCTRAK.istop){
-      Track->SetTrackStatus(fStopAndKill);
-    }
 
   } // <--- end of "try" ---
 //
@@ -916,6 +919,10 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
    }
 //   cout <<"leaving stepping "<<endl;
   }
+  if(GCTRAK.istop){
+      Track->SetTrackStatus(fStopAndKill);
+  }
+
 }
 
 }
