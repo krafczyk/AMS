@@ -554,7 +554,10 @@ void TOFTZSLcalib::select(){  // calibr. event selection
           ctran=Cout[1];// transv. coord.(abs. r.s.)(Y-cross) 
         }
         dy=coot[il]-coo[il];//Long.coo_track-Long.coo_sc
-        if(TOFRECFFKEY.reprtf[2]>0)HF1(1200+il,geant(dy),1.);
+        if(TOFRECFFKEY.reprtf[2]>0){
+          HF1(1200+il,geant(dy),1.);
+          HF2(1204+il,geant(coot[il]),geant(dy),1.);
+        }
         dx=ctran-TOFDBc::gettsc(il,ib);//Transv.coo_tracker-Transv.coo_scint
         if(TOFRECFFKEY.reprtf[2]>0)HF1(1210+il,geant(dx),1.);
         if(fabs(dx)>dscut || fabs(dy)>dscut)bad=1;//too big dist. of tof-tracker
@@ -851,7 +854,10 @@ void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
     qinv=1./q1+1./q2;
 //    HF2(1781,geant(qinv),geant(time),1.);
   }
-//------> find track slope(in projection) using scint.transv.position :
+//---------------------------------------
+if(TOFCAFFKEY.truse < 0){// <------  use TOF to find track crossing points
+//
+//--- find track slope(in projection) using scint.transv.position :
   ix=0;
   iy=0;
   for(il=0;il<SCLRS;il++){
@@ -883,6 +889,55 @@ void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
     }
     TOFTDIFcalib::fill(il,ib,tmsdc[il],crc);
   }
+}
+//
+else{// <------- use Tracker to find track crossing points:
+//
+    static number pmas(0.938),mumas(0.1057);
+    number pmom,bet,chi2;
+    number the,phi,rid,err,trl;
+    number coot[SCLRS];
+    AMSPoint C0,Cout;
+    AMSDir dir(0,0,1.);
+    AMSContainer *cptr;
+    AMSParticle *ppart;
+    AMSTrTrack *ptrack;
+    int ntrk,ipatt;
+    ntrk=0;
+    cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get TOF-matched track
+    if(cptr)
+           ntrk+=cptr->getnelem();
+    if(ntrk!=1)return;// require events with 1 track.
+    ppart=(AMSParticle*)AMSEvent::gethead()->
+                                      getheadC("AMSParticle",0);
+    if(ppart){
+      ptrack=ppart->getptrack();
+      ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
+    } 
+    else rid=0;
+    pmom=fabs(rid);
+    if(TOFRECFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
+    if(pmom<=0.1 || pmom>=50.)return;//remove events with suspicious mom.
+    TOFJobStat::addre(19);
+    C0[0]=0.;
+    C0[1]=0.;
+    for(il=0;il<SCLRS;il++){
+      ib=brnl[il];
+      zc[il]=TOFDBc::getzsc(il,ib);
+      C0[2]=zc[il];
+      ptrack->interpolate(C0,dir,Cout,the,phi,trl);
+      if(TOFDBc::plrotm(il)==0){
+        coot[il]=Cout[1];// unrot. (X-meas) planes -> take Y-cross for long.c
+        crc=Cout[1];
+      }
+      else {
+        coot[il]=Cout[0];// rot. (Y-meas) planes -> take X-cross for long.c.
+        crc=Cout[0];
+      }
+      TOFTDIFcalib::fill(il,ib,tmsdc[il],crc);
+    }
+//
+}
 }
 //------------------------- 
 void TOFTDIFcalib::fill(integer il,integer ib, number td, number co){//--->fill arrays

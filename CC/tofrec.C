@@ -149,16 +149,16 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         t3=(stdc1[i+1]&pbanti)*TOFDBc::tdcbin(1);//2-nd up-edge
         t4=(stdc1[i]&pbanti)*TOFDBc::tdcbin(1);//2-nd down-edge
         dt=t2-t3;
-//      if(ilay==3 && ibar==2 && isid==0)HF1(1131,geant(dt),1.);
-//      if(ilay==3 && ibar==2 && isid==1)HF1(1134,geant(dt),1.);
+//      if(ilay==3 && ibar==2 && isid==0)HF1(1141,geant(dt),1.);
+//      if(ilay==3 && ibar==2 && isid==1)HF1(1144,geant(dt),1.);
         if(dt<5. || dt>24.)continue;//wrong "hole" width(w2), take next "4"
         dt=t1-t2;
-//      if(ilay==3 && ibar==2 && isid==0)HF1(1130,geant(dt),1.);
-//      if(ilay==3 && ibar==2 && isid==1)HF1(1133,geant(dt),1.);
+//      if(ilay==3 && ibar==2 && isid==0)HF1(1140,geant(dt),1.);
+//      if(ilay==3 && ibar==2 && isid==1)HF1(1143,geant(dt),1.);
         if(dt<10. || dt>200.)continue;//wrong "1st_pulse" width(w1), ...
         dt=t2-t4;
-//      if(ilay==0 && ibar==11 && isid==1)HF1(1132,geant(dt),1.);
-//      if(ilay==2 && ibar==9 && isid==1)HF1(1135,geant(dt),1.);
+//      if(ilay==0 && ibar==11 && isid==1)HF1(1142,geant(dt),1.);
+//      if(ilay==3 && ibar==11 && isid==1)HF1(1145,geant(dt),1.);
         if(dt<2000. || dt>6000.)continue;//wrong "2nd_pulse" width(w3), ...
 //
         stdc2[nhit]=stdc1[i];
@@ -484,8 +484,8 @@ void AMSTOFRawCluster::build(int &status){
   int16u nadcd[2]={0,0};
   int16u  ftdc1[SCTHMX2*2],stdc1[SCTHMX3*4],adca1[SCTHMX4*2],adcd1[SCTHMX4*2];
   int16u  ftdc2[SCTHMX2*2],stdc2[SCTHMX3*4],adca2[SCTHMX4*2],adcd2[SCTHMX4*2];
-  integer ilay,last,ibar,isid,isds,isd,isdsl[SCLRS];
-  integer i,j,chnum,brnum,am[2],tmi[2],itmf[2],sta,st,smty[2],ftdcfl,reject;
+  integer ilay,last,ibar,isid,isds,isd,isdsl[SCLRS],hwid,tchan,crat,sfet,slnu,tdcc;
+  integer i,j,k,chnum,brnum,am[2],tmi[2],itmf[2],sta,st,smty[2],ftdcfl,reject;
   integer trpatt[SCLRS];
   int statdb[2];
   int16u pbitn;
@@ -494,6 +494,8 @@ void AMSTOFRawCluster::build(int &status){
   number zc,ama[2],amd[2],qtota,qtotd,tmf[2],time,coo,ecoo;//input to RawCluster Constr
   number tm[2],tf,tff,dt,fstd,tmr[2];
   number amf[2],timeD,tamp;
+  number treads[2]={0.,0.};
+  number treada[2]={0.,0.};
   number charg[2]={0.,0.};
   number t1,t2,t3,t4;
   geant blen,co,eco,point,brlm,pcorr,td2p,etd2p,clong[SCLRS];
@@ -515,6 +517,17 @@ void AMSTOFRawCluster::build(int &status){
   isds=0;
   for(i=0;i<SCLRS;i++)nbrl[i]=0;
 //
+//    cout<<"TOF_Crate Temperatures :"<<endl;
+//    for(k=0;k<8;k++){ 
+//      for(i=0;i<DAQSTSC;i++){//loop over temp. SFETs in crate (1)
+//        for(j=0;j<DAQSTCS;j++){//loop over temp. channels in SFET (4)
+//          tchan=DAQSTCS*DAQSTSC*k+i*DAQSTCS+j;
+//          cout<<" "<<DAQSBlock::gettemp(tchan);
+//        }
+//        cout<<endl;
+//      }
+//      cout<<endl;
+//    }
 //                             <---- loop over TOF RawEvent hits -----
   while(ptr){
     idd=ptr->getid();
@@ -529,6 +542,9 @@ void AMSTOFRawCluster::build(int &status){
 //    if(stat[isid] == 0){  
     scbrcal[ilay][ibar].getbstat(statdb); // "alive" status from DB
     if(statdb[isid] >= 0){  // channel alive(no severe problems), read out it
+      hwid=AMSTOFRawEvent::sw2hwid(ilay,ibar,isid);
+      crat=hwid/100-1;
+      slnu=1;//sequential number of slot with temp. (only 1 exists) 
 //       fill working arrays for given side:
       isds+=1;
       if(isid==0){
@@ -537,6 +553,12 @@ void AMSTOFRawCluster::build(int &status){
         nstdc[isid]=ptr->getstdc(stdc1);
         nadca[isid]=ptr->getadca(adca1);
         nadcd[isid]=ptr->getadcd(adcd1);
+        tdcc=12;//temper. reading for anode
+        tchan=DAQSTSC*DAQSTCS*crat+DAQSTCS*(slnu-1)+(tdcc%4);
+        treada[isid]=DAQSBlock::gettemp(tchan);// get "temperature" for anode chain
+        tdcc=13;//temper. reading for stretcher
+        tchan=DAQSTSC*DAQSTCS*crat+DAQSTCS*(slnu-1)+(tdcc%4);
+        treads[isid]=DAQSBlock::gettemp(tchan);// get "temperature" for stretcher chain
       } 
       if(isid==1){
         charg[isid]=ptr->getcharg();
@@ -544,6 +566,12 @@ void AMSTOFRawCluster::build(int &status){
         nstdc[isid]=ptr->getstdc(stdc2);
         nadca[isid]=ptr->getadca(adca2);
         nadcd[isid]=ptr->getadcd(adcd2);
+        tdcc=12;//temper. reading for anode
+        tchan=DAQSTSC*DAQSTCS*crat+DAQSTCS*(slnu-1)+(tdcc%4);
+        treada[isid]=DAQSBlock::gettemp(tchan);// get "temperature" for anode chain
+        tdcc=13;//temper. reading for stretcher
+        tchan=DAQSTSC*DAQSTCS*crat+DAQSTCS*(slnu-1)+(tdcc%4);
+        treads[isid]=DAQSBlock::gettemp(tchan);// get "temperature" for stretcher chain
       }
       TOFJobStat::addch(chnum,0);        // channel statistics :
       if(nftdc[isid]>0)TOFJobStat::addch(chnum,1);
@@ -555,6 +583,10 @@ void AMSTOFRawCluster::build(int &status){
       if(nadca[isid]==2)TOFJobStat::addch(chnum,7);
       if(nadcd[isid]==2)TOFJobStat::addch(chnum,8);
       if(nftdc[isid]>=2 && nstdc[isid]>=4 && nadca[isid]>=2)TOFJobStat::addch(chnum,9);
+      if(TOFRECFFKEY.reprtf[2]>1){
+        HF1(1120+crat,geant(treads[isid]),1.);
+        HF1(1130+crat,geant(treada[isid]),1.);
+      }
     } 
 //
     ptrN=ptr->next();
@@ -563,7 +595,7 @@ void AMSTOFRawCluster::build(int &status){
 //------------------------------------------------------
     if(idN != id){ // both sides ready, next hit is OTHER_counter/last hit,
 //       so process CURRENT counter data : 
-//
+//---
       if(isds==2 || isds==1){ // sides presence check
         TOFJobStat::addbr(brnum,0);//h/w status ok(at least one alive(in DB) side is present )
 //
@@ -577,7 +609,7 @@ void AMSTOFRawCluster::build(int &status){
         ftdcfl=TOFRECFFKEY.relogic[1];// how to use f-TDC 
         if(nstdc[0]>=4 && nadca[0]>=2 && (nftdc[0] >=2 || ftdcfl==2))smty[0]=1;
         if(nstdc[1]>=4 && nadca[1]>=2 && (nftdc[1] >=2 || ftdcfl==2))smty[1]=1;
-	//-------ONLINE--------
+//-------ONLINE--------
 	if(AMSJob::gethead()->isMonitoring() & 
 	   (AMSJob::MTOF | AMSJob::MAll)){
 	  static int nIDhis[1200];
@@ -590,8 +622,8 @@ void AMSTOFRawCluster::build(int &status){
 	    HFF1(hisID,nIDhis[hisID-5000],(geant)(14-ibar),1.);
 	  }
 	}
-	//----------------------
-	if(smty[0]==1 || smty[1]==1){ //(even 1-side bar is accepted,if have complete measur.) 
+//----------------------
+        if(smty[0]==1 || smty[1]==1){ //(even 1-side bar is accepted,if have complete measur.) 
           TOFJobStat::addbr(brnum,1);
           isds=smty[0]+smty[1];// redefine side-counter as good side-counter
           sta=0;
@@ -850,6 +882,10 @@ void AMSTOFRawCluster::build(int &status){
       nadca[1]=0;
       nadcd[0]=0;
       nadcd[1]=0;
+      treads[0]=0.;
+      treads[1]=0.;
+      treada[0]=0.;
+      treada[1]=0.;
 //
     } // ---> end of "next COUNTER" or "last hit" check
 //------------------------------------------------------
@@ -1111,7 +1147,7 @@ void AMSTOFCluster::build(int &stat){
     if(   eplane[i]> TOFRECFFKEY.Thr1
        && eplane[i]> eplane[i-1] 
        && eplane[i]> eplane[i+1] ){ // <--- peak check (over 3-bars group)
-      ptr=xptr[i];// peak pointer
+      ptr=xptr[i];// peak bar pointer
 #ifdef __AMSDEBUG__
       assert(ptr!=NULL);
 #endif
@@ -1202,12 +1238,6 @@ void AMSTOFCluster::build(int &stat){
 //
         if(((status & SCBADB2)>0)||((status & SCBADB3)>0))status|=AMSDBc::BAD; 
 //          bad=(peak bar is single-sided   or known problem with t-measurement)
-#ifdef __PRIVATE__
-        if(goodch[ntof-1][barn-1]){
-         time=time+tcoef[ntof-1][barn-1]*1.e-9;
-        }
-        else status|=AMSDBc::BAD;
-#endif
         AMSEvent::gethead()->addnext(AMSID("AMSTOFCluster",ilay),
         new     AMSTOFCluster(status,ntof,barn,edep,coo,ecoo,time,etime));
 //

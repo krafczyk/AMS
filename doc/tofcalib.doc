@@ -39,12 +39,15 @@
        The items 1-2 are made during one run (when corresponding flag was
   selected).
        The outputs from different calibration items are ASCII files filled with
-  corresponding parameters. The data from these files should be combined into
-  few final calibration files by hahds (after carefull check on "reasonability").
+  corresponding parameters. The data from these files (and log-files) should be 
+  carefully checked on "reasonability" , especially when some hardware modifications
+  was done. The "by hands" corrections may be applied (for example if program put
+  bad status for some channel (e.g in STRR-calibration) and you want force this
+  channel to be used in later reconstruction).
   
-       These final (read by Program and used by DB) calibration files are:
+       These output calibration files are:
        
-    a) srscalibNNmc.dat/srscalibMMrl.dat for MC/REAL-data, where NN/MM are the
+    a) srcalibNNmc.dat/srcalibMMrl.dat for MC/REAL-data, where NN/MM are the
        version numbers. This srscalib... file combine info from STRR-calibration
        and status of each channel (alive/dead(noisy)) - see explanation inside
        the file. Stretcher parameters may be also takef from Bolognia test measu-
@@ -57,26 +60,77 @@
        the dynode parameters may be taken from AVSD-calibration or again from
        BOLOGNIA GROUP.
        
-    c) tdvcalibNNmc.dat/tdvcalibMMrl.dat files contain average light speed and "0" 
+    c) tdcalibNNmc.dat/tdcalibMMrl.dat files contain average light speed and "0" 
        time-differences (output from TDIF-calibration). This file is output from
        TDIF-calibration.
-    d) tzscalibNNmc.dat/tzscalibMMrl.dat files containslewing correction (common 
+    d) tzcalibNNmc.dat/tzcalibMMrl.dat files containslewing correction (common 
        for all channels slope) and T0's for each bar. This file is output from 
        TZSL-calibration.
        
     e) ancalibNNmc.dat/ancalibMMrl.dat files contain now individual anode_to_dinode
        ratios (these are used only by MC because for REAL events the Contin's
-       parametrization is used currently for dinodes (it includes already an_to_dyn 
+       parametrization is used currently for dinodes (it includes already an_to_dyn  
        ratio). These files contain also relative (to ref.bar) channel gains, impact
        point corrections (for ref. bars) and abs.calibration factors (for ref.bars).
        These 3 sets of parameters are taken from AMPL-calibration output.
-       The procedure for Position_correction calibration is not yet finished, so the
-       reconstruction of real events use temporarily MC position_corrections.
-       
+      
+       The reconstruction program don't use this files directly. It use the copies
+    of these files: srscalib..., tdvcalib..., tzscalib..., anacalib... The file
+    incalibNNmc.dat/incalibMMrl.dat is used directly because it is not now the
+    output of any calibration procedure( It is created by hands on the basis of
+    integrator parameters supplied by Bolognia group). This file correcponds to
+    current configuration of SFET card numbers.
+       These copies(+geomconfNN.dat) should be kept in /Offline/AMSDataDir/v2.14  
+    (AMSDATADIR.amsdatadir default used by Reco-program as storage of calibration data)                  
+           
        The version numbers NN/MM for each kind of final calibration files to be read
-       are defined inside of tofverslistKK.dat file which is read first at the 
-       beginning of program initialization phase. The version number KK of this file
-       is defined by datacard TOFCA 28 and is in the range 01-99 (def.value=1) 
+    are defined inside of tofverslistKK.dat file which is read first at the 
+    beginning of program initialization phase. The version number KK of this file
+    is defined by datacard TOFCA 28 and is in the range 01-99 (def.value=1).
+    
+       There are also geometry data files geomconf01.dat and geomconf02.dat. One
+    of these file is read by program with version number declared on the second
+    line of tofverslistKK.dat file.(For now 01 corresponds to earth configuration,
+    02 - Shuttle.).
+                               ***********************
+                               
+       When the situation with AMS hardware is stable one can use semiautomatic
+    calibration procedure ( to create new calibr. update with number NN):
+    
+    1) cd tofcadir (this is some existing directory next to top(user) one)
+    
+    2) cp /Offline/AMSDataDir/v2.14/incalibMMrl.dat incalibNNrl.dat. Modify
+       incalibNNrl.dat file if needed (if any SFET cards was chenged).
+       (MM is latest existing version).
+       
+    3) cp /Offline/AMSDataDir/v2.14/tofverslistMM.dat v2.14/tofverslistNN.dat
+       Modify it in accordance with new version number NN.
+       
+    4) Run in nice mode the following script
+       autocalnotr FN NN MM 1>fn.log 2>fn.log &
+       ( here autocalnotr is script to use use for calibration without tracker.
+         To use the tracker create another script with relevant data cards inside).
+        The FN is the file(s) name to use for calibration.
+        
+    5) After the job is finished (few hours for no_tracker version) check THE log file
+       (it will contain the outputs from all calibration steps).
+       
+    6) Modify script file "updatedb" with correct validity time.
+       Run in nice mode:
+         updatedb FN NN 1>test.log 2>test.log & 
+       (here FN - file name of the first file used for calibration).
+       It will copy necessary files to /Offline/AMSDataDir/v2.14 directory;
+       create 3 global TOF-calibration files Tofbarcal1.1.sFN, Tofmsscans.1.sFN, 
+       Tofvpar.1.sFN; and run short test job (using new set of calibr.output files 
+       from /Offline/AMSDataDir/v2.14 directory). If test.log OK :
+       
+    7) Create links for all files you will need to use with this calibration data:
+    
+       cd /Offline/AMSDataDir/v2.14
+       toflink FN other_fn
+       
+       This step 7) is only needed if 3 TOF global calibr. files was not put into
+       objectivity DB by Klimentov.   
        
    
 

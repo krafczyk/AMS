@@ -144,13 +144,6 @@ void DAQSBlock::buildraw(integer len, int16u *p){
   }
 #endif
 //
-// clear crate-temperatures starting new crate decoding:
-//
-  im=DAQSTSC*DAQSTCS;//1*4
-  for(i=0;i<im;i++){
-    chan=im*naddr+i;
-    rwtemp[chan]=0;
-  }
   lent=1;//initial block length (block_id word was read)
 //
 //---> TOF decoding:

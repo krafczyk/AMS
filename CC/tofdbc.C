@@ -215,9 +215,10 @@ geant TOFDBc::_plnstr[15]={
   if(il==3)
     zc=_supstr[1]-_supstr[6]-_plnstr[0]-dz/2.;
   if(il==0)zc=zc+(ib%2)*_plnstr[2];
+  if(il==2)zc=zc+(ib%2)*_plnstr[2];//new (correct ?)
   if(il==3)zc=zc-(ib%2)*_plnstr[2];
   if(il==1)zc=zc-((ib+1)%2)*_plnstr[2];
-  if(il==2)zc=zc+((ib+1)%2)*_plnstr[2];
+//  if(il==2)zc=zc+((ib+1)%2)*_plnstr[2];//old (wrong ?)
   return(zc);
   }  
 // function to get transv. position of scint. bar=ib in layer=il
@@ -966,7 +967,7 @@ void TOFJobStat::printstat(){
   printf(" Entr to STRR/AVSD-calibr: % 6d\n",recount[16]);
   printf(" Entries to TDIF-calibr. : % 6d\n",recount[17]);
   printf(" TDIF: multiplicity OK   : % 6d\n",recount[18]);
-//  printf(" TDIF: matching OK       : % 6d\n",recount[19]);
+  printf(" TDIF: Tracker OK        : % 6d\n",recount[19]);
   printf("\n\n");
 //
   if(!AMSJob::gethead()->isRealData() && TOFMCFFKEY.fast==1)return;
@@ -1327,12 +1328,30 @@ void TOFJobStat::bookhist(){
     HBOOK1(1113,"RawClusterLevel:SingleBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
     HBOOK1(1114,"RawClusterLevel:Single2SidedBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
     HBOOK1(1115,"Fast-Slow hit time-difference(all hist/slow-hit meas.",80,-40.,120.,0.);
-//    HBOOK1(1130,"W1,L4-B3-S1",50,0.,200.,0.);
-//    HBOOK1(1131,"W2,L4-B3-S1",50,0.,100.,0.);
-//    HBOOK1(1132,"W3,L1-B12-S2",60,0.,6000.,0.);
-//    HBOOK1(1133,"W1,L4-B3-S2",50,0.,200.,0.);
-//    HBOOK1(1134,"W2,L4-B3-S2",50,0.,100.,0.);
-//    HBOOK1(1135,"W3,L3-B10-S2",60,0.,6000.,0.);
+    if(TOFRECFFKEY.reprtf[2]>1){
+      HBOOK1(1120,"STR-tmp-reference in Crate-1",50,1980.,2030.,0.);
+      HBOOK1(1121,"STR-tmp-reference in Crate-2",50,1940.,1990.,0.);
+      HBOOK1(1122,"STR-tmp-reference in Crate-3",50,1940.,1990.,0.);
+      HBOOK1(1123,"STR-tmp-reference in Crate-4",50,1950.,2000.,0.);
+      HBOOK1(1124,"STR-tmp-reference in Crate-5",50,1940.,1990.,0.);
+      HBOOK1(1125,"STR-tmp-reference in Crate-6",50,4030.,4080.,0.);
+      HBOOK1(1126,"STR-tmp-reference in Crate-7",50,1970.,2020.,0.);
+      HBOOK1(1127,"STR-tmp-reference in Crate-8",50,1980.,2030.,0.);
+      HBOOK1(1130,"ANODE-tmp-reference in Crate-1",50,0.,100.,0.);
+      HBOOK1(1131,"ANODE-tmp-reference in Crate-2",50,0.,100.,0.);
+      HBOOK1(1132,"ANODE-tmp-reference in Crate-3",50,0.,100.,0.);
+      HBOOK1(1133,"ANODE-tmp-reference in Crate-4",50,0.,100.,0.);
+      HBOOK1(1134,"ANODE-tmp-reference in Crate-5",50,0.,100.,0.);
+      HBOOK1(1135,"ANODE-tmp-reference in Crate-6",50,0.,100.,0.);
+      HBOOK1(1136,"ANODE-tmp-reference in Crate-7",50,0.,100.,0.);
+      HBOOK1(1137,"ANODE-tmp-reference in Crate-8",50,0.,100.,0.);
+    }
+//    HBOOK1(1140,"W1,L4-B3-S1",50,0.,200.,0.);
+//    HBOOK1(1141,"W2,L4-B3-S1",50,0.,100.,0.);
+//    HBOOK1(1142,"W3,L1-B12-S2",60,0.,6000.,0.);
+//    HBOOK1(1143,"W1,L4-B3-S2",50,0.,200.,0.);
+//    HBOOK1(1144,"W2,L4-B3-S2",50,0.,100.,0.);
+//    HBOOK1(1145,"W3,L3-B10-S2",60,0.,6000.,0.);
     HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,16.,0.);
     HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,80.,0.);
     HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,16.,0.);
@@ -1371,6 +1390,9 @@ void TOFJobStat::bookhist(){
 // hist.1800-1911 are booked in init-function for Tin vs Tout correl.!!!
       }
     }
+    if(TOFRECFFKEY.relogic[0]==2){// TDIF-calibr. runs
+      HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
+    }
     if(TOFRECFFKEY.relogic[0]==3){ // TZSL-calibration
       HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
       HBOOK1(1501,"Particle beta(tracker)",80,0.9,1.1,0.);
@@ -1379,6 +1401,10 @@ void TOFJobStat::bookhist(){
       HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
       HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
       HBOOK1(1203,"Res_long.coo(track-sc),L=4",50,-10.,10.,0.);
+      HBOOK2(1204,"Res_long. vs track coord.,L1",50,-50.,50.,50,-10.,10.,0.);
+      HBOOK2(1205,"Res_long. vs track coord.,L2",50,-50.,50.,50,-10.,10.,0.);
+      HBOOK2(1206,"Res_long. vs track coord.,L3",50,-50.,50.,50,-10.,10.,0.);
+      HBOOK2(1207,"Res_long. vs track coord.,L4",50,-50.,50.,50,-10.,10.,0.);
       HBOOK1(1210,"Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);
       HBOOK1(1211,"Res_transv.coo(track-sc),L=2",50,-20.,20.,0.);
       HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
@@ -1478,7 +1504,7 @@ void TOFJobStat::bookhistmc(){
 //----------------------------
 void TOFJobStat::outp(){
   int i,j,k,ich;
-       if(TOFRECFFKEY.reprtf[2]!=0 || TOFRECFFKEY.reprtf[4]!=0){ // print RECO-hists
+       if(TOFRECFFKEY.reprtf[2]!=0){ // print RECO-hists
          HPRINT(1535);
          HPRINT(1536);
          HPRINT(1537);
@@ -1501,12 +1527,30 @@ void TOFJobStat::outp(){
            HPRINT(1112);
            HPRINT(1113);
            HPRINT(1114);
-//       HPRINT(1130);
-//       HPRINT(1131);
-//       HPRINT(1132);
-//       HPRINT(1133);
-//       HPRINT(1134);
-//       HPRINT(1135);
+           if(TOFRECFFKEY.reprtf[2]>1){
+             HPRINT(1120);
+             HPRINT(1121);
+             HPRINT(1122);
+             HPRINT(1123);
+             HPRINT(1124);
+             HPRINT(1125);
+             HPRINT(1126);
+             HPRINT(1127);
+             HPRINT(1130);
+             HPRINT(1131);
+             HPRINT(1132);
+             HPRINT(1133);
+             HPRINT(1134);
+             HPRINT(1135);
+             HPRINT(1136);
+             HPRINT(1137);
+           }
+//       HPRINT(1140);
+//       HPRINT(1141);
+//       HPRINT(1142);
+//       HPRINT(1143);
+//       HPRINT(1144);
+//       HPRINT(1145);
            HPRINT(1529);
            HPRINT(1526);
            HPRINT(1528);
@@ -1539,6 +1583,10 @@ void TOFJobStat::outp(){
            HPRINT(1201);
            HPRINT(1202);
            HPRINT(1203);
+           HPRINT(1204);
+           HPRINT(1205);
+           HPRINT(1206);
+           HPRINT(1207);
            HPRINT(1210);
            HPRINT(1211);
            HPRINT(1212);
@@ -1613,6 +1661,7 @@ void TOFJobStat::outp(){
        }
 //
        if(TOFRECFFKEY.relogic[0]==2){// for TDIF-calibr. runs
+           HPRINT(1500);
            TOFTDIFcalib::fit();
        }
 //
