@@ -126,14 +126,14 @@
       parameter(nchy=642)
       data init/0/
       if(init.eq.0)then
-        trigacc=0.34
-        if(trigacc.lt.0.5)then
-         open(20,file='pos.dat',form='formatted')
-        else
-         open(20,file='pos.07.dat',form='formatted')
-        endif
-        read(20,*)position
-        close(20)
+c        trigacc=0.34
+c        if(trigacc.lt.0.5)then
+c         open(20,file='pos.dat',form='formatted')
+c        else
+c         open(20,file='pos.07.dat',form='formatted')
+c        endif
+c        read(20,*)position
+c        close(20)
         cc=0
         do i=1,14
          do j=1,14

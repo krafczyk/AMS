@@ -6,7 +6,7 @@ FORTRAN/FILE 98 la.eps
 METAFILE -98 -111
 pic/plot ' '
 close 98
-shell lpr  la.eps
+shell lp -d32_l3_a  la.eps
 METAFILE 0
 EXIT:  
 return
