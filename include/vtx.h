@@ -19,7 +19,7 @@
 
 // Global namespace Vtxconst
 namespace Vtxconst{
-	  const integer maxtr=3;
+	  const integer maxtr=7;
 }
 
 // Begin AMSVtx CLASS @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -80,6 +80,7 @@ public:
 // AMSVtx Public Methods
   AMSVtx * next(){return (AMSVtx*)_next;}
   static integer build(integer refit=0);
+  static integer build_old(integer refit=0);
   void print(){_printEl(cout);}
 
 // AMSVtx Set data

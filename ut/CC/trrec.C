@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.178 2004/12/02 13:42:43 choutko Exp $
+//  $Id: trrec.C,v 1.179 2005/03/01 16:29:07 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -33,7 +33,7 @@ using namespace std;
 
 integer AMSTrTrack::_RefitIsNeeded=0;
 integer AMSTrTrack::_MarginPatternsNeeded=0;
-integer AMSTrTrack::_min_layers_with_different_hits=1;
+integer AMSTrTrack::_max_ambigous_hits=2;
 
 integer AMSTrCluster::build(integer refit){
   AMSlink * OriginalLast[2];
@@ -1464,7 +1464,9 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
                           // Build final track
 	                    if (j==0){
                               ptest.SimpleFit(hit_err);
-                              if (ptest._Chi2WithoutMS<minchi2) {
+                              if (ptest._Chi2WithoutMS<minchi2
+                                  && ptest.Fit(0)<TRFITFFKEY.Chi2FastFit &&
+                                  ptest.TOFOK()) {
                                     minchi2 = ptest._Chi2WithoutMS;
                                     if (ptrack) delete ptrack;
                                     ptrack = ptest.CloneIt();
@@ -1639,17 +1641,6 @@ integer AMSTrTrack::buildWeakPathIntegral(integer refit){
      nelem[i] = (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
   }
  
-  // Reset S ambiguity flags
-  if (TRFITFFKEY.FullReco!=0) {
-      for (int ily=0; ily<trconst::maxlay; ily++) {
-            AMSTrRecHit* paux = AMSTrRecHit::gethead(ily);
-            while (paux) {
-                  paux->clearstatus(AMSDBc::S_AMBIG);
-                  paux = paux->next();
-            }
-      }
-  }
-
   while (1) {
 
       if (NTrackFound>=Vtxconst::maxtr) break;
@@ -1727,7 +1718,9 @@ integer AMSTrTrack::buildWeakPathIntegral(integer refit){
                           // Build final track
 	                    if (j==0){
                               ptest.SimpleFit(hit_err);
-                              if (ptest._Chi2WithoutMS<minchi2) {
+                              if (ptest._Chi2WithoutMS<minchi2
+                                  && ptest.Fit(0)<TRFITFFKEY.Chi2FastFit &&
+                                  ptest.TOFOK()) {
                                     minchi2 = ptest._Chi2WithoutMS;
                                     if (ptrack) delete ptrack;
                                     ptrack = ptest.CloneIt();
@@ -1927,6 +1920,7 @@ void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrR
             ptrack->setstatus(AMSDBc::WEAK);
            if(pthit[i]->checkstatus(AMSDBc::FalseTOFX))
             ptrack->setstatus(AMSDBc::FalseTOFX);
+           /*
            // Mark also hits sharing the same cluster in the bending plane
            AMSTrCluster* py = pthit[i]->getClusterP(1);
            if (py){
@@ -1936,6 +1930,7 @@ void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrR
                   paux = paux->next();
              }
            }
+           */
          }
 
           number dc[2];
@@ -3701,8 +3696,9 @@ AMSTrRecHit* AMSTrRecHit::firstgood(integer pattern, integer index){
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->Good_PI()) continue;
          if (phit->checkstatus(AMSDBc::WEAK)) continue;
-         if (phit->checkstatus(AMSDBc::S_AMBIG) 
-            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+         //if (phit->checkstatus(AMSDBc::S_AMBIG) 
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_max_ambigous_hits) 
                                                             continue;
          break;
        }
@@ -3720,8 +3716,9 @@ AMSTrRecHit* AMSTrRecHit::firstgood_path(integer pattern, integer index,number p
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->Good_PI()) continue;
          if (phit->checkstatus(AMSDBc::WEAK)) continue;
-         if (phit->checkstatus(AMSDBc::S_AMBIG) 
-            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+         //if (phit->checkstatus(AMSDBc::S_AMBIG) 
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_max_ambigous_hits) 
                                                             continue;
          if (!phit->is_in_path(par)) continue;
          break;
@@ -3740,8 +3737,9 @@ AMSTrRecHit* AMSTrRecHit::nextgood(){
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->Good_PI()) continue;
          if (phit->checkstatus(AMSDBc::WEAK)) continue;
-         if (phit->checkstatus(AMSDBc::S_AMBIG) 
-            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+         //if (phit->checkstatus(AMSDBc::S_AMBIG) 
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_max_ambigous_hits) 
                                                             continue;
          break;
        }
@@ -3759,8 +3757,9 @@ AMSTrRecHit* AMSTrRecHit::nextgood_path(number par[2][3]){
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->Good_PI()) continue;
          if (phit->checkstatus(AMSDBc::WEAK)) continue;
-         if (phit->checkstatus(AMSDBc::S_AMBIG) 
-            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+         //if (phit->checkstatus(AMSDBc::S_AMBIG) 
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_max_ambigous_hits) 
                                                             continue;
          if (!phit->is_in_path(par)) continue;
          break;
@@ -3797,8 +3796,9 @@ AMSTrRecHit* AMSTrRecHit::firstgood_WEAK(integer pattern, integer index){
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->checkstatus(AMSDBc::WEAK)) continue;
          if (!phit->Good_PI()) continue;
-         if (phit->checkstatus(AMSDBc::S_AMBIG) 
-            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+         //if (phit->checkstatus(AMSDBc::S_AMBIG) 
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_max_ambigous_hits) 
                                                             continue;
          break;
        }
@@ -3816,8 +3816,9 @@ AMSTrRecHit* AMSTrRecHit::firstgood_WEAK_path(integer pattern, integer index,num
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->checkstatus(AMSDBc::WEAK)) continue;
          if (!phit->Good_PI()) continue;
-         if (phit->checkstatus(AMSDBc::S_AMBIG) 
-            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+         //if (phit->checkstatus(AMSDBc::S_AMBIG) 
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_max_ambigous_hits) 
                                                             continue;
          if (!phit->is_in_path(par)) continue;
          break;
@@ -3836,8 +3837,9 @@ AMSTrRecHit* AMSTrRecHit::nextgood_WEAK(){
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->checkstatus(AMSDBc::WEAK)) continue;
          if (!phit->Good_PI()) continue;
-         if (phit->checkstatus(AMSDBc::S_AMBIG) 
-            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+         //if (phit->checkstatus(AMSDBc::S_AMBIG) 
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_max_ambigous_hits) 
                                                             continue;
          break;
        }
@@ -3855,8 +3857,9 @@ AMSTrRecHit* AMSTrRecHit::nextgood_WEAK_path(number par[2][3]){
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->checkstatus(AMSDBc::WEAK)) continue;
          if (!phit->Good_PI()) continue;
-         if (phit->checkstatus(AMSDBc::S_AMBIG) 
-            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+         //if (phit->checkstatus(AMSDBc::S_AMBIG) 
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_max_ambigous_hits) 
                                                             continue;
          if (!phit->is_in_path(par)) continue;
          break;
