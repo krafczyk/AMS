@@ -1,6 +1,6 @@
-//  $Id: oracle.h,v 1.1 2001/02/28 09:17:08 alexei Exp $
+//  $Id: oracle.h,v 1.2 2001/03/02 17:45:30 alexei Exp $
 //
-// Subroutines to find proper TDV for Runs
+// ORACLE related subroutines 
 //
 // argv[1] - run number
 // argv[2] - TDV name
@@ -11,7 +11,7 @@
 //              Jan    , 2001. Hosts, Clients, Runs
 //              Feb    , 2001. Active CLients, hosts.
 //
-// Last Edit : Feb. 26, 2001
+// Last Edit : Mar. 2, 2001
 //
 
 
@@ -130,9 +130,6 @@ namespace AMSoracle {
       long         tfirst;        // time of first event
       long         tlast;         // time of last event
       unsigned int timestamp;
-      long         insert;
-      long         begin;
-      long         end;
 
 
       unsigned int eventsp;
@@ -145,11 +142,15 @@ namespace AMSoracle {
       unsigned int hostid;          //
       char         hostname[256];
 
-    ProdRun() {run = 0; events = 0;}
+    ProdRun() {run = 0; events = 0; fevent = 0; levent = 0; 
+               eventsp =0; lpevent = 0; errors = -1; cerrors = -1;
+               cputime = -1; eltime = -1; status = 0; hostid = 0;}
     ~ProdRun() { };
-    void get(unsigned int &trun, unsigned int &tevent, 
-                unsigned int &tfirst, unsigned int &tlast, unsigned int tstatus)
+    void get(unsigned int &trun, unsigned int &tidx, unsigned int &tevent, 
+                unsigned int &tfirst, unsigned int &tlast, 
+                unsigned int tstatus)
       { trun   = run;
+        tidx   = idx;
         tevent = events;
         tfirst = fevent;
         tlast  = levent;
@@ -169,23 +170,13 @@ namespace AMSoracle {
         idx       = tidx;
       }
 
-    void gettime(long &uinsert, long &ubegin, long &uend) {
-      uinsert = insert;
-      ubegin  = begin;
-      uend    = end;
-    }
 
-    void settime(long uinsert, long ubegin, long uend) {
-      insert = uinsert;
-      begin  = ubegin;
-      end    = uend;
-    }
 
     void print() {
-      cout<<"run, events fevent/levent "<<run<<", "<<events
+      cout<<"run, id, events fevent/levent "<<run<<", "
+          <<idx<<", "<<events
           <<" "<<fevent<<"/"<<levent<<endl;
-      cout<<"i/b/e "<<insert<<"/"<<begin<<"/"<<end<<endl;
-      cout<<"idx "<<idx<<endl;
+      cout<<"inserted "<<timestamp<<endl;
     }
 
     void getInfo(unsigned int &trun, 
@@ -228,8 +219,17 @@ namespace AMSoracle {
           suppressBlanks(hostname);
         }
       }
-   };
-  
+    void clearInfo()
+      { 
+        eventsp    = -1;
+        lpevent    = -1;
+        errors     = -1;
+        cerrors    = -1;
+        cputime    = -1; 
+        eltime     = -1;
+        status     = -1;
+   }
+  };
 
   class EventTag {
     public :
@@ -721,6 +721,7 @@ namespace AMSoracle {
 
   class DSTInfo {
     public :
+      unsigned int dsttype;
       unsigned int uid;
       char         hostname[40];
       char         dirpath[1024];
@@ -733,7 +734,8 @@ namespace AMSoracle {
       DSTInfo() {};
       ~DSTInfo() {};
      
-      int set(      const unsigned int tuid,
+      int set(      const unsigned int dtype,
+                    const unsigned int tuid,
                     const char *thostname,
                     const char *tdirpath,
                     unsigned int trunmode,
@@ -744,6 +746,7 @@ namespace AMSoracle {
         {
           int rstat = 0;
           if (thostname && tdirpath) {
+           dsttype = dtype;
            uid = tuid;
            strcpy(hostname,thostname);
            suppressBlanks(hostname);
@@ -758,7 +761,8 @@ namespace AMSoracle {
           }
           return rstat;
         }
-      int get(      unsigned int &tuid,
+      int get(      unsigned int &ttype,
+                    unsigned int &tuid,
                     char *thostname,
                     char *tdirpath,
                     unsigned int &trunmode,
@@ -770,6 +774,7 @@ namespace AMSoracle {
           int rstat = 0;
 
           if (thostname && tdirpath) {
+            ttype = dsttype;
            tuid = uid;
            strcpy(thostname,hostname);
            strcpy(tdirpath,dirpath);
@@ -865,6 +870,7 @@ namespace AMSoracle {
   void Fmessage(const char *subr, const char *text, const char *errcode);
   int  addtdvname(char *tdvnameS, int datamc);
   int  checktdvname(char *name, char *tablename);
+  int  cleanRunTable(const unsigned int runstatus);
   void commit();
   int  counttdv(char *name, int datamc, long timef, long timel); 
   int  createtdvtable(char *tablename);
@@ -929,9 +935,10 @@ namespace AMSoracle {
   int findInterface(const char *name);
   int findPlatform(const char *name);
   unsigned int findmaxprodidx();
-  unsigned int findprodrun(unsigned int  crun, int &idx, int &events, 
-                           unsigned int &fevent,
-                           unsigned int  &levent, unsigned int &tstamp);
+  int findProdRun(const unsigned int  crun, unsigned int &idx, 
+                        unsigned int &tstamp, 
+                        unsigned int &fevent, unsigned int &levent, 
+                        bool &flag);
   int  findrun(unsigned int  crun, long &utimef, long &utimel);
   unsigned int findrun(unsigned int  runid);
   int  findtdv(char *name, int datamc, long utimef, long utimel, int &ntdvs, TDVutime *utime); 
@@ -948,14 +955,12 @@ namespace AMSoracle {
   int  getActiveClientDesc(const unsigned int type, ActiveClientDesc *procdesc);
   int  getActiveClientId(const unsigned int type, ActiveClientId *procdesc);
   int  getActiveClientRef(const unsigned int uid, ActiveClientRef *procdesc);
-  int  getActiveHostList(ActiveHost *lhost);
-  int  getActiveHostList(unsigned int cltype, ActiveHost *lhost);
+  int  getActiveHostList(unsigned int cltype, unsigned int hostid, ActiveHost *lhost);
   int  getActiveHostN();
   int  getDST(DST *dst);
-  int  getDSTInfo(DSTInfo *dstinfo);
   int  getDSTInfo(const char *hostname, DSTInfo *dstinfo);
+  int  getDSTInfoALL(DSTInfo *dstinfo);
   int  getDSTInfoN();
-  int  getDSTInfoN(const char *hostname);
   int  getDSTN();
   int  getActiveHostN(unsigned int cltype);
   int  getNominalClientN(unsigned int type);
@@ -963,7 +968,8 @@ namespace AMSoracle {
   int  getNominalHostN();
   int  getNominalHostList(NominalHost *lhost);
   int  getProdRunStat(unsigned int crun, ProdRun *runs);
-  int  getprodruns(unsigned int run, int &nruns, ProdRun *runs);
+  int  getprodruns(unsigned int run, ProdRun *runs);
+  int  getprodrunN(unsigned int run);
   int  getRun(const char *host, RunTable *rtable);
   int  getRunsN();
   int  getRunTable(int &nruns, unsigned int &maxid, RunTable *rtable);
@@ -1046,7 +1052,9 @@ namespace AMSoracle {
                   const char *Name);
 
 
-  int insertDSTInfo(const unsigned int uid,
+  int insertDSTInfo(
+                    const unsigned int type,
+                    const unsigned int uid,
                     const char *hostname,
                     const char *dirpath,
                     unsigned int runmode,
@@ -1084,6 +1092,7 @@ namespace AMSoracle {
   int  oracle_connect();
   int  readtdv(char *filepath, long tdvsize, unsigned int *pdata);
   int  RunsToBeRerun();
+  int  RunsProcessing();
   void sql_error(char *msg);
   void sql_nothing(char *msg);
   void sql_notfound(char *msg);
@@ -1091,12 +1100,9 @@ namespace AMSoracle {
 
   int  updateHostLastUpdate(unsigned int hostid);
 
-  int  setActiveHostProcDone(const char *host, const int ndone);
-  int  setActiveHostProcFailed(const char *host, const int nfailed);
-  int  setActiveHostProcKilled(const char *host, const int nkilled);
-  int  setActiveHostStatus(const char *host, unsigned int status);
-  int  setActiveHostTimestamp(const char *host, const unsigned int timestamp);
-
+  int  AMSoracle::setActiveHostStatus(const unsigned int status,
+                                      const unsigned int type,
+                                      const char *hostname);
   int  setClientExitingStatus(unsigned int clientId, unsigned int status);
   int  setClientStatus(unsigned int clientId, unsigned int status);
   
@@ -1120,7 +1126,9 @@ namespace AMSoracle {
                   long int Size,
                   const char *Name);
 
-  int updateDSTInfo(const unsigned int uid,
+  int updateDSTInfo(
+                    const unsigned int type,
+                    const unsigned int uid,
                     const char *hostname,
                     const char *dirpath,
                     unsigned int runmode,
@@ -1131,6 +1139,7 @@ namespace AMSoracle {
 
   int updateRunTable(RunTable *rtable);
   int updateProdTable(ProdRun *rtable);
+  int updateProdRun(ProdRun *prun);
 };
 
 #endif

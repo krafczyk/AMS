@@ -1,9 +1,9 @@
-//  $Id: dbserver.C,v 1.12 2001/02/28 14:44:54 choutko Exp $
+//  $Id: dbserver.C,v 1.13 2001/03/02 17:45:24 alexei Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
 //                      
-//  Last Edit : Feb 26, 2001. ak
+//  Last Edit : Mar 2, 2001. ak
 //
 #include <amsdbc.h>
 #include <dbserver.h>
@@ -139,12 +139,13 @@ void  DBServer_impl::_init(){
   }
 }
 
-
-
-
-  void  DBServer_impl::UpdateDB(bool force=false){
-    // here do smth then there is no more runs to work
- }
+  void  DBServer_impl::UpdateDB(bool force=false)
+{
+  if(!AMSoracle::RunsToBeRerun() && !AMSoracle::RunsProcessing()) {
+   AMSoracle::cleanRunTable(DPS::Producer::Failed);
+   AMSoracle::commit();
+  }
+}
 
   int  DBServer_impl::getNK(const DPS::Client::CID &cid, DPS::Client::NCS_out nc)
 {
@@ -274,7 +275,8 @@ void  DBServer_impl::_init(){
      }
     }
    if (nclients < 1) {
-     cout<<"getACS -I- cannot get ActiveProcess information for cid.Type - "<<_parent->CT2string(cid.Type)<<endl;     
+     cout<<"DBServer_impl::getACS -I- cannot get ActiveProcess information for "
+         <<_parent->CT2string(cid.Type)<<endl;     
      acv -> length(1);
      nclients = 0;
      maxc = 0;
@@ -339,7 +341,7 @@ void  DBServer_impl::_init(){
                                             ac.Status);
            if (rstat == 1) {
              rstat= AMSoracle::deleteActiveClientId(cid.uid, ac.id.Type);
-            rstat= AMSoracle::insertActiveClientId(
+             rstat= AMSoracle::insertActiveClientId(
                                              cid.uid,
                                              ac.id.pid,
                                              ac.id.ppid,
@@ -370,7 +372,20 @@ void  DBServer_impl::_init(){
    void  DBServer_impl::sendAH(const DPS::Client::CID &cid,  const DPS::Client::ActiveHost & ah,DPS::Client::RecordChange rc)
 {
 
-  int hexist = AMSoracle::findActiveHost((const char*)ah.HostName, cid.Type); 
+  bool hexist = AMSoracle::findActiveHost((const char*)ah.HostName, cid.Type); 
+
+  //  cout<<"***sendAH : rc "<<rc<<endl;
+  //  cout<<"***sendAH : "<<(const char*)ah.HostName<<" "
+  //    <<_parent -> CT2string(cid.Type)<<endl;
+  //  cout<<"***sendAH : running/allowed/processed/failed/killed "<<
+  //
+  //    ah.ClientsRunning << " "<<
+  //    ah.ClientsAllowed <<" "<<
+  //    ah.ClientsProcessed<<" "<<
+  //    ah.ClientsFailed<<" "<<
+  //    ah.ClientsKilled<<endl;
+  //if(ah.ClientsAllowed < ah.ClientsRunning) cout<<"***********************"<<endl;
+
   switch (rc) {
   case DPS::Client::Delete:
     if (hexist) {
@@ -572,7 +587,7 @@ void  DBServer_impl::_init(){
   int nhosts = AMSoracle::getActiveHostN(cid.Type);
   if (nhosts > 0) {
     hostl = new AMSoracle::ActiveHost[nhosts];
-    nhosts = AMSoracle::getActiveHostList(cid.Type, hostl);
+    nhosts = AMSoracle::getActiveHostList(cid.Type, 0, hostl);
     if (nhosts > 0) {
       acv -> length(nhosts);
       for (int i=0; i<nhosts; i++) {
@@ -716,7 +731,8 @@ TDVbody_var vbody=new TDVbody();
 }
 
 
-  void  DBServer_impl::sendTDV(const DPS::Client::CID & cid, const TDVbody & tdv, TDVName & tdvname )
+  void  DBServer_impl::sendTDV(const DPS::Client::CID & cid, 
+                               const TDVbody & tdv, TDVName & tdvname )
 {
 
 
@@ -750,8 +766,8 @@ tmend    = e;
   const int elem = 2;
   int   nelem;
 
-  AMSoracle::EventTag   *tag = 0;
-  AMSoracle::ProdRun    *prun = 0; 
+  AMSoracle::EventTag   *tag  = 0;
+  AMSoracle::ProdRun    *prun = 0;
     cout<<"****************sendTDV******************"<<endl;
     cout<<tdvname.Name<<endl;
     cout<<"TDV size "<<tdv.length()<<endl;
@@ -775,38 +791,28 @@ tmend    = e;
      if (events) {
       fevent = tdv[2];
       levent = tdv[2+events-1];
-      int Nr = 0;
-      prun = new AMSoracle::ProdRun[100];
-      if(AMSoracle::getprodruns(trun, Nr, prun) == 1) {
-        if (Nr) {
+      int Nr = AMSoracle::getprodrunN(trun);
+      if (Nr) {
+       prun = new AMSoracle::ProdRun[Nr];
+       if(AMSoracle::getprodruns(trun, prun)) {
         for (int r=0; r<Nr; r++) {
           cout<<"sendTDV -I- found run "<<endl;
-          cout<<"run, events, first/last event "
-              <<trun<<", "<<prun[r].events<<" "<<prun[r].fevent<<"/"<<prun[r].levent<<endl;
-          cout<<"inserted "<<prun[r].timestamp<<endl;
+          prun[i].print();
           if (prun[r].fevent >= fevent && prun[r].levent <= levent) {
-            AMSoracle::deleteProdRun(prun[r].idx);    // delete run from m_prodruns
-            AMSoracle::deletetags(prun[r].idx);   // and all assoc. tags from m_tags
+            AMSoracle::deleteProdRun(prun[r].idx);  // delete run from m_prodruns
+            AMSoracle::deletetags(prun[r].idx);     // and all assoc. tags 
             AMSoracle::commit();
             cout<<"sendTDV -I- RUN "<<trun<<" AND ALL TAGS ARE DELETED !!!"<<endl;
           }
         }
-       }
-       doinsert = 1;
+       } 
       }
-      if (prun) delete [] prun;
-      if (doinsert) {
-         prun = new AMSoracle::ProdRun;
-         if (prun) {
-          tstamp = 0;
-          prun -> set(trun,events,fevent,levent,tstamp,0);
-          prun -> settime(tminsert,tmbegin,tmend);
-          tidx = AMSoracle::insertProdRun(prun);
-          if (tidx) AMSoracle::commit();
-          delete prun;
-         } else {
-           cout<<"sendTDV -I- failed to create AMSoracle::ProdRun *prun"<<endl;
-         }
+      if (!prun) prun = new AMSoracle::ProdRun[1];
+      tidx = AMSoracle::findmaxprodidx();
+      if (tidx) {
+        unsigned int tinsert = (time_t)0;
+        prun[0].set(trun, events, fevent, levent, tinsert, tidx);
+        prun[0].clearInfo();
         tag = new AMSoracle::EventTag[events];
         if (nelem == 3) {
          for (int i=0; i<events; i++) {
@@ -821,10 +827,9 @@ tmend    = e;
           tag[i].set(trun, tidx, tdv[ii], tdv[ii+2*inc], tdv[ii+inc],tdv[ii+inc*3]);
          }
         } 
-        AMSoracle::inserttags(tag, events);
+        if (AMSoracle::inserttags(tag, events)) AMSoracle::commit();
         if (tag) delete [] tag;
-        // done in inserttags - AMSoracle::commit();
-       }
+      }
      }
     }
 }
@@ -917,18 +922,19 @@ tmend    = e;
   AMSoracle::DSTInfo *dstinfo = 0;
   
   unsigned int mode;
+  unsigned int type;
   char     hostname[40];
   char     dirpath[1024];
    
   int ndsts = AMSoracle::getDSTInfoN();
   if (ndsts) {
     dstinfo = new AMSoracle::DSTInfo[ndsts];
-    int n = AMSoracle::getDSTInfo(dstinfo);
-    if (n > 0) {
-      if (n < ndsts) ndsts = n;
+    ndsts = AMSoracle::getDSTInfoALL(dstinfo);
+    if (ndsts) {
       acv->length(ndsts);
       for (int i=0; i<ndsts; i++) {
         dstinfo[i].get(
+                       type,
                        acv[i].uid,
                        hostname,
                        dirpath,
@@ -937,15 +943,20 @@ tmend    = e;
                        acv[i].DieHard,
                        acv[i].FreeSpace,
                        acv[i].TotalSpace);
+        acv[i].type = unsi2DSTT(type);
         acv[i].Mode = unsi2RM(mode);
         acv[i].HostName = (const char*)hostname;
         acv[i].OutputDirPath = (const char*)dirpath;
-      }
     }
     if (dstinfo) delete [] dstinfo;
-  } else {
-    acv->length(1);
+    }
   }
+
+  if (ndsts < 1) {
+    acv->length(1);
+    ndsts = 0;
+  }
+
   res=acv._retn();
   return ndsts;
 
@@ -989,8 +1000,8 @@ tmend    = e;
                     acv[i].SubmitTime,
                     acv[i].cuid);
        //
-       acv[i].LastEvent = acv[i].LastEvent/200;
-       if (acv[i].LastEvent < 100) acv[i].LastEvent = 100;
+       //acv[i].LastEvent = acv[i].LastEvent/1000;
+       //if(acv[i].LastEvent < 100) acv[i].LastEvent = 150;
        //
       acv[i].FilePath = (const char*)filepath;
       acv[i].Status  = unsi2RS(status);
@@ -1027,9 +1038,11 @@ tmend    = e;
   return nruns;
 }
 
-   void  DBServer_impl::getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out rv, DSTInfo_out dv)
+   void  DBServer_impl::getRunEvInfo(const DPS::Client::CID &cid, 
+                                     RunEvInfo_out rv, DSTInfo_out dv)
 {
 // get next run 
+  unsigned int type;
   unsigned int status;
   unsigned int history;
   unsigned int mode;
@@ -1042,12 +1055,13 @@ tmend    = e;
   RunEvInfo_var av=new RunEvInfo();
   DSTInfo_var dav =new DSTInfo();
 
-  int ndsts = AMSoracle::getDSTInfoN((const char*)cid.HostName);
-  if (ndsts == 1) {
-    dstinfo = new AMSoracle::DSTInfo;
-    int n = AMSoracle::getDSTInfo((const char*)cid.HostName, dstinfo);
-    if (n > 0) {
+    int ndsts = AMSoracle::getDSTInfoN();
+    dstinfo = new AMSoracle::DSTInfo[ndsts];
+    ndsts = AMSoracle::getDSTInfo((const char*)cid.HostName, dstinfo);
+    if (!ndsts) ndsts = AMSoracle::getDSTInfo("defaulthost", dstinfo);
+    if (ndsts == 1) {
         dstinfo -> get(
+                       type,
                        dav -> uid,
                        hostname,
                        dirpath,
@@ -1057,17 +1071,20 @@ tmend    = e;
                        dav -> FreeSpace, 
                        dav -> TotalSpace);
 
+        dav -> type = unsi2DSTT(type);
         dav -> Mode = unsi2RM(mode);
         dav -> HostName = (const char*)hostname;
         dav -> OutputDirPath = (const char*)dirpath;
-    }
-    if (dstinfo) delete dstinfo;
   } else if (ndsts < 1){
       _parent -> EMessage(AMSClient::print(cid,"DBServer_impl::getRunEvInfo - DSTInfo not found. "));
   } else if (ndsts > 1) {
       _parent -> EMessage(AMSClient::print(cid,"DBServer_impl::getRunEvInfo - more than 1 DSTInfo. "));
-  } 
-  if(AMSoracle::getRun((const char*)cid.HostName,rtable) == 1) {
+  }
+
+  if (dstinfo) delete [] dstinfo;
+ 
+  if (ndsts == 1) {
+   if(AMSoracle::getRun((const char*)cid.HostName,rtable) == 1) {
       rtable -> get(av -> uid,
                     av -> Run,
                     av -> FirstEvent,
@@ -1089,6 +1106,9 @@ tmend    = e;
       AMSoracle::setRunSubmitTime(av -> uid, insert);
       AMSoracle::commit();
       dav->DieHard=0;
+   } else {
+    dav->DieHard=1;
+   }
   } else {
     dav->DieHard=1;
   }
@@ -1111,9 +1131,8 @@ tmend    = e;
   int ndsts = AMSoracle::getDSTN();
   if (ndsts) {
     dst = new AMSoracle::DST[ndsts];
-    int n = AMSoracle::getDST(dst);
-    if (n > 0) {
-      if (n<ndsts) ndsts = n;
+    ndsts = AMSoracle::getDST(dst);
+    if (ndsts) {
       acv->length(ndsts);
       for (int i=0; i<ndsts; i++) {
         dst[i].get(
@@ -1133,8 +1152,9 @@ tmend    = e;
         dsts[i].Name = (const char*)name;
       }
     }
-    if (dst) delete [] dst; 
- } else {
+  }
+  if (dst) delete [] dst; 
+  if (!ndsts) {
     acv->length(1);
   }
   dsts=acv._retn();
@@ -1154,7 +1174,6 @@ tmend    = e;
 
     hostl = new AMSoracle::ActiveHost;
     if (AMSoracle::getHost(ci.Type, hostl) == 1) {
-        
         hostl -> get(
                     hostname,
                     interface,
@@ -1169,7 +1188,6 @@ tmend    = e;
         ahl -> HostName = (const char*)hostname;
         ahl -> Interface= (const char*)interface;
         ahl -> Status = unsi2HS(status);
-        rstatus = 1;
         if (ci.Type == DPS::Client::Producer) {
           int nruns = AMSoracle::RunsToBeRerun();
           int nactiveclients = AMSoracle::getActiveClientN(ci.Type);
@@ -1180,6 +1198,9 @@ tmend    = e;
       //   <<ci.uid<<", "<<ci.Type<<endl;
     }
     if (hostl) delete hostl;
+
+    if (rstatus) rstatus = 
+          AMSoracle::setActiveHostStatus(DPS::Client::InActive, ci.Type, hostname);
 
     host=ahl._retn();
     return rstatus;
@@ -1254,7 +1275,9 @@ tmend    = e;
      if (dstinfo) {
       _parent -> EMessage(AMSClient::print(ne,"DBServer_impl::sendDSTInfo - DSTinfo exists. not recreated"));
      }  else {
-     if (AMSoracle::insertDSTInfo(ne.uid,
+     if (AMSoracle::insertDSTInfo(
+                                 ne.type,
+                                 ne.uid,
                                  (const char *)ne.HostName,
                                  (const char *)ne.OutputDirPath,
                                  ne.Mode,
@@ -1268,7 +1291,9 @@ tmend    = e;
      if (!dstinfo) {
       _parent -> EMessage(AMSClient::print(ne,"DBServer_impl::sendDSTInfo - DSTinfo not exists. no update"));
      }  else {
-      if (AMSoracle::updateDSTInfo(ne.uid,
+      if (AMSoracle::updateDSTInfo(
+                                   ne.type,
+                                   ne.uid,
                                    (const char *)ne.HostName,
                                    (const char *)ne.OutputDirPath,
                                    ne.Mode,
@@ -1337,9 +1362,40 @@ tmend    = e;
                          ne.cinfo.Status,
                          (const char *)ne.cinfo.HostName);
 
-      if (AMSoracle::updateProdTable(prun) == 1)  AMSoracle::commit();
-    } else {
-      _parent -> EMessage(AMSClient::print(ne,"Run not exists. no update"));
+      AMSoracle::updateProdTable(prun);
+        if(ne.cinfo.Status == DPS::Producer::Finished ||
+           ne.cinfo.Status == DPS::Producer::Failed ) {
+           unsigned int timestamp;
+           unsigned int id;
+           unsigned int tinsert;
+           unsigned int fevent, levent;
+           bool flag;
+           int  doinsert = 0;
+           int  doupdate = 0;
+
+           tinsert =  time((time_t)0);
+           if (!AMSoracle::findProdRun(ne.Run, id, timestamp, fevent, levent, flag)) {
+                doinsert = 1;
+                doupdate = 1;
+           } else if (flag) {
+             doupdate = 1;
+           } else {
+             if (fevent >= ne.FirstEvent && levent <= ne.LastEvent) 
+               AMSoracle::deleteProdRun(ne.Run, id);
+             doinsert = 1;
+             doupdate = 1;
+           }
+           if (doinsert || doupdate) {
+              prun -> set(ne.Run, ne.cinfo.EventsProcessed,
+                          ne.FirstEvent, ne.LastEvent,
+                          tinsert, id);
+             if (doinsert)
+                AMSoracle::insertProdRun(prun);
+             else
+                AMSoracle::updateProdRun(prun);
+             AMSoracle::commit();
+           }
+        }
     }
     break;                               
   case DPS::Client::Delete:
