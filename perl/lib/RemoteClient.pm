@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.269 2004/06/03 09:23:50 alexei Exp $
+# $Id: RemoteClient.pm,v 1.270 2004/06/03 17:20:09 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2198,6 +2198,12 @@ CheckCite:            if (defined $q->param("QCite")) {
              }
     }
 # now check output
+      my $accessmode = "xyz";
+      my $remotecite = "xyz";
+      if (defined $q->param("REMOTEACCESS")) {
+          $accessmode="REMOTE";
+          $remotecite = $q->param("REMOTEACCESS");
+      }
       if (defined $q->param("NTOUT")) {
        htmlTop();
         $self->htmlTemplateTable("Selected Query Keys :");
@@ -2224,50 +2230,79 @@ CheckCite:            if (defined $q->param("QCite")) {
         print "</font></b></td>";
         print "<td><b><font size=\"4\">$qtrigger </font></b></td></tr>\n";
        }
+       if ($accessmode eq "REMOTE" && $q->param("NTOUT") ne "SUMM") {
+        print "<tr><td><b><font size=\"4\" color=\"blue\">Print ONLY Files copied to ";
+        print "</font></b></td>";
+        print "<td><b><font size=\"4\" color=\"red\">$remotecite </font></b></td></tr>\n";
+       }
       htmlTableEnd();
       print "<BR><BR>\n";
        if (defined $#runs) {
            my $nruns = $#runs+1;
-           print "<LI><font size=5 color=tomato><i> Runs Found... </font></i> $nruns </li>\n";
+           print "<LI><font size=5 color=tomato><i> Total Runs Found in Database ... </font></i> $nruns </li>\n";
            print "<BR><BR>\n";
        }
 # ....print 'ALL' information
        if ($q->param("NTOUT") eq "ALL") {
               my $i = 0;
               foreach my $run (@runs){
-               my $jobname = $jobnames[$i];
-               my $submit  = $submits[$i];
-               $i++;
-               print "<tr><td><b><font size=\"3\" color=$color> Job : $jobname, Run : $run, Submitted : $submit";
-               print "</font></b></td></tr>\n";
-               print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
-               print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-               print "<tr><td width=10% align=left><b><font color=\"blue\" > NTuple </font></b></td>";
-               print "<td width=10%><b><font color=\"blue\"> Events </font></b></td>";
-               print "<td width=15%><b><font color=\"blue\" > Errors </font></b></td>";
-               print "<td width=15%><b><font color=\"blue\" > Size[MB] </font></b></td>";
-               print "<td td align=middle><b><font color=\"blue\" > Produced </font></b></td>";
-               print "<td width=10%><b><font color=\"blue\" > Status </font></b></td>";
-               print "</tr>\n";
-               $sql="SELECT PATH, NEVENTS, NEVENTSERR, TIMESTAMP, STATUS, SIZEMB FROM Ntuples WHERE RUN=$run ";
-               my $r1=$self->{sqlserver}->Query($sql);
+               my $printit = 1;
+               if ($accessmode eq "REMOTE") {
+                $sql = "SELECT run FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
+                my $r0=$self->{sqlserver}->Query($sql);
+                if (not defined $r0->[0]) {
+                 $printit = 0;
+                }
+               }
+               if ($printit == 1) {
+                my $jobname = $jobnames[$i];
+                my $submit  = $submits[$i];
+                $i++;
+                print "<tr><td><b><font size=\"3\" color=$color> Job : $jobname, Run : $run, Submitted : $submit";
+                print "</font></b></td></tr>\n";
+                print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+                print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+                print "<tr><td width=10% align=left><b><font color=\"blue\" > NTuple </font></b></td>";
+                print "<td width=10%><b><font color=\"blue\"> Events </font></b></td>";
+                print "<td width=15%><b><font color=\"blue\" > Errors </font></b></td>";
+                print "<td width=15%><b><font color=\"blue\" > Size[MB] </font></b></td>";
+                print "<td td align=middle><b><font color=\"blue\" > Produced </font></b></td>";
+                print "<td width=10%><b><font color=\"blue\" > Status </font></b></td>";
+                print "</tr>\n";
+                $sql="SELECT PATH, NEVENTS, NEVENTSERR, TIMESTAMP, STATUS, SIZEMB FROM Ntuples WHERE RUN=$run ";
+                my $r1=$self->{sqlserver}->Query($sql);
                if (defined $r1->[0][0]) {
                 foreach my $nt (@{$r1}){
-                 my $path  = trimblanks($nt->[0]);
-                 my $timel =localtime($nt->[3]);
-                 my ($wday,$mon,$day,$time,$year) = split " ",$timel;
-                 my $status=$nt->[4];
-                 my $color=statusColor($status);
-                 print "<td><b> $path    </td></b><td><b> $nt->[1] </td>
-                        <td><b> $nt->[2] </b></td>
-                        <td><b> $nt->[5] </b></td>
-                        <td><b> $mon $day, $time, $year </b></td> 
-                        <td align=middle><b><font color=$color> $status </font></b></td> \n";
+                 my $path    = trimblanks($nt->[0]);
+                 if ($accessmode eq "REMOTE") {
+                  my $subpath = getPathNoDisk($path);
+                  $sql = "SELECT prefix, path FROM MC_DST_COPY WHERE CITE='$remotecite' and path like '%$subpath%'";
+                  my $r2=$self->{sqlserver}->Query($sql);
+                  if (defined $r2->[0][0]) {
+                     my $prefix = trimblanks($r2->[0][0]);
+                     my $spath  = trimblanks($r2->[0][1]);
+                     $path = $prefix."/".$spath;
+                  } else {
+                      $printit = 0;
+                  }
+                 }
+                 if ($printit == 1) {
+                  my $timel =localtime($nt->[3]);
+                  my ($wday,$mon,$day,$time,$year) = split " ",$timel;
+                  my $status=$nt->[4];
+                  my $color=statusColor($status);
+                  print "<td width=50%><b> $path    </td></b><td><b> $nt->[1] </td>
+                        <td align=middle width=5%><b> $nt->[2] </b></td>
+                        <td align=middle width=5%><b> $nt->[5] </b></td>
+                        <td align=middle width=25%><b> $mon $day, $time, $year </b></td> 
+                        <td align=middle width=10%><b><font color=$color> $status </font></b></td> \n";
                  print "</font></tr>\n";
-               }
+              }
              }
+            }
             htmlTableEnd();
             print "<BR><BR>\n";
+            }
            }
    } elsif ($q->param("NTOUT") eq "RUNS") {  
 # ... print Runs
@@ -2281,13 +2316,23 @@ CheckCite:            if (defined $q->param("QCite")) {
        foreach my $run (@runs){
          my $jobname = $jobnames[$i];
          my $submit  = $submits[$i];
-         $i++;
-         print "
+         my $printit = 1;
+         if ($accessmode eq "REMOTE") {
+          $sql = "SELECT run FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
+          my $r0=$self->{sqlserver}->Query($sql);
+          if (not defined $r0->[0]) {
+           $printit = 0;
+           }
+         }
+         if ($printit == 1) {
+          $i++;
+          print "
             <td><b><font color=$color> $jobname </font></td></b>
             <td><b><font color=$color> $run </font></b></td>
             <td><b><font color=$color> $submit </font></b></td>\n";
             print "</font></tr>\n";
-      }
+        }
+     }
    htmlTableEnd();
   } elsif ($q->param("NTOUT") eq "FILES") {
 # ... print DSTs
@@ -2296,15 +2341,23 @@ CheckCite:            if (defined $q->param("QCite")) {
     print "</tr>\n";
      my $i =0;
        foreach my $run (@runs){
-         my $jobname = $jobnames[$i];
-         my $submit  = localtime($submits[$i]);
-         $i++;
-         my $sql = "SELECT path From Ntuples WHERE Run=$run";
-         my $r1=$self->{sqlserver}->Query($sql);
-         foreach my $path (@{$r1}) {
-          print "<td><b><font color=$color> $path->[0] </font></td></b></font></tr>\n";
+               if ($accessmode eq "REMOTE") {
+                $sql = "SELECT prefix,path FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
+                my $r0=$self->{sqlserver}->Query($sql);
+                foreach my $path (@{$r0}) {
+                   print "<td><b><font color=$color> $path->[0]/$path->[1] </font></td></b></font></tr>\n";
+               }
+            } else {
+             my $jobname = $jobnames[$i];
+             my $submit  = localtime($submits[$i]);
+             $i++;
+             $sql = "SELECT path From Ntuples WHERE Run=$run";
+             my $r1=$self->{sqlserver}->Query($sql);
+             foreach my $path (@{$r1}) {
+             print "<td><b><font color=$color> $path->[0] </font></td></b></font></tr>\n";
+           }
          }
-        }
+      }
       htmlTableEnd();
    } elsif ($q->param("NTOUT") eq "SUMM") {
 # ... print summary
@@ -2350,7 +2403,7 @@ CheckCite:            if (defined $q->param("QCite")) {
       my $RootAnalysisTextCastor = 
          "// it is assumed that CASTOR directory 
              structure is similar to one on AMS disks.
-             /castor/cern.ch/ams/ProductionPeriod/...
+             /castor/cern.ch/MC/AMS02/ProductionPeriod/...
          ";
       my $RootAnalysisTextHTTP = 
          "// wildcards are not implemented yet in ROOT. 
@@ -2358,6 +2411,9 @@ CheckCite:            if (defined $q->param("QCite")) {
              getting a list of files.
          ";
      
+      my $RootAnalysisTextRemote = 
+         "// it is assumed that REMOTE directory structure and lib(s) path are similar to one on AMS disks.
+         ";
       my $RootAnalysisTemplateTxt = 
          "gROOT->Reset(); 
           // for linux load
@@ -2369,8 +2425,9 @@ CheckCite:            if (defined $q->param("QCite")) {
           TChain chain(\"AMSRoot\");
       ";
 #...... check files access option
-      my $accessmode = "NFS";
+      $accessmode = "NFS";
       my $prefix     = "xyz";
+       
       if (defined $q->param("ROOTACCESS")) {
           if ($q->param("ROOTACCESS") eq "HTTP") {
               $accessmode = "HTTP";
@@ -2381,7 +2438,11 @@ CheckCite:            if (defined $q->param("QCite")) {
               $prefix     = "rfio:/castor/cern.ch/ams/";
           }
       }
-
+#..... remote cite (if any)
+      if (defined $q->param("REMOTEACCESS")) {
+          $accessmode="REMOTE";
+          $remotecite = $q->param("REMOTEACCESS");
+      }
 
     my $filename=$q->param("ROOT");
     my $buff=undef;
@@ -2395,6 +2456,9 @@ CheckCite:            if (defined $q->param("QCite")) {
      } elsif ($accessmode eq "CASTOR") {
          $buff = $RootAnalysisTextCastor;
          print "<tr><td>$RootAnalysisTextCastor</td></tr>\n";
+     } elsif ($accessmode eq "REMOTE") {
+         $buff = $RootAnalysisTextRemote;
+         print "<tr><td>$RootAnalysisTextRemote</td></tr>\n";
      } else {
          $buff = $RootAnalysisTextNFS;
          print "<tr><td>$RootAnalysisTextNFS</td></tr>\n";
@@ -2450,6 +2514,19 @@ CheckCite:            if (defined $q->param("QCite")) {
            my $s = "chain.Add(\"$httppath\");";
            print "<tr><td> $s </tr></td>\n";
            $buff = $buff.$s."\n";
+          }
+      }
+     } elsif ($accessmode eq "REMOTE") {
+         foreach my $run (@runs){
+          my $sql = "SELECT prefix,path From MC_DST_COPY WHERE Run=$run AND Cite='$remotecite'";
+          my $r1=$self->{sqlserver}->Query($sql);
+          foreach my $p (@{$r1}) {
+              my $prefix = trimblanks($p->[0]);
+              my $local  = trimblanks($p->[1]);
+              my $path=$prefix."/".$local;
+              my $s = "chain.Add(\"$path\");";
+              print "<tr><td> $s </tr></td>\n";
+              $buff = $buff.$s."\n";
           }
       }
      } elsif ($accessmode eq "CASTOR") {
@@ -2561,12 +2638,24 @@ CheckCite:            if (defined $q->param("QCite")) {
    print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"FILES\"> Only file names;\n";
    print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"SUMM\"> Summary \n";
    print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ROOT\"> ROOT Analysis Filename <INPUT TYPE=\"text\" name=\"ROOT\">";
+
    print "<br><TR></TR>";
-   print "<b><font color=green> ROOT Files Access Mode :  </font>\n";
+   print "<br><TR></TR>";
+   print "<b><font color=blue> ROOT Files \@CERN  </font>\n";
+   print "<br><TR></TR>";
+   print "<b><font color=blue> Access Mode  </font>\n";
    print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"NFS\">  NFS \n";
    print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"HTTP\"> via WebServer \n";
    print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"CASTOR\">  rfio CASTOR\n";
    print "<i><font color=green> (Note : files are copied to CASTOR weekly, access via HTTP is slow) </font><i>\n";
+   print "<TR></TR>\n";
+
+   print "<br><TR></TR>";
+   print "<br><TR></TR>";
+   print "<b><font color=blue> Files Available on Remote Cites (Note : no access from CERN, ask cite's Rep for details) :  </font>\n";
+   print "<br><TR></TR>";
+   print "<b><font color=blue> Cite :  </font>\n";
+   print "<INPUT TYPE=\"radio\" NAME=\"REMOTEACCESS\" VALUE=\"lyon\">  Lyon \n";
    print "<TR></TR>\n";
 
      print "<p><br>\n";
@@ -5149,7 +5238,6 @@ sub save_state {
 }
 
 
-
 sub htmlTop {
     print "Content-type: text/html\n\n";
     print "<HTML>\n";
@@ -5274,6 +5362,19 @@ sub htmlReturnToQuery {
             print "Return to <a href=$rccgi> MC02 Query Form</a>\n";
             print "</i></td></tr>\n";
         }
+
+sub getPathNoDisk {
+    my $path = shift;
+    my @junk = split '/',$path;
+    my $tdir ="";
+    for (my $i=2; $i<$#junk; $i++) {
+      $tdir = $tdir.$junk[$i]."/";
+    }
+    $tdir = $tdir.$junk[$#junk];
+    $tdir = trimblanks($tdir);
+
+    return $tdir;
+}
 
 sub trimblanks {
     my @inp_string = @_;
@@ -10621,22 +10722,15 @@ if (defined $filename) {
  open(HISTORY,"$filename");
  while(<HISTORY>)
  {
-	my $comma = index($_,",");
-	my $run_num = substr($_,0,$comma-1);
-        $run_num = trimblanks($run_num);
-	my $old_comma = $comma;
+     my $line = $_;
+     my @junk=split(",",$line);
+     if ($#junk > 2) {
+      my $run_num     = trimblanks($junk[0]);
+      my $site_prefix = trimblanks($junk[1]);
+      my $file_path   = trimblanks($junk[2]);
+      my $unixtime    = trimblanks($junk[3]);
 
-	$comma = index($_,",",$old_comma+1);
-	my $site_prefix = substr($_,$old_comma+1,$comma-$old_comma-1);
-	$old_comma = $comma;
 
-	$comma = index($_,",",$old_comma+1);
-	my $file_path = substr($_,$old_comma+1,$comma-$old_comma-1);
-	$old_comma = $comma;
-
-	$comma = index($_,",",$old_comma+1);
-	my $unixtime = substr($_,$old_comma+1);
-        $unixtime=trimblanks($unixtime);
         if ($verbose) {
 	 print "Cite, Run, Time... $cite, $run_num, $unixtime \n";
          print "File... $site_prefix, $file_path   \n";
@@ -10644,6 +10738,9 @@ if (defined $filename) {
         if ($update ==1) {
  	 $self->updateMCDSTCopy($run_num,$cite,$site_prefix,$file_path,$unixtime);
         }
+  } else {
+      print "**** -W- Cannot parse : $line \n";
+  }
  }
  close HISTORY;
 } else {
@@ -10704,6 +10801,4 @@ sub updateMCDSTCopy {
   }
  return 1;
 }
-
-
 
