@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.123 2003/12/17 15:18:13 mdelgado Exp $
+//  $Id: root.h,v 1.124 2003/12/17 17:06:04 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -500,7 +500,6 @@ public:
   float ErrorTheta; ///< Error of the reconstructed emission angle
   float TrRadPos[3];///< Mean emission point of the Cerenkov photons
   float TrPMTPos[3];///< Intersection point of the track with the PMT plane
-  //+LIP
   int   lipHitsUsed;///< Nb. of used hits in LIP beta rec.
   float lipThetaC;  ///< Cherenkov angle reconstructed in LIP beta rec.
   float lipBeta;    ///< Beta from LIP beta rec.
@@ -508,7 +507,6 @@ public:
   float lipLikelihoodProb;///<Likelihood from LIP beta rec.
   float lipChi2;     ///< Chi2 from LIP beta rec.
   float lipRecProb;  ///< Probabbility from LIP beta rec. 
-  //ENDofLIP
 
 
   protected:
@@ -531,7 +529,7 @@ public:
     sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
     return _Info;
   } 
-  ClassDef(RichRingR,5)           // RichRingR
+  ClassDef(RichRingR,6)           // RichRingR
 }; 
 
 
@@ -606,7 +604,7 @@ public:
   /// \param number index in container
   /// \return human readable info about TofClusterR
   char * Info(int number=-1){
-    sprintf(_Info,"ToF Cluster No %d S%dB%d: time=%3.1f#pm%3.1f, E_{Dep}(MeV)=%4.1f, at (%5.1f,%5.1f,%5.1f)#pm(%5.1f,%5.1f,%5.1f)",number,Layer,Bar,Time*1.e9,ErrTime*1.e9,Coo[0],Coo[1],Coo[2],ErrorCoo[0],ErrorCoo[1],ErrorCoo[2]);
+    sprintf(_Info,"ToF Cluster No %d S%dB%d: time=%3.1f#pm%3.1f, E_{Dep}(MeV)=%4.1f, at (%5.1f,%5.1f,%5.1f)#pm(%5.1f,%5.1f,%5.1f)",number,Layer,Bar,Time*1.e9,ErrTime*1.e9,Edep,Coo[0],Coo[1],Coo[2],ErrorCoo[0],ErrorCoo[1],ErrorCoo[2]);
   return _Info;
   } 
   TofClusterR(){};
@@ -1498,7 +1496,7 @@ public:
   /// \param number index in container
   /// \return human readable info about ParticleR
   char * Info(int number=-1){
-   sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta);
+   sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f Coo=(%5.2f,%5.2f,%5.2f)",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta,Coo[0],Coo[1],Coo[2]);
    return _Info;
   }
   ParticleR(){};
