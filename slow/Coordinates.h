@@ -78,7 +78,7 @@ double eps,   /* obliquity of the ecliptic of date */
        Euler_Phi,Euler_Tet,Euler_Psi,/*Euler angles */
        longi,Med,O,L,La,M,Ma,a,b,c,d,e,f,Q,S,time_of_day; /* temporals*/
 
-int Coordinates(matr3 Coo_M1950, matr3 Vel_M1950, double q[4], time_t ytime, polar *Geo, polar *Geo_G, double *Vel_angle, Euler *Euler_LVLH, polar *Solar, double *Greenw_Phi, polar *Geo_Vel, polar *Geo_G_Vel);
+int Coordinates(matr3 Coo_M1950, matr3 Vel_M1950, double q[4], time_t ytime, polar *Geo, double *Vel_angle, Euler *Euler_LVLH, polar *Solar, double *Greenw_Phi);
 double Radius(matr3 Coo);
 
 /* ==== FOR RECORDS ========== */
