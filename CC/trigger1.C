@@ -299,9 +299,11 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   z=1;
   if(*(p+2) & (1<<4))z=3;
   //anti
-  integer xneg= (((*(p+1) >> 8) & 3) & ((*(p+1) >> 10) & 3)); 
-  integer xpos= (((*(p+1) >> 12) & 3) & ((*(p+1) >> 14) & 3)); 
+  uinteger xneg= (((*(p+1) >> 8) & 3) & ((*(p+1) >> 10) & 3)); 
+  uinteger xpos= (((*(p+1) >> 12) & 3) & ((*(p+1) >> 14) & 3)); 
+  uinteger a2=*(p+1);
   antip = xpos | (xneg <<4);
+  antip = antip | (a2<<16);
   if(z>0)AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
   TriggerLVL1(mode,z,tofp,tofp1,antip));
 
