@@ -42,6 +42,7 @@ module DPS{
       string IOR;
       string Interface;
       ClientType Type;
+      unsigned long uid;
     }; 
 
     typedef sequence<ActiveRef> ARS;

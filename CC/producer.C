@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.26 2001/01/23 11:50:37 choutko Exp $
+//  $Id: producer.C,v 1.27 2001/01/26 10:08:00 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -697,7 +697,10 @@ name.Entry.End=e;
  int suc=0;
 DPS::Producer::TDVbody_var vbody=new DPS::Producer::TDVbody();
 vbody->length(name.Size/sizeof(integer));
-tdv->CopyOut(vbody->get_buffer(0));
+tdv->CopyOut(vbody->get_buffer());
+ bool transienterror=false;
+ bool again=false;
+AGAIN:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   
   try{
@@ -705,12 +708,24 @@ tdv->CopyOut(vbody->get_buffer(0));
     suc++;
     break;
   }
+   catch (CORBA::TRANSIENT &tr){
+    if(!again){
+      transienterror=true;
+      again=true;
+      EMessage("AMSProducer::sendTDV-E-TransientErrorOccurs");
+    }
+    sleep(1);    
+  }
   catch  (CORBA::SystemException & a){
   }
  }
-if(!suc){
- FMessage("AMSProducer::getTDV-F-UnableTosendTDV",DPS::Client::CInAbort);
+if(!suc && !transienterror){
+ FMessage("AMSProducer::sendTDV-F-UnableTosendTDV",DPS::Client::CInAbort);
  return false;
+}
+else{
+transienterror=false;
+goto AGAIN;
 }
 return true;
 }

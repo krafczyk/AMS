@@ -1,6 +1,5 @@
-//  $Id: gbatch.C,v 1.57 2001/01/23 11:50:36 choutko Exp $
+//  $Id: gbatch.C,v 1.58 2001/01/26 10:07:59 choutko Exp $
 
-// Author V. Choutko 24-may-1996
  
 #include <iostream.h>
 #include <signal.h>

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.34 2001/01/22 17:32:21 choutko Exp $
+//  $Id: server.C,v 1.35 2001/01/26 10:08:00 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -311,6 +311,7 @@ _ExitInProgress=true;
    }
    catch (CORBA::SystemException &ex){
      // Have to Kill Servers Here
+     
    }
 }
 }
@@ -353,6 +354,19 @@ void AMSServerI::PropagateAC(DPS::Client::ActiveClient & ac,DPS::Client::RecordC
    }
    catch (CORBA::SystemException &ex){
      cerr<<"oops corba exc found for "<<i<<" "<<ctime(&tt)<< endl;
+/*
+     DPS::Client::ActiveClient ac;
+     ac.id.uid=arf[i].uid;
+     ACLI li=find_if(_pser->getacl().begin(),_pser->getacl().end(),Eqs(ac));
+     if(li!=_pser->getacl().end()){
+      (*li)->Status==DPS::Client::TimeOut;
+      PropagateAC(*li,DPS::Client::Update,DPS::Client::AnyButSelf,ac.id.uid);
+     }
+     else{
+      _parent->EMessage(AMSClient::print(ac," PropagateRunExceptionClientNotFou\
+nd"));
+     }
+*/
    }
   } 
   }   
@@ -684,6 +698,7 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
      ((ac.ars)[0]).Interface=(const char *)("Dummy");
      ((ac.ars)[0]).IOR=(const char *)(" ");
      ((ac.ars)[0]).Type=DPS::Client::Generic;
+     ((ac.ars)[0]).uid=0;
 /*
      _acl.push_back(ac);
      ((*i)->ClientsRunning)++;
@@ -1306,6 +1321,7 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
         ((as.ars)[length]).Interface=(const char *)(mi->first);
         ((as.ars)[length]).IOR=(const char *)(mi->second);
         ((as.ars)[length]).Type=pser->getType();
+        ((as.ars)[length]).uid=as.id.uid;
         length++;
        }
      }
@@ -1315,6 +1331,7 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
       ((as.ars)[0]).Interface=(const char *)("Dummy");
       ((as.ars)[0]).IOR=(const char *)(" ");
       ((as.ars)[0]).Type=DPS::Client::Generic;
+      ((as.ars)[0]).uid=0;
      }
    DPS::Client::ActiveClient_var acv=new DPS::Client::ActiveClient(as);
    PropagateAC(acv,rc);
@@ -1701,6 +1718,9 @@ if(getServer()->InactiveClientExists())return;
      ac.Start=tt;
      (ac.ars).length(1);
      ((ac.ars)[0]).Interface=(const char *)("Dummy");
+     ((ac.ars)[0]).IOR=(const char *)(" ");
+     ((ac.ars)[0]).Type=DPS::Client::Generic;
+     ((ac.ars)[0]).uid=0;
     DPS::Client::ActiveClient_var acv=new DPS::Client::ActiveClient(ac);
     PropagateAC(acv,DPS::Client::Create);
     (*i)->Status=DPS::Client::OK; 
