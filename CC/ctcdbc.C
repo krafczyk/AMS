@@ -96,6 +96,6 @@ _geomId=iflag;
   integer CTCDBc::getnagel()   {
    if(_geomId==0)return getnblk();
    else if(_geomId==1)return 2*getnblk();
-   else return getnblk();
+   else return getnx()*getny();
   }
 

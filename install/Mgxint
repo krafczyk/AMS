@@ -50,6 +50,7 @@ OBJECTS= ..$(BIN)/gxint.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o .
 
 gxint.exe:	$(OBJECTS)
 	$(LD) -o ..$(EXE)/gxint.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
+	chmod +x  ..$(EXE)/gxint.exe
 
 ..$(BIN)/gxint.o:	../CC/gxint.C
 	$(CC) -c $(CFLAGS) ../CC/gxint.C -o ..$(BIN)/gxint.o

@@ -4,23 +4,29 @@
 #include <gmat.h>
 integer AMSgvolume::debug=1;
 geant AMSgvolume::dgeant=1.e-4;
-void AMSgvolume::setcoo(geant coo[]){
+void AMSgvolume::setcoo(geant coo[],integer rel){
 _cooA=AMSPoint(coo[0],coo[1],coo[2]);
 _coo=_cooA;
   AMSgvolume * cur;
    cur=up();
    while (cur){
-    _coo=_coo-cur->_coo;
+    if(rel)_cooA=_cooA+cur->_coo;
+    else _coo=_coo-cur->_coo;
     cur=cur->up();
    }
 }
-void AMSgvolume::setnrm(number nrm[3][3]){
+void AMSgvolume::setnrm(number nrm[3][3], integer rel){
    UCOPY(nrm,_nrm,3*3*sizeof(nrm[0][0])/4);
    UCOPY(nrm,_inrm,3*3*sizeof(nrm[0][0])/4);
   AMSgvolume * cur;
    cur=up();
    while (cur){
-    mm3(cur->_nrm,_inrm);
+     if(rel){
+      number nrm[3][3];
+      transpose(cur->_nrm,nrm);
+      mm3(nrm,_nrm);
+     }
+    else mm3(cur->_nrm,_inrm);
     cur=cur->up();
    }
 }
@@ -28,9 +34,9 @@ void AMSgvolume::setnrm(number nrm[3][3]){
 AMSgvolume::AMSgvolume (integer matter,integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
-           integer posp,integer gid, integer abs) :
+           integer posp,integer gid,integer rel) :
     _matter(matter),_rotmno(rotmno), _npar(npar), _posp(posp),
-     _gid(gid),_cooA(coo[0],coo[1],coo[2]),_Absolute(abs),AMSNode(0){
+     _gid(gid),_cooA(coo[0],coo[1],coo[2]),_rel(rel),AMSNode(0){
    setname(name);
    _coo=_cooA;
    if(shape)strcpy(_shape,shape);
@@ -53,9 +59,9 @@ AMSgvolume::AMSgvolume (integer matter,integer rotmno,const char name[],
 AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
-           integer posp,integer gid , integer abs) :
+           integer posp,integer gid, integer rel) :
     _rotmno(rotmno), _npar(npar), _posp(posp),
-     _gid(gid),_cooA(coo[0],coo[1],coo[2]), _Absolute(abs), AMSNode(0){
+     _gid(gid),_cooA(coo[0],coo[1],coo[2]),_rel(rel),AMSNode(0){
       AMSgtmed *p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(AMSID(0,matter));
       if(p)_matter=p->getmedia();
       else{
@@ -86,9 +92,9 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
            const char shape[] ,   geant par[] , integer npar, 
            geant coo[] ,  number nrm1[3] , number nrm2[3], number nrm3[3],
            const char gonly[] , 
-           integer posp,integer gid, integer abs) :
+           integer posp,integer gid, integer rel) :
     _rotmno(rotmno), _npar(npar), _posp(posp),
-     _gid(gid),_cooA(coo[0],coo[1],coo[2]), _Absolute(abs), AMSNode(0){
+     _gid(gid),_cooA(coo[0],coo[1],coo[2]),_rel(rel),AMSNode(0){
       AMSgtmed *p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(AMSID(0,matter));
       if(p)_matter=p->getmedia();
       else{
@@ -124,13 +130,18 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
 
 void AMSgvolume::_init(){
   AMSgvolume * cur;
+  number nrm[3][3];
    cur=up();
    while (cur){
-    if(_Absolute==0)
-    _coo=_coo-cur->_coo;
-    else
-    _cooA=_cooA+cur->_coo;
-    mm3(cur->_nrm,_inrm);
+     if(_rel){
+      _cooA=_cooA+cur->_coo;
+      mm3(cur->_nrm,_inrm);
+     }
+     else{
+      _coo=_coo-cur->_coo;
+      transpose(cur->_nrm,nrm);
+      mm3(nrm,_nrm);
+     }
     cur=cur->up();
    }
 

@@ -32,9 +32,21 @@ AMSTrCalibPar::AMSTrCalibPar(const AMSPoint & coo, const AMSDir & dir1,
 }
 
 
-void AMSTrCalibData::Init(AMSBeta *pbeta, AMSTrTrack * ptrack, integer pattern){
+integer AMSTrCalibData::Init(AMSBeta *pbeta, AMSTrTrack * ptrack, 
+integer pattern, integer alg){
+// check if patterns match
+  if(patpoints[alg][pattern]==0)return 0;
+  int i,j;
+  int k=0;
+  for(i=0;i<patpoints[alg][pattern];i++){
+    for(j=0;j<ptrack->getnhits();j++){
+     AMSTrRecHit * ph= ptrack->getHitP(j);
+     if (ph->getLayer() == patconf[alg][pattern][i])k++;
+    }
+  }
+  if(k !=patpoints[alg][pattern])return 0;
   number beta=pbeta->getbeta();
-   _ErrInvBeta==pbeta->getebeta();
+   _ErrInvBeta=pbeta->getebeta();
    _InvBeta=1/beta;
   if(beta < 1){
    const number pmass=0.938;
@@ -46,23 +58,21 @@ void AMSTrCalibData::Init(AMSBeta *pbeta, AMSTrTrack * ptrack, integer pattern){
    _InvMomentum=0;
    _ErrInvMomentum=0;
   }
-  int i,j;
-  int k=0;
-  for(i=0;i<3;i++){
+  _NHits=patpoints[alg][pattern];
+  _Hits= new AMSPoint[_NHits];
+  _EHits=new AMSPoint[_NHits];
+  for(i=0;i<patpoints[alg][pattern];i++){
     for(j=0;j<ptrack->getnhits();j++){
      AMSTrRecHit * ph= ptrack->getHitP(j);
-     if (ph->getLayer() == pattern+i){
+     if (ph->getLayer() == patconf[alg][pattern][i]){
       _Hits[i]=ph->getHit();
       _EHits[i]=ph->getEHit();
-      k++;
-      break;
+
      }
     }
   }
-  if(k != 3){
-    cerr <<"AMSTrCalibData::Init-F-Logic Error "<<k<<" "<<pattern<<endl;
-    exit(1);
-  }                  
+
+  return 1;
 }
 integer  AMSTrCalibData::Select(integer alg, integer pattern){
   if(alg >=0 && alg <2){
@@ -95,8 +105,7 @@ integer  AMSTrCalibData::Select(integer alg, integer pattern){
               beta < TRCALIB.BetaCut[alg][1]){
             AMSTrTrack * ptrack=ppart->getptrack();
             if(nhits/ptrack->getnhits() < TRCALIB.HitsRatioCut[alg]){
-              if(PatternMatch(pattern,ptrack->getpattern())){
-               Init(pbeta,ptrack,pattern);
+              if(Init(pbeta,ptrack,pattern,alg)){
                AMSEvent::gethead()->addnext(AMSID("AMSTrCalibration",0),
                new AMSTrCalibration(pattern));
                return 1;
@@ -110,21 +119,28 @@ integer  AMSTrCalibData::Select(integer alg, integer pattern){
   return 0;
 }
 
-  integer AMSTrCalibData::PatternMatch(integer patcal, integer pattr){
-    const integer dim=7;
-    static integer patmat[tkcalpat][dim]={
-                                 0,1,2,5, 7, 8, 9,
-                                 0,1,5,6, 7,17,18,
-                                 0,4,5,6,13,17,21,
-                                 0,3,4,6,16,20,21};
-    int i;
-    if(patcal >0 && patcal <= tkcalpat)
-     for(i=0;i<dim;i++)if(pattr == patmat[patcal-1][i])return 1;     
-    return 0;
-  }
+  integer AMSTrCalibData::patpoints[2][tkcalpat]={3,3,3,4,4,
+                                                  3,3,3,3,0};
+  integer AMSTrCalibData::patconf[2][tkcalpat][6]={
+                                                 1,2,4,0,0,0,
+                                                 2,3,5,0,0,0,
+                                                 3,4,6,0,0,0,
+                                                 1,2,4,5,0,0,
+                                                 2,3,5,6,0,0,
+                                                 1,2,3,0,0,0,
+                                                 2,3,4,0,0,0,
+                                                 3,4,5,0,0,0,
+                                                 4,5,6,0,0,0,
+                                                 0,0,0,0,0,0
+  };
 
-AMSTrCalibFit * AMSTrCalibFit::_pCalFit[2][tkcalpat]={0,0,0,0,
-                                                       0,0,0,0};
+
+  AMSTrCalibFit * AMSTrCalibFit::_pCalFit[2][tkcalpat]={0,0,0,0,0,
+                                                        0,0,0,0,0
+  };
+
+
+
 
 void AMSTrCalibFit::setHead(integer alg, integer pat, AMSTrCalibFit *ptr){
   if(alg>=0 && alg < 2 && pat >=0 && pat < tkcalpat)
@@ -133,7 +149,7 @@ void AMSTrCalibFit::setHead(integer alg, integer pat, AMSTrCalibFit *ptr){
 AMSTrCalibFit::AMSTrCalibFit():_pData(0),_PositionData(0),_Pattern(0),_pParM(0),_NSen(0),_pParS(0),
   _NData(0),_NIter(0),_PositionIter(0){
   int i;
-  for(i=0;i<3;i++){
+  for(i=0;i<6;i++){
    _pParC[i]=0;
   }
 }
@@ -149,13 +165,14 @@ _pData= new AMSTrCalibData[data];
 assert(_pData !=  NULL);
 _Algorithm = alg;
 
+integer npt=AMSTrCalibData::patpoints[alg][pattern];
 int i,j;
-for(i=0;i<3;i++){
+for(i=0;i<npt;i++){
  _pParC[i]= new AMSTrCalibPar[_NIter];
 }
-
-for(i=_Pattern;i<_Pattern+3;i++)
-  for(j=1;j<=AMSDBc::nlad(i);j++) _NSen+=AMSDBc::nsen(i,j);
+for(i=0;i<npt;i++)
+  for(j=1;j<=AMSDBc::nlad(AMSTrCalibData::patconf[alg][pattern][i]);j++)
+   _NSen+=AMSDBc::nsen(AMSTrCalibData::patconf[alg][pattern][i],j);
 _pParM=new AMSTrCalibPar[_NSen];
 _pParS=new AMSTrCalibPar[_NSen];
 }
@@ -165,7 +182,8 @@ AMSTrCalibFit::~AMSTrCalibFit(){
  delete [] _pParM;
  delete [] _pParS;
   int i;
-  for(i=0;i<3;i++){
+integer npt=AMSTrCalibData::patpoints[_Algorithm][_Pattern];
+  for(i=0;i<npt;i++){
    delete [] _pParC[i];
   }
 }
@@ -214,26 +232,30 @@ void AMSTrCalibFit::Fit(){
                                 &AMSTrCalibFit::monit;
       cout << "AMSTrCalibFit::Fit started for pattern "<<_Pattern<<" "<<_Algorithm<<" "<<    _PositionIter<<endl;
   // Fit Here
-    const integer mp=100;
+    const integer mp=200;
     static number f,x[mp],w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[2000];
-    integer n=6;    // number of parameters to fit
+  // number of parameters to fit
+    integer npt=AMSTrCalibData::patpoints[_Algorithm][_Pattern];
+    integer n=3*(npt-1); 
+    //    n=3;
     integer iw=n+1;
     integer ifail=1;
     integer maxcal=1000;
     number tol=1.e-2;
-    int i;
-    for(i=0;i<n;i++)x[i]=0;
+    int i,j;
+    for(i=0;i<mp;i++)x[i]=0;
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
     cout << "AMSTrCalibFit::Fit finished "<<ifail<<endl;
     if(ifail ==0){
-     AMSTrCalibPar res[3];
+     AMSTrCalibPar res[6];
      AMSPoint out(0,0,0);
      res[0].setcoo(out);
-     for(i=0;i<3;i++)out[i]=x[i];
-     res[1].setcoo(out);
-     for(i=0;i<3;i++)out[i]=x[3+i];
-     res[2].setcoo(out);
-     for(i=0;i<3;i++){
+     for(i=1;i<npt;i++){
+      for(j=0;j<3;j++)out[j]=x[j+(i-1)*3];
+     res[i].setcoo(out);
+     }
+
+     for(i=0;i<npt;i++){
        _pParC[i][_PositionIter]=res[i];
      }
      if(++_PositionIter >= _NIter){
@@ -251,8 +273,8 @@ void AMSTrCalibFit::Anal(){
   int i,j,k,l;
   const int mpar=18;
   geant rpar[mpar];
-  AMSTrCalibPar x[3];
-  AMSTrCalibPar x2[3];
+  AMSTrCalibPar x[6];
+  AMSTrCalibPar x2[6];
   if(init==0){
    geant limit=1000.;
    for(i=0;i<mpar;i++)HBOOK1(100000+i,"Param",500,-limit,limit,0.);
@@ -263,7 +285,8 @@ void AMSTrCalibFit::Anal(){
    for(i=0;i<mpar;i++)HBOOK1(1300000+i,"Param",500,-limit,limit,0.);
    init=1;
   }
-  for(j=0;j<3;j++){
+  integer npt=AMSTrCalibData::patpoints[_Algorithm][_Pattern];
+  for(j=0;j<npt;j++){
    for(i=0;i<_NIter;i++){
    x[j]=x[j]+_pParC[j][i];
    x2[j]=x2[j]+_pParC[j][i]*_pParC[j][i];
@@ -284,32 +307,21 @@ void AMSTrCalibFit::Anal(){
     cout <<j<<" "  <<x[j]<<" "<<x2[j]<<endl;
   }
   
-  for(i=1;i<4;i++){
-   integer address=0;
-   integer layer=getlayer(i);
-   for(l=1;l<layer;l++)
-   for(j=1;j<=AMSDBc::nlad(l);j++) address+=AMSDBc::nsen(l,j);
-   _pParM[address]=x[i-1];
-   _pParS[address]=x2[i-1];
-}
 }
 integer AMSTrCalibFit::getlayer(integer c){
-#ifdef __AMSDEBUG__
-assert(c> 0 && c< 4);
-#endif
-return _Pattern+c-1;
+return AMSTrCalibData::patconf[_Algorithm][_Pattern][c];
 }
 
 void AMSTrCalibFit::alfun(integer &n, number xc[], number &fc, AMSTrCalibFit *p){
   integer i,niter;
   fc=0;
   for(i=0;i<n;i++){
-    if(fabs(xc[i])>0.1){
+    if(fabs(xc[i])>=0.1 ){
     fc=FLT_MAX;
     return;
     }
   }
-  integer npt=3;
+  integer npt=AMSTrCalibData::patpoints[p->_Algorithm][p->_Pattern];
   const integer maxhits=10;
   static geant hits[maxhits][3];
   static geant sigma[maxhits][3];
@@ -331,12 +343,12 @@ void AMSTrCalibFit::alfun(integer &n, number xc[], number &fc, AMSTrCalibFit *p)
        sigma[npt-i-1][j]=((p->_pData)[niter]._EHits[i])[j];
      }
    }
-   hits[1][0]+=xc[0];
-   hits[1][1]+=xc[1]-0.03;
-   hits[1][2]+=xc[2];
-   hits[2][0]+=xc[3];
-   hits[2][1]+=xc[4];
-   hits[2][2]+=xc[5];
+   for(i=1;i<npt;i++){
+     for (int j=0;j<3;j++){
+      hits[i][j]+=xc[j+(i-1)*3];
+     }
+   }
+      hits[1][1]+=-0.03;
    TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,out); 
    if(out[7]==0 && out[5]>TRCALIB.MomentumCut[p->_Algorithm][0] &&
          out[5]<TRCALIB.MomentumCut[p->_Algorithm][1]){
@@ -350,8 +362,8 @@ void AMSTrCalibFit::alfun(integer &n, number xc[], number &fc, AMSTrCalibFit *p)
   }
   if(npfit < n+2)fc=FLT_MAX;
   else fc=fc/(npfit-n);
-  //  for(i=0;i<6;i++)cout <<" "<<xc[i]<<" ";
-  //  cout << endl<<" alfun out " <<fc<<" "<<npfit<<endl;
+  //    for(i=0;i<6;i++)cout <<" "<<xc[i]<<" ";
+  //    cout << endl<<" alfun out " <<fc<<" "<<npfit<<endl;
 }
 
 void AMSTrCalibPar::sqr(){

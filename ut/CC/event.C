@@ -567,6 +567,8 @@ AMSlink * AMSEvent::_getheadC( AMSID id, integer sorted){
   AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
   if(p){
     if(sorted)p->sort();
+    // Reset global ref if any
+    if(p->gethead())(p->gethead())->resethash(id.getid(),p->gethead());
     return p->gethead();
   }
   else return 0;

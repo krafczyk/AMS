@@ -1,3 +1,8 @@
+
+
+
+
+
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSCOMMONS__
@@ -135,7 +140,9 @@ public:
   geant ygap[3];   // Gap dimensions (between supercells in same module)
   geant agel[3];   // AeroGEL dimensions
   geant pmt[3];    // PMT dimensions (including housing)
-                        };
+  integer xdiv;   // x-scell number      
+  integer ydiv;   // y-scell number      
+};
 #define CTCGEOMFFKEY COMMON_BLOCK(CTCGEOMFFKEY,ctcgeomffkey)
 COMMON_BLOCK_DEF(CTCGEOMFFKEY_DEF,CTCGEOMFFKEY);
 

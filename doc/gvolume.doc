@@ -1,36 +1,48 @@
+a) Add geant volume to mother volume:
+
+AMSgvolume mother; 
+mother.add( new AMSgvolume_constructor);
+
+
+b) Constructors:
+
   AMSgvolume (integer matter,integer rotmno,const char name[],
            const char shape[] ,   geant par[] , integer npar,
            geant coo[] ,  number nrm[][3] , const char gonly[] ,
-           integer posp,integer gid)       // constructor
+           integer posp,integer gid, integer rel)       // constructor
 
   AMSgvolume (char matter[],integer rotmno,const char name[],
            const char shape[] ,   geant par[] , integer npar,
            geant coo[] ,  number nrm[][3] , const char gonly[] ,
-           integer posp,integer gid)       // constructor
+           integer posp,integer gid, integer rel)       // constructor
 
   AMSgvolume (char matter[],integer rotmno,const char name[],
            const char shape[] ,   geant par[] , integer npar,
            geant coo[] ,  number nrm1[3] number nrm2[3],number nrm3[3],
          , const char gonly[] ,
-           integer posp,integer gid)       // constructor
+           integer posp,integer gid, integer rel)       // constructor
+//  where 
+//  integer matter        ! geant tracking media index
+//  char matter[]         ! geant tracking media name
+//  integer rotmno        ! geant rotation matrix index
+//  char name[]           ! geant volume name ( as in GSVOLUM)
+//  char shape[]          ! geant volume shape
+//  geant par[]           ! geant volume paramerters
+//  integer npar          ! parameters number
+//  geant   coo[3]        ! geant volume ABSOLUTE coordinates if abs!=0
+//  geant   coo[3]        ! geant volume RELATIVE  coordinates if abs==0
+//  number nrm[3][3]      ! ABSOLUTE rotation matrix (1st index 1st) if rel==0
+//  number nrm[3][3]      ! RELATIVE rotation matrix (1st index 1st) if rel!=0
+//  char gonly[]          ! 'Many' or 'ONLY'
+//  integer posp          ! Position by gsposp(1,-1 (-1 == not call gsvolu)) or by gspos(0)
+//  integer gid           ! geant volume id
+//  integer rel           ! See above for coo & nrm
 
-private:
-
-   integer _matter;    //   ! geant tracking med
-   integer _rotmno;    //   ! geant rot matrix no
-   integer _gid;       //   ! geant id
-   integer _npar;      //   ! geant number of par
-   integer _posp;      //   ! Pos by posp(1) or by pos(0)
-   char  _shape[5];    //   ! geant voulme shape
-   geant  _par[6];     //   ! geant volume par
-   AMSPoint _coo;      //   ! geant volume relative coo
-   AMSPoint _cooA;     //   ! geant volume abs coordinate
-   number  _nrm[3][3]; //   ! normales  with resp to mother (1st index 1st)
-   number  _inrm[3][3];//   ! norm absolute (1st index 1st)
-   char _gonly[5];     //   ! 'MANY' or 'ONLY'
+// Important restriction:
+// The combination of name[] and gid should be unique.
 
 
- member functions:
+c) member functions:
 
   AMSPoint gl2loc(AMSPoint);  // conversion global->local
   AMSPoint loc2gl(AMSPoint);  // conversion local->global

@@ -1,3 +1,4 @@
+
 // Author V. Choutko 4-mar-1997
 
 #ifndef __AMSTRCALIB__
@@ -43,7 +44,7 @@ friend ostream &operator << (ostream &o, const  AMSTrCalibPar &b )
 
 };
 
-const integer tkcalpat=4;
+const integer tkcalpat=5;
 class AMSTrCalibration: public AMSlink{
 protected:
  integer _Pattern;
@@ -57,23 +58,28 @@ public:
 
 class AMSTrCalibData{
 protected:
-  AMSPoint _Hits[3];
-  AMSPoint _EHits[3];
+  integer _NHits;
+  AMSPoint * _Hits;
+  AMSPoint * _EHits;
   geant _InvBeta;
   geant _ErrInvBeta;
   geant _InvMomentum;
   geant _ErrInvMomentum;
+static integer patpoints[2][tkcalpat];
+static integer patconf[2][tkcalpat][6];
 public:
-AMSTrCalibData():_InvBeta(0),_ErrInvBeta(0){};
-void Init(AMSBeta * pbeta, AMSTrTrack *ptrack, integer pattern);
+AMSTrCalibData():_NHits(0),_Hits(0),_EHits(0),_InvBeta(0),_ErrInvBeta(0),
+_InvMomentum(0),_ErrInvMomentum(0){};
+integer Init(AMSBeta * pbeta, AMSTrTrack *ptrack, integer pattern, integer alg);
 integer Select(integer alg, integer pattern);
 integer PatternMatch(integer patcal,integer pattr);
 friend class AMSTrCalibFit;
+~AMSTrCalibData(){ delete [] _Hits; delete[] _EHits;}
 };
 
 class AMSTrCalibFit{
 protected:
-integer  _Pattern; // 123, 234, 345, 456 : 1,2,3,4
+integer  _Pattern; 
 integer _PositionData;
 integer _PositionIter;
 integer _NData;
@@ -81,7 +87,7 @@ integer _NIter;
 AMSTrCalibData * _pData;
 integer _Algorithm;
 integer _NSen;    // Sensor number
-AMSTrCalibPar * _pParC[3];       // pointer to fitted current par
+AMSTrCalibPar * _pParC[6];       // pointer to fitted current par
 AMSTrCalibPar * _pParM;          // Pointer to fitted mean parameters
 AMSTrCalibPar * _pParS;          // Pointer to fitted sigmas parameters
 static  AMSTrCalibFit  * _pCalFit[2][tkcalpat];

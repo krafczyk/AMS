@@ -215,6 +215,15 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.agsize[0]=120.; // max aerogel x-size
   CTCGEOMFFKEY.agsize[1]=90.;  // max aerogel y-size
   CTCGEOMFFKEY.agsize[2]=10.;  // max aerogel z-size
+  //  CTCGEOMFFKEY.wlsth=0.3;      // WLS thickness
+  //  CTCGEOMFFKEY.hcsize[0]=165.; // supp. honeycomb plate X-size
+  //  CTCGEOMFFKEY.hcsize[1]=165.; // supp. honeycomb plate Y-size
+  //  CTCGEOMFFKEY.hcsize[2]=5.;   // supp. honeycomb plate Z-size
+  //  CTCGEOMFFKEY.supzc=-84.;     // supp. honeycomb plate front face Z-pos
+  //  CTCGEOMFFKEY.aegden=0.24;    // aerogel density
+  //  CTCGEOMFFKEY.wlsden=1.03;    // WLS density
+  //  CTCGEOMFFKEY.nblk=12;        // number of aer. blocks (X-div.)(=1 for solid)
+  //  CTCGEOMFFKEY.nwls=12;        // number of wls blocks
   CTCGEOMFFKEY.wlsth=0.3;       // WLS thickness
   CTCGEOMFFKEY.hcsize[0]=165.;  // supp. honeycomb plate X-size
   CTCGEOMFFKEY.hcsize[1]=165.;  // supp. honeycomb plate Y-size
@@ -249,18 +258,20 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.ptfe[0]=11.50;   //
   CTCGEOMFFKEY.ptfe[1]=11.50;   // PTFE box dimensions (cm)
   CTCGEOMFFKEY.ptfe[2]=7.175;   //
+  CTCGEOMFFKEY.xdiv=5;
+  CTCGEOMFFKEY.ydiv=4;
   CTCMCFFKEY.Refraction[0]=1.03;   // Refraction indexes
   CTCMCFFKEY.Refraction[1]=1.58;
-  CTCMCFFKEY.Path2PhEl[0]=23;   // Path to photoelectrons conv fact (was 34)
+  CTCMCFFKEY.Path2PhEl[0]=23;   // Path to photoelectrons conv fact
   CTCMCFFKEY.Path2PhEl[1]=28;
-  CTCMCFFKEY.AbsLength[0]=15;   // Abs Length in cm  for hor readout (was 4.9)
+  CTCMCFFKEY.AbsLength[0]=15;   // Abs Length in cm  
   CTCMCFFKEY.AbsLength[1]=100;
-  CTCMCFFKEY.Edep2Phel[0]=0;   // Agel is not a scint
+  CTCMCFFKEY.Edep2Phel[0]=0;      // Agel is not a scint
   CTCMCFFKEY.Edep2Phel[1]=184e3;  // WLS is scint if vertical readout
+
 FFKEY("CTCGEOM",(float*)&CTCGEOMFFKEY,sizeof(CTCGEOMFFKEY_DEF)/sizeof(integer),"MIXED");
 FFKEY("CTCMC",(float*)&CTCMCFFKEY,sizeof(CTCMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
-//=============================================================================
 
 void AMSJob::_sitrddata(){
 }
@@ -378,7 +389,6 @@ TRFITFFKEY.FastTracking=0;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }
-//========================================================================
 void AMSJob::_retofdata(){
   char cfname[12]="geomconf";//generic geomconfig-file name (max 11 letters)
 //                          (version #01/02-> shuttle/Alpha will be added autom.)
@@ -450,7 +460,6 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.ifstr=0;// 0/1 to fix/release str.ratio param.
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
-//=====================================================================================
 void AMSJob::_rectcdata(){
   CTCRECFFKEY.Thr1=1.5;
   CTCRECFFKEY.ThrS=3;
@@ -638,7 +647,6 @@ void AMSJob::_signinitjob(){
 
 
 }
-//========================================================================
 void AMSJob::_sitofinitjob(){
   if(TOFMCFFKEY.fast==1)cout <<"_sitofinit-I-Fast/Crude TOF simulation algorithm selected."<<endl;
   else cout <<"_sitofinit-I-Slow/Accurate TOF simulation algorithm selected."<<endl;
@@ -669,7 +677,6 @@ void AMSJob::_sitofinitjob(){
     AMSTOFScan::build();// create scmcscan-objects for all sc. bars,
                         // using MC t/eff-distributions from ext. files
 }
-//========================================================================
 void AMSJob::_sictcinitjob(){
      AMSgObj::BookTimer.book("SICTCDIGI");
      AMSCTCRawCluster::init();
@@ -701,7 +708,7 @@ int i,j;
 for(i=0;i<2;i++){
   for(j=0;j<tkcalpat;j++){
     AMSTrCalibFit::setHead(i,j, new 
-    AMSTrCalibFit(j+1,TRCALIB.EventsPerIteration[i],TRCALIB.NumberOfIterations[i],i));
+    AMSTrCalibFit(j,TRCALIB.EventsPerIteration[i],TRCALIB.NumberOfIterations[i],i));
   }
 }
 
@@ -730,7 +737,6 @@ AMSgObj::BookTimer.book("TrClusterRefit");
 AMSgObj::BookTimer.book("TrRecHit");
 AMSgObj::BookTimer.book("TrTrack");
 }
-//====================================================================
 void AMSJob::_retofinitjob(){
     AMSgObj::BookTimer.book("RETOFEVENT");
     AMSgObj::BookTimer.book("TOF:DAQ->RwEv");

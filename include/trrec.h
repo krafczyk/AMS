@@ -136,6 +136,10 @@ integer operator < (AMSlink & o) const {
 
 AMSTrRecHit *  next(){return (AMSTrRecHit*)_next;}
 
+void AMSTrRecHit::resethash(integer i, AMSlink *head){
+if(i>=0 && i <6)_Head[i]=(AMSTrRecHit*)head;
+}
+
 static AMSTrRecHit * gethead(integer i=0){
    if(i>=0 && i<6){
     if(!_Head[i])_Head[i]=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);

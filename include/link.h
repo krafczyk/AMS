@@ -23,6 +23,7 @@ protected:
  integer _pos;
  integer _ContPos;
 public:
+  virtual void resethash(integer id, AMSlink *head){};
   virtual AMSID crgid(integer i=0){return AMSID();}
   virtual integer operator < ( AMSlink & o) const;
   AMSlink * _next;
