@@ -84,7 +84,7 @@ double Radius(matr3 Coo);
 /* ==== FOR RECORDS ========== */
 uint _CalcCRC(uint *pData);
 uint record_n;
-ulong Umin,Umax;
+time_t Umin,Umax;
 time_t utime;
 int file_n;
 

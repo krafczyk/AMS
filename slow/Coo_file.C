@@ -188,7 +188,7 @@ NEW_FILES: /* look for new files in the directory */
 	sprintf(chb80,"rm %s",temp_file);
 	system(chb80);
 	//printf("======================%d\n",file_n);
-	cout <<"======================"<<file_n<<endl;
+	cout <<"write "<<current_f_name<<" "<<ctime(&Umin)<<endl;
 	file_n++;
 	record_n=Umax=0;
 	Umin = 999999999;
