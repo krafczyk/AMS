@@ -895,6 +895,22 @@ if(iflag==1){
 void ctcgeomAG(AMSgvolume & mother){
   // A. Gougas version   
   // modified by V.Choutko 24/04/97
+  // The AGLx, PMTx and PTFx (x=L,U) volumes are now at the level 2 ( from 0)
+  //  and their geant id (== copy number) are :
+  //
+  // 1000000*layer+1000*i+100*j+kn*10+iz*4+iy*2+ix+1
+  //
+  // where
+  //
+  // layer = 1,2    layer number up(1) down(2)
+  // i     = 1...4  supercell y index
+  // j     = 1...5  supercell x index
+  // kn    = 1...3  ptf(1) agl(2) pmt(3)
+  // iz    = 0..1   agl only
+  // ix    = 0..1   x index inside supercell
+  // iy    = 0..1   y index inside supercell
+  //
+
    CTCDBc::setgeom(2);
 
   geant par[6]={0.,0.,0.,0.,0.,0.};
@@ -997,10 +1013,10 @@ void ctcgeomAG(AMSgvolume & mother){
             for(iz=0;iz<2;iz++){
              //put two agel blocks
              for(k=0;k<3;k++)paragl[k]=0.5*CTCDBc::getagelsize(k);
-             paragl[2]=paragl[2]/2;
+             paragl[2]=(paragl[2]-ptfe)/2;
              cooagl[0]=cooptf[0];
              cooagl[1]=cooptf[1];
-             cooagl[2]=cooptf[2]+(2*iz-1)*paragl[2];
+             cooagl[2]=cooptf[2]+(2*iz-1)*(paragl[2]+ptfe/2);
              gid=1000000*ilay+1000*(i+1)+100*(j+1)+20+ix+1+2*iy+4*iz;
              char cvola[]="AGLU";
              cvola[3]=cdum[ilay-1][0];
