@@ -620,10 +620,10 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.daqthr[3]=0.;//spare  
   TOFRECFFKEY.daqthr[4]=0.;//spare
 //
-  TOFRECFFKEY.cuts[0]=50.;//t-window(ns) for "the same hit" search in f/s_tdc
+  TOFRECFFKEY.cuts[0]=50.;//(18)t-window(ns) for "the same hit" search in f/s_tdc
   TOFRECFFKEY.cuts[1]=15.;//"befor"-cut in time history (ns)(max.PMT-pulse length?)
   TOFRECFFKEY.cuts[2]=400.;//"after"-cut in time history (ns)(max. shaper integr.time?)
-  TOFRECFFKEY.cuts[3]=0.;// spare
+  TOFRECFFKEY.cuts[3]=2.;//(21) error in longitudinal coordinate (single TOF bar)
   TOFRECFFKEY.cuts[4]=0.;
   TOFRECFFKEY.cuts[5]=0.;
   TOFRECFFKEY.cuts[6]=0.;
@@ -1218,7 +1218,7 @@ void AMSJob::_retofinitjob(){
         HBOOK1(1200,"Stretcher-ratio for indiv. channel",80,35.,55.,0.);
         HBOOK1(1201,"Offsets for indiv. channels",80,-100.,2300.,0.);
         HBOOK1(1202,"Chi2 for indiv. channel",50,0.,5.,0.);
-        HBOOK1(1203,"Hole width in str.TDC sequence(ns)",60,0.,60.,0.);
+        HBOOK1(1204,"Bin Tin-RMS in Tin-Tout fit",50,0.,10.,0.);
 // hist.1600-1711 are booked in init-function for Tin vs Tout correl.!!!(TDLV)
 // hist.1720-1790 are booked in init-function for BarRawTime histogr.!!!(TDLV)
         if(TOFCAFFKEY.dynflg==1){ // for special(Contin's) Dynode calibr.
@@ -1243,24 +1243,14 @@ void AMSJob::_retofinitjob(){
         HBOOK1(1215,"(Cos_tr-Cos_sc)/Cos_tr",50,-1.,1.,0.);
         HBOOK1(1216,"Cos_tr",50,0.5,1.,0.);
         HBOOK1(1217,"Cos_sc",50,0.5,1.,0.);
-        HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,40.,0.);
+        HBOOK1(1218,"TOF track-fit chi2-x",50,0.,5.,0.);
+        HBOOK1(1219,"TOF track-fit chi2-y",50,0.,5.,0.);
+        HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,20.,0.);
         HBOOK1(1505,"Qmax ratio",80,0.,16.,0.);
         HBOOK1(1507,"T0-difference inside bar-types 5",80,-0.4,0.4,0.);
         HBOOK2(1502,"Layer-1,T vs exp(-TovT)",50,0.,0.4,50,3.,8.,0.);
         HBOOK2(1514,"Layer-1,T vs SUM(1/Q)",50,0.,0.1,50,3.,8.,0.);
         HBOOK2(1504,"Layer-3,T vs exp(-TovT)",50,0.,0.4,50,-2.,3.,0.);
-        HBOOK1(1508,"T1-T3, not A-corrected",80,2.5,7.3,0.);
-        HBOOK1(1509,"T2-T4, not A-corrected",80,3.5,8.3,0.);
-        HBOOK1(1510,"L-1 PM-1 slow-time,A-noncor,calib.events",80,45.,55.,0.);
-        HBOOK1(1511,"L-1 PM-2 slow-time,A-noncor,calib.events",80,45.,55.,0.);
-        HBOOK1(1512,"L-1 PM-1 TovTa(ns),calib.events",80,50.,290.,0.);
-        HBOOK1(1513,"L-1 PM-2 TovTa(ns),calib.events",80,50.,290.,0.);
-        HBOOK1(1518,"L-3 PM-1 slow-time,A-noncor,calib.events",80,45.,55.,0.);
-        HBOOK1(1519,"L-3 PM-2 slow-time,A-noncor,calib.events",80,45.,55.,0.);
-        HBOOK1(1520,"L-3 PM-1 TovTa(ns),calib.events",80,50.,290.,0.);
-        HBOOK1(1521,"L-3 PM-2 TovTa(ns),calib.events",80,50.,290.,0.);
-        HBOOK1(1522,"L-4 PM-1 slow-time,A-noncor,calib.events",80,45.,55.,0.);
-        HBOOK1(1523,"L-4 PM-2 slow-time,A-noncor,calib.events",80,45.,55.,0.);
         HBOOK1(1524,"TRlen13-TRlen24",80,-4.,4.,0.);
 //        HBOOK1(1550,"Bar-time(corected),L=1",80,24.,26.,0.);
 //        HBOOK1(1551,"Bar-time(corected),L=2",80,23.5,25.5,0.);
@@ -1360,7 +1350,7 @@ void AMSJob::_reantiinitjob(){
 //
     AMSgObj::BookTimer.book("REANTIEVENT");
     if(ANTIRECFFKEY.reprtf[0]>0){
-      HBOOK1(2500,"ANTI_counters total  energy(reco,Mev)",60,0.,30.,0.);
+      HBOOK1(2500,"ANTI_counters total  energy(reco,Mev)",80,0.,20.,0.);
       HBOOK1(2501,"ANTI_bar: T_tdca-T_tdct(reco,ns)",80,-20.,220.,0.);
     }
 //
@@ -1857,18 +1847,8 @@ void AMSJob::_tofendjob(){
            HPRINT(1215);
            HPRINT(1216);
            HPRINT(1217);
-           HPRINT(1508);
-           HPRINT(1509);
-           HPRINT(1510);
-           HPRINT(1511);
-           HPRINT(1512);
-           HPRINT(1513);
-           HPRINT(1518);
-           HPRINT(1519);
-           HPRINT(1520);
-           HPRINT(1521);
-           HPRINT(1522);
-           HPRINT(1523);
+           HPRINT(1218);
+           HPRINT(1219);
            HPRINT(1524);
 //           HPRINT(1550);
 //           HPRINT(1551);
@@ -1926,7 +1906,7 @@ void AMSJob::_tofendjob(){
            HPRINT(1200);
            HPRINT(1201);
            HPRINT(1202);
-           HPRINT(1203);
+           HPRINT(1204);
            if(TOFCAFFKEY.dynflg==1){
              TOFAVSDcalib::fit();
              HPRINT(1240);

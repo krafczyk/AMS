@@ -668,7 +668,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     tzer=tzerf[ila][ibr];//was read from ext. file
     tdif=tdiff[cnum];//was read from ext. file 
     td2p[0]=speedl;//mean speed of the light was read from external file
-    td2p[1]=3.2; // tempor error on longit. coord. measurement(cm)
+    td2p[1]=TOFRECFFKEY.cuts[3]; // error on longit. coord. measurement(cm)
     for(ip=0;ip<SCIPAR;ip++)aip[0][ip]=ipara[2*cnum][ip];
     for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*cnum+1][ip];
     for(ip=0;ip<SCIPAR;ip++)dip[0][ip]=ipard[2*cnum][ip];
@@ -805,7 +805,8 @@ void TOFBrcal::tmd2p(number tmf[2], number amf[2],
     }
   }
 //  uv=exp(-amf[0]/shft)-exp(-amf[1]/shft);// old parametrization
-  coo=-(0.5*(tmf[0]-tmf[1])+slope*uv-yctdif);
+//  coo=-(0.5*(tmf[0]-tmf[1])+slope*uv-yctdif);// tempor commented
+  coo=-(0.5*(tmf[0]-tmf[1])-yctdif);// tempor no A-correction
 //common "-" is due to the fact that Tmeas=Ttrig-Tabs and coo-loc is prop. to Tabs1-Tabs2
   co=td2pos[0]*geant(coo);//coo(ns)->cm                    
   eco=td2pos[1];
@@ -889,6 +890,7 @@ void TOFJobStat::print(){
   printf(" TZSl: no interactions   : % 6d\n",recount[8]);
   printf(" TZSl: Tracker mom. OK   : % 6d\n",recount[9]);
   printf(" TZSl: TOF-Tr.match. OK  : % 6d\n",recount[10]);
+  printf(" TZSl: TOF-self.match. OK: % 6d\n",recount[20]);
   printf(" Entries to AMPL-calibr. : % 6d\n",recount[11]);
   printf(" AMPL: multiplicity OK   : % 6d\n",recount[12]);
   printf(" AMPL: no interaction    : % 6d\n",recount[13]);

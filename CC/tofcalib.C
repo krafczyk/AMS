@@ -330,7 +330,7 @@ void TOFTZSLcalib::fill(number bet, int ib[4], number tld[3]
 }
 //========================================================================
 void TOFTZSLcalib::select(){  // calibr. event selection
-  integer i,ilay,ibar,nbrl[SCLRS],brnl[SCLRS],bad,status,sector,conf;
+  integer i,j,ilay,ibar,nbrl[SCLRS],brnl[SCLRS],bad,status,sector,conf;
   integer cref[2],lref[2];
   number tm[2],am[2],ama[2],amd[2],time,timeD,tamp,edepa,edepd,relt;
   number coo[SCLRS],trp1[SCLRS],trp2[SCLRS],arp1[SCLRS],arp2[SCLRS];
@@ -381,7 +381,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   bad=0;
   for(i=0;i<SCLRS;i++)if(nbrl[i] != 1)bad=1;
   if(bad==1)return; // remove events with bars/layer != 1
-     if(TOFRECFFKEY.relogic[2]==1)return;// tempor  bad event due to dT13-dT24
+//     if(TOFRECFFKEY.relogic[2]==1)return;// tempor  bad event due to dT13-dT24
   TOFJobStat::addre(7);
 //
 // -----> check Anti-counter :
@@ -411,14 +411,8 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   TOFJobStat::addre(8);
 //------>
     number t1,t2,t3,t4,t13,t24;
-    conf=0;
-//    if((brnl[0]==9 && brnl[1]==9 && brnl[2]==9 && brnl[3]==9)
-//     ||(brnl[0]==8 && brnl[1]==8 && brnl[2]==8 && brnl[3]==8)
-//     ||(brnl[0]==7 && brnl[1]==7 && brnl[2]==7 && brnl[3]==7)
-//     ||(brnl[0]==6 && brnl[1]==6 && brnl[2]==6 && brnl[3]==6)
-//     ||(brnl[0]==5 && brnl[1]==5 && brnl[2]==5 && brnl[3]==5)
-//     ||(brnl[0]==4 && brnl[1]==4 && brnl[2]==4 && brnl[3]==4))
-    conf=1;//sel. bar config. 4x(2n+1)
+    conf=1;
+//
        ilay=0; //        <-- some hist. for calibration run
     shft=TOFDBc::shftim();
     ftdel=TOFDBc::ftdelf();
@@ -431,12 +425,9 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     t1=time;
     tamp=exp(-ama[0]/shft)+exp(-ama[1]/shft);
     if(TOFRECFFKEY.reprtf[2]>0){
-      HF1(1510,geant(tm[0]),1.);
-      HF1(1511,geant(tm[1]),1.);
-      HF1(1512,geant(ama[0]),1.);
-      HF1(1513,geant(ama[1]),1.);
-      if(conf==1)HF2(1502,geant(tamp),geant(relt),1.);
+      if(brnl[0]==6)HF2(1502,geant(tamp),geant(relt),1.);
     }
+//
        ilay=1;
     tm[0]=trp1[ilay];
     tm[1]=trp2[ilay];
@@ -450,29 +441,21 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     time=0.5*(tm[0]+tm[1]);
     relt=time-ftdel;// subtract FT fix.delay
     t3=time;
-    tamp=exp(-ama[0]/shft)+exp(-ama[1]/shft);
-    if(TOFRECFFKEY.reprtf[2]>0){
-      HF1(1518,geant(tm[0]),1.);
-      HF1(1519,geant(tm[1]),1.);
-      HF1(1520,geant(ama[0]),1.);
-      HF1(1521,geant(ama[1]),1.);
-      if(conf==1)HF2(1504,geant(tamp),geant(relt),1.);
-    }
+//
        ilay=3;
     tm[0]=trp1[ilay];
     tm[1]=trp2[ilay];
     time=0.5*(tm[0]+tm[1]);
+    relt=time-ftdel;// subtract FT fix.delay
     t4=time;
+    tamp=exp(-ama[0]/shft)+exp(-ama[1]/shft);
     if(TOFRECFFKEY.reprtf[2]>0){
-      HF1(1522,geant(tm[0]),1.);
-      HF1(1523,geant(tm[1]),1.);
+      if(brnl[3]==6)HF2(1504,geant(tamp),geant(relt),1.);
     }
 //
     t13=t1-t3;
     t24=t2-t4;
     if(TOFRECFFKEY.reprtf[2]>0){
-      HF1(1508,geant(t13),1.);
-      HF1(1509,geant(t24),1.);
 //      HF1(1550,geant(t1),1.);
 //      HF1(1551,geant(t2),1.);
 //      HF1(1552,geant(t3),1.);
@@ -484,9 +467,11 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     number pmom,bet,chi2,betm;
     number the,phi,rid,err,trl;
     int il,ib,ix,iy;
-    geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cosc,cosi,cost;
+    geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cosc,cosi,cost,xtr[SCLRS],ytr[SCLRS];
+    geant scchi2[2],xer[SCLRS],yer[SCLRS],lcerr,lvel;
     number ram[4],ramm[4],dum[3],tld[3],tdi[3],trlr[SCLRS],trlen[SCLRS-1];
     number ctran,coot[SCLRS],cstr[SCLRS],dx,dy;
+    number sl[2],t0[2],sumc,sumc2,sumt,sumt2,sumct,sumid,zco,tco,dis;
     AMSPoint C0,Cout;
     AMSDir dir(0,0,1.);
     AMSContainer *cptr;
@@ -498,7 +483,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     if(cptr)
            ntrk+=cptr->getnelem();
     HF1(1506,geant(ntrk),1.);
-//    if(ntrk!=1)return;// require events with 1 track.  tempor commented to bypass tracker
+    if(ntrk!=1)return;// require events with 1 track.  tempor commented to bypass tracker
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",0);
     if(ppart){
@@ -507,7 +492,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     } 
     else rid=0;
     pmom=fabs(rid);
-  pmom=2.7;// tempor to bypass tracker
+//  pmom=1.36;// tempor to bypass tracker and have Mu-beta=0.997
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
     if(pmom<TOFCAFFKEY.pcut[0] || pmom>TOFCAFFKEY.pcut[1])return;//remove low/too_high mom.
     if(pmom<TOFCAFFKEY.pcut[0])return;//remove low mom.
@@ -579,27 +564,80 @@ void TOFTZSLcalib::select(){  // calibr. event selection
 //
 //-------> get track impact angle using scint-made long.coord :
 //
+  bad=0;
   if(TOFCAFFKEY.tofcoo==1){
     ix=0;
     iy=0;                                
     for(il=0;il<SCLRS;il++){
       ib=brnl[il];
       zc[il]=TOFDBc::getzsc(il,ib);
-      if(TOFDBc::plrotm(il)==0){// unrotated (Long->Yabs) planes
+      scbrcal[il][ib].getd2p(lvel,lcerr);
+      if(TOFDBc::plrotm(il)==0){// unrotated (Long->Yabs) planes(2,3)
         y[iy]=coo[il];
         zy[iy]=zc[il];
+        xtr[il]=TOFDBc::gettsc(il,ib);
+        xer[il]=3.18;// bar_wid/sqrt(12.)
+        ytr[il]=y[iy];
+        yer[il]=lcerr;
         iy+=1;
       }
-      else{                    // rotated (Long->-Xabs) planes
+      else{                    // rotated (Long->-Xabs) planes(1,4)
         x[ix]=-coo[il];
         zx[ix]=zc[il];
+        xtr[il]=x[ix];
+        xer[il]=lcerr;
+        ytr[il]=TOFDBc::gettsc(il,ib);
+        yer[il]=3.18;
         ix+=1;
       }
     }
     tgx=(x[0]-x[1])/(zx[0]-zx[1]);
     tgy=(y[0]-y[1])/(zy[0]-zy[1]);
-  }
 //
+//--- get track from TOF(coord.fit):
+//
+    for(j=0;j<2;j++){//proj.loop
+      scchi2[j]=0.;
+      sl[j]=0.;
+      t0[j]=0.;
+      sumc=0.;
+      sumc2=0.;
+      sumt=0.;
+      sumt2=0.;
+      sumct=0.;
+      sumid=0.;
+      for(il=0;il<SCLRS;il++){//layer loop
+        zco=zc[il];
+        if(j==0){//x-proj
+          tco=xtr[il];
+          dis=xer[il];
+        }
+        else{
+          tco=ytr[il];
+          dis=yer[il];
+        }
+        dis=dis*dis;
+        sumc+=(zco/dis);
+        sumt+=(tco/dis);
+        sumid+=(1/dis);
+        sumct+=(zco*tco/dis);
+        sumc2+=(zco*zco/dis);
+        sumt2+=(tco*tco/dis);
+      }
+      t0[j]=(sumt*sumc2-sumct*sumc)/(sumid*sumc2-(sumc*sumc));
+      sl[j]=(sumct*sumid-sumc*sumt)/(sumid*sumc2-(sumc*sumc));
+      scchi2[j]=sumt2+t0[j]*t0[j]*sumid+sl[j]*sl[j]*sumc2
+         -2*t0[j]*sumt-2*sl[j]*sumct+2*t0[j]*sl[j]*sumc;
+      scchi2[j]/=2.;
+    }
+    HF1(1218,geant(scchi2[0]),1.); 
+    HF1(1219,geant(scchi2[1]),1.);
+    if(scchi2[0]>4. || scchi2[1]>4.)bad=1; 
+//
+  }
+  if(bad)return;// remove events with bad chi2 of the TOF-track
+  TOFJobStat::addre(20);
+//------
     cosc=1./sqrt(1.+tgx*tgx+tgy*tgy);
     HF1(1217,cosc,1.);
     cosi=sqrt(1.+tgx*tgx+tgy*tgy);// this is 1/cos(theta) !!!
@@ -716,6 +754,7 @@ void TOFTDIFcalib::init(){ // ----> initialization for TDIF-calibration
   HBOOK2(1601,"L=2,B=7, Tdif vs Coord",35,-70.,70.,40,-5.,5.,0.);
   HBOOK1(1602,"Mean Tdiff (all layers/bars)",80,-0.4,0.4,0.);
   HBOOK1(1603,"Slope (all layers/bars)",80,0.02,0.1,0.);
+  HBOOK1(1604,"Tdiff sigma in bin",50,0.,2.,0.);
 }
 //------------------------- 
 void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
@@ -733,7 +772,7 @@ void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
 //
   while (ptr){ // <--- loop over AMSTOFRawCluster hits
     status=ptr->getstatus();
-    if(status==0){ //select only 2-sided "good_matching/history" hits
+    if(status==0){ //select only 2-sided "good_matching/history/strr" hits
       ilay=(ptr->getntof())-1;
       ibar=(ptr->getplane())-1;
       nbrl[ilay]+=1;
@@ -870,25 +909,25 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
         td[nb]=0;
         nev=nevnt[chan][nb];
    cout<<" "<<nev;
-        if(nev>=20){
-          bins+=1;
+        if(nev>=20){//min.cut on event number in bin
           t=tdiff[chan][nb]/number(nev);// mean td
           tdiff[chan][nb]=t;
           td[nb]=geant(t);
           tdif2[chan][nb]/=number(nev);
           dis=tdif2[chan][nb]-(t*t);
-          if(dis>=0)dis=dis/(nev-1);
-          else dis=0;
-          tdif2[chan][nb]=dis;//now store sigmas**2 of mean-values
-          co=clong[chan][nb]/number(nev);// mean co
-          clong[chan][nb]=co;
-          if(dis>0){
+          if(dis>=0.)HF1(1604,geant(sqrt(dis)),1.);
+          if(dis>=0. && sqrt(dis)<=0.56){//max.cut on bin-rms
+            dis=dis/(nev-1);
+            tdif2[chan][nb]=dis;//now store sigmas**2 of mean-values
+            co=clong[chan][nb]/number(nev);// mean co
+            clong[chan][nb]=co;
             sumc+=(co/dis);
             sumt+=(t/dis);
             sumid+=(1/dis);
             sumct+=(co*t/dis);
             sumc2+=(co*co/dis);
             sumt2+=(t*t/dis);
+            bins+=1;
           }
         }
       }// ---> end of bins loop
@@ -901,8 +940,8 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
          -2*t0[chan]*sumt-2*sl[chan]*sumct+2*t0[chan]*sl[chan]*sumc;
         chi2[chan]/=number(bins-2);
         if(chi2[chan]<3. &&
-                     fabs(sl[chan])>0.062 &&
-                     fabs(sl[chan])<0.074){//only good for averaging
+                     fabs(sl[chan])>0.064 &&
+                     fabs(sl[chan])<0.071){//only good for averaging
           bintot+=1;
           meansl+=sl[chan];
         }
@@ -956,6 +995,7 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
 //
   HPRINT(1602);
   HPRINT(1603);
+  HPRINT(1604);
 //
 //---> print T vs 1/Q histograms:
 //  for(il=0;il<SCLRS;il++){
@@ -1968,12 +2008,13 @@ void TOFSTRRcalib::outp(){
     for(j=idtol[0];j<idtol[1];j++){//<-- Tout bin loop
       nev=number(nevnt[ic][j]);
       co=(number(j)+0.5)*SCSRCTB;// mid. of Tout bin
-      if(nev>20.){ // min. 25 events
+      if(nev>=5.){ // min. 5 events
         t=dtin[ic][j]/nev; // get mean
         tq=dtinq[ic][j]/nev; // mean square
         dis=tq-t*t;// rms**2
-        if(dis>=0.){
-        if(dis==0.)dis=1./12.;// if all events was in single Tin bin=1ns
+        if(dis>=0.)HF1(1204,geant(sqrt(dis)),1.);
+        if(dis>=0. && sqrt(dis)<1.6){// apply max.cut on rms (2ns)
+          if(dis==0.)dis=1./12.;// if all events was in single Tin bin=1ns
           dis/=(nev-1.);// rms**2 of the mean
           bins+=1.;
           sumc+=(co/dis);
@@ -1986,7 +2027,7 @@ void TOFSTRRcalib::outp(){
       }
     }//--> end of bin loop
 //
-    if(bins>=4){
+    if(bins>=10){
       t0=(sumt*sumc2-sumct*sumc)/(sumid*sumc2-(sumc*sumc));
       sl=(sumct*sumid-sumc*sumt)/(sumid*sumc2-(sumc*sumc));
       chi2[ic]=sumt2+t0*t0*sumid+sl*sl*sumc2
@@ -2232,7 +2273,7 @@ void TOFAVSDcalib::filltovt(integer chan, geant tma[2], geant tmd[2]){
   totd=tmd[0]-tmd[1];
   HF2(1800+chan,tota,totd,1.);
       ic=integer(tota/SCACBW);// get TovT-anode bin
-      if(ic<SCACHB && totd>24.){// use events with TovT-d > 10ns and ic<SCACHB
+      if(ic<SCACHB && totd>30.){// use events with TovT-d > 30ns and ic<SCACHB
         dtdyn[chan][ic]+=totd;
         dtdyn2[chan][ic]+=(totd*totd);
         nevdyn[chan][ic]+=1;

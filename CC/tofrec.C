@@ -181,7 +181,6 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         dt=t2-t3;
       if(ilay==0 && ibar==4 && isid==0)HF1(1131,geant(dt),1.);
       if(ilay==0 && ibar==11 && isid==0)HF1(1134,geant(dt),1.);
-        HF1(1203,geant(dt),1.);
         if(dt<5. || dt>24.)continue;//wrong "hole" width(w2), take next "4"
         dt=t1-t2;
       if(ilay==0 && ibar==4 && isid==0)HF1(1130,geant(dt),1.);
