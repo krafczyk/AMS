@@ -1532,7 +1532,7 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
   number sigt[4]={0.121,0.121,0.121,0.121};// time meas.accuracy 
   number cvel(29.979);// light velocity
   number eacut=0.6;// cut on E-anti (mev)
-  number dscut=6.;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
+  number dscut=6.5;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
   AMSTOFRawCluster *ptr;
   AMSAntiCluster *ptra;
   uinteger Runum(0);
@@ -1581,7 +1581,7 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
     }
     ptra=ptra->next();
   }// --- end of hits loop --->
-  HF1(1503,geant(eanti),1.);
+  if(TOFRECFFKEY.reprtf[2]>0)HF1(1503,geant(eanti),1.);
   if(eanti>eacut)return;// remove events with big signal in Anti
 //
 // -----> remove albedo and very slow part. :
@@ -1632,8 +1632,8 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
       pcut[0]=TOFCAFFKEY.plhec[0];
       pcut[1]=TOFCAFFKEY.plhec[1];
     }
-    HF1(1500,geant(pmom),1.);
-    HF1(1501,bet,1.);
+    if(TOFRECFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
+    if(TOFRECFFKEY.reprtf[2]>0)HF1(1501,bet,1.);
 //
     bad=0;
     if(pmom<=pcut[0] || pmom>=pcut[1])bad=1;// out of needed mom.range
@@ -1664,7 +1664,7 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
         ctran=Cout[1];// transv. coord.(abs. r.s.)(Y-cross) 
       }
       dy=coot[il]-coo[il];//Long.coo_track-Long.coo_sc
-      HF1(1200+il,geant(dy),1.);
+      if(TOFRECFFKEY.reprtf[2]>0)HF1(1200+il,geant(dy),1.);
       dx=ctran-TOFDBc::gettsc(il,ib);//Transv.coo_tracker-Transv.coo_scint
       if(TOFRECFFKEY.reprtf[2]>0)HF1(1210+il,geant(dx),1.);
       if(fabs(dx)>dscut || fabs(dy)>dscut)bad=1;//too big dist. of tof-tracker
@@ -1710,36 +1710,38 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
     for(il=0;il<SCLRS;il++)chsq+=pow((tzer+bci*trle[il]-tdif[il])/sigt[il],2);
     chsq/=number(fpnt-2);
     betof=1./bci/cvel;
-    HF1(1502,betof,1.);
-    HF1(1205,chsq,1.);
-    HF1(1206,tzer,1.);
+    if(TOFRECFFKEY.reprtf[2]>0)HF1(1502,betof,1.);
+    if(TOFRECFFKEY.reprtf[2]>0)HF1(1205,chsq,1.);
+    if(TOFRECFFKEY.reprtf[2]>0)HF1(1206,tzer,1.);
     if(chsq>8. || betof<0.6)return;//cut on chi2/beta
 //
     geant td13,td24;
     td13=tdif[2]*130./trle[2];// tormalized to 130cm distance
     td24=(ltim[1]-ltim[3])*130./(trle[3]-trle[1]);// tormalized to 130cm distance
-    HF1(1504,(td13-td24),1.);
+    if(TOFRECFFKEY.reprtf[2]>0)HF1(1504,(td13-td24),1.);
     return;
 //
 }
 //----------------------------
 void TOFUser::InitJob(){
-  HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
-  HBOOK1(1501,"Particle beta(tracker)",80,0.5,1.,0.);
-  HBOOK1(1502,"Particle beta(tof)",80,0.7,1.2,0.);
-  HBOOK1(1504,"T13-T24(ns,high momentum)",80,-4.,4.,0.);
-  HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,40.,0.);
-  HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
-  HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
-  HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
-  HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
-  HBOOK1(1203,"Res_long.coo(track-sc),L=4",50,-10.,10.,0.);
-  HBOOK1(1210,"Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);
-  HBOOK1(1211,"Res_transv.coo(track-sc),L=2",50,-20.,20.,0.);
-  HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
-  HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
-  HBOOK1(1205,"Chisq (tof-beta-fit)",50,0.,10.,0.);
-  HBOOK1(1206,"Tzer (tof-beta-fit)",50,-2.5,2.5,0.);
+  if(TOFRECFFKEY.reprtf[2]>0){
+    HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
+    HBOOK1(1501,"Particle beta(tracker)",80,0.5,1.,0.);
+    HBOOK1(1502,"Particle beta(tof)",80,0.7,1.2,0.);
+    HBOOK1(1504,"T13-T24(ns,high momentum)",80,-4.,4.,0.);
+    HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,40.,0.);
+    HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
+    HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
+    HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
+    HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
+    HBOOK1(1203,"Res_long.coo(track-sc),L=4",50,-10.,10.,0.);
+    HBOOK1(1210,"Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);
+    HBOOK1(1211,"Res_transv.coo(track-sc),L=2",50,-20.,20.,0.);
+    HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
+    HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
+    HBOOK1(1205,"Chisq (tof-beta-fit)",50,0.,10.,0.);
+    HBOOK1(1206,"Tzer (tof-beta-fit)",50,-2.5,2.5,0.);
+  }
   return;
 }
 void TOFUser::EndJob(){
@@ -1747,6 +1749,7 @@ void TOFUser::EndJob(){
   char chfun[6]="g";
   geant par[3],step[3],pmin[3],pmax[3],sigp[3],chi2;
 //
+  if(TOFRECFFKEY.reprtf[2]==0)return;
   par[0]=200.;
   par[1]=1.;
   par[2]=0.03;
