@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.88 2003/05/16 16:54:12 choutko Exp $
+//  $Id: root.h,v 1.89 2003/05/16 22:10:50 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 #include <TObject.h>
@@ -1544,8 +1544,8 @@ protected:
    /// calls user UBegin()  function
    void    Begin(TTree *tree);
 
-   // System function called when loading a new file.
-   // Get branch pointers.
+   /// System function called when loading a new file.
+   /// Get branch pointers.
    bool  Notify(){GetBranch(_Tree);return true;}
    void    Init(TTree *tree);   ///< InitTree
 
@@ -1585,12 +1585,12 @@ public:
    /// Should Not be modified by (Non)Advanced User\n
    /// \sa stlv.C
    /// \param entry - event no
-   /// \ return false if error;
+   /// \return false if error;
    Bool_t  ProcessCut(int entry){return ReadHeader(entry);}
 
   ///  Reads Header 
   /// \param Entry - event no
-   /// \ return false if error;
+   /// \return false if error;
   bool ReadHeader(int Entry);
 
 public:
@@ -1598,7 +1598,7 @@ public:
   HeaderR  fHeader;  ///<  Event Header \sa HeaderR
 
 
-int Version() const {return fHeader.Version/4;} ///< \retun producer version number
+int Version() const {return fHeader.Version/4;} ///< \return producer version number
 int OS() const {return fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun )
 
 int   nEcalHit()const { return fHeader.EcalHits;} ///< \return number of EcalHitR elements (fast)              
@@ -1736,12 +1736,13 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
         return l<fEcalHit.size()?&(fEcalHit[l]):0;
       }
 
-
+      ///  EcalClusterR accessor
       ///  \return number of EcalClusterR
       unsigned int   NEcalCluster()  {
         if(fHeader.EcalClusters && fEcalCluster.size()==0)bEcalCluster->GetEntry(_Entry);
         return fEcalCluster.size();
       }
+      ///  EcalClusterR accessor
       ///  \return reference of EcalClusterR Collection
       vector<EcalClusterR> & EcalCluster()  {
         if(fHeader.EcalClusters && fEcalCluster.size()==0)bEcalCluster->GetEntry(_Entry);
@@ -1765,42 +1766,55 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
       }
 
 
-
+      
+      ///  Ecal2DClusterR accessor
+      ///  \return number of Ecal2DClusterR
       unsigned int   NEcal2DCluster()  {
         if(fHeader.Ecal2DClusters && fEcal2DCluster.size()==0)bEcal2DCluster->GetEntry(_Entry);
         return fEcal2DCluster.size();
       }
+            ///  Ecal2DClusterR accessor
+      ///  \return reference of Ecal2DClusterR Collection
       vector<Ecal2DClusterR> & Ecal2DCluster()  {
         if(fHeader.Ecal2DClusters && fEcal2DCluster.size()==0)bEcal2DCluster->GetEntry(_Entry);
          return  fEcal2DCluster;
        }
-
+             ///  Ecal2DClusterR accessor
+      /// \param l index of Ecal2DClusterR Collection
+     ///  \return reference to corresponding Ecal2DClusterR element
        Ecal2DClusterR &   Ecal2DCluster(unsigned int l) {
         if(fHeader.Ecal2DClusters && fEcal2DCluster.size()==0)bEcal2DCluster->GetEntry(_Entry);
          return fEcal2DCluster.at(l);
       }
-
+                 ///  Ecal2DClusterR accessor
+    /// \param l index of Ecal2DClusterR Collection
+   ///  \return pointer to corresponding Ecal2DClusterR element
       Ecal2DClusterR *   pEcal2DCluster(unsigned int l) {
         if(fHeader.Ecal2DClusters && fEcal2DCluster.size()==0)bEcal2DCluster->GetEntry(_Entry);
         return l<fEcal2DCluster.size()?&(fEcal2DCluster[l]):0;
       }
 
 
-
+      ///  \return number of EcalShowerR
       unsigned int   NEcalShower()  {
         if(fHeader.EcalShowers && fEcalShower.size()==0)bEcalShower->GetEntry(_Entry);
         return fEcalShower.size();
       }
+       ///  \return reference of EcalShowerR Collection
       vector<EcalShowerR> & EcalShower()  {
         if(fHeader.EcalShowers && fEcalShower.size()==0)bEcalShower->GetEntry(_Entry);
          return  fEcalShower;
        }
-
+                 ///  EcalShowerR accessor
+   /// \param l index of EcalShowerR Collection
+  ///  \return reference to corresponding EcalShowerR element
        EcalShowerR &   EcalShower(unsigned int l) {
         if(fHeader.EcalShowers && fEcalShower.size()==0)bEcalShower->GetEntry(_Entry);
          return fEcalShower.at(l);
       }
-
+                ///  EcalShowerR accessor
+  /// \param l index of EcalShowerR Collection
+ ///  \return pointer to corresponding EcalShowerR element
       EcalShowerR *   pEcalShower(unsigned int l) {
         if(fHeader.EcalShowers && fEcalShower.size()==0)bEcalShower->GetEntry(_Entry);
         return l<fEcalShower.size()?&(fEcalShower[l]):0;
