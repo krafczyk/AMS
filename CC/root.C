@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.10 2001/03/05 10:51:18 choutko Exp $
+//  $Id: root.C,v 1.11 2001/04/28 14:20:21 kscholbe Exp $
 #include <root.h>
 #include <ntuple.h>
 #ifdef __WRITEROOT__
@@ -16,6 +16,10 @@ ClassImp(TOFMCClusterNtuple)
 ClassImp(TrClusterNtuple)
 ClassImp(TrMCClusterNtuple)
 ClassImp(TRDMCClusterNtuple)
+ClassImp(TRDRawHitNtuple)
+ClassImp(TRDClusterNtuple)
+ClassImp(TRDSegmentNtuple)
+ClassImp(TRDTrackNtuple)
 ClassImp(TrRecHitNtuple)
 ClassImp(TrRecHitNtuple02)
 ClassImp(TrTrackNtuple)
