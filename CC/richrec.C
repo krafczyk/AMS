@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.35 2002/06/03 14:53:34 alexei Exp $
+//  $Id: richrec.C,v 1.36 2002/07/03 10:31:25 delgadom Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -109,6 +109,7 @@ void AMSRichRawEvent::_writeEl(){
 
   cluster->x[cluster->Nhits]=channel.x();
   cluster->y[cluster->Nhits]=channel.y();
+  cluster->status[cluster->Nhits]=_status;
   cluster->Nhits++;
 }
 
@@ -371,6 +372,7 @@ void AMSRichRing::build(){
   //  for(AMSTrTrack *track=(AMSTrTrack *)AMSEvent::gethead()->
   //   	getheadC("AMSTrTrack",0);track;track=track->next()){
   AMSTrTrack *track;
+  int bit=0;
 
   for(int id=0;;){
     track=(AMSTrTrack *)AMSEvent::gethead()->getheadC("AMSTrTrack",id++,1);
@@ -490,8 +492,10 @@ void AMSRichRing::build(){
       
       AMSDir refd(theta,phi); // Reflected case ;)
       
-      integer actual=0;
-      
+      integer actual=0,counter=0;
+      AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows/2];
+
+
       for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
 	    getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){
 	
@@ -507,13 +511,13 @@ void AMSRichRing::build(){
 			 betamin,betamax,recs[actual]);
 	
 	if(recs[actual][0]>0 || recs[actual][1]>0 || recs[actual][2]>0){	
-	  
 	  // Initialise arrays
 	  for(integer j=0;j<3;j++)
 	    if(recs[actual][j]>0){
 	      mean[actual][j]=recs[actual][j];
 	      size[actual][j]=1;mirrored[actual][j]=j>0?1:0;
 	      probs[actual][j]=0;}
+	  hitp[actual]=hit;
 	  actual++;
 	}
       }
@@ -583,6 +587,7 @@ void AMSRichRing::build(){
 	  }
 #endif
 	  if(prob>=9) continue;
+	  hitp[i]->setbit(bit);
 	  chi2+=prob;
 	}
 	
@@ -605,7 +610,12 @@ void AMSRichRing::build(){
 						     chi2/geant(beta_used),
 						     1.  //Unused by now
 						     ));
-	
+
+	// Increase the bit for next ring
+
+	bit++;
+
+
       } else {
 //	// Add empty ring to keep track of no recostructed tracks
 //	AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),

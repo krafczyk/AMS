@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.12 2002/06/03 14:53:43 alexei Exp $
+//  $Id: richrec.h,v 1.13 2002/07/03 10:31:46 delgadom Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -48,16 +48,21 @@ public:
 typedef safe_array<geant,3> geant_small_array;
 typedef safe_array<integer,3> integer_small_array;
 
-// Container for hits
+/////////////////////////////////////////////
+//         Container for hits              //
+/////////////////////////////////////////////
+
 
 class AMSRichRawEvent: public AMSlink{
 private:
   integer _channel; // (PMT number-1)*16+window number
   integer _counts;  // 0 means true, 1 means noise
+  uinteger _status;
+
 	 
 public:
   AMSRichRawEvent(integer channel,integer counts):AMSlink(),
-    _channel(channel),_counts(counts){};
+    _channel(channel),_counts(counts),_status(0){};
   ~AMSRichRawEvent(){};
   AMSRichRawEvent * next(){return (AMSRichRawEvent*)_next;}
 
@@ -84,6 +89,13 @@ public:
 		    (-2*plane[2]*z1*z2+z2*ri[2]+z1*rf[2])/(z1+z2));
     return output;		    
   }
+
+  void inline setbit(int bit_number){_status|=1<<bit_number;}
+  void inline unsetbit(int bit_number){_status&=1<<bit_number;}
+
+  integer inline getbit(int bit_number){return (_status&(1<<bit_number))>>bit_number;}
+
+
 // interface with DAQ :
 
 protected:
@@ -91,6 +103,7 @@ protected:
     int i;
     stream <<"AMSRichRawEvent: id="<<_channel<<endl;
     stream <<" Adc="<<_counts<<endl;
+    stream <<" Status="<<_status<<endl;
   }
   void _writeEl();
   void _copyEl(){};

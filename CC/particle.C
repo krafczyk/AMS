@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.113 2002/06/12 15:20:20 choutko Exp $
+//  $Id: particle.C,v 1.114 2002/07/03 10:31:19 delgadom Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -380,7 +380,7 @@ void AMSParticle::richfit(){
 
 
   geant direct,reflected,length;
-  RICHDB::ring_fraction(_ptrack,direct,reflected,length);
+  RICHDB::ring_fraction(_ptrack,direct,reflected,length,1.0);
 
   _RichPath[0]=direct;
   _RichPath[1]=reflected;
@@ -390,7 +390,7 @@ void AMSParticle::richfit(){
 //  Add more
   AMSRichRing::rebuild(_ptrack);
 
-_prich=0;
+  _prich=0;
   AMSRichRing* ptr=(AMSRichRing*)AMSEvent::gethead()->getheadC("AMSRichRing",0);
   while(ptr){
    if(ptr->gettrack()==_ptrack){
@@ -399,6 +399,14 @@ _prich=0;
    }
    ptr=ptr->next();
   }
+
+
+  if(_prich){
+    RICHDB::ring_fraction(_ptrack,direct,reflected,length,_prich->getbeta());
+    _RichPathBeta[0]=direct;
+    _RichPathBeta[1]=reflected;
+  }
+
 }
 
 
@@ -492,6 +500,7 @@ void AMSParticle::_writeEl(){
       PN->RichCoo[PN->Npart][i][j]=_RichCoo[i][j];
     }
     PN->RichPath[PN->Npart][i]=_RichPath[i];
+    PN->RichPathBeta[PN->Npart][i]=_RichPathBeta[i];
   }
   PN->RichLength[PN->Npart]=_RichLength;
 

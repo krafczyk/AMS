@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.28 2002/05/23 17:27:05 mdelgado Exp $
+//  $Id: richdbc.C,v 1.29 2002/07/03 10:31:08 delgadom Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -505,11 +505,11 @@ geant RICHDB::mean_height(){
 
 
 geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
-			    geant &length){
+			    geant &length,geant beta){
 
   number theta,phi,sleng;  // Track parameter
   integer i;
-  const integer NPHI=100;
+  const integer NPHI=400;
   const geant twopi=3.14159265359*2;
 
 
@@ -557,7 +557,7 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
     geant r0[3],u0[3],r1[3],u1[3],r2[3],u2[3],n[3],r3[3];
 
 
-    cc=1./1.0/RICHDB::rad_index; // beta=1
+    cc=1./beta/RICHDB::rad_index; 
     sc=sqrt(1-cc*cc);
     cp=cos(phi);
     sp=sin(phi);

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.22 2002/06/06 15:11:01 alexei Exp $
+//  $Id: root.C,v 1.23 2002/07/03 10:31:28 delgadom Exp $
 #include <root.h>
 #include <ntuple.h>
 #include <antirec02.h>
@@ -315,7 +315,8 @@ ParticleRoot02::ParticleRoot02(AMSParticle *ptr, float phi, float phigl)
       RichCoo[i][j] = ptr->_RichCoo[i][j];
     }
   }
-  for (int i=0; i<2; i++) {RichPath[i] = ptr->_RichPath[i];}
+  for (int i=0; i<2; i++) {RichPath[i] = ptr->_RichPath[i];
+                           RichPathBeta[i] = ptr->_RichPathBeta[i];}
   RichLength = ptr->_RichLength;
 }
 
@@ -557,6 +558,7 @@ RICEventRoot::RICEventRoot(AMSRichRawEvent *ptr, float x, float y)
   if (ptr) {
    _channel = ptr->_channel;
    _counts  = ptr->_counts;
+   _status  = ptr->_status;
    _x      = x;
    _y      = y;
   } else {

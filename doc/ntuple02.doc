@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.39 2002/06/06 14:41:04 choutko Exp $
+#  $Id: ntuple02.doc,v 1.40 2002/07/03 10:32:04 delgadom Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -141,7 +141,13 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 	                                           //  of ring photons 
 	                                           //  within RICH acceptance
 						   //  (direct and reflected ones 
-						   //   repectively)		
+						   //   respectively) for beta=1
+* R*4  *           * PARTICLE * pathrichb(2,npart)  //  Estimated fraction
+                                                   //  of ring photons
+                                                   //  within RICH acceptance
+                                                   //  (direct and reflected ones
+                                                   //   respectively) for 
+                                                   //  the particle beta
 * R*4  *           * PARTICLE * lengthrich(npart)  // Estimated pathlength of 
 						   // particle within rich radiator
 
@@ -514,7 +520,8 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
  * I*4  *          * RICEVENT * Rchtadc(Rhits)           // ADC counts
  * R*4  *          * RICEVENT * Rchtx(Rhits)             // X pos. of the channel
  * R*4  *          * RICEVENT * Rchty(Rhits)             // Y pos. of the channel
- * I*4  * [0,100]  * RING     * nrings                // Nb of rings created in rich rec
+ * I*4  *          * RICEVENT * Rhstatus(Rhits)       // Hit status *********) 
+ * I*4  * [0,10]   * RING     * nrings                // Nb of rings created in rich rec
  * I*4  *          * RING     * rcritrkn(nrings)        // Pointer to track
  * I*4  *          * RING     * rcrihu(nrings)         // Nb. of RICH hits in a ring matching the track
  * I*4  *          * RING     * rcrimhu(nrings)       // Nb. of RICH mirrored hits in a ring matching the track
@@ -654,6 +661,21 @@ NOTE: The information of the mother is only available if RICCONT=1 in
 2      i386-linux
 3      reserved for future candidate
 
+
+*********) Status bits (counting from 1 to 32)
+
+1- Hit used in a larger (ring number 1) object
+2- Hit used in a larger (ring number 2) object 
+3- Hit used in a larger (ring number 3) object
+.
+.
+.
+10- Hit used in a larger (ring number 10) object 
+11- Unused
+.
+.
+.
+32- Unused
 
 
 

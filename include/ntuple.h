@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.53 2002/06/03 14:53:43 alexei Exp $
+//  $Id: ntuple.h,v 1.54 2002/07/03 10:31:36 delgadom Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -159,6 +159,7 @@ public:
   float TRDCoo[MAXPART02][3];
   float RichCoo[MAXPART02][2][3];
   float RichPath[MAXPART02][2];
+  float RichPathBeta[MAXPART02][2];
   float RichLength[MAXPART02];
 friend class AMSParticle;
 friend class AMSNtuple;
@@ -606,6 +607,7 @@ public:
   int adc[MAXRICHITS];
   float x[MAXRICHITS];
   float y[MAXRICHITS];
+  integer status[MAXRICHITS];
 
 friend class AMSRichRawEvent;
 friend class AMSNtuple;

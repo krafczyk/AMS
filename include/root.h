@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.63 2002/06/03 14:53:43 alexei Exp $
+//  $Id: root.h,v 1.64 2002/07/03 10:31:48 delgadom Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -244,6 +244,7 @@ public:
   float TRDCoo[3];
   float RichCoo[2][3];
   float RichPath[2];
+  float RichPathBeta[2];
   float RichLength;
   float Local[8];
 
@@ -738,6 +739,7 @@ class RICEventRoot : public TObject {
 public:
   int   _channel;
   int   _counts;
+  unsigned int _status;
   float _x;
   float _y;
 
