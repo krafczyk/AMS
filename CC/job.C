@@ -393,7 +393,7 @@ for( i=0;i<6;i++){
 }
   TRALIG.EventsPerRun=1001;
   TRALIG.LayersOnly=0;
-  TRALIG.GlobalGoodLimit=0.08;
+  TRALIG.GlobalGoodLimit=0.085;
   TRALIG.SingleLadderEntryLimit=10000;
  FFKEY("TRALIG",(float*)&TRALIG,sizeof(TRALIG_DEF)/sizeof(integer),"MIXED");
 
