@@ -102,7 +102,7 @@ void stlv::ProcessFill(Int_t entry)
      if(ev.nParticle()>0){
        int ptrack = ev.Particle(0).TrTrack();
        int ptrd = ev.Particle(0).TrdTrack();
-        cout <<"qq"<<ptrack<<ev.nParticle()<<ev.NParticle()<<" "<<ev.Particle(0).Momentum<<" "<<endl;
+//        cout <<"qq"<<ptrack<<ev.nParticle()<<ev.NParticle()<<" "<<ev.Particle(0).Momentum<<" "<<endl;
        if(ev.NParticle()== 1 && ptrack>=0 && ptrd>=0){ //final if
          acc[1]->Fill(xm,1);
          h1A[1]-> Fill(xm,1);
@@ -121,12 +121,12 @@ void stlv::ProcessFill(Int_t entry)
    	          Layer1=ev.TrRecHit(ptrh).Layer;
 		    
 		 
-		  ptrh=tr_tr.TrRecHit(tr_tr.NHits-1);			//pht2
+		  ptrh=tr_tr.TrRecHit(tr_tr.NTrRecHit()-1);			//pht2
    	           Layer2=ev.TrRecHit(ptrh).Layer;
 
  // alt method
 
-                  TrRecHitR* pph=tr_tr.pTrRecHit(tr_tr.NHits-1);
+                  TrRecHitR* pph=tr_tr.pTrRecHit(tr_tr.NTrRecHit()-1);
                   int l2=pph->Layer;
                            
 }
