@@ -18,12 +18,6 @@ class AMSMCEventList : public EventList {
 
  private:
 
-  integer   _nMCClusters;       // number of MCClusters
-  integer   _nTOFMCClusters;    // number of TOF MCClusters
-  integer   _nAntiMCClusters;   // number of Anti MCClusters
-  integer   _nCTCMCClusters;    // number of TOF MCClusters
-  integer   _nmcEventg;
-
  public:
 
 // Constructor
@@ -33,22 +27,6 @@ class AMSMCEventList : public EventList {
  ~AMSMCEventList() {};
 
 // Set/Get Methods
-
-   integer getNMCClusters()              {return _nMCClusters;}
-   void    incNMCClusters()              {_nMCClusters++;}
-
-   integer getNTOFMCClusters()           {return _nTOFMCClusters;}
-   void    incNTOFMCClusters()           {_nTOFMCClusters++;}
-
-   integer getNCTCMCClusters()           {return _nCTCMCClusters;}
-   void    incNCTCMCClusters()           {_nCTCMCClusters++;}
-
-   integer getNAntiMCClusters()          {return _nAntiMCClusters;}
-   void    incNAntiMCClusters()          {_nAntiMCClusters++;}
-
-   integer getNmcEventg()                {return _nmcEventg;}
-   void    incNmcEventg()                {_nmcEventg++;}
-
 
 //
 void     resetMCCounters();

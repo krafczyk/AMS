@@ -89,11 +89,6 @@ AMSMCEventList::AMSMCEventList(char* listname, char* setup)
 
 void AMSMCEventList::resetMCCounters()
 {
-  _nMCClusters     = 0;
-  _nTOFMCClusters  = 0;
-  _nAntiMCClusters = 0;
-  _nCTCMCClusters  = 0;
-  _nmcEventg       = 0;
 }
 
 void AMSMCEventList::SetContainersNames(char* listname)
@@ -123,9 +118,6 @@ ooStatus      AMSMCEventList::Addmceventg(ooHandle(AMSmcevent)& eventH)
          if (rstatus != oocSuccess) return rstatus;
         }
 
-        integer   mceventg  = listH -> getNmcEventg();
-        if (dbg_prtout == 1)
-                     cout <<"AddmcEventg -I- found mcEventg "<<mceventg<<endl;
         AMSmceventg * p = (AMSmceventg*)AMSEvent::gethead() ->
                                                  getheadC("AMSmceventg",0);
         if (p == NULL) {
@@ -139,8 +131,6 @@ ooStatus      AMSMCEventList::Addmceventg(ooHandle(AMSmcevent)& eventH)
           Error("AddmcEventg: cannot set the mceventg to Event association.");
           return rstatus;
          }
-         mceventg++;
-         listH  -> incNmcEventg();
          p = p -> next();
         }
         return rstatus;
@@ -157,9 +147,6 @@ ooStatus AMSMCEventList::Addtrmccluster(ooHandle(AMSmcevent) & eventH)
          if (rstatus != oocSuccess) return rstatus;
         }
 
-        // get number of MCClusters so far
-        integer mcclusters  = listH ->   getNMCClusters();
-        if (dbg_prtout == 1) cout <<"found TrMCClusters  "<<mcclusters<<endl;
 
         // get head of AMSTrMCCluster Container
         AMSContainer* pCont = AMSEvent::gethead() -> getC("AMSTrMCCluster",0);
@@ -183,8 +170,6 @@ ooStatus AMSMCEventList::Addtrmccluster(ooHandle(AMSmcevent) & eventH)
            pD -> add(p);
            trmcclusterH -> add(i,trmccluster);
            i++;
-           mcclusters++;
-           listH -> incNMCClusters();
            p = p -> next();
           }
         } //nelem > 0
@@ -203,10 +188,6 @@ ooStatus AMSMCEventList::Addtofmccluster(ooHandle(AMSmcevent) & eventH)
                             (tofmcclusterCont, oocUpdate, contTOFMCClusterH);
          if (rstatus != oocSuccess) return rstatus;
         }
-
-        // get number of MCClusters so far
-        integer tofmcclusters  = listH ->   getNTOFMCClusters();
-        if (dbg_prtout==1) cout <<"found TOFMCClusters  "<<tofmcclusters<<endl;
 
         // get head of AMSTOFMCCluster Container
         AMSContainer* pCont = AMSEvent::gethead() -> getC("AMSTOFMCCluster",0);
@@ -230,8 +211,6 @@ ooStatus AMSMCEventList::Addtofmccluster(ooHandle(AMSmcevent) & eventH)
           pD -> add(p);
           tofmcclusterH -> add(i,tofmccluster);
           i++;
-          tofmcclusters++;
-          listH -> incNTOFMCClusters();
           p = p -> next();
          }
         } //nelem > 0
@@ -249,10 +228,6 @@ ooStatus AMSMCEventList::Addctcmccluster(ooHandle(AMSmcevent) & eventH)
         if (rstatus != oocSuccess) return rstatus;
         }
 
-        // get number of MCClusters so far
-        integer ctcmcclusters  = listH ->   getNCTCMCClusters();
-        if (dbg_prtout == 1)
-         cout <<"AddCTCMCCluster-I-found CTCMCClusters  "<<ctcmcclusters<<endl;
         // get first cluster
          AMSCTCMCCluster* p = (AMSCTCMCCluster*)AMSEvent::gethead() -> 
                                             getheadC("AMSCTCMCCluster",0);
@@ -262,8 +237,6 @@ ooStatus AMSMCEventList::Addctcmccluster(ooHandle(AMSmcevent) & eventH)
         }
         while ( p != NULL) {
          CTCMCClusterH = new(contCTCMCClusterH) AMSCTCMCClusterD(p);
-         ctcmcclusters++;
-         listH -> incNCTCMCClusters();
          rstatus = eventH -> add_pCTCMCCluster(CTCMCClusterH);
          if (rstatus != oocSuccess) {
            Error("AddCTCMCCluster: cannot set the MCCluster to Event assoc.");
@@ -285,10 +258,6 @@ ooStatus AMSMCEventList::Addantimccluster(ooHandle(AMSmcevent) & eventH)
          if (rstatus != oocSuccess) return rstatus;
         }
 
-        // get number of MCClusters so far
-        integer antimcclusters  = listH ->   getNAntiMCClusters();
-        if (dbg_prtout == 1)
-         cout <<"AddAntiCluster: found AntiMCClusters  "<<antimcclusters<<endl;
         // get first cluster
         AMSAntiMCCluster* p = (AMSAntiMCCluster*)AMSEvent::gethead() ->
                                            getheadC("AMSAntiMCCluster",0);
@@ -299,8 +268,6 @@ ooStatus AMSMCEventList::Addantimccluster(ooHandle(AMSmcevent) & eventH)
         while ( p != NULL) {
          integer  idsoft;
          AntiMCClusterH = new(contAntiMCClusterH) AMSAntiMCClusterD(p);
-         antimcclusters++;
-         listH -> incNAntiMCClusters();
          rstatus = eventH -> add_pAntiMCCluster(AntiMCClusterH);
          if (rstatus != oocSuccess) {
           Error("AddAntiMCCluster: cannot set the MCCluster to Event assoc.");
@@ -478,8 +445,6 @@ ooStatus  AMSMCEventList::Readmceventg(ooHandle(AMSmcevent)& eventH)
           if (dbread_only != 0) {
            AMSmceventg* p = new AMSmceventg();
            mceventgItr -> copy(p);
-           //integer pos = mceventgItr -> getPosition();
-           //p->setContPos(pos);
            AMSEvent::gethead() -> addnext(AMSID("AMSmceventg",0),p);
            if (imceventg == 0) p -> InitSeed();
            p->run();

@@ -80,7 +80,6 @@ integer LMS::FindRun(uinteger runUni)
  ooMode               mode = Mode();
 
  char                   pred[40];
- //sprintf(pred,"_runUni=%d ",runUni);
  sprintf(pred,"_run=%d ",runUni);
  ooStatus status = eventItr.scan(dbH, mode, oocAll, pred);
  if (status == oocSuccess) {
@@ -92,4 +91,34 @@ integer LMS::FindRun(uinteger runUni)
    Fatal("FindTagEvent : scan init failed");
  }
  return ret;
+}
+
+void LMS::Refresh()
+//
+// activate main lists after commit
+//
+{
+ ooHandle(ooContObj) contH;
+
+ if(tagCont() != NULL ) {
+  contH.exist(tagdb(), tagCont() -> ListName(), Mode());
+ } else {
+  Warning("Refresh:: pointer to tag list is NULL");
+ }
+
+ if (mcevents()) {
+   if (mcCont() != NULL ) {
+      contH.exist(mcdb(), mcCont() -> ListName(), Mode());
+   } else {
+      Warning("Refresh:: pointer to MC list is NULL");
+   }     
+ }
+
+ if(recoevents()) {
+   if(recoCont() != NULL ) {
+     contH.exist(recodb(), recoCont() -> ListName(), Mode());
+   } else {
+     Warning("Refresh:: pointer to Reco list is NULL");
+   }
+ }
 }

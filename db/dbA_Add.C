@@ -42,8 +42,8 @@ static  Float_t  StartRealTime;
 static  Float_t  EndRealTime;
 static  long int gTicks;
 static  integer NN_events;        // number of events written to the database
-static  integer NW_commit = 10;   // commit after each NW_commit events
-static  integer NR_commit = 100;  // commit after each NR_commit events
+static  integer NW_commit = 100;  // commit after each NW_commit events
+static  integer NR_commit = 200;  // commit after each NR_commit events
 static  integer checkevent;
 
 static  ooItr(AMSEventTag)     tageventItr;             
@@ -65,26 +65,30 @@ ooStatus LMS::AddRawEvent(ooHandle(ooContObj)& contH,
 // run           - unique run number
 // runAux        - auxillary run number
 // eventNumber   - event number
+// status        -
+//time           - level-1 trigger time
+//others         - subdetector's blocks
 // WriteStartEnd - flag;
 //                       1 - start transaction
 //                      -1 - end transaction
 //                      -2 - start&end trasaction
 //
-
   {
     ooStatus rstatus = oocError;
     struct    tms cpt;
 
     if (Mode() != oocUpdate) {
-     Error("AddRawEvent -E- Cannot add event in non-oocUpdate mode");
+     Error("AddRawEvent : Cannot add event in non-oocUpdate mode");
      return rstatus;
     }
 
     if(!isTagKeyValid(run,eventNumber)) return rstatus;
 
-    if (contH == NULL) Fatal("AddEvent : pointer to the container is NULL");
-    if (_tagcontH == NULL) 
-                       Fatal("AddEvent : pointer to tag container is NULL");
+    if (contH == NULL) Fatal("AddRawEvent : pointer to the container is NULL");
+
+    ooHandle(AMSEventTagList) tagcontH = tagCont();
+    if (tagcontH == NULL) 
+                       Fatal("AddRawEvent : pointer to tag container is NULL");
 
     // Start the transaction
     if (WriteStartEnd == 1 || WriteStartEnd == -2) {
@@ -95,7 +99,8 @@ ooStatus LMS::AddRawEvent(ooHandle(ooContObj)& contH,
 
     //get pointer to the database
     ooHandle(ooDBObj)  dbH = rawdb();
-    if (dbH == NULL) Fatal("AddEvent : pointer to raw event database is NULL");
+    if (dbH == NULL) 
+                Fatal("AddRawEvent : pointer to raw event database is NULL");
     ooHandle(AMSEventTag)  tageventH;
     ooHandle(AMSraweventD) eventH;
     ooItr(AMSraweventD)    raweventItr;             
@@ -103,10 +108,22 @@ ooStatus LMS::AddRawEvent(ooHandle(ooContObj)& contH,
     if (checkevent == 1) {
      rstatus = FindTagEvent(run, eventNumber, tageventH);
      if (rstatus == oocSuccess) { // tag event exists
-       cout<<"overwrite "; tageventH -> print();
+       cout<<"AddrawEvent :: overwrite "; tageventH -> print();
        rstatus = ooDelete(tageventH);
+       tagcontH -> decNEvents();
      }
     }
+
+    tageventH = new(tagcontH) 
+                          AMSEventTag(run, runAux, eventNumber, time, status);
+    tagcontH -> incNEvents();
+
+    //rstatus = ooUpdateIndexes(tageventH);
+    //if (rstatus != oocSuccess) {
+    //Warning("AddRawEvent :: ooUpdateIndexes");
+    //  rstatus = oocSuccess;
+    //}
+
     eventH = new(contH) AMSraweventD(run, runAux, eventNumber, status, time,
                                      ltrig, trig, 
                                      ltracker, tracker, 
@@ -115,14 +132,8 @@ ooStatus LMS::AddRawEvent(ooHandle(ooContObj)& contH,
                                      lctc, ctc,
                                      lslow, slow);
 
-    tageventH = new(_tagcontH) 
-                          AMSEventTag(run, runAux, eventNumber, time, status);
     rstatus = tageventH -> set_itsRawEvent(eventH);
-    rstatus = ooUpdateIndexes(tageventH);
-    if (rstatus != oocSuccess) {
-      Warning("ooUpdateIndexes");
-      rstatus = oocSuccess;
-    }
+
 end:
     if (rstatus == oocSuccess) {
      NN_events++;
@@ -130,14 +141,17 @@ end:
      NN_events%NW_commit == 0) {
       cout<<"events... "<<NN_events<<endl;
       Commit();
-      if(NN_events%NW_commit ==0 && WriteStartEnd > -1) {
+      if (NN_events > 0) {
+       if(NN_events%NW_commit == 0 && WriteStartEnd > -1) {
         StartUpdate();
+        Refresh();
         StartRealTime = times(&cpt);
+       }
       }
      }
     } else {
      checkevent = 0;
-     Error(" in AddEvent");
+     Error(" in AddRawEvent");
      Error(" Transaction is aborted");
      Abort();
      return oocError;
@@ -306,6 +320,7 @@ end:
       if (NN_events > 0) {
        if(NN_events%NW_commit == 0 && WriteStartEnd > -1) {
         StartUpdate();
+        Refresh();
         StartRealTime = times(&cpt);
        }
       }
@@ -590,4 +605,3 @@ end:
     }
    return rstatus;
   }
-
