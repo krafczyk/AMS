@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.7 2001/01/22 17:32:53 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.8 2001/01/23 11:50:38 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -177,7 +177,8 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
             "Start Time",
             "LastUpdate Time",
             "Run",
-            "Ntuple",
+            "Name",
+            "Size(MB)",
             "Status",
                                    );
 
@@ -198,7 +199,8 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
             "Time",
             "First Event",
             "Last Event",
-            "Ntuple",
+	    "Name",
+            "Size(MB)",
             "Status ",
                                    );
 

@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.56 2001/01/22 17:32:20 choutko Exp $
+//  $Id: gbatch.C,v 1.57 2001/01/23 11:50:36 choutko Exp $
 
 // Author V. Choutko 24-may-1996
  
@@ -108,7 +108,7 @@ using namespace glconst;
   case SIGHUP:
 #ifdef __CORBA__
    cout <<"got sighup "<<endl;
-if(AMSProducer::gethead() && AMSProducer::gethead()->Progressing())AMSProducer::gethead()->sendCurrentRunInfo();
+if(AMSProducer::gethead() && AMSProducer::gethead()->Progressing())AMSProducer::gethead()->sendCurrentRunInfo(true);
 #endif
       break;
   case SIGUSR1:

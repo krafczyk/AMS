@@ -1,4 +1,4 @@
-//  $Id: producer.h,v 1.10 2001/01/22 17:32:44 choutko Exp $
+//  $Id: producer.h,v 1.11 2001/01/23 11:50:38 choutko Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__
@@ -29,12 +29,13 @@ static AMSProducer* gethead(){return _Head;}
 void AddEvent();
 void UpdateARS();
 void getRunEventInfo();
-void sendCurrentRunInfo();
+void sendCurrentRunInfo(bool force=false);
 void getASL();
 void sendSelfId();
 void sendDSTInfo();
 bool Progressing();
 void sendNtupleStart(const char * name,int run, int first,time_t begin);
+void sendNtupleUpdate();
 void sendNtupleEnd(int entries, int last, time_t end, bool suc);
 void sendRunEnd(DAQEvent::InitResult res);
 void sendEventTagEnd(const char *name, uinteger run,time_t insert, time_t begin,time_t end,uinteger first,uinteger last,integer nelem, bool fail);  

@@ -185,6 +185,7 @@ module DPS{
      long   EventNumber;
      DSTStatus Status;
      DSTType Type;
+     long   size;
      string Name;
     };    
 
