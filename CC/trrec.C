@@ -19,6 +19,7 @@
 #include <cont.h>
 #include <tkdbc.h>
 integer AMSTrTrack::_RefitIsNeeded=0;
+pClusterB AMSTrCluster::_pClusterBuilder=&AMSTrCluster::build;
 const integer AMSTrCluster::WIDE=1;
 const integer AMSTrCluster::NEAR=2;
 const integer AMSTrCluster::REFITTED=4;

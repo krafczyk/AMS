@@ -33,7 +33,7 @@
 #include <trrawcluster.h>
 #include <daqevt.h>
 #include <daqblock.h>
-
+#include <user.h>
 //+
  integer        ntdvNames;                       // number of TDV's types
  char           *tdvNameTab[maxtdv];             // TDV's nomenclature
@@ -887,6 +887,7 @@ AMSEvent::debug=AMSFFKEY.Debug;
 _siamsinitjob();
 
 _reamsinitjob();
+
 if(isCalibration())_caamsinitjob();
 _timeinitjob();
 cout << *this;
@@ -1031,6 +1032,7 @@ _reantiinitjob();
 _retrdinitjob();
 _rectcinitjob();
 _reaxinitjob();
+AMSUser::InitJob();
 }
 void AMSJob::_caamsinitjob(){
 if(isCalibration() & CTracker)_catkinitjob();
@@ -1818,7 +1820,7 @@ void AMSJob::_axendjob(){
           assert(pg!=NULL);
   }
 
-
+    AMSUser::EndJob(); 
 }
 
 void AMSJob::_dbendjob(){} // moved to A_LMS.C

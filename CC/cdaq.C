@@ -199,7 +199,7 @@ int16u pData[24][1536];
              }
              tdrk=(k-16)/2;
              //swap 3.2 <-> 3.0
-             if(tdrk == 2){
+             if(run >=20 && tdrk == 2){
               if(conn == 0)conn=3;
               else if (conn==3)conn=0;  
              }

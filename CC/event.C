@@ -32,6 +32,7 @@
 #include <trigger3.h>
 #include <antirec.h>
 #include <ctcsim.h>
+#include <user.h>
 extern "C" void uglast_();
  
 #ifdef __DB__
@@ -436,6 +437,7 @@ void AMSEvent::_reamsevent(){
   _retkevent(); 
   _retrdevent(); 
   _reaxevent();
+   AMSUser::Event();
 }
 
 void AMSEvent::_caamsinitevent(){
@@ -522,7 +524,7 @@ void AMSEvent::_retkevent(integer refit){
 
 AMSgObj::BookTimer.start("RETKEVENT");
 AMSgObj::BookTimer.start("TrCluster");
-AMSTrCluster::build(refit);
+AMSTrCluster::RunBuilder(refit);
 AMSgObj::BookTimer.stop("TrCluster");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSTrCluster::print();

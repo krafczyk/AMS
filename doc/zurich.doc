@@ -1,0 +1,60 @@
+This file is ~doc/zurich.doc
+
+
+How to use AMS software for Zurich tests:
+
+
+I  Tracker  
+
+
+a) Convertor 
+    ~install gmake -i -f Mcdaq
+    ~exe/osf1/cdaq /trk/cosmics/runxxx.dat /offdata/raw/runxxx.dat
+
+b) Processor
+   ~datacards/run.job    (for run 22 :   run.job 22)
+   //  calc pedestals/sigmas and try to find clusters
+
+Relevant datacards
+
+TRMC 30(threshold on s/n for preclusters x; default = 4.5)
+TRMC 31(threshold on s/n for preclusters y; default = 4.5)
+TRCL 1-25  
+
+Relevant methods/procedures:
+
+Pedestals/Sigmas:
+
+~doc/trcalib.doc
+
+Cluster finding:
+
+Create preclusters : AMSTrRawCluster::buildRawRaw
+Find clusters:       AMSTrCluster::build
+See also ~doc/trrec.doc 
+
+
+c) User interface
+
+thru ~CC/user.C):
+
+InitJob(){  // calling  at initialization;
+            // apart from trivail things as e.g. histos
+            // can redefine defalut object builders :
+  // Sets own builder for TrCluster class
+  AMSTrCluster::SetTrClusterBuilder(&AMSTrCluster::my_own_build);
+
+}
+
+void AMSUser::Event(){   // runs for every event
+}
+
+void AMSUser::EndJob(){
+}
+
+
+
+
+          
+
+

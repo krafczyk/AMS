@@ -26,6 +26,7 @@
 #include <commons.h>
 #include <cont.h>
 #include <event.h>
+typedef void  (*pClusterB)(integer refit);
 
 
 class AMSTrCluster: public AMSlink {
@@ -49,6 +50,12 @@ number * _pValues;
 static void _addnext(const AMSTrIdSoft& id, integer status, integer nelemL,
   integer nelemR, number sum,  number ssum, number pos, number rms, 
   number val[]);
+
+
+// Builder pointer
+static pClusterB _pClusterBuilder; 
+
+
 
 public:
      static const integer WIDE;
@@ -89,7 +96,11 @@ integer nelemR, number sum,number ssum, number pos, number rms,
 number val[]);
 AMSTrCluster *  next(){return (AMSTrCluster*)_next;}
 
+//default builder
 static void build(integer refit);
+static void SetTrClusterBuilder(pClusterB pcb){ _pClusterBuilder=pcb;} 
+static void RunBuilder(integer refit){_pClusterBuilder(refit);}
+
 static void print();
 AMSTrCluster():AMSlink(){_NelemL=0; _NelemR=0;_pValues=0;};
 ~AMSTrCluster(){if(_pValues)UPool.udelete(_pValues);}
@@ -98,10 +109,11 @@ integer operator < (AMSlink & o) const {
   AMSTrCluster * p= (AMSTrCluster*)(&o);
 //  return getid() < p->getid();
 // New operator < 15/11/96 for ntuple purpose
- if (checkstatus(AMSDBc::USED) && !(p->checkstatus(AMSDBc::USED)))return 1;
- else return 0;             
+                                        if (checkstatus(AMSDBc::USED) && !(p->checkstatus(AMSDBc::USED)))return 1;
+ else return 0;
 
-} 
+}
+
 };
 
 class AMSTrRecHit: public AMSlink{

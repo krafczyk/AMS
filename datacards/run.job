@@ -76,6 +76,7 @@ C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=11   2=0      3=20.   4=1  5=0 6='v203a'  87=0
 C Special HP-UX
 TIME 3=10000000
+TRCL 17=1.5 22=1
 TRMC 30=3. 31=4.
 DAQC 1=1 2='/offdata/raw/run000$RUN.dat'
 TRFIT 23=0
@@ -109,6 +110,7 @@ C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=11   2=0      3=20.   4=1  5=0 6='v203a'  87=0
 C Special HP-UX
 TIME 3=10000000
+TRCL 17=1.5 22=1
 TRMC 30=4. 31=4.5
 DAQC 1=1 2='/offdata/raw/run000$RUN.dat'
 TRFIT 23=0
@@ -117,3 +119,6 @@ END
 
 
 !
+
+../exe/osf1/nconvert run$RUN.30.40.hbk run$RUN.30.40.hbk
+../exe/osf1/nconvert run$RUN.40.45.hbk run$RUN.40.45.hbk
