@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.213 2003/09/20 10:47:39 alexei Exp $
+# $Id: RemoteClient.pm,v 1.214 2003/09/23 15:43:21 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13,10 +13,10 @@
 #                 ValidateRuns : "local" runs
 # Aug 2003      : remove explicit server name, e.g. pcamsf0.cern.ch
 #                 from scripts names
-# Sep 2003      : outputpath = /disk/dir   for local disks
-#                              /dir        for afs 
+# Sep 2003      : outputpath and $ntdir = /disk/dir   for local disks
+#                                         /dir        for afs 
 #                 add MIPS column into Jobs table
-#
+#                 
 # ToDo : checkJobsTimeout - reduce number of SQLs
 #
 package RemoteClient;
@@ -3003,25 +3003,17 @@ else {
 
           htmlTableEnd();
              if ($self->{CCT} ne "remote") {
-               my $ntdir="Not Defined";
-               my $avail=0;
-               my $minspace = 30; # at least 30GB
+               my $ntdir    =undef; # directory path to store ntuples
+               my $maxavail = 0;    # max available disk space
                foreach my $fs (@{$self->{FilesystemT}}){
-                 if ($fs->{available} > $avail and $fs->{available}>$minspace) {
-                   $avail = $fs->{available};
+                 if ($fs->{available} > $maxavail) {
+                   $maxavail = $fs->{available};
                    $ntdir = $fs->{disk}.$fs->{path};
-                 }
-                } 
-               if ($avail > $minspace) {
-                $minspace = $avail/2;
-                foreach my $fs (@{$self->{FilesystemT}}){
-                 if ($fs->{available} > $minspace and $fs->{available} != $avail) {
-                   $avail = $fs->{available};
-                   $ntdir = $fs->{disk}.$fs->{path};
-                   goto DDTAB;
+                   if ($fs->{disk} =~ /vice/) {
+                    $ntdir = $fs->{path};
+                   }
                  }
                }
-            }
 DDTAB:         $self->htmlTemplateTable(" ");
                print "<tr><td>\n";
                print "<b><font color=\"green\">Ntuples Output Path</font></b><BR>\n";
@@ -3031,7 +3023,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
                htmlTextField(" ","text",80,$ntdir,"NTDIR"," ");  
               print "</b></font></td></tr>\n";
             htmlTableEnd();
-           htmlTableEnd();
+            htmlTableEnd();
            }
 
 
@@ -3191,26 +3183,18 @@ DDTAB:         $self->htmlTemplateTable(" ");
            htmlTableEnd();
           htmlTableEnd();
              if ($self->{CCT} ne "remote") {
-               my $ntdir="Not Defined";
-               my $avail=0;
-               my $minspace = 30; # at least 30GB
+               my $ntdir="undef";
+               my $maxavail=0;
                foreach my $fs (@{$self->{FilesystemT}}){
-                 if ($fs->{available} > $avail and $fs->{available}>$minspace) {
-                   $avail = $fs->{available};
+                 if ($fs->{available} > $maxavail) {
+                   $maxavail = $fs->{available};
                    $ntdir = $fs->{disk}.$fs->{path};
+                   if ($fs->{disk} =~ /vice/) {
+                    $ntdir = $fs->{path};
+                   }
                  }
-                } 
-               if ($avail > $minspace) {
-                $minspace = $avail/2;
-                foreach my $fs (@{$self->{FilesystemT}}){
-                 if ($fs->{available} > $minspace and $fs->{available} != $avail) {
-                   $avail = $fs->{available};
-                   $ntdir = $fs->{disk}.$fs->{path};
-                   goto DDTAB;
-                 }
-               }
-            }
-DDTAB:         $self->htmlTemplateTable(" ");
+              }
+DDTAB:          $self->htmlTemplateTable(" ");
                print "<tr><td>\n";
                print "<b><font color=\"green\">Ntuples Output Path</font></b><BR>\n";
                print "</tr></td><td>\n";
@@ -3328,24 +3312,16 @@ DDTAB:         $self->htmlTemplateTable(" ");
            htmlTableEnd();
              if ($self->{CCT} ne "remote") {
                my $ntdir="Not Defined";
-               my $avail=0;
-               my $minspace = 30; # at least 30GB
+               my $maxavail=0;
                foreach my $fs (@{$self->{FilesystemT}}){
-                 if ($fs->{available} > $avail and $fs->{available}>$minspace) {
-                   $avail = $fs->{available};
+                if ($fs->{available} > $maxavail) {
+                   $maxavail = $fs->{available};
                    $ntdir = $fs->{disk}.$fs->{path};
-                 }
-                } 
-               if ($avail > $minspace) {
-                $minspace = $avail/2;
-                foreach my $fs (@{$self->{FilesystemT}}){
-                 if ($fs->{available} > $minspace and $fs->{available} != $avail) {
-                   $avail = $fs->{available};
-                   $ntdir = $fs->{disk}.$fs->{path};
-                   goto DDTAB;
+                   if ($fs->{disk} =~ /vice/) {
+                    $ntdir = $fs->{path};
+                   }
                  }
                }
-            }
 DDTAB:         $self->htmlTemplateTable(" ");
                print "<tr><td>\n";
                print "<b><font color=\"green\">Ntuples Output Path</font></b><BR>\n";
@@ -5971,7 +5947,10 @@ sub listDisks {
      my $r3=$self->{sqlserver}->Query($sql);
      if(defined $r3->[0][0]){
       foreach my $dd (@{$r3}){
-          my $fs     = $dd->[0].":".$dd->[1].$dd->[2];
+         my $fs     = $dd->[0].":".$dd->[1].$dd->[2];
+         if ($dd->[1] =~ /vice/) {
+          $fs     = $dd->[0].":".$dd->[2];
+         }
           my $size   = $dd->[3];
           my $used   = $dd->[4];
           my $avail  = $dd->[5];
