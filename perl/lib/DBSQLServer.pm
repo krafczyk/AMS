@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.48 2003/05/07 07:14:51 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.49 2003/05/23 09:44:09 alexei Exp $
 
 #
 #
@@ -362,6 +362,7 @@ my $sql;
      my $apd='$AMSProdDir/prod/starttagmtb_db_mc';
      $dbh->do("insert into Environment values('amsserver','$apd')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('ValidationDirPath','/f2users/scratch/MC/validate/')") or die "cannot do : ".$dbh->errstr();
+     $dbh->do("insert into Environment values('ROOTSYS','/afs/ams.cern.ch/Offline/root/Linux/v3.05.05gcc322/')") or die "cannot do : ".$dbh->errstr();
 
  } else {
     warn "Table Environment has $cnt entries. Not initialized";

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.181 2003/05/23 08:32:53 alexei Exp $
+# $Id: RemoteClient.pm,v 1.182 2003/05/23 09:44:09 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -66,6 +66,7 @@ my %fields=(
         AMSProdDir=>undef,
         AMSDSTOutputDir=>undef,
         CERN_ROOT=>undef,
+        ROOTSYS  =>undef,
         UploadsDir=>undef,
         UploadsHREF=>undef,
         FileDB=>undef,
@@ -271,6 +272,21 @@ my %mv=(
       $self->{CERN_ROOT}="/cern/2001";
   }
  }
+    $dir =$ENV{ROOTSYS};
+ if (defined $dir){
+     $self->{ROOTSYS}=$dir;
+ }
+ else{
+     my $sql="select myvalue from Environment where mykey='ROOTSYS'";
+     my $ret=$self->{sqlserver}->Query($sql);
+     if( defined $ret->[0][0]){
+       $self->{ROOTSYS}=$ret->[0][0];
+     }
+     else{
+      $self->{ROOTSYS}="/afs/ams.cern.ch/Offline/root/Linux/v3.05.05gcc322/";
+  }
+ }
+#
     my $key='UploadsDir';
     my $sql="select myvalue from Environment where mykey='".$key."'";
     my $ret=$self->{sqlserver}->Query($sql);
@@ -5898,7 +5914,7 @@ sub listNtuples {
     my $nn   = 0;
      print "<b><h2><A Name = \"ntuples\"> </a></h2></b> \n";
 #     print "<TR><B><font color=green size= 5><a href=$validatecgi><b><font color=green> MC NTuples </font></a><font size=3><i> (Click NTuples to validate)</font></i></font>";
-     print "<TR><B><font color=green size= 5><b>MC NTuples </font></a><font size=3><i> (Click NTuples to validate)</font></i></font>";
+     print "<TR><B><font color=green size= 5><b>MC NTuples </font></b>";
      print "<tr><font color=blue><b><i> Only recent 100 files are listed, to get complete list 
             <a href=http://pcamsf0.cern.ch/cgi-bin/mon/rc.o.cgi?queryDB=Form> click here</a>
             </b><i></font></tr>\n";
@@ -7520,7 +7536,9 @@ sub set_root_env {
 # this function sets up the necessary environement variables
 # to be able to use ROOT
 #
-    $ENV{"ROOTSYS"}='/afs/ams.cern.ch/Offline/root/Linux/v3.05.05gcc322';
+    my $self = shift;
+    my $ROOTSYS = $self->{ROOTSYS};
+    $ENV{"ROOTSYS"}='$ROOTSYS';
     $ENV{"PATH"}=$ENV{"PATH"}.":".$ENV{"ROOTSYS"}."/bin";
     $ENV{"LD_LIBRARY_PATH"}=$ENV{"LD_LIBRARY_PATH"}.":".$ENV{"ROOTSYS"}."/lib";
     1;
