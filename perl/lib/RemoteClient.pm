@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.307 2005/03/16 13:09:15 alexei Exp $
+# $Id: RemoteClient.pm,v 1.308 2005/03/16 15:10:02 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2442,7 +2442,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         $rootfile = $q->param("ROOT");
         if (not $rootfile =~ /\//  ) {
             my $ctime = time();
-            $rootfile = "/tmp/".$ctime.$rootfile;
+            $rootfile = "/tmp/".$rootfile.$ctime;
         }
         print "<tr><td><b><font size=\"4\" color=\"blue\">ROOT script  ";
         print "</font></b></td>";
