@@ -108,8 +108,7 @@ void stlv::UBegin(){
 }
 
 // UProcessCut() is not mandatory
-bool stlv::UProcessCut()
-}
+bool stlv::UProcessCut(){
      if (nParticle()!=1) return false;
      return true;
 }
