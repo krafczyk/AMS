@@ -98,6 +98,7 @@ void _sictcdata();
 void _sitofdata();
 void _siecaldata();
 void _siantidata();
+void _siricdata();
 void _reamsdata();
 void _retkdata();
 void _remfdata();

@@ -703,6 +703,27 @@ int UniformMagField;
 COMMON_BLOCK_DEF(G4FFKEY_DEF,G4FFKEY);
 
 
+// RICH Geometry card
+
+class RICGEOM_DEF{
+public:
+// Mirrors
+geant top_radius; 
+geant bottom_radius;
+geant hole_radius;
+geant height;
+integer inner_mirror_flag;
+geant inner_mirror_height;
+// Radiator
+geant radiator_radius;
+geant radiator_height;
+geant radiator_box_length; // The aerogel is an array of this length
+// lighguides and PMT
+geant light_guides_height; // Unused
+geant light_guides_length;
+};
+#define RICGEOM COMMON_BLOCK(RICGEOM,ricgeom)
+COMMON_BLOCK_DEF(RICGEOM_DEF,RICGEOM);
 
 
 
