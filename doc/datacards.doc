@@ -461,9 +461,10 @@ I 1 mode(0)                         // 0 do nothing
                                     // mode/10 = 1 write daq (noreplace)
                                     // mode/10 = 2 write daq (append)
 I 2 ifile[40]("")                   // input file name
-I42 ofile[40]("")                   // output file name
-I83 OldFormat(0)                    // old(0) new(1) format
-
+I41 ofile[40]("")                   // output file name
+I82 OldFormat(0)                    // old(0) new(1) format
+I83 LCrateinDAQ(1)                  // in(1) out(0) of DAQ
+I84 SCrateinDAQ(1)                  // in(1) out(0) of DAQ
 
 BMAP   // Magnetic field control
 I 1 iniok(1)                       // 0 for update mag field

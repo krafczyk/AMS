@@ -181,10 +181,12 @@ void DAQSBlock::buildraw(integer len, int16u *p){
     lent+=dlen;
   }
 //---
+#ifdef __AMSDEBUG__
   if(lent != len){
     cout<<"DAQSBlock::buildraw: length mismatch !!! for crate "<<naddr<<endl;
     cout<<"Length from bloc_header "<<len<<" but was read "<<lent<<endl;
   }
+#endif
 }
 //----------------------------------------------------
 integer DAQSBlock::calcblocklength(integer ibl){

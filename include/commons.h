@@ -41,6 +41,8 @@ integer mode;
 integer ifile[40];
 integer ofile[40];
 integer OldFormat;
+integer LCrateinDAQ;
+integer SCrateinDAQ;
 };
 #define DAQCFFKEY COMMON_BLOCK(DAQCFFKEY,daqcffkey)
 COMMON_BLOCK_DEF(DAQCFFKEY_DEF,DAQCFFKEY);

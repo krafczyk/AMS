@@ -308,6 +308,9 @@ void AMSEvent::_reaxinitevent(){
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:Test",0),0));
 
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:Dummy",0),0));
+
 
 
 
@@ -1336,6 +1339,9 @@ void AMSEvent::_redaqinitevent(){
 }
 
 void AMSEvent::_redaqevent(){
+  //  Add Dummy for Copying ....
+  addnext(AMSID("Dummy",0),new Test());
+
   // Erase some containers if in debug mode
 #ifdef __AMSDEBUG__
   int i;

@@ -321,6 +321,7 @@ CCFFKEY.enddate=  26051998;
 CCFFKEY.begintime=80000;
 CCFFKEY.endtime=120000;
 CCFFKEY.oldformat=0;
+
 CCFFKEY.sdir=1;
 FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -729,6 +730,8 @@ void AMSJob::_rectcdata(){
 void AMSJob::_redaqdata(){
 DAQCFFKEY.mode=0;
 DAQCFFKEY.OldFormat=0;
+DAQCFFKEY.LCrateinDAQ=1;
+DAQCFFKEY.SCrateinDAQ=1;
 VBLANK(DAQCFFKEY.ifile,40);
 VBLANK(DAQCFFKEY.ofile,40);
   FFKEY("DAQC",(float*)&DAQCFFKEY,sizeof(DAQCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -1989,7 +1992,7 @@ void AMSJob::_setorbit(){
     &TriggerLVL3::builddaq);
 
 }    
-{
+if(DAQCFFKEY.SCrateinDAQ){
 //         tof+anti+ctc
     DAQEvent::addsubdetector(&DAQSBlock::checkblockid,&DAQSBlock::buildraw);
     DAQEvent::addblocktype(&DAQSBlock::getmaxblocks,&DAQSBlock::calcblocklength,
@@ -2015,7 +2018,7 @@ if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProce
 }
 else {
 
-{
+if(DAQCFFKEY.LCrateinDAQ){
 //           tracker reduced
 
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
@@ -2026,7 +2029,7 @@ else {
 }   
 
 
-{
+if(DAQCFFKEY.LCrateinDAQ){
 //           tracker raw
 
   if(DAQCFFKEY.OldFormat || !isRealData()){
