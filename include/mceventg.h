@@ -25,7 +25,7 @@ integer _ipart;
 integer _seed[2];
 
 static AMSPoint _coorange[2];
-static AMSDir _dirrange[2];
+static AMSPoint _dirrange[2];
 static number _momrange[2];
 static integer _fixedpoint;
 static integer _fixedplane;
