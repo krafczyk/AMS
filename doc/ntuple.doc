@@ -35,6 +35,8 @@ Below there is a description of a converted ntuple.
 * I*4  *              * EVENTH   * AntiMCClusters   // No of Anti MC Hits
 * I*4  *              * EVENTH   * AntiClusters     // No of Amti clusters
 
+
+
 * I*4  * [0,10]       * BETA     * nbeta            // betas number
 * I*4  *              * BETA     * betapattern(nbeta) // beta pattern(beta.doc) 
 * R*4  *              * BETA     * beta(nbeta)       // velocity
@@ -45,6 +47,8 @@ Below there is a description of a converted ntuple.
 * I*4  *              * BETA     * betaptof(4,nbeta) // pointers to tof planes
 * I*4  *              * BETA     * betatrp(nbeta)    // pointer to track
 
+
+
 * I*4  * [0,10]       * CHARGE   * ncharge            // charges number
 * R*4  *              * CHARGE   * chargebetap(ncharge)   //pointer to velocity
 * I*4  *              * CHARGE   * chargetof(ncharge)    // TOF charge
@@ -53,6 +57,8 @@ Below there is a description of a converted ntuple.
                                                            //
 * R*4  *              * CHARGE   * probtracker(7,ncharge)  // Tracker Probs
                                                            // charge.doc
+
+
 * I*4  * [0,10]       * PARTICLE * npart                   // particles number
 * I*4  *              * PARTICLE * pctcp(2,npart)    // pointer(s) to cerenkov
                                                      // cluster (matched)
@@ -72,7 +78,12 @@ Below there is a description of a converted ntuple.
 * R*4  *              * PARTICLE * signalctc(2,npart)  // ctcsignal(s)
 * R*4  *              * PARTICLE * betactc(2,npart)   // ctc beta            
 * R*4  *              * PARTICLE * errorbetactc(2,npart)   // ctcerror beta
-* R*4  *              * PARTICLE * cooctc(3,2,npart)    // tracker coordinates
+* R*4  *              * PARTICLE * cooctc(3,2,npart)    // tracker extrapol
+                                                        // at ctc
+* R*4  *              * PARTICLE * cootof(3,4,npart)    // tracker extrapol
+                                                        // at tof
+
+
                                                        // extrapolated into ctc
 * I*4  * [0,20]       * TOFCLUST * ntof                // TOF clusters number
 * I*4  *              * TOFCLUST * TOFStatus(ntof)     // Status *)
@@ -84,6 +95,8 @@ Below there is a description of a converted ntuple.
 * R*4  *              * TOFCLUST * TOFETime(ntof)     // Error in TOF time
 * R*4  *              * TOFCLUST * TOFCoo(3,ntof)     // TOF Coo (cm)
 * R*4  *              * TOFCLUST * TOFErCoo(3,ntof)   //
+
+
 * I*4  * [0,200]      * TOFMCCLU * ntofmc            // TOF MC hits number
 * I*4  *              * TOFMCCLU * TOFMCIdsoft(ntofmc)    // Idsoft
                                                        // Ask E. Choumilov
@@ -111,6 +124,8 @@ Below there is a description of a converted ntuple.
 * R*4  *              * TRCLUSTE * RMSt(ntrcl)      // RMS cluster
 * R*4  *              * TRCLUSTE * ErrorMeant(ntrcl) // error in CofG
 * R*4  *              * TRCLUSTE * Amplitude(5,ntrcl) // strips ampl
+
+
 * I*4  * [0,200]      * TRMCCLUS * ntrclmc          // Tracker MC hits number
 * I*4  *              * TRMCCLUS * IdsoftMC(ntrclmc) // Idsoft
                                                       // mod(id,10) layer
@@ -125,6 +140,8 @@ Below there is a description of a converted ntuple.
 * R*4  *              * TRMCCLUS * xcb(3,ntrclmc)  // local output coo
 * R*4  *              * TRMCCLUS * xgl(3,ntrclmc)  // global coo
 * R*4  *              * TRMCCLUS * summc(ntrclmc)  // total amplitude
+
+
 * I*4  * [0,200]      * TRRECHIT * ntrrh          // tracker 3dim points number
 * I*4  *              * TRRECHIT * px(ntrrh)     // pointer to x track clster
 * I*4  *              * TRRECHIT * py(ntrrh)     //  --------  y --------
@@ -134,6 +151,8 @@ Below there is a description of a converted ntuple.
 * R*4  *              * TRRECHIT * ehitr(3,ntrrh) // error to above
 * R*4  *              * TRRECHIT * sumr(ntrrh)    // Amplitude
 * R*4  *              * TRRECHIT * difosum(ntrrh) (A_x-A_y)/(A_x+A_y)
+
+
 * I*4  * [0,20]       * TRTRACK  * ntrtr          // tracks number
 * I*4  *              * TRTRACK  * trstatus(ntrtr) // Status *)
 * I*4  *              * TRTRACK  * pattern(ntrtr)  // Pattern (datacards.doc)

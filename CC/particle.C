@@ -87,6 +87,7 @@ integer AMSParticle::build(integer refit){
           ppart->pid();
           ppart->refit();
           ppart->ctcfit();
+          ppart->toffit();
           AMSEvent::gethead()->addnext(AMSID("AMSParticle",0),ppart);
           }
         }
@@ -159,6 +160,54 @@ for(kk=0;kk<CTCDBc::getnlay();kk++){
     _pctc[kk]=pctc;
 }
 }
+
+
+
+
+void AMSParticle::toffit(){
+AMSDir dir(0,0,1.);
+number theta, phi, sleng;
+number signal,beta,ebeta;
+  // Find TOF hits
+  integer ntof;
+  integer fitdone[4]={0,0,0,0};
+  if(_pbeta->getpattern()==0){
+    ntof=4;
+  }
+  else if(_pbeta->getpattern()<5){
+    ntof=3;
+  }
+  else {
+   ntof=2;
+  }
+   
+integer kk;
+for(kk=0;kk<ntof;kk++){
+  AMSTOFCluster* pcl=_pbeta->getpcluster(kk);
+  _ptrack->interpolate(pcl->getcoo(),dir,_TOFCoo[pcl->getntof()-1],theta,phi,sleng);    
+ fitdone[pcl->getntof()-1]=1;
+}
+   // No hits, but still TrackExtrapolation needed
+for(kk=0;kk<4;kk++){
+  if(!fitdone[kk]){
+   AMSTOFCluster d(0,kk+1,1);
+   AMSgvolume *p=AMSJob::gethead()->getgeomvolume(d.crgid());
+   if(p)
+   _ptrack->interpolate(p->loc2gl(AMSPoint(0,0,0)),dir,_TOFCoo[kk],theta,phi,sleng);
+   else {
+   cerr << " toffit-S- No layer no " << kk+1<<endl ;
+   _TOFCoo[kk]=AMSPoint(0,0,0);
+   }
+
+  }
+}
+}
+
+
+
+
+
+
 void AMSParticle::_writeEl(){
   // fill the ntuple 
 static integer init=0;
@@ -169,7 +218,7 @@ if(init++==0){
   // get memory
   //book the ntuple block
   HBNAME(IOPA.ntuple,"Particle",PN.getaddress(),
-  "ParticleEvent:I*4, PCTCPointer(2):I*4,PBetaPointer:I*4, PChargePointer:I*4, PtrackPointer:I*4,   ParticleId:I*4,  PMass:R*4, PErrMass:R*4, PMom:R*4, PErrMom:R*4, PCharge:R*4, PTheta:R*4, PPhi:R*4, PCoo(3):R*4, SignalCTC(2):R*4, BetaCTC(2):R*4, ErrorBetaCTC(2):R*4, CooCTC(3,2):R*4");
+  "ParticleEvent:I*4, PCTCPointer(2):I*4,PBetaPointer:I*4, PChargePointer:I*4, PtrackPointer:I*4,   ParticleId:I*4,  PMass:R*4, PErrMass:R*4, PMom:R*4, PErrMom:R*4, PCharge:R*4, PTheta:R*4, PPhi:R*4, PCoo(3):R*4, SignalCTC(2):R*4, BetaCTC(2):R*4, ErrorBetaCTC(2):R*4, CooCTC(3,2):R*4,COOTOF(3,4):R");
 
 }
  PN.ChargeP=_pcharge->getpos();
@@ -226,6 +275,11 @@ if(init++==0){
   PN.CooCTC[i][1]=_Value[i].getcoo()[1];
   PN.CooCTC[i][2]=_Value[i].getcoo()[2];
  }
+  for(i=0;i<4;i++){
+    for(int j=0;j<3;j++){
+     PN.TOFCoo[i][j]=_TOFCoo[i][j];
+    }
+  }
 
 
   HFNTB(IOPA.ntuple,"Particle");

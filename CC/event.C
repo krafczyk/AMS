@@ -791,10 +791,7 @@ void AMSEvent::_retkinitrun(){
   // Warning if TRFITFFKEY.FastTracking is on...
   if(TRFITFFKEY.FastTracking){
     cout <<" "<<endl<<
-    "AMSEvent::Retkinitrun-W-TRFITFFKEY.FastTracking selected."<<endl<<
-    "Only AntiParticles proceesing will be  possible."<< endl<<
-    "Wrong results will be produced if applied to normal particles."<<endl
-    <<" "<<endl;
+    "AMSEvent::Retkinitrun-W-TRFITFFKEY.FastTracking selected."<<endl;
   }
   for (int half=0;half<2;half++){
     for(int side=0;side<2;side++){

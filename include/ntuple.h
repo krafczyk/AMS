@@ -164,7 +164,7 @@ float Phi;
 float Coo[3];
 float Value[3][2];
 float CooCTC[2][3];
-
+float TOFCoo[4][3];
 friend class AMSParticle;
 
 

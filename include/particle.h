@@ -46,7 +46,7 @@ protected:
   number  _Phi;
   AMSPoint _Coo;
   CTC    _Value[2];
-
+  AMSPoint _TOFCoo[4];  
   void _copyEl();
   void _printEl(ostream & stream){ stream << " Mass "<<_Mass<<
   " Error Mass "<<_ErrMass<<" Momentum "<<_Momentum<<" ErrMomentum "<<
@@ -64,6 +64,7 @@ public:
      _Value[i]=CTC(0.,0.,1.,AMSPoint());
      _pctc[i]=0;
     }
+    for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
  }
   AMSParticle(AMSBeta * pbeta, AMSCharge * pcharge, AMSTrTrack * ptrack,
   number mass, number errmass, number momentum, number errmomentum,
@@ -77,9 +78,11 @@ public:
      _Value[i]=CTC(0.,0.,1.,AMSPoint());
      _pctc[i]=0;
     }
+    for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
  }
 
   void ctcfit(); // CTC fit
+  void toffit(); // TOF fit
   void pid();   // particle identification
   void refit(); // refit if necessary;
   static integer build(integer refit=0);

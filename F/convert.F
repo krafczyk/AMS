@@ -40,7 +40,7 @@
      + ,Amplitude,CTCedep,PolePhi,ThetaS,PhiS,
      + AntiEdep,Anticoo,AntiErCoo,AntiMCXcoo,AntiMCtof,AntiMCedep,
      +  LVL3Residual,LVL3Time,LVL3ELoss,CTCHitSignal,
-     +  tofrtovta,tofrtovtd,tofrsdtm
+     +  tofrtovta,tofrtovtd,tofrsdtm,cooTOF
      
       INTEGER EventNo,Run,RunType,Time(2) ,BetaEvent,BetaPattern
      + ,betantof,betaptof
@@ -112,7 +112,8 @@
      + pmom(maxpa),perrmom(maxpa),pcharge(maxpa),
      + ptheta(maxpa),pphi(maxpa),pcoo(3,maxpa),
      + signalctc(2,maxpa),
-     + betactc(2,maxpa),errorbetactc(2,maxpa),cooctc(3,2,maxpa)
+     + betactc(2,maxpa),errorbetactc(2,maxpa),cooctc(3,2,maxpa),
+     + cootof(3,4,maxpa)
 
       common /TOFClusterC/ntof,
      + TOFStatus(maxtof),plane(maxtof),
@@ -283,8 +284,8 @@ c       write(*,*)' Starting converting'
      + 'perrmass(npart),'//
      + 'pmom(npart),perrmom(npart),pcharge(npart),'//
      + 'ptheta(npart),pphi(npart),pcoo(3,npart),'//
-     + 'signalctc(2,npart),'//
-     + 'betactc(2,npart),errorbetactc(2,npart),cooctc(3,2,npart)')
+     + 'signalctc(2,npart),betactc(2,npart),errorbetactc(2,npart),'//
+     + 'cooctc(3,2,npart),cootof(3,4,npart)')
 
       call hbname(1,cblock(5), ntof,
      + 'ntof[0,20],TOFStatus(ntof):I,plane(ntof):I,'//
@@ -487,7 +488,8 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
      +     ptheta(npart),pphi(npart),(pcoo(k,npart),k=1,3),
      +     (signalctc(kk,npart),kk=1,2),
      +     (betactc(kk,npart),kk=1,2),(errorbetactc(kk,npart),kk=1,2),
-     +     ((cooctc(k,kk,npart),k=1,3),kk=1,2)
+     +     ((cooctc(k,kk,npart),k=1,3),kk=1,2),
+     +     ((cootof(k,kk,npart),k=1,3),kk=1,4)
           goto 46
  45       eof(idet)=1
  46       continue
@@ -1112,7 +1114,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      + ,Mass,Charge,CTCCoo(3),CTCErCoo(3),CTCRawSignal,CTCSignal
      + ,CTCESignal,CTCMCXcoo(3),CTCMCXdir(3),CTCstep,CTCedep,CTCbeta,
      +  lvl3residual,lvl3time,lvl3eloss,ctchitsignal,
-     +  tofrtovta(2),tofrtovtd(2),tofrsdtm(2)
+     +  tofrtovta(2),tofrtovtd(2),tofrsdtm(2),cootof(3,4)
 
       INTEGER EventNo,Run,RunType,Time(2),BetaEvent,BetaPattern
      + ,betantof,betaptof(4)
@@ -1165,7 +1167,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
       common/particleC/particleevent,pctcpointer,
      + pbetapointer,pchargepointer,
      + ptrackpointer,particleid,pmass,perrmass,pmom,perrmom,pcharge,
-     + ptheta,pphi,pcoo,signalctc,betactc,errorbetactc,cooctc
+     + ptheta,pphi,pcoo,signalctc,betactc,errorbetactc,cooctc,cootof
 *
 *    idet=5
 *
@@ -1414,7 +1416,7 @@ c         if(mod(i,10).eq.1)write(*,*)i
             write(21) particleevent,pctcpointer,
      + pbetapointer,pchargepointer,
      + ptrackpointer,particleid,pmass,perrmass,pmom,perrmom,pcharge,
-     + ptheta,pphi,pcoo,signalctc,betactc,errorbetactc,cooctc   
+     + ptheta,pphi,pcoo,signalctc,betactc,errorbetactc,cooctc,cootof
            else if( cblock(idet).eq.'TOFCLUST')then
             write(21) TOFCluster,TOFStatus,Ntof,Plane,TOFEdep,
      + TOFTime,TOFETime,TOFCoo,TOFErCoo

@@ -1931,3 +1931,9 @@ int16u AMSTOFRawEvent::sw2hwid(int16u a1, int16u a2, int16u a3){
 //  cout<<"swch->hwid: "<<swch<<" "<<hwid<<endl;
   return hwid;
 }
+
+
+
+AMSID AMSTOFCluster::crgid(){
+return AMSID("TOFS",_ntof*100+_plane);
+}
