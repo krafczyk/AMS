@@ -919,7 +919,7 @@ integer AMSTrTrack::buildWeak(integer refit=0){
     if(TRFITFFKEY.pattern[pat]){
       int fp=patpoints[pat]-1;    
 #ifdef __AMSDEBUG__
-     assert (fp==4);
+     assert (fp==3);
 #endif 
       // Try to make StrLine Fit
       integer first=AMSTrTrack::patconf[pat][0]-1;

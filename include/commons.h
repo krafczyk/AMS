@@ -325,6 +325,8 @@ integer neib[2];
 integer GenerateConst;
 integer RawModeOn[2][2][32];
 integer WriteHK; 
+geant delta[2];
+geant gammaA[2];
 };
 #define TRMCFFKEY COMMON_BLOCK(TRMCFFKEY,trmcffkey)
 COMMON_BLOCK_DEF(TRMCFFKEY_DEF,TRMCFFKEY);

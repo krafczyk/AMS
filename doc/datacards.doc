@@ -206,6 +206,8 @@ I36   GenerateConst(0)      // generate/not generate tracker const
 I37   RawModeOn[2][2][32](0)// Raw Mode Tracker readout (half,side,tdr)
 I165  WriteHK(0)            // if > 0 and DAQC write mode will write the static
                             // HK info after event # WriteHK 
+R166  delta(0.85,1)         // relative x/y average gain
+R168  gammaA(0.25,0.1)      // relative x/y gain spread
 // MC particle generation
 
 MCGEN

@@ -113,6 +113,16 @@ number rdum;
 if(!TKGEOMFFKEY.UpdateGeomFile)return;
 
 // First planes
+
+//   (_HeadLayer[0])._coo[2]= 50.949;
+//   (_HeadLayer[1])._coo[2]=  29.2141;
+//   (_HeadLayer[2])._coo[2]= 7.78935;
+//   (_HeadLayer[3])._coo[2]= -7.78935;
+//   (_HeadLayer[4])._coo[2]= -29.14585;
+//   (_HeadLayer[5])._coo[2]=  -50.99;
+
+
+
 {
    AString fnam="../../metro/metr.m.2";
    ifstream iftxt((const char *)fnam,ios::in);
@@ -138,12 +148,6 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
    for( i=0;i<AMSDBc::nlay();i++)_HeadLayer[i]._coo[2]+=-cp;
 }
   
-//   (_HeadLayer[0])._coo[2]= 50.949;
-//   (_HeadLayer[1])._coo[2]=  29.2141;
-//   (_HeadLayer[2])._coo[2]= 7.78935;
-//   (_HeadLayer[3])._coo[2]= -7.78935;
-//   (_HeadLayer[4])._coo[2]= -29.14585;
-//   (_HeadLayer[5])._coo[2]=  -50.99;
 
    //Now modify some sensors
    (_HeadSensor[621])._status=0;
@@ -179,14 +183,20 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
    for(;;){
      iftxt >> dum>>dum>>dum>>dum>>dum>>dum;
      iftxt >> ilay >> ilad >> ihalf>>istat;
+     if(iftxt.eof())break;
      integer numl=getnumd(ilay-1,ilad-1);
      (_HeadLadder[ihalf][numl])._status=istat;
      for(int i=0;i<3;i++)iftxt >> (_HeadLadder[ihalf][numl])._coo[i];
+     cout <<ilay<<" "<<ilad<<" "<<ihalf<<" "<<
+     (_HeadLadder[ihalf][numl])._coo[0]<<" "<<
+     (_HeadLadder[ihalf][numl])._coo[1]<<" "<<
+     (_HeadLadder[ihalf][numl])._coo[2]<<endl;
      number xy,zx,zy;
      iftxt >> xy >> zx >> zy;
      number cx=sqrt(1.-(xy*xy+zx*zx));
      number cy=sqrt(1.-(xy*xy+zy*zy));
      number cz=sqrt(1.-(zx*zx+zy*zy));
+     //     goto nahui;
      if(ihalf==0){ 
       (_HeadLadder[ihalf][numl])._nrm[0][0]=cx;
       (_HeadLadder[ihalf][numl])._nrm[1][0]=xy;
@@ -208,9 +218,9 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
       (_HeadLadder[ihalf][numl])._nrm[0][2]=-zx;
       (_HeadLadder[ihalf][numl])._nrm[1][2]=-zy;
       (_HeadLadder[ihalf][numl])._nrm[2][2]=cz;
-     } 
+     }
+     //   nahui: 
     nladders++;
-     if(iftxt.eof())break;
    }
 
    }

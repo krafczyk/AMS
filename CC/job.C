@@ -188,9 +188,9 @@ FFKEY("TKGE",(float*)&TKGEOMFFKEY,sizeof(TKGEOMFFKEY_DEF)/sizeof(integer),
 "MIXED");
 
 
-TRMCFFKEY.alpha=220;
-TRMCFFKEY.beta=0.4;
-TRMCFFKEY.gamma=0.08;
+TRMCFFKEY.alpha=250;
+TRMCFFKEY.beta=0.46;
+TRMCFFKEY.gamma=0.25;
 TRMCFFKEY.fastswitch=5.e-5;  // inverse linear density of primary electrons
 TRMCFFKEY.dedx2nprel=0.33e6;
 TRMCFFKEY.ped[0]=500;
@@ -199,12 +199,15 @@ TRMCFFKEY.gain[0]=8;
 TRMCFFKEY.gain[1]=8;
 TRMCFFKEY.sigma[1]=55./14./sqrt(3.); // sig/noise ratio is about 14 for y
 TRMCFFKEY.sigma[0]=TRMCFFKEY.sigma[1]*1.41;   // x strip two times larger y
+TRMCFFKEY.delta[0]=0.85;
+TRMCFFKEY.delta[1]=1.0;
+TRMCFFKEY.gammaA[0]=0.3;
+TRMCFFKEY.gammaA[1]=0.1;
 
 
 
-
-TRMCFFKEY.cmn[0]=15;
-TRMCFFKEY.cmn[1]=10;
+TRMCFFKEY.cmn[0]=10;
+TRMCFFKEY.cmn[1]= 6;
 TRMCFFKEY.adcoverflow=32767;
 TRMCFFKEY.NoiseOn=1;
 TRMCFFKEY.sec[0]=0;
@@ -417,7 +420,7 @@ void AMSJob::_siantidata(){
 //---
   ANTIMCFFKEY.mcprtf=0;     // print_hist flag (0/1->no/yes)
   ANTIMCFFKEY.SigmaPed=1;   // ped.distribution width (p.e)
-  ANTIMCFFKEY.MeV2PhEl=20.; // Mev->Ph.el. MC conv.factor (pe/Mev)(= 2side_signal(pe)/Eloss(mev)
+  ANTIMCFFKEY.MeV2PhEl=20.; // Mev->Ph.el. MC conv.nfactor (pe/Mev)(= 2side_signal(pe)/Eloss(mev)
 //                                                                  measured at center)
   ANTIMCFFKEY.LZero=120;    // attenuation length for one-side signal (cm)
   ANTIMCFFKEY.PMulZPos=0.;  // PM-position(=Ltot/2)-is taken later from geometry in siantiinitjob
@@ -462,7 +465,7 @@ FFKEY("BMAP",(float*)&TKFIELD,11,"MIXED");
 
 void AMSJob::_retkdata(){
 
-number fac=AMSTrRawCluster::ADC2KeV();
+number fac=AMSTrRawCluster::ADC2KeV()*0.46/0.4;
 TRCLFFKEY.ThrClA[1]=45/fac;
 TRCLFFKEY.Thr1A[1] =30/fac;
 TRCLFFKEY.Thr2A[1] =10/fac;
@@ -499,9 +502,9 @@ TRCLFFKEY.Thr3R[0] =-2.;
 TRCLFFKEY.ThrClNMin[0]=1;
 TRCLFFKEY.ThrClNEl[0]=3;
 
-TRCLFFKEY.ErrX=33.e-4;
-TRCLFFKEY.ErrY=17.e-4;
-TRCLFFKEY.ErrZ=33.e-4;
+TRCLFFKEY.ErrX=34.e-4;
+TRCLFFKEY.ErrY=20.e-4;
+TRCLFFKEY.ErrZ=34.e-4;
 TRCLFFKEY.ThrDSide=1.;
 
 TRCLFFKEY.CorFunParA[0][0]=400e-4;
