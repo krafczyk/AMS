@@ -36,7 +36,7 @@ void CTCGAINcalib::select(){
 //
   for(il=0;il<CTCDBc::getnlay();il++){// <--container loop
 //
-    ptr=AMSCTCRawHit*)AMSEvent::gethead()->getheadC("AMSCTCRawHit",il);
+    ptr=(AMSCTCRawHit*)AMSEvent::gethead()->getheadC("AMSCTCRawHit",il);
     while (ptr){// <--hit loop
 //
       signal=ptr->getsignal();
