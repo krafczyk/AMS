@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: getoutputdisk.cgi,v 1.1 2004/03/10 15:00:11 alexei Exp $
+#  $Id: getoutputdisk.cgi,v 1.2 2005/02/15 16:46:10 alexei Exp $
 use Gtk;
 use strict;
 
@@ -28,10 +28,10 @@ my $html=new RemoteClient();
 
  
 #work
- 
-if (not $ok){
-  $html->Warning();
-}
-
+# 
+#if (not $ok){
+#  $html->Warning();
+#}
+#
 
 

@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.68 2004/11/23 12:33:00 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.69 2005/02/15 16:46:18 alexei Exp $
 
 #
 #
@@ -31,7 +31,9 @@
 #  Jan 31, 2004. ak. Table  : Ntuples add CRCtime, CRCflag, CASTORtime
 #  Feb 23, 2004. ak. Table  : FilesProcessing
 #  May 19, 2004. ak. Table  : MC_RemoteDSTPath,  MC_DSTCopy
-#  Mov 23, 2004. ak. Table  : DatasetDesc, filled from $AMSSoftwareDir/Datasets
+#  Nov 23, 2004. ak. Table  : DatasetDesc, filled from $AMSSoftwareDir/Datasets
+#  Feb 15, 2005. ak. Table  : productionset add db, gbatch, OS version
+#                             datasets      add version (db version)
 #
 package DBSQLServer;
 use Error qw(:try);
@@ -281,8 +283,9 @@ sub Create{
            cite      VARCHAR(64),
            timestamp INT)",
         "CREATE TABLE DataSets
-         (did    INT NOT NULL,
-          name   VARCHAR(255),
+         (did     INT NOT NULL,
+          name    VARCHAR(255),
+          version VARCHAR(12),
           timestamp int)",
         "CREATE TABLE ProductionSet 
          (did        INT NOT NULL,
@@ -291,6 +294,9 @@ sub Create{
           end        int,
           status     char(10),
           version    char(64),
+          vos        char(6),
+          vgbatch    char(12),
+          vdb        char(12),
           description VARCHAR(255))",
         "CREATE TABLE FilesProcessing  
          (

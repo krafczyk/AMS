@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.298 2005/02/15 14:03:16 choutko Exp $
+# $Id: RemoteClient.pm,v 1.299 2005/02/15 16:46:18 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -74,6 +74,8 @@
 #
 # Feb  4, 2005    : AMS02/2005A correct minor bugs
 #
+# Feb 15, 2005    : allow more than 1 "Active" Production Sets
+#
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
 
@@ -92,8 +94,9 @@ use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 use File::Find;
 use Benchmark;
+use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips);
 
 # debugging
 my $benchmarking = 0;
@@ -107,7 +110,19 @@ my $td2    = 0;
 my $td3    = 0;
 #
 
+struct ProductionPeriod => { 
+                              id      => '$',
+                              name    => '$',
+                              begin   => '$',
+                              end     => '$',
+                              status  => '$',
+                              vgbatch => '$',
+                              vdb     => '$',
+                              vos     => '$',
+                              DST     => '$',
+                          };
 
+my @productionPeriods = ProductionPeriod->new();
 
 my     $webmode         = 1; # 1- cgi is executed from Web interface and 
                              # expects Web like output
@@ -218,18 +233,19 @@ my %fields=(
         HTTPcgi   =>'http://pcamss0.cern.ch/cgi-bin/mon',
         UploadsDir=>undef,
         UploadsHREF=>undef,
-        FileDB=>undef,
+        FileDB   =>[],
+        FileAttDB=>[],
+        FileAttDB=>undef,
         FileCRC=>undef,
         FileBBFTP=>undef,
         FileBookKeeping=>undef,
-        FileAttDB=>undef,
         FileCRCTimestamp=>undef,
         FileBBFTPTimestamp=>undef,
         FileBookKeepingTimestamp=>undef,
-        FileDBTimestamp=>undef,
-        FileAttDBTimestamp=>undef,
-        FileDBLastLoad=>undef,
-        FileAttDBLastLoad=>undef,
+        FileDBTimestamp   => [],
+        FileAttDBTimestamp=> [],
+        FileDBLastLoad    => [],
+        FileAttDBLastLoad => [],
         LocalClientsDir=>"prod.log/scripts/",
         Name=>'/cgi-bin/mon/rc.cgi',
         DataMC=>0,
@@ -494,7 +510,8 @@ my %mv=(
      $self->{$key}=$ret->[0][0];
     }
     else{    
-     $self->{$key}="ams02mcdb.tar.gz";
+     push @{$self->{FileDB}}, "v3.00mcdb.tar.gz"; 
+     push @{$self->{FileDB}}, "v4.00mcdb.tar.gz"; 
     }
 
     $key='FileAttDB';
@@ -504,7 +521,8 @@ my %mv=(
      $self->{$key}=$ret->[0][0];
     }
     else{    
-     $self->{$key}="ams02mcdb.addon.tar.gz";
+      push @{$self->{FileAttDB}}, "v3.00mcdb.addon.tar.gz";
+      push @{$self->{FileAttDB}}, "v4.00mcdb.addon.tar.gz";
     }
 
 
@@ -1066,6 +1084,9 @@ sub ValidateRuns {
    my $vdir= undef;
    my $vlog= undef;
    my $timenow = time();
+   my $rflag        = 0;     # processing flag from FilesProcessing Table
+   my $procstarttime= 0;     # files processing start time from  FilesProcessing Table
+
 #
 
  my $HelpTxt = "
@@ -1114,7 +1135,7 @@ sub ValidateRuns {
     if ($verbose && $webmode==0) {print "ValidateRuns -I- Connected \n";}
 #
 # check flag
-     my ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
+     ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
      if ($rflag == 1) {
          $self->amsprint("ValidateRuns -E- Processing flag = $rflag, $procstarttime. Stop validation.",0);
          return 1;
@@ -1175,7 +1196,7 @@ sub ValidateRuns {
     foreach my $run (@{$self->{dbserver}->{rtb}}){
 #
 # check jobs processing flag if -1 stop processing
-     my ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
+     ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
      if ($rflag == -1) {
          $self->amsprint("Processing flag = $rflag, $procstarttime. Stop Validation.",0);
          return 1;
@@ -2813,7 +2834,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            print "</b>
                    <INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=\"Any\" CHECKED>ANY<BR>\n";
            print "</b></font></td></tr>\n";
-           my @datasets => [];
+           my @datasets = [];
            my $sql = "SELECT dataset FROM DatasetsDesc";
            my $r5=$self->{sqlserver}->Query($sql);
            if(defined $r5->[0][0]){
@@ -6048,6 +6069,7 @@ sub listAll {
      $self -> colorLegend();
     }
     
+    $self->  getProductionPeriods();
     $self->  setActiveProductionSet();
     $self -> listProductionSetPeriods();
     $self -> listStat();
@@ -6067,6 +6089,7 @@ sub listMCStatus {
     htmlTop();
     $self->ht_init();
     
+    $self->  getProductionPeriods();
     $self->  setActiveProductionSet();
     $self -> listProductionSetPeriods();
     $self -> listStat();
@@ -6096,6 +6119,7 @@ sub listShort {
      $self -> colorLegend();
     }
     
+    $self->  getProductionPeriods();
     $self->  setActiveProductionSet();
     $self -> listProductionSetPeriods();
     $self -> listStat();
@@ -6246,61 +6270,40 @@ sub queryDB {
 sub listProductionSetPeriods {
     my $self  = shift;
 
-    my $pid   = 0;                 # period id
-    my $name  = 0;                 # nick name
-    my $begin = 0;                 # start time
-    my $end   = 0;                 # end time
-    my $status      = 'unknown';   # status
-    my $version     = 'unknown';   # program version
-    my $description = 'xyz';       # description
-
-    my $sql = undef;
-    my $ret = undef;
-  
-    $sql = "SELECT did, name, begin, end, status, version description 
-             FROM productionset WHERE did > 0 ORDER by begin desc";
-    $ret=$self->{sqlserver}->Query($sql);
-
+#
      print "<b><h2><A Name = \"mc02sets\"> </a></h2></b> \n";
-     htmlTable("MC02 Production Sets");
+     htmlTable("Production Sets");
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
                print "<td align=center><b><font color=\"blue\">ID </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Name</font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Begin </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >End </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Status</font></b></td>";
-               print "<td align=center><b><font color=\"blue\" >Version </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Versions (db, exec, os)</font></b></td>";
                print "</tr>\n";
-     if (defined $ret->[0][0]) {
-      foreach my $mc (@{$ret}){
-          $pid      = $mc->[0];
-          $name     = $mc->[1];
-          $begin    = $mc->[2];
-          $end      = $mc->[3];
-          $status   = trimblanks($mc->[4]);
-          $version  = $mc->[5];
-          $description = $mc->[6];
+      foreach my $mc (@productionPeriods) {
 
-          my $tbegin = EpochToDDMMYYHHMMSS($begin);
-          my $tend   = EpochToDDMMYYHHMMSS($end);
-          if ($end == 0) { 
-              $tend = '->';
+          my $tbegin = EpochToDDMMYYHHMMSS($mc->{begin});
+          my $tend   = '->'; 
+          if ($mc->{end} != 0) { 
+              $tend = EpochToDDMMYYHHMMSS($mc->{end});
           }
 
-          my $color=statusColor($status);
+          my $color='orange';
+          if ($mc->{status} =~ /Active/) {$color='green';}
 
-               print "<td align=center><b><font color=$color>$pid </font></b></td>";
-               print "<td align=center><b><font color=$color >$name</font></b></td>";
+               print "<td align=center><b><font color=$color>$mc->{id} </font></b></td>";
+               print "<td align=center><b><font color=$color >$mc->{name}</font></b></td>";
                print "<td align=center><b><font color=$color >$tbegin </font></b></td>";
                print "<td align=center><b><font color=$color >$tend </font></b></td>";
-               print "<td align=center><b><font color=$color >$status</font></b></td>";
-               print "<td align=center><b><font color=$color >$version </font></b></td>";
+               print "<td align=center><b><font color=$color >$mc->{status}</font></b></td>";
+               print "<td align=center><b><font color=$color >$mc->{vdb}/$mc->{vgbatch}/$mc->{vos} </font></b></td>";
                print "</tr>\n";
 
 
       }
-  }
-       htmlTableEnd();
+
+     htmlTableEnd();
      htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
@@ -6322,24 +6325,27 @@ sub listStat {
     my $ret        = undef;
 
      print "<b><h2><A Name = \"stat\"> </a></h2></b> \n";
-     htmlTable("MC02 Jobs");
+     htmlTable("Jobs");
 
+    foreach my $ds (@productionPeriods) {
+     if ($ds->{status} =~ 'Active') {
+       my $datasetStartTime = $ds->{begin};
 # first job timestamp
-      $sql="SELECT MIN(Jobs.time), MAX(Jobs.timestamp) FROM Jobs, Cites 
-                WHERE Jobs.cid=Cites.cid and Cites.name!='test' and Jobs.timestamp > $ProductionStartTime";
-      $ret=$self->{sqlserver}->Query($sql);
-      if (defined $ret->[0][0]) {
-       $timestart = $ret->[0][0];
-      }
-      if (defined $ret->[0][1]) {
-       $lastupd=localtime($ret->[0][1]);
-      }
+       $sql="SELECT MIN(Jobs.time), MAX(Jobs.timestamp) FROM Jobs, Cites 
+             WHERE Jobs.cid=Cites.cid and Cites.name!='test' and Jobs.timestamp > $datasetStartTime";
+       $ret=$self->{sqlserver}->Query($sql);
+       if (defined $ret->[0][0]) {
+        $timestart = $ret->[0][0];
+       }
+       if (defined $ret->[0][1]) {
+        $lastupd=localtime($ret->[0][1]);
+       }
 
 # running (active jobs)
       $sql = "SELECT COUNT(jobs.jid), SUM(triggers) FROM Jobs, Cites WHERE 
                      (Jobs.cid != Cites.cid AND
                       Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) AND 
-                      Jobs.timestamp > $ProductionStartTime";
+                      Jobs.timestamp > $datasetStartTime";
       $ret = $self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
          $jobsreq = $ret->[0][0];
@@ -6349,7 +6355,7 @@ sub listStat {
               WHERE  runs.jid = jobs.jid AND
                      (Jobs.cid != Cites.cid AND
                       Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) AND
-                      Jobs.timestamp > $ProductionStartTime";
+                      Jobs.timestamp > $datasetStartTime";
       $ret = $self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
          $jobsreq = $jobsreq - $ret->[0][0];
@@ -6359,7 +6365,7 @@ sub listStat {
                      (runs.status='Foreign' OR runs.status='Processing') AND
                      (Jobs.cid != Cites.cid AND
                       Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) AND
-                      Jobs.timestamp > $ProductionStartTime";
+                      Jobs.timestamp > $datasetStartTime";
     $ret = $self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
          $jobsreq += $ret->[0][0];
@@ -6368,7 +6374,7 @@ sub listStat {
 # finished/completed jobs
     $sql = "SELECT COUNT(jid), sum(fevent), sum(levent) FROM Runs 
                 WHERE (status='Finished' OR status='Completed') AND 
-                Runs.submit > $ProductionStartTime";
+                Runs.submit > $datasetStartTime";
 
     $ret = $self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
@@ -6379,7 +6385,7 @@ sub listStat {
 # failed/unchecked jobs
     $sql = "SELECT COUNT(jid) FROM Runs 
                 WHERE (status='Failed' OR status='Unchecked') AND 
-                Runs.submit > $ProductionStartTime";
+                Runs.submit > $datasetStartTime";
 
 
     $ret = $self->{sqlserver}->Query($sql);
@@ -6388,7 +6394,7 @@ sub listStat {
      }
 
 # timeout jobs
-    $sql = "SELECT COUNT(jid) FROM Runs WHERE status='TimeOut' AND Runs.submit > $ProductionStartTime";
+    $sql = "SELECT COUNT(jid) FROM Runs WHERE status='TimeOut' AND Runs.submit > $datasetStartTime";
     $ret = $self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
          $jobstimeout = $ret->[0][0];
@@ -6396,7 +6402,7 @@ sub listStat {
 
 # ntuples, runs
                $sql="SELECT COUNT(ntuples.run), SUM(ntuples.SIZEMB) from ntuples, runs 
-               WHERE (ntuples.run=runs.run) and runs.submit> $ProductionStartTime";
+               WHERE (ntuples.run=runs.run) and runs.submit> $datasetStartTime";
                $ret=$self->{sqlserver}->Query($sql);
                my $nntuples=0;
                my $nsizegb =0;
@@ -6406,7 +6412,7 @@ sub listStat {
                }
 # GB on CASTOR
                $sql="SELECT COUNT(ntuples.run), SUM(ntuples.SIZEMB) from ntuples, runs  
-                     where (ntuples.run=runs.run) AND castortime !=0 AND runs.submit> $ProductionStartTime";
+                     where (ntuples.run=runs.run) AND castortime !=0 AND runs.submit> $datasetStartTime";
                $ret=$self->{sqlserver}->Query($sql);
                my $cntuples=0;
                my $csizegb =0;
@@ -6428,7 +6434,7 @@ sub listStat {
                print "<td align=center><b><font color=\"blue\" >Size </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >CASTOR </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >CASTOR </font></b></td>";
-               print "<td align=center><b><font color=\"blue\" >Last Update </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Dataset </font></b></td>";
               print "</tr>\n";
                print "<td align=center><b><font color=\"blue\">Started </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Finished </font></b></td>";
@@ -6469,7 +6475,7 @@ sub listStat {
                   <td align=center><b><font color=$color> $nsizegb </font></b></td>
                   <td align=center><b><font color=$color> $cntuples </font></b></td>
                   <td align=center><b><font color=$color> $csizegb </font></b></td>
-                  <td align=center><b><font color=$color> $lastupd </font></b></td>\n";
+                  <td align=center><b><font color=$color> $ds->{name} </font></b></td>\n";
 
           print "</font></tr>\n";
  
@@ -6478,34 +6484,45 @@ sub listStat {
      htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
+    }
+ }
 
-     htmlTable("MC02 Datasets");
-     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-     print "<td align=center><b><font color=\"blue\">Dataset </font></b></td>";
-     print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
-     print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
-     print "</tr>\n";
-     print "<td align=center><b><font color=\"blue\">           </font></b></td>";
-     print "<td align=center><b><font color=\"blue\"> Requested </font></b></td>";
-     print "<td align=center><b><font color=\"blue\" >Processed</font></b></td>";
-     print "</tr>\n";
+     htmlTable("Datasets");
+     foreach my $prodperiod (@productionPeriods) {
+      if ($prodperiod->{status} =~ 'Active') {
 
+# table per active production period
+      print "<TR><B><font color=red size= 3> $prodperiod->{name} ($prodperiod->{vdb}) </font>";
+      print "<p>\n";
+      print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+#   datasets
+      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+      print "<td align=center><b><font color=\"blue\">Dataset </font></b></td>";
+      print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
+      print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
+      print "</tr>\n";
+      print "<td align=center><b><font color=\"blue\">           </font></b></td>";
+      print "<td align=center><b><font color=\"blue\"> Requested </font></b></td>";
+      print "<td align=center><b><font color=\"blue\" >Processed</font></b></td>";
+      print "</tr>\n";
 
-     $sql = "SELECT did, name FROM datasets where did > 111";
-     my $r5=$self->{sqlserver}->Query($sql);
-     print_bar($bluebar,3);
-     if(defined $r5->[0][0]){
-      foreach my $ds (@{$r5}){
-          my $did       = $ds->[0];
-          my $dataset   = trimblanks($ds->[1]);
-          $sql = "SELECT SUM(levent), SUM(fevent), COUNT(fevent) FROM Jobs, Runs, Cites  
+         my $vdb               = $prodperiod->{vdb};
+         my $periodStartTime   = $prodperiod->{begin};
+         $sql = "SELECT did, name FROM datasets where did > 111 and version='$vdb'";
+         my $r5=$self->{sqlserver}->Query($sql);
+         print_bar($bluebar,3);
+         if(defined $r5->[0][0]){
+         foreach my $ds (@{$r5}){
+           my $did       = $ds->[0];
+           my $dataset   = trimblanks($ds->[1]);
+           $sql = "SELECT SUM(levent), SUM(fevent), COUNT(fevent) FROM Jobs, Runs, Cites  
                   WHERE 
                     Jobs.did = $did AND
                     Jobs.jid = Runs.jid AND  
                     (Runs.status='Completed' OR Runs.status='Finished') AND 
                     (Jobs.cid != Cites.cid AND
                       Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) 
-                      AND Jobs.timestamp> $ProductionStartTime";
+                      AND Jobs.timestamp> $periodStartTime";
            my $r6=$self->{sqlserver}->Query($sql);
            my $events = 0;
            if(defined $r6->[0][0]){
@@ -6516,13 +6533,13 @@ sub listStat {
                  $events=sprintf("%.2fM",$events/1000000);
              }
            }            
-          $sql = "SELECT SUM(triggers) FROM Jobs, Cites   
+           $sql = "SELECT SUM(triggers) FROM Jobs, Cites   
                   WHERE Jobs.did = $did AND
                     (Jobs.cid != Cites.cid AND
                       Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) 
-                      AND Jobs.timestamp> $ProductionStartTime";
-          my $r7=$self->{sqlserver}->Query($sql);
-          my $triggers = 0;
+                      AND Jobs.timestamp> $periodStartTime";
+           my $r7=$self->{sqlserver}->Query($sql);
+           my $triggers = 0;
            if(defined $r7->[0][0]){
              $triggers = $r7->[0][0];
              if ($triggers > 1000 && $triggers <= 1000000) {
@@ -6531,14 +6548,17 @@ sub listStat {
                  $triggers=sprintf("%.2fM",$triggers/1000000);
              }
            }            
-       print "<td align=left><b><font color=\"black\"> $dataset </font></b></td>";
-       print "<td align=center><b><font color=\"black\"> $triggers </font></b></td>";
-       print "<td align=center><b><font color=\"black\" >$events</font></b></td>";
-       print "</tr>\n";
-      }
+        print "<td align=left><b><font color=\"black\"> $dataset </font></b></td>";
+        print "<td align=center><b><font color=\"black\"> $triggers </font></b></td>";
+        print "<td align=center><b><font color=\"black\" >$events</font></b></td>";
+        print "</tr>\n";
+       }
       htmlTableEnd();
-    }
-                   
+     }
+     htmlTableEnd();
+     print_bar($bluebar,3);
+    } # Active production sets
+  }  # all production sets             
      htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
@@ -6547,7 +6567,7 @@ sub listStat {
 sub listCites {
     my $self = shift;
     print "<b><h2><A Name = \"cites\"> </a></h2></b> \n";
-     htmlTable("MC02 Cites ");
+     htmlTable("Cites ");
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT cid,descr, name, status, maxrun FROM Cites ORDER by name";
      my $r3=$self->{sqlserver}->Query($sql);
@@ -7097,11 +7117,19 @@ sub AllDone{
 sub DownloadTime {
         my $self = shift;
 
-        my $filedb="$self->{UploadsDir}/$self->{FileDB}";
-        $self->{FileDBTimestamp}=(stat($filedb))[9];
+        my $filedb = 'xyz';
 
-        $filedb="$self->{UploadsDir}/$self->{FileAttDB}";
-        $self->{FileAttDBTimestamp}=(stat($filedb))[9];
+        foreach $filedb (@{$self->{FileDB}}) {
+          my $file ="$self->{UploadsDir}/$filedb";
+          my $ftime=(stat($file))[9];
+          push @{$self->{FileDBTimestamp}}, $ftime;
+        }
+
+        foreach $filedb (@{$self->{FileAttDB}}) {
+         my $file="$self->{UploadsDir}/$filedb";
+         my $ftime=(stat($file))[9];
+         push @{$self->{FileAttDBTimestamp}}, $ftime;
+        }
 
         $filedb="$self->{UploadsDir}/$self->{FileBBFTP}";
         $self->{FileBBFTPTimestamp}=(stat($filedb))[9];
@@ -7157,8 +7185,13 @@ sub DownloadSA {
     my $self = shift;
     $self->{UploadsHREF}="AMS02MCUploads";
     $self->{UploadsDir} ="/var/www/cgi-bin/AMS02MCUploads";
-    $self->{FileDB}     ="ams02mcdb.tar.gz";
-    $self->{FileAttDB}  ="ams02mcdb.addon.tar.gz";
+
+    push @{$self->{FileDB}}, "v3.00mcdb.tar.gz"; 
+    push @{$self->{FileDB}}, "v4.00mcdb.tar.gz"; 
+
+    push @{$self->{FileAttDB}}, "v3.00mcdb.addon.tar.gz";
+    push @{$self->{FileAttDB}}, "v4.00mcdb.addon.tar.gz";
+
     $self->{FileBBFTP}  ="ams02bbftp.tar.gz";
     $self->{FileBookKeeping}  ="ams02bookkeeping.tar.gz";
     $self->{FileCRC}    ="ams02crc.tar.gz";
@@ -7196,53 +7229,59 @@ sub PrintDownloadTable {
 #
 ##ams02mcdb tar
     my $download = 1;
-    if (defined $self->{FileDBLastLoad}) {
-        if ($self->{FileDBLastLoad} > $self->{FileDBTimestamp}) {
+    my $i        = 0;
+    foreach my $filedb  (@{$self->{FileDB}}) {
+     if (defined $self->{FileDBLastLoad}->[$i]) {
+        if ($self->{FileDBLastLoad}->[$i] > $self->{FileDBTimestamp}->[$i]) {
             $download = 0;
         }
-    }
-     $file= $self->{FileDB};
-    if ($download == 1) {
-     print "<br><font size=\"4\">
-           <a href=load.cgi?$self->{UploadsHREF}/$file>  ams02mcdb (tar.gz)</a>
+     }
+     if ($download == 1) {
+      print "<br><font size=\"4\">
+           <a href=load.cgi?$self->{UploadsHREF}/$filedb> $filedb</a>
            </font>";
-     $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
-     print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
-     print "<br><br>";
-    } else {
-     print "<br><font size=\"4\">
-           filedb files (tar.gz)</a>
+      $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp}->[$i]);
+      print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
+      print "<br><br>";
+     } else {
+      print "<br><font size=\"4\">
+            filedb files (tar.gz)</a>
            </font>";
-     $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
+     $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp}->[$i]);
      print "<font size=\"3\" color=\"green\"><i><b>       ( Up to date : $dtime)</b></i></font>\n";
      print "<br><br>";
    }
+   $i++;
+ }
    $download = 1;
 #
 ## ams02mcdbaddon tar
-    if (defined $self->{FileAttDBLastLoad}) {
-        if ($self->{FileAttDBLastLoad} > $self->{FileAttDBTimestamp}) {
+    $i = 0;
+    foreach my $filedb  (@{$self->{FileAttDB}}) {
+     if (defined $self->{FileAttDBLastLoad}->[$i]) {
+        if ($self->{FileAttDBLastLoad}->[$i] > $self->{FileAttDBTimestamp}->[$i]) {
             $download = 0;
         }
-    }
-    $file= $self->{FileAttDB};
+     }
     
-    if ($self->{dwldaddon} == 1) {
-     if ($download == 1) {
-      print "<br><font size=\"4\">
-           <a href=load.cgi?$self->{UploadsHREF}/$file>   ams02mcdb.addon (tar.gz)</a>
+     if ($self->{dwldaddon} == 1) {
+      if ($download == 1) {
+       print "<br><font size=\"4\">
+           <a href=load.cgi?$self->{UploadsHREF}/$filedb>   $filedb </a>
            </font>\n";
-      $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp});
-      print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
-      print "<br><br>\n";
-     } else {
-      print "<br><font size=\"4\">
+       $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp}->[$i]);
+       print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
+       print "<br><br>\n";
+      } else {
+       print "<br><font size=\"4\">
            filedb att.files (tar.gz)</a>
            </font>\n";
-      $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp});
-      print "<font size=\"3\" color=\"green\"><i><b>       ( Up to date : $dtime)</b></i></font>\n";
-      print "<br><br>\n";
+       $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp}->[$i]);
+       print "<font size=\"3\" color=\"green\"><i><b>       ( Up to date : $dtime)</b></i></font>\n";
+       print "<br><br>\n";
       }
+ }
+ }
 #
 ## bbftp tar
      my $file= $self->{FileBBFTP};
@@ -7270,13 +7309,14 @@ sub PrintDownloadTable {
      $dtime=EpochToDDMMYYHHMMSS($self->{FileBookKeepingTimestamp});
      print "<font size=\"3\" color=\"green\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
      print "<br><br>";   
- }
+ 
     print "</TD></TR>\n";
     print "</TABLE>\n";
     print "</td></tr>\n";
     print "</table>\n";
     print "</td></tr>\n";
 }
+
 sub ht_init{
   my $self = shift;
 
@@ -7486,6 +7526,8 @@ sub parseJournalFiles {
  my $sql          = undef;
  my $ret          = undef;
  my $dbonly       = 0;
+ my $rflag        = 0;     # processing flag from FilesProcessing Table
+ my $procstarttime= 0;     # files processing start time from  FilesProcessing Table
 
  my $HelpTxt = "
      parseJournalFiles check journal file directory for all cites 
@@ -7544,7 +7586,7 @@ sub parseJournalFiles {
     }
 
 # check flag
-     my ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
+     ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
      if ($rflag == 1) {
          $self->amsprint("Processing flag = $rflag, $procstarttime. Stop parseJournalFiles.",0);
          return 1;
@@ -7699,12 +7741,13 @@ sub parseJournalFiles {
        }
 #
 # check jobs processing flag if -1 stop processing
-     my ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
+     ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
      if ($rflag == -1) {
          $self->amsprint("Processing flag = $rflag, $procstarttime. Stop parseJournalFiles.",0);
-         last;
+         goto END_0;
      }
    }
+ END_0:
    if ($webmode == 1) {
     htmlTableEnd();
     htmlTableEnd();
@@ -7722,8 +7765,11 @@ sub parseJournalFiles {
      }
     $self->{sqlserver}->Update($sql); 
   }
-#
-  }
+  ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
+  if ($rflag == -1)  { goto END_PARSE;}
+ }
+END_PARSE : 
+    $self->amsprint("parseJournalFile -I- stop",0);
  } else {
      $self->amsprint("parseJournalFile - Warning - table Journals is empty",0);
  }
@@ -9576,7 +9622,7 @@ sub getOutputPath {
 
 # get production set path
      $sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE AVAILABLE > $MIN_DISK_SPACE
-                  AND allowed > occupied+10 ORDER BY priority DESC, available DESC";
+                  AND allowed > occupied+10 AND status='Active' ORDER BY priority DESC, available DESC";
      $ret = $self->{sqlserver}->Query($sql);
      foreach my $disk (@{$ret}) {
       $outputdisk = trimblanks($disk->[0]);
@@ -9835,6 +9881,41 @@ sub setActiveProductionSet {
         $ProductionStartTime = 0;
       }
  }
+
+
+sub getProductionPeriods {
+
+     my $self = shift;
+     my $flag = shift; # flag = 1 - debug printout
+
+     my $sql  = undef;
+     my $ret  = undef;
+     my $i    = 0;
+
+      $sql = "SELECT DID, NAME, BEGIN, END, STATUS, VGBATCH, VDB, VOS  FROM ProductionSet ORDER by begin desc";
+      $ret = $self->{sqlserver}->Query($sql);
+      if (defined $ret->[0][0]) {
+       foreach my $p (@{$ret}){
+           $productionPeriods[$i]->{id}       = $p->[0];
+           $productionPeriods[$i]->{name}     = trimblanks($p->[1]);
+           $productionPeriods[$i]->{begin}    = $p->[2];
+           $productionPeriods[$i]->{end}      = $p->[3];
+           $productionPeriods[$i]->{status}   = trimblanks($p->[4]);
+           $productionPeriods[$i]->{vgbatch}  = trimblanks($p->[5]);
+           $productionPeriods[$i]->{vdb}      = trimblanks($p->[6]);
+           $productionPeriods[$i]->{vos}      = trimblanks($p->[7]);
+           if ($flag == 1) {
+             my $ch  = sprintf(" %5d %15s %10d %10d %12s %6s %6d %6s\n",
+                       $productionPeriods[$i]->{id}, $productionPeriods[$i]->{name},$productionPeriods[$i]->{begin},
+                       $productionPeriods[$i]->{end}, $productionPeriods[$i]->{status}, 
+                       $productionPeriods[$i]->{vdb}, $productionPeriods[$i]->{vgbatch}, $productionPeriods[$i]->{vos});
+             print $ch;
+        }
+           $i++;
+       }
+   }
+ }
+
 
 sub validateDST {
      my $self    = shift;
