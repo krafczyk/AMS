@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.26 2001/08/01 13:28:43 choutko Exp $
+//  $Id: ecaldbc.C,v 1.27 2001/08/07 15:21:23 choutko Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -382,9 +382,22 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
 
 
   number ECALDBc::CellSize(integer plane, integer cell, integer ico){
+  // icoo - 0 transverse
+  //        1  longit
+  //        2  z
 // temporary -> work for eugeni
-
-    return _rdcell[4];
+  
+    if(ico==0){    //transverse
+     return _rdcell[4];
+    }
+    else if(ico==1){  //longit
+     return (gendim(1)+gendim(2))/4;  //wrong - ask eugeni to correct
+    }
+    else{
+     cerr<<"ECALDBc::CellSize-S-NotYetImplemented "<<ico<<endl;
+     abort();
+     return 0;
+    }
   }
 
 

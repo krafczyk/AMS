@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.30 2001/08/07 07:29:59 choutko Exp $
+//  $Id: ecalrec.C,v 1.31 2001/08/07 15:21:23 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -1287,7 +1287,7 @@ void EcalShower::_writeEl(){
     for(int i=0;i<3;i++)TN->Exit[TN->Necsh][i]=_ExitPoint[i];
     for(int i=0;i<3;i++)TN->CofG[TN->Necsh][i]=_CofG[i];
     TN->ErTheta[TN->Necsh]=_Angle3DError;
-    TN->Chi2Dir[TN->Necsh]=_Angle3DChi2;
+    TN->Chi2Dir[TN->Necsh]=_AngleTrue3DChi2;
     TN->FirstLayerEdep[TN->Necsh]=_FrontEnergyDep;
     TN->EnergyC[TN->Necsh]=_EnergyC;
     TN->Energy3C[TN->Necsh][0]=_Energy3C;
@@ -1344,7 +1344,7 @@ void EcalShower::DirectionFit(){
    ECALDBc::getscinfoa(0,0,0,pr,pl,ce,ct,cl,_ExitPoint[2]);
    ECALDBc::getscinfoa(ECALDBc::slstruc(3)-1,2,0,pr,pl,ce,ct,cl,_EntryPoint[2]);
   }
-      
+      bool zcorr[2]={true,true};      
       for (int proj=0;proj<2;proj++){
         // Renonce if chi2 is bad;
         if(chi2[proj]*ECREFFKEY.Chi2Change2D>_pCl[proj]->_Chi2 ){
@@ -1354,13 +1354,16 @@ void EcalShower::DirectionFit(){
           cerr<<" EcalShower::DirectionFit-W-correction Failed for proj "<<proj<<" new chi2 "<<chi2[proj]<<" old chi2 "<<_pCl[proj]->_Chi2<<endl;
 #endif
           chi2[proj]=_pCl[proj]->_Chi2;
+          zcorr[proj]=false;
         }
        _EntryPoint[proj]=t0[proj]+tantz[proj]*_EntryPoint[2];
        _ExitPoint[proj]=t0[proj]+tantz[proj]*_ExitPoint[2];
        }
+        _AngleTrue3DChi2=getTrue3DChi2(tantz,t0,zcorr);
+        _AngleTrue3DChi2/=_Chi2Corr();
        _Dir=_ExitPoint-_EntryPoint;
-      _Angle3DChi2=(chi2[0]*(tot[0]-1)+chi2[1]*(tot[0]-1))/(tot[0]+tot[1]-2);
-
+      _Angle3DChi2=(chi2[0]*(tot[0]-1)+chi2[1]*(tot[1]-1))/(tot[0]+tot[1]-2);
+      _Angle3DChi2/=_Chi2Corr();
       if(max(fabs(_ExitPoint[0]),fabs(_ExitPoint[1]))>ECREFFKEY.CalorTransSize)setstatus(AMSDBc::CATLEAK);
       if(max(fabs(_EntryPoint[0]),fabs(_EntryPoint[1]))>ECREFFKEY.CalorTransSize)setstatus(AMSDBc::CATLEAK);
 
@@ -1380,7 +1383,7 @@ void EcalShower::DirectionFit(){
      if(!ptr->checkstatus(AMSDBc::BAD)){
       int proj=ptr->getproj();
       number inter=_EntryPoint[proj]+_Dir[proj]/_Dir[2]*(ptr->getcooz()-_EntryPoint[2]);
-      if(fabs(inter-ptr->getcoot())<ECALDBc::CellSize(front,ptr->getcell(),proj))_FrontEnergyDep+=ptr->getedep();
+      if(fabs(inter-ptr->getcoot())<ECALDBc::CellSize(front,ptr->getcell(),0))_FrontEnergyDep+=ptr->getedep();
      }
      ptr=ptr->next();
 
@@ -1866,8 +1869,49 @@ if(_EnergyC>0){
 }
 
 
+number EcalShower::_Chi2Corr(){
+if(_EnergyC>0){
+ return sqrt(0.35*0.35+100/_EnergyC);
+}
+else return 1;
+}
+
+
 void EcalShower::_EnergyRes(){
 
 _ErrEnergyC= fabs(_DifoSum)*_EnergyC/sqrt(2.);
 }
 
+number EcalShower::getTrue3DChi2(number tantz[2],number t0[2],bool zcorr[2]){
+number fc=0;
+number xfc=0;
+AMSPoint sp(t0[0],t0[1],0.);
+AMSPoint sp2(0,0,10.);
+sp2[0]=sp[0]+tantz[0]*(sp2[2]-sp[2]);
+sp2[1]=sp[1]+tantz[1]*(sp2[2]-sp[2]);
+AMSDir sdir=sp2-sp;
+for(int i=0;i<2;i++){
+ AMSDir coodir=i==0?AMSDir(0,1,0):AMSDir(1,0,0);
+ for(int k=0;k<_pCl[i]->getNClustKernel();k++){
+  Ecal1DCluster *p= _pCl[i]->getpClust(k);
+  if(p && !p->checkstatus(AMSDBc::DELETED)){
+    AMSPoint dc=sp-p->getcoo();
+    if(zcorr[i])dc[2]-=_Zcorr[p->getplane()];
+     AMSPoint alpha=sdir.crossp(coodir);
+     AMSPoint beta= sdir.crossp(dc);
+     number t=alpha.prod(beta)/alpha.prod(alpha);
+      if(t>ECALDBc::CellSize(p->getplane(),p->getmaxcell(),1))t=ECALDBc::CellSize(p->getplane(),p->getmaxcell(),1);
+      else if(t<-ECALDBc::CellSize(p->getplane(),p->getmaxcell(),1))t=-ECALDBc::CellSize(p->getplane(),p->getmaxcell(),1);
+      AMSPoint hit=p->getcoo()+coodir*t;
+      if(zcorr[i])hit[2]+=_Zcorr[p->getplane()];
+      AMSPoint dc2=sp-hit;
+      number d1=sdir.prod(dc2);
+      d1=dc2.prod(dc2)-d1*d1;
+      fc+=d1/p->PosError()/p->PosError();
+      xfc++;
+     }
+  }
+}
+if(xfc>2)return fc/(xfc-2);
+else return -1;
+}

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.11 2001/08/03 13:26:48 choutko Exp $
+//  $Id: ecalrec.h,v 1.12 2001/08/07 15:21:24 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -153,6 +153,7 @@ for(int i=_Left;i<=_Right;i++){
   number getsleak()const{return _SideLeak;}
   number getdleak()const{return _DeadLeak;}
   number getrms()const{return _RMS;}
+  integer getmaxcell()const {return _MaxCell;}
   AMSPoint getcoo()const {return _Coo;}
 //
   static integer build(int stat=0);
@@ -265,6 +266,7 @@ AMSPoint _ExitPoint;
 AMSDir   _Dir;
 AMSDir   _EMDir;
 number   _Angle3DChi2;
+number   _AngleTrue3DChi2;
 number   _Angle3DError;
 
 
@@ -310,6 +312,7 @@ static void gamfun(integer & n, number xc[], number & fc, EcalShower * ptr);
 static void expfun(integer & n, number xc[], number & fc, EcalShower * ptr);
 static void gamfunr(number& xc, number & fc, EcalShower * ptr);
 void _AngleRes();
+number _Chi2Corr();
 void _EnergyRes();
 public:
 
@@ -325,6 +328,7 @@ EcalShower(Ecal2DCluster *px, Ecal2DCluster *py);
    else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0;
    else return !p || _EnergyC > p->_EnergyC;
  }
+number getTrue3DChi2(number tantz[2],number t0[2], bool zcorr[2]);
 AMSPoint getEntryPoint()const {return _EntryPoint;}
 AMSPoint getExitPoint()const {return _ExitPoint;}
 AMSPoint getCofG()const {return _CofG;}
