@@ -292,7 +292,7 @@ I 3 reprtf[0] (0)         // RECO-hist print flag
 I 4       [1] (0)         // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding
 I 5       [2] (0)         // spare
 R 6 ftwin(100)            // time-window for "true" ADCA-hit search (ns)
-R 7 q2pe(0.1)             // charge 2 phel conv factor
+R 7 q2pe(0.16)            // charge 2 phel conv factor
 I 8 ft2edg(1)             // 0/1-> 1/2 edges readout for FT signal
 //
 I 9  ReadConstFiles(0)   // read constants(calibr) from DB/Ext_Files(0/1)

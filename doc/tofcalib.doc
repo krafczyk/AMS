@@ -60,7 +60,7 @@
        the dynode parameters may be taken from AVSD-calibration or again from
        BOLOGNIA GROUP.
        
-    c) tdcalibNNmc.dat/tdcalibMMrl.dat files contain average light speed and "0" 
+    c) tdcalibNNmc.dat/tdcalibMMrl.dat files contain individual light speeds and "0" 
        time-differences (output from TDIF-calibration). This file is output from
        TDIF-calibration.
     d) tzcalibNNmc.dat/tzcalibMMrl.dat files contain slewing correction (common 
@@ -111,8 +111,8 @@
        ( here "globtofcal_nt" is script to use use for calibration without tracker.
          To use the tracker - run "globtofcal" script. In this script only TZSL and
          AMPL steps use tracker info.).
-        The FN is the file(first if >1) name to use for calibration, NN,MM always 2-digits
-        (like 01,05.10,26,...)
+        The FN is the file(FN1,FN2,... if >1) name to use for calibration; NN,MM always
+         2-digits (like 01,05.10,26,...)
         
     5) After the job is finished (few hours for no_tracker version) check the log file
        (it will contain the outputs from all calibration steps).
@@ -120,10 +120,10 @@
     6) Modify script file "updatedb" with correct validity time.
        Run it in nice mode:
          updatedb FN NN 1>test.log 2>test.log & 
-       (here FN - file name of the first file used for calibration).
+       (here FN - file name of the FIRST file used for calibration).
        It will copy necessary files to /Offline/AMSDataDir/v2.15 directory;
-       create 3 global TOF-TDV files Tofbarcal1.1.sFN, Tofmsscans.1.sFN, 
-       Tofvpar.1.sFN; and run short test job (using new set of calibr.output files 
+       create 3 global TOF-TDV files Tofbarcal1.1.FN, Tofmsscans.1.FN, 
+       Tofvpar.1.FN; and run short test job (using new set of calibr.output files 
        from /Offline/AMSDataDir/v2.15 directory). If test.log OK :
        
     *7) Create links for all files you will need to use with this calibration data:
