@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.117 2003/04/23 10:32:50 choutko Exp $
+# $Id: RemoteClient.pm,v 1.118 2003/04/23 12:47:11 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2822,6 +2822,9 @@ print qq`
                         $corr=$self->{cputypes}->{$q->param("QCPUType")};
                     }
                     $evno=$q->param("QCPUTime")*$q->param("QCPU")/1000./$tmp->{CPUPEREVENTPERGHZ}*$corr;
+                    if($evno<10000){
+                       $evno=10000;
+                    }
                     $evno=int($evno/1000)*1000*$q->param("QRun");     
                     if($evno>$tmp->{TOTALEVENTS}){
                         $evno=$tmp->{TOTALEVENTS};
@@ -2942,7 +2945,7 @@ print qq`
         if($self->{q}->param("ProductionQuery") or $self->{q}->param("ProductionForm")  ){
           $timeout=$q->param("QTimeOut");
           if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>31){
-             $self->ErrorPlus("Time  $evno is out of range (1,31) days. ");
+             $self->ErrorPlus("Time  $timeout is out of range (1,31) days. ");
           }
           $timeout=int($timeout*3600*24);
           $particleid= $q->param("QPart");
