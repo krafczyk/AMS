@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.21 2001/05/09 15:16:37 choutko Exp $
+//  $Id: richrec.C,v 1.22 2001/05/10 09:45:29 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -196,6 +196,9 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
       if(betas[j]>betamax) betas[j]=-1.; 
       else 
 	j++;
+#ifndef __SAFE__
+    if(j==3) return;
+#endif    
   }
 #ifdef __AMSDEBUG__
   if(j>3) cout <<"****** TOO MANY BETAS"<<endl;
@@ -572,6 +575,15 @@ void AMSRichRing::_writeEl(){
 
 }
 
- void AMSRichRing::CalcBetaError(){
-  _errorbeta=_used>0?sqrt(0.5+3./_used)/1000.*fabs ( _beta):1;
- }
+void AMSRichRing::CalcBetaError(){
+  geant A=(-2.81+13.5*(RICHDB::rad_index-1.)-18.*
+	   (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*
+    RICHDB::rad_height/RICHDB::height*40./2.;
+      
+  geant B=(2.90-11.3*(RICHDB::rad_index-1.)+18.*
+	   (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*
+    RICHDB::rad_height/RICHDB::height*40./2.;
+
+
+  _errorbeta=_used>0?AMSRichRing::Sigma(_beta,A,B)/sqrt(geant(_used)):1;
+}
