@@ -250,6 +250,8 @@ void AMSTOFTovt::build()
     sesig=seres*TOFDBc::seresv();
     AMSTOFTovt::inipsh(npshbn,pmplsh); // prepare PM s.e. pulse shape arr.
     HBOOK1(1099,"Single electron spectrum,mV",65,0.,13.,0.);
+    am=0.;
+    am2=0.;
     for(i=0;i<5000;i++){
 //      rnd=RNDM(dummy);
 //      am0=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum

@@ -60,7 +60,7 @@ if(MISCFFKEY.G3On){
 #endif
 if(TRDMCFFKEY.mode<3 && TRDMCFFKEY.mode>=0){
 indetra_();
-cerr<< "AMSJob::_sitrdinitjob-I-TRDOption "<<TRDMCFFKEY.mode<<" Initialized"<<endl;
+cout<< "AMSJob::_sitrdinitjob-I-TRDOption "<<TRDMCFFKEY.mode<<" Initialized"<<endl;
 }
 else if(TRDMCFFKEY.mode==3){
 cerr<< "AMSJob::_sitrdinitjob-F-Option "<<TRDMCFFKEY.mode<<" NotYetImplemented"<<endl;

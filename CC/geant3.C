@@ -41,6 +41,12 @@ extern "C" void simde_(int&);
 extern "C" void trphoton_(int&);
 extern "C" void simtrd_(int& );
 extern "C" void gustep_(){
+
+//if (GCTRAK.istop ){
+// cout <<GCKINE.ipart<<" "<<GCTRAK.vect[2]<<" "<<GCTRAK.getot<<" "<<GCTMED.numed<<endl;
+//}
+
+
 #ifdef __AMSDEBUG__
   if( globalbadthinghappened){
     cerr<<" a " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
