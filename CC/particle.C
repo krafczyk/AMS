@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.120 2002/11/26 11:53:51 choutko Exp $
+//  $Id: particle.C,v 1.121 2002/11/26 13:09:23 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -966,6 +966,8 @@ _ptrd(0),_prich(0),_pShower(0),_pcharge(0),_pbeta(0){
     _ErrMass=_ErrMomentum/_Momentum*_Mass;
 
 //   find beta
+     _Beta=0;
+     _ErrBeta=1;
          
   for(int patb=0; patb<npatb; patb++){
     AMSBeta *pbeta=(AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);

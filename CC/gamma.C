@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.9 2002/11/26 11:53:50 choutko Exp $
+//  $Id: gamma.C,v 1.10 2002/11/26 13:09:23 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -4163,7 +4163,7 @@ void AMSTrTrackGamma::_ConstructGamma(){
     else if(_pbeta->getptrack()->getrid()*_pntTrR->getrid()>0)_pntTrR=_pbeta->getptrack();
   }
 
-   if((_FastFitDoneL && _FastFitDoneR) ){
+   if((_pntTrL->FastFitDone() && _pntTrR->FastFitDone()) ){
 
 //  First  interpolate to zero order vertex guess  
 

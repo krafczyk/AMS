@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.61 2002/11/15 16:08:51 choutko Exp $
+//  $Id: trrec.h,v 1.62 2002/11/26 13:09:24 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -409,6 +409,7 @@ number&  Theta, number & Phi, AMSPoint&  X0)const ;
 void getParSimpleFit(number & Chi2xy, number &Chi2sz, number & Rid)const;
 integer AdvancedFitDone()const{return _AdvancedFitDone;}
 integer GeaneFitDone()const{return _GeaneFitDone;}
+bool FastFitDone()const{return _FastFitDone!=0;}
 void getParAdvancedFit(number&   GChi2, number&  GRid, number&  GErr,
 number&  GTheta, number&  GPhi, AMSPoint&  GP0,
 number HChi2[2], number HRid[2], number HErr[2], number HTheta[2], 
