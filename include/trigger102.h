@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.9 2003/05/22 08:36:40 choumilo Exp $
+//  $Id: trigger102.h,v 1.10 2003/06/26 13:13:43 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include <link.h>
@@ -31,12 +31,12 @@ protected:
    geant getlifetime(time_t time)   {return _Tls[1][_GetIndex(time)]/16384.;}
  }; 
  static Scalers _scaler;
- uinteger _LifeTime;
- integer _tofflag;   // =0/1/2/3 -> "no_FastTrig"/"z>=1"/"z>1"/"z>2" 
+ uinteger _LifeTime;//really TrigMode(less sign 8bits -> fired LVL1-branches)
+ integer _tofflag;   //  
  uinteger _tofpatt[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern for z>=1
  uinteger _tofpatt1[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern for z>=2
  uinteger _antipatt; //ANTI: triggered sectors pattern
- uinteger _ecalflag; //EC trig-flag(0->Empty,1->MIP,2->EMobject,+10->HiEnergy)
+ uinteger _ecalflag; //
  geant   _ectrsum;//"EC tot.energy"(total sum of all dynode channels used for trigger,gev) 
  void _copyEl(){}
  void _printEl(ostream & stream){ stream << " LifeTime " << float(_LifeTime)/1000.<<endl;}

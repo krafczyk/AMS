@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.14 2003/06/03 10:13:04 choumilo Exp $
+//  $Id: antirec02.C,v 1.15 2003/06/26 13:12:20 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -46,7 +46,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   pbitn=TOF2GC::SCPHBP;// as for TOF
   pbanti=pbitn-1;
   status=1;//bad
-  bad=0;// means both Charge and History measurements are present
+  bad=1;// means NO both Charge and History measurements 
 //
 // =============> check/correct logical "up/down" sequence :
 //
@@ -80,7 +80,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
       if(im==0)ANTI2JobStat::addch(chnum,6);
       if(im>1)ANTI2JobStat::addch(chnum,7);
       nhit=im;
-      if(nhit==0)bad=1;//no charge measurement
+      if(nhit>0)bad=0;//found charge measurement
 //
 //-----> check Hist-TDC :
 //
@@ -107,7 +107,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
         ptr->puttdct(int16u(nhit),tdct2);// refill object with corrected data
         ANTI2JobStat::addch(chnum,8);
       }
-      if(nhit==0)bad=1;//no history measurement
+      if(nhit>0)bad=0;//found history measurement
 //-----      
     }//--->endof stat check 
 //
@@ -164,7 +164,7 @@ void Anti2RawEvent::mc_build(int &stat){
   trflag=TOF2RawEvent::gettrfl();
   Anti2RawEvent::setpatt(trpatt);// reset trigger-pattern in Anti2RawEvent::
 //
-  if(TGL1FFKEY.trtype!=10){//<==== NotExternalTrigger"
+  if(TGL1FFKEY.trtype<256){//<==== NotExternalTrigger"
 //
     if(trflag>=0){// use FT from TOF
       ftrig=TOF2RawEvent::gettrtime();//Time when FT came to S-crate(incl. fixed delay)
@@ -461,8 +461,8 @@ void Anti2RawEvent::mc_build(int &stat){
 //cout<<endl;
         AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
                        new Anti2RawEvent(id,chsta,nadca,adca,nhtdch,htdc));
-        tg1=ftrig-TOF2Varp::tofvpar.ftdelf()/2.;//GateUpTime=FTime(subtr.FT-delay because patt. made in TgBox
-//                                             and above FTtime is time at S-crate)
+        tg1=ftrig-ATREFFKEY.ftwin;//GateUpTime~FTime(subtr. some adjustment-delay because pattern
+//                                             is made in TgBox and FTtime is time at S-crate)
         tg2=tg1+pgate;//gate_end_time
 	for(i=0;i<nptr;i++){// check up-time of each "pattern" pulse for coinc.with FT
           t1=ptup[i];//"pattern" pulse up-time

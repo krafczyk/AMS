@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.47 2003/05/22 08:36:29 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.48 2003/06/26 13:13:08 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <cern.h>
@@ -757,7 +757,7 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+23,"ECMC: Max ADC-L(incl.ped, No ovfl.limit)",100,0.,4100.,0.);
       HBOOK1(ECHIST+24,"ECMC: Max ADC-D(incl.ped, No ovfl.limit)",100,0.,4100.,0.);
     }
-    HBOOK1(ECHIST+25,"LVL1: TrigType(entr,z1,z2,elec,phot,uni",10,0.,10.,0.);
+    HBOOK1(ECHIST+25,"LVL1: TrigType(entr,unb1-4,z1,z2,elec,phot,",10,0.,10.,0.);
 }
 //----------------------------
 void EcalJobStat::outp(){

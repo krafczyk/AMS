@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.451 2003/06/19 15:21:18 isevilla Exp $
+// $Id: job.C,v 1.452 2003/06/26 13:13:25 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -270,7 +270,8 @@ void AMSJob::_sirichdata(){
 
 //------------------------------------------------------
 void AMSJob::_sitrig2data(){
-  TGL1FFKEY.trtype=0; //(1) trigger type (0/1/2/3/4/5/6/7/8)
+  TGL1FFKEY.trtype=8; //(1) Requested branches(pattern) for LVL1 global OR(see datacards.doc)
+//exapmles: 1->unbTOF;2->unbEC;4->unb(TOF&EC);8->unb(TOF|EC);240->GlobPhys;256->extern
 // TOF :
 // 
   TGL1FFKEY.toflc=0;//(2)required TOF-FastTrigger LAYER configuration
@@ -1120,7 +1121,7 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.zcerr1=10.;//(5) Err(cm).in longit.coord. when 2-sides times are known 
   ATREFFKEY.daqthr=3.;   //(6) daq readout thresh. in SigmaPed units
   ATREFFKEY.dathr=2.;  //(7) Amplitude discr.threshold in hist-TDC branch (p.e.)
-  ATREFFKEY.ftwin=50.;//(8) T-delay to use for "pattern" pulse coinc.with FT(used now in MC!) 
+  ATREFFKEY.ftwin=50.;//(8) Tof FT-pulse <-> Anti "pattern"-pulse t-adjustment(ns)(used now in MC!) 
 //
   ATREFFKEY.ReadConstFiles=0;//(9)PC(Peds,CalConst), P(C)=0/1-> read from DB/RawFiles
 //  

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.227 2003/06/19 15:03:07 isevilla Exp $
+#  $Id: datacards.doc,v 1.228 2003/06/26 13:13:41 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -564,20 +564,19 @@ R1 time        // max time allowd for prog execution
 
 TGL1    // LVL1 Trigger
  
-I 1 trtype(0)          //TriggerType:
-                           //0->universal trigger (OR of types 4,5,6,7)
-                           //1->unbiased#1 trigger (TOF only)
-			   //2->unbiased#2 trigger (EC(ectrflag>0) only)
-			   //3->inbiased#3 trigger (TOF+EC(ectrflag>0))
-			   //4->Z>=1 particles trigger (TOF+ANTI)
-			   //5->Z>=2 particles trigger  TOF(tofflag%10>2)
-			   //6->e+- particles trigger (TOF + EC(ectrflag/10>=2)=softEM)
-			   //7->Photon trigger EC(ectrflag/10=3,ectrflag%10=2),(HighEnergy+WidthOK) 
-			   //8->unbiased#4 trigger (TOF || EC(ectrflag>0))
-			  //10->External (Replace FT(TOF/EC)-signal, under construction...) 
+I 1 trtype(8)          //9 lsbits->LVL1-branches(pattern) requested in global OR 
+                       //bit(=1)->unbiased#1 trigger (TOF only)
+		       //bit(=2)->unbiased#2 trigger (EC(ectrflag>0) only)
+		       //bit(=4)->inbiased#3 trigger (TOF && EC(ectrflag>0,i.e.Et>MipThr))
+		       //bit(=8)->unbiased#4 trigger (TOF || EC(ectrflag>0))
+		       //bit(=16)->Z>=1 particles trigger (TOF& function(ANTI))
+		       //bit(=32)->Z>=2 particles trigger  TOF(tofflag/10>0)
+		       //bit(=64)->e+- particles trigger (TOF && EC(Et>LoThr && ShowWidth=em))
+		       //bit(=128)->Photon trigger EC(Et>HiThr && ShowWidth=em) 
+		       //bit(=256->External (Replace FT(TOF/EC)-signal, under construction...) 
 			   // ECflag=MN, where M=0/1/2/3->EnerFlag, N=0/1/2->WidthFlag
-			   // M=1->Etot>MIP; =2->Etot>(ECRE #12); =3->Etot>(ECRE #14); 
-			   // N=2->WidthCheckOK; N=1->WidthCheckFailed; N=0->unknown 
+			   // M=1->Etot>MipThr; =2->Etot>LoThr(ECRE #12); =3->Etot>HiThr(ECRE #14); 
+			   // N=2->WidthCheckOK(em); N=1->WidthCheckFailed; N=0->unknown 
 I 2 toflc(0)               // required TOF-FastTrigger LAYER configuration
 //                 (=0/1/2-> accept at least ANY3of4/ALL4/ANYTopBot2of4 layer coincidence)
 I 3 tofsc(1)               //required TOF-FastTrigger SIDE configuration

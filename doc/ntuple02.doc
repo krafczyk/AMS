@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.64 2003/06/23 14:08:31 isevilla Exp $
+#  $Id: ntuple02.doc,v 1.65 2003/06/26 13:13:42 choumilo Exp $
 
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
@@ -489,23 +489,33 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 
  * I*4  * [0,1]    * LVL1     * nlvl1                 // lvl1trigger number
 
- * I*4  *          * LVL1     * mode(nlvl1)           // 
+ * I*4  *          * LVL1     * mode(nlvl1)           // 9 lsbits -> pattern of requested & fired)-branches
+  		             //   list of branches(preliminary):                                                      
+		             // bit1: unbiased trig#1(TOF only, i.e. TofFlag>=0)                          
+			     // bit2: unbiased trig#2(EC only, i.e. EcalFlag>0)                           
+			     // bit3: unbiased trig#3(TOF && EC, i.e. TofFlag>=0 && EcalFlag>0)           
+			     // bit4: unbiased trig#4(TOF || EC, i.e. TofFlag>=0 || EcalFlag>0)           
+			     // bit5: Z>=1 trig(TOF && func(ANTI), i.e. TofFlag>=0 && NAntiSect<Nmax)     
+			     // bit6: Z>=2 trig(TOF above HiZThresh, i.e. TofFlag/10>0)                   
+		             // bit7: e+-  trig(TOF && EC-Em,i.e. TofFlag>=0 && ECEtot>LowThr && ShWid=em)
+			     // bit8: phot trig(EC-hiEm, i.e. ECEtot>HiThr && ShWid=em)                   
+			     // if bit9 set - external trigger
  * I*4  *          * LVL1     * LVL1Flag(nlvl1)       // -1/0/(1-8)->NoTof/4planes_coinc/
                                                       //  /MissPlanesCode, +10->Z>=2 
  * I*4  *          * LVL1     * LVL1TOFPatt(4,nlvl1)  // tof pattern
-                                                      // 1-10 bits  paddles of Side-1 
-                                                      // 17-26      paddles of Side-2
+                                                      // 1-10 bits : paddles of Side-1 
+                                                      // 17-26     : paddles of Side-2
  * I*4  *          * LVL1     * LVL1TOFPatt1(4,nlvl1) // Tof pattern z>=2
                                                       // -------------
  * I*4  *          * LVL1     * LVL1AntiPatt(nlvl1)   // antipattern
-                                                      // 1-8 bits -> OR of paddle ends  
-                                                      // 17-24->fired ends counters(4) x>/<0,z>/<0 
- * I*4  *          * LVL1     * LVL1ECALflag(nlvl1)   // =MN, where M=0/1/2/3->Etot<Mip/
- *                                                    // >Mip/>LowThr/>HighThr;
- *                                                    //  N=2/1/0->ShowerWidthTest=OK/
-						      // Bad/Unknown
+                                                      // bits (1-8)/(9-16)-> s1(top)/s2(bot) pattern   
+                                                      // 17-24->fired-ends counters(4) x>/<0,z>/<0 
+ * I*4  *          * LVL1     * LVL1ECALflag(nlvl1)   // =MN, where M=0/1/2/3->Etot<MipThr/
+ *                                                    // >MipThr/>LowThr/>HighThr;
+ *                                                    //  N=2/1/0->ShowerWidthTest=OK(em)/Bad/Unknown
+						      // 
 						      
- * R*4  *          * LVL1     * LVL1ECtrsum(nlvl1)    // EC-energy trig.sum(Gev)                                // 2->EM-obj, 
+ * R*4  *          * LVL1     * LVL1ECtrsum(nlvl1)    // EC-energy trig.sum 
 
 
 

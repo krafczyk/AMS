@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.316 2003/06/23 14:20:02 isevilla Exp $
+//  $Id: event.C,v 1.317 2003/06/26 13:13:22 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1468,9 +1468,9 @@ void AMSEvent::_reanti2event(){
       toftrigfl=ptr->gettoflg();
       ectrigfl=ptr->getecflg();
     }
-    if(toftrigfl<0 && ectrigfl<=0 && TGL1FFKEY.trtype!=10){
+    if(toftrigfl<0 && ectrigfl<=0 && TGL1FFKEY.trtype!=256){
       AMSgObj::BookTimer.stop("REANTIEVENT");
-      return;// "no TOF/EC in LVL1-trigger"
+      return;// "no TOF/EC in LVL1-trigger(FastTrig)"
     }
     ANTI2JobStat::addre(1);
     if(toftrigfl>=0)ANTI2JobStat::addre(5);
@@ -1505,9 +1505,9 @@ int stat;
       toftrigfl=ptr->gettoflg();
       ectrigfl=ptr->getecflg();
     }
-    if(toftrigfl<0 && ectrigfl<=0 && TGL1FFKEY.trtype!=10){
+    if(toftrigfl<0 && ectrigfl<=0 && TGL1FFKEY.trtype!=256){
       AMSgObj::BookTimer.stop("RETOFEVENT");
-      return;// "no TOF/EC in LVL1-trigger"
+      return;// "no TOF/EC in LVL1-trigger(FastTrig)"
     }   
     TOF2JobStat::addre(1);
     if(toftrigfl>=0)TOF2JobStat::addre(33);

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.95 2003/06/20 14:48:12 choutko Exp $
+//  $Id: root.h,v 1.96 2003/06/26 13:13:43 choumilo Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -201,7 +201,13 @@ public:
 class EcalHitR {
 public:
   int   Status;   ///< Statusword
-  int   Idsoft;   ///< SupLayer/PM/subCell  0:8/0:7/0:3  (?)
+  int   Idsoft;   ///< 4digits number SPPC=SuperLayer/PM/subCell  0:8/0:35/0:3  
+               /*!<
+Idsoft SubCells(pixels) numbering(looking in +Y/+X direction):\n
+---------------|0|1|------------------\n
+pm1(at -x/y)>> ----- >> pm36(at +x/y) \n
+---------------|2|3|------------------\n
+                */
   int   Proj;     ///< projection (0-x,1-y)
   int   Plane;    ///< ECAL plane number (0,...)
   int   Cell;     ///< ECAL Cell number (0,...)    
@@ -860,21 +866,32 @@ ClassDef(TrdTrackR,1)       //TrdTrackR
 
 class Level1R {
 public:
-  int   Mode;   ///< reserved
-  int   TofFlag;   ///< =0/1/3->NoTofTrig/z>=1/z>2 +10, if TofTrig with all 4counters
-  int   TofPatt[4]; ///< tof pattern 
+  int   Mode;   ///< 9 lsbits-> pattern of (requested & fired)-branches
+                    /*!<
+		           list of branches(preliminary):                                         \n                    \n
+		        bit1: unbiased trig#1(TOF only, i.e. TofFlag>=0)                          \n
+			bit2: unbiased trig#2(EC only, i.e. EcalFlag>0)                           \n
+			bit3: unbiased trig#3(TOF && EC, i.e. TofFlag>=0 && EcalFlag>0)           \n
+			bit4: unbiased trig#4(TOF || EC, i.e. TofFlag>=0 || EcalFlag>0)           \n
+			bit5: Z>=1 trig(TOF && func(ANTI), i.e. TofFlag>=0 && NAntiSect<Nmax)     \n
+			bit6: Z>=2 trig(TOF above HiZThresh, i.e. TofFlag/10>0)                   \n
+		        bit7: e+-  trig(TOF && EC-Em,i.e. TofFlag>=0 && ECEtot>LowThr && ShWid=em)\n
+			bit8: phot trig(EC-hiEm, i.e. ECEtot>HiThr && ShWid=em)                   \n
+			if bit9 set - external trigger                                            \n
+		    */
+  int   TofFlag;   ///< <0->noTOF,=0->4planes,(1-8)->miss.pln.code(at least 1top+1bot required), +10->Z>=2
+  int   TofPatt[4]; ///< 4-layers TOF pattern for Z>=1(separately for each side): 
 
                     /*!<
-                                                       0-13 bit  or  \n
-                                                       16-29    and  \n
-                                                       31       plane not in trigger (MC)
+                                                       1-10 bits  Side-1  \n
+                                                       17-26      Side-2  \n
                    */
-  int   TofPatt1[4]; ///< same tof pattern for Z>1 trigger
-  int   AntiPatt;   ///< Antipattern 16-23 bits -> OR of paddle ends  
+  int   TofPatt1[4]; ///< same tof pattern for Z>=2 trigger
+  int   AntiPatt;   ///< Antipatt:(1-8)/(9-16)bits->s1(bot)/s2(top), (17-24)-> fired sector-ends counters(x,z><0)  
   int   EcalFlag;   ///< =MN, where 
                     /*!< 
-                          M=0/1/2/3->Etot<Mip / Etot>Mip / Etot>LowThr / Etot>HighThr; \n
-                         N=2/1/0->ShowerWidthTest=OK/Bad/Unknown
+                          M=0/1/2/3->Etot<MipThr / Etot>MipThr / Etot>LowThr / Etot>HighThr; \n
+                          N=2/1/0->ShowerWidthTest=OK(em)/Bad(nonem)/Unknown                 \n
                     */
   float EcalTrSum; ///< EC-energy trig.sum(Gev)                    
 

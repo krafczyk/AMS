@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.21 2003/06/03 10:13:05 choumilo Exp $
+//  $Id: trigger102.C,v 1.22 2003/06/26 13:13:28 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -24,11 +24,12 @@ void Trigger2LVL1::build(){
 // TOF : 
   int i,il,ib,ibmx,ns1,ns2;
   integer ntof=0;
-  uinteger tofpatt[TOF2GC::SCLRS]={0,0,0,0};//new: all sides
-  uinteger ttrpatt[TOF2GC::SCLRS]={0,0,0,0};//old: AND+OR
+  uinteger tofpatt[TOF2GC::SCLRS]={0,0,0,0};//new: all sides,corresp.to real z>=?
+  uinteger tofpatt1[TOF2GC::SCLRS]={0,0,0,0};//new: all sides,z>=1
+  uinteger tofpatt2[TOF2GC::SCLRS]={0,0,0,0};//new: all sides,z>=2
+  uinteger LVL1Mode(0);//1st 9bits -> (fired & requested)-branche pattern
   integer tflg(0);
   integer tofflag(0);//new: 0->4planes, (1-4)->3plns, (5-8)->2plns, <0->noFT, +10->Z>=2
-  integer tofinf(0);//old: 1-> z>=1, 3-> Z>=2, +10-> 4-PlanesCoinc
   integer nanti=0;
   uinteger antipatt=0;
   uinteger ectrigfl=0;
@@ -42,6 +43,8 @@ void Trigger2LVL1::build(){
 //
 //-->TOF:
     tofflag=TOF2RawEvent::gettrfl();//<0 ->noFT, >=0 ->OK
+    TOF2RawEvent::getpatt(tofpatt1);//z>=1
+    TOF2RawEvent::getpatt1(tofpatt2);//z>=2
     if(tofflag>=0){
       if(tofflag/10>0)TOF2RawEvent::getpatt1(tofpatt);//z>=2
       else TOF2RawEvent::getpatt(tofpatt);//z>=1
@@ -49,7 +52,7 @@ void Trigger2LVL1::build(){
       if(tflg==0)ntof=4;
       if(tflg>0 && tflg<=4)ntof=3;
       if(tflg>4 && tflg<=8)ntof=2;
-//set/reset TOF-matr(center) trig-flag:
+//set/reset TOF-matr(center) trig-flag(using actual Z pattern):
       ns1=0;
       ns2=0;
       for(int il=0;il<TOF2DBc::getnplns();il++){   // <-------- loop over layers
@@ -59,11 +62,6 @@ void Trigger2LVL1::build(){
         if((tofpatt[il] & 1<<16)>0 || (tofpatt[il] & cbt<<16)>0)ns2+=1;//s2 fired
       }
       if(ns1>0 || ns2>0)tofmatr=0;//reset(i.e. trig is not center one)
-//tempor.keep below codes for backward compatibility,i.e.tofinf>0 when TOF present
-//                (diff.from tofflag in TOFRawEvent, where it >=0 ................)
-      tofinf=1;
-      if(tofflag/10>0)tofinf=3;//z>=2 tempor as old vers.
-      if(tofflag%10==0)tofinf+=10;//mark 4planes --//--
     }
 //   
 //-->ANTI:
@@ -116,12 +114,6 @@ void Trigger2LVL1::build(){
   }
 */
 //------
-  for(il=0;il<TOF2GC::SCLRS;il++){// prepare old style AND+OR tofpatt:
-  for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-    if((tofpatt[il]&1<<ib)>0 && (tofpatt[il]&1<<(16+ib))>0)ttrpatt[il]|=(1<<ib);  
-    if((tofpatt[il]&1<<ib)>0 || (tofpatt[il]&1<<(16+ib))>0)ttrpatt[il]|=(1<<ib+16);  
-  }
-  }
 //
   geant sumsc=_scaler.getsum(AMSEvent::gethead()->gettime());
   geant lifetime=_scaler.getlifetime(AMSEvent::gethead()->gettime());
@@ -132,50 +124,61 @@ void Trigger2LVL1::build(){
 //
 // check combined (tof+anti+ecal)trigger flag:
 //
+  bool BranchOK[8]={0,0,0,0,0,0,0,0};
   bool tofok(0),antiok(0),ecok(0),ec1ok(0),ec2ok(0),comtrok(0);
-  bool unbtr1(0),unbtr2(0),unbtr3(0),zge1ptr(0),zge2ptr(0),elpotr(0),photr(0),unitr(0);
 //
   if(tofflag>=0)tofok=1;
   if(fabs(gmaglat)>TGL1FFKEY.TheMagCut && nanti==0)antiok=1;
   if(fabs(gmaglat)<TGL1FFKEY.TheMagCut && nanti <= TGL1FFKEY.nanti)antiok=1;
   if(ectrigfl>0)ecok=1;//"at least MIP" activity in ECAL
 //
-  unbtr1=tofok;                              //unbiased#1 trigger (TOF only)
-  unbtr2=ecok;                               //unbiased#2 trigger (EC(ectrigfl>0) only)
-  unbtr3=tofok && ecok;                      //unbiased#3 trigger (TOF+EC(ectrigfl>0))
-  zge1ptr=tofok && antiok;                   // Z>=1 particle trigger
-  zge2ptr=tofok && (tofflag/10>0);           // Z>=2 particle trigger
-  elpotr=tofok && (ectrigfl/10>=2);          //e+- trigger(SoftEn +TOF)
-  photr=(ectrigfl/10>=3 && ectrigfl%10==2);   //photon trigger (HardEn + GoodWidth(em))
-  unitr=zge1ptr || zge2ptr || elpotr || photr;//univers.trigger
+  BranchOK[0]=tofok;                       //(1) unbiased#1 (TOF(anyZ) only (equiv TOFFT))
+  BranchOK[1]=ecok;                        //(2) unbiased#2 (EC(ectrigfl>0) only)
+  BranchOK[2]=tofok && ecok;               //(3) unbiased#3 trigger (TOF && EC(ectrigfl>0))
+  BranchOK[3]=tofok || ecok;               //(4) unbiased#4 trigger (TOF || EC(ectrigfl>0))
+  BranchOK[4]=tofok && antiok;             //(5) Z>=1 particle trigger
+  BranchOK[5]=tofok && (tofflag/10>0);     //(6) Z>=2 particle trigger
+  BranchOK[6]=(tofok && (ectrigfl/10>=2)
+                     && (ectrigfl%10==2)
+		                       );  //(7) e+- trigger(TOF & ECEt>LowThr & ECWd=em)
+  BranchOK[7]=(ectrigfl/10>=3 
+               && ectrigfl%10==2);         //(8) photon trigger (ECEt>HiThr & ECWd=em)
 //
+  int nbreq(0);
   HF1(ECHIST+25,0.,1.);
-  if(zge1ptr)HF1(ECHIST+25,1.,1.);
-  if(zge2ptr)HF1(ECHIST+25,2.,1.);
-  if(elpotr)HF1(ECHIST+25,3.,1.);
-  if(photr)HF1(ECHIST+25,4.,1.);
-  if(unitr)HF1(ECHIST+25,5.,1.);
+  for(i=0;i<8;i++){
+    if(BranchOK[i]){
+      HF1(ECHIST+25,geant(i+1),1.);
+    }
+    if(TGL1FFKEY.trtype & 1<<i)nbreq+=1;//count requested branches
+  }
 //
-  if(TGL1FFKEY.trtype==0)comtrok=unitr;
-  else if(TGL1FFKEY.trtype==1)comtrok=unbtr1; 
-  else if(TGL1FFKEY.trtype==2)comtrok=unbtr2; 
-  else if(TGL1FFKEY.trtype==3)comtrok=unbtr3; 
-  else if(TGL1FFKEY.trtype==4)comtrok=zge1ptr; 
-  else if(TGL1FFKEY.trtype==5)comtrok=zge2ptr; 
-  else if(TGL1FFKEY.trtype==6)comtrok=elpotr; 
-  else if(TGL1FFKEY.trtype==7)comtrok=photr; 
-  else if(TGL1FFKEY.trtype==8)comtrok=(tofok || ecok);
-  else if(TGL1FFKEY.trtype==10)comtrok=(1>0); 
-  else{
-    cout<<"Trigger2LVL1::build Error: unknown trigger type "<<TGL1FFKEY.trtype<<endl;
+  if((nbreq==0 && TGL1FFKEY.trtype !=256) || TGL1FFKEY.trtype>256){
+    cout<<"Trigger2LVL1::build Error: unknown trigger type requested ! "<<TGL1FFKEY.trtype<<endl;
     exit(10);
+  }
+//
+//                         <---- check OR of requested branches(trigger type):
+  int nbchk(0);
+  if(TGL1FFKEY.trtype ==256){
+    comtrok=1;
+    LVL1Mode=256;
+  }
+  else{
+    for(i=0;i<8;i++){
+      if((TGL1FFKEY.trtype & 1<<i)>0 && BranchOK[i]){
+        nbchk+=1;
+	LVL1Mode|=(1<<i);//create (fired&requested)-branch pattern
+      }
+    }
+    if(nbchk>0)comtrok=1;
   }
 // 
 //cout<<"comtr="<<comtrok<<"tof/anti/ec="<<tofok<<" "<<antiok<<" "<<ectrigfl<<endl;
 //
   if(comtrok && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime)){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-          new Trigger2LVL1(floor(lifetime*1000)+tm*10000,tofflag,tofpatt,
+          new Trigger2LVL1(LVL1Mode,tofflag,tofpatt1,tofpatt2,
 	                                                antipatt,ectrigfl,ectrsum));
   }
   else if(AMSJob::gethead()->isRealData() && sumsc>=TGL1FFKEY.MaxScalersRate && lifetime<=TGL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
@@ -190,7 +193,7 @@ integer Trigger2LVL1::checktofpattor(integer tof, integer paddle){
 #ifdef __AMSDEBUG__
  assert(tof >=0 && tof <TOF2GC::SCLRS);
 #endif
- return (_tofpatt[tof]) & (1 << paddle);
+ return ((_tofpatt[tof])&(1 << paddle))||((_tofpatt[tof])&(1 << 16+paddle));
 }
 
 
@@ -198,7 +201,7 @@ integer Trigger2LVL1::checktofpattand(integer tof, integer paddle){
 #ifdef __AMSDEBUG__
  assert(tof >=0 && tof <TOF2GC::SCLRS);
 #endif
- return (_tofpatt[tof]) & (1 << (paddle+16));
+ return ((_tofpatt[tof])&(1 << paddle))&&((_tofpatt[tof])&(1 << 16+paddle));
 }
 
 

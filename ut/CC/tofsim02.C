@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.24 2003/06/03 10:13:05 choumilo Exp $
+//  $Id: tofsim02.C,v 1.25 2003/06/26 13:13:28 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 #include <tofdbc02.h>
@@ -1789,7 +1789,7 @@ void TOF2RawEvent::mc_build(int &status)
   TOF2RawEvent::setpatt(trpatt1);// reset  TOF-trigger pattern(z>=1)
   TOF2RawEvent::setpatt1(trpatt2);// reset  TOF-trigger pattern(z>=2)
 //-----
-  if(TGL1FFKEY.trtype!=10){//<=== not external trigger
+  if(TGL1FFKEY.trtype<256){//<=== not external trigger
 //
   ttrig1=TOF2Tovt::tr1time(trcode1,trpatt1);//get abs.trig1(FT"z>=1") signal time/patt
   if(TFMCFFKEY.mcprtf[2]!=0)HF1(1069,geant(trcode1),1.);
