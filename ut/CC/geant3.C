@@ -46,7 +46,6 @@ extern "C" void gustep_(){
 // cout <<GCKINE.ipart<<" "<<GCTRAK.vect[2]<<" "<<GCTRAK.getot<<" "<<GCTMED.numed<<endl;
 //}
 
-  for(integer i=0;i<GCKING.ngkine;GCKING.iflgk[i++]=1);
 
 #ifdef __AMSDEBUG__
   if( globalbadthinghappened){
@@ -376,8 +375,17 @@ extern "C" void gustep_(){
 
 //  if(trig==0 && freq>1)AMSgObj::BookTimer.start("SYSGUSTEP");
   AMSmceventg::FillMCInfo();
+   int cerenkov_dummy_flag=0;     // this shoud be added via rich datacards and set to zero as default
+  if(cerenkov_dummy_flag){
+   for(int i=0;i<GCKING.ngkine;i++){
+     if(GCKING.iflgk[i]==0   )GCKING.iflgk[i]=1;
+   }
+  }
+  GCTRAK.upwght=0;
   GSKING(0);
+  GCTRAK.upwght=1; //cerenkov tracked first
   GSKPHO(0);
+  GCTRAK.upwght=0;
 //  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("SYSGUSTEP");
 #ifdef __AMSDEBUG__
   if( globalbadthinghappened){

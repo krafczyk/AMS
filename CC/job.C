@@ -131,7 +131,8 @@ void AMSJob::data(){
   AMSgObj::BookTimer= *(new AMSStat() );
 #endif  
 
-
+  GCSTAK.NJTMIN=1;
+  GCTRAK.upwght=0;
   GCTIME.TIMINT=10000000;
   GCTIME.TIMEND=10;
   GCTIME.ITIME=0;

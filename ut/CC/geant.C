@@ -141,6 +141,10 @@ void gams::UGINIT(){
    AMSgtmed::amstmed();
    AMSgvolume::amsgeom();
 #endif
+ //GRFILE(1,"geomstr.dat","N");
+ //GROUT("VOLU",1," ");
+ //GREND(1);
+
   AMSJob::map();
   AMSJob::gethead()->init();
   if(!AMSJob::gethead()->isProduction())AMSJob::gethead()->uhinit();

@@ -646,7 +646,8 @@ void AMSgvolume::ReadG4StepVolumes(char *fnam){
      for(int c=0;c<solids;c++){
       ps = assembly->GetPlacedSolid(c);
       if(ps && ps->GetSolid()){
-       cout <<c<<" "<<ps->GetSolid()->GetName()<<endl;
+//       if((ps->GetSolid())->GetName())
+//       cout <<c<<" "<<(ps->GetSolid())->GetName()<<endl;
        G4LogicalVolume* lv = new G4LogicalVolume(ps->GetSolid(),_pgtmed->getpgmat()->getpamsg4m(),"STEPlog");
        G4UserLimits *pul=_pg4l->GetUserLimits();
        G4Track dummytrack;
@@ -655,7 +656,8 @@ void AMSgvolume::ReadG4StepVolumes(char *fnam){
        G4ThreeVector* tr = ps->GetTranslation();
        new G4PVPlacement(ps->GetRotation(),
                         *tr,
-                        ps->GetSolid()->GetName(),
+//                         ps->GetSolid())->GetName(),
+                        "dummy name",
                         lv,
                         _pg4v,
                         false,

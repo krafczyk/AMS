@@ -24,7 +24,6 @@ COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
 PAWC_DEF PAWC;
 //
 void (handler)(int);
-
 int main(){
      *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);

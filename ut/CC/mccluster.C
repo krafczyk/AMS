@@ -497,7 +497,6 @@ void AMSRichMCHit::sirichhits(integer id,
   geant adc;
 
   adc=0;
-
   if(pmt>RICHDB::total || pmt<0){
     cerr<<"AMSRichMCHit::sirichhits-ErrorNoPMT " << pmt<<endl;
     return;
