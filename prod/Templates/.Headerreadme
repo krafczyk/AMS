@@ -2,10 +2,9 @@ Steps to do before run AMS02 MC Remote Client on intel/amd computers
 running RH linux.  
 
 
-copy attached files to {somedir}
-
-N.B. Due to limited max mail size 
-     ams02mcdb.addon.tar.gz attachment is sending in a separate mail. 
+copy attached file to {somedir}
+download ams02mcdb.tar.gz and  ams02mcdb.addon.tar.gz files from 
+pcamsf0.cern.ch:/cgi-bin/download.cgi to {somedir}
 
 cd {somedir}
 gzip -d  ams02mcdb.tar.gz

@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.59 2002/03/20 09:43:28 choumilo Exp $
+#  $Id: Moptg4,v 1.60 2002/07/18 11:42:02 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -73,7 +73,41 @@ FF=f77
 LD=cxx -v  -warning_unresolved 
 TIMEL=
 endif
-ifeq  "$(shell uname)"  "Linux"
+ifeq  "$(G4SYSTEM)"  "Linux-icc"
+ifdef AMSDEBUG
+CFLAGS=      -D__BATCH__ -g -D__AMSDEBUG__    -I../include -tpp6 -mp1 -xi  
+CFLAGS4=      -D__BATCH__ -g -D__AMSDEBUG__     -I../include  $(CPPFLAGS) 
+CFLAGS4P=      -D__BATCH__    -g -D__AMSDEBUG__  -I../include $(CPPFLAGS)
+CFLAGS4O1=      -D__BATCH__    -g -D__AMSDEBUG__  -I../include  $(CPPFLAGS)
+CFLAGSTOFSIM=      -D__BATCH__ -g -D__AMSDEBUG__      -I../include  -tpp6 -mp1 -xi 
+CFLAGSn=      -D__BATCH__  -g -D__AMSDEBUG__    -I../include  -tpp6 -mp1 -xi 
+FFLAGS=   -tpp6 -mp1 -xi -g -I../include  -fp_port
+FFLAGSn=   -tpp6 -mp1 -xi -g -I../include  -fp_port -D__ICC__
+CFLAGSDAQ=      -D__BATCH__  -g     -I../include  -D__ICC__ -tpp6 -mp1 -xi   
+else
+CFLAGS=      -D__BATCH__  -O2    -I../include  -tpp6 -mp1 -xi 
+CFLAGS4=      -D__BATCH__ -O2      -I../include     $(CPPFLAGS)
+CFLAGS4P=      -D__BATCH__       -I../include     $(CPPFLAGS)
+CFLAGS4O1=      -D__BATCH__   -O1   -I../include     $(CPPFLAGS)
+CFLAGSTOFSIM=      -D__BATCH__ -O2      -I../include  -tpp6 -mp1 -xi 
+CFLAGSDAQ=      -D__BATCH__       -I../include  -O2 -tpp6 -mp1 -xi -D__ICC__
+CFLAGSn=      -D__BATCH__  -O2    -I../include   -tpp6 -mp1 -xi
+FFLAGS=   -tpp6 -mp1 -xi -fp_port -O -I../include
+FFLAGSn=   -tpp6 -mp1 -xi -fp_port -I../include -D__ICC__
+endif
+DFLAGS=    -g  -I../include
+CERNDIR = /f2dat1/CERN/2002/icc
+NAGDIR  = /f2dat1/NagLib
+XLDFLAGS=   -static -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib -lm -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc  -lamsut -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins 
+CC=icc  -D__NAMESPACE__ -D__G4AMS__
+FF=ifc
+LD=icc
+TIMEL=
+
+endif
+
+
+ifeq  "$(G4SYSTEM)"  "Linux-g++"
 ifdef AMSDEBUG
 CFLAGS=      -D__BATCH__ -g -D__AMSDEBUG__    -I../include   -I../db
 CFLAGS4=      -D__BATCH__ -g -D__AMSDEBUG__    -pipe  -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
@@ -137,7 +171,7 @@ compile:= $(AMS_EXE)
 
 
 $(AMS_EXE):	$(OBJECTS)
-	$(LD)  -o $(AMS_EXE) $(OBJECTS) $(TIMEL)  $(LDFLAGS) $(LDLIBS) $(XLDFLAGS)
+	$(LD)  -o $(AMS_EXE) $(OBJECTS) $(TIMEL)   $(LDFLAGS) $(LDLIBS) $(XLDFLAGS)
 
 
 
@@ -252,7 +286,7 @@ endif
 ifeq  "$(shell uname)"  "Linux" 
 
 $(BIN)mtx.o:                   ../F/mtx77.F
-	g77 -c $(FFLAGS)      ../F/mtx77.F -o $(BIN)mtx.o
+	$(FF) -c $(FFLAGS)      ../F/mtx77.F -o $(BIN)mtx.o
 endif
 ifeq  "$(shell uname)"  "AIX" 
 

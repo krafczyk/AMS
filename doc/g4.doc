@@ -1,13 +1,15 @@
-#  $Id: g4.doc,v 1.26 2002/03/14 14:13:32 choutko Exp $
+#  $Id: g4.doc,v 1.27 2002/07/18 11:42:02 choutko Exp $
 -------
 Platform:
-linux-gcc2.95.3 
-dec/cxx 6.2
+linux-gcc2.95.3 ($G4SYSTEM=Linux-g++), linux-iccv6  ($G4SYSTEM=Linux-icc) 
+
 -------
 Installer:
 
 
-source AMS/install/g4i (v4.3.2)   g4i.new  (v4.4.0)
+source AMS/install/g4i (v4.4.0, Linux-g++) 
+source AMS/install/g4i.new  (v4.4.1, Linux-g++)
+source AMS/install/g4i.icc.new  (v4.4.1, Linux-icc)
 
 see $G4INSTALL/ReleaseNotes.VC for ams specifics
 
@@ -18,7 +20,7 @@ mkdir $AMSWD/bin
 mkdir $AMSWD/exe
 
 gmake -if install/Moptg4   (batch)
-gmake -if install/Moptg4i  (interactive{ batch first})
+gmake -if install/Moptg4i  (interactive{ batch first} (only Linux-g++))
 
 n.b
 setenv AMSDEBUG 1 switch on debug mode (compiler's one)
@@ -68,6 +70,34 @@ CC/gvolume.C << Constructor modified
             
 
 CC/gmat.C    << new geant4  constructors
+
+Status (geant4.4.1 )
+
+ initialization much improves, but still slow (~1 minutes amd-mp1533)
+
+
+Linux-g++:
+
+ok
+
+run time g3g4 comparison:
+
+                   G3      G4         
+Memory(mb)         60     160
+CPU/Event(au)       1       7 (13 if only GEANTRACKING time compared)      
+
+
+Linux-icc:
+
+ok
+
+run time g3g4.test.job comparison:
+
+                   G3      G4         
+Memory(mb)         60     160
+CPU/Event(au)       1       7 (13 if only GEANTRACKING time compared)      
+
+
 
 
 

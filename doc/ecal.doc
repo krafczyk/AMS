@@ -1,4 +1,4 @@
-#  $Id: ecal.doc,v 1.3 2001/01/22 17:00:56 vitali Exp $
+#  $Id: ecal.doc,v 1.4 2002/07/18 11:42:02 choutko Exp $
     Classes :
 //
 class AMSEcalMCHit: public AMSlink{
@@ -82,49 +82,84 @@ public:
 //
   static void build(int &stat);
 //
-class AMSEcalCluster: public AMSlink{ // 1-D cluster
+
+
+class Ecal1DCluster: public AMSlink{ 
 private:
-//integer _status; // status (0/1/... -> alive/dead/...) (It is really in AMSlink !!!)
   integer _proj;   //projection (0->X, 1->Y)
   integer _plane;  //continious numbering of planes through 2 projections(0,...)
-  number  _edep;
-  AMSPoint _Coo;  // cluster center of gravity coordinates (cm)
-  AMSPoint _ErrorCoo; // Error to coordinates
-  integer _nmemb; // number of EcalHit members
-  AMSEcalHit * _mptr[2*ECPMSMX]; // list of pointers to member
+  number  _Energy3C;  //Corrected Energy MeV (+-1)
+  number  _Energy5C;  //Corrected Energy MeV (+-2)
+  number  _Energy9C;  //Corrected Energy MeV (+-4)
+  number  _EnergyC;   //Corrected Energy MeV  
+  number  _SideLeak;  //Side Leak Estimation (MeV)
+  number  _DeadLeak;  //Dead PMT Leak Estimation (MeV)
+  AMSPoint  _Coo;     // cluster center of gravity coordinates 
+  integer _MaxCell;   // Cell with max edep 
+  integer _Left;      // most left
+  integer _Right;     // most right
+  number  _Weight;    // Weight to calculate Coo;
+  number _RMS;        //  rms;
+  integer _NHits;
+  AMSEcalHit *_pHit[2*ecalconst::ECPMSMX]; // pointers to hits
 public:
-  AMSEcalCluster(integer status, integer proj, integer pl, number edep, AMSPoint coo,
-     AMSPoint ecoo, integer nm, AMSEcalHit *ptr[]): AMSlink(status,0),_proj(proj),
-		        _plane(pl),_edep(edep),_Coo(coo),_ErrorCoo(ecoo),_nmemb(nm){
-    for(int i=0;i<nm;i++)_mptr[i]=ptr[i];
-  };
-  ~AMSEcalCluster(){};
-  AMSEcalCluster * next(){return (AMSEcalCluster*)_next;}
+  Ecal1DCluster(integer status, integer proj, integer pl, integer left, integer right, integer max, number en,number en3, number en5, number en9, number leak, number dead,AMSPoint coo, number w, number rms, AMSEcalHit * ptr[]): AMSlink(status,0),_proj(proj), _plane(pl),_Energy3C(en3),_Energy5C(en5),_Energy9C(en9),_EnergyC(en),_SideLeak(leak),_DeadLeak(dead),_Coo(coo),_MaxCell(max),_Left(left),_Right(right),_Weight(w),_RMS(rms){
+_NHits=0;
+for(int i=_Left;i<=_Right;i++){
+ if(ptr && ptr[i])_pHit[_NHits++]=ptr[i];
+}
+};
+  ~Ecal1DCluster(){};
+  Ecal1DCluster * next(){return (Ecal1DCluster*)_next;}
 //
-  integer getproj(){return _proj;}
-  integer getplane(){return _plane;}
-  number getedep(){return _edep;}
+ uinteger getNHits()const{return _NHits;}
+ AMSEcalHit * getphit(uinteger i)const{return i<_NHits?_pHit[i]:0;}
+ integer operator < (AMSlink & o)const{
+   Ecal1DCluster *p =dynamic_cast<Ecal1DCluster*>(&o);
+   if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
+   else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0;
+   else return !p || (_plane<p->_plane);
+}
+  number getweight()const{return _Weight;}
+  integer getproj()const{return _proj;}
+  integer getplane()const{return _plane;}
+  number getEnergy()const{return _EnergyC;}
+  number getec3()const{return _Energy3C;}
+  number getec5()const{return _Energy5C;}
+  number getec9()const{return _Energy9C;}
+  number getsleak()const{return _SideLeak;}
+  number getdleak()const{return _DeadLeak;}
+  number getrms()const{return _RMS;}
+  integer getmaxcell()const {return _MaxCell;}
   AMSPoint getcoo()const {return _Coo;}
-  AMSPoint getecoo()const {return _ErrorCoo;}
-  integer getmemb(AMSEcalHit *ptr[]){
-    for(int i=0;i<_nmemb;i++)ptr[i]=_mptr[i];
-    return _nmemb;
+//
+  static integer build(int stat=0);
+  static integer Out(integer);
+  number PosError(){return ECREFFKEY.PosError1D;}
+  bool Good(){return !(checkstatus(AMSDBc::BAD) || checkstatus(AMSDBc::DELETED) || checkstatus(AMSDBc::JUNK) ||  checkstatus(AMSDBc::USED));}
+  number Distance(Ecal1DCluster *p);
+  Ecal1DCluster* EnergyMatch(Ecal1DCluster *pmatch, Ecal1DCluster *pbest){
+   return (pbest && fabs(_EnergyC-pmatch->_EnergyC)>fabs(_EnergyC-pbest->_EnergyC))?pbest:this;
   }
 //
-  static void build(int &stat);
-  static integer Out(integer);
-  static void init();
-//
 protected:
+
   void _printEl(ostream &stream){
     int i;
     stream <<"AMSEcalCluster: Proj= "<<_proj<<" plane="<<_plane<<endl;
-    stream <<"Status="<<hex<<_status<<"  Edep="<<dec<<_edep<<endl; 
-    stream <<"Coord="<<_Coo[0]<<" "<<_Coo[1]<<" "<<_Coo[2]<<"  ErrCoo="<<_ErrorCoo<<endl;
-    stream <<"Nmembers="<<_nmemb<<endl;
+    stream <<"Status="<<hex<<_status<<"  Edep="<<dec<<_EnergyC<<endl; 
+    stream <<"Coord="<<_Coo[0]<<" "<<_Coo[1]<<" "<<_Coo[2]<<endl;
     stream <<dec<<endl<<endl;
   }
+
 void _writeEl();
 void _copyEl();
 //
+#ifdef __WRITEROOT__
+ friend class EcalClusterRoot;
+#endif
 };
+
+
+
+

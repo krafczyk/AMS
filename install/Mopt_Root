@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.23 2002/07/15 14:29:58 choutko Exp $
+#  $Id: Mopt_Root,v 1.24 2002/07/18 11:42:02 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -222,7 +222,7 @@ $(EXE)gbatch_ra.exe:	$(OBJECTSA)
 	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch_ra.exe $(OBJECTSA) $(TIMEL) $(LDFLAGSSTATIC)
 
 
-producer: $(EXE)gbatchr_orbit.exe
+producer: $(EXE)gbatch-orbit.exe
 
 $(EXE)gbatchr_orbit.exe:	$(OBJECTCO) $(OBJECTCL) $(OBJECTSA)
 	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatchr_orbit.exe $(OBJECTSA) $(OBJECTCL) $(OBJECTCO) $(TIMEL) $(LDFLAGSSTATICIDL) $(LDFLAGSSTATIC)
