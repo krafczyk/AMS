@@ -134,13 +134,17 @@ void stlv::UProcessFill()
       xm = log(mc_ev.Momentum);
       acc[0]->Fill(xm,1);
       h1A[0]-> Fill(xm,1);
+       int ng=nEcalHit();
+      if(ng>0){
+        EcalHitR ec=EcalHit(ng-1);
+                                                                                         cout <<" ne "<<ng<<" "<<ec.Edep<<endl;
+}
      if(nParticle()>0){
        int ptrack = Particle(0).iTrTrack();
        int ptrd = Particle(0).iTrdTrack();
        if(NParticle()== 1 && ptrack>=0 && ptrd>=0){ //final if
          acc[1]->Fill(xm,1);
          h1A[1]-> Fill(xm,1);
-     
         int pbeta = Particle(0).iBeta();   
         BetaR *pb =  Particle(0).pBeta();   // another way 
         if(pbeta>=0){			//check beta

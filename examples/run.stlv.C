@@ -19,7 +19,9 @@
 // Add all AMS Root files to be analyzed 
       TChain chain("AMSRoot");
 // Usual ROOT file
-      chain.Add("/f2users/choutko/g3v1g3.root");
+//      chain.Add("/f2users/choutko/g3v1g3.2.root");
+      chain.Add("/f2users/choutko/g3v1g3.3.root");
+
 // Add a ROOT file on the WeB
       //chain.Add("http://pcamsf0.cern.ch/f2dah1/MC/AMS02/2004A/protons/el.pl1.10200/738197524.0000001.root");
 // Add a ROOT file on Castor
