@@ -27,47 +27,55 @@ integer AMSBeta::build(integer refit){
   // pattern recognition + fit
   AMSPoint SearchReg(BETAFITFFKEY.SearchReg[0],BETAFITFFKEY.SearchReg[1],
   BETAFITFFKEY.SearchReg[2]);
-  int patt;
-  number theta=0;
-  number td;
-  for( patt=0;patt<npat;patt++){
-   AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->
-   getheadC("AMSTrTrack",patt);
-   while(ptrack){   
-
-      
-
+  int patb;
+  for ( patb=0;patb<npatb;patb++){
+   int patt;
+   number theta=0;
+   number td;
+   for( patt=0;patt<npat;patt++){
+    AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->
+    getheadC("AMSTrTrack",patt);
+    while(ptrack ){   
+    
+      if(ptrack->checkstatus(AMSDBc::USED)==0){        
    // Now TOF hits 
 
-    int patb;
-    for ( patb=0;patb<npatb;patb++){
      AMSTOFCluster * phit[4]={0,0,0,0};
      number sleng[4];
      if(BETAFITFFKEY.pattern[patb]){
       phit[0]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][0]-1);
       while( phit[0]){
+       number chi2space=0;
        if(BETAFITFFKEY.FullReco || phit[0]->checkstatus(AMSDBc::USED)==0 ){
-        if(AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
-        ptrack,sleng[0],td)<SearchReg){
+           AMSPoint dst=AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
+           ptrack,sleng[0],td);
+        if(dst<SearchReg){
+         chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
          phit[1]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][1]-1);
          while( phit[1]){
           if(BETAFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0 ){
-           if(AMSBeta::Distance(phit[1]->getcoo(),phit[1]->getecoo(),
-           ptrack,sleng[1],td)<SearchReg){
+           AMSPoint dst=AMSBeta::Distance(phit[1]->getcoo(),phit[1]->getecoo(),
+           ptrack,sleng[1],td);
+           if(dst<SearchReg){
+            chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
             if(AMSBeta::patpoints[patb] >2){
              phit[2]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][2]-1);
              while( phit[2]){
               if(BETAFITFFKEY.FullReco || phit[2]->checkstatus(AMSDBc::USED)==0 ){
-               if(AMSBeta::Distance(phit[2]->getcoo(),phit[2]->
-               getecoo(),ptrack,sleng[2],td) < SearchReg){
+               AMSPoint dst=AMSBeta::Distance(phit[2]->getcoo(),phit[2]->
+               getecoo(),ptrack,sleng[2],td);
+               if(dst < SearchReg){
+                chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
                 if(AMSBeta::patpoints[patb] >3){
                 phit[3]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][3]-1);
                 while( phit[3]){
                 if(BETAFITFFKEY.FullReco || phit[3]->checkstatus(AMSDBc::USED)==0 ){
-                 if(AMSBeta::Distance(phit[3]->getcoo(),phit[3]->
-                 getecoo(),ptrack,sleng[3],td) < SearchReg){
+                 AMSPoint dst=AMSBeta::Distance(phit[3]->getcoo(),phit[3]->
+                 getecoo(),ptrack,sleng[3],td);
+                 if(dst < SearchReg){
+                 chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
                    //4  point combination found
-                  if(AMSBeta::_addnext(patb,4,sleng,phit,ptrack,theta)){
+                  if(AMSBeta::_addnext(patb,4,sleng,phit,ptrack,theta,chi2space)){
                    goto out;
                   }
                  
@@ -78,7 +86,7 @@ integer AMSBeta::build(integer refit){
                 }
                 else{
                    //3  point combination found
-                  if(AMSBeta::_addnext(patb,3,sleng,phit,ptrack,theta))goto out;
+                  if(AMSBeta::_addnext(patb,3,sleng,phit,ptrack,theta,chi2space))goto out;
 
                 }     
                }
@@ -88,7 +96,7 @@ integer AMSBeta::build(integer refit){
             }
             else{
                    //2  point combination found
-                  if(AMSBeta::_addnext(patb,2,sleng,phit,ptrack,theta))goto out;
+                  if(AMSBeta::_addnext(patb,2,sleng,phit,ptrack,theta,chi2space))goto out;
             }  
            }
           }
@@ -100,12 +108,12 @@ integer AMSBeta::build(integer refit){
       }
       
      }
+      }
 out:
-     continue;
+     ptrack=ptrack->next();
     }
-    ptrack=ptrack->next();
-   } 
-} 
+   }
+  }
 return 1;
 }
 
@@ -122,15 +130,18 @@ return outp;
 
 
 integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
-        AMSTOFCluster* pthit[4],AMSTrTrack * ptrack, number theta){
+        AMSTOFCluster* pthit[4],AMSTrTrack * ptrack, number theta, number c2s){
+        c2s=c2s/nhit;
 #ifdef __UPOOL__
-    AMSBeta beta(pat,  pthit, ptrack);
+    AMSBeta beta(pat,  pthit, ptrack, c2s);
     AMSBeta *pbeta=   &beta;
 #else
-    AMSBeta *pbeta=new AMSBeta(pat,  pthit, ptrack);
+    AMSBeta *pbeta=new AMSBeta(pat,  pthit, ptrack,c2s);
 #endif
     pbeta->SimpleFit(nhit, sleng);
     if(pbeta->getchi2()< BETAFITFFKEY.Chi2 && fabs(pbeta->getbeta())<1.41){
+      // Mark Track as used
+         ptrack->setstatus(AMSDBc::USED);
          // Mark hits as USED
          int i;
          for( i=0;i<nhit;i++){
@@ -210,7 +221,7 @@ if(init++==0){
   //book the ntuple block
   //
   HBNAME(IOPA.ntuple,"Beta",BN.getaddress(),
-  "BetaEvent:I*4,BetaPattern:I*4, Beta:R*4, BetaError:R*4, BetaChi2:R*4");
+  "BetaEvent:I*4,BetaPattern:I*4, Beta:R*4, BetaError:R*4, BetaChi2:R*4,BetaChi2S:R*4");
 
 }
   BN.Event()=AMSEvent::gethead()->getid();
@@ -218,6 +229,7 @@ if(init++==0){
   BN.Beta=_Beta;
   BN.Error=_InvErrBeta;
   BN.Chi2=_Chi2;
+  BN.Chi2S=_Chi2Space;
   HFNTB(IOPA.ntuple,"Beta");
 }
 
@@ -234,5 +246,4 @@ for( i=0;i<npatb;i++){
 }
 
 
-void AMSBeta::_printEl(ostream & stream){ stream << " Pattern " << _Pattern << " Beta "
-<<_Beta<<" ErrBeta" <<_InvErrBeta<<" Chi2 "<<_Chi2<<endl;}
+void AMSBeta::_printEl(ostream & stream){ stream << " Pattern " << _Pattern << " Beta "<<_Beta<<" ErrBeta" <<_InvErrBeta<<" Chi2 "<<_Chi2<<" Chi2S "<<_Chi2Space<<endl;}

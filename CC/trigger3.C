@@ -413,7 +413,7 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
 
 
   void TriggerLVL3::build(){
-    if(LVL3FFKEY.RebuildLVL1){
+    if(LVL3FFKEY.RebuildLVL3){
       AMSEvent::gethead()->getC("TriggerLVL3",0)->eraseC();
     }
     if(!strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ){     

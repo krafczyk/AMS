@@ -80,7 +80,7 @@ integer TrMaxHits;
 geant Splitting;
 integer NRep;
 integer Accept;
-integer RebuildLVL1;
+integer RebuildLVL3;
 integer NoK;
 };
 #define LVL3FFKEY COMMON_BLOCK(LVL3FFKEY,lvl3ffkey)
@@ -313,6 +313,7 @@ class LVL1FFKEY_DEF {
 public:
 integer ntof;
 integer nanti;
+integer RebuildLVL1;
 };
 #define LVL1FFKEY COMMON_BLOCK(LVL1FFKEY,lvl1ffkey)
 COMMON_BLOCK_DEF(LVL1FFKEY_DEF,LVL1FFKEY);
@@ -372,6 +373,7 @@ public:
   geant LowBetaThr;   // Threshold below refit should be done if possible 
                            // using 2 & 3 (comb # 7)i
   integer FullReco;
+  geant Chi2S;  // Max acceptable chi2 for space fit
 };
 //
 

@@ -62,7 +62,7 @@
 *    idet=1
 *
  
-      parameter (maxbeta=10)
+      parameter (maxbeta=100)
       parameter (maxch=10)
       parameter (maxpa=10)
       parameter(maxtof=20)
@@ -87,7 +87,8 @@
 
       common /betaC/nbeta,
      + betapattern(maxbeta),beta(maxbeta),
-     +              betaerror(maxbeta),betachi2(maxbeta)
+     +              betaerror(maxbeta),betachi2(maxbeta),
+     +               betachi2s(maxbeta)
 
       common /chargeC/ ncharge,
      + chargebetap(maxch),chargetof(maxch),
@@ -237,8 +238,8 @@ c       write(*,*)' Starting converting'
      + 'AntiMCClusters:I, AntiClusters:I')
 
       call hbname(1,cblock(2),nbeta,
-     + 'nbeta[0,10],betapattern(nbeta):I,beta(nbeta),'//
-     + 'betaerror(nbeta),betachi2(nbeta)')
+     + 'nbeta[0,100],betapattern(nbeta):I,beta(nbeta),'//
+     + 'betaerror(nbeta),betachi2(nbeta),betachi2s(nbeta)')
 
       call hbname(1,cblock(3), ncharge,
      + 'ncharge[0,10],chargebetap(ncharge),chargetof(ncharge):I,'//
@@ -372,7 +373,8 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
         do while(truth)
           if(eof(idet).eq.0)read(lun,end=25)
      +    ne,betapattern(nbeta),
-     +    beta(nbeta),betaerror(nbeta),betachi2(nbeta)
+     +    beta(nbeta),betaerror(nbeta),betachi2(nbeta),
+     +    betachi2s(nbeta)
           goto 26
  25       eof(idet)=1
  26       continue
@@ -989,7 +991,8 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
 *
 *    idet=2
 *
-      common /betaC/betaevent,betapattern,beta,betaerror,betachi2
+      common /betaC/betaevent,betapattern,beta,betaerror,betachi2,
+     +              betachi2s
 *
 *    idet=3
 *
@@ -1202,7 +1205,8 @@ c         if(mod(i,10).eq.1)write(*,*)i
      +   TrMCClusters , TOFClusters , TOFMCClusters , 
      +   CTCClusters , CTCMCClusters, AntiMCClusters, AntiClusters 
            else if( cblock(idet).eq.'BETA')then
-            write(21)betaevent,betapattern,beta,betaerror,betachi2
+            write(21)betaevent,betapattern,beta,betaerror,betachi2,
+     +      betachi2s
            else if( cblock(idet).eq.'CHARGE')then
             write(21)chargeevent,chargebetap,chargetof,
      +      chargetracker,probtof,probtracker

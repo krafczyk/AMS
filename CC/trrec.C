@@ -289,7 +289,7 @@ integer AMSTrCluster::build(integer refit=0){
      }
      } 
      VZERO(adc,size/4);
-    }  
+    } 
      p=p->next();           
   }
   }
@@ -376,7 +376,7 @@ integer AMSTrCluster::buildWeak(integer refit=0){
   number *  adc  = (number*)UPool.insert(size); 
   AMSTrIdSoft id;
   // only x clusters can be weak
-  for(int icll=0;icll<1;icll++){
+  for(int icll=0;icll<2;icll++){
    AMSTrRawCluster *p=(AMSTrRawCluster*)AMSEvent::gethead()->
    getheadC("AMSTrRawCluster",icll,1);
    VZERO(adc,size/4);
@@ -386,10 +386,12 @@ integer AMSTrCluster::buildWeak(integer refit=0){
      id=AMSTrIdSoft(p->getid());
      integer ilay=id.getlayer(); 
      integer side=id.getside();
+     if(side==0){
      // Very debug
      //         if(ilay==3 && side==0){p=p->next();continue;}
      p->expand(adc+TRCLFFKEY.ThrClNEl[side]/2);
     if(p->testlast()){
+
               
      // Circle buffer for x layers 1 && 6;
      // 
@@ -400,6 +402,133 @@ integer AMSTrCluster::buildWeak(integer refit=0){
         adc[iloc+TRCLFFKEY.ThrClNEl[side]/2];
        }  
      }
+
+           // first (Unfortunately) find out and destroy all " normal clusters"
+     {
+     
+
+     number ref;
+     ref=-FLT_MAX;
+     number sum;
+     number ssum;
+     number pos;
+     number rms;
+     integer left,right,status,above,center;
+     for (int i=TRCLFFKEY.ThrClNEl[side]/2;
+     i<id.getmaxstrips()+TRCLFFKEY.ThrClNEl[side]/2+1;i++){
+     if(adc[i]<ref){
+      // cluster cand found
+      if( adc[i]< adc[i+1] && adc[i+1]> TRCLFFKEY.Thr1A[side]){
+      // "wide" cluster
+      status=AMSTrCluster::WIDE;
+      left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
+      i-TRCLFFKEY.ThrClNEl[side]/2);
+      center=i;
+      right=min(i+TRCLFFKEY.ThrClNEl[side]/2,
+            id.getmaxstrips()+(side==1?1:2)*(TRCLFFKEY.ThrClNEl[side]/2)-1);  
+      } 
+      else if(adc[i+1]<adc[i+2] && adc[i+2]>TRCLFFKEY.Thr1A[side]){
+       // two clusters near each other; take care about rightmost strip;
+      status=AMSTrCluster::NEAR;
+      left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
+      i-1-TRCLFFKEY.ThrClNEl[side]/2);
+      center=i-1;
+      right=min(i+TRCLFFKEY.ThrClNEl[side]/2-1,
+      id.getmaxstrips()+(side==1?1:2)*(TRCLFFKEY.ThrClNEl[side]/2)-1);    
+      }
+      else{
+       status=0;
+       left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
+       i-1-TRCLFFKEY.ThrClNEl[side]/2);
+       center=i-1;
+       right=min(i-1+TRCLFFKEY.ThrClNEl[side]/2,
+       id.getmaxstrips()+(side==1?1:2)*(TRCLFFKEY.ThrClNEl[side]/2)-1);   
+      }
+      sum=0;
+      ssum=0;
+      pos=0;
+      rms=0;
+      above=0;
+      //
+      // we don't know here the strip size (unfortunately...)
+      // so put 1 instead ...
+      // 
+      for (int j=left;j<right+1;j++){
+       id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
+       if(!id.checkstatus(AMSDBc::BAD) && 
+          adc[j]/id.getsig()>TRCLFFKEY.Thr3R[side]){
+        if(j-center<= -TRCLFFKEY.ThrClNEl[side]/2 && 
+           adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]){
+           left++;
+           j++;
+           id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
+           if(j-center< 0 && 
+           adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
+            left++;
+            continue;
+           }
+        }
+        if(j-center>= TRCLFFKEY.ThrClNEl[side]/2 && 
+           adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]){
+           right--;
+           id.upd(j-1-TRCLFFKEY.ThrClNEl[side]/2);
+           if(j-1-center> 0 && 
+           adc[j-1]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
+            right--;
+           }
+           
+           continue;
+        }
+       if(adc[j]>TRCLFFKEY.Thr2A[side])above++;
+        if(j==right+1 && status==AMSTrCluster::NEAR)sum+=adc[j]/2;
+        else sum+=adc[j];
+        ssum=ssum+pow(id.getsig(),2.);
+        pos=pos+1*(j-center)*adc[j];
+        rms=rms+pow(1*(j-center),2)*adc[j];
+       }
+       else adc[j]=0;
+      }
+       if(sum !=0){
+        rms=sqrt(fabs(rms*sum-pos*pos))/sum; 
+        pos=pos/sum+1*0.5;
+        ssum=sqrt(ssum);
+       }
+      ref=-FLT_MAX;
+      if(above >= TRCLFFKEY.ThrClNMin[side] && 
+         sum> TRCLFFKEY.ThrClA[side] && ssum > 0 && 
+         ssum < TRCLFFKEY.ThrClS[side] && sum/ssum > TRCLFFKEY.ThrClR[side]){
+         id.upd(center-TRCLFFKEY.ThrClNEl[side]/2);
+         if(right-left+1 > TRCLFFKEY.ThrClNEl[side]){
+           if(adc[left]>adc[right])right--;
+           else left++;
+         }
+           for (int j=left;j<right+1;j++){
+             if(j==right+1 && status==AMSTrCluster::NEAR)adc[j]=adc[j]/2;
+             else adc[j]=0;
+           }
+      }                      
+     }
+     else{
+      if(adc[i] > TRCLFFKEY.Thr1A[side]){
+       // susp bump found
+       id.upd(i-TRCLFFKEY.ThrClNEl[side]/2);
+       if(id.checkstatus(AMSDBc::BAD)==0 && 
+          id.getsig() < TRCLFFKEY.Thr1S[side] && 
+          adc[i]/id.getsig() > TRCLFFKEY.Thr1R[side] )ref=adc[i];
+      }
+     }
+     } 
+
+
+
+
+     }
+     // Now find "weak clusters"
+     {
+
+
+
+
      number ref;
      ref=-FLT_MAX;
      number sum;
@@ -497,7 +626,7 @@ integer AMSTrCluster::buildWeak(integer refit=0){
            else left++;
          }
          status=status | AMSTrCluster::WEAK;
-         if(id.getsig()!=0 && adc[center]/id.getsig()<= TRCLFFKEY.Thr1R[side])_addnext(
+         if(id.getsig()!=0 )_addnext(
          id,status,left-center,right-center+1,sum,ssum,pos,rms,adc+left);
          status=status &  (~AMSTrCluster::WEAK);
            for (int j=left;j<right+1;j++){
@@ -515,11 +644,23 @@ integer AMSTrCluster::buildWeak(integer refit=0){
           adc[i]/id.getsig() > TRMCFFKEY.thr1R[side] )ref=adc[i];
       }
      }
-     } 
+     }
+
+
+
+
+
+
+
+     }
+
+
+ 
      VZERO(adc,size/4);
-    }  
+    }
+     } 
      p=p->next();           
-  }
+   }
   }
   UPool.udelete(adc);
 

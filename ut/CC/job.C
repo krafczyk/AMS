@@ -151,6 +151,7 @@ void AMSJob::_sitrigdata(){
 // ANTI :
   LVL1FFKEY.nanti=2;// max. fired ANTI-paddles 
 //
+  LVL1FFKEY.RebuildLVL1=0;
   FFKEY("LVL1",(float*)&LVL1FFKEY,sizeof(LVL1FFKEY_DEF)/sizeof(integer),"MIXED");
 
 
@@ -183,8 +184,8 @@ void AMSJob::_sitrigdata(){
   LVL3FFKEY.Splitting=0.04;
   LVL3FFKEY.NRep=1;
   LVL3FFKEY.Accept=0;
-  LVL3FFKEY.RebuildLVL1=0;
-  LVL3FFKEY.NoK=0;
+  LVL3FFKEY.RebuildLVL3=0;
+  LVL3FFKEY.NoK=1;
   FFKEY("L3REC",(float*)&LVL3FFKEY,sizeof(LVL3FFKEY_DEF)/sizeof(integer),"MIXED");
 
 
@@ -758,6 +759,7 @@ BETAFITFFKEY.pattern[6]=1;
 BETAFITFFKEY.pattern[7]=1;
 BETAFITFFKEY.pattern[8]=1;
 BETAFITFFKEY.Chi2=10;
+BETAFITFFKEY.Chi2S=10;
 BETAFITFFKEY.SearchReg[0]=3.;
 BETAFITFFKEY.SearchReg[1]=3.;
 BETAFITFFKEY.SearchReg[2]=3.;

@@ -20,6 +20,7 @@ protected:
  number _Beta ;
  number _InvErrBeta;
  number _Chi2;
+ number _Chi2Space;
  void _printEl(ostream & stream);
  void _copyEl();
  void _writeEl();
@@ -28,15 +29,16 @@ protected:
 
 public:
  AMSBeta(): AMSlink(),_ptrack(0){for(int i=0;i<4;i++)_pcluster[i]=0;}
- AMSBeta(integer pattern, AMSTOFCluster * pcluster[4], AMSTrTrack * ptrack): 
-         AMSlink(),_Pattern(pattern),_ptrack(ptrack)
+ AMSBeta(integer pattern, AMSTOFCluster * pcluster[4], AMSTrTrack * ptrack, number chi2s): 
+         AMSlink(),_Pattern(pattern),_Chi2Space(chi2s),_ptrack(ptrack)
          {for(int i=0;i<4;i++)_pcluster[i]=pcluster[i];}
  AMSBeta(const AMSBeta & o): 
          AMSlink(o._status,o._next),_Pattern(o._Pattern),_Beta(o._Beta),
-         _InvErrBeta(o._InvErrBeta),_Chi2(o._Chi2),_ptrack(o._ptrack)
+         _InvErrBeta(o._InvErrBeta),_Chi2(o._Chi2),_Chi2Space(o._Chi2Space),_ptrack(o._ptrack)
          {for(int i=0;i<4;i++)_pcluster[i]=o._pcluster[i];}
 AMSBeta *  next(){return (AMSBeta*)_next;}
 number getchi2()const{return _Chi2;}
+number getchi2S()const{return _Chi2Space;}
 number getbeta()const{return _Beta;}
 number getebeta()const{return _InvErrBeta;}
 integer getpattern()const{return _Pattern;}
@@ -44,7 +46,7 @@ AMSTrTrack * getptrack()const {return _ptrack;}
 AMSTOFCluster * getpcluster(integer i){return i>=0 && i<4? _pcluster[i]:0;}
  void SimpleFit(integer nhit, number sleng[]);
 static integer _addnext(integer pat, integer nhit, number sleng[],
-AMSTOFCluster *ptr[], AMSTrTrack * ptrack, number theta);
+AMSTOFCluster *ptr[], AMSTrTrack * ptrack, number theta, number chi2s);
 static AMSPoint Distance(AMSPoint coo, AMSPoint ecoo, AMSTrTrack *ptr,
                        number & sleng, number & theta);
 static integer build(integer refit=0);

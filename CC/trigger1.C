@@ -38,7 +38,7 @@ void TriggerLVL1::build(){
     if((antipatt&cbt)>0)nanti+=1;//counts paddles
   }
   }
-  else if(LVL3FFKEY.RebuildLVL1){
+  else if(LVL1FFKEY.RebuildLVL1){
     (AMSEvent::gethead()->getC("TriggerLVL1",0))->eraseC();
     tofflag=1;
     AMSTOFRawCluster *pcl=(AMSTOFRawCluster*)AMSEvent::gethead()->getheadC("AMSTOFRawCluster",0);
@@ -111,15 +111,62 @@ void TriggerLVL1::builddaq(integer i, integer n, int16u *p){
   TriggerLVL1 *ptr=(TriggerLVL1*)AMSEvent::gethead()->
   getheadC("TriggerLVL1",i);
   *p=getdaqid();
+  //  if(ptr){
+    //   *(p+1)=int16u(ptr->_tofpatt[0]);
+    //   *(p+2)=int16u(ptr->_tofpatt[1]);
+    //   *(p+3)=int16u(ptr->_tofpatt[2]);
+    //   *(p+4)=int16u(ptr->_tofpatt[3]);
+    //   *(p+5)=int16u(ptr->_antipatt);
+    //   *(p+6)= ptr->_tofflag | ptr->_TriggerMode <<8;
+  //  }
+  for( i=1;i<n;i++)*(p+i)=0;
   if(ptr){
-   *(p+1)=int16u(ptr->_tofpatt[0]);
-   *(p+2)=int16u(ptr->_tofpatt[1]);
-   *(p+3)=int16u(ptr->_tofpatt[2]);
-   *(p+4)=int16u(ptr->_tofpatt[3]);
-   *(p+5)=int16u(ptr->_antipatt);
-   *(p+6)= ptr->_tofflag | ptr->_TriggerMode <<8;
+  // first anti
+  // -x  -z ; -x +z ; +x -z ; +x +z
+  // 5-12             1-4   13-16
+  
+  {  
+    integer cbt,lsbit(1);
+    integer antipatt=ptr->_antipatt;
+    integer nanti=0;
+    for(i=4;i<12;i++){
+     cbt=lsbit<<i;
+     if((antipatt&cbt)>0)nanti++;
+    }
+    if(nanti>3)nanti=3;
+    *(p+1)=*(p+1) | (nanti<<8) | (nanti<<10);
   }
-  else for(int i=1;i<n;i++)*(p+i)=0;
+  {  
+    integer cbt,lsbit(1);
+    integer antipatt=ptr->_antipatt;
+    integer nanti=0;
+    for(i=0;i<4;i++){
+     cbt=lsbit<<i;
+     if((antipatt&cbt)>0)nanti++;
+    }
+    for(i=12;i<16;i++){
+     cbt=lsbit<<i;
+     if((antipatt&cbt)>0)nanti++;
+    }
+    if(nanti>3)nanti=3;
+    *(p+1)=*(p+1) | (nanti<<12) | (nanti<<14);
+   }
+
+  // Word 2 Z > 1
+  if(ptr->_tofflag>1)*(p+2)=*(p+2) | (1<<4);
+
+  // Words 3-10  
+       *(p+3)=int16u(ptr->_tofpatt[3]);
+       *(p+4)=int16u(ptr->_tofpatt[2]);
+       *(p+5)=int16u(ptr->_tofpatt[1]);
+       *(p+6)=int16u(ptr->_tofpatt[0]);
+
+       *(p+7)=int16u(ptr->_tofpatt[3]);
+       *(p+8)=int16u(ptr->_tofpatt[2]);
+       *(p+9)=int16u(ptr->_tofpatt[1]);
+       *(p+10)=int16u(ptr->_tofpatt[0]);
+
+  }   
 }
 
 void TriggerLVL1::buildraw(integer n, int16u *p){
@@ -130,13 +177,24 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
 
   }
   integer z,mode,antip,tofp[4];  
-  tofp[0]=*(p+1);
-  tofp[1]=*(p+2);
-  tofp[2]=*(p+3);
-  tofp[3]=*(p+4);
-  antip=*(p+5);
-  z=(*(p+6))&255;
-  mode=((*(p+6))>>8)&255;
+  //  tofp[0]=*(p+1);
+  //  tofp[1]=*(p+2);
+  //  tofp[2]=*(p+3);
+  //  tofp[3]=*(p+4);
+  //  antip=*(p+5);
+  //  z=(*(p+6))&255;
+  //  mode=((*(p+6))>>8)&255;
+  mode=*(p+2);
+  tofp[0]=*(p+6) | *(p+10);
+  tofp[1]=*(p+5) | *(p+9);
+  tofp[2]=*(p+4) | *(p+8);
+  tofp[3]=*(p+3) | *(p+7);
+  z=1;
+  if(*(p+2) & 1<<4)z=3;
+  //anti
+  integer xneg= (((*(p+1) >> 8) & 3) & ((*(p+1) >> 10) & 3)); 
+  integer xpos= (((*(p+1) >> 12) & 3) & ((*(p+1) >> 14) & 3)); 
+  antip = xpos | (xneg <<4);
   if(z>0)AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
   TriggerLVL1(mode,z,tofp,antip));
 

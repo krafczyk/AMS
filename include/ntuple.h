@@ -16,7 +16,7 @@ int Pattern;
 float Beta;
 float Error;
 float Chi2;
-
+float Chi2S;
 friend class AMSBeta;
 
 };
