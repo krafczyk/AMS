@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.10 2001/08/01 13:28:50 choutko Exp $
+//  $Id: ecalrec.h,v 1.11 2001/08/03 13:26:48 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -218,7 +218,7 @@ _NClustKernel=_NClust;
    Ecal2DCluster *p =dynamic_cast<Ecal2DCluster*>(&o);
    if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
    else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0;
-   else return !p || _EnergyC < p->_EnergyC;
+   else return !p || _EnergyC > p->_EnergyC;
 }
 //
   integer getproj(){return _proj;}

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.28 2001/08/03 09:14:04 choutko Exp $
+//  $Id: ecalrec.C,v 1.29 2001/08/03 13:26:37 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -1176,7 +1176,7 @@ integer EcalShower::build(int rerun){
 // Loop over 2dcluster
    for(;;){
       Ecal2DCluster *p2d=(Ecal2DCluster*)AMSEvent::gethead()->
-                       getheadC("Ecal2DCluster",0,1);
+                       getheadC("Ecal2DCluster",0,2);
 
       number BestMatch=FLT_MAX;
       Ecal2DCluster *p2dc[2]={0,0};      

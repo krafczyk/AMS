@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.45 2001/08/01 13:28:51 choutko Exp $
+//  $Id: root.h,v 1.46 2001/08/03 13:26:48 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -120,10 +120,7 @@ public:
   float VelPhi;
   float ThetaM;
   float PhiM;
-  int Particles;
   int Tracks;
-  int Betas;
-  int Charges;
   int TrRecHits;
   int TrClusters;
   int TrRawClusters;
@@ -794,9 +791,9 @@ public:
   float GChi2[MAXTRTR02];
   float GRidgidity[MAXTRTR02];
   float GErrRidgidity[MAXTRTR02];
-  float GTheta[MAXTRTR02];
-  float GPhi[MAXTRTR02];
-  float GP0[MAXTRTR02][3];
+//  float GTheta[MAXTRTR02];
+//  float GPhi[MAXTRTR02];
+//  float GP0[MAXTRTR02][3];
   float HChi2[MAXTRTR02][2];
   float HRidgidity[MAXTRTR02][2];
   float HErrRidgidity[MAXTRTR02][2];

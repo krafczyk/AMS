@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.269 2001/08/01 13:28:43 choutko Exp $
+//  $Id: event.C,v 1.270 2001/08/03 13:26:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1053,6 +1053,7 @@ for(int il=0;il<2;il++){
 }
 
   AMSEvent::gethead()->getheadC("Ecal2DCluster",0,2); 
+  AMSEvent::gethead()->getheadC("EcalShower",0,2); 
 
 
    
@@ -2529,10 +2530,10 @@ else{ // <------------------ AMS02
   EN->VelPhi=fmod(_VelPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
   integer  i,nc;
   AMSContainer *p;
-  EN->Particles=0;
+//  EN->Particles=0;
   EN->Tracks=0;
-  EN->Betas=0;
-  EN->Charges=0;
+//  EN->Betas=0;
+//  EN->Charges=0;
   EN->TrRecHits=0;
   EN->TrClusters=0;
   EN->TrRawClusters=0;
@@ -2551,11 +2552,6 @@ else{ // <------------------ AMS02
   EN->RICMCClusters=0;//CJM
   EN->RICHits=0;//CJM
   getmag(EN->ThetaM,EN->PhiM);
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSParticle",i);
-   if(p) EN->Particles+=p->getnelem();
-   else break;
-  }  
 
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSTrTrack",i);
@@ -2563,17 +2559,7 @@ else{ // <------------------ AMS02
    else break;
   }
 
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSBeta",i);
-   if(p) EN->Betas+=p->getnelem();
-   else break;
-  }
 
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSCharge",i);
-   if(p) EN->Charges+=p->getnelem();
-   else break;
-  }
 
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSTrRecHit",i);

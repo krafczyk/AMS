@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.129 2001/08/02 16:42:37 choutko Exp $
+//  $Id: trrec.C,v 1.130 2001/08/03 13:26:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2359,17 +2359,11 @@ else{
      TrTN->GChi2[TrTN->Ntrtr]=(geant)_GChi2;
      TrTN->GRidgidity[TrTN->Ntrtr]=(geant)_GRidgidity;
      TrTN->GErrRidgidity[TrTN->Ntrtr]=(geant)_GErrRidgidity;
-     TrTN->GTheta[TrTN->Ntrtr]=(geant)_GTheta;
-     TrTN->GPhi[TrTN->Ntrtr]=(geant)_GPhi;
-     for(i=0;i<3;i++)TrTN->GP0[TrTN->Ntrtr][i]=(geant)_GP0[i];
     }
     else{
      TrTN->GChi2[TrTN->Ntrtr]=-1;
      TrTN->GRidgidity[TrTN->Ntrtr]=0;
      TrTN->GErrRidgidity[TrTN->Ntrtr]=0;
-     TrTN->GTheta[TrTN->Ntrtr]=0;
-     TrTN->GPhi[TrTN->Ntrtr]=0;
-     for(i=0;i<3;i++)TrTN->GP0[TrTN->Ntrtr][i]=0;
     } 
     if(_AdvancedFitDone){
      for(i=0;i<2;i++)TrTN->HChi2[TrTN->Ntrtr][i]=(geant) _HChi2[i];

@@ -1,5 +1,10 @@
-#  $Id: ntuple02.doc,v 1.18 2001/08/01 13:28:50 choutko Exp $
+#  $Id: ntuple02.doc,v 1.19 2001/08/03 13:26:47 choutko Exp $
 This is AMS02 Ntuple Description
+
+
+
+
+
 
  *****************************************
 * Type *   Range   *  Block   *  Name    *
@@ -27,10 +32,7 @@ This is AMS02 Ntuple Description
 * R*4  *           * EVENTH   * VelPhi           // speed phi (GTOD rad) 
 * R*4  *           * EVENTH   * ThetaM           // Magnetic Latitude ***)
 * R*4  *           * EVENTH   * PhiM             // Magnetic Longitude ***)
-* I*4  *           * EVENTH   * Particles        // No of Particles
 * I*4  *           * EVENTH   * Tracks           // No of Tracks
-* I*4  *           * EVENTH   * Betas            // No of Betas
-* I*4  *           * EVENTH   * Charges          // No of Charges
 * I*4  *           * EVENTH   * TrRecHits        // No of 3 dim trackerpoints
 * I*4  *           * EVENTH   * TrClusters       // No of Tr Clusters
 * I*4  *           * EVENTH   * TrRawClusters    // No of Tr Raw Clusters
@@ -235,9 +237,6 @@ This is AMS02 Ntuple Description
 * R*4  *           * TRTRACK  * gchi2(ntrtr)	     // geane chi2
 * R*4  *           * TRTRACK  * gridgidity(ntrtr)    // ------ rigidity
 * R*4  *           * TRTRACK  * gerrridgidity(ntrtr) // error to 1/above
-* R*4  *           * TRTRACK  * gtheta(ntrtr)	     // -------- theta
-* R*4  *           * TRTRACK  * gphi(ntrtr)	     // -------- phi
-* R*4  *           * TRTRACK  * gp0(3,ntrtr)	     // ------ coords
 * R*4  *           * TRTRACK  * hchi2(2,ntrtr)	     // two halves chi2s
 * R*4  *           * TRTRACK  * HRidgidity(2,ntrtr)  // -------- rigities
 * R*4  *           * TRTRACK  * HErrRidgidity(2,ntrtr) // errors to 1/above
@@ -448,17 +447,16 @@ This is AMS02 Ntuple Description
  * I*4  *          * RICMCCL  * phit(nsignals)        // Pointer to the
                                                       // hit if sid=50 or -666
  * I*4  * [0,100]  * RICEVENT * Rhits                 // Number of hits
- * I*4  *          * RICEVENT * Rchannel(Rhits)       // Channel
- * I*4  *          * RICEVENT * Radc(Rhits)           // ADC counts
- * R*4  *          * RICEVENT * Rx(Rhits)             // X pos. of the channel
- * R*4  *          * RICEVENT * Ry(Rhits)             // Y pos. of the channel
+ * I*4  *          * RICEVENT * Rchtchannel(Rhits)       // Channel
+ * I*4  *          * RICEVENT * Rchtadc(Rhits)           // ADC counts
+ * R*4  *          * RICEVENT * Rchtx(Rhits)             // X pos. of the channel
+ * R*4  *          * RICEVENT * Rchty(Rhits)             // Y pos. of the channel
  * I*4  * [0,100]  * RING     * nrings                // Nb of rings created in rich rec
- * I*4  *          * RING     * trackn(nrings)        // Pointer to track
- * I*4  *          * RING     * hused(nrings)         // Nb. of RICH hits in a ring matching the track
- * R*4  *          * RING     * rbeta(nrings)         // Reconstructed beta
- * R*4  *          * RING     * rbeta(nrings)         // Reconstructed beta
- * R*4  *          * RING     * erichbeta(nrings)         // error beta
- * R*4  *          * RING     * quality(nrings)       // Chi2/ndof for the beta
+ * I*4  *          * RING     * rcritrackn(nrings)        // Pointer to track
+ * I*4  *          * RING     * rcrihused(nrings)         // Nb. of RICH hits in a ring matching the track
+ * R*4  *          * RING     * rcrirbeta(nrings)         // Reconstructed beta
+ * R*4  *          * RING     * rcriebeta(nrings)         // error beta
+ * R*4  *          * RING     * rcrichi2(nrings)       // Chi2/ndof for the beta
 
  * I*4  *          * TRDMCCL  * ntrdmccl              // no of trd clusters
  * U*4  *          * TRDMCCL  * trdlayermc(ntrdmccl)  //layer (up==0)
@@ -582,4 +580,25 @@ NOTE: The information of the mother is only available if RICCONT=1 in
 1      alpha-osf 
 2      i386-linux
 3      reserved for future candidate
+
+
+
+
+-------------
+Known bugs:
+
+a. "HUWFUN: Not space to store COMMON definition"
+    after nt/uwfunc 1 blabla.f
+  
+    Workaround:
+    
+    note last word in /PAWCR4/ common
+    nt/print 1
+   
+    add missing words to blabla.f according their order
+    in /nt/print 1 output
+    
+
+
+
 
