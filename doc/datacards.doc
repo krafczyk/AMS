@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.205 2001/12/04 15:13:25 choutko Exp $
+#  $Id: datacards.doc,v 1.206 2001/12/20 13:13:45 mdelgado Exp $
 Datacards
 
 // Protection from some myst bug
@@ -252,6 +252,8 @@ R 10 light_guides_length(3)	// PMT box size
 RICCONT
 I 1  iflgk_flag(0)              // Activate the use of the GCTRAK.iflgk=1 in the tracking
 I 2  recon(1)                   // RICH reconstruction (1) or not (0)
+I 3  setup(0)                   // Use official geometry with 1000 PMTs (0) or unofficial one
+                                // with 732 (1) 
 
 
 //--------------------------------------------------------------------------------
