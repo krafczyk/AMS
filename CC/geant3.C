@@ -208,10 +208,9 @@ extern "C" void gustep_(){
 	      
 	      if(100*rnumber<ieff) // Detected!!!
 		{ 
-		  AMSRichMCHit::sirichhits(GCVOLU.number[lvl-1]-1,
+		  AMSRichMCHit::sirichhits(GCKINE.ipart,
+					   GCVOLU.number[lvl-1]-1,
 					   GCTRAK.vect,
-					   GCTRAK.getot,
-					   GCKINE.ipart,
 					   GCKINE.vert,
 					   GCKINE.pvert);
 		}
@@ -221,12 +220,12 @@ extern "C" void gustep_(){
 	 
 
 	default:
-	  AMSRichMCHit::sirichhits(GCVOLU.number[lvl-1]-1,
+	  AMSRichMCHit::sirichhits(GCKINE.ipart,
+				   GCVOLU.number[lvl-1]-1,
 				   GCTRAK.vect,
-				   GCTRAK.getot,
-				   GCKINE.ipart,
 				   GCKINE.vert,
 				   GCKINE.pvert);
+				   
 	  break;
    	}
     }

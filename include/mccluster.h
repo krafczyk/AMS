@@ -118,43 +118,38 @@ public:
 class AMSRichMCHit: public AMSlink{
 protected:
 
-// Information about the hit
+  integer _id;        // Number of geant particle or -666 for noise
+  integer _channel;   // Channel number (presently 16*pmt#+window#)
+  geant _counts;      // ADC counts for this hits
+  AMSPoint _origin;   // Particle origin (if applicable)
+  AMSPoint _direction;// Particle direction in the origin (if applicable)
 
-  integer _idsoft; // PMT number-1
-  AMSPoint _xcoo;  // Coordinates of the hit in the cathode 
-  number _energy;  // Particle energy on the hit
-  integer _kind;   // Particle id to simulate the detector
-
-// Information about the particle
-
-  AMSPoint _origin; // Coordinates of the origin of the particle
-  AMSPoint _momentum; // Momentum at the origin
 
 
 public:
 
-  AMSRichMCHit(integer idsoft,AMSPoint xcoo,number energy,integer kind,
-	       AMSPoint origin,AMSPoint momentum) :
-    AMSlink(),_idsoft(idsoft),_xcoo(xcoo),_energy(energy),_kind(kind),
-    _origin(origin),_momentum(momentum){};
+  AMSRichMCHit(integer id,integer channel,geant counts,AMSPoint origin,AMSPoint direction) :
+    AMSlink(),_id(id),_channel(channel),_counts(counts),_origin(origin),_direction(direction){};
   AMSRichMCHit():AMSlink(){};
   ~AMSRichMCHit(){};
 
-  void _printEl(ostream &stream){stream <<"AMSRichMCHit "<<_idsoft<<endl;}
+  void _printEl(ostream &stream){stream <<"AMSRichMCHit "<<_channel<<endl;}
   void _writeEl();
   void _copyEl(){};
   AMSRichMCHit *  next(){return (AMSRichMCHit*)_next;}
   integer operator < (AMSlink & o)const{
-    return _idsoft < ((AMSRichMCHit*)(&o)) ->_idsoft;}
+    return _channel < ((AMSRichMCHit*)(&o)) ->_channel;}
 
-  static void sirichhits(integer idsoft , geant vect[],geant energy,integer kind,geant origin[],geant momentum[]);
-
-  integer getid() const {return _idsoft;}
-  number getenergy() const {return _energy;}
-  integer getkind() const {return _kind;}
-  geant getcoo(integer i){return i>=0 && i<3 ? _xcoo[i]:0;} 
+  static void sirichhits(integer id, integer pmt,geant position[],geant origin[],geant momentum[]);
+  static void noisyhit(integer channel); // Add noise
+  static geant adc_hit();   // Compute the adc counts
+  static geant adc_empty();
+  static geant noise();
+  integer getid() const {return _id;}
+  integer getchannel() const {return _channel;}
+  geant getcounts() const {return _counts;}
   const AMSPoint & getorigin(){return _origin;}
-  const AMSPoint & getmomentum(){return  _momentum;}
+  const AMSPoint & getdirection(){return  _direction;}
 };
 
 

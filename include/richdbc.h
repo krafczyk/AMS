@@ -19,7 +19,6 @@ const geant   RICcatolength=2*.875; // cathode window length
 const geant   RICpmtlength=4.5;     // phototube length
 const geant   RICeleclength=0.5;    // electronics
 const geant   RICpmtsupport=1.5;   // suppot structure thickness
-const integer Cerenkov_Photon=50;   // may be different in geant4???? check
 
 const geant   RICradpos=-76.66;// Top of the radiator position
 const geant   sq2=1.4142135623;// useful constant:sqrt(2)
@@ -31,7 +30,13 @@ const integer RICentries=44;   // no. of entries in wave_length,eff...
 const integer RICmaxpmts=2000; // max no. of pmts
 const integer RICnwindows=16;  // Number of windows for pmt
 const integer RIChistos=30000; // Starting point for RICH histos 
+
+// Particle types
+
+const integer Cerenkov_photon=50; //Geant3 case
+const integer Noise=-666;
 }
+
 using namespace richconst;
 				   
 class RICHDB { 
@@ -76,7 +81,8 @@ public: // To be migrated in the future
 
   // For detection purposes
 
-  static integer c_ped;
+  static geant c_ped;      // Detection treshold
+  static geant prob_noisy; // Probability of noise for one channel
 
 
   //--------- PMT array parameters
@@ -88,18 +94,8 @@ public: // To be migrated in the future
 
 
 public:
-
-  //Initialisation
-
-  // Add news pmts: called from amsgeom... to be eliminated
-  static void add_row(geant);
-  static void add_pmt();
-
-  // Get coordinates given PMT number and window number
-  static geant x(integer pmt,integer window);
-  static geant y(integer pmt,integer window);
-
-  static geant pmt_response(integer n_photons);
+  static geant x(integer);
+  static geant y(integer);
   static void bookhist();
   static geant total_height();
   static geant mirror_pos();

@@ -30,6 +30,8 @@ const int MAXCTCCLMC =   200;
 const int MAXECCLUST =    50;
 const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
+const int MAXRICMC   =   200;
+const int MAXRICHITS =   100;
 
 #ifdef __WRITEROOT__
 class EventNtuple: public TObject {
@@ -635,4 +637,49 @@ ClassDef(TOFRawClusterNtuple ,1)       //TOFRawClusterNtuple
 };
 
 
+#ifdef __WRITEROOT__
+class RICMCNtuple : public TObject {
+#else
+class RICMCNtuple {
 #endif
+public:
+  int NMC;
+  int id[MAXRICMC];
+  int channel[MAXRICMC];
+  int adc[MAXRICMC];
+  float x[MAXRICMC];
+  float y[MAXRICMC];
+  float origin[MAXRICMC][3];
+  float direction[MAXRICMC][3];
+
+friend class AMSRichMCHit;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(RICMCNtuple,1)
+#endif
+};
+
+
+#ifdef __WRITEROOT__
+class RICEventNtuple : public TObject {
+#else
+class RICEventNtuple {
+#endif
+public:
+  int Nhits;
+  int channel[MAXRICHITS];
+  int adc[MAXRICHITS];
+  float x[MAXRICHITS];
+  float y[MAXRICHITS];
+
+friend class AMSRichRawEvent;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(RICEventNtuple,1)
+#endif
+};
+
+
+#endif
+
+

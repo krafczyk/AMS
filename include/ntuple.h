@@ -32,6 +32,8 @@ protected:
   AntiRawClusterNtuple _antiraw;
   TOFRawClusterNtuple _tofraw;
   EcalClusterNtuple _ecclust;
+  RICMCNtuple _richmc;
+  RICEventNtuple _richevent;
 #ifdef __WRITEROOT__
   static TTree* _tree;  
   static TFile* _rfile;
@@ -72,8 +74,12 @@ public:
   AntiRawClusterNtuple* Get_antiraw() {return &_antiraw;}
   TOFRawClusterNtuple* Get_tofraw() {return &_tofraw;}
   EcalClusterNtuple* Get_ecclust() {return &_ecclust;}
+  RICMCNtuple* Get_richmc() {return &_richmc;}
+  RICEventNtuple* Get_richevent() {return &_richevent;}
 
 //ClassDef(AMSNtuple ,1)       //AMSNtuple
 };
 
 #endif
+
+

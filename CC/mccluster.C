@@ -10,6 +10,7 @@
 #include <amsstl.h>
 #include <cont.h>
 #include <ntuple.h>
+#include <richdbc.h>
 
 integer AMSTrMCCluster::debug(1);
 integer AMSTrMCCluster::_ncha(100);
@@ -398,20 +399,110 @@ void AMSEcalMCHit::_writeEl(){
 
 //--------RICH------------
 
-void AMSRichMCHit::sirichhits(integer idsoft , geant vect[],
-			      geant energy,integer kind,
+void AMSRichMCHit::sirichhits(integer id,
+			      integer pmt, geant position[], // used to compute channel
 			      geant origin[],geant momentum[])
 {
-
-  AMSPoint p(vect[0],vect[1],vect[2]);
   AMSPoint r(origin[0],origin[1],origin[2]);
   AMSPoint u(momentum[0],momentum[1],momentum[2]);
+  geant adc;
+
+  switch(id){
+  case Noise:
+    adc=AMSRichMCHit::adc_empty();
+    break;
+  case Cerenkov_photon:
+    adc=AMSRichMCHit::adc_hit();
+    break;
+  }
+
+
+  if(pmt>RICHDB::total || pmt<0){
+    cerr<<"AMSRichMCHit::sirichhits-ErrorNoPMT " << pmt<<endl;
+    return;
+  }
+
+  geant x=position[0]-RICHDB::pmt_p[pmt][0]+RICcatolength/2;
+  geant y=position[1]-RICHDB::pmt_p[pmt][1]+RICcatolength/2;
+  x/=RICcatolength/sqrt(RICnwindows);
+  y/=RICcatolength/sqrt(RICnwindows);
+  integer channel=RICnwindows*pmt+integer(sqrt(RICnwindows))*integer(y)+integer(x);
+
   AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
-			       new AMSRichMCHit(idsoft,p,energy,kind,
+			       new AMSRichMCHit(id,channel,adc,
 						r,u));
 }
 
-void AMSRichMCHit::_writeEl(){}
+
+void AMSRichMCHit::noisyhit(integer channel){
+  AMSPoint r(0,0,0);
+  AMSPoint u(0,0,0);
+  AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
+			       new AMSRichMCHit(Noise,channel,AMSRichMCHit::noise(),r,u));
+}
+
+
+geant AMSRichMCHit::adc_hit(){ // ADC counts fo a hit
+  geant u1,u2,dummy,r;
+ 
+  do{do{
+    u1=2*RNDM(dummy)-1;
+    u2=2*RNDM(dummy)-1;
+    r=(u1*u1+u2*u2);
+  }while(r>1.);
+  u2=u1*sqrt(-2*log(r)/r)*RICHDB::sigma_peak+RICHDB::peak;
+  }while(u2<-2.);
+  return u2;
+}
+
+geant AMSRichMCHit::adc_empty(){ // ADC count without a hit
+  geant u1,u2,dummy,r;
+ 
+  do{
+    u1=2*RNDM(dummy)-1;
+    u2=2*RNDM(dummy)-1;
+    r=(u1*u1+u2*u2);
+  }while(r>1.);
+  return u1*sqrt(-2*log(r)/r)*RICHDB::sigma_ped+RICHDB::ped;
+}
+
+
+geant AMSRichMCHit::noise(){ // ADC counts above the pedestal
+  geant u1,u2,dummy,r;
+ 
+  do{do{
+    u1=2*RNDM(dummy)-1;
+    u2=2*RNDM(dummy)-1;
+    r=(u1*u1+u2*u2);
+  }while(r>1.);
+  u2=u1*sqrt(-2*log(r)/r);
+  }while(u2<RICHDB::c_ped);
+  return u2*RICHDB::sigma_ped+RICHDB::ped;
+}
+
+
+void AMSRichMCHit::_writeEl(){
+
+  RICMCNtuple* cluster=AMSJob::gethead()->getntuple()->Get_richmc();
+
+  if(cluster->NMC>=MAXRICMC) return; 
+
+// Here we need a flag with the IOPA to write it or not
+
+  cluster->id[cluster->NMC]=_id;
+  cluster->channel[cluster->NMC]=_channel;
+  cluster->adc[cluster->NMC]=int(_counts);
+  cluster->x[cluster->NMC]=RICHDB::x(_channel);
+  cluster->y[cluster->NMC]=RICHDB::y(_channel);
+  cluster->origin[cluster->NMC][0]=_origin[0];
+  cluster->origin[cluster->NMC][1]=_origin[1];
+  cluster->origin[cluster->NMC][2]=_origin[2];
+  cluster->direction[cluster->NMC][0]=_direction[0];
+  cluster->direction[cluster->NMC][1]=_direction[1];
+  cluster->direction[cluster->NMC][2]=_direction[2];
+  cluster->NMC++;
+
+}
 
 //--------END--------------
 

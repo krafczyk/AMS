@@ -15,94 +15,81 @@
 //#include <vector>
 #include <valarray>
 void AMSRichRawEvent::mc_build(){
-  valarray<integer> n_hits(0,RICnwindows);
-  valarray<AMSPoint> origin(RICnwindows);
-  valarray<AMSPoint> momentum(RICnwindows);
-/*
-  vector<integer> n_hits(RICnwindows,0);
-  vector<AMSPoint> origin(RICnwindows);
-  vector<AMSPoint> momentum(RICnwindows);
-*/
-  
-#ifdef __AMSDEBUG__
-  integer total=0;
-  integer real=0;
-#endif
+  // Add noise...
 
-  // First clean up array
-{
-     // do not need any more as done during init
-}  
+  geant mean_noisy=integer(RICnwindows*RICHDB::total*RICHDB::prob_noisy);
+  int dummy1;
+  integer n_noisy;
+
+  POISSN(mean_noisy,n_noisy,dummy1);
+
+  for(int i=0;i<n_noisy;i++){
+    // Get a random channel number and make it noisy
+
+    integer channel=integer(RICnwindows*RICHDB::total*RNDM(dummy1));
+    AMSRichMCHit::noisyhit(channel);
+  }
+
+
+  // Construct event: channel signals
+
   
+  char with_noise=0; // flag to add the noise
+  geant signal=0;
+
   // Fill it with the values stored on AMSRichMCHit
   for(AMSRichMCHit* hits=(AMSRichMCHit *)AMSEvent::gethead()->getheadC("AMSRichMCHit",0,1);
       hits;hits=hits->next())
     {
-      uinteger pmt=hits->getid();
-      if(pmt>=RICmaxpmts){
-          cerr<< "AMSRichRawEvent::mc_build-PMTNoError "<<pmt<<endl;
+      uinteger channel=hits->getchannel();
+      
+      if(channel>=RICnwindows*RICHDB::total){
+          cerr<< "AMSRichRawEvent::mc_build-ChannelNoError "<<channel<<endl;
           break;
       }
-      switch(hits->getkind()){
-      case Cerenkov_Photon:
-	geant x=hits->getcoo(0)-RICHDB::pmt_p[pmt][0]+RICcatolength/2;
-	geant y=hits->getcoo(1)-RICHDB::pmt_p[pmt][1]+RICcatolength/2;
-	x/=RICcatolength/4;
-	y/=RICcatolength/4;
-	uinteger window=4*integer(y)+integer(x);
-        if(window>=RICnwindows ){
-         cerr<< "AMSRichRawEvent::mc_build-WindowNoError "<<window<<endl;
-         break;
-        }
-	n_hits[window]++;
-	origin[window]=hits->getorigin();
-	momentum[window]=hits->getmomentum();
-    
+
+
+      switch(hits->getid()){
+      case Noise:
+	with_noise=1;
+	signal+=hits->getcounts();
+	break;
+      case Cerenkov_photon:
+	signal+=hits->getcounts();    
 	break;
       }
       if(hits->testlast()){
-       for(int j=0;j<RICnwindows;j++){
-	if(n_hits[j]==0) continue;
-        integer adc=integer(RICHDB::pmt_response(n_hits[j]));
-#ifdef __AMSDEBUG__
-        if(n_hits[j]>0) total++;
-#endif
-        if(adc>RICHDB::c_ped){// So we get a signal
-     	 AMSEvent::gethead()->
+        integer adc=integer(signal+(with_noise?0:AMSRichMCHit::adc_empty()));
+	signal=0;
+	with_noise=0;
+
+        if(adc>RICHDB::sigma_ped*RICHDB::c_ped+RICHDB::ped){// So we get a signal
+ 
+    	 AMSEvent::gethead()->
 	  addnext(AMSID("AMSRichRawEvent",0), 
-          new AMSRichRawEvent(16*pmt+j,n_hits[j]>0?0:1,adc,
-                  RICHDB::pmt_p[pmt][0]+(j%4)*RICcatolength/4-RICcatolength/2,
-		  RICHDB::pmt_p[pmt][1]+(j/4)*RICcatolength/4-RICcatolength/2,
-                  n_hits[j]>0?origin[j]:AMSPoint(),n_hits[j]>0?momentum[j]:AMSPoint()));
+          new AMSRichRawEvent(channel,adc));
       
   
-#ifdef __AMSDEBUG__
-	real++;
-#endif
-    }
-
-#ifdef __AMSDEBUG__
-      if(n_hits[j])
-	HF1(RIChistos+1,adc,1.);
-      else
-	HF1(RIChistos+2,adc,1.);
-#endif
-}
-       // clean up the array
-       //       for(int iw=0;iw<RICnwindows;iw++)n_hits[iw]=0;
-        n_hits=0;           // for valarray only 
+	}
       }
     }
 
-
-
-#ifdef __AMSDEBUG__
-  if(total>2) HF1(RIChistos+0,total,1.);  
-  if(real>0){
-    cout<<"RICH:mc_build Number of hits detected:" << real << endl;
-    cout<<"RICH:mc_build Number of hits in the realm:" << total <<endl;
-  }
-#endif
 }
+
+
+void AMSRichRawEvent::_writeEl(){
+  
+  RICEventNtuple* cluster=AMSJob::gethead()->getntuple()->Get_richevent();
+  
+  if(cluster->Nhits>=MAXRICHITS) return;
+
+  cluster->channel[cluster->Nhits]=_channel;
+  cluster->adc[cluster->Nhits]=_counts;
+  cluster->x[cluster->Nhits]=RICHDB::x(_channel);
+  cluster->y[cluster->Nhits]=RICHDB::y(_channel);
+  cluster->Nhits++;
+
+}
+
 
 

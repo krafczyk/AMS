@@ -73,131 +73,8 @@ geant RICHDB::ped=-0.2888;      // Values extracted from A. Contin talk
 geant RICHDB::sigma_ped=0.5335; // January 11 1999
 geant RICHDB::peak=22.75;
 geant RICHDB::sigma_peak=12.10;
-integer RICHDB::c_ped=integer(-.2888+4*0.5335); 
-
-
-
-
-geant RICHDB::x(integer pmt,integer window){
-  /*
-  integer w=(window-1)%4;
-  geant offset=(lg_tile_size-2*RICotherthk)/4;  
-
-
-  switch(w){
-  case 0:
-    offset*=-1.5;
-    break;
-  case 1:
-    offset*=-0.5;
-    break;
-  case 2:
-    offset*=0.5;
-    break;
-  case 3:
-    offset*=1.5;
-    break;
-  }
-
-
-  w=(pmt-1)%4;
-  geant sx=1.;
-
-  switch(w){
-  case 1:
-  case 3: 
-    sx=-1.;
-    break;
-  }
-
-  pmt=(pmt-1)/4;
-
-  integer nr=0;
-
-  while(pmt>n_pmts[nr]){pmt-=n_pmts[nr];nr++;};
-
-  return (first[nr]+pmt*lg_tile_size)*sx+offset;
-  */
-  return 0;
-}
-
-
-geant RICHDB::y(integer pmt,integer window){
-  /*  
-  integer w=(window-1)/4;
-  geant offset=(lg_tile_size-2*RICotherthk)/4;
-
-  switch(w){
-  case 0:
-    offset*=1.5;
-    break;
-  case 1:
-    offset*=0.5;
-    break;
-  case 2:
-    offset*=-0.5;
-    break;
-  case 3:
-    offset*=-1.5;
-    break;
-  }
-
-  w=(pmt-1)%4;
-  geant sx=1.;
-  
-  switch(w){
-  case 2:
-  case 3: 
-    sx=-1.;
-    break;
-  }
-
-  pmt=(pmt-1)/4;
-
-  integer nr=0;
-  
-  while(pmt>n_pmts[nr]){pmt-=n_pmts[nr];nr++;};
-  return (lg_tile_size/2+nr*lg_tile_size)*sx+offset;
-  */
-  return 0;
-}
-
-void RICHDB::add_row(geant x){
-  /*
-  n_rows++;
-  n_pmts[n_rows-1]=1;
-  first[n_rows-1]=x;
-  */
-}
-
-
-void RICHDB::add_pmt(){
-  /* 
- n_pmts[n_rows-1]++;
- */
-}
-
-
-geant RICHDB::pmt_response(integer n_photons){ // Quite unefficient 
-  geant u1,u2;
-  geant dummy=0;
-  geant r;
-do{
-  do{
-    u1=2*RNDM(dummy)-1;
-    u2=2*RNDM(dummy)-1;
-    
-    r=(u1*u1+u2*u2);
-  }while(r>=1); // Obtain a point in 2d uniform in rE[0,1)
-
-  u2=u1*sqrt(-2*log(r)/r)*sqrt(sigma_ped*sigma_ped+
-				       n_photons*sigma_peak*sigma_peak)+
-    n_photons*peak+ped;  // u2 is gaussian distributed
-}while(u2<-2);
-return u2;
-}
-
-
+geant RICHDB::c_ped=4.;         // N of sigmas for the detection treshold 
+geant RICHDB::prob_noisy=0.5*DERFC(RICHDB::c_ped/sqrt(2.));
 
 
 void RICHDB::bookhist(){
@@ -279,7 +156,28 @@ geant RICHDB::lg_mirror_pos(integer i)
   return 0;
 }
 
+geant RICHDB::x(integer channel)
+{
+  integer pmt=channel/RICnwindows;
+  integer window=channel%RICnwindows;
 
+  geant x=pmt_p[pmt][0]+(window%integer(sqrt(RICnwindows))
+			 -integer(sqrt(RICnwindows))/2)*RICcatolength/sqrt(RICnwindows);
+
+  return x;
+}
+  
+
+geant RICHDB::y(integer channel)
+{
+  integer pmt=channel/RICnwindows;
+  integer window=channel%RICnwindows;
+
+  geant y=pmt_p[pmt][1]+(window/integer(sqrt(RICnwindows))
+			 -integer(sqrt(RICnwindows))/2)*RICcatolength/sqrt(RICnwindows);
+
+  return y;
+}
 
 
 

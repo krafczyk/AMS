@@ -3,30 +3,17 @@
 
 class AMSRichRawEvent: public AMSlink{
 private:
-  integer _idsoft; // (PMT number-1)*16+window number
-  integer _status; // 0 means true, 1 means noise
-  integer _padc;   // ADC counts
-  geant _x;        // Reconstructed x for the hit
-  geant _y;        // Reconstructed y for the hit
-  AMSPoint _origin;   // Canonical origin for the hit
-  AMSPoint _momentum; // Canonical momentum at the origin 
+  integer _channel; // (PMT number-1)*16+window number
+  integer _counts; // 0 means true, 1 means noise
 	 
 public:
-  AMSRichRawEvent(integer idsoft, integer status,  
-		  integer padc,geant x,geant y,
-		  AMSPoint origin,AMSPoint momentum):AMSlink(status,0),
-    _idsoft(idsoft),_status(status),_padc(padc),_x(x),_y(y),
-    _origin(origin),_momentum(momentum){};
+  AMSRichRawEvent(integer channel,integer counts):AMSlink(),
+    _channel(channel),_counts(counts){};
   ~AMSRichRawEvent(){};
   AMSRichRawEvent * next(){return (AMSRichRawEvent*)_next;}
 
-  integer getid() const {return _idsoft;}
-  integer getstatus() {return _status;}
-  integer getadc(){return _padc;}
-  geant getx(){return _x;}
-  geant gety(){return _y;}
-  geant getorigin(integer i){return i>=0 && i<3 ? _origin[i]:0;}
-  geant getmomentum(integer i){return i>=0 && i<3 ? _momentum[i]:0;}
+  integer getchannel() const {return _channel;}
+  integer getcounts() {return _counts;}
 
   static void mc_build();
 
@@ -35,10 +22,10 @@ public:
 protected:
   void _printEl(ostream &stream){
     int i;
-    stream <<"AMSRichRawEvent: id="<<_idsoft<<endl;
-    stream <<" Adc="<<_padc<<endl;
+    stream <<"AMSRichRawEvent: id="<<_channel<<endl;
+    stream <<" Adc="<<_counts<<endl;
   }
-void _writeEl(){};
+void _writeEl();
 void _copyEl(){};
 //
 };
