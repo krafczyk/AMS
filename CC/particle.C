@@ -92,9 +92,11 @@ void  AMSParticle::_build(number rid,number err,number charge,AMSBeta * pbeta,nu
           }
           else{ 
            number one=1;
+           number xb=1/fabs(beta);
+           if(xb<one)xb=2-xb;
            number gamma2=one/(one-beta*beta); 
-           number mass2=momentum*momentum/gamma2/beta/beta;
-           mass=mass2>0? sqrt(mass2) : -sqrt(-mass2);
+           number mass2=momentum*momentum*(xb*xb-one);
+           mass=gamma2>0? sqrt(mass2) : -sqrt(mass2);
            emass=fabs(mass)*sqrt((emomentum/momentum)*(emomentum/momentum)+
            (gamma2*ebeta/beta)*(gamma2*ebeta/beta));
           }
