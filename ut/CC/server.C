@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.51 2001/02/25 16:46:59 choutko Exp $
+//  $Id: server.C,v 1.52 2001/02/28 09:17:08 alexei Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -44,8 +44,6 @@ int main(int argc, char * argv[]){
      *signal(SIGUSR2, handler);
      *signal(SIGHUP, handler);
 
-  alloca(10000000);
-  cout <<"qq "<<endl;
  try{
     AMSServer::Singleton()=new AMSServer(argc,argv);
  }
@@ -269,18 +267,18 @@ else{
       _dbsvar= DPS::DBServer::_narrow(obj);
      }
    }
+     if(!InitOracle())pser->StartSelf(_pid,DPS::Client::Create);
      for (AMSServerI* pcur=_pser;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
      if(pcur->getType()!=DPS::Client::DBServer){
       if(InitOracle()){
         pcur->ReWriteTables(_dbsvar);
-        pser->StartSelf(_pid,DPS::Client::Create);
       }
       else{
-        pser->StartSelf(_pid,DPS::Client::Create);
         pcur->ReReadTables(_svar);
      }
-   }
-   }
+     }
+     }
+     if(InitOracle())pser->StartSelf(_pid,DPS::Client::Create);
    }
 
   
@@ -733,6 +731,7 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
      ac.id.Interface=(ahlv)->Interface;
      (ac.id).uid=_Submit+1;
      ac.id.Type=getType();
+     ac.id.pid=0;
      ac.id.ppid=0;
      ac.id.Status=DPS::Client::NOP;
      ac.Status=DPS::Client::Submitted;
@@ -1686,6 +1685,7 @@ if(RF){
    if(re.LastEvent<re.FirstEvent)re.LastEvent=2000000000;
    re.Status=DPS::Producer::ToBeRerun;
    re.History=DPS::Producer::ToBeRerun;
+   re.cuid=0;
    time_t tt;
    time(&tt);
    re.SubmitTime=tt; 
@@ -1693,7 +1693,9 @@ if(RF){
    re.cinfo.EventsProcessed=0;
    re.cinfo.LastEventProcessed=0;
    re.cinfo.ErrorsFound=0;
+   re.cinfo.CriticalErrorsFound=0;
    re.cinfo.CPUTimeSpent=0;
+   re.cinfo.TimeSpent=0;
    re.cinfo.Status=re.Status;
    re.cinfo.HostName=" ";
    RunEvInfo_var vre= new RunEvInfo(re);
@@ -4255,6 +4257,16 @@ for(int i=0;i<length;i++){
 
 void Server_impl::ReWriteTables( DPS::DBServer_ptr _pvar){
 
+//NominalHost
+_pvar->clearNHS();
+
+for (NHLI li=_nhl.begin();li!=_nhl.end();++li){
+ DPS::Client::RecordChange rc= DPS::Client::Create;
+ DPS::Client::CID cid=_parent->getcid();
+ cid.Type=getType();
+ _pvar->sendNH(cid,*li,rc);
+}
+
 //NominalClient
 _pvar->clearNCS(getType());
 for (NCLI li=_ncl.begin();li!=_ncl.end();++li){
@@ -4290,15 +4302,6 @@ for (AHLI li=_ahl.begin();li!=_ahl.end();++li){
  DPS::Client::CID cid=_parent->getcid();
  cid.Type=getType();
  _pvar->sendAH(cid,*li,rc);
-}  
-//NominalHost
-_pvar->clearNHS();
-
-for (NHLI li=_nhl.begin();li!=_nhl.end();++li){
- DPS::Client::RecordChange rc= DPS::Client::Create;
- DPS::Client::CID cid=_parent->getcid();
- cid.Type=getType();
- _pvar->sendNH(cid,*li,rc);
 }  
 
 

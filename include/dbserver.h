@@ -1,4 +1,4 @@
-//  $Id: dbserver.h,v 1.4 2001/02/25 16:46:59 choutko Exp $
+//  $Id: dbserver.h,v 1.5 2001/02/28 09:17:08 alexei Exp $
 #ifndef __AMSDBSERVER__
 #define __AMSDBSERVER__
 #include <server.h>
@@ -18,6 +18,7 @@ public:
  virtual void KillClients(const DPS::Client::CID &cid);
   CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout);
   void getId(DPS::Client::CID_out cid);
+  //  int getNC(const DPS::Client::CID &cid, DPS::Client::NCS_out nc) throw (CORBA::SystemException,DPS::DBServer::DBProblem);
   int getNC(const DPS::Client::CID &cid, DPS::Client::NCS_out nc);
   int getNK(const DPS::Client::CID &cid, DPS::Client::NCS_out nc);
    int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars, DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0, int selffirst=0);
@@ -45,7 +46,14 @@ public:
 
   int getTDVTable(const DPS::Client::CID & cid,TDVName & tdvname, unsigned int run, TDVTable_out table);
 
-
+  DPS::Client::ClientType    unsi2CT(unsigned int a);
+  DPS::Client::ClientStatus  unsi2CS(unsigned int a);
+  DPS::Client::ClientExiting unsi2CSE(unsigned int a);
+  DPS::Client::HostStatus    unsi2HS(unsigned int a);
+  DPS::Producer::RunStatus   unsi2RS(unsigned int a);
+  DPS::Producer::RunMode     unsi2RM(unsigned int a);
+  DPS::Producer::DSTType     unsi2DSTT(unsigned int a);
+  DPS::Producer::DSTStatus   unsi2DSTS(unsigned int a);
   int getDSTInfoS(const DPS::Client::CID &cid, DSTIS_out res);
   int getRun(const DPS::Client::CID &cid, const FPath & fpath, RUN_out run,TransferStatus & st)throw (CORBA::SystemException,DPS::Producer::FailedOp);
   int sendFile(const DPS::Client::CID &cid, const FPath & fpath, const  RUN & file,TransferStatus & st)throw (CORBA::SystemException,DPS::Producer::FailedOp);
@@ -59,7 +67,6 @@ public:
   void sendCurrentInfo(const DPS::Client::CID & ci, const  CurrentInfo &ci, int propagate);
   void sendDSTEnd(const DPS::Client::CID & ci, const  DST & ne, DPS::Client::RecordChange rc);
    int  getFreeHost(const DPS::Client::CID & ci, DPS::Client::ActiveHost_out host);
-
     void clearACS( DPS::Client::ClientType type);
     void clearNCS( DPS::Client::ClientType type);
     void clearAHS( DPS::Client::ClientType type);

@@ -1,4 +1,4 @@
-#pragma prefix "ams.cern.ch"
+ #pragma prefix "ams.cern.ch"
 module DPS{
    typedef unsigned long time;
   interface Client{
@@ -103,7 +103,7 @@ module DPS{
  
   interface Producer: Client{
     enum TransferStatus{Begin,Continue,End};
-    enum RunStatus{ToBeRerun, Failed,Processing, Finished};
+    enum RunStatus{ToBeRerun, Failed,Processing, Finished, Unknown};
     enum DSTStatus{Success,InProgress,Failure};
     enum RunMode{RILO,LILO,RIRO,LIRO};
     enum DSTType{Ntuple,EventTag,RootFile};
@@ -232,6 +232,12 @@ module DPS{
     void ping();
     boolean TypeExists(in DPS::Client::ClientType type);
 
+    /*
+    exception DBProblem{
+     string message;
+    };
+    */
+
     long getACS(in CID id, out ACS acl, out unsigned long maxc)raises(DBProblem);
     void sendAC(in CID id, inout ActiveClient ac,in RecordChange rc)raises(DBProblem);
 
@@ -261,6 +267,9 @@ module DPS{
   };
   
   interface DBServer: Server, Producer{
+    //    exception DBProblem{
+    //     string message;
+    //    };
     string getDBFilePath(in CID id)raises(DBProblem);
     long getRunEvInfoSPerl(in CID id, out RES res, in unsigned long maxr,out unsigned long maxro)raises(DBProblem); 
     void sendACPerl(in CID id, in ActiveClient ac,in RecordChange rc)raises(DBProblem);
