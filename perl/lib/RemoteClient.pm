@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.257 2004/03/12 16:40:57 alexei Exp $
+# $Id: RemoteClient.pm,v 1.258 2004/03/18 12:36:23 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -44,8 +44,8 @@
 # Mar 10, 2004   : listJobs, listNtuples, listRuns - modified to speed up output
 # Mar 12, 2004   : getHostsMips & updateHostsMips subs
 #                  2 new tables cern_hosts and cpu_coeff
-#
-# ToDo : checkJobsTimeout - reduce number of SQLs
+# Mar 15, 2004   : argument list of fastntrd is modified, lastEvent is added
+#                  implement timing (decrease number of logfiles, f.e. /tmp/cp.log
 #
 
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
@@ -66,7 +66,7 @@ use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 use File::Find;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs getHostsList getHostsMips getOutputPath updateHostInfo parseJournalFiles stopParseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateHostsMips);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs getHostsList getHostsMips getOutputPath updateHostInfo parseJournalFiles resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateHostsMips);
 
 
 my     $webmode         = 1; # 1- cgi is executed from Web interface and 
@@ -93,6 +93,15 @@ my     $verbose         = 0; # verbose mode
  my @BadCRCi      = [];  #                 dsts with crc error (before copying)
  my @BadCRCo      = [];  #                 dsts with crc error (after copying)
  my @gbDST        = [];
+
+ my $doCopyTime   = 0;
+ my $doCopyCalls  = 0;
+ my $crcTime      = 0;
+ my $crcCalls     = 0;
+ my $fastntTime   = 0;
+ my $fastntCalls  = 0;
+ my $copyTime     = 0;
+ my $copyCalls    = 0;
 #-
  my $ActiveProductionSet   = undef;
  my $UNKNOWN               = 'unknown';
@@ -969,6 +978,8 @@ sub ValidateRuns {
         die "ValidateRuns -F- Unable To Connect To Server";
     }
 #
+   $self->initFilesProcessingFlag();
+#
     $vdir=$self->getValidationDir();
     if (not defined $vdir) {
       die " ValidateRuns -F- cannot get path to ValidationDir \n";
@@ -987,13 +998,21 @@ sub ValidateRuns {
       DBServer::InitDBFile($self->{dbserver});
     }
     foreach my $run (@{$self->{dbserver}->{rtb}}){
+#
+   $self->setActiveProductionSet();
+   if (not defined $ActiveProductionSet || $ActiveProductionSet eq $UNKNOWN) {
+      $self->amsprint("parseJournalFiles -ERROR- cannot get active production set",0);
+      die "bye";
+  }
 # check flag
      $timenow = time();
-     $sql   = "select flag from FilesProcessing";
-     my $rflag = $self->{sqlserver}->Query($sql);
-     if ($rflag->[0][0] == 0) {
+     my $rflag = $self->getFilesProcessingFlag();
+     if ($rflag == 0) {
          $self->updateFilesProcessing();
          $self->amsprint("Processing flag = 0. Stop Runs Validation.",0);
+         return 1;
+     } elsif ($rflag ==  -1) {
+         $self->amsprint("Processing flag = -1. Stop Runs Validation.",0);
          return 1;
      }
 #
@@ -1065,8 +1084,9 @@ sub ValidateRuns {
           $warn = "cannot find status, content in Jobs for JID=$run->{Run}. *TRY* Delete Run=$run->{Run} from server \n";
           if ($verbose == 1) {$self->printWarn($warn);}
           print FILEV "$warn \n";
-
-# ---          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
+#          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
+          print "--- done --- \n";
+          print FILEV "--- done --- \n";
          } else {
           my $jobstatus  = $r1->[0][0];
           my $jobcontent = $r1->[0][1];
@@ -1082,7 +1102,7 @@ sub ValidateRuns {
            my $errors  = $run->{cinfo}->{CriticalErrorsFound};
            my $cputime = sprintf("%.2f",$run->{cinfo}->{CPUTimeSpent});
            my $elapsed = sprintf("%.2f",$run->{cinfo}->{TimeSpent});
-           my $host    = $run->{cinfo}->{HostName};
+           my $host    = $self->gethostname($run->{cinfo}->{HostName});
            
 # get list of local hosts
            $sql = "UPDATE jobs SET 
@@ -1099,9 +1119,6 @@ sub ValidateRuns {
 # validate ntuples
 # Find corresponding ntuples from server
               foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
-#              if($ntuple->{Type} eq "Ntuple" and ($ntuple->{Status} eq "Success" or 
-#                $ntuple->{Status} eq "Validated") and $ntuple->{Run}== $run->{Run}){
-#              print "$ntuple->{Name} $ntuple->{Status} $ntuple->{Run}\n";
               if(($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and $
                   ntuple->{Run}== $run->{Run}){
                   $levent += $ntuple->{LastEvent}-$ntuple->{FirstEvent}+1;
@@ -1128,45 +1145,29 @@ sub ValidateRuns {
                   }  
                   else{
                    close FILE;
-                   my $validatecmd = undef;
-                   if($ntuple->{Type} eq "Ntuple") {
-                    $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber} 0";
-                   } elsif ($ntuple->{Type} eq "RootFile") {
-                    $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber} 1";
-                   } else {
-                       print FILEV "***** Unknown ntuple->{Type : $ntuple->{Type} \n";
+                   my ($ret,$i) = $self->validateDST($fpath,$ntuple->{EventNumber},$ntuple->{Type},$ntuple->{LastEvent});
+                   if( ($i == 0xff00) or ($i & 0xff)){
+                    if($ntuple->{Status} ne "Validated"){
+                     $status="Unchecked";                     
+                     $events=$ntuple->{EventNumber};
+                     $badevents="NULL";
+                     $unchecked++;
+                     $copyfailed = 1;
+                     last;
+                    }
+                     else{
+                      $thrusted++;
+                     }
                    }
-                   if (defined $validatecmd) {
-                     print FILEV $validatecmd;
-                   }
-                   my $i = 0;
-                   if (defined $validatecmd) {
-                    $i=system($validatecmd);
-                   } else {
-                    $i = 0xff00;
-                   }
-                      if( ($i == 0xff00) or ($i & 0xff)){
-                      if($ntuple->{Status} ne "Validated"){
-                       $status="Unchecked";                     
-                       $events=$ntuple->{EventNumber};
-                       $badevents="NULL";
-                       $unchecked++;
-                       $copyfailed = 1;
-                       last;
-                      }
-                      else{
-                        $thrusted++;
-                      }
-                  }
-                      else{
-                          $i=($i>>8);
-                          if(int($i/128)){
-                            $events=0;
-                            $badevents="NULL";
-                            $status="Bad".($i-128);  
-                            $bad++;                   
-                            $levent -= $ntuple->{LastEvent}-$ntuple->{FirstEvent}+1;
-                          }
+                    else{
+                         $i=($i>>8);
+                         if(int($i/128)){
+                          $events=0;
+                          $badevents="NULL";
+                          $status="Bad".($i-128);  
+                          $bad++;                   
+                          $levent -= $ntuple->{LastEvent}-$ntuple->{FirstEvent}+1;
+                         }
                           else{
                            $status="OK";
                            $events=$ntuple->{EventNumber};
@@ -1177,46 +1178,45 @@ sub ValidateRuns {
                            if(defined $outputpath){
                               push @mvntuples, $outputpath; 
                           }
-                           if ($rstatus == 1) {
-                            $nBadCopiesInRow = 0;
-                            $self->insertNtuple(
-                                                $run->{Run},
-                                                $ntuple->{Version},
-                                                $ntuple->{Type},
-                                                $run->{Run},
-                                                $ntuple->{FirstEvent},
-                                                $ntuple->{LastEvent},
-                                                $events,
-                                                $badevents,
-                                                $ntuple->{Insert},
-                                                $ntuple->{size},
-                                                $status,
-                                                $outputpath,
-                                                $ntuple->{crc},
-                                                $ntuple->{Insert},
-                                                1,0);
-                            print FILEV "insert : $run->{Run}, $outputpath, $status \n";
-                            $copied++;
-                            push @cpntuples, $fpath;
-                            $runupdate = "UPDATE runs SET FEVENT = $fevent, LEVENT=$levent, ";
+                          if ($rstatus == 1) {
+                           $nBadCopiesInRow = 0;
+                           $self->insertNtuple(
+                                               $run->{Run},
+                                               $ntuple->{Version},
+                                               $ntuple->{Type},
+                                               $run->{Run},
+                                               $ntuple->{FirstEvent},
+                                               $ntuple->{LastEvent},
+                                               $events,
+                                               $badevents,
+                                               $ntuple->{Insert},
+                                               $ntuple->{size},
+                                               $status,
+                                               $outputpath,
+                                               $ntuple->{crc},
+                                               $ntuple->{Insert},
+                                               1,0);
+                           print FILEV "insert : $run->{Run}, $outputpath, $status \n";
+                           $copied++;
+                           push @cpntuples, $fpath;
+                           $runupdate = "UPDATE runs SET FEVENT = $fevent, LEVENT=$levent, ";
                          } else {
-                             print FILEV "failed to copy $fpath\n";
-                             $copyfailed = 1;
-                             $nBadCopiesInRow++;
-                             if ($nBadCopiesInRow > $MAX_FAILED_COPIES) {
-                              $self->amsprint("Too many doCopy failures : $nBadCopiesInRow. Quit",0);
-                              $self->amsprint("Check $outputpath  free blocks and availability. Quit",0);
-                              print FILEV "Too many doCopy failures : $nBadCopiesInRow. \n";
-                              print FILEV "Check $outputpath. Quit\n";
-                              close FILEV;
-                              die "Bye";
-                             }
-                             last;
+                           print FILEV "failed to copy $fpath\n";
+                           $copyfailed = 1;
+                           $nBadCopiesInRow++;
+                           if ($nBadCopiesInRow > $MAX_FAILED_COPIES) {
+                            $self->amsprint("Too many doCopy failures : $nBadCopiesInRow. Quit",0);
+                            $self->amsprint("Check $outputpath  free blocks and availability. Quit",0);
+                            print FILEV "Too many doCopy failures : $nBadCopiesInRow. \n";
+                            print FILEV "Check $outputpath. Quit\n";
+                            close FILEV;
+                            die "Bye";
+                           }
+                           last;
                          }
                        }  # ntuple status 'OK'
-                      }
+                     }
                }
-
              } # ntuple ->{Status} == "Validated"
          } #loop for ntuples
          my $status='Failed';
@@ -1299,15 +1299,21 @@ sub doCopy {
      my $inputfile = shift;
      my $crc       = shift;
 # 
-     my $sql   => undef;
+     my $sql   = undef;
+     my $cmd   = undef;
+     my $cmdstatus = undef;
 #
+     my $time0  = time();
+     my $time00 = 0;      # begin CRC calc
+
+     $doCopyCalls++;
+
+#
+#     if ($verbose == 1) {print "doCopy : $inputfile \n";}
+#
+
      my @junk = split '/',$inputfile;
      my $file = $junk[$#junk];
-
-     my $time = time();
-     my $logfile = "/tmp/cp.$time.log";
-     my $cmd = "touch $logfile";
-     my $cmdstatus = system($cmd); 
 
      my $outputdisk => undef;
      my $outputpath => undef;
@@ -1323,7 +1329,7 @@ sub doCopy {
              }
          } else {
 # find job
-          $sql = "SELECT cites.name,jobname,jobs.jid FROM jobs,cites 
+          $sql = "SELECT cites.name,jobname  FROM jobs,cites 
                            WHERE jid =$jid AND cites.cid=jobs.cid";
           my $r1 = $self->{sqlserver}->Query($sql);
           if (defined $r1->[0][0]) {
@@ -1343,16 +1349,11 @@ sub doCopy {
               $cmdstatus = system($cmd);
               if ($cmdstatus == 0) {
                $outputpath = $outputpath."/".$file;
-               $cmd = "cp -pi -d -v $inputfile  $outputpath >> $logfile";
-               $cmdstatus = system($cmd);
-               if ($verbose == 1)  {
-                $self->amsprint("********* docopy - ",666);
-                $self->amsprint($cmd,0);
-               }
+               $cmdstatus = $self->copyFile($inputfile,$outputpath);
+               $time00 = time();
+               $doCopyTime += $time00 - $time0;
                if ($cmdstatus == 0 ) {
-                 my $crccmd  = "$self->{AMSSoftwareDir}/exe/linux/crc $outputpath $crc";
-                 my $rstatus = system($crccmd);
-                 $rstatus=($rstatus>>8);
+                 my $rstatus = $self->calculateCRC($outputpath,$crc);
                  if ($rstatus == 1) {
                    return $outputpath,1;
                  } else {
@@ -1360,7 +1361,7 @@ sub doCopy {
                   $self->amsprint($rstatus,0);
                   $BadCRCo[$nCheckedCite]++;
                   if ($webmode == 1) {
-                   htmlWarning("doCopy","$crccmd");
+                   htmlWarning("doCopy","calculateCRC($outputpath,$crc)");
                    htmlWarning("doCopy","crc calculation failed for $outputpath");
                    htmlWarning("doCopy","crc calculation failed status $rstatus");
                   }
@@ -1386,6 +1387,7 @@ sub doCopy {
       if ($webmode == 1) {htmlWarning("doCopy","cannot stat $inputfile");}
       $BadDSTs[$nCheckedCite]++;
   } 
+
   return undef,0;
 }
 
@@ -1499,22 +1501,8 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                   else{
                       close FILE;
                    
-                   my $validatecmd = undef;
-                   if($ntuple->{Type} eq "Ntuple") {
-                    $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber} 0";
-                   } elsif ($ntuple->{Type} eq "RootFile") {
-                    $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber} 1";
-                   } else {
-                       print LOGFILE "***** Unknown ntuple->{Type : $ntuple->{Type} \n";
-                   }
-                   my $i = 0;
-                   if (defined $validatecmd) {
-                    print LOGFILE "$validatecmd\n";
-                    print "$validatecmd\n";
-                    $i=system($validatecmd);
-                   } else {
-                    $i = 0xff00;
-                   }
+
+                   my $i = $self->validateDST($fpath,$ntuple->{EventNumber},$ntuple->{Type},$ntuple->{LastEvent});
                       if( ($i == 0xff00) or ($i & 0xff)){
                       if($ntuple->{Status} ne "Validated"){
                        $status="Unchecked";                     
@@ -5182,7 +5170,6 @@ sub trimblanks {
 sub checkJobsTimeout {
     my $self   = shift;
     my $lastupd= undef; 
-    my $pset   = undef;
 
     my $sql;
     my $timenow = time();
@@ -5212,6 +5199,8 @@ sub checkJobsTimeout {
    }
 
 
+   $self->setActiveProductionSet();
+
    if ($webmode == 1) {
     $self->htmlTop();
 #
@@ -5231,7 +5220,7 @@ sub checkJobsTimeout {
 # at least one DST is copied to final destination 
 #
 # get production set path
-    if (my $pset=$self->getActiveProductionSet() =~ $UNKNOWN) {
+    if (not defined $ActiveProductionSet || $ActiveProductionSet eq $UNKNOWN) {
     } else {
      $sql = "SELECT runs.run 
               FROM runs 
@@ -5243,7 +5232,7 @@ sub checkJobsTimeout {
       if( defined $r1->[0][0]){
        foreach my $r (@{$r1}){
         my $run= $r -> [0];
-        $sql="SELECT run FROM ntuples WHERE path LIKE '%$pset%' AND run=$run";
+        $sql="SELECT run FROM ntuples WHERE path LIKE '%$ActiveProductionSet%' AND run=$run";
         my $r2=$self->{sqlserver}->Query($sql);
         if( defined $r2->[0][0]){
            $sql="UPDATE runs SET runs.status='Completed' WHERE run=$run";
@@ -5401,8 +5390,8 @@ sub getHostsMips {
     my $mips     = 0;
     my $mhz      = 0;
     my $model    = undef;
-    my @junk     = split '\.',$hostname;
-    my $name     = $junk[0];
+    my $name      = $self->gethostname($hostname);
+
     my $sql = "SELECT model, mhz FROM cern_hosts WHERE host='$name'";
     my $ret = $self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
@@ -6149,7 +6138,7 @@ sub listDisks {
     my $usedGBMC = 0;
     my $totalGBMC= 0;
 
-    my $pset=$self->getActiveProductionSet();
+     $self->setActiveProductionSet();
     
 
     $sql="SELECT MAX(timestamp) FROM Filesystems";
@@ -6182,9 +6171,9 @@ sub listDisks {
            $dpath  = $dd->[2];
           }
           $fs    = $dd->[0].":".$dpath;
-          if ($pset =~ $UNKNOWN) {
+          if (not defined $ActiveProductionSet || $ActiveProductionSet eq $UNKNOWN) {
           } else {
-           $dpath = $dpath."/".$pset;
+           $dpath = $dpath."/".$ActiveProductionSet;
           } 
           $sql = "SELECT SUM(sizemb) FROM ntuples WHERE PATH like '$dpath%'";
           my $r4=$self->{sqlserver}->Query($sql);
@@ -7005,15 +6994,16 @@ sub parseJournalFiles {
       $self->amsprint("parseJournalFiles -ERROR- script cannot be run from account : $whoami",0);
       die "bye";
     }
+#
+   $self->setActiveProductionSet();
+   if (not defined $ActiveProductionSet || $ActiveProductionSet eq $UNKNOWN) {
+      $self->amsprint("parseJournalFiles -ERROR- cannot get active production set",0);
+      die "bye";
+  }
 # set flag
    my $timenow = time();
-   $sql = "delete FilesProcessing";
-   $self->{sqlserver}->Update($sql); 
-   $sql = "insert into FilesProcessing values(0,0,0,0,0,0,0,1,$timenow)";
-   $self->{sqlserver}->Update($sql); 
+   $self->initFilesProcessing();
 #
-
-
     $self->set_root_env();
 
     $self->getProductionVersion();
@@ -7032,10 +7022,6 @@ sub parseJournalFiles {
   htmlTop();
   htmlTable("Parse Journal Files");
  }
-
- my $rmtmpfiles = "rm -f /tmp/cp.*.log";
- if ($webmode == 0 && $verbose == 1) { print "$rmtmpfiles \n";}
- system($rmtmpfiles);
 
  $sql = "SELECT MAX(CID) FROM Cites";
  $ret = $self->{sqlserver}->Query($sql);
@@ -7132,12 +7118,14 @@ sub parseJournalFiles {
 
 # check flag
      $timenow = time();
-     $sql   = "select flag from FilesProcessing";
-     my $rflag = $self->{sqlserver}->Query($sql);
-     if ($rflag->[0][0] == 0) {
+     my $rflag = $self->getFilesProcessingFlag();
+     if ($rflag == 0) {
          if ($webmode == 0) {$self -> printParserStat();}
          $self->updateFilesProcessing();
          $self->amsprint("Processing flag = 0. Stop parseJournalFiles.",0);
+         return 1;
+     } elsif ($rflag == -1) {
+         $self->amsprint("Processing flag = -1. Stop parseJournalFiles.",0);
          return 1;
      }
 #
@@ -7626,14 +7614,16 @@ foreach my $block (@blocks) {
       $dstsize = sprintf("%.1f",$dstsize/1000/1000);
       $closedst[0] = "CloseDST";
        print FILE "$dstfile.... \n";
-       my $badevents=$closedst[14];
-       my $ntevents =$closedst[13];
-       my $ntstatus ="OK";                     
+       my $ntstatus =$closedst[1];
+       my $nttype  =$closedst[2];
+       my $version  =$closedst[4];
+       my $ntcrc    =$closedst[6];
        my $run      =$closedst[10];
        my $jobid    =$closedst[10];
-       my $ntcrc    =$closedst[6];
-       my $nttype   =$closedst[2];
-       my $version  =$closedst[4];
+       my $dstfevent=$closedst[11];
+       my $dstlevent=$closedst[12];
+       my $ntevents =$closedst[13];
+       my $badevents=$closedst[14];
 #
 # print warning if DST's version < Declared version for the current production set
 # Jan 19, 2004, set error flag, from now skip DST if version doesn't match
@@ -7646,29 +7636,28 @@ foreach my $block (@blocks) {
       $BadDSTs[$nCheckedCite]++;
       last;
      }
-      $levent += $closedst[12]-$closedst[11]+1;
-      my $i = 0;
-      my $crccmd = "$self->{AMSSoftwareDir}/exe/linux/crc $dstfile $ntcrc";
-      $i=system($crccmd);
-      $i=($i>>8);
-      print FILE "$crccmd : Status : $i \n";
+      $levent += $dstlevent-$dstfevent+1;
+      my $i = $self->calculateCRC($dstfile, $ntcrc);
+      print FILE "calculateCRC($dstfile, $ntcrc) : Status : $i \n";
       if ($i != 1) {
           $unchecked++;
           $copyfailed = 1;
           $BadCRCi[$nCheckedCite]++;
           last;
       }
-      $i=0;
-      if ($nttype eq 'Ntuple') {
-        my $validatecmd = 
-           "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $dstfile $closedst[13]";
-        $i=system($validatecmd);
-        print FILE "$validatecmd : Status : $i \n";
-    }
-       if( ($i == 0xff00) or ($i & 0xff)){
-       if($closedst[1] ne "Validated"){
+      my $ret = 0;
+      ($ret,$i) = $self->validateDST($dstfile ,$ntevents, $nttype ,$dstlevent);
+      print FILE "validateDST($dstfile ,$ntevents, $nttype ,$dstlevent) : Status : $i : Ret : $ret\n";
+      if ($ret !=1) {
+       $unchecked++;
+       $copyfailed = 1;
+        print FILE " validateDST return code != 1. Quit. \n";
+       last;
+      }
+
+      if( ($i == 0xff00) or ($i & 0xff)){
+       if($ntstatus ne "Validated"){
          $ntstatus="Unchecked";                     
-         $ntevents=$closedst[13];
          $badevents="NULL";
          $unchecked++;
          $copyfailed = 1;
@@ -7677,7 +7666,7 @@ foreach my $block (@blocks) {
          else{
            $thrusted++;
                       }
-     }
+      }
         else{
           $i=($i>>8);
           if(int($i/128)){
@@ -7685,45 +7674,43 @@ foreach my $block (@blocks) {
            $badevents="NULL";
            $ntstatus="Bad".($i-128);  
            $bad++;                   
-           $levent -= $closedst[12]-$closedst[11]+1;
-       }
-         else{
-          $ntstatus="OK";
-          $ntevents=$closedst[13];
-          $badevents=int($i*$closedst[13]/100);
-          $tevents += $ntevents;
-          $terrors += $badevents;
-          $validated++;
-          my ($outputpath,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc);
-          if(defined $outputpath){
-             push @mvntuples, $outputpath; 
-           }
-          print FILE "doCopy return status : $rstatus \n";
-          if ($rstatus == 1) {
-           $self->insertNtuple(
+           $levent -= $dstlevent-$dstfevent+1;
+          }
+           else{
+            $badevents=int($i*$ntevents/100);
+            $tevents += $ntevents;
+            $terrors += $badevents;
+            $validated++;
+            my ($outputpath,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc);
+            if(defined $outputpath){
+              push @mvntuples, $outputpath; 
+            }
+            print FILE "doCopy return status : $rstatus \n";
+            if ($rstatus == 1) {
+             $self->insertNtuple(
                                $run,
-                               $closedst[4],
+                               $version,
                                $nttype,
                                $jobid,
-                               $closedst[11],
-                               $closedst[12],
+                               $dstfevent,
+                               $dstlevent,
                                $ntevents,
                                $badevents,
                                $timestamp,
                                $dstsize,
-                               $closedst[1],
+                               $ntstatus,
                                $outputpath,
                                $ntcrc,
                                $timestamp, 1, 0); 
 
-           print FILE "insert ntuple : $run, $outputpath, $closedst[1]\n";
-           $gbDST[$nCheckedCite] = $gbDST[$nCheckedCite] + $dstsize;
-          push @cpntuples, $dstfile;
-        } else {
-          print FILE "***** Error in doCopy for : $outputpath\n";
+             print FILE "insert ntuple : $run, $outputpath, $closedst[1]\n";
+             $gbDST[$nCheckedCite] = $gbDST[$nCheckedCite] + $dstsize;
+             push @cpntuples, $dstfile;
+           } else {
+            print FILE "***** Error in doCopy for : $outputpath\n";
+           }
+         }
         }
-       }
-       }
       }
      }
     } # CRC != 0
@@ -8745,9 +8732,19 @@ sub calculateCRC {
   my $self      = shift;
   my $filename  = shift;
   my $crc       = shift;
+
+  my $time0     = time();
+  $crcCalls++;
+
   my $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $filename  $crc";
   my $rstatus   = system($crccmd);
   $rstatus=($rstatus>>8);
+  if ($verbose == 1 && $webmode == 0) {print "$crccmd : $rstatus \n";}
+
+  my $time1     = time();
+
+  $crcTime = $crcTime + $time1 - $time0;
+
   return $rstatus;
 }
 
@@ -8796,9 +8793,8 @@ sub printParserStat {
    my $hours   = ($timenow - $parserStartTime)/60/60;
    my $t0      = "Start Time : $stime \n";
    my $t1      = "End   Time : $ltime \n";
-   my $ch = sprintf ("%3.1f hours \n",$hours);
-   print $t0,$t1,$ch;
-   print   FILEV $t0,$t1,$ch;
+   print $t0,$t1;
+   print   FILEV $t0,$t1;
 
    my $ctt = "Cites      : $nCheckedCite , active : $nActiveCites \n";
    print $ctt;
@@ -8824,9 +8820,15 @@ sub printParserStat {
      }
  }
  $totalGB = $totalGB/1000;
- my $summ =  "Total : Runs $totalRuns ($totalRunsBad), DSTs $totalDSTs ($totalDSTsBad), GB $totalGB \n";
- print $summ, $lastline;
- print FILEV $summ, $lastline;
+ my $chGB = sprintf("%3.1f",$totalGB);
+ my $summ =  "Total : Runs $totalRuns ($totalRunsBad), DSTs $totalDSTs ($totalDSTsBad), GB $chGB \n";
+ print $summ;
+ my $ch0 = sprintf("Total Time %3.1f hours \n",$hours);
+ my $ch1 = sprintf(" doCopy (calls, time) : %5d %3.1fh [cp file :%5d %3.1fh]; \n",$doCopyCalls, $doCopyTime/60/60, $copyCalls, $copyTime/60/60);
+ my $ch2 = sprintf(" CRC (calls,time) : %5d, %3.1fh ; Validate (calls,time) : %5d, %3.3fh \n",
+                   $crcCalls, $crcTime/60/60,$fastntCalls, $fastntTime/60/60 );
+ print $ch0,$ch1,$ch2,$lastline;
+ print FILEV $summ, $ch0, $ch1, $ch2, $lastline;
  close FILEV;
 }
 
@@ -8867,10 +8869,35 @@ sub printWarn {
     }
 }
 
-sub stopParseJournalFiles {
+sub getFilesProcessingFlag {
+# 
+# set flag in DB showed that Parcing/Validation is in progress
 #
-# set flag in DB to stop journal 
-# file processing
+# return  = -1   - error
+#            0/1 - flag
+#
+    my $self = shift;
+
+    my $return = -1;
+
+    my $whoami = getlogin();
+    if ($whoami =~ 'ams' || $whoami =~ 'alexei') {
+    } else {
+      $self->amsprint(" -ERROR- script cannot be run from account : $whoami",0);
+      die "bye";
+    }
+
+   my $timenow = time();
+   my $sql = "SELECT flag from FilesProcessing";
+   my $ret = $self->{sqlserver}->Query($sql);
+   if (defined $ret) { $return = $ret->[0][0];}
+   return $return;
+}
+
+
+sub setFilesProcessingFlag {
+# 
+# set flag in DB showed that Parcing/Validation is in progress
 #
     my $self = shift;
 
@@ -8878,7 +8905,27 @@ sub stopParseJournalFiles {
     my $whoami = getlogin();
     if ($whoami =~ 'ams' || $whoami =~ 'alexei') {
     } else {
-      $self->amsprint("stopParser -ERROR- script cannot be run from account : $whoami",0);
+      $self->amsprint(" -ERROR- script cannot be run from account : $whoami",0);
+      die "bye";
+    }
+
+   my $timenow = time();
+   my $sql = "update FilesProcessing set flag = 1, timestamp=$timenow";
+   $self->{sqlserver}->Update($sql); 
+}
+
+sub resetFilesProcessingFlag {
+#
+# set flag in DB to stop journal 
+# file processing or runs validation
+#
+    my $self = shift;
+
+
+    my $whoami = getlogin();
+    if ($whoami =~ 'ams' || $whoami =~ 'alexei') {
+    } else {
+      $self->amsprint("-ERROR- script cannot be run from account : $whoami",0);
       die "bye";
     }
 
@@ -8888,6 +8935,21 @@ sub stopParseJournalFiles {
 
 }
 
+sub initFilesProcessingFlag {
+#
+# set flag in DB to stop journal 
+# file processing or runs validation
+#
+    my $self = shift;
+ 
+    my $timenow = time();
+
+    my $sql = "delete FilesProcessing";
+    $self->{sqlserver}->Update($sql); 
+    $sql = "insert into FilesProcessing values(0,0,0,0,0,0,0,1,$timenow)";
+    $self->{sqlserver}->Update($sql); 
+}
+
 sub getOutputPath {
 #
 # select disk to be used to store ntuples
@@ -8895,16 +8957,13 @@ sub getOutputPath {
     my $self       = shift;
     my $sql        = undef;
     my $ret        = undef;
-    my $pset       = undef;
     my $outputdisk = undef;
     my $outputpath = 'xyz';
     my $mtime      = 0;
     my $gb         = 0;
+#
 
- # get production set path
-    if ($pset=$self->getActiveProductionSet() =~ $UNKNOWN) {
-      print "getOutputPath -E- cannot find Active production set. Exit \n";
-    } else {
+# get production set path
      $sql = "SELECT disk, path, available  FROM filesystems WHERE AVAILABLE > $MIN_DISK_SPACE
                    ORDER BY priority DESC, available DESC";
      $ret = $self->{sqlserver}->Query($sql);
@@ -8912,15 +8971,14 @@ sub getOutputPath {
       $outputdisk = trimblanks($disk->[0]);
       $outputpath = trimblanks($disk->[1]);
       if ($outputdisk =~ /vice/) {
-       $outputpath = $outputpath."/".$pset;
+       $outputpath = $outputpath."/".$ActiveProductionSet;
       } else {
-       $outputpath = $outputdisk.$outputpath."/".$pset;
+       $outputpath = $outputdisk.$outputpath."/".$ActiveProductionSet;
       }
       $mtime = (stat $outputpath)[9];
       if ($mtime != 0) { $gb = $disk->[2]; last;}
-     }   
+  }
      return $outputpath, $gb;
-  } 
 }
 
 sub getHostsList {
@@ -8933,9 +8991,11 @@ sub getHostsList {
     my @hostlist   =();
     my @njobs      =(); # jobs per host
     my @nmips      =(); # mips per host
+    my @gbytes     =(); # gbytes per cite
 
     my $totaljobs  = 0;
     my $totalmips  = 0;
+    my $totalgb    = 0;
 
     my $nCites = 0;
     my $nHosts = 0;
@@ -8982,7 +9042,15 @@ sub getHostsList {
         foreach my $cite (@{$c}) {
          my $cid = $cite->[0];
          my $name= $cite->[1];
-
+         $sql = "SELECT SUM(sizemb)  from jobs, ntuples where ntuples.jid=jobs.jid and cid=$cid";
+         my $r = $self->{sqlserver}->Query($sql);
+         if (defined $r->[0][0]) {
+             my $sizegb = $r->[0][0]/1000;
+             $gbytes[$cid] = $sizegb;
+             $totalgb += $sizegb;
+         } else {
+             $gbytes[$cid] = 0;
+         }
          @hostlist   =();
          $totaljobs  = 0;
          $totalmips  = 0;
@@ -9001,8 +9069,8 @@ sub getHostsList {
             $totaljobs++;
             $totalmips += $mips;
 
-            my @junk     = split '\.',$hostname;
-            if ($#junk > 0) { $hostname = $junk[0];}
+            $hostname = $self->gethostname($host->[0]);
+
             my $newcomp = 1;
             foreach my $comp (@hostlist) {
                 if ($comp =~ $hostname) {
@@ -9025,7 +9093,8 @@ sub getHostsList {
         $nMips  += $totalmips;
         $nHosts += $j;
         print "\n";
-        print "Cite : $cid, $name , Hosts : $j, Jobs : $totaljobs Mips : $totalmips";
+        my $sgb = sprintf(" %6.1f",$gbytes[$cid]);
+        print "Cite : $cid, $name , Hosts : $j, Jobs : $totaljobs Mips : $totalmips, GB : $sgb";
          my $i = 0;
          $j = 0;
          foreach my $comp (@hostlist) {
@@ -9039,7 +9108,8 @@ sub getHostsList {
      }
         print "\n";
         print "---------------- Summary --------------------- \n";
-        print "Active Cites : $nCites, Total Jobs : $nJobs, Hosts : $nHosts Mips : $nMips\n";
+        my $sgb = sprintf(" %6.1f",$totalgb);
+        print "Active Cites : $nCites, Total Jobs : $nJobs, Hosts : $nHosts Mips : $nMips GB: $sgb\n";
         print "----------------         --------------------- \n";
 
     } else {
@@ -9052,21 +9122,84 @@ sub getHostsList {
     return 1;
 }
 
-sub getActiveProductionSet {
+
+sub setActiveProductionSet {
      my $self = shift;
+     
 
      my $sql  = undef;
      my $ret  = undef;
 
-     if (defined $ActiveProductionSet) {
-     } else {
       $sql = "SELECT NAME FROM ProductionSet WHERE STATUS='Active'";
       $ret = $self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
        $ActiveProductionSet=trimblanks($ret->[0][0]);
       } else {
-       $ActiveProductionSet = $UNKNOWN
+        $ActiveProductionSet = $UNKNOWN;
       }
-  }
-  return $ActiveProductionSet;
+ }
+
+sub validateDST {
+     my $self    = shift;
+     my $fname   = shift;  # file name
+     my $nevents = shift;  # number of events
+     my $ftype   = shift;  # file type : root / ntuple
+     my $levent  = shift;  # last event number
+
+
+     my $dtype       = undef;
+     my $validatecmd = undef;
+     my $ret         =  0;     # return code
+     my $vcode       =  0;     # validate code
+
+     my $time0 = time();
+     $fastntCalls++;
+
+     if($ftype eq "Ntuple") {
+         $dtype = 0;
+     } elsif ($ftype eq "RootFile") {
+         $dtype = 1;
+     }
+     if (defined $dtype) {
+      $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fname $nevents $dtype $levent";
+      $vcode=system($validatecmd);
+      if ($verbose == 1) {print "$validatecmd : $vcode \n";}
+      $ret = 1;
+     }
+
+     my $time1 = time();
+     $fastntTime += $time1 - $time0;
+     return $ret,$vcode; 
+ }
+
+sub copyFile {
+    my $self         = shift;
+    my $inputfile    = shift;
+    my $outputpath   = shift;
+
+    my $time0 = time();
+    $copyCalls++;
+    my $cmd = "cp -pi -d -v $inputfile  $outputpath ";
+    my $cmdstatus = system($cmd);
+    if ($verbose == 1 && $webmode == 0)  {
+      $self->amsprint("*** docopy - ",666);
+      $self->amsprint($cmd,0);
+    }
+    my $time1 = time();
+
+    $copyTime += $time1 - $time0;
+
+    return $cmdstatus;
+}
+
+sub gethostname {
+    my $self     = shift;
+    my $hostname = shift;
+
+    my $name     = $hostname;
+ 
+    my @junk     = split '\.',$hostname;
+    if ($#junk > 0) { $name = $junk[0];}
+
+    return $name;
 }
