@@ -17,7 +17,7 @@ fi
 
 
 
-../exe/$MACHINE/gbatch.exe <<!
+../exe/$MACHINE/gbatch.exe $1 <<!
 LIST
 KINE 14 
 MULS 1 

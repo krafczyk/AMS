@@ -418,7 +418,7 @@ void AMSTimeID::_getDefaultEnd(uinteger time, time_t & end){
  integer index=AMSbiel(_pDataBaseEntries[4],time,_DataBaseSize);
  //cout <<getname()<<" "<<index<<" "<<_pDataBaseEntries[4][0]<<" "<<_pDataBaseEntries[2][0]<<" "<<time<<" "<<_DataBaseSize<<endl;
  if(index>=0 && index<_DataBaseSize)end=_pDataBaseEntries[4][index];
-
+ else end=0;
 }
 
 

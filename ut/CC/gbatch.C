@@ -30,8 +30,9 @@ void (handler)(int);
  namespace glconst{
   integer cpul=1;
  }
- main(){
-     using namespace gams;
+ main(int argc, char * argv[] ){
+      cout <<argv[argc-1]<<endl;
+      using namespace gams;
      *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
      *signal(SIGTERM, handler);

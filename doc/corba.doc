@@ -1,0 +1,272 @@
+see also include/server.idl for idl defs
+
+
+I Server flowchart  (!!! Not implemented yet)
+----------
+  
+   Very first Server activates manually.
+
+     Activate POA  (TRANSIENT)
+      DB-Read ASL (ActiveServerList) 
+      if (IORStringParent == ParentServer ID ==0){
+       Send Kill every ASL entry
+       Nullify ASL
+       Write ASL to DB { exit if problem}
+       Start Monitor (IORStringSelf)
+       Depending of ActiveServerTasks: e.g. if (-StartProducers){
+        DB-Read ACL  (ActiveClientList)
+        Send Kill every ACL entry
+        Nullify ACL
+        Write ACL to DB { exit if problem}
+       }
+      }
+      else{
+       send back to Parent ProcessID 
+       getASL from Parent : notify parent & exit if problem
+       getACL from Parent : notify parent & exit if problem
+      }
+      DB-Read NSL (NominalServerList)
+      DB-Read NCL (NominalClientList)
+      DB-read RunsToBeRerunTable
+Main Loop:
+       SocketListening (NonBlocking)
+//   Critical Operations Protocol
+//   Start/Kill (not to be mixed with Stop) Servers
+//   Start/Kill Clients
+
+       check if (SomeServersNeedToBeStarted == there are
+                 some entries in NSL not found in ASL ){
+                 IfNot (Lock_Start_Server or Timeout){
+                   Set Lock_Start_Server  
+                   Read ASL from DB
+                   start server IORStringSelf
+                 }
+               Write ASL to DB
+               Propagate ASL to KnownServers 
+               Unlock LOCK_SS
+       }
+               SocketListening (NonBlocking)
+               check if (SomeClientsNeedToBeStarted == 
+               RunsInPriorityQueue.Number()>ACL.Number() &&
+               NCL.Number()>ACL.Number()){
+                 Start Client Using COP (like servers)
+               } 
+               else if (RerunTableEmpty){
+                DB-read RerunTable
+               }     
+              SocketListening (NonBlocking)
+              Check if (SomeClientsNeedToBeKilled){
+                if(ACL.LastTime()>TimeOut && (NoLock_Kill_Server || TimeOut)){
+                 Lock_Kill_Client
+                 ReadDB
+                 if(ACL.LastTime()>TimeOut){
+                   ping host;
+                   if(unpingable){
+                    set global error {host not reply from}
+                   }
+                   else{
+                    if( nopid //i.e. client was not able to comm it state at all){
+                      just clear the entry in ACL
+                    }
+                    else{
+                     if(pid still exists){
+                      //probably cycling
+                      kill -9; 
+                      work-on
+                     }
+                     else{
+                       //probably died
+                       Set Debug Flag On for the given run clent
+                       clear ACL entry
+                     }
+                    }
+                   }
+                 }
+                 Clear Lock_Kill_Client
+                }
+              }
+              
+              Check if (SomeServersNeedToBeKilled){
+                 if (ASl.LastTime()>Timeout){
+                  pingserver();
+                  if(exception){
+                   ReadDB.. than same as for clients.
+                  }
+                  else{
+                   propagate & updatedb
+                  }                  
+                 }
+              }
+
+//           run Update utitlity   ??? Maybe better update immediately - TBD
+             if( somelist.UpdateMe() ){
+                propagate to other servers and DB
+             }
+      
+              goto main loop 
+
+
+
+II Producer(client) side get/send requests flow chart
+---------------------
+
+VeryFirstGet:
+
+try{
+ASL_seq=getASL();
+}
+catch (Exception){
+oneway sendClientAbort(ErrorCode);    // to primary server
+DieHard();                 
+}
+
+GeneralSendFormat:
+add XXX to some_send_queue
+for (nasl=0;nasl<maxasl;nasl++){
+ try{
+ foreach(element_in_send_queue){
+  sendXXX(XXX,Propagate=True, Error=nasl);  //to nasl server
+  updatequeue();
+ }
+ 
+}
+catch (Exception){
+}
+break;
+}
+
+General GetFormat (exceptASL)
+
+
+for (nasl=0;nasl<maxasl;nasl++){
+ try{
+ XXX=getXXX(Propagate=True,nasl);  //to nasl server
+}
+catch (Exception){
+if(nasl==maxsl-1){
+ oneway sendClientAbort(ErrorCode);    // to primary server
+ DieHard();                 // Here there is nothing to do
+}
+}
+break;
+}
+
+ASL : just make a tmp copy of ASL_seq before.
+
+
+---FlowChartItSelf----
+
+//init
+
+getASL;
+sendCID;
+
+
+newrun:
+
+getRunEv() ; 
+getTDVTableForGivenRunEv();
+
+
+//event loop
+{
+
+if(NewTDVNeed){  
+ getTDV();
+}
+
+if(noofrecevents%updatefreq==0 || EventError)sendCurrentInfo();  
+
+if(dtstend)SendDSTEnd();
+
+}
+
+//endrun
+
+sendEndrun();
+
+
+goto newrun: 
+
+
+
+
+
+
+
+
+----------
+Client-Server Communication Essentials
+
+Client initiate request.
+
+General SendRequest format:
+
+Structure Foo_def{
+}
+
+void sendFoo(in Foo_def Foo, in Long Propagate, in Long Error);
+
+
+
+General GetRequestFormat
+
+Foo_def getInfo();
+
+
+
+
+//  SendRequests
+
+    Structure CID ==entry in ACL      // self identification
+    Structure CurrentInfo :public CID // Client Current Summary  
+    Structure DSTEnd: public CID      // send on end on dst
+    Structure RunEnd: public CO       // end run (if any)
+    oneway long ClientAbort           // client is going to commit suicide
+//Get Requests
+    Structure ASL    
+    Structure RunEv  (run,1sr last event, file path, ntupledir path, updatefreq,diehard)
+                      
+    Structure TDV     (decision on client side anyway)  // here think
+                       // as this means client must know smth about db or
+                       //  get Full DB Table about given tdv 
+    
+          
+      
+
+
+
+Server Side SendRequest
+
+         If Propagate{ propagate request to all know servers and DB}
+         If Error {diehard on RunEv}
+         Set Update Flag after any send request
+         { Do some other things dep on req e.g. change runs_tobererun queue
+           after runend request
+          }
+
+
+--------------
+Server2Server Communications
+
+Common with client part -same as in client-server mode, 
+except with propagate=0 option and oneway mode
+
+
+Additional Requests:
+
+GetRequests
+
+GetACL   function // get active client list
+GetServerID  (like sendid in client-server)
+ping   (ping like command)
+
+SendRequests:
+
+SendACL
+SendASL
+
+
+
+
+

@@ -1,0 +1,152 @@
+#pragma prefix "ams.cern.ch"
+module DPS{
+
+  interface Client{
+   typedef unsigned long time;
+
+   struct NominalClient{
+    string HostName;
+    short  ClientsPerHost;
+    string WholeScriptPath;
+    string ExecPath;
+    string InputFilePath;
+    string SubmitCommand;
+   }; 
+
+    enum ClientStatus{Unknown,Submitted,Registered,Busy,Idle,Lost};
+
+    enum ClientType{Generic,Server,Consumer,Producer,Monitor};
+
+    struct CID{
+    string HostName;
+    unsigned long pid;
+    };
+
+    struct ActiveClient{
+     CID id;
+     string IOR;
+     unsigned long LastComm;
+     ClientStatus Status;
+     ClientType   Type;
+   };
+
+    typedef sequence<ActiveClient> ACL;
+    void getACL(out ACL acl);
+
+    typedef sequence<NominalClient> NCL;
+    void  getNCL(out NCL ncl);
+      
+      
+   
+
+  };
+ 
+  interface Producer: Client{
+    typedef sequence<octet> TDV;
+    TDV getTDV(in string name, in time Insert, in time Begin, in time End);
+    void sendTDV(in TDV tdv, in string name, in time Insert, in time Begin, in time End, in long Propagate, in long Error );
+    struct RunEv{
+     unsigned long Run;
+     long FirstEvent;
+     long LastEvent;
+    };
+     struct RunEvInfo{
+     RunEv rv;
+     string FilePath;
+     string OutputDirPath;
+     long UpdateFreq;
+     long DieHard;
+    };
+/*
+    enum RunStatus{ToBeRerun, Processing, Finished};
+    struct RunEvE{
+      RunEv rv;
+      long Priority;
+      RunStatus Status;
+    };
+    typedef sequence<RunEvE> RunEvTable;
+    RunEvTable getRunEvTable();
+    void sendRunEvTable(in RunEvTable ret);
+*/
+    RunEvInfo getRunEvInfo(in long Propagate, in long Error);
+    struct CurrentInfo{
+      CID id;
+      unsigned long Run;
+      long EvenstProcessed;     
+      long LastEventProcessed;
+      long ErrorsFound;
+      float CPUTimeSpent;
+    }; 
+    void sendCurrentInfo(in CurrentInfo ci, in long Propagate, in long Error); 
+ 
+    struct TDVTable{
+     unsigned long CRC;
+     time Insert;
+     time Begin;
+     time End;
+    };
+    TDVTable getTDVTable(in string Name, in RunEv rv,in long Propagate, in long Error);     
+    
+    enum DSTStatus{Success,Failure};
+    struct DSTEnd{
+     time   Insert;
+     time   Begin;
+     time   End;
+     long   FirstEvent;
+     long   LastEvent;
+     long   EventNumber;
+     DSTStatus Status;
+    };    
+    struct NtupleEnd{
+     string NtupleName;
+     string NtuplePath;
+     DSTEnd dn;
+    };
+    void sendNtupleEnd(in NtupleEnd ne, in long Propagate, in long Error); 
+    
+    struct EventStatusEnd{
+     TDV body;
+     DSTEnd dn;
+    };
+    void sendEventStatusEnd(in EventStatusEnd ee, in long Propagate, in long Error); 
+    
+    
+/*
+
+    struct RSChange{
+     unsigned long Run;
+     RunStatus Status;
+    };
+    void SendRunStatus(in RSChange status, in long Propagate, in long Error); 
+*/
+    struct EndRunInfo{
+     CID id;
+     RunEv rv;
+     long EventsProcessed;
+     long ErrorsFound;
+    };
+
+    void sendEndRunInfo(in EndRunInfo er,in long Propagate, in long Error); 
+    
+  };
+
+  interface Server: Client{
+
+    enum OpType{StartServer,StartClient,KillServer,KillClient,ClearStartServer,
+    ClearStartClient, ClearKillServer, ClearKillClient};
+
+    struct CriticalOps{
+     time TimeOut;
+     OpType Action;
+     time TimeStamp;
+    };
+    void sendCriticalOps(in CriticalOps op, in long Propagate,in long Error);
+    void sendACL(in ACL acl, in long Propagate,in long Error);
+    void sendNCL(in NCL ncl, in long Propagate,in long Error);
+    void ping();
+  };
+
+  interface Monitor: Client{
+  };
+  
+};

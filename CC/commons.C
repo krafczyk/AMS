@@ -77,7 +77,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v3.00";
-uinteger AMSCommonsI::_build=950;
+uinteger AMSCommonsI::_build=951;
 uinteger AMSCommonsI::_os=0;
 AMSCommonsI::AMSCommonsI(){
   init();
@@ -87,7 +87,7 @@ void AMSCommonsI::init(){
    char* gtvb=getenv("BINTYPE");
    char* gtvh=getenv("HOSTTYPE");
    if(gtvb && gtvh){
-     if(strstr(gtvh,"alpha") && strstr(gtvb,"OSF")){
+     if((strstr(gtvh,"alpha") || strstr(gtvh,"Digital")) && strstr(gtvb,"OSF")){
       cout <<"AMSCommonsI-I-HardwareIdentifiedAs alpha-OSF"<<endl;
       _os=1;
      }
