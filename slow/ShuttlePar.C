@@ -52,6 +52,7 @@ PAWC_DEF PAWC;
    integer Cas2Shuttle(CASblock & b1, ShuttlePar & b32);
    int updShuttle(ShuttlePar &b, integer close);
    int _select(dirent *entry);
+   int _sort(dirent ** e1, dirent ** e2);
    void convert(int,int, char*);
    int ClockTune(time_t Time);
    double CASvalue (CASblock & buffer, int offset, int length);
@@ -80,10 +81,12 @@ int main (int argc, char *argv[]) {
          int i;
          cout <<"ShuttlePar-I-Scanning directory "<<CAS_dir<<endl;
          dirent ** namelist;                            
-         int nptr=scandir(CAS_dir,&namelist,&_select,NULL);    
+         int nptr=scandir(CAS_dir,&namelist,&_select,&_sort);    
          if(nptr>0){
           cout <<"ShuttlePar-I-Found "<<nptr <<" entries"<< endl;
-           for(int i=0;i<nptr;i++){
+           int i;
+           for(i=0;i<nptr;i++)cout<<namelist[i]->d_name<<endl;    
+           for(i=0;i<nptr;i++){
              convert(i,nptr-i-1,namelist[i]->d_name);
            }
          }
@@ -120,8 +123,8 @@ int main (int argc, char *argv[]) {
            fname+="/";
            fname+=file;
            fin.open(fname);
-             cout <<"convert-I-Openfile "<<fname<<" ("<<++count<<")"<<endl;
            if(fin){
+              cout <<"convert-I-Openfile "<<fname<<" ("<<++count<<")"<<endl;
               while(!fin.eof()){
                 fin.read((char*)(&length),sizeof(integer));
                 fin.seekg(fin.tellg()+20*sizeof(integer));
@@ -371,4 +374,9 @@ double CAStime(CASblock & buffer, int offset) { /* based on H.Suter's function *
   }
   else
     return 0;
+}
+
+int _sort(dirent ** e1, dirent ** e2){
+ return strcmp((*e1)->d_name,(*e2)->d_name);
+
 }
