@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.72 2002/12/10 11:56:20 choutko Exp $
+//  $Id: root.h,v 1.73 2003/01/07 18:38:47 jorgec Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -144,7 +144,8 @@ void         AddAMSObject(AMSAntiMCCluster *ptr);
 void         AddAMSObject(AMSAntiRawCluster *ptr);
 void         AddAMSObject(AMSBeta *ptr);
 void         AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[],
-                          float probtr[], int chintr[], float proballtr);
+                          float probtr[], int chintr[], float probrc[], 
+                          int chinrc[], float proballtr);
 void         AddAMSObject(AMSEcalHit *ptr);
 void         AddAMSObject(AMSmceventg *ptr);
 void         AddAMSObject(AMSmctrack *ptr);
@@ -201,23 +202,29 @@ class ChargeRoot02 : public TObject {
 public:
   int Status;
   int BetaP;
+  int RichP;
   int ChargeTOF;
   int ChargeTracker;
+  int ChargeRich;
   float ProbTOF[4];
   int ChInTOF[4];
   float ProbTracker[4];
   int ChInTracker[4];
+  float ProbRich[4];
+  int ChInRich[4];
   float ProbAllTracker;
   float TrunTOF;
   float TrunTOFD;
   float TrunTracker;
 
   TRef  fBeta;
+  TRef  fRich;
 
   ChargeRoot02();
   ~ChargeRoot02();
   ChargeRoot02(AMSCharge *ptr, float probtof[],int chintof[],
-               float probtr[], int chintr[], float proballtr);
+               float probtr[], int chintr[], 
+               float probrc[], int chinrc[], float proballtr);
 ClassDef(ChargeRoot02,1)       //ChargeRoot
 
 };
@@ -814,7 +821,6 @@ public:
   float npexpb;
 
   TRef  fTrack;
-
   RICRingRoot();
   ~RICRingRoot(){};
   RICRingRoot(AMSRichRing *ptr);

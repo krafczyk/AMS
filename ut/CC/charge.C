@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.60 2002/07/18 13:45:46 choutko Exp $
+//  $Id: charge.C,v 1.61 2003/01/07 18:37:26 jorgec Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -37,7 +37,11 @@ geant AMSCharge::_lkhdSlopTOF[TOFTypes][ncharge];
 geant AMSCharge::_lkhdSlopTracker[TrackerTypes][ncharge];
 integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6,7,8,9};
 integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6,7,8,9};
+integer AMSCharge::_chargeRich[ncharge]={1,1,2,3,4,5,6,7,8,9};
 char AMSCharge::_fnam[128]="lkhd_v216.data";
+
+PROTOCCALLSFFUN2(FLOAT,PROB,prob,FLOAT,INT)
+#define PROB(A2,A3)  CCALLSFFUN2(PROB,prob,FLOAT,INT,A2,A3)
 
 number AMSCharge::getprobcharge(integer charge){
 charge=abs(charge);
@@ -128,6 +132,7 @@ integer AMSCharge::build(integer refit){
 // init
       integer nhitTOF=0, nhitTracker=0;
       integer nallTOF=0, nallTOFD=0, nallTracker=0;
+      number expRich=0, useRich=0;
       AMSTrTrack *ptrack=pbeta->getptrack();
       number rid=ptrack->getrid();
       number beta=pbeta->getbeta();
@@ -223,6 +228,20 @@ integer AMSCharge::build(integer refit){
         }else break;
       }
 
+// RICH Ring
+      AMSRichRing *pring=(AMSRichRing *)AMSEvent::gethead()->getheadC("AMSRichRing",0);
+      AMSRichRing *prcri=pring;
+      while(prcri){
+       AMSTrTrack *prctk=prcri->gettrack();
+       if(prctk==ptrack){
+         pring=prcri;
+         expRich=pring->getnpexp();
+         useRich=pring->getcollnpe();
+       }
+       prcri=prcri->next(); 
+      }
+      
+
 // Compute truncated means
       int imx;
       number TrMeanTOF, TrMeanTOFD, TrMeanTracker;
@@ -239,7 +258,7 @@ integer AMSCharge::build(integer refit){
       TrMeanTOFD=mean;
 
 // Add new entry
-      addnext(pbeta,nhitTOF,nhitTracker,pTOFc,EdepTOF,pTrackerc,EdepTracker,TrMeanTracker,TrMeanTOF,TrMeanTOFD);
+      addnext(pbeta,pring,nhitTOF,nhitTracker,pTOFc,EdepTOF,pTrackerc,EdepTracker,TrMeanTracker,TrMeanTOF,TrMeanTOFD,expRich,useRich);
       pbeta=pbeta->next();
     }    
   }
@@ -247,12 +266,13 @@ integer AMSCharge::build(integer refit){
 }
 
 
-void AMSCharge::addnext(AMSBeta *pbeta, integer nhitTOF, integer nhitTracker, AMSTOFCluster *pTOFc[], number EdepTOF[TOFTypes][TOFMaxHits], AMSTrCluster  *pTrackerc[TrackerTypes-1][TrackerMaxHits], number EdepTracker[TrackerTypes-1][TrackerMaxHits], number trtr, number trtof, number trtofd){
-  AMSCharge *pcharge=new AMSCharge(pbeta, trtr, trtof, trtofd);
+void AMSCharge::addnext(AMSBeta *pbeta, AMSRichRing *pring, integer nhitTOF, integer nhitTracker, AMSTOFCluster *pTOFc[], number EdepTOF[TOFTypes][TOFMaxHits], AMSTrCluster  *pTrackerc[TrackerTypes-1][TrackerMaxHits], number EdepTracker[TrackerTypes-1][TrackerMaxHits], number trtr, number trtof, number trtofd, number expRich, number useRich){
+  AMSCharge *pcharge=new AMSCharge(pbeta, pring, trtr, trtof, trtofd);
   number beta=pbeta->getbeta();
   int bstatus=!pbeta->checkstatus(AMSDBc::AMBIG);
   int tofok=pcharge->FitTOF(0,beta,bstatus,nhitTOF,pTOFc,EdepTOF);
   int trkok=pcharge->FitTracker(0,beta,bstatus,nhitTracker,pTrackerc,EdepTracker);
+  int ricok=pcharge->FitRich(0,expRich,useRich);
   number probmin=CHARGEFITFFKEY.ProbMin;
   int tofgood=pcharge->_ProbTOF[pcharge->_iTOF]>probmin?1:0;
   int trkgood=pcharge->_ProbTracker[pcharge->_iTracker]>probmin?1:0;
@@ -444,6 +464,30 @@ integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTrac
   return !failtrk;
 }
 
+integer AMSCharge::FitRich(int ricfit, number expRich, number useRich){
+  number lkhrich[ncharge],probrich;
+  int i;
+  int failrich=0;
+
+// init
+  if(!ricfit){
+    _iRich=0;
+    _ChargeRich=0;
+    for(i=0; i<ncharge; i++) _ProbRich[i]=0;
+    for(i=0; i<ncharge; i++) _IndxRich[i]=i;
+  }
+
+  if(expRich>0){
+   for (i=0; i<ncharge; i++){
+    number zz=_chargeRich[i]*_chargeRich[i];
+    lkhrich[i]=expRich*zz-useRich*log(expRich*zz);}
+   probrich=_probrich(expRich,useRich,lkhrich);
+   _ChargeRich=_chargeRich[_iRich];}
+  else failrich=1;
+
+  return !failrich;
+}
+
 void AMSCharge::lkhcalc(int mode, number beta, int nhit, number ehit[], int typeh[], number lkh[]){
   number betamax=0.95;
   int i,j;
@@ -585,6 +629,21 @@ number AMSCharge::_probcalc(int mode, int fit, int nhittyp[],number lkhd[]){
   return prob[index];
 } 
 
+number AMSCharge::_probrich(number expRich, number useRich, number lkhd[]){
+  number prob[ncharge];
+  int i;
+
+  for(i=0; i<ncharge; i++) _LkhdRich[i]=lkhd[i];
+  _iRich=_sortlkhd(2);
+
+  for (i=0; i<ncharge; i++){
+    number zz=_chargeRich[i]*_chargeRich[i];
+    number f=(useRich-zz*expRich)*(useRich-zz*expRich)/zz/expRich;
+    _ProbRich[i]=PROB((geant)f,1);
+  }
+
+  return _ProbRich[_iRich];
+}
 
 int AMSCharge::_sortlkhd(int sort){
   number lkhd[ncharge];
@@ -593,7 +652,8 @@ int AMSCharge::_sortlkhd(int sort){
   int i,j,imax;
 
   if(!sort){ for(i=0; i<ncharge; i++) lkhd[i]=_LkhdTOF[i];}
-  else{ for(i=0; i<ncharge; i++) lkhd[i]=_LkhdTracker[i];}
+  else if (sort==1){ for(i=0; i<ncharge; i++) lkhd[i]=_LkhdTracker[i];}
+  else { for(i=0; i<ncharge; i++) lkhd[i]=_LkhdRich[i];}
 
   for (i=0; i<ncharge; i++) pntr[i]=&lkhd[i];
 
@@ -616,7 +676,8 @@ int AMSCharge::_sortlkhd(int sort){
   }
 
   if (!sort) { for(i=0; i<ncharge; i++) _IndxTOF[i]=index[i]; }
-  else{ for(i=0; i<ncharge; i++) _IndxTracker[i]=index[i]; }
+  else if (sort==1){ for(i=0; i<ncharge; i++) _IndxTracker[i]=index[i]; }
+  else{ for(i=0; i<ncharge; i++) _IndxRich[i]=index[i]; }
 
   return imax;
 }
@@ -630,6 +691,8 @@ void AMSCharge::_writeEl(){
     int   chintof[4];
     float probtr[4];
     int   chintr[4];
+    float probrc[4];
+    int   chinrc[4];
     float proballtr;
   for(i=0; i<4; i++){
     for(j=0; j<ncharge; j++){
@@ -642,10 +705,14 @@ void AMSCharge::_writeEl(){
         chintr[i]=j+1;
         if(!i) proballtr=_ProbAllTracker;
       }
+      if(_IndxRich[j]==i){
+        probrc[i]=_ProbRich[j];
+        chinrc[i]=j+1;
+      }
     }
   }
   AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this,
-                        probtof, chintof, probtr, chintr, proballtr);
+     probtof, chintof, probtr, chintr, probrc, chinrc, proballtr);
 #endif
   ChargeNtuple02* CN = AMSJob::gethead()->getntuple()->Get_charge02();
 
@@ -653,8 +720,10 @@ void AMSCharge::_writeEl(){
 // Fill the ntuple
   CN->Status[CN->Ncharge]=_status;
   CN->BetaP[CN->Ncharge]=_pbeta->getpos();
+  CN->RingP[CN->Ncharge]=_pring?_pring->getpos():-1;
   CN->ChargeTOF[CN->Ncharge]=_ChargeTOF;
   CN->ChargeTracker[CN->Ncharge]=_ChargeTracker;
+  CN->ChargeRich[CN->Ncharge]=_ChargeRich;
   for(i=0; i<4; i++){
     for(j=0; j<ncharge; j++){
       if(_IndxTOF[j]==i){
@@ -665,6 +734,10 @@ void AMSCharge::_writeEl(){
         CN->ProbTracker[CN->Ncharge][i]=_ProbTracker[j];
         CN->ChInTracker[CN->Ncharge][i]=j+1;
         if(!i) CN->ProbAllTracker[CN->Ncharge]=_ProbAllTracker;
+      }
+      if(_IndxRich[j]==i){
+        CN->ProbRich[CN->Ncharge][i]=_ProbRich[j];
+        CN->ChInRich[CN->Ncharge][i]=j+1;
       }
     }
   }
@@ -681,6 +754,7 @@ void AMSCharge::_copyEl(){
   if (cptr) {
     // AMSBeta* _pbeta;
     if (_pbeta) cptr->fBeta=_pbeta->GetClonePointer();
+    if (_pring) cptr->fRich=_pring->GetClonePointer();
   } else {
     cout<<"AMSCharge::_copyEl -I-  AMSCharg::ChargeRoot02 *ptr is NULL "<<endl;
   }

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.31 2002/12/17 22:30:09 schol Exp $
+//  $Id: root.C,v 1.32 2003/01/07 18:39:06 jorgec Exp $
 //  Last Edit : Nov 19, 2002. A.Klimentov
 //              check Root classes
 //              ? TrGammaRoot02 - commented
@@ -115,17 +115,22 @@ BetaRoot02::BetaRoot02(AMSBeta *ptr)
 ChargeRoot02::ChargeRoot02() { fBeta = 0;}
 ChargeRoot02::~ChargeRoot02() {};
 ChargeRoot02::ChargeRoot02(AMSCharge *ptr, float probtof[],int chintof[], 
-                           float probtr[], int chintr[], float proballtr)
+                           float probtr[], int chintr[], float probrc[],
+                           int chinrc[], float proballtr)
 {
   Status = ptr->_status;
   BetaP  = ptr->_pbeta->getpos();
+  RichP  = ptr->_pring?ptr->_pring->getpos():-1;
   ChargeTOF     = ptr->_ChargeTOF;
   ChargeTracker = ptr->_ChargeTracker;
+  ChargeRich    = ptr->_ChargeRich;
   for (int i=0; i<4; i++) {
     ProbTOF[i] = probtof[i];
     ChInTOF[i] = chintof[i];
     ProbTracker[i] = probtr[i];
     ChInTracker[i] = chintr[i];
+    ProbRich[i] = probrc[i];
+    ChInRich[i] = chinrc[i];
   }
   ProbAllTracker= proballtr;
   TrunTOF       = ptr->_TrMeanTOF;
@@ -786,13 +791,14 @@ void EventRoot02::AddAMSObject(AMSBeta *ptr)
 }
 
 void EventRoot02::AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[], 
-                               float probtr[], int chintr[], float proballtr)
+                               float probtr[], int chintr[], float probrc[], 
+                               int chinrc[], float proballtr)
 {
   if (ptr) {
     if (fCharge) {
    TClonesArray &clones =  *fCharge;
    ptr->SetClonePointer(new (clones[fCharge->GetLast()+1]) 
-       ChargeRoot02(ptr, probtof, chintof, probtr, chintr, proballtr)); 
+       ChargeRoot02(ptr, probtof, chintof, probtr, chintr, probrc, chinrc, proballtr)); 
     }
   }  else {
     cout<<"AddAMSObject -E- AMSCharge ptr is NULL"<<endl;
