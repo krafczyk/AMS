@@ -111,21 +111,39 @@ void TKDBc::updatef(){
 char dum;
 number rdum;
 if(!TKGEOMFFKEY.UpdateGeomFile)return;
-AString fnam="../../metro/wjb/results.my";
-ifstream iftxt((const char *)fnam,ios::in);
-if(iftxt){
-  
 
-  //
-  // first manually plane Z-positions
-  // 
+// First planes
+{
+   AString fnam="../../metro/metr.m.2";
+   ifstream iftxt((const char *)fnam,ios::in);
+      if(iftxt){
+          for(int i=0;i<AMSDBc::nlay();i++){
+         for(int l=0;l<3;l++)iftxt >>(_HeadLayer[i])._coo[l];
+         for(int j=0;j<3;j++){
+          for(int k=0;k<3;k++)iftxt >>(_HeadLayer[i])._nrm[k][j];
+         }
+    }
+    iftxt.close();
+      }
+   else {
+    cerr <<"TKDBc::update-E-CouldNotOpenFile "<<fnam<<endl;
+   }
+}  
+
+// Temporary adjust to 1234 center
+{
+   number cp=0;
+   for(int i=1;i<5;i++)cp+=_HeadLayer[i]._coo[2];
+   cp=cp/4;
+   for( i=0;i<AMSDBc::nlay();i++)_HeadLayer[i]._coo[2]+=-cp;
+}
   
-   (_HeadLayer[0])._coo[2]= 50.949;
-   (_HeadLayer[1])._coo[2]=  29.2141;
-   (_HeadLayer[2])._coo[2]= 7.78935;
-   (_HeadLayer[3])._coo[2]= -7.78935;
-   (_HeadLayer[4])._coo[2]= -29.14585;
-   (_HeadLayer[5])._coo[2]=  -50.99;
+//   (_HeadLayer[0])._coo[2]= 50.949;
+//   (_HeadLayer[1])._coo[2]=  29.2141;
+//   (_HeadLayer[2])._coo[2]= 7.78935;
+//   (_HeadLayer[3])._coo[2]= -7.78935;
+//   (_HeadLayer[4])._coo[2]= -29.14585;
+//   (_HeadLayer[5])._coo[2]=  -50.99;
 
    //Now modify some sensors
    (_HeadSensor[621])._status=0;
@@ -135,6 +153,11 @@ if(iftxt){
    (_HeadSensor[1122])._nrm[1][0]=sin(1.5e-3);
    (_HeadSensor[1122])._nrm[0][1]=-sin(1.5e-3);
    (_HeadSensor[1122])._nrm[1][1]=cos(1.5e-3);
+
+
+   AString fnam="../../metro/wjb/results.my";
+   ifstream iftxt((const char *)fnam,ios::in);
+   if(iftxt){
 
 
    // Now read Markers
@@ -164,6 +187,7 @@ if(iftxt){
      number cx=sqrt(1.-(xy*xy+zx*zx));
      number cy=sqrt(1.-(xy*xy+zy*zy));
      number cz=sqrt(1.-(zx*zx+zy*zy));
+     if(ihalf==0){ 
       (_HeadLadder[ihalf][numl])._nrm[0][0]=cx;
       (_HeadLadder[ihalf][numl])._nrm[1][0]=xy;
       (_HeadLadder[ihalf][numl])._nrm[2][0]=zx;
@@ -173,7 +197,19 @@ if(iftxt){
       (_HeadLadder[ihalf][numl])._nrm[0][2]=-zx;
       (_HeadLadder[ihalf][numl])._nrm[1][2]=-zy;
       (_HeadLadder[ihalf][numl])._nrm[2][2]=cz;
-     nladders++;
+     }
+     else {
+      (_HeadLadder[ihalf][numl])._nrm[0][0]=-cx;
+      (_HeadLadder[ihalf][numl])._nrm[1][0]=-xy;
+      (_HeadLadder[ihalf][numl])._nrm[2][0]=zx;
+      (_HeadLadder[ihalf][numl])._nrm[0][1]=xy;
+      (_HeadLadder[ihalf][numl])._nrm[1][1]=-cy;
+      (_HeadLadder[ihalf][numl])._nrm[2][1]=zy;
+      (_HeadLadder[ihalf][numl])._nrm[0][2]=-zx;
+      (_HeadLadder[ihalf][numl])._nrm[1][2]=-zy;
+      (_HeadLadder[ihalf][numl])._nrm[2][2]=cz;
+     } 
+    nladders++;
      if(iftxt.eof())break;
    }
 
@@ -187,7 +223,7 @@ else {
 }
 
 void TKDBc::write(integer update){
-if( (_ReadOK || !(TKGEOMFFKEY.WriteGeomToFile)) && !TKGEOMFFKEY.UpdateGeomFile)return;
+if( (_ReadOK || !(TKGEOMFFKEY.WriteGeomToFile)) && !update)return;
 AString fnam(AMSDATADIR.amsdatadir);
 fnam+="TKGeom_";
 fnam+=AMSJob::gethead()->getsetup();
@@ -197,6 +233,7 @@ if(update)iftxt.open((const char *)fnam,ios::out|ios::trunc);
 else iftxt.open((const char *)fnam,ios::out|ios::noreplace);
 if(iftxt){
   // Write file
+  iftxt <<setprecision(12);
  int i,j,k,l,idum;
  for(i=0;i<_NumberLayer;i++){
    iftxt <<"Layer "<< i <<" "<< _HeadLayer[i]._gid<<" "<<_HeadLayer[i]._status<<endl;

@@ -190,6 +190,7 @@ void AMSgvolume::_init(){
      phi[j]=atan2((double)sph,(double)cph)*AMSDBc::raddeg;
     }
     GSROTM(_rotmno,theta[0],phi[0],theta[1],phi[1],theta[2],phi[2]);
+
 #ifdef __AMSDEBUG__
     if(debug)GPROTM(_rotmno);  
 #endif

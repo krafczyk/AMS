@@ -236,7 +236,7 @@ Tracker clusters:
 1 - WIDE cluster
 2 - two clusters near each other
 4 - cluster was refitted
-
+8 - "weak" cluster
  TrRecHits:
 4 - Ambiguous hit (i.e. several tracks are used it)
 

@@ -200,8 +200,8 @@ TRMCFFKEY.sigma[0]=TRMCFFKEY.sigma[1]*1.41;   // x strip two times larger y
 
 
 
-TRMCFFKEY.cmn[0]=50;
-TRMCFFKEY.cmn[1]=50;
+TRMCFFKEY.cmn[0]=15;
+TRMCFFKEY.cmn[1]=10;
 TRMCFFKEY.adcoverflow=32767;
 TRMCFFKEY.NoiseOn=1;
 TRMCFFKEY.sec[0]=0;
@@ -476,7 +476,7 @@ TRCLFFKEY.Thr3R[1] =-2.;
 TRCLFFKEY.ThrClNMin[1]=2;
 TRCLFFKEY.ThrClNEl[1]=3;
 
-TRCLFFKEY.ThrClA[0]=50/fac;
+TRCLFFKEY.ThrClA[0]=52/fac;
 TRCLFFKEY.Thr1A[0] =40/fac;
 TRCLFFKEY.Thr2A[0] =15/fac;
 
@@ -551,7 +551,7 @@ TRFITFFKEY.pattern[19]=1;
 TRFITFFKEY.pattern[20]=1;
 TRFITFFKEY.pattern[21]=1;
 TRFITFFKEY.UseTOF=1;
-TRFITFFKEY.Chi2FastFit=10;
+TRFITFFKEY.Chi2FastFit=1000;
 TRFITFFKEY.Chi2StrLine=20;
 TRFITFFKEY.Chi2Circle=20;
 TRFITFFKEY.ResCutFastFit=0.5;
@@ -565,6 +565,7 @@ TRFITFFKEY.FullReco=0;
 TRFITFFKEY.MinRefitCos[0]=0.7;
 TRFITFFKEY.MinRefitCos[1]=0.5;
 TRFITFFKEY.FastTracking=0;
+TRFITFFKEY.WeakTracking=0;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }

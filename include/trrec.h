@@ -72,6 +72,7 @@ public:
      static const integer WIDE;
      static const integer NEAR;
      static const integer REFITTED;
+     static const integer WEAK;
 static integer Out(integer);
 number getVal(){return _Sum;}
 number getcofg(integer side, AMSTrIdGeom * id);
@@ -109,6 +110,7 @@ AMSTrCluster *  next(){return (AMSTrCluster*)_next;}
 
 //default builder
 static integer build(integer refit);
+static integer buildWeak(integer refit);
 
 static void print();
 AMSTrCluster():AMSlink(){_NelemL=0; _NelemR=0;_pValues=0;};
@@ -159,6 +161,7 @@ void resethash(integer i, AMSlink *head){
 if(i>=0 && i <6)_Head[i]=(AMSTrRecHit*)head;
 }
 
+
 static AMSTrRecHit * gethead(integer i=0){
    if(i>=0 && i<6){
     if(!_Head[i])_Head[i]=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
@@ -171,12 +174,18 @@ static AMSTrRecHit * gethead(integer i=0){
     return 0;
    }   
 }
+
+
+
+
+
 AMSTrRecHit(AMSgSen *p, integer good,integer layer, AMSTrCluster * xcl, AMSTrCluster * ycl,
             const AMSPoint & hit, const AMSPoint & ehit, number sum, number dfs): AMSlink(good,0),
             _pSen(p), _Layer(layer),_Xcl(xcl),
             _Ycl(ycl), _Hit(hit), _EHit(ehit),_Sum(sum),_DifoSum(dfs){};
 AMSTrRecHit(): AMSlink(),_pSen(0),_Xcl(0),_Ycl(0){};
 static integer build(integer refit);
+static integer buildWeak(integer refit);
 static void print();
 static integer Out(integer);
 number getsum()const{return _Sum;}
@@ -304,6 +313,7 @@ AMSlink(0,0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone
   {init(  phit);}
 void init( AMSTrRecHit * phit[]);
 static integer build(integer refit);
+static integer buildWeak(integer refit);
 static void print();
 AMSTrRecHit * getphit(integer i){return i>=0 && i<6? _Pthit[i]:0;}
 void interpolate(AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 

@@ -1,5 +1,3 @@
-// Author V. Choutko 24-may-1996
- 
 #include <trid.h>
 #include <trrawcluster.h>
 #include <extC.h>
@@ -476,18 +474,16 @@ void AMSTrRawCluster::buildrawRawA(integer n, int16u *p){
          vamin=j-idd.getstripa();
          vamax=j+maxva-idd.getstripa();
          integer avsig=0;
+         geant cmn=0;
          for (l=vamin;l<vamax;l++){
            idd.upd(l);
-           if(idd.getsignsigraw())idlocal[avsig++]=id[l];
+           idlocal[l-vamin]=id[l];
+            cmn+=id[l]*idd.getsignsigraw(); 
+            avsig+=idd.getsignsigraw();            
          }
-         //AMSsortNAGa(idlocal,avsig);
-         geant cmn=0;
-         if(avsig>2){
-           for(l=0;l<avsig;l++)cmn+=idlocal[l];
-           cmn=cmn/(avsig);
-         }
+         if(avsig>1)cmn=cmn/avsig;
          for(l=vamin;l<vamax;l++){
-
+           idd.upd(l);
            if(!idd.getsignsigraw() ){
             geant cmn=0;
             geant avsig=0;
@@ -496,17 +492,15 @@ void AMSTrRawCluster::buildrawRawA(integer n, int16u *p){
                idd.upd(kk+vamin);
                cmn+=idlocal[kk]*fabs(idd.getsigraw());
                avsig++;
-               idd.upd(l);
               }
             }
-            if(avsig>1 && idd.getsigraw()!=0){
+            idd.upd(l);
+            if(avsig>0 && idd.getsigraw()!=0){
                cmn=cmn/avsig/fabs(idd.getsigraw());
             }
             id[l]+=-cmn;
            }
-
-
-             id[l]=id[l]-cmn;
+           else  id[l]+=-cmn;
          }
       }
       // find "preclusters"  

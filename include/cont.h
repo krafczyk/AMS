@@ -19,7 +19,7 @@ integer _sorted;   // For Nevsky
 void _init(){};
 void _printEl(ostream & stream){stream <<_name<<" "<<_id<<" Elements: "<<_nelem<<endl;}
 public:
-integer buildOK(){ return _BuildSuccess == 1 ;}
+integer buildOK(){ return _BuildSuccess ;}
 void setbuilder(pBuilder pb){_pb=pb;}
  void runbuilder(integer par);
 void * operator new(size_t t, void *p) {return p;}

@@ -147,7 +147,7 @@ integer AMSTimeID::write(char * dir){
     AString fnam(dir);
     fnam+=getname();
     fnam+= getid()==0?".0":".1";
-    if(getid()!=0 && AMSTrIdCalib::getrun()>0){
+    if(AMSTrIdCalib::getrun()>0){
      char name[255];
      ostrstream ost(name,sizeof(name));
      ost << "."<<AMSTrIdCalib::getrun()<<ends;
@@ -185,7 +185,7 @@ integer AMSTimeID::read(char * dir, integer reenter){
     AString fnam(dir);
     fnam+=getname();
     fnam+= getid()==0?".0":".1";
-    if(getid()!=0 && reenter==0){
+    if( reenter==0){
      char name[255];
      ostrstream ost(name,sizeof(name));
      ost << "."<<AMSEvent::gethead()->getrun()<<ends;

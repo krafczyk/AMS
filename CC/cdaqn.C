@@ -210,7 +210,7 @@ int16u pData[2][24][1536];
              }
              tdrk=(k-16)/2;
              //swap 3.2 <-> 3.0 for 32
-             if(ncrt==0 && tdrk == 2){
+             if(icrt==0 && tdrk == 2){
               if(conn == 0)conn=3;
               else if (conn==3)conn=0;  
              }
@@ -275,7 +275,7 @@ int16u pData[2][24][1536];
        ncnt++;
        l16ptr++;
        //cout << " tlength "<<tlength <<endl;
-       //cout << " ntdr "<<ntdr <<endl;
+       //cout << " ntdr "<<ntdr <<" "<<ncrt<<endl;
        if(fbin.good()&& !fbin.eof() ){
        }
        else{

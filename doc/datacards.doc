@@ -329,7 +329,8 @@ I34  FullReco(0)            // Use(1) or not use(0) "used "clusters to build
                             // tracks
 R35  MinRefitCos(0.7,0.5)      // min cos(tr angle) to refit track with wider
                             // clusters
-I36  FastTracking(0)        // Make(1) do not make(0) nonlinear fitting
+I37  FastTracking(0)        // Make(1) do not make(0) nonlinear fitting
+I38  WeakTracking(0)        // Make(1) do not make(0) weak clusters fitting
 
 
 

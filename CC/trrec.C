@@ -29,6 +29,7 @@ integer AMSTrTrack::_RefitIsNeeded=0;
 const integer AMSTrCluster::WIDE=1;
 const integer AMSTrCluster::NEAR=2;
 const integer AMSTrCluster::REFITTED=4;
+const integer AMSTrCluster::WEAK=8;
 
 integer AMSTrTrack::patconf[npat][6]={1,2,3,4,5,6,   // 123456  0
                                       1,2,3,4,6,0,   // 12346   1
@@ -185,6 +186,7 @@ integer AMSTrCluster::build(integer refit=0){
         pos=pos+1*(j-center)*adc[j];
         rms=rms+pow(1*(j-center),2)*adc[j];
        }
+       else adc[j]=0;
       }
        if(sum !=0){
         rms=sqrt(fabs(rms*sum-pos*pos))/sum; 
@@ -289,6 +291,174 @@ integer AMSTrCluster::build(integer refit=0){
   }
 
 }
+
+
+
+integer AMSTrCluster::buildWeak(integer refit=0){
+  AMSlink * OriginalLast[2];
+  integer OriginalNumber[2];
+  AMSContainer * pct[2];
+  geant Thr2R[2];
+  integer ThrClNel[2];
+  if(refit){
+   return -1;
+  }
+ 
+  integer size=(AMSDBc::maxstripsdrp()+1+
+  2*max(TRCLFFKEY.ThrClNEl[0],TRCLFFKEY.ThrClNEl[1]))*sizeof(number);
+  number *  adc  = (number*)UPool.insert(size); 
+  AMSTrIdSoft id;
+  // only x clusters can be weak
+  for(int icll=0;icll<1;icll++){
+   AMSTrRawCluster *p=(AMSTrRawCluster*)AMSEvent::gethead()->
+   getheadC("AMSTrRawCluster",icll,1);
+   VZERO(adc,size/4);
+   while(p){
+    // Unpack cluster into tmp space
+    // find clusters
+     id=AMSTrIdSoft(p->getid());
+     integer ilay=id.getlayer(); 
+     integer side=id.getside();
+     p->expand(adc+TRCLFFKEY.ThrClNEl[side]/2);
+    if(p->testlast()){
+              
+     // Circle buffer for x layers 1 && 6;
+     // 
+     if(side==0 && (ilay==1 || ilay==6)){
+       for (int iloc=0;iloc<TRCLFFKEY.ThrClNEl[side]/2;iloc++){
+        adc[iloc]=adc[id.getmaxstrips()+iloc];
+        adc[iloc+id.getmaxstrips()+TRCLFFKEY.ThrClNEl[side]/2]=
+        adc[iloc+TRCLFFKEY.ThrClNEl[side]/2];
+       }  
+     }
+     number ref;
+     ref=-FLT_MAX;
+     number sum;
+     number ssum;
+     number pos;
+     number rms;
+     integer left,right,status,above,center;
+     for (int i=TRCLFFKEY.ThrClNEl[side]/2;
+     i<id.getmaxstrips()+TRCLFFKEY.ThrClNEl[side]/2+1;i++){
+     if(adc[i]<ref){
+      // cluster cand found
+      if( adc[i]< adc[i+1] && adc[i+1]> TRCLFFKEY.Thr1A[side]){
+      // "wide" cluster
+      status= AMSTrCluster::WIDE;
+      left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
+      i-TRCLFFKEY.ThrClNEl[side]/2);
+      center=i;
+      right=min(i+TRCLFFKEY.ThrClNEl[side]/2,
+            id.getmaxstrips()+(side==1?1:2)*(TRCLFFKEY.ThrClNEl[side]/2)-1);  
+      } 
+      else if(adc[i+1]<adc[i+2] && adc[i+2]>TRCLFFKEY.Thr1A[side]){
+       // two clusters near each other; take care about rightmost strip;
+      status=AMSTrCluster::NEAR;
+      left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
+      i-1-TRCLFFKEY.ThrClNEl[side]/2);
+      center=i-1;
+      right=min(i+TRCLFFKEY.ThrClNEl[side]/2-1,
+      id.getmaxstrips()+(side==1?1:2)*(TRCLFFKEY.ThrClNEl[side]/2)-1);    
+      }
+      else{
+       status=0;
+       left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
+       i-1-TRCLFFKEY.ThrClNEl[side]/2);
+       center=i-1;
+       right=min(i-1+TRCLFFKEY.ThrClNEl[side]/2,
+       id.getmaxstrips()+(side==1?1:2)*(TRCLFFKEY.ThrClNEl[side]/2)-1);   
+      }
+      sum=0;
+      ssum=0;
+      pos=0;
+      rms=0;
+      above=0;
+      //
+      // we don't know here the strip size (unfortunately...)
+      // so put 1 instead ...
+      // 
+      for (int j=left;j<right+1;j++){
+       id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
+       if(!id.checkstatus(AMSDBc::BAD) && 
+          adc[j]/id.getsig()>TRCLFFKEY.Thr3R[side]){
+        if(j-center<= -TRCLFFKEY.ThrClNEl[side]/2 && 
+           adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]){
+           left++;
+           j++;
+           id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
+           if(j-center< 0 && 
+           adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
+            left++;
+            continue;
+           }
+        }
+        if(j-center>= TRCLFFKEY.ThrClNEl[side]/2 && 
+           adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]){
+           right--;
+           id.upd(j-1-TRCLFFKEY.ThrClNEl[side]/2);
+           if(j-1-center> 0 && 
+           adc[j-1]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
+            right--;
+           }
+           
+           continue;
+        }
+       if(adc[j]>TRCLFFKEY.Thr2A[side])above++;
+        if(j==right+1 && status==AMSTrCluster::NEAR)sum+=adc[j]/2;
+        else sum+=adc[j];
+        ssum=ssum+pow(id.getsig(),2.);
+        pos=pos+1*(j-center)*adc[j];
+        rms=rms+pow(1*(j-center),2)*adc[j];
+       }
+      }
+       if(sum !=0){
+        rms=sqrt(fabs(rms*sum-pos*pos))/sum; 
+        pos=pos/sum+1*0.5;
+        ssum=sqrt(ssum);
+       }
+      ref=-FLT_MAX;
+      if(above >= TRCLFFKEY.ThrClNMin[side] && 
+         sum> TRCLFFKEY.ThrClA[side] && ssum > 0 && 
+         ssum < TRCLFFKEY.ThrClS[side] && sum/ssum > TRCLFFKEY.ThrClR[side]){
+         id.upd(center-TRCLFFKEY.ThrClNEl[side]/2);
+         if(right-left+1 > TRCLFFKEY.ThrClNEl[side]){
+           if(adc[left]>adc[right])right--;
+           else left++;
+         }
+         status=status | AMSTrCluster::WEAK;
+         if(adc[center]/id.getsig()<= TRCLFFKEY.Thr1R[side])_addnext(
+         id,status,left-center,right-center+1,sum,ssum,pos,rms,adc+left);
+         status=status &  (~AMSTrCluster::WEAK);
+           for (int j=left;j<right+1;j++){
+             if(j==right+1 && status==AMSTrCluster::NEAR)adc[j]=adc[j]/2;
+             else adc[j]=0;
+           }
+      }                      
+     }
+     else{
+      if(adc[i] > TRCLFFKEY.Thr1A[side]){
+       // susp bump found
+       id.upd(i-TRCLFFKEY.ThrClNEl[side]/2);
+       if(id.checkstatus(AMSDBc::BAD)==0 && 
+          id.getsig() < TRCLFFKEY.Thr1S[side] && 
+          adc[i]/id.getsig() > TRMCFFKEY.thr1R[side] )ref=adc[i];
+      }
+     }
+     } 
+     VZERO(adc,size/4);
+    }  
+     p=p->next();           
+  }
+  }
+  UPool.udelete(adc);
+
+
+    return 1;
+}
+
+
+
+
 number AMSTrCluster::getcofg(integer side, AMSTrIdGeom * pid){
   //
   // Here we are able to recalculate the center of gravity...
@@ -306,8 +476,17 @@ for(i=_NelemL;i<_NelemR;i++){
  cofg+=_pValues[i-_NelemL]*pid->getcofg(side,i,error);
  if(error==0)eval+=_pValues[i-_NelemL];
 }
-if(eval > 0)cofg=cofg/eval;
-if(eval>0)smt=smax/eval;
+if(eval > 0){
+cofg=cofg/eval;
+smt=smax/eval;
+}
+else{
+#ifdef __AMSDEBUG__
+  cerr <<"AMSTrCluster::getcofg-E-NegativeClusterAmplitudeFound "<<eval<<endl;
+#endif
+cofg=0;
+smt=0;
+}
 return cofg-cfgCorFun(smt,pid); 
 }
 number AMSTrCluster::cfgCorFun(number s, AMSTrIdGeom * pid){
@@ -398,6 +577,8 @@ for(int i=0;i<2;i++){
 }
 
 AMSTrRecHit * AMSTrRecHit::_Head[6]={0,0,0,0,0,0};
+
+
 integer AMSTrRecHit::build(integer refit=0){
   if(refit){
     // Cleanup all  containers
@@ -452,6 +633,64 @@ integer AMSTrRecHit::build(integer refit=0){
  }  
  return 1;
 }
+
+
+
+integer AMSTrRecHit::buildWeak(integer refit=0){
+  if(refit){
+   return -1;
+  } 
+ AMSTrCluster *x;
+ AMSTrCluster *y;
+ AMSTrIdSoft idx;
+ AMSTrIdSoft idy;
+ integer ia,ib,ilay,nambig;
+ y=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0); 
+ while (y){
+   idy=y->getid();
+   ilay=idy.getlayer();
+   if(y->checkstatus(AMSDBc::BAD)==0 && 
+      y->checkstatus(AMSTrCluster::WEAK)==0){
+   x=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",0);
+   while(x){
+      idx=x->getid();  
+      if(x->checkstatus(AMSDBc::BAD) ==0 &&
+       x->checkstatus(AMSTrCluster::WEAK)){
+      if(idx.getlayer() == idy.getlayer() && 
+         idx.getdrp() == idy.getdrp() && idx.gethalf() == idy.gethalf()
+         && fabs(y->getVal()-x->getVal())/(y->getVal()+x->getVal()) < 
+         TRCLFFKEY.ThrDSide){
+        // make MANY points.... Unfortunately...
+         AMSTrIdGeom *pid = idx.ambig(idy, nambig);
+         for(int i=0;i<nambig;i++){
+         AMSgSen *p;
+         p=(AMSgSen*)AMSJob::gethead()->getgeomvolume((pid+i)->crgid());
+         if(!p){
+           if(TKDBc::GetStatus((pid+i)->getlayer()-1,(pid+i)->getladder()-1,
+           (pid+i)->getsensor()-1))
+           cerr << "AMSTrRecHitBuild-S-Sensor-Error "<<
+             (pid+i)->crgid()<<endl;          
+         }
+         else{
+           //           cout <<" rec hit weak added "<<endl;
+          _addnext(p,AMSTrCluster::WEAK,ilay,x,y,
+          p->str2pnt(x->getcofg(0,pid+i),y->getcofg(1,pid+i)),
+          AMSPoint(x->getecofg(),y->getecofg(),(number)TRCLFFKEY.ErrZ));
+         }
+         } 
+      } 
+      }
+    x=x->next();
+   }
+   }
+   y=y->next();
+ }  
+ return 1;
+}
+
+
+
+
  void AMSTrRecHit::_addnext(AMSgSen * pSen, integer status, integer layer, AMSTrCluster *x,
                             AMSTrCluster * y, const AMSPoint & hit,
                             const AMSPoint & ehit){
@@ -533,6 +772,7 @@ for(int i=0;i<6;i++){
 
 geant AMSTrTrack::_Time=0;
 integer AMSTrTrack::build(integer refit=0){
+  integer NTrackFound=-1;
   // pattern recognition + fit
   if(refit){
     // Cleanup all track containers
@@ -576,6 +816,7 @@ integer AMSTrTrack::build(integer refit=0){
         par[1][0]=(phit[fp]-> getHit()[1]-phit[0]-> getHit()[1])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
         par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
+        if(NTrackFound<0)NTrackFound=0;
         // Search for others
         phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
         while(phit[1]){
@@ -602,7 +843,10 @@ integer AMSTrTrack::build(integer refit=0){
               if(AMSTrTrack::Distance(par,phit[4]))
               {phit[4]=phit[4]->next();continue;}
                 // 6 point combination found
-                if(AMSTrTrack::_addnext(pat,6,phit))goto out;
+              if(AMSTrTrack::_addnext(pat,6,phit)){
+                  NTrackFound++;
+                  goto out;
+              }                
                 
              }
             phit[4]=phit[4]->next();
@@ -610,7 +854,10 @@ integer AMSTrTrack::build(integer refit=0){
            }
            else{  // 5 points only
                 // 5 point combination found
-                if(AMSTrTrack::_addnext(pat,5,phit))goto out;
+             if(AMSTrTrack::_addnext(pat,5,phit)){
+                  NTrackFound++;
+                  goto out;
+             }
                 
            }
            }
@@ -619,8 +866,11 @@ integer AMSTrTrack::build(integer refit=0){
           }
           else{       // 4 points only
                 // 4 point combination found
-                if(AMSTrTrack::_addnext(pat,4,phit))goto out;
                 
+                if(AMSTrTrack::_addnext(pat,4,phit)){
+                  NTrackFound++;
+                  goto out;
+                }                
           }
           }
           phit[2]=phit[2]->next();
@@ -638,8 +888,99 @@ out:
       
     }
   }
-return 1;
+return NTrackFound;
 }
+
+
+
+
+integer AMSTrTrack::buildWeak(integer refit=0){
+  integer NTrackFound=-1;
+  // pattern recognition + fit
+  if(refit){
+   return NTrackFound;
+  } 
+  _RefitIsNeeded=0;
+  _Start();
+  // Add test here
+   
+  { 
+    int xs=0; 
+    for (int kk=0;kk<6;kk++){
+    AMSTrRecHit * phit=AMSTrRecHit::gethead(kk);
+    if(phit)xs++;
+  }
+    if(xs>3)AMSEvent::gethead()->addnext(AMSID("Test",0),new Test());
+  }
+
+  for (int pat=7;pat<npat;pat++){
+    // Only 4 points patterns used
+    AMSTrRecHit * phit[6]={0,0,0,0,0,0};
+    if(TRFITFFKEY.pattern[pat]){
+      int fp=patpoints[pat]-1;    
+#ifdef __AMSDEBUG__
+     assert (fp==4);
+#endif 
+      // Try to make StrLine Fit
+      integer first=AMSTrTrack::patconf[pat][0]-1;
+      integer second=AMSTrTrack::patconf[pat][fp]-1;
+      phit[0]=AMSTrRecHit::gethead(first);
+      number par[2][2];
+      while( phit[0]){
+       if((TRFITFFKEY.FullReco || phit[0]->checkstatus(AMSDBc::USED)==0) &&
+          (phit[0]->checkstatus(AMSTrCluster::WEAK)==0)){
+       phit[fp]=AMSTrRecHit::gethead(second);
+       while( phit[fp]){
+        if(TRFITFFKEY.FullReco || phit[fp]->checkstatus(AMSDBc::USED)==0 &&
+          (phit[fp]->checkstatus(AMSTrCluster::WEAK)==0)){
+        par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
+               (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
+        par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
+        par[1][0]=(phit[fp]-> getHit()[1]-phit[0]-> getHit()[1])/
+               (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
+        par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
+        // Search for others
+        if(NTrackFound<0)NTrackFound=0;
+        phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
+        while(phit[1]){
+         if(TRFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0){
+          // Check if the point lies near the str line
+           if(AMSTrTrack::Distance(par,phit[1]))
+           {phit[1]=phit[1]->next();continue;}
+         phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
+         while(phit[2]){
+          // Check if the point lies near the str line
+          if(TRFITFFKEY.FullReco || phit[2]->checkstatus(AMSDBc::USED)==0){
+          if(AMSTrTrack::Distance(par,phit[2]))
+          {phit[2]=phit[2]->next();continue;}
+                // 4 point combination found
+                
+                if(AMSTrTrack::_addnext(pat,4,phit)){
+                  NTrackFound++;
+                  goto out;
+                }                
+          }
+          phit[2]=phit[2]->next();
+         }
+         }
+         phit[1]=phit[1]->next();
+        }
+        }         
+        phit[fp]=phit[fp]->next();
+       }
+       }  
+out:
+       phit[0]=phit[0]->next();
+      }
+      
+    }
+  }
+return NTrackFound;
+}
+
+
+
+
 
 integer AMSTrTrack::Distance(number par[2][2], AMSTrRecHit *ptr){
 const integer freq=10;

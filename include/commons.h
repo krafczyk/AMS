@@ -410,6 +410,7 @@ public:
   integer FullReco;
   geant MinRefitCos[2];
   integer FastTracking;
+  integer WeakTracking;
 };
 //
 

@@ -327,12 +327,20 @@ void AMSEvent::_retkinitevent(){
 
   for( i=0;i<2;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrCluster",i),&AMSTrCluster::build,0));
+  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTrClusterWeak",i),&AMSTrCluster::buildWeak,0));
 
   for( i=0;i<6;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrRecHit",i),&AMSTrRecHit::build,0));
 
+  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTrRecHitWeak",i),&AMSTrRecHit::buildWeak,0));
+
   for( i=0;i<npat;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrack",i),&AMSTrTrack::build,0));
+
+  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTrTrackWeak",i),&AMSTrTrack::buildWeak,0));
 }
 
 void  AMSEvent::write(){
@@ -550,14 +558,18 @@ AMSgObj::BookTimer.stop("TrRecHit");
 if(AMSEvent::debug)AMSTrRecHit::print();
 #endif
 AMSgObj::BookTimer.start("TrTrack");
-buildC("AMSTrTrack",refit);
+if( (buildC("AMSTrTrack",refit)==0) && TRFITFFKEY.WeakTracking ){
+ buildC("AMSTrClusterWeak",refit);
+ buildC("AMSTrRecHitWeak",refit);
+ buildC("AMSTrTrackWeak",refit);
+}
 AMSgObj::BookTimer.stop("TrTrack");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSTrTrack::print();
 #endif
 AMSgObj::BookTimer.stop("RETKEVENT");
 
-if(refit==0 && AMSTrTrack::RefitIsNeeded())_retkevent(1);
+//if(refit==0 && AMSTrTrack::RefitIsNeeded())_retkevent(1);
 
 }
 
@@ -943,7 +955,7 @@ integer AMSEvent::buildC(char name[], integer par){
    AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
    if(p){
      p->runbuilder(par);
-     return 1;
+     return p->buildOK();
    }
    else return 0; 
   
@@ -964,7 +976,7 @@ integer AMSEvent::rebuildC(char name[], integer par){
    AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
    if(p){
      p->runbuilder(par);
-     return 1;
+     return p->buildOK();
    }
    else return 0; 
 

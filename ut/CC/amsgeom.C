@@ -1268,6 +1268,7 @@ ostrstream ost(name,sizeof(name));
 #endif
       dau=mother.add(new AMSgvolume(
       "VACUUM",nrot++,name,"CONE",par,5,coo,nrm, "ONLY",0,gid));
+      //      cout <<" layer "<<i<<" "<<nrot<<endl;
       int j;
       for (j=0;j<AMSDBc::nlad(i+1);j++){
        int k;
@@ -1523,7 +1524,7 @@ ostrstream ost(name,sizeof(name));
         gid=i+1+10*(j+1);
         cur=dau->add(new AMSgvolume(
        "ELECTRONICS",nrot++,name,"BOX",par,3,coo,nrm,"ONLY",1,gid,1));
-
+        //        cout <<"elr "<<i<<" "<<j<<" "<<nrot<<endl;
        }
 
 

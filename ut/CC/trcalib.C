@@ -530,6 +530,9 @@ void AMSTrIdCalib::_calc(){
             // special ladder#6 layer #3 side# 0
                if(cid.getlayer() == 3  && cid.getdrp() == 6 && cid.getside() == 0
                   && cid.gethalf()==0)cid.setstatus(AMSDBc::BAD);            
+            // special ladder#9 layer #2 side# 0 half# 1
+               //               if(cid.getlayer() == 2  && cid.getdrp() == 9 && cid.getside() == 0
+               //                  && cid.gethalf()==1)cid.setstatus(AMSDBc::BAD);            
           }
           if(cid.checkstatus(AMSDBc::BAD))bada[l]++;
 
