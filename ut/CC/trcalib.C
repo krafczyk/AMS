@@ -1,5 +1,3 @@
-
-
 #include <trcalib.h>
 #include <event.h>
 #include <math.h>
@@ -540,7 +538,7 @@ void AMSTrIdCalib::_update(){
     ptdv->UpdCRC();
     time_t begin,end,insert;
     time(&insert);
-    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
+    ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
     cout <<" Tracker H/K  info has been updated for "<<*ptdv;
     ptdv->gettime(insert,begin,end);
     cout <<" Time Insert "<<ctime(&insert);
@@ -551,7 +549,7 @@ void AMSTrIdCalib::_update(){
     ptdv->UpdateMe()=1;
     ptdv->UpdCRC();
     time(&insert);
-    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
+    ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
     cout <<" Tracker H/K  info has been updated for "<<*ptdv;
     ptdv->gettime(insert,begin,end);
     cout <<" Time Insert "<<ctime(&insert);
@@ -562,7 +560,7 @@ void AMSTrIdCalib::_update(){
     ptdv->UpdateMe()=1;
     ptdv->UpdCRC();
     time(&insert);
-    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
+    ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
     cout <<" Tracker H/K  info has been updated for "<<*ptdv;
     ptdv->gettime(insert,begin,end);
     cout <<" Time Insert "<<ctime(&insert);
@@ -669,7 +667,10 @@ if(++counter%TRCALIB.EventsPerCheck == 0 || forcedw){
 
 
 void AMSTrIdCalib::buildSigmaPed(integer n, int16u *p){
-
+  integer static first=0;
+  if(first++ == 0){
+    _BeginTime=AMSEvent::gethead()->gettime();
+  }
   integer const maxva=64;
   integer const mss=640;
   static geant id[mss];
@@ -727,3 +728,6 @@ void AMSTrIdCalib::buildSigmaPed(integer n, int16u *p){
 
   }
 }
+
+
+time_t AMSTrIdCalib::_BeginTime=0;
