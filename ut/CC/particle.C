@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.110 2002/05/21 09:03:42 alexei Exp $
+//  $Id: particle.C,v 1.111 2002/05/22 09:01:38 alexei Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -503,29 +503,18 @@ void AMSParticle::_writeEl(){
 
   float fitmom      = _fittedmom[0];
   for (int i=0; i<2; i++) {prob[i] = _prob[i];}
-  float mass        = _Mass;
-  float errmass     = _ErrMass;
-  float momentum    = _Momentum;
-  float errmomentum =  _ErrMomentum;
-  float beta        =  _Beta;
-  float errbeta     =  _ErrBeta;
-  float charge      =  _Charge;
-  float theta       =  _Theta; 
-  float thetagl     =  _ThetaGl;
-  float cutoff      =  _CutoffMomentum;
-  float richlength  =  _RichLength;
 
     EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
     TClonesArray &clones =  *(ev02.Get_fparticle());
     new (clones[N]) ParticleRoot02(
                              betap, chargep, trackp, trdp, richp, ecalp,
                              particle, particlevice, prob, fitmom, 
-                             mass, errmass, momentum, errmomentum,
-                             beta, errbeta, charge, theta, phi,
-                             thetagl, phigl,
-                             coo, cutoff, 
+                             _Mass, _ErrMass, _Momentum, _ErrMomentum,
+                             _Beta, _ErrBeta, _Charge, _Theta, phi,
+                             _ThetaGl, phigl,
+                             coo, _CutoffMomentum, 
                              tofcoo, anticoo, ecalcoo, trcoo, trdcoo,
-                             richcoo, richpath,richlength);
+                             richcoo, richpath,_RichLength);
     N++;
     AMSJob::gethead()->getntuple()->Get_event02()->Set_fNparticle(N);
   } else {

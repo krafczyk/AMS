@@ -1,70 +1,9 @@
-//  $Id: root.C,v 1.19 2002/05/21 09:03:42 alexei Exp $
+//  $Id: root.C,v 1.20 2002/05/22 09:01:38 alexei Exp $
 #include <root.h>
 #include <ntuple.h>
 #ifdef __WRITEROOT__
-BetaNtuple02::BetaNtuple02(){}
-ChargeNtuple02::ChargeNtuple02(){}
-ParticleNtuple02::ParticleNtuple02(){}
-TOFClusterNtuple::TOFClusterNtuple(){}
-TOFMCClusterNtuple::TOFMCClusterNtuple(){}
-TrClusterNtuple::TrClusterNtuple(){}
-TrMCClusterNtuple::TrMCClusterNtuple(){}
-TRDMCClusterNtuple::TRDMCClusterNtuple(){}
-TRDRawHitNtuple::TRDRawHitNtuple(){}
-TRDClusterNtuple::TRDClusterNtuple(){}
-TRDSegmentNtuple::TRDSegmentNtuple(){}
-TRDTrackNtuple::TRDTrackNtuple(){}
-TrRecHitNtuple02::TrRecHitNtuple02(){}
-TrTrackNtuple02::TrTrackNtuple02(){}
-MCEventGNtuple02::MCEventGNtuple02(){}
-MCTrackNtuple::MCTrackNtuple(){}
-AntiClusterNtuple::AntiClusterNtuple(){}
-ANTIMCClusterNtuple::ANTIMCClusterNtuple(){}
-LVL1Ntuple02::LVL1Ntuple02(){}
-LVL3Ntuple02::LVL3Ntuple02(){}
-TrRawClusterNtuple::TrRawClusterNtuple(){}
-AntiRawClusterNtuple::AntiRawClusterNtuple(){}
-TOFRawClusterNtuple::TOFRawClusterNtuple(){}
-EcalShowerNtuple::EcalShowerNtuple(){}
-EcalClusterNtuple::EcalClusterNtuple(){}
-Ecal2DClusterNtuple::Ecal2DClusterNtuple(){}
-EcalHitNtuple::EcalHitNtuple(){}
-RICMCNtuple::RICMCNtuple(){}
-RICEventNtuple::RICEventNtuple(){}
-RICRing::RICRing(){}
-//
-//ClassImp(AMSNtuple)
+
 ClassImp(EventNtuple02)
-ClassImp(BetaNtuple02)
-ClassImp(ChargeNtuple02)
-ClassImp(ParticleNtuple02)
-ClassImp(TOFClusterNtuple)
-ClassImp(TOFMCClusterNtuple)
-ClassImp(TrClusterNtuple)
-ClassImp(TrMCClusterNtuple)
-ClassImp(TRDMCClusterNtuple)
-ClassImp(TRDRawHitNtuple)
-ClassImp(TRDClusterNtuple)
-ClassImp(TRDSegmentNtuple)
-ClassImp(TRDTrackNtuple)
-ClassImp(TrRecHitNtuple02)
-ClassImp(TrTrackNtuple02)
-ClassImp(MCEventGNtuple02)
-ClassImp(MCTrackNtuple)
-ClassImp(AntiClusterNtuple)
-ClassImp(ANTIMCClusterNtuple)
-ClassImp(LVL1Ntuple02)
-ClassImp(LVL3Ntuple02)
-ClassImp(TrRawClusterNtuple)
-ClassImp(AntiRawClusterNtuple)
-ClassImp(TOFRawClusterNtuple)
-ClassImp(EcalShowerNtuple)
-ClassImp(EcalClusterNtuple)
-ClassImp(Ecal2DClusterNtuple)
-ClassImp(EcalHitNtuple)
-ClassImp(RICMCNtuple)
-ClassImp(RICEventNtuple)
-ClassImp(RICRing)
 
 ClassImp(BetaRoot02)
 ClassImp(ChargeRoot02)
@@ -200,7 +139,70 @@ ParticleRoot02::ParticleRoot02(
   for (int i=0; i<2; i++) {RichPath[i] = richpath[i];}
   RichLength = richlength;
 }
-
+/*
+ParticleRoot02::ParticleRoot02(
+               int betap, int chargep, int trackp, int trdp, int richp, int ecalp,
+               int particle, int particlevice, float prob[], float fitmom,
+               float mass, float errmass, float momentum, float errmomentum,
+               float beta, float errbeta, float charge, float theta, float phi,
+               float thetagl, float phigl, AMSPoint coo, float cutoff,
+               float tofcoo[4][3], float anticoo[2][3], float ecalcoo[3][3],
+               float trcoo[8][3], float trdcoo[], float richcoo[2][3],
+               float richpath[], float richlength)
+{
+  BetaP    = betap;
+  ChargeP  = chargep;
+  TrackP   = trackp;
+  TRDP     = trdp;
+  RICHP    = richp;
+  EcalP    = ecalp;
+  Particle = particle;
+  ParticleVice = particlevice;
+  for (int i=0; i<2; i++) {Prob[i] = prob[i];}
+  FitMom   = fitmom;
+  Mass     = mass;
+  ErrMass  = errmass;
+  Momentum = momentum;
+  ErrMomentum = errmomentum;
+  Beta     = beta;
+  ErrBeta  = errbeta;
+  Charge   = charge;
+  Theta    = theta;
+  Phi      = phi;
+  ThetaGl  = thetagl;
+  PhiGl    = phigl;
+  for (int i=0; i<3; i++) Coo[i]      = coo[i];
+  Cutoff   = cutoff;
+  for (int i=0; i<4; i++) {
+    for (int j=0; j<3; j++) {
+      TOFCoo[i][j] = tofcoo[i][j];
+    }
+  }
+  for (int i=0; i<2; i++) {
+    for (int j=0; j<3; j++) {
+      AntiCoo[i][j] = anticoo[i][j];
+    }
+  }
+  for (int i=0; i<3; i++) {
+    for (int j=0; j<3; j++) {
+      EcalCoo[i][j] = ecalcoo[i][j];
+    }
+  }
+  for (int i=0; i<8; i++) {
+    for (int j=0; j<3; j++) {
+      TrCoo[i][j] = trcoo[i][j];
+    }
+  }
+  for (int i=0; i<3; i++) {TRDCoo[i] = trdcoo[i];}
+  for (int i=0; i<2; i++) {
+    for (int j=0; j<3; j++) {
+      RichCoo[i][j] = richcoo[i][j];
+    }
+  }
+  for (int i=0; i<2; i++) {RichPath[i] = richpath[i];}
+  RichLength = richlength;
+}
+*/
 TOFClusterRoot::TOFClusterRoot() {};
 TOFClusterRoot::TOFClusterRoot(
                                int status, int layer, int bar, int nmemb, float edep, 

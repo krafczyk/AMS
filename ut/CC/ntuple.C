@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.102 2002/05/21 10:36:11 choutko Exp $
+//  $Id: ntuple.C,v 1.103 2002/05/22 09:01:38 alexei Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -380,80 +380,7 @@ void AMSNtuple::initR(char* fname){
     static void *pev2=(void*)&_event02;
    TBranch *b2=_tree->Branch("event02.","EventNtuple02",&pev2,64000,branchSplit); 
 #endif
-#ifndef __WRITEROOTCLONES__
-#ifdef __WRITEROOT__
-   cout<<"Create branches"<<endl;
-   static void *pev4=(void*)&_beta02;
-   TBranch *b4=_tree->Branch("beta02.", "BetaNtuple02",  &pev4, 64000,1);
-   static void *pev6=(void*)&_charge02;
-   TBranch *b6=_tree->Branch("charge02.", "ChargeNtuple02",  &pev6, 64000,1);
-   static void *pev77=(void*)&_part02;
-   TBranch *b77=_tree->Branch("part02.", "ParticleNtuple02",  &pev77, 64000,1);
-   static void *pev8=(void*)&_tof;
-   TBranch *b8=_tree->Branch("tofcl.", "TOFClusterNtuple",  &pev8, 64000,1);
-   static void *pev9=(void*)&_tofmc;
-   TBranch *b9=_tree->Branch("tofmccl.", "TOFMCClusterNtuple",  &pev9, 64000,1);
-   static void *pev0=(void*)&_trcl;
-
-   TBranch *b0=_tree->Branch("trcl.", "TrClusterNtuple",  &pev0, 64000,1);
-   static void *peva=(void*)&_trclmc;
-   TBranch *ba=_tree->Branch("trclmc.", "TrMCClusterNtuple",  &peva, 64000,1);
-   static void *pevd=(void*)&_trrh02;
-   TBranch *bd=_tree->Branch("trrh02.", "TrRecHitNtuple02",  &pevd, 64000,1);
-   static void *pevb=(void*)&_trdclmc;
-   TBranch *bb=_tree->Branch("trdclmc.", "TRDMCClusterNtuple",  &pevb, 64000,1);
-   static void *pevb1=(void*)&_trdcl;
-   TBranch *bb1=_tree->Branch("trdcl.", "TRDClusterNtuple",  &pevb1, 64000,1);
-   static void *pevb2=(void*)&_trdht;
-   TBranch *bb2=_tree->Branch("trdht.", "TRDRawHitNtuple",  &pevb2, 64000,1);
-   static void *pevb3=(void*)&_trdtrk;
-   TBranch *bb3=_tree->Branch("trdtrk.", "TRDTrackNtuple",  &pevb3, 64000,1);
-   static void *pevb4=(void*)&_trdseg;
-   TBranch *bb4=_tree->Branch("trdseg.", "TRDSegmentNtuple",  &pevb4, 64000,1);
-   static void *pevf=(void*)&_trtr02;
-   TBranch *bf=_tree->Branch("trtr02.", "TrTrackNtuple02",  &pevf, 64000,1);
-   static void *pevgg1=(void*)&_mct;
-   TBranch *bgg1=_tree->Branch("mct.", "MCTrackNtuple",  &pevgg1, 64000,1);
-   static void *pevgg=(void*)&_mcg02;
-   TBranch *bgg=_tree->Branch("mcg02.", "MCEventGNtuple02",  &pevgg, 64000,1);
-   static void *pevs=(void*)&_ecclust;
-   TBranch *bs=_tree->Branch("ecalcl.", "EcalClusterNtuple",  &pevs, 64000,1);
-
-   static void *pevs2=(void*)&_ec2dclust;
-   TBranch *bs2=_tree->Branch("ecal2dcl.", "Ecal2DClusterNtuple",  &pevs2, 64000,1);
-
-   static void *pevsh=(void*)&_ecshow;
-   TBranch *bsh=_tree->Branch("ecalsh.", "EcalShowerNtuple",  &pevsh, 64000,1);
-   static void *pevt=(void*)&_ecalhit;
-   TBranch *bt=_tree->Branch("ecalht.", "EcalHitNtuple",  &pevt, 64000,1);
-   static void *pevu=(void*)&_richmc;
-   TBranch *bu=_tree->Branch("ricmccl.","RICMCNtuple",&pevu,64000,1);
-   static void *pevv=(void*)&_richevent;
-   TBranch *bv=_tree->Branch("ricevent.","RICEventNtuple",&pevv,64000,1);
-   static void *pevw=(void*)&_ring;
-   TBranch *bw=_tree->Branch("ring.","RICRing",&pevw,64000,1);  
-   static void *pevn=(void*)&_lvl102;
-   TBranch *bn=_tree->Branch("lvl102.", "LVL1Ntuple02",  &pevn, 64000,1);
-   static void *pevj=(void*)&_anti;
-   TBranch *bj=_tree->Branch("anti.", "AntiClusterNtuple",  &pevj, 64000,1);
-   static void *pevk=(void*)&_antimc;
-   TBranch *bk=_tree->Branch("antimc.", "ANTIMCClusterNtuple",  &pevk, 64000,1);
-   static void *pevl=(void*)&_lvl302;
-   TBranch *bl=_tree->Branch("lvl302.", "LVL3Ntuple02",  &pevl, 64000,1);
-   
-   static void *pevx1=(void*)&_trraw;
-   TBranch *bx1=_tree->Branch("trraw.", "TrRawClusterNtuple",  &pevx1, 64000,1);
-   
-   static void *pevx2=(void*)&_antiraw;
-   TBranch *bx2=_tree->Branch("antiraw.", "AntiRawClusterNtuple",  &pevx2, 64000,1);
-   
-   static void *pevx3=(void*)&_tofraw;
-   TBranch *bx3=_tree->Branch("tofraw.", "TofRawClusterNtuple",  &pevx3, 64000,1);
-   cout <<"AMSNtuple::initR-I-OpenRootFile "<<fname<<" "<<_rfile<<" "<<endl;
-#endif
-#endif
-#ifdef __WRITEROOT__
-#else
+#ifndef __WRITEROOT__
 cerr <<" RootFileOutput is Not supported in this version "<<endl;
 exit(1);
 #endif

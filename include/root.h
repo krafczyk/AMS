@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.61 2002/05/21 11:08:08 alexei Exp $
+//  $Id: root.h,v 1.62 2002/05/22 09:01:43 alexei Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -343,11 +343,7 @@ class BetaRoot02  {
 #endif
 };
 
-#ifdef __WRITEROOT__
-class BetaNtuple02 : public TObject {
-#else
 class BetaNtuple02 {
-#endif
 public:
   int Nbeta;
   int Status[MAXBETA02];
@@ -361,13 +357,8 @@ public:
   int NTOF[MAXBETA02];
   int pTOF[MAXBETA02][4];
   int pTr[MAXBETA02];
-#ifdef __WRITEROOT__
-   BetaNtuple02();
-   ClassDef(BetaNtuple02,1)       //BetaNtuple
-#else
 friend class AMSBeta;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -403,11 +394,7 @@ friend class AMSNtuple;
 };
 
 
-#ifdef __WRITEROOT__
-class ChargeNtuple02 : public TObject {
-#else
 class ChargeNtuple02 {
-#endif
 public:
   int Ncharge;
   int Status[MAXCHARGE02];
@@ -423,13 +410,8 @@ public:
   float TrunTOFD[MAXCHARGE02];
   float TrunTracker[MAXCHARGE02];
 
-#ifdef __WRITEROOT__
-  ChargeNtuple02();
-ClassDef(ChargeNtuple02,1)       //ChargeNtuple
-#else
 friend class AMSCharge;
 friend class AMSNtuple;
-#endif
 };
 
 
@@ -483,7 +465,6 @@ public:
                  float tofcoo[4][3], float anticoo[2][3], float ecalcoo[3][3], 
                  float trcoo[8][3], float trdcoo[], float richcoo[2][3], 
                  float richpath[], float richlength);
-
   ClassDef(ParticleRoot02,1)       //ParticleNtuple
 #else
 friend class AMSParticle;
@@ -492,11 +473,7 @@ friend class AMSNtuple;
 };
 
 
-#ifdef __WRITEROOT__
-class ParticleNtuple02 : public TObject {
-#else
 class ParticleNtuple02 {
-#endif
 public:
   int Npart;
   int   BetaP[MAXPART02];
@@ -534,21 +511,12 @@ public:
   float RichCoo[MAXPART02][2][3];
   float RichPath[MAXPART02][2];
   float RichLength[MAXPART02];
-#ifdef __WRITEROOT__
-  ParticleNtuple02();
-ClassDef(ParticleNtuple02,1)       //ParticleNtuple
-#else
 friend class AMSParticle;
 friend class AMSNtuple;
-#endif
 };
 
 //-------------------------
-#ifdef __WRITEROOT__
-class TOFClusterNtuple : public TObject {
-#else
 class TOFClusterNtuple {
-#endif
 public:
   int Ntof;
   int Status[MAXTOF];
@@ -562,13 +530,8 @@ public:
   float Coo[MAXTOF][3];
   float ErrorCoo[MAXTOF][3];
 
-#ifdef __WRITEROOT__
-  TOFClusterNtuple();
-ClassDef(TOFClusterNtuple,1)       //TOFClusterNtuple
-#else
 friend class AMSTOFCluster;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -594,7 +557,7 @@ public:
   TOFClusterRoot(int status, int layer, int bar, int nmemb, float edep, float edepd,
                  float time, float errtime, float coo[], float errcoo[]);
 
-ClassDef(TOFClusterRoot,1)       //TOFClusterNtuple
+ClassDef(TOFClusterRoot,1)       //TOFClusterRoot
 #else
 friend class AMSTOFCluster;
 friend class AMSNtuple;
@@ -603,11 +566,7 @@ friend class AMSNtuple;
 //--------------------------
 
 
-#ifdef __WRITEROOT__
-class EcalShowerNtuple : public TObject {
-#else
 class EcalShowerNtuple {
-#endif
 public:
   int Necsh;
   int   Status[MAXECSHOW];
@@ -634,14 +593,8 @@ public:
 //  float TransProfile[MAXECSHOW][3];
   float SphericityEV[MAXECSHOW][3];
   int   p2DCl[MAXECSHOW][2];
-#ifdef __WRITEROOT__
-  EcalShowerNtuple();
-ClassDef(EcalShowerNtuple,1)       //EcalShowerNtuple
-#else
 friend class EcalShower;
 friend class AMSNtuple;
-#endif
-
 };
 
 #ifdef __WRITEROOT__
@@ -696,11 +649,7 @@ friend class AMSNtuple;
 
 
 
-#ifdef __WRITEROOT__
-class EcalClusterNtuple : public TObject {
-#else
 class EcalClusterNtuple {
-#endif
 public:
   int Neccl;
   int Status[MAXECCLUST];
@@ -716,13 +665,8 @@ public:
   float Coo[MAXECCLUST][3];
   int pLeft[MAXECCLUST];
   int NHits[MAXECCLUST];
-#ifdef __WRITEROOT__
-  EcalClusterNtuple();
-ClassDef(EcalClusterNtuple,1)       //EcalClusterNtuple
-#else
 friend class Ecal1DCluster;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -758,11 +702,7 @@ friend class AMSNtuple;
 };
 
 
-#ifdef __WRITEROOT__
-class Ecal2DClusterNtuple : public TObject {
-#else
 class Ecal2DClusterNtuple {
-#endif
 public:
   int Nec2dcl;
   int Status[MAXEC2DCLUST];
@@ -775,13 +715,8 @@ public:
   float Tan[MAXEC2DCLUST];
   float Chi2[MAXEC2DCLUST];
   int   pCl[MAXEC2DCLUST][18];
-#ifdef __WRITEROOT__
-  Ecal2DClusterNtuple();
-ClassDef(Ecal2DClusterNtuple,1)       //Ecal2DClusterNtuple
-#else
 friend class Ecal2DCluster;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -803,7 +738,7 @@ public:
   ~Ecal2DClusterRoot(){};
   Ecal2DClusterRoot(int status, int proj, int nmemb, float edep, float coo,
                     float tan, float chi2, int pcl[]);
-ClassDef(Ecal2DClusterRoot,1)       //Ecal2DClusterNtuple
+ClassDef(Ecal2DClusterRoot,1)       //Ecal2DClusterRoot
 #else
 friend class Ecal2DCluster;
 friend class AMSNtuple;
@@ -812,11 +747,7 @@ friend class AMSNtuple;
 
 
 //--------------------------
-#ifdef __WRITEROOT__
-class EcalHitNtuple : public TObject {
-#else
 class EcalHitNtuple {
-#endif
 public:
   int Necht;
   int Status[MAXECHITS];
@@ -827,13 +758,8 @@ public:
   float Edep[MAXECHITS];
   float Coo[MAXECHITS][3];
 
-#ifdef __WRITEROOT__
-  EcalHitNtuple();
-ClassDef(EcalHitNtuple,1)       //EcalHitNtuple
-#else
 friend class AMSEcalHit;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -855,18 +781,14 @@ public:
   ~EcalHitRoot(){};
   EcalHitRoot(int status, int idsoft, int proj, int plane, int cell, 
               float edep, float coo[]);
-ClassDef(EcalHitRoot,1)       //EcalHitNtuple
+ClassDef(EcalHitRoot,1)       //EcalHitRoot
 #else
 friend class AMSEcalHit;
 friend class AMSNtuple;
 #endif
 };
 //-------------------------- 
-#ifdef __WRITEROOT__
-class TOFMCClusterNtuple : public TObject {
-#else
 class TOFMCClusterNtuple {
-#endif
 public:
   int Ntofmc;
   int Idsoft[MAXTOFMC];
@@ -874,13 +796,8 @@ public:
   float TOF[MAXTOFMC];
   float Edep[MAXTOFMC];
 
-#ifdef __WRITEROOT__
-  TOFMCClusterNtuple();
-ClassDef(TOFMCClusterNtuple,1)       //TOFMCClusterNtuple
-#else
 friend class AMSTOFMCCluster;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -905,11 +822,7 @@ friend class AMSNtuple;
 #endif
 };
 //--------------------------
-#ifdef __WRITEROOT__
-class TrClusterNtuple : public TObject {
-#else
 class TrClusterNtuple {
-#endif
 public:
   int Ntrcl;
   int Idsoft[MAXTRCL];
@@ -925,10 +838,6 @@ public:
 
 friend class AMSTrCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-  TrClusterNtuple();
-ClassDef(TrClusterNtuple,1)       //TrClusterNtuple
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -959,11 +868,7 @@ ClassDef(TrClusterRoot,1)       //TrClusterRoot
 #endif
 };
 
-#ifdef __WRITEROOT__
-class TrMCClusterNtuple : public TObject {
-#else
 class TrMCClusterNtuple {
-#endif
 public:
   int Ntrclmc;
   int Idsoft[MAXTRCLMC];
@@ -977,13 +882,8 @@ public:
   float Xgl[MAXTRCLMC][3];
   float Sum[MAXTRCLMC];
 
-#ifdef __WRITEROOT__
-  TrMCClusterNtuple();
-ClassDef(TrMCClusterNtuple,1)       //TrMCClusterNtuple
-#else
 friend class AMSTrMCCluster;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1015,11 +915,7 @@ friend class AMSNtuple;
 #endif
 };
 
-#ifdef __WRITEROOT__
-class TRDMCClusterNtuple : public TObject {
-#else
 class TRDMCClusterNtuple {
-#endif
 public:
   int Ntrdclmc;
   int Layer[MAXTRDCLMC];
@@ -1031,13 +927,8 @@ public:
   float Xgl[MAXTRDCLMC][3];
   float Step[MAXTRDCLMC];
  
-#ifdef __WRITEROOT__
-  TRDMCClusterNtuple();
-ClassDef(TRDMCClusterNtuple,1)       //TRDMCClusterNtuple
-#else
 friend class AMSTRDMCCluster;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1068,24 +959,15 @@ friend class AMSNtuple;
 };
 
 
-#ifdef __WRITEROOT__
-class TRDRawHitNtuple : public TObject {
-#else
 class TRDRawHitNtuple {
-#endif
 public:
   int Ntrdht;
   int Layer[MAXTRDRHT];
   int Ladder[MAXTRDRHT];
   int Tube[MAXTRDRHT];
   float Amp[MAXTRDRHT];
-#ifdef __WRITEROOT__
-  TRDRawHitNtuple();
-ClassDef(TRDRawHitNtuple,1)       //TRDRawHitNtuple
-#else
 friend class AMSTRDRawHit;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1110,11 +992,7 @@ friend class AMSNtuple;
 };
 
 
-#ifdef __WRITEROOT__
-class TRDClusterNtuple : public TObject {
-#else
 class TRDClusterNtuple {
-#endif
 public:
   int Ntrdcl;
   int   Status[MAXTRDCL];
@@ -1126,13 +1004,8 @@ public:
   float EDep[MAXTRDCL];
   int   pRawHit[MAXTRDCL];
  
-#ifdef __WRITEROOT__
-  TRDClusterNtuple();
-ClassDef(TRDClusterNtuple,1)       //TRDClusterNtuple
-#else
 friend class AMSTRDCluster;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1163,11 +1036,7 @@ friend class AMSNtuple;
 };
 
 
-#ifdef __WRITEROOT__
-class TRDSegmentNtuple : public TObject {
-#else
 class TRDSegmentNtuple {
-#endif
 public:
   int Ntrdseg;
   int   Status[MAXTRDSEG];
@@ -1181,14 +1050,9 @@ public:
 #else
   int PCl[MAXTRDSEG][trdconst::maxhits];
 #endif
- 
-#ifdef __WRITEROOT__
-  TRDSegmentNtuple();
-ClassDef(TRDSegmentNtuple,1)       //TRDSegmentNtuple
-#else
+
 friend class AMSTRDSegment;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1223,11 +1087,7 @@ friend class AMSNtuple;
 
 
 
-#ifdef __WRITEROOT__
-class TRDTrackNtuple : public TObject {
-#else
 class TRDTrackNtuple {
-#endif
 public:
   int Ntrdtrk;
   int   Status[MAXTRDTRK];
@@ -1244,13 +1104,8 @@ public:
   int   pSeg[MAXTRDTRK][trdconst::maxseg];
 #endif
  
-#ifdef __WRITEROOT__
-  TRDTrackNtuple();
-ClassDef(TRDTrackNtuple,1)       //TRDTrackNtuple
-#else
 friend class AMSTRDTrack;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1289,11 +1144,7 @@ friend class AMSNtuple;
 
 
 
-#ifdef __WRITEROOT__
-class TrRecHitNtuple02 : public TObject {
-#else
 class TrRecHitNtuple02 {
-#endif
 public:
   int Ntrrh;
   int pX[MAXTRRH02];
@@ -1307,13 +1158,8 @@ public:
   float CofgX[MAXTRRH02];
   float CofgY[MAXTRRH02];
 
-#ifdef __WRITEROOT__
-  TrRecHitNtuple02();
-ClassDef(TrRecHitNtuple02,1)       //TrRecHitNtuple
-#else
 friend class AMSTrRecHit;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1346,11 +1192,7 @@ friend class AMSNtuple;
 };
 
 
-#ifdef __WRITEROOT__
-class TrTrackNtuple02 : public TObject {
-#else
 class TrTrackNtuple02 {
-#endif
 public:
   int Ntrtr;
   int Status[MAXTRTR02];
@@ -1391,13 +1233,8 @@ public:
   float RidgidityMS[MAXTRTR02];
   float PiRigidity[MAXTRTR02];
 
-#ifdef __WRITEROOT__
-  TrTrackNtuple02();
-ClassDef(TrTrackNtuple02,1)       //TrTrackNtuple
-#else
 friend class AMSTrTrack;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1460,21 +1297,13 @@ friend class AMSNtuple;
 #endif
 };
 
-#ifdef __WRITEROOT__
-class MCTrackNtuple : public TObject {
-#else
 class MCTrackNtuple {
-#endif
 public:
 int Nmct;
 float radl[MAXMCVOL];
 float absl[MAXMCVOL];
 float pos[MAXMCVOL][3];
 char  vname[MAXMCVOL][4];
-#ifdef __WRITEROOT__
- MCTrackNtuple();
-ClassDef(MCTrackNtuple,1)       //MCTrackNtuple
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1496,11 +1325,7 @@ ClassDef(MCTrackRoot,1)       //MCTrackRoot
 };
 
 
-#ifdef __WRITEROOT__
-class MCEventGNtuple02 : public TObject {
-#else
 class MCEventGNtuple02 {
-#endif
 public:
   int Nmcg;
   int Nskip[MAXMCG02];
@@ -1511,13 +1336,8 @@ public:
   float Mass[MAXMCG02];
   float Charge[MAXMCG02];
 
-#ifdef __WRITEROOT__
-  MCEventGNtuple02();
-ClassDef(MCEventGNtuple02,1)       //MCEventGNtuple
-#else
 friend class AMSmceventg;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1548,11 +1368,7 @@ friend class AMSNtuple;
 
 
 
-#ifdef __WRITEROOT__
-class AntiClusterNtuple : public TObject {
-#else
 class AntiClusterNtuple {
-#endif
 public:
   int Nanti;
   int Status[MAXANTICL];
@@ -1561,13 +1377,8 @@ public:
   float Coo[MAXANTICL][3];   // R, phi, Z
   float ErrorCoo[MAXANTICL][3];
 
-#ifdef __WRITEROOT__
-  AntiClusterNtuple();
-ClassDef(AntiClusterNtuple,1)       //AntiClusterNtuple
-#else
 friend class AMSAntiCluster;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1593,11 +1404,7 @@ friend class AMSNtuple;
 #endif
 };
 
-#ifdef __WRITEROOT__
-class ANTIMCClusterNtuple : public TObject {
-#else
 class ANTIMCClusterNtuple {
-#endif
 public:
   int Nantimc;
   int Idsoft[MAXANTIMC];
@@ -1605,13 +1412,8 @@ public:
   float TOF[MAXANTIMC];
   float Edep[MAXANTIMC];
 
-#ifdef __WRITEROOT__
-  ANTIMCClusterNtuple();
-ClassDef(ANTIMCClusterNtuple,1)       //ANTIMCClusterNtuple
-#else
 friend class AMSAntiMCCluster;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1667,17 +1469,13 @@ public:
                double residual[], double ftime, double eloss, int trdhits, 
                int hmult, float trdpar[], int ecemag, int ecematc, float ectofc[]);
  ~LVL3Root02(){};
-ClassDef(LVL3Root02,1)       //LVL3Ntuple02
+ClassDef(LVL3Root02,1)       //LVL3Root02
 #else
 friend class TriggerLVL302;
 friend class AMSNtuple;
 #endif
 };
-#ifdef __WRITEROOT__
-class LVL3Ntuple02 : public TObject {
-#else
 class LVL3Ntuple02 {
-#endif
 public:
   int Nlvl3;
   int TOFTr[MAXLVL3];
@@ -1697,22 +1495,13 @@ public:
   int ECemag[MAXLVL3];
   int ECmatc[MAXLVL3];
   float ECTOFcr[MAXLVL3][4];
-#ifdef __WRITEROOT__
-  LVL3Ntuple02();
-ClassDef(LVL3Ntuple02,1)       //LVL3Ntuple02
-#else
 friend class TriggerLVL302;
 friend class AMSNtuple;
-#endif
 };
 
 
 
-#ifdef __WRITEROOT__
-class LVL1Ntuple02 : public TObject {
-#else
 class LVL1Ntuple02 {
-#endif
 public:
   int Nlvl1;
   int Mode[MAXLVL1];
@@ -1723,13 +1512,8 @@ public:
   int ECALflag[MAXLVL1];
   float ECALtrsum[MAXLVL1];
 
-#ifdef __WRITEROOT__
-  LVL1Ntuple02();
-ClassDef(LVL1Ntuple02,1)       //LVL1Ntuple02
-#else
 friend class Trigger2LVL1;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1760,23 +1544,14 @@ friend class AMSNtuple;
 };
 
 
-#ifdef __WRITEROOT__
-class TrRawClusterNtuple : public TObject {
-#else
 class TrRawClusterNtuple {
-#endif
 public:
   int Ntrraw;
   int address[MAXTRRAW];
   int nelem[MAXTRRAW];
   float s2n[MAXTRRAW];
-#ifdef __WRITEROOT__
-  TrRawClusterNtuple();
-ClassDef(TrRawClusterNtuple,1)       //TrRawClusterNtuple
-#else
 friend class AMSTrRawCluster;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1799,11 +1574,7 @@ friend class AMSNtuple;
 #endif
 };
 
-#ifdef __WRITEROOT__
-class AntiRawClusterNtuple : public TObject {
-#else
 class AntiRawClusterNtuple {
-#endif
 public:
   int Nantiraw;
   int Status[MAXANTIRAW];
@@ -1811,13 +1582,8 @@ public:
   int UpDown[MAXANTIRAW];
   float Signal[MAXANTIRAW];
 
-#ifdef __WRITEROOT__
-  AntiRawClusterNtuple();
-ClassDef(AntiRawClusterNtuple ,1)       //AntiRawClusterNtuple 
-#else
 friend class AMSAntiRawCluster;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1843,11 +1609,7 @@ friend class AMSNtuple;
 };
 
 
-#ifdef __WRITEROOT__
-class TOFRawClusterNtuple : public TObject {
-#else
 class TOFRawClusterNtuple {
-#endif
 public:
   int Ntofraw;
   int Status[MAXTOFRAW];
@@ -1861,13 +1623,8 @@ public:
   float time[MAXTOFRAW];
   float cool[MAXTOFRAW];
 
-#ifdef __WRITEROOT__
-  TOFRawClusterNtuple();
-ClassDef(TOFRawClusterNtuple ,1)       //TOFRawClusterNtuple 
-#else
 friend class TOF2RawCluster;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1901,11 +1658,7 @@ friend class AMSNtuple;
 };
 
 
-#ifdef __WRITEROOT__
-class RICMCNtuple : public TObject {
-#else
 class RICMCNtuple {
-#endif
 public:
   int NMC;                     // Number of detected photons
   int id[MAXRICMC];            // Particle id.
@@ -1914,13 +1667,8 @@ public:
   int status[MAXRICMC];        // Status=10*number of reflections+(have it rayleigh?1:0)
   int numgen;                  // Number of generated photons
   int eventpointer[MAXRICMC];  // Pointer to detected hit
-#ifdef __WRITEROOT__
-  RICMCNtuple();
-ClassDef(RICMCNtuple,1)       // RICMCNtuple
-#else
 friend class AMSRichMCHit;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1948,11 +1696,7 @@ friend class AMSNtuple;
 };
 
 
-#ifdef __WRITEROOT__
-class RICEventNtuple : public TObject {
-#else
 class RICEventNtuple {
-#endif
 public:
   int Nhits;
   int channel[MAXRICHITS];
@@ -1960,13 +1704,8 @@ public:
   float x[MAXRICHITS];
   float y[MAXRICHITS];
 
-#ifdef __WRITEROOT__
-  RICEventNtuple();
-ClassDef(RICEventNtuple,1)       // RICEventNtuple
-#else
 friend class AMSRichRawEvent;
 friend class AMSNtuple;
-#endif
 };
 
 #ifdef __WRITEROOT__
@@ -1992,11 +1731,7 @@ friend class AMSNtuple;
 };
 
 
-#ifdef __WRITEROOT__
-class RICRing : public TObject {
-#else
 class RICRing {
-#endif
 public:
   int NRings;
   int track[MAXRICHRIN];
@@ -2008,13 +1743,8 @@ public:
   int Z[MAXRICHRIN];
 
 
-#ifdef __WRITEROOT__
-  RICRing();
-ClassDef(RICRing,1)           // RICRing
-#else
 friend class AMSRichRing;
 friend class AMSNtuple;
-#endif
 }; 
 
 #ifdef __WRITEROOT__
