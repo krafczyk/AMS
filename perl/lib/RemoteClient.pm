@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.153 2003/05/07 16:04:21 alexei Exp $
+# $Id: RemoteClient.pm,v 1.154 2003/05/07 17:06:26 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -949,20 +949,20 @@ sub ValidateRuns {
                               push @mvntuples, $outputpath; 
                           }
                            if ($rstatus == 1) {
-                            $sql="INSERT INTO Ntuples VALUES($run->{Run},
-                                                             '$ntuple->{Version}',
-                                                             '$ntuple->{Type}',
-                                                              $run->{Run},
-                                                              $ntuple->{FirstEvent},
-                                                              $ntuple->{LastEvent},
-                                                              $events,$badevents,
-                                                              $ntuple->{Insert},
-                                                              $ntuple->{size},
-                                                              '$status',
-                                                              '$outputpath',
-                                                              $ntuple->{crc})";
-                            $self->{sqlserver}->Update($sql);
-                            print $sql;
+                            $self->insertNtuple(
+                                                $run->{Run},
+                                                $ntuple->{Version},
+                                                $ntuple->{Type},
+                                                $run->{Run},
+                                                $ntuple->{FirstEvent},
+                                                $ntuple->{LastEvent},
+                                                $events,
+                                                $badevents,
+                                                $ntuple->{Insert},
+                                                $ntuple->{Size},
+                                                $status,
+                                                $outputpath,
+                                                $ntuple->{crc});
                             $copied++;
                             push @cpntuples, $fpath;
                             $runupdate = "UPDATE runs SET FEVENT = $fevent, LEVENT=$levent, ";
@@ -1251,11 +1251,23 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                           }
                       }
                   }
-                  $sql="insert into Ntuples values($run->{Run},'$ntuple->{Version}','$ntuple->{Type}',$run->{Run},$ntuple->{FirstEvent},$ntuple->{LastEvent},$events,$badevents,$ntuple->{Insert},$ntuple->{size},'$status','$ntuple->{Name}',$ntuple->{crc})";
-                  $self->{sqlserver}->Update($sql);
+                  $self->insertNtuple(
+                               $run->{Run},
+                               $ntuple->{Version},
+                               $ntuple->{Type},
+                               $run->{Run},
+                               $ntuple->{FirstEvent},
+                               $ntuple->{LastEvent},
+                               $events,
+                               $badevents,
+                               $ntuple->{Insert},
+                               $ntuple->{size},
+                               $status,
+                               $ntuple->{Name},
+                               $ntuple->{crc});
               }
           }
-         }
+        }
          else{
 #        find all the unchecked ntuples
              $sql="select path from Ntuples where status='Unchecked' and run=$run->{Run}";
@@ -5034,8 +5046,6 @@ sub listStat {
       foreach my $job (@{$r3}){
           my $jid       = $job->[0];
           my $trig         = $job->[1];
-          $jobsreq++;
-          $trigreq = $trigreq + $trig;
           $sql="SELECT status, levent, fevent from Runs WHERE jid=$jid";
           $r3=$self->{sqlserver}->Query($sql);
           if (defined $r3->[0][0]) {
@@ -5044,10 +5054,16 @@ sub listStat {
               my $fevent = $r3->[0][2];
               if ($status eq 'Finished' || $status eq 'Completed') { 
                   $jobsdone++;
-                  $trigdone += $levent - $fevent + 1;}
-              if ($status eq 'Failed' || $status eq 'Unchecked')   
-                { $jobsfailed++;}
+                  $trigdone += $levent - $fevent + 1;
+             } elsif ($status eq 'Failed' || $status eq 'Unchecked') {  
+               $jobsfailed++;
+             } else {
+               $jobsreq++;
+              }
+          } else {
+               $jobsreq++;
           }
+          $trigreq = $trigreq + $trig;
       }
     $sql = "SELECT COUNT(jid) FROM Runs WHERE status='TimeOut'";
     my $r5 = $self->{sqlserver}->Query($sql);
@@ -5209,7 +5225,7 @@ sub listCites {
               print "<tr>\n";
               print "<td><b><font color=\"blue\">   </font></b></td>";
               print "<td><b><font color=\"blue\" >  </font></b></td>";
-              print "<td><b><font color=\"blue\" >Reqs</font></b></td>";
+              print "<td><b><font color=\"blue\" >Act.</font></b></td>";
               print "<td><b><font color=\"blue\" >Ends</font></b></td>";
               print "<td><b><font color=\"blue\" >Failed</font></b></td>";
               print "<tr>\n";
@@ -5222,18 +5238,22 @@ sub listCites {
           my $status = $cite->[3];
           my $maxrun = $cite->[4];
           my $run=(($cid-1)<<27)+1;
-          $sql="SELECT Jobs.jid, Runs.jid, Jobs.cid  
-                FROM Runs, Jobs  
-                WHERE Jobs.jid=Runs.jid AND cid=$cid AND 
-                (Runs.status='Finished' OR 
-                 Runs.status='Failed' OR 
-                 Runs.status='Unchecked' OR 
-                 Runs.status='TimeOut' OR 
-                 Runs.status='Completed')";
-          my $jobs = 0;
+
+          my $jobs = 0;   # total jobs
           $sql = "SELECT COUNT(jid) FROM Jobs WHERE cid=$cid";
           my $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobs = $r4->[0][0]};
+
+          my $jobsa = 0;  # processing jobs
+          $sql = "SELECT COUNT(jobs.jid)  FROM Jobs, Runs where jobs.jid=runs.jid and cid=$cid";
+          $r4=$self->{sqlserver}->Query($sql);
+          if (defined $r4->[0][0]) {$jobsa = $jobs - $r4->[0][0]};
+          $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs WHERE 
+                     Jobs.jid=Runs.jid AND cid=$cid AND 
+                     (Runs.Status = 'Foreign' OR 
+                      Runs.Status = 'Processing')";
+          $r4=$self->{sqlserver}->Query($sql);
+          if (defined $r4->[0][0]) {$jobsa += $r4->[0][0]};
 
           my $jobsc = 0;
           $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs WHERE 
@@ -5254,8 +5274,9 @@ sub listCites {
           if (defined $r4->[0][0]) {$jobsf = $r4->[0][0]};
 
           print "<tr><font size=\"2\">\n";
-          print "<td><b> $descr ($name) </td><td><b> $status </td>
-                 <td><b> $jobs </td></b>
+          print "<td><b> $descr ($name) </td>
+                 <td><b> $status </td>
+                 <td><b> $jobsa </td></b>
                  <td><b> $jobsc </b></td>
                  <td><b> $jobsf </b></td>\n";
           print "</font></tr><p></p>\n";
@@ -5643,7 +5664,7 @@ sub listRuns {
     my $rr   = 0;
      print "<b><h2><A Name = \"runs\"> </a></h2></b> \n";
      htmlTable("MC02 Runs");
-     print "<tr><font color=blue><b><i> Only last 100 runs are listed, to get complete list 
+     print "<tr><font color=blue><b><i> Only recent 100 runs are listed, to get complete list 
             <a href=http://pcamsf0.cern.ch/cgi-bin/mon/rc.o.cgi?queryDB=Form> click here</a>
             </b><i></font></tr>\n";
 
@@ -5684,7 +5705,7 @@ sub listNtuples {
     my $nn   = 0;
      print "<b><h2><A Name = \"ntuples\"> </a></h2></b> \n";
      print "<TR><B><font color=green size= 5><a href=$validatecgi><b><font color=green> MC NTuples </font></a><font size=3><i> (Click NTuples to validate)</font></i></font>";
-     print "<tr><font color=blue><b><i> Only last 100 files are listed, to get complete list 
+     print "<tr><font color=blue><b><i> Only recent 100 files are listed, to get complete list 
             <a href=http://pcamsf0.cern.ch/cgi-bin/mon/rc.o.cgi?queryDB=Form> click here</a>
             </b><i></font></tr>\n";
      print "<p>\n";
@@ -6626,22 +6647,22 @@ foreach my $block (@blocks) {
              push @mvntuples, $outputpath; 
            }
           if ($rstatus == 1) {
-           $sql = "INSERT INTO ntuples VALUES( $run,
-                                              '$closedst[4]',
-                                              '$nttype',
-                                               $jobid,
-                                               $closedst[11],
-                                               $closedst[12],
-                                               $ntevents,
-                                               $badevents,
-                                               $timestamp,
-                                               $dstsize,
-                                               '$closedst[1]',
-                                               '$outputpath',
-                                               $ntcrc)"; 
-           print FILE "$sql \n";
+           $self->insertNtuple(
+                               $run,
+                               $closedst[4],
+                               $nttype,
+                               $jobid,
+                               $closedst[11],
+                               $closedst[12],
+                               $ntevents,
+                               $badevents,
+                               $timestamp,
+                               $dstsize,
+                               $closedst[1],
+                               $outputpath,
+                               $ntcrc); 
 
-          $self->{sqlserver}->Update($sql);
+           print FILE "insert ntuple : $run, $outputpath \n";
           push @cpntuples, $dstfile;
         }
        }
@@ -7112,4 +7133,44 @@ sub findJob {
     }
 
     return $rstatus;
+}
+
+sub insertNtuple {
+  my $self     = shift;
+#
+  my $run      = shift;
+  my $version  = shift;
+  my $type     = shift;
+  my $jid      = shift;
+  my $fevent   = shift;
+  my $levent   = shift;
+  my $events   = shift;
+  my $errors   = shift;
+  my $timestamp= shift;
+  my $ntsize   = shift;
+  my $status   = shift;
+  my $path     = shift;
+  my $crc      = shift;
+#
+  my $sizemb = $ntsize; # since May 7.03 size in bytes
+  if ($ntsize > 2000) {
+    $ntsize = $ntsize/1024/1024;
+    $sizemb = sprintf("%.f",$ntsize);
+  }
+#              
+  my $sql = "INSERT INTO ntuples VALUES( $run,
+                                         '$version',
+                                         '$type',
+                                          $jid,
+                                          $fevent,
+                                          $levent,
+                                          $events,
+                                          $errors,
+                                          $timestamp,
+                                          $sizemb,
+                                          '$status',
+                                          '$path',
+                                          $crc)"; 
+  $self->{sqlserver}->Update($sql);
+
 }
