@@ -930,6 +930,7 @@ void AMSEvent::event(){
     if(!ok){
       int skipped=AMSJob::gethead()->getstatustable()->getnextok();
       GCFLAG.IEVENT+=skipped;
+      PosInRun+=skipped;
       AMSgObj::BookTimer.stop("EventStatus");
       return;
     }

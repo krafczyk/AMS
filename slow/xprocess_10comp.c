@@ -16,6 +16,7 @@ ch256 chh[30], ch256;
 int i,j,nn,er,count[8],disk_space,timer, time_int,dt, time_sleep, cpu_t,N_exclude;
 int date1,date2,h1,h2,m1,m2,cpu,cpu_lim,cpu_cont,conn,cpu_b,cpu_tb,numb,N_pc; 
 time_t stat_loc[N_comp][N_comp+1];
+time_t ncpu[N_comp]={1,1,1,1,1,1,4,1,2,1};
 struct stat stat_buf; 
 FILE *fp;
 const char delimiter[]=" %";
@@ -96,6 +97,8 @@ if (fp==NULL) {
       fl_set_object_label(heade,cti);
     for (j=0; j<N_comp+1; j++) {
 
+      for (i=0; i<6;i++) 
+        stat_loc[i][j]=0;
 
       if ((j<N_comp)&&(j!=N_exclude)) { /*  !!!! <(N_comp)
                           
@@ -134,8 +137,8 @@ if (fp==NULL) {
             }
           }
         }
-        stat_loc[4][j]=(stat_loc[1][j]+0.)/stat_loc[2][j];
-        stat_loc[5][j]=stat_loc[1][j]/stat_loc[3][j];
+        stat_loc[4][j]=(stat_loc[1][j]+0.)/stat_loc[2][j]*ncpu[j];
+        stat_loc[5][j]=stat_loc[1][j]/stat_loc[3][j]*ncpu[j];
         sprintf(chbuf,"%7d / %7d  %6d  %6d  %4d /%4d",stat_loc[0][j],stat_loc[1][j],
                 stat_loc[2][j],stat_loc[3][j],stat_loc[4][j],stat_loc[5][j]);
         fl_set_object_label(stati_[j],chbuf);
@@ -150,8 +153,10 @@ if (fp==NULL) {
       if ((j<N_comp)&&(j!=N_exclude)) {
         /*--------------- check logfile length -------- */
         er=open_log(j, 0);
-        if (er<0) 
+        if (er<0) {
+          printf("error %d for logfile\n",er);
           fl_set_object_label(log_check[j],"! CHECK LOG !");
+        }
         else
           fl_set_object_label(log_check[j],"");
       }
@@ -489,8 +494,8 @@ if (fp==NULL) {
       for (j=0; j<N_comp; j++) /* !!!!!!!!!!!!!! <N_comp */
         stat_loc[i][N_comp] += stat_loc[i][j];
     }
-    sprintf(chbuf,"%7d / %7d  %6d  %6d  %4d /%4d",stat_loc[0][N_comp],
-            stat_loc[1][N_comp],stat_loc[2][N_comp],stat_loc[3][7],
+    sprintf(chbuf,"%7d / %7d  %7d  %7d  %4d /%4d",stat_loc[0][N_comp],
+            stat_loc[1][N_comp],stat_loc[2][N_comp],stat_loc[3][N_comp],
             stat_loc[4][N_comp],stat_loc[5][N_comp]);
         fl_set_object_label(stati_[N_comp],chbuf);
 
@@ -515,12 +520,12 @@ char del[]=" \n";
   system(ch);
   er = stat(temp_name,&stat_buf);
   if (stat_buf.st_size<9) {
-    puts("\athere is no log file 0");
+    puts("there is no log file 0");
     return -1;
   }
   fp=fopen(temp_name,"r");
   if (fp==NULL) {
-    puts("\acannot open log.file");
+    puts("cannot open log.file");
     fclose(fp);
     sprintf(ch,"rm %s",temp_name);
     system(ch);
@@ -529,7 +534,7 @@ char del[]=" \n";
   ch1=fgets(ch,256,fp);
 CONT:
   if (feof(fp)) {
-   /* puts("\athere is no log file 1"); */
+   /* puts("there is no log file 1"); */
     fclose(fp);
     sprintf(chbuf,"rm %s",temp_name);
     system(chbuf);
@@ -549,6 +554,11 @@ CO2:
   token=strtok(NULL,delime);
   if (token==NULL)
     goto CONT;
+  strcpy(ch,token);
+  er=isdigit(ch[0]);
+  if (er==0)
+    goto CONT;
+  token=strtok(NULL,delime);
   if (CO==0)
     strcpy(ch,token);
   strcpy(cho,token);
@@ -563,7 +573,7 @@ CO2:
   fclose(fp);
   /*  token=strtok(chb,del);*/
   if (CO==0)
-    sprintf(ch,"%s.log",chb);
+    sprintf(ch,"%s.09.log",chb);
   else
     sprintf(ch,"%s.%s.log",chb,cha);
   if (mode!=1) { /* check mode */
@@ -581,12 +591,12 @@ CO2:
   sprintf(ch,"/usr/sue/bin/rsh %s cat /dat0/local/logs/%s > %s",host_name[j],ch,temp_name);
   er=system(ch);
   if (er<0){
-    puts("\acannot open log file");
+    puts("cannot open log file");
     return -1;
   }
   ind_l++;
   if (ind_l>13) {
-    puts("\a too many logs open\n");
+    puts(" too many logs open\n");
     return -1;
   }
   log_(j,token);
@@ -608,12 +618,12 @@ char del[]=" \n";
   system(ch);
   er = stat(temp_name,&stat_buf);
   if (stat_buf.st_size<9) {
-    puts("\athere is no log file 2");
+    puts("there is no log file 2");
     return -1;
   }
   fp=fopen(temp_name,"r");
   if (fp==NULL) {
-    puts("\acannot open log.file");
+    puts("cannot open log.file");
     fclose(fp);
     sprintf(ch,"rm %s",temp_name);
     system(ch);
@@ -622,7 +632,7 @@ char del[]=" \n";
   ch1=fgets(ch,256,fp);
 CONT:
   if (feof(fp)) {
-    puts("\athere is no log file 3");
+    puts("there is no log file 3");
     fclose(fp);
     sprintf(chbuf,"rm %s",temp_name);
     system(chbuf);
@@ -666,12 +676,12 @@ CO2:
   sprintf(ch,"/usr/sue/bin/rsh %s cat /dat0/local/logs/%s > %s",host_name[j],ch,temp_name);
   er=system(ch);
   if (er<0){
-    puts("\acannot open log file");
+    puts("cannot open log file");
     return -1;
   }
   ind_l++;
   if (ind_l>13) {
-    puts("\a too many logs open\n");
+    puts(" too many logs open\n");
     return -1;
   }
   log_(j,token);
@@ -736,7 +746,7 @@ int write_status() {
 
   fp=fopen("/afs/cern.ch/user/a/ams/.xprocess","r");  
   if (fp==NULL) {
-    puts("\awrite_status: cannot write status file\n");
+    puts("write_status: cannot write status file\n");
     return 0;
   }
   for (i=0; i<N_comp; i++) {

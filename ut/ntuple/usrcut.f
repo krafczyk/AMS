@@ -100,7 +100,7 @@ C      IPASS = IPASS + 1
 C      NPASS(IPASS) = NPASS(IPASS) + 1
 
       NUERR  = IBITS(EVENTSTATUS,30,1)
-      IF (NUERR.NE.0) GOTO 990
+c      IF (NUERR.NE.0) GOTO 990
       IPASS    = IPASS + 1
       NPASS(IPASS) = NPASS(IPASS) + 1
 
@@ -118,7 +118,7 @@ C      NPASS(IPASS) = NPASS(IPASS) + 1
 *
 *-- Comment the following in case you do not want to write selectd events
 *--  into new ntuples
-C      USRCUT =1
+      USRCUT =1
 
  990  CONTINUE
 
@@ -133,8 +133,7 @@ C      USRCUT =1
       INCLUDE 'cutstat.inc'
 *
       PRINT *,'Total events processed =',NPASS(0)
-C      DO I=1,NCUT
-      DO I=1,IPASS
+      DO I=1,NCUT
         WRITE(6,101) I, NPASS(I)
       ENDDO
       
