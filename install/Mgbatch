@@ -62,7 +62,7 @@ TIMEL=
 endif
 ifeq  "$(shell uname)"  "Linux" 
 CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include -I../include/stl  -I../db 
-FFLAGS=   -static -g -I../include  
+FFLAGS=   -fno-automatic -g -I../include  
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
 LDFLAGS=  /cern/pro/lib/lnblnk_.o -g  -static -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -ln  -L/usr/local/lib  -lF77 -lI77  -lm       
 CC=g++
