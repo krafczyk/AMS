@@ -31,7 +31,7 @@ geant AMSCharge::_lkhdStepTOF[ncharge];
 geant AMSCharge::_lkhdStepTracker[ncharge];
 integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6,7,8,9};
 integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6,7,8,9};
-char AMSCharge::_fnam[128]="lkhd_v205+.data";
+char AMSCharge::_fnam[128]="lkhd_v214+.data";
 integer AMSCharge::build(integer refit){
   // charge finding
   number EdepTOF[4];
@@ -147,6 +147,7 @@ void AMSCharge::Fit(number rid, integer nhitTOF, integer nhitTracker,
   _ChargeTOF=_chargeTOF[iTOF];
   _ChargeTracker=_chargeTracker[iTracker];
   if(_refit(rid,EdepTOF,nhitTOF)){
+   setstatus(1);
    number beta=fabs(_pbeta->getbeta());    
    if(beta < 1 && beta !=0){
     number momentum=fabs(rid*(_ChargeTOF+_ChargeTracker)/2);
@@ -220,10 +221,11 @@ static ChargeNtuple CN;
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"Charge",CN.getaddress(),
-  "ChargeEvent:I*4, ChargeBetaP:I*4, ChargeTOF:I*4, ChargeTracker:I*4, ProbTOF(7):R*4, ProbTracker(7):R*4");
+  "ChargeEvent:I*4, ChargeStatus:I*4,ChargeBetaP:I*4, ChargeTOF:I*4, ChargeTracker:I*4, ProbTOF(7):R*4, ProbTracker(7):R*4");
 
 }
   CN.Event()=AMSEvent::gethead()->getid();
+  CN.Status=_status;
   CN.BetaP=_pbeta->getpos();
   CN.ChargeTOF=_ChargeTOF;
   CN.ChargeTracker=_ChargeTracker;

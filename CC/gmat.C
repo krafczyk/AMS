@@ -171,7 +171,7 @@ tmed.add (new AMSgtmed(10,"TOF_SCINT",21,1,'Y',birks,1,5,10,
 //(for tof_scint.: max_step=0.25cm/autom, min_step=0.05cm/autom )
 //
 tmed.add (new AMSgtmed(12,"TOF_HONEYCOMB",24,0));
-tmed.add (new AMSgtmed(13,"TOF_PMT_BOX",25,0));
+tmed.add (new AMSgtmed(13,"TOF_PMT_BOX",25,1));
 tmed.add (new AMSgtmed(14,"TOF_SC_COVER",26,0));
 tmed.add (new AMSgtmed(15,"IRON",10,0));
 //
@@ -185,7 +185,7 @@ tmed.add (new AMSgtmed(18,"CTC_WALL",29,0));
 //
 tmed.add (new AMSgtmed(19,"CTC_SEP",30,0));
 //
-tmed.add (new AMSgtmed(20,"ATC_PTFE",31,0));
+tmed.add (new AMSgtmed(20,"ATC_PTFE",31,1));
 //
 tmed.add (new AMSgtmed(21,"CTC_AEROGEL",32,1));
 //

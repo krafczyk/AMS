@@ -43,7 +43,7 @@
      +  tofrtovta,tofrtovtd,tofrsdtm,cooTOF
      
       INTEGER EventNo,Run,RunType,Time(2) ,BetaEvent,BetaPattern
-     + ,betantof,betaptof
+     + ,betantof,betaptof,chargestatus,betastatus
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
      + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft
@@ -95,13 +95,13 @@
      +    TOFMCClusters,
      +    CTCClusters, CTCMCClusters, AntiMCClusters, AntiClusters
 
-      common /betaC/nbeta,
+      common /betaC/nbeta,betastatus(maxbeta),
      + betapattern(maxbeta),beta(maxbeta),
      +              betaerror(maxbeta),betachi2(maxbeta),
      +  betachi2s(maxbeta),betantof(maxbeta),betaptof(4,maxbeta),
      +  betaptr(maxbeta)
 
-      common /chargeC/ ncharge,
+      common /chargeC/ ncharge,chargestatus(maxch),
      + chargebetap(maxch),chargetof(maxch),
      + chargetracker(maxch),probtof(7,maxch),probtracker(7,maxch)
 
@@ -268,12 +268,14 @@ c       write(*,*)' Starting converting'
      + 'AntiMCClusters:I, AntiClusters:I')
 
       call hbname(1,cblock(2),nbeta,
-     + 'nbeta[0,100],betapattern(nbeta):I,beta(nbeta),'//
+     + 'nbeta[0,100],betastatus(nbeta):I,'//
+     + 'betapattern(nbeta):I,beta(nbeta),'//
      + 'betaerror(nbeta),betachi2(nbeta),betachi2s(nbeta),'//
      + 'betantof(nbeta):I,betaptof(4,nbeta):I,betaptr(nbeta):I')
 
       call hbname(1,cblock(3), ncharge,
-     + 'ncharge[0,10],chargebetap(ncharge),chargetof(ncharge):I,'//
+     + 'ncharge[0,10],chargestatus(ncharge):I,'//
+     + 'chargebetap(ncharge):I,chargetof(ncharge):I,'//
      + 'chargetracker(ncharge):I,probtof(7,ncharge),'//
      + 'probtracker(7,ncharge)')
 
@@ -421,7 +423,7 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
          nbeta=1
         do while(truth)
           if(eof(idet).eq.0)read(lun,end=25)
-     +    ne,betapattern(nbeta),
+     +    ne,betastatus(nbeta),betapattern(nbeta),
      +    beta(nbeta),betaerror(nbeta),betachi2(nbeta),
      +    betachi2s(nbeta),betantof(nbeta),
      +    (betaptof(k,nbeta),k=1,4),betaptr(nbeta)
@@ -453,7 +455,8 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
         ncharge=1
         do while (truth)
            if(eof(idet).eq.0)read(lun,end=35)
-     +     ne,chargebetap(ncharge),chargetof(ncharge),
+     +     ne,chargestatus(ncharge),
+     +     chargebetap(ncharge),chargetof(ncharge),
      +     chargetracker(ncharge),(probtof(k,ncharge),k=1,7),
      +     (probtracker(k,ncharge),k=1,7)
           goto 36
@@ -1117,7 +1120,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      +  tofrtovta(2),tofrtovtd(2),tofrsdtm(2),cootof(3,4)
 
       INTEGER EventNo,Run,RunType,Time(2),BetaEvent,BetaPattern
-     + ,betantof,betaptof(4)
+     + ,betantof,betaptof(4),betastatus,chargestatus
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
      + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft,
@@ -1151,13 +1154,15 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
 *
 *    idet=2
 *
-      common /betaC/betaevent,betapattern,beta,betaerror,betachi2,
+      common /betaC/betaevent,betastatus,
+     +              betapattern,beta,betaerror,betachi2,
      +              betachi2s,betantof,betaptof,betaptr
 *
 *    idet=3
 *
 
-      common /chargeC/chargeevent,chargebetap,chargetof,
+      common /chargeC/chargeevent,chargestatus,
+     +  chargebetap,chargetof,
      + chargetracker,probtof,probtracker
 
 *
@@ -1407,10 +1412,11 @@ c         if(mod(i,10).eq.1)write(*,*)i
      +   TrRawclusters,TrMCClusters , TOFClusters , TOFMCClusters, 
      +   CTCClusters , CTCMCClusters, AntiMCClusters, AntiClusters 
            else if( cblock(idet).eq.'BETA')then
-            write(21)betaevent,betapattern,beta,betaerror,betachi2,
+            write(21)betaevent,betastatus,
+     +      betapattern,beta,betaerror,betachi2,
      +      betachi2s,betantof,betaptof,betaptr
            else if( cblock(idet).eq.'CHARGE')then
-            write(21)chargeevent,chargebetap,chargetof,
+            write(21)chargeevent,chargestatus,chargebetap,chargetof,
      +      chargetracker,probtof,probtracker
            else if( cblock(idet).eq.'PARTICLE')then
             write(21) particleevent,pctcpointer,

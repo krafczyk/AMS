@@ -37,7 +37,10 @@ Below there is a description of a converted ntuple.
 
 
 
-* I*4  * [0,10]       * BETA     * nbeta            // betas number
+* I*4  * [0,10]       * BETA     * nbeta             // betas number
+* I*4  *              * BETA     * betastatus        // 4 - ambig
+                                                        
+                                              
 * I*4  *              * BETA     * betapattern(nbeta) // beta pattern(beta.doc) 
 * R*4  *              * BETA     * beta(nbeta)       // velocity
 * R*4  *              * BETA     * betaerror(nbeta)  // est error  1/velocity 
@@ -50,6 +53,7 @@ Below there is a description of a converted ntuple.
 
 
 * I*4  * [0,10]       * CHARGE   * ncharge            // charges number
+* I*4  *              * CHARGE   * chargestatus       // 1 - refitted
 * R*4  *              * CHARGE   * chargebetap(ncharge)   //pointer to velocity
 * I*4  *              * CHARGE   * chargetof(ncharge)    // TOF charge
 * I*4  *              * CHARGE   * chargetracker(ncharge)  // Tracker Charge

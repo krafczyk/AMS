@@ -96,15 +96,10 @@ void CTCDBc::setgeom(integer iflag){
 _geomId=iflag;
   if(iflag==2){
    CTCDBc::setnlay(2);
-   CTCMCFFKEY.Edep2Phel[1]=0;
-  }
-  else if(iflag==1){
-    CTCDBc::setnwls(CTCDBc::getnblk());
-    CTCDBc::setnlay(2);     // Hardwired no of layers
   }
   else {
-   CTCDBc::setnlay(1);
-   CTCMCFFKEY.Edep2Phel[1]=0;
+    cerr<<"CTCDBc::setgeom-F-GeomNO "<<iflag<<" Not supported anymore"<<endl;
+    exit(1);
   }
 }
 
@@ -125,7 +120,7 @@ void CTCCCcal::build(){
   integer mem[CTCCMMX],memb[CTCCCMX][CTCCMMX];
   integer sta[CTCCMMX],stat[CTCCCMX][CTCCMMX];
   geant gn[CTCCMMX],gain[CTCCCMX][CTCCMMX];
-  geant q2pe=0.2;//tempor q(pC)->pe conv.factor (pe/pC)
+  geant q2pe=CTCRECFFKEY.q2pe;//tempor q(pC)->pe conv.factor (pe/pC)
   geant ftdl;// TDCT(FTrig)_hit delay wrt TDCA_hit delay (ns)
   char fname[80];
   char name[80];

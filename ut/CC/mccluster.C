@@ -417,6 +417,20 @@ if(init++==0){
 
 }
 
+integer AMSCTCMCCluster::getdetno(){
+   integer dt=(_idsoft/10)%10;
+   switch(dt){
+   case 1:
+     // PTF
+     return 1;
+   case 2:
+     //AGL
+     return 0;
+   default:
+     //PMT
+     return 2;
+   }
+}
 
 void AMSCTCMCCluster::sictchits(integer idsoft , geant vect[],geant charge, 
 geant stepc, geant getot, geant edep, geant time){

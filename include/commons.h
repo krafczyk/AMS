@@ -279,10 +279,11 @@ COMMON_BLOCK_DEF(CTCGEOMFFKEY_DEF,CTCGEOMFFKEY);
 
 class CTCMCFFKEY_DEF {
 public:
-  geant Refraction[2]; // refraction index (aerogel,wls)
-  geant Path2PhEl[2];  // path to phel con factor (aerogel,wls)
-  geant AbsLength[2];  // Absorbtion length in cm (aerogel, wls)
-  geant Edep2Phel[2];  // Edep to phel con factor (aerogel,wls)
+  geant Refraction[3]; // refraction index (aerogel,ptf,pmt)
+  geant Path2PhEl[3];  // path to phel con factor (aerogel,ptf,pmt)
+  geant AbsLength[3];  // Absorbtion length in cm (aerogel, ptf,pmt)
+  geant Edep2Phel[3];  // Edep to phel con factor (aerogel,ptf,pmt)
+  
   integer mcprtf;// hist. print flag
 };
 #define CTCMCFFKEY COMMON_BLOCK(CTCMCFFKEY,ctcmcffkey)
@@ -294,6 +295,7 @@ class CTCRECFFKEY_DEF {
   geant ThrS;  // limit on sum
   integer reprtf[3];//  print flag
   geant ftwin; // time_window(ns) in true TDCA-hits search wrt TDCT-hit(FT)
+  geant q2pe;  // charge to photoelectrons conversion
   integer sec[2];
   integer min[2];
   integer hour[2];

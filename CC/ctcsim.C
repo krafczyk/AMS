@@ -57,15 +57,17 @@ void AMSCTCRawHit::sictcdigi(){
    geant value=0;     
    geant time=0;
    while(ptr){
-    integer det=ptr->getdetno()-1;
+    integer det=ptr->getdetno();
 #ifdef __AMSDEBUG__
-    assert (det >=0 && det<2);
+    assert (det >=0 && det<3);
 #endif
     number z=1.-1./pow(CTCMCFFKEY.Refraction[det],2.)/pow(ptr->getbeta(),2.);
     number Response;
     if(z>0)Response=z;
     else Response=0;
     value+=CTCMCFFKEY.Path2PhEl[det]*ptr->getstep()*Response*ptr->getcharge2();
+    // Add scint component
+    value+=CTCMCFFKEY.Edep2Phel[det]*ptr->getedep();
     time+=ptr->gettime() * CTCMCFFKEY.Path2PhEl[det]*ptr->getstep()*Response*ptr->getcharge2();
     if( ptr->testlast()){
       integer ind=ptr->getcolno()-1+(ptr->getrowno()-1)*ncol;

@@ -112,8 +112,7 @@ public:
  inline number gettime() const {return _time;}
  inline integer getid() const{return _idsoft;}
  inline integer getbarno() const{ return _idsoft%1000;}
- inline integer getdetno() const{ return CTCDBc::getgeom()<2?_idsoft/10000:
-        ((_idsoft/10)%10)%2+1;}
+ integer getdetno(); 
  inline integer getlayno() const{ return CTCDBc::getgeom()<2?(_idsoft/1000)%10:
  _idsoft/1000000;}
  integer getrowno() const{return (_idsoft/2)%2+1+2*((_idsoft/1000)%10-1);}

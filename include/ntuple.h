@@ -12,6 +12,7 @@ integer & Event(){ return _Event;}
 
 class BetaNtuple: public AMSNtuple{
 private:
+int Status;
 int Pattern;
 float Beta;
 float Error;
@@ -26,6 +27,7 @@ friend class AMSBeta;
 
 class ChargeNtuple: public AMSNtuple{
 private:
+int Status;
 int BetaP;
 int ChargeTOF;
 int ChargeTracker;

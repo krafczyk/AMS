@@ -234,10 +234,11 @@ if(init++==0){
   //book the ntuple block
   //
   HBNAME(IOPA.ntuple,"Beta",BN.getaddress(),
-  "BetaEvent:I*4, BetaPattern:I*4, Beta:R*4, BetaError:R*4, BetaChi2:R*4,BetaChi2S:R*4,BetaNTOF:I,BetapTOF(4):I*4,BetapTr:I*4");
+  "BetaEvent:I*4, BetaStatus:I*4,BetaPattern:I*4, Beta:R*4, BetaError:R*4, BetaChi2:R*4,BetaChi2S:R*4,BetaNTOF:I,BetapTOF(4):I*4,BetapTr:I*4");
 
 }
   BN.Event()=AMSEvent::gethead()->getid();
+  BN.Status=_status;
   BN.Pattern=_Pattern;  
   BN.Beta=_Beta;
   BN.Error=_InvErrBeta;

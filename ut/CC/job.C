@@ -427,13 +427,17 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.ydiv=4;
 //
   CTCMCFFKEY.Refraction[0]=1.036;   // Refraction indexes
-  CTCMCFFKEY.Refraction[1]=1.58;
-  CTCMCFFKEY.Path2PhEl[0]=11;   // Path to photoelectrons conv fact ( ~ 6 p.e.)
-  CTCMCFFKEY.Path2PhEl[1]=28;
+  CTCMCFFKEY.Refraction[1]=1.55;
+  CTCMCFFKEY.Refraction[2]=1.00;
+  CTCMCFFKEY.Path2PhEl[0]=15;   // Path to photoelectrons conv fact ( ~ 6 p.e.)
+  CTCMCFFKEY.Path2PhEl[1]=38;
+  CTCMCFFKEY.Path2PhEl[2]=0;
   CTCMCFFKEY.AbsLength[0]=15;   // Abs Length in cm  
   CTCMCFFKEY.AbsLength[1]=100;
+  CTCMCFFKEY.AbsLength[2]=100;
   CTCMCFFKEY.Edep2Phel[0]=0;      // Agel is not a scint
-  CTCMCFFKEY.Edep2Phel[1]=184e3;  // WLS is scint if vertical readout
+  CTCMCFFKEY.Edep2Phel[1]=5000; 
+  CTCMCFFKEY.Edep2Phel[2]=1000;     
   CTCMCFFKEY.mcprtf=0;//print MC-hist if !=0
 
 FFKEY("CTCGEOM",(float*)&CTCGEOMFFKEY,sizeof(CTCGEOMFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -732,12 +736,13 @@ void AMSJob::_reantidata(){
 }
 //========================================================================
 void AMSJob::_rectcdata(){
-  CTCRECFFKEY.Thr1=0.5;
-  CTCRECFFKEY.ThrS=1.;
+  CTCRECFFKEY.Thr1=0.25;
+  CTCRECFFKEY.ThrS=0.5;
   CTCRECFFKEY.reprtf[0]=0;// Reco print_hist flag (0/1->no/yes)
   CTCRECFFKEY.reprtf[1]=0;// DAQ-print (1/2->print for decoding/decoding+encoding)
   CTCRECFFKEY.reprtf[2]=0;//spare
   CTCRECFFKEY.ftwin=100.;// t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT)
+  CTCRECFFKEY.q2pe=0.1;
   CTCRECFFKEY.sec[0]=0; 
   CTCRECFFKEY.sec[1]=0;
   CTCRECFFKEY.min[0]=0;

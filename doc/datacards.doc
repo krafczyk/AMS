@@ -187,11 +187,11 @@ I 14   nblk(12)                 // number of aer. blocks (X-div.)
 I 15   nwls(12)                 // number of wls  blocks (X-div.)
 
 CTCMC      
-R  1   Refraction[2](1.055,1.59) // Refraction indexes
-R  3   Path2PhEl(23.,28.)        // Path to photoelectrons conv factor
-R  5   AbsLengt(15, 100)         // Abs length in cm 
-R  7   Edep2Phel(0,184e3)       //  Edep to phelectrons conv factor
-I  9   mcprtf(0)                // print MC-hist. if !=0
+R  1   Refraction[3](1.036,1.35,1.00) // Refraction indexes
+R  4   Path2PhEl(11.,38.,0.)        // Path to photoelectrons conv factor
+R  7   AbsLengt(15, 100,100)         // Abs length in cm 
+R 10   Edep2Phel(0,0,0)       //  Edep to phelectrons conv factor
+I 13   mcprtf(0)                // print MC-hist. if !=0
 
 
 
@@ -270,7 +270,8 @@ I 3 reprtf[0] (0)         // RECO-hist print flag
 I 4       [1] (0)         // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding
 I 5       [2] (0)         // spare
 R 6 ftwin(100)            // time-window for "true" ADCA-hit search (ns)
-I 7-18                    // sec,min,hour,day,mon,year for DB update
+R 7 q2pe(0.1)             // charge 2 phel conv factor
+I 8-19                    // sec,min,hour,day,mon,year for DB update
 
 // CTC Calibration
 
