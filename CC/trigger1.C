@@ -1,0 +1,32 @@
+// Simple version 9.06.1997 by E.Choumilov
+//
+#include <commons.h> 
+#include <trigger1.h>
+#include <event.h>
+#include <mccluster.h>
+#include <tofdbc.h>
+#include <antidbc.h>
+#include <tofsim.h>
+#include <antirec.h>
+//
+void TriggerLVL1::build(){
+// Trigger mode 1 : ntof >= LVL1FFKEY.ntof + nanti <= LVL1FFKEY.nanti
+// TOF : 
+  int i;
+  integer ntof=0;
+  integer tofpatt[SCLRS];
+  AMSTOFRawEvent::getpatt(tofpatt);
+  for(i=0;i<SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
+// ANTI :
+  integer antipatt(0);
+  integer cbt,nanti(0),lsbit(1);
+  antipatt=AMSAntiRawCluster::getpatt();
+  for(i=0;i<MAXANTI;i++){
+    cbt=lsbit<<i;
+    if((antipatt&cbt)>0)nanti+=1;//counts paddles
+  }
+//
+  if(ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti)
+       AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
+                       new TriggerLVL1(1,tofpatt,antipatt));
+}

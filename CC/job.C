@@ -60,9 +60,6 @@ void AMSJob::data(){
   AMSgObj::GVolMap= *(new  AMSNodeMap() );
   AMSgObj::BookTimer= *(new AMSStat() );
 #endif  
-  TRIGFFKEY.ntof=3;
-  TRIGFFKEY.anti=1000000.;
-  FFKEY("LVL1",(float*)&TRIGFFKEY,sizeof(TRIGFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
 
@@ -107,6 +104,17 @@ _sitofdata();
 _siantidata();
 _sitrddata();
 _sictcdata();
+_sitrigdata();
+}
+
+void AMSJob::_sitrigdata(){
+// TOF :
+// these are additional requir. to "hardware"-defined TOFMCFFKEY.trlogic[]
+  LVL1FFKEY.ntof=3;// min. fired TOF-planes
+// ANTI :
+  LVL1FFKEY.nanti=0;// max. fired ANTI-paddles 
+//
+  FFKEY("LVL1",(float*)&LVL1FFKEY,sizeof(LVL1FFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
 void AMSJob::_sitkdata(){
@@ -210,7 +218,7 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.TimeSigma2=4.5e-10;
   TOFMCFFKEY.TimeProbability2=0.035;
   TOFMCFFKEY.padl=10.5;        // sc. bar transv. step ........................
-  TOFMCFFKEY.Thr=0.1;          // Sc.bar Elos-thresh.(Mev) to participate in Reco   
+  TOFMCFFKEY.Thr=0.1;          // Sc.bar Elos-thresh.(Mev) to participate in Simul.   
 //
   TOFMCFFKEY.mcprtf[0]=0;     // TOF MC print flag for init arrays
   TOFMCFFKEY.mcprtf[1]=0;     // TOF MC print flag for MC pulses
@@ -218,7 +226,7 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.mcprtf[3]=0;     // spare
   TOFMCFFKEY.mcprtf[4]=0;     // spare
   TOFMCFFKEY.trlogic[0]=0; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
-  TOFMCFFKEY.trlogic[1]=0; // spare 
+  TOFMCFFKEY.trlogic[1]=0; // ......................(=0/1-> ANY3/ALL4 layer coincidence) 
   TOFMCFFKEY.fast=1;       // 0/1-> fast/slow simulation algorithm
   UCTOH(tfname,TOFMCFFKEY.tdfnam,4,12);
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -294,21 +302,22 @@ FFKEY("CTCMC",(float*)&CTCMCFFKEY,sizeof(CTCMCFFKEY_DEF)/sizeof(integer),"MIXED"
 }
 //================================================================================
 void AMSJob::_siantidata(){
-  ANTIGEOMFFKEY.nscpad=16;     // number of scintillator paddles
   ANTIGEOMFFKEY.scradi=54.385; // internal radious of ANTI sc. cylinder (cm)
   ANTIGEOMFFKEY.scinth=1.;     // thickness of scintillator (cm)
   ANTIGEOMFFKEY.scleng=83.;    // scintillator paddle length (glob. Z-dim)
   ANTIGEOMFFKEY.wrapth=0.04;   // wrapper thickness (cm)
   ANTIGEOMFFKEY.groovr=0.4;    // groove radious (bump_rad = groove_rad-pdlgap)
-  ANTIGEOMFFKEY.pdlgap=0.04;   // inter paddle gap (cm)
+  ANTIGEOMFFKEY.pdlgap=0.08;   // inter paddle gap (cm)
   ANTIGEOMFFKEY.stradi=54.235; // inner radious of supp. tube
   ANTIGEOMFFKEY.stleng=83.;    // length of supp. tube
   ANTIGEOMFFKEY.stthic=0.12;   // thickness of supp. tube
   
 //
-  ANTIMCFFKEY.SigmaPed=1;
-  ANTIMCFFKEY.GeV2PhEl=20e3;
-  ANTIMCFFKEY.LZero=120;
+  ANTIMCFFKEY.SigmaPed=1;     // ped.distribution width (p.e)
+  ANTIMCFFKEY.GeV2PhEl=20e3;  // Gev->Ph.el. conversion factor
+  ANTIMCFFKEY.LZero=120;      // attenuation length for one-side signal (cm)
+  ANTIMCFFKEY.PMulZPos=0.5*ANTIGEOMFFKEY.scleng; // PM longit.(Z)-position
+  ANTIMCFFKEY.trithr=3.; // threshold (p.e) for trigger per one side (?)
 //
   FFKEY("ANGE",(float*)&ANTIGEOMFFKEY,sizeof(ANTIGEOMFFKEY_DEF)/sizeof(integer),
   "MIXED");

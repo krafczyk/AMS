@@ -312,7 +312,7 @@ AMSNode * p;
   raddeg=AMSDBc::raddeg;
   degrad=AMSDBc::pi/180.;
   ANTIDBc::setgeom();
-  nscpad=ANTIDBc::nscpad();
+  nscpad=MAXANTI;
   scradi=ANTIDBc::scradi();
   scinth=ANTIDBc::scinth();
   scleng=ANTIDBc::scleng();

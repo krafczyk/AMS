@@ -43,6 +43,7 @@ void _sitrddata();
 void _sictcdata();
 void _sitofdata();
 void _siantidata();
+void _sitrigdata();
 void _reamsdata();
 void _retkdata();
 void _retrddata();

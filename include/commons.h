@@ -111,6 +111,7 @@ geant SigmaPed;
 geant GeV2PhEl;
 geant LZero;
 geant PMulZPos;
+geant trithr;
 };
 #define ANTIMCFFKEY COMMON_BLOCK(ANTIMCFFKEY,antimcffkey)
 COMMON_BLOCK_DEF(ANTIMCFFKEY_DEF,ANTIMCFFKEY);
@@ -213,6 +214,17 @@ geant ThrS;  // limit on sum
 #define CTCRECFFKEY COMMON_BLOCK(CTCRECFFKEY,ctcrecffkey)
 COMMON_BLOCK_DEF(CTCRECFFKEY_DEF,CTCRECFFKEY);
 
+//==============================================================
+
+class LVL1FFKEY_DEF {
+public:
+geant ntof;
+geant nanti;
+};
+#define LVL1FFKEY COMMON_BLOCK(LVL1FFKEY,lvl1ffkey)
+COMMON_BLOCK_DEF(LVL1FFKEY_DEF,LVL1FFKEY);
+
+//================================================================
 
 
 class TRMCFFKEY_DEF {

@@ -53,7 +53,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
     chnum=ilay*SCMXBR*2+ibar*2+isid;//channels numbering
     brnum=ilay*SCMXBR+ibar;//bar numbering
     stat[isid]=ptr->getstat();
-    if(stat[isid] == 0){  // channel alive
+    if(stat[isid] == 0){ // still no sense(?) ( =0 upto now by definition)
 //       fill working arrays for given side:
       isds+=1;
       nftdc[isid]=ptr->getftdc(ftdc1);
@@ -182,7 +182,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
       isid=idd%10-1;
       chnum=ilay*SCMXBR*2+ibar*2+isid;//channels numbering
       stat[isid]=ptr->getstat();
-      if(stat[isid] == 0){  // channel alive
+      if(stat[isid] == 0){  
         isds+=1;
         nstdc[isid]=ptr->getstdc(stdc1);
         if(nstdc[isid]==4){ // require only one "4-edge" sTDC-hit
@@ -283,6 +283,7 @@ void AMSTOFRawCluster::build(int &status){
   int16u  ftdc2[SCTHMX2*2],stdc2[SCTHMX3*4],adca2[SCTHMX4*2],adcd2[SCTHMX4*2];
   integer ilay,last,ibar,isid,isds;
   integer i,j,chnum,brnum,am[2],tmi[2],itmf[2],sta,st;
+  int statdb[2];
   static int16u pbitn(32768);
   static int16u pbanti(0x7FFF);
   int16u id,idd,idN,stat[2];
@@ -317,7 +318,9 @@ void AMSTOFRawCluster::build(int &status){
     chnum=ilay*SCMXBR*2+ibar*2+isid;//channels numbering
     brnum=ilay*SCMXBR+ibar;//bar numbering
     stat[isid]=ptr->getstat();
-    if(stat[isid] == 0){  // channel alive
+//    if(stat[isid] == 0){  
+    scbrcal[ilay][ibar].getbstat(statdb); // "alive" status from DB
+    if(statdb[isid] == 0){  // channel alive
 //       fill working arrays for given side:
       isds+=1;
       if(isid==0){

@@ -23,7 +23,7 @@
 #include <ctcdbc.h>
 #include <timeid.h>
 #include <trcalib.h>
-#include <trigger.h>
+#include <trigger1.h>
 #include <antirec.h>
 //
 //
@@ -70,6 +70,7 @@ _reaxinitrun();
 
 void AMSEvent::_siamsinitevent(){
  _signinitevent();
+ _sitriginitevent();
  _sitkinitevent();
  _sitrdinitevent();
  _sitofinitevent();
@@ -133,6 +134,13 @@ void AMSEvent::_sitkinitevent(){
   new AMSContainer(AMSID("AMSContainer:AMSTrMCCluster",0),0));
 }
 
+void AMSEvent::_sitriginitevent(){
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:TriggerLVL1",0),0));
+
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:TriggerLVL3",0),0));
+}
 
 void AMSEvent::_siantiinitevent(){
  AMSEvent::gethead()->add (
@@ -234,8 +242,8 @@ void AMSEvent::_reaxinitevent(){
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AntiMatter",0),0));
 
-  AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:Trigger",0),0));
+//  AMSEvent::gethead()->add (
+//  new AMSContainer(AMSID("AMSContainer:Trigger",0),0));
 
 
 
@@ -347,7 +355,8 @@ _sitkevent();
 _sitrdevent();
 _sitofevent(); 
 _siantievent(); 
-_sictcevent(); 
+_sictcevent();
+_sitrigevent(); 
 }
 
 void AMSEvent::_reamsevent(){
@@ -537,7 +546,6 @@ AMSParticle::build();
 if(AMSEvent::debug)AMSParticle::print();
 #endif
 //
-Trigger::build();
 AMSgObj::BookTimer.stop("REAXEVENT");
 }
 
@@ -646,7 +654,11 @@ void AMSEvent:: _sictcevent(){
   if(p && AMSEvent::debug>1)p->printC(cout);
 #endif
 }
-
+//===================================================================
+void AMSEvent::_sitrigevent(){
+  TriggerLVL1::build();
+}
+//===================================================================
 
 AMSlink * AMSEvent::_getheadC( AMSID id, integer sorted){
   char *name=new char[13+strlen(id.getname())+1];

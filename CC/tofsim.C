@@ -17,6 +17,7 @@
 extern TOFVarp tofvpar;
 AMSTOFScan scmcscan[SCBLMX];
 //
+integer AMSTOFRawEvent::trpatt[SCLRS]={0,0,0,0};
 //------------------------------------------------------------------------------
 geant AMSDistr::getrand(const geant &rnd)
 {
@@ -829,7 +830,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
                       AMSTOFTovt::displ_as(idd,2,tshap2);//print Shaper pulse
 //------------------------------
 // now create/fill AMSTOFTovt object (id=idd) with above digi-data:
-        _sta=0;// all channels are alive at this point ???    
+        _sta=0;    
         stat=0;
         stat=AMSEvent::gethead()->addnext(AMSID("AMSTOFTovt",ilay), new
              AMSTOFTovt(idd,_sta,charge,edepb,_ntr1,_ttr1,
@@ -845,9 +846,11 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
 // trcode - trigger code (pattern) =-1/n, n>=0 -> missing plane #, 
 // =-1 -> no trigger.
 //
-number AMSTOFTovt::tr1time(int &trcode){
+number AMSTOFTovt::tr1time(int &trcode, integer toftrp[]){
   integer i1,i2,isds(0),first(0);
-  integer i,j,ilay,ntr,idd,id,idN,stat;
+  integer i,j,ilay,ibar,ntr,idd,id,idN,stat;
+  integer npdpl[SCLRS]={0,0,0,0};
+  integer sbt,lsbit(1);
   number ttr[SCTHMX1];
   geant t1,t2;
   AMSBitstr trbs[2];
@@ -858,15 +861,19 @@ number AMSTOFTovt::tr1time(int &trcode){
 //
   geant trigb=TOFDBc::trigtb();
   geant pwid=TOFDBc::daqpwd(0);
+  for(i=0;i<SCLRS;i++)toftrp[i]=0;
 //
   for(ilay=0;ilay<SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(AMSTOFTovt*)AMSEvent::gethead()->
                                getheadC("AMSTOFTovt",ilay,0);
     isds=0;
+    trbs[0].bitclr(1,0);
+    trbs[1].bitclr(1,0);
     while(ptr){// <--- Tovt-hits loop in layer ---
       idd=ptr->getid();
       id=idd/10;// short id=LBB
-      stat=ptr->getstat();
+      ibar=id%100-1;
+      stat=ptr->getstat();// Alive(0)/Dead(1) status
       ntr=ptr->gettr1(ttr);// get number and times of trig1 ("z>=1")
 //      cerr<<"id= "<<idd<<" Ntrpulses= "<<ntr<<'\n'; // tempor
       for(j=0;j<ntr;j++){// <--- trig-hits loop ---
@@ -880,8 +887,8 @@ number AMSTOFTovt::tr1time(int &trcode){
           if(stat==0)trbs[isds].bitset(i1,i2);//set bits according to pulse width
         else
             cerr<<"AMSTOFTovt::tr1time: error: >2sides !!!"<<'\n';
-        isds+=1; 
-      }//             --- end of trig-hits loop --->
+      }// --- end of trig-hits loop --->
+      isds+=1; 
       ptrN=ptr->next();
       idN=0;
       if(ptrN)idN=(ptrN->getid())/10; //next hit short id
@@ -892,7 +899,14 @@ number AMSTOFTovt::tr1time(int &trcode){
                                   trbc=trbs[0] & trbs[1];// 2-sides AND
         else
                                   trbc=trbs[0] | trbs[1];// 2-sides OR
+//                                  
         trbl[ilay]=trbl[ilay] | trbc; // summing OR within the layer
+        trbc.testbit(i1,i2);// bit-pattern of the fired counters in layer:
+        if(i2>=i1){
+          npdpl[ilay]+=1;
+          sbt=lsbit<<ibar;
+          toftrp[ilay]|=sbt;
+        }
         isds=0; // reset c.sides variables ...
         trbs[0].bitclr(1,0);
         trbs[1].bitclr(1,0);
@@ -901,17 +915,18 @@ number AMSTOFTovt::tr1time(int &trcode){
 // 
     }//         --- end of Tovt-hits loop in layer --->
 //
-    trbl[ilay].testbit(i1,i2);// check ilay-plane "OR"
-    if(i2>=i1){// make stand.logic pulse of daqpwd[0] width
-      i2=integer(pwid/trigb);
-      i2+=i1;
-      trbl[ilay].bitclr(1,0);
-      if(i2>=SCBITM)i2=SCBITM-1;
-      trbl[ilay].bitset(i1,i2);
-    }
+//    trbl[ilay].testbit(i1,i2);// check ilay-plane "OR"
+//    if(i2>=i1){// make(?) stand.logic pulse of daqpwd[0] width
+//      i2=integer(pwid/trigb);
+//      i2+=i1;
+//      trbl[ilay].bitclr(1,0);
+//      if(i2>=SCBITM)i2=SCBITM-1;
+//      trbl[ilay].bitset(i1,i2);
+//    }
   } //                               --- end of layer loop --->
 //
   trcode=-1;
+  t1=0.;
   AMSBitstr coinc1234,rr1,rr2;
   rr1=trbl[0]&trbl[1];
   rr2=trbl[2]&trbl[3];
@@ -923,6 +938,7 @@ number AMSTOFTovt::tr1time(int &trcode){
     return t1;
   }
   else{   // check 3-fold coincidence:
+    if(TOFMCFFKEY.trlogic[1] == 1)return t1;// if ALL4 was requested
     int imin=9999;
     AMSBitstr coinc0234=trbl[1]&trbl[2]&trbl[3];
     AMSBitstr coinc1034=trbl[0]&trbl[2]&trbl[3];
@@ -948,8 +964,10 @@ number AMSTOFTovt::tr1time(int &trcode){
       imin=i1;
       trcode=4;
     }
-    t1=0.;
-    if(imin!=9999)t1=i1*trigb;
+    if(imin!=9999){
+      t1=i1*trigb;
+      toftrp[trcode-1]=-toftrp[trcode-1];// mark missing layer
+    }
     return t1;
   }
 }
@@ -1119,13 +1137,14 @@ void AMSTOFRawEvent::mc_build()
   number t,t1,t2,t3,t4,tprev,ttrig1,dt,tlev1,tl1d;
   geant charge,edep;
   int trcode;
+  integer trpatt[SCLRS];
   integer it,it1,it2,it3,it4,it0;
   static int16u phbit=32768;
   static geant ftpw=TOFDBc::daqpwd(12);// FT-pulse width
   AMSTOFTovt *ptr;
   AMSTOFTovt *ptrN;
 //
-  ttrig1=AMSTOFTovt::tr1time(trcode);//get abs. trig1("z>=1" accept) signal time
+  ttrig1=AMSTOFTovt::tr1time(trcode,trpatt);//get abs.trig1("z>=1") signal time/patt
   if(trcode<0)return; // no trigger
   tlev1=ttrig1+TOFDBc::ftdelf()+TOFDBc::accdel();// Lev-1 accept-signal abs.time
   tl1d=tlev1-TOFDBc::fatdcd();// just to sumulate A-tdc-pulse delay wrt ftdc-pulse
@@ -1295,5 +1314,6 @@ void AMSTOFRawEvent::mc_build()
     }//         --- end of Tovt-hits loop in layer --->
 //
   } //                               --- end of layer loop --->
-//
+  AMSTOFRawEvent::setpatt(trpatt);//add trigger pattern
 }
+//================================================================

@@ -70,7 +70,7 @@ I  8   Print-flag(0)       // to print MC-histograms if=1
 I  9   Print-flag(0)       // spare        
 I 10   Print-flag(0)       // spare
 I 11   Trig.logic-flag(0)  //  use AND/OR(if=0/1) for two side logic signals   
-I 12   Trig.logic-flag(0)  // spare        
+I 12   Trig.logic-flag(0)  //  use ANY3/ALL4(if=0/1) coinc. for 4 TOF-layers         
 I 13   fast(1)             //  fast/slow(i.e. accurate) (1/0) algorithm switch
 I 14-16  file-name         // (<=11 letters) contains map of t-distr. file names
 
@@ -85,7 +85,7 @@ I 4   Print-flag(0)       // spare
 I 5   Print-flag(0)       // print RECO-histograms (if=1)
 I 6   Print-flag(0)       // spare
 I 7   Print-flag(0)       // spare
-I 8   RECO logic-flag(0)  // Normal/TZSL-calibr_run(if=1)
+I 8   RECO logic-flag(0)  // Normal/TZSL/AMPL/Stretch_ratio-calibr_run(if=0/1/2/3)
 I 9   RECO logic-flag(0)  // spare
 I 10  RECO logic-flag(0)  // spare
 I 11  RECO logic-flag(0)  // spare
@@ -111,7 +111,7 @@ I 41   year[2](96,98)     //
 
 TOFCA
 R  1 plow(8.);  // track mom. low limit (gev/c)
-R  2 phigh(5.); // track mom. high limit
+R  2 phigh(50.);// track mom. high limit
 R  3 meanbeta(0.996);// mean proton velocity in this range 
 R  4 T0-ref1(6.);   // T0 for ref. counters
 R  5 T0-ref2(6.);   // T0 for ref. counters

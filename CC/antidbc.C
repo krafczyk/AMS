@@ -9,7 +9,6 @@
 //======> just memory reservation :
 // (real values are initialized at run-time from data cards in setgeom())
 // 
-  integer ANTIDBc::_nscpad=0.;
   geant ANTIDBc::_scradi=0.;
   geant ANTIDBc::_scinth=0.;
   geant ANTIDBc::_scleng=0.;
@@ -22,7 +21,6 @@
 //
 //  member functions :
 //
-  integer ANTIDBc::nscpad(){return _nscpad;}
   geant ANTIDBc::scradi(){return _scradi;}
   geant ANTIDBc::scinth(){return _scinth;}
   geant ANTIDBc::scleng(){return _scleng;}
@@ -34,7 +32,6 @@
   geant ANTIDBc::stthic(){return _stthic;}
 //
   void ANTIDBc::setgeom(){ //get parameters from data cards now
-    _nscpad=ANTIGEOMFFKEY.nscpad;
     _scradi=ANTIGEOMFFKEY.scradi;
     _scinth=ANTIGEOMFFKEY.scinth;
     _scleng=ANTIGEOMFFKEY.scleng;

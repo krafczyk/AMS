@@ -1,5 +1,6 @@
 //
-// May 27, 1997 Primitive anti Rec
+// May 27, 1997 Primitive anti Rec by V.Choutko
+// June 9, 1997 Modifications to have trigger pattern (E.Choumilov)
 //
 #include <point.h>
 #include <event.h>
@@ -10,13 +11,19 @@
 #include <math.h>
 #include <extC.h>
 #include <antirec.h>
+#include <antidbc.h>
 #include <ntuple.h>
+//
+ integer AMSAntiRawCluster::_trpatt=0;
+//
 void AMSAntiRawCluster::siantidigi(){
-  const integer MAXANTI=16;
+  integer sbt,trpatt(0),lsbit(1);
+  number upam,downam;
   static number counter[2][MAXANTI];
   VZERO(counter,2*MAXANTI*sizeof(counter[0][0])/sizeof(geant));
-  AMSAntiMCCluster * ptr=(AMSAntiMCCluster*)
-  AMSEvent::gethead()->
+  AMSAntiMCCluster * ptr;
+//
+  ptr=(AMSAntiMCCluster*)AMSEvent::gethead()->
    getheadC("AMSAntiMCCluster",0,1); // last 1  to test sorted container
    geant up=0;
    geant down=0;
@@ -53,6 +60,16 @@ void AMSAntiRawCluster::siantidigi(){
      
     }
   }
+// create trigger pattern:
+  for(i=0;i<MAXANTI;i++){
+    upam=counter[0][i];
+    downam=counter[1][i];
+    if(upam>ANTIMCFFKEY.trithr && downam>ANTIMCFFKEY.trithr){// require AND of both ends
+      sbt=lsbit<<i;
+      trpatt|=sbt;
+    }
+  }
+  AMSAntiRawCluster::setpatt(trpatt);// add trigger-pattern to AMSAntiRawCluster::
 }
 
 void AMSAntiRawCluster::siantinoise(number counter1[], number counter2[], integer nm){
