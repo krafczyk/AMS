@@ -1,4 +1,4 @@
-//  $Id: getior.pc,v 1.5 2004/01/30 22:42:09 choutko Exp $
+//  $Id: getior.pc,v 1.6 2004/01/30 23:11:12 choutko Exp $
 //
 // Subroutines to get IOR from AMS ORACLE database
 //
@@ -167,9 +167,11 @@ main(int argc, char* argv[])
 {
   char tns[255];
   char *ams=getenv("AMSDataDir");
-  strcpy(tns,ams);
-  strcat(tns,"/prod");
-  setenv("TNS_ADMIN",tns,0);
+  if(ams){
+    strcpy(tns,ams);
+    strcat(tns,"/prod");
+    setenv("TNS_ADMIN",tns,0);
+  }   
   if (argc > 1) {
    for (int i=0; i<argc; i++) {
      if (strcmp(argv[i],"-o") == 0) {
