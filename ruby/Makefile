@@ -1,19 +1,35 @@
 SHELL=/bin/sh
+OS := $(shell uname)
 MY_OS := $(shell uname | tr '[A-Z]' '[a-z]')
 file= AMS
-GC=g++ -Wno-deprecated
-LIB_DIR := $(shell ruby -r rbconfig -e 'puts Config::CONFIG["sitedir"]')
-INC_DIR := $(shell ruby -r rbconfig -e 'puts Config::CONFIG["rubylibdir"] + "/" + Config::CONFIG["arch"]')
+GC=g++
+ifeq  "$(OS)"  "Linux" 
+      RUBY := $(shell which ruby 2> /dev/null)
+endif
+ifndef RUBY
+	RUBY=/afs/cern.ch/user/a/alcaraz/public/$(OS)/bin/ruby
+endif
+
+LIB_DIR := $(shell $(RUBY) -r rbconfig -e 'puts Config::CONFIG["sitedir"]')
+INC_DIR := $(shell $(RUBY) -r rbconfig -e 'puts Config::CONFIG["rubylibdir"] + "/" + Config::CONFIG["arch"]')
 
 ifndef AMSWD
-AMSWD := ..
+	AMSWD := ..
+endif
+
+ifeq  "$(OS)"  "Linux" 
+	AMSOBJDIR := $(AMSWD)/bin/$(MY_OS)/icc
+      LIBS=-L$(ROOTSYS)/lib -lCore -lCint -lHist -lTree -lMatrix -lMinuit \
+-lGraf -lGraf3d -lGpad -lGX11 -lGX11TTF -lGui -lHistPainter -lPostscript \
+-lRint -lHtml $(AMSOBJDIR)/root_rs.o $(AMSOBJDIR)/rootdict_s.o
+else
+	AMSOBJDIR := $(AMSWD)/bin/$(MY_OS)
+      LIBS=-L$(ROOTSYS)/lib -lCore -lCint -lHist -lTree -lMatrix -lMinuit \
+-lGraf -lGraf3d -lGpad -lGX11 -lGX11TTF -lGui -lHistPainter -lPostscript \
+-lRint -lHtml $(AMSOBJDIR)/root_rs.o $(AMSOBJDIR)/rootdict_s.o -lm
 endif
 
 GCINCS=-I$(INC_DIR) -I$(AMSWD)/include -I$(ROOTSYS)/include
-LIBS=-L$(ROOTSYS)/lib -lCore -lCint -lHist -lTree -lMatrix -lMinuit \
--lGraf -lGraf3d -lGpad -lGX11 -lGX11TTF -lGui -lHistPainter -lPostscript \
--lRint -lHtml $(AMSWD)/bin/linux/icc/root_rs.o \
-$(AMSWD)/bin/linux/icc/rootdict_s.o
 MYLIB=$(MY_OS)/$(file).so
 RUBYLIB=$(LIB_DIR)/$(file).so
 

@@ -2,8 +2,14 @@
 
 file="AMS"
 
+OS=`uname`
+
 #Ruby test
-PREF=`which ruby 2> /dev/null`
+PREF=`which ruby`
+if [ ! -x "$PREF" ]; then
+    PREF=`which /afs/cern.ch/user/a/alcaraz/public/$OS/bin/ruby`
+fi
+
 if [ -x "$PREF" ]; then
       echo "Ruby accessible ... yes"
 else
@@ -24,13 +30,34 @@ if [ ! -n "$AMSWD" ]; then
 fi
 
 #SWIG test
-swig_exe="/afs/ams.cern.ch/tools/swig/bin/swig"
+if [ "$OS" = "Linux" ]; then
+   swig_exe="/afs/ams.cern.ch/tools/swig/bin/swig"
+   SWIG=`which ${swig_exe}`
+else
+   unset SWIG
+fi
+if [ ! -n "$SWIG" ]; then 
+   swig_exe="/afs/cern.ch/user/a/alcaraz/public/${OS}/bin/swig"
+   SWIG=`which ${swig_exe}`
+   if [ ! -n "$SWIG" ]; then 
+      echo "SWIG accessible ... no"
+      exit
+   fi
+fi
 SWIG=`${swig_exe} -version 2>&1`
 SWIG=`echo $SWIG | awk '{print $3}'`
 SWIG=${SWIG//./ }
 V1=`echo $SWIG | awk '{print $1}'`
 V2=`echo $SWIG| awk '{print $2}'`
 V3=`echo $SWIG | awk '{print $3}'`
+if [ ! -n "$V1" ]; then 
+      echo "SWIG accessible ... no"
+      exit
+fi
+if [ ! -n "$V2" ]; then 
+      echo "SWIG accessible ... no"
+      exit
+fi
 if [ ! -n "$V3" ]; then 
       V3="0"
 fi
