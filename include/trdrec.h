@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.8 2002/06/03 14:53:43 alexei Exp $
+//  $Id: trdrec.h,v 1.9 2002/07/16 05:43:23 kscholbe Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include <trdid.h>
@@ -27,6 +27,7 @@ public:
 AMSTRDCluster(uinteger status, uinteger layer,AMSPoint coo, number hsr, number hdz,AMSDir dir, float edep,int multip, int hmultip, AMSTRDRawHit* pmaxhit):AMSlink(status,0),_Coo(coo),_ClSizeR(hsr),_ClSizeZ(hdz),_CooDir(dir),_Edep(edep),_Multiplicity(multip),_HighMultiplicity(hmultip),_pmaxhit(pmaxhit),_layer(layer){};
 static integer build(int rerun=0);
 static integer Out(integer status);
+number getEdep() const {return _Edep;}
 integer operator < (AMSlink & o) const {
  
   AMSTRDCluster * p= dynamic_cast<AMSTRDCluster*>(&o);

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.114 2002/07/03 10:31:19 delgadom Exp $
+//  $Id: particle.C,v 1.115 2002/07/16 05:43:05 kscholbe Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -23,7 +23,12 @@
 #include <mceventg.h>
 #include <ecalrec.h>
 
+// Normalized TRD probabilities (preliminary)
+number AMSParticle::trdpspect[30]={
+0.133822,0.254755,0.243698,0.168653,0.0885082,0.0419913,0.018962,0.0105981,0.00641613,0.00412466,0.00360907,0.00337993,0.00240605,0.00183318,0.00148946,0.00154675,0.00137489,0.000630156,0.00091659,0.000973877,0.000859303,0.000572869,0.00074473,0.000687443,0.000515582,0.000572869,0.000859303,0.000229148,0.000687443,0.000401008};
 
+number AMSParticle::trdespect[30]={
+0.065593,0.113031,0.120425,0.101903,0.072328,0.0493411,0.0367496,0.038287,0.0353587,0.0377013,0.0333089,0.0302343,0.0296486,0.025183,0.0237921,0.0173499,0.0167643,0.0169839,0.0127379,0.0140556,0.0122987,0.011347,0.00944363,0.00812592,0.00629575,0.00702782,0.00600293,0.00592972,0.00387994,0.00461201};
 
 PROTOCCALLSFFUN2(FLOAT,PROB,prob,FLOAT,INT)
 #define PROB(A2,A3)  CCALLSFFUN2(PROB,prob,FLOAT,INT,A2,A3)
@@ -118,6 +123,7 @@ out:
              AMSgObj::BookTimer.stop("ReECRefit"); 
              AMSgObj::BookTimer.start("ReTRDRefit"); 
             ppart->trdfit();
+            ppart->trd_likelihood();
             AMSgObj::BookTimer.stop("ReTRDRefit"); 
           }
            ppart=ppart->next();
@@ -153,9 +159,6 @@ void  AMSParticle::_build(number rid,number err,number charge,number beta, numbe
           _calcmass(momentum,emomentum,beta,ebeta,mass,emass);
           if(beta<0)momentum=-momentum;
 }
-
-
-
 
 
 void AMSParticle::toffit(){
@@ -291,7 +294,42 @@ if(AMSJob::gethead()->isCalibration() & AMSJob::CEcal){
  }
 }
 
+}
 
+void AMSParticle::trd_likelihood(){
+
+  //Crude likelihood for TRD-based pid.  Right now this just
+  // calculates likelihood globally for all hits in an event.
+  // To be upgraded by GPC to associate hits with TRD tracks
+
+  number loglikelihood=0.;
+
+  for (int n=0;n<AMSTRDIdSoft::ncrates();n++){
+    AMSTRDRawHit * ptr=
+      (AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",n,2); 
+
+    while(ptr)
+      {
+	AMSTRDIdSoft id(ptr->getidsoft());
+	float dE=(ptr->Amp())/((id.getgain()>0?id.getgain():1)*TRDMCFFKEY.GeV2ADC)*1.e6;
+
+	// Get the corresponding probs
+
+	// For this array index in keV roughly correct
+        // Deal with overflow later
+	integer index=(int)dE;
+  
+	  if (index>=0 &&index<30){
+	      number pprob =trdpspect[index];
+	      number eprob =trdespect[index];
+	      loglikelihood += log(eprob/pprob);
+	    }
+
+	ptr=ptr->next();
+      }
+  }
+
+    _TRDLikelihood=loglikelihood;
 
 }
 
@@ -458,6 +496,7 @@ void AMSParticle::_writeEl(){
   else PN->TrackP[PN->Npart]=_ptrack->getpos();
   PN->Particle[PN->Npart]=_gpart[0];
   PN->ParticleVice[PN->Npart]=_gpart[1];
+  PN->TRDLikelihood[PN->Npart]=_TRDLikelihood;
   PN->FitMom[PN->Npart]=_fittedmom[0];
   for(int i=0;i<2;i++){
    PN->Prob[PN->Npart][i]=_prob[i];

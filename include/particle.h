@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.39 2002/07/03 10:31:39 delgadom Exp $
+//  $Id: particle.h,v 1.40 2002/07/16 05:43:23 kscholbe Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -65,6 +65,7 @@ protected:
   number   _RichPathBeta[2];
   number   _RichLength;
   number   _Local[trconst::maxlay];
+  number _TRDLikelihood;
 
 // new
    
@@ -99,6 +100,8 @@ public:
   friend class ParticleRoot02;
 #endif
 
+  static number trdespect[30];
+  static number trdpspect[30];
   AMSParticle *  next(){return (AMSParticle*)_next;}
   AMSParticle():   _pbeta(0), _pcharge(0), _ptrack(0),_ptrd(0),_prich(0),_pShower(0)
  {
@@ -144,6 +147,7 @@ public:
   void antifit(); // Anti fit
   void ecalfit(); // Ecal fit
   void trdfit(); //  trd fit
+  void trd_likelihood(); //  trd likelihood
   void richfit(); //  rich fit
   void pid();   // particle identification
   void refit(int i=0); // refit if necessary;

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.408 2002/07/14 12:33:04 kscholbe Exp $
+// $Id: job.C,v 1.409 2002/07/16 05:43:04 kscholbe Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -766,8 +766,6 @@ TRDMCFFKEY.DeadLevel=0.015;
 TRDMCFFKEY.multiples=0;
 
 FFKEY("TRDMC",(float*)&TRDMCFFKEY,sizeof(TRDMCFFKEY_DEF)/sizeof(integer),"MIXED");
-
- cout <<"sizeof "<<sizeof(TRDMCFFKEY_DEF)/sizeof(integer)<<endl;
 
 TRDRECFFKEY.Chi2StrLine=5;
 TRDRECFFKEY.ResCutStrLine=1;

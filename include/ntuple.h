@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.54 2002/07/03 10:31:36 delgadom Exp $
+//  $Id: ntuple.h,v 1.55 2002/07/16 05:43:23 kscholbe Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -137,6 +137,7 @@ public:
   int   EcalP[MAXPART02];
   int   Particle[MAXPART02];
   int   ParticleVice[MAXPART02];
+  float TRDLikelihood[MAXPART02];
   float Prob[MAXPART02][2];
   float FitMom[MAXPART02];
   float Mass[MAXPART02];
