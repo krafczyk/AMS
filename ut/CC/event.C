@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.322 2003/11/10 16:08:05 alcaraz Exp $
+//  $Id: event.C,v 1.323 2003/12/02 16:35:44 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1372,7 +1372,7 @@ void AMSEvent::_retkevent(integer refit){
     TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
      
 if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))){//tempor
-AMSgObj::BookTimer.start("RETKEVENT");
+ AMSgObj::BookTimer.start("RETKEVENT");
   AMSgObj::BookTimer.start("TrCluster");
   buildC("AMSTrCluster",refit);
   AMSgObj::BookTimer.stop("TrCluster");
@@ -1448,7 +1448,7 @@ AMSgObj::BookTimer.start("RETKEVENT");
   if(AMSEvent::debug)AMSTrTrack::print();
 #endif
   
-  //if(refit==0 && AMSTrTrack::RefitIsNeeded())  AMSgObj::BookTimer.stop("RETKEVENT");
+ AMSgObj::BookTimer.stop("RETKEVENT");
 }
  else throw AMSLVL3Error("LVL3NotCreated");  
 }
