@@ -2,15 +2,15 @@
         DirTo=/data18/xv/choutko/Offline/AMSDataDir
         export DirFrom
         export  DirTo
-        /Offline/vdev/slow/backup 1>/Offline/logs/backup/backup1.log 2>/Offline/logs/backup/backup1.e.log&
+        /Offline/vdev/slow/backup 60 60 1>/Offline/logs/backup/backup1.log 2>/Offline/logs/backup/backup1.e.log&
         DirFrom=/Offline/vdev
         DirTo=/data18/xv/choutko/Offline/vdev
         export DirFrom
         export  DirTo
-        /Offline/vdev/slow/backup 1>/Offline/logs/backup/backup2.log 2>/Offline/logs/backup/backup2.e.log&
+        /Offline/vdev/slow/backup 60 60 1>/Offline/logs/backup/backup2.log 2>/Offline/logs/backup/backup2.e.log&
         DirFrom=/Offline/logs
         DirTo=/data18/xv/choutko/Offline/logs
         export DirFrom
         export  DirTo
-        /Offline/vdev/slow/backup 1>/Offline/logs/backup/backup3.log 2>/Offline/logs/backup/backup3.e.log&
+        /Offline/vdev/slow/backup 60 60 1>/Offline/logs/backup/backup3.log 2>/Offline/logs/backup/backup3.e.log&
 
