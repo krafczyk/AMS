@@ -21,7 +21,7 @@ DELTA=$2
 UNIFORM=$3
 ../exe/$MACHINE/gbatch.exe <<!
 LIST
-KINE 1 
+KINE 14 
 MULS 1 
 C MSEL 1=0
 LOSS  1

@@ -3,7 +3,7 @@ SHELL=/bin/sh
 #
 ifeq  "$(shell uname)"  "AIX" 
 CFLAGS= -D__AMSDEBUG__   -g   -I../include -I../include/stl
-LDFLAGS= ..$(BIN)/rndm.o -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lpawlib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag 
+LDFLAGS=  -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lpawlib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag 
 CC=xlC
 FF=xlf
 LD=xlC
@@ -13,7 +13,7 @@ TIMEL=../bin/aix/timel.o
 endif
 ifeq  "$(shell uname)"  "OSF1" 
 CFLAGS= -D__AMSDEBUG__   -D__ALPHA__ -g   -I../include -I../include/stl -tlocal 
-LDFLAGS= ..$(BIN)/rndm.o -lUfor -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321  -lpawlib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag 
+LDFLAGS=  -lUfor -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321  -lpawlib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag 
 CC=cxx -D__NAMESPACE__
 ifeq "$(shell cxx -V | grep -c 6.)" "1"
 #CC=cxx -D__NAMESPACE__  -oldcxx
@@ -23,7 +23,7 @@ FF=f77
 LD=cxx
 BIN=/bin/osf1
 EXE=/exe/osf1
-TIMEL=../bin/osf1/timel.o 
+TIMEL=
 endif
 ifeq  "$(shell uname)"  "HP-UX" 
 CFLAGS= -D__AMSDEBUG__  -fhandle-exceptions -g   -I../include -I../include/stl 
@@ -36,21 +36,23 @@ BIN=/bin/hpux
 EXE=/exe/hpux
 TIMEL=
 endif
-ifeq  "$(shell uname)"  "IRIX"
-CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g   -fhandle-exceptions  -I../include -I../include/stl
-FFLAGS=   -static -backslash -g -noisam -mips2 -I../include
-DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
-LDFLAGS=  -g  -L/cern/95a/lib  -lgeant321  -lpacklib -lmathlib -lkernlib   -L/afs/cern.ch/asis/packages/licensed/nag-mark16/sgi_52/nagfl16df -lnag -L/usr/local/lib -lfpe -lF77 -lI77 -lU77 -lisam -lm  -lcl
-CC=g++
-FF=f77
+ifeq  "$(shell uname)"  "Linux"
+CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include   -I../db 
+CFLAGSTOFSIM=      -D__BATCH__ -g      -I../include   -I../db
+CFLAGSn=      -D__BATCH__  -g   -I../include   -I../db
+FFLAGS=   -fno-automatic -g -I../include  
+CFLAGSDAQ=      -D__BATCH__  -g     -I../include 
+LDFLAGS=   -static  -L/cern/pro/lib  -lgeant321  -lpawlib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/lib -lXm -lXt -lX11 -lPW  -ln -lnsl -L/usr/local/lib  -lf2c  -lm
+CC=g++ -D__NAMESPACE__
+FF=g77
 LD=g++
-BIN=/bin/irix
-EXE=/exe/irix
+BIN=/bin/linux
+EXE=/exe/linux
 TIMEL=
 endif
 
 #
-OBJECTS= ..$(BIN)/gxint.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geanti.o ..$(BIN)/geant3.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o  ..$(BIN)/tofrec.o  ..$(BIN)/tofonline.o ..$(BIN)/antirec.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o  ..$(BIN)/gi.o ..$(BIN)/gi2.o ..$(BIN)/tofdbc.o ..$(BIN)/apool.o ..$(BIN)/ctcrec.o ..$(BIN)/ctccalib.o ..$(BIN)/ctcsim.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofsim.o ..$(BIN)/tofcalib.o ..$(BIN)/timeid.o ..$(BIN)/io.o ..$(BIN)/trcalib.o ..$(BIN)/mtx2.o ..$(BIN)/trigger1.o  ..$(BIN)/trigger3.o ..$(BIN)/antidbc.o ..$(BIN)/daqevt.o ..$(BIN)/astring.o ..$(BIN)/daqblock.o ..$(BIN)/mfield.o ..$(BIN)/atcnewntu.o ..$(BIN)/egzav.o ..$(BIN)/tkdbc.o ..$(BIN)/trddbc.o ..$(BIN)/srddbc.o ..$(BIN)/ntuple.o ..$(BIN)/user.o ..$(BIN)/status.o ..$(BIN)/bcorr.o ..$(BIN)/tralig.o ..$(BIN)/tofuser1.o ..$(BIN)/geocoor.o ..$(BIN)/ecaldbc.o ..$(BIN)/ecalrec.o  ..$(BIN)/tkfit.o ..$(BIN)/richdbc.o ..$(BIN)/richrec.o ..$(BIN)/richgeom.o  
+OBJECTS= ..$(BIN)/gxint.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geanti.o ..$(BIN)/geant3.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o  ..$(BIN)/rndm.o ..$(BIN)/tofrec.o  ..$(BIN)/tofonline.o ..$(BIN)/antirec.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o  ..$(BIN)/gi.o ..$(BIN)/gi2.o ..$(BIN)/tofdbc.o ..$(BIN)/apool.o ..$(BIN)/ctcrec.o ..$(BIN)/ctccalib.o ..$(BIN)/ctcsim.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofsim.o ..$(BIN)/tofcalib.o ..$(BIN)/timeid.o ..$(BIN)/io.o ..$(BIN)/trcalib.o ..$(BIN)/mtx2.o ..$(BIN)/trigger1.o  ..$(BIN)/trigger3.o ..$(BIN)/antidbc.o ..$(BIN)/daqevt.o ..$(BIN)/astring.o ..$(BIN)/daqblock.o ..$(BIN)/mfield.o ..$(BIN)/atcnewntu.o ..$(BIN)/egzav.o ..$(BIN)/tkdbc.o ..$(BIN)/trddbc.o ..$(BIN)/srddbc.o ..$(BIN)/ntuple.o ..$(BIN)/user.o ..$(BIN)/status.o ..$(BIN)/bcorr.o ..$(BIN)/tralig.o ..$(BIN)/tofuser1.o ..$(BIN)/geocoor.o ..$(BIN)/ecaldbc.o ..$(BIN)/ecalrec.o  ..$(BIN)/tkfit.o ..$(BIN)/richdbc.o ..$(BIN)/richrec.o ..$(BIN)/richgeom.o  
 
 gxint.exe:	$(OBJECTS)
 	$(LD) -o ..$(EXE)/gxint.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)

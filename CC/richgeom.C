@@ -9,11 +9,13 @@
 #include <job.h>
 #include <commons.h>
 #include <richdbc.h>
+#include <amsgeom.h>
+using namespace amsgeom;
 
 #define SQR(x) ((x)*(x))
 
 
-void Put_rad(AMSgvolume * mother,integer copia)
+void amsgeom::Put_rad(AMSgvolume * mother,integer copia)
 {
   AMSNode *dummy;
   geant par[3],coo[3];
@@ -373,34 +375,6 @@ void Put_pmt(AMSgvolume * lig,integer copia)
 
 
 
-namespace amsgeom{
-extern void tkgeom(AMSgvolume &);
-extern void tkgeom02(AMSgvolume &);
-extern void magnetgeom(AMSgvolume &);
-extern void magnetgeom02(AMSgvolume &);
-extern void magnetgeom02Test(AMSgvolume &);
-extern void tofgeom(AMSgvolume &);
-extern void tofgeom02(AMSgvolume &);
-extern void antigeom(AMSgvolume &);
-extern void antigeom02(AMSgvolume &);
-#ifdef __G4AMS__
- extern void antigeom02g4(AMSgvolume &);
-extern void testg4geom(AMSgvolume &);
-#endif
-extern void pshgeom(AMSgvolume &);
-extern void pshgeom02(AMSgvolume &);
-extern void ctcgeom(AMSgvolume &);
-extern void ctcgeomE(AMSgvolume &, integer iflag);
-extern void ctcgeomAG(AMSgvolume& );
-extern void ctcgeomAGPlus(AMSgvolume& );
-extern void richgeom02(AMSgvolume &);
-extern void ecalgeom02(AMSgvolume &);
-extern void trdgeom02(AMSgvolume &);
-extern void srdgeom02(AMSgvolume &);
-};
-
-
-using namespace amsgeom;
 
 
 void amsgeom::richgeom02(AMSgvolume & mother)

@@ -138,7 +138,7 @@ nexttrack:
 // Loop on TOF patterns
 TriggerLVL3 *ptr=(TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
  AMSTrTrack * ptrackF=0;
- if(ptr && ptr->TOFOK()){
+ if(ptr && ptr->TOFOK() && LVL3FFKEY.Accept==0){
    for ( int pat=0; pat<npatb; pat++){
      AMSTOFCluster * phit[4]={0,0,0,0};
      number sleng[4];
