@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.113 2001/08/03 17:28:03 choutko Exp $
+//  $Id: mceventg.C,v 1.114 2001/08/08 14:34:09 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -542,7 +542,7 @@ bool AMSmceventg::SpecialCuts(integer cut){
     if(spa){
      InitDone=true;
      
-     for(int i=0;i<3;i++)n[i]=spa->getnrm(i,0);
+     for(int i=0;i<3;i++)n[i]=spa->getnrmA(i,0);
      for(int i=0;i<3;i++)p[i]=spa->getcooA(i);
      for(int i=0;i<3;i++)ps[i]=spa->getpar(i);
     AMSgvolume *ams=AMSJob::gethead()->getgeomvolume(AMSID("FMOT",1));
@@ -565,6 +565,7 @@ bool AMSmceventg::SpecialCuts(integer cut){
          // check if pass in the vicinity of 0 
          number t=_coo.prod(_dir);
          if(t<0 && (_coo-_dir*t).norm()<amss[0]){
+//           cout <<" passed 1 "<<(_coo-_dir*t).norm()<<endl;
            return true;
          }
          else return false;
@@ -1047,6 +1048,19 @@ extern "C" void getscanfl_(int &scan);
 void AMSmceventg::FillMCInfo(){
 static number radl=0;
 static number absl=0;
+static integer init=0;
+static number ECALZ=-FLT_MAX;
+if(!init){
+ init=1;
+ AMSgvolume *p =AMSJob::gethead()->getgeomvolume(AMSID("ECMO",1));
+if(p){
+ ECALZ=p->getcooA(2)+p->getpar(2);
+ cout <<"AMSmceventg::FillMCInfo-I-LowestZSetTo "<<ECALZ<<endl;
+}
+else{
+ cerr<<"AMSmceventg::FillMCInfo-W-NoECMOVolumeFound"<<endl;
+}
+}
 
 if(GCTRAK.sleng==0){
  radl=0;
@@ -1075,11 +1089,12 @@ if(GCKINE.ipart==48 && scan){
                        GCKING.gkin[i][1]*GCKING.gkin[i][1]+
                        GCKING.gkin[i][2]*GCKING.gkin[i][2]);
        mom=sqrt(mom);
-
-       AMSmceventg* genp=new AMSmceventg(-GCKING.gkin[i][4],mom,
-       AMSPoint(GCKIN3.GPOS[i][0],GCKIN3.GPOS[i][1],GCKIN3.GPOS[i][2]),
-       AMSDir(GCKING.gkin[i][0],GCKING.gkin[i][1],GCKING.gkin[i][2]));
-       AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
+       if(GCKIN3.GPOS[i][2]>ECALZ){
+        AMSmceventg* genp=new AMSmceventg(-GCKING.gkin[i][4],mom,
+        AMSPoint(GCKIN3.GPOS[i][0],GCKIN3.GPOS[i][1],GCKIN3.GPOS[i][2]),
+        AMSDir(GCKING.gkin[i][0],GCKING.gkin[i][1],GCKING.gkin[i][2]));
+        AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
+       }
      }
 
 }

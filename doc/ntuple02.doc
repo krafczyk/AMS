@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.19 2001/08/03 13:26:47 choutko Exp $
+#  $Id: ntuple02.doc,v 1.20 2001/08/08 14:34:14 choutko Exp $
 This is AMS02 Ntuple Description
 
 
@@ -11,10 +11,13 @@ This is AMS02 Ntuple Description
  *****************************************               
 * I*4  *           * EVENTH   * eventno          // Event no
 * I*4  *           * EVENTH   * run              // run no
-* I*4  *           * EVENTH   * runtype          //
-* I*4  *           * EVENTH   * time(2)          // Event time
+* I*4  *           * EVENTH   * runtype          // run type(data), rndm[0](mc) 
+* I*4  *           * EVENTH   * time(2)          // Event time 
                                                  // (1) Unix time (sec)
-                                                 // (2) usec time
+                                                 // (2) usec time(data), rndm[1](mc)
+                                                 // pair of rndms (mc)
+                                                 // (1) RNDM (1)
+                                                 // (2) RNDM (2)
 * I*4  *           * EVENTH   * rawwords         // Event Lenght in bytes 
                                                  // (18 low bits)
                                                  // OS specifics ********)

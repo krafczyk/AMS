@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.270 2001/08/03 13:26:37 choutko Exp $
+//  $Id: event.C,v 1.271 2001/08/08 14:34:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -2388,8 +2388,8 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
   EN->RawWords+=(AMSCommonsI::getbuildno())<<20;
   EN->Run=_run;
   EN->RunType=_runtype;
-  EN->Time[0]=_time;
-  EN->Time[1]=AMSJob::gethead()->isRealData()?_usec:_usec/1000;
+   EN->Time[0]=_time;
+   EN->Time[1]=AMSJob::gethead()->isRealData()?_usec:_usec/1000;
   //EN->GrMedPhi=_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic;;
   EN->ThetaS=_StationTheta;
   EN->PhiS=fmod(_StationPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
@@ -2518,6 +2518,14 @@ else{ // <------------------ AMS02
   EN->RunType=_runtype;
   EN->Time[0]=_time;
   EN->Time[1]=AMSJob::gethead()->isRealData()?_usec:_usec/1000;
+   if(!AMSJob::gethead()->isRealData()){
+     AMSmceventg *p =(AMSmceventg*)getheadC("AMSmceventg",0);
+     if(p){
+      EN->RunType=p->getseed(0);
+      EN->Time[1]=p->getseed(1);
+     }
+     
+   }
   //EN->GrMedPhi=_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic;;
   EN->ThetaS=_StationTheta;
   EN->PhiS=fmod(_StationPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
