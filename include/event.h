@@ -77,6 +77,7 @@ integer setheadC(char name[], integer id, AMSlink *p)
 integer setheadC( AMSID id, AMSlink *p){return _setheadC(id,p);}
 AMSContainer * getC(char name[], integer id){return _getC(AMSID(name,id));}
 AMSContainer * getC( AMSID id){return _getC(id);}
+integer getnC (char name[]);
 static void  sethead(AMSEvent* head) 
 { _Head=head;if(_Head)AMSEvent::EventMap.map(*_Head);}
 void init();

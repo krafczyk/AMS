@@ -177,7 +177,7 @@ LMS_SRCS	= deleteRun.C \
                   ooSession.C     \
                   ooStats.C        
 
-LMS_OBJS	= $(BIN_DB)deleteRun \
+LMS_OBJS	= $(BIN_DB)deleteRun.o \
                   $(BIN_DB)A_LMS.o   \
 		  $(BIN_DB)A_LMSAdd.o \
 		  $(BIN_DB)A_LMSFill.o \
@@ -303,9 +303,12 @@ ifeq  "$(shell uname)"  "OSF1"
 	cat $(SRC)/trrec.C >> ../db/cxxfix.C
 	cat $(SRC)/apool.C >> ../db/cxxfix.C
 	cat $(SRC)/upool.C >> ../db/cxxfix.C
- $(BIN_DB)cxxfix.o:         ../db/cxxfix.C
-	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/cxxfix.C \
-                                                -o $(BIN_DB)cxxfix.o
+endif
+
+ifeq  "$(shell uname)"  "AIX"
+ $(BIN_DB)geantDB.o:         ../CC/geant.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../CC/geant.C \
+                                                -o $(BIN_DB)geantDB.o
 endif
 
  $(BIN_DB)eventD.o:   eventD.C

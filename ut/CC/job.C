@@ -66,7 +66,7 @@ _sictcdata();
 
 void AMSJob::_sitkdata(){
 TRMCFFKEY.alpha=230;
-TRMCFFKEY.beta=2;
+TRMCFFKEY.beta=1;
 TRMCFFKEY.gamma=0.13;
 TRMCFFKEY.fastswitch=5.e-5;  // inverse linear density of primary electrons
 TRMCFFKEY.dedx2nprel=0.33e6;
@@ -74,14 +74,16 @@ TRMCFFKEY.ped[0]=100;
 TRMCFFKEY.ped[1]=100;
 TRMCFFKEY.gain[0]=1;
 TRMCFFKEY.gain[1]=1;
-TRMCFFKEY.sigma[1]=36*4/30/sqrt(5.); // signal/noise ratio is about 30 for y
+TRMCFFKEY.sigma[1]=110/20/sqrt(3.); // sig/noise ratio is about 20 for y
 TRMCFFKEY.sigma[0]=TRMCFFKEY.sigma[1]*1.41;   // x strip two times larger y
-TRMCFFKEY.thr[0]=10;
-TRMCFFKEY.thr[1]=10;
+TRMCFFKEY.thr[0]=20;      // should be sync with sigma approx 4*sigma
+TRMCFFKEY.thr[1]=15;      // ------------------------
 TRMCFFKEY.neib[0]=2;
 TRMCFFKEY.neib[1]=2;
 TRMCFFKEY.cmn[0]=50;
 TRMCFFKEY.cmn[1]=50;
+TRMCFFKEY.adcoverflow=32767;
+TRMCFFKEY.NoiseOn=1;
 
 FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -196,37 +198,37 @@ _reaxdata();
 
 void AMSJob::_retkdata(){
 
-TRCLFFKEY.ThrClA[1]=60;
-TRCLFFKEY.Thr1A[1] =35;
-TRCLFFKEY.Thr2A[1] =10;
+TRCLFFKEY.ThrClA[1]=45;
+TRCLFFKEY.Thr1A[1] =25;
+TRCLFFKEY.Thr2A[1] =7;
 
 TRCLFFKEY.ThrClS[1]=10;
 TRCLFFKEY.Thr1S[1] =7;
 TRCLFFKEY.Thr2S[1] =7;
 
-TRCLFFKEY.ThrClR[1]=10;
+TRCLFFKEY.ThrClR[1]=8;
 TRCLFFKEY.Thr1R[1] =5;
-TRCLFFKEY.Thr2R[1] =3.5;
-TRCLFFKEY.Thr3R[1] =-1.;
+TRCLFFKEY.Thr2R[1] =1.;
+TRCLFFKEY.Thr3R[1] =-2.;
 
 TRCLFFKEY.ThrClNMin[1]=2;
-TRCLFFKEY.ThrClNEl[1]=5;
+TRCLFFKEY.ThrClNEl[1]=3;
 
-TRCLFFKEY.ThrClA[0]=60;
-TRCLFFKEY.Thr1A[0] =40;
-TRCLFFKEY.Thr2A[0] =8;
+TRCLFFKEY.ThrClA[0]=45;
+TRCLFFKEY.Thr1A[0] =25;
+TRCLFFKEY.Thr2A[0] =6;
 
-TRCLFFKEY.ThrClS[0]=10;
-TRCLFFKEY.Thr1S[0] =7;
-TRCLFFKEY.Thr2S[0] =7;
+TRCLFFKEY.ThrClS[0]=14;
+TRCLFFKEY.Thr1S[0] =10;
+TRCLFFKEY.Thr2S[0] =10;
 
-TRCLFFKEY.ThrClR[0]=10;
-TRCLFFKEY.Thr1R[0] =7;
-TRCLFFKEY.Thr2R[0] =2.5;
-TRCLFFKEY.Thr3R[0] =-1.;
+TRCLFFKEY.ThrClR[0]=7;
+TRCLFFKEY.Thr1R[0] =6;
+TRCLFFKEY.Thr2R[0] =1.;
+TRCLFFKEY.Thr3R[0] =-2.;
 
 TRCLFFKEY.ThrClNMin[0]=1;
-TRCLFFKEY.ThrClNEl[0]=5;
+TRCLFFKEY.ThrClNEl[0]=3;
 
 TRCLFFKEY.ErrX=30.e-4;
 TRCLFFKEY.ErrY=10.e-4;
@@ -286,6 +288,7 @@ TRFITFFKEY.SearchRegFastFit=1;
 TRFITFFKEY.SearchRegStrLine=0.5;
 TRFITFFKEY.SearchRegCircle=1;
 TRFITFFKEY.RidgidityMin=0.2;
+TRFITFFKEY.FullReco=0;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }

@@ -146,7 +146,7 @@ extern "C" void uginit_(){
    char* jobname = AMSJob::gethead()->getname();
    if (eventW > 0) mode = oocUpdate;
    if (eventW < 1) mode = oocRead;
-   cout <<"_uginit -I- LMS init for job "<<jobname<<endl;
+//   cout <<"UGINIT -I- LMS init for job "<<jobname<<endl;
    dbout.LMSInit(mode,jobname);
    readGeomDB();
 #else
@@ -214,7 +214,6 @@ extern "C" void gustep_(){
      GBIRK(dee);
      AMSAntiMCCluster::siantihits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
      dee,GCTRAK.tofg);
-     GCTRAK.istop =1;
   }
   GSKING(0);
 #ifndef __BATCH__
@@ -273,7 +272,7 @@ extern "C" void guout_(){
       return;
    }
 #ifdef __AMSDEBUG__
-      if(AMSEvent::gethead()->getid()%GCFLAG.ITEST==0)
+      if(GCFLAG.IEVENT%GCFLAG.ITEST==0)
       AMSEvent::gethead()->printA(AMSEvent::debug);
 #endif
      integer trig;
@@ -281,10 +280,11 @@ extern "C" void guout_(){
       trig=0;
      integer ntrig=AMSJob::gethead()->gettriggerN();
        for(int n=0;n<ntrig;n++){
-        for(int i=0;i<AMSJob::gethead()->gettriggerI();i++){
+        for(int i=0; ;i++){
          AMSContainer *p=AMSEvent::gethead()->
          getC(AMSJob::gethead()->gettriggerC(n),i);
          if(p)trig+=p->getnelem();
+         else break;
         }
        }
      }
@@ -293,10 +293,11 @@ extern "C" void guout_(){
      integer ntrig=AMSJob::gethead()->gettriggerN();
        for(int n=0;n<ntrig;n++){
         integer trigl=0;
-        for(int i=0;i<AMSJob::gethead()->gettriggerI();i++){
+        for(int i=0; ;i++){
          AMSContainer *p=AMSEvent::gethead()->
          getC(AMSJob::gethead()->gettriggerC(n),i);
          if(p)trigl+=p->getnelem();
+         else break;
         }
         if(trigl==0)trig=0;
        }

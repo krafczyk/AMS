@@ -258,6 +258,8 @@ void AMSTrMCCluster::sitknoise(){
      for (int i=0;i<AMSDBc::nlay();i++){
        for (int j=0;j<AMSDBc::nlad(i+1);j++){
          for (int s=0;s<2;s++){
+           if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ||
+            AMSDBc::activeladdshuttle(i+1,j+1)){
             AMSTrIdSoft id(i+1,j+1,s,l);
             id.upd(id.getmaxstrips()-1);
             geant r=RNDM(dummy);
@@ -296,6 +298,7 @@ void AMSTrMCCluster::sitknoise(){
               }
              }
             }
+           }
          }
        }
 

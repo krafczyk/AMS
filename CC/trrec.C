@@ -37,6 +37,8 @@ integer AMSTrTrack::patconf[npat][6]={1,2,3,4,5,6,   // 123456  0
                                       3,4,5,6,0,0};  // 3456   18
 integer AMSTrTrack::patpoints[npat]={6,5,5,5,5,5,5,4,4,4,4,4,4,4,4,4,4,4,4};
 
+const integer AMSTrTrack::AMBIG=4;
+
 void AMSTrCluster::build(){
   integer size=(AMSDBc::maxstrips()+1+
   2*max(TRCLFFKEY.ThrClNEl[0],TRCLFFKEY.ThrClNEl[1]))*sizeof(number);
@@ -81,7 +83,7 @@ void AMSTrCluster::build(){
       right=min(i+TRCLFFKEY.ThrClNEl[side]/2,
             id.getmaxstrips()+(side==1?1:2)*(TRCLFFKEY.ThrClNEl[side]/2)-1);  
       } 
-      else if(adc[i+2]>TRCLFFKEY.Thr1A[side]){
+      else if(adc[i+1]<adc[i+2] && adc[i+2]>TRCLFFKEY.Thr1A[side]){
        // two clusters near each other; take care about rightmost strip;
       status=AMSTrCluster::NEAR;
       left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
@@ -110,7 +112,17 @@ void AMSTrCluster::build(){
       for (int j=left;j<right+1;j++){
        id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
        if(adc[j]/id.getsig()>TRCLFFKEY.Thr3R[side]){
-        if(adc[j]>TRCLFFKEY.Thr2A[side])above++;
+        if(j-center<= -TRCLFFKEY.ThrClNEl[side]/2 && 
+           adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]){
+           left++;
+           continue;
+        }
+        if(j-center>= TRCLFFKEY.ThrClNEl[side]/2 && 
+           adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]){
+           right--;
+           continue;
+        }
+       if(adc[j]>TRCLFFKEY.Thr2A[side])above++;
         if(j==right+1 && status==AMSTrCluster::NEAR)sum+=adc[j]/2;
         else sum+=adc[j];
         ssum=ssum+pow(id.getsig(),2.);
@@ -128,6 +140,10 @@ void AMSTrCluster::build(){
          sum> TRCLFFKEY.ThrClA[side] && ssum > 0 && 
          ssum < TRCLFFKEY.ThrClS[side] && sum/ssum > TRCLFFKEY.ThrClR[side]){
          id.upd(center-TRCLFFKEY.ThrClNEl[side]/2);
+         if(right-left+1 > TRCLFFKEY.ThrClNEl[side]){
+           if(adc[left]>adc[right])right--;
+           else left++;
+         }
          _addnext(
          id,status,left-center,right-center+1,sum,ssum,pos,rms,adc+left);
            for (int j=left;j<right+1;j++){
@@ -374,10 +390,10 @@ void AMSTrTrack::build(){
            if(_CheckTime()>AMSFFKEY.CpuLimit){
             throw AMSTrTrackError(" Cpulimit Exceeded ");
            }
-       if(phit[0]->getstatus(AMSDBc::USED)==0){
+       if(TRFITFFKEY.FullReco || phit[0]->getstatus(AMSDBc::USED)==0){
        phit[1]=AMSTrRecHit::gethead(second);
        while( phit[1]){
-        if(phit[1]->getstatus(AMSDBc::USED)==0){
+        if(TRFITFFKEY.FullReco || phit[1]->getstatus(AMSDBc::USED)==0){
         x[0]=phit[0]-> getHit()[2];
         x[1]=phit[1]-> getHit()[2];
         y[0]=phit[0]-> getHit()[0];
@@ -391,26 +407,26 @@ void AMSTrTrack::build(){
         // Search for others
         phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
         while(phit[2]){
-         if(phit[2]->getstatus(AMSDBc::USED)==0){
+         if(TRFITFFKEY.FullReco || phit[2]->getstatus(AMSDBc::USED)==0){
           // Check if the point lies near the str line
            if(AMSTrTrack::Distance(par,phit[2])>= TRFITFFKEY.SearchRegStrLine)
            {phit[2]=phit[2]->next();continue;}
          phit[3]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][3]-1);
          while(phit[3]){
           // Check if the point lies near the str line
-          if(phit[3]->getstatus(AMSDBc::USED)==0){
+          if(TRFITFFKEY.FullReco || phit[3]->getstatus(AMSDBc::USED)==0){
           if(AMSTrTrack::Distance(par,phit[3])>= TRFITFFKEY.SearchRegStrLine)
           {phit[3]=phit[3]->next();continue;}
           if(AMSTrTrack::patpoints[pat] >4){         
           phit[4]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][4]-1);
           while(phit[4]){
-           if(phit[4]->getstatus(AMSDBc::USED)==0){
+           if(TRFITFFKEY.FullReco || phit[4]->getstatus(AMSDBc::USED)==0){
            if(AMSTrTrack::Distance(par,phit[4])>= TRFITFFKEY.SearchRegStrLine)
            {phit[4]=phit[4]->next();continue;}
            if(AMSTrTrack::patpoints[pat]>5){
            phit[5]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][5]-1);
            while(phit[5]){
-             if(phit[5]->getstatus(AMSDBc::USED)==0){
+             if(TRFITFFKEY.FullReco || phit[5]->getstatus(AMSDBc::USED)==0){
               if(AMSTrTrack::Distance(par,phit[5])>= 
               TRFITFFKEY.SearchRegStrLine){phit[5]=phit[5]->next();continue;}
                 // 6 point combination found
@@ -478,7 +494,12 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
        if(  ptrack->Fit(0) < TRFITFFKEY.Chi2FastFit && ptrack->TOFOK()){
          ptrack->AdvancedFit();
          // Mark hits as USED
-         for(int i=0;i<nhit;i++)pthit[i]->setstatus(AMSDBc::USED);
+         for(int i=0;i<nhit;i++){
+           if(pthit[i]->getstatus(AMSDBc::USED))
+           pthit[i]->setstatus(AMSTrTrack::AMBIG);
+           else pthit[i]->setstatus(AMSDBc::USED);
+         }
+
          // permanently add;
 #ifdef __UPOOL__
           ptrack=new AMSTrTrack(track);

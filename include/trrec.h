@@ -85,7 +85,8 @@ integer getSide() {return _Id.getside();}
 
 AMSTrIdSoft getid()const {return _Id;}
 AMSTrCluster(const AMSTrIdSoft& id, integer status, integer nelemL, 
-integer nelemR, number sum,number ssum, number pos, number rms,  number val[]);
+integer nelemR, number sum,number ssum, number pos, number rms, 
+number val[]);
 AMSTrCluster *  next(){return (AMSTrCluster*)_next;}
 
 static void build();
@@ -246,6 +247,7 @@ integer operator < (AMSlink & o) const {
   else return 0;
 }
 
+static const integer AMBIG;
 static integer Out(integer);
 inline void setstatus(integer status){_Status=_Status | status;}
 inline integer getstatus(integer checker) const{return _Status & checker;}

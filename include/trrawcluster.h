@@ -46,6 +46,8 @@ void extend( integer nleft,integer nright, geant *p);
 void expand( number *p) const ;
 static void sitkdigi();
   AMSTrRawCluster *  next(){return (AMSTrRawCluster*)_next;}
+
+  static number ADC2KeV(){return 0.5e6/TRMCFFKEY.beta/TRMCFFKEY.dedx2nprel;}
 };
 
 #endif

@@ -200,7 +200,9 @@ void  AMSEvent::write(){
   // Sort before by "Used" variable : AMSTrTrack & AMSTrCluster
   AMSEvent::gethead()->getheadC("AMSTrCluster",0,1); 
   AMSEvent::gethead()->getheadC("AMSTrCluster",1,1); 
-  AMSEvent::gethead()->getheadC("AMSTrTrack",0,1); 
+  for(int i=0;i<npat;i++){
+   AMSEvent::gethead()->getheadC("AMSTrTrack",i,1); 
+  }
   AMSEvent::gethead()->getheadC("AMSTrRecHit",0,1); 
   AMSEvent::gethead()->getheadC("AMSTrRecHit",1,1); 
   AMSEvent::gethead()->getheadC("AMSTrRecHit",2,1); 
@@ -510,7 +512,7 @@ void AMSEvent::_reaxinitrun(){
 }
 
 void AMSEvent:: _sitkevent(){
-    AMSTrMCCluster::sitknoise();
+  if(TRMCFFKEY.NoiseOn)AMSTrMCCluster::sitknoise();
   AMSTrMCCluster::sitkcrosstalk();
 #ifdef __AMSDEBUG__
   AMSContainer *p =getC("AMSTrMCCluster",0);
@@ -595,6 +597,21 @@ AMSContainer * AMSEvent::_getC( AMSID  id){
   return p;
 }
 
+integer AMSEvent::getnC(char n[]){
+  AMSID id;
+  char *name=new char[13+strlen(n)+1];
+  strcpy(name,"AMSContainer:");
+  if(n)strcat(name,n);
+  id.setname(name); 
+  delete[] name;
+  AMSContainer *p;
+  for(int i=0;;i++){
+   id.setid(i);
+   p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+   if(p==0) return i;
+  }
+}
+
 void AMSEvent::_copyEl(){
 }
 
@@ -611,13 +628,93 @@ static EventNtuple EN;
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"EventH",EN.getaddress(),
-  "EventNo:I*4, Run:I*4,  RunType:I*4 ,Time(2):I*4"); 
+  "EventNo:I*4, Run:I*4,  RunType:I*4 ,Time(2):I*4, Particles:I, Tracks:I, Betas:I, Charges:I ,TrRecHits:I, TrClusters:I, TrMCClusters:I, TOFClusters:I, TOFMCClusters:I, CTCClusters:I, CTCMCClusters:I"); 
 
 }
   EN.Event()=_id;
   EN.Run=_run;
   EN.RunType=_runtype;
   UCOPY(&_time,EN.Time,2*sizeof(integer)/4);
+  integer  i,nc;
+  AMSContainer *p;
+  EN.Particles=0;
+  EN.Tracks=0;
+  EN.Betas=0;
+  EN.Charges=0;
+  EN.TrRecHits=0;
+  EN.TrClusters=0;
+  EN.TrMCClusters=0;
+  EN.TOFClusters=0;
+  EN.TOFMCClusters=0;
+  EN.CTCClusters=0;
+  EN.CTCMCClusters=0;
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSParticle",i);
+   if(p) EN.Particles+=p->getnelem();
+   else break;
+  }  
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTrTrack",i);
+   if(p) EN.Tracks+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSBeta",i);
+   if(p) EN.Betas+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSCharge",i);
+   if(p) EN.Charges+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTrRecHit",i);
+   if(p) EN.TrRecHits+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTrCluster",i);
+   if(p) EN.TrClusters+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTrMCCluster",i);
+   if(p) EN.TrMCClusters+=p->getnelem();
+   else break;
+  }
+ 
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTOFCluster",i);
+   if(p) EN.TOFClusters+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTOFMCCluster",i);
+   if(p) EN.TOFMCClusters+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSCTCCluster",i);
+   if(p) EN.CTCClusters+=p->getnelem();
+   else break;
+  }
+  
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSCTCMCCluster",i);
+   if(p) EN.CTCMCClusters+=p->getnelem();
+   else break;
+  }
+
   HFNTB(IOPA.ntuple,"EventH");
 
  

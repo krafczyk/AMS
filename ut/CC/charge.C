@@ -20,7 +20,7 @@ number AMSCharge::_lkhdStepTOF[ncharge];
 number AMSCharge::_lkhdStepTracker[ncharge];
 integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6};
 integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6};
-char AMSCharge::_fnam[128]="/afs/cern.ch/user/c/choutko/public/lkhd.data";
+char AMSCharge::_fnam[128]="/afs/cern.ch/user/c/choutko/public/lkhd_v204+.data";
 void AMSCharge::build(){
   // charge finding
   number EdepTOF[4];
@@ -169,6 +169,7 @@ int i,j;
   }
   for( i=0;i<ncharge;i++){
     iftxt >> _lkhdStepTOF[i];
+       
   }
   for( i=0;i<ncharge;i++){
     iftxt >> _lkhdStepTracker[i];
@@ -192,11 +193,14 @@ int i,j;
    UCOPY(_lkhdTOF[2],_lkhdTOF[i],100*sizeof(number)/4);
    UCOPY(_lkhdTracker[2],_lkhdTracker[i],100*sizeof(number)/4);
   }
+#ifdef __AMSDEBUG__
+  cout << "AMSCharge::init()-I-Completed"<<endl;
+#endif
 }
 
 
 
 AMSChargeI::AMSChargeI(){
-  if(_Count++==0)AMSCharge::init();
+ if(_Count++==0)AMSCharge::init();
 }
 integer AMSChargeI::_Count=0;

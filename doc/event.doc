@@ -23,6 +23,10 @@ integer setheadC(char name[], integer id, AMSlink *p)
 
 AMSContainer * getC(char name[], integer id) //returns pointer on the 
                                             //  container AMSID(name,id)
+
+integer getnC(char name[])  // return number of containers of the
+                            // type name[]
+
 void init();                                // init event
 void write();                               // write event str to ntuple
 void copy();                                // write event str to Obj

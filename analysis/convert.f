@@ -58,7 +58,10 @@
      + ,Right ,TrRecHit,StatusR,Layer,TrTrack,TrStatus,Pattern,NHits
      + ,phits
      + ,GeaneFitDone,AdvancedFitDone,EventNoMCEventG,Particle,CTCCluster
-     + ,CTCStatus,CTCMCEvent,CTCMCIdsoft,bar,px,py
+     + ,CTCStatus,CTCMCEvent,CTCMCIdsoft,bar,px,py,
+     +  Particles, Tracks, Betas, Charges ,TrRecHits, TrClusters,
+     +  TrMCClusters, TOFClusters, TOFMCClusters, CTCClusters,
+     +  CTCMCClusters
 *
 *
 *
@@ -79,7 +82,10 @@
       parameter(maxctccl=20)
       parameter(maxctcclmc=200)
 
-      common /eventhC/eventno,run,runtype,time
+      common /eventhC/eventno,run,runtype,time,
+     +    Particles, Tracks, Betas, Charges ,TrRecHits,
+     +    TrClusters, TrMCClusters, TOFClusters, TOFMCClusters,
+     +    CTCClusters, CTCMCClusters
 
       common /betaC/nbeta,
      + betapattern(maxbeta),beta(maxbeta),
@@ -192,7 +198,10 @@ c       iquest(10)=128000
        enddo
         call hbnt(1,'Converted Ntuple',' ')
        call hbname(1,cblock(1),Eventno,
-     + 'eventno:I,run:I,runtype:I,time(2):I')
+     + 'eventno:I,run:I,runtype:I,time(2):I, Particles:I,'//
+     + 'Tracks:I, Betas:I, Charges:I ,TrRecHits:I, TrClusters:I,'//
+     + 'TrMCClusters:I, TOFClusters:I, TOFMCClusters:I,'//
+     + 'CTCClusters:I, CTCMCClusters:I')
 
       call hbname(1,cblock(2),nbeta,
      + 'nbeta[0,10],betapattern(nbeta):I,beta(nbeta),'//
@@ -281,7 +290,10 @@ c       iquest(10)=128000
        do ll=1,100000000
         idet=1
         lun=40+idet
-        read(lun,end=15)eventno,run,runtype,time
+        read(lun,end=15)eventno,run,runtype,time, Particles ,
+     +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
+     +   TrMCClusters , TOFClusters , TOFMCClusters , 
+     +   CTCClusters , CTCMCClusters 
         if(run.ne.runold)then
           write(*,*)' New run # ',run
           runold=run
@@ -704,7 +716,10 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
      + ,Right(2),TrRecHit,StatusR,Layer,TrTrack,TrStatus,Pattern,NHits,
      +  phits(6)
      + ,GeaneFitDone,AdvancedFitDone,EventNoMCEventG,Particle,CTCCluster
-     + ,CTCStatus,CTCMCEvent,CTCMCIdsoft,px,py
+     + ,CTCStatus,CTCMCEvent,CTCMCIdsoft,px,py,Particles ,
+     +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
+     +   TrMCClusters , TOFClusters , TOFMCClusters , 
+     +   CTCClusters , CTCMCClusters 
 *
 
 *
@@ -713,7 +728,10 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
 *
 *    idet=1
 *
-      common /eventhC/eventno,run,runtype,time
+      common /eventhC/eventno,run,runtype,time,Particles ,
+     +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
+     +   TrMCClusters , TOFClusters , TOFMCClusters , 
+     +   CTCClusters , CTCMCClusters 
 
 *
 *    idet=2
@@ -865,7 +883,10 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
           goto 999
          endif
                 if( cblock(idet).eq.'EVENTH')then
-            write(21)eventno,run,runtype,time
+            write(21)eventno,run,runtype,time,Particles ,
+     +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
+     +   TrMCClusters , TOFClusters , TOFMCClusters , 
+     +   CTCClusters , CTCMCClusters 
            else if( cblock(idet).eq.'BETA')then
             write(21)betaevent,betapattern,beta,betaerror,betachi2
            else if( cblock(idet).eq.'CHARGE')then

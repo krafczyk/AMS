@@ -21,8 +21,10 @@ I 1    hlun(0)                   // 0 - Noutput ; >0 - Lun
 I 2    hfile(' ')                // Output file name
 I42    ntupleId(1)               // Ntuple Id
 I43    WriteAll(0)               // Flag to write all or  "used only" objects
-I44    TriggerI(1)               // Container id(s)
-I45    TriggerC('AMSParticle')      to search to write the ntuple 
+I44    TriggerI(1)               // Not used in v204++
+I45    TriggerC('AMSParticle')   // Container names, separated by
+                                 // & or | to trigger write 
+                                 // the ntuple and/or db
 
 // TOF  Simulation
 
@@ -58,16 +60,18 @@ R  5   AbsLengt(4.9, 100)        // Abs length in cm
 
 TRMC      
 R 1   alpha(230)            // Cluster shower par (see tkmccl.F)
-R 2   beta(2)               // Cluster shower par (see tkmccl.F)
+R 2   beta(1.0)               // Cluster shower par (see tkmccl.F)
 R 3   gamma(0.13)           // Cluster shower par (see tkmccl.F)
 R 4   fastswitch(5.e-5)     // Switch between fast and slow algos
 R 5   dedx2nprel(.33e6)     // dedx to number of primary electrons
 R 6   ped[2](100,100)       // pedestals for x & y
-R 8   gain[2](1,1)          // gains for x & y
-R10   sigma[2](3,2.15)      // noise for x & y
-R12   thr[2](10,10)         // threshold to save cluster
-R14   neib[2)(2,2)          // number of neibours from one side
-R16   cmn[2](50,50)         // common noise for x & y
+R 8   sigma[2](4.2,3.)      // noise for x & y
+R10   gain[2](1,1)          // gains for x & y
+R12   thr[2](17,12)         // threshold to save cluster
+I14   neib[2)(2,2)          // number of neibours from one side
+I16   cmn[2](50,50)         // common noise for x & y
+I18   adcoverflow(32767)     // 16 bit adc
+I19   NoiseOn(1)            // Generate(1) do not generate(0) noise in tracker
 
 
 // MC particle generation
@@ -109,18 +113,18 @@ R 2   ThrS(3.)                   // Threshold on  cluster sum (phe)
 // Tracker Clusters Reconstruction
 
 TRCL
-R 1 ThrClA[2](60,60)    // Lower limit for amplitude for cls (x,y)
-R 3 ThrClS[2](10,10)    // Upper limit for sigma     for cls (x,y)
-R 5 ThrClR[2](10,10)    // Lower limit for Amplitude/sigma for cls (x,y)
-R 7 Thr1A[2](40,35)     // Lower limit for ampl for max hit in cluster
-R 9 Thr1S[2](7,7)       // Upper limit for sigma for max hit in cluster
-R11 Thr1R[2](7,5)       // Lower limit for a/sigma for max hit in cluster
-R13 Thr2A[2](8,10)      // Lower limit for ampl for other hits in cluster 
-R15 Thr2S[2](7,7)       // Upper limit for sigma for other hits in cluster 
-R17 Thr2R[2](2.5,3.5)   // Lower limit for a/sigma for other  hits in cluster
-R19 Thr3R[2](-1.,-1)    // reserved 
+R 1 ThrClA[2](45,45)    // Lower limit for amplitude for cls (x,y)
+R 3 ThrClS[2](14,10)    // Upper limit for sigma     for cls (x,y)
+R 5 ThrClR[2](7,8)    // Lower limit for Amplitude/sigma for cls (x,y)
+R 7 Thr1A[2](25,25)     // Lower limit for ampl for max hit in cluster
+R 9 Thr1S[2](10,7)       // Upper limit for sigma for max hit in cluster
+R11 Thr1R[2](6,5)       // Lower limit for a/sigma for max hit in cluster
+R13 Thr2A[2](6,7)      // Lower limit for ampl for other hits in cluster 
+R15 Thr2S[2](10,7)       // Upper limit for sigma for other hits in cluster 
+R17 Thr2R[2](1.,1.)   // Lower limit for a/sigma for other  hits in cluster
+R19 Thr3R[2](-2.,-2.)   // Reserved
 I21 ThrClNMin[2](1,2)   // Min Number of hits satisfied the above limits
-I23 ThrClNEl[2](5,5)    // total number hits in the cluster
+I23 ThrClNEl[2](3,3)    // total number hits in the cluster
 R25 ThrDSide(1)         // Upper threshold to (A_x-A_y)/(A_x+A_y)
 R26 ErrX(30e-4)         // Assumed Error in X dir
 R27 ErrY(10e-4)         // Assumed Error in Y dir
@@ -164,17 +168,19 @@ I20  UseTOF(1)                    // Use(>=1 == Min No TOF clusters matched)/
                                   // Not use(0) TOF  for pattern No 16
 R21  Chi2FastFit(10)              // Max  chi2 for tkhmd;
 R22  Chi2StrLine(20)              // The same for Straight line fit
-R23  geant Chi2Circle(20)         // The same for Circle fit
-R24  geant ResCutFastFit(0.5)     // Max residual distance in cm between 
+R23  Chi2Circle(20)         // The same for Circle fit
+R24  ResCutFastFit(0.5)     // Max residual distance in cm between 
                                   // point and fitted curve (not yet impl)
-R25  geant ResCutStrLine(0.5)     // --- strline    (not yet impl)
-R26  geant ResCutCircle(0.5)      // --- circlefit  (not yet impl)
-R27  geant SearchRegFastFit(1)    // Max distance in cm between point 
+R25  ResCutStrLine(0.5)     // --- strline    (not yet impl)
+R26  ResCutCircle(0.5)      // --- circlefit  (not yet impl)
+R27  SearchRegFastFit(1)    // Max distance in cm between point 
                                   // and extrarpolated curve to include
                                   // point in the pattern
-R28  geant SearchRegStrLine(0.5)  // ------- strline fit
-R29  geant SearchRegCircle(1)     // ---------- circle fit
-R30  geant RidgidityMin(0.2)      // Minimal ridgidity in GV     
+R28  SearchRegStrLine(0.5)  // ------- strline fit
+R29  SearchRegCircle(1)     // ---------- circle fit
+R30  RidgidityMin(0.2)      // Minimal ridgidity in GV     
+I31  FullReco(0)            // Use(1) or not use(0) "used "clusters to build 
+                            // tracks
 
 // Tracker fitting
 

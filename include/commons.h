@@ -140,6 +140,8 @@ geant gain[2];
 geant thr[2];
 integer neib[2];
 integer cmn[2];
+integer adcoverflow;
+integer NoiseOn;
 };
 #define TRMCFFKEY COMMON_BLOCK(TRMCFFKEY,trmcffkey)
 COMMON_BLOCK_DEF(TRMCFFKEY_DEF,TRMCFFKEY);
@@ -204,6 +206,7 @@ public:
   geant SearchRegStrLine;  // -------
   geant SearchRegCircle;   // ----------
   geant RidgidityMin;
+  integer FullReco;
 };
 //
 

@@ -10,7 +10,7 @@ class AMSContainer: public AMSNode{
 private:
 AMSlink *_Head;
 AMSlink *_Last;
-integer _nelem;
+integer _nelem;   // number of elements in containers
 integer _sorted;   // For Nevsky 
 void _init(){};
 void _printEl(ostream & stream){stream <<_name<<" "<<_id<<" Elements: "<<_nelem<<endl;}

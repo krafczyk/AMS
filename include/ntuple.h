@@ -52,7 +52,17 @@ private:
 int Run;
 int RunType;
 int Time[2];
-
+int Particles;
+int Tracks;
+int Betas;
+int Charges;
+int TrRecHits;
+int TrClusters;
+int TrMCClusters;
+int TOFClusters;
+int TOFMCClusters;
+int CTCClusters;
+int CTCMCClusters;
 friend class AMSEvent;
 
 };
