@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.254 2004/03/11 09:09:34 alexei Exp $
+# $Id: RemoteClient.pm,v 1.255 2004/03/11 09:12:36 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6240,7 +6240,6 @@ sub listDisks {
           print "<tr><font size=\"2\">\n";
           print "<td><font color=$color><b> Total </b></td>
                  <td align=middle><b> $total </td>
-                 <td align=middle><b> $occup </td>
                  <td align=middle><b> $totalGB </td>
                  <td align=middle><b> $free </b></td>
                  <td><font color=$color><b> $status </font></b></td>\n";
