@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.243 2003/03/24 16:37:57 kscholbe Exp $
+#  $Id: Mopt,v 1.244 2003/03/31 09:56:48 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -151,7 +151,7 @@ O4=-g -D__AMSDEBUG__
 O4F=-g -D__AMSDEBUG__
 CFLAGSTOFSIM=   -D__BATCH__ -D__ALPHA__   $(O4)     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
 else
-CFLAGSTOFSIM=   -D__BATCH__ -D__ALPHA__   -g     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
+CFLAGSTOFSIM=   -D__BATCH__ -D__ALPHA__   -g -O1    -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
 ifdef O4
 O4=-O4
 O4F=-O
@@ -452,7 +452,7 @@ $(BIN)user.o:    	 $(SCC)user.C
 	$(CC) -c $(CFLAGS) $(SCC)user.C -o $(BIN)user.o
 
 $(BIN)gamma.o:    	 $(SCC)gamma.C
-	$(CC) -c $(CFLAGS) $(SCC)gamma.C -o $(BIN)gamma.o
+	$(CC) -c $(CFLAGSTOFSIM) $(SCC)gamma.C -o $(BIN)gamma.o
 
 $(BIN)ntuple.o:    	 $(SCC)ntuple.C
 ifdef AMSMEMMONITOR

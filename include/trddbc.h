@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.17 2003/03/30 22:48:18 kscholbe Exp $
+//  $Id: trddbc.h,v 1.18 2003/03/31 09:56:48 choutko Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>
@@ -82,6 +82,7 @@ private:
     static const number  _WirePosition;
     static const number  _ManifoldThickness;
     static const number  _ManifoldLength;
+    static const number  _EndPieceLength;
     static const number  _ManifoldWidth;
     static const number  _BulkheadGap;
     static const integer _LadderOrientation[mtrdo][trdconst::maxlay];    

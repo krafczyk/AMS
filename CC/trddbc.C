@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.35 2003/03/30 22:48:11 kscholbe Exp $
+//  $Id: trddbc.C,v 1.36 2003/03/31 09:56:42 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -309,6 +309,7 @@ const number TRDDBc::_ManifoldThickness = 0.70; // Z-height of manifold
 const number TRDDBc::_ManifoldLength = 1.15; // Length of manifold along wire
 const number TRDDBc::_ManifoldWidth = 10.1; // Width of manifold 
 const number TRDDBc::_BulkheadGap = 0.78; // Gap between ladders at bulkhead
+const number TRDDBc::_EndPieceLength = 1.51; // ladder - tube length difference
 
 const integer TRDDBc::_LadderOrientation[mtrdo][maxlay]={0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0};   // 0 -x 1 -y    
 const integer TRDDBc::_BHOrientation[maxbulk]={0,0,1,1,1,1};   // 0 -x 1 -y    
@@ -1051,10 +1052,12 @@ void TRDDBc::init(){
 	    coo[2]*=2;
 	
 
-//	if (fabs(coo[2]-_LaddersLength[j][k])>0.01) cout<<"Error!"<<endl;
-//          cout <<j<<" "<<k<<" "<<j+1<<" "<<num_from_center<<" "<<deg<<" "<<past_corner<<" "<<coo[2]<<" "<<_LaddersLength[j][k]*10.<<" "<<length_to_compare<<" "<<coo[2]-_LaddersLength[j][k]<<endl;
+	if (fabs(coo[2]-_LaddersLength[j][k])>0.01){
+          cerr<<"TRDDBc-F-LaddersLengthProblem"<<endl;
+          cerr <<j<<" "<<k<<" "<<j+1<<" "<<num_from_center<<" "<<deg<<" "<<past_corner<<" "<<coo[2]<<" "<<_LaddersLength[j][k]*10.<<" "<<length_to_compare<<" "<<coo[2]-_LaddersLength[j][k]<<endl;
+          abort();
+        }
 
-//            coo[2]=_LaddersLength[j][k];
 
 	    for(int l=0;l<3;l++)
 	      {LaddersDimensions(i,j,k,l)=coo[l]/2;}
@@ -1280,7 +1283,7 @@ void TRDDBc::init(){
           TubesDimensions(i,j,k,1)=(TubeInnerDiameter()+2*TubeWallThickness())/2;
           // length
 
-          TubesDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2)-ManifoldLength();
+          TubesDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2)-_EndPieceLength/2;
 
 	  // Wires Dimensions
 

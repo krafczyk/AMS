@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.165 2003/03/31 08:29:39 kscholbe Exp $
+//  $Id: amsgeom.C,v 1.166 2003/03/31 09:56:41 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2251,7 +2251,35 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 
      //strips
-   /*   ost.seekp(0);  
+   ost.seekp(0);  
+   ost << "TRDB"<<ends;
+   TRDDBc::GetTubeBox(k,j,i,status,coo,nrm,rgid);
+   for(ip=0;ip<3;ip++)par[ip]=TRDDBc::StripsDim(ip)/2;
+   coo[2]=TRDDBc::StripsCoo(0);
+   number spacing=TRDDBc::StripsCoo(1);
+   for(l=0;fabs(coo[2])<TRDDBc::LaddersDimensions(i,j,k,2)-2;l+=4){
+    gid=maxstrips*maxlad*maxlay*i+maxstrips*maxlad*j+maxstrips*k+l+1;  //assume strips<maxtube here;
+   dau->add(new AMSgvolume(TRDDBc::StripsMedia(),
+        0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid++,1));    
+   coo[2]=-coo[2];
+   dau->add(new AMSgvolume(TRDDBc::StripsMedia(),
+        0,name,"BOX",par,3,coo,nrm, "ONLY",-1,gid++,1));    
+    coo[1]-=TRDDBc::TubesBoxDimensions(i,j,k,3);
+   dau->add(new AMSgvolume(TRDDBc::StripsMedia(),
+        0,name,"BOX",par,3,coo,nrm, "ONLY",-1,gid++,1));    
+    coo[2]=-coo[2];
+   dau->add(new AMSgvolume(TRDDBc::StripsMedia(),
+        0,name,"BOX",par,3,coo,nrm, "ONLY",-1,gid,1));    
+
+    coo[2]+=spacing;
+    coo[1]+=TRDDBc::TubesBoxDimensions(i,j,k,3);
+  }
+
+
+
+     //strips
+   /*  
+    ost.seekp(0);  
    ost << "TRDB"<<ends;
    // Get tube info for z positioning
    TRDDBc::GetTube(0,k,j,i,status,coo,nrm,rgid);
