@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.197 2001/08/01 17:39:19 choutko Exp $
+#  $Id: datacards.doc,v 1.198 2001/08/03 17:28:08 choutko Exp $
 Datacards
 
 // Protection from some myst bug
@@ -318,6 +318,7 @@ R33 StrMass(12)                   // stranglet mass
 I34 SpecialCut(0)                 // special acceptance cut
                                   // 1: focus on ecal
                                   // 2: focus on outer trd hc
+                                  // 3: focus on solarpanel/ams (AMS02BIG setup required)
 KINE 
 1 IPART        // Geant particle id
 

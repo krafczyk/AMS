@@ -1,9 +1,10 @@
-//  $Id: amsdbc.C,v 1.38 2001/08/01 13:28:42 choutko Exp $
+//  $Id: amsdbc.C,v 1.39 2001/08/03 17:28:02 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <math.h>
 #include <amsdbc.h>
 #include <amsstl.h>
+#include <job.h>
 //
 
 char* AMSDBc::amsdatabase=0;
@@ -44,5 +45,21 @@ geant AMSDBc::ams_size[3]={390.,390.,390.};
 const char AMSDBc::ams_name[]="AMSG";
 geant AMSDBc::ams_coo[3]={0.,0.,0.};
 const integer AMSDBc::ams_rotmno=1;
-number AMSDBc::ams_nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
-//number AMSDBc::ams_nrm[3][3]={0.,0.,1.,0.,1.,0.,-1.,0.,0};
+number AMSDBc::ams_nrm[3][3];
+
+void AMSDBc::init(){
+ number angle=0;
+ if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+  angle=-10./180*pi;
+ }
+ ams_nrm[0][0]=cos(angle);
+ ams_nrm[1][0]=0;
+ ams_nrm[2][0]=-sin(angle);
+ ams_nrm[0][1]=0;
+ ams_nrm[1][1]=1;
+ ams_nrm[2][1]=0;
+ ams_nrm[0][2]=sin(angle);
+ ams_nrm[1][2]=0;
+ ams_nrm[2][2]=cos(angle);
+
+}

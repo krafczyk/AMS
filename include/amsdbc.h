@@ -1,4 +1,4 @@
-//  $Id: amsdbc.h,v 1.28 2001/08/01 13:28:50 choutko Exp $
+//  $Id: amsdbc.h,v 1.29 2001/08/03 17:28:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSDBC__
 #define __AMSDBC__
@@ -69,6 +69,7 @@ static char * amsdatabase;
 
     static integer BigEndian;
   static integer debug;
+  static void init();
 };
 
 

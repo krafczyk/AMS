@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.49 2001/03/05 10:51:18 choutko Exp $
+//  $Id: gvolume.C,v 1.50 2001/08/03 17:28:03 choutko Exp $
 #include <gvolume.h>
 #include <math.h>
 #include <amsgobj.h>
@@ -78,6 +78,9 @@ AMSgvolume::AMSgvolume (const char  matter[],integer rotmno,const char name[],
    _pg4v(0),_pg4l(0),_pg4rm(0),_offspring(0),_smartless(2),
 #endif
      _gid(abs(gid)),_cooA(coo[0],coo[1],coo[2]),_rel(rel),AMSNode(0){
+      if(_rel!=1){
+       cerr<<" AMSgvolume::ctor-W-Absolute position used for "<<name<<endl;
+      }
       _pgtmed= (AMSgtmed *)AMSgObj::GTrMedMap.getp(AMSID(0,matter));
       if(_pgtmed)_matter=_pgtmed->getmedia();
       else{

@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.112 2001/08/01 17:39:13 choutko Exp $
+//  $Id: mceventg.C,v 1.113 2001/08/03 17:28:03 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -529,8 +529,51 @@ bool AMSmceventg::SpecialCuts(integer cut){
       return false;
      }
      else return true; 
-  }  
-   return true;
+  }
+  else if(cut==3){
+   // solar panel - ams focusing
+   static bool InitDone=false;
+     static AMSDir n;
+     static AMSPoint p;
+     static AMSPoint ps;
+     static AMSPoint amss;
+   if(!InitDone){
+    AMSgvolume *spa=AMSJob::gethead()->getgeomvolume(AMSID("SPA1",1));
+    if(spa){
+     InitDone=true;
+     
+     for(int i=0;i<3;i++)n[i]=spa->getnrm(i,0);
+     for(int i=0;i<3;i++)p[i]=spa->getcooA(i);
+     for(int i=0;i<3;i++)ps[i]=spa->getpar(i);
+    AMSgvolume *ams=AMSJob::gethead()->getgeomvolume(AMSID("FMOT",1));
+     number para[3];
+     for(int i=0;i<3;i++)amss[i]=ams->getpar(i);
+     }  
+     else{ 
+       cerr<<"AMSmceventg::SpecialCuts-S-NoSolarPanelVolumefound "<<endl;
+       return true;
+     }
+    }
+     // check if track pass by solar panel
+     
+     number ns=n.prod(_dir);
+     if(ns){
+      number t=(_coo-p).prod(n)/(ns);
+      AMSPoint psec=_coo-_dir*t;
+      if(t<0 && fabs(psec[1]-p[1])<ps[1] && fabs(psec[2]-p[2])<ps[2]){
+       
+         // check if pass in the vicinity of 0 
+         number t=_coo.prod(_dir);
+         if(t<0 && (_coo-_dir*t).norm()<amss[0]){
+           return true;
+         }
+         else return false;
+      }
+      else return false;
+     } 
+     else return true;
+  }
+     return true;
 }
 
 integer AMSmceventg::accept(){

@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.129 2001/08/01 13:28:42 choutko Exp $
+//  $Id: amsgeom.C,v 1.130 2001/08/03 17:28:03 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -75,21 +75,44 @@ geant parf[3];
 geant coo[3]={0,0,0};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 integer gid=1;
+number amss[3];
 if (strstr(AMSJob::gethead()->getsetup(),"BIG")){
  cout<<"AMSGeom-I-BIGSetupSelected"<<endl;
- for(int i=0;i<3;i++)AMSDBc::ams_size[i]*=10;
+ for(int i=0;i<3;i++)amss[i]=AMSDBc::ams_size[i]*10;
 }
-      parf[0]=AMSDBc::ams_size[0]/2+0.2;   // just trying to find geant4 bugs
-      parf[1]=AMSDBc::ams_size[1]/2+0.2;
-      parf[2]=AMSDBc::ams_size[2]/2+0.2;
+else{
+ for(int i=0;i<3;i++)amss[i]=AMSDBc::ams_size[i]*sqrt(2.);
+}
+      parf[0]=amss[0]/2;
+      parf[1]=amss[1]/2;
+      parf[2]=amss[2]/2;
       par[0]=AMSDBc::ams_size[0]/2;
       par[1]=AMSDBc::ams_size[1]/2;
       par[2]=AMSDBc::ams_size[2]/2;
       // to be able rotate ams as a whole
 static AMSgvolume false_mother("VACUUM",0,AMSDBc::ams_name,"BOX ",parf,3,coo,nrm,"ONLY",  0,gid,1);  // AMS false mother volume
-static AMSgvolume mother("VACUUM",AMSDBc::ams_rotmno,"FMOT","BOX",par,3,AMSDBc::ams_coo,AMSDBc::ams_nrm,"ONLY",  0,gid);  // AMS mother volume
+
+static AMSgvolume mother("VACUUM",AMSDBc::ams_rotmno,"FMOT","BOX",par,3,AMSDBc::ams_coo,AMSDBc::ams_nrm,"ONLY",  0,gid,1);  // AMS mother volume
 AMSJob::gethead()->addup( &false_mother);
 false_mother.add(&mother);
+
+if (strstr(AMSJob::gethead()->getsetup(),"BIG")){
+// Add Solar Panel  // alpha=beta=90 
+   geant coos[3]={500.,0.,100.};
+   geant pars[3]={0.5,200.,800.};
+   coos[2]+=pars[2];
+   AMSgvolume *solar1 = new AMSgvolume("1/2ALUM",0,"SPA1","BOX ",pars,3,coos,nrm,"ONLY",0,1,1);
+   coos[2]*=-1;
+   AMSgvolume *solar2 = new AMSgvolume("1/2ALUM",0,"SPA2","BOX ",pars,3,coos,nrm,"ONLY",0,1,1);
+false_mother.add(solar1);
+false_mother.add(solar2);
+
+// update amsg
+ for(int i=0;i<3;i++)AMSDBc::ams_size[i]*=10;
+
+}
+
+
 if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
  magnetgeom(mother);
 // tofgeom(mother);//old
@@ -3189,26 +3212,29 @@ geant frameztop=-134.5;//Z-pos of the frame(top)
 
 // Low Triangle ( two para)
 
-   coo[0]=-(par[5]+par[6])/2/2;
-   coo[1]=-(par[5]+par[6])/2;
+   coo[1]=-(par[5]+par[6])/2/2;
+   coo[0]=(par[5]+par[6])/2;
    coo[2]=coo[2]+par[4];
    par[0]=4.5*2.54/2;
    par[1]=4.5*2.54/2;
    par[2]=4.5*2.54/2 * 3.6;
-   coo[0]=-par[6]+par[2]+par[0];   //  implicit 45 deg assumption
+   coo[1]=-par[6]+par[2]+par[0];   //  implicit 45 deg assumption
    par[3]=0;
    par[4]=45;
-   par[5]=180;
-
-   coo[2]=coo[2]-par[2];
-
-   mother.add(new AMSgvolume("USSALLOY",nrot++,"USS3","PARA",par,6,coo,nrm,"ONLY",0,gid++,1));
-
-   coo[0]=-coo[0];
    par[5]=0;
 
+   coo[2]=coo[2]-par[2];
+   number nrm1[3][3]={ 0, 1,0,
+                      -1, 0,0,
+                       0, 0,1
+                     };
+   mother.add(new AMSgvolume("USSALLOY",nrot++,"USS3","PARA",par,6,coo,nrm1,"ONLY",0,gid++,1));
 
-   mother.add(new AMSgvolume("USSALLOY",nrot++,"USS2","PARA",par,6,coo,nrm,"ONLY",0,gid++,1));
+   coo[1]=-coo[1];
+   par[5]=180;
+
+
+   mother.add(new AMSgvolume("USSALLOY",nrot++,"USS2","PARA",par,6,coo,nrm1,"ONLY",0,gid++,1));
 }
 //--------------------------------------------------------------
 void amsgeom::tkgeom02(AMSgvolume & mother){

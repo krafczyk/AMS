@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.102 2001/08/02 16:42:36 choutko Exp $
+//  $Id: geant.C,v 1.103 2001/08/03 17:28:03 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -133,6 +133,8 @@ void gams::UGINIT(int argc,  char * argv[]){
   GFFGO();
    AMSJob::gethead()->udata();
 
+   AMSDBc::init();  
+ 
 #ifdef __CORBA__
   AMSJob::gethead()->add( new AMSProducer(argc,argv,PRODFFKEY.Debug));
   AMSJob::gethead()->setjobtype(AMSJob::Production);  
