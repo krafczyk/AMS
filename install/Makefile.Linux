@@ -22,7 +22,7 @@ endif
 
 ifdef SLC3system
  CERN_LEVEL = 2004
- ifndef AMSICC
+ ifdef AMSICC
    RH9add=-pthread  /usr/lib/ctype-info.o
  else 
    RH9add=-pthread
