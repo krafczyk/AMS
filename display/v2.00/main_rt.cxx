@@ -3,8 +3,8 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TGeometry.h>
-#include "AMSRoot.h"
-#include "AMSDisplay.h"
+#include "AMSR_Root.h"
+#include "AMSR_Display.h"
 #include "Debugger.h"
 #include <iostream.h>
 #include <fstream.h>
@@ -63,15 +63,15 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
     if(argc <=1)cout <<"Please type file name as first parameter"<<endl;
     return;
    }
-   AMSRoot amsroot("AMS", "AMS Display");
+   AMSR_Root amsroot("AMS", "AMS Display");
    cout <<""<<endl;
    amsroot.Init(t);
    cout <<""<<endl;
-   amsroot.MakeTree("AMSTree", "AMS Display Tree");
+   amsroot.MakeTree("AMSR_Tree", "AMS Display Tree");
    TFile fgeo("ams_group.root");
    cout <<""<<endl;
    TGeometry * geo = (TGeometry *)fgeo.Get("ams");
-   AMSDisplay display("AMSRoot Event Display", geo);
+   AMSR_Display display("AMSR_Root Event Display", geo);
        display.SetView (kTwoView);
       for(int i=1;;i++){
        if(!amsroot.GetEvent(i))break;;

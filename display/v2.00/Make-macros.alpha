@@ -7,52 +7,52 @@ ROOTGLIBS     = -lGpad -lGX11 -lMotif -lWidgets -lX3d
 
 ROOTH         = TTree.h TFile.h TH1.h
 
-SRCS          = AMSRoot.cxx AMSMaker.cxx \
-		AMSColorManager.cxx \
-		AMSGeometrySetter.cxx \
-		AMS3DCluster.cxx \
-		AMSToFCluster.cxx AMSToFClusterReader.cxx \
-		AMSTrack.cxx AMSTrackReader.cxx \
-		AMSSiHit.cxx AMSSiHitReader.cxx \
-		AMSCTCCluster.cxx AMSCTCClusterReader.cxx \
-		AMSAntiCluster.cxx AMSAntiClusterReader.cxx \
-		AMSParticle.cxx AMSParticleReader.cxx \
-		AMSVirtualDisplay.cxx \
-		AMSHistBrowser.cxx \
-		AMSCanvas.cxx \
-		AMSDisplay.cxx \
+SRCS          = AMSR_Root.cxx AMSR_Maker.cxx \
+		AMSR_ColorManager.cxx \
+		AMSR_GeometrySetter.cxx \
+		AMSR_3DCluster.cxx \
+		AMSR_ToFCluster.cxx AMSR_ToFClusterReader.cxx \
+		AMSR_Track.cxx AMSR_TrackReader.cxx \
+		AMSR_SiHit.cxx AMSR_SiHitReader.cxx \
+		AMSR_CTCCluster.cxx AMSR_CTCClusterReader.cxx \
+		AMSR_AntiCluster.cxx AMSR_AntiClusterReader.cxx \
+		AMSR_Particle.cxx AMSR_ParticleReader.cxx \
+		AMSR_VirtualDisplay.cxx \
+		AMSR_HistBrowser.cxx \
+		AMSR_Canvas.cxx \
+		AMSR_Display.cxx \
 		THelix.cxx TRadioButton.cxx TSwitch.cxx Debugger.cxx
 
 HDRS          = THelix.h TRadioButton.h TSwitch.h \
-		AMSColorManager.h \
-		AMS3DCluster.h \
-		AMSMaker.h AMSHistBrowser.h AMSRoot.h \
-		AMSToFCluster.h AMSToFClusterReader.h \
-		AMSTrack.h AMSTrackReader.h \
-		AMSSiHit.h AMSSiHitReader.h \
-		AMSCTCCluster.h AMSCTCClusterReader.h \
-		AMSAntiCluster.h AMSAntiClusterReader.h \
-		AMSParticle.h AMSParticleReader.h \
-		AMSVirtualDisplay.h \
+		AMSR_ColorManager.h \
+		AMSR_3DCluster.h \
+		AMSR_Maker.h AMSR_HistBrowser.h AMSR_Root.h \
+		AMSR_ToFCluster.h AMSR_ToFClusterReader.h \
+		AMSR_Track.h AMSR_TrackReader.h \
+		AMSR_SiHit.h AMSR_SiHitReader.h \
+		AMSR_CTCCluster.h AMSR_CTCClusterReader.h \
+		AMSR_AntiCluster.h AMSR_AntiClusterReader.h \
+		AMSR_Particle.h AMSR_ParticleReader.h \
+		AMSR_VirtualDisplay.h \
 		Debugger.h \
-		AMSCanvas.h \
-		AMSDisplay.h \
-		AMSGeometrySetter.h \
+		AMSR_Canvas.h \
+		AMSR_Display.h \
+		AMSR_GeometrySetter.h \
                 LinkDef.h
 
-SRCSG         = # AMSDisplay.cxx 		# AMSFruit.cxx 
+SRCSG         = # AMSR_Display.cxx 		# AMSR_Fruit.cxx 
 
-HDRSG         = # AMSDisplay.h GLinkDef.h
+HDRSG         = # AMSR_Display.h GLinkDef.h
 
-		# AMSFruit.h
+		# AMSR_Fruit.h
 		# ATLFDisplay.h ATLFParticle.h ATLFFruit.h GLinkDef.h 
                 
 
-DICT          = AMSCint.cxx
+DICT          = AMSR_Cint.cxx
 DICTH         = $(DICT:.cxx=.h)
 DICTO         = $(DICT:.cxx=.o)
 
-DICTG         = # AMSgCint.cxx
+DICTG         = # AMSR_gCint.cxx
 DICTGH        = # $(DICTG:.cxx=.h)
 DICTGO        = # $(DICTG:.cxx=.o)
 
@@ -68,11 +68,11 @@ ALLSRCS       = $(SRCS) $(SRCSG) $(HDRS) $(HDRSG) $(ALLDICT) $(MAIN)
 ALLOBJS       = $(OBJS) $(OBJSG) $(MAINO)
 
 
-AMSLIB       = libAMS.so
+AMSR_LIB       = libAMS.so
 
-AMSGLIB      = libAMSg.so
+AMSR_GLIB      = libAMSR_g.so
 
-AMSPRG       = amsroot
+AMSR_PRG       = amsroot
 
 
 ##### RULES #####
@@ -85,30 +85,30 @@ AMSPRG       = amsroot
 
 ##### TARGETS #####
 
-$(AMSLIB):     $(DICT) $(OBJS) $(AMSGLIB)
-		rm -f $(AMSLIB)
+$(AMSR_LIB):     $(DICT) $(OBJS) $(AMSR_GLIB)
+		rm -f $(AMSR_LIB)
 # due to a bug in cxx/ld under osf3.xx, one cannot use cxx to generate
 # a shared library. One must use ld instead.
 		cxx   -expect_unresolved \
  -g0 -O1 -shared /usr/lib/cmplrs/cc/crt0.o  \
- -o $(AMSLIB)  $(ROOTLIBS) $(OBJS)  -lcxxstd -lcxx -lexc -lots -lc -lm $(ROOTLIBS)
-		chmod 555 $(AMSLIB)
-		@echo "$(AMSLIB) done with $(OBJS) linked in"
+ -o $(AMSR_LIB)  $(ROOTLIBS) $(OBJS)  -lcxxstd -lcxx -lexc -lots -lc -lm $(ROOTLIBS)
+		chmod 555 $(AMSR_LIB)
+		@echo "$(AMSR_LIB) done with $(OBJS) linked in"
 
-$(AMSGLIB):    $(DICTG) $(OBJSG)
-		rm -f $(AMSGLIB)
+$(AMSR_GLIB):    $(DICTG) $(OBJSG)
+		rm -f $(AMSR_GLIB)
 # due to a bug in cxx/ld under osf3.xx, one cannot use cxx to generate
 # a shared library. One must use ld instead.
 		cxx  -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved \
  -g0 -O1 -shared /usr/lib/cmplrs/cc/crt0.o  \
- -o $(AMSGLIB)  $(OBJSG) -lcxxstd -lcxx -lexc -lots -lc
-		chmod 555 $(AMSGLIB)
-		@echo "$(AMSGLIB) done"
+ -o $(AMSR_GLIB)  $(OBJSG) -lcxxstd -lcxx -lexc -lots -lc
+		chmod 555 $(AMSR_GLIB)
+		@echo "$(AMSR_GLIB) done"
 
-$(AMSPRG):     $(AMSLIB) $(MAINO)
-		$(LD) $(LDFLAGS) $(MAINO) $(AMSLIB) $(PYTHIALIB) $(LIBS) \
-		-o $(AMSPRG)
-		@echo "$(AMSPRG) done"
+$(AMSR_PRG):     $(AMSR_LIB) $(MAINO)
+		$(LD) $(LDFLAGS) $(MAINO) $(AMSR_LIB) $(PYTHIALIB) $(LIBS) \
+		-o $(AMSR_PRG)
+		@echo "$(AMSR_PRG) done"
 
 $(DICT):        $(HDRS)
 		@echo "Generating dictionary ..."
@@ -129,9 +129,9 @@ depend:
 		$(MAIN)
 
 dist:
-		rm -f $(AMSPRG).tar.gz ; \
-		tar cvf $(AMSPRG).tar $(ALLSRCS) *.C Make* \
-		gzip $(AMSPRG).tar
+		rm -f $(AMSR_PRG).tar.gz ; \
+		tar cvf $(AMSR_PRG).tar $(ALLSRCS) *.C Make* \
+		gzip $(AMSR_PRG).tar
 
 clean:
 		@rm -f $(ALLOBJS) $(ALLDICT)

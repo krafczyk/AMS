@@ -1,35 +1,30 @@
-# Makefile for AMS Event Display for alpha/cxx 
+# Makefile for AMS Event Display for Alpha-osf/cxx
 
-PLATFORM      = alpha
-#SHLD          = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx \
-#                -expect_unresolved -g0 -O1 -shared /usr/lib/cmplrs/cc/crt0.o \
-#                /usr/lib/cmplrs/cxx/_main.o
-SHLD          = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx \
-                -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o \
-                /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
+PLATFORM      = osf
 
-
-CXX           =  cxx
-CXXFLAGS      =  -D__osf__ -D__alpha -I$(ROOTSYS)/include -I/usr/include -I/usr/include/cxx
-OPT           = -O4 -DROOT10308
+# Alpha/OSF with cxx
+CXX           = cxx
+CXXFLAGS      = -D__osf__ -D__alpha -I$(ROOTSYS)/include -I/usr/include -I/usr/include/cxx
+OPT           = -g -DROOT10308
 NOOPT         =
 LD            = cxx
 LDFLAGS       = -g
 SOFLAGS       = -Wl,-expect_unresolved,* -call_shared
-SOGFLAGS      = -b
+SOGFLAGS      = -Wl,-expect_unresolved,* -call_shared
 
-ROOTLIBS      = -L$(ROOTSYS)/lib -lNew -lBase -lCint -lClib -lCont -lFunc -lGraf \
-                -lGraf3d -lHist -lHtml -lMatrix -lMeta -lMinuit -lNet -lPostscript \
-                -lProof -lRint -lTree -lUnix -lZip   # -lEG -lEGPythia
-ROOTGLIBS     = -lGpad -lGui -lGX11   -lX3d
+ROOTLIBS      = -L$(ROOTSYS)/lib -lNew -lBase -lCint -lClib -lCont -lFunc \
+                -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMeta -lMinuit -lNet \
+                -lPostscript -lProof -lTree -lUnix -lZip
+ROOTGLIBS     = -lGpad -lGui -lGX11 -lX3d
 
 LIBS          = $(ROOTLIBS) -lm
-GLIBS         = $(ROOTLIBS) $(ROOTGLIBS) -lXpm  -lX11 -lm -lPW
+GLIBS         = $(ROOTLIBS) $(ROOTGLIBS) -lXpm -lX11 -lm -lPW
 
+SHLD          = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx \
+                -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o \
+                /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
 
-
-PYTHIALIB     = -L$(PYTHIA) -lPythia
-
+DEPEND_INC    = -I$(ROOTSYS)/include -I$(ROOTSYS)/cint/include
 
 ##### RULES #####
 

@@ -11,7 +11,7 @@
 #include <TButton.h>
 #include <TCanvas.h>
 #include <TView.h>
-#include <TArc.h>
+// #include <TArc.h>
 #include <TText.h>
 #include <TPaveLabel.h>
 #include <TPaveText.h>
@@ -28,18 +28,20 @@
 #include "TSwitch.h"
 #include "AMSR_SiHitReader.h"
 #include "AMSR_Axis.h"
+// #include "AMSR_GeometrySetter.h"  //already included in AMSR_Display.h
 //#include "AMSR_Particle.h"
 //#include "AMSR_MCMaker.h"
 //#include "AMSR_ClusterMaker.h"
 //#include "AMSR_TriggerMaker.h"
 //#include "AMSR_Trigger.h"
+//#include "Msgbox.h"
+#include "TGRunEventDialog.h"
 #include "Debugger.h"
 
 
 ClassImp(AMSR_Display)
 
-
-
+AMSR_Display *gAMSR_Display=0;
 
 //_____________________________________________________________________________
 AMSR_Display::AMSR_Display() : AMSR_VirtualDisplay()
@@ -49,22 +51,31 @@ AMSR_Display::AMSR_Display() : AMSR_VirtualDisplay()
 
 //   m_Particle  = 0;
 
-   m_theapp=0;
+//   m_theapp=0;
    m_View = kFrontView;
 //   m_DrawAllViews = kFALSE;
 //   m_DrawTwoViews = kFALSE;
    m_Geometry     = 0;
+   m_IdleTime     = 0;
+   m_IdleCommand  = 0;
+   m_IdleOn       = kFALSE;
+   gAMSR_Display    = this;
 }
 
 
 //_____________________________________________________________________________
-AMSR_Display::AMSR_Display(const char *title, TGeometry * geo) 
+AMSR_Display::AMSR_Display(const char *title, TGeometry * geo, int resx, int resy) 
    : AMSR_VirtualDisplay()
 {
-   m_theapp=0;
+//   m_theapp=0;
    // Constructor of AMSR_Display
    //
 
+   m_Geometry     = 0;
+   m_IdleTime     = 0;
+   m_IdleCommand  = 0;
+   m_IdleOn       = kFALSE;
+   debugger.Print("Start AMSR_Display::ctor: m_Geometry = %lx\n",m_Geometry);
    gAMSR_Root->SetDisplay(this);
 
    //
@@ -93,10 +104,11 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo)
    m_View = kFrontView;
    m_DrawParticles = kTRUE;
    m_DrawGeometry  = kTRUE;
+   m_DrawMoreGeometry  = kFALSE;
 
    // Create display canvas
 //   m_Canvas = new TCanvas("Canvas", (char*)title,14,47,740,650);
-   m_Canvas = new AMSR_Canvas("Canvas", (Text_t*)title,1024,768);
+   m_Canvas = new AMSR_Canvas("Canvas", (Text_t*)title,resx,resy);
    m_Canvas->SetEditable(kIsNotEditable);
 
    //
@@ -152,7 +164,7 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo)
    // Create button pad
    // ----------------------------
    m_Canvas->cd();
-   m_ButtonPad = new TPad("buttons", "newpad",0,0.45,xsep,1.0);
+   m_ButtonPad = new TPad("buttons", "newpad",0,0.5,xsep,1.0);
    //m_ButtonPad->SetFillColor(38);
    m_ButtonPad->SetFillColor(13);
    m_ButtonPad->SetBorderSize(2);
@@ -161,7 +173,7 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo)
    //
    // Create switch pad
    // ----------------------------
-   m_TrigPad = new TPad("TrigPad", "trigger pad",0,0.1,xsep,0.45);
+   m_TrigPad = new TPad("TrigPad", "trigger pad",0,0.1,xsep,0.5);
    //m_TrigPad->SetFillColor(22);
    m_TrigPad->SetFillColor(13);
    m_TrigPad->SetBorderSize(2);
@@ -240,10 +252,10 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo)
    // m_TrigPad->Range(0,0,dxtr,dytr);
    m_TrigPad->cd();
 
-   TSwitch * sw[8];
+   TSwitch * sw[11];
    AMSR_Maker * maker;
 
-   Float_t y = 1.0, dy = 0.10, height=0.10;
+   Float_t y = 1.0, dy = 0.090, height=0.090;
    maker = (AMSR_Maker *) gAMSR_Root->SiHitMaker();
    sw[0] = new TSwitch("Tracker Hits", &(maker->DrawFruits), 
 			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
@@ -279,9 +291,23 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo)
 			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
     
-   sw[7] = new TSwitch("Geometry", &m_DrawGeometry, 
+   maker = (AMSR_Maker *) gAMSR_Root->MCParticleMaker();
+   sw[7] = new TSwitch("MC Info", &(maker->DrawFruits), 
 			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
+   y -= dy;
+    
+   sw[8] = new TSwitch("Geometry", &m_DrawGeometry, 
+			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
+   y -= dy;
+    
+   sw[9] = new TSwitch("More Geometry", &m_DrawMoreGeometry, 
+			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
+   y -= dy;
 
+   sw[10] = new TSwitch("IdleTimer", &m_IdleOn,
+               "gAMSR_Root->Display()->IdleSwitch()", 0.0, y-height, 1.0, y);
+
+   debugger.Print("IdleTimer-button=%lx",sw[10]);
 
   /*
    TText *t = new TText();
@@ -314,6 +340,7 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo)
    m_Canvas->Update();
    debugger.Print("++++ after m_Canvas->Update().\n");
 
+   gAMSR_Display    = this;
 }
 
 
@@ -321,6 +348,71 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo)
 AMSR_Display::~AMSR_Display()
 {
 //   delete m_Particle;
+   gAMSR_Display    = 0;
+}
+
+//_____________________________________________________________________________
+void AMSR_Display::SetIdleTimer(Long_t seconds, Text_t *command)
+{
+   m_IdleTime    = seconds;
+   m_IdleCommand = command;
+//   IdleSwitch(1);
+}
+
+//_____________________________________________________________________________
+void AMSR_Display::IdleTime(Long_t seconds)
+{
+   m_IdleTime    = seconds;
+//   IdleSwitch(1);
+}
+
+//_____________________________________________________________________________
+void AMSR_Display::IdleCommand(Text_t *command)
+{
+   m_IdleCommand = command;
+//   IdleSwitch(1);
+}
+
+
+// invoke IdleSwitch via Trig(Switch), the status of m_IdleOn changed there
+//_____________________________________________________________________________
+void AMSR_Display::IdleSwitch(Int_t flag)
+{
+   static Short_t buttonStat = 1;  // off-status by default
+   static Int_t fillColor = 3; // off-status by default
+
+   if (flag<0) m_IdleOn=kFALSE;
+   else if(flag>0) m_IdleOn=kTRUE;
+//   else m_IdleOn=!m_IdleOn;           // the status changed in TRadionButton
+
+   if (m_IdleTime<=0) {
+      printf("IdleTime not set or <=0 !! m_IdleTime=%d\n",m_IdleTime);
+      m_IdleOn=kFALSE;
+   }
+
+   if (!gApplication) {
+      printf("TApplication not initialized\n");
+      return;
+   } else {
+      if (m_IdleOn) {
+         gApplication->SetIdleTimer(m_IdleTime,m_IdleCommand);
+         buttonStat = -1;
+         fillColor  = 2;
+         debugger.Print("SetIdleTimer done in IdleSwitch\n");
+      } else {
+         gApplication->RemoveIdleTimer();
+         buttonStat = 1;
+         fillColor  = 3;
+         debugger.Print("RemoveIdleTimer done in IdleSwitch\n");
+      }
+   }
+
+   gPad->SetBorderMode(buttonStat);
+   gPad->SetFillColor(fillColor);
+   gPad->Modified();
+   gPad->Update();
+
+   return;
 }
 
 //_____________________________________________________________________________
@@ -338,14 +430,14 @@ void AMSR_Display::DisplayButtons()
    m_ButtonPad->cd();
 
    Int_t butcolor = 33;
-   Float_t dbutton = 0.09;
-   Float_t y  = 0.96;
-   Float_t dy = 0.014;
+   Float_t dbutton = 0.075;
+   Float_t y  = 0.99;
+   Float_t dy = 0.007;
    Float_t x0 = 0.05;
    Float_t x1 = 0.95;
    TButton *button;
-   char *but0 = "gAMSR_Root->Display()->ShowNextEvent(0)";
-   button = new TButton("Select",but0,x0,y-dbutton,x1,y);
+   char *but0 = "gAMSR_Root->Display()->GotoRunEvent()";
+   button = new TButton("GotoRunEvent",but0,x0,y-dbutton,x1,y);
    button->SetFillColor(38);
    button->Draw();
 
@@ -398,19 +490,29 @@ void AMSR_Display::DisplayButtons()
    button->Draw();
 
    y -= dbutton +dy;
-   char *but8 = "gAMSR_Root->Display()->SetView(20)";
-   button = new TButton("Stop Timer",but8,x0,y-dbutton,x1,y);
+   char *but8 = "gAMSR_Root->Display()->GetCanvas()->OpenFileCB()";
+   button = new TButton("OpenDataFile",but8,x0,y-dbutton,x1,y);
    button->SetFillColor(butcolor);
    button->Draw();
 
-/*
-   y -= dbutton +dy;
-   char *but7 = "gAMSR_Root->Display()->DrawViewGL()";
-   button = new TButton("OpenGL",but7,x0,y-dbutton,x1,y);
-   button->SetFillColor(38);
-   button->Draw();
-*/
 
+   y -= dbutton +dy;
+   char *but9 = "gAMSR_Root->Display()->Print()";
+   button = new TButton("Print",but9,x0,y-dbutton,x1,y);
+   button->SetFillColor(butcolor);
+   button->Draw();
+
+   y -= dbutton +dy;
+   char *but10 = "gAMSR_Root->Display()->SavePS()";
+   button = new TButton("Save as .ps",but10,x0,y-dbutton,x1,y);
+   button->SetFillColor(butcolor);
+   button->Draw();
+
+   y -= dbutton +dy;
+   char *but11 = "gAMSR_Root->Display()->SaveGIF()";
+   button = new TButton("Save as .gif",but11,x0,y-dbutton,x1,y);
+   button->SetFillColor(butcolor);
+   button->Draw();
 /*
    y -= dbutton +dy;
    char *but8 = "gAMSR_Root->Display()->DrawViewX3D()";
@@ -621,7 +723,7 @@ void AMSR_Display::DrawTitle(Option_t *option)
    TPad * pad = disp->GetTitlePad();
 
    static TText * text=0;
-   static char * atext = "Alpha Magnetic Spectrometer";
+   static char * atext = "Alpha Magnetic Spectrometer Event Display";
 
    AMSR_Maker * p = (AMSR_Maker *) gAMSR_Root->ParticleMaker();
    
@@ -698,7 +800,7 @@ void AMSR_Display::AddParticleInfo()
 
    text->SetTextFont(7);
    text->SetTextAlign(22);
-   text->SetTextSize(0.65);
+   text->SetTextSize(0.45);
    text->Draw();
 
    gPadSave->cd();
@@ -732,7 +834,7 @@ void AMSR_Display::DrawEventInfo(Option_t *option)
 
    //   text->SetTextFont(7);
    text->SetTextAlign(12);
-   text->SetTextSize(0.3);
+   text->SetTextSize(0.28);
    text->Draw();
    sprintf(atext,"%s",gAMSR_Root->GetTime());
     for ( i=strlen(atext);i<kTMAX-1;i++) atext[i] = ' ';
@@ -784,6 +886,12 @@ void AMSR_Display::DrawAxis(Int_t index, Option_t * option)
    //
    // This appends the axisPad to the current pad and then updates the axis
 
+   TView *eventView = gPad->GetView();
+   Float_t longitude = eventView->GetLongitude();
+   Float_t latitude  = eventView->GetLatitude();
+
+   debugger.Print("eventView = %lx, long = %f, lati = %f\n",
+                  eventView, longitude, latitude);
 
    TPad * axisPad = new TPad("axis","axis", 0.0, 0.0, 0.15, 0.15);
 					// this will be deleted when
@@ -820,6 +928,8 @@ void AMSR_Display::DrawAxis(Int_t index, Option_t * option)
    axisView->SetRange(-1.5,-1.5,-1.5, 1.5,1.5,1.5);
    debugger.Print("SetView()\n");
    Int_t iret;
+
+   axisView->SetView(longitude, latitude, 0, iret);
    //axisView->SetView(m_Theta, m_Phi, 0, iret);
    //axisView->SetView(m_Theta, -m_Phi, 0, iret);		// kludge
    //axisPad->Modified();
@@ -852,6 +962,23 @@ void AMSR_Display::DrawView(Float_t theta, Float_t phi, Int_t index)
    // add the geomtry to the pad
    if (m_DrawGeometry) {
      view->SetRange(-800.0, -800.0, -520.0, 800.0, 800.0, 520.0);
+     EVisibility vis;
+     if(m_DrawMoreGeometry)vis=kDrawAll;
+     else vis=kDrawNone;
+     TNode * node=m_Geometry->GetNode("ANTI_SUPP_TUBE");
+     if(node)node->SetVisibility(vis);
+     node=m_Geometry->GetNode("STK_L1_HONEYCOMB");
+     if(node)node->SetVisibility(vis);
+     node=m_Geometry->GetNode("STK_L2_HONEYCOMB");
+     if(node)node->SetVisibility(vis);
+     node=m_Geometry->GetNode("STK_L3_HONEYCOMB");
+     if(node)node->SetVisibility(vis);
+     node=m_Geometry->GetNode("STK_L4_HONEYCOMB");
+     if(node)node->SetVisibility(vis);
+     node=m_Geometry->GetNode("STK_L5_HONEYCOMB");
+     if(node)node->SetVisibility(vis);
+     node=m_Geometry->GetNode("STK_L6_HONEYCOMB");
+     if(node)node->SetVisibility(vis);
      m_Geometry->Draw();
    }
    else
@@ -916,15 +1043,16 @@ void AMSR_Display::ExecuteEvent(Int_t event, Int_t px, Int_t py)
 }
 
 //_____________________________________________________________________________
-Int_t AMSR_Display::GetEvent(Int_t event)
-{
-//    Read event in memory
-
-   Int_t ret=gAMSR_Root->GetEvent(event);
-
-   Draw();
-   return ret;
-}
+//Bool_t AMSR_Display::GetEvent(Int_t event)
+//{
+////    Read event in memory
+//
+//   Bool_t ret = gAMSR_Root->GetEvent(event);
+//
+//   m_Pad->cd();
+//   Draw();
+//   return ret;
+//}
 
 //_____________________________________________________________________________
 char *AMSR_Display::GetObjectInfo(Int_t px, Int_t py)
@@ -955,7 +1083,7 @@ void AMSR_Display::SetGeometry(TGeometry * geo)
 //  Set AMS in/out outline parameters
 
    debugger.Print("in AMSR_Display::SetGeometry(): m_Geometry = %lx, geo = %lx", m_Geometry, geo);
-   //if (m_Geometry) delete m_Geometry;
+   if (m_Geometry!=0 && m_Geometry!=geo) delete m_Geometry;
    m_Geometry = geo;
    m_GeoSetter = new AMSR_GeometrySetter(geo);
 }
@@ -989,31 +1117,31 @@ void AMSR_Display::SetPTcutEGMUNU(Float_t ptcut)
 }
 
 //_____________________________________________________________________________
-void AMSR_Display::StartStop(){
-  if(!m_theapp)return;
-  gPad->Clear();
-  static int state=0;
-  state=(state+1)%2;
-   static TText * text=0;
-   static char atext2[20]="Stop Timer";
-   static char atext1[20]="Start Timer";
-
-   if (! text) {
-	if(state%2)text = new TText(0.5, 0.5, atext1);
-	else text = new TText(0.5, 0.5, atext2);
-   }
-   else{
-	if(state%2)text->SetText(0.5, 0.5, atext1);
-	else text = new TText(0.5, 0.5, atext2);
-   }
-    if(state%2)m_theapp->RemoveIdleTimer();
-    else m_theapp->SetIdleTimer(4,"");
-   text->SetTextAlign(22);
-   text->SetTextSize(0.55);
-   text->Draw();
-
-
-}
+//void AMSR_Display::StartStop(){
+//  if(!m_theapp)return;
+//  gPad->Clear();
+//  static int state=0;
+//  state=(state+1)%2;
+//   static TText * text=0;
+//   static char atext2[20]="Stop Timer";
+//   static char atext1[20]="Start Timer";
+//
+//   if (! text) {
+//	if(state%2)text = new TText(0.5, 0.5, atext1);
+//	else text = new TText(0.5, 0.5, atext2);
+//   }
+//   else{
+//	if(state%2)text->SetText(0.5, 0.5, atext1);
+//	else text = new TText(0.5, 0.5, atext2);
+//   }
+//    if(state%2)m_theapp->RemoveIdleTimer();
+//    else m_theapp->SetIdleTimer(12,"");
+//   text->SetTextAlign(22);
+//   text->SetTextSize(0.55);
+//   text->Draw();
+//
+//
+//}
 
 void AMSR_Display::SetView(EAMSR_View newView)
 {
@@ -1034,7 +1162,7 @@ void AMSR_Display::SetView(EAMSR_View newView)
      case kSideView:   SetView(90,-90); break;
      case kTopView:    SetView(0,0);    break;
      case kAllView:    DrawAllViews();  break;
-     case 20:          StartStop(); m_View=kTwoView;break;
+//     case 20:          StartStop(); m_View=kTwoView;break;
      case kTwoView:    DrawFrontAndSideViews();  break;
      default:          SetView(90,0);   break;
    }
@@ -1067,27 +1195,77 @@ void AMSR_Display::SetView(Float_t theta, Float_t phi)
 }
 
 //_____________________________________________________________________________
+Bool_t AMSR_Display::GotoRunEvent()
+{
+   //
+   //Prompt a dialog for user to input run/event number and goto
+   //
+   Int_t run=0, event=0;
+
+   //
+   //create a dialog to input run/event
+   //
+   const TGWindow *main = gClient->GetRoot();
+   TRootCanvas *own = (TRootCanvas*)m_Canvas->GetCanvasImp();
+   new TGRunEventDialog(main, own, &run, &event);
+
+   debugger.Print("You input run/event =%d/%d\n", run, event);
+
+   if (run==0 && event<=0) return kFALSE;
+
+   //
+   //run=-9, then event is the number for the tree, not for the run
+   //
+   if (run==-9) {
+      if (gAMSR_Root->GetEvent(event)) {
+         debugger.Print("Changed to event %d\n",gAMSR_Root->Event());
+         m_Pad->cd();
+         Draw();
+         return kTRUE;
+       } else return kFALSE;
+    }
+ 
+   //
+   //run=0, then take m_RunNum as run
+   //goto to the event of run/event
+   //
+   if (run==0) run = gAMSR_Root->RunNum();
+   if (gAMSR_Root->GetEvent(run, event)) {
+      debugger.Print("Found run/event =%d/%d\n", gAMSR_Root->RunNum(),
+                                               gAMSR_Root->EventNum());
+      m_Pad->cd();
+      Draw();
+      return kTRUE;
+   } else return kFALSE;
+
+}
+
+//_____________________________________________________________________________
 void AMSR_Display::ShowNextEvent(Int_t delta)
 {
 //  Display (current event_number+delta)
 //    delta =  1  shown next event
 //    delta = -1 show previous event
 
-  if (delta) {
-     Int_t current_event = gAMSR_Root->Event();
-     Int_t new_event     = current_event + delta;
-     if ( new_event >= 0 ) {
-       gAMSR_Root->Clear();
-       gAMSR_Root->GetEvent(new_event); 
-     }
-  }
-  else {
-       gAMSR_Root->Clear();
-       gAMSR_Root->SelectEvent(); 
-  }
-  m_Pad->cd(); 
-  Draw();
+   Int_t current_event = gAMSR_Root->Event();
+   Int_t new_event     = current_event + delta;
+   if ( new_event >= 0 ) {
+      gAMSR_Root->GetEvent(new_event);
+      m_Pad->cd(); Draw();
+//      if ( gAMSR_Root->GetEvent(new_event) ) {m_Pad->cd(); Draw();}
+   }
 }
+
+//_____________________________________________________________________________
+//void AMSR_Display::Select(){
+//   new MsgBox(gClient->GetRoot(), m_Canvas->fTheCanvas, 400, 200);
+//
+//       gAMSR_Root->Clear();
+//       gAMSR_Root->SelectEvent(); 
+//       m_Pad->cd(); 
+//       Draw();
+//
+//}
 
 void AMSR_Display::DrawEvent()
 {
