@@ -388,7 +388,7 @@ else{
 }
 #endif
  uwbuf[1]=TRDMCFFKEY.mode;
- if(TRDMCFFKEY.mode<2){
+ if(TRDMCFFKEY.mode<3){
   uwbuf[3]=TRDMCFFKEY.cor;
   uwbuf[4]=0;
  }
@@ -559,33 +559,42 @@ uwbuf[0]=TRDMCFFKEY.g3trd;
 }
 #endif
 uwbuf[1]=TRDMCFFKEY.mode;
-if(TRDMCFFKEY.mode<2){
-uwbuf[3]=TRDMCFFKEY.cor;
+uwbuf[3]=0;
 uwbuf[4]=0;
-}
-else{
-uwbuf[3]=TRDMCFFKEY.alpha;
-uwbuf[4]=TRDMCFFKEY.beta;
-}
 tmed.add (new AMSgtmed("TRDHC","TRDHC",0));
 tmed.add (new AMSgtmed("TRDCarbonFiber","TRDCarbonFiber",0));
 
+
 uwbuf[2]=3;
+if(TRDMCFFKEY.mode<3){
+ uwbuf[3]=1;   //dont really need it but...
+}
+
 AMSgtmed * pgas=new AMSgtmed("TRDGas","XECO2_80/20",1);
 pgas->setubuf(nwbuf,uwbuf);
 tmed.add (pgas);
 
 AMSgtmed *pfoam = new AMSgtmed("TRDFoam","TRDFoam",0);
 uwbuf[2]=2;
+uwbuf[3]=0;
 pfoam->setubuf(nwbuf,uwbuf);
 tmed.add (pfoam);
 
 AMSgtmed * pwall=new AMSgtmed("TRDCapton","MYLARTRD",0);
 uwbuf[2]=2;
+uwbuf[3]=0;
 pwall->setubuf(nwbuf,uwbuf);
 tmed.add (pwall);
 
 uwbuf[2]=1;
+if(TRDMCFFKEY.mode<3){
+ uwbuf[3]=TRDMCFFKEY.cor;
+ uwbuf[4]=0;
+}
+else{
+ uwbuf[3]=TRDMCFFKEY.alpha;
+ uwbuf[4]=TRDMCFFKEY.beta;
+}
 AMSgtmed * prad=new AMSgtmed("TRDRadiator","TRDRadiator",0);
 prad->setubuf(nwbuf,uwbuf);
 tmed.add (prad);
