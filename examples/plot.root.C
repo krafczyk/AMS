@@ -1,7 +1,7 @@
-/// \example run.root.C
+/// \example plot.root.C
 /// This is an example of how see ams variables interactively in root session
 ///
-/// (to run: root;  .x run.root.C)   
+/// (to run: root;  .x plot.root.C)   
 /// 
 /// for complete listing of var functions see root_methods.h
 
