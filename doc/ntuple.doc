@@ -375,13 +375,9 @@ GTOD
 ***) Shuttle coordinates in an eccentric dipole coordinate system where
      GEOMz=-d, GEOMy=GEOMz x S  (d: dipole direction, S: geographic South)
 
-Known bugs:
 
 
-thetagl, phigl are wrong
-use  ../analysis/loc2gl.f instead
 
-stationr   is in I2000,
+stationr   is in I2000
 
-status bit 27-29 are always zero.
 
