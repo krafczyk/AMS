@@ -23,8 +23,12 @@ static char *selectExt = "hbk";
 
 void printUsage()
 {
-      cout << "\nUsage: ntpSelectFor [-h] [-b] [-iNtupleID] [-nNEvt] [-oOutFile]\n"
-        << "                [-sDir [-eExt]] [-tInsert] oldFile(s)\n"
+      char *sp = "                ";
+      cout << "\nUsage: $(OS)/bin/cutName [-h] [-b] [-iNtupleID] [-nNEvt]\n"
+        << sp << "[-oOutFile] [-sDir [-eExt]] [-tInsert] [-uHistFile]\n"
+        << sp << "[-FFrom] [-TTo] oldFile(s)\n"
+        << " $(OS)=  your system name, can be got via shell \"uname\"\n"
+        << " cutName = basename of your cut filename(default=\"usrcut.f\")\n"
         << "  -h  =  print this message\n"
         << "  -b  =  save survived event# into a buffer first,\n"
         << "         write out the whole survived event later\n"
@@ -41,7 +45,10 @@ void printUsage()
         << "         default=\"hbk\"\n"
         << "  -t  =  insert string in output filename, default=\".select\"\n"
         << "  -u  =  specify user histogram file name\n"
+        << "  -F  =  ordinal no. of first file among input files to process\n"
+        << "  -T  =  ordinal no. of last file among input files to process\n"
         << " oldFile = filename of OLD ntuple to read, ignored if \"-s\"\n"
+        << " How to change user cut ? See usrcut.f\n"
         << endl;
 }
 
@@ -81,6 +88,8 @@ int main(int argc, char *argv[])
   char *usrFile   = 0;
   int   mEvent    = 10000;
   const int  one2one   = 100000;
+  int   ifirst    = 1;
+  int   ilast     = 100000;
 
   for (char *pchar=0; argc>1 &&(pchar=argv[1],*pchar=='-'); (argv++,argc--))
   {
@@ -119,11 +128,17 @@ int main(int argc, char *argv[])
     } else if (*pchar=='t') {  // set insert string for output filename
       insertStr = ++pchar;
       cout << "insert string set to " << insertStr << endl;
-    } else if (*pchar=='u') {  // set user histogram filename
+    } else if (*pchar=='u') {  // set user histgram filename
       usrFile = ++pchar;
       if (strlen(usrFile) != 0) {
         cout << "user histogram file set to " << usrFile << endl;
       } else usrFile = 0;
+    } else if (*pchar=='F') {  // set no. of first file to process
+      ifirst = atoi(++pchar);
+      cout << "File processing starts from no = " << ifirst << endl;
+    } else if (*pchar=='T') {  // set no. of last file to process
+      ilast = atoi(++pchar);
+      cout << "File processing ends at no = " << ilast << endl;
     } else cout << "Unknown option =" << *--pchar << endl;
   }
 
@@ -185,6 +200,9 @@ int main(int argc, char *argv[])
   
   char *oldFile = 0;
   while ( oldFile=contain->GetNextFile() ) { //begin of LOOP over ntupel files
+    if (++ifile < ifirst) continue;
+    if (ifile > ilast) break;
+
     char *newFile=0, *slash, *dot;
     int headLen;
 
@@ -198,7 +216,7 @@ int main(int argc, char *argv[])
     }
     select->OpenOldNtuple(oldFile);
 
-    ifile++;
+//    ifile++;
     if (outFile == 0 && mEvent > one2one) {
       dot = strrchr(slash,'.');
       if (dot == 0) headLen = strlen(slash);

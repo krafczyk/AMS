@@ -2,13 +2,35 @@
 **************************************************************************
 * Do user initialization such as histgram booking
 **************************************************************************
-      PRINT *, 'USRINIT called'
-      CALL HBOOK1(10, 'npart', 10, 0., 10., 0.)
-      CALL HBOOK1(11, 'ntrtr', 20, 0., 20., 0.)
- 
+      INCLUDE 'cutstat.inc'
+*
+*-- Reset the counters for cuts
+      DO I=0,NCUT
+        NPASS(I) = 0
+      ENDDO
+*
+*-- Book histgrams
+      CALL HBOOK1(11,  'NPART', 12, -1, 5, 0.)
+      CALL HBOOK1(12,  'NTRTR', 12, -1, 5, 0.)
+      CALL HBOOK1(13,  'NBETA', 12, -1, 5, 0.)
+      CALL HBOOK1(103, '[b](v/c)', 120, -1.2, 1.2, 0.)
+* 
       RETURN
       END
 
+C**------------- BLOCK DATA VARDATA ---------------------------------C
+      BLOCK DATA VARDATA
+*------------------------------------------------------------
+* put the variable names below which are used in the function
+*
+* In case of NVAR=0, all variables will be read
+*-----------------------------------------------------------
+      INCLUDE 'usrcom.inc'
+*-user may change following
+      DATA NVAR/5/,VARLIS/
+     &  'NBETA','BETA', 'NPART', 'NTRTR', 'NHITS', 217*' '/
+*-end of user change
+       END
 
       INTEGER FUNCTION USRCUT(IOPT)
 *      REAL FUNCTION USRCUT()
@@ -25,21 +47,20 @@
 *        0, fails
 *
 * Usage:
-*        1) In "BLOCK DATA VARDATA", change/Add the list of variables in
+*        1) In "BLOCK DATA VARDATA", change/add the list of variables in
 *           VARS which are used in the function, NVAR is the total number
-*           of variables used.
+*           of variables used. Set NVAR=0 to enable reading all variables
 *        2) set the value of this function, 1=survive, 0=fail
 *
 **************************************************************************
       
       INCLUDE 'cwncom.inc'
       INCLUDE 'usrcom.inc'
+      INCLUDE 'cutstat.inc'
       INTEGER IOPT
 *
       USRCUT = 0
 *
-      IF (IOPT .NE. 0) PRINT *,'Calling USRCUT, IOPT=',IOPT
-
       IF (IOPT .LT. 0) THEN
          CALL USRINIT
          GOTO 990
@@ -52,33 +73,52 @@
 *
 *-impose cuts here
 *
-c      CALL HF1(10, float(npart), 1.0)
-c      CALL HF1(11, float(ntrtr), 1.0)
-         if(mod(eventstatus/2097152,4).gt.0)then
-          ic=mod(eventstatus/32,8)
-          im=mod(eventstatus/256,2)
-          if(ic.gt.0.or.im.eq.0)USRCUT =1
-         endif
-990      END
+      NPASS(0) = NPASS(0) + 1
 
-      SUBROUTINE USREND
-**************************************************************************
-* Do user termination such as printing.
-**************************************************************************
-      CALL HPRINT(0)
+      CALL HF1(11, FLOAT(NPART), 1.)
+      CALL HF1(12, FLOAT(NTRTR), 1.)
+      CALL HF1(13, FLOAT(NBETA), 1.)
+
+      IF (NPART .NE. 1) GOTO 990
+      NPASS(1) = NPASS(1) + 1
+
+      If (NTRTR.NE.1 .or. NHITS(1).NE.6) GOTO 990
+      NPASS(2) = NPASS(2) + 1
+
+      IF (NBETA.NE.1) GOTO 990
+      NPASS(3) = NPASS(3) + 1
+
+      CALL HF1(103, BETA(1), 1.)
+
+      IF (BETA(1).GE.0) GOTO 990
+      NPASS(4) = NPASS(4) + 1
+
+*
+*-- Comment the following in case you do not want to write selectd events
+*--  into new ntuples
+      USRCUT =1
+
+ 990  CONTINUE
 
       RETURN
       END
 
 
+      SUBROUTINE USREND
+**************************************************************************
+* Do user termination such as printing.
+**************************************************************************
+      INCLUDE 'cutstat.inc'
+*
+      PRINT *,'Total events processed =',NPASS(0)
+      DO I=1,NCUT
+        WRITE(6,101) I, NPASS(I)
+      ENDDO
       
-C**------------- BLOCK DATA VARDATA ---------------------------------C
-      BLOCK DATA VARDATA
-*------------------------------------------------------------
-* put the variable names below which are used in the function
-*-----------------------------------------------------------
-      INCLUDE 'usrcom.inc'
-*-user may change following
-      DATA NVAR/1/, VARLIS(1)/'EVENTSTATUS'/ 
-*-end of user change
-       END
+C      CALL HPRINT(0)
+
+      RETURN
+ 101  FORMAT(/2X,'Events survived after cut-',I2,' =',I8)
+      END
+
+

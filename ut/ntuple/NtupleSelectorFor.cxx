@@ -270,7 +270,8 @@ void NtupleSelectorFor::GetEventVars(int event)
    if (event<0 || event>=m_OldEntries) return;
    
    if (m_NVar == 0) {
-      fprintf(stderr,"ERROR 0 variable in GetEventVars, nothing read !\n");
+      GetEventAll(event);
+//      fprintf(stderr,"ERROR 0 variable in GetEventVars, nothing read !\n");
       return;
    }
 

@@ -24,15 +24,25 @@ OBJDIR = ./$(OS)/bin
 # source, obj and libs   #
 #                        #
 ##########################
+CUTFILE = $(suffix $(firstword $(MAKECMDGOALS)) )
+ifneq "$(CUTFILE)" ".f"
+ USRCUT  = usrcut.f
+else
+ USRCUT = $(firstword $(MAKECMDGOALS))
+ .PHONY :  $(USRCUT)
+ $(USRCUT) : all
+ #	@echo "not default GOAL, USRCUT= $(USRCUT)"
+endif
+
 CXXSRCS = NtupleSelectorFor.cxx ntpSelectFor.cxx
-FORSRCS = FortranPart.f usrcut.f
+FORSRCS = FortranPart.f $(USRCUT)
 
 CXXOBJS = $(CXXSRCS:%.cxx=$(OBJDIR)/%.o)
 FOROBJS = $(FORSRCS:%.f=$(OBJDIR)/%.o)
 ALLOBJS = $(CXXOBJS) $(FOROBJS)
 
 HDRS    = AMSR_NtupleCommons.h NtupleSelectorFor.h usrcom.h cfortran.h\
-          hbook.h cwncom.inc usrcom.inc
+          hbook.h cwncom.inc usrcom.inc cutstat.inc
 ALLSRCS = $(CXXSRCS) $(FORSRCS) $(HDRS)
 
 ifeq  "$(OS)"  "AIX"
@@ -40,7 +50,7 @@ CERNLIBS      = -L/cern/new/lib -lmathlib -lpacklib -lkernlib
 else
 CERNLIBS      = -L/cern/pro/lib -lmathlib -lpacklib -lkernlib
 endif
-OPT     =  
+OPT     =  -g
 
 ########################
 #                      #
@@ -57,9 +67,9 @@ ifeq  "$(OS)"  "AIX"
  CXX           = xlC
  CXXFLAGS      = -D__AIX__ -O -w -qnoro -qnoroconst -qmaxmem=-1
  FF            = xlf
- FFLAGS        = -qextname
+ FFLAGS        = -qextname -O
  LD            = xlC
- LDFLAGS       = 
+ LDFLAGS       = -g
  FORLIBS       = -lxlf90 -lxlf $(CERNLIBS)
 endif
 ##############
@@ -71,9 +81,9 @@ ifeq  "$(OS)"  "OSF1"
  CXX           = cxx
  CXXFLAGS      = -O -D__ALPHA__
  FF            = f77
- FFLAGS        =
+ FFLAGS        = -O
  LD            = cxx
- LDFLAGS       = 
+ LDFLAGS       = -g
  FORLIBS       = $(CERNLIBS) -lUfor -lfor -lFutil
  LIBS          = -lm
 endif
@@ -87,9 +97,9 @@ ifeq "$(OS)"  "HP-UX"
  CXX           = CC
  CXXFLAGS      = -D__HPUX__ -O +a1 +Z
  FF            = f77
- FFLAGS        =  +ppu +Z
+ FFLAGS        = -g +ppu +Z -O
  LD            = CC
- LDFLAGS       =  +a1 -z
+ LDFLAGS       = -g +a1 -z
  FORLIBS       = $(CERNLIBS) -L/usr/local/lib -lF77 -lI77 -lc
  LIBS          = -lm 
 endif
@@ -103,10 +113,10 @@ ifeq "$(OS)"  "Linux"
  CXX           = g++
  CXXFLAGS      = -O -Wall -fPIC -I$(ROOTSYS)/include
  FF            = g77
- FFLAGS        =
+ FFLAGS        = -O
  LD            = g++
- LDFLAGS       = 
- FORLIBS       = -static $(CERNLIBS) -L/usr/local/lib -lf2c 
+ LDFLAGS       = -g
+ FORLIBS       = $(CERNLIBS) -L/usr/local/lib -lf2c /usr/lib/libstdc++.so
 endif
 
 ####################
@@ -127,7 +137,8 @@ $(OBJDIR)/%.o:   %.f
 #  TARGETS   #
 #            #
 ##############
-MAINNAME  = ntpSelectFor
+#MAINNAME  = ntpSelectFor
+MAINNAME   = $(basename $(USRCUT))
 MAIN  =  $(OBJDIR)/$(MAINNAME)
 
 .PHONY :  all  clean  depend  touch_depend  dist
@@ -152,7 +163,8 @@ clean:
 
 dist:
 	rm -f $(MAINNAME).tgz
-	gtar cvfz $(MAINNAME).tgz $(ALLSRCS) Makefile.ntpSelectFor
+	gtar cvfz $(MAINNAME).tgz $(ALLSRCS) Makefile.ntpSelectFor \
+                  00README.ntpSelectFor
 
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),touch-depend)
@@ -167,4 +179,4 @@ endif
 #  dependencies for FORTRAN  #
 #                            #
 ############################## 
-$(OBJDIR)/usrcut.o:  cwncom.inc usrcom.inc
+$(OBJDIR)/$(USRCUT:.f=.o):  cwncom.inc usrcom.inc cutstat.inc

@@ -9,7 +9,7 @@
 
 #include "cfortran.h"
 
-static const int MXVAR=50;
+static const int MXVAR=222;
 static const int MXCOL=20;
 struct USRCOM_DEF {
    int  nvar;
