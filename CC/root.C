@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.72 2004/02/13 15:10:17 alcaraz Exp $
+//  $Id: root.C,v 1.73 2004/02/13 15:23:30 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2260,7 +2260,7 @@ void AMSEventR::UProcessFill(){
 void AMSEventR::UTerminate(){
 }
 
-AMSChain::AMSChain(const char* name="AMSRoot"):TChain(name),_ENTRY(0),_NAME(name){
+AMSChain::AMSChain(const char* name):TChain(name),_ENTRY(0),_NAME(name){
       _EVENT = new AMSEventR;
       this->SetBranchAddress("ev.",&_EVENT);
       _EVENT->Head() = _EVENT;
@@ -2289,7 +2289,7 @@ AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
       return _EVENT;
 };
 
-unsigned AMSChain::int Entry() {return _ENTRY;};
+unsigned int AMSChain::Entry() {return _ENTRY;};
 AMSEventR* AMSChain::pEvent() {return _EVENT;};
 const char* AMSChain::ChainName() {return _NAME;};
 
@@ -2401,7 +2401,7 @@ int AMSEventList::GetEntries(){return _RUNs.size();};
 int AMSEventList::GetRun(int i){return _RUNs[i];};
 int AMSEventList::GetEvent(int i){return _EVENTs[i];};
 
-AMSMyTrack::AMSMyTrack(bool bflag=1):BFieldOn(bflag),NHits(0){}; 
+AMSMyTrack::AMSMyTrack(bool bflag):BFieldOn(bflag),NHits(0){}; 
 
 void AMSMyTrack::add_hit(TrRecHitR* phit) {
         if (NHits>=AMSMyTrackConst::MAXLAY) { 
