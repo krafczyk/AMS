@@ -69,7 +69,7 @@ main(int argc, char *argv[])
         << "  -d  =  enable debugger.printing\n"
         << "  -t  =  follows the IdleTimer(d=5) in secconds, Idle_cmd is IdleHandle.C(0)\n"
         << "  -i  =  set ntupleID, follows NtupleId(default=1)\n"
-        << "  -c  =  dataFile stored in $AMSEDDataDir/newdata, open it"
+        << "  -c  =  dataFile stored in $AMSEDDataDir/newroot, open it"
          << " in IdleHandle_c.C\n"
         << " filename = if no filetype provided,\n"
         << "               file extension \"root*\" for ROOT data type,\n"

@@ -39,6 +39,7 @@ ClassImp(AMSNtuple)
          _h1->SetBranchAddress("signalctc",     _AxAMS.signalctc);
          _h1->SetBranchAddress("betactc",       _AxAMS.betactc);
          _h1->SetBranchAddress("errorbetactc",  _AxAMS.errorbetactc);
+         _h1->SetBranchAddress("cootof",  _AxAMS.cootof);
          _h1->SetBranchAddress("nbeta", &_AxAMS.nbeta);
          _h1->SetBranchAddress("beta", _AxAMS.beta);
          //Anti

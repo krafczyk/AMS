@@ -376,11 +376,13 @@ Int_t AMSR_Root::OpenDataFile(char * filename, EDataFileType type)
      
      char *dot = strrchr(slash, '.');
      
-     if ( !dot ) type = kObjectivityFile;
+//     if ( !dot ) type = kObjectivityFile;
+     if ( !dot ) type = kRootFile;
      else if ( strstr(dot+1, "root") == dot+1 ) type = kRootFile;
      else if ( strstr(dot+1, "ntp") == dot+1 )  type = kNtupleFile;
      else if ( strstr(dot+1, "hbk") == dot+1 )  type = kNtupleFile;
-     else type = kObjectivityFile;
+//     else type = kObjectivityFile;
+     else type = kRootFile;
   }
 
   //

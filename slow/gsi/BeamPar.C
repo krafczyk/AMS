@@ -18,10 +18,10 @@ float q[NWPAW];
 
 COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
 PAWC_DEF PAWC;
-uint _CalcCRC(uint *pData, int length);       
-
+uint _CalcCRC(uint *pData, int length);
 class BeamParEntry {
  public:
+  uint Run;       //run
   uint RunTag;   //runTag
   time_t Time;   //UNIX sec, of the manipulator PC
   float alpha;
@@ -64,14 +64,16 @@ class BeamPar {
         HLIMIT(NWPAW);
         HROPEN(3,"output","beam","N",rsize,iostat);
            if(iostat){
-             cerr << "Error opening Histo file beam"<<endl;
+             cout << "Error opening Histo file beam"<<endl;
              exit(1);
            }
            else cout <<"Histo file "<<"beam"<<" opened."<<endl;
 
+              HBOOK1(101,"td",400,-38.5,361.5,0.);
     char critin[]="/offline/vdev/slow/gsi/testbeam.log";
     char prod[]="/offline/vdev/slow/gsi/testbeam.info";
-    char ref[]="/offline/vdev/slow/gsi/z72.log";
+//    char ref[]="/offline/vdev/slow/gsi/ultimz.log";
+    char ref[]="/offline/vdev/slow/gsi/z00_utime.tag";
     char junk[256];
     char junk1[256];
     char junk2[256];
@@ -159,12 +161,11 @@ class BeamPar {
       if(strstr(junk1,"MeV"))nlineProd++;       
    }      
     fprod.close();
+/*
     ifstream fref;
     fref.open(ref);
     int nlineRef=0;
 
-     fref >> junk;
-     fref.ignore(INT_MAX,'\n');
     while(1){
      fref >> junk;
      fref.ignore(INT_MAX,'\n');
@@ -175,27 +176,71 @@ class BeamPar {
     fref.open(ref);
     BeamParEntry * BeamRef = new BeamParEntry[nlineRef];  
     nlineRef=0;
-     fref >>junk;
-     fref.ignore(INT_MAX,'\n');
     while(1){
-     fref >>junk;
+     fref>>BeamRef[nlineRef].Run;
      if(fref.eof())break;
+     fref>>BeamRef[nlineRef].Time;
+     fref >>junk;
+     fref >>junk;
+     fref >>junk;
+     fref >>junk;
      sscanf(junk,"%x",&BeamRef[nlineRef].RunTag);
+     fref >>junk;
+     fref >>junk;
+     fref >>junk;
+     fref >>junk;
+     fref >>junk;
+     fref >>junk;
      fref >> BeamRef[nlineRef].X;
      fref >> BeamRef[nlineRef].Y;
-     fref >> BeamRef[nlineRef].Z;
+     BeamRef[nlineRef].Z=72;
      fref >> BeamRef[nlineRef].Theta;
      BeamRef[nlineRef].Theta*=3.1415926/180.;
      fref >> BeamRef[nlineRef].Phi;
      BeamRef[nlineRef].Phi*=3.1415926/180.;
-     fref >> BeamRef[nlineRef++].Time;
-
+     nlineRef++;
      fref.ignore(INT_MAX,'\n');
      if(fref.eof())break;
     }      
     fref.close();
+*/
 
+    ifstream fref;
+    fref.open(ref);
+    int nlineRef=0;
 
+    while(1){
+     fref >>junk;
+     fref.ignore(INT_MAX,'\n');
+     if(fref.eof())break;
+     nlineRef++;
+    }     
+    fref.close();
+    fref.open(ref);
+    BeamParEntry * BeamRef = new BeamParEntry[nlineRef];  
+    nlineRef=0;
+    while(1){
+     fref >>junk;
+     if(fref.eof())break;
+     sscanf(junk,"%x",&BeamRef[nlineRef].RunTag);
+     fref >> BeamRef[nlineRef].Time;
+     fref >>junk;
+     fref >>junk;
+     fref >> BeamRef[nlineRef].X;
+     fref >> BeamRef[nlineRef].Y;
+     fref >> BeamRef[nlineRef].Theta;
+     BeamRef[nlineRef].Theta*=3.1415926/180.;
+     fref >> BeamRef[nlineRef].Phi;
+     BeamRef[nlineRef].Phi*=3.1415926/180.;
+     BeamRef[nlineRef].Z=72;
+     number s=BeamRef[nlineRef].Z/cos(BeamRef[nlineRef].Theta);
+     BeamRef[nlineRef].X+=s*sin(BeamRef[nlineRef].Theta)*cos(BeamRef[nlineRef].Phi);     
+     BeamRef[nlineRef].Y+=s*sin(BeamRef[nlineRef].Theta)*sin(BeamRef[nlineRef].Phi);     
+     nlineRef++;
+     fref.ignore(INT_MAX,'\n');
+     if(fref.eof())break;
+    }      
+    fref.close();
 
 
      cout <<" Phase 1 Terminated "<<nlineRef<<" "<<nlineProd<<"  "<<nlineCritin<<endl;
@@ -207,39 +252,39 @@ class BeamPar {
           int found=0;
           BeamRef[i].Good=0;
        for(int j=0;j<nlineProd;j++){
-          if(BeamRef[i].RunTag!=4096 && 
+          if(BeamRef[i].RunTag!=4096 &&
              BeamRef[i].RunTag==BeamInfo[j].RunTag){
 
             // check x,y,z
             for(int k=0;k<nlineCritin;k++){
               if(BeamRef[i].RunTag!=4096 && BeamRef[i].RunTag!=0 && 
                BeamRef[i].RunTag==BeamCritin[k].RunTag){
-               if(BeamRef[i].Time != BeamCritin[k].Time){
-                cerr <<hex<<BeamRef[i].RunTag<<dec<< "Time diff "<<
-                 BeamRef[i].Time<< " "<<BeamCritin[k].Time<<endl;
+//               if(BeamRef[i].Time != BeamCritin[k].Time){
+//                cout <<hex<<BeamRef[i].RunTag<<dec<< "Time diff "<<
+//                 BeamRef[i].Time<< " "<<BeamCritin[k].Time<<endl;
 //                 BeamRef[i].Time=BeamCritin[k].Time;
-               }
+//               }
                if(fabs(BeamRef[i].X -BeamCritin[k].X)>0.1){
-                cerr <<hex<<BeamRef[i].RunTag<<dec<< "X diff "<<
+                cout <<hex<<BeamRef[i].RunTag<<dec<< "X diff "<<
                  BeamRef[i].X<< " "<<BeamCritin[k].X<<endl;
 //                 BeamRef[i].X= BeamCritin[k].X;
                 }
                if(fabs(BeamRef[i].Y - BeamCritin[k].Y)>0.1){
-                cerr <<hex<<BeamRef[i].RunTag<<dec<< "Y diff "<<
+                cout <<hex<<BeamRef[i].RunTag<<dec<< "Y diff "<<
                  BeamRef[i].Y<< " "<<BeamCritin[k].Y<<endl;
   //               BeamRef[i].Y= BeamCritin[k].Y;
                 }
                if(fabs(BeamRef[i].Z - BeamCritin[k].Z)>0.1){
-                cerr <<hex<<BeamRef[i].RunTag<<dec<< "Z diff "<<
+                cout <<hex<<BeamRef[i].RunTag<<dec<< "Z diff "<<
                  BeamRef[i].Z<< " "<<BeamCritin[k].Z<<endl;
                 }
                if(fabs(BeamRef[i].Theta - BeamCritin[k].Theta)>0.01){
-                cerr <<hex<<BeamRef[i].RunTag<<dec<< "Theta diff "<<
+                cout <<hex<<BeamRef[i].RunTag<<dec<< "Theta diff "<<
                  BeamRef[i].Theta<< " "<<BeamCritin[k].Theta<<endl;
       //           BeamRef[i].Theta= BeamCritin[k].Theta;
                 }
                if(fabs(asin(sin(BeamRef[i].Phi - BeamCritin[k].Phi)))>0.01){
-                cerr <<hex<<BeamRef[i].RunTag<<dec<< "Phi diff "<<
+                cout <<hex<<BeamRef[i].RunTag<<dec<< "Phi diff "<<
                  BeamRef[i].Phi<< " "<<BeamCritin[k].Phi<<endl;
         //         BeamRef[i].Phi= BeamCritin[k].Phi;
                }
@@ -248,6 +293,7 @@ class BeamPar {
 
 
               // check times;
+              HF1(101,float(BeamRef[i].Time-BeamInfo[j].Time),1.);
               if(BeamRef[i].Time>BeamInfo[j].Time){
                 if(BeamRef[i].Time-BeamInfo[j].Time<1000 && i!=0 &&
                  BeamInfo[j].Time>BeamRef[i-1].Time ){
@@ -256,7 +302,7 @@ class BeamPar {
                 cout <<"Time Error corrected "<<endl;
                }
                else {
-               cerr<<" Time Error "<<hex<<BeamRef[i].RunTag<<" "<<dec<<BeamRef[i].Time-BeamInfo[j].Time<<" "<<BeamRef[i].Time<<hex<<" "<<BeamInfo[j].Time<<endl;
+               cout<<" Time Error "<<hex<<BeamRef[i].RunTag<<" "<<dec<<BeamRef[i].Time-BeamInfo[j].Time<<" "<<BeamRef[i].Time<<hex<<" "<<BeamInfo[j].Time<<endl;
                }
               }
             good++;
@@ -268,12 +314,12 @@ class BeamPar {
             break;
           }
        }
-          if(!found)cerr<<"error "<<BeamRef[i].Time<<" "<<hex<<BeamRef[i].RunTag<<endl;          
+          if(!found)cout<<"error "<<BeamRef[i].Run<<" "<<hex<<BeamRef[i].RunTag<<dec<<endl;          
       }
-       cout <<"good found "<<good<<endl;
+       cout <<"good found "<<dec<<good<<endl;
        BeamParEntry blockNt;
               HBNT(1,"Beam Data"," ");
-              HBNAME(1,"GSIBeam",(int*)(&blockNt),"RunTag:I,Time:I,alpha,beta,H,V,X,Y,Z,Theta,Phi,Pid:I,mom:R,intens:R,Position:I,size:R,good:I");
+              HBNAME(1,"GSIBeam",(int*)(&blockNt),"RUN:I,RunTag:I,Time:I,alpha,beta,H,V,X,Y,Z,Theta,Phi,Pid:I,mom:R,intens:R,Position:I,size:R,good:I");
        for(i=0;i<nlineRef;i++){
         blockNt=BeamRef[i];
         HFNT(1);
@@ -287,7 +333,7 @@ class BeamPar {
                 char houtput[9]="//output";
                 HCDIR (houtput, " ");
                 integer ICYCL=0;
-                HROUT (1, ICYCL, " ");
+                HROUT (0, ICYCL, " ");
                 HREND ("output");
                 CLOSEF(1);
 
@@ -391,8 +437,8 @@ void beam_coo_calc(BeamParEntry & record){
   }
 
   R=cosf(record.Theta);
-  if (R*R<1e-6)
-    record.Z=0.;
+//  if (R*R<1e-6)
+//    record.Z=0.;
   //crossing a plane, perp. to the AMS z-axis, for a given z
   R=(record.Z-xyz1[2]);
   record.X=xyz1[0]+R*tanf(record.Theta)*cosf(record.Phi);

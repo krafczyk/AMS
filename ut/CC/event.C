@@ -245,7 +245,10 @@ void AMSEvent::_endofrun() {
      found = 0;
      while (fgets(line,255,runs)) {
        ptr[0] = strtok(line," ");
-       for (int j=1; j<NSUBS; j++) ptr[j] = strtok(NULL," ");
+       ptr[1] = strtok(NULL," ");
+       // hack
+       if(atoi(ptr[0])>900578135)ptr[1] = strtok(NULL," ");
+       ptr[2] = strtok(NULL," ");
        if (SRun == atoi(ptr[RUN])) {
          found = 1;
          events = atoi(ptr[EVENTS]);

@@ -70,7 +70,7 @@ void main(int argc, char *argv[])
   amd->AddSubDet(TOFh);
   AMSCTCHist  CTCh("CTC","CTC  Hists",2,1);
   amd->AddSubDet(CTCh);
-  AMSAxAMSHist  AxAMSh("AxAMS","AxAMS  Hists",2,1);
+  AMSAxAMSHist  AxAMSh("AxAMS","AxAMS  Hists",4,1);
   amd->AddSubDet(AxAMSh);
   AMSGenHist  Genh("Gen","Gen  Hists",6,1);
   amd->AddSubDet(Genh);
@@ -78,8 +78,7 @@ void main(int argc, char *argv[])
   amd->Init();
   amd->SetApplication(theApp);
   amd->Begin()=0;
-  amd->Sample()=900;
-  int Sample=1000;
+  amd->Sample()=999;
       for(;;){
         amd->Fill();
         amd->DispatchProcesses();  

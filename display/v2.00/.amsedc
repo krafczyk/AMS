@@ -1,6 +1,4 @@
 DISPLAY=$1
-ROOTSYS=/cern/root/v2.00
-export ROOTSYS
 PRINTER=sci1
 export PRINTER
 LD_LIBRARY_PATH=.:$ROOTSYS/lib
@@ -9,7 +7,7 @@ DISPLAY=$DISPLAY
 export DISPLAY
 export  AMSEDDataDir
 export LD_LIBRARY_PATH
-while( amsedc )
+while( $amsed -c )
 do
 echo amsedc terminated
 done

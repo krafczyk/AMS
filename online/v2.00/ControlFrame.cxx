@@ -265,6 +265,8 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
  
     fSubDetMenu[6]->AddEntry("Set 0",160);
     fSubDetMenu[6]->AddEntry("Set 1",161);
+    fSubDetMenu[6]->AddEntry("BeamProfile",162);
+    fSubDetMenu[6]->AddEntry("ReconstructionEfficiency",163);
     
     fSubDetMenu[7]->AddEntry("Length",170);
     fSubDetMenu[7]->AddEntry("TOF Length",171);

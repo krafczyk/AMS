@@ -31,7 +31,7 @@ AMSDisplay.o: /Offline/root/OSF1/include/TPolyLine3D.h
 AMSDisplay.o: /Offline/root/OSF1/include/X3DBuffer.h
 AMSDisplay.o: /Offline/root/OSF1/include/DllImport.h AMSDisplay.h
 AMSDisplay.o: /Offline/root/OSF1/include/TApplication.h AMSCanvas.h
-AMSDisplay.o: TRootCanvas.h TGFrame.h AMSHist.h
+AMSDisplay.o: TRootCanvas.h /Offline/root/OSF1/include/TGFrame.h AMSHist.h
 AMSDisplay.o: /Offline/root/OSF1/include/TTree.h
 AMSDisplay.o: /Offline/root/OSF1/include/TNamed.h
 AMSDisplay.o: /Offline/root/OSF1/include/TH2.h
@@ -75,8 +75,9 @@ AMSCanvas.o: /Offline/root/OSF1/include/TControlBar.h
 AMSCanvas.o: /Offline/root/OSF1/include/TContextMenu.h
 AMSCanvas.o: /Offline/root/OSF1/include/TText.h AMSDisplay.h
 AMSCanvas.o: /Offline/root/OSF1/include/TApplication.h AMSCanvas.h
-AMSCanvas.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h TGFrame.h
-AMSCanvas.o: AMSHist.h /Offline/root/OSF1/include/TTree.h
+AMSCanvas.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h
+AMSCanvas.o: /Offline/root/OSF1/include/TGFrame.h AMSHist.h
+AMSCanvas.o: /Offline/root/OSF1/include/TTree.h
 AMSCanvas.o: /Offline/root/OSF1/include/TNamed.h
 AMSCanvas.o: /Offline/root/OSF1/include/TH2.h
 AMSCanvas.o: /Offline/root/OSF1/include/TH1.h
@@ -126,9 +127,9 @@ AMSAntiHist.o: /Offline/root/OSF1/include/TFile.h
 AMSAntiHist.o: /Offline/root/OSF1/include/TPad.h
 AMSAntiHist.o: /Offline/root/OSF1/include/TPaveLabel.h AMSDisplay.h
 AMSAntiHist.o: /Offline/root/OSF1/include/TApplication.h AMSCanvas.h
-AMSAntiHist.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h TGFrame.h
-AMSAntiHist.o: ControlFrame.h /usr/include/stdlib.h
-AMSAntiHist.o: /Offline/root/OSF1/include/TROOT.h
+AMSAntiHist.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h
+AMSAntiHist.o: /Offline/root/OSF1/include/TGFrame.h ControlFrame.h
+AMSAntiHist.o: /usr/include/stdlib.h /Offline/root/OSF1/include/TROOT.h
 AMSAntiHist.o: /Offline/root/OSF1/include/TGXW.h
 AMSAntiHist.o: /Offline/root/OSF1/include/TGClient.h
 AMSAntiHist.o: /Offline/root/OSF1/include/TObject.h
@@ -173,8 +174,8 @@ AMSTrackerHist.o: /Offline/root/OSF1/include/TPad.h
 AMSTrackerHist.o: /Offline/root/OSF1/include/TPaveLabel.h AMSDisplay.h
 AMSTrackerHist.o: /Offline/root/OSF1/include/TApplication.h AMSCanvas.h
 AMSTrackerHist.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h
-AMSTrackerHist.o: TGFrame.h ControlFrame.h /usr/include/stdlib.h
-AMSTrackerHist.o: /Offline/root/OSF1/include/TROOT.h
+AMSTrackerHist.o: /Offline/root/OSF1/include/TGFrame.h ControlFrame.h
+AMSTrackerHist.o: /usr/include/stdlib.h /Offline/root/OSF1/include/TROOT.h
 AMSTrackerHist.o: /Offline/root/OSF1/include/TGXW.h
 AMSTrackerHist.o: /Offline/root/OSF1/include/TGClient.h
 AMSTrackerHist.o: /Offline/root/OSF1/include/TObject.h
@@ -216,9 +217,9 @@ AMSCTCHist.o: /Offline/root/OSF1/include/TFile.h
 AMSCTCHist.o: /Offline/root/OSF1/include/TPad.h
 AMSCTCHist.o: /Offline/root/OSF1/include/TPaveLabel.h AMSDisplay.h
 AMSCTCHist.o: /Offline/root/OSF1/include/TApplication.h AMSCanvas.h
-AMSCTCHist.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h TGFrame.h
-AMSCTCHist.o: ControlFrame.h /usr/include/stdlib.h
-AMSCTCHist.o: /Offline/root/OSF1/include/TROOT.h
+AMSCTCHist.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h
+AMSCTCHist.o: /Offline/root/OSF1/include/TGFrame.h ControlFrame.h
+AMSCTCHist.o: /usr/include/stdlib.h /Offline/root/OSF1/include/TROOT.h
 AMSCTCHist.o: /Offline/root/OSF1/include/TGXW.h
 AMSCTCHist.o: /Offline/root/OSF1/include/TGClient.h
 AMSCTCHist.o: /Offline/root/OSF1/include/TObject.h
@@ -259,9 +260,9 @@ AMSTOFHist.o: /Offline/root/OSF1/include/TFile.h
 AMSTOFHist.o: /Offline/root/OSF1/include/TPad.h
 AMSTOFHist.o: /Offline/root/OSF1/include/TPaveLabel.h AMSDisplay.h
 AMSTOFHist.o: /Offline/root/OSF1/include/TApplication.h AMSCanvas.h
-AMSTOFHist.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h TGFrame.h
-AMSTOFHist.o: ControlFrame.h /usr/include/stdlib.h
-AMSTOFHist.o: /Offline/root/OSF1/include/TROOT.h
+AMSTOFHist.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h
+AMSTOFHist.o: /Offline/root/OSF1/include/TGFrame.h ControlFrame.h
+AMSTOFHist.o: /usr/include/stdlib.h /Offline/root/OSF1/include/TROOT.h
 AMSTOFHist.o: /Offline/root/OSF1/include/TGXW.h
 AMSTOFHist.o: /Offline/root/OSF1/include/TGClient.h
 AMSTOFHist.o: /Offline/root/OSF1/include/TObject.h
@@ -307,9 +308,9 @@ AMSLVL1Hist.o: /Offline/root/OSF1/include/TFile.h
 AMSLVL1Hist.o: /Offline/root/OSF1/include/TPad.h
 AMSLVL1Hist.o: /Offline/root/OSF1/include/TPaveLabel.h AMSDisplay.h
 AMSLVL1Hist.o: /Offline/root/OSF1/include/TApplication.h AMSCanvas.h
-AMSLVL1Hist.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h TGFrame.h
-AMSLVL1Hist.o: ControlFrame.h /usr/include/stdlib.h
-AMSLVL1Hist.o: /Offline/root/OSF1/include/TROOT.h
+AMSLVL1Hist.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h
+AMSLVL1Hist.o: /Offline/root/OSF1/include/TGFrame.h ControlFrame.h
+AMSLVL1Hist.o: /usr/include/stdlib.h /Offline/root/OSF1/include/TROOT.h
 AMSLVL1Hist.o: /Offline/root/OSF1/include/TGXW.h
 AMSLVL1Hist.o: /Offline/root/OSF1/include/TGClient.h
 AMSLVL1Hist.o: /Offline/root/OSF1/include/TObject.h
@@ -350,9 +351,9 @@ AMSLVL3Hist.o: /Offline/root/OSF1/include/TFile.h
 AMSLVL3Hist.o: /Offline/root/OSF1/include/TPad.h
 AMSLVL3Hist.o: /Offline/root/OSF1/include/TPaveLabel.h AMSDisplay.h
 AMSLVL3Hist.o: /Offline/root/OSF1/include/TApplication.h AMSCanvas.h
-AMSLVL3Hist.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h TGFrame.h
-AMSLVL3Hist.o: ControlFrame.h /usr/include/stdlib.h
-AMSLVL3Hist.o: /Offline/root/OSF1/include/TROOT.h
+AMSLVL3Hist.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h
+AMSLVL3Hist.o: /Offline/root/OSF1/include/TGFrame.h ControlFrame.h
+AMSLVL3Hist.o: /usr/include/stdlib.h /Offline/root/OSF1/include/TROOT.h
 AMSLVL3Hist.o: /Offline/root/OSF1/include/TGXW.h
 AMSLVL3Hist.o: /Offline/root/OSF1/include/TGClient.h
 AMSLVL3Hist.o: /Offline/root/OSF1/include/TObject.h
@@ -397,7 +398,8 @@ AMSAxAMSHist.o: AMSLVL1Hist.h AMSLVL3Hist.h AMSGenHist.h /usr/include/time.h
 AMSAxAMSHist.o: /usr/include/sys/timers.h /usr/include/sys/sysmisc.h
 AMSAxAMSHist.o: AMSDisplay.h /Offline/root/OSF1/include/TApplication.h
 AMSAxAMSHist.o: AMSCanvas.h TRootCanvas.h
-AMSAxAMSHist.o: /Offline/root/OSF1/include/TCanvas.h TGFrame.h ControlFrame.h
+AMSAxAMSHist.o: /Offline/root/OSF1/include/TCanvas.h
+AMSAxAMSHist.o: /Offline/root/OSF1/include/TGFrame.h ControlFrame.h
 AMSAxAMSHist.o: /usr/include/stdlib.h /Offline/root/OSF1/include/TROOT.h
 AMSAxAMSHist.o: /Offline/root/OSF1/include/TGXW.h
 AMSAxAMSHist.o: /Offline/root/OSF1/include/TGClient.h
@@ -437,9 +439,9 @@ AMSGenHist.o: /Offline/root/OSF1/include/TFile.h
 AMSGenHist.o: /Offline/root/OSF1/include/TPad.h
 AMSGenHist.o: /Offline/root/OSF1/include/TPaveLabel.h AMSDisplay.h
 AMSGenHist.o: /Offline/root/OSF1/include/TApplication.h AMSCanvas.h
-AMSGenHist.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h TGFrame.h
-AMSGenHist.o: ControlFrame.h /usr/include/stdlib.h
-AMSGenHist.o: /Offline/root/OSF1/include/TROOT.h
+AMSGenHist.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h
+AMSGenHist.o: /Offline/root/OSF1/include/TGFrame.h ControlFrame.h
+AMSGenHist.o: /usr/include/stdlib.h /Offline/root/OSF1/include/TROOT.h
 AMSGenHist.o: /Offline/root/OSF1/include/TGXW.h
 AMSGenHist.o: /Offline/root/OSF1/include/TGClient.h
 AMSGenHist.o: /Offline/root/OSF1/include/TObject.h
@@ -493,7 +495,8 @@ ControlFrame.o: /Offline/root/OSF1/include/TApplication.h
 ControlFrame.o: /Offline/root/OSF1/include/TGXW.h
 ControlFrame.o: /Offline/root/OSF1/include/TGClient.h
 ControlFrame.o: /Offline/root/OSF1/include/TObject.h
-ControlFrame.o: /Offline/root/OSF1/include/GuiTypes.h TGFrame.h
+ControlFrame.o: /Offline/root/OSF1/include/GuiTypes.h
+ControlFrame.o: /Offline/root/OSF1/include/TGFrame.h
 ControlFrame.o: /Offline/root/OSF1/include/TGIcon.h
 ControlFrame.o: /Offline/root/OSF1/include/TGLabel.h
 ControlFrame.o: /Offline/root/OSF1/include/TGButton.h
@@ -531,10 +534,10 @@ main.o: /Offline/root/OSF1/include/TROOT.h
 main.o: /Offline/root/OSF1/include/TApplication.h
 main.o: /Offline/root/OSF1/include/TFile.h /Offline/root/OSF1/include/TTree.h
 main.o: /Offline/root/OSF1/include/TGeometry.h AMSDisplay.h AMSCanvas.h
-main.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h TGFrame.h
-main.o: AMSHist.h /Offline/root/OSF1/include/TNamed.h
-main.o: /Offline/root/OSF1/include/TH2.h /Offline/root/OSF1/include/TH1.h
-main.o: /Offline/root/OSF1/include/TPad.h
+main.o: TRootCanvas.h /Offline/root/OSF1/include/TCanvas.h
+main.o: /Offline/root/OSF1/include/TGFrame.h AMSHist.h
+main.o: /Offline/root/OSF1/include/TNamed.h /Offline/root/OSF1/include/TH2.h
+main.o: /Offline/root/OSF1/include/TH1.h /Offline/root/OSF1/include/TPad.h
 main.o: /Offline/root/OSF1/include/TPaveLabel.h ControlFrame.h
 main.o: /usr/include/stdlib.h /usr/include/standards.h /usr/include/getopt.h
 main.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h

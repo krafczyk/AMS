@@ -12,7 +12,7 @@ AMSAxAMSHist::AMSAxAMSHist(Text_t * name, Text_t * title, Int_t maxset, Int_t ac
 }
 
 void AMSAxAMSHist::_Fill(){
-_m2filled=5+1;
+_m2filled=5+1+1+4+1;
 _filled2= new TH1*[_m2filled];
 for(int mf=0;mf<_m2filled;mf++)_filled2[mf]=0;
 int i=0;
@@ -40,6 +40,21 @@ _filled2[i++]->SetYTitle("Velocity");
 _filled2[i]=new TProfile("TrackerRes","Tracker delta_p/p vs p",100,0.,20.,0.,1000.);
 _filled2[i]->SetXTitle("Momentum (GeV)");
 _filled2[i]->SetYTitle("Resolution dp/p (%)");
+_filled2[i++]->SetFillColor(color++);
+_filled2[i]=new TH1F("XCoo","XCoo",400,-40.,40.);
+_filled2[i]->SetXTitle("X Coo  (cm) at Z=72 cm");
+_filled2[i++]->SetFillColor(color++);
+_filled2[i]=new TH1F("YCoo","YCoo",400,-40.,40.);
+_filled2[i]->SetXTitle("Y Coo  (cm) at Z=72 cm");
+_filled2[i++]->SetFillColor(color++);
+_filled2[i]=new TH1F("Theta","Theta",360,0.,180.);
+_filled2[i]->SetXTitle("Theta (Deg)");
+_filled2[i++]->SetFillColor(color++);
+_filled2[i]=new TH1F("Phi","Phi",360,0.,360.);
+_filled2[i]->SetXTitle("Phi (Deg");
+_filled2[i++]->SetFillColor(color++);
+_filled2[i]=new TH1F("NPart","NPart",10,-0.5,9.5);
+_filled2[i]->SetXTitle("Number of Rec Particles");
 _filled2[i++]->SetFillColor(color++);
 }
 
@@ -82,6 +97,7 @@ gPadSave->cd();
 
 break;
 case 1:
+{
 gPad->Divide(1,2);
  gPad->cd(1);
 TVirtualPad * gp1=gPad; 
@@ -102,12 +118,33 @@ TVirtualPad * gp1=gPad;
  gPad->SetLogx(gAMSDisplay->IsLogX());
  gPad->SetLogy(gAMSDisplay->IsLogY());
  _filled2[5]->Draw();
+break;
+}
+case 2:
+gPad->Divide(2,2);
+for(i=0;i<4;i++){
+ gPad->cd(i+1);
+ gPad->SetLogx(gAMSDisplay->IsLogX());
+ gPad->SetLogy(gAMSDisplay->IsLogY());
+ gPad->SetLogz(gAMSDisplay->IsLogZ());
+ _filled2[i+7]->Draw();
+gPadSave->cd();
+}
+break;
+case 3:
+ gPad->SetLogx(gAMSDisplay->IsLogX());
+ gPad->SetLogy(gAMSDisplay->IsLogY());
+ gPad->SetLogz(gAMSDisplay->IsLogZ());
+ _filled2[11]->Draw();
+
+
 }
 
 
 }
 
 void AMSAxAMSHist::Fill(AMSNtuple * ntuple){
+    _filled2[11]->Fill(ntuple->_AxAMS.npart,1.);
   if(ntuple->_AxAMS.npart){
     _filled2[0]->Fill(ntuple->_AxAMS.pmom[0],1.);
     _filled2[1]->Fill(fabs(ntuple->_AxAMS.pmom[0]),1.);
@@ -121,5 +158,10 @@ void AMSAxAMSHist::Fill(AMSNtuple * ntuple){
      if (fabs(ntuple->_AxAMS.pmom[0]) !=0)err=err/fabs(ntuple->_AxAMS.pmom[0]);
     }
     _filled2[6]->Fill(fabs(ntuple->_AxAMS.pmom[0]),err,1.);
+    _filled2[7]->Fill(ntuple->_AxAMS.cootof[0][0][0],1.);
+    _filled2[8]->Fill(ntuple->_AxAMS.cootof[0][0][1],1.);
+    _filled2[9]->Fill(ntuple->_AxAMS.ptheta[0]*180./3.1415926,1.);
+    _filled2[10]->Fill(ntuple->_AxAMS.pphi[0]*180./3.1415926,1.);
   }
+  
 }

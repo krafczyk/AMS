@@ -32,7 +32,7 @@ void IdleHandle(Int_t option)
           return;
        }
        strcpy(file_holder,data_dir);
-       strcat(file_holder,"/newdata");
+       strcat(file_holder,"/newroot");
        iftxt.open(file_holder,ios::in);
        if (!iftxt) {
           cerr <<"amsedc::init-F-ErrorOpenFile "<< file_holder << endl;
@@ -41,21 +41,24 @@ void IdleHandle(Int_t option)
        }
        iftxt >> file_new;
        iftxt.close();
-       Int_t iret = gAMSR_Root->OpenDataFile(file_new,kUnknown);
+       char fullname[256];
+       strcpy(fullname,data_dir);
+       strcat(fullname,file_new);
+       Int_t iret = gAMSR_Root->OpenDataFile(fullname,kUnknown);
        if (iret !=0 ) {
-          cerr << "Failed to open file =" << file_new;
+          cerr << "Failed to open file =" << fullname;
           gSystem->ExitLoop();
           return;
        }
        ntp=gAMSR_Root->GetNtuple();
        t        = ntp->GetTree();
        if ( t==0 || totEvt<0 ) {
-          cout << "Empty file ?! No event in " << file_new << endl;
+          cout << "Empty file ?! No event in " << fullname << endl;
           gSystem->ExitLoop();
           return;
       }
        totEvt   = ntp->GetEntries();
-       printf("data file %s has %d events\n", file_new, totEvt);
+       printf("data file %s has %d events\n", fullname, totEvt);
        totEvt = totEvt-1;
        if (f_cut != 0) f_cut->SetTree(t);
        else f_cut=new TTreeFormula("cut",cut,t);
@@ -91,8 +94,11 @@ void IdleHandle(Int_t option)
     iftxt.open(file_holder,ios::in);
     iftxt >> file_new;
     iftxt.close();
-    if (strcmp(file_old,file_new)) {
-       cout << "filename changed from " << file_old << " to " << file_new << endl;
+       char fullname[256];
+       strcpy(fullname,data_dir);
+       strcat(fullname,file_new);
+    if (strcmp(file_old,fullname)) {
+       cout << "filename changed from " << file_old << " to " << fullname << endl;
        gSystem->ExitLoop();
        return;
     }

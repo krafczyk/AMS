@@ -13,6 +13,9 @@
 *     thetalocgl (rad)   on entry :loc on exit gl   
 *     philocglgl   (rad)  -----------------------
 *
+*     local === ams cooo sys
+*     global == GTOD
+*
 *     output
 *     cosmag cos(particle dir, mag meridian plane)
 *
