@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.138 2003/04/30 14:19:11 alexei Exp $
+# $Id: RemoteClient.pm,v 1.139 2003/04/30 14:38:41 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6192,11 +6192,11 @@ foreach my $block (@blocks) {
       my $crccmd = "$self->{AMSSoftwareDir}/exe/linux/crc $dstfile $ntcrc";
       $i=system($crccmd);
       print FILE "$crccmd : Status : $i \n";
-      if ($i != 1) {
-          $unchecked++;
-          $copyfailed = 1;
-          last;
-      }
+#      if ($i != 1) {
+#          $unchecked++;
+#          $copyfailed = 1;
+#          last;
+#      }
       $i=0;
       if ($nttype eq 'Ntuple') {
         my $validatecmd = 
