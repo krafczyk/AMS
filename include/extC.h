@@ -35,3 +35,5 @@ extern "C" void initDB();
 extern "C" void readDB();
 extern "C" void readSetup();
 extern "C" void writeSetup();
+extern "C" void readmfield_();
+#define READMFIELD readmfield_

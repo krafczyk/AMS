@@ -246,8 +246,6 @@ void AMSCharge::init(){
   AMSCommonsI cmni;
   cmni.init();
 #endif
-geant v[3],x[3];
-GUFLD(x,v);
 int i,j;
 char fnam[256]="";
 strcpy(fnam,AMSDATADIR.amsdatadir);

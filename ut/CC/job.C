@@ -383,6 +383,7 @@ void AMSJob::_sitrddata(){
 }
 
 void AMSJob:: _reamsdata(){
+_remfdata();
 _retkdata();
 _retofdata();
 _reantidata();
@@ -390,6 +391,22 @@ _retrddata();
 _rectcdata();
 _reaxdata();
 _redaqdata();
+}
+
+void AMSJob::_remfdata(){
+TKFIELD.iniok=1;
+TKFIELD.isec[0]=0;
+TKFIELD.isec[1]=0;
+TKFIELD.imin[0]=0;
+TKFIELD.imin[1]=0;
+TKFIELD.ihour[0]=0;
+TKFIELD.ihour[1]=0;
+TKFIELD.imon[0]=0;
+TKFIELD.imon[1]=0;
+TKFIELD.iyear[0]=0;
+TKFIELD.iyear[1]=0;
+FFKEY("BMAP",(float*)&TKFIELD,11,"MIXED");
+
 }
 
 void AMSJob::_retkdata(){
@@ -902,6 +919,7 @@ void AMSJob::_sitrdinitjob(){
 
 
 void AMSJob::_reamsinitjob(){
+_remfinitjob();
 _redaqinitjob();
 _retkinitjob();
 _retofinitjob();
@@ -955,12 +973,19 @@ void AMSJob::_cactcinitjob(){
 void AMSJob::_caaxinitjob(){
 }
 
+void AMSJob::_remfinitjob(){
+READMFIELD();
+}
+
+
 void AMSJob::_retkinitjob(){
 AMSgObj::BookTimer.book("RETKEVENT");
 AMSgObj::BookTimer.book("TrCluster");
 AMSgObj::BookTimer.book("TrClusterRefit");
 AMSgObj::BookTimer.book("TrRecHit");
 AMSgObj::BookTimer.book("TrTrack");
+
+
 }
 //--------------------------------------------------------------------------
 void AMSJob::_retofinitjob(){

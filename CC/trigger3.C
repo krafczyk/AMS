@@ -642,7 +642,7 @@ integer TriggerLVL3::_UpdateOK(geant s, integer pat){
      return 0;
   }
   else {
-   _Residual[_NPatFound]=-_Residual[_NPatFound]/(_patpoints[pat]-2)/s;
+   _Residual[_NPatFound]=_Residual[_NPatFound]/(_patpoints[pat]-2)/s;
    _Pattern[_NPatFound++]=pat;
    return 1;
   }

@@ -445,12 +445,19 @@ geant ResFunY[3][6];
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)
 COMMON_BLOCK_DEF(TRCLFFKEY_DEF,TRCLFFKEY);
 
-const integer nx=29;
-const integer ny=29;
-const integer nz=35;
+const integer nx=33;
+const integer ny=33;
+const integer nz=227;
 class TKFIELD_DEF{
 public:
 integer iniok;
+integer isec[2];
+integer imin[2];
+integer ihour[2];
+integer iday[2];
+integer imon[2];
+integer iyear[2];
+integer na[3];
 geant  x[nx];
 geant  y[ny];
 geant  z[nz];
@@ -458,12 +465,9 @@ geant bx[nz][ny][nx];
 geant by[nz][ny][nx];
 geant bz[nz][ny][nx];
 geant xyz[nx+ny+nz];
-integer isec[2];
-integer imin[2];
-integer ihour[2];
-integer iday[2];
-integer imon[2];
-integer iyear[2];
+geant bdx[2][nz][ny][nx];
+geant bdy[2][nz][ny][nx];
+geant bdz[2][nz][ny][nx];
 };
 #define TKFIELD COMMON_BLOCK(TKFIELD,tkfield)
 COMMON_BLOCK_DEF(TKFIELD_DEF,TKFIELD);

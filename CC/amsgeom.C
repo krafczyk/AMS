@@ -986,9 +986,11 @@ void ctcgeomAGPlus(AMSgvolume & mother){
   strcpy(cdum[0],"UPPE");
   strcpy(cdum[1],"LOWE");
   // Add Tungsten first
-      for(i=0;i<2;i++)par[i]=0.5*CTCDBc::getupsize(i);
+      par[0]=12;
+      par[1]=45;
       par[2]=1.05/2;
-      coo[0]=coo[1]=5.5;
+      coo[0]=0;
+      coo[1]=5.5;
       coo[2]=zr-0.5*CTCDBc::getthcsize(2)-0.55;   // for W
       pLayer=mother.add(new AMSgvolume(
        "TUNGSTEN",0,"AMP1","BOX ",par,3,coo,nrm,"ONLY",0,1000001));
@@ -1101,16 +1103,6 @@ void ctcgeomAGPlus(AMSgvolume & mother){
   char cdum[2][5];
   strcpy(cdum[0],"UPPE");
   strcpy(cdum[1],"EXTR");
-  // Add Tungsten first
-      par[0]= 0.25*CTCDBc::getcellsize(0)+0.5*CTCDBc::getwallsize(0);
-      for(i=1;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
-      par[2]=1.05/2;
-      coo[0]=5.5-0.5*CTCDBc::getupsize(0)-0.25*CTCDBc::getcellsize(0)-
-      CTCDBc::getwallsize(0);
-      coo[1]=5.5;
-      coo[2]=zr-0.5*CTCDBc::getthcsize(2)-0.55;   // for W
-      pLayer=mother.add(new AMSgvolume(
-       "TUNGSTEN",0,"AMP3","BOX ",par,3,coo,nrm,"ONLY",0,3000001));
   for(ilay=2;ilay<3;ilay++){
     if(ilay==1){
      for(i=0;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
