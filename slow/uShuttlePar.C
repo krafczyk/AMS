@@ -51,23 +51,23 @@ PAWC_DEF PAWC;
     float VelPhi;       // rad,I2000
     float VelThetaGTOD; // rad,GTOD
     float VelPhiGTOD;   // rad,GTOD
-    time_t Time;        // UNIX sec, tuned
+    time_t Time;
   };
 
  class ShuttlePar{
   public:
-    float StationR;     //cm
+   float StationR;     //cm
    float StationTheta; //rad,GTOD
    float StationPhi;   //rad,GTOD
-   float GrMedPhi;     // = 0 , GTOD
+   float GrMedPhi;     // 0
    float StationYaw;   //rad,LVLH
    float StationPitch; //rad,LVLH
    float StationRoll;  //rad,LVLH
    float StationSpeed; //rad/sec
-   float SunR;         //km
-   float SunTheta;     //rad,GTOD
-   float SunPhi;       //rad,GTOD
-   time_t Time;
+   float SunR;         // km
+   float VelThetaGTOD; // rad,GTOD
+   float VelPhiGTOD;   // rad,GTOD
+   time_t Time;        // UNIX sec, tuned
   };
 
    char *CAS_dir;
@@ -191,7 +191,7 @@ void convert (int begin, int end,char file[]){
            if(end==0){
                 // last file 
                 // close everything
-	     updShuttle(block,1);
+	        updShuttle(block,1);
                 int ntuple_entries;
                 HNOENT(1, ntuple_entries);
                 cout << " Closing CAS ntuple  with "<< ntuple_entries 
@@ -317,18 +317,18 @@ uint para,statu;
                          blockNt.StationTheta=d2f(Geo.Teta);
                          blockNt.StationPhi=d2f(Geo.Phi);
       block.StationR    =blockNt.StationR=d2f(Geo.R);
-      block.GrMedPhi=0.; blockNt.GrMedPhi=d2f(Greenw_Phi);
+      block.GrMedPhi=0;  blockNt.GrMedPhi=d2f(Greenw_Phi);
       block.StationYaw  =blockNt.StationYaw=d2f(Euler_LVLH.Yaw);
       block.StationPitch=blockNt.StationPitch=d2f(Euler_LVLH.Pitch);  
       block.StationRoll =blockNt.StationRoll=d2f(  Euler_LVLH.Roll);
       block.StationSpeed=blockNt.StationSpeed=d2f(  Vel_angle);
-      block.SunR        =blockNt.SunR=d2f(Solar.R);
-      block.SunPhi      =blockNt.SunPhi=d2f(Solar.Phi);
-      block.SunTheta    =blockNt.SunTheta=d2f(Solar.Teta);
+      block.SunR=        blockNt.SunR=d2f(Solar.R);
+                         blockNt.SunPhi=d2f(Solar.Phi);
+                         blockNt.SunTheta=d2f(Solar.Teta);
       block.StationTheta=blockNt.StThetaGTOD=d2f(Geo_G.Teta);
       block.StationPhi  =blockNt.StPhiGTOD=d2f(Geo_G.Phi);
-			 blockNt.VelThetaGTOD=d2f(Geo_G_Vel.Teta);
-			 blockNt.VelPhiGTOD=d2f(Geo_G_Vel.Phi);
+      block.VelThetaGTOD=blockNt.VelThetaGTOD=d2f(Geo_G_Vel.Teta);
+      blockNt.VelPhiGTOD=blockNt.VelPhiGTOD=d2f(Geo_G_Vel.Phi);
 			 blockNt.VelTheta=d2f(Geo_Vel.Teta);
 			 blockNt.VelPhi=d2f(Geo_Vel.Phi);
 
@@ -362,7 +362,7 @@ int updShuttle(ShuttlePar & record, int close){
         else Insert++;
         fout.write((char*)(&Insert),sizeof(Insert)); 
         fout.write((char*)(&(Array[0].Time)),sizeof(time_t)); 
-        time_t end=(Array[59].Time+61);
+        time_t end=(Array[59].Time+121);
         fout.write((char*)(&end),sizeof(time_t)); 
         fout.close();
         cout <<"ShuttlePar-I-writeFile "<<fname<<" "<<endl;
@@ -532,7 +532,7 @@ int badlist_search(time_t t, uint &cur) {
     }
   }
   cur=N_bad;
-  cout<<">>>>>>>>>> time= "<<t<<" badlist["<<i<<"] = "<<badlist[i]<<endl;
-  exit(1);
+//  cout<<">>>>>>>>>> time= "<<t<<" badlist["<<i<<"] = "<<badlist[i]<<endl;
+//  exit(1);
   return 0;
 }
