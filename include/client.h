@@ -1,4 +1,4 @@
-//  $Id: client.h,v 1.11 2001/02/02 16:22:48 choutko Exp $
+//  $Id: client.h,v 1.12 2001/02/05 17:10:44 choutko Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
 #include <typedefs.h>
@@ -83,8 +83,8 @@ public:
 Less(){};
 Less(DPS::Client::CID cid):_cid(cid){};
 bool operator () (const DPS::Client::ActiveClient & a,const DPS::Client::ActiveClient & b){
-if(!strstr((const char*)_cid.HostName,(const char *)a.id.HostName) && strstr((const char*)_cid.HostName,(const char *)b.id.HostName))return 0;
-else return (a.id.uid<b.id.uid);
+//if(!strstr((const char*)_cid.HostName,(const char *)a.id.HostName) && strstr((const char*)_cid.HostName,(const char *)b.id.HostName))return 0;
+return (a.id.uid<b.id.uid);
 }
 
 bool operator()(const DPS::Producer::RunEvInfo &a,const DPS::Producer::RunEvInfo &b){

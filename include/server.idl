@@ -261,6 +261,6 @@ module DPS{
     string getDBFilePath(in CID id);
     long getRunEvInfoSPerl(in CID id, out RES res, in unsigned long maxr,out unsigned long maxro)raises(DBProblem); 
     void sendACPerl(in CID id, in ActiveClient ac,in RecordChange rc)raises(DBProblem);
+    long getFreeHost(in CID id, out ActiveHost host);
   };
 };
-   
