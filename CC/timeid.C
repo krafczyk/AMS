@@ -14,13 +14,32 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+
+extern char *tdvNameTab[maxtdv];
+extern int  tdvIdTab[maxtdv];
+extern int  ntdvNames;
+#ifdef __DB__
+
+#include <dbS.h>
+
+extern LMS* lms;
+
+#endif
+
 uinteger * AMSTimeID::_Table=0;
 const uinteger AMSTimeID::CRC32=0x04c11db7;
 AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0, 
                      void *pdata=0):
            AMSNode(id),_pData((uinteger*)pdata),_UpdateMe(0){
       _Nbytes=nbytes;
+
+#ifndef __DB__
       _fillDB(AMSDATADIR.amsdatabase);
+#endif
+#ifdef __DB__
+      _fillfromDB();
+#endif
+
 #ifdef __AMSDEBUG__
       if(_Nbytes%sizeof(uinteger)!=0){
         cerr <<"AMSTimeID-ctor-F-Nbytes not aligned "<<_Nbytes<<endl;
@@ -110,7 +129,15 @@ integer AMSTimeID::CopyOut(void *pdata){
 
 integer AMSTimeID::validate(time_t & Time, integer reenter){
 AMSgObj::BookTimer.start("TDV");
-int ok=read(AMSDATADIR.amsdatabase,reenter);
+
+#ifndef __DB__
+int ok = read(AMSDATADIR.amsdatabase,reenter);
+#endif
+
+#ifdef __DB__
+int ok = readDB();
+#endif
+
 if (Time >= _Begin && Time <= _End){
   if(ok==-1 || _CRC == _CalcCRC()){
      AMSgObj::BookTimer.stop("TDV");
@@ -299,10 +326,15 @@ integer AMSTimeID::_getDBRecord(uinteger time){
       rec=i;
    }
  }
-    if(time<_Begin || time>_End)return rec<0?0:_pDataBaseEntries[0][rec];
-   else return -1;
-  
 
+#ifndef __DB__
+   if(time<_Begin || time>_End)return rec<0?0:_pDataBaseEntries[0][rec];
+   else return -1;
+#endif
+#ifdef __DB__
+   if(time<_Begin || time>_End) return rec;
+   else return -1;
+#endif
 
 //Old
 /*
@@ -431,6 +463,74 @@ for( int i=0;i<4;i++)_pDataBaseEntries[i]=0;
       else cerr <<"AMSTimeID::_fillDB-S-CouldNot update map file "<<fmap<<endl; 
       cout <<"AMSTimeID::_fillDB-I-"<<_DataBaseSize<<" entries found for TDV "
            <<getname()<<endl; 
+    }
 }
 
+void AMSTimeID::_fillfromDB()
+  {
+#ifdef __DB__
+
+    const integer S = 0;
+    const integer I = 1;
+    const integer B = 2;
+    const integer E = 3;
+    integer nobj = 0;
+ 
+    integer *pS = new integer[1000];
+    time_t  *pI = new time_t[1000];
+    time_t  *pB = new time_t[1000];
+    time_t  *pE = new time_t[1000];
+
+    lms -> GetAllTDV(getname(), getid(), pS, pI, pB, pE, nobj);
+    if(nobj > 0) {
+     for(int l=0; l<4; l++) _pDataBaseEntries[l]=new uinteger[nobj];
+      for(int i=0; i<nobj; i++) {
+       _pDataBaseEntries[S][i]= pS[i];
+       _pDataBaseEntries[I][i]= pI[i];
+       _pDataBaseEntries[B][i]= pB[i];
+       _pDataBaseEntries[E][i]= pE[i];
+      }
+    }
+
+    _DataBaseSize = nobj;
+
+    if (pS) delete [] pS;
+    if (pI) delete [] pI;
+    if (pB) delete [] pB;
+    if (pE) delete [] pE;
+
+    cout <<"AMSTimeID::_fillfromDB-I-"<<nobj<<" entries found for TDV "
+         <<getname()<<endl; 
+#endif
 }
+
+integer AMSTimeID::readDB(integer reenter){
+
+#ifdef __DB__
+
+  time_t  I, B, E;
+  integer S;
+
+  integer rec =_getDBRecord(AMSEvent::gethead()->gettime());
+  if (rec != -1) {
+   S    = _pDataBaseEntries[0][rec];
+   if (S > 0) {
+    I    = _pDataBaseEntries[1][rec];
+    B    = _pDataBaseEntries[2][rec];
+    E    = _pDataBaseEntries[3][rec];
+    uinteger* buff = new uinteger[S];
+     int rstat = lms -> ReadTDV(getname(), getid(), I, B, E, buff);
+     if (rstat) {
+      CopyIn((uinteger*)buff);
+      SetTime(I,B,E);
+     }
+    delete [] buff;
+   } else {
+     cout<<"AMSTimeID::readDB -W- TDV object with zero size"<<endl;
+   }
+  }
+#endif
+  return rec;
+}
+
+

@@ -132,9 +132,16 @@ integer DAQEvent::_EventOK(){
       // envelop header
      integer ntot=0;
      _pcur=_pData+2;
-     for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL)
-     ntot+=*(_pcur)+_OffsetL;
-     if(ntot != _Length-2){
+     for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL) {
+      ntot+=*(_pcur)+_OffsetL;
+      if (AMSJob::gethead() -> isMonitoring()) {
+        int l   = *(_pcur) + _OffsetL;
+        int hid    = 300000 + *(_pcur+1);
+        HF1(hid,l,1.);
+      }
+     } 
+    if (AMSJob::gethead()->isMonitoring()) HF1(300000,_Length,1.);
+    if(ntot != _Length-2){
        cerr <<"DAQEvent::_Eventok-E-length mismatch: Header says length is "<<
          _Length<<" Blocks say length is "<<ntot+2<<endl;
 #ifdef __AMSDEBUG__

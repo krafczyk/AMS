@@ -1,4 +1,3 @@
-
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -40,9 +39,9 @@
 #include <ntuple.h>
 #include <user.h>
 //+
- integer        ntdvNames;                       // number of TDV's types
- char           *tdvNameTab[maxtdv];             // TDV's nomenclature
- int             tdvIdTab[maxtdv];
+ integer        ntdvNames;               // number of TDV's types
+ char*          tdvNameTab[maxtdv];      // TDV's nomenclature
+ int            tdvIdTab[maxtdv];
 //
 #ifdef __DB__
 
@@ -102,6 +101,9 @@ extern TOFBrcal scbrcal[SCLRS][SCMXBR];// TOF individual sc.bar parameters
 TOFVarp tofvpar; // TOF general parameters (not const !)
 extern ANTIPcal antisccal[MAXANTI]; // ANTI-counter individ.parameters
 extern CTCCCcal ctcfcal[CTCCCMX];//  CTC calibr. objects
+
+void  _genonlinebookhist();
+
 //
 void AMSJob::data(){
 #ifdef __HPUX__
@@ -1193,6 +1195,7 @@ void AMSJob::_retofinitjob(){
 
     if(isMonitoring() & (AMSJob::MTOF | AMSJob::MAll)){ // TOF Online histograms
       _retofonlineinitjob();      // (see tofonline.C)
+      _genonlinebookhist();
     }
 //
 // ===> Clear JOB-statistics counters for SIM/REC :
@@ -1312,6 +1315,9 @@ void AMSJob::settdv(char *setup, integer N){
 
 void AMSJob::_timeinitjob(){
 AMSgObj::BookTimer.book("TDV");
+#ifdef __DB__
+AMSgObj::BookTimer.book("TDVdb");
+#endif
 static AMSTimeID TID(AMSID("TDV:",0));
 gethead()->addup( &TID);
 //
@@ -1573,7 +1579,7 @@ AMSTimeID * AMSJob::gettimestructure(){
       AMSID id("TDV:",0);    
      AMSNode *p=JobMap.getp(id);
      if(!p){
-      cerr << "AMSJob::gettimestructe-F-no time structre found"<<endl;
+      cerr << "AMSJob::gettimestructe-F-no time structer found"<<endl;
       exit(1);
      }
      else return  (AMSTimeID*)p;
@@ -1582,7 +1588,7 @@ AMSTimeID * AMSJob::gettimestructure(){
 AMSTimeID * AMSJob::gettimestructure(const AMSID & id){
      AMSNode *p=JobMap.getp(id);
      if(!p){
-       cerr << "AMSJob::gettimestructe-F-no time structre found "<<id<<endl;
+       cerr << "AMSJob::gettimestructe-F-no time structer found "<<id<<endl;
       exit(1);
      }
      else return  (AMSTimeID*)p;
@@ -2013,6 +2019,60 @@ integer AMSJob::FillJobTDV(integer nobj, tdv_time *tdv)
   return 1;
 }
 #endif
+
+void       _genonlinebookhist() 
+{
+const   int nids = 32;
+
+int16u ids[nids] =
+  { 0x200,
+    0x1401,0x1441,0x1481,0x14C1,0x1501,0x1541,0x1581,0x15C1,  //  TOF Raw
+    0x1400,0x1440,0x1480,0x14C0,0x1500,0x1540,0x1580,0x15C0,  //  TOF Reduced
+    0x1680, 0x1740,                                           //  TRK Reduced
+    0x1681, 0x1741,                                           //  TRK Raw
+    0x168C, 0x174C,                                           //  TRK Mixed
+    0x1682, 0x1742,                                           //  TRK Status
+    0x1683, 0x1743,                                           //  TRK Peds
+    0x1684, 0x1744,                                           //  TRK Sigm
+    0x1685, 0x1745,                                           //  TRK CmN
+    0x0440                                                    //  Level-3
+  };
+
+
+
+  char   *ids_names[]  = {"general    ",
+                        "tof(raw)_0 ","tof(raw)_1 ","tof(raw)_2 ",
+                        "tof(raw)_3 ","tof(raw)_4 ","tof(raw)_5 ",
+                        "tof(raw)_6 ","tof(raw)_7 ",
+                        "tof(red)_0 ","tof(red)_1 ","tof(red)_2 ",
+                        "tof(red)_3 ","tof(red)_4 ","tof(red)_5 ",
+                        "tof(red)_6 ","tof(red)_7 ",
+                        "trk(red)_32","trk(red)_72",
+                        "trk(raw)_32","trk(raw)_72",
+                        "trk(mix)_32","trk(mix)_72",
+                        "trk(sts)_32","trk(sts)_72",
+                        "trk(ped)_32","trk(ped)_72",
+                        "trk(sgm)_32","trk(sgm)_72",
+                        "trk(cmn)_32","trk(cmn)_72",
+                        "Level1     "};
+  int nchans[nids] ={100,
+                    100.,100.,100.,100.,100.,100.,100.,100.,
+                    100.,100.,100.,100.,100.,100.,100.,100.,
+                    100.,100.,
+                    160000.,160000.,
+                    160000.,160000.,
+                    160000.,160000.,
+                    160000.,160000.,
+                    160000.,160000.,
+                    100.};
+                    
+  for (int i=0; i<nids; i++) {
+     int hid  = 300000 + ids[i];
+     geant f = nchans[i];
+     HBOOK1(hid,ids_names[i],100,0.,f,0.);
+  }
+    HBOOK1(300000,"Event Length (words)",1000,0.,1000.,0.);
+}
 
 #ifdef __DB__
 

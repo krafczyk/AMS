@@ -1,4 +1,3 @@
-
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 // add TDV/dbase version October 1, 1997. a.k.
@@ -65,7 +64,7 @@ void AMSEvent::_init(){
   if(AMSJob::gethead()->isCalibration())_caamsinitevent();
 
 #ifdef __DB__
-  if (_checkUpdate() == 1) {
+  if (_checkUpdate() == 1 || _run != SRun) {
    cout <<"AMSEvent:: -I- UpdateMe is set. Update database and tables. "<<endl;
    int rstatus = lms -> AddAllTDV();
    int n       = AMSJob::gethead()->FillTDVTable();
@@ -73,7 +72,8 @@ void AMSEvent::_init(){
   } else {
     // cout <<"AMSEvent:: -I- UpdateMe != 1. NO UPDATE"<<endl;
   }
-  _validateDB();
+  //_validateDB();
+  _validate();
 #endif
 
 
@@ -90,7 +90,9 @@ void AMSEvent::_init(){
      }
     }
     SRun=_run;
+#ifndef __DB__
    _validate();
+#endif
   }
 
 }
@@ -1302,7 +1304,7 @@ void AMSEvent::_validateDB()
 //
 {
 #ifdef __DB__
-
+AMSgObj::BookTimer.start("TDVdb");
 AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
 AMSTimeID * offspring=(AMSTimeID*)ptid->down();
 while(offspring){
@@ -1317,15 +1319,22 @@ while(offspring){
        offspring -> gettime(i,b,e);
        if (i==I && b==B && e==E) {
        } else {
-         cerr<<"AMSEvent::_validate-W- i,b,e need to be updated "<<endl;
-         cerr<<"Insert "<<ctime(&i);
-         cerr<<"       "<<ctime(&I);
-         cerr<<"Begin  "<<ctime(&b);
-         cerr<<"       "<<ctime(&B);
-         cerr<<"End    "<<ctime(&e);
-         cerr<<"       "<<ctime(&E)<<endl;
-         uinteger* buff = new uinteger[S];
+         cout<<"AMSEvent::_validate -I- "<<name
+             <<", i,b,e need to be updated "<<endl;
+#ifdef __AMSDEBUG__
+         cout<<"Insert "<<ctime(&i);
+         cout<<"       "<<ctime(&I);
+         cout<<"Begin  "<<ctime(&b);
+         cout<<"       "<<ctime(&B);
+         cout<<"End    "<<ctime(&e);
+         cout<<"       "<<ctime(&E)<<endl;
+#endif 
+
+        uinteger* buff = new uinteger[S];
+
+#ifdef __AMSDEBUG__
          cout<<"EventTime "<<ctime(&_time)<<endl;
+#endif
          int rstatus = lms -> ReadTDV(name, id, I, B, E, buff);
          if (rstatus == oocSuccess) {
            offspring -> CopyIn((uinteger*)buff);
@@ -1337,6 +1346,7 @@ while(offspring){
     }
     offspring=(AMSTimeID*)offspring->next();
  }
+ AMSgObj::BookTimer.stop("TDVdb");
 #endif
 }
 

@@ -149,9 +149,9 @@ GDINIT();
 #ifdef __DB__
   if ((AMSFFKEY.Read%2) == 1) dbout.CheckCommons();
   writeSetup();
-  int n = AMSJob::gethead()->FillTDVTable();
-  ooStatus rstatus = dbout.FillTDV(n);
-  if (rstatus != oocSuccess) cerr<<"uginit_ -W- FillTDV"<<endl;
+  //  int n = AMSJob::gethead()->FillTDVTable();
+  //  ooStatus rstatus = dbout.FillTDV(n);
+  //  if (rstatus != oocSuccess) cerr<<"uginit_ -W- FillTDV"<<endl;
   AMSJob::gethead() -> seteventRtype(eventR);
 #endif
 
