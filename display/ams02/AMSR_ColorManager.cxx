@@ -1,4 +1,4 @@
-//  $Id: AMSR_ColorManager.cxx,v 1.2 2001/01/22 17:32:34 choutko Exp $
+//  $Id: AMSR_ColorManager.cxx,v 1.3 2001/06/25 20:12:01 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -8,7 +8,7 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-#include <TGXW.h>
+#include <TVirtualX.h>
 #ifndef ROOT_TCanvas_H
 #include <TCanvas.h>
 #endif
@@ -32,9 +32,9 @@ AMSR_ColorManager::AMSR_ColorManager(char * name, char * title)
   // keep my personal backup of the color table
   //
   for (Int_t i=0; i<MaxColor; i++) {
-//    gGXW->GetRGB(i, colorTable[i].r, colorTable[i].g, colorTable[i].b);
+//    gVirtualX->GetRGB(i, colorTable[i].r, colorTable[i].g, colorTable[i].b);
 //    printf("color #%3d, r = %f, g = %f, b = %f\n", i, colorTable[i].r, colorTable[i].g, colorTable[i].b);
-    gGXW->GetRGB(i, red[i], green[i], blue[i]);
+    gVirtualX->GetRGB(i, red[i], green[i], blue[i]);
     //printf("color #%3d, r = %f, g = %f, b = %f\n", i, red[i], green[i], blue[i]);
   }
 
@@ -62,7 +62,7 @@ Bool_t AMSR_ColorManager::IsValid(Int_t i)
   //
 
   Float_t r, g, b;
-  gGXW->GetRGB(i, r, g, b);
+  gVirtualX->GetRGB(i, r, g, b);
   if ( r != red[i]  ||
        g != green[i]  ||
        b != blue[i] )    return kFALSE;
@@ -82,8 +82,8 @@ Int_t AMSR_ColorManager::Migrate(Int_t i, Int_t j)
   // Migrate color # i to slot # j in the system color table
   //
   if ( i>=0 && i < MaxColor && j >= 0  && j < MaxColor ) {
-    //gGXW->SetRGB(j, colorTable[i].r, colorTable[i].g, colorTable[i].b);
-    gGXW->SetRGB(j, red[i], green[i], blue[i]);
+    //gVirtualX->SetRGB(j, colorTable[i].r, colorTable[i].g, colorTable[i].b);
+    gVirtualX->SetRGB(j, red[i], green[i], blue[i]);
     return 0;
   }
   else {

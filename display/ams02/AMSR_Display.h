@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.h,v 1.3 2001/01/22 17:32:34 choutko Exp $
+//  $Id: AMSR_Display.h,v 1.4 2001/06/25 20:12:41 kscholbe Exp $
 #ifndef AMSR_Display_H
 #define AMSR_Display_H
 
@@ -10,8 +10,7 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
-
-#include <TGXW.h>
+#include <TVirtualX.h>
 #include <TGClient.h>
 #include <TGFrame.h>
 #include <TGIcon.h>
@@ -187,6 +186,6 @@ public:
 			     // because  R__b >> m_Canvas   doesn't compile.
 };
 
-EXTERN AMSR_Display *gAMSR_Display;
+extern AMSR_Display *gAMSR_Display;
 
 #endif
