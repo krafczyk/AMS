@@ -1,6 +1,8 @@
         CASDataDir=/dats/srdl/CAS
         CooDbDir=/Offline/AMSDataDir/DataBase
+        RUNFile=/Offline/vdev/slow/last.file
         export CASDataDir
         export  CooDbDir
+         export RUNFile
         /Offline/vdev/slow/Coo_file 1>/offruns/logs/coo_file.log 2>/offruns/logs/coo_file.e.log &
 

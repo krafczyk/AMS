@@ -132,6 +132,7 @@ record_n=Umax=0;
 Umin = 999999999;
 
   CAS_dir=getenv("CASDataDir");
+  last_name=getenv("RUNFile");
   Coo_db_dir=getenv("CooDbDir");
   setbuf(stdout,NULL);
 

@@ -9,7 +9,7 @@ typedef char ch80[80];
 
 int last_file_read;
 char * CAS_dir, * Coo_db_dir, last_file_n[80], chb80[80];
-char last_name[80]="last.file";
+char * last_name;
 int new_files;
 time_t file_t, last_file_time;
 
@@ -32,6 +32,9 @@ int new_files_coming() {
   last_f=fopen(last_name,"r");
   if (last_f == NULL) {
     last_file_time = 0;
+    cerr <<" Couldnot open file "<<last_name<<endl;
+    cerr <<" check RUNFile env"<<endl;
+    exit(1);
   }
   else {
     fgets(chb80,80,last_f);
