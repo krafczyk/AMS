@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.272 2004/06/07 17:17:50 alexei Exp $
+# $Id: RemoteClient.pm,v 1.273 2004/06/12 10:29:11 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2829,9 +2829,9 @@ CheckCite:            if (defined $q->param("QCite")) {
               }
               print "</b>\n";
                  if ($dataset->{eventstodo} == 0) {
-                  print "<tr><td><b><font color=\"tomato\"><i> $dataset->{name} </i></font><b></td></tr>\n";
-                 } elsif ($dataset->{eventstodo} < 10000) {                  
-                   print "<font color=\"tomato\"><INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE= $dataset->{name} $checked>$dataset->{name} <BR>\n";
+                  print "<tr><td><b><font color=\"tomato\"><i> $dataset->{name} </i></font></b></td></tr>\n";
+                 } elsif ($dataset->{eventstodo} < 5000) {                  
+                   print "<tr><td><b><font color=\"tomato\"> $dataset->{name} </font><b></td></tr><BR>\n";
                } else {
                     print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE= $dataset->{name} $checked>$dataset->{name} <BR>\n";
                 }
@@ -5400,10 +5400,14 @@ sub trimblanks {
 }
 
 sub checkJobsTimeout {
+#
+# give extra 24 hourse to timeout jobs
+#
     my $self   = shift;
     my $lastupd= undef; 
 
     my $sql;
+#    my $timenow = time() - 24*60*60;
     my $timenow = time();
 
  my $HelpTxt = "
