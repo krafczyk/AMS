@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.61 2002/08/14 08:14:20 alexei Exp $
+# $Id: RemoteClient.pm,v 1.62 2002/08/16 09:48:06 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -3613,7 +3613,7 @@ sub listAll {
     htmlTop();
     $self->ht_init();
     if ($show eq 'all') {
-     $self->ht_Menus();
+#     $self->ht_Menus();
      $self -> colorLegend();
     }
     
