@@ -168,8 +168,21 @@ public:
 //
 
 
+
 #define BETAFITFFKEY COMMON_BLOCK(BETAFITFFKEY,betafitffkey)
 COMMON_BLOCK_DEF(BETAFITFFKEY_DEF,BETAFITFFKEY);
+
+class CHARGEFITFFKEY_DEF {
+public:
+  geant Thr;  // Threshold to refit
+};
+//
+
+
+
+#define CHARGEFITFFKEY COMMON_BLOCK(CHARGEFITFFKEY,chargefitffkey)
+COMMON_BLOCK_DEF(CHARGEFITFFKEY_DEF,CHARGEFITFFKEY);
+
 //
 const integer npat=19;
 class TRFITFFKEY_DEF {

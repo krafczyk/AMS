@@ -314,7 +314,8 @@ void AMSJob::_rectcdata(){
 }
 
 void AMSJob::_reaxdata(){
-// Fit beta
+// Fit beta & charge
+CHARGEFITFFKEY.Thr=1.;
 BETAFITFFKEY.pattern[0]=1;
 BETAFITFFKEY.pattern[1]=1;
 BETAFITFFKEY.pattern[2]=1;
@@ -329,6 +330,7 @@ BETAFITFFKEY.SearchReg[0]=3.;
 BETAFITFFKEY.SearchReg[1]=3.;
 BETAFITFFKEY.SearchReg[2]=3.;
 FFKEY("BETAFIT",(float*)&BETAFITFFKEY,sizeof(BETAFITFFKEY_DEF)/sizeof(integer),"MIXED");
+FFKEY("CHARGEFIT",(float*)&CHARGEFITFFKEY,sizeof(CHARGEFITFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
 void AMSJob::_retrddata(){

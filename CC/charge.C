@@ -126,21 +126,29 @@ void AMSCharge::Fit(number rid, integer nhitTOF, integer nhitTracker,
   }
   _ChargeTOF=_chargeTOF[iTOF];
   _ChargeTracker=_chargeTracker[iTracker];
-  
-  if((_ChargeTOF != _ChargeTracker) &&  rid >0){
+  if(_refit(rid,EdepTOF,nhitTOF)){
    number beta=fabs(_pbeta->getbeta());    
    if(beta < 1 && beta !=0){
     number momentum=fabs(rid*(_ChargeTOF+_ChargeTracker)/2);
     number energy=momentum/beta;
     number mass=energy*energy-momentum*momentum;
+    integer first=0;
+    number btracker=beta;
     for ( i=nhitTOF-1;i>0;i--){
          AMSTOFCluster * pcluster= _pbeta->getpcluster(i);
          if(pcluster){
            energy=energy+pcluster->getedep()/1000;
            momentum=sqrt(energy*energy-mass);
            number b=momentum/energy;
+           if(first==0){
+             btracker=b;
+             first=1;
+           }
            EdepTOF[i-1]=EdepTOF[i-1]/beta/beta*b*b;                  
          }
+    }
+    for(i=0;i<nhitTracker;i++){
+      EdepTracker[i]=EdepTracker[i]/beta/beta*btracker*btracker;
     }
     Fit(-rid,  nhitTOF,  nhitTracker, EdepTOF,  EdepTracker);
    }
@@ -152,6 +160,36 @@ void AMSCharge::Fit(number rid, integer nhitTOF, integer nhitTracker,
 #endif
 
     }        
+}
+
+integer AMSCharge::_refit(number rid,number yy[],integer nx){
+
+  if(rid <=0)return 0;
+  if(_ChargeTOF != _ChargeTracker)return 1;
+  if(nx < 2)return 0;
+  number xx[4]={0,0,0,0};
+  number xy(0),x2(0),ya(0),xa(0);
+  integer i;
+  for(i=0;i<nx;i++){
+   x2+=i*i;
+   xy+=i*yy[i];
+   xa+=i;
+   ya+=yy[i];
+  }
+  xa=xa/nx;
+  ya=ya/nx;
+  x2=x2/nx;
+  xy=xy/nx;
+  number a,b,chi2(0),da,d;
+  d=x2-xa*xa;
+  a=(xy-xa*ya)/d;
+  b=ya-a*xa;
+  for(i=0;i<nx;i++)chi2+=(yy[i]-a*i-b)*(yy[i]-a*i-b);
+  chi2=sqrt(chi2/nx);
+  da=chi2*ya/d/a/nx;
+  if(da==0 || a/da> CHARGEFITFFKEY.Thr)return 1;
+  else return 0;
+  
 }
 
 void AMSCharge::_writeEl(){

@@ -220,3 +220,6 @@ I 1 Pattern[9](5*1,4*0)
 R10 Chi2(3.)       //  Max acceptable chi2 for betafit
 R11 SearchReg[3](3.,3.,3.) // Max distance between track & tof hit in sigma's
                            // Used also in TOF-track matching for pat # 16
+
+CHARGEFIT
+R 1 Thr(1.)   // Refit charge if Fisher criterium satisfied(1.=67%,2.=95%)
