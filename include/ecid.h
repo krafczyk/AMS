@@ -1,4 +1,4 @@
-//  $Id: ecid.h,v 1.4 2002/09/26 08:04:17 choutko Exp $
+//  $Id: ecid.h,v 1.5 2002/09/27 15:17:43 choutko Exp $
 #ifndef __AMSECID__
 #define __AMSECID__
 #include <typedefs.h>
@@ -41,6 +41,8 @@ geant getped(int16u gain){return gain<2?ECPMPeds::pmpeds[getslay()][getpmtno()].
 geant getsig(int16u gain){return gain<2?ECPMPeds::pmpeds[getslay()][getpmtno()].sig(getchannel(),gain):0;}
 geant getpedd(){return ECPMPeds::pmpeds[getslay()][getpmtno()].ped();}
 geant getsigd(){return ECPMPeds::pmpeds[getslay()][getpmtno()].sig();}
+geant getan2dyr(){return ECcalib::ecpmcal[getslay()][getpmtno()].an2dyr();}
+geant getadc2mev(){return ECcalib::ecpmcal[getslay()][getpmtno()].adc2mev();}
 AMSECIdSoft():_dead(1){};
 AMSECIdSoft(int16 crate, int16 haddr, int16 channelh);
 AMSECIdSoft(int sl, int pmt, int chan, int dummy);

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.55 2002/09/26 14:07:10 choutko Exp $
+//  $Id: ecalrec.C,v 1.56 2002/09/27 15:17:38 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -608,9 +608,12 @@ void AMSEcalHit::_writeEl(){
       TN->Coo[TN->Necht][0]=_coot;
       TN->Coo[TN->Necht][1]=_cool;
     }
+    AMSECIdSoft ic(getid());
     TN->Coo[TN->Necht][2]=_cooz;
     TN->ADC[TN->Necht][0]=_adc[0];
-    TN->ADC[TN->Necht][1]=_adc[1];
+    TN->ADC[TN->Necht][1]=_adc[1]*ic.getan2dyr();
+    TN->Ped[TN->Necht][0]=ic.getped(0);
+    TN->Ped[TN->Necht][1]=ic.getped(1);
     TN->Necht++;
   }
 }
@@ -2235,14 +2238,14 @@ void AMSEcalRawEvent::buildraw(integer n, int16u *p){
        }
 
        if(!id.dead()){
-//           cout <<id.makeshortid()<<" "<<gain<<" "<<channel<<" "<<anode<<" "<<value<<endl;
+//           if(value>3500)cout <<id.makeshortid()<<" "<<gain<<" "<<channel<<" "<<anode<<" "<<value<<endl;
         if(anode){
             AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",ic), new
           AMSEcalRawEvent(id,1-anode,1-gain,value));
          }
          else{
 //  put here dynode related class
-          sum_dynode+=value-id.getpedd();   
+          sum_dynode+=(value-id.getpedd())*id.getan2dyr()*id.getadc2mev();   
           dynode++; 
          }
        }    
@@ -2300,7 +2303,7 @@ void AMSEcalRawEvent::buildraw(integer n, int16u *p){
       if(ic==getmaxblocks()-1){
        uinteger tofpatt[4]={0,0,0,0};
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-          new Trigger2LVL1(999,0,tofpatt,0,12,sum_dynode));
+          new Trigger2LVL1(999,0,tofpatt,0,12,sum_dynode/1000));
 
       }
 }

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.116 2002/09/17 12:12:06 choutko Exp $
+//  $Id: particle.C,v 1.117 2002/09/27 15:17:38 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -803,7 +803,7 @@ void AMSParticle::_loc2gl(){
   AMSDir amsyg=amszg.cross(amsxg);
   number prod=amsxg.prod(amszg);
   integer _errors=0;
-  if(fabs(prod)>0.03 ){
+  if(fabs(prod)>0.03 && !MISCFFKEY.BeamTest){
    cerr<<"AMSParticle::_loc2gl-E-AMSGlobalCoosystemIllDefined "<<prod<<endl;
    AMSEvent::gethead()->_printEl(cerr);
    AMSEvent::gethead()->seterror(_errors++>100?3:2);

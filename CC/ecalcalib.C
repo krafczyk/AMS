@@ -2166,11 +2166,15 @@ void AMSECIdCalib::init(){
 // clear pedestals
 for(int i=0;i<ECPMSMX;i++){
   for(int j=0;j<ECSLMX;j++){
-   for(int k=0;k<4;k++){
+     ECcalib::ecpmcal[j][i].adc2mev()=ECcalib::ecpmcal[j][i].adc2mev()*0.55;
+     ECcalib::ecpmcal[j][i].an2dyr()=25;
+  for(int k=0;k<4;k++){
     for(int l=0;l<2;l++){
        ECPMPeds::pmpeds[j][i].ped(k,l)=4095;
    }
-   }
+     if(i==0 && j==0 && k==0 )cout <<" hi2lowr **** "<<ECcalib::ecpmcal[j][i].hi2lowr(k)<<" "<<ECcalib::ecpmcal[j][i].adc2mev()<<" "<<ECcalib::ecpmcal[j][i].an2dyr()<<endl;
+     ECcalib::ecpmcal[j][i].hi2lowr(k)=32;
+    }
   }
 }
     
