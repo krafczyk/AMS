@@ -52,24 +52,14 @@
 *
 *-impose cuts here
 *
-      CALL HF1(10, float(npart), 1.0)
-      CALL HF1(11, float(ntrtr), 1.0)
-      IF (NPART.NE.1 .or. NTRTR.NE.1 .or. NHITS(1).NE.6) GOTO 990
-
-C      IF (NTRTR < 1) GOTO 990
-C      DO I=1,NHITS(1)
-C        IPT = PHITS(I,1)
-C        IF (LAYER(IPT).EQ.1) THEN
-C           PRINT *,'Layer-1: Point-X, Pointer-Y=',PX(IPT),PY(IPT)
-C        ENDIF
-C      ENDDO
-*
-      USRCUT =1
-
- 990  CONTINUE
-
-      RETURN
-      END
+c      CALL HF1(10, float(npart), 1.0)
+c      CALL HF1(11, float(ntrtr), 1.0)
+         if(mod(eventstatus/2097152,4).gt.0)then
+          ic=mod(eventstatus/32,8)
+          im=mod(eventstatus/256,2)
+          if(ic.gt.0.or.im.eq.0)USRCUT =1
+         endif
+990      END
 
       SUBROUTINE USREND
 **************************************************************************

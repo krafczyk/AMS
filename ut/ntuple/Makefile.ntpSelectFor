@@ -40,7 +40,7 @@ CERNLIBS      = -L/cern/new/lib -lmathlib -lpacklib -lkernlib
 else
 CERNLIBS      = -L/cern/pro/lib -lmathlib -lpacklib -lkernlib
 endif
-OPT     =  -g
+OPT     =  
 
 ########################
 #                      #
@@ -59,7 +59,7 @@ ifeq  "$(OS)"  "AIX"
  FF            = xlf
  FFLAGS        = -qextname
  LD            = xlC
- LDFLAGS       = -g
+ LDFLAGS       = 
  FORLIBS       = -lxlf90 -lxlf $(CERNLIBS)
 endif
 ##############
@@ -73,7 +73,7 @@ ifeq  "$(OS)"  "OSF1"
  FF            = f77
  FFLAGS        =
  LD            = cxx
- LDFLAGS       = -g
+ LDFLAGS       = 
  FORLIBS       = $(CERNLIBS) -lUfor -lfor -lFutil
  LIBS          = -lm
 endif
@@ -87,9 +87,9 @@ ifeq "$(OS)"  "HP-UX"
  CXX           = CC
  CXXFLAGS      = -D__HPUX__ -O +a1 +Z
  FF            = f77
- FFLAGS        = -g +ppu +Z
+ FFLAGS        =  +ppu +Z
  LD            = CC
- LDFLAGS       = -g +a1 -z
+ LDFLAGS       =  +a1 -z
  FORLIBS       = $(CERNLIBS) -L/usr/local/lib -lF77 -lI77 -lc
  LIBS          = -lm 
 endif
@@ -105,8 +105,8 @@ ifeq "$(OS)"  "Linux"
  FF            = g77
  FFLAGS        =
  LD            = g++
- LDFLAGS       = -g
- FORLIBS       = $(CERNLIBS) -L/usr/local/lib -lf2c /usr/lib/libstdc++.so
+ LDFLAGS       = 
+ FORLIBS       = -static $(CERNLIBS) -L/usr/local/lib -lf2c 
 endif
 
 ####################
