@@ -218,8 +218,10 @@ void AMSEvent::_endofrun() {
          break;
        }
      }
-     logdir = getenv("ProductionLogDirLocal");
-     if (logdir) {
+     fclose(runs);
+    }
+    logdir = getenv("ProductionLogDirLocal");
+    if (logdir) {
       strcpy(prodlogdir,logdir);
       strcat(prodlogdir,"/run_prod.log");
      } else {
@@ -247,9 +249,7 @@ void AMSEvent::_endofrun() {
      else{
       cerr<<"AMSEvent::_endofrun-E-CouldNotOpenFile "<<rfile<<endl;
      }
-    fclose(runs);
-    }
-  } // if SRun != 0
+  } // if SRun > 0
 }
 
 void AMSEvent::_siamsinitrun(){
