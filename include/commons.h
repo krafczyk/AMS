@@ -61,6 +61,8 @@ COMMON_BLOCK_DEF(IOPA_DEF,IOPA);
 class TOFMCFFKEY_DEF {
 public:
 geant TimeSigma;
+geant TimeSigma2;
+geant TimeProbability2;
 geant padl;
 geant Thr;
 //
@@ -219,6 +221,7 @@ public:
   geant SearchRegCircle;   // ----------
   geant RidgidityMin;
   integer FullReco;
+  geant MinRefitCos[2];
 };
 //
 

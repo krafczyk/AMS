@@ -39,6 +39,7 @@ AMSBeta *  next(){return (AMSBeta*)_next;}
 number getchi2()const{return _Chi2;}
 number getbeta()const{return _Beta;}
 number getebeta()const{return _InvErrBeta;}
+integer getpattern()const{return _Pattern;}
 AMSTrTrack * getptrack()const {return _ptrack;}
 AMSTOFCluster * getpcluster(integer i){return i>=0 && i<4? _pcluster[i]:0;}
  void SimpleFit(integer nhit, number sleng[]);

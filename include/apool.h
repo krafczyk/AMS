@@ -85,6 +85,7 @@ class AMSaPool {
  {while(_next)_next->_erase(nbl);if(_prev)_prev->_next=0;nbl--;delete this;}
  };
 private: 
+ integer * _LRS;
  integer _Count;
  integer _Nblocks;
  integer _Minbl;
@@ -106,6 +107,8 @@ public:
  AMSaPool(integer blsize);
  ~AMSaPool(){erase(0);};
   void erase(integer);
+  void ReleaseLastResort();
+  void SetLastResort(integer i);
  void * insert(size_t); 
  void udelete(void *p);
  };

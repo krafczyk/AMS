@@ -8,3 +8,18 @@ clmake    // Clever Make ; use e.g. clmake Mgbatch
 MakeDB    // makefile, to make AMS+DB. Moved to ../db
 InitDB    // makefile, to make database init exe, to create all containers 
 config.*  // configuration files for Objectivity. Moved to ../db
+
+To create standalone simulation program (without db) use:
+
+hpux  || ibm      batch         clmake Mgbatch
+dec               batch         clmake Mcxxfix
+hpux,ibm,dec      interactive   clmake Mgxint
+
+
+Instructions how to create & run db connected batch simulation program
+are in read ../doc/dbase_objy.doc
+
+
+
+
+

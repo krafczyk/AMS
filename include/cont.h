@@ -22,20 +22,27 @@ void operator delete(void *p)
 
 AMSContainer(AMSID id,integer nelem=0):
 AMSNode(id),_nelem(nelem),_Last(0),_Head(0),_sorted(0){}
-void eraseC(){if(_Head)_Head->_erase();}
+void eraseC(){if(_Head)_Head->_erase();_Head=_Last=0;_nelem=0;}
 void printC(ostream & stream){_printEl(stream);if(_Head)_Head->_print(stream);}
 void writeC(){if(_Head)_Head->_write();}
 void copyC(){if(_Head)_Head->_copy();}
 void addnext(AMSlink* ptr);
+void replaceEl(AMSlink* ptr, AMSlink* prev);
+void removeEl(AMSlink* prev, integer restore=1);
+void exchangeEl(AMSlink* pel1, AMSlink *pel2);
 AMSlink* gethead()const {return _Head;}
+AMSlink* getlast()const {return _Last;}
 void sethead(AMSlink *head){ 
  _Head=head;
  _Last=head;
- _nelem=1;
- while(_Last->next()){
-  _nelem++;
-  _Last=_Last->next();
+ if(_Head){
+  _nelem=1;
+  while(_Last->next()){
+   _nelem++;
+   _Last=_Last->next();
+  }
  }
+ else _nelem=0;
 }
 
 integer getnelem() const{return _nelem;}

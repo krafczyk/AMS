@@ -52,8 +52,10 @@ static void _addnext(const AMSTrIdSoft& id, integer status, integer nelemL,
 public:
      static const integer WIDE;
      static const integer NEAR;
+     static const integer REFITTED;
 static integer Out(integer);
 inline void setstatus(integer status){_Status=_Status | status;}
+inline void clearstatus(integer status){_Status=_Status & ~status;}
 integer getstatus(integer checker) const{return _Status & checker;}
 number getVal(){return _Sum;}
 number getcofg(integer side, AMSTrIdGeom * id);
@@ -89,7 +91,7 @@ integer nelemR, number sum,number ssum, number pos, number rms,
 number val[]);
 AMSTrCluster *  next(){return (AMSTrCluster*)_next;}
 
-static void build();
+static void build(integer refit);
 static void print();
 AMSTrCluster():AMSlink(0){_NelemL=0; _NelemR=0;_pValues=0;};
 ~AMSTrCluster(){if(_pValues)UPool.udelete(_pValues);}
@@ -151,7 +153,7 @@ AMSTrRecHit(AMSgSen *p, integer good,integer layer, AMSTrCluster * xcl, AMSTrClu
             _pSen(p),_Status(good), _Layer(layer),_Xcl(xcl),
             _Ycl(ycl), _Hit(hit), _EHit(ehit),_Sum(sum),_DifoSum(dfs){};
 AMSTrRecHit(): AMSlink(0),_pSen(0),_Xcl(0),_Ycl(0){};
-static void build();
+static void build(integer refit);
 static void print();
 static integer Out(integer);
 number getsum()const{return _Sum;}
@@ -239,14 +241,16 @@ static integer _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static number Distance(number par[2], AMSTrRecHit *ptr);
 static integer patpoints[npat];
 static integer patconf[npat][6];
-
+static integer _RefitIsNeeded;
 public:
+static integer & RefitIsNeeded(){return _RefitIsNeeded;}
 integer operator < (AMSlink & o) const {
   AMSTrTrack * p= (AMSTrTrack*)(&o);
   if (getstatus(AMSDBc::USED) && !(p->getstatus(AMSDBc::USED)))return 1;
   else return 0;
 }
 
+integer getpattern()const{return _Pattern;}
 static const integer AMBIG;
 static integer Out(integer);
 inline void setstatus(integer status){_Status=_Status | status;}
@@ -279,7 +283,7 @@ AMSTrTrack (integer pattern, integer nhits, AMSTrRecHit * phit[]):
 AMSlink(0), _Status(0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0)
   {init(  phit);}
 void init( AMSTrRecHit * phit[]);
-static void build();
+static void build(integer refit);
 static void print();
 AMSTrRecHit * getphit(integer i){return i>=0 && i<6? _Pthit[i]:0;}
 void interpolate(AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 
@@ -311,7 +315,8 @@ void   setHitP(AMSTrRecHit* p, integer n) {if (n< 6) _Pthit[n] = p;}
 integer TOFOK();
 number getgrid() const {return _GRidgidity;}
 number getrid() const {return _Ridgidity;}
-
+number gettheta() const {return _Theta;}
+number getphi() const {return _Phi;}
 };
 
 #endif

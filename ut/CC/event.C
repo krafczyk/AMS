@@ -295,29 +295,30 @@ void AMSEvent::_reamsevent(){
   _reaxevent();
 }
 
-void AMSEvent::_retkevent(){
+void AMSEvent::_retkevent(integer refit){
 
 AMSgObj::BookTimer.start("RETKEVENT");
 AMSgObj::BookTimer.start("TrCluster");
-AMSTrCluster::build();
+AMSTrCluster::build(refit);
 AMSgObj::BookTimer.stop("TrCluster");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSTrCluster::print();
 #endif
 AMSgObj::BookTimer.start("TrRecHit");
-AMSTrRecHit::build();
+AMSTrRecHit::build(refit);
 AMSgObj::BookTimer.stop("TrRecHit");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSTrRecHit::print();
 #endif
 AMSgObj::BookTimer.start("TrTrack");
-AMSTrTrack::build();
+AMSTrTrack::build(refit);
 AMSgObj::BookTimer.stop("TrTrack");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSTrTrack::print();
 #endif
 AMSgObj::BookTimer.stop("RETKEVENT");
 
+if(refit==0 && AMSTrTrack::RefitIsNeeded())_retkevent(1);
 
 }
 
@@ -630,6 +631,19 @@ AMSlink * AMSEvent::_getheadC( AMSID id, integer sorted){
   }
   else return 0;
 }
+AMSlink * AMSEvent::_getlastC( AMSID id){
+  char *name=new char[13+strlen(id.getname())+1];
+  name[0]='\0';
+  strcat(name,"AMSContainer:");
+  if(id.getname())strcat(name,id.getname());
+  id.setname(name); 
+  delete[] name;
+  AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+  if(p){
+    return p->getlast();
+  }
+  else return 0;
+}
 
 integer AMSEvent::_setheadC( AMSID id, AMSlink *head){
   char *name=new char[13+strlen(id.getname())+1];
@@ -797,6 +811,21 @@ integer AMSEvent::addnext(AMSID id, AMSlink *p){
    }
 }
 
+integer AMSEvent::replace(AMSID id, AMSlink *p, AMSlink *prev){
+ AMSContainer * ptr= AMSEvent::gethead()->getC(id);
+   if(ptr){
+     ptr->replaceEl(p,prev);
+     return 1;
+   }
+   else {
+    cerr<<"AMSEvent::replace-S-NoContainer "<<id<<endl;
+#ifdef __AMSDEBUG__
+    exit(1);
+#endif
+    return 0;
+   }
+}
+
 void AMSEvent::_validate(){
 AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
 AMSTimeID * offspring=(AMSTimeID*)ptid->down();
@@ -819,4 +848,48 @@ while(offspring){
     }
     offspring=(AMSTimeID*)offspring->next();
 }
+}
+
+
+integer AMSEvent::removeC(){
+  // find and nullify _Head in all containers in case of memory chock;
+
+AMSNode * cur;
+int i,n=0;
+for (i=0;;){
+  cur=AMSEvent::EventMap.getid(i++);   // get one by one
+ if(cur){
+   if(strncmp(cur->getname(),"AMSContainer:",13)==0){
+   n++;
+   ((AMSContainer*)cur)->sethead(0);
+   }
+ }
+ else break;
+}
+return n;
+}
+
+void AMSEvent::Recovery(){
+      cerr <<"AMSEvent::Recovery-I-Event dump follows"<<endl;
+      printA(0);
+      cerr <<"AMSEvent::Recovery-I-Cleanup started"<<endl;
+      UPool.ReleaseLastResort();
+      cerr << "AMSEvent::Recovery-I-Last resort released"<<endl;
+#ifndef __BIGSTACK__
+      // line below is very unsafe/risky one.
+      // use __BIGSTACK__ together with "limit stack 20000" command to make safe recovery
+      // 
+      integer n=removeC();
+      cerr <<"AMSEvent::Recovery-I- "<<n<<
+      " containers succesfully nullified"<<endl;
+#endif
+
+      remove();
+      cerr <<"AMSEvent::Recovery-I-Event structure removed"<<endl;
+      sethead(0);
+      UPool.erase(0);
+      cerr <<"AMSEvent::Recovery-I-Memory pool released"<<endl;
+      UPool.SetLastResort(10000);
+      cerr <<"AMSEvent::Recovery-I-Cleanup done"<<endl;
+
 }

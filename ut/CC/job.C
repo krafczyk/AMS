@@ -36,7 +36,7 @@ void AMSJob::data(){
   AMSFFKEY.Reconstruction=1; // Reconstruction
   AMSFFKEY.Jobtype=0; // Default
   AMSFFKEY.Debug=1;
-  AMSFFKEY.CpuLimit=10;
+  AMSFFKEY.CpuLimit=15;
   AMSFFKEY.Read=0;
   AMSFFKEY.Write=1;
   AMSFFKEY.Update=0;
@@ -68,9 +68,9 @@ _sictcdata();
 }
 
 void AMSJob::_sitkdata(){
-TRMCFFKEY.alpha=230;
+TRMCFFKEY.alpha=220;
 TRMCFFKEY.beta=1;
-TRMCFFKEY.gamma=0.13;
+TRMCFFKEY.gamma=0.08;
 TRMCFFKEY.fastswitch=5.e-5;  // inverse linear density of primary electrons
 TRMCFFKEY.dedx2nprel=0.33e6;
 TRMCFFKEY.ped[0]=100;
@@ -127,7 +127,9 @@ FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //==========================================================================
 void AMSJob::_sitofdata(){
-  TOFMCFFKEY.TimeSigma=1.e-10; // time resolution(sec) for simplified algorithm
+  TOFMCFFKEY.TimeSigma=0.8e-10; // time resolution(sec) for simplified algorithm
+  TOFMCFFKEY.TimeSigma2=3.2e-10;
+  TOFMCFFKEY.TimeProbability2=0.035;
   TOFMCFFKEY.padl=10.5;        // sc. bar transv. step ........................
   TOFMCFFKEY.Thr=0.1;          // Sc.bar Elos-thresh.(Mev) to participate in Reco   
 //
@@ -198,7 +200,7 @@ TRCLFFKEY.Thr2S[1] =7;
 
 TRCLFFKEY.ThrClR[1]=8;
 TRCLFFKEY.Thr1R[1] =5;
-TRCLFFKEY.Thr2R[1] =1.;
+TRCLFFKEY.Thr2R[1] =1.;  // should be around 1 if ThrClNEl[1]=3;
 TRCLFFKEY.Thr3R[1] =-2.;
 
 TRCLFFKEY.ThrClNMin[1]=2;
@@ -280,6 +282,8 @@ TRFITFFKEY.SearchRegStrLine=0.5;
 TRFITFFKEY.SearchRegCircle=1;
 TRFITFFKEY.RidgidityMin=0.2;
 TRFITFFKEY.FullReco=0;
+TRFITFFKEY.MinRefitCos[0]=0.7;
+TRFITFFKEY.MinRefitCos[1]=0.5;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }
@@ -492,6 +496,7 @@ _reaxinitjob();
 void AMSJob::_retkinitjob(){
 AMSgObj::BookTimer.book("RETKEVENT");
 AMSgObj::BookTimer.book("TrCluster");
+AMSgObj::BookTimer.book("TrClusterRefit");
 AMSgObj::BookTimer.book("TrRecHit");
 AMSgObj::BookTimer.book("TrTrack");
 }

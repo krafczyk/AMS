@@ -34,9 +34,9 @@ void AMSNodeMapPool::put( integer * p ){
          tmp=new AMSNode*[_hsize];
          //    AMSgObj::BookTimer.stop("putnew");
          size=(size/2>1)?size/2:1;
-       }while (!tmp && size==1);
+       }while (!tmp && size>1);
        if(!tmp){
-         if(AMSNodeMap::debug)cerr <<"AMSNodeMap::add-F-Can not allocate " <<size
+         if(AMSNodeMap::debug)cerr <<"AMSaPoolAMSNodeMap::add-F-Can not allocate " <<size
         <<" words"<<endl;
         throw AMSNodeMapError("AMSNodeMap::add-F-CNNTALLMEM");
        }
@@ -103,10 +103,14 @@ void * AMSaPool::insert(size_t st){
    //cout <<" grow 0 "<<_head->_length<<endl;
   }
   else if(_head->_next==0){
-     _Nreq++;
    _head->_next=new dlink;
+   if(_head->_next==0){
+    _free=0;
+    return; 
+   }
+     _Nreq++;
    (_head->_next)->_prev=_head;
-   _head=_head->_next;   
+     _head=_head->_next;   
      _head->_length=_size > st ? st*(_size/st): st;
      _head->_address = new char[_head->_length];
      _free=(void*)(_head->_address);
@@ -131,8 +135,8 @@ void * AMSaPool::insert(size_t st){
      if(_Minbl>_Nreq)_Minbl=_Nreq;
      if(_Maxbl<_Nreq)_Maxbl=_Nreq;
      _Nreq=0;
- 
-     if(tol && _Count)cerr <<"AMSaPool::erase-S-Objects-Exist "<<_Count<<endl;
+     if(tol==0)_Count=0;
+     if(_Count)cerr <<"AMSaPool::erase-S-Objects-Exist "<<_Count<<endl;
      if(_head){
        tol=(tol+_size/2)/_size;
        while(_head->_prev)_head=_head->_prev;       
@@ -181,7 +185,7 @@ void AMSaPool::udelete(void *p){
 }
 
 
-AMSaPool::AMSaPool(integer blsize):_head(0),_free(0),_lc(0),
+AMSaPool::AMSaPool(integer blsize):_head(0),_free(0),_lc(0),_LRS(0),
   _size(blsize),_Count(0),_Nblocks(0),_Minbl(10000000),_Maxbl(0),_Totalbl(0),
   _Nreq(0),_MinNodes(10000000),_MaxNodes(0),_TotalNodes(0){
 #ifdef __AMSDEBUG__
@@ -190,6 +194,7 @@ AMSaPool::AMSaPool(integer blsize):_head(0),_free(0),_lc(0),
 #endif
      //   poolNode.setid(0);
      //   poolMap.map(poolNode);
+     SetLastResort(10000);
   }
 
 
@@ -204,3 +209,20 @@ AMSaPoolError::AMSaPoolError(char * name){
 
 char * AMSaPoolError::getmessage(){return msg;}
 
+void AMSaPool::SetLastResort(integer i){
+  // sets back some memoryheap
+  if(_LRS==0){
+   _LRS= new integer[i];
+   if(!_LRS){
+     cerr<<"AMSaPool::SetLastResort-E-Resort Not Set"<<endl;
+   }
+  }
+}
+
+void AMSaPool::ReleaseLastResort(){
+  // Release  memory setted by SetLastResort
+  if(_LRS){
+    delete[] _LRS;
+    _LRS=0;
+  }
+}

@@ -55,13 +55,14 @@ void _sitkevent();
 void _sitofevent();
 void _sitrdevent();
 void _sictcevent();
-void _retkevent();
+void _retkevent(integer refit=0);
 void _retofevent();
 void _retrdevent();
 void _rectcevent();
 void _reaxevent();
 void _validate();
 AMSlink * _getheadC( AMSID id, integer sorted=0);
+AMSlink * _getlastC( AMSID id);
 integer _setheadC( AMSID id, AMSlink * p);
 AMSContainer * _getC(AMSID id);
 public:
@@ -72,6 +73,8 @@ static AMSEvent * gethead()  {return _Head;}
 static integer debug;
 AMSlink * getheadC(char name[], integer id, integer sorted=0)
 {return _getheadC(AMSID(name,id),sorted);}
+AMSlink * getlastC(char name[], integer id)
+{return _getlastC(AMSID(name,id));}
 AMSlink * getheadC( AMSID id, integer sorted=0){return _getheadC(id,sorted);}
 integer setheadC(char name[], integer id, AMSlink *p)
 {return _setheadC(AMSID(name,id),p);}
@@ -81,6 +84,8 @@ AMSContainer * getC( AMSID id){return _getC(id);}
 integer getnC (char name[]);
 static void  sethead(AMSEvent* head) 
 { _Head=head;if(_Head)AMSEvent::EventMap.map(*_Head);}
+integer removeC();
+void Recovery();
 void init();
 void write();
 void copy();
@@ -90,6 +95,7 @@ void event();
 integer getEvent() {return _id;}
 //-
 integer addnext(AMSID id, AMSlink * p);
+integer replace(AMSID id, AMSlink * p, AMSlink *prev);
 integer getrun() const{return _run;}
 integer& setrun() {return _run;}
 integer getruntype() const{return _runtype;}

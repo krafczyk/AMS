@@ -272,10 +272,14 @@ extern "C" void gustep_(){
    catch (AMSuPoolError e){
     cerr << "GUSTEP  "<< e.getmessage();
     GCTRAK.istop =1;
+     AMSEvent::gethead()->Recovery();
+     return;
    }
    catch (AMSaPoolError e){
     cerr << "GUSTEP  "<< e.getmessage();
     GCTRAK.istop =1;
+    AMSEvent::gethead()->Recovery();
+      return;
    }
    catch (AMSTrTrackError e){
     cerr << "GUSTEP  "<< e.getmessage();
@@ -291,29 +295,21 @@ extern "C" void guout_(){
           AMSEvent::gethead()->event();
    }
    catch (AMSuPoolError e){
-    cerr << e.getmessage();
-    cerr <<"Event dump follows"<<endl;
-      AMSEvent::gethead()->printA(2);
-      AMSEvent::gethead()->remove();
-      AMSEvent::sethead(0);
-      UPool.erase(0);
+     cerr << e.getmessage()<<endl;
+     AMSEvent::gethead()->Recovery();
       return;
    }
    catch (AMSaPoolError e){
-    cerr << e.getmessage();
-    cerr <<"Event dump follows"<<endl;
-      AMSEvent::gethead()->printA(2);
-      AMSEvent::gethead()->remove();
-      AMSEvent::sethead(0);
-      UPool.erase(0);
+     cerr << e.getmessage()<<endl;
+     AMSEvent::gethead()->Recovery();
       return;
    }
    catch (AMSTrTrackError e){
-    cerr << e.getmessage();
-    cerr <<"Event dump follows"<<endl;
-      AMSEvent::gethead()->printA(0);
-      AMSEvent::gethead()->remove();
-      AMSEvent::sethead(0);
+     cerr << e.getmessage()<<endl;
+     cerr <<"Event dump follows"<<endl;
+     AMSEvent::gethead()->printA(0);
+     AMSEvent::gethead()->remove();
+     AMSEvent::sethead(0);
       UPool.erase(0);
       return;
    }

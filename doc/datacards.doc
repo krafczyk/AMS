@@ -31,7 +31,7 @@ I45    TriggerC('AMSParticle')   // Container names, separated by
 TOFMC      
 R 1   TimeSigma(80e-12)  // Time resolution(sec) for simplified algorithm 
 R 2   TimeSigma2(320e-12)  // 2nd Time res(sec) for simplified algorithm 
-R 3   TimeProbability2(0.04)  // 2nd Time Probability
+R 3   TimeProbability2(0.035)  // 2nd Time Probability
 R 4   padl(10.5)          // Sc. bars transv. step (cm) ..................
 R 5   Thr(0.1)            // Sc.bar Elos-thresh(mev) to participate in Reco 
 I 6   Print-flag(0)       // to print init arrays if=1        
@@ -87,9 +87,9 @@ R  7   Edep2Phel(0,184e3)       //  Edep to phelectrons conv factor
 // Tracker Cluster  Simulation
 
 TRMC      
-R 1   alpha(230)            // Cluster shower par (see tkmccl.F)
+R 1   alpha(220)            // Cluster shower par (see tkmccl.F)
 R 2   beta(1.0)               // Cluster shower par (see tkmccl.F)
-R 3   gamma(0.13)           // Cluster shower par (see tkmccl.F)
+R 3   gamma(0.08)           // Cluster shower par (see shower in mccluster.C)
 R 4   fastswitch(5.e-5)     // Switch between fast and slow algos
 R 5   dedx2nprel(.33e6)     // dedx to number of primary electrons
 R 6   ped[2](100,100)       // pedestals for x & y
@@ -214,7 +214,8 @@ R29  SearchRegCircle(1)     // ---------- circle fit
 R30  RidgidityMin(0.2)      // Minimal ridgidity in GV     
 I31  FullReco(0)            // Use(1) or not use(0) "used "clusters to build 
                             // tracks
-
+R32  MinRefitCos(0.7,0.5)      // min cos(tr angle) to refit track with wider
+                            // clusters
 // Tracker fitting
 
 TKFIT
@@ -252,4 +253,4 @@ R11 SearchReg[3](3.,3.,3.) // Max distance between track & tof hit in sigma's
                            // Used also in TOF-track matching for pat # 16
 
 CHARGEFIT
-R 1 Thr(1.)   // Refit charge if Fisher criterium satisfied(1.=67%,2.=95%)
+R 1 Thr(1.)   // Refit charge if Fisher's criterium is satisfied(1.=67%,2.=95%)

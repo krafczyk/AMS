@@ -7,6 +7,7 @@
 
 const integer AMSDBc::BAD=16;
 const integer AMSDBc::USED=32;
+const integer AMSDBc::DELETED=64;
 
 integer AMSDBc::debug=1;
 const number AMSDBc::raddeg=57.295779;

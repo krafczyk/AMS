@@ -72,7 +72,7 @@ void AMSNodeMap::unmap(){
         _hsize=_numo+size;
          tmp=new AMSNode*[_hsize];
         size=(size/2>1)?size/2:1;
-       }while (!tmp && size==1);
+       }while (!tmp && size>1);
         if(!tmp){
         if(AMSNodeMap::debug)cerr <<"AMSNodeMap::add-F-Can not allocate " <<size
         <<" words"<<endl;

@@ -12,9 +12,12 @@
 #include <string.h>
 #include <tofrec.h>
 #include <ntuple.h>
+#include <cont.h>
 
+integer AMSTrTrack::_RefitIsNeeded=0;
 const integer AMSTrCluster::WIDE=1;
 const integer AMSTrCluster::NEAR=2;
+const integer AMSTrCluster::REFITTED=4;
 
 integer AMSTrTrack::patconf[npat][6]={1,2,3,4,5,6,   // 123456  0
                                       1,2,3,4,6,0,   // 12346   1
@@ -39,7 +42,31 @@ integer AMSTrTrack::patpoints[npat]={6,5,5,5,5,5,5,4,4,4,4,4,4,4,4,4,4,4,4};
 
 const integer AMSTrTrack::AMBIG=4;
 
-void AMSTrCluster::build(){
+void AMSTrCluster::build(integer refit=0){
+  AMSlink * OriginalLast[2];
+  integer OriginalNumber[2];
+  AMSContainer * pct[2];
+  geant Thr2R[2];
+  integer ThrClNel[2];
+  if(refit){
+    AMSgObj::BookTimer.start("TrClusterRefit");
+    // prepare some elements
+    int i;
+    for (i=0;i<2;i++){
+      pct[i]=AMSEvent::gethead()->getC("AMSTrCluster",i);
+      #ifdef __AMSDEBUG__
+        assert(pct[i]!=NULL);
+      #endif
+      OriginalNumber[i]=pct[i]->getnelem();
+      OriginalLast[i]=pct[i]->getlast();
+      Thr2R[i]=TRCLFFKEY.Thr2R[i];
+      ThrClNel[i]=TRCLFFKEY.ThrClNEl[i];
+      TRCLFFKEY.Thr2R[i]=min((number)4.,Thr2R[i]*3.);
+      TRCLFFKEY.ThrClNEl[i]=min(5,ThrClNel[i]+2);
+    }
+  }
+ 
+
   integer size=(AMSDBc::maxstrips()+1+
   2*max(TRCLFFKEY.ThrClNEl[0],TRCLFFKEY.ThrClNEl[1]))*sizeof(number);
   number *  adc  = (number*)UPool.insert(size); 
@@ -115,11 +142,23 @@ void AMSTrCluster::build(){
         if(j-center<= -TRCLFFKEY.ThrClNEl[side]/2 && 
            adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]){
            left++;
-           continue;
+           j++;
+           id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
+           if(j-center< 0 && 
+           adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
+            left++;
+            continue;
+           }
         }
         if(j-center>= TRCLFFKEY.ThrClNEl[side]/2 && 
            adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]){
            right--;
+           id.upd(j-1-TRCLFFKEY.ThrClNEl[side]/2);
+           if(j-1-center> 0 && 
+           adc[j-1]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
+            right--;
+           }
+           
            continue;
         }
        if(adc[j]>TRCLFFKEY.Thr2A[side])above++;
@@ -165,7 +204,70 @@ void AMSTrCluster::build(){
   p=p->next();           
   }  
   UPool.udelete(adc);
-} 
+
+  if(refit){
+     int i;
+     for (i=0;i<2;i++){
+       pct[i]=AMSEvent::gethead()->getC("AMSTrCluster",i);
+      #ifdef __AMSDEBUG__
+        assert(pct[i]!=NULL);
+      #endif
+
+       // Restore thresholds
+
+       TRCLFFKEY.Thr2R[i]=Thr2R[i];
+       TRCLFFKEY.ThrClNEl[i]=ThrClNel[i];
+
+       // Mark all new clusters to delete
+
+       AMSTrCluster * pclnew=((AMSTrCluster*)OriginalLast[i])->next();
+       while(pclnew){
+         pclnew->setstatus(AMSDBc::DELETED);
+         pclnew=pclnew->next();
+       }
+
+       // Find & mark corresponding elements
+
+       AMSTrCluster *pcl=(AMSTrCluster*)pct[i]->gethead();
+       while(pcl){
+         if(pcl->getstatus(REFITTED)){
+          pclnew=((AMSTrCluster*)OriginalLast[i])->next();
+          AMSTrIdSoft pclid=pcl->getid();
+          while(pclnew){
+            if(pclnew->getid() == pclid){
+              // mark
+              pcl->setstatus(AMSDBc::DELETED);
+              pclnew->clearstatus(AMSDBc::DELETED);
+              pclnew->setstatus(REFITTED);
+            }     
+            pclnew=pclnew->next();
+          }
+         }
+         pcl=pcl->next();
+       } 
+       // Delete marked clusters
+      pcl=(AMSTrCluster*)pct[i]->gethead();
+      while(pcl && pcl->getstatus(AMSDBc::DELETED)){
+        pct[i]->removeEl(0,0);
+        pcl=(AMSTrCluster*)pct[i]->gethead(); 
+      }     
+      while(pcl){
+        while(pcl->next() && (pcl->next())->getstatus(AMSDBc::DELETED))
+        pct[i]->removeEl(pcl,0);
+        pcl=pcl->next();
+      }
+      // Restore positions
+     AMSlink * ptmp=pct[i]->gethead();
+     integer ip=1;
+     while(ptmp){
+      ptmp->setpos(ip++);
+      ptmp=ptmp->_next;
+     }
+     }
+    AMSgObj::BookTimer.stop("TrClusterRefit");
+  }
+
+}
 number AMSTrCluster::getcofg(integer side, AMSTrIdGeom * pid){
   //
   // Here we are able to recalculate the center of gravity...
@@ -274,7 +376,16 @@ for(int i=0;i<2;i++){
 }
 
 AMSTrRecHit * AMSTrRecHit::_Head[6]={0,0,0,0,0,0};
-void AMSTrRecHit::build(){
+void AMSTrRecHit::build(integer refit=0){
+  if(refit){
+    // Cleanup all  containers
+    int i;
+    for(i=0;;i++){
+      AMSContainer *pctr=AMSEvent::gethead()->getC("AMSTrRecHit",i);
+      if(pctr)pctr->eraseC();
+      else break ;
+    }
+  } 
  AMSTrCluster *x;
  AMSTrCluster *y;
  AMSTrIdSoft idx;
@@ -344,7 +455,32 @@ if(init++==0){
 }
   THN.Event()=AMSEvent::gethead()->getid();
   THN.pX=_Xcl->getpos();
+  
   THN.pY=_Ycl->getpos();
+   int i,pat;
+    pat=1;
+    if(AMSTrCluster::Out(IOPA.WriteAll)){
+      // Writeall
+      for(i=0;i<pat;i++){
+        AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrCluster",i);
+         #ifdef __AMSDEBUG__
+          assert(pc != NULL);
+         #endif
+         THN.pY+=pc->getnelem();
+      }
+    }                                                        
+    else {
+    //WriteUsedOnly
+      for(i=0;i<pat;i++){
+        AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
+          while(ptr && ptr->getstatus(AMSDBc::USED)){
+            THN.pY++;
+            ptr=ptr->next();
+          }
+      }
+    }
+
+
   if(((_Xcl->getid()).getlayer() != _Layer) || 
      ((_Ycl->getid()).getlayer() != _Layer)){
     cerr << "AMSTrRecHit-S-Logic Error "<<(_Xcl->getid()).getlayer()<<" "<<
@@ -372,8 +508,18 @@ for(int i=0;i<6;i++){
 }
 
 geant AMSTrTrack::_Time=0;
-void AMSTrTrack::build(){
+void AMSTrTrack::build(integer refit=0){
   // pattern recognition + fit
+  if(refit){
+    // Cleanup all track containers
+    int i;
+    for(i=0;;i++){
+      AMSContainer *pctr=AMSEvent::gethead()->getC("AMSTrTrack",i);
+      if(pctr)pctr->eraseC();
+      else break ;
+    }
+  } 
+  _RefitIsNeeded=0;
   _Start();
   for (int pat=0;pat<npat;pat++){
     AMSTrRecHit * phit[6]={0,0,0,0,0,0};
@@ -464,7 +610,6 @@ out:
     }
   }
 
-
 }
 
 number AMSTrTrack::Distance(number par[2], AMSTrRecHit *ptr){
@@ -498,13 +643,26 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
           
        if(  ptrack->Fit(0) < TRFITFFKEY.Chi2FastFit && ptrack->TOFOK()){
          ptrack->AdvancedFit();
+         int i;   
          // Mark hits as USED
-         for(int i=0;i<nhit;i++){
+         for( i=0;i<nhit;i++){
            if(pthit[i]->getstatus(AMSDBc::USED))
-           pthit[i]->setstatus(AMSTrTrack::AMBIG);
+            pthit[i]->setstatus(AMSTrTrack::AMBIG);
            else pthit[i]->setstatus(AMSDBc::USED);
          }
-
+          number dc[2];
+          dc[0]=fabs(sin(ptrack->gettheta())*cos(ptrack->getphi()));
+          dc[1]=fabs(sin(ptrack->gettheta())*sin(ptrack->getphi()));
+          int n;
+          for(n=0;n<2;n++){
+           if(dc[n] > TRFITFFKEY.MinRefitCos[n]){
+             for( i=0;i<nhit;i++){
+              AMSTrCluster *pcl= pthit[i]->getClusterP(n);
+              pcl->setstatus(AMSTrCluster::REFITTED);
+              _RefitIsNeeded++;
+             }
+           }
+          }
          // permanently add;
 #ifdef __UPOOL__
           ptrack=new AMSTrTrack(track);
@@ -853,6 +1011,30 @@ if(init++==0){
   TrTN.NHits=_NHits;
   for(int k=0;k<_NHits;k++){
    TrTN.pHits[k]=_Pthit[k]->getpos();
+   int i,pat;
+    pat=_Pthit[k]->getLayer()-1;
+    if(AMSTrRecHit::Out(IOPA.WriteAll)){
+      // Writeall
+      for(i=0;i<pat;i++){
+        AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrRecHit",i);
+         #ifdef __AMSDEBUG__
+          assert(pc != NULL);
+         #endif
+         TrTN.pHits[k]+=pc->getnelem();
+      }
+    }                                                        
+    else {
+    //WriteUsedOnly
+      for(i=0;i<pat;i++){
+        AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
+          while(ptr && ptr->getstatus(AMSDBc::USED)){
+            TrTN.pHits[k]++;
+            ptr=ptr->next();
+          }
+      }
+    }
+
+
   }
   TrTN.GeaneFitDone=_GeaneFitDone;
   TrTN.AdvancedFitDone=_AdvancedFitDone;

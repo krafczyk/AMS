@@ -108,3 +108,14 @@ if(_free==0 || _lc+st > _head->_length  ){
   }
 
   char * AMSuPoolError::getmessage(){return msg;}
+
+
+void AMSuPool::SetLastResort(integer i){
+  // sets back some memoryheap
+}
+
+void AMSuPool::ReleaseLastResort(){
+  // Release  memory setted by SetLastResort
+}
+
+

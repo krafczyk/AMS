@@ -1,0 +1,12 @@
+CC               // C++ sources
+F                // Fortran sources
+analysis         // ntuples analysis
+bin              // binaries
+datacards        // job  examples
+db               // db related stuff
+doc              // documentation
+exe              // executables
+include          // .h
+install          // installation (db for db oriented)
+lib              // binary libraries
+test             // various testes

@@ -146,7 +146,9 @@ M A I N  ->      gbatch.C
  |        |        |     |->AMSTrCluster::build        Make clusters
  |        |        |     |->AMSTrRecHit::build         Make Rec Hits
  |        |        |     |->AMSTrTrack::build          Pattern rec + fitting 
- |        |        |             |->Fit                Trajectory Fit
+ |        |        |     |        |->Fit                Trajectory Fit
+ |        |        |     |                     
+ |        |        |     |->_retkevent                 Refit if necessary        
  |        |        |                          
  |        |        |->_retrdevent     reconstruct TRD
  |        |        |->_rectcevent     reconstruct CTC

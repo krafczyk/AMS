@@ -183,7 +183,38 @@ if(init++==0){
 }
  PN.ChargeP=_pcharge->getpos();
  PN.BetaP=_pbeta->getpos();
+ integer pat=_pbeta->getpattern();
+ for(i=0;i<pat;i++){
+   AMSContainer *pc=AMSEvent::gethead()->getC("AMSBeta",i);
+   #ifdef __AMSDEBUG__
+     assert(pc != NULL);
+   #endif
+   PN.BetaP+=pc->getnelem();
+ }
+
  PN.TrackP=_ptrack->getpos();
+ pat=_ptrack->getpattern();
+     if(AMSTrTrack::Out(IOPA.WriteAll)){
+       // Writeall
+     
+        for(i=0;i<pat;i++){
+         AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrTrack",i);
+         #ifdef __AMSDEBUG__
+          assert(pc != NULL);
+         #endif
+         PN.TrackP+=pc->getnelem();
+        }
+     }
+     else {
+       //WriteUsedOnly
+        for(i=0;i<pat;i++){
+         AMSTrTrack *ptr=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",i);
+          while(ptr && ptr->getstatus(AMSDBc::USED)){ 
+            PN.TrackP++;
+            ptr=ptr->next();
+          }
+        }
+     }
  PN.Event()=AMSEvent::gethead()->getid();
  
  PN.Particle=_GPart;

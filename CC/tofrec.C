@@ -64,7 +64,11 @@ void AMSTOFRawCluster::sitofdigi(){
      xtime[kk][i]=xtime[kk][i]/xplane[kk][i];
      xtimed[kk][i]=xtimed[kk][i]/xplane[kk][i];
 #if 1  // change to zero when Eugeni  writes a proper code
-     xtime[kk][i]+=TOFMCFFKEY.TimeSigma*rnormx();
+     geant dummy;
+     number ts;
+     if(RNDM(dummy)< TOFMCFFKEY.TimeProbability2)ts=TOFMCFFKEY.TimeSigma2*rnormx();
+     else ts=TOFMCFFKEY.TimeSigma*rnormx();
+     xtime[kk][i]+=ts;
      xtimed[kk][i]+=TOFMCFFKEY.TimeSigma*rnormx()*sqrt(2.);
 
 #else

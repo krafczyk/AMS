@@ -47,6 +47,7 @@ public:
 //bits
      static const integer BAD;
      static const integer USED;
+     static const integer DELETED;
 
 // member functions
    inline static  integer Ntube(integer i){return _ntube[i];}

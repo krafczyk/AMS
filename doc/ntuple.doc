@@ -81,7 +81,8 @@ Below there is a description of a converted ntuple.
 * I*4  * [0,50]       * TRCLUSTE * ntrcl              // Tracker clusters number
 * I*4  *              * TRCLUSTE * Idsoft(ntrcl)     // Idsoft
                                                      // mod(id,10) layer 
-                                                      // mod(id/10,100) ladder                                                     // i=mod(id/1000,10)
+                                                      // mod(id/10,100) ladder    
+                                                     // i=mod(id/1000,10)
                                                       // i==0 x 1st half
                                                      // i==1 x 2nd half
                                                      // i==2 y 1st half
@@ -184,12 +185,19 @@ Below there is a description of a converted ntuple.
 *) Status bits
 
 All:
-16 -BAD
-32 -USED
+16 - BAD
+32 - USED
+64 - Mark  to delete
 
 Tracker clusters:
-1- WIDE cluster
-2- two clusters near each other
+1 - WIDE cluster
+2 - two clusters near each other
+4 - cluster was refitted
 
-**) Pointers are not all ok at the moment( 27/01/97)
- Hopefully will be fixed in 1-2 weeks
+ TrRecHits:
+4 - Ambiguous track (i.e. several tracks are used it)
+
+
+
+**) Pointers to beta, charge, track, trrechit, trclusters are OK now
+
