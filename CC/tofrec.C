@@ -24,7 +24,6 @@ void AMSTOFRawCluster::sitofdigi(){
   AMSTOFMCCluster * ptr=(AMSTOFMCCluster*)
   AMSEvent::gethead()->
    getheadC("AMSTOFMCCluster",0,1); // last 1  to test sorted container
-  integer plrot;
   static number xplane[4][SCMXBR];
   static number xtime[4][SCMXBR];
   static number xtimed[4][SCMXBR];
@@ -43,14 +42,11 @@ void AMSTOFRawCluster::sitofdigi(){
    assert(plane>=0 && plane< SCMXBR);
    assert (ntof>=0 && ntof<4);
 #endif
-   plrot=TOFDBc::plrotm(ntof);     // =0/1-unrotated/rotated TOF-plane
    xplane[ntof][plane]+=ptr->edep*1000;
    xtime[ntof][plane]+=ptr->tof*(ptr->edep)*1000;//tof*edep
-   integer ixy;
-   if(plrot==0)
-               ixy=1;
-   else
-       ixy=0;
+   integer plrot=TOFDBc::plrotm(ntof);     // =0/1-unrotated/rotated TOF-plane
+   integer ixy=0;
+   if(plrot==0)ixy=1;
    xtimed[ntof][plane]+=ptr->xcoo[ixy]*(ptr->edep)*1000;//long_coo*edep
    xz[ntof][plane]=ptr->xcoo[2];
    status=0;
@@ -60,7 +56,6 @@ void AMSTOFRawCluster::sitofdigi(){
    
   }
 //
-  etd=1.5;// err. on long. coord.(cm)
 //
   for(integer kk=0;kk<SCLRS;kk++){
   for(integer i=0;i<SCMXBR;i++){
@@ -68,11 +63,18 @@ void AMSTOFRawCluster::sitofdigi(){
      xtime[kk][i]=xtime[kk][i]/xplane[kk][i];
      xtimed[kk][i]=xtimed[kk][i]/xplane[kk][i];
      geant dummy(-1);
-     number ts;
-     if(RNDM(dummy)< TOFMCFFKEY.TimeProbability2)ts=TOFMCFFKEY.TimeSigma2*rnormx();
-     else ts=TOFMCFFKEY.TimeSigma*rnormx();
-     xtime[kk][i]+=ts;//add error
-     xtimed[kk][i]+=rnormx()*etd;//add error
+     const number c=1.7e10;    // Speed of light
+     number ts1,ts2;
+     if(RNDM(dummy)< TOFMCFFKEY.TimeProbability2){
+      ts1=TOFMCFFKEY.TimeSigma2*rnormx();
+      ts2=TOFMCFFKEY.TimeSigma2*rnormx();
+     }
+     else {
+       ts1=TOFMCFFKEY.TimeSigma*rnormx();
+       ts2=TOFMCFFKEY.TimeSigma*rnormx();
+     }
+     xtime[kk][i]+=(ts1+ts2)/2.;// error time
+     xtimed[kk][i]+=(ts1-ts2)/2.*c;   // error coordinate
 
      ama[0]=0.;
      ama[1]=0.;
@@ -500,17 +502,19 @@ void AMSTOFCluster::build(int &stat){
       cofg=0.;
       cofgl=0.;
       for(j=i-1;j<i+2;j++){// calc. clust. energy/COG-transv/COG-long
-       edep+=eplane[j];
-       cofg+=eplane[j]*(j-i);//relative to "peak" bar
        ptrr=xptr[j];   
-       yloc=ptrr->gettimeD();
-       if(abs(yloc) < ylocm){
-        edepl+=eplane[j];
-        cofgl+=eplane[j]*yloc;
+       if(ptrr){
+        edep+=eplane[j];
+        cofg+=eplane[j]*(j-i);//relative to "peak" bar
+        yloc=ptrr->gettimeD();
+        if(abs(yloc) < ylocm){
+         edepl+=eplane[j];
+         cofgl+=eplane[j]*yloc;
+        }
        }
       }
       time=ptr->gettime();// (ns)
-      etime=TOFMCFFKEY.TimeSigma;//(sec !!) tempor(later put in TOFBrcal needed data!)
+      etime=TOFMCFFKEY.TimeSigma/sqrt(2.);  //(sec !!) tempor(later put in TOFBrcal needed data!)
 //------
       if(edep>TOFRECFFKEY.ThrS){// <--- calc.clus.parameters if Ecl>Ethresh
         if(TOFRECFFKEY.reprtf[2]>0){
@@ -621,8 +625,9 @@ for (int i=0;i<maxpl;i++){
    number etime, etimed;
 #if 1 
       // change to zero when Eugeni  writes a proper code
-     etime=TOFMCFFKEY.TimeSigma;
-     etimed=TOFMCFFKEY.TimeSigma*sqrt(2.);
+     etime=TOFMCFFKEY.TimeSigma/sqrt(2.);
+     const number c=1.7e10;    //speed of light
+     etimed=TOFMCFFKEY.TimeSigma/sqrt(2.)*c;
 #else
      // Eugeni code here
 #endif
@@ -631,20 +636,15 @@ for (int i=0;i<maxpl;i++){
    coo[0]=0;
    coo[1]=0;
    ecoo[2]=10000;   // big
-   const number c=2.99792e10;
-   integer ix;
-   if(ntof==1)ix=1;
-   else if (ntof==2)ix=0;
-   else if (ntof==3)ix=0;
-   else             ix=1;
-   integer iy;
-   if(ntof==1)iy=0;
-   else if (ntof==2)iy=1;
-   else if (ntof==3)iy=1;
-   else             iy=0;
+   
+   integer plrot=TOFDBc::plrotm(ntof-1);     // =0/1-unrotated/rotated TOF-plane
+   integer ix=0;
+   integer iy=0;
+   if(plrot==0)ix=1;
+   else iy=1;
 
-   coo[ix]=timed/2*c;
-   ecoo[ix]=etimed/2*c;
+   coo[ix]=timed;
+   ecoo[ix]=etimed;
    
    geant padl=TOFDBc::plnstr(5);
    coo[iy]=cofg/edep*padl+TOFDBc::gettsc(ntof-1,i-1);

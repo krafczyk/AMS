@@ -186,8 +186,8 @@ FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 //=================================================================================
 void AMSJob::_sitofdata(){
   char tfname[12]="tdfmap01";//file-name for t_distr.files map(max 11 letters )
-  TOFMCFFKEY.TimeSigma=0.8e-10; // time resolution(sec) for simplified algorithm
-  TOFMCFFKEY.TimeSigma2=3.2e-10;
+  TOFMCFFKEY.TimeSigma=1.1e-10; // time resolution(sec) for simplified algorithm
+  TOFMCFFKEY.TimeSigma2=4.5e-10;
   TOFMCFFKEY.TimeProbability2=0.035;
   TOFMCFFKEY.padl=10.5;        // sc. bar transv. step ........................
   TOFMCFFKEY.Thr=0.1;          // Sc.bar Elos-thresh.(Mev) to participate in Reco   

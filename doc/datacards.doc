@@ -45,8 +45,8 @@ I86   ffile(' ')                 // file name
 // TOF  Simulation
 
 TOFMC      
-R  1   TimeSigma(80e-12)  // Time resolution(sec) for simplified(fast) algorithm 
-R  2   TimeSigma2(320e-12)  // 2nd Time res(sec) for simplified algorithm 
+R  1   TimeSigma(110e-12)  // Time resolution(sec) for simplified(fast) algorithm 
+R  2   TimeSigma2(450e-12)  // 2nd Time res(sec) for simplified algorithm 
 R  3   TimeProbability2(0.035)  // 2nd Time Probability
 R  4   padl(10.5)          // Sc. bars transv. step (cm) ..................
 R  5   Thr(0.1)            // Sc.bar Elos-thresh(mev) to participate in Reco 
