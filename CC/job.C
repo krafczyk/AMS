@@ -1,3 +1,4 @@
+
 // Author V. Choutko 24-may-1996
 // CTC codes added 29-sep-1996 by E.Choumilov 
 //
@@ -40,7 +41,7 @@ void AMSJob::data(){
   VBLANK(AMSFFKEY.Setupname,40);
   AMSFFKEY.ZeroSetupOk=0;
   // Set Defaults
-FFKEY("AMSJOB",(float*)&AMSFFKEY,sizeof(AMSFFKEY_DEF)/sizeof(integer),"MIXED");
+FFKEY("AMSJOB",(float*)&AMSFFKEY+2,sizeof(AMSFFKEY_DEF)/sizeof(integer),"MIXED");
 _siamsdata();
 _reamsdata();
 }

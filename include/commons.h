@@ -28,7 +28,7 @@ integer Event;
 #define SELECTFFKEY COMMON_BLOCK(SELECTFFKEY,selectffkey)
 COMMON_BLOCK_DEF(SELECTFFKEY_DEF,SELECTFFKEY);
 
-class AMSFFKEY_DEF{
+class AMSFFKEY_DEF {
 public:
 integer Simulation;
 integer Reconstruction;
@@ -44,7 +44,7 @@ integer ZeroSetupOk;
 #define AMSFFKEY COMMON_BLOCK(AMSFFKEY,amsffkey)
 COMMON_BLOCK_DEF(AMSFFKEY_DEF,AMSFFKEY);
 
-class IOPA_DEF{
+class IOPA_DEF {
 public:
 integer hlun;
 integer hfile[40];
@@ -56,7 +56,7 @@ integer TriggerC[40];
 #define IOPA COMMON_BLOCK(IOPA,iopa)
 COMMON_BLOCK_DEF(IOPA_DEF,IOPA);
 
-class TOFMCFFKEY_DEF{
+class TOFMCFFKEY_DEF {
 public:
 geant TimeSigma;
 geant padl;
@@ -83,7 +83,7 @@ integer trlogic[2]; // to control trigger logic
 #define TOFMCFFKEY COMMON_BLOCK(TOFMCFFKEY,tofmcffkey)
 COMMON_BLOCK_DEF(TOFMCFFKEY_DEF,TOFMCFFKEY);
 
-class TOFRECFFKEY_DEF{
+class TOFRECFFKEY_DEF {
 public:
 geant Thr1;  // limit on max
 geant ThrS;  // limit on sum
@@ -91,7 +91,7 @@ geant ThrS;  // limit on sum
 #define TOFRECFFKEY COMMON_BLOCK(TOFRECFFKEY,tofrecffkey)
 COMMON_BLOCK_DEF(TOFRECFFKEY_DEF,TOFRECFFKEY);
 
-class CTCGEOMFFKEY_DEF{
+class CTCGEOMFFKEY_DEF {
 public:
   geant wallth;    // reflecting walls(separators) thickness (cm)
   geant agap;      // typical "air" gaps
@@ -108,7 +108,7 @@ public:
 #define CTCGEOMFFKEY COMMON_BLOCK(CTCGEOMFFKEY,ctcgeomffkey)
 COMMON_BLOCK_DEF(CTCGEOMFFKEY_DEF,CTCGEOMFFKEY);
 
-class CTCMCFFKEY_DEF{
+class CTCMCFFKEY_DEF {
 public:
   geant Refraction[2]; //refraction index (aerogel,wls)
   geant Path2PhEl[2];  // path to phel con factor (aerogel,wls)
@@ -117,7 +117,7 @@ public:
 #define CTCMCFFKEY COMMON_BLOCK(CTCMCFFKEY,ctcmcffkey)
 COMMON_BLOCK_DEF(CTCMCFFKEY_DEF,CTCMCFFKEY);
 
-class CTCRECFFKEY_DEF{
+class CTCRECFFKEY_DEF {
 public:
 geant Thr1;  // limit on max
 geant ThrS;  // limit on sum
@@ -127,7 +127,7 @@ COMMON_BLOCK_DEF(CTCRECFFKEY_DEF,CTCRECFFKEY);
 
 
 
-class TRMCFFKEY_DEF{
+class TRMCFFKEY_DEF {
 public:
 geant alpha;
 geant beta;
@@ -146,7 +146,7 @@ COMMON_BLOCK_DEF(TRMCFFKEY_DEF,TRMCFFKEY);
 
 //
 const integer npatb=9;
-class BETAFITFFKEY_DEF{
+class BETAFITFFKEY_DEF {
 public:
   integer pattern[npatb];  //patterns  to fit; Priority decreases with number
   //    Number              Descr             Points      Default
@@ -169,7 +169,7 @@ public:
 COMMON_BLOCK_DEF(BETAFITFFKEY_DEF,BETAFITFFKEY);
 //
 const integer npat=19;
-class TRFITFFKEY_DEF{
+class TRFITFFKEY_DEF {
 public:
   integer pattern[npat];  //patterns  to fit; Priority decreases with number
   //    Number              Descr             Points      Default
@@ -213,7 +213,7 @@ COMMON_BLOCK_DEF(TRFITFFKEY_DEF,TRFITFFKEY);
 
 //
 
-class CCFFKEY_DEF{
+class CCFFKEY_DEF {
 public:
   geant coo[6];       //1-6
   geant dir[6];       //7-12
@@ -232,7 +232,7 @@ COMMON_BLOCK_DEF(CCFFKEY_DEF,CCFFKEY);
 //
 
 
-class TRCLFFKEY_DEF{
+class TRCLFFKEY_DEF {
 public:
 geant ThrClA[2];
 geant ThrClS[2];
