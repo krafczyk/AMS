@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.6 2001/03/26 18:08:05 kscholbe Exp $
+//  $Id: trddbc.h,v 1.7 2001/03/29 12:17:53 kscholbe Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>
@@ -10,6 +10,7 @@ namespace trdconst{
 // counting always from 0 and from top to bottom
 const uinteger maxo=9;   
 const uinteger mtrdo=1;   
+const uinteger maxbulk=6;
 const uinteger maxlay=20;
 const uinteger maxlad=21;
 const uinteger maxtube=16;
@@ -28,6 +29,7 @@ private:
 
    // Media    
    static char* _OctagonMedia[maxo];
+   static char* _BulkheadsMedia;
    static char* _TubesMedia;
    static char* _ITubesMedia;
    static char* _RadiatorMedia;
@@ -39,9 +41,11 @@ private:
     static uinteger   _PrimaryOctagonNo;
     static uinteger   _PrimaryOctagon[maxo];
     static uinteger   _NoTRDOctagons[mtrdo];
+    static  uinteger  _BulkheadsNo[mtrdo];
     static  uinteger  _LayersNo[mtrdo];
     static  uinteger  _LaddersNo[mtrdo][trdconst::maxlay];
     static uinteger   _TubesNo[mtrdo][trdconst::maxlay][trdconst::maxlad];
+    static uinteger   _NumberBulkheads;
     static uinteger   _NumberTubes;
     static uinteger   _NumberLadders;
     static const number  _TubeInnerDiameter;
@@ -58,6 +62,7 @@ private:
 
  //Sizes    
    static number    _OctagonDimensions[maxo][10]; 
+   static number    _BulkheadsDimensions[mtrdo][trdconst::maxbulk][4];
    static number    _LaddersDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];
    static number    _TubesDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];    
    static number    _TubesBoxDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][10];    
@@ -66,6 +71,7 @@ private:
   // Positions & Orientations
   
    static TRDDBc * _HeadOctagonPos;
+   static TRDDBc * _HeadBulkheadPos;
    static TRDDBc * _HeadLadderPos;
    static TRDDBc * _HeadRadiatorPos;
    static TRDDBc * _HeadTubeBoxPos;
@@ -84,6 +90,7 @@ public:
    static char* CodeLad(uinteger gid); 
    //  getnumbers for elements   
    static uinteger getnumTube(uinteger tube,uinteger ladder, uinteger layer, uinteger oct=1);
+   static uinteger getnumBulkhead(uinteger bulkhead, uinteger oct=1);
    static uinteger getnumLadder(uinteger ladder, uinteger layer, uinteger oct=1);
 
 
@@ -95,6 +102,12 @@ public:
  static void SetOctagon(uinteger oct,
              uinteger  status, geant coo[],number nrm[3][3], uinteger &gid);
  static void GetOctagon(uinteger oct,
+                          uinteger & status, geant coo[],number nrm[3][3],
+                          uinteger &gid);
+
+ static void SetBulkhead(uinteger bulkhead, uinteger oct,
+             uinteger  status, geant coo[],number nrm[3][3],uinteger gid);
+ static void GetBulkhead(uinteger bulkhead, uinteger oct,
                           uinteger & status, geant coo[],number nrm[3][3],
                           uinteger &gid);
 
@@ -132,6 +145,7 @@ public:
    static integer   GetPrimaryOctagon(uinteger oct){return oct<OctagonNo()?integer(_PrimaryOctagon[oct]):-1;}
    static uinteger   NoTRDOctagons(uinteger oct){return oct<TRDOctagonNo()?_NoTRDOctagons[oct]:0;}
    static uinteger   OctagonNo(){return _OctagonNo;}
+   static  uinteger  BulkheadsNo(uinteger toct){return toct<TRDOctagonNo()?_BulkheadsNo[toct]:0;}
    static  uinteger  LayersNo(uinteger toct){return toct<TRDOctagonNo()?_LayersNo[toct]:0;}
    static  uinteger  LaddersNo(uinteger toct, uinteger lay){return lay<LayersNo(toct)?_LaddersNo[toct][lay]:0;}
    static uinteger   TubesNo(uinteger toct, uinteger lay, uinteger lad){return lad<LaddersNo(toct,lay)?_TubesNo[toct][lay][lad]:0;}
@@ -154,6 +168,7 @@ public:
 
  //Sizes    
    static number&    OctagonDimensions(uinteger oct, uinteger index); 
+   static number&    BulkheadsDimensions(uinteger toct, uinteger bulk, uinteger index);
    static number&    LaddersDimensions(uinteger toct, uinteger lay, uinteger lad, uinteger index);
    static number&    TubesDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);    
    static number    ITubesDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);    
@@ -163,6 +178,7 @@ public:
  //Media
 
    static char* OctagonMedia(uinteger oct){return oct<maxo?_OctagonMedia[oct]:0;}
+   static char* BulkheadsMedia(){return _BulkheadsMedia;}
    static char* TubesMedia(){return _TubesMedia;}
    static char* ITubesMedia(){return _ITubesMedia;}
    static char* RadiatorMedia(){return _RadiatorMedia;}
