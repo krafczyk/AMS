@@ -13,10 +13,13 @@ hist = TH1F("hist","Z vertex position (cm)",25,-50.0,150.0)
 
 ams = AMSChain()
 ams.Add("/f2users/choutko/g3v1g3.root")
+#ams.Add("http://pcamsf0.cern.ch/f2dah1/MC/AMS02/2004A/protons/el.pl1.10200/738197524.0000001.root")
 ndata = ams.GetEntries()
 
 for i in range(ndata):
   ev = ams.GetEvent()
+#  if ev.nParticle()==1:
+#      print ev.Particle(0).Info()
   if ev.nVertex() == 1:
       vtx = ev.Vertex(0)
       zpos = vtx.Vertex[2]
