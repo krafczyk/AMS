@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.220 2003/11/18 09:46:45 choutko Exp $
+# $Id: RemoteClient.pm,v 1.221 2003/11/18 10:34:26 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20,6 +20,7 @@
 #                 validateRuns is modified - add clock for local hosts
 #
 # ToDo : checkJobsTimeout - reduce number of SQLs
+#        increase number of cites to 32 (16/32, 27/26)
 #
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -6272,7 +6273,7 @@ sub listServers {
     print "<p>\n";
     print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-    my $sql="SELECT dbfilename, status, createtime, lastupdate FROM Servers";
+    my $sql="SELECT dbfilename, status, createtime, lastupdate FROM Servers ORDER BY lastupdate DESC";
     my $r3=$self->{sqlserver}->Query($sql);
     print "<tr><td><b><font color=\"blue\">Server </font></b></td>";
     print "<td><b><font color=\"blue\" >Started </font></b></td>";
