@@ -344,7 +344,7 @@ TRCALIB.Chi2Cut[2]=100;
 TRCALIB.Chi2Cut[3]=100;
 TRCALIB.PatStart=0;
 TRCALIB.MultiRun=0;
-TRCALIB.EventsPerRun=1001;
+TRCALIB.EventsPerRun=10000001;
 for(int i=0;i<6;i++){
   TRCALIB.Ladder[i]=0;
   TRCALIB.ActiveParameters[i][0]=1;   // x
@@ -394,6 +394,7 @@ for( i=0;i<6;i++){
   TRALIG.EventsPerRun=1001;
   TRALIG.LayersOnly=0;
   TRALIG.GlobalGoodLimit=0.06;
+  TRALIG.SingleLadderEntryLimit=10000;
  FFKEY("TRALIG",(float*)&TRALIG,sizeof(TRALIG_DEF)/sizeof(integer),"MIXED");
 
 

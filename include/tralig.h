@@ -62,7 +62,8 @@ AMSPoint  getang()const {return _Angles;}
 void setcoo(const AMSPoint & o) {_Coo=o;}
 void setpar(const AMSPoint & coo, const AMSPoint & angle);
 integer& NEntries(){return _NEntries;}
-integer      AddOne(){if(_NEntries>=0)_NEntries++;return _NEntries>=0;}
+integer      AddOne();
+void         MinusOne();
 AMSDir   getmtx(integer i){assert(i>=0 && i<3);return _Dir[i];}
 AMSDir &  setmtx(integer i){assert(i>=0 && i<3);return _Dir[i];}
 void updmtx(){_a2m();}

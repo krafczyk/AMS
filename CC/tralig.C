@@ -473,6 +473,17 @@ if(forced==0){
         if(pal->AddressOK(1,1) ){
           int itst=GCFLAG.ITEST>10?GCFLAG.ITEST/10:1;        
            if(pal->_PositionData%itst==1)cout <<"AMSTrAligFit::Testgl-I "<<pal->_PositionData<<" events in memory "<<endl;
+           if(pal->_PositionData%GCFLAG.ITEST==1){
+             for(int ilay=0;ilay<6;ilay++){
+               for(int iside=0;iside<2;iside++){
+                for(int ilad=0;ilad<nld;ilad++){
+                 if(_pPargl[ilad][iside][ilay].NEntries()>0){
+                   cout << ilay<<" "<<iside<<" "<<ilad<<" "<< _pPargl[ilad][iside][ilay].NEntries()<<endl;
+                 }
+                }
+               }
+             }
+           }
            if(pal->_PositionData<pal->_NData){
             // UPdateGlobalParSpace;
              integer ladder[2][6];
@@ -484,9 +495,19 @@ if(forced==0){
               }
              }
              if(add)(pal->_pData[(pal->_PositionData)++]).Init(ptr,ptrg);
+             else{
+              for( i=0;i<6;i++){
+               if(ladder[0][i]){
+                _pPargl[ladder[0][i]-1][ladder[1][i]][i].MinusOne();
+               }
+              }
+             }
            }
            else if (TRALIG.LayersOnly)Testgl(1);
-           else raise(SIGTERM);
+           else {
+              cout <<"AMSTrAligFit::Testgl-I-MaxEventNoReached.Terminating"<<endl;
+              raise(SIGTERM);
+           }
            if(skip++>TRALIG.EventsPerRun){
               if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=2;
               skip=0;
@@ -1553,3 +1574,20 @@ integer AMSTrAligFit::glDBOK(uinteger address){
    return 1;
   
 }
+
+integer AMSTrAligPar::AddOne(){
+
+if(_NEntries>=0)_NEntries++;
+
+if(_NEntries<TRALIG.SingleLadderEntryLimit)return _NEntries>=0;
+else return 0;
+
+}
+
+void AMSTrAligPar::MinusOne(){
+
+if(_NEntries>0)_NEntries--;
+
+
+}
+

@@ -503,7 +503,8 @@ I28 ActiveParameters[6][6](all 1); //   for each plane: x,y,z, pitch, yaw, roll
 I64 GlobalFit(0)                   // global fit (1) local(0)
 I65 EventsPerRun(1001)            
 I66 LayersOnly(0)                     // ladder(0) or layer(1) based alig
-
+R67 GlobalGoodLimit(0.06)             // invoke local db if beyond
+I68 SingleLadderEntryLimit(10000)     
 
 LVL1    // LVL1 Trigger 
 
