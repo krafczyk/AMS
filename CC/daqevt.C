@@ -90,7 +90,8 @@ while(fpl){
  if(fpl->_sdid >=0 ){
  *_pcur=fpl->_length+lsub;
  *(_pcur+1)=fpl->_sdid;
- fpl->_pgetdata(fpl->_length,_pcur+2);
+ uinteger* psafe=_pcur+lsub;
+ fpl->_pgetdata(fpl->_length,psafe);
  _pcur=_pcur+*_pcur;
 }
 fpl=fpl->_next;
@@ -160,7 +161,8 @@ void DAQEvent::buildRawStructures(){
    fpl->_sdid=_findid((fpl->_pgetid)());
    for(_pcur=_pData+1;_pcur < _pData+*(_pData);_pcur=_pcur+*_pcur){
     if(*(_pcur+1) == fpl->_sdid){
-     fpl->_pputdata(*_pcur-lsub,_pcur+lsub);
+     uinteger *psafe=_pcur+lsub;
+     fpl->_pputdata(*_pcur-lsub,psafe);
      break;
     }
    }
