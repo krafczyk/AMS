@@ -1,10 +1,11 @@
-//  $Id: root.C,v 1.37 2003/05/03 08:43:55 choutko Exp $
+//  $Id: root.C,v 1.38 2003/05/05 16:58:49 choutko Exp $
 //  Last Edit : Nov 19, 2002. A.Klimentov
 //              check Root classes
 //              ? TrGammaRoot02 - commented
 //
 #include <root.h>
 #include <ntuple.h>
+#ifndef __ROOTSHAREDLIBRARY__
 #include <antirec02.h>
 #include <beta.h>
 #include <ecalrec.h>
@@ -20,7 +21,7 @@
 #include <trrawcluster.h>
 #include <trrec.h>
 //-- #include <gamma.h>
-
+#endif
 using namespace root;
 #ifdef __WRITEROOT__
 
@@ -63,6 +64,7 @@ ClassImp(RICRingRoot)
 AntiClusterRoot::AntiClusterRoot(){};
 AntiClusterRoot::AntiClusterRoot(AMSAntiCluster *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
   Sector = ptr->_sector;
   Ntimes = ptr->_ntimes;
@@ -72,15 +74,18 @@ AntiClusterRoot::AntiClusterRoot(AMSAntiCluster *ptr)
   Edep   = ptr->_edep;
   for (int i=0; i<3; i++) Coo[i] = ptr->_coo[i];
   for (int i=0; i<3; i++) ErrorCoo[i] = ptr->_ecoo[i];
+#endif
 }
 
 ANTIMCClusterRoot::ANTIMCClusterRoot(){};
 ANTIMCClusterRoot::ANTIMCClusterRoot(AMSAntiMCCluster *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Idsoft = ptr->_idsoft;
   for (int i=0; i<3; i++) Coo[i]=ptr->_xcoo[i];
   TOF    = ptr->_tof;
   Edep   = ptr->_edep;
+#endif
 }
 
 
@@ -101,6 +106,7 @@ BetaRoot02::~BetaRoot02(){
 }
 BetaRoot02::BetaRoot02(AMSBeta *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Status   = ptr->_status;
   Pattern  = ptr->_Pattern;
   Beta     = ptr->_Beta;
@@ -117,6 +123,7 @@ BetaRoot02::BetaRoot02(AMSBeta *ptr)
  fTrTrack    = -1;
 #endif
   //
+#endif
 }
 
 ChargeRoot02::ChargeRoot02() { 
@@ -134,6 +141,7 @@ ChargeRoot02::ChargeRoot02(AMSCharge *ptr, float probtof[],int chintof[],
                            float probtr[], int chintr[], float probrc[],
                            int chinrc[], float proballtr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
   ChargeTOF     = ptr->_ChargeTOF;
   ChargeTracker = ptr->_ChargeTracker;
@@ -157,6 +165,7 @@ ChargeRoot02::ChargeRoot02(AMSCharge *ptr, float probtof[],int chintof[],
  fBeta=-1;
  fRich=-1;
 #endif
+#endif
 }
 
 Ecal2DClusterRoot::Ecal2DClusterRoot(){ 
@@ -171,6 +180,7 @@ delete fEcal1DCluster; fEcal1DCluster=0;
 }
 Ecal2DClusterRoot::Ecal2DClusterRoot(Ecal2DCluster *ptr) 
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->getstatus();
   Proj   = ptr->_proj;
   Nmemb  = ptr->_NClust;
@@ -181,6 +191,7 @@ Ecal2DClusterRoot::Ecal2DClusterRoot(Ecal2DCluster *ptr)
 
 #ifndef __ROOTPOINTERS__
   fEcal1DCluster = new TRefArray;
+#endif
 #endif
 }
 
@@ -196,6 +207,7 @@ delete fEcalHit; fEcalHit = 0;
 }
 EcalClusterRoot::EcalClusterRoot(Ecal1DCluster *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Status  = ptr->_status;
   Proj    = ptr->_proj;
   Plane   = ptr->_plane;
@@ -210,6 +222,7 @@ EcalClusterRoot::EcalClusterRoot(Ecal1DCluster *ptr)
 
 #ifndef __ROOTPOINTERS__
   fEcalHit = new TRefArray;
+#endif
 #endif
 }
 
@@ -229,6 +242,7 @@ fEcal2DCluster = new TRefArray;
 };
 EcalShowerRoot::EcalShowerRoot(EcalShower *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Status      = ptr->_status;
   for (int i=0; i<3; i++) {
    Dir[i]   = ptr->_Dir[i];
@@ -262,11 +276,13 @@ EcalShowerRoot::EcalShowerRoot(EcalShower *ptr)
 #ifndef __ROOTPOINTERS__
   fEcal2DCluster = new TRefArray;
 #endif
+#endif
 }
 
 LVL1Root02::LVL1Root02(){};
 LVL1Root02::LVL1Root02(Trigger2LVL1 *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Mode   = ptr->_LifeTime;
   TOFlag = ptr->_tofflag;
   for (int i=0; i<4; i++) {
@@ -276,11 +292,13 @@ LVL1Root02::LVL1Root02(Trigger2LVL1 *ptr)
   AntiPatt = ptr->_antipatt;
   ECALflag = ptr->_ecalflag;
   ECALtrsum= ptr->_ectrsum;
+#endif
 }
 
 LVL3Root02::LVL3Root02(){};
 LVL3Root02::LVL3Root02(TriggerLVL302 *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   TOFTr     = ptr->_TOFTrigger;
   TRDTr     = ptr->_TRDTrigger;
   TrackerTr = ptr->_TrackerTrigger;
@@ -299,11 +317,13 @@ LVL3Root02::LVL3Root02(TriggerLVL302 *ptr)
   ECmatc    = ptr->_ECmatc;
   for (int i=0; i<4; i++) {ECTOFcr[i] = ptr->_ECtofcr[i];}
 
+#endif
 }
 
 MCEventGRoot02::MCEventGRoot02(){};
 MCEventGRoot02::MCEventGRoot02(AMSmceventg *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Nskip    = ptr->_nskip;
   Particle = ptr->_ipart;
   for (int i=0; i<3; i++) Coo[i] = ptr->_coo[i];
@@ -311,15 +331,18 @@ MCEventGRoot02::MCEventGRoot02(AMSmceventg *ptr)
   Momentum = ptr->_mom;
   Mass     = ptr->_mass;
   Charge   = ptr->_charge;
+#endif
 }           
 
 MCTrackRoot::MCTrackRoot(){};
 MCTrackRoot::MCTrackRoot(AMSmctrack *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   _radl = ptr->_radl;
   _absl = ptr->_absl;
   for (int i=0; i<3; i++) _pos[i]   = ptr->_pos[i];
   for (int i=0; i<4; i++) _vname[i] = ptr->_vname[i];
+#endif
 }
 
 ParticleRoot02::ParticleRoot02(){ 
@@ -342,6 +365,7 @@ ParticleRoot02::ParticleRoot02(){
 
 ParticleRoot02::ParticleRoot02(AMSParticle *ptr, float phi, float phigl)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Phi      = phi;
   PhiGl    = phigl;
 
@@ -408,6 +432,7 @@ ParticleRoot02::ParticleRoot02(AMSParticle *ptr, float phi, float phigl)
   RichLength = ptr->_RichLength;
 
   TRDLikelihood = ptr->_TRDLikelihood;
+#endif
 }
 
 
@@ -416,6 +441,7 @@ ParticleRoot02::ParticleRoot02(AMSParticle *ptr, float phi, float phigl)
 TOFClusterRoot::TOFClusterRoot() {};
 TOFClusterRoot::TOFClusterRoot(AMSTOFCluster *ptr, int p2memb[])
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
   Layer  = ptr->_ntof;
   Bar    = ptr->_plane;
@@ -431,20 +457,24 @@ TOFClusterRoot::TOFClusterRoot(AMSTOFCluster *ptr, int p2memb[])
     Coo[i] = ptr->_Coo[i];
     ErrorCoo[i] = ptr->_ErrorCoo[i];
   }
+#endif
 }
 
 TOFMCClusterRoot::TOFMCClusterRoot() {};
 TOFMCClusterRoot::TOFMCClusterRoot(AMSTOFMCCluster *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Idsoft = ptr->idsoft;
   for (int i=0; i<3; i++) {Coo[i] = ptr->xcoo[i];}
   TOF = ptr->tof;
   Edep= ptr->edep;
+#endif
 }
 
 TOFRawClusterRoot::TOFRawClusterRoot(){};
 TOFRawClusterRoot::TOFRawClusterRoot(TOF2RawCluster *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
 
   Status = ptr->_status;
   Layer  = ptr->_ntof;
@@ -458,6 +488,7 @@ TOFRawClusterRoot::TOFRawClusterRoot(TOF2RawCluster *ptr)
   edepdl  = ptr->_edepdl;
   time   = ptr->_time;
   cool   = ptr->_timeD;
+#endif
 }
 
 TRDClusterRoot::TRDClusterRoot(){
@@ -465,6 +496,7 @@ fTRDRawHit = 0;
 }
 TRDClusterRoot::TRDClusterRoot(AMSTRDCluster *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
   Layer  = ptr->_layer;
   for (int i=0; i<3; i++) Coo[i]= ptr->_Coo[i];
@@ -477,11 +509,13 @@ TRDClusterRoot::TRDClusterRoot(AMSTRDCluster *ptr)
   #else
   fTRDRawHit =-1;
   #endif
+#endif
 }
 
 TRDMCClusterRoot::TRDMCClusterRoot(){};
 TRDMCClusterRoot::TRDMCClusterRoot(AMSTRDMCCluster *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Layer  = ptr->_idsoft.getlayer();
   Ladder = ptr->_idsoft.getladder();
   Tube   = ptr->_idsoft.gettube();
@@ -491,15 +525,18 @@ TRDMCClusterRoot::TRDMCClusterRoot(AMSTRDMCCluster *ptr)
   Ekin   = ptr->_ekin;
   for (int i=0; i<3; i++) {Xgl[i] = ptr->_xgl[i];}
   Step   = ptr->_step;
+#endif
 }
 
 TRDRawHitRoot::TRDRawHitRoot(){};
 TRDRawHitRoot::TRDRawHitRoot(AMSTRDRawHit *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Layer  = ptr->_id.getlayer();
   Ladder = ptr->_id.getladder();
   Tube   = ptr->_id.gettube();
   Amp    = ptr->Amp();
+#endif
 }
 
 TRDSegmentRoot::TRDSegmentRoot(){   
@@ -514,6 +551,7 @@ delete fTRDCluster;  fTRDCluster = 0;
 }
 TRDSegmentRoot::TRDSegmentRoot(AMSTRDSegment *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Status        = ptr->_status;
   Orientation   = ptr->_Orientation;
   for (int i=0; i<2; i++) {FitPar[i] = ptr->_FitPar[i];}
@@ -523,6 +561,7 @@ TRDSegmentRoot::TRDSegmentRoot(AMSTRDSegment *ptr)
 
 #ifndef __ROOTPOINTERS__
   fTRDCluster =  new TRefArray;
+#endif
 #endif
 }
 
@@ -538,6 +577,7 @@ delete fTRDSegment; fTRDSegment = 0;
 }
 TRDTrackRoot::TRDTrackRoot(AMSTRDTrack *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
   for (int i=0; i<3; i++) {
     Coo[i]   = ptr->_StrLine._Coo[i];
@@ -552,11 +592,13 @@ TRDTrackRoot::TRDTrackRoot(AMSTRDTrack *ptr)
 #ifndef __ROOTPOINTERS__
   fTRDSegment =  new TRefArray;
 #endif
+#endif
 }
 
 TrClusterRoot::TrClusterRoot(){};
 TrClusterRoot::TrClusterRoot(AMSTrCluster *ptr, float amplitude[])
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Idsoft = ptr-> _Id.cmpt();
   Status = ptr->_status;
   NelemL = ptr->_NelemL;
@@ -567,11 +609,13 @@ TrClusterRoot::TrClusterRoot(AMSTrCluster *ptr, float amplitude[])
   RMS    = ptr->_Rms;
   ErrorMean = ptr->_ErrorMean;
   for (int i=0; i<5; i++) {Amplitude[i] = amplitude[i];}
+#endif
 }
 
 TrMCClusterRoot::TrMCClusterRoot(){};
 TrMCClusterRoot::TrMCClusterRoot(AMSTrMCCluster *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Idsoft  = ptr->_idsoft;
   TrackNo = ptr->_itra;
   for (int i=0; i<2; i++) {
@@ -590,14 +634,17 @@ TrMCClusterRoot::TrMCClusterRoot(AMSTrMCCluster *ptr)
       SS[i][j] = ptr->_ss[i][j];
     }
   }
+#endif
 }
 
 TrRawClusterRoot::TrRawClusterRoot(){};
 TrRawClusterRoot::TrRawClusterRoot(AMSTrRawCluster *ptr, int addr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   address = addr;
   nelem   = ptr->_nelem;
   s2n     = ptr->_s2n;
+#endif
 }
 
 TrRecHitRoot02::TrRecHitRoot02(){
@@ -611,6 +658,7 @@ TrRecHitRoot02::TrRecHitRoot02(){
 };
 TrRecHitRoot02::TrRecHitRoot02(AMSTrRecHit *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
 #ifndef __ROOTPOINTERS__
   fTrClusterX = 0;
   fTrClusterY = 0;
@@ -627,6 +675,7 @@ TrRecHitRoot02::TrRecHitRoot02(AMSTrRecHit *ptr)
   DifoSum = ptr->_DifoSum;
   CofgX   = ptr->_cofgx;
   CofgY   = ptr->_cofgy;
+#endif
 }
 
 TrTrackRoot02::TrTrackRoot02(){ 
@@ -641,6 +690,7 @@ delete fTrRecHit; fTrRecHit=0;
 }
 TrTrackRoot02::TrTrackRoot02(AMSTrTrack *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Status    = ptr->_status;
   Pattern   = ptr->_Pattern;
   Address   = ptr->_Address;
@@ -677,12 +727,14 @@ TrTrackRoot02::TrTrackRoot02(AMSTrTrack *ptr)
 #ifndef __ROOTPOINTERS__
   fTrRecHit = new TRefArray;
 #endif
+#endif
 }
 
 
 RICMCRoot::RICMCRoot(){};
 RICMCRoot::RICMCRoot(AMSRichMCHit *ptr, int _numgen)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   id        = ptr->_id;
   for (int i=0; i<i; i++) {
    origin[i]    = ptr->_origin[i];
@@ -691,11 +743,13 @@ RICMCRoot::RICMCRoot(AMSRichMCHit *ptr, int _numgen)
   status       = ptr->_status;
   eventpointer = ptr->_hit;
   numgen       = _numgen;
+#endif
 }
 
 RICEventRoot::RICEventRoot(){};
 RICEventRoot::RICEventRoot(AMSRichRawEvent *ptr, float x, float y)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   if (ptr) {
    _channel = ptr->_channel;
    _counts  = ptr->_counts;
@@ -706,10 +760,12 @@ RICEventRoot::RICEventRoot(AMSRichRawEvent *ptr, float x, float y)
   } else {
     cout<<"RICEventRoot -E- AMSRichRawEvent ptr is NULL"<<endl;
   }
+#endif
 }
 RICRingRoot::RICRingRoot(){ fTrack = 0;}
 RICRingRoot::RICRingRoot(AMSRichRing *ptr) 
 {
+#ifndef __ROOTSHAREDLIBRARY__
 #ifndef __ROOTPOINTERS__
  fTrack=0;
 #else
@@ -734,11 +790,13 @@ RICRingRoot::RICRingRoot(AMSRichRing *ptr)
   } else {
     cout<<"RICRingRoot -E- AMSRichRing ptr is NULL"<<endl;
   }
+#endif
 }
 
 EcalHitRoot::EcalHitRoot(){};
 EcalHitRoot::EcalHitRoot(AMSEcalHit *ptr) 
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
   Idsoft = ptr->_idsoft;
   Proj   = ptr->_proj;
@@ -767,20 +825,24 @@ EcalHitRoot::EcalHitRoot(AMSEcalHit *ptr)
   Ped[2] = ic.getpedd();
   Gain   = ic.getgain();
 
+#endif
 }
 
 
 void EventRoot02::Set(AMSEvent *ptr, int rawwords) 
 {
+#ifndef __ROOTSHAREDLIBRARY__
   if (ptr) {
    Header.Set(ptr, rawwords);
   } else {
     cout<<"EventRoot02 -W- AMSEvent *ptr is NULL"<<endl;
   }
+#endif
 }
 
 void AMSEventHeaderRoot::Set(AMSEvent *ptr, int rawwords)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   if (ptr) {
 
     _Run           = ptr->_run;
@@ -805,6 +867,7 @@ void AMSEventHeaderRoot::Set(AMSEvent *ptr, int rawwords)
     _VelPhi       = ptr->_VelPhi;
 
   }
+#endif
 }
 
 /*
@@ -822,6 +885,7 @@ TrGammaRoot02::~TrGammaRoot02() {
 
 TrGammaRoot02::TrGammaRoot02(AMSTrTrackGamma *ptr)
 {
+#ifndef __ROOTSHAREDLIBRARY__
   Pgam     =  ptr->_PGAMM;
   ErrPgam  =  ptr->_ErrPGAMM;
   Massgam  =  ptr->_MGAM;
@@ -858,11 +922,13 @@ TrGammaRoot02::TrGammaRoot02(AMSTrTrackGamma *ptr)
 #ifndef __ROOTPOINTERS__
   fTrTrack = new TRefArray;
 #endif
+#endif
 }
 
 */
 
 //------------- AddAMSObject 
+#ifndef __ROOTSHAREDLIBRARY__
 void EventRoot02::AddAMSObject(AMSAntiCluster *ptr)
 {
   if (ptr) {
@@ -1373,7 +1439,7 @@ void EventRoot02::AddAMSObject(AMSTrTrack *ptr)
    cout<<"AddAMSObject -E- AMSTrTrack ptr is NULL"<<endl;
   }
 }
-
+#endif
 
 EventRoot02::EventRoot02(){
 #ifndef __WRITEROOTCLONES__

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.79 2003/05/03 08:44:50 choutko Exp $
+//  $Id: root.h,v 1.80 2003/05/05 16:58:59 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -10,10 +10,10 @@
 #include "TClonesArray.h"
 #include "TRefArray.h"
 #include "TRef.h"
-#include <antidbc02.h>
 #include <list>
 #include <vector>
 using namespace std;
+#ifndef __ROOTSHAREDLIBRARY__
 class AMSAntiCluster;
 class AMSAntiMCCluster;
 class AMSBeta;
@@ -46,7 +46,40 @@ class EcalShower;
 class TOF2RawCluster;
 class Trigger2LVL1;
 class TriggerLVL302;
-
+#else
+class AMSAntiCluster{};
+class AMSAntiMCCluster{};
+class AMSBeta{};
+class AMSCharge{};
+class AMSEvent{};
+class AMSEcalHit{};
+class AMSmceventg{};
+class AMSmctrack{};
+class AMSParticle{};
+class AMSRichMCHit{};
+class AMSRichRawEvent{};
+class AMSRichRing{};
+class AMSNtuple{};
+class AMSTOFCluster{};
+class AMSTOFMCCluster{};
+class AMSTRDCluster{};
+class AMSTRDMCCluster{};
+class AMSTRDRawHit{};
+class AMSTRDSegment{};
+class AMSTRDTrack{};
+class AMSTrCluster{};
+class AMSTrMCCluster{};
+class AMSTrRawCluster{};
+class AMSTrTrack{};
+class AMSTrTrackGamma{};
+class AMSTrRecHit{};
+class Ecal1DCluster{};
+class Ecal2DCluster{};
+class EcalShower{};
+class TOF2RawCluster{};
+class Trigger2LVL1{};
+class TriggerLVL302{};
+#endif
 class AMSEventHeaderRoot: public TObject {
  public:
 // general info
@@ -626,8 +659,8 @@ public:
   int   Sector;
   int   Ntimes;
   int   Npairs;
-  float Times[2*ANTI2C::ANTHMX];
-  float Timese[2*ANTI2C::ANTHMX];
+  float Times[16];
+  float Timese[16];
   float Edep;
   float Coo[3];   // R, phi, Z
   float ErrorCoo[3];
@@ -861,6 +894,7 @@ public:
 EventRoot02();
 void Set(AMSEvent *ptr, int rawwords);
 ~EventRoot02(){};
+#ifndef __ROOTSHAREDLIBRARY__
 void         AddAMSObject(AMSAntiCluster *ptr);
 void         AddAMSObject(AMSAntiMCCluster *ptr);
 void         AddAMSObject(AMSBeta *ptr);
@@ -893,6 +927,7 @@ void         AddAMSObject(EcalShower  *ptr);
 void         AddAMSObject(TOF2RawCluster *ptr);
 void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
+#endif
 void clear();
 
 ClassDef(EventRoot02,4)       //EventRoot02

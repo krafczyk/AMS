@@ -1,13 +1,7 @@
-//  $Id: ntuple.h,v 1.80 2003/04/11 09:31:03 glamanna Exp $
+//  $Id: ntuple.h,v 1.81 2003/05/05 16:58:58 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
-#include <node.h>
-#include <tkdbc.h>
-#include <trddbc.h>
-#include <ecaldbc.h>
-#include <antidbc02.h>
-#include <root.h>
 
 const int NBRANCHES = 1;    // number of branches
 const int NCLONES   = 1;    // number of clones array
@@ -46,6 +40,15 @@ const int MAXMCVOL   =   200;
  const int NUMAMS     =   40;
 };
 using namespace root;
+
+#ifndef __ROOTSHAREDLIBRARY__
+#include <node.h>
+#include <tkdbc.h>
+#include <trddbc.h>
+#include <ecaldbc.h>
+#include <antidbc02.h>
+#include <root.h>
+
 
 class BetaNtuple02 {
 public:
@@ -778,5 +781,5 @@ public:
 
 };
 
-
+#endif
 #endif

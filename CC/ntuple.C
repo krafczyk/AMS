@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.140 2003/05/03 08:43:54 choutko Exp $
+//  $Id: ntuple.C,v 1.141 2003/05/05 16:58:49 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -445,10 +445,10 @@ void AMSNtuple::initR(char* fname){
    }
    _rfile= new TFile(fname,"RECREATE");
    if(!_rfile)throw amsglobalerror("UnableToOpenRootFile",3);
-   cout<<"Set Compress Level ..."<<IOPA.WriteRoot<<endl;
+   cout<<"Set Compress Level ..."<<IOPA.WriteRoot-1<<endl;
    cout<<"Set Split Level ..."<<branchSplit<<endl;
 
-   _rfile->SetCompressionLevel(IOPA.WriteRoot);
+   _rfile->SetCompressionLevel(IOPA.WriteRoot-1);
     createClones();
     cout<<"AMSNtuple::initR -I- create branches"<<endl;
    _tree= new TTree("AMSRoot","AMS Ntuple Root");
