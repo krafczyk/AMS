@@ -14,6 +14,7 @@
 #include <extC.h>
 #include <upool.h>
 #include <string.h>
+#include <tofrec02.h>
 #include <tofrec.h>
 #include <ntuple.h>
 #include <cont.h>
@@ -942,67 +943,65 @@ integer AMSTrRecHit::buildWeak(integer refit){
 
 }
 
-
 /* This function checks if AMSTrRecHits are consistent with TOF information */
-/* and marks them if it is not the case                                     */
+/* and marks them if it is not the case
+                                     */
+//------
 integer AMSTrRecHit::markAwayTOFHits(){
 
     int i;
 
-    TriggerLVL3 *plvl3;
-    plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+      TriggerLVL3 *plvl3;
+      plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
 // LVL3 required if existing
-    if (plvl3==NULL) {
+      if (plvl3==NULL) {
 // #ifdef __AMSDEBUG__
 //       cout << "markAwayTOFHits: No Level3 Trigger existing" << endl;
 // #endif
-      return 1;
-    }
-    if ( plvl3->skip() ) return 1;
-
-    AMSTOFCluster *phit[4], *ploop;
-
+        return 1;
+      }
+      if ( plvl3->skip() ) return 1;
+      AMSTOFCluster *phit[4], *ploop;
 // There should be one and only one AMSTOFCluster on planes 1, 4
 // according to LVL3 trigger
-    phit[0] = AMSTOFCluster::gethead(0);
-    if ( (phit[0] == NULL) || (phit[0]->next()) ) return 1;
-    phit[3] = AMSTOFCluster::gethead(3);
-    if ( (phit[3] == NULL) || (phit[3]->next()) ) return 1;
+      phit[0] = AMSTOFCluster::gethead(0);
+      if ( (phit[0] == NULL) || (phit[0]->next()) ) return 1;
+      phit[3] = AMSTOFCluster::gethead(3);
+      if ( (phit[3] == NULL) || (phit[3]->next()) ) return 1;
 
 // Initial straight line from planes 1 and 4 for ZX projection
-    number slope_x= (phit[3]->getcoo()[0] - phit[0]->getcoo()[0]) /
-               (phit[3]->getcoo()[2] - phit[0]->getcoo()[2]);
-    number intercept_x= phit[0]->getcoo()[0] - slope_x*phit[0]->getcoo()[2];
+      number slope_x= (phit[3]->getcoo()[0] - phit[0]->getcoo()[0]) /
+                 (phit[3]->getcoo()[2] - phit[0]->getcoo()[2]);
+      number intercept_x= phit[0]->getcoo()[0] - slope_x*phit[0]->getcoo()[2];
 
 // Look for the best AMSTOFCluster on plane 2 within errors
 // to improve the X prediction on the tracker
-    number resmax2=999.;
-    phit[1]=NULL;
-    for (ploop = AMSTOFCluster::gethead(1); ploop ; ploop=ploop->next() ){
-      number resx2 = fabs(ploop->getcoo()[0] 
-                          - slope_x*ploop->getcoo()[2] - intercept_x);
-      if (resx2<resmax2) {
-        resmax2 = resx2;
-        phit[1] = ploop;
+      number resmax2=999.;
+      phit[1]=NULL;
+      for (ploop = AMSTOFCluster::gethead(1); ploop ; ploop=ploop->next() ){
+        number resx2 = fabs(ploop->getcoo()[0] 
+                            - slope_x*ploop->getcoo()[2] - intercept_x);
+        if (resx2<resmax2) {
+          resmax2 = resx2;
+          phit[1] = ploop;
+        }
       }
-    }
 
 // Look for the best AMSTOFCluster on plane 3 within errors
 // to improve the X prediction
-    number resmax3=999.;
-    phit[2]=NULL;
-    for (ploop = AMSTOFCluster::gethead(2); ploop ; ploop=ploop->next() ){
-      number resx3 = fabs(ploop->getcoo()[0] 
-                          - slope_x*ploop->getcoo()[2] - intercept_x);
-      if (resx3<resmax3) {
-        resmax3 = resx3;
-        phit[2] = ploop;
+      number resmax3=999.;
+      phit[2]=NULL;
+      for (ploop = AMSTOFCluster::gethead(2); ploop ; ploop=ploop->next() ){
+        number resx3 = fabs(ploop->getcoo()[0] 
+                            - slope_x*ploop->getcoo()[2] - intercept_x);
+        if (resx3<resmax3) {
+          resmax3 = resx3;
+          phit[2] = ploop;
+        }
       }
-    }
-
 // We require at least 3 AMSTOFClusters
     if ( (phit[1]==NULL) && (phit[2]==NULL) ) return 1;
-
+//-----------
 // Straight line parameters for the ZX plane 
 // Use only Pad information (planes2,3: TOF calib. independent)
 // unless they are missing
@@ -1046,7 +1045,9 @@ integer AMSTrRecHit::markAwayTOFHits(){
 // Mark AMSTrRecHits which are outside the TOF path
     AMSTrRecHit * ptrhit;
     AMSPoint hit;
-    geant searchregtof = TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
+    geant searchregtof;
+    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(13);
+    else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
     for (i=0;i<TKDBc::nlay();i++) {
       for (ptrhit=AMSTrRecHit::gethead(i); ptrhit!=NULL; ptrhit=ptrhit->next()){
         hit = ptrhit->getHit();
@@ -1071,7 +1072,9 @@ integer AMSTrRecHit::markAwayTOFHits(){
     AMSTrMCCluster * ptrhit=
     (AMSTrMCCluster*)AMSEvent::gethead()->getheadC("AMSTrMCCluster",0);    
     AMSPoint hit;
-      geant searchregtof = TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
+    geant searchregtof;
+    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(13);
+    else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
       while(ptrhit){
         hit = ptrhit->getHit();
         number xres = fabs(hit[0]-intercept_x - slope_x*hit[2]);
@@ -2617,7 +2620,9 @@ integer AMSTrTrack::makeFalseTOFXHits(){
 // Use only Pad information -planes 2 or 3- if not consistent with planes 
 // 1 or 4, respectively (info from planes 1,4 is TOF-calibration dependent)
     number sw=0, sz=0, sx=0, sxz=0, szz=0;
-    geant searchregtof = TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
+    geant searchregtof;
+    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(13);
+    else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
     for (i=0; i<4; i++){
       if (phit[i]==NULL) continue;
       if (i==0 && phit[1]!=NULL && resmax2>searchregtof) continue;
@@ -2668,7 +2673,9 @@ integer AMSTrTrack::makeFalseTOFXHits(){
 // Impose the X global coordinate from TOF
       glopos[0] = intercept_x + slope_x*glopos[2];
 // Do not use if it is far away from TOF prediction
-      geant searchregtof = TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
+      geant searchregtof;
+      if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(13);
+      else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
       if (fabs(glopos[1] - intercept_y - slope_y*glopos[2])
                > searchregtof) continue; // 1/2 SC bar
 // Find now the right sensor number on the ladder
@@ -2805,7 +2812,9 @@ trig=(trig+1)%freq;
             throw AMSTrTrackError(" Cpulimit Exceeded ");
            }
 
-   geant searchregtof = TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
+   geant searchregtof;
+   if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(13);
+   else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
    
    return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0])/
             sqrt(1+par[0][0]*par[0][0]) > searchregtof ||

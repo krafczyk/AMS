@@ -1,10 +1,13 @@
+#include <tofdbc02.h>
+#include <tofdbc.h>
+#include <trigger102.h>
 #include <trigger1.h>
 #include <trigger3.h>
 #include <event.h>
 #include <mccluster.h>
 #include <amsdbc.h>
-#include <tofrec.h>
-#include <antirec.h>
+//#include <antirec02.h>
+//#include <antirec.h>
 #include <trrawcluster.h>
 #include <ntuple.h>
 using namespace trconst;
@@ -72,14 +75,14 @@ return _ctr < _ltr ? _ptr+_ctr : 0;
 }
 
   TriggerExpertLVL3 * TriggerExpertLVL3::pExpert=0;
-  integer TriggerLVL3::_TOFPattern[SCMXBR][SCMXBR];
-  integer TriggerLVL3::_TOFStatus[SCLRS][SCMXBR];
-  integer TriggerLVL3::_TOFOr[SCLRS][SCMXBR];
+  integer TriggerLVL3::_TOFPattern[TOFGC::MAXPAD][TOFGC::MAXPAD];
+  integer TriggerLVL3::_TOFStatus[TOFGC::MAXPLN][TOFGC::MAXPAD];
+  integer TriggerLVL3::_TOFOr[TOFGC::MAXPLN][TOFGC::MAXPAD];
   integer TriggerLVL3::_TrackerStatus[NTRHDRP2];
   integer TriggerLVL3::_TrackerAux[NTRHDRP][trid::ncrt];
-  integer TriggerLVL3::_TOFAux[SCLRS][SCMXBR];
-  integer TriggerLVL3::_NTOF[SCLRS];
-  geant TriggerLVL3::_TOFCoo[SCLRS][SCMXBR][3];
+  integer TriggerLVL3::_TOFAux[TOFGC::MAXPLN][TOFGC::MAXPAD];
+  integer TriggerLVL3::_NTOF[TOFGC::MAXPLN];
+  geant TriggerLVL3::_TOFCoo[TOFGC::MAXPLN][TOFGC::MAXPAD][3];
   geant TriggerLVL3::_TrackerCoo[NTRHDRP][trid::ncrt][3];
  geant TriggerLVL3::_TrackerDir[NTRHDRP][trid::ncrt];
   geant TriggerLVL3::_TrackerCooZ[maxlay];
@@ -98,7 +101,7 @@ _Residual[0]=0;
 _Residual[1]=0;
 _Pattern[0]=-1;
 _Pattern[1]=-1;
-VZERO(_NTOF,SCLRS);
+VZERO(_NTOF,TOFGC::MAXPLN);
 VZERO(_TrackerAux,AMSTrIdSoft::ndrp());
 VZERO(_nhits,sizeof(_nhits)/sizeof(integer));
 
@@ -115,23 +118,33 @@ _Residual[0]=res[0];
 _Residual[1]=res[1];
 _Pattern[0]=pat[0];
 _Pattern[1]=pat[1];
-VZERO(_NTOF,SCLRS);
+VZERO(_NTOF,TOFGC::MAXPLN);
 VZERO(_TrackerAux,AMSTrIdSoft::ndrp());
 VZERO(_nhits,sizeof(_nhits)/sizeof(integer));
 
 }
 
 
+ integer TriggerLVL3::TOFOr(uinteger paddle,uinteger plane){
+         return plane< TOF1GC::SCLRS && paddle<TOF1GC::SCBRS[plane] ? _TOFOr[plane][paddle]:-1;}
+//
+ integer TriggerLVL3::TOFInFastTrigger(uinteger paddle, uinteger plane){
+       return plane< TOF1GC::SCLRS && paddle<TOF1GC::SCBRS[plane] ? !_TOFStatus[plane][paddle]:-1;}
 
 
-
+//------------------------------------------------------
 void TriggerLVL3::init(){
  int i,j;
+ integer ltop,lbot;
 
   // TOF
+    ltop=0;//top layer used in matrix-trigger
+    lbot=3;//bot ..........
+    if(TOFDBc::plrotm(ltop)==0)ltop=1;
+    if(TOFDBc::plrotm(lbot)==0)lbot=2;
 
-    for(i=0;i<SCMXBR;i++){
-      for(j=0;j<SCLRS;j++)_TOFStatus[j][i]=0;
+    for(i=0;i<TOFGC::MAXPAD;i++){
+      for(j=0;j<TOFGC::MAXPLN;j++)_TOFStatus[j][i]=0;
     }
 
   if(LVL3FFKEY.UseTightTOF){
@@ -144,14 +157,14 @@ void TriggerLVL3::init(){
      cerr <<"TriggerLVL3::init-F-Error open file "<<fnam<<endl;
      exit(1);
     }
-    for(i=0;i<SCMXBR;i++){
-      for(j=0;j<SCMXBR;j++)iftxt>>_TOFPattern[j][i];
+    for(i=0;i<TOF1GC::SCBRS[ltop];i++){
+      for(j=0;j<TOF1GC::SCBRS[lbot];j++)iftxt>>_TOFPattern[j][i];
     }
-    for(i=0;i<SCLRS;i++){
-      for(j=0;j<SCMXBR;j++)iftxt>>_TOFOr[i][j];
+    for(i=0;i<TOF1GC::SCLRS;i++){
+      for(j=0;j<TOF1GC::SCBRS[i];j++)iftxt>>_TOFOr[i][j];
     }
-    for(i=0;i<SCLRS;i++){
-      for(j=0;j<SCMXBR;j++)iftxt>>_TOFStatus[i][j];
+    for(i=0;i<TOF1GC::SCLRS;i++){
+      for(j=0;j<TOF1GC::SCBRS[i];j++)iftxt>>_TOFStatus[i][j];
     }
     if(iftxt.eof() ){
       cerr<< "TriggerLVL3::init-F-Unexpected EOF"<<endl;
@@ -159,14 +172,16 @@ void TriggerLVL3::init(){
     }
   }
   else{
-    for(i=0;i<SCMXBR;i++){
-      for (j=0;j<SCMXBR;j++)_TOFPattern[i][j]=1;
-      for(j=0;j<SCLRS;j++)_TOFOr[j][i]=1;
+    for(i=0;i<TOF1GC::SCBRS[ltop];i++){
+      for(j=0;j<TOF1GC::SCBRS[lbot];j++)_TOFPattern[j][i]=1;
+    }
+    for(j=0;j<TOF1GC::SCLRS;j++){
+      for(i=0;i<TOF1GC::SCBRS[j];i++)_TOFOr[j][i]=1;
     }
   }
 
-    for(i=0;i<SCMXBR;i++){
-      for(j=0;j<SCLRS;j++){
+    for(j=0;j<TOF1GC::SCLRS;j++){
+      for(i=0;i<TOF1GC::SCBRS[j];i++){
         AMSgvolume *ptr=AMSJob::gethead()->getgeomvolume(AMSID("TOFS",100*(j+1)+i+1));
         if( ptr){
          AMSPoint loc(0,0,0);
@@ -308,31 +323,31 @@ void TriggerLVL3::init(){
       oftxt<<endl;
       oftxt << "_TOFPattern[i][14]"<<endl;
       int i,j,k;
-      for(i=0;i<SCMXBR;i++){
+      for(i=0;i<TOF1GC::SCBRS[ltop];i++){
         oftxt <<"i "<<i<<" ";
-        for(j=0;j<SCMXBR;j++)oftxt <<_TOFPattern[i][j]<<" ";
+        for(j=0;j<TOF1GC::SCBRS[lbot];j++)oftxt <<_TOFPattern[j][i]<<" ";
         oftxt <<endl;
       }    
       oftxt<<endl;
       oftxt<<endl;
       oftxt << "_TOFOr[i][14]"<<endl;
-      for(i=0;i<SCLRS;i++){
+      for(i=0;i<TOF1GC::SCLRS;i++){
         oftxt <<"i "<<i<<" ";
-        for(j=0;j<SCMXBR;j++)oftxt <<_TOFOr[i][j]<<" ";
+        for(j=0;j<TOF1GC::SCBRS[i];j++)oftxt <<_TOFOr[i][j]<<" ";
         oftxt <<endl;
       }    
       oftxt<<endl;
       oftxt << "_TOFStatus[i][14]"<<endl;
-      for(i=0;i<4;i++){
+      for(i=0;i<TOF1GC::SCLRS;i++){
         oftxt <<"i "<<i<<" ";
-        for(j=0;j<SCMXBR;j++)oftxt <<_TOFStatus[i][j]<<" ";
+        for(j=0;j<TOF1GC::SCBRS[i];j++)oftxt <<_TOFStatus[i][j]<<" ";
         oftxt <<endl;
       }    
       oftxt<<endl;
       oftxt << "_TOFCoo[i][j][3]"<<endl;
-      for(i=0;i<4;i++){
+      for(i=0;i<TOF1GC::SCLRS;i++){
         oftxt <<"i "<<i<<endl;
-        for(j=0;j<SCMXBR;j++){
+        for(j=0;j<TOF1GC::SCBRS[i];j++){
          oftxt <<"j "<<j<<" ";
          for(k=0;k<3;k++)oftxt <<_TOFCoo[i][j][k]<<" ";
          oftxt <<endl;
@@ -411,22 +426,23 @@ void TriggerLVL3::init(){
 
     
 }
- 
+//---------------------------------------------------------------- 
 void TriggerLVL3::addtof(int16 plane, int16 paddle){
-  if(plane >=0 && plane < SCLRS && paddle>=0 && paddle <SCMXBR && 
+  if(plane >=0 && plane < TOF1GC::SCLRS && paddle>=0 && paddle <TOF1GC::SCBRS[plane] && 
   _TOFStatus[plane][paddle] ==0){
    _TOFAux[plane][_NTOF[plane]]=paddle;
    _NTOF[plane]=_NTOF[plane]+1;
   }
 
 }
-  integer TriggerLVL3::tofok(){
+//----------------------------------------------------------------
+  integer TriggerLVL3::tofok(){ //Vitali mustcheck
      _TOFTrigger=0;
     int i,j;
     int ntof=0;
       for(i=0;i<_NTOF[0];i++){
-        for(j=0;j<_NTOF[SCLRS-1];j++){
-          if(_TOFPattern[_TOFAux[0][i]][_TOFAux[SCLRS-1][j]]){
+        for(j=0;j<_NTOF[TOF1GC::SCLRS-1];j++){
+          if(_TOFPattern[_TOFAux[0][i]][_TOFAux[TOF1GC::SCLRS-1][j]]){
               goto out;
           }
         }
@@ -434,8 +450,8 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
      _TOFTrigger=-1;
       return 0;
 out:
-    for (i=0;i<SCLRS;i++){
-      if((_NTOF[i]> 2) || (_NTOF[i] == 0 && (i == 0 || i==SCLRS-1)))return 0;
+    for (i=0;i<TOF1GC::SCLRS;i++){
+      if((_NTOF[i]> 2) || (_NTOF[i] == 0 && (i == 0 || i==TOF1GC::SCLRS-1)))return 0;
             
       if(_NTOF[i]==2){
         if(abs(_TOFAux[i][0]-_TOFAux[i][1]) > 1)return 0;
@@ -446,7 +462,7 @@ out:
     _TOFTrigger=1;
     return 1;
   }
-
+//---------------------------------------------------------------
 
 
 
@@ -456,11 +472,11 @@ out:
    int i;
    for(i=0;i<_NTOF[0];i++)cooup+=_TOFCoo[0][_TOFAux[0][i]][1];
    cooup=cooup/_NTOF[0];   
-   for(i=0;i<_NTOF[SCLRS-1];i++)coodown+=_TOFCoo[SCLRS-1][_TOFAux[SCLRS-1][i]][1];
-   coodown=coodown/_NTOF[SCLRS-1];   
+   for(i=0;i<_NTOF[TOF1GC::SCLRS-1];i++)coodown+=_TOFCoo[TOF1GC::SCLRS-1][_TOFAux[TOF1GC::SCLRS-1][i]][1];
+   coodown=coodown/_NTOF[TOF1GC::SCLRS-1];   
    for(i=0;i<TKDBc::nlay();i++){
-     geant coo=coodown+(cooup-coodown)/(_TOFCoo[0][0][2]-_TOFCoo[SCLRS-1][0][2])*
-     (_TrackerCooZ[i]-_TOFCoo[SCLRS-1][0][2]);
+     geant coo=coodown+(cooup-coodown)/(_TOFCoo[0][0][2]-_TOFCoo[TOF1GC::SCLRS-1][0][2])*
+     (_TrackerCooZ[i]-_TOFCoo[TOF1GC::SCLRS-1][0][2]);
      _lowlimitY[i]=-LVL3FFKEY.TrTOFSearchReg+coo;
      _upperlimitY[i]=LVL3FFKEY.TrTOFSearchReg+coo;
    }  
@@ -493,7 +509,7 @@ geant TriggerLVL3::Discriminator(integer nht){
    return max(LVL3FFKEY.TrMaxResidual[2],LVL3FFKEY.TrMaxResidual[0]-LVL3FFKEY.TrMaxResidual[1]*nht);
 }
 
-
+//-----------------------------------------------------------------------------
   void TriggerLVL3::build(){
     if(LVL3FFKEY.RebuildLVL3==1){
       AMSEvent::gethead()->getC("TriggerLVL3",0)->eraseC();
@@ -522,8 +538,8 @@ geant TriggerLVL3::Discriminator(integer nht){
     // first TOF Part
     //
     int i,j;
-    for(i=0;i<SCLRS;i++){
-      for(j=0;j<SCMXBR;j++){
+    for(i=0;i<TOF1GC::SCLRS;i++){
+      for(j=0;j<TOF1GC::SCBRS[i];j++){
         if(plvl1->checktofpattand(i,j) ||
             (_TOFOr[i][j] && plvl1->checktofpattor(i,j))){
           plvl3->addtof(i,j);

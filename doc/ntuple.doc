@@ -121,7 +121,7 @@ Below there is a description of a  ntuple.
                                                     //            on one of the sides
                                                     // bit 2048 -> recovered from 1-sided
                                                     //             (bit256 also set)
-* I*4  *              * TOFCLUST * plane(ntof)         // Tof counter no
+* I*4  *              * TOFCLUST * plane(ntof)         // Tof layer no
                                                        //1..4 up..down
 * I*4  *              * TOFCLUST * bar(ntof)           //  TOF bar no
 * R*4  *              * TOFCLUST * TOFEdep(ntof)      // TOF energy loss(MeV) from Anode

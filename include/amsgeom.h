@@ -12,6 +12,7 @@ extern void tofgeom(AMSgvolume &);
 extern void tofgeom02(AMSgvolume &);
 extern void antigeom(AMSgvolume &);
 extern void antigeom02(AMSgvolume &);
+extern void antigeom002(AMSgvolume &);
 #ifdef __G4AMS__
  extern void antigeom02g4(AMSgvolume &);
 extern void testg4geom(AMSgvolume &);

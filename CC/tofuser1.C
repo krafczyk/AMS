@@ -6,7 +6,9 @@
 #include <mccluster.h>
 #include <math.h>
 #include <extC.h>
+#include <tofdbc02.h>
 #include <tofdbc.h>
+#include <tofsim02.h>
 #include <tofsim.h>
 #include <trrec.h>
 #include <tofrec.h>
@@ -18,20 +20,18 @@
 #include <time.h>
 //
 //
-extern TOFBrcal scbrcal[SCLRS][SCMXBR];// calibration data
-extern TOFVarp tofvpar;// TOF general parameters
 //
 //=======================================================================
 void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
-  integer i,ilay,ibar,nbrl[SCLRS],brnl[SCLRS],bad,status,sector,nanti(0);
+  integer i,ilay,ibar,nbrl[TOF1GC::SCLRS],brnl[TOF1GC::SCLRS],bad,status,sector,nanti(0);
   integer il,ib,ix,iy,chan;
   geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cost,cosc;
-  number ama[2],amd[2],coo[SCLRS],coot[SCLRS],cstr[SCLRS],dx,dy;
-  number tovta1[SCLRS],tovta2[SCLRS],tovtd1[SCLRS],tovtd2[SCLRS];
-  geant elosa[SCLRS],elosd[SCLRS];
-  number am1[SCLRS],am2[SCLRS],am1d[SCLRS],am2d[SCLRS],am[2],eanti(0),eacl;
+  number ama[2],amd[2],coo[TOF1GC::SCLRS],coot[TOF1GC::SCLRS],cstr[TOF1GC::SCLRS],dx,dy;
+  number tovta1[TOF1GC::SCLRS],tovta2[TOF1GC::SCLRS],tovtd1[TOF1GC::SCLRS],tovtd2[TOF1GC::SCLRS];
+  geant elosa[TOF1GC::SCLRS],elosd[TOF1GC::SCLRS];
+  number am1[TOF1GC::SCLRS],am2[TOF1GC::SCLRS],am1d[TOF1GC::SCLRS],am2d[TOF1GC::SCLRS],am[2],eanti(0),eacl;
   geant ainp[2],dinp[2],cinp;
-  number ltim[SCLRS],tdif[SCLRS],trle[SCLRS],trlr[SCLRS];
+  number ltim[TOF1GC::SCLRS],tdif[TOF1GC::SCLRS],trle[TOF1GC::SCLRS],trlr[TOF1GC::SCLRS];
   number fpnt,bci,sut,sul,sul2,sutl,sud,sit2,tzer,chsq,betof,lflgt;
   number sigt[4]={0.121,0.121,0.121,0.121};// time meas.accuracy 
   number cvel(29.979);// light velocity
@@ -46,15 +46,15 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
                            getheadC("AMSAntiCluster",0);
 //----
   Runum=AMSEvent::gethead()->getrun();// current run number
-  TOFJobStat::addre(11);
-  for(i=0;i<SCLRS;i++)nbrl[i]=0;
+  TOFJobStat::addre(21);
+  for(i=0;i<TOF1GC::SCLRS;i++)nbrl[i]=0;
 //
   while(ptr){ // <--- loop over AMSTOFRawCluster hits
     status=ptr->getstatus();
     ilay=(ptr->getntof())-1;
     ibar=(ptr->getplane())-1;
-    if((status&SCBADB1)==0 && (status&SCBADB3)==0){ //"good_history/good_strr" hits
-      if((status&SCBADB2)==0 || (status&SCBADB5)!=0){// 2-sided or recovered
+    if((status&TOFGC::SCBADB1)==0 && (status&TOFGC::SCBADB3)==0){ //"good_history/good_strr" hits
+      if((status&TOFGC::SCBADB2)==0 || (status&TOFGC::SCBADB5)!=0){// 2-sided or recovered
         ptr->gettovta(ama);// get raw anode-ampl(TovT in ns)
         ptr->gettovtd(amd);// get raw dinode-ampl(TovT in ns)
         tovta1[ilay]=ama[0];
@@ -80,7 +80,7 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
 //
 //------> check  bars/layer=1 :
   bad=0;
-  for(i=0;i<SCLRS;i++)if(nbrl[i] != 1)bad=1;
+  for(i=0;i<TOF1GC::SCLRS;i++)if(nbrl[i] != 1)bad=1;
 //
 // -----> check Anti-counter :
   eanti=0;
@@ -100,11 +100,11 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
 //
 //  if(eanti>eacut)return;// remove events with big signal in Anti
   if(nanti>1)return;// remove events with >1 sector(e>ecut) in Anti
-  TOFJobStat::addre(13);
+  TOFJobStat::addre(22);
   if(bad==1)return; // remove events with bars/layer != 1
-  TOFJobStat::addre(12);
+  TOFJobStat::addre(23);
 //
-  for(i=0;i<SCLRS;i++){
+  for(i=0;i<TOF1GC::SCLRS;i++){
     HF1(5040+i,geant(brnl[i]+1),1.);
   }
 //
@@ -163,7 +163,7 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
     if(pmom<=pcut[0] || pmom>=pcut[1])bad=1;// out of needed mom.range
 //    if((status&16384)!=0)bad=1;// remove FalseTOFX tracks
     if(bad==1)return;
-    TOFJobStat::addre(14);
+    TOFJobStat::addre(24);
 //
     bad=0;
 //
@@ -171,7 +171,7 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
 //
     C0[0]=0.;
     C0[1]=0.;
-    for(il=0;il<SCLRS;il++){
+    for(il=0;il<TOF1GC::SCLRS;il++){
       ib=brnl[il];
       zc[il]=TOFDBc::getzsc(il,ib);
       C0[2]=zc[il];
@@ -199,7 +199,7 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
     cost=geant((fabs(cstr[0])+fabs(cstr[1])+fabs(cstr[2])+fabs(cstr[3]))/4);//average cos from track
 //
     if(bad)return;//too big difference of TOF-Tracker coord.
-    TOFJobStat::addre(15);
+    TOFJobStat::addre(25);
 //
 //--------> find beta from TOF :
 //
@@ -224,7 +224,7 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
     sutl=0;
     sul2=0;
     sud=0.;
-    for(il=0;il<SCLRS;il++){
+    for(il=0;il<TOF1GC::SCLRS;il++){
       sit2=pow(sigt[il],2);
       fpnt+=1;
       sud+=1./sit2;
@@ -236,7 +236,7 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
     bci = (sud*sutl-sut*sul)/(sud*sul2-sul*sul);
     tzer=(sut*sul2-sutl*sul)/(sud*sul2-sul*sul);
     chsq=0;
-    for(il=0;il<SCLRS;il++)chsq+=pow((tzer+bci*trle[il]-tdif[il])/sigt[il],2);
+    for(il=0;il<TOF1GC::SCLRS;il++)chsq+=pow((tzer+bci*trle[il]-tdif[il])/sigt[il],2);
     chsq/=number(fpnt-2);
     betof=1./bci/cvel;
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1502,betof,1.);
@@ -253,16 +253,16 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
     HF1(1508,geant(chargeTracker),1.);
     HF2(1509,geant(chargeTracker),geant(chargeTOF),1.);
 //
-    geant *pntr[SCLRS];
+    geant *pntr[TOF1GC::SCLRS];
     geant avera[4],averd[2];
 //    if(betof>0.9){ // dE/dX only relativistic particles
-//      for(il=0;il<SCLRS;il++){
+//      for(il=0;il<TOF1GC::SCLRS;il++){
 //        HF1(5001+il,sqrt(elosa[il]/1.8),1.);
 //        HF1(5011+il,sqrt(elosd[il]/1.8),1.);
 //      }
 //                  ---> look at truncated averages :
-//      for(il=0;il<SCLRS;il++)pntr[il]=&elosa[il];//pointers to layer edep's 
-//      AMSsortNAG(pntr,SCLRS);//sort in increasing order
+//      for(il=0;il<TOF1GC::SCLRS;il++)pntr[il]=&elosa[il];//pointers to layer edep's 
+//      AMSsortNAG(pntr,TOF1GC::SCLRS);//sort in increasing order
 //      avera[0]=(*pntr[0]);// lowest
 //      avera[1]=avera[0]+(*pntr[1]);// sum of 2 lowest
 //      avera[2]=avera[1]+(*pntr[2]);//        3 lowest
@@ -279,7 +279,7 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
 //        if(elosd[2]>elosd[3])averd[0]=elosd[3];
 //      }
 //      if(elosd[2]<9999. && elosd[3]<9999.)averd[1]=(elosd[2]+elosd[3])/2.;
-//      for(il=0;il<SCLRS;il++)HF1(5005+il,avera[il],1.);
+//      for(il=0;il<TOF1GC::SCLRS;il++)HF1(5005+il,avera[il],1.);
 //      if(averd[0]>0.)HF1(5015,averd[0],1.);
 //      if(averd[1]>0.)HF1(5016,averd[1],1.);
 //      if(avera[0]>0.)HF1(5020,log(avera[0])/2.303,1.);
@@ -416,10 +416,10 @@ void TOFUser::EndJob(){
   HPRINT(1503);
   HPRINT(1505);
   HPRINT(1510);
-  for(i=0;i<SCLRS;i++)HPRINT(5040+i);
-//  for(i=0;i<SCLRS;i++)HPRINT(5001+i);
-//  for(i=0;i<SCLRS;i++)HPRINT(5011+i);
-//  for(i=0;i<SCLRS;i++)HPRINT(5005+i);
+  for(i=0;i<TOF1GC::SCLRS;i++)HPRINT(5040+i);
+//  for(i=0;i<TOF1GC::SCLRS;i++)HPRINT(5001+i);
+//  for(i=0;i<TOF1GC::SCLRS;i++)HPRINT(5011+i);
+//  for(i=0;i<TOF1GC::SCLRS;i++)HPRINT(5005+i);
 //  HPRINT(5015);
 //  HPRINT(5016);
 //  HIDOPT(5020,chopt1);

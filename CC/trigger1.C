@@ -18,20 +18,14 @@ void TriggerLVL1::build(){
 // TOF : 
   int i;
   integer ntof=0;
-  uinteger tofpatt[SCLRS]={0,0,0,0};
+  uinteger tofpatt[TOF1GC::SCLRS]={0,0,0,0};
   integer tofflag(0);
   integer nanti=0;
   integer antipatt=0;
   if(!AMSJob::gethead()->isReconstruction()){// <---- MC
-    if(TOFMCFFKEY.fast==0){ // for slow algorithm
-      tofflag=AMSTOFRawEvent::gettrfl();
-      AMSTOFRawEvent::getpatt(tofpatt);
-    }
-    else{                   // for fast algorithm
-      tofflag=AMSTOFRawCluster::gettrfl();
-      AMSTOFRawCluster::getpatt(tofpatt);
-    }
-    for(i=0;i<SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
+    tofflag=AMSTOFRawEvent::gettrfl();
+    AMSTOFRawEvent::getpatt(tofpatt);
+    for(i=0;i<TOF1GC::SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
 // ANTI :
     integer cbt,lsbit(1);
     antipatt=AMSAntiRawEvent::getpatt();
@@ -49,7 +43,7 @@ void TriggerLVL1::build(){
      tofpatt[plane]=tofpatt[plane] | ( 1 << bar);  
      pcl=pcl->next();
     }
-    for(i=0;i<SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
+    for(i=0;i<TOF1GC::SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
 // ANTI :
     integer antip[2]={0,0};
     for(int k=0;k<2;k++){
@@ -77,7 +71,7 @@ void TriggerLVL1::build(){
   geant sumsc=_scaler.getsum(AMSEvent::gethead()->gettime());
   geant lifetime=_scaler.getlifetime(AMSEvent::gethead()->gettime());
   // mark default as error here
-  integer tm=floor(TOFVarp::getmeantoftemp(0));   
+  integer tm=floor(TOFVarp::tofvpar.getmeantoftemp(0));   
      if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData() )AMSEvent::gethead()->seterror();
   if(tofflag>0 && ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti && (sumsc<LVL1FFKEY.MaxScalersRate || lifetime>LVL1FFKEY.MinLifeTime)){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
@@ -93,7 +87,7 @@ void TriggerLVL1::build(){
 
 integer TriggerLVL1::checktofpattor(integer tof, integer paddle){
 #ifdef __AMSDEBUG__
- assert(tof >=0 && tof <SCLRS);
+ assert(tof >=0 && tof <TOF1GC::SCLRS);
 #endif
  return (_tofpatt[tof]) & (1 << paddle);
 }
@@ -101,7 +95,7 @@ integer TriggerLVL1::checktofpattor(integer tof, integer paddle){
 
 integer TriggerLVL1::checktofpattand(integer tof, integer paddle){
 #ifdef __AMSDEBUG__
- assert(tof >=0 && tof <SCLRS);
+ assert(tof >=0 && tof <TOF1GC::SCLRS);
 #endif
  return (_tofpatt[tof]) & (1 << (paddle+16));
 }
@@ -317,7 +311,7 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   antip = antip | (a2<<16);
   geant sumsc=_scaler.getsum(AMSEvent::gethead()->gettime());
   geant lifetime=_scaler.getlifetime(AMSEvent::gethead()->gettime());
-  integer tm=floor(TOFVarp::getmeantoftemp(0));   
+  integer tm=floor(TOFVarp::tofvpar.getmeantoftemp(0));   
   // mark default as error here
      if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData())AMSEvent::gethead()->seterror();
   if(z>0 && (sumsc<LVL1FFKEY.MaxScalersRate || lifetime>LVL1FFKEY.MinLifeTime))AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new

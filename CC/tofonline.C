@@ -8,7 +8,6 @@
 #include <tofsim.h>
 //#include <stdio.h>//DEBUG
 
-extern TOFBrcal scbrcal[SCLRS][SCMXBR];// calibration data
 
 void AMSJob::_retofonlineinitjob(){
 //   Trigger (JL1 hits) histograms filleded in trigger1.C
@@ -282,16 +281,16 @@ void AMSTOFRawEvent::tofonlinefill1(integer ilay, integer ibar, integer isid,
 
   // Anode and dynode charge spectra (pC)
   if(nedges[2]){
-    if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)scbrcal[ilay-1][ibar-1].q2t2qmc(1,int(isid-1),0,Atovt,q);
-    else scbrcal[ilay-1][ibar-1].q2t2q(1,int(isid-1),0,Atovt,q);
+    if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)TOFBrcal::scbrcal[ilay-1][ibar-1].q2t2qmc(1,int(isid-1),0,Atovt,q);
+    else TOFBrcal::scbrcal[ilay-1][ibar-1].q2t2q(1,int(isid-1),0,Atovt,q);
     hisID=ANODESTART+(ilay-1)*30+(14-ibar)+dir*14;
     if(q>FLT_MAX)q=FLT_MAX-1;
     else if(q<-FLT_MAX)q=-FLT_MAX+1;
     HFF1(hisID,nIDhis[hisID-5000],geant(q),1.);
   }
   if(nedges[3]){
-    if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)scbrcal[ilay-1][ibar-1].q2t2qmc(1,int(isid-1),1,Dtovt,q);
-    else scbrcal[ilay-1][ibar-1].q2t2q(1,int(isid-1),1,Dtovt,q);
+    if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)TOFBrcal::scbrcal[ilay-1][ibar-1].q2t2qmc(1,int(isid-1),1,Dtovt,q);
+    else TOFBrcal::scbrcal[ilay-1][ibar-1].q2t2q(1,int(isid-1),1,Dtovt,q);
     if(q>FLT_MAX)q=FLT_MAX-1;
     else if(q<-FLT_MAX)q=-FLT_MAX+1;
     hisID=DYNODESTART+(ilay-1)*30+(14-ibar)+dir*14;
@@ -299,7 +298,7 @@ void AMSTOFRawEvent::tofonlinefill1(integer ilay, integer ibar, integer isid,
   }
 
   // Time Expansion
-  scbrcal[ilay-1][ibar-1].gtstrat(strat);
+  TOFBrcal::scbrcal[ilay-1][ibar-1].gtstrat(strat);
   off=strat[isid-1][1]; // offset of time str.
   str = den==0?FLT_MAX:(geant(num)-off)/geant(den); // Time Expansion
   hisID=STRSTART+(ilay-1)*30+(14-ibar)+dir*14;

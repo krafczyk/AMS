@@ -10,49 +10,36 @@
 #include <event.h>
 #include <amsstl.h>
 #include <commons.h>
+#include <tofdbc02.h>
 #include <tofdbc.h>
+#include <tofsim02.h>
 #include <tofsim.h>
 #include <mccluster.h>
 #include <trigger3.h>
 //
-extern TOFVarp tofvpar;
-extern TOFBrcal scbrcal[SCLRS][SCMXBR];// calibration data
-AMSTOFScan scmcscan[SCBLMX];
+AMSTOFScan AMSTOFScan::scmcscan[TOF1GC::SCBLMX];
 //
-integer AMSTOFRawEvent::trpatt[SCLRS]={0,0,0,0};
+integer AMSTOFRawEvent::trpatt[TOF1GC::SCLRS]={0,0,0,0};
 integer AMSTOFRawEvent::trflag=0;
 number AMSTOFRawEvent::trtime=0.;
-number AMSTOFTovt::itovts[SCMCIEVM];
-number AMSTOFTovt::icharg[SCMCIEVM];
+number AMSTOFTovt::itovts[TOF1GC::SCMCIEVM];
+number AMSTOFTovt::icharg[TOF1GC::SCMCIEVM];
 integer AMSTOFTovt::ievent;
-//------------------------------------------------------------------------------
-geant AMSDistr::getrand(const geant &rnd)
-{
-  geant val;
-  integer i=AMSbins(distr,rnd,nbin);
-  if(i<0){
-    i=-i;
-    val=bnl+bnw*i+bnw*(rnd-distr[i-1])/(distr[i]-distr[i-1]);
-  }
-  else if(i==0){val=bnl+bnw*rnd/distr[i];}
-  else {val=bnl+bnw*i;}
-  return val;
-}
 //------------------------------------------------------------------------------
 //  <--- for inp. X define position in scan array (i1/i2) and correction ratio R.
 //
 void AMSTOFScan::getxbin(const geant x, integer &i1, integer &i2, geant &r)
 {
-  integer i=AMSbins(scanp,x,SCANPNT);
+  integer i=AMSbins(scanp,x,TOF1GC::SCANPNT);
   if(i==0){
     i1=0;
     i2=1;
     r=(x-scanp[i1])/(scanp[i2]-scanp[i1]);
   }
   else if(i<0){
-    if(i==-SCANPNT){
-      i1=SCANPNT-2;
-      i2=SCANPNT-1;
+    if(i==-TOF1GC::SCANPNT){
+      i1=TOF1GC::SCANPNT-2;
+      i2=TOF1GC::SCANPNT-1;
       r=(x-scanp[i1])/(scanp[i2]-scanp[i1]);
       }
     else{
@@ -84,7 +71,7 @@ geant AMSTOFScan::getef2(const geant r, const int i1, const int i2)
 void AMSTOFScan::build(){
 //
   int i,ic,nverst,ivers,dig;
-  int brfnam[SCBLMX];
+  int brfnam[TOF1GC::SCBLMX];
   char fname[80];
   char name[80];
   char in[2]="0";
@@ -139,25 +126,25 @@ void AMSTOFScan::build(){
     cerr <<"AMSTOFScan::build(): missing tdisfmap-file "<<fname<<endl;
     exit(1);
   }
-  for(ic=0;ic<SCBLMX;ic++) tcfile >> brfnam[ic];
+  for(ic=0;ic<TOF1GC::SCBLMX;ic++) tcfile >> brfnam[ic];
   tcfile.close();
 //-------------------
 //                                  <-- now read t-distr. files
  int j,ila,ibr,brt,ibrm,isp,nsp,ibt,cnum,dnum,mult;
  integer nb;
- geant scp[SCANPNT];
+ geant scp[TOF1GC::SCANPNT];
  geant nft,bl,bw;
- geant arr[AMSDISL];
- geant ef1[SCANPNT],ef2[SCANPNT];
- AMSDistr td1[SCANPNT];
- AMSDistr td2[SCANPNT];
+ geant arr[TOFGC::AMSDISL];
+ geant ef1[TOF1GC::SCANPNT],ef2[TOF1GC::SCANPNT];
+ AMSDistr td1[TOF1GC::SCANPNT];
+ AMSDistr td2[TOF1GC::SCANPNT];
  geant eff1,eff2;
 //
-  for(ila=0;ila<SCLRS;ila++){   // <-------- loop over layers
-  for(ibr=0;ibr<SCMXBR;ibr++){  // <-------- loop over bar in layer
+  for(ila=0;ila<TOF1GC::SCLRS;ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<TOF1GC::SCMXBR;ibr++){  // <-------- loop over bar in layer
     brt=TOFDBc::brtype(ila,ibr);
     if(brt==0)continue; // skip missing counters
-    cnum=ila*SCMXBR+ibr; // sequential counter numbering(0-55)
+    cnum=ila*TOF1GC::SCMXBR+ibr; // sequential counter numbering(0-55)
     dnum=brfnam[cnum];// 4-digits t-distr. file name (VLBB)
     mult=1000;
     strcpy(name,"");
@@ -181,11 +168,11 @@ void AMSTOFScan::build(){
 // <-- fill errays scp,ef1,ef2 from file
 //
     tcfile >> nsp;// read # of calibr. points
-    if(nsp!=SCANPNT){
+    if(nsp!=TOF1GC::SCANPNT){
       cerr<<"Sitofinitjob: bad # of MC Y-scan point ! "<<nsp<<'\n';
       exit(1);
     } 
-    for(isp=0;isp<SCANPNT;isp++){ // sp. points loop to prepare arr. of t-distr
+    for(isp=0;isp<TOF1GC::SCANPNT;isp++){ // sp. points loop to prepare arr. of t-distr
       tcfile >> scp[isp];
       tcfile >> nft;   // for PM-1
       tcfile >> nb;
@@ -206,7 +193,7 @@ void AMSTOFScan::build(){
 //
     } // <--- end of scan points loop -----
 //
-    scmcscan[cnum]=AMSTOFScan(scp,ef1,ef2,td1,td2);// create bar MC-t-scan obj
+    AMSTOFScan::scmcscan[cnum]=AMSTOFScan(scp,ef1,ef2,td1,td2);// create bar MC-t-scan obj
     tcfile.close(); // close file
   } // --- end of bar loop --->
   } // --- end of layer loop --->
@@ -222,15 +209,15 @@ void AMSTOFTovt::build()
 //                   ( scale in mV@50ohm to have 1.5mV as m.p. value!!!)
 //
   integer i1,i2,id,idN,idd,ibar,ilay,ibtyp,cnum;
-  static geant tslice1[SCTBMX+1]; //  flash ADC array for side-1
-  static geant tslice2[SCTBMX+1]; //  flash ADC array for side-2
-  static geant tslice[SCTBMX+1]; //  flash ADC array 
+  static geant tslice1[TOF1GC::SCTBMX+1]; //  flash ADC array for side-1
+  static geant tslice2[TOF1GC::SCTBMX+1]; //  flash ADC array for side-2
+  static geant tslice[TOF1GC::SCTBMX+1]; //  flash ADC array 
   geant bnw,fedg;
-  integer warr[AMSDISL]; 
+  integer warr[TOFGC::AMSDISL]; 
   int i,i0,ii,j,jj,jm,k,stat(0),nelec,ierr(0),lbn,nbm;
   int status[2];
-  integer nhitl[SCLRS];
-  geant edepl[SCLRS],edepb;
+  integer nhitl[TOF1GC::SCLRS];
+  geant edepl[TOF1GC::SCLRS],edepb;
   geant dummy(-1);
   geant time,x,y,z,am,am0,am2,sig,r,rnd,eff,de,tm,eps(0.002);
   geant vl,vh;
@@ -255,7 +242,7 @@ void AMSTOFTovt::build()
     for(i=0;i<5000;i++){
 //      rnd=RNDM(dummy);
 //      am0=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
-      am0=seres+sesig*rnormx();// tempor use simple goussian
+      am0=seres+sesig*rnormx();// tempor use simple gaussian
       if(am0<0.)am0=0.;
       am+=am0;
       am2+=am0*am0;
@@ -269,12 +256,12 @@ void AMSTOFTovt::build()
     sesrat=sessig/sesave;
     cout<<"S.E. Specrtum Aver/Sigm="<<sesave<<" "<<sessig<<" ratio="<<sesrat<<endl;
     HDELET(1099);
-    for(i=0;i<SCTBMX+1;i++)tslice1[i]=0.;// clear flash ADC arrays
-    for(i=0;i<SCTBMX+1;i++)tslice2[i]=0.;
-    for(i=0;i<SCTBMX+1;i++)tslice[i]=0.;
+    for(i=0;i<TOF1GC::SCTBMX+1;i++)tslice1[i]=0.;// clear flash ADC arrays
+    for(i=0;i<TOF1GC::SCTBMX+1;i++)tslice2[i]=0.;
+    for(i=0;i<TOF1GC::SCTBMX+1;i++)tslice[i]=0.;
     fadcb=TOFDBc::fladctb();
     ifadcb=1./fadcb;
-    tmax=SCTBMX*fadcb-1.;// ns
+    tmax=TOF1GC::SCTBMX*fadcb-1.;// ns
     zlmx=TOFDBc::plnstr(6)/2.+eps;
     convr=1000.*TOFDBc::edep2ph();
   }
@@ -283,7 +270,7 @@ void AMSTOFTovt::build()
                                       getheadC("AMSTOFMCCluster",0,1);
 //                                        ( sort by idsoft done)
 //
-  for(i=0;i<SCLRS;i++){
+  for(i=0;i<TOF1GC::SCLRS;i++){
     nhitl[i]=0;
     edepl[i]=0.;
   }
@@ -316,29 +303,29 @@ void AMSTOFTovt::build()
       ptr=ptr->next(); // next hit
       continue;
     }
-    cnum=ilay*SCMXBR+ibar;// sequential counter number
-    scmcscan[cnum].getxbin(y,i1,i2,r);//y-bin # (longit.(x !)-coord. in LTRANS )
-    scbrcal[ilay][ibar].getbstat(status);//get status of two ends (from DB)
+    cnum=ilay*TOF1GC::SCMXBR+ibar;// sequential counter number
+    AMSTOFScan::scmcscan[cnum].getxbin(y,i1,i2,r);//y-bin # (longit.(x !)-coord. in LTRANS )
+    TOFBrcal::scbrcal[ilay][ibar].getbstat(status);//get status of two ends (from DB)
     nel0=de*convr;// -> photons
 // PM-1 actions --->
   if(status[0]>=0){// alive side
-    eff=scmcscan[cnum].getef1(r,i1,i2);//eff for PM-1
+    eff=AMSTOFScan::scmcscan[cnum].getef1(r,i1,i2);//eff for PM-1
     nel=nel0*eff;// mean number of photoelectrons
     POISSN(nel,nelec,ierr);// fluctuations
-    for(i=0;i<AMSDISL;i++)warr[i]=0;
+    for(i=0;i<TOFGC::AMSDISL;i++)warr[i]=0;
 //    <-------- Loop over photoelectrons(PM-1) ---<<<
     for(i=0;i<nelec;i++){
       rnd=RNDM(dummy);
-      tm=scmcscan[cnum].gettm1(rnd,r,i1,i2);//phel.arrival time from interpol.distr.
+      tm=AMSTOFScan::scmcscan[cnum].gettm1(rnd,r,i1,i2);//phel.arrival time from interpol.distr.
       ii=integer(tm*ifadcb);
-      if(ii<AMSDISL)warr[ii]+=1;
+      if(ii<TOFGC::AMSDISL)warr[ii]+=1;
     }
     i0=integer(time*ifadcb);// 1st bin pos. in abs. scale (for tslice1)
-    for(i=0;i<AMSDISL;i++){
+    for(i=0;i<TOFGC::AMSDISL;i++){
       nelec=warr[i];
       if(nelec!=0){
       ii=i0+i;
-      if(ii>SCTBMX)ii=SCTBMX;
+      if(ii>TOF1GC::SCTBMX)ii=TOF1GC::SCTBMX;
       if(nelec<40){
         for(k=0;k<nelec;k++){//<-- summing of all amplitudes from photoelectrons 
           am=seres+sesig*rnormx();//amplitude from single elect. spectrum
@@ -356,23 +343,23 @@ void AMSTOFTovt::build()
 //
 // PM-2 actions --->
   if(status[1]>=0){// alive side
-    eff=scmcscan[cnum].getef2(r,i1,i2);//eff for PM-2
+    eff=AMSTOFScan::scmcscan[cnum].getef2(r,i1,i2);//eff for PM-2
     nel=nel0*eff;// mean number of photoelectrons
     POISSN(nel,nelec,ierr);// fluctuations
-    for(i=0;i<AMSDISL;i++)warr[i]=0;
+    for(i=0;i<TOFGC::AMSDISL;i++)warr[i]=0;
 //    <-------- Loop over photoelectrons(PM-2) ---<<<
     for(i=0;i<nelec;i++){
       rnd=RNDM(dummy);
-      tm=scmcscan[cnum].gettm2(rnd,r,i1,i2);//phel.arrival time from interpol.distr.
+      tm=AMSTOFScan::scmcscan[cnum].gettm2(rnd,r,i1,i2);//phel.arrival time from interpol.distr.
       ii=integer(tm*ifadcb);
-      if(ii<AMSDISL)warr[ii]+=1;
+      if(ii<TOFGC::AMSDISL)warr[ii]+=1;
     }
     i0=integer(time*ifadcb);// 1st bin pos. in abs. scale (for tslice2)
-    for(i=0;i<AMSDISL;i++){
+    for(i=0;i<TOFGC::AMSDISL;i++){
       nelec=warr[i];
       if(nelec!=0){
       ii=i0+i;
-      if(ii>SCTBMX)ii=SCTBMX;
+      if(ii>TOF1GC::SCTBMX)ii=TOF1GC::SCTBMX;
       if(nelec<40){
         for(k=0;k<nelec;k++){//<-- summing of all amplitudes from photoelectrons 
           am=seres+sesig*rnormx();//amplitude from single elect. spectrum
@@ -398,12 +385,12 @@ void AMSTOFTovt::build()
         if(status[0]>=0){// alive side
           am0=fabs(TOFMCFFKEY.blshift*rnormx());//base line shift simulation
           idd=id*10+1;//LBBS
-          for(i=0;i<SCTBMX+1;i++)tslice[i]=am0;
-          for(i=0;i<SCTBMX;i++){
+          for(i=0;i<TOF1GC::SCTBMX+1;i++)tslice[i]=am0;
+          for(i=0;i<TOF1GC::SCTBMX;i++){
             am=tslice1[i];
             if(am>0){
               jm=i+npshbn;
-              if(jm>SCTBMX)jm=SCTBMX+1;
+              if(jm>TOF1GC::SCTBMX)jm=TOF1GC::SCTBMX+1;
               for(j=i;j<jm;j++)
                           tslice[j]+=am*pmplsh[j-i];
             }
@@ -417,12 +404,12 @@ void AMSTOFTovt::build()
         if(status[1]>=0){// alive side
           am0=fabs(TOFMCFFKEY.blshift*rnormx());//base line shift simulation
           idd=id*10+2;
-          for(i=0;i<SCTBMX+1;i++)tslice[i]=am0;
-          for(i=0;i<SCTBMX;i++){
+          for(i=0;i<TOF1GC::SCTBMX+1;i++)tslice[i]=am0;
+          for(i=0;i<TOF1GC::SCTBMX;i++){
             am=tslice2[i];
             if(am>0){
               jm=i+npshbn;
-              if(jm>SCTBMX)jm=SCTBMX+1;
+              if(jm>TOF1GC::SCTBMX)jm=TOF1GC::SCTBMX+1;
               for(j=i;j<jm;j++)
                           tslice[j]+=am*pmplsh[j-i];
             }
@@ -433,8 +420,8 @@ void AMSTOFTovt::build()
         }
         }// ---> end of edep check
 //
-        for(i=0;i<SCTBMX+1;i++)tslice1[i]=0.;//clear flash ADC arrays for next bar
-        for(i=0;i<SCTBMX+1;i++)tslice2[i]=0.;
+        for(i=0;i<TOF1GC::SCTBMX+1;i++)tslice1[i]=0.;//clear flash ADC arrays for next bar
+        for(i=0;i<TOF1GC::SCTBMX+1;i++)tslice2[i]=0.;
         edepb=0.;// clear Edep
       }// ---> end of next/last bar check
 //
@@ -446,7 +433,7 @@ void AMSTOFTovt::build()
   }// ------ end of geant hits loop ---->
 //
   if(TOFMCFFKEY.mcprtf[2]!=0){
-    for(i=0;i<SCLRS;i++)HF1(1050+i,geant(nhitl[i]),1.);
+    for(i=0;i<TOF1GC::SCLRS;i++)HF1(1050+i,geant(nhitl[i]),1.);
     HF1(1060,1000.*edepl[0],1.);
     HF1(1061,1000.*edepl[0],1.);
     HF1(1062,1000.*edepl[2],1.);
@@ -542,7 +529,7 @@ void AMSTOFTovt::inishap(integer &nbn, geant arr[])
   geant tr,tf,tmb,tmax,toti,rest,t1,t2,anr;
   integer i,imax,j,ifl(0);
   tr=TOFDBc::shrtim();
-  tf=TOFDBc::shftim();// tempor->change later to tf from scbrcal-obj
+  tf=TOFDBc::shftim();// tempor->change later to tf from TOFBrcal::scbrcal-obj
   tmb=TOFDBc::shaptb();
   imax=600;// max range
   arr[0]=1.-exp(-tmb/tr);// fast charge (neglect by discharge !)
@@ -592,7 +579,7 @@ void AMSTOFTovt::displ_a(const int id, const int mf, const geant arr[]){
   }
   HRESET(1000," ");
   cout<<"PMT:counter-id = "<<id<<" (LBBS, L-layer, BB-bar, S-side)"<<'\n';
-  for(i=1;i<=SCTBMX;i++){
+  for(i=1;i<=TOF1GC::SCTBMX;i++){
     if(i%mf==0){
       a+=arr[i-1];
       tm=i*tbi-0.5*tb;
@@ -622,7 +609,7 @@ void AMSTOFTovt::displ_as(const int id, const int mf, const geant arr[]){
   }
   cout<<"SHP:counter-id = "<<id<<" (LBBS, L-layer, BB-bar, S-side)"<<'\n';
   HRESET(1001," ");
-  for(i=1;i<=SCSBMX;i++){
+  for(i=1;i<=TOF1GC::SCSBMX;i++){
     if(i%mf==0){
       a+=arr[i-1];
       tm=i*tbi-0.5*tb;
@@ -644,10 +631,10 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
   geant tm,a,am,am0,amd,tmp,amp,amx,amxq;
   geant iq0,it0,itau;
   integer _ntr1,_ntr2,_ntr3,_nftdc,_nstdc,_nadca,_nadcd;
-  number _ttr1[SCTHMX1],_ttr2[SCTHMX1],_ttr3[SCTHMX1];
-  number _tftdc[SCTHMX2],_tftdcd[SCTHMX2];
-  number _tstdc[SCTHMX3];
-  number _tadca[SCTHMX4],_tadcad[SCTHMX4],_tadcd[SCTHMX4],_tadcdd[SCTHMX4];
+  number _ttr1[TOF1GC::SCTHMX1],_ttr2[TOF1GC::SCTHMX1],_ttr3[TOF1GC::SCTHMX1];
+  number _tftdc[TOF1GC::SCTHMX2],_tftdcd[TOF1GC::SCTHMX2];
+  number _tstdc[TOF1GC::SCTHMX3];
+  number _tadca[TOF1GC::SCTHMX4],_tadcad[TOF1GC::SCTHMX4],_tadcd[TOF1GC::SCTHMX4],_tadcdd[TOF1GC::SCTHMX4];
   number tovt,aqin;
   int upd1,upd2,upd3; // up/down flags for 3 fast discr. (z>=1;z>1;z>2)
   int upd11,upd12,upd13,upd21,upd31;
@@ -658,8 +645,8 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
   geant td1b1,td1b2,td1b2d,td1b3;
   geant td2b1,td3b1;
   geant tmd1u,tmd1d,tmd3u,tmd3d,tbn,w,bo1,bo2,bn1,bn2,tmark;
-  geant tshap1[SCSBMX+1]; // temporary shaper pulse array
-  geant tshap2[SCSBMX+1]; // temporary shaper pulse array
+  geant tshap1[TOF1GC::SCSBMX+1]; // temporary shaper pulse array
+  geant tshap2[TOF1GC::SCSBMX+1]; // temporary shaper pulse array
   static integer first=0;
   static integer nshbn,mxcon,mxshc,mxshcg;
   static geant fladcb,shapb,cconv;
@@ -690,37 +677,37 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
     daqp10=TOFDBc::daqpwd(10);// intrinsic t-dispersion of comparator(on low thr.outp)
     daqp11=TOFDBc::daqpwd(11);// min.duration time of comparator(..................)
 //clear arrays for A-integrator calibration procedure:
-    for(i=0;i<SCMCIEVM;i++){
+    for(i=0;i<TOF1GC::SCMCIEVM;i++){
       itovts[i]=0.;
       icharg[i]=0.;
       ievent=0;
     }
   }
 // time-dependent parameters !!! :
-  daqt0=tofvpar.daqthr(0); // fast discr. thresh. for slow/fast TDC branch
+  daqt0=TOFVarp::tofvpar.daqthr(0); // fast discr. thresh. for slow/fast TDC branch
   fdaqt0=0.2*daqt0;// tempor for base line shift simulation
-  daqt1=tofvpar.daqthr(1); // fast discr. thresh. for z>=1 (FT) branch
-  scbrcal[ilay][ibar].geta2dr(a2dr);//get anode_to_dinode ratio
-  daqt2=tofvpar.daqthr(2)*a2dr[isid];//dinode discr.("Z>2") thresh., multipl. by a2d ratio
+  daqt1=TOFVarp::tofvpar.daqthr(1); // fast discr. thresh. for z>=1 (FT) branch
+  TOFBrcal::scbrcal[ilay][ibar].geta2dr(a2dr);//get anode_to_dinode ratio
+  daqt2=TOFVarp::tofvpar.daqthr(2)*a2dr[isid];//dinode discr.("Z>2") thresh., multipl. by a2d ratio
   daqt3=TOFDBc::daqpwd(13);// thresh.(pC) for A-integrator(const.for now!!!)
   daqt4=TOFDBc::daqpwd(14);// thresh.(pC) for D-integrator
   d2a=1./a2dr[isid];//dinode-to-anode ratio
 //
-  itau=scbrcal[ilay][ibar].getaipar(isid,0);// get A-integrator parameters
-  it0=scbrcal[ilay][ibar].getaipar(isid,1);
-  iq0=scbrcal[ilay][ibar].getaipar(isid,2);
+  itau=TOFBrcal::scbrcal[ilay][ibar].getaipar(isid,0);// get A-integrator parameters
+  it0=TOFBrcal::scbrcal[ilay][ibar].getaipar(isid,1);
+  iq0=TOFBrcal::scbrcal[ilay][ibar].getaipar(isid,2);
 //
 // -----> create/fill summary Tovt-object for idsoft=idd :
 //
-        if(tslice[SCTBMX]>daqt0){
+        if(tslice[TOF1GC::SCTBMX]>daqt0){
           cout<<"SITOFTovt-warning: MC_flash-ADC overflow, id="<<idd<<
-             "  A-last= "<<tslice[SCTBMX]<<'\n';
+             "  A-last= "<<tslice[TOF1GC::SCTBMX]<<'\n';
 //          if(TOFMCFFKEY.mcprtf[2])AMSTOFTovt::displ_a(idd,125,tslice);//print PMT pulse
         }
-        for(i=SCTBMX-1;i>0;i--)
+        for(i=TOF1GC::SCTBMX-1;i>0;i--)
             if(tslice[i]>fdaqt0 && tslice[i-1]>fdaqt0)break;//find high limit
         imax=i+1;
-        for(i=0;i<SCTBMX;i++)if(tslice[i]>fdaqt0)break;//find low limit
+        for(i=0;i<TOF1GC::SCTBMX;i++)if(tslice[i]>fdaqt0)break;//find low limit
         imin=i;
         if(((imax-imin)*fladcb) > TOFDBc::shctim())
                               imax=imin+int(TOFDBc::shctim()/fladcb);// protection against
@@ -803,7 +790,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
             if(upd11==0 && am>=daqt1){
               if((tm-td1b1)>daqp7){//dead time check for z>=1 signal
                 upd11=1;  // set flag for branch z>=1
-                if(_ntr1<SCTHMX1){
+                if(_ntr1<TOF1GC::SCTHMX1){
                   _ttr1[_ntr1]=tm;//don't need accurate up-time for trigger
                   _ntr1+=1;
                 }
@@ -826,7 +813,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
             if(upd13==0){
               if((tmd1u-td1b3)>daqp4){ // "buzy" check for f-TDC channel
                 upd13=1;  // set flag for branch s-TDC,if ready 
-                if(_nstdc<SCTHMX3){
+                if(_nstdc<TOF1GC::SCTHMX3){
                   td1b3=tm;
                   _tstdc[_nstdc]=tmark;
                   _nstdc+=1;
@@ -852,7 +839,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
             if(upd1 ==0){//"f-TDC" clear when discr.1 down (tempor)
               upd12=0;
               td1b2d=tm;
-              if(_nftdc<SCTHMX2){
+              if(_nftdc<TOF1GC::SCTHMX2){
                 _tftdc[_nftdc]=td1b2;//write up-time
                 _tftdcd[_nftdc]=td1b2d;//write down-time
                 _nftdc+=1;
@@ -874,7 +861,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
             if(upd31==0){
               if((tm-td3b1)>daqp9){//dead time check for z>2 signal
                 upd31=1;  // set flag for branch z>2
-                if(_ntr3<SCTHMX1){
+                if(_ntr3<TOF1GC::SCTHMX1){
                   _ttr3[_ntr3]=tmd3u;//up-time
                   _ntr3+=1;
                 }
@@ -902,8 +889,8 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
 //
         mxcon=integer(imax*(fladcb/shapb))+1;// flash-adc useful t-range in shaper scale
         mxshc=mxcon+nshbn;// max. useful shaper channels
-        if(mxshc>SCSBMX){
-          mxshc=SCSBMX;
+        if(mxshc>TOF1GC::SCSBMX){
+          mxshc=TOF1GC::SCSBMX;
           cout<<"AMSTOFTovt::build-warning: shaper buff. too small !!!"<<endl;
         }
 //        mxshcg=integer(imin*(fladcb/shapb))+integer(TOFDBc::shctim()/shapb);// gated
@@ -928,7 +915,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
           }
         }
 // b) tshap1[] --- shaping(integration) ---> tshap2[] conversion :        
-        for(i=0;i<(SCSBMX+1);i++)tshap2[i]=0.;
+        for(i=0;i<(TOF1GC::SCSBMX+1);i++)tshap2[i]=0.;
         for(i=0;i<mxcon;i++){
           am=tshap1[i];
           if(am>0.){
@@ -977,7 +964,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
               if((tm-tshup)>TOFDBc::shctim()){//(duration out of gate)->clear
                 tshd=tm;
                 updsh=0;
-                if(_nadca<SCTHMX4){
+                if(_nadca<TOF1GC::SCTHMX4){
                   _tadca[_nadca]=tshup;// up-time
                   _tadcad[_nadca]=tshd;  // down-time
                   _nadca+=1;
@@ -994,7 +981,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
               updsh=0;
               tmark=tmp+shapb*(daqt3-amp)/(am-amp);
               tshd=tmark;
-              if(_nadca<SCTHMX4){
+              if(_nadca<TOF1GC::SCTHMX4){
                 _tadca[_nadca]=tshup;// up-time
                 _tadcad[_nadca]=tshd;  // down-time
                 _nadca+=1;
@@ -1010,7 +997,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
         }                    // --- end of time bin loop --->
 //
       if(TOFCAFFKEY.mcainc){
-      if(_nadca==1 && ievent<SCMCIEVM){// <---- fill buff. for A-integrator calibration
+      if(_nadca==1 && ievent<TOF1GC::SCMCIEVM){// <---- fill buff. for A-integrator calibration
         tovt=_tadcad[0]-_tadca[0];
         if(charge>10. && tovt>0.){
           itovts[ievent]=tovt;
@@ -1022,7 +1009,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
       }
       if(TOFMCFFKEY.adsimpl==1 && tshup!=9999.){
         aqin=number(charge);
-        scbrcal[ilay][ibar].q2t2q(0,isid,0,tovt,aqin);// anode q->tovt
+        TOFBrcal::scbrcal[ilay][ibar].q2t2q(0,isid,0,tovt,aqin);// anode q->tovt
         _tadca[_nadca]=tshup;// up-time
         _tadcad[_nadca]=tshup+tovt;  // down-time
         _nadca+=1;
@@ -1066,7 +1053,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
               if((tm-tshup)>TOFDBc::shctim()){//(duration out of gate)->clear
                 tshd=tm;
                 updsh=0;
-                if(_nadcd<SCTHMX4){
+                if(_nadcd<TOF1GC::SCTHMX4){
                   _tadcd[_nadcd]=tshup;// up-time
                   _tadcdd[_nadcd]=tshd;  // down-time
                   _nadcd+=1;
@@ -1083,7 +1070,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
               updsh=0;
               tmark=tmp+shapb*(daqt4-amp)/(am-amp);
               tshd=tmark;
-              if(_nadcd<SCTHMX4){
+              if(_nadcd<TOF1GC::SCTHMX4){
                 _tadcd[_nadcd]=tshup;
                 _tadcdd[_nadcd]=tshd;
                 _nadcd+=1;
@@ -1100,7 +1087,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
 //
         if(TOFMCFFKEY.adsimpl==1 && tshup!=9999.){
           aqin=number(charge);
-          scbrcal[ilay][ibar].q2t2q(0,isid,1,tovt,aqin);// dynode q->tovt
+          TOFBrcal::scbrcal[ilay][ibar].q2t2q(0,isid,1,tovt,aqin);// dynode q->tovt
           _tadcd[_nadcd]=tshup;// up-time
           _tadcdd[_nadcd]=tshup+tovt;  // down-time
           _nadcd+=1;
@@ -1128,11 +1115,11 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
 //---------------------------------------------------------------------
 void AMSTOFTovt::aintfit(){
   int i,ier;  
-  int ifit[SCIPAR];
-  char pnam[SCIPAR][6],pnm[6];
+  int ifit[TOF1GC::SCIPAR];
+  char pnam[TOF1GC::SCIPAR][6],pnm[6];
   number argl[10];
   int iargl[10];
-  number start[SCIPAR],pstep[SCIPAR],plow[SCIPAR],phigh[SCIPAR];
+  number start[TOF1GC::SCIPAR],pstep[TOF1GC::SCIPAR],plow[TOF1GC::SCIPAR],phigh[TOF1GC::SCIPAR];
   strcpy(pnam[0],"dtime");
   strcpy(pnam[1],"tzero");
   strcpy(pnam[2],"offst");
@@ -1148,11 +1135,11 @@ void AMSTOFTovt::aintfit(){
    phigh[0]=100.;
    phigh[1]=500.;
    phigh[2]=9.;
-  for(i=0;i<SCIPAR;i++)ifit[1]=1;
+  for(i=0;i<TOF1GC::SCIPAR;i++)ifit[1]=1;
 // ------------> initialize parameters for Minuit:
   MNINIT(5,6,6);
   MNSETI("MC A-integrator calibration for TOF-system");
-  for(i=0;i<SCIPAR;i++){
+  for(i=0;i<TOF1GC::SCIPAR;i++){
     strcpy(pnm,pnam[i]);
     ier=0;
     MNPARM((i+1),pnm,start[i],pstep[i],plow[i],phigh[i],ier);
@@ -1209,7 +1196,7 @@ void AMSTOFTovt::mfun(int &np, number grad[], number &f, number x[]
   if(flg==3){
     f=sqrt(f/number(ievent));
     cout<<"MC A-integrator: funct/events="<<f<<endl;
-    for(i=0;i<SCIPAR;i++){
+    for(i=0;i<TOF1GC::SCIPAR;i++){
       cout<<" np/par="<<i<<" "<<x[i]<<endl;
     }
   }
@@ -1224,21 +1211,21 @@ void AMSTOFTovt::mfun(int &np, number grad[], number &f, number x[]
 number AMSTOFTovt::tr1time(int &trcode, integer toftrp[]){
   integer i1,i2,isds(0),first(0);
   integer i,j,ilay,ibar,ntr,idd,id,idN,stat,intrig;
-  integer npdpl[SCLRS]={0,0,0,0};
+  integer npdpl[TOF1GC::SCLRS]={0,0,0,0};
   integer sbt,lsbit(1);
-  number ttr[SCTHMX1];
+  number ttr[TOF1GC::SCTHMX1];
   geant t1,t2;
   AMSBitstr trbs[2];
   AMSBitstr trbc;
-  AMSBitstr trbl[SCLRS];
+  AMSBitstr trbl[TOF1GC::SCLRS];
   AMSTOFTovt *ptr;
   AMSTOFTovt *ptrN;
 //
   geant trigb=TOFDBc::trigtb();
   geant pwid=TOFDBc::daqpwd(0);
-  for(i=0;i<SCLRS;i++)toftrp[i]=0;
+  for(i=0;i<TOF1GC::SCLRS;i++)toftrp[i]=0;
 //
-  for(ilay=0;ilay<SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
+  for(ilay=0;ilay<TOF1GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(AMSTOFTovt*)AMSEvent::gethead()->
                                getheadC("AMSTOFTovt",ilay,0);
     isds=0;
@@ -1256,8 +1243,8 @@ number AMSTOFTovt::tr1time(int &trcode, integer toftrp[]){
         t2=t1+pwid;
         i1=integer(t1/trigb);
         i2=integer(t2/trigb);
-        if(i1>=SCBITM)i1=SCBITM-1;
-        if(i2>=SCBITM)i2=SCBITM-1;
+        if(i1>=TOFGC::SCBITM)i1=TOFGC::SCBITM-1;
+        if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
         if(isds<2)
           if(stat==0)trbs[isds].bitset(i1,i2);//set bits according to pulse width
         else
@@ -1349,21 +1336,21 @@ number AMSTOFTovt::tr1time(int &trcode, integer toftrp[]){
 number AMSTOFTovt::tr3time(int &trcode, integer toftrp[]){
   integer i1,i2,isds(0),first(0);
   integer i,j,ilay,ibar,ntr,idd,id,idN,stat,intrig;
-  integer npdpl[SCLRS]={0,0,0,0};
+  integer npdpl[TOF1GC::SCLRS]={0,0,0,0};
   integer sbt,lsbit(1);
-  number ttr[SCTHMX1];
+  number ttr[TOF1GC::SCTHMX1];
   geant t1,t2;
   AMSBitstr trbs[2];
   AMSBitstr trbc;
-  AMSBitstr trbl[SCLRS];
+  AMSBitstr trbl[TOF1GC::SCLRS];
   AMSTOFTovt *ptr;
   AMSTOFTovt *ptrN;
 //
   geant trigb=TOFDBc::trigtb();
   geant pwid=TOFDBc::daqpwd(0);
-  for(i=0;i<SCLRS;i++)toftrp[i]=0;
+  for(i=0;i<TOF1GC::SCLRS;i++)toftrp[i]=0;
 //
-  for(ilay=0;ilay<SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
+  for(ilay=0;ilay<TOF1GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(AMSTOFTovt*)AMSEvent::gethead()->
                                getheadC("AMSTOFTovt",ilay,0);
     isds=0;
@@ -1380,8 +1367,8 @@ number AMSTOFTovt::tr3time(int &trcode, integer toftrp[]){
         t2=t1+pwid;
         i1=integer(t1/trigb);
         i2=integer(t2/trigb);
-        if(i1>=SCBITM)i1=SCBITM-1;
-        if(i2>=SCBITM)i2=SCBITM-1;
+        if(i1>=TOFGC::SCBITM)i1=TOFGC::SCBITM-1;
+        if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
         if(isds<2)
           if(stat==0)trbs[isds].bitset(i1,i2);//set bits according to pulse width
         else
@@ -1466,161 +1453,6 @@ number AMSTOFTovt::tr3time(int &trcode, integer toftrp[]){
 }
 //=====================================================================
 //
-//  function to set bits in AMSBitstr objects (from bit il till bit ih):
-//   (bits are counting starting from 0 (left edge of bit-array))
-//   (if il>ih, function sets all available bits)
-//
-void AMSBitstr::bitset(const int il, const int ih){
-//
-  static unsigned short int allzer(0x0000);
-  static unsigned short int allone(0xFFFF);
-  static unsigned short int setone[16]={
-       0x8000,0x4000,0x2000,0x1000,0x0800,0x0400,0x0200,0x0100,
-       0x0080,0x0040,0x0020,0x0010,0x0008,0x0004,0x0002,0x0001};
-  int i,iw1,iw2,i1,i2,nw;
-#ifdef __AMSDEBUG__
-  assert(il>=0 && ih>=0);
-  assert(il<SCBITM && ih<SCBITM);
-#endif
-  iw1=il/16;
-  i1=il-16*iw1;
-  if(il==ih){
-    bitstr[iw1]|=setone[i1];
-    return;
-  }
-  if(il>ih){
-    for(i=0;i<bslen;i++)bitstr[i]=allone;//set all bits
-    return;
-  }
-  iw2=ih/16;
-  i2=ih-16*iw2;
-  nw=iw2-iw1;
-  if(nw==0){
-    for(i=i1;i<=i2;i++)bitstr[iw1]|=setone[i];
-  }
-  else{
-    for(i=i1;i<=15;i++)bitstr[iw1]|=setone[i];
-    for(i=0;i<=i2;i++)bitstr[iw2]|=setone[i];
-    for(i=iw1+1;i<iw2;i++){bitstr[i]=allone;}
-  }
-  return;
-}
-//----------------------------------------------------------------------
-//  function to clear bits in AMSBitstr objects (from bit il upto bit ih):
-//   (bits are counting starting from 0 (left edge of bit-array))
-//   (if il>ih, function clear all available bits)
-//
-void AMSBitstr::bitclr(const int il, const int ih){
-//
-  static unsigned short int allzer(0x0000);
-  static unsigned short int setzer[16]={
-        0x7FFF,0xBFFF,0xDFFF,0xEFFF,0xF7FF,0xFBFF,0xFDFF,0xFEFF,
-        0xFF7F,0xFFBF,0xFFDF,0xFFEF,0xFFF7,0xFFFB,0xFFFD,0xFFFE};
-  int i,iw1,iw2,i1,i2,nw;
-#ifdef __AMSDEBUG__
-  assert(il>=0 && ih>=0);
-  assert(il<SCBITM && ih<SCBITM);
-#endif
-  iw1=il/16;
-  i1=il-16*iw1;
-  if(il==ih){
-    bitstr[iw1]&=setzer[i1];
-    return;
-  }
-  if(il>ih){
-    for(i=0;i<bslen;i++)bitstr[i]=allzer;//clear all bits
-    return;
-  }
-  iw2=ih/16;
-  i2=ih-16*iw2;
-  nw=iw2-iw1;
-  if(nw==0){
-    for(i=i1;i<=i2;i++)bitstr[iw1]&=setzer[i];
-  }
-  else{
-    for(i=i1;i<=15;i++)bitstr[iw1]&=setzer[i];
-    for(i=0;i<=i2;i++)bitstr[iw2]&=setzer[i];
-    for(i=iw1+1;i<iw2;i++){bitstr[i]=allzer;}
-  }
-  return;
-}
-//-----------------------------------------------------------------------
-// function to test "up" bits in AMSBitstr object. It returns i1/i2 as
-// first/last "up" bits of the FIRST continious bunch of "up" bits 
-// in the object.  i1>i2 (1>0) if no "up" bits.
-//
-void AMSBitstr::testbit(int &i1, int &i2){
-  static unsigned short int setone[16]={
-       0x8000,0x4000,0x2000,0x1000,0x0800,0x0400,0x0200,0x0100,
-       0x0080,0x0040,0x0020,0x0010,0x0008,0x0004,0x0002,0x0001};
-  int i,iw;
-  int ifl(0);
-  unsigned short int ia;
-  i1=1;
-  i2=0;
-  for(iw=0;iw<bslen;iw++){
-    for(i=0;i<16;i++){
-      ia=bitstr[iw] & setone[i];
-      if((ia != 0) && (ifl == 0)){
-        i1=iw*16+i;
-        ifl=1;
-      }
-      if((ia == 0) && (ifl == 1)){
-        i2=iw*16+i-1;
-        ifl=0;
-        return;
-      }
-    }
-  }
-  if(ifl==1){// case when bits are "up" till the end of bitstream
-    i2=16*bslen-1;
-    return;
-  }
-}
-//-----------------------------------------------------------------------
-AMSBitstr operator &(const AMSBitstr &b, const AMSBitstr &c){
-  int lenb=b.bslen;
-  int lenc=c.bslen;
-  int len=lenb;
-  unsigned short int arr[SCWORM];
-  if(lenb != lenc){
-    cout<<"AMSBitstr:AND-warning:len1 != len2 "<<lenb<<" "<<lenc<<'\n';
-    if(lenc<lenb && lenb<SCWORM)len=lenc;
-    else if(lenb<lenc && lenc<SCWORM)len=lenb;
-    else exit(1);
-  }
-  for(int i=0;i<len;i++)arr[i]= b.bitstr[i] & c.bitstr[i];
-  return AMSBitstr(len,arr);
-} 
-//-----------------------------------------------------------------------
-AMSBitstr operator |(const AMSBitstr &b, const AMSBitstr &c){
-  int lenb=b.bslen;
-  int lenc=c.bslen;
-  int len=lenb;
-  unsigned short int arr[SCWORM];
-  if(lenb != lenc){
-    cout<<"AMSBitstr:OR-warning:len1 != len2 "<<lenb<<" "<<lenc<<'\n';
-    if(lenc<lenb && lenb<SCWORM)len=lenc;
-    else if(lenb<lenc && lenc<SCWORM)len=lenb;
-    else exit(1);
-  }
-  for(int i=0;i<len;i++)arr[i] = b.bitstr[i] | c.bitstr[i];
-  return AMSBitstr(len,arr);
-} 
-//-----------------------------------------------------------------------
-void AMSBitstr::display(char comment[]){
-    printf("AMSBitstr: %s ;  length=%d\n",comment,bslen);
-    for(int i=1;i<=bslen;i++){
-      if(i%10 != 0)
-                  printf(" %#x",bitstr[i-1]);
-      else 
-                  printf(" %#x\n",bitstr[i-1]);
-    }
-    if(bslen%10 !=0)printf("\n");
-  }
-//
-//=====================================================================
-//
 //  function to build RawEvent-objects from MC Tovt-objects
 //               
 void AMSTOFRawEvent::mc_build(int &status)
@@ -1628,21 +1460,21 @@ void AMSTOFRawEvent::mc_build(int &status)
   integer i,j,jj,ilay,last,ibar,id,idd,iddN,isd,_sta,stat(0);
   integer nftdc,nstdc,nadca,nadcd;
   int16u _nftdc,_nstdc,_nadca,_nadcd,itt;
-  number  tftdc[SCTHMX2],tftdcd[SCTHMX2],tstdc[SCTHMX3];
-  number tadca[SCTHMX4],tadcad[SCTHMX4],tadcd[SCTHMX4],tadcdd[SCTHMX4];
-  int16u  ftdc[SCTHMX2*2],stdc[SCTHMX3*4],adca[SCTHMX4*2],adcd[SCTHMX4*2];
+  number  tftdc[TOF1GC::SCTHMX2],tftdcd[TOF1GC::SCTHMX2],tstdc[TOF1GC::SCTHMX3];
+  number tadca[TOF1GC::SCTHMX4],tadcad[TOF1GC::SCTHMX4],tadcd[TOF1GC::SCTHMX4],tadcdd[TOF1GC::SCTHMX4];
+  int16u  ftdc[TOF1GC::SCTHMX2*2],stdc[TOF1GC::SCTHMX3*4],adca[TOF1GC::SCTHMX4*2],adcd[TOF1GC::SCTHMX4*2];
   number t,t1,t2,t3,t4,tprev,ttrig1,ttrig3,dt,tlev1,tl1d,ftrig;
   geant charge,edep,strr[2][2],str,offs;
   int trcode,trcode3;
-  integer trflag(0),trpatt3[SCLRS];
-  integer trpatt[SCLRS]={0,0,0,0};
+  integer trflag(0),trpatt3[TOF1GC::SCLRS];
+  integer trpatt[TOF1GC::SCLRS]={0,0,0,0};
   integer it,it1,it2,it3,it4,it0;
   int16u phbit,maxv;
   static geant ftpw=TOFDBc::daqpwd(12);// dummy gap in stretcher sequence (ns)
   AMSTOFTovt *ptr;
   AMSTOFTovt *ptrN;
   status=1;// bad
-  phbit=SCPHBP;
+  phbit=TOF1GC::SCPHBP;
   maxv=phbit-1;//max possible TDC value (16383)
 //
   trflag=0;
@@ -1660,26 +1492,26 @@ void AMSTOFRawEvent::mc_build(int &status)
     trflag=3;
     if(ttrig3<ttrig1){ // tempor: priority is not clear now !
       ttrig1=ttrig3;
-      for(i=0;i<SCLRS;i++)trpatt[i]=trpatt3[i];
+      for(i=0;i<TOF1GC::SCLRS;i++)trpatt[i]=trpatt3[i];
     }
   }
 //
   if(trcode==0)trflag+=10;// mark 4-layer trigger 
   AMSTOFRawEvent::settrfl(trflag);// set final trigger flag
   AMSTOFRawEvent::setpatt(trpatt);// set trigger pattern
-  ftrig=ttrig1+tofvpar.ftdelf();// FTrigger abs time (fixed delay added)
+  ftrig=ttrig1+TOFVarp::tofvpar.ftdelf();// FTrigger abs time (fixed delay added)
   AMSTOFRawEvent::settrtime(ftrig);// set final FTrigger time
 //
   tlev1=ftrig+TOFDBc::accdel();// Lev-1 accept-signal abs.time
 //
-  for(ilay=0;ilay<SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
+  for(ilay=0;ilay<TOF1GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(AMSTOFTovt*)AMSEvent::gethead()->
                                getheadC("AMSTOFTovt",ilay,0);
     while(ptr){// <--- Tovt-hits loop in layer ---
       idd=ptr->getid();// LBBS
       id=idd/10;// short id=LBB
       ibar=id%100-1;
-      scbrcal[ilay][ibar].gtstrat(strr);// get str-ratios for two sides
+      TOFBrcal::scbrcal[ilay][ibar].gtstrat(strr);// get str-ratios for two sides
       isd=idd%10-1;
       str=strr[isd][0];// str-ratio for given TovT-hit
       offs=strr[isd][1];// offset in str-ratio for given TovT-hit
@@ -1689,7 +1521,7 @@ void AMSTOFRawEvent::mc_build(int &status)
 //
       nftdc=ptr->getftdc(tftdc,tftdcd);// get number and times of fast-TDC hits
       _nftdc=0;
-      tl1d=tlev1+tofvpar.sftdcd();// just to simulate sTDC delay wrt fTDC
+      tl1d=tlev1+TOFVarp::tofvpar.sftdcd();// just to simulate sTDC delay wrt fTDC
       for(j=0;j<nftdc;j++){//        <--- ftdc-hits loop ---
         jj=nftdc-j-1;// LIFO readout mode (last stored - first read)
         t1=tftdc[jj];
@@ -1777,7 +1609,7 @@ void AMSTOFRawEvent::mc_build(int &status)
 //----------------
       _nadca=0;
       nadca=ptr->getadca(tadca,tadcad);// get number and up/down times of anode-ADC hits
-      tl1d=tlev1+tofvpar.satdcd()+3.;//to simulate sTDC delay wrt aTDC("+3" comp.FT-del)
+      tl1d=tlev1+TOFVarp::tofvpar.satdcd()+3.;//to simulate sTDC delay wrt aTDC("+3" comp.FT-del)
       for(j=0;j<nadca;j++){// <--- adca-hits loop ---
         jj=nadca-j-1;// LIFO readout mode (last stored - first read)
         t1=tadca[jj];
@@ -1805,7 +1637,7 @@ void AMSTOFRawEvent::mc_build(int &status)
       }//--- end of adca-hits loop --->
 //--------------------
       _nadcd=0;
-      tl1d=tlev1+tofvpar.sdtdcd()+8.;//to simulate sTDC delay wrt dTDC
+      tl1d=tlev1+TOFVarp::tofvpar.sdtdcd()+8.;//to simulate sTDC delay wrt dTDC
       nadcd=ptr->getadcd(tadcd,tadcdd);// get number and up/down times of dynode-ADC hits
       for(j=0;j<nadcd;j++){// <--- adcd-hits loop ---
         jj=nadcd-j-1;// LIFO readout mode (last stored - first read)

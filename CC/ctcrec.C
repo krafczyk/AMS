@@ -29,7 +29,7 @@ void AMSCTCRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   int bad(1);
   AMSCTCRawEvent *ptr;
 //
-  pbitn=SCPHBP;// as for TOF
+  pbitn=TOF1GC::SCPHBP;// as for TOF
   pbanti=pbitn-1;
   status=1;//bad
 //
@@ -133,7 +133,7 @@ void AMSCTCRawEvent::mc_build(int &stat){//to build from CTCRawHit
   stat=0;// ok
   ftrig=AMSTOFRawEvent::gettrtime();// FTrigger abs.time (ns)(incl. fixed delay)
   tlev1=ftrig+TOFDBc::accdel();// Lev-1 accept-signal abs.time
-  phbit=SCPHBP;// phase bit position as for TOF !!!
+  phbit=TOF1GC::SCPHBP;// phase bit position as for TOF !!!
   maxv=phbit-1;// max. number
   lmax=CTCDBc::getnlay();
   gchmx=lmax*CTCXDMX*CTCYDMX;
@@ -274,7 +274,7 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
 //
   ptr=(AMSCTCRawEvent*)AMSEvent::gethead()
                                     ->getheadC("AMSCTCRawEvent",0);
-  pbitn=SCPHBP;//phase bit position as for TOF
+  pbitn=TOF1GC::SCPHBP;//phase bit position as for TOF
   pbanti=pbitn-1;// mask to kill it.
   twin=CTCRECFFKEY.ftwin;
 //
@@ -577,9 +577,9 @@ void AMSCTCRawEvent::builddaq(int16u blid, integer &len, int16u *p){
   AMSCTCRawEvent *ptr;
   AMSCTCRawEvent *ptlist[CTCCHSF];
 //
-  phbit=SCPHBP;//take uniq phase-bit position used in Reduced format and TOFRawEvent
+  phbit=TOF1GC::SCPHBP;//take uniq phase-bit position used in Reduced format and TOFRawEvent
   maxv=phbit-1;// max TDC value
-  phbtp=SCPHBPA;//take uniq phase-bit position used in Raw format for address-word
+  phbtp=TOF1GC::SCPHBPA;//take uniq phase-bit position used in Raw format for address-word
 //
   rcrat=(blid>>6)&7;// requested crate #
   fmt=1-(blid&63);// 0-raw, 1-reduced
@@ -732,9 +732,9 @@ void AMSCTCRawEvent::buildraw(int16u blid, integer &len, int16u *p){
   int16u ntdca[CTCCHCH];
   VZERO(ntdca,sizeof(ntdca)/sizeof(integer));
 //
-  phbit=SCPHBP;//take uniq phase-bit position used in Reduced format and TOFRawEvent
+  phbit=TOF1GC::SCPHBP;//take uniq phase-bit position used in Reduced format and TOFRawEvent
   maxv=phbit-1;// max TDC value
-  phbtp=SCPHBPA;//take uniq phase-bit position used in Raw format for address-word
+  phbtp=TOF1GC::SCPHBPA;//take uniq phase-bit position used in Raw format for address-word
   lentot=*(p-1);// total length of the block(incl. block_id)
   bias=len;
 //
@@ -832,7 +832,7 @@ void AMSCTCRawEvent::buildraw(int16u blid, integer &len, int16u *p){
       adrw=*(p+ic++);// phbit + chipc + slotaddr.
       slad=adrw&15;// get SFEx h/w address(card-id) ((0,1,2,3)-TOF, (5)-C, (4)-A)
       sfet=DAQSBlock::slnumb(slad);// sequential slot number (0-5, or =DAQSSLT if slad invalid)) 
-      if(sfet==DAQSSLT)continue; //---> invalid slad: try to take next pair
+      if(sfet==TOF1GC::DAQSSLT)continue; //---> invalid slad: try to take next pair
       if(DAQSBlock::isSFEC(slad)){ // SFEC data : write to buffer
         lent+=2;
         chipc=(adrw>>12)&7;// channel inside TDC-chip (0-7)(reverse bit pattern!!!)
@@ -939,7 +939,7 @@ void AMSCTCRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 int16u AMSCTCRawEvent::hw2swid(int16u a1, int16u a2){
   int16u swid,hwch;
 //
-  static int16u sidlst[SCCRAT*CTCCHSF]={// 14 CC's + 2 FT's  per CRATE (per SFEC):
+  static int16u sidlst[TOF1GC::SCCRAT*CTCCHSF]={// 14 CC's + 2 FT's  per CRATE (per SFEC):
 //
 // mycrate-1 = (no SFEC card) :
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -966,7 +966,7 @@ int16u AMSCTCRawEvent::hw2swid(int16u a1, int16u a2){
   12, 11, 18, 17, 20, 19, 58,  0, 57, 60, 59, 68, 67, 76, 75,  0};
 //
 #ifdef __AMSDEBUG__
-  assert(a1<SCCRAT);//crate(0-7)
+  assert(a1<TOF1GC::SCCRAT);//crate(0-7)
   assert(a2<CTCCHSF);//sfech(0-15)
 #endif
   hwch=int16u(CTCCHSF*a1+a2);// hardware-channel
@@ -990,7 +990,7 @@ int16u AMSCTCRawEvent::sw2hwid(int16u a1){
   if(first==0){ // create hardw.id list:
     first=1;
     for(i=0;i<CTCCCMX;i++)hidlst[i]=0;
-    for(crate=0;crate<SCCRAT;crate++){// crates (0-7)
+    for(crate=0;crate<TOF1GC::SCCRAT;crate++){// crates (0-7)
       for(sfech=0;sfech<CTCCHSF;sfech++){// SFEC channels (0-15)
         hwid=100*(crate+1)+sfech+1;//  (CAA)
         swid=AMSCTCRawEvent::hw2swid(crate,sfech);// CC

@@ -14,6 +14,7 @@
 //---------------------------------------
 class AMSEcalRawEvent: public AMSlink{
 private:
+  static integer trigfl; // =1/2/3 -> "mip/low/high, =0->no trig.
   integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
   integer _padc;// Pulse hight (ADC-channels)
 public:
@@ -31,6 +32,8 @@ public:
 //
   static void mc_build(int &stat);
   static void validate(int &stat);
+  static void settrfl(integer trfl){trigfl=trfl;}
+  static integer gettrfl(){return trigfl;}
 //
 // interface with DAQ :
 //

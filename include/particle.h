@@ -12,6 +12,7 @@
 #define __AMSPARTICLE__
 #include <link.h>
 #include <trrec.h>
+#include <tofrec02.h>
 #include <tofrec.h>
 #include <beta.h>
 #include <charge.h>

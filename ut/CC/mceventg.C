@@ -8,6 +8,7 @@
 #include <ntuple.h>
 #include <io.h>
 #include <extC.h>
+#include <ecaldbc.h>
 orbit AMSmceventg::Orbit;
 integer AMSmceventg::_hid=20001;
 AMSPoint AMSmceventg::_coorange[2];
@@ -52,7 +53,16 @@ void AMSmceventg::gener(){
     HCDIR (hpawc,BLANK);
   if(CCFFKEY.low ==2){
     geant mom,themu,phimu,chmu,xmu,ymu,zmu;
-    CMGENE(mom,themu,phimu,chmu,xmu,ymu,zmu);
+    while(1){
+      CMGENE(mom,themu,phimu,chmu,xmu,ymu,zmu);
+      if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+        if(TFMCFFKEY.fast==0)break;
+      }
+      else{
+        if(TOFMCFFKEY.fast==0)break;
+      }
+      if(fastcheck(xmu,ymu,zmu,themu,phimu))break;
+    }
     _mom=mom;
     _coo[0]=xmu;
     _coo[1]=ymu;
@@ -69,7 +79,7 @@ void AMSmceventg::gener(){
    integer curp=0;
    number phi;
    number theta;
-   geant d;
+   geant d(-1);
    if(_fixedmom)_mom=_momrange[0];
    else if(CCFFKEY.low==4){
     _mom=_momrange[0]+(_momrange[1]-_momrange[0])*RNDM(d);
@@ -101,12 +111,12 @@ if(_fixeddir){
   number x=_coorange[0][0];
   number y=_coorange[0][1];
   number z=_coorange[0][2];
-  geant d;
+  geant d(-1);
   _coo=AMSPoint(x+lx*RNDM(d),y+ly*RNDM(d),z+lz*RNDM(d));
  }
 }
 else {   // <--- random dir
- geant d;
+ geant d(-1);
  phi=2*AMSDBc::pi*RNDM(d);
  theta=sqrt((double)RNDM(d));
  theta=acos(theta);
@@ -140,38 +150,28 @@ else {   // <--- random dir
   number lx=xb-xa;
   number ly=yb-ya;
   number lz=zb-za;
-//                 tempor. stuff for 'ECAL-hit' event preselection
-  number zanti=43.;
-  number ranti=54.;
-  number zcal=-142.;
-  number calhs=30.;//cal.half-size(-3cm from edge)
-  number xin,yin,dxy,xcr,ycr;
+  geant xin,yin;
 //
  switch(curp){
  case 1:
-//   while(1){ //<-- loop to check crossings with top/bot anti(magnet) holes and calor.
-//     phi=2*AMSDBc::pi*RNDM(d);
-//     theta=sqrt((double)RNDM(d));
-//     theta=acos(theta);
-//     xin=xa+lx*RNDM(d);
-//     yin=ya+ly*RNDM(d);
-//     dxy=(zb-zanti)*sin(theta); // cr.with anti-top
-//     xcr=xin+dxy*cos(phi);
-//     ycr=yin+dxy*sin(phi);
-//     if((xcr*xcr+ycr*ycr)>(ranti*ranti))continue;
-//     dxy=(zb+zanti)*sin(theta); // cr.with anti-bot
-//     xcr=xin+dxy*cos(phi);
-//     ycr=yin+dxy*sin(phi);
-//     if((xcr*xcr+ycr*ycr)>(ranti*ranti))continue;
-//     dxy=(zb-zcal)*sin(theta); // cr.with calor-top
-//     xcr=xin+dxy*cos(phi);
-//     ycr=yin+dxy*sin(phi);
-//     if((fabs(xcr)>calhs) || (fabs(ycr)>calhs))continue;
-//     break;
-//   }
+//
+// <-- try(if asked) to increas "from top" gener. effic.(Not for accept. calc.!!!)
+    if(TOFMCFFKEY.fast>0 || TFMCFFKEY.fast>0){
+      while(1){
+        xin=xa+lx*RNDM(d);
+        yin=ya+ly*RNDM(d);
+        phi=2*AMSDBc::pi*RNDM(d);
+        theta=sqrt((double)RNDM(d));
+        theta=acos(theta);
+        if(fastcheck(xin,yin,zb,theta,phi))break;
+      }
+      _coo=AMSPoint(xin,yin,zb);
+    }
+    else{
+      _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),zb);
+    }
+//
   _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
-  _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),zb);// comment for fast tests
-//  _coo=AMSPoint(xin,yin,zb);//uncoment for fast tests
   break;
  case 2:  
   _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),cos(theta));
@@ -196,7 +196,7 @@ else {   // <--- random dir
  default:  
   cerr <<" AMSmceventg-F-plane problem "<<curp<<endl;
   abort();
- }
+ }//<--- end of switch
 //if(_fixedplane == 0)_coo=_coo/2;
 }
   }
@@ -922,4 +922,42 @@ void AMSmceventg::endjob(){
     char hp[9]="//PAWC";
     HCDIR(hp," ");
     HCDIR (cdir, " ");
+}
+//
+integer AMSmceventg::fastcheck(geant xin, geant yin, geant zb, geant theta, geant phi){
+  static integer first=1;
+  geant zanti;
+  geant ranti;
+  geant zcal=ECALDBc::gendim(7);
+  geant calhs=ECALDBc::gendim(1)/2.-3.;//cal.half-size(-3cm from edge)
+  geant dxy,xcr,ycr;
+//
+     if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+       zanti=ATGEFFKEY.scleng/2.;
+       ranti=ATGEFFKEY.scradi;
+     }
+     else{
+       zanti=ANTIGEOMFFKEY.scleng/2.;
+       ranti=ANTIGEOMFFKEY.scradi;
+     }
+     if(first){
+       first=0;
+       cout<<"z/r-anti="<<zanti<<" "<<ranti<<" zcal="<<zcal<<endl;
+     }
+     dxy=(zb-zanti)*sin(theta); // cr.with anti-top
+     xcr=xin+dxy*cos(phi);
+     ycr=yin+dxy*sin(phi);
+     if((xcr*xcr+ycr*ycr)>(ranti*ranti))return 0;
+     dxy=(zb+zanti)*sin(theta); // cr.with anti-bot
+     xcr=xin+dxy*cos(phi);
+     ycr=yin+dxy*sin(phi);
+     if((xcr*xcr+ycr*ycr)>(ranti*ranti))return 0;
+     if(TOFMCFFKEY.fast==2 || TFMCFFKEY.fast==2){//<-- check ECAL sens.volume if needed
+       dxy=(zb-zcal)*sin(theta); // cr.with calor-top
+       xcr=xin+dxy*cos(phi);
+       ycr=yin+dxy*sin(phi);
+       if((fabs(xcr)>calhs) || (fabs(ycr)>calhs))return 0;
+     }
+//
+     return 1;
 }

@@ -11,7 +11,7 @@
 #include <antidbc.h>
 #include <antirec.h>
 //
-ANTIPcal antisccal[MAXANTI];// create empty array of antipaddles calibr. objects
+ANTIPcal ANTIPcal::antisccal[MAXANTI];// init array of antipaddles calibr. objects
 //
 //======> just memory reservation for ANTIDBc class variables:
 // (real values are initialized at run-time from data cards in setgeom() or in...)
@@ -64,9 +64,6 @@ ANTIPcal antisccal[MAXANTI];// create empty array of antipaddles calibr. objects
     }
     else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
           cout <<" ANTIGeom-I-AMS02 setup selected."<<endl;
-          _scleng=86.; //tempor solution
-          _stleng=86.; //tempor solution
-          ANTIMCFFKEY.PMulZPos=_scleng;// half-length (in Z) for PMT-position
     }
     else
     {
@@ -87,12 +84,12 @@ void ANTIPcal::build(){ // fill array of objects with data
   geant mip2q;   // conv.factor for Mev->pe (Pe/Mev)
   geant gain[2],gains[MAXANTI][2];
   geant ftdl[2];// TDCT(FTrig)_hit delay wrt TDCA_hit delay (ns)
-  geant ipara[ANCHMX][SCIPAR];// the same number of integr. parameters as for TOF
+  geant ipara[ANCHMX][TOF1GC::SCIPAR];// the same number of integr. parameters as for TOF
   char fname[80];
   char name[80];
   char vers1[3]="mc";
   char vers2[3]="rl";
-  geant aip[2][SCIPAR]={// default
+  geant aip[2][TOF1GC::SCIPAR]={// default
     {50.,62.6,1.3},
     {50.,62.6,1.3}
   }; 
@@ -186,7 +183,7 @@ void ANTIPcal::build(){ // fill array of objects with data
        ibr=swid/10-1;
        isd=swid%10-1;
        cnum=2*ibr+isd;
-       for(ip=0;ip<SCIPAR;ip++)icfile >> ipara[cnum][ip];//read anode parameters
+       for(ip=0;ip<TOF1GC::SCIPAR;ip++)icfile >> ipara[cnum][ip];//read anode parameters
      }
    }
  }
@@ -253,8 +250,8 @@ void ANTIPcal::build(){ // fill array of objects with data
       tthr[1]=ANTIRECFFKEY.dtthr; // take trig. threshold from data card for now
       athr[0]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
       athr[1]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
-      for(ip=0;ip<SCIPAR;ip++)aip[0][ip]=ipara[2*i][ip];// int.param.from file
-      for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*i+1][ip];
+      for(ip=0;ip<TOF1GC::SCIPAR;ip++)aip[0][ip]=ipara[2*i][ip];// int.param.from file
+      for(ip=0;ip<TOF1GC::SCIPAR;ip++)aip[1][ip]=ipara[2*i+1][ip];
 //      mip2q=ANTIMCFFKEY.MeV2PhEl; // (pe/mev)
       gain[0]=gains[i][0];// gain from file
       gain[1]=gains[i][1];
@@ -273,8 +270,8 @@ void ANTIPcal::build(){ // fill array of objects with data
       tthr[1]=ANTIRECFFKEY.dtthr; // take trig. threshold from data card for now
       athr[0]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
       athr[1]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
-      for(ip=0;ip<SCIPAR;ip++)aip[0][ip]=ipara[2*i][ip];// int.param.from file
-      for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*i+1][ip];
+      for(ip=0;ip<TOF1GC::SCIPAR;ip++)aip[0][ip]=ipara[2*i][ip];// int.param.from file
+      for(ip=0;ip<TOF1GC::SCIPAR;ip++)aip[1][ip]=ipara[2*i+1][ip];
 //      mip2q=1./ANTIRECFFKEY.PhEl2MeV; // (pe/mev)
       gain[0]=gains[i][0];// gain from file
       gain[1]=gains[i][1];
@@ -346,7 +343,6 @@ void ANTIJobStat::print(){
     }
     printf("\n\n");
 //
-  if(!AMSJob::gethead()->isRealData() && TOFMCFFKEY.fast==1)return;
 //
   printf("===========> Channels validation report :\n\n");
 //

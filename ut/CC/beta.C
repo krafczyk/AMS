@@ -1,6 +1,8 @@
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
+#include <tofdbc02.h>
+#include <tofdbc.h>
 #include <beta.h>
 #include <commons.h>
 #include <math.h>
@@ -281,24 +283,25 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
     if(!ptrack->checkstatus(AMSDBc::FalseTOFX) &&  !ptrack->checkstatus(AMSDBc::WEAK) && ( (!ptrack->checkstatus(AMSDBc::FalseX) ) || (!plvl3 || plvl3->LVL3HeavyIon() ))){ 
      for(nh=0;nh<nhit;nh++){
       status=pthit[nh]->getstatus();
-      if((status&SCBADB2)!=0 && (status&SCBADB5)!=0){//tempor  use now only TOF-recovered
+      if((status&TOFGC::SCBADB2)!=0 && (status&TOFGC::SCBADB5)!=0){//tempor  use now only TOF-recovered
         pbeta->setstatus(AMSDBc::RECOVERED);
-        pthit[nh]->recovers(ptrack);
+        if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))pthit[nh]->recovers2(ptrack);
+	else pthit[nh]->recovers(ptrack);
       }
      }
     }
 //---->
 //
     int il,ilma(0),ilmd(0),neda(0),nedd(0);
-    number edepa[SCLRS]={0.,0.,0.,0.};
-    number edepd[SCLRS]={0.,0.,0.,0.};
+    number edepa[TOF1GC::SCLRS]={0.,0.,0.,0.};
+    number edepd[TOF1GC::SCLRS]={0.,0.,0.,0.};
     number edamx(0.),eddmx(0.),avera(0.),averd(0.),za,zd,sig,sigo;
 //
     if(!ptrack->checkstatus(AMSDBc::FalseTOFX)){
 // 
     for(nh=0;nh<nhit;nh++){ // <-- calc. trunc.eloss 
       status=pthit[nh]->getstatus();
-      if((status&SCBADB2)==0 || ((status&SCBADB2)!=0 && (status&SCBADB5)!=0)){
+      if((status&TOFGC::SCBADB2)==0 || ((status&TOFGC::SCBADB2)!=0 && (status&TOFGC::SCBADB5)!=0)){
         il=pthit[nh]->getntof()-1;
         edepa[il]=pthit[nh]->getedep();
         if(edepa[il]>0.)neda+=1;
@@ -315,11 +318,11 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
       } 
     }
     if(edamx>0. && neda>1){
-      for(il=0;il<SCLRS;il++)if(il!=ilma)avera+=edepa[il];
+      for(il=0;il<TOF1GC::SCLRS;il++)if(il!=ilma)avera+=edepa[il];
       avera/=(neda-1);
     }
     if(eddmx>0. && nedd>1){
-      for(il=0;il<SCLRS;il++)if(il!=ilmd)averd+=edepd[il];
+      for(il=0;il<TOF1GC::SCLRS;il++)if(il!=ilmd)averd+=edepd[il];
       averd/=(nedd-1);
     }
     za=sqrt(fabs(cos(theta))*avera/1.8);
@@ -334,7 +337,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 //
     for(nh=0;nh<nhit;nh++){ // <-- replace time errors
       status=pthit[nh]->getstatus();
-      if((status&SCBADB2)==0){// update resol. only for true 2-sided counters
+      if((status&TOFGC::SCBADB2)==0){// update resol. only for true 2-sided counters
         il=pthit[nh]->getntof()-1;
         sigo=(1.e+12)*(pthit[nh]->getetime());
         if(sig>0.)pthit[nh]->setetime(sig*1.e-12);

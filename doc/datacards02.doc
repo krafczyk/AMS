@@ -1,0 +1,699 @@
+Datacards for AMS02 setup:
+
+// Protection from some myst bug
+
+TERM 
+I 1  TRM(1234567890)     // Ok if == 1234567890 stop otherwise
+
+
+//General 
+          
+AMSJOB  
+I 1  Jobtype(0)      // 1 - Reconstruction ( 0 Simulation)
+                     // 10 - Real Data
+                     // 100 - Tracker Calibration 
+                     // 200 - TOF Calibration 
+                     // 300 - Anti Calibration 
+                     // 400 - Cerenkov Calibration 
+                     // 500 - Magnet Calibration 
+                     // 600 - RICH Calibration 
+                     // 700 - TRD Calibration 
+                     // 800 - AMS Calibration 
+                     // 900 - Reserved
+                     //1000 - Tracker Monitoring
+                     //2000 - TOF Monitoring 
+                     //3000 - Anti Monitoring 
+                     //4000 - Cerenkov Monitoring 
+                     //5000 - LVL1 Monitoring 
+                     //6000 - LVL3 Monitoring 
+                     //7000 - AxAMS Monitoring 
+                     //8000 - Everything Monitoring 
+                     //10000- Production
+                     // 
+I 2  Debug(1)        // 0 - Off   ; 1 - On
+R 3  CpuLimit(10.)   // CpuLimit in native sec per event
+I 4  Read(0)         // 0 - Off   ; 1 - setup 10 -Mceventg 100 -mc banks
+                     // 1000 - Rec banks
+I 5  Write(0)        // Same as for read  
+I 6  Jobname(160*' ')// Jobname == list in db (<160 bytes)
+I46  Setupname(160*' ')  // Setupname == Setup Name (<160 bytes)
+                     // see setup.doc for details
+I86  ZeroSetupOK(0)  // Internal
+I87  Update(0)       // Update(1) or not(0) TDV in DBase
+I88  TDVC(1600*' ')  // TDV Names, separated by |, which will be updated
+                     // if Update(see above) ==1
+//IO
+
+IOPA 
+I 1    hlun(0)                   // hlun lun number for ntuple file (=0 no output)
+I 2    hfile(160*' ')            // ntuple output file name 
+                                 // (program will add run.1stevent.hbk clause)
+I42    ntupleId(1)               // Ntuple Id
+I43    WriteAll(2)               // Flag to write objects into the ntuple
+                                 // 1=All; 0=Only "used" objects
+                                 // 2="Used" + tracker hits consistent with TOF
+                                 // 10+X=Dump header, X=0,1,2 as  above
+                                 // but header block in the ntuple is filled
+                                 // also if trigger condition is not matched.
+                                 // 100 +X    write  events with errors,
+                                 // otherwise write only header
+                                 // n*1000+X - always write first n*1000 events
+                                 // from every run
+R44    Portion(1.1)              // Process event if RNDM(d)<Portion) 
+I45    TriggerC('AMSParticle')   // Container names, separated by
+                                 // & or | to trigger write 
+                                 // the ntuple and/or db
+I85    mode(0)                   // 4th vectors i/0 mode switch
+                                 // 0 - nothing 1 -read 2 - write 3 - append
+I86   ffile(' ')                 // 4th vectors file name
+I126  MaxNtupleEntries(100000)   // max entries for ntuples( 0==inf)
+I127  WriteRoot(0)               // write (!0) or nott write(0) root file
+I128  rfile(160*' ')             // root file name
+I168 MaxFileSize(150000000)      // max ntuplefilesize (bytes)
+//---------------------------------------------------------------------
+
+//Anti Simulation
+
+ATMC
+I 1   mcprtf(0)           // MC-hist print flag
+R 2   SigmaPed(1.)        // Noise sigma in p.e.
+R 3   MeV2PhEl(20)        // conversion mev ->p.e. 
+R 4   LZero(120.)         // light attenuation length in scint.(cm)
+R 5   PMulZPos(0)         // redefined later (PMT-position wrt counter center)
+R 6   Lspeed(17)          // eff. speed of the light in anti paddle (cm/ns)
+
+//Anti Reconstruction
+
+
+ATRE
+I 1 reprtf[0] (0)         // RECO-hist print flag
+I 2       [1] (0)         // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding
+I 3       [2] (0)         // spare
+R 4 ThrS(5)               // Threshold in p.e. on Cluster creation
+R 5 PhEl2MeV(0.05)        // Conversion p.e. -> mev
+R 6 dtthr(3)              // discr.threshold(pe) to create trigger signal
+R 7 dathr(6)              // ..................... TovT measurement (ADCA)
+R 8 ftwin(100)            // time-window for "true" ADCA-hit search (ns)
+//
+I 9 ReadConstFiles(0)     // read const. from DB/myFiles (0/1)
+//  
+I 10-21                    // sec,min,hour,day,mon,year fro DB update
+
+// Anti Calibration
+
+ATCA
+I 1 cfvers(1)             // version number(01-99) for antiverlistNN.dat file
+
+//------------------------------------------------------------------------------
+
+// TOF  Simulation
+
+TFMC      
+R  1   TimeSigma(110e-12)  // Time resolution(sec) for simplified(fast) algorithm 
+R  2   TimeSigma2(450e-12)  // 2nd Time res(sec) for simplified algorithm 
+R  3   TimeProbability2(0.035)  // 2nd Time Probability
+R  4   padl(10.5)          // Sc. bars transv. step (cm) ..................
+R  5   Thr(0.1)            // Sc.bar Elos-thresh(mev) to participate in Reco 
+I  6   Print-flag(0)       // to print init arrays if=1        
+I  7   Print-flag(0)       // to print PMT pulses if=1        
+I  8   Print-flag(0)       // to print MC-histograms if=1        
+I  9   Print-flag(0)       // spare        
+I 10   Print-flag(0)       // spare
+I 11   Trig.logic-flag(0)  //  use AND/OR(if=0/1) for two side logic signals   
+I 12   Trig.logic-flag(0)  //  use ANY3/ALL4(if=0/1) coinc. for 4 TOF-layers         
+I 13   fast(0)             //  0/1->off/on fast gener. in mceventg.(Don't use for Accept.calc !)
+I 14   daqfmt(1)           // Raw/Reduced(0/1) TDC format for DAQ simulation
+I 15   birks(1)            // apply or not birks correction
+
+
+// TOF Reconstruction
+
+TFRE
+R 1   Thresh(0.45)        // Thresh(mev) on "peak" bar Elos in clustering procedure
+R 2   Thresh(0.45)         // Thresh(mev) on total cluster energy ...................
+I 3   Print-flag(0)       // 0/1->not/print_ALL_job_statistics_tables
+I 4   Print-flag(0)       // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding 
+I 5   Print-flag(0)       // print RECO-histograms (if=1)
+I 6   Print-flag(0)       // separate flag for TDC-hit multiplicity histograms(112 hist)
+I 7   Print-flag(0)       // if nonzero(=LBBS) permits fill stretcher w1/w3 histogr. for LBBS
+I 8   RECO logic-flag(0)  // Normal/STRR+AVSD/TDIF/TZSL/AMPL-calibr_run(if=0/1/2/3/4)
+I 9   RECO logic-flag(0)  // full_fTDC_usage/presence(noMatching)/do_not_use (if =0/1/2)
+I 10  RECO logic-flag(0)  // if ==1 -> switch off side 2 in counters of layer 4.
+I 11  RECO logic-flag(0)  // 0/1-> use new/old parametrization for TOF integrators.
+                             old mode can't use DB (use only raw calib.files(28=1) !) 
+I 12  RECO logic-flag(0)  // spare
+R 13  DAQ-thresh-1 (40)     // thresh.(mv) for fast t-discriminator (z>=1 trig)
+R 14  DAQ-thresh-2 (100)    // thresh.(mv) for z>1-trig. discr.
+R 15  DAQ-thresh-3 (200)    // thresh.(mv) for z>2-trig. discr.
+R 16  DAQ-thresh-4 (10)     // thresh.(pC) for anode Time_over_Threshold discr.
+R 17  DAQ-thresh-5 (10)     // thresh.(pC) for dinode Time_over_Threshold discr.
+//
+R 18  cuts[0] (26)      // cut on time diff. of the same hit in fast/slow TDC
+R 19  cuts[1] (15)      // cut on min. distance of "befor"-hit in time history TDC
+R 20  cuts[2] (400)     // ........................"after"-hit in time history TDC
+R 21  cuts[3] (2)       // error in longitudinal coordinate (cm, single TOF bar)
+R 22  cuts[4] (65)      // FT delay constant term (ns)
+R 23  cuts[5] (40)      // sTDC-delay wrt fTDC (ns)
+R 24  cuts[6] (35)      // sTDC-delay wrt aTDC
+R 25  cuts[7] (0)       // sTDC-delay wrt dTDC
+R 26  cuts[8] (26)      // gate for a/s-TDC time difference(ns)
+R 27  cuts[9] (40)      // gate for d/s-TDC time difference(ns)
+//
+I 28  ReadConstFiles(0)   // read constants(calibr) from DB/Ext_Files(0/1)
+//
+I 29   sec[2](0,0)        // Validity time:
+I 31   min[2](0,0)        //
+I 33   hour[2](0,0)       // 
+I 35   day[2](1,1)        //
+I 37   mon[2](0,0)        //
+I 39   year[2](96,98)     //
+
+// TOF calibration
+
+TFCA
+  TZSL-calibration
+R  1 plow(8.);  // track mom. low limit (gev/c)
+R  2 phigh(50.);// track mom. high limit
+R  3 meanbeta(0.996);// mean proton velocity in this range 
+R  4 T0-ref1(6.);   // T0 for ref. counters
+R  5 T0-ref2(6.);   // T0 for ref. counters
+R  6 slope(3.2);    // def. slope
+R  7 meanbeta(.997); // mean muon velocity (for earth calibr.)
+I  8 id-ref1(108);  // LBB for first ref. counter (if non zero)
+I  9 id-ref2(0);    // LBB for second ref. counter (if nonzero)
+I 10 fix-slope(1); // =0/1 to fix/release slope param.
+I 11 calibr.type(0);// =0/1 space/earth calibration
+I 12 truse(0);     // =-1/0/1 to no/soft/hard usage of tracker info
+I 26 tofcoo(0)     // =0/1 -> use trancv/longit.coordinates from TOF 
+  AMPL-calibration:
+I 12 truse(0);     // =1/-1 to use/not tracker info
+R 13 plhc[0](2)  // low cut on tracker momentum (Gev/c) for space calibr.
+R 14 plhc[1](100)  // high cut on tracker momentum (Gev/c) ....
+I 15 minev(100)     // min.events needed for measurement in channel or bin
+R 16 trcut(0.90)   // cut to use for "truncated average" calculation
+I 17 refbid[0]     // ref.bar id's list (LBB) for btype=1->5
+   ...             // ......................................
+I 21 refbid[4]     // ......................................
+R 22 plhec[0] (0.1) // mom. low-cut for earth calibr.
+R 23 plhec[0] (10)   // mom. high-cut for earth calibr.
+R 24 bgcut[0] (2)   // beta*gamma low-cut for mip in abs.calibr.
+R 25 bgcut[1] (10)  // beta*gamma high-cut for mip in abs.calibr.
+I 26 tofcoo    (0)  // 0/1-> use transv/longit coord. from TOF 
+I 27 dynflg    (1)  // 0/1-> use stand/special(Contin's) dynode-calibration
+  General :
+I 28 cfvers    (1)  // 01-99 vers.number NN for tofverlist(mc/rl)NN.dat file
+I 29 cafdir    (0)  // use official/private directory for calibr.files
+I 30 mcainc    (0)  // 0/1-> off/on A-integrator calibration in MC
+//---------------------------------------------------------------------------------
+
+// CTC  Simulation
+
+CTCGEOM
+R  1   wallth(0.03)             // reflecting wall(separators) thickness(cm)
+R  2   agap(0.02)               // typical "air" gaps
+R  3   wgap(0.01)               // typical wls gaps
+R  4   agsize[3]{120.,90.,10.}  // max aerogel x-size
+R  7   wlsth(0.3)               // WLS thickness
+R  8   hcsize[3]{165.,165.,5.}  // supp. honeycomb plate X-size
+R 11   supzc(-84.)              // supp. honeycomb plate front face Z-pos
+R 12   aegden(0.24)             // aerogel density
+R 13   wlsden(1.03)             // WLS density
+I 14   nblk(12)                 // number of aer. blocks (X-div.)
+I 15   nwls(12)                 // number of wls  blocks (X-div.)
+
+CTCMC      
+R  1   Refraction[3](1.036,1.35,1.00) // Refraction indexes
+R  4   Path2PhEl(11.,38.,0.)        // Path to photoelectrons conv factor
+R  7   AbsLengt(15, 100,100)         // Abs length in cm 
+R 10   Edep2Phel(0,0,0)       //  Edep to phelectrons conv factor
+I 13   mcprtf(0)                // print MC-hist. if !=0
+//-------------------------------------------------------------------------------
+    ECAL simulation:
+    
+ECMC
+I 1    fastsim(0)                // =1 for fast(non-accurate) simulation
+I 1    mcprtf(0)                 // =1 to print MC-histograms
+R 1    cutge(0.001)              // Geant(cutele=cutgam(Gev)) cut for EC-volumes
+
+    ECAL reconstruction:
+
+ECRE
+I 1    reprtf[0](0)              // =1 to print Reco-histograms    
+//--------------------------------------------------------------------------------
+
+    RICH simulation
+
+RICGEOM
+R 1  top_radius(63.6)           // Top radius of rich
+R 2  bottom_radius(80)		// Bottom radius
+R 3  hole_radius(40)		// Central hole radius
+R 4  height(50)			// RICH height without PMTs and radiator
+R 5  inner_mirror_height(50)	// Inner mirror height. <0 means no mirror
+R 6  radiator_radius(63.6)	// Radiator radius
+R 7  radiator_height(2)		// Radiator height
+R 8  radiator_box_length(15)	// Aerogel box size. <0 means aerogel no tiled 
+R 9  light_guides_height(3)	// Light-guides height
+R 10 light_guides_length(3)	// PMT box size
+
+
+
+
+//--------------------------------------------------------------------------------
+
+// Tracker Cluster  Simulation
+
+TRMC      
+R 1   alpha(220)            // Cluster shower par (see tkmccl.F)
+R 2   beta(1.0)               // Cluster shower par (see tkmccl.F)
+R 3   gamma(0.08)           // Cluster shower par (see shower in mccluster.C)
+R 4   fastswitch(5.e-5)     // Switch between fast and slow algos
+R 5   dedx2nprel(.33e6)     // dedx to number of primary electrons
+R 6   ped[2](100,100)       // pedestals for x & y
+R 8   sigma[2](4.2,3.)      // noise for x & y
+R10   gain[2](8,8)          // gains for x & y
+R12   cmn[2](50,50)         // common noise for x & y
+I14   adcoverflow(32767)    // 12 bit adc * 8
+I15   NoiseOn(1)            // Generate(1) do not generate(0) noise in tracker
+I16   sec[2](0,0)           // 
+I18   min[2](0,0)           //
+I20   hour[2](0,0)          // Validity time
+I22   day[2](1,1)           //
+I24   mon[2](0,0)           //
+I26   year[2](96,98)        //
+I28   CalcCmnNoise[2])(1,3) // Calc(1=1 or not 1=0 cmnnoise properly)
+R30   thr1R[2](2.75,3.5)     // threshold (S/N) to save cluster
+R32   thr2R[2](1.,1.)       // threshold (S/N) to save hits in cluster
+I34   neib[2](2,2)          // number of neibours from one side
+I36   GenerateConst(0)      // generate/not generate tracker const
+I37   RawModeOn[2][2][32](0)// Raw Mode Tracker readout (half,side,tdr)
+I165  WriteHK(0)            // if > 0 and DAQC write mode will write the static
+                            // HK info after event # WriteHK 
+R166  delta(0.8,1)         // relative x/y average gain
+R168  gammaA(0.25,0.1)      // relative x/y gain spread
+R170  NonGaussianPart(0.,0.1) // non gaussian part in noise distr
+// MC particle generation
+
+MCGEN
+R 1 coo[2][3](3*-1.e10,3*1.e10)   //make the cube surface the particle 
+                                  //originate from
+R 7 dir[2][3](3*-1.,3*1.)         //Particle Directions range
+R13 momr[2](-1.e10,1.e10)         //Particle momentum range
+I15 fixp(0)                       //fix the cube surface for particle 
+                                  //generation 1 - top, 2-bottom,
+                                  //3,4,5,6 - others
+R16 albedorate(0.01)              //assumed albedo relative rate
+R17 albedocz(0.05)                //assumed min cos(theta) for albedo 
+I18 npat(1)                       //number of particle to generate in one go
+I19 run(100)                      //run number
+I20 low(0)                        //normal(0);  undercutoff(1)  
+                                  //sea level muons(2) mev range electrons(3)
+                                  //uniform energy(4) 
+                                  //uniform log(energy) (5)
+I21 earth(1)                      // Earth magnetic field modulation on (1) off(0) 
+R22 theta(51.65)                  //Station Theta(deg) at begin
+R23 phi(290.)                     //Station Phi(deg) at begin
+R24 pole(108.392)                 // Pole phi at begin 
+I25 begindate(22051998)           // start date (ddmmyyyy)
+I26 begintime(080000)             // start time (hhmmss)
+I27 enddate(26051998)             // end date   (ddmmyyyy)
+I28 endtime(120000)               // end time   (hhmmss)
+I29 dir(1)                        // direction +1 to higher theta (-1 to lower)
+I30 oldformat(0)                  // 1 if oldformat for io read is used
+I31 Fast(0)                       // Fast MC gen is used
+
+KINE 
+1 IPART        // Geant particle id
+
+RNDM
+1 nrndm1      // initial random seed1
+2 nrmdm2      // initial random seed2
+
+
+// CTC  Reconstruction
+
+CTCREC      
+R 1   Thr1(0.5)           // Threshold on max element of cluster (phe)
+R 2   ThrS(1.)            // Threshold on  cluster sum (phe)
+I 3 reprtf[0] (0)         // RECO-hist print flag
+I 4       [1] (0)         // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding
+I 5       [2] (0)         // spare
+R 6 ftwin(100)            // time-window for "true" ADCA-hit search (ns)
+R 7 q2pe(0.16)            // charge 2 phel conv factor
+I 8 ft2edg(1)             // 0/1-> 1/2 edges readout for FT signal
+//
+I 9  ReadConstFiles(0)   // read constants(calibr) from DB/Ext_Files(0/1)
+//
+I 10-21                    // sec,min,hour,day,mon,year for DB update
+
+// CTC Calibration
+
+CTCCA
+I 1 cfvers(1)             // version number(01-99) of ctcverlistNN.dat file
+
+// Tracker Clusters Reconstruction
+
+TRCL
+R 1 ThrClA[2](10,10)    // Lower limit for amplitude for cls (x,y)
+R 3 ThrClS[2](20,15)    // Upper limit for sigma     for cls (x,y)
+R 5 ThrClR[2](3,4)    // Lower limit for Amplitude/sigma for cls (x,y)
+R 7 Thr1A[2](8,8)     // Lower limit for ampl for max hit in cluster
+R 9 Thr1S[2](20,15)       // Upper limit for sigma for max hit in cluster
+R11 Thr1R[2](2.75,3.5)       // Lower limit for a/sigma for max hit in cluster
+R13 Thr2A[2](4,3)      // Lower limit for ampl for other hits in cluster 
+R15 Thr2S[2](15,10)       // Upper limit for sigma for other hits in cluster 
+R17 Thr2R[2](1.,1.)   // Lower limit for a/sigma for other  hits in cluster
+R19 Thr3R[2](-2.,-2.)   // Reserved
+I21 ThrClNMin[2](1,1)   // Min Number of hits satisfied the above limits
+I23 ThrClNEl[2](3,3)    // total number hits in the cluster
+R25 ThrDSide(1)         // Upper threshold to (A_x-A_y)/(A_x+A_y)
+R26 ErrX(30e-4)         // Assumed Error in X dir
+R27 ErrY(10e-4)         // Assumed Error in Y dir
+R28 ErrZ(30e-4)         // Assumed Error in Z dir
+R29 CorFunParA[2][6](400.e-4,65e-4)
+                        // 1st Parameter of correction fun for
+                        // border clusters cofg calculation          
+                        // 1st index side(x,y); 2nd - layer
+R41 CorFunParB[2][6](0.85,0.5)
+                        // 2nd parameter
+                        // corr function is of 
+                        // 0 if s1/st < ParB;
+                        // ParA*atan(s1/st-ParB) otherwise
+R53 ResFunX[3][6];      //  Parabolic parametrization of resolution
+R71 ResFunX[3][6];      //
+R89 CommonGain[2](1.6,1.)  // Relative gain s/k
+R91 CommonShift[2](4.5,0.)  // Relative Shift s/k
+I93 EtaCor[2](1,0)      // 0/1 no/apply eta corrections (x,y)
+// Tracker pattern recognition
+TRFIT
+I 1 Pattern[42](22*1,20*0)
+  //    Number              Descr             Points      Default
+  //    0                   123456            6           on
+  //    1                   12346             5           on
+  //    2                   12356             5           on
+  //    3                   12456             5           on
+  //    4                   13456             5           on
+  //    5                   12345             5           off
+  //    6                   23456             5           off
+  //    7                   1234              4           off
+  //    8                   1235              4           off
+  //    9                   1236              4           off
+  //   10                   1245              4           off
+  //   11                   1246              4           off
+  //   12                   1256              4           off
+  //   13                   1345              4           off
+  //   14                   1346              4           off
+  //   15                   1356              4           off
+  //   16                   1456              4           off
+  //   17                   2345              4           off
+  //   18                   2346              4           off
+  //   19                   2356              4           off
+  //   20                   2456              4           off
+  //   21                   3456              4           off
+  ...   20 .... 3 points (see trrec.C)......
+I43  UseTOF(1)                    // Use(>=1 == Min No TOF clusters matched)/
+                                  // Not use(0) TOF  for pattern No 16
+R44  Chi2FastFit(2000)              // Max  chi2 for tkhmd;
+R45  Chi2StrLine(9)              // The same for Straight line fit
+R46  Chi2Circle(3)         // The same for Circle fit
+R47  ResCutFastFit(0.5)     // Max residual distance in cm between 
+                                  // point and fitted curve (not yet impl)
+R48  ResCutStrLine(0.5)     // --- strline    (not yet impl)
+R49  ResCutCircle(0.5)      // --- circlefit  (not yet impl)
+R50  SearchRegFastFit(1)    // Max distance in cm between point 
+                                  // and extrapolated curve to include
+                                  // point in the pattern
+R51  SearchRegStrLine(0.5)  // ------- strline fit
+R52  SearchRegCircle(1)     // ---------- circle fit
+R53  RidgidityMin(0.2)      // Minimal ridgidity in GV     
+I54  FullReco(0)            // Use(1) or not use(0) "used "clusters to build 
+                            // tracks
+R55  MinRefitCos(0.7,0.5)   // min cos(tr angle) to refit track with wider
+                            // clusters
+I57  FastTracking(1)        // 0-1-2-3-4 faster-faster-faster-faster
+                            //   4 only prescaled events
+                            //   3 + heavy ion
+                            //   2 + everything -(trigger3==3)
+                            //   1 + (trigger3==3)
+                            //   0 + slow down system + better tracking qua   
+I58  WeakTracking(1)        // Make(1) do not make(0) weak clusters fitting
+I59  FalseXTracking(1)      // Make(1) do not make(0) 4y + 3x tracking
+R60  Chi2FalseX(10.)        // Max Chi2 for 3point combinations
+I61  ForceFalseTOFX(1)      // Force additional FalseTOFX track in each event
+I62  FalseTOFXTracking(1)   // Try(1) or do not try(0) 4y + TOF tracking
+                            // if anything else fails
+I63  TOFTracking(1)         // Filter out(1) or not(0) hits inconsistent with TOF
+                            // before tracking
+
+I64  ForceAdvencedFit(1)    // Force(1) or not advanced fit for all particles
+
+R65  ThrClA[2](0,0)         // mark trreccl good if ampl > ThrClA
+R67  ThrClR[2](0,0)         // mark trreccl good if ampl/s > ThrClR
+I69  MaxTrRecHitsPerLayer(50) // to try pattern rec
+
+// Tracker fitting
+
+TKFIT
+R 1 tmaxf(0.2)    // max angle for grkuta   
+R 2 smax(50)      // max step for grkuta
+R 3 fieldm(20)     // max fiels (in kg) for grkuta 
+R 4 cconv(5.e-4)  // conv parameter
+I 5 maxcal(8)     // internal
+I 6 nitm(1000)    // internal
+R 7 xtol(1.e-2)   // internal
+I 8 iver(0)       // internal
+I 9 ialg(1)       // reserved
+R10 steps(0.03)   // internal
+I11 npars(5)      // internal
+I12 ims(1)        // 0 -Multiple scattering accounting off; 1 - on  
+
+
+
+// AMS Global Reconstruction
+
+BETAFIT
+I 1 Pattern[9](5*1,4*0)
+  //    Number              Descr             Points      Default
+  //    0                   1234              4           on
+  //    1                   123               3           on
+  //    2                   124               3           on
+  //    3                   134               3           on
+  //    4                   234               3           on
+  //    5                   13                2           on
+  //    6                   14                2           on
+  //    7                   23                2           on
+  //    8                   24                2           on
+R10 Chi2(10.)       //  Max acceptable chi2 for betafit
+R11 SearchReg[3](3.,3.,3.) // Max distance between track & tof hit in sigma's
+                           // Used also in TOF-track matching for pat # 16
+
+R14 LowBetaThr(0.4)        // below this the refit will be done using pat #7 
+                              if possible 
+I15 FullReco(0)            // Allows(1) or not(0) share tofcl between particles
+R16 Chi2S(10.)     // Max acceptable chi2 for space matching tof/tracker 
+I17 MassFromBetaRaw(0)  // get mass from raw or corrected beta(1/0)
+
+CHARGEFIT
+I 1 NmembMax(3)          // maximum number of members for TOF clusters
+I 2 Tracker(1)           // tracker cluster energies used 0/1/2 (y)/(x+y,y)/(x+y,y,x)
+R 3 EtaMin[2](0.05,0.0)  // min eta value for tracker cluster (x,y)
+R 5 EtaMax[2](0.95,1.0)  // max eta value for tracker cluster (x,y)
+R 7 ProbTrkRefit(0.01)   // refit tracker charge below this cut
+R 8 ResCut(4.,4.)        // thrsld for incompatible TOF/trk clus exclusion *) 
+                            (-1: no cluster is excluded)
+R10 SigMin(0.1)          // min relative spread of TOF or trk cluster energies
+R11 SigMax(0.3)          // max 
+I12 PdfNorm(1)           // 0/1 peak=1/normalised prob. density functs. for likelihood
+I13 TrMeanRes(1)         // 0/1 n-1/modified*) truncated mean 
+R14 ProbMin(0.01)        // minimum value for TOF and trk charge probs to be combined
+                            into particle charge
+I15 TrackerOnly(8)       // use only tracker charge if TOF charge is above this value
+I16 ChrgMaxAnode(3)      // use dynodes for TOF charge above this value
+I17 BetaPowAnode(1)      // correction on anode beta dependence for z>1
+I18 TrackerForceSK(0)    // if<>0 force tracker hit energies to be x+y (overwrites
+                            Tracker datacard defined above)
+R19 TrackerKSRatio(0.67) // average x/y tracker energy ratio (used if TrackerForceSK<>0)
+I20 TrackerProbOnly(3)   // use only tracker probs for pid if charge is above this value
+
+*) most incompatible cluster is excluded if Ec-<E>_rest>ResCut*sigma(E_rest)
+
+TRCALIB    // trcaker calibration
+I 1 CalibProcedureNo(1)               // 1 - sigma/ped calc; 2 - treacker alignment 
+I 2 EventsPerCheck(100)               // checking frequency
+R 3 PedAccRequired[2](0.1,0.07)        // Average ped acc in ADC channels 
+I 5 Validity[2](1800,5400)              // +- Validity (sec)
+R 7 RhoThrA(0.7)                       // Av corcoef
+R 8 RhoThrV(0.8)                       // channel corcoef
+I 9 Method(2)                        
+R10 BadChThr[2];                       // up,p
+I12 Pass;                              // pass
+I13 DPS(1);                               // Dynamic pedestal subtraction off(0)
+                                       // on ( >0)
+I14 UPDF;                               // Dynamic pedestal update freq
+I15 LaserRun(0)
+I16 PrintBadChList(0)                  //
+                                       // TRCALIB # 2 starts here 
+I17  EventsPerIteration[4](100,100,100,100)    // Events in one bunch
+I21 NumberOfIterations[4](200,200,200,200)    // number of bunches
+R25 BetaCut[4][2](0.7,1.,0.7,0.7,10.,10.,1.4,1.4)    // Beta limits
+R33 HitsRatioCut[4](2.5,2.5,0.998,0.998)          // Hit Ratio Limits
+R37 MomentumCut[4][2](-inf,inf,3,inf,0.2,2.5,-inf,inf) // momentum ----------
+R45 Chi2Cut[4](3.,3.,100.,100.)                 // chi2 ---------------
+I49 ActiveParamaters[6][6];           // for each plane x,y,z, pitch,yaw,roll
+I85 Ladder[6](6*0)                    // ladder*10+half no for each plane 0=al 
+I91 PatStart(0) 
+I92 MultiRun(0)
+I93 EventsPerRun(2000)
+};
+
+
+TRALIG     // Tracker Alignment
+I1     InitDB(0);
+I2     ReWriteDB;(0)
+I3     UpdateDB(0);    // main switch
+I4     MaxEventsPerFit(9999);
+I5     MinEventsPerFit(999);
+I6     MaxPatternsPerJob(99);
+R7     Cuts[10][2];    // Cuts (left - right), not yet completely defined
+I27 Algorithm(0)    // 0 - exect mom, 1 - mom from beta
+I28 ActiveParameters[6][6](all 1); //   for each plane: x,y,z, pitch, yaw, roll
+I64 GlobalFit(0)                   // global fit (1) local(0)
+I65 EventsPerRun(1001)            
+I66 LayersOnly(0)                     // ladder(0) or layer(1) based alig
+R67 GlobalGoodLimit(0.06)             // invoke local db if beyond
+I68 SingleLadderEntryLimit(10000)     
+R69 One(1.025)
+
+TGL1    // LVL1 Trigger 
+
+I 1 ntof(3)                           // min number of tof planes in trig
+I 2 nanti(2)                         // max number of anti counters in trig
+I 3 RebuildLVL1(0)                   // Rebuild or not lvl1 if reconstruction
+R 4 MaxScalersRate(20k)               // max acceptable av scalers rate
+R 5 MinLifeTime   (0.015)            // min acceptable lifetime
+
+L3SIM
+
+R 1 NoiseProbX(3.3e-10)                  // Noise Probability for x side
+R 2 NoiseProbY(2.0e-10)                  // Noise Probability for y side
+
+
+L3REC    // LVL3 Trigger Rec
+
+I 1 MinTOFPlanesFired(3)               // min number of tof planes in trig
+I 2 UseTightTOF(1)                     // Use(1) notUse(0) "Pattern" trigger
+R 3 TrTOFSearchReg(6)                  // Road width to match TOF/Tracker (cm)
+R 4 TrMinResidual(0.03)                // Min Residual to keep event (cm)
+R 5 TrMaxResidual[3](0.9,0.1,0.2)     // Max Residuals to keep event (cm)
+I 8 TrMaxHits(20)                      // Max Number of hits in Tracker
+R 9 Splitting(0.04)                    // Min distance between hits
+I10 Nrep(1)                            // Aux no of rep to calc lvl3 time
+I11 Accept(0)                        // Min value of lvl3 trigger to accept
+I12 RebuildLVL3(2)                   // rebuild/not rebuild(0) lvl3 in reconstruction
+I13 NoK(1)                           // NotMatch(1) Match(0) S & K in lvl3
+R14 TrHeavyIonThr(200)               // Heavy Ion threshold (trunc mean)
+I15 SeedThr(32)                      // S/N *8 threshold for seed 
+
+
+L3EXP   // LVL3 Expert 
+
+I 1 NEvents(1024)                       // Number of Events in Sequence 
+I 2 ToBad(10)                            // Number of conseq sequences to declare bad
+I 3 TryAgain(10)                        // Number of sequences to unlock bad
+R 4 Range[3][2](3,3,100000,3,3,3)       // Bad Range in sigmas
+
+
+
+SELECT   // Choose run & event
+
+I 1 run number                      // Run number
+I 2 event(position) number          // Event (if > 0) Position(<0)
+I 3 File                            // File with selected events
+                                    // format ascii Run Event
+I43 Last Run No(0)                  //  No effect if zero
+                                     
+
+
+
+
+DAQC    //   DAQ Control
+
+I 1 mode(0)                         // 0 do nothing
+                                    // mode%10 = 1 read daq if isReconstruction()
+                                    // (mode/10)%10 = 1 write daq (noreplace)
+                                    // (mode/10)%10 = 2 write daq (append)
+                                    // mode/100 = 1  compress tracker on fly
+I 2 ifile[40]("")                   // input file name 
+                                    // if last char is "/" 
+                                    // all directory will be read
+I42 ofile[40]("")                   // output file name
+I82 OldFormat(0)                    // old(1) new(0) format
+I83 LCrateinDAQ(1)                  // in(1) out(0) of DAQ
+I84 SCrateinDAQ(1)                  // in(1) out(0) of DAQ
+I85 NoRecAtAll(0)                   // skip or not reconstruction phase
+I86 TrformatInDAQ(3)                // 0 no 1 reduced 2 raw 3 both in daq
+
+BMAP   // Magnetic field control
+I  1  mfile                          // mag file name 'fld97int.txt'
+I 41 iniok(1)                       // 0 for update mag field
+
+
+
+TKGEOM   // Read/Write tracker geom control
+I 1 ReadGeomFromFile(1)             
+I 2 WriteGeomToFile(0)
+I 3 UpdateGeomFile(0)
+
+
+ESTATUS // Select events with corresponding properties ,all statuses combined by AND, all bits inside statuses combined by OR, 0 means select everything  (see status.doc for details)
+I 1  status[32](32*0)    // 
+                             [0] lvl3
+                             [1] prescaled event
+                             [2] charge
+                             [3] momentumsign                       
+                             [4] velocitysign                       
+                             [5] trackerpattern
+                             [6] betapattern
+                             [7] ctclayerfired
+                             [8] antisectorfired
+                             [9] npartfound
+                             [10] rigidity range
+                             [11] track quality
+                             [12] shuttle geomag latitude
+                             [13] localdb used for tracker alignment
+                             [14] error bit        
+
+I33  sword                   // service word
+I34  base(10)                base to calculate bit<->status correspondance
+MISC   // misc
+
+I 1 BTempCorrection(0)      // apply(1),not(0) temperature corrections to mfield
+I 2 BeamTest(0)             // BeamTest data(1) not(0)
+R 3 BZCorr(1.)              // Z scale for b field (test only)
+I 4 G3On(1)                 // 0 off 1 on geant3
+I 5 G4On(0)                 // 0 off 1 on geant4
+
+
+
+G4FF    // Geant4 Datacards
+I 1 BFOrder(4)       // Runge Kutta order 
+R 2 Delta(0.001)     // Runge Kutta delta
+I 3 UniformField(0)  // Use(1)/not use(0) average uniform mag field instead field map
+
+
+
+
+HISE   // Heavy Ion MC switch (Geant3 only)
+I1 HISW(1)              // heavy ion mc switch (1== abpackage, 2==tripaty)
+I2 HISA(2)              // 0: record collision; 1:0+stop particle; 2:rqmd
+
+
+
+TRDMC
+I1 mode(1)        //0: saveliev-GenerTransportIoniz
+                  //1: saveliev-GenerTransport  pai-Ioniz
+                  //2: saveliev-Gener pai-TransportIoniz
+                  //3: gaibyan-Gener pai-TransportIoniz
+I2 g3trd        // g3identifier for trd aware media
+R3 cor
+R4 alpha
+R5 beta

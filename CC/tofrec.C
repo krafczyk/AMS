@@ -12,9 +12,11 @@
 #include <mccluster.h>
 #include <math.h>
 #include <extC.h>
+#include <tofdbc02.h>
 #include <tofdbc.h>
 #include <tofsim.h>
 #include <trrec.h>
+#include <tofrec02.h>
 #include <tofrec.h>
 #include <antirec.h>
 #include <particle.h>
@@ -23,11 +25,7 @@
 #include <ntuple.h>
 #include <time.h>
 //
-void AMSTOFCluster::init(){
-}
-extern TOFBrcal scbrcal[SCLRS][SCMXBR];// calibration data
-extern TOFVarp tofvpar;// TOF general parameters
-integer AMSTOFRawCluster::trpatt[SCLRS]={0,0,0,0};//just init. of static var.
+integer AMSTOFRawCluster::trpatt[TOF1GC::SCLRS]={0,0,0,0};//just init. of static var.
 integer AMSTOFRawCluster::trflag=0;
 uinteger AMSTOFRawEvent::StartRun(0);
 time_t AMSTOFRawEvent::StartTime(0);
@@ -36,8 +34,10 @@ time_t AMSTOFRawEvent::StartTime(0);
 //-----------------------------------------------------------------------
 void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   int16u nftdc[2],nstdc[2],nadca[2],nadcd[2];
-  int16u  ftdc1[SCTHMX2*2],stdc1[SCTHMX3*4],adca1[SCTHMX4*2],adcd1[SCTHMX4*2];
-  int16u  ftdc2[SCTHMX2*2],stdc2[SCTHMX3*4],adca2[SCTHMX4*2],adcd2[SCTHMX4*2];
+  int16u  ftdc1[TOF1GC::SCTHMX2*2],stdc1[TOF1GC::SCTHMX3*4];
+  int16u  adca1[TOF1GC::SCTHMX4*2],adcd1[TOF1GC::SCTHMX4*2];
+  int16u  ftdc2[TOF1GC::SCTHMX2*2],stdc2[TOF1GC::SCTHMX3*4];
+  int16u  adca2[TOF1GC::SCTHMX4*2],adcd2[TOF1GC::SCTHMX4*2];
   integer ilay,last,ibar,isid,isds;
   integer i,j,im,nhit,chnum,brnum,am[2],tmi[2],itmf[2],sta,st;
   int16u pbitn;
@@ -52,7 +52,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   AMSTOFRawEvent *ptr;
   AMSTOFRawEvent *ptrN;
 //
-  pbitn=SCPHBP;
+  pbitn=TOF1GC::SCPHBP;
   pbanti=pbitn-1;
   status=1;//bad
   idr=TOFRECFFKEY.reprtf[4];// chan-id for histogramming of stretcher w1/w3
@@ -89,13 +89,13 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
     ibar=id%100-1;
     isid=idd%10-1;
 #ifdef __AMSDEBUG__
-    assert(ilay>=0 && ilay<SCLRS);
-    assert(ibar>=0 && ibar<SCMXBR);
+    assert(ilay>=0 && ilay<TOF1GC::SCLRS);
+    assert(ibar>=0 && ibar<TOF1GC::SCMXBR);
     assert(isid>=0 && isid<2);
     if(TOFRECFFKEY.reprtf[1]>=1)ptr->_printEl(cout);
 #endif
-    chnum=ilay*SCMXBR*2+ibar*2+isid;//channels numbering
-    brnum=ilay*SCMXBR+ibar;//bar numbering
+    chnum=ilay*TOF1GC::SCMXBR*2+ibar*2+isid;//channels numbering
+    brnum=ilay*TOF1GC::SCMXBR+ibar;//bar numbering
     stat[isid]=ptr->getstat();
     
     edep=ptr->getedep();//tempor
@@ -248,7 +248,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
     while(ptr){ //  <---- loop over TOF RawEvent hits -----
       int num,den,nedges[4];
       number Atovt,Dtovt;
-      int his[SCTHMX2*2],tdc[SCTHMX3*4],ano[SCTHMX4*2],dyn[SCTHMX4*2];     
+      int his[TOF1GC::SCTHMX2*2],tdc[TOF1GC::SCTHMX3*4],ano[TOF1GC::SCTHMX4*2],dyn[TOF1GC::SCTHMX4*2];     
       idd=ptr->getid();
       id=idd/10;// short id=LBB, where L=1,4 BB=1,14
       ilay=id/100;
@@ -256,7 +256,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
       isid=idd%10;
  
       nedges[0]=int (ptr->getftdc(ftdc1)); // History
-      VZERO(stdc1,SCTHMX3*4/2);
+      VZERO(stdc1,TOF1GC::SCTHMX3*4/2);
       nedges[1]=int (ptr->getstdc(stdc1)); // Time Exp.
       nedges[2]=int (ptr->getadca(adca1)); // Anode
       nedges[3]=int (ptr->getadcd(adcd1)); // Dynode
@@ -295,7 +295,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
       ilay=id/100-1;
       ibar=id%100-1;
       isid=idd%10-1;
-      chnum=ilay*SCMXBR*2+ibar*2+isid;//channels numbering
+      chnum=ilay*TOF1GC::SCMXBR*2+ibar*2+isid;//channels numbering
       stat[isid]=ptr->getstat();
       if(stat[isid] == 0){  
         isds+=1;
@@ -345,16 +345,16 @@ void AMSTOFRawCluster::sitofdigi(int &status){
   AMSTOFMCCluster * ptr=(AMSTOFMCCluster*)
   AMSEvent::gethead()->
    getheadC("AMSTOFMCCluster",0,1); // last 1  to test sorted container
-  static number xplane[4][SCMXBR];
-  static number xtime[4][SCMXBR];
-  static number xtimed[4][SCMXBR];
-  static number xz[4][SCMXBR];
+  static number xplane[4][TOF1GC::SCMXBR];
+  static number xtime[4][TOF1GC::SCMXBR];
+  static number xtimed[4][TOF1GC::SCMXBR];
+  static number xz[4][TOF1GC::SCMXBR];
   integer plrot;
   number ama[2],amd[2],stm[2],edepd,etd;
-  VZERO(xtime,SCMXBR*sizeof(number));
-  VZERO(xtimed,SCMXBR*sizeof(number));
-  VZERO(xplane,SCMXBR*sizeof(number));
-  VZERO(xz,SCMXBR*sizeof(number));
+  VZERO(xtime,TOF1GC::SCMXBR*sizeof(number));
+  VZERO(xtimed,TOF1GC::SCMXBR*sizeof(number));
+  VZERO(xplane,TOF1GC::SCMXBR*sizeof(number));
+  VZERO(xz,TOF1GC::SCMXBR*sizeof(number));
   geant x,y;
   status=1;// bad
   while(ptr){
@@ -362,7 +362,7 @@ void AMSTOFRawCluster::sitofdigi(int &status){
    ntof=(ptr->idsoft)/100-1;//ilay
    plane=(ptr->idsoft)%100-1;//ibar
 #ifdef __AMSDEBUG__
-   assert(plane>=0 && plane< SCMXBR);
+   assert(plane>=0 && plane< TOF1GC::SCMXBR);
    assert (ntof>=0 && ntof<4);
 #endif
    xplane[ntof][plane]+=ptr->edep*1000;
@@ -385,16 +385,16 @@ void AMSTOFRawCluster::sitofdigi(int &status){
   number latt=195.; // average light att. length (cm) in scint. bar
   number trthr=0.4;// trig.threshold(z>=1) in Mev (=0.2 MIP) (taken from the floor)
   number trthr3=6.;// trig.threshold(z>2) in Mev (=3 MIPs) (taken from the floor)
-  integer ntrl(0),trpatt[SCLRS]={0,0,0,0};
-  integer ntrl3(0),trpatt3[SCLRS]={0,0,0,0};
+  integer ntrl(0),trpatt[TOF1GC::SCLRS]={0,0,0,0};
+  integer ntrl3(0),trpatt3[TOF1GC::SCLRS]={0,0,0,0};
   integer trflag(0);
   integer bitp,lsbit(1);
   int i,statdb[2];
   geant halfl;
   number enshar,ylon,edp[2];
   number ts1,ts2;
-  for(integer kk=0;kk<SCLRS;kk++){
-  for(i=0;i<SCMXBR;i++){
+  for(integer kk=0;kk<TOF1GC::SCLRS;kk++){
+  for(i=0;i<TOF1GC::SCMXBR;i++){
     if(xplane[kk][i]>TOFMCFFKEY.Thr){
      xtime[kk][i]=xtime[kk][i]/xplane[kk][i];
      xtimed[kk][i]=xtimed[kk][i]/xplane[kk][i];
@@ -404,7 +404,7 @@ void AMSTOFRawCluster::sitofdigi(int &status){
      enshar=exp(-(ylon+halfl)/latt)/(exp(-(ylon+halfl)/latt)+exp(-(halfl-ylon)/latt));
      edp[0]=enshar*xplane[kk][i]*exp(-(ylon+halfl)/latt);
      edp[1]=xplane[kk][i]-edp[0];
-     scbrcal[kk][i].getbstat(statdb); // "alive" status from DB
+     TOFBrcal::scbrcal[kk][i].getbstat(statdb); // "alive" status from DB
 //      "z>=1" trigger :
      if((edp[0]>trthr || statdb[0]>0) && (edp[1]>trthr || statdb[1]>0)){// 2-ends AND !!
        bitp=lsbit<<i;
@@ -446,8 +446,8 @@ void AMSTOFRawCluster::sitofdigi(int &status){
 
   }
   }
-  for(i=0;i<SCLRS;i++)if(trpatt[i]>0)ntrl+=1;// counts triggered (z>=1) layers
-  for(i=0;i<SCLRS;i++)if(trpatt3[i]>0)ntrl3+=1;// counts triggered (z>2) layers
+  for(i=0;i<TOF1GC::SCLRS;i++)if(trpatt[i]>0)ntrl+=1;// counts triggered (z>=1) layers
+  for(i=0;i<TOF1GC::SCLRS;i++)if(trpatt3[i]>0)ntrl3+=1;// counts triggered (z>2) layers
   if(TOFMCFFKEY.trlogic[1]==1){// h/w requirement ALL4
     if(ntrl==4){
       status=0;
@@ -477,11 +477,11 @@ void AMSTOFRawCluster::build(int &ostatus){
   int16u nstdc[2]={0,0};
   int16u nadca[2]={0,0};
   int16u nadcd[2]={0,0};
-  int16u  ftdc1[SCTHMX2*2],stdc1[SCTHMX3*4],adca1[SCTHMX4*2],adcd1[SCTHMX4*2];
-  int16u  ftdc2[SCTHMX2*2],stdc2[SCTHMX3*4],adca2[SCTHMX4*2],adcd2[SCTHMX4*2];
-  integer ilay,last,ibar,isid,isds,isd,isdsl[SCLRS],hwid,tchan,crat,sfet,slnu,tdcc;
+  int16u  ftdc1[TOF1GC::SCTHMX2*2],stdc1[TOF1GC::SCTHMX3*4],adca1[TOF1GC::SCTHMX4*2],adcd1[TOF1GC::SCTHMX4*2];
+  int16u  ftdc2[TOF1GC::SCTHMX2*2],stdc2[TOF1GC::SCTHMX3*4],adca2[TOF1GC::SCTHMX4*2],adcd2[TOF1GC::SCTHMX4*2];
+  integer ilay,last,ibar,isid,isds,isd,isdsl[TOF1GC::SCLRS],hwid,tchan,crat,sfet,slnu,tdcc;
   integer i,j,k,chnum,brnum,am[2],tmi[2],itmf[2],sta,st,smty[2],ftdcfl,reject;
-  integer trpatt[SCLRS];
+  integer trpatt[TOF1GC::SCLRS];
   uinteger Runum(0);
   int statdb[2];
   int16u pbitn;
@@ -494,25 +494,25 @@ void AMSTOFRawCluster::build(int &ostatus){
   number treada[2]={0.,0.};
   number charg[2]={0.,0.};
   number t1,t2,t3,t4;
-  geant blen,co,eco,point,brlm,pcorr,td2p,etd2p,clong[SCLRS];
+  geant blen,co,eco,point,brlm,pcorr,td2p,etd2p,clong[TOF1GC::SCLRS];
   geant strr[2],srof[2],strat[2][2];
   AMSTOFRawEvent *ptr;
   AMSTOFRawEvent *ptrN;
-  integer nbrl[SCLRS],brnl[SCLRS];
+  integer nbrl[TOF1GC::SCLRS],brnl[TOF1GC::SCLRS];
   int bad,tsfl(0),rml4s2;
 // some variables for histogramming:
-  geant gdt,tch,pch1[SCLRS],pch2[SCLRS];
-  geant edepa[SCLRS],edepd[SCLRS],tcorr[SCLRS],elosn;
-  geant tuncorr[SCLRS],tdiff[SCLRS],td13,td24,td14;
+  geant gdt,tch,pch1[TOF1GC::SCLRS],pch2[TOF1GC::SCLRS];
+  geant edepa[TOF1GC::SCLRS],edepd[TOF1GC::SCLRS],tcorr[TOF1GC::SCLRS],elosn;
+  geant tuncorr[TOF1GC::SCLRS],tdiff[TOF1GC::SCLRS],td13,td24,td14;
 //
   ptr=(AMSTOFRawEvent*)AMSEvent::gethead()
                                     ->getheadC("AMSTOFRawEvent",0);
   Runum=AMSEvent::gethead()->getrun();// current run number
-  pbitn=SCPHBP;//phase bit position
+  pbitn=TOF1GC::SCPHBP;//phase bit position
   pbanti=pbitn-1;// mask to avoid it.
   ostatus=1;// event output status(init. as bad)
   isds=0;
-  for(i=0;i<SCLRS;i++)nbrl[i]=0;
+  for(i=0;i<TOF1GC::SCLRS;i++)nbrl[i]=0;
 //
   rml4s2=0;
   if(TOFRECFFKEY.relogic[2]!=0)rml4s2=1;
@@ -520,9 +520,9 @@ void AMSTOFRawCluster::build(int &ostatus){
 //
 //    cout<<"TOF_Crate Temperatures :"<<endl;
 //    for(k=0;k<8;k++){ 
-//      for(i=0;i<DAQSTSC;i++){//loop over temp. SFETs in crate (1)
-//        for(j=0;j<DAQSTCS;j++){//loop over temp. channels in SFET (4)
-//          tchan=DAQSTCS*DAQSTSC*k+i*DAQSTCS+j;
+//      for(i=0;i<TOF1GC::DAQSTSC;i++){//loop over temp. SFETs in crate (1)
+//        for(j=0;j<TOF1GC::DAQSTCS;j++){//loop over temp. channels in SFET (4)
+//          tchan=TOF1GC::DAQSTCS*TOF1GC::DAQSTSC*k+i*TOF1GC::DAQSTCS+j;
 //          cout<<" "<<DAQSBlock::gettemp(tchan);
 //        }
 //        cout<<endl;
@@ -537,11 +537,11 @@ void AMSTOFRawCluster::build(int &ostatus){
     ibar=id%100-1;
     isid=idd%10-1;
 //    edep=ptr->getedep();
-    chnum=ilay*SCMXBR*2+ibar*2+isid;//channels numbering
-    brnum=ilay*SCMXBR+ibar;//bar numbering
+    chnum=ilay*TOF1GC::SCMXBR*2+ibar*2+isid;//channels numbering
+    brnum=ilay*TOF1GC::SCMXBR+ibar;//bar numbering
     stat[isid]=ptr->getstat();
 //    if(stat[isid] == 0){  
-    scbrcal[ilay][ibar].getbstat(statdb); // "alive" status from DB
+    TOFBrcal::scbrcal[ilay][ibar].getbstat(statdb); // "alive" status from DB
     if(statdb[isid] >= 0){  // channel alive(no severe problems), read out it
       hwid=AMSTOFRawEvent::sw2hwid(ilay,ibar,isid);
       crat=hwid/100-1;
@@ -555,10 +555,10 @@ void AMSTOFRawCluster::build(int &ostatus){
         nadca[isid]=ptr->getadca(adca1);
         nadcd[isid]=ptr->getadcd(adcd1);
         tdcc=12;//temper. reading for anode
-        tchan=DAQSTSC*DAQSTCS*crat+DAQSTCS*(slnu-1)+(tdcc%4);
+        tchan=TOF1GC::DAQSTSC*TOF1GC::DAQSTCS*crat+TOF1GC::DAQSTCS*(slnu-1)+(tdcc%4);
         treada[isid]=DAQSBlock::gettemp(tchan);// get "temperature" for anode chain
         tdcc=13;//temper. reading for stretcher
-        tchan=DAQSTSC*DAQSTCS*crat+DAQSTCS*(slnu-1)+(tdcc%4);
+        tchan=TOF1GC::DAQSTSC*TOF1GC::DAQSTCS*crat+TOF1GC::DAQSTCS*(slnu-1)+(tdcc%4);
         treads[isid]=DAQSBlock::gettemp(tchan);// get "temperature" for stretcher chain
       } 
       if(isid==1){
@@ -568,10 +568,10 @@ void AMSTOFRawCluster::build(int &ostatus){
         nadca[isid]=ptr->getadca(adca2);
         nadcd[isid]=ptr->getadcd(adcd2);
         tdcc=12;//temper. reading for anode
-        tchan=DAQSTSC*DAQSTCS*crat+DAQSTCS*(slnu-1)+(tdcc%4);
+        tchan=TOF1GC::DAQSTSC*TOF1GC::DAQSTCS*crat+TOF1GC::DAQSTCS*(slnu-1)+(tdcc%4);
         treada[isid]=DAQSBlock::gettemp(tchan);// get "temperature" for anode chain
         tdcc=13;//temper. reading for stretcher
-        tchan=DAQSTSC*DAQSTCS*crat+DAQSTCS*(slnu-1)+(tdcc%4);
+        tchan=TOF1GC::DAQSTSC*TOF1GC::DAQSTCS*crat+TOF1GC::DAQSTCS*(slnu-1)+(tdcc%4);
         treads[isid]=DAQSBlock::gettemp(tchan);// get "temperature" for stretcher chain
       }
       TOFJobStat::addch(chnum,0);        // channel statistics :
@@ -635,13 +635,13 @@ void AMSTOFRawCluster::build(int &ostatus){
           sta=0;
 // -> add status-bits for known problems:
           if(((statdb[0]%100)/10 > 0) || ((statdb[1]%100)/10 > 0))
-                               sta|=SCBADB3;// set bit of known bad t-measurement on any side
+                               sta|=TOFGC::SCBADB3;// set bit of known bad t-measurement on any side
 //
           if(isds==1){
-            sta|=SCBADB2;// set bit for counter with only one-side measurements
-            if(smty[1]==0)sta|=SCBADB4;// set bit for side number(s1->reset_bit,s2->set_bit)
+            sta|=TOFGC::SCBADB2;// set bit for counter with only one-side measurements
+            if(smty[1]==0)sta|=TOFGC::SCBADB4;// set bit for side number(s1->reset_bit,s2->set_bit)
           }
-          scbrcal[ilay][ibar].gtstrat(strat);
+          TOFBrcal::scbrcal[ilay][ibar].gtstrat(strat);
           strr[0]=strat[0][0];// strr.for s-1
           strr[1]=strat[1][0];// .........s-2
           srof[0]=strat[0][1];// offs.for s-1
@@ -700,13 +700,13 @@ void AMSTOFRawCluster::build(int &ostatus){
           tmf[1]=-1.;
           itmf[0]=0;
           itmf[1]=0;
-          fstd=number(scbrcal[ilay][ibar].gtfstrd()); // diff. in f/s same-hit delay
+          fstd=number(TOFBrcal::scbrcal[ilay][ibar].gtfstrd()); // diff. in f/s same-hit delay
           if(smty[0]>0){
             for(i=0;i<nftdc[0];i+=2){ // side-1
               tf=number((ftdc1[i+1]&pbanti)*TOFDBc::tdcbin(0));//take up-edge(2-nd) of f-TDC
               dt=tf-tm[0]-fstd;
               if(TOFRECFFKEY.reprtf[2]>0)HF1(1115,geant(dt),1.);
-              if(fabs(dt) < tofvpar.fstdw()){
+              if(fabs(dt) < TOFVarp::tofvpar.fstdw()){
                 tmf[0]=tf;
                 itmf[0]=i+1;
               }
@@ -717,7 +717,7 @@ void AMSTOFRawCluster::build(int &ostatus){
               tf=number((ftdc2[i+1]&pbanti)*TOFDBc::tdcbin(0));
               dt=tf-tm[1]-fstd;
               if(TOFRECFFKEY.reprtf[2]>0)HF1(1115,geant(dt),1.);
-              if(fabs(dt) < tofvpar.fstdw()){
+              if(fabs(dt) < TOFVarp::tofvpar.fstdw()){
                 tmf[1]=tf;
                 itmf[1]=i+1;
               }
@@ -738,13 +738,13 @@ void AMSTOFRawCluster::build(int &ostatus){
             if(j >= 0){
               tf=(ftdc1[j]&pbanti)*TOFDBc::tdcbin(0);
               if(TOFRECFFKEY.reprtf[2]>0)HF1(1102,geant(tmf[0]-tf),1.);
-              if((tmf[0]-tf) < tofvpar.hiscuta())reject=1;
+              if((tmf[0]-tf) < TOFVarp::tofvpar.hiscuta())reject=1;
             }
             j=itmf[0]+2; // Side-1 "befor"-check
             if(j < nftdc[0]){
               tf=(ftdc1[j]&pbanti)*TOFDBc::tdcbin(0);
               if(TOFRECFFKEY.reprtf[2]>0)HF1(1101,geant(tf-tmf[0]),1.);
-              if((tf-tmf[0]) < tofvpar.hiscutb())reject=1;
+              if((tf-tmf[0]) < TOFVarp::tofvpar.hiscutb())reject=1;
             }
           }
 //
@@ -753,20 +753,20 @@ void AMSTOFRawCluster::build(int &ostatus){
             if(j >= 0){
               tf=(ftdc2[j]&pbanti)*TOFDBc::tdcbin(0);
               if(TOFRECFFKEY.reprtf[2]>0)HF1(1102,geant(tmf[1]-tf),1.);
-              if((tmf[1]-tf) < tofvpar.hiscuta())reject=1;
+              if((tmf[1]-tf) < TOFVarp::tofvpar.hiscuta())reject=1;
             }
             j=itmf[1]+2; // Side-2 "befor"-check
             if(j < nftdc[1]){
               tf=(ftdc2[j]&pbanti)*TOFDBc::tdcbin(0);
               if(TOFRECFFKEY.reprtf[2]>0)HF1(1101,geant(tf-tmf[1]),1.);
-              if((tf-tmf[1]) < tofvpar.hiscutb())reject=1;
+              if((tf-tmf[1]) < TOFVarp::tofvpar.hiscutb())reject=1;
             }
           }
         }
 //
 //===========>>> set time-history status of sc.bar :
 //
-            if(reject==1)sta|=SCBADB1;// set bit "time-history problem" on any alive side
+            if(reject==1)sta|=TOFGC::SCBADB1;// set bit "time-history problem" on any alive side
             if(reject==0)TOFJobStat::addbr(brnum,2);// statistics on "good time-history"
             if(reject==0 && isds==2)TOFJobStat::addbr(brnum,3);// statistics on 2-sided(2x3meas)
 //                                                               "good time-history"
@@ -782,8 +782,8 @@ void AMSTOFRawCluster::build(int &ostatus){
           badah+=1;
           for(i=0;i<nadca[0];i+=2){ 
             tf=number((adca1[i+1]&pbanti)*TOFDBc::tdcbin(2));//2-nd is leading(up)-edge
-            dt=tf-tm[0]-tofvpar.satdcd();
-            if(fabs(dt) < tofvpar.satdcg()){//s/a-tdc matching found
+            dt=tf-tm[0]-TOFVarp::tofvpar.satdcd();
+            if(fabs(dt) < TOFVarp::tofvpar.satdcg()){//s/a-tdc matching found
               ashn[0]=i;
               badah-=1;
               break;
@@ -798,8 +798,8 @@ void AMSTOFRawCluster::build(int &ostatus){
           badah+=1;
           for(i=0;i<nadca[1];i+=2){ 
             tf=number((adca2[i+1]&pbanti)*TOFDBc::tdcbin(2));//2-nd is leading(up)-edge
-            dt=tf-tm[1]-tofvpar.satdcd();
-            if(fabs(dt) < tofvpar.satdcg()){//s/a-tdc matching found
+            dt=tf-tm[1]-TOFVarp::tofvpar.satdcd();
+            if(fabs(dt) < TOFVarp::tofvpar.satdcg()){//s/a-tdc matching found
               ashn[1]=i;
               badah-=1;
               break;
@@ -810,8 +810,8 @@ void AMSTOFRawCluster::build(int &ostatus){
           baddh+=1;
           for(i=0;i<nadcd[0];i+=2){ 
             tf=number((adcd1[i+1]&pbanti)*TOFDBc::tdcbin(3));//2-nd is leading(up)-edge
-            dt=tf-tm[0]-tofvpar.sdtdcd();
-            if(fabs(dt) < tofvpar.sdtdcg()){//s/d-tdc matching found
+            dt=tf-tm[0]-TOFVarp::tofvpar.sdtdcd();
+            if(fabs(dt) < TOFVarp::tofvpar.sdtdcg()){//s/d-tdc matching found
               dshn[0]=i;
               baddh-=1;
               break;
@@ -826,8 +826,8 @@ void AMSTOFRawCluster::build(int &ostatus){
           baddh+=1;
           for(i=0;i<nadcd[1];i+=2){ 
             tf=number((adcd2[i+1]&pbanti)*TOFDBc::tdcbin(3));//2-nd is leading(up)-edge
-            dt=tf-tm[1]-tofvpar.sdtdcd();
-            if(fabs(dt) < tofvpar.sdtdcg()){//s/d-tdc matching found
+            dt=tf-tm[1]-TOFVarp::tofvpar.sdtdcd();
+            if(fabs(dt) < TOFVarp::tofvpar.sdtdcg()){//s/d-tdc matching found
               dshn[1]=i;
               baddh-=1;
               break;
@@ -835,8 +835,8 @@ void AMSTOFRawCluster::build(int &ostatus){
           }
         }
 //
-        if(badah>0)sta|=SCBADB6;// set bit of "no a/s-TDC matching on any alive side" 
-        if(baddh>0)sta|=SCBADB7;// set bit of "no d/s-TDC matching on any alive side" 
+        if(badah>0)sta|=TOFGC::SCBADB6;// set bit of "no a/s-TDC matching on any alive side" 
+        if(baddh>0)sta|=TOFGC::SCBADB7;// set bit of "no d/s-TDC matching on any alive side" 
         if(badah==0)TOFJobStat::addbr(brnum,4);// statistics on a-matching
         if(baddh==0)TOFJobStat::addbr(brnum,5);// statistics on d-matching
 //
@@ -895,20 +895,20 @@ void AMSTOFRawCluster::build(int &ostatus){
             if(TOFRECFFKEY.relogic[0] != 1){// ====> for all except STRR_calibration runs :
 //
 //--> Calc. longit. coord/err and position corr. to signal :
-              scbrcal[ilay][ibar].tmd2p(tmf,amf,co,eco);// get A-corrected Local(!).coord/err
+              TOFBrcal::scbrcal[ilay][ibar].tmd2p(tmf,amf,co,eco);// get A-corrected Local(!).coord/err
               brlm=0.5*TOFDBc::brlen(ilay,ibar)+3.*eco;//limit on max. coord
               if(fabs(co) > brlm){   //means: "coord. is more than counter half length"
-                pcorr=scbrcal[ilay][ibar].poscor(0.);// take position corr. as for "0"
+                pcorr=TOFBrcal::scbrcal[ilay][ibar].poscor(0.);// take position corr. as for "0"
               }
               else{
-                pcorr=scbrcal[ilay][ibar].poscor(co);
+                pcorr=TOFBrcal::scbrcal[ilay][ibar].poscor(co);
               }
               if(isds==1)pcorr=1.;// no position correction for one-sided counters
 //--> Find Eloss from anode :
-              qtota=scbrcal[ilay][ibar].ama2mip(amf)
+              qtota=TOFBrcal::scbrcal[ilay][ibar].ama2mip(amf)
                                              /pcorr; //an-tot Edep(mev) with corrections
 //--> Find counter-time corrected for anode TovT :
-              time=scbrcal[ilay][ibar].tm2t(tmf,amf); // time with corrections
+              time=TOFBrcal::scbrcal[ilay][ibar].tm2t(tmf,amf); // time with corrections
 //--> Find Eloss from dinode :
               qtotd=0.;
               amd[0]=0.;
@@ -932,7 +932,7 @@ void AMSTOFRawCluster::build(int &ostatus){
               if(amd[0]>0. && amd[1]>0.){
                 if(amd[0]>600.)amd[0]=600.;//tempor
                 if(amd[1]>600.)amd[1]=600.;
-                qtotd=scbrcal[ilay][ibar].amd2mip(amd)
+                qtotd=TOFBrcal::scbrcal[ilay][ibar].amd2mip(amd)
                                             /pcorr;//dinode-tot Edep(mev) with corrections
               }
 //-->
@@ -982,25 +982,25 @@ void AMSTOFRawCluster::build(int &ostatus){
 //
 // ---> now check min. multiplicity and make some histograms :
 //
-  int nbrch[SCLRS],conf(-1),isum(0);
+  int nbrch[TOF1GC::SCLRS],conf(-1),isum(0);
   int il,ib,ix,iy;
-  geant x[2],y[2],zx[2],zy[2],zcb[SCLRS],tgx,tgy,cosi;
+  geant x[2],y[2],zx[2],zy[2],zcb[TOF1GC::SCLRS],tgx,tgy,cosi;
   number trlen13,trlen24;
 //
-  for(i=0;i<SCLRS;i++){
+  for(i=0;i<TOF1GC::SCLRS;i++){
     nbrch[i]=0;
     if(nbrl[i]>0)nbrch[i]=1;
   }
-  for(i=0;i<SCLRS;i++)isum+=nbrch[i];
+  for(i=0;i<TOF1GC::SCLRS;i++)isum+=nbrch[i];
   HF1(1110,geant(isum),1.);// tot.number of layers
   if(TOFRECFFKEY.reprtf[2]>0 || 
      (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
 
-    for(i=0;i<SCLRS;i++)if(nbrch[i]>0)HF1(1111,geant(i+1),1.);// layer appear. freq.
+    for(i=0;i<TOF1GC::SCLRS;i++)if(nbrch[i]>0)HF1(1111,geant(i+1),1.);// layer appear. freq.
   }
   if(isum>=2)conf=0;
   if(isum>=3){
-    for(i=0;i<SCLRS;i++)if(nbrch[i]==0)conf=i+1;
+    for(i=0;i<TOF1GC::SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;
   if(TOFRECFFKEY.reprtf[2]>0 || 
@@ -1012,16 +1012,16 @@ void AMSTOFRawCluster::build(int &ostatus){
 // 
 // --->same multtipl. checks for single bar layers:
 //
-  for(i=0;i<SCLRS;i++){
+  for(i=0;i<TOF1GC::SCLRS;i++){
     nbrch[i]=0;
     if(nbrl[i]==1)nbrch[i]=1;
   }
   isum=0;
   conf=-1;
-  for(i=0;i<SCLRS;i++)isum+=nbrch[i];
+  for(i=0;i<TOF1GC::SCLRS;i++)isum+=nbrch[i];
   if(isum>=2)conf=0;
   if(isum>=3){
-    for(i=0;i<SCLRS;i++)if(nbrch[i]==0)conf=i+1;
+    for(i=0;i<TOF1GC::SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;
   if(TOFRECFFKEY.reprtf[2]>0 || 
@@ -1036,7 +1036,7 @@ void AMSTOFRawCluster::build(int &ostatus){
 //
   integer status;
   number crc;
-  geant cry[SCLRS];
+  geant cry[TOF1GC::SCLRS];
   AMSTOFRawCluster *ptrc;
   ptrc=(AMSTOFRawCluster*)AMSEvent::gethead()->
                                      getheadC("AMSTOFRawCluster",0);
@@ -1045,7 +1045,7 @@ void AMSTOFRawCluster::build(int &ostatus){
 //
   ix=0;
   iy=0;
-  for(il=0;il<SCLRS;il++){
+  for(il=0;il<TOF1GC::SCLRS;il++){
     ib=brnl[il];
     zcb[il]=TOFDBc::getzsc(il,ib);
     if(TOFDBc::plrotm(il)==0){// unrotated (X-meas) planes
@@ -1062,7 +1062,7 @@ void AMSTOFRawCluster::build(int &ostatus){
   tgx=(x[0]-x[1])/(zx[0]-zx[1]);// track slopes in 2 projections
   tgy=(y[0]-y[1])/(zy[0]-zy[1]);
 //
-  for(il=0;il<SCLRS;il++){
+  for(il=0;il<TOF1GC::SCLRS;il++){
     ib=brnl[il];
     if(TOFDBc::plrotm(il)==0){// unrotated (X-meas) planes
       crc=y[1]+tgy*(zcb[il]-zy[1]);// long. crossing coord. in abs. ref.syst.
@@ -1084,11 +1084,11 @@ void AMSTOFRawCluster::build(int &ostatus){
       il=ptrc->getntof()-1;
       ib=ptrc->getplane()-1;
       status=ptrc->getstatus();
-      if((il==3) && (ib>1) && (ib<12) && (status&SCBADB2)>0){ // tempor recov. only for L=4
-//    if((status&SCBADB2)>0){ // 1-sided counter found in any layer/counter
+      if((il==3) && (ib>1) && (ib<12) && (status&TOFGC::SCBADB2)>0){ // tempor recov. only for L=4
+//    if((status&TOFGC::SCBADB2)>0){ // 1-sided counter found in any layer/counter
         ptrc->recovers(cry[il]);// recovering
         status=ptrc->getstatus();//new status
-        if((status & SCBADB5)>0){
+        if((status & TOFGC::SCBADB5)>0){
           isdsl[il]+=1;//add recovered side
           tcorr[il]=ptrc->gettime();
         }
@@ -1100,16 +1100,16 @@ void AMSTOFRawCluster::build(int &ostatus){
 // 
 // ---> multtipl. checks for single 2-sided bar layers:
 //
-  for(i=0;i<SCLRS;i++){
+  for(i=0;i<TOF1GC::SCLRS;i++){
     nbrch[i]=0;
     if(nbrl[i]==1 && isdsl[i]==2)nbrch[i]=1;
   }
   isum=0;
   conf=-1;
-  for(i=0;i<SCLRS;i++)isum+=nbrch[i];
+  for(i=0;i<TOF1GC::SCLRS;i++)isum+=nbrch[i];
   if(isum>=2)conf=0;
   if(isum>=3){
-    for(i=0;i<SCLRS;i++)if(nbrch[i]==0)conf=i+1;
+    for(i=0;i<TOF1GC::SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;
   if(TOFRECFFKEY.reprtf[2]>0 || 
@@ -1136,9 +1136,9 @@ void AMSTOFRawCluster::build(int &ostatus){
 //                                                           (130cm for AMS01)
       HF1(1544,gdt,1.);
       if(TOFRECFFKEY.reprtf[2]>1){ 
-        for(il=0;il<SCLRS;il++){// fill de/dx hist. for each bar
+        for(il=0;il<TOF1GC::SCLRS;il++){// fill de/dx hist. for each bar
           ib=brnl[il];
-          brnum=il*SCMXBR+ib;//sequential bar numbering
+          brnum=il*TOF1GC::SCMXBR+ib;//sequential bar numbering
           elosn=edepa[il]/cosi;//normalized  to norm.inc.
           HF1(1140+brnum,elosn,1.);
         }
@@ -1166,26 +1166,26 @@ void AMSTOFRawCluster::recovers(number x){ // function to recover missing side
   int il,ib;
   int isg(1),isb(0);
 //
-  if(_status&SCBADB4){
+  if(_status&TOFGC::SCBADB4){
     isg=0;
     isb=1;
   }
   il=_ntof-1;
   ib=_plane-1;
-  scbrcal[il][ib].getgaina(gn);
-  scbrcal[il][ib].getgaind(gnd);
-  scbrcal[il][ib].getupar(upr);
-  scbrcal[il][ib].getd2p(vel,xerr);
-  scbrcal[il][ib].getslops(sl);
-  csl=scbrcal[il][ib].getslope();
-  dt0=scbrcal[il][ib].gettdif();
+  TOFBrcal::scbrcal[il][ib].getgaina(gn);
+  TOFBrcal::scbrcal[il][ib].getgaind(gnd);
+  TOFBrcal::scbrcal[il][ib].getupar(upr);
+  TOFBrcal::scbrcal[il][ib].getd2p(vel,xerr);
+  TOFBrcal::scbrcal[il][ib].getslops(sl);
+  csl=TOFBrcal::scbrcal[il][ib].getslope();
+  dt0=TOFBrcal::scbrcal[il][ib].gettdif();
   hclen=0.5*TOFDBc::brlen(il,ib);
 // ---> recover TovT-a for bad side :
   tot[isg]=_tovta[isg];
   if(tot[isg]>800.)tot[isg]=800.;// tempor.protection
   if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)
-           scbrcal[il][ib].q2t2qmc(1,isg,0,tot[isg],q[isg]);//TovTgood->Q
-  else     scbrcal[il][ib].q2t2q(1,isg,0,tot[isg],q[isg]);
+           TOFBrcal::scbrcal[il][ib].q2t2qmc(1,isg,0,tot[isg],q[isg]);//TovTgood->Q
+  else     TOFBrcal::scbrcal[il][ib].q2t2q(1,isg,0,tot[isg],q[isg]);
   q[isg]/=gn[isg];// Q->Qref
   sqr=upr[0]*(exp(-(hclen+x)/upr[3])+upr[2]*exp(-(hclen+x)/upr[4]))/
       upr[1]/(exp(-(hclen-x)/upr[3])+upr[2]*exp(-(hclen-x)/upr[4]));//Qr1/Qr2
@@ -1193,25 +1193,25 @@ void AMSTOFRawCluster::recovers(number x){ // function to recover missing side
   q[isb]=q[isg]*sqr;
   q[isb]*=gn[isb];//Qref->Q
   if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)
-            scbrcal[il][ib].q2t2qmc(0,isb,0,tot[isb],q[isb]);//Q->TovTbad
-  else      scbrcal[il][ib].q2t2q(0,isb,0,tot[isb],q[isb]);
+            TOFBrcal::scbrcal[il][ib].q2t2qmc(0,isb,0,tot[isb],q[isb]);//Q->TovTbad
+  else      TOFBrcal::scbrcal[il][ib].q2t2q(0,isb,0,tot[isb],q[isb]);
   _tovta[isb]=tot[isb]; // recovered TovT for bad side
 //
   if(fabs(x) > (hclen+5.)){// out of range by more than 5cm
-    pcorr=scbrcal[il][ib].poscor(0.);// no correction (==1)
+    pcorr=TOFBrcal::scbrcal[il][ib].poscor(0.);// no correction (==1)
   }
   else{
-    pcorr=scbrcal[il][ib].poscor(geant(x));
+    pcorr=TOFBrcal::scbrcal[il][ib].poscor(geant(x));
   }
   if(tot[isb]>800.)tot[isb]=800.;// tempor.protection
-  _edep=scbrcal[il][ib].ama2mip(tot)/pcorr; //recowered a-Eloss
+  _edep=TOFBrcal::scbrcal[il][ib].ama2mip(tot)/pcorr; //recowered a-Eloss
 // ---> recover time :
   tcor=2.*csl*(sl[0]/sqrt(q[0])-sl[1]/sqrt(q[1]));//slewing corrections.
   tm[isg]=_sdtm[isg];
   tm[isb]=tm[isg]-(1-2*isg)*(2.*dt0-2.*x/vel-tcor);
   _sdtm[isb]=tm[isb]; // recowered side time(raw)
-  _time=scbrcal[il][ib].tm2t(tm,tot); // recovered time(with corr)
-  scbrcal[il][ib].tmd2p(tm,tot,co,eco);// get A-corrected Local(!).coord/err
+  _time=TOFBrcal::scbrcal[il][ib].tm2t(tm,tot); // recovered time(with corr)
+  TOFBrcal::scbrcal[il][ib].tmd2p(tm,tot,co,eco);// get A-corrected Local(!).coord/err
   _timeD=co;// recovered loc. coordinate (chould be = x)
   _etimeD=3.5;// tempor err.on longit.coord(cm) for 1-sided,recovered counters
 //
@@ -1220,20 +1220,20 @@ void AMSTOFRawCluster::recovers(number x){ // function to recover missing side
   if(_edepd>0.){
     if(tot[isg]>600.)tot[isg]=600.;// tempor.protection
     if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)
-                 scbrcal[il][ib].q2t2qmc(1,isg,1,tot[isg],q[isg]);//TovTgood->Q
-    else         scbrcal[il][ib].q2t2q(1,isg,1,tot[isg],q[isg]);
+                 TOFBrcal::scbrcal[il][ib].q2t2qmc(1,isg,1,tot[isg],q[isg]);//TovTgood->Q
+    else         TOFBrcal::scbrcal[il][ib].q2t2q(1,isg,1,tot[isg],q[isg]);
     q[isg]/=gnd[isg];// Q->Qref
     q[isb]=q[isg]*sqr;
     q[isb]*=gnd[isb];//Qref->Q
     if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)
-                  scbrcal[il][ib].q2t2qmc(0,isb,1,tot[isb],q[isb]);//Q->TovTbad
-    else          scbrcal[il][ib].q2t2q(0,isb,1,tot[isb],q[isb]);
+                  TOFBrcal::scbrcal[il][ib].q2t2qmc(0,isb,1,tot[isb],q[isb]);//Q->TovTbad
+    else          TOFBrcal::scbrcal[il][ib].q2t2q(0,isb,1,tot[isb],q[isb]);
     _tovtd[isb]=tot[isb]; // recovered TovT for bad side
     if(tot[isb]>600.)tot[isb]=600.;// tempor.protection
-    _edepd=scbrcal[il][ib].amd2mip(tot)/pcorr; //recowered d-Eloss
+    _edepd=TOFBrcal::scbrcal[il][ib].amd2mip(tot)/pcorr; //recowered d-Eloss
   }
 //
-  _status|=SCBADB5;//add bit for recovered counters
+  _status|=TOFGC::SCBADB5;//add bit for recovered counters
 }
 //-----------------------------------------------------------------------
 void AMSTOFRawCluster::_writeEl(){
@@ -1269,87 +1269,43 @@ void AMSTOFRawCluster::_printEl(ostream & stream){
   stream <<"AMSTOFRawCluster "<<_ntof<<" "<<_edep<<" "<<_plane<<endl;
 }
 
-AMSTOFCluster * AMSTOFCluster::_Head[4]={0,0,0,0};
-
-
-void AMSTOFCluster::_writeEl(){
-  TOFClusterNtuple* TN = AMSJob::gethead()->getntuple()->Get_tof();
-
-  if (TN->Ntof>=MAXTOF) return;
-
-// Fill the ntuple
-  if(AMSTOFCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
-    TN->Status[TN->Ntof]=_status;
-    TN->Layer[TN->Ntof]=_ntof;
-    TN->Bar[TN->Ntof]=_plane;
-    TN->Nmemb[TN->Ntof]=_nmemb;
-    TN->Edep[TN->Ntof]=_edep;
-    TN->Edepd[TN->Ntof]=_edepd;
-    TN->Time[TN->Ntof]=_time;
-    TN->ErrTime[TN->Ntof]=_etime;
-    int i;
-    for(i=0;i<3;i++)TN->Coo[TN->Ntof][i]=_Coo[i];
-    for(i=0;i<3;i++)TN->ErrorCoo[TN->Ntof][i]=_ErrorCoo[i];
-    TN->Ntof++;
-  }
-}
-
-
-
-void AMSTOFCluster::_copyEl(){
-}
-
-
-void AMSTOFCluster::_printEl(ostream & stream){
-  stream <<"AMSTOFCluster "<<_status<<" "<<_ntof<<" "<<_plane<<" "<<_edep<<" "
-//  <<_Coo<<  " "<<_ErrorCoo<<" "<<_time<<" " <<_etime<<endl;
-  <<_edepd<<" "<<_Coo<<  " "<<_ErrorCoo<<" "<<_time<<" " <<_etime<<endl;
-}
-
-
- 
-void AMSTOFCluster::print(){
-for(int i=0;i<4;i++){
-AMSContainer *p =AMSEvent::gethead()->getC("AMSTOFCluster",i);
- if(p)p->printC(cout);
-}
-}
 
 //===========================================================================
 //
 void AMSTOFCluster::build(int &stat){
   AMSTOFRawCluster *ptr; 
   AMSTOFRawCluster *ptrr; 
-  static AMSTOFRawCluster * xptr[SCMXBR+2];
-  static number eplane[SCMXBR+2],edplane[SCMXBR+2];
-  static AMSTOFRawCluster * membp[3];
+  static AMSTOFRawCluster * xptr[TOF1GC::SCMXBR+2];
+  static number eplane[TOF1GC::SCMXBR+2],edplane[TOF1GC::SCMXBR+2];
+//  static AMSTOFRawCluster * membp[3];
+  static AMSlink * membp[3];
   geant dummy,edep,edepl,edepa,edepd,asatl,time,etime,speedl,err;
   integer ntof,barn,status,mstatus,plrot;
   geant barl,barw,bars,cofg,cofgl,yloc,eyloc,ylocm,c0,ct,cl,ed;
   geant errx,erry,erx1(2.);//tempor errors on cl.transv.coord.
   AMSPoint coo,ecoo;
   int i,j,il,ib,ilay,ibar,ill,ibb;
-  int nclust,cllay[SCLRS],nmemb,imb,nmembd;
+  int nclust,cllay[TOF1GC::SCLRS],nmemb,imb,nmembd;
 //-----
   stat=1; // bad
-  for(i=0;i<SCLRS;i++)cllay[i]=0;
+  for(i=0;i<TOF1GC::SCLRS;i++)cllay[i]=0;
 //
-  for(il=1;il<SCLRS+1;il++){// <-------- TOF layers loop -----
+  for(il=1;il<TOF1GC::SCLRS+1;il++){// <-------- TOF layers loop -----
     ptr=(AMSTOFRawCluster*)AMSEvent::gethead()->
                                      getheadC("AMSTOFRawCluster",0);
-    VZERO(eplane,(SCMXBR+2)*sizeof(number)/4);
-    VZERO(xptr,(SCMXBR+2)*sizeof(AMSTOFRawCluster*)/4);
+    VZERO(eplane,(TOF1GC::SCMXBR+2)*sizeof(number)/4);
+    VZERO(xptr,(TOF1GC::SCMXBR+2)*sizeof(AMSTOFRawCluster*)/4);
     while (ptr){// scan to put all bars of layer "il" in buffer
       if(ptr->getntof()==il){
         ib=ptr->getplane();
 #ifdef __AMSDEBUG__
-        assert(ib>0 && ib <= SCMXBR);
+        assert(ib>0 && ib <= TOF1GC::SCMXBR);
 #endif
         edepa=ptr->getedep();
         edepd=ptr->getedepd();
 //    select between anode and dinode measurements:
         edep=edepa;
-        asatl=scbrcal[il-1][ib-1].getasatl();
+        asatl=TOFBrcal::scbrcal[il-1][ib-1].getasatl();
     asatl=300.;// tempor !!! to avoid dynode (~150mips)
         if(edepd/2. > asatl)edep=edepd;
 //
@@ -1361,7 +1317,7 @@ void AMSTOFCluster::build(int &stat){
     }// ---> end of scan
 //------
   nclust=0;
-  for (i=1;i<=SCMXBR;i++){// <---- loop over buffer content (clust. search)
+  for (i=1;i<=TOF1GC::SCMXBR;i++){// <---- loop over buffer content (clust. search)
     if(   eplane[i]> TOFRECFFKEY.Thr1
        && eplane[i]> eplane[i-1] 
        && eplane[i]> eplane[i+1] ){ // <--- peak check (over 3-bars group)
@@ -1378,7 +1334,7 @@ void AMSTOFCluster::build(int &stat){
       bars=TOFDBc::plnstr(5)-TOFDBc::plnstr(4)
                             +2.*TOFDBc::plnstr(13);//sc.bar transv. step
       TOFMCFFKEY.padl=bars;//redef. datacard's sc.bar transv.step
-      scbrcal[ilay][ibar].getd2p(speedl,err);//get light speed
+      TOFBrcal::scbrcal[ilay][ibar].getd2p(speedl,err);//get light speed
       yloc=ptr->gettimeD();// get yloc/err for "peak" bar
       eyloc=ptr->getetimeD();
       ylocm=0.5*barl;// limit on max. long. coord.
@@ -1427,8 +1383,8 @@ void AMSTOFCluster::build(int &stat){
       }//---> end of the member loop
       time=ptr->gettime();// tempor time from peak(!) bar(ns) 
       etime=TOFMCFFKEY.TimeSigma/sqrt(2.);//(sec !!) tempor(121ps,later put in TOFBrcal needed data!)
-      if((status&SCBADB2)>0){
-        if(status & SCBADB5){ // recovered 1-sided counter
+      if((status&TOFGC::SCBADB2)>0){
+        if(status & TOFGC::SCBADB5){ // recovered 1-sided counter
           etime=2.05*TOFMCFFKEY.TimeSigma/sqrt(2.);//tempor(248ps,still no Tracker info)
         }
         else{
@@ -1485,9 +1441,9 @@ void AMSTOFCluster::build(int &stat){
         for(j=0;j<nmemb;j++)membp[j]->setstatus(AMSDBc::USED);// set "used" bit for members
 //        edep=ptr->getedep();// finaly: Edep is taken from "peak" bar
 //        edepd=ptr->getedepd();
-        if((status & SCBADB3)!=0)status|=AMSDBc::BAD; 
+        if((status & TOFGC::SCBADB3)!=0)status|=AMSDBc::BAD; 
 //          bad=(peak bar has severe problem with t-measurement)
-        if((status & SCBADB2)!=0 && (status & SCBADB5)==0)status|=AMSDBc::BAD;
+        if((status & TOFGC::SCBADB2)!=0 && (status & TOFGC::SCBADB5)==0)status|=AMSDBc::BAD;
 //          bad=(peak bar is 1-sided and not recovered -> bad for t-measur)
 //
         AMSEvent::gethead()->addnext(AMSID("AMSTOFCluster",ilay), new
@@ -1522,9 +1478,9 @@ void AMSTOFCluster::recovers(AMSTrTrack * ptr){ // recreate TOFCluster
 //
 //  for(nm=0;nm<_nmemb;nm++){// loop over raw-cluster members
     nm=0;
-    status=_mptr[nm]->getstatus();
-    mil=_mptr[nm]->getntof()-1;
-    mib=_mptr[nm]->getplane()-1;
+    status=dynamic_cast<AMSTOFRawCluster*>(_mptr[nm])->getstatus();
+    mil=dynamic_cast<AMSTOFRawCluster*>(_mptr[nm])->getntof()-1;
+    mib=dynamic_cast<AMSTOFRawCluster*>(_mptr[nm])->getplane()-1;
     if(nm==0){// first member is "peak", use it to find crossing point
       coo[0]=0.;
       coo[1]=0.;
@@ -1540,8 +1496,8 @@ void AMSTOFCluster::recovers(AMSTrTrack * ptr){ // recreate TOFCluster
         ctr=outp[1];// transv. coord.(abs. r.s.)(Y-cross) 
       }
     }
-      _mptr[nm]->recovers(clo);//missing side recovering
-      newt=_mptr[nm]->gettime();//new time of raw cluster (ns)
+      dynamic_cast<AMSTOFRawCluster*>(_mptr[nm])->recovers(clo);//missing side recovering
+      newt=dynamic_cast<AMSTOFRawCluster*>(_mptr[nm])->gettime();//new time of raw cluster (ns)
       _time=-newt*1.e-9;//new time of cluster(-sec for Vitali)
       _etime=1.323*TOFMCFFKEY.TimeSigma/sqrt(2.);//tempor (sec)(160ps, trecker recovered)
 //  }
@@ -1564,21 +1520,6 @@ if(init == 0){
 return (WriteAll || status);
 }
 
-integer AMSTOFCluster::Out(integer status){
-static integer init=0;
-static integer WriteAll=1;
-if(init == 0){
- init=1;
- integer ntrig=AMSJob::gethead()->gettriggerN();
- for(int n=0;n<ntrig;n++){
-   if(strcmp("AMSTOFCluster",AMSJob::gethead()->gettriggerC(n))==0){
-     WriteAll=1;
-     break;
-   }
- }
-}
-return (WriteAll || status);
-}
 //=======================================================================
 //  DAQ-interface functions :
 //
@@ -1589,8 +1530,8 @@ integer AMSTOFRawEvent::calcdaqlength(int16u blid){
   integer len(0),ncnt,nh,nzc;
   int16u idd,id,ilay,ibar,isid;
   int16u crate,rcrat,sfet,tofc,tdcc,hwid,fmt;
-  integer nhits[SCSFET]={0,0,0,0};
-  integer nztdcc[SCSFET]={0,0,0,0};
+  integer nhits[TOF1GC::SCSFET]={0,0,0,0};
+  integer nztdcc[TOF1GC::SCSFET]={0,0,0,0};
   integer ntoth,nonemp;
   ptr=(AMSTOFRawEvent*)AMSEvent::gethead()
                         ->getheadC("AMSTOFRawEvent",0);
@@ -1620,7 +1561,7 @@ integer AMSTOFRawEvent::calcdaqlength(int16u blid){
   }
 //
   if(fmt==1){ // =====> Reduced format :
-    for(sfet=0;sfet<SCSFET;sfet++){
+    for(sfet=0;sfet<TOF1GC::SCSFET;sfet++){
       nh=nhits[sfet];
       nzc=nztdcc[sfet];
       if(DAQSBlock::isSFETT2(rcrat,sfet)>0 && nonemp>0){//SFET contains also temperatures
@@ -1631,11 +1572,11 @@ integer AMSTOFRawEvent::calcdaqlength(int16u blid){
       if(nzc%4 > 0)ncnt+=1;
       len=len+ncnt+nh;// nmb.of_hits + nmb.of_counter_words
     }
-    len=len+SCSFET;// add SCSFET words for hitmasks.
+    len=len+TOF1GC::SCSFET;// add TOF1GC::SCSFET words for hitmasks.
   }
 //
   else{ // =====> Raw format :
-    for(sfet=0;sfet<SCSFET;sfet++){
+    for(sfet=0;sfet<TOF1GC::SCSFET;sfet++){
       nh=nhits[sfet];
       if(DAQSBlock::isSFETT2(rcrat,sfet)>0){//this SFET contains also temper.
         nh+=4;
@@ -1657,17 +1598,17 @@ void AMSTOFRawEvent::builddaq(int16u blid, integer &len, int16u *p){
   int16u ilay,ibar,isid,idd,id;
   int16u phbit,maxv,ntdc,tdc[16];
   geant charge,edep;
-  integer trflag,trpatt[SCLRS];
+  integer trflag,trpatt[TOF1GC::SCLRS];
   int16u mtyp,hwid,hwch,swid,swch,htmsk,mskb,fmt,shft,hitc;
   int16u slad,tdcw,adrw,adr,chip,chipc,chc;
   int16u phbtp;  
   int16u crate,rcrat,sfet,tofc,tdcc,tdccm;
   AMSTOFRawEvent *ptr;
-  AMSTOFRawEvent *ptlist[SCSFET][SCTOFC];
+  AMSTOFRawEvent *ptlist[TOF1GC::SCSFET][TOF1GC::SCTOFC];
 //
-  phbit=SCPHBP;//uniq phase-bit position used in Reduced_format and TOFRawEvent
+  phbit=TOF1GC::SCPHBP;//uniq phase-bit position used in Reduced_format and TOFRawEvent
   maxv=phbit-1;// max TDC value
-  phbtp=int16u(SCPHBPA);//uniq phase-bit position used in Raw_format in address word
+  phbtp=int16u(TOF1GC::SCPHBPA);//uniq phase-bit position used in Raw_format in address word
 //
   rcrat=(blid>>6)&7;// requested crate #
   fmt=1-(blid&63);// 0-raw, 1-reduced
@@ -1680,8 +1621,8 @@ void AMSTOFRawEvent::builddaq(int16u blid, integer &len, int16u *p){
 //
   ptr=(AMSTOFRawEvent*)AMSEvent::gethead()
                         ->getheadC("AMSTOFRawEvent",0);
-  for(sfet=0;sfet<SCSFET;sfet++)
-              for(tofc=0;tofc<SCTOFC;tofc++)
+  for(sfet=0;sfet<TOF1GC::SCSFET;sfet++)
+              for(tofc=0;tofc<TOF1GC::SCTOFC;tofc++)
                            ptlist[sfet][tofc]=0;// clear pointer array
   nztof=0;//#of nonzero tof-tdcc per crate
   while(ptr){
@@ -1711,13 +1652,13 @@ void AMSTOFRawEvent::builddaq(int16u blid, integer &len, int16u *p){
 //
 // ---> encoding of tdc-data :
 //
-  for(sfet=0;sfet<SCSFET;sfet++){ // <--- SFETs loop (4)
+  for(sfet=0;sfet<TOF1GC::SCSFET;sfet++){ // <--- SFETs loop (4)
     htmsk=0;
     ichm=ic;// bias for nonzero_tdc_channels mask
     ic+=1;
     nzch=0;// #of nonzero tdcc per sfet
     shft=0;
-    for(tdcc=0;tdcc<SCTDCC;tdcc++){// <--- TDC-channels loop (16)
+    for(tdcc=0;tdcc<TOF1GC::SCTDCC;tdcc++){// <--- TDC-channels loop (16)
       mskb=1<<tdcc;
       tofc=tdcc/4;//TOFch=4TDCch (4 measurements for one side)
       mtyp=DAQSBlock::mtyptof(tofc,(tdcc-4*tofc));// measur.type (1->ftdc,2->stdc,3->adca,4->adcd)
@@ -1727,9 +1668,9 @@ void AMSTOFRawEvent::builddaq(int16u blid, integer &len, int16u *p){
         mtyp=5;// means temperature measurements
         ntdc=2;// 2 edges
         tdc[0]=273;// down-edge (273 degree)
-        if(!TOFDBc::pbonup())tdc[0]=tdc[0]|int16u(SCPHBP);// add phase bit
+        if(!TOFDBc::pbonup())tdc[0]=tdc[0]|int16u(TOF1GC::SCPHBP);// add phase bit
         tdc[1]=293;// up-edge (293 degree)
-        if(TOFDBc::pbonup())tdc[1]=tdc[1]|int16u(SCPHBP); // add phase bit
+        if(TOFDBc::pbonup())tdc[1]=tdc[1]|int16u(TOF1GC::SCPHBP); // add phase bit
         if((tdcc-4*tofc)>1)ntdc=0;//only 2 first tdcc of tofc are occupied by temp.info
       }
       ptr=ptlist[sfet][tofc];// =0 for temper. (sw2hwid-function should provide that)
@@ -1767,8 +1708,8 @@ void AMSTOFRawEvent::builddaq(int16u blid, integer &len, int16u *p){
 //
 // ---> encoding of tdc-data :
 //
-  for(sfet=0;sfet<SCSFET;sfet++){ // <--- SFETs loop (4)
-    for(tdcc=0;tdcc<SCTDCC;tdcc++){// <--- TDC-channels loop (16)
+  for(sfet=0;sfet<TOF1GC::SCSFET;sfet++){ // <--- SFETs loop (4)
+    for(tdcc=0;tdcc<TOF1GC::SCTDCC;tdcc++){// <--- TDC-channels loop (16)
       chip=tdcc/8;//0-1
       chipc=tdcc%8;//chann.inside chip (0-7)
       chc=((chipc&1)<<2);//convert chipc to reverse bit pattern
@@ -1784,9 +1725,9 @@ void AMSTOFRawEvent::builddaq(int16u blid, integer &len, int16u *p){
         mtyp=5;// means temperature measurements
         ntdc=2;// 2 edges
         tdc[0]=273;// down-edge (273 degree)
-        if(!TOFDBc::pbonup())tdc[0]=(tdc[0]|int16u(SCPHBP));// add phase bit
+        if(!TOFDBc::pbonup())tdc[0]=(tdc[0]|int16u(TOF1GC::SCPHBP));// add phase bit
         tdc[1]=293;// up-edge (293 degree)
-        if(TOFDBc::pbonup())tdc[1]=(tdc[1]|int16u(SCPHBP));// add phase bit
+        if(TOFDBc::pbonup())tdc[1]=(tdc[1]|int16u(TOF1GC::SCPHBP));// add phase bit
         if((tdcc-4*tofc)>1)ntdc=0;//only 2 first tdcc of tofc are occupied by temp.info
       }
       ptr=ptlist[sfet][tofc];
@@ -1838,11 +1779,11 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
   int16u tdca,phbt,tofc;
   int16u phbit,maxv,phbtp; 
   int16u ids,stat,nftdc,nstdc,nadca,nadcd,ntemp,chan;
-  int16u ftdc[SCTHMX2*2],stdc[SCTHMX3*4],adca[SCTHMX4*2],adcd[SCTHMX4*2],ttdc[16];
+  int16u ftdc[TOF1GC::SCTHMX2*2],stdc[TOF1GC::SCTHMX3*4],adca[TOF1GC::SCTHMX4*2],adcd[TOF1GC::SCTHMX4*2],ttdc[16];
 //
-  phbit=SCPHBP;//take uniq phase-bit position used in Reduced-format and TOFRawEvent
+  phbit=TOF1GC::SCPHBP;//take uniq phase-bit position used in Reduced-format and TOFRawEvent
   maxv=phbit-1;// max TDC value
-  phbtp=SCPHBPA;//take uniq phase-bit position used in Raw-format for address-word
+  phbtp=TOF1GC::SCPHBPA;//take uniq phase-bit position used in Raw-format for address-word
   lentot=*(p-1);// total length of the block(incl. block_id)
   bias=len;
 //
@@ -1859,11 +1800,11 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
   if(dtyp==1){ // =====> reduced TDC data decoding : 
 //
     ic=bias;//jamp to first data word (bias=1 because TOF is first det. in block)
-    for(sfet=0;sfet<SCSFET;sfet++){ // <-- SFET's loop (4)
+    for(sfet=0;sfet<TOF1GC::SCSFET;sfet++){ // <-- SFET's loop (4)
       hmsk=*(p+ic++);
       nzch=0;
       if(hmsk>0){
-        for(tdcc=0;tdcc<SCTDCC;tdcc++){ // <-- TDC-chan. loop (16)
+        for(tdcc=0;tdcc<TOF1GC::SCTDCC;tdcc++){ // <-- TDC-chan. loop (16)
           tofc=tdcc/4;
           swid=AMSTOFRawEvent::hw2swid(crate, sfet, tofc);// LBBS
           mtyp=DAQSBlock::mtyptof(tofc,(tdcc-4*tofc));// measur.type (1->ftdc,2->stdc,3->adca,4->adcd)
@@ -1941,7 +1882,7 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
             slnu=DAQSBlock::isSFETT2(crate,sfet);//seq.numbering of "temperature"-slots in 
 //                                               crate (1,2,...; for now =1-> one temp-slot)
             if(slnu>0){
-              chan=DAQSTSC*DAQSTCS*crate+DAQSTCS*(slnu-1)+(tdcc%4);
+              chan=TOF1GC::DAQSTSC*TOF1GC::DAQSTCS*crate+TOF1GC::DAQSTCS*(slnu-1)+(tdcc%4);
               DAQSBlock::puttemp(chan,val);// store temperature
             } 
           }// ---> end of Temperature channel processing
@@ -1959,9 +1900,9 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
   else if(dtyp==0){ // =====> raw TDC data decoding :
 //
     integer lent(0);
-    integer hwmx=SCSFET*SCTDCC;// max. h/w channels
-    int16u hits[SCSFET*SCTDCC][16];// array to store hit-values(upto 16) for each h/w channel
-    integer nhits[SCSFET*SCTDCC];// number of hits in given h/w channel
+    integer hwmx=TOF1GC::SCSFET*TOF1GC::SCTDCC;// max. h/w channels
+    int16u hits[TOF1GC::SCSFET*TOF1GC::SCTDCC][16];// array to store hit-values(upto 16) for each h/w channel
+    integer nhits[TOF1GC::SCSFET*TOF1GC::SCTDCC];// number of hits in given h/w channel
     int16u tdcw,adrw,hwch,hitv;
 //
     for(i=0;i<hwmx;i++){// clear buffer
@@ -1980,7 +1921,7 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
       adrw=*(p+ic++);// phbit + chipc + slotaddr.
       slad=adrw&15;// get sfet h/w address ((0,1,2,3)-TOF, (5)-C, (4)-A)
       sfet=DAQSBlock::slnumb(slad);// sequential slot number (0-5, or =DAQSSLT=6 if slad invalid)) 
-      if(sfet==DAQSSLT)continue; //---> invalid slad: try to take next pair
+      if(sfet==TOF1GC::DAQSSLT)continue; //---> invalid slad: try to take next pair
       if(DAQSBlock::isSFET(slad)){// <--- SFET data: store in buffer
         lent+=2;
         chipc=(adrw>>12)&7;// channel inside TDC-chip (0-7),reverse bit pattern!
@@ -1993,7 +1934,7 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
                             phbt=0;
         tdcc=8*(1-chip)+chc; // channel inside SFET(0-15) ((1-chip) is due to Contin's error) 
         hitv=(tdcw & maxv)|(phbt*phbit);// tdc-value with phase bit set as for RawEvent
-        hwch=SCTDCC*sfet+tdcc;//sequential tdc-ch numbering through all SFETs
+        hwch=TOF1GC::SCTDCC*sfet+tdcc;//sequential tdc-ch numbering through all SFETs
         if(nhits[hwch]<16){
           warnfl=0;
           hits[hwch][nhits[hwch]]=hitv;
@@ -2018,10 +1959,10 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 //-----------------------------
 // Now extract TOF+Temperature data from buffer:
 //
-    for(sfet=0;sfet<SCSFET;sfet++){ // <--- SFETs loop (4)
-      for(tdcc=0;tdcc<SCTDCC;tdcc++){// <--- TDC-channels loop (16)
+    for(sfet=0;sfet<TOF1GC::SCSFET;sfet++){ // <--- SFETs loop (4)
+      for(tdcc=0;tdcc<TOF1GC::SCTDCC;tdcc++){// <--- TDC-channels loop (16)
         tofc=tdcc/4;
-        hwch=SCTDCC*sfet+tdcc;//sequential tdc-ch numbering through all SFETs
+        hwch=TOF1GC::SCTDCC*sfet+tdcc;//sequential tdc-ch numbering through all SFETs
         swid=AMSTOFRawEvent::hw2swid(crate, sfet, tofc);// LBBS
         mtyp=DAQSBlock::mtyptof(tofc,(tdcc-4*tofc));//(1->ftdc,2->stdc,3->adca,4->adcd)
         if((tofc+1)==DAQSBlock::gettempch(crate,sfet)){//these TDC-channels contain temperatures
@@ -2096,7 +2037,7 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
           slnu=DAQSBlock::isSFETT2(crate,sfet);//seq.numbering of "temperature"-slots in
 //                                               crate (1,2,...; for now =1-> one temp-slot)
           if(slnu>0){
-            chan=DAQSTSC*DAQSTCS*crate+DAQSTCS*(slnu-1)+(tdcc%4);
+            chan=TOF1GC::DAQSTSC*TOF1GC::DAQSTCS*crate+TOF1GC::DAQSTCS*(slnu-1)+(tdcc%4);
             DAQSBlock::puttemp(chan,val);// store temperature
           } 
         }// ---> end of Temperature channel processing
@@ -2138,7 +2079,7 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 int16u AMSTOFRawEvent::hw2swid(int16u a1, int16u a2, int16u a3){
   int16u swid,hwch;
 //
-  static int16u sidlst[SCCRAT*SCSFET*SCTOFC]={// 14 LBBS's + 2 empty  per CRATE :
+  static int16u sidlst[TOF1GC::SCCRAT*TOF1GC::SCSFET*TOF1GC::SCTOFC]={// 14 LBBS's + 2 empty  per CRATE :
 // mycrate-1(node-0,cr.01), (4 SFETs)x(4 TOFCs) :
   2112,2122,2132,2142, 1081,1091,1101,1111, 2082,2092,2102,   0, 1121,1141,4121,4141,
 //
@@ -2165,11 +2106,11 @@ int16u AMSTOFRawEvent::hw2swid(int16u a1, int16u a2, int16u a3){
   };
 //
 #ifdef __AMSDEBUG__
-  assert(a1>=0 && a1<SCCRAT);//crate(node)(0-7)
-  assert(a2>=0 && a2<SCSFET);//sfet(0-3)
-  assert(a3>=0 && a3<SCTOFC);//tofch(0-3)
+  assert(a1>=0 && a1<TOF1GC::SCCRAT);//crate(node)(0-7)
+  assert(a2>=0 && a2<TOF1GC::SCSFET);//sfet(0-3)
+  assert(a3>=0 && a3<TOF1GC::SCTOFC);//tofch(0-3)
 #endif
-  hwch=int16u(SCTOFC*SCSFET*a1+SCTOFC*a2+a3);// hardware-channel
+  hwch=int16u(TOF1GC::SCTOFC*TOF1GC::SCSFET*a1+TOF1GC::SCTOFC*a2+a3);// hardware-channel
   swid=sidlst[hwch]; // software-id LBBS
 //  cout<<"hwch->swid: "<<hwch<<" "<<swid<<endl;
   return swid;
@@ -2182,27 +2123,27 @@ int16u AMSTOFRawEvent::sw2hwid(int16u a1, int16u a2, int16u a3){
   static int16u first(0);
   integer i;
   int16u ilay,ibar,isid,swch,swid,hwid,crate,sfet,tofc;
-  static int16u hidlst[SCLRS*SCMXBR*2]; // hardw.id list
+  static int16u hidlst[TOF1GC::SCLRS*TOF1GC::SCMXBR*2]; // hardw.id list
 //
 #ifdef __AMSDEBUG__
-  assert(a1>=0 && a1<SCLRS);// layer(0-3)
-  assert(a2>=0 && a2<SCMXBR);// bar(0-13)
+  assert(a1>=0 && a1<TOF1GC::SCLRS);// layer(0-3)
+  assert(a2>=0 && a2<TOF1GC::SCMXBR);// bar(0-13)
   assert(a3>=0 && a3<2); // side(0-1)
 #endif
 //
   if(first==0){ // create hardw.id list:
     first=1;
-    for(i=0;i<SCLRS*SCMXBR*2;i++)hidlst[i]=0;
-    for(crate=0;crate<SCCRAT;crate++){
-      for(sfet=0;sfet<SCSFET;sfet++){
-        for(tofc=0;tofc<SCTOFC;tofc++){
+    for(i=0;i<TOF1GC::SCLRS*TOF1GC::SCMXBR*2;i++)hidlst[i]=0;
+    for(crate=0;crate<TOF1GC::SCCRAT;crate++){
+      for(sfet=0;sfet<TOF1GC::SCSFET;sfet++){
+        for(tofc=0;tofc<TOF1GC::SCTOFC;tofc++){
           hwid=100*(crate+1)+10*(sfet+1)+tofc+1;// CrateSfetTofch (CST)
           swid=AMSTOFRawEvent::hw2swid(crate,sfet,tofc);// LBBS
           if(swid>0 && swid<=4142){// legal swid 
             ilay=swid/1000-1;
             ibar=(swid/10)%100-1;
             isid=swid%10-1;
-            swch=2*SCMXBR*ilay+2*ibar+isid;
+            swch=2*TOF1GC::SCMXBR*ilay+2*ibar+isid;
             hidlst[swch]=hwid;
           }
         }// end of tofch-loop
@@ -2210,7 +2151,7 @@ int16u AMSTOFRawEvent::sw2hwid(int16u a1, int16u a2, int16u a3){
     }// end of crate-loop
   }// end of first
 // 
-  swch=2*SCMXBR*a1+2*a2+a3;
+  swch=2*TOF1GC::SCMXBR*a1+2*a2+a3;
   hwid=hidlst[swch];// hardware-id CST
 //  cout<<"swch->hwid: "<<swch<<" "<<hwid<<endl;
   return hwid;
@@ -2218,6 +2159,3 @@ int16u AMSTOFRawEvent::sw2hwid(int16u a1, int16u a2, int16u a3){
 
 
 
-AMSID AMSTOFCluster::crgid(int kk){
-return AMSID("TOFS",_ntof*100+_plane);
-}

@@ -8,7 +8,8 @@
 #include <iostream.h>
 #include <fstream.h>
 //
-ECcalib ecpmcal[ECSLMX][ECPMSMX];// ECAL individual PMcell calib. parameters 
+ECcalib ecpmcal[ECSLMX][ECPMSMX];// ECAL individual PMcell calib. parameters
+extern ECALVarp ecalvpar;// ECAL general run-time param.  
 //-----------------------------------------------------------------------
 //  =====> ECALDBc class variables definition :
 //
@@ -553,12 +554,13 @@ void EcalJobStat::printstat(){
   printf("\n");
   printf("    ====================== ECAL JOB-statistics ======================\n");
   printf("\n");
-  printf(" MC: entries               : % 6d\n",mccount[0]);
-  printf(" MC: MCHits->RawEvent OK   : % 6d\n",mccount[1]);
-  printf(" RECO-entries              : % 6d\n",recount[0]);
-  printf(" Validation OK             : % 6d\n",recount[1]);
-  printf(" RawEvent->EcalHit OK      : % 6d\n",recount[2]);
-  printf(" EcalHit->EcalCluster OK   : % 6d\n",recount[3]);
+  printf(" MC: entries                     : % 6d\n",mccount[0]);
+  printf(" MC: MCHits->RawEvent(ECTrig) OK : % 6d\n",mccount[1]);
+  printf(" RECO-entries(LVL1+LVL3 ok)      : % 6d\n",recount[0]);
+//  printf(" H/W trigger OK                  : % 6d\n",recount[1]);
+  printf(" Validation OK                   : % 6d\n",recount[2]);
+  printf(" RawEvent->EcalHit OK            : % 6d\n",recount[3]);
+  printf(" EcalHit->EcalCluster OK         : % 6d\n",recount[4]);
   printf("\n\n");
 //
 }
@@ -573,14 +575,14 @@ void EcalJobStat::bookhist(){
   maxcl=2*ECPMSMX;//MAX SubCells per plane
   strcpy(inum,"0123456789");
     if(ECREFFKEY.reprtf[0]!=0){ // Book reco-hist
-      HBOOK1(ECHIST+10,"RawEvent-hits number",80,0.,400.,0.);
-      HBOOK1(ECHIST+11,"RawEvent-hits value(tot,adc)",200,0.,100000.,0.);
-      HBOOK1(ECHIST+12,"RawEvent-hits value(tot,adc)",100,0.,500.,0.);
+      HBOOK1(ECHIST+10,"ECAL: RawEvent-hits number",80,0.,400.,0.);
+      HBOOK1(ECHIST+11,"ECAL: RawEvent-hits value(tot,adc)",200,0.,100000.,0.);
+      HBOOK1(ECHIST+12,"ECAL: RawEvent-hits value(tot,adc)",100,0.,500.,0.);
       HBOOK1(ECHIST+13,"EcalHit-hits number",80,0.,160.,0.);
       HBOOK1(ECHIST+14,"EcalHit-hits value(tot,Mev)",200,0.,1000000,0.);
-      HBOOK1(ECHIST+15,"EcalHit-hits value(tot,Mev)",100,0.,50000,0.);
-      HBOOK1(ECHIST+16,"RawEvent-hits value(adc)",200,0.,10000.,0.);
-      HBOOK1(ECHIST+17,"RawEvent-hits value(adc)",100,0.,100.,0.);
+      HBOOK1(ECHIST+15,"EcalHit-hits value(tot,Mev)",100,0.,1000,0.);
+      HBOOK1(ECHIST+16,"ECAL: RawEvent-hits value(adc)",200,0.,10000.,0.);
+      HBOOK1(ECHIST+17,"ECAL: RawEvent-hits value(adc)",100,0.,100.,0.);
       HBOOK1(ECHIST+18,"EcalClusters per event",60,0.,120.,0.);
       if(ECREFFKEY.reprtf[1]==1){//<--- to store t-profiles, z-prof
         HBOOK1(ECHIST+19,"T-prof in plane 8(X)",maxcl,1.,geant(maxcl+1),0.);
@@ -650,9 +652,18 @@ geant adc2mevf;
     for(ipm=0;ipm<ECALDBc::slstruc(4);ipm++){
       sid=(ipm+1)+100*(isl+1);
       sta=0;
-      adc2mevf=1./ECALDBc::mev2adc();
+      adc2mevf=1./ECALDBc::mev2adc();//tempor. Later from calibration procedure
       ecpmcal[isl][ipm]=ECcalib(sid,sta,chgain,scgain,adc2mevf);
     }
   }
 }  
 //
+//==========================================================================
+//  ECALVarp class functions :
+//
+void ECALVarp::init(geant daqth[5], geant cuts[5]){
+
+    int i;
+    for(i=0;i<5;i++)_daqthr[i]=daqth[i];
+    for(i=0;i<5;i++)_cuts[i]=cuts[i];
+}

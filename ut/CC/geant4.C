@@ -659,7 +659,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
       char media[21]="dummy_media         ";
       geant de,dee,dtr2,div,tof;
       static geant xpr(0.),ypr(0.),zpr(0.),tpr(0.);
-      geant trcut2(0.1);// Max. transv.shift (0.316cm)**2
+      geant trcut2(0.25);// Max. transv.shift (0.5cm)**2
       geant vect[3],dx,dy,dz,dt;
       int i,nd,numv,iprt,numl,numvp;
       static int numvo(-999),iprto(-999);

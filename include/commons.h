@@ -1,5 +1,5 @@
 // Author V. Choutko 24-may-1996
-// modifications for TOF,ANTI by E.Choumilov 
+// 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
 #define __AMSCOMMONS__
 #include <cern.h>
@@ -132,7 +132,7 @@ integer MaxFileSize;
 };
 #define IOPA COMMON_BLOCK(IOPA,iopa)
 COMMON_BLOCK_DEF(IOPA_DEF,IOPA);
-//---
+//==============================================================
 class TOFMCFFKEY_DEF {
 public:
 geant TimeSigma;
@@ -152,7 +152,27 @@ geant hfnoise;     // high freq. noise
 };
 #define TOFMCFFKEY COMMON_BLOCK(TOFMCFFKEY,tofmcffkey)
 COMMON_BLOCK_DEF(TOFMCFFKEY_DEF,TOFMCFFKEY);
-//----------------------
+//--------------------
+class TFMCFFKEY_DEF {
+public:
+geant TimeSigma;
+geant TimeSigma2;
+geant TimeProbability2;
+geant padl;
+geant Thr;
+//
+integer mcprtf[5];     // TOF MC-print flag (=0 -> no_printing)
+integer trlogic[2]; // to control trigger logic
+integer fast;    // 1/0 fast/slow algo;
+integer daqfmt;  // 0/1 raw/reduced TDC format for DAQ
+integer birks;     // 0/1  not apply/apply birks corrections
+integer adsimpl;   // 0/1->precise/simplified sim. of A/D-TovT
+geant blshift;     // base line shift
+geant hfnoise;     // high freq. noise
+};
+#define TFMCFFKEY COMMON_BLOCK(TFMCFFKEY,tfmcffkey)
+COMMON_BLOCK_DEF(TFMCFFKEY_DEF,TFMCFFKEY);
+//==============================================================
 
 class TRDMCFFKEY_DEF{
 public:
@@ -166,7 +186,7 @@ float beta;    //  garibyan par
 COMMON_BLOCK_DEF(TRDMCFFKEY_DEF,TRDMCFFKEY);
 
 
-
+//==================================================================
 class ECMCFFKEY_DEF {
 public:
 integer fastsim;  //1/0-> fast/slow simulation
@@ -180,12 +200,12 @@ class ECREFFKEY_DEF {
 public:
 integer reprtf[3];   //reco print-flags
 integer relogic[5];  //reco logic-flags
-geant hitthr1;       // thresh. in cluster search
-geant hitthr2;       // thresh. in cluster search
+geant thresh[5];       //Time dependent DAQ-thresholds (trig.thresh.,...)
+geant cuts[5];       // ........ RECO cuts (clust.thr.,...)
 };
 #define ECREFFKEY COMMON_BLOCK(ECREFFKEY,ecreffkey)
 COMMON_BLOCK_DEF(ECREFFKEY_DEF,ECREFFKEY);
-//-----------------------
+//===================================================================
 class TKGEOMFFKEY_DEF{
 public:
   integer ReadGeomFromFile;
@@ -194,6 +214,7 @@ public:
 };
 #define TKGEOMFFKEY COMMON_BLOCK(TKGEOMFFKEY,tkgeomffkey)
 COMMON_BLOCK_DEF(TKGEOMFFKEY_DEF,TKGEOMFFKEY);
+//===================================================================
 class ANTIGEOMFFKEY_DEF {
 public:
   integer nscpad;  // number of scintillator paddles 
@@ -209,6 +230,23 @@ public:
 };
 #define ANTIGEOMFFKEY COMMON_BLOCK(ANTIGEOMFFKEY,antigeomffkey)
 COMMON_BLOCK_DEF(ANTIGEOMFFKEY_DEF,ANTIGEOMFFKEY);
+//--------------------
+class ATGEFFKEY_DEF {
+public:
+  integer nscpad;  // number of scintillator paddles 
+  geant scradi;    // internal radious of ANTI sc. cylinder (cm)
+  geant scinth;    // thickness of scintillator (cm)
+  geant scleng;    // scintillator paddle length (glob. Z-dim)
+  geant wrapth;    // wrapper thickness (cm)
+  geant groovr;    // groove radious (bump_rad = groove_rad - pdlgap)
+  geant pdlgap;    // inter paddle gap (cm)
+  geant stradi;    // support tube intern.radious
+  geant stleng;    // support tube length
+  geant stthic;    // support tube thickness
+};
+#define ATGEFFKEY COMMON_BLOCK(ATGEFFKEY,atgeffkey)
+COMMON_BLOCK_DEF(ATGEFFKEY_DEF,ATGEFFKEY);
+//===================================================================
 class ANTIMCFFKEY_DEF {
 public:
 integer mcprtf;// hist. print flag
@@ -220,8 +258,19 @@ geant LSpeed;
 };
 #define ANTIMCFFKEY COMMON_BLOCK(ANTIMCFFKEY,antimcffkey)
 COMMON_BLOCK_DEF(ANTIMCFFKEY_DEF,ANTIMCFFKEY);
-//==============================================================
-
+//----------------------
+class ATMCFFKEY_DEF {
+public:
+integer mcprtf;// hist. print flag
+geant SigmaPed;
+geant MeV2PhEl;
+geant LZero;
+geant PMulZPos;
+geant LSpeed;
+};
+#define ATMCFFKEY COMMON_BLOCK(ATMCFFKEY,atmcffkey)
+COMMON_BLOCK_DEF(ATMCFFKEY_DEF,ATMCFFKEY);
+//===================================================================
 class ANTIRECFFKEY_DEF {
 public:
   integer reprtf[3];//  print flag
@@ -242,14 +291,41 @@ public:
 };
 #define ANTIRECFFKEY COMMON_BLOCK(ANTIRECFFKEY,antirecffkey)
 COMMON_BLOCK_DEF(ANTIRECFFKEY_DEF,ANTIRECFFKEY);
+//----------------------
+class ATREFFKEY_DEF {
+public:
+  integer reprtf[3];//  print flag
+  geant ThrS; // threshold (p.e) to create Cluster-object
+  geant PhEl2MeV;
+  geant dtthr; // trig.discr.theshold (same for all sides now) (p.e.'s for now)
+  geant dathr; // Amplitude(charge) discr.threshold(...) (p.e.)
+  geant ftwin; // time_window in true TDCA-hits search (ns) 
 //
+  integer ReadConstFiles;
+//
+  integer sec[2];
+  integer min[2];
+  integer hour[2];
+  integer day[2];
+  integer mon[2];
+  integer year[2];
+};
+#define ATREFFKEY COMMON_BLOCK(ATREFFKEY,atreffkey)
+COMMON_BLOCK_DEF(ATREFFKEY_DEF,ATREFFKEY);
+//================================================================
 class ANTICAFFKEY_DEF {
   public:
   integer cfvers; // vers.number NN for antiverlistNN.dat file
 };
 #define ANTICAFFKEY COMMON_BLOCK(ANTICAFFKEY,anticaffkey)
 COMMON_BLOCK_DEF(ANTICAFFKEY_DEF,ANTICAFFKEY);
-
+//----------------------
+class ATCAFFKEY_DEF {
+  public:
+  integer cfvers; // vers.number NN for antiverlistNN.dat file
+};
+#define ATCAFFKEY COMMON_BLOCK(ATCAFFKEY,atcaffkey)
+COMMON_BLOCK_DEF(ATCAFFKEY_DEF,ATCAFFKEY);
 //================================================================
 class TOFRECFFKEY_DEF {
 public:
@@ -272,6 +348,28 @@ geant ThrS;  // limit on sum
 };
 #define TOFRECFFKEY COMMON_BLOCK(TOFRECFFKEY,tofrecffkey)
 COMMON_BLOCK_DEF(TOFRECFFKEY_DEF,TOFRECFFKEY);
+//----------------------
+class TFREFFKEY_DEF {
+public:
+geant Thr1;  // limit on max
+geant ThrS;  // limit on sum
+//
+  integer reprtf[5]; //RECO print flag 
+  integer relogic[5];//RECO logic flag
+  geant daqthr[5];// daq thresholds
+  geant cuts[10];// cuts 
+//
+  integer ReadConstFiles;
+//
+  integer sec[2];
+  integer min[2];
+  integer hour[2];
+  integer day[2];
+  integer mon[2];
+  integer year[2];
+};
+#define TFREFFKEY COMMON_BLOCK(TFREFFKEY,tfreffkey)
+COMMON_BLOCK_DEF(TFREFFKEY_DEF,TFREFFKEY);
 //===================================================================
 class TOFCAFFKEY_DEF {
 public:
@@ -289,7 +387,7 @@ integer truse;// 1/0 to use/not tracker
 geant plhc[2];//low/high cuts on tracker mom. for space calibration
 integer minev;// min.events needed for measurement in channel or bin
 geant trcut;// cut to use for "truncated average" calculation (0.85)
-integer refbid[5];//ref. id's list to use for longit. uniformity meas.
+integer spares[5];//
 geant plhec[2];//low/high cuts on tracker mom. for earth calibration
 geant bgcut[2];// beta*gamma low/high cuts for mip in abs.calibration
 integer tofcoo;// 0/1-> use transv/longit coord. from TOF
@@ -302,6 +400,36 @@ geant tofbetac;// if !=0 -> low beta cut (own TOF measurement !!!)
 };
 #define TOFCAFFKEY COMMON_BLOCK(TOFCAFFKEY,tofcaffkey)
 COMMON_BLOCK_DEF(TOFCAFFKEY_DEF,TOFCAFFKEY);
+//------------------------
+class TFCAFFKEY_DEF {
+public:
+// TZSL-calibration :
+geant pcut[2];//low/high limits on momentum of calibr. events
+geant bmeanpr;// mean proton velocity in this mom. range
+geant tzref[2];// def. T0 for two reference counters
+geant fixsl;// def. for slope
+geant bmeanmu;// mean muon velocity in this mom. range
+integer idref[2];// LBB for two ref.counter 
+integer ifsl;// 0/1 to fix/release slope param.
+integer caltyp;// 0/1 to select space/earth calibration
+// AMPL-calibration :
+integer truse;// 1/0 to use/not tracker
+geant plhc[2];//low/high cuts on tracker mom. for space calibration
+integer minev;// min.events needed for measurement in channel or bin
+geant trcut;// cut to use for "truncated average" calculation (0.85)
+integer spares[5];//
+geant plhec[2];//low/high cuts on tracker mom. for earth calibration
+geant bgcut[2];// beta*gamma low/high cuts for mip in abs.calibration
+integer tofcoo;// 0/1-> use transv/longit coord. from TOF
+integer dynflg;// 0/1-> use stand/special(Contin's) dynode calibr.
+integer cfvers;// 1-99 -> vers.number for tofverslistNN.dat file
+integer cafdir;// 0/1->use officical/private directory for calib.files
+integer mcainc;// to swich on/off A-integr. calibr. in MC
+geant tofbetac;// if !=0 -> low beta cut (own TOF measurement !!!) 
+//                to use when previous calibration suppose to be good enought
+};
+#define TFCAFFKEY COMMON_BLOCK(TFCAFFKEY,tfcaffkey)
+COMMON_BLOCK_DEF(TFCAFFKEY_DEF,TFCAFFKEY);
 //===================================================================
 class CTCGEOMFFKEY_DEF {
 public:
@@ -382,7 +510,17 @@ geant MinLifeTime;
 };
 #define LVL1FFKEY COMMON_BLOCK(LVL1FFKEY,lvl1ffkey)
 COMMON_BLOCK_DEF(LVL1FFKEY_DEF,LVL1FFKEY);
-
+//--------------------
+class TGL1FFKEY_DEF {
+public:
+integer ntof;
+integer nanti;
+integer RebuildLVL1;
+geant MaxScalersRate;
+geant MinLifeTime;
+};
+#define TGL1FFKEY COMMON_BLOCK(TGL1FFKEY,tgl1ffkey)
+COMMON_BLOCK_DEF(TGL1FFKEY_DEF,TGL1FFKEY);
 //================================================================
 
 

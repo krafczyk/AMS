@@ -3,17 +3,20 @@
 #include <math.h>
 #include <commons.h>
 #include <job.h>
+#include <tofdbc02.h>
 #include <tofdbc.h>
 #include <stdio.h>
 #include <iostream.h>
 #include <fstream.h>
+#include <tofsim02.h>
 #include <tofsim.h>
+#include <tofrec02.h>
 #include <tofrec.h>
+#include <tofcalib02.h>
 #include <tofcalib.h>
 //
-extern AMSTOFScan scmcscan[SCBLMX];// TOF MC time/eff-distributions
-extern TOFVarp tofvpar; // TOF general parameters (not const !)
-TOFBrcal scbrcal[SCLRS][SCMXBR];// TOF individual sc.bar parameters 
+TOFVarp TOFVarp::tofvpar; // TOF general parameters (not const !)
+TOFBrcal TOFBrcal::scbrcal[TOF1GC::SCLRS][TOF1GC::SCMXBR];// TOF individual sc.bar parameters 
 //-----------------------------------------------------------------------
 //  =====> TOFDBc class variables definition :
 //
@@ -22,7 +25,7 @@ integer TOFDBc::debug=1;
 //
 //======> memory reservation for _brtype :
 // (real values are initialized from ext. geomconfig-file in amsgeom.c) 
-integer TOFDBc::_brtype[SCBLMX]={
+integer TOFDBc::_brtype[TOF1GC::SCBLMX]={
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -31,12 +34,12 @@ integer TOFDBc::_brtype[SCBLMX]={
 //
 // Initialize TOF geometry (defaults, REAL VALUES are read FROM geomconfig-file)
 //
-//---> bar lengthes (cm) for each of SCBTPN types :
-geant TOFDBc::_brlen[SCBTPN]={
+//---> bar lengthes (cm) for each of TOF1GC::SCBTPN types :
+geant TOFDBc::_brlen[TOF1GC::SCBTPN]={
   72.6,99.6,118.6,130.6,135.4
 };
 //---> plane rotation mask for 4 layers (1/0 -> rotated/not):
-integer TOFDBc::_plrotm[SCLRS]={
+integer TOFDBc::_plrotm[TOF1GC::SCLRS]={
   1,0,0,1
 };
 //---> honeycomb supporting str. data:
@@ -119,23 +122,17 @@ geant TOFDBc::_plnstr[15]={
     char vers1[3]="01";
     char vers2[4]="001";
     char vers3[3]="02";
-    if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE"))
-    {
+    if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
           cout <<" TOFGeom-I-Shuttle setup selected."<<endl;
           strcat(name,vers1);
     }
-    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02Test")){
+    else if(strstr(AMSJob::gethead()->getsetup(),"AMS02Test")){
           cout <<" TOFGeom-I-AMS02 setup selected."<<endl;
           strcat(name,vers1);
     }
-    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-          cout <<" TOFGeom-I-AMS02 setup selected."<<endl;
-          strcat(name,vers3);
-    }
-    else
-    {
-          cout <<" TOFGeom-I-AMS001 setup selected."<<endl;
-          strcat(name,vers2);
+    else{
+          cout <<" TOFGeom-I-UNKNOWN setup !!!! "<<endl;
+	  exit(10);
     }
     strcat(name,".dat");
     if(TOFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
@@ -147,9 +144,9 @@ geant TOFDBc::_plnstr[15]={
       cerr <<"TOFgeom-read: missing geomconfig-file "<<fname<<endl;
       exit(1);
     }
-    for(int ic=0;ic<SCBLMX;ic++) tcfile >> _brtype[ic];
-    for(i=0;i<SCLRS;i++) tcfile >> _plrotm[i];
-    for(i=0;i<SCBTPN;i++) tcfile >> _brlen[i];
+    for(int ic=0;ic<TOF1GC::SCBLMX;ic++) tcfile >> _brtype[ic];
+    for(i=0;i<TOF1GC::SCLRS;i++) tcfile >> _plrotm[i];
+    for(i=0;i<TOF1GC::SCBTPN;i++) tcfile >> _brlen[i];
     for(i=0;i<10;i++) tcfile >> _supstr[i];
     for(i=0;i<15;i++) tcfile >> _plnstr[i];
   }
@@ -157,22 +154,22 @@ geant TOFDBc::_plnstr[15]={
   integer TOFDBc::brtype(integer ilay, integer ibar){
     #ifdef __AMSDEBUG__
       if(TOFDBc::debug){
-        assert(ilay>=0 && ilay < SCLRS);
-        assert(ibar>=0 && ibar < SCBRS[ilay]);
+        assert(ilay>=0 && ilay < TOF1GC::SCLRS);
+        assert(ibar>=0 && ibar < TOF1GC::SCBRS[ilay]);
       }
     #endif
     int cnum;
-    cnum=SCMXBR*ilay+ibar;
+    cnum=TOF1GC::SCMXBR*ilay+ibar;
     return _brtype[cnum];
   }
 //
   geant TOFDBc::brlen(integer ilay, integer ibar){
     int cnum;
-    cnum=SCMXBR*ilay+ibar;
+    cnum=TOF1GC::SCMXBR*ilay+ibar;
     int btyp=_brtype[cnum];
     #ifdef __AMSDEBUG__
       if(TOFDBc::debug){
-        assert(btyp>0 && btyp <= SCBTPN);
+        assert(btyp>0 && btyp <= TOF1GC::SCBTPN);
       }
     #endif
     return _brlen[btyp-1];
@@ -181,7 +178,7 @@ geant TOFDBc::_plnstr[15]={
   integer TOFDBc::plrotm(integer ilay){
     #ifdef __AMSDEBUG__
       if(TOFDBc::debug){
-        assert(ilay>=0 && ilay < SCLRS);
+        assert(ilay>=0 && ilay < TOF1GC::SCLRS);
       }
     #endif
     return _plrotm[ilay];
@@ -208,8 +205,8 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::getzsc(integer il, integer ib){
     #ifdef __AMSDEBUG__
       if(TOFDBc::debug){
-        assert(il>=0 && il < SCLRS);
-        assert(ib>=0 && ib < SCBRS[il]);
+        assert(il>=0 && il < TOF1GC::SCLRS);
+        assert(ib>=0 && ib < TOF1GC::SCBRS[il]);
       }
     #endif
   static geant dz;
@@ -237,14 +234,14 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::gettsc(integer il, integer ib){
     #ifdef __AMSDEBUG__
       if(TOFDBc::debug){
-        assert(il>=0 && il < SCLRS);
-        assert(ib>=0 && ib < SCBRS[il]);
+        assert(il>=0 && il < TOF1GC::SCLRS);
+        assert(ib>=0 && ib < TOF1GC::SCBRS[il]);
       }
     #endif
   static geant dx;
   geant x,co[2],dxt;
   dx=_plnstr[4]+2.*_plnstr[12];//width of sc.counter(bar+cover)
-  dxt=(SCBRS[il]-1)*(dx-_plnstr[3]);//first-last sc.count. bars distance
+  dxt=(TOF1GC::SCBRS[il]-1)*(dx-_plnstr[3]);//first-last sc.count. bars distance
   if(il<2){
     co[0]=_supstr[2];// <--top TOF-subsystem X-shift
     co[1]=_supstr[3];// <--top TOF-subsystem Y-shift
@@ -313,22 +310,22 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //
  int lsflg(1);//0/1->use common/individual values for Lspeed 
  integer i,j,k,ila,ibr,ip,ibrm,isd,isp,nsp,ibt,cnum,dnum,mult;
- geant scp[SCANPNT];
- geant rlo[SCANPNT];// relat.(to Y=0) light output
+ geant scp[TOF1GC::SCANPNT];
+ geant rlo[TOF1GC::SCANPNT];// relat.(to Y=0) light output
  integer lps=1000;
- geant ef1[SCANPNT],ef2[SCANPNT];
+ geant ef1[TOF1GC::SCANPNT],ef2[TOF1GC::SCANPNT];
  integer i1,i2,sta[2];
  geant r,eff1,eff2;
  integer sid,brt;
  geant gna[2],gnd[2],qath,qdth,a2dr[2],tth,strat[2][2];
- geant slope,slpf,fstrd,tzer,tdif,mip2q,speedl,lspeeda[SCLRS][SCMXBR];
- geant tzerf[SCLRS][SCMXBR],tdiff[SCBLMX],stat[SCBLMX][2];
- geant slops[2],slops1[SCLRS][SCMXBR],slops2[SCLRS][SCMXBR];
- geant strf[SCBLMX][2],strof[SCBLMX][2];
- geant an2di[SCBLMX][2],gaina[SCBLMX][2],gaind[SCBLMX][2],m2q[SCBTPN];
- geant ipara[SCCHMX][SCIPAR]; 
- geant ipard[SCCHMX][SCIPAR];
- geant aprofp[SCBTPN][SCPROFP],apr[SCPROFP],hblen,p1,p2,p3,p4,p5,nom,denom; 
+ geant slope,slpf,fstrd,tzer,tdif,mip2q,speedl,lspeeda[TOF1GC::SCLRS][TOF1GC::SCMXBR];
+ geant tzerf[TOF1GC::SCLRS][TOF1GC::SCMXBR],tdiff[TOF1GC::SCBLMX],stat[TOF1GC::SCBLMX][2];
+ geant slops[2],slops1[TOF1GC::SCLRS][TOF1GC::SCMXBR],slops2[TOF1GC::SCLRS][TOF1GC::SCMXBR];
+ geant strf[TOF1GC::SCBLMX][2],strof[TOF1GC::SCBLMX][2];
+ geant an2di[TOF1GC::SCBLMX][2],gaina[TOF1GC::SCBLMX][2],gaind[TOF1GC::SCBLMX][2],m2q[TOF1GC::SCBTPN];
+ geant ipara[TOF1GC::SCCHMX][TOF1GC::SCIPAR]; 
+ geant ipard[TOF1GC::SCCHMX][TOF1GC::SCIPAR];
+ geant aprofp[TOF1GC::SCBTPN][TOF1GC::SCPROFP],apr[TOF1GC::SCPROFP],hblen,p1,p2,p3,p4,p5,nom,denom; 
  char fname[80];
  char name[80];
  geant td2p[2];
@@ -340,11 +337,11 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //                                 of anode measurements
 //---> TovT-electronics calibration for MC:
 //
- geant aip[2][SCIPAR]={ // def.for anode integrator(shft,t0(qthr=exp(t0/shft)),qoffs)
+ geant aip[2][TOF1GC::SCIPAR]={ // def.for anode integrator(shft,t0(qthr=exp(t0/shft)),qoffs)
                    {50.,62.6,1.3},
                    {50.,62.6,1.3}
                       };
- geant dip[2][SCIPAR]={              // default param. for dinode integrator
+ geant dip[2][TOF1GC::SCIPAR]={              // default param. for dinode integrator
                    {50.,62.6,1.3},
                    {50.,62.6,1.3}
                       };
@@ -355,8 +352,8 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
   int mcvn,rlvn,dig;
 //
   strcpy(inum,"0123456789");
-  for(i=0;i<SCCHMX;i++){
-    for(j=0;j<SCIPAR;j++){
+  for(i=0;i<TOF1GC::SCCHMX;i++){
+    for(j=0;j<TOF1GC::SCIPAR;j++){
       ipara[i][j]=0.;
       ipard[i][j]=0.;
     }
@@ -436,16 +433,16 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 // ---> read Lspeed/Tdiffs:
 //
  if(lsflg){// read bar indiv.Lspeed
-   for(ila=0;ila<SCLRS;ila++){   
-     for(ibr=0;ibr<SCMXBR;ibr++){  
+   for(ila=0;ila<TOF1GC::SCLRS;ila++){   
+     for(ibr=0;ibr<TOF1GC::SCMXBR;ibr++){  
        tdcfile >> lspeeda[ila][ibr];
      }
    }
  }
  else tdcfile >> speedl;// read average Lspeed
- for(ila=0;ila<SCLRS;ila++){   
-   for(ibr=0;ibr<SCMXBR;ibr++){  
-     cnum=ila*SCMXBR+ibr; // sequential counters numbering(0-55)
+ for(ila=0;ila<TOF1GC::SCLRS;ila++){   
+   for(ibr=0;ibr<TOF1GC::SCMXBR;ibr++){  
+     cnum=ila*TOF1GC::SCMXBR+ibr; // sequential counters numbering(0-55)
      tdcfile >> tdiff[cnum];
    }
  }
@@ -494,8 +491,8 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //
 // ---> read Slope/Tzero's:
  tzcfile >> slpf;
- for(ila=0;ila<SCLRS;ila++){ 
-   for(ibr=0;ibr<SCMXBR;ibr++){
+ for(ila=0;ila<TOF1GC::SCLRS;ila++){ 
+   for(ibr=0;ibr<TOF1GC::SCMXBR;ibr++){
      tzcfile >> tzerf[ila][ibr];
    } 
  }
@@ -543,9 +540,9 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
    }
 //---> read str_ratio/status:
 //
-   for(ila=0;ila<SCLRS;ila++){   // <-------- loop over layers
-   for(ibr=0;ibr<SCMXBR;ibr++){  // <-------- loop over bar in layer
-     cnum=ila*SCMXBR+ibr; // sequential counter numbering(0-55)
+   for(ila=0;ila<TOF1GC::SCLRS;ila++){   // <-------- loop over layers
+   for(ibr=0;ibr<TOF1GC::SCMXBR;ibr++){  // <-------- loop over bar in layer
+     cnum=ila*TOF1GC::SCMXBR+ibr; // sequential counter numbering(0-55)
      scfile >> strf[cnum][0];
      scfile >> strof[cnum][0];
      scfile >> stat[cnum][0];
@@ -597,40 +594,40 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
    }
 // ---> read a2d-ratios:
 //
-   for(ila=0;ila<SCLRS;ila++){   // <-------- loop over layers
-     for(ibr=0;ibr<SCMXBR;ibr++){  // read side-1
-       cnum=ila*SCMXBR+ibr; 
+   for(ila=0;ila<TOF1GC::SCLRS;ila++){   // <-------- loop over layers
+     for(ibr=0;ibr<TOF1GC::SCMXBR;ibr++){  // read side-1
+       cnum=ila*TOF1GC::SCMXBR+ibr; 
        gcfile >> an2di[cnum][0];
      }
-     for(ibr=0;ibr<SCMXBR;ibr++){  // read side-2
-       cnum=ila*SCMXBR+ibr; 
+     for(ibr=0;ibr<TOF1GC::SCMXBR;ibr++){  // read side-2
+       cnum=ila*TOF1GC::SCMXBR+ibr; 
        gcfile >> an2di[cnum][1];
      }
    } // --- end of layer loop --->
 //
 // ---> read gains(anode):
 //
-   for(ila=0;ila<SCLRS;ila++){   // <-------- loop over layers
-     for(ibr=0;ibr<SCMXBR;ibr++){  // read side-1
-       cnum=ila*SCMXBR+ibr; 
+   for(ila=0;ila<TOF1GC::SCLRS;ila++){   // <-------- loop over layers
+     for(ibr=0;ibr<TOF1GC::SCMXBR;ibr++){  // read side-1
+       cnum=ila*TOF1GC::SCMXBR+ibr; 
        gcfile >> gaina[cnum][0];
      }
-     for(ibr=0;ibr<SCMXBR;ibr++){  // read side-2
-       cnum=ila*SCMXBR+ibr; 
+     for(ibr=0;ibr<TOF1GC::SCMXBR;ibr++){  // read side-2
+       cnum=ila*TOF1GC::SCMXBR+ibr; 
        gcfile >> gaina[cnum][1];
      }
    } // --- end of layer loop --->
 //
 // ---> read mip2q's:
 //
-   for(ibt=0;ibt<SCBTPN;ibt++){  // <-------- loop over bar-types
+   for(ibt=0;ibt<TOF1GC::SCBTPN;ibt++){  // <-------- loop over bar-types
      gcfile >> m2q[ibt];
    }
 //
 // ---> read A-prof. parameters:
 //
-   for(ibt=0;ibt<SCBTPN;ibt++){  // <-------- loop over bar-types
-     for(i=0;i<SCPROFP;i++)gcfile >> aprofp[ibt][i];
+   for(ibt=0;ibt<TOF1GC::SCBTPN;ibt++){  // <-------- loop over bar-types
+     for(i=0;i<TOF1GC::SCPROFP;i++)gcfile >> aprofp[ibt][i];
    }
 //
    gcfile.close();
@@ -677,20 +674,20 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  }
 //
  int16u swid,crat,sfet,tofc;
- for(i=0;i<SCCRAT;i++){//<--- crate loop (0-7)
+ for(i=0;i<TOF1GC::SCCRAT;i++){//<--- crate loop (0-7)
    icfile >> crat;// crate-number
-   for(j=0;j<SCSFET;j++){//<--- SFET card loop (0-3)
+   for(j=0;j<TOF1GC::SCSFET;j++){//<--- SFET card loop (0-3)
      icfile >> sfet;// sfet-number
-     for(k=0;k<SCTOFC;k++){//<--- tof-ch loop (1tofc->side, 4 per SFET)(0-3)
+     for(k=0;k<TOF1GC::SCTOFC;k++){//<--- tof-ch loop (1tofc->side, 4 per SFET)(0-3)
        icfile >> tofc;// tofc-number
        swid=AMSTOFRawEvent::hw2swid(crat-1,sfet-1,tofc-1);//LBBS
        if(swid==0)continue;// non-existing tofc (occupied by temperatures or epty)
        ila=swid/1000-1;
        ibr=(swid%1000)/10-1;
        isd=(swid%1000)%10-1;
-       cnum=2*SCMXBR*ila+2*ibr+isd;
-       for(ip=0;ip<SCIPAR;ip++)icfile >> ipara[cnum][ip];//read anode parameters
-       for(ip=0;ip<SCIPAR;ip++)icfile >> ipard[cnum][ip];//.... dinode .........
+       cnum=2*TOF1GC::SCMXBR*ila+2*ibr+isd;
+       for(ip=0;ip<TOF1GC::SCIPAR;ip++)icfile >> ipara[cnum][ip];//read anode parameters
+       for(ip=0;ip<TOF1GC::SCIPAR;ip++)icfile >> ipard[cnum][ip];//.... dinode .........
      }
    }
  }
@@ -698,35 +695,35 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //---------------------------------------------
 //   ===> fill TOFBrcal bank :
 //
-  for(ila=0;ila<SCLRS;ila++){   // <-------- loop over layers
-  for(ibr=0;ibr<SCMXBR;ibr++){  // <-------- loop over bar in layer
+  for(ila=0;ila<TOF1GC::SCLRS;ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<TOF1GC::SCMXBR;ibr++){  // <-------- loop over bar in layer
     brt=TOFDBc::brtype(ila,ibr);
     if(brt==0)continue; // skip missing counters
     hblen=0.5*TOFDBc::brlen(ila,ibr);
-    cnum=ila*SCMXBR+ibr; // sequential counter numbering(0-55)
-    scmcscan[cnum].getscp(scp);//read scan-points from scmcscan-object
+    cnum=ila*TOF1GC::SCMXBR+ibr; // sequential counter numbering(0-55)
+    AMSTOFScan::scmcscan[cnum].getscp(scp);//read scan-points from scmcscan-object
 // read from file or DB:
     gna[0]=gaina[cnum][0];
     gna[1]=gaina[cnum][1];
     gnd[0]=gna[0];// tempor
     gnd[1]=gna[1];
-    tth=tofvpar.daqthr(0); // (mV), time-discr. threshold
+    tth=TOFVarp::tofvpar.daqthr(0); // (mV), time-discr. threshold
     mip2q=m2q[brt-1];//(pC/mev),dE(mev)_at_counter_center->Q(pC)_at_PM_anode(2x3-sum)
     a2dr[0]=an2di[cnum][0];// from ext.file
     a2dr[1]=an2di[cnum][1];
-    fstrd=tofvpar.sftdcd();//(ns),same hit(up-edge)delay in f/sTDC(const. for now)
+    fstrd=TOFVarp::tofvpar.sftdcd();//(ns),same hit(up-edge)delay in f/sTDC(const. for now)
 //
 //-->prepare position correction array (valid for local !!! r.c.):
 //
-    mrfp=SCANPNT/2;//central point (coo=0.)
+    mrfp=TOF1GC::SCANPNT/2;//central point (coo=0.)
 //    if(AMSJob::gethead()->isMCData()){// pos.corrections for MC
-//      scmcscan[cnum].getefarr(ef1,ef2);//read eff1/2 from scmcscan-object
-//      for(isp=0;isp<SCANPNT;isp++){ // fill 2-ends rel. l.output at scan-points
+//      AMSTOFScan::scmcscan[cnum].getefarr(ef1,ef2);//read eff1/2 from scmcscan-object
+//      for(isp=0;isp<TOF1GC::SCANPNT;isp++){ // fill 2-ends rel. l.output at scan-points
 //        rlo[isp]=(ef1[isp]+ef2[isp])/(ef1[mrfp]+ef2[mrfp]);
 //      }
 //      if(ila==0 && (ibr==0 || ibr==1 || ibr==2 || ibr==3 || ibr==4)){
 //        cout<<"MC: brt="<<brt<<endl;
-//        for(isp=0;isp<SCANPNT;isp++){
+//        for(isp=0;isp<TOF1GC::SCANPNT;isp++){
 //          cout<<rlo[isp]<<" "<<scp[isp]<<endl;;
 //        }
 //        cout<<endl;
@@ -741,14 +738,14 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
       p5=aprofp[brt-1][4];
       denom=p1*(exp(-(hblen+scp[mrfp])/p4)+p3*exp(-(hblen+scp[mrfp])/p5))
            +p2*(exp(-(hblen-scp[mrfp])/p4)+p3*exp(-(hblen-scp[mrfp])/p5));
-      for(isp=0;isp<SCANPNT;isp++){ // fill 2-ends rel. l.output at scan-points
+      for(isp=0;isp<TOF1GC::SCANPNT;isp++){ // fill 2-ends rel. l.output at scan-points
         nom=p1*(exp(-(hblen+scp[isp])/p4)+p3*exp(-(hblen+scp[isp])/p5))
            +p2*(exp(-(hblen-scp[isp])/p4)+p3*exp(-(hblen-scp[isp])/p5));
         rlo[isp]=nom/denom;
       }
 //      if(ila==0 && (ibr==0 || ibr==1 || ibr==2 || ibr==3 || ibr==4)){
 //        cout<<"REAL: brt="<<brt<<endl;
-//        for(isp=0;isp<SCANPNT;isp++){
+//        for(isp=0;isp<TOF1GC::SCANPNT;isp++){
 //          cout<<rlo[isp]<<" ";
 //        }
 //        cout<<endl;
@@ -773,11 +770,11 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
       td2p[0]=lspeeda[ila][ibr];//indiv.bar speed of the light from external file
     } 
     else td2p[0]=speedl;//average speed of the light from external file
-    td2p[1]=tofvpar.lcoerr();//error on longit. coord. measurement(cm)
-    for(ip=0;ip<SCIPAR;ip++)aip[0][ip]=ipara[2*cnum][ip];
-    for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*cnum+1][ip];
-    for(ip=0;ip<SCIPAR;ip++)dip[0][ip]=ipard[2*cnum][ip];
-    for(ip=0;ip<SCIPAR;ip++)dip[1][ip]=ipard[2*cnum+1][ip];
+    td2p[1]=TOFVarp::tofvpar.lcoerr();//error on longit. coord. measurement(cm)
+    for(ip=0;ip<TOF1GC::SCIPAR;ip++)aip[0][ip]=ipara[2*cnum][ip];
+    for(ip=0;ip<TOF1GC::SCIPAR;ip++)aip[1][ip]=ipara[2*cnum+1][ip];
+    for(ip=0;ip<TOF1GC::SCIPAR;ip++)dip[0][ip]=ipard[2*cnum][ip];
+    for(ip=0;ip<TOF1GC::SCIPAR;ip++)dip[1][ip]=ipard[2*cnum+1][ip];
     if(aip[0][0]==0.)sta[0]=-1;// set status -1(bad) for missing channels (tauf==0)
     if(aip[1][0]==0.)sta[1]=-1;
     scbrcal[ila][ibr]=TOFBrcal(sid,sta,gna,gnd,a2dr,asatl,tth,
@@ -910,7 +907,7 @@ void TOFBrcal::amd2q(number amf[2], number qs[2]){// side A-Tovt's(ns) -> Q(pC)
 //-----
 geant TOFBrcal::poscor(geant point){
 //(return light-out corr.factor, input 'point' is Y-coord. in bar loc.r.s.)
-  static int nmx=SCANPNT-1;
+  static int nmx=TOF1GC::SCANPNT-1;
   int i;
   geant corr;
   if(point >= yscanp[nmx])corr=relout[nmx]+(relout[nmx]-relout[nmx-1])
@@ -977,14 +974,14 @@ void TOFBrcal::td2ctd(number tdo, number amf[2],
 //
 //   TOFJobStat static variables definition (memory reservation):
 //
-integer TOFJobStat::mccount[SCJSTA];
-integer TOFJobStat::recount[SCJSTA];
-integer TOFJobStat::chcount[SCCHMX][SCCSTA];
-integer TOFJobStat::brcount[SCBLMX][SCCSTA];
-integer TOFJobStat::scdaqbc1[SCCRAT][2];
-integer TOFJobStat::scdaqbc2[SCCRAT][2];
-integer TOFJobStat::scdaqbc3[SCCRAT][2];
-integer TOFJobStat::scdaqbc4[SCCRAT][2];
+integer TOFJobStat::mccount[TOF1GC::SCJSTA];
+integer TOFJobStat::recount[TOF1GC::SCJSTA];
+integer TOFJobStat::chcount[TOF1GC::SCCHMX][TOF1GC::SCCSTA];
+integer TOFJobStat::brcount[TOF1GC::SCBLMX][TOF1GC::SCCSTA];
+integer TOFJobStat::scdaqbc1[TOF1GC::SCCRAT][2];
+integer TOFJobStat::scdaqbc2[TOF1GC::SCCRAT][2];
+integer TOFJobStat::scdaqbc3[TOF1GC::SCCRAT][2];
+integer TOFJobStat::scdaqbc4[TOF1GC::SCCRAT][2];
 //
 // function to print Job-statistics at the end of JOB(RUN):
 //
@@ -996,27 +993,27 @@ void TOFJobStat::printstat(){
   printf("    ======================= JOB DAQ-statistics ====================\n");
   printf("\n");
   printf(" ------- node(block) number -------->"); 
-  for(ic=0;ic<SCCRAT;ic++){
+  for(ic=0;ic<TOF1GC::SCCRAT;ic++){
       printf("          %1d          ",ic);
   }
   printf("\n");
   printf(" S-block events                         : ");
-  for(ic=0;ic<SCCRAT;ic++){ 
+  for(ic=0;ic<TOF1GC::SCCRAT;ic++){ 
       printf("  r/c:%7d %7d",scdaqbc1[ic][0],scdaqbc1[ic][1]);
   }
   printf("\n");
   printf(" S-block events (nonempty)              : ");
-  for(ic=0;ic<SCCRAT;ic++){
+  for(ic=0;ic<TOF1GC::SCCRAT;ic++){
       printf("  r/c:%7d %7d",scdaqbc2[ic][0],scdaqbc2[ic][1]);
   }
   printf("\n");
   printf(" S-block errors (block length mismatch) : ");
-  for(ic=0;ic<SCCRAT;ic++){
+  for(ic=0;ic<TOF1GC::SCCRAT;ic++){
       printf("  r/c:%7d %7d",scdaqbc3[ic][0],scdaqbc3[ic][1]);
   }
   printf("\n");
   printf(" S-block errors(conflict with swid-map) : ");
-  for(ic=0;ic<SCCRAT;ic++){
+  for(ic=0;ic<TOF1GC::SCCRAT;ic++){
       printf("  r/c:%7d %7d",scdaqbc4[ic][0],scdaqbc4[ic][1]);
   }
   printf("\n");
@@ -1032,24 +1029,32 @@ void TOFJobStat::printstat(){
   printf(" RawEvent-validation OK  : % 6d\n",recount[2]);
   printf(" RawEvent->RawCluster OK : % 6d\n",recount[3]);
   printf(" RawCluster->Cluster OK  : % 6d\n",recount[4]);
-  printf(" Entries to TZSl-calibr. : % 6d\n",recount[6]);
-  printf(" TZSl: multiplicity OK   : % 6d\n",recount[7]);
-  printf(" TZSl: no Anti,Albd,Spks : % 6d\n",recount[8]);
-  printf(" TZSl: Tracker mom. OK   : % 6d\n",recount[9]);
-  printf(" TZSl: TOF-Tr.match. OK  : % 6d\n",recount[10]);
-  printf(" TZSl: TOF-self.match. OK: % 6d\n",recount[20]);
-  printf(" Entries to AMPL-calibr. : % 6d\n",recount[11]);
-  printf(" AMPL: multiplicity OK   : % 6d\n",recount[12]);
-  printf(" AMPL: no interaction    : % 6d\n",recount[13]);
-  printf(" AMPL: Track momentum OK : % 6d\n",recount[14]);
-  printf(" AMPL: TOF-TRK match OK  : % 6d\n",recount[15]);
-  printf(" Entr to STRR/AVSD-calibr: % 6d\n",recount[16]);
-  printf(" Entries to TDIF-calibr. : % 6d\n",recount[17]);
-  printf(" TDIF: multiplicity OK   : % 6d\n",recount[18]);
-  printf(" TDIF: Tracker OK        : % 6d\n",recount[19]);
+  if(AMSJob::gethead()->isCalibration()){
+    printf(" Entries to TZSl-calibr. : % 6d\n",recount[6]);
+    printf(" TZSl: multiplicity OK   : % 6d\n",recount[7]);
+    printf(" TZSl: no Anti,Albd,Spks : % 6d\n",recount[8]);
+    printf(" TZSl: Tracker mom. OK   : % 6d\n",recount[9]);
+    printf(" TZSl: TOF-Tr.match. OK  : % 6d\n",recount[10]);
+    printf(" TZSl: TOF-self.match. OK: % 6d\n",recount[20]);
+    printf(" Entries to AMPL-calibr. : % 6d\n",recount[11]);
+    printf(" AMPL: multiplicity OK   : % 6d\n",recount[12]);
+    printf(" AMPL: no interaction    : % 6d\n",recount[13]);
+    printf(" AMPL: Track momentum OK : % 6d\n",recount[14]);
+    printf(" AMPL: TOF-TRK match OK  : % 6d\n",recount[15]);
+    printf(" Entr to STRR/AVSD-calibr: % 6d\n",recount[16]);
+    printf(" Entries to TDIF-calibr. : % 6d\n",recount[17]);
+    printf(" TDIF: multiplicity OK   : % 6d\n",recount[18]);
+    printf(" TDIF: Tracker OK        : % 6d\n",recount[19]);
+  }
+  else{
+    printf(" Entries to TOFUser      : % 6d\n",recount[21]);
+    printf(" TOFU: no ANTI-sectors   : % 6d\n",recount[22]);
+    printf(" TOFU: 1bar/layer OK     : % 6d\n",recount[23]);
+    printf(" TOFU: Track momentum OK : % 6d\n",recount[24]);
+    printf(" TOFU: TOF-TRK match OK  : % 6d\n",recount[25]);
+  }
   printf("\n\n");
 //
-  if(!AMSJob::gethead()->isRealData() && TOFMCFFKEY.fast==1)return;
   if(TOFRECFFKEY.reprtf[0]==0)return;
 //
 //----------------------------------------------------------
@@ -1057,14 +1062,14 @@ void TOFJobStat::printstat(){
   printf("===========> Channels validation report :\n\n");
 //
   printf("H/w-status OK (validation) :\n\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       printf(" % 6d",chcount[ic][11]);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       printf(" % 6d",chcount[ic][11]);
     }
     printf("\n\n");
@@ -1072,16 +1077,16 @@ void TOFJobStat::printstat(){
 //
   printf("Hist-TDC wrong up/down sequence (percentage) :\n");
   printf("\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][11]);
       if(rc>0.)rc=100.*geant(chcount[ic][12])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][11]);
       if(rc>0.)rc=100.*geant(chcount[ic][12])/rc;
       printf("% 5.2f",rc);
@@ -1091,16 +1096,16 @@ void TOFJobStat::printstat(){
 //
   printf("Stretcher-TDC wrong up/down sequence (percentage) :\n");
   printf("\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][11]);
       if(rc>0.)rc=100.*geant(chcount[ic][13])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][11]);
       if(rc>0.)rc=100.*geant(chcount[ic][13])/rc;
       printf("% 5.2f",rc);
@@ -1110,16 +1115,16 @@ void TOFJobStat::printstat(){
 //
   printf("A-TDC wrong up/down sequence (percentage) :\n");
   printf("\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][11]);
       if(rc>0.)rc=100.*geant(chcount[ic][14])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][11]);
       if(rc>0.)rc=100.*geant(chcount[ic][14])/rc;
       printf("% 5.2f",rc);
@@ -1129,16 +1134,16 @@ void TOFJobStat::printstat(){
 //
   printf("D-TDC wrong up/down sequence (percentage) :\n");
   printf("\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][11]);
       if(rc>0.)rc=100.*geant(chcount[ic][15])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][11]);
       if(rc>0.)rc=100.*geant(chcount[ic][15])/rc;
       printf("% 5.2f",rc);
@@ -1152,18 +1157,18 @@ void TOFJobStat::printstat(){
   printf("==========> Bars reconstruction report :\n\n");
 //
   printf("Bar H/w-status OK (at least 1 side is found) :\n\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR+ib;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR+ib;
       printf(" % 6d",brcount[ic][0]);
     }
     printf("\n\n");
   }
 //
   printf("Bar 3-measurements found (at least for 1 side) :\n\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR+ib;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR+ib;
       rc=geant(brcount[ic][0]);
       if(rc>0.)rc=geant(brcount[ic][1])/rc;
       printf("% 5.2f",rc);
@@ -1172,9 +1177,9 @@ void TOFJobStat::printstat(){
   }
 //
   printf("Bar 1-side history 'OK' (for each of the EXISTING 3-measurements sides) :\n\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR+ib;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR+ib;
       rc=geant(brcount[ic][0]);
       if(rc>0.)rc=geant(brcount[ic][2])/rc;
       printf("% 5.2f",rc);
@@ -1183,9 +1188,9 @@ void TOFJobStat::printstat(){
   }
 //
   printf("Bar 2-sides history 'OK'(if there are 2x3meas. with good history) :\n\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR+ib;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR+ib;
       rc=geant(brcount[ic][0]);
       if(rc>0.)rc=geant(brcount[ic][3])/rc;
       printf("% 5.2f",rc);
@@ -1194,9 +1199,9 @@ void TOFJobStat::printstat(){
   }
 //
   printf("Bar a/s-TDC matching 'OK' on alive sides :\n\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR+ib;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR+ib;
       rc=geant(brcount[ic][0]);
       if(rc>0.)rc=geant(brcount[ic][4])/rc;
       printf("% 5.2f",rc);
@@ -1205,9 +1210,9 @@ void TOFJobStat::printstat(){
   }
 //
   printf("Bar d/s-TDC matching 'OK' on alive sides :\n\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR+ib;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR+ib;
       rc=geant(brcount[ic][0]);
       if(rc>0.)rc=geant(brcount[ic][5])/rc;
       printf("% 5.2f",rc);
@@ -1218,14 +1223,14 @@ void TOFJobStat::printstat(){
   printf("============> Channels reconstruction report :\n\n");
 //
   printf("H/w-status OK :\n\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       printf(" % 6d",chcount[ic][0]);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       printf(" % 6d",chcount[ic][0]);
     }
     printf("\n\n");
@@ -1233,16 +1238,16 @@ void TOFJobStat::printstat(){
 //
   printf("Hist-TDC 'ON' :\n");
   printf("\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][1])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][1])/rc;
       printf("% 5.2f",rc);
@@ -1252,16 +1257,16 @@ void TOFJobStat::printstat(){
 //
   printf("Slow-TDC 'ON' :\n");
   printf("\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][2])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][2])/rc;
       printf("% 5.2f",rc);
@@ -1271,16 +1276,16 @@ void TOFJobStat::printstat(){
 //
   printf("Anode-ADC 'ON' :\n");
   printf("\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][3])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][3])/rc;
       printf("% 5.2f",rc);
@@ -1290,16 +1295,16 @@ void TOFJobStat::printstat(){
 //
   printf("Dinode-ADC 'ON' :\n");
   printf("\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][4])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][4])/rc;
       printf("% 5.2f",rc);
@@ -1309,16 +1314,16 @@ void TOFJobStat::printstat(){
 //
   printf("History-TDC '1 hit' :\n");
   printf("\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][5])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][5])/rc;
       printf("% 5.2f",rc);
@@ -1328,16 +1333,16 @@ void TOFJobStat::printstat(){
 //
   printf("Slow-TDC '1 hit' :\n");
   printf("\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][6])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][6])/rc;
       printf("% 5.2f",rc);
@@ -1347,16 +1352,16 @@ void TOFJobStat::printstat(){
 //
   printf("Anode-ADC '1 hit' :\n");
   printf("\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][7])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][7])/rc;
       printf("% 5.2f",rc);
@@ -1366,16 +1371,16 @@ void TOFJobStat::printstat(){
 //
   printf("Dinode-ADC '1 hit' :\n");
   printf("\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][8])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][8])/rc;
       printf("% 5.2f",rc);
@@ -1385,16 +1390,16 @@ void TOFJobStat::printstat(){
 //
   printf("3-measurements(S-tds + F-tdc + A-tdc) :\n");
   printf("\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2;
+  for(il=0;il<TOF1GC::SCLRS;il++){
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][9])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF1GC::SCMXBR;ib++){
+      ic=il*TOF1GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][9])/rc;
       printf("% 5.2f",rc);
@@ -1444,8 +1449,8 @@ void TOFJobStat::bookhist(){
       HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
       HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,24.,0.);
       HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,240.,0.);
-      for(il=0;il<SCLRS;il++){
-        for(ib=0;ib<SCMXBR;ib++){
+      for(il=0;il<TOF1GC::SCLRS;il++){
+        for(ib=0;ib<TOF1GC::SCMXBR;ib++){
     	  strcpy(htit1,"dE/dX (norm.inc) for bar(LBB) ");
   	  in[0]=inum[il+1];
   	  strcat(htit1,in);
@@ -1455,7 +1460,7 @@ void TOFJobStat::bookhist(){
 	  strcat(htit1,in);
 	  in[0]=inum[jj];
 	  strcat(htit1,in);
-	  ich=SCMXBR*il+ib;
+	  ich=TOF1GC::SCMXBR*il+ib;
 	  HBOOK1(1140+ich,htit1,50,0.,15.,0.);
         }
       }
@@ -1615,8 +1620,8 @@ void TOFJobStat::bookhist(){
       HBOOK1(1260,"Anode_to_Dinode ratio error(all channels)",80,0.,0.4,0.);
     }
     if(TOFRECFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
-      for(il=0;il<SCLRS;il++){
-	for(ib=0;ib<SCMXBR;ib++){
+      for(il=0;il<TOF1GC::SCLRS;il++){
+	for(ib=0;ib<TOF1GC::SCMXBR;ib++){
 	  for(i=0;i<2;i++){
 	    strcpy(htit1,"FTDC/STDC/ATDC/DTDC multipl. for chan(LBBS) ");
 	    in[0]=inum[il+1];
@@ -1629,7 +1634,7 @@ void TOFJobStat::bookhist(){
 	    strcat(htit1,in);
 	    in[0]=inum[i+1];
 	    strcat(htit1,in);
-	    ich=2*SCMXBR*il+2*ib+i;
+	    ich=2*TOF1GC::SCMXBR*il+2*ib+i;
 	    HBOOK1(1300+ich,htit1,80,0.,80.,0.);
 	  }
 	}
@@ -1661,7 +1666,7 @@ void TOFJobStat::bookhistmc(){
 //----------------------------
 void TOFJobStat::outp(){
   int i,j,k,ich;
-  geant dedx[SCMXBR],dedxe[SCMXBR];
+  geant dedx[TOF1GC::SCMXBR],dedxe[TOF1GC::SCMXBR];
        if(TOFRECFFKEY.reprtf[2]!=0){ // print RECO-hists
          HPRINT(1535);
          HPRINT(1536);
@@ -1696,9 +1701,9 @@ void TOFJobStat::outp(){
            HPRINT(1526);
            HPRINT(1528);
            HPRINT(1531);
-           for(i=0;i<SCLRS;i++){
-             for(j=0;j<SCMXBR;j++){
-               ich=SCMXBR*i+j;
+           for(i=0;i<TOF1GC::SCLRS;i++){
+             for(j=0;j<TOF1GC::SCMXBR;j++){
+               ich=TOF1GC::SCMXBR*i+j;
                HPRINT(1140+ich);
                dedx[j]=0.;
                dedxe[j]=0.;
@@ -1738,10 +1743,10 @@ void TOFJobStat::outp(){
            HPRINT(1544);
            HPRINT(1534);
          if(TOFRECFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
-           for(i=0;i<SCLRS;i++){
-             for(j=0;j<SCMXBR;j++){
+           for(i=0;i<TOF1GC::SCLRS;i++){
+             for(j=0;j<TOF1GC::SCMXBR;j++){
                for(k=0;k<2;k++){
-                 ich=2*SCMXBR*i+2*j+k;
+                 ich=2*TOF1GC::SCMXBR*i+2*j+k;
                  HPRINT(1300+ich);
                }
              }
@@ -1850,7 +1855,7 @@ void TOFJobStat::outp(){
 }
 //----------------------------
 void TOFJobStat::outpmc(){
-       if(TOFMCFFKEY.mcprtf[2]!=0 && TOFMCFFKEY.fast==0){ // print MC-hists
+       if(TOFMCFFKEY.mcprtf[2]!=0){ // print MC-hists
          HPRINT(1050);
          HPRINT(1051);
          HPRINT(1052);
@@ -1915,18 +1920,18 @@ void TOFVarp::init(geant daqth[5], geant cuts[10]){
 
   void TOFJobStat::clear(){
     int i,j;
-    for(i=0;i<SCJSTA;i++)mccount[i]=0;
-    for(i=0;i<SCJSTA;i++)recount[i]=0;
-    for(i=0;i<SCCHMX;i++)
-                  for(j=0;j<SCCSTA;j++)
+    for(i=0;i<TOF1GC::SCJSTA;i++)mccount[i]=0;
+    for(i=0;i<TOF1GC::SCJSTA;i++)recount[i]=0;
+    for(i=0;i<TOF1GC::SCCHMX;i++)
+                  for(j=0;j<TOF1GC::SCCSTA;j++)
                                        chcount[i][j]=0;
-    for(i=0;i<SCBLMX;i++)
-                  for(j=0;j<SCCSTA;j++)
+    for(i=0;i<TOF1GC::SCBLMX;i++)
+                  for(j=0;j<TOF1GC::SCCSTA;j++)
                                        brcount[i][j]=0;
     for(j=0;j<2;j++){
-      for(i=0;i<SCCRAT;i++)scdaqbc1[i][j]=0;
-      for(i=0;i<SCCRAT;i++)scdaqbc2[i][j]=0;
-      for(i=0;i<SCCRAT;i++)scdaqbc3[i][j]=0;
+      for(i=0;i<TOF1GC::SCCRAT;i++)scdaqbc1[i][j]=0;
+      for(i=0;i<TOF1GC::SCCRAT;i++)scdaqbc2[i][j]=0;
+      for(i=0;i<TOF1GC::SCCRAT;i++)scdaqbc3[i][j]=0;
     }
   }
 
@@ -1935,7 +1940,7 @@ void TOFVarp::init(geant daqth[5], geant cuts[10]){
            geant a2dr[2], geant asl, geant tth,  
            geant stra[2][2], geant fstd, geant t0, geant sl, geant sls[2],
             geant tdiff, geant td2p[2], geant mip, geant ysc[], geant relo[],
-           geant aip[2][SCIPAR], geant dip[2][SCIPAR], geant upar[5]){
+           geant aip[2][TOF1GC::SCIPAR], geant dip[2][TOF1GC::SCIPAR], geant upar[5]){
     softid=sid;
     status[0]=sta[0];
     status[1]=sta[1];
@@ -1961,11 +1966,11 @@ void TOFVarp::init(geant daqth[5], geant cuts[10]){
     td2pos[1]=td2p[1];
     mip2q=mip;
     int i;
-    for(i=0;i<SCANPNT;i++){
+    for(i=0;i<TOF1GC::SCANPNT;i++){
       yscanp[i]=ysc[i];
       relout[i]=relo[i];
     }
-    for(i=0;i<SCIPAR;i++){
+    for(i=0;i<TOF1GC::SCIPAR;i++){
       aipar[0][i]=aip[0][i];
       aipar[1][i]=aip[1][i];
       dipar[0][i]=dip[0][i];

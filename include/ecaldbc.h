@@ -143,5 +143,45 @@ public:
   static void build();
 };
 //
+//===========================================================================
+// --------------> Class for general "time-Variable"  parameters :
+class ECALVarp {  
+//
+private:
+// ---> ECAL DAQ-system thresholds :
+  geant _daqthr[5];   // DAQ-system thresholds
+          // (0) -> indiv.channel readout threshold(ADCch)
+	  // (1) -> Tot.adc low cut for "MIP"-trigger(ADCch)  
+	  // (2) -> Tot.adc high cut for "MIP"-trigger(ADCch)  
+	  // (3) -> Tot.adc low cut for "High"-trigger(ADCch)
+	  // (4) -> spare  
+// ---> Run-Time Cuts :
+  geant _cuts[5];                    
+          //  (0)  -> cut for cluster search(mev)
+          //  (1)  -> 
+public:
+  ECALVarp(){};
+// member functions :
+//
+  void init(geant daqthr[5], geant cuts[5]);
+//
+  geant daqthr(int i){;
+    #ifdef __AMSDEBUG__
+      if(ECALDBc::debug){
+        assert(i>=0 && i<5);
+      }
+    #endif
+    return _daqthr[i];}
+//
+  geant rtcuts(int i){;
+    #ifdef __AMSDEBUG__
+      if(ECALDBc::debug){
+        assert(i>=0 && i<5);
+      }
+    #endif
+    return _cuts[i];}
+//
+};
+//
 #endif
 

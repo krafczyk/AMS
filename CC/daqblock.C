@@ -19,25 +19,25 @@
 //
 integer DAQSBlock::format=1; // default format (reduced), redefined by data card
 //
-int16u DAQSBlock::subdmsk[DAQSBLK]={3,5,3,5,7,5,7,5};
+int16u DAQSBlock::subdmsk[TOF1GC::DAQSBLK]={3,5,3,5,7,5,7,5};
 // ( mask of detectors in given block(each number: lsbit->msbit => tof/anti/ctc))
 //
-int16u DAQSBlock::slotadr[DAQSSLT]={0,1,2,3,4,5};// h/w addr(card-ID) vs sequent. slot#
+int16u DAQSBlock::slotadr[TOF1GC::DAQSSLT]={0,1,2,3,4,5};// h/w addr(card-ID) vs sequent. slot#
 //
-int16u DAQSBlock::sblids[DAQSFMX][DAQSBLK]=  //valid S-block_id's for each format
+int16u DAQSBlock::sblids[TOF1GC::DAQSFMX][TOF1GC::DAQSBLK]=  //valid S-block_id's for each format
   {
     {0x1401,0x1441,0x1481,0x14C1,0x1501,0x1541,0x1581,0x15C1},  //  Raw
     {0x1400,0x1440,0x1480,0x14C0,0x1500,0x1540,0x1580,0x15C0} //  Reduced
   };
 //
-int16u DAQSBlock::tofmtyp[SCTOFC][4]={
+int16u DAQSBlock::tofmtyp[TOF1GC::SCTOFC][4]={
                                       {3,4,2,1},    // mtypes in 1st TOFchannel of SFET
                                       {1,2,3,4},    // mtypes in 2nd TOFchannel of SFET
                                       {3,4,2,1},    // mtypes in 3rd TOFchannel of SFET
                                       {1,2,3,4},    // mtypes in 4th TOFchannel of SFET
                                      };
 //
-int16u DAQSBlock::tempch[SCCRAT][SCSFET]={   // TOFch#, occupied by temper. in crate/sfet
+int16u DAQSBlock::tempch[TOF1GC::SCCRAT][TOF1GC::SCSFET]={   // TOFch#, occupied by temper. in crate/sfet
                                           {0,0,4,0},  // cr=1(01) inverted !
                                           {0,0,4,0},  // cr=2(31) inverted !
                                           {0,0,4,0},  // cr=3(41) inverted !
@@ -48,7 +48,7 @@ int16u DAQSBlock::tempch[SCCRAT][SCSFET]={   // TOFch#, occupied by temper. in c
                                           {0,4,0,0},  // cr=8(73)
                                          };
 //
-number DAQSBlock::rwtemp[DAQSTMX]={0,0,0,0,0,0,0,0, // just mem. reservation
+number DAQSBlock::rwtemp[TOF1GC::DAQSTMX]={0,0,0,0,0,0,0,0, // just mem. reservation
                                    0,0,0,0,0,0,0,0,
                                    0,0,0,0,0,0,0,0,
                                    0,0,0,0,0,0,0,0};
@@ -63,7 +63,7 @@ integer DAQSBlock::isSFET(int16u slota){ // "slota" means card-id (h/w address)
 //
 int16u DAQSBlock::isSFETT(int16u crat, int16u slota){
   int16u i,j,sln(0);
-  for(i=0;i<SCSFET;i++){ // get sequential number of slot
+  for(i=0;i<TOF1GC::SCSFET;i++){ // get sequential number of slot
     if(slotadr[i]==slota)break;
   }
   if(tempch[crat][i]>0){//get sequential number of "temperature"-slot
@@ -96,8 +96,8 @@ integer DAQSBlock::isSFEC(int16u slota){
 //
 integer DAQSBlock::checkblockid(int16u blid){
   int valid(0);
-  for(int i=0;i<DAQSFMX;i++)
-                     for(int j=0;j<DAQSBLK;j++)
+  for(int i=0;i<TOF1GC::DAQSFMX;i++)
+                     for(int j=0;j<TOF1GC::DAQSBLK;j++)
                                           if((blid & (~60)) == sblids[i][j])valid=1;
   return valid;
 }
@@ -154,11 +154,11 @@ void DAQSBlock::buildraw(integer len, int16u *p){
   }
 //---> Print TOF Crate temperatures:
   if(TOFRECFFKEY.reprtf[1]>=1){
-    im=DAQSTSC*DAQSTCS;
+    im=TOF1GC::DAQSTSC*TOF1GC::DAQSTCS;
     cout<<"TOF_Crate Temperatures :"<<endl; 
-    for(i=0;i<DAQSTSC;i++){//loop over temp. SFETs in crate (1)
-      for(j=0;j<DAQSTCS;j++){//loop over temp. channels in SFET (4)
-        chan=im*naddr+i*DAQSTCS+j;
+    for(i=0;i<TOF1GC::DAQSTSC;i++){//loop over temp. SFETs in crate (1)
+      for(j=0;j<TOF1GC::DAQSTCS;j++){//loop over temp. channels in SFET (4)
+        chan=im*naddr+i*TOF1GC::DAQSTCS+j;
         cout<<" "<<rwtemp[chan];
       }
       cout<<endl;
@@ -206,7 +206,7 @@ integer DAQSBlock::calcblocklength(integer ibl){
   return lent;
 }
 //----------------------------------------------------
-integer DAQSBlock::getmaxblocks(){return DAQSBLK;}
+integer DAQSBlock::getmaxblocks(){return TOF1GC::DAQSBLK;}
 //----------------------------------------------------
 void DAQSBlock::buildblock(integer ibl, integer len, int16u *p){
 //
@@ -245,7 +245,7 @@ void DAQSBlock::buildblock(integer ibl, integer len, int16u *p){
     cout<<"Initially declared length="<<len<<" but was written "<<lent<<endl;
   }
 //---------------
-  if(ibl==(DAQSBLK-1))  //clear RawEvent/Hit container after last block processed
+  if(ibl==(TOF1GC::DAQSBLK-1))  //clear RawEvent/Hit container after last block processed
   {
 #ifdef __AMSDEBUG__
 

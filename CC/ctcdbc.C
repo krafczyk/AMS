@@ -126,8 +126,8 @@ void CTCCCcal::build(){
   char name[80];
   char vers1[3]="mc";
   char vers2[3]="rl";
-  geant aipa[CTCCCMX][SCIPAR];
-  geant aip[SCIPAR]={120.,-70.,4};
+  geant aipa[CTCCCMX][TOF1GC::SCIPAR];
+  geant aip[TOF1GC::SCIPAR]={120.,-70.,4};
 //      ( def.param. for anode integrator(shft,t0(qthr=exp(t0/shft)),qoffs))
 //------------------------------------
   char in[2]="0";
@@ -260,7 +260,7 @@ void CTCCCcal::build(){
     exit(1);
   }
   for(i=0;i<ncomb;i++){// <-- comb. loop
-    for(j=0;j<SCIPAR;j++){// <-- param. loop
+    for(j=0;j<TOF1GC::SCIPAR;j++){// <-- param. loop
       icfile >> aipa[i][j];// 
     }
   }
@@ -278,7 +278,7 @@ void CTCCCcal::build(){
     for(j=0;j<nm;j++){
       gn[j]=gain[i][j];
     }
-    for(j=0;j<SCIPAR;j++){
+    for(j=0;j<TOF1GC::SCIPAR;j++){
       aip[j]=aipa[i][j];
     }
     ftdl=96.;// (ns) tempor 

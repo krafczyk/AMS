@@ -16,6 +16,7 @@
 #include <amsstl.h>
 #include <ctcdbc.h>
 #include <ntuple.h>
+#include <antirec02.h>
 #include <antirec.h>
 #include <mceventg.h>
 

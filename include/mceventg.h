@@ -96,6 +96,7 @@ void runG4(integer ipart=0);
 #endif
 void InitSeed();
 void gener();
+integer fastcheck(geant x, geant y, geant z, geant the, geant phi);
 number getcharge()const {return _charge;}
 AMSDir getdir()const {return _dir;}
 number getmom()const {return _mom;}

@@ -7123,7 +7123,7 @@ c            endif
 *                   track
            CALL ERTRAK(XXI,PII,XXO,POO,ITYP,CHOPT)
            IF (IEPRED(1).NE.1) THEN
-             print *, 'plane ',JSTOP,' not reached '
+c tempor             print *, 'plane ',JSTOP,' not reached '
              IFAFT = 9
              GO TO 999
            ENDIF
@@ -7545,7 +7545,7 @@ ccc        IF (ITER.NE.1) CALL UCOPY(SS(1,1,0),CC(1,1,0),50)
 *                   track
            CALL ERTRAK(XXI,PII,XXO,POO,ITYP,CHOPT)
            IF (IEPRED(1).NE.1) THEN
-             print *, 'plane ',JSTOP,' not reached '
+c tempor             print *, 'plane ',JSTOP,' not reached '
              IFAFT = 9
              GO TO 999
            ENDIF

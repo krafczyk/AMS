@@ -121,7 +121,7 @@ I  9   Print-flag(0)       // spare
 I 10   Print-flag(0)       // spare
 I 11   Trig.logic-flag(0)  //  use AND/OR(if=0/1) for two side logic signals   
 I 12   Trig.logic-flag(0)  //  use ANY3/ALL4(if=0/1) coinc. for 4 TOF-layers         
-I 13   fast(0)             //  fast/slow(i.e. accurate) (1/0) algorithm switch
+I 13   fast(0)             //  0/1->off/on fast gener. in mceventg.(Don't use for Accept.calc !)
 I 14   daqfmt(1)           // Raw/Reduced(0/1) TDC format for DAQ simulation
 I 15   birks(1)            // apply or not birks correction
 

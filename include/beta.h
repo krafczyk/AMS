@@ -7,6 +7,7 @@
 #ifndef __AMSBETA__
 #define __AMSBETA__
 #include <link.h>
+#include <tofrec02.h>
 #include <tofrec.h>
 #include <trrec.h>
 #include <point.h>

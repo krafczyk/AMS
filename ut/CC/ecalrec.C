@@ -17,7 +17,9 @@
 #include <mccluster.h>
 #include <trigger3.h>
 //
-extern ECcalib ecpmcal[ECSLMX][ECPMSMX];// calibration data
+extern ECcalib ecpmcal[ECSLMX][ECPMSMX];// ECAL indiv.channel calibration data
+extern ECALVarp ecalvpar;// ECAL run-time parameters
+integer AMSEcalRawEvent::trigfl=0;// just memory reservation/initialization for static
 //----------------------------------------------------
 void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   stat=0;
@@ -29,14 +31,16 @@ void AMSEcalRawEvent::mc_build(int &stat){
   number x,y,z,coo,hflen,pmdis,edep,edepr,edept,edeprt,emeast,time,timet(0.);
   number attf,ww[4],sum[ECPMSMX][4];
   AMSEcalMCHit * ptr;
-  integer id,sta,adc;
+  integer id,sta,adc,adctot;
 //
   stat=1;//bad
+  trigfl=0;//reset tigger-flag
   edept=0.;
   edeprt=0.;
   emeast=0.;
   nhits=0;
   nraw=0;
+  adctot=0;
   timet=0.;
   for(il=0;il<ECALDBc::slstruc(3);il++){ // <-------------- super-layer loop
     ptr=(AMSEcalMCHit*)AMSEvent::gethead()->
@@ -96,7 +100,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
         edepr=sum[i][k]*ECALDBc::mev2mev();//dE/dX(Mev)->Emeas(Mev)
 	emeast+=edepr;
 	adc=integer(edepr*ECALDBc::mev2adc());//Emeas(Mev)->Emeas(adc) ("digitization")
-        if(adc>0){
+	adctot+=adc;
+        if(adc>=ecalvpar.daqthr(0)){// use only hits above DAQ-readout threshold
 	  if(adc>=65536)adc=65536;//"ADC-saturation (16 bit)"
 	  nraw+=1;
 	  id=(k+1)+10*(i+1)+1000*(il+1);
@@ -117,7 +122,13 @@ void AMSEcalRawEvent::mc_build(int &stat){
     HF1(ECHIST+5,geant(emeast),1.);
     if(edeprt>0.)HF1(ECHIST+6,geant(timet/edeprt),1.);
   }
-  if(nraw>0)stat=0;
+//  ---> set trigger flag:
+  if(adctot>ecalvpar.daqthr(1)){
+    if(adctot<ecalvpar.daqthr(2))trigfl=1;// MIP
+    else if(adctot<ecalvpar.daqthr(3))trigfl=2;// Low-energy EM-object
+    else trigfl=3;// High-energy EM-object
+  }
+  if(trigfl>0)stat=0;
 }
 //---------------------------------------------------
 void AMSEcalHit::build(int &stat){
@@ -194,7 +205,7 @@ void AMSEcalCluster::build(int &stat){
   nhits=0;
   nclus=0;
   eclust=0.;
-  edepthr=ECREFFKEY.hitthr1;//thresh.(mev) for EcalHit(~2.adc, at mip/pl=4.5adc(m.p.))
+  edepthr=ecalvpar.rtcuts(0);//thresh.(mev/cell) for EcalHit(~2.adc, at mip/pl=5adc(m.p.))
   maxpl=2*ECALDBc::slstruc(3);//real planes
   maxcl=2*ECALDBc::slstruc(4);//real SubCells per plane
   ecogz=0.01;//(cm) hope not more

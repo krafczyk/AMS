@@ -11,8 +11,10 @@
 #include <node.h>
 #include <snode.h>
 #include <amsdbc.h>
+#include <tofdbc02.h>
 #include <tofdbc.h>
 #include <ctcdbc.h>
+#include <antidbc02.h>
 #include <antidbc.h>
 #include <ecaldbc.h>
 #include <gmat.h>
@@ -39,6 +41,7 @@ extern void tofgeom(AMSgvolume &);
 extern void tofgeom02(AMSgvolume &);
 extern void antigeom(AMSgvolume &);
 extern void antigeom02(AMSgvolume &);
+extern void antigeom002(AMSgvolume &);
 #ifdef __G4AMS__
  extern void antigeom02g4(AMSgvolume &);
 extern void testg4geom(AMSgvolume &);
@@ -99,12 +102,12 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 #ifdef  __G4AMS__
    //testg4geom(mother);
  trdgeom02(mother);
- srdgeom02(mother);
+// srdgeom02(mother);
  ecalgeom02(mother);
  richgeom02(mother);
 #else
  trdgeom02(mother);
- srdgeom02(mother);
+// srdgeom02(mother);
  ecalgeom02(mother);
  richgeom02(mother);
 #endif
@@ -280,9 +283,9 @@ dz=TOFDBc::plnstr(6)+2.*TOFDBc::plnstr(7);// dz(thickn)of sc.counter(bar+cover)
 pr[0]=dx/2.;
 pr[2]=dz/2.; 
 //                                 
-for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
+for (int ip=0;ip<TOF1GC::SCLRS;ip++){ //  <<<=============== loop over sc. planes
 //
-  nbm=SCBRS[ip];                      // num. of bars in layer ip
+  nbm=TOF1GC::SCBRS[ip];                      // num. of bars in layer ip
   dxt=(nbm-1)*(dx-TOFDBc::plnstr(4)); // first-last sc.count. bars distance 
 //                                   (betw.centers, taking into account overlaping)
   if(ip<2){
@@ -299,7 +302,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
     for(int i=0;i<3;i++)for(int j=0;j<3;j++)nrm[i][j]=nrm1[i][j];
   }
   if(TOFDBc::plrotm(ip)==1){
-    nrot=SCROTN+ip;           // <-- for rotated planes
+    nrot=TOF1GC::SCROTN+ip;           // <-- for rotated planes
     for(int i=0;i<3;i++)for(int j=0;j<3;j++)nrm[i][j]=nrm2[i][j];
   }
 //-----------
@@ -422,63 +425,63 @@ AMSgtmed *p;
 AMSID amsid;
 //
 strcpy(inum,"0123456789");
-TOFDBc::readgconf();// read TOF-counters geometry parameters
+TOF2DBc::readgconf();// read TOF-counters geometry parameters
 //------
-dz1=TOFDBc::supstr(7)/2.+TOFDBc::plnstr(1)+TOFDBc::plnstr(7)
-   +TOFDBc::plnstr(6)/2.+TOFDBc::plnstr(3)/2.;//dz hon_str/outer_sc_fixation
+dz1=TOF2DBc::supstr(7)/2.+TOF2DBc::plnstr(1)+TOF2DBc::plnstr(7)
+   +TOF2DBc::plnstr(6)/2.+TOF2DBc::plnstr(3)/2.;//dz hon_str/outer_sc_fixation
 //
-dz2=TOFDBc::supstr(7)/2.+TOFDBc::plnstr(2)+TOFDBc::plnstr(7) 
-   +TOFDBc::plnstr(6)/2.+TOFDBc::plnstr(3)/2.;//dz hon_str/inner_sc_fixation
+dz2=TOF2DBc::supstr(7)/2.+TOF2DBc::plnstr(2)+TOF2DBc::plnstr(7) 
+   +TOF2DBc::plnstr(6)/2.+TOF2DBc::plnstr(3)/2.;//dz hon_str/inner_sc_fixation
 //------
 //          <-- create/position top supp. honeycomb structures
 gid=1;
 par[0]=0.;                //Ri
-par[1]=TOFDBc::supstr(8); //Ro
-par[2]=TOFDBc::supstr(7)/2.; //Dz
-coo[0]=TOFDBc::supstr(3);    // x-shift from "0" of mother
-coo[1]=TOFDBc::supstr(4);    // y-shift ...
-coo[2]=TOFDBc::supstr(1)+TOFDBc::supstr(7)/2.;// z-centre of top supp. honeycomb
+par[1]=TOF2DBc::supstr(8); //Ro
+par[2]=TOF2DBc::supstr(7)/2.; //Dz
+coo[0]=TOF2DBc::supstr(3);    // x-shift from "0" of mother
+coo[1]=TOF2DBc::supstr(4);    // y-shift ...
+coo[2]=TOF2DBc::supstr(1)+TOF2DBc::supstr(7)/2.;// z-centre of top supp. honeycomb
 dau=mother.add(new AMSgvolume(
     "TOF_HONEYCOMB",0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
 //--------------
 //          <-- create/position bot supp. honeycomb structures
 gid=2;
 par[0]=0.;                //Ri
-par[1]=TOFDBc::supstr(8); //Ro
-par[2]=TOFDBc::supstr(7)/2.; //Dz
-coo[0]=TOFDBc::supstr(5);    // x-shift from "0" of mother
-coo[1]=TOFDBc::supstr(6);    // y-shift ...
-coo[2]=TOFDBc::supstr(2)-TOFDBc::supstr(7)/2.;// z-centre of bot supp. honeycomb
+par[1]=TOF2DBc::supstr(8); //Ro
+par[2]=TOF2DBc::supstr(7)/2.; //Dz
+coo[0]=TOF2DBc::supstr(5);    // x-shift from "0" of mother
+coo[1]=TOF2DBc::supstr(6);    // y-shift ...
+coo[2]=TOF2DBc::supstr(2)-TOF2DBc::supstr(7)/2.;// z-centre of bot supp. honeycomb
 dau=mother.add(new AMSgvolume(
     "TOF_HONEYCOMB",0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
 //----------------------------------------------------------------------
 //             <-- create/position S1-S4 sc. planes :
 //
-dx=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);// dx(width) of sc.counter(bar+cover)
-dz=TOFDBc::plnstr(6)+2.*TOFDBc::plnstr(7);// dz(thickn)of sc.counter(bar+cover)
+dx=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(13);// dx(width) of sc.counter(bar+cover)
+dz=TOF2DBc::plnstr(6)+2.*TOF2DBc::plnstr(7);// dz(thickn)of sc.counter(bar+cover)
 pr[0]=dx/2.;
 pr[2]=dz/2.; 
 //                                 
-for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
+for (int ip=0;ip<TOF2GC::SCLRS;ip++){ //  <<<=============== loop over sc. planes
 //
-  nbm=SCBRS[ip];                      // num. of bars in layer ip
-  dxt=(nbm-1)*(dx-TOFDBc::plnstr(4)); // first-last sc.count. bars distance 
+  nbm=TOF2GC::SCBRS[ip];                      // num. of bars in layer ip
+  dxt=(nbm-1)*(dx-TOF2DBc::plnstr(4)); // first-last sc.count. bars distance 
 //                                   (betw.centers, taking into account overlaping)
   if(ip<2){
-    co[0]=TOFDBc::supstr(3);// <--top TOF-subsystem X-shift
-    co[1]=TOFDBc::supstr(4);// <--top TOF-subsystem Y-shift
+    co[0]=TOF2DBc::supstr(3);// <--top TOF-subsystem X-shift
+    co[1]=TOF2DBc::supstr(4);// <--top TOF-subsystem Y-shift
   }
   if(ip>1){
-    co[0]=TOFDBc::supstr(5);// <--bot TOF-subsystem X-shift
-    co[1]=TOFDBc::supstr(6);// <--bot TOF-subsystem Y-shift
+    co[0]=TOF2DBc::supstr(5);// <--bot TOF-subsystem X-shift
+    co[1]=TOF2DBc::supstr(6);// <--bot TOF-subsystem Y-shift
   }
 //
-  if(TOFDBc::plrotm(ip)==0){
+  if(TOF2DBc::plrotm(ip)==0){
     nrot=0;                    //  <-- for unrotated planes
     for(int i=0;i<3;i++)for(int j=0;j<3;j++)nrm[i][j]=nrm1[i][j];
   }
-  if(TOFDBc::plrotm(ip)==1){
-    nrot=SCROTN+ip;           // <-- for rotated planes
+  if(TOF2DBc::plrotm(ip)==1){
+    nrot=TOF2GC::SCROTN+ip;           // <-- for rotated planes
     for(int i=0;i<3;i++)for(int j=0;j<3;j++)nrm[i][j]=nrm2[i][j];
   }
 //-----------
@@ -486,23 +489,23 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
 //
 //   <-- cr/position sc. counter (cover + scint. as solid cover)
 //
-    btyp=TOFDBc::brtype(ip,ib);
+    btyp=TOF2DBc::brtype(ip,ib);
     if(btyp==0)continue;// skip physically missing counters
-    pr[1]=TOFDBc::brlen(ip,ib)/2.+TOFDBc::plnstr(11); // dy/2 (sc.length+lg) 
-    if(TOFDBc::plrotm(ip)==0){  // <-- unrotated planes
-      coo[0]=co[0]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
+    pr[1]=TOF2DBc::brlen(ip,ib)/2.+TOF2DBc::lglen(ip,ib); // dy/2 (sc.length+lg) 
+    if(TOF2DBc::plrotm(ip)==0){  // <-- unrotated planes
+      coo[0]=co[0]-dxt/2.+ib*(dx-TOF2DBc::plnstr(4));
       coo[1]=co[1];
       }
-    if(TOFDBc::plrotm(ip)==1){  // <-- rotated planes
+    if(TOF2DBc::plrotm(ip)==1){  // <-- rotated planes
       coo[0]=co[0];
-      coo[1]=co[1]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
+      coo[1]=co[1]-dxt/2.+ib*(dx-TOF2DBc::plnstr(4));
     }
-    coo[2]=TOFDBc::getzsc(ip,ib);
+    coo[2]=TOF2DBc::getzsc(ip,ib);
     co[2]=coo[2];//(save z-pos. for later use)
     for(int i=0;i<3;i++)par[i]=pr[i];
     gid=100*(ip+1)+ib+1;
     strcpy(vname,"TC");
-    kk=ip*SCMXBR+ib+1;//solid numbering of counters
+    kk=ip*TOF2GC::SCMXBR+ib+1;//solid numbering of counters
     ii=kk/10;
     in[0]=inum[ii];
     strcat(vname,in);
@@ -514,9 +517,9 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
 //-------
 //        <-- cr/position scintillator inside counter
 //
-    par[0]=pr[0]-TOFDBc::plnstr(13);// pure scint. x-size/2
-    par[1]=pr[1]-TOFDBc::plnstr(11);// pure scint. y-size/2 (minus light guide)
-    par[2]=pr[2]-TOFDBc::plnstr(7);// pure scint. z-size/2
+    par[0]=pr[0]-TOF2DBc::plnstr(13);// pure scint. x-size/2
+    par[1]=pr[1]-TOF2DBc::lglen(ip,ib);// pure scint. y-size/2 (minus light guide)
+    par[2]=pr[2]-TOF2DBc::plnstr(7);// pure scint. z-size/2
     coo[0]=0.;
     coo[1]=0.;
     coo[2]=0.;
@@ -525,19 +528,19 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
 //-------
 //        <--- now put boxes, equivalent to (PMTs + shielding)
 //                                    at both ends of sc. bar.
-    par[0]=TOFDBc::plnstr(8)/2.;
-    par[1]=TOFDBc::plnstr(9)/2.;
-    par[2]=TOFDBc::plnstr(10)/2.;
-    if(TOFDBc::plrotm(ip)==0){
-      coo[0]=co[0]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
-      coo[1]=co[1]-pr[1]-TOFDBc::plnstr(9)/2.;
+    par[0]=TOF2DBc::plnstr(8)/2.;
+    par[1]=TOF2DBc::plnstr(9)/2.;
+    par[2]=TOF2DBc::plnstr(10)/2.;
+    if(TOF2DBc::plrotm(ip)==0){
+      coo[0]=co[0]-dxt/2.+ib*(dx-TOF2DBc::plnstr(4));
+      coo[1]=co[1]-pr[1]-TOF2DBc::plnstr(9)/2.;
     }
-    if(TOFDBc::plrotm(ip)==1){
-      coo[0]=co[0]-pr[1]-TOFDBc::plnstr(9)/2.;
-      coo[1]=co[1]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
+    if(TOF2DBc::plrotm(ip)==1){
+      coo[0]=co[0]-pr[1]-TOF2DBc::plnstr(9)/2.;
+      coo[1]=co[1]-dxt/2.+ib*(dx-TOF2DBc::plnstr(4));
     }
-    if(ip==0||ip==2)coo[2]=co[2]+TOFDBc::plnstr(12);
-    if(ip==1||ip==3)coo[2]=co[2]-TOFDBc::plnstr(12);
+    if(ip==0||ip==2)coo[2]=co[2]+TOF2DBc::plnstr(12);
+    if(ip==1||ip==3)coo[2]=co[2]-TOF2DBc::plnstr(12);
 //                                   <=== create pmt1-box
     gid=1000+100*(ip+1)+ib+1;
 ///*
@@ -545,13 +548,13 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
     "TOF_PMT_BOX",nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
 //*/
 //-----
-    if(TOFDBc::plrotm(ip)==0){
-      coo[0]=co[0]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
-      coo[1]=co[1]+pr[1]+TOFDBc::plnstr(9)/2.;
+    if(TOF2DBc::plrotm(ip)==0){
+      coo[0]=co[0]-dxt/2.+ib*(dx-TOF2DBc::plnstr(4));
+      coo[1]=co[1]+pr[1]+TOF2DBc::plnstr(9)/2.;
     }
-    if(TOFDBc::plrotm(ip)==1){
-      coo[0]=co[0]+pr[1]+TOFDBc::plnstr(9)/2.;
-      coo[1]=co[1]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
+    if(TOF2DBc::plrotm(ip)==1){
+      coo[0]=co[0]+pr[1]+TOF2DBc::plnstr(9)/2.;
+      coo[1]=co[1]-dxt/2.+ib*(dx-TOF2DBc::plnstr(4));
     }
 //                                   <=== create pmt2-box
     gid=2000+100*(ip+1)+ib+1;
@@ -562,7 +565,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
 //
   }      //   <<<============= end of sc. bars loop ==========
 }   //   <<<============= end of sc. planes loop =============
-  cout<<"AMSGEOM: TOF-geometry done!"<<endl;
+  cout<<"AMSGEOM: TOF02-geometry done!"<<endl;
 }
 
 
@@ -647,7 +650,7 @@ AMSNode * p;
 //
 //     create/pos groove in A-mother:
 //
-    nrot=SCROTN+100+i;
+    nrot=TOF1GC::SCROTN+100+i;
     nrd[0][0]=cos(phib*degrad);// rot.matrix(wrt Amother) for groove
     nrd[0][1]=-sin(phib*degrad);
     nrd[0][2]=0.;
@@ -670,7 +673,7 @@ AMSNode * p;
 //
 //     create/pos sc. bump in Amother:
 //
-    nrot=SCROTN+200+i;
+    nrot=TOF1GC::SCROTN+200+i;
     nrd[0][0]=cos(phib*degrad);// rot.matrix(wrt Amother) for bump
     nrd[0][1]=-sin(phib*degrad);
     nrd[0][2]=0.;
@@ -692,6 +695,134 @@ AMSNode * p;
        "ANTI_SCINT",nrot,"ANTB","TUBS",par,5,coo,nrd, "ONLY",1,gid,1));
   }// ---> end of sector loop
 //
+  cout<<"AMSGEOM: ANTI-1 geom done !"<<endl;
+}
+//---------------------------------------------------------------
+void amsgeom::antigeom002(AMSgvolume & mother){
+AMSID amsid;
+geant par[6]={0.,0.,0.,0.,0.,0.};
+number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+number nrd[3][3];
+geant coo[3]={0.,0.,0.};
+integer i,nrot,gid=0,gidd=0;
+geant scradi,scinth,scleng,wrapth,groovr,pdlgap,stradi,stleng,stthic;
+geant rs,phi,phib,dphis,dphi,dphig;
+geant degrad,raddeg;
+integer nscpad;
+AMSNode * pAmother;
+AMSNode * pSegm;
+AMSNode * pGroov;
+AMSNode * p;
+//
+  raddeg=AMSDBc::raddeg;
+  degrad=AMSDBc::pi/180.;
+  ANTI2DBc::setgeom();
+  nscpad=ANTI2C::MAXANTI;
+  scradi=ANTI2DBc::scradi();
+  scinth=ANTI2DBc::scinth();
+  scleng=ANTI2DBc::scleng();
+  wrapth=ANTI2DBc::wrapth();
+  groovr=ANTI2DBc::groovr();
+  pdlgap=ANTI2DBc::pdlgap();
+  stradi=ANTI2DBc::stradi();
+  stleng=ANTI2DBc::stleng();
+  stthic=ANTI2DBc::stthic();
+  rs=scradi+0.5*scinth;
+  dphi=360./float(nscpad);
+  dphig=raddeg*pdlgap/scradi;// phi-thickness of paddle gap(degree)
+  dphis=dphi-dphig;
+//
+// create ANTI-counter supp.tube volume as  cylinder:
+//
+  par[0]=stradi;
+  par[1]=stradi+stthic;
+  par[2]=stleng/2.;
+  par[3]=0.;
+  par[4]=360.;
+  gid=100;
+  p=mother.add(new AMSgvolume(
+       "ANTI_SUPTB",0,"ASTB","TUBE",par,5,coo,nrm, "ONLY",0,gid,1));
+//
+// create ANTI-counter mother volume as wrapper-made cylinder:
+//
+  par[0]=scradi-wrapth;
+  par[1]=scradi+scinth+wrapth;
+  par[2]=scleng/2.+wrapth;
+  par[3]=0.;
+  par[4]=360.;
+  gid=200;
+  pAmother=mother.add(new AMSgvolume(
+       "ANTI_WRAP",0,"AMOT","TUBE",par,5,coo,nrm, "ONLY",0,gid,1));
+//
+// ---> Loop to fill A-mother volume with sc.segments,sc.bumps and holes :
+//
+  gid=0;
+  for(i=0;i<nscpad;i++){
+    phi=i*dphi;
+    phib=phi+dphis;
+//
+//     create/pos sc. segment in A-mother:
+//
+    par[0]=scradi;
+    par[1]=scradi+scinth;
+    par[2]=0.5*scleng;
+    par[3]=phi;
+    par[4]=phib;
+    coo[0]=0.;
+    coo[1]=0.;
+    coo[2]=0.;
+    gid+=1;
+    pSegm=pAmother->add(new AMSgvolume(
+       "ANTI_SCINT",0,"ANTS","TUBS",par,5,coo,nrm, "MANY",1,gid,1));
+//
+//     create/pos groove in A-mother:
+//
+    nrot=TOF2GC::SCROTN+100+i;
+    nrd[0][0]=cos(phib*degrad);// rot.matrix(wrt Amother) for groove
+    nrd[0][1]=-sin(phib*degrad);
+    nrd[0][2]=0.;
+    nrd[1][0]=sin(phib*degrad);
+    nrd[1][1]=cos(phib*degrad);
+    nrd[1][2]=0.;
+    nrd[2][0]=0.;
+    nrd[2][1]=0.;
+    nrd[2][2]=1.;
+    coo[0]=rs*cos(phib*degrad);
+    coo[1]=rs*sin(phib*degrad);
+    coo[2]=0.;
+    par[0]=groovr-pdlgap;
+    par[1]=groovr;
+    par[2]=0.5*scleng;
+    par[3]=0.;
+    par[4]=180.;
+    pGroov=pAmother->add(new AMSgvolume(
+       "ANTI_WRAP",nrot,"AGRV","TUBS",par,5,coo,nrd, "ONLY",1,gid,1));
+//
+//     create/pos sc. bump in Amother:
+//
+    nrot=TOF2GC::SCROTN+200+i;
+    nrd[0][0]=cos(phib*degrad);// rot.matrix(wrt Amother) for bump
+    nrd[0][1]=-sin(phib*degrad);
+    nrd[0][2]=0.;
+    nrd[1][0]=sin(phib*degrad);
+    nrd[1][1]=cos(phib*degrad);
+    nrd[1][2]=0.;
+    nrd[2][0]=0.;
+    nrd[2][1]=0.;
+    nrd[2][2]=1.;
+    coo[0]=rs*cos(phib*degrad);
+    coo[1]=rs*sin(phib*degrad);
+    coo[2]=0.;
+    par[0]=0.;
+    par[1]=groovr-pdlgap;
+    par[2]=0.5*scleng;
+    par[3]=0.;
+    par[4]=180.;
+    p=pAmother->add(new AMSgvolume(
+       "ANTI_SCINT",nrot,"ANTB","TUBS",par,5,coo,nrd, "ONLY",1,gid,1));
+  }// ---> end of sector loop
+//
+  cout<<"AMSGEOM: ANTI-2 geom done !"<<endl;
 }
 //---------------------------------------------------------------------
 
@@ -2567,7 +2698,7 @@ void amsgeom::antigeom02(AMSgvolume & mother){
  }
  else if(MISCFFKEY.G3On){
 #endif
- amsgeom::antigeom(mother);
+ amsgeom::antigeom002(mother);
 #ifdef __G4AMS__
 }
 #endif
@@ -2594,17 +2725,17 @@ AMSgvolume *dummy;
 //
   raddeg=AMSDBc::raddeg;
   degrad=AMSDBc::pi/180.;
-  ANTIDBc::setgeom();
-  nscpad=MAXANTI;
-  scradi=ANTIDBc::scradi();
-  scinth=ANTIDBc::scinth();
-  scleng=ANTIDBc::scleng();
-  wrapth=ANTIDBc::wrapth();
-  groovr=ANTIDBc::groovr();
-  pdlgap=ANTIDBc::pdlgap();
-  stradi=ANTIDBc::stradi();
-  stleng=ANTIDBc::stleng();
-  stthic=ANTIDBc::stthic();
+  ANTI2DBc::setgeom();
+  nscpad=ANTI2C::MAXANTI;
+  scradi=ANTI2DBc::scradi();
+  scinth=ANTI2DBc::scinth();
+  scleng=ANTI2DBc::scleng();
+  wrapth=ANTI2DBc::wrapth();
+  groovr=ANTI2DBc::groovr();
+  pdlgap=ANTI2DBc::pdlgap();
+  stradi=ANTI2DBc::stradi();
+  stleng=ANTI2DBc::stleng();
+  stthic=ANTI2DBc::stthic();
   rs=scradi+0.5*scinth;
   dphi=360./float(nscpad);
   dphig=raddeg*pdlgap/scradi;// phi-thickness of paddle gap(degree)
