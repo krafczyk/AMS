@@ -393,7 +393,7 @@ c                   cuts(8)=.true.
                     endif
                     call hf2(971,cooctc(1,1,1),cooctc(2,1,1),1.)
                     cuts(9)=cuts(9).and.xx.lt.1.or.
-     +              abs(beta(pbetap(1))).lt.0.92
+     +              abs(beta(pbetap(1))).lt.0.
                     if(cuts(9))then
                     do i=1,ntrclmc
                      call hf1(702,float(itra(i)),1.)
