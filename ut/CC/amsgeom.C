@@ -89,9 +89,9 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 #ifndef  __G4AMS__
  antigeom02(mother);
  pshgeom02(mother);
-#endif
  srdgeom02(mother);
  trdgeom02(mother);
+#endif
  tkgeom02(mother);
 #ifndef __G4AMS__ 
  richgeom02(mother);

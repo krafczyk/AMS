@@ -239,9 +239,9 @@ integer AMSgvolume::_Norp=0;
        number * rmin = new number[nsurf];
        number * rmax = new number[nsurf];
        for(int i=0;i<nsurf;i++){
-        z[i]=_par[4+3*i];
-        rmin[i]=_par[5+3*i];
-        rmax[i]=_par[6+3*i];
+        z[i]=_par[4+3*i]*cm;
+        rmin[i]=_par[5+3*i]*cm;
+        rmax[i]=_par[6+3*i]*cm;
        }       
        psolid=new G4Polyhedra(G4String(_name),_par[0]*degree,_par[1]*degree,int(_par[2]),nsurf,z,rmin,rmax);
        delete[] z;
@@ -254,9 +254,9 @@ integer AMSgvolume::_Norp=0;
        number * rmin = new number[nsurf];
        number * rmax = new number[nsurf];
        for(int i=0;i<nsurf;i++){
-        z[i]=_par[3+3*i];
-        rmin[i]=_par[4+3*i];
-        rmax[i]=_par[5+3*i];
+        z[i]=_par[3+3*i]*cm;
+        rmin[i]=_par[4+3*i]*cm;
+        rmax[i]=_par[5+3*i]*cm;
        }       
        psolid=new G4Polycone(G4String(_name),_par[0]*degree,_par[1]*degree,nsurf,z,rmin,rmax);
        delete[] z;
