@@ -2170,10 +2170,17 @@ for(int i=0;i<ECPMSMX;i++){
   for(int j=0;j<ECSLMX;j++){
      ECcalib::ecpmcal[j][i].adc2mev()=1;
      ECcalib::ecpmcal[j][i].an2dyr()=25;
+     ECcalib::ecpmcal[j][i].pmrgain()=1;
   for(int k=0;k<4;k++){
+     ECcalib::ecpmcal[j][i].pmscgain(k)=1;
     for(int l=0;l<2;l++){
        ECPMPeds::pmpeds[j][i].ped(k,l)=4095;
        ECPMPeds::pmpeds[j][i].sta(k,l)=0;
+       AMSECIdSoft ids(i,j,k,l);
+       if((ids.getlayer()==4 && ids.getcell()==4) ||
+          (ids.getlayer()==5 && ids.getcell()==4)){
+          ECPMPeds::pmpeds[j][i].sta(k,l)=AMSDBc::BAD;
+       }
    }
      if(i==0 && j==0 && k==0 )cout <<" hi2lowr **** "<<ECcalib::ecpmcal[j][i].hi2lowr(k)<<" "<<ECcalib::ecpmcal[j][i].adc2mev()<<" "<<ECcalib::ecpmcal[j][i].an2dyr()<<endl;
      ECcalib::ecpmcal[j][i].hi2lowr(k)=36;
@@ -2184,7 +2191,7 @@ for(int i=0;i<ECPMSMX;i++){
 
 geant gains[18][14];
 ifstream fbin;
-fbin.open("gains.0807-1118");
+fbin.open("gains.0570-0742");
 for (int i=0;i<18;i++){
    for(int j=0;j<14;j++)fbin >> gains[i][j];
    for(int j=0;j<14;j++)gains[i][j]=1;
@@ -2193,14 +2200,55 @@ for (int i=0;i<18;i++){
    for(int j=0;j<14;j++)cout<< gains[i][j]<<" ";
 cout <<endl;
 }
+
+/*
+ifstream rlgfile;
+rlgfile.open("/afs/ams.cern.ch/Offline/AMSDataDir/v4.00/ecalrlga003mc.dat");
+
+//
+// ---> read PM-status:
+//
+  int dummy;
+  for(int isl=0;isl<ECSLMX;isl++){   
+    for(int isc=0;isc<4;isc++){   
+      for(int ipm=0;ipm<ECPMSMX;ipm++){  
+        rlgfile >> dummy;
+      }
+    }
+  } 
+//
+// ---> read PM(sum of 4 SubCells) relative(to some Ref.PM) gains
+//
+  geant pg;
+  for(int isl=0;isl<ECSLMX;isl++){   
+    for(int ipm=0;ipm<ECPMSMX;ipm++){  
+      rlgfile >> pg;
+              ECcalib::ecpmcal[isl][ipm].pmrgain()=1/pg;
+      
+    }
+  }
+//
+// ---> read PM-SubCell relative gains:
+//
+  for(int isl=0;isl<ECSLMX;isl++){   
+    for(int isc=0;isc<4;isc++){   
+      for(int ipm=0;ipm<ECPMSMX;ipm++){  
+        rlgfile >> pg;
+              ECcalib::ecpmcal[isl][ipm].pmscgain(isc)=ECcalib::ecpmcal[isl][ipm].pmrgain()/pg;
+      }
+    }
+  }
+
+*/
    
    for(int i=0;i<ECSLMX;i++){
-       for(int j=0;j<8;j++){
+       for(int j=0;j<7;j++){
               ECcalib::ecpmcal[i][j].pmrgain()=1;
          for (int k=0;k<4;k++){
              AMSECIdSoft ids(i,j,k,0);
-              ECcalib::ecpmcal[i][j].pmscgain(k)=gains[ids.getlayer()][ids.getpos()];
-              
+           cout <<"  old gain "<<i<<" "<<j<<" "<<k<<" "<< ECcalib::ecpmcal[i][j].pmscgain(k)<<endl;             
+              ECcalib::ecpmcal[i][j].pmscgain(k)=ECcalib::ecpmcal[i][j].pmscgain(k)*gains[ids.getlayer()][ids.getcell()];
+           cout <<"  new gain "<<i<<" "<<j<<" "<<k<<" "<< ECcalib::ecpmcal[i][j].pmscgain(k)<<" "<<ids.getlayer()<<" "<<ids.getcell()<<endl;             
               
          }
        }
@@ -2231,7 +2279,7 @@ cout <<endl;
     else cout <<"ecpedsig ntuple file "<<filename<<" opened."<<endl;
    HBNT(IOPA.ntuple,"EcalPedSigmas"," ");
      for(int i=0;i<ECSLMX;i++){
-       for(int j=0;j<8;j++){
+       for(int j=0;j<7;j++){
          for (int k=0;k<4;k++){
            for( int g=0;g<3;g++){
              AMSECIdSoft ids(i,j,k,g);

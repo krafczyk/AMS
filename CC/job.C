@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.418 2002/10/01 15:53:39 choumilo Exp $
+// $Id: job.C,v 1.419 2002/10/03 14:35:19 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1946,9 +1946,9 @@ void AMSJob::_reecalinitjob(){
 if(ECREFFKEY.SimpleRearLeak[0]<0){
 if(isRealData() ){
   ECREFFKEY.SimpleRearLeak[0]=0.015;
-  ECREFFKEY.SimpleRearLeak[1]=1e-3/1.097;
-  ECREFFKEY.SimpleRearLeak[2]=3.55;
-  ECREFFKEY.SimpleRearLeak[3]=0.92e-3;
+  ECREFFKEY.SimpleRearLeak[1]=1e-3;
+  ECREFFKEY.SimpleRearLeak[2]=2;
+  ECREFFKEY.SimpleRearLeak[3]=0.98e-3;
   for (int i=0;i<4;i++)cout <<" RearLeak["<<i<<"]="<<ECREFFKEY.SimpleRearLeak[i]<<endl;
 }
 else{

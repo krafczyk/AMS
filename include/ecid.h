@@ -1,4 +1,4 @@
-//  $Id: ecid.h,v 1.8 2002/10/03 08:10:25 choutko Exp $
+//  $Id: ecid.h,v 1.9 2002/10/03 14:35:58 choutko Exp $
 #ifndef __AMSECID__
 #define __AMSECID__
 #include <typedefs.h>
@@ -48,7 +48,7 @@ int16 getcrate(){return _crate;}
 int16 getchannel(){return _channel;}
 int16 getslay(){return _sl;}
 int16 getlayer(){return _sl*2+_channel/2;}
-int16 getpos(){return _pmtno*2+_channel%2;}
+int16 getcell(){return _pmtno*2+_channel%2;}
 int16 getpmtno(){return _pmtno;}
 geant getped(int16u gain){return gain<2?ECPMPeds::pmpeds[getslay()][getpmtno()].ped(getchannel(),gain):0;}
 geant getsig(int16u gain){return gain<2?ECPMPeds::pmpeds[getslay()][getpmtno()].sig(getchannel(),gain):0;}
