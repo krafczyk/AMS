@@ -1,4 +1,4 @@
-//  $Id: amsdbc.C,v 1.36 2001/07/13 16:25:26 choutko Exp $
+//  $Id: amsdbc.C,v 1.37 2001/07/18 15:44:53 choumilo Exp $
 // Author V. Choutko 24-may-1996
  
 #include <math.h>
@@ -37,7 +37,7 @@ integer AMSDBc::BigEndian=0;
 const number AMSDBc::raddeg=57.295779;
 const number AMSDBc::pi=3.14159265358979;
 const number AMSDBc::twopi=2*pi;
-geant AMSDBc::ams_size[3]={380.,380.,380.};
+geant AMSDBc::ams_size[3]={390.,390.,390.};
 const char AMSDBc::ams_name[]="AMSG";
 geant AMSDBc::ams_coo[3]={0.,0.,0.};
 const integer AMSDBc::ams_rotmno=1;

@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.23 2001/05/17 12:10:12 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.24 2001/07/18 15:44:53 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -400,7 +400,7 @@ void EcalJobStat::printstat(){
   printf("\n");
   printf(" MC: entries                       : % 6d\n",mccount[0]);
   printf(" MC: MCHit->RawEven(ECTrigfl>0) OK : % 6d\n",mccount[1]);
-  printf(" MC Trig.procedure: entries        : % 6d\n",srcount[0]);
+  printf(" MC Trig.procedure: entries(>=MIP) : % 6d\n",srcount[0]);
   printf("                    Efront OK      : % 6d\n",srcount[1]);
   printf("                    Epk/Ebs OK     : % 6d\n",srcount[2]);
   printf("                    Epk/Efr OK     : % 6d\n",srcount[3]);

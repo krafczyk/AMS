@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.64 2001/07/12 16:19:18 choutko Exp $
+//  $Id: gmat.C,v 1.65 2001/07/18 15:44:53 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -313,7 +313,7 @@ mat.add (new AMSgmat("LOW_DENS_Fe_2",55.85,26.,0.787,17.6,168.));//tempor as for
 mat.add (new AMSgmat( "EC-AL-HONEYC",26.98, 13., 0.04, 600., 2660.));//tempor as for TOF
 //
 //        Al-plate for ECAL
-mat.add (new AMSgmat("ECALPALUM",26.98, 13., 1.35, 17.8, 74.4));
+mat.add (new AMSgmat("ECALPALUM",26.98, 13., 1.35, 17.8, 74.4));//half-dens.AL
 //------------------
 { // Fiber wall(cladding+glue, ~ plexiglass):  
   geant a[]={12.01,1.01,16.0};
@@ -386,6 +386,50 @@ mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
   mat.add (new AMSgmat("MVACUUM",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
   mat.add (new AMSgmat("MALUMINIUM",26.98, 13., 2.7, 8.9, 39.4));// norm.dens.AL
   mat.add (new AMSgmat("MCOILMAT",26.98, 13., 2.7, 8.9, 39.4));// tempor as above
+}
+//--------------------------------
+//  Radiator+shield/crates/TOF-TRD_interf/USS materials:
+{
+  geant rraden=0.379/2.7;//relat(to norm.AL) density of radiator(with embedded tubes)
+  mat.add (new AMSgmat("RADALUMIN",26.98, 13., 2.7*rraden,
+                                   8.9/rraden, 39.4/rraden));// low dens.AL for rad.
+}
+{
+  geant rraden=0.2;//relat(to norm.AL) density of TOF honeycomb supports
+  mat.add (new AMSgmat("TFSUPALUMIN",26.98, 13., 2.7*rraden,
+                                   8.9/rraden, 39.4/rraden));// low dens.AL for supports
+}
+{
+  geant rraden=0.2;//relat(to norm.AL) density of M-structure frame
+  mat.add (new AMSgmat("MSFALUMIN",26.98, 13., 2.7*rraden,
+                                   8.9/rraden, 39.4/rraden));// low dens.AL 
+}
+{
+  geant a[]={12.01,26.98,63.55};//C+Al+Cu
+  geant z[]={6.,13.,29.};
+  geant w[]={30.,50.,20.};//prop. by weight
+  geant craden=0.2;// abs. density of crate
+  mat.add (new AMSgmat("CRATEMAT1",a,z,w,3,craden));
+}
+{
+  geant rraden=0.3;//relat(to norm.AL) density of bar-1 type of USS
+  mat.add (new AMSgmat("US1BALUMIN",26.98, 13., 2.7*rraden,
+                                   8.9/rraden, 39.4/rraden));// low dens.AL 
+}
+{
+  geant rraden=0.3;//relat(to norm.AL) density of bar-2 type of USS
+  mat.add (new AMSgmat("US2BALUMIN",26.98, 13., 2.7*rraden,
+                                   8.9/rraden, 39.4/rraden));// low dens.AL 
+}
+{
+  geant rraden=0.3;//relat(to norm.AL) density of bar-3 type of USS
+  mat.add (new AMSgmat("US3BALUMIN",26.98, 13., 2.7*rraden,
+                                   8.9/rraden, 39.4/rraden));// low dens.AL 
+}
+{
+  geant rraden=0.3;//relat(to norm.AL) density of bar-4 type of USS
+  mat.add (new AMSgmat("US4BALUMIN",26.98, 13., 2.7*rraden,
+                                   8.9/rraden, 39.4/rraden));// low dens.AL 
 }
 //-------------------------------
 #ifdef __AMSDEBUG__
@@ -746,6 +790,43 @@ magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MLHEMED","HELIUM",0));
   magmed->CUTGAM(cutge);
   magmed->CUTELE(cutge);
 //
+}
+//--------------------
+{
+// ---> AMS02 Radiator+shield/crate/TOF-TRD_interf/USS Media:
+//
+geant cutge=MAGSFFKEY.ecutge;// increased EgammaEelectron cut
+AMSgtmed * radmed=(AMSgtmed*)tmed.add (new AMSgtmed("RADMED1","RADALUMIN",0));
+  radmed->CUTGAM(cutge);
+  radmed->CUTELE(cutge);
+//
+radmed=(AMSgtmed*)tmed.add (new AMSgtmed("CRATEMED1","CRATEMAT1",0));
+  radmed->CUTGAM(cutge);
+  radmed->CUTELE(cutge);
+//
+radmed=(AMSgtmed*)tmed.add (new AMSgtmed("TFSUPMED1","TFSUPALUMIN",0));
+  radmed->CUTGAM(cutge);
+  radmed->CUTELE(cutge);
+//
+radmed=(AMSgtmed*)tmed.add (new AMSgtmed("MSFMED1","MSFALUMIN",0));
+  radmed->CUTGAM(cutge);
+  radmed->CUTELE(cutge);
+//
+radmed=(AMSgtmed*)tmed.add (new AMSgtmed("US1BMED","US1BALUMIN",0));
+  radmed->CUTGAM(cutge);
+  radmed->CUTELE(cutge);
+//
+radmed=(AMSgtmed*)tmed.add (new AMSgtmed("US2BMED","US2BALUMIN",0));
+  radmed->CUTGAM(cutge);
+  radmed->CUTELE(cutge);
+//
+radmed=(AMSgtmed*)tmed.add (new AMSgtmed("US3BMED","US3BALUMIN",0));
+  radmed->CUTGAM(cutge);
+  radmed->CUTELE(cutge);
+//
+radmed=(AMSgtmed*)tmed.add (new AMSgtmed("US4BMED","US4BALUMIN",0));
+  radmed->CUTGAM(cutge);
+  radmed->CUTELE(cutge);
 }
 //--------------------
 

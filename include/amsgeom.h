@@ -1,4 +1,4 @@
-//  $Id: amsgeom.h,v 1.5 2001/01/22 17:32:42 choutko Exp $
+//  $Id: amsgeom.h,v 1.6 2001/07/18 15:45:18 choumilo Exp $
 extern "C" void mtx_(geant nrm[][3],geant vect[]);
 extern "C" void mtx2_(number nrm[][3],geant  xnrm[][3]);
 #define MTX mtx_
@@ -32,4 +32,6 @@ extern void ecalgeom02(AMSgvolume &);
 extern void trdgeom02(AMSgvolume &);
 extern void srdgeom02(AMSgvolume &);
 extern void Put_rad(AMSgvolume * , int);
+extern void ext1structure02(AMSgvolume &);
+extern void ext2structure02(AMSgvolume &);
 };

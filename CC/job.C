@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.376 2001/07/16 16:11:33 choutko Exp $
+// $Id: job.C,v 1.377 2001/07/18 15:44:53 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -303,7 +303,7 @@ void AMSJob::_sitrigdata(){
 //----------
 //
 void AMSJob::_sitrig2data(){
-  TGL1FFKEY.trtype=0; //trigger type (0/1/2/3/4/5/6/7)
+  TGL1FFKEY.trtype=0; //trigger type (0/1/2/3/4/5/6/7/8)
 // TOF :
 // these are additional requir. to "hardware"-defined TOFMCFFKEY.trlogic[]
   TGL1FFKEY.ntof=3;// min. fired TOF-planes
@@ -637,7 +637,7 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.silogic[1]=0;   //(5) spare
   ECMCFFKEY.mev2mev=33.00;  //(6) Geant dE/dX(MeV)->Emeas(MeV) conv.factor
   ECMCFFKEY.mev2adc=0.394; //(7) Emeas(MeV)->ADCch factor(MIP-m.p. -> 5th channel)
-  ECMCFFKEY.safext=10.;     //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
+  ECMCFFKEY.safext=0.;     //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
 FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //---------------------------

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.24 2001/07/13 17:06:55 choutko Exp $
+//  $Id: ecalrec.C,v 1.25 2001/07/18 15:44:53 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -110,7 +110,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
   nslmx=ECALDBc::slstruc(3);
   npmmx=ECALDBc::slstruc(4);
   stat=1;//bad
-  trigfl=0;//reset tigger-flag
+  trigfl=0;//reset trigger-flag
   edept=0.;
   edeprt=0.;
   emeast=0.;
@@ -337,6 +337,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
     trigfl=1;// at least MIP (some non-zero activity in EC)
 //
     if(efrnt>ECALVarp::ecalvpar.daqthr(2)){ //<--- Efront cut
+      trigfl=2;// softEM confirmed
       EcalJobStat::addsr(1);
       if(ECMCFFKEY.mcprtf==1 && an4respt<esep1){
         HF1(ECHIST+11,p2brat,1.);
@@ -358,7 +359,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       if(ECMCFFKEY.mcprtf==1)HF1(ECHIST+18,geant(an4respt),1.);
       if(an4respt<esep2 && (trwid1>=wdcut1 || trwid2>=wdcut2))goto nonEM;// ---> too high width(LE)
       EcalJobStat::addsr(4);
-      trigfl=2;
+      trigfl=3;// EM confirmed
 nonEM:
         rrr=0;    
     }

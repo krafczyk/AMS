@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.11 2001/05/01 09:59:59 choumilo Exp $
+//  $Id: trigger102.C,v 1.12 2001/07/18 15:44:54 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -90,31 +90,30 @@ void Trigger2LVL1::build(){
 // check combined (tof+anti+ecal)trigger flag:
 //
   bool tofok(0),antiok(0),ecok(0),ec1ok(0),ec2ok(0),comtrok(0);
-  bool unbtr1(0),unbtr2(0),unbtr3(0),zge1ptr(0),zg2ptr(0),elpotr(0),photr(0),unitr(0);
+  bool unbtr1(0),unbtr2(0),unbtr3(0),zge1ptr(0),zge2ptr(0),elpotr(0),photr(0),unitr(0);
 //
   if(tofflag>0 && ntof >=TGL1FFKEY.ntof)tofok=1;
   if(nanti <= TGL1FFKEY.nanti)antiok=1;
   if(ectrigfl>0)ecok=1;//"at least MIP" activity in ECAL
-  if(ectrigfl>10)ec1ok=1;//"high energy" in ECAL
-  if(ectrigfl>11)ec2ok=1;//"High EM-energy" in ECAL
 //
-  unbtr1=tofok;//unbiased#1 trigger (TOF only)
-  unbtr2=ecok;//unbiased#2 trigger (EC(ectrigfl>0) only)
-  unbtr3=tofok && ecok;//unbiased#3 trigger (TOF+EC(ectrigfl>0))
-  zge1ptr=tofok && antiok && (ectrigfl%10<=1);// Z>=1 particle trigger
-  zg2ptr=tofok && (tofflag>2) && antiok && (ectrigfl%10<=1);// Z>2 particle trigger
-  elpotr=tofok && (ectrigfl%10==2);//e+- trigger(EM_in_EC +TOF)
-  photr=(ectrigfl==12);//photon trigger (High_EM_in_EC)
-  unitr=zge1ptr || zg2ptr || elpotr || photr;//univers.trigger
+  unbtr1=tofok;                              //unbiased#1 trigger (TOF only)
+  unbtr2=ecok;                               //unbiased#2 trigger (EC(ectrigfl>0) only)
+  unbtr3=tofok && ecok;                      //unbiased#3 trigger (TOF+EC(ectrigfl>0))
+  zge1ptr=tofok && antiok;                   // Z>=1 particle trigger
+  zge2ptr=tofok && (tofflag>2);              // Z>=2 particle trigger
+  elpotr=tofok && (ectrigfl%10>=2);          //e+- trigger(softEM_in_EC +TOF)
+  photr=(ectrigfl==13);                      //photon trigger (High_(EM+En)_in_EC)
+  unitr=zge1ptr || zge2ptr || elpotr || photr;//univers.trigger
 //
   if(TGL1FFKEY.trtype==0)comtrok=unitr;
   else if(TGL1FFKEY.trtype==1)comtrok=unbtr1; 
   else if(TGL1FFKEY.trtype==2)comtrok=unbtr2; 
   else if(TGL1FFKEY.trtype==3)comtrok=unbtr3; 
   else if(TGL1FFKEY.trtype==4)comtrok=zge1ptr; 
-  else if(TGL1FFKEY.trtype==5)comtrok=zg2ptr; 
+  else if(TGL1FFKEY.trtype==5)comtrok=zge2ptr; 
   else if(TGL1FFKEY.trtype==6)comtrok=elpotr; 
   else if(TGL1FFKEY.trtype==7)comtrok=photr; 
+  else if(TGL1FFKEY.trtype==8)comtrok=(tofok || ecok); 
   else{
     cout<<"Trigger2LVL1::build Error: unknown trigger type "<<TGL1FFKEY.trtype<<endl;
     exit(10);

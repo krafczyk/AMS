@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.194 2001/07/16 16:11:45 choutko Exp $
+#  $Id: datacards.doc,v 1.195 2001/07/18 15:45:18 choumilo Exp $
 Datacards
 
 // Protection from some myst bug
@@ -752,14 +752,17 @@ I 1 trtype(0)          //TriggerType:
                            //1->unbiased#1 trigger (TOF only)
 			   //2->unbiased#2 trigger (EC(ectrflag>0) only)
 			   //3->inbiased#3 trigger (TOF+EC(ectrflag>0))
-			   //4->Z>=1 particles trigger (TOF+ANTI+(ECtrflag=0,1,11))
-			   //5->Z>2 particles trigger (TOF(tofflag>2)+ANTI(ECtrflag=0,1,11))
-			   //6->e+- particles trigger (TOF+EC(ectrflag=2,12)), i.e.EMtrigger(no ANTI)
-			   //7->Photon trigger (EC(ectrflag=12) only) 
-			   // Note: ECAL "HighEnergy" threshold(to have ECflag=1,2 or 11,12)
-			   // is defined in ECRE 12 (in mev); ECflag=1->MIP
-			   //                                       =2->"electromagneticity"
-			   //                                       above+10-> high energy
+			   //4->Z>=1 particles trigger (TOF+ANTI)
+			   //5->Z>=2 particles trigger  TOF(tofflag>2)
+			   //6->e+- particles trigger (TOF + EC(ectrflag%10>=2)=softEM)
+			   //7->Photon trigger (EC(ectrflag=13) only), i.e.(EM+HighEnergy) 
+			   //8->unbiased#4 trigger (TOF || EC(ectrflag>0)) 
+			   // Note: ECAL "HighEnergy" threshold(to have ECflag=1,2,3 or 11,12,13)
+			   // is defined in ECRE 12 (in mev);
+			   // ECflag=1->MIP
+			   //       =2->soft"electromagneticity"(Efront-cut OK)
+			   //       =3->    "electromagneticity"(All EM-cuts OK)
+			   // above+10-> high energy
 I 2 ntof(3)                           // min number of tof planes in trig
 I 3 nanti(2)                         // max number of anti counters in trig
 I 4 RebuildLVL1(0)                   // Rebuild or not lvl1 if reconstruction
@@ -785,7 +788,11 @@ I  9   Print-flag(0)       // spare
 I 10   Print-flag(0)       // spare
 I 11   Trig.logic-flag(0)  //  use AND/OR(if=0/1) for two side logic signals   
 I 12   Trig.logic-flag(0)  //  require at least ANY3/ALL4/SPECIAL2(if=0/1/2) coinc. of 4 TOF-layers         
-I 13   fast(0)             //  0/1->off/on fast gener. in mceventg.(Don't use for Accept.calc !)
+I 13   fast(0)             //  0/1/2(for fast gener. in mceventg.C),0->off; 1->require initial
+                               direction not to touch ANTI; 2->+ require to touch top surface of EC
+			       DR(cm) far from EC sides(DR is defined in ECMC 8, i.e. DC<0 decrease
+			       EC sensitive area !!!) 
+                               (Don't use fast mode for Acceptance calculation !)
 I 14   daqfmt(1)           // Raw/Reduced(0/1) TDC format for DAQ simulation
 I 15   birks(1)            // apply or not birks correction
 
@@ -878,7 +885,9 @@ R 3    cutge(0.001)              // Geant(cutele=cutgam(Gev)) cut for EC-volumes
 I 4    silogic[0]                // =0/1/2->peds+noise(noncor)/no_noise/no_peds
 I 5    silogic[1]                // spare
 R 6    mev2mev                   // Geant_de/dx->Emeasured(input) convertion
-R 7    mev2adc                   // (acd/mev) Emeasured->ADCchannel convertion    
+R 7    mev2adc                   // (acd/mev) Emeasured->ADCchannel convertion
+R 8    safext                    // extention(>0)/reduction(<0) of EC transv. size
+                                    (is used when TFMC 13=2)    
 
     ECAL reconstruction:
 
