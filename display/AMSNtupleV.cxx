@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.16 2005/01/26 12:57:50 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.17 2005/01/27 09:44:15 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -662,7 +662,10 @@ for(int i=0;i<ev->nParticle();i++){
     rad_thick=-0.5;
   }
   else {
+  if(ev->Version()<130){
    rad_thick=-3;
+  }
+  else rad_thick=-2.5;
   }
   if(drawplex){
       refi=n_plex;
