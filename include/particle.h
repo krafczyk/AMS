@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.35 2002/03/20 09:43:10 choumilo Exp $
+//  $Id: particle.h,v 1.36 2002/04/19 15:24:04 delgadom Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -60,6 +60,7 @@ protected:
   AMSPoint _EcalSCoo[3];
   AMSPoint _TrCoo[trconst::maxlay];  
   AMSPoint _TRDCoo;  
+  AMSPoint _RichCoo[2];
   number   _Local[trconst::maxlay];
 
 // new
@@ -99,6 +100,7 @@ public:
     for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2*ecalconst::ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<2;i++)_RichCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<6;i++){
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;
@@ -118,6 +120,7 @@ public:
     for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2*ecalconst::ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<2;i++)_RichCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<6;i++){
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;

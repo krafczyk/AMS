@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.55 2002/04/17 12:42:28 choumilo Exp $
+//  $Id: root.h,v 1.56 2002/04/19 15:24:06 delgadom Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -38,7 +38,7 @@ const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
 const int MAXRICMC   =   300;
 const int MAXRICHITS =   100;
-const int MAXRICHRIN =   100;
+const int MAXRICHRIN =   10;
 const int MAXTRDCLMC   =   200;
 const int MAXTRDRHT   =   200;
 const int MAXTRDCL   =   100;
@@ -202,6 +202,7 @@ public:
   float TrCoo[MAXPART02][trconst::maxlay][3];
 #endif
   float TRDCoo[MAXPART02][3];
+  float RichCoo[MAXPART02][2][3];
 #ifdef __WRITEROOT__
   ParticleNtuple02();
 ClassDef(ParticleNtuple02,1)       //ParticleNtuple

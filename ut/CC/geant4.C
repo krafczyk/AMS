@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.45 2002/03/20 09:41:17 choumilo Exp $
+//  $Id: geant4.C,v 1.46 2002/04/19 15:23:51 delgadom Exp $
 #include <job.h>
 #include <event.h>
 #include <trrec.h>
@@ -645,6 +645,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
    GCTRAK.nstep=Track->GetCurrentStepNumber()-1;
    GCKINE.itra=Track->GetParentID();
 //   cout << " track id "<<GCKINE.itra<<" "<<GCTRAK.nstep<<endl;
+
     if(GCKINE.ipart==Cerenkov_photon){
       if((PrePV->GetName())(0)=='R' && (PrePV->GetName())(1)=='I' &&
         (PrePV->GetName())(2)=='C' && (PrePV->GetName())(3)=='H'){
@@ -664,8 +665,9 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 
         }
       }
-   }
-    
+    }
+
+        
 
     if(GCTMED.isvol){
 //      cout << "Stepping  sensitive"<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
@@ -892,6 +894,54 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 //------------------------------------------------------------------
 // CJM : RICH (preliminary and slow version)
 //
+
+     if(GCKINE.itra==1 && GCKINE.ipart!=Cerenkov_photon && GCTRAK.inwvol==1){
+       
+       if(PrePV->GetName()(0)=='R' && PrePV->GetName()(1)=='A' &&
+	  PrePV->GetName()(2)=='D' && PrePV->GetName()(3)==' ')
+	 AMSRichMCHit::sirichhits(GCKINE.ipart,
+				  0,
+				  GCTRAK.vect,
+				  GCTRAK.vect,
+				  GCTRAK.vect+3,
+				  Status_primary_rad);
+       else
+	 
+	 if(PrePV->GetName()(0)=='R' && PrePV->GetName()(1)=='A' &&
+	    PrePV->GetName()(2)=='D' && PrePV->GetName()(3)=='B')
+	   AMSRichMCHit::sirichhits(GCKINE.ipart,
+				    0,
+				    GCTRAK.vect,
+				    GCTRAK.vect,
+				    GCTRAK.vect+3,
+				    Status_primary_radb);
+       
+	 else
+	   
+	   if(PrePV->GetName()(0)=='S' && PrePV->GetName()(1)=='T' &&
+	      PrePV->GetName()(2)=='K' && PrePV->GetName()(3)==' ')
+	     AMSRichMCHit::sirichhits(GCKINE.ipart,
+				      0,
+				      GCTRAK.vect,
+				      GCTRAK.vect,
+				      GCTRAK.vect+3,
+				      Status_primary_tracker);
+       
+       
+	   else
+	     
+	     if(PrePV->GetName()(0)=='T' && PrePV->GetName()(1)=='O' &&
+		PrePV->GetName()(2)=='F' && PrePV->GetName()(3)=='H')
+	       AMSRichMCHit::sirichhits(GCKINE.ipart,
+					0,
+					GCTRAK.vect,
+					GCTRAK.vect,
+					GCTRAK.vect+3,
+					Status_primary_tof);
+	       
+
+
+     }
 
 
     if(PrePV->GetName()(0)=='C' && PrePV->GetName()(1)=='A' &&

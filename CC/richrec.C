@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.31 2002/03/20 09:41:21 choumilo Exp $
+//  $Id: richrec.C,v 1.32 2002/04/19 15:23:56 delgadom Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -171,7 +171,8 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   geant theta=atan2(R,fabs(origin[2]-z));
   geant h=origin[2]-RICradpos+RICHDB::rad_height;
   static const geant H=RICHDB::rich_height+RICHDB::foil_height+
-                       RICradmirgap+RIClgdmirgap;
+                       RICradmirgap+RIClgdmirgap
+                       -RICHDB::foil_height;   // Correction due to high index
   static const geant n=RICHDB::rad_index;
   
   geant u=fabs(sin(theta)/n);
@@ -265,8 +266,8 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
     //    z=origin[3]-false_height+RICHDB::height;
     z=origin[3]-RICradpos+RICHDB::rad_height-false_height+
                 (RICHDB::rich_height+RICHDB::foil_height
-//                 +RIClgdmirgap+RICradmirgap);
-                   +RICradmirgap);
+                   +RICradmirgap)
+                -RICHDB::foil_height; // Correction due to high index
 
 
   AMSPoint initial(x,y,z),final(xf,yf,zf);

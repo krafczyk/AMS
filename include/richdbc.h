@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.21 2002/02/27 16:20:02 mdelgado Exp $
+//  $Id: richdbc.h,v 1.22 2002/04/19 15:24:05 delgadom Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -87,6 +87,11 @@ const integer Status_Window=-2;
 const integer Status_No_Cerenkov=-3;
 const integer Status_Fake=-4;
 const integer Status_LG_origin=-5;
+const integer Status_primary_rad=-7;
+const integer Status_primary_tracker=-8;
+const integer Status_primary_tof=-8;
+const integer Status_primary_radb=-9;
+
 
 }
 

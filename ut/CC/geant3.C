@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.66 2002/03/26 13:08:33 mdelgado Exp $
+//  $Id: geant3.C,v 1.67 2002/04/19 15:23:49 delgadom Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -438,6 +438,54 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
     }
 
    
+    // More RICH information added for MC
+
+    if(GCKINE.itra==1 &&GCVOLU.names[lvl][0]=='R' && 
+       GCVOLU.names[lvl][1]=='A' &&GCVOLU.names[lvl][2]=='D' && 
+       GCVOLU.names[lvl][3]==' ' && GCKINE.ipart!=50 &&
+       GCTRAK.inwvol==1){
+      AMSRichMCHit::sirichhits(GCKINE.ipart,
+                               0,
+                               GCTRAK.vect,
+                               GCTRAK.vect,
+                               GCTRAK.vect+3,
+                               Status_primary_rad);
+    } else if(GCKINE.itra==1 &&GCVOLU.names[lvl][0]=='R' && 
+              GCVOLU.names[lvl][1]=='A' &&GCVOLU.names[lvl][2]=='D' && 
+              GCVOLU.names[lvl][3]=='B' && GCKINE.ipart!=50 &&
+              GCTRAK.inwvol==1){
+      AMSRichMCHit::sirichhits(GCKINE.ipart,
+                               0,
+                               GCTRAK.vect,
+                               GCTRAK.vect,
+                               GCTRAK.vect+3,
+                               Status_primary_radb);
+    }
+    
+    if(GCKINE.itra==1 &&GCVOLU.names[lvl][0]=='S' && 
+       GCVOLU.names[lvl][1]=='T' &&GCVOLU.names[lvl][2]=='K' 
+       && GCKINE.ipart!=50 && GCTRAK.inwvol==1) //Tracker
+      AMSRichMCHit::sirichhits(GCKINE.ipart,
+                               0,
+                               GCTRAK.vect,
+                               GCTRAK.vect,
+                               GCTRAK.vect+3,
+                               Status_primary_tracker);
+
+    if(GCKINE.itra==1 &&GCVOLU.names[lvl][0]=='T' && 
+       GCVOLU.names[lvl][1]=='O' &&GCVOLU.names[lvl][2]=='F' && 
+       GCVOLU.names[lvl][2]=='H'&& GCKINE.ipart!=50 
+       && GCTRAK.inwvol==1) //TOF
+      AMSRichMCHit::sirichhits(GCKINE.ipart,
+                               0,
+                               GCTRAK.vect,
+                               GCTRAK.vect,
+                               GCTRAK.vect+3,
+                               Status_primary_tof); 
+
+
+
+
 
 #ifdef __AMSDEBUG__
   if( globalbadthinghappened){

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.96 2002/04/17 12:42:14 choumilo Exp $
+//  $Id: ntuple.C,v 1.97 2002/04/19 15:23:52 delgadom Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -66,7 +66,7 @@ void AMSNtuple::init(){
 
   HBNAME(_lun,"Particle",&_part02.Npart,
  
-"npart[0,20],pbetap(npart)[-1,254]:I,pchargep(npart)[-1,254]:I,ptrackp(npart)[-1,254]:I,ptrdp(npart)[-1,254]:I,prichp(npart)[-1,254]:I,pecalp(npart)[-1,254]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pbeta(npart),perrbeta(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,3,npart),cootr(3,8,npart),cootrd(3,npart)");
+"npart[0,20],pbetap(npart)[-1,254]:I,pchargep(npart)[-1,254]:I,ptrackp(npart)[-1,254]:I,ptrdp(npart)[-1,254]:I,prichp(npart)[-1,254]:I,pecalp(npart)[-1,254]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pbeta(npart),perrbeta(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,3,npart),cootr(3,8,npart),cootrd(3,npart),coorich(3,2,npart)");
 //
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
   "ntof[0,20],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,15]:I,nmemb(ntof)[0,15]:I,TOFEdep(ntof),TOFEdepd(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");
@@ -131,7 +131,7 @@ void AMSNtuple::init(){
   	 "Rchtx(Rhits),Rchty(Rhits)");
 
   HBNAME(_lun,"Ring",&_ring.NRings,
-  	 "nrings[0,100]:I,rcritrackn(nrings):I,"
+  	 "nrings[0,10]:I,rcritrackn(nrings):I,"
   	 "rcrihused(nrings):I,rcrimhused(nrings):I,"
 	 "rcribeta(nrings),rcriebeta(nrings),"
 	 "rcrichi2(nrings)");
