@@ -286,7 +286,13 @@ fbin.close();
 	fwrite(&fbuf,sizeof(float),1,ftemp);
 	fbuf=(float)(Euler_LVLH.Roll);
 	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Vel_angle);
+        if(fabs(Vel_angle)<FLT_MAX){ 
+          fbuf=(float)(Vel_angle);
+        }
+        else {
+          cerr<<"Vel_angle corrupted "<<Vel_angle<<endl;
+          fbuf=0;
+        }
 	fwrite(&fbuf,sizeof(float),1,ftemp);
 	fbuf=(float)(Solar.R);
 	fwrite(&fbuf,sizeof(float),1,ftemp);
