@@ -12,12 +12,12 @@
 //
 integer DAQSBlock::format=1; // default format (reduced), redefined by data card
 //
-int16u DAQSBlock::subdmsk[DAQSBLK]={5,5,3,5,5,5,3,5};//defaul mask(lsbit->msbit: tof/anti/acc)
+int16u DAQSBlock::subdmsk[DAQSBLK]={7,7,1,5,7,7,1,5};//defaul mask(lsbit->msbit: tof/anti/ctc)
 //
 int16u DAQSBlock::sblids[DAQSFMX][DAQSBLK]=  //valid S-block_id's for each format
   {
-    {0x0800,0x0840,0x0880,0x08C0,0x0900,0x0940,0x0980,0x09C0}, //  Raw
-    {0x0801,0x0841,0x0881,0x08C1,0x0901,0x0941,0x0981,0x09C1}  //  Reduced
+    {0x1400,0x1440,0x1480,0x14C0,0x1500,0x1540,0x1580,0x15C0}, //  Raw
+    {0x1401,0x1441,0x1481,0x14C1,0x1501,0x1541,0x1581,0x15C1}  //  Reduced
   };
 //
 // functions for S-blocks class:
@@ -37,10 +37,10 @@ void DAQSBlock::buildraw(integer len, int16u *p){
 //
   blid=*p;
   btyp=blid>>13;// block_type ("0" for event data)
-  ntyp=(blid>>9)&15;// node_type ("4" for TOF/ANTI/CTC)
+  ntyp=(blid>>9)&15;// node_type ("10" for TOF/ANTI/CTC)
   naddr=(blid>>6)&7;// node_address (0-7 -> DAQ crate #)
   dtyp=blid&63;// data_type ("0"->RawTDC; "1"->ReducedTDC)
-  assert(btyp==0 && ntyp==4);// TOF/ANTI/CTC-data 
+  assert(btyp==0 && ntyp==10);// TOF/ANTI/CTC-data 
   msk=subdmsk[naddr];
 //
   dlen=1;

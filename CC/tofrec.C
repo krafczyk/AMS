@@ -1074,7 +1074,7 @@ void AMSTOFRawEvent::builddaq(int16u blid, integer &len, int16u *p){
       ptr=ptlist[sfet][tofc];
       ntdc=0;
       if(ptr>0){
-        if(mtyp==1)ntdc=ptr->getftdc(tdc);
+        if(mtyp==1)ntdc=ptr->getftdc(tdc);//tempor (not final correspondance)
         if(mtyp==2)ntdc=ptr->getstdc(tdc);
         if(mtyp==3)ntdc=ptr->getadca(tdc);
         if(mtyp==4)ntdc=ptr->getadcd(tdc);
@@ -1123,7 +1123,7 @@ void AMSTOFRawEvent::builddaq(int16u blid, integer &len, int16u *p){
       ntdc=0;
       haddr=(sfet<<4)|tdcc;// hit-address
       if(ptr>0){
-        if(mtyp==1)ntdc=ptr->getftdc(tdc);
+        if(mtyp==1)ntdc=ptr->getftdc(tdc);//tempor (not final correspondance)
         if(mtyp==2)ntdc=ptr->getstdc(tdc);
         if(mtyp==3)ntdc=ptr->getadca(tdc);
         if(mtyp==4)ntdc=ptr->getadcd(tdc);
