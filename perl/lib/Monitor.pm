@@ -648,5 +648,30 @@ int($hash->{CPUNeeded}*10)/10,
 
 sub sendback{
     my ($name, $action, @data) =@_;
+    if ($name eq "ServerClient"){
+        my $ref=$Monitor::Singleton;
+        my %nc=%{${$ref->{nsl}}[0]};
+        $nc{uid}=shift @data;
+        $nc{Type}=shift @data;
+        $nc{MaxClients}=shift @data;
+        $nc{CPUNeeded}=shift @data;
+        $nc{MemoryNeeded}=shift @data;
+        $nc{WholeScriptPath}=shift @data;
+        $nc{LogPath}=shift @data;
+        $nc{SubmitCommand}=shift @data;
+        $nc{HostName}=shift @data;
+        $nc{LogInTheEnd}=shift @data;
+        my $arsref;
+        foreach $arsref (@{$ref->{arsref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                $cid{Type}=$nc{Type};
+                $arsref->sendNC(\%cid,\%nc,$action);
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
 
+        }
+    }
 }
