@@ -45,20 +45,20 @@ void AMSGenHist::_Fetch(){
         _fetched2[i]->SetFillColor(41);
         if (ii == tdiffId) {
           _fetched2[i]->SetXTitle("msec");
-          TF1 f1
-          ("vcg","[0]*exp(-x*[1])+[2]*exp(-(x-[3])/[4]*(x-[3])/[4]/2)",0,4);
-          f1.SetParameter(0,1.);
-          f1.SetParameter(1,0.7);
-          f1.SetParameter(2,10.);
-          f1.SetParameter(3,6.);
-          f1.SetParameter(4,1.5);
-          _fetched2[i]->Fit("vcg","Q");
         }
       }
     }
 }
 
 void AMSGenHist::ShowSet(Int_t Set){
+
+  TF1 f1("vcg","[0]*exp(-x*[1])+[2]*exp(-(x-[3])/[4]*(x-[3])/[4]/2)",0,20);
+  f1.SetParameter(0,10.);
+  f1.SetParameter(1,0.7);
+  f1.SetParameter(2,100.);
+  f1.SetParameter(3,6.);
+  f1.SetParameter(4,1.5);
+
   const int sets = 5;
   gPad->Clear();
   int init[sets+1]    = {0, 4, 12, 14, 18, 19};
@@ -75,7 +75,20 @@ void AMSGenHist::ShowSet(Int_t Set){
 	gPad->SetLogy(gAMSDisplay->IsLogY());
 	gPad->SetLogz(gAMSDisplay->IsLogZ());
         if (_fetched2[i]) {
+          if(Set==4){
+            _fetched2[i]->Fit("vcg","Q");
+          }
           _fetched2[i]->Draw();
+          if(Set==4){
+            char text[80];
+            TPaveText *lf=new TPaveText(0.2,0.8,0.5,0.9,"NDC");
+            lf->SetFillColor(18);
+            sprintf(text,"Input Rate (Hz) %f",f1.GetParameter(1)*1000);    
+            lf->AddText(text);
+            sprintf(text,"Output Rate (Hz) %f",2000/f1.GetParameter(3));    
+            lf->AddText(text);
+            lf->Draw();
+          }
         }
 	gPadSave->cd();
       }
@@ -83,7 +96,7 @@ void AMSGenHist::ShowSet(Int_t Set){
 
 void AMSGenHist::Fill(AMSNtuple * ntuple){
  
- _Fetch();
+
  
 }
 
