@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.115 2004/11/09 09:58:10 choutko Exp $
+//  $Id: server.C,v 1.116 2004/12/18 17:34:54 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -3409,21 +3409,24 @@ _parent->IMessage(AMSClient::print((*li),"Host "));
 
 cout <<"DST status ******" <<endl;
 {
- pair<DSTLI,DSTLI>b=_dst.equal_range(DPS::Producer::Ntuple);
+ DPS::Producer::DSTType ntuple=DPS::Producer::Ntuple;
+ pair<DSTLI,DSTLI>b=_dst.equal_range(ntuple);
 
 for (DSTLI li=b.first;li!=b.second;++li){
 _parent->IMessage(AMSClient::print((li->second),"DST "));
 }
 }
 {
- pair<DSTLI,DSTLI>b=_dst.equal_range(DPS::Producer::RootFile);
+DPS::Producer::DSTType ntuple=DPS::Producer::RootFile; 
+pair<DSTLI,DSTLI>b=_dst.equal_range(ntuple);
 
 for (DSTLI li=b.first;li!=b.second;++li){
 _parent->IMessage(AMSClient::print((li->second),"DST "));
 }
 }
 {
- pair<DSTLI,DSTLI>b=_dst.equal_range(DPS::Producer::EventTag);
+DPS::Producer::DSTType ntuple=DPS::Producer::EventTag;
+ pair<DSTLI,DSTLI>b=_dst.equal_range(ntuple);
 
 for (DSTLI li=b.first;li!=b.second;++li){
 _parent->IMessage(AMSClient::print((li->second),"DST "));
@@ -3733,9 +3736,12 @@ IMessage((const char*)li->second);
 uinteger Producer_impl::getSmartFirst(uinteger run){
  pair<DSTLI,DSTLI>dst[3];
  bool present[3];
- dst[0]=_dst.equal_range( DPS::Producer::Ntuple);
- dst[1]=_dst.equal_range(DPS::Producer::RootFile);
- dst[2]=_dst.equal_range(DPS::Producer::EventTag);
+ DPS::Producer::DSTType Ntuple=DPS::Producer::Ntuple;
+ DPS::Producer::DSTType RootFile=DPS::Producer::RootFile;
+ DPS::Producer::DSTType EventTag=DPS::Producer::EventTag;
+ dst[0]=_dst.equal_range( Ntuple);
+ dst[1]=_dst.equal_range(RootFile);
+ dst[2]=_dst.equal_range(EventTag);
   bool check=false;
  for (int i=0;i<3;i++){
   if(dst[i].first==dst[i].second)present[i]=false;

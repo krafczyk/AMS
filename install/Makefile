@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.14 2004/12/13 13:50:37 mdelgado Exp $
+#  $Id: Makefile,v 1.15 2004/12/18 17:42:24 choutko Exp $
 
 #rl october 2003
 
@@ -383,6 +383,9 @@ $(BIN)event_c.o: 	 $(SCC)event.C
 $(BIN)timeid_c.o:        $(SCC)timeid.C
 	$(CPP) -c $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
            
+$(BIN)timeid_s.o:        $(SCC)timeid.C
+	$(CPP) -c $(CFLAGS) -D__CORBASERVER__ $(SCC)timeid.C -o $(BIN)timeid_s.o
+
 $(BIN)producer.o: 	 $(SCC)producer.C
 	$(CPP) -c -w $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
 

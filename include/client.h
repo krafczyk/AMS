@@ -1,4 +1,4 @@
-//  $Id: client.h,v 1.24 2004/05/13 08:51:14 choutko Exp $
+//  $Id: client.h,v 1.25 2004/12/18 17:38:46 choutko Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
 #include <typedefs.h>
@@ -7,7 +7,7 @@
 #include <fstream.h>
 #include <server-cpp-stubs.h>
 //#include <orb/orbitcpp_exception.h>
-#include <strstream.h>
+#include <strstream>
 class AMSClientError{
 protected:
  DPS::Client::ClientExiting _exit;
@@ -41,7 +41,7 @@ uinteger _LastServiceTime;
  void _openLogFile(char * prefix,bool solo);
  bool _getpidhost(uinteger pid, const char* iface=0);
  static char _streambuffer[1024]; 
- static ostrstream _ost;
+ static std::ostrstream _ost;
 public:
 AMSClient(int debug=0):_debug(debug),_Oracle(false),_Oraperl(false),_MT(false),_MC(false),_OracleW(false),_OracleWarm(false),_DBFileName(0),_MaxDBProcesses(0),_error(" "),_ExitInProgress(false),_GlobalError(false),_LastServiceTime(0)
 {_pid.Status=DPS::Client::NOP;_pid.StatusType=DPS::Client::Permanent;};

@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.30 2004/05/13 08:50:53 choutko Exp $
+//  $Id: client.C,v 1.31 2004/12/18 17:34:53 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -8,7 +8,7 @@
 #include <time.h>
 #include <netdb.h>
 char AMSClient::_streambuffer[1024];
-ostrstream AMSClient::_ost(AMSClient::_streambuffer,sizeof(AMSClient::_streambuffer));
+std::ostrstream AMSClient::_ost(AMSClient::_streambuffer,sizeof(AMSClient::_streambuffer));
 void AMSClient::_openLogFile(char * prefix,bool solo){
 AString fnam;
 char * logdir=getenv("ProductionLogDir");

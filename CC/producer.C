@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.88 2004/11/09 09:58:08 choutko Exp $
+//  $Id: producer.C,v 1.89 2004/12/18 17:34:54 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -432,7 +432,11 @@ cout <<" sendntupleend start "<<endl;
 DPS::Producer::DST *ntend=getdst(type);
 if(ntend){
 ntend->crc=0;
-ntend->Status=success?DPS::Producer::Success:DPS::Producer::Failure;
+if(success){
+ ntend->Status=DPS::Producer::Success;
+}
+else ntend->Status=DPS::Producer::Failure;
+//ntend->Status=success?(DPS::Producer::Success):(DPS::Producer::Failure);
 ntend->EventNumber=entries;
 ntend->LastEvent=last;
 ntend->End=end;
@@ -1000,7 +1004,11 @@ if(_dstinfo->Mode ==DPS::Producer::LILO || _dstinfo->Mode==DPS::Producer::LIRO){
 unlink( DAQEvent::getfile());
 }
      if(res!=DAQEvent::OK)FMessage("AMSProducer::sendRunEnd-F-RunFailed ",DPS::Client::CInAbort);
-_cinfo.Status= (res==DAQEvent::OK)?DPS::Producer::Finished: DPS::Producer::Failed;
+//_cinfo.Status= (res==DAQEvent::OK)?DPS::Producer::Finished: DPS::Producer::Failed;
+if(res==DAQEvent::OK){
+ _cinfo.Status=DPS::Producer::Finished;
+}
+else _cinfo.Status=DPS::Producer::Failed;
 
     struct timeb  ft;
     ftime(&ft);
@@ -1353,7 +1361,11 @@ return true;
 }
 
 void AMSProducer::sendEventTagEnd(const char * name,uinteger run,time_t insert, time_t begin,time_t end,uinteger first,uinteger last,integer nelem, bool fail){
-_evtag.Status=fail?DPS::Producer::Failure:DPS::Producer::Success;
+//_evtag.Status=fail?DPS::Producer::Failure:DPS::Producer::Success;
+if(fail){
+ _evtag.Status=DPS::Producer::Failure;
+}
+else  _evtag.Status=DPS::Producer::Success;
 _evtag.EventNumber=nelem;
 _evtag.FirstEvent=first;
 _evtag.LastEvent=last;

@@ -195,7 +195,7 @@ endif
 
 TIMEL=
 INCS= $(wildcard $(SRC)*.*h)
-INCSCPP= $(SRC)server-cpp-stubs.hh $(SRC)server-cpp-skels.hh $(SRC)server-cpp-common.hh
+INCSCPP= $(SRC)server-cpp-stubs.h $(SRC)server-cpp-skels.h $(SRC)server-cpp-common.h
 SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c
 SRCSMT= $(SRCMT)server-stubs.c $(SRCMT)server-skels.c $(SRCMT)server-common.c
 SRCSCPP= $(SRC)server-cpp-stubs.cc $(SRC)server-cpp-skels.cc $(SRC)server-cpp-common.cc
@@ -204,7 +204,7 @@ OBJECTCO=$(BIN)server-stubs.o $(BIN)server-skels.o $(BIN)server-common.o
 OBJECTCOMT=$(BINMT)server-stubs.o $(BINMT)server-skels.o $(BINMT)server-common.o
 OBJECTCL= $(BIN)server-cpp-stubs.o $(BIN)server-cpp-common.o
 OBJECTCLMT= $(BINMT)server-cpp-stubs.o $(BINMT)server-cpp-common.o
-OBJECTSEAUX=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver.o
+OBJECTSEAUX=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client.o  $(BIN)amsdbc.o $(BIN)timeid_s.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver.o 
 OBJECTSEAUXMT=$(BIN)id_mt.o $(BIN)node_mt.o $(BIN)astring_mt.o $(BIN)client_mt.o  $(BIN)amsdbc_mt.o $(BIN)timeid_mt.o  $(BIN)apool_mt.o $(BIN)snode_mt.o $(BIN)dbserver_mt.o
 OBJECTSEAUXMT=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client_mt.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver_mt.o
 OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL)

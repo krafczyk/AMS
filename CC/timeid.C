@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.81 2004/11/23 17:30:07 choutko Exp $
+//  $Id: timeid.C,v 1.82 2004/12/18 17:34:54 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -13,7 +13,9 @@
 #include <amsdbc.h>
 #include <amsstl.h>
 #include <stdio.h>
+#ifndef __CORBASERVER__
 #include <commons.h>
+#endif
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -275,7 +277,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 }
 
 bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
-
+#ifndef __CORBASERVER__
 //   Add check remote client here
         ifstream fbin;
         fbin.open("/proc/self/where");
@@ -295,7 +297,7 @@ bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
         }    
         fbin.close();
 
-
+#endif
 
 if(_Type!=Client){
     enum open_mode{binary=0x80};
