@@ -34,6 +34,7 @@
 #include <antirec.h>
 #include <ctcsim.h>
 #include <user.h>
+#include <signal.h>
 extern "C" void uglast_();
  
 #ifdef __DB__
@@ -54,7 +55,13 @@ void AMSEvent::_init(){
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
   if(_run != SRun){
    cout <<" AMS-I-New Run "<<_run<<endl;
+   // get rid of crazy runs
+   if(_run<TRMFFKEY.OKAY/10){
+     cerr<<"AMSEvent::_init-S-CrazyRunFound "<<_run<<endl;
+     raise(SIGTERM);
+   }
    DAQEvent::initO(_run);
+   
    if(AMSJob::gethead()->isSimulation())_siamsinitrun();
    _reamsinitrun();
   }
