@@ -43,13 +43,20 @@ for(i=0;i<ncharge;i++){
   }
 }
 // TOF cannot get charge for charge > 3 imply the tracker only
-if(charge>3)charge=_ChargeTracker;
+if(charge>3){
+  charge=_ChargeTracker;
+}
+else if(charge==2 && _ProbTracker[2]*_ProbTOF[2]<0.025){
+  // Probably charge ==1
+  if(_TrMeanTracker+_TrMeanTOF*10<100)charge=1;
+}
 return charge;
 }
+
 integer AMSCharge::build(integer refit){
-  // charge finding
-  number EdepTOF[4];
-  number EdepTracker[6];
+    number EdepTOF[4];
+    number EdepTracker[6];
+// charge finding
     int patb;
     for (patb=0;patb<npatb;patb++){
      AMSBeta *pbeta=(AMSBeta*)AMSEvent::gethead()->
@@ -65,6 +72,8 @@ integer AMSCharge::build(integer refit){
        AMSPoint P1;
        int i;
        number one=1;
+       number _TrMeanTOF=0;
+       number smax=0;
        for ( i=0;i<4;i++){
          AMSTOFCluster * pcluster= pbeta->getpcluster(i);
          if(pcluster){
@@ -77,12 +86,17 @@ integer AMSCharge::build(integer refit){
 #endif 
            ptrack->interpolate(SCPnt, ScDir, P1, theta, phi, sleng);
            AMSDir DTr(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));
+           _TrMeanTOF+=pcluster->getedep();
+           if(smax<pcluster->getedep())smax=pcluster->getedep();
            EdepTOF[nhitTOF]=pcluster->getedep()*
            min(one,fabs(pbeta->getbeta()))*
            min(one,fabs(pbeta->getbeta()))*fabs(ScDir.prod(DTr));
            nhitTOF++;
          }
        }
+       if(nhitTOF-1)_TrMeanTOF=(_TrMeanTOF-smax)/(nhitTOF-1);
+       smax=0;
+       number  _TrMeanTracker=0;
        for (i=0;i<6;i++){
         AMSTrRecHit *phit=ptrack->getphit(i);
         if(phit){
@@ -95,6 +109,8 @@ integer AMSCharge::build(integer refit){
            int good=!phit->checkstatus(AMSTrRecHit::FalseX) && 
              !phit->checkstatus(AMSTrRecHit::FalseTOFX);
            geant sum=phit->getsum();
+           _TrMeanTracker+=sum;
+           if(smax<sum)smax=sum;
            EdepTracker[nhitTracker]=AMSTrRawCluster::ADC2KeV()*
              (good?sum:2*sum)*pow(min(one,pbeta->getbeta()),2)*
              fabs(SenDir.prod(DTr));
@@ -104,9 +120,10 @@ integer AMSCharge::build(integer refit){
                <<" for hit wit pos "<<phit ->getpos()<<", ContPos "
                <<phit -> getContPos()<<endl;
          }
-        }
-       }   
-      addnext(rid,pbeta,nhitTOF,nhitTracker, EdepTOF, EdepTracker);
+        } 
+       }
+       if(nhitTracker-1)_TrMeanTracker=(_TrMeanTracker-smax)/(nhitTracker-1);
+      addnext(rid,pbeta,nhitTOF,nhitTracker, EdepTOF, EdepTracker,_TrMeanTracker, _TrMeanTOF);
       pbeta=pbeta->next();
      }
     }
@@ -116,8 +133,8 @@ integer AMSCharge::build(integer refit){
 void AMSCharge::addnext(number rid, AMSBeta *pbeta , integer nhitTOF, 
       
           
-        integer nhitTracker, number EdepTOF[4], number EdepTracker[6]){
-          AMSCharge * pcharge=new AMSCharge(pbeta);
+        integer nhitTracker, number EdepTOF[4], number EdepTracker[6], number trtr, number trtof){
+          AMSCharge * pcharge=new AMSCharge(pbeta,trtr,trtof);
           pcharge->Fit(fabs(rid), nhitTOF, nhitTracker, EdepTOF, EdepTracker );
           AMSEvent::gethead()->addnext(AMSID("AMSCharge",0),pcharge);
              

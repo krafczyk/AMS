@@ -79,8 +79,8 @@ integer AMSParticle::build(integer refit){
            mass=fabs(momentum/gamma/beta);
            emass=mass*sqrt(pow(emomentum/momentum,2.)+pow(gamma,4)*
            pow(ebeta/beta,2));
-           if(beta<0)momentum=-momentum;
           }
+          if(beta<0)momentum=-momentum;
           ppart=new AMSParticle(pbeta, pcharge, ptrack,
           mass,emass,momentum,emomentum,charge,theta,phi,coo);
           ptrack->setstatus(AMSDBc::USED);
@@ -407,17 +407,16 @@ void AMSParticle::refit(){
     if(_Mass > 0){
      _ptrack->Fit(3,_GPart);
      if(_ptrack->GeaneFitDone()){
-      number fac=_ptrack->getgrid()/_Momentum/sign(_pbeta->getbeta());
+      number fac=_ptrack->getgrid()*_Charge/_Momentum/sign(_pbeta->getbeta());
       integer itr;
       geant xmass,chrg,tlt7,uwb[1];
       integer nwb=0;
       char chdum[21];
       GFPART(_GPart,chdum,itr,xmass,chrg,tlt7,uwb,nwb);
-      fac=fac*fabs(chrg);
-      _Mass=_Mass*fac;
-      _ErrMass=_ErrMass*fac;
+      _Mass=_Mass*fabs(fac);
+      _ErrMass=_ErrMass*fabs(fac);
       _Momentum=_Momentum*fac;
-      _ErrMomentum=_ErrMomentum*fac;
+      _ErrMomentum=_ErrMomentum*fabs(fac);
       if(_Mass>FLT_MAX)_Mass=FLT_MAX;
       if(_ErrMass>FLT_MAX)_ErrMass=FLT_MAX;
       if(_Momentum>FLT_MAX)_Momentum=FLT_MAX;
