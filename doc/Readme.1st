@@ -41,25 +41,16 @@ Method I : Pick up the //hpl3itp1.cern.ch:8081/ams.tar.gz file
           gzip -d then tar -xvf it. You will get an AMS directory tree.
           (see VII. for standalone environment)          
 
-Method II(Recommended): Get an account on  shift51.cern.ch computer  
-                        (ask PierAntonio.Marchesini@cern.ch to do that).
-                        setenv $Offline /shift/shift51/data18/xv/choutko/Offline
-                        source $Offline/vdev/install/amsvar
-                        The last released version of the AMS software is in
-                        $Offline/vdev
+Method II(Recommended): Get an account on  some ams computer (see VIII)
+                        ams software is in $Offline/vdev
 
 b) As a developper :
 
   i)You should have an  account on  ams alpha's computers 
    (See VIII about current situation with the computers )
-  ii)You should be a member of "simu" group on ams computers
+  ii)You should be a member of amsdev group on ams computers
   (ask Vitaly.Choutko@cern.ch about it)                                                
-  iiii) define the following varaible in your shell
-                  
-                  setenv CVSROOT $Offline/CVS  (see VIII about $Offline)
-                  setenv EDITOR {put your fav editor here}
-                  setenv CVSEDITOR {put your fav editor here}
-
+  iii) see VIII for $Offline & amsvar
    iv) cvs checkout AMS   // creates a local copy of AMS files (latest revision)
                           // You will be able to update/commit 
 
