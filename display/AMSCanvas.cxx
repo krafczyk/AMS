@@ -248,6 +248,7 @@ void AMSCanvas::DrawEventStatus(Int_t event, Int_t px, Int_t py, TObject *select
 /*
    char * name = selected->GetName();
    if ( strncmp(name, "AMS", 3) == 0 ) {
+     atext[0]='\0';
      sprintf(atext,"%s: %s ", selected->GetName()
                            , selected->GetObjectInfo(px,py));
    }
@@ -280,6 +281,7 @@ void AMSCanvas::DrawEventStatus(Int_t event, Int_t px, Int_t py, TObject *select
    //                        , selected->GetObjectInfo(px,py));
    const char * name = selected->GetName();
    if ( strncmp(name, "AMS", 3) == 0 ) {
+     atext[0]='\0';
      sprintf(atext,"%s: %s ", selected->GetName()
                            , selected->GetObjectInfo(px,py));
    }
@@ -583,6 +585,9 @@ void AMSCanvas::PrintCB(Widget wid, XtPointer cd, XtPointer pointer)
    char cmd[255];
    sprintf(cmd, "lpr /tmp/AMSDisplay.%u.ps",pid);
    system(cmd);
+   sprintf(cmd, "rm /tmp/AMSDisplay.%u.ps",pid);
+   system(cmd);
+ 
 }
 
 

@@ -470,14 +470,15 @@ DAQC    //   DAQ Control
 
 I 1 mode(0)                         // 0 do nothing
                                     // mode%10 = 1 read daq if isReconstruction()
-                                    // mode/10 = 1 write daq (noreplace)
-                                    // mode/10 = 2 write daq (append)
+                                    // (mode/10)%10 = 1 write daq (noreplace)
+                                    // (mode/10)%10 = 2 write daq (append)
+                                    // mode/100 = 1  compress tracker on fly
 I 2 ifile[40]("")                   // input file name
 I41 ofile[40]("")                   // output file name
 I82 OldFormat(0)                    // old(1) new(0) format
 I83 LCrateinDAQ(1)                  // in(1) out(0) of DAQ
 I84 SCrateinDAQ(1)                  // in(1) out(0) of DAQ
-I85 RunChanger                     // Tmp fix to run no problem
+I85 NoRecAtAll(0)                   // skip or not reconstruction phase
 
 BMAP   // Magnetic field control
 I 1 iniok(1)                       // 0 for update mag field

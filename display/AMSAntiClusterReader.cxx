@@ -146,8 +146,8 @@ void  AMSAntiClusterReader::AddCluster(Int_t status, Int_t sector,
   cooA[0]=coo[0]*cos(coo[1]/180.*3.14159);
   cooA[1]=coo[0]*sin(coo[1]/180.*3.14159);
   cooA[2]=coo[2];
-  ercooA[0]=ercoo[0]*cos(coo[1]/180.*3.14159);
-  ercooA[1]=ercoo[0]*sin(coo[1]/180.*3.14159);
+  ercooA[0]=coo[0]*cos(coo[1]/180.*3.14159)*ercoo[1]/180.;
+  ercooA[1]=coo[0]*sin(coo[1]/180.*3.14159)*ercoo[1]/180.;
   ercooA[2]=ercoo[2];
    TClonesArray &clusters = *(TClonesArray*)m_Fruits;
    debugger.Print("--- AMSAntiClusterReader: will add a cluster at %0lx\n", clusters[m_Nclusters]);

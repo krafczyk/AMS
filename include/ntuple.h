@@ -275,6 +275,7 @@ int NPatFound;
 int Pattern[2];
 float Residual[2];
 float Time;
+float ELoss;
 friend class TriggerLVL3;
 };
 
@@ -285,6 +286,7 @@ private:
 int Mode;
 int TOFlag;
 int TOFPatt[4];
+int TOFPatt1[4];
 int AntiPatt;
 friend class TriggerLVL1;
 };

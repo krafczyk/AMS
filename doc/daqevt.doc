@@ -130,6 +130,25 @@ Word3084          CRC
 
 
 
+  SubBlock Format
+Word1                      Subblock Length 3084
+Word2 & 31                 Number of TDR      (2 to 24)
+(Word2 & (31 <<11)) >> 11  0 Raw Data
+                           1 Status table  ( bit 1  means good channel)  
+                           2 Sigma*8
+                           3 Ped*8
+                           4 CmnNoise Region
+Word3              TDR Number         0 to 23
+Word4                              SubLength (only 10 VA now for S)
+Word5                              LocalEventNo
+Word6 to SubLength+1      Data
+Repetition
+Word          CRC      
+Word          CRC      
+
+
+
+
 g.CTC(Aerogel) Event Format
 
 

@@ -199,14 +199,12 @@ integer AMSTimeID::read(char * dir, integer reenter){
      fnam+=name;     
     }
     fbin.open((const char *)fnam,ios::in|binary);
-
     if(fbin){
      uinteger * pdata;
      integer ns=_Nbytes/sizeof(pdata[0])+3;
      pdata =new uinteger[ns];
      if(pdata){
       fbin.read((char*)pdata,ns*sizeof(pdata[0]));
-      fbin.close();
       if(fbin.good()){
        _convert(pdata,ns);
        CopyIn(pdata);
@@ -214,6 +212,10 @@ integer AMSTimeID::read(char * dir, integer reenter){
       _Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
       _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
       }
+      else {
+        cerr<<"AMSTimeID::read-E-Problems to Read File "<<fnam<<endl;
+      }
+      fbin.close();
       delete [] pdata;
 
 

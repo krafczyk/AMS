@@ -39,7 +39,7 @@
      + ,CTCESignal,CTCMCXcoo,CTCMCXdir,CTCstep,CTCcharge,CTCbeta
      + ,Amplitude,CTCedep,PolePhi,ThetaS,PhiS,
      + AntiEdep,Anticoo,AntiErCoo,AntiMCXcoo,AntiMCtof,AntiMCedep,
-     +  LVL3Residual,LVL3Time,CTCHitSignal
+     +  LVL3Residual,LVL3Time,LVL3ELoss,CTCHitSignal
      
       INTEGER EventNo,Run,RunType,Time(2) ,BetaEvent,BetaPattern
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
@@ -179,10 +179,12 @@
        common /LVL3C/nlvl3,LVL3TOFTr(mlvl3),
      + LVL3AntiTr(mlvl3),LVL3TrackerTr(mlvl3),
      + LVL3NTrHits(mlvl3),LVL3NPat(mlvl3),
-     + LVL3Pattern(2,mlvl3),LVL3Residual(2,mlvl3),LVL3Time(mlvl3)
+     + LVL3Pattern(2,mlvl3),LVL3Residual(2,mlvl3),LVL3Time(mlvl3),
+     + LVL3ELoss(mlvl3)
 
        common /LVL31/nlvl1,LVL1Mode(mlvl1),lvl1flag(mlvl1),
-     + LVL1TOFPatt(4,mlvl1),LVL1AntiPatt(mlvl1)
+     + LVL1TOFPatt(4,mlvl1),LVL1TOFPatt1(4,mlvl1),
+     + LVL1AntiPatt(mlvl1)
 
 
 
@@ -334,11 +336,11 @@ c       write(*,*)' Starting converting'
      + 'LVL3AntiTr(nlvl3),'//
      + 'LVL3TrackerTr(nlvl3),LVL3NTrHits(nlvl3),LVL3NPat(nlvl3),'//
      + 'LVL3Pattern(2,nlvl3),'//
-     + 'LVL3Residual(2,nlvl3):R,LVL3Time(nlvl3):R')
+     + 'LVL3Residual(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R')
 
       call hbname(1,cblock(17),nlvl1,
      + 'nlvl1[0,2],LVL1Mode(nlvl1),LVL1Flag(nlvl1),'//
-     + 'LVL1TOFPatt(4,nlvl1),LVL1AntiPatt(nlvl1)')
+     + 'LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1)')
 
       call hbname(1,cblock(18),nctcht,
      + 'nctcht[0,50],CTChitStatus(nctcht):I,CTChitLayer(nctcht):I,'//
@@ -813,7 +815,8 @@ c            write(*,*)' ntrrh eq 0 ', events
      +     ne,lvl3toftr(nlvl3),lvl3antitr(nlvl3),
      +     lvl3trackertr(nlvl3),lvl3ntrhits(nlvl3),lvl3npat(nlvl3),
      +     (lvl3pattern(k,nlvl3),k=1,2),
-     +     (lvl3residual(k,nlvl3),k=1,2),lvl3time(nlvl3)
+     +     (lvl3residual(k,nlvl3),k=1,2),lvl3time(nlvl3),
+     +      lvl3eloss(nlvl3)
 
            goto 166
  165       eof(idet)=1
@@ -844,6 +847,7 @@ c            write(*,*)' ntrrh eq 0 ', events
            if(eof(idet).eq.0)read(lun,end=175)
      +     ne,lvl1mode(nlvl1),lvl1flag(nlvl1),
      +     (lvl1tofpatt(k,nlvl1),k=1,4),
+     +     (lvl1tofpatt1(k,nlvl1),k=1,4),
      +     lvl1antipatt(nlvl1)
 
            goto 176
@@ -959,7 +963,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      + ,FChi2MS,GChi2MS,RidgidityMS,GRidgidityMS,Coo(3),Dir(3),Momentum
      + ,Mass,Charge,CTCCoo(3),CTCErCoo(3),CTCRawSignal,CTCSignal
      + ,CTCESignal,CTCMCXcoo(3),CTCMCXdir(3),CTCstep,CTCedep,CTCbeta,
-     +  lvl3residual,lvl3time,ctchitsignal
+     +  lvl3residual,lvl3time,lvl3eloss,ctchitsignal
 
       INTEGER EventNo,Run,RunType,Time(2),BetaEvent,BetaPattern
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
@@ -1091,14 +1095,14 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
        common /LVL3C/lvl3event,LVL3TOFTr,
      + LVL3AntiTr,LVL3TrackerTr,
      + LVL3NTrHits,LVL3NPat,lvl3pattern(2),
-     + LVL3Residual(2),LVL3Time
+     + LVL3Residual(2),LVL3Time,lvl3eloss
 
 *
 *    idet=17
 *
 
        common /LVL1C/lvl1event,LVL1mode,lvl1flag,
-     + LVL1TOFpatt(4),lvl1antipatt
+     + LVL1TOFpatt(4),LVL1TOFpatt1(4),lvl1antipatt
 
 *
 *    idet=18
@@ -1262,11 +1266,11 @@ c         if(mod(i,10).eq.1)write(*,*)i
             write(21)lvl3event,LVL3TOFTr,
      +      LVL3AntiTr,LVL3TrackerTr,
      +      LVL3NTrHits,LVL3NPat,lvl3pattern,
-     +      LVL3Residual,LVL3Time
+     +      LVL3Residual,LVL3Time,lvl3eloss
 
            else if( cblock(idet).eq.'LVL1')then          
             write(21)lvl1event,lvl1mode,lvl1flag,
-     +      LVL1tofpatt,lvl1antipatt
+     +      LVL1tofpatt,LVL1tofpatt1,lvl1antipatt
 
 
            else

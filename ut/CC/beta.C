@@ -46,14 +46,14 @@ integer AMSBeta::build(integer refit){
       phit[0]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][0]-1);
       while( phit[0]){
        number chi2space=0;
-       if(BETAFITFFKEY.FullReco || phit[0]->checkstatus(AMSDBc::USED)==0 ){
+       if(phit[0]->checkstatus(AMSDBc::BAD)==0 && (BETAFITFFKEY.FullReco || phit[0]->checkstatus(AMSDBc::USED)==0) ){
            AMSPoint dst=AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
            ptrack,sleng[0],td);
         if(dst<SearchReg){
          chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
          phit[1]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][1]-1);
          while( phit[1]){
-          if(BETAFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0 ){
+          if(phit[1]->checkstatus(AMSDBc::BAD)==0 &&(BETAFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0) ){
            AMSPoint dst=AMSBeta::Distance(phit[1]->getcoo(),phit[1]->getecoo(),
            ptrack,sleng[1],td);
            if(dst<SearchReg){
@@ -61,7 +61,7 @@ integer AMSBeta::build(integer refit){
             if(AMSBeta::patpoints[patb] >2){
              phit[2]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][2]-1);
              while( phit[2]){
-              if(BETAFITFFKEY.FullReco || phit[2]->checkstatus(AMSDBc::USED)==0 ){
+              if(phit[2]->checkstatus(AMSDBc::BAD)==0 && (BETAFITFFKEY.FullReco || phit[2]->checkstatus(AMSDBc::USED)==0 )){
                AMSPoint dst=AMSBeta::Distance(phit[2]->getcoo(),phit[2]->
                getecoo(),ptrack,sleng[2],td);
                if(dst < SearchReg){
@@ -69,7 +69,7 @@ integer AMSBeta::build(integer refit){
                 if(AMSBeta::patpoints[patb] >3){
                 phit[3]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][3]-1);
                 while( phit[3]){
-                if(BETAFITFFKEY.FullReco || phit[3]->checkstatus(AMSDBc::USED)==0 ){
+                if(phit[3]->checkstatus(AMSDBc::BAD)==0 &&(BETAFITFFKEY.FullReco || phit[3]->checkstatus(AMSDBc::USED)==0 )){
                  AMSPoint dst=AMSBeta::Distance(phit[3]->getcoo(),phit[3]->
                  getecoo(),ptrack,sleng[3],td);
                  if(dst < SearchReg){

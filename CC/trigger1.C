@@ -69,9 +69,14 @@ void TriggerLVL1::build(){
   }
     
   }
+  for(i=0;i<4;i++){
+    tofpatt[i]=tofpatt[i] | (tofpatt[i]<<16);
+  }
   if(tofflag && ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti)
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
                        new TriggerLVL1(1,tofflag,tofpatt,antipatt));
+
+
 }
 
 
@@ -92,13 +97,14 @@ int i;
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"LVL1",lvl1N.getaddress(),
-  "LVL1Event:I, LVL1Mode:I, LVL1TOFlag:I, LVL1TOFPatt(4):I,LVL1AntiPatt:I");
+  "LVL1Event:I, LVL1Mode:I, LVL1TOFlag:I, LVL1TOFPatt(4):I,LVL1TOFPatt1(4):I,LVL1AntiPatt:I");
 }
 
 lvl1N.Event()=AMSEvent::gethead()->getid();
 lvl1N.Mode=_TriggerMode;
 lvl1N.TOFlag=_tofflag;
 for(i=0;i<4;i++)lvl1N.TOFPatt[i]=_tofpatt[i];
+for(i=0;i<4;i++)lvl1N.TOFPatt1[i]=_tofpatt1[i];
 lvl1N.AntiPatt=_antipatt;
 HFNTB(IOPA.ntuple,"LVL1");
 
@@ -161,11 +167,29 @@ void TriggerLVL1::builddaq(integer i, integer n, int16u *p){
        *(p+5)=int16u(ptr->_tofpatt[1]);
        *(p+6)=int16u(ptr->_tofpatt[0]);
 
-       *(p+7)=int16u(ptr->_tofpatt[3]);
-       *(p+8)=int16u(ptr->_tofpatt[2]);
-       *(p+9)=int16u(ptr->_tofpatt[1]);
-       *(p+10)=int16u(ptr->_tofpatt[0]);
+       *(p+7)=int16u((ptr->_tofpatt[3])>>16);
+       *(p+8)=int16u((ptr->_tofpatt[2])>>16);
+       *(p+9)=int16u((ptr->_tofpatt[1])>>16);
+       *(p+10)=int16u((ptr->_tofpatt[0])>>16);
        for(i=3;i<11;i++){
+         //swap bits
+         int16u tmp=0;
+         int16u tag=*(p+i);
+         for(int k=0;k<16;k++)tmp=tmp | (( (tag >> k) & 1) << (13-k));
+         *(p+i)=tmp;
+       }
+       // Words 11-18
+
+       *(p+11)=int16u(ptr->_tofpatt1[3]);
+       *(p+12)=int16u(ptr->_tofpatt1[2]);
+       *(p+13)=int16u(ptr->_tofpatt1[1]);
+       *(p+14)=int16u(ptr->_tofpatt1[0]);
+
+       *(p+15)=int16u((ptr->_tofpatt1[3])>>16);
+       *(p+16)=int16u((ptr->_tofpatt1[2])>>16);
+       *(p+17)=int16u((ptr->_tofpatt1[1])>>16);
+       *(p+18)=int16u((ptr->_tofpatt1[0])>>16);
+       for(i=11;i<18;i++){
          //swap bits
          int16u tmp=0;
          int16u tag=*(p+i);
@@ -183,7 +207,9 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
    else cerr <<"TriggerLVL1::buildraw-S-NoContainer"<<endl;
 
   }
-  uinteger z,mode,antip,tofp[4];  
+  uinteger z,mode,antip,tofp[4]={0,0,0,0},tofp1[4]={0,0,0,0};  
+  int16u tempor[4]={0,0,0,0};
+  int16u tempand[4]={0,0,0,0};
   //  tofp[0]=*(p+1);
   //  tofp[1]=*(p+2);
   //  tofp[2]=*(p+3);
@@ -200,16 +226,56 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
    for(int i=0;i<16;i++){
      tofp[k]=tofp[k] | (((tofp[k]>>i) & 1) <<(29-i));
    }  
-   tofp[k]=tofp[k]>>16;     
+   tempor[i]=tofp[k]>>16;     
+
   }
+  tofp[0]=*(p+6) & *(p+10);
+  tofp[1]=*(p+5) & *(p+9);
+  tofp[2]=*(p+4) & *(p+8);
+  tofp[3]=*(p+3) & *(p+7);
+  for( k=0;k<4;k++){
+   for(int i=0;i<16;i++){
+     tofp[k]=tofp[k] | (((tofp[k]>>i) & 1) <<(29-i));
+   }  
+   tempand[i]=tofp[k]>>16;     
+  }
+  for(k=0;k<4;k++){
+    tofp[k]=tempor[k] | (tempand[k] <<16);
+  }
+  tofp1[0]=*(p+14) | *(p+18);
+  tofp1[1]=*(p+13) | *(p+17);
+  tofp1[2]=*(p+12) | *(p+16);
+  tofp1[3]=*(p+11) | *(p+15);
+  for( k=0;k<4;k++){
+   for(int i=0;i<16;i++){
+     tofp1[k]=tofp1[k] | (((tofp1[k]>>i) & 1) <<(29-i));
+   }  
+   tempor[k]=tofp1[k]>>16;     
+  }
+
+  tofp1[0]=*(p+14) & *(p+18);
+  tofp1[1]=*(p+13) & *(p+17);
+  tofp1[2]=*(p+12) & *(p+16);
+  tofp1[3]=*(p+11) & *(p+15);
+  for( k=0;k<4;k++){
+   for(int i=0;i<16;i++){
+     tofp1[k]=tofp1[k] | (((tofp1[k]>>i) & 1) <<(29-i));
+   }  
+   tempand[k]=tofp1[k]>>16;     
+  }
+  for(k=0;k<4;k++){
+    tofp1[k]=tempor[k] | (tempand[k] <<16);
+  }
+
+
   z=1;
-  if(*(p+2) & 1<<4)z=3;
+  if(*(p+2) & (1<<4))z=3;
   //anti
   integer xneg= (((*(p+1) >> 8) & 3) & ((*(p+1) >> 10) & 3)); 
   integer xpos= (((*(p+1) >> 12) & 3) & ((*(p+1) >> 14) & 3)); 
   antip = xpos | (xneg <<4);
   if(z>0)AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
-  TriggerLVL1(mode,z,tofp,antip));
+  TriggerLVL1(mode,z,tofp,tofp1,antip));
 
 }
 

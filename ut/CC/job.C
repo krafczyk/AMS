@@ -175,17 +175,18 @@ void AMSJob::_sitrigdata(){
 
   LVL3FFKEY.MinTOFPlanesFired=3;
   LVL3FFKEY.UseTightTOF=1;
-  LVL3FFKEY.TrTOFSearchReg=6;
+  LVL3FFKEY.TrTOFSearchReg=6.;
   LVL3FFKEY.TrMinResidual=0.03;
-  LVL3FFKEY.TrMaxResidual[0]=0.8;
-  LVL3FFKEY.TrMaxResidual[1]=0.1;
-  LVL3FFKEY.TrMaxResidual[2]=0.2;
+  LVL3FFKEY.TrMaxResidual[0]=1.2;
+  LVL3FFKEY.TrMaxResidual[1]=0.2;
+  LVL3FFKEY.TrMaxResidual[2]=0.3;
   LVL3FFKEY.TrMaxHits=20;
   LVL3FFKEY.Splitting=0.04;
   LVL3FFKEY.NRep=1;
   LVL3FFKEY.Accept=0;
   LVL3FFKEY.RebuildLVL3=0;
   LVL3FFKEY.NoK=1;
+  LVL3FFKEY.TrHeavyIonThr=200;
   FFKEY("L3REC",(float*)&LVL3FFKEY,sizeof(LVL3FFKEY_DEF)/sizeof(integer),"MIXED");
 
 
@@ -581,7 +582,7 @@ TRFITFFKEY.ResCutFastFit=0.5;
 TRFITFFKEY.ResCutStrLine=0.5;
 TRFITFFKEY.ResCutCircle=0.5;
 TRFITFFKEY.SearchRegFastFit=1;
-TRFITFFKEY.SearchRegStrLine=0.3;
+TRFITFFKEY.SearchRegStrLine=0.25;
 TRFITFFKEY.SearchRegCircle=1.5;
 TRFITFFKEY.RidgidityMin=0.2;
 TRFITFFKEY.FullReco=0;
@@ -738,7 +739,7 @@ DAQCFFKEY.mode=0;
 DAQCFFKEY.OldFormat=0;
 DAQCFFKEY.LCrateinDAQ=1;
 DAQCFFKEY.SCrateinDAQ=1;
-DAQCFFKEY.RunChanger=883609200;
+DAQCFFKEY.NoRecAtAll=0;
 VBLANK(DAQCFFKEY.ifile,40);
 VBLANK(DAQCFFKEY.ofile,40);
   FFKEY("DAQC",(float*)&DAQCFFKEY,sizeof(DAQCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -1342,6 +1343,7 @@ void AMSJob::_retofinitjob(){
   }
 // 
 //-----------
+  AMSTOFCluster::init();
 }
 //===================================================================
 void AMSJob::_reantiinitjob(){
@@ -2089,6 +2091,10 @@ if(DAQCFFKEY.LCrateinDAQ){
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocksRaw,
     &AMSTrRawCluster::calcdaqlengthRaw,&AMSTrRawCluster::builddaqRaw);
 
+
+    //Tracker ped/sigma etc ( "Event" mode)
+
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
 
 }    
 

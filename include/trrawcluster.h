@@ -77,13 +77,16 @@ static void sitkdigi();
   // H/K data read
   static integer checkstatusSid(int16u id) ;
   static integer checkpedSid(int16u id) ;
+  static integer checkpedSRawid(int16u id) ;
   static integer checksigmaSid(int16u id);
   static void updstatusS(integer length,int16u *p); 
+  static void updpedSRaw(integer length,int16u *p); 
   static void updpedS(integer length,int16u *p); 
   static void updsigmaS(integer length,int16u *p); 
   // H/K data simulate
   static int16u getstatusSid(int i) ;
   static int16u getpedSid(int i) ;
+  static int16u getpedSRawid(int i) ;
   static int16u getsigmaSid(int i);
   static integer getmaxblockS(){return 2;}
   static void writestatusS(integer i, integer length,int16u *p); 

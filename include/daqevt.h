@@ -77,7 +77,7 @@ integer _create(uinteger btype=0);
 void _copyEl();
 void _writeEl(){}
 void _printEl(ostream& o){}
-static integer _Buffer[40000];
+static integer _Buffer[50000];
 static integer _BufferLock;
 public:
 uinteger GetBlType(){return _GetBlType();}

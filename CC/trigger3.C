@@ -149,7 +149,7 @@ integer TriggerLVL3::_TrackerOtherTDR[NTRHDRP][2];
 
 
 TriggerLVL3::TriggerLVL3():_AntiTrigger(0),_TOFTrigger(0),
-_TrackerTrigger(0),_NPatFound(0),_Time(0),_NTrHits(0){
+_TrackerTrigger(0),_NPatFound(0),_Time(0),_NTrHits(0),_TrEnergyLoss(0){
   
   // Ctor
 
@@ -165,9 +165,8 @@ VZERO(_nhits,nl);
 
 
  TriggerLVL3::TriggerLVL3(integer tra, integer tof, integer anti,integer ntr, integer npat,
-                          integer pat[], number res[], number time):_AntiTrigger(anti),
-                          _TOFTrigger(tof),_TrackerTrigger(tra),_NPatFound(npat),_Time(time),
-                          _NTrHits(ntr){
+                          integer pat[], number res[], number time, number eloss):_AntiTrigger(anti),
+                          _TOFTrigger(tof),_TrackerTrigger(tra),_NPatFound(npat),_Time(time),_TrEnergyLoss(eloss), _NTrHits(ntr){
   
   // Ctor
 
@@ -485,10 +484,10 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
       }  
       else {
         // Probably normal mode
-        if(*(ptr+1+nmax)< 0 || *(ptr+3+nmax) < 0)goto next;
+        if(*(ptr+1+nmax)< 0 && *(ptr+3+nmax) < 0)goto next;
       } 
       
-      float coo=0;
+              float coo=0;
       //      float amp=0;
       //      for (int i=2;i<((*(ptr))&255);i++){
       //        coo+= ((int)*(ptr+i)) * (i-2);
@@ -498,23 +497,44 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
       //
       // Just take strip as cofg
       //
-      integer ss;
-      switch (strip+nmax) {
-       case 0:
-        ss=0;
-        break;
-       case 639:
-        ss=1282;
-        break;
-       default:
-        ss=strip*2+2;
-      }
+      //      integer ss;
+      //      switch (strip+nmax) {
+      //       case 0:
+      //        ss=0;
+      //        break;
+      //       case 639:
+      //        ss=1282;
+      //        break;
+      //       default:
+      //        ss=strip*2+2;
+      //      }
+            float ss=0;
+            float amp=0;
+            for(i=0;i<num;i++){
+             integer s2;
+             switch (strip+i) {
+              case 0:
+               s2=0;
+               break;
+              case 639:
+               s2=1282;
+               break;
+              default:
+               s2=(strip+i)*2+2;
+             }
+             ss+= ((int)*(ptr+i+2)) * s2;
+             amp+=((int)*(ptr+i+2));
+  
+            }
+            if(amp)ss=ss/amp;
+
+     
       coo=_TrackerCoo[drp][half][1]+
       _TrackerDir[drp][half]*_stripsize*(0.5+ss);
       if (coo > plvl3->getlowlimitY(layer) && coo < plvl3->getupperlimitY(layer)){
         if(( half ==0 && plvl3->getlowlimitX(layer) < 0) ||
            ( half ==1 && plvl3->getupperlimitX(layer) > 0) ){
-           if(!(plvl3->addnewhit(coo,layer,drp+half*NTRHDRP))){
+           if(!(plvl3->addnewhit(coo,amp,layer,drp+half*NTRHDRP))){
            plvl3->TrackerTrigger()=2;
            goto formed;
            }             
@@ -530,7 +550,7 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
   //TriggerExpertLVL3::pExpert->update(plvl3);        
   tt2=HighResTime();
        }
-       if(plvl3->TrackerTrigger() >= LVL3FFKEY.Accept){ 
+       if((plvl3->TrackerTrigger())%8 >= LVL3FFKEY.Accept){ 
          plvl3->settime(tt2-tt1);
          AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",0),plvl3);
        }
@@ -560,7 +580,7 @@ int i;
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"LVL3",lvl3N.getaddress(),
-  "LVL3Event:I, LVL3TOFTr:I, LVL3AntiTr:I,LVL3TrackerTr:I,LVL3NTrHits:I, LVL3NPat:I, LVL3Pattern(2):I, LVL3Residual(2):R, LVL3Time:R");
+  "LVL3Event:I, LVL3TOFTr:I, LVL3AntiTr:I,LVL3TrackerTr:I,LVL3NTrHits:I, LVL3NPat:I, LVL3Pattern(2):I, LVL3Residual(2):R, LVL3Time:R,LVL3ELoss:R");
 }
 lvl3N.Event()=AMSEvent::gethead()->getid();
 lvl3N.TOFTr=_TOFTrigger;
@@ -573,14 +593,16 @@ lvl3N.Residual[1]=_Residual[1];
 lvl3N.Pattern[0]=_Pattern[0];
 lvl3N.Pattern[1]=_Pattern[1];
 lvl3N.Time=_Time;
+lvl3N.ELoss=_TrEnergyLoss;
 HFNTB(IOPA.ntuple,"LVL3");
 
 }
 
 
-integer TriggerLVL3::addnewhit(geant coo, integer layer, integer drp){
+integer TriggerLVL3::addnewhit(geant coo, geant amp, integer layer, integer drp){
   if( _nhits[layer]>= maxtrpl)return 0; 
   _coo[layer][_nhits[layer]]=coo;
+  _eloss[layer][_nhits[layer]]=amp;
   _drp[layer][_nhits[layer]]=drp;
   _nhits[layer]=_nhits[layer]+1;
   
@@ -594,7 +616,7 @@ void TriggerLVL3::fit(integer idum){
   //
   int i,j,k,l,ic,n1,n2,n3,n4;
   geant coou, dscr,cood,a,b,s,r;
-
+  geant resid[4],zmean,factor,amp[6];
   //
   // suppress splitted hits
   //
@@ -619,68 +641,75 @@ void TriggerLVL3::fit(integer idum){
   if(_NTrHits < 3)ic=4;
   else if (_NTrHits > 6)ic=0;
   else ic=6-_NTrHits;
-
   for (i=ic;i<4;i++){      // Start from 4
     for( j=_patd[i];j<_patd[i+1];j++){
       for(k=0;k<_nhits[_patconf[j][0]];k++){
          coou=_coo[_patconf[j][0]][k];
+         amp[0]=_eloss[_patconf[j][0]][k];
          for(l=0;l<_nhits[_patconf[j][_patpoints[j]-1]];l++){
             cood=_coo[_patconf[j][_patpoints[j]-1]][l];
-            s=sqrt((cood-coou)*(cood-coou)+(_TrackerCooZ[_patconf[j][_patpoints[j]-1]]-
-            _TrackerCooZ[_patconf[j][0]])*(_TrackerCooZ[_patconf[j][_patpoints[j]-1]]-
-            _TrackerCooZ[_patconf[j][0]]));
+            amp[_patpoints[j]-1]=_eloss[_patconf[j][_patpoints[j]-1]][l];
+            b=_TrackerCooZ[_patconf[j][_patpoints[j]-1]]-
+            _TrackerCooZ[_patconf[j][0]];
+            zmean=_TrackerCooZ[_patconf[j][_patpoints[j]-1]]+
+            _TrackerCooZ[_patconf[j][0]];
+            factor=1/fabs(b);
+            s=sqrt((cood-coou)*(cood-coou)+b*b);
             a=(cood-coou);
-            b=(_TrackerCooZ[_patconf[j][_patpoints[j]-1]]-
-            _TrackerCooZ[_patconf[j][0]]);
             dscr=s*Discriminator(_NTrHits-_patpoints[j]);
              for(n1=0;n1<_nhits[_patconf[j][1]];n1++){
                r=a*(_TrackerCooZ[_patconf[j][1]]-_TrackerCooZ[_patconf[j][0]])+
                b*(coou-_coo[_patconf[j][1]][n1]);
-                 if(fabs(r) < dscr){
-                   _Residual[_NPatFound]=_Residual[_NPatFound]+r;
+                 if(fabs(r) < (1-fabs(2*_TrackerCooZ[_patconf[j][1]]-zmean)*factor)*dscr){
+                   resid[0]=r;
+                   amp[1]=_eloss[_patconf[j][1]][n1];
                    if(_patpoints[j] > 3){
                     for(n2=0;n2<_nhits[_patconf[j][2]];n2++){
                       r=a*(_TrackerCooZ[_patconf[j][2]]-
                       _TrackerCooZ[_patconf[j][0]])+
                       b*(coou-_coo[_patconf[j][2]][n2]);
-                     if(fabs(r) < dscr){
-                       _Residual[_NPatFound]=_Residual[_NPatFound]+r;
+                 if(fabs(r) < (1-fabs(2*_TrackerCooZ[_patconf[j][2]]-zmean)*factor)*dscr){
+                        resid[1]=r;
+                        amp[2]=_eloss[_patconf[j][2]][n2];
                        if(_patpoints[j] > 4){
                        for(n3=0;n3<_nhits[_patconf[j][3]];n3++){
                          r=a*(_TrackerCooZ[_patconf[j][3]]-
                          _TrackerCooZ[_patconf[j][0]])+
                           b*(coou-_coo[_patconf[j][3]][n3]);
-                          if(fabs(r) < dscr){
-                           _Residual[_NPatFound]=_Residual[_NPatFound]+r;
+                 if(fabs(r) < (1-fabs(2*_TrackerCooZ[_patconf[j][3]]-zmean)*factor)*dscr){
+                            resid[2]=r;
+                            amp[3]=_eloss[_patconf[j][3]][n3];
                            if(_patpoints[j] > 5){
                             for(n4=0;n4<_nhits[_patconf[j][4]];n4++){
                              r=a*(_TrackerCooZ[_patconf[j][4]]-
                              _TrackerCooZ[_patconf[j][0]])+
                              b*(coou-_coo[_patconf[j][4]][n4]);
-                             if(fabs(r) < dscr){
-                             _Residual[_NPatFound]=_Residual[_NPatFound]+r;
+                 if(fabs(r) < (1-fabs(2*_TrackerCooZ[_patconf[j][4]]-zmean)*factor)*dscr){
+                              resid[3]=r;
+                              amp[4]=_eloss[_patconf[j][4]][n4];
                               // 6 point combi found
-                              if(!_UpdateOK(s,j))goto done;
+                              if(!_UpdateOK(s,resid,amp,j))goto done;
                              }
-                            }               
+                            }
                            }
                            else {
                              // 5 point combi found
-                             if(!_UpdateOK(s,j))goto done;
+                             if(!_UpdateOK(s,resid,amp,j))goto done;
                            }
                           }
                        }
+                                         
                        }
                        else {
                         // 4 point combi found
-                       if(!_UpdateOK(s,j))goto done;
+                       if(!_UpdateOK(s,resid,amp,j))goto done;
                        }
                      }
                     }
                    }
                    else {
                      // 3 point combi found
-                     if(!_UpdateOK(s,j))goto done;
+                     if(!_UpdateOK(s,resid,amp,j))goto done;
                    }
                  }
              }
@@ -691,7 +720,7 @@ void TriggerLVL3::fit(integer idum){
   }
   done:
 
-   if( _NPatFound  <= 0)_TrackerTrigger=3;
+   if( _NPatFound  == 0)_TrackerTrigger=3;
    else if ( _NPatFound >2)_TrackerTrigger = 4;
    else if (_NPatFound ==1){
     if(_Residual[0] > LVL3FFKEY.TrMinResidual )_TrackerTrigger=1;
@@ -703,7 +732,9 @@ void TriggerLVL3::fit(integer idum){
     else if(_Residual[0] <= LVL3FFKEY.TrMinResidual && _Residual[1] <= LVL3FFKEY.TrMinResidual )
     _TrackerTrigger=7;
     else _TrackerTrigger=4;
+
    }
+   if(_TrEnergyLoss > LVL3FFKEY.TrHeavyIonThr*8)_TrackerTrigger+= 8;
      
 }
 
@@ -711,14 +742,26 @@ void TriggerLVL3::settime(number time){
    _Time=time/LVL3FFKEY.NRep;
 }
   
-integer TriggerLVL3::_UpdateOK(geant s, integer pat){
+integer TriggerLVL3::_UpdateOK(geant s,  geant res[], geant amp[],integer pat){
+  int i;
+  geant maxa;
   if(_NPatFound > 1){
      _NPatFound++;
      return 0;
   }
   else {
-   _Residual[_NPatFound]=_Residual[_NPatFound]/(_patpoints[pat]-2)/s;
-   _Pattern[_NPatFound++]=pat;
+     int n=(_patpoints[pat]-2);
+     for(i=0;i<n;i++)_Residual[_NPatFound]+=res[i];
+     _Residual[_NPatFound]=_Residual[_NPatFound]/n/s;     
+     _Pattern[_NPatFound]=pat;
+     if(_NPatFound++==0){
+      maxa=0;
+      for(i=0;i<_patpoints[pat];i++){
+        if(amp[i]>maxa)maxa=amp[i];
+        _TrEnergyLoss+=amp[i];       
+      }
+      _TrEnergyLoss=(_TrEnergyLoss-maxa)/(_patpoints[pat]-1);
+     }
    return 1;
   }
 
@@ -737,6 +780,7 @@ void TriggerLVL3::builddaq(integer i, integer n, int16u *p){
     int16 res=int16(ptr->_Residual[0]*1000);
     *(p+3)=int16u(res);
     *(p+4)= ptr->_Pattern[0] | (ptr->_NPatFound)<<6 | (ptr->_NTrHits)<<8;
+    *(p+5)=int16u(ptr->_TrEnergyLoss);
   }
   else {
     cerr <<"TriggerLVL3::builddaq-E-No Trigger for "<<i<<endl;
@@ -752,7 +796,7 @@ void TriggerLVL3::buildraw(integer n, int16u *p){
   }
 
  integer tra,tof,anti,ntr,npat,pat[2];
- number res[2],time;
+ number res[2],time,eloss;
  time=0;
  res[1]=0;
  pat[1]=-1;
@@ -763,10 +807,11 @@ void TriggerLVL3::buildraw(integer n, int16u *p){
  pat[0]=((*(p+4)))&63;
  npat=((*(p+4))>>6)&3;
  ntr=((*(p+4))>>8)&255;
+ eloss=*(p+5);
 if(tra >= LVL3FFKEY.Accept)
   AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",ic), new
  TriggerLVL3( tra,  tof,  anti, ntr,  npat,
-  pat,  res,  time));
+  pat,  res,  time, eloss));
 
 }
 

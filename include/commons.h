@@ -43,7 +43,7 @@ integer ofile[40];
 integer OldFormat;
 integer LCrateinDAQ;
 integer SCrateinDAQ;
-integer RunChanger;
+integer NoRecAtAll;
 };
 #define DAQCFFKEY COMMON_BLOCK(DAQCFFKEY,daqcffkey)
 COMMON_BLOCK_DEF(DAQCFFKEY_DEF,DAQCFFKEY);
@@ -82,6 +82,7 @@ integer NRep;
 integer Accept;
 integer RebuildLVL3;
 integer NoK;
+geant TrHeavyIonThr;
 };
 #define LVL3FFKEY COMMON_BLOCK(LVL3FFKEY,lvl3ffkey)
 COMMON_BLOCK_DEF(LVL3FFKEY_DEF,LVL3FFKEY);

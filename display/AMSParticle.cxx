@@ -73,7 +73,8 @@ void AMSParticle::Paint(Option_t *option)
 char * AMSParticle::GetObjectInfo(Int_t px, Int_t py)
 {
    static char info[80];
-   sprintf(info,"Track #%d (Geant ID=%d): m=%4.1f+-%4.2g, p=%4.1f+-%4.2g",
+   info[0]='\0';
+   sprintf(info,"Track #%d (GID=%d): m=%4.1f+-%4.2g, p=%4.1f+-%4.2g",
 		 m_PTrack, m_GeantID, m_Mass, m_ErrMass, m_Momentum, m_ErrMomentum);
 
    return info;

@@ -19,6 +19,40 @@
 #include <tofcalib.h>
 #include <ntuple.h>
 //
+#ifdef __PRIVATE__
+integer AMSTOFCluster::goodch[4][14]={1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+                                      1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+                                      1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+                                      1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+geant AMSTOFCluster::tcoef[4][14]={   0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                      0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                      0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                      0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+#endif
+void AMSTOFCluster::init(){
+#ifdef __PRIVATE__
+  if(!(AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && 
+     AMSJob::gethead()->isRealData()){
+char _fnam[]="tofcalib.private";
+char fnam[256]="";
+strcpy(fnam,AMSDATADIR.amsdatadir);
+strcat(fnam,_fnam);
+  ifstream iftxt(fnam,ios::in);
+  if(!iftxt){
+     cerr <<"AMSCharge::init-F-Error open file "<<fnam<<endl;
+     
+      exit(1);
+  }
+  for(int i=0;i<4;i++){
+   for( int j=0;j<14;j++){
+    iftxt >> goodch[i][j] >> tcoef[i][j];
+    cout <<i<<" "<<j<<" "<<goodch[i][j]<<" "<<tcoef[i][j]<<endl;
+   }
+  }
+  }
+#endif
+
+}
 extern TOFBrcal scbrcal[SCLRS][SCMXBR];// calibration data
 extern TOFVarp tofvpar;// TOF general parameters
 integer AMSTOFRawCluster::trpatt[SCLRS]={0,0,0,0};//just init. of static var.
@@ -1074,6 +1108,12 @@ void AMSTOFCluster::build(int &stat){
 //
         if(((status & SCBADB2)>0)||((status & SCBADB3)>0))status|=AMSDBc::BAD; 
 //          bad=(peak bar is single-sided   or known problem with t-measurement)
+#ifdef __PRIVATE__
+        if(goodch[ntof-1][barn-1]){
+         time=time+tcoef[ntof-1][barn-1]*1.e-9;
+        }
+        else status|=AMSDBc::BAD;
+#endif
         AMSEvent::gethead()->addnext(AMSID("AMSTOFCluster",ilay),
         new     AMSTOFCluster(status,ntof,barn,edep,coo,ecoo,time,etime));
 //

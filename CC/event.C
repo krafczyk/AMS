@@ -445,6 +445,8 @@ void AMSEvent::_reamsevent(){
 #else
   if(TOFMCFFKEY.fast==0)_redaqevent();
 #endif  
+  // Skip EveryThing 
+  if(DAQCFFKEY.NoRecAtAll)return;
   _retofevent();
   _reantievent();
   _rectcevent(); 

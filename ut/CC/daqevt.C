@@ -4,7 +4,7 @@
 #include <event.h>
 #include <commons.h>
 
-integer DAQEvent::_Buffer[40000];
+integer DAQEvent::_Buffer[50000];
 integer DAQEvent::_BufferLock=0;
 const integer lover=2;
 DAQEvent::~DAQEvent(){
@@ -170,15 +170,6 @@ integer DAQEvent::_HeaderOK(){
 #endif
       // fix against event 0
       if(_Event==0)return 0;
-      // fix against crazy run;
-      if(_Run==305419896 && DAQCFFKEY.RunChanger>0){
-        time_t tm=time()-DAQCFFKEY.RunChanger;
-        DAQCFFKEY.RunChanger=-tm;        
-      }
-      if(_Run==305419896 && DAQCFFKEY.RunChanger<0){
-        time_t tm=time()-DAQCFFKEY.RunChanger;
-        _Run=-DAQCFFKEY.RunChanger;
-      }
             
       return 1;
     }
@@ -248,17 +239,13 @@ integer DAQEvent::read(){
      }
     }
     if(fbin.good() && !fbin.eof()){
-     int16u l16;
-#ifdef __AMSDEBUG__
-     assert(sizeof(_pData[0]) == sizeof(l16));
-#endif
-     fbin.read((unsigned char*)(&l16),sizeof(_pData[0]));
-     _convertl(l16);
-     _Length=l16+_OffsetL;
+     int16u l16[2];
+     fbin.read((unsigned char*)(l16),sizeof(l16));
+     _convertl(l16[0]);
+     _Length=l16[0]+_OffsetL;
      // get more length (if any)
-     fbin.read((unsigned char*)(&l16),sizeof(_pData[0]));
-     _convertl(l16);
-     _Length= _Length | ((l16 & 63)<<16);
+     _convertl(l16[1]);
+     _Length= _Length | ((l16[1] & 63)<<16);
      //cout <<" Length "<<_Length<<endl;
 
     if(fbin.eof() && KIFiles<InputFiles-1){
@@ -267,13 +254,11 @@ integer DAQEvent::read(){
      fbin.open(ifnam[++KIFiles],ios::in|binary);
      if(fbin){ 
        cout <<"DAQEvent::read-I-opened file "<<ifnam[KIFiles]<<endl;
-      fbin.read((unsigned char*)(&l16),sizeof(_pData[0]));
-      _convertl(l16);
-      _Length=l16+_OffsetL;
-      // get more length (if any)
-      fbin.read((unsigned char*)(&l16),sizeof(_pData[0]));
-      _convertl(l16);
-      _Length= _Length | ((l16 & 63)<<16);
+      fbin.read((unsigned char*)(l16),sizeof(l16));
+      _convertl(l16[0]);
+      _Length=l16[0]+_OffsetL;
+      _convertl(l16[1]);
+      _Length= _Length | ((l16[1] & 63)<<16);
       //cout <<" Length "<<_Length<<endl;
       break;
       
@@ -377,8 +362,8 @@ void DAQEvent::initO(integer run){
      ostrstream ost(name,sizeof(name));
      ost << ofnam<<"."<<run<<ends;
     if(fbout)fbout.close();
-    if(mode/10 ==1)fbout.open(name,ios::out|binary|ios::noreplace);
-    if(mode/10 ==2)fbout.open(name,ios::out|binary|ios::app);
+    if((mode/10)%10 ==1)fbout.open(name,ios::out|binary|ios::noreplace);
+    if((mode/10)%10 ==2)fbout.open(name,ios::out|binary|ios::app);
      if(fbout){ 
        // Associate buffer
       static char buffer[1000+1];
