@@ -1,4 +1,4 @@
-* $Id: richrec_lip.F,v 1.2 2004/01/16 12:03:43 mdelgado Exp $
+* $Id: richrec_lip.F,v 1.3 2004/03/09 17:03:27 mdelgado Exp $
 *// +LIP reconstruction interface
 * created        13/03/2003 
 * last change    03/12/2003
@@ -41,6 +41,13 @@
 * INITIALIZATION
 * -----------------------------------
 
+      if(ievnumb.ne.ievt) then
+         itknumb=1
+      else
+         itknumb=itknumb+1 
+      endif 
+      ievnumb=ievt 
+
       if(ifirst.eq.0) then 
 *  matrix placing 
 * (according to richid.C => DMECX e DMECY = 1.1)
@@ -53,6 +60,8 @@
        xlimh=emcxlim+0.9
        ylimh=emcylim-0.7
        ylimv=emcylim+0.4
+       xcpmm=0.
+       ycpmm=0.
 * (mirror aux. var.)
        tgmir   =  (rbmir-rtmir)/hmir  
        vtmir(1)= 0.
@@ -64,12 +73,7 @@
 *     ---------------------
 *     init event variables: 
 *     ---------------------
-      if(ievnumb.ne.ievt) then
-         itknumb=1
-      else
-         itknumb=itknumb+1 
-      endif 
-      ievnumb=ievt 
+
 
       nbhits_used=0.
       thcrec     =0.
@@ -181,17 +185,17 @@ C         print*,'IPM > 1000',ipm
 
       call richlikebeta_lip(0,ireflec)
 
-      if (ipthetac.ne.0.and.nbushits(ipthetac).gt.2) then
+      if (ipthetac.ne.0.and.nbushits(ipthetac).gt.0) then
 
        nbhits_used=nbushits(ipthetac)
        thcrec     =cangrec(ipthetac)  
        likep      =likerec(ipthetac)
        chi2beta   =chi2rec(ipthetac)    
-
 *       ebetarec   =ireflec*1.  ! numero de hits reflectidos
-*       rprob      =radtype*1.  ! tipo de radiador 1:AGL/2:NAF
+*     rprob      =radtype*1.  ! tipo de radiador 1:AGL/2:NAF
+      else
+       betarec=0.
       endif
-
 
       return
       end

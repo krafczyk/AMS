@@ -99,12 +99,13 @@
 * PMT matrix geometry and other geometry variables ( filled once per run)
 *--------------------------------------------------------------------------
 
-      real pitchx,pitchy,xlimv,xlimh,ylimv,ylimh,jump,dx0
+      real pitchx,pitchy,xlimv,xlimh,ylimv,ylimh,jump,dx0,
+     +     xcpmm,ycpmm
 
       common/pmtmatrix/pitchx,pitchy,
      +                 xlimv,xlimh,
      +                 ylimv,ylimh,
-     +                 jump,dx0
+     +                 jump,dx0,xcpmm,ycpmm
 
       real vtmir, tgmir
       common/miraux/vtmir(3), 
@@ -200,17 +201,14 @@
 ************************************************************
 
       real phistep,chi2htcut,chi2hthint,fsigma2,fbackgr,fdistan,thcstep
-      common /liprecc/ PHISTEP,  !phi step for hit chi2 scanning 
-* and minimum finding  
-     +                 CHI2HTCUT,!chi2 max for a correlated hit 
-*with the photon pattern
-     +                 CHI2HTHINT,!chi2 max for a correlated hit 
-*with the photon pattern
-     +                 FSIGMA2,  !lorentz function width 
-     +                 FBACKGR,  !photon background fraction
-     +                 FDISTAN,  !effective detector distance
-     +                 THCSTEP   !thetac step for lorentz scanning 
-*and minimum finding  
+      common /liprecc/ 
+     +  PHISTEP,  !phi step for hit chi2 scanning  and min. finding  
+     +  CHI2HTCUT,!chi2 max for a correlated hit with ph. pattern
+     +  CHI2HTHINT,!chi2 max for a correlated hit with ph. pattern
+     +  FSIGMA2,  !lorentz function width 
+     +  FBACKGR,  !photon background fraction
+     +  FDISTAN,  !effective detector distance
+     +  THCSTEP   !thetac step for lorentz scan and min. finding  
 
 
 

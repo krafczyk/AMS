@@ -1,4 +1,4 @@
-* $Id: richpatt_lip.F,v 1.2 2004/01/16 12:03:43 mdelgado Exp $
+* $Id: richpatt_lip.F,v 1.3 2004/03/09 17:03:27 mdelgado Exp $
 *//+LIP pattern tracing routines
 * ================================================================         
       subroutine patrace1(phig,cerangh,xdet,ydet,nmiref,nerr,verr)
@@ -34,13 +34,22 @@
 *              18  - 
 *              19  - in NON-ACTIVE detection region 
 ******************************************************************         
+      implicit none
 #include "../include/richrec_lipf.h"
 
-      integer nphmax  
-      parameter(nphmax=10)
-      integer nerr,verr(nphmax)                                                
       real phdir(3), phpto(3),phdirn(3)                                    
       character*3 CHIN,CHOUT
+
+* ... passed parameters
+      integer nmiref
+      integer nphmax
+      parameter(nphmax=10)
+      integer nerr,verr(nphmax)
+      real xdet,ydet,phig,cerangh
+
+* ... local variables
+      integer ierr,i,iflfl
+      real rpoint
 
 * --- init                                                                 
       nerr   = 0                                                           
@@ -187,13 +196,22 @@ CC    if (nerr.ne.0) return
 * ===================================================================
       subroutine patrace_full(phig,cerangh,xdet,ydet,nmiref,nerr,verr)
 * ===================================================================
+      implicit none
 #include "../include/richrec_lipf.h"
 
+      real phdir(3), phpto(3),phdirn(3)                                    
+      character*3 CHIN,CHOUT
+
+* ... passed parameters 
+      integer nmiref   
       integer nphmax  
       parameter(nphmax=10)
       integer nerr,verr(nphmax)                                                
-      real phdir(3), phpto(3),phdirn(3)                                    
-      character*3 CHIN,CHOUT
+      real xdet,ydet,phig,cerangh
+
+* ... local variables
+      integer ierr,i,iflfl  
+      real rpoint   
 
 * --- init                                                                 
       nerr   = 0                                                           
@@ -433,7 +451,6 @@ CC    if (nerr.ne.0) return
 * --- end                                                                  
       return                                                               
       end                                                                       
-
 * ==================================================================
       subroutine patphot(phig,cerang,coneg)
 * ==================================================================
@@ -445,6 +462,7 @@ CC    if (nerr.ne.0) return
 *                        CERANGH = cerenkov angle
 *                  OUT - CONEG  = photon direction
 ********************************************************************
+      implicit none
 
       integer irotflg
       real figrotm(3,3)
@@ -452,6 +470,11 @@ CC    if (nerr.ne.0) return
       common /matrixc/ figrotm  
 
       real pconeg(3),coneg(3)           
+
+*... local variables
+      integer i,j
+      real cerang,phig          
+
 
 * --- geratriz
       pconeg(1) =  sin(cerang)*cos(phig) 
@@ -485,11 +508,17 @@ CC    if (nerr.ne.0) return
 *                   (pointing inwards) 
 *
 ******************************************************************
+      implicit none 
 #include "../include/richrec_lipf.h"
             
       real p0(3), v0(3), p0i(3), v0i(3), pc(3)
       real srtfroot
       character*4 chopt 
+
+*... local variables
+      integer ierr 
+      real arat,brat,dx,dy,dz,A,B,C,factroot,root_plus,root_minus,
+     &     root1,dist,radius
 
 * --- init
       ierr = 0
@@ -617,11 +646,20 @@ cc      root_minus = -0.5*B/A-0.5/A*sqrt((B**2-4.*A*C))
 *                        angle
 *     IN/OUT - phdir = photon direction
 ***************************************************************
+      implicit none
 #include "../include/richrec_lipf.h"
 
       real phdir(3),phdirn(3)
       real vnormal(3)
       character*3 CHIN,CHOUT
+
+*... local variables
+      integer ierr,i 
+      real costhi,acthi,thi,refindex_1,refindex_2,sthi,sintht,tht,A,B,
+     &     phdirnm
+*... functions
+      real vdot  
+      external vdot
 
 * --- init
       ierr = 0
@@ -680,9 +718,17 @@ cc      root_minus = -0.5*B/A-0.5/A*sqrt((B**2-4.*A*C))
 *            phpto(3) = intersection point on mirror
 *     OUT  - phdir
 *****************************************************************
+      implicit none
 #include "../include/richrec_lipf.h"
 
       real phdir(3),vnorm(3),phdir_ref(3),phpto(3)
+
+*... local variables
+      integer i 
+      real phdirm,vnormm,costhi,phdir_refm
+*... functions
+      real vdot  
+      external vdot
 
 * --- normalize incident angle
 
@@ -728,7 +774,8 @@ C      print*,'thr=',acos(costhr)
 * gets (x,y,z) from (x',y',z') by defining FIGROTM matrix
 *
 *************************************************************
-
+      implicit none
+*
       real pimp,pmom,pthe,pphi,pcoopmt,cerang,pbeta,pchg
 
       common /liptrk/pimp(3),
@@ -747,6 +794,12 @@ C      print*,'thr=',acos(costhr)
 
       real paxisx(3),paxisy(3),paxisz(3)
       real axisx(3),axisy(3),axisz(3)
+
+*... local variables
+      real paxisxm,  paxisym,  paxiszm  
+*... functions
+      real vdot  
+      external vdot
 
 * --- general frame
       axisx(1) = 1. !X 
@@ -824,10 +877,16 @@ C      print*,'*****************************'
 ******************************************************************
 *  It determines the distance crossed by a photon in the radiator
 ******************************************************************
+      implicit none
 #include "../include/richrec_lipf.h"
 
-      common/parfunc/par(10)
+      real par(10)
+      common/parfunc/par
       real phpto(3),phdir(3)
+
+      integer ierr
+      real thetac,phig,dist2  
+
 
 * --- init
       fphotdist = -999.
@@ -873,9 +932,10 @@ C      print*,'*****************************'
 *             1 - internal non existing PMT
 *             3 - external non existing PMT 
 ****************************************************************
+      implicit none
 #include "../include/richrec_lipf.h"
 
-      integer IPM,IFLG
+      integer IPM,IFLG,IDUM,IP,IX,IY,IDIF,I,K
       real XL,XR,YU,YD,XC,YC
 
       IDUM=1
@@ -1112,9 +1172,10 @@ C      print*,'*****************************'
 *                   2 - internal non existing PMT
 *                   3 - external non existing PMT (dead areas)
 ********************************************************************
+      implicit none
 #include "../include/richrec_lipf.h"
 
-      integer IPM,IFLG
+      integer IPM,IFLG,IP,IX,IY,I
       real XPHOT,YPHOT,RPHOT,dxp,dyp
 
       IP   = -1      
