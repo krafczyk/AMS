@@ -147,7 +147,7 @@ integer AMSTimeID::write(char * dir){
     AString fnam(dir);
     fnam+=getname();
     fnam+= getid()==0?".0":".1";
-    if(AMSJob::gethead()->isCalibration()){
+    if(AMSJob::gethead()->isCalibration()  & AMSJob::CTracker){
      char name[255];
      ostrstream ost(name,sizeof(name));
      ost << "."<<AMSTrIdCalib::getrun()<<ends;
