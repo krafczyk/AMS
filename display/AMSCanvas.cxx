@@ -55,7 +55,7 @@
 #include <TSelectionDialog.h>
 #endif
 
-#include "MySelectionDialog.h"
+//#include "MySelectionDialog.h"
 
 
 #ifndef AMSRoot_H
