@@ -2207,11 +2207,13 @@ _GErrRidgidity=out[8];
 _GTheta=out[3];
 _GPhi=out[4];
 _GP0=AMSPoint(out[0],out[1],out[2]);
-if(out[7] !=0){
+if(out[7] !=0 || _GChi2>TRFITFFKEY.Chi2FastFit){
   _GeaneFitDone=0;
-  _GChi2=FLT_MAX;
-  _GErrRidgidity=FLT_MAX;
-  _GRidgidity=FLT_MAX;
+  if(out[7]){
+    _GChi2=FLT_MAX;
+    _GErrRidgidity=FLT_MAX;
+    _GRidgidity=FLT_MAX;
+  }
 }  
 }
 

@@ -529,7 +529,7 @@ void AMSParticle::refit(int fast){
         }
      _ptrack->Fit(0,_GPart);
      _ptrack->Fit(_pbeta->getbeta()>0?3:-3,_GPart);
-     if(_ptrack->GeaneFitDone() && fabs(_ptrack->getgrid())>TRFITFFKEY.RidgidityMin/2){
+     if(_ptrack->GeaneFitDone() && fabs(_ptrack->getgrid())>TRFITFFKEY.RidgidityMin/2 ){
       _build(_pbeta->getbeta()>0?_ptrack->getgrid():-_ptrack->getgrid(),
        _ptrack->getegrid(),_Charge,_pbeta,_Mass,_ErrMass,_Momentum,_ErrMomentum);
        }
