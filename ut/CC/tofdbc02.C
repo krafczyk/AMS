@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.25 2005/01/04 16:48:01 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.26 2005/03/11 11:16:14 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -11,12 +11,16 @@
 #include <tofsim02.h>
 #include <tofrec02.h>
 #include <tofcalib02.h>
+#include <charge.h>
+//
+using namespace AMSChargConst;
 //
 TOF2Varp TOF2Varp::tofvpar; // mem.reserv. TOF general parameters 
 TOF2Brcal TOF2Brcal::scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];// mem.reserv. TOF indiv.bar param. 
 TOFBrcalMS TOFBrcalMS::scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];// the same for "MC Seeds" 
 TOFBPeds TOFBPeds::scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];//mem.reserv. TOF-bar pedestals/sigmas/...
 TOF2Varp::TOF2Temperature TOF2Varp::tftt;
+TofElosPDF TofElosPDF::TofEPDFs[MaxZTypes];
 //-----------------------------------------------------------------------
 //  =====> TOF2DBc class variables definition :
 //
@@ -2505,6 +2509,8 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1540,"L=4,TOFClus Edep(mev)",80,0.,24.,0.);
     HBOOK1(1541,"TOFClus,L1XCoo(long)",100,-50.,50.,0.);
     HBOOK1(1542,"TOFClus,L1YCoo(tran)",100,-50.,50.,0.);
+    HBOOK1(1545,"L=1,TOFClus SQRT(Edep(mev))",100,0.,25.,0.);
+    HBOOK1(1546,"L=3,TOFClus SQRT(Edep(mev))",100,0.,25.,0.);
     HBOOK1(1548,"TOFClus 2 bars E-ass(dt,dc ok)",44,-1.1,1.1,0.);
     HBOOK1(1549,"TOFClus cand. Y-match(cm, dt ok)",80,-40.,40.,0.);
     HBOOK1(1550,"TOFClus cand. T-match(ns)",80,-10.,10.,0.);
@@ -2689,6 +2695,8 @@ void TOF2JobStat::outp(){
          HPRINT(1536);
          HPRINT(1537);
          HPRINT(1538);
+	 HPRINT(1545);
+	 HPRINT(1546);
          HPRINT(1541);
          HPRINT(1542);
          HPRINT(1539);
@@ -2992,6 +3000,178 @@ void TOF2Varp::init(geant daqth[5], geant cuts[10]){
       for(i=0;i<TOF2GC::SCCRAT;i++)scdaqbc3[i][j]=0;
     }
   }
+//--------------------------------------------------
+TofElosPDF::TofElosPDF(int ich, int ch, int nb, geant stp, geant bnl, geant undf, geant ovfl, geant distr[]){
+  ichar=ich;
+  charge=ch;
+  nbins=nb;
+  stpx=stp;
+  xmin=bnl;
+//cout<<"iZ/Z="<<ichar<<" "<<charge<<endl;
+//cout<<"Nbns/binw/xmin="<<nbins<<" "<<stpx<<" "<<xmin<<endl;
+//cout<<"Undfl/Ovfl="<<undf<<" "<<ovfl<<" dis(0)/dis(n-1)="<<distr[0]<<" "<<distr[nb-1]<<endl;
+  number norm(0),suml,sumr,hend;
+  for(int i=0;i<nb;i++){
+    elpdf[i]=number(distr[i]);
+    norm+=elpdf[i];
+  }
+  suml=number(undf);
+  if(suml==0)suml+=1;
+  sumr=number(ovfl);
+  norm+=(suml+sumr);
+//  cout<<"suml/sumr="<<suml<<" "<<sumr<<endl;
+  if(sumr==0 || elpdf[nb-1]==0){
+    cout<<"TofElosPDF::-E-:Original distribition high-end is badly defined !"<<" iZ="<<ich<<endl;
+    exit(1);
+  }
+  hend=elpdf[nbins-1];
+  slope=hend/sumr/stpx;//exp.slope in ovfl-region
+  unpdf=suml/xmin/norm;//const.PDF-value in underfl-region(already normalized correctly !!!)
+  for(int i=0;i<nb;i++)elpdf[i]/=(norm*stpx);//normalized PDF in central region
+}
+//---
+void TofElosPDF::build(){// create TofElosPDF-objects array for real/mc data
+//
+  char fname[80];
+  char name[80];
+  char vers1[3]="mc";
+  char vers2[3]="rl";
+  int mrfp;
+  char in[2]="0";
+  char inum[11];
+  int ctyp,ntypes,mcvern[10],rlvern[10];
+  int mcvn,rlvn,dig;
+  integer ic,charge,chref,nbns,endflab;
+  geant lovfl,rovfl,xmin,binw,distr[TOF2GC::SCPDFBM];
+//
+  strcpy(inum,"0123456789");
+//
+// ---> read file with the list of version numbers for all needed calib.files :
+//
+  integer cfvn;
+  cfvn=TFCAFFKEY.cfvers%1000;//vers.list-file version number 
+  strcpy(name,"tof2cvlist");// basic name for vers.list-file  
+  dig=cfvn/100;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  dig=(cfvn%100)/10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  dig=cfvn%10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  strcat(name,".dat");
+//
+  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"TofElosPDF::build: Opening vers.list-file  "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in);
+  if(!vlfile){
+    cerr <<"TofElosPDF::build: missing vers.list-file "<<fname<<endl;
+    exit(1);
+  }
+  vlfile >> ntypes;// total number of calibr. file types in the list
+  for(int i=0;i<ntypes;i++){
+    vlfile >> mcvern[i];// first number - for mc
+    vlfile >> rlvern[i];// second number - for real
+  }
+  vlfile.close();
+//------------------------------------------------
+ ctyp=7;
+ strcpy(name,"tof2pdff");//part.charge calib.file
+ mcvn=mcvern[ctyp-1]%1000;
+ rlvn=rlvern[ctyp-1]%1000;
+ if(AMSJob::gethead()->isMCData())           // for MC-data
+ {
+   cout <<" TofElosPDF::build: Elos-vx-Charge distr. for MC-data are requested"<<endl;
+   dig=mcvn/100;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=(mcvn%100)/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=mcvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers1);
+ }
+ else                                       // for Real-data
+ {
+   cout <<" TofElosPDF::build: Elos-vx-Charge distr. for Real-data are requested"<<endl;
+   dig=rlvn/100;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=(rlvn%100)/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=rlvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers2);
+ }
+   strcat(name,".dat");
+   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+   strcat(fname,name);
+   cout<<"Open file : "<<fname<<'\n';
+   ifstream pdfile(fname,ios::in); // open file for reading
+   if(!pdfile){
+     cerr <<"TofElosPDF::build: Missing Elos-vx-Charge distr. file "<<fname<<endl;
+     exit(1);
+   }
+//
+  for(int ich=0;ich<MaxZTypes;ich++){
+    pdfile >> ic;
+    pdfile >> charge;
+    chref=AMSCharge::ind2charge(0,ich+1);//charge from ctandard list("0"->TOF)
+    if(charge!=chref || ic!=(ich+1)){
+      cout<<"TofElosPDF::build:-E-wrong Z-structure of Elos-vx-Charge distr. file,ic="<<ic<<endl;
+      exit(1);
+    }
+    pdfile >> nbns;
+    pdfile >> lovfl;
+    pdfile >> rovfl;
+    pdfile >> xmin;
+    pdfile >> binw;
+    for(int ib=0;ib<nbns;ib++)pdfile >> distr[ib];
+    TofEPDFs[ich]=TofElosPDF(ic, charge, nbns, binw, xmin, lovfl, rovfl, distr);
+  }
+//
+  pdfile >> endflab;//read endfile-label
+//
+  pdfile.close();
+//
+  if(endflab==12345){
+    cout<<"TofElosPDF::build: Elos-vx-Charge distr. file is successfully read !"<<endl;
+  }
+  else{cout<<"TofElosPDF::build: ERROR(READ-problem with Elos-vx-Charge distr. file)"<<endl;
+    exit(1);
+  }
+//
+}
+//---
+number TofElosPDF::getlkhd(int nhits, int hstat[], number ehit[], number beta){
+  number eh,xmax,hend,betapow,betacor,betamax(0.95),lkhd(0);
+  int ia;
+  betapow=1.75;//my estimation, works better than 5/3, the same for all nucl.
+  betacor=ichar?pow(min(fabs(beta/betamax),1.),betapow):1;//corr to "mip"(=1 for ichar=0(electrons))
+  xmax=xmin+nbins*stpx;
+  hend=elpdf[nbins-1];
+  for(int ih=0;ih<nhits;ih++){//hits loop
+    if(hstat[ih]>=0){
+      eh=ehit[ih]*betacor;
+      if(eh<xmin)lkhd+=-log(unpdf);//undfl-region
+      else if(eh>=xmax)lkhd+=(-log(hend)+slope*(eh-xmax));//ovfl-region
+      else{//central region
+        ia=int(floor((eh-xmin)/stpx));
+        lkhd+=-log(elpdf[ia]);
+      }
+    }
+  }
+  return lkhd;
+}
 
+//-----------------------------------------------------------------------
 
 

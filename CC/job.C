@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.472 2005/02/23 15:45:43 choutko Exp $
+// $Id: job.C,v 1.473 2005/03/11 11:16:14 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -57,6 +57,7 @@
 #include <trdid.h>
 #include <ecid.h>
 #include <tofid.h>
+#include <charge.h>
 #ifdef __DB__
 //+
  integer        ntdvNames;               // number of TDV's types
@@ -73,6 +74,8 @@ extern LMS* lms;
 
 #endif
 //-
+//
+using namespace AMSChargConst;
 //
 char AMSJob::_ntuplefilename[256]="";
 char AMSJob::_rootfilename[256]="";
@@ -1070,9 +1073,13 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[8]=50.;//(26) spare 
   TFREFFKEY.cuts[9]=0.;// (27) 
 //
-  TFREFFKEY.ReadConstFiles=100;//(28) DPC(D->ThreshCuts-set,P->Peds,C->CalibConst(rd/mc));
-// D=1/0->Take ThreshCuts-set from DataCards/DB; P(C)=1/0->Take Peds(CalibConst) from Files/DB
-
+  TFREFFKEY.ReadConstFiles=100;//(28) QDPC(Q->ChargeCalib(mc/rd),D->ThreshCuts-set,P->Peds(rd),
+//                                                                       C->CalibConst(rd/mc));
+// Q=1/0->Take ChargeCalibDensFunctions from RawFiles/DB
+// D=1/0->Take ThreshCuts-set from DataCards/DB,
+// P=1/0->Take Peds(rd) from RawFiles/DB,
+// C=1/0->Take PaddleCalibrCont from RawFiles/DB
+//
   TFREFFKEY.sec[0]=0;//(29) 
   TFREFFKEY.sec[1]=0;
   TFREFFKEY.min[0]=0;
@@ -1121,7 +1128,7 @@ void AMSJob::_retof2data(){
 //
   TFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TFCAFFKEY.dynflg=0; // (27)  not used now
-  TFCAFFKEY.cfvers=6; // (28) 1-999 -> vers.number for tof2cvlistNNN.dat file
+  TFCAFFKEY.cfvers=8; // (28) 1-999 -> vers.number for tof2cvlistNNN.dat file
   TFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
   TFCAFFKEY.mcainc=0;// (30) =1->Anode-integrators calibration(MC only)(not used now)
   TFCAFFKEY.tofbetac=0.5;// (31) if nonzero->low beta cut (own TOF measurements !!!)
@@ -1172,7 +1179,7 @@ VBLANK(DAQCFFKEY.ofile,40);
 
 }
 
-
+//----------------------------------
 void AMSJob::_reaxdata(){
 // Fit beta & charge
 CHARGEFITFFKEY.NmembMax=3;
@@ -1186,16 +1193,31 @@ CHARGEFITFFKEY.ResCut[0]=4.;
 CHARGEFITFFKEY.ResCut[1]=4.;
 CHARGEFITFFKEY.SigMin=0.1;
 CHARGEFITFFKEY.SigMax=0.3;
-CHARGEFITFFKEY.PdfNorm=1;
+CHARGEFITFFKEY.PdfNorm=1;//not used now (pdf's are normalized automatically)
 CHARGEFITFFKEY.TrMeanRes=1;
 CHARGEFITFFKEY.ProbMin=0.01;
 CHARGEFITFFKEY.TrackerOnly=8;
-CHARGEFITFFKEY.ChrgMaxAnode=3;
-CHARGEFITFFKEY.BetaPowAnode=1;
+CHARGEFITFFKEY.ChrgMaxAnode=9;//not used now
+CHARGEFITFFKEY.BetaPowAnode=0;//not used now
 CHARGEFITFFKEY.TrackerForceSK=0;
 CHARGEFITFFKEY.TrackerKSRatio=0.67;
 CHARGEFITFFKEY.TrackerProbOnly=3;
-
+CHARGEFITFFKEY.TrkPDFileMCVers=1;//MC vers.number of Trk-ElosPDFFile(trkpdffNNNmc.dat)
+CHARGEFITFFKEY.TrkPDFileRDVers=1;//RD vers.number of Trk-ElosPDFFile(trkpdffNNNrl.dat)
+CHARGEFITFFKEY.TrkPDFileRead=0;//read TrkPDF-info from DB(0) OR RawFile (1)
+CHARGEFITFFKEY.sec[0]=0; 
+CHARGEFITFFKEY.sec[1]=0;
+CHARGEFITFFKEY.min[0]=0;
+CHARGEFITFFKEY.min[1]=0;
+CHARGEFITFFKEY.hour[0]=0;
+CHARGEFITFFKEY.hour[1]=0;
+CHARGEFITFFKEY.day[0]=1;
+CHARGEFITFFKEY.day[1]=1;
+CHARGEFITFFKEY.mon[0]=0;
+CHARGEFITFFKEY.mon[1]=0;
+CHARGEFITFFKEY.year[0]=101;
+CHARGEFITFFKEY.year[1]=110;
+//-------
 BETAFITFFKEY.pattern[0]=1;
 BETAFITFFKEY.pattern[1]=1;
 BETAFITFFKEY.pattern[2]=1;
@@ -1948,6 +1970,10 @@ AMSgObj::BookTimer.book("TrClusterRefit");
 AMSgObj::BookTimer.book("TrRecHit");
 AMSgObj::BookTimer.book("TrTrack");
 AMSgObj::BookTimer.book("TrFalseX");
+  if(CHARGEFITFFKEY.TrkPDFileRead%10>0){//(Q) Take ChargeCalibPDFs(mc|rd) from raw files
+//
+    TrkElosPDF::build();//create TrkElosPDF-objects from TRK raw ChargeCalibFile
+  }
 }
 //===================================================================================
 //
@@ -1973,22 +1999,27 @@ void AMSJob::_retof2initjob(){
 //
 //-------------------------
 // 
-  if(TFREFFKEY.ReadConstFiles/100>0){//(DPC) Take ThreshCuts-set from Data-Cards
+  if((TFREFFKEY.ReadConstFiles%1000)/100>0){//(QDPC) Take ThreshCuts-set from Data-Cards
 //
     TOF2Varp::tofvpar.init(TFREFFKEY.daqthr, TFREFFKEY.cuts);//create ThrCuts-obj from Data-Cards
   }
 //--------
-  if(TFREFFKEY.ReadConstFiles%10>0){//(DPC) Take CalibConst from CalibFiles
+  if(TFREFFKEY.ReadConstFiles%10>0){//(QDPC) Take Paddles CalibConst from CalibFiles
 //
     TOF2Brcal::build();//create scbrcal-objects from CalibFiles
   }
 //--------
 //
-  if((TFREFFKEY.ReadConstFiles%100)/10>0 && isRealData()){//(DPC) Take RealData Peds from files
+  if((TFREFFKEY.ReadConstFiles%100)/10>0 && isRealData()){//(QDPC) Take RealData Peds from files
 //
     TOFBPeds::build();//create RealData scbrped-objects from peds-file
   }
 // 
+//--------
+  if(TFREFFKEY.ReadConstFiles/1000>0){//(QDPC) Take ChargeCalibPDFs(mc|rd) from files
+//
+    TofElosPDF::build();//create scbrcal-objects from CalibFiles
+  }
 //-----------
   AMSTOFCluster::init();
   AMSSCIds::inittable();
@@ -2088,13 +2119,6 @@ AMSgObj::BookTimer.book("ReRICHRefit");
 AMSgObj::BookTimer.book("ReTOFRefit"); 
   AMSgObj::BookTimer.book("ReAxPid");
   AMSgObj::BookTimer.book("part::loc2gl");
-  if(AMSFFKEY.Update){
-    for(int i=0;i<gethead()->gettdvn();i++){
-      if( strcmp(gethead()->gettdvc(i),"ChargeLkhd01")==0 ){
-        AMSCharge::init();
-      }
-    }
-  }
 
 
 if (AMSJob::gethead()->isMonitoring()) {
@@ -2405,7 +2429,7 @@ end.tm_year=TRDMCFFKEY.year[1];
   end.tm_mon=TFREFFKEY.mon[1];
   end.tm_year=TFREFFKEY.year[1];
 //-----
-//tfre->DPC,tfmc->PTS
+//tfre->QDPC,tfmc->PTS
 if(TFREFFKEY.ReadConstFiles%10==0)end.tm_year=TFREFFKEY.year[0]-1;//CalibConst from DB
   
   TID.add (new AMSTimeID(AMSID("Tofbarcal2",isRealData()),
@@ -2414,12 +2438,24 @@ if(TFREFFKEY.ReadConstFiles%10==0)end.tm_year=TFREFFKEY.year[0]-1;//CalibConst f
    
   end.tm_year=TFREFFKEY.year[1];
 //-----
-if(TFREFFKEY.ReadConstFiles/100==0)end.tm_year=TFREFFKEY.year[0]-1;//ThreshCuts-set from DB
+if((TFREFFKEY.ReadConstFiles%1000)/100==0)end.tm_year=TFREFFKEY.year[0]-1;//ThreshCuts-set from DB
 
   TID.add (new AMSTimeID(AMSID("Tofvpar2",isRealData()),
     begin,end,sizeof(TOF2Varp::tofvpar),
     (void*)&TOF2Varp::tofvpar,server,NeededByDefault));
     
+  end.tm_year=TFREFFKEY.year[1];
+//----- 
+if((TFREFFKEY.ReadConstFiles/1000)==0)end.tm_year=TFREFFKEY.year[0]-1;//ChargeCalibPDFs from DB
+
+  TID.add (new AMSTimeID(AMSID("Tofcpdfs",isRealData()),
+    begin,end,MaxZTypes*sizeof(TofElosPDF::TofEPDFs[0]),
+    (void*)&TofElosPDF::TofEPDFs[0],server,NeededByDefault));
+    
+  TID.add (new AMSTimeID(AMSID("ChargeIndxTof",isRealData()),
+    begin,end,MaxZTypes*sizeof(AMSCharge::_chargeTOF[0]),
+    (void*)AMSCharge::_chargeTOF,server,NeededByDefault));
+   
   end.tm_year=TFREFFKEY.year[1];
 //----- 
 if((TFREFFKEY.ReadConstFiles%100)/10==0 &&
@@ -2653,59 +2689,40 @@ if(ECMCFFKEY.ReadConstFiles%10==0 &&
 //
 //---------------------------------------
 //
-// Data to fit particle charge magnitude
+// Data to fit particle charge magnitude(now for tracker only)
 //
 {
 tm begin;
 tm end;
 begin.tm_isdst=0;
 end.tm_isdst=0;
-begin.tm_sec=AMSCharge::_sec[0];
-begin.tm_min=AMSCharge::_min[0];
-begin.tm_hour=AMSCharge::_hour[0];
-begin.tm_mday=AMSCharge::_day[0];
-begin.tm_mon=AMSCharge::_mon[0];
-begin.tm_year=AMSCharge::_year[0];
+begin.tm_sec=CHARGEFITFFKEY.sec[0];
+begin.tm_min=CHARGEFITFFKEY.min[0];
+begin.tm_hour=CHARGEFITFFKEY.hour[0];
+begin.tm_mday=CHARGEFITFFKEY.day[0];
+begin.tm_mon=CHARGEFITFFKEY.mon[0];
+begin.tm_year=CHARGEFITFFKEY.year[0];
 
-end.tm_sec=AMSCharge::_sec[1];
-end.tm_min=AMSCharge::_min[1];
-end.tm_hour=AMSCharge::_hour[1];
-end.tm_mday=AMSCharge::_day[1];
-end.tm_mon=AMSCharge::_mon[1];
-end.tm_year=AMSCharge::_year[1];
+end.tm_sec=CHARGEFITFFKEY.sec[1];
+end.tm_min=CHARGEFITFFKEY.min[1];
+end.tm_hour=CHARGEFITFFKEY.hour[1];
+end.tm_mday=CHARGEFITFFKEY.day[1];
+end.tm_mon=CHARGEFITFFKEY.mon[1];
+end.tm_year=CHARGEFITFFKEY.year[1];
+
+if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//ChargeCalibPDFs from DB
+
+  TID.add (new AMSTimeID(AMSID("Trkcpdfs",isRealData()),
+    begin,end,MaxZTypes*sizeof(TrkElosPDF::TrkEPDFs[0]),
+    (void*)&TrkElosPDF::TrkEPDFs[0],server,NeededByDefault));
+    
+  TID.add (new AMSTimeID(AMSID("ChargeIndxTrk",isRealData()),
+    begin,end,MaxZTypes*sizeof(AMSCharge::_chargeTracker[0]),
+    (void*)AMSCharge::_chargeTracker,server,NeededByDefault));
+    
+  end.tm_year=CHARGEFITFFKEY.year[1];
 
 
-
-TID.add (new AMSTimeID(AMSID("ChargeLkhd01",isRealData()),
-   begin,end,100*ncharge*TOFTypes*sizeof(AMSCharge::_lkhdTOF[0][0][0]),
-   (void*)AMSCharge::_lkhdTOF[0],server));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd02",isRealData()),
-   begin,end,100*ncharge*TrackerTypes*sizeof(AMSCharge::_lkhdTracker[0][0][0]),
-   (void*)AMSCharge::_lkhdTracker[0],server));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd03",isRealData()),
-   begin,end,ncharge*TOFTypes*sizeof(AMSCharge::_lkhdStepTOF[0][0]),
-   (void*)AMSCharge::_lkhdStepTOF,server));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd04",isRealData()),
-   begin,end,ncharge*TrackerTypes*sizeof(AMSCharge::_lkhdStepTracker[0][0]),
-   (void*)AMSCharge::_lkhdStepTracker,server));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd05",isRealData()),
-   begin,end,ncharge*TOFTypes*sizeof(AMSCharge::_lkhdNormTOF[0][0]),
-   (void*)AMSCharge::_lkhdNormTOF,server));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd06",isRealData()),
-   begin,end,ncharge*TrackerTypes*sizeof(AMSCharge::_lkhdNormTracker[0][0]),
-   (void*)AMSCharge::_lkhdNormTracker,server));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd07",isRealData()),
-   begin,end,ncharge*TOFTypes*sizeof(AMSCharge::_lkhdSlopTOF[0][0]),
-   (void*)AMSCharge::_lkhdSlopTOF,server));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd08",isRealData()),
-   begin,end,ncharge*TrackerTypes*sizeof(AMSCharge::_lkhdSlopTracker[0][0]),
-   (void*)AMSCharge::_lkhdSlopTracker,server));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd09",isRealData()),
-   begin,end,ncharge*sizeof(AMSCharge::_chargeTOF[0]),
-   (void*)AMSCharge::_chargeTOF,server));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd10",isRealData()),
-   begin,end,ncharge*sizeof(AMSCharge::_chargeTracker[0]),
-   (void*)AMSCharge::_chargeTracker,server));
 
 
 }

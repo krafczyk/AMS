@@ -1,8 +1,10 @@
-//  $Id: charge.C,v 1.69 2004/06/28 13:25:08 choutko Exp $
+//  $Id: charge.C,v 1.70 2005/03/11 11:16:14 choumilo Exp $
 // Author V. Choutko 5-june-1996
 //
 //
 // Lat Edit : Mar 20, 1997. ak. AMSCharge::Build() check if psen == NULL
+//
+// Modified by E.Choumilov 17.01.2005 for AMS02 
 //
 #include <beta.h>
 #include <commons.h>
@@ -20,32 +22,21 @@
 #include <cern.h>
 #include <trrawcluster.h>
 #include <job.h>
+
 using namespace std;
-integer AMSCharge::_sec[2]={0,0};
-integer AMSCharge::_min[2]={0,0};
-integer AMSCharge::_hour[2]={0,0};
-integer AMSCharge::_day[2]={0,0};
-integer AMSCharge::_mon[2]={0,0};
-integer AMSCharge::_year[2]={97,96};
-geant AMSCharge::_lkhdTOF[TOFTypes][ncharge][nbins];
-geant AMSCharge::_lkhdTracker[TrackerTypes][ncharge][nbins];
-geant AMSCharge::_lkhdStepTOF[TOFTypes][ncharge];
-geant AMSCharge::_lkhdStepTracker[TrackerTypes][ncharge];
-geant AMSCharge::_lkhdNormTOF[TOFTypes][ncharge];
-geant AMSCharge::_lkhdNormTracker[TrackerTypes][ncharge];
-geant AMSCharge::_lkhdSlopTOF[TOFTypes][ncharge];
-geant AMSCharge::_lkhdSlopTracker[TrackerTypes][ncharge];
-integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6,7,8,9};
-integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6,7,8,9};
-integer AMSCharge::_chargeRich[ncharge]={1,1,2,3,4,5,6,7,8,9};
-char AMSCharge::_fnam[128]="lkhd_v216.data";
+using namespace trconst;
+using namespace AMSChargConst;
+
+integer AMSCharge::_chargeTracker[MaxZTypes]={1,1,2,3,4,5,6,7,8,9};
+integer AMSCharge::_chargeTOF[MaxZTypes]={1,1,2,3,4,5,6,7,8,9};
+integer AMSCharge::_chargeRich[MaxZTypes]={1,1,2,3,4,5,6,7,8,9};
 
 PROTOCCALLSFFUN2(FLOAT,PROB,prob,FLOAT,INT)
 #define PROB(A2,A3)  CCALLSFFUN2(PROB,prob,FLOAT,INT,A2,A3)
 
 number AMSCharge::getprobcharge(integer charge){
 charge=abs(charge);
-if(charge>_chargeTracker[ncharge-1]){
+if(charge>_chargeTracker[MaxZTypes-1]){
   cerr <<" AMSCharge::getprobcharge-E-charge too big "<<charge<<endl;
   return 0;
 }
@@ -80,7 +71,7 @@ integer AMSCharge::getvotedcharge(int & index){
   }
 
   number minlkhd=FLT_MAX;
-  for(i=0; i<ncharge; i++){
+  for(i=0; i<MaxZTypes; i++){
     number lkhdall=(usetof?_LkhdTOF[i]:0)+(usetrk?_LkhdTracker[i]:0);
     if(lkhdall<minlkhd){
       minlkhd=lkhdall;
@@ -93,11 +84,11 @@ integer AMSCharge::getvotedcharge(int & index){
 
 
 integer AMSCharge::build(integer refit){
-  number etof[TOFMaxHits],etofd[TOFMaxHits],etrk[TrackerMaxHits];
-  number EdepTOF[TOFTypes][TOFMaxHits],EdepTracker[TrackerTypes-1][TrackerMaxHits];
-  AMSTOFCluster *pTOFc[TOFMaxHits];
-  AMSTrCluster  *pTrackerc[TrackerTypes-1][TrackerMaxHits];
-  integer TypeTOF[TOFMaxHits];
+  number etof[TOF2GC::SCLRS],etrk[TrackerMaxHits];
+  number EdepTOF[TOF2GC::SCLRS],EdepTracker[TrkTypes-1][TrackerMaxHits];
+  AMSTOFCluster *pTOFc[TOF2GC::SCLRS];
+  AMSTrCluster  *pTrackerc[TrkTypes-1][TrackerMaxHits];
+  integer TypeTOF[TOF2GC::SCLRS];
   integer TypeTracker[TrackerMaxHits];
   const number fac=AMSTrRawCluster::ADC2KeV();
 
@@ -105,8 +96,8 @@ integer AMSCharge::build(integer refit){
   if (!AMSJob::gethead()->isRealData()){
     CHARGEFITFFKEY.ResCut[0]=-1.;     // no incompatible TOF clus exclusion
     CHARGEFITFFKEY.ResCut[1]=-1.;     // no incompatible Tracker clus exclusion
-    CHARGEFITFFKEY.TrMeanRes=0;       // calculate truncated mean
-    CHARGEFITFFKEY.ChrgMaxAnode=10;   // no use of dynodes for TOF charge 
+    CHARGEFITFFKEY.TrMeanRes=0;       // use normal(0)/"-incomp.hit"(1)truncated mean
+    CHARGEFITFFKEY.ChrgMaxAnode=10;   // spare 
     CHARGEFITFFKEY.BetaPowAnode=0;    // no corr. on anode beta dependence for z>1
     CHARGEFITFFKEY.TrackerForceSK=1;  // force tracker hit energies to be x+y
     CHARGEFITFFKEY.TrackerKSRatio=1.; // average x/y tracker energy ratio
@@ -125,13 +116,13 @@ integer AMSCharge::build(integer refit){
   }
 
   int patb;
-  for(patb=0; patb<npatb; patb++){
+  for(patb=0; patb<npatb; patb++){//<--- beta-patterns loop
     AMSBeta *pbeta=(AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
-    while(pbeta){
+    while(pbeta){//<--- betas-loop(with given pattern)
 
 // init
       integer nhitTOF=0, nhitTracker=0;
-      integer nallTOF=0, nallTOFD=0, nallTracker=0;
+      integer nallTOF=0, nallTracker=0;
       number expRich=0, useRich=0;
       AMSTrTrack *ptrack=pbeta->getptrack();
       number rid=ptrack->getrid();
@@ -141,43 +132,46 @@ integer AMSCharge::build(integer refit){
       int i,j,weak;
       number pathcor;
 
-// TOF hits
+//====> Select TOF hits:
+
       weak=0;
       while(1){
         nhitTOF=0;
         nallTOF=0;
-        nallTOFD=0;
-        for(i=0; i<TOFMaxHits; i++){
+        for(i=0; i<TOF2GC::SCLRS; i++){
+	  EdepTOF[i]=0;
           AMSTOFCluster *pcluster=pbeta->getpcluster(i);
           if(pcluster){
             number edep=pcluster->getedep();
-            if(edep>0) etof[nallTOF++]=pcluster->getedep();
-            number edepd=pcluster->getedepd();
-            if(edepd>0) etofd[nallTOFD++]=pcluster->getedepd();
+            if(edep>0) etof[nallTOF++]=pcluster->getedep();//store/counts all raw hits
             if(pcluster->getnmemb()<=CHARGEFITFFKEY.NmembMax || weak){
-              for(j=0; j<TOFTypes; j++) EdepTOF[j][nhitTOF]=0;
-              AMSDir ScDir(0,0,1); // change when eugeni writes the proper code
+              EdepTOF[nhitTOF]=0;
+              AMSDir ScDir(0,0,1); // good approximation for TOF
               AMSPoint SCPnt=pcluster->getcoo();
               ptrack->interpolate(SCPnt, ScDir, P1, theta, phi, sleng);
               AMSDir DTr(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));
               pathcor=fabs(ScDir.prod(DTr));
               pTOFc[nhitTOF]=pcluster;
-              EdepTOF[0][nhitTOF]=edep>0?edep*pathcor:0;
-              EdepTOF[1][nhitTOF]=edepd>0?edepd*pathcor:0;
-              nhitTOF++;
+              EdepTOF[nhitTOF]=edep*pathcor;//store selected and pass-corrected hits
+              nhitTOF++;//count selected hits
             }
           }
-        }
-        if(nhitTOF<2){
-          if(!weak && nallTOF) weak=1;
+        }//---> endof hits loop
+        if(nhitTOF<2){//too little, try to add "nmemb>NmembMax"(weak) hits
+          if(!weak && nallTOF>0 && CHARGEFITFFKEY.NmembMax<2)weak=1;
+//         (try to use clust with nmemb>NmembMax(if<2), by TOF-clust definition nmemb<=2 !!!)
           else{
-            cerr<<"AMSCharge::build -E- nallTOF = 0"<<endl;
+            cerr<<"AMSCharge::build:TOF -E- Low clust.mult. and No weak clusters to add"<<endl;
             break;
           }
-        }else break;
-      }
+        }
+	else break;
+      }//-->endof while
+//cout<<"TOFh-pcor:N="<<nhitTOF<<"ed="<<EdepTOF[0]<<" "<<EdepTOF[1]<<" "<<EdepTOF[2]<<" "<<EdepTOF[3]<<endl;
+//cout<<"TOFh-orig:N="<<nallTOF<<"ed="<<etof[0]<<" "<<etof[1]<<" "<<etof[2]<<" "<<etof[3]<<endl;
 
-// Tracker hits
+//====> Select Tracker hits:
+
       weak=0;
       while(1 ){
         nhitTracker=0;
@@ -186,7 +180,7 @@ integer AMSCharge::build(integer refit){
           AMSTrRecHit *phit=ptrack->getphit(i);
           if(phit){
             if (phit->getpsen()){
-              for(j=0; j<TrackerTypes-1; j++) EdepTracker[j][nhitTracker]=0;
+              for(j=0; j<TrkTypes-1; j++) EdepTracker[j][nhitTracker]=0;
               AMSDir SenDir((phit->getpsen())->getnrmA(2,0),
                (phit->getpsen())->getnrmA(2,1),(phit->getpsen())->getnrmA(2,2));
               AMSPoint SenPnt=phit->getHit();
@@ -228,7 +222,8 @@ integer AMSCharge::build(integer refit){
         }else break;
       }
 
-// RICH Ring
+//====> Select RICH Ring:
+
       AMSRichRing *pring=NULL;
       AMSRichRing *prcri=(AMSRichRing *)AMSEvent::gethead()->getheadC("AMSRichRing",0);
       while(prcri){
@@ -242,34 +237,37 @@ integer AMSCharge::build(integer refit){
       }
       
 
-// Compute truncated means
+//====> Compute TOF/TRK truncated means:
+
       int imx;
-      number TrMeanTOF, TrMeanTOFD, TrMeanTracker;
+      number TrMeanTOF, TrMeanTracker;
       number resmx,mean,trunres,trunmax,rescut;
-      rescut=CHARGEFITFFKEY.ResCut[0];
-      resmx=resmax(etof,nallTOF,0,rescut,imx,mean,trunres,trunmax);
-      if(!CHARGEFITFFKEY.TrMeanRes) TrMeanTOF=trunmax;
-      else TrMeanTOF=trunres;
+      rescut=CHARGEFITFFKEY.ResCut[0];//use/not(>=0/-1) incomp.clus exclusion
+      resmx=resmax(etof,nallTOF,0,rescut,imx,mean,trunres,trunmax);//TOF(raw(non-corr!) hits trunc.mean)
+      if(!CHARGEFITFFKEY.TrMeanRes) TrMeanTOF=trunmax;//normal("-highest hit") TruncMean
+      else TrMeanTOF=trunres;//"-incomp.cluster" TruncMean
       rescut=CHARGEFITFFKEY.ResCut[1];
-      resmx=resmax(etrk,nallTracker,0,rescut,imx,mean,trunres,trunmax);
+      resmx=resmax(etrk,nallTracker,0,rescut,imx,mean,trunres,trunmax);//Tracker
       if(!CHARGEFITFFKEY.TrMeanRes) TrMeanTracker=trunmax;
       else TrMeanTracker=trunres;
-      resmx=resmax(etofd,nallTOFD,0,rescut,imx,mean,trunres,trunmax);
-      TrMeanTOFD=mean;
 
 // Add new entry
-      addnext(pbeta,pring,nhitTOF,nhitTracker,pTOFc,EdepTOF,pTrackerc,EdepTracker,TrMeanTracker,TrMeanTOF,TrMeanTOFD,expRich,useRich);
-      pbeta=pbeta->next();
-    }    
-  }
+      addnext(pbeta,pring,nhitTOF,nhitTracker,pTOFc,EdepTOF,pTrackerc,EdepTracker,TrMeanTracker,TrMeanTOF,expRich,useRich);
+      pbeta=pbeta->next();//next beta from current pattern-group
+    }//--->endof loop over all betas in current pattern-group    
+  }//--->endof beta-patterns loop
   return 1;
 }
 
 
-void AMSCharge::addnext(AMSBeta *pbeta, AMSRichRing *pring, integer nhitTOF, integer nhitTracker, AMSTOFCluster *pTOFc[], number EdepTOF[TOFTypes][TOFMaxHits], AMSTrCluster  *pTrackerc[TrackerTypes-1][TrackerMaxHits], number EdepTracker[TrackerTypes-1][TrackerMaxHits], number trtr, number trtof, number trtofd, number expRich, number useRich){
+void AMSCharge::addnext(AMSBeta *pbeta, AMSRichRing *pring, integer nhitTOF, integer nhitTracker,
+                                           AMSTOFCluster *pTOFc[], number EdepTOF[TOF2GC::SCLRS], 
+			                     AMSTrCluster *pTrackerc[TrkTypes-1][TrackerMaxHits], 
+			             number EdepTracker[TrkTypes-1][TrackerMaxHits], number trtr, 
+			                           number trtof, number expRich, number useRich){
    number beta=pbeta->getbeta();
    int bstatus=!pbeta->checkstatus(AMSDBc::AMBIG);
-   AMSCharge *pcharge=new AMSCharge(pbeta, pring, trtr, trtof, trtofd);
+   AMSCharge *pcharge=new AMSCharge(pbeta, pring, trtr, trtof);
   int tofok=pcharge->FitTOF(0,beta,bstatus,nhitTOF,pTOFc,EdepTOF);
   int trkok=pcharge->FitTracker(0,beta,bstatus,nhitTracker,pTrackerc,EdepTracker);
   int ricok=pcharge->FitRich(0,expRich,useRich);
@@ -280,90 +278,73 @@ void AMSCharge::addnext(AMSBeta *pbeta, AMSRichRing *pring, integer nhitTOF, int
   AMSEvent::gethead()->addnext(AMSID("AMSCharge",0),pcharge);
 }
 
-integer AMSCharge::FitTOF(int toffit, number beta, int bstatus, int nhitTOF, AMSTOFCluster *pTOFc[], number etof[TOFTypes][TOFMaxHits]){
-  static number ETOF[TOFTypes][TOFMaxHits];
-  int typetof[TOFMaxHits], nhittoftyp[TOFTypes];
-  number TOFresmax[TOFTypes], etofh[TOFMaxHits], x[TOFMaxHits];
-  int TOFhitmax[TOFTypes];
+integer AMSCharge::FitTOF(int refit, number beta, int bstatus, int nhitTOF, AMSTOFCluster *pTOFc[], number etof[TOF2GC::SCLRS]){
+  static number ETOF[TOF2GC::SCLRS];
+  int typetof[TOF2GC::SCLRS], nhittoftyp;
+  int nhtt[2]={0,0};
+  number TOFresmax, etofh[TOF2GC::SCLRS], x[TOF2GC::SCLRS];
+  int TOFhitmax;
   int i,j;
-
 // init
-  if (!toffit){
+  if (!refit){
     _iTOF=0;
     _ChargeTOF=0;
-    for(i=0; i<ncharge; i++) _ProbTOF[i]=0;
-    for(i=0; i<ncharge; i++) _IndxTOF[i]=i;
-    UCOPY(etof[0],ETOF[0],TOFTypes*TOFMaxHits*sizeof(etof[0][0])/4);
+    for(i=0; i<MaxZTypes; i++) _ProbTOF[i]=0;
+    for(i=0; i<MaxZTypes; i++) _IndxTOF[i]=i;
+    UCOPY(etof,ETOF,TOF2GC::SCLRS*sizeof(etof[0])/4);//save initial edep-array
   }
 
-// determine furthest hits
-  if(!toffit){
-    number rescut=CHARGEFITFFKEY.ResCut[0];
-    for(i=0; i<TOFTypes; i++){
-      number mean,trunres,trunmax;
-      int hitmax;
-      for(j=0; j<nhitTOF; j++) x[j]=etof[i][j];
-      TOFresmax[i]=resmax(x,nhitTOF,toffit,rescut,hitmax,mean,trunres,trunmax);
-      TOFhitmax[i]=hitmax;
-    }
-    for(i=0; i<TOFTypes; i++){
-      for(j=0; j<nhitTOF; j++) if(j==TOFhitmax[i]) etof[i][j]=0;
-    }
+// find/remove furthest(incomp) hits(if requested)
+  if(!refit){
+    number rescut=CHARGEFITFFKEY.ResCut[0];//>=0/-1->use/not incomp.clus exclusion
+    number mean,trunres,trunmax;
+    int hitmax;
+    for(j=0; j<nhitTOF; j++) x[j]=etof[j];
+    TOFresmax=resmax(x,nhitTOF,refit,rescut,hitmax,mean,trunres,trunmax);
+    TOFhitmax=hitmax;//incomp.clus.index/-1(if not requested)
+    for(j=0; j<nhitTOF; j++) if(j==TOFhitmax) etof[j]=0;//delete incomp.hit(if requested)
   }
 
-// Use either Anode or Dynode energies
+// Mark good(used)/deleted hits:
   int failtof=0;
-  int nhittof=0, nhittofd=0;
-  for(i=0; i<TOFTypes; i++) nhittoftyp[i]=0;
+  int nhittof=0;
+  nhittoftyp=0;
   for(i=0; i<nhitTOF; i++){
-    if (etof[1][i]>0) nhittofd++;
     typetof[i]=-1;
-    if(toffit>0 && etof[1][i]>0){
-      typetof[i]=1;
-      etofh[i]=etof[1][i];
-    }
-    else if(toffit<=0 && etof[0][i]>0){
-      typetof[i]=0;
-      etofh[i]=etof[0][i];
+    if(refit<=0 && etof[i]>0){
+      typetof[i]=0;//mark good(not_incomp) hits with "0"
+      etofh[i]=etof[i];//store hits for lkhc-calc(incomp.hits with etof=0 will be mark typetof=-1) 
     }
     if(typetof[i]>=0){
-      nhittoftyp[typetof[i]]++;
-      if(toffit>=0 && bstatus) pTOFc[i]->setstatus(AMSDBc::CHARGEUSED);
+      nhittoftyp++;//counts all good hits
+      if(refit>=0 && bstatus) pTOFc[i]->setstatus(AMSDBc::CHARGEUSED);
       nhittof++;
     }
   }
-  if(!nhittof) failtof=1;
-
+  if(!nhittof) failtof=1;//no good hits left
   if(!failtof){
-
 // likelihood values and charge probabilities
-    number lkhtof[ncharge];
-    lkhcalc(0,beta,nhitTOF,etofh,typetof,lkhtof);
-    number probtof=_probcalc(0,toffit,nhittoftyp,lkhtof);
-
-// refit using dynodes if required
+    number lkhtof[MaxZTypes];
+    lkhcalc(0,beta,nhitTOF,etofh,typetof,lkhtof);//"0" means TOF
+    nhtt[0]=nhittoftyp;//just to be compat. with TRK, where nhtt is array
+    number probtof=_probcalc(0,refit,nhtt,lkhtof);
     _ChargeTOF=_chargeTOF[_iTOF];
-    if (!toffit && _ChargeTOF>CHARGEFITFFKEY.ChrgMaxAnode && nhittofd){
-      for(i=0; i<nhitTOF; i++)
-       if(typetof[i]>=0 && bstatus) pTOFc[i]->clearstatus(AMSDBc::CHARGEUSED);
-      toffit++;
-      failtof=!FitTOF(toffit,beta,bstatus,nhitTOF,pTOFc,ETOF);
-    }
-    else if(toffit>0) setstatus(AMSDBc::REFITTED);
   }
   else{
-    cerr<<"AMSCharge::Fit -E- no TOF cluster found"<<endl;
+    cerr<<"AMSCharge::TofFit -E- no TOF cluster found"<<endl;
   }
 
   return !failtof;
 }
 
  
-integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTracker, AMSTrCluster  *pTrackerc[TrackerTypes-1][TrackerMaxHits], number etrk[TrackerTypes-1][TrackerMaxHits]){
-  static number ETRK[TrackerTypes-1][TrackerMaxHits];
-  int typetrk[TrackerMaxHits], nhittrktyp[TrackerTypes];
-  number Trackerresmax[TrackerTypes-1], etrkh[TrackerMaxHits], x[TrackerMaxHits];
-  int Trackerhitmax[TrackerTypes-1];
+integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTracker, 
+                                AMSTrCluster *pTrackerc[TrkTypes-1][TrackerMaxHits], 
+                                           number etrk[TrkTypes-1][TrackerMaxHits]){
+  static number ETRK[TrkTypes-1][TrackerMaxHits];
+  int typetrk[TrackerMaxHits], nhittrktyp[TrkTypes];
+  number Trackerresmax[TrkTypes-1], etrkh[TrackerMaxHits], x[TrackerMaxHits];
+  int Trackerhitmax[TrkTypes-1];
   int i,j;
 
 // init
@@ -371,22 +352,22 @@ integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTrac
     _iTracker=0;
     _ChargeTracker=0;
     _ProbAllTracker=0;
-    for(i=0; i<ncharge; i++) _ProbTracker[i]=0;
-    for(i=0; i<ncharge; i++) _IndxTracker[i]=i;
-    UCOPY(etrk[0],ETRK[0],(TrackerTypes-1)*TrackerMaxHits*sizeof(etrk[0][0])/4);
+    for(i=0; i<MaxZTypes; i++) _ProbTracker[i]=0;
+    for(i=0; i<MaxZTypes; i++) _IndxTracker[i]=i;
+    UCOPY(etrk[0],ETRK[0],(TrkTypes-1)*TrackerMaxHits*sizeof(etrk[0][0])/4);
   }
 
 // determine furthest hits
   if(trkfit>=0){
     number rescut=!trkfit?CHARGEFITFFKEY.ResCut[1]:0;
-    for(i=0; i<TrackerTypes-1; i++){
+    for(i=0; i<TrkTypes-1; i++){
       number mean,trunres,trunmax;
       int hitmax;
       for(j=0; j<nhitTracker; j++) x[j]=etrk[i][j];
       Trackerresmax[i]=resmax(x,nhitTracker,trkfit,rescut,hitmax,mean,trunres,trunmax);
       Trackerhitmax[i]=hitmax;
     }
-    for(i=0; i<TrackerTypes-1; i++){
+    for(i=0; i<TrkTypes-1; i++){
       for(j=0; j<nhitTracker; j++) if(j==Trackerhitmax[i]) etrk[i][j]=0;
     }
   }
@@ -394,7 +375,7 @@ integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTrac
 // Use either S+K, S or K energies
   int failtrk=0;
   int nhittrk=0;
-  for(i=0; i<TrackerTypes; i++) nhittrktyp[i]=0;
+  for(i=0; i<TrkTypes; i++) nhittrktyp[i]=0;
   for(i=0; i<nhitTracker; i++){
     typetrk[i]=-1;
     if (CHARGEFITFFKEY.TrackerForceSK){
@@ -435,7 +416,7 @@ integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTrac
   if(!failtrk){
 
 // likelihood values and charge probabilities
-    number lkhtrk[ncharge];
+    number lkhtrk[MaxZTypes];
     lkhcalc(1,beta,nhitTracker,etrkh,typetrk,lkhtrk);
     number probtrk=_probcalc(1,trkfit,nhittrktyp,lkhtrk);
 
@@ -465,7 +446,7 @@ integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTrac
 }
 
 integer AMSCharge::FitRich(int ricfit, number expRich, number useRich){
-  number lkhrich[ncharge],probrich;
+  number lkhrich[MaxZTypes],probrich;
   int i;
   int failrich=0;
 
@@ -473,12 +454,12 @@ integer AMSCharge::FitRich(int ricfit, number expRich, number useRich){
   if(!ricfit){
     _iRich=0;
     _ChargeRich=0;
-    for(i=0; i<ncharge; i++) _ProbRich[i]=0;
-    for(i=0; i<ncharge; i++) _IndxRich[i]=i;
+    for(i=0; i<MaxZTypes; i++) _ProbRich[i]=0;
+    for(i=0; i<MaxZTypes; i++) _IndxRich[i]=i;
   }
 
   if(expRich>0){
-   for (i=0; i<ncharge; i++){
+   for (i=0; i<MaxZTypes; i++){
     number zz=_chargeRich[i]*_chargeRich[i];
     lkhrich[i]=expRich*zz-useRich*log(expRich*zz);}
    probrich=_probrich(expRich,useRich,lkhrich);
@@ -489,38 +470,14 @@ integer AMSCharge::FitRich(int ricfit, number expRich, number useRich){
 }
 
 void AMSCharge::lkhcalc(int mode, number beta, int nhit, number ehit[], int typeh[], number lkh[]){
-  number betamax=0.95;
-  int i,j;
-
-  for(i=0; i<ncharge; i++){
+  for(int i=0; i<MaxZTypes; i++){
     lkh[i]=0;
-    number chg=mode?_chargeTracker[i]:_chargeTOF[i];
-    for(j=0; j<nhit; j++){
-      int type=typeh[j];
-      if(type>=0){
-        number step,slop,norm,betapow,betacor;
-        step=mode?_lkhdStepTracker[type][i]:_lkhdStepTOF[type][i];
-        slop=mode?_lkhdSlopTracker[type][i]:_lkhdSlopTOF[type][i];
-        norm=mode?_lkhdNormTracker[type][i]:_lkhdNormTOF[type][i];
-        betapow=(!mode && !type && chg>1 && CHARGEFITFFKEY.BetaPowAnode)?7./6:5./3;
-        betapow=5./3;
-        betacor=i?pow(min(fabs(beta/betamax),1.),betapow):1;
-        int ia=(int)floor(ehit[j]*betacor/step);
-        if(ia<0) ia=0;
-        number cor=0;
-        if(ia>=nbins){
-          cor=(ia+1-nbins)*slop*step;
-          ia=nbins-1;
-        }
-        number fac=0;
-        if(CHARGEFITFFKEY.PdfNorm) fac=log(norm);
-        number fval=mode?_lkhdTracker[type][i][ia]:_lkhdTOF[type][i][ia];
-        lkh[i]+=-log(fval)+fac+cor;
-      }
-    }
+    if(mode==0)lkh[i]+=TofElosPDF::TofEPDFs[i].getlkhd(nhit,typeh,ehit,beta);//TOF
+    else if(mode==1)lkh[i]+=TrkElosPDF::TrkEPDFs[i].getlkhd(nhit,typeh,ehit,beta);//TRK
   }
 
 }
+
 
 number AMSCharge::resmax(number x[],int ntot,int refit,number rescut,int &imax,number &mean,number &trres,number &trmax){
   int i,j,n;
@@ -547,82 +504,86 @@ number AMSCharge::resmax(number x[],int ntot,int refit,number rescut,int &imax,n
           xxm+=pow(x[j],2);
         }
       }
-      if (n>1){
+      if (n>1){//>=2hits in the rest group)
         number sig,rs;
         sig=sqrt(max((n*xxm-pow(xm,2))/n/(n-1),0.));
         sig=max(sig,sigmin*xm/n);
         sig=min(sig,sigmax*xm/n);
-        rs=(x[i]-xm/n)/sig;
+        rs=(x[i]-xm/n)/sig;//deviation in sigmas of the rest
         if (fabs(rs)>rsmx){
           rsmx=fabs(rs);
-          imax=i;
+          imax=i;//store index of hit with max.deviation from the average of the rest
         }
       }
     }
   }
 
   int cut=(rsmx>rescut&&rescut>=0)?1:0;
-  imax=cut?imax:-1;
+  imax=cut?imax:-1;//imax =-1 if incomp.hit removal was not requested
 
   mean=0;
   trres=0;
   n=0;
   number xmx=0;
-  for(i=0; i<ntot; i++){
+  int imx=-1;
+  for(i=0; i<ntot; i++){//ntot>=2
     if(x[i]>0){
       n++;
       mean+=x[i];
       if(i!=imax) trres+=x[i];
-      if(x[i]>xmx) xmx=x[i];
+      if(x[i]>xmx){
+        xmx=x[i];//store max.hit value
+	imx=i;//index
+      }
     }
   }
 
   trmax=mean;
   if(n>1) {
-    mean=mean/n;
-    trmax=(trmax-xmx)/(n-1);
-    trres=cut?trres/(n-1):trres/n;
+    mean=mean/n;//mean
+    trmax=(trmax-xmx)/(n-1);//normal("-max.hit") trunc.mean
+    trres=cut?trres/(n-1):trres/n;//"-incomp.hit" trunc.mean/normal_mean
   }
 
-  return rsmx;
+  return rsmx;//return max deviation (if incomp.hit removal requested) or 0
 }
 
 
 number AMSCharge::_probcalc(int mode, int fit, int nhittyp[],number lkhd[]){
-  number prob[ncharge];
+//  mode=0/1->TOF/TRK
+  number prob[MaxZTypes];
   int i;
-
   if(fit>=0){
     if(!mode){ 
-      for(i=0; i<ncharge; i++) _LkhdTOF[i]=lkhd[i];
-      _iTOF=_sortlkhd(mode);
+      for(i=0; i<MaxZTypes; i++) _LkhdTOF[i]=lkhd[i];
+      _iTOF=_sortlkhd(mode);//Z-index with max prob.
     }
     else{ 
-      for(i=0; i<ncharge; i++) _LkhdTracker[i]=lkhd[i];
+      for(i=0; i<MaxZTypes; i++) _LkhdTracker[i]=lkhd[i];
       _iTracker=_sortlkhd(mode);
     }
   }
 
-  int types=mode?TrackerTypes:TOFTypes;
+  int types=mode?TrkTypes:1;
 
   int nhit=0;
   for(i=0; i<types; i++) nhit+=nhittyp[i];
 
   number probmx=1;
-  if (CHARGEFITFFKEY.PdfNorm){
-    probmx=0.;
-    for(i=0; i<types; i++){
-      number lkhdnorm=mode?_lkhdNormTracker[i][_iTracker]:_lkhdNormTOF[i][_iTOF];
-      if (nhittyp[i]>0) probmx+=nhittyp[i]*log(lkhdnorm);
-    }
-    probmx=1./exp(min(probmx/nhit,powmx));
-  }
+//  if (CHARGEFITFFKEY.PdfNorm && mode>0){//commented, because now all pdf's are normalized automatically Integr=1
+//    probmx=0.;
+//    for(i=0; i<types; i++){
+//      number lkhdnorm=mode?_lkhdNormTracker[i][_iTracker]:1;
+//      if (nhittyp[i]>0) probmx+=nhittyp[i]*log(lkhdnorm);
+//    }
+//    probmx=1./exp(min(probmx/nhit,powmx));
+//  }
 
-  for(i=0; i<ncharge; i++) prob[i]=1./exp(min(lkhd[i]/nhit,powmx))/probmx;
+  for(i=0; i<MaxZTypes; i++) prob[i]=1./exp(min(lkhd[i]/nhit,powmx))/probmx;
 
   if(fit>=0){
-    if(!mode){ for(i=0; i<ncharge; i++) _ProbTOF[i]=prob[i];}
-    else{ for(i=0; i<ncharge; i++) _ProbTracker[i]=prob[i];}
+    if(!mode){ for(i=0; i<MaxZTypes; i++) _ProbTOF[i]=prob[i];}
+    else{ for(i=0; i<MaxZTypes; i++) _ProbTracker[i]=prob[i];}
   }
 
   int index=mode?_iTracker:_iTOF;
@@ -630,13 +591,13 @@ number AMSCharge::_probcalc(int mode, int fit, int nhittyp[],number lkhd[]){
 } 
 
 number AMSCharge::_probrich(number expRich, number useRich, number lkhd[]){
-  number prob[ncharge];
+  number prob[MaxZTypes];
   int i;
 
-  for(i=0; i<ncharge; i++) _LkhdRich[i]=lkhd[i];
+  for(i=0; i<MaxZTypes; i++) _LkhdRich[i]=lkhd[i];
   _iRich=_sortlkhd(2);
 
-  for (i=0; i<ncharge; i++){
+  for (i=0; i<MaxZTypes; i++){
     number zz=_chargeRich[i]*_chargeRich[i];
     number f=(useRich-zz*expRich)*(useRich-zz*expRich)/zz/expRich;
     _ProbRich[i]=PROB((geant)f,1);
@@ -646,26 +607,27 @@ number AMSCharge::_probrich(number expRich, number useRich, number lkhd[]){
 }
 
 int AMSCharge::_sortlkhd(int sort){
-  number lkhd[ncharge];
-  number *pntr[ncharge];
-  int index[ncharge];
+//  sort=0/1/2->TOF/TRK/RICH
+  number lkhd[MaxZTypes];
+  number *pntr[MaxZTypes];
+  int index[MaxZTypes];
   int i,j,imax;
 
-  if(!sort){ for(i=0; i<ncharge; i++) lkhd[i]=_LkhdTOF[i];}
-  else if (sort==1){ for(i=0; i<ncharge; i++) lkhd[i]=_LkhdTracker[i];}
-  else { for(i=0; i<ncharge; i++) lkhd[i]=_LkhdRich[i];}
+  if(!sort){ for(i=0; i<MaxZTypes; i++) lkhd[i]=_LkhdTOF[i];}
+  else if (sort==1){ for(i=0; i<MaxZTypes; i++) lkhd[i]=_LkhdTracker[i];}
+  else { for(i=0; i<MaxZTypes; i++) lkhd[i]=_LkhdRich[i];}
 
-  for (i=0; i<ncharge; i++) pntr[i]=&lkhd[i];
+  for (i=0; i<MaxZTypes; i++) pntr[i]=&lkhd[i];
 
-  AMSsortNAG(pntr,ncharge);
-
-  for(i=0; i<ncharge; i++) index[i]=-1;
-  for(i=0; i<ncharge; i++){
-    for(j=0; j<ncharge; j++){
+  AMSsortNAG(pntr,MaxZTypes);//sort in increasing order(1st place - min(-logPw(i)) 
+//                                                                ie max.prob)
+  for(i=0; i<MaxZTypes; i++) index[i]=-1;
+  for(i=0; i<MaxZTypes; i++){
+    for(j=0; j<MaxZTypes; j++){
       if (lkhd[j]==(*pntr[i])) {
         index[j]=i;
         lkhd[j]=-999;
-        if(!i) imax=j;
+        if(!i) imax=j;//store Z-index with max prob.
         break;
       }
     }
@@ -675,9 +637,9 @@ int AMSCharge::_sortlkhd(int sort){
     }
   }
 
-  if (!sort) { for(i=0; i<ncharge; i++) _IndxTOF[i]=index[i]; }
-  else if (sort==1){ for(i=0; i<ncharge; i++) _IndxTracker[i]=index[i]; }
-  else{ for(i=0; i<ncharge; i++) _IndxRich[i]=index[i]; }
+  if (!sort) { for(i=0; i<MaxZTypes; i++) _IndxTOF[i]=index[i]; }
+  else if (sort==1){ for(i=0; i<MaxZTypes; i++) _IndxTracker[i]=index[i]; }
+  else{ for(i=0; i<MaxZTypes; i++) _IndxRich[i]=index[i]; }
 
   return imax;
 }
@@ -695,7 +657,7 @@ void AMSCharge::_writeEl(){
     int   chinrc[4];
     float proballtr;
   for(i=0; i<4; i++){
-    for(j=0; j<ncharge; j++){
+    for(j=0; j<MaxZTypes; j++){
       if(_IndxTOF[j]==i){
         probtof[i]=_ProbTOF[j];
         chintof[i]=j+1;
@@ -725,7 +687,7 @@ void AMSCharge::_writeEl(){
   CN->ChargeTracker[CN->Ncharge]=_ChargeTracker;
   CN->ChargeRich[CN->Ncharge]=_ChargeRich;
   for(i=0; i<4; i++){
-    for(j=0; j<ncharge; j++){
+    for(j=0; j<MaxZTypes; j++){
       if(_IndxTOF[j]==i){
         CN->ProbTOF[CN->Ncharge][i]=_ProbTOF[j];
         CN->ChInTOF[CN->Ncharge][i]=j+1;
@@ -742,7 +704,7 @@ void AMSCharge::_writeEl(){
     }
   }
   CN->TrunTOF[CN->Ncharge]=_TrMeanTOF;
-  CN->TrunTOFD[CN->Ncharge]=_TrMeanTOFD;
+  CN->TrunTOFD[CN->Ncharge]=_TrMeanTOFD;//for the moment(just to keep old format)
   CN->TrunTracker[CN->Ncharge]=_TrMeanTracker;
   CN->Ncharge++;
 }
@@ -766,95 +728,16 @@ void AMSCharge::print(){
  if(p)p->printC(cout);
 }
 
-
-void AMSCharge::init(){
-  //#ifdef __ALPHA__
-  //  // yet another dec cxx compiler bug
-  //  AMSCommonsI cmni;
-  //  cmni.init();
-  //#endif
-int typ,ich,bin,j;
-char fnam[256]="";                 
-strcpy(fnam,AMSDATADIR.amsdatadir);
-strcat(fnam,_fnam);
-if(AMSJob::gethead()->isRealData())strcat(fnam,".1");
-else strcat(fnam,".0");
-  ifstream iftxt(fnam,ios::in);
-  if(!iftxt){
-     cerr <<"AMSCharge::init-F-Error open file "<<fnam<<endl;
-     exit(1);
-  }
-  else cout <<"AMSCharge::init-I-Open file "<<fnam<<endl;
-
-// Read TOF pdfs
-  for(typ=0; typ<TOFTypes; typ++){
-    for(ich=0; ich<ncharge; ich++) iftxt >> _lkhdStepTOF[typ][ich];
-    for(ich=0; ich<ncharge; ich++) iftxt >> _lkhdNormTOF[typ][ich];
-    for(ich=0; ich<ncharge; ich++) iftxt >> _lkhdSlopTOF[typ][ich];
-    for(ich=0; ich<ncharge; ich++){
-      for(bin=0; bin<nbins; bin++) iftxt >> _lkhdTOF[typ][ich][bin];
-      if(iftxt.eof()){
-        cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
-        exit(1);
-      }
-    }
-  }
-
-// Read Tracker pdfs
-  for(typ=0; typ<TrackerTypes; typ++){
-    for(ich=0; ich<ncharge; ich++) iftxt >> _lkhdStepTracker[typ][ich];
-    for(ich=0; ich<ncharge; ich++) iftxt >> _lkhdNormTracker[typ][ich];
-    for(ich=0; ich<ncharge; ich++) iftxt >> _lkhdSlopTracker[typ][ich];
-    for(ich=0; ich<ncharge; ich++){
-      for(bin=0; bin<nbins; bin++) iftxt >> _lkhdTracker[typ][ich][bin];
-      if(iftxt.eof()){
-        cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
-        exit(1);
-      }
-    }
-  }
-
-// Validity time
-  for(j=0;j<2;j++) iftxt >> _sec[j];
-  if(iftxt.eof()){
-    cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
+integer AMSCharge::ind2charge(int idet, int ind){
+  if(idet==0)return(_chargeTOF[ind-1]);
+  else if(idet==1)return(_chargeTracker[ind-1]);
+  else if(idet==2)return(_chargeRich[ind-1]);
+  else{
+    cout<<"AMSCharge::ind2charge-E-invalid detector id="<<idet<<endl;
     exit(1);
   }
-
-  for(j=0;j<2;j++) iftxt >> _min[j];
-  if(iftxt.eof()){ 
-    cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
-    exit(1);
-  }
-
-  for(j=0;j<2;j++) iftxt >> _hour[j];
-  if(iftxt.eof()){
-    cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
-    exit(1);
-  }
-
-  for(j=0;j<2;j++) iftxt >> _day[j];
-  if(iftxt.eof()){
-    cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
-    exit(1);
-  }
-
-  for(j=0;j<2;j++) iftxt >> _mon[j];
-  if(iftxt.eof()){
-    cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
-    exit(1);
-  }
-
-  for(j=0;j<2;j++) iftxt >> _year[j];
-  if(iftxt.eof()){
-    cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
-    exit(1);
-  }
-
-  iftxt.close();
-
-  cout << "AMSCharge::init()-I-Completed"<<endl;
 }
+
 
 
 AMSChargeI::AMSChargeI(){

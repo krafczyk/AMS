@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.10 2005/01/04 16:48:01 choumilo Exp $
+//  $Id: tofuser02.C,v 1.11 2005/03/11 11:16:14 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <event.h>
@@ -112,9 +112,9 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   }
 //------> check  clust/layer=1 :
   bad=0;
-//  for(i=0;i<TOF2GC::SCLRS;i++)if(nbrlc[i] != 1)bad=1;
-  for(i=0;i<2;i++)if(nbrlc[i] != 1)bad=1;//tempor for l=1,2
-  for(i=2;i<4;i++)if(nbrlc[i] > 2)bad=1;//tempor for l=3,4
+  for(i=0;i<TOF2GC::SCLRS;i++)if(nbrlc[i] != 1)bad=1;
+//  for(i=0;i<2;i++)if(nbrlc[i] != 1)bad=1;//tempor for l=1,2
+//  for(i=2;i<4;i++)if(nbrlc[i] > 2)bad=1;//tempor for l=3,4
   
 //
 // -----> check Anti-counter :
@@ -138,7 +138,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //
   if(nanti>1)return;// remove events with >1 sector(e>ecut) in Anti
   TOF2JobStat::addre(22);
-  if(bad==1)return; // remove events with clust/layer != 1
+  if(bad==1)return; // remove events with >1 clusters/layer 
   TOF2JobStat::addre(23);
 //
   for(i=0;i<TOF2GC::SCLRS;i++){

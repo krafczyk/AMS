@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.29 2005/01/04 16:48:01 choumilo Exp $
+//  $Id: tofrec02.C,v 1.30 2005/03/11 11:16:14 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -1379,6 +1379,7 @@ void AMSTOFCluster::build2(int &stat){
         if(il==0){
           HF1(1535,edep,1.);//Cluster energy distr.,L=1
           HF1(1537,edep,1.);
+	  HF1(1545,sqrt(edep),1.);
           HF1(1541,geant(coo[0]),1.);
           HF1(1542,geant(coo[1]),1.);
         }
@@ -1388,6 +1389,7 @@ void AMSTOFCluster::build2(int &stat){
         if(il==2){
           HF1(1536,edep,1.);//Cluster energy distr.,L=3
           HF1(1538,edep,1.);
+	  HF1(1546,sqrt(edep),1.);
         }
         if(il==3){
           HF1(1540,edep,1.);//Cluster energy distr.,L=4
