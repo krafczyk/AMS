@@ -130,6 +130,9 @@ exit_nobeta:
       nfound++;
    }
 
+// Mark Golden tracks
+   for (int i=0; i<nfound; i++) ptrack[i]->setstatus(AMSDBc::GOLDEN);
+
 // Create a vertex
    if (nfound>1) {
      AMSVtx *p= new AMSVtx(nfound, ptrack);

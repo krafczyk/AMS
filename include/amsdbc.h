@@ -1,4 +1,4 @@
-//  $Id: amsdbc.h,v 1.35 2005/03/11 11:16:28 choumilo Exp $
+//  $Id: amsdbc.h,v 1.36 2005/04/06 11:04:13 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSDBC__
 #define __AMSDBC__
@@ -70,7 +70,7 @@ static char * amsdatabase;
      static const uinteger JUNK;
      static const uinteger ECALTRACK;
      static const uinteger S_AMBIG;
-     static const uinteger AUX;
+     static const uinteger GOLDEN;
      static const uinteger TOFFORGAMMA;
 // machine dependent values
 
