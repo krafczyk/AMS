@@ -1,6 +1,7 @@
 //
 // May 27, 1997 Primitive anti Rec by V.Choutko
-// June 9, 1997 Modifications to have trigger pattern (E.Choumilov)
+// June 9, 1997 Modifications to have trigger pattern 
+//                                       for TOF/ANTI (E.Choumilov)
 //
 #include <point.h>
 #include <event.h>
@@ -14,7 +15,11 @@
 #include <antidbc.h>
 #include <ntuple.h>
 //
+extern ANTIPcal antisccal[MAXANTI];
+//
  integer AMSAntiRawCluster::_trpatt=0;
+ integer sta[2];
+ geant thresh;
 //
 void AMSAntiRawCluster::siantidigi(){
   integer sbt,trpatt(0),lsbit(1);
@@ -64,7 +69,9 @@ void AMSAntiRawCluster::siantidigi(){
   for(i=0;i<MAXANTI;i++){
     upam=counter[0][i];
     downam=counter[1][i];
-    if(upam>ANTIMCFFKEY.trithr && downam>ANTIMCFFKEY.trithr){// require AND of both ends
+    antisccal[i].getstat(sta);
+    thresh=antisccal[i].gettrt();
+    if((upam>thresh || sta[0]>0) && (downam>thresh || sta[1]>0)){// require AND of both ends
       sbt=lsbit<<i;
       trpatt|=sbt;
     }

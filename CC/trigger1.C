@@ -6,7 +6,7 @@
 #include <mccluster.h>
 #include <tofdbc.h>
 #include <antidbc.h>
-#include <tofsim.h>
+#include <tofrec.h>
 #include <antirec.h>
 //
 void TriggerLVL1::build(){
@@ -15,7 +15,7 @@ void TriggerLVL1::build(){
   int i;
   integer ntof=0;
   integer tofpatt[SCLRS];
-  AMSTOFRawEvent::getpatt(tofpatt);
+  AMSTOFRawCluster::getpatt(tofpatt);
   for(i=0;i<SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
 // ANTI :
   integer antipatt(0);

@@ -1032,7 +1032,7 @@ depend:
 ../bin/aix/trigger1.o: /usr/include/sys/times.h ../include/mccluster.h
 ../bin/aix/trigger1.o: ../include/gsen.h ../include/trid.h
 ../bin/aix/trigger1.o: ../include/amsstl.h ../include/ctcdbc.h
-../bin/aix/trigger1.o: ../include/antidbc.h ../include/tofsim.h
+../bin/aix/trigger1.o: ../include/antidbc.h ../include/tofrec.h
 ../bin/aix/trigger1.o: ../include/antirec.h
 ../bin/aix/antidbc.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/aix/antidbc.o: /usr/lpp/xlC/include/iostream.h /usr/include/memory.h
@@ -1041,5 +1041,16 @@ depend:
 ../bin/aix/antidbc.o: ../include/cern.h ../include/cfortran.h
 ../bin/aix/antidbc.o: /usr/include/stdio.h /usr/include/malloc.h
 ../bin/aix/antidbc.o: ../include/hbook.h ../include/geant321.h
-../bin/aix/antidbc.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/aix/antidbc.o: ../include/geant321g.h ../include/job.h
+../bin/aix/antidbc.o: ../include/node.h ../include/id.h
+../bin/aix/antidbc.o: /usr/lpp/xlC/include/strstream.h /usr/include/stddef.h
+../bin/aix/antidbc.o: /usr/include/stdlib.h ../include/snode.h
+../bin/aix/antidbc.o: ../include/upool.h /usr/lpp/xlC/include/new.h
+../bin/aix/antidbc.o: ../include/gvolume.h ../include/amsdbc.h
+../bin/aix/antidbc.o: ../include/point.h /usr/include/math.h
+../bin/aix/antidbc.o: ../include/gmat.h /usr/lpp/xlC/include/iomanip.h
+../bin/aix/antidbc.o: /usr/lpp/xlC/include/generic.h ../include/amsgobj.h
+../bin/aix/antidbc.o: ../include/uzstat.h /usr/include/limits.h
+../bin/aix/antidbc.o: /usr/include/sys/limits.h ../include/timeid.h
+../bin/aix/antidbc.o: /usr/include/time.h /usr/lpp/xlC/include/fstream.h
 ../bin/aix/antidbc.o: ../include/antidbc.h

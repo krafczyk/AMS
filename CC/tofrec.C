@@ -17,6 +17,7 @@
 //
 extern TOFBrcal scbrcal[SCLRS][SCMXBR];// calibration data
 extern TOFVarp tofvpar;// TOF general parameters
+integer AMSTOFRawCluster::trpatt[SCLRS]={0,0,0,0};//just init. of statis var.
 //
 //
 //-----------------------------------------------------------------------
@@ -237,14 +238,33 @@ void AMSTOFRawCluster::sitofdigi(){
   }
 //
 //
+  geant dummy(-1);
+  const number c=1.7e10; // eff. speed of light in scint.(cm/s)
+  number latt=195.; // average light att. length (cm) in scint. bar
+  number trthr=0.4;// trig.threshold in Mev (=0.2MIP) (taken from the floor)
+  integer trpatt[SCLRS]={0,0,0,0};
+  integer bitp,lsbit(1);
+  int statdb[2];
+  geant halfl;
+  number enshar,ylon,edp[2];
+  number ts1,ts2;
   for(integer kk=0;kk<SCLRS;kk++){
   for(integer i=0;i<SCMXBR;i++){
     if(xplane[kk][i]>TOFMCFFKEY.Thr){
      xtime[kk][i]=xtime[kk][i]/xplane[kk][i];
      xtimed[kk][i]=xtimed[kk][i]/xplane[kk][i];
-     geant dummy(-1);
-     const number c=1.7e10;    // eff. speed of light in scint.
-     number ts1,ts2;
+     ylon=xtimed[kk][i];// long.coord. in abs. system
+// ---> primitive simul.of level-1 trig.pattern (only for Choutko games):
+     halfl=0.5*TOFDBc::brlen(kk,i);
+     enshar=exp(-(ylon+halfl)/latt)/(exp(-(ylon+halfl)/latt)+exp(-(halfl-ylon)/latt));
+     edp[0]=enshar*xplane[kk][i]*exp(-(ylon+halfl)/latt);
+     edp[1]=xplane[kk][i]-edp[0];
+     scbrcal[kk][i].getbstat(statdb); // "alive" status from DB
+     if((edp[0]>trthr || statdb[0]>0) && (edp[1]>trthr || statdb[1]>0)){// AND !!!
+       bitp=lsbit<<i;
+       trpatt[kk]|=bitp;
+     }
+// --->
      if(RNDM(dummy)< TOFMCFFKEY.TimeProbability2){
        ts1=TOFMCFFKEY.TimeSigma2*rnormx();
        ts2=TOFMCFFKEY.TimeSigma2*rnormx();
@@ -275,6 +295,7 @@ void AMSTOFRawCluster::sitofdigi(){
 
   }
   }
+  AMSTOFRawCluster::setpatt(trpatt);//add trigger pattern info
 }
 //------
 void AMSTOFRawCluster::build(int &status){
@@ -283,6 +304,7 @@ void AMSTOFRawCluster::build(int &status){
   int16u  ftdc2[SCTHMX2*2],stdc2[SCTHMX3*4],adca2[SCTHMX4*2],adcd2[SCTHMX4*2];
   integer ilay,last,ibar,isid,isds;
   integer i,j,chnum,brnum,am[2],tmi[2],itmf[2],sta,st;
+  integer trpatt[SCLRS];
   int statdb[2];
   static int16u pbitn(32768);
   static int16u pbanti(0x7FFF);
@@ -506,6 +528,9 @@ void AMSTOFRawCluster::build(int &status){
 //------------------------------------------------------
     ptr=ptr->next();// take next RawEvent hit
   }//                          ---- end of RawEvent hits loop ------->
+  AMSTOFRawEvent::getpatt(trpatt);//just copy trig.pattern to be compartible with
+  AMSTOFRawCluster::setpatt(trpatt);// fast algorithm.
+//
 // now check min. multiplicity :
   int nbrch[SCLRS];
   for(i=0;i<SCLRS;i++){

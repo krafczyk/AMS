@@ -2,12 +2,17 @@
 //
 #include <typedefs.h>
 #include <commons.h>
+#include <job.h>
 #include <amsdbc.h>
+#include <stdio.h>
+#include <iostream.h>
+#include <fstream.h>
 #include <antidbc.h>
 //
+ANTIPcal antisccal[MAXANTI];// create empty array of antipaddles calibr. objects
 //
-//======> just memory reservation :
-// (real values are initialized at run-time from data cards in setgeom())
+//======> just memory reservation for ANTIDBc class variables:
+// (real values are initialized at run-time from data cards in setgeom() or in...)
 // 
   geant ANTIDBc::_scradi=0.;
   geant ANTIDBc::_scinth=0.;
@@ -19,7 +24,7 @@
   geant ANTIDBc::_stleng=0.;
   geant ANTIDBc::_stthic=0.;
 //
-//  member functions :
+//  ANTIDBc class member functions :
 //
   geant ANTIDBc::scradi(){return _scradi;}
   geant ANTIDBc::scinth(){return _scinth;}
@@ -31,7 +36,7 @@
   geant ANTIDBc::stleng(){return _stleng;}
   geant ANTIDBc::stthic(){return _stthic;}
 //
-  void ANTIDBc::setgeom(){ //get parameters from data cards now
+  void ANTIDBc::setgeom(){ //get parameters from data cards (for now)
     _scradi=ANTIGEOMFFKEY.scradi;
     _scinth=ANTIGEOMFFKEY.scinth;
     _scleng=ANTIGEOMFFKEY.scleng;
@@ -42,5 +47,21 @@
     _stleng=ANTIGEOMFFKEY.stleng;
     _stthic=ANTIGEOMFFKEY.stthic;
   }
+//======================================================================
+// ANTIPcal class member functions:
 //
-  
+void ANTIPcal::build(){ // fill array of objects with data
+  integer i,j;
+  integer sta[2]={0,0}; // all  are alive
+  geant thr; // MC trigger threshold for one side.(p.e. for now)
+  if(AMSJob::gethead()->isMCData()){ //            =====> For MC data:
+    for(i=0;i<MAXANTI;i++){
+      thr=ANTIMCFFKEY.trithr; // take trig.threshold from data card for now
+      antisccal[i]=ANTIPcal(i,sta,thr);
+    }
+  }
+//---------------------------------------------------------------------
+  else{ //                                         =====> For Real Data :
+  }
+}
+//=====================================================================  

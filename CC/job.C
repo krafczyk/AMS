@@ -51,6 +51,7 @@ const uinteger AMSJob::Calibration=AMSJob::CTracker+
 extern AMSTOFScan scmcscan[SCBLMX];// TOF MC time/eff-distributions
 extern TOFBrcal scbrcal[SCLRS][SCMXBR];// TOF individual sc.bar parameters 
 TOFVarp tofvpar; // TOF general parameters (not const !)
+extern ANTIPcal antisccal[MAXANTI]; // ANTI-counter individ.parameters
 //
 void AMSJob::data(){
 #ifdef __HPUX__
@@ -930,15 +931,16 @@ void AMSJob::_retofinitjob(){
 //
  tofvpar.init(TOFRECFFKEY.daqthr, TOFRECFFKEY.cuts);//daqthr/cuts reading
 //-------------------------
-//     ===> create indiv. parameters (scbrcal-objects for each sc. bar) :
+//     ===> fill indiv. parameters (scbrcal-objects for each sc. bar) :
 //
     TOFBrcal::build(); 
 //-----------
 }
-
+//===================================================================
 void AMSJob::_reantiinitjob(){
       number c0=exp(-ANTIMCFFKEY.PMulZPos/ANTIMCFFKEY.LZero);
       ANTIRECFFKEY.PhEl2MeV=ANTIRECFFKEY.PhEl2MeV/c0;
+      ANTIPcal::build();// fill calibr.objects (antisccal[]) 
 }
 
 void AMSJob::_rectcinitjob(){
