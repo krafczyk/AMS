@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.219 2002/07/10 15:29:22 choutko Exp $
+#  $Id: Mopt,v 1.220 2002/07/11 07:59:37 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -232,9 +232,9 @@ CFLAGSB=      -D__BATCH__      -I../include   -I../db   $(PFLAGS)
 endif
 
 ifdef AMSICC
-CFLAGSB+=  -D__ICC__
-CFLAGS+=  -D__ICC__
-PFLAGS+=  -D__ICC__
+CFLAGSB+=  -D__ICC__ -tpp7
+CFLAGS+=  -D__ICC__ -tpp7
+PFLAGS+=  -D__ICC__ -tpp7
 ifdef AMSDEBUG
 CFLAGSTOFSIM= $(CFLAGS)
 CFLAGSn=      $(CFLAGS)
