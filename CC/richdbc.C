@@ -1,10 +1,11 @@
-//  $Id: richdbc.C,v 1.27 2002/05/21 16:35:06 delgadom Exp $
+//  $Id: richdbc.C,v 1.28 2002/05/23 17:27:05 mdelgado Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
 #include<mceventg.h>
 #include<iostream.h>
 #include<richid.h>
+
 
 integer RICHDB::_Nph=0;
 // defaults
@@ -156,6 +157,11 @@ integer RICHDB::numrayl=0;
 // Book some histograms
 
 void RICHDB::bookhist(){
+#ifdef __AMSDEBUG
+  cout <<"RICH BOOKING"<<endl;
+  HBOOK1(123456,"Error de los directos",50,-1.,1.,0.);
+  HBOOK1(123457,"Error de los reflejados",50,-1.,1.,0.);
+#endif
 }
 
 // Recompute some vars 

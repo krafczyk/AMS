@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.33 2002/05/21 09:03:42 alexei Exp $
+//  $Id: richrec.C,v 1.34 2002/05/23 17:27:04 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -16,6 +16,8 @@
 #include <trrec.h>
 #include <root.h> 
 #include <richid.h>
+#include <mceventg.h>
+
 //#include <vector>
 //#include <valarray>
 
@@ -224,6 +226,10 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
     betas[j]=1/RICHDB::rad_index/(dir[0]*direction_ref[0]+
 				  dir[1]*direction_ref[1]+
 				  dir[2]*direction_ref[2]);
+
+    //CJD:  PROVISIONAL CORRECTION ON THE RADIATOR INDEX FOR REFLECTED
+    betas[j]*=1.0007624;
+
 
     if(betas[j]<betamin) betas[j]=-2.;
     else
@@ -575,6 +581,16 @@ void AMSRichRing::build(){
 	    (recs[i][closest]-beta_track)/
 	    AMSRichRing::Sigma(beta_track,A,B)/
 	    AMSRichRing::Sigma(beta_track,A,B);
+	  // Store resolution per hit
+#ifdef __AMSDEBUG__
+	  {
+	    AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
+	    number mass=pmcg->getmass();
+	    number mom=pmcg->getmom();
+	    number beta=mom/sqrt(mom*mom+mass*mass);
+	    HF1(123456+(closest>0),100.*(recs[i][closest]/beta-1),1.);
+	  }
+#endif
 	  if(prob>=9) continue;
 	  chi2+=prob;
 	}
