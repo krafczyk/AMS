@@ -169,7 +169,7 @@ else{
   "ntofraw[0,20],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,7]:I,tofrbar(ntofraw)[0,31]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
 
   HBNAME(_lun,"RICMCCl",&_richmc.NMC,
-  	 "nsignals[0,100],sid(nsignals):I,"
+  	 "nsignals[0,500],sid(nsignals):I,"
   	 "origin(3,nsignals),direction(3,nsignals),RICstatus(nsignals):I,"
          "nphgen:I,phit(nsignals):I");
 

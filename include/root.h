@@ -39,7 +39,7 @@ const int MAXECCLUST =    50;
 const int MAXECHITS  =   500;
 const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
-const int MAXRICMC   =   100;
+const int MAXRICMC   =   500;
 const int MAXRICHITS =   100;
 const int MAXTRDCLMC   =   200;
 };
