@@ -70,6 +70,14 @@ const uinteger AMSJob::CMagnet=64;
 const uinteger AMSJob::CRICH=128;
 const uinteger AMSJob::CTRD=256;
 const uinteger AMSJob::CAMS=512;
+const uinteger AMSJob::MTracker=1024;
+const uinteger AMSJob::MTOF=2048;
+const uinteger AMSJob::MAnti=4096;
+const uinteger AMSJob::MCerenkov=4096*2;
+const uinteger AMSJob::MLVL1=4096*4;
+const uinteger AMSJob::MLVL3=4096*8;
+const uinteger AMSJob::MAxAMS=4096*16;
+const uinteger AMSJob::MAll=4096*32;
 const uinteger AMSJob::Calibration=AMSJob::CTracker+
                                    AMSJob::CTOF+
                                    AMSJob::CAnti+
@@ -78,6 +86,15 @@ const uinteger AMSJob::Calibration=AMSJob::CTracker+
                                    AMSJob::CRICH+
                                    AMSJob::CTRD+
                                    AMSJob::CAMS;
+
+const uinteger AMSJob::Monitoring=(AMSJob::MTracker)+
+                                  (AMSJob::MTOF)+
+                                  (AMSJob::MAnti)+
+                                  (AMSJob::MCerenkov)+
+                                  (AMSJob::MLVL1)+
+                                  (AMSJob::MLVL3)+
+                                  (AMSJob::MAxAMS)+
+                                  (AMSJob::MAll);
 //
 extern AMSTOFScan scmcscan[SCBLMX];// TOF MC time/eff-distributions
 extern TOFBrcal scbrcal[SCLRS][SCMXBR];// TOF individual sc.bar parameters 
@@ -878,6 +895,9 @@ _jobtype=setjobtype(((AMSFFKEY.Jobtype/10)%10 != 0)<<(RealData-1));
 uinteger ical=(AMSFFKEY.Jobtype/100)%10;
 uinteger ucal=1;
 if(ical)_jobtype=setjobtype(ucal<<(ical+1));
+uinteger imon=(AMSFFKEY.Jobtype/1000)%10;
+uinteger umon=1;
+if(imon)_jobtype=setjobtype(umon<<(imon+1+8));
 
 
 
@@ -1605,7 +1625,8 @@ void AMSJob::_tkendjob(){
    
   }
   AMSTrIdCalib::printbadchanlist();
-    
+  if(isMonitoring() & (AMSJob::MTracker | AMSJob::MAll))
+  AMSTrIdCalib::offmonhist();    
 
 }
 

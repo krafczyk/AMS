@@ -14,6 +14,14 @@ I 1  Jobtype(0)      // 1 - Reconstruction ( 0 Simulation)
                      // 700 - TRD Calibration 
                      // 800 - AMS Calibration 
                      // 900 - Reserved
+                     //1000 - Tracker Calibration 
+                     //2000 - TOF Monitoring 
+                     //3000 - Anti Monitoring 
+                     //4000 - Cerenkov Monitoring 
+                     //5000 - LVL1 Monitoring 
+                     //6000 - LVL3 Monitoring 
+                     //7000 - AxAMS Monitoring 
+                     //8000 - Everything Monitoring 
                      // 
 I 2  Debug(1)        // 0 - Off   ; 1 - On
 R 3  CpuLimit(10.)   // CpuLimit in native sec per event

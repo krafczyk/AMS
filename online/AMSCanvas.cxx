@@ -85,6 +85,7 @@ MenuDesc_t AMSCanvas::fgAMSFileTracker[] = {
    { kAction, "PreClusters Distributions Set 2", TrackerSet1CB, NULL },
    { kAction, "Clusters Distributions", TrackerSet2CB, NULL },
    { kAction, "Calibration Set 1", TrackerSet3CB, NULL },
+   { kAction, "Calibration Set 2", TrackerSet4CB, NULL },
    { kEnd },
 };
 
@@ -568,6 +569,11 @@ void AMSCanvas::TrackerSet2CB(Widget wid, XtPointer cd, XtPointer pointer)
 void AMSCanvas::TrackerSet3CB(Widget wid, XtPointer cd, XtPointer pointer)
 {
    gAMSDisplay->Dispatch(1,3);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+void AMSCanvas::TrackerSet4CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(1,4);
    gAMSDisplay->GetCanvas()->Update();		// refresh the screen
 }
 void AMSCanvas::AntiSet0CB(Widget wid, XtPointer cd, XtPointer pointer)

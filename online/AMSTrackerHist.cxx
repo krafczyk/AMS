@@ -69,7 +69,7 @@ void AMSTrackerHist::_Fill(){
 
 
 void AMSTrackerHist::_Fetch(){
- _m2fetched=4;
+ _m2fetched=4+4;
  _fetched2= new TH1*[_m2fetched];
  _fetched2[0]=(TH1*)gAMSDisplay->GetRootFile()->Get("h500001"); 
  _fetched2[1]=(TH1*)gAMSDisplay->GetRootFile()->Get("h500002"); 
@@ -81,6 +81,17 @@ void AMSTrackerHist::_Fetch(){
   _fetched2[i]->SetFillColor(25);              
  }
  }
+ _fetched2[4]=(TH1*)gAMSDisplay->GetRootFile()->Get("h600001"); 
+ _fetched2[5]=(TH1*)gAMSDisplay->GetRootFile()->Get("h600002"); 
+ _fetched2[6]=(TH1*)gAMSDisplay->GetRootFile()->Get("h600011"); 
+ _fetched2[7]=(TH1*)gAMSDisplay->GetRootFile()->Get("h600012"); 
+ for(i=4;i<8;i++){
+ if(_fetched2[i]){
+  _fetched2[i]->SetXTitle("TDR No");
+  _fetched2[i]->SetFillColor(26);              
+ }
+ }
+
 }
 
 
@@ -133,6 +144,19 @@ for(i=0;i<4;i++){
  gPad->SetLogz(gAMSDisplay->IsLogZ());
  if(_fetched2[i]){
   _fetched2[i]->Draw();
+ }
+gPadSave->cd();
+}
+break;
+case 4:
+gPad->Divide(2,2);
+for(i=0;i<4;i++){
+ gPad->cd(i+1);
+ gPad->SetLogx(gAMSDisplay->IsLogX());
+ gPad->SetLogy(1);
+ gPad->SetLogz(gAMSDisplay->IsLogZ());
+ if(_fetched2[i+4]){
+  _fetched2[i+4]->Draw();
  }
 gPadSave->cd();
 }

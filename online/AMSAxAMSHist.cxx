@@ -22,7 +22,7 @@ _filled2[i++]->SetFillColor(color++);
 _filled2[i]=new TH1F("Abs(Momentum)","Abs(Momentum)",100,0.,20.);
 _filled2[i]->SetXTitle("Abs(Momentum) (GeV)");
 _filled2[i++]->SetFillColor(color++);
-_filled2[i]=new TH1F("Charge","Charge",10,0.5,9.5);
+_filled2[i]=new TH1F("Charge","Charge",20,0.5,10.5);
 _filled2[i]->SetXTitle("Charge");
 _filled2[i++]->SetFillColor(color++);
 _filled2[i]=new TH1F("Velocity","Velocity",100,0.2,1.2);

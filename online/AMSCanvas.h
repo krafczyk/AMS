@@ -72,6 +72,7 @@ public:
    static void        TrackerSet1CB(Widget, XtPointer, XtPointer);
    static void        TrackerSet2CB(Widget, XtPointer, XtPointer);
    static void        TrackerSet3CB(Widget, XtPointer, XtPointer);
+   static void        TrackerSet4CB(Widget, XtPointer, XtPointer);
    
    // Level1
    static void        LVL1Set0CB(Widget, XtPointer, XtPointer);

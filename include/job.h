@@ -198,9 +198,19 @@ const static uinteger CRICH;
 const static uinteger CTRD;
 const static uinteger CAMS;
 const static uinteger Calibration;
+const static uinteger MTracker;
+const static uinteger MTOF;
+const static uinteger MAnti;
+const static uinteger MCerenkov;
+const static uinteger MLVL1;
+const static uinteger MLVL3;
+const static uinteger MAxAMS;
+const static uinteger MAll;
+const static uinteger Monitoring;
 uinteger isReconstruction(){return _jobtype & Reconstruction;}
 uinteger isSimulation(){return !isReconstruction();}
 uinteger isCalibration(){return _jobtype & Calibration;}
+uinteger isMonitoring(){return _jobtype & Monitoring;}
 uinteger isRealData(){return _jobtype & RealData;}
 uinteger isMCData(){ return !isRealData();}
 uinteger jobtype() {return _jobtype;}

@@ -147,6 +147,7 @@ static time_t _CurTime;
 static uinteger _CurRun;
 
 public:
+static void offmonhist();
 static void printbadchanlist();
 static integer CalcBadCh(integer half, integer side);
 static uinteger getrun(){return _CurRun;}

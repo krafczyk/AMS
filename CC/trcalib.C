@@ -399,6 +399,39 @@ for(i=0;i<10;i++){
 }
 }
 
+void AMSTrIdCalib::offmonhist(){
+HBOOK1(500000+1,"Sigmas K Crate 32",200,0.,20.,0.);
+HBOOK1(500000+2,"Sigmas S Crate 32",200,0.,20.,0.);
+HBOOK1(500000+10+1,"Sigmas K Crate 72",200,0.,20.,0.);
+HBOOK1(500000+10+2,"Sigmas S Crate 72",200,0.,20.,0.);
+HBOOK1(600000+1,"Number of Bad Channels Side K Crate 32",70,0.5,70.5,0.);
+HBOOK1(600000+2,"Number of Bad Channels Side S Crate 32",70,0.5,70.5,0.);
+HBOOK1(600000+10+1,"Number of Bad Channels Side K Crate 72",70,0.5,70.5,0.);
+HBOOK1(600000+10+2,"Number of Bad Channels Side S Crate 72",70,0.5,70.5,0.);
+  geant badch[70];
+  int i,j,k,l,m;
+   for(l=0;l<2;l++){
+    for(k=0;k<2;k++){
+     for(i=0;i<70;i++)badch[i]=0;
+     for(i=0;i<AMSDBc::nlay();i++){
+       for(j=0;j<AMSDBc::nlad(i+1);j++){
+        AMSTrIdSoft cid(i+1,j+1,k,l,0);
+        if(cid.dead())continue;
+        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+         cid.upd(m);
+         if(cid.checkstatus(AMSDBc::BAD))badch[i*10+j+1]++;
+         HF1(500000+l+1+10*k,cid.getsig(),1.);
+        }
+       }
+     }
+      for(i=0;i<70;i++)HF1(600000+l+1+10*k,float(i),badch[i]);
+    }
+   }
+   
+
+
+}
+
 
 void AMSTrIdCalib::_hist(){
   // write down the difference
