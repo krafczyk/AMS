@@ -656,7 +656,8 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
   //TriggerExpertLVL3::pExpert->update(plvl3);        
   tt2=HighResTime();
        }
-       if((plvl3->TrackerTrigger())%32 >= LVL3FFKEY.Accept){ 
+       if((plvl3->TrackerTrigger())%32 >= LVL3FFKEY.Accept || 
+          (LVL3FFKEY.Accept>31 && plvl3->TrackerTrigger()>=LVL3FFKEY.Accept)){ 
          plvl3->settime(tt2-tt1);
          AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",0),plvl3);
        }
@@ -927,7 +928,8 @@ void TriggerLVL3::buildraw(integer n, int16u *p){
  //    cout <<k<<" "<<*(p+k)<<endl;
  //   }
  
-if(tra%32 >= LVL3FFKEY.Accept)
+if(tra%32 >= LVL3FFKEY.Accept || 
+(LVL3FFKEY.Accept>31 && tra >=LVL3FFKEY.Accept))
   AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",ic), new
  TriggerLVL3( tra,  tof,  anti, ntr,  npat,
   pat,  res,  time, eloss));
@@ -1086,6 +1088,9 @@ void TriggerLVL3::_printEl(ostream & stream){
 
 integer TriggerLVL3::LVL3OK(){
   if(_TrackerTrigger ==0  || _TrackerTrigger ==2 ||
-     (TRFITFFKEY.FastTracking>1 && _TrackerTrigger ==3))return 0;
+     (TRFITFFKEY.FastTracking>1 && _TrackerTrigger ==3) ||
+     (TRFITFFKEY.FastTracking>2 && _TrackerTrigger <8 )  ||
+     (TRFITFFKEY.FastTracking>3 && _TrackerTrigger <32 ) 
+     )return 0;
   else return 1;
 }
