@@ -207,6 +207,7 @@ integer tdrs=gettdr();
  assert (tdrs>=0 && tdrs < ntdr) ;
 #endif
 _layer=_GetGeo[_crate][tdrs][_side][0];
+if(_layer<0)_dead=1;
 _drp=_GetGeo[_crate][tdrs][_side][1];
 _half=_GetGeo[_crate][tdrs][_side][2];
 _addr=_layer+10*_drp+1000*_half+2000*_side;
@@ -225,7 +226,7 @@ _layer=_GetGeo[_crate][tdrs][_side][0];
 _drp=_GetGeo[_crate][tdrs][_side][1];
 _half=_GetGeo[_crate][tdrs][_side][2];
 _VANumber=_strip/_VAChannels;
-if(_half < 0){
+if(_half < 0 || _layer <0){
   // ugly dead condition
      _dead=1;
 }

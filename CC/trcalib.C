@@ -400,22 +400,66 @@ for(i=0;i<10;i++){
 void AMSTrIdCalib::_hist(){
   // write down the difference
   HBOOK1(400000+1,"Peds Diff",200,-10.,10.,0.);
-  HBOOK1(400010+1,"Peds Calcs",200,0.,1200.,0.);
-  HBOOK1(400020+1,"Peds System",200,0.,1200.,0.);
+  HBOOK1(400010+1,"Peds Calcs",200,0.,2200.,0.);
+  HBOOK1(400020+1,"Peds System",200,0.,2200.,0.);
   HBOOK1(400000+2,"Sigmas Diff",200,-2.,8.,0.);
-  HBOOK1(400010+2,"Sigmas Calcs",200,0.,10.,0.);
+  HBOOK1(400010+2,"Sigmas Calcs",200,0.,20.,0.);
   HBOOK1(400020+2,"Sigmas System",200,0.,10.,0.);
   HBOOK1(400000+3,"Ped Accuracy Estimated",200,0.,1.,0.);
-  int i;
+  HBOOK1(400100+1,"Peds Diff",200,-10.,10.,0.);
+  HBOOK1(400110+1,"Peds Calcs",200,0.,2200.,0.);
+  HBOOK1(400120+1,"Peds System",200,0.,2200.,0.);
+  HBOOK1(400100+2,"Sigmas Diff",200,-2.,8.,0.);
+  HBOOK1(400110+2,"Sigmas Calcs",200,0.,20.,0.);
+  HBOOK1(400120+2,"Sigmas System",200,0.,10.,0.);
+  HBOOK1(400100+3,"Ped Accuracy Estimated",200,0.,1.,0.);
+  HBOOK1(400200+1,"Peds Diff",200,-10.,10.,0.);
+  HBOOK1(400210+1,"Peds Calcs",200,0.,2200.,0.);
+  HBOOK1(400220+1,"Peds System",200,0.,2200.,0.);
+  HBOOK1(400200+2,"Sigmas Diff",200,-2.,8.,0.);
+  HBOOK1(400210+2,"Sigmas Calcs",200,0.,20.,0.);
+  HBOOK1(400220+2,"Sigmas System",200,0.,10.,0.);
+  HBOOK1(400200+3,"Ped Accuracy Estimated",200,0.,1.,0.);
+  int i,j,k,l,m;
+   for(l=0;l<2;l++){
+    for(k=0;k<2;k++){
+     for(i=0;i<AMSDBc::nlay();i++){
+       for(j=0;j<AMSDBc::nlad(i+1);j++){
+        AMSTrIdSoft id(i+1,j+1,k,l,0);
+        AMSTrIdCalib cid(id);
+        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+         cid.upd(m);
+         if(cid.getcount()>1){
+          int ch=cid.getchannel();
+          HF1(400000+1,_ADC[ch]-peds[ch],1.);
+          HF1(400010+1,_ADC[ch],1.);
+          HF1(400020+1,peds[ch],1.);
+          HF1(400000+2,_ADC2[ch]-sigmas[ch],1.);
+          HF1(400010+2,_ADC2[ch],1.);
+          HF1(400020+2,sigmas[ch],1.);
+          HF1(400000+3,_ADC2[ch]/sqrt(_Count[ch]),1.);
+
+          HF1(400000+(l+1)*100+1,_ADC[ch]-peds[ch],1.);
+          HF1(400010+(l+1)*100+1,_ADC[ch],1.);
+          HF1(400020+(l+1)*100+1,peds[ch],1.);
+          HF1(400000+(l+1)*100+2,_ADC2[ch]-sigmas[ch],1.);
+          HF1(400010+(l+1)*100+2,_ADC2[ch],1.);
+          HF1(400020+(l+1)*100+2,sigmas[ch],1.);
+          HF1(400000+(l+1)*100+3,_ADC2[ch]/sqrt(_Count[ch]),1.);
+         }
+        }
+       }
+     }
+    }
+   }
+   
+
+
+
+
   for(i=0;i<getnchan();i++){
     if(_Count[i] > 0){
-     HF1(400000+1,_ADC[i]-peds[i],1.);
-     HF1(400010+1,_ADC[i],1.);
-     HF1(400020+1,peds[i],1.);
-     HF1(400000+2,_ADC2[i]-sigmas[i],1.);
-     HF1(400010+2,_ADC2[i],1.);
-     HF1(400020+2,sigmas[i],1.);
-     HF1(400000+3,_ADC2[i]/sqrt(_Count[i]),1.);
+
     }
   }
 
@@ -486,7 +530,7 @@ void AMSTrIdCalib::_update(){
     ptdv->UpdCRC();
     time_t begin,end,insert;
     time(&insert);
-    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-33200,AMSEvent::gethead()->gettime()+33200);
+    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-3600,AMSEvent::gethead()->gettime()+3600*23);
     cout <<" Tracker H/K  info has been updated for "<<*ptdv;
     ptdv->gettime(insert,begin,end);
     cout <<" Time Insert "<<ctime(&insert);
@@ -497,7 +541,7 @@ void AMSTrIdCalib::_update(){
     ptdv->UpdateMe()=1;
     ptdv->UpdCRC();
     time(&insert);
-    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-33200,AMSEvent::gethead()->gettime()+33200);
+    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-3600,AMSEvent::gethead()->gettime()+3600*23);
     cout <<" Tracker H/K  info has been updated for "<<*ptdv;
     ptdv->gettime(insert,begin,end);
     cout <<" Time Insert "<<ctime(&insert);
@@ -508,7 +552,7 @@ void AMSTrIdCalib::_update(){
     ptdv->UpdateMe()=1;
     ptdv->UpdCRC();
     time(&insert);
-    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-33200,AMSEvent::gethead()->gettime()+33200);
+    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-3600,AMSEvent::gethead()->gettime()+3600*23);
     cout <<" Tracker H/K  info has been updated for "<<*ptdv;
     ptdv->gettime(insert,begin,end);
     cout <<" Time Insert "<<ctime(&insert);
@@ -637,6 +681,7 @@ void AMSTrIdCalib::buildSigmaPed(integer n, int16u *p){
        cerr <<" AMSTrIdCalib::buildSigmaPed-S-LengthError Max is "<<mss <<" Current is "<<len<<endl;
       len=mss;
      }
+     if(!idd.dead()){
      for(j=0;j<len;j++){
       cid.upd(j);
       id[j]=float((*(ptr+1+j)) & 4095);
@@ -664,6 +709,7 @@ void AMSTrIdCalib::buildSigmaPed(integer n, int16u *p){
        cid.updADCMax(id[j]);
        cid.updcounter();
       }
+     }
     ptr=ptr+len+1;
 
   }

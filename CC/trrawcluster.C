@@ -363,6 +363,7 @@ void AMSTrRawCluster::buildrawRaw(integer n, int16u *p){
       cerr <<" AMSTrRawClusterbuildrawRaw-S-LengthError Max is "<<ms <<" Current is "<<len<<endl;
       len=ms;
      }
+     if(!idd.dead()){
      // copy to local buffer and subtract peds
      for(j=0;j<len;j++){
       idd.upd(j);
@@ -415,7 +416,7 @@ void AMSTrRawCluster::buildrawRaw(integer n, int16u *p){
          }
          }
 
-
+     }
      ptr=ptr+len+1;
   }     
 

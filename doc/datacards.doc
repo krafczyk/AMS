@@ -243,8 +243,8 @@ RNDM
 // CTC  Reconstruction
 
 CTCREC      
-R 1   Thr1(1.5)           // Threshold on max element of cluster (phe)
-R 2   ThrS(3.)            // Threshold on  cluster sum (phe)
+R 1   Thr1(0.5)           // Threshold on max element of cluster (phe)
+R 2   ThrS(1.)            // Threshold on  cluster sum (phe)
 I 3 reprtf[0] (0)         // RECO-hist print flag
 I 4       [1] (0)         // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding
 I 5       [2] (0)         // spare

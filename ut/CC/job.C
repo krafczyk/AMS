@@ -373,7 +373,7 @@ void AMSJob::_sictcdata(){
 //
   CTCMCFFKEY.Refraction[0]=1.036;   // Refraction indexes
   CTCMCFFKEY.Refraction[1]=1.58;
-  CTCMCFFKEY.Path2PhEl[0]=20;   // Path to photoelectrons conv fact
+  CTCMCFFKEY.Path2PhEl[0]=11;   // Path to photoelectrons conv fact ( ~ 6 p.e.)
   CTCMCFFKEY.Path2PhEl[1]=28;
   CTCMCFFKEY.AbsLength[0]=15;   // Abs Length in cm  
   CTCMCFFKEY.AbsLength[1]=100;
@@ -656,7 +656,7 @@ void AMSJob::_reantidata(){
 }
 
 void AMSJob::_rectcdata(){
-  CTCRECFFKEY.Thr1=1.;
+  CTCRECFFKEY.Thr1=0.5;
   CTCRECFFKEY.ThrS=1.;
   CTCRECFFKEY.reprtf[0]=0;// Reco print_hist flag (0/1->no/yes)
   CTCRECFFKEY.reprtf[1]=0;// DAQ-print (1/2->print for decoding/decoding+encoding)
