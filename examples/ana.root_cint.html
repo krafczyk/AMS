@@ -1,0 +1,88 @@
+<HTML>
+<BODY>
+<CENTER>
+<hr>
+<H1> <font color=red> `Interactive' Analysis </font> </H1>
+<hr>
+</CENTER>
+
+   <p>The file
+<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/ana_8root_8C-source.html"> 
+ana.root.C </a> shows an example of interactive running. To run it, do: 
+"root ana.root.C". If you are already inside "root", use ".x ana.root.C".
+Some comments are in order:
+
+<ul>
+      <li> One has to load the specific AMS Root library containing all the ROOT class
+           definitions, class attributes and utilities. On Linux, you can always try:
+              <CENTER><b>
+              "gSystem->Load(/offline/vdev/lib/linux/icc/ntuple.so)". 
+              </b></CENTER><br>
+           In some specific cases, when
+           you are modifying or developing code, you will prefer to use your own 
+           library from your CVS directory $AMSDir. For that, you will need to 
+           execute: 
+              <CENTER><b>
+              "cd $AMSDir/install; gmake shared" 
+              </b></CENTER><br>
+           and load instead with: 
+              <CENTER><b>
+              "gSystem->Load($AMSDir/lib/linux/icc/ntuple.so)". 
+              </b></CENTER><br>
+           For ALPHA machines, substitute "linux/icc" by "osf1" where necessary.
+</ul>
+
+<ul>
+      <li> We can add several Root files with the AMSChain::Add("file") method. 
+           The class AMSChain inherit all the methods of the TChain class, but 
+           simplifies the life by hiding some AMS internal operations.
+</ul>
+
+<ul>
+      <li> In the interactive approach, we need to use AMSEventR objects: <br> 
+              <CENTER><b>
+                 "AMSEventR* pev = ams.GetEvent()"
+              </b></CENTER><br>
+              <CENTER><b>
+                 "AMSEventR* pev = ams.GetEvent(event_number)"
+              </b></CENTER><br>
+              <CENTER><b>
+                 "AMSEventR* pev = ams.GetEvent(run_number, event_number)"
+              </b></CENTER><br>
+           If you prefer not to use a pointer "pev", you can add:
+              <CENTER><b>
+                 "AMSEventR &ev = *pev;"
+              </b></CENTER><br>
+           and use "ev" from that point on.
+</ul>
+
+<ul>
+   <li> In order to access in a simple way all relevant pieces of information 
+        many useful definitions, via pointers and vectors, are implemented. For example, 
+        the number of hits in ECAL is given by::<br>
+             <center> <b> 
+             cout << "#Ehits: " << ev.nEcalHit() << endl; 
+             </b> </center><br>
+             or, alternatively:
+             <center> <b> 
+             cout << "#Ehits: " << pev->nEcalHit() << endl; 
+             </b> </center><br>
+        The "i" Hit in ECAL belongs to the class EcalHitR, and it may be
+        accessed either as:<br>
+             <center> <b> EcalHitR hit = ev.EcalHit(i); </b> </center><br>
+        or via the pointer pEcalHit(i):<br>
+             <center> <b> EcalHitR* phit = ev.pEcalHit(i); </b> </center><br>
+        A reference to the ith element is obtained as:
+             <center> <b> EcalHitR* phit = &ev.EcalHit(i); </b> </center><br>
+        The full list of AMS classes and attributes can be found 
+        <a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/classes.html"> 
+        HERE </a>. For instance, in 
+        <a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/classEcalHitR.html"> 
+        EcalHitR </a> the first member is "Status", which can be accessed either as:<br>
+             <center> <b> int stat = ev.EcalHit(i).Status; </b> </center><br><br>
+        or:
+             <center> <b> int stat = ev.pEcalHit(i)->Status; </b> </center><br><br>
+</ul>
+
+</BODY>
+</HTML>

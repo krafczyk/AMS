@@ -1,0 +1,11 @@
+/*! \example ana.root_static.doc
+ *  The program below (ana.root_static.C) illustrates a way to analyze AMS Root 
+ *  files with a C++ program statically linked. 
+ *    - To compile it, link it and run it, you can use for instance the 
+ *      ams_run.sh script: 
+ *                   - ams_run.sh ana.root_static.C
+ *    - Note that the program is prepared to be run in batch mode. Shared 
+ *      libraries are required if one wants to see interactive graphics.
+ *
+ *  \include ana.root_static.C
+ */ 

@@ -1,10 +1,5 @@
-/// \example ana.root.C
-/// This is another example to analyze an AMS Root file in an interactive 
-/// way, without code compilation. It just requires to load the Root library,
-/// which you should create with "cd $AMSDir/install; gmake shared"
-///
-/// (to run: root;  .x ana.root.C)   
-/// 
+/*! \example ana.root_cint.C
+ */
 {
       gROOT->Reset();
       // for linux load
