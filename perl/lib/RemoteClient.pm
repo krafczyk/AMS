@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.215 2003/09/30 14:51:25 choutko Exp $
+# $Id: RemoteClient.pm,v 1.216 2003/09/30 14:56:05 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3634,7 +3634,6 @@ print qq`
               $self->sendmailerror("User authorization failed","$self->{CEM}");
               $self->ErrorPlus
                     ("User Authorization Failed. All Your Activity is Logged.");
-              return;
 
              }
          }
