@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.13 2003/03/19 12:27:16 choutko Exp $
+//  $Id: trddbc.h,v 1.14 2003/03/19 20:58:56 choutko Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>
@@ -90,6 +90,7 @@ private:
    static number    _BulkheadsDimensions[mtrdo][trdconst::maxbulk][4];
    static number    _LaddersDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];
    static number    _LaddersLength[trdconst::maxlay][trdconst::maxlad];
+ static number       _LaddersLengthShort[trdconst::maxlay][trdconst::maxlad];
    static number    _CutoutsDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];
    static number    _TubesDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];    
    static number    _SpacerDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3][2];    
