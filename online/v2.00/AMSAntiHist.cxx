@@ -131,8 +131,8 @@ void AMSAntiHist::Fill(AMSNtuple * ntuple){
   for(int i=0;i<ntuple->_ANTI.nantiraw;i++){
     int sector=ntuple->_ANTI.AntirawSector[i]-1;   
     int updown=ntuple->_ANTI.Antirawupdown[i];
-    _filled2[16+updown]->Fill(float(sector),1.);
-    _filled2[18+updown]->Fill(float(sector),ntuple->_ANTI.AntirawSignal[i],1.);
+    _filled2[16+updown]->Fill(float(sector+1),1.);
+    _filled2[18+updown]->Fill(float(sector+1),ntuple->_ANTI.AntirawSignal[i],1.);
     for(int j=0;j<ntuple->_ANTI.nantiraw;j++){
       if(sector == ntuple->_ANTI.AntirawSector[j] &&
 	 updown !=ntuple->_ANTI.Antirawupdown[j]){
