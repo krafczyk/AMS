@@ -1,11 +1,11 @@
-#  $Id: 00index.txt,v 1.35 2003/12/17 13:22:50 choutko Exp $
+#  $Id: 00index.txt,v 1.36 2004/12/08 12:51:09 choutko Exp $
 
 Makefile //  General Makefile
 Makefile.Linux // OS dep
 Makefile.OSf1 //  OS dep
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
           // setenv AMSPROFILE 1  adds gprof
-Moptg4    // makefile to gmake g4 batch
+Moptg4    // makefile to gmake g4 batch ! Only RH7.3 is supported !!!
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
           // setenv O4 1   super-opt option (alpha only)
           // setenv AMSWD to some tmp dir is  recommended
