@@ -8,7 +8,7 @@
 #include <string.h>
 
 int main (int argc, char *argv[]) {
-int delay = 1; /* dlay in minutes */
+int delay = 120; /* dlay in minutes */
 char *dir1, *dir2;
 struct dirent ** name_list1;
 struct dirent ** name_list2;
@@ -50,7 +50,7 @@ time_t cur_time;
       exit(0);
     }
     
-//    sleep(10);
+    sleep(10);
     
     for (i=0; i<length1; i++) {
       comp=1;
