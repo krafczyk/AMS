@@ -1,9 +1,3 @@
-/*! \example plot.root.C
- *  This is an example of how see ams variables interactively in root session
- *  (to run: root;  .x plot.root.C)   
- *  
- *  For a complete listing of var functions see /offline/vdev/include/root_methods.h
- */
 {
 gROOT->Reset();
 

@@ -59,7 +59,15 @@ WARN_LOGFILE           =
 # configuration options related to the input files
 #---------------------------------------------------------------------------
 INPUT            =  ../doc ../include ../CC  ../examples /
-FILE_PATTERNS    =  root.h root_methods.h root.C stlv.h  stlv.C run.stlv.C plot.root.C ana.root_cint.C amsplot.doc amsplot.py beta.doc introduction.doc SimpleFit.h ams_inspect.doc ams_inspect.rb ana.root.py ana.root.rb ana.root_compiled.doc ana.root_cint.doc ana.root_python.doc ana.root.py ana.root_ruby.doc ana.root.rb ana.root_static.doc ana.root_static.C ams_run.sh select_entries.doc select_entries.C
+FILE_PATTERNS    =  root.h root_methods.h root.C stlv.h  stlv.C run.stlv.C \
+                    plot.root.doc plot.root.C ana.root_cint.C amsplot.doc amsplot.py \
+                    introduction.doc SimpleFit.doc SimpleFit.h \
+                    ams_inspect.doc ams_inspect.rb ana.root.py ana.root.rb \
+                    ana.root_compiled.doc ana.root_cint.doc \
+                    ana.root_python.doc ana.root.py ana.root_ruby.doc ana.root.rb \
+                    ana.root_static.doc ana.root_static.C \
+                    ams_run.sh \
+                    select_entries.doc select_entries.C
 RECURSIVE              = NO
 EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO

@@ -12,7 +12,7 @@
 #include <TTree.h>
 #include <iostream.h>
 #include <stdlib.h>
-/** \example stlv.C 
+/** 
  * This is an example of how to work with AMS Root Files. 
  *  \sa stlv
  */

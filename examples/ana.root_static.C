@@ -1,5 +1,3 @@
-/*! \example ana.root_static.C
- */
 #include "root.h"
 #include "TFile.h"
 #include "TH1F.h"

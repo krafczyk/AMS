@@ -1,5 +1,3 @@
-/*! \example select_entries.C
- */
 {     
       gROOT->Reset();
       gSystem->Load("$AMSDir/lib/linux/icc/ntuple.so");   

@@ -1,5 +1,3 @@
-/*! \example ana.root_cint.C
- */
 {
       gROOT->Reset();
       // for linux load
