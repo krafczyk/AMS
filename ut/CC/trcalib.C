@@ -591,6 +591,7 @@ void AMSTrIdCalib::_update(){
 
 
 
+    _BeginTime=AMSEvent::gethead()->gettime();
 
 }
 
