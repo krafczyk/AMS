@@ -65,14 +65,16 @@ void AMSmceventg::gener(){
     init(_ipart);
   }
   else {
-static integer ini=0;
-integer curp=0;
- number phi;
- number theta;
- if(_fixedmom)_mom=_momrange[0];
-else {
- _mom=HRNDM1(_hid)/1000.;  // momentum in GeV
-}
+   static integer ini=0;
+   integer curp=0;
+   number phi;
+   number theta;
+   geant d;
+   if(_fixedmom)_mom=_momrange[0];
+   else if(CCFFKEY.low!=4){
+   _mom=HRNDM1(_hid)/1000.;  // momentum in GeV
+   }
+   else _mom=_momrange[0]+(_momrange[1]-_momrange[0])*RNDM(d);
 
 if(_fixeddir){
  _dir=AMSDir(_dirrange[0]);
@@ -260,10 +262,6 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
      }
           
           HPRINT(_hid);
-    }
-    else if( low==4 ){
-      HBOOK1(_hid,"Uniform",1,0.,120.,0.);
-      HF1(_hid,60.,1.);
     }
     else {
       integer nchan=1000;
