@@ -328,8 +328,8 @@ c       write(*,*)' Starting converting'
      + 'LVL3Residual(2,nlvl3):R,LVL3Time(nlvl3):R')
 
       call hbname(1,cblock(17),nlvl1,
-     + 'nlvl1[0,2],LVL1Mode(nlvl1),LVL1Flag(nlvl1),'//
-     + 'LVL1TOFPatt(4,nlvl1),LVL1AntiPatt')
+     + 'nlvl1[0,1],LVL1Mode(nlvl1),LVL1Flag(nlvl1),'//
+     + 'LVL1TOFPatt(4,nlvl1),LVL1AntiPatt(nlvl1)')
 
         runold=-1
         do i=1,ndet

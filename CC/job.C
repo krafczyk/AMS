@@ -199,7 +199,14 @@ TRMCFFKEY.neib[0]=1;
 TRMCFFKEY.neib[1]=1;
 TRMCFFKEY.CalcCmnNoise[0]=1;
 TRMCFFKEY.CalcCmnNoise[1]=3;
-
+{
+int i,j,k;
+for(i=0;i<2;i++){
+  for(j=0;j<2;j++){
+   for(k=0;k<32;k++)TRMCFFKEY.RawModeOn[i][j][k]=0;
+  }
+}
+}
 FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 TRCALIB.EventsPerIteration[0]=100;
@@ -1273,6 +1280,9 @@ TID.add (new AMSTimeID(AMSID("TrackerSigmas",isRealData()),
 TID.add (new AMSTimeID(AMSID("TrackerStatus",isRealData()),
    begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::status));
+TID.add (new AMSTimeID(AMSID("TrackerCmnNoise",isRealData()),
+   begin,end,sizeof(AMSTrIdSoft::cmnnoise),
+   (void*)AMSTrIdSoft::cmnnoise));
 TID.add (new AMSTimeID(AMSID("TrackerIndNoise",isRealData()),
    begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::indnoise));
@@ -1695,11 +1705,20 @@ void AMSJob::_setorbit(){
 }    
 
 {
-//           tracker
+//           tracker reduced
 
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,
     &AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
+
+
+}    
+{
+//           tracker raw
+
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRaw);
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocksRaw,
+    &AMSTrRawCluster::calcdaqlengthRaw,&AMSTrRawCluster::builddaqRaw);
 
 
 }    

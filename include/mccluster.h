@@ -174,6 +174,7 @@ public:
   AMSTrIdGeom getid();
   AMSTrMCCluster *  next(){return (AMSTrMCCluster*)_next;}
   void addcontent(char xy, geant ** p);
+  void addcontent(const AMSTrIdSoft & id, geant *adc);
   static integer debug;
  static void 
  sitkhits(integer idsoft , geant vect[],geant edep, geant step, 

@@ -8,14 +8,19 @@
 #include <amsgobj.h>
 #include <mccluster.h>
 
-integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax){
+integer AMSTrRawCluster::TestRawMode(){
+  AMSTrIdSoft id(_address);
+  int icmpt=AMSDBc::compactshuttle(id.getlayer(),id.getdrp());
+  return TRMCFFKEY.RawModeOn[id.gethalf()][id.getside()][icmpt];   
+
+}
+
+integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax, integer pedantic){
   //
   // convert my stupid format to lvl3 one for shuttle flight (mb also stupid)
-  // the address is now 16 bit and is the format :
-  //  5             1                4                       6              = 16
-  // 0-22 layer  0-1  half  0-9 (ben) 10-15 (nonb) VA   0-63 strip no (ambig R/L here)
- AMSTrIdSoft id(_address);
- int16 pos =0;
+  //
+   AMSTrIdSoft id(_address);
+  int16 pos =0;
   int16 icmpt=(int16)AMSDBc::compactshuttle(id.getlayer(),id.getdrp());
 #ifdef __AMSDEBUG__
   assert (icmpt < 32 && icmpt >=0);
@@ -25,7 +30,7 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax){
   int16 va=(int16)id.getva();
   int16 strip=(int16)id.getstripa();
   if (nmax-pos < 2+_nelem || _nelem > 255 || _nelem==0) return pos;
-  adc[pos+1]=mkaddress(strip,va,half,icmpt);
+  adc[pos+1]=mkaddress(strip,va,half,icmpt,pedantic);
   integer imax=0;
   geant rmax=-1000000;
   for (int i=0;i<_nelem;i++){
@@ -197,10 +202,21 @@ int16u AMSTrRawCluster::getdaqid(int i){
   else if(i==1)return (1 | 5<<6 | 11 <<9);
 else return 0x0;
 }
+int16u AMSTrRawCluster::getdaqidRaw(int i){
+  if (i==0)return (2<<6 | 11 <<9);
+  else if(i==1)return (5<<6 | 11 <<9);
+else return 0x0;
+}
 
 integer AMSTrRawCluster::checkdaqid(int16u id){
 if(id==getdaqid(0))return 1;
 else if(id==getdaqid(1))return 2 ;
+else return 0;
+}
+
+integer AMSTrRawCluster::checkdaqidRaw(int16u id){
+if(id==getdaqidRaw(0))return 1;
+else if(id==getdaqidRaw(1))return 2 ;
 else return 0;
 }
 
@@ -213,11 +229,63 @@ void AMSTrRawCluster::builddaq(integer i, integer n, int16u *p){
   *p=getdaqid(i);
   int16 * p16=(int16*)p;
   while (ptr){
-   ltr+=ptr->lvl3format(p16+1+ltr,n-1-ltr);
+   if(!(ptr->TestRawMode()))ltr+=ptr->lvl3format(p16+1+ltr,n-1-ltr,1);
    ptr=ptr->next();
   }
 
 
+}
+void AMSTrRawCluster::builddaqRaw(integer i, integer n, int16u *p){
+int j,k,l;
+integer lay,lad,half,side;
+integer cleng=0;
+if(n){
+  geant *  adc  = (geant*)UPool.insert(sizeof(adc[0])*AMSDBc::maxstrips());
+ int16u *paux=p;
+ *paux=getdaqidRaw(i);
+  paux++;
+ for(j=0;j<2;j++){
+  for(k=0;k<31;k++){
+    if(TRMCFFKEY.RawModeOn[i][j][k]){
+      //make address
+     AMSDBc::expandshuttle(k,lay,lad);
+     AMSTrIdSoft id(lay,lad,i,j);
+     integer va=id.getva();
+     geant ecmn=id.getcmnnoise()*rnormx();
+     *(paux)=mkaddress(0,va,i,k,1);
+     // check on the event hits
+     VZERO(adc,sizeof(adc[0])/sizeof(integer)*AMSDBc::NStripsDrp(lay,j));
+     AMSTrMCCluster* ptr=(AMSTrMCCluster*)
+     AMSEvent::gethead()->getheadC("AMSTrMCCluster",0);
+     while(ptr){
+       ptr->addcontent(id,adc);
+      ptr=ptr->next();
+     }
+     for(l=0;l<AMSDBc::NStripsDrp(lay,j);l++){
+      id.upd(l);
+      if(id.getva()!=va){
+       va=id.getva();
+       ecmn=id.getcmnnoise()*rnormx();
+      }
+      adc[l]=adc[l]+id.getsig()*rnormx()+id.getped()+ecmn+0.5;
+      if(adc[l]<0)adc[l]=0;
+      if(adc[l]>4095)adc[l]=4095;
+      *(paux+1+l)=int16u(adc[l]) | (1<<15);
+     }
+     paux+=1+AMSDBc::NStripsDrp(lay,j);
+#ifdef __AMSDEBUG__
+     cleng+=1+AMSDBc::NStripsDrp(lay,j);
+#endif     
+    }
+  }
+ }
+
+#ifdef _AMSDEBUG__
+assert(cleng==n-1);
+#endif
+UPool.udelete(adc);
+
+}
 }
 
 
@@ -227,20 +295,27 @@ integer AMSTrRawCluster::calcdaqlength(integer i){
   integer l=0;
   if(ptr)l=1;
   while (ptr){
-   l+=ptr->_nelem+2;
+   if(!(ptr->TestRawMode()))l+=ptr->_nelem+2;
    ptr=ptr->next();
   }
   return l;
 }
 
+integer AMSTrRawCluster::calcdaqlengthRaw(integer i){
+int j,k;
+integer l=0;
+for(j=0;j<2;j++){
+  for(k=0;k<31;k++){
+    if(TRMCFFKEY.RawModeOn[i][j][k])l+=AMSDBc::NStripsDrp(1,j)+1;
+  }
+}
+if(l)l++;
+return l;
+}
+
 
 void AMSTrRawCluster::buildraw(integer n, int16u *p){
   integer ic=checkdaqid(*p)-1;
-{
-  AMSContainer *ptr=AMSEvent::gethead()->getC("AMSTrRawCluster",ic);
-  if(ptr)ptr->eraseC();
-  else cerr << "AMSTrRawCluster::buildraw-S-No container "<<ic;
-}
   int leng=0;
   int16u * ptr;
   for(ptr=p+1;ptr<p+n;ptr+=leng+3){
@@ -266,3 +341,101 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
 
 
 }
+
+void AMSTrRawCluster::buildrawRaw(integer n, int16u *p){
+  integer const maxva=64;
+  integer const ms=640;
+  static geant id[ms];
+  static geant idlocal[maxva];
+  VZERO(id,ms*sizeof(id[0])/sizeof(integer));
+  int i,j,k,l;
+  integer ic=checkdaqidRaw(*p)-1;
+  int16u * ptr=p+1;
+  // Main loop
+  while (ptr<p+n){
+     integer va,strip,half,drp,lay,lad,side;
+     getaddress(int16u(*(ptr)),strip,va,side,half,drp);
+     AMSDBc::expandshuttle(drp,lay,lad);
+     half=ic;
+     AMSTrIdSoft idd(lay,lad,half,side);
+     //aux loop thanks to data format to calculate corr length
+     int16u * paux;
+     int len=0;
+     int16u bit15=1<<15;
+     for(paux=ptr+1;paux<p+n;paux++){
+      if( !(bit15 & *paux))break;
+      else len++;  
+     }    
+     if(len > ms ){
+      cerr <<" AMSTrRawClusterbuildrawRaw-S-LengthError Max is "<<ms <<" Current is "<<len<<endl;
+      len=ms;
+     }
+     // copy to local buffer and subtract peds
+     for(j=0;j<len;j++){
+      idd.upd(j);
+      id[j]=float((*(ptr+1+j)) & 4095)-idd.getped(); 
+     }
+     // calc cmn noise
+      integer vamin,vamax,l;
+      for (j=0;j<len;j+=vamax-vamin+1){
+         idd.upd(j);
+         vamin=j-idd.getstripa();
+         vamax=j+maxva-idd.getstripa();
+         for (l=vamin;l<vamax;l++){
+           idlocal[l-vamin]=id[l];
+         }
+         AMSsortNAGa(idlocal,maxva);
+         geant cmn=0;
+         for(l=TRMCFFKEY.CalcCmnNoise[1];l<maxva-TRMCFFKEY.CalcCmnNoise[1];l++)cmn+=idlocal[l];
+         cmn=cmn/(maxva-2*TRMCFFKEY.CalcCmnNoise[1]);
+         for(l=vamin;l<vamax;l++)id[l]=id[l]-cmn;
+      }
+      // find "preclusters"  
+         idd.upd(0);
+         integer ilay=idd.getlayer();
+         k=idd.getside();
+         AMSTrRawCluster *pcl;
+         pcl=0;
+         integer nlmin;
+         integer nleft=0;
+         integer nright=0;
+         for (j=0;j<AMSDBc::NStripsDrp(ilay,k);j++){
+         idd.upd(j);
+         if(id[j]> TRMCFFKEY.thr1R[k]*idd.getsig()){
+          nlmin = nright==0?0:nright+1; 
+          nleft=max(j-TRMCFFKEY.neib[k],nlmin);
+          idd.upd(nleft);
+          while(nleft >nlmin && id[nleft]> TRMCFFKEY.thr2R[k]*idd.getsig())idd.upd(--nleft);
+          nright=min(j+TRMCFFKEY.neib[k],AMSDBc::NStripsDrp(ilay,k)-1);
+          idd.upd(nright);
+          while(nright < AMSDBc::NStripsDrp(ilay,k)-1 && 
+          id[nright]> TRMCFFKEY.thr2R[k]*idd.getsig())idd.upd(++nright);
+          for (int k=nleft;k<=nright;k++){
+            id[k]=idd.getgain()*id[k];
+            if(id[k] > TRMCFFKEY.adcoverflow)id[k]=TRMCFFKEY.adcoverflow;
+            if(id[k] < -TRMCFFKEY.adcoverflow)id[k]=-TRMCFFKEY.adcoverflow;
+          }
+           pcl= new
+           AMSTrRawCluster(idd.getaddr(),nleft,nright,id+nleft);
+            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",half),pcl);
+            j=nright+1;           
+         }
+         }
+
+
+     ptr=ptr+len+1;
+  }     
+
+
+
+
+#ifdef __AMSDEBUG__
+{
+  AMSContainer * ptrc =AMSEvent::gethead()->getC("AMSTrRawCluster",ic);
+  if(ptrc && AMSEvent::debug>1)ptrc->printC(cout);
+}
+#endif
+
+
+}
+

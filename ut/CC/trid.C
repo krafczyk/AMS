@@ -84,7 +84,7 @@ geant * AMSTrIdSoft::gains=0;
 geant * AMSTrIdSoft::peds=0;
 integer * AMSTrIdSoft::status=0;
 geant * AMSTrIdSoft::sigmas=0;
-geant * AMSTrIdSoft:: cmnnoise[10]={0,0,0,0,0,0,0,0,0,0};
+geant  AMSTrIdSoft:: cmnnoise[10][ms];
 geant * AMSTrIdSoft:: indnoise=0;
 integer AMSTrIdSoft::_numel=0;
 integer AMSTrIdSoft::idsoft2linear[ms];
@@ -271,8 +271,6 @@ void AMSTrIdSoft::init(){
      gains=new geant[num];
      sigmas=new geant[num];
      for(i=0;i<10;i++){
-      cmnnoise[i]= new geant[ms];
-      assert( cmnnoise[i] != NULL);
       for(int k=0;k<ms;k++)cmnnoise[i][k]=0;
      }     
      indnoise=new geant[num];

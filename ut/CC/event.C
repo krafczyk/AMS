@@ -1071,6 +1071,17 @@ void AMSEvent::_redaqinitevent(){
 }
 
 void AMSEvent::_redaqevent(){
+  // Erase some containers if in debug mode
+#ifdef __AMSDEBUG__
+  int i;
+  for(i=0;;i++){
+    AMSContainer *pctr=AMSEvent::gethead()->getC("AMSTrRawCluster",i);
+      if(pctr)pctr->eraseC();
+      else break ;
+  }
+#endif
+
+
   AMSgObj::BookTimer.start("REDAQ");
 
    DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->

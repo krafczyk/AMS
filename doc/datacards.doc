@@ -200,7 +200,7 @@ R30   thr1R[2](4.5,4.5)     // threshold (S/N) to save cluster
 R32   thr2R[2](1.,1.)       // threshold (S/N) to save hits in cluster
 I34   neib[2](2,2)          // number of neibours from one side
 I36   GenerateConst(0)      // generate/not generate tracker const
-
+I37   RawModeOn[2][2][32](0)// Raw Mode Tracker readout (half;side;tdrk,s+connector)
 // MC particle generation
 
 MCGEN

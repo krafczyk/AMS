@@ -34,6 +34,25 @@ for(int i=_left[side];i<_right[side]+1;i++)
  _ss[side][i-_left[side]]=ss[i+nel-_right[side]-1];
 }
 
+void AMSTrMCCluster::addcontent(const AMSTrIdSoft &  idl, geant *adc){
+integer i;
+integer side=idl.getside();
+if(side==0){
+   for(i=_left[side];i<=_right[side];i++){
+    AMSTrIdSoft id(AMSTrIdGeom(_idsoft,i,0),side);
+    if(idl.getaddr() != id.getaddr())return;
+    adc[id.getstrip()]=  adc[id.getstrip()]+_ss[side][i-_left[side]];
+   }
+}  
+else {
+   for(i=_left[side];i<=_right[side];i++){
+    AMSTrIdSoft id(AMSTrIdGeom(_idsoft,0,i),side);
+    if(idl.getaddr() != id.getaddr())return;
+    adc[id.getstrip()]=  adc[id.getstrip()]+_ss[side][i-_left[side]];
+   }
+}
+}
+
 void AMSTrMCCluster::addcontent(char xy, geant ** p){
  integer i;
  if(xy=='x'){

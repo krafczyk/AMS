@@ -80,7 +80,7 @@ static integer *status;
 static geant *peds;
 static geant *gains;
 static geant *sigmas;
-static geant *cmnnoise[10];
+static geant cmnnoise[10][ms];
 static geant *indnoise;
 static integer _numel;
 const static integer _VAChannels;

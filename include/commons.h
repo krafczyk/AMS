@@ -312,6 +312,7 @@ integer thr1R[2];
 integer thr2R[2];
 integer neib[2];
 integer GenerateConst;
+integer RawModeOn[2][2][32];
 };
 #define TRMCFFKEY COMMON_BLOCK(TRMCFFKEY,trmcffkey)
 COMMON_BLOCK_DEF(TRMCFFKEY_DEF,TRMCFFKEY);

@@ -27,8 +27,9 @@ void _printEl(ostream & stream);
 void _writeEl();
 public:
 
-static int16 mkaddress(int16 strip, int16 va, int16 half, int16 icmpt)
-{return strip | va<<6 | icmpt << 10 | half<<15;}
+static int16 mkaddress(int16 strip, int16 va, int16 half, int16 icmpt, integer pedantic=0)
+{return pedantic==0?strip | va<<6 | icmpt << 10 | half<<15:strip | va<<6 | icmpt << 10;}
+
 
 static void getaddress(int16u address, 
 integer & strip, integer & va, integer & side, integer & half, integer &drp){
@@ -49,7 +50,7 @@ _array(0){}
 AMSTrRawCluster(integer id,  integer nleft, integer nright,geant *p);
 AMSTrRawCluster(integer id,  integer nleft, integer nright,int16 *p);
 void expand( number *p) const ;
-integer lvl3format(int16 * ptr, integer nmax);
+integer lvl3format(int16 * ptr, integer nmax, integer pedantic=0);
 static void sitkdigi();
   AMSTrRawCluster *  next(){return (AMSTrRawCluster*)_next;}
 
@@ -61,10 +62,16 @@ static void sitkdigi();
  static int16u getdaqid(int i);
  static integer checkdaqid(int16u id);
  static integer calcdaqlength(integer i);
+ static int16u getdaqidRaw(int i);
+ static integer checkdaqidRaw(int16u id);
+ static integer calcdaqlengthRaw(integer i);
  static integer getmaxblocks(){return 2;}
+ static integer getmaxblocksRaw(){return 2;}
  static void builddaq(integer i, integer n, int16u *p);
  static void buildraw(integer n, int16u *p);
-
+ static void builddaqRaw(integer i, integer n, int16u *p);
+ static void buildrawRaw(integer n, int16u *p);
+ integer TestRawMode();
 
 
 
