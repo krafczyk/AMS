@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.16 2001/02/20 16:26:15 mdelgado Exp $
+//  $Id: richdbc.h,v 1.17 2001/03/06 14:10:58 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -42,7 +42,7 @@ const integer RICmaxrows=100;
 // Threshold, in % of the total beta range, to avoid  the reconstruction
 // of secondaries
 
-const geant RICthreshold=0.16; //16%
+const geant RICthreshold=0.05; //16% is the maximum, 5% is good enough
 
 const integer RICentries=44;   // no. of entries in wave_length,eff...   
 const integer RICmaxpmts=2000; // max no. of pmts

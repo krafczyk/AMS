@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.17 2001/02/20 16:25:51 mdelgado Exp $
+//  $Id: richrec.C,v 1.18 2001/03/06 14:09:58 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -164,7 +164,9 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
     betas[0]=direction[0]*cos(phi)*u+
       direction[1]*sin(phi)*u-direction[2]*sqrt(1-u*u);
     betas[0]=1/RICHDB::rad_index/betas[0];
-    if(betas[0]<betamin) betas[0]=-2.;
+    if(betas[0]<betamin){ // If the beta as direct is below threshold
+      betas[0]=-2.;       // it is the primary passing through the LG so
+      return;}            // stop the recontruction.
     else if(betas[0]>betamax) betas[0]=-1;
   }else{
     betas[0]=0;    // Wrong theta
@@ -189,7 +191,7 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
 				  dir[1]*direction_ref[1]+
 				  dir[2]*direction_ref[2]);
 
-    if(betas[j]<betamin) betas[j]=-2. ;
+    if(betas[j]<betamin) betas[j]=-2.;
     else
       if(betas[j]>betamax) betas[j]=-1.; 
       else 
@@ -454,10 +456,12 @@ void AMSRichRing::build(){
       
       
       
-      for(integer i=0;i<actual;i++)
+      for(integer i=0;i<actual;i++){
+	if(recs[i][0]==-2.) continue; // Jump if direct is below threshold
 	for(integer k=0;k<3;k++){
 	  if(recs[i][k]<betamin) continue; 
 	  for(integer j=0;j<actual;j++){
+	    if(recs[j][0]==-2.) continue;
 	    if(i==j) continue;
 	    integer better=AMSRichRing::closest(recs[i][k],recs[j]);
 	    
@@ -480,7 +484,7 @@ void AMSRichRing::build(){
 	  }
 	  
 	}
-      
+      }
       // Add a ring element with the results. Not added to ntuple yet
       if(best_prob>0){
 	
@@ -491,6 +495,7 @@ void AMSRichRing::build(){
 	  recs[best_cluster[0]][best_cluster[1]];
 	
 	for(integer i=0;i<actual;i++){
+	  if(recs[i][0]==-2.) continue;
 	  integer closest=
 	    AMSRichRing::closest(beta_track,recs[i]);
 	  
