@@ -236,6 +236,12 @@ int16u AMSTrRawCluster::getdaqidMixed(int i){
 else return 0x0;
 }
 
+int16u AMSTrRawCluster::getdaqidParameters(int i){
+  if (i==0)return (5 | 2<<6 | 11 <<9);
+  else if(i==1)return (5 | 5<<6 | 11 <<9);
+else return 0x0;
+}
+
 int16u AMSTrRawCluster::getdaqidCompressed(int i){
   if (i==0)return (14 | 2<<6 | 11 <<9);
   else if(i==1)return (14 | 5<<6 | 11 <<9);
@@ -257,6 +263,12 @@ else return 0;
 integer AMSTrRawCluster::checkdaqidMixed(int16u id){
 if(id==getdaqidMixed(0))return 1;
 else if(id==getdaqidMixed(1))return 2 ;
+else return 0;
+}
+
+integer AMSTrRawCluster::checkdaqidParameters(int16u id){
+if(id==getdaqidParameters(0))return 1;
+else if(id==getdaqidParameters(1))return 2 ;
 else return 0;
 }
 
@@ -376,9 +388,11 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
   
   for(ptr=p+1;ptr<p+n-1;ptr+=leng+3){      // cluster length > 1 
      leng=(*ptr)&63;
+      
      AMSTrIdSoft id(ic,int16u(*(ptr+1)));
      if(!id.dead() ){
        if(id.teststrip(id.getstrip()+leng)){
+
         AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
         AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+leng,
         (int16*)ptr+2));
@@ -844,6 +858,30 @@ void AMSTrRawCluster::buildrawMixed(integer n, int16u *p){
         AMSTrIdSoft id(ic,int16u(*(p2+1)));
         if(!id.dead() ){
           if(id.teststrip(id.getstrip()+leng)){
+            /*
+            
+              static int jpa=0;
+              if(!jpa){
+               HBOOK1(501101,"diff",100,-18.,2.,0.);
+               jpa=1;
+              }
+              int16 sn=(((*p2)>>6)&63);
+              int16 snm=0;
+              int olds=id.getstrip();
+              for (int k=0;k<leng+1;k++){
+               id.upd(olds+k);
+               if(id.getsig() && (*((int16*)p2+2+k))/id.getsig() > snm){
+                snm=*((int16*)p2+2+k)/id.getsig();
+               }
+              }       
+              id.upd(olds);
+              if(sn>snm){
+                cout <<sn<<" "<<snm<<" "<<id.getsig()<<" "<<id<<endl;
+              }
+              HF1(501101,float(sn-snm),1.);
+            */
+
+
             AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
             AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+leng,
             (int16*)p2+2));
@@ -1009,6 +1047,134 @@ void AMSTrRawCluster::buildrawCompressed(integer n, int16u *p){
 
 
 }
+
+
+
+
+
+void AMSTrRawCluster::buildrawParameters(integer n, int16u *p){
+  integer len;
+  int i,j,k;
+  integer ic=GetTrCrate(*p)-1;
+  int16u * ptr=p+1;
+  int tl=0;
+  // Main loop
+  while (ptr<p+n){
+    integer subl=*ptr;
+    tl+=subl;
+    int16u *ptro=ptr;
+    integer ntdr = *(ptr+1) & 31;
+    ptr+=2;
+    for(i=0;i<ntdr;i++){
+     int16u tdrn=*ptr;
+
+     if(tdrn < 16){
+       // S side
+       for(j=0;j<2;j++){
+         int16u conn,tdrs;
+         tdrs=tdrn/2;
+         if(tdrn%2==0){
+          if(j==0)conn=0;
+          else conn=1;
+         }
+         else {
+          if(j==0)conn=2;
+          else conn=3;
+         }
+         int16u haddr=(conn<<10) | (tdrs <<12);
+         AMSTrIdSoft idd(ic,haddr);
+         if(!idd.dead()){
+           cout <<"For id "<<idd;
+         }
+       }
+     }
+     else if(tdrn<24){
+       // K Side
+       len=384;
+       for(j=0;j<4;j++){
+          int16u conn, tdrk;
+          if(tdrn%2 ==0){
+            if(j<2)conn=j;
+            else conn=j;
+          }
+          else {
+           if(j<2)conn=j;
+           else conn=j;
+           conn+= 4;
+          }
+          tdrk=(tdrn-16)/2;
+          int16u haddr=(10<<6) |( conn<<10) | (tdrk <<13);
+          AMSTrIdSoft idd(ic,haddr);
+         if(!idd.dead()){
+           cout <<"For id "<<idd;
+         }
+       }
+     }
+     else {
+       cerr<<"trrawcluster::buildrawParameters-ETDRNOutOfRange "<<tdrn<<endl;
+     }
+
+
+     
+     ptr+=1;
+     int rl=*ptr;
+      static char descr[40][]={
+        "Number of events to throw out before beginning calibration(128)",
+        "Number of events for pedestal calculation(2048)",
+        "Number of events for sigma raw calculation(512)",
+        "Number of events for sigma Pass1 calculation(1024)",
+        "Number of events for sigma Pass2 calculation(0)",
+        "Number of events for non gaussien pass(2048)",
+        "Step in histo to seek peak value (in 1/8)(1)",
+        "Number of bin for histo (max 128)(64)",
+        "f1 Cut for histo (in 1/8)(14)",
+        "f2 Cut for histo pass 2 (in 1/8)(10)",
+        "g Cut for non gaussien behaviour (in 1/8)(24)",
+        "out_g Number of event out of bound for non gaussien(50)",
+        "Seed cut (in 1/8)(24)",
+        "Neigbour cut (in 1/8)(8)",
+        "ADC min(48)",
+        "Number of events between 2 dynamical pedestal(0 means never)(0)",
+        "spare(0)",
+        "spare(0)",
+        "spare(0)",
+        "spare(0)",
+        "spare(0)",
+        "spare(0)",
+        "spare(0)",
+        "spare(0)",
+        "spare(0)",
+        "spare(0)",
+        "spare(0)",
+        "spare(0)",
+        "spare(0)",
+        "spare(0)",
+        "Number of strip for laser in intensity 1(0)",
+        "First strip of region u1,1(0)",
+        "First strip of region o1,1(0)",
+        "First strip of region u1,2(0)",
+        "First strip of region o1,2(0)",
+        "Number of strip for laser in intensity 2(0)",
+        "First strip of region u2,1(0)",
+        "First strip of region o2,1(0)",
+        "First strip of region u2,2(0)",
+        "First strip of region o2,2(0)"
+      }; 
+      for(int kl=0;kl<40;kl++){
+        cout <<descr[kl]<<" "<<*(ptr+2+kl)<<endl;
+      }
+      cout <<" "<<endl;                    
+     ptr+=rl;
+     
+    }
+      ptr=ptro+subl;        
+  }
+
+
+
+}
+
+
 
 
 
