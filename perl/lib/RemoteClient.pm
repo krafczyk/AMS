@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.249 2004/03/01 17:18:00 choutko Exp $
+# $Id: RemoteClient.pm,v 1.250 2004/03/01 17:49:09 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5429,7 +5429,8 @@ sub calculateMips {
 # get jobname and mips
 #
     $sql = "SELECT 
-              jobs.jobname, jobs.events, jobs.cputime, jobs.elapsed, jobs.mips, jobs.jid, ntuples.path     
+              jobs.jobname, jobs.events, jobs.cputime, jobs.elapsed, jobs.mips, jobs.jid, 
+              runs.fevent, runs.levent, ntuples.path     
               FROM Jobs, Runs, Ntuples  
               WHERE jobs.jid=runs.jid AND runs.status='Completed' AND jobs.mips>0 AND runs.run=ntuples.run  
               ORDER BY jid";
@@ -5445,6 +5446,8 @@ sub calculateMips {
       my $cpusj   = undef;
       my $elapsedj= undef;
       my $mipsj   = undef;
+      my $fevent  = undef;
+      my $levent  = undef;
       my $path    = undef;
       my $partj   = 'xyz';
       my $newjob  = 1;
@@ -5460,7 +5463,13 @@ sub calculateMips {
           $elapsedj    = $job->[3];
           $mipsj       = $job->[4];
           $jid         = $job->[5];
-          $path        = $job->[6];
+          $fevent      = $job->[6];
+          $levent      = $job->[7];
+          $path        = $job->[8];
+
+          $eventsj    = $levent - $fevent + 1;
+
+
           my $partj= $self->getJobParticleFromDSTPath($path);
           my $i        = 0;
           for ($i=0; $i<$#names+1; $i++) {
@@ -5485,8 +5494,8 @@ sub calculateMips {
                  $mips[$n]      = $mipsj;
                  $particle[$n]  = $partj;
                  $njobs[$n]  = 1;
-                 if ($eventsj > 0 && $mipsj > 0) {
-                  $mipsmean[$n]     = ($cpusj/$eventsj)*1000/$mipsj;
+                 if ($events[$n]>0 && $mipsj > 0) {
+                  $mipsmean[$n]     = ($cpusj/($events[$n]))*1000/$mipsj;
                  }
                  $n++;
              }
@@ -5508,15 +5517,19 @@ sub calculateMips {
         if ($#junk > 0) {
          my $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];     
          $jobtype=trimblanks($jobtype);
-         my $path = $job->[6];
+         my $path = $job->[8];
          my $partj= $self->getJobParticleFromDSTPath($path);
          if ($jobtype eq $names[$j] && $partj eq $particle[$j]) {
            my $eventsj     = $job->[1];
            my $cpusj       = $job->[2];
            my $elapsedj    = $job->[3];
            my $mipsj       = $job->[4];
+           my $jid         = $job->[5];
+           my $fevent      = $job->[6];
+           my $levent      = $job->[7];
+           $eventsj        = $levent - $fevent + 1;
            if ($eventsj > 0 && $mipsj >0) {
-               $mipssigma[$j]    = ($mipsmean[$j] - ($cpusj/$eventsj)*1000/$mipsj)**2;
+               $mipssigma[$j]    = ($mipsmean[$j] - ($cpusj*1000/$eventsj)/$mipsj)**2;
            }
        }
      }
