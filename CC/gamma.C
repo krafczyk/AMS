@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.41 2003/04/30 13:36:53 glamanna Exp $
+//  $Id: gamma.C,v 1.42 2003/04/30 13:51:47 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -5903,7 +5903,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
      }
    }
   }
-
+  if (lb1 > -1 && lb2 > -1){
    out=1;
       fbot=0;
       ftop=1;
@@ -5920,7 +5920,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
         SLOPE=M1[lb1];
         INTER=Q1[lb1];
       }
-
+  }
   }
   //-----  
   //Now OPTION 2
@@ -5943,7 +5943,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
      }
      } //LL[2] !=0
      //**
-     if (LL[2] ==1 && M13.size()> 0 && M14.size()>0){
+     if (LL[2] ==1 && M13.size()> 0 && M14.size()>0 && lb14 > -1 ){
    out=1;
       fbot=0;
       ftop=1;
@@ -5984,6 +5984,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
 	}
        }
      }
+     if (lb11 > -1 && lb14 > -1){ 
     out=1;
       fbot=0;
       ftop=1;
@@ -5999,7 +6000,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
         SLOPE=M14[lb14];
         INTER=Q14[lb14]; 
      }
-
+     }
       } //if (LL[3] >1){
     } //if (LL[2] >1 || LL[2] ==0){
      //**
@@ -6026,7 +6027,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
      }
      } //LL[2] !=0
      //**
-     if (LL[2] ==1 && M23.size() > 0 && M24.size()> 0){
+     if (LL[2] ==1 && M23.size() > 0 && M24.size()> 0 && lb24 > -1){
    out=1;
       fbot=0;
       ftop=1;
@@ -6044,7 +6045,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
      //**
     if (LL[2] >1 || LL[2] ==0){
       if (LL[3] ==1 && M24.size()> 0){
-    out=1;
+      out=1;
       fbot=0;
       ftop=1;
       // Because of only 1 hit on plane 2 and only one hit ion plane 4 the vectors have dimension 1
@@ -6067,6 +6068,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
 	}
        }
      }
+     if (lb11 > -1 && lb14 > -1){
     out=1;
       fbot=0;
       ftop=1;
@@ -6082,7 +6084,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
         SLOPE=M24[lb14];
         INTER=Q24[lb14]; 
      }
-
+     }
       } //if (LL[3] >1){
     } //if (LL[2] >1 || LL[2] ==0){
    //**
