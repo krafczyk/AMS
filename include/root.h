@@ -302,7 +302,6 @@ public:
   int FastFitDone[MAXTRTR];
   int GeaneFitDone[MAXTRTR];
   int AdvancedFitDone[MAXTRTR];
-  float Dbase[MAXTRTR][2];
   float Chi2StrLine[MAXTRTR];
   float Chi2Circle[MAXTRTR];
   float CircleRidgidity[MAXTRTR];
