@@ -899,7 +899,7 @@ void AMSEvent::event(){
          return;
       }
       else if(*_SelectedEvents < o){
-       while(*_SelectedEvents<o){
+       while(*_SelectedEvents<o && _SelectedEvents->Run){
          cerr<<"AMSEvent::event-E-SelectedRunEventNotFound"<<_SelectedEvents->Run<<" "<<_SelectedEvents->Event<<endl;
          _SelectedEvents++;
        }
