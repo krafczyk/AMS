@@ -3132,6 +3132,7 @@ ooStatus AMSEventList::Addamsdbc()
        rstatus = amsdbcItr -> CmpConstants();
        if (rstatus != oocSuccess) {
         cout <<"AMSEventList:: -E- Quit. amsdbc comparison failed"<<endl;
+        cout <<"AMSEventList:: -I- please, write new setup."<<endl;
         return rstatus;
        }
       } else {
@@ -3143,9 +3144,9 @@ ooStatus AMSEventList::Addamsdbc()
        cout <<"AMSEventList::Addamsdbc -I- check commons"<<endl;
        rstatus = commonsItr -> CmpConstants();
        if (rstatus != oocSuccess) {
-        cout <<"AMSEventList:: -W- commons are different, will be overwritten"
-             <<endl;
-        commonsItr -> CopyConstants();
+        cout <<"AMSEventList:: -E- Quit. commons are different"<<endl;
+        cout <<"AMSEventList:: -I- please, write new setup."<<endl;
+        return rstatus;
        }
       } else {
        commonsH  = new(contH) AMScommonsD();
@@ -3156,7 +3157,8 @@ ooStatus AMSEventList::Addamsdbc()
        cout <<"AMSEventList::Addamsdbc -I- check ctcdbc"<<endl;
        rstatus = ctcdbcItr -> CmpConstants();
        if (rstatus != oocSuccess) {
-        cout <<"AMSEventList:: -W- Quit. ctcdbc comparison failed"<<endl;
+        cout <<"AMSEventList:: -E- Quit. ctcdbc comparison failed"<<endl;
+        cout <<"AMSEventList:: -I- write new setup."<<endl;
         return rstatus;
        }
       } 

@@ -68,7 +68,8 @@ endif
 #########################
 
 BOOTF=../db/boot/LOM
-BOOT=../db/boot/LOM
+BOOT =../db/boot/LOM
+#BOOT=/dbase/newV/AMS/db/boot/LOM
 #include config.user
 include config.$(ARCH)
 #########################
