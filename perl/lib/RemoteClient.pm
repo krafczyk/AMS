@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.211 2003/09/18 09:39:23 alexei Exp $
+# $Id: RemoteClient.pm,v 1.212 2003/09/19 15:54:11 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -15,6 +15,8 @@
 #                 from scripts names
 # Sep 2003      : outputpath = /disk/dir   for local disks
 #                              /dir        for afs 
+#                 add MIPS column into Jobs table
+#
 # ToDo : checkJobsTimeout - reduce number of SQLs
 #
 package RemoteClient;
@@ -4364,7 +4366,8 @@ print qq`
                               '$buf$tmpb',
                               $ctime,
                               '$nickname',
-                               'host',0,0,0,0,'$stalone')";
+                               'host',0,0,0,0,'$stalone',
+                              -1)";
          $self->{sqlserver}->Update($insertjobsql);
 #         $self->{sqlserver}->Update($sql);
 #
@@ -6984,8 +6987,8 @@ foreach my $block (@blocks) {
       elsif ($block =~/StartingJob/) {
 
 #
-# , JobStarted HostName gcie01 default , UID 805306385 , PID 3578 3573 , Type Producer , ExitStatus NOP , 
-#   StatusType OneRunOnly
+# , JobStarted HostName gcie01 default , UID 805306385 , PID 3578 3573 , Type Producer , 
+#   ExitStatus NOP , StatusType OneRunOnly
 #              HostName pcamsvc  , UID 134217740 , PID 11894 11891 , Type Standalone , 
 # ExitStatus NOP ,StatusType OneRunOnly   
 #
@@ -7031,9 +7034,16 @@ foreach my $block (@blocks) {
     # end StartingJob cmd
     #
    } elsif (($block =~/JobStarted/)) {
+# 19.09.03
+#
+#, JobStarted HostName pcamsf6 hrdl , UID 116 , PID 5751 5746 , Type 
+# Producer , ExitStatus NOP , StatusType OneRunOnly , Mips 2445
+#                                                     ^^^^
+#
       $patternsmatched = 0;
+      my $jobmips = -1;
       my @StartingJobPatterns = ("JobStarted", "HostName","UID","PID","Type",
-                                  "ExitStatus","StatusType");
+                                  "ExitStatus","StatusType","Mips");
       for (my $i=0; $i<$#junk+1; $i++) { 
         my @jj = split " ",$junk[$i];
         if ($#jj > 0) {
@@ -7043,6 +7053,9 @@ foreach my $block (@blocks) {
           if ($jj[0]  eq $StartingJobPatterns[$j]) {
               $startingjob[$j] = trimblanks($jj[1]);
               $patternsmatched++;
+              if ($jj[0] eq "Mips") {
+                $jobmips = trimblanks($jj[1]);
+              }
               $found = 1;
           }
           $j++;
@@ -7057,7 +7070,7 @@ foreach my $block (@blocks) {
        system("mv $inputfile $inputfile.0"); 
        return;
    }
-   if ($patternsmatched == $#StartingJobPatterns) { 
+   if ($patternsmatched == $#StartingJobPatterns || $patternsmatched == $#StartingJobPatterns-1) { 
     $startingjob[0] = "StartingJob";
     $startingjobR   = 1;
     $lastjobid = $startingjob[2];
@@ -7118,7 +7131,7 @@ foreach my $block (@blocks) {
                  host='$host',
                  events=$startingrun[13], errors=$startingrun[15],
                  cputime=$startingrun[16], elapsed=$startingrun[17],
-                 timestamp=$timestamp 
+                 timestamp=$timestamp, mips = $jobmips  
                 where jid=$lastjobid";
      print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);

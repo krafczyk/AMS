@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.58 2003/09/18 09:39:23 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.59 2003/09/19 15:54:10 alexei Exp $
 
 #
 #
@@ -202,7 +202,8 @@ sub Create{
         errors    int,
         cputime   int,
         elapsed   int,
-       jobtype    VARCHAR(20))",
+        jobtype   VARCHAR(20),
+        mips      number)",
 
       "CREATE TABLE RNDM
       (rid     INT NOT NULL primary key,
