@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.239 2003/02/05 11:24:23 choutko Exp $
+#  $Id: Mopt,v 1.240 2003/02/13 12:32:34 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -183,9 +183,11 @@ ifeq  "$(shell uname)"  "Linux"
 ifdef AMSICC
 CERNDIR = /f2dat1/CERN/2002/icc
 NAGDIR  = /f2dat1/NagLib
-CC=/opt/intel/compiler60/ia32/bin/icc
+ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
 FF=/opt/intel/compiler60/ia32/bin/ifc
-LD=/opt/intel/compiler60/ia32/bin/icc
+else
+FF=/opt/intel/compiler70/ia32/bin/ifc
+endif
 CC=g++  -Wno-deprecated -mcpu=i686
 LD=g++
 BINMT=$(AMSWD)/bin/linux/icc/mt/
