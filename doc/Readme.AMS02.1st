@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.38 2002/09/20 13:12:17 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.39 2002/11/08 15:43:21 choutko Exp $          
 
 
 0. In the current version only AMS02-setup is supported.
@@ -121,6 +121,7 @@ VII.  Standalone version
           tar -uvf ~/ams.tar DataBase/*of*/*.0.*
           tar -uvf ~/ams.tar DataBase/.*0
           tar -uvf ~/ams.tar DataBase/.TrA*1
+          tar -uvf ~/ams.tar DataBase/Ecal*
           login in  your computer:
            mkdir mydir
            cd mydir

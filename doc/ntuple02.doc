@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.49 2002/10/30 15:08:18 mdelgado Exp $
+#  $Id: ntuple02.doc,v 1.50 2002/11/08 15:43:21 choutko Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -542,7 +542,7 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
  * I*4  *          * RING     * rcristatus(nrings)    // Ring status  **********)   
  * R*4  *	   * RING     * rcriprob(nrings)      // Probability of being a true ring 
   							 from the phi distribution of hits
- * R*4  *	   * RING     * rcrinpexp(nrings)     // Number of expected photoelectrons
+ * R*4  *	   * RING     * rcrinpexp(nrings)     // Number of expected photoelectrons for Z=1  charge
  * R*4  *          * RING     * rcricnpe(nrings)      // Number of collected photoelectrons  	
  * I*4  *          * TRDMCCL  * ntrdmccl              // no of trd clusters
  * U*4  *          * TRDMCCL  * trdlayermc(ntrdmccl)  //layer (up==0)
@@ -735,13 +735,5 @@ a. "HUWFUN: Not space to store COMMON definition"
   
     Workaround:
     
-    note last word in /PAWCR4/ common
-    nt/print 1
-   
-    add missing words to blabla.f according their order
-    in /nt/print 1 output
-    
 
-
-
-
+Use custom built paw /offline/paw/(linux,osf1)/pawX11 

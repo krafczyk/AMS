@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.10 2001/05/05 19:49:05 kscholbe Exp $
+//  $Id: trddbc.h,v 1.11 2002/11/08 15:43:30 choutko Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>
@@ -8,9 +8,11 @@
 
 namespace trdconst{
 // counting always from 0 and from top to bottom
-const uinteger maxo=9;   
+const uinteger maxo=13;   
 const uinteger mtrdo=1;   
 const uinteger maxbulk=6;
+const uinteger maxspikes=9;
+const uinteger maxpipes=10;
 const uinteger maxlay=20;
 const uinteger maxseg=5;
 const uinteger maxhits=12;
@@ -33,6 +35,8 @@ private:
    // Media    
    static char* _OctagonMedia[maxo];
    static char* _BulkheadsMedia;
+   static char* _XeRadSpikesMedia;
+   static char* _PipesMedia;
    static char* _CutoutsMedia;
    static char* _TubesMedia;
    static char* _ITubesMedia;
@@ -51,6 +55,9 @@ private:
     static  uinteger  _CutoutsNo[mtrdo][trdconst::maxlay][trdconst::maxlad];
     static  uinteger  _CutoutsBH[mtrdo][trdconst::maxlay][trdconst::maxco];
     static uinteger   _TubesNo[mtrdo][trdconst::maxlay][trdconst::maxlad];
+    static float      _SpikesPar[trdconst::maxspikes][4][6];  //x,y,z,rmi,rma,z/2 (cm)
+    static geant      _PipesPar[trdconst::maxpipes][4][7];  //x,y,z,rmi,rma,z/2,dist/2 between two pipes (cm)
+    static number      _PipesNRM[trdconst::maxpipes][4][3][3];  //
     static uinteger   _NumberBulkheads;
     static uinteger   _NumberTubes;
     static uinteger   _NumberLadders;
@@ -165,6 +172,22 @@ public:
    static void read();
    static void write();
    static char* CodeLad(uinteger gid); 
+
+   static float getSpikesPar(uinteger spike, uinteger quad,uinteger par){
+    return par<6 && spike<trdconst::maxspikes && quad<4 ? _SpikesPar[spike][quad][par]:0;
+   }
+
+   static geant getPipesPar(uinteger pipe, uinteger quad, uinteger par){
+    return par<7 && quad<4 && pipe<trdconst::maxpipes ? _PipesPar[pipe][quad][par]:0;
+   }
+
+   static void getPipesNRM(uinteger pipe,uinteger quad, number nrm[3][3]){
+     for (int i=0;i<3;i++){
+       for (int j=0;j<3;j++)nrm[i][j]=_PipesNRM[pipe][quad][i][j];
+     }
+   }
+
+
    //  getnumbers for elements   
    static uinteger getnumTube(uinteger tube,uinteger ladder, uinteger layer, uinteger oct=1);
    static uinteger getnumBulkhead(uinteger bulkhead, uinteger oct=1);
@@ -272,6 +295,8 @@ public:
 
    static char* OctagonMedia(uinteger oct){return oct<maxo?_OctagonMedia[oct]:0;}
    static char* BulkheadsMedia(){return _BulkheadsMedia;}
+   static char* XeRadSpikesMedia(){return _XeRadSpikesMedia;}
+   static char* PipesMedia(){return _PipesMedia;}
    static char* TubesMedia(){return _TubesMedia;}
    static char* ITubesMedia(){return _ITubesMedia;}
    static char* RadiatorMedia(){return _RadiatorMedia;}
