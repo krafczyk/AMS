@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.10 2003/07/28 17:00:45 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.11 2003/09/05 12:59:31 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -71,7 +71,7 @@ if(pcl){
 
 
 }
-char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pTofCluster(fRef)->Info(fRef):0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pTofCluster(fRef)->Info(fRef):0;}
 
 
 };
@@ -109,7 +109,7 @@ if(pcl){
    SetFillStyle(1001);          // solid filling (not working now....)
 
 }
-char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pTrRecHit(fRef)->Info(fRef):0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pTrRecHit(fRef)->Info(fRef):0;}
 
 };
 
@@ -138,7 +138,7 @@ if(pcl){
    SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
 
 }
-char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pTrdCluster(fRef)->Info(fRef):0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pTrdCluster(fRef)->Info(fRef):0;}
 
 };
 
@@ -162,7 +162,7 @@ if(pcl){
    SetFillStyle(0);          // solid filling (not working now....)
 
 }
-char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pAntiCluster(fRef)->Info(fRef):0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pAntiCluster(fRef)->Info(fRef):0;}
 
 };
 
@@ -189,7 +189,7 @@ if(pcl){
    SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
 
 }
-char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pRichHit(fRef)->Info(fRef):0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pRichHit(fRef)->Info(fRef):0;}
 
 };
 
@@ -218,7 +218,7 @@ if(pcl){
    SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
 
 }
-char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pEcalCluster(fRef)->Info(fRef):0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pEcalCluster(fRef)->Info(fRef):0;}
 
 };
 
@@ -241,7 +241,7 @@ if(pcl){
    SetFillStyle(0);          // solid filling (not working now....)
 
 }
-char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pTrMCCluster(fRef)->Info(fRef):0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pTrMCCluster(fRef)->Info(fRef):0;}
 
 };
 
@@ -279,7 +279,7 @@ if(pcl){
    if(pcl->Charge==0)SetLineStyle(2);
 }
 }
-char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pParticle(fRef)->Info(fRef):0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pParticle(fRef)->Info(fRef):0;}
 
 
 };
@@ -316,7 +316,7 @@ if(pcl){
    SetLineStyle(1);
 
 }
-char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pTrdTrack(fRef)->Info(fRef):0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pTrdTrack(fRef)->Info(fRef):0;}
 
 
 };
@@ -345,10 +345,10 @@ if(pcl){
    SetLineWidth(1);
    SetLineStyle(1);
    if(pcl->Charge==0)SetLineStyle(2);
-   else SetLineWidth(abs(pcl->Charge));
+   else SetLineWidth(fabs(pcl->Charge));
 }
 }
-char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pMCEventg(fRef)->Info(fRef):0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pMCEventg(fRef)->Info(fRef):0;}
 
 
 };
@@ -381,7 +381,7 @@ if(pcl){
    SetLineStyle(1);
 
 }
-char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pTrTrack(fRef)->Info(fRef):0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pTrTrack(fRef)->Info(fRef):0;}
 
 
 };
@@ -413,7 +413,7 @@ if(pcl){
    SetLineStyle(1);
 
 }
-char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pEcalShower(fRef)->Info(fRef):0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pEcalShower(fRef)->Info(fRef):0;}
 
 
 };
@@ -426,7 +426,7 @@ protected:
 public:
 RichRingV():AMSDrawI(NULL,-1),TPolyLine3D(){};
 RichRingV(AMSEventR *ev,int ref, bool drawplex=false);
-char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pRichRing(fRef)->Info(fRef):0;}
+char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pRichRing(fRef)->Info(fRef):0;}
 
 
 };

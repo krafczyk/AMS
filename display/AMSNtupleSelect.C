@@ -13,7 +13,7 @@ bool IsGolden(AMSEventR *ev){
    for(int i=0;i<ev->nRichRing();i++){
     if(ev->pRichRing(i)->UsedM)return true;
    }
-   return true;
+   return false;
  }
   else return false;
 }

@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.12 2003/07/18 14:49:27 choutko Exp $
+#  $Id: 00index.txt,v 1.13 2003/09/05 12:59:31 choutko Exp $
 =========================================================================
 
      Introduction  to  AMS    Event  Display  Based  on  ROOT
@@ -17,7 +17,9 @@
 
    Requirements: X-window, ROOT, CERNLIB.
 
-   System: only test on Linux 7.3 & root 3.05.05 
+   System: only tested on Linux 7.3 & root >=3.05.07 gcc3.2 and/or icc v7
+
+   Attention: TPad.h, TPad.cxx & TRootCanvas.h still need to be modified
 
    Status: beta release 
 
@@ -43,7 +45,8 @@ of AMS event display into it.
 	gmake standalone  (static version of the program called amsed)
 	gmake osdepend    (using dynamic (shared) libraries called amsedc)
 
-
+        setenv AMSICC 1   will invoke icc compiler
+        unsetenv AMSICC   will invoke g++ compiler
 
 -------------------------------------------------------------------------
 3. Running the program
@@ -62,7 +65,8 @@ for some (old) XwindowsSystems  text characters might be improperly drawn or eve
 
 to run amsedc (dynamic) program, path to the root dir should be set up
 via ROOTSYS as usual (source /offline/vdev/install/amsvar). 
-Dynamic  program allows user to load/run his/her own selection program via AMSNtupleSelect.C.   Just modify AMSNtupleSelect.C according
+Dynamic  program allows user to load/run his/her own selection program via AMSNtupleSelect.C.   
+Just modify AMSNtupleSelect.C IsGolden() function according
 the desired selection then click on "Load UF" button.
 Please note the amsedc should be relinked in case opsys is not rh7.3  
 

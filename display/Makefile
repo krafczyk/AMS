@@ -1,7 +1,16 @@
-#  $Id: Makefile,v 1.15 2003/09/04 10:26:31 choutko Exp $
+#  $Id: Makefile,v 1.16 2003/09/05 12:59:31 choutko Exp $
 
 PLATFORM      =  Linux
-
+ifdef AMSICC
+CXX           =  icc
+CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -tpp6 -mp1 -xi 
+OPT           = -O2
+OPTC          = -O2
+NOOPT         = -g
+NOOPTC         = -g
+LD            = icc
+LDFLAGS       = 
+else
 CXX           =  g++ -Wno-deprecated
 CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 OPT           = -O2
@@ -10,7 +19,7 @@ NOOPT         = -g
 NOOPTC         = -g
 LD            = g++
 LDFLAGS       = -g 
-
+endif
 ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 
 
 LIBS          =  $(ROOTLIBS) -lm -ldl

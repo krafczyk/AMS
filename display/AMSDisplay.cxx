@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.30 2003/07/28 17:00:45 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.31 2003/09/05 12:59:31 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -610,6 +610,7 @@ void AMSDisplay::PrintCB(){
 
 int  AMSDisplay::ReLoad(){
         static void *handle=0;
+//        static void *handle_ntuple=dlopen("/afs/cern.ch/exp/ams/offline/vdev/lib/linux/icc/ntuple.so",RTLD_NOW);
         char cmd[]="g++ -I$ROOTSYS/include -c AMSNtupleSelect.C";
         int $i=system(cmd);
         if(!$i){
