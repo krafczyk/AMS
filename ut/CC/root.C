@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.12 2001/05/23 14:37:22 choutko Exp $
+//  $Id: root.C,v 1.13 2001/07/20 20:24:51 kscholbe Exp $
 #include <root.h>
 #include <ntuple.h>
 #ifdef __WRITEROOT__
@@ -38,6 +38,7 @@ ClassImp(CTCHitNtuple)
 ClassImp(TrRawClusterNtuple)
 ClassImp(AntiRawClusterNtuple)
 ClassImp(TOFRawClusterNtuple)
+ClassImp(EcalShowerNtuple)
 ClassImp(EcalClusterNtuple)
 ClassImp(EcalHitNtuple)
 ClassImp(RICMCNtuple)

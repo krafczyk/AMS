@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.79 2001/07/13 16:25:27 choutko Exp $
+//  $Id: ntuple.C,v 1.80 2001/07/20 20:24:50 kscholbe Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -400,7 +400,7 @@ void AMSNtuple::initR(char* fname){
    TBranch *bgg=_tree->Branch("mcg02", "MCEventGNtuple02",  &pevgg, 64000,1);
    static void *pevs=(void*)&_ecclust;
    TBranch *bs=_tree->Branch("ecalcl", "EcalClusterNtuple",  &pevs, 64000,1);
-   static void *pevsh=(void*)&_ecsh;
+   static void *pevsh=(void*)&_ecshow;
    TBranch *bsh=_tree->Branch("ecalsh", "EcalShowerNtuple",  &pevsh, 64000,1);
    static void *pevt=(void*)&_ecalhit;
    TBranch *bt=_tree->Branch("ecalht", "EcalHitNtuple",  &pevt, 64000,1);
