@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.29 2002/02/27 16:19:55 mdelgado Exp $
+//  $Id: richrec.C,v 1.30 2002/03/15 10:07:24 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -239,9 +239,14 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
 
 
 integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
-  geant false_height=RICHDB::bottom_radius*
-                     (RICHDB::rich_height+RICHDB::foil_height+RIClgdmirgap
-                      +RICradmirgap)/(RICHDB::bottom_radius-RICHDB::top_radius);
+//  geant false_height=RICHDB::bottom_radius*
+//                     (RICHDB::rich_height+RICHDB::foil_height+RIClgdmirgap
+//                      +RICradmirgap)/(RICHDB::bottom_radius-RICHDB::top_radius);
+
+  geant false_height=RICHDB::bottom_radius*                                          
+                     RICHDB::rich_height/(RICHDB::bottom_radius-RICHDB::top_radius); 
+
+
   geant zk=(RICHDB::bottom_radius/false_height)*
     (RICHDB::bottom_radius/false_height);
   geant c2=zk/(1+zk);
@@ -254,13 +259,14 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
 
   //  geant xf=RICHDB::x(_channel);  //TODO: Get them from AMSRICHIdGeom
   //  geant yf=RICHDB::y(_channel);  //TODO: Get them from AMSRICHIdGeom
-  geant zf=-false_height;
+  geant zf=-false_height-RIClgdmirgap;
   //  geant zf=RICradpos-RICHDB::rad_height-false_height;
   geant x=origin[0],y=origin[1],
     //    z=origin[3]-false_height+RICHDB::height;
     z=origin[3]-RICradpos+RICHDB::rad_height-false_height+
                 (RICHDB::rich_height+RICHDB::foil_height
-                 +RIClgdmirgap+RICradmirgap);
+//                 +RIClgdmirgap+RICradmirgap);
+                   +RICradmirgap);
 
 
   AMSPoint initial(x,y,z),final(xf,yf,zf);
@@ -320,8 +326,11 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
       (ref_point[good]).setp((ref_point[good])[0],
 			     (ref_point[good])[1],
 			     (ref_point[good])[2]+false_height-
-                              RICHDB::rich_height+RICHDB::foil_height+RICradmirgap+
-                              RIClgdmirgap-RICHDB::rad_height+RICradpos);
+//                              RICHDB::rich_height+RICHDB::foil_height+RICradmirgap+
+//                              RIClgdmirgap-RICHDB::rad_height+RICradpos);
+                              RICHDB::rich_height-RICHDB::foil_height-RICradmirgap-
+                              RICHDB::rad_height+RICradpos);
+
       good++;
     }
 

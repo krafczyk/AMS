@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.63 2002/03/12 14:05:51 choutko Exp $
+//  $Id: geant3.C,v 1.64 2002/03/15 10:07:24 mdelgado Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -319,6 +319,8 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
 
     // RICH simulation code
     if(GCKINE.ipart==Cerenkov_photon){
+// Cut by hand 
+     if(GCTRAK.nstep>6000) GCTRAK.istop=1;
      if(GCVOLU.names[lvl][0]=='R' && GCVOLU.names[lvl][1]=='I' &&
        GCVOLU.names[lvl][2]=='C' && GCVOLU.names[lvl][3]=='H'){
       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
@@ -373,7 +375,7 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
 //        if(RICHDB::detcer(GCTRAK.vect[6])) {
 //          GCTRAK.istop=2;
 
-          geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICradpos-RICotherthk-
+          geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICradpos-RICotherthk/2-
                    GCTRAK.vect[2])/GCTRAK.vect[5];
 
 

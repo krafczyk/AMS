@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.43 2002/03/14 14:13:19 choutko Exp $
+//  $Id: geant4.C,v 1.44 2002/03/15 10:07:24 mdelgado Exp $
 #include <job.h>
 #include <event.h>
 #include <trrec.h>
@@ -898,7 +898,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 
 
       if(GCKINE.ipart==Cerenkov_photon){
-        geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICradpos-RICotherthk-
+        geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICradpos-RICotherthk/2-
                    GCTRAK.vect[2])/GCTRAK.vect[5];
                  
         geant vect[3];
