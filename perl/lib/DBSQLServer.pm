@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.51 2003/06/06 10:12:20 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.52 2003/06/06 16:31:14 alexei Exp $
 
 #
 #
@@ -195,7 +195,7 @@ sub Create{
        content    TEXT,
        timestamp  INT,
        nickname   VARCHAR(80),
-        cite      VARCHAR(20),
+       host       varchar(80),
         events    INT,
         errors    int,
         cputime   int,
