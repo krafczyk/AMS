@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.83 2003/04/04 14:44:07 alexei Exp $
+# $Id: RemoteClient.pm,v 1.84 2003/04/06 10:05:02 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3002,7 +3002,7 @@ print qq`
            $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;         
          }       
          else{
-          $buf=~ s/gbatch-orbit.exe/gbatch-orbit.exe -$self->{IORP} -U$run -M -D1 -G$aft/;
+          $buf=~ s/gbatch-orbit.exe/gbatch-orbit.exe -$self->{IORP} -U$run -M -D1 -G$aft -S$stalone/;
       }
          my $script="$self->{CCA}.$run.$template";
          my $root=$self->{CCT} eq "remote"?"$self->{UploadsDir}/$script":
