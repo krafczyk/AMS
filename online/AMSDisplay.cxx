@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.20 2004/02/24 07:51:15 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.21 2004/02/24 13:41:33 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -46,8 +46,10 @@ AMSOnDisplay::AMSOnDisplay() : TObject(){
    m_logx=kFALSE;
    m_logy=kFALSE;
    m_logz=kFALSE;
-   m_idle=true;
+   m_idle=false;
    m_theapp=0;
+   m_chain=0;
+   m_ntuple=0;
    m_ControlFrame=0;
    _Head=this;   
    _cursubdet=0;
@@ -64,15 +66,15 @@ AMSOnDisplay::AMSOnDisplay() : TObject(){
 AMSOnDisplay::AMSOnDisplay(const char *title, AMSNtupleR *file):TObject(){
    m_scale=1;
    m_ControlFrame=0;
-   m_ntuple=file;
+   m_chain=0;
    m_theapp=0;
    m_logx=kFALSE;
    m_logy=kFALSE;
    m_logz=kFALSE;
-   m_idle=true;
    _grset[0]='\0';
    _Begin=0;
    _Sample=10000;
+   m_idle=true;
    _Head=this;
    _cursubdet=0;
    _cursubdetb=0;
@@ -121,6 +123,11 @@ AMSOnDisplay::AMSOnDisplay(const char *title, AMSNtupleR *file):TObject(){
    m_ObjInfoPad->SetBorderMode(2);
    m_ObjInfoPad->Draw();
 
+  if(!m_ntuple)OpenFileCB();
+  if(!m_ntuple){
+   cerr <<"No file opened, exiting "<<endl;
+   exit(1);
+  } 
 
 
 }
@@ -535,3 +542,38 @@ void AMSOnDisplay::ReSizeCanvas(Long_t zoom, bool draw){
     frf->SetVsbPosition(hz*(1.-1./m_scale)/2);
 }
 }
+
+
+
+#include <TGFileDialog.h>
+void AMSOnDisplay::OpenFileCB(){
+static const char *gOpenTypes[] = { "Root files", "*.root*",
+                                    "All files",    "*",
+                                     0,              0 };
+
+  //if(m_idle)m_theapp->StopIdleing();
+  static TGFileInfo * m_fi = new TGFileInfo;
+  //
+  // Open a dialog window to select or input filename
+  //
+  m_fi->fFileTypes = (const char **) gOpenTypes;
+  m_fi->fFilename = 0;
+  const TGWindow *main = gClient->GetRoot();
+  new TGFileDialog(main, (TRootCanvas*)m_Canvas->GetCanvasImp(), kFDOpen, m_fi);
+
+
+  char *filename = m_fi->fFilename;
+
+  if ( filename==0 || strlen(filename)==0 ) {			// user cancelled
+    //if(m_idle)m_theapp->StartIdleing();
+    return;
+  }
+  if(m_ntuple)delete m_ntuple;
+  if(m_chain)delete m_chain;
+  m_chain=new TChain("AMSRoot");
+  m_chain->Add(filename);
+  m_ntuple=new AMSNtupleR(m_chain);
+  //if(m_idle)m_theapp->StartIdleing();
+
+}
+

@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.24 2004/02/24 07:51:15 choutko Exp $
+//  $Id: main.cxx,v 1.25 2004/02/24 13:41:33 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -61,18 +61,20 @@ int main(int argc, char *argv[])
      *signal(SIGINT, handler);
      *signal(SIGQUIT, handler);
 */
-  char * filename = "test.root";		// default file name
+  char * filename = 0;		// default file name
 
   if ( argc > 1 ) {		// now take the file name
     filename = *++argv;
   }
 
   
-  printf("opening file %s...\n", filename);
+  AMSNtupleR *pntuple=0;
   TChain chain("AMSRoot");
+  if(filename){
+   printf("opening file %s...\n", filename);
   OpenChain(chain,filename); 
-//  chain.Add(filename);
-  AMSNtupleR ntuple(&chain);
+   pntuple= new AMSNtupleR(&chain);
+  }
   int err=0;
   int argcc=1;
 #ifdef WIN32
@@ -84,8 +86,7 @@ Myapp *theApp = new Myapp("App", &argcc, argv);
 //  gDebug=6; 
   theApp->SetStatic();
 #endif
-  AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Offline Display",&ntuple);
-
+  AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Offline Display",pntuple);
   theApp->SetDisplay(amd);  
 
   AMSAntiHist  antih("&AntiCounters","Anti counter Hists");
@@ -111,7 +112,6 @@ Myapp *theApp = new Myapp("App", &argcc, argv);
   amd->AddSubDet(Genh);
   AMSEverything  Everyh("E&verything","All Hists");
   amd->AddSubDet(Everyh);
-
 
   amd->Init();
   amd->SetApplication(theApp);

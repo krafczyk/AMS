@@ -1,11 +1,11 @@
-//  $Id: main.h,v 1.5 2004/02/22 15:39:41 choutko Exp $
+//  $Id: main.h,v 1.6 2004/02/24 13:41:33 choutko Exp $
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TEnv.h>
 #include <TRootGuiFactory.h>
 #include <TApplication.h>
 #ifdef WIN32
-#include <TTF.h>
+//#include <TTF.h>
 #else
 #include <TGX11.h>
 #include <TGX11TTF.h>

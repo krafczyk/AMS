@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.15 2004/02/23 22:47:42 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.16 2004/02/24 13:41:33 choutko Exp $
 #ifndef AMSOnDisplay_H
 #define AMSOnDisplay_H
 
@@ -20,13 +20,14 @@ class TTUBE;
 class TNode;
 class TPolyLine3D;
 class TList;
-
+class TChain;
 
 
 class AMSOnDisplay : public TObject {
 
 protected:
   AMSNtupleR *      m_ntuple;
+  TChain * m_chain;
   Bool_t           m_logx;
   Bool_t           m_logy;
   Bool_t           m_logz;
@@ -87,6 +88,7 @@ public:
   void AddSubDet( AMSHist & subdet);
   AMSHist * getSubDet(Int_t subdet){return subdet>=0 && subdet<_subdet.size()?_subdet[subdet]:NULL;}
   static AMSOnDisplay * getAMSDisplay(){return _Head;}
+   void                OpenFileCB();
   void SaveParticleCB();
   void SaveParticleGIF();  
   void PrintCB();
