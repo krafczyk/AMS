@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.4 2001/01/23 11:50:38 choutko Exp $
+#  $Id: Makefile,v 1.5 2001/06/25 20:20:07 kscholbe Exp $
 # ------------------------------
 # Makefile for AMS Event Display
 # ------------------------------
@@ -14,9 +14,12 @@
 #################
 # Common MACRO  #
 #################
-ROOTLIBS      = -L$(ROOTSYS)/lib -lNew -lBase -lCint -lClib -lCont -lFunc \
-                -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMeta -lMinuit -lNet \
-                -lPostscript -lProof -lTree -lUnix -lZip
+#ROOTLIBS      = -L$(ROOTSYS)/lib -lNew -lBase -lCint -lClib -lCont -lFunc \
+#                -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMeta -lMinuit -lNet \
+#                -lPostscript -lProof -lTree -lUnix -lZip
+
+ROOTLIBS      = -L$(ROOTSYS)/lib  -lCore -lCint -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics 
+
 ROOTGLIBS     = -lRint -lGpad -lGui -lGX11 -lX3d
 CERNLIBS      = -L/cern/pro/lib -lmathlib -lpacklib -lkernlib
 #OPT           = -g -DROOT10308
