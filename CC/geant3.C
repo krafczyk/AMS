@@ -171,6 +171,33 @@ extern "C" void gustep_(){
       }
     }
 //
+
+    if(GCVOLU.names[lvl][0]=='C' && GCVOLU.names[lvl][1]=='A' &&
+     GCVOLU.names[lvl][2]=='T' && GCVOLU.names[lvl][3]=='O' && 
+     GCTRAK.inwvol==1)
+    {
+      geant eff[]={1.296, 1.476, 1.717, 1.853, 2.041, 2.324, 2.646, 3.214, 3.504,
+		   3.904, 4.350, 5.171, 5.518, 6.420, 7.153, 8.143, 9.271,10.330,
+		   11.509,12.280,13.981,15.244,16.984,18.122,19.337,20.191,20.633,
+		   20.633,20.633,20.633,20.633,20.010,18.923,17.355,16.266,14.918, 
+		   13.682,11.509,10.555, 8.321, 7.153, 6.282, 6.148, 4.953};
+      
+      
+      switch(GCKINE.ipart)
+	{
+	case 0:
+        case 50: // Cerenkov photons
+	  // Do all the job: compute if the particle is detected
+	  // using the detection eff(iciency) array and put it in the
+	  // mccluster
+	  GCTRAK.istop=1; // Absorb it
+	  break;
+	default:
+	  break;
+   	}
+    }
+   
+
   GSKING(0);
   GSKPHO(0);
 #ifndef __BATCH__

@@ -396,6 +396,22 @@ void AMSEcalMCHit::_writeEl(){
 }
 
 
+//--------RICH------------
+
+void AMSRichMCHit::sirichhits(integer idsoft , geant vect[],
+			      geant energy,integer kind)
+{
+
+  AMSPoint p(vect[0],vect[1],vect[2]);
+  AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",int(idsoft)),
+			       new AMSRichMCHit(idsoft,p,energy,kind));
+}
+
+void AMSRichMCHit::_writeEl(){}
+
+//--------END--------------
+
+
 void AMSTOFMCCluster::_writeEl(){
 
   TOFMCClusterNtuple* TOFMCClusterN = AMSJob::gethead()->getntuple()->Get_tofmc();

@@ -111,6 +111,42 @@ public:
 //   friend class AMSEcalMCHitD;
 //#endif
 };
+
+//------------------------------------------------------
+// MC bank for RICH: Very preliminary
+
+class AMSRichMCHit: public AMSlink{
+protected:
+
+  integer _idsoft; // PMT+10000* numberof window
+  AMSPoint _xcoo;  // Coordinates of input point. Unused 
+  number _energy;  // Particle energy
+  integer _kind;   // Particle id to simulate the detector
+
+public:
+
+  AMSRichMCHit(integer idsoft,AMSPoint xcoo,number energy,integer kind) :
+    _idsoft(idsoft),_xcoo(xcoo),_energy(energy),_kind(kind){_next=0;};
+  AMSRichMCHit(){_next=0;};
+  ~AMSRichMCHit(){};
+
+  void _printEl(ostream &stream){stream <<"AMSRichMCHit "<<_idsoft<<endl;}
+  void _writeEl();
+  void _copyEl(){};
+  AMSRichMCHit *  next(){return (AMSRichMCHit*)_next;}
+  integer operator < (AMSlink & o)const{
+    return _idsoft < ((AMSRichMCHit*)(&o)) ->_idsoft;}
+
+  static void sirichhits(integer idsoft , geant vect[],geant energy,integer kind);
+
+  integer getid() const {return _idsoft;}
+  number getenergy() const {return _energy;}
+  integer getkind() const {return _kind;}
+
+};
+
+
+
 //=======================================================
 // MC bank for CTC
 
