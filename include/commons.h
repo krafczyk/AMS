@@ -61,21 +61,21 @@ public:
 geant TimeSigma;
 geant padl;
 geant Thr;
-number edep2ph;     // edep(Mev)-to-Photons convertion
-number pmqeff;      // PM mean quantum efficiency
-number trtspr;      // PM transition time spread (ns)
-number fladctb;     // MC flash-ADC time binning (ns)
-number shaptb;      // MC shaper pulse time binning
-number di2anr;      // MC dinode-to-anode signal ratio
-number shrtim;      // MC shaper pulse rise time (ns)
-number shftim;      // MC shaper pulse fall time (ns)
-number accdel[2];   // fixed(in h/w) lev-1 "accept" signal delays(ns)
-number accdelmx[2]; // max. lev-1 "accept" delays (incl. above fixed)
-number strrat;      // stratcher ratio (~10)
-number tdcbin[4];   // p/l TDC binning for ftdc/stdc/adca/adcd
-number daqthr[5];   // MC DAQ-system thresholds
-number daqpwd[10];  // MC DAQ-system pulse_widths/dead_times/...
-number trigtb;      // MC time binning in logic(trigger) pulse manipulation
+geant edep2ph;     // edep(Mev)-to-Photons convertion
+geant pmqeff;      // PM mean quantum efficiency
+geant trtspr;      // PM transition time spread (ns)
+geant fladctb;     // MC flash-ADC time binning (ns)
+geant shaptb;      // MC shaper pulse time binning
+geant di2anr;      // MC dinode-to-anode signal ratio
+geant shrtim;      // MC shaper pulse rise time (ns)
+geant shftim;      // MC shaper pulse fall time (ns)
+geant accdel[2];   // fixed(in h/w) lev-1 "accept" signal delays(ns)
+geant accdelmx[2]; // max. lev-1 "accept" delays (incl. above fixed)
+geant strrat;      // stratcher ratio (~10)
+geant tdcbin[4];   // p/l TDC binning for ftdc/stdc/adca/adcd
+geant daqthr[5];   // MC DAQ-system thresholds
+geant daqpwd[10];  // MC DAQ-system pulse_widths/dead_times/...
+geant trigtb;      // MC time binning in logic(trigger) pulse manipulation
 integer mcprtf;     // TOF MC-print flag (=0 -> no_printing)
 integer trlogic[2]; // to control trigger logic
 

@@ -30,6 +30,9 @@ TOFMC
 R 1   TimeSigma(90e-12)       // Time resolution in seconds
 R 2   padl(10.5)               // Pad width in cm
 R 3   Thr(0.1)                 // de Threshold to form raw cluster (MeV)
+R To be added by E. Choumilov
+
+
 
 // CTC  Simulation
 
