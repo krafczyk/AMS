@@ -35,7 +35,6 @@ C          Nparticles
 MCGEN  1=-150. 2=-150. 4=150. 5=150. 12=-0.95 15=1 18=1 19=11011 21=0
 CIOPA 1=3 2='pr.hbk' 45='TriggerLVL1   ' 85=0 86='proton.dat'
 IOPA 1=3 2='pr.hbk' 45='TriggerLVL1   ' 
-85=1 86='/Offdata/io/daq.sea.io'
 C RNDM 197683093 1356123257
 C TOFMC 13=1
 RNDM  1310381404  1978925784
@@ -48,7 +47,7 @@ AMSJOB 1=11   2=0      3=50.   4=0  5=1 6='v203a'
 C Special HP-UX
 TIME 3=10000000
 TERM 1=1234567890
-DAQC 1=1 2='/dath1/Offdata/raw/run00066.dat.a'
+DAQC 1=1 2='/offruns/runs/886719833'
 END
 
 

@@ -1,3 +1,6 @@
+// 
+// Feb 7, 1998. ak. do not write if DB is on
+//
 #include <timeid.h>
 #include <job.h>
 #include <event.h>
@@ -146,6 +149,9 @@ void AMSTimeID::_InitTable(){
 }
 
 integer AMSTimeID::write(char * dir){
+
+#ifndef __DB__
+
   enum open_mode{binary=0x80};
     fstream fbin;
     AString fnam(dir);
@@ -178,6 +184,8 @@ integer AMSTimeID::write(char * dir){
     else {
       cerr<<"AMSTimeID::write-E-CouldNot open file "<<fnam;
     }
+#endif
+
     return 0;
 
 }

@@ -1,10 +1,9 @@
-// Author V. Choutko 24-may-1996
 // 
 // Feb 13, 1997. ak. First try with Objectivity
 //                   Add _id and _name. 
 // May 12, 1997. ak. CRC and data are uinteger instead on integer;
 //
-// Last Edit : Oct 11, 1997. ak.
+// Last Edit : Feb 14, 1998. ak.
 // 
 
 #include <typedefs.h>
@@ -37,10 +36,11 @@ inline integer getid()          {return _id;}
 uinteger       getCRC() const   {return _CRC;}
 integer getsize()               { return _pData.size();}
 
-void SetTime(time_t insert, time_t begin, time_t end);
-void GetTime(time_t & insert, time_t & begin, time_t & end);
-void PrintTime();
-void update(AMSTimeID* p);
-void copy(uinteger* tmp);
+void    SetTime(time_t insert, time_t begin, time_t end);
+void    GetTime(time_t & insert, time_t & begin, time_t & end);
+void    PrintTime();
+void    update(AMSTimeID* p);
+void    copy(uinteger* tmp);
+integer CopyIn(integer nbutes, uinteger *pdata);
 };
 
