@@ -1,6 +1,9 @@
-#  $Id: ntuple02.doc,v 1.33 2002/04/19 15:57:41 delgadom Exp $
-This is AMS02 Ntuple Description (to open:  paw; nt/chain ChainName FileName)
+#  $Id: ntuple02.doc,v 1.34 2002/04/23 14:11:15 choutko Exp $
+This is AMS02 Ntuple Description 
+(to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
+NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11 
+   and NOT a standard cern paw to safely work with the ntuples.
 
 
 
@@ -111,8 +114,8 @@ This is AMS02 Ntuple Description (to open:  paw; nt/chain ChainName FileName)
 * R*4  *           * PARTICLE * fitmom(npart)     // fitted mom for pid
 * R*4  *           * PARTICLE * pmass(npart)      // particle mass 
 * R*4  *           * PARTICLE * perrmass(npart)   // error in particle mass
-* R*4  *           * PARTICLE * pmom(npart)       // particle momentum
-                                                  // (signed)
+* R*4  *           * PARTICLE * pmom(npart)       // particle momentum (signed)
+                                                  // see also pmom def at bottom)
 * R*4  *           * PARTICLE * perrmom(npart)    // error in momentum
 * R*4  *           * PARTICLE * pcharge(npart)    // charge
 * R*4  *           * PARTICLE * pbeta(npart)      // beta (tof + rich)
@@ -227,30 +230,30 @@ This is AMS02 Ntuple Description (to open:  paw; nt/chain ChainName FileName)
 * I*4  *           * TRTRACK  * phits(8,ntrtr)	     // pointers to trrechit
 * R*4  *           * TRTRACK  * LocDbAver(ntrtr)     // rel mom from testbeam
 * I*4  *           * TRTRACK  * GeaneFitDone(ntrtr)  // != 0 if done
-* I*4  *           * TRTRACK  * AdvancedFitDone(ntrtr) --------------
+* I*4  *           * TRTRACK  * AdvFitDone(ntrtr) --------------
 * R*4  *           * TRTRACK  * Chi2StrLine(ntrtr)   // chi2 sz fit
 * R*4  *           * TRTRACK  * Chi2Circle(ntrtr)    // chi2 circular fit
-* R*4  *           * TRTRACK  * CircleRidgidity(ntrtr) // circular rigidity
+* R*4  *           * TRTRACK  * CircleRig(ntrtr) // circular rigidity
 * R*4  *           * TRTRACK  * Chi2FastFit(ntrtr)   // chi2 fast nonl fit
-* R*4  *           * TRTRACK  * Ridgidity(ntrtr)     // fast nonl rigidity
-* R*4  *           * TRTRACK  * ErrRidgidity(ntrtr)  // err to 1/above
+* R*4  *           * TRTRACK  * Rigidity(ntrtr)     // fast nonl rigidity
+* R*4  *           * TRTRACK  * ErrRig(ntrtr)  // err to 1/above
 * R*4  *           * TRTRACK  * Theta(ntrtr)	     // theta (from fast)
 * R*4  *           * TRTRACK  * phi(ntrtr)	     // phi ---------
 * R*4  *           * TRTRACK  * p0(3,ntrtr)	     // coords ----------
 * R*4  *           * TRTRACK  * gchi2(ntrtr)	     // geane chi2
-* R*4  *           * TRTRACK  * gridgidity(ntrtr)    // ------ rigidity
-* R*4  *           * TRTRACK  * gerrridgidity(ntrtr) // error to 1/above
+* R*4  *           * TRTRACK  * grig(ntrtr)    // ------ rigidity
+* R*4  *           * TRTRACK  * gerrrig(ntrtr) // error to 1/above
 * R*4  *           * TRTRACK  * hchi2(2,ntrtr)	     // two halves chi2s
-* R*4  *           * TRTRACK  * HRidgidity(2,ntrtr)  // -------- rigities
-* R*4  *           * TRTRACK  * HErrRidgidity(2,ntrtr) // errors to 1/above
+* R*4  *           * TRTRACK  * HRigidity(2,ntrtr)  // -------- rigities
+* R*4  *           * TRTRACK  * HErrRigodoty(2,ntrtr) // errors to 1/above
 * R*4  *           * TRTRACK  * htheta(2,ntrtr)	     // ------- thetas
 * R*4  *           * TRTRACK  * hphi(2,ntrtr)	     // ------ phis
 * R*4  *           * TRTRACK  * hp0(3,2,ntrtr)	     // ------- coords
 * R*4  *           * TRTRACK  * fchi2ms(ntrtr)	     // fast chi2 mscat off
 * R*4  *           * TRTRACK  * pirigerr(ntrtr)	     // PathInt err(1/rig)
                                              // (<0 means fit wan not succesful)
-* R*4  *           * TRTRACK  * ridgidityms(ntrtr) // fast rigidity mscat off
-* R*4  *           * TRTRACK  * pirigidity(ntrtr)  // PathInt rigidity
+* R*4  *           * TRTRACK  * rigms(ntrtr) // fast rigidity mscat off
+* R*4  *           * TRTRACK  * pirig(ntrtr)  // PathInt rigidity
 
 
 * I*4  * [0,20]    * MCEVENTG * nmcg // Number of input particles in MC gen ******)
@@ -280,10 +283,10 @@ This is AMS02 Ntuple Description (to open:  paw; nt/chain ChainName FileName)
 
 
 * I*4  * [0,200]   * ANTIMCCL * nantimc               // MC Anti hits number
-* I*4  *           * ANTIMCCL * AntiMCIdsoft(nantimc) // idsoft 
-* R*4  *           * ANTIMCCL * AntiMCXcoo(3,nantimc) // coo
-* R*4  *           * ANTIMCCL * AntiMCtof(nantimc)    // Tof
-* R*4  *           * ANTIMCCL * AntiMCedep(nantimc)   // energy dep (GeV)
+* I*4  *           * ANTIMCCL * AMCIdsoft(nantimc) // idsoft 
+* R*4  *           * ANTIMCCL * AMCXcoo(3,nantimc) // coo
+* R*4  *           * ANTIMCCL * AMCtof(nantimc)    // Tof
+* R*4  *           * ANTIMCCL * AMCedep(nantimc)   // energy dep (GeV)
 
 
 
@@ -476,27 +479,27 @@ This is AMS02 Ntuple Description (to open:  paw; nt/chain ChainName FileName)
  * I*4  *          * RICMCCL  * sid(nsignals)    // Geant3 code of the particle
                                                  // producing the signal
                                                  // (-666 if it's noise)
- * R*4  *          * RICMCCL  * origin(3,nsignals) // Generation point of the 
+ * R*4  *          * RICMCCL  * rimcorg(3,nsignals) // Generation point of the 
                                                    // particle producing 
                                                    // the signal (geant3 only)
- * R*4  *          * RICMCCL  * direction(3,nsignals) // Original direction of 
+ * R*4  *          * RICMCCL  * rimcdir(3,nsignals) // Original direction of 
                                                      // the particle producing 
                                                      // the signal (geant3 only)
- * I*4  *          * RICMCCL  * RICstatus(nsignals)   // Signal status *******)
- * I*4  *          * RICMCCL  * nphgen                // Number of cerenkov
+ * I*4  *          * RICMCCL  * rimcstatus(nsignals)   // Signal status *******)
+ * I*4  *          * RICMCCL  * rimcnphg                // Number of cerenkov
                                                       // photons generated
                                                       // in radiator
- * I*4  *          * RICMCCL  * phit(nsignals)        // Pointer to the
+ * I*4  *          * RICMCCL  * rimcphit(nsignals)        // Pointer to the
                                                       // hit if sid=50 or -666
  * I*4  * [0,100]  * RICEVENT * Rhits                 // Number of hits
- * I*4  *          * RICEVENT * Rchtchannel(Rhits)       // Channel
+ * I*4  *          * RICEVENT * Rchtch(Rhits)       // Channel
  * I*4  *          * RICEVENT * Rchtadc(Rhits)           // ADC counts
  * R*4  *          * RICEVENT * Rchtx(Rhits)             // X pos. of the channel
  * R*4  *          * RICEVENT * Rchty(Rhits)             // Y pos. of the channel
  * I*4  * [0,100]  * RING     * nrings                // Nb of rings created in rich rec
- * I*4  *          * RING     * rcritrackn(nrings)        // Pointer to track
- * I*4  *          * RING     * rcrihused(nrings)         // Nb. of RICH hits in a ring matching the track
- * I*4  *          * RING     * rcrimhused(nrings)       // Nb. of RICH mirrored hits in a ring matching the track
+ * I*4  *          * RING     * rcritrkn(nrings)        // Pointer to track
+ * I*4  *          * RING     * rcrihu(nrings)         // Nb. of RICH hits in a ring matching the track
+ * I*4  *          * RING     * rcrimhu(nrings)       // Nb. of RICH mirrored hits in a ring matching the track
  * R*4  *          * RING     * rcribeta(nrings)         // Reconstructed beta
  * R*4  *          * RING     * rcriebeta(nrings)         // error beta
  * R*4  *          * RING     * rcrichi2(nrings)       // Chi2/ndof for the beta
@@ -632,6 +635,23 @@ NOTE: The information of the mother is only available if RICCONT=1 in
 1      alpha-osf 
 2      i386-linux
 3      reserved for future candidate
+
+
+
+
+-----------
+pmom definition
+
+if( pbetap(i) > 0)then
+  
+  if(ptrackp(i)>0)then
+     pmom(i)=ridgidity(ptrackp(i))*pcharge(i)*sign(beta(pbetap(i)))
+  else
+     pmom(i)=1000000*sign(beta(pbetap(i)))
+  endif
+else if(pecalp(i)>0)then
+     pmom(i)=ecshen(pecalp(i))
+endif
 
 
 
