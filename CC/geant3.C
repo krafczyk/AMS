@@ -296,10 +296,11 @@ extern "C" void guout_(){
    }
 #endif
 
-   if(AMSJob::gethead()->isSimulation())
-   AMSgObj::BookTimer.stop("GEANTTRACKING");
-
    try{
+   if(AMSJob::gethead()->isSimulation()){
+      number tt=AMSgObj::BookTimer.stop("GEANTTRACKING");
+      if(tt > AMSFFKEY.CpuLimit)throw AMSTrTrackError("SimCPULimit exceeded");
+   }
           if(AMSEvent::gethead()->HasNoErrors())AMSEvent::gethead()->event();
    }
    catch (AMSuPoolError e){

@@ -32,14 +32,16 @@ AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
  if(p){
    return HighResTime()-p->_time;
  }
+ else return 0;
 }
-void AMSStat::stop(char *name){
+number AMSStat::stop(char *name){
 AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
+number time=0;
 if(p){
   if(p->_startstop==1){
     p->_entry=p->_entry+1;
     number tt=HighResTime();
-    number time=tt-p->_time;
+    time=tt-p->_time;
     p->_time=tt;
     p->_sum=p->_sum+time;
     if(time > p->_max)p->_max=time;
@@ -49,6 +51,7 @@ if(p){
   else cerr<<"AMSStat-Stop-W-NTSTRTD "<<name<<" was not started"<<endl;
 }
 else cerr<<"AMSStat-Stop-E-Name "<<name<<" does not exist"<<endl;
+return time;
 }
 
 void AMSStat::print(){

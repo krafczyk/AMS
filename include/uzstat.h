@@ -52,7 +52,7 @@ public:
   void book(char * name);
   void start(char * name);
   number check(char *name);
-  void stop(char * name);
+  number stop(char * name);
   void print();
 };
 
