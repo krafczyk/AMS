@@ -174,9 +174,9 @@ NEW_FILES: /* look for new files in the directory */
 	file_n++;
 	record_n=Umax=0;
 	Umin = 0xffffffff;
-	if (file_n > 90) 
+	/*	if (file_n > 90) 
 	  exit (1);
-	//	  flog = fopen("temp.log","a");
+      	  flog = fopen("temp.log","a");*/
 	  fclose(fout);
       }
 
