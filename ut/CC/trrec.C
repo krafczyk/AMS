@@ -2155,7 +2155,8 @@ void AMSTrTrack::_writeEl(){
     TrTN->Status[TrTN->Ntrtr]=_status;
     TrTN->Pattern[TrTN->Ntrtr]=_Pattern;
     TrTN->NHits[TrTN->Ntrtr]=_NHits;
-    for(int k=0;k<_NHits;k++){
+    for(int k=_NHits;k<AMSDBc::nlay();k++)TrTN->pHits[TrTN->Ntrtr][k]=0;
+    for(k=0;k<_NHits;k++){
      TrTN->pHits[TrTN->Ntrtr][k]=_Pthit[k]->getpos();
       int pat;
       pat=_Pthit[k]->getLayer()-1;

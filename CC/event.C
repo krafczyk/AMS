@@ -228,6 +228,7 @@ _sictcinitrun();
 
 void AMSEvent::_reamsinitrun(){
 if(!SRun && AMSJob::gethead()->isProduction()){
+  HDELET(0);
   AMSJob::gethead()->uhinit(getrun(),getid());
   AMSJob::map(1);
   if (_run != SRun) _endofrun();

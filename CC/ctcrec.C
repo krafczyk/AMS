@@ -727,7 +727,9 @@ void AMSCTCRawEvent::buildraw(int16u blid, integer &len, int16u *p){
   int16u swid[CTCCHCH],mtyp,hcnt,shft,nhit,nzch,nzcch,sbit;
   int16u phbit,maxv,phbt,phbtp; 
   int16u ids,stat,chan;
-  int16u ntdca[CTCCHCH],tdca[CTCCHCH][CTCEPMX*2],ntdct,tdct[CTCEPMX*2],dummy;
+  int16u tdca[CTCCHCH][CTCEPMX*2],ntdct(0),tdct[CTCEPMX*2],dummy;
+  int16u ntdca[CTCCHCH];
+  VZERO(ntdca,sizeof(ntdca)/sizeof(integer));
 //
   phbit=SCPHBP;//take uniq phase-bit position used in Reduced format and TOFRawEvent
   maxv=phbit-1;// max TDC value

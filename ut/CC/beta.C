@@ -265,7 +265,8 @@ void AMSBeta::_writeEl(){
   if(_Pattern ==0)BN->NTOF[BN->Nbeta]=4;
   else if(_Pattern < 5)BN->NTOF[BN->Nbeta]=3;
   else BN->NTOF[BN->Nbeta]=2;
-  for(int k=0;k<BN->NTOF[BN->Nbeta];k++){
+  for(int k=BN->NTOF[BN->Nbeta];k<4;k++)BN->pTOF[BN->Nbeta][k]=0;
+  for(k=0;k<BN->NTOF[BN->Nbeta];k++){
     BN->pTOF[BN->Nbeta][k]=_pcluster[k]->getpos();
     int i,pat;
     pat=_pcluster[k]->getntof()-1;
