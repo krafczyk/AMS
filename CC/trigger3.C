@@ -906,6 +906,9 @@ void TriggerLVL3::buildraw(integer n, int16u *p){
  res[1]=0;
  pat[1]=-1;
  tra=(*(p+1)%32);   // tmp probg
+ // swap 1 <-> 3
+ if(tra%8==1)tra=tra+2; 
+ else if(tra%8==3)tra=tra-2; 
  tof=(*(p+2))&255;
  anti=((*(p+2))>>8)&255;
  res[0]=int16(*(p+3))/1000.;
