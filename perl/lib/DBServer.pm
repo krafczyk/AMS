@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.9 2003/11/12 10:21:34 choutko Exp $
+# $Id: DBServer.pm,v 1.10 2004/06/28 13:25:19 choutko Exp $
 
 package DBServer;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -15,7 +15,7 @@ use POSIX qw(tmpnam);
 use MLDBM qw(DB_File Storable);
 
 
-@DBServer::EXPORT= qw(new Update Init InitDBFile);
+@DBServer::EXPORT= qw(new Update Init InitDBFile InitDBFileNew);
 my %lock=(
  dblock=>0,
  uid=>0,
@@ -550,11 +550,13 @@ sub InitDBFile{
     my $amsprodlogdir=undef;
     if(ref($ref)){
      $amsprodlogdir=shift;
+     
     }
      else{
          $ref=shift;
 #        $amsprodlogdir=shift;
       }
+    $amsprodlogdir="/afs/ams.cern.ch/AMSDataDir/prod.log";
     if (defined $ref->{dbfile}){
 # check if dbfile already includes full path
         if($ref->{dbfile} =~/\//){
@@ -664,6 +666,83 @@ sub InitDBFile{
     return 1;
 
 }
+
+
+
+
+sub InitDBFileNew{
+    my %hash;
+    local *DBM;
+    my $db;
+    my $init=0;
+    my $ref=shift;
+    my $amsprodlogdir=undef;
+    if(ref($ref)){
+     $amsprodlogdir=shift;
+     
+    }
+     else{
+         $ref=shift;
+     }
+    $amsprodlogdir="/afs/ams.cern.ch/AMSDataDir/prod.log";
+        my $tmpname=tmpnam();
+        $ref->{dbfile}=$amsprodlogdir."/".unpack("x5 A*",$tmpname);
+        $db=tie %hash, "MLDBM",$ref->{dbfile},O_CREAT | O_RDWR, 0644 ;
+        system "chmod o+w $ref->{dbfile}";
+        $init=1;
+     if(not $db){
+      $ref->Exiting("Unable to tie db_file $ref->{dbfile}","CInAbort");
+      return 0;
+      }
+      my $fd=$db->fd;
+      my $ok=open DBM, "<&=$fd";
+      if( not $ok){
+       $ref->Exiting("Unable to dup DBM for lock: $!","CInAbort");
+       return 0;
+      }
+     my $ntry=0;
+     until (flock DBM, LOCK_EX|LOCK_NB){
+         sleep 1;
+         $ntry=$ntry+1;
+         if($ntry>10){
+           $ref->Exiting("Unable to get lock for $ref->{dbfile}","CInAbort");
+          return 0;
+         }
+     }
+      undef $db;
+    if($init){
+        if(not $ref->UpdateEverything()){
+          $ref->Exiting("Unable to get Tables From Server","CInAbort");
+          return 0;
+        }       
+        $hash{nhl}=$ref->{nhl};
+        $hash{ahls}=$ref->{ahls};
+        $hash{ahlp}=$ref->{ahlp};
+        $hash{acl}=$ref->{acl};
+        $hash{aml}=$ref->{aml};
+        $hash{asl}=$ref->{asl};
+        $hash{asl_maxc}=$ref->{asl_maxc};
+        $hash{adbsl}=$ref->{adbsl};
+        $hash{adbsl_maxc}=$ref->{adbsl_maxc};
+        $hash{acl_maxc}=$ref->{acl_maxc};
+        $hash{aml_maxc}=$ref->{aml_maxc};
+        $hash{nsl}=$ref->{nsl};
+        $hash{nkl}=$ref->{nkl};
+        $hash{ncl}=$ref->{ncl};
+        $hash{dsti}=$ref->{dsti};
+        $hash{dsts}=$ref->{dsts};
+        $hash{rtb}=$ref->{rtb};
+        $hash{env}=$ref->{env};
+        $hash{db}=$ref->{db};
+        $hash{rn}=$ref->{rn};
+        $hash{rtb_maxr}=$ref->{rtb_maxr};
+    }
+    untie %hash;
+    return 1;
+
+}
+
+
 
 
 sub OpenDBFile{

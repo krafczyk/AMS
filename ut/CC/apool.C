@@ -1,4 +1,4 @@
-//  $Id: apool.C,v 1.9 2001/01/22 17:32:18 choutko Exp $
+//  $Id: apool.C,v 1.10 2004/06/28 13:25:08 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #include <apool.h>
@@ -22,6 +22,14 @@ char * AMSNodeMapPool::get( integer o){
     else return 0;
 }
 void AMSNodeMapPool::put( integer * p ){
+//  check there is no double delete
+       for(int j=0;j<_numo;j++){
+          if(_hash[j]== (AMSNode*)p){
+           cerr<< " AMSNodeMapPool::get-S-DoubleDelete-?-HashProblem "<<p<<endl;           return;
+          }
+       }
+
+
   // Release memory if global flag o.k.
   //    AMSgObj::BookTimer.start("put");
     integer i=0;

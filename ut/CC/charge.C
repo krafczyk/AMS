@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.68 2003/05/14 17:00:22 choutko Exp $
+//  $Id: charge.C,v 1.69 2004/06/28 13:25:08 choutko Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -267,9 +267,9 @@ integer AMSCharge::build(integer refit){
 
 
 void AMSCharge::addnext(AMSBeta *pbeta, AMSRichRing *pring, integer nhitTOF, integer nhitTracker, AMSTOFCluster *pTOFc[], number EdepTOF[TOFTypes][TOFMaxHits], AMSTrCluster  *pTrackerc[TrackerTypes-1][TrackerMaxHits], number EdepTracker[TrackerTypes-1][TrackerMaxHits], number trtr, number trtof, number trtofd, number expRich, number useRich){
-  AMSCharge *pcharge=new AMSCharge(pbeta, pring, trtr, trtof, trtofd);
-  number beta=pbeta->getbeta();
-  int bstatus=!pbeta->checkstatus(AMSDBc::AMBIG);
+   number beta=pbeta->getbeta();
+   int bstatus=!pbeta->checkstatus(AMSDBc::AMBIG);
+   AMSCharge *pcharge=new AMSCharge(pbeta, pring, trtr, trtof, trtofd);
   int tofok=pcharge->FitTOF(0,beta,bstatus,nhitTOF,pTOFc,EdepTOF);
   int trkok=pcharge->FitTracker(0,beta,bstatus,nhitTracker,pTrackerc,EdepTracker);
   int ricok=pcharge->FitRich(0,expRich,useRich);

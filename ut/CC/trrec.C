@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.168 2004/05/19 14:43:39 alcaraz Exp $
+//  $Id: trrec.C,v 1.169 2004/06/28 13:25:10 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1485,7 +1485,7 @@ next_pattern:
             ptrack->Fit(5,2);
             AMSTrTrack::_addnextR(ptrack, pat, nhits, phit);
             NTrackFound++;
-#ifdef __AMSDEBUG__
+            if(AMSEvent::debug){
             cout << " AMSTrTrack tracking>>>>>> " << endl;
             cout << "### Run " << AMSEvent::gethead()->getrun();
             cout << " Event " << AMSEvent::gethead()->getEvent() << endl;
@@ -1497,8 +1497,7 @@ next_pattern:
                   cout << ", " << ptrack->getphit(i)->getHit()[2];
                   cout << endl;
             }
-#endif
-
+          }
       } else {
 
             // Get out if nothing has been found
@@ -1719,7 +1718,7 @@ next_pattern:
                ptrack->Fit(5,2);
                if (_addnext(pat, nhits, phit)) {
                      NTrackFound++;
-#ifdef __AMSDEBUG__
+            if(AMSEvent::debug){
                      cout << " AMSTrTrack tracking>>>>>> " << endl;
                      cout << "### Run " << AMSEvent::gethead()->getrun();
                      cout << " Event " << AMSEvent::gethead()->getEvent() << endl;
@@ -1731,7 +1730,7 @@ next_pattern:
                            cout << ", " << ptrack->getphit(i)->getHit()[2];
                            cout << endl;
                      }
-#endif
+}
                } else {
                      remove_track(ptrack); 
                }
@@ -2005,7 +2004,7 @@ next_pattern:
                ptrack->Fit(5,2);
                if (_addnextFalseX(pat, nhits, phit)) {
                      NTrackFound++;
-#ifdef __AMSDEBUG__
+            if(AMSEvent::debug){
                      cout << " AMSTrTrack tracking>>>>>> " << endl;
                      cout << "### Run " << AMSEvent::gethead()->getrun();
                      cout << " Event " << AMSEvent::gethead()->getEvent() << endl;
@@ -2017,7 +2016,7 @@ next_pattern:
                            cout << ", " << ptrack->getphit(i)->getHit()[2];
                            cout << endl;
                      }
-#endif
+}
                } else {
                      remove_track(ptrack); 
                }
@@ -3622,7 +3621,7 @@ next_pattern:
                if (_addnext(pat, nhits, phit)) {
                      if(nhits>4) ThreePointNotWanted=1;
                      NTrackFound++;
-#ifdef __AMSDEBUG__
+            if(AMSEvent::debug){
                      cout << " AMSTrTrack tracking>>>>>> " << endl;
                      cout << "### Run " << AMSEvent::gethead()->getrun();
                      cout << " Event " << AMSEvent::gethead()->getEvent() << endl;
@@ -3634,7 +3633,7 @@ next_pattern:
                            cout << ", " << ptrack->getphit(i)->getHit()[2];
                            cout << endl;
                      }
-#endif
+}
                } else {
                      remove_track(ptrack); 
                }

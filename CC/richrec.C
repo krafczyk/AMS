@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.62 2004/03/01 10:49:56 mdelgado Exp $
+//  $Id: richrec.C,v 1.63 2004/06/28 13:25:09 choutko Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -477,7 +477,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   int bit=(AMSEvent::gethead()->getC("AMSRichRing",0))->getnelem();
 
   if(bit==crossed_pmt_bit){
-    cout<<" AMSRichRing::build-too-many-tracks "<<endl;
+    //cout<<" AMSRichRing::build-too-many-tracks "<<endl;
     return 0;
   }
 

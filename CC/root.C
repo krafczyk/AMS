@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.83 2004/03/31 15:25:51 alcaraz Exp $
+//  $Id: root.C,v 1.84 2004/06/28 13:25:09 choutko Exp $
 //
 
 #include <root.h>
@@ -1010,6 +1010,7 @@ void AMSEventR::SetCont(){
  fHeader.TofRawClusters=fTofRawCluster.size();
  fHeader.TofClusters=fTofCluster.size();
  fHeader.AntiClusters=fAntiCluster.size();
+ fHeader.TrRawClusters=fTrRawCluster.size();
  fHeader.TrClusters=fTrCluster.size();
  fHeader.TrRecHits=fTrRecHit.size();
  fHeader.TrTracks=fTrTrack.size();

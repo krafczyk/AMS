@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.149 2004/01/06 16:13:17 choutko Exp $
+//  $Id: particle.C,v 1.150 2004/06/28 13:25:09 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -82,9 +82,11 @@ integer AMSParticle::build(integer refit){
           AMSBeta * pbeta=pcharge->getpbeta();
           AMSTrTrack * ptrack=pbeta->getptrack();
 #ifdef __AMSDEBUG__
-          assert (ptrack && pbeta && pcharge);
+//          assert (ptrack && pbeta && pcharge);
 #endif   
-         
+          if(!ptrack or !pbeta or !pcharge){
+           cerr<<" AMSParticle-F-problem "<<endl;
+          }         
           if(pbeta->checkstatus(AMSDBc::AMBIG)==0 ||BETAFITFFKEY.FullReco ){
           number chi2(0),rid(0),err(0);
           ptrack->getParFastFit( chi2, rid, err, theta,  phi,  coo);

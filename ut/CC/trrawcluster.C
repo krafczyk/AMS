@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.63 2003/05/08 16:41:51 choutko Exp $
+//  $Id: trrawcluster.C,v 1.64 2004/06/28 13:25:10 choutko Exp $
 #include <trid.h>
 #include <trrawcluster.h>
 #include <extC.h>
@@ -247,17 +247,17 @@ integer AMSTrRawCluster::_matched(){
 
 void AMSTrRawCluster::_writeEl(){
   TrRawClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trraw();
-
-  if (TrN->Ntrraw>=MAXTRRAW) return;
+  if(AMSTrRawCluster::Out( IOPA.WriteAll%10==1  )){
 
 // Do not write K clusters if not matched
   AMSTrIdSoft id(_address);
   if(id.getside()==0 && !checkstatus(AMSTrRawCluster::MATCHED)) return;
-
-  if(AMSTrRawCluster::Out( IOPA.WriteAll%10==1  )){
 #ifdef __WRITEROOT__
       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
+
+  if (TrN->Ntrraw>=MAXTRRAW) return;
+
 // Fill the ntuple 
     TrN->address[TrN->Ntrraw]=_address+_strip*10000;
     TrN->s2n[TrN->Ntrraw]=_s2n;

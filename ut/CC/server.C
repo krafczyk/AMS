@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.112 2004/06/16 09:39:54 choutko Exp $
+//  $Id: server.C,v 1.113 2004/06/28 13:25:09 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -1758,7 +1758,7 @@ return length;
 
   bool Server_impl::pingHost(const char * host){
    char tmpbuf[1024];
-   strcpy(tmpbuf,"ping -c 1 ");
+   strcpy(tmpbuf,"ping -c 1  ");
    strcat(tmpbuf,host);
    return system(tmpbuf)==0;
 

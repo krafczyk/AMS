@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.35 2004/05/13 08:51:24 choutko Exp $
+#  $Id: monitorUI.pm,v 1.36 2004/06/28 13:25:19 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -335,6 +335,7 @@ my @item_factory_entries = (
 	["/File/Reset _Hosts",	"<alt>H",	8],
 	["/File/_Delete Runs",	"<alt>D",	9],
 	["/File/_Restore Runs",	"<alt>R",	10],
+	["/File/R_ebuild DB",	"<alt>E",	11],
 	["/File/sep1",	undef,	0,	"<Separator>"],
 	{
 		'path' => "/File/_Quit", 
@@ -1144,6 +1145,8 @@ sub item_factory_cb {
              $Monitor::Singleton->RemoveRuns();
          }elsif($action==10){
              $Monitor::Singleton->RestoreRuns();
+         }elsif($action==11){
+             DBServer::InitDBFileNew(undef,$Monitor::Singleton);
          }
     }
 

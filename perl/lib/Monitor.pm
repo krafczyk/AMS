@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.76 2004/06/16 09:40:05 choutko Exp $
+# $Id: Monitor.pm,v 1.77 2004/06/28 13:25:19 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -1333,7 +1333,7 @@ warn " sent via arpref\n";
                 $arsref->sendRunEvInfo(\%nc,$action);
             }
             catch CORBA::SystemException with{
-                warn "sendback corba exc";
+                warn "sendback p corba exc";
             };
 }
         foreach $arsref (@{$ref->{ardref}}){
@@ -1449,7 +1449,7 @@ FOUND3:
                 $arsref->sendAH(\%cid,\%ac,$action);
             }
             catch CORBA::SystemException with{
-                warn "sendback corba exc";
+                warn "sendback p corba exc";
             };
         }
         foreach $arsref (@{$ref->{ardref}}){
@@ -1462,7 +1462,7 @@ FOUND3:
                 last;
             }
             catch CORBA::SystemException with{
-                warn "sendback corba exc";
+                warn "sendback d corba exc";
             };
         }
       }elsif($name eq "setEnv"){
