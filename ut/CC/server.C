@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.102 2003/11/19 09:41:12 choutko Exp $
+//  $Id: server.C,v 1.103 2003/12/03 10:31:45 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -2488,6 +2488,8 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
          for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
             if(!strcmp((const char *)(*i)->HostName, (const char *)(ac.id).HostName)){
             (*i)->Clock=ac.id.Mips;
+             _parent->IMessage(AMSClient::print (*i,"Setting Clock to "));  
+             _parent->IMessage(AMSClient::print (ac,"Setting Clock to "));  
              PropagateAH(cid,(*i),DPS::Client::Update);
             break;
      }

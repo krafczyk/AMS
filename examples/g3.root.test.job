@@ -7,7 +7,7 @@ if [ "$UNAME" = "AIX" ] ; then
 elif [ "$UNAME" = "OSF1" ] ; then
     MACHINE="osf1"
 elif [ "$UNAME" = "Linux" ] ; then
-    MACHINE="linux/icc"
+    MACHINE="linux"
 else
 echo $UNAME is not supported yet
 
@@ -16,7 +16,7 @@ fi
 
 $AMSWD/exe/$MACHINE/gbatch.exe <<!
 LIST
-KINE 14
+KINE 3
 LOSS 1
 HADR 1
 MULS 1

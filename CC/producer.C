@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.79 2003/11/19 09:41:12 choutko Exp $
+//  $Id: producer.C,v 1.80 2003/12/03 10:31:45 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -316,6 +316,22 @@ else{
    if(IsLocal() && !writeable){
     cout <<"AMSProducer-getRunEvInfo-S-NtupleDir "<<getenv("NtupleDir")<<" IsNotWriteable"<<endl; 
     AString ntpath=(const char *)_dstinfo->OutputDirPath;
+//  check if it is writeable
+     AString cmd=" touch ";
+     cmd+=ntpath;
+     cmd+="/qq";
+     int i=system(cmd);
+     if(i==0){
+      writeable=true;
+      cmd=ntpath;
+      cmd+="/qq";
+      unlink((const char*)cmd);
+     }
+     else{
+      cerr<<"AMSProducer::getRunEventInfo-F-UnwritableDir "<<ntpath<<endl;
+      FMessage("Unable to write dstfile ", DPS::Client::CInAbort); 
+     }     
+
     ntpath+="/";
     char tmp[80];
     sprintf(tmp,"%d",_reinfo->Run);
