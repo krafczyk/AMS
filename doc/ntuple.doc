@@ -250,6 +250,16 @@ Below there is a description of a  ntuple.
  * I*4  *             * LVL3     * LVL3TOFTr(nlvl3)      // TOF Trigger
  * I*4  *             * LVL3     * LVL3AntiTr(nlvl3)     // Anti Trigger
  * I*4  *             * LVL3     * LVL3TrackerTr(nlvl3)  // TrackerTrigger
+                                                         // 0  - initial state
+                                                         // 1  - reject (p)
+                                                         // 2  - Too many hits 
+                                                         // 3  - No comb found
+                                                         // 4  - >=2 comb found
+                                                         // 5  - Reserved
+                                                         // 6  - Reserved
+                                                         // 7  - Accept (ap)
+                                                         //+8  - Heavy Ion 
+                                                         //+32 - Prescaled evts
  * I*4  *             * LVL3     * LVL3NTrHits(nlvl3)    // Number Tr Hits
  * I*4  *             * LVL3     * LVL3NPat(nlvl3)       // Number "Tracks" found
  * I*4  *             * LVL3     * LVL3Pattern(2,nlvl3)  // Pattern no
