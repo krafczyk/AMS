@@ -132,9 +132,10 @@ void AMSVtx::set_vertex(){
        AMSPoint poi[2];
        poi[0] = AMSPoint(_Ptrack[i0]->getpiP0()+dir[0]*lambda[0]);
        poi[1] = AMSPoint(_Ptrack[i1]->getpiP0()+dir[1]*lambda[1]);
+       number mom=fabs(_Ptrack[i0]->getpirid())+fabs(_Ptrack[i1]->getpirid());
        for (int j=0; j<3; j++) {
-         _Vertex[j] += poi[0][j] * fabs(_Ptrack[i0]->getpirid())/_Momentum;
-         _Vertex[j] += poi[1][j] * fabs(_Ptrack[i1]->getpirid())/_Momentum;
+         _Vertex[j] += poi[0][j] * fabs(_Ptrack[i0]->getpirid())/mom;
+         _Vertex[j] += poi[1][j] * fabs(_Ptrack[i1]->getpirid())/mom;
        }
     }
    }

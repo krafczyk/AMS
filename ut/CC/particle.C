@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.144 2003/12/17 12:59:44 mdelgado Exp $
+//  $Id: particle.C,v 1.145 2003/12/17 17:05:54 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -90,7 +90,7 @@ out:
       AMSVtx *pcand=0;
       for( AMSVtx *pvert=(AMSVtx*)AMSEvent::gethead()->getheadC("AMSVtx",0);pvert!=NULL;pvert=pvert->next()){   
 // VC pvert
-         if(pvert->getcharge()==0 && !pvert->checkstatus(AMSDBc::BAD)){    
+         if(abs(pvert->getcharge()<2) && !pvert->checkstatus(AMSDBc::BAD)){    
            if(pvert->getmass()/pvert->getmom()<mbig){
              mbig=pvert->getmass()/pvert->getmom();
              pcand=pvert;
