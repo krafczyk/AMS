@@ -363,7 +363,7 @@ out:
             }
           Record[frp]=rawl;
           //          cout <<" mixed "<<frp<<" "<<rawl<<endl;
-          Record[frp+1]=pheader[ll];
+          Record[frp+1]=(pheader[ll] & ((1<<10)-1));  // modify to meet raw spec
           frp+=2;
           for(int l1=0;l1<pntdr[ll];l1++){
            Record[frp]=cntdr;
