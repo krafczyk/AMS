@@ -12,10 +12,30 @@
 #include <cern.h>
 #include <amsdbc.h>
 #include <point.h>
+#include <gmat.h>
 #include <geantnamespace.h>
 class AMSgvolume : public AMSNode {
  protected:
+    class _amsrm{
+     public:
+      number _nrm[3][3];
+      _amsrm();
+      _amsrm(number nrm[3][3]);
+      integer operator !=(const _amsrm & o) const{
+        for(int i=0;i<3;i++){
+         for(int j=0;j<3;j++){
+           if(_nrm[i][j]!=o._nrm[i][j])return 0;
+         }
+        }
+        return 1;
+  
+      }
+
+    }; 
     amsg4pv * _pg4v;
+    G4LogicalVolume * _pg4l;
+    amsg4rm * _pg4rm;
+    AMSgtmed* _pgtmed;
    static uinteger _GlobalRotMatrixNo;
    static integer _LastRotMatrixOutOfOrder;
    void _init();
@@ -28,45 +48,39 @@ class AMSgvolume : public AMSNode {
    integer _gid;        //   ! geant id
    integer _npar;       //   ! geant number of par     
    integer _rel;        //   ! abs(0) or relative(1) geant coo/nrm
-   geant  _par[10];      //   ! geant volume par
+   geant*  _par;        //   ! geant volume par
    AMSPoint _coo;       //   ! geant volume relative coord
-   AMSPoint _cooA;     //    ! geant volume abs coordinate
-   number  _nrm[3][3];  //   ! normales  with resp to mother (1st index 1st)
-   number  _nrmA[3][3]; //   ! norm absolute (1st index 1st)
-   number  _inrmA[3][3]; //  ! inv norm absolute (1st index 1st)
+   AMSPoint _cooA;      //   ! geant volume abs coordinate
+   _amsrm  *_nrm;       //   ! normales  with resp to mother (1st index 1st)
+   _amsrm  *_nrmA;      //   ! norm absolute (1st index 1st)
    char    _gonly[5];   //   ! should be 'MANY' or 'ONLY'
-   char    _shape[5];   //   ! geant voulme shape
+   char*    _shape;     //   ! geant voulme shape
     
    integer _ContPos;
-  void  _gl2loc(AMSgvolume * cur, AMSPoint & coo); 
+   void  _gl2loc(AMSgvolume * cur, AMSPoint & coo); 
    virtual ostream & print(ostream &)const;
-
+   static _amsrm _UnitRM;
+#ifdef __G4AMS__
+ static amsg4rm* _pg4rmU;    // unity rot matrix
+ void _MakeG4Volumes();
+#endif
+  AMSgvolume():AMSNode(0),_npar(0),_par(0),_shape(0),_nrm(0),_nrmA(0),_pg4v(0),_pg4l(0),_pg4rm(0), _pgtmed(0){};
  public:
+  ~AMSgvolume();
   static void amsgeom();
   static uinteger & GlobalRotMatrixNo(){return _GlobalRotMatrixNo;}
-  AMSgvolume (): AMSNode(0),_pg4v(0){};
-  amsg4pv * getg4pv() const {return _pg4v;}
-
-/*
-  AMSgvolume (integer matter,integer rotmno,const char name[],
-           const char shape[] ,   geant par[] , integer npar,
-            geant coo[] ,  number nrm[][3] , const char gonly[] ,
-           integer posp,integer gid, integer rel=0);
-*/
-
+  int VolumeHasSameRotationMatrixAs(AMSgvolume *pvo );
+  int VolumeHasSameSizesAndMaterialAs(AMSgvolume *pvo );
+   amsg4pv * & pg4v()  {return _pg4v;}
+  G4LogicalVolume * & pg4l()  {return _pg4l;}
+  amsg4rm * & pg4rm() {return _pg4rm;}
   AMSgvolume (char matter[], integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
            integer posp,integer gid, integer rel=0);
 
-  AMSgvolume (char matter[], integer rotmno,const char name[], 
-           const char shape[] ,   geant par[] , integer npar, 
-           geant coo[] ,  number nrm1[3] , number nrm2[3], number nrm3[3],
-           const char gonly[] , 
-           integer posp,integer gid, integer rel=0);
-  
-  number getnrm(integer i ,integer j)const{return _nrm[i][j];}
-  number getnrmA(integer i ,integer j)const{return _nrmA[i][j];}
+  number getnrm(integer i ,integer j)const{return _nrm->_nrm[i][j];}
+  number getnrmA(integer i ,integer j)const{return _nrmA->_nrm[i][j];}
   number getcoo(integer i) {return _coo[i];}
   number getcooA(integer i){return _cooA[i];}
   number getpar(integer i)const {return i>=0 && i<_npar ? _par[i]:0;}

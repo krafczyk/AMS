@@ -12,7 +12,7 @@ public:
   virtual ~AMSG4Physics();
   public:
   char* G3toG4(G4int pid);
-  G4int G4toG3(G4String* particle);
+  G4int G4toG3(const G4String&  particle);
   void _init();
   // Construct particle and physics
   virtual void ConstructParticle();

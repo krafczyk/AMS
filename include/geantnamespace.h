@@ -16,5 +16,8 @@ namespace gams{
 
 class G4VPhysicalVolume;
 typedef G4VPhysicalVolume amsg4pv;
-
+class G4Material;
+class G4LogicalVolume;
+class HepRotation;
+typedef HepRotation  amsg4rm;
 #endif

@@ -12,18 +12,19 @@
 #include <cern.h>
 #include <amsdbc.h>
 #include <amsgobj.h>
+#include <geantnamespace.h>
 class AMSgmat : public AMSNode 
 {
  
  public:
   static void amsmat();
   friend class AMSgtmed;
-  AMSgmat (): AMSNode(0){};
+  AMSgmat (): AMSNode(0),_pamsg4m(0){};
   ~AMSgmat(){delete[] _a;_a=0;delete[] _z;_z=0;delete[] _w;_w=0;}
   AMSgmat (const char name[], 
               geant a[] , geant z[], geant w[], integer npar, 
-              geant rho, geant radl=0, geant absl=0 ): 
-      _imate(++_GlobalMatI),_npar(npar), _rho(rho), _radl(radl), _absl(absl),AMSNode(0){
+              geant rho, geant radl=0, geant absl=0, geant temp=0 ): 
+      _imate(++_GlobalMatI),_npar(npar), _rho(rho), _radl(radl), _absl(absl),AMSNode(0),_pamsg4m(0),_temp(temp){
 #ifdef __AMSDEBUG__
 assert(npar>0);
 #endif    
@@ -36,11 +37,11 @@ assert(npar>0);
    UCOPY(z,_z,npar*sizeof(_z[0])/4);
    UCOPY(w,_w,npar*sizeof(_w[0])/4);
   }
-  static uinteger GetMatNo(){return _GlobalMatI;}
+  static uinteger GetLastMatNo(){return _GlobalMatI;}
   AMSgmat (const char name[], 
               geant a , geant z,  
-              geant rho, geant radl, geant absl ): 
-      _imate(++_GlobalMatI), _rho(rho), _radl(radl), _absl(absl),AMSNode(0){
+              geant rho, geant radl, geant absl, geant temp=0 ): 
+      _imate(++_GlobalMatI), _rho(rho), _radl(radl), _absl(absl),AMSNode(0),_pamsg4m(0),_temp(temp){
     
    setname(name);
    setid(0);
@@ -49,18 +50,18 @@ assert(npar>0);
    _a[0]=a;
    _z=new geant[_npar];
    _z[0]=z;
-   _w=0;   
+   _w=new geant[_npar];
+   _w[0]=1;   
   }
   AMSgmat * next(){return (AMSgmat *)AMSNode::next();}
   AMSgmat * prev(){return (AMSgmat *)AMSNode::prev();}
   AMSgmat * up(){return   (AMSgmat *)AMSNode::up();}
   AMSgmat * down(){return (AMSgmat *)AMSNode::down();}
   static integer debug;
-  static integer getmat(const char name[]){AMSgmat *p =(AMSgmat *)AMSgObj::GTrMatMap.getp(AMSID(name,0));return p?p->_imate:0;}
-//+
+  static AMSgmat * getpmat(const char name[]){return (AMSgmat *)AMSgObj::GTrMatMap.getp(AMSID(name,0));}
 #ifdef __DB__
+//+
    friend class AMSgmatD;
-#endif
     inline integer getnpar() {return _npar;}
     void getNumbers(geant* a, geant* z, geant* w)
     {
@@ -70,12 +71,15 @@ assert(npar>0);
       if (_npar < 2) w[0] = 0;
     }
 //-
+#endif
+   integer getmati(){return _imate;}
+   G4Material* getpamsg4m(){return _pamsg4m;}   
  protected:
    void _init();
    static uinteger _GlobalMatI;
    AMSgmat (const AMSgmat&);   // do not want cc
    AMSgmat &operator=(const AMSgmat&); // do not want ass
-
+   G4Material* _pamsg4m;
    integer _imate;
    geant * _a;  //   ! atomic num
    geant * _z;  //   ! z
@@ -85,6 +89,7 @@ assert(npar>0);
    geant _radl; //X_0
    geant _absl; //Abs l
    geant _ubuf[1];
+   geant _temp;
    virtual ostream & print(ostream &)const;
 };
 
@@ -93,7 +98,7 @@ class AMSgtmed : public AMSNode
  
  public:
   static void amstmed();
-  AMSgtmed (): AMSNode(0){};
+  AMSgtmed (): AMSNode(0),_pgmat(0){};
   AMSgtmed (const char name[], const char matname[], 
               integer isvol=0 , char yb='N', geant birks[3]=0,
               integer ifield=1, geant fieldm=20, 
@@ -103,9 +108,9 @@ class AMSgtmed : public AMSNode
     _itmed(++_GlobalMedI),_isvol(isvol), _ifield(ifield),_fieldm(fieldm),_tmaxfd(tmaxfd),
     _stemax(stemax),_deemax(deemax),_epsil(epsil),_stmin(stmin),_yb(yb),
     AMSNode(){
-   _itmat=AMSgmat::getmat(matname); 
+   _pgmat=AMSgmat::getpmat(matname); 
 #ifdef __AMSDEBUG__
-   assert(_itmat>0 && _itmat<=AMSgmat::GetMatNo());
+   assert(_pgmat>0);
 #endif
    setname(name);
    setid(0); 
@@ -126,7 +131,9 @@ class AMSgtmed : public AMSNode
     char getyb() {return _yb;}
 //-
 
-  static uinteger GetMedNo(){return _GlobalMedI;}
+  static uinteger GetLastMedNo(){return _GlobalMedI;}
+  AMSgmat * getpgmat(){ return _pgmat;}
+  integer IsSensitive() const {return _isvol?1:0;}
  protected:
    void _init();
    static uinteger _GlobalMedI;
@@ -134,7 +141,7 @@ class AMSgtmed : public AMSNode
    AMSgtmed &operator=(const AMSgtmed&); // do not want ass
    integer _isvol;
    integer _itmed;
-   integer _itmat;
+   AMSgmat * _pgmat;
    integer _ifield;
    geant _fieldm;
    geant _tmaxfd;

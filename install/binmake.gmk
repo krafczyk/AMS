@@ -1,16 +1,17 @@
-# $Id: binmake.gmk,v 1.1 1999/10/15 14:18:50 choutko Exp $
+# $Id: binmake.gmk,v 1.2 1999/11/10 13:37:22 choutko Exp $
 # ----------------------------------------------------------
 # Script defining rules and paths for making binaries.
 #                          Gabriele Cosmo, 25/06/1998.
 # ----------------------------------------------------------
 
   include $(G4INSTALL)/config/architecture.gmk
-
 G4LIBDIR := $(G4LIB)/$(G4SYSTEM)
 
 #include $(G4INSTALL)/config/G4UI_USE.gmk
 #include $(G4INSTALL)/config/G4VIS_USE.gmk
 #include $(G4INSTALL)/config/interactivity.gmk
+G4TMPDIR := ../exe/$(G4SYSTEM)
+G4BINDIR := ../bin/$(G4SYSTEM)
 
 ifndef INCFLAGS
   INCFLAGS := \
@@ -96,9 +97,6 @@ endif
 CPPFLAGS += $(INCFLAGS)
 LDFLAGS += -L$(G4LIBDIR)
 
-G4TMPDIR := ../exe/$(G4SYSTEM)/
-G4BINDIR := ../bin/$(G4SYSTEM)
-
 
 GLOBALLIBS := $(shell test -f $(G4LIB)/$(G4SYSTEM)/libG4global.a && echo yes)
 
@@ -143,15 +141,58 @@ ifdef GLOBALLIBS
              -lG4intercoms \
              -lG4global
 else
+  LDLIBS2 := -lG4run \
+             -lG4event \
+             -lG4csg \
+             -lG4emstandard \
+             -lG4decay \
+             -lG4tracking \
+             -lG4UIbasic \
+             -lG4UIcommon \
+             -lG4muons \
+             -lG4parameterisation \
+             -lG4detector \
+             -lG4hadronic_stop \
+             -lG4shortlived \
+             -lG4hadronic_deex \
+             -lG4hadronic_util_gen \
+             -lG4hadronic_HE \
+             -lG4hadronic_LE \
+             -lG4hepnumerics \
+             -lG4hadronic_proc \
+             -lG4hadronic_man_gen \
+             -lG4hadronic_mgt \
+             -lG4hadronic_xsect \
+             -lG4hadronic_util \
+             -lG4ions \
+             -lG4mesons \
+             -lG4leptons \
+             -lG4barions \
+             -lG4hits \
+             -lG4bosons \
+             -lG4transportation \
+             -lG4volumes \
+             -lG4magneticfield \
+             -lG4emutils \
+             -lG4procman \
+             -lG4track \
+             -lG4partman \
+             -lG4digits \
+             -lG4intercoms \
+             -lG4geometrymng \
+             -lG4materials \
+             -lG4graphics_reps \
+             -lG4globman
+
 # The next line specifically should read LDLIBS2 = , not LDLIBS2 :=, so
 #   that it is not expanded until the directory G4TMPDIR is created.
-  LDLIBS2 = $(shell \
-        G4TMP=$(G4TMP); export G4TMP; \
-	if [ \( -f $(G4LIB)/$(G4SYSTEM)/liblist \
-	  -a -f $(G4LIB)/$(G4SYSTEM)/libname.map \) ]; then \
-	$(G4LIB)/$(G4SYSTEM)/liblist \
-	  -d $(G4TMPDIR) \
-	  < $(G4LIB)/$(G4SYSTEM)/libname.map; fi)
+#  LDLIBS2 = $(shell \
+#        G4TMP=$(G4TMP); export G4TMP; \
+#	if [ \( -f $(G4LIB)/$(G4SYSTEM)/liblist \
+#	  -a -f $(G4LIB)/$(G4SYSTEM)/libname.map \) ]; then \
+#	$(G4LIB)/$(G4SYSTEM)/liblist \
+#	  -d ../bin/$(G4SYSTEM) \
+#	  < $(G4LIB)/$(G4SYSTEM)/libname.map; fi)
 # Extra libraries to resolve remaining circular dependencies...
 #  LDLIBS2 += 
 endif

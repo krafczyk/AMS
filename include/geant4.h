@@ -6,7 +6,6 @@
 #include "G4RunManager.hh"
 #include "G4VUserDetectorConstruction.hh"
 
-#include "globals.hh"
 #include "G4MagneticField.hh"
 #include "G4VUserPhysicsList.hh"
 
@@ -61,6 +60,58 @@ public:
     virtual void EndOfEventAction(const G4Event*);
 
 };
+
+
+
+
+
+
+class AMSG4RotationMatrix: public G4RotationMatrix{
+
+public:
+AMSG4RotationMatrix(number _nrm[3][3]);
+AMSG4RotationMatrix():G4RotationMatrix(){};
+static  void Test();
+};
+
+
+
+#include "G4UserSteppingAction.hh"
+
+class AMSG4SteppingAction : public G4UserSteppingAction
+{
+  public:
+
+    virtual void UserSteppingAction(const G4Step*);
+};
+
+
+
+#include "G4VSensitiveDetector.hh"
+class G4Step;
+
+class AMSG4DummySD : public G4VSensitiveDetector
+{
+protected:
+static AMSG4DummySD* _pSD;
+public:
+  AMSG4DummySD():G4VSensitiveDetector("AMSG4dummySD"){};
+  ~AMSG4DummySD() {};
+
+  void Initialize(G4HCofThisEvent*HCE) {};
+  G4bool ProcessHits(G4Step*aStep,G4TouchableHistory*ROhist) {return false;}
+  void EndOfEvent(G4HCofThisEvent*HCE) {};
+  static AMSG4DummySD* & pSD(){return _pSD;}
+};
+
+class AMSG4DummySDI{
+public:
+AMSG4DummySDI();
+~AMSG4DummySDI();
+private:
+ static integer _Count;
+};
+static AMSG4DummySDI AMSG4DummySDI;
 
 
 #endif

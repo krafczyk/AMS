@@ -651,5 +651,6 @@ I 5 G4On(0)                 // 0 off 1 on geant4
 
 
 G4FF    // Geant4 Datacards
-I 1 BFOrder(4)    // Runge Kutta order 
-R 2 Delta(0.001)  // Runge Kutta delta
+I 1 BFOrder(4)       // Runge Kutta order 
+R 2 Delta(0.001)     // Runge Kutta delta
+I 3 UniformField(0)  // Use(1)/not use(0) average uniform mag field instead field map

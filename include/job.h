@@ -19,13 +19,13 @@
 #include <gmat.h>
 #include <iomanip.h>
 #include <amsgobj.h>
-#include <timeid.h>
 #include <commons.h>
-#include <status.h>
 #ifdef __DB__
 #include <db_comm.h>
 #endif
 
+class AMSStatus;
+class AMSTimeID;
 class AMSNtuple;
 class AMSG4Physics;
 class AMSG4GeneratorInterface;

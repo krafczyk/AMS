@@ -19,3 +19,5 @@ setenv G4LEVELGAMMADATA $G4INSTALL/data/PhotonEvaporation
 setenv G4LEDATA $G4INSTALL/data/G4EMLOW0.2
 setenv NeutronHPCrossSections $G4INSTALL/data/G4NDL0.1
 setenv AMSDEBUG 0
+setenv G4TMP /tmp
+setenv G4TMPDIR /tmp

@@ -15,10 +15,6 @@
 #include <snode.h>
 #include <link.h>
 #include <cont.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <time.h>
-#include <mceventg.h>
 #include <daqevt.h>
 class AMSEvent: public AMSNode{
 private:
