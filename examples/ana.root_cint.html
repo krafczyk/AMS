@@ -7,10 +7,23 @@
 </CENTER>
 
    <p>The file
-<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/ana_8root_8C-source.html"> 
-ana.root.C </a> shows an example of interactive running. To run it, do: 
-"root ana.root.C". If you are already inside "root", use ".x ana.root.C".
-Some comments are in order:
+<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/ana_8root__cint_8C-source.html"> 
+ana.root_cint.C </a> shows an example of program which can be run via the 
+<a href="http://root.cern.ch/root/Cint.html"> CINT </a> ROOT interpreter. To run it, 
+just do: "root ana.root_cint.C". If you are already inside "root", use ".x ana.root_cint.C".
+
+<p>Interpreted analyses are well suited for small or medium size data samples, for 
+which computer time is not the critical issue, while you want to code just few instructions,
+maybe interactively. You may also provide simplified C++ instructions to CINT, like:
+              <CENTER><b>
+              hrig = new TH1F ("hrig", "Momentum (GeV)", 50, -10., 10.);
+              </b></CENTER><br>
+  instead of 
+              <CENTER><b>
+              TH1F* hrig = new TH1F ("hrig", "Momentum (GeV)", 50, -10., 10.);
+              </b></CENTER><br>
+
+Some additional comments are in order:
 
 <ul>
       <li> One has to load the specific AMS Root library containing all the ROOT class
@@ -49,7 +62,7 @@ Some comments are in order:
               <CENTER><b>
                  "AMSEventR* pev = ams.GetEvent(run_number, event_number)"
               </b></CENTER><br>
-           If you prefer not do pointer coding like "pev->whatever", you 
+           If you prefer not to do pointer coding like "pev->whatever", you 
            can add:
               <CENTER><b>
                  "AMSEventR &ev = *pev;"

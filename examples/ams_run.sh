@@ -26,40 +26,56 @@ else
     exit
 fi
 
-if [ ! -n "$AMSWD" ]; then
-  AMSWD="/afs/cern.ch/exp/ams/Offline/vdev"
-fi
-
 OS=`uname`
-if [ "${OS}" = "Linux" ]; then
-   GC="g++"
+ARCH=`$ROOTSYS/bin/root-config --arch`
+
+if [ "$ARCH" = "linuxicc" ]; then
+   GC=/opt/intel/compiler70/ia32/bin/icc
+   if [ ! -e "$GC" ]; then
+      echo "You have no access to $GC."
+      echo "Please use a Root version compiled with g++."
+      exit
+   fi
    EXTRALIBS="-ldl -lcrypt -rdynamic"
-   AMSOBJS="${AMSWD}/bin/linux/icc/root_rs.o ${AMSWD}/bin/linux/icc/rootdict_s.o"
+   AMSLIB="${AMSWD}/lib/linux/icc/libntuple.a"
+elif [ "${OS}" = "Linux" ]; then
+   GC=g++
+   EXTRALIBS="-ldl -lcrypt -rdynamic"
+   AMSLIB="${AMSWD}/lib/linux/libntuple.a"
 elif [ "${OS}" = "OSF1" ]; then
-   GC="cxx"
+   GC=cxx
    EXTRALIBS="-lm"
-   AMSOBJS="${AMSWD}/bin/osf1/root_rs.o ${AMSWD}/bin/osf1/rootdict_s.o"
+   AMSLIB="${AMSWD}/lib/linux/libntuple.a"
 else
   echo "This script only runs on Linux and on OSF1; EXIT"
   exit
 fi
 
-ROOTSYS="/afs/cern.ch/exp/ams/Offline/root/${OS}/pro"
-ROOTINCDIR=`$ROOTSYS/bin/root-config --incdir`
+if [ ! -n "$AMSWD" ]; then
+  AMSWD="/afs/cern.ch/exp/ams/Offline/vdev"
+fi
+
 ROOTLIBDIR=`$ROOTSYS/bin/root-config --libdir`
-INCS="-I${AMSWD}/include -I${ROOTINCDIR}"
 ROOTLIBS="-L${ROOTLIBDIR} -lRoot"
+
+ROOTINCDIR=`$ROOTSYS/bin/root-config --incdir`
+INCS="-I${AMSWD}/include -I${ROOTINCDIR}"
 
 echo -e "\n>>> COMPILING and LINKING: ${file}"
 
 /usr/bin/make -f - <<!
 SHELL=/bin/sh
 
-${FILE_EXE}:	${file}
-	${GC} ${INCS} -o ${FILE_EXE} ${file} ${AMSOBJS} ${ROOTLIBS} ${EXTRALIBS}
+${FILE_EXE}:	${file} ${AMSLIB}
+	${GC} -w ${INCS} -o ${FILE_EXE} ${file} ${AMSLIB} ${ROOTLIBS} ${EXTRALIBS}
 	chmod 755 ${FILE_EXE}
+
+${AMSLIB}: 
+	cd $AMSWD/install; gmake static
 
 !
 
-echo -e "\n>>> EXECUTING file: ${FILE_EXE}"
-${FILE_EXE}
+if [ -x "${FILE_EXE}" ]; then
+      echo -e "\n>>> EXECUTING file: ${FILE_EXE}"
+      ${FILE_EXE}
+fi

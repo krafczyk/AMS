@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.6 2004/02/12 14:59:53 alcaraz Exp $
+#  $Id: Makefile,v 1.7 2004/02/13 13:25:56 alcaraz Exp $
 
 #rl october 2003
 
@@ -197,7 +197,8 @@ $(EXE)gbatch.exe:	$(OBJECTS)
 shared :	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o
 	$(LD) -O  $(SOFLAGS) $(BIN)/root_rs.o $(BIN)/rootdict_s.o $(SHLDFLAGS) -o  $(SHLD)
 
-
+static :	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o
+	ar rv $(LIB)/libntuple.a $(BIN)/root_rs.o $(BIN)/rootdict_s.o
 
 gxint :	$(EXE)gxint.exe
 
@@ -407,8 +408,8 @@ clean :
 
 cleanlibs:
 	rm -f $(BIN)/root*.o
-	rm -f $(AMSLIB)/*.so
-	rm -f $(AMSICCLIB)/*.so
+	rm -f $(LIB)/*.so
+	rm -f $(LIB)/*.a
 	cd ../ruby; gmake clean
 	cd ../python; gmake clean
 	cd ../install

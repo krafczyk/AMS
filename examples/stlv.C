@@ -1,3 +1,5 @@
+///   \example stlv.C
+///
 #define stlv_cxx
 #include "/afs/ams.cern.ch/Offline/vdev/include/root_RVS.h"
 #include "TF1.h"

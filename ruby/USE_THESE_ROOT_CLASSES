@@ -54,5 +54,7 @@ TFormula.h
 TF1.h
 TF12.h
 TText.h
+TSysEvtHandler.h
+TTimer.h
 TSystem.h
 TROOT.h

@@ -16,6 +16,14 @@ if [ -n "$ROOTSYS" ]; then
       echo "\$ROOTSYS defined ... yes"
 else
       echo "\$ROOTSYS defined ... no"
+      exit
+fi
+
+ARCH=`$ROOTSYS/bin/root-config --arch`
+if [ "$ARCH" == "linuxicc" ]; then
+      echo -e "\nPythonRoot wrapping is not prepared for the ICC compiler yet."
+      echo "Please use a Root version compiled with g++."
+      exit
 fi
 
 #AMSDir test
@@ -71,21 +79,11 @@ else
       exit
 fi
 
-root_includes=`cat USE_THESE_ROOT_CLASSES`
-
-rm -f ${file}.h
-for arg in $root_includes; do
-      if [ "$arg" = "TROOT.h" ]; then
-            cat $ROOTSYS/include/TROOT.h | grep -v "operator new" >> ${file}.h
-      else
-            cat $ROOTSYS/include/$arg >> ${file}.h
-      fi
-done
+command="./make_${file}.h.py"
+echo -e "\n>>>>>>> $command" ; $command
 
 cat $ROOTSYS/include/TSelector.h >> ${file}.h
       
-#AMSDir="/afs/ams.cern.ch/Offline/vdev"
-
 cat <<EOF >> ${file}.h
 #define __WRITEROOT__
 #define __ROOTPOINTERS__
@@ -104,5 +102,5 @@ echo -e "\n>>>>>>> $command" ; $command
 echo -e "\nAMSRoot object files ... \n"
 command="cd $AMSWD/install"
 echo -e "\n>>>>>>> $command" ; $command
-command="gmake shared"
+command="gmake static"
 echo -e "\n>>>>>>> $command" ; $command

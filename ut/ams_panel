@@ -130,6 +130,10 @@ bind .top.t2.edit <Return> {
         open "|$XEDITOR $AMSDir/F/$file"
     } elseif {![catch {open "$AMSDir/doc/$file" r} EditInput]} {
         open "|$XEDITOR $AMSDir/doc/$file"
+    } elseif {![catch {open "$AMSDir/install/$file" r} EditInput]} {
+        open "|$XEDITOR $AMSDir/install/$file"
+    } elseif {![catch {open "$AMSDir/examples/$file" r} EditInput]} {
+        open "|$XEDITOR $AMSDir/examples/$file"
     } elseif {![catch {open "$AMSDir/$file" r} EditInput]} {
         open "|$XEDITOR $AMSDir/$file"
     } elseif {![catch {open "$file" r} EditInput]} {
@@ -141,6 +145,8 @@ bind .top.t2.edit <Return> {
         $log insert end ">   \$AMSDir/include/$file\n"
         $log insert end ">   \$AMSDir/F/$file\n"
         $log insert end ">   \$AMSDir/doc/$file\n"
+        $log insert end ">   \$AMSDir/install/$file\n"
+        $log insert end ">   \$AMSDir/examples/$file\n"
         $log insert end ">   \$AMSDir/$file\n"
         $log insert end ">   $file\n"
         $log insert end "\n>\n"
