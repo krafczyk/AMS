@@ -39,6 +39,14 @@ my %fields=(
         
     }elsif($self->{q}->param("Control")){
         $self->{read}=2;
+        my $pass=$self->{q}->param("password");
+        my $crypt=crypt($pass,"ams");
+        if($crypt ne "amGzkSRlnSMUU"){
+                  Warning::error($self->{q},
+                  "User authorization failed");
+                   return;
+
+                }
         $self->{Control} =$self->{q}->param("Objects2Control");
     }
     else{
@@ -125,6 +133,7 @@ sub Update{
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="ServerClient" >Server Nominal Client<BR>
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="ServerHost" >Server Nominal Host<BR>
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="Killer" >Server Nominal Killer<BR>
+Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
 `;
         print $q->submit(-name=>"Control", -value=>"SubmitRequest");
         print $q->end_form();
