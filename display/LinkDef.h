@@ -1,4 +1,4 @@
-//  $Id: LinkDef.h,v 1.7 2003/07/08 16:25:12 choutko Exp $
+//  $Id: LinkDef.h,v 1.8 2003/07/17 16:38:53 choutko Exp $
 #ifdef __CINT__
 
 #pragma link off all globals;
@@ -9,6 +9,7 @@
 #pragma link C++ global gAMSUserFunction;
 
 #pragma link C++ class AMSDisplay+;
+#pragma link C++ class TMarker3DCl+;
 #pragma link C++ class AMSNtupleV+;
 #pragma link C++ class AMSNtupleR+;
 #pragma link C++ class AMSEventR+;

@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.5 2003/07/16 12:36:49 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.6 2003/07/17 16:38:53 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -83,7 +83,13 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
          break;
         case 7014:
          type=kgeometry;
-         break;
+          break;
+        case 7015:
+         gAMSDisplay->ShowTrClProfile()=!_pvis[parm1%100-1]->GetState();
+         gAMSDisplay->GetNtuple()->Prepare(ktrclusters);
+         gAMSDisplay->SetView(gAMSDisplay->GetView());
+         gAMSDisplay->DrawTitle();
+         return true;
       }
       if(parm1/1000==7){
         gAMSDisplay->SetVisible(type, _pvis[parm1%100-1]->GetState());
@@ -326,12 +332,13 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     _pvis.push_back(new TGCheckButton(_pvisfr,"Particles",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"MC Info",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"Geometry",marker++));
+    _pvis.push_back(new TGCheckButton(_pvisfr,"TrClustersAsBoxes",marker++));
     for(int i=0;i<_pvis.size();i++){
          _pvis[i]->ChangeBackground(tggcolor);
          _pvisfr->AddFrame(_pvis[i],fL1);
          _pvis[i]->Associate(this);
     }
-    for(int i=1;i<_pvis.size();i++){
+    for(int i=1;i<_pvis.size()-1;i++){
      _pvis[i]->SetState(kButtonDown);
     }
      gAMSDisplay->SetVisible(kusedonly,_pvis[0]->GetState());
@@ -428,7 +435,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
   
    
     MapSubwindows();
-    Resize(150,768);
+    Resize(158,768);
 
    // position relative to the parent's window
     Window_t wdum;

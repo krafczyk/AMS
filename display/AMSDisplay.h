@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.12 2003/07/16 12:36:49 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.13 2003/07/17 16:38:53 choutko Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -54,6 +54,7 @@ private:
    EAMSR_View            m_View;		     //view
    bool                  m_zoom;
    bool m_idle;                              // idleing
+   bool m_trclpr;
    TApplication *m_theapp;                   //  application
    TGeometry          *m_Geometry;	     //Pointer to the geometry
    AMSR_GeometrySetter          *m_geosetter;	     //Pointer to the geometry
@@ -123,6 +124,7 @@ public:
            void        DrawTitle(Option_t *option="");
            void        DrawCaption(Option_t *option="");
            void        DrawAxis(Int_t index=0, Option_t *option="");
+    bool & ShowTrClProfile(){return m_trclpr;}
     void        DrawView(Double_t theta=9999, Double_t phi=9999, Int_t index=0);
     void        DrawViewGL();
     void        DrawViewX3D();

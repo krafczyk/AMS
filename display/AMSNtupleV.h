@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.6 2003/07/11 09:36:58 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.7 2003/07/17 16:38:53 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -15,6 +15,7 @@
 #include <THelix.h>
 #include "../online/AMSNtuple.h"
 #include "AMSDisplay.h"
+#include "TMarker3DCl.h"
 class AMSDrawI{
 public:
 int fRef;   ///<  Reference to corr in element in stlvector
@@ -73,19 +74,33 @@ char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pTofCluster(fRef)->I
 
 
 };
-class TrRecHitV: public AMS3DMarker, public AMSDrawI{
+class TrRecHitV: public TMarker3DCl, public AMSDrawI{
 protected:
 public:
-TrRecHitV():AMSDrawI(NULL,-1),AMS3DMarker(){};
-TrRecHitV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),AMS3DMarker(){
+TrRecHitV():AMSDrawI(NULL,-1),TMarker3DCl(){};
+TrRecHitV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
  TrRecHitR *pcl=ev->pTrRecHit(ref);
 int size=gAMSDisplay->Focus()==0?2:1;
 if(pcl){
   SetSize(pcl->EHit[0]<0.5?pcl->EHit[0]*100:pcl->EHit[0],pcl->EHit[1]*100,sqrt(pcl->Sum/10)<6?sqrt(pcl->Sum/10
 ):8);
-  SetPosition(pcl->Hit[0],pcl->Hit[1],pcl->Hit[2]);
+  SetPosition(pcl->Hit[0],pcl->Hit[1],pcl->Hit[2]+fDz);
   SetDirection(0,0);
+  if(gAMSDisplay->ShowTrClProfile()){
+   float x[20];
+  if(pcl->pTrCluster('y')){
+    for (int k=0;k<pcl->pTrCluster('y')->Amplitude.size();k++)x[k]=pcl->pTrCluster('y')->Amplitude[k]/(pcl->pTrCluster('y')->Sum+1.e-20);
+    SetProfileY(pcl->pTrCluster('y')->Amplitude.size(),x);
+    SetShowProfileY(true);
+  }
+  if(pcl->pTrCluster('x')){
+    for (int k=0;k<pcl->pTrCluster('x')->Amplitude.size();k++)x[k]=pcl->pTrCluster('x')->Amplitude[k]/(pcl->pTrCluster('x')->Sum+1.e-20);
+    SetProfileX(pcl->pTrCluster('x')->Amplitude.size(),x);
+    SetShowProfileX(true);
+  }
+  }
 }
+   
    SetLineWidth(size);
    SetLineColor(4);             // blue
    SetFillColor(4);

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.11 2003/07/16 12:36:49 choutko Exp $
+#  $Id: Makefile,v 1.12 2003/07/17 16:38:54 choutko Exp $
 
 PLATFORM      =  Linux
 
@@ -7,6 +7,7 @@ CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOT
 OPT           = -O2
 OPTC          = -O0
 NOOPT         = -g
+NOOPTC         = -g
 LD            = g++
 LDFLAGS       = -g 
 
@@ -22,6 +23,7 @@ ROOTH         = TTree.h TFile.h TH1.h
 SRCS          = TGRunEventDialog.cxx \
                 ControlFrame.cxx \
                 AMSNtupleV.cxx \
+                TMarker3DCl.cxx 
 
 SRCSN          = AMSR_GeometrySetter.cxx \
                  AMSDisplay.cxx \
@@ -34,6 +36,7 @@ HDRS          =  ../include/root_RVS.h\
                 AMSR_GeometrySetter.h \
                 AMSR_Axis.h \
                 TGRunEventDialog.h \
+                TMarker3DCl.h \
                 LinkDef.h
 PREFIX        = $(AMSWD)/display/
 DICT          = AMSCint.cxx
@@ -117,7 +120,7 @@ $(OBJSR): $(PREFIX)%.o : ../CC/%.C
 	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(OBJSN): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
+	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(OBJSC): $(PREFIX)%.o : ../online/%.cxx 
 	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)

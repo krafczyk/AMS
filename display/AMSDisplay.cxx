@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.25 2003/07/16 12:36:49 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.26 2003/07/17 16:38:53 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -47,6 +47,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple):
      m_selected=0;
      m_scale=1;   
      m_chain=0; 
+     m_trclpr=true;
  
    // Initialize display default parameters
     SetGeometry(geo);
@@ -718,7 +719,7 @@ switch (type){
 
 
 void AMSDisplay::Init(){
-   m_ControlFrame= new AMSControlFrame(gClient->GetRoot(), (TRootCanvas*)m_Canvas->GetCanvasImp(), 400, 200);
+   m_ControlFrame= new AMSControlFrame(gClient->GetRoot(), (TRootCanvas*)m_Canvas->GetCanvasImp(), 400, 220);
    m_Canvas->Update();
 }
 
