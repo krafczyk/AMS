@@ -6,7 +6,7 @@
 #include <cern.h>
 #include <amsdbc.h>
 #include <time.h>
-const integer STATUSSIZE=50000;
+const integer STATUSSIZE=48500;
 const integer MAXDAQRATE=1500;
 class AMSStatus : public AMSNode {
 protected:
