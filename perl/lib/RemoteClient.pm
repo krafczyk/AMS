@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.219 2003/11/17 11:52:00 choutko Exp $
+# $Id: RemoteClient.pm,v 1.220 2003/11/18 09:46:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -755,7 +755,6 @@ $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
                    $ref->{sqlserver}->Update($sql);
                    $ref->{dbfile}=$dbfile;
                    $ref->{IORP}=undef;
-                   
                }  
              }
              catch CORBA::SystemException with{
@@ -2647,12 +2646,13 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
              $sql="select cid from Cites";
              $ret=$self->{sqlserver}->Query($sql);
              $cid=$ret->[$#{$ret}][0]+1;
-             if($cid>16){
+             if($cid>32){
                  my $error=" Too many Cites. Your request will not be procedeed.";
                  $self->sendmailerror($error,"$cem");
                  $self->ErrorPlus("$error");
+                 return;
              }
-             my $run=(($cid-1)<<27)+1;
+             my $run=(($cid-1)<<26)+1;
              my $time=time();
              my $citedesc = "new cite";
              $sql="insert into Cites values($cid,'$cite',0,'remote',$run,0,'$citedesc',$time,0)";
