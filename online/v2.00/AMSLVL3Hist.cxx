@@ -77,7 +77,7 @@ gPadSave->cd();
 
 void AMSLVL3Hist::Fill(AMSNtuple * ntuple){
   if(ntuple->_LVL3.nlvl3 ){
-    _filled2[0]->Fill(ntuple->_LVL3.TrackerTr,1.);
+    _filled2[0]->Fill((ntuple->_LVL3.TrackerTr%32),1.);
     if(ntuple->_LVL3.TOFTr){
      _filled2[1]->Fill(ntuple->_LVL3.NtrHits,1.);
      if(ntuple->_LVL3.NPat){
@@ -86,8 +86,8 @@ void AMSLVL3Hist::Fill(AMSNtuple * ntuple){
         } 
     }
     if(ntuple->_AxAMS.npart){
-     if(ntuple->_AxAMS.pmom[0]*ntuple->_AxAMS.beta[0] > 0)_filled2[4]->Fill(ntuple->_LVL3.TrackerTr,1.);
-     else _filled2[5]->Fill(ntuple->_LVL3.TrackerTr,1.);
+     if(ntuple->_AxAMS.pmom[0]*ntuple->_AxAMS.beta[0] > 0)_filled2[4]->Fill((ntuple->_LVL3.TrackerTr%32),1.);
+     else _filled2[5]->Fill((ntuple->_LVL3.TrackerTr%32),1.);
     }
   }
 }

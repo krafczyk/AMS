@@ -1506,7 +1506,7 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
           
        if( (  (ptrack->Fit(0) < 
             TRFITFFKEY.Chi2FastFit)) && ptrack->TOFOK()){
-         if(!TRFITFFKEY.FastTracking)ptrack->AdvancedFit();
+         if(TRFITFFKEY.FastTracking<2)ptrack->AdvancedFit();
          // permanently add;
 #ifdef __UPOOL__
           ptrack=new AMSTrTrack(track);

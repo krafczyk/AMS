@@ -84,7 +84,7 @@ out:
 
 
    printf("opening file %s...\n", fnam);
-  AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Online Display",&f);
+  AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Offline Display",&f);
   AMSAntiHist  antih("ANTI","Anti counter Hists",1,1);
   amd->AddSubDet(antih);
   AMSTrackerHist  trackerh("Tracker","Tracker  Hists",7,1);
