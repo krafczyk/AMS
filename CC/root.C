@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.64 2004/01/26 14:35:24 alcaraz Exp $
+//  $Id: root.C,v 1.65 2004/01/27 10:39:59 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2259,7 +2259,7 @@ void AMSEventR::UProcessFill(){
 void AMSEventR::UTerminate(){
 }
 
-unsigned int AMSChain::Add(const char* filename) {
+void AMSChain::Add(const char* filename) {
       TChain::Add(filename);
       if (_EVENT==NULL) {
             _EVENT = new AMSEventR;

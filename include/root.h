@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.128 2004/01/26 14:35:28 alcaraz Exp $
+//  $Id: root.h,v 1.129 2004/01/27 10:40:01 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -3049,7 +3049,7 @@ public:
             if (_EVENT) delete _EVENT;
       };
 
-      unsigned int Add(const char* filename); ///<Add an AMS ROOT file to the chain
+      void Add(const char* filename); ///<Add an AMS ROOT file to the chain
       int GetEntries(); ///<Number of data entries being analyzed
 
       AMSEventR* GetEntry(Int_t entry=0); ///<Get AMSEventR at position "entry"
