@@ -1,0 +1,197 @@
+# Init DB exe file
+#
+# V0.0     May 1996. A.Klimentov
+# 
+# AIX/OSF1 Sep 18, 1996. ak/vs
+# Last Edit : Sep 22, 1996. ak
+#
+#
+
+#
+SHELL=/bin/sh
+#
+ifeq  "$(shell uname)"  "AIX"
+BIN_DB          = ../db/bin/aix/
+BIN             = ../bin/aix
+EXE             = ../exe/aix/
+
+CFLAGS= -D__AMSDEBUG__  -D__BATCH__ -g   
+FFLAGS=   -g -I../include -qextname -d
+DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include -I/usr/lpp/xlC/include -I../include -I../include/stl
+GLIBS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/pro/lib  -lgeant321 -lmathlib\
+        -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag
+
+
+CC=xlC
+FF=xlf
+LD=xlC
+TIMEL=../bin/aix/timel.o
+
+include config.user_ibmrs6000
+
+INC_OODDL      = /usr/lpp/xlC/include
+
+endif
+
+ifeq  "$(shell uname)"  "OSF1"
+BIN_DB          = ../db/bin/osf1/
+BIN             = ../bin/osf1
+EXE             = ../exe/osf1/
+
+CFLAGS= -D__AMSDEBUG__  -D__BATCH__ -D__ALPHA__ -D__APOOL__ -define_templates
+
+FFLAGS=   -g -I../include  -d -static -nofor_main -convert big_endian
+DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl \
+         -I/usr/include/cxx
+
+GLIBS = -g -lUfor   -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag
+
+CC=cxx
+FF=f77
+LD=cxx
+TIMEL=../bin/osf1/timel.o
+
+include config.user_alphaosf1
+
+endif
+
+
+#########################
+#                       #
+# Configuration Section #
+#                       #
+#########################
+
+#include config.user
+include config.$(ARCH)
+
+#########################
+#                       #
+# Program Executables   #
+#                       #
+#########################
+
+LMS	= $(EXE)lmsInit
+
+#########################
+#                       #
+# Schema Files          #
+#                       #
+#########################
+
+
+#########################
+#                       #
+# Program Source        #
+#                       #
+#########################
+
+LMS_SRCS	= lmsInit.C  ooSession.C  ooStats.C        
+LMS_OBJS	= $(BIN_DB)lmsInit.o $(BIN_DB)ooSession.o  $(BIN_DB)ooStats.o
+
+#########################
+#                       #
+# Program Directories   #
+#                       #
+#########################
+
+INC_DIR		= $(INSTALL_DIR)/$(ARCH)/include
+LIB_DIR		= $(INSTALL_DIR)/$(ARCH)/lib
+BIN_DIR		= $(INSTALL_DIR)/$(ARCH)/bin
+
+INC_AMS         = ../include
+INC_STL         = ../include/stl
+INC_DDL         = ../db 
+
+#########################
+#                       #
+# Objectivity Tools	#
+#                       #
+#########################
+
+OODDL		= $(BIN_DIR)/ooddlx
+OONEWFD		= $(BIN_DIR)/oonewfd
+OODELETEFD	= $(BIN_DIR)/oodeletefd
+
+#########################
+#                       #
+# Compile Rules         #
+#                       #
+#########################
+
+INCLUDES = -I$(INC_DIR) -I$(INC_DDL) -I$(INC_AMS) -I$(INC_STL)
+
+.SUFFIXES: .C .ddl
+
+#CFLAGS= -D__AMSDEBUG__  -D__BATCH__ -D__ALPHA
+#
+#.C.o:	
+#	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) -g -c $*.C
+
+#########################
+#                       #
+# Object Files          #
+#                       #
+#########################
+
+#LMS_OBJS	=  $(LMS_SRCS:.C=.o)
+
+#########################
+#                       #
+# Link Rules            #
+#                       #
+#########################
+
+OBJECT_LIBS	= $(LIB_DIR)/liboo.a
+
+
+all:	$(LMS)
+
+$(LMS): $(LMS_OBJS) 
+	$(LD) $(LD_FLAGS) -o $(LMS) $(LMS_OBJS) $(OBJECT_LIBS) 
+
+	chmod +x lmsInit
+
+#########################
+#                       #
+# Schema Rules          #
+#                       #
+#########################
+
+$(BOOT):
+	$(OONEWFD) -fdlocalpath $(BOOT).FDDB -pagesize $(PAGESIZE) -lockserverhost $(LS_HOST) \
+		   -fdnumber $(FDID) $(BOOT)
+
+.ddl.h: 
+	$(OODDL) -D__DECCXX $(INCLUDES) $*.ddl $(BOOT)
+
+$(SCHEMA_DDL:.ddl=.h): $(BOOT)
+
+#########################
+#                       #
+# Other Rules           #
+#                       #
+#########################
+
+clean:
+	rm -rf $(LMS) $(LMS_OBJS) $(SCHEMA_SRCS) $(SCHEMA_HDRS) Templates.DB
+	$(OODELETEFD) -force $(BOOT)
+
+#########################
+#                       #
+# Dependencies		#
+#                       #
+#########################
+
+ $(BIN_DB)lmsInit.o :    ../db/lmsInit.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) -c ../db/lmsInit.C \
+                                                -o $(BIN_DB)lmsInit.o
+
+ $(BIN_DB)ooSession.o:   ../db/ooSession.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) -c ../db/ooSession.C \
+                                                -o $(BIN_DB)ooSession.o
+ $(BIN_DB)ooSession.o:      ooSession.h  ooStats.h
+ $(BIN_DB)ooStats.o:   ../db/ooStats.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) -c ../db/ooStats.C \
+                                                -o $(BIN_DB)ooStats.o
+ $(BIN_DB)ooStats.o:        ooStats.h

@@ -1,0 +1,36 @@
+Geometrical setup is defined thru  AMSJob.Setupname datacard (see datacards.doc)
+
+
+Rules & valid cards:
+
+each (sub) detector entry is prefixed by 3 symbol detector abbreviation.
+
+Valid prefixes:
+
+AMS  - whole detector
+
+TOF  - time of flight counter
+
+ANT  - anti coincidence counter
+
+STR  - silicon trackert
+
+CTC  - threshold cerenkov counter
+
+TRD  - transition radiation detector
+
+PSH  - plastic shield + AMS support structure
+
+Valid entries (on  26/09/96)
+
+
+AMS:
+AMSSHUTTLE(Default)/AMSSTATION       - shuttle/station 
+
+STR:
+STRPLANES(Default)/STRTUBES          -  planes/tubes   
+
+CTC:
+CTCHor(Default)/CTCVer/CTCSimple     - horizontal/vertical/simplified  CTC readout
+
+ 

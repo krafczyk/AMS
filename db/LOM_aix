@@ -1,0 +1,5 @@
+ooFDNumber=777
+ooPageSize=8192
+ooLockServerName=sp056.cern.ch
+ooFDDBHost=sp056.cern.ch
+ooFDDBFileName=/afs/cern.ch/user/a/alexei/AMS/db/LOM.FDDB

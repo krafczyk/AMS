@@ -1,0 +1,19 @@
+
+CFLAGS="-g -I../include -I../include/stl"
+
+LDFLAGS="../bin/gbatch.o  ../bin/amstkshc++.o -lxlf90 -lxlf -L../lib -lams -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df "
+
+
+xlC -c $CFLAGS ../CC/$1.C -o ../bin/$1.o
+
+xlC -o ../exe/$1.exe  ../bin/$1.o $LDFLAGS
+
+chmod +x ../exe/$1.exe
+
+
+
+
+#
+# Geant batch install prototype
+#
+#

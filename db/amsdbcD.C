@@ -1,0 +1,202 @@
+// Oct 07, 1996. ak. first try with Objectivity
+//                   method source file of object AMSDBcD
+//
+// Last Edit : Oct 14, 1996. ak.
+//
+
+#include <iostream.h>
+#include <string.h>
+#include <cern.h>
+
+
+#include <amsdbc.h>
+#include <amsdbcD.h>
+//
+
+AMSDBcD:: AMSDBcD() 
+{
+  integer i, j;
+
+  _maxstripsD = AMSDBc::_maxstrips;
+  _nlayD      = AMSDBc::_nlay;
+  _maxnladD   = AMSDBc::_maxnlad;
+
+  for (i = 0; i<nl; i++) {
+    for (j=0; j<5; j++) {
+      _laydD[i][j] = AMSDBc::_layd[i][j];
+    }
+  }
+
+  for (i=0; i<nl; i++) {
+   _zposlD[i] = AMSDBc::_zposl[i];
+   _nladD[i]  = AMSDBc::_nlad[i];
+   _ntubeD[i] = AMSDBc::_ntube[i];
+   _zposD[i]  = AMSDBc::_zpos[i];
+   _c2cD[i]   = AMSDBc::_c2c[i];
+   _tube_inner_diaD[i]  = AMSDBc::_tube_inner_dia[i];
+   _silicon_zD[i]  = AMSDBc::_silicon_z[i];
+   _tube_wD[i]  = AMSDBc::_tube_w[i];
+
+  }
+
+  for (i = 0; i<nl; i++) {
+    for (j=0; j<nld; j++) {
+      _nsenD[i][j]  = AMSDBc::_nsen[i][j];
+      _nhalfD[i][j] = AMSDBc::_nhalf[i][j];
+    }
+  }
+
+  for (i = 0; i<nl; i++) {
+    for (j=0; j<2; j++) {
+      _ssize_activeD[i][j]    = AMSDBc::_ssize_active[i][j];
+      _ssize_inactiveD[i][j]  = AMSDBc::_ssize_inactive[i][j];
+      _nstripssenD[i][j]      = AMSDBc::_nstripssen[i][j];
+      _nstripsdrpD[i][j]      = AMSDBc::_nstripsdrp[i][j];
+      _zelecD[i][j]           = AMSDBc::_zelec[i][j];
+    }
+  }
+
+  raddegD = AMSDBc::raddeg;
+  piD     = AMSDBc::pi;
+
+  for (i=0; i<3; i++) {
+   ams_sizeD[i] = AMSDBc::ams_size[i];
+   ams_cooD[i]  = AMSDBc::ams_coo[i];
+  }
+
+  BADD = AMSDBc::BAD;
+  USEDD= AMSDBc::USED;
+  if(AMSDBc::ams_name) strcpy (ams_nameD,AMSDBc::ams_name);  
+}
+
+ooStatus AMSDBcD::CmpConstants() 
+{
+  integer i, j;
+  ooStatus rstatus = oocSuccess;  
+
+  if ( (_maxstripsD != AMSDBc::_maxstrips) ||
+       (_nlayD != AMSDBc::_nlay)           ||
+       (_maxnladD != AMSDBc::_maxnlad)) {
+      rstatus = oocError;
+      cout<<" _maxstrips, _nlay, _maxnlad "
+          << _maxstripsD<<" "<<_nlayD<<" "<<_maxnladD<< endl;
+      cout<<" _maxstrips, _nlay, _maxnlad "
+          << AMSDBc::_maxstrips<<" "<<AMSDBc::_nlay<<" "<<AMSDBc::_maxnlad 
+          << endl;
+  }
+
+  for (i = 0; i<nl; i++) {
+    for (j=0; j<5; j++) {
+      if(_laydD[i][j] != AMSDBc::_layd[i][j]) 
+        {
+         rstatus = oocError;
+         cout <<"layd "<<_laydD[i]<<" "<<AMSDBc::_layd[i]<<endl;
+         break;
+        }
+    }
+  }
+
+  for (i=0; i<nl; i++) {
+    if((_zposlD[i] != AMSDBc::_zposl[i]) ||
+       (_nladD[i]  != AMSDBc::_nlad[i])  ||
+       (_ntubeD[i] != AMSDBc::_ntube[i]) ||
+       (_zposD[i]  != AMSDBc::_zpos[i])  ||
+       (_c2cD[i]   != AMSDBc::_c2c[i])   ||
+       (_tube_inner_diaD[i]  != AMSDBc::_tube_inner_dia[i]) ||
+       (_silicon_zD[i]  != AMSDBc::_silicon_z[i]) ||
+       (_tube_wD[i] != AMSDBc::_tube_w[i]) )
+      {
+        rstatus = oocError;
+        cout<<"zposl "<<_zposlD[i]<<" "<<AMSDBc::_zposl[i]<<endl;
+        cout<<"nlad "<<_nladD[i] <<" "<<AMSDBc::_nlad[i]<<endl;
+        cout<<"ntube "<<_ntubeD[i]<<AMSDBc::_ntube[i]<<endl;
+        cout<<"zpos "<<_zposD[i]<<" "<<AMSDBc::_zpos[i]<<endl;
+        cout<<"c2c "<<_c2cD[i]<<" "<<AMSDBc::_c2c[i]<<endl;
+        cout<<"tube_inner_dia"
+            <<_tube_inner_diaD[i]<<AMSDBc::_tube_inner_dia[i]<<endl;
+        cout<<"silicon z"<<_silicon_zD[i]<<" "<<AMSDBc::_silicon_z[i]<<endl;
+        cout<<"tube_w"<<_tube_wD[i]<<" "<<AMSDBc::_tube_w[i]<<endl;
+        break;
+      }
+  }
+
+  for (i = 0; i<nl; i++) {
+    for (j=0; j<nld; j++) {
+     if( (_nsenD[i][j]  != AMSDBc::_nsen[i][j]) ||
+         (_nhalfD[i][j] != AMSDBc::_nhalf[i][j]) )
+      {
+        rstatus = oocError;
+        cout<<"nsen "<<_nsenD[i][j]<<" "<<AMSDBc::_nsen[i][j]<<endl;
+        cout<<"nhalf "<<_nhalfD[i][j]<<" "<<AMSDBc::_nhalf[i][j]<<endl;
+        break;
+      }
+    }
+  }
+
+  for (i = 0; i<nl; i++) {
+    for (j=0; j<2; j++) {
+     if( (_ssize_activeD[i][j]  != AMSDBc::_ssize_active[i][j]) ||
+         (_ssize_inactiveD[i][j]  != AMSDBc::_ssize_inactive[i][j]) ||
+         (_nstripssenD[i][j]      != AMSDBc::_nstripssen[i][j]) ||
+        (_nstripsdrpD[i][j]      != AMSDBc::_nstripsdrp[i][j]) ||
+        (_zelecD[i][j]           != AMSDBc::_zelec[i][j]) )
+      {
+        rstatus = oocError;
+        cout<<"ssize_acive "<<_ssize_activeD[i][j]
+            <<AMSDBc::_ssize_active[i][j]<<endl;
+        cout<<"ssize_inactive "<<_ssize_inactiveD[i][j]
+            <<AMSDBc::_ssize_inactive[i][j]<<endl;
+        cout<<"nstripssed "<<_nstripssenD[i][j]
+            <<AMSDBc::_nstripssen[i][j]<<endl;
+          cout<<"nstripsdrp "<<_nstripsdrpD[i][j]
+              <<AMSDBc::_nstripsdrp[i][j]<<endl;
+        cout<<"zelec "<<_zelecD[i][j]<<AMSDBc::_zelec[i][j]<<endl;
+        break;
+      }
+    }
+  }
+
+  if ( (raddegD != AMSDBc::raddeg) ||
+        (piD != AMSDBc::pi) )
+    {
+      rstatus = oocError;
+      cout<<"raddeg "<<raddegD<<" "<<AMSDBc::raddeg<<endl;
+      cout<<"pi "<<piD<<" "<<AMSDBc::pi<<endl;
+    }
+
+  for (i=0; i<3; i++) {
+   if (
+       (ams_sizeD[i] != AMSDBc::ams_size[i]) ||
+       (ams_cooD[i]  = AMSDBc::ams_coo[i]) )
+      {
+        cout<<"ams_size "<<ams_sizeD[i]<<" "
+            <<AMSDBc::ams_size[i]<<endl;
+        cout<<"ams_coo "<<ams_cooD[i]<<" "<<AMSDBc::ams_coo[i]
+            <<endl;
+        rstatus = oocError;
+        break;
+      }
+  }
+  return rstatus;
+}
+
+integer AMSDBcD::activeladdshuttle(int i,int j){
+
+ // Shuttle ladders 
+
+ if( i==1){
+  if(j>=7 && j<=10) return 1;
+  else return 0;
+ }
+ if( i>1 && i<6){
+  if(j>=5 && j<=10) return 1;
+  else return 0;
+ }
+ if( i==6){
+  if(j>=8 && j<=10) return 1;
+  else return 0;
+ }
+ else return 0;
+}
+
+

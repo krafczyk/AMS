@@ -1,0 +1,4 @@
+get.f     // example of ntpl reading from PAW
+sh0.job   // datacards example (see also ../doc/datacards.doc)
+sh_ll.job // cards for sp2 loadlevel 
+shel.job  // datacards for low energy electron noise simulation

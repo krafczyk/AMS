@@ -1,0 +1,65 @@
+#
+SHELL=/bin/sh
+#
+ifeq  "$(shell uname)"  "AIX" 
+CFLAGS= -D__AMSDEBUG__   -g   -I../include -I../include/stl
+LDFLAGS= ..$(BIN)/rndm.o -lxlf90 -lxlf -L/cern/pro/lib  -lgeant321 -lpawlib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag 
+CC=xlC
+FF=xlf
+LD=xlC
+BIN=/bin/aix
+EXE=/exe/aix
+TIMEL=../bin/aix/timel.o
+endif
+ifeq  "$(shell uname)"  "OSF1" 
+CFLAGS= -D__AMSDEBUG__   -D__ALPHA__ -g   -I../include -I../include/stl -define_templates 
+LDFLAGS= ..$(BIN)/rndm.o -lUfor -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321  -lpawlib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag 
+CC=cxx
+FF=f77
+LD=cxx
+BIN=/bin/osf1
+EXE=/exe/osf1
+TIMEL=../bin/osf1/timel.o 
+endif
+ifeq  "$(shell uname)"  "HP-UX" 
+CFLAGS= -D__AMSDEBUG__  -fhandle-exceptions -g   -I../include -I../include/stl 
+FFLAGS= -g -K +ppu 
+LDFLAGS=  -L/cern/pro/lib  -lgeant321 -lpawlib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/lib -L/usr/local/lib -L/usr/lib/Motif1.1 -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/hp700_ux100/nagfl16df -lnag -L/usr/local/lib -lg++ -lstdc++  -lcl -lisamstub
+CC=g++
+FF=f77
+LD=gcc
+BIN=/bin/hpux
+EXE=/exe/hpux
+TIMEL=
+endif
+#
+OBJECTS= ..$(BIN)/gxint.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geanti.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o  ..$(BIN)/tofrec.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o  ..$(BIN)/gi.o ..$(BIN)/gi2.o ..$(BIN)/tofdbc.o ..$(BIN)/apool.o ..$(BIN)/ctcrec.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofsim.o
+
+gxint.exe:	$(OBJECTS)
+	$(LD) -o ..$(EXE)/gxint.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
+
+..$(BIN)/gxint.o:	../CC/gxint.C
+	$(CC) -c $(CFLAGS) ../CC/gxint.C -o ..$(BIN)/gxint.o
+
+
+..$(BIN)/geanti.o:      ../CC/geant.C
+	$(CC) -c $(CFLAGS) ../CC/geant.C -o ..$(BIN)/geanti.o
+
+..$(BIN)/gi2.o:      ../CC/gi2.C
+	$(CC) -c $(CFLAGS) ../CC/gi2.C -o ..$(BIN)/gi2.o
+
+..$(BIN)/gi.o:      ../F/gi.F
+	$(FF) -c $(FFLAGS) ../F/gi.F -o ..$(BIN)/gi.o
+
+
+
+depend: 	
+	makedepend -f Mgxint -- $(CFLAGS) -- $(FILES) -p..$(BIN)/
+
+
+
+
+
+        
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.

@@ -1,0 +1,2 @@
+gmake depend -f $1
+gmake -i -f $1

@@ -1,0 +1,44 @@
+class AMSTOFCluster: public AMSlink{
+protected:
+ static AMSTOFCluster *_Head[4];  // Cash for containers pointers
+ integer _status;                 // status
+ integer _ntof;                   // TOF counter plane No
+ integer _plane;   // bar number 
+ number _edep;  // energy deposition in MeV
+ AMSPoint _Coo;    // coordinates
+ AMSPoint _ErrorCoo; // Error to coordinates
+ number _time;   // Time of flight
+ number _etime;  // Error in Time of flight
+void _copyEl();
+public:
+static const integer BAD;    // bad vluster
+static const integer USED;   // used cluster
+// Get
+ integer checkstatus(integer checker) const{return _status & checker;}
+
+
+ integer getplane()const {return _plane;}
+
+ number gettime()const {return _time;}
+
+ number getetime()const {return _etime;}
+
+ number getedep()const {return _edep;}
+
+ AMSPoint getcoo()const {return _Coo;}
+
+ AMSPoint getecoo()const {return _ErrorCoo;}
+
+ // Set 
+
+ inline void setstatus(integer status){_status=_status | status;}
+
+ AMSTOFCluster(integer status, integer ntof, integer plane, number edep,
+ AMSPoint coo, AMSPoint ecoo, number time, number etime) // int ctor
+
+ static void build();  // makes clusters
+
+ static void print();  // prints clusters
+
+ static AMSTOFCluster * gethead(integer i=0)  // Returns first element of 
+                                              // the corr container

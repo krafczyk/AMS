@@ -1,0 +1,196 @@
+Datacards
+
+//General 
+          
+AMSJOB  
+I 1  Jobtype(0)      //0 - simulation ; 1 - Reconstruction
+I 2  Debug(1)        // 0 - Off   ; 1 - On
+R 3  CpuLimit(60.)   // CpuLimit in native sec per event
+I 4  Read(0)         // 0 - Off   ; 1 - On
+I 5  Write(1)        //  0 - Off   ; 1 - On
+I 6  Jobname(' ')    // Jobname == "DBFILE name"(<160 bytes)
+I46  Setupname(' ')  // Setupname == Setup Name (<160 bytes)
+                     // see setup.doc for details
+
+//IO
+
+IOPA 
+I 1    hlun(0)                   // 0 - Noutput ; >0 - Lun
+I 2    hfile(' ')                // Output file name
+I42    ntupleId(1)               // Ntuple Id
+I43    WriteAll(0)               // Flag to write all or  "used only" objects
+I44    TriggerI(1)               // Container id(s)
+I45    TriggerC('AMSParticle')      to search to write the ntuple 
+
+// TOF  Simulation
+
+TOFMC      
+R 1   TimeSigma(90e-12)       // Time resolution in seconds
+R 2   padl(10.5)               // Pad width in cm
+R 3   Thr(0.1)                 // de Threshold to form raw cluster (MeV)
+
+// CTC  Simulation
+
+CTCGEOM
+R  1   wallth(0.03)             // reflecting wall(separators) thickness(cm)
+R  2   agap(0.02)               // typical "air" gaps
+R  3   wgap(0.01)               // typical wls gaps
+R  4   agsize[3]{120.,90.,10.}  // max aerogel x-size
+R  7   wlsth(0.3)               // WLS thickness
+R  8   hcsize[3]{165.,165.,5.}  // supp. honeycomb plate X-size
+R 11   supzc(-84.)              // supp. honeycomb plate front face Z-pos
+R 12   aegden(0.24)             // aerogel density
+R 13   wlsden(1.03)             // WLS density
+I 14   nblk(12)                 // number of aer. blocks (X-div.)
+I 15   nwls(12)                 // number of wls  blocks (X-div.)
+
+CTCMC      
+R  1   Refraction[2](1.055,1.59) // Refraction indexes
+R  3   Path2PhEl(34.,28.)        // Path to photoelectrons conv factor
+R  5   AbsLengt(4.9, 100)        // Abs length in cm 
+
+// Tracker Cluster  Simulation
+
+TRMC      
+R 1   alpha(230)            // Cluster shower par (see tkmccl.F)
+R 2   beta(2)               // Cluster shower par (see tkmccl.F)
+R 3   gamma(0.13)           // Cluster shower par (see tkmccl.F)
+R 4   fastswitch(5.e-5)     // Switch between fast and slow algos
+R 5   dedx2nprel(.33e6)     // dedx to number of primary electrons
+R 6   ped[2](100,100)       // pedestals for x & y
+R 8   gain[2](1,1)          // gains for x & y
+R10   sigma[2](3,2.15)      // noise for x & y
+R12   thr[2](10,10)         // threshold to save cluster
+R14   neib[2)(2,2)          // number of neibours from one side
+R16   cmn[2](50,50)         // common noise for x & y
+
+
+// MC particle generation
+
+MCGEN
+R 1 coo[2][3](3*-1.e10,3*1.e10)   //make the cube surface the particle 
+                                  //originate from
+R 7 dir[2][3](3*-1.,3*1.)         //Particle Directions range
+R13 momr[2](-1.e10,1.e10)         //Particle momentum range
+I15 fixp(0)                       //fix the cube surface for particle 
+                                  //generation 1 - top, 2-bottom,
+                                  //3,4,5,6 - others
+R16 albedorate(0.01)              //assumed albedo relative rate
+R17 albedocz(0.05)                //assumed min cos(theta) for albedo 
+I18 npat(1)                       //number of particle to generate in one go
+I19 run(100)                      //run number
+
+
+KINE 
+1 IPART        // Geant particle id
+
+RNDM
+1 nrndm1      // initial random seed1
+2 nrmdm2      // initial random seed2
+
+
+// TOF  Reconstruction
+
+TOFREC      
+R 1   Thr1(0.5)                   // Threshold on max element of cluster (MeV)
+R 2   ThrS(1.0)                   // Threshold on  cluster sum (MeV)
+
+// CTC  Reconstruction
+
+CTCREC      
+R 1   Thr1(1.5)                   // Threshold on max element of cluster (phe)
+R 2   ThrS(3.)                   // Threshold on  cluster sum (phe)
+
+// Tracker Clusters Reconstruction
+
+TRCL
+R 1 ThrClA[2](60,60)    // Lower limit for amplitude for cls (x,y)
+R 3 ThrClS[2](10,10)    // Upper limit for sigma     for cls (x,y)
+R 5 ThrClR[2](10,10)    // Lower limit for Amplitude/sigma for cls (x,y)
+R 7 Thr1A[2](40,35)     // Lower limit for ampl for max hit in cluster
+R 9 Thr1S[2](7,7)       // Upper limit for sigma for max hit in cluster
+R11 Thr1R[2](7,5)       // Lower limit for a/sigma for max hit in cluster
+R13 Thr2A[2](8,10)      // Lower limit for ampl for other hits in cluster 
+R15 Thr2S[2](7,7)       // Upper limit for sigma for other hits in cluster 
+R17 Thr2R[2](2.5,3.5)   // Lower limit for a/sigma for other  hits in cluster
+R19 Thr3R[2](-1.,-1)    // reserved 
+I21 ThrClNMin[2](1,2)   // Min Number of hits satisfied the above limits
+I23 ThrClNEl[2](5,5)    // total number hits in the cluster
+R25 ThrDSide(1)         // Upper threshold to (A_x-A_y)/(A_x+A_y)
+R26 ErrZ(30e-4)         // Assumed Error in Z dir
+
+
+// Tracker pattern recognition
+TRFIT
+I 1 Pattern[19](5*1,14*0)
+  //    Number              Descr             Points      Default
+  //    0                   123456            6           on
+  //    1                   12346             5           on
+  //    2                   12356             5           on
+  //    3                   12456             5           on
+  //    4                   13456             5           on
+  //    5                   12345             5           on
+  //    6                   23456             5           off
+  //    7                   1234              4           off
+  //    8                   1235              4           off
+  //    9                   1236              4           off
+  //   10                   1245              4           off
+  //   11                   1246              4           off
+  //   12                   1256              4           off
+  //   13                   1345              4           off
+  //   14                   1346              4           off
+  //   15                   1356              4           off
+  //   16                   2345              4           off
+  //   17                   2346              4           off
+  //   18                   3456              4           off
+I20  UseTOF(1)                    // Use(>=1 == Min No TOF clusters matched)/
+                                  // Not use(0) TOF  for pattern No 16
+R21  Chi2FastFit(10)              // Max  chi2 for tkhmd;
+R22  Chi2StrLine(20)              // The same for Straight line fit
+R23  geant Chi2Circle(20)         // The same for Circle fit
+R24  geant ResCutFastFit(0.5)     // Max residual distance in cm between 
+                                  // point and fitted curve (not yet impl)
+R25  geant ResCutStrLine(0.5)     // --- strline    (not yet impl)
+R26  geant ResCutCircle(0.5)      // --- circlefit  (not yet impl)
+R27  geant SearchRegFastFit(1)    // Max distance in cm between point 
+                                  // and extrarpolated curve to include
+                                  // point in the pattern
+R28  geant SearchRegStrLine(0.5)  // ------- strline fit
+R29  geant SearchRegCircle(1)     // ---------- circle fit
+R30  geant RidgidityMin(0.2)      // Minimal ridgidity in GV     
+
+// Tracker fitting
+
+TKFIT
+R 1 tmaxf(0.2)    // max angle for grkuta   
+R 2 smax(50)      // max step for grkuta
+R 3 fieldm(2)     // max fiels (in kg) for grkuta 
+R 4 cconv(5.e-4)  // conv parameter
+I 5 maxcal(8)     // internal
+I 6 nitm(1000)    // internal
+R 7 xtol(1.e-2)   // internal
+I 8 iver(0)       // internal
+I 9 ialg(1)       // reserved
+R10 steps(0.03)   // internal
+I11 npars(5)      // internal
+I12 ims(1)        // 0 -Multiple scattering accounting off; 1 - on  
+
+
+
+// AMS Global Reconstruction
+
+BETAFIT
+I 1 Pattern[9](5*1,4*0)
+  //    Number              Descr             Points      Default
+  //    0                   1234              4           on
+  //    1                   123               3           on
+  //    2                   124               3           on
+  //    3                   134               3           on
+  //    4                   234               3           on
+  //    5                   13                2           off
+  //    6                   14                2           off
+  //    7                   23                2           off
+  //    8                   24                2           off
+R10 Chi2(3.)       //  Max acceptable chi2 for betafit
+R11 SearchReg[3](3.,3.,3.) // Max distance between track & tof hit in sigma's
+                           // Used also in TOF-track matching for pat # 16

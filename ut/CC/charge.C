@@ -1,0 +1,202 @@
+// Author V. Choutko 5-june-1996
+ 
+#include <beta.h>
+#include <commons.h>
+#include <math.h>
+#include <limits.h>
+#include <amsgobj.h>
+#include <extC.h>
+#include <upool.h>
+#include <charge.h>
+#include <iostream.h>
+#include <fstream.h>
+#include <stdlib.h>
+#include <amsstl.h>
+#include <ntuple.h>
+
+number AMSCharge::_lkhdTOF[ncharge][100];
+number AMSCharge::_lkhdTracker[ncharge][100];
+number AMSCharge::_lkhdStepTOF[ncharge];
+number AMSCharge::_lkhdStepTracker[ncharge];
+integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6};
+integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6};
+char AMSCharge::_fnam[128]="/afs/cern.ch/user/c/choutko/public/lkhd.data";
+void AMSCharge::build(){
+  // charge finding
+  number EdepTOF[4];
+  number EdepTracker[6];
+    int patb;
+    for (patb=0;patb<npatb;patb++){
+     AMSBeta *pbeta=(AMSBeta*)AMSEvent::gethead()->
+     getheadC("AMSBeta",patb);
+     while(pbeta){
+       integer nhitTOF=0;
+       integer nhitTracker=0;
+       AMSTrTrack *ptrack=pbeta->getptrack();
+       number theta;
+       number phi;
+       number sleng;
+       AMSPoint P1;
+       int i;
+       number one=1;
+       for ( i=0;i<4;i++){
+         AMSTOFCluster * pcluster= pbeta->getpcluster(i);
+         if(pcluster){
+#if 1   // change to 0 when eugeni writes the proper code
+         AMSDir ScDir(0,0,1);
+         AMSPoint SCPnt=pcluster->getcoo(); 
+#else   // Eugeni code
+#endif 
+           ptrack->interpolate(SCPnt, ScDir, P1, theta, phi, sleng);
+           AMSDir DTr(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));
+           EdepTOF[nhitTOF]=pcluster->getedep()*
+           min(one,pbeta->getbeta())*
+           min(one,pbeta->getbeta())*fabs(ScDir.prod(DTr));
+           nhitTOF++;
+         }
+       }
+       for (i=0;i<6;i++){
+        AMSTrRecHit *phit=ptrack->getphit(i);
+        if(phit){
+         AMSDir SenDir((phit->getpsen())->getinrm(2,0),
+         (phit->getpsen())->getinrm(2,1),(phit->getpsen())->getinrm(2,2) );
+         AMSPoint SenPnt=phit->getHit();
+           ptrack->interpolate(SenPnt, SenDir, P1, theta, phi, sleng);
+           AMSDir DTr(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));
+           EdepTracker[nhitTracker]=phit->getsum()*
+           pow(min(one,pbeta->getbeta()),2)*fabs(SenDir.prod(DTr));
+         nhitTracker++;
+        }
+       }   
+      addnext(pbeta,nhitTOF,nhitTracker, EdepTOF, EdepTracker);
+      pbeta=pbeta->next();
+     }
+    }
+}
+
+void AMSCharge::addnext(AMSBeta *pbeta , integer nhitTOF, 
+      
+          
+        integer nhitTracker, number EdepTOF[4], number EdepTracker[6]){
+          AMSCharge * pcharge=new AMSCharge(pbeta);
+          pcharge->Fit(nhitTOF, nhitTracker, EdepTOF, EdepTracker );
+          AMSEvent::gethead()->addnext(AMSID("AMSCharge",0),pcharge);
+             
+}
+
+void AMSCharge::Fit(integer nhitTOF, integer nhitTracker,
+                     number EdepTOF[4], number EdepTracker[6]){
+  int i;
+  for( i=0;i<ncharge;i++){
+   _ProbTOF[i]=0;
+   _ProbTracker[i]=0;
+   int j;
+   for ( j=0;j<nhitTOF;j++){
+    integer ia=floor(EdepTOF[j]/_lkhdStepTOF[i]);
+    if(ia<0)ia=0;
+    if(ia>=100)ia=99;
+    _ProbTOF[i]+=-log(_lkhdTOF[i][ia]);
+   }
+   for ( j=0;j<nhitTracker;j++){
+    integer ia=floor(EdepTracker[j]/_lkhdStepTracker[i]);
+    if(ia<0)ia=0;
+    if(ia>=100)ia=99;
+    _ProbTracker[i]+=-log(_lkhdTracker[i][ia]);
+   }
+    
+  }
+  number minTOF=FLT_MAX;
+  number minTracker=FLT_MAX;
+  integer iTOF=0;
+  integer iTracker=0;
+  for(i=0;i<ncharge;i++){
+    if(_ProbTracker[i]<minTracker){
+     iTracker=i;
+     minTracker=_ProbTracker[i];
+    }
+    if(_ProbTOF[i]<minTOF){
+     iTOF=i;
+     minTOF=_ProbTOF[i];
+    }
+   _ProbTOF[i]=exp(-_ProbTOF[i]);
+   _ProbTOF[i]=pow(_ProbTOF[i],1./nhitTOF);
+   _ProbTracker[i]=exp(-_ProbTracker[i]);
+   _ProbTracker[i]=pow(_ProbTracker[i],1./nhitTracker);
+  }
+  _ChargeTOF=_chargeTOF[iTOF];
+  _ChargeTracker=_chargeTracker[iTracker];
+  
+}        
+
+
+void AMSCharge::_writeEl(){
+  // fill the ntuple 
+static integer init=0;
+static ChargeNtuple CN;
+  int i;
+if(init++==0){
+  //book the ntuple block
+  HBNAME(IOPA.ntuple,"Charge",CN.getaddress(),
+  "ChargeEvent:I*4, ChargeBetaP:I*4, ChargeTOF:I*4, ChargeTracker:I*4, ProbTOF(7):R*4, ProbTracker(7):R*4");
+
+}
+  CN.Event()=AMSEvent::gethead()->getid();
+  CN.BetaP=_pbeta->getpos();
+  CN.ChargeTOF=_ChargeTOF;
+  CN.ChargeTracker=_ChargeTracker;
+  for(i=0;i<ncharge;i++)CN.ProbTOF[i]=_ProbTOF[i];
+  for(i=0;i<ncharge;i++)CN.ProbTracker[i]=_ProbTracker[i];
+  HFNTB(IOPA.ntuple,"Charge");
+}
+
+void AMSCharge::_copyEl(){
+}
+
+
+void AMSCharge::print(){
+ AMSContainer *p =AMSEvent::gethead()->getC("AMSCharge",0);
+ if(p)p->printC(cout);
+}
+
+
+void AMSCharge::init(){
+int i,j;
+  ifstream iftxt(_fnam,ios::in);
+  if(!iftxt){
+     cerr <<"AMSCharge::init-F-Error open file "<<_fnam<<endl;
+     
+      exit(1);
+  }
+  for( i=0;i<ncharge;i++){
+    iftxt >> _lkhdStepTOF[i];
+  }
+  for( i=0;i<ncharge;i++){
+    iftxt >> _lkhdStepTracker[i];
+  }
+  for( i=0;i<3;i++){
+    for( j=0;j<100;j++){
+     iftxt >> _lkhdTOF[i][j];
+    }
+  }
+  for( i=0;i<3;i++){
+    for(j=0;j<100;j++){
+     iftxt >> _lkhdTracker[i][j];
+    }
+  }
+    if(iftxt.eof() ){
+      cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
+      exit(1);
+    }
+  iftxt.close();
+  for(i=3;i<ncharge;i++){
+   UCOPY(_lkhdTOF[2],_lkhdTOF[i],100*sizeof(number)/4);
+   UCOPY(_lkhdTracker[2],_lkhdTracker[i],100*sizeof(number)/4);
+  }
+}
+
+
+
+AMSChargeI::AMSChargeI(){
+  if(_Count++==0)AMSCharge::init();
+}
+integer AMSChargeI::_Count=0;

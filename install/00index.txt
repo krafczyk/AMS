@@ -1,0 +1,10 @@
+Cgbatch   // compile +link user file for geant batch
+Cgxint    // compile +link user file for geant interactive
+Makelib   // makefile to gmake amslib
+Mcxxfix   // makefile for current workaround for osf1/cxx compiler bug  
+Mgbatch   // makefile to gmake geant batch     
+Mgxint    // makefile to gmake geant interactive  
+clmake    // Clever Make ; use e.g. clmake Mgbatch
+MakeDB    // makefile, to make AMS+DB. Moved to ../db
+InitDB    // makefile, to make database init exe, to create all containers 
+config.*  // configuration files for Objectivity. Moved to ../db

@@ -1,0 +1,41 @@
+const integer ncharge=7; // e,p,He...C 
+class AMSCharge: public AMSlink{   // Charge calculation
+protected:
+  AMSBeta * _pbeta;      // pointer to beta --> then to track & tof 
+ integer _ChargeTOF;     // Charge from TOF
+ integer _ChargeTracker;  // Charge from tracker
+ number _ProbTOF[ncharge];       //(prob) to be e, p, He, C
+ number _ProbTracker[ncharge];   // (prob) to be e, p, He, C
+
+ static number _lkhdTracker[ncharge][100];
+
+ static number _lkhdTOF[ncharge][100];
+
+ static number _lkhdStepTracker[ncharge];
+
+ static number _lkhdStepTOF[ncharge];
+
+ static integer _chargeTracker[ncharge];
+
+ static integer _chargeTOF[ncharge];
+   
+ static char _fnam[128];  // calibration file name
+public:
+  AMSCharge(AMSBeta * pbeta)  // init ctor
+// Get 
+
+  integer getchargeTOF()const{return _ChargeTOF;}
+
+  integer getchargeTracker()const{return _ChargeTracker;}
+
+  AMSBeta * getpbeta()const{return _pbeta;}
+
+  static void addnext(AMSBeta* pbeta, integer nhitTOF,
+ integer nhitTracker, number EdepTOF[4], number EdepTracker[6]); //add next el
+   void Fit(integer nhitTOF, integer nhitTracker, number
+   EdepTOF[4], number EdepTracker[6]);  // Likelihood fit to Charge
+
+  static void init();   // Initialization
+  static void build();  // build elements
+  static void print();  // print elements
+

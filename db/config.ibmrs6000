@@ -1,0 +1,4 @@
+C++		= xlC
+C_FLAGS		= 
+LD		= $(C++)
+LD_FLAGS	= 

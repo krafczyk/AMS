@@ -1,0 +1,44 @@
+
+
+
+
+
+
+
+
+
+Member functions:
+
+
+static AMSEvent * gethead()   // returns pointer on the current event
+static void  sethead(AMSEvent* head) // sets head of the current event
+
+AMSlink * getheadC(char name[], integer id) // returns pointer on the 
+                                            // first element of 
+                                            // the container AMSID(name,id)
+integer setheadC(char name[], integer id, AMSlink *p)
+                                            // sets head of the 
+                                            // first element of 
+                                            // the container AMSID(name,id)
+
+AMSContainer * getC(char name[], integer id) //returns pointer on the 
+                                            //  container AMSID(name,id)
+void init();                                // init event
+void write();                               // write event str to ntuple
+void copy();                                // write event str to Obj
+void printA();                              // print event structure
+void event();                               // make event
+integer addnext(AMSID id, AMSlink * p) // add next element to the
+                                       // container AMSID(
+                                       // "AMSContainer:"+id.getname,id.getid)
+integer getrun()                       // return runno
+integer getid()                        // returns eventno
+integer& setrun()                      // sets runno
+integer getruntype()                   // gets runtype
+integer& setruntype()                  // sets runtype
+time_t gettime()                       // gets time
+time_t& settime()                      // sets time
+
+
+
+

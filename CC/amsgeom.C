@@ -1,0 +1,1249 @@
+// Author V. Choutko 24-may-1996
+// TOF Geometry E. Choumilov 22-jul-1996 
+// Passive Shield Geometry V. Choutko 22-jul-1996
+// CTC (Cherenkov Thresh. Counter) geometry E.Choumilov 26-sep-1996 
+//
+#include <typedefs.h>
+#include <node.h>
+#include <snode.h>
+#include <amsdbc.h>
+#include <tofdbc.h>
+#include <ctcdbc.h>
+#include <gmat.h>
+#include <extC.h>
+#include <stdlib.h>
+#include <gvolume.h>
+#include <amsgobj.h>
+#include <job.h>
+#include <commons.h>
+extern "C" void mtx_(geant nrm[][3],geant vect[]);
+#define MTX mtx_
+void AMSgvolume::amsgeom(){
+extern void tkgeom(AMSgvolume &);
+extern void magnetgeom(AMSgvolume &);
+extern void tofgeom(AMSgvolume &);
+extern void antigeom(AMSgvolume &);
+extern void pshgeom(AMSgvolume &);
+extern void ctcgeom(AMSgvolume &);
+AMSID amsid;
+number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+number inrm[3][3];
+geant par[3];
+integer gid=1;
+      par[0]=AMSDBc::ams_size[0]/2;
+      par[1]=AMSDBc::ams_size[1]/2;
+      par[2]=AMSDBc::ams_size[2]/2;
+static AMSgvolume mother("VACUUM",0,AMSDBc::ams_name,"BOX",par,
+       3,AMSDBc::ams_coo,nrm,"ONLY",  0,gid);  // AMS mother volume
+AMSJob::gethead()->addup( &mother);
+magnetgeom(mother);
+tofgeom(mother);
+antigeom(mother);
+if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION")==0){
+ pshgeom(mother);
+ cout <<" AMSGeom-I-Shuttle setup selected."<<endl;
+}
+else{
+ cout <<" AMSGeom-I-Station setup selected."<<endl;
+}
+ctcgeom(mother);
+tkgeom(mother);
+
+GGCLOS();
+AMSgObj::GVolMap.map(mother);
+#ifdef __AMSDEBUG__
+// if(AMSgvolume::debug)AMSgObj::GVolMap.print();
+#endif
+
+}
+
+void magnetgeom(AMSgvolume & mother){
+AMSID amsid;
+geant par[6]={0.,0.,0.,0.,0.,0.};
+number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+number inrm[3][3];
+char name[5]="MAGN";
+geant coo[3]={0.,0.,0.};
+integer gid=0;
+AMSNode * cur;
+AMSNode * dau;
+AMSgtmed *p;
+      gid=1;
+      par[0]=112./2;
+      par[1]=129.6/2;
+      par[2]=40.;
+      dau=mother.add(new AMSgvolume(
+      "MAGNET",0,name,"TUBE",par,3,coo,nrm, "ONLY",0,gid));
+      gid=2;
+      par[0]=111.4/2.;
+      par[1]=112.0/2.;
+      par[2]=40.;
+      dau=mother.add(new AMSgvolume(
+      "1/2ALUM",0,"ALT1","TUBE",par,3,coo,nrm, "ONLY",0,gid));
+      gid=3;
+      par[0]=129.6/2.;
+      par[1]=130.4/2.;
+      par[2]=40.;
+      dau=mother.add(new AMSgvolume(
+      "1/2ALUM",0,"ALT2","TUBE",par,3,coo,nrm, "ONLY",0,gid++));
+      par[0]=112/2.;
+      par[1]=165./2.;
+      par[2]=0.75;
+      coo[2]=40.75;
+      dau=mother.add(new AMSgvolume(
+      "1/2ALUM",0,"ALT3","TUBE",par,3,coo,nrm, "ONLY",0,gid++));
+    
+      par[0]=112/2.;
+      par[1]=165./2.;
+      par[2]=0.75;
+      coo[2]=-40.75;
+      dau=mother.add(new AMSgvolume(
+      "1/2ALUM",0,"ALT4","TUBE",par,3,coo,nrm, "ONLY",0,gid++));
+    
+}
+//-------------------------------------------------------------------
+void tofgeom(AMSgvolume & mother){
+number pr[3]={0.,0.,0.};
+geant par[6]={0.,0.,0.};
+number nrm[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};
+number nrm1[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};
+number nrm2[3][3]={0.,1.,0.,-1.,0.,0., 0.,0.,1.};// for rotated layers (90degr)
+number inrm[3][3];
+number dz,dz1,dz2,zc,dx,dxt;
+integer nbm,nrot;
+char name[5];
+number co[3]={0.,0.,0.};
+geant coo[3]={0.,0.,0.};
+integer gid=0;
+integer nmed;
+AMSNode *cur;
+AMSNode *dau;
+AMSgtmed *p;
+AMSID amsid;
+//------
+dz1=TOFDBc::supstr(7)/2.+TOFDBc::plnstr(1)+TOFDBc::plnstr(7)
+   +TOFDBc::plnstr(6)/2.+TOFDBc::plnstr(3)/2.;//dz hon_str/outer_sc_fixation
+//
+dz2=TOFDBc::supstr(7)/2.+TOFDBc::plnstr(2)+TOFDBc::plnstr(7) 
+   +TOFDBc::plnstr(6)/2.+TOFDBc::plnstr(3)/2.;//dz hon_str/inner_sc_fixation
+//------
+//          <-- create/position top supp. honeycomb structures
+gid=1;
+par[0]=0.;                //Ri
+par[1]=TOFDBc::supstr(8); //Ro
+par[2]=TOFDBc::supstr(7)/2.; //Dz
+coo[0]=TOFDBc::supstr(3);    // x-shift from "0" of mother
+coo[1]=TOFDBc::supstr(4);    // y-shift ...
+coo[2]=TOFDBc::supstr(1)+TOFDBc::supstr(7)/2.;// z-centre of top supp. honeycomb
+amsid=AMSID(0,"TOF_HONEYCOMB");  // set amsid for honeycomb struct.
+p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
+if(p)nmed=p->getmedia();
+else{
+  cerr<<"TOFGEOM-F-NoSuchMedium "<<amsid;
+  exit(1);
+    }
+dau=mother.add(new AMSgvolume(
+    nmed,0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid));
+//--------------
+//          <-- create/position bot supp. honeycomb structures
+gid=2;
+par[0]=0.;                //Ri
+par[1]=TOFDBc::supstr(8); //Ro
+par[2]=TOFDBc::supstr(7)/2.; //Dz
+coo[0]=TOFDBc::supstr(5);    // x-shift from "0" of mother
+coo[1]=TOFDBc::supstr(6);    // y-shift ...
+coo[2]=TOFDBc::supstr(2)-TOFDBc::supstr(7)/2.;// z-centre of bot supp. honeycomb
+amsid=AMSID(0,"TOF_HONEYCOMB");  // set amsid for honeycomb struct.
+p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
+if(p)nmed=p->getmedia();
+else{
+  cerr<<"TOFGEOM-F-NoSuchMedium "<<amsid;
+  exit(1);
+    }
+dau=mother.add(new AMSgvolume(
+    nmed,0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid));
+//----------------------------------------------------------------------
+//             <-- create/position S1-S4 sc. planes :
+//
+dx=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(7);// dx(width) of sc.counter(bar+cover)
+dz=TOFDBc::plnstr(6)+2.*TOFDBc::plnstr(7);// dz(thickn)of sc.counter(bar+cover)
+pr[0]=dx/2.;
+pr[2]=dz/2.; 
+//                                 
+for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
+//
+  nbm=SCBRS[ip];                      // num. of bars in layer ip
+  dxt=(nbm-1)*(dx-TOFDBc::plnstr(4)); // first-last sc.count. bars distance 
+//                                       (taking into account overlaping)
+  if(ip<2){
+    co[0]=TOFDBc::supstr(3);// <--top TOF-subsystem X-shift
+    co[1]=TOFDBc::supstr(4);// <--top TOF-subsystem Y-shift
+  }
+  if(ip>1){
+    co[0]=TOFDBc::supstr(5);// <--bot TOF-subsystem X-shift
+    co[1]=TOFDBc::supstr(6);// <--bot TOF-subsystem Y-shift
+  }
+//
+  if(TOFDBc::plrotm(ip)==0){
+    nrot=0;                    //  <-- for unrotated planes
+    for(int i=0;i<3;i++)for(int j=0;j<3;j++)nrm[i][j]=nrm1[i][j];
+  }
+  if(TOFDBc::plrotm(ip)==1){
+    nrot=SCROTN+1;           // <-- for rotated planes
+    for(int i=0;i<3;i++)for(int j=0;j<3;j++)nrm[i][j]=nrm2[i][j];
+  }
+//-----------
+  for(int ib=0;ib<nbm;ib++){ // <<<====== loop over sc. counter bars in plane ip
+//
+//   <-- cr/position sc. counter (cover + scint. as solid cover)
+//
+    pr[1]=TOFDBc::brlen(ip,ib)/2.+TOFDBc::plnstr(11); // dy/2 (sc.length+lg) 
+    if(TOFDBc::plrotm(ip)==0){  // <-- unrotated planes
+      coo[0]=co[0]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
+      coo[1]=co[1];
+      }
+    if(TOFDBc::plrotm(ip)==1){  // <-- rotated planes
+      coo[0]=co[0];
+      coo[1]=co[1]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
+    }
+    coo[2]=TOFDBc::getzsc(ip,ib);
+    co[2]=coo[2];//(save z-pos. for later use)
+    for(int i=0;i<3;i++)par[i]=pr[i];
+    amsid=AMSID(0,"TOF_SC_COVER");  // set amsid for sc. counter (sc+cover)
+    p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
+    if(p)nmed=p->getmedia();
+    else{
+      cerr<<"TOFGEOM-F-NoSuchMedium "<<amsid;
+      exit(1);
+        }
+    gid=100*(ip+1)+ib+1;
+    dau=mother.add(new AMSgvolume(
+    nmed,nrot,"TOFC","BOX",par,3,coo,nrm,"MANY",1,gid));
+//-------
+//        <-- cr/position scintillator inside counter
+//
+    par[0]=pr[0]-TOFDBc::plnstr(7);// pure scint. x-size/2
+    par[1]=pr[1]-TOFDBc::plnstr(11);// pure scint. y-size/2 (minus light guide)
+    par[2]=pr[2]-TOFDBc::plnstr(7);// pure scint. z-size/2
+    amsid=AMSID(0,"TOF_SCINT");  // set amsid for scint. itself
+    p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
+    if(p)nmed=p->getmedia();
+    else{
+      cerr<<"TOFGEOM-F-NoSuchMedium "<<amsid;
+      exit(1);
+        }
+    dau=mother.add(new AMSgvolume(
+    nmed,nrot,"TOFS","BOX",par,3,coo,nrm,"ONLY",1,gid));
+//-------
+//        <--- now put boxes, equivalent to (PMTs + shielding)
+//                                    at both ends of sc. bar.
+    par[0]=TOFDBc::plnstr(8)/2.;
+    par[1]=TOFDBc::plnstr(9)/2.;
+    par[2]=TOFDBc::plnstr(10)/2.;
+    if(TOFDBc::plrotm(ip)==0){
+      coo[0]=co[0]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
+      coo[1]=co[1]-pr[1]-TOFDBc::plnstr(9)/2.;
+    }
+    if(TOFDBc::plrotm(ip)==1){
+      coo[0]=co[0]-pr[1]-TOFDBc::plnstr(9)/2.;
+      coo[1]=co[1]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
+    }
+    if(ip==0||ip==2)coo[2]=co[2]+TOFDBc::plnstr(12);
+    if(ip==1||ip==3)coo[2]=co[2]-TOFDBc::plnstr(12);
+    amsid=AMSID(0,"TOF_PMT_BOX");  //         <=== create pmt1-box
+    p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
+    if(p)nmed=p->getmedia();
+    else{
+      cerr<<"TOFGEOM-F-NoSuchMedium "<<amsid;
+      exit(1);
+        }
+    gid=1000+100*(ip+1)+ib+1;
+    dau=mother.add(new AMSgvolume(
+    nmed,nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid));
+//-----
+    if(TOFDBc::plrotm(ip)==0){
+      coo[0]=co[0]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
+      coo[1]=co[1]+pr[1]+TOFDBc::plnstr(9)/2.;
+    }
+    if(TOFDBc::plrotm(ip)==1){
+      coo[0]=co[0]+pr[1]+TOFDBc::plnstr(9)/2.;
+      coo[1]=co[1]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
+    }
+    amsid=AMSID(0,"TOF_PMT_BOX");  //         <=== create pmt2-box
+    p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
+    if(p)nmed=p->getmedia();
+    else{
+      cerr<<"TOFGEOM-F-NoSuchMedium "<<amsid;
+      exit(1);
+        }
+    gid=2000+100*(ip+1)+ib+1;
+    dau=mother.add(new AMSgvolume(
+    nmed,nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid));
+    
+  }      //   <<<============= end of sc. bars loop ==========
+}   //   <<<============= end of sc. planes loop =============
+}
+//---------------------------------------------------------------
+void antigeom(AMSgvolume & mother){
+AMSID amsid;
+geant par[6]={0.,0.,0.,0.,0.,0.};
+number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+number inrm[3][3];
+char name[5];
+geant coo[3]={0.,0.,0.};
+integer gid=0;
+AMSNode * cur;
+AMSNode * dau;
+AMSgtmed *p;
+      gid=1;
+      par[0]=111.4/2.-1.;
+      par[1]=111.4/2.;
+      par[2]=40;
+      dau=mother.add(new AMSgvolume(
+      "ANTI_SCINT",0,"ASC1","TUBE",par,3,coo,nrm, "ONLY",0,gid));
+      ++gid;
+      par[0]=111.4/2-1;
+      par[1]=65.5;
+      par[2]=0.5;
+      coo[2]=40.5;
+      // dau=mother.add(new AMSgvolume(
+      // "ANTI_SCINT",0,"ASC2","TUBE",par,3,coo,nrm, "ONLY",0,gid));
+
+      ++gid;
+      par[0]=111.4/2-1;
+      par[1]=65.5;
+      par[2]=0.5;
+      coo[2]=-40.5;
+      // dau=mother.add(new AMSgvolume(
+      // "ANTI_SCINT",0,"ASC3","TUBE",par,3,coo,nrm, "ONLY",0,gid));
+      ++gid;
+      par[0]=25./2.;
+      par[1]=65.+20.;
+      par[2]=66.4+20.;
+      par[3]=par[1]-20;
+      par[4]=par[2]-20.;
+      coo[2]=-40.-par[0];
+      // Remove cone now
+      //      dau=mother.add(new AMSgvolume(
+      //      "ANTI_SCINT",0,"ASC4","CONE",par,5,coo,nrm, "ONLY",0,gid));
+      //      ++gid;
+      par[0]=25./2.;
+      par[1]=65.;
+      par[2]=66.4;
+      par[3]=par[1]+20;
+      par[4]=par[2]+20.;
+      coo[2]=+40.+par[0];
+      //      dau=mother.add(new AMSgvolume(
+      //      "ANTI_SCINT",0,"ASC5","CONE",par,5,coo,nrm, "ONLY",0,gid));
+
+
+
+
+
+}
+
+
+void ctcgeom(AMSgvolume & mother){
+extern void ctcgeomV(AMSgvolume &);
+extern void ctcgeomE(AMSgvolume &, integer iflag);
+  // steering for ctc geom
+if(strstr(AMSJob::gethead()->getsetup(),"CTCSimple")){
+  ctcgeomV(mother);
+  cout<<" CTCGeom-I-Simplified readout for CTC selected"<<endl;
+}
+else if(strstr(AMSJob::gethead()->getsetup(),"CTCVer")){
+ctcgeomE(mother,1);
+  cout<<" CTCGeom-I-Vertical readout for CTC selected"<<endl;
+}
+else {
+  ctcgeomE(mother,0);
+  cout<<" CTCGeom-I-Horizontal readout for CTC selected"<<endl;
+}
+}
+
+void ctcgeomV(AMSgvolume & mother){
+  // V. Choutko version
+CTCDBc::setgeom(0);
+CTCDBc::setnwls(CTCDBc::getnblk());
+ AMSID amsid;
+ geant par[6]={0.,0.,0.,0.,0.,0.};
+ number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+ number inrm[3][3];
+ geant coo[3]={0.,0.,0.};
+ integer gid=1;
+ AMSNode * cur;
+ AMSNode * dau;
+ AMSgtmed *p;
+
+      //  CTC Box
+      geant AGsizeX=CTCDBc::getagsize(0);
+      geant AGsizeY=CTCDBc::getagsize(1);
+      geant AGsizeZ=CTCDBc::getagsize(2);
+      geant WSsizeZ=CTCDBc::getwlsth();
+
+      integer num=CTCDBc::getnblk();
+      integer i;
+
+      // Aerogel itself;
+      gid=100;
+      for (i=0;i<num;i++){
+       par[0]=((AGsizeX-CTCDBc::getwallth())/num-CTCDBc::getwallth())/2;
+       par[1]=AGsizeY/2;
+       par[2]=AGsizeZ/2;
+       coo[0]=-AGsizeX/2+CTCDBc::getwallth()+par[0]+
+       (AGsizeX-CTCDBc::getwallth())/num*i;
+       coo[1]=0;
+       coo[2]=CTCDBc::getsupzc()+WSsizeZ/2+AGsizeZ/2;
+       AMSNode *dau=mother.add(new AMSgvolume(
+       "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm, "ONLY",1,++gid));
+
+      }
+      // Support
+ 
+      for (i=0;i<num;i++){
+       par[0]=CTCDBc::getwallth()/2;
+       par[1]=AGsizeY/2;
+       par[2]=AGsizeZ/2;
+       coo[0]=-AGsizeX/2+par[0]+(AGsizeX-CTCDBc::getwallth())/num*i;
+       coo[1]=0;
+        AMSNode *dau=mother.add(new AMSgvolume(
+        "CTC_WALL",0,"AGSP","BOX ",par,3,coo,nrm, "ONLY",1,++gid));
+ 
+       }
+ 
+ 
+       // WLS
+       gid=200;
+       for (i=0;i<num;i++){
+        par[0]=AGsizeX/num/2;
+        par[1]=AGsizeY/2;
+        par[2]=WSsizeZ/2;
+        coo[0]=-AGsizeX/2+par[0]+(AGsizeX)/num*i;
+        coo[1]=0;
+        coo[2]=CTCDBc::getsupzc();
+        AMSNode *dau=mother.add(new AMSgvolume(
+        "CTC_WLS",0,"WLS ","BOX ",par,3,coo,nrm, "ONLY",1,++gid));
+ 
+       }
+ 
+ 
+ 
+ 
+ 
+ }
+
+
+
+void ctcgeomE(AMSgvolume & mother, integer iflag){
+  // E. Choumilov version
+
+CTCDBc::setgeom(iflag);
+if(iflag==1)CTCDBc::setnwls(CTCDBc::getnblk()+1);
+geant par[6]={0.,0.,0.,0.,0.,0.};
+number nrm[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};
+number dx,dy,dxag,dz,zc,zr,gp,gpw,wl,wls,gwls,step,xleft;
+char name1[10];
+char name2[10];
+geant coo[3];
+integer gid=0;
+integer nmed,nblk,nwls,i,ind,loop;
+AMSNode *cur;
+AMSNode *dau;
+AMSgtmed *p;
+AMSID amsid;
+//
+zr=CTCDBc::getsupzc();
+wl=CTCDBc::getwallth();
+wls=CTCDBc::getwlsth();
+gp=CTCDBc::getagap();
+gpw=gp+wl;
+gwls=CTCDBc::getwgap();
+//
+//          <-- create supporting honeyc. plate in mother
+gid=1;
+dx=0.5*CTCDBc::gethcsize(0);
+dy=0.5*CTCDBc::gethcsize(1);
+dz=0.5*CTCDBc::gethcsize(2);
+par[0]=dx;                
+par[1]=dy;
+par[2]=dz;
+coo[0]=0.;
+coo[1]=0.;
+coo[2]=zr-dz; // supp.plate center z-pos
+amsid=AMSID(0,"CTC_HONEYCOMB");  // set amsid for supp. plane
+p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
+if(p)nmed=p->getmedia();
+else{
+  cerr<<"CTCGEOM-F-NoSuchMedium "<<amsid;
+  exit(1);
+    }
+dau=mother.add(new AMSgvolume(
+    nmed,0,"SUPP","BOX ",par,3,coo,nrm,"ONLY",0,gid));
+//
+//--------------
+//
+//   <-- create bottom WLS-strips(for 0-type geom only) in mother
+//
+nwls=CTCDBc::getnwls();
+if(iflag==0){
+  dx=0.5*(CTCDBc::getagsize(0)+2.*gpw-(nwls-1)*gwls)/nwls; //half x-size
+  dy=0.5*CTCDBc::getagsize(1)+gpw;
+  dz=0.5*wls;
+  par[0]=dx;                
+  par[1]=dy;
+  par[2]=dz;
+  step=2.*dx+gwls;
+  xleft=-0.5*(CTCDBc::getagsize(0)+2.*gpw)+dx;
+  coo[1]=0.;
+  coo[2]=zr+gp+dz;// WLS center z-pos
+  for(i=0;i<nwls;i++){ // <---- loop over wls-strips ----
+    gid=201+i;
+    coo[0]=xleft+i*step;
+    amsid=AMSID(0,"CTC_WLS");  // set amsid for WLS
+    p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
+    if(p)nmed=p->getmedia();
+    else{
+      cerr<<"CTCGEOM-F-NoSuchMedium "<<amsid;
+      exit(1);
+        }
+    dau=mother.add(new AMSgvolume(
+        nmed,0,"WLS ","BOX ",par,3,coo,nrm,"ONLY",1,gid));
+  } // ----- end of wls-strips loop ----->
+}
+//--------------
+//
+//    <-- create outer aerogel-cover (made of WALL material) in mother
+gid=2;
+dx=0.5*(CTCDBc::getagsize(0)+2.*gpw);
+dy=0.5*(CTCDBc::getagsize(1)+2.*gpw);
+if(iflag==0)
+                dz=0.5*(CTCDBc::getagsize(2)+gpw+gp);//no bot refl.wall
+else
+                dz=0.5*(CTCDBc::getagsize(2)+2.*gpw);
+par[0]=dx;                
+par[1]=dy;
+par[2]=dz;
+coo[0]=0.;
+coo[1]=0.;
+if(iflag==0)
+  coo[2]=zr+gp+wls+dz;// box center z-pos(wls instead bot wall)
+else
+  coo[2]=zr+dz;// box center z-pos
+amsid=AMSID(0,"CTC_WALL");  // set amsid for WALL
+p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
+if(p)nmed=p->getmedia();
+else{
+  cerr<<"CTCGEOM-F-NoSuchMedium "<<amsid;
+  exit(1);
+    }
+dau=mother.add(new AMSgvolume(
+    nmed,0,"WALL","BOX ",par,3,coo,nrm,"MANY",0,gid));
+//---
+//  <--- put into this box "dummy_media"("air") to get space for aerogel
+//
+gid=3;
+par[0]=dx-wl;                
+par[1]=dy-wl;
+if(iflag==0){
+  par[2]=dz-0.5*wl;
+  coo[2]=zr+gp+wls+dz-0.5*wl;
+}
+else{
+  par[2]=dz-wl;
+  coo[2]=zr+dz;
+}
+amsid=AMSID(0,"CTC_DUMMYMED");  // set amsid for dummy media("air")
+p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
+if(p)nmed=p->getmedia();
+else{
+  cerr<<"CTCGEOM-F-NoSuchMedium "<<amsid;
+  exit(1);
+    }
+dau=mother.add(new AMSgvolume(
+    nmed,0,"DVOL","BOX ",par,3,coo,nrm,"MANY",0,gid));
+//--------------
+//
+//          <-- create pure aerogel-blocks in mother
+//
+nblk=CTCDBc::getnblk(); // number of aerog. blocks
+dy=0.5*CTCDBc::getagsize(1);
+dz=0.5*CTCDBc::getagsize(2);
+par[1]=dy;                
+par[2]=dz;
+coo[1]=0.;
+if(iflag==0){
+  dx=0.5*(CTCDBc::getagsize(0)-(nblk-1)*(wl+2.*gp))/nblk;// half x-size
+  dxag=dx;
+  par[0]=dx;
+  coo[2]=zr+gp+wls+gp+dz;// aerog. block center z-pos
+  step=2.*dx+2.*gp+wl;//x-dist between blocks centers
+  xleft=-0.5*CTCDBc::getagsize(0)+dx; // 1-st aerog.block center x-pos
+}
+else{
+  dx=0.5*(CTCDBc::getagsize(0)-(nblk-1)*(wls+2.*gp)-2.*(wls+gp))/nblk;
+  dxag=dx;
+  par[0]=dx;
+  coo[2]=zr+gpw+dz; 
+  step=2.*dx+2.*gp+wls;
+  xleft=-0.5*CTCDBc::getagsize(0)+wls+gp+dx; // add most left wls+gap
+}
+//
+for(i=0;i<nblk;i++){ // <---- loop over aerog. blocks ----
+  gid=101+i;
+  coo[0]=xleft+i*step;
+  amsid=AMSID(0,"CTC_AEROGEL");  // set amsid for AEROGEL BLOCK
+  p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
+  if(p)nmed=p->getmedia();
+  else{
+    cerr<<"CTCGEOM-F-NoSuchMedium "<<amsid;
+    exit(1);
+      }
+  dau=mother.add(new AMSgvolume(
+      nmed,0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid));
+} // ----- end of aerog. blocks loop ----->
+//--------------
+//
+//          <-- create separator walls(geo=0) or side WLS's(geo=1) in mother
+//
+dy=0.5*CTCDBc::getagsize(1)+gp;
+par[1]=dy;                
+coo[0]=0.;
+if(iflag==0){
+  dx=0.5*wl;// half x-size
+  dz=0.5*CTCDBc::getagsize(2)+gp;
+  par[0]=dx;
+  par[2]=dz;
+  coo[2]=zr+gp+wls+dz;// separator center z-pos
+  step=2.*dxag+2.*gp+wl;//x-dist between separator centers
+  xleft=-0.5*CTCDBc::getagsize(0)+2.*dxag+gp+dx; // 1-st separator center x-pos
+//                                       (between 1-st and 2-nd aerog.block)
+  ind=301;
+  loop=nblk-1;
+  strcpy(name1,"CTC_SEP");
+  strcpy(name2,"SEP ");
+}
+else{
+  dx=0.5*wls;
+  dz=0.5*CTCDBc::getagsize(2);
+  par[0]=dx;
+  par[2]=dz;
+  coo[2]=zr+wl+dz; 
+  step=2.*dxag+2.*gp+wls;
+  xleft=-0.5*CTCDBc::getagsize(0)+dx; // 1-st wls center x-pos
+//                                       (near the cover side wall)
+  ind=201;
+  loop=nblk+1;
+  strcpy(name1,"CTC_WLS");
+  strcpy(name2,"WLS ");
+}
+//
+for(i=0;i<loop;i++){ // <---- separators(WLS's) loop ----
+  gid=ind+i;
+  coo[0]=xleft+i*step;
+  amsid=AMSID(0,name1);  // set amsid for separators or WLS's
+  p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
+  if(p)nmed=p->getmedia();
+  else{
+    cerr<<"CTCGEOM-F-NoSuchMedium "<<amsid;
+    exit(1);
+      }
+  dau=mother.add(new AMSgvolume(
+      nmed,0,name2,"BOX ",par,3,coo,nrm,"ONLY",1,gid));
+} // ----- end of separators(WLS's) loop ----->
+}
+//---------------------------------------------------------------
+
+
+
+void tkgeom(AMSgvolume &mother){
+
+
+  if(strstr(AMSJob::gethead()->getsetup(),"STRTUBES")){
+    cout<<" TKGeom-I-Tubes option selected"<<endl;
+AMSID amsid;
+geant xx[3]={0.9,0.2,0.2};
+geant  xnrm[3][3];
+geant par[6]={0.,0.,0.,0.,0.,0.};
+number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+number inrm[3][3];
+char name[5];
+geant coo[3]={0.,0.,0.};
+integer gid=0;
+integer nrot=500; // Temporary arbitary assignment
+//static AMSgvolume mother(0,0,AMSDBc::ams_name,"BOX",par,3,coo,nrm,"ONLY",
+//                         0,gid);  // temporary a dummy volume
+AMSNode * cur;
+AMSNode * dau;
+int i;
+for ( i=0;i<AMSDBc::nlay();i++){
+ostrstream ost(name,sizeof(name));
+ ost << "STK"<<i+1<<ends;
+ coo[0]=0;
+ coo[1]=0;
+ coo[2]=AMSDBc::zposl(i);
+    int ii;
+    for ( ii=0;ii<5;ii++)par[ii]=AMSDBc::layd(i,ii);
+      gid=i+1;
+      dau=mother.add(new AMSgvolume(
+      "VACUUM",++nrot,name,"CONE",par,5,coo,nrm, "MANY",0,gid));
+     int j;
+     for ( j=0;j<AMSDBc::nlad(i+1);j++){
+    nrot++;  
+    int k;
+    for ( k=0;k<AMSDBc::nsen(i+1,j+1);k++){
+      ost.seekp(0);
+      ost << "SEN" << i+1<<ends;
+      par[0]=AMSDBc::ssize_inactive(i,0)/2;
+      par[1]=AMSDBc::ssize_inactive(i,1)/2;
+      par[2]=AMSDBc::silicon_z(i)/2;
+      coo[0]=-AMSDBc::ssize_inactive(i,0)/2.+(2*k+2-AMSDBc::nsen(i+1,j+1))*AMSDBc::ssize_inactive(i,0)/2.;
+      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+      coo[2]=AMSDBc::zpos(i);
+      VZERO(nrm,9*sizeof(nrm[0][0])/4);
+      nrm[0][0]=1;
+      nrm[1][1]=1;
+      nrm[2][2]=1;
+#ifdef __AMSDEBUG__
+      if(i==5 && AMSgvolume::debug){
+       MTX(xnrm,xx);
+       int a1,a2;
+       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
+      }
+#endif
+      //
+      //  Sensors notactive
+      //
+      gid=i+1+10*(j+1)+1000*(k+1)+100000;
+      cur=dau->add(new AMSgvolume(
+      "NONACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid));
+
+    }
+
+    if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ||
+       AMSDBc::activeladdshuttle(i+1,j+1)){  
+   
+    for ( k=0;k<AMSDBc::nsen(i+1,j+1);k++){
+      ost.seekp(0);
+      ost << "SEA" << i+1<<ends;
+      par[0]=AMSDBc::ssize_active(i,0)/2;
+      par[1]=AMSDBc::ssize_active(i,1)/2;
+      par[2]=AMSDBc::silicon_z(i)/2;
+      coo[0]=-AMSDBc::ssize_inactive(i,0)/2.+(2*k+2-AMSDBc::nsen(i+1,j+1))*AMSDBc::ssize_inactive(i,0)/2.;
+      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+      coo[2]=AMSDBc::zpos(i);
+      VZERO(nrm,9*sizeof(nrm[0][0])/4);
+      nrm[0][0]=1;
+      nrm[1][1]=1;
+      nrm[2][2]=1;
+#ifdef __AMSDEBUG__
+      if(i==5 && AMSgvolume::debug){
+       MTX(xnrm,xx);
+       int a1,a2;
+       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
+      }
+#endif
+      //
+      //  Sensors active
+      //
+      gid=i+1+10*(j+1)+1000*(k+1);
+      cur=dau->add(new AMSgvolume(
+      "ACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
+
+    }
+    }
+     }
+  for ( j=0;j<AMSDBc::nlad(i+1);j++){
+    nrot++;  
+      ost.seekp(0);
+      ost << "TUB" << i+1<<ends;
+      par[0]=AMSDBc::tube_inner_dia(i)/2;
+      par[1]=par[0]+AMSDBc::tube_w(i);
+      par[2]=AMSDBc::ssize_inactive(i,0)*AMSDBc::nsen(i+1,j+1)/2.;
+      coo[0]=0;
+      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+      coo[2]=AMSDBc::zpos(i);
+      VZERO(nrm,9*sizeof(nrm[0][0])/4);
+      nrm[2][0]=1;
+      nrm[1][1]=1;
+      nrm[0][2]=1;
+#ifdef __AMSDEBUG__
+      if(i==5 && AMSgvolume::debug){
+       MTX(xnrm,xx);
+       int a1,a2;
+       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
+         number tmp[3][3]; 
+       for(a1=0;a1<3;a1++){
+           tmp[a1][2]=nrm[a1][0];
+           tmp[a1][1]=nrm[a1][1];
+           tmp[a1][0]=nrm[a1][2];
+           
+       }
+       for(a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a1][a2]=tmp[a1][a2];
+ 
+      }
+#endif
+      //
+      //  Tubes
+      //
+      gid=i+1+10*(j+1);
+      cur=dau->add(new AMSgvolume(
+      "CARBON",nrot,name,"TUBE",par,3,coo,nrm,"ONLY",1,gid));
+
+  }
+  for ( j=0;j<AMSDBc::nlad(i+1);j++){
+    nrot++;  
+      ost.seekp(0);
+      ost << "ELL" << i+1<<ends;
+      par[0]=AMSDBc::zelec(i,1)/2.;
+      par[1]=AMSDBc::tube_inner_dia(i)/2.;
+      par[2]=AMSDBc::zelec(i,0)/2;
+      coo[0]=-AMSDBc::nsen(i+1,j+1)*AMSDBc::ssize_inactive(i,0)/2.-par[0];
+      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+      coo[2]=AMSDBc::zpos(i);
+      VZERO(nrm,9*sizeof(nrm[0][0])/4);
+      nrm[0][0]=1;
+      nrm[1][1]=1;
+      nrm[2][2]=1;
+#ifdef __AMSDEBUG__
+      if(i==5 && AMSgvolume::debug){
+       MTX(xnrm,xx);
+       int a1,a2;
+       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
+      }
+#endif
+      //
+      //  Elec L
+      //
+      gid=i+1+10*(j+1);
+      cur=dau->add(new AMSgvolume(
+      "ELECTRONICS",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
+
+  }
+  for ( j=0;j<AMSDBc::nlad(i+1);j++){
+    nrot++;  
+      ost.seekp(0);
+      ost << "ELR" << i+1<<ends;
+      par[0]=AMSDBc::zelec(i,1)/2;
+      par[1]=AMSDBc::tube_inner_dia(i)/2;
+      par[2]=AMSDBc::zelec(i,0)/2;
+      coo[0]=+AMSDBc::nsen(i+1,j+1)*AMSDBc::ssize_inactive(i,0)/2.+par[0];
+      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+      coo[2]=AMSDBc::zpos(i);
+      VZERO(nrm,9*sizeof(nrm[0][0])/4);
+      nrm[0][0]=1;
+      nrm[1][1]=1;
+      nrm[2][2]=1;
+#ifdef __AMSDEBUG__
+      if(i==5 && AMSgvolume::debug){
+       MTX(xnrm,xx);
+       int a1,a2;
+       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
+      }
+#endif
+      //
+      //  Elec R
+      //
+      gid=i+1+10*(j+1);
+      cur=dau->add(new AMSgvolume(
+       "ELECTRONICS",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
+
+  }
+
+}
+
+  }
+
+
+
+
+  else {
+
+    cout<<" TKGeom-I-Planes option selected"<<endl;
+
+
+AMSID amsid;
+geant xx[3]={0.9,0.2,0.2};
+geant  xnrm[3][3];
+geant par[6]={0.,0.,0.,0.,0.,0.};
+number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+number inrm[3][3];
+char name[5];
+geant coo[3]={0.,0.,0.};
+integer gid=0;
+integer nrot=500; // Temporary arbitary assignment
+//static AMSgvolume mother(0,0,AMSDBc::ams_name,"BOX",par,3,coo,nrm,"ONLY",
+//                         0,gid);  // temporary a dummy volume
+AMSNode * cur;
+AMSNode * dau;
+int i;
+for ( i=0;i<AMSDBc::nlay();i++){
+ostrstream ost(name,sizeof(name));
+ ost << "STK"<<i+1<<ends;
+ coo[0]=0;
+ coo[1]=0;
+ coo[2]=AMSDBc::zposl(i);
+    int ii;
+    for ( ii=0;ii<5;ii++)par[ii]=AMSDBc::layd(i,ii);
+      gid=i+1;
+      dau=mother.add(new AMSgvolume(
+      "VACUUM",++nrot,name,"CONE",par,5,coo,nrm, "MANY",0,gid));
+    int j;
+    for (j=0;j<AMSDBc::nlad(i+1);j++){
+    nrot++;  
+    int k;
+    for ( k=0;k<AMSDBc::nsen(i+1,j+1);k++){
+      ost.seekp(0);
+      ost << "SEN" << i+1<<ends;
+      par[0]=AMSDBc::ssize_inactive(i,0)/2;
+      par[1]=AMSDBc::ssize_inactive(i,1)/2;
+      par[2]=AMSDBc::silicon_z(i)/2;
+      coo[0]=-AMSDBc::ssize_inactive(i,0)/2.+(2*k+2-AMSDBc::nsen(i+1,j+1))*AMSDBc::ssize_inactive(i,0)/2.;
+      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+      coo[2]=AMSDBc::zpos(i);
+      VZERO(nrm,9*sizeof(nrm[0][0])/4);
+      nrm[0][0]=1;
+      nrm[1][1]=1;
+      nrm[2][2]=1;
+#ifdef __AMSDEBUG__
+      if(i==5 && AMSgvolume::debug){
+       MTX(xnrm,xx);
+       int a1,a2;
+       for(a1=0;a1<3;a1++)for(a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
+      }
+#endif
+      //
+      //  Sensors notactive
+      //
+      gid=i+1+10*(j+1)+1000*(k+1)+100000;
+      cur=dau->add(new AMSgvolume(
+      "NONACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid));
+
+    }
+
+    if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ||
+       AMSDBc::activeladdshuttle(i+1,j+1)){  
+
+
+    for ( k=0;k<AMSDBc::nsen(i+1,j+1);k++){
+      ost.seekp(0);
+      ost << "SEA" << i+1<<ends;
+      par[0]=AMSDBc::ssize_active(i,0)/2;
+      par[1]=AMSDBc::ssize_active(i,1)/2;
+      par[2]=AMSDBc::silicon_z(i)/2;
+      coo[0]=-AMSDBc::ssize_inactive(i,0)/2.+(2*k+2-AMSDBc::nsen(i+1,j+1))*AMSDBc::ssize_inactive(i,0)/2.;
+      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+      coo[2]=AMSDBc::zpos(i);
+      VZERO(nrm,9*sizeof(nrm[0][0])/4);
+      nrm[0][0]=1;
+      nrm[1][1]=1;
+      nrm[2][2]=1;
+#ifdef __AMSDEBUG__
+      if(i==5 && AMSgvolume::debug){
+       MTX(xnrm,xx);
+       int a1,a2;
+       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
+      }
+#endif
+      //
+      //  Sensors active
+      //
+      gid=i+1+10*(j+1)+1000*(k+1);
+      cur=dau->add(new AMSgvolume(
+      "ACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
+
+    }
+  }
+    }
+  for ( j=0;j<AMSDBc::nlad(i+1);j++){
+    nrot++;  
+      ost.seekp(0);
+      ost << "PLA" << i+1<<ends;
+      par[0]=AMSDBc::ssize_inactive(i,0)*AMSDBc::nsen(i+1,j+1)/2.;
+      par[1]=AMSDBc::c2c(i)/2;
+      par[2]=AMSDBc::tube_w(i);     // not /2 ! (600 mkm)
+      coo[0]=0;
+      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+      coo[2]=AMSDBc::zpos(i)-AMSDBc::silicon_z(i)/2.-AMSDBc::tube_w(i);
+      VZERO(nrm,9*sizeof(nrm[0][0])/4);
+      nrm[0][0]=1;
+      nrm[1][1]=1;
+      nrm[2][2]=1;
+      //
+      //  Planes
+      //
+      gid=i+1+10*(j+1);
+      cur=dau->add(new AMSgvolume(
+      "CARBON",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
+
+  }
+  for ( j=0;j<AMSDBc::nlad(i+1);j++){
+    nrot++;  
+      ost.seekp(0);
+      ost << "ELL" << i+1<<ends;
+      par[0]=AMSDBc::zelec(i,1)/2.;
+      par[1]=AMSDBc::tube_inner_dia(i)/2.;
+      par[2]=AMSDBc::zelec(i,0)/2;
+      coo[0]=-AMSDBc::nsen(i+1,j+1)*AMSDBc::ssize_inactive(i,0)/2.-par[0];
+      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+      coo[2]=AMSDBc::zpos(i);
+      VZERO(nrm,9*sizeof(nrm[0][0])/4);
+      nrm[0][0]=1;
+      nrm[1][1]=1;
+      nrm[2][2]=1;
+#ifdef __AMSDEBUG__
+      if(i==5 && AMSgvolume::debug){
+       MTX(xnrm,xx);
+       int a1,a2;
+       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
+      }
+#endif
+      //
+      //  Elec L
+      //
+      gid=i+1+10*(j+1);
+      cur=dau->add(new AMSgvolume(
+      "ELECTRONICS",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
+
+  }
+  for ( j=0;j<AMSDBc::nlad(i+1);j++){
+    nrot++;  
+      ost.seekp(0);
+      ost << "ELR" << i+1<<ends;
+      par[0]=AMSDBc::zelec(i,1)/2;
+      par[1]=AMSDBc::tube_inner_dia(i)/2;
+      par[2]=AMSDBc::zelec(i,0)/2;
+      coo[0]=+AMSDBc::nsen(i+1,j+1)*AMSDBc::ssize_inactive(i,0)/2.+par[0];
+      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+      coo[2]=AMSDBc::zpos(i);
+      VZERO(nrm,9*sizeof(nrm[0][0])/4);
+      nrm[0][0]=1;
+      nrm[1][1]=1;
+      nrm[2][2]=1;
+#ifdef __AMSDEBUG__
+      if(i==5 && AMSgvolume::debug){
+       MTX(xnrm,xx);
+       int a1,a2;
+       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
+      }
+#endif
+      //
+      //  Elec R
+      //
+      gid=i+1+10*(j+1);
+      cur=dau->add(new AMSgvolume(
+       "ELECTRONICS",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
+
+  }
+
+}
+
+  }
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+void pshgeom(AMSgvolume & mother){
+AMSID amsid;
+geant par[6]={0.,0.,0.,0.,0.,0.};
+number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+number inrm[3][3];
+integer nrot=400;
+char name[5];
+geant coo[3]={0.,0.,0.};
+integer gid=0;
+AMSNode * cur;
+AMSNode * dau;
+AMSgtmed *p;
+      gid=1;
+      par[0]=0.;
+      par[1]=82.5;
+      par[2]=0.75;
+      coo[2]=75.25;
+      dau=mother.add(new AMSgvolume(
+      "TOF_SCINT",0,"PSH1","TUBE",par,3,coo,nrm, "ONLY",0,gid));
+      gid++;
+
+      par[0]=18.;
+      par[1]=82.5;
+      par[2]=83.5;
+      par[3]=82.5;
+      par[4]=83.5;
+      coo[2]=58.;
+
+
+
+      dau=mother.add(new AMSgvolume(
+      "TOF_SCINT",0,"PSH2","CONE",par,5,coo,nrm, "ONLY",0,gid++));
+
+      par[0]=18.;
+      par[1]=82.5;
+      par[2]=83.5;
+      par[3]=82.5;
+      par[4]=83.5;
+      coo[2]=-58.;
+
+
+
+      dau=mother.add(new AMSgvolume(
+      "TOF_SCINT",0,"PSH3","CONE",par,5,coo,nrm, "ONLY",0,gid++));
+
+
+
+
+
+      gid=1;
+      par[0]=187.;
+      par[1]=189.;
+      par[2]=190.;
+      par[3]=90.;
+      par[4]=270.;
+      coo[2]=0;
+      nrm[0][0]=0;
+      nrm[1][0]=0;
+      nrm[2][0]=1;
+      nrm[0][1]=0;
+      nrm[1][1]=1;
+      nrm[2][1]=0;
+      nrm[0][2]=1;
+      nrm[1][2]=0;
+      nrm[2][2]=0;
+      dau=mother.add(new AMSgvolume(
+      "1/2ALUM",nrot++,"SHU1","TUBS",par,5,coo,nrm, "ONLY",0,gid++));
+
+      par[0]=0;
+      par[1]=187.;
+      par[2]=1.;
+      par[3]=90.;
+      par[4]=270.;
+      coo[0]=-189;
+      coo[1]=0;
+      coo[2]=0;
+      dau=mother.add(new AMSgvolume(
+      "1/2ALUM",nrot++,"SHU2","TUBS",par,5,coo,nrm, "ONLY",0,gid++));
+      par[0]=0.;
+      par[1]=187.;
+      par[2]=1.;
+      par[3]=0.;
+      par[4]=360.;
+      coo[0]=189;
+      coo[1]=0;
+      coo[2]=0;
+      dau=mother.add(new AMSgvolume(
+      "1/2ALUM",nrot++,"SHU3","TUBS",par,5,coo,nrm, "ONLY",0,gid++));
+
+
+      // Iron support 12 + 10 bins
+      nrm[0][0]=1;
+      nrm[1][0]=0;
+      nrm[2][0]=0;
+      nrm[0][1]=0;
+      nrm[1][1]=1;
+      nrm[2][1]=0;
+      nrm[0][2]=0;
+      nrm[1][2]=0;
+      nrm[2][2]=1;
+      gid=1;
+
+      par[0]=84;
+      par[1]=3;
+      par[2]=4;
+
+      coo[0]=0;      
+      coo[1]=-87.;      
+      coo[2]=-38;      
+      dau=mother.add(new AMSgvolume(
+      "IRON",0,"IR01","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+
+      coo[0]=0;      
+      coo[1]=-87.;      
+      coo[2]=38;      
+      dau=mother.add(new AMSgvolume(
+      "IRON",0,"IR02","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+
+      coo[0]=0;      
+      coo[1]=87.;      
+      coo[2]=-38;      
+      dau=mother.add(new AMSgvolume(
+      "IRON",0,"IR03","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+
+      coo[0]=0;      
+      coo[1]=87.;      
+      coo[2]=38;      
+      dau=mother.add(new AMSgvolume(
+      "IRON",0,"IR04","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+
+      par[0]=3;
+      par[1]=84;
+      par[2]=4;
+
+
+
+      coo[0]=-87;      
+      coo[1]=0;      
+      coo[2]=-38;      
+      dau=mother.add(new AMSgvolume(
+      "IRON",0,"IR05","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+
+      coo[0]=-87;      
+      coo[1]=0.;      
+      coo[2]=38;      
+      dau=mother.add(new AMSgvolume(
+      "IRON",0,"IR06","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+
+      coo[0]=87;      
+      coo[1]=0.;      
+      coo[2]=-38;      
+      dau=mother.add(new AMSgvolume(
+      "IRON",0,"IR07","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+
+      coo[0]=87;      
+      coo[1]=0;      
+      coo[2]=38;      
+      dau=mother.add(new AMSgvolume(
+      "IRON",0,"IR08","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+
+      par[0]=4;
+      par[1]=3;
+      par[2]=38;
+
+
+
+      coo[0]=-87;      
+      coo[1]=-87.;      
+      coo[2]=0;      
+      dau=mother.add(new AMSgvolume(
+      "IRON",0,"IR09","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+
+      coo[0]=-87;      
+      coo[1]=87.;      
+      coo[2]=0;      
+      dau=mother.add(new AMSgvolume(
+      "IRON",0,"IR10","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+
+      coo[0]=87;      
+      coo[1]=-87.;      
+      coo[2]=0;      
+      dau=mother.add(new AMSgvolume(
+      "IRON",0,"IR11","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+
+      coo[0]=87;      
+      coo[1]=87.;      
+      coo[2]=0;      
+      dau=mother.add(new AMSgvolume(
+      "IRON",0,"IR12","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+
+
+       
+}

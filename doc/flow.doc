@@ -1,0 +1,168 @@
+              AMS Simulation program simplified flowchart
+              -------------------------------------------
+M A I N  ->      gbatch.C
+ |
+ |
+ |-> G Z E B R A     (*)  initialization of Zebra system
+ |
+ |
+ |-> U G I N I T           user initialization routine 
+ |    |
+ |    |
+ |    |->GINIT            GEANT initialization routine
+ |    |->AMSJob::data     defines user data cards
+ |    |   |
+ |    |   |->_siamsdata   Simulation specific datacards
+ |    |   |    |
+ |    |   |    |->_sitkdata   Tracker datacards
+ |    |   |    |->_signdata   MCGen datacards
+ |    |   |    |->_sitofdata  TOF/Anti datacards
+ |    |   |    |->_sitrddata  TRD datacards
+ |    |   |    |->_sictcdata  CTC datacards
+ |    |   |    
+ |    |   |->_reamsdata   Reconstruction specific datacards    
+ |    |        |
+ |    |        |->_retkdata   Tracker datacards
+ |    |        |->_retofdata  TOF/Anti datacards
+ |    |        |->_retrddata  TRD datacards
+ |    |        |->_rectcdata  CTC datacards
+ |    |        |->_reaxdata   AMS datacards
+ |    |        
+ |    |->GFFGO  
+ |    |->AMSJob::udata     read user data cards
+ |    |->AMSgmat::amsmat   AMS materials definitions
+ |    |->AMSgvolume::amsgeom AMS geometry
+ |    |   |     
+ |    |   |->magnetgeom    Magnet geometry
+ |    |   |->tofgeom       TOF geometry
+ |    |   |->antigeom      Anti counter geometry
+ |    |   |->tkgeom        Tracker geometry
+ |    |   |->ctcgeom       CTC      geometry
+ |    |   
+ |    |->AMSJob::init      User initialization routine 
+ |    |   |
+ |    |   |->_siamsinitjob   Simulation initialization
+ |    |   |    | 
+ |    |   |    |->_sitkinitjob
+ |    |   |    |->_signinitjob
+ |    |   |    |->_sitofinitjob
+ |    |   |    |->_sitrdinitjob
+ |    |   |    |->_sictcinitjob
+ |    |   |    
+ |    |   |->_reamsinitjob    
+ |    |        | 
+ |    |        |->_retkinitjob
+ |    |        |->_retofinitjob
+ |    |        |->_retrdinitjob
+ |    |        |->_rectcinitjob
+ |    |        |->_reaxinitjob
+ |    |
+ |    |   
+ |    |->uhinit            Use histograms/ntuples
+ |
+ |
+ |-> G R U N
+ |    |
+ |    |->GUKINE
+ |    |   |
+ |    |   |->AMSEvent::sethead()   Create new event structure 
+ |    |   |    |
+ |    |   |    |->_siamsinitrun    Initialize if run no changed
+ |    |   |    |    |
+ |    |   |    |    |->_sitkinitrun
+ |    |   |    |    |->_sitofinitrun
+ |    |   |    |    |->_sitrdinitrun
+ |    |   |    |    |->_sictcinitrun
+ |    |   |    |    |->_signinitrun
+ |    |   |    |    |
+ |    |   |    |->_reamsinitrun
+ |    |   |    |    |
+ |    |   |    |    |->_retkinitrun
+ |    |   |    |    |->_retofinitrun
+ |    |   |    |    |->_retrdinitrun
+ |    |   |    |    |->_rectcinitrun
+ |    |   |    |    |->_reaxinitrun
+ |    |   |    |
+ |    |   |    |->_siamsinitevent    Initialize event
+ |    |   |    |    |
+ |    |   |    |    |->_signinitevent
+ |    |   |    |    |->_sitkinitevent
+ |    |   |    |    |->_sitofinitevent
+ |    |   |    |    |->_sitrdinitevent
+ |    |   |    |    |->_sictcinitevent
+ |    |   |    |    |
+ |    |   |    |->_reamsinitevent
+ |    |   |         |
+ |    |   |         |->_retkinitevent
+ |    |   |         |->_retofinitevent
+ |    |   |         |->_retrdinitevent
+ |    |   |         |->_rectcinitevent
+ |    |   |         |->_reaxinitevent
+ |    |   |   
+ |    |   |->AMSmceventg->run      Create MC Gen  structure
+ |    |
+ |    |
+ |    |->GUSTEP
+ |    |   |
+ |    |   |->AMSTrMCCluster::sitkhits  Tracker Simulation Hits
+ |    |   |->AMSTOFMCCluster::sitofhits TOF simulation Hits
+ |    |   |->AMSAntiMCCluster::siantihits Anti counter simulation hits
+ |    |   
+ |    |->GUOUT
+ |        |
+ |        |->AMSEvent::event         Analyze event
+ |        |    |
+ |        |    |->_siamsevent         Simulate event
+ |        |    |   |
+ |        |    |   |->_sitkevent      simulate Tracker
+ |        |    |   |     |
+ |        |    |   |     |->AMSTrMCCluster::sitknoise       Noise
+ |        |    |   |     |->AMSTrMCCluster::sitkcrosstalk   Crosstalk
+ |        |    |   |     |->AMSTrMCCluster::sitkdigi        Digitization
+ |        |    |   |                          
+ |        |    |   |->_sitrdevent     Simulate TRD
+ |        |    |   |->_sitofevent     Simulate TOF
+ |        |    |   |->_sictcevent     Simulate CTC
+ |        |    |   |     |
+ |        |    |         |->AMSTOFMCCluster::sitofdigi      Digitization
+ |        |    |
+ |        |    |->_reamsevent         Reconstruct event
+ |        |        |     
+ |        |        |->_retofevent     Reconstruct TOF
+ |        |        |     |
+ |        |        |     |->AMSTOFCluster::build        Make clusters
+ |        |        |
+ |        |        |->_retkevent      reconstruct Tracker
+ |        |        |     |
+ |        |        |     |->AMSTrCluster::build        Make clusters
+ |        |        |     |->AMSTrRecHit::build         Make Rec Hits
+ |        |        |     |->AMSTrTrack::build          Pattern rec + fitting 
+ |        |        |             |->Fit                Trajectory Fit
+ |        |        |                          
+ |        |        |->_retrdevent     reconstruct TRD
+ |        |        |->_rectcevent     reconstruct CTC
+ |        |        |     |
+ |        |        |     |->AMSCTCCluster::build        Make clusters
+ |        |        |
+ |        |        |->_reaxevent      global reconstruction
+ |        |              |
+ |        |              |->AMSBeta::build         Beta reconstruction 
+ |        |              |   |->SimpleFit          Straight Line fit   
+ |        |              | 
+ |        |              |->AMSCharge::build       Charge reconstruction 
+ |        |              |   |->Fit                Likelihood Fit
+ |        |              | 
+ |        |              |->AMSParticle::build     Final reconstruction
+ |        |                  |->pid                Particle Identification
+ |        |                  |->refit              Refitting Trajectory
+ |        |       
+ |        |->AMSEvent::write         Write event output to ntuple
+ |        |       
+ |        |->AMSEvent::copy          Write event output to Objectivity db
+ |        |       
+ |        |->AMSEvent::remove        Clear event
+ |        |       
+ |        |->UPool.erase             Reset memory pool
+ |
+ |
+ | ->U G L A S T                      Termination

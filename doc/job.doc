@@ -1,0 +1,35 @@
+ Job structure
+---------------
+J O B 
+ |
+ |
+ |->E V E N T (S)
+ |    | 
+ |    |->Containers(AMSID(AMScontainer:Class_name, cont_number))
+ |         |
+ |         |-> Container elements
+ | 
+ | 
+ | 
+ |->Geometry, Meterials, etc.
+
+
+
+
+
+static AMSJob* gethead()     // Returns Pointer to Current Job
+
+static AMSJob * & sethead()  // Sets Pointer to Current job
+
+AMSgvolume * getgeom();       // Returns Pointer to Mother Volume
+
+AMSgvolume * getgeomvolume(AMSID id)  //Returns Pointer to Volume AMSID
+
+AMSgmat * getmat();        // Returns pointer to top of material tree
+
+AMSgtmed * getmed();       // Returns pointer to top of media tree
+
+
+
+
+

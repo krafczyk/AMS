@@ -1,0 +1,24 @@
+#
+SHELL=/bin/sh
+#
+ifeq  "$(shell uname)"  "AIX"
+BIN=/bin/aix
+LIB=/lib/aix
+endif
+ifeq  "$(shell uname)"  "OSF1"
+BIN=/bin/osf1
+LIB=/lib/osf1
+endif
+ifeq  "$(shell uname)"  "HP-UX"
+BIN=/bin/hpux
+LIB=/lib/hpux
+endif
+#
+OBJECTS=  ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o  ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geant.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o ..$(BIN)/rndm.o ..$(BIN)/tofrec.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o ..$(BIN)/apool.o ..$(BIN)/tofdbc.o
+
+
+
+crlib:	$(OBJECTS)
+	ar vr ..$(LIB)/libams.a $(OBJECTS)
+
+

@@ -1,0 +1,33 @@
+  AMSgvolume (integer matter,integer rotmno,const char name[],
+           const char shape[] ,   geant par[] , integer npar,
+           geant coo[] ,  number nrm[][3] , const char gonly[] ,
+           integer posp,integer gid)       // constructor
+
+  AMSgvolume (char matter[],integer rotmno,const char name[],
+           const char shape[] ,   geant par[] , integer npar,
+           geant coo[] ,  number nrm[][3] , const char gonly[] ,
+           integer posp,integer gid)       // constructor
+
+private:
+
+   integer _matter;    //   ! geant tracking med
+   integer _rotmno;    //   ! geant rot matrix no
+   integer _gid;       //   ! geant id
+   integer _npar;      //   ! geant number of par
+   integer _posp;      //   ! Pos by posp(1) or by pos(0)
+   char  _shape[5];    //   ! geant voulme shape
+   geant  _par[6];     //   ! geant volume par
+   AMSPoint _coo;      //   ! geant volume absolute coord
+                       //   ! NB Should be absolute in constructor 
+   number  _nrm[3][3]; //   ! normales  with resp to mother
+   number  _inrm[3][3];//   ! norm absolute
+   char _gonly[5];     //   ! 'MANY' or 'ONLY'
+
+
+ member functions:
+
+  AMSPoint gl2loc(AMSPoint);  // conversion global->local
+  AMSPoint loc2gl(AMSPoint);  // conversion local->global
+  number getinrm(integer i ,integer j)const{return _inrm[i][j];}  
+  number getcoo(integer i)const {return _coo[i];}
+  number getpar(integer i)const {return i>=0 && i<_npar ? par[i]:0;} 

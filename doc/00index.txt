@@ -1,0 +1,29 @@
+amsc++.ps.gz        // Introduction
+arr.doc             // Fortran like array 
+beta.doc            // velocity reconstruction
+cfortran.doc        // B.Burow cfortran 
+charge.doc          // charge reconstruction
+cont.doc            // Containers description
+ctcrec.doc          // Threshold cerenkov counter reconstruction
+datacards.doc       // datacards
+dbase_objy.doc      // Objectivity related information
+event.doc           // event class
+flow.doc            // simulation flowchart
+gmat.doc            // material class
+gvolume.doc         // gvolume class
+id.doc              // id class
+job.doc             // job class
+known_bugs.doc      // known bugs
+mccluster.doc       // mccluster classes
+node.doc            // mode class
+particle.doc        // particle reconstruction
+pool.doc            // memory pool
+port_g++.doc        // notes about hp/g++
+port_osf1.doc       // notes about alpha/osf1 
+setup.doc           // AMS layouts
+snode.doc           // map class
+tofrawcluster.doc   // TOF digitization
+tofrec.doc          // TOF reconstruction
+trid.doc            // Tracker geom & software id
+trrawcluster.doc    // tracker raw bank
+trrec.doc           // tracker related classes

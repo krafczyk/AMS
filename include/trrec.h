@@ -1,0 +1,288 @@
+// Author V. Choutko 24-may-1996
+//
+// May 27, 1996. ak. add functions to AMSTrRecHit
+//                   _addnext is public now (though not neccessary)
+//                   AMSTrRecHit::setClusterP
+//                   AMSTrTrack:: (see getParFastFit), getNumbers
+//                   _Pthit[6] ??? ! it is correct
+//                   default constructor for AMSTrTrack
+// June, 1996. ak.   getNumbers, setNumbers, setid for AMSTrCluster&AMSTrRecHit
+// July 03, 1996. ak. V1.09 + alpha code
+// Aug  07, 1996. ak. V1.24 (AMSTrTrack functions are modified accord)
+// Sep  10, 1996. ak. V1.25
+// Oct  10, 1996. ak. implement friend class
+//
+// Last Edit : Oct 10, 1996. ak.
+//
+#ifndef __AMSTRBANK__
+#define __AMSTRBANK__
+#include <upool.h>
+#include <apool.h>
+#include <gsen.h>
+#include <trid.h>
+#include <link.h>
+#include <commons.h>
+#include <cont.h>
+#include <event.h>
+
+
+class AMSTrCluster: public AMSlink {
+protected:
+  void _ErrorCalc();
+  void _printEl(ostream & stream)
+  { stream << _Id << " Nelem " << _Nelem << " Sum " << _Sum <<endl;}
+  void _copyEl();
+  void _writeEl();
+AMSTrIdSoft _Id; // leftmost
+integer _Status;
+integer _Nelem;
+number _Sum;
+number _Sigma;
+number _Mean;    // with respect to left + TRCLFFKEY.ThrClNEl[side]/2 
+number _Rms;
+number _ErrorMean; // Guessed Error
+
+number * _pValues;
+
+static void _addnext(const AMSTrIdSoft& id, integer status, integer nelem, number sum,  number ssum, number pos, number rms, number val[]);
+
+public:
+     static const integer WIDE;
+     static const integer NEAR;
+static integer Out(integer);
+inline void setstatus(integer status){_Status=_Status | status;}
+integer getstatus(integer checker) const{return _Status & checker;}
+number getVal(){return _Sum;}
+number getcofg(integer side, AMSTrIdGeom * id);
+number getecofg(){return _ErrorMean;}
+//+
+#ifdef __DB__
+   friend class AMSTrClusterD;
+#endif
+
+                   integer getnelem()      {return _Nelem;}
+                   number  getrms()        {return _Rms;}
+                   number  getsigma()      {return _Sigma;}
+
+inline void setid(const AMSTrIdSoft& id) { _Id = id;}
+number getMean() { return _Mean;}
+void   getValues(number* values)
+       { if(_Nelem > 0) UCOPY (_pValues, values, sizeof(number)*_Nelem/4); }
+void   setValues(number* values)
+  {
+   if(_Nelem>0){
+    _pValues=(number*)UPool.insert(_Nelem*sizeof(number));
+    for(int i=0;i<_Nelem;i++) _pValues[i] = values[i];
+   }
+  }
+//-
+
+AMSTrIdSoft getid()const {return _Id;}
+AMSTrCluster(const AMSTrIdSoft& id, integer status, integer nelem, number sum,
+             number ssum, number pos, number rms,  number val[]);
+AMSTrCluster *  next(){return (AMSTrCluster*)_next;}
+
+static void build();
+static void print();
+AMSTrCluster():AMSlink(0){_Nelem=0;_pValues=0;};
+~AMSTrCluster(){if(_pValues)UPool.udelete(_pValues);}
+integer operator < (AMSlink & o) const {
+// No RTTI - take a "risk" here
+  AMSTrCluster * p= (AMSTrCluster*)(&o);
+  return getid() < p->getid();
+} 
+};
+
+class AMSTrRecHit: public AMSlink{
+public:
+static integer Out(integer);
+AMSTrRecHit *  next(){return (AMSTrRecHit*)_next;}
+
+static AMSTrRecHit * gethead(integer i=0){
+   if(i>=0 && i<6){
+    if(!_Head[i])_Head[i]=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
+    return _Head[i];
+   }
+   else {
+#ifdef __AMSDEBUG__
+    cerr <<"AMSTrRecHit:gethead-S-Wrong Head "<<i;
+#endif
+    return 0;
+   }   
+}
+AMSTrRecHit(AMSgSen *p, integer good,integer layer, AMSTrCluster * xcl, AMSTrCluster * ycl,
+            const AMSPoint & hit, const AMSPoint & ehit, number sum, number dfs): AMSlink(0),
+            _pSen(p),_Status(good), _Layer(layer),_Xcl(xcl),
+            _Ycl(ycl), _Hit(hit), _EHit(ehit),_Sum(sum),_DifoSum(dfs){};
+AMSTrRecHit(): AMSlink(0),_pSen(0),_Xcl(0),_Ycl(0){};
+static void build();
+static void print();
+number getsum()const{return _Sum;}
+AMSgSen * getpsen()const{return _pSen;}
+inline  AMSPoint  getHit(){return _Hit;}
+inline  AMSPoint  getEHit(){return _EHit;}
+inline  integer getstatus(integer checker) const{return _Status & checker;}
+//+
+#ifdef __DB__
+   friend class AMSTrRecHitD;
+#endif
+inline  integer       getLayer()             {return _Layer;}
+inline  number        getSum()               { return _Sum;}
+inline  number        getDSum()              { return _DifoSum;}
+inline  AMSTrCluster* getClusterP(integer n) {
+                                              AMSTrCluster* p = _Xcl;
+                                              if(n == 1)    p = _Ycl;
+                                              return p;
+}
+void          setClusterP(AMSTrCluster* p,integer n) {
+              if (n == 0) _Xcl = p;
+              if (n == 1) _Ycl = p;
+}
+//-
+inline void setstatus(integer status){_Status=_Status | status;}
+~AMSTrRecHit(){int i;for( i=0;i<6;i++)_Head[i]=0;};
+protected:
+static AMSTrRecHit* _Head[6];
+static void _addnext(AMSgSen * p, integer ,integer ,AMSTrCluster *, 
+            AMSTrCluster *,  const AMSPoint &, const AMSPoint &);
+  void _printEl(ostream & stream){ stream << " Status " << _Status << " Layer " << 
+  _Layer <<" Coo " << _Hit<< endl;}
+  void _copyEl();
+  void _writeEl();
+AMSgSen * _pSen;
+AMSTrCluster *_Xcl;
+AMSTrCluster *_Ycl;
+integer _Status;
+integer _Layer;
+AMSPoint     _Hit;
+AMSPoint     _EHit;
+number _Sum;
+number _DifoSum;
+
+};
+
+class AMSTrTrackError{
+private:
+ char msg[256];
+public:
+ AMSTrTrackError(char * name);
+ char * getmessage();
+};
+
+class AMSTrTrack: public AMSlink{
+protected:
+AMSTrRecHit * _Pthit[6];
+
+integer _Status;
+integer _Pattern;
+integer _NHits;
+integer _GeaneFitDone;
+integer _AdvancedFitDone;
+
+number _Chi2StrLine;
+number _Chi2Circle;
+number _CircleRidgidity;
+number _Chi2FastFit;
+number _Ridgidity;
+number _ErrRidgidity;
+number _Theta;
+number _Phi;
+AMSPoint _P0;
+number _GChi2;
+number _GRidgidity;    //  Ridgidity or momentum if (geanefitdone != 14)
+number _GErrRidgidity; //  err of  see above
+number _GTheta;
+number _GPhi;
+AMSPoint _GP0;
+number _HChi2[2];
+number _HRidgidity[2];
+number _HErrRidgidity[2];
+number _HTheta[2];
+number _HPhi[2];
+AMSPoint _HP0[2];
+number _Chi2MS;
+number _GChi2MS;
+number _RidgidityMS;
+number _GRidgidityMS;
+void SimpleFit(AMSPoint err=0);
+void   AdvancedFit();
+static void _Start(){TIMEX(_Time);}
+static geant _CheckTime(){geant time;TIMEX(time);return time-_Time;}
+static geant _Time;
+  void _printEl(ostream & stream){ stream << " Pattern " << _Pattern << " Ridgidity (Circ)" << 
+  _CircleRidgidity <<" Ridgidity (Fast) "<<_Ridgidity <<" Chi2Fast " << 
+  _Chi2FastFit << " ThetaFast "<<_Theta<<" PhiFast "<<_Phi<<endl;}
+  void _copyEl();
+  void _writeEl();
+
+static integer _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
+static number Distance(number par[2], AMSTrRecHit *ptr);
+static integer patpoints[npat];
+static integer patconf[npat][6];
+
+public:
+static integer Out(integer);
+inline void setstatus(integer status){_Status=_Status | status;}
+inline integer getstatus(integer checker) const{return _Status & checker;}
+number Fit(integer i=0, integer ipart=14);
+AMSTrTrack(const AMSTrTrack & o):AMSlink(o._next),_Pattern(o._Pattern),
+_NHits(o._NHits),_GeaneFitDone(o._GeaneFitDone),
+_AdvancedFitDone(o._AdvancedFitDone),_Chi2StrLine(o._Chi2StrLine),
+_Chi2Circle(o._Chi2Circle),_CircleRidgidity(o._CircleRidgidity),
+_Chi2FastFit(o._Chi2FastFit),_Ridgidity(o._Ridgidity),
+_RidgidityMS(o._RidgidityMS),_GRidgidityMS(o._GRidgidityMS),
+_Chi2MS(o._Chi2MS),_GChi2MS(o._GChi2MS),_Status(o._Status),
+_ErrRidgidity(o._ErrRidgidity),_Theta(o._Theta), _Phi(o._Phi),_P0(o._P0),
+_GChi2(o._GChi2), _GRidgidity(o._GRidgidity),_GErrRidgidity(o._GErrRidgidity),
+_GTheta(o._GTheta),_GPhi(o._GPhi),_GP0(o._GP0){
+int i;
+for( i=0;i<6;i++)_Pthit[i]=o._Pthit[i];
+for(i=0;i<2;i++){
+  _HChi2[i]=o._HChi2[i];
+  _HRidgidity[i]=o._HRidgidity[i];
+  _HErrRidgidity[i]=o._HErrRidgidity[i];
+  _HTheta[i]=o._HTheta[i];
+  _HPhi[i]=o._HPhi[i];
+  _HP0[i]=o._HP0[i];
+} 
+}
+~AMSTrTrack(){};
+AMSTrTrack *  next(){return (AMSTrTrack*)_next;}
+AMSTrTrack (integer pattern, integer nhits, AMSTrRecHit * phit[]): 
+AMSlink(0), _Status(0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0)
+  {init(  phit);}
+void init( AMSTrRecHit * phit[]);
+static void build();
+static void print();
+AMSTrRecHit * getphit(integer i){return i>=0 && i<6? _Pthit[i]:0;}
+void interpolate(AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 
+                 number & theta, number & phi, number & length);
+void getParFastFit(number&  Chi2, number& Rid, number&  Err, 
+number&  Theta, number & Phi, AMSPoint&  X0)const ; 
+
+void getParSimpleFit(number & Chi2xy, number &Chi2sz, number & Rid)const;
+integer AdvancedFitDone()const{return _AdvancedFitDone;}
+void getParAdvancedFit(number&   GChi2, number&  GRid, number&  GErr,
+number&  GTheta, number&  GPhi, AMSPoint&  GP0,
+number HChi2[2], number HRid[2], number HErr[2], number HTheta[2], 
+number HPhi[2], AMSPoint  HP0[2] ) const;
+
+//+
+#ifdef __DB__
+   friend class AMSTrTrackD;
+#endif
+AMSTrTrack() {_Pattern = -1; _NHits = -1;}
+AMSTrRecHit* getHitP(integer n) {if (n< 6) 
+                                  return _Pthit[n];
+                                 else
+                                   return NULL; }
+void   setHitP(AMSTrRecHit* p, integer n) {if (n< 6) _Pthit[n] = p;}
+
+//-
+
+integer TOFOK();
+number getgrid() const {return _GRidgidity;}
+
+};
+
+#endif
