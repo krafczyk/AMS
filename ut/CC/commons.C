@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.268 2004/02/26 07:17:12 choutko Exp $
+//  $Id: commons.C,v 1.269 2004/03/03 13:04:31 choutko Exp $
 
 
 
@@ -75,7 +75,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=119;
+uinteger AMSCommonsI::_build=121;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];
@@ -208,7 +208,10 @@ void AMSCommonsI::init(){
           float _cor=1;
           if(strstr(syscom,"Pentium II"))_cor=1.07;
           else if(strstr(syscom,"Pentium III"))_cor=1.0;
-          else if(strstr(syscom,"Pentium(R) 4"))_cor=0.7;
+          else if(strstr(syscom,"Pentium(R) 4")){
+           if(_mips<2400) _cor=0.7;
+           else _cor=0.85;
+          }
           else if(strstr(syscom,"Pentium(R) M"))_cor=1.07;
           else if(strstr(syscom,"Xeon"))_cor=0.8;
           else if(strstr(syscom,"Athlon"))_cor=1.15;

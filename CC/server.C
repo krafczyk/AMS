@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.107 2004/01/30 22:42:09 choutko Exp $
+//  $Id: server.C,v 1.108 2004/03/03 13:04:32 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -64,7 +64,9 @@ int main(int argc, char * argv[]){
    AMSServer::Singleton()->IMessage("Initialization Completed");
    AMSServer::Singleton()->DumpIOR();
     cout <<"  Starting ... "<<endl;
-    AMSServer::Singleton()->Listening(-1);
+    int count=AMSServer::Singleton()->MT()?-1:1;
+
+    AMSServer::Singleton()->Listening(count);
     cout <<"  Starting ... "<<endl;
     for(;;){
      try{
@@ -75,7 +77,7 @@ int main(int argc, char * argv[]){
       cerr <<"CorbaSystemExceptionDuringUpdateDB/SystemCheck "<<endl;
        continue;
      try{
-      AMSServer::Singleton()->Listening(-1);
+      AMSServer::Singleton()->Listening(count);
      }
      catch(CORBA::SystemException &a){
       cerr <<"CorbaSystemExceptionDuringPerform_Work "<<endl;
@@ -230,7 +232,7 @@ if(niface){
       e._orb=CORBA::ORB_init(argc,argv,"orbit-local-mt-orb");
    }
    else{
-   if(strstr(tmpbuf,"default"))e._orb=CORBA::ORB_init(argc,argv);
+   if(1 || strstr(tmpbuf,"default"))e._orb=CORBA::ORB_init(argc,argv);
    else {
     AString a=(const char*)_pid.HostName;
      for (int i=0;i<a.length();i++){
@@ -395,7 +397,7 @@ typedef map<AString, AMSServer::OrbitVars>::iterator MOI;
        usleep(AMSServer::Singleton()->getSleepTime());
       for(MOI i=_orbmap.begin();i!=_orbmap.end();++i){
         if(sleeptime<0)((*i).second)._orb->run();
-        //else ((*i).second)._orb->perform_work();
+        else ((*i).second)._orb->perform_work();
       }
      }
 }
