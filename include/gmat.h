@@ -96,7 +96,7 @@ class AMSgtmed : public AMSNode
             geant stmin=-1 ):
     _itmed(itmed),_isvol(isvol), _ifield(ifield),_fieldm(fieldm),_tmaxfd(tmaxfd),
     _stemax(stemax),_deemax(deemax),_epsil(epsil),_stmin(stmin),_yb(yb),
-    _itmat(itmat){
+    _itmat(itmat),AMSNode(){
     
    setname(name);
    setid(0); 

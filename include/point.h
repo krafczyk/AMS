@@ -20,6 +20,7 @@ void getp(number &x, number &y, number &z)const{x=_x;y=_y;z=_z;}
 void getp(geant &x, geant &y, geant &z){x=_x;y=_y;z=_z;}
 void getp(number x[]){x[0]=_x;x[1]=_y;x[2]=_z;}
 AMSPoint mm3(number [][3]);
+integer operator ==(const AMSPoint & o) const{return _x==o._x && _y==o._y &&_z==o._z;}
 integer operator <(AMSPoint o) const{return _x<o._x && _y<o._y &&_z<o._z;}
 integer operator <=(AMSPoint o) const{return _x<=o._x && _y<=o._y &&_z<=o._z;}
 integer operator >=(AMSPoint o) const{return _x>=o._x && _y>=o._y &&_z>=o._z;}

@@ -326,7 +326,7 @@ void DAQEvent::_copyEl(){
 
 void DAQEvent::_InitTable(){
   if(!_Table){
-    _Table=new uinteger[255];
+    _Table=new uinteger[256];
     assert(_Table!=NULL);
     integer i,j;
     uinteger crc;

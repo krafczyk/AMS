@@ -1170,9 +1170,9 @@ TID.add (new AMSTimeID(AMSID("Tofvpar",isRealData()),
    begin,end,sizeof(TOFVarp),
    (void*)&tofvpar));
    
-TID.add (new AMSTimeID(AMSID("Tofmcscans",isRealData()),
-   begin,end,SCBLMX*sizeof(AMSTOFScan),
-   (void*)&scmcscan[0]));
+//TID.add (new AMSTimeID(AMSID("Tofmcscans",isRealData()),
+//   begin,end,SCBLMX*sizeof(scmcscan[0]),
+//   (void*)&scmcscan[0]));
 }
 //---------------------------------------
 //

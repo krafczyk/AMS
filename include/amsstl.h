@@ -206,58 +206,61 @@ if(ia==ib-1 && il)if((obj==*a[ia])){k=ia;return ia;}
 }
 return -1;
 }
-template <class T> void AMSsort(T *a[], integer n){
-integer * index;
-T** b;
-index= (integer*)UPool.insert(sizeof(integer)*n);
-b=(T**)UPool.insert(sizeof(T*)*n);
-integer n1=n;
-int i1=0,i2=0,i3=0,i22=0,i33=0,i222=0;
-for (int i=0;i < n;i++)index[i]=i+1;
 
-for ( i1=2;i1 <=n;i1++){
-   i3=i1;
-   i33=index[i3-1];
-  T *ai=a[i33-1];
-  for (  i2=i3/2;i2 > 0;i2=i2/2){
-    i22=index[i2-1];
-   if( *ai < *a[i22-1])break;
-   if( *ai == *a[i22-1])break;
-   index[i3-1]=i22;
-   i3=i2;
-  }
-  index [i3-1]=i33;
-}
-m4: i3=index[n-1];
-    index[n-1]=index[0];
-    T *ai=a[i3-1];
-    n--;
-    if(n < 2)goto m12;
-    i1=1;
-m6: i2=i1+i1;
-    if(i2<=n)i22=index[i2-1];
-    if(i2>n)goto m11;
-    else if (i2==n)goto m9;
-    i222=index[i2];
-    if(*a[i22-1]<*a[i222-1]){
-    i2++;
-    i22=i222;}
-m9: if(*ai<*a[i22-1]){
-    index[i1-1]=i22;
-    i1=i2;
-    goto m6;}
-m11:    index[i1-1]=i3;
-    goto m4;
-m12: index[0]=i3;
-for (i=0;i<n1;i++){
-     b[i]=a[index[i]-1];
-}
-    UCOPY(b,a,n1*sizeof(a[0])/4);
-    if (n1 > sz){
-    UPool.udelete(index);
-    UPool.udelete(b);
-}      
-}
+//template <class T> void AMSsort(T *a[], integer n){
+//integer * index;
+//T** b;
+//index= (integer*)UPool.insert(sizeof(integer)*n);
+//b=(T**)UPool.insert(sizeof(T*)*n);
+//integer n1=n;
+//int i1=0,i2=0,i3=0,i22=0,i33=0,i222=0;
+//for (int i=0;i < n;i++)index[i]=i+1;
+//
+//for ( i1=2;i1 <=n;i1++){
+//   i3=i1;
+//   i33=index[i3-1];
+//  T *ai=a[i33-1];
+//  for (  i2=i3/2;i2 > 0;i2=i2/2){
+//    i22=index[i2-1];
+//   if( *ai < *a[i22-1])break;
+//   if( *ai == *a[i22-1])break;
+//   index[i3-1]=i22;
+//   i3=i2;
+//  }
+//  index [i3-1]=i33;
+//}
+//m4: i3=index[n-1];
+//    index[n-1]=index[0];
+//    T *ai=a[i3-1];
+//    n--;
+//    if(n < 2)goto m12;
+//    i1=1;
+//m6: i2=i1+i1;
+//    if(i2<=n)i22=index[i2-1];
+//    if(i2>n)goto m11;
+//    else if (i2==n)goto m9;
+//    i222=index[i2];
+//    if(*a[i22-1]<*a[i222-1]){
+//    i2++;
+//    i22=i222;}
+//m9: if(*ai<*a[i22-1]){
+//    index[i1-1]=i22;
+//    i1=i2;
+//    goto m6;}
+//m11:    index[i1-1]=i3;
+//    goto m4;
+//m12: index[0]=i3;
+//for (i=0;i<n1;i++){
+//     b[i]=a[index[i]-1];
+//}
+//    UCOPY(b,a,n1*sizeof(a[0])/4);
+//    if (n1 > sz){
+//    UPool.udelete(index);
+//    UPool.udelete(b);
+//}      
+//}
+
+
 template <class T> void AMSsortNAG(T *rv[], integer m2){
     /* Initialized data */
     const int minq=15;

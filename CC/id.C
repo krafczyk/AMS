@@ -36,6 +36,7 @@ if(name){
  _name=new char[strlen(name)+1];
  if(_name)strcpy(_name,name);
  else{
+#ifdef __AMSDEBUG__
   _name=(char*)name;
   // Set Error
   ResetError();
@@ -45,6 +46,7 @@ if(name){
    ost.seekp(0); 
   // for debug only
   cerr <<_error;
+#endif
   _name=0;
 
  }

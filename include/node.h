@@ -19,7 +19,7 @@ class AMSNode : public AMSID{
   AMSNode( AMSNode &):AMSID(0){}  // do not have copy ctor at the moment
   //AMSNode & operator =(const AMSNode & o){return *this;}
  public:
- ~AMSNode(){}
+ virtual ~AMSNode(){}
   AMSNode *  add(  AMSNode *);
   AMSNode * addup( AMSNode *);   // add at virtual top
   void  remove();

@@ -83,7 +83,7 @@ void AMSTOFScan::build()
     int i,ic;
     int brfnam[SCBLMX];
     char fname[80];
-    char name[12];
+    char name[17];
     UHTOC(TOFMCFFKEY.tdfnam,4,name,12);
     strcat(name,".dat");
     strcpy(fname,AMSDATADIR.amsdatadir);    
