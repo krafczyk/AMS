@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.274 2004/06/28 15:40:32 alexei Exp $
+# $Id: RemoteClient.pm,v 1.275 2004/08/05 09:19:08 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -62,6 +62,8 @@
 #
 # June 16, 2004  : pcamss0.cern.ch is a primary HTTP server
 #
+# July  2, 2004  : prepareCastorCopyScript, updateDSTPath subr
+#
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
 
@@ -80,7 +82,7 @@ use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 use File::Find;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateCopyStatus updateHostsMips);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateCopyStatus updateHostsMips);
 
 
 my     $webmode         = 1; # 1- cgi is executed from Web interface and 
@@ -1742,6 +1744,7 @@ sub ConnectOnlyDB{
          }
      }
 
+    $self->setActiveProductionSet();
 }
 
 sub ConnectDB{
@@ -2903,12 +2906,20 @@ CheckCite:            if (defined $q->param("QCite")) {
         if(not defined $sendsuc){
             $self->ErrorPlus("Unable to find responsible for the server. Please try again later..");
         }
-
+# check that e-mail address is unique
+            $cem = trimblanks($cem);
+            my $sql ="SELECT address from Mails where address='$cem'";
+            my $ret=$self->{sqlserver}->Query($sql);
+            if (defined $ret->[0][0]) {
+                 my $error=" User with $cem address is already registered";
+                 $self->ErrorPlus("$error");
+                 return;
+            }
 # build up the corr entries in the database
             
 # check if cite exist
-            my $sql="select cid from Cites where name='$cite'";
-            my $ret=$self->{sqlserver}->Query($sql);
+            $sql="select cid from Cites where name='$cite'";
+            $ret=$self->{sqlserver}->Query($sql);
             my $cid=$ret->[0][0];
             my $newcite=0;
             if(not defined $cid){
@@ -2934,6 +2945,8 @@ CheckCite:            if (defined $q->param("QCite")) {
             my $mid=$ret->[$#{$ret}][0]+1;
             my $resp=$newcite;
             my $time=time();
+            $cem = trimblanks($cem);
+            $name= trimblanks($name);
             $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time,0,0)";
             $self->{sqlserver}->Update($sql);
             if($newcite){
@@ -10932,44 +10945,53 @@ sub deleteDST {
 
 }
 
-sub restoreDST {
+sub prepareCastorCopyScript {
  my $HelpTxt = "
      restoreDST updates DB content for files restored from CASTOR
 
-     -crc  - calculate CRC
      -h    - print help
-     -d    - dirpath (-d:directory) - mandatory
+     -a    - overwrite existing files
+     -d    - directory path. -d:dir
+     -o    - output file. -o:/tmp/c.rfcp
+     -p    - pattern to search in DB 
      -v    - verbose mode
-     -u    - update mode
 
-     ./restoreDST.cgi -v -u -d:/s0dah1/MC/AMS02/2004A/C/c.pl1.12005366
+     ./preparecastorscript.cgi -v -p:/s0dah1/MC/AMS02/2004A/C/c.pl1.12005366 -d:/f0dah1/MC/AMS02/2004 -o:/tmp/t.t
 ";
 
   my $self         = shift;
-  my $topdir       = undef;
-  my $updateDB     = 0;
   my $sql          = undef;
-  my $checkCRC     = 0;
-  my $ncrcerr      = 0;
+  my $pattern      = undef;
+  my $outputfile   = undef;
+  my $topdir       = undef;
+  my $overwrite    = 0;
+  my @mkdirs       = ();
 
   my $whoami = getlogin();
-  if ($whoami =~ 'ams') {
+  if ($whoami =~ 'casadmva' || $whoami =~ 'ams') {
   } else {
    print  "restoreDST -ERROR- script cannot be run from account : $whoami \n";
    return 1;
   }
 
   foreach my $chop  (@ARGV){
-     if ($chop =~/^-crc/) {
-        $checkCRC = 1;
+
+    if ($chop =~/^-a/) {
+     $overwrite = 1;
     }
-   if($chop =~/^-d:/){
+
+    if($chop =~/^-o:/){
+       $outputfile=unpack("x3 A*",$chop);
+    } 
+
+    if($chop =~/^-d:/){
        $topdir=unpack("x3 A*",$chop);
     } 
 
-    if ($chop =~/^-u/) {
-     $updateDB = 1;
-    }
+    if($chop =~/^-p:/){
+       $pattern=unpack("x3 A*",$chop);
+    } 
+
     if ($chop =~/^-v/) {
      $verbose = 1;
     }
@@ -10980,17 +11002,128 @@ sub restoreDST {
    }
 
   
-   if (not defined $topdir) {
-       print "restoreDST -E- -d option is mandatory. Quit.\n";
+   if (not defined $pattern) {print "ERROR - -p option is mandatory. Quit.\n"; return 1;}
+   if (not defined $outputfile) {print "ERROR - -o option is mandatory. Quit.\n"; return 1;}
+   if (not defined $topdir) {print "ERROR - -d option is mandatory. Quit.\n"; return 1;}
+
+   my $writetime = (stat($topdir)) [9];
+   if (not defined $writetime) {
+       print "ERROR - cannot access $topdir \n";
    }
-  my $timenow = time();
-  find (\&inputList, $topdir);
+
+   my $timenow = time();
+   
+   $pattern = "# ".$pattern;
+   $sql = "SELECT path FROM ntuples WHERE path like '$pattern%'";
+   my $ret=$self->{sqlserver}->Query($sql);
+   if (defined $ret->[0][0]) {
+    open(FILEV,">".$outputfile) or die "Unable to open file $outputfile\n";
+    if ($verbose ==1) { print "INFO- open $outputfile \n";}
+    foreach my $f (@{$ret}){
+     my @junk = split '/',$f->[0];
+     my $castorpath  = "/castor/cern.ch/ams";
+     my $dirpath     = $topdir;
+     my $filepath    = $topdir;
+     my $rfcp        = "#... \n";
+     for (my $i=2; $i<$#junk+1; $i++) {
+      $castorpath = $castorpath."/".$junk[$i];
+      $filepath   = $filepath."/".$junk[$i];
+      if ($i < $#junk) {$dirpath    = $dirpath."/".$junk[$i];}
+     }
+     my $writetime = 0;
+     $writetime = (stat($dirpath)) [9] or $writetime=0;
+     if ($writetime == 0) {
+      my $mkdir = "/bin/mkdir -p $dirpath \n";
+      my $direxist = 0;
+      for (my $j=0; $j<$#mkdirs+1; $j++) {
+          if ($mkdirs[$j] =~ $mkdir) { $direxist=1; last;}
+      }
+      if ($direxist ==0) {print FILEV "#... \n"; print FILEV $mkdir; push @mkdirs, $mkdir;}
+      }
+      my $filetime = 0;
+      $filetime = (stat($filepath)) [9] or $filetime = 0;
+      if ($filetime == 0) {
+        $rfcp = "/usr/local/bin/rfcp ".$castorpath." ". $dirpath." \n";
+      } else {
+       if ($overwrite) {
+        $rfcp = "/usr/local/bin/rfcp ".$castorpath." ". $dirpath." \n";
+       } else {
+         $rfcp = "# File exist. Do nothing; $filepath.\n";
+       }
+      }
+    print FILEV $rfcp;
+   }
+   close FILEV; 
+  } else {
+    print "$sql \n";
+    print "INFO - cannot find any record \n";
+    return 1;
+   }
+ return 1;
+}
+
+
+
+sub updateDSTPath {
+ my $HelpTxt = "
+     scan directory and update DST path in NTuples table
+
+     -h    - print help
+     -crc  - calculate CRC and update path only if CRC is the same
+     -d    - directory path. -d:dir
+     -v    - verbose mode
+     -u    - update mode
+
+     ./updatedstpath.cgi -v -d:/d0dah1/MC/AMS02/2004 
+";
+
+  my $self         = shift;
+  my $sql          = undef;
+ 
+  my $checkCRC     = 0;
+  my $topdir       = undef;
+  my $update       = 0;
+
+  my $whoami = getlogin();
+  if ($whoami =~ 'ams') {
+  } else {
+   print  "restoreDST -ERROR- script cannot be run from account : $whoami \n";
+   return 1;
+  }
+
+  foreach my $chop  (@ARGV){
+
+    if ($chop =~/^-crc/) {$checkCRC = 1;}
+
+    if($chop =~/^-d:/){$topdir=unpack("x3 A*",$chop);}
+
+    if ($chop =~/^-v/) {$verbose = 1;}
+
+    if ($chop =~/^-u/) {$update = 1;}
+
+    if ($chop =~/^-h/) {print "$HelpTxt \n";return 1;}
+   }
+
+   if (not defined $topdir) {print "ERROR - -d option is mandatory. Quit.\n"; return 1;}
+
+   my $timenow = time();
+
+   my $ncrcerr = 0;  # CRC errors
+   my $nsizemm = 0;  # file size mismatch
+   my $notfound= 0;  # file not found in DB
+   my $foundtwice=0; # more than 1 record found in DB
+
     my $i= 0;
+    my $cdir = $topdir;
+
+    find (\&inputList, $topdir);
     while ($i <= $#inputFiles) {
+      my $skipfile = 0;
       if (-d $inputFiles[$i]) {
           if ($verbose == 1) {print "Directory : $inputFiles[$i] \n";}
+          $cdir = $inputFiles[$i];
       } else {
-       my $n = 0; # files found
+       my $n = 0;
        my $filename = trimblanks($inputFiles[$i]);
        $sql = "SELECT COUNT(PATH) FROM ntuples WHERE PATH LIKE '%$filename'";
        my $ret=$self->{sqlserver}->Query($sql);
@@ -10999,49 +11132,58 @@ sub restoreDST {
            print "$sql \n";
            print "N O T     F O U N D   I N     D B \n";
            print "correct it and rerun. Bye \n";
-           return 1;
+           $notfound++;
+           $skipfile = 1;
        } else {
          $n = $ret->[0][0];
          if ($n > 1) {
            print "File : $filename \n";
            print "$sql \n";
            print "F O U N D   I N     D B, $n times \n";
-           print "correct it and rerun. Bye \n";
-           return 1;
+           print "DO NOTHING \n";
+           $foundtwice++;
+           $skipfile = 1;
          }
        }
-       $sql = "UPDATE ntuples set path='$filename', timestamp=$timenow ";
-       if ($checkCRC == 1) {
-        my $sqlcrc = "SELECT CRC FROM ntuples WHERE PATH like '# $filename'";
-        my $rc=$self->{sqlserver}->Query($sqlcrc);
-        if (defined $rc->[0][0]) {
-         my $crc = $rc->[0][0];
-         my $rstatus = $self->calculateCRC($filename,$crc);
-         if ($rstatus != 1) {
+       if ($skipfile == 0) {
+# check file size
+        $sql = "SELECT sizemb  FROM ntuples WHERE PATH LIKE '%$filename'";
+        $ret=$self->{sqlserver}->Query($sql);
+        my $sizemb = $ret->[0][0];
+        my $inputfile = $cdir."/".$filename;
+        my $filesize    = (stat($inputfile))[7];
+        $filesize = sprintf("%.0",$filesize/1000);
+        if ($filesize == $sizemb) { 
+         $sql = "UPDATE ntuples set path='$filename', timestamp=$timenow ";
+         if ($checkCRC == 1) {
+          my $sqlcrc = "SELECT CRC FROM ntuples WHERE PATH like '# $filename'";
+          my $rc=$self->{sqlserver}->Query($sqlcrc);
+          my $crc = $rc->[0][0];
+          my $rstatus = $self->calculateCRC($filename,$crc);
+          if ($rstatus != 1) {
             print "restoreDST -ERROR- CRC error for $filename \n";
             $ncrcerr++;
-         } else {
+            $skipfile = 1;
+          } else {
             $sql = $sql.", crctime=$timenow ";
-         }
-     } else {
-           print "$sqlcrc \n";
-           print "N O T     F O U N D   I N     D B \n";
-           print "correct it and rerun. Bye \n";
-           return 1;
-     }
-    }
-    $sql = $sql."WHERE PATH LIKE '%$filename'";
-    if (updateDB) {
-        $self->{sqlserver}->Update($sql);
-    }
-    if ($verbose) {
-            print "$sql \n";
+          }
         }
+       $sql = $sql."WHERE PATH LIKE '%$filename'";
+       if ($update && $skipfile==0) {$self->{sqlserver}->Update($sql);}
+       if ($verbose)  {print "$sql \n";}
+   } else {
+       $nsizemm++;
+       print "$inputfile - $filesize MB, DB $filename $sizemb MB \n";
+   }
+  }
    }
    $i++;
   }
- if ($checkCRC) {
      print "Files checked : $#inputFiles \n";
      print "CRC error     : $ncrcerr \n";
- }
+     print "File size mismathc : $nsizemm \n";
+     print "File not found in DB : $notfound \n";
+     print "File found twice     : $foundtwice \n";
 }
+
+
