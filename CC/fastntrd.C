@@ -14,18 +14,20 @@
 //-----------------------------------------------------------------|
 //output:a) Bit 8 is set -> bad ntuple(+bits (1-7)=1->open problem;|
 //            =2->read probl; =3->NevIn>NevRead; =4->NevIn<NevRead;| 
-//            =5->miss.arguments)                                  |
+//            =5->LastEventProbablyWrong
+//            =6->miss.arguments)                                  |
 //       b) Bit 8 is not set --> bits 1-7 give % of events with    |
 //          EventStatus=bad;                                     |
 //-----------------------------------------------------------------|
 //
- int rootread(char * fname,int nevents,int iver);
+ int rootread(char * fname,int nevents,int iver, int& lastevent);
  int main(int argc, char * argv[])
  {
 //
    int iflg;
    char fname[256];
 //
+   int lastevent=0;
    bool verbose=false;
    bool root=false; 
    int iver=0;
@@ -38,12 +40,15 @@
         if(iot)root=true;
       }
      if(argc>4){
+      lastevent=atoi(argv[4]);
+     }
+     if(argc>5){
       verbose=true;
       iver=1;
      }
 //     cout<<"Requested file: "<<fname<<" imply "<<nevents<<" events"<<endl;
       if(root){
-       iflg=rootread(fname,nevents,iver);
+       iflg=rootread(fname,nevents,iver,lastevent);
       }
       else {
        iflg=IFNTREAD(fname,nevents,iver);
@@ -61,7 +66,7 @@
    else
    {
 //     cout<<"FastNtupleRead-Error: missing arguments ???"<<endl;
-     iflg=5+128; // abs(-5) + bit 8 for "-"
+     iflg=6+128; // abs(-6) + bit 8 for "-"
    }
      if(verbose)cout<<"Flag="<<iflg<<endl;
      return(iflg);
