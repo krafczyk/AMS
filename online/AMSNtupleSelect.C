@@ -1,6 +1,7 @@
 #include "AMSNtupleHelper.h"
 static AMSNtupleHelper * fgHelper=0;
 extern "C" AMSNtupleHelper * gethelper();
+void* __dso_handle=0;
 class AMSNtupleSelect: public AMSNtupleHelper{
 public:
 AMSNtupleSelect(){};

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.14 2005/01/26 12:57:53 choutko Exp $
+#  $Id: Makefile,v 1.15 2005/02/23 15:33:29 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
@@ -20,15 +20,15 @@ ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
  RH9add=
 endif
 ifeq ($(ARCH),linuxicc)
-CXX           =  icc
+CXX           =  /opt/intel/compiler80/bin/icc
 CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -tpp6 -mp1 -xi 
 OPT           = -O2
 OPTC          = -O2
 NOOPT         = -g
 NOOPTC         = -g
-LD            = icc
+LD            = /opt/intel/compiler80/bin/icc
 LDFLAGS       = 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift
 
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
@@ -40,7 +40,7 @@ OPTC          = -O0
 NOOPT         = -g
 LD            = g++
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift
 
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
@@ -55,7 +55,7 @@ NOOPT         = -g
 NOOPTC         = -g
 LD            = g++
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm.dll -lX11.dll  -L/usr/lib -lshift
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm.dll -lX11.dll  -L/usr/lib -lshift
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm 
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm
 endif
