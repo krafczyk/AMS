@@ -346,7 +346,7 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.trlogic[0]=1; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
   TOFMCFFKEY.trlogic[1]=0; // ......................(=0/1-> ANY3/ALL4 layer coincidence) 
   TOFMCFFKEY.fast=0;       // 0/1-> fast/slow simulation algorithm
-  TOFMCFFKEY.daqfmt=1;     // 0/1-> raw/reduced TDC format for DAQ simulation
+  TOFMCFFKEY.daqfmt=0;     // 0/1-> raw/reduced TDC format for DAQ simulation
   TOFMCFFKEY.birks=1;       // 0/1->  not apply/apply birks corrections
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -679,7 +679,7 @@ void AMSJob::_retofdata(){
 //
   TOFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TOFCAFFKEY.dynflg=1; // (27) 0/1-> use stand/special(Contin's) dynode-calibration
-  TOFCAFFKEY.cfvers=93; // (28) 1-99 -> vers.number for tofverlistNN.dat file 
+  TOFCAFFKEY.cfvers=1; // (28) 1-99 -> vers.number for tofverlistNN.dat file 
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //======================================================================
@@ -1188,12 +1188,12 @@ void AMSJob::_retofinitjob(){
       HBOOK1(1113,"RawClusterLevel:SingleBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
       HBOOK1(1114,"RawClusterLevel:Single2SidedBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
       HBOOK1(1115,"Fast-Slow hit time-difference(all hist/slow-hit meas.",80,-40.,120.,0.);
-    HBOOK1(1130,"W1,L1-B5-S1",50,0.,200.,0.);
-    HBOOK1(1131,"W2,L1-B5-S1",50,0.,100.,0.);
-    HBOOK1(1132,"W3,L1-B5-S1",60,0.,6000.,0.);
-    HBOOK1(1133,"W1,L1-B12-S1",50,0.,200.,0.);
-    HBOOK1(1134,"W2,L1-B12-S1",50,0.,100.,0.);
-    HBOOK1(1135,"W3,L1-B12-S1",60,0.,6000.,0.);
+    HBOOK1(1130,"W1,L4-B3-S1",50,0.,200.,0.);
+    HBOOK1(1131,"W2,L4-B3-S1",50,0.,100.,0.);
+    HBOOK1(1132,"W3,L4-B3-S1",60,0.,6000.,0.);
+    HBOOK1(1133,"W1,L4-B3-S2",50,0.,200.,0.);
+    HBOOK1(1134,"W2,L4-B3-S2",50,0.,100.,0.);
+    HBOOK1(1135,"W3,L4-B3-S2",60,0.,6000.,0.);
       HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
       HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
       HBOOK1(1530,"L=3,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);

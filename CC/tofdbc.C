@@ -815,10 +815,10 @@ geant TOFBrcal::tm2t(number tmf[2], number amf[2]){//(2-sides_times/Tovt)->Time 
   if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
       q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
-      uv+=slops[isd]/qs;// summing slops/Q
+//      uv+=slops[isd]/qs;// summing slops/Q
+      uv+=slops[isd]/sqrt(qs);// summing slops/sqrt(Q), works sl.better
     }
   }
-//  uv=exp(-amf[0]/shft)+exp(-amf[1]/shft);// old parametrization
   time=0.5*(tmf[0]+tmf[1])+tzero+slope*uv;
   return geant(time); 
 }
@@ -831,12 +831,12 @@ void TOFBrcal::tmd2p(number tmf[2], number amf[2],
   if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
       q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
-      uv+=(1-2*isd)*slops[isd]/qs;// subtr slops/Q
+//      uv+=(1-2*isd)*slops[isd]/qs;// subtr slops/Q
+      uv+=(1-2*isd)*slops[isd]/sqrt(qs);// subtr slops/sqrt(Q)
     }
   }
-//  uv=exp(-amf[0]/shft)-exp(-amf[1]/shft);// old parametrization
-//  coo=-(0.5*(tmf[0]-tmf[1])+slope*uv-yctdif);// tempor commented
-  coo=-(0.5*(tmf[0]-tmf[1])-yctdif);// tempor no A-correction
+  coo=-(0.5*(tmf[0]-tmf[1])+slope*uv-yctdif);
+//  coo=-(0.5*(tmf[0]-tmf[1])-yctdif);// tempor no A-correction
 //common "-" is due to the fact that Tmeas=Ttrig-Tabs and coo-loc is prop. to Tabs1-Tabs2
   co=td2pos[0]*geant(coo);//coo(ns)->cm                    
   eco=td2pos[1];
@@ -850,10 +850,10 @@ void TOFBrcal::td2ctd(number tdo, number amf[2],
   if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
       q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
-      uv+=(1-2*isd)*slops[isd]/qs;// subtr slops/Q
+//      uv+=(1-2*isd)*slops[isd]/qs;// subtr slops/Q
+      uv+=(1-2*isd)*slops[isd]/sqrt(qs);// subtr slops/sqrt(Q)
     }
   }
-//  uv=exp(-amf[0]/shft)-exp(-amf[1]/shft);// old parametrization
   tdc=tdo+slope*uv;
 }
 //==========================================================================

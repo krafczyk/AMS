@@ -338,7 +338,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   number shft,ftdel,qtotl[SCLRS],qsd1[SCLRS],qsd2[SCLRS],eanti(0),meanq,rr,qmax;
   number eacut=0.6;// cut on E-anti (mev). tempor (no calibration)
   number qrcut=10.;// cut on max/mean-charge ratio
-  number dscut=5.6;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
+  number dscut=8.;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
   number *pntr[SCLRS];
   AMSTOFRawCluster *ptr;
   AMSAntiCluster *ptra;
@@ -381,7 +381,6 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   bad=0;
   for(i=0;i<SCLRS;i++)if(nbrl[i] != 1)bad=1;
   if(bad==1)return; // remove events with bars/layer != 1
-//     if(TOFRECFFKEY.relogic[2]==1)return;// tempor  bad event due to dT13-dT24
   TOFJobStat::addre(7);
 //
 // -----> check Anti-counter :
@@ -395,7 +394,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     ptra=ptra->next();
   }// --- end of hits loop --->
   HF1(1503,geant(eanti),1.);
-//  if(eanti>eacut)return;// remove events with big signal in Anti. tempor commented
+  if(eanti>eacut)return;// remove events with big signal in Anti. tempor commented
 //
 // -----> check amplitudes :
 //
@@ -407,7 +406,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   qmax=*pntr[SCLRS-1];
   rr=qmax/meanq;
   HF1(1505,geant(rr),1.);
-//  if(rr>qrcut)return; // remove events with "spike" dE/dX.  tempor commented
+  if(rr>qrcut)return; // remove events with "spike" dE/dX.  tempor commented
   TOFJobStat::addre(8);
 //------>
     number t1,t2,t3,t4,t13,t24;
@@ -483,7 +482,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     if(cptr)
            ntrk+=cptr->getnelem();
     HF1(1506,geant(ntrk),1.);
-//    if(ntrk!=1)return;// require events with 1 track.  tempor commented to bypass tracker
+    if(ntrk!=1)return;// require events with 1 track.  tempor commented to bypass tracker
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",0);
     if(ppart){
@@ -492,7 +491,8 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     } 
     else rid=0;
     pmom=fabs(rid);
-  pmom=1.36;// tempor to bypass tracker and have Mu-beta=0.997
+//  pmom=1.178;// tempor to bypass tracker and have Mu-beta=0.996
+//  pmom=1.37;// tempor to bypass tracker and have Mu-beta=0.997
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
     if(pmom<TOFCAFFKEY.pcut[0] || pmom>TOFCAFFKEY.pcut[1])return;//remove low/too_high mom.
     if(pmom<TOFCAFFKEY.pcut[0])return;//remove low mom.
@@ -668,7 +668,8 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     for(il=0;il<SCLRS;il++){// new parametrization (also ready for indiv.slopes)
       ib=brnl[il];
       scbrcal[il][ib].getslops(slops);
-      ramm[il]=(slops[0]/qsd1[il]+slops[1]/qsd2[il]);
+//      ramm[il]=(slops[0]/qsd1[il]+slops[1]/qsd2[il]);
+      ramm[il]=(slops[0]/sqrt(qsd1[il])+slops[1]/sqrt(qsd2[il]));//works sl.better
     }
 //
     ilay=0;
@@ -784,8 +785,8 @@ void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
       ptr->getsdtm(sdtm);// get raw side-times(ns)
       tmsd[ilay]=0.5*(sdtm[0]-sdtm[1]);// side time difference
       tmss[ilay]=0.5*(sdtm[0]+sdtm[1]);// side time sum
-//      scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,tmsdc[ilay]);//A-corrected time_diff
-      tmsdc[ilay]=tmsd[ilay];// uncomment to use raw side-times
+      scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,tmsdc[ilay]);//use A-corrected times
+//      tmsdc[ilay]=tmsd[ilay];// use raw side-times(running first time,when slop unknown)
     }
     ptr=ptr->next();
   }// --- end of hits loop --->
@@ -940,7 +941,7 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
          -2*t0[chan]*sumt-2*sl[chan]*sumct+2*t0[chan]*sl[chan]*sumc;
         chi2[chan]/=number(bins-2);
         if(chi2[chan]<3. &&
-                     fabs(sl[chan])>0.064 &&
+                     fabs(sl[chan])>0.058 &&
                      fabs(sl[chan])<0.071){//only good for averaging
           bintot+=1;
           meansl+=sl[chan];
@@ -1409,10 +1410,11 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
     chsq=0;
     for(il=0;il<SCLRS;il++)chsq+=pow((tzer+bci*trle[il]-tdif[il]),2);
     chsq/=pow(sigt,2);
-    chsq/=sqrt(fpnt-2);
-    betof=1/bci/cvel;
+    chsq/=number(fpnt-2);
+    betof=1./bci/cvel;
+    if(chsq>9.)betof=-1.;//cut on chi2
     if(TOFRECFFKEY.reprtf[2]>0){
-      HF1(1502,betof,1.);
+      if(chsq<=9.)HF1(1502,betof,1.);
       HF1(1205,chsq,1.);
       HF1(1206,tzer,1.);
     }
@@ -1549,7 +1551,7 @@ void TOFAMPLcalib::fillabs(integer il, integer ib, geant am[2], geant coo,
   if(id != idr)return;//only for ref.counters
   if(fabs(coo) > cbin)return;// select only central incidence(+- cbin cm)
 //
-  if(btof<1){
+  if(btof<1. && btof>=0.){
     betg=btof/sqrt(1-btof*btof);
     mass=geant(mom/betg);
   }
@@ -2034,10 +2036,10 @@ void TOFSTRRcalib::init(){
   char htit1[60];
   char inum[11];
   char in[2]="0";
-  geant til[2]={30.,25.};// hist.limits for Tin
-  geant tih[2]={80.,100.};
-  geant tol[2]={1000.,2000.};// hist.limits for Tout
-  geant toh[2]={3000.,5500.};
+  geant til[2]={25.,25.};// hist.limits for Tin
+  geant tih[2]={100.,100.};
+  geant tol[2]={2000.,2000.};// hist.limits for Tout
+  geant toh[2]={5500.,5500.};
   integer mrf;
 //
   strcpy(inum,"0123456789");

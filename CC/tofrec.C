@@ -92,18 +92,18 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   cout<<endl<<"======> TOF::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
 #endif
 //---- tempor test
-  TOFMCFFKEY.daqfmt=0;//raw fmt 
-  im=0;
-  for(i=0;i<DAQSBLK;i++){
-    im+=DAQSBlock::calcblocklength(i);
-  }
-  HF1(1107,geant(im),1.);
-  TOFMCFFKEY.daqfmt=1;//reduced fmt
-  im=0;
-  for(i=0;i<DAQSBLK;i++){
-    im+=DAQSBlock::calcblocklength(i);
-  }
-  HF1(1108,geant(im),1.);
+//  TOFMCFFKEY.daqfmt=0;//raw fmt 
+//  im=0;
+//  for(i=0;i<DAQSBLK;i++){
+//    im+=DAQSBlock::calcblocklength(i);
+//  }
+//  HF1(1107,geant(im),1.);
+//  TOFMCFFKEY.daqfmt=1;//reduced fmt
+//  im=0;
+//  for(i=0;i<DAQSBLK;i++){
+//    im+=DAQSBlock::calcblocklength(i);
+//  }
+//  HF1(1108,geant(im),1.);
 //---- tempor test
 //                             <---- loop over TOF RawEvent hits -----
   while(ptr){
@@ -179,16 +179,16 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         t3=(stdc1[i+1]&pbanti)*TOFDBc::tdcbin(1);//2-nd up-edge
         t4=(stdc1[i]&pbanti)*TOFDBc::tdcbin(1);//2-nd down-edge
         dt=t2-t3;
-      if(ilay==0 && ibar==4 && isid==0)HF1(1131,geant(dt),1.);
-      if(ilay==0 && ibar==11 && isid==0)HF1(1134,geant(dt),1.);
+      if(ilay==3 && ibar==2 && isid==0)HF1(1131,geant(dt),1.);
+      if(ilay==3 && ibar==2 && isid==1)HF1(1134,geant(dt),1.);
         if(dt<5. || dt>24.)continue;//wrong "hole" width(w2), take next "4"
         dt=t1-t2;
-      if(ilay==0 && ibar==4 && isid==0)HF1(1130,geant(dt),1.);
-      if(ilay==0 && ibar==11 && isid==0)HF1(1133,geant(dt),1.);
+      if(ilay==3 && ibar==2 && isid==0)HF1(1130,geant(dt),1.);
+      if(ilay==3 && ibar==2 && isid==1)HF1(1133,geant(dt),1.);
         if(dt<10. || dt>200.)continue;//wrong "1st_pulse" width(w1), ...
         dt=t2-t4;
-      if(ilay==0 && ibar==4 && isid==0)HF1(1132,geant(dt),1.);
-      if(ilay==0 && ibar==11 && isid==0)HF1(1135,geant(dt),1.);
+      if(ilay==3 && ibar==2 && isid==0)HF1(1132,geant(dt),1.);
+      if(ilay==3 && ibar==2 && isid==1)HF1(1135,geant(dt),1.);
         if(dt<1600. || dt>6000.)continue;//wrong "2nd_pulse" width(w3), ...
 //
         stdc2[nhit]=stdc1[i];
@@ -912,8 +912,8 @@ void AMSTOFRawCluster::build(int &status){
       HF1(1527,edepa[2],1.); //layer=2 Anode-reconstructed Edep
       HF1(1531,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
       HF1(1528,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
-      td13=(tcorr[0]-tcorr[2])*116./trlen13;// tormalized to 116cm distance
-      td24=(tcorr[1]-tcorr[3])*116./trlen24;// tormalized to 116cm distance
+      td13=(tcorr[0]-tcorr[2])*130./trlen13;// tormalized to 130cm distance
+      td24=(tcorr[1]-tcorr[3])*130./trlen24;// tormalized to 130cm distance
       td14=tuncorr[0]-tuncorr[3];
       HF1(1532,td13,1.);//ToF for L0->L2
       HF1(1534,td24,1.);//ToF for L1->L3
