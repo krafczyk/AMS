@@ -13,6 +13,7 @@
 #include "G4Box.hh"
 #include "G4LogicalVolume.hh"
 #include "G4ThreeVector.hh"
+#include "G4Event.hh"
 #include "G4PVPlacement.hh"
 
 
@@ -69,17 +70,20 @@ cerr <<"g4ams::G4INIT()-W-DummyDetectorWillBeCreated "<<endl;
 
 }
    AMSG4Physics * pph = new AMSG4Physics();
-   AMSJob::gethead()->addup(pph);
-   pmgr->SetUserInitialization(pph);
-
-  // set mandatory user action class
-//  pmgr->SetUserAction(new ExN01PrimaryGeneratorAction);
-
+//   AMSJob::gethead()->addup(pph);
+    AMSJob::gethead()->getg4physics()=pph;
+    pmgr->SetUserInitialization(pph);
+     AMSG4GeneratorInterface* ppg=new AMSG4GeneratorInterface(CCFFKEY.npat);
+//     AMSJob::gethead()->addup(ppg);
+    AMSJob::gethead()->getg4generator()=ppg;
+     pmgr->SetUserAction(ppg);
+//    pmgr->SetUserAction(new AMSG4RunAction);
+     pmgr->SetUserAction(new AMSG4EventAction);
+//    pmgr->SetUserAction(new AMSG4SteppingAction);
 
  pmgr->Initialize();
 
 
-// addup
 
 }
 void g4ams::G4RUN(){
@@ -99,4 +103,51 @@ geant _v[3],_b[3];
 for(i=0;i<2;i++)_v[i]=x[i]/cm;
 GUFLD(_v,_b);
 for(i=0;i<2;i++)B[i]=_b[i]*kilogauss;
+}
+
+
+
+#include "G4ParticleGun.hh"
+AMSG4GeneratorInterface::AMSG4GeneratorInterface(G4int npart):_npart(npart),_cpart(0),AMSNode(AMSID("AMSG4GeneratorInterface",0)),G4VUserPrimaryGeneratorAction(){
+  _particleGun = new G4ParticleGun[_npart];
+
+}
+
+
+
+void AMSG4GeneratorInterface::SetParticleGun(int ipart, number mom, AMSPoint  Pos, AMSPoint   Dir){
+
+#ifdef __AMSDEBUG__
+assert(_cpart < _npart);
+#endif
+ G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  const G4String pname(AMSJob::gethead()->getg4physics()->G3toG4(ipart));
+_particleGun[_cpart].SetParticleDefinition(particleTable->FindParticle(pname));
+_particleGun[_cpart].SetParticleMomentum(mom*GeV);
+_particleGun[_cpart].SetParticleMomentumDirection(G4ThreeVector(Dir[0],Dir[1],Dir[2]));
+_particleGun[_cpart].SetParticlePosition(G4ThreeVector(Pos[0]*cm,Pos[1]*cm,Pos[2]*cm));
+     _cpart++;
+
+}
+
+void AMSG4GeneratorInterface::GeneratePrimaries(G4Event* anEvent)
+{
+  for(G4int ipart=0;ipart<_cpart;ipart++)_particleGun[ipart].GeneratePrimaryVertex(anEvent);
+}
+
+
+AMSG4GeneratorInterface::~AMSG4GeneratorInterface(){
+delete[] _particleGun;
+}
+
+
+void  AMSG4EventAction::BeginOfEventAction(const G4Event*){
+
+AMSJob::gethead()->getg4generator()->Reset();
+//gukine_();
+
+}
+void  AMSG4EventAction::EndOfEventAction(const G4Event*){
+
+GCFLAG.IEVENT++;
 }

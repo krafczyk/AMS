@@ -28,6 +28,7 @@
 
 class AMSNtuple;
 class AMSG4Physics;
+class AMSG4GeneratorInterface;
 const integer maxtrig=20;
 const integer maxtdv=255;
 const integer maxtdvsize=256;
@@ -84,6 +85,8 @@ char _TDVC[maxtdv][maxtdvsize];
 integer _TDVN;
 static AMSJob* _Head;
 static AMSNtuple* _pntuple;
+AMSG4Physics* _pAMSG4Physics;
+AMSG4GeneratorInterface* _pAMSG4GeneratorInterface;
 void _init(){};
 void _sitrigdata();
 void _siamsdata();
@@ -220,7 +223,8 @@ uinteger isRawBanks()  { return (_eventRtype/DBWriteRawE)%2;}
 
 AMSNode * getnodep(AMSID  id) const{return JobMap.getp(id);}
 AMSgvolume * getgeom(AMSID id=0);
-AMSG4Physics * getg4physics();
+AMSG4Physics * & getg4physics();
+AMSG4GeneratorInterface * & getg4generator();
 AMSgvolume * getgeomvolume(AMSID id){return   (AMSgvolume*)JobMap.getp(id);}
 AMSStatus * getstatustable();
 AMSgmat * getmat(AMSID id=0);

@@ -300,8 +300,6 @@ extern "C" void guout_(){
 extern "C" void gukine_(){
 
 static integer event=0;
-time_t tm;// tempor
-time(&tm);// tempor
 
 #ifdef __DB_All__
   if (AMSFFKEY.Read > 1) {

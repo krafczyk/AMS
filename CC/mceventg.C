@@ -589,6 +589,9 @@ _charge=charge;
     }while(!accept());
     // Set seed
    GRNDMQ(_seed[0],_seed[1],0,"G");
+#ifdef __G4AMS__
+if(MISCFFKEY.G3On){
+#endif
    vertex[0]=_coo[0];
    vertex[1]=_coo[1];
    vertex[2]=_coo[2];
@@ -597,6 +600,9 @@ _charge=charge;
    plab[2]=_mom*_dir[2];
    GSVERT(vertex,0,0,0,0,nvert);
    GSKINE(plab,_ipart,nvert,0,0,nt);
+#ifdef __G4AMS__
+}
+#endif
    
   }
 

@@ -427,16 +427,17 @@
 ../bin/Linux-g++/geant4.o: /usr/include/selectbits.h
 ../bin/Linux-g++/geant4.o: /usr/include/alloca.h ../include/hbook.h
 ../bin/Linux-g++/geant4.o: ../include/geant321.h ../include/geant321g.h
-../bin/Linux-g++/geant4.o: ../include/geantnamespace.h ../include/job.h
-../bin/Linux-g++/geant4.o: ../include/node.h ../include/id.h
-../bin/Linux-g++/geant4.o: ../include/snode.h ../include/upool.h
-../bin/Linux-g++/geant4.o: ../include/gvolume.h ../include/amsdbc.h
+../bin/Linux-g++/geant4.o: ../include/geantnamespace.h
 ../bin/Linux-g++/geant4.o: ../include/point.h /usr/include/math.h
 ../bin/Linux-g++/geant4.o: /usr/include/huge_val.h
 ../bin/Linux-g++/geant4.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/geant4.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
-../bin/Linux-g++/geant4.o: ../include/gmat.h ../include/amsgobj.h
-../bin/Linux-g++/geant4.o: ../include/uzstat.h /usr/include/limits.h
+../bin/Linux-g++/geant4.o: ../include/node.h ../include/id.h
+../bin/Linux-g++/geant4.o: ../include/job.h ../include/snode.h
+../bin/Linux-g++/geant4.o: ../include/upool.h ../include/gvolume.h
+../bin/Linux-g++/geant4.o: ../include/amsdbc.h ../include/gmat.h
+../bin/Linux-g++/geant4.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/Linux-g++/geant4.o: /usr/include/limits.h
 ../bin/Linux-g++/geant4.o: /usr/include/posix1_lim.h
 ../bin/Linux-g++/geant4.o: /usr/include/local_lim.h
 ../bin/Linux-g++/geant4.o: /usr/include/linux/limits.h

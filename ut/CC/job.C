@@ -1659,9 +1659,16 @@ AMSgvolume * AMSJob::getgeom(AMSID id){
   if(id.getname() ==0 && id.getid()==0)id=AMSID(AMSDBc::ams_name,1);
   return (AMSgvolume*)AMSJob::JobMap.getp(id);
 }
-AMSG4Physics * AMSJob::getg4physics(){
-    AMSID id("AMSG4Physics",0);
-    return (AMSG4Physics*)AMSJob::JobMap.getp(id);
+AMSG4Physics* & AMSJob::getg4physics(){
+//    AMSID id("AMSG4Physics",0);
+//    return (AMSG4Physics*)AMSJob::JobMap.getp(id);
+      return _pAMSG4Physics;
+}
+
+AMSG4GeneratorInterface* & AMSJob::getg4generator(){
+//    AMSID id("AMSG4GeneratorInterface",0);
+//    return (AMSG4GeneratorInterface*)AMSJob::JobMap.getp(id);
+      return _pAMSG4GeneratorInterface;
 }
 
 AMSStatus * AMSJob::getstatustable(){
@@ -2148,7 +2155,7 @@ AMSTimeID * AMSJob::gettimestructure(const AMSID & id){
      else return  (AMSTimeID*)p;
 }
 
-AMSJob::AMSJob(AMSID id, uinteger jobtype):AMSNode(id),_jobtype(jobtype)
+AMSJob::AMSJob(AMSID id, uinteger jobtype):AMSNode(id),_jobtype(jobtype),_pAMSG4Physics(0),_pAMSG4GeneratorInterface(0)
 {_Setup[0]='\0';_TriggerC[0][0]='\0';_TriggerI=1;_TriggerN=0;
 _TDVC[0][0]='\0';
 _TDVN=0;
