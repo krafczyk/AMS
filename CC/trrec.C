@@ -2019,6 +2019,7 @@ for(int i=0;i<2;i++){
 }
 
 void AMSTrTrack::_writeEl(){
+if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
   TrTrackNtuple* TrTN = AMSJob::gethead()->getntuple()->Get_trtr();
   if (TrTN->Ntrtr>=MAXTRTR) return;
 
@@ -2125,7 +2126,114 @@ void AMSTrTrack::_writeEl(){
 
   }
 }
+else{
+  TrTrackNtuple02* TrTN = AMSJob::gethead()->getntuple()->Get_trtr02();
+  if (TrTN->Ntrtr>=MAXTRTR) return;
 
+// Fill the ntuple 
+  if(AMSTrTrack::Out(1)){
+    int i;
+    TrTN->Status[TrTN->Ntrtr]=_status;
+    TrTN->Pattern[TrTN->Ntrtr]=_Pattern;
+    TrTN->NHits[TrTN->Ntrtr]=_NHits;
+    TrTN->Address[TrTN->Ntrtr]=_Address;
+//    for(i=0;i<2;i++)TrTN->Dbase[TrTN->Ntrtr][i]=_Dbase[i];
+    
+    int k;
+    for(k=_NHits;k<TKDBc::nlay();k++)TrTN->pHits[TrTN->Ntrtr][k]=0;
+    for(k=0;k<_NHits;k++){
+     TrTN->pHits[TrTN->Ntrtr][k]=_Pthit[k]->getpos();
+      int pat;
+      pat=_Pthit[k]->getLayer()-1;
+      if (AMSTrRecHit::Out(IOPA.WriteAll%10==1)){
+        // Writeall
+        for(i=0;i<pat;i++){
+          AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrRecHit",i);
+           #ifdef __AMSDEBUG__
+            assert(pc != NULL);
+           #endif
+           TrTN->pHits[TrTN->Ntrtr][k]+=pc->getnelem();
+        }
+      }                                                        
+      else if (AMSTrRecHit::Out(IOPA.WriteAll%10==0)){
+      //WriteUsedOnly
+        for(i=0;i<pat;i++){
+          AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
+          while(ptr && ptr->checkstatus(AMSDBc::USED)){
+            TrTN->pHits[TrTN->Ntrtr][k]++;
+            ptr=ptr->next();
+          }
+        }
+      }
+      else if (AMSTrRecHit::Out(IOPA.WriteAll%10==2)){
+      //WriteUsedOnly
+        for(i=0;i<pat;i++){
+          AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
+          while(ptr && !(ptr->checkstatus(AMSDBc::AwayTOF)) ){
+            TrTN->pHits[TrTN->Ntrtr][k]++;
+            ptr=ptr->next();
+          }
+        }
+      }
+      else return;
+    }
+  
+  
+    TrTN->LocDBAver[TrTN->Ntrtr]=_Dbase[0];
+    TrTN->GeaneFitDone[TrTN->Ntrtr]=_GeaneFitDone;
+    TrTN->AdvancedFitDone[TrTN->Ntrtr]=_AdvancedFitDone;
+    TrTN->Chi2StrLine[TrTN->Ntrtr]=geant(_Chi2StrLine);
+    TrTN->Chi2Circle[TrTN->Ntrtr]=geant(_Chi2Circle);
+    TrTN->CircleRidgidity[TrTN->Ntrtr]=(geant)_CircleRidgidity;
+    TrTN->Chi2FastFit[TrTN->Ntrtr]=(geant)_Chi2FastFit;
+    TrTN->Ridgidity[TrTN->Ntrtr]=(geant)_Ridgidity;
+    TrTN->ErrRidgidity[TrTN->Ntrtr]=(geant)_ErrRidgidity;
+    TrTN->Theta[TrTN->Ntrtr]=(geant)_Theta;
+    TrTN->Phi[TrTN->Ntrtr]=(geant)_Phi;
+    for(i=0;i<3;i++)TrTN->P0[TrTN->Ntrtr][i]=(geant)_P0[i];
+    if(_GeaneFitDone){ 
+     TrTN->GChi2[TrTN->Ntrtr]=(geant)_GChi2;
+     TrTN->GRidgidity[TrTN->Ntrtr]=(geant)_GRidgidity;
+     TrTN->GErrRidgidity[TrTN->Ntrtr]=(geant)_GErrRidgidity;
+     TrTN->GTheta[TrTN->Ntrtr]=(geant)_GTheta;
+     TrTN->GPhi[TrTN->Ntrtr]=(geant)_GPhi;
+     for(i=0;i<3;i++)TrTN->GP0[TrTN->Ntrtr][i]=(geant)_GP0[i];
+    }
+    else{
+     TrTN->GChi2[TrTN->Ntrtr]=-1;
+     TrTN->GRidgidity[TrTN->Ntrtr]=0;
+     TrTN->GErrRidgidity[TrTN->Ntrtr]=0;
+     TrTN->GTheta[TrTN->Ntrtr]=0;
+     TrTN->GPhi[TrTN->Ntrtr]=0;
+     for(i=0;i<3;i++)TrTN->GP0[TrTN->Ntrtr][i]=0;
+    } 
+    if(_AdvancedFitDone){
+     for(i=0;i<2;i++)TrTN->HChi2[TrTN->Ntrtr][i]=(geant) _HChi2[i];
+     for(i=0;i<2;i++)TrTN->HRidgidity[TrTN->Ntrtr][i]=(geant)_HRidgidity[i];
+     for(i=0;i<2;i++)TrTN->HErrRidgidity[TrTN->Ntrtr][i]=(geant)_HErrRidgidity[i];
+     for(i=0;i<2;i++)TrTN->HTheta[TrTN->Ntrtr][i]=(geant)_HTheta[i];
+     for(i=0;i<2;i++)TrTN->HPhi[TrTN->Ntrtr][i]=(geant)_HPhi[i];
+     for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][0][i]=(geant)_HP0[0][i];
+     for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][1][i]=(geant)_HP0[1][i];
+    }
+    else{
+     for(i=0;i<2;i++)TrTN->HChi2[TrTN->Ntrtr][i]=-1;
+     for(i=0;i<2;i++)TrTN->HRidgidity[TrTN->Ntrtr][i]=0;
+     for(i=0;i<2;i++)TrTN->HErrRidgidity[TrTN->Ntrtr][i]=0;
+     for(i=0;i<2;i++)TrTN->HTheta[TrTN->Ntrtr][i]=0;
+     for(i=0;i<2;i++)TrTN->HPhi[TrTN->Ntrtr][i]=0;
+     for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][0][i]=0;
+     for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][1][i]=0;
+    }
+    TrTN->FChi2MS[TrTN->Ntrtr]=(geant)_Chi2MS;
+    TrTN->GChi2MS[TrTN->Ntrtr]=(geant)_GChi2MS;
+    TrTN->RidgidityMS[TrTN->Ntrtr]=(geant)_RidgidityMS;
+    TrTN->GRidgidityMS[TrTN->Ntrtr]=(geant)_GRidgidityMS;
+    TrTN->Ntrtr++;
+
+  }
+}
+}
 void AMSTrTrack::_copyEl(){
 }
 

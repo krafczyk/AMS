@@ -65,7 +65,7 @@ extern LMS* lms;
 AMSNtuple* AMSJob::_pntuple=0;
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
-integer AMSJob::debug=1;
+integer AMSJob::debug=0;
 extern "C" void npq_();
 const uinteger AMSJob::Reconstruction=1;
 const uinteger AMSJob::RealData=2;

@@ -25,9 +25,8 @@
 #include <iostream.h>
 #include <richdbc.h>
 extern "C" void gustep_(){
-//if(GCKINE.ipart==50)cout <<"vlalalalalalalala"<<endl;
-//    cout <<"    ----> in gustep "<<endl;
 
+integer NoSecondaryPlease=0;
 
 
   try{
@@ -230,7 +229,7 @@ extern "C" void gustep_(){
    	}
     }
    
-
+  AMSmceventg::FillMCInfo();
   GSKING(0);
   GSKPHO(0);
 #ifndef __BATCH__

@@ -68,7 +68,7 @@ void AMSNtuple::init(){
   "ntrtr[0,200],trstatus(ntrtr):I,pattern(ntrtr)[0,100]:I,address(ntrtr):I,nhits(ntrtr)[0,6],phits(6,ntrtr)[-1,30000]:I,LocDBAver(ntrtr):R,GeaneFitDone(ntrtr)[0,1000]:I,AdvancedFitDone(ntrtr)[0,1000]:I,Chi2StrLine(ntrtr),Chi2Circle(ntrtr),CircleRidgidity(ntrtr),Chi2FastFit(ntrtr),Ridgidity(ntrtr),ErrRidgidity(ntrtr),Theta(ntrtr),phi(ntrtr),p0(3,ntrtr),gchi2(ntrtr),gridgidity(ntrtr),gerrridgidity(ntrtr),gtheta(ntrtr),gphi(ntrtr),gp0(3,ntrtr),hchi2(2,ntrtr),HRidgidity(2,ntrtr),HErrRidgidity(2,ntrtr),htheta(2,ntrtr),hphi(2,ntrtr),hp0(3,2,ntrtr),fchi2ms(ntrtr),pirigerr(ntrtr),ridgidityms(ntrtr),pirigidity(ntrtr)");
 
   HBNAME(_lun,"MCEventG",&_mcg.Nmcg,
-  "nmcg[0,20],nskip(nmcg):I,Particle(nmcg)[-1,30000]:I,coo(3,nmcg),dir(3,nmcg),momentum(nmcg):R,mass(nmcg):R,charge(nmcg):R");
+  "nmcg[0,20],nskip(nmcg):I,Particle(nmcg)[-200,500]:I,coo(3,nmcg),dir(3,nmcg),momentum(nmcg):R,mass(nmcg):R,charge(nmcg):R");
 
   HBNAME(_lun,"CTCClust",&_ctccl.Nctccl,
   "nctccl[0,20],CTCStatus(nctccl):I,CTCLayer(nctccl)[0,10]:I,ctccoo(3,nctccl),ctcercoo(3,nctccl),ctcrawsignal(nctccl),ctcsignal(nctccl),ctcesignal(nctccl)");
@@ -133,11 +133,11 @@ else{
   HBNAME(_lun,"TrRecHit",&_trrh.Ntrrh,
   "ntrrh[0,500],px(ntrrh)[-1,30000]:I,py(ntrrh)[-1,30000]:I,statusr(ntrrh):I,Layer(ntrrh)[0,10]:I,hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh),cofgx(ntrrh),cofgy(ntrrh)");
 
-  HBNAME(_lun,"TrTrack",&_trtr.Ntrtr,
+  HBNAME(_lun,"TrTrack",&_trtr02.Ntrtr,
   "ntrtr[0,200],trstatus(ntrtr):I,pattern(ntrtr)[0,100]:I,address(ntrtr):I,nhits(ntrtr)[0,8],phits(8,ntrtr)[-1,30000]:I,LocDBAver(ntrtr):R,GeaneFitDone(ntrtr)[0,1000]:I,AdvancedFitDone(ntrtr)[0,1000]:I,Chi2StrLine(ntrtr),Chi2Circle(ntrtr),CircleRidgidity(ntrtr),Chi2FastFit(ntrtr),Ridgidity(ntrtr),ErrRidgidity(ntrtr),Theta(ntrtr),phi(ntrtr),p0(3,ntrtr),gchi2(ntrtr),gridgidity(ntrtr),gerrridgidity(ntrtr),gtheta(ntrtr),gphi(ntrtr),gp0(3,ntrtr),hchi2(2,ntrtr),HRidgidity(2,ntrtr),HErrRidgidity(2,ntrtr),htheta(2,ntrtr),hphi(2,ntrtr),hp0(3,2,ntrtr),fchi2ms(ntrtr),pirigerr(ntrtr),ridgidityms(ntrtr),pirigidity(ntrtr)");
 
   HBNAME(_lun,"MCEventG",&_mcg.Nmcg,
-  "nmcg[0,20],nskip(nmcg):I,Particle(nmcg)[-1,30000]:I,coo(3,nmcg),dir(3,nmcg),momentum(nmcg):R,mass(nmcg):R,charge(nmcg):R");
+  "nmcg[0,20],nskip(nmcg):I,Particle(nmcg)[-200,500]:I,coo(3,nmcg),dir(3,nmcg),momentum(nmcg):R,mass(nmcg):R,charge(nmcg):R");
 
 
   HBNAME(_lun,"AntiClus",&_anti.Nanti,
@@ -188,6 +188,7 @@ void AMSNtuple::reset(int full){
     if(_trclmc.Ntrclmc)VZERO(&_trclmc,sizeof(_trclmc)/sizeof(integer));
     if(_trrh.Ntrrh)VZERO(&_trrh,sizeof(_trrh)/sizeof(integer));
     if(_trtr.Ntrtr)VZERO(&_trtr,sizeof(_trtr)/sizeof(integer));
+    if(_trtr02.Ntrtr)VZERO(&_trtr02,sizeof(_trtr02)/sizeof(integer));
     if(_mcg.Nmcg)VZERO(&_mcg,sizeof(_mcg)/sizeof(integer));
     if(_ctccl.Nctccl)VZERO(&_ctccl,sizeof(_ctccl)/sizeof(integer));
     if(_ctcclmc.Nctcclmc)VZERO(&_ctcclmc,sizeof(_ctcclmc)/sizeof(integer));
@@ -214,6 +215,7 @@ void AMSNtuple::reset(int full){
     if(_trclmc.Ntrclmc)VZERO(&_trclmc,sizeof(_trclmc)/sizeof(integer));
    _trrh.Ntrrh = 0;
    _trtr.Ntrtr = 0;
+   _trtr02.Ntrtr = 0;
    //_mcg.Nmcg = 0;
    _ctccl.Nctccl = 0;
    _ctcclmc.Nctcclmc = 0;

@@ -1083,7 +1083,7 @@ void AMSEvent::event(){
      geant coo[7];
      abinelget_(iset,coo);
      if(iset){
-       AMSmceventg* genp=new AMSmceventg(iset,coo[6],AMSPoint(coo[0],coo[1],coo[
+       AMSmceventg* genp=new AMSmceventg(iset+256,coo[6],AMSPoint(coo[0],coo[1],coo[
 2]),AMSDir(coo[3],coo[4],coo[5]));
        AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
 

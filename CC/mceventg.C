@@ -572,7 +572,7 @@ geant charge=0;
 geant tlife=0;
 geant ubb[1];
 integer one=1;
-GFPART(_ipart,chn,itr,amass,charge,tlife,ubb,one);
+GFPART(abs(_ipart)%256,chn,itr,amass,charge,tlife,ubb,one);
 _mass=amass;
 _charge=charge;
   }
@@ -670,6 +670,7 @@ void AMSmceventg::_writeEl(){
   if (GN->Nmcg>=MAXMCG) return;
 
 // Fill the ntuple
+if( Out(_ipart>0 )){
   GN->Nskip[GN->Nmcg]=_nskip;
   GN->Particle[GN->Nmcg]=_ipart;
   int i;
@@ -679,7 +680,7 @@ void AMSmceventg::_writeEl(){
   GN->Mass[GN->Nmcg]=_mass;
   GN->Charge[GN->Nmcg]=_charge;
   GN->Nmcg++;
-
+}
 }
 
 
@@ -834,3 +835,34 @@ void orbit::UpdateAxis(number vt, number vp, number t, number p){
 }
 
 #endif
+void AMSmceventg::FillMCInfo(){
+     for (int i=0;i<GCKING.ngkine;i++){
+       number mom=(GCKING.gkin[i][0]*GCKING.gkin[i][0]+
+                       GCKING.gkin[i][1]*GCKING.gkin[i][1]+
+                       GCKING.gkin[i][2]*GCKING.gkin[i][2]);
+       mom=sqrt(mom);
+
+       AMSmceventg* genp=new AMSmceventg(-GCKING.gkin[i][4],mom,
+       AMSPoint(GCKIN3.GPOS[i][0],GCKIN3.GPOS[i][1],GCKIN3.GPOS[i][2]),
+       AMSDir(GCKING.gkin[i][0],GCKING.gkin[i][1],GCKING.gkin[i][2]));
+       if(genp->getcharge())AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
+       else delete genp;
+     }
+
+}
+
+integer AMSmceventg::Out(integer status){
+static integer init=0;
+static integer WriteAll=0;
+if(init == 0){
+ init=1;
+ integer ntrig=AMSJob::gethead()->gettriggerN();
+ for(int n=0;n<ntrig;n++){
+   if(strcmp("AMSmceventg",AMSJob::gethead()->gettriggerC(n))==0){
+     WriteAll=1;
+     break;
+   }
+ }
+}
+return (WriteAll || status);
+}
