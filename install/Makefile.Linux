@@ -7,9 +7,9 @@ ifdef RH9
  RH9add=-pthread  /usr/lib/ctype-info.o
 endif
 
-#ifeq "$(shell uname-a )" "2.4"
+ifneq "$(shell uname -r )" "2.4.20-24.7.cernsmp"
  RH9add=-pthread  /usr/lib/ctype-info.o
-#endif
+endif
 
 CERN_LEVEL = 2001
 CERNDIR = /cern/$(CERN_LEVEL)

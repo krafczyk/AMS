@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.12 2004/12/01 16:05:19 choutko Exp $
+#  $Id: Makefile,v 1.13 2004/12/02 08:30:38 choutko Exp $
 
 #rl october 2003
 
@@ -287,7 +287,7 @@ endif
 
 
 ../F/flinit.F:      $(CERNSRCDIR)/src/geant321/fiface/flinit.F
-	sed  "s?OPEN(UNIT=LUNERR,FILE='flukaerr.dat'?OPEN(UNIT=LUNERR,FILE='/dev/null'?g"  $(CERNSRCDIR)/src/geant321/fiface/flinit.F > ../F/flinit.F
+	sed  "s?OPEN(UNIT=LUNERR,FILE='flukaerr.dat'?OPEN(UNIT=LUNERR,FILE='/dev/null',shared?g"  $(CERNSRCDIR)/src/geant321/fiface/flinit.F > ../F/flinit.F
 
 ../include/root_methods.h:      ../perl/root.perl
 	perl ../perl/root.perl
