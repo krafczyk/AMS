@@ -485,7 +485,7 @@ void AMSParticle::_loc2gl(){
   AMSEvent::gethead()->getvelphi());
   AMSDir amsyg=amszg.cross(amsxg);
   number prod=amsxg.prod(amszg);
-  if(fabs(prod)>0.01){
+  if(fabs(prod)>0.02){
    cerr<<"AMSParticle::_loc2gl-E-AMSGlobalCoosystemIllDefined "<<prod<<endl;
    AMSEvent::gethead()->_printEl(cerr);
    AMSEvent::gethead()->seterror();
