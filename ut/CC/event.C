@@ -971,10 +971,10 @@ void AMSEvent::event(){
 }
   //------------------------------------------------------------------
   void AMSEvent::_siamsevent(){
-    _sitkevent(); 
     _sitofevent(); 
     _siantievent(); 
     _sictcevent(); 
+    _sitkevent(); 
     _sitrigevent(); 
     if(TOFMCFFKEY.fast==0)_sidaqevent(); //DAQ-simulation only for slow algorithm
   }
@@ -1428,7 +1428,7 @@ void AMSEvent::_reaxinitrun(){
 }
 
 void AMSEvent:: _sitkevent(){
-  if(TRMCFFKEY.NoiseOn)AMSTrMCCluster::sitknoise();
+  if(TRMCFFKEY.NoiseOn &&AMSTOFRawEvent::gettrfl() )AMSTrMCCluster::sitknoise();
   AMSTrMCCluster::sitkcrosstalk();
 #ifdef __AMSDEBUG__
   AMSContainer *p =getC("AMSTrMCCluster",0);
