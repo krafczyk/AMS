@@ -2034,36 +2034,37 @@ integer gid=0;
 AMSNode * cur;
 AMSNode * dau;
 AMSgtmed *p;
+     geant magnetl=99.;
       gid=1;
       par[0]=113.2/2;
       par[1]=129.6/2;
-      par[2]=99./2.;
+      par[2]=magnetl/2.;
       dau=mother.add(new AMSgvolume(
       "MAGNET",0,name,"TUBE",par,3,coo,
        nrm, "ONLY",0,gid,1));
       gid=2;
       par[0]=111.4/2.;
       par[1]=112.0/2.;
-      par[2]=40.;
+      par[2]=magnetl/2.;
       dau=mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT1","TUBE",par,3,coo,nrm, "ONLY",0,gid,1));
       gid=3;
       par[0]=129.6/2.;
       par[1]=130.4/2.;
-      par[2]=40.;
+      par[2]=magnetl/2.;
       dau=mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT2","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
       par[0]=112/2.;
       par[1]=165./2.;
       par[2]=0.75;
-      coo[2]=40.75;
+      coo[2]=magnetl/2.+par[2];
       dau=mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT3","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
     
       par[0]=112/2.;
       par[1]=165.6/2.;
       par[2]=0.75;
-      coo[2]=-40.75;
+      coo[2]=-magnetl/2.-par[2];
       dau=mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT4","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
     

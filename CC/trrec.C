@@ -2746,8 +2746,7 @@ integer AMSTrTrack::_TrSearcher(int icall){
 //             cout <<icall<<" "<<phit[icall]<<" "<<pat<<endl;
              if(phit[icall]->Good() && !Distance(par,phit[icall])){
               if(TKDBc::patpoints(pat) >icall+2){         
-                integer iret=_TrSearcher(++icall); 
-                return iret;
+                return _TrSearcher(++icall); 
               }                
               else{  
                 // icall+2 point combination found

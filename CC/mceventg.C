@@ -277,7 +277,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           HPRINT(_hid);
     }
     else {
-      integer nchan=1000;
+      integer nchan=10000;
       geant binw;
       if(mass < 0.938)binw=100;
       else  binw=100*mass/0.938;
