@@ -160,7 +160,7 @@ void AMSAntiRawEvent::mc_build(int &stat){
     sector=ptr->getid();
     ede=ptr->getedep()*1000;
     edept+=ede;
-    edep=ede*antisccal[sector].getmip();// Edep Mev -> p.e.
+    edep=ede*antisccal[sector-1].getmip();// Edep Mev -> p.e.
     z=ptr->getcoo(2);
     time=(1.e+9)*(ptr->gettime());// geant-hit time in ns
     eup=0.5*edep*exp(z/ANTIMCFFKEY.LZero);// one side signal(pe)
@@ -356,7 +356,7 @@ void AMSAntiRawCluster::siantidigi(){
    number c0=exp(-ANTIMCFFKEY.PMulZPos/ANTIMCFFKEY.LZero);
   while(ptr){
    integer sector=ptr->getid();
-   number edep=ptr->getedep()*1000.*antisccal[sector].getmip();// Edep Mev -> p.e.
+   number edep=ptr->getedep()*1000.*antisccal[sector-1].getmip();// Edep Mev -> p.e.
    number z=ptr->getcoo(2);
    up+=edep*c0*exp(z/ANTIMCFFKEY.LZero);
    down+=edep*exp(-z/ANTIMCFFKEY.LZero)*c0;
