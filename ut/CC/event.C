@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.291 2002/09/26 12:29:35 choutko Exp $
+//  $Id: event.C,v 1.292 2002/10/04 07:14:52 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1732,6 +1732,78 @@ void AMSEvent::_reantiinitrun(){
 
 
 void AMSEvent::_reecalinitrun(){
+
+
+/*
+geant gains[18][14];
+ifstream fbin;
+fbin.open("gains.0570-0742");
+for (int i=0;i<18;i++){
+   for(int j=0;j<14;j++)fbin >> gains[i][j];
+//   for(int j=0;j<14;j++)gains[i][j]=1;
+}
+for (int i=0;i<18;i++){
+   for(int j=0;j<14;j++)cout<< gains[i][j]<<" ";
+cout <<endl;
+}
+
+ifstream rlgfile;
+rlgfile.open("/afs/ams.cern.ch/Offline/AMSDataDir/v4.00/ecalrlga003mc.dat");
+
+//
+// ---> read PM-status:
+//
+  int dummy;
+  for(int isl=0;isl<ecalconst::ECSLMX;isl++){   
+    for(int isc=0;isc<4;isc++){   
+      for(int ipm=0;ipm<ecalconst::ECPMSMX;ipm++){  
+        rlgfile >> dummy;
+      }
+    }
+  } 
+//
+// ---> read PM(sum of 4 SubCells) relative(to some Ref.PM) gains
+//
+  geant pg;
+  for(int isl=0;isl<ecalconst::ECSLMX;isl++){   
+    for(int ipm=0;ipm<ecalconst::ECPMSMX;ipm++){  
+      rlgfile >> pg;
+              ECcalib::ecpmcal[isl][ipm].pmrgain()=1/pg;
+      
+    }
+  }
+//
+// ---> read PM-SubCell relative gains:
+//
+  for(int isl=0;isl<ecalconst::ECSLMX;isl++){   
+    for(int isc=0;isc<4;isc++){   
+      for(int ipm=0;ipm<ecalconst::ECPMSMX;ipm++){  
+        rlgfile >> pg;
+              ECcalib::ecpmcal[isl][ipm].pmscgain(isc)=ECcalib::ecpmcal[isl][ipm].pmrgain()/pg;
+      }
+    }
+  }
+
+
+   
+   for(int i=0;i<ecalconst::ECSLMX;i++){
+       for(int j=0;j<7;j++){
+              ECcalib::ecpmcal[i][j].pmrgain()=1;
+         for (int k=0;k<4;k++){
+             AMSECIdSoft ids(i,j,k,0);
+           cout <<"  old gain "<<i<<" "<<j<<" "<<k<<" "<< ECcalib::ecpmcal[i][j].pmscgain(k)<<endl;             
+              ECcalib::ecpmcal[i][j].pmscgain(k)=ECcalib::ecpmcal[i][j].pmscgain(k)*gains[ids.getlayer()][ids.getcell()];
+           cout <<"  new gain "<<i<<" "<<j<<" "<<k<<" "<< ECcalib::ecpmcal[i][j].pmscgain(k)<<" "<<ids.getlayer()<<" "<<ids.getcell()<<endl;             
+              
+         }
+       }
+      } 
+
+
+
+*/
+
+
   if((AMSJob::gethead()->isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]<=0){
     if(AMSECIdCalib::Run()!=0){
      AMSECIdCalib::getaverage();

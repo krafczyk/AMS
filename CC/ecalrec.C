@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.60 2002/10/03 16:24:33 choumilo Exp $
+//  $Id: ecalrec.C,v 1.61 2002/10/04 07:14:51 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -1695,6 +1695,20 @@ void EcalShower::EnergyFit(){
     }
    }
    if(dn)_Dz/=dn;
+   else{
+      //  try whatever it is
+    for(int i=0;i<Maxrow;i++){
+    if(_Edep[i]){
+     for(int j=i+1;j<Maxrow;j++){
+      if(_Edep[j]){
+      _Dz+=(_Ez[j]-_Ez[i])/(j-i);
+      dn++;
+      }
+     }
+    }   
+   }
+   if(dn)_Dz/=dn;
+   }
    for(int i=0;i<Maxrow;i++){
     if(!_Edep[i]){
      for(int j=i-1;j>=0;j--){
