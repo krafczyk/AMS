@@ -1174,6 +1174,8 @@ void AMSJob::_retofinitjob(){
       HBOOK1(1100,"Fast-Slow hit time-difference(single hist/slow-hit measurements)",80,0.,80.,0.);
       HBOOK1(1105,"Anode-Slow hit time-difference(single an/slow-hit measurements)",80,-40.,40.,0.);
       HBOOK1(1106,"Dynode-Slow hit time-difference(single dyn/slow-hit measurements)",80,-120.,40.,0.);
+      HBOOK1(1107,"TOF/CTC/ANTI data length(raw format)",80,100.,1100.,0.);
+      HBOOK1(1108,"TOF/CTC/ANTI data length(reduced format)",80,0.,1000.,0.);
       HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,160.,0.);
       HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,1600.,0.);
       HBOOK1(1103,"Time_history:inp.pulse width(ns)",80,0.,80.,0.);
@@ -1184,6 +1186,12 @@ void AMSJob::_retofinitjob(){
       HBOOK1(1113,"RawClusterLevel:SingleBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
       HBOOK1(1114,"RawClusterLevel:Single2SidedBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
       HBOOK1(1115,"Fast-Slow hit time-difference(all hist/slow-hit meas.",80,-40.,120.,0.);
+    HBOOK1(1130,"W1,L1-B5-S1",50,0.,200.,0.);
+    HBOOK1(1131,"W2,L1-B5-S1",50,0.,100.,0.);
+    HBOOK1(1132,"W3,L1-B5-S1",60,0.,6000.,0.);
+    HBOOK1(1133,"W1,L1-B12-S1",50,0.,200.,0.);
+    HBOOK1(1134,"W2,L1-B12-S1",50,0.,100.,0.);
+    HBOOK1(1135,"W3,L1-B12-S1",60,0.,6000.,0.);
       HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
       HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
       HBOOK1(1530,"L=3,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
@@ -1781,6 +1789,8 @@ void AMSJob::_tofendjob(){
            HPRINT(1115);
            HPRINT(1105);
            HPRINT(1106);
+           HPRINT(1107);
+           HPRINT(1108);
            HPRINT(1101);
            HPRINT(1102);
            HPRINT(1103);
@@ -1790,6 +1800,12 @@ void AMSJob::_tofendjob(){
            HPRINT(1112);
            HPRINT(1113);
            HPRINT(1114);
+       HPRINT(1130);
+       HPRINT(1131);
+       HPRINT(1132);
+       HPRINT(1133);
+       HPRINT(1134);
+       HPRINT(1135);
            HPRINT(1526);
            HPRINT(1527);
            HPRINT(1528);

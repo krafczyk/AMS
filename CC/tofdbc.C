@@ -673,8 +673,8 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*cnum+1][ip];
     for(ip=0;ip<SCIPAR;ip++)dip[0][ip]=ipard[2*cnum][ip];
     for(ip=0;ip<SCIPAR;ip++)dip[1][ip]=ipard[2*cnum+1][ip];
-    if(aip[0][0]==0.)sta[0]=1;// set status 1(bad) for missing channels (tauf==0)
-    if(aip[1][0]==0.)sta[1]=1;
+    if(aip[0][0]==0.)sta[0]=-1;// set status -1(bad) for missing channels (tauf==0)
+    if(aip[1][0]==0.)sta[1]=-1;
     scbrcal[ila][ibr]=TOFBrcal(sid,sta,gna,gnd,a2dr,asatl,tth,
                               strat,fstrd,tzer,slope,slops,tdif,td2p,mip2q,scp,rlo,
                               aip,dip);
@@ -688,7 +688,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 geant TOFBrcal::ama2mip(number amf[2]){ // side A-Tovt's(ns) -> Etot(Mev)
   number q(0),qt(0);
   for(int isd=0;isd<2;isd++){
-    if(status[isd]==0){
+    if(status[isd]>=0){
       q2t2q(1,isd,0,amf[isd],q);
       qt+=(q/gaina[isd]);// Qa->Qa_gain_corrected
     }
@@ -701,7 +701,7 @@ void TOFBrcal::ama2q(number amf[2], number qs[2]){// side A-Tovt's(ns) -> Q(pC)
 //                                                 to use in calibr. program 
   for(int isd=0;isd<2;isd++){
     qs[isd]=0.;
-    if(status[isd]==0)q2t2q(1,isd,0,amf[isd],qs[isd]);
+    if(status[isd]>=0)q2t2q(1,isd,0,amf[isd],qs[isd]);
   }
 }
 //------
@@ -742,7 +742,7 @@ void TOFBrcal::q2t2q(int cof, int sdf, int adf, number &tovt, number &q){
 geant TOFBrcal::amd2mip(number amf[2]){ // side A-Tovt's(ns) -> Etot(Mev)
   number q(0),qt(0);
   for(int isd=0;isd<2;isd++){
-    if(status[isd]==0){
+    if(status[isd]>=0){
       q2t2q(1,isd,1,amf[isd],q);
 //      qt+=(q*an2dir[isd]/gaind[isd]);// Qd->Qd_gain_corrected
       qt+=(q/gaind[isd]);// (for new Dynode integ.parametrization don't need an2dir !!!) 
@@ -757,7 +757,7 @@ void TOFBrcal::amd2q(number amf[2], number qs[2]){// side A-Tovt's(ns) -> Q(pC)
   number q,qt(0);
   for(int isd=0;isd<2;isd++){
     qs[isd]=0.;
-    if(status[isd]==0)q2t2q(1,isd,1,amf[isd],qs[isd]);
+    if(status[isd]>=0)q2t2q(1,isd,1,amf[isd],qs[isd]);
   }
 }
 //-----
@@ -782,7 +782,7 @@ geant TOFBrcal::tm2t(number tmf[2], number amf[2]){//(2-sides_times/Tovt)->Time 
   geant shft;
   number time,qs,uv(0);
   shft=TOFDBc::shftim();
-  if(status[0]==0 && status[1]==0){
+  if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
       q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
       uv+=slops[isd]/qs;// summing slops/Q
@@ -798,14 +798,14 @@ void TOFBrcal::tmd2p(number tmf[2], number amf[2],
   geant shft;
   number time,coo,qs,uv(0);
   shft=TOFDBc::shftim();
-  if(status[0]==0 && status[1]==0){
+  if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
       q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
       uv+=(1-2*isd)*slops[isd]/qs;// subtr slops/Q
     }
   }
 //  uv=exp(-amf[0]/shft)-exp(-amf[1]/shft);// old parametrization
-  coo=-(0.5*(tmf[0]-tmf[1])+slope*uv-yctdif);  
+  coo=-(0.5*(tmf[0]-tmf[1])+slope*uv-yctdif);
 //common "-" is due to the fact that Tmeas=Ttrig-Tabs and coo-loc is prop. to Tabs1-Tabs2
   co=td2pos[0]*geant(coo);//coo(ns)->cm                    
   eco=td2pos[1];
@@ -816,7 +816,7 @@ void TOFBrcal::td2ctd(number tdo, number amf[2],
   geant shft;
   number qs,uv(0);
   shft=TOFDBc::shftim();
-  if(status[0]==0 && status[1]==0){
+  if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
       q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
       uv+=(1-2*isd)*slops[isd]/qs;// subtr slops/Q

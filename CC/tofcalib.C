@@ -336,7 +336,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   number coo[SCLRS],trp1[SCLRS],trp2[SCLRS],arp1[SCLRS],arp2[SCLRS];
   geant slops[2];
   number shft,ftdel,qtotl[SCLRS],qsd1[SCLRS],qsd2[SCLRS],eanti(0),meanq,rr,qmax;
-  number eacut=1;// cut on E-anti (mev)
+  number eacut=4;// cut on E-anti (mev). tempor (no calibration)
   number qrcut=10.;// cut on max/mean-charge ratio
   number dscut=5.6;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
   number *pntr[SCLRS];
@@ -381,7 +381,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   bad=0;
   for(i=0;i<SCLRS;i++)if(nbrl[i] != 1)bad=1;
   if(bad==1)return; // remove events with bars/layer != 1
-     if(TOFRECFFKEY.relogic[2]==1)return;// tempor  bad event
+     if(TOFRECFFKEY.relogic[2]==1)return;// tempor  bad event due to dT13-dT24
   TOFJobStat::addre(7);
 //
 // -----> check Anti-counter :
@@ -677,24 +677,24 @@ void TOFTDIFcalib::init(){ // ----> initialization for TDIF-calibration
     }
   }
 // ---> book histograms for "Bar raw time" (data quality check for TZSL-cal):
-  strcpy(inum,"0123456789");
-  for(il=0;il<SCLRS;il++){  
-    for(ib=0;ib<SCMXBR;ib++){
-      strcpy(htit1,"Bar raw time (4Lx1Bar events) for chan(LBB) ");
-      in[0]=inum[il+1];
-      strcat(htit1,in);
-      ii=(ib+1)/10;
-      jj=(ib+1)%10;
-      in[0]=inum[ii];
-      strcat(htit1,in);
-      in[0]=inum[jj];
-      strcat(htit1,in);
-      id=1720+il*SCMXBR+ib;
-      HBOOK1(id,htit1,80,40.,120.,0.);
-    }
-  }
-  HBOOK2(1780,"T vs 1/Q, L=1",50,0.,0.1,80,40.,120.,0.);
-  HBOOK2(1781,"T vs 1/Q, L=4",50,0.,0.1,80,40.,120.,0.);
+//  strcpy(inum,"0123456789");
+//  for(il=0;il<SCLRS;il++){  
+//    for(ib=0;ib<SCMXBR;ib++){
+//      strcpy(htit1,"Bar raw time (4Lx1Bar events) for chan(LBB) ");
+//      in[0]=inum[il+1];
+//      strcat(htit1,in);
+//      ii=(ib+1)/10;
+//      jj=(ib+1)%10;
+//      in[0]=inum[ii];
+//      strcat(htit1,in);
+//      in[0]=inum[jj];
+//      strcat(htit1,in);
+//      id=1720+il*SCMXBR+ib;
+//      HBOOK1(id,htit1,80,40.,120.,0.);
+//    }
+//  }
+//  HBOOK2(1780,"T vs 1/Q, L=1",50,0.,0.1,80,40.,120.,0.);
+//  HBOOK2(1781,"T vs 1/Q, L=4",50,0.,0.1,80,40.,120.,0.);
 // ---> book histograms for "Tdiff_mean vs Clong"
   strcpy(inum,"0123456789");
   for(il=0;il<SCLRS;il++){  
@@ -759,19 +759,19 @@ void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
   t14=tmsdc[0]-tmsdc[3];
 //
 //------> fill histogr. for indiv. bar time (quality check for TZSL-calibr):
-  for(il=0;il<SCLRS;il++){
-    ib=brnl[il];
-    time=tmss[il];
-    chan=SCMXBR*il+ib;
-    HF1(1720+chan,geant(time),1.);
-  }
+//  for(il=0;il<SCLRS;il++){
+//    ib=brnl[il];
+//    time=tmss[il];
+//    chan=SCMXBR*il+ib;
+//    HF1(1720+chan,geant(time),1.);
+//  }
   q1=qsd1[0];// layer=1
   q2=qsd2[0];
   time=tmss[0];
   ib=brnl[0];
   if(ib==7 && q1>0. && q2>0.){ // for bar=8
     qinv=1./q1+1./q2;
-    HF2(1780,geant(qinv),geant(time),1.);
+//    HF2(1780,geant(qinv),geant(time),1.);
   }
   q1=qsd1[3];// layer=4
   q2=qsd2[3];
@@ -779,7 +779,7 @@ void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
   ib=brnl[3];
   if(ib==7 && q1>0. && q2>0.){ // for bar=8
     qinv=1./q1+1./q2;
-    HF2(1781,geant(qinv),geant(time),1.);
+//    HF2(1781,geant(qinv),geant(time),1.);
   }
 //------> find track slope(in projection) using only scint.pos.info :
   ix=0;
@@ -900,10 +900,14 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
         chi2[chan]=sumt2+t0[chan]*t0[chan]*sumid+sl[chan]*sl[chan]*sumc2
          -2*t0[chan]*sumt-2*sl[chan]*sumct+2*t0[chan]*sl[chan]*sumc;
         chi2[chan]/=number(bins-2);
-        bintot+=1;
-        meansl+=sl[chan];
+        if(chi2[chan]<3. &&
+                     fabs(sl[chan])>0.062 &&
+                     fabs(sl[chan])<0.074){//only good for averaging
+          bintot+=1;
+          meansl+=sl[chan];
+        }
         HF1(1602,geant(t0[chan]),1.);
-        if(fabs(sl[chan])>0)HF1(1603,geant(fabs(sl[chan])),1.);
+        if(fabs(sl[chan])>0.)HF1(1603,geant(fabs(sl[chan])),1.);
       }
     }
   }
@@ -954,14 +958,14 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
   HPRINT(1603);
 //
 //---> print T vs 1/Q histograms:
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      chan=SCMXBR*il+ib;
-      HPRINT(1720+chan);
-    }
-  }
-  HPRINT(1780);
-  HPRINT(1781);
+//  for(il=0;il<SCLRS;il++){
+//    for(ib=0;ib<SCMXBR;ib++){
+//      chan=SCMXBR*il+ib;
+//      HPRINT(1720+chan);
+//    }
+//  }
+//  HPRINT(1780);
+//  HPRINT(1781);
 //
 // ---> write mean light speed and Tdif's to file:
 // 
@@ -1964,7 +1968,7 @@ void TOFSTRRcalib::outp(){
     for(j=idtol[0];j<idtol[1];j++){//<-- Tout bin loop
       nev=number(nevnt[ic][j]);
       co=(number(j)+0.5)*SCSRCTB;// mid. of Tout bin
-      if(nev>10.){ // min. 25 events
+      if(nev>20.){ // min. 25 events
         t=dtin[ic][j]/nev; // get mean
         tq=dtinq[ic][j]/nev; // mean square
         dis=tq-t*t;// rms**2

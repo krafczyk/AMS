@@ -91,6 +91,20 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   if(TOFRECFFKEY.reprtf[1]>=1)
   cout<<endl<<"======> TOF::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
 #endif
+//---- tempor test
+  TOFMCFFKEY.daqfmt=0;//raw fmt 
+  im=0;
+  for(i=0;i<DAQSBLK;i++){
+    im+=DAQSBlock::calcblocklength(i);
+  }
+  HF1(1107,geant(im),1.);
+  TOFMCFFKEY.daqfmt=1;//reduced fmt
+  im=0;
+  for(i=0;i<DAQSBLK;i++){
+    im+=DAQSBlock::calcblocklength(i);
+  }
+  HF1(1108,geant(im),1.);
+//---- tempor test
 //                             <---- loop over TOF RawEvent hits -----
   while(ptr){
     idd=ptr->getid();
@@ -165,12 +179,18 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         t3=(stdc1[i+1]&pbanti)*TOFDBc::tdcbin(1);//2-nd up-edge
         t4=(stdc1[i]&pbanti)*TOFDBc::tdcbin(1);//2-nd down-edge
         dt=t2-t3;
+      if(ilay==0 && ibar==4 && isid==0)HF1(1131,geant(dt),1.);
+      if(ilay==0 && ibar==11 && isid==0)HF1(1134,geant(dt),1.);
         HF1(1203,geant(dt),1.);
-        if(dt<5. || dt>24.)continue;//wrong "hole" width, take next "4"
+        if(dt<5. || dt>24.)continue;//wrong "hole" width(w2), take next "4"
         dt=t1-t2;
-        if(dt<10. || dt>200.)continue;//wrong "1st_pulse" width, ...
+      if(ilay==0 && ibar==4 && isid==0)HF1(1130,geant(dt),1.);
+      if(ilay==0 && ibar==11 && isid==0)HF1(1133,geant(dt),1.);
+        if(dt<10. || dt>200.)continue;//wrong "1st_pulse" width(w1), ...
         dt=t2-t4;
-        if(dt<1500. || dt>6000.)continue;//wrong "2nd_pulse" width, ...
+      if(ilay==0 && ibar==4 && isid==0)HF1(1132,geant(dt),1.);
+      if(ilay==0 && ibar==11 && isid==0)HF1(1135,geant(dt),1.);
+        if(dt<1600. || dt>6000.)continue;//wrong "2nd_pulse" width(w3), ...
 //
         stdc2[nhit]=stdc1[i];
         nhit+=1;
@@ -755,8 +775,10 @@ void AMSTOFRawCluster::build(int &status){
                 amd[1]=am[1]*TOFDBc::tdcbin(3);
               }
 //  require 2-sides measurements for dinode (otherwise it is useless):
-              if(nadcd[0]>=2 && nadcd[1]>=2)qtotd=scbrcal[ilay][ibar].amd2mip(amd)
+              if(nadcd[0]>=2 && nadcd[1]>=2){
+                 qtotd=scbrcal[ilay][ibar].amd2mip(amd)
                                             /pcorr;//dinode-tot Edep(mev) with corrections
+              }
 //-->
               nbrl[ilay]+=1;
               isdsl[ilay]=isds;
@@ -1665,7 +1687,7 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
       }// ---> end of SFET data check
 //
       else{
-        break;// hope no SFET data left
+        break;// hope no SFET data left (m.b. continue)
       }
 //
     }// ---> end of words loop
