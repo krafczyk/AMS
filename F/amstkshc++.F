@@ -796,8 +796,8 @@ CDECK  ID>, ABSIIN.
 *        a_p,t atomic weight
 *        z_p,t 
 *        output p_sec(6,1000)   // as in gkin
-         real *4 p_sec(6,*)
-         real *4 u(3),pmom_p(5)
+         real *8 p_sec(6,*)
+         real *4 u(3),pmom_p(6)
          a_p=int(a_p+0.5)
          ekin=(pmom_p(6)-pmom_p(5))/a_p
 *
@@ -1398,7 +1398,7 @@ CDE, FCONS.
       REAL RNDMm(1)
       real *4 pmom_p(6),pmom_t(6)
       parameter (nsecm=1000)
-      real *4 p_sec(6,nsecm)
+      real *8 p_sec(6,nsecm)
 *
       NP = 0
 *
@@ -1530,7 +1530,8 @@ c           goto 888
                 nsec=0
                endif
              do i=1,nsec
-              if(p_sec(4,i)-p_sec(6,i).gt.cuthad
+              if((p_sec(4,i)-p_sec(6,i).gt.cuthad.or.
+     +            p_sec(5,i).lt.7)
      +          .and.ngkine.lt.mxgkin)then
                ngkine=ngkine+1
                do j=1,5
