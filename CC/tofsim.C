@@ -707,7 +707,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
           tm+=fladcb;
           am=tslice[i];
           if(am>amx)amx=am;// tempor
-//          am=am+8.*rnormx();//tempor to test noncorr. noise 8mv(rms)
+          am=am+6.*rnormx();//tempor to test noncorr. noise 6mv(rms)
           charge+=am;
 //--------------------------          
 // discr-1(anode,fast comparator for TDC/z>=1 ) up/down setting with LOW thr.:

@@ -72,7 +72,7 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::_shrtim=1.0;     // MC shaper pulse rise time (ns)(exp)
   geant TOFDBc::_shctim=300.;    // MC shaper pulse cut-time(gate width)(ns)
   geant TOFDBc::_shftim=63.;     // MC shaper pulse fall time (ns)(exp). MC only !!!
-  geant TOFDBc::_strflu=0.1;    // Stretcher "end-mark" time fluctuations (ns)
+  geant TOFDBc::_strflu=2.;    // Stretcher "end-mark" time fluctuations (ns)
   geant TOFDBc::_tdcbin[4]={
     1.,                            // pipe/line TDC binning for fast-tdc meas.
     1.,                            // pipe/line TDC binning for slow-tdc meas.
