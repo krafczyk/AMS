@@ -260,7 +260,9 @@ mat.add (new AMSgmat("ECSCINT",a,z,w,2,1.032));
 }
 //-------------------
 // effective material for ECAL PMT-boxes (low dens.(1:10) iron):
-mat.add (new AMSgmat("LOW_DENS_Fe_2",55.85,26.,0.787,17.6,168.));
+mat.add (new AMSgmat("LOW_DENS_Fe_2",55.85,26.,0.787,17.6,168.));//tempor as for TOF
+         // AL honeycomb structure for TOF :
+mat.add (new AMSgmat( "EC-AL-HONEYC",26.98, 13., 0.04, 600., 2660.));//tempor as for TOF
 //------------------
 { // Fiber wall(cladding+glue, ~ plexiglass):  
   geant a[]={12.01,1.01,16.0};
@@ -518,10 +520,10 @@ GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
 tmed.add (new AMSgtmed("EC_FWALL","ECFPLEX",0));// 
 GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_FIBER-wall
 GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
-tmed.add (new AMSgtmed("EC_ELBOX","LOW_DENS_Fe_2",0));// tempor as for TOF-boxes
+tmed.add (new AMSgtmed("EC_ELBOX","LOW_DENS_Fe_2",0));
 GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_ELBOX
 GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
-tmed.add (new AMSgtmed("EC_HONEYC","AL-HONEYC",0));// tempor as for TOF-honeycomb
+tmed.add (new AMSgtmed("EC_HONEYC","EC-AL-HONEYC",0));
 GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_HONEYC
 GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
 } 

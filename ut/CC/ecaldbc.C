@@ -434,6 +434,9 @@ geant ECALDBc::_mev2mev=36.16; // MC: dE/dX(MeV)->Emeas(MeV) conv.factor(at 50ge
 //---------
 // <--- function to get info about SubCell("analog" design) :
 //
+//input: isl->S-layer(0-...);pmc->PMCell(0-...);sc->SubCell(0-3)
+//output:pr->Proj(0-X,1-Y);pl->Plane(0-..);cell->0-...;ct/l/z-coord. in AMS.r.s
+//
   void ECALDBc::getscinfoa(integer isl, integer pmc, integer sc,
          integer &pr, integer &pl, integer &cell, number &ct, number &cl, number &cz){
 //
@@ -502,6 +505,7 @@ geant ECALDBc::_mev2mev=36.16; // MC: dE/dX(MeV)->Emeas(MeV) conv.factor(at 50ge
       cout<<"ECALDBc::getscinfo-test:"<<endl;
       cout<<"1st SubCell in 1st plane coot(EC r.s.)/cooz="<<coot[0][0]<<" "<<cooz[0][0]<<endl;      
       cout<<"last SubCell in 1st plane coot(EC r.s.)/cooz="<<coot[npm-1][1]<<" "<<cooz[0][1]<<endl;      
+      cout<<"1st SubCell in 2nd plane coot(EC r.s.)/cooz="<<coot[0][2]<<" "<<cooz[0][2]<<endl;      
       cout<<"1st SubCell in last plane coot(EC r.s.)/cooz="<<coot[0][2]<<" "<<cooz[nsl-1][2]<<endl;      
       cout<<"last SubCell in last plane coot(EC r.s.)/cooz="<<coot[npm-1][3]<<" "<<cooz[nsl-1][3]<<endl;      
 //

@@ -511,8 +511,8 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.reprtf[0]=0;     // (1) print_hist flag (0/1->no/yes)
   ECREFFKEY.reprtf[1]=0;     // (2) print_prof flag (0/1->no/yes)
   ECREFFKEY.reprtf[2]=0;     // (3) spare
-  ECREFFKEY.hitthr1=6.2;     // (4) (mev) threshold in the cluster search
-  ECREFFKEY.hitthr2=10.;     // (5) (mev) threshold in the cluster search
+  ECREFFKEY.hitthr1=6.2;     // (4) (mev) hit-threshold in the cluster search
+  ECREFFKEY.hitthr2=10.;     // (5) (mev) spare threshold 
 FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================

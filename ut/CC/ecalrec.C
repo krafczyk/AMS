@@ -97,7 +97,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	emeast+=edepr;
 	adc=integer(edepr*ECALDBc::mev2adc());//Emeas(Mev)->Emeas(adc) ("digitization")
         if(adc>0){
-	  if(adc>=8192)adc=8192;//"ADC-saturation"
+	  if(adc>=16384)adc=16384;//"ADC-saturation"
 	  nraw+=1;
 	  id=(k+1)+10*(i+1)+1000*(il+1);
 	  sta=0;
@@ -115,7 +115,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
     HF1(ECHIST+3,geant(edeprt),1.);
     HF1(ECHIST+4,geant(emeast),1.);
     HF1(ECHIST+5,geant(emeast),1.);
-    HF1(ECHIST+6,geant(timet/edeprt),1.);
+    if(edeprt>0.)HF1(ECHIST+6,geant(timet/edeprt),1.);
   }
   if(nraw>0)stat=0;
 }
@@ -186,7 +186,7 @@ void AMSEcalCluster::build(int &stat){
   AMSPoint ecoo; 
   AMSEcalHit * ptr;
   AMSEcalHit * membp[2*ECPMSMX];
-  number x,y,z,cogt,ecogt,cogl,ecogl,cogz,ecogz;
+  number x,y,z,cogt,ecogt,cogl,ecogl,cogz,ecogz,vr;
   geant tprof[2*ECPMSMX],zprof[2*ECSLMX];
   static integer nprz(0);
 //
@@ -194,7 +194,7 @@ void AMSEcalCluster::build(int &stat){
   nhits=0;
   nclus=0;
   eclust=0.;
-  edepthr=ECREFFKEY.hitthr1;//thresh.(mev) for EcalHit(~2.5adc, at mip/pl=5adc(m.p.))
+  edepthr=ECREFFKEY.hitthr1;//thresh.(mev) for EcalHit(~2.adc, at mip/pl=4.5adc(m.p.))
   maxpl=2*ECALDBc::slstruc(3);//real planes
   maxcl=2*ECALDBc::slstruc(4);//real SubCells per plane
   ecogz=0.01;//(cm) hope not more
@@ -237,18 +237,21 @@ void AMSEcalCluster::build(int &stat){
     if(edept>0.){
       cogt/=edept;
       ecogt/=edept;
-      ecogt=sqrt(ecogt-cogt*cogt);
-      cogz=cooz;//all z in layer are the same (?)
+      vr=cogt*cogt;
+      if(ecogt>vr)ecogt=sqrt(ecogt-vr);
+      else ecogt=0.;
+      if(nmemb==1)ecogt=ECALDBc::rdcell(5)/sqrt(12.);// bin_size/sqrt(12)
+      cogz=cooz;//imply all z in layer are the same
       if(proj==0){// X-pr
-        cogl=ECALDBc::gendim(2);//rad.y-size
+        cogl=ECALDBc::gendim(6);//0+rad.y-shift
         coo=AMSPoint(cogt,cogl,cogz);
-	ecogl=cogl/sqrt(12.);
+	ecogl=ECALDBc::gendim(2)/sqrt(12.);//rad_y_size(==flen)/sqrt(12)
 	ecoo=AMSPoint(ecogt,ecogl,ecogz);
       }
       else{       // Y-pr
-        cogl=ECALDBc::gendim(1);//rad.x-size
+        cogl=ECALDBc::gendim(5);//0+rad.x-shift
         coo=AMSPoint(cogl,cogt,cogz);
-	ecogl=cogl/sqrt(12.);
+	ecogl=ECALDBc::gendim(1)/sqrt(12.);
 	ecoo=AMSPoint(ecogl,ecogt,ecogz);
       }
       nclus+=1;
