@@ -21,8 +21,8 @@ fortran filename   : gudtim.f
 fortran filename   : gufld.f
 ------------------------------------------------------------------*/
 
-PROTOCCALLSFSUB2(GUFLD,gufld,FLOATV,PFLOAT)
-#define GUFLD(A1,A2)  CCALLSFSUB2(GUFLD,gufld,FLOATV,PFLOAT,A1,A2)
+PROTOCCALLSFSUB2(GUFLD,gufld,FLOATV,FLOATV)
+#define GUFLD(A1,A2)  CCALLSFSUB2(GUFLD,gufld,FLOATV,FLOATV,A1,A2)
 
 /*------------------------------------------------------------------
 fortran filename   : guhadr.f

@@ -13,6 +13,7 @@
 #include <trrec.h>
 #include <tofrec.h>
 #include <tofcalib.h>
+#include <ntuple.h>
 //
 extern TOFBrcal scbrcal[SCLRS][SCMXBR];// calibration data
 //
@@ -372,28 +373,34 @@ void AMSTOFRawCluster::_printEl(ostream & stream){
 }
 
 AMSTOFCluster * AMSTOFCluster::_Head[4]={0,0,0,0};
+
+
 void AMSTOFCluster::_writeEl(){
-// fill the ntuple
-if(AMSTOFCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
-
+  // fill the ntuple
+  if(AMSTOFCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
+static TOFClusterNtuple TN;
 static integer init=0;
-static integer *pointer=0;
 if(init++==0){
-// get memory
-  pointer =new integer[10+sizeof(AMSTOFCluster)/sizeof(integer)];
-  assert(pointer!=NULL);
-//book the ntuple block
-  HBNAME(IOPA.ntuple,"TOFClust",pointer,
-  "TOFCluster:I*4,TOFStatus:I*4,Ntof:I*4,Plane:I*4, TOFEdep:R*8, TOFCoo(3):R*8,TOFErCoo(3):R*8,TOFTime:R*8,TOFETime:R*8");
+  //book the ntuple block
+  HBNAME(IOPA.ntuple,"TOFClust",TN.getaddress(),
+  "TOFCluster:I*4,TOFStatus:I*4,Ntof:I*4,Plane:I*4, TOFEdep:R*4, TOFTime:R*4,TOFETime:R*4,TOFCoo(3):R*4,TOFErCoo(3):R*4");
 
 }
-  integer event=AMSEvent::gethead()->getid();
-  UCOPY(&event,pointer,sizeof(integer)/4);
-  UCOPY(&_status,pointer+1,3*sizeof(integer)/4);
-  UCOPY(&_edep,pointer+4,9*sizeof(number)/4);
+TN.Event()=AMSEvent::gethead()->getid();
+  TN.Status=_status;
+  TN.Ntof=_ntof;
+  TN.Plane=_plane;
+  TN.Edep=_edep;
+  TN.Time=_time;
+  TN.ErrTime=_etime;
+  int i;
+  for(i=0;i<3;i++)TN.Coo[i]=_Coo[i];
+  for(i=0;i<3;i++)TN.ErrorCoo[i]=_ErrorCoo[i];
   HFNTB(IOPA.ntuple,"TOFClust");
+  }
 }
-}
+
+
 
 void AMSTOFCluster::_copyEl(){
 }

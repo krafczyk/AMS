@@ -753,6 +753,7 @@ depend:
 ../bin/osf1/tofrec.o: ../include/extC.h ../include/tofdbc.h
 ../bin/osf1/tofrec.o: ../include/tofsim.h ../include/trrec.h
 ../bin/osf1/tofrec.o: ../include/tofrec.h ../include/tofcalib.h
+../bin/osf1/tofrec.o: ../include/ntuple.h
 ../bin/osf1/beta.o: ../include/beta.h ../include/link.h ../include/typedefs.h
 ../bin/osf1/beta.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/beta.o: /usr/include/cxx/iostream.h /usr/include/cxx/iostream.hxx
@@ -895,6 +896,16 @@ depend:
 ../bin/osf1/tofdbc.o: /usr/include/cxx/cxxl_share.hxx
 ../bin/osf1/tofdbc.o: /usr/include/cxx/messages.hxx /usr/include/stddef.h
 ../bin/osf1/tofdbc.o: /usr/include/stdio.h /usr/include/limits.h
+../bin/osf1/tofdbc.o: ../include/commons.h ../include/cern.h
+../bin/osf1/tofdbc.o: ../include/cfortran.h /usr/include/malloc.h
+../bin/osf1/tofdbc.o: ../include/hbook.h ../include/geant321.h
+../bin/osf1/tofdbc.o: ../include/geant321g.h ../include/mceventg.h
+../bin/osf1/tofdbc.o: ../include/point.h ../include/link.h ../include/upool.h
+../bin/osf1/tofdbc.o: /usr/include/cxx/new.h /usr/include/cxx/new.hxx
+../bin/osf1/tofdbc.o: ../include/apool.h ../include/node.h ../include/id.h
+../bin/osf1/tofdbc.o: /usr/include/cxx/strstream.h
+../bin/osf1/tofdbc.o: /usr/include/cxx/strstream.hxx /usr/include/stdlib.h
+../bin/osf1/tofdbc.o: ../include/snode.h
 ../bin/osf1/ctcrec.o: ../include/ctcrec.h ../include/typedefs.h
 ../bin/osf1/ctcrec.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/ctcrec.o: /usr/include/cxx/iostream.h

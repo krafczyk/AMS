@@ -468,7 +468,7 @@ void AMSTOFTovt::totovt(integer idd, float edepb, float tslice[])
           cerr<<"SITOFTovt-warning: out of time scale, id="<<idd<<
              "  A-last= "<<tslice[SCTBMX]<<'\n';
           cerr<<tslice[SCTBMX-1]<<" "<<tslice[SCTBMX-2]<<'\n';
-          AMSTOFTovt::displ_a(idd,20,tslice);//print PMT pulse
+          if(TOFMCFFKEY.mcprtf[1])AMSTOFTovt::displ_a(idd,20,tslice);//print PMT pulse
         }
         for(i=SCTBMX-1;i>=0;i--)if(tslice[i]!=0)break;// find useful range
         imax=i+1;

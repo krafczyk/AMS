@@ -3,6 +3,7 @@
 #include <tofdbc.h>
 #include <stdio.h>
 #include <iostream.h>
+#include <commons.h>
 //
 //  =====> TOFDBc class variables definition :
 //
@@ -230,6 +231,8 @@ void TOFJobStat::print(){
   printf(" RawEvent->RawCluster OK : % 6d\n",recount[5]);
   printf(" RawCluster->Cluster OK  : % 6d\n",recount[6]);
   printf("\n\n");
+
+if(TOFMCFFKEY.mcprtf[3]==0)return;
 //
   printf("=====> Channels status :\n\n");
 //

@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <amsstl.h>
 #include <ntuple.h>
+#include <cern.h>
 
 number AMSCharge::_lkhdTOF[ncharge][100];
 number AMSCharge::_lkhdTracker[ncharge][100];
@@ -223,6 +224,8 @@ void AMSCharge::print(){
 
 
 void AMSCharge::init(){
+geant v[3],x[3];
+GUFLD(x,v);
 int i,j;
   ifstream iftxt(_fnam,ios::in);
   if(!iftxt){

@@ -265,4 +265,33 @@ geant ResFunY[3][6];
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)
 COMMON_BLOCK_DEF(TRCLFFKEY_DEF,TRCLFFKEY);
+
+const integer nx=29;
+const integer ny=29;
+const integer nz=35;
+class TKFIELD_DEF{
+public:
+integer iniok;
+geant  x[nx];
+geant  y[ny];
+geant  z[nz];
+geant bx[2][nz][ny][nx];
+geant by[2][nz][ny][nx];
+geant bz[2][nz][ny][nx];
+geant xyz[nx+ny+nz];
+};
+#define TKFIELD COMMON_BLOCK(TKFIELD,tkfield)
+COMMON_BLOCK_DEF(TKFIELD_DEF,TKFIELD);
+
+
+
+
+
+
+
+
+
+
+
+
 #endif
