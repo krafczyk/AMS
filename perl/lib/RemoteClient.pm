@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.133 2003/04/27 12:40:24 alexei Exp $
+# $Id: RemoteClient.pm,v 1.134 2003/04/28 11:58:52 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -927,7 +927,6 @@ sub ValidateRuns {
                             $copied++;
                             push @cpntuples, $fpath;
                             $runupdate = "UPDATE runs SET FEVENT = $fevent, LEVENT=$levent, ";
-                            $self->{sqlserver}->Update($sql);
                          } else {
                              print "validateRuns - failed to copy $fpath\n";
                              $copyfailed = 1;
@@ -1027,18 +1026,19 @@ sub doCopy {
           }   
          if ($mtime) {
 # find job
-          $sql = "SELECT cites.name,jobname,jobs.jid  FROM jobs,cites 
-                           WHERE jid=$jid AND cites.cid=jobs.cid";
+          $sql = "SELECT cites.name,jobname,jobs.jid,datasets.name  FROM jobs,cites,datasets  
+                           WHERE jid=$jid AND cites.cid=jobs.cid AND jobs.did=datasets.did";
           my $r1 = $self->{sqlserver}->Query($sql);
           if (defined $r1->[0][0]) {
             my $cite    = $r1->[0][0];
             my $jobname = $r1->[0][1];
+            my $dataset = $r1->[0][3];
             $jobname =~ s/$cite.//;
             $jobname =~ s/$jid.//;
             $jobname =~ s/.job//;
-            $outputpath = $outputpath."/".$jobname;
+            $outputpath = $outputpath."/".$dataset."/".$jobname;
             $cmd = "mkdir -p $outputpath";
-            print "$cmd \n";
+#            print "$cmd \n";
             $cmdstatus = system($cmd);
             if (!$cmdstatus) {
              $outputpath = $outputpath."/".$file;
@@ -1050,7 +1050,7 @@ sub doCopy {
                    return $outputpath,0;
                  } else {
                   htmlWarning("doCopy","crc calculation failed for ",$outputpath);
-                  htmlWarning("doCopy","crc calculation failed staus ",$rstatus);
+                  htmlWarning("doCopy","crc calculation failed status ",$rstatus);
                   return $outputpath,1;
                  }
              }
@@ -5740,7 +5740,7 @@ sub parseJournalFiles {
            $lastfile = $newfile;
        }
        my $color   ="black";
-       my $fstatus ="ToBeChecked";
+       my $fstatus ="CheckInProgress";
        if ($writetime < $timestamp) { $color   = "magenta";
                                       $fstatus = "AlreadyChecked"}
        my $wtime = EpochToDDMMYYHHMMSS($writetime);
@@ -5762,6 +5762,8 @@ sub parseJournalFiles {
  }
 
    htmlTableEnd();
+
+
  htmlBottom();
 }
 
@@ -5772,13 +5774,16 @@ sub parseJournalFile {
 #         copy to final destination
 #
 
-    my $self      = shift;
-    my $inputfile = shift;
-    my $dirpath   = shift;
+ my $self      = shift;
+ my $inputfile = shift;
+ my $dirpath   = shift;
+
+
 
 my $sql       = undef;
-my $fevent    = -1;
-my $levent    = -1;
+
+my $fevent =  1;
+my $levent =  0;
 
 my $patternsmatched  = 0; 
 
@@ -5798,6 +5803,15 @@ my $startingrunR = 0; # StartingRun "     "       "       "
 my $opendstR     = 0; # OpenDST     "     "       "       "
 my $closedstR    = 0; # CloseDST    "     "       "       "
 my $runfinishedR = 0; # RunFinished "     "       "       "
+my $status = undef;   # Run status
+
+
+   my $validated=0;
+   my $thrusted =0;
+   my $copied   =0;
+   my $failedcp =0;
+   my $bad      =0; 
+   my $unchecked=0; 
 
 
     open(FILE,"<",$inputfile) or die "Unable to open $inputfile";
@@ -5809,10 +5823,25 @@ my $runfinishedR = 0; # RunFinished "     "       "       "
 
 use POSIX  qw(strtod);             
 
+     my @cpntuples   =();
+     my @mvntuples   =();
+     my $runupdate   = "UPDATE runs SET ";
+     my $copyfailed  = 0;
+
+ my $timenow = time();
+ 
+ my @jj   = split '/',$inputfile;
+
+ my $copylog = "/tmp/copyValidateCRC.$jj[$#jj].".$timenow.".log";
+
+ open(FILE,">".$copylog) or die "Unable to open file $copylog\n";
 
 foreach my $block (@blocks) {
     my @junk;
-    @junk = splitjunk($block,@junk);
+    @junk = split ",",$block;
+    for (my $i=0; $i<$#junk+1; $i++) {
+      $junk[$i] = trimblanks($junk[$i]);
+    }
 #    
     my ($utime,@jj) = split " ",$block;
     if (defined $utime) {
@@ -5850,7 +5879,7 @@ foreach my $block (@blocks) {
     $lastjobid = $startingjob[2];
     $startingjobR   = 1;
    } else  {
-      htmlWarning("parseJournalFile","StartingJob - cannot find all patterns"," ");
+      print FILE "parseJournalFile -W- StartingJob - cannot find all patterns";
    }
     # end StartingJob cmd
     #
@@ -5879,7 +5908,7 @@ foreach my $block (@blocks) {
     $startingjobR   = 1;
     $lastjobid = $startingjob[2];
    } else  {
-      htmlWarning("parseJournalFiles","StartingJob - cannot find all patterns"," ");
+    print FILE "parseJournalFiles -W- StartingJob - cannot find all patterns";
    }
     # end JobStarted cmd
     #
@@ -5923,17 +5952,17 @@ foreach my $block (@blocks) {
      $sql = "INSERT INTO runs (run,jid,fevent,levent,fetime,letime,submit,status) 
               VALUES($startingrun[2],$lastjobid,$startingrun[3],
                      $startingrun[4],0,0,$startingrun[11],'$startingrun[7]')";
-#     $self->{sqlserver}->Update($sql);
+     $self->{sqlserver}->Update($sql);
      $sql = "update jobs set 
                                host='$startingrun[12]',
                                events=$startingrun[13], errors=$startingrun[15],
                                cputime=$startingrun[16], elapsed=$startingrun[17],
                                timestamp=$timestamp 
                    where jid=$lastjobid";
-#     $self->{sqlserver}->Update($sql);
+     $self->{sqlserver}->Update($sql);
     } 
    } else  {
-       htmlWarning("parseJournalFiles","StartingRun - cannot find all patterns"," ");
+       print FILE "parseJournalFiles -W- StartingRun - cannot find all patterns";
    }
    # end StartingRun 
    #
@@ -5964,22 +5993,8 @@ foreach my $block (@blocks) {
     }
    if ($patternsmatched == $#OpenDSTPatterns) { #OpenDST has no pair
     $opendst[0] = "OpenDST";
-    $opendstR   = 1;
-
-    my @jj = split '/',$opendst[3];
-    my $filename = $jj[$#jj];
-    my $sql = "SELECT run,path FROM ntuples where run=$opendst[10] AND path like '%$filename%'";
-    my $ret = $self->{sqlserver}->Query($sql);
-    if(not defined $ret->[0][0]){
-     $timestamp = time();
-     $sql = "insert into ntuples 
-                           (run,version,type,jid,fevent,levent,timestamp,status,path) 
-                     values($opendst[10],'$opendst[4]','$opendst[2]',$lastjobid,$opendst[11],
-                            $opendst[12],$timestamp,'$opendst[1]','$opendst[3]')"; 
-#     $self->{sqlserver}->Update($sql);
-   } 
-  } else  {
-     htmlWarning("parseJournalFiles","OpenDST - cannot find all patterns"," ");
+   } else  {
+     print FILE "parseJournalFiles -W- OpenDST - cannot find all patterns";
    }
    # end OpenDST 
    # 
@@ -6015,29 +6030,95 @@ foreach my $block (@blocks) {
 #
     my @junk = split "/",$closedst[3];
     my $dstfile = trimblanks($junk[$#junk]);
-    $dstfile=$dirpath.$dstfile;
+    $dstfile=$dirpath."/".$dstfile;
     my $dstsize = -1;
     $dstsize = (stat($dstfile)) [7] or $dstsize = -1;
     if ($dstsize == -1) {
-     print "CloseDST block - Warning cannot stat $dstfile\n";
+     print FILE "parseJournalFile -W- CloseDST block : cannot stat $dstfile \n";
      $dstsize = -1;
+     $copyfailed = 1;
+     last;
     } else {
      $dstsize = sprintf("%.1f",$dstsize/1000/1000);
      $closedst[0] = "CloseDST";
      $timestamp = time();
-     $sql = "update ntuples set status='$closedst[1]', crc=$closedst[6],
-                                       fevent=$closedst[11],levent=$closedst[12],
-                                       nevents=$closedst[13],neventserr=$closedst[14],
-                                       timestamp=$timestamp, sizemb=$dstsize, 
-                                       path='$dstfile' 
-                                   where path='$closedst[3]'";
-#     $self->{sqlserver}->Update($sql);
-     if ($closedstR ==0) {$fevent = $closedst[11]};
-     $levent = $closedst[6];
-     $closedstR   = 1;
+     my $sql = "SELECT run,path FROM ntuples 
+                   WHERE run=$closedst[10] AND path like '%$closedst[3]%'";
+     my $ret = $self->{sqlserver}->Query($sql);
+     if(not defined $ret->[0][0]){
+      my $badevents=$closedst[14];
+      my $ntevents =$closedst[13];
+      my $ntstatus ="OK";                     
+      my $run      =$closedst[10];
+      my $jobid    =$closedst[10];
+      my $ntcrc    =$closedst[6];
+      my $nttype   =$closedst[2];
+
+      $levent += $closedst[12]-$closedst[11]+1;
+      my $i = 0;
+      if ($nttype eq 'Ntuple') {
+        my $validatecmd = 
+           "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $dstfile $closedst[13]";
+        $i=system($validatecmd);
+      }
+       if( ($i == 0xff00) or ($i & 0xff)){
+       if($closedst[1] ne "Validated"){
+         $ntstatus="Unchecked";                     
+         $ntevents=$closedst[13];
+         $badevents="NULL";
+         $unchecked++;
+         $copyfailed = 1;
+         last;
+        }
+         else{
+           $thrusted++;
+                      }
+      }
+        else{
+          $i=($i>>8);
+          if(int($i/128)){
+           $ntevents=0;
+           $badevents="NULL";
+           $ntstatus="Bad".($i-128);  
+           $bad++;                   
+           $levent -= $closedst[12]-$closedst[11]+1;
+       }
+         else{
+          $ntstatus="OK";
+          $ntevents=$closedst[12];
+          $badevents=int($i*$closedst[13]/100);
+          $validated++;
+          my ($outputpath,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc);
+          if(defined $outputpath){
+             push @mvntuples, $outputpath; 
+           }
+          if ($rstatus == 1) {
+           $sql = "INSERT INTO ntuples VALUES( $run,
+                                              '$closedst[4]',
+                                              '$nttype',
+                                               $jobid,
+                                               $closedst[11],
+                                               $closedst[12],
+                                               $ntevents,
+                                               $badevents,
+                                               $timestamp,
+                                               $dstsize,
+                                               '$closedst[1]',
+                                               '$outputpath',
+                                               $ntcrc)"; 
+           print FILE "$sql \n";
+
+          $self->{sqlserver}->Update($sql);
+          push @cpntuples, $dstfile;
+        }
+       }
+      }
+     } else {
+        print FILE "parseJournalFile -W- CloseDST: ntuple exist - $closedst[3]\n";
+     }
     }
    } else  {
-     htmlWarning("parseJournalFiles","CloseDST - cannot find all patterns"," ");
+     print FILE "parseJournalFiles -W- CloseDST - cannot find all patterns \n";
    }
    # end CloseDST 
    # 
@@ -6070,50 +6151,56 @@ foreach my $block (@blocks) {
     my $sql = "SELECT run FROM runs WHERE run = $lastrun AND levent=$runfinished[3]";
     my $ret = $self->{sqlserver}->Query($sql);
     if (not defined $ret->[0][0]) {
-     my $cputime = floor($runfinished[5]);
-     my $elapsed = floor($runfinished[6]);
+     my $cputime = sprintf("%.0f",$runfinished[5]);
+     my $elapsed = sprintf("%.0f",$runfinished[6]);
      $sql = "update jobs set events=$runfinished[2], errors=$runfinished[4], 
                                    cputime=$cputime, elapsed=$elapsed,
                                    host='$runfinished[1]',timestamp = $timestamp 
                                where jid = (select runs.jid from runs where runs.jid = $lastrun)";
-#     $self->{sqlserver}->Update($sql);
+     print FILE "$sql \n";
+     $self->{sqlserver}->Update($sql);
     }
    } else {
-       htmlWarning("parseJournalFile","RunFinished - cannot find all patterns"," ");
+       print FILE "parseJournalFile -W- RunFinished - cannot find all patterns \n";
    }
    #
    # end RunFinished
    # 
-   }
-   my $status = undef;
-   if ($runfinishedR == 1) {
-       if ($closedstR == 1) {
-           $status = "Finished";
-       } else {
-           $status = "Unchecked";
-           $levent = 0;
-           $fevent = 0;
-       }
-   } else {
-       if ($startingrunR == 1) {
-        if ($closedstR == 1) {
-           $status = "Finished";
-        } else {
-           $status = "Failed";
-           $levent = 0;
-           $fevent = 0;
-       }
-    }
-   }
-   if ($startingrunR == 1 || $runfinishedR == 1) {
-    $sql = "update runs set status='$status', fevent=fevent, levent=$levent where run=$lastrun";
-#    $self->{sqlserver}->Update($sql);
-   }
-  } else {
-       htmlWarning("parseJournalFile","Block skipped . utime not defined"," ");
-      print "$block\n";      
+   } 
   }
  }
+
+ if ($startingrunR == 1 || $runfinishedR == 1) {
+  $status="Failed";
+  if ($copyfailed == 0) {
+    foreach my $ntuple (@cpntuples) {
+      my $cmd="rm  $ntuple";
+      print FILE "$cmd\n";
+      system($cmd);
+      print FILE "Validation done : system command rm -i $ntuple \n";
+  }
+  if ($#cpntuples >= 0) { $status = 'Completed';}
+ }
+  else{
+   print FILE "Validation/copy failed : Run =$lastrun \n";
+   $status='Unchecked';
+   foreach my $ntuple (@mvntuples) {
+     my $cmd = "rm  $ntuple";
+     print FILE "Validation failed : system command rm -i $ntuple \n";
+     print FILE "$cmd\n";
+     system($cmd);
+    }
+    $sql = "DELETE ntuples WHERE run=$lastrun";
+    $self->{sqlserver}->Update($sql);
+    print FILE "$sql \n";
+    $runupdate = "UPDATE runs SET ";
+}
+  $sql = $runupdate." STATUS='$status' WHERE run=$lastrun";
+  $self->{sqlserver}->Update($sql);
+  print FILE "Update Runs : $sql \n";
+ }
+ close FILE;
+
 }
 
 
