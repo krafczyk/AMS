@@ -1,3 +1,4 @@
+#  $Id: Makefile,v 1.4 2001/01/22 17:32:54 choutko Exp $
 
 CFLAGS=-I/usr/local/include  -g
 

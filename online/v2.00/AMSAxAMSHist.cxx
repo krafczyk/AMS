@@ -1,3 +1,4 @@
+//  $Id: AMSAxAMSHist.cxx,v 1.5 2001/01/22 17:32:52 choutko Exp $
 #include <iostream.h>
 #include "AMSAxAMSHist.h"
 #include "AMSNtuple.h"

@@ -1,3 +1,4 @@
+//  $Id: apool.C,v 1.9 2001/01/22 17:32:18 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #include <apool.h>

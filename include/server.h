@@ -1,3 +1,4 @@
+//  $Id: server.h,v 1.26 2001/01/22 17:32:44 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>

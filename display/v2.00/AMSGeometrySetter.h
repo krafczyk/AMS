@@ -1,3 +1,4 @@
+//  $Id: AMSGeometrySetter.h,v 1.2 2001/01/22 17:32:37 choutko Exp $
 #ifndef AMSGeometrySetter_H
 #define AMSGeometrySetter_H
 

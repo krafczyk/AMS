@@ -1,3 +1,4 @@
+//  $Id: Debugger.h,v 1.2 2001/01/22 17:32:52 choutko Exp $
 #ifndef DEBUGGER_H
 #define DEBUGGER_H
 

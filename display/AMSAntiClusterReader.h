@@ -1,3 +1,4 @@
+//  $Id: AMSAntiClusterReader.h,v 1.2 2001/01/22 17:32:31 choutko Exp $
 #ifndef AMSANTIClusterReader_H
 #define AMSANTIClusterReader_H
 

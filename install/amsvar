@@ -1,3 +1,4 @@
+#  $Id: amsvar,v 1.20 2001/01/22 17:32:51 choutko Exp $
  setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/pro
 set path=( $path . /usr/sbin $ROOTSYS/bin )
 setenv LD_LIBRARY_PATH .:$ROOTSYS/lib

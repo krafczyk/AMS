@@ -1,3 +1,4 @@
+//  $Id: AMSR_Axis.h,v 1.2 2001/01/22 17:32:38 choutko Exp $
 #ifndef AMSR_Axis_H
 #define AMSR_Axis_H
 

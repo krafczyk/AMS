@@ -1,3 +1,4 @@
+//  $Id: gvolume.h,v 1.22 2001/01/22 17:32:44 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Aug 08, 1996. ak.  First try with Objectivity.

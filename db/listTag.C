@@ -1,3 +1,4 @@
+//  $Id: listTag.C,v 1.2 2001/01/22 17:32:29 choutko Exp $
 // method source file for the object AMSEventTagList
 //
 // last edit Apr 14, 1997, ak.

@@ -1,3 +1,4 @@
+//  $Id: AMSR_CTCClusterReader.h,v 1.3 2001/01/22 17:32:38 choutko Exp $
 #ifndef AMSR_CTCClusterReader_H
 #define AMSR_CTCClusterReader_H
 

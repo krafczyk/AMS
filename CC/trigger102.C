@@ -1,3 +1,4 @@
+//  $Id: trigger102.C,v 1.6 2001/01/22 17:32:23 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //

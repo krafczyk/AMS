@@ -1,3 +1,4 @@
+//  $Id: g4physics.C,v 1.19 2001/01/22 17:32:19 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -5,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.18 2001/01/11 11:25:42 choutko Exp $
+// $Id: g4physics.C,v 1.19 2001/01/22 17:32:19 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 

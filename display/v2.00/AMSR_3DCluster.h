@@ -1,3 +1,4 @@
+//  $Id: AMSR_3DCluster.h,v 1.3 2001/01/22 17:32:37 choutko Exp $
 #ifndef AMSR_3DCluster_H
 #define AMSR_3DCluster_H
 

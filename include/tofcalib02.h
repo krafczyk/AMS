@@ -1,3 +1,4 @@
+//  $Id: tofcalib02.h,v 1.2 2001/01/22 17:32:45 choutko Exp $
 #include <typedefs.h>
 #include <tofdbc02.h>  
 //  Some classes for calibrations. E.Choumilov

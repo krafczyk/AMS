@@ -1,3 +1,4 @@
+*  $Id: trafit.F,v 1.10 2001/01/22 17:32:25 choutko Exp $
       SUBROUTINE TRAFIT
      $      (IFIT,X,Y,WXY,Z,SSZ,NPT,RESXY,RESSZ,IFLAG,SPCOR,WORK,
      +       SCHIXY,SCHIZ,xmom,exmom,p0,theta,phit)

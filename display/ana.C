@@ -1,3 +1,4 @@
+//  $Id: ana.C,v 1.2 2001/01/22 17:32:33 choutko Exp $
 {
 //////////////////////////////////////////////////////////
 //   This file has been automatically generated 

@@ -1,3 +1,4 @@
+//  $Id: extC.h,v 1.12 2001/01/22 17:32:43 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Oct 06, 1996. ak. add readDB 

@@ -1,3 +1,4 @@
+//  $Id: AMSR_NtupleCommons.h,v 1.5 2001/01/22 17:32:56 choutko Exp $
 #ifndef AMSR_NtupleCommons_H
 #define AMSR_NtupleCommons_H
 

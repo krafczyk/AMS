@@ -1,3 +1,4 @@
+//  $Id: ins_dummy.C,v 1.4 2001/01/22 17:32:20 choutko Exp $
 #include <stdlib.h>
 #ifdef  __IBMAIX__    
 extern "C" void setkey(const char* a);

@@ -1,3 +1,4 @@
+//  $Id: geantnamespace.h,v 1.7 2001/01/22 17:32:43 choutko Exp $
 #ifndef __GEANTNAMESPACE__
 #define __GEANTNAMESPACE__
 #ifdef __G4AMS__

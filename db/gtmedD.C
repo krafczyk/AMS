@@ -1,3 +1,4 @@
+//  $Id: gtmedD.C,v 1.3 2001/01/22 17:32:29 choutko Exp $
 // Sep 05, 1996. ak. First try with Objectivity. Method file for AMSgvolume
 // Nov 28, 1996. ak. New function CmpTrMedia
 //                  

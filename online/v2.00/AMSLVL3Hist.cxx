@@ -1,3 +1,4 @@
+//  $Id: AMSLVL3Hist.cxx,v 1.4 2001/01/22 17:32:52 choutko Exp $
 #include <iostream.h>
 #include "AMSLVL3Hist.h"
 #include "AMSDisplay.h"

@@ -1,3 +1,4 @@
+//  $Id: TRootCanvas.cxx,v 1.5 2001/01/22 17:32:53 choutko Exp $
 //*CMZ :  2.00/00 06/03/98  17.28.43  by  Fons Rademakers
 //*-- Author :    Fons Rademakers   15/01/98
 

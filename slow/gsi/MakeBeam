@@ -1,3 +1,4 @@
+#  $Id: MakeBeam,v 1.2 2001/01/22 17:32:55 choutko Exp $
 CFLAGS=-I/usr/local/include  -I. -I../../include -g -define_templates    
 
 LDFLAGS= -g -lUfor   -lfor -lFutil -lots  -L/usr/local/lib  -lm -lamstcp -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  

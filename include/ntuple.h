@@ -1,3 +1,4 @@
+//  $Id: ntuple.h,v 1.41 2001/01/22 17:32:44 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 

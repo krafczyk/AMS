@@ -1,3 +1,4 @@
+#  $Id: Cgxint,v 1.2 2001/01/22 17:32:47 choutko Exp $
 
 
 LDFLAGS="../bin/gxint.o ../bin/amstkshc++.o -lxlf90 -lxlf -L../lib -lams -L/cern/pro/lib  -lgeant321 -lpawlib -lgraflib -lgrafX11 -lmathlib -lpacklib -lkernlib   -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag "

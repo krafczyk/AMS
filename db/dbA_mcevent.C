@@ -1,3 +1,4 @@
+//  $Id: dbA_mcevent.C,v 1.7 2001/01/22 17:32:28 choutko Exp $
 // May  05, 1996. ak. Add methods, objectivity first try
 // July 29, 1996. ak. Modify AddEvent, split Add and Fill functions
 // Aug    , 1996. ak. All time is lost in commit, so ReadStartEnd flag is added

@@ -1,3 +1,4 @@
+//  $Id: dbcatalog.C,v 1.3 2001/01/22 17:32:29 choutko Exp $
 // method source file for the object db_catalog
 // June 08, 1997, ak.
 //

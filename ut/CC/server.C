@@ -1,3 +1,4 @@
+//  $Id: server.C,v 1.34 2001/01/22 17:32:21 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>

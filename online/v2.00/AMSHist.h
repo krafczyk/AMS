@@ -1,3 +1,4 @@
+//  $Id: AMSHist.h,v 1.4 2001/01/22 17:32:52 choutko Exp $
 #ifndef __AMSHIST__
 #define __AMSHIST__
 #include <TTree.h>

@@ -1,7 +1,11 @@
+*  $Id: ggckov.F,v 1.2 2001/01/22 17:32:24 choutko Exp $
 *
-* $Id: ggckov.F,v 1.1 2000/09/19 07:48:03 mdelgado Exp $
+* $Id: ggckov.F,v 1.2 2001/01/22 17:32:24 choutko Exp $
 *
 * $Log: ggckov.F,v $
+* Revision 1.2  2001/01/22 17:32:24  choutko
+* prepend 1st line
+*
 * Revision 1.1  2000/09/19 07:48:03  mdelgado
 * Geant3 problem with large number of Cerenkov photons solved.
 *

@@ -1,3 +1,4 @@
+//  $Id: Coordinates.h,v 1.9 2001/01/22 17:32:54 choutko Exp $
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdlib.h>

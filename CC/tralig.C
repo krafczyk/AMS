@@ -1,3 +1,4 @@
+//  $Id: tralig.C,v 1.27 2001/01/22 17:32:23 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>

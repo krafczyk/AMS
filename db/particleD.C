@@ -1,3 +1,4 @@
+//  $Id: particleD.C,v 1.6 2001/01/22 17:32:30 choutko Exp $
 // A.Klimentov. Method file of AMSParticleD.
 //
 // July 13, 1996.  ak.  Objectivity version

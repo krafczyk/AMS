@@ -1,3 +1,4 @@
+//  $Id: cfortran.h,v 1.2 2001/01/22 17:32:56 choutko Exp $
 /* cfortran.h  3.4 */          /* anonymous ftp@zebra.desy.de */
 /* Burkhard Burow  burow@desy.de                 1990 - 1995. */
 

@@ -1,3 +1,4 @@
+//  $Id: AMSGenHist.cxx,v 1.21 2001/01/22 17:32:52 choutko Exp $
 #include <iostream.h>
 #include "AMSGenHist.h"
 #include "AMSDisplay.h"

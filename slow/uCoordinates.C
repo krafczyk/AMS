@@ -1,3 +1,4 @@
+//  $Id: uCoordinates.C,v 1.2 2001/01/22 17:32:54 choutko Exp $
 #include <uCoordinates.h>
 
 /* Recalculation Matrixes ---------------------*/

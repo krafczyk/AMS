@@ -1,3 +1,4 @@
+//  $Id: ntuple.C,v 1.66 2001/01/22 17:32:21 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>

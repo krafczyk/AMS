@@ -1,3 +1,4 @@
+#  $Id: 00index.txt,v 1.2 2001/01/22 17:32:53 choutko Exp $
 				Content
  1 -rw-rw-r--   1   users        576 May 20 12:23 00index.txt 
  9 -rw-rw-r--   1   users       8336 May 20 12:15 Coo_file.c

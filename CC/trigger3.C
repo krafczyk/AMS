@@ -1,3 +1,4 @@
+//  $Id: trigger3.C,v 1.52 2001/01/22 17:32:23 choutko Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofdbc.h>

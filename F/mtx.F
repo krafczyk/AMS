@@ -1,3 +1,4 @@
+!  $Id: mtx.F,v 1.2 2001/01/22 17:32:25 choutko Exp $
 subroutine mtx(nrm,y)
 real, dimension (3,3) :: nrm
 real, dimension(3) :: y,x

@@ -1,3 +1,4 @@
+//  $Id: antidbc.C,v 1.16 2001/01/22 17:32:18 choutko Exp $
 // Author E.Choumilov 2.06.97
 //
 #include <typedefs.h>

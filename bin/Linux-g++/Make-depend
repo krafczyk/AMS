@@ -1,3 +1,4 @@
+#  $Id: Make-depend,v 1.5 2001/01/22 17:32:26 choutko Exp $
 # DO NOT DELETE
 
 ../bin/Linux-g++/id.o: ../include/id.h ../include/typedefs.h

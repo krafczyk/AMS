@@ -1,3 +1,4 @@
+*  $Id: gtckov.F,v 1.2 2001/01/22 17:32:24 choutko Exp $
 *PATCH,GEXAM1.
 *CMZ :  3.21/02 29/03/94  15.41.35  by  S.Giani
 *DECK, GTCKOV

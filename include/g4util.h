@@ -1,3 +1,4 @@
+//  $Id: g4util.h,v 1.2 2001/01/22 17:32:43 choutko Exp $
 #include <cern.h>
 #include "CLHEP/Random/Random.h"
 #include "CLHEP/Random/RandGeneral.h"

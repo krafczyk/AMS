@@ -1,3 +1,4 @@
+#  $Id: Makefile,v 1.4 2001/01/22 17:32:33 choutko Exp $
 # Makefile for AMS Event Display for alpha/cxx 
 
 PLATFORM      = alpha

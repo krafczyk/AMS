@@ -1,3 +1,4 @@
+//  $Id: ecalrec.h,v 1.8 2001/01/22 17:32:42 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //

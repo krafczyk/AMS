@@ -1,3 +1,4 @@
+//  $Id: AMSTrackerHist.cxx,v 1.7 2001/01/22 17:32:52 choutko Exp $
 #include <iostream.h>
 #include "AMSTrackerHist.h"
 #include "AMSDisplay.h"

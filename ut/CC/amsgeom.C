@@ -1,3 +1,4 @@
+//  $Id: amsgeom.C,v 1.115 2001/01/22 17:32:18 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 

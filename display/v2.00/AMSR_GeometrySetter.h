@@ -1,3 +1,4 @@
+//  $Id: AMSR_GeometrySetter.h,v 1.3 2001/01/22 17:32:38 choutko Exp $
 #ifndef AMSR_GeometrySetter_H
 #define AMSR_GeometrySetter_H
 

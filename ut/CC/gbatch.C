@@ -1,3 +1,4 @@
+//  $Id: gbatch.C,v 1.56 2001/01/22 17:32:20 choutko Exp $
 
 // Author V. Choutko 24-may-1996
  

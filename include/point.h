@@ -1,3 +1,4 @@
+//  $Id: point.h,v 1.10 2001/01/22 17:32:44 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSPOINT__

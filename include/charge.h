@@ -1,3 +1,4 @@
+//  $Id: charge.h,v 1.19 2001/01/22 17:32:42 choutko Exp $
 // V. Choutko 5-june-96
 //
 // July 12, 1996.  ak  add _ContPos and functions get/setNumbers;

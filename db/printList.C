@@ -1,3 +1,4 @@
+//  $Id: printList.C,v 1.7 2001/01/22 17:32:30 choutko Exp $
 // Last Edit 
 //           
 // Oct 22, 1996 ak. print content of database

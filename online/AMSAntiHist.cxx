@@ -1,3 +1,4 @@
+//  $Id: AMSAntiHist.cxx,v 1.8 2001/01/22 17:32:51 choutko Exp $
 #include <iostream.h>
 #include "AMSAntiHist.h"
 #include "AMSDisplay.h"

@@ -1,3 +1,4 @@
+//  $Id: antirec02.h,v 1.2 2001/01/22 17:32:42 choutko Exp $
 //
 // May 29   1997. V. Choutko primitive version
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified

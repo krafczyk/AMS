@@ -1,3 +1,4 @@
+//  $Id: AMSR_ToFCluster.h,v 1.2 2001/01/22 17:32:39 choutko Exp $
 
 #ifndef AMSR_ToFCluster_H
 #define AMSR_ToFCluster_H

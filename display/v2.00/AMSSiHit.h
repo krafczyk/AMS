@@ -1,3 +1,4 @@
+//  $Id: AMSSiHit.h,v 1.3 2001/01/22 17:32:40 choutko Exp $
 
 #ifndef AMSSiHit_H
 #define AMSSiHit_H

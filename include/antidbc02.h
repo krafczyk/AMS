@@ -1,3 +1,4 @@
+//  $Id: antidbc02.h,v 1.2 2001/01/22 17:32:42 choutko Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__

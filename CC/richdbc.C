@@ -1,3 +1,4 @@
+//  $Id: richdbc.C,v 1.19 2001/01/22 17:32:21 choutko Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>

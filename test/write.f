@@ -1,3 +1,4 @@
+*  $Id: write.f,v 1.2 2001/01/22 17:32:56 choutko Exp $
            real x(30),y(40),z(41)
            real bx(40,10,15),by(100,20,10),bz(30,30,30)
            integer iq

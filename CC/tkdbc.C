@@ -1,3 +1,4 @@
+//  $Id: tkdbc.C,v 1.29 2001/01/22 17:32:21 choutko Exp $
 #include <tkdbc.h>
 #include <amsdbc.h>
 #include <astring.h>

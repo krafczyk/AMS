@@ -1,3 +1,4 @@
+//  $Id: antidbcD.C,v 1.4 2001/01/22 17:32:27 choutko Exp $
 // June 05, 1997. ak. first try with Objectivity
 //                   method source file of object AntiDBcD
 //

@@ -1,3 +1,4 @@
+#  $Id: CID.pm,v 1.3 2001/01/22 17:32:53 choutko Exp $
 package CID;
 @CID::EXPORT = qw(new);
 sub new{

@@ -1,3 +1,4 @@
+//  $Id: tofsim.C,v 1.47 2001/01/22 17:32:23 choutko Exp $
 // Author Choumilov.E. 10.07.96.
 #include <iostream.h>
 #include <stdio.h>

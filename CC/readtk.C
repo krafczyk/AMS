@@ -1,3 +1,4 @@
+//  $Id: readtk.C,v 1.3 2001/01/22 17:32:21 choutko Exp $
 #include <iostream.h>
 #include <amsdbc.h>
 #include <commons.h>

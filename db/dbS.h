@@ -1,3 +1,4 @@
+//  $Id: dbS.h,v 1.9 2001/01/22 17:32:28 choutko Exp $
 // Database Management Class
 //
 // May  16, 1996 ak add inline functions to get handles

@@ -1,3 +1,4 @@
+//  $Id: tofsim02.h,v 1.4 2001/01/22 17:32:45 choutko Exp $
 // Author Choumilov.E. 10.07.96.
 #ifndef __AMSTOF2SIM__
 #define __AMSTOF2SIM__

@@ -1,3 +1,4 @@
+//  $Id: duplic.C,v 1.2 2001/01/22 17:32:19 choutko Exp $
 #include <io.h>
 #include <commons.h>
 #include <amsstl.h>

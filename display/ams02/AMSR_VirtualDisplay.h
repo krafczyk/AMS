@@ -1,3 +1,4 @@
+//  $Id: AMSR_VirtualDisplay.h,v 1.2 2001/01/22 17:32:35 choutko Exp $
 #ifndef AMSR_VirtualDisplay_H
 #define AMSR_VirtualDisplay_H
 

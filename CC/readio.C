@@ -1,3 +1,4 @@
+//  $Id: readio.C,v 1.5 2001/01/22 17:32:21 choutko Exp $
 #include <io.h>
 #include <trid.h>
 #include <commons.h>

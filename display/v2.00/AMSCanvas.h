@@ -1,3 +1,4 @@
+//  $Id: AMSCanvas.h,v 1.4 2001/01/22 17:32:37 choutko Exp $
 #ifndef AMSCanvas_H
 #define AMSCanvas_H
 

@@ -1,3 +1,4 @@
+//  $Id: ctcdbcD.C,v 1.5 2001/01/22 17:32:27 choutko Exp $
 //
 // 13.Jan.1997 - call setgeom from CmpConstants()
 //

@@ -1,3 +1,4 @@
+//  $Id: ctcrecD.h,v 1.5 2001/01/22 17:32:28 choutko Exp $
 /* C++ header file: Objectivity/DB DDL version 4.0.2 */
 
 #ifndef CTCREC_D_H

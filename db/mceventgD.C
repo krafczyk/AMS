@@ -1,3 +1,4 @@
+//  $Id: mceventgD.C,v 1.4 2001/01/22 17:32:30 choutko Exp $
 // class AMSmceventgD
 // method source file for the object AMSmceventgD
 // Oct 02, 1996. First try with Objectivity 

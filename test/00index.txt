@@ -1,3 +1,4 @@
+#  $Id: 00index.txt,v 1.2 2001/01/22 17:32:55 choutko Exp $
 -rw-r--r--   1 choutko  xv           403 May 10 21:02 biel.C
 -rw-r--r--   1 choutko  xv           569 May 17 14:01 copy.C
 -rw-r--r--   1 choutko  xv           930 May 10 21:02 hcdir.C

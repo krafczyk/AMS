@@ -1,3 +1,4 @@
+#  $Id: 00index.txt,v 1.20 2001/01/22 17:32:47 choutko Exp $
 Mopt      // makefile to gmake geant batch 
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
 Mgxint    // makefile to gmake geant interactive  g3

@@ -1,3 +1,4 @@
+//  $Id: TCanvasImp.h,v 1.2 2001/01/22 17:32:53 choutko Exp $
 
 // Copyright (C) 1995 CodeCERN. All rights reserved.
 

@@ -1,3 +1,4 @@
+//  $Id: client.h,v 1.10 2001/01/22 17:32:42 choutko Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
 #include <typedefs.h>

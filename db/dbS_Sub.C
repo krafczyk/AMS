@@ -1,3 +1,4 @@
+//  $Id: dbS_Sub.C,v 1.2 2001/01/22 17:32:29 choutko Exp $
 // Find methods for DbApplication class
 //
 // Author : A.Klimentov

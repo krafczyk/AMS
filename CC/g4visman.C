@@ -1,3 +1,4 @@
+//  $Id: g4visman.C,v 1.3 2001/01/22 17:32:20 choutko Exp $
 #include <g4visman.h>
 
 // Supported drivers...

@@ -1,3 +1,4 @@
+//  $Id: checktdv.C,v 1.3 2001/01/22 17:32:18 choutko Exp $
 #include <typedefs.h>
 #include <ctype.h>
 #include <iostream.h>

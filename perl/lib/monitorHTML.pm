@@ -1,3 +1,4 @@
+#  $Id: monitorHTML.pm,v 1.7 2001/01/22 17:32:53 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;

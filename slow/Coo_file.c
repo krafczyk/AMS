@@ -1,3 +1,4 @@
+//  $Id: Coo_file.c,v 1.10 2001/01/22 17:32:53 choutko Exp $
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdlib.h>

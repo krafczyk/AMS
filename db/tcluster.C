@@ -1,3 +1,4 @@
+//  $Id: tcluster.C,v 1.6 2001/01/22 17:32:30 choutko Exp $
 //  method source file for the object AMSTrCluster
 // May 10, 1996. First try with Objectivity 
 // Aug 06, 1996. Add _Side, to build compound predicate during iteration

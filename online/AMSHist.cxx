@@ -1,3 +1,4 @@
+//  $Id: AMSHist.cxx,v 1.6 2001/01/22 17:32:52 choutko Exp $
 #include "AMSHist.h"
 ClassImp(AMSHist)
 Int_t AMSHist::DispatchHist(Int_t cset){

@@ -1,3 +1,4 @@
+//  $Id: AMSMaker.h,v 1.2 2001/01/22 17:32:32 choutko Exp $
 #ifndef AMSMaker_H
 #define AMSMaker_H
 

@@ -1,3 +1,4 @@
+//  $Id: client.C,v 1.11 2001/01/22 17:32:19 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>

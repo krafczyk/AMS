@@ -1,3 +1,4 @@
+//  $Id: ControlFrame.h,v 1.4 2001/01/22 17:32:53 choutko Exp $
 #ifndef __CONTROLFRAME__
 #define __CONTROLFRAME__
 #include <stdlib.h>

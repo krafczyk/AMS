@@ -1,3 +1,4 @@
+//  $Id: bcorr.h,v 1.2 2001/01/22 17:32:42 choutko Exp $
 #ifndef __AMSMFIELD__
 #define __AMSMFIELD__
 #include <typedefs.h>

@@ -1,3 +1,4 @@
+//  $Id: linkdef.h,v 1.5 2001/01/22 17:32:44 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;

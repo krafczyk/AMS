@@ -1,3 +1,4 @@
+//  $Id: timeid.C,v 1.71 2001/01/22 17:32:21 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //

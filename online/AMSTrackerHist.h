@@ -1,3 +1,4 @@
+//  $Id: AMSTrackerHist.h,v 1.3 2001/01/22 17:32:52 choutko Exp $
 #ifndef __AMSTrackerHIST__
 #define __AMSTrackerHIST__
 #include "AMSHist.h"

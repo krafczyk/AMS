@@ -1,3 +1,4 @@
+//  $Id: AMSToFCluster.h,v 1.2 2001/01/22 17:32:32 choutko Exp $
 
 #ifndef AMSToFCluster_H
 #define AMSToFCluster_H

@@ -1,3 +1,4 @@
+*  $Id: ntuple.f,v 1.5 2001/01/22 17:32:55 choutko Exp $
          include 'sc.inc'
                  common /maxevC/fdir,maxev
                  character *256 fdir

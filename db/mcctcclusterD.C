@@ -1,3 +1,4 @@
+//  $Id: mcctcclusterD.C,v 1.5 2001/01/22 17:32:30 choutko Exp $
 // method source file for the object AMSCTCMCCluster
 // Sep 30, 1996. First try with Objectivity 
 //

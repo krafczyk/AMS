@@ -1,3 +1,4 @@
+#  $Id: 00index.txt,v 1.4 2001/01/22 17:32:26 choutko Exp $
 config.user_alphaosf1 configuration file for Objectivity on Digital Alpha
 config.user_ibmrs6000 configuration file for Objectivity on IBM RS6000
 

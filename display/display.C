@@ -1,3 +1,4 @@
+//  $Id: display.C,v 1.18 2001/01/22 17:32:33 choutko Exp $
 {
   gROOT->Reset();
   gSystem->Load("libAMS.so");

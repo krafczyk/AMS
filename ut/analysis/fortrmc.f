@@ -1,3 +1,4 @@
+*  $Id: fortrmc.f,v 1.2 2001/01/22 17:32:26 choutko Exp $
                 subroutine fortrmc
       parameter(nchx=384)
       parameter(nchy=640)

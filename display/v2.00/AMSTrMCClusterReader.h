@@ -1,3 +1,4 @@
+//  $Id: AMSTrMCClusterReader.h,v 1.2 2001/01/22 17:32:40 choutko Exp $
 #ifndef AMSTRMCClusterReader_H
 #define AMSTRMCClusterReader_H
 

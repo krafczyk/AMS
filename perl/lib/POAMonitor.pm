@@ -1,3 +1,4 @@
+#  $Id: POAMonitor.pm,v 1.6 2001/01/22 17:32:53 choutko Exp $
 package POAMonitor;
 use Error qw(:try);
 use lib::monitorUI;

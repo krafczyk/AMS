@@ -1,3 +1,4 @@
+//  $Id: particle.h,v 1.27 2001/01/22 17:32:44 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;

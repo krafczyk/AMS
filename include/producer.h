@@ -1,3 +1,4 @@
+//  $Id: producer.h,v 1.10 2001/01/22 17:32:44 choutko Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__

@@ -1,3 +1,4 @@
+//  $Id: mccluster.h,v 1.27 2001/01/22 17:32:44 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster

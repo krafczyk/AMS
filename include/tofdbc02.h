@@ -1,3 +1,4 @@
+//  $Id: tofdbc02.h,v 1.4 2001/01/22 17:32:45 choutko Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD

@@ -1,3 +1,4 @@
+//  $Id: dbS.C,v 1.3 2001/01/22 17:32:28 choutko Exp $
 // Methods for DBASE management file, objectivity first try
 // Aug 23, 1996. ak. change the initial number of pages, allocated for the 
 //                   containers, didn't see any improvement, so return back to

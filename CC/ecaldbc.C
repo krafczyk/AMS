@@ -1,3 +1,4 @@
+//  $Id: ecaldbc.C,v 1.17 2001/01/22 17:32:19 choutko Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>

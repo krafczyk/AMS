@@ -1,3 +1,4 @@
+//  $Id: beta.h,v 1.10 2001/01/22 17:32:42 choutko Exp $
 // V. Choutko 5-june-96
 //
 // July 10, 1996.  ak  add _ContPos and functions get/setNumbers;

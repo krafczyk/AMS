@@ -1,3 +1,4 @@
+//  $Id: AMSCTCHist.cxx,v 1.2 2001/01/22 17:32:52 choutko Exp $
 #include <iostream.h>
 #include "AMSCTCHist.h"
 #include "AMSDisplay.h"

@@ -1,3 +1,4 @@
+//  $Id: chargeD.C,v 1.3 2001/01/22 17:32:27 choutko Exp $
 // A.Klimentov. Method file of AMSChargeD. July, 24, 1996
 //
 // July 24, 1996.  ak  Objectivity version

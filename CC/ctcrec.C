@@ -1,3 +1,4 @@
+//  $Id: ctcrec.C,v 1.45 2001/01/22 17:32:19 choutko Exp $
 // E.Choumilov, 10.23.97, RawEvent/RawHit-build and DAQ-interface sections are added.
 #include <point.h>
 #include <event.h>

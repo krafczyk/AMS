@@ -1,3 +1,4 @@
+//  $Id: rclist.C,v 1.8 2001/01/22 17:32:30 choutko Exp $
 // method source file for the object AMSEventList
 // First try with Objectivity May 02, 1996
 //

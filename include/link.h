@@ -1,3 +1,4 @@
+//  $Id: link.h,v 1.9 2001/01/22 17:32:44 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 04, 1996. add _ContPos

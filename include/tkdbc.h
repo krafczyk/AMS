@@ -1,3 +1,4 @@
+//  $Id: tkdbc.h,v 1.11 2001/01/22 17:32:44 choutko Exp $
 #ifndef __TKDBC__
 #define __TKDBC__
 #include <typedefs.h>

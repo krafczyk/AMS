@@ -1,3 +1,4 @@
+*  $Id: ntuple.f,v 1.2 2001/01/22 17:32:26 choutko Exp $
       REAL FUNCTION ntuple(XDUMMY)
 *********************************************************
 *                                                       *

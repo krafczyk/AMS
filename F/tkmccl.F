@@ -1,3 +1,4 @@
+*  $Id: tkmccl.F,v 1.5 2001/01/22 17:32:25 choutko Exp $
            double precision function sitkfint2(a,b,av,dav,dlx)
             real *8 a,b,av,dav,dlx,dlmax,dlmin
             real *8 fint_l,fint_r,fint_c,sitkfints

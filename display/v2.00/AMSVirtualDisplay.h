@@ -1,3 +1,4 @@
+//  $Id: AMSVirtualDisplay.h,v 1.4 2001/01/22 17:32:40 choutko Exp $
 #ifndef AMSVirtualDisplay_H
 #define AMSVirtualDisplay_H
 

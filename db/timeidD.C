@@ -1,3 +1,4 @@
+//  $Id: timeidD.C,v 1.10 2001/01/22 17:32:30 choutko Exp $
 // Feb 13, 1997. ak. First try with Objectivity. Method file for AMSTimeIDD
 //                  
 // Last Edit : Oct 11, 1997. ak.

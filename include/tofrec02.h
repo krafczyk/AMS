@@ -1,3 +1,4 @@
+//  $Id: tofrec02.h,v 1.3 2001/01/22 17:32:45 choutko Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink

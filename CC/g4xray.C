@@ -1,5 +1,5 @@
+//  $Id: g4xray.C,v 1.3 2001/01/22 17:32:20 choutko Exp $
 //
-// $Id: g4xray.C,v 1.2 2001/01/09 15:08:25 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 

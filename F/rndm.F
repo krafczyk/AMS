@@ -1,3 +1,4 @@
+*  $Id: rndm.F,v 1.7 2001/01/22 17:32:25 choutko Exp $
              function rndm(dummy)
              data i/0/
              real *4 r(2)

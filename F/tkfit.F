@@ -1,3 +1,4 @@
+*  $Id: tkfit.F,v 1.7 2001/01/22 17:32:25 choutko Exp $
       SUBROUTINE TKFITA(NPOINTS, XM, EXM, IPLANEZ,
      + IMSCAT, xmass, OUTPAR, IERR)
 *

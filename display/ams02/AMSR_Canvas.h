@@ -1,3 +1,4 @@
+//  $Id: AMSR_Canvas.h,v 1.2 2001/01/22 17:32:34 choutko Exp $
 #ifndef AMSR_Canvas_H
 #define AMSR_Canvas_H
 

@@ -1,3 +1,4 @@
+//  $Id: AMSAxis.h,v 1.2 2001/01/22 17:32:31 choutko Exp $
 #ifndef AMSAxis_H
 #define AMSAxis_H
 

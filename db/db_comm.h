@@ -1,3 +1,4 @@
+//  $Id: db_comm.h,v 1.5 2001/01/22 17:32:29 choutko Exp $
 #ifndef __AMSDBCOMMONS__
 #define __AMSDBCOMMONS__
 

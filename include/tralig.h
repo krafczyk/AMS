@@ -1,3 +1,4 @@
+//  $Id: tralig.h,v 1.13 2001/01/22 17:32:45 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__

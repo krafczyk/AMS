@@ -1,3 +1,4 @@
+//  $Id: typedefs.h,v 1.4 2001/01/22 17:32:31 choutko Exp $
 #ifndef __TYPEDEFSH__
 #define __TYPEDEFSH__
 

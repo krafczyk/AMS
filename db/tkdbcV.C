@@ -1,3 +1,4 @@
+//  $Id: tkdbcV.C,v 1.4 2001/01/22 17:32:30 choutko Exp $
 // Objectivity class Nov 06, 1997 ak
 //
 // Last edit : Dec 10, 1997 ak

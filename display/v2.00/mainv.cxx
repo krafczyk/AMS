@@ -1,3 +1,4 @@
+//  $Id: mainv.cxx,v 1.3 2001/01/22 17:32:41 choutko Exp $
 #include <TROOT.h>
 #include <TApplication.h>
 #include <TFile.h>

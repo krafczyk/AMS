@@ -1,3 +1,4 @@
+//  $Id: tofuser02.C,v 1.3 2001/01/22 17:32:23 choutko Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <event.h>

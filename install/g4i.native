@@ -1,3 +1,4 @@
+#  $Id: g4i.native,v 1.2 2001/01/22 17:32:51 choutko Exp $
 if $OS == "Linux"  then
  setenv G4SYSTEM Linux-g++
 setenv G4USE_STL 1

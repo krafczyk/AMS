@@ -1,3 +1,4 @@
+*  $Id: mtx77.F,v 1.2 2001/01/22 17:32:25 choutko Exp $
              subroutine mtx(nrm,y)
                real *4 nrm(3,3)
                real *4 x(3),y(3)

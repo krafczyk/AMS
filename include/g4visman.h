@@ -1,3 +1,4 @@
+//  $Id: g4visman.h,v 1.2 2001/01/22 17:32:43 choutko Exp $
 #ifndef __AMSG4VISMAN__
 #define __AMSG4VISMAN__
 #ifdef G4VIS_USE

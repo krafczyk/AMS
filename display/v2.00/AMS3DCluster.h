@@ -1,3 +1,4 @@
+//  $Id: AMS3DCluster.h,v 1.2 2001/01/22 17:32:36 choutko Exp $
 #ifndef AMS3DCluster_H
 #define AMS3DCluster_H
 

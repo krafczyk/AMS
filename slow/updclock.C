@@ -1,3 +1,4 @@
+//  $Id: updclock.C,v 1.4 2001/01/22 17:32:54 choutko Exp $
 #include <iostream.h>
 #include <sys/errno.h>
 #include <sys/types.h>

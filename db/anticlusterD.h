@@ -1,3 +1,4 @@
+//  $Id: anticlusterD.h,v 1.4 2001/01/22 17:32:27 choutko Exp $
 #ifndef __AMSAntiClusterD__
 #define __AMSAntiClusterD__
 // May 30, 1997. ak. AMSAntiClusterD Objectivity Class

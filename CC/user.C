@@ -1,3 +1,4 @@
+//  $Id: user.C,v 1.8 2001/01/22 17:32:24 choutko Exp $
 #include <typedefs.h>
 #include <stdlib.h>
 #include <iostream.h>

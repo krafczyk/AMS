@@ -1,3 +1,4 @@
+//  $Id: TGRunEventDialog.h,v 1.3 2001/01/22 17:32:41 choutko Exp $
  
 // Copyright (C) 1998 CodeCERN. All rights reserved.
  

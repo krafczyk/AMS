@@ -1,3 +1,4 @@
+//  $Id: tmcclusterV.C,v 1.2 2001/01/22 17:32:31 choutko Exp $
 // method source file for the object AMSTrMCCluster
 // June 04, 1996. First try with Objectivity 
 //

@@ -1,3 +1,4 @@
+*  $Id: loc2gl.f,v 1.5 2001/01/22 17:32:26 choutko Exp $
       subroutine loc2gl(thetas,phis,thetav,phiv,roll,pitch,yaw, 
      + thetalocgl,philocgl,cosmag)
 *

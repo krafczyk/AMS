@@ -1,3 +1,4 @@
+//  $Id: trdf.h,v 1.2 2001/01/22 17:32:45 choutko Exp $
         COMMON /DNDE  / NWE,WE(200),ANL(200,21),GAME(21)
         integer nwe
         real we,anl,game

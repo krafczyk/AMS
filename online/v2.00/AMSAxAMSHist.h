@@ -1,3 +1,4 @@
+//  $Id: AMSAxAMSHist.h,v 1.2 2001/01/22 17:32:52 choutko Exp $
 #ifndef __AMSAxAMSHIST__
 #define __AMSAxAMSHIST__
 #include "AMSHist.h"

@@ -1,3 +1,4 @@
+//  $Id: Coordinates.C,v 1.6 2001/01/22 17:32:53 choutko Exp $
 #include "Coordinates.h"
 
 /* Recalculation Matrixes ---------------------*/

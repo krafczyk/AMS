@@ -1,3 +1,4 @@
+//  $Id: insure.csh,v 1.4 2001/01/22 17:32:51 choutko Exp $
 setenv INUSE on
 setenv INUSE_PORT 79267
 set ARCH=alpha4

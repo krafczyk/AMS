@@ -1,3 +1,4 @@
+//  $Id: ControlFrame.cxx,v 1.16 2001/01/22 17:32:53 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSCanvas.h"

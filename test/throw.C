@@ -1,3 +1,4 @@
+//  $Id: throw.C,v 1.7 2001/01/22 17:32:56 choutko Exp $
 #include <iostream.h>
 #include <stdio.h>
 

@@ -1,3 +1,4 @@
+//  $Id: list.C,v 1.16 2001/01/22 17:32:29 choutko Exp $
 // method source file for the object EventList
 //
 // last edit May 09, 1997, ak.

@@ -1,3 +1,4 @@
+//  $Id: trddbc.h,v 1.5 2001/01/22 17:32:45 choutko Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>

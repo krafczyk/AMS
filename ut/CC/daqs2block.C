@@ -1,3 +1,4 @@
+//  $Id: daqs2block.C,v 1.2 2001/01/22 17:32:19 choutko Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
 #include <typedefs.h>

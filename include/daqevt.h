@@ -1,3 +1,4 @@
+//  $Id: daqevt.h,v 1.28 2001/01/22 17:32:42 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions

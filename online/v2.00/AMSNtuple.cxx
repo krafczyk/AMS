@@ -1,3 +1,4 @@
+//  $Id: AMSNtuple.cxx,v 1.7 2001/01/22 17:32:52 choutko Exp $
 #include <stdlib.h>
 #include "AMSNtuple.h"
 ClassImp(AMSNtuple)

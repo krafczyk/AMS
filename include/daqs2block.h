@@ -1,3 +1,4 @@
+//  $Id: daqs2block.h,v 1.2 2001/01/22 17:32:42 choutko Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
 #ifndef __AMSDAQS2BLOCK__

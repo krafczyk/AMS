@@ -1,3 +1,4 @@
+//  $Id: AMSR_Ntuple.h,v 1.3 2001/01/22 17:32:39 choutko Exp $
 #ifndef AMSR_Ntuple_H
 #define AMSR_Ntuple_H
 

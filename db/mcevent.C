@@ -1,3 +1,4 @@
+//  $Id: mcevent.C,v 1.4 2001/01/22 17:32:30 choutko Exp $
 // method source file for the object AMSEvent
 // May 06, 1996. ak. First try with Objectivity 
 //

@@ -1,3 +1,4 @@
+//  $Id: AMSR_SiHitReader.h,v 1.3 2001/01/22 17:32:39 choutko Exp $
 #ifndef AMSR_SiHitReader_H
 #define AMSR_SiHitReader_H
 

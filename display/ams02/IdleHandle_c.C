@@ -1,3 +1,4 @@
+//  $Id: IdleHandle_c.C,v 1.2 2001/01/22 17:32:36 choutko Exp $
 #include <iostream.h>
 #include "AMSR_Types.h"
 

@@ -1,3 +1,4 @@
+*  $Id: amstkshc++.F,v 1.60 2001/01/22 17:32:24 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -9095,9 +9096,12 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.59 2000/11/22 07:41:25 choumilo Exp $
+* $Id: amstkshc++.F,v 1.60 2001/01/22 17:32:24 choutko Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.60  2001/01/22 17:32:24  choutko
+* prepend 1st line
+*
 * Revision 1.59  2000/11/22 07:41:25  choumilo
 * *** empty log message ***
 *

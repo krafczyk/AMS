@@ -1,3 +1,4 @@
+//  $Id: richgeom.C,v 1.10 2001/01/22 17:32:21 choutko Exp $
 #include <typedefs.h>
 #include <node.h>
 #include <snode.h>

@@ -1,3 +1,4 @@
+//  $Id: utpool.h,v 1.2 2001/01/22 17:32:45 choutko Exp $
 //
 // Template for linear memory pool for class T.
 // Derived from T classes CAN use the new/delete operators from  T.

@@ -1,3 +1,4 @@
+//  $Id: AMSR_TrMCClusterReader.h,v 1.2 2001/01/22 17:32:35 choutko Exp $
 #ifndef AMSR_TRMCClusterReader_H
 #define AMSR_TRMCClusterReader_H
 

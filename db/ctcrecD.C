@@ -1,3 +1,4 @@
+//  $Id: ctcrecD.C,v 1.4 2001/01/22 17:32:27 choutko Exp $
 // class AMSCTCClusterD
 // method source file for the object AMSCTCClusterD
 // Sep 27, 1996. First try with Objectivity 

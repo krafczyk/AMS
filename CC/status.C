@@ -1,3 +1,4 @@
+//  $Id: status.C,v 1.20 2001/01/22 17:32:21 choutko Exp $
 // Author V.Choutko.
 #include <status.h>
 #include <snode.h>

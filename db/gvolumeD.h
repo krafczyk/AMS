@@ -1,3 +1,4 @@
+//  $Id: gvolumeD.h,v 1.7 2001/01/22 17:32:29 choutko Exp $
 /* C++ header file: Objectivity/DB DDL version 4.0.2 */
 
 #ifndef GVOLUME_D_H

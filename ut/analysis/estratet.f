@@ -1,3 +1,4 @@
+*  $Id: estratet.f,v 1.2 2001/01/22 17:32:26 choutko Exp $
       subroutine estratet(phi1,time)
 *
 *     input   

@@ -1,3 +1,4 @@
+//  $Id: AMSR_Track.h,v 1.2 2001/01/22 17:32:35 choutko Exp $
 #ifndef AMSR_Track_H
 #define AMSR_Track_H
 

@@ -1,3 +1,4 @@
+//  $Id: mnoj2.C,v 1.2 2001/01/22 17:32:55 choutko Exp $
 #include <iostream.h>
  
 class A

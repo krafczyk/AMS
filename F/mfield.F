@@ -1,3 +1,4 @@
+*  $Id: mfield.F,v 1.12 2001/01/22 17:32:25 choutko Exp $
       subroutine readmfield
 #      include "mfield.h"
        real hxy(3,3),x1(3)

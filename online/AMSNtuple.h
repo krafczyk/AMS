@@ -1,3 +1,4 @@
+//  $Id: AMSNtuple.h,v 1.4 2001/01/22 17:32:52 choutko Exp $
 #ifndef __AMSNtuple__
 #define __AMSNtuple__
 #include <TTree.h>

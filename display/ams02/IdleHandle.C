@@ -1,3 +1,4 @@
+//  $Id: IdleHandle.C,v 1.2 2001/01/22 17:32:36 choutko Exp $
 void IdleHandle(Int_t option)
 {
   static TTree *t = 0;

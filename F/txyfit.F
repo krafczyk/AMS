@@ -1,3 +1,4 @@
+*  $Id: txyfit.F,v 1.2 2001/01/22 17:32:25 choutko Exp $
       SUBROUTINE TXYFIT(XCOR,YCOR,WTCOR,SPCOR,NPT,NPARXY,RRCOR,IFLAG)
 C
 C********************************************************************012

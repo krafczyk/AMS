@@ -1,3 +1,4 @@
+//  $Id: trrec.h,v 1.52 2001/01/22 17:32:45 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit

@@ -1,3 +1,4 @@
+//  $Id: trddbc.C,v 1.8 2001/01/22 17:32:23 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>

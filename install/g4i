@@ -1,3 +1,4 @@
+#  $Id: g4i,v 1.26 2001/01/22 17:32:51 choutko Exp $
 if $OS == "Linux"  then
 setenv LinuxBUG 0
 if $LinuxBUG == "1" then

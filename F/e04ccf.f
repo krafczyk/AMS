@@ -1,3 +1,4 @@
+*  $Id: e04ccf.f,v 1.3 2001/01/22 17:32:24 choutko Exp $
       SUBROUTINE E04CCF(N,X,FMIN,EPS,N1,PDSTAR,PSTAR,PBAR,STEP,Y,P,
      *                  FUNCT,MONIT,MAXIT,IFAIL,dummy)
 C     MARK 1 RELEASE.  NAG COPYRIGHT 1971

@@ -1,3 +1,4 @@
+//  $Id: xprocess_10comp.c,v 1.6 2001/01/22 17:32:55 choutko Exp $
 /* Monitoring of working processes */
 #include <sys/stat.h>
 #include <ctype.h>

@@ -1,3 +1,4 @@
+//  $Id: rawlist.C,v 1.2 2001/01/22 17:32:30 choutko Exp $
 // method source file for the object AMSEventList
 // First try with Objectivity May 02, 1996
 // rawlist separated from dbA_Add.C 

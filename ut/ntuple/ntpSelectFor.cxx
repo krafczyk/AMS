@@ -1,3 +1,4 @@
+//  $Id: ntpSelectFor.cxx,v 1.7 2001/01/22 17:32:56 choutko Exp $
 #include "NtupleSelectorFor.h"
 #include <signal.h>
 #include <unistd.h>

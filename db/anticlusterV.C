@@ -1,3 +1,4 @@
+//  $Id: anticlusterV.C,v 1.2 2001/01/22 17:32:27 choutko Exp $
 // method source file for the object AMSAntiClusterV
 //
 // Last Edit: June 02, 1997. ak.

@@ -1,3 +1,4 @@
+//  $Id: AMSR_CTCCluster.h,v 1.2 2001/01/22 17:32:38 choutko Exp $
 
 #ifndef AMSR_CTCCluster_H
 #define AMSR_CTCCluster_H

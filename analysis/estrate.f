@@ -1,3 +1,4 @@
+*  $Id: estrate.f,v 1.6 2001/01/22 17:32:26 choutko Exp $
       subroutine estrate(theta1,phi1,phigr1,phizero1,
      +  pitch1,yaw1,roll1)
 *

@@ -1,3 +1,4 @@
+//  $Id: amsgeom.h,v 1.5 2001/01/22 17:32:42 choutko Exp $
 extern "C" void mtx_(geant nrm[][3],geant vect[]);
 extern "C" void mtx2_(number nrm[][3],geant  xnrm[][3]);
 #define MTX mtx_

@@ -1,3 +1,4 @@
+//  $Id: usrcom.h,v 1.3 2001/01/22 17:32:56 choutko Exp $
 #ifndef USRCOM_H
 #define USRCOM_H
 

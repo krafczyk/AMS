@@ -1,3 +1,4 @@
+//  $Id: eventTag.C,v 1.5 2001/01/22 17:32:29 choutko Exp $
 // Author A. Klimentov  10-Apr-1997
 //
 // method file for AMSEventTag class

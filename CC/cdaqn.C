@@ -1,3 +1,4 @@
+//  $Id: cdaqn.C,v 1.5 2001/01/22 17:32:18 choutko Exp $
 #include <iostream.h>
 #include <fstream.h>
 #include <stdlib.h>

@@ -1,3 +1,4 @@
+#  $Id: Makefile,v 1.3 2001/01/22 17:32:36 choutko Exp $
 # ------------------------------
 # Makefile for AMS Event Display
 # ------------------------------

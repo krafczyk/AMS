@@ -1,3 +1,4 @@
+//  $Id: gmatD.C,v 1.5 2001/01/22 17:32:29 choutko Exp $
 // Sep 05, 1996. ak. First try with Objectivity. Method file for AMSgvolume
 // Nov 27, 1996. ak. new function CmpMaterials
 //                  

@@ -1,3 +1,4 @@
+//  $Id: AMSColorManager.h,v 1.2 2001/01/22 17:32:31 choutko Exp $
 #ifndef AMSColorManager_H
 #define AMSColorManager_H
 

@@ -1,3 +1,4 @@
+//  $Id: ecalrec.C,v 1.17 2001/01/22 17:32:19 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>

@@ -1,3 +1,4 @@
+//  $Id: astring.h,v 1.4 2001/01/22 17:32:42 choutko Exp $
 #ifndef __ASTRING___
 #define __ASTRING___
 

@@ -1,3 +1,4 @@
+//  $Id: AMSLVL3Hist.h,v 1.3 2001/01/22 17:32:52 choutko Exp $
 #ifndef __AMSLVL3HIST__
 #define __AMSLVL3HIST__
 #include "AMSHist.h"

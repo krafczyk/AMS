@@ -1,3 +1,4 @@
+//  $Id: daqevt.C,v 1.66 2001/01/22 17:32:19 choutko Exp $
 #include <stdio.h>
 #include <daqevt.h>
 #include <event.h>

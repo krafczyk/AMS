@@ -1,3 +1,4 @@
+//  $Id: root.h,v 1.37 2001/01/22 17:32:44 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 

@@ -1,3 +1,4 @@
+//  $Id: commonsD.C,v 1.14 2001/01/22 17:32:27 choutko Exp $
 // AMS common blocks method file
 // Objectivity version Oct 08, 1996 ak
 // Oct  14, 1996. ak. don't compare ccffkey run

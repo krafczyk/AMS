@@ -1,3 +1,4 @@
+//  $Id: srddbc.C,v 1.2 2001/01/22 17:32:21 choutko Exp $
 #include <srddbc.h>
 #include <amsdbc.h>
 #include <math.h>

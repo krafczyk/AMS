@@ -1,3 +1,4 @@
+//  $Id: trigger102.h,v 1.4 2001/01/22 17:32:45 choutko Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include <link.h>

@@ -1,3 +1,4 @@
+//  $Id: gmat.C,v 1.61 2001/01/22 17:32:20 choutko Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.

@@ -1,3 +1,4 @@
+//  $Id: root_R.h,v 1.10 2001/01/22 17:32:44 choutko Exp $
 #define __WRITEROOTH__
 #ifndef __AMSROOT__
 #define __AMSROOT__

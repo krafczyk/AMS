@@ -1,3 +1,4 @@
+*  $Id: simul.f,v 1.2 2001/01/22 17:32:56 choutko Exp $
         integer *2 iar(10000)
         real *8 xcur
         byte ib(20000)

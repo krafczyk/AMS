@@ -1,3 +1,4 @@
+//  $Id: ooUsage.h,v 1.2 2001/01/22 17:32:30 choutko Exp $
 #ifndef _ooUsage_h_
 #define _ooUsage_h_
 

@@ -1,3 +1,4 @@
+//  $Id: Coo_file.C,v 1.11 2001/01/22 17:32:53 choutko Exp $
 #include <typedefs.h>
 #include <cern.h>
 #include <ctype.h>

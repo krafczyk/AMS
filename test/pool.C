@@ -1,3 +1,4 @@
+//  $Id: pool.C,v 1.2 2001/01/22 17:32:55 choutko Exp $
 #include <pool.h>
 #include <cern.h>
 #include <iostream.h>

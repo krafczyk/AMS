@@ -1,3 +1,4 @@
+//  $Id: AMSAntiCluster.h,v 1.2 2001/01/22 17:32:37 choutko Exp $
 
 #ifndef AMSAntiCluster_H
 #define AMSAntiCluster_H

@@ -1,3 +1,4 @@
+//  $Id: raweventD.C,v 1.4 2001/01/22 17:32:30 choutko Exp $
 // Author A. Klimentov  9-Apr-1997
 // methods for AMSraweventD class
 //

@@ -1,3 +1,4 @@
+//  $Id: AMSParticle.h,v 1.3 2001/01/22 17:32:37 choutko Exp $
 #ifndef AMSParticle_H
 #define AMSParticle_H
 

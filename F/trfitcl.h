@@ -1,3 +1,4 @@
+*  $Id: trfitcl.h,v 1.2 2001/01/22 17:32:25 choutko Exp $
       COMMON /TFITRE/ PHIV,XATV,YATV,ZATV,
      $                IHATS,PHIS,XATS,YATS,ZATS,SPVER,SPLEN,
      $                CHARGE,PPRINV,PINV,XCEN,YCEN,

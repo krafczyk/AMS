@@ -1,3 +1,4 @@
+//  $Id: amsdbc.h,v 1.26 2001/01/22 17:32:41 choutko Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSDBC__
 #define __AMSDBC__

@@ -1,3 +1,4 @@
+//  $Id: TGTextEntry.cxx,v 1.2 2001/01/22 17:32:41 choutko Exp $
 //*CMZ :  2.00/00 23/02/98  16.13.28  by  Fons Rademakers
 //*-- Author :    Fons Rademakers   08/01/98
 

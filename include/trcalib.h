@@ -1,3 +1,4 @@
+//  $Id: trcalib.h,v 1.27 2001/01/22 17:32:45 choutko Exp $
 // Author V. Choutko 4-mar-1997
 
 #ifndef __AMSTRCALIB__

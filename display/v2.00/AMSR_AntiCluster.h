@@ -1,3 +1,4 @@
+//  $Id: AMSR_AntiCluster.h,v 1.2 2001/01/22 17:32:37 choutko Exp $
 
 #ifndef AMSR_AntiCluster_H
 #define AMSR_AntiCluster_H

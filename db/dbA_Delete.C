@@ -1,3 +1,4 @@
+//  $Id: dbA_Delete.C,v 1.3 2001/01/22 17:32:28 choutko Exp $
 // Delete methods. June, 1996. ak.
 //
 // Last Edit : Nov 13, 1997. ak.

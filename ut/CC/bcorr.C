@@ -1,3 +1,4 @@
+//  $Id: bcorr.C,v 1.4 2001/01/22 17:32:18 choutko Exp $
 #include <event.h>
 #include <bcorr.h>
 #include <commons.h>

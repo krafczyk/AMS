@@ -1,3 +1,4 @@
+//  $Id: io.h,v 1.12 2001/01/22 17:32:44 choutko Exp $
 // Author V. Choutko 2-feb-1997
 //
 // Feb  10, 1997.  ak.  implement friend class

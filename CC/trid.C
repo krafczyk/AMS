@@ -1,3 +1,4 @@
+//  $Id: trid.C,v 1.32 2001/01/22 17:32:23 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>

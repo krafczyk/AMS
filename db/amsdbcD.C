@@ -1,3 +1,4 @@
+//  $Id: amsdbcD.C,v 1.6 2001/01/22 17:32:27 choutko Exp $
 // Oct 07, 1996. ak. first try with Objectivity
 //                   method source file of object AMSDBcD
 //                   AMBIG, BAD, USED, DELETED are not compared.

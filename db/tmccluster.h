@@ -1,3 +1,4 @@
+//  $Id: tmccluster.h,v 1.4 2001/01/22 17:32:30 choutko Exp $
 #ifndef __AMSTrMCClusterD__
 #define __AMSTrMCClusterD__
 // class AMSTrMCCluster

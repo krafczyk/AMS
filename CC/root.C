@@ -1,3 +1,4 @@
+//  $Id: root.C,v 1.8 2001/01/22 17:32:21 choutko Exp $
 #include <root.h>
 #ifdef __WRITEROOT__
 ClassImp(EventNtuple)

@@ -1,3 +1,4 @@
+//  $Id: mcanticlusterD.C,v 1.3 2001/01/22 17:32:29 choutko Exp $
 // method source file for the object AMSAntiMCCluster
 //
 // Last Edit: Oct 10, 1996. ak.

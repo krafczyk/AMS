@@ -1,3 +1,4 @@
+//  $Id: trigger3D.C,v 1.3 2001/01/22 17:32:31 choutko Exp $
 // Original code by Choutko
 // Last modification 19.09.97 AH.
 #include <trigger3D.h>

@@ -1,3 +1,4 @@
+//  $Id: amsstl.h,v 1.12 2001/01/22 17:32:42 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 11.07.96 modified by E.Choumilov.(AMSbins added) 
 #ifndef __AMSSTL__

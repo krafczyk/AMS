@@ -1,3 +1,4 @@
+//  $Id: tofrecD.C,v 1.3 2001/01/22 17:32:31 choutko Exp $
 // class AMSTOFClusterD
 // method source file for the object AMSTOFClusterD
 // June 23, 1996. First try with Objectivity 

@@ -1,3 +1,4 @@
+//  $Id: AMSRoot.h,v 1.8 2001/01/22 17:32:32 choutko Exp $
 #ifndef AMSRoot_H
 #define AMSRoot_H
 

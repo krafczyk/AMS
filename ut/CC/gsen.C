@@ -1,3 +1,4 @@
+//  $Id: gsen.C,v 1.4 2001/01/22 17:32:20 choutko Exp $
 #include <gsen.h>
 #include <trid.h>
 integer AMSgSen::getsenstrip(AMSPoint & loc){

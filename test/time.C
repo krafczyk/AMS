@@ -1,3 +1,4 @@
+//  $Id: time.C,v 1.8 2001/01/22 17:32:56 choutko Exp $
 #include <iostream.h>
 #include <sys/errno.h>
 #include <sys/types.h>

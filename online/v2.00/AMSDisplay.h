@@ -1,3 +1,4 @@
+//  $Id: AMSDisplay.h,v 1.4 2001/01/22 17:32:52 choutko Exp $
 #ifndef AMSOnDisplay_H
 #define AMSOnDisplay_H
 

@@ -1,3 +1,4 @@
+*  $Id: usrcut.f,v 1.16 2001/01/22 17:32:56 choutko Exp $
       SUBROUTINE USRINIT
 **************************************************************************
 * Do user initialization such as histgram booking

@@ -1,3 +1,4 @@
+*  $Id: mtx2.F,v 1.3 2001/01/22 17:32:25 choutko Exp $
              subroutine mtx2(nrmout,nrmin)
                real *4 nrmin(3,3)
                real *8 nrmout(3,3)

@@ -1,3 +1,4 @@
+//  $Id: xform_proc_10comp.h,v 1.2 2001/01/22 17:32:54 choutko Exp $
 /* Making X-forms for monitoring Offline processes */
 
 #include <stdlib.h>

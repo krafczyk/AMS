@@ -1,3 +1,4 @@
+//  $Id: timeid.h,v 1.25 2001/01/22 17:32:44 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 #include <time.h>

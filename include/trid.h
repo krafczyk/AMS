@@ -1,3 +1,4 @@
+//  $Id: trid.h,v 1.27 2001/01/22 17:32:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Last edit : Mar 19, 1997. ak. add AMSTrIdSoft::getidgeom() function 

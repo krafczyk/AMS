@@ -1,3 +1,4 @@
+//  $Id: dbA_Print.C,v 1.2 2001/01/22 17:32:28 choutko Exp $
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

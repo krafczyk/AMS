@@ -1,3 +1,4 @@
+//  $Id: AMSR_Maker.h,v 1.3 2001/01/22 17:32:39 choutko Exp $
 #ifndef AMSR_Maker_H
 #define AMSR_Maker_H
 

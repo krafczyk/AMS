@@ -1,3 +1,4 @@
+//  $Id: mctofclusterD.h,v 1.4 2001/01/22 17:32:30 choutko Exp $
 #ifndef __AMSMCTOFClusterD__
 #define __AMSMCTOFClusterD__
 // Author V. Choutko 24-may-1996

@@ -1,3 +1,4 @@
+//  $Id: rd45.h,v 1.4 2001/01/22 17:32:30 choutko Exp $
 #ifndef __RD45SUBS__
 #define __RD45SUBS__
 
@@ -5,7 +6,7 @@
 // some basic types used in rd45 programms
 // D.Duellmann
 //
-// $Id: rd45.h,v 1.3 1997/12/09 18:32:34 alexei Exp $
+// $Id: rd45.h,v 1.4 2001/01/22 17:32:30 choutko Exp $
 //
 // add AMS related functions .  A.Klimentov May, 1997.
 //

@@ -1,3 +1,4 @@
+*  $Id: tszfit.F,v 1.2 2001/01/22 17:32:25 choutko Exp $
       SUBROUTINE TSZFIT(WLOC,SPCOR,ZCOR,WZCOR,NHTKD,NPARSZ,ZRCOR,IFLASZ)
 C
 C********************************************************************012

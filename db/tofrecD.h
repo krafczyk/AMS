@@ -1,3 +1,4 @@
+//  $Id: tofrecD.h,v 1.6 2001/01/22 17:32:31 choutko Exp $
 /* C++ header file: Objectivity/DB DDL version 4.0.2 */
 
 #ifndef TOFREC_D_H

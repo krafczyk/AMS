@@ -1,3 +1,4 @@
+//  $Id: ctcsim.C,v 1.13 2001/01/22 17:32:19 choutko Exp $
 #include <ctcsim.h>
 #include <point.h>
 #include <event.h>

@@ -1,3 +1,4 @@
+*  $Id: atcnewntu.F,v 1.4 2001/01/22 17:32:24 choutko Exp $
       subroutine atcgeom(ierr)                                               
 *************************************************************                
 * SUB: atcgeom                                                               

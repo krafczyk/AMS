@@ -1,3 +1,4 @@
+//  $Id: mctofclusterV.C,v 1.2 2001/01/22 17:32:30 choutko Exp $
 // Author A.Klimentov Apr 1, 1997
 // method source file for the object AMSTOFMCClusterV
 //

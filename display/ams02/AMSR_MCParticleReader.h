@@ -1,3 +1,4 @@
+//  $Id: AMSR_MCParticleReader.h,v 1.2 2001/01/22 17:32:34 choutko Exp $
 #ifndef AMSR_MCParticleReader_H
 #define AMSR_MCParticleReader_H
 

@@ -1,3 +1,4 @@
+//  $Id: backup.C,v 1.7 2001/01/22 17:32:54 choutko Exp $
 /* Directory backup from Dir1 Dir2 */
 #include <time.h>
 #include <iostream.h>

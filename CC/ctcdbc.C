@@ -1,3 +1,4 @@
+//  $Id: ctcdbc.C,v 1.17 2001/01/22 17:32:19 choutko Exp $
 #include <typedefs.h>
 #include <commons.h>
 #include <math.h>

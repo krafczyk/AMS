@@ -1,3 +1,4 @@
+#  $Id: monitorUI.pm,v 1.18 2001/01/22 17:32:53 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;

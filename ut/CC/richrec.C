@@ -1,3 +1,4 @@
+//  $Id: richrec.C,v 1.16 2001/01/22 17:32:21 choutko Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>

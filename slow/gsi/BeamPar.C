@@ -1,3 +1,4 @@
+//  $Id: BeamPar.C,v 1.5 2001/01/22 17:32:55 choutko Exp $
 #include <typedefs.h>
 #include <cern.h>
 #include <stdlib.h>

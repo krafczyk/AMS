@@ -1,3 +1,4 @@
+//  $Id: mceventg.C,v 1.104 2001/01/22 17:32:21 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>

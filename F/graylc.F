@@ -1,3 +1,4 @@
+*  $Id: graylc.F,v 1.2 2001/01/22 17:32:24 choutko Exp $
 
 
 

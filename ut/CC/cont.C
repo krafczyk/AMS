@@ -1,3 +1,4 @@
+//  $Id: cont.C,v 1.6 2001/01/22 17:32:19 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <cont.h>

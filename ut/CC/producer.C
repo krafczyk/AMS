@@ -1,3 +1,4 @@
+//  $Id: producer.C,v 1.25 2001/01/22 17:32:21 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>

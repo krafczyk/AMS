@@ -1,3 +1,4 @@
+//  $Id: richdbc.h,v 1.15 2001/01/22 17:32:44 choutko Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 

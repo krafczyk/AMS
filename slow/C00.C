@@ -1,3 +1,4 @@
+//  $Id: C00.C,v 1.2 2001/01/22 17:32:53 choutko Exp $
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdlib.h>

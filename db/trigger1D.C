@@ -1,3 +1,4 @@
+//  $Id: trigger1D.C,v 1.2 2001/01/22 17:32:31 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // Last mod. 19.09.97 AH.
 

@@ -1,3 +1,4 @@
+//  $Id: biel.C,v 1.2 2001/01/22 17:32:55 choutko Exp $
 #include <typedefs.h>
 #include <iostream.h>
 #include <amsstl.h>

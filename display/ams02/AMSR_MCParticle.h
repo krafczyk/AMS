@@ -1,3 +1,4 @@
+//  $Id: AMSR_MCParticle.h,v 1.2 2001/01/22 17:32:34 choutko Exp $
 #ifndef AMSR_MCParticle_H
 #define AMSR_MCParticle_H
 

@@ -1,3 +1,4 @@
+//  $Id: trrechit.C,v 1.5 2001/01/22 17:32:31 choutko Exp $
 // class AMSTrRecHit 
 // method source file for the object AMSTrRecHit
 // May 09, 1996. First try with Objectivity 

@@ -1,3 +1,4 @@
+*  $Id: usrcom.inc,v 1.3 2001/01/22 17:32:56 choutko Exp $
       INTEGER MXVAR
       PARAMETER (MXVAR=222)
       CHARACTER*20 VARLIS(MXVAR)

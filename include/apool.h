@@ -1,3 +1,4 @@
+//  $Id: apool.h,v 1.8 2001/01/22 17:32:42 choutko Exp $
 // Author V. Choutko 19-jul-1996
  
 #ifndef __AMSAPOOL__

@@ -1,3 +1,4 @@
+//  $Id: prod.local.c,v 1.2 2001/01/22 17:32:26 choutko Exp $
 [ -z "$UNAME" ]      && UNAME=`(uname) 2>/dev/null`
 [ -z "$UNAME" -a -d /sys/node_data ] && UNAME="DomainOS"
 [ -z "$UNAME" ]      && (echo could not determine hosttype ; exit)

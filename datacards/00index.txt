@@ -1,3 +1,4 @@
+#  $Id: 00index.txt,v 1.4 2001/01/22 17:32:26 choutko Exp $
 sh0.job   // datacards example (see also ../doc/datacards.doc)
 sh_ll.job // cards for sp2 loadlevel 
 {c,ap,he,pos,pr}.job    Simulate corr particles

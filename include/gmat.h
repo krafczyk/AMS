@@ -1,3 +1,4 @@
+//  $Id: gmat.h,v 1.11 2001/01/22 17:32:44 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Sep 06, 1996 ak. add getnpar and getNumbers functions

@@ -1,3 +1,4 @@
+//  $Id: antirec02.C,v 1.2 2001/01/22 17:32:18 choutko Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by

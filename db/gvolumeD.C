@@ -1,3 +1,4 @@
+//  $Id: gvolumeD.C,v 1.6 2001/01/22 17:32:29 choutko Exp $
 // Aug 08, 1996. ak. First try with Objectivity. Method file for AMSgvolume
 // Oct 12, 1996. ak. coo copy is modified.
 // Mar 25, 1997. ak. new class member _rel

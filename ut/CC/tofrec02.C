@@ -1,3 +1,4 @@
+//  $Id: tofrec02.C,v 1.5 2001/01/22 17:32:22 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added

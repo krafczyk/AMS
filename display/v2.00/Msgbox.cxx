@@ -1,3 +1,4 @@
+//  $Id: Msgbox.cxx,v 1.4 2001/01/22 17:32:41 choutko Exp $
 #include "Msgbox.h"
 #include "AMSRoot.h"
 

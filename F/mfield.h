@@ -1,3 +1,4 @@
+*  $Id: mfield.h,v 1.6 2001/01/22 17:32:25 choutko Exp $
       integer nx,ny,nz
       PARAMETER (nx=41,ny=41,nz=130)
       real X(nx),y(ny),z(nz)
