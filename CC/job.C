@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.381 2001/09/13 09:48:52 choutko Exp $
+// $Id: job.C,v 1.382 2001/09/25 08:06:49 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -635,7 +635,7 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.cutge=0.001;    //(3) cutgam=cutele cut for EC_volumes
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) spare
-  ECMCFFKEY.mev2mev=33.00;  //(6) Geant dE/dX(MeV)->Emeas(MeV) conv.factor
+  ECMCFFKEY.mev2mev=35.00;  //(6) Geant dE/dX(MeV)->Emeas(MeV) conv.factor
   ECMCFFKEY.mev2adc=0.394; //(7) Emeas(MeV)->ADCch factor(MIP-m.p. -> 5th channel)
   ECMCFFKEY.safext=0.;     //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
 FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -1103,6 +1103,7 @@ TRFITFFKEY.ThrClA[1]=0.;
 TRFITFFKEY.ThrClR[0]=0.;
 TRFITFFKEY.ThrClR[1]=0.;
 TRFITFFKEY.MaxTrRecHitsPerLayer=50;
+TRFITFFKEY.LowMargin=0;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }

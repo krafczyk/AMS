@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.272 2001/09/11 12:57:03 choumilo Exp $
+//  $Id: event.C,v 1.273 2001/09/25 08:06:48 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1481,7 +1481,7 @@ AMSgObj::BookTimer.start("RETKEVENT");
 
   
   Trigger2LVL1 * ptr12= dynamic_cast<Trigger2LVL1*>(ptr1);
-  if(ptr12 && (ptr12->IsECHighEnergy() || ptr12->IsECEMagEnergy())){
+  if(ptr12 && (ptr12->IsECHighEnergy() || ptr12->IsECEMagEnergy() || TRFITFFKEY.LowMargin)){
     AMSTrTrack::setMargin(1);
   }
   else{

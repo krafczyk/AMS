@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.159 2001/09/11 12:57:06 choumilo Exp $
+//  $Id: commons.h,v 1.160 2001/09/25 08:06:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -808,6 +808,7 @@ public:
   geant ThrClR[2];
   integer MaxTrRecHitsPerLayer;
   integer UseTRD;     // Use(>=1)/Not use(0) 
+  integer LowMargin;
 };
 //
 

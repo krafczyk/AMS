@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.201 2001/09/11 12:57:05 choumilo Exp $
+#  $Id: datacards.doc,v 1.202 2001/09/25 08:06:51 choutko Exp $
 Datacards
 
 // Protection from some myst bug
@@ -449,6 +449,7 @@ R65  ThrClA[2](0,0)         // mark trreccl good if ampl > ThrClA
 R67  ThrClR[2](0,0)         // mark trreccl good if ampl/s > ThrClR
 I69  MaxTrRecHitsPerLayer(50) // to try pattern rec
 I70  UseTRD(1)                    // Use(>=1 == Min No TOF clusters matched)/
+I71  LowMargin(0)          //  use/not use any 5 planes patterns for track reconstruction
 
 // Tracker fitting
 

@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.27 2001/09/14 10:29:54 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.28 2001/09/25 08:06:51 choutko Exp $          
 
 
 
@@ -87,9 +87,8 @@ b) As a developper :
 VII.  Standalone version  
 
        a. Standalone version is NOT supported, 
-           though some moderate help in installing is granted. 
-       b. Some knowledge of programming language and/or
-          unix system commands is apriori assumed.
+           though moderate help for installation process is granted. 
+       b. Some knowledge of unix system commands is apriori assumed.
 
        c. Hints to install AMS software on remote computer:              
 
@@ -105,7 +104,8 @@ VII.  Standalone version
          
 
          Case ii: You don't have afs installed
-          copy ams.cern.ch:/offline/vdev to somewhere on your computer
+          copy (using tar+gzip+ftp/scp) ams.cern.ch:/offline/vdev 
+          to somewhere on your computer.
           login in ams.cern.ch          
           setenv Offline /offline
           source $Offline/vdev/install/amsvar
