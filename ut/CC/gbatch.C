@@ -58,6 +58,7 @@ main(){
      *signal(SIGINT, handler);
      *signal(SIGQUIT, handler);
      *signal(SIGUSR1, handler); 
+     *signal(SIGUSR2, handler); 
     AMSgvolume::debug=0;
     cout.sync_with_stdio();
     GZEBRA(NWGEAN);
@@ -102,6 +103,10 @@ using namespace glconst;
   case SIGUSR1:
       cerr<< "New Run Forced"<<endl;
       if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=2;
+      break;
+  case SIGUSR2:
+      cerr<< "New Ntuple Forced"<<endl;
+      if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=3;
       break;
   }
 }
