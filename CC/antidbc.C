@@ -142,9 +142,10 @@ void ANTIJobStat::print(){
   printf(" MC: entries             : % 6d\n",mccount[0]);
   printf(" MC: Ghits->RawEvent OK  : % 6d\n",mccount[1]);
   printf(" RECO-entries            : % 6d\n",recount[0]);
-  printf(" RawEvent-validation OK  : % 6d\n",recount[1]);
-  printf(" RawEvent->RawCluster OK : % 6d\n",recount[2]);
-  printf(" RawCluster->Cluster OK  : % 6d\n",recount[3]);
+  printf(" Lev-1 trigger OK        : % 6d\n",recount[1]);
+  printf(" RawEvent-validation OK  : % 6d\n",recount[2]);
+  printf(" RawEvent->RawCluster OK : % 6d\n",recount[3]);
+  printf(" RawCluster->Cluster OK  : % 6d\n",recount[4]);
   printf("\n\n");
 //
   printf("==========> Bars reconstruction report :\n\n");

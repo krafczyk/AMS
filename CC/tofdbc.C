@@ -8,6 +8,7 @@
 #include <iostream.h>
 #include <fstream.h>
 #include <tofsim.h>
+#include <tofrec.h>
 //
 extern AMSTOFScan scmcscan[SCBLMX];// TOF MC time/eff-distributions
 extern TOFVarp tofvpar; // TOF general parameters (not const !)
@@ -107,15 +108,14 @@ geant TOFDBc::_plnstr[15]={
 //
 //  member functions :
 //
-// ---> function to read geomconfig-files ( fn[3] - hollerith file name)
-//                                                 Called from TOFgeom :
-  void TOFDBc::readgconf(integer fn[3]){
+// ---> function to read geomconfig-files 
+//                  Called from TOFgeom :
+  void TOFDBc::readgconf(){
     int i;
     char fname[80];
-    char name[19];
+    char name[80]="geomconf";
     char vers1[3]="01";
     char vers2[3]="02";
-    UHTOC(fn,4,name,12);
     if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION")==0)
     {
           cout <<" TOFGeom-I-Shuttle setup selected."<<endl;
@@ -127,13 +127,13 @@ geant TOFDBc::_plnstr[15]={
           strcat(name,vers2);
     }
     strcat(name,".dat");
-//    strcpy(fname,AMSDATADIR.amsdatadir);    
-    strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+    strcpy(fname,AMSDATADIR.amsdatadir);    
+//    strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
     strcat(fname,name);
-    cout<<"Open file : "<<fname<<'\n';
+    cout<<"TOFDBc::readgconf: Open file : "<<fname<<'\n';
     ifstream tcfile(fname,ios::in); // open needed config-file for reading
     if(!tcfile){
-      cerr <<"TOFgeom-read: Error open geomconfig-file "<<fname<<endl;
+      cerr <<"TOFgeom-read: missing geomconfig-file "<<fname<<endl;
       exit(1);
     }
     for(int ic=0;ic<SCBLMX;ic++) tcfile >> _brtype[ic];
@@ -295,7 +295,7 @@ geant TOFDBc::_plnstr[15]={
 //
 void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 // 
- integer i,j,ila,ibr,ibrm,isp,nsp,ibt,cnum,dnum,mult;
+ integer i,j,k,ila,ibr,ip,ibrm,isd,isp,nsp,ibt,cnum,dnum,mult;
  geant scp[SCANPNT];
  geant rlo[SCANPNT];// relat.(to Y=0) light output
  integer lps=1000;
@@ -306,7 +306,9 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  geant gna[2],gnd[2],qath,qdth,a2dr[2],tth,strat[2];
  geant slope,fstrd,tzer,tdif,mip2q,speedl;
  geant tzerf[SCLRS][SCMXBR],slpf,strf[SCBLMX][2],tdiff[SCBLMX];
- geant an2di[SCBLMX][2],gaina[SCBLMX][2],gaind[SCBLMX][2],m2q[SCBTPN]; 
+ geant an2di[SCBLMX][2],gaina[SCBLMX][2],gaind[SCBLMX][2],m2q[SCBTPN];
+ geant ipara[SCCHMX][SCIPAR]; 
+ geant ipard[SCCHMX][SCIPAR]; 
  char fname[80];
  char name[80];
  geant td2p[2];
@@ -318,39 +320,80 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //                                 of anode measurements
 //---> TovT-electronics calibration for MC:
 //
- geant aip[2][3]={ // def.param. for anode integrator(shft,t0(qthr=exp(t0/shft)),qoffs)
+ geant aip[2][SCIPAR]={ // def.for anode integrator(shft,t0(qthr=exp(t0/shft)),qoffs)
                    {50.,62.6,1.3},
                    {50.,62.6,1.3}
-                 };
- geant dip[2][3]={              // default param. for dinode integrator
+                      };
+ geant dip[2][SCIPAR]={              // default param. for dinode integrator
                    {50.,62.6,1.3},
                    {50.,62.6,1.3}
-                 };
+                      };
+//------------------------------
+  char in[2]="0";
+  char inum[11];
+  char verlst[20]="verslist.dat";
+  int ctyp,ntypes,mcvern[10],rlvern[10];
+  int mcvn,rlvn,dig;
+//
+  strcpy(inum,"0123456789");
+//
+// ---> read versions file :
+//
+  strcpy(fname,AMSDATADIR.amsdatadir);
+//  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+  strcat(fname,verlst);
+  cout<<"TOFBrcal::build: Open file  "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
+  if(!vlfile){
+    cerr <<"TOFBrcal_build:: missing verslist-file "<<fname<<endl;
+    exit(1);
+  }
+  vlfile >> ntypes;// total number of calibr. file types in the list
+  for(i=0;i<ntypes;i++){
+    vlfile >> mcvern[i];// first number - for mc
+    vlfile >> rlvern[i];// second number - for real
+  }
+  vlfile.close();
 //
 //------------------------------
 //
 //   --->  Read (lspeed/tdiffs + slope/tzeros) calibration file :
 //
- UHTOC(TOFRECFFKEY.tzerca,4,name,12);
+ ctyp=3;
+ strcpy(name,"tzcalib");
+ mcvn=mcvern[ctyp-1]%100;
+ rlvn=rlvern[ctyp-1]%100;
  if(AMSJob::gethead()->isMCData()) //      for MC-event
  {
        cout <<" TOFBrcal_build: MC-T0/Tdif-calibration is used"<<endl;
+       dig=mcvn/10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=mcvn%10;
+       in[0]=inum[dig];
+       strcat(name,in);
        strcat(name,vers1);
  }
  else                              //      for Real events
  {
        cout <<" TOFBrcal_build: REAL-T0/Tdif-calibration is used"<<endl;
+       dig=rlvn/10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=rlvn%10;
+       in[0]=inum[dig];
+       strcat(name,in);
        strcat(name,vers2);
  }
 //
  strcat(name,".dat");
-// strcpy(fname,AMSDATADIR.amsdatadir);    
- strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+ strcpy(fname,AMSDATADIR.amsdatadir);    
+// strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
  strcat(fname,name);
  cout<<"Open file : "<<fname<<'\n';
  ifstream tcfile(fname,ios::in); // open  file for reading
  if(!tcfile){
-   cerr <<"TOFBrcal_build: Error open Lspeed/Tdif/Tzero/Slope-file "<<fname<<endl;
+   cerr <<"TOFBrcal_build: missing Lspeed/Tdif/Tzero/Slope-file "<<fname<<endl;
    exit(1);
  }
 //
@@ -375,7 +418,10 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //
 //   --->  Read stretcher-ratio calib.file :
 //
- UHTOC(TOFRECFFKEY.strrca,4,name,12);
+ ctyp=2;
+ strcpy(name,"srcalib");
+ mcvn=mcvern[ctyp-1]%100;
+ rlvn=rlvern[ctyp-1]%100;
  if(AMSJob::gethead()->isMCData())           // for MC-event
  {
    cout <<" TOFBrcal_build: str_ratio-calib. for MC-events selected."<<endl;
@@ -390,6 +436,12 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  else                                       // for Real events
  {
    cout <<" TOFBrcal_build: str_ratio-calib. for Real-events selected."<<endl;
+   dig=rlvn/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=rlvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
    strcat(name,vers2);
    strcat(name,".dat");
    strcpy(fname,AMSDATADIR.amsdatadir);    
@@ -398,7 +450,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
    cout<<"Open file : "<<fname<<'\n';
    ifstream scfile(fname,ios::in); // open str_ratio-file for reading
    if(!scfile){
-     cerr <<"TOFBrcal_build: Error open str_ratio-file "<<fname<<endl;
+     cerr <<"TOFBrcal_build: missing str_ratio-file "<<fname<<endl;
      exit(1);
    }
    for(ila=0;ila<SCLRS;ila++){   // <-------- loop over layers
@@ -414,25 +466,40 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //
 //   --->  Read a2d-ratios, gains and mip2q's calib.file :
 //
- UHTOC(TOFRECFFKEY.amplca,4,name,12);
+ ctyp=4;
+ strcpy(name,"ancalib");
+ mcvn=mcvern[ctyp-1]%100;
+ rlvn=rlvern[ctyp-1]%100;
  if(AMSJob::gethead()->isMCData())           // for MC-event
  {
    cout <<" TOFBrcal_build: a2d_ratio/gain-calib. for MC-events selected."<<endl;
+   dig=mcvn/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=mcvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
    strcat(name,vers1);
  }
  else                                       // for Real events
  {
    cout <<" TOFBrcal_build: a2d_ratio/gain-calib. for Real-events selected."<<endl;
+   dig=rlvn/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=rlvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
    strcat(name,vers2);
  }
    strcat(name,".dat");
-//   strcpy(fname,AMSDATADIR.amsdatadir);    
-   strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+   strcpy(fname,AMSDATADIR.amsdatadir);    
+//   strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
    strcat(fname,name);
    cout<<"Open file : "<<fname<<'\n';
    ifstream gcfile(fname,ios::in); // open a2d_ratio/gain/mip2q-file for reading
    if(!gcfile){
-     cerr <<"TOFBrcal_build: Error open a2d_ratio/gain/mip2q-file "<<fname<<endl;
+     cerr <<"TOFBrcal_build: missing a2d_ratio/gain/mip2q-file "<<fname<<endl;
      exit(1);
    }
 // ---> read a2d-ratios:
@@ -469,6 +536,66 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //
    gcfile.close();
 //   
+//---------------------------------------------
+//
+//   --->  Read anode/dinode integrator parameters calib.file :
+//
+ ctyp=5;
+ strcpy(name,"incalib");
+ mcvn=mcvern[ctyp-1]%100;
+ rlvn=rlvern[ctyp-1]%100;
+ if(AMSJob::gethead()->isMCData())           // for MC-event
+ {
+   cout <<" TOFBrcal_build: a/d_integrator-calib. for MC-events selected."<<endl;
+   dig=mcvn/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=mcvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers1);
+ }
+ else                                       // for Real events
+ {
+   cout <<" TOFBrcal_build: a/d_integrator-calib. for Real-events selected."<<endl;
+   dig=rlvn/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=rlvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers2);
+ }
+ strcat(name,".dat");
+   strcpy(fname,AMSDATADIR.amsdatadir);    
+// strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+ strcat(fname,name);
+ cout<<"Open file : "<<fname<<'\n';
+ ifstream icfile(fname,ios::in); // open a/d_integrator_param-file for reading
+ if(!icfile){
+   cerr <<"TOFBrcal_build: missing a/d_integrator_param-file "<<fname<<endl;
+   exit(1);
+ }
+//
+ int16u swid,crat,sfet,tofc;
+ for(i=0;i<SCCRAT;i++){//<--- crate loop (0-7)
+   icfile >> crat;// crate-number
+   for(j=0;j<SCSFET;j++){//<--- SFET card loop (0-3)
+     icfile >> sfet;// sfet-number
+     for(k=0;k<SCTOFC;k++){//<--- tof-ch loop (1tofc->side, 4 per SFET)(0-3)
+       icfile >> tofc;// tofc-number
+       swid=AMSTOFRawEvent::hw2swid(crat-1,sfet-1,tofc-1);//LBBS
+       if(swid==0)continue;// non-existing tofc (occupied by temperatures)
+       ila=swid/1000-1;
+       ibr=(swid%1000)/10-1;
+       isd=(swid%1000)%10-1;
+       cnum=2*SCMXBR*ila+2*ibr+isd;
+       for(ip=0;ip<SCIPAR;ip++)icfile >> ipara[cnum][ip];//read anode parameters
+       for(ip=0;ip<SCIPAR;ip++)icfile >> ipard[cnum][ip];//.... dinode .........
+     }
+   }
+ }
+ icfile.close();
 //---------------------------------------------
 //   ===> fill TOFBrcal bank :
 //
@@ -509,6 +636,11 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     td2p[1]=1.3; // error on longit. coord. measurement(cm)
     sta[0]=0;//status ok, really should be taken from slow-control data or manually
     sta[1]=0;
+    for(ip=0;ip<SCIPAR;ip++)aip[0][ip]=ipara[2*cnum][ip];
+    for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*cnum+1][ip];
+    for(ip=0;ip<SCIPAR;ip++)dip[0][ip]=ipard[2*cnum][ip];
+    for(ip=0;ip<SCIPAR;ip++)dip[1][ip]=ipard[2*cnum+1][ip];
+    
     scbrcal[ila][ibr]=TOFBrcal(sid,sta,gna,gnd,qath,qdth,a2dr,asatl,tth,
                               strat,fstrd,tzer,slope,tdif,td2p,mip2q,scp,rlo,
                               aip,dip);
@@ -555,6 +687,11 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     td2p[1]=1.3; // error on longit. coord. measurement(cm)
     sta[0]=0;//status ok, really should be taken from slow-control data or manually
     sta[1]=0;
+    for(ip=0;ip<SCIPAR;ip++)aip[0][ip]=ipara[2*cnum][ip];
+    for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*cnum+1][ip];
+    for(ip=0;ip<SCIPAR;ip++)dip[0][ip]=ipard[2*cnum][ip];
+    for(ip=0;ip<SCIPAR;ip++)dip[1][ip]=ipard[2*cnum+1][ip];
+
     scbrcal[ila][ibr]=TOFBrcal(sid,sta,gna,gnd,qath,qdth,a2dr,asatl,tth,
                               strat,fstrd,tzer,slope,tdif,td2p,mip2q,scp,rlo,
                               aip,dip);

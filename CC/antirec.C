@@ -207,16 +207,16 @@ void AMSAntiRawEvent::mc_build(int &stat){
 // convert p.e.->TovT(ns)->TovT(TDCchan):
 //
   tau=ANTIDBc::shprdt();
-  for (i=0;i<2;i++){ // <--- top/bot loop
-    for (j=0;j<MAXANTI;j++){ // <--- sector loop
-      antisccal[j].gettthr(athr);// threshold in TovT(p.e.!!!)
-      q2pe=antisccal[j].getq2pe();//Q->pe conv.factor (pe/pC)
+  for (j=0;j<MAXANTI;j++){ // <--- sector loop
+    antisccal[j].gettthr(athr);// threshold in TovT(p.e.!!!)
+    q2pe=antisccal[j].getq2pe();//Q->pe conv.factor (pe/pC)
+    for (i=0;i<2;i++){ // <--- top/bot loop
       edep=esignal[i][j]; // p.e.
       time=tsignal[i][j]; // ns
       tovt=0;
-      if(edep>athr[i]){ // above TovT-measurement threshold
-        ede=edep/q2pe;// convert signal pe->pC 
-        antisccal[j].q2t2q(0,i,tovt,ede);// Q(pC)->TovT(ns)
+      ede=edep/q2pe;// convert signal pe->pC 
+      antisccal[j].q2t2q(0,i,tovt,ede);// Q(pC)->TovT(ns)(threshold is applied automatically !)
+      if(tovt>0){ // non-zero hit -> create pulse/TDCA/TDCT
         t1=time;// TovT-pulse up-edge (ns) abs.time
         t2=time+tovt;// TovT-pulse down-edge (ns) abs.time
 //
@@ -270,9 +270,9 @@ void AMSAntiRawEvent::mc_build(int &stat){
         chsta=0;// good
         AMSEvent::gethead()->addnext(AMSID("AMSAntiRawEvent",0),
                      new AMSAntiRawEvent(id,chsta,ntdca,tdca,ntdct,tdct));
-      }// ---> end of edep check
-    }// ---> end of sector loop
-  }// ---> end of top/bot loop
+      }// ---> end of TovT>0 check
+    }// ---> end of top/bot loop
+  }// ---> end of sector loop
 }
 //---------------------------------------------------
 void AMSAntiRawCluster::build(int &status){
@@ -282,8 +282,8 @@ void AMSAntiRawCluster::build(int &status){
   int16u pbitn;
   int16u pbanti;
   integer i,j,jmax,sector,isid,isds,stat,chnum;
-  number fttm,atm,dt,signal;
-  geant ftdel[2],athr[2],slope[2],twin,tau;
+  number fttm,atm,dt,signal,qs;
+  geant ftdel[2],athr[2],slope[2],twin,tau,q2pe;
   AMSAntiRawEvent *ptr;
 //
   ptr=(AMSAntiRawEvent*)AMSEvent::gethead()
@@ -304,7 +304,7 @@ void AMSAntiRawCluster::build(int &status){
     chnum=sector*2+isid;//channels numbering
     antisccal[sector].getstat(statdb); // "alive" status from DB
     antisccal[sector].getftd(ftdel); // FTrig delay wrt ADCA-hit
-    antisccal[sector].gettthr(athr);// threshold in TovT(p.e.!!!)
+    q2pe=antisccal[sector].getq2pe();// q(pC)->pe conv.factor
     if(statdb[isid] == 0){  // channel alive
 //channel statistics :
       ANTIJobStat::addch(chnum,0); 
@@ -326,7 +326,8 @@ void AMSAntiRawCluster::build(int &status){
         if(ANTIRECFFKEY.reprtf[0])HF1(2501,geant(dt),1.);
         if(fabs(dt-ftdel[isid])<twin){//correlated FT and ADCA hits -> sum energy(p.e.)
           dt=((pbanti&tdca[2*j+1])-(pbanti&tdca[2*j]))*ANTIDBc::tdcabw();// TovT in ns
-          signal+=(athr[isid]*exp(slope[isid]*dt/tau));// Edep in p.e.
+          antisccal[sector].q2t2q(1,isid,dt,qs);// TovT->q(pC)
+          signal+=qs*q2pe;//  summing Edep in p.e.
         }
       }// ---> end of TDCA-hit loop
 // create AntiRawCluster object :

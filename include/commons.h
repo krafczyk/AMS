@@ -131,7 +131,6 @@ integer mcprtf[5];     // TOF MC-print flag (=0 -> no_printing)
 integer trlogic[2]; // to control trigger logic
 integer fast;    // 1/0 fast/slow algo;
 integer daqfmt;  // 0/1 raw/reduced TDC format for DAQ
-integer tdfnam[3];// f-name for PMT t-distr. files map
 integer birks;     // 0/1  not apply/apply birks corrections
 };
 #define TOFMCFFKEY COMMON_BLOCK(TOFMCFFKEY,tofmcffkey)
@@ -194,10 +193,8 @@ geant ThrS;  // limit on sum
   integer relogic[5];//RECO logic flag
   geant daqthr[5];// daq thresholds
   geant cuts[10];// cuts 
-  integer config[3];// geometry-configuration generic file-name (max 11 letters)
-  integer tzerca[3];// Lspeed/Tdif/Slop/T0 calib.parameters gen. file-name
-  integer strrca[3];// stretcher-ratio calib. file-name
-  integer amplca[3];// ampl_parameters calib. file-name
+//
+//
   integer sec[2];
   integer min[2];
   integer hour[2];
@@ -266,6 +263,7 @@ public:
   geant Path2PhEl[2];  // path to phel con factor (aerogel,wls)
   geant AbsLength[2];  // Absorbtion length in cm (aerogel, wls)
   geant Edep2Phel[2];  // Edep to phel con factor (aerogel,wls)
+  integer mcprtf;// hist. print flag
 };
 #define CTCMCFFKEY COMMON_BLOCK(CTCMCFFKEY,ctcmcffkey)
 COMMON_BLOCK_DEF(CTCMCFFKEY_DEF,CTCMCFFKEY);

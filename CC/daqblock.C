@@ -195,13 +195,6 @@ void DAQSBlock::buildblock(integer ibl, integer len, int16u *p){
 //---------------
   dlen=0;
   if((msk&2)>0)AMSAntiRawEvent::builddaq(blid, dlen, next);
-#ifdef __AMSDEBUG__
-  if(ibl==(DAQSBLK-1))  //clear AMSAntiRawEvent container after last block processed
-  {
-    AMSContainer *ptr=AMSEvent::gethead()->getC("AMSAntiRawEvent",0);
-    ptr->eraseC();
-  }
-#endif
   lent+=dlen;
 //---------------
   if(len != lent){

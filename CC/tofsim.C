@@ -77,28 +77,58 @@ geant AMSTOFScan::getef2(const geant r, const int i1, const int i2)
 }
 //-------------------------------------------------------------------
 // function to create AMSTOFScan objects for all sc. bars :
-void AMSTOFScan::build()
-{
+void AMSTOFScan::build(){
+//
+  int i,ic,nverst,ivers,dig;
+  int brfnam[SCBLMX];
+  char fname[80];
+  char name[80];
+  char in[2]="0";
+  char inum[11];
+  char verlst[20]="verslist.dat";
+  char tdisfn[20]="tdisfmap";
+//
+  strcpy(inum,"0123456789");
+//
+// ---> read version number of "tdisfmap"-file from verslist-file:
+//
+  strcpy(fname,AMSDATADIR.amsdatadir);
+//  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+  strcat(fname,verlst);
+  cout<<"AMSTOFScan::build: Open file  "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
+  if(!vlfile){
+    cerr <<"AMSTOFScan::build(): missing verslist-file "<<fname<<endl;
+    exit(1);
+  }
+  vlfile >> nverst;// total number of files in the list
+  vlfile >> ivers;// first number in first line (vers.# for tdisfmap-file)
+  vlfile.close();
+  ivers=(ivers%100);
+  cout<<"AMSTOFScan::build(): use tdisfmap-file version="<<ivers<<'\n';
+//  
 //                                  <-- first read t-distr. map-file
-    int i,ic;
-    int brfnam[SCBLMX];
-    char fname[80];
-    char name[17];
-    UHTOC(TOFMCFFKEY.tdfnam,4,name,12);
-    strcat(name,".dat");
-    strcpy(fname,AMSDATADIR.amsdatadir);    
-    strcat(fname,name);
-    cout<<"Open file : "<<fname<<'\n';
-    ifstream tcfile(fname,ios::in); // open needed tdfmap-file for reading
-    if(!tcfile){
-      cerr <<"TOFtdfmap-read: Error open tdfmap-file "<<fname<<endl;
-      exit(1);
-    }
-    for(ic=0;ic<SCBLMX;ic++) tcfile >> brfnam[ic];
+  strcpy(name,tdisfn);
+  dig=ivers/10;
+  in[0]=inum[dig];
+  strcat(name,in);
+  dig=ivers%10;
+  in[0]=inum[dig];
+  strcat(name,in);
+  strcat(name,".dat");
+  strcpy(fname,AMSDATADIR.amsdatadir);    
+//  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+  strcat(fname,name);
+  cout<<"Open file : "<<fname<<'\n';
+  ifstream tcfile(fname,ios::in); // open needed tdisfmap-file for reading
+  if(!tcfile){
+    cerr <<"AMSTOFScan::build(): missing tdisfmap-file "<<fname<<endl;
+    exit(1);
+  }
+  for(ic=0;ic<SCBLMX;ic++) tcfile >> brfnam[ic];
+  tcfile.close();
 //-------------------
 //                                  <-- now read t-distr. files
- char in[2]="0";
- char inum[11];
  int j,ila,ibr,brt,ibrm,isp,nsp,ibt,cnum,dnum,mult;
  integer nb;
  geant scp[SCANPNT];
@@ -109,13 +139,12 @@ void AMSTOFScan::build()
  AMSDistr td2[SCANPNT];
  geant eff1,eff2;
 //
-  strcpy(inum,"0123456789");
   for(ila=0;ila<SCLRS;ila++){   // <-------- loop over layers
   for(ibr=0;ibr<SCMXBR;ibr++){  // <-------- loop over bar in layer
     brt=TOFDBc::brtype(ila,ibr);
     if(brt==0)continue; // skip missing counters
     cnum=ila*SCMXBR+ibr; // sequential counter numbering(0-55)
-    dnum=brfnam[cnum];// 4-digits t-distr. file name
+    dnum=brfnam[cnum];// 4-digits t-distr. file name (VLBB)
     mult=1000;
     strcpy(name,"");
     for(i=3;i>=0;i--){//create 4-letters file name
@@ -127,11 +156,12 @@ void AMSTOFScan::build()
     }
     strcat(name,".dat");
     strcpy(fname,AMSDATADIR.amsdatadir);
+//    strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
     strcat(fname,name);
     cout<<"Open file : "<<fname<<'\n';
     ifstream tcfile(fname,ios::in); // open needed t-calib. file for reading
     if(!tcfile){
-      cerr <<"Sitofinitjob(job.c): Error open MC-t_distr. file "<<fname<<endl;
+      cerr <<"AMSTOFScan::build(): missing MC-t_distr. file "<<fname<<endl;
       exit(1);
     }
 // <-- fill errays scp,ef1,ef2 from file

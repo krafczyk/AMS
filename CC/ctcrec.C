@@ -26,7 +26,7 @@ void AMSCTCRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   int16u pbup,pbdn,pbup1,pbdn1;
   int16u id,idN,stat;
   integer i,j,im,nhit,chnum,am[2],sta,st;
-  int bad(0);
+  int bad(1);
   AMSCTCRawEvent *ptr;
 //
   pbitn=SCPHBP;// as for TOF
@@ -36,7 +36,7 @@ void AMSCTCRawEvent::validate(int &status){ //Check/correct RawEvent-structure
 // =============> check/correct logical "up/down" sequence :
 //
   ptr=(AMSCTCRawEvent*)AMSEvent::gethead()
-                        ->getheadC("AMSCTCRawEvent",0);//last 1 to sort
+                        ->getheadC("AMSCTCRawEvent",0);
   if(ptr>0){// presence of RawEvent
 //
 #ifdef __AMSDEBUG__
@@ -44,13 +44,12 @@ void AMSCTCRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   cout<<endl<<"=======> CTC::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
 #endif
 //                             <---- loop over CTC RawEvent hits -----
-  bad=1;
   while(ptr){
 #ifdef __AMSDEBUG__
     if(CTCRECFFKEY.reprtf[1]>=1)ptr->_printEl(cout);
 #endif
-    id=ptr->getid();// comb.number (1-CTCCCMX)
-    chnum=id;//channels numbering
+    id=ptr->getid();// comb.number CC (1-CTCCCMX)
+    chnum=integer(id-1);//channels numbering
     stat=ptr->getstat();
     if(stat == 0){ // still no sense(?) ( =0 upto now by definition)
 //       fill working arrays for given side:
@@ -78,7 +77,7 @@ void AMSCTCRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         ptr->puttdca(int16u(nhit),tdca2);// refill object with corrected data
         CTCJobStat::addch(chnum,1);
       }
-      if(nhit>0)bad=0;//at least one good sequence
+      if(nhit>0)bad=0;//at least one good TDCA-sequence
 //---> check FT-TDC :
       ntdct=ptr->gettdct(tdct1);
       nhit=0;
@@ -119,7 +118,7 @@ void AMSCTCRawEvent::mc_build(int &stat){//to build from CTCRawHit
   integer dbs,combn,gid,gidg,i,j,il,ix,iy,geoch,gchmx,nmemb,mblst[CTCCMMX],lmax;
   integer it,trflag(0);
   static integer geo2comn[2*CTCXDMX*CTCYDMX];//combination-number vs geo-channel
-  number sig,tm,signal[CTCCCMX],timesig[CTCCCMX];
+  number sig,tm,signal[CTCCCMX],timesig[CTCCCMX],sigtot(0);
   number t1,t2,dt,tlev1,ftrig,tovt;
   int16u phbit,maxv,id,chsta,ntdca,tdca[CTCEPMX],ntdct,tdct[CTCEPMX],itt;
   geant ftdel,q2pe;
@@ -128,7 +127,7 @@ void AMSCTCRawEvent::mc_build(int &stat){//to build from CTCRawHit
 //----------
   stat=1;//bad
   trflag=AMSTOFRawEvent::gettrfl();
-  if(trflag<=0)return;// because needs FTrigger abs. time
+  if(trflag<=0)return;// because CTC needs FTrigger abs. time from TOF
   stat=0;// ok
   ftrig=AMSTOFRawEvent::gettrtime();// FTrigger abs.time (ns)(incl. fixed delay)
   tlev1=ftrig+TOFDBc::accdel();// Lev-1 accept-signal abs.time
@@ -165,11 +164,11 @@ void AMSCTCRawEvent::mc_build(int &stat){//to build from CTCRawHit
       ix=(ptr->getcolno())-1;
       iy=(ptr->getrowno())-1;
       geoch=il*CTCXDMX*CTCYDMX+CTCYDMX*ix+iy;
-      gidg=1000*il+10*ix+iy;//LXXY=LCCR
+      gidg=1000*(il+1)+10*(ix+1)+iy+1;//LXXY=LCCR
 #ifdef __AMSDEBUG__
       assert(geoch >=0 && geoch < gchmx);
 #endif
-      combn=geo2comn[geoch];
+      combn=geo2comn[geoch];// CC-1 !!!
 #ifdef __AMSDEBUG__
       assert(combn >=0 && combn < CTCCCMX);
 #endif
@@ -180,8 +179,8 @@ void AMSCTCRawEvent::mc_build(int &stat){//to build from CTCRawHit
         if(gid==gidg)dbs=ctcfcal[combn].getmstat(j);// status from DB
       }
       if(dbs==0){// sum signals/times for alive cells (geo-channels)
-        sig=ptr->getsignal();//signal in photoelectrons
-        tm=(1.e9)*(ptr->gettime());// time in ns
+        sig=ptr->getsignal();//signal in p.e.
+        tm=(1.e+9)*(ptr->gettime());// time in ns
         signal[combn]+=sig;
         timesig[combn]+=tm*sig;
       }
@@ -191,74 +190,78 @@ void AMSCTCRawEvent::mc_build(int &stat){//to build from CTCRawHit
 //-------> create RawEvent objects :
 //
   for(i=0;i<CTCCCMX;i++){ // <--- loop over combination numbers (buffer)
-    sig=signal[i];
-    if(sig>0){
+    sig=signal[i];// p.e.
+    sigtot+=sig;
 //--------  digitize anode-signal :
-      tm=timesig[i]/sig; // signal-weighted time (ns)
+      tm=0;
+      if(sig>0)tm=timesig[i]/sig; // signal-weighted time (ns)
       q2pe=ctcfcal[i].getq2pe();//Q->pe conv.factor (pe/pC)
-      sig/=q2pe;// convert signal pe->pC 
-      ctcfcal[i].q2t2q(0,tovt,sig);// Q(pC)->TovT(ns)
-      t1=tm;// TovT-pulse up-edge (ns) abs.time
-      t2=tm+tovt;// TovT-pulse down-edge (ns) abs.time
+      sig/=q2pe;// convert signal p.e.->pC 
+      ctcfcal[i].q2t2q(0,tovt,sig);// Q(pC)->TovT(ns)(thresh. is applied automatically !)
+      if(tovt>0){// nonzero TovT: create pulse/TDCA/TDCT
+        t1=tm;// TovT-pulse up-edge (ns) abs.time
+        t2=tm+tovt;// TovT-pulse down-edge (ns) abs.time
 //
-      dt=tlev1-t2;// first take second(down)-edge of pulse(LIFO mode of readout !!!)
-      it=integer(dt/CTCDBc::tdcabw());
-      if(it>maxv){
-        cout<<"CTCRawEvent_mc: warning : down-time out of range"<<endl;
-        it=maxv;
-      }
-      itt=int16u(it);
-      if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
-      tdca[0]=itt;
+        dt=tlev1-t2;// first take second(down)-edge of pulse(LIFO mode of readout !!!)
+        it=integer(dt/CTCDBc::tdcabw());
+        if(it>maxv){
+          cout<<"CTCRawEvent_mc: warning : TDCA-down-time out of range"<<endl;
+          it=maxv;
+        }
+        itt=int16u(it);
+        if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+        tdca[0]=itt;
 //
-      dt=tlev1-t1;// now take first(up)-edge 
-      it=integer(dt/CTCDBc::tdcabw());
-      if(it>maxv){
-        cout<<"CTCRawEvent_mc: warning : up-time out of range"<<endl;
-        it=maxv;
-      }
-      itt=int16u(it);
-      if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
-      tdca[1]=itt;
+        dt=tlev1-t1;// now take first(up)-edge 
+        it=integer(dt/CTCDBc::tdcabw());
+        if(it>maxv){
+          cout<<"CTCRawEvent_mc: warning : TDCA-up-time out of range"<<endl;
+          it=maxv;
+        }
+        itt=int16u(it);
+        if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+        tdca[1]=itt;
 //--------  digitize FT-signal :
-      tovt=CTCDBc::ftpulw();// FTrigger pulse width in ns
-      t1=ftrig;// FT-pulse up-edge (ns) abs.time
-      t2=t1+tovt;// FT-pulse down-edge (ns) abs.time
+        tovt=CTCDBc::ftpulw();// FTrigger pulse width in ns
+        t1=ftrig;// FT-pulse up-edge (ns) abs.time
+        t2=t1+tovt;// FT-pulse down-edge (ns) abs.time
 //
-      dt=tlev1-t2;// first take second(down)-edge of pulse(LIFO mode of readout !!!)
-      it=integer(dt/CTCDBc::tdcabw());
-      if(it>maxv){
-        cout<<"CTCRawEvent_mc: warning : FT-down-time out of range"<<endl;
-        it=maxv;
-      }
-      itt=int16u(it);
-      if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
-      tdct[0]=itt;
+        dt=tlev1-t2;// first take second(down)-edge of pulse(LIFO mode of readout !!!)
+        it=integer(dt/CTCDBc::tdcabw());
+        if(it>maxv){
+          cout<<"CTCRawEvent_mc: warning : FT-down-time out of range"<<endl;
+          it=maxv;
+        }
+        itt=int16u(it);
+        if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+        tdct[0]=itt;
 //
-      dt=tlev1-t1;// now take first(up)-edge 
-      it=integer(dt/CTCDBc::tdcabw());
-      if(it>maxv){
-        cout<<"CTCRawEvent_mc: warning : FT-up-time out of range"<<endl;
-        it=maxv;
-      }
-      itt=int16u(it);
-      if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
-      tdct[1]=itt;
+        dt=tlev1-t1;// now take first(up)-edge 
+        it=integer(dt/CTCDBc::tdcabw());
+        if(it>maxv){
+          cout<<"CTCRawEvent_mc: warning : FT-up-time out of range"<<endl;
+          it=maxv;
+        }
+        itt=int16u(it);
+        if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+        tdct[1]=itt;
 //--------
-      ntdca=2;
-      ntdct=2;
-      id=int16u(i);//comb.number
-      chsta=0;// good
-      AMSEvent::gethead()->addnext(AMSID("AMSCTCRawEvent",0),
-                     new AMSCTCRawEvent(id,chsta,ntdca,tdca,ntdct,tdct));
-    }//---> end of sig>0 test
+        ntdca=2;
+        ntdct=2;
+        id=int16u(i+1);//comb.number
+        chsta=0;// good
+        AMSEvent::gethead()->addnext(AMSID("AMSCTCRawEvent",0),
+                       new AMSCTCRawEvent(id,chsta,ntdca,tdca,ntdct,tdct));
+      }//---> end of nonzero TovT test
   }// ---> end of comb.loop
+//
+  if(CTCMCFFKEY.mcprtf>0)HF1(3500,geant(sigtot),1.);
 }
 //----------------------------------------------------------------------
 void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
   int16u id,ntdca,tdca[CTCEPMX*2],ntdct,tdct[CTCEPMX*2];
   int16u pbitn,pbanti;
-  integer nmemb,mblist[CTCCMMX],mbstat[CTCCMMX],ngmem,status(0);
+  integer nmemb,mblist[CTCCMMX],mbstat[CTCCMMX],ngmem,status;
   integer jmax,chnum,i,j,gid,row,col,layer;
   number atm,fttm,dt,q,signal,msignal,totsig;
   geant twin,ftdel,q2pe;
@@ -267,7 +270,7 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
   ptr=(AMSCTCRawEvent*)AMSEvent::gethead()
                                     ->getheadC("AMSCTCRawEvent",0);
   pbitn=SCPHBP;//phase bit position as for TOF
-  pbanti=pbitn-1;// mask to avoid it.
+  pbanti=pbitn-1;// mask to kill it.
   twin=CTCRECFFKEY.ftwin;
 //
   stat=1;//bad
@@ -276,14 +279,19 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
   totsig=0;
   while(ptr){ // <--- RawEvent hits loop
     id=ptr->getid();// comb. number
-    nmemb=ctcfcal[id].getmembers(mblist);// memb.list (LXXY's) 
-    for(i=0;i<nmemb;i++)mbstat[i]=ctcfcal[id].getmstat(i);// memb.status fr.DB
+    chnum=integer(id-1);
+    nmemb=ctcfcal[chnum].getmembers(mblist);// memb.list (LXXY's) 
+    for(i=0;i<nmemb;i++)mbstat[i]=ctcfcal[chnum].getmstat(i);// memb.status fr.DB
     ngmem=0;
     for(i=0;i<nmemb;i++)if(mbstat[i]==0)ngmem+=1;// count alive members
-    if(ngmem==0)status=1;//bad according to DB
-    chnum=integer(id);
+    status=0;
+    if(ngmem==0)status=1;//bad according to DB (all members are bad)
+    if(status==1){
+      ptr=ptr->next();// skip current and take next RawEvent hit
+      continue;
+    } 
 //channel statistics :
-    if(status==0)CTCJobStat::addch(chnum,4); 
+    CTCJobStat::addch(chnum,4);
     ntdca=ptr->gettdca(tdca);
     if(ntdca>0)CTCJobStat::addch(chnum,5);
     if(ntdca==2)CTCJobStat::addch(chnum,6);
@@ -292,8 +300,8 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
     if(ntdct>0)CTCJobStat::addch(chnum,7);
     if(ntdct==2)CTCJobStat::addch(chnum,8);
 //
-    ftdel=ctcfcal[id].getftdel();//FT-delay wrt anode signal
-    q2pe=ctcfcal[id].getq2pe();//Q->pe conv.factor (pe/pC)
+    ftdel=ctcfcal[chnum].getftdel();//FT-delay wrt anode signal
+    q2pe=ctcfcal[chnum].getq2pe();//Q->pe conv.factor (pe/pC)
 //--------
       signal=0.;
 //<--- Use first (last on TDC input) FT-double_hit(2edges) as true hit 
@@ -305,27 +313,30 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
         if(CTCRECFFKEY.reprtf[0])HF1(3001,geant(dt),1.);
         if(fabs(dt-ftdel)<twin){//correlated FT and ADCA hits -> sum energy(pC)
           dt=((pbanti&tdca[2*j+1])-(pbanti&tdca[2*j]))*CTCDBc::tdcabw();// TovT in ns
-          ctcfcal[id].q2t2q(1,dt,q);// TovT(ns)->Q(pC)
-          signal+=q*q2pe;// Q(pC)-> Signal(pe)
+          ctcfcal[chnum].q2t2q(1,dt,q);// TovT(ns)->Q(pC)
+          signal+=(q*q2pe);// Q(pC)-> Signal(pe), sum up TDCA-hits (true)
         }
       }// ---> end of TDCA-hit loop
       totsig+=signal;
 //
 // create CTCRawHit objects :
-    if(ngmem>0)msignal=signal/number(ngmem);//signal per good member
-    for(i=0;i<nmemb;i++){
-      gid=mblist[i];//LXXY=LCCR
-      layer=gid/1000;
-      col=(gid%1000)/100;
-      row=(gid%1000)%10;
-      status=mbstat[i];
-      if(status==0){
-        stat=0;//ok, at least one object created
-        AMSEvent::gethead()->addnext(AMSID("AMSCTCRawHit",layer-1),
+//
+    if(ngmem>0 && signal>0){ // good comb.channel
+      msignal=signal/number(ngmem);//signal per good member
+      for(i=0;i<nmemb;i++){
+        gid=mblist[i];//LXXY=LCCR
+        layer=gid/1000;
+        col=(gid%1000)/10;
+        row=(gid%1000)%10;
+        status=mbstat[i];
+        if(status==0){
+          stat=0;//event ok ( at least one object created)
+          AMSEvent::gethead()->addnext(AMSID("AMSCTCRawHit",layer-1),
                         new AMSCTCRawHit(status,row,layer,col,msignal,0));
-      }
+        }
 //    
-    }
+      }
+    }// ---> end of good comb.channel check
 //
     ptr=ptr->next();// take next RawEvent hit
   }// ---> end of RawEvent hits loop
@@ -388,7 +399,7 @@ else {
  for(integer kk=0;kk<CTCDBc::getnlay();kk++){
 
   AMSCTCRawHit *ptr=(AMSCTCRawHit*)AMSEvent::gethead()->
-  getheadC("AMSCTCRawHit",kk,1);
+  getheadC("AMSCTCRawHit",kk);
   integer const maxpl=200;
   static number xplane[maxpl];
   static integer xstatus[maxpl];
@@ -577,7 +588,7 @@ void AMSCTCRawEvent::builddaq(int16u blid, integer &len, int16u *p){
   for(tdcc=0;tdcc<CTCCHSF;tdcc++)ptlist[tdcc]=0;// clear pointer array
   nctcs=0;
   while(ptr){
-    id=ptr->getid();// CC
+    id=ptr->getid();// CC (1-CTCCCMX)
     hwid=AMSCTCRawEvent::sw2hwid(id);// CAA, always >0 here
     tdcc=hwid%100-1;
     crate=hwid/100-1;
@@ -758,7 +769,7 @@ void AMSCTCRawEvent::buildraw(int16u blid, integer &len, int16u *p){
               if(mtyp==2)ntdct=nhit;
               nzch+=1;//count !=0 TDC-ch inside of one SFEC
               if(mtyp==1){
-                swid[nzcch]=AMSCTCRawEvent::hw2swid(crate,hwch);// CC or 0
+                swid[nzcch]=AMSCTCRawEvent::hw2swid(crate,hwch);// CC(1-CTCCCMX) or 0
                 nzcch+=1;//count !=0 CTC-TDC-channels inside of one TDC-chip
               }
             }
@@ -957,7 +968,7 @@ int16u AMSCTCRawEvent::sw2hwid(int16u a1){
   if(first==0){ // create hardw.id list:
     first=1;
     for(i=0;i<CTCCCMX;i++)hidlst[i]=0;
-    for(crate=0;crate<CTCCRTS;crate++){
+    for(crate=0;crate<SCCRAT;crate++){// crates (0-7)
       for(sfech=0;sfech<CTCCHSF;sfech++){// SFEC channels (0-15)
         hwid=100*(crate+1)+sfech+1;//  (CAA)
         swid=AMSCTCRawEvent::hw2swid(crate,sfech);// CC

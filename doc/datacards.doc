@@ -87,8 +87,7 @@ I 11   Trig.logic-flag(0)  //  use AND/OR(if=0/1) for two side logic signals
 I 12   Trig.logic-flag(0)  //  use ANY3/ALL4(if=0/1) coinc. for 4 TOF-layers         
 I 13   fast(0)             //  fast/slow(i.e. accurate) (1/0) algorithm switch
 I 14   daqfmt(1)           // Raw/Reduced(0/1) TDC format for DAQ simulation
-I 15-17  file-name         // (<=11 letters) contains map of t-distr. file names
-I 18   birks(1)            // apply or not birks correction
+I 15   birks(1)            // apply or not birks correction
 
 
 // TOF Reconstruction
@@ -115,16 +114,12 @@ I 18  cut-1 ()            // cut on time diff. of the same hit in fast/slow TDC
 I 19  cut-2 ()            // cut on min. distance of "befor"-hit in time history TDC
 I 20  cut-3 ()            // ........................"after"-hit in time history TDC
 I 21-27 spare cuts        //
-I 28-30 generic file-name // (<=11 letters) contains bar-types map and geometry const.
-I 31-33 generic file-name // (<=11 letters) contains Lspeed/Tdif/Slope/T0 const.
-I 34-36 generic file-name // (<=11 letters) contains stretcher ratio const.
-I 37-39 generic file-name // (<=11 letters) spare file name
-I 40   sec[2](0,0)        // Validity time:
-I 42   min[2](0,0)        //
-I 44   hour[2](0,0)       // 
-I 46   day[2](1,1)        //
-I 48   mon[2](0,0)        //
-I 50   year[2](96,98)     //
+I 28   sec[2](0,0)        // Validity time:
+I 30   min[2](0,0)        //
+I 32   hour[2](0,0)       // 
+I 34   day[2](1,1)        //
+I 36   mon[2](0,0)        //
+I 38   year[2](96,98)     //
 
 // TOF calibration
 
@@ -177,6 +172,7 @@ R  1   Refraction[2](1.055,1.59) // Refraction indexes
 R  3   Path2PhEl(23.,28.)        // Path to photoelectrons conv factor
 R  5   AbsLengt(15, 100)         // Abs length in cm 
 R  7   Edep2Phel(0,184e3)       //  Edep to phelectrons conv factor
+I  9   mcprtf(0)                // print MC-hist. if !=0
 
 
 
@@ -247,8 +243,13 @@ RNDM
 // CTC  Reconstruction
 
 CTCREC      
-R 1   Thr1(1.5)                   // Threshold on max element of cluster (phe)
-R 2   ThrS(3.)                   // Threshold on  cluster sum (phe)
+R 1   Thr1(1.5)           // Threshold on max element of cluster (phe)
+R 2   ThrS(3.)            // Threshold on  cluster sum (phe)
+I 3 reprtf[0] (0)         // RECO-hist print flag
+I 4       [1] (0)         // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding
+I 5       [2] (0)         // spare
+R 6 ftwin(100)            // time-window for "true" ADCA-hit search (ns)
+I 7-18                    // sec,min,hour,day,mon,year for DB update
 
 // Tracker Clusters Reconstruction
 

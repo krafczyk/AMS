@@ -1572,6 +1572,15 @@ depend:
 ../bin/osf1/../CC/tofdbc.o: ../include/extC.h /usr/include/cxx/fstream.h
 ../bin/osf1/../CC/tofdbc.o: /usr/include/cxx/fstream.hxx ../include/tofsim.h
 ../bin/osf1/../CC/tofdbc.o: ../include/apool.h ../include/link.h
+../bin/osf1/../CC/tofdbc.o: ../include/tofrec.h ../include/event.h
+../bin/osf1/../CC/tofdbc.o: ../include/cont.h /usr/include/sys/time.h
+../bin/osf1/../CC/tofdbc.o: /usr/include/sys/signal.h
+../bin/osf1/../CC/tofdbc.o: /usr/include/sys/siginfo.h
+../bin/osf1/../CC/tofdbc.o: /usr/include/machine/signal.h
+../bin/osf1/../CC/tofdbc.o: /usr/include/machine/context.h
+../bin/osf1/../CC/tofdbc.o: /usr/include/sys/procset.h ../include/mceventg.h
+../bin/osf1/../CC/tofdbc.o: ../include/io.h /usr/include/sys/times.h
+../bin/osf1/../CC/tofdbc.o: ../include/daqevt.h
 ../bin/osf1/../CC/ctcrec.o: ../include/point.h ../include/typedefs.h
 ../bin/osf1/../CC/ctcrec.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/../CC/ctcrec.o: /usr/include/cxx/iostream.h

@@ -148,27 +148,27 @@ void CTCCCcal::build(){
  }
 //
  strcat(name,".dat");
-// strcpy(fname,AMSDATADIR.amsdatadir);    
-  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/ctcca/");//tempor
+ strcpy(fname,AMSDATADIR.amsdatadir);    
+//  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/ctcca/");//tempor
   strcat(fname,name);
   cout<<"Open file : "<<fname<<'\n';
-  ifstream tcfile(fname,ios::in); // open  file for reading
-  if(!tcfile){
+  ifstream ctccfile(fname,ios::in); // open  file for reading
+  if(!ctccfile){
    cerr <<"CTCCCcal_build: Error opening  "<<fname<<endl;
    exit(1);
   }
-  tcfile >> ncomb; // real number of combinations
+  ctccfile >> ncomb; // real number of combinations
   for(i=0;i<ncomb;i++){// <-- comb. loop
-    tcfile >> nm; // number of members
+    ctccfile >> nm; // number of members
     nmem[i]=nm;
     for(j=0;j<nm;j++){// <-- memb. loop
-      tcfile >> memb[i][j];// member (LXY=LCR)
-      tcfile >> stat[i][j];// status 
+      ctccfile >> memb[i][j];// member (LXY=LCR)
+      ctccfile >> stat[i][j];// status 
     }
   }
-//-------------------------------------------
+//--------------------------------------------------
 // -------> read integrator parameters file :
-//-------------------------------------------
+//--------------------------------------------------
 // -------> now create calibr. objects:
   for(i=0;i<ncomb;i++){
     nm=nmem[i];
@@ -217,39 +217,40 @@ void CTCJobStat::print(){
   cout<<" MC: Ghits->RawHit OK    : "<<mccount[1]<<endl;
   cout<<" MC: RawHit->RawEvent OK : "<<mccount[2]<<endl;
   cout<<" RECO-entries            : "<<recount[0]<<endl;
-  cout<<" RawEvent-validation OK  : "<<recount[1]<<endl;
-  cout<<" RawEvent->RawHits OK    : "<<recount[2]<<endl;
-  cout<<" RawHits->Cluster OK     : "<<recount[3]<<endl;
+  cout<<" Lev-1 trigger OK        : "<<recount[1]<<endl;
+  cout<<" RawEvent-validation OK  : "<<recount[2]<<endl;
+  cout<<" RawEvent->RawHits OK    : "<<recount[3]<<endl;
+  cout<<" RawHits->Cluster OK     : "<<recount[4]<<endl;
   cout<<endl;
 //
 //
   cout<<"        ===========> Channels validation report :"<<endl<<endl;
 //
-  cout<<"comb.#"<<" id(LXXY)         "<<"h/w stat OK"<<" A-bad seq(%)  FT-bad seq(%)"<<endl;
+  cout<<"comb.#"<<" id(LXXY)         "<<"h/w-stat_OK"<<" A-bad_seq(%)  FT-bad_seq(%)"<<endl;
   cout.setf(ios::fixed);
     for(ic=0;ic<CTCCCMX;ic++){
-      cout<<"   "<<ic<<"  ";
+      cout<<setw(6)<<(ic+1)<<"   ";
       nmemb=ctcfcal[ic].getmembers(mblst);
       for(j=0;j<nmemb;j++)cout<<mblst[j]<<" ";
-      cout<<chcount[ic][0]<<"      ";
+      cout<<"        "<<setw(6)<<chcount[ic][0]<<"        ";
       rc=geant(chcount[ic][0]);
       if(rc>0.){
         rc1=100.*geant(chcount[ic][1])/rc;
         rc2=100.*geant(chcount[ic][2])/rc;
       }
-      cout<<setw(6)<<setprecision(2)<<rc1<<"             "<<rc2<<endl;
+      cout<<setw(6)<<setprecision(2)<<rc1<<"           "<<rc2<<endl;
     }
     cout<<endl;
 //
   cout<<"============> Channels reconstruction report :"<<endl<<endl;
 //
-  cout<<"comb.#"<<" id's (LXXY)   "<<"h/w stat OK"<<" A-TDC ON(%)  Nhit=1(pair)";
-  cout<<"T-TDC ON(%)   Nhit=1(pair)"<<endl;
+  cout<<"comb.#"<<" id's (LXXY)   "<<"h/w-stat_OK"<<" A-TDC_ON(%)  Nhit=1(pair)";
+  cout<<"  T-TDC_ON(%)   Nhit=1(pair)"<<endl;
     for(ic=0;ic<CTCCCMX;ic++){
-      cout<<"   "<<ic<<"  ";
+      cout<<setw(6)<<(ic+1)<<"   ";
       nmemb=ctcfcal[ic].getmembers(mblst);
       for(j=0;j<nmemb;j++)cout<<mblst[j]<<" ";
-      cout<<chcount[ic][4]<<"      ";
+      cout<<"  "<<setw(6)<<chcount[ic][4]<<"         ";
       rc=geant(chcount[ic][4]);
       if(rc>0.){
         rc1=100.*geant(chcount[ic][5])/rc;
@@ -257,7 +258,8 @@ void CTCJobStat::print(){
         rc3=100.*geant(chcount[ic][7])/rc;
         rc4=100.*geant(chcount[ic][8])/rc;
       }
-      cout<<setw(6)<<setprecision(2)<<rc1<<"      "<<rc2<<"      "<<rc3<<"      "<<rc4<<endl;
+      cout<<setw(6)<<setprecision(2)<<rc1<<"          "<<setw(6)<<rc2<<"         "
+                                            <<setw(6)<<rc3<<"        "<<setw(6)<<rc4<<endl;
     }
     cout<<endl;
 //

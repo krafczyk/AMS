@@ -557,24 +557,32 @@ void AMSEvent::_reantievent(){
 //
   else{                                                        // slow algorithm
 //
-    AMSAntiRawEvent::validate(stat);// RawEvent-->RawEvent
-    if(stat!=0){
+    ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+    if(ptr)trflag=ptr->gettoflg();
+    if(trflag<=0){
       AMSgObj::BookTimer.stop("REANTIEVENT");
-      return;
+      return;// "no h/w TOF-trigger"
     }
     ANTIJobStat::addre(1);
 //
-    AMSAntiRawCluster::build(stat);// RawEvent->RawCluster
+    AMSAntiRawEvent::validate(stat);// RawEvent-->RawEvent
     if(stat!=0){
       AMSgObj::BookTimer.stop("REANTIEVENT");
       return;
     }
     ANTIJobStat::addre(2);
 //
+    AMSAntiRawCluster::build(stat);// RawEvent->RawCluster
+    if(stat!=0){
+      AMSgObj::BookTimer.stop("REANTIEVENT");
+      return;
+    }
+    ANTIJobStat::addre(3);
+//
   }
 //
   AMSAntiCluster::build();// RawCluster->Cluster
-  ANTIJobStat::addre(3);
+  ANTIJobStat::addre(4);
 // 
   #ifdef __AMSDEBUG__
    if(AMSEvent::debug)AMSAntiCluster::print();
@@ -649,28 +657,37 @@ TriggerLVL1 *ptr;
 }
 //========================================================================
 void AMSEvent::_rectcevent(){
-  int stat(0);
+  integer trflag(0);
+  int stat;
+  TriggerLVL1 *ptr;
   AMSgObj::BookTimer.start("RECTCEVENT");
 //
   CTCJobStat::addre(0);
 //
+  ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  if(ptr)trflag=ptr->gettoflg();
+  if(trflag<=0){
+    AMSgObj::BookTimer.stop("RECTCEVENT");
+    return;// "no h/w TOF-trigger"
+  }
 //
+  CTCJobStat::addre(1);
   AMSCTCRawEvent::validate(stat);// RawEvent-->RawEvent
   if(stat!=0){
     AMSgObj::BookTimer.stop("RECTCEVENT");
     return;
   }
-  ANTIJobStat::addre(1);
+  CTCJobStat::addre(2);
 //
   AMSCTCRawHit::build(stat);// RawEvent-->RawHit
   if(stat!=0){
     AMSgObj::BookTimer.stop("RECTCEVENT");
     return;
   }
-  ANTIJobStat::addre(2);
+  CTCJobStat::addre(3);
 //
   AMSCTCCluster::build();// RawHit-->Cluster
-  ANTIJobStat::addre(3);
+  CTCJobStat::addre(4);
 //
   #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSCTCCluster::print();
@@ -758,7 +775,7 @@ void AMSEvent:: _sitkevent(){
 
 void AMSEvent:: _sitrdevent(){
 }
-
+//---------------------------------------------------------------
 void AMSEvent:: _siantievent(){
   int stat;
   AMSgObj::BookTimer.start("SIANTIEVENT");
@@ -767,7 +784,10 @@ void AMSEvent:: _siantievent(){
   if(TOFMCFFKEY.fast==0){//           ===> slow algorithm:
 //
     AMSAntiRawEvent::mc_build(stat);// Geant_hit->RawEvent
-    if(stat!=0)return;// no FTrigger from TOF - skip the rest
+    if(stat!=0){
+      AMSgObj::BookTimer.stop("SIANTIEVENT");
+      return;// no FTrigger from TOF - skip the rest
+    }
     ANTIJobStat::addmc(1);
 //
   }
@@ -783,7 +803,7 @@ void AMSEvent:: _siantievent(){
 #endif
   AMSgObj::BookTimer.stop("SIANTIEVENT");
 }
-
+//----------------------------------------------------------------
 
 void AMSEvent:: _sitrigevent(){
 
@@ -837,17 +857,20 @@ void AMSEvent:: _sitofevent(){
 void AMSEvent:: _sictcevent(){
   int stat(0);
 //
+//  if((AMSEvent::gethead()->getid())==56)CTCRECFFKEY.reprtf[1]=2;//tempor
+//  else CTCRECFFKEY.reprtf[1]=0;
+//
   AMSgObj::BookTimer.start("SICTCEVENT");
   CTCJobStat::addmc(0);
   AMSCTCRawHit::sictcdigi();// Ghits-->RawHit
   CTCJobStat::addmc(1);
 //
   AMSCTCRawEvent::mc_build(stat);// RawHit-->RawEvent
-  if(stat!=0){
+  if(stat!=0){// no FTrigger from TOF - skip the rest
     AMSgObj::BookTimer.stop("SICTCEVENT");
     return; // no MC-TOFtrigger
   }
-  TOFJobStat::addmc(2);
+  CTCJobStat::addmc(2);
 //
 #ifdef __AMSDEBUG__
   AMSContainer *p =getC("AMSCTCRawCluster",0);

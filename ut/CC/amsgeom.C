@@ -127,7 +127,7 @@ AMSNode *dau;
 AMSgtmed *p;
 AMSID amsid;
 //
-TOFDBc::readgconf(TOFRECFFKEY.config);// read TOF-counters geometry parameters
+TOFDBc::readgconf();// read TOF-counters geometry parameters
 //------
 dz1=TOFDBc::supstr(7)/2.+TOFDBc::plnstr(1)+TOFDBc::plnstr(7)
    +TOFDBc::plnstr(6)/2.+TOFDBc::plnstr(3)/2.;//dz hon_str/outer_sc_fixation

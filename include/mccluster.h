@@ -109,7 +109,7 @@ public:
  _beta(beta), _edep(edep), _time(time){_next=0;};
   AMSCTCMCCluster(){_next=0;};
  ~AMSCTCMCCluster(){};
- inline integer gettime() const {return _time;}
+ inline number gettime() const {return _time;}
  inline integer getid() const{return _idsoft;}
  inline integer getbarno() const{ return _idsoft%1000;}
  inline integer getdetno() const{ return CTCDBc::getgeom()<2?_idsoft/10000:

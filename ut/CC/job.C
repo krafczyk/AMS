@@ -19,7 +19,6 @@
 #include <job.h>
 #include <event.h>
 #include <charge.h>
-#include <ctcdbc.h>
 #include <timeid.h>
 #include <mceventg.h>
 #include <trcalib.h>
@@ -292,7 +291,6 @@ FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=================================================================================
 void AMSJob::_sitofdata(){
-  char tfname[12]="tdfmap01";//file-name for t_distr.files map(max 11 letters )
   TOFMCFFKEY.TimeSigma=1.1e-10; // time resolution(sec) for simplified algorithm
   TOFMCFFKEY.TimeSigma2=4.5e-10;
   TOFMCFFKEY.TimeProbability2=0.035;
@@ -307,9 +305,8 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.trlogic[0]=1; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
   TOFMCFFKEY.trlogic[1]=0; // ......................(=0/1-> ANY3/ALL4 layer coincidence) 
   TOFMCFFKEY.fast=0;       // 0/1-> fast/slow simulation algorithm
-  TOFMCFFKEY.birks=1;       // 0/1->  not apply/apply birks corrections
   TOFMCFFKEY.daqfmt=1;     // 0/1-> raw/reduced TDC format for DAQ simulation
-  UCTOH(tfname,TOFMCFFKEY.tdfnam,4,12);
+  TOFMCFFKEY.birks=1;       // 0/1->  not apply/apply birks corrections
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
@@ -369,6 +366,7 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.ptfe[2]=7.175;   //
   CTCGEOMFFKEY.xdiv=5;
   CTCGEOMFFKEY.ydiv=4;
+//
   CTCMCFFKEY.Refraction[0]=1.036;   // Refraction indexes
   CTCMCFFKEY.Refraction[1]=1.58;
   CTCMCFFKEY.Path2PhEl[0]=20;   // Path to photoelectrons conv fact
@@ -377,6 +375,7 @@ void AMSJob::_sictcdata(){
   CTCMCFFKEY.AbsLength[1]=100;
   CTCMCFFKEY.Edep2Phel[0]=0;      // Agel is not a scint
   CTCMCFFKEY.Edep2Phel[1]=184e3;  // WLS is scint if vertical readout
+  CTCMCFFKEY.mcprtf=0;//print MC-hist if !=0
 
 FFKEY("CTCGEOM",(float*)&CTCGEOMFFKEY,sizeof(CTCGEOMFFKEY_DEF)/sizeof(integer),"MIXED");
 FFKEY("CTCMC",(float*)&CTCMCFFKEY,sizeof(CTCMCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -545,14 +544,6 @@ TKFINI();
 }
 
 void AMSJob::_retofdata(){
-  char cfname[12]="geomconf";//geomconfig-file generic name (max 11 letters)
-//                          (version #01/02-> shuttle/Alpha will be added autom.)
-  char tzslop[12]="tzcalib01";//Ls/Tdif/T0/Slope-file generic name(max.11 lett)
-//                           ("mc"/"rl"->MC/Real will be added automatically)
-  char strrat[12]="srcalib01";//stretcher_ratio-file generic name(max.11 lett)
-//                           (mc/rl->MC/Real will be added automatically)
-  char analog[12]="ancalib01";//gain/unif/a2dr-file generic name(max.11 lett)
-//                           (mc/rl->MC/Real will be added automatically)
 // 
   TOFRECFFKEY.Thr1=0.45;// Threshold (mev) on peak bar energy
   TOFRECFFKEY.ThrS=0.9; // Threshold (mev) on total cluster energy
@@ -585,14 +576,6 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.cuts[7]=0.;
   TOFRECFFKEY.cuts[8]=0.;
   TOFRECFFKEY.cuts[9]=0.;
-//
-  UCTOH(cfname,TOFRECFFKEY.config,4,12);
-//
-  UCTOH(tzslop,TOFRECFFKEY.tzerca,4,12);
-//  
-  UCTOH(strrat,TOFRECFFKEY.strrca,4,12);
-//  
-  UCTOH(analog,TOFRECFFKEY.amplca,4,12);
 //  
   TOFRECFFKEY.sec[0]=0; 
   TOFRECFFKEY.sec[1]=0;
@@ -1002,6 +985,9 @@ void AMSJob::_siantiinitjob(){
 
 void AMSJob::_sictcinitjob(){
      AMSgObj::BookTimer.book("SICTCEVENT");
+     if(CTCMCFFKEY.mcprtf>0){
+       HBOOK1(3500,"CTC total MC raw signal(p.e.)",80,0.,80.,0.);
+     }
 }
 
 void AMSJob::_sitrdinitjob(){
@@ -1253,9 +1239,13 @@ void AMSJob::_rectcinitjob(){
 AMSgObj::BookTimer.book("RECTCEVENT");
 // AMSCTCRawHit::init();
   if(CTCRECFFKEY.reprtf[0]>0){
-    HBOOK1(3000,"CTC total signal(raw,pe)",80,0.,20.,0.);
+    HBOOK1(3000,"CTC total RECO raw signal(p.e.)",80,0.,80.,0.);
     HBOOK1(3001,"CTC_channel: T_tdca-Ttdct (reco,ns)",80,-20.,220.,0.);
   }
+// ===> Clear JOB-statistics counters for SIM/REC :
+//
+    CTCJobStat::clear();
+//
 // ===> create ctcfcal-objects(TDV) for each CTC cells group (combination) :
 //
     CTCCCcal::build();
@@ -1594,6 +1584,10 @@ void AMSJob::_tkendjob(){
 //------------------------------------------------------------------
 void AMSJob::_ctcendjob(){
   if(CTCRECFFKEY.reprtf[0]>0){
+    HPRINT(3500);
+  }
+  if(CTCRECFFKEY.reprtf[0]>0){
+    HPRINT(3000);
     HPRINT(3001);
   }
 //

@@ -188,6 +188,9 @@ M A I N  ->      gbatch.C
  |        |    |   |       |->AMSAntiRawEvent::mc_build    Geant_hits-->RawEvent_objects
  |        |    |   |                                               (digitization)
  |        |    |   |->_sictcevent     Simulate CTC
+ |        |    |   |       |
+ |        |    |   |       |->AMSCTCRawHit::sictcdigi      Geant_hits-->RawHit
+ |        |    |   |       |->AMSCTCRawEvent::mc_build     RawHit-->RawEvent
  |        |    |   |     
  |        |    |   |->_sitrigevent    Simulate Trigger     
  |        |    |   |      |->TriggerLVL1::build();
@@ -224,9 +227,11 @@ M A I N  ->      gbatch.C
  |        |    |    |     |->_retkevent                 Refit if necessary     
  |        |    |    |                          
  |        |    |    |->_retrdevent     reconstruct TRD
+ |        |    |    |
  |        |    |    |->_rectcevent     reconstruct CTC
- |        |    |    |     |
- |        |    |    |     |->AMSCTCCluster::build        Make clusters
+ |        |    |    |     |->AMSCTCRawEvent::validate   RawEvent-->RawEvent
+ |        |    |    |     |->AMSCTCRawHit::build        RawEvent-->RawHit
+ |        |    |    |     |->AMSCTCCluster::build       RawHit-->Cluster
  |        |    |    |
  |        |    |    |->_reaxevent      global reconstruction
  |        |    |          |
