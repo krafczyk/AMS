@@ -348,9 +348,9 @@ extern "C" void gustep_(){
     cerr<<" i " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
   }
 #endif
-
 #ifndef __BATCH__
   GSXYZ();
+//GDCXYZ();
 #endif
   }
   
@@ -506,13 +506,13 @@ extern "C" void guout_(){
    }
 //-
 #endif
-
      UPool.Release(0);
    AMSEvent::gethead()->remove();
      UPool.Release(1);
    AMSEvent::sethead(0);
    UPool.erase(2000000);
    AMSgObj::BookTimer.stop("GUOUT");
+
 }
 
 extern "C" void abinelclear_();

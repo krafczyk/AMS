@@ -380,7 +380,12 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
          cerr<<"AMSmceventg::setspectra-F-NoPrimarySpectraDefinedForParticle "<<ipart<<endl;
          exit(1);
         }
-        else return;
+        else{
+          char hp[9]="//PAWC";
+          HCDIR(hp," ");
+          HCDIR (cdir, " ");
+          return;
+        }
          HF1(_hid,xm,y);
          HF1(_hid+1,xm,y);
        }
