@@ -5914,7 +5914,7 @@ c        print *,' Fit failed ',ifail
               parameter (maxpl=10)
               common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
      +        yn(3,maxpl),xmass,chrg
-          real *8 xc(n),fc,tol,dlt
+          real *8 xc(6),fc,tol,dlt
           real *4 point(6)
           real *4 init(7),out(7)
           real* 8 m55(5,5,maxpl),sol(5),g(5),gg(5,5),
@@ -6383,7 +6383,9 @@ CDECK  ID>, TKFUNXY.
           common /tkclearC/clear
           integer clear
           data clear/1/
-          real der(10,2),derl(*)
+          real der(10,2)
+          save der
+          real derl(*)
            real *4 in(*),out(*),xx(3),h(3),hxy(3,3)
            if(clear.le.0)clear=1
            if(clear.eq.2)then

@@ -38,7 +38,7 @@ CFLAGS=      -D__BATCH__  -O2    -I../include -I../include/stl  -I../db
 CFLAGSn=      -D__BATCH__       -I../include -I../include/stl  -I../db
 FFLAGS=   -static -O -I../include
 DFLAGS=    -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
-LDFLAGS=  /cern/pro/lib/lnblnk_.o   -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -ln  -L/usr/local/lib  -lF77 -lI77  -lm
+LDFLAGS=  /cern/pro/lib/lnblnk_.o  -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -ln  -L/usr/local/lib  -lF77 -lI77  -lm
 CC=g++
 FF=g77
 LD=g++
@@ -256,7 +256,7 @@ $(BIN)trid.o: 	         $(SCC)trid.C
 	$(CC) -c $(CFLAGS) $(SCC)trid.C -o $(BIN)trid.o
 
 $(BIN)trrec.o: 	 $(SCC)trrec.C
-	$(CC) -c $(CFLAGS) $(SCC)trrec.C -o $(BIN)trrec.o
+	$(CC) -c $(CFLAGSn) $(SCC)trrec.C -o $(BIN)trrec.o
 
 $(BIN)trcalib.o: 	 $(SCC)trcalib.C
 	$(CC) -c $(CFLAGS) $(SCC)trcalib.C -o $(BIN)trcalib.o

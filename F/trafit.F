@@ -48,6 +48,7 @@ C
 C--       FIRST FIT IN XY PROJECTION
 C
        iflaxy=0
+       iflasz=0
        tid=1
        if(ifit.eq.0 .or.ifit.eq. 1)
      +       CALL TXYFIT(X,Y,WXY,SPCOR,NPT,3,RESXY,IFLAXY)
