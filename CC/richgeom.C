@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.20 2003/03/13 09:46:55 delgadom Exp $
+//  $Id: richgeom.C,v 1.21 2003/03/20 10:16:14 delgadom Exp $
 #include <typedefs.h>
 #include <node.h>
 #include <snode.h>
@@ -278,8 +278,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   par[4]=RICHDB::lg_bottom_length/2.+RIClgthk_bot;
   par[5]=par[4];
   par[6]=0;
-  //  par[7]=RICepsln;  // This is a patch for G4
-  par[7]=0.;
+  par[7]=RICepsln/2.;  // This is a patch for G4
   par[8]=RICHDB::lg_length/2.;
   par[9]=par[8];
   par[10]=0;
