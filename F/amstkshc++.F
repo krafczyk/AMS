@@ -1488,7 +1488,7 @@ c         write(*,*)iqi,(sela+sqel)/fsig
       ELSE
 c           goto 888
             int=3
-            if(ihvse(2).lt.2)call abinelset(vect,ipart)
+            call abinelset(vect,ipart)
             if(ihvse(2).eq.1)then
              ISTOP = 1
              DESTEP = DESTEP + GEKIN
@@ -5827,7 +5827,7 @@ C
 CDECK  ID>, TKFINI. 
           subroutine tkfini
               common /hvsec/ihvse(2)
-              data ihvse/1,0/
+              data ihvse/1,2/
 
               common /tkgdefC/tmaxf,smax,fieldmm,cconv,
      +        maxcal,nitm,xtol,iver,ialg,steps,npars,ims,
