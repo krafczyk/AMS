@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.212 2003/09/19 15:54:11 alexei Exp $
+# $Id: RemoteClient.pm,v 1.213 2003/09/20 10:47:39 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6859,6 +6859,7 @@ my $opendstR     = 0; # OpenDST     "     "       "       "
 my $closedstR    = 0; # CloseDST    "     "       "       "
 my $runfinishedR = 0; # RunFinished "     "       "       "
 my $status = undef;   # Run status
+my $jobmips = -1;
 
 
    my $validated=0;
@@ -7041,7 +7042,6 @@ foreach my $block (@blocks) {
 #                                                     ^^^^
 #
       $patternsmatched = 0;
-      my $jobmips = -1;
       my @StartingJobPatterns = ("JobStarted", "HostName","UID","PID","Type",
                                   "ExitStatus","StatusType","Mips");
       for (my $i=0; $i<$#junk+1; $i++) { 
