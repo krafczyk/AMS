@@ -1,4 +1,4 @@
-#  $Id: amsvar,v 1.25 2002/03/26 21:45:12 choutko Exp $
+#  $Id: amsvar,v 1.26 2003/01/29 11:41:58 choutko Exp $
  setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/new
 set path=( $path . /usr/sbin $ROOTSYS/bin )
 setenv LD_LIBRARY_PATH .:$ROOTSYS/lib
@@ -15,6 +15,7 @@ setenv RunsSummaryFile   $Offline/runs_STS91.log
 setenv SlowRateDataDir   $Offline/SlowRateDataDir
 setenv AMSGeoDir         $Offline/vdev/display/v2.00
 setenv amsed02           $Offline/vdev/display/ams02/$OS/bin/amsed      
+setenv AMSICC 1
 limit core 0
 limit data 700000
 limit stack 32000
