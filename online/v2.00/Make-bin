@@ -50,7 +50,7 @@ OBJS          = $(SRCS:.cxx=.o) $(DICTO)
 
 
 ALLDICT       = $(DICT) $(DICTH) 
-ALLSRCS       = $(SRCS)  $(HDRS)  $(ALLDICT) $(MAIN) $(MAINH)
+ALLSRCS       = $(SRCS)  $(HDRS)  $(ALLDICT) $(MAIN) $(MAINH) $(MAINC)
 ALLOBJS       = $(OBJS) $(MAINO)
 
 
