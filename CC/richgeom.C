@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.10 2001/01/22 17:32:21 choutko Exp $
+//  $Id: richgeom.C,v 1.11 2001/04/04 13:24:09 mdelgado Exp $
 #include <typedefs.h>
 #include <node.h>
 #include <snode.h>
@@ -12,6 +12,8 @@
 #include <richdbc.h>
 
 #define SQR(x) ((x)*(x))
+
+#define VERSION "28/04/00"
 
 namespace amsgeom{
 extern void tkgeom(AMSgvolume &);
@@ -1099,8 +1101,9 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 
   // Write the selected geometry
 
+  cout <<"RICH geometry version dated:"<<VERSION<<endl;
 #ifdef __AMSDEBUG__
-  cout << "RICH geometry according to December(99) meeting" <<endl;
+  //  cout << "RICH geometry according to December(99) meeting" <<endl;
 
   cout << "************** RICH GEOMETRY ***************" << endl;
   cout << "Top radius:" << RICGEOM.top_radius << endl;
@@ -1115,9 +1118,6 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   cout << "Light guides tile size:" << RICGEOM.light_guides_length <<endl;
   cout << "******************************************" << endl;
 #endif
-
-
-
 
 
   /// Define the RICH volume: fixed
