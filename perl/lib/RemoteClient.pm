@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.248 2004/03/01 16:44:25 alexei Exp $
+# $Id: RemoteClient.pm,v 1.249 2004/03/01 17:18:00 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4085,6 +4085,7 @@ print qq`
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/t* $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/T* $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/ri* $self->{UploadsDir}/$dbversion";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.flux $self->{UploadsDir}/$dbversion";
         $i=system "tar -C$self->{UploadsDir} -h -cf $filen $dbversion";
         if($i){
               $self->ErrorPlus("Unable to tar $self->{UploadsDir} $dbversion to $filen");
