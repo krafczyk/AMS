@@ -1,4 +1,4 @@
-Last Updated 09-mar-2000
+Last Updated 15-jun-2000
 
 I. The following hardware platforms are currently supported:
  DEC/OSF1/cxx6.2
@@ -87,8 +87,8 @@ VII.  Standalone version
          
 
          Case ii: You don't have afs installed
-          copy /offline/vdev to somewhere on your computer
-          login in ams.cern.ch computer         
+          copy ams.cern.ch:/offline/vdev to somewhere on your computer
+          login in ams.cern.ch          
           setenv Offline /offline
           source $Offline/vdev/install/amsvar
           cd $AMSDataDir
@@ -104,7 +104,7 @@ VII.  Standalone version
           login in  your computer:
            mkdir mydir
            cd mydir
-           tar -xvf ../ams.tar
+           tar -xvf ~/ams.tar
            setenv AMSDataDir mydir
              
       c.  Third party libraries you may want to install
