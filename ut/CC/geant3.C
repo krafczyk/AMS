@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.86 2003/09/12 11:11:44 mdelgado Exp $
+//  $Id: geant3.C,v 1.87 2003/12/18 16:12:33 mdelgado Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -626,7 +626,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
    
     // More RICH information added for MC
 
-    if(RICCONTROL.iflgk_flag){  // This to be checked
+    if(RICCONTROLFFKEY.iflgk_flag){  // This to be checked
 
     if(GCKINE.itra==1 &&GCVOLU.names[lvl][0]=='R' && 
        GCVOLU.names[lvl][1]=='A' &&GCVOLU.names[lvl][2]=='D' && 
@@ -684,7 +684,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 //  if(trig==0 && freq>1)AMSgObj::BookTimer.start("SYSGUSTEP");
   AMSmceventg::FillMCInfo();
 
-  if(RICCONTROL.iflgk_flag){
+  if(RICCONTROLFFKEY.iflgk_flag){
    for(int i=0;i<GCKING.ngkine;i++){
      if(GCKING.iflgk[i]==0) GCKING.iflgk[i]=1;
 //     GCKING.iflgk[i]=1;

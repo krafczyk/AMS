@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.328 2003/12/18 12:21:26 choutko Exp $
+//  $Id: event.C,v 1.329 2003/12/18 16:12:33 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1714,7 +1714,7 @@ void AMSEvent::_rerichevent(){
     return;// "no TOF in LVL1 trigger"   
   }
   // Reconstruction CJD
-  if(RICCONTROL.recon)
+  if(RICRECFFKEY.recon[0])
     AMSRichRing::build();
 //
 //

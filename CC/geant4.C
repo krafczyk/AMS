@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.54 2003/03/25 09:05:20 choutko Exp $
+//  $Id: geant4.C,v 1.55 2003/12/18 16:12:33 mdelgado Exp $
 #include <job.h>
 #include <event.h>
 #include <trrec.h>
@@ -986,7 +986,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 //
 
      if(GCKINE.itra==1 && GCKINE.ipart!=Cerenkov_photon && GCTRAK.inwvol==1
-	&& RICCONTROL.iflgk_flag){  // To be checked
+	&& RICCONTROLFFKEY.iflgk_flag){  // To be checked
        
        if(PrePV->GetName()(0)=='R' && PrePV->GetName()(1)=='A' &&
 	  PrePV->GetName()(2)=='D' && PrePV->GetName()(3)==' ')

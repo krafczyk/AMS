@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.147 2003/12/18 14:20:47 choutko Exp $
+//  $Id: particle.C,v 1.148 2003/12/18 16:12:34 mdelgado Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -510,7 +510,7 @@ void AMSParticle::richfit(){
       if(ptr->getused()>2) _prich=ptr;
       if(! ptr->IsGood() && ptr->next())
 	if(ptr->next()->gettrack()==real_track && ptr->next()->getused()>2)
-	  if((RICCONTROL.recon/10)%10){
+	  if(RICRECFFKEY.recon[1]%10){
 	    if(ptr->next()->getprob()>ptr->getprob())_prich=ptr->next();
 	  }else _prich=ptr->next();
       //	  if(ptr->getused()>2 & ptr->IsGood())_prich=ptr;

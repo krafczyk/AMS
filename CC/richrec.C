@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.60 2003/12/17 12:59:44 mdelgado Exp $
+//  $Id: richrec.C,v 1.61 2003/12/18 16:12:34 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -511,15 +511,15 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   // LIP RECONSTRUCTION
 
 
-  if(RICCONTROL.recon/100){
-    if(RICCONTROL.tsplit)AMSgObj::BookTimer.start("RERICHLIP");
+  if((RICRECFFKEY.recon[0]/10)%10){
+    if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHLIP");
     int liprecstat=1;
     buildlip(track);
     if(!LIPVAR.liphused) liprecstat=0;
 #ifdef __AMSDEBUG__
     cout << " >>>> LIP status " << liprecstat << endl;
 #endif
-    if(RICCONTROL.tsplit)AMSgObj::BookTimer.stop("RERICHLIP");
+    if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.stop("RERICHLIP");
   }
 
   //ENDofLIP
@@ -682,7 +682,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 
     /**************************/
 
-  if(RICCONTROL.tsplit)AMSgObj::BookTimer.start("RERICHHITS"); //DEBUG
+  if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHHITS"); //DEBUG
   integer actual=0,counter=0;
   AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows/2];
   
@@ -714,14 +714,14 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
     }
   }
   // Look for clusters
-  if(RICCONTROL.tsplit)AMSgObj::BookTimer.stop("RERICHHITS"); //DEBUG
+  if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.stop("RERICHHITS"); //DEBUG
   uinteger current_ring_status=_kind_of_tile==naf_kind?naf_ring:0;
 
 
   AMSRichRing *first_done=0;
 
   do{
-    if(RICCONTROL.tsplit)AMSgObj::BookTimer.start("RERICHBETA"); //DEBUG
+    if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHBETA"); //DEBUG
     integer best_cluster[2]={0,0};
     geant best_prob=-1;
 
@@ -825,7 +825,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
       // 1-> chi2/Ndof
       
       // Fill the container
-      if(RICCONTROL.tsplit)AMSgObj::BookTimer.stop("RERICHBETA"); //DEBUG
+      if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.stop("RERICHBETA"); //DEBUG
 
       AMSRichRing* done=(AMSRichRing *)AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
 								    new AMSRichRing(track,
@@ -842,12 +842,12 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 										    LIPVAR.lipchi2,
 										    LIPVAR.liprprob,
 										    current_ring_status,  //Status word
-										    (RICCONTROL.recon/10)%10
+										    (RICRECFFKEY.recon[1]%10)
 										    ));  //LIP
       if(!first_done) first_done=done;
       bit++;  
     } else {
-      if(RICCONTROL.tsplit)AMSgObj::BookTimer.stop("RERICHBETA"); //DEBUG
+      if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.stop("RERICHBETA"); //DEBUG
       //	// Add empty ring to keep track of no recostructed tracks
       //	AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
       //				     new AMSRichRing(track,
@@ -1011,7 +1011,7 @@ void RichRadiatorTile::Init(){
     }
  
   // In we have chosen Naf put a 3x3 array of Naf right in the center
-  if(RICCONTROL.setup==1){
+  if(RICRADSETUPFFKEY.setup==1){
 
     for(int i=(_number_of_rad_tiles-1)/2-1;i<=(_number_of_rad_tiles-1)/2+1;i++)
       for(int j=(_number_of_rad_tiles-1)/2-1;j<=(_number_of_rad_tiles-1)/2+1;j++)

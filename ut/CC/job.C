@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.462 2003/12/17 12:59:43 mdelgado Exp $
+// $Id: job.C,v 1.463 2003/12/18 16:12:33 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -244,12 +244,18 @@ void AMSJob::_sirichdata(){
   RICGTKOV.scatprob=RICHDB::scatprob;
   RICGTKOV.scatang=RICHDB::scatang;
 
-  RICCONTROL.iflgk_flag=0;  // This should be always zero
-  RICCONTROL.recon=11;       // Reconstruct charge and beta
-  RICCONTROL.setup=1;       // Choose the right setup from all of them
-  RICCONTROL.tsplit=0;      // Bo time splitting at the end 
+  RICCONTROLFFKEY.iflgk_flag=0;  // This should be always zero
+  RICCONTROLFFKEY.tsplit=0;      // Bo time splitting at the end 
 //  FFKEY("RICGEOM",(float *)&RICGEOM,sizeof(RICGEOM_DEF)/sizeof(integer),"REAL");
-  FFKEY("RICCONT",(float *)&RICCONTROL,sizeof(RICCONTROL_DEF)/sizeof(integer),"MIXED");
+  FFKEY("RICCONT",(float *)&RICCONTROLFFKEY,sizeof(RICCONTROLFFKEY_DEF)/sizeof(integer),"MIXED");
+
+
+  RICRADSETUPFFKEY.setup=1;
+  FFKEY("RICSET",(float *)&RICRADSETUPFFKEY,sizeof(RICRADSETUPFFKEY_DEF)/sizeof(integer),"MIXED");
+
+  RICRECFFKEY.recon[0]=1;   //beta reconstruction
+  RICRECFFKEY.recon[1]=1;   //Z reconstruction
+  FFKEY("RICREC",(float *)&RICRECFFKEY,sizeof(RICRECFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
   RICFFKEY.ReadFile=0;
