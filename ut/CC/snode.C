@@ -3,7 +3,6 @@
 #include <node.h>
 #include <snode.h>
 #include <amsstl.h>
-#
 integer AMSNodeMap::debug=1;
 const integer AMSNodeMap::_tols=10000;
   void AMSNodeMap::_count(AMSNode *const  ptr){

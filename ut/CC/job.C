@@ -151,7 +151,7 @@ void AMSJob::_siamsdata(){
 IOPA.hlun=0;
 VBLANK(IOPA.hfile,40);
 IOPA.ntuple=1;
-IOPA.Portion=1.1;
+IOPA.Portion=.1;
 IOPA.WriteAll=2;
 VBLANK(IOPA.TriggerC,40);
 VBLANK(AMSFFKEY.TDVC,400);
@@ -717,7 +717,7 @@ TRFITFFKEY.Chi2FalseX=3.;
 TRFITFFKEY.ForceFalseTOFX=1;
 TRFITFFKEY.FalseTOFXTracking=1;
 TRFITFFKEY.TOFTracking=1;
-TRFITFFKEY.ForceAdvancedFit=0;
+TRFITFFKEY.ForceAdvancedFit=2;
 
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();

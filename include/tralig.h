@@ -146,6 +146,12 @@ geant Pfitsig;
 geant Coo[6][3];
 geant Angle[6][3];
 };
+class gldb_def{
+public:
+ integer nentries;
+ geant coo[3];
+ geant ang[3];
+};
 class TrAligg_def{
 public:
 integer Alg;
@@ -181,7 +187,7 @@ number _pfit;  //pointer to fitterd mom
 number _pfits;  //pointer to fitterd mom sigma
 AMSTrAligPar _pParC[6];
 static AMSTrAligPar _pPargl[17][2][6];
-static integer _gldb[nld][2][6];
+static gldb_def _gldb[nld][2][6];
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
 static void alfun(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);
@@ -192,8 +198,8 @@ public:
   AMSTrAligFit *  next(){return (AMSTrAligFit*)_next;}           
 AMSTrAligFit();
 AMSTrAligFit(uinteger _Address, integer pattern, integer data, integer alg, integer nodeno);
-static integer glDBOK(integer layer, integer ladder, integer side);
-static integer * gettraliggldbp(){ return &(_gldb[0][0][0]);}
+static integer glDBOK(uinteger add);
+static gldb_def * gettraliggldbp(){ return &(_gldb[0][0][0]);}
 static integer gettraliggldbsize(){return sizeof(_gldb);}
 static void InitDB();
 static void Test(int i=0);

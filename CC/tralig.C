@@ -213,7 +213,7 @@ if(_Address==1){
   for(int i=0;i<nld;i++){
    for(int j=0;j<2;j++){
     for(int k=0;k<6;k++){   
-       _pPargl[i][j][k].NEntries()=-_gldb[i][j][k];
+       _pPargl[i][j][k].NEntries()=-_gldb[i][j][k].nentries;
     }
    }
   }
@@ -1262,7 +1262,11 @@ for(int i=0;i<6;i++){
      for(i=0;i<6;i++){
       for(int j=0;j<nld;j++){
         for(int k=0;k<2;k++){
-         _gldb[j][k][i]=-_pPargl[j][k][i].NEntries();
+         _gldb[j][k][i].nentries=-_pPargl[j][k][i].NEntries();
+         for(int l=0;l<3;l++){
+          _gldb[j][k][i].coo[l]=_pPargl[j][k][i].getcoo()[l];
+          _gldb[j][k][i].ang[l]=_pPargl[j][k][i].getang()[l];
+         }
         }
       }
      }
@@ -1312,7 +1316,11 @@ void AMSTrAligFit::InitDB(){
   for(int i=0;i<nld;i++){
    for(int j=0;j<2;j++){
     for(int k=0;k<6;k++){   
-       _gldb[i][j][k]=0;
+       _gldb[i][j][k].nentries=0;
+         for(int l=0;l<3;l++){
+          _gldb[j][k][i].coo[l]=0;
+          _gldb[j][k][i].ang[l]=0;
+         }
        _pPargl[i][j][k]=AMSTrAligPar(); 
     }
    }
@@ -1320,11 +1328,17 @@ void AMSTrAligFit::InitDB(){
 
 }
 
-integer AMSTrAligFit::_gldb[nld][2][6];
+AMSTrAligFit::gldb_def AMSTrAligFit::_gldb[nld][2][6];
 
 
-integer AMSTrAligFit::glDBOK(integer layer, integer ladder, integer side){
-
-   return _gldb[ladder-1][side][layer-1];
+integer AMSTrAligFit::glDBOK(uinteger address){
+   integer ladder[2][6];
+   AMSTrTrack::decodeaddress(ladder,address);
+   for(int i=0;i<6;i++){
+     if(ladder[0][i]){
+       if(!_gldb[ladder[0][i]-1][ladder[1][i]][i].nentries)return 0;
+     }
+   }
+   return 1;
   
 }

@@ -74,6 +74,7 @@ public:
      static const integer FalseTOFX;
      static const integer RECOVERED;
      static const integer LocalDB;
+     static const integer GlobalDB;
 
 // machine dependent values
 

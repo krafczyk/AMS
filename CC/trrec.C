@@ -1602,7 +1602,8 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
           
        if( (  (ptrack->Fit(0) < 
             TRFITFFKEY.Chi2FastFit)) && ptrack->TOFOK()){
-             ptrack->AdvancedFit(TRFITFFKEY.ForceAdvancedFit &&  !AMSJob::gethead()->isMonitoring());
+             geant dummy;
+             ptrack->AdvancedFit((TRFITFFKEY.ForceAdvancedFit==1 || (TRFITFFKEY.ForceAdvancedFit==2 && RNDM(dummy)<IOPA.Portion))&&  !AMSJob::gethead()->isMonitoring());
          // permanently add;
 #ifdef __UPOOL__
           ptrack=new AMSTrTrack(track);
@@ -2901,6 +2902,7 @@ void AMSTrTrack::_crHit(){
     }
    }
   }
+  if(AMSTrAligFit::glDBOK(_Address))setstatus(AMSDBc::GlobalDB);
 }
 
 void AMSTrTrack::_buildaddress(){
