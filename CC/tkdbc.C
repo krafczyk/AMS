@@ -306,7 +306,7 @@ number PlMarkerPos1[_nlay][2][4][3];
    UCOPY(xposl,_xposl,sizeof(xposl)/sizeof(integer));
    const number  yposl[_nlay]={0,0,0,0,0,0,0};
    UCOPY(yposl,_yposl,sizeof(yposl)/sizeof(integer));
-   const number  zposl[_nlay]={51.015,24.,20.,2.,-2.,-20.,-24.,-51.015};
+   const number  zposl[_nlay]={59.015,29.185,25.315,1.935,-1.935,-25.315,-29.185,-59.015};
 //   const number  zposl[_nlay]={51.015,32.,28.,2.,-2.,-28.,-32.,-51.015};
    UCOPY(zposl,_zposl,sizeof(zposl)/sizeof(integer));
    const number nrml[_nlay][3][3]={

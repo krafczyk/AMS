@@ -8,10 +8,9 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
           OPEN(21,FILE=amsdatadir(1:amsdlength)//fname,
      +     STATUS='OLD',form='formatted')
           fac=1.
-          read(21,*)nxx,nyy,nzz
-          do k=1,nzz
-           do i=1,nxx
-            do j=1,nyy
+          do k=1,nz
+           do i=1,nx
+            do j=1,ny
              read(21,*)x(i),y(j),z(k),bx(i,j,k),by(i,j,k),bz(i,j,k)
              x(i)=x(i)
              y(j)=y(j)
@@ -19,18 +18,6 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
              bx(i,j,k)=bx(i,j,k)/1000. *fac
              by(i,j,k)=by(i,j,k)/1000. *fac
              bz(i,j,k)=bz(i,j,k)/1000. *fac
-            enddo
-           enddo
-          enddo
-          do k=nzz+1,nz
-           do i=1,nxx+1,nx
-            do j=1,nyy+1,ny
-             x(i)=x(nxx)
-             y(j)=y(nyy)
-             z(k)=z(nzz)
-             bx(i,j,k)=bx(nxx,nyy,nzz)
-             by(i,j,k)=by(nxx,nyy,nzz)
-             bz(i,j,k)=bz(nxx,nyy,nzz)
             enddo
            enddo
           enddo
@@ -54,9 +41,9 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
 *
           call timex(st0)
           write(*,*)'Calculating field derivatives...'
-          do i=1,nxx
-           do j=1,nyy
-             do k=1,nzz
+          do i=1,nx
+           do j=1,ny
+             do k=1,nz
               x1(1)=x(i)
               x1(2)=y(j)
               x1(3)=z(k)
@@ -67,18 +54,6 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
               bdx(i,j,k,2)=hxy(1,2)
               bdy(i,j,k,2)=hxy(2,2)
               bdz(i,j,k,2)=hxy(3,2)
-             enddo
-           enddo
-          enddo
-          do i=nxx+1,nx
-           do j=nyy+1,ny
-             do k=nzz+1,nz
-              bdx(i,j,k,1)=0
-              bdy(i,j,k,1)=0
-              bdz(i,j,k,1)=0
-              bdx(i,j,k,2)=0
-              bdy(i,j,k,2)=0
-              bdz(i,j,k,2)=0
              enddo
            enddo
           enddo
