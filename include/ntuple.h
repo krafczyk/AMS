@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.91 2003/12/04 10:42:20 alcaraz Exp $
+//  $Id: ntuple.h,v 1.92 2003/12/17 12:59:56 mdelgado Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -671,6 +671,17 @@ public:
   float probkl[MAXRICHRIN];
   float npexp[MAXRICHRIN];
   float collected_npe[MAXRICHRIN];
+  //+LIP 
+  // variables
+  int   liphused[MAXRICHRIN];     //nr of hits used=10000 + nr hits mirror
+  float lipthc[MAXRICHRIN];       // rec. Cerenkov angle
+  float lipbeta[MAXRICHRIN];      // rec. beta 
+  float lipebeta[MAXRICHRIN];    // error on rec. beta
+  float liplikep[MAXRICHRIN];     // likelihood prob. 
+  float lipchi2[MAXRICHRIN];      // chi2 of the fit 
+  float liprprob[MAXRICHRIN];     // ring prob.
+  //ENDofLIP 
+
 /*
   float npexpg[MAXRICHRIN];
   float npexpr[MAXRICHRIN];

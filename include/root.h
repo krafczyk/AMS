@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.121 2003/12/11 20:04:39 choutko Exp $
+//  $Id: root.h,v 1.122 2003/12/17 12:59:56 mdelgado Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -500,6 +500,15 @@ public:
   float ErrorTheta; ///< Error of the reconstructed emission angle
   float TrRadPos[3];///< Mean emission point of the Cerenkov photons
   float TrPMTPos[3];///< Intersection point of the track with the PMT plane
+  //+LIP
+  int   lipHitsUsed;///< Nb. of used hits in LIP beta rec.
+  float lipThetaC;  ///< Cherenkov angle reconstructed in LIP beta rec.
+  float lipBeta;    ///< Beta from LIP beta rec.
+  float lipErrorBeta;///< Error in beta from LIP beta rec. 
+  float lipLikelihoodProb;///<Likelihood from LIP beta rec.
+  float lipChi2;     ///< Chi2 from LIP beta rec.
+  float lipRecProb;  ///< Probabbility from LIP beta rec. 
+  //ENDofLIP
 
 
   protected:
@@ -522,7 +531,7 @@ public:
     sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
     return _Info;
   } 
-  ClassDef(RichRingR,3)           // RichRingR
+  ClassDef(RichRingR,4)           // RichRingR
 }; 
 
 

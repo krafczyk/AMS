@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.151 2003/12/04 10:42:16 alcaraz Exp $
+//  $Id: ntuple.C,v 1.152 2003/12/17 12:59:44 mdelgado Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -112,6 +112,7 @@ void AMSNtuple::init(){
  
 "necht[0,450],EchtStatus(necht):I,EchtIdsoft(necht):I,EchtProj(necht)[0,1]:I,EchtPlane(necht)[0,20]:I,EchtCell(necht)[0,80]:I,EchtEdep(necht),EchtECor(necht),echtattc(necht),EchtCoo(3,necht),EchtADC(3,necht),echtped(3,necht),echtgain(necht)");
 //
+
   HBNAME(_lun,"TOFMCClu",&_tofmc.Ntofmc,
   "ntofmc[0,100],TOFMCIdsoft(ntofmc):I,TOFMCXcoo(3,ntofmc),TOFMCtof(ntofmc),TOFMCedep(ntofmc)");
   HBNAME(_lun,"TrCluste",&_trcl.Ntrcl, 
@@ -165,9 +166,11 @@ void AMSNtuple::init(){
   	 "rcrihu(nrings):I,rcrimhu(nrings):I,"
 	 "rcribeta(nrings),rcriebeta(nrings),"
 	 "rcrichi2(nrings),rcristatus(nrings):I,"
-	 "rcriprob(nrings):R,rcrinpexp(nrings):R,rcricnpe(nrings):R");
-
-
+	 "rcriprob(nrings):R,rcrinpexp(nrings):R,rcricnpe(nrings):R,"
+         "rcriliphu(nrings):I,rcrilipthc(nrings):R,rcrilipbeta(nrings):R,"
+         "rcrilipebeta(nrings):R,"
+         "rcriliplikep(nrings):R,rcrilipchi2(nrings):R,rcriliprprob(nrings):R");
+  
 }
 void AMSNtuple::reset(int full){
 #ifdef __WRITEROOT__

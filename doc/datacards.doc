@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.234 2003/12/15 16:23:14 choutko Exp $
+#  $Id: datacards.doc,v 1.235 2003/12/17 12:59:50 mdelgado Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -94,10 +94,18 @@ I12  year[2](101,110)
 RICCONT
 I 1  iflgk_flag(0)              // Activate the use of the GCTRAK.iflgk=1 in the tracking
 I 2  recon(11)                   // 0 -off; 1 RICH beta reconstruction ; 
-				 // 10 compute number of expected photons 
-				// (for charge reconstructtion)   
+				 // 10 RICH Z reconstruction;
+                                 // 100 LIP beta reconstruction;
+                                 //   
+                                 // If the Z recontruction or the LIP reconstruction are activated,
+                                 // also the RICH beta reconstruction is.  
+ 
 I 3  setup(1)                    // 0 use a single radiador; 1 use a Naf 
                                  // radiator in the center and agl all around
+
+I 4 tsplit(0)                    // 1 Split time spent information (for optimization
+                                 // purposes); 0 do no split
+
 //--------------------------------------------------------------------------------
 
 // Tracker Cluster  Simulation

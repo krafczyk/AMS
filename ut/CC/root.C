@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.62 2003/12/04 10:42:16 alcaraz Exp $
+//  $Id: root.C,v 1.63 2003/12/17 12:59:44 mdelgado Exp $
 //
 
 #include <root.h>
@@ -2034,7 +2034,15 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
       TrRadPos[i]  = ptr->_radpos[i];
       TrPMTPos[i]  = ptr->_pmtpos[i];
     }
-    
+    //+LIP
+    lipHitsUsed           = ptr->_liphused;
+    lipThetaC             = ptr->_lipthc;
+    lipBeta               = ptr->_lipbeta;
+    lipErrorBeta          = ptr->_lipebeta;
+    lipLikelihoodProb     = ptr->_liplikep;
+    lipChi2               = ptr->_lipchi2;
+    lipRecProb            = ptr->_liprprob;
+    //ENDofLIP    
 
   } else {
     cout<<"RICRingR -E- AMSRichRing ptr is NULL"<<endl;

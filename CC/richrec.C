@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.59 2003/09/12 11:11:45 mdelgado Exp $
+//  $Id: richrec.C,v 1.60 2003/12/17 12:59:44 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -270,7 +270,7 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   }else{
     betas[0]=0;    // Wrong theta
   }
-  
+
   //------------------------------------------------------  
 
   integer j=1;
@@ -437,6 +437,8 @@ void AMSRichRing::build(){
   
   AMSTrTrack *track;
 
+  _lipdummy=0;   // LIP
+
   int j=0,k=0;
   for(int id=0;;){
     track=(AMSTrTrack *)AMSEvent::gethead()->getheadC("AMSTrTrack",id++,1);
@@ -464,7 +466,6 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   integer size[RICmaxpmts*RICnwindows/2][3];
   integer mirrored[RICmaxpmts*RICnwindows/2][3];
   
-
   //  for(AMSTrTrack *track=(AMSTrTrack *)AMSEvent::gethead()->
   //   	getheadC("AMSTrTrack",0);track;track=track->next()){
 
@@ -492,8 +493,6 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   //    return;   
 
 
-
-
   RichRadiatorTile crossed_tile(track);
 
 
@@ -509,6 +508,21 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   _index_tbl=crossed_tile.getindextable();
   _kind_of_tile=crossed_tile.getkind();
 
+  // LIP RECONSTRUCTION
+
+
+  if(RICCONTROL.recon/100){
+    if(RICCONTROL.tsplit)AMSgObj::BookTimer.start("RERICHLIP");
+    int liprecstat=1;
+    buildlip(track);
+    if(!LIPVAR.liphused) liprecstat=0;
+#ifdef __AMSDEBUG__
+    cout << " >>>> LIP status " << liprecstat << endl;
+#endif
+    if(RICCONTROL.tsplit)AMSgObj::BookTimer.stop("RERICHLIP");
+  }
+
+  //ENDofLIP
 
   /******************* The previous lines substitutes all this code   */
   //  if(point[0]*point[0]+point[1]*point[1]>RICHDB::top_radius*RICHDB::top_radius) 
@@ -584,6 +598,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   
   
   // Parameters
+
   
   geant A=(-2.81+13.5*(_index-1.)-18.*
 	   (_index-1.)*(_index-1.))*
@@ -637,7 +652,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   _emission_d=dird;
 
 
-  /******************** The prvious line substitutes this code*/
+  /******************** The previous line substitutes this code*/
 #ifdef __AMSDEBUG__
   /*  cout<<">>>>>>>>>>>>>>>>>>>>>>>>>>>"<<endl;
   cout <<"New emission points "<<endl
@@ -667,10 +682,9 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 
     /**************************/
 
-
+  if(RICCONTROL.tsplit)AMSgObj::BookTimer.start("RERICHHITS"); //DEBUG
   integer actual=0,counter=0;
   AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows/2];
-  
   
   for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
 	getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){
@@ -699,18 +713,17 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
       actual++;
     }
   }
-  
   // Look for clusters
-
+  if(RICCONTROL.tsplit)AMSgObj::BookTimer.stop("RERICHHITS"); //DEBUG
   uinteger current_ring_status=_kind_of_tile==naf_kind?naf_ring:0;
 
 
   AMSRichRing *first_done=0;
 
   do{
+    if(RICCONTROL.tsplit)AMSgObj::BookTimer.start("RERICHBETA"); //DEBUG
     integer best_cluster[2]={0,0};
     geant best_prob=-1;
-
 
     for(integer i=0;i<actual;i++)
       for(integer j=0;j<3;j++)
@@ -757,13 +770,10 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 	
       }
     }
-    // Add a ring element with the results. Not added to ntuple yet
-
     uinteger cleaning=current_ring_status;
     current_ring_status&=~dirty_ring;
 
-
-
+    
     if(best_prob>0){
       // This piece is a bit redundant: computes chi2 and weighted beta
       geant wsum=0,wbeta=0;      
@@ -804,8 +814,6 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 	wbeta+=recs[i][closest]*hitp[i]->getnpe();
       }
       
-
-
       integer beta_used=size[best_cluster[0]][best_cluster[1]];
       integer mirrored_used=mirrored[best_cluster[0]][best_cluster[1]];
       beta_track=mean[best_cluster[0]][best_cluster[1]]/geant(beta_used);
@@ -817,7 +825,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
       // 1-> chi2/Ndof
       
       // Fill the container
-      
+      if(RICCONTROL.tsplit)AMSgObj::BookTimer.stop("RERICHBETA"); //DEBUG
 
       AMSRichRing* done=(AMSRichRing *)AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
 								    new AMSRichRing(track,
@@ -826,12 +834,20 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 										    beta_track,
 										    chi2/geant(beta_used),
 										    wbeta,
+										    LIPVAR.liphused,
+										    LIPVAR.lipthc,
+										    LIPVAR.lipbeta,
+										    LIPVAR.lipebeta,
+										    LIPVAR.liplikep,
+										    LIPVAR.lipchi2,
+										    LIPVAR.liprprob,
 										    current_ring_status,  //Status word
-										    RICCONTROL.recon/10
-										    ));
+										    (RICCONTROL.recon/10)%10
+										    ));  //LIP
       if(!first_done) first_done=done;
       bit++;  
     } else {
+      if(RICCONTROL.tsplit)AMSgObj::BookTimer.stop("RERICHBETA"); //DEBUG
       //	// Add empty ring to keep track of no recostructed tracks
       //	AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
       //				     new AMSRichRing(track,
@@ -880,6 +896,16 @@ void AMSRichRing::_writeEl(){
   cluster->npexp[cluster->NRings]=_npexp;
   cluster->collected_npe[cluster->NRings]=_collected_npe;
   cluster->probkl[cluster->NRings]=_probkl;
+  //+LIP
+  //variables
+  cluster->liphused[cluster->NRings]=_liphused;
+  cluster->lipthc[cluster->NRings]=_lipthc;
+  cluster->lipbeta[cluster->NRings]=_lipbeta;
+  cluster->lipebeta[cluster->NRings]=_lipebeta;
+  cluster->liplikep[cluster->NRings]=_liplikep;
+  cluster->lipchi2[cluster->NRings]=_lipchi2;
+  cluster->liprprob[cluster->NRings]=_liprprob;
+  //ENDofLIP
 
   /*
   cluster->theta[cluster->NRings]=_theta;
@@ -1046,29 +1072,15 @@ RichRadiatorTile::RichRadiatorTile(AMSTrTrack *track){
   // First decide wich kind of radiator is current
 
   AMSPoint pnt(0.,0.,RICradpos-RICHDB::rad_height),
-    point[radiator_kinds];
+    point;
   AMSDir dir(0.,0.,-1.);
   
-  number theta[radiator_kinds],
-    phi[radiator_kinds],
-    length[radiator_kinds];
+  number theta,phi,length;
 
-  AMSPoint points[radiator_kinds];
-  
+  track->interpolate(pnt,dir,point,
+		     theta,phi,length);
 
-
-  for(int i=0;i<radiator_kinds;i++){
-    
-    track->interpolate(pnt,dir,point[i],
-		       theta[i],phi[i],length[i]);
-  }
-
-
-  _kind=0;
-
-  for(int i=radiator_kinds;i>0;i--)
-    if(get_tile_kind(get_tile_number(point[i-1][0],point[i-1][1]))==i) {_kind=i;break;}
-  
+  _kind=get_tile_kind(get_tile_number(point[0],point[1]));
 
   if(_kind==empty_kind){
     _index=0;
@@ -1085,28 +1097,39 @@ RichRadiatorTile::RichRadiatorTile(AMSTrTrack *track){
   _height=_rad_heights[_kind-1];
 
   pnt.setp(0.,0.,RICradpos-RICHDB::rad_height+_height);
-  track->interpolate(pnt,dir,point[_kind-1],
-		     theta[_kind-1],phi[_kind-1],
-		     length[_kind-1]);
+  track->interpolate(pnt,dir,point,
+		     theta,phi,
+		     length);
+  
+  if(_kind!=get_tile_kind(get_tile_number(point[0],point[1]))){
+    _kind=empty_kind;
+    _index=0;
+    _height=0;
+    _p_direct=AMSPoint(0.,0.,0.);
+    _p_reflected=AMSPoint(0.,0.,0.);
+    _d_direct=AMSDir(0.,0.);
+    _d_reflected=AMSDir(0.,0.);
+    return;
+  }
 
-  _p_entrance=point[_kind-1];
-  _d_entrance=AMSDir(theta[_kind-1],phi[_kind-1]);
+  _p_entrance=point;
+  _d_entrance=AMSDir(theta,phi);
 
 
   // Direct photons
   pnt.setp(0.,0.,RICradpos-RICHDB::rad_height+_mean_height[_kind-1][0]);
-  track->interpolate(pnt,dir,point[0],theta[0],phi[0],length[0]);
+  track->interpolate(pnt,dir,point,theta,phi,length);
   
-  _p_direct=point[0];
-  _d_direct=AMSDir(theta[0],phi[0]);
+  _p_direct=point;
+  _d_direct=AMSDir(theta,phi);
   
 
   // Direct photons
   pnt.setp(0.,0.,RICradpos-RICHDB::rad_height+_mean_height[_kind-1][1]);
-  track->interpolate(pnt,dir,point[0],theta[0],phi[0],length[0]);
+  track->interpolate(pnt,dir,point,theta,phi,length);
   
-  _p_reflected=point[0];
-  _d_reflected=AMSDir(theta[0],phi[0]);
+  _p_reflected=point;
+  _d_reflected=AMSDir(theta,phi);
 
 
 } 
@@ -1905,5 +1928,166 @@ int AMSRichRing::locsmpl(int id,
 # undef SQR
 # undef PI
 
+//+LIP
+///////////////////////////////////////////////////////////////////////////
+///////////////////// LIP RECONSTRUCTION     //////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 
+integer AMSRichRing::_lipdummy=0;
 
+AMSRichRing * AMSRichRing::buildlip(AMSTrTrack *trk){
+
+#define PI 3.14159265359
+#define SQR(x) ((x)*(x))
+
+  LIPVAR.liphused=0;
+  LIPVAR.lipbeta=0.;
+  LIPVAR.lipthc =0.;
+  LIPVAR.liplikep =99999.;
+  LIPVAR.lipchi2  =99999.;
+  LIPVAR.liprprob =99999.;
+
+  int lipdummy=_lipdummy;  // fill geometry and hit control variable
+
+  // ------------------------------------------------------------------------
+  // geometry : radiator parameters (may change between tracks)
+  // ------------------------------------------------------------------------
+
+  LIPRAD.hrad_c      = _height;            // radiator height
+  LIPRAD.refindex_c  = _index;             // current radiator ref. index
+  LIPRAD.clarity_c   = _clarity;           //  "        "      clarity (0 for NAF)
+  LIPRAD.radtype_c   = _kind_of_tile;      // 0(empty),1(agl),2(naf)
+  LIPRAD.nabslen_c   = RICmaxentries;      //nr of. elements of pabslen
+  for(int i=0; i<RICmaxentries ; i++){
+    LIPRAD.labsrad_c[i]   = *(_abs_len+i);
+  }
+
+  if (!lipdummy){
+    // ------------------------------------------------------------------------
+    // geometry : fixed parameters
+    // ------------------------------------------------------------------------
+
+    // radiator :
+    LIPRAD.rrad_c      = RICHDB::rad_radius; // radiator radius
+    LIPRAD.ltile_c     = RICHDB::rad_length; // tile size
+
+    // foil
+
+    LIPRAD.hpgl_c      = RICHDB::foil_height;
+    LIPRAD.pglix_c     = RICHDB::foil_index;
+
+    // dimensions:
+
+    LIPGEO.ztoprad_ams = RICradpos;   //Z coord at the radiator top in the AMS frame
+    LIPGEO.zpmtdet_c   = RICHDB::rad_height+RICHDB::foil_height+RICradmirgap+RICHDB::rich_height+RIClgdmirgap;
+    LIPGEO.hmir_c      = RICHDB::rich_height;
+    LIPGEO.rtmir_c     = RICHDB::top_radius;
+    LIPGEO.rbmir_c     = RICHDB::bottom_radius;
+    LIPGEO.emcxlim_c   = RICHDB::hole_radius[0];
+    LIPGEO.emcylim_c   = RICHDB::hole_radius[1];
+    LIPGEO.ztmirgap_c  = RICradmirgap;
+    LIPGEO.zbmirgap_c  = RIClgdmirgap;
+    LIPGEO.reflec_c    = RICmireff;
+
+    //light guides
+
+    LIPGEO.lg_length_c = RICHDB::lg_length;
+    LIPGEO.lg_height_c = RICHDB::lg_height;
+
+    //pmts
+
+    LIPGEO.pmt_suptk_c = RICpmtsupport;
+    LIPGEO.pmt_shdtk_c = RICpmtshield;
+    LIPGEO.pmt_sidel_c = PMT_electronics;
+
+    // ------------------------------------------------------------------------
+    // hit parameters
+    // ------------------------------------------------------------------------
+
+    LIPDAT.nbhitsmax_c=RICmaxpmts*RICnwindows/2;
+
+    int actual=0;
+    LIPDAT.nbhits_c=0;
+
+    for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
+	  getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){
+
+      if(actual>=LIPDAT.nbhitsmax_c) {
+	cout << "AMSRichRing::build : Event too long."<<endl;
+	break;
+      }
+
+      LIPDAT.nbhits_c++;
+
+      LIPDAT.hitsadc_c[actual]=hit->getcounts();
+      LIPDAT.hitsnpe_c[actual]=hit->getnpe();
+
+      AMSRICHIdGeom  hitch(hit->getchannel());
+
+      LIPDAT.hitscoo_c[actual][0]=hitch.x();
+      LIPDAT.hitscoo_c[actual][1]=hitch.y();
+      LIPDAT.hitscoo_c[actual][2]=RICradpos-hitch.z(); // Z : AMS frame -> RICH frame
+
+      int hgain=hit->getbit(gain_mode_bit);
+
+      LIPDAT.hitshid_c[actual]=10*(16*hitch.getpmt()+hitch.getpixel())+hgain;
+
+      actual++;
+    }
+    _lipdummy=1;
+  }
+
+  // ------------------------------------------------------------------------
+  // track parameters
+  // ------------------------------------------------------------------------
+
+  // particle ip in radiator
+  LIPTRK.pimp_c[0]=_entrance_p[0];
+  LIPTRK.pimp_c[1]=_entrance_p[1];           // y.ip(trk) RICH frame
+  LIPTRK.pimp_c[2]=RICradpos-_entrance_p[2];  // z.ip(trk) RICH frame
+
+  // particle direction
+  LIPTRK.pphi_c = atan2(_entrance_d[1],_entrance_d[0]);
+  if ( LIPTRK.pphi_c<0 ) LIPTRK.pphi_c=LIPTRK.pphi_c+2*PI;
+  LIPTRK.pthe_c = acos(-_entrance_d[2]);
+
+  // --- extrapolated point at PMT matrix
+
+  LIPTRK.pcoopmt_c[0]=_entrance_p[0]+tan(LIPTRK.pthe_c)*cos(LIPTRK.pphi_c)*(LIPGEO.zpmtdet_c-LIPTRK.pimp_c[2]);
+  LIPTRK.pcoopmt_c[1]=_entrance_p[1]+tan(LIPTRK.pthe_c)*sin(LIPTRK.pphi_c)*(LIPGEO.zpmtdet_c-LIPTRK.pimp_c[2]);
+  LIPTRK.pcoopmt_c[2]=LIPGEO.zpmtdet_c;
+
+  // get simulation information for particle
+
+  // NOTE: HERE WE SHOUL CHECK IF THIS IS SIMULATION 
+
+  AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
+  number pmass=pmcg->getmass();
+  LIPTRK.pmom_c   = pmcg->getmom();
+  LIPTRK.pchg_c   = pmcg->getcharge();
+  LIPTRK.pbeta_c  = LIPTRK.pmom_c/sqrt(SQR(LIPTRK.pmom_c)+SQR(pmass));
+  LIPTRK.cerang_c = acos(1./(_index*LIPTRK.pbeta_c));
+
+  int ievnumb=AMSEvent::gethead()->getEvent();
+
+  //  cout << "pcoo " << LIPTRK.pcoopmt_c[0] <<" " <<LIPTRK.pcoopmt_c[1] <<" " <<LIPTRK.pcoopmt_c[2] <<    endl;
+  // cout << "pmom   "<< LIPTRK.pmom_c << endl;
+  //cout << "pchg   "<< LIPTRK.pchg_c << endl;
+  //cout << "pbeta  "<< LIPTRK.pbeta_c << endl;
+  //cout << "cerang "<< LIPTRK.cerang_c << endl;
+  //cout << "ppos   " << _entrance_p[0] << " " << _entrance_p[1] << " " << _entrance_p[2] << endl\;
+  //cout << "pdir   " << _entrance_d[0] << " " << _entrance_d[1] << " " << _entrance_d[2] << endl\;
+
+  RICHRECLIP(ievnumb);
+
+  //output variables
+
+#ifdef __AMSDEBUG__
+  cout << "lip_hused   "  << LIPVAR.liphused << endl;
+  cout << "lip_beta    "  << LIPVAR.lipbeta << endl;
+  cout << "lip_thc     "  << LIPVAR.lipthc << endl;
+  cout << "lip_likep   "  << LIPVAR.liplikep << endl;
+  cout << "lip_chi2rec "  << LIPVAR.lipchi2 << endl;
+#endif
+}
+//ENDofLIP

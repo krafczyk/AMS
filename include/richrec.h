@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.26 2003/09/25 10:59:14 mdelgado Exp $
+//  $Id: richrec.h,v 1.27 2003/12/17 12:59:56 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -11,7 +11,10 @@ PROTOCCALLSFSUB6(SOLVE,solve,DOUBLE,DOUBLE,DOUBLE,DOUBLE,DOUBLEV,INT)
 #define SOLVE(A1,A2,A3,A4,A5,A6) CCALLSFSUB6(SOLVE,solve,DOUBLE,DOUBLE,DOUBLE,DOUBLE,DOUBLEV,INT,A1,A2,A3,A4,A5,A6)
 PROTOCCALLSFFUN1(FLOAT,PROBKL,probkl,FLOAT)
 #define PROBKL(A) CCALLSFFUN1(PROBKL,probkl,FLOAT,A) 
-
+//+LIP
+PROTOCCALLSFSUB1(RICHRECLIP,richreclip,INT)
+#define RICHRECLIP(I1) CCALLSFSUB1(RICHRECLIP,richreclip,INT,I1)
+//END
 
 #include<string.h>
 
@@ -166,6 +169,18 @@ static geant _Time;
   number  _npexpr;       // Number of expected photons for Z=1
   number  _npexpb;       // Number of expected photons for Z=1
 
+  //+LIP
+  // variables
+  integer _liphused;     //nr of hits used=10000 + nr hits mirror
+  number  _lipthc;       // rec. Cerenkov angle
+  number  _lipbeta;      // rec. beta
+  number  _lipebeta;     // error on rec. beta
+  number  _liplikep;     // likelihood prob.
+  number  _lipchi2;      // chi2 of the fit
+  number  _liprprob;     // ring prob.
+
+  static integer _lipdummy;
+  //ENDofLIP
   // All these guys can be obtained asking to the class RichRadiatorTile
 
   static number _index;  // refractive index used in the recontruction
@@ -236,8 +251,11 @@ protected:
   void CalcBetaError();
   void ReconRingNpexp(geant window_size=3.);
 public:
-  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,uinteger status=0,integer build_charge=0):AMSlink(status),
-   _ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_wbeta(wbeta){
+  //+LIP
+  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,int liphused, geant lipthc, geant lipbeta,geant lipebeta, geant liplikep,geant lipchi2, geant liprprob,uinteger status=0,integer build_charge=0):AMSlink(status),
+    _ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_wbeta(wbeta),_liphused(liphused),_lipthc(lipthc),_lipbeta(lipbeta),_lipebeta(lipebeta),_liplikep(liplikep),_lipchi2(lipchi2),_liprprob(liprprob){
+  //  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,uinteger status=0,integer build_charge=0):AMSlink(status),
+  //   _ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_wbeta(wbeta){
 
     CalcBetaError();
 
@@ -245,8 +263,12 @@ public:
     _collected_npe=0;
     _probkl=0;
 
-    if(build_charge)
+
+    if(build_charge){
+      if(RICCONTROL.tsplit)AMSgObj::BookTimer.start("RERICHZ");
       ReconRingNpexp();
+      if(RICCONTROL.tsplit)AMSgObj::BookTimer.stop("RERICHZ");
+    }
 
     AMSPoint pnt;
     number theta,phi,length;
@@ -277,6 +299,9 @@ public:
   //  static void rebuild(AMSTrTrack *ptrack);
   static AMSRichRing* build(AMSTrTrack *track,int cleanup=1);
   static AMSRichRing* rebuild(AMSTrTrack *ptrack);
+  //+LIP
+  static AMSRichRing* buildlip(AMSTrTrack *track);
+  //ENDofLIP
 
   AMSTrTrack* gettrack(){return _ptrack;}
   integer getused(){return _used;}
