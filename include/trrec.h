@@ -136,7 +136,7 @@ integer operator < (AMSlink & o) const {
 
 AMSTrRecHit *  next(){return (AMSTrRecHit*)_next;}
 
-void AMSTrRecHit::resethash(integer i, AMSlink *head){
+void resethash(integer i, AMSlink *head){
 if(i>=0 && i <6)_Head[i]=(AMSTrRecHit*)head;
 }
 
