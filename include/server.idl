@@ -65,6 +65,7 @@ module DPS{
      ARS ars; 
      time LastUpdate;
      time Start;
+     time TimeOut;
      ClientStatus Status;
      ClientStatusType StatusType;
    };

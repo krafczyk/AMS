@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.27 2002/01/08 13:43:51 choutko Exp $
+#  $Id: monitorUI.pm,v 1.28 2002/02/11 11:14:35 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -562,6 +562,7 @@ sub notebook_create_pages {
 	    "Process ID",
 	    "Start Time",
 	    "LastUpdate Time",
+	    "TimeOut",
             "Run",
             "Name",
             "Status",
@@ -614,6 +615,7 @@ sub notebook_create_pages {
 	    "Process ID",
 	    "Start Time",
 	    "LastUpdate Time",
+	    "TimeOut",
             "Status",
 	);
 
@@ -628,6 +630,7 @@ sub notebook_create_pages {
 	    "Process ID",
 	    "Start Time",
 	    "LastUpdate Time",
+	    "TimeOut",
             "Status",
 	);
 
@@ -642,6 +645,7 @@ sub notebook_create_pages {
 	    "Process ID",
 	    "Start Time",
 	    "LastUpdate Time",
+	    "TimeOut",
             "Status",
 	);
 
@@ -1248,6 +1252,7 @@ sub show_sample{
           "pid",
           "Status",
           "Type",
+          "TineOut",
              );                        
 
     }elsif( $name eq "ServerHost"){

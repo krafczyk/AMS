@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.45 2002/02/08 13:48:03 choutko Exp $
+//  $Id: producer.C,v 1.46 2002/02/11 11:14:29 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -79,6 +79,9 @@ else{
      else _openLogFile("Producer");
    }
      time_t cput=3*AMSFFKEY.CpuLimit;
+     time_t cpug=12*3600;
+     if(!IsLocal() && cput<cpug)cput=cpug; 
+     cout <<"   TimeOut sending "<<cput<<endl;
      if(!(_pvar->sendId(_pid,cput))){
        sleep(10);
       if(!(_pvar->sendId(_pid,cput))){
@@ -336,7 +339,7 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
    fbin.open((const char*)a(bstart));
    if(fbin){
     DPS::Producer::TransferStatus st=DPS::Producer::Begin;
-    const int maxs=16000000;
+    const int maxs=2000000;
      DPS::Producer::RUN_var vrun=new DPS::Producer::RUN();
     while(st !=DPS::Producer::End){
      int last=statbuf.st_size-fpath.pos;

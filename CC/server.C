@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.77 2002/02/08 13:48:03 choutko Exp $
+//  $Id: server.C,v 1.78 2002/02/11 11:14:29 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -821,6 +821,7 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
      ac.id.Status=DPS::Client::NOP;
      ac.Status=DPS::Client::Submitted;
      ac.StatusType=DPS::Client::Permanent;
+     ac.TimeOut=_KillTimeOut;
      time_t tt;
      time(&tt);
      ac.LastUpdate=tt;     
@@ -953,7 +954,7 @@ time_t tt;
 time(&tt);
 for(ACLI li=_acl.begin();li!=_acl.end();++li){
  // find clients with timeout
- if((*li)->Status!=DPS::Client::Killed && (*li)->LastUpdate+_KillTimeOut<tt){
+ if((*li)->Status!=DPS::Client::Killed && (*li)->LastUpdate+(*li)->TimeOut<tt){
    ;
    if(PingServer(*li)){
      
@@ -1024,7 +1025,6 @@ if(_ahl.size())return;
 
   CORBA::Boolean Server_impl::sendId(DPS::Client::CID& cid, uinteger timeout) throw (CORBA::SystemException){
 if(cid.Type==DPS::Client::Server){
- _KillTimeOut=timeout;
      for(ACLI j=_acl.begin();j!=_acl.end();++j){
       if(((*j)->id).uid==cid.uid){
        ((*j)->id).pid=cid.pid;
@@ -1035,6 +1035,7 @@ if(cid.Type==DPS::Client::Server){
        time_t tt;
        time(&tt);
        (*j)->LastUpdate=tt;
+       (*j)->TimeOut=timeout;
        DPS::Client::ActiveClient_var acv=*j;
          PropagateAC(acv,DPS::Client::Update );
 #ifdef __AMSDEBUG__
@@ -1683,6 +1684,7 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
      time_t tt;
      time(&tt);
      as.LastUpdate=tt;     
+     as.TimeOut=_KillTimeOut;
      as.Start=tt;
     int length=0;
     for (AMSServerI * pser=this;pser; pser=pser->down()?pser->down():pser->next())length+=pser->getrefmap().size();
@@ -2080,6 +2082,7 @@ if(pcur->InactiveClientExists(getType()))return;
      ac.id.Status=DPS::Client::NOP;
      ac.Status=DPS::Client::Submitted;
      ac.StatusType=DPS::Client::Permanent;
+     ac.TimeOut=_KillTimeOut;
      time_t tt;
      time(&tt);
      ac.LastUpdate=tt;     
@@ -2219,7 +2222,7 @@ if(!_pser->Lock(pid,DPS::Server::KillClient,getType(),_KillTimeOut))return;
 time_t tt;
 time(&tt);
 ACLI li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::Killed));
-if(li!=_acl.end() && (*li)->LastUpdate+2*_KillTimeOut<tt){
+if(li!=_acl.end() && (*li)->LastUpdate+1.41*((*li)->TimeOut)<tt){
    if(_pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
  //kill by -9 here
  
@@ -2304,10 +2307,10 @@ time_t tt;
 time(&tt);
 for(ACLI li=_acl.begin();li!=_acl.end();++li){
  // find clients with timeout
- if((*li)->Status!=DPS::Client::Killed && (*li)->LastUpdate+_KillTimeOut<tt || (*li)->Status==DPS::Client::Submitted && (*li)->LastUpdate+100<tt){
+ if((*li)->Status!=DPS::Client::Killed && (*li)->LastUpdate+(*li)->TimeOut<tt || (*li)->Status==DPS::Client::Submitted && (*li)->LastUpdate+100<tt){
    DPS::Client::ActiveClient_var acv=*li;
    if(acv->Status==DPS::Client::Submitted){
-    acv->LastUpdate=(*li)->LastUpdate-2*_KillTimeOut;
+    acv->LastUpdate=(*li)->LastUpdate-2*((*li)->TimeOut);
    } 
    acv->Status=DPS::Client::TimeOut;
    if(_parent->Debug())_parent->EMessage(AMSClient::print(acv,"Client TIMEOUT"));
@@ -2327,7 +2330,6 @@ _pser->Lock(cid,DPS::Server::ClearCheckClient,getType(),_KillTimeOut);
 
 
 CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException){
- if(timeout>_KillTimeOut)_KillTimeOut=timeout;
      for(ACLI j=_acl.begin();j!=_acl.end();++j){
       if(((*j)->id).uid==cid.uid && (*j)->Status ==DPS::Client::Submitted){
        ((*j)->id).pid=cid.pid;
@@ -2335,6 +2337,8 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
        cid.Interface=CORBA::string_dup(((*j)->id).Interface);
        cid.StatusType=((*j)->id).StatusType;
        cid.Type=((*j)->id).Type;
+//          cout <<"  timeout was  "<<(*j)->TimeOut<<" now "<<timeout<<endl;
+         if(timeout>(*j)->TimeOut)(*j)->TimeOut=timeout;
        (*j)->Status=DPS::Client::Registered;
        time_t tt;
        time(&tt);
@@ -2365,6 +2369,7 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
      ac.id.StatusType=cid.StatusType;
      ac.Status=DPS::Client::Registered;
      ac.StatusType=cid.StatusType;
+     ac.TimeOut=timeout;
      time_t tt;
      time(&tt);
      ac.LastUpdate=tt;     
@@ -3689,7 +3694,6 @@ return _pser->getARS(cid, arf,type,id,selffirst);
 
 }
   CORBA::Boolean Client_impl::sendId(DPS::Client::CID& cid, uinteger timeout) throw (CORBA::SystemException){
-    _KillTimeOut=timeout;
     if(cid.Type==DPS::Client::Monitor){
      DPS::Client::ActiveClient_var vac=new DPS::Client::ActiveClient();
       if(_acl.size()){
@@ -3708,6 +3712,7 @@ return _pser->getARS(cid, arf,type,id,selffirst);
        time_t tt;
        time(&tt);
        vac->LastUpdate=tt;
+       vac->TimeOut=timeout;
        vac->Start=tt;
      (vac->ars).length(1);
      ((vac->ars)[0]).Interface=(const char *)("Dummy");
@@ -3840,6 +3845,7 @@ void Client_impl::StartClients(const DPS::Client::CID & pid){
      ac.id.Status=DPS::Client::NOP;
      ac.Status=DPS::Client::Submitted;
      ac.StatusType=DPS::Client::Permanent;
+     ac.TimeOut=_KillTimeOut;
      time_t tt;
      time(&tt);
      ac.LastUpdate=tt;     
@@ -3869,7 +3875,7 @@ time_t tt;
 time(&tt);
 for(ACLI li=_acl.begin();li!=_acl.end();++li){
  // find clients with timeout
- if((*li)->Status!=DPS::Client::Killed && (*li)->LastUpdate+_KillTimeOut<tt){
+ if((*li)->Status!=DPS::Client::Killed && (*li)->LastUpdate+(*li)->TimeOut<tt){
    if(PingClient(*li)){
     _UpdateACT((*li)->id,DPS::Client::Active);
    }

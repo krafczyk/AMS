@@ -1,4 +1,4 @@
-#  $Id: ActiveClient.pm,v 1.5 2002/01/08 13:43:51 choutko Exp $
+#  $Id: ActiveClient.pm,v 1.6 2002/02/11 11:14:35 choutko Exp $
 package ActiveClient;
 use strict;
 @ActiveClient::EXPORT = qw(new);
@@ -11,6 +11,7 @@ sub new{
       id=>$cid,
       ars=>[],
       LastUpdate=>time(),
+      TimeOut=>60,
       Start=>$start,
       Status=>"Active",
       StatusType=>"Permanent",

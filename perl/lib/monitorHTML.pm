@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.14 2002/02/08 15:36:53 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.15 2002/02/11 11:14:35 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -185,6 +185,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
             "Process ID",
             "Start Time",
             "LastUpdate Time",
+            "TimeOut",
             "Run",
             "Name",
             "Status",
@@ -225,6 +226,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
             "Process ID",
             "Start Time",
             "LastUpdate Time",
+            "TimeOut",
             "Status",
                                    );
  
@@ -242,6 +244,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
             "Process ID",
             "Start Time",
             "LastUpdate Time",
+            "TimeOut",
             "Status",
                                    );
  
@@ -324,6 +327,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
           "pid",
           "Status",
           "Type",
+          "TimeOut",
                  );
     }elsif( $name eq "ServerHost"){
         $#titles=-1;

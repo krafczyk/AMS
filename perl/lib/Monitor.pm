@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.45 2002/02/08 15:36:53 choutko Exp $
+# $Id: Monitor.pm,v 1.46 2002/02/11 11:14:35 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -735,6 +735,8 @@ sub getactiveclients{
         my $dts=$dt." sec ago";
 #        $time=localtime($hash->{LastUpdate});
         push @text, $dts;
+        my $timeout=$hash->{TimeOut};
+        push @text, $timeout;
 if ($producer eq "Producer"){
         my $run=-1;
      for my $j (0 ... $#{$Monitor::Singleton->{rtb}}){
@@ -908,6 +910,7 @@ int($hash->{CPUNeeded}*10)/10,
          push @text, $hash->{id}->{pid};
          push @text, $hash->{Status};
          push @text, $hash->{StatusType};
+         push @text, $hash->{TimeOut};
          push @output, [@text];   
      }
     }elsif( $name eq "ServerHost"){       
@@ -1105,6 +1108,7 @@ sub sendback{
         shift @data;
         shift @data;
         $ac{StatusType}=shift @data;
+        $ac{TimeOut}=shift @data;
         my $arsref;
         foreach $arsref (@{$ref->{arsref}}){
             try{
