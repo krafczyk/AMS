@@ -123,7 +123,7 @@ void AMSJob::data(){
       STATUSFFKEY.status[i]=0;
     }
   }
-  FFKEY("STATUS",(float*)&STATUSFFKEY,sizeof(STATUSFFKEY_DEF)/sizeof(integer),"MIXED");
+  FFKEY("ESTATUS",(float*)&STATUSFFKEY,sizeof(STATUSFFKEY_DEF)/sizeof(integer),"MIXED");
 
   AMSFFKEY.Simulation=0; // Simulation
   AMSFFKEY.Reconstruction=1; // Reconstruction
@@ -1570,6 +1570,7 @@ end.tm_year=TOFRECFFKEY.year[1];
 TID.add (new AMSTimeID(AMSID("Tofbarcal1",isRealData()),
    begin,end,SCBLMX*sizeof(scbrcal[0][0]),
    (void*)&scbrcal[0][0]));
+   cout <<"qq*** "<<SCBLMX*sizeof(scbrcal[0][0])<<endl;
    
 TID.add (new AMSTimeID(AMSID("Tofvpar",isRealData()),
    begin,end,sizeof(TOFVarp),

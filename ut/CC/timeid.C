@@ -73,7 +73,7 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0,
       //      end.tm_isdst=0;
       _Begin=mktime(&begin); 
       _End=mktime(&end); 
-      _Insert=_Begin;
+      time(&_Insert);
       _Nbytes+=sizeof(uinteger);
       _CRC=_CalcCRC();
       int i;
