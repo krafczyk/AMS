@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.13 2004/10/06 08:20:11 choutko Exp $
+# $Id: DBServer.pm,v 1.14 2004/10/06 08:32:07 choutko Exp $
 
 package DBServer;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -529,7 +529,7 @@ if( defined $ior){
  }
 }
    $ref->{dbfile}=$amsprodlogfile;
-  if(not $ref->InitDBFile($amsprodlogdir/db)){
+  if(not $ref->InitDBFile($amsprodlogdir)){
       my $dbfile=$ref->{dbfile};
      $ref->Exiting(" Unable to open  DB File $dbfile","CInAbort");
      return 0;
