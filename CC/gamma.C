@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.25 2002/12/18 15:09:40 choutko Exp $
+//  $Id: gamma.C,v 1.26 2003/01/20 08:04:23 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -58,375 +58,868 @@ void AMSTrTrackGamma::_SingleHit(integer FLPAT[], double CE[], int LA){
   double AF;
   double BF;
   double VARR;
-
- for(int i=0;i<TKDBc::nlay();i++){
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-   cout << "In SingleHIt  FLPAT["<<i<<"] ="<<FLPAT[i]<<endl;
-   cout << "In SingleHIt     CE["<<i<<"]= "<< CE[i]<<endl;
-#endif
-   z_tkl[i]=TKDBc::zposl(i);
-   z_fi2[i]=10000;
-   middle[i]=10000;
-   if (FLPAT[i]==2){
-     z_fi2[i]=z_tkl[i]; 
-   }
-   for(int k=0;k<3;k++){
-    l_z[k][i]=0;
-   }
- }
- // I step
- for(int i=0;i<TKDBc::nlay();i++){
-   if (FLPAT[i]==1){
-     //
-    for(int j=0;j<TKDBc::nlay();j++){
-     di_zz2[j][i]=10000;
+  
+  for(int i=0;i<TKDBc::nlay();i++){
+    z_tkl[i]=TKDBc::zposl(i);
+    z_fi2[i]=10000;
+    middle[i]=10000;
+    if (FLPAT[i]==2){
+      z_fi2[i]=z_tkl[i]; 
     }
-    //
-    if (i == 2 || i == 4 || i == 6){
-     if (FLPAT[i-1]==2){
-       middle[i]=CE[i-1];
-     }
+    for(int k=0;k<3;k++){
+      l_z[k][i]=0;
     }
-    if (i == 1 || i == 3 || i == 5){
-     if (FLPAT[i+1]==2){
-       middle[i]=CE[i+1];
-     }
-    }
-    //
-    z_ref=z_tkl[i];
-    //
-    for(int j=0;j<TKDBc::nlay();j++){
-     di_zz2[j][i]=fabs(z_ref-z_fi2[j]);
-    }
-    //
-   }
- }
-
-double newmid[8]={10000,10000,10000,10000,10000,10000,10000,10000};
-
- if (LA >= 2){
- // II step, in case middle was not found
- for(int i=0;i<TKDBc::nlay();i++){
-   if (FLPAT[i]==1 && middle[i]==10000){
-    z_ref=z_tkl[i];
-    d_cres=0;
-    for(int k=0;k<L;k++){
-      di_max=10000;
+  }
+  // I step
+  for(int i=0;i<TKDBc::nlay();i++){
+    if (FLPAT[i]==1){
+      //
       for(int j=0;j<TKDBc::nlay();j++){
-	if (di_zz2[j][i] < di_max && di_zz2[j][i] > d_cres){       
-         l_z[k][i]=j;
-         di_max=di_zz2[j][i];
+	di_zz2[j][i]=10000;
+      }
+      //
+      if (i == 2 || i == 4 || i == 6){
+	if (FLPAT[i-1]==2){
+	  middle[i]=CE[i-1];
 	}
       }
-     d_cres=di_max; 
-    } //k=1,L
-
-    for(int k=0;k<L;k++){
-    y_ce[k]=CE[l_z[k][i]];
-    z_ce[k]=z_fi2[l_z[k][i]];
+      if (i == 1 || i == 3 || i == 5){
+	if (FLPAT[i+1]==2){
+	  middle[i]=CE[i+1];
+	}
+      }
+      //
+      z_ref=z_tkl[i];
+      //
+      for(int j=0;j<TKDBc::nlay();j++){
+	di_zz2[j][i]=fabs(z_ref-z_fi2[j]);
+      }
+      //
     }
-
-    dlinearme(L,z_ce,y_ce,AF,BF,VARR);         // linear fit
-    middle[i]=(BF*z_ref)+AF;
-    #ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-    cout<< "AF,BF,z_ref  "<< AF<<" "<<BF<<" "<<z_ref<<endl; 
-    cout<< "VARR "<<VARR <<endl; 
-    cout<< "****into single LFIT middle["<<i<<"]= "<< middle[i]<<endl;
-    #endif   
-   }
-   //
-
-   //
- }
- }// LA
-
-
-
-
- for(int i=0;i<TKDBc::nlay();i++){
-   if (VARR < 1){
-     newmid[i]=(BF*(TKDBc::zposl(i)))+AF;
-     //     cout<< " Plane "<<i+1<<" newmid = "<<newmid[i]<<endl;
-   }
-   if (FLPAT[i]==1 && middle[i] != 10000){
-     CE[i]=middle[i];
-     if (fabs(newmid[i]-middle[i]) < 0.6){
-       CE[i]=newmid[i];
-     }
-
-   }
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-cout<< "****into single CE["<<i<<"]= "<< CE[i]<<endl;
-#endif
- }
- //
- // One more alternative:
- int cou1a=0;    
- int cou1b=0;    
- for(int i=0;i<5;i++){
-  if (FLPAT[i]==1){
-    cou1a++; // first half TK 1, 2,3, 4,5
   }
- }
-
- if (cou1a <= 2 ){
-   int jw=-1;
-   double y_v[5];
-   double z_v[5];
-   for(int i=0;i<5;i++){
-     if (FLPAT[i]==2){
-       jw++;
-       y_v[jw]=CE[i];
-       z_v[jw]=z_tkl[i];
-     }
-   }
-   dlinearme((jw+1),z_v,y_v,AF,BF,VARR);         // linear fit
-   double mid[5];
-   for(int i=0;i<5;i++){
-     if (FLPAT[i]==1){
-       mid[i]=(BF*z_tkl[i])+AF;
-       if (fabs(CE[i]-mid[i]) > 0.4) CE[i]=mid[i];    
-     }
-   }
- }
-   //   
- for(int i=3;i<8;i++){
-  if (FLPAT[i]==1){
-    cou1b++; // first half TK 4,5, 6,7, 8
+  
+  double newmid[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+  
+  if (LA >= 2){
+    // II step, in case middle was not found
+    for(int i=0;i<TKDBc::nlay();i++){
+      if (FLPAT[i]==1 && middle[i]==10000){
+	
+	z_ref=z_tkl[i];
+	d_cres=0;
+	for(int k=0;k<L;k++){
+	  di_max=10000;
+	  for(int j=0;j<TKDBc::nlay();j++){
+	    if (di_zz2[j][i] < di_max && di_zz2[j][i] > d_cres){       
+	      l_z[k][i]=j;
+	      di_max=di_zz2[j][i];
+	    }
+	  }
+	  d_cres=di_max; 
+	} //k=1,L
+	
+	for(int k=0;k<L;k++){
+	  y_ce[k]=CE[l_z[k][i]];
+	  z_ce[k]=z_fi2[l_z[k][i]];
+	}
+	
+	dlinearme(L,z_ce,y_ce,AF,BF,VARR);         // linear fit
+	
+	middle[i]=(BF*z_ref)+AF;
+      }
+      //
+      
+      //
+    }
+  }// LA
+  
+  
+  
+  
+  for(int i=0;i<TKDBc::nlay();i++){
+    if (VARR <= 1.6){
+      newmid[i]=(BF*(TKDBc::zposl(i)))+AF;
+      if (FLPAT[i]==1 && middle[i] != 10000){
+	CE[i]=middle[i];
+	//     if (fabs(newmid[i]-middle[i]) < 0.6){
+	CE[i]=newmid[i];
+	//     }
+      }
+    }
   }
- }
- if (cou1b <= 2 ){
-   int jw=-1;
-   double y_v[5];
-   double z_v[5];
-   for(int i=3;i<8;i++){
-     if (FLPAT[i]==2){
-       jw++;
-       y_v[jw]=CE[i];
-       z_v[jw]=z_tkl[i];
-     }
-   }
-   dlinearme((jw+1),z_v,y_v,AF,BF,VARR);         // linear fit
-  double mid[5];
-   for(int i=3;i<8;i++){
+  //
+  // One more alternative:
+  int cou1a=0;    
+  int cou1b=0;    
+  for(int i=0;i<5;i++){
+    if (FLPAT[i]==1){
+      cou1a++; // first half TK 1, 2,3, 4,5
+    }
+  }
+  
+  if (cou1a <= 2 ){
+    int jw=-1;
+    double y_v[5];
+    double z_v[5];
+    for(int i=0;i<5;i++){
+      if (FLPAT[i]==2){
+	jw++;
+	y_v[jw]=CE[i];
+	z_v[jw]=z_tkl[i];
+      }
+    }
+    dlinearme((jw+1),z_v,y_v,AF,BF,VARR);         // linear fit
+    double mid[5];
+    for(int i=0;i<5;i++){
       if (FLPAT[i]==1){
-       mid[i]=(BF*z_tkl[i])+AF;
-       if (fabs(CE[i]-mid[i]) > 0.4) CE[i]=mid[i];    
-     }
-   }
- }
- //
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
- for(int i=0;i<TKDBc::nlay();i++){
-   cout<< "******into SingleHIt CE["<<i<<"]= "<< CE[i]<<endl;
- }
-#endif
-// ..alter
-
+	mid[i]=(BF*z_tkl[i])+AF;
+	if (fabs(CE[i]-mid[i]) > 0.4) CE[i]=mid[i];    
+	
+      }
+    }
+  }
+  //   
+  for(int i=3;i<8;i++){
+    if (FLPAT[i]==1){
+      cou1b++; // first half TK 4,5, 6,7, 8
+    }
+  }
+  if (cou1b <= 2 ){
+    int jw=-1;
+    double y_v[5];
+    double z_v[5];
+    for(int i=3;i<8;i++){
+      if (FLPAT[i]==2){
+	jw++;
+	y_v[jw]=CE[i];
+	z_v[jw]=z_tkl[i];
+      }
+    }
+    dlinearme((jw+1),z_v,y_v,AF,BF,VARR);         // linear fit
+    double mid[5];
+    for(int i=3;i<8;i++){
+      if (FLPAT[i]==1){
+	mid[i]=(BF*z_tkl[i])+AF;
+	if (fabs(CE[i]-mid[i]) > 0.4) CE[i]=mid[i];    
+      }
+    }
+  }
+  //
+  
 }
 
 void AMSTrTrackGamma::_SingleCommonHit(integer FLPAT[], vector<double> H[]){
-
-
-
+  
+  
+  
   // planes 1  2  3  4
   // FLPAT  1  2  .. .. -> 2  2
   // FLPAT  1 1/0 2  .. -> 2 1/0 2
-
-     if ((FLPAT[0] == 1 && FLPAT[1] == 2 && (fabs(H[1][0]-H[1][1])<= 0.19)) ||
-         (FLPAT[0] == 1 && FLPAT[1] <2 && FLPAT[2] == 2 && (fabs(H[2][0]-H[2][1])<= 0.17))){
-       for (AMSTrRecHit * p=AMSTrRecHit::gethead(0); p!=NULL; p=p->next()){ 
-	 if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-
-	 if (p->checkstatus(AMSDBc::GAMMALEFT) || p->checkstatus(AMSDBc::GAMMARIGHT)){
-             p->setstatus(AMSDBc::GAMMALEFT);
-	     p->setstatus(AMSDBc::GAMMARIGHT);
-	 }
-
-       }
-
-  // planes 1  2  3  4
-  // FLPAT  2  1  2  .. -> 2  2  2
-       if (FLPAT[1] == 1){
-	 for (AMSTrRecHit * p=AMSTrRecHit::gethead(1); p!=NULL; p=p->next()){ 
-	   if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-	 if (p->checkstatus(AMSDBc::GAMMALEFT) || p->checkstatus(AMSDBc::GAMMARIGHT)){
-             p->setstatus(AMSDBc::GAMMALEFT);
-	     p->setstatus(AMSDBc::GAMMARIGHT);
-	 }
-
-	 }
-       }
-
-
-
-       
-     }     
-
-
-
-
+  
+  //     if ((FLPAT[0] == 1 && FLPAT[1] == 2 && (fabs(H[1][0]-H[1][1])<= 0.19)) ||
+  if ((FLPAT[0] == 1 && FLPAT[1] == 2 && (fabs(H[1][0]-H[1][1])<= 0.31)) ||
+      (FLPAT[0] == 1 && FLPAT[1] <2 && FLPAT[2] == 2 && (fabs(H[2][0]-H[2][1])<= 0.17))){
+    for (AMSTrRecHit * p=AMSTrRecHit::gethead(0); p!=NULL; p=p->next()){ 
+      if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+      
+      if (p->checkstatus(AMSDBc::GAMMALEFT) || p->checkstatus(AMSDBc::GAMMARIGHT)){
+	p->setstatus(AMSDBc::GAMMALEFT);
+	p->setstatus(AMSDBc::GAMMARIGHT);
+      }
+      
+    }
+    
+    
+    // planes 1  2  3  4
+    // FLPAT  2  1  2  .. -> 2  2  2
+    if (FLPAT[1] == 1){
+      for (AMSTrRecHit * p=AMSTrRecHit::gethead(1); p!=NULL; p=p->next()){ 
+	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+	if (p->checkstatus(AMSDBc::GAMMALEFT) || p->checkstatus(AMSDBc::GAMMARIGHT)){
+	  p->setstatus(AMSDBc::GAMMALEFT);
+	  p->setstatus(AMSDBc::GAMMARIGHT);
+	}
+	
+      }
+    }
+    
+  }     
+  //
 }
 void AMSTrTrackGamma::_LookOneEight(integer FLPAT[], vector<double> H[]){
-
+  
   double mire8[4]={1.5,1.6,3,3.2};
   double mare8[4]={2.3,2.5,7.5,13};
   double mare1[4]={0.55,0.5,0.25,0.2};
   double re[trconst::maxlay];
   double z_tkl[trconst::maxlay];
   double mid[trconst::maxlay];
-
+  
   for(int i=0;i<TKDBc::nlay();i++){
     z_tkl[i]=TKDBc::zposl(i);
-      if (FLPAT[i]==2){
-	re[i]=fabs(H[i][0]-H[i][1]);
-       mid[i]=(H[i][0]+H[i][1])/2;
-      }
+    if (FLPAT[i]==2){
+      re[i]=fabs(H[i][0]-H[i][1]);
+      mid[i]=(H[i][0]+H[i][1])/2;
+    }
   }
   ////////
   // TK1
-  if (FLPAT[0] == 2){
+  if (FLPAT[0] == 2 || FLPAT[0] == 1 ){
     int ja=-1;
-  double yc[4];
-  double zc[4];
-  
-  for(int j=1;j<5;j++){
-    if (FLPAT[j]==2){
-      ja++;
-      yc[ja]=mid[j];
-      zc[ja]=z_tkl[j];
-    }
-  }
-  if ( ja == 0 ){
-    for(int j=5;j<8;j++){
+    double yc[4];
+    double zc[4];
+    
+    for(int j=1;j<5;j++){
+      //  for(int j=1;j<7;j++){
       if (FLPAT[j]==2){
 	ja++;
 	yc[ja]=mid[j];
 	zc[ja]=z_tkl[j];
       }
     }
-  }
-  //  AMSTrTrackGamma * punto;
-  double thc1,A,B,VAR;
-  double off1=10000;
-  if (ja >= 1){
-    dlinearme((ja+1),zc,yc,A,B,VAR);
-    thc1=A+B*z_tkl[0];
-    for(int j=0;j<ja+1;j++){
-      for(int ii=0;ii<TKDBc::nlay();ii++){
-	if (z_tkl[ii] == zc[ja]){
-	  if ( re[0] > mare1[ii-1]*re[ii] ){//too large
-	    off1=(fabs(H[0][0]-thc1) > fabs(H[0][1]-thc1))?H[0][0]:H[0][1];
+    if ( ja == 0 ){
+      // if ( ja <= 2){
+      for(int j=5;j<8;j++){
+	if (FLPAT[j]==2){
+	  ja++;
+	  yc[ja]=mid[j];
+	  zc[ja]=z_tkl[j];
+	}
+      }
+    }
+    double thc1,A,B,VAR;
+    double off1=10000;
+    if (ja >= 1){
+      dlinearme((ja+1),zc,yc,A,B,VAR);
+      thc1=A+B*z_tkl[0];
+      
+      if (FLPAT[0] == 2){ //tk1
+	for(int j=0;j<ja+1;j++){
+	  for(int ii=0;ii<TKDBc::nlay();ii++){
+	    if (z_tkl[ii] == zc[ja]){
+	      if ( re[0] > mare1[ii-1]*re[ii] ){//too large
+		off1=(fabs(H[0][0]-thc1) > fabs(H[0][1]-thc1))?H[0][0]:H[0][1];
+	      }
+	    }
 	  }
 	}
-      } 
-    }
-  }
-
-  if (off1 != 10000){
-    double th[2];
-    for(int jo=0;jo<2;jo++){
-      if (H[0][jo] == off1)  H[0][jo]=10000;
-      th[jo]=H[0][jo]; 
+      }
     } 
-    //
-    H[0].clear();
-    H[0].resize(0);
-    for(int jo=0;jo<2;jo++){
-      if (th[jo] != 10000){
-	H[0].push_back(th[jo]);
+    if (off1 != 10000){
+      double th[2];
+      for(int jo=0;jo<2;jo++){
+	if (H[0][jo] == off1)  H[0][jo]=10000;
+	th[jo]=H[0][jo]; 
+      } 
+      //
+      H[0].clear();
+      H[0].resize(0);
+      for(int jo=0;jo<2;jo++){
+	if (th[jo] != 10000){
+	  H[0].push_back(th[jo]);
+	}  
       }  
-    }  
-   FLPAT[0]=H[0].size();
+      FLPAT[0]=H[0].size();
+    }
+    
+    // proviamo col tk1 single hit
+    if (FLPAT[0] == 1){
+      if (fabs(H[0][0]-thc1)>1 && ja >= 2 && VAR < 0.1){
+	H[0][0]=10000;
+	H[0].clear();
+	H[0].resize(0);
+	FLPAT[0]=0;
+      }
+    } //==1
   }
- }// TK1
   ////////////
   // TK8
   if (FLPAT[7] == 2){
-
-  int ja=-1;
-  double yc[4];
-  double zc[4];
-  
-  for(int j=3;j<7;j++){
-    if (FLPAT[j]==2){
-      ja++;
-      yc[ja]=mid[j];
-      zc[ja]=z_tkl[j];
-    }
-  }
-
-  if ( ja == 0 ){
-    for(int j=0;j<3;j++){
+    
+    int ja=-1;
+    double yc[4];
+    double zc[4];
+    
+    for(int j=3;j<7;j++){
       if (FLPAT[j]==2){
 	ja++;
 	yc[ja]=mid[j];
 	zc[ja]=z_tkl[j];
       }
     }
-  }
-  
-  //  AMSTrTrackGamma * punto;
-  double thc8,A,B,VAR;
-  double off8=10000;
-  if (ja >= 1){
-    dlinearme((ja+1),zc,yc,A,B,VAR);
-    thc8=A+B*z_tkl[7];
-    for(int j=0;j<ja+1;j++){
-      for(int ii=0;ii<TKDBc::nlay();ii++){
-	if (z_tkl[ii] == zc[ja]){
-	  if ( re[7] > mare8[6-ii]*re[ii] ){//too large
-	    off8=(fabs(H[7][0]-thc8) > fabs(H[7][1]-thc8))?H[7][0]:H[7][1];
-	  }
+    
+    if ( ja == 0 ){
+      for(int j=0;j<3;j++){
+	if (FLPAT[j]==2){
+	  ja++;
+	  yc[ja]=mid[j];
+	  zc[ja]=z_tkl[j];
 	}
-      } 
+      }
     }
-  }
-
-
-  if (off8 != 10000){
-    double th[2];
-    for(int jo=0;jo<2;jo++){
-      if (H[7][jo] == off8)  H[7][jo]=10000;
-      th[jo]=H[7][jo]; 
-    } 
-    //
-    H[7].clear();
-    H[7].resize(0);
-    for(int jo=0;jo<2;jo++){
-      if (th[jo] != 10000){
-	H[7].push_back(th[jo]);
+    
+    double thc8,A,B,VAR;
+    double off8=10000;
+    if (ja >= 1){
+      dlinearme((ja+1),zc,yc,A,B,VAR);
+      thc8=A+B*z_tkl[7];
+      for(int j=0;j<ja+1;j++){
+	for(int ii=0;ii<TKDBc::nlay();ii++){
+	  if (z_tkl[ii] == zc[ja]){
+	    if ((6-ii) <= 3){
+	      if ( re[7] > mare8[6-ii]*re[ii] ){//too large
+		off8=(fabs(H[7][0]-thc8) > fabs(H[7][1]-thc8))?H[7][0]:H[7][1];
+	      }
+	      if ( off8 = 10000 && re[7] < 0.05 ){
+		off8=H[7][0];
+		if (fabs(thc8-((H[7][0]+H[7][1])/2)) > 2 ){
+		  H[7][1]=10000; 
+		}
+	      }
+	    }
+	  }
+	} 
+      }
+    }
+    if (off8 != 10000){
+      double th[2];
+      for(int jo=0;jo<2;jo++){
+	if (H[7][jo] == off8)  H[7][jo]=10000;
+	th[jo]=H[7][jo]; 
+      } 
+      //
+      H[7].clear();
+      H[7].resize(0);
+      for(int jo=0;jo<2;jo++){
+	if (th[jo] != 10000){
+	  H[7].push_back(th[jo]);
+	}  
       }  
-    }  
-   FLPAT[7]=H[7].size();
-  }
- } // TK8
+      FLPAT[7]=H[7].size();
+    }
+  } // TK8
   //..
 }
+
+
+
+
+///////////////////////////////
+
+void AMSTrTrackGamma::SetBestResLR(integer FLPAT[], vector<double> H[], integer esc_1, integer esc_2){
+  // With this method we select the best set of Delta-y between two y hits
+  // the same plane (or sub-level).
+  // The estimator would be based on "lsqp2" 
+  // In priciple it should be apply always because and the minimum number of 
+  // Deltas must be 3
+  
+  double z_tkl[trconst::maxlay];
+  for(int i=0;i<TKDBc::nlay();i++){
+    z_tkl[i]=TKDBc::zposl(i);
+  }
+  const int maxsize=500;
+  double res_LR[maxsize][trconst::maxlay];
+  double res_[trconst::maxlay];
+  double z_fi[trconst::maxlay];
+  double mid[trconst::maxlay];
+  for(int i=0;i<TKDBc::nlay();i++){
+    mid[i]=10000;
+  }
+  for(int i=0;i<TKDBc::nlay();i++){
+    z_fi[i]=10000;
+    res_[i]=10000;
+    for(int k=0;k<maxsize;k++){
+      res_LR[k][i]=10000;
+    }
+  }
+  int ja;
+  ja = -1;
+
+
+  // i=1 means that I don't consider plane 1 for the moment ....
+    for(int i=1;i<TKDBc::nlay();i++){
+      // Let's consider occupancy=2 (FLPAT[i]==2)
+      if (FLPAT[i]==2){
+	ja++;  
+	res_[ja]=fabs(H[i][0]-H[i][1]);
+	z_fi[ja]=z_tkl[i];
+	//
+        mid[ja]=(H[i][0]+H[i][1])/2; 
+      }
+    } 
+
+    // FIRST OF ALL: Is the res vs z decreasing ??????
+
+  double res_3[trconst::maxlay];
+  double z_fi3[trconst::maxlay];
+  double mid3[trconst::maxlay];
+    for(int i=0;i<TKDBc::nlay();i++){
+      z_fi3[i]=10000;
+      res_3[i]=10000;
+      mid3[i]=10000;
+    }
+  int iu=-1;
+  for(int i=0;i<ja;i++){
+    if (res_[i+1] >= res_[i]) {        
+      iu++;
+      z_fi3[iu]=z_fi[i];
+      res_3[iu]=res_[i];
+      mid3[i]=mid[i];
+    }
+  }
+  for(int i=0;i<ja;i++){
+    if (z_fi3[iu] == z_fi[i]){
+      if (res_[i+1] >= res_[i]) {
+	z_fi3[iu+1]=z_fi[i+1];
+	res_3[iu+1]=res_[i+1];
+        mid3[iu+1]=mid[i+1];
+      }
+    }
+  }
+  iu++;
+  for(int i=0;i<(ja+1);i++){
+    cout <<  "z_fi["<<i<<"] res_["<<i<<"] = "<<z_fi[i]<< " "<<  res_[i]<<endl;
+  }
+  for(int i=0;i<(iu+1);i++){
+    cout <<  "z_fi3["<<i<<"] res_3["<<i<<"] = "<<z_fi3[i]<< " "<<  res_3[i]<<endl;
+  }
+
+  if (iu != ja){
+    ja = iu;
+    for(int i=0;i<TKDBc::nlay();i++){
+      z_fi[i]=10000;
+      res_[i]=10000;
+     mid[i]=10000;
+    }
+    for(int i=0;i<(ja+1);i++){
+	res_[i]=res_3[i];
+	z_fi[i]=z_fi3[i];
+	mid[i]=mid3[i];
+    }   
+  }
+  for(int i=0;i<TKDBc::nlay();i++){
+    cout <<  "AFTER res_3..... z_fi["<<i<<"] res_["<<i<<"] = "<<z_fi[i]<< " "<<  res_[i]<<endl;
+  }
+
+
+
+  int j1;
+  double res1_[trconst::maxlay];
+  double z1_fi[trconst::maxlay];
+  double mid1[trconst::maxlay];
+
+  for(int i=0;i<TKDBc::nlay();i++){
+    z1_fi[i]=10000;
+    res1_[i]=10000;
+    mid1[i]=10000;
+  }
+
+
+
+
+
+
+    if ((ja+1) < 3){ // we need an alternative
+      j1=-1;
+      // the candidate pair is compared to higher z plane in order to limit the mistake
+      // in counting two LEFT hits or two RIGHT hits.
+    if ((FLPAT[1]==2 || FLPAT[2]==2) && (FLPAT[3]==1 && FLPAT[4]==1)){
+      //  X  2(2)  11  XX X
+      if ((FLPAT[2]==2) &&
+         (fabs(H[3][0]-H[4][0]) > fabs(H[2][0]-H[2][1]))){
+	j1++;
+       res1_[j1]=fabs(H[3][0]-H[4][0]);
+       z1_fi[j1]=z_tkl[3]; // we assign the higher z coo
+       mid1[j1]=(H[3][0]+H[4][0])/2;
+      }
+      if ((FLPAT[2]!=2 && FLPAT[1]==2) &&
+         (fabs(H[3][0]-H[4][0]) > fabs(H[1][0]-H[1][1]))){
+	j1++;
+       res1_[j1]=fabs(H[3][0]-H[4][0]);
+       z1_fi[j1]=z_tkl[3]; // we assign the higher z coo
+       mid1[j1]=(H[3][0]+H[4][0])/2;
+      }
+    }
+    // 
+    if (FLPAT[5]==1 && FLPAT[6]==1){
+     if (FLPAT[3]==2 || FLPAT[4]==2){
+      //  X  XX  2(2)  11 X
+      if ((FLPAT[4]==2) &&
+         (fabs(H[5][0]-H[6][0]) > fabs(H[4][0]-H[4][1]))){
+	j1++;
+	res1_[j1]=fabs(H[5][0]-H[6][0]);
+	z1_fi[j1]=z_tkl[5]; // we assign the higher z coo 
+	mid1[j1]=(H[5][0]+H[6][0])/2;
+      }
+      if ((FLPAT[4]!=2 && FLPAT[3]==2) &&
+         (fabs(H[5][0]-H[6][0]) > fabs(H[3][0]-H[3][1]))){
+	j1++;
+	res1_[j1]=fabs(H[5][0]-H[6][0]);
+	z1_fi[j1]=z_tkl[5]; // we assign the higher z coo 
+	mid1[j1]=(H[5][0]+H[6][0])/2;
+      }
+     }
+    if (FLPAT[1]==2 || FLPAT[2]==2){
+      //  X  2(2)  XX  11 X
+      if ((FLPAT[2]==2) &&
+         (fabs(H[5][0]-H[6][0]) > fabs(H[2][0]-H[2][1]))){
+       	j1++;
+	res1_[j1]=fabs(H[5][0]-H[6][0]);
+	z1_fi[j1]=z_tkl[5]; // we assign the higher z coo 
+	mid1[j1]=(H[5][0]+H[6][0])/2;
+      }
+      if ((FLPAT[2]!=2 && FLPAT[1]==2) &&
+         (fabs(H[5][0]-H[6][0]) > fabs(H[1][0]-H[1][1]))){
+	j1++;
+	res1_[j1]=fabs(H[5][0]-H[6][0]);
+	z1_fi[j1]=z_tkl[5]; // we assign the higher z coo 
+	mid1[j1]=(H[5][0]+H[6][0])/2;
+      }
+    }
+    }
+    //
+    }
+    //
+  for(int i=0;i<j1+1;i++){
+    cout <<  "AFTER hybrid..... z1_fi["<<i<<"] res1_["<<i<<"] = "<<z1_fi[i]<< " "<<  res1_[i]<<endl;
+  }
+
+    // if double hits are not enough redo counting
+  // i=1 means plane 1 still excluded......
+ 
+    int ia;
+  double res_lr[trconst::maxlay];
+  double z_lr[trconst::maxlay];
+  double mid_lr[trconst::maxlay];
+  for(int i=0;i<TKDBc::nlay();i++){
+    z_lr[i]=10000;
+    res_lr[i]=10000;
+    mid_lr[i]=10000;
+  }
+    ia=-1;
+    for(int i=1;i<TKDBc::nlay();i++){
+      //
+      if (FLPAT[i]==2){
+        for(int j=0;j<ja+1;j++){
+          if (z_fi[j] == z_tkl[i]){
+	    ia++;  
+	    res_lr[ia]=res_[j];
+	    z_lr[ia]=z_fi[j];
+	    mid_lr[ia]=mid[j];
+	  }
+	}
+      }
+      if (FLPAT[i]==1){
+	for(int j=0;j<j1+1;j++){
+	  if (z1_fi[j] == z_tkl[i]){
+	    ia++;  
+	    res_lr[ia]=res1_[j];
+	    z_lr[ia]=z1_fi[j];
+	    mid_lr[ia]=mid1[j];
+	  }
+	}
+      }
+      //
+    } 
+  for(int i=0;i<ia+1;i++){
+    cout <<  "AFTER recounting both..... z_lr["<<i<<"] res_lr["<<i<<"] = "<<z_lr[i]<< " "<<  res_lr[i]<<endl;
+  }
+ 
+
+  double mthl1[trconst::maxlay];
+  double a0,a1,var;
+  int flaoccup=0;
+  var=10000;
+  //
+  if ((ia+1) == 2 && j1==-1){
+    // let's check if there is an hybrid pair anyway, even if it 
+    // is not comparable with one more upstream
+
+dlinearme(ia+1,z_lr,mid_lr,a0,a1,var);
+//
+     
+    j1=-1;
+    for(int i=0;i<TKDBc::nlay();i++){
+      z1_fi[i]=10000;
+      res1_[i]=10000;
+      mid1[i]=10000;
+      mthl1[i]=10000;
+    }
+    //    if (FLPAT[1]==1 && FLPAT[2]==1){
+    // j1++;
+    //res1_[j1]=fabs(H[1][0]-H[2][0]);
+    //z1_fi[j1]=z_tkl[1]; // we assign the higher z coo 
+    //  mid1[j1]=(H[1][0]+H[2][0])/2;
+    // }
+    if (FLPAT[3]==1 && FLPAT[4]==1){
+      j1++;
+      res1_[j1]=fabs(H[3][0]-H[4][0]);
+      z1_fi[j1]=z_tkl[3];// we assign the higher z coo 
+      mid1[j1]=(H[3][0]+H[4][0])/2;
+      mthl1[j1]=a0+a1*z_tkl[3];
+      
+      cout<<" res1_["<<j1<<"] = "<<res1_[j1]<<endl;
+      cout<<" z1_fi["<<j1<<"] = "<< z1_fi[j1]<<endl;
+      cout<<" mid1["<<j1<<"] = "<< mid1[j1]<<endl;
+      cout<<" mthl1["<<j1<<"] = "<< mthl1[j1]<<endl;
+    }
+    if (FLPAT[5]==1 && FLPAT[6]==1){
+      j1++;
+      res1_[j1]=fabs(H[5][0]-H[6][0]);
+      z1_fi[j1]=z_tkl[5]; // we assign the higher z coo 
+      mid1[j1]=(H[5][0]+H[6][0])/2;
+      mthl1[j1]=a0+a1*z_tkl[5];
+      cout<<" res1_["<<j1<<"] = "<<res1_[j1]<<endl;
+      cout<<" z1_fi["<<j1<<"] = "<< z1_fi[j1]<<endl;
+      cout<<" mid1["<<j1<<"] = "<< mid1[j1]<<endl;
+      cout<<" mthl1["<<j1<<"] = "<< mthl1[j1]<<endl;
+    }
+    //
+    if (j1 > -1){ // then it means I found some candidate
+  // Then, we reexam the hybrid candidate in the case the 
+  // center and the res would be compatible
+      for(int i=0;i<j1+1;i++){   
+        flaoccup=0;
+	if (fabs(mid1[i]-mthl1[i]) < 2.2){ //2.2 cm
+	  for(int j=0;j<ia+1;j++){ // we check it is in increasing order
+	      if (z_lr[j] < z1_fi[i] && res_lr[j] > res1_[i]){
+		flaoccup=1;
+	      }
+              if (z_lr[j] < z1_fi[i] && res_lr[j] < res1_[i]){
+		flaoccup=0;
+	      }
+              if (z_lr[j] > z1_fi[i] && res_lr[j] < res1_[i]){
+                flaoccup=1;
+	      } 
+             if (z_lr[j] > z1_fi[i] && res_lr[j] > res1_[i]){
+                flaoccup=0;
+	      } 
+	     //
+      //
+	  }
+	}
+
+      if (flaoccup == 1){
+        ia++;
+        z_lr[ia]=z1_fi[i];
+	res_lr[ia]=res1_[i];
+	mid_lr[ia]=mthl1[i]; // NOTA BENE prendo  il teorico
+      }
+
+      }
+      // this res "i" can be included
+
+    }
+  for(int ii=0;ii<ia+1;ii++){
+    cout <<  "Did we add ?..... z_lr["<<ii<<"] res_lr["<<ii<<"] = "<<z_lr[ii]<< " "<<  res_lr[ii]<<endl;
+  }
+ 
+    // 
+  }
+
+  for(int ii=0;ii<ia+1;ii++){
+    cout <<  "AFTER adding..... z_lr["<<ii<<"] res_lr["<<ii<<"] = "<<z_lr[ii]<< " "<<  res_lr[ii]<<endl;
+  }
+ 
+
+  ////////////////////////// the end //////////// the highest res_lr seeds have been found
+
+    // NOW with or without hybrid res_, we must check:
+    // 1) if they are at least 3, minimizing sdw (N.B.: It doesn't work if the pairs are less than 3)
+    // 2) if they are just 2 .... alternatively centers.... 
+
+  double CHI2[maxsize];
+  double aa0,aa1,aa2,sdw,sdwmax,sdwini;
+  sdwini=10000;
+  sdw=10000;
+  sdwmax=10000;
+  int l_[trconst::maxlay];
+  int l1_[trconst::maxlay];
+  int l2_[trconst::maxlay];
+  for(int i=0;i<TKDBc::nlay();i++){
+    l_[i]=10000;
+    l1_[i]=10000;
+    l2_[i]=10000;
+  }
+
+           
+
+    //supponiamo di aver fatto del nostro meglio 
+    int j;
+if ((ia+1) >= 3){
+  // let's look at tk-plane with more than 3 hits and let's choose the best residual
+  //still excluding TK1
+dlsqp2me(ia+1,z_lr,res_lr,aa0,aa1,aa2,sdwini);
+
+cout << "con i primi ia+1"<<ia+1<<" residui ottengo sdwini"<<sdwini<<endl; 
+ if (sdwini < 1){
+  for(int i=1;i<TKDBc::nlay();i++){
+    if (FLPAT[i]>=3){
+dlsqp2me(ia+1,z_lr,res_lr,aa0,aa1,aa2,sdwini);
+cout << "con i primi ia+1"<<ia+1<<" residui ottengo sdwini"<<sdwini<<endl;
+      sdwmax=10000;
+     ia++;  
+     z_lr[ia]=z_tkl[i];
+     //
+     j=-1;
+//
+      for(int i1=0;i1<FLPAT[i]-1;i1++){
+	for(int i2=i1+1;i2<FLPAT[i];i2++){
+	  j++;
+          if(j>maxsize)break;
+cout << "H["<<i<<"]["<<i1<<"] H["<<i<<"]["<<i2<<"]  "<< H[i][i1]<<" "<< H[i][i2]<<endl;
+	  res_LR[j][i]=fabs(H[i][i1]-H[i][i2]);
+          res_lr[ia]=res_LR[j][i];
+          dlsqp2me(ia+1,z_lr,res_lr,aa0,aa1,aa2,sdw);
+cout << "con  ia+1"<<ia+1<<" residui ottengo sdw"<<sdw<<endl;
+	    CHI2[j]=sdw; 
+	    if (CHI2[j]<sdwmax){
+	      l_[i]=j;
+	      l1_[i]=i1;
+	      l2_[i]=i2;
+	      sdwmax=CHI2[j];
+cout << "minimal sdwmax = "<<sdwmax<<endl;
+cout << "Nuovo best   res_lr["<<ia<<"] "<<res_lr[ia]<<endl;
+	    }
+      if (l_[i] == 10000) return;
+      if (l_[i] != 10000){
+        res_lr[ia]=res_LR[l_[i]][i];
+      }
+
+	  //      
+	}
+      }
+cout << "2 sdwini = "<<sdwini<<endl;
+cout << "2 sdwmax = "<<sdwmax<<endl;
+cout << "2 FINALLY  res_lr["<<ia<<"] "<<res_lr[ia]<<endl;
+cout << "2 FINALLY  l_["<<i<<"] "<<l_[i]<<endl;
+cout << "2 FINALLY H["<<i<<"]["<<l1_[i]<<"] H["<<i<<"]["<<l2_[i]<<"] = "<<H[i][l1_[i]]<<" "<<H[i][l2_[i]]<<endl;
+ if ((ia+1) > 4 &&  sdwini < 0.5 && sdwmax > 1){
+   cout << " piano i = "<<i<<endl;
+   for(int jo=0;jo<FLPAT[i];jo++){
+     cout<<"H["<<i<<"]["<<jo<<"] = "<<H[i][jo]<<endl;
+     H[i][jo]=10000;
+     cout<<"H["<<i<<"]["<<jo<<"] = "<<H[i][jo]<<endl;  
+   }
+   ia--;
+ }
+    
+  for(int ii=0;ii<ia+1;ii++){
+    cout <<  "NEW iteration ... z_lr["<<ii<<"] res_lr["<<ii<<"] = "<<z_lr[ii]<< " "<<  res_lr[ii]<<endl;
+  }
+
+    }
+  }
+ }
+  // same loop again just on plane 1 as last one
+ if ((ia+1) > 4){
+  if (FLPAT[0] >= 3){
+dlsqp2me(ia+1,z_lr,res_lr,aa0,aa1,aa2,sdwini);
+cout << "con i primi ia+1"<<ia+1<<" residui ottengo sdwini"<<sdwini<<endl;
+if (sdwini < 1){
+ sdwmax=10000;
+ ia++;  
+ z_lr[ia]=z_tkl[i];
+ //
+ j=-1;
+ //
+ for(int i1=0;i1<FLPAT[0]-1;i1++){
+   for(int i2=i1+1;i2<FLPAT[0];i2++){
+     j++;
+     if(j>maxsize)break;
+     cout << "H[0]["<<i1<<"] H[0]["<<i2<<"]  "<< H[0][i1]<<" "<< H[0][i2]<<endl;
+	  res_LR[j][0]=fabs(H[0][i1]-H[0][i2]);
+          res_lr[ia]=res_LR[j][0];
+          dlsqp2me(ia+1,z_lr,res_lr,aa0,aa1,aa2,sdw);
+cout << "con  ia+1"<<ia+1<<" residui ottengo sdw"<<sdw<<endl;
+	    CHI2[j]=sdw; 
+	    if (CHI2[j]<sdwmax){
+	      l_[0]=j;
+	      l1_[0]=i1;
+	      l2_[0]=i2;
+	      sdwmax=CHI2[j];
+cout << "minimal sdwmax = "<<sdwmax<<endl;
+cout << "Nuovo best   res_lr["<<ia<<"] "<<res_lr[ia]<<endl;
+	    }
+      if (l_[0] == 10000) return;
+      if (l_[0] != 10000){
+        res_lr[ia]=res_LR[l_[0]][0];
+      }
+
+	  //      
+	}
+ }
+cout << "2 sdwini = "<<sdwini<<endl;
+cout << "2 sdwmax = "<<sdwmax<<endl;
+cout << "2 FINALLY  res_lr["<<ia<<"] "<<res_lr[ia]<<endl;
+cout << "2 FINALLY  l_[0] "<<l_[0]<<endl;
+cout << "2 FINALLY H[0]["<<l1_[0]<<"] H[0]["<<l2_[0]<<"] = "<<H[0][l1_[0]]<<" "<<H[0][l2_[0]]<<endl;
+ if ((ia+1) > 4 &&  sdwini < 0.5 && sdwmax > 1){
+   cout << " piano 0 "<<endl;
+   for(int jo=0;jo<FLPAT[0];jo++){
+     cout<<"H[0]["<<jo<<"] = "<<H[0][jo]<<endl;
+     H[0][jo]=10000;
+     cout<<"H[0]["<<jo<<"] = "<<H[0][jo]<<endl;  
+   }
+   ia--;
+ }	
+} //sdwini
+  }// tk1 >3
+} // ia+1 >4
+} // ia+1 >3
+//
+
+
+
+
+// If ia+1 is 3 means that the previous loop was not succesful
+// Moreover if it was not apply because ia+1=2
+ if ((ia+1) <= 3){
+   // linar fit of centers for mid estimation
+   // separte hit in candidate at left and candidate at right
+   // then over all possible residuals
+   // and on a set of 4 planes per time do simultaneously the minimization 
+   //  of sdw
+  
+   for(int i=1;i<TKDBc::nlay();i++){
+     if (FLPAT[i]>=3){
+       for(int i1=0;i1<FLPAT[i]-1;i1++){
+	 for(int i2=i1+1;i2<FLPAT[i];i2++){
+
+
+
+ }
+
+
+  //
+
+
+// NOW WE treat TK1 separately
+
+
+ if (ia+1 <= 3){
+   if (FLPAT[0] >= 3){
+
+   }
+
+ }
+
+
+
+}
+
+//////////////////////////////////
+
+
+
 
 void AMSTrTrackGamma::_LSQP2(integer FLPAT[], vector<double> H[], integer esc_1, integer esc_2){
 
   
   double z_tkl[trconst::maxlay];
-
+  
   for(int i=0;i<TKDBc::nlay();i++){
     z_tkl[i]=TKDBc::zposl(i);
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__  
-  cout<<"esc_1 esc_2 "<<esc_1<<" "<<esc_2<<endl;
-    cout << "z_tkl["<<i<<"] ="<<z_tkl[i]<<endl;
-    cout << "FLPAT["<<i<<"] ="<<FLPAT[i]<<endl;
-    AMSPoint p_hi;
-    AMSTrRecHit* pre;
-    for (pre=AMSTrRecHit::gethead(i); pre!=NULL; pre=pre->next()){
-     if(pre->checkstatus(AMSDBc::FalseX) || pre->checkstatus(AMSDBc::FalseTOFX))continue;
-      p_hi = pre->getHit(); 
-      number cha = pre->getsum();
-      cout<< "* OOOOOOOOO cha & p_hi[1 .. 3] = "<< cha<< " "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
-    }
-    for(int j=0;j<FLPAT[i];j++){
-      cout << "AOOOOOOOOOOOOO *** H["<<i<<"]["<<j<<"]=  "<< H[i][j] <<endl;
-    }
-#endif
   }
   // 
   int ja;
@@ -448,7 +941,7 @@ void AMSTrTrackGamma::_LSQP2(integer FLPAT[], vector<double> H[], integer esc_1,
   double AA0;
   double AA1;
   double AA2;
-  double SDW;
+  double SDW,sdwini;
   int IFAIL;
   double A0;
   double A1;
@@ -461,1586 +954,1387 @@ void AMSTrTrackGamma::_LSQP2(integer FLPAT[], vector<double> H[], integer esc_1,
     l1_[i]=10000;
     l2_[i]=10000;
   }
-
+  
   int bestflag1=0;
   double bestdy1=10000;
   double besty1=10000;
+  double besty0=10000;
+  double th_mid0=10000;
+  double minmid0=10000;
 
-
-
-
- if (esc_1 >= 2 && esc_2 != 0){
+  // per eliminare il tk1 dal conteggio
+  if ((esc_1 >= 2 && esc_2 != 0 && FLPAT[0] != 2) ||
+      (esc_1 > 2 && esc_2 != 0 && FLPAT[0] == 2)){
+    
+    // if (esc_1 >= 2 && esc_2 != 0){
     ja=-1;
-    for(int i=0;i<TKDBc::nlay();i++){
+    //escludo il primo piano perche` potrebbe baiassare erroneamente tutto
+    //    for(int i=0;i<TKDBc::nlay();i++){
+    for(int i=1;i<TKDBc::nlay();i++){
       if (FLPAT[i]==2){
 	ja++;  
 	res_[ja]=fabs(H[i][0]-H[i][1]);
 	z_fi[ja]=z_tkl[i];
 	// for the alternative let's do the centers in y
-         mid[ja]=(H[i][0]+H[i][1])/2;
-        //
+	mid[ja]=(H[i][0]+H[i][1])/2;
       }
     }
     //
-  int j;
-  double sdwmax,varmax;
-  double zbef,rbef;
-  for(int i=0;i<TKDBc::nlay();i++){
-    if (FLPAT[i]>=3){
-      ja++;  
-      z_fi[ja]=z_tkl[i];
-      sdwmax=10000;
-      varmax=10000;
-      j=-1;
-      //
-      
-      for (int k=0;k<ja;k++){
-	if (z_fi[k] > z_fi[ja]){
-	  zbef=z_fi[k];
-	  rbef=res_[k];
-	}
-      }
-      //
-      for(int i1=0;i1<FLPAT[i]-1;i1++){
-	for(int i2=i1+1;i2<FLPAT[i];i2++){
-	  j++;
-          if(j>maxsize)break;
-	  res_LR[j][i]=fabs(H[i][i1]-H[i][i2]);
-	  res_[ja]=res_LR[j][i];
-	  // for the alternative let's do the centers in y
-	  mid[ja]=(H[i][i1]+H[i][i2])/2;
-	  //
-	  if (esc_1 >= 3){  
-	    dlsqp2me((ja+1),z_fi,res_,AA0,AA1,AA2,SDW);
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-	    cout << "AA0,AA1,AA2,SDW"<<AA0<<" "<<AA1<<" "<<AA2<<" "<<SDW<<endl;
-	    cout << "res_["<<ja<<"] = "<<res_[ja]<<endl;
-#endif
-	    if (AA0 == 0 && AA1 == 0 && AA2 == 0 && SDW  == 10000){
-	      dlinearme((ja+1),z_fi,mid,A0,A1,VAR);
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-	      cout << "POLY 2 DOES NOT WORK, WE USE AN ALTERNATIVE"<<endl;
-	      cout <<"rbef= "<<rbef<<endl;
-	      cout << "res_["<<ja<<"] "<<res_[ja]<<endl;
-	      cout << "varmax = "<<varmax<<endl;
-#endif
-           if (res_[ja] > rbef){
-            LCHI2[j]=VAR;
-            if (LCHI2[j]<varmax){
-	    l_[i]=j;
-	    l1_[i]=i1;
-	    l2_[i]=i2;
-	    varmax=LCHI2[j];
-            }
-	    }
-	  } //AA0 == 0 ALTERNATIVE END
-	  //
-          //
-	  CHI2[j]=SDW;
-	  if (CHI2[j]<sdwmax){
-	  l_[i]=j;
-          l1_[i]=i1;
-	  l2_[i]=i2;
-	  sdwmax=CHI2[j];
-	 }
-	} // esc_1 >= 3
-	// //
-        // // When the double hit planes are only 2
-        if (esc_1 == 2){
-	  // WHEN the increasing order of residuals w.r.t. z is respected:
-	  if (((z_fi[ja] < z_fi[0] && res_[ja] >= res_[0]) || 
-	       (z_fi[ja] > z_fi[0] && res_[ja] <= res_[0])) && 
-	      ((z_fi[ja] < z_fi[1] && res_[ja] >= res_[1]) || 
-	       (z_fi[ja] > z_fi[1] && res_[ja] <= res_[1]))){
-	    
-	    dlsqp2me((ja+1),z_fi,res_,AA0,AA1,AA2,SDW);
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-	    cout << "AA0,AA1,AA2,SDW"<<AA0<<" "<<AA1<<" "<<AA2<<" "<<SDW<<endl;
-#endif
-          if (AA0 == 0 && AA1 == 0 && AA2 == 0 && SDW  == 10000){
-            dlinearme((ja+1),z_fi,mid,A0,A1,VAR);
-            if (res_[ja] > rbef){
-            LCHI2[j]=VAR;
-            if (LCHI2[j]<varmax){
-	    l_[i]=j;
-	    l1_[i]=i1;
-	    l2_[i]=i2;
-	    varmax=LCHI2[j];
-	    }
-	    }
-	  } //AA0 == 0 ALTERNATIVE END
-	  //
-	    CHI2[j]=SDW; 
-	    if (CHI2[j]<sdwmax){
-	      l_[i]=j;
-	      l1_[i]=i1;
-	      l2_[i]=i2;
-	      sdwmax=CHI2[j];
-	    }
-          } 
-	} // esc_1 == 2
+    int j;
+    double sdwmax,varmax;
+    double zbef,rbef;
+    for(int i=0;i<TKDBc::nlay();i++){
+      if (FLPAT[i]>=3){
+	// e se invece di incrementare ja considerassi sempre ja+1
+	ja++;  
+	z_fi[ja]=z_tkl[i];
+	
 	//
-      }
-    }
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-      cout << "FINALLY  res_["<<ja<<"] "<<res_[ja]<<endl;
-      cout << "FINALLY  l_["<<i<<"] "<<l_[i]<<endl;
-#endif
-      if (l_[i] == 10000) return;
-      if (l_[i] != 10000){
-        res_[ja]=res_LR[l_[i]][i];
-      }
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-      cout << "FINALLY  res_["<<ja<<"] "<<res_[ja]<<endl;
-#endif
-    //    if (i == 0){ // first plane
-     if (z_fi[ja] == z_tkl[0] && res_[ja] > 1.8) {
-      dlinearme((ja+1),z_fi,mid,A0,A1,VAR);
-      bestdy1=min(fabs(mid[ja]-H[0][l1_[i]]),fabs(mid[ja]-H[0][l2_[i]]));
-      //cout << "bestdy1 = "<<bestdy1<<endl;
-      bestflag1=1;
-      if(bestdy1 == fabs(mid[ja]-H[0][l1_[i]])) besty1= H[0][l1_[i]];
-      if(bestdy1 == fabs(mid[ja]-H[0][l2_[i]])) besty1= H[0][l2_[i]];
-     }  
-
-    }
-  }
- //
-  for(int i=0;i<TKDBc::nlay();i++){
-    if (FLPAT[i]>=3){
-      //
-      const int maxflpat=100;
-      double TH[maxflpat];
-      int up=min(maxflpat,FLPAT[i]);
-      //
-      for(int jo=0;jo<up;jo++){
-	if (H[i][jo] != H[i][l1_[i]] && H[i][jo] != H[i][l2_[i]] ){
-	  H[i][jo]=10000;
-	}
-        if (bestflag1 != 0 && H[0][jo] != besty1){
-	  H[0][jo]=10000;
-	}
-	TH[jo]=H[i][jo];
-      }
-   //
-      H[i].clear();
-      H[i].resize(0);
-      for(int jo=0;jo<FLPAT[i];jo++){   
-	if (TH[jo] != 10000){
-	  H[i].push_back(TH[jo]);
-	}  
-      }
-      //
-    }
-  }
- //
-  } 
-}
-
-vector<double> AMSTrTrackGamma::_TK1YRemoveTRD2TOF(vector<double> HH, integer Num){
-  double temp;
-  //DIGITAL ALPHA
-  //  double H1[Num];
-  const int maxH1=300;
-  double H1[maxH1];
-  double VEC,V_LI;
-  int Y1Out=0;
-  //TOF
-  int mto=0;
-  int mpl=0;
-  int pl=0;
-  double x,y,z;
-  AMSTOFCluster * ploop;  
-  //TRD
-  number P0[3];
-  number TKP1[3];
-  number MinTRDTOF=3.5;
-  number SearchReg(4);
-  int trdf=0;
-  number theta,phi,sleng;
-  AMSContainer *pc=AMSEvent::gethead()->getC("AMSTRDTrack",0); 
-  
-  // LOOKING FOR TOFHITS ON FIRST TOF PLANE
-
-  int j=1;
-  for(int i=0;i<4;i++){
-   mpl=0;
-   for (ploop = AMSTOFCluster::gethead(i); ploop ; ploop=ploop->next() ){
-     mpl++;
-   }
-   if (i==0 && mpl==0) {
-    j++;
-   }
-  }
-
-
-
-  for (ploop = AMSTOFCluster::gethead(j); ploop ; ploop=ploop->next() ){
-      x = ploop->getcoo()[0];
-      y = ploop->getcoo()[1];
-      z = ploop->getcoo()[2];
-        pl = ploop->getplane();
-     mto++;
-     P0[2]=z;
-
- /////TRD
-
-    if(pc){
-      AMSTRDTrack * ptrd = (AMSTRDTrack*)pc->gethead();
-      while(ptrd){
-       trdf++;
-       AMSDir s(ptrd->gettheta(),ptrd->getphi());
-       if(s[2]!=0){
-	  P0[0]=ptrd->getCooStr()[0]+s[0]/s[2]*(P0[2]-ptrd->getCooStr()[2]);
-          P0[1]=ptrd->getCooStr()[1]+s[1]/s[2]*(P0[2]-ptrd->getCooStr()[2]);
-	  if (fabs(y-P0[1])<=MinTRDTOF) {
-	    MinTRDTOF=fabs(y-P0[1]);
-	    TKP1[2]=TKDBc::zposl(0);
-	    TKP1[1]=ptrd->getCooStr()[1]+s[1]/s[2]*(TKP1[2]-ptrd->getCooStr()[2]);             
-	    Y1Out=1;
-            
-          } 
-       }
-       ptrd=ptrd->next();
-      }
-    }
-    } //tof
-
-  if (Y1Out){
-    VEC=TKP1[1];
-    V_LI=1.5*MinTRDTOF;
-    for(int j=0;j<Num;j++){
-      H1[j]=HH[j];
-    }
-    HH.clear();
-    HH.resize(0);
-    for(int j=0;j<Num;j++){ 
-      temp=H1[j];
-      if (fabs(temp-VEC)<=V_LI){
-	HH.push_back(temp);  
-      }
-    }
-  }
-  return HH;
-}
-
-void AMSTrTrackGamma::_Averes(number& AVER, number& SAVER, vector<double> HH, integer Num, integer Com){
-
- double SUM=0.0;
- double SI=0.0;
- 
- AVER=0.0;
- SAVER=0.0;
- if (Num<=1) {
-  AVER=0.0;
- SAVER=0.0;
- }
- if (Num==2 && Com==1){
-   AVER+=fabs(HH[0]-HH[1]);
-   SAVER=0.0; 
- }
- if (Com>1){
-  for(int i=0;i<(Num-1);i++){
-   for(int j=(i+1);j<Num;j++){
-   AVER+=fabs(HH[i]-HH[j]);  
-   }
-  }
-  AVER=AVER/Com;
-  for(int i=0;i<(Num-1);i++){
-    for(int j=(i+1);j<Num;j++){
-      SUM+=pow((fabs(HH[i]-HH[j])-AVER),2);
-    }
-  }    
-  SI=sqrt(SUM/(Com-1));
-  SAVER=SI/(sqrt(number(Com)));
- }
-}
-
-void AMSTrTrackGamma::_Cente(number& CEN, number& SCEN, vector<double> HH, integer Num, integer Com, number AVER, number SAVER){
-
-  int nde=0;
-  double DSUM=0.0;
-  double SI=0.0;
-  CEN=0.0;
-  SCEN=0.0;
- if (Num==1) {
-  CEN=HH[0];
-  SCEN=0.0; 
- }
- if (Num==2 && Com==1){
-   CEN=(HH[0]+HH[1])/2.;
-   SCEN=0.0;
- }
- 
- 
- if (Com>1){
- for(int i=0;i<(Num-1);i++){
-   for(int j=(i+1);j<Num;j++){
-     if((fabs(HH[i]-HH[j])>=(AVER-(3.*SAVER))) && (fabs(HH[i]-HH[j])<=(AVER+(3.*SAVER)))){
-        CEN+=((HH[i]+HH[j])/2.);
-        nde++;  
-    }
-   }
-  }
- CEN=CEN/nde; 
-    
-  if (nde>1){
-  for(int i=0;i<(Num-1);i++){
-   for(int j=(i+1);j<Num;j++){
-     if(fabs(HH[i]-HH[j])>=(AVER-(3.*SAVER)) &&  fabs(HH[i]-HH[j])<=(AVER+(3.*SAVER))){
-        DSUM+=pow((((HH[i]+HH[j])/2.)-CEN),2);
-	}
-   }
-  }
-  SI=sqrt(DSUM/(nde-1));
-  SCEN=SI/(sqrt(double(nde)));
-  }
- }
-}
- 
-
-
-void AMSTrTrackGamma::_Combi(integer& NC, integer Nele, integer Ngrp){
- int nf=1;
- int rf=1;
- int NmRf=1;
- if(Nele > 1){
-  for(int i=1;i<(Nele+1);i++){
-   nf=nf*i;
-  }
- }
- if(Ngrp > 1){
-  for(int i=1;i<(Ngrp+1);i++){
-   rf=rf*i;
-  }
- }
-
- if (Nele==Ngrp) NC=1;
- if (Nele<Ngrp) NC=0;
- if (Ngrp > 1){
-  if (Nele>Ngrp) {
-   for(int i=1;i<(Nele-Ngrp+1);i++){
-    NmRf=NmRf*i;
-   }
-  NC=nf/(rf*NmRf);
-  }
- }
-
-} 
-
-
-
-void AMSTrTrackGamma::_LeftRight(vector<double> HH, integer inhi, number CEN){
- AMSPoint p_hi;
- AMSPoint pc_hi;
- AMSTrRecHit* pre;
- int xambig=0;
-
- number depos;
-    for (pre=AMSTrRecHit::gethead(inhi); pre!=NULL; pre=pre->next()){
-     if(pre->checkstatus(AMSDBc::FalseX) || pre->checkstatus(AMSDBc::FalseTOFX))continue;
-      p_hi = pre->getHit(); 
-      number cha = pre->getsum(); 
-      number depomin=10000;
-      //first of all
-            pre->clearstatus(AMSDBc::GAMMARIGHT);
-	    pre->clearstatus(AMSDBc::GAMMALEFT);
-      //Single Hit:
-       if (HH.size()==1){
-         if (p_hi[1]==HH[0]){
-           // CEN was not found
-	   //..........
-            // B)
-	     // Charge quantity : let's keep the two highest (one for left one for right) even if it is a single hit
-             // but with ambiguity otherwise let's keep all
-	     //NOW the charge descrimination
-             int cmax1=0;
-             int cmax2=0;
-             number deposmax1=-1;
-             number deposmax2=-1;
-             for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(inhi); pcha!=NULL; pcha=pcha->next()){
-                if(pcha->checkstatus(AMSDBc::FalseX) || pcha->checkstatus(AMSDBc::FalseTOFX))continue;
-	         depos = pcha->getsum(); 
-                 pc_hi = pcha->getHit();
-                 if (pc_hi[1]==p_hi[1] && pc_hi[2]==p_hi[2]){
-                   if (depos >= deposmax1){
-                     if (deposmax1 == -1 || cmax1>0){
-		     if (depos != deposmax1) cmax1=0;
-		     deposmax1=depos;
-                     cmax1++;//ambiguity
-		     }
-		   }
-		 }
-	     }
-	     
-             for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(inhi); pcha!=NULL; pcha=pcha->next()){
-                if(pcha->checkstatus(AMSDBc::FalseX) || pcha->checkstatus(AMSDBc::FalseTOFX))continue;
-	         depos = pcha->getsum(); 
-                 pc_hi = pcha->getHit();
-                 if (pc_hi[1]==p_hi[1] && pc_hi[2]==p_hi[2]){
-                   if (depos >= deposmax2 && depos < deposmax1){
-                     if (deposmax2 == -1 || cmax2>0){
-		     if (depos != deposmax2) cmax2=0;
-		     deposmax2=depos;
-                     cmax2++; //ambiguity
-		     }
-		   }
-		 }
-	     }
-
-	     // A)
-	     //                   cout <<" begin: cha "<<cha<<" p_hi[0] "<<p_hi[0]<<" p_hi[1] "<<p_hi[1]<<" p_hi[2] "<<p_hi[2]<<endl;
-             //let's eliminate hit with no ambiguity
-                 xambig=0; 
-		 //                   cout <<" begin xambig "<<xambig<<" cha "<<cha<<" p_hi[1] "<<p_hi[1]<<" p_hi[2] "<<p_hi[2]<<endl;
-             for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(inhi); pcha!=NULL; pcha=pcha->next()){
-                if(pcha->checkstatus(AMSDBc::FalseX) || pcha->checkstatus(AMSDBc::FalseTOFX))continue;
-	       // cout <<"xambig "<<xambig<<endl;
-	         depos = pcha->getsum(); 
-                 pc_hi = pcha->getHit();
-                 if (pc_hi[1]==p_hi[1] && pc_hi[2]==p_hi[2]){ // ambigui solo in x e depos
-                   if (depos == cha){ // same depos let's count x ambiguity 
-                     xambig++;  
-		     //    cout <<" xambig "<<xambig<<" cha "<<cha<<" pc_hi[0] "<<pc_hi[0]<<" pc_hi[1] "<<pc_hi[1]<<" pc_hi[2] "<<pc_hi[2]<<endl;
-		   }
-		   //
-		 }
-	     }
-	     //	     cout <<" end xambig "<<xambig<<" cha "<<cha<<" p_hi[1] "<<p_hi[1]<<" p_hi[2] "<<p_hi[2]<<endl;
-	     //.......
- 
-  	   if (CEN==10000){
-            pre->setstatus(AMSDBc::GAMMARIGHT);
-            pre->setstatus(AMSDBc::GAMMALEFT);
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-	     cout<< "Single Hit****RIGHT cha & p_hi[1 .. 3] = "<< cha<< " "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
-	     cout<< "Single Hit****LEFT cha &  p_hi[1 .. 3] = "<< cha<< " "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl;
-#endif
-	     
-             if (xambig <= 2){ // too low ambiguty
-            pre->clearstatus(AMSDBc::GAMMARIGHT);
-	    pre->clearstatus(AMSDBc::GAMMALEFT);
-	     }
-	     // eliminated hit with too low ambiguity
-	     //
-	     if (cmax1 > 2 && cmax2 > 2){
-                if (cha != deposmax1 && cha != deposmax2){
-                 pre->clearstatus(AMSDBc::GAMMARIGHT);
-	         pre->clearstatus(AMSDBc::GAMMALEFT);
-	       }
-	     }
-
-	   }
-	   //the CEN has been found in Single Hit, then:
-          if (CEN != 10000 && p_hi[1]>CEN){
-	    pre->clearstatus(AMSDBc::GAMMARIGHT);
-	    pre->clearstatus(AMSDBc::GAMMALEFT);
-            pre->setstatus(AMSDBc::GAMMARIGHT);
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-	    	     cout<< "single in RIGHT cha & p_hi[1 .. 3] = "<< cha<< " "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
-#endif
-	    //             cout<< "ambiguity =" <<xambig<<endl;
-             if (xambig <= 2){ // too low ambiguty
-              pre->clearstatus(AMSDBc::GAMMARIGHT);
-	     } 
-            if (cmax1 > 2){
-                if (cha != deposmax1){
-                 pre->clearstatus(AMSDBc::GAMMARIGHT);
-	       }
-	    }
-
+	sdwmax=10000;
+	varmax=10000;
+	j=-1;
+	//
+	
+	for (int k=0;k<ja;k++){
+	  if (z_fi[k] > z_fi[ja]){
+	    zbef=z_fi[k];
+	    rbef=res_[k];
 	  }
-          if (CEN != 10000 && p_hi[1]<=CEN){
-	    pre->clearstatus(AMSDBc::GAMMARIGHT);
-	    pre->clearstatus(AMSDBc::GAMMALEFT);
-            pre->setstatus(AMSDBc::GAMMALEFT);
-
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-	    cout<< "single in LEFT  cha & p_hi[1 .. 3] = "<< cha<< " "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
-#endif
-
-             if (xambig <= 2){ // too low ambiguty
-              pre->clearstatus(AMSDBc::GAMMALEFT);
-	     } 
-            if (cmax1 > 2){
-                if (cha != deposmax1){
-                 pre->clearstatus(AMSDBc::GAMMALEFT);
-	       }
+	}
+	//
+	for(int i1=0;i1<FLPAT[i]-1;i1++){
+	  for(int i2=i1+1;i2<FLPAT[i];i2++){
+	    j++;
+	    if(j>maxsize)break;
+	    res_LR[j][i]=fabs(H[i][i1]-H[i][i2]);
+	    res_[ja]=res_LR[j][i];
+	    // for the alternative let's do the centers in y
+	    mid[ja]=(H[i][i1]+H[i][i2])/2;
+	    if (esc_1 >= 3){  
+	      dlsqp2me(ja,z_fi,res_,AA0,AA1,AA2,sdwini);
+	      dlsqp2me((ja+1),z_fi,res_,AA0,AA1,AA2,SDW);
+	      if (AA0 == 0 && AA1 == 0 && AA2 == 0 && SDW  == 10000){
+		dlinearme((ja+1),z_fi,mid,A0,A1,VAR);
+		if (res_[ja] > rbef){
+		  LCHI2[j]=VAR;
+		  if (LCHI2[j]<varmax){
+		    l_[i]=j;
+		    l1_[i]=i1;
+		    l2_[i]=i2;
+		    varmax=LCHI2[j];
+		  }
+		}
+	      } //AA0 == 0 ALTERNATIVE END
+	      //
+	      //
+	      CHI2[j]=SDW;
+	      if (CHI2[j]<sdwmax){
+		l_[i]=j;
+		l1_[i]=i1;
+		l2_[i]=i2;
+		sdwmax=CHI2[j];
+	      }
+	    } // esc_1 >= 3
+	    // //
+	    // // When the double hit planes are only 2
+	    if (esc_1 == 2){
+	      // WHEN the increasing order of residuals w.r.t. z is respected:
+	      if (((z_fi[ja] < z_fi[0] && res_[ja] >= res_[0]) || 
+		   (z_fi[ja] > z_fi[0] && res_[ja] <= res_[0])) && 
+		  ((z_fi[ja] < z_fi[1] && res_[ja] >= res_[1]) || 
+		   (z_fi[ja] > z_fi[1] && res_[ja] <= res_[1]))){
+		
+		dlsqp2me((ja+1),z_fi,res_,AA0,AA1,AA2,SDW);
+		if (AA0 == 0 && AA1 == 0 && AA2 == 0 && SDW  == 10000){
+		  dlinearme((ja+1),z_fi,mid,A0,A1,VAR);
+		  if (res_[ja] > rbef){
+		    LCHI2[j]=VAR;
+		    if (LCHI2[j]<varmax){
+		      l_[i]=j;
+		      l1_[i]=i1;
+		      l2_[i]=i2;
+		      varmax=LCHI2[j];
+		    }
+		  }
+		} //AA0 == 0 ALTERNATIVE END
+		//
+		CHI2[j]=SDW; 
+		if (CHI2[j]<sdwmax){
+		  l_[i]=j;
+		  l1_[i]=i1;
+		  l2_[i]=i2;
+		  sdwmax=CHI2[j];
+		}
+	      } 
+	    } // esc_1 == 2
+	    //
+	  }
+	}
+	if (l_[i] == 10000) return;
+	if (l_[i] != 10000){
+	  res_[ja]=res_LR[l_[i]][i];
+	}
+	
+	if (sdwini < 0.5 && sdwmax > 1.){
+	  for(int jo=0;jo<FLPAT[i];jo++){
+	    H[i][jo]=10000;
+	  }
+	}
+	// In realta` non ho controllato che SDW sia sufficientemente piccolo
+	// SDW <= 0.32 per esempio ...??..!! 
+	
+	if (i == 0){ // first plane
+	  dlinearme(ja,z_fi,mid,A0,A1,VAR);
+	  //
+	  if (VAR > 0.01 && sdwini > 1 && FLPAT[0] >= 3){
+	    for(int jo=0;jo<FLPAT[0];jo++){
+	      H[0][jo]=10000;
 	    }
-
-	  }    
-         }
-       } // single
-       // now double hit but we have to redo the calculation onto the charges
-       if (HH.size()>1){
-        for (int k=0;k<(HH.size());k++){
-         if (p_hi[1]==HH[k]){
-
-	     //NOW the charge descrimination
-	     // A)
-             //let's eliminate hit with no ambiguity
-             xambig=0; 
-             for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(inhi); pcha!=NULL; pcha=pcha->next()){
-                if(pcha->checkstatus(AMSDBc::FalseX) || pcha->checkstatus(AMSDBc::FalseTOFX))continue;
-	         depos = pcha->getsum(); 
-                 pc_hi = pcha->getHit();
-                 if (pc_hi[1]==p_hi[1] && pc_hi[2]==p_hi[2]){ // ambigui solo in x e depos
-                   if (depos == cha){ // same depos let's count x ambiguity
-                     xambig++;  
-		   }
-		 }
-	     }
-
-
-
-	     //.......
-
-          if (p_hi[1]>CEN){
-            
-            pre->clearstatus(AMSDBc::GAMMARIGHT);
-	    pre->clearstatus(AMSDBc::GAMMALEFT); 
-            pre->setstatus(AMSDBc::GAMMARIGHT);
-
-             if (xambig <= 2){ // too low ambiguty
-              pre->clearstatus(AMSDBc::GAMMARIGHT);
-	     } 
-
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-            if (pre->checkstatus(AMSDBc::GAMMARIGHT)){ 
-	    cout<< "*********RIGHT cha & p_hi[1 .. 3] = "<<cha <<" " <<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl;
+	  }
+	  //
+	  if (VAR <= 0.001 && FLPAT[0] >= 3){
+	    th_mid0=A0+A1*z_tkl[0];
+	    minmid0=10000;
+	    for(int jo=0;jo<FLPAT[0];jo++){
+	      if ((fabs(th_mid0-H[0][jo])) < minmid0){
+		minmid0=fabs(th_mid0-H[0][jo]);
+		besty0=H[0][jo];
+	      }  
 	    }
-             if (pre->checkstatus(AMSDBc::GAMMALEFT)){ 
-             cout<< "THERE IS A LEFT IN RIGHT cha & p_hi[1 .. 3] = "<<cha <<" " <<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl;
-	     }
-#endif 
-	  } 
-          if (p_hi[1]<=CEN){
-            pre->clearstatus(AMSDBc::GAMMARIGHT);
-	    pre->clearstatus(AMSDBc::GAMMALEFT);
-            pre->setstatus(AMSDBc::GAMMALEFT);
-
-	    if (xambig <= 2){ // too low ambiguty
-              pre->clearstatus(AMSDBc::GAMMALEFT);
-	     } 
-	    //        
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-
-             if (pre->checkstatus(AMSDBc::GAMMALEFT)){ 
-	     cout<< "*********LEFT cha & p_hi[1 .. 3] = "<<cha <<" " <<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl;
-	     }
-             if (pre->checkstatus(AMSDBc::GAMMARIGHT)){
-             cout<< "THERE IS A RIGHT IN LEFT cha & p_hi[1 .. 3] = "<<cha <<" " <<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl;
-	     }
-#endif 
-          }
-         } 
-        }
-       }
-    }
-} 
-
-
-
-integer AMSTrTrackGamma::build(integer refit){
-
-  int ideaflag=0;
-  double tm34=0;
-  number ecc=0;
-  int ii[5]={0,0,0,0,0};
-  int neca[3]={0,0,0};
-  int fbotf=0;
-  int ftopf=0;
-  double x_starf=10000;  
-  double z_starf=10000;
-  double SLOPEf=10000;  
-  double INTERf=10000;
-  int out=0;
-  int nl=0;
-
-  int NCO[trconst::maxlay];
-  vector<double> H[trconst::maxlay];
-  int FLPAT[trconst::maxlay];
-  AMSPoint p_hi;
-  AMSTrRecHit * p;
-  int Nuser=0;
-  int Nlayu[trconst::maxlay];
-  number RES[trconst::maxlay];
-  number SRES[trconst::maxlay];
-  number CE[trconst::maxlay];
-  number SCE[trconst::maxlay];
-  
-  for(int i=0;i<TKDBc::nlay();i++){
-    Nlayu[i]=0;
-    RES[i]=0;
-    SRES[i]=0;
-    CE[i]=0;
-    SCE[i]=0;
-    NCO[i]=0;
-  }
-  //---------------------------------------
-  
- integer NGammaFound=-1;
-
- if(refit){
-    // Cleanup all track containers
-    int i;
-    for(i=0;;i++){
-      AMSContainer *pctr=AMSEvent::gethead()->getC("AMSTrTrackGamma",i);
-      if(pctr)pctr->eraseC();
-      else break ;
-    }
-  } 
- //---------------------------------------
-  for(int i=0;i<TKDBc::nlay();i++){
-   Nuser+=(AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
-   Nlayu[i]+=(AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
-  }
-
-
-
-
-
-  for(int i=0;i<TKDBc::nlay();i++){
-   AMSTrRecHit::_markDouble(H[i],i);
-   FLPAT[i]=H[i].size(); 
-   if (i==0){
-    if (FLPAT[i]>2){
-      H[i]=_TK1YRemoveTRD2TOF(H[i],FLPAT[i]);
-      FLPAT[i]=H[i].size();
-    }
-   }
-  }
-
-  if (FLPAT[7] == 2 || FLPAT[0] == 2){
- _LookOneEight(FLPAT,H);
- //#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-  for(int i=0;i<TKDBc::nlay();i++){
-    //   cout << "AFTER Look FLPAT["<<i<<"] ="<<FLPAT[i]<<endl;
-   for(int j=0;j<FLPAT[i];j++){
-     //       cout << "After LOOK *** H["<<i<<"]["<<j<<"]=  "<< H[i][j] <<endl;     
-   }
-  }
-  //#endif
-  }
-  // let's define multiplicity counters to veto or break the reconstruction
- int esc_0=0;
- int esc_1=0;
- int esc_2=0;
- int esc_22=0;
- int esc_4=0;
- int esc_10=0;
- int esc_20=0;
- int es_f1=0;
- int pl23_0=0;
- int pl45_0=0;
- int pl67_0=0;
- int esc_all=0;
-
-  for(int i=0;i<TKDBc::nlay();i++){
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-      for(int j=0;j<FLPAT[i];j++){
-      cout << "before********* H["<<i<<"]["<<j<<"]=  "<< H[i][j] <<endl;       
+	  }
+	}
+	//
+	if (z_fi[ja] == z_tkl[0] && res_[ja] > 1.1) {
+	  //      dlinearme((ja+1),z_fi,mid,A0,A1,VAR);
+	  dlinearme(ja,z_fi,mid,A0,A1,VAR);
+	  mid[ja]=A0+A1*z_tkl[0];
+	  bestdy1=min(fabs(mid[ja]-H[0][l1_[i]]),fabs(mid[ja]-H[0][l2_[i]]));
+	  bestflag1=1;
+	  if(bestdy1 == fabs(mid[ja]-H[0][l1_[i]])) besty1= H[0][l1_[i]];
+	  if(bestdy1 == fabs(mid[ja]-H[0][l2_[i]])) besty1= H[0][l2_[i]];
+	}  
+	ja--;
       }
-#endif
-    if  (FLPAT[i]!=0) esc_all++; 
-    if  (FLPAT[i]==2) esc_1++;
-    if  (FLPAT[i]>2)  esc_2++;
-    if  (FLPAT[i]>3)  esc_4++;
-    if  (FLPAT[i]==0) esc_0++;
-    if  (FLPAT[i]>10) esc_10++;
-    if  (FLPAT[i]>20) esc_20++;
-    if  (FLPAT[i]==1) es_f1++;
+    }
+    //
+    for(int i=0;i<TKDBc::nlay();i++){
+      if (FLPAT[i]>=3){
+	//
+	const int maxflpat=100;
+	double TH[maxflpat];
+	int up=min(maxflpat,FLPAT[i]);
+	//
+	
+	for(int jo=0;jo<up;jo++){
+	  if (H[i][jo] != H[i][l1_[i]] && H[i][jo] != H[i][l2_[i]] ){
+	    H[i][jo]=10000;
+	  }
+	  if (th_mid0 != 10000){
+	    if (besty0 != 10000 && H[0][jo] != besty0){
+	      H[0][jo]=10000;
+	    }
+	  }
+	  //
+	  if (th_mid0 == 10000){
+	    if (bestflag1 != 0 && H[0][jo] != besty1){
+	      H[0][jo]=10000;
+	    }
+	  }
+	  TH[jo]=H[i][jo];
+	}
+	
+	//
+	H[i].clear();
+	H[i].resize(0);
+	for(int jo=0;jo<FLPAT[i];jo++){   
+	  if (TH[jo] != 10000){
+	    H[i].push_back(TH[jo]);
+	  }  
+	}
+	//
+	
+      }
+    }
+    //
   }
-  if  (FLPAT[1]!=0 || FLPAT[2]!=0) pl23_0=FLPAT[1]+FLPAT[2];
-  if  (FLPAT[3]!=0 || FLPAT[4]!=0) pl45_0=FLPAT[3]+FLPAT[4];
-  if  (FLPAT[5]!=0 || FLPAT[6]!=0) pl67_0=FLPAT[5]+FLPAT[6];
-  
-  if (((pl23_0 == 0 && pl45_0 == 0) || (pl67_0 == 0 && pl45_0 == 0) || (pl67_0 == 0 && pl23_0 == 0)) && (FLPAT[0] > 2 || FLPAT[7] > 2))  return 0;
-    
-  if (((pl23_0 == 0 && pl45_0 == 0 && FLPAT[5]>2 && FLPAT[6]>2) || (pl67_0 == 0 && pl45_0 == 0 && FLPAT[1]>2 && FLPAT[2]>2) || (pl67_0 == 0 && pl23_0 == 0 && FLPAT[3]>2 && FLPAT[4]>2)) )  return 0;
-  
-  if (pl23_0 == 0 || pl45_0 == 0 || pl67_0 ==0 && ( (FLPAT[0] == 0 && FLPAT[7] <=1) || (FLPAT[0] <= 1 && FLPAT[7] == 0) ))  return 0; 
-
-
-  
-  if (esc_all <= 3) return 0;
-  if (esc_all ==4 && (FLPAT[0] ==0 || FLPAT[7] ==0)) return 0;
-  if (esc_all <6 && (FLPAT[0] ==0 && FLPAT[7] ==0)) return 0;
-  if (esc_1 == 1 && esc_2 >= 4) return 0;
-  if (esc_2 >= 5) return 0;
-  if (esc_4 >= 4) return 0;
-  if (esc_4 >= 2 && esc_2 >= 3) return 0;
-  if (es_f1 >= 3 && esc_2 >= 3) return 0;
-  if (esc_0 >= 2 && esc_2 >= 3) return 0;
-  if (esc_0 >= 2 && esc_2 >= 2 && es_f1 >= 2) return 0;
-  if (esc_1 <= 2 && esc_2 >= 4) return 0;
-  if (esc_1 <= 2 && esc_0 >= 2 && es_f1 >= 3) return 0;
-  if ((es_f1 + esc_0) >= 6) return 0;
-  if (esc_10 >= 3)  return 0;
-  if (esc_20 != 0)  return 0;
-
-_LSQP2(FLPAT,H,esc_1,esc_2);
-
-
- for(int i=0;i<TKDBc::nlay();i++){
-   FLPAT[i]=H[i].size();
-   //   cout << "FLPAT["<<i<<"] ="<<FLPAT[i]<<endl;
-   if (FLPAT[i]>2) {
-//     cout << "_LSQP2 didn't work ABANDON" <<endl;
-     return 0;
-   }
-   //
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-   for(int j=0;j<FLPAT[i];j++){
-     cout << "After *** H["<<i<<"]["<<j<<"]=  "<< H[i][j] <<endl;       
-   }
-#endif
-   if (FLPAT[i]>1){
-     _Combi(NCO[i],FLPAT[i],2);
-     _Averes(RES[i],SRES[i],H[i],FLPAT[i],NCO[i]);
-     _Cente(CE[i],SCE[i],H[i],FLPAT[i],NCO[i],RES[i],SRES[i]);
-     if  (FLPAT[i]==2)  esc_22++;
-   }
-   //
-   if (((NCO[1]+NCO[2]) > 10 || (NCO[3]+NCO[4]) > 10 || (NCO[5]+NCO[6]) > 10) && esc_0 >= 3)  return 0;
- }
-
-_SingleHit(FLPAT,CE,esc_22);
-
- for(int i=0;i<TKDBc::nlay();i++){
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
- cout<< "******1 in piu` CE["<<i<<"]= "<< CE[i]<<endl;
-#endif
-_LeftRight(H[i],i,CE[i]);
- }
-_SingleCommonHit(FLPAT,H);
-
-XZLine_TOF RoadXZ(ii,neca,tm34,ecc);
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
- cout << "ii[0] "<<ii[0]<<" ii[1] "<<ii[1]<<" ii[2] "<<ii[2]<< endl;
- cout << "ii[3] "<<ii[3]<<" ii[4] "<<ii[4]<<endl;
- cout << "tm34  "<<tm34<<endl;
- cout << "neca[0] "<<neca[0]<<" neca[1] "<<neca[1]<<" neca[2] "<<neca[2]<< endl;
-#endif
- if (ii[0] == 0 && ii[1] == 0) return 0;
-
-
- double slo,inte,chit;
-
- if (ii[0] == 1 && ii[1] == 1 && ii[2] == 1 && ii[3] == 1) ideaflag=1;
- // cout << "ideaflag = "<<ideaflag <<endl;
-
- if (ideaflag==0){
-RoadXZ.TopSplash(tm34);
-RoadXZ.getTofMul(1,ii,tm34);
- }
-RoadXZ.Check_TRD_TK1(FLPAT[0],H[0],ii);
-RoadXZ.getTofMul(2,ii,tm34);
-//
-RoadXZ.makeEC_out(ecc,out);
- if (out==0){
-RoadXZ.Lines_Top_Bottom(out);
- }
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
- cout << "AAA ii[0] "<<ii[0]<<" ii[1] "<<ii[1]<<" ii[2] "<<ii[2]<< endl;
- cout << "ii[3] "<<ii[3]<<" ii[4] "<<ii[4]<<endl;
-#endif
-RoadXZ.Lines_Top_Bottom(out);
- if (out==0) return 0;
- if (out==1){
-RoadXZ.getParRoadXZ(fbotf,ftopf,x_starf,z_starf,SLOPEf,INTERf);
-RoadXZ.LastCheckTRDX(slo,inte,chit);
- if (chit <= 0.4 && chit > 0.001 ) {
-   ftopf=1;
-   fbotf=0;
-   SLOPEf=slo;
-   INTERf=inte;
- }
- }
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
- cout << "AGAIN FINE: fbotf = "<<fbotf<<" ftopf = "<<ftopf<<endl;
- cout << "x_starf z_starf= "<<x_starf<<" "<<z_starf<<endl;
- cout << "SLOPEf INTERf = "<<SLOPEf<<" "<<INTERf<<endl;
-#endif
-
-
- //------------------------------------------------------- FINALLY
- double slr=10000;
- double qlr=10000;
- int init_R=0;
- int init_L=0;
- double firR;
- double lasR;
- double firL,lasL;
- int fir_planeR,fir_planeL;
- int las_planeR,las_planeL;
+}
  
- for (int i=0;i<TKDBc::nlay();i++){
-   for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-     p->clearstatus(AMSDBc::TOFFORGAMMA); 
-     p_hi = p->getHit(); 
-     //
-     if (p->checkstatus(AMSDBc::GAMMARIGHT)){
-       if(init_R==0){
-	  init_R=1;
-          firR=p_hi[2];
-          fir_planeR=i;
-	}
-          lasR=p_hi[2];
-          las_planeR=i;
-      }
-      if (p->checkstatus(AMSDBc::GAMMALEFT)){
-	 if(init_L==0){
-	  init_L=1;
-          firL=p_hi[2];
-          fir_planeL=i;
-	}
-          lasL=p_hi[2];
-          las_planeL=i;
-      }
-      //
+ vector<double> AMSTrTrackGamma::_TK1YRemoveTRD2TOF(vector<double> HH, integer Num){
+   double temp;
+   //DIGITAL ALPHA
+   //  double H1[Num];
+   const int maxH1=300;
+   double H1[maxH1];
+   double VEC,V_LI;
+   int Y1Out=0;
+   //TOF
+   int mto=0;
+   int mpl=0;
+   int pl=0;
+   double x,y,z;
+   AMSTOFCluster * ploop;  
+   //TRD
+   number P0[3];
+   number TKP1[3];
+   number MinTRDTOF=3.5;
+   number SearchReg(4);
+   int trdf=0;
+   number theta,phi,sleng;
+   AMSContainer *pc=AMSEvent::gethead()->getC("AMSTRDTrack",0); 
+   
+   // LOOKING FOR TOFHITS ON FIRST TOF PLANE
+   
+   int j=1;
+   for(int i=0;i<4;i++){
+     mpl=0;
+     for (ploop = AMSTOFCluster::gethead(i); ploop ; ploop=ploop->next() ){
+       mpl++;
      }
-    }
-    if (init_R==0){
-      firR=0;
-      lasR=0;
-    }
-    if (init_L==0){
-      firL=0;
-      lasL=0;
-    }
-    if (init_R==0 || init_L==0) return 0;
-    if (firR == lasR || firL == lasL) return 0;
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-    if (init_R==0 || init_L==0){
-      cout<<"NO SUFFICIENT HITS FOR DOUBLE TRACK RECOGNITION "<<endl;
-    }
- cout<<"firR lasR............................"<<firR<<" "<<lasR<<endl;
- cout<<"firL lasL............................"<<firL<<" "<<lasL<<endl;
-#endif
-
-
-
+     if (i==0 && mpl==0) {
+       j++;
+     }
+   }
+   
+   
+   
+   for (ploop = AMSTOFCluster::gethead(j); ploop ; ploop=ploop->next() ){
+     x = ploop->getcoo()[0];
+     y = ploop->getcoo()[1];
+      z = ploop->getcoo()[2];
+      pl = ploop->getplane();
+      mto++;
+      P0[2]=z;
+      
+      /////TRD
+      
+      if(pc){
+	AMSTRDTrack * ptrd = (AMSTRDTrack*)pc->gethead();
+	while(ptrd){
+	  trdf++;
+	  AMSDir s(ptrd->gettheta(),ptrd->getphi());
+	  if(s[2]!=0){
+	    P0[0]=ptrd->getCooStr()[0]+s[0]/s[2]*(P0[2]-ptrd->getCooStr()[2]);
+	    P0[1]=ptrd->getCooStr()[1]+s[1]/s[2]*(P0[2]-ptrd->getCooStr()[2]);
+	    if (fabs(y-P0[1])<=MinTRDTOF) {
+	      MinTRDTOF=fabs(y-P0[1]);
+	      TKP1[2]=TKDBc::zposl(0);
+	      TKP1[1]=ptrd->getCooStr()[1]+s[1]/s[2]*(TKP1[2]-ptrd->getCooStr()[2]);             
+	      Y1Out=1;
+	      
+	    } 
+	  }
+	  ptrd=ptrd->next();
+	}
+      }
+   } //tof
+   
+   if (Y1Out){
+     VEC=TKP1[1];
+     V_LI=1.5*MinTRDTOF;
+     for(int j=0;j<Num;j++){
+       H1[j]=HH[j];
+     }
+     HH.clear();
+     HH.resize(0);
+     for(int j=0;j<Num;j++){ 
+       temp=H1[j];
+       if (fabs(temp-VEC)<=V_LI){
+	 HH.push_back(temp);  
+       }
+     }
+   }
+   return HH;
+ }
+ 
+ void AMSTrTrackGamma::_Averes(number& AVER, number& SAVER, vector<double> HH, integer Num, integer Com){
+   
+   double SUM=0.0;
+   double SI=0.0;
+   
+   AVER=0.0;
+   SAVER=0.0;
+   if (Num<=1) {
+     AVER=0.0;
+     SAVER=0.0;
+   }
+   if (Num==2 && Com==1){
+     AVER+=fabs(HH[0]-HH[1]);
+     SAVER=0.0; 
+   }
+   if (Com>1){
+     for(int i=0;i<(Num-1);i++){
+       for(int j=(i+1);j<Num;j++){
+	 AVER+=fabs(HH[i]-HH[j]);  
+       }
+     }
+     AVER=AVER/Com;
+     for(int i=0;i<(Num-1);i++){
+       for(int j=(i+1);j<Num;j++){
+	 SUM+=pow((fabs(HH[i]-HH[j])-AVER),2);
+       }
+     }    
+     SI=sqrt(SUM/(Com-1));
+     SAVER=SI/(sqrt(number(Com)));
+   }
+ }
+ 
+ void AMSTrTrackGamma::_Cente(number& CEN, number& SCEN, vector<double> HH, integer Num, integer Com, number AVER, number SAVER){
+   
+   int nde=0;
+   double DSUM=0.0;
+   double SI=0.0;
+   CEN=0.0;
+   SCEN=0.0;
+   if (Num==1) {
+     CEN=HH[0];
+     SCEN=0.0; 
+   }
+   if (Num==2 && Com==1){
+     CEN=(HH[0]+HH[1])/2.;
+     SCEN=0.0;
+   }
+   
+   
+   if (Com>1){
+     for(int i=0;i<(Num-1);i++){
+       for(int j=(i+1);j<Num;j++){
+	 if((fabs(HH[i]-HH[j])>=(AVER-(3.*SAVER))) && (fabs(HH[i]-HH[j])<=(AVER+(3.*SAVER)))){
+	   CEN+=((HH[i]+HH[j])/2.);
+	   nde++;  
+	 }
+       }
+     }
+ CEN=CEN/nde; 
+ 
+ if (nde>1){
+   for(int i=0;i<(Num-1);i++){
+     for(int j=(i+1);j<Num;j++){
+       if(fabs(HH[i]-HH[j])>=(AVER-(3.*SAVER)) &&  fabs(HH[i]-HH[j])<=(AVER+(3.*SAVER))){
+	 DSUM+=pow((((HH[i]+HH[j])/2.)-CEN),2);
+       }
+     }
+   }
+   SI=sqrt(DSUM/(nde-1));
+   SCEN=SI/(sqrt(double(nde)));
+ }
+   }
+ }
+ 
+ 
+ 
+ void AMSTrTrackGamma::_Combi(integer& NC, integer Nele, integer Ngrp){
+   int nf=1;
+   int rf=1;
+   int NmRf=1;
+   if(Nele > 1){
+     for(int i=1;i<(Nele+1);i++){
+       nf=nf*i;
+     }
+   }
+   if(Ngrp > 1){
+     for(int i=1;i<(Ngrp+1);i++){
+       rf=rf*i;
+     }
+   }
+   
+   if (Nele==Ngrp) NC=1;
+   if (Nele<Ngrp) NC=0;
+   if (Ngrp > 1){
+     if (Nele>Ngrp) {
+       for(int i=1;i<(Nele-Ngrp+1);i++){
+	 NmRf=NmRf*i;
+       }
+       NC=nf/(rf*NmRf);
+     }
+   }
+   
+ } 
+ 
+ 
+ 
+ void AMSTrTrackGamma::_LeftRight(vector<double> HH, integer inhi, number CEN){
+   AMSPoint p_hi;
+   AMSPoint pc_hi;
+   AMSTrRecHit* pre;
+   int xambig=0;
+   
+   number depos;
+   for (pre=AMSTrRecHit::gethead(inhi); pre!=NULL; pre=pre->next()){
+     if(pre->checkstatus(AMSDBc::FalseX) || pre->checkstatus(AMSDBc::FalseTOFX))continue;
+     p_hi = pre->getHit(); 
+     number cha = pre->getsum(); 
+     number depomin=10000;
+     //first of all
+     pre->clearstatus(AMSDBc::GAMMARIGHT);
+     pre->clearstatus(AMSDBc::GAMMALEFT);
+     //Single Hit:
+     if (HH.size()==1){
+       if (p_hi[1]==HH[0]){
+	 // CEN was not found
+	 //..........
+	 // B)
+	 // Charge quantity : let's keep the two highest (one for left one for right) even if it is a single hit
+	 // but with ambiguity otherwise let's keep all
+	 //NOW the charge descrimination
+	 int cmax1=0;
+	 int cmax2=0;
+	 number deposmax1=-1;
+	 number deposmax2=-1;
+	 for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(inhi); pcha!=NULL; pcha=pcha->next()){
+	   if(pcha->checkstatus(AMSDBc::FalseX) || pcha->checkstatus(AMSDBc::FalseTOFX))continue;
+	   depos = pcha->getsum(); 
+	   pc_hi = pcha->getHit();
+	   if (pc_hi[1]==p_hi[1] && pc_hi[2]==p_hi[2]){
+	     if (depos >= deposmax1){
+	       if (deposmax1 == -1 || cmax1>0){
+		 if (depos != deposmax1) cmax1=0;
+		 deposmax1=depos;
+		 cmax1++;//ambiguity
+	       }
+	     }
+	   }
+	 }
+	 
+	 for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(inhi); pcha!=NULL; pcha=pcha->next()){
+	   if(pcha->checkstatus(AMSDBc::FalseX) || pcha->checkstatus(AMSDBc::FalseTOFX))continue;
+	   depos = pcha->getsum(); 
+	   pc_hi = pcha->getHit();
+	   if (pc_hi[1]==p_hi[1] && pc_hi[2]==p_hi[2]){
+	     if (depos >= deposmax2 && depos < deposmax1){
+	       if (deposmax2 == -1 || cmax2>0){
+		 if (depos != deposmax2) cmax2=0;
+		 deposmax2=depos;
+		 cmax2++; //ambiguity
+	       }
+	     }
+	   }
+	 }
+	 
+	 xambig=0; 
+	 for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(inhi); pcha!=NULL; pcha=pcha->next()){
+	   if(pcha->checkstatus(AMSDBc::FalseX) || pcha->checkstatus(AMSDBc::FalseTOFX))continue;
+	   depos = pcha->getsum(); 
+	   pc_hi = pcha->getHit();
+	   if (pc_hi[1]==p_hi[1] && pc_hi[2]==p_hi[2]){ // ambigui solo in x e depos
+	     if (depos == cha){ // same depos let's count x ambiguity 
+	       xambig++;  
+	     }
+	     //
+	   }
+	 }
+	 
+	 if (CEN==10000){
+	   pre->setstatus(AMSDBc::GAMMARIGHT);
+	   pre->setstatus(AMSDBc::GAMMALEFT);
+	   if (xambig <= 2){ // too low ambiguty
+	     pre->clearstatus(AMSDBc::GAMMARIGHT);
+	     pre->clearstatus(AMSDBc::GAMMALEFT);
+	   }
+	   // eliminated hit with too low ambiguity
+	   //
+	   if (cmax1 > 2 && cmax2 > 2){
+	     if (cha != deposmax1 && cha != deposmax2){
+	       pre->clearstatus(AMSDBc::GAMMARIGHT);
+	       pre->clearstatus(AMSDBc::GAMMALEFT);
+	     }
+	   }
+	   
+	 }
+	 //the CEN has been found in Single Hit, then:
+	 if (CEN != 10000 && p_hi[1]>CEN){
+	   pre->clearstatus(AMSDBc::GAMMARIGHT);
+	   pre->clearstatus(AMSDBc::GAMMALEFT);
+	   pre->setstatus(AMSDBc::GAMMARIGHT);
+	   if (xambig <= 2){ // too low ambiguty
+	     pre->clearstatus(AMSDBc::GAMMARIGHT);
+	   } 
+	   if (cmax1 > 2){
+	     if (cha != deposmax1){
+	       pre->clearstatus(AMSDBc::GAMMARIGHT);
+	     }
+	   }
+	   
+	 }
+	 if (CEN != 10000 && p_hi[1]<=CEN){
+	   pre->clearstatus(AMSDBc::GAMMARIGHT);
+	   pre->clearstatus(AMSDBc::GAMMALEFT);
+	   pre->setstatus(AMSDBc::GAMMALEFT);
+	   if (xambig <= 2){ // too low ambiguty
+	     pre->clearstatus(AMSDBc::GAMMALEFT);
+	   } 
+	   if (cmax1 > 2){
+	     if (cha != deposmax1){
+	       pre->clearstatus(AMSDBc::GAMMALEFT);
+	     }
+	   }
+	   
+	 }    
+       }
+     } // single
+     // now double hit but we have to redo the calculation onto the charges
+     if (HH.size()>1){
+       for (int k=0;k<(HH.size());k++){
+         if (p_hi[1]==HH[k]){
+	   
+	   //NOW the charge descrimination
+	   // A)
+	   //let's eliminate hit with no ambiguity
+	   xambig=0; 
+	   for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(inhi); pcha!=NULL; pcha=pcha->next()){
+	     if(pcha->checkstatus(AMSDBc::FalseX) || pcha->checkstatus(AMSDBc::FalseTOFX))continue;
+	     depos = pcha->getsum(); 
+	     pc_hi = pcha->getHit();
+	     if (pc_hi[1]==p_hi[1] && pc_hi[2]==p_hi[2]){ // ambigui solo in x e depos
+	       if (depos == cha){ // same depos let's count x ambiguity
+		 xambig++;  
+	       }
+	     }
+	   }
+	   
+	   
+	   
+	   //.......
+	   
+	   if (p_hi[1]>CEN){
+	     
+	     pre->clearstatus(AMSDBc::GAMMARIGHT);
+	     pre->clearstatus(AMSDBc::GAMMALEFT); 
+	     pre->setstatus(AMSDBc::GAMMARIGHT);
+	     
+             if (xambig <= 2){ // too low ambiguty
+	       pre->clearstatus(AMSDBc::GAMMARIGHT);
+	     } 
+	     
+	   } 
+	   if (p_hi[1]<=CEN){
+	     pre->clearstatus(AMSDBc::GAMMARIGHT);
+	     pre->clearstatus(AMSDBc::GAMMALEFT);
+	     pre->setstatus(AMSDBc::GAMMALEFT);
+	     
+	     if (xambig <= 2){ // too low ambiguty
+	       pre->clearstatus(AMSDBc::GAMMALEFT);
+	     } 
+	     //        
+	     
+	   }
+         } 
+       }
+     }
+   }
+ } 
+ 
+ 
+ 
+ integer AMSTrTrackGamma::build(integer refit){
+   
+   int ideaflag=0;
+   double tm34=0;
+   number ecc=0;
+   int ii[5]={0,0,0,0,0};
+   int neca[3]={0,0,0};
+   int fbotf=0;
+   int ftopf=0;
+   double x_starf=10000;  
+   double z_starf=10000;
+   double SLOPEf=10000;  
+   double INTERf=10000;
+   int out=0;
+   int nl=0;
+   
+   int NCO[trconst::maxlay];
+   vector<double> H[trconst::maxlay];
+   int FLPAT[trconst::maxlay];
+   AMSPoint p_hi;
+   AMSTrRecHit * p;
+   int Nuser=0;
+   int Nlayu[trconst::maxlay];
+   number RES[trconst::maxlay];
+   number SRES[trconst::maxlay];
+   number CE[trconst::maxlay];
+   number SCE[trconst::maxlay];
+   
+   for(int i=0;i<TKDBc::nlay();i++){
+     Nlayu[i]=0;
+     RES[i]=0;
+     SRES[i]=0;
+     CE[i]=0;
+     SCE[i]=0;
+     NCO[i]=0;
+   }
+   //---------------------------------------
+   
+   integer NGammaFound=-1;
+   
+   if(refit){
+     // Cleanup all track containers
+     int i;
+     for(i=0;;i++){
+       AMSContainer *pctr=AMSEvent::gethead()->getC("AMSTrTrackGamma",i);
+       if(pctr)pctr->eraseC();
+       else break ;
+     }
+   } 
+   //---------------------------------------
+   for(int i=0;i<TKDBc::nlay();i++){
+     Nuser+=(AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
+     Nlayu[i]+=(AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
+   }
+   
+   uinteger evn=AMSEvent::gethead()->getEvent();
+   uinteger Run=AMSEvent::gethead()->getrun();
+   
+   AMSmceventg::PrintSeeds(cout);
+   
+   for(int i=0;i<TKDBc::nlay();i++){
+     AMSTrRecHit::_markDouble(H[i],i);
+     FLPAT[i]=H[i].size(); 
+     if (i==0){
+       if (FLPAT[i]>2){
+	 H[i]=_TK1YRemoveTRD2TOF(H[i],FLPAT[i]);
+	 FLPAT[i]=H[i].size();
+	 
+       }
+     }
+   }
+   
+   if (FLPAT[7] == 2 || FLPAT[0] == 2){
+     _LookOneEight(FLPAT,H);
+   }
+  // let's define multiplicity counters to veto or break the reconstruction
+   int esc_0=0;
+   int esc_1=0;
+   int esc_2=0;
+   int esc_22=0;
+   int esc_4=0;
+   int esc_10=0;
+   int esc_20=0;
+   int es_f1=0;
+   int pl23_0=0;
+   int pl45_0=0;
+   int pl67_0=0;
+   int esc_all=0;
+   
+   for(int i=0;i<TKDBc::nlay();i++){
+     if  (FLPAT[i]!=0) esc_all++; 
+     if  (FLPAT[i]==2) esc_1++;
+     if  (FLPAT[i]>2)  esc_2++;
+     if  (FLPAT[i]>3)  esc_4++;
+     if  (FLPAT[i]==0) esc_0++;
+     if  (FLPAT[i]>10) esc_10++;
+     if  (FLPAT[i]>20) esc_20++;
+     if  (FLPAT[i]==1) es_f1++;
+   }
+   if  (FLPAT[1]!=0 || FLPAT[2]!=0) pl23_0=FLPAT[1]+FLPAT[2];
+   if  (FLPAT[3]!=0 || FLPAT[4]!=0) pl45_0=FLPAT[3]+FLPAT[4];
+   if  (FLPAT[5]!=0 || FLPAT[6]!=0) pl67_0=FLPAT[5]+FLPAT[6];
+   
+   if (((pl23_0 == 0 && pl45_0 == 0) || (pl67_0 == 0 && pl45_0 == 0) || (pl67_0 == 0 && pl23_0 == 0)) && (FLPAT[0] > 2 || FLPAT[7] > 2))  return 0;
+   
+   if (((pl23_0 == 0 && pl45_0 == 0 && FLPAT[5]>2 && FLPAT[6]>2) || (pl67_0 == 0 && pl45_0 == 0 && FLPAT[1]>2 && FLPAT[2]>2) || (pl67_0 == 0 && pl23_0 == 0 && FLPAT[3]>2 && FLPAT[4]>2)) )  return 0;
+   
+   if (pl23_0 == 0 || pl45_0 == 0 || pl67_0 ==0 && ( (FLPAT[0] == 0 && FLPAT[7] <=1) || (FLPAT[0] <= 1 && FLPAT[7] == 0) ))  return 0; 
+   
+   
+   
+   if (esc_all <= 3) return 0;
+   if (esc_all ==4 && (FLPAT[0] ==0 || FLPAT[7] ==0)) return 0;
+   if (esc_all <6 && (FLPAT[0] ==0 && FLPAT[7] ==0)) return 0;
+   if (esc_1 == 1 && esc_2 >= 4) return 0;
+   if (esc_2 >= 5) return 0;
+   if (esc_4 >= 4) return 0;
+   if (esc_4 >= 2 && esc_2 >= 3) return 0;
+   if (es_f1 >= 3 && esc_2 >= 3) return 0;
+   if (esc_0 >= 2 && esc_2 >= 3) return 0;
+   if (esc_0 >= 2 && esc_2 >= 2 && es_f1 >= 2) return 0;
+   if (esc_1 <= 2 && esc_2 >= 4) return 0;
+   if (esc_1 <= 2 && esc_0 >= 2 && es_f1 >= 3) return 0;
+   if ((es_f1 + esc_0) >= 6) return 0;
+   if (esc_10 >= 3)  return 0;
+   if (esc_20 != 0)  return 0;
+   
+   
+   //SetBestResLR(FLPAT,H,esc_1,esc_2);
+   
+   _LSQP2(FLPAT,H,esc_1,esc_2);
+   
+   
+   for(int i=0;i<TKDBc::nlay();i++){
+     FLPAT[i]=H[i].size();
+     if (FLPAT[i]>2) {
+       return 0;
+     }
+     //
+   }
+   //second time
+   if (FLPAT[7] == 2 || FLPAT[0] == 2){
+     _LookOneEight(FLPAT,H);
+   }
+   
+   for(int i=0;i<TKDBc::nlay();i++){
+     if (FLPAT[i]>1){
+       _Combi(NCO[i],FLPAT[i],2);
+       _Averes(RES[i],SRES[i],H[i],FLPAT[i],NCO[i]);
+       _Cente(CE[i],SCE[i],H[i],FLPAT[i],NCO[i],RES[i],SRES[i]);
+       if  (FLPAT[i]==2)  esc_22++;
+     }
+     //
+     if (((NCO[1]+NCO[2]) > 10 || (NCO[3]+NCO[4]) > 10 || (NCO[5]+NCO[6]) > 10) && esc_0 >= 3)  return 0;
+   }
+   
+   _SingleHit(FLPAT,CE,esc_22);
+   
+   for(int i=0;i<TKDBc::nlay();i++){
+     
+     _LeftRight(H[i],i,CE[i]);
+   }
+   _SingleCommonHit(FLPAT,H);
+   
+   XZLine_TOF RoadXZ(ii,neca,tm34,ecc);
+   
+   if (ii[0] == 0 && ii[1] == 0) return 0;
+   
+   double slo,inte,chit;
+   
+   if (ii[0] == 1 && ii[1] == 1 && ii[2] == 1 && ii[3] == 1) ideaflag=1;
+   
+   if (ideaflag==0){
+     RoadXZ.TopSplash(tm34);
+     RoadXZ.getTofMul(1,ii,tm34);
+   }
+   RoadXZ.Check_TRD_TK1(FLPAT[0],H[0],ii);
+   RoadXZ.getTofMul(2,ii,tm34);
+   //
+   RoadXZ.makeEC_out(ecc,out);
+   if (out==0){
+     RoadXZ.Lines_Top_Bottom(out);
+   }
+   
+   RoadXZ.Lines_Top_Bottom(out);
+   if (out==0) return 0;
+   if (out==1){
+     RoadXZ.getParRoadXZ(fbotf,ftopf,x_starf,z_starf,SLOPEf,INTERf);
+     RoadXZ.LastCheckTRDX(slo,inte,chit);
+     if (chit <= 0.3 && chit > 0.001 ) {
+       ftopf=1;
+       fbotf=0;
+       SLOPEf=slo;
+       INTERf=inte;
+     }
+   }
+   
+   //------------------------------------------------------- FINALLY
+   double slr=10000;
+   double qlr=10000;
+   int init_R=0;
+   int init_L=0;
+   double firR;
+   double lasR;
+   double firL,lasL;
+   int fir_planeR,fir_planeL;
+   int las_planeR,las_planeL;
+   
+   for (int i=0;i<TKDBc::nlay();i++){
+     for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+       if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+       p->clearstatus(AMSDBc::TOFFORGAMMA); 
+       p_hi = p->getHit(); 
+       //
+       if (p->checkstatus(AMSDBc::GAMMARIGHT)){
+	 if(init_R==0){
+	   init_R=1;
+	   firR=p_hi[2];
+	   fir_planeR=i;
+	 }
+	 lasR=p_hi[2];
+	 las_planeR=i;
+       }
+       if (p->checkstatus(AMSDBc::GAMMALEFT)){
+	 if(init_L==0){
+	   init_L=1;
+	   firL=p_hi[2];
+	   fir_planeL=i;
+	 }
+	 lasL=p_hi[2];
+	 las_planeL=i;
+       }
+       //
+     }
+   }
+   if (init_R==0){
+     firR=0;
+     lasR=0;
+   }
+   if (init_L==0){
+     firL=0;
+     lasL=0;
+   }
+   if (init_R==0 || init_L==0) return 0;
+   if (firR == lasR || firL == lasL) return 0;
+   
+   
+   
    int xsR=0;
    int xsL=0;
    int xsRL=0;
- for(int i=0;i<TKDBc::nlay();i++){
-   xsRL+=FLPAT[i];
- }
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-   cout <<" xsR xsL          =   "<<xsR<<" "<<xsL<<endl; 
-   cout <<"                 xsRL          =   "<<xsRL<<endl; 
-#endif
-
+   for(int i=0;i<TKDBc::nlay();i++){
+     xsRL+=FLPAT[i];
+   }
+   
    if(xsRL > 6) {
      int refitting=0;
      if (init_R!=0 && init_L!=0){
-
-RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
+       
+       
+       
+       RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
                      firR,lasR,firL,lasL,fir_planeR,fir_planeL,
                      las_planeR,las_planeL,slr,qlr);
-
- int INDEXPL[trconst::maxlay]; 
- int esc_co1=0;
- for(int i=0;i<TKDBc::nlay();i++){
-   if  (FLPAT[i]==2) esc_co1++;
-   INDEXPL[i]=0;
- }
- 
- for (int i=0;i<TKDBc::nlay();i++){
-   for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-     if (p->checkstatus(AMSDBc::GAMMARIGHT)){
-       INDEXPL[i]++;
-     }
-     if (p->checkstatus(AMSDBc::GAMMALEFT)){
-       INDEXPL[i]++;
-     } 
-   }
- }  
- 
- int recowrong=0;
- for(int i=0;i<TKDBc::nlay();i++){
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-   cout<<" Let's check that I have maximum 2 hits per plane: INDEXPL["<<i<<"]= "<<INDEXPL[i]<<endl;
-#endif
-   if (INDEXPL[i] < FLPAT[i]) recowrong++;
-   //if (slr != 10000 && qlr != 10000 && refitting != 2000){
-     if (refitting != 2000){
-     if (FLPAT[i] == 2 && INDEXPL[i] == 0) refitting++;
-  }
-   if (slr == 200 && qlr == 200)refitting++;
- }
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
- cout << "             BE CAREFUL : recowrong = "<<recowrong<<endl;
-#endif
- for(int i=0;i<TKDBc::nlay();i++){
-   INDEXPL[i]=0;
- }
-
-//
- if (refitting != 0 && refitting < 50){
-   //if (refitting != 0 ){
-   for(int i=0;i<TKDBc::nlay();i++){
-_LeftRight(H[i],i,CE[i]);
-   } 
-_SingleCommonHit(FLPAT,H); 
-  
-RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
-                      firR,lasR,firL,lasL,fir_planeR,fir_planeL,
-                     las_planeR,las_planeL,slr,qlr);
- }
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
- for(int i=0;i<TKDBc::nlay();i++){
-   cout<< "*$$        INDEXPL["<<i<<"]= "<<INDEXPL[i]<<endl; 
- }
-#endif
-
- //  if (refitting == 2000){
-if (refitting == 8000){
-
-   for(int i=0;i<TKDBc::nlay();i++){
-_LeftRight(H[i],i,CE[i]);
-   } 
-_SingleCommonHit(FLPAT,H);
-   SLOPEf=slr;
-   INTERf=qlr;
-   refitting=0;
-   //   cout << "SLOPEf INTERf = "<<SLOPEf<<" "<<INTERf<<endl;
-   //   cout << "ENTERING ones slr qlr = "<<slr<<" "<<qlr<<endl;  
-RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
-                      firR,lasR,firL,lasL,fir_planeR,fir_planeL,
-                     las_planeR,las_planeL,slr,qlr);
-
-}
-
- for(int i=0;i<TKDBc::nlay();i++){
-   INDEXPL[i]=0;
- }
- 
-
- AMSTrRecHit * parrayR[trconst::maxlay];
- int nright=-1; 
-  for (int i=0;i<TKDBc::nlay();i++){
-   for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-     if (p->checkstatus(AMSDBc::GAMMARIGHT)){
-      AMSPoint p_hi = p->getHit(); 
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-cout<< "*$$$$$$$ RIGHT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
-#endif
-          nright++;
-          INDEXPL[i]++;
-          parrayR[nright]=p;
-   }
-   }
-  }
-
-  AMSTrRecHit * parrayL[trconst::maxlay]; 
-  int nleft=-1;
-  for (int i=0;i<TKDBc::nlay();i++){
-   for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-     if (p->checkstatus(AMSDBc::GAMMALEFT)){
-      AMSPoint p_hi = p->getHit(); 
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-cout<< "*$$$$$$$ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
-#endif
-         nleft++;
-         INDEXPL[i]++;
-         parrayL[nleft]=p;
-     }
-   }
-  }
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
- for(int i=0;i<TKDBc::nlay();i++){
-   cout<<" AGAIN Let's check that I have maximum 2 hits per plane: INDEXPL["<<i<<"]= "<<INDEXPL[i]<<endl;
- }
-#endif
-  nleft=nleft+1;
-  nright=nright+1;
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-  cout <<"1   nleft nright"<<nleft<<" "<< nright<<endl;
-#endif
-  //
-  if (nleft < 3 || nright < 3) return 0;
-  if (nleft ==3 && nright ==3) return 0;
-  //
-   
-
-    AMSTrTrackGamma * pntLR=   new AMSTrTrackGamma(nleft,nright,parrayL,parrayR,recowrong);
-
-    int counting=0;
-    int plusminus=0;
-    if (nleft >=3 && nright >= 3){
-    pntLR->Fit(5,2);
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-    cout << "_GRidgidityMSR          " <<pntLR->_GRidgidityMSR<< endl; 
-    cout << "_GRidgidityMSL          " <<pntLR->_GRidgidityMSL<< endl; 
-    cout << "Now we are after  Fit(5,2)"<< endl;
-#endif
-    counting=0;
-    plusminus=0;
-    pntLR->PAIR2GAMMA(counting,plusminus);
-      
-      if (pntLR->_VE1[2] <= 47 || pntLR->_VE2[2] <= 47  ){
-	//refitting+=100;
-      }
-    }
-
-
-    // before proceeding check refitting:
-    //    if (refitting >= 100){
-    if (refitting >= 1000000){
-      delete pntLR; 
-      for(int i=0;i<TKDBc::nlay();i++){
-_LeftRight(H[i],i,CE[i]);
-      } 
-_SingleCommonHit(FLPAT,H);
-
-RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
-                     firR,lasR,firL,lasL,fir_planeR,fir_planeL,
-                     las_planeR,las_planeL,slr,qlr);
-
-// if (refitting >=10000){
-//  for(int i=0;i<TKDBc::nlay();i++){
-//    _LeftRight(H[i],i,CE[i]);
-//  } 
-//  SLOPEf=slr;
-//  INTERf=qlr;
-   //cout << "SLOPEf INTERf = "<<SLOPEf<<" "<<INTERf<<endl;
-   //cout <<" 5 refitting  "<<refitting<<endl;
-// refitting=0;
-//RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
-//                    firR,lasR,firL,lasL,fir_planeR,fir_planeL,
-//                    las_planeR,las_planeL,slr,qlr);
-//}
- for(int i=0;i<TKDBc::nlay();i++){
-   INDEXPL[i]=0;
- }
- 
- AMSTrRecHit * parrayR[trconst::maxlay];
- int nright=-1; 
- for (int i=0;i<TKDBc::nlay();i++){
-   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-     if (p->checkstatus(AMSDBc::GAMMARIGHT)){
-       AMSPoint p_hi = p->getHit(); 
-       nright++;
-       INDEXPL[i]++;
-       parrayR[nright]=p;
-     }
-   }
- }
- 
- AMSTrRecHit * parrayL[trconst::maxlay]; 
- int nleft=-1;
- for (int i=0;i<TKDBc::nlay();i++){
-   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-     if (p->checkstatus(AMSDBc::GAMMALEFT)){
-       AMSPoint p_hi = p->getHit(); 
-       nleft++;
-       INDEXPL[i]++;
-       parrayL[nleft]=p;
-     }
-   }
- }
- nleft=nleft+1;
- nright=nright+1;
-
- AMSTrTrackGamma * pntLR=   new AMSTrTrackGamma(nleft,nright,parrayL,parrayR,recowrong);
- int counting=0;
- int plusminus=0;
- if (nleft >=3 && nright >= 3){
-   pntLR->Fit(5,2);
-   counting=0;
-   plusminus=0;
-   pntLR->PAIR2GAMMA(counting,plusminus);
- }
- }//refitting >=100
-    //
-
-
- double res_d[trconst::maxlay];
- for(int i=0;i<TKDBc::nlay();i++){
-   res_d[i]=0;
-  } 
-
- int flag=0;
- pntLR->LR_RES_STUDY3(INDEXPL,res_d,flag);
-
- if (flag != 0){
-   delete pntLR; 
-   nright=-1;  
-   nleft=-1;
-   for (int i=0;i<TKDBc::nlay();i++){
-     for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-       if (p->checkstatus(AMSDBc::GAMMARIGHT)){
-	 nright++;
-	 parrayR[nright]=p;
-	 AMSPoint p_hi = p->getHit(); 
+       
+       int INDEXPL[trconst::maxlay]; 
+       int esc_co1=0;
+       for(int i=0;i<TKDBc::nlay();i++){
+	 if  (FLPAT[i]==2) esc_co1++;
+	 INDEXPL[i]=0;
        }
-       if (p->checkstatus(AMSDBc::GAMMALEFT)){
-	 nleft++;
-	 parrayL[nleft]=p;
-	 AMSPoint p_hi = p->getHit(); 
+       
+       for (int i=0;i<TKDBc::nlay();i++){
+	 for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+	   if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+	   if (p->checkstatus(AMSDBc::GAMMARIGHT)){
+	     INDEXPL[i]++;
+	   }
+	   if (p->checkstatus(AMSDBc::GAMMALEFT)){
+	     INDEXPL[i]++;
+	   } 
+	 }
+       }  
+       
+       int recowrong=0;
+       for(int i=0;i<TKDBc::nlay();i++){
+	 if (INDEXPL[i] < FLPAT[i]) recowrong++;
        }
-     }
-   }
-   nleft=nleft+1;
-   nright=nright+1;
-
-   AMSTrTrackGamma *pntLR=   new AMSTrTrackGamma(nleft,nright,parrayL,parrayR,recowrong);
-   if (nleft >=3 && nright >= 3){
-     pntLR->Fit(5,2);
-     counting=0;
-     plusminus=0;
-     pntLR->PAIR2GAMMA(counting,plusminus);
-   }
-
-
-AMSDir DIRi(0,0,1.);
-number tetL,fifL,sileL;
-number tetR,fifR,sileR;
-AMSPoint P_0L2;
-AMSPoint P_0R2;
-double RES_REF;
-double z_tkl[trconst::maxlay];
- for(int i=0;i<TKDBc::nlay();i++){
-   z_tkl[i]=TKDBc::zposl(i);
- }
-
-   if (flag < 500){
-     //LoopMissingPlane
-     for(int j=0;j<TKDBc::nlay();j++){
-       int go=0;
-       if (res_d[j] == 0){
-	 //
-	 for(int i=0;i<nleft;i++){
-	   if (pntLR->_HLEFT[i][2] == z_tkl[j]){
-	     go++;
+       for(int i=0;i<TKDBc::nlay();i++){
+	 INDEXPL[i]=0;
+       }
+       
+       if (slr != 10000 && qlr != 10000){
+	 
+	 for(int i=0;i<TKDBc::nlay();i++){
+	   _LeftRight(H[i],i,CE[i]);
+	 } 
+	 _SingleCommonHit(FLPAT,H);
+	 if (slr != 200 && qlr != 200){
+	   SLOPEf=slr;
+	   INTERf=qlr;
+	 }
+	 
+	 
+	 RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
+		       firR,lasR,firL,lasL,fir_planeR,fir_planeL,
+		       las_planeR,las_planeL,slr,qlr);
+	 
+       }
+       
+       for(int i=0;i<TKDBc::nlay();i++){
+	 INDEXPL[i]=0;
+       }
+       
+       
+       AMSTrRecHit * parrayR[trconst::maxlay];
+       int nright=-1; 
+       for (int i=0;i<TKDBc::nlay();i++){
+	 for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+	   if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+	   if (p->checkstatus(AMSDBc::GAMMARIGHT)){
+	     AMSPoint p_hi = p->getHit(); 
+	     nright++;
+	     INDEXPL[i]++;
+	     parrayR[nright]=p;
 	   }
 	 }
-	 for(int i=0;i<nright;i++){
-	   if (pntLR->_HRIGH[i][2] == z_tkl[j]){
-	     go++;
+       }
+       
+       AMSTrRecHit * parrayL[trconst::maxlay]; 
+       int nleft=-1;
+       for (int i=0;i<TKDBc::nlay();i++){
+	 for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+	   if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+	   if (p->checkstatus(AMSDBc::GAMMALEFT)){
+	     AMSPoint p_hi = p->getHit(); 
+	     nleft++;
+	     INDEXPL[i]++;
+	     parrayL[nleft]=p;
 	   }
 	 }
-	 //
-	 if (go == 0){
-	   for(int jh=0;jh<j;jh++){
-	     RES_REF=res_d[jh]; // we take the residual which comes immediately before
-	   }
-AMSPoint ZEL(pntLR->_GP0MSL[0],pntLR->_GP0MSL[1],z_tkl[j]);
-AMSPoint ZER(pntLR->_GP0MSR[0],pntLR->_GP0MSR[1],z_tkl[j]);
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-cout<< "    INTERPOLING PLANE  "<<j+1<<endl;
-cout<< "AMSPoint ZEL =  "<<ZEL[0]<<" "<<ZEL[1]<<" "<<ZEL[2]<<endl;
-cout<< "AMSPoint ZER =  "<<ZER[0]<<" "<<ZER[1]<<" "<<ZER[2]<<endl;
-#endif
-pntLR->interpolate(1,ZEL,DIRi,P_0L2,tetL,fifL,sileL);
-pntLR->interpolate(0,ZER,DIRi,P_0R2,tetR,fifR,sileR);
-pntLR->HITRESEARCH(j,RES_REF,P_0L2,P_0R2);
-delete pntLR; 
-  nright=-1;  
-  nleft=-1;
-  for (int i=0;i<TKDBc::nlay();i++){
-    for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-      if (p->checkstatus(AMSDBc::GAMMARIGHT)){
-	nright++;
-	parrayR[nright]=p;
-      }
-      if (p->checkstatus(AMSDBc::GAMMALEFT)){
-	nleft++;
-	parrayL[nleft]=p;
-      }
-    }
-  }
-  nleft=nleft+1;
-  nright=nright+1;
-
-pntLR= new AMSTrTrackGamma(nleft,nright,parrayL,parrayR,recowrong);
-if (nleft >=3 && nright >= 3){
-pntLR->Fit(5,2);
-counting=0;
-plusminus=0;
-pntLR->PAIR2GAMMA(counting,plusminus);
-}
-	 } //go  
        }
-     }
-   }// flag < 500
-   
-
-if (flag >= 500){
-   // Let's defined the expected residual "RES_REF " in the empty plane  "pla".
-   //int pla=flag-500;
-  // RES_REF=0;
-   //if (pla != 0){
-   //  RES_REF=0.03;
-    //  for(int jh=0;jh<pla;jh++){
-    //    RES_REF=res_d[jh]; // we take the residual which comes immediately before
-    //  }     
-  // }
-
-
-//AMSPoint ZEL(pntLR->_GP0MSL[0],pntLR->_GP0MSL[1],z_tkl[pla]);
-//AMSPoint ZER(pntLR->_GP0MSR[0],pntLR->_GP0MSR[1],z_tkl[pla]);
-//pntLR->interpolate(1,ZEL,DIRi,P_0L2,tetL,fifL,sileL);
-//pntLR->interpolate(0,ZER,DIRi,P_0R2,tetR,fifR,sileR);
-//pntLR->HITRESEARCH(pla,RES_REF,P_0L2,P_0R2);
-delete pntLR; 
-  nright=-1;  
-  nleft=-1;
-  for (int i=0;i<TKDBc::nlay();i++){
-   for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-     if (p->checkstatus(AMSDBc::GAMMARIGHT)){
-       nright++;
-       parrayR[nright]=p;
-   }
-     if (p->checkstatus(AMSDBc::GAMMALEFT)){
-       nleft++;
-       parrayL[nleft]=p;
-     }
-   }
-  }
-  nleft=nleft+1;
-  nright=nright+1;
-pntLR= new AMSTrTrackGamma(nleft,nright,parrayL,parrayR,recowrong);
-if (nleft >=3 && nright >= 3){
-pntLR->Fit(5,2);
-counting=0;
-plusminus=0;
-pntLR->PAIR2GAMMA(counting,plusminus);
-}
- } // flag >= 500
-
- }//  flag != 0
-
-
-
-  if (nleft >= 3){
-   NGammaFound++;
-  }
-  if (nright >= 3){
-   NGammaFound++;
-  }
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-cout << " FINALLY 8-------------- PGAMM "<<pntLR->_PGAMM<<endl;
-#endif
-if (nleft >=3 && nright >= 3){
-pntLR->Fit(0,2);
-pntLR->Fit(3,2);
-pntLR->Fit(4,2);
-}
-else return 0;
-
-
-    AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),pntLR);
-    int done=0;
-    pntLR->addtracks(done);
-
-// VC gamma
-
-
-{
-    AMSTrTrackGamma  *p= new AMSTrTrackGamma(*pntLR);
-     p->_ConstructGamma(0);
-    AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),p);
-}
-{
-    AMSTrTrackGamma  *p= new AMSTrTrackGamma(*pntLR);
-     p->_ConstructGamma(2);
-    AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),p);
-}
-
-//    cout<<" done ------- = "<< done<< endl;
-
-
+       nleft=nleft+1;
+       nright=nright+1;
+       //
+       if (nleft < 3 || nright < 3) return 0;
+       if (nleft ==3 && nright ==3) return 0;
+       //
+       
+       
+       AMSTrTrackGamma * pntLR=   new AMSTrTrackGamma(nleft,nright,parrayL,parrayR,recowrong);
+       
+       int counting=0;
+       int plusminus=0;
+       if (nleft >=3 && nright >= 3){
+	 pntLR->Fit(5,2);
+	 counting=0;
+	 plusminus=0;
+	 pntLR->PAIR2GAMMA(counting,plusminus);
+       }
+       
+       
+       
+       double res_d[trconst::maxlay];
+       for(int i=0;i<TKDBc::nlay();i++){
+	 res_d[i]=0;
+       } 
+       
+       int flag=0;
+       // pntLR->LR_RES_STUDY3(INDEXPL,res_d,flag);
+       
+       if (flag != 0){
+	 delete pntLR; 
+	 nright=-1;  
+	 nleft=-1;
+	 for (int i=0;i<TKDBc::nlay();i++){
+	   for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+	     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+	     if (p->checkstatus(AMSDBc::GAMMARIGHT)){
+	       nright++;
+	       parrayR[nright]=p;
+	       AMSPoint p_hi = p->getHit();
+	     }
+	     if (p->checkstatus(AMSDBc::GAMMALEFT)){
+	       nleft++;
+	       parrayL[nleft]=p;
+	       AMSPoint p_hi = p->getHit(); 
+	     }
+	   }
+	 }
+	 nleft=nleft+1;
+	 nright=nright+1;
+	 
+	 AMSTrTrackGamma *pntLR=   new AMSTrTrackGamma(nleft,nright,parrayL,parrayR,recowrong);
+	 if (nleft >=3 && nright >= 3){
+	   pntLR->Fit(5,2);
+	   counting=0;
+	   plusminus=0;
+	   pntLR->PAIR2GAMMA(counting,plusminus);
+	 }
+	 
+	 
+	 AMSDir DIRi(0,0,1.);
+	 number tetL,fifL,sileL;
+	 number tetR,fifR,sileR;
+	 AMSPoint P_0L2;
+	 AMSPoint P_0R2;
+	 double RES_REF;
+	 double z_tkl[trconst::maxlay];
+	 for(int i=0;i<TKDBc::nlay();i++){
+	   z_tkl[i]=TKDBc::zposl(i);
+	 }
+	 
+	 if (flag < 500){
+	   //LoopMissingPlane
+	   for(int j=0;j<TKDBc::nlay();j++){
+	     int go=0;
+	     if (res_d[j] == 0){
+	       //
+	       for(int i=0;i<nleft;i++){
+		 if (pntLR->_HLEFT[i][2] == z_tkl[j]){
+		   go++;
+		 }
+	       }
+	       for(int i=0;i<nright;i++){
+		 if (pntLR->_HRIGH[i][2] == z_tkl[j]){
+		   go++;
+		 }
+	       }
+	       //
+	       if (go == 0){
+		 for(int jh=0;jh<j;jh++){
+		   RES_REF=res_d[jh]; // we take the residual which comes immediately before
+		 }
+		 AMSPoint ZEL(pntLR->_GP0MSL[0],pntLR->_GP0MSL[1],z_tkl[j]);
+		 AMSPoint ZER(pntLR->_GP0MSR[0],pntLR->_GP0MSR[1],z_tkl[j]);
+		 pntLR->interpolate(1,ZEL,DIRi,P_0L2,tetL,fifL,sileL);
+		 pntLR->interpolate(0,ZER,DIRi,P_0R2,tetR,fifR,sileR);
+		 pntLR->HITRESEARCH(j,RES_REF,P_0L2,P_0R2);
+		 delete pntLR; 
+		 nright=-1;  
+		 nleft=-1;
+		 for (int i=0;i<TKDBc::nlay();i++){
+		   for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+		     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+		     if (p->checkstatus(AMSDBc::GAMMARIGHT)){
+		       nright++;
+		       parrayR[nright]=p;
+		     }
+		     if (p->checkstatus(AMSDBc::GAMMALEFT)){
+		       nleft++;
+		       parrayL[nleft]=p;
+		     }
+		   }
+		 }
+		 nleft=nleft+1;
+		 nright=nright+1;
+		 
+		 pntLR= new AMSTrTrackGamma(nleft,nright,parrayL,parrayR,recowrong);
+		 if (nleft >=3 && nright >= 3){
+		   pntLR->Fit(5,2);
+		   counting=0;
+		   plusminus=0;
+		   pntLR->PAIR2GAMMA(counting,plusminus);
+		 }
+	       } //go  
+	     }
+	   }
+	 }// flag < 500
+	 
+	 
+	 if (flag >= 500){
+	   // Let's defined the expected residual "RES_REF " in the empty plane  "pla".
+	   //int pla=flag-500;
+	   // RES_REF=0;
+	   //if (pla != 0){
+	   //  RES_REF=0.03;
+	   //  for(int jh=0;jh<pla;jh++){
+	   //    RES_REF=res_d[jh]; // we take the residual which comes immediately before
+	   //  }     
+	   // }
+	   
+	   
+	   //AMSPoint ZEL(pntLR->_GP0MSL[0],pntLR->_GP0MSL[1],z_tkl[pla]);
+	   //AMSPoint ZER(pntLR->_GP0MSR[0],pntLR->_GP0MSR[1],z_tkl[pla]);
+	   //pntLR->interpolate(1,ZEL,DIRi,P_0L2,tetL,fifL,sileL);
+	   //pntLR->interpolate(0,ZER,DIRi,P_0R2,tetR,fifR,sileR);
+	   //pntLR->HITRESEARCH(pla,RES_REF,P_0L2,P_0R2);
+	   delete pntLR; 
+	   nright=-1;  
+	   nleft=-1;
+	   for (int i=0;i<TKDBc::nlay();i++){
+	     for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+	       if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+	       if (p->checkstatus(AMSDBc::GAMMARIGHT)){
+		 nright++;
+		 parrayR[nright]=p;
+	       }
+	       if (p->checkstatus(AMSDBc::GAMMALEFT)){
+		 nleft++;
+		 parrayL[nleft]=p;
+	       }
+	     }
+	   }
+	   nleft=nleft+1;
+	   nright=nright+1;
+	   pntLR= new AMSTrTrackGamma(nleft,nright,parrayL,parrayR,recowrong);
+	   if (nleft >=3 && nright >= 3){
+	     pntLR->Fit(5,2);
+	     counting=0;
+	     plusminus=0;
+	     pntLR->PAIR2GAMMA(counting,plusminus);
+	   }
+	 } // flag >= 500
+	 
+       }//  flag != 0
+       
+       
+       
+       if (nleft >= 3){
+	 NGammaFound++;
+       }
+       if (nright >= 3){
+	 NGammaFound++;
+       }
+       if (nleft >=3 && nright >= 3){
+	 pntLR->Fit(0,2);
+	 pntLR->Fit(3,2);
+	 pntLR->Fit(4,2);
+       }
+       else return 0;
+       
+       
+       AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),pntLR);
+       int done=0;
+       pntLR->addtracks(done);
+       
+       // VC gamma
+       
+       
+       {
+	 AMSTrTrackGamma  *p= new AMSTrTrackGamma(*pntLR);
+	 p->_ConstructGamma(0);
+	 AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),p);
+       }
+       {
+	 AMSTrTrackGamma  *p= new AMSTrTrackGamma(*pntLR);
+	 p->_ConstructGamma(2);
+	 AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),p);
+       }
+       
+       
   }// (init_R!=0 && init_L!=0)
-
- } // xsRL
- // :=====================-
-
-return NGammaFound;
-}
-
-
-
-void AMSTrTrackGamma::getFFParam( number& Chi2, number& Rigi, number& Erigi, number& Thetaff,  number& Phiff,  AMSPoint& X0)const
-{Chi2=_Chi2FastFitL;Rigi=_RidgidityL;Erigi=_ErrRidgidityL;Thetaff=_ThetaL;Phiff=_PhiL;X0=_P0L;}
-
-
-
-void AMSTrTrackGamma::_copyEl(){
-#ifdef __WRITEROOTCLONES__
-  TrGammaRoot02 *ptr = (TrGammaRoot02*)_ptr;
-  if (ptr) {
-    // //    if (_ptrack)  ptr->fTrack =_ptrack ->GetClonePointer();
-    //    for (int i=0; i<_NHits; i++) {
-    //
-    //  if (_Pthit[i]) ptr->fTrRecHit->Add(_Pthit[i]->GetClonePointer());
-    //    }
-} else {
-  cout<<"AMSTrTrack::_copyEl -I-  AMSTrTrackGamma::TrGammaRoot02 *ptr is NULL "<<endl;
-}
-
-#endif
-}
-
-void AMSTrTrackGamma::_writeEl(){
-if(AMSTrTrackGamma::Out(1)){
-   int i;
-#ifdef __WRITEROOTCLONES__
-//    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
-#endif
- TrGamma* TrTN = AMSJob::gethead()->getntuple()->Get_tpai02();
-  if (TrTN->Ngam>=MAXPAIR02) return; //const int MAXPAIR02    =   2; see ntuple.h
-// Fill the ntuple
+     
+   } // xsRL
+   // :=====================-
+   
+   return NGammaFound;
+ }
  
-
-
-TrTN->Pgam[TrTN->Ngam]=_PGAMM;
-TrTN->ErrPgam[TrTN->Ngam]=_ErrPGAMM>FLT_MAX?FLT_MAX:_ErrPGAMM;
-TrTN->Massgam[TrTN->Ngam]=_MGAM;
-TrTN->Thetagam[TrTN->Ngam]=_PhTheta;
-TrTN->Phigam[TrTN->Ngam]=_PhPhi;
-
-for(int i=0;i<3;i++)TrTN->Vert[TrTN->Ngam][i]=_Vertex[i];
-TrTN->Distance[TrTN->Ngam]=_TrackDistance;
-TrTN->Charge[TrTN->Ngam]=_Charge;
-
-TrTN->GammaStatus[TrTN->Ngam]=_status;
-//
-
-TrTN->PtrLeft[TrTN->Ngam]=_pntTrL->getpos();
-TrTN->PtrRight[TrTN->Ngam]=_pntTrR->getpos();
-
-
-TrTN->Jthetal[TrTN->Ngam]=(geant)_GThetaMSL;
-TrTN->Jphil[TrTN->Ngam]=(geant)_GPhiMSL;
-TrTN->Jthetar[TrTN->Ngam]=(geant)_GThetaMSR;
-TrTN->Jphir[TrTN->Ngam]=(geant)_GPhiMSR;
-for(i=0;i<3;i++)TrTN->Jp0l[TrTN->Ngam][i]=(geant)_GP0MSL[i];
-for(i=0;i<3;i++)TrTN->Jp0r[TrTN->Ngam][i]=(geant)_GP0MSR[i];
-
-TrTN->Ngam++;
-
-}
-}
-               
-AMSTrTrackGamma::AMSTrTrackGamma(integer nhitL, integer nhitR, AMSTrRecHit * phLeft[], AMSTrRecHit * phRight[], int state):AMSlink(state),_PGAMM(0),_ErrPGAMM(0),_MGAM(0),_VE1(0,0,0),_VE2(0,0,0),_PhTheta(0),_PhPhi(0),_Gacosd(0),_Vertex(0,0,0),_TrackDistance(0),_Charge(0){
-  int i;
-//  _GammaStatus=state;
-  //RIGHT
-  _NhRight=nhitR;
-  for( i=0;i<_NhRight;i++)_PRight[i]=phRight[i];
-  for(i=_NhRight;i<trconst::maxlay;i++)_PRight[i]=0;
-  
-  //LEFT
-  _NhLeft=nhitL;
-  for( i=0;i<_NhLeft;i++)_PLeft[i]=phLeft[i];
-  for(i=_NhLeft;i<trconst::maxlay;i++)_PLeft[i]=0;
-
-}
-
-
-integer AMSTrTrackGamma::Out(integer status){
-static integer init=0;
-static integer WriteAll=0;
-if(init == 0){
- init=1;
- integer ntrig=AMSJob::gethead()->gettriggerN();
-  for(int n=0;n<ntrig;n++){
-    if(strcmp("AMSTrTrackGamma",AMSJob::gethead()->gettriggerC(n))==0){
-     WriteAll=1;
-     break;
-    }
-  }
-}
-return (WriteAll || status);
-}
-
-
-
-
-void AMSTrTrackGamma::LR_RES_STUDY3(integer INDEXPL[], double res_d[], int& flag){
-
-  double z_tkl[trconst::maxlay];
-  for(int i=0;i<TKDBc::nlay();i++){
-    z_tkl[i]=TKDBc::zposl(i);
-  }
-  AMSTrRecHit * pre;
-  AMSPoint hitr;
-
-  //**************************************************************************
-  
-  double res_LR[trconst::maxlay];
-  double res_[trconst::maxlay];
-  double z_fi[trconst::maxlay];
-  double res_3[trconst::maxlay];
-  double z_fi3[trconst::maxlay];
-  double z_fi0[trconst::maxlay];
-  int ja=-1;
-  //INITIALIZING
-  
-  for(int i=0;i<TKDBc::nlay();i++){
-    z_fi[i]=10000;
-    res_[i]=10000;
-    z_fi3[i]=10000;
-    res_3[i]=10000;
-    z_fi0[i]=10000;
-    res_LR[i]=10000;
-  }
-  
-  // we select those plane where both LEFT and RIGHT hits exist and the DY in between
-  // has been calculated, 
-  // ja= number of couples
-  // z_fi=z_fi0 Z position of the plane
-  // res_= DeltaY LR
-  
-  
-  for(int i1=0;i1<_NhLeft;i1++){
-    //
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-    cout << "_HLEFT[i1][0 ... 2] = "<<_HLEFT[i1][0]<< " "<< _HLEFT[i1][1]<< " "<<  _HLEFT[i1][2]<<endl;
+ 
+ 
+ void AMSTrTrackGamma::getFFParam( number& Chi2, number& Rigi, number& Erigi, number& Thetaff,  number& Phiff,  AMSPoint& X0)const
+   {Chi2=_Chi2FastFitL;Rigi=_RidgidityL;Erigi=_ErrRidgidityL;Thetaff=_ThetaL;Phiff=_PhiL;X0=_P0L;}
+ 
+ 
+ 
+ void AMSTrTrackGamma::_copyEl(){
+#ifdef __WRITEROOTCLONES__
+   TrGammaRoot02 *ptr = (TrGammaRoot02*)_ptr;
+   if (ptr) {
+     // //    if (_ptrack)  ptr->fTrack =_ptrack ->GetClonePointer();
+     //    for (int i=0; i<_NHits; i++) {
+     //
+     //  if (_Pthit[i]) ptr->fTrRecHit->Add(_Pthit[i]->GetClonePointer());
+     //    }
+   } else {
+     cout<<"AMSTrTrack::_copyEl -I-  AMSTrTrackGamma::TrGammaRoot02 *ptr is NULL "<<endl;
+   }
+   
 #endif
-    for(int i2=0;i2<_NhRight;i2++){
-      if (_HLEFT[i1][2] > (_HRIGH[i2][2]-0.5) && 
-	  _HLEFT[i1][2] < (_HRIGH[i2][2]+0.5)){
-	//
-	if (_HLEFT[i1][2] > (z_tkl[0]-0.5) && 
-	    _HLEFT[i1][2] < (z_tkl[0]+0.5)){
-	  res_LR[0]=fabs(_HLEFT[i1][1]-_HRIGH[i2][1]);
-	  if (res_LR[0] < 0.7){
-	    ja++;
-	    z_fi[ja]=z_tkl[0];
-	    res_[ja]=res_LR[0];
-	  }
-	}
-	for(int jp=1;jp<TKDBc::nlay();jp++){
-	  if (_HLEFT[i1][2] > (z_tkl[jp]-0.5) && 
-	      _HLEFT[i1][2] < (z_tkl[jp]+0.5)){
-	    res_LR[jp]=fabs(_HLEFT[i1][1]-_HRIGH[i2][1]);
-	    ja++;
-	    z_fi[ja]=z_tkl[jp];
-	    res_[ja]=res_LR[jp];
-	  }
-	} 
-      }
-    }
-  }
-  // we storage z_fi in z_fi0 to get memory of the starting situation    
-  for(int i=0;i<TKDBc::nlay();i++){
-    z_fi0[i]=z_fi[i];
-  }
-  //**************************************************************************
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-  cout << "LR_RES_STUDY3------before while (SDW >= 0.32)"<< endl;
-  for(int i=0;i<TKDBc::nlay();i++){
-    cout <<  "z_fi[i] res_[i] = "<<z_fi[i]<< " "<<  res_[i]<<endl;
-  }
+ }
+ 
+ void AMSTrTrackGamma::_writeEl(){
+   if(AMSTrTrackGamma::Out(1)){
+     int i;
+#ifdef __WRITEROOTCLONES__
+     //    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
-  //**************************************************************************
-  // FIRST OF ALL Is the res vs z increasing ??????
-
-  int iu=-1;
-  for(int i=0;i<ja;i++){
-    if (res_[i+1] >= res_[i]) {
-      iu++;
-      z_fi3[iu]=z_fi[i];
-      res_3[iu]=res_[i];
-    }
-  }
-  for(int i=0;i<ja;i++){
-    if (z_fi3[iu] == z_fi[i]){
-      if (res_[i+1] >= res_[i]) {
-	z_fi3[iu+1]=z_fi[i+1];
-	res_3[iu+1]=res_[i+1];
-      }
-    }
-  }
-  iu++;
-  flag=0; // loop times counter and flag for poly2 accomplishment
-
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-  for(int i=0;i<(iu+1);i++){
-    cout <<  "z_fi3[i] res_3["<<i<<"] = "<<z_fi3[i]<< " "<<  res_3[i]<<endl;
-  }
-#endif
-  if (iu != ja){
-    flag++;
-    ja = iu;
-    for(int i=0;i<TKDBc::nlay();i++){
-      z_fi[i]=10000;
-      res_[i]=10000;
-    }
-    for(int i=0;i<(ja+1);i++){
-	res_[i]=res_3[i];
-	z_fi[i]=z_fi3[i];
-    }   
-  }
-//  for(int i=0;i<TKDBc::nlay();i++){
-//    cout <<  "AFTER res_3..... z_fi[i] res_["<<i<<"] = "<<z_fi[i]<< " "<<  res_[i]<<endl;
-//  }
-
-
-  // defining parameters of the poly2 fit
-  double AA0;
-  double AA1;
-  double AA2;
-  double SDW=10000;
-  // INITIALIZATION
-  int ju,jd;
-  double ex_cur[trconst::maxlay];
-  double res_cur[trconst::maxlay];
-  double res_2[trconst::maxlay];
-  double z_fi2[trconst::maxlay];
-  double res_max;
-  double cur_max;
-  double z_max;
-
-
-    // INITIALIZING AT EVERY LOOP the local arrays containg output temporary
-    ju=0;
-    jd=0;
-    for(int i=0;i<TKDBc::nlay();i++){
-      z_fi2[i]=10000;
-      res_2[i]=10000;
-      ex_cur[i]=10000;
-      res_cur[i]=10000;
-    }
-    res_max=10000;
-    cur_max=10000;
-    z_max=0;
-
-
-  // defining total number of pairs LR = N
-  int N=ja+1;
-  if (N > 2){
-    //poly2 fit   
-    dlsqp2me(N,z_fi,res_,AA0,AA1,AA2,SDW);
-    for(int i=0;i<N;i++){
-      ex_cur[i]=AA0+(AA1*z_fi[i])+(AA2*pow(z_fi[i],2));
-      res_cur[i]=fabs(res_[i]-ex_cur[i]); 
-    }
-    // // // // // // 
-
-  // Entering loop of poly2 chi2 minimization below 0.32
-    //  while (SDW >= 0.32 && N >2 ){
-  while (SDW >= 0.32){
-    if (N <= 2) SDW =0;
-    if (N <= 2) break;
-//    cout <<  "N = "<< N << endl;
-    flag++;
-    cur_max=_vdmax(res_cur,N);
-
-    for(int ki=0;ki<N;ki++){
+     TrGamma* TrTN = AMSJob::gethead()->getntuple()->Get_tpai02();
+     if (TrTN->Ngam>=MAXPAIR02) return; //const int MAXPAIR02    =   2; see ntuple.h
+     // Fill the ntuple
+     
+     
+     
+     TrTN->Pgam[TrTN->Ngam]=_PGAMM;
+     TrTN->ErrPgam[TrTN->Ngam]=_ErrPGAMM>FLT_MAX?FLT_MAX:_ErrPGAMM;
+     TrTN->Massgam[TrTN->Ngam]=_MGAM;
+     TrTN->Thetagam[TrTN->Ngam]=_PhTheta;
+     TrTN->Phigam[TrTN->Ngam]=_PhPhi;
+     
+     for(int i=0;i<3;i++)TrTN->Vert[TrTN->Ngam][i]=_Vertex[i];
+     TrTN->Distance[TrTN->Ngam]=_TrackDistance;
+     TrTN->Charge[TrTN->Ngam]=_Charge;
+     
+     TrTN->GammaStatus[TrTN->Ngam]=_status;
+     //
+     
+     TrTN->PtrLeft[TrTN->Ngam]=_pntTrL->getpos();
+     TrTN->PtrRight[TrTN->Ngam]=_pntTrR->getpos();
+     
+     
+     TrTN->Jthetal[TrTN->Ngam]=(geant)_GThetaMSL;
+     TrTN->Jphil[TrTN->Ngam]=(geant)_GPhiMSL;
+     TrTN->Jthetar[TrTN->Ngam]=(geant)_GThetaMSR;
+     TrTN->Jphir[TrTN->Ngam]=(geant)_GPhiMSR;
+     for(i=0;i<3;i++)TrTN->Jp0l[TrTN->Ngam][i]=(geant)_GP0MSL[i];
+     for(i=0;i<3;i++)TrTN->Jp0r[TrTN->Ngam][i]=(geant)_GP0MSR[i];
+     
+     TrTN->Ngam++;
+     
+   }
+ }
+ 
+ AMSTrTrackGamma::AMSTrTrackGamma(integer nhitL, integer nhitR, AMSTrRecHit * phLeft[], AMSTrRecHit * phRight[], int state):AMSlink(state),_PGAMM(0),_ErrPGAMM(0),_MGAM(0),_VE1(0,0,0),_VE2(0,0,0),_PhTheta(0),_PhPhi(0),_Gacosd(0),_Vertex(0,0,0),_TrackDistance(0),_Charge(0){
+   int i;
+   //  _GammaStatus=state;
+   //RIGHT
+   _NhRight=nhitR;
+   for( i=0;i<_NhRight;i++)_PRight[i]=phRight[i];
+   for(i=_NhRight;i<trconst::maxlay;i++)_PRight[i]=0;
+   
+   //LEFT
+   _NhLeft=nhitL;
+   for( i=0;i<_NhLeft;i++)_PLeft[i]=phLeft[i];
+   for(i=_NhLeft;i<trconst::maxlay;i++)_PLeft[i]=0;
+   
+ }
+ 
+ 
+ integer AMSTrTrackGamma::Out(integer status){
+   static integer init=0;
+   static integer WriteAll=0;
+   if(init == 0){
+     init=1;
+     integer ntrig=AMSJob::gethead()->gettriggerN();
+     for(int n=0;n<ntrig;n++){
+       if(strcmp("AMSTrTrackGamma",AMSJob::gethead()->gettriggerC(n))==0){
+	 WriteAll=1;
+	 break;
+       }
+     }
+   }
+   return (WriteAll || status);
+ }
+ 
+ 
+ 
+ 
+ void AMSTrTrackGamma::LR_RES_STUDY3(integer INDEXPL[], double res_d[], int& flag){
+   
+   double z_tkl[trconst::maxlay];
+   for(int i=0;i<TKDBc::nlay();i++){
+     z_tkl[i]=TKDBc::zposl(i);
+   }
+   AMSTrRecHit * pre;
+   AMSPoint hitr;
+   
+   //**************************************************************************
+   
+   double res_LR[trconst::maxlay];
+   double res_[trconst::maxlay];
+   double z_fi[trconst::maxlay];
+   double res_3[trconst::maxlay];
+   double z_fi3[trconst::maxlay];
+   double z_fi0[trconst::maxlay];
+   int ja=-1;
+   //INITIALIZING
+   
+   for(int i=0;i<TKDBc::nlay();i++){
+     z_fi[i]=10000;
+     res_[i]=10000;
+     z_fi3[i]=10000;
+     res_3[i]=10000;
+     z_fi0[i]=10000;
+     res_LR[i]=10000;
+   }
+   
+   // we select those plane where both LEFT and RIGHT hits exist and the DY in between
+   // has been calculated, 
+   // ja= number of couples
+   // z_fi=z_fi0 Z position of the plane
+   // res_= DeltaY LR
+   
+   
+   for(int i1=0;i1<_NhLeft;i1++){
+     for(int i2=0;i2<_NhRight;i2++){
+       if (_HLEFT[i1][2] > (_HRIGH[i2][2]-0.5) && 
+	   _HLEFT[i1][2] < (_HRIGH[i2][2]+0.5)){
+	 //
+	 if (_HLEFT[i1][2] > (z_tkl[0]-0.5) && 
+	     _HLEFT[i1][2] < (z_tkl[0]+0.5)){
+	   res_LR[0]=fabs(_HLEFT[i1][1]-_HRIGH[i2][1]);
+	   if (res_LR[0] < 0.7){
+	     ja++;
+	     z_fi[ja]=z_tkl[0];
+	     res_[ja]=res_LR[0];
+	   }
+	 }
+	 for(int jp=1;jp<TKDBc::nlay();jp++){
+	   if (_HLEFT[i1][2] > (z_tkl[jp]-0.5) && 
+	       _HLEFT[i1][2] < (z_tkl[jp]+0.5)){
+	     res_LR[jp]=fabs(_HLEFT[i1][1]-_HRIGH[i2][1]);
+	     ja++;
+	     z_fi[ja]=z_tkl[jp];
+	     res_[ja]=res_LR[jp];
+	   }
+	 } 
+       }
+     }
+   }
+   // we storage z_fi in z_fi0 to get memory of the starting situation    
+   for(int i=0;i<TKDBc::nlay();i++){
+     z_fi0[i]=z_fi[i];
+   }
+   
+   // FIRST OF ALL Is the res vs z increasing ??????
+   
+   int iu=-1;
+   for(int i=0;i<ja;i++){
+     if (res_[i+1] >= res_[i]) {
+       iu++;
+       z_fi3[iu]=z_fi[i];
+       res_3[iu]=res_[i];
+     }
+   }
+   for(int i=0;i<ja;i++){
+     if (z_fi3[iu] == z_fi[i]){
+       if (res_[i+1] >= res_[i]) {
+	 z_fi3[iu+1]=z_fi[i+1];
+	 res_3[iu+1]=res_[i+1];
+       }
+     }
+   }
+   iu++;
+   flag=0; // loop times counter and flag for poly2 accomplishment
+   
+   if (iu != ja){
+     flag++;
+     ja = iu;
+     for(int i=0;i<TKDBc::nlay();i++){
+       z_fi[i]=10000;
+       res_[i]=10000;
+     }
+     for(int i=0;i<(ja+1);i++){
+       res_[i]=res_3[i];
+       z_fi[i]=z_fi3[i];
+     }   
+   }
+   
+   // defining parameters of the poly2 fit
+   double AA0;
+   double AA1;
+   double AA2;
+   double SDW=10000;
+   // INITIALIZATION
+   int ju,jd;
+   double ex_cur[trconst::maxlay];
+   double res_cur[trconst::maxlay];
+   double res_2[trconst::maxlay];
+   double z_fi2[trconst::maxlay];
+   double res_max;
+   double cur_max;
+   double z_max;
+   
+   
+   // INITIALIZING AT EVERY LOOP the local arrays containg output temporary
+   ju=0;
+   jd=0;
+   for(int i=0;i<TKDBc::nlay();i++){
+     z_fi2[i]=10000;
+     res_2[i]=10000;
+     ex_cur[i]=10000;
+     res_cur[i]=10000;
+   }
+   res_max=10000;
+   cur_max=10000;
+   z_max=0;
+   
+   
+   // defining total number of pairs LR = N
+   int N=ja+1;
+   if (N > 2){
+     //poly2 fit   
+     dlsqp2me(N,z_fi,res_,AA0,AA1,AA2,SDW);
+     for(int i=0;i<N;i++){
+       ex_cur[i]=AA0+(AA1*z_fi[i])+(AA2*pow(z_fi[i],2));
+       res_cur[i]=fabs(res_[i]-ex_cur[i]); 
+     }
+     // // // // // // 
+     
+     // Entering loop of poly2 chi2 minimization below 0.32
+     //  while (SDW >= 0.32 && N >2 ){
+     while (SDW >= 0.32){
+       if (N <= 2) SDW =0;
+       if (N <= 2) break;
+       flag++;
+       cur_max=_vdmax(res_cur,N);
+       
+       for(int ki=0;ki<N;ki++){
       if (res_cur[ki] == cur_max) z_max=z_fi[ki];
     }
 
@@ -2150,7 +2444,6 @@ void AMSTrTrackGamma::LR_RES_STUDY3(integer INDEXPL[], double res_d[], int& flag
       XR_CA[jp]=10000;
        
     }
-
   if (NB != 1 && fabs(_PGAMM) <= 10){
     
     for(int jp=0;jp<TKDBc::nlay();jp++){
@@ -2188,24 +2481,23 @@ void AMSTrTrackGamma::LR_RES_STUDY3(integer INDEXPL[], double res_d[], int& flag
 
     dlsqp2me((ja+1),z_gi,centro,BB0,BB1,BB2,SDW1); // poly2 fit
     dlinearme((ja+1),z_gi,centro,A,B,VAR);         // linear fit
-
     //*** this is the first fit I perform and it is time to investigate
     //*** for the moment the treatment of flig .ne. 0 is postponed
     int flig=0;
-    if (SDW1 <= (2.4-pow((0.82+(0.1*VAR)),-4)) ){
-      if (VAR > 0.2) { // forse 0.4 ....
-	if (SDW1 > 0.4){
-	  if (VAR <= 1.5) flig=1; // SDW1 to be minimized ... below 0.4
-	  if (VAR > 1.5) flig=2; // VAR to be minimized ... below 1.5
-	} //! sdw1
-      } // VAR
-    } // FIT 
+    //    if (SDW1 <= (2.4-pow((0.82+(0.1*VAR)),-4)) ){
+    // if (VAR > 0.2) { // forse 0.4 ....
+    //if (SDW1 > 0.4){
+    //  if (VAR <= 1.5) flig=1; // SDW1 to be minimized ... below 0.4
+    //  if (VAR > 1.5) flig=2; // VAR to be minimized ... below 1.5
+    //} //! sdw1
+    //} // VAR
+    //} // FIT 
     //
   //***********************************************
     //NOW a new while loop on the lsq CHI2 = VAR
    
-    while(VAR >= 0.2){
-//      cout << "                    inside while of var "<<endl;
+    //    while(VAR >= 0.2){
+    while(VAR >= 0.6){
       for(int i=0;i<(ja+1);i++){
 	//linear residuals of Y_centers
 	re_ce[i]=fabs(centro[i]-(B*z_gi[i]+A));
@@ -2517,7 +2809,6 @@ void AMSTrTrackGamma::RecoXRight(double X2P, double X3P, double DeltaRecoTop, do
 AMSTrRecHit * p;
 AMSPoint p_hi;
 double VA0MAX=10000;
-double VA0MAX2=10000;
 AMSPoint phii[8];
 AMSTrRecHit * pu[8];
 double M_X,Q_X,M_Y,Q_Y,Str,Circ;  
@@ -2526,16 +2817,14 @@ RegStr=0;
  double A0,B0,VA0;
  int lk=-1;
  lkfir=0;
- int lkfir2=0;
+
  double ptryx[8]={10000,10000,10000,10000,10000,10000,10000,10000};
  double ptryy[8]={10000,10000,10000,10000,10000,10000,10000,10000};
  double ptryz[8]={10000,10000,10000,10000,10000,10000,10000,10000};
  double xamr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
  double yamr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
  double zamr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
- double xamr2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
- double yamr2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
- double zamr2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+
 
  for (pu[ifi]=AMSTrRecHit::gethead(ifi); pu[ifi]!=NULL; pu[ifi]=pu[ifi]->next()){
    if(pu[ifi]->checkstatus(AMSDBc::FalseX) || pu[ifi]->checkstatus(AMSDBc::FalseTOFX))continue;
@@ -2547,7 +2836,6 @@ RegStr=0;
 	    pcha->clearstatus(AMSDBc::TOFFORGAMMA);
 	  }
 
-	 //       cout<<" phii[ifi][0] = "<<phii[ifi][0]<<endl;
        pu[ifi]->setstatus(AMSDBc::TOFFORGAMMA);
 
        for (pu[ila]=AMSTrRecHit::gethead(ila); pu[ila]!=NULL; pu[ila]=pu[ila]->next()){
@@ -2556,8 +2844,7 @@ RegStr=0;
 	   phii[ila] = pu[ila]->getHit(); 
 	   if (phii[ila][0] <= X3P+DeltaRecoBottom && phii[ila][0] >= X3P-DeltaRecoBottom){
 
-	     //	            cout<<" phii[ila][0] = "<<phii[ila][0]<<endl;
-	     //
+
 		    for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(ila); pcha!=NULL; pcha=pcha->next()){
 		      pcha->clearstatus(AMSDBc::TOFFORGAMMA);
 		    }
@@ -2596,17 +2883,13 @@ RegStr=0;
 		   ptryy[lk]=p_hi[1];
 		   ptryz[lk]=p_hi[2];
 		   lk++;
-		   //			  cout<<"lk ptryx ptryz "<<lk <<" "<<ptryx[lk-1]<<" "<< ptryz[lk-1]<<endl;
-
 		 }  
 	       }
 	     }
 	     if (lk < 3) continue;
 	     dlinearme(lk,ptryz,ptryx,A0,B0,VA0);
-	     //	     cout<<"A0,B0,VA0 "<<A0 <<" "<<B0<<" "<< VA0<<endl;
 	     if (VA0 < VA0MAX){
 	       VA0MAX=VA0;
-	       //cout<<"VA0MAX "<<VA0MAX<<endl;
 	       lkfir=lk; 
 	       for (int ii=0;ii<lk;ii++){
 		 zamr[ii]=ptryz[ii];
@@ -2616,42 +2899,20 @@ RegStr=0;
 	       }
 	     }
 	     
-	     if (VA0 > VA0MAX && VA0 <VA0MAX2){
-	       VA0MAX2=VA0;
-	       //cout<<"VA0MAX2 "<<VA0MAX2<<endl;
-	       lkfir2=lk; 
-	       for (int ii=0;ii<lk;ii++){
-		 zamr2[ii]=ptryz[ii];
-		 xamr2[ii]=ptryx[ii];
-		 yamr2[ii]=ptryy[ii];  
-		 
-	       }
-	     }
 	   }
 	 }
        }
      }
    }
  }
-                      for (int ii=0;ii<lkfir2;ii++){
-			//cout<<"ii  xamr2 yamr2 zamr2 "<<ii<<" "<<xamr2[ii]<<" "<<yamr2[ii]<<" "<<zamr2[ii]<<endl;                       
-		      }
-                      for (int ii=0;ii<lkfir;ii++){
-			//cout<<"ii  xamr yamr zamr "<<ii<<" "<<xamr[ii]<<" "<<yamr[ii]<<" "<<zamr[ii]<<endl;                       
-		      }
-		      VAMAXR=VA0MAX;
-                      //cout<<"VAMAXR "<<VAMAXR<<endl;
+
+ VAMAXR=VA0MAX;
 
   /////////////////////////////////////////////////
 
  double A,B,VA;
- dlinearme(lkfir,zamr,xamr,A,B,VA);         // linear fit
- //cout<< "LEFT$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$  A,B,VA  "<< A<<" "<<B<<" "<<VA<<endl; 
  double dxheo[8];
  double maxz,maxy,maxx;
- for (int i=0;i<lkfir;i++){
-   dxheo[i]=fabs(xamr[i]-(B*zamr[i])-A);
- }
  double prendo;
  double xxx2,zzz2,yyy2;
  double xmi2[8],zmi2[8],ymi2[8];
@@ -2675,16 +2936,24 @@ RegStr=0;
  double maxdx=0;
  double mindx=10000; 
  double mi[8],zmi[8],xmi[8],zmin,xmin,xxx;
+ double mii[8],zmii[8],xmii[8];
  double zmax,xmax;
  for (int i=0;i<8;i++){
    mi[i]=10000;
   xmi[i]=10000;
   zmi[i]=10000;
  }
- //
 
+ if (lkfir>2){
+ dlinearme(lkfir,zamr,xamr,A,B,VA);         // linear fit
 
-if (VAMAXR > 1){
+ for (int i=0;i<lkfir;i++){
+   dxheo[i]=fabs(xamr[i]-(B*zamr[i])-A);
+ }
+
+ }
+
+ if (VAMAXR > 0.5){
   if (lkfir > 4){
 
 mindx=10000; 
@@ -2708,11 +2977,47 @@ mindx=10000;
      }
    }
  }
- for (int j=0;j<4;j++){
-   //cout<< "RIGHT$$$$$$$$$ 4 least residual xmi zmi and mi "<<xmi[j]<<" "<<zmi[j]<<" "<< mi[j]<<endl;
- }
+
  dlinearme(4,zmi,xmi,A,B,VA);         // linear fit
- //cout<< "RIGHT $$$$$$$$$$$$$$$$$$$$$$$$$$  A,B,VA  "<< A<<" "<<B<<" "<<VA<<endl; 
+
+
+   ///////////////////
+ if (VA > 0.3){
+
+    // togli il residuo piu` alto
+  maxdx=0;
+  for (int i=0;i<4;i++){
+   if (mi[i] > maxdx){
+     maxdx=mi[i];
+     zmax=zmi[i];
+     xmax=xmi[i];
+   }
+ }
+  //annullo xzmii
+ for (int i=0;i<8;i++){
+   mii[i]=10000;
+  xmii[i]=10000;
+  zmii[i]=10000;
+ }
+
+ int jl=-1;
+ for (int i=0;i<4;i++){
+   if (mi[i] < maxdx){
+     jl++;
+       mii[jl]=mi[i]; 
+      zmii[jl]=zmi[i];
+      xmii[jl]=xmi[i];
+     }
+ }
+
+ 
+
+ dlinearme(3,zmii,xmii,A,B,VA);         // linear fit
+
+ }
+  ///////////////////
+
+
   }//lkfir > 4
 
   /////////////////////
@@ -2735,11 +3040,9 @@ mindx=10000;
      }
    }
  }
- for (int j=0;j<3;j++){
-   //cout<< "RIGHT$$$$$$$$$ 3 least residual xmi zmi and mi "<<xmi[j]<<" "<<zmi[j]<<" "<< mi[j]<<endl;
- }
+
  dlinearme(3,zmi,xmi,A,B,VA);         // linear fit
- //cout<< "RIGHT $$$$$$$$$$$$$$$$$$$$$$$$$$  A,B,VA  "<< A<<" "<<B<<" "<<VA<<endl; 
+
   }//lkfir == 4
  //////////////////
 } // VAMAXR > 1
@@ -2750,7 +3053,6 @@ mindx=10000;
  for (int i=0;i<TKDBc::nlay();i++){
    xxx=B*TKDBc::zposl(i)+A;  
 
- //cout<< "RIGHT  $$$$$$$$$$$$$$$$$$$ xxx zzz "<<xxx<<" "<< TKDBc::zposl(i)<<endl;
  //
  prendo=10000;
  xxx2=10000;
@@ -2799,15 +3101,6 @@ mindx=10000;
   ///////////////////////////////////////////////////
 
 
-
- for (int i=0;i<TKDBc::nlay();i++){
- //cout<< "RIGHT  $$$$$$$$$$$$$$$$$$$ xmi2 ymi2 zmi2 "<<xmi2[i]<<" "<<ymi2[i]<<" "<< zmi2[i]<<endl;
- }
- //cout<< "/////////////////////////////////////////////////"<<endl;
- for (int i=0;i<TKDBc::nlay();i++){
- //cout<< "RIGHT  $$$$$$$$$$$$$$$$$$$ xmi zmi "<<xmi[i]<<" "<< zmi[i]<<endl;
- }
-
  int lc=-1;
  for (int i=0;i<TKDBc::nlay();i++){
   if (xmi2[i] != 10000 && ymi2[i] != 10000 && zmi2[i] != 10000){ 
@@ -2817,14 +3110,8 @@ mindx=10000;
     zmi3[lc]= zmi2[i];
   }
  }
-  for (int i=0;i<lc+1;i++){
- //cout<< "RIGHT  $$$$$$$$$$$$$$$$$$$ xmi3 ymi3 zmi3 "<<xmi3[i]<<" "<<ymi3[i]<<" "<< zmi3[i]<<endl;
- }
+
  dlinearme(lc+1,zmi3,xmi3,A,B,VA);         // linear fit
- //cout<< "RIGHT $$$$$$$$$$$$$$$$$$$$$$$$$$  A,B,VA  "<< A<<" "<<B<<" "<<VA<<endl;  
-
-
-
 
  if ((VAMAXR < 1  && VA <= 1) ||
      (VAMAXR >= 1 && VA < VAMAXR)){
@@ -2845,9 +3132,6 @@ mindx=10000;
 
 } // VAMAXR 
 
- for (int ii=0;ii<lkfir;ii++){
-   //cout<<"FINALLY  xamr yamr zamr "<<ii<<" "<<xamr[ii]<<" "<<yamr[ii]<<" "<<zamr[ii]<<endl;                       
- }
  /////////////////////////////////////////////////
 
   for (int i=0;i<TKDBc::nlay();i++){
@@ -2864,6 +3148,7 @@ mindx=10000;
   }
 
 
+
 }
 
 void AMSTrTrackGamma::RecoXLeft(double X2P, double X3P, double DeltaRecoTop, double DeltaRecoBottom, int ifi, int ila, double RegStr0, int & lkfil, double & VAMAXL){
@@ -2872,7 +3157,6 @@ void AMSTrTrackGamma::RecoXLeft(double X2P, double X3P, double DeltaRecoTop, dou
 AMSTrRecHit * p;
 AMSPoint p_hi;
 double VA0MAX=10000;
-double VA0MAX2=10000;
 AMSPoint phii[8];
 AMSTrRecHit * pu[8];
 double M_X,Q_X,M_Y,Q_Y,Str,Circ;  
@@ -2881,7 +3165,6 @@ RegStr=0;
  double A0,B0,VA0;
  int lk=-1;
  lkfil=0;
- int lkfil2=0;
  double ptryx[8]={10000,10000,10000,10000,10000,10000,10000,10000};
  double ptryy[8]={10000,10000,10000,10000,10000,10000,10000,10000};
  double ptryz[8]={10000,10000,10000,10000,10000,10000,10000,10000};
@@ -2890,9 +3173,6 @@ RegStr=0;
  double yaml[8]={10000,10000,10000,10000,10000,10000,10000,10000};
  double zaml[8]={10000,10000,10000,10000,10000,10000,10000,10000};
 
- double xaml2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
- double yaml2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
- double zaml2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
 
  for (int i=0;i<8;i++){
   xaml[i]=10000;
@@ -2905,7 +3185,6 @@ RegStr=0;
    if (pu[ifi]->checkstatus(AMSDBc::GAMMALEFT)){
      phii[ifi] = pu[ifi]->getHit(); 
      if (phii[ifi][0] <= X2P+DeltaRecoTop && phii[ifi][0] >= X2P-DeltaRecoTop){
-       //cout<<" phii[ifi][0] = "<<phii[ifi][0]<<endl;
        
        for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(ifi); pcha!=NULL; pcha=pcha->next()){
 	 pcha->clearstatus(AMSDBc::TOFFORGAMMA);
@@ -2918,7 +3197,6 @@ RegStr=0;
 	     phii[ila] = pu[ila]->getHit(); 
 	     if (phii[ila][0] <= X3P+DeltaRecoBottom && phii[ila][0] >= X3P-DeltaRecoBottom){
 	       //
-	            //cout<<" phii[ila][0] = "<<phii[ila][0]<<endl;
 		       
 		    for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(ila); pcha!=NULL; pcha=pcha->next()){
 		      pcha->clearstatus(AMSDBc::TOFFORGAMMA);
@@ -2933,9 +3211,10 @@ RegStr=0;
 		 for (pu[i]=AMSTrRecHit::gethead(i); pu[i]!=NULL; pu[i]=pu[i]->next()){
 		   if(pu[i]->checkstatus(AMSDBc::FalseX) || pu[i]->checkstatus(AMSDBc::FalseTOFX))continue;
 		   if (pu[i]->checkstatus(AMSDBc::GAMMALEFT)){
-	   
+
 		     phii[i] = pu[i]->getHit(); 
 		     AMSTrTrackGamma::_DISTANCE(phii[i][0],phii[i][1],phii[i][2],M_X,Q_X,M_Y,Q_Y,Str,Circ);
+
 		     if (fabs(Str) <= RegStr){
 		       RegStr=fabs(Str);       
 		       for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(i); pcha!=NULL; pcha=pcha->next()){
@@ -2956,34 +3235,18 @@ RegStr=0;
 		     ptryy[lk]=p_hi[1];
 		     ptryz[lk]=p_hi[2];
 		     lk++;
-		     //			  //cout<<"lk ptryx ptryz "<<lk <<" "<<ptryx[lk-1]<<" "<< ptryz[lk-1]<<endl;
-
 		   }  
 		 }
 	       }
 	       if (lk < 3) continue;
 	       dlinearme(lk,ptryz,ptryx,A0,B0,VA0);
-	       //cout<<"A0,B0,VA0 "<<A0 <<" "<<B0<<" "<< VA0<<endl;
-
 	       if (VA0 < VA0MAX){
 		 VA0MAX=VA0;
-		 //cout<<"VA0MAX "<<VA0MAX<<endl;
 		 lkfil=lk; 
 		 for (int ii=0;ii<lk;ii++){
 		   zaml[ii]=ptryz[ii];
 		   xaml[ii]=ptryx[ii];
 		   yaml[ii]=ptryy[ii];  
-		   
-		 }
-	       }
-	       if (VA0 > VA0MAX && VA0 <VA0MAX2){
-		 VA0MAX2=VA0;
-		 //cout<<"VA0MAX2 "<<VA0MAX2<<endl;
-		 lkfil2=lk; 
-		 for (int ii=0;ii<lk;ii++){
-		   zaml2[ii]=ptryz[ii];
-		   xaml2[ii]=ptryx[ii];
-		   yaml2[ii]=ptryy[ii];  
 		   
 		 }
 	       }
@@ -2995,31 +3258,19 @@ RegStr=0;
    }
 
 
+                      
 
-                      VAMAXL=VA0MAX;
 
-                      for (int ii=0;ii<lkfil2;ii++){
-			//cout<<"ii  xaml2 yaml2 zaml2 "<<ii<<" "<<xaml2[ii]<<" "<<yaml2[ii]<<" "<<zaml2[ii]<<endl;                       
-		      }
-                      for (int ii=0;ii<lkfil;ii++){
-			//cout<<"ii  xaml yaml zaml "<<ii<<" "<<xaml[ii]<<" "<<yaml[ii]<<" "<<zaml[ii]<<endl;                       
-		      }
-
-                      //cout<<"VAMAXL "<<VAMAXL<<endl;
+ VAMAXL=VA0MAX;
   /////////////////////////////////////////////////
 
   //////////////
 
 
  double A,B,VA;
- dlinearme(lkfil,zaml,xaml,A,B,VA);         // linear fit
- //cout<< "LEFT$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$  A,B,VA  "<< A<<" "<<B<<" "<<VA<<endl; 
+
  double dxheo[8];
  double maxz,maxy,maxx;
- for (int i=0;i<lkfil;i++){
-   dxheo[i]=fabs(xaml[i]-(B*zaml[i])-A);
- }
-
  double prendo;
  double xxx2,zzz2,yyy2;
  double xmi2[8],zmi2[8],ymi2[8];
@@ -3038,20 +3289,31 @@ RegStr=0;
  yyy2=10000;
 
 
-
+ double miii[8],zmiii[8],xmiii[8];
 /////////////********************
  double maxdx=0;
  double mindx=10000; 
  double mi[8],zmi[8],xmi[8],zmin,xmin,xxx;
+ double mii[8],zmii[8],xmii[8];
  double zmax,xmax;
  for (int i=0;i<8;i++){
    mi[i]=10000;
   xmi[i]=10000;
   zmi[i]=10000;
  }
+
+ if (lkfil>2){
+ dlinearme(lkfil,zaml,xaml,A,B,VA);         // linear fit
+ for (int i=0;i<lkfil;i++){
+   dxheo[i]=fabs(xaml[i]-(B*zaml[i])-A);
+ }
+
+}
+
  //
 
-if (VAMAXL > 1){
+
+if (VAMAXL > 0.5){
   if (lkfil > 4){
     //   VA=10000;
 mindx=10000; 
@@ -3075,13 +3337,50 @@ mindx=10000;
      }
    }
  }
- for (int j=0;j<4;j++){
-   //cout<< "LEFT$$$$$$$$$ 4 least residual xmi zmi and mi "<<xmi[j]<<" "<<zmi[j]<<" "<< mi[j]<<endl;
- }
+
  dlinearme(4,zmi,xmi,A,B,VA);         // linear fit
- //cout<< "LEFT $$$$$$$$$$$$$$$$$$$$$$$$$$  A,B,VA  "<< A<<" "<<B<<" "<<VA<<endl; 
+
+   ///////////////////
+ if (VA > 0.3){
+
+    // togli il residuo piu` alto
+  maxdx=0;
+  for (int i=0;i<4;i++){
+   if (mi[i] > maxdx){
+     maxdx=mi[i];
+     zmax=zmi[i];
+     xmax=xmi[i];
+   }
+ }
+  //annullo xzmii
+ for (int i=0;i<8;i++){
+   mii[i]=10000;
+  xmii[i]=10000;
+  zmii[i]=10000;
+ }
+
+ int jl=-1;
+ for (int i=0;i<4;i++){
+   if (mi[i] < maxdx){
+     jl++;
+       mii[jl]=mi[i]; 
+      zmii[jl]=zmi[i];
+      xmii[jl]=xmi[i];
+     }
+ }
+
+ dlinearme(3,zmii,xmii,A,B,VA);         // linear fit
+
+ }
+
+
+  ///////////////////
+
   }//lkfil > 4
   /////////////////////
+
+
+  ///////////////////
  if (lkfil == 4){
    // togli il residuo piu` alto
   maxdx=0;
@@ -3101,11 +3400,8 @@ mindx=10000;
      }
    }
  }
- for (int j=0;j<3;j++){
-   //cout<< "LEFT$$$$$$$$$ 3 least residual xmi zmi and mi "<<xmi[j]<<" "<<zmi[j]<<" "<< mi[j]<<endl;
- }
+
  dlinearme(3,zmi,xmi,A,B,VA);         // linear fit
- //cout<< "LEFT $$$$$$$$$$$$$$$$$$$$$$$$$$  A,B,VA  "<< A<<" "<<B<<" "<<VA<<endl; 
 
  } // lkfil == 4
  //////////////////
@@ -3115,7 +3411,6 @@ mindx=10000;
 
  for (int i=0;i<TKDBc::nlay();i++){
    xxx=B*TKDBc::zposl(i)+A;  
- //cout<< "LEFT  $$$$$$$$$$$$$$$$$$$ xxx zzz "<<xxx<<" "<< TKDBc::zposl(i)<<endl;
  //
  prendo=10000;
  xxx2=10000;
@@ -3164,16 +3459,6 @@ mindx=10000;
   ///////////////////////////////////////////////////
 
 
- for (int i=0;i<TKDBc::nlay();i++){
- //cout<< "LEFT  $$$$$$$$$$$$$$$$$$$ xmi2 ymi2 zmi2 "<<xmi2[i]<<" "<<ymi2[i]<<" "<< zmi2[i]<<endl;
- }
- //cout<< "/////////////////////////////////////////////////"<<endl;
- for (int i=0;i<TKDBc::nlay();i++){
- //cout<< "LEFT  $$$$$$$$$$$$$$$$$$$ xmi zmi "<<xmi[i]<<" "<< zmi[i]<<endl;
- }
-
-
-
  int lc=-1;
  for (int i=0;i<TKDBc::nlay();i++){
   if (xmi2[i] != 10000 && ymi2[i] != 10000 && zmi2[i] != 10000){ 
@@ -3183,21 +3468,15 @@ mindx=10000;
     zmi3[lc]= zmi2[i];
   }
  }
-  for (int i=0;i<lc+1;i++){
- //cout<< "LEFT  $$$$$$$$$$$$$$$$$$$ xmi3 ymi3 zmi3 "<<xmi3[i]<<" "<<ymi3[i]<<" "<< zmi3[i]<<endl;
- }
+
  dlinearme(lc+1,zmi3,xmi3,A,B,VA);         // linear fit
- //cout<< "LEFT $$$$$$$$$$$$$$$$$$$$$$$$$$  A,B,VA  "<< A<<" "<<B<<" "<<VA<<endl;  
-
-
-
-
 
   /////////////////////////////////////////////////
 
  if ((VAMAXL < 1  && VA <= 1) ||
      (VAMAXL >= 1 && VA < VAMAXL)){
-
+   //
+  //
    VAMAXL=VA;
    lkfil=lc+1;
  for (int i=0;i<8;i++){
@@ -3213,9 +3492,6 @@ mindx=10000;
 
 } //VAMAXL
  
- for (int ii=0;ii<lkfil;ii++){
-   //cout<<"FINALLY  xaml yaml zaml "<<ii<<" "<<xaml[ii]<<" "<<yaml[ii]<<" "<<zaml[ii]<<endl;                       
- }
  /////////////////////////////////////////////////
  
  for (int i=0;i<TKDBc::nlay();i++){
@@ -3231,7 +3507,7 @@ mindx=10000;
    }
  }
  
- 
+
 
 }
 
@@ -3241,24 +3517,7 @@ void AMSTrTrackGamma::RecoLeftRight(int& refitting, integer FLPAT[], double   SL
                                     double firR,double lasR,double firL,double lasL,
                                     int fir_planeR, int  fir_planeL,int las_planeR,int las_planeL,double & slr, double & qlr){
 
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
- cout << "INTO RecoLeftRight: fbotf = "<<fbotf<<" ftopf = "<<ftopf<<endl;
- cout << "x_starf z_starf= "<<x_starf<<" "<<z_starf<<endl;
- cout << "SLOPEf INTERf = "<<SLOPEf<<" "<<INTERf<<endl;
- cout << " firR lasR firL,lasL=  "<< firR<<" "<< lasR<<" "<< firL <<" "<<lasL<<endl;
- cout << " fir_planeR,fir_planeL =  "<<fir_planeR<<" "<< fir_planeL<<endl;
- cout << " las_planeR,las_planeL =  "<<las_planeR<<" "<< las_planeL<<endl;
- cout << " REFITTING = "<<refitting<<endl;
-#endif
 
- int FIXNUr=0;
- int FIXNUl=0;
- double FIXVAr=10000;
- double FIXVAl=10000;
- double FIXMl=10000;
- double FIXQl=10000;
- double FIXMr=10000;
- double FIXQr=10000;
 
 
 AMSTrRecHit * p;
@@ -3269,7 +3528,8 @@ AMSPoint p_hi;
  double DeltaRecoBottom=2.5;
  double MinDX2L,MinDX3L;
  double MinDX2R,MinDX3R;
-
+ double valbackup;
+ double varbackup;
  // NOW LEFT :
 
 
@@ -3278,11 +3538,6 @@ AMSPoint p_hi;
  }
    X2P=SLOPEf*firL+INTERf;
    X3P=SLOPEf*lasL+INTERf;
-
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
- cout << "LEFT X2P = "<<X2P<< "X3P = "<<X3P<<endl;
- // cout << "x2l = "<<DeltaRecoTop<< " x3l = "<<DeltaRecoBottom<<endl;
-#endif
  
  MinDX2L=10000;
  MinDX3L=10000;
@@ -3318,7 +3573,6 @@ AMSTrRecHit * pu[8];
  double A0,B0,VA0;
  int lk=-1;
  int lkfil=0;
- int lkfil2=0;
  int lo=-1;
 
  double AFL,BFL,VAMAXL;
@@ -3326,7 +3580,6 @@ AMSTrRecHit * pu[8];
 
  
  double VA0MAX=10000;
- double VA0MAX2=10000;
 
 
  double ptryx[8]={10000,10000,10000,10000,10000,10000,10000,10000};
@@ -3336,9 +3589,6 @@ AMSTrRecHit * pu[8];
  double xaml[8]={10000,10000,10000,10000,10000,10000,10000,10000};
  double yaml[8]={10000,10000,10000,10000,10000,10000,10000,10000};
  double zaml[8]={10000,10000,10000,10000,10000,10000,10000,10000};
- double xaml2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
- double yaml2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
- double zaml2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
 
  int ifi=0;
  int ila=0;
@@ -3351,12 +3601,14 @@ AMSTrRecHit * pu[8];
     }
   }
 
+ double alf,blf,arf,brf;
+ double nulf,nurf;
  double RegStr0;
  double RegStr;
  RegStr=0;
  RegStr0=2.5;
  if (refitting){
-  RegStr0=2.;
+  RegStr0=2.; 
  }
    /////////000000000000000000//////////////////
  if (fbotf == 1 && ftopf == 0){
@@ -3368,22 +3620,106 @@ AMSTrRecHit * pu[8];
  DeltaRecoBottom=3.5;
  }
 
- if(refitting == 0){
+ if(refitting == 0 || refitting == 500){
 
 VA0MAX=10000;
-VA0MAX2=10000;
+
 ////////////////
+
 RecoXLeft(X2P,X3P,DeltaRecoTop,DeltaRecoBottom,ifi,ila,RegStr0,lkfil,VAMAXL);
 
- }// refitting
- if(refitting!= 0 && refitting<100){
+   if (VAMAXL == 10000){
+    if (fbotf == 1 && ftopf == 0){ 
+RecoXLeft(X2P,X3P,5.5,1,ifi,ila,1.5,lkfil,VAMAXL); 
+    }
+    if (fbotf == 0 && ftopf == 1){ 
+RecoXLeft(X2P,X3P,1,5.5,ifi,ila,1.5,lkfil,VAMAXL); 
+    }
+   }
 
-VA0MAX=10000;
-VA0MAX2=10000;
-////////////////
+   if (VAMAXL < 0.1 && VAMAXL > 0.05 && lkfil == 8){
+RecoXLeft(0,0,10000,10000,ifi,ila,RegStr0,lkfil,VAMAXL);
+   }
+
+
+
+
+   if (VAMAXL > 0.08 || lkfil < 3 || (VAMAXL > 0.001 && lkfil == 3)){
+RecoXLeft(X2P,X3P,5.5,5.5,ifi,ila,RegStr0,lkfil,VAMAXL);
+ }
+
+ if ((VAMAXL > 0.3) || (VAMAXL > 0.08 && lkfil <=4 )){
 RecoXLeft(0,0,10000,10000,ifi,ila,RegStr0,lkfil,VAMAXL);
 
+ }
+
+
+ int ifla=0;
+ int ifi2l,ila2l;
+ ifi2l=ifi;
+ ila2l=ila;
+ //
+ for (int i=0;i<TKDBc::nlay();i++){
+   for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+      if (p->checkstatus(AMSDBc::GAMMALEFT)){
+        if(ifla==0 && i > ifi){
+	  ifi2l=i;
+          ifla=1;
+        }
+        if(i < ila){
+          ila2l=i;
+	} 
+      }
+   }
+ }
+
+
+valbackup=VAMAXL;
+
+ if (VAMAXL > 0.6 && lkfil >= 6){
+   if (fbotf == 1 && ftopf == 0){ 
+RecoXLeft(0,X3P,10000,DeltaRecoBottom,ifi2l,ila,4,lkfil,VAMAXL);
+   if (VAMAXL > 0.6){
+RecoXLeft(X2P,0,DeltaRecoTop,10000,ifi,ila,4,lkfil,VAMAXL);
+   }
+   }
+   if (fbotf == 0 && ftopf == 1){ 
+RecoXLeft(X2P,0,DeltaRecoTop,10000,ifi,ila2l,4,lkfil,VAMAXL);
+   if (VAMAXL > 0.6){
+RecoXLeft(0,X3P,10000,DeltaRecoBottom,ifi,ila,4,lkfil,VAMAXL);
+   }
+   }
+ }
+
+
+
+ /// last fit to save A and B belonging to the VAMAXL
+
+ double xa[8];
+ double za[8];
+ double ya[8];
+ int laa=0;
+ for (int i=0;i<TKDBc::nlay();i++){
+   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+     p_hi = p->getHit(); 
+     if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
+       za[laa]=p_hi[2];
+       xa[laa]=p_hi[0];
+       ya[laa]=p_hi[1];
+       laa++;
+      }
+   }
+  }
+
+ double A11,B11,VA11;
+ dlinearme(laa,za,xa,A11,B11,VA11);         // linear fit
+ alf=A11;
+ blf=B11;
+ nulf=laa;
  }// refitting
+
 
  for (int i=0;i<TKDBc::nlay();i++){
    for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
@@ -3394,16 +3730,6 @@ RecoXLeft(0,0,10000,10000,ifi,ila,RegStr0,lkfil,VAMAXL);
      }
    }
  }
-
-
-////////////
-
-
-
- // }
-
-   /////////000000000000000000//////////////////
-
 
 
  //////////////////////////////////////////
@@ -3423,24 +3749,18 @@ RecoXLeft(0,0,10000,10000,ifi,ila,RegStr0,lkfil,VAMAXL);
        xa[laa]=p_hi[0];
        ya[laa]=p_hi[1];
        laa++;
-	//             cout<< "*after best_last_____ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
       }
-      //      p->clearstatus(AMSDBc::GAMMALEFT);
    }
   }
 
  double A11,B11,VA11;
  dlinearme(laa,za,xa,A11,B11,VA11);         // linear fit
-
  AFL=A11;
  BFL=B11;
  VAMAXL=VA11;
 
 
   if (VA11 >1){
-
-
-
  // in order to reasset the linearity in XZ:
 double z_tkl[trconst::maxlay];
  for(int i=0;i<TKDBc::nlay();i++){
@@ -3450,7 +3770,6 @@ AMSPoint pe_hi;
  double diffm;
  double xnew[8]={10000,10000,10000,10000,10000,10000,10000,10000};
  AMSTrRecHit * pe;
- // cout <<" fbotf "<<fbotf<<" ftopf "<<ftopf<<endl;
  M_X=SLOPEf;
  Q_X=INTERf;
  if (fbotf == 0 && ftopf == 1){
@@ -3554,41 +3873,17 @@ AMSPoint pe_hi;
   }
  }
 
-
-
- //   FIXMl=B;
- //  FIXQl=A;
- //  FIXVAl=VA;
-   //   cout <<" FIXVAl= "<<FIXVAl<<endl;
-   //cout <<" FIXMl, FIXQl "<<FIXMl<<" "<<FIXQl<<endl;
-   
   } // refitting >=100 VA11>1
-//*****************
-
+  //*****************
+  
   for (int i=0;i<TKDBc::nlay();i++){
-   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-     if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
-       //      p->setstatus(AMSDBc::GAMMALEFT);
-     }
-   }
-  }
-  for (int i=0;i<TKDBc::nlay();i++){
-   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-     p->clearstatus(AMSDBc::TOFFORGAMMA);
-     p_hi = p->getHit(); 
-     if (p->checkstatus(AMSDBc::GAMMALEFT) ){
-       //cout<< "*+++++ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl;
-      FIXNUl++;
-     }
-   }
+    for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+      if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+      p->clearstatus(AMSDBc::TOFFORGAMMA);
+    }
   }
   
 // NOW RIGHT :
-
-  //cout << " NOW RIGHT : "<<endl;
-
 
    MinDX2R=10000;
    MinDX3R=10000;
@@ -3597,7 +3892,6 @@ AMSPoint pe_hi;
  }
    X2P=SLOPEf*firR+INTERf;
    X3P=SLOPEf*lasR+INTERf;
- //cout << "RIGHT X2P = "<<X2P<< "X3P = "<<X3P<<endl;
 
    double conR_w=0;
    double firRX;
@@ -3624,10 +3918,10 @@ lhi=0;
  }
  lk=-1;
  int lkfir=0;
- int lkfir2=0;
+
  lo=-1;
  VA0MAX=10000;
- VA0MAX2=10000;
+
  ifi=0;
  ila=0;
  for (int i=0;i<8;i++){
@@ -3638,9 +3932,7 @@ lhi=0;
  double xamr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
  double yamr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
  double zamr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
- double xamr2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
- double yamr2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
- double zamr2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+
  ifi=0;
  ila=0;
   for(int i=0;i<TKDBc::nlay();i++){
@@ -3662,19 +3954,98 @@ lhi=0;
  }
 
 
- if(refitting == 0){
+ if(refitting == 0 || refitting == 500){
 
 VA0MAX=10000;
-VA0MAX2=10000;
+
+
 RecoXRight(X2P,X3P,DeltaRecoTop,DeltaRecoBottom,ifi,ila,RegStr0,lkfir,VAMAXR);
 
- }// refitting
- if(refitting!= 0 && refitting<100){
+  if (VAMAXR ==10000){
+    if (fbotf == 1 && ftopf == 0){ 
+RecoXRight(X2P,X3P,5.5,1,ifi,ila,1.5,lkfir,VAMAXR); 
+    }
+    if (fbotf == 0 && ftopf == 1){ 
+RecoXRight(X2P,X3P,1,5.5,ifi,ila,1.5,lkfir,VAMAXR); 
+    }
+   }
 
-VA0MAX=10000;
-VA0MAX2=10000;
-////////////////
-RecoXRight(0,0,10000,10000,ifi,ila,RegStr0,lkfil,VAMAXR);
+
+
+   if (VAMAXR < 0.1 && VAMAXR > 0.05 && lkfir == 8){
+RecoXRight(0,0,10000,10000,ifi,ila,RegStr0,lkfir,VAMAXR);
+   }
+
+  if (VAMAXR > 0.08 || lkfir < 3 || (VAMAXR > 0.001 && lkfir == 3)){
+RecoXRight(X2P,X3P,5.5,5.5,ifi,ila,RegStr0,lkfir,VAMAXR);
+  }
+ if ((VAMAXR > 0.3) || (VAMAXR > 0.08 && lkfir <=4 )){
+RecoXRight(0,0,10000,10000,ifi,ila,RegStr0,lkfir,VAMAXR);
+ }
+
+ int ifla=0;
+ int ifi2r,ila2r;
+ ifi2r=ifi;
+ ila2r=ila;
+
+ for (int i=0;i<TKDBc::nlay();i++){
+   for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+      if (p->checkstatus(AMSDBc::GAMMARIGHT)){
+        if(ifla==0 && i > ifi){
+	  ifi2r=i;
+          ifla=1;
+        }
+        if(i < ila){
+          ila2r=i;
+	} 
+      }
+   }
+ }
+
+
+ varbackup=VAMAXR;
+
+   if (VAMAXR > 0.6 && lkfir >= 6){
+   if (fbotf == 1 && ftopf == 0){ 
+RecoXRight(0,X3P,10000,DeltaRecoBottom,ifi2r,ila,4,lkfir,VAMAXR);
+   if (VAMAXR > 0.6){
+RecoXRight(X2P,0,DeltaRecoTop,10000,ifi,ila,4,lkfir,VAMAXR);
+   }
+   }
+   if (fbotf == 0 && ftopf == 1){ 
+RecoXRight(X2P,0,DeltaRecoTop,10000,ifi,ila2r,4,lkfir,VAMAXR);
+   if (VAMAXR > 0.6){
+RecoXRight(0,X3P,10000,DeltaRecoBottom,ifi,ila,4,lkfir,VAMAXR);
+   }
+   }
+
+   }
+
+
+
+ double xa[8];
+ double za[8];
+ double ya[8];
+ int laa=0;
+ for (int i=0;i<TKDBc::nlay();i++){
+   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+     p_hi = p->getHit(); 
+     if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
+       za[laa]=p_hi[2];
+       xa[laa]=p_hi[0];
+       ya[laa]=p_hi[1];
+       laa++;
+      }
+   }
+  }
+
+ double A11,B11,VA11;
+ dlinearme(laa,za,xa,A11,B11,VA11);         // linear fit
+ arf=A11;
+ brf=B11;
+ nurf=laa;
 
  }// refitting
 
@@ -3689,43 +4060,70 @@ RecoXRight(0,0,10000,10000,ifi,ila,RegStr0,lkfil,VAMAXR);
    }
  }
 
- //*****************
+
+ if (refitting == 0){
+   slr=10000;
+   qlr=10000; 
+ }
+
+ if (refitting == 0){
+
+   if (min(nulf,nurf) >= 7){
+    if (min(VAMAXL,VAMAXR) >= 0.3 && max(VAMAXL,VAMAXR) >= 0.3 ) {
+      //slr=200;
+      //qlr=200;
+    }
+   }
+   //
+   if (min(nulf,nurf) >= 5){
+     if (min(VAMAXL,VAMAXR) > 0.05 && min(VAMAXL,VAMAXR) < 0.1){
+       slr=(VAMAXL<VAMAXR)?blf:brf;
+       qlr=(VAMAXL<VAMAXR)?alf:arf;
+     }
+   }
+
+   if (min(VAMAXL,VAMAXR) <= 0.015 && max(VAMAXL,VAMAXR) >= 0.08 ) {
+     if ((VAMAXL < VAMAXR && nulf > 3) ||
+         (VAMAXR < VAMAXL && nurf > 3)){
+         slr=(VAMAXL<VAMAXR)?blf:brf;
+         qlr=(VAMAXL<VAMAXR)?alf:arf;
+     }
+   }  
+   if (nulf == 8 && nurf == 8){
+     if ((VAMAXL > 0.5 && VAMAXL < 0.1) && 
+	 (VAMAXR > 0.5 && VAMAXR < 0.1)){
+       //         slr=(VAMAXL<VAMAXR)?blf:brf;
+	 //         qlr=(VAMAXL<VAMAXR)?alf:arf;
+     }
+   }
+   //
+ }
+
+
  int resetting=0;
+  if ((min(VAMAXL,VAMAXR) <= 0.005 && max(VAMAXL,VAMAXR) >= 0.08 )||
+      (min(VAMAXL,VAMAXR) <= 0.015 && max(VAMAXL,VAMAXR) >= 0.1 )) {
+    if (VAMAXR == min(VAMAXL,VAMAXR)){
+      resetting=200;
+    } 
+    if (VAMAXL == min(VAMAXL,VAMAXR)){
+      resetting=100;  
+    }    
+  }
+
+
+//*****************
+
+
 ResetXhits(resetting);
- //cout << "resetting after ResetXhits "<< resetting<<endl;
 
-		      double temp=0;
-
- /*
-
-                      double tkxlr[8]={0,0,0,0,0,0,0,0};
-		      VAMAXR=VA0MAX;
-                      cout<<"VAMAXR "<<VAMAXR<<endl;
-                      if (refitting !=0 && refitting < 2000){
-                      cout<<"VAMAXR "<<VAMAXR<<endl;
-                      
-                      if (VAMAXR < 1 && VAMAXL < 1){
-                        for (int i1=0;i1<lkfil;i1++){
-			  for (int i2=0;i2<lkfir;i2++){
-			    if (zaml[i1] > (zamr[i2]-0.5) && zaml[i1] < (zamr[i2]+0.5)){
-                              for(int i3=0;i3<TKDBc::nlay();i3++){
-                                if (zaml[i1] > ((TKDBc::zposl(i3))-0.5) && zaml[i1] < ((TKDBc::zposl(i3))+0.5)){
-                                  tkxlr[i3]=fabs(xaml[i1]-xamr[i2]);
-                                  temp+=tkxlr[i3];
-				}
-			      }		  
-			    }
-			  }
-			}
-		      }
-                      temp=temp/8;
-                      
-		      }//refitting
-
- */
+ if (resetting > 1000){
+   slr=10000;
+   qlr=10000; 
+ }
+ double temp=0;
 
 
- //////////////////////////////////////////////////
  laa=0;
   //Now in order to be free from the status(AMSDBc::TOFFORGAMMA):
   for (int i=0;i<TKDBc::nlay();i++){
@@ -3737,14 +4135,12 @@ ResetXhits(resetting);
        xa[laa]=p_hi[0];
        ya[laa]=p_hi[1];
        laa++;
-	//       cout<< "*after best_last_____ RIGHT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
       }
-      //      p->clearstatus(AMSDBc::GAMMARIGHT);
    }
   }
  //*****************
 
- dlinearme(laa,za,xa,A11,B11,VA11);         // linear fit
+dlinearme(laa,za,xa,A11,B11,VA11);         // linear fit
  AFR=A11;
  BFR=B11;
  VAMAXR=VA11;
@@ -3867,91 +4263,24 @@ AMSPoint pe_hi;
   }
  }
 
-
- //   FIXMr=B;
- //  FIXQr=A;
- //  FIXVAr=VA;
-   //   cout <<" FIXVAr= "<<FIXVAr<<endl;
-   //   cout <<" FIXMr, FIXQr "<<FIXMr<<" "<<FIXQr<<endl;
-
   } //VA11>1
 
- int testim=0;
- if (refitting !=0 && refitting < 2000){
- if (VAMAXR < 1 && VAMAXL < 1){
-   if (fabs(BFR-BFL) > 0.2 || temp > 2){
-     // the two lines are "sghembe"
-     testim=1; 
-   }
- }
- 
- } //refitting
 //*****************
 
 
-  for (int i=0;i<TKDBc::nlay();i++){
-   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-     if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
-       //      p->setstatus(AMSDBc::GAMMARIGHT);
-      }
-   }
-  }
-  for (int i=0;i<TKDBc::nlay();i++){
+ for (int i=0;i<TKDBc::nlay();i++){
    for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
      if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
      p->clearstatus(AMSDBc::TOFFORGAMMA);
-      p_hi = p->getHit(); 
-     if (p->checkstatus(AMSDBc::GAMMARIGHT) ){
-       FIXNUr++;
-     }
    }
-  }
+ }
 
 
-  if ((FIXMl != 10000 && FIXQl !=10000) || (FIXMr != 10000 && FIXQr !=10000)){  
 
-     double bestvar=min(FIXVAr,FIXVAl);
-     double lesshit=min(FIXNUr,FIXNUl);
-     // we require sufficient number of hits
-     //     if ((FIXVAr > 1 || FIXVAl > 1) && (lesshit <= 4)){
-     if ((FIXVAr > 1 || FIXVAl > 1)){
-     if ((bestvar == FIXVAr && FIXNUr > 3) ||  (bestvar == FIXVAl && FIXNUl > 3)){
-       if (bestvar > 1){
-          slr=200;
-          qlr=200;
-       }
-       if (bestvar < 1){
-	 if (bestvar == FIXVAr){
-	   //              cout <<" out FIXMr, FIXQr "<<FIXMr<<" "<<FIXQr<<endl;
-          slr=FIXMr;
-          qlr=FIXQr;
-	 }
-         if (bestvar == FIXVAl){
-	   //  cout <<" out FIXMl, FIXQl "<<FIXMl<<" "<<FIXQl<<endl;
-          slr=FIXMl;
-          qlr=FIXQl;
-	 }
 
-	 //         refitting+=10000;
-       }
-     }
-     }
-  }
-    if (VAMAXR < 1 && VAMAXL < 1){
-           refitting=50;
-    }
-    if (VAMAXR < 1 && VAMAXL < 1 && testim == 1){
-     refitting=2000;
-     if (VAMAXR < VAMAXL){
-       slr=BFR;
-       qlr=AFR;
-     }
-     if (VAMAXL < VAMAXR){
-       slr=BFL;
-       qlr=AFL;
-     }
-    }
+
+   
+
 
  // tk1 SINGLE HIT
  double h1r[3]={10000,10000,10000};
@@ -4040,6 +4369,48 @@ AMSPoint pe_hi;
 
      }
    }
+
+   //// L L L LR -> LR L L LR
+   ///  R R R LR -> LR R R LR
+   
+  if ((h1r[2] != 10000 && h1l[2] == 10000) &&
+      (h2r[2] != 10000 && h2l[2] == 10000) &&
+      (h3r[2] != 10000 && h3l[2] == 10000)  &&
+      (h4r[2] != 10000 && h4l[2] != 10000)){
+    //
+    for (p=AMSTrRecHit::gethead(0); p!=NULL; p=p->next()){ 
+     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+      AMSPoint ph=p->getHit();
+       if (p->checkstatus(AMSDBc::GAMMARIGHT)){
+	     if (ph[0] == h1r[0] && ph[1] == h1r[1] && ph[2] == h1r[2]){
+	       p->setstatus(AMSDBc::GAMMALEFT);
+	       p->setstatus(AMSDBc::GAMMARIGHT);
+	     }
+	   }
+	 }
+     
+    //
+  }
+  if ((h1r[2] == 10000 && h1l[2] != 10000) &&
+      (h2r[2] == 10000 && h2l[2] != 10000) &&
+      (h3r[2] == 10000 && h3l[2] != 10000)  &&
+      (h4r[2] != 10000 && h4l[2] != 10000)){
+    //
+    for (p=AMSTrRecHit::gethead(0); p!=NULL; p=p->next()){ 
+     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+      AMSPoint ph=p->getHit();
+       if (p->checkstatus(AMSDBc::GAMMALEFT)){
+	     if (ph[0] == h1l[0] && ph[1] == h1l[1] && ph[2] == h1l[2]){
+	       p->setstatus(AMSDBc::GAMMALEFT);
+	       p->setstatus(AMSDBc::GAMMARIGHT);
+	     }
+	   }
+	 }
+     
+    //
+  }
+  ////////////////
+
 
 
    double rewy[5]={10000,10000,10000,10000,10000};
@@ -4183,6 +4554,36 @@ AMSPoint pe_hi;
    }
 
 
+
+   if(  ((h2r[2] == 10000 && h2l[2] != 10000) || (h2r[2] != 10000 && h2l[2] == 10000)) &&
+        ((h3r[2] != 10000 && h3l[2] != 10000 && rewy[2] <= 0.2)) ){
+
+     if (h1r[2] == 10000 && h1l[2] != 10000){
+for (p=AMSTrRecHit::gethead(0); p!=NULL; p=p->next()){
+	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue; 
+	 AMSPoint ph=p->getHit();
+	 if (p->checkstatus(AMSDBc::GAMMALEFT)){
+	   if (ph[0] == h1l[0] && ph[1] == h1l[1] && ph[2] == h1l[2]){
+	     p->setstatus(AMSDBc::GAMMALEFT);
+	     p->setstatus(AMSDBc::GAMMARIGHT);
+	   }
+	 }
+       }
+     }
+     if (h1r[2] != 10000 && h1l[2] == 10000){
+       for (p=AMSTrRecHit::gethead(0); p!=NULL; p=p->next()){
+	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue; 
+	 AMSPoint ph=p->getHit();
+	 if (p->checkstatus(AMSDBc::GAMMARIGHT)){
+	   if (ph[0] == h1r[0] && ph[1] == h1r[1] && ph[2] == h1r[2]){
+	     p->setstatus(AMSDBc::GAMMALEFT);
+	     p->setstatus(AMSDBc::GAMMARIGHT);
+	   }
+	 }
+       }
+
+     }
+   }
  /////
 
 
@@ -4201,6 +4602,9 @@ void AMSTrTrackGamma::ResetXhits(int & resetting){
   int lr=0;
   int ll=0;
   //
+
+
+
   for (int i=0;i<TKDBc::nlay();i++){
     for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
       if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
@@ -4220,27 +4624,133 @@ void AMSTrTrackGamma::ResetXhits(int & resetting){
     }
   }
   
-  for (int ii=0;ii<ll;ii++){
-    //cout<<"RESETX  xaml yaml zaml "<<ii<<" "<<xaml[ii]<<" "<<yaml[ii]<<" "<<zaml[ii]<<endl;                       
-  }
-  for (int ii=0;ii<lr;ii++){
-    //cout<<"RESETX  xamr yamr zamr "<<ii<<" "<<xamr[ii]<<" "<<yamr[ii]<<" "<<zamr[ii]<<endl;                       
-  }
-  
 
-
-
+  double aa,bb,vv,dmax,vvl,vvr;
+  dmax=10000; 
+double xamlb[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+double yamlb[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+double zamlb[8]={10000,10000,10000,10000,10000,10000,10000,10000};
   //
-  
-  
-  //}
-  
-  //void AMSTrTrackGamma::ResetXhits(int lkfil, double xaml[], double yaml[], double zaml[], int lkfir, double xamr[], double yamr[], double zamr[]){
+  if (resetting == 200){
+dlinearme(lr,zamr,xamr,aa,bb,vv);         // linear fit
 
+   for (int i=0;i<TKDBc::nlay();i++){
+        dmax=10000;
+    for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+      if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+      AMSPoint pli = p->getHit();
+      for (int ii=0;ii<ll;ii++){
+	if (pli[2]  > (zaml[ii]-0.5) && pli[2] < (zaml[ii]+0.5)){
+	  if (pli[1] > (yaml[ii]-0.02) && pli[1] < (yaml[ii]+0.02)){
+            if (fabs(pli[0]-aa-bb*zaml[ii]) <= dmax){
+	      dmax=fabs(pli[0]-aa-bb*zaml[ii]);
+              xamlb[ii]=pli[0];
+            }
+	  }
+	}
+      }
+    }
+   }
+   //     for (int i=0;i<TKDBc::nlay();i++){
+   //    if (xamlb[i] != 10000) cout << "xamlb["<<i<<"] = "<<xamlb[i]<<endl;
+   // }
 
+   for (int i=0;i<TKDBc::nlay();i++){
+    for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+      if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+      AMSPoint pli = p->getHit();
+      p->clearstatus(AMSDBc::GAMMALEFT);
+    }
+   }
+  for (int i=0;i<TKDBc::nlay();i++){
+    for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+      if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+      AMSPoint pli = p->getHit();
+      for (int ii=0;ii<ll;ii++){
+	if (pli[2]  > (zaml[ii]-0.5) && pli[2] < (zaml[ii]+0.5)){
+	  if (pli[1] > (yaml[ii]-0.02) && pli[1] < (yaml[ii]+0.02)){
+            if (pli[0] == xamlb[ii]){
+	      p->setstatus(AMSDBc::GAMMALEFT);
+		//		xamlb[ii]=pli[0];
+		yamlb[ii]=pli[1];
+		zamlb[ii]=pli[2];
+	  }
+	}          
+      }
+    }
+    }
+  }
+    for (int ii=0;ii<ll;ii++){
+      xaml[ii]=xamlb[ii];
+      yaml[ii]=yamlb[ii];
+      zaml[ii]=zamlb[ii];
+    }
 
+  }
+  if (resetting == 100){
+dlinearme(ll,zaml,xaml,aa,bb,vv);         // linear fit
+   
+   for (int i=0;i<TKDBc::nlay();i++){
+        dmax=10000;
+    for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+      if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+      AMSPoint pli = p->getHit();
+      for (int ii=0;ii<lr;ii++){
+	if (pli[2]  > (zamr[ii]-0.5) && pli[2] < (zamr[ii]+0.5)){
+	  if (pli[1] > (yamr[ii]-0.02) && pli[1] < (yamr[ii]+0.02)){
+            if (fabs(pli[0]-aa-bb*zamr[ii]) <= dmax){
+	      dmax=fabs(pli[0]-aa-bb*zamr[ii]);
+              xamlb[ii]=pli[0];
+            }
+	  }
+	}
+      }
+    }
+   }
+   //     for (int i=0;i<TKDBc::nlay();i++){
+   //   if (xamlb[i] != 10000) cout << "xamlb["<<i<<"] = "<<xamlb[i]<<endl;
+   // }
+
+   for (int i=0;i<TKDBc::nlay();i++){
+    for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+      if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+      AMSPoint pli = p->getHit();
+      p->clearstatus(AMSDBc::GAMMARIGHT);
+    }
+   }
+  for (int i=0;i<TKDBc::nlay();i++){
+    for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+      if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+      AMSPoint pli = p->getHit();
+      for (int ii=0;ii<lr;ii++){
+	if (pli[2]  > (zamr[ii]-0.5) && pli[2] < (zamr[ii]+0.5)){
+	  if (pli[1] > (yamr[ii]-0.02) && pli[1] < (yamr[ii]+0.02)){
+            if (pli[0] == xamlb[ii]){
+	      p->setstatus(AMSDBc::GAMMARIGHT);
+		//		xamlb[ii]=pli[0];
+		yamlb[ii]=pli[1];
+		zamlb[ii]=pli[2];
+	  }
+	}          
+      }
+    }
+    }
+  }
+    for (int ii=0;ii<lr;ii++){
+      xamr[ii]=xamlb[ii];
+      yamr[ii]=yamlb[ii];
+      zamr[ii]=zamlb[ii];
+    }
+
+  }
+  //
+dlinearme(lr,zamr,xamr,aa,bb,vvl);         // linear fit
+dlinearme(ll,zaml,xaml,aa,bb,vvr);         // linear fit
+    if (max(vvl,vvr) < 0.01){
+      resetting=resetting+1000;
+    } 
   
-double cetkylr[8]={10000,10000,10000,10000,10000,10000,10000,10000};  
+  double cetkylr[8]={10000,10000,10000,10000,10000,10000,10000,10000};  
   double tkxlr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
   double maxtkx=10000;
   double xam[8]={10000,10000,10000,10000,10000,10000,10000,10000};
@@ -4262,11 +4772,8 @@ double cetkylr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
             cetkylr[i3]=(yaml[i1]+yamr[i2])*0.5;
 	    //
 	    tkxlr[i3]=fabs(xaml[i1]-xamr[i2]);
-	    //	    temp+=tkxlr[i3];
             if (tkxlr[i3] == 0){
-	      //	      if (i3 > 3){
-	      //
-	      //                 cout << "--------------PLANE "<<i3+1<<endl;
+
 	      for (AMSTrRecHit * po=AMSTrRecHit::gethead(i3); po!=NULL; po=po->next()){
 		if(po->checkstatus(AMSDBc::FalseX) || po->checkstatus(AMSDBc::FalseTOFX))continue;
 		AMSPoint pho = po->getHit();
@@ -4283,14 +4790,12 @@ double cetkylr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
 		  }
 		}
 	      }
-	      // }
-	      //
+
 	    }
 	  }
 	}
-	resetting=1; 
-	//	  cout << "--------------maxtkx ="<<maxtkx<<endl;
-	//	  cout << "--------------xam["<<i3<<"] ="<<xam[i3]<<endl;
+
+	resetting++;
       }	  
     }
   }
@@ -4311,13 +4816,9 @@ double cetkylr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
   // we got the Y slope
   dlinearme(lr,zamr,xamr,AX,BX,VARX);         // linear fit
 
-  //cout << "----------BY BX "<<BY<<" "<< BX<<endl;
-  
   for(int i3=0;i3<8;i3++){
-      //cout << "--------------rexam["<<i3<<"] ="<<rexam[i3]<<endl;
-      //cout << "--------------xam["<<i3<<"] ="<<xam[i3]<<endl;
-      //cout << "--------------avexam["<<i3<<"] ="<<avexam[i3]<<endl;
-    if (xam[i3] != 10000 && avexam[i3] != 10000 && (rexam[i3] < 0.3 || rexam[i3] == 222)){
+
+    if (xam[i3] != 10000 && avexam[i3] != 10000 && (rexam[i3] < 0.6 || rexam[i3] == 222)){
 
       if (xam[i3] > avexam[i3]){
          newxr[i3]=xam[i3];
@@ -4327,13 +4828,10 @@ double cetkylr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
          newxl[i3]=xam[i3];
          newxr[i3]=(2*avexam[i3])-xam[i3];  // (=xaml[i1])
       }
-      //cout << "--------------"<<endl;
-      //cout << "--------------newxl["<<i3<<"] ="<<newxl[i3]<< " "<<"newxr["<<i3<<"] ="<<newxr[i3]<<endl;
-      //
+
       // let's keep the average X IMPOSSIBLE
       for (int i1=0;i1<ll;i1++){
 	if (zaml[i1] > ((TKDBc::zposl(i3))-0.5) && zaml[i1] < ((TKDBc::zposl(i3))+0.5)){
-	  //cout << "-----------xaml newxl[i3]" <<xaml[i1]<< " " <<newxl[i3]<<endl;
           if ((BY*BX) <= 0){
 	    xaml[i1]=newxl[i3];
           }
@@ -4345,8 +4843,6 @@ double cetkylr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
       }
       for (int i2=0;i2<lr;i2++){
 	if (zamr[i2] > ((TKDBc::zposl(i3))-0.5) && zamr[i2] < ((TKDBc::zposl(i3))+0.5)){
-
-	  //cout << "-----------xamr newxr " <<xamr[i2]<< " " <<newxr[i3]<<endl;
           if ((BY*BX) <= 0){
 	    xamr[i2]=newxr[i3];
 	  }
@@ -4367,13 +4863,6 @@ double cetkylr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
   }
 
   // fai un loop sugli hit e quando trovi yaml e zaml allora confronta 
-
-  for (int ii=0;ii<ll;ii++){
-    //cout<<"RESETX 2 xaml yaml zaml "<<ii<<" "<<xaml[ii]<<" "<<yaml[ii]<<" "<<zaml[ii]<<endl;                       
-  }
-  for (int ii=0;ii<lr;ii++){
-    //cout<<"RESETX 2 xamr yamr zamr "<<ii<<" "<<xamr[ii]<<" "<<yamr[ii]<<" "<<zamr[ii]<<endl;                       
-  }
 
   /// THAT's real resetting
 
@@ -4399,10 +4888,7 @@ double cetkylr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
 	
 	if (p_hi[2] > (zaml[ii]-0.5) && p_hi[2] < (zaml[ii]+0.5)){
 	  if (p_hi[1] > (yaml[ii]-0.005) && p_hi[1] < (yaml[ii]+0.005)){
-	    if (p_hi[0] > (xaml[ii]-0.005) && p_hi[0] < (xaml[ii]+0.005)){              
-	      //cout << "---p_hi[0 1 2]--" <<p_hi[0]<< " " <<p_hi[1]<< " " <<p_hi[2]<<endl;
-	      //cout<<"RESETX 3 xaml yaml zaml "<<ii<<" "<<xaml[ii]<<" "<<yaml[ii]<<" "<<zaml[ii]<<endl;                       
-	      //	if (p_hi[0]==xaml[ii]  && p_hi[1]==yaml[ii]   && p_hi[2]==zaml[ii]){
+	    if (p_hi[0] > (xaml[ii]-0.005) && p_hi[0] < (xaml[ii]+0.005)){ 
 	      p->setstatus(AMSDBc::GAMMALEFT);
 	    }
 	  }
@@ -4421,9 +4907,7 @@ double cetkylr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
 	
 	if (p_hi[2] > (zamr[ii]-0.5) && p_hi[2] < (zamr[ii]+0.5)){
 	  if (p_hi[1] > (yamr[ii]-0.005) && p_hi[1] < (yamr[ii]+0.005)){
-	    if (p_hi[0] > (xamr[ii]-0.005) && p_hi[0] < (xamr[ii]+0.005)){              
-	      //cout << "---p_hi[0 1 2]--" <<p_hi[0]<< " " <<p_hi[1]<< " " <<p_hi[2]<<endl;
-	      //cout<<"RESETX 3 xamr yamr zamr "<<ii<<" "<<xamr[ii]<<" "<<yamr[ii]<<" "<<zamr[ii]<<endl;                       
+	    if (p_hi[0] > (xamr[ii]-0.005) && p_hi[0] < (xamr[ii]+0.005)){ 
 	      p->setstatus(AMSDBc::GAMMARIGHT);
 	    }
 	  }
@@ -4631,14 +5115,6 @@ _MyVertex(n_L,n_R);
  if (_VE1[2] >= _VE2[2]) _Vertex=_VE1;
  else _Vertex=_VE2;
 
-
- //----
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
- cout << "_PGAMM = "<<_PGAMM<<endl;
- cout << "_PhTheta _PhPhi= "<<_PhTheta<<"  "<<_PhPhi<<endl;
- cout << "_Gacosd= "<<_Gacosd<<endl;
- cout << "_MGAM= "<<_MGAM<<endl;
-#endif
 }
 
 
@@ -4712,7 +5188,7 @@ void AMSTrTrackGamma::_crHitLR(){
 }
 
 number AMSTrTrackGamma::Fit(integer fits, integer ipart){
-//  cout << "WE are INSIDE  Fit("<<fits<<","<<ipart<<") "<< endl;
+
   // fit =0  fit pattern
   //NO // fit =1  fit 1st part if pat=0,1,2,3, ... etc  
   //NO // fit =2  fit 2nd half if pat=0,1,2,3  ... etc + interpolate to beg of 1st
@@ -4849,11 +5325,9 @@ else if(fit==3){
 _GeaneFitDoneR=ipartR;
 _GChi2R=outR[6];
 _GRidgidityR=outR[5];
-// cout<< "Fit 3 ROUTINE outR[5] = "<<outR[5]<<endl;
 _GErrRidgidityR=outR[8];
 _GThetaR=outR[3];
 _GPhiR=outR[4];
-// cout << "Fit 3 ROUTINE theta and phi RIGHT= "<<outR[3]<< " " <<outR[4]<<endl;
 _GP0R=AMSPoint(outR[0],outR[1],outR[2]);
 if(outR[7] !=0 || _GChi2R>TRFITFFKEY.Chi2FastFit){
   _GeaneFitDoneR=0;
@@ -4867,11 +5341,9 @@ if(outR[7] !=0 || _GChi2R>TRFITFFKEY.Chi2FastFit){
 _GeaneFitDoneL=ipartL;
 _GChi2L=outL[6];
 _GRidgidityL=outL[5];
-// cout<< "Fit 3 ROUTINE outL[5] = "<<outL[5]<<endl;
 _GErrRidgidityL=outL[8];
 _GThetaL=outL[3];
 _GPhiL=outL[4];
-// cout << "Fit 3 ROUTINE theta and phi LEFT= "<<outR[3]<< " " <<outR[4]<<endl;
 _GP0L=AMSPoint(outL[0],outL[1],outL[2]);
 if(outL[7] !=0 || _GChi2L>TRFITFFKEY.Chi2FastFit){
   _GeaneFitDoneL=0;
@@ -4887,20 +5359,14 @@ else if(fit==4){
 _Chi2MSR=outR[6];
 if(outR[7] != 0)_Chi2MSR=FLT_MAX;
 _RidgidityMSR=outR[5];
-// cout<< "Fit 4 ROUTINE outR[5] = "<<outR[5]<<endl;
-// cout << "Fit 4 ROUTINE theta and phi RIGHT= "<<outR[3]<< " " <<outR[4]<<endl;
-//...
 _Chi2MSL=outL[6];
 if(outL[7] != 0)_Chi2MSL=FLT_MAX;
 _RidgidityMSL=outL[5];
-// cout<< "Fit 4 ROUTINE outL[5] = "<<outL[5]<<endl;
-// cout << "Fit 4 ROUTINE theta and phi LEFT= "<<outR[3]<< " " <<outR[4]<<endl;
 }
  else if(fit==5){ //JUAN !!!!!!!!
 _GChi2MSR=outR[6];  
 if(outR[7]!=0)_GChi2MSR=FLT_MAX;
 _GRidgidityMSR=outR[5];
-// cout<< "JUAN ROUTINE outR[5] = "<<outR[5]<<endl;
 // me
 _GThetaMSR=outR[3];
 _GPhiMSR=outR[4];
@@ -4909,7 +5375,6 @@ _GP0MSR=AMSPoint(outR[0],outR[1],outR[2]);
 _GChi2MSR=outR[6];  
 if(outR[7]!=0)_GChi2MSR=FLT_MAX;
 _GRidgidityMSL=outL[5];
-// cout<< "JUAN ROUTINE outL[5] = "<<outL[5]<<endl;
 // me
 _GThetaMSL=outL[3];
 _GPhiMSL=outL[4];
@@ -4947,6 +5412,8 @@ void AMSTrRecHit::_markDouble(vector<double>& vec_one, integer inhi){
   for (pre=AMSTrRecHit::gethead(inhi); pre!=NULL; pre=pre->next()){
      if(pre->checkstatus(AMSDBc::FalseX) || pre->checkstatus(AMSDBc::FalseTOFX))continue;
         p_hi = pre->getHit();
+        
+	//
             if (flua==0){
 	    temp=p_hi[1];
 	    vec_one.push_back(temp);
@@ -5066,7 +5533,7 @@ MYlsqp2::MYlsqp2(int M, double* xp, double* yp){
 }
 
 void MYlsqp2::make_param(){
-//  cout<< "Make_nij L "<< L <<endl;  
+
   n1[0]=L;
   n1[1]=sigma(x);
   n1[2]=sigma(x,x);
@@ -5165,7 +5632,6 @@ void MYlfit::make_VAR(){
   VAR=sum/(L-1);
   }
   else{
-    //   cerr <<" this should be fixed by GL"<<endl;
     VAR=10000;
   }
 }
@@ -5176,8 +5642,8 @@ void MYlfit::make_a(){
    a=(1.0/delta)*(sigma(x,x)*sigma(y)-sigma(x)*sigma(x,y));
   }
   else{
-   a=0;
-   //   cerr <<" this should be fixed by GL"<<endl;
+    a=10000;
+    //   cerr <<" this should be fixed by GL"<<endl;
   }
 }
 
@@ -5212,13 +5678,6 @@ MYlfit::MYlfit(int M, double* xp, double* yp){
   L=M;
   x=xp;
   y=yp;
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-   cout<< "MYlfit L "<< L <<endl; 
-   for (int ig=0;ig<L;ig++){
-     cout<< "MYlfit y["<<ig<<"] "<<y[ig]<<endl; 
-     cout<< "MYlfit x["<<ig<<"] "<<x[ig]<<endl; 
-   }
-#endif
 }
 
 XZLine_TOF::XZLine_TOF(int* mul, int* nm, double& tm34, number& ecc){ 
@@ -5233,13 +5692,6 @@ getEcalMul(0,nm,ec);
     LL=mul;
     tm34=tm;
     ecc=ec;
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
-    cout<<  "XZLine_TOF     NN    "<<NN[0]<<" "<<NN[1]<<" "<<NN[2]  <<endl;
-    cout << "XZLine_TOF     LL[0] "<<LL[0]<<" LL[1] "<<LL[1]<<" LL[2] "<<LL[2]<< endl;
-    cout << "               LL[3] "<<LL[3]<<" LL[4] "<<LL[4]<<endl; 
-    cout << "tm34  "<<tm34<<endl;
-    cout << "ecc  "<<ecc<<endl;
-#endif
 }
 
 void XZLine_TOF::LastCheckTRDX(double& slotrd, double& intertrd, double& chitrd){
@@ -5275,10 +5727,6 @@ for(int i=0;i<trdconst::maxlay;i++){
   }
 }
 
-//for(int i=0;i<20;i++){
-// cout <<" cltrd["<<i<<"]" <<cltrd[i]<<endl;
-//}
-// cout <<" in trd L= " <<L<<endl;
  L=L+1;
  if (L<=20){
   AMSTrTrackGamma::dlinearme(L,ztrd,xtrd,AF,BF,VARR);         // linear fit
@@ -5480,11 +5928,6 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
       }
 
 
-#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
- cout << "Lines_Top_Bottom: fbot = "<<fbot <<" ftop = "<<ftop<<endl;
- cout << "x_star z_star= "<<x_star<<" "<<z_star<<endl;
- cout << "SLOPE INTER = "<<SLOPE<<" "<<INTER<<endl;
-#endif
   }
   //-----  
   //Now OPTION 2
@@ -6005,7 +6448,6 @@ void AMSTrTrackGamma::_ConstructGamma(int method){
   }
   }
     _Charge=(_pntTrL->getrid()>0?1:-1)+(_pntTrR->getrid()>0?1:-1);
-//    cout <<" init charge "<<_Charge<<endl;
   if(_pbeta){
     _pbeta->getptrack()->AdvancedFit();
     if(_pbeta->getptrack()->getrid()*_pntTrL->getrid()>0)_pntTrL=_pbeta->getptrack();
@@ -6070,6 +6512,7 @@ void AMSTrTrackGamma::_ConstructGamma(int method){
     AMSPoint beta=dirL.crossp(p1L-p1R);
     number t=alpha.prod(beta)/alpha.prod(alpha);
 //    if(t>0)t=0;   // min vertex 
+//     t=0;
     _P0R=p1R+dirR*t;
     _P0L=p1L+dirL*t;
     AMSPoint dc=p1L-_P0R;
@@ -6092,6 +6535,26 @@ void AMSTrTrackGamma::_ConstructGamma(int method){
      if (dirL[2]>0)dirL=dirL*(-1);
      if (dirR[2]>0)dirR=dirR*(-1);
     }
+
+
+/*
+{
+  ca=dirL.prod(dirR);
+  if(ca>1)ca=1;
+
+    _MGAM=sqrt(fabs(2*fabs(_pntTrR->getrid(method))*fabs(_pntTrL->getrid(method))*(1-ca)));
+    cout <<" final "<<180/3.1415926*acos(ca)<<" "<<_MGAM<<endl;
+
+    AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
+    if(pmcg){
+     AMSPoint pge=dirR*fabs(_pntTrR->getrid(method))+dirL*fabs(_pntTrL->getrid(method));
+     number cag=pmcg->getdir().prod(AMSDir(pge));
+    if(cag>1)cag=1;
+    cout <<" final2 "<<180/3.1415926*acos(cag)<<" "<<endl;
+    }
+}
+*/
+
 
 
 
@@ -6127,7 +6590,7 @@ void AMSTrTrackGamma::_ConstructGamma(int method){
    _PhTheta=AMSDir(pge).gettheta();
     _PhPhi=AMSDir(pge).getphi();
     number ca=dirL.prod(dirR);
-    _MGAM=sqrt(fabs(2*fabs(_pntTrR->getrid(method))*fabs(_pntTrL->getrid(method))*(1-ca)));
+    _MGAM=sqrt(fabs(2*fabs(_pntTrR->getrid())*fabs(_pntTrL->getrid())*(1-ca)));
            
   return;
  } 
