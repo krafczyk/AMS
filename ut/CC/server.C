@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.103 2003/12/03 10:31:45 choutko Exp $
+//  $Id: server.C,v 1.104 2003/12/12 11:07:28 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -1948,11 +1948,13 @@ if(RF){
       re.Status=DPS::Producer::ToBeRerun;
       re.History=DPS::Producer::ToBeRerun;
       re.cuid=0;
+      re.CounterFail=0;
    }
    else{
      re.Status=DPS::Producer::Foreign;
      re.History=DPS::Producer::Foreign;
      re.cuid=re.Run;
+     re.CounterFail=0;
    }
    time_t tt;
    time(&tt);
@@ -2555,7 +2557,10 @@ for( ACLI li=_acl.begin();li!=_acl.end();++li){
        rv->cinfo.HostName=cid.HostName;
       if(rv->History !=DPS::Producer::Failed){
         rv->Status=rv->History;
-        rv->History=DPS::Producer::Failed;
+        rv->CounterFail++;
+        if(LastTry(rv)){
+         rv->History=DPS::Producer::Failed;
+        }
       }
       else      rv->Status=DPS::Producer::Failed;
        rv->cuid=0;
@@ -3483,7 +3488,10 @@ void Producer_impl::RunFailed(const DPS::Client::ActiveClient & acv){
        DPS::Producer::RunEvInfo_var rv=*li;
        rv->cinfo.HostName=(acv.id).HostName;
        rv->Status=rv->History;
-       rv->History=DPS::Producer::Failed;
+        rv->CounterFail++;
+        if(LastTry(rv)){
+         rv->History=DPS::Producer::Failed;
+        }
        if(rv->Status!=DPS::Producer::Foreign){
            rv->cuid=0;
            rv->cinfo.HostName=(acv.id).HostName;

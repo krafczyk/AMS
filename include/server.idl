@@ -182,6 +182,7 @@ module DPS{
      string FilePath;
      RunStatus Status;
      RunStatus History;
+     unsigned long      CounterFail;
      time SubmitTime;
      unsigned long cuid;
      CurrentInfo cinfo;     

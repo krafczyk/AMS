@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.46 2003/10/29 15:25:18 choutko Exp $
+//  $Id: server.h,v 1.47 2003/12/12 11:07:37 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -305,6 +305,16 @@ typedef list<DPS::Producer::DSTInfo_var> DSTIL;
 typedef list<DPS::Producer::DSTInfo_var>::iterator DSTILI;
 DSTIL _dstinfo;
 
+bool LastTry(const DPS::Producer::RunEvInfo_var & rv){
+ unsigned int maxtry=1;
+  char* gtv=getenv("AMSMaxRunFailRate");
+   if(gtv && strlen(gtv)>0){
+    maxtry=atol(gtv);
+    if(maxtry>10)maxtry=10;
+   }
+ if(rv->CounterFail>=maxtry)return true;
+ else return false;
+}
 
 class RA{
 private:

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.81 2003/12/11 16:14:03 choutko Exp $
+//  $Id: producer.C,v 1.82 2003/12/12 11:07:27 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -189,6 +189,7 @@ if (_Solo){
     _reinfo->Run=CCFFKEY.run;
     _reinfo->Status=DPS::Producer::Allocated;
     _reinfo->History=DPS::Producer::Foreign;
+    _reinfo->CounterFail=0;
    }
     SELECTFFKEY.Run=_reinfo->Run;
     SELECTFFKEY.Event=_reinfo->FirstEvent;

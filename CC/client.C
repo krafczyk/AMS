@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.27 2003/09/17 08:11:59 choutko Exp $
+//  $Id: client.C,v 1.28 2003/12/12 11:07:27 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -232,7 +232,7 @@ return _streambuffer;
 
 char * AMSClient::print(const DPS::Producer::RunEvInfo & a,const char * mes){
 _ost.seekp(0);
-_ost<<mes<<" REI, ID "<<a.uid<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , Prio "<<a.Priority<<" , Path "<<a.FilePath<< " , Status "<<RS2string(a.Status)<<" , History "<<RS2string(a.History)<<" , ClientID "<<a.cuid<<" , SubmitTimeU "<<a.SubmitTime<<" , SubmitTime "<<ctime((const time_t *)&a.SubmitTime);
+_ost<<mes<<" REI, ID "<<a.uid<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , Prio "<<a.Priority<<" , Path "<<a.FilePath<< " , Status "<<RS2string(a.Status)<<" , History "<<RS2string(a.History)<<" Failed "<<a.CounterFail<<" , ClientID "<<a.cuid<<" , SubmitTimeU "<<a.SubmitTime<<" , SubmitTime "<<ctime((const time_t *)&a.SubmitTime);
 print(a.cinfo,_ost);
 _ost<<ends;
 return _streambuffer;
