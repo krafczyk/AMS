@@ -16,7 +16,7 @@
 // May  05, 1997. ak. separate file for setup
 // July 01, 1997. ah. CmpGeometry method implemented
 //
-// last edit May 08, 1997, ak.
+// last edit Nov 06, 1997, ak.
 //
 
 #include <stdio.h>
@@ -50,6 +50,7 @@
 #include <ctcdbcD_ref.h>
 #include <tofdbcD_ref.h>
 #include <commonsD_ref.h>
+#include <tkdbcV_ref.h>
 
 #include <gvolumeD.h>
 #include <gmatD.h>
@@ -59,6 +60,7 @@
 #include <ctcdbcD.h>
 #include <tofdbcD.h>
 #include <commonsD.h>
+#include <tkdbcV.h>
 
 #include <amsgobj.h>
 #include <gmat.h>
@@ -92,6 +94,7 @@ ooHandle(AntiDBcD)         antidbcH;
 ooHandle(CTCDBcD)          ctcdbcH;
 ooHandle(TOFDBcD)          tofdbcH;
 ooHandle(AMScommonsD)      commonsH;
+ooHandle(TKDBcV)           tkdbcH;
 
 // Iterators
 ooItr(AMSgvolumeD)     geometryItr;             // geometry
@@ -103,6 +106,7 @@ ooItr(AntiDBcD)        antidbcItr;               // amsdbc
 ooItr(TOFDBcD)         tofdbcItr;               // tofdbc
 ooItr(AMScommonsD)     commonsItr;              // commons
 ooItr(CTCDBcD)         ctcdbcItr;               // ctcdbc
+ooItr(TKDBcV)          tkdbcItr;                // tkdbc
 
 
 ooStatus LMS::WriteGeometry()
@@ -631,7 +635,9 @@ ooStatus   LMS::Addamsdbc()
          commonsH = new(contH) AMScommonsD();
          ctcdbcH  = new(contH) CTCDBcD();
          tofdbcH  = new(contH) TOFDBcD();
-         antidbcH  = new(contH) AntiDBcD();
+         antidbcH = new(contH) AntiDBcD();
+         tkdbcH   = new(contH) TKDBcV(); 
+         rstatus = oocSuccess;
         } else {
           cout << "Addamsdbc -I- Found container "<<contName<< endl;
           amsdbcItr.scan(contH, Mode());
@@ -676,9 +682,14 @@ ooStatus   LMS::Addamsdbc()
             "Addamsdbc: antidbc comparison failed. Please, write new setup");
           }
 
+          tkdbcItr.scan(contH, Mode());
+          if (tkdbcItr.next()) {
+           Message("Addamsdbc : check tkdbc");
+           rstatus = tkdbcItr -> CmpConstants();
+           if (rstatus != oocSuccess) 
+                              Fatal("Addamsdbc : tkdbc comparison failed");
+         }
         }
-          
-          rstatus = oocSuccess;
 
 end:
         if (rstatus == oocSuccess) {
@@ -848,7 +859,9 @@ void LMS::CheckConstants()
         ooItr(AMSDBcD)       amsdbcItr;               // amsdbc
         ooItr(CTCDBcD)       ctcdbcItr;               // ctcdbc
         ooItr(TOFDBcD)       tofdbcItr;               // tofdbc
-        ooItr(AntiDBcD)       antidbcItr;             // antidbc
+        ooItr(AntiDBcD)      antidbcItr;              // antidbc
+        ooItr(TKDBcV)        tkdbcItr;
+
         ooHandle(ooDBObj)    dbH;
         char*                contName;
         integer              Read = 0;
@@ -858,7 +871,6 @@ void LMS::CheckConstants()
         dbH = setupdb();
         if (dbH == NULL) Fatal("CheckConstants : Cannot open setup dbase ");
 
-        //char* setup = AMSJob::gethead() -> getsetup();
         char *setup = StrDup(_setup);
         contName = StrCat("amsdbc_",setup);
         if(setup) delete [] setup;  
@@ -895,6 +907,7 @@ void LMS::CheckConstants()
         goto end;
        }
       }
+
       antidbcItr.scan(contH, Mode());
       if (antidbcItr.next()) {
        Message("CheckConstants : check antidbc");
@@ -904,7 +917,6 @@ void LMS::CheckConstants()
         goto end;
        }
       }
-
 
 end:
         if (contName) delete [] contName;
@@ -958,5 +970,52 @@ end:
         } else {
           Abort();
           Fatal("CheckConstants : Quit");
+        }
+}
+
+ooStatus LMS::ReadTKDBc()
+{
+	ooStatus 	     rstatus = oocError;      // Return status
+        ooHandle(ooContObj)  contH;                   // container
+        ooItr(TKDBcV)        tkdbcItr;
+
+        ooHandle(ooDBObj)    dbH;
+        char*                contName;
+        integer              Read = 0;
+
+        StartRead(oocMROW);
+
+        dbH = setupdb();
+        if (dbH == NULL) Fatal("ReadTKDBC : Cannot open setup dbase ");
+
+        char *setup = StrDup(_setup);
+        contName = StrCat("amsdbc_",setup);
+        if(setup) delete [] setup;  
+        if (!contH.exist(dbH, contName, oocRead)) {
+         rstatus = oocError;
+         cout<<"ReadTKDBC : cannot open a container "<<contName<<endl;
+         goto end;
+        }
+
+
+        tkdbcItr.scan(contH, Mode());
+        if (tkdbcItr.next()) {
+         Message("CheckTKDBC : copy tkdbc");
+         rstatus = tkdbcItr -> ReadTKDBc();
+         if (rstatus != oocSuccess) {
+          rstatus = oocError;
+          goto end;
+        }
+       }
+
+end:
+        if (contName) delete [] contName;
+        if (rstatus == oocSuccess) {
+	  Commit(); 	           // Commit the transaction
+          if (rstatus != oocSuccess) exit (1);
+          return rstatus;
+        } else {
+          Abort();
+          Fatal("ReadTKDBc : Quit");
         }
 }

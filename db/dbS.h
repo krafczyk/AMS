@@ -17,7 +17,7 @@
 //                  'short' version (setups only)
 //                  add tdv dbase
 //
-// Last Edit Oct 13, 1997. ak.
+// Last Edit Nov 6, 1997. ak.
 //
 #ifndef LMSSESSION_H
 #define LMSSESSION_H
@@ -94,6 +94,7 @@ public:
 	ooStatus	ReadTMedia();
 	ooStatus	ReadTDV(char* name, time_t I, time_t B, time_t E, 
                                 uinteger* buff);
+        ooStatus        ReadTKDBc();
 
 	ooStatus	DeleteSetup(char* setup);
 
@@ -101,7 +102,7 @@ public:
 
         void            CheckConstants();
         void            CheckCommons();
-        
+
 // -- May 02. new methods
 
   void     setapplicationName(const char *name)   

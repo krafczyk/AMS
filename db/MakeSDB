@@ -93,7 +93,7 @@ DDL_SRC         = ../db/
 SCHEMA_DDL		=  dbcatalog.ddl \
                            gvolumeD.ddl  gmatD.ddl  gtmedD.ddl \
                            commonsD.ddl amsdbcD.ddl antidbcD.ddl \
-                           ctcdbcD.ddl tofdbcD.ddl \
+                           ctcdbcD.ddl tofdbcD.ddl tkdbcV.ddl \
                            timeidD.ddl 
 
 
@@ -114,6 +114,7 @@ SCHEMA_OBJS		=   $(BIN_DB)dbcatalog_ddl.o  \
                             $(BIN_DB)antidbcD_ddl.o \
                             $(BIN_DB)ctcdbcD_ddl.o \
                             $(BIN_DB)tofdbcD_ddl.o \
+                            $(BIN_DB)tkdbcV_ddl.o \
                             $(BIN_DB)timeidD_ddl.o 
 
 
@@ -127,6 +128,7 @@ SCHEMA_METHOD_OBJS      =  $(BIN_DB)dbcatalog.o  \
                            $(BIN_DB)antidbcD.o \
                            $(BIN_DB)ctcdbcD.o \
                            $(BIN_DB)tofdbcD.o \
+                           $(BIN_DB)tkdbcV.o \
                            $(BIN_DB)timeidD.o 
 
 
@@ -434,3 +436,14 @@ clean:
                    ../db/dbcatalog_ddl.C -o $(BIN_DB)dbcatalog_ddl.o
  $(BIN_DB)dbcatalog_ddl.o:     dbcatalog.h   dbcatalog_ddl.C
  dbcatalog_ref.o:              dbcatalog.ddl    dbcatalog.h  
+
+ $(BIN_DB)tkdbcV.o:          tkdbcV.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tkdbcV.C \
+                                                -o $(BIN_DB)tkdbcV.o
+ $(BIN_DB)tkdbcV.o:          tkdbcV.h   tkdbcV_ref.h tkdbcV.ddl    
+ $(BIN_DB)tkdbcV_ddl.o:      tkdbcV.h   tkdbcV_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tkdbcV_ddl.C \
+                                                -o $(BIN_DB)tkdbcV_ddl.o
+ $(BIN_DB)tkdbcV_ddl.o:     tkdbcV.ddl    tkdbcV.h   tkdbcV_ref.h
+ tkdbcV_ref.o:              tkdbcV.ddl    tkdbcV.h  
+

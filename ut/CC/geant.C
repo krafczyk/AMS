@@ -28,8 +28,9 @@
 //                              call dbend from uglast
 //                              eventRtype 
 //           Oct    , 1997 ak.  TDV dbase version implementation
+//           Nov    , 1997 ak.  TKDBc dbase version implementation
 //
-//  Last Edit: Oct 12, 1997. ak
+//  Last Edit: Nov 6, 1997. ak
 //
 
 #include <typedefs.h>
@@ -88,11 +89,16 @@ class AMSEventList;
 #include <dbcatalog.h>
 
 #include <ooVArray_uint16.h>
+
+#include <tkdbcV_ref.h>
+#include <tkdbcV.h>
+
 // -
 implement (ooVArray, uint16)
 implement (ooVArray, geant)   
 implement (ooVArray, integer) 
 implement (ooVArray, ooRef(ooDBObj)) 
+implement (ooVArray, TKDBcD) 
 
 LMS	               dbout;
 LMS*                   lms;
@@ -135,7 +141,6 @@ extern "C" void uginit_(){
    initDB();
    lms = &dbout;
    readSetup();
-   //   if ((AMSFFKEY.Read%2) == 1) dbout.CheckConstants();
    if ((AMSFFKEY.Read%2) == 1) lms -> CheckConstants();
 #else
    AMSgmat::amsmat();
@@ -580,7 +585,6 @@ extern "C" void readSetup(){
    AMSgvolume::amsgeom();
   }  
   if ((AMSFFKEY.Read%2) == 1)   {
-   //dbout.CheckConstants();
    dbout.ReadMaterial();
    GPMATE(0);
    dbout.ReadTMedia();
@@ -588,6 +592,11 @@ extern "C" void readSetup(){
    //AMSgmat::amsmat();
    //AMSgvolume::amsgeom();
    dbout.ReadGeometry();
+   ooStatus rstatus = dbout.ReadTKDBc();
+   if (rstatus != oocSuccess) {
+     cerr<<"readSetup -E- Error in ReadTKDBc"<<endl;
+     exit(0);
+   }
   }
 #endif
 }
