@@ -1087,7 +1087,12 @@ void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
   integer oldformat=1;
   while (ptr<p+n){
     // Read two tdrs
-    integer subl=*ptr;
+    uinteger subl=*ptr;
+    if(subl ==0){
+      cerr <<"AMSTrRawCluster::buildsigmaspedb-E-SubLengthZero, skipped event"<<endl;
+      return;
+    }
+
     integer ntdr = *(ptr+1) & 31;
     int16u *ptro=ptr;
     if(subl != 3084 || mixed){

@@ -654,7 +654,11 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
   integer oldformat=1;
   while (ptr<p+n){
     // Read two tdrs
-    integer subl=*ptr;
+    uinteger subl=*ptr;
+    if(subl ==0){
+      cerr <<"AMSTrRawCluster::buildrawRawB-E-SubLengthZero, skipped event"<<endl;
+      return;
+    } 
     int16u *ptro=ptr;
     integer ntdr = *(ptr+1) & 31;
     if(subl != 3084){
@@ -775,7 +779,11 @@ void AMSTrRawCluster::buildrawMixed(integer n, int16u *p){
   // Main loop
   while (ptr<p+n){
     // Read two tdrs
-    integer subl=*ptr;
+    uinteger subl=*ptr;
+    if(subl ==0){
+      cerr <<"AMSTrRawCluster::buildrawMixed-E-SubLengthZero, skipped event"<<endl;
+      return;
+    } 
     int16u *ptro=ptr;
     integer ntdr = *(ptr+1) & 31;
     //cout <<"ntdr "<<subl<<" "<<ntdr<<endl;
@@ -983,7 +991,11 @@ void AMSTrRawCluster::buildrawCompressed(integer n, int16u *p){
   // Main loop
   while (ptr<p+n){
     // Read two tdrs
-    integer subl=*ptr;
+    uinteger subl=*ptr;
+    if(subl ==0){
+      cerr <<"AMSTrRawCluster::buildrawCompressed-E-SubLengthZero, skipped event"<<endl;
+      return;
+    } 
     tl+=subl;
     //cout <<"tl "<<tl<<" "<<subl<<" "<<n<<endl;
     int16u *ptro=ptr;
@@ -1091,7 +1103,11 @@ void AMSTrRawCluster::buildrawParameters(integer n, int16u *p){
   int tl=0;
   // Main loop
   while (ptr<p+n){
-    integer subl=*ptr;
+    uinteger subl=*ptr;
+    if(subl ==0){
+      cerr <<"AMSTrRawCluster::buildrawParameters-E-SubLengthZero, skipped event"<<endl;
+      return;
+    } 
     tl+=subl;
     int16u *ptro=ptr;
     integer ntdr = *(ptr+1) & 31;
@@ -1519,7 +1535,11 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
     //  cerr <<"updpedsRaw-E-bad event length, skipped "<<*ptr<<endl; 
     //  return;
     //}
-    integer subl=*ptr;
+    uinteger subl=*ptr;
+    if(subl ==0){
+      cerr <<"updpedsRaw-E-SubLengthZero, skipped event"<<endl;
+      return;
+    } 
     int16u *ptro=ptr;
     int ntdr=*(ptr+1) & 31; 
     ptr+=2;
@@ -1674,7 +1694,11 @@ void AMSTrRawCluster::updsigSRaw(integer n, int16u* p){
     //  cerr <<"updpedsRaw-E-bad event length, skipped "<<*ptr<<endl; 
     //  return;
     //}
-    integer subl=*ptr;
+    uinteger subl=*ptr;
+    if(subl ==0){
+      cerr <<"AMSTrRawCluster::updsigSRaw-E-SubLengthZero, skipped event"<<endl;
+      return;
+    } 
     int16u *ptro=ptr;
     int ntdr=*(ptr+1) & 31; 
     ptr+=2;
@@ -1881,7 +1905,11 @@ void AMSTrRawCluster::updstatusSRaw(integer n, int16u* p){
     //  cerr <<"updpedsRaw-E-bad event length, skipped "<<*ptr<<endl; 
     //  return;
     //}
-    integer subl=*ptr;
+    uinteger subl=*ptr;
+    if(subl ==0){
+      cerr <<"AMSTrRawCluster::updstatusSRaw-E-SubLengthZero, skipped event"<<endl;
+      return;
+    } 
     int16u *ptro=ptr;
     int ntdr=*(ptr+1) & 31; 
     ptr+=2;
@@ -1981,7 +2009,11 @@ void AMSTrRawCluster::updcmnSRaw(integer n, int16u* p){
   int16u * ptr=p+1;
   // Main loop
   while (ptr<p+n){
-    integer subl=*ptr;
+    uinteger subl=*ptr;
+    if(subl ==0){
+      cerr <<"AMSTrRawCluster::updcmnSRaw-E-SubLengthZero, skipped event"<<endl;
+      return;
+    } 
     int16u *ptro=ptr;
     int ntdr=*(ptr+1) & 31; 
     ptr+=2;
