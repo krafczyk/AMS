@@ -1,3 +1,14 @@
+# Program copies files from 'source' directory to 'target'
+# does validation and updates database.
+# All files matching to 'source' are copying, only files 
+# listed in database are validated.
+# arguments :
+# -S    - source files path
+# -T    - target directory path
+# -ior  - path to file with IOR (optional)
+# -D    - database handler      (f.e. Oracle:) (optional)
+# -F    - database file         (f.e. amsdb)   (optional)
+#
 #
 package Mover;
 
@@ -26,6 +37,10 @@ my %fields=(
     mypoamonitor=>undef,
     myref=>undef,
     myior=>undef,
+
+     arsref=>[],
+     arpref=>[],
+
     ac=>undef,
     start=>undef,
     source=>undef,
@@ -134,7 +149,7 @@ else{
 }
 #
 my $mybless=bless $self,$type;
-if(ref($Monitor::Singleton)){
+if(ref($Mover::Singleton)){
     croak "Only Single Mover Allowed\n";
 }
 $Mover::Singleton=$mybless;
@@ -152,8 +167,14 @@ sub doCopy {
 
 #sqlserver
     $self->{sqlserver}=new DBSQLServer();
+    $self->{sqlserver}->Connect();
     $self->readDB($input);
-
+    if ($nfiles < 1) {
+     print "doCopy -W- no files matching to path : $input found in DB\n";
+    }
+    my $ref = $Mover::Singleton;
+    $ref->readServer();
+    $ref->getValidatedNTuples();
 # do copy || file by file if it matches to the DB list
   my $time = time();
   my $logfile = "/tmp/cp.$time.log";
@@ -193,12 +214,57 @@ sub readDB {
   }
 }
 
+sub readServer {
+#
+    my $ref=shift;
+    my $arsref;
+        foreach $arsref (@{$ref->{arpref}}){
+            my $length;
+            my $ahl;
+            try{
+                my %cid=%{$ref->{cid}};
+                $cid{Type}="Producer";
+                ($length,$ahl)=$arsref->getDSTS(\%cid);
+                if($length==0){
+                    $ref->{dsts}=undef;
+                }
+                else {
+                    $ref->{dsts}=$ahl;
+                }
+
+                goto LAST;
+            }
+        }
+
+LAST :
+    return 1;
+}
+
+sub getValidatedNTuples {
+
+    my @output=();
+    my @text=();
+    my @final_text=();
+    my $sort="Validated";
+        for my $i (0 ... $#{$Mover::Singleton->{dsts}}){
+            $#text=-1;
+            my $hash=$Mover::Singleton->{dsts}[$i];
+            if($hash->{Type} eq "Ntuple"){
+                if($hash->{Status} eq $sort){
+                    print "$sort : $hash -> {Run}\n";
+                }
+            }
+        }
+}
+
 sub doValidate {
 # validate output
+    return 1;
 }
 
 sub updateDB {
 # update db
+    return 1;
 }
 
 sub commitDB {
@@ -312,11 +378,11 @@ sub Connect{
     if(defined $ref->{IOR}){
         return 1;
     }
-# check -I first and only then getior
+# check -IOR first and only then getior
     foreach my $chop  (@ARGV){
-        if($chop =~/^-I/){
-#            $ior=unpack("x1 A*",$chop);
-             my $iorfile = unpack("x2 A*",$chop);
+        if($chop =~/^-ior/){
+#            $ior=unpack("x2 A*",$chop);
+             my $iorfile = unpack("x4 A*",$chop);
              my $buf;
              open(FILE,"<".$iorfile) or die "Unable to open file [$iorfile] \n";
              read(FILE,$buf,1638400);
