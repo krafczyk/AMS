@@ -311,6 +311,7 @@ integer AMSTimeID::read(char * dir, integer reenter){
     }
     else {
       cerr<<"AMSTimeID::read-W-CouldNot open file "<<fnam<<endl;
+      return 0;
     }
     return 1;
 

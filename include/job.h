@@ -27,18 +27,6 @@
 #endif
 
 
-class realorbit{
-public:
-number AlphaTanThetaMax;
-number AlphaSpeed;
-number ThetaI;
-number PhiI;
-number PhiZero;
-number PolePhi;
-number PoleTheta;
-number EarthSpeed;
-time_t Begin;
-};
 
 const integer maxtrig=20;
 const integer maxtdv=255;
@@ -97,7 +85,6 @@ integer _TDVN;
 
 static AMSJob* _Head;
 void _init(){};
-void _setorbit();
 void _sitrigdata();
 void _siamsdata();
 void _sitkdata();
@@ -168,7 +155,6 @@ static integer SetTDVPtrs(integer start[], integer end[]);
 //-
 #endif
 
-static realorbit Orbit;
 AMSJob(AMSID id=0,uinteger jobtype=0):AMSNode(id),_jobtype(jobtype)
 {_Setup[0]='\0';_TriggerC[0][0]='\0';_TriggerI=1;_TriggerN=0;
 _TDVC[0][0]='\0',_TDVN=0;cout <<

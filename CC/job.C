@@ -56,7 +56,6 @@ extern LMS* lms;
 #endif
 //-
 
-realorbit AMSJob::Orbit;
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
 integer AMSJob::debug=1;
@@ -341,8 +340,8 @@ CCFFKEY.earth=1;
 CCFFKEY.theta=51.;
 CCFFKEY.phi=290.;
 CCFFKEY.polephi=290.;
-CCFFKEY.begindate=22051998;
-CCFFKEY.enddate=  26051998;
+CCFFKEY.begindate=2061998;
+CCFFKEY.enddate=12061998;
 CCFFKEY.begintime=80000;
 CCFFKEY.endtime=120000;
 CCFFKEY.oldformat=0;
@@ -995,7 +994,7 @@ cout << *this;
 }
 void AMSJob::_siamsinitjob(){
   _sitkinitjob();
-  if(isSimulation())_signinitjob();
+  _signinitjob();
   _sitofinitjob();
   _siantiinitjob();
   _sitrdinitjob();
@@ -1050,6 +1049,7 @@ else TRMCFFKEY.year[1]=TRMCFFKEY.year[0]-1;
 }
 
 void AMSJob::_signinitjob(){
+     AMSgObj::BookTimer.book("SetTimeCoo");
 
   AMSmceventg::setcuts(CCFFKEY.coo,CCFFKEY.dir,CCFFKEY.momr,
   CCFFKEY.fixp,CCFFKEY.albedor,CCFFKEY.albedocz);
@@ -1121,6 +1121,7 @@ _reantiinitjob();
 _retrdinitjob();
 _rectcinitjob();
 _reaxinitjob();
+
 AMSUser::InitJob();
 }
 void AMSJob::_caamsinitjob(){
@@ -1629,6 +1630,19 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd6",isRealData()),
 
 }
 
+{
+  tm begin=AMSmceventg::Orbit.Begin;
+  tm end;
+  if(AMSFFKEY.Update){
+    end=AMSmceventg::Orbit.End;
+    AMSEvent::SetShuttlePar();
+  }
+  else end=AMSmceventg::Orbit.Begin;
+  TID.add (new AMSTimeID(AMSID("ShuttlePar",isRealData()),
+                         begin,end,
+                         sizeof(AMSEvent::Array),(void*)AMSEvent::Array));
+}
+
 if (AMSFFKEY.Update){
 
 #ifdef __DB__
@@ -1817,47 +1831,12 @@ void AMSJob::_dbendjob()
 
 
 
-void AMSJob::_setorbit(){
-
- const number MIR=51.65;
-  tm Begin;
-  integer begindate=CCFFKEY.begindate;
-  integer begintime=CCFFKEY.begintime;
-  Begin.tm_year  =  begindate%10000-1900;
-  Begin.tm_mon = (begindate/10000)%100-1;
-  Begin.tm_mday   = (begindate/1000000)%100;
-  Begin.tm_hour  = (begintime/10000)%100;
-  Begin.tm_min= (begintime/100)%100;
-  Begin.tm_sec=(begintime)%100;
-  Begin.tm_isdst =  Begin.tm_mon>=3 &&  Begin.tm_mon<=8;
-  Orbit.Begin=mktime(&Begin);
-  Orbit.ThetaI=CCFFKEY.theta/AMSDBc::raddeg;
-  Orbit.PhiI=fmod(CCFFKEY.phi/AMSDBc::raddeg+AMSDBc::twopi,AMSDBc::twopi);
-  Orbit.AlphaTanThetaMax=tan(MIR/AMSDBc::raddeg);
-  number r= tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
-  if(r > 1 || r < -1){
-    cerr <<"AMSJob::setorbit-E-ThetaI too high "<<Orbit.ThetaI<<endl;
-    if(Orbit.ThetaI < 0 )Orbit.ThetaI = -MIR/AMSDBc::raddeg;
-    else Orbit.ThetaI= MIR/AMSDBc::raddeg;
-    cerr <<"AMSJob::setorbit-ThetaI brought to "<<Orbit.ThetaI<<endl;
-    r=tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
-  }
-  Orbit.PhiZero=Orbit.PhiI-atan2(r,CCFFKEY.sdir*sqrt(1-r*r));         
-  Orbit.AlphaSpeed=AMSDBc::twopi/92.36/60.;
-  Orbit.EarthSpeed=AMSDBc::twopi/24/3600;
-  Orbit.PolePhi=CCFFKEY.polephi/AMSDBc::raddeg;
-  Orbit.PoleTheta=78.6/AMSDBc::raddeg;
-
-
-}
-
 
   void AMSJob::_redaqinitjob(){
      AMSgObj::BookTimer.book("SIDAQ");
      AMSgObj::BookTimer.book("REDAQ");
      if(IOPA.Portion<1. && isMonitoring())cout <<"AMSJob::_redaqinitjob()-W-Only about "<<IOPA.Portion*100<<"% events will be processed."<<endl; 
     if(!strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ){    
-     _setorbit();
     // Add subdetectors to daq
     //
   {
@@ -2134,3 +2113,4 @@ return nobj;
 }
 
 #endif
+

@@ -20,6 +20,21 @@
 #include <daqevt.h>
 class AMSEvent: public AMSNode{
 private:
+  class ShuttlePar{
+  public:
+   geant StationR;
+   geant StationTheta;
+   geant StationPhi;
+   geant GrMedPhi;
+   geant StationYaw;
+   geant StationPitch;
+   geant StationRoll;
+   geant StationSpeed;
+   geant SunR;
+   geant SunTheta;
+   geant SunPhi;
+   time_t Time;
+  };
 uinteger _run;
 uinteger _runtype;
 geant _StationRad;    //cm 
@@ -38,6 +53,7 @@ uinteger _usec;
 static integer SRun;
 static AMSEvent * _Head;
 static AMSNodeMap EventMap;
+static ShuttlePar Array[60];
 void _printEl(ostream & stream);
 void _copyEl();
 void _writeEl();
@@ -116,6 +132,7 @@ AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMS
    _Head=this;
 }
 ~AMSEvent(){_Head=0;}
+static void SetShuttlePar();
 static AMSEvent * gethead()  {return _Head;}
 static integer debug;
 AMSlink * getheadC(char name[], integer id, integer sorted=0)
@@ -180,6 +197,6 @@ static void builddaq(integer i, integer length, int16u *p);
 static void buildTrackerHKdaq(integer i, integer length, int16u *p);
 
 
-
+friend class AMSJob;
 };
 #endif

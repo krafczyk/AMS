@@ -143,16 +143,6 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
                              integer enddate, integer endtime, 
                               integer ipart,  integer low){
 
- if(low ==2)ipart=5;
- char chp[22]="";
- integer itrtyp;
- geant mass;
- geant charge;
- geant tlife;
- geant ub[1];
- integer nwb=0;
- GFPART(ipart,chp,itrtyp,mass,charge,tlife,ub,nwb);
- charge=fabs(charge);
   const number MIR=51.65;
   Orbit.Begin.tm_year  =  begindate%10000-1900;
   Orbit.Begin.tm_mon = (begindate/10000)%100-1;
@@ -197,94 +187,107 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.PoleTheta=78.6/AMSDBc::raddeg;
   Orbit.Nskip=0;
   Orbit.Ntot=AMSIO::getntot();
-if(ipart == 3 && low ){
- HBOOK1(_hid,"Low Electron Spectrum",12,0.,6.,0.);
- HF1(_hid,0.75,12900.);
- HF1(_hid,1.25,4550.);
- HF1(_hid,1.75,1810.);
- HF1(_hid,2.25,846.);
- HF1(_hid,2.75,376.);
- HF1(_hid,3.25,177.);
- HF1(_hid,3.75,67.);
- HF1(_hid,4.25,29.);
- HF1(_hid,4.75,7.3);
- HF1(_hid,5.25,2.7);
- HF1(_hid,5.75,.4);
-}
-else if(low ==2){
-  cout <<"AMSMceventg::setspectra-W-Sea Level muons Generator Chosen"<<endl;
-  CMINIT();
-}
-else {
- integer nchan=1000;
+  if(AMSJob::gethead()->isSimulation()){
+    if(low ==2)ipart=5;
+    char chp[22]="";
+    integer itrtyp;
+    geant mass;
+    geant charge;
+    geant tlife;
+    geant ub[1];
+    integer nwb=0;
+    GFPART(ipart,chp,itrtyp,mass,charge,tlife,ub,nwb);
+    charge=fabs(charge);
 
- geant binw;
- if(mass < 0.938)binw=100;
- else  binw=100*mass/0.938;
- geant al=binw/2;
- geant bl=binw/2+nchan*binw;
- HBOOK1(_hid,"Spectrum",nchan,al,bl,0.);
- HBOOK1(_hid+1,"Spectrum",nchan,al,bl,0.);
-//
-// find a modulation
-//
- geant modul[8]={400.,350.,550.,650.,950.,1300.,1200.,1000.};
- integer year=(begindate%10000+enddate%10000)/2-1997; 
- if(year <=0 || year > 7){
-  cerr<<"AMSmceventg::setspectra-F-year not supported yet: "<<year<<endl;
-  exit(1);
- }
- integer i; 
- for(i=0;i<nchan;i++){
-  geant xm=i*binw+al+binw/2;
-  number xmom=xm/1000;
-  number xkin=(sqrt(xmom*xmom+mass*mass)-mass)*1000;
-  number amass=mass*1000;
-  number z=charge;
-  number xkm=xkin+z*modul[year];
-  number xt=xkm/1000+mass;
-  number beta=sqrt(1.-mass*mass/xt/xt);
-  number xrig=beta*xt/z;
-  geant y;
-  if(ipart ==2){
-    // positron          
-    y=700./1.5/pow(xt,3.3)*(0.02+0.1/sqrt(xt));
-    y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
-   
- 
-  }
-  else if(ipart==3){
-    //electron
-    y=700./1.5/pow(xt,3.3);
-    y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
-  }
-   else if (ipart < 15 ){
-   // a-la proton
-    y=1.5e4/beta/pow(xrig,2.74);
-    y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
-   }    
-   else if (ipart > 15 && ipart < 100){
-    // He etc...
-    y=.5e4/beta/pow(xrig,2.68);
-    y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
-   }    
-   else if (ipart == 15 || ipart > 100){
-    number xb=1.5;
-    number xa=3.0;
-    number fact=pow(xa/xb,1./(xa+xb));
-    fact=2.7/fact;
-    number zz=xrig/fact;
-    number ampl=0.1;
-    y=ampl*pow(zz,xa)/(pow(zz,xa+xb)+1.);
-    y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
-   }
-  HF1(_hid,xm,y);
-  HF1(_hid+1,xm,y);
-}
-}
+    if(ipart == 3 && low ){
+      HBOOK1(_hid,"Low Electron Spectrum",12,0.,6.,0.);
+      HF1(_hid,0.75,12900.);
+      HF1(_hid,1.25,4550.);
+      HF1(_hid,1.75,1810.);
+      HF1(_hid,2.25,846.);
+      HF1(_hid,2.75,376.);
+      HF1(_hid,3.25,177.);
+      HF1(_hid,3.75,67.);
+      HF1(_hid,4.25,29.);
+      HF1(_hid,4.75,7.3);
+      HF1(_hid,5.25,2.7);
+      HF1(_hid,5.75,.4);
+    }
+    else if(low ==2){
+      cout <<"AMSMceventg::setspectra-W-Sea Level muons Generator Chosen"<<endl;
+      CMINIT();
+    }
+    else {
+      integer nchan=1000;
+      
+      geant binw;
+      if(mass < 0.938)binw=100;
+      else  binw=100*mass/0.938;
+      geant al=binw/2;
+      geant bl=binw/2+nchan*binw;
+      HBOOK1(_hid,"Spectrum",nchan,al,bl,0.);
+      HBOOK1(_hid+1,"Spectrum",nchan,al,bl,0.);
+      //
+      // find a modulation
+      //
+      geant modul[8]={400.,350.,550.,650.,950.,1300.,1200.,1000.};
+      integer year=(begindate%10000+enddate%10000)/2-1997; 
+      if(year <=0 || year > 7){
+        cerr<<"AMSmceventg::setspectra-F-year not supported yet: "<<year<<endl;
+        exit(1);
+      }
+      integer i; 
+      for(i=0;i<nchan;i++){
+        geant xm=i*binw+al+binw/2;
+        number xmom=xm/1000;
+        number xkin=(sqrt(xmom*xmom+mass*mass)-mass)*1000;
+        number amass=mass*1000;
+        number z=charge;
+        number xkm=xkin+z*modul[year];
+        number xt=xkm/1000+mass;
+        number beta=sqrt(1.-mass*mass/xt/xt);
+        number xrig=beta*xt/z;
+        geant y;
+        if(ipart ==2){
+          // positron          
+          y=700./1.5/pow(xt,3.3)*(0.02+0.1/sqrt(xt));
+          y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
+          
+          
+        }
+        else if(ipart==3){
+          //electron
+          y=700./1.5/pow(xt,3.3);
+          y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
+        }
+        else if (ipart < 15 ){
+          // a-la proton
+          y=1.5e4/beta/pow(xrig,2.74);
+          y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
+        }    
+        else if (ipart > 15 && ipart < 100){
+          // He etc...
+          y=.5e4/beta/pow(xrig,2.68);
+          y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
+        }    
+        else if (ipart == 15 || ipart > 100){
+          number xb=1.5;
+          number xa=3.0;
+          number fact=pow(xa/xb,1./(xa+xb));
+          fact=2.7/fact;
+          number zz=xrig/fact;
+          number ampl=0.1;
+          y=ampl*pow(zz,xa)/(pow(zz,xa+xb)+1.);
+          y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
+        }
+        HF1(_hid,xm,y);
+        HF1(_hid+1,xm,y);
+      }
+    }
 #ifdef __AMSDEBUG__
-//HPRINT(_hid);
+    //HPRINT(_hid);
 #endif
+  }
 }
 
 void AMSmceventg::setcuts(geant coo[6], geant dir[6],

@@ -141,7 +141,7 @@ void AMSEvent::_signinitevent(){
 }
 
 void AMSEvent::SetTimeCoo(){    
-
+  AMSgObj::BookTimer.start("SetTimeCoo");
   // Allocate time & define the geographic coordinates
   if(AMSJob::gethead()->isSimulation()){
     static number dtime=AMSmceventg::Orbit.FlightTime/
@@ -179,17 +179,100 @@ void AMSEvent::SetTimeCoo(){
     _Pitch=0;
     _StationSpeed=AMSmceventg::Orbit.AlphaSpeed;
     _StationRad=AMSmceventg::Orbit.AlphaAltitude;
+    _SunRad=0;
+    _SunTheta=0;
+    _SunPhi=0;
   }
   else {
-    _NorthPolePhi=AMSmceventg::Orbit.PolePhiStatic;
-    _StationTheta=0;
-    _StationPhi=0;
-    _Yaw=0;
-    _Roll=0;
-    _Pitch=0;
-    _StationSpeed=AMSmceventg::Orbit.AlphaSpeed;
-    _StationRad=AMSmceventg::Orbit.AlphaAltitude;
+    static integer hint=0;
+    //get right record
+#ifdef __AMSDEBUG__
+    if(hint<sizeof(Array)/sizeof(Array[0])-1);
+#endif
+    if(Array[hint].Time<=_time && 
+       _time<Array[hint+3>sizeof(Array)/sizeof(Array[0])?
+                  sizeof(Array)/sizeof(Array[0])-1:hint+2].Time){
+      // got it
+      if(_time>Array[hint+1].Time)hint++;
+    }
+    else{
+      //find from scratch
+      for(hint=1;hint<sizeof(Array)/sizeof(Array[0]);hint++){
+        if(Array[hint].Time>_time){
+          break;
+          hint--;
+        }
+      }
+      if(hint>=sizeof(Array)/sizeof(Array[0])-1)hint=sizeof(Array)/sizeof(Array[0])-2;
+    }
+    
+    
+    if(_time == Array[hint].Time){
+      _NorthPolePhi=AMSmceventg::Orbit.PolePhiStatic+Array[hint].GrMedPhi;
+      _StationTheta=Array[hint].StationTheta;
+      _StationPhi=Array[hint].StationPhi;
+      _Yaw=Array[hint].StationYaw;
+      _Roll=Array[hint].StationRoll;
+      _Pitch=Array[hint].StationPitch;
+      _StationSpeed=Array[hint].StationSpeed;
+      _StationRad=Array[hint].StationR;
+      _SunRad=Array[hint].SunR;
+      _SunTheta=Array[hint].SunTheta;
+      _SunPhi=Array[hint].SunPhi;
+    }
+    else{
+      //interpolation needed
+      number xsec=_time-Array[hint].Time;
+      number dt=Array[hint+1].Time-Array[hint].Time;
+      if(dt){
+        _Yaw=Array[hint].StationYaw+xsec/dt*(Array[hint+1].StationYaw-Array[hint].StationYaw);
+        _Roll=Array[hint].StationRoll+xsec/dt*(Array[hint+1].StationRoll-Array[hint].StationRoll);
+        _Pitch=Array[hint].StationPitch+xsec/dt*(Array[hint+1].StationPitch-Array[hint].StationPitch);
+        _StationSpeed=Array[hint].StationSpeed+xsec/dt*(Array[hint+1].StationSpeed-Array[hint].StationSpeed);
+        _StationRad=Array[hint].StationR+xsec/dt*(Array[hint+1].StationR-Array[hint].StationR);
+        _SunRad=Array[hint].SunR+xsec/dt*(Array[hint+1].SunR-Array[hint].SunR);
+        _SunTheta=Array[hint].SunTheta+xsec/dt*(Array[hint+1].SunTheta-Array[hint].SunTheta);
+        _SunPhi=Array[hint].SunPhi+xsec/dt*(Array[hint+1].SunPhi-Array[hint].SunPhi);
+      }
+      else {
+        _Yaw=Array[hint].StationYaw;
+        _Roll=Array[hint].StationRoll;
+        _Pitch=Array[hint].StationPitch;
+        _StationSpeed=Array[hint].StationSpeed;
+        _StationRad=Array[hint].StationR;
+        _SunRad=Array[hint].SunR;
+        _SunTheta=Array[hint].SunTheta;
+        _SunPhi=Array[hint].SunPhi;
+      }
+      _NorthPolePhi=fmod(AMSmceventg::Orbit.PolePhiStatic+Array[hint].GrMedPhi+
+                         AMSmceventg::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
+       number r= tan(Array[hint].StationTheta)/
+         AMSmceventg::Orbit.AlphaTanThetaMax;
+       if(r > 1 || r < -1){
+         cerr <<"AMSEvent::SetTimeCoo-ThetaI too high "<<
+           Array[hint].StationTheta<<endl;
+         if(r < 0 )r=-1;
+         else r=1;
+       }
+       number PhiZero=Array[hint].StationPhi-atan2(r,sqrt(1-r*r));
+
+      number t2=
+        AMSmceventg::Orbit.AlphaTanThetaMax*AMSmceventg::Orbit.AlphaTanThetaMax;
+      number philocal=
+        atan2(sin(Array[hint].StationPhi-PhiZero)*sqrt(1+t2),
+              cos(Array[hint].StationPhi-PhiZero));
+      philocal=fmod(philocal+_StationSpeed*xsec,AMSDBc::twopi);
+      number phi=atan2(sin(philocal),cos(philocal)*sqrt(1+t2));
+      if(phi < 0)phi=phi+AMSDBc::twopi;
+      _StationTheta=atan(AMSmceventg::Orbit.AlphaTanThetaMax*sin(phi));
+      _StationPhi=fmod(phi+AMSmceventg::Orbit.PhiZero,AMSDBc::twopi);
+
+
+     
+    }
   }
+  AMSgObj::BookTimer.stop("SetTimeCoo");
+
 }
 
 
@@ -1550,3 +1633,23 @@ while(offspring){
 }
 return False;
 }
+
+
+void AMSEvent::SetShuttlePar(){
+  for(int i=0;i<sizeof(Array)/sizeof(Array[0]);i++){
+    Array[i].StationR=AMSmceventg::Orbit.AlphaAltitude;
+    Array[i].StationTheta=AMSmceventg::Orbit.ThetaI;  
+    Array[i].StationPhi=AMSmceventg::Orbit.PhiI;
+    Array[i].GrMedPhi=AMSmceventg::Orbit.PolePhi-AMSmceventg::Orbit.PolePhiStatic;
+    Array[i].StationYaw=0;
+    Array[i].StationPitch=0;
+    Array[i].StationRoll=0;
+    Array[i].StationSpeed=AMSmceventg::Orbit.AlphaSpeed;
+    Array[i].SunR=0;
+    Array[i].SunTheta=0;
+    Array[i].SunPhi=0;
+    Array[i].Time=mktime(&AMSmceventg::Orbit.Begin);
+  }
+}
+
+AMSEvent::ShuttlePar AMSEvent::Array[60];
