@@ -267,8 +267,8 @@ integer AMSTimeID::read(char * dir, integer reenter){
       _Insert=time_t(pdata[_Nbytes/sizeof(pdata[0])]);
       _Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
       _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
-#ifdef __AMSDEBUG__
       cout <<"AMSTimeID::read-I-Open file "<<fnam<<endl;
+#ifdef __AMSDEBUG__
       cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;
       cout <<"AMSTimeID::read-I-Begin "<<ctime(&_Begin)<<endl;
       cout <<"AMSTimeID::read-I-End "<<ctime(&_End)<<endl;

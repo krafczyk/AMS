@@ -139,7 +139,7 @@ Then blocks
 
 One block:
 
-word1 6bit cluster length - 3 | ({S/N*8}_max << 6)
+word1 6bit cluster length - 3 | ({S/N*8}_max << 6) |  4_service_bits<<12 
 word2 leftmost hit address
 word 3 to length+3
 amplitudes*8
@@ -188,6 +188,7 @@ then three words
 WordSL-2 CRC1
 WordSL-1 CRC2
 WordSL   Junk
+
 i. Calibration Event Format  Status
 ID = 2 |  2<<6 | 11 <<9 (x<0)   or   2 |  5<<6 | 11<<9 (x>0)
 
@@ -203,7 +204,7 @@ Subblock format
 
 Word3              TDR Number         0-23
 Word4              SubSubBlock Length (SSL) (98 K; 82 S) 
-Word5         
+Word5 >> 8         Program version              
 Word6 to SSL+3     Data
 
 Data Word:    Bit on = good strip
@@ -233,7 +234,7 @@ See h.
 data Word=  Sigma*8
 
 
-l. Calibration Event Format  CMN Noise
+l. Calibration Event Format  Parameters Table
 ID = 5 |  2<<6 | 11 <<9 (x<0)   or   5 |  5<<6 | 11<<9 (x>0)
 
 
@@ -245,17 +246,58 @@ Then 24 subblocks
 Subblock format 
 
 Word3              TDR Number         0-23
-Word4              SubSubBlock Length (SSL) (50 K; 42 S)
-Word5         
-Word6 to SSL+3     Data
+Word4 to 43     Data
 
-Data Word:    Two words /VA (Cmnoise * 8??)
 
-then 3 words 
+
+ 1 128     Number of events to throw out before beginning calibration
+ 2 2048    Number of events for pedestal calculation
+ 3 512     Number of events for sigma raw calculation
+ 4 1024    Number of events for sigma Pass1 calculation
+ 5 0       Number of events for sigma Pass2 calculation
+ 6 2048    Number of events for non gaussien pass
+ 7 1       Step in histo to seek peak value (in 1/8)
+ 8 64      Number of bin for histo (max 128)
+ 9 14      f1 Cut for histo (in 1/8)
+10 10      f2 Cut for histo pass 2 (in 1/8)
+11 24      g Cut for non gaussien behaviour (in 1/8)
+1250      out_g Number of event out of bound for non gaussien
+13 24      Seed cut (in 1/8)
+14 8       Neigbour cut (in 1/8)
+15 48      ADC min
+16 0       Number of events between 2 dynamical pedestal (0 means never)
+17 0       spare
+18 0       spare
+19 0       spare
+20 0       spare
+21 0       spare
+22 0       spare
+23 0       spare
+24 0       spare
+25 0       spare
+26 0       spare
+27 0       spare
+28 0       spare
+29 0       spare
+30 0       spare
+31 0       Number of strip for laser in intensity 1
+32 0       First strip of region u1,1 
+33 0       First strip of region o1,1
+34 0       First strip of region u1,2
+35 0       First strip of region o1,2
+36 0       Number of strip for laser in intensity 2
+37 0       First strip of region u2,1
+38 0       First strip of region o2,1
+39 0       First strip of region u2,2
+40 0       First strip of region o2,2
+
+    
+
+then 2 to 3 words (?)
 
 WordSL-2 CRC1
 WordSL-1 CRC2
-WordSL   Junk
+WordSL   Junk (if any)
 
 m. Tracker Mixed Mode Format
 ID = 12 |  2<<6 | 11 <<9 (x<0)   or   12 |  5<<6 | 11<<9 (x>0)
@@ -284,6 +326,26 @@ then two or three words
 WordSL-2 CRC1
 WordSL-1 CRC2
 WordSL   Junk
+
+n. Yet Another Tracker Reduced Mode Format
+ID = 14 |  2<<6 | 11 <<9 (x<0)   or   14 |  5<<6 | 11<<9 (x>0)
+
+
+Word1              Subblock Length (SL)
+Word2 & 31         Number of TDR      (24)
+
+then 24 subblocks:
+
+Word3              TDR Number         0-23
+Word4              SubSubBlock Length (SSL) 
+Word5         
+Word6 to SSL+3     Data (see f. for description) 
+
+then 
+
+WordSL-2 CRC1
+WordSL-1 CRC2
+WordSL   Junk (if any)
 
 
 
