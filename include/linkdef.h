@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.12 2001/09/02 12:48:25 kscholbe Exp $
+//  $Id: linkdef.h,v 1.13 2002/01/05 20:39:08 kscholbe Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -34,6 +34,7 @@
 #pragma link C++ class LVL3Ntuple;
 #pragma link C++ class LVL1Ntuple;
 #pragma link C++ class LVL1Ntuple02;
+#pragma link C++ class LVL3Ntuple02;
 #pragma link C++ class CTCHitNtuple;
 #pragma link C++ class TrRawClusterNtuple;
 #pragma link C++ class AntiRawClusterNtuple;

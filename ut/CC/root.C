@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.16 2001/09/02 12:49:20 kscholbe Exp $
+//  $Id: root.C,v 1.17 2002/01/05 20:39:16 kscholbe Exp $
 #include <root.h>
 #include <ntuple.h>
 #ifdef __WRITEROOT__
@@ -33,6 +33,7 @@ ANTIMCClusterNtuple::ANTIMCClusterNtuple(){}
 LVL3Ntuple::LVL3Ntuple(){}
 LVL1Ntuple::LVL1Ntuple(){}
 LVL1Ntuple02::LVL1Ntuple02(){}
+LVL3Ntuple02::LVL3Ntuple02(){}
 CTCHitNtuple::CTCHitNtuple(){}
 TrRawClusterNtuple::TrRawClusterNtuple(){}
 AntiRawClusterNtuple::AntiRawClusterNtuple(){}
@@ -76,6 +77,7 @@ ClassImp(ANTIMCClusterNtuple)
 ClassImp(LVL3Ntuple)
 ClassImp(LVL1Ntuple)
 ClassImp(LVL1Ntuple02)
+ClassImp(LVL3Ntuple02)
 ClassImp(CTCHitNtuple)
 ClassImp(TrRawClusterNtuple)
 ClassImp(AntiRawClusterNtuple)
