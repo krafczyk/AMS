@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.6 2003/06/17 07:39:52 choutko Exp $
+#  $Id: 00index.txt,v 1.7 2003/06/17 07:59:29 choutko Exp $
 
 =========================================================================
 
@@ -25,36 +25,35 @@ of AMS offline monitor into it.
 2. Making the program
 ---------------------
 
-This program is based on Rene Brun's ROOT and ATLFast program.  To build it,
-cd to AMS/online directory, then type 
+   Required:  Linux rh7.2++, gcc3.2.2++, root 3.05.05++
 
-	gmake depend
+        setenv AMSWD  {your scratch dir}
+	gmake standalone  (static version of the program called offmon)
+	gmake osdepend    (using dynamic (shared) libraries called offmonc)
 
-followed by
-
-	gmake standalone
-
-and all .cxx files are compiled and linked into a shared library called
-libAMS.so.  Please note that this has only been tested on alpha workstations
-running DEC/UNIX.
 
 
 -------------------------------------------------------------------------
 3. Running the program
 ----------------------
+$AMSWD/offmon{c} path/xyz.root  where path/xyz.root is the ams root file
+
+Not that multiple files may be read at once using wildcards, e.g.
+
+$AMSWD/offmon{c} "path/*.root"  
+
+
+to run offmon (static) no root need to be installed.
+however ROOTSYS var MUST be set to any dummy var e.g.
+setenv ROOTSYS dummy.
+
+to run offmonc (dynamic) program, path to the root dir should be set up
+via ROOTSYS as usual (source /offline/vdev/install/amsvar). 
+Dynamic  program allows user to load/run his/her own selection program via AMSNtupleSelect.C.   Just modify AMSNtupleSelect.C according
+the desired selection then click on "Load UF" button.
+Please note the offmonc should be relinked in case opsys is not rh7.3  
 
 To run it, please make sure you have the environment to run ROOT.
-Only 3 things needs to be set:
-
-1. Environment variable ROOTSYS  should point to the ROOT directory.
-   (On boronams $ROOTSYS should be set to /cern/root/v2.00)
-2. .:$ROOTSYS/lib is added into Environment variables LD_LIBRARY_PATH.
-3. $ROOTSYS/bin is in your path.
-
-Then you are ready to go.
-Type h2root your_converted_ntuple_file_name your_preferred_name
-Type offmon your_preferred_name.
-
 
 -------------------------------------------------------------------------
 4. Tutorial
@@ -62,18 +61,14 @@ Type offmon your_preferred_name.
 
 There is a short tutorial for this program.  You can find the postscript
 version in the AMS/doc directory.
-
+NB:  Obsolete at the moment. Ask Diego to update :)
 
 5. Relevant files
 
-TCanvasImp          //aux
-TMotifCanvas        //aux
-TRadioButton        //aux
-TSwitch             //aux
 LinkDef             //aux
 main                //main
-*Hist               // Subdet fetch/book/fill/draw 
+*Hist               // Subdet book/fill/draw 
 AMSHist             // abstract class for the *Hist
 AMSNtuple           // Ntuple def
 AMSDisplay          // Dispatcher
-AMSCanvas           // Canvas
+AMSNtupleSelect.C   //  user selection function
