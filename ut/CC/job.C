@@ -198,15 +198,15 @@ _siricdata();
 
 void AMSJob::_siricdata(){
   RICGEOM.top_radius=63.6;
-  RICGEOM.bottom_radius=80;
-  RICGEOM.hole_radius=40;
-  RICGEOM.height=50;
+  RICGEOM.bottom_radius=74;
+  RICGEOM.hole_radius=33;
+  RICGEOM.height=40;
   RICGEOM.inner_mirror_height=50;
   RICGEOM.radiator_radius=63.6;
   RICGEOM.radiator_height=2;
   RICGEOM.radiator_box_length=15;
   RICGEOM.light_guides_height=3; 
-  RICGEOM.light_guides_length=3; 
+  RICGEOM.light_guides_length=3.2; 
   FFKEY("RICGEOM",(float *)&RICGEOM,sizeof(RICGEOM_DEF)/sizeof(integer),"REAL");
 }
 

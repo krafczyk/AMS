@@ -46,19 +46,16 @@ geant RICHDB::eff[RICmaxentries]={1.296, 1.476, 1.717, 1.853, 2.041, 2.324, 2.64
 				  20.633,20.633,20.633,20.633,20.010,18.923,17.355,16.266,14.918, 
 				  13.682,11.509,10.555, 8.321, 7.153, 6.282, 6.148, 4.953};
 
-integer RICHDB::n_pmts[RICmaxrows]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-				    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-				    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-				    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-				    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-geant RICHDB::first[RICmaxrows]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-				    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-				    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-				    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-				    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+integer RICHDB::n_rows[2]={10,9};
 
-integer RICHDB::n_rows=0;
+integer RICHDB::n_pmts[15][2]={{11,9},{11,8},{11,7},{11,7},{11,6},{11,5},
+			       {10,4},{10,3},{10,1},{9,0}};
+
+
+geant RICHDB::pmt_p[RICmaxpmts][2];
+
+
 integer RICHDB::entries=RICmaxentries;
 geant RICHDB::top_radius=63.6;
 geant RICHDB::bottom_radius=80;
@@ -79,10 +76,10 @@ geant RICHDB::sigma_peak=12.10;
 integer RICHDB::c_ped=integer(-.2888+3*0.5335); 
 
 
-// These function still are under test and they are preliminary
 
 
 geant RICHDB::x(integer pmt,integer window){
+  /*
   integer w=(window-1)%4;
   geant offset=(lg_tile_size-2*RICotherthk)/4;  
 
@@ -120,10 +117,13 @@ geant RICHDB::x(integer pmt,integer window){
   while(pmt>n_pmts[nr]){pmt-=n_pmts[nr];nr++;};
 
   return (first[nr]+pmt*lg_tile_size)*sx+offset;
+  */
+  return 0;
 }
 
 
 geant RICHDB::y(integer pmt,integer window){
+  /*  
   integer w=(window-1)/4;
   geant offset=(lg_tile_size-2*RICotherthk)/4;
 
@@ -158,17 +158,23 @@ geant RICHDB::y(integer pmt,integer window){
   
   while(pmt>n_pmts[nr]){pmt-=n_pmts[nr];nr++;};
   return (lg_tile_size/2+nr*lg_tile_size)*sx+offset;
+  */
+  return 0;
 }
 
 void RICHDB::add_row(geant x){
+  /*
   n_rows++;
   n_pmts[n_rows-1]=1;
   first[n_rows-1]=x;
+  */
 }
 
 
 void RICHDB::add_pmt(){
-  n_pmts[n_rows-1]++;
+  /* 
+ n_pmts[n_rows-1]++;
+ */
 }
 
 
@@ -204,27 +210,6 @@ void RICHDB::bookhist(){
 }
 
 
-char *RICHDB::name(char beg,int copy){
-  char code[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-  static char out[5]="P+++";
-  
-
-  if(copy>36*36*36){
-    cerr << "RICHDB::name: copy number too long" <<endl;
-    exit(1);
-  }
-
-  out[0]=beg;
-  out[1]=code[copy/1296];
-  copy%=1296;
-  out[2]=code[copy/36];
-  copy%=36;
-  out[3]=code[copy];
-  
-  return out;
-}
-  
-
 /// Now Some functions for the rich geometry
 
 geant RICHDB::total_height()
@@ -232,7 +217,7 @@ geant RICHDB::total_height()
   return RICGEOM.height+ // Expanxion length
     RICGEOM.radiator_height+
     RICGEOM.light_guides_height+
-    7.; // This is the manufacturer height
+    RICpmtlength+RICeleclength; // This is the manufacturer height
 }
 
 geant RICHDB::mirror_pos()
@@ -247,7 +232,8 @@ geant RICHDB::rad_pos()
 
 geant RICHDB::pmt_pos()
 {
-  return total_height()/2-RICGEOM.radiator_height-RICGEOM.height-3.5-RICGEOM.light_guides_height/2;
+  return total_height()/2-RICGEOM.radiator_height-RICGEOM.height-
+    (RICpmtlength+RICeleclength)/2-RICGEOM.light_guides_height/2;
 }
 
 geant RICHDB::elec_pos()
@@ -270,12 +256,12 @@ geant RICHDB::lg_pos()
 geant RICHDB::lg_mirror_angle(integer i)
 {
   if(i==1)
-    return atan2(RICGEOM.light_guides_length/2-RICotherthk-RICcatolength/2,
+    return atan2(RICGEOM.light_guides_length/2-RICpmtshield-RICcatolength/2,
 			 RICGEOM.light_guides_height)*180/3.1415926;
 
   if(i==2) 
-    return atan2((RICGEOM.light_guides_length/2-RICotherthk-RICcatolength/2)/2,
-			   RICGEOM.light_guides_height)*180/3.1415926;
+    return atan2((RICGEOM.light_guides_length/2-RICpmtshield-RICcatolength/2)/2,
+		 RICGEOM.light_guides_height)*180/3.1415926;
 
   return 0;
 }
@@ -290,3 +276,9 @@ geant RICHDB::lg_mirror_pos(integer i)
 
   return 0;
 }
+
+
+
+
+
+

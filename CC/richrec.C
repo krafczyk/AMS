@@ -18,6 +18,8 @@
 void AMSRichRawEvent::mc_build(){
   integer n_hits[RICmaxpmts][RICnwindows];
 
+
+  /*
   // First clean up array
   
   for(int i=0;i<RICHDB::total;i++)
@@ -74,7 +76,7 @@ void AMSRichRawEvent::mc_build(){
     cout<<"RICH:mc_build Number of photons in the realm:" << real <<endl;
   }
 #endif
-
+*/
 }
 
 

@@ -11,14 +11,17 @@
 namespace richconst{
 const integer RICnrot=30001;   // Rot. matrix no.
 
-const geant   RICmithk=0.5;    // Mirror and 2*aerogel support thickness
-const geant   RIClgthk=0.05;   // Light guides thickness
-const geant   RICotherthk=0.1; // Shielding and PMT window
+const geant   RICmithk=0.5;         // Mirror and 2*aerogel support thickness
+const geant   RIClgthk=0.05;        // Light guides thickness
+const geant   RICotherthk=0.1;      // PMT window thickness
+const geant   RICpmtshield=0.07/2;  // shield thickness
 const geant   RICcatolength=2*.875; // cathode window length
 const geant   RICpmtlength=4.5;     // phototube length
-const geant   RICeleclength=2.5;    // electronics
+const geant   RICeleclength=0.5;    // electronics
+const geant   RICpmtsupport=1.5;   // suppot structure thickness
 
-const geant   RICradpos=-72.66;// Top of the radiator position
+
+const geant   RICradpos=-76.66;// Top of the radiator position
 const geant   sq2=1.4142135623;// useful constant:sqrt(2)
 
 const integer RICmaxentries=44;
@@ -71,14 +74,17 @@ public: // To be migrated in the future
   static geant peak;
   static geant sigma_peak;
 
+  // For detection purposes
+
+  static integer c_ped;
+
 
   //--------- PMT array parameters
-  static geant first[RICmaxrows];
-  static integer n_rows;
+  static integer n_rows[2];
+  static integer n_pmts[15][2];
   static integer total; // Total number of pmts in the actual setup
-  static integer n_pmts[RICmaxrows];
-  
-  static integer c_ped;
+  static geant pmt_p[RICmaxpmts][2];			     
+ 
 
 
 public:
@@ -95,7 +101,6 @@ public:
 
   static geant pmt_response(integer n_photons);
   static void bookhist();
-  static char *name(char beg,int copy);
   static geant total_height();
   static geant mirror_pos();
   static geant rad_pos();
