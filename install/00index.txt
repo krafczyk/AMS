@@ -1,5 +1,6 @@
 Cgbatch   // compile +link user file for geant batch
 Cgxint    // compile +link user file for geant interactive
+Lgbatch   // makefile t gmake geant batch from binary library
 Makelib   // makefile to gmake amslib
 Mcxxfix   // makefile for current workaround for osf1/cxx compiler bug  
 Mgbatch   // makefile to gmake geant batch     
