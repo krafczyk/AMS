@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.174 2004/09/29 10:52:10 alcaraz Exp $
+//  $Id: trrec.C,v 1.175 2004/10/05 18:12:07 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1410,11 +1410,9 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
             ptest._Pattern = pat;
             for (phit2=AMSTrRecHit::firstgood(pat,fp);
                               phit2; phit2=phit2->nextgood()){
-               ptest._Pthit[2] = phit2;
                AMSPoint x2 = phit2->getHit();
                for (phit0=AMSTrRecHit::firstgood(pat,fp-2);
                               phit0; phit0=phit0->nextgood()){
-                  ptest._Pthit[0] = phit0;
 
                   AMSPoint x0 = phit0->getHit();
 	            number par[2][3];
@@ -1427,7 +1425,9 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
        
                   for (phit1=AMSTrRecHit::firstgood(pat,fp-1);
                               phit1; phit1=phit1->nextgood_path(par)){
+                        ptest._Pthit[2] = phit2;
                         ptest._Pthit[1] = phit1;
+                        ptest._Pthit[0] = phit0;
                         ptest._NHits = 3;
                         ptest.SimpleFit(hit_err);
 	                  if (ptest._Chi2WithoutMS>TRFITFFKEY.Chi2WithoutMS) continue;
@@ -1873,11 +1873,9 @@ integer AMSTrTrack::buildWeakPathIntegral(integer refit){
             ptest._Pattern = pat;
             for (phit2=AMSTrRecHit::firstgood_WEAK(pat,fp);
                               phit2; phit2=phit2->nextgood_WEAK()){
-               ptest._Pthit[2] = phit2;
                AMSPoint x2 = phit2->getHit();
                for (phit0=AMSTrRecHit::firstgood_WEAK(pat,fp-2);
                               phit0; phit0=phit0->nextgood_WEAK()){
-                  ptest._Pthit[0] = phit0;
 
                   AMSPoint x0 = phit0->getHit();
 	            number par[2][3];
@@ -1890,7 +1888,9 @@ integer AMSTrTrack::buildWeakPathIntegral(integer refit){
        
                   for (phit1=AMSTrRecHit::firstgood_WEAK(pat,fp-1);
                               phit1; phit1=phit1->nextgood_WEAK_path(par)){
+                        ptest._Pthit[2] = phit2;
                         ptest._Pthit[1] = phit1;
+                        ptest._Pthit[0] = phit0;
                         ptest._NHits = 3;
                         ptest.SimpleFit(hit_err);
 	                  if (ptest._Chi2WithoutMS>TRFITFFKEY.Chi2WithoutMS) continue;
@@ -2367,11 +2367,9 @@ integer AMSTrTrack::buildFalseXPathIntegral(integer nptmin){
             ptest._Pattern = pat;
             for (phit2=AMSTrRecHit::firstgood_FalseX(pat,fp);
                               phit2; phit2=phit2->nextgood_FalseX()){
-               ptest._Pthit[2] = phit2;
                AMSPoint x2 = phit2->getHit();
                for (phit0=AMSTrRecHit::firstgood_FalseX(pat,fp-2);
                               phit0; phit0=phit0->nextgood_FalseX()){
-                  ptest._Pthit[0] = phit0;
 
                   AMSPoint x0 = phit0->getHit();
 	            number par[2][3];
@@ -2384,7 +2382,9 @@ integer AMSTrTrack::buildFalseXPathIntegral(integer nptmin){
        
                   for (phit1=AMSTrRecHit::firstgood_FalseX(pat,fp-1);
                               phit1; phit1=phit1->nextgood_FalseX_path(par)){
+                        ptest._Pthit[2] = phit2;
                         ptest._Pthit[1] = phit1;
+                        ptest._Pthit[0] = phit0;
                         ptest._NHits = 3;
                         ptest.SimpleFit(hit_err);
 	                  if (ptest._Chi2WithoutMS>TRFITFFKEY.Chi2WithoutMS) continue;
@@ -4207,11 +4207,9 @@ integer AMSTrTrack::buildFalseTOFXPathIntegral(integer refit){
             ptest._Pattern = pat;
             for (phit2=AMSTrRecHit::firstgood_FalseTOFX(pat,fp);
                               phit2; phit2=phit2->nextgood_FalseTOFX()){
-               ptest._Pthit[2] = phit2;
                AMSPoint x2 = phit2->getHit();
                for (phit0=AMSTrRecHit::firstgood_FalseTOFX(pat,fp-2);
                               phit0; phit0=phit0->nextgood_FalseTOFX()){
-                  ptest._Pthit[0] = phit0;
 
                   AMSPoint x0 = phit0->getHit();
 	            number par[2][3];
@@ -4224,7 +4222,9 @@ integer AMSTrTrack::buildFalseTOFXPathIntegral(integer refit){
        
                   for (phit1=AMSTrRecHit::firstgood_FalseTOFX(pat,fp-2);
                               phit1; phit1=phit1->nextgood_FalseTOFX_path(par)){
+                        ptest._Pthit[2] = phit2;
                         ptest._Pthit[1] = phit1;
+                        ptest._Pthit[0] = phit0;
                         ptest._NHits = 3;
                         ptest.SimpleFit(hit_err);
 	                  if (ptest._Chi2WithoutMS>TRFITFFKEY.Chi2WithoutMS) continue;
