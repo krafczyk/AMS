@@ -172,7 +172,7 @@ geant RICHDB::x(integer channel)
   //  geant x=pmt_p[pmt][0]+(window%integer(sqrt(RICnwindows))
   //			 -integer(sqrt(RICnwindows))/2)*RICcatolength/sqrt(RICnwindows);
 
-  geant x=(2*(window%integer(sqrt(RICnwindows)))-3)*RICHDB::lg_tile_size/8.;
+  geant x=(2*(window%integer(sqrt(RICnwindows)))-3)*RICHDB::lg_tile_size/8.+pmt_p[pmt][0];
 
   return x;
 }
@@ -186,7 +186,7 @@ geant RICHDB::y(integer channel)
   //  geant y=pmt_p[pmt][1]+(window/integer(sqrt(RICnwindows))
   //			 -integer(sqrt(RICnwindows))/2)*RICcatolength/sqrt(RICnwindows);
 
-  geant y=(2*(window/integer(sqrt(RICnwindows)))-3)*RICHDB::lg_tile_size/8.;
+  geant y=(2*(window/integer(sqrt(RICnwindows)))-3)*RICHDB::lg_tile_size/8.+pmt_p[pmt][1];
 
   return y;
 }
