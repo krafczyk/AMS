@@ -40,9 +40,14 @@ void AMSParticle::SetHelix(){
    P[0]=m_Position[0];
    P[1]=m_Position[1];
    P[2]=m_Position[2];
-   V[0]=m_Charge*m_Momentum * TMath::Sin(m_Theta) * TMath::Cos(m_Phi);
-   V[1]=m_Charge*m_Momentum * TMath::Sin(m_Theta) * TMath::Sin(m_Phi);
-   V[2]=m_Charge*m_Momentum * TMath::Cos(m_Theta);
+   V[0]=1./m_Charge*m_Momentum * TMath::Sin(m_Theta) * TMath::Cos(m_Phi);
+   V[1]=1./m_Charge*m_Momentum * TMath::Sin(m_Theta) * TMath::Sin(m_Phi);
+   V[2]=1./m_Charge*m_Momentum * TMath::Cos(m_Theta);
+   if(m_beta<0){
+	V[0]=-V[0];
+        V[1]=-V[1];
+        V[2]=-V[2];
+   }
      THelix::SetHelix(P,V,0.3*Bfield/100,Range,kHelixX,Axis);
    
 
