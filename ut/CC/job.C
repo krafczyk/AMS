@@ -679,7 +679,7 @@ void AMSJob::_retofdata(){
 //
   TOFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TOFCAFFKEY.dynflg=1; // (27) 0/1-> use stand/special(Contin's) dynode-calibration
-  TOFCAFFKEY.cfvers=91; // (28) 1-99 -> vers.number for tofverlistNN.dat file 
+  TOFCAFFKEY.cfvers=93; // (28) 1-99 -> vers.number for tofverlistNN.dat file 
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //======================================================================

@@ -1106,7 +1106,7 @@ void AMSTOFCluster::build(int &stat){
         }
         }
         coo[2]=ptr->getz();          //cluster Z-coord.
-        ecoo[2]=2.*TOFDBc::plnstr(6)/sqrt(12.);//2(for secur) *bar thickness/...   
+        ecoo[2]=TOFDBc::plnstr(6)/sqrt(12.);//bar thickness/...   
         plrot=TOFDBc::plrotm(ilay);     // =0/1-unrotated/rotated TOF-plane
         c0=TOFDBc::gettsc(ilay,ibar);   //transv.pos. of "peak" bar
         ct=cofg/edep*bars+c0;           //cluster abs. transv. coord.
@@ -1115,7 +1115,7 @@ void AMSTOFCluster::build(int &stat){
 //    Calculate abs. 2-D coordinates of cluster COG according to plane rotation mask:
         if(plrot==0){ // non-rotated plane
           coo[0]=ct;//clust. X-coord.
-          ecoo[0]=bars/3.46;
+          ecoo[0]=2.1;//tempor
           coo[1]=cl;//clust. abs.Y-coord.(neglect counter's long.shift)
           ecoo[1]=eyloc;
         }
@@ -1123,7 +1123,7 @@ void AMSTOFCluster::build(int &stat){
           coo[0]=-cl;//abs.X-coord(yloc=-xabs and neglect counter's long.shift)
           ecoo[0]=eyloc;
           coo[1]=ct;
-          ecoo[1]=bars/3.46;
+          ecoo[1]=2.1;//tempor
         }
         time=-time*1.e-9;// ( ns -> sec ,"-" for V.Shoutko fit)
 //
