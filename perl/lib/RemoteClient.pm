@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.226 2003/12/09 14:31:53 choutko Exp $
+# $Id: RemoteClient.pm,v 1.227 2003/12/12 09:34:45 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6642,7 +6642,7 @@ sub PrintDownloadTable {
      $file= $self->{FileDB};
     if ($download == 1) {
      print "<br><font size=\"4\">
-           <a href=load.cgi?$self->{UploadsHREF}/$file>  filedb files (tar.gz)</a>
+           <a href=load.cgi?$self->{UploadsHREF}/$file>  ams02mcdb (tar.gz)</a>
            </font>";
      $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
      print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
@@ -6668,7 +6668,7 @@ sub PrintDownloadTable {
     if ($self->{dwldaddon} == 1) {
      if ($download == 1) {
       print "<br><font size=\"4\">
-           <a href=load.cgi?$self->{UploadsHREF}/$file>   filedb att.files (tar.gz)</a>
+           <a href=load.cgi?$self->{UploadsHREF}/$file>   ams02mcdb.addon (tar.gz)</a>
            </font>\n";
       $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp});
       print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
