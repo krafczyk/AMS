@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.387 2001/11/30 16:47:03 choutko Exp $
+// $Id: job.C,v 1.388 2001/12/03 13:33:13 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -288,10 +288,10 @@ void AMSJob::_sitrigdata(){
   LVL3FFKEY.UseTightTOF=1;
   LVL3FFKEY.TrTOFSearchReg=6.;
   LVL3FFKEY.TrMinResidual=0.03;
-  LVL3FFKEY.TrMaxResidual[0]=1.2;
-  LVL3FFKEY.TrMaxResidual[1]=0.2;
-  LVL3FFKEY.TrMaxResidual[2]=0.3;
-  LVL3FFKEY.TrMaxHits=27;
+  LVL3FFKEY.TrMaxResidual[0]=-1.2;
+  LVL3FFKEY.TrMaxResidual[1]=-0.2;
+  LVL3FFKEY.TrMaxResidual[2]=-0.3;
+  LVL3FFKEY.TrMaxHits=30;
   LVL3FFKEY.Splitting=0.04;
   LVL3FFKEY.NRep=1;
   LVL3FFKEY.Accept=0;
@@ -1753,6 +1753,15 @@ if(TRCLFFKEY.Thr1R[0]<0){
     UHTOC(IOPA.rfile,40,rfile,160);  
     _rextname=rfile;
 
+// check lvl3
+if(LVL3FFKEY.TrMaxResidual[0]<0){
+ if(strstr(getsetup(),"AMSSHUTTLE")){
+   for (int i=0;i<3;i++)LVL3FFKEY.TrMaxResidual[i]=fabs(LVL3FFKEY.TrMaxResidual[i]);
+ }
+ else{
+   for (int i=0;i<3;i++)LVL3FFKEY.TrMaxResidual[i]=6*fabs(LVL3FFKEY.TrMaxResidual[i]);
+ }
+}
 
 }
 

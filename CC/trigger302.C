@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.6 2001/11/30 16:47:04 choutko Exp $
+//  $Id: trigger302.C,v 1.7 2001/12/03 13:33:14 choutko Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofdbc.h>
@@ -710,7 +710,7 @@ out:
    for(int i=0;i<TKDBc::nlay();i++){
      geant coo=TRDAux._Par[icase][0]*(_TrackerCooZ[i]-TRDAux._Par[icase][2])+TRDAux._Par[icase][1];
      geant addtrd=fabs(3*TRDAux._Par[icase][3]*(_TrackerCooZ[i]-TRDAux._Par[icase][2]));
-      geant addmagfield=icase==0?0:LVL3FFKEY.TrTOFSearchReg*(1-fabs(_TrackerCooZ[i]-z12)/dz12);
+      geant addmagfield=icase==0?0:2*LVL3FFKEY.TrTOFSearchReg*fabs((_TrackerCooZ[i]-_TrackerCooZ[0])/(_TrackerCooZ[TKDBc::nlay()-1]-_TrackerCooZ[0]));
       _lowlimitTRD[icase][i]=-addmagfield-addtrd+coo;
       _upperlimitTRD[icase][i]=addmagfield+addtrd+coo;
    }
@@ -1101,17 +1101,22 @@ void TriggerLVL302::fit(integer idum){
   }
   done:
 
-   if( _NPatFound  == 0)_TrackerTrigger=1;
+   if( _NPatFound  == 0){
+     int nht=0;
+     for(int i=0;i<TKDBc::nlay();i++)if(_nhits[i])nht++;
+     if(nht>TKDBc::nlay()/2)_TrackerTrigger=5;
+     else  _TrackerTrigger=1;
+  }
    else if ( _NPatFound >2)_TrackerTrigger = 4;
    else if (_NPatFound ==1){
     if(_Residual[0] > LVL3FFKEY.TrMinResidual )_TrackerTrigger=3;
-    else _TrackerTrigger=5;
+    else _TrackerTrigger=6;
    }
    else {
     if(_Residual[0] > LVL3FFKEY.TrMinResidual && _Residual[1] > LVL3FFKEY.TrMinResidual )
     _TrackerTrigger=3;
     else if(_Residual[0] <= LVL3FFKEY.TrMinResidual && _Residual[1] <= LVL3FFKEY.TrMinResidual )
-    _TrackerTrigger=5;
+    _TrackerTrigger=6;
     else _TrackerTrigger=4;
 
    }
@@ -1259,19 +1264,21 @@ integer TriggerLVL302::_Level3Searcher(int call, int j){
 void TriggerLVL302::Finalize(){
 // Finalize main trigger output
   if(_TrackerTrigger%8==1)_MainTrigger|=1;
-  if((_TRDTrigger>>1)&1 ==0 && UseTRD())_MainTrigger|= 2;
+  if(((_TRDTrigger>>1)&1) ==0 && UseTRD())_MainTrigger|= 2;
   if(_TrackerTrigger%8==2 )_MainTrigger|=4;
   if(_TRDTrigger==4)_MainTrigger|=8;
   if(_TOFTrigger==0)_MainTrigger|=16;
   if((_Direction==0)  && UseTOFTime())_MainTrigger|= 32;
-  if(_TrackerTrigger%8==3  && _Direction==-1)_MainTrigger|=256;
-  else if(_TrackerTrigger%8==3)_MainTrigger|=64;
-  if(_TrackerTrigger%8==4 )_MainTrigger|=128;
-  if(_TrackerTrigger%8==5 && _Direction==-1)_MainTrigger|=64;
-  else if(_TrackerTrigger%8==5)_MainTrigger|=256;
-  if((_TrackerTrigger>>3)%1 )_MainTrigger|=512;
-  if((_TRDTrigger>>3)%1 )_MainTrigger|=1024;
-
+  if((_Direction==-1) )_MainTrigger|= 64;
+  if(_TrackerTrigger%8==3  && _Direction==-1)_MainTrigger|=1024;
+  else if(_TrackerTrigger%8==3)_MainTrigger|=128;
+  if(_TrackerTrigger%8==4 )_MainTrigger|=256;
+  if(_TrackerTrigger%8==5 )_MainTrigger|=512;
+  if(_TrackerTrigger%8==6 && _Direction==-1)_MainTrigger|=128;
+  else if(_TrackerTrigger%8==6)_MainTrigger|=1024;
+  if((_TrackerTrigger>>3)&1 )_MainTrigger|=2048;
+  if((_TRDTrigger>>3)&1 )_MainTrigger|=4096;
+//  bit 13 not set up
 }
 
 
