@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: checkdb.cgi,v 1.1 2004/02/18 10:38:28 alexei Exp $
+#  $Id: checkdb.cgi,v 1.2 2004/03/05 19:04:19 alexei Exp $
 use Gtk;
 use strict;
 
@@ -22,7 +22,7 @@ my $html=new RemoteClient();
 
 #get number of used hosts for each site
 
- my $ok=$html->ConnectDB();
+ my $ok=$html->ConnectOnlyDB();
     $ok=$html->checkDB();
 
  

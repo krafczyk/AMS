@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.250 2004/03/01 17:49:09 alexei Exp $
+# $Id: RemoteClient.pm,v 1.251 2004/03/05 19:04:26 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -85,6 +85,7 @@ my     $verbose         = 0; # verbose mode
  my @BadDSTCopy   = [];  #                 doCopy failed to copy DST
  my @BadCRCi      = [];  #                 dsts with crc error (before copying)
  my @BadCRCo      = [];  #                 dsts with crc error (after copying)
+ my @gbDST        = [];
 #-
  my $nBadCopiesInRow = 0;   # counter of doCopy errors
  my $MAX_FAILED_COPIES = 5; # max number of allowed errors (in row)
@@ -1021,8 +1022,8 @@ sub ValidateRuns {
         print "</tr>\n";
         htmlTableEnd();
        } else {
-        print "Run,FirsttEvent,LastEvent,Submitted,Status...";
-        print "$run->{Run},$run->{FirstEvent},$run->{LastEvent},$run->{SubmitTime},$run->{Status}/n";
+        print "Run,FirstEvent,LastEvent,Submitted,Status...";
+        print "$run->{Run},$run->{FirstEvent},$run->{LastEvent},$run->{SubmitTime},$run->{Status} \n";
        }
   }
      if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") && 
@@ -1235,12 +1236,11 @@ sub ValidateRuns {
           $self->{sqlserver}->Update($sql);
           $warn = "Update Runs : $sql\n";
           print FILEV $warn;
-          $self->printWarn($warn);
            if ($webmode == 1) {
               htmlWarning("validateRuns",$warn);
-            } else {
-              print "$warn \n";
-            }
+          } else {
+           $self->printWarn($warn);
+          }
           if ($status eq "Completed") {
            $self->updateRunCatalog($run->{Run});
            $warn = "Update RunCatalog table : $run->{Run}\n";
@@ -7144,6 +7144,7 @@ sub parseJournalFiles {
  $BadDSTCopy[$i]   = 0;  # doCopy failed to copy DST
  $BadCRCi[$i]      = 0;  # dsts with crc error (before copying)
  $BadCRCo[$i]      = 0;  # dsts with crc error (after copying)
+ $gbDST[$i]        = 0;  # GB of DSTs
 #-
 }
  $parserStartTime=time();# start jopurnal files check
@@ -7653,6 +7654,11 @@ foreach my $block (@blocks) {
 # Run 134217740 , FirstEvent 1 , LastEvent 21000 , EventNumber 312 , ErrorNumber 0
 #
     $patternsmatched  = 0;
+
+    my $statusIndx       = 1; # STATUS in number 1 in the row, counting from '0'
+    my $fileIndx         = 3; # NAME in number 1 in the row, counting from '0'
+    my $crcIndx          = 6; # CRC in number 6 in the row, counting from '0'
+
     my @CloseDSTPatterns = ("CloseDST","Status","Type","Name","Version",
                             "Size","CRC","Insert","Begin","End",
                             "Run","FirstEvent","LastEvent","EventNumber","ErrorNumber");
@@ -7673,9 +7679,18 @@ foreach my $block (@blocks) {
    }
    if ($patternsmatched == $#CloseDSTPatterns) { #CloseDST has no pair
 #
+# Check CRC
+# 
+   if ($closedst[$crcIndx] == 0) {
+    print FILE "Status : $closedst[$statusIndx], CRC $closedst[$crcIndx]. Skip file : : $closedst[$fileIndx] \n";
+    if ($verbose == 1 && $webmode == 0) {
+     print "Status : $closedst[$statusIndx], CRC $closedst[$crcIndx]. Skip file : $closedst[$fileIndx] \n";
+    }   
+   }  else {
+#
 # find ntuple
 #
-    my @junk = split "/",$closedst[3];
+    my @junk = split "/",$closedst[$fileIndx];
     my $dstfile = trimblanks($junk[$#junk]);
     my $filename= $dstfile;
     $dstfile=$dirpath."/".$dstfile;
@@ -7787,19 +7802,23 @@ foreach my $block (@blocks) {
                                $timestamp, 1, 0); 
 
            print FILE "insert ntuple : $run, $outputpath, $closedst[1]\n";
+           $gbDST[$nCheckedCite] = $gbDST[$nCheckedCite] + $dstsize;
           push @cpntuples, $dstfile;
         } else {
           print FILE "***** Error in doCopy for : $outputpath\n";
         }
        }
+       }
       }
      }
-    }
+    } # CRC != 0
    } else  {
      print FILE "parseJournalFiles -W- CloseDST - cannot find all patterns \n";
    }
+  
    # end CloseDST 
    # 
+
   } elsif ($block =~/RunFinished/) { 
 #
 # RunFinished CInfo  , Host pcamsvc , EventsProcessed 10796 , LastEvent 21000 , 
@@ -8876,23 +8895,64 @@ sub printParserStat {
    my $self      = shift;
    my $timenow = time();
    my $ltime   = localtime($timenow);
+
+   my $totalRuns    = 0;
+   my $totalDSTs    = 0;
+   my $totalRunsBad = 0;
+   my $totalDSTsBad = 0;
+   my $totalGB      = 0;
+
+    my $vdir=$self->getValidationDir();
+    if (not defined $vdir) {
+        $vdir = "/tmp";
+     }
+    my $vlog = $vdir."/parseRunsSummary.log.".$timenow;   
+    open(FILEV,">".$vlog) or die "Unable to open file $vlog\n";
+    if ($webmode ==0  and $verbose ==1) { print "printParserStat -I- open $vlog \n";}
+
    print "\n\n\n";
-   print "------------- parseJournalFiles ------------- \n";
+   my $firstline = "------------- parseJournalFiles ------------- \n";
+   my $lastline  = "-------------     Thats It          ------------- \n";
+
+   print $firstline;
+   print FILEV $firstline;
+
    my $stime   = localtime($parserStartTime);
-   print "Start Time : $stime \n";
-   print "End   Time : $ltime \n";
-   print "Cites      : $nCheckedCite , active : $nActiveCites \n";
+   my $hours   = ($timenow - $parserStartTime)/60/60;
+   my $t0      = "Start Time : $stime \n";
+   my $t1      = "End   Time : $ltime \n";
+   my $ch = sprintf ("%3.1f hours \n",$hours);
+   print $t0,$t1,$ch;
+   print   FILEV $t0,$t1,$ch;
+
+   my $ctt = "Cites      : $nCheckedCite , active : $nActiveCites \n";
+   print $ctt;
+   print FILEV $ctt;
+
    for (my $i=0; $i<$nCheckedCite+1; $i++) {
      print "\n";
-     printf "%-20.15s %-20.40s %-50.30s","Cite : $JouDirPath[$i]", "Latest Journal : $JouLastCheck[$i]", "New Files : $JournalFiles[$i]";
-     print "\n";
+     my $cj = sprintf ("%-20.15s %-20.40s %-50.30s","Cite : $JouDirPath[$i]", "Latest Journal : $JouLastCheck[$i]", "New Files : $JournalFiles[$i] \n");
+     print $cj;
+     print FILEV "\n",$cj;
      if ($JournalFiles[$i] > 0) {
-      print "   Runs (Checked, Good, Bad, Failed) :  $CheckedRuns[$i], $GoodRuns[$i],  $BadRuns[$i], $FailedRuns[$i] \n";
-      print "   DSTs (Checked, Good, Bad, CRCi, CopyFail, CRCo) :  ";
-      print "$CheckedDSTs[$i],  $GoodDSTs[$i], $BadDSTs[$i], $BadCRCi[$i], $BadDSTCopy[$i], $BadCRCo[$i]\n";
+      my $l0 = "   Runs (Checked, Good, Bad, Failed) :  $CheckedRuns[$i], $GoodRuns[$i],  $BadRuns[$i], $FailedRuns[$i] \n";
+      my $l1 = "   DSTs (Checked, Good, Bad, CRCi, CopyFail, CRCo) :  ";
+      my $l2 = "$CheckedDSTs[$i],  $GoodDSTs[$i], $BadDSTs[$i], $BadCRCi[$i], $BadDSTCopy[$i], $BadCRCo[$i] \n";
+      print $l0,$l1,$l2;
+      print FILEV "\n",$l0,$l1,$l2;
+
+      $totalRuns    = $totalRuns    + $CheckedRuns[$i];
+      $totalRunsBad = $totalRunsBad + $BadRuns[$i] + $FailedRuns[$i];
+      $totalDSTs    = $totalDSTs    + $CheckedDSTs[$i];
+      $totalDSTsBad = $totalDSTsBad + $BadDSTs[$i] + $BadCRCi[$i] + $BadDSTCopy[$i] + $BadCRCo[$i];
+      $totalGB      = $totalGB      + $gbDST[$i];
      }
  }
- print "-------------     Thats It          ------------- \n";
+ $totalGB = $totalGB/1000;
+ my $summ =  "Total : Runs $totalRuns ($totalRunsBad), DSTs $totalDSTs ($totalDSTsBad), GB $totalGB \n";
+ print $summ, $lastline;
+ print FILEV $summ, $lastline;
+ close FILEV;
 }
 
 sub updateFilesProcessing {
