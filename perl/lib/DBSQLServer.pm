@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.43 2003/04/23 11:40:33 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.44 2003/04/24 17:09:53 alexei Exp $
 
 #
 #
@@ -26,6 +26,7 @@
 # to add  - standalone/client type,
 #          CPU, elapsed time, cite and host info into Job table
 #
+#  Apr 24, 2003. ak. Tables : Jobs, Runs, RNDM - add primary key
 #
 package DBSQLServer;
 use Error qw(:try);
@@ -139,7 +140,7 @@ sub Create{
     my $dbh=$self->{dbhandler};
 
 
-    my @tables=("Filesystems", "Cites","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment", "Journals");
+    my @tables=("Filesystems", "Cites","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment", "Journals","ProductionSet");
     my @createtables=("    CREATE TABLE Filesystems
      (fid         CHAR(4) NOT NULL,   
      host    VARCHAR(40),            
@@ -183,7 +184,7 @@ sub Create{
        timeu1    INT,
        timeu2    INT)",
       "CREATE TABLE Jobs 
-      (jid     INT NOT NULL,
+      (jid     INT NOT NULL primary key,
        jobname   VARCHAR(255),
        mid       INT,
        cid       INT,
@@ -203,7 +204,7 @@ sub Create{
        jobtype   VARCHAR(20))",
 
       "CREATE TABLE RNDM
-      (rid     INT NOT NULL,
+      (rid     INT NOT NULL primary key,
        rndm1   INT,
        rndm2   INT)",
       "CREATE TABLE Servers
@@ -215,7 +216,7 @@ sub Create{
         createtime INT,
         lastupdate INT)",
        "CREATE TABLE Runs
-        (run   INT NOT NULL,
+        (run   INT NOT NULL primary key,
          jid   INT,
          FEvent INT,
          LEvent INT,
@@ -241,6 +242,12 @@ sub Create{
          (did    INT NOT NULL,
           name   VARCHAR(255),
           timestamp int)",
+        "CREATE TABLE ProductionSet 
+         (did        INT NOT NULL,
+          name       VARCHAR(20),
+          begin      int,
+          end        int,
+          status     char(10))",
         "CREATE TABLE DataSetFiles 
          (did        INT NOT NULL,
           name       VARCHAR(255),
@@ -356,6 +363,20 @@ my $sql;
  } else {
     warn "Table Environment has $cnt entries. Not initialized";
  }
+# ProductionSet Table
+    $cnt=0;
+   if($self->{dbdriver} =~ m/Oracle/){
+      $sql = "SELECT COUNT(did) from ProductionSet";
+      $cntr=$self->Query($sql);
+      foreach my $ret (@{$cntr}) {
+        $cnt = $ret->[0];
+      }
+    } 
+    if ($cnt == 0) {
+     $dbh->do("insert into ProductionSet values(1,'2003Trial',1049891834,0,'Active')") 
+           or die    "cannot do: ".$dbh->errstr();    
+ }
+#
     $cnt = 0;
    if($self->{dbdriver} =~ m/Oracle/){
     $sql="SELECT COUNT(cid) FROM Cites";

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.121 2003/04/24 11:37:01 choutko Exp $
+# $Id: RemoteClient.pm,v 1.122 2003/04/24 17:09:53 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -737,10 +737,15 @@ sub RestartServer{
 sub ValidateRuns {
 
    my $self = shift;
+#ntuples
    my $validated=0;
-   my $thrusted=0;
-   my $bad=0; 
+   my $thrusted =0;
+   my $copied   = 0;
+   my $bad      =0; 
    my $unchecked=0; 
+   my @cpntuples   =();
+   my @cpruns      =();
+#
     if( not $self->Init()){
         die "ValidateRuns -F- Unable To Init";
         
@@ -757,35 +762,59 @@ sub ValidateRuns {
       DBServer::InitDBFile($self->{dbserver});
     }
     foreach my $run (@{$self->{dbserver}->{rtb}}){
-     if($run->{Status} eq "Finished"){
+# check if run is registered in database
+     $sql   = "SELECT run FROM runs WHERE run=$run->{Run}";
+     my $r0 = $self->{sqlserver}->Query($sql);
+     if (not defined $r0->[0][0]) {
+       $sql = "INSERT INTO runs VALUES($run->{Run},
+                                       $run->{Run},
+                                       $run->{FirstEvent},
+                                       $run->{LastEvent},
+                                       $run->{TFEvent},
+                                       $run->{TLEvent},
+                                       $run->{SubmitTime},
+                                       '$run->{Status}')";
+        $self->{sqlserver}->Update($sql);
+     }
+     if($run->{Status} eq "Finished" || $run->{Status} eq "Failed"){
+        my $fevent = -1;
+        my $levent =  0;
+        push @cpruns, $run;
 # check if corresponding job exist
-         $sql   = "SELECT status, content FROM jobs WHERE jid=$run";
+         $sql   = "SELECT runs.status, jobs.content FROM runs,jobs 
+                          WHERE jobs.jid=$run->{Run} AND runs.jid=jobs.jid";
          my $r1 = $self->{sqlserver}->Query($sql);
          if (defined $r1->[0][0]) {
              my $jobstatus  = $r1->[0][0];
              my $jobcontent = $r1->[0][1];
-             if ($jobcontent =~ m/-JR/) {
+             if ($jobcontent =~ m/-GR/) {
+#
 # remote job
 #            update jobinfo first
-             my $events  = $run->{CurrentInfo}->{EventsProcessed};
-             my $errors  = $run->{CurrentInfo}->{CriticalErrorsFound};
-             my $cputime = $run->{CurrentInfo}->{CPUTimeSpent};
-             my $elapsed = $run->{CurrentInfo}->{TimeSpent};
-             my $host    = $run->{CurrentInfo}->{HostName};
+             my $events  = $run->{cinfo}->{EventsProcessed};
+             my $errors  = $run->{cinfo}->{CriticalErrorsFound};
+             my $cputime = sprintf("%.2f",$run->{cinfo}->{CPUTimeSpent});
+             my $elapsed = sprintf("%.2f",$run->{cinfo}->{TimeSpent});
+             my $host    = $run->{cinfo}->{HostName};
 
-             $sql = "UPDATE jobs SET STATUS='Finished', 
+             $sql = "UPDATE jobs SET 
                                      EVENTS=$events,
                                      ERRORS=$errors,
                                      CPUTIME=$cputime,
                                      ELAPSED=$elapsed,
                                      HOST='$host' 
-                            WHERE JID = $run";
+                            WHERE JID = $run->{Run}";
              print "$sql \n";
 # validate ntuples
 # Find corresponding ntuples from server
              foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
              if($ntuple->{Type} eq "Ntuple" and ($ntuple->{Status} eq "Success" or 
                $ntuple->{Status} eq "Validated") and $ntuple->{Run}== $run->{Run}){
+#
+                 if ($fevent == -1) {
+                     $fevent = $ntuple->{FirstEvent};
+                 }
+                 $levent = $ntuple->{LastEvent};
 # suppress double //
                   $ntuple->{Name}=~s/\/\//\//;                  
                   my @fpatha=split ':', $ntuple->{Name};
@@ -807,7 +836,8 @@ sub ValidateRuns {
                   }  
                   else{
                    close FILE;
-                   my $i=system("$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber}");
+                   my $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber}";
+                   my $i=system($validatecmd);
                       if( ($i == 0xff00) or ($i & 0xff)){
                       if($ntuple->{Status} ne "Validated"){
                        $status="Unchecked";                     
@@ -832,12 +862,29 @@ sub ValidateRuns {
                            $events=$ntuple->{EventNumber};
                            $badevents=int($i*$ntuple->{EventNumber}/100);
                            $validated++;
+                           my $jobid = $run->{Run};
+                           my $outputpath = $self->doCopy($jobid,$fpath);
+                           if (defined $outputpath) {
+                            $sql="INSERT INTO Ntuples VALUES($run->{Run},
+                                                             '$ntuple->{Version}',
+                                                             '$ntuple->{Type}',
+                                                              $run->{Run},
+                                                              $ntuple->{FirstEvent},
+                                                              $ntuple->{LastEvent},
+                                                              $events,$badevents,
+                                                              $ntuple->{Insert},
+                                                              $ntuple->{size},
+                                                              '$status',
+                                                              '$outputpath',
+                                                              $ntuple->{crc})";
+                            print "$sql \n";
+#                           $self->{sqlserver}->Update($sql);
+                            $copied++;
+                            push @cpntuples, $fpath;
+                           }
                           }
                       }
                }
-               $sql="insert into Ntuples values($run->{Run},'$ntuple->{Version}','$ntuple->{Type}',$run->{Run},$ntuple->{FirstEvent},$ntuple->{LastEvent},$events,$badevents,$ntuple->{Insert},$ntuple->{size},'$status','$ntuple->{Name}',$ntuple->{crc})";
-                  print "$sql \n";
-#                  $self->{sqlserver}->Update($sql);
               }
           }
          }
@@ -886,18 +933,110 @@ sub ValidateRuns {
                      }
                    }    
                  } # if it is NTUPLE and Status
-               }
-             }
+                }
+                if ($run->{Status} eq 'Failed' && $fevent > -1 && $levent > 0) {
+                 $sql = "UPDATE runs SET STATUS='Finished', FEVENT=$fevent, LEVENT=$levent WHERE run=$run->{Run}";
+                 print $sql;
+                }
+              }
             }
           }
          } else {
-          print "ValidateRuns -W- cannot find status, content in Jobs for JID=$run \n";
+          print "ValidateRuns -W- cannot find status, content in Jobs for JID=$run->{Run} \n";
          }
      } # if run status == 'Finished'
- }
-   $self->InfoPlus("$validated Ntuple(s) Successfully Validated.\n $bad Ntuple(s) Turned Bad.\n $unchecked Ntuples(s) Could Not Be Validated.\n $thrusted Ntuples Could Not be Validated But Assumed  OK.");
+   }
+   if ($copied) {
+       foreach my $cpnt (@cpntuples) {
+          my $cmd="rm $cpnt";
+          print "$cmd \n";
+      }
+       foreach my $run (@cpruns) {
+#         DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete");
+           print "DBServer::sendRunEvInfo($self->{dbserver},$run,\"Delete\"); \n";
+       }
+       $sql = "COMMIT";
+       print "$sql \n";
+   }
+   $self->InfoPlus("$validated Ntuple(s) Successfully Validated.\n $copied Ntuple(s) copied \n $bad Ntuple(s) Turned Bad.\n $unchecked Ntuples(s) Could Not Be Validated.\n $thrusted Ntuples Could Not be Validated But Assumed  OK.");
         $self->{ok}=1;
 }
+
+sub doCopy {
+     my $self = shift;
+     my $jid  = shift;
+     my $inputfile = shift;
+# 
+     my @junk = split '/',$inputfile;
+     my $file = $junk[$#junk];
+
+     my $time = time();
+     my $logfile = "/tmp/cp.$time.log";
+     my $cmd = "touch $logfile";
+     my $cmdstatus = system($cmd); 
+
+     my $outputdisk => undef;
+     my $outputpath => undef;
+
+# find disk
+     my $filesize = 0;
+     $filesize    = (stat($inputfile))[7];
+     if ($filesize > 0) {
+      $filesize = 1+$filesize/1000000;
+      my $sql = "SELECT disk, path FROM filesystems WHERE AVAILABLE > $filesize 
+                   ORDER BY priority DESC, available DESC";
+      my $ret = $self->{sqlserver}->Query($sql);
+      if (defined $ret->[0][0]) {
+       $outputdisk = trimblanks($ret->[0][0]);
+       $outputpath = trimblanks($ret->[0][1]);
+# get production set path
+       $sql = "SELECT NAME FROM ProductionSet WHERE STATUS='Active'";
+       my $r0 = $self->{sqlserver}->Query($sql);
+       if (defined $r0->[0][0]) {
+         my $pset=trimblanks($r0->[0][0]);
+         $outputpath = $outputpath."/".$pset;
+         my $mtime = (stat $outputpath)[9];
+         if ($mtime) {
+# find job
+          $sql = "SELECT cites.name,jobname,jobs.jid  FROM jobs,cites 
+                           WHERE jid=$jid AND cites.cid=jobs.cid";
+          my $r1 = $self->{sqlserver}->Query($sql);
+          if (defined $r1->[0][0]) {
+            my $cite    = $r1->[0][0];
+            my $jobname = $r1->[0][1];
+            $jobname =~ s/$cite.//;
+            $jobname =~ s/$jid.//;
+            $jobname =~ s/.job//;
+            $outputpath = $outputpath."/".$jobname;
+            $cmd = "mkdir -p $outputpath";
+            print "$cmd \n";
+            $cmdstatus = system($cmd);
+            if (!$cmdstatus) {
+             $outputpath = $outputpath."/".$file;
+             $cmd = "cp -pi -d -v $inputfile  $outputpath >> $logfile";
+             print "$cmd \n";
+             return $outputpath;
+            } else {
+             print "doCopy -W- failed $cmd";
+            }
+           } else {
+            print "doCopy -W- cannot get info for JID=$jid";
+           }
+        } else {
+          print "doCopy -W- cannot stat($outputpath)";
+        }
+      } else {
+       print "doCopy -W- cannot get ProductionSet";
+     }
+    } else {
+       print "doCopy -W- cannot $sql";
+     }
+  } else {
+    print "doCopy -W- cannot stat $inputfile or file size is 0";
+  } 
+  return undef;
+ }
+
 
 sub Validate{
    my $self = shift;
@@ -3512,7 +3651,7 @@ print qq`
          if ($q->param("STALONE") eq "No") {
           my $stalone  = "CLIENT";
          }
-         my $sql="insert into Jobs values
+         my $sql="INSERT INTO Jobs VALUES
          ($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb',
                    $ctime,'$nickname',' ',' ',0,0,0,0,'$stalone')";
          $self->{sqlserver}->Update($sql);
@@ -5348,3 +5487,4 @@ sub Color {
     }
     return $colors[$color];
 }
+
