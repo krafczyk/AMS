@@ -1062,7 +1062,7 @@ void AMSDisplay::StartStop(){
 	else text = new TText(0.5, 0.5, atext2);
    }
     if(state%2)m_theapp->RemoveIdleTimer();
-    else m_theapp->SetIdleTimer(6,"");
+    else m_theapp->SetIdleTimer(12,"");
    text->SetTextAlign(22);
    text->SetTextSize(0.55);
    text->Draw();
