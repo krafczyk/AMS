@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.29 2001/04/27 21:50:33 choutko Exp $
+//  $Id: mccluster.h,v 1.30 2002/03/20 09:43:10 choumilo Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -18,7 +18,6 @@
 #include <link.h>
 #include <commons.h>
 #include <stdlib.h>
-#include <ctcdbc.h>
 #include <trdid.h>
 //========================================================  
 class AMSTOFMCCluster: public AMSlink{
@@ -162,60 +161,6 @@ public:
 
 
 //=======================================================
-// MC bank for CTC
-
-class AMSCTCMCCluster: public AMSlink{
-protected:
-
- integer _idsoft;   // barnumber +(1-if agel;2-if wls)*100
- AMSPoint _xcoo;    // Coordinates of input point
- AMSDir   _xdir;    // dir cos
- number   _step;    // step
- number   _charge;  // charge
- number   _beta;    // particle velocity
- number   _edep;    // energy deposition
- number   _time;      // time
- void _writeEl();
- void _copyEl(){};
- void _printEl(ostream &stream){stream <<"AMSCTCMCCluster "<<_idsoft<<" "
- <<_charge<<" "<<_xcoo<<" "<<_step<<" "<<_beta<<" "<<_edep<<endl;}
- static integer Out(integer);
-public:
- AMSCTCMCCluster(integer idsoft, AMSPoint xcoo, AMSDir xdir, 
- number charge, number step, number beta, number edep, number time) :
- _idsoft(idsoft), _xcoo(xcoo), _xdir(xdir), _charge(charge),_step(step), 
- _beta(beta),_edep(edep), _time(time){_next=0;};
- AMSCTCMCCluster(integer idsoft, AMSPoint xcoo, 
- number charge, number step, number beta, number edep, number time) :
- _idsoft(idsoft), _xcoo(xcoo), _charge(charge),_step(step), 
- _beta(beta), _edep(edep), _time(time){_next=0;};
-  AMSCTCMCCluster(){_next=0;};
- ~AMSCTCMCCluster(){};
- inline number gettime() const {return _time;}
- inline integer getid() const{return _idsoft;}
- inline integer getbarno() const{ return _idsoft%1000;}
- integer getdetno(); 
- inline integer getlayno() const{ return CTCDBc::getgeom()<2?(_idsoft/1000)%10:
- _idsoft/1000000;}
- integer getrowno() const{return (_idsoft/2)%2+1+2*((_idsoft/1000)%10-1);}
- integer getcolno() const{return (_idsoft-1)%2+1+2*((_idsoft/100)%10-1);}
- inline number  getbeta() const { return _beta;}
- inline number  getstep() const { return _step;}
- inline number  getedep() const { return _edep;}
- inline number  getcharge2() const { return _charge*_charge;}
- inline AMSPoint  getcoo() const { return _xcoo;}
- inline AMSDir  getdir() const { return _xdir;}
- integer operator < (AMSlink & o)const{
-   return _idsoft < ((AMSCTCMCCluster*)(&o)) ->_idsoft;}
- static void sictchits(integer idsoft , geant vect[],geant charge, geant step,
- geant getot, geant edep, geant time);
-  AMSCTCMCCluster *  next(){return (AMSCTCMCCluster*)_next;}
-//+
-#ifdef __DB__
-   friend class AMSCTCMCClusterD;
-#endif
-//-
-};
 
 
 

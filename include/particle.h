@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.34 2001/08/10 12:59:47 choutko Exp $
+//  $Id: particle.h,v 1.35 2002/03/20 09:43:10 choumilo Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -14,11 +14,9 @@
 #include <link.h>
 #include <trrec.h>
 #include <tofrec02.h>
-#include <tofrec.h>
 #include <ecaldbc.h>
 #include <beta.h>
 #include <charge.h>
-#include <ctc.h>
 #include <trdrec.h>
 #include <richrec.h>
 class AntiMatter: public AMSlink{
@@ -35,7 +33,6 @@ class EcalShower;
 class AMSParticle: public AMSlink{
 protected:
 
-  AMSCTCCluster * _pctc[2];  // pointers to ctc
   AMSBeta * _pbeta;          // pointer to beta 
   AMSCharge * _pcharge;      // pointer to charge
   AMSTrTrack * _ptrack;      // pointer to track;
@@ -57,7 +54,6 @@ protected:
   number  _PhiGl;
   number  _CutoffMomentum;
   AMSPoint _Coo;
-  CTC    _Value[2];
   AMSPoint _TOFCoo[4];  
   AMSPoint _AntiCoo[2];  
   AMSPoint _EcalCoo[2*ecalconst::ECSLMX];  
@@ -99,10 +95,6 @@ public:
   AMSParticle():   _pbeta(0), _pcharge(0), _ptrack(0),_ptrd(0),_prich(0),_pShower(0)
  {
     int i;
-    for(i=0;i<2;i++){
-     _Value[i]=CTC(0.,0.,1.,AMSPoint());
-     _pctc[i]=0;
-    }
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2*ecalconst::ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
@@ -122,10 +114,6 @@ public:
   _Charge(charge), _Theta(theta), _Phi(phi), _Coo(coo)
  {
     int i;
-    for(i=0;i<2;i++){
-     _Value[i]=CTC(0.,0.,1.,AMSPoint());
-     _pctc[i]=0;
-    }
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2*ecalconst::ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
@@ -136,7 +124,6 @@ public:
     }
  }
 
-  void ctcfit(); // CTC fit
   void toffit(); // TOF fit
   void antifit(); // Anti fit
   void ecalfit(); // Ecal fit
@@ -163,7 +150,6 @@ public:
 AMSBeta*       getpbeta()       { return _pbeta;}
 AMSCharge*     getpcharge()     { return _pcharge;}
 AMSTrTrack*    getptrack()      { return _ptrack;}
-AMSCTCCluster* getpctc(int n)   {  return n>=0 && n<2 ? _pctc[n]:0;}
 
 number  getmass() const {return _Mass;}
 number  getmomentum() const {return _Momentum;}
@@ -175,7 +161,6 @@ AMSPoint getcoo() const { return _Coo;}
 void       setpbeta(AMSBeta* p)     {_pbeta   = p;}
 void       setpcharge(AMSCharge* p) {_pcharge = p;}
 void       setptrack(AMSTrTrack* p) {_ptrack  = p;}
-void       setpctc(AMSCTCCluster* p, int n)   { if (n>=0 && n < 2) _pctc[n] = p;}
 
 integer    getgpart()               {return _GPart;}
 void       setgpart(integer gpart)  {_GPart = gpart;}

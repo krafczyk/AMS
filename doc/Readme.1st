@@ -1,4 +1,4 @@
-#  $Id: Readme.1st,v 1.11 2001/01/22 17:00:54 vitali Exp $          
+#  $Id: Readme.1st,v 1.12 2002/03/20 09:43:07 choumilo Exp $          
 Dear AMS User, 
 below are some (useful) info to make you more familiar  with AMS software.
 
@@ -53,25 +53,7 @@ b) As a developper :
   ii)You should be a member of amsdev group on ams computers
   (ask Vitaly.Choutko@cern.ch about it)                                                
   iii) see VIII for $Offline & amsvar
-   iv) cvs checkout AMS   // creates a local copy of AMS files (latest revision)
-                          // You will be able to update/commit 
-
-         To add new files/directories:
-         cvs add file
-
-         To remove it:
-         rm file
-         cvs remove file
-
-         To make the changes available to others (update CVS master rep) :
-         cvs commit   // Please ensure the files you changed at least compilable :)
-                      // Please not change the makefiles in install dir,
-                      // create your own instead
-            
-          To synchronize your local copy with cvs rep:
-          cvs update -d 
-
-
+   iv) cvs checkout -r  v300_lastbuild AMS
 
 
 VII.  Standalone version   - Support is disabled, ignore it. 
@@ -115,12 +97,13 @@ c. SoftWare/DataAccess
 
   source $Offline/vdev/install/amsvar
 
-  vdev version is in $Offline/vdev  (v 2.17 build 21)
-  vdec/doc contains doc
+  frozen version is in $Offline/v3.00  (v3.00 build 1023)
+  v3.00/doc contains doc
 
   AMSDataBase is in $AMSDataDir/DataBase 
   runs in $RunsDir 
-  ntuples in $AMSDataNtuplesDir (acarbon only)
+  old ntuples in $AMSDataNtuplesDir 
+  newest set in /f2dat1/STS91
   
   Database Related Ntuples in $AMSDataDir/ntuples  [only on ams alphas now]
  

@@ -1,5 +1,8 @@
-#  $Id: Readme.AMS02.1st,v 1.31 2002/03/14 14:13:32 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.32 2002/03/20 09:43:07 choumilo Exp $          
 
+
+0. In the current version only AMS02-setup is supported.
+   Please refer to  Readme.1st for AMS01 related questions.
 
 
 
@@ -112,9 +115,9 @@ VII.  Standalone version
           setenv Offline /offline
           source $Offline/vdev/install/amsvar
           cd $AMSDataDir
-          tar -cvf ~/ams.tar v3.00/*.dat 
-          tar -uvf ~/ams.tar v3.00/T*
-          tar -uvf ~/ams.tar v3.00/t*
+          tar -cvf ~/ams.tar v4.00/*.dat 
+          tar -uvf ~/ams.tar v4.00/T*
+          tar -uvf ~/ams.tar v4.00/t*
           tar -uvf ~/ams.tar DataBase/MagneticFieldMap/9*
           tar -uvf ~/ams.tar DataBase/Tracker*.2*
           tar -uvf ~/ams.tar DataBase/Tracker*2
@@ -157,7 +160,7 @@ c. SoftWare/DataAccess
 
    source $Offline/vdev/install/amsvar
 
-   vdev version is in $Offline/vdev  (v 3.00 build 912)
+   vdev version is in $Offline/vdev  (v4.00 build 1)
 
    vdec/doc contains doc
 
@@ -175,12 +178,12 @@ d.  Misc
     iii)daqevt.C must be compiled without -O switch with egcs compiler
 
 
-e. AMS01 and eventually AMS02 Data/MC  may be retrieved via
-   http://ams.cern.ch/AMS/Computing/dbquery.html
+e. AMS02 Data/MC  may be retrieved via
+   http://pcamsf0.cern.ch/cgi-bin/mon/rc.cgi form.
 
-f. The whole set of AMS01 public data ntuples is in /Offline/ntuples
+f. Geant4 related stuff in doc/g4.doc
 
-g. Geant4 related stuff in doc/g4.doc
+g. Job test examples are examples/*test*.job
 
 IX  AMS Event Display
 

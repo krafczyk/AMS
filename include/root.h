@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.52 2002/01/17 14:33:52 choutko Exp $
+//  $Id: root.h,v 1.53 2002/03/20 09:43:10 choumilo Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -15,11 +15,8 @@
 
 class AMSNtuple;
 namespace root{
-const int MAXBETA    =   150;
 const int MAXBETA02    = 50;
-const int MAXCHARGE  =   150;
 const int MAXCHARGE02  = 30;
-const int MAXPART    =   100;
 const int MAXPART02    =  20;
 const int MAXTOF     =    20;
 const int MAXTOFRAW  =    20;
@@ -30,15 +27,9 @@ const int MAXANTIMC  =   200;
 const int MAXTRCL    =   200;
 const int MAXTRRAW   =   300;
 const int MAXTRCLMC  =   200;
-const int MAXTRRH    =   500;
 const int MAXTRRH02    =   666;
-const int MAXTRTR    =   200;
 const int MAXTRTR02    =   100;
-const int MAXMCG     =    20;
 const int MAXMCG02     =    100;
-const int MAXCTCCL   =    20;
-const int MAXCTCHT   =    50;
-const int MAXCTCCLMC =   200;
 const int MAXECSHOW =    5;
 const int MAXECCLUST =    60;
 const int MAXEC2DCLUST =    10;
@@ -47,6 +38,7 @@ const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
 const int MAXRICMC   =   300;
 const int MAXRICHITS =   100;
+const int MAXRICHRIN =   100;
 const int MAXTRDCLMC   =   200;
 const int MAXTRDRHT   =   200;
 const int MAXTRDCL   =   100;
@@ -55,52 +47,6 @@ const int MAXTRDTRK   =   40;
 const int MAXMCVOL   =   150;
 };
 using namespace root;
-#ifdef __WRITEROOT__
-class EventNtuple: public TObject {
-#else
-class EventNtuple {
-#endif
-public:
-  int Eventno;
-  int Run;
-  int RunType;
-  int Time[2];
-  int RawWords;
-  float RadS;
-  float ThetaS;
-  float PhiS;
-  float Yaw;
-  float Pitch;
-  float Roll;
-  float VelocityS;
-  float VelTheta;
-  float VelPhi;
-  float ThetaM;
-  float PhiM;
-  int Particles;
-  int Tracks;
-  int Betas;
-  int Charges;
-  int TrRecHits;
-  int TrClusters;
-  int TrRawClusters;
-  int TrMCClusters;
-  int TOFClusters;
-  int TOFMCClusters;
-  int CTCClusters;
-  int CTCMCClusters;
-  int AntiMCClusters;
-  int AntiClusters;
-  int EventStatus; 
-
-#ifdef __WRITEROOT__
-  EventNtuple();
-ClassDef(EventNtuple,1)       //EventNtuple
-#else
-friend class AMSEvent;
-friend class AMSNtuple;  
-#endif
-};
 
 #ifdef __WRITEROOT__
 class EventNtuple02: public TObject {
@@ -155,33 +101,6 @@ friend class AMSNtuple;
 };
 
 
-#ifdef __WRITEROOT__
-class BetaNtuple : public TObject {
-#else
-class BetaNtuple {
-#endif
-public:
-  int Nbeta;
-  int Status[MAXBETA];
-  int Pattern[MAXBETA];
-  float Beta[MAXBETA];
-  float BetaC[MAXBETA];
-  float Error[MAXBETA];
-  float ErrorC[MAXBETA];
-  float Chi2[MAXBETA];
-  float Chi2S[MAXBETA];
-  int NTOF[MAXBETA];
-  int pTOF[MAXBETA][4];
-  int pTr[MAXBETA];
-
-#ifdef __WRITEROOT__
- BetaNtuple();
-ClassDef(BetaNtuple,1)       //BetaNtuple
-#else
-friend class AMSBeta;
-friend class AMSNtuple;
-#endif
-};
 
 #ifdef __WRITEROOT__
 class BetaNtuple02 : public TObject {
@@ -241,80 +160,8 @@ friend class AMSNtuple;
 #endif
 };
 
-#ifdef __WRITEROOT__
-class ChargeNtuple : public TObject {
-#else
-class ChargeNtuple {
-#endif
-public:
-  int Ncharge;
-  int Status[MAXCHARGE];
-  int BetaP[MAXCHARGE];
-  int ChargeTOF[MAXCHARGE];
-  int ChargeTracker[MAXCHARGE];
-  float ProbTOF[MAXCHARGE][4];
-  int ChInTOF[MAXCHARGE][4];
-  float ProbTracker[MAXCHARGE][4];
-  int ChInTracker[MAXCHARGE][4];
-  float ProbAllTracker[MAXCHARGE];
-  float TrunTOF[MAXCHARGE];
-  float TrunTOFD[MAXCHARGE];
-  float TrunTracker[MAXCHARGE];
-
-#ifdef __WRITEROOT__
-  ChargeNtuple();
-ClassDef(ChargeNtuple,1)       //ChargeNtuple
-#else
-friend class AMSCharge;
-friend class AMSNtuple;
-#endif
-};
 
 
-#ifdef __WRITEROOT__
-class ParticleNtuple : public TObject {
-#else
-class ParticleNtuple {
-#endif
-public:
-  int Npart;
-  int   BetaP[MAXPART];
-  int   ChargeP[MAXPART];
-  int   TrackP[MAXPART];
-  int   Particle[MAXPART];
-  int   ParticleVice[MAXPART];
-  float Prob[MAXPART][2];
-  float FitMom[MAXPART];
-  float Mass[MAXPART];
-  float ErrMass[MAXPART];
-  float Momentum[MAXPART];
-  float ErrMomentum[MAXPART];
-  float Charge[MAXPART];
-  float Theta[MAXPART];
-  float Phi[MAXPART];
-  float ThetaGl[MAXPART];
-  float PhiGl[MAXPART];
-  float Coo[MAXPART][3];
-  int   ATCnbcel[MAXPART][2];
-  float ATCnbphe[MAXPART][2];
-  int   ATCidcel[MAXPART][2];
-  int   ATCdispm[MAXPART][2];
-  int   ATCdaero[MAXPART][2];
-  int   ATCstatu[MAXPART][2];
-//  float ATCbeta[MAXPART];
-  float Cutoff[MAXPART];
-  float CooCTC[MAXPART][2][3];
-  float TOFCoo[MAXPART][4][3];
-  float AntiCoo[MAXPART][2][3];
-  float TrCoo[MAXPART][6][3];
-#ifdef __WRITEROOT__
-  ParticleNtuple();
-ClassDef(ParticleNtuple,1)       //ParticleNtuple
-#else
-friend class AMSParticle;
-friend class AMSNtuple;
-#endif
-};
 
 #ifdef __WRITEROOT__
 class ParticleNtuple02 : public TObject {
@@ -728,32 +575,6 @@ friend class AMSNtuple;
 
 
 #ifdef __WRITEROOT__
-class TrRecHitNtuple : public TObject {
-#else
-class TrRecHitNtuple {
-#endif
-public:
-  int Ntrrh;
-  int pX[MAXTRRH];
-  int pY[MAXTRRH];
-  int Status[MAXTRRH];
-  int Layer[MAXTRRH];
-  float Hit[MAXTRRH][3];
-  float EHit[MAXTRRH][3];
-  float Sum[MAXTRRH];
-  float DifoSum[MAXTRRH];
-  float CofgX[MAXTRRH];
-  float CofgY[MAXTRRH];
-
-#ifdef __WRITEROOT__
-  TrRecHitNtuple();
-ClassDef(TrRecHitNtuple,1)       //TrRecHitNtuple
-#else
-friend class AMSTrRecHit;
-friend class AMSNtuple;
-#endif
-};
-#ifdef __WRITEROOT__
 class TrRecHitNtuple02 : public TObject {
 #else
 class TrRecHitNtuple02 {
@@ -780,55 +601,6 @@ friend class AMSNtuple;
 #endif
 };
 
-#ifdef __WRITEROOT__
-class TrTrackNtuple : public TObject {
-#else
-class TrTrackNtuple {
-#endif
-public:
-  int Ntrtr;
-  int Status[MAXTRTR];
-  int Pattern[MAXTRTR];
-  int Address[MAXTRTR];
-  int NHits[MAXTRTR];
-  int pHits[MAXTRTR][6];
-  float LocDBAver[MAXTRTR];
-  int GeaneFitDone[MAXTRTR];
-  int AdvancedFitDone[MAXTRTR];
-  float Chi2StrLine[MAXTRTR];
-  float Chi2Circle[MAXTRTR];
-  float CircleRidgidity[MAXTRTR];
-  float Chi2FastFit[MAXTRTR];
-  float Ridgidity[MAXTRTR];
-  float ErrRidgidity[MAXTRTR];
-  float Theta[MAXTRTR];
-  float Phi[MAXTRTR];
-  float P0[MAXTRTR][3];
-  float GChi2[MAXTRTR];
-  float GRidgidity[MAXTRTR];
-  float GErrRidgidity[MAXTRTR];
-  float GTheta[MAXTRTR];
-  float GPhi[MAXTRTR];
-  float GP0[MAXTRTR][3];
-  float HChi2[MAXTRTR][2];
-  float HRidgidity[MAXTRTR][2];
-  float HErrRidgidity[MAXTRTR][2];
-  float HTheta[MAXTRTR][2];
-  float HPhi[MAXTRTR][2];
-  float HP0[MAXTRTR][2][3];
-  float FChi2MS[MAXTRTR];
-  float GChi2MS[MAXTRTR];
-  float RidgidityMS[MAXTRTR];
-  float GRidgidityMS[MAXTRTR];
-
-#ifdef __WRITEROOT__
-  TrTrackNtuple();
-ClassDef(TrTrackNtuple,1)       //TrTrackNtuple
-#else
-friend class AMSTrTrack;
-friend class AMSNtuple;
-#endif
-};
 
 #ifdef __WRITEROOT__
 class TrTrackNtuple02 : public TObject {
@@ -883,6 +655,7 @@ friend class AMSTrTrack;
 friend class AMSNtuple;
 #endif
 };
+
 #ifdef __WRITEROOT__
 class MCTrackNtuple : public TObject {
 #else
@@ -900,29 +673,6 @@ ClassDef(MCTrackNtuple,1)       //MCTrackNtuple
 #endif
 };
 
-#ifdef __WRITEROOT__
-class MCEventGNtuple : public TObject {
-#else
-class MCEventGNtuple {
-#endif
-public:
-  int Nmcg;
-  int Nskip[MAXMCG];
-  int Particle[MAXMCG];
-  float Coo[MAXMCG][3];
-  float Dir[MAXMCG][3];
-  float Momentum[MAXMCG];
-  float Mass[MAXMCG];
-  float Charge[MAXMCG];
-
-#ifdef __WRITEROOT__
-  MCEventGNtuple();
-ClassDef(MCEventGNtuple,1)       //MCEventGNtuple
-#else
-friend class AMSmceventg;
-friend class AMSNtuple;
-#endif
-};
 
 #ifdef __WRITEROOT__
 class MCEventGNtuple02 : public TObject {
@@ -949,53 +699,6 @@ friend class AMSNtuple;
 };
 
 
-#ifdef __WRITEROOT__
-class CTCClusterNtuple : public TObject {
-#else
-class CTCClusterNtuple {
-#endif
-public:
-  int Nctccl;
-  int Status[MAXCTCCL];
-  int Layer[MAXCTCCL];
-  float Coo[MAXCTCCL][3];
-  float ErrCoo[MAXCTCCL][3];
-  float RawSignal[MAXCTCCL];
-  float Signal[MAXCTCCL];
-  float ErrorSignal[MAXCTCCL];
-
-#ifdef __WRITEROOT__
-  CTCClusterNtuple();
-ClassDef(CTCClusterNtuple,1)       //CTCClusterNtuple
-#else
-friend class AMSCTCCluster;
-friend class AMSNtuple;
-#endif
-};
-
-#ifdef __WRITEROOT__
-class CTCMCClusterNtuple : public TObject {
-#else
-class CTCMCClusterNtuple {
-#endif
-public:
-  int Nctcclmc;
-  int Idsoft[MAXCTCCLMC];
-  float Coo[MAXCTCCLMC][3];
-  float Dir[MAXCTCCLMC][3];
-  float Step[MAXCTCCLMC];
-  float Charge[MAXCTCCLMC];
-  float Beta[MAXCTCCLMC];
-  float Edep[MAXCTCCLMC];
-
-#ifdef __WRITEROOT__
-  CTCMCClusterNtuple();
-ClassDef(CTCMCClusterNtuple,1)       //CTCMCClusterNtuple
-#else
-friend class AMSCTCMCCluster;
-friend class AMSNtuple;
-#endif
-};
 
 #ifdef __WRITEROOT__
 class AntiClusterNtuple : public TObject {
@@ -1040,31 +743,6 @@ friend class AMSNtuple;
 #endif
 };
 
-#ifdef __WRITEROOT__
-class LVL3Ntuple : public TObject {
-#else
-class LVL3Ntuple {
-#endif
-public:
-  int Nlvl3;
-  int TOFTr[MAXLVL3];
-  int AntiTr[MAXLVL3];
-  int TrackerTr[MAXLVL3];
-  int NTrHits[MAXLVL3];
-  int NPatFound[MAXLVL3];
-  int Pattern[MAXLVL3][2];
-  float Residual[MAXLVL3][2];
-  float Time[MAXLVL3];
-  float ELoss[MAXLVL3];
-
-#ifdef __WRITEROOT__
-  LVL3Ntuple();
-ClassDef(LVL3Ntuple,1)       //LVL3Ntuple
-#else
-friend class TriggerLVL3;
-friend class AMSNtuple;
-#endif
-};
 
 #ifdef __WRITEROOT__
 class LVL3Ntuple02 : public TObject {
@@ -1096,27 +774,6 @@ friend class AMSNtuple;
 #endif
 };
 
-#ifdef __WRITEROOT__
-class LVL1Ntuple : public TObject {
-#else
-class LVL1Ntuple {
-#endif
-public:
-  int Nlvl1;
-  int Mode[MAXLVL1];
-  int TOFlag[MAXLVL1];
-  int TOFPatt[MAXLVL1][4];
-  int TOFPatt1[MAXLVL1][4];
-  int AntiPatt[MAXLVL1];
-
-#ifdef __WRITEROOT__
-  LVL1Ntuple();
-ClassDef(LVL1Ntuple,1)       //LVL1Ntuple
-#else
-friend class TriggerLVL1;
-friend class AMSNtuple;
-#endif
-};
 
 
 #ifdef __WRITEROOT__
@@ -1142,28 +799,6 @@ friend class AMSNtuple;
 #endif
 };
 
-#ifdef __WRITEROOT__
-class CTCHitNtuple : public TObject {
-#else
-class CTCHitNtuple {
-#endif
-public:
-  int Nctcht;
-  int Status[MAXCTCHT];
-  int Layer[MAXCTCHT];
-  int Column[MAXCTCHT];
-  int Row[MAXCTCHT];
-  float Signal[MAXCTCHT];
-
-
-#ifdef __WRITEROOT__
-  CTCHitNtuple();
-ClassDef(CTCHitNtuple,1)       //CTCHitNtuple
-#else
-friend class AMSCTCRawHit;
-friend class AMSNtuple;
-#endif
-};
 
 #ifdef __WRITEROOT__
 class TrRawClusterNtuple : public TObject {
@@ -1205,6 +840,7 @@ friend class AMSNtuple;
 #endif
 };
 
+
 #ifdef __WRITEROOT__
 class TOFRawClusterNtuple : public TObject {
 #else
@@ -1227,7 +863,7 @@ public:
   TOFRawClusterNtuple();
 ClassDef(TOFRawClusterNtuple ,1)       //TOFRawClusterNtuple 
 #else
-friend class AMSTOFRawCluster;
+friend class TOF2RawCluster;
 friend class AMSNtuple;
 #endif
 };
@@ -1248,7 +884,7 @@ public:
   int eventpointer[MAXRICMC];  // Pointer to detected hit
 #ifdef __WRITEROOT__
   RICMCNtuple();
-ClassDef(RICMCNtuple,1)
+ClassDef(RICMCNtuple,1)       // RICMCNtuple
 #else
 friend class AMSRichMCHit;
 friend class AMSNtuple;
@@ -1270,7 +906,7 @@ public:
 
 #ifdef __WRITEROOT__
   RICEventNtuple();
-ClassDef(RICEventNtuple,1)
+ClassDef(RICEventNtuple,1)       // RICEventNtuple
 #else
 friend class AMSRichRawEvent;
 friend class AMSNtuple;
@@ -1285,18 +921,18 @@ class RICRing {
 #endif
 public:
   int NRings;
-  int track[MAXTRTR02];
-  int used[MAXTRTR02];
-  int mused[MAXTRTR02];
-  float beta[MAXTRTR02];
-  float errorbeta[MAXTRTR02];
-  float quality[MAXTRTR02];
-  int Z[MAXTRTR02];
+  int track[MAXRICHRIN];
+  int used[MAXRICHRIN];
+  int mused[MAXRICHRIN];
+  float beta[MAXRICHRIN];
+  float errorbeta[MAXRICHRIN];
+  float quality[MAXRICHRIN];
+  int Z[MAXRICHRIN];
 
 
 #ifdef __WRITEROOT__
   RICRing();
-ClassDef(RICRing,1)
+ClassDef(RICRing,1)           // RICRing
 #else
 friend class AMSRichRing;
 friend class AMSNtuple;

@@ -1,9 +1,8 @@
-//  $Id: trigger302.h,v 1.9 2001/12/10 18:24:33 choutko Exp $
+//  $Id: trigger302.h,v 1.10 2002/03/20 09:43:12 choumilo Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include <link.h>
 #include <tofdbc02.h>
-#include <tofdbc.h>
 #include <tkdbc.h>
 #include <trddbc.h>
 #include <amsdbc.h>
@@ -25,6 +24,7 @@ const integer maxhitstrd=12;
 const integer maxtrd=maxufe*maxhitstrd;
 const integer matrixsize=60;
 };
+const integer NDSTR=3;//tempor
 //
 class TriggerAuxLVL302{
  protected:
@@ -134,13 +134,13 @@ protected:
  geant _lowlimitTRD[2][trconst::maxlay];
  geant coou, dscr,cood,a,b,s,r;
  geant resid[trconst::maxlay-2],zmean,factor,amp[trconst::maxlay];
- static integer _TOFPattern[TOFGC::MAXPAD][TOFGC::MAXPAD];
- static integer _TOFOr[TOFGC::MAXPLN][TOFGC::MAXPAD];
+ static integer _TOFPattern[TOF2GC::SCMXBR][TOF2GC::SCMXBR];
+ static integer _TOFOr[TOF2GC::SCLRS][TOF2GC::SCMXBR];
  static integer _TrackerStatus[trigger302const::NTRHDRP2];
  static integer _TrackerAux[trigger302const::NTRHDRP][trid::ncrt];
- static integer _TOFAux[TOFGC::MAXPLN][TOFGC::MAXPAD];
- static integer _NTOF[TOFGC::MAXPLN];
- static geant _TOFCoo[TOFGC::MAXPLN][TOFGC::MAXPAD][3];
+ static integer _TOFAux[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+ static integer _NTOF[TOF2GC::SCLRS];
+ static geant _TOFCoo[TOF2GC::SCLRS][TOF2GC::SCMXBR][3];
  static geant _TrackerCoo[trigger302const::NTRHDRP][trid::ncrt][3];
  static geant _TrackerDir[trigger302const::NTRHDRP][trid::ncrt];
  static geant _TrackerCooZ[trconst::maxlay];
@@ -199,8 +199,8 @@ static geant _CooMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst:
 
 //  Tof Aux Part
 
- static integer _TOFStatus[TOFGC::MAXPLN][TOFGC::MAXPAD];
- static integer _TOFTzero[TOFGC::MAXPLN][TOFGC::MAXPAD];
+ static integer _TOFStatus[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+ static integer _TOFTzero[TOF2GC::SCLRS][TOF2GC::SCMXBR];
 
 
 
@@ -271,6 +271,44 @@ public:
    else return 0;
  }
 
+};
+
+
+class TriggerExpertLVL3{
+protected:
+number _Mean[NDSTR];
+number _Sigma[NDSTR];
+number _XCount[NDSTR];
+integer _Counter;              // current event in seq
+integer _CounterMax;           // max no events in seq
+integer _ToBadSwitch;          // max seq to switch off
+integer _TryAgainSwitch;       // max seq to switch on
+  // first index:
+  //  0 - Reject
+  //  1 - Fails if too many hits/comb
+  //  2 - Accept
+  //  3 - Sum
+geant  _Distributions[NDSTR+1][trigger302const::NTRHDRP2]; 
+integer  _Relative[NDSTR];      // 0 - take abs 1 - take relative    
+integer _DRPBad[trigger302const::NTRHDRP2];       // how man sequences the drp is bad
+integer _DRPOff[trigger302const::NTRHDRP2];       // how many seq the drp was off
+geant _BadRange[NDSTR][2];
+public:
+TriggerExpertLVL3(integer countermax, integer tobadswitch, integer tryagain,
+                  geant badrange[NDSTR][2]);
+
+void update(const TriggerLVL302  * plvl3);
+void analyse(const TriggerLVL302  * plvl3);
+void print();
+ static TriggerExpertLVL3 * pExpert;
+};
+
+class AMSLVL3Error{
+private:
+ char msg[256];
+public:
+ AMSLVL3Error(char * name);
+ char * getmessage();
 };
 
 

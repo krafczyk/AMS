@@ -1,4 +1,4 @@
-#  $Id: setup.doc,v 1.6 2002/02/12 08:44:08 choumilo Exp $
+#  $Id: setup02.doc,v 1.1 2002/03/20 09:43:08 choumilo Exp $
 Geometrical setup is defined thru  AMSJob.Setupname datacard (see datacards.doc)
 
 
@@ -16,7 +16,6 @@ ANT  - anti coincidence counter
 
 STR  - silicon trackert
 
-CTC  - threshold cerenkov counter
 
 TRD  - transition radiation detector
 
@@ -28,18 +27,15 @@ RIC - RICH
 
 
 
-Valid entries (on  26/09/96)
+Valid entries (on  12/03/02)
 
 
 AMS:
-AMSSHUTTLE(Default)/AMS02       - shuttle/station 
+  AMS02       - station 
 
 STR:
 STRPLANES(Default)/STRTUBES          -  planes/tubes   
 
-CTC:
-CTCHor(Default)/CTCVer/CTCSimple/CTCAnnecy/CTCNo   
-  - horizontal/vertical/simplified/current  CTC readout/NoCTC
 
 
 CALORIMETER:
@@ -49,6 +45,6 @@ TRD:
 TRD01
 
 TOF:
-"AMS02"/"AMS02 TOF:8PAD" --> (AMS02 with TOF:12PAD(default)) / (AMS02 with TOF:8PAD)
+"AMS02"/"AMS02 TOF:12PAD" --> (AMS02 with TOF:8PAD(default)) / (AMS02 with TOF:12PAD)
 
  

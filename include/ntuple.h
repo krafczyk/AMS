@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.50 2001/11/30 16:47:13 choutko Exp $
+//  $Id: ntuple.h,v 1.51 2002/03/20 09:43:10 choumilo Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -12,13 +12,9 @@ class AMSNtuple : public AMSNode{
 protected:
   integer _lun;
   integer _Nentries;
-  EventNtuple _event;
   EventNtuple02 _event02;
-  BetaNtuple _beta;
-  ChargeNtuple _charge;
   BetaNtuple02 _beta02;
   ChargeNtuple02 _charge02;
-  ParticleNtuple _part;
   ParticleNtuple02 _part02;
   TOFClusterNtuple _tof;
   TOFMCClusterNtuple _tofmc;
@@ -29,22 +25,14 @@ protected:
   TRDSegmentNtuple _trdseg;
   TRDTrackNtuple _trdtrk;
   TRDRawHitNtuple _trdht;
-  TrRecHitNtuple _trrh;
   TrRecHitNtuple02 _trrh02;
-  TrTrackNtuple _trtr;
   TrTrackNtuple02 _trtr02;
-  MCEventGNtuple _mcg;
-  MCTrackNtuple _mct;
+  MCTrackNtuple _mct;// tempor 02??
   MCEventGNtuple02 _mcg02;
-  CTCClusterNtuple _ctccl;
-  CTCMCClusterNtuple _ctcclmc;
   AntiClusterNtuple _anti;
   ANTIMCClusterNtuple _antimc;
-  LVL3Ntuple _lvl3;
   LVL3Ntuple02 _lvl302;
-  LVL1Ntuple _lvl1;
   LVL1Ntuple02 _lvl102;
-  CTCHitNtuple _ctcht;
   TrRawClusterNtuple _trraw;
   AntiRawClusterNtuple _antiraw;
   TOFRawClusterNtuple _tofraw;
@@ -75,13 +63,9 @@ public:
   void endR();
   void initR(char* name);
   integer getentries(){return _Nentries;}
-  EventNtuple* Get_event() {return &_event;}
   EventNtuple02* Get_event02() {return &_event02;}
-  BetaNtuple* Get_beta() { return &_beta;}
-  ChargeNtuple* Get_charge() { return &_charge;}
   BetaNtuple02* Get_beta02() { return &_beta02;}
   ChargeNtuple02* Get_charge02() { return &_charge02;}
-  ParticleNtuple* Get_part() {return &_part;}
   ParticleNtuple02* Get_part02() {return &_part02;}
   TOFClusterNtuple* Get_tof() {return &_tof;}
   TOFMCClusterNtuple* Get_tofmc() {return &_tofmc;}
@@ -92,22 +76,14 @@ public:
   TRDSegmentNtuple* Get_trdseg() {return &_trdseg;}
   TRDTrackNtuple* Get_trdtrk() {return &_trdtrk;}
   TRDRawHitNtuple* Get_trdht() {return &_trdht;}
-  TrRecHitNtuple* Get_trrh() {return &_trrh;}
   TrRecHitNtuple02* Get_trrh02() {return &_trrh02;}
-  TrTrackNtuple* Get_trtr() {return &_trtr;}
   TrTrackNtuple02* Get_trtr02() {return &_trtr02;}
-  MCEventGNtuple* Get_mcg() {return &_mcg;}
   MCTrackNtuple* Get_mct() {return &_mct;}
   MCEventGNtuple02* Get_mcg02() {return &_mcg02;}
-  CTCClusterNtuple* Get_ctccl() { return &_ctccl;}
-  CTCMCClusterNtuple* Get_ctcclmc() {return &_ctcclmc;}
   AntiClusterNtuple* Get_anti() {return &_anti;}
   ANTIMCClusterNtuple* Get_antimc() {return &_antimc;}
-  LVL3Ntuple* Get_lvl3() {return &_lvl3;}
   LVL3Ntuple02* Get_lvl302() {return &_lvl302;}
-  LVL1Ntuple* Get_lvl1() {return &_lvl1;}
   LVL1Ntuple02* Get_lvl102() {return &_lvl102;}
-  CTCHitNtuple* Get_ctcht() {return &_ctcht;}
   TrRawClusterNtuple* Get_trraw() {return &_trraw;}
   AntiRawClusterNtuple* Get_antiraw() {return &_antiraw;}
   TOFRawClusterNtuple* Get_tofraw() {return &_tofraw;}

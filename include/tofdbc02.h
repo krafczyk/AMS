@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.7 2002/02/12 08:44:09 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.8 2002/03/20 09:43:11 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -30,8 +30,6 @@ namespace TOFGC{
   const integer SCBADB5=2048; // set if missing side was recovered (when B2 is set)
   const integer SCBADB6=4096; // set if no aTDC/sTDC matching on any alive side
   const integer SCBADB7=8192; // set if no dTDC/sTDC matching .................
-  const integer MAXPLN=4;//  max.planes (max of ams01 and ams02)
-  const integer MAXPAD=14;// max.paddles/plane (max of ams01 and ams02)
 }
 //-----
 // TOF2 global constants definition
@@ -39,7 +37,6 @@ namespace TOF2GC{
 //geometry :
 const integer SCMXBR=12; // max nmb of bars/layer
 const integer SCLRS=4; // max nmb of layers in TOF-systems
-//const integer SCBRS[SCLRS]={12,12,12,12}; // nmb of bars per layer (top->bot)
 const integer SCROTN=2; // start nmb of abs. numbering of TOF rot. matrixes
 const integer SCBTPN=10;    //nmb of sc. bar types (different by length now)
 const integer SCCHMX=SCLRS*SCMXBR*2; //MAX scint. channels

@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.4 2001/10/02 12:57:24 choutko Exp $
+//  $Id: tofrec02.h,v 1.5 2002/03/20 09:43:11 choumilo Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -99,7 +99,7 @@ protected:
  AMSlink * _mptr[3]; // list of pointers to member
 //                               starting from "peak" member
  static integer _planes; // real number of planes
- static integer _padspl[TOFGC::MAXPLN]; // real number of paddles/plane
+ static integer _padspl[TOF2GC::SCLRS]; // real number of paddles/plane
  
  void _copyEl();
  void _printEl(ostream & stream);

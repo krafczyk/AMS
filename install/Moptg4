@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.58 2002/01/17 14:33:52 choutko Exp $
+#  $Id: Moptg4,v 1.59 2002/03/20 09:43:28 choumilo Exp $
 #
 SHELL=/bin/sh
 #
@@ -124,9 +124,9 @@ ifdef GEANT4NEW
 else
  G4XRAY=$(SCC)g4xray.old.C
 endif
-FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C $(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C $(SCC)gsen.C $(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C ../F/fint_my.F $(SCC)amsgeom.C $(SCC)geant.C $(SCC)geant3.C $(SCC)geant4.C  $(SCC)g4physics.C $(SCC)mceventg.C ../F/tkmccl.F ../F/geocoor.F  $(SCC)rnormx.C  $(SCC)trid.C $(SCC)trdid.C $(SCC)link.C $(SCC)trrec.C $(SCC)trdsim.C $(SCC)trdrec.C $(SCC)uzstat.C ../F/amstkshc++.F  ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F $(SCC)job.C $(SCC)event.C $(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F $(SCC)tofrec.C $(SCC)tofrec02.C $(SCC)tofonline.C $(SCC)tofonline02.C $(SCC)tofuser.C    $(SCC)antirec.C $(SCC)tofsim.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C $(SCC)commons.C $(SCC)apool.C $(SCC)tofdbc.C $(SCC)ctcrec.C $(SCC)ctcsim.C $(SCC)ctcdbc.C $(SCC)tofcalib.C $(SCC)ctccalib.C $(SCC)timeid.C $(SCC)io.C $(SCC)trcalib.C $(SCC)tralig.C ../F/mtx2.F ../F/e04ccf.f $(SCC)trigger1.C $(SCC)trigger3.C $(SCC)trigger302.C $(SCC)antidbc.C $(SCC)daqevt.C $(SCC)astring.C $(SCC)daqblock.C ../F/mfield.F  ../F/atcnewntu.F ../F/egzav.F  ../F/tkfit.F  $(SCC)tkdbc.C $(SCC)trddbc.C  $(SCC)ntuple.C $(SCC)root.C $(SCC)user.C $(SCC)status.C $(SCC)bcorr.C $(SCC)ecaldbc.C $(SCC)ecalrec.C $(SCC)richdbc.C $(SCC)richrec.C $(SCC)richid.C $(SCC)richgeom.C ../F/gtckov.F ../F/graylc.F ../F/cerenkov.F $(SCC)tofsim02.C $(SCC)tofdbc02.C $(SCC)tofcalib02.C $(SCC)trigger102.C $(SCC)antidbc02.C $(SCC)tofuser02.C $(SCC)antirec02.C $(SCC)daqs2block.C $(SCC)g4util.C $(G4XRAY) $(SCC)ecalcalib.C
+FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C $(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C $(SCC)gsen.C $(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C ../F/fint_my.F $(SCC)amsgeom.C $(SCC)geant.C $(SCC)geant3.C $(SCC)geant4.C  $(SCC)g4physics.C $(SCC)mceventg.C ../F/tkmccl.F ../F/geocoor.F  $(SCC)rnormx.C  $(SCC)trid.C $(SCC)trdid.C $(SCC)link.C $(SCC)trrec.C $(SCC)trdsim.C $(SCC)trdrec.C $(SCC)uzstat.C ../F/amstkshc++.F  ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F $(SCC)job.C $(SCC)event.C $(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F $(SCC)tofrec02.C $(SCC)tofonline02.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C $(SCC)commons.C $(SCC)apool.C $(SCC)timeid.C $(SCC)io.C $(SCC)trcalib.C $(SCC)tralig.C ../F/mtx2.F ../F/e04ccf.f $(SCC)trigger302.C $(SCC)daqevt.C $(SCC)astring.C ../F/mfield.F  ../F/egzav.F  ../F/tkfit.F  $(SCC)tkdbc.C $(SCC)trddbc.C  $(SCC)ntuple.C $(SCC)root.C $(SCC)user.C $(SCC)status.C $(SCC)bcorr.C $(SCC)ecaldbc.C $(SCC)ecalrec.C $(SCC)richdbc.C $(SCC)richrec.C $(SCC)richid.C $(SCC)richgeom.C ../F/gtckov.F ../F/graylc.F ../F/cerenkov.F $(SCC)tofsim02.C $(SCC)tofdbc02.C $(SCC)tofcalib02.C $(SCC)trigger102.C $(SCC)antidbc02.C $(SCC)tofuser02.C $(SCC)antirec02.C $(SCC)daqs2block.C $(SCC)g4util.C $(G4XRAY) $(SCC)ecalcalib.C
 #$(BIN)G4PropagatorInField.o $(BIN)G4ChordFinder.o $(BIN)G4MagIntegratorDriver.o  $(BIN)G4EnergyLossTables.o  
-OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)geant4.o   $(BIN)g4physics.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec.o $(BIN)tofrec02.o $(BIN)tofonline.o $(BIN)tofonline02.o $(BIN)tofuser.o $(BIN)antirec.o $(BIN)tofsim.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc.o $(BIN)ctcrec.o $(BIN)ctcsim.o $(BIN)ctcdbc.o $(BIN)tofcalib.o $(BIN)ctccalib.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger1.o $(BIN)trigger3.o $(BIN)trigger302.o $(BIN)antidbc.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqblock.o $(BIN)mfield.o $(BIN)atcnewntu.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)root.o  $(BIN)user.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecalrec.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)tofsim02.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)trigger102.o $(BIN)antidbc02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)daqs2block.o $(BIN)g4util.o $(BIN)g4xray.o $(BIN)ecalcalib.o $(BIN)fint_my.o
+OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)geant4.o   $(BIN)g4physics.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o $(BIN)tofonline02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger302.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)root.o  $(BIN)user.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecalrec.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)tofsim02.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)trigger102.o $(BIN)antidbc02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)daqs2block.o $(BIN)g4util.o $(BIN)g4xray.o $(BIN)ecalcalib.o $(BIN)fint_my.o
 #$(BIN)G4PropagatorInField.o 
 #$(BIN)G4Box.o $(BIN)G4NormalNavigation.o $(BIN)G4Navigator.o $(BIN)G4PropagatorInField.o $(BIN)G4Transportation.o $(BIN)G4SteppingManager.o $(BIN)G4VContinuousDiscreteProcess.o $(BIN)G4MultipleScattering.o $(BIN)G4eEnergyLoss.o
 
@@ -147,8 +147,6 @@ $(BIN)gbatch.o:         $(SCC)gbatch.C
 $(BIN)job.o:    	 $(SCC)job.C
 	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)job.C -o $(BIN)job.o
 
-$(BIN)daqblock.o:    	 $(SCC)daqblock.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)daqblock.C -o $(BIN)daqblock.o
 
 $(BIN)astring.o:    	 $(SCC)astring.C
 	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)astring.C -o $(BIN)astring.o
@@ -174,11 +172,6 @@ $(BIN)bcorr.o:    	 $(SCC)bcorr.C
 $(BIN)cont.o:    	 $(SCC)cont.C
 	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)cont.C -o $(BIN)cont.o
 
-$(BIN)trigger1.o:    	 $(SCC)trigger1.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trigger1.C -o $(BIN)trigger1.o
-
-$(BIN)trigger3.o:    	 $(SCC)trigger3.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trigger3.C -o $(BIN)trigger3.o
 
 $(BIN)trigger302.o:    	 $(SCC)trigger302.C
 	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trigger302.C -o $(BIN)trigger302.o
@@ -210,8 +203,6 @@ $(BIN)fint_my.o:      ../F/fint_my.F
 $(BIN)mfield.o:         ../F/mfield.F
 	$(FF) -c $(FFLAGS) -D__G4AMS__ ../F/mfield.F -o $(BIN)mfield.o
 
-$(BIN)atcnewntu.o:         ../F/atcnewntu.F
-	$(FF) -c $(FFLAGS) ../F/atcnewntu.F -o $(BIN)atcnewntu.o
 
 $(BIN)egzav.o:         ../F/egzav.F
 	$(FF) -c $(FFLAGSn) ../F/egzav.F -o $(BIN)egzav.o
@@ -287,17 +278,6 @@ $(BIN)tkdbc.o:         $(SCC)tkdbc.C
 $(BIN)trddbc.o:         $(SCC)trddbc.C
 	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)trddbc.C -o $(BIN)trddbc.o
 
-$(BIN)tofdbc.o:         $(SCC)tofdbc.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)tofdbc.C -o $(BIN)tofdbc.o
-
-$(BIN)tofcalib.o:         $(SCC)tofcalib.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)tofcalib.C -o $(BIN)tofcalib.o
-
-$(BIN)ctccalib.o:         $(SCC)ctccalib.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)ctccalib.C -o $(BIN)ctccalib.o
-
-$(BIN)ctcdbc.o:         $(SCC)ctcdbc.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)ctcdbc.C -o $(BIN)ctcdbc.o
 
 $(BIN)gsen.o:	         $(SCC)gsen.C
 	$(CC) -c $(CP2F) $(CFLAGS)  $(SCC)gsen.C -o $(BIN)gsen.o
@@ -430,29 +410,6 @@ $(BIN)trcalib.o: 	 $(SCC)trcalib.C
 $(BIN)tralig.o: 	 $(SCC)tralig.C
 	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)tralig.C -o $(BIN)tralig.o
 
-$(BIN)tofrec.o: 	         $(SCC)tofrec.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)tofrec.C -o $(BIN)tofrec.o
-
-$(BIN)tofonline.o: 	         $(SCC)tofonline.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)tofonline.C -o $(BIN)tofonline.o
-
-$(BIN)tofuser.o: 	         $(SCC)tofuser.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)tofuser.C -o $(BIN)tofuser.o
-
-$(BIN)antirec.o: 	         $(SCC)antirec.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)antirec.C -o $(BIN)antirec.o
-
-$(BIN)antidbc.o: 	         $(SCC)antidbc.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)antidbc.C -o $(BIN)antidbc.o
-
-$(BIN)tofsim.o: 	         $(SCC)tofsim.C
-	$(CC) -c $(CP2F) $(CFLAGSTOFSIM) $(SCC)tofsim.C -o $(BIN)tofsim.o
-
-$(BIN)ctcrec.o: 	         $(SCC)ctcrec.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)ctcrec.C -o $(BIN)ctcrec.o
-
-$(BIN)ctcsim.o: 	         $(SCC)ctcsim.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)ctcsim.C -o $(BIN)ctcsim.o
 
 $(BIN)beta.o: 	         $(SCC)beta.C
 	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)beta.C -o $(BIN)beta.o

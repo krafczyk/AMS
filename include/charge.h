@@ -1,4 +1,4 @@
-//  $Id: charge.h,v 1.19 2001/01/22 17:32:42 choutko Exp $
+//  $Id: charge.h,v 1.20 2002/03/20 09:43:09 choumilo Exp $
 // V. Choutko 5-june-96
 //
 // July 12, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -11,7 +11,6 @@
 #define __AMSCHARGE__
 #include <link.h>
 #include <trrec.h>
-#include <tofrec.h>
 #include <beta.h>
 const int ncharge=10; // e,p,He...C+3
 const int nbins=100;
