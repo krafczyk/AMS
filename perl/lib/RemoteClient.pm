@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.29 2002/03/27 11:08:39 alexei Exp $
+# $Id: RemoteClient.pm,v 1.30 2002/03/27 11:35:32 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -52,6 +52,8 @@ my %fields=(
        ardref=>[],
        dbfile=>undef,
        scriptsOnly=>0,
+       senddb=>1,
+       sendaddon=>1,
             );
     my $self={
       %fields,
@@ -1721,6 +1723,8 @@ print qq`
          $sonly=$q->param("SONLY");
          if ($sonly eq "Yes") {
              $self->{scriptsOnly}=1;
+             $self->{senddb}=0;
+             $self->{sendaddon}=0;
          }
          my $filename=$q->param("FEM");
          $q=get_state($filename);          
@@ -2014,6 +2018,7 @@ print qq`
         $filedb="$self->{UploadsDir}/ams02mcdb.tar.gz";
         my @sta = stat $filedb;
         if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9] ){
+           $self->{senddb}=1;
         my $filen="$self->{UploadsDir}/ams02mcdb.tar.$run";
         $key='dbversion';
         $sql="select myvalue from Environment where mykey='".$key."'";
@@ -2052,6 +2057,7 @@ print qq`
         @sta = stat $filedb_att;
 
         if($#sta<0 or $sta[9]-time() >86400*7  or $stag1[9] > $sta[9] or $stag2[9] > $sta[9]){
+           $self->{sendaddon}=1;
         my $filen="$self->{UploadsDir}/ams02mcdb.att.tar.$run";
          my $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv") ;
           if($i){
@@ -2265,14 +2271,27 @@ print qq`
         my $lrun=$run-1;
         my $subject="AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
                   my $message=$self->{tsyntax}->{headers}->{readme};
-                  my $attach="$file2tar.gz,ams02mcscripts.tar.gz;$filedb,ams02mcdb.tar.gz";
+                
+                  my $attach;
+          if($self->{senddb}){
+           $attach="$file2tar.gz,ams02mcscripts.tar.gz;$filedb,ams02mcdb.tar.gz";
+          }
+          elsif($self->{sendaddon}){
+              $self->{sendaddon}=0;
+             $attach= "$file2tar.gz,ams02mcscripts.tar.gz;$filedb_att,ams02mcdb.addon.tar.gz";
+          }
+          else{
+              $attach= "$file2tar.gz,ams02mcscripts.tar.gz";
+          }
          if ($self->{CCT} eq "remote"){
                   $self->sendmailmessage($address,$subject,$message,$attach);
                   my $i=unlink "$file2tar.gz";
-                  $attach="$filedb_att,ams02mcdb.addon.tar.gz";
-                  $subject="Addon To AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
-                  $self->sendmailmessage($address,$subject,$message,$attach);
-         }
+                  if($self->{sendaddon}){
+                   $attach="$filedb_att,ams02mcdb.addon.tar.gz";
+                   $subject="Addon To AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
+                   $self->sendmailmessage($address,$subject,$message,$attach);
+               }
+          }
          my $totalreq=$self->{CEMR}+$runno;
          my $time=time();
          $sql="Update Mails set requests=$totalreq, timestamp=$time where mid=$self->{CEMID}";
