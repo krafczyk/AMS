@@ -26,17 +26,31 @@ else
     exit
 fi
 
-GC="g++ -Wno-deprecated"
-AMSWD="/afs/ams.cern.ch/Offline/vdev"
-ROOTSYS="/afs/cern.ch/exp/ams/Offline/root/Linux/new"
+if [ ! -n "$AMSWD" ]; then
+  AMSWD="/afs/ams.cern.ch/Offline/vdev"
+fi
+
+OS=`uname`
+if [ "${OS}" = "Linux" ]; then
+   GC="g++ -Wno-deprecated"
+   EXTRALIBS="-ldl -lcrypt"
+   AMSOBJS="${AMSWD}/bin/linux/icc/root_rs.o ${AMSWD}/bin/linux/icc/rootdict_s.o"
+elif [ "${OS}" = "OSF1" ]; then
+   GC="cxx"
+   EXTRALIBS="-lm"
+   AMSOBJS="${AMSWD}/bin/osf1/root_rs.o ${AMSWD}/bin/osf1/rootdict_s.o"
+else
+  echo "This script only runs on Linux and on OSF1; EXIT"
+  exit
+fi
+
+ROOTSYS="/afs/cern.ch/exp/ams/Offline/root/${OS}/new"
 INCS="-I${AMSWD}/include -I${ROOTSYS}/include"
 ROOTLIBS="-L${ROOTSYS}/lib -lRoot"
-EXTRALIBS="-ldl -lcrypt"
-AMSOBJS="${AMSWD}/bin/linux/icc/root_rs.o ${AMSWD}/bin/linux/icc/rootdict_s.o"
 
 echo -e "\n>>> COMPILING and LINKING: ${file}"
 
-/usr/bin/make -f - -s <<!
+/usr/bin/make -f - <<!
 SHELL=/bin/sh
 
 ${file}.exe:	${file}
