@@ -1,8 +1,11 @@
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 // add TDV/dbase version October 1, 1997. a.k.
+// Jan 07, 1999. ak.
+//   print EOF statistics, compare number of processed and expected 
+//   events and put '*' if difference > 5%
 //
-// Last Edit : Sep 11, 1998. ak.
+// Last Edit : Jan 07, 1999. ak.
 //
 #include <trrawcluster.h>
 #include <typedefs.h> 
@@ -195,6 +198,8 @@ void AMSEvent::_endofrun() {
 
   int   events = -1;       /* events in file   */
   int   eventsp= PosInRun; /* events processed */
+  float fp     = eventsp;
+  float fe;
   char* host;              /* hostname         */
   char* logdir;
   char* logsum;
@@ -216,12 +221,16 @@ void AMSEvent::_endofrun() {
   char p0[4]  = "P0";
   char p1[4]  = "P1";
   char u1[4]  = "U1";
-  char p[4]  = "p";
+  char p[4]   = "p";
+  char a0[4]  = "A0";
+  char ams[4] = "AMS";
+
   char comp[4]="";
 
-  char aster[4] = "  *";
+  char aster[4]  = "  *";
   
   geant cputime = Tcpu1 - Tcpu0;
+  int   icputime;
 
   if (SRun > 0) {
    strcpy(time1,ctime(&T0));
@@ -275,18 +284,29 @@ void AMSEvent::_endofrun() {
       if (hh[0] == 'C' || hh[0] == 'c') strcpy(comp,c);
       if (hh[1] == 'H' || hh[1] == 'h') strcpy(comp,ahe);
       if (hh[1] == 'C' || hh[1] == 'c') strcpy(comp,ac);
-      if (hh[0] == 'A' || hh[0] == 'a') 
-                                        if (hh[5] == '1') strcpy(comp,u1);
+      if (hh[0] == 'A' || hh[0] == 'a') {
+                        if (hh[5] == '1')                 strcpy(comp,u1);
+                        if (hh[1] == 'm' || hh[1] == 'M') strcpy(comp,ams);
+      }
       if (hh[0] == 'P' || hh[0] == 'p') {
-       if (hh[6] == '0') strcpy(comp,p0);
-       if (hh[6] == '1') strcpy(comp,p1);
+       if (hh[5]=='p' || hh[5] == 'P') {
+         if (hh[6] == '0') strcpy(comp,p0);
+         if (hh[6] == '1') strcpy(comp,p1);
+       }
+       if (hh[5] == 'a' || hh[5] == 'A') strcpy(comp,a0);
        if (hh[1] == 'r') strcpy(comp,p);
       }
-      int  icputime = cputime;
+      icputime = cputime;
       rfile<<setw(10)<<SRun<<" "<<setw(7)<<events<<" "<<setw(7)
           <<eventsp<<" "<<setw(7)<<T1-T0<<setw(7)<<icputime<<" "<<setw(16)
           <<time11<<setw(7)<<comp;
-      if (events != eventsp) rfile<<aster;
+      if (events != eventsp) {
+        rfile<<aster;
+        if (events > 0) {
+         fe = events;
+         if (fp > fe || (fe-fp)/fe > 0.049) rfile<<"*"<<endl;
+        }
+      }
       rfile<<endl;
        rfile.close();
      }
@@ -294,6 +314,14 @@ void AMSEvent::_endofrun() {
       cerr<<"AMSEvent::_endofrun-E-CouldNotOpenFile "<<rfile<<endl;
      }
   } // if SRun > 0
+  cout<<"EndOfRun statistics."<<endl;
+  cout<<"Events processed : "<<eventsp<<endl;
+  cout<<"Elapsed time (s) : "<<T1-T0<<endl;
+  cout<<"CPU time     (s) : "<<icputime<<endl;
+  if (eventsp > 100) {
+   float ft = T1 - T0;
+   cout<<"Performance      : "<<ft/fp<<"/"<<cputime/fp<<endl;
+  }
 }
 
 void AMSEvent::_siamsinitrun(){
