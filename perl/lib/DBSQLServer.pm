@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.52 2003/06/06 16:31:14 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.53 2003/06/09 10:34:25 alexei Exp $
 
 #
 #
@@ -168,6 +168,7 @@ sub Create{
      (cid       INT NOT NULL ,
       dirpath   VARCHAR(255),
       lastfile  VARCHAR(255),
+      timelast  INT,
       timestamp INT)",
 
       "CREATE TABLE Mails
@@ -435,13 +436,13 @@ my $sql;
          $dbh->do("insert into Cites values($cid,$name,0,$status,$run,$stat,$description,$time)")
          or die "cannot do: ".$dbh->errstr();
          my $dirpath=$journal."/".$name;    
-         $dbh->do("insert into journals values($cid,$dirpath,' ',$time)")    
+         $dbh->do("insert into journals values($cid,$dirpath,' ',0,$time)")    
          or die "cannot do: ".$dbh->errstr();    
          $n++;
          $run=($n<<27)+1;
      }
       my $junkdir = $journal."/junk";
-      $dbh->do("INSERT INTO journals VALUES(-1,$junkdir,' ',$time)")  
+      $dbh->do("INSERT INTO journals VALUES(-1,$junkdir,' ',0,$time)")  
       or die "cannot do: ".$dbh->errstr();    
     }
    } 

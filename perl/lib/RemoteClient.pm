@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.186 2003/06/06 10:12:20 alexei Exp $
+# $Id: RemoteClient.pm,v 1.187 2003/06/09 10:34:26 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6387,7 +6387,7 @@ sub parseJournalFiles {
  htmlTable("Parse Journal Files");
 
 
- $sql = "SELECT dirpath,journals.timestamp,name,journals.cid  
+ $sql = "SELECT dirpath,journals.timelast,name,journals.cid  
               FROM journals,cites WHERE journals.cid=cites.cid";
 
  $ret = $self->{sqlserver}->Query($sql);
@@ -6395,9 +6395,9 @@ sub parseJournalFiles {
  if(defined $ret->[0][0]){
   foreach my $jou (@{$ret}){
    my $timenow    = time();
-   my $dir        = trimblanks($jou->[0]);
-   my $timestamp  = trimblanks($jou->[1]);
-   my $cite       = trimblanks($jou->[2]);
+   my $dir        = trimblanks($jou->[0]);  # journal file's path
+   my $timestamp  = trimblanks($jou->[1]);  # time of latest processed file
+   my $cite       = trimblanks($jou->[2]);  # cite
       $cid        = $jou->[3];
    my $lastcheck  = EpochToDDMMYYHHMMSS($timestamp);
    my $title  = "Cite : ".$cite.", Directory : ".$dir." Last Check ".$lastcheck;
@@ -6420,6 +6420,9 @@ sub parseJournalFiles {
        if ($file =~/^\./){
          next;
        }
+#
+# files *.journal.1 and *.journal.0 are already validated
+#
        my @junk = split "journal.",$file;
        if (defined $junk[1]) {
         if ($junk[1] == 1 || $junk[1] == 0) {
@@ -6441,7 +6444,13 @@ sub parseJournalFiles {
        print "<td><b><font color=$color >$wtime</font></b></td>";
        print "<td><b><font color=$color >$fstatus</font></b></td>";
        print "</tr>\n";
-       if ($writetime > $timestamp) {
+#
+# $timestamp - latest time of journal file during previous validation
+# all files produced $timestamp- 24h -> pass automatic validation
+# it is possible that some files been transmitted with delay > 24h, so they 
+# pass manual validation
+#
+       if ($writetime > $timestamp - 24*60*60) {
          $self->parseJournalFile($firstjobtime,
                                  $lastjobtime,
                                  $logdir,
@@ -6452,8 +6461,9 @@ sub parseJournalFiles {
    htmlTableEnd();
    htmlTableEnd();
    if (defined $cid) {
-    $sql = "UPDATE journals SET timestamp=$timenow, lastfile = '$lastfile' 
-            WHERE cid=$cid";
+    $sql = "UPDATE journals 
+             SET timestamp=$timenow, timelast=$writelast, lastfile = '$lastfile' 
+              WHERE cid=$cid";
     $self->{sqlserver}->Update($sql); 
    }
   }
@@ -7536,7 +7546,7 @@ sub printJobParamFormatDST {
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=200000000 127=2 128=\" CHECKED><b> ROOT </b><BR>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=200000000 127=2 128=\" CHECKED><b> RootFile </b><BR>\n";
             print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000000 2=\"><b> NTUPLE </b>\n";
             print "</b></font></td></tr>\n";
            htmlTableEnd();
