@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.14 2001/05/23 14:37:23 choutko Exp $
+#  $Id: ntuple02.doc,v 1.15 2001/05/29 13:30:28 choutko Exp $
 This is AMS02 Ntuple Description
 
  *****************************************
@@ -261,10 +261,11 @@ This is AMS02 Ntuple Description
 
 * I*4  *         * [0,150]      * MCTRACK  * nmct  (activated by SCAN TRUE
                                                     and PART 48)
-* R*4  *         *              * MCTRACK  * radl(nmct)  
-* R*4  *         *              * MCTRACK  * absl(nmct)
-* R*4  *         *              * MCTRACK  * pos(3,nmct)
-* I*4  *         *              * MCTRACK  * vname(nmct)
+* R*4  *         *              * MCTRACK  * radl(nmct) // integrated radiation length 
+* R*4  *         *              * MCTRACK  * absl(nmct) // --- absorbption length
+* R*4  *         *              * MCTRACK  * pos(3,nmct) // x,y,z (cm) 
+* I*4  *         *              * MCTRACK  * vname(nmct) // volume name coded as  integer:wq
+
 
 
 * I*4  * [0,16]    * ANTICLUS * nanti                 // Anti clusters number
