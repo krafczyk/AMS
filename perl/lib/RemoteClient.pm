@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.247 2004/02/27 17:17:21 alexei Exp $
+# $Id: RemoteClient.pm,v 1.248 2004/03/01 16:44:25 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -59,7 +59,7 @@ use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 use File::Find;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB checkDB listAll listAllDisks listMin queryDB04 DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs getHostsPerSite updateHostInfo parseJournalFiles stopParseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listAllDisks listMin queryDB04 DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs getHostsPerSite updateHostInfo parseJournalFiles stopParseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
 
 
 my     $webmode         = 1; # 1- cgi is executed from Web interface and 
@@ -202,8 +202,7 @@ foreach my $chop  (@ARGV){
 
 
 }
-     $self->{q}=new CGI;
-#    $self->{Name}="/cgi-bin/mon/validate.cgi";
+    $self->{q}=new CGI;
     my $mybless=bless $self,$type;
     if(ref($RemoteClient::Singleton)){
         croak "Only Single RemoteClient Allowed\n";
@@ -341,6 +340,7 @@ my %mv=(
      $self->{AMSDataDir}="/afs/ams.cern.ch/AMSDataDir";
      $ENV{AMSDataDir}=$self->{AMSDataDir};
  }
+
 #sqlserver
     $self->{sqlserver}=new DBSQLServer();
     $self->{sqlserver}->Connect();
@@ -1621,6 +1621,14 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
   $self->htmlBottom();
 
    $self->{ok}=1;
+}
+
+sub ConnectOnlyDB{
+    my $self = shift;
+#sqlserver
+    $self->{sqlserver}=new DBSQLServer();
+    $self->{sqlserver}->Connect();
+#
 }
 
 sub ConnectDB{
@@ -5380,6 +5388,7 @@ sub updateHostInfo {
 
 
 sub calculateMips {
+
     my @directories=(
      'aprotons',
      'deuterons',
@@ -5391,8 +5400,10 @@ sub calculateMips {
      'He');
      
     my $self   = shift;
+
     my $sql    = undef;
     my $jobname= undef;
+
     my @names;
     my @cpus;
     my @elapsed;
@@ -5410,41 +5421,48 @@ sub calculateMips {
     my $n  = 0;
 #
     my $timenow = time();
+    my $ltime   = localtime($timenow);
 #
+    print "Start calculateMips : $ltime \n";
+ 
 # get jobname and mips
 #
     $sql = "SELECT 
-              jobs.jobname, jobs.events, jobs.cputime, jobs.elapsed, jobs.mips, jobs.jid 
-              FROM Jobs, Runs 
-              WHERE jobs.jid=runs.jid AND STATUS='Completed' AND jobs.mips>0 
-              ORDER BY jobs.jobname";
+              jobs.jobname, jobs.events, jobs.cputime, jobs.elapsed, jobs.mips, jobs.jid, ntuples.path     
+              FROM Jobs, Runs, Ntuples  
+              WHERE jobs.jid=runs.jid AND runs.status='Completed' AND jobs.mips>0 AND runs.run=ntuples.run  
+              ORDER BY jid";
     my $r0 = $self->{sqlserver}->Query($sql);
+    my $jidOld = 0;
     if (defined $r0->[0][0]) {
      foreach my $job (@{$r0}){
       $jobname=trimblanks($job->[0]);
-      my $cite   = undef;
-      my $jid    = undef;
-      my $jobtype= undef;
+      my $cite    = undef;
+      my $jid     = undef;
+      my $jobtype = undef;
       my $eventsj = undef;
       my $cpusj   = undef;
       my $elapsedj= undef;
       my $mipsj   = undef;
+      my $path    = undef;
       my $partj   = 'xyz';
       my $newjob  = 1;
       my @junk    = split '\.',$jobname;
       if ($#junk > 0) {
          $cite        = $junk[0];
          $jid         = $junk[1];
-         $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];     
-         $jobtype=trimblanks($jobtype);
-         $eventsj     = $job->[1];
-         $cpusj       = $job->[2];
-         $elapsedj    = $job->[3];
-         $mipsj       = $job->[4];
-         $jid         = $job->[5];
-         my $partj= $self->getJobParticleFromNTPath($jid);
-         my $i        = 0;
-         for ($i=0; $i<$#names+1; $i++) {
+         if ($jid != $jidOld) { 
+          $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];     
+          $jobtype=trimblanks($jobtype);
+          $eventsj     = $job->[1];
+          $cpusj       = $job->[2];
+          $elapsedj    = $job->[3];
+          $mipsj       = $job->[4];
+          $jid         = $job->[5];
+          $path        = $job->[6];
+          my $partj= $self->getJobParticleFromDSTPath($path);
+          my $i        = 0;
+          for ($i=0; $i<$#names+1; $i++) {
              if ($names[$i] eq $jobtype && $particle[$i] eq $partj) {
                  $events[$i] = $events[$i] + $eventsj;
                  $cpus[$i]   = $cpus[$i]   + $cpusj;
@@ -5457,8 +5475,8 @@ sub calculateMips {
                  $newjob  = 0;
                  last;
              }
-         }
-         if ($newjob == 1) {
+          }
+          if ($newjob == 1) {
                  $names[$n]     = $jobtype;
                  $events[$n]    = $eventsj;
                  $cpus[$n]      = $cpusj;
@@ -5471,23 +5489,26 @@ sub calculateMips {
                  }
                  $n++;
              }
+      }
+      $jidOld=$jid;
      }
   }
-
+    my $totaljobs = 0;
     for (my $j=0; $j<$#names+1; $j++) {
      $mipsmean[$j]    = $mipsmean[$j]/$njobs[$j];
      $mipssigma[$j]   = 0;
-
+ 
      if ($events[$j] > 0) {
       if ($njobs[$j]>1) {
+       $totaljobs = $totaljobs + $njobs[$j];
        foreach my $job (@{$r0}){
         $jobname=trimblanks($job->[0]);
         my @junk    = split '\.',$jobname;
         if ($#junk > 0) {
          my $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];     
          $jobtype=trimblanks($jobtype);
-         my $jid = $job->[5];
-         my $partj= $self->getJobParticleFromNTPath($jid);
+         my $path = $job->[6];
+         my $partj= $self->getJobParticleFromDSTPath($path);
          if ($jobtype eq $names[$j] && $partj eq $particle[$j]) {
            my $eventsj     = $job->[1];
            my $cpusj       = $job->[2];
@@ -5503,7 +5524,7 @@ sub calculateMips {
   }
  }
  
-    my $header =  sprintf("Jobs   Events  CPU[s] Elapsed[s] MIPS       <MIPS>      Particle      JobName\n");
+    my $header =  sprintf("Jobs     Events     CPU[s]   Elapsed[s]   MIPS       <MIPS>       Particle        JobName\n");
     print "$header";
     foreach my $p (@directories) {
      for (my $j=0; $j<$#names+1; $j++) {
@@ -5511,12 +5532,13 @@ sub calculateMips {
        if ($events[$j] > 0 && $njobs[$j]>1) {
          $mipssigma[$j] = sqrt($mipssigma[$j])/($njobs[$j]-1);
        }
-       my $line = sprintf("%5.f %7.f %7.f %7.f %7.f %5.2f +/- %2.4f %10s  %20s \n",
+       my $line = sprintf("%5.f %11.f %9.f %9.f %9.f %6.2f +/- %2.4f %12s  %20s \n",
                         $njobs[$j],$events[$j],$cpus[$j],$elapsed[$j],$mips[$j],$mipsmean[$j],$mipssigma[$j],$particle[$j],$names[$j]);
        print "$line";
     }
   }
- }
+  }
+     print "\n Total Jobs : $totaljobs \n";
  }
 }
 
@@ -5534,6 +5556,19 @@ sub getJobParticleFromNTPath {
         $particle = trimblanks($junk[5]);
     }
    }
+    return $particle;
+}
+
+sub getJobParticleFromDSTPath {
+    my $self  = shift;
+    my $path  = shift;
+
+    $path = trimblanks($path);
+    my $particle='xyz';
+       my @junk = split '/',$path; # /disk/MC/AMS02/TrialPeriod/particle/jid/ntfile
+       if ($#junk > 0) {
+        $particle = trimblanks($junk[5]);
+    }
     return $particle;
 }
 
@@ -8836,6 +8871,7 @@ sub printParserStat {
    for (my $i=0; $i<$nCheckedCite+1; $i++) {
      print "\n";
      printf "%-20.15s %-20.40s %-50.30s","Cite : $JouDirPath[$i]", "Latest Journal : $JouLastCheck[$i]", "New Files : $JournalFiles[$i]";
+     print "\n";
      if ($JournalFiles[$i] > 0) {
       print "   Runs (Checked, Good, Bad, Failed) :  $CheckedRuns[$i], $GoodRuns[$i],  $BadRuns[$i], $FailedRuns[$i] \n";
       print "   DSTs (Checked, Good, Bad, CRCi, CopyFail, CRCo) :  ";
