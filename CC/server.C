@@ -1146,11 +1146,11 @@ return 0;
 
 
 void Server_impl::Exiting(const CID & cid, const char * message, DPS::Client::ClientExiting status)throw (CORBA::SystemException){
+// find and remove client
+if(cid.Type==DPS::Client::Server){
 _parent->IMessage(AMSClient::print(cid,message?message:"Server exiting"));
 Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 _pser->MonInfo(AMSClient::print(cid,message?message:" Server Exiting "),DPS::Client::Info);
-// find and remove client
-if(cid.Type==DPS::Client::Server){
 for( ACLI li=_acl.begin();li!=_acl.end();++li){
  if (cid.uid==((*li)->id).uid){
    (*li)->id.Status=status;
@@ -2934,7 +2934,7 @@ _pser->Lock(pid,DPS::Server::ClearKillClient,getType(),_KillTimeOut);
 
 
 void Client_impl::Exiting(const CID & cid, const char * message, DPS::Client::ClientExiting status)throw (CORBA::SystemException){
-_parent->IMessage(AMSClient::print(cid,message?message:"Server exiting"));
+_parent->IMessage(AMSClient::print(cid,message?message:"Client exiting"));
 // find and remove client
 for( ACLI li=_acl.begin();li!=_acl.end();++li){
  if (cid.uid==((*li)->id).uid){
