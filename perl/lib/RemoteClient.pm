@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.297 2005/02/15 13:45:46 choutko Exp $
+# $Id: RemoteClient.pm,v 1.298 2005/02/15 14:03:16 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4605,9 +4605,11 @@ print qq`
         my $readme="$self->{UploadsDir}/README.$run";
         open(FILE,">".$readme) or die "Unable to open file $readme\n";
         if($self->{dwldaddon}==1){
+         $self->{tsyntax}->{headers}->{readmestandalone}=~s/ams02/$dataset->{version}/g;                
          print FILE  $self->{tsyntax}->{headers}->{readmestandalone};
         }
         else{
+         $self->{tsyntax}->{headers}->{readmecorba}=~s/ams02/$dataset->{version}/g;                
          print FILE  $self->{tsyntax}->{headers}->{readmecorba};
         }
         my $sql = "SELECT dirpath FROM journals WHERE cid=$self->{CCID}";
@@ -4622,7 +4624,7 @@ print qq`
          }         
         print FILE  $note;
         close FILE;
-         $file2tar="$self->{UploadsDir}/ams02mcscript.$run.tar";
+         $file2tar="$self->{UploadsDir}/$dataset->{version}script.$run.tar";
         my $i=system("tar -C$self->{UploadsDir} -cf  $file2tar README.$run"); 
           if($i){
               $self->ErrorPlus("Unable to tar readme to $file2tar ");
@@ -4963,15 +4965,15 @@ print qq`
        if ($self->{CCT} eq "remote"){
           if($self->{senddb}==1){
           $self->{TU1}=time();
-           $attach="$file2tar.gz,ams02mcscripts.tar.gz;$filedb,ams02mcdb.tar.gz";
+           $attach="$file2tar.gz,$dataset->{version}mcscripts.tar.gz;$filedb,ams02mcdb.tar.gz";
           }
           elsif($self->{sendaddon}==1){
               $self->{TU2}=time();
               $self->{sendaddon}=0;
-             $attach= "$file2tar.gz,ams02mcscripts.tar.gz;$filedb_att,ams02mcdb.addon.tar.gz";
+             $attach= "$file2tar.gz,$dataset->{version}mcscripts.tar.gz;$filedb_att,ams02mcdb.addon.tar.gz";
           }
           else{
-              $attach= "$file2tar.gz,ams02mcscripts.tar.gz";
+              $attach= "$file2tar.gz,$dataset->{version}mcscripts.tar.gz";
           }
                   $self->sendmailmessage($address,$subject,$message,$attach);
                   my $i=unlink "$file2tar.gz";
