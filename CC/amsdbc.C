@@ -22,12 +22,12 @@ const number AMSDBc::twopi=2*pi;
    const integer AMSDBc::_nlay=nl;
 
    const integer  AMSDBc::_nstripssen[_nlay][2]={
-                                               224,640,
-                                               192,640,
-                                               192,640,
-                                               192,640,
-                                               192,640,
-                                               224,640};
+                                               224,642,
+                                               192,642,
+                                               192,642,
+                                               192,642,
+                                               192,642,
+                                               224,642};
    const integer  AMSDBc::_nstripssenR[_nlay][2]={
                                                767,1284,
                                                767,1284,
