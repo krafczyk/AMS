@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.46 2001/02/19 13:48:53 choutko Exp $
+//  $Id: server.C,v 1.47 2001/02/19 14:18:28 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -1514,18 +1514,11 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
    sendAC(asid,as,rc);
    if(rc ==DPS::Client::Create){
 // Reread everything in case of db-aware program
-
-    CORBA::Object_var obj=_defaultorb->string_to_object((const char *)((_refmap.begin())->second));
-
-    DPS::Server_var _pvar=DPS::Server::_narrow(obj);
-
-  for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
-     
+     CORBA::Object_var obj=_defaultorb->string_to_object((const char *)((_refmap.begin())->second));
+     DPS::Server_var _pvar=DPS::Server::_narrow(obj);
+     for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
      pcur->ReReadTables(_pvar);
-  }
-
-
-
+   }
    }
 }
 
@@ -1698,7 +1691,7 @@ for(MOI i=mo.begin();i!=mo.end();++i){
 }
 
 
-   ReReadTables(_svar);
+   AMSServerI::ReReadTables(_svar);
 
 }
 
@@ -1727,7 +1720,7 @@ if(_ahl.size()){
    }
    catch (CORBA::SystemException &ex){
    }
-  } 
+  }
    if(CORBA::is_nil(_pvar))_parent->FMessage("Producer_impl::ctor-UnableToGetpvar",DPS::Client::CInAbort);  
 
 //Read dstinfo
@@ -4173,5 +4166,94 @@ for(int i=0;i<length;i++){
 }
  cout <<"ACL size"<<_acl.size()<<" "<<(*_ncl.begin())->MaxClients<<" "<<_Submit<<" "<<endl;
 
+
+}
+
+
+void Producer_impl::ReReadTables( DPS::Server_ptr _svar){
+
+DPS::Client::CID cid=_parent->getcid();
+cid.Type=getType();
+//Get NominalClient
+DPS::Client::NCS * pncs;
+int length=_svar->getNC(cid,pncs);
+DPS::Client::NCS_var ncs=pncs;
+_ncl.clear();
+for(int i=0;i<length;i++){
+ DPS::Client::NominalClient_var vnh= new DPS::Client::NominalClient(ncs[i]);
+ _ncl.push_back(vnh);
+}
+
+
+//Now Read ActiveHost
+
+DPS::Client::AHS * pahs;
+length=_svar->getAHS(cid,pahs);
+DPS::Client::AHS_var ahs=pahs;
+_ahl.clear();
+for(int i=0;i<length;i++){
+ DPS::Client::ActiveHost_var vah= new DPS::Client::ActiveHost(ahs[i]);
+ _parent->IMessage(AMSClient::print(vah, "getAHS: "));
+ _ahl.push_back(vah);
+}
+
+//Now Read ActiveClient
+
+DPS::Client::ACS * pacs;
+length=_svar->getACS(cid,pacs,_Submit);
+DPS::Client::ACS_var acs=pacs;
+_acl.clear();
+for(int i=0;i<length;i++){
+ DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(acs[i]);
+ _acl.push_back(vac);
+}
+ cout <<"ACL size"<<_acl.size()<<" "<<_Submit<<" "<<endl;
+
+
+
+
+     CORBA::Object_var obj=_defaultorb->string_to_object((const char *)((_refmap.begin())->second));
+    DPS::Producer_ptr _pvar=DPS::Producer::_narrow(obj);
+
+
+
+//Read dstinfo
+
+//Here read runfiletable
+DSTIS * pdstis;
+length=_pvar->getDSTInfoS(cid, pdstis);
+DSTIS_var dstis=pdstis; 
+_dstinfo.clear();
+for(int i=0;i<length;i++){
+DSTInfo_var vre= new DSTInfo(dstis[i]);
+ _dstinfo.push_back(vre);
+}
+ cout <<"DSTinfosize "<<_dstinfo.size()<<endl;
+
+
+
+//Here read runfiletable
+RES * pres;
+length=_pvar->getRunEvInfoS(cid, pres,_RunID);
+RES_var res=pres; 
+_rl.clear();
+for(int i=0;i<length;i++){
+RunEvInfo_var vre= new RunEvInfo(res[i]);
+ _rl.push_back(vre);
+}
+ cout <<"RQsize "<<_rl.size()<<endl;
+
+
+
+//Now Read Ntuple
+
+DSTS * pdsts;
+length=_pvar->getDSTS(cid,pdsts);
+DSTS_var dsts=pdsts;
+_dst.clear();
+for(int i=0;i<length;i++){
+DST_var vdst= new DST(dsts[i]);
+ _dst.insert(make_pair(vdst->Type,vdst));
+}
 
 }

@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.32 2001/02/19 11:21:40 choutko Exp $
+//  $Id: server.h,v 1.33 2001/02/19 14:18:29 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -320,6 +320,7 @@ public:
   Producer_impl(const map<AString, AMSServer::OrbitVars> & mo, DPS::Server_ptr _cvar,DPS::Client::CID  cid, AMSClient * parent);
   void _PurgeQueue();
   void _init();
+ virtual void ReReadTables(DPS::Server_ptr pvar);
  virtual void UpdateDB(bool force=false);
  virtual void StartClients(const DPS::Client::CID &cid);
  virtual void CheckClients(const DPS::Client::CID &cid); 
