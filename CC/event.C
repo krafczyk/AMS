@@ -237,7 +237,7 @@ void AMSEvent::_endofrun() {
    if (logsum) 
      strcpy(logsumf,logsum);
    else
-     strcpy(logsumf,"/offline/runs_Aug.log");
+     strcpy(logsumf,"/offline/runs_STS91.log");
   
    if ((runs=fopen(logsumf,"r"))==NULL)
     { 
