@@ -673,6 +673,7 @@ void AMSmceventg::_copyEl(){
 }
 
 void AMSmceventg::_writeEl(){
+if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
   MCEventGNtuple* GN = AMSJob::gethead()->getntuple()->Get_mcg();
 
   if (GN->Nmcg>=MAXMCG) return;
@@ -688,6 +689,25 @@ if( Out(_ipart>0 || IOPA.WriteAll%10==1 )){
   GN->Mass[GN->Nmcg]=_mass;
   GN->Charge[GN->Nmcg]=_charge;
   GN->Nmcg++;
+}
+}
+else{
+  MCEventGNtuple02* GN = AMSJob::gethead()->getntuple()->Get_mcg02();
+
+  if (GN->Nmcg>=MAXMCG02) return;
+
+// Fill the ntuple
+if( Out(_ipart>0 || IOPA.WriteAll%10==1 )){
+  GN->Nskip[GN->Nmcg]=_nskip;
+  GN->Particle[GN->Nmcg]=_ipart;
+  int i;
+  for(i=0;i<3;i++)GN->Coo[GN->Nmcg][i]=_coo[i];
+  for(i=0;i<3;i++)GN->Dir[GN->Nmcg][i]=_dir[i];
+  GN->Momentum[GN->Nmcg]=_mom;
+  GN->Mass[GN->Nmcg]=_mass;
+  GN->Charge[GN->Nmcg]=_charge;
+  GN->Nmcg++;
+}
 }
 }
 

@@ -1258,6 +1258,7 @@ c            write(*,*)'ncomp ',z_t,a_t,dens
       ELSE
          SHADR = ZINTHA/FSIG
       END IF
+c      write(*,*)'shadr',shadr,a_t,z_t,fsig,zintha
   999 CONTINUE
       END
 
@@ -1542,6 +1543,8 @@ c               enddo
              z_p=abs(charge)
              nsec=-nsecm
              call absiin(a_p,z_p,a_t,z_t,pmom_p,nsec,p_sec,ierr)
+c             write(*,*)' bamc ',a_t,z_t,nsec
+              
               if(ierr.ne.0)then
                 DESTEP=DESTEP+GEKIN
                 write(*,*)'rqmd error ',gekin,'gev energy released' 

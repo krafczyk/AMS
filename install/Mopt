@@ -36,19 +36,19 @@ O4=-g -D__AMSDEBUG__
 O4F=-g -D__AMSDEBUG__
 else
 ifdef O4
-O4=O4
-O4F=O
+O4=-O4
+O4F=-O
 else
-O4=O
-O4F=O
+O4=-O
+O4F=-O
 endif
 endif
-CFLAGS=   -D__BATCH__ -D__ALPHA__   -$(O4)     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
-CFLAGSTOFSIM=   -D__BATCH__ -D__ALPHA__   -$(O4)     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
-CFLAGSn=   -D__BATCH__ -D__ALPHA__   -$(O4)     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
+CFLAGS=   -D__BATCH__ -D__ALPHA__   $(O4)     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
+CFLAGSTOFSIM=   -D__BATCH__ -D__ALPHA__   $(O4)     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
+CFLAGSn=   -D__BATCH__ -D__ALPHA__   $(O4)     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
 CFLAGSDAQ= $(CFLAGS)
-FFLAGS=   -$(O4F) -I../include  -d -static -nofor_main -convert big_endian 
-FFLAGSn=   -$(O4F) -I../include  -d -static -nofor_main -convert big_endian 
+FFLAGS=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian 
+FFLAGSn=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian 
 DFLAGS=     -I/usr/include  -I../include  
 LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
 CC=cxx 

@@ -21,9 +21,11 @@ protected:
   TrMCClusterNtuple _trclmc;
   TRDMCClusterNtuple _trdclmc;
   TrRecHitNtuple _trrh;
+  TrRecHitNtuple02 _trrh02;
   TrTrackNtuple _trtr;
   TrTrackNtuple02 _trtr02;
   MCEventGNtuple _mcg;
+  MCEventGNtuple02 _mcg02;
   CTCClusterNtuple _ctccl;
   CTCMCClusterNtuple _ctcclmc;
   AntiClusterNtuple _anti;
@@ -67,9 +69,11 @@ public:
   TrMCClusterNtuple* Get_trclmc() {return &_trclmc;}
   TRDMCClusterNtuple* Get_trdclmc() {return &_trdclmc;}
   TrRecHitNtuple* Get_trrh() {return &_trrh;}
+  TrRecHitNtuple02* Get_trrh02() {return &_trrh02;}
   TrTrackNtuple* Get_trtr() {return &_trtr;}
   TrTrackNtuple02* Get_trtr02() {return &_trtr02;}
   MCEventGNtuple* Get_mcg() {return &_mcg;}
+  MCEventGNtuple02* Get_mcg02() {return &_mcg02;}
   CTCClusterNtuple* Get_ctccl() { return &_ctccl;}
   CTCMCClusterNtuple* Get_ctcclmc() {return &_ctcclmc;}
   AntiClusterNtuple* Get_anti() {return &_anti;}

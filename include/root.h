@@ -22,9 +22,12 @@ const int MAXANTIMC  =   200;
 const int MAXTRCL    =   200;
 const int MAXTRRAW   =   300;
 const int MAXTRCLMC  =   200;
-const int MAXTRRH    =   666;
-const int MAXTRTR    =   100;
-const int MAXMCG     =    100;
+const int MAXTRRH    =   500;
+const int MAXTRRH02    =   666;
+const int MAXTRTR    =   200;
+const int MAXTRTR02    =   100;
+const int MAXMCG     =    20;
+const int MAXMCG02     =    100;
 const int MAXCTCCL   =    20;
 const int MAXCTCHT   =    50;
 const int MAXCTCCLMC =   200;
@@ -445,6 +448,30 @@ friend class AMSNtuple;
 ClassDef(TrRecHitNtuple,1)       //TrRecHitNtuple
 #endif
 };
+#ifdef __WRITEROOT__
+class TrRecHitNtuple02 : public TObject {
+#else
+class TrRecHitNtuple02 {
+#endif
+public:
+  int Ntrrh;
+  int pX[MAXTRRH02];
+  int pY[MAXTRRH02];
+  int Status[MAXTRRH02];
+  int Layer[MAXTRRH02];
+  float Hit[MAXTRRH02][3];
+  float EHit[MAXTRRH02][3];
+  float Sum[MAXTRRH02];
+  float DifoSum[MAXTRRH02];
+  float CofgX[MAXTRRH02];
+  float CofgY[MAXTRRH02];
+
+friend class AMSTrRecHit;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(TrRecHitNtuple02,1)       //TrRecHitNtuple
+#endif
+};
 
 #ifdef __WRITEROOT__
 class TrTrackNtuple : public TObject {
@@ -501,39 +528,39 @@ class TrTrackNtuple02 {
 #endif
 public:
   int Ntrtr;
-  int Status[MAXTRTR];
-  int Pattern[MAXTRTR];
-  int Address[MAXTRTR];
-  int NHits[MAXTRTR];
-  int pHits[MAXTRTR][trconst::maxlay];
-  float LocDBAver[MAXTRTR];
-  int GeaneFitDone[MAXTRTR];
-  int AdvancedFitDone[MAXTRTR];
-  float Chi2StrLine[MAXTRTR];
-  float Chi2Circle[MAXTRTR];
-  float CircleRidgidity[MAXTRTR];
-  float Chi2FastFit[MAXTRTR];
-  float Ridgidity[MAXTRTR];
-  float ErrRidgidity[MAXTRTR];
-  float Theta[MAXTRTR];
-  float Phi[MAXTRTR];
-  float P0[MAXTRTR][3];
-  float GChi2[MAXTRTR];
-  float GRidgidity[MAXTRTR];
-  float GErrRidgidity[MAXTRTR];
-  float GTheta[MAXTRTR];
-  float GPhi[MAXTRTR];
-  float GP0[MAXTRTR][3];
-  float HChi2[MAXTRTR][2];
-  float HRidgidity[MAXTRTR][2];
-  float HErrRidgidity[MAXTRTR][2];
-  float HTheta[MAXTRTR][2];
-  float HPhi[MAXTRTR][2];
-  float HP0[MAXTRTR][2][3];
-  float FChi2MS[MAXTRTR];
-  float GChi2MS[MAXTRTR];
-  float RidgidityMS[MAXTRTR];
-  float GRidgidityMS[MAXTRTR];
+  int Status[MAXTRTR02];
+  int Pattern[MAXTRTR02];
+  int Address[MAXTRTR02];
+  int NHits[MAXTRTR02];
+  int pHits[MAXTRTR02][trconst::maxlay];
+  float LocDBAver[MAXTRTR02];
+  int GeaneFitDone[MAXTRTR02];
+  int AdvancedFitDone[MAXTRTR02];
+  float Chi2StrLine[MAXTRTR02];
+  float Chi2Circle[MAXTRTR02];
+  float CircleRidgidity[MAXTRTR02];
+  float Chi2FastFit[MAXTRTR02];
+  float Ridgidity[MAXTRTR02];
+  float ErrRidgidity[MAXTRTR02];
+  float Theta[MAXTRTR02];
+  float Phi[MAXTRTR02];
+  float P0[MAXTRTR02][3];
+  float GChi2[MAXTRTR02];
+  float GRidgidity[MAXTRTR02];
+  float GErrRidgidity[MAXTRTR02];
+  float GTheta[MAXTRTR02];
+  float GPhi[MAXTRTR02];
+  float GP0[MAXTRTR02][3];
+  float HChi2[MAXTRTR02][2];
+  float HRidgidity[MAXTRTR02][2];
+  float HErrRidgidity[MAXTRTR02][2];
+  float HTheta[MAXTRTR02][2];
+  float HPhi[MAXTRTR02][2];
+  float HP0[MAXTRTR02][2][3];
+  float FChi2MS[MAXTRTR02];
+  float PiErrRig[MAXTRTR02];
+  float RidgidityMS[MAXTRTR02];
+  float PiRigidity[MAXTRTR02];
 
 friend class AMSTrTrack;
 friend class AMSNtuple;
@@ -561,6 +588,28 @@ friend class AMSmceventg;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__
 ClassDef(MCEventGNtuple,1)       //MCEventGNtuple
+#endif
+};
+
+#ifdef __WRITEROOT__
+class MCEventGNtuple02 : public TObject {
+#else
+class MCEventGNtuple02 {
+#endif
+public:
+  int Nmcg;
+  int Nskip[MAXMCG02];
+  int Particle[MAXMCG02];
+  float Coo[MAXMCG02][3];
+  float Dir[MAXMCG02][3];
+  float Momentum[MAXMCG02];
+  float Mass[MAXMCG02];
+  float Charge[MAXMCG02];
+
+friend class AMSmceventg;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(MCEventGNtuple02,1)       //MCEventGNtuple
 #endif
 };
 

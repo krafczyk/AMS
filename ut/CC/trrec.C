@@ -1128,6 +1128,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
 
 
 void AMSTrRecHit::_writeEl(){
+if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
  TrRecHitNtuple* THN = AMSJob::gethead()->getntuple()->Get_trrh();
 
   if (THN->Ntrrh>=root::MAXTRRH) return;
@@ -1194,6 +1195,75 @@ void AMSTrRecHit::_writeEl(){
 
     THN->Ntrrh++;
   }
+}
+else{
+ TrRecHitNtuple02* THN = AMSJob::gethead()->getntuple()->Get_trrh02();
+
+  if (THN->Ntrrh>=root::MAXTRRH02) return;
+
+// Fill the ntuple 
+  integer flag =    (IOPA.WriteAll%10==1)
+                 || (IOPA.WriteAll%10==0 && checkstatus(AMSDBc::USED))
+                 || (IOPA.WriteAll%10==2 && !checkstatus(AMSDBc::AwayTOF));
+
+  if(AMSTrRecHit::Out(flag) ){
+    if(_Xcl)THN->pX[THN->Ntrrh]=_Xcl->getpos();
+    else THN->pX[THN->Ntrrh]=-1;
+    THN->pY[THN->Ntrrh]=_Ycl->getpos();
+    int pat;
+    pat=1;
+    if(AMSTrCluster::Out(IOPA.WriteAll%10==1)){
+      // Writeall
+      for(int i=0;i<pat;i++){
+          AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrCluster",i);
+           #ifdef __AMSDEBUG__
+            assert(pc != NULL);
+           #endif
+           THN->pY[THN->Ntrrh]+=pc->getnelem();
+      }
+    }                                                        
+    else if (AMSTrCluster::Out(IOPA.WriteAll%10==0)){
+      //Write only USED hits
+      for(int i=0;i<pat;i++){
+        AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
+        while(ptr && ptr->checkstatus(AMSDBc::USED) ){
+          THN->pY[THN->Ntrrh]++;
+          ptr=ptr->next();
+        }
+      }
+    }
+    else if (AMSTrCluster::Out(IOPA.WriteAll%10==2)){
+      //Write only hits consistent with TOF
+      for(int i=0;i<pat;i++){
+        AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
+        while(ptr && !(ptr->checkstatus(AMSDBc::AwayTOF)) ){
+          THN->pY[THN->Ntrrh]++;
+          ptr=ptr->next();
+        }
+      }
+    }
+    else return;
+  
+    if(!checkstatus(AMSDBc::FalseX) && !checkstatus(AMSDBc::FalseTOFX) &&
+        ((_Xcl->getid()).getlayer() != _Layer) || 
+       ((_Ycl->getid()).getlayer() != _Layer) ){
+      cerr << "AMSTrRecHit-S-Logic Error "<<(_Xcl->getid()).getlayer()<<" "<<
+        (_Ycl->getid()).getlayer()<<" "<<_Layer<<endl;
+    }
+    THN->Status[THN->Ntrrh]=_status;
+    THN->Layer[THN->Ntrrh]=_Layer;
+    int i;
+    for(i=0;i<3;i++)THN->Hit[THN->Ntrrh][i]=_Hit[i];
+    for(i=0;i<3;i++)THN->EHit[THN->Ntrrh][i]=_EHit[i];
+    THN->Sum[THN->Ntrrh]=_Sum;
+    THN->DifoSum[THN->Ntrrh]=_DifoSum;
+//    cout <<" cofgx "<<_cofgx<<" "<<this<<" "<<_Layer<<" "<<_cofgy<<endl;
+    THN->CofgX[THN->Ntrrh]=_cofgx;
+    THN->CofgY[THN->Ntrrh]=_cofgy;
+
+    THN->Ntrrh++;
+  }
+}
 }
 
 void AMSTrRecHit::_copyEl(){
@@ -2179,7 +2249,7 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
 }
 else{
   TrTrackNtuple02* TrTN = AMSJob::gethead()->getntuple()->Get_trtr02();
-  if (TrTN->Ntrtr>=MAXTRTR) return;
+  if (TrTN->Ntrtr>=MAXTRTR02) return;
 
 // Fill the ntuple 
   if(AMSTrTrack::Out(1)){
@@ -2277,9 +2347,9 @@ else{
      for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][1][i]=0;
     }
     TrTN->FChi2MS[TrTN->Ntrtr]=(geant)_Chi2MS;
-    TrTN->GChi2MS[TrTN->Ntrtr]=(geant)_GChi2MS;
+    TrTN->PiErrRig[TrTN->Ntrtr]=(geant)_GChi2MS;
     TrTN->RidgidityMS[TrTN->Ntrtr]=(geant)_RidgidityMS;
-    TrTN->GRidgidityMS[TrTN->Ntrtr]=(geant)_GRidgidityMS;
+    TrTN->PiRigidity[TrTN->Ntrtr]=(geant)_GRidgidityMS;
     TrTN->Ntrtr++;
 
   }
