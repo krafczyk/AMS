@@ -107,6 +107,7 @@ void _retriginitevent();
 void _siamsevent();
 void _redaqinitevent();
 void _reamsevent();
+void _regnevent();
 void _sitrigevent();
 void _sitkevent();
 void _sitofevent();

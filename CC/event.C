@@ -527,6 +527,13 @@ void AMSEvent::_signinitevent(){
       _VelTheta=Array[0].VelTheta;
       _VelPhi=Array[0].VelPhi;
     }
+  }
+
+  AMSgObj::BookTimer.stop("SetTimeCoo");
+}
+
+void AMSEvent::_regnevent(){
+
     // Add mceventg if BeamTest
     if(MISCFFKEY.BeamTest){
 
@@ -551,18 +558,18 @@ void AMSEvent::_signinitevent(){
     }
     integer chint;
     if(_time < ArrayB[hintb].Time){
-     chint=hintb;
+     chint=hintb-1;
+     if(chint<0)cerr<<"BeamTime-S-LogicError-chint<0 "<<_time<<" "<< ArrayB[hintb].Time<<endl;
     }
-    else chint=hintb+1;
+    else chint=hintb;
      // check the runtag
      
      if(ArrayB[chint].RunTag%32768!= AMSEvent::gethead()->getruntype()%32768){
         seterror();
         cerr<<"Event & BeamPar disagree event says runtype = "<<hex<<
-        AMSEvent::gethead()->getruntype()<<" BeamPar says "<<hex<<
+        AMSEvent::gethead()->getruntype()%32768<<" BeamPar says "<<hex<<
         ArrayB[chint].RunTag<<endl;
      }
-     else { 
       
       geant mom(ArrayB[chint].Mom);
       integer part(ArrayB[chint].Pid);
@@ -570,12 +577,8 @@ void AMSEvent::_signinitevent(){
       AMSPoint x(ArrayB[chint].X,ArrayB[chint].Y,ArrayB[chint].Z);
       AMSmceventg *pgen=new AMSmceventg(part,mom,x,dir,ArrayB[chint].Cond);
       if(pgen->acceptio())AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0),pgen);
-      else seterror();
-     }
-    }
   }
 
-  AMSgObj::BookTimer.stop("SetTimeCoo");
 }
 
 
@@ -907,6 +910,16 @@ void AMSEvent::event(){
   
 void AMSEvent::_reamsevent(){
 
+   // get beam par if any;
+   _regnevent();
+   if(AMSJob::gethead()->isReconstruction() && MISCFFKEY.BeamTest){
+      // skip event if there is no mceventg record
+      AMSContainer *p=getC("AMSmceventg",0);
+      if(!p || p->getnelem()==0){
+        if(!GCFLAG.IEORUN && MISCFFKEY.BeamTest>1)GCFLAG.IEORUN=2;  //skip entire run
+        return;
+      }
+   }
   geant d;
   if(AMSJob::gethead()->isMonitoring() && RNDM(d)>IOPA.Portion && GCFLAG.NEVENT>100){
     // skip event

@@ -353,7 +353,7 @@ integer AMSmceventg::acceptio(){
   if(_coo >= _coorange[0] && _coo <= _coorange[1]){
     if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){
       if(_mom>=_momrange[0] && _mom <= _momrange[1]){
-          return 1;
+          if(!MISCFFKEY.BeamTest || _ipart==GCKINE.ikine)return 1;
       }
     }
   }
