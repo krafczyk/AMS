@@ -33,6 +33,8 @@ for(i=0;i<3;i++){
  _dir[i]=io._dir[i];
 }
 InitSeed();
+if(!CCFFKEY.oldformat)Orbit.UpdateAxis(io.getveltheta(),
+   io.getvelphi(),io.getstheta(),io.getsphi());
 }
 
 
@@ -392,7 +394,7 @@ integer AMSmceventg::acceptio(){
     if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){
       if(_mom>=_momrange[0] && _mom <= _momrange[1]){
           if(!MISCFFKEY.BeamTest || (_ipart==GCKINE.ikine || (_ipart>0  && GCKINE.ikine==-1)))return 1;
-          else EarthModulation();
+          else return EarthModulation();
       }
     }
   }
@@ -743,4 +745,9 @@ ThetaI(Th),PolePhi(Pole){
   Begin.tm_sec=0;
   Begin.tm_isdst =  0;
 
+}
+void orbit::UpdateAxis(number vt, number vp, number t, number p){
+  AMSDir ax1(AMSDBc::pi/2-t,p);
+  AMSDir ax2(AMSDBc::pi/2-vt,vp);
+  Axis=ax1.cross(ax2);
 }
