@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.139 2002/06/03 14:53:34 alexei Exp $
+//  $Id: trrec.C,v 1.140 2002/08/05 11:12:14 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1299,6 +1299,8 @@ integer AMSTrTrack::build(integer refit){
         par[1][2]=sqrt(1+par[1][0]*par[1][0]);
         if(NTrackFound<0)NTrackFound=0;
         // Search for others
+        //  add try due to icc bug
+        try{
         integer npfound=_TrSearcher(1);
         if(npfound){
            NTrackFound++;
@@ -1308,7 +1310,10 @@ integer AMSTrTrack::build(integer refit){
          }
          goto out;
         }
-
+        }
+        catch (...){
+         throw;
+        }
         }         
         phit[fp]=phit[fp]->next();
        }
@@ -1372,11 +1377,18 @@ integer AMSTrTrack::buildWeak(integer refit){
         // Search for others
         if(NTrackFound<0)NTrackFound=0;
         // Search for others
+        //  add try due to icc bug
+        try{
         integer npfound=_TrSearcher(1);
         if(npfound){
            NTrackFound++;
          goto out;
         }
+        }
+        catch (...){
+         throw;
+        }
+
         }         
         phit[fp]=phit[fp]->next();
        }
@@ -1441,10 +1453,16 @@ integer AMSTrTrack::buildFalseX(integer nptmin){
         // Search for others
         if(NTrackFound<0)NTrackFound=0;
 
+        //  add try due to icc bug
+        try{
         integer npfound=_TrSearcherFalseX(1);
         if(npfound){
            if(npfound>0)NTrackFound++;
            goto out;
+        }
+        }
+        catch (...){
+         throw;
         }
 
         }         
@@ -2681,6 +2699,8 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
         par[1][2]=sqrt(1+par[1][0]*par[1][0]);
         if(NTrackFound<0)NTrackFound=0;
         // Search for others
+        //  add try due to icc bug
+        try{
         integer npfound=_TrSearcherFalseTOFX(1);
         if(npfound){
            NTrackFound++;
@@ -2690,6 +2710,11 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
          }
          goto out;
         }
+        }
+        catch (...){
+         throw;
+        }
+
         }         
         phit[fp]=phit[fp]->next();
        }
