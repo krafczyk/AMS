@@ -9,8 +9,8 @@ typedef char ch80[80];
 int last_file_read;
 char * CAS_dir, * Coo_db_dir, last_file_n[80], chb80[80];
 char last_name[80]="last.file";
-int new_files=0;
 time_t file_t, last_file_time;
+int new_files;
 
 ch80    new_file_n[buf_n];
 time_t  new_file_t[buf_n];
@@ -18,6 +18,7 @@ int new_file_c; /* how many new files */
 
 /* opens a CAS file */
 int new_files_coming() {
+  int new_files=0; 
   FILE *last_f;
   char chbuf80[80], last_file_n[80];
   time_t last_file_time;
