@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.109 2004/03/10 10:17:42 choutko Exp $
+//  $Id: server.C,v 1.110 2004/03/11 11:34:43 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -67,12 +67,11 @@ int main(int argc, char * argv[]){
   } 
    AMSServer::Singleton()->IMessage("Initialization Completed");
    AMSServer::Singleton()->DumpIOR();
-    cout <<"  Starting ... "<<endl;
     int count=AMSServer::Singleton()->MT()?-1:1;
           GError *error=NULL;
           int countt=0;
-            g_thread_init(NULL);
-         CORBA::ORB_ptr orb=AMSServer::Singleton()->getdefaultorb();
+//            g_thread_init(NULL);
+//         CORBA::ORB_ptr orb=AMSServer::Singleton()->getdefaultorb();
 //         g_thread_create(myrun,&orb,FALSE,&error);
     AMSServer::Singleton()->Listening(count);
     cout <<"  Starting ... "<<endl;
