@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.139 2004/02/13 15:10:23 alcaraz Exp $
+//  $Id: root.h,v 1.140 2004/02/17 11:10:14 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -3068,13 +3068,13 @@ public:
       void Read(const char* filename); ///<Read "run event" list from ASCII file
       void Write(); ///<Write "run event" list to standard output
       void Write(const char* filename); ///<Write "run event" list to ASCII file
-      void Write(TChain* chain, const char* filename); ///<Write selected events from a chain to a new ROOT file
+      void Write(TTree* chain, TFile* file); ///<Write/Add selected events from a chain into a ROOT file
 
       int GetEntries(); ///<Number of events in the list
       int GetRun(int i); ///<Retrieve run number for entry i
       int GetEvent(int i); ///<Retrieve event number for entry i
 
-      ClassDef(AMSEventList,1)       //AMSEventList
+      ClassDef(AMSEventList,2)       //AMSEventList
 };
 
 //!  AMSMyTrackConst namespace
