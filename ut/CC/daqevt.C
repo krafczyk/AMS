@@ -213,6 +213,12 @@ integer DAQEvent::_EventOK(){
      //     int ic=0;
      //     for(_pcur=_pData;_pcur<_pData+_Length;_pcur++)
      //       cout <<ic++ <<" "<<*(_pcur)<<endl;
+      if(!fbin.good()){
+        cerr<<" DAQEvent::_Eventok-S-HardError,CouldNotReadFile"<<endl;
+      }
+      if(fbin.eof()){
+        cerr<<"DAQEvent::_Eventok-W-UnexpectedEOF"<<endl;
+      }
 #endif   
        return 0;
     }
