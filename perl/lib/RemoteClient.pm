@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.130 2003/04/25 18:46:03 alexei Exp $
+# $Id: RemoteClient.pm,v 1.131 2003/04/26 13:53:22 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3556,7 +3556,7 @@ print qq`
          $tmpb=~ s/TIME 3=/TIME 1=$cpusf TIME 3=/; 
          $buf=~ s/PART=/CPUTIME=$cpus \nPART=/; 
          my $cputype=$q->param("QCPUType");
-         $buf=~ s/PART=/CPUTYPE=$cputype \nPART=/; 
+         $buf=~ s/PART=/CPUTYPE=\"$cputype\" \nPART=/; 
          $buf=~ s/PART=/CLOCK=$clock \nPART=/;         
          my $ctime=time();
          $buf=~ s/PART=/SUBMITTIME=$ctime\nPART=/;    
