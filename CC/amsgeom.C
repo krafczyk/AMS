@@ -17,7 +17,9 @@
 #include <job.h>
 #include <commons.h>
 extern "C" void mtx_(geant nrm[][3],geant vect[]);
+extern "C" void mtx2_(number nrm[][3],geant  xnrm[][3]);
 #define MTX mtx_
+#define MTX2 mtx2_
 void AMSgvolume::amsgeom(){
 extern void tkgeom(AMSgvolume &);
 extern void magnetgeom(AMSgvolume &);
@@ -954,8 +956,32 @@ ostrstream ost(name,sizeof(name));
       //  Sensors notactive
       //
       gid=i+1+10*(j+1)+1000*(k+1)+100000;
-      cur=dau->add(new AMSgvolume(
-      "NONACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid));
+      if(AMSJob::gethead()->isSimulation() && 
+         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
+        // Change parameters
+        int kloc,lloc;
+        for(kloc=0;kloc<3;kloc++){
+          coo[kloc]+=TRCALIB.InitialCoo[i][kloc];
+          for(lloc=0;lloc<3;lloc++) 
+          xnrm[kloc][lloc]=nrm[kloc][lloc]+TRCALIB.InitialRM[i][kloc][lloc];
+        }
+        MTX2(nrm,xnrm);
+      }
+      AMSgvolume *pgv=new AMSgvolume(
+      "NONACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid);
+      if(AMSJob::gethead()->isSimulation() && 
+         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
+        // restore parameters
+        int kloc,lloc;
+        for(kloc=0;kloc<3;kloc++){
+          coo[kloc]-=TRCALIB.InitialCoo[i][kloc];
+          for(lloc=0;lloc<3;lloc++) 
+          nrm[kloc][lloc]=xnrm[kloc][lloc]-TRCALIB.InitialRM[i][kloc][lloc];
+        }
+        pgv->setcoo(coo);
+        pgv->setnrm(nrm); 
+      }
+      cur=dau->add(pgv);
 
     }
 
@@ -986,8 +1012,32 @@ ostrstream ost(name,sizeof(name));
       //  Sensors active
       //
       gid=i+1+10*(j+1)+1000*(k+1);
-      cur=dau->add(new AMSgvolume(
-      "ACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
+      if(AMSJob::gethead()->isSimulation() && 
+         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
+        // Change parameters
+        int kloc,lloc;
+        for(kloc=0;kloc<3;kloc++){
+          coo[kloc]+=TRCALIB.InitialCoo[i][kloc];
+          for(lloc=0;lloc<3;lloc++) 
+          xnrm[kloc][lloc]=nrm[kloc][lloc]+TRCALIB.InitialRM[i][kloc][lloc];
+        }
+        MTX2(nrm,xnrm);
+      }
+      AMSgvolume * pgv=new AMSgvolume(
+      "ACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid);
+      if(AMSJob::gethead()->isSimulation() && 
+         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
+        // restore parameters
+        int kloc,lloc;
+        for(kloc=0;kloc<3;kloc++){
+          coo[kloc]-=TRCALIB.InitialCoo[i][kloc];
+          for(lloc=0;lloc<3;lloc++) 
+          nrm[kloc][lloc]=xnrm[kloc][lloc]-TRCALIB.InitialRM[i][kloc][lloc];
+        }
+        pgv->setcoo(coo);
+        pgv->setnrm(nrm); 
+      }
+      cur=dau->add(pgv);
 
     }
     }

@@ -4,6 +4,7 @@
 #include <gvolume.h>
 #include <commons.h>
 #include <signal.h>
+#include <unistd.h> 
 GCBANK_DEF GCBANK;
 PAWC_DEF PAWC;
 
@@ -11,15 +12,15 @@ PROTOCCALLSFSUB0(UGINIT,uginit)
 #define UGINIT() CCALLSFSUB0(UGINIT,uginit)
 PROTOCCALLSFSUB0(UGLAST,uglast)
 #define UGLAST() CCALLSFSUB0(UGLAST,uglast)
-PROTOCCALLSFSUB0(GBATCH,gbatch)
-#define GBATCH() CCALLSFSUB0(GBATCH,gbatch)
 //
 void (handler)(int);
 main(){
-       *signal(SIGFPE, handler);
+     *signal(SIGFPE, handler);
+     *signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
-  //  cout << "Debug ?";
-  AMSgvolume::debug=0;
+     *signal(SIGINT, handler);
+     *signal(SIGQUIT, handler);
+    AMSgvolume::debug=0;
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
     UGINIT();
@@ -30,10 +31,17 @@ return 0;
 }
 void (handler)(int sig){
   if(sig==SIGFPE)cerr <<" FPE intercepted"<<endl;
-  else if (sig==SIGTERM){
+  else if (sig==SIGTERM || sig==SIGINT){
     cerr <<" SIGTERM intercepted"<<endl;
     GCFLAG.IEORUN=1;
     GCFLAG.IEOTRI=1;
+  }
+  else if(sig==SIGQUIT){
+      cerr <<" Process suspended"<<endl;
+     pause();
+  }
+  else if(sig==SIGCONT){
+      cerr <<" Process resumed"<<endl;
   }
 }
 

@@ -33,12 +33,16 @@ void AMSIO::init(integer mode,integer format){
           integer runold=0;
           integer pidold=0;
           integer ok=1;
+          integer seed0,seed1;
           while(ok){
            ok=io.read();
+           if(ok){
+             seed0=io.getseed(0);
+             seed1=io.getseed(1);
+           }
            if(format==1 && (io.getrun()!=runold || ok==0)){
              if(iposr>0)cout <<"AMSIO::init-I-Run "<<runold<<" has "<<iposr<<
                           " events with pid = "<<pidold<<endl;
-             //            if(ok)cout <<io<<endl;
              if(io.getrun()<0){
                cout <<"AMSIO::init-F-Negative run number "<< io.getrun()<<endl;
                exit(1);
@@ -58,17 +62,17 @@ void AMSIO::init(integer mode,integer format){
             cout<<"AMSIO::init-I-Selected Run = "<<SELECTFFKEY.Run<<
               " Event = "<<io.getevent()<< " Position = "<<ipos<<endl;
           
-          if(format==1){
-             cout<<"AMSIO::init-I-Total of "<<ipos-1
-             <<" events have been read."<<endl;
-             cout << " Last Random Number "<<io.getseed(0)<<" "<<io.getseed(1)
-                  <<endl;
-          }
           }
           else {
             if(format==0)cerr <<"AMSIO::init-F-Failed to select Run = "<<SELECTFFKEY.Run<<
               " Event >= "<<SELECTFFKEY.Event<<endl;
-            exit(1);
+          if(format==1){
+             cout<<"AMSIO::init-I-Total of "<<ipos-1
+             <<" events have been read."<<endl;
+             cout << " Last Random Number "<<seed0<<" "<<seed1    <<endl;
+             fbin.close();
+          }
+          else  exit(1);
           }
           return;
         }
@@ -89,8 +93,10 @@ void AMSIO::write(){
    fbin.write((char*)this,sizeof(*this));
 }
 integer AMSIO::read(){
-   fbin.read((char*)this,sizeof(AMSIO));
-   convert();
+   if(fbin.good() && !fbin.eof()){
+     fbin.read((char*)this,sizeof(AMSIO));
+     convert();
+   }
    return fbin.good() && !fbin.eof();
 }
 
@@ -106,7 +112,8 @@ AMSIOI::~AMSIOI(){
 }
 ostream & operator << (ostream &o, const AMSIO &b ){
   return o<<b._run<<b._event<<b._time<<b._ipart<<b._coo[0]<<
-  b._coo[1]<<b._coo[2]<<b._dir[0]<<b._dir[1]<<b._dir[2]<<b._mom;
+    b._coo[1]<<b._coo[2]<<b._dir[0]<<b._dir[1]<<b._dir[2]<<b._mom<<b._seed[0]
+          <<b._seed[1];
 }   
 
 void AMSIO::convert(){

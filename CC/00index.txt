@@ -29,6 +29,7 @@ snode.C   // Map
 tofdbc.C  // Various constants & parameters (geometry most) for TOF
 tofrec.C  // TOF classes
 tofsim.C  // TOF simulation classes
+trcalib.C // Tracker Calibration
 trid.C    // Tracker ID's
 trrawcluster.C // Tracker raw cluster
 trrec.C   //  Tracker classes

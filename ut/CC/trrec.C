@@ -35,10 +35,14 @@ integer AMSTrTrack::patconf[npat][6]={1,2,3,4,5,6,   // 123456  0
                                       1,3,4,5,0,0,   // 1345   13 
                                       1,3,4,6,0,0,   // 1346   14
                                       1,3,5,6,0,0,   // 1356   15
-                                      2,3,4,5,0,0,   // 2345   16
-                                      2,3,4,6,0,0,   // 2346   17
-                                      3,4,5,6,0,0};  // 3456   18
-integer AMSTrTrack::patpoints[npat]={6,5,5,5,5,5,5,4,4,4,4,4,4,4,4,4,4,4,4};
+                                      1,4,5,6,0,0,   // 1356   16
+                                      2,3,4,5,0,0,   // 2345   17
+                                      2,3,4,6,0,0,   // 2346   18
+                                      2,3,5,6,0,0,   // 2346   19
+                                      2,4,5,6,0,0,   // 2346   20
+                                      3,4,5,6,0,0};  // 3456   21
+integer AMSTrTrack::patpoints[npat]=
+              {6,5,5,5,5,5,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4};
 
 const integer AMSTrTrack::AMBIG=4;
 
@@ -693,7 +697,7 @@ void AMSTrTrack::AdvancedFit(){
 }
 
 integer AMSTrTrack::TOFOK(){
-  if (TRFITFFKEY.UseTOF && _Pattern == 16){
+  if (TRFITFFKEY.UseTOF && _Pattern == 17){
    // Cycle thru all TOF clusters;
    // at least UseTOF of them should be matched with the track
    integer i;
@@ -830,7 +834,7 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
      }
       
     }
-    else if(_Pattern<19){
+    else if(_Pattern<npat){
       //fit 123
       npt=3;
      for(int j=0;j<3;j++){
@@ -872,7 +876,7 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
       sigma[0][j]=_Pthit[4]->getEHit()[j];
      }
     }
-    else if(_Pattern <19){
+    else if(_Pattern <npat){
       // fit 234
       npt=3;
      for(int j=0;j<3;j++){

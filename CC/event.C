@@ -22,6 +22,10 @@
 #include <ntuple.h>
 #include <ctcdbc.h>
 #include <timeid.h>
+#include <trcalib.h>
+//
+AMSTOFScan scmcscan[SCBTPN];// some "temporary" TOF solution
+TOFBrcal scbrcal[SCLRS][SCMXBR];// ...................
 //
 integer AMSEvent::debug=1;
 AMSEvent* AMSEvent::_Head=0;
@@ -32,9 +36,9 @@ void AMSEvent::_init(){
   if(_run != SRun){
    SRun=_run;
    cout <<" AMS-I-New Run "<<_run<<endl;
-   if(AMSJob::gethead()->getjobtype() == AMSFFKEY.Simulation)_siamsinitrun();
+   if(AMSJob::gethead()->isSimulation())_siamsinitrun();
    _reamsinitrun();
-   _validate();
+  _validate();
   }
   init();
 }
@@ -56,8 +60,9 @@ _reaxinitrun();
 
 void AMSEvent::init(){
   // Initialize containers
-if(AMSJob::gethead()->getjobtype() == AMSFFKEY.Simulation)_siamsinitevent();
+if(AMSJob::gethead()->isSimulation())_siamsinitevent();
 _reamsinitevent();
+   if(AMSJob::gethead()->isCalibration())_caamsinitevent();
 }
 
 void AMSEvent::_siamsinitevent(){
@@ -83,7 +88,7 @@ void AMSEvent::_signinitevent(){
 }
 
 void AMSEvent::_sitkinitevent(){
-  AMSNode *ptr = AMSEvent::gethead()->add (
+  AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrMCCluster",0),0));
 }
 
@@ -275,8 +280,9 @@ for (int i=0;;){
 }
 
 void AMSEvent::event(){
-   if(AMSJob::gethead()->getjobtype() == AMSFFKEY.Simulation)_siamsevent();
+   if(AMSJob::gethead()->isSimulation())_siamsevent();
       _reamsevent();
+      if(AMSJob::gethead()->isCalibration())_caamsevent();  
 }
 
 void AMSEvent::_siamsevent(){
@@ -292,6 +298,67 @@ void AMSEvent::_reamsevent(){
   _retkevent(); 
   _retrdevent(); 
   _reaxevent();
+}
+
+void AMSEvent::_caamsinitevent(){
+ if(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)_catkinitevent();
+ if(AMSJob::gethead()->isCalibration() & AMSJob::CTRD)_catrdinitevent();
+ if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF)_catofinitevent();
+ if(AMSJob::gethead()->isCalibration() & AMSJob::CCerenkov)_cactcinitevent();
+ if(AMSJob::gethead()->isCalibration() & AMSJob::CAMS)_caaxinitevent();
+}
+
+void AMSEvent::_catkinitevent(){
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTrCalibration",0),0));
+}
+
+void AMSEvent::_catofinitevent(){
+}
+
+void AMSEvent::_catrdinitevent(){
+}
+
+void AMSEvent::_caaxinitevent(){
+}
+
+void AMSEvent::_cactcinitevent(){
+}
+
+void AMSEvent::_caamsevent(){
+  if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF)_catofevent();
+  if(AMSJob::gethead()->isCalibration() & AMSJob::CCerenkov)_cactcevent();
+  if(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)_catkevent();
+  if(AMSJob::gethead()->isCalibration() & AMSJob::CTRD)_catrdevent();
+  if(AMSJob::gethead()->isCalibration() & AMSJob::CAMS)_caaxevent();
+}
+
+void AMSEvent::_catkevent(){
+  AMSgObj::BookTimer.start("CalTrFill");
+int i,j;
+for(i=0;i<2;i++){
+  for(j=0;j<tkcalpat;j++){
+    if(AMSTrCalibFit::getHead(i,j)->Test()){
+     AMSgObj::BookTimer.start("CalTrFit");
+     AMSTrCalibFit::getHead(i,j)->Fit();
+     AMSgObj::BookTimer.stop("CalTrFit");
+    }
+  }
+}
+  AMSgObj::BookTimer.stop("CalTrFill");
+
+}
+
+void AMSEvent::_cactcevent(){
+}
+
+void AMSEvent::_catofevent(){
+}
+
+void AMSEvent::_catrdevent(){
+}
+
+void AMSEvent::_caaxevent(){
 }
 
 void AMSEvent::_retkevent(integer refit){
@@ -331,7 +398,7 @@ int stat;
 //
   if(TOFMCFFKEY.fast==0){
   TOFJobStat::addre(0);
-  if(AMSJob::gethead()->getjobtype() == AMSFFKEY.Reconstruction){
+  if(AMSJob::gethead()->isRealData()  ){
     AMSgObj::BookTimer.start("TOF:DAQ->RwEv");
     AMSTOFRawEvent::re_build(stat);// DAQ-->RawEvent
     AMSgObj::BookTimer.stop("TOF:DAQ->RwEv");
@@ -397,13 +464,13 @@ void AMSEvent::_sitkinitrun(){
 
 void AMSEvent::_sitrdinitrun(){
 }
-//======================================================================
+
 void AMSEvent::_sitofinitrun(){
 }
-//=====================================================================
+
 void AMSEvent::_sictcinitrun(){
 }
-//=====================================================================
+
 void AMSEvent::_retkinitrun(){
   // Warning if TRFITFFKEY.FastTracking is on...
   if(TRFITFFKEY.FastTracking){

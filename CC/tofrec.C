@@ -352,7 +352,7 @@ void AMSTOFRawCluster::build(int &status){
       HF1(1532,(tcorr[0]-tcorr[2]),1.);//ToF for L0->L2
       HF1(1534,(tcorr[1]-tcorr[3]),1.);//ToF for L1->L3
       HF1(1533,tdiff[0],1.);//layer=0
-      if(AMSJob::gethead()->getjobtype()==AMSFFKEY.Simulation){
+      if(AMSJob::gethead()->isSimulation()){
         geant tch;
         charg[0]=pch1[0];
         charg[1]=pch2[0];

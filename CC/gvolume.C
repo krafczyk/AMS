@@ -4,6 +4,15 @@
 #include <gmat.h>
 integer AMSgvolume::debug=1;
 geant AMSgvolume::dgeant=1.e-4;
+void AMSgvolume::setcoo(geant coo[]){
+_cooA=AMSPoint(coo[0],coo[1],coo[2]);
+_coo=_cooA;
+}
+void AMSgvolume::setnrm(number nrm[3][3]){
+   UCOPY(nrm,_nrm,3*3*sizeof(nrm[0][0])/4);
+   UCOPY(nrm,_inrm,3*3*sizeof(nrm[0][0])/4);
+}
+
 AMSgvolume::AMSgvolume (integer matter,integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 

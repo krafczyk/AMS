@@ -19,15 +19,32 @@
 #include <ctcdbc.h>
 #include <timeid.h>
 #include <mceventg.h>
+#include <trcalib.h>
 #include <tofdbc.h>
 #include <tofsim.h>
 #include <tofcalib.h>
 #include <tofrec.h>
-//
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
 integer AMSJob::debug=1;
-//
+const uinteger AMSJob::Reconstruction=1;
+const uinteger AMSJob::RealData=2;
+const uinteger AMSJob::CTracker=4;
+const uinteger AMSJob::CTOF=8;
+const uinteger AMSJob::CAnti=16;
+const uinteger AMSJob::CCerenkov=32;
+const uinteger AMSJob::CMagnet=64;
+const uinteger AMSJob::CRICH=128;
+const uinteger AMSJob::CTRD=256;
+const uinteger AMSJob::CAMS=512;
+const uinteger AMSJob::Calibration=AMSJob::CTracker+
+                                   AMSJob::CTOF+
+                                   AMSJob::CAnti+
+                                   AMSJob::CCerenkov+
+                                   AMSJob::CMagnet+
+                                   AMSJob::CRICH+
+                                   AMSJob::CTRD+
+                                   AMSJob::CAMS;
 TOFVarp tofvpar; // TOF general parameters (not const !)
 AMSTOFScan scmcscan[SCBLMX];// TOF mcscan PMT time-distributions
 TOFBrcal scbrcal[SCLRS][SCMXBR];// TOF individual sc.bar parameters 
@@ -115,6 +132,32 @@ TRMCFFKEY.mon[1]=0;
 TRMCFFKEY.year[0]=96;
 TRMCFFKEY.year[1]=98;
 FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
+
+TRCALIB.EventsPerIteration[0]=100;
+TRCALIB.EventsPerIteration[1]=100;
+TRCALIB.NumberOfIterations[0]=200;
+TRCALIB.NumberOfIterations[1]=200;
+TRCALIB.BetaCut[0][0]=0.7;
+TRCALIB.BetaCut[0][1]=0.95;
+TRCALIB.BetaCut[1][0]=1;
+TRCALIB.BetaCut[1][1]=10;
+TRCALIB.HitsRatioCut[0]=2.2;
+TRCALIB.HitsRatioCut[1]=2.2;
+TRCALIB.MomentumCut[0][0]=-FLT_MAX;
+TRCALIB.MomentumCut[0][1]=FLT_MAX;
+TRCALIB.MomentumCut[1][0]=3;
+TRCALIB.MomentumCut[1][1]=FLT_MAX;
+TRCALIB.Chi2Cut[0]=3;
+TRCALIB.Chi2Cut[1]=3;
+int i,j,k;
+for (i=0;i<6;i++){
+ for(j=0;j<3;j++){
+   TRCALIB.InitialCoo[i][j]=0;
+   for(k=0;k<3;k++)TRCALIB.InitialRM[i][j][k]=0;
+ }
+}
+FFKEY("TRCALIB",(float*)&TRCALIB,sizeof(TRCALIB_DEF)/sizeof(integer),"MIXED");
+
 }
 
 void AMSJob::_signdata(){
@@ -273,20 +316,24 @@ TRFITFFKEY.pattern[1]=1;
 TRFITFFKEY.pattern[2]=1;
 TRFITFFKEY.pattern[3]=1;
 TRFITFFKEY.pattern[4]=1;
-TRFITFFKEY.pattern[5]=0;
-TRFITFFKEY.pattern[6]=0;
-TRFITFFKEY.pattern[7]=0;
-TRFITFFKEY.pattern[8]=0;
-TRFITFFKEY.pattern[9]=0;
-TRFITFFKEY.pattern[10]=0;
-TRFITFFKEY.pattern[11]=0;
-TRFITFFKEY.pattern[12]=0;
-TRFITFFKEY.pattern[13]=0;
-TRFITFFKEY.pattern[14]=0;
-TRFITFFKEY.pattern[15]=0;
-TRFITFFKEY.pattern[16]=0;
-TRFITFFKEY.pattern[17]=0;
-TRFITFFKEY.pattern[18]=0;
+// Changed to 1 for shuttle setup
+TRFITFFKEY.pattern[5]=1;
+TRFITFFKEY.pattern[6]=1;
+TRFITFFKEY.pattern[7]=1;
+TRFITFFKEY.pattern[8]=1;
+TRFITFFKEY.pattern[9]=1;
+TRFITFFKEY.pattern[10]=1;
+TRFITFFKEY.pattern[11]=1;
+TRFITFFKEY.pattern[12]=1;
+TRFITFFKEY.pattern[13]=1;
+TRFITFFKEY.pattern[14]=1;
+TRFITFFKEY.pattern[15]=1;
+TRFITFFKEY.pattern[16]=1;
+TRFITFFKEY.pattern[17]=1;
+TRFITFFKEY.pattern[18]=1;
+TRFITFFKEY.pattern[19]=1;
+TRFITFFKEY.pattern[20]=1;
+TRFITFFKEY.pattern[21]=1;
 TRFITFFKEY.UseTOF=1;
 TRFITFFKEY.Chi2FastFit=10;
 TRFITFFKEY.Chi2StrLine=20;
@@ -449,7 +496,12 @@ for (i=0;i<len;i++){
   }
 }
 }
-_jobtype=AMSFFKEY.Jobtype;
+_jobtype=setjobtype(AMSFFKEY.Jobtype%10 != 0);
+_jobtype=setjobtype((AMSFFKEY.Jobtype/10)%10 != 0);
+uinteger ical=(AMSFFKEY.Jobtype/100)%10;
+uinteger ucal=1;
+if(ical)_jobtype=setjobtype(ucal<<(ical+1));
+
 //
 // Read/Write Synchronization
 if(AMSFFKEY.Read > 10 && AMSFFKEY.Read%2==0)AMSFFKEY.Read++;
@@ -485,8 +537,9 @@ if(AMSFFKEY.Update){
 
 
 void AMSJob::init(){
-if(_jobtype ==AMSFFKEY.Simulation)_siamsinitjob();
+if(isSimulation())_siamsinitjob();
 _reamsinitjob();
+if(isCalibration())_caamsinitjob();
 _timeinitjob();
 cout << *this;
 }
@@ -575,8 +628,7 @@ void AMSJob::_sitofinitjob(){
     char name[12];
     UHTOC(TOFMCFFKEY.tdfnam,4,name,12);
     strcat(name,".dat");
-//    strcpy(fname,AMSDATADIR.amsdatadir);    
-    strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");
+    strcpy(fname,AMSDATADIR.amsdatadir);    
     strcat(fname,name);
     cout<<"Open file : "<<fname<<'\n';
     ifstream tcfile(fname,ios::in); // open needed tdfmap-file for reading
@@ -674,6 +726,38 @@ _retrdinitjob();
 _rectcinitjob();
 _reaxinitjob();
 }
+void AMSJob::_caamsinitjob(){
+if(isCalibration() & CTracker)_catkinitjob();
+if(isCalibration() & CTOF)_catofinitjob();
+if(isCalibration() & CTRD)_catrdinitjob();
+if(isCalibration() & CCerenkov)_cactcinitjob();
+if(isCalibration() & CAMS)_caaxinitjob();
+}
+
+void AMSJob::_catkinitjob(){
+AMSgObj::BookTimer.book("CalTrFill");
+AMSgObj::BookTimer.book("CalTrFit");
+int i,j;
+for(i=0;i<2;i++){
+  for(j=0;j<tkcalpat;j++){
+    AMSTrCalibFit::setHead(i,j, new 
+    AMSTrCalibFit(j+1,TRCALIB.EventsPerIteration[i],TRCALIB.NumberOfIterations[i],i));
+  }
+}
+
+}
+
+void AMSJob::_catofinitjob(){
+}
+
+void AMSJob::_catrdinitjob(){
+}
+
+void AMSJob::_cactcinitjob(){
+}
+
+void AMSJob::_caaxinitjob(){
+}
 
 void AMSJob::_retkinitjob(){
 AMSgObj::BookTimer.book("RETKEVENT");
@@ -763,7 +847,7 @@ void AMSJob::_retofinitjob(){
 //
 //----  
 // 
- if(AMSJob::gethead()->getjobtype() == AMSFFKEY.Simulation){ // For MC :
+ if(isMCData()){ // For MC :
 //
 //---> TOFBrcal bank variables init :
 //
@@ -903,7 +987,7 @@ end.tm_hour=TKFIELD.ihour[1];
 end.tm_mday=TKFIELD.iday[1];
 end.tm_mon=TKFIELD.imon[1];
 end.tm_year=TKFIELD.iyear[1];
-TID.add (new AMSTimeID(AMSID("MagneticFieldMap",getjobtype()),
+TID.add (new AMSTimeID(AMSID("MagneticFieldMap",isRealData()),
    begin,end,sizeof(TKFIELD_DEF),(void*)&TKFIELD));
 }
 //----------------------------
@@ -929,24 +1013,24 @@ end.tm_mon=TRMCFFKEY.mon[1];
 end.tm_year=TRMCFFKEY.year[1];
 
 
-TID.add (new AMSTimeID(AMSID("TrackerPedestals",getjobtype()),
+TID.add (new AMSTimeID(AMSID("TrackerPedestals",isRealData()),
    begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::peds));
-TID.add (new AMSTimeID(AMSID("TrackerGains",getjobtype()),
+TID.add (new AMSTimeID(AMSID("TrackerGains",isRealData()),
    begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::gains));
-TID.add (new AMSTimeID(AMSID("TrackerSigmas",getjobtype()),
+TID.add (new AMSTimeID(AMSID("TrackerSigmas",isRealData()),
    begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::sigmas));
 // change deliberately one sigma;
 // AMSTrIdSoft::sigmas[1]=3.44;
-TID.add (new AMSTimeID(AMSID("TrackerStatus",getjobtype()),
+TID.add (new AMSTimeID(AMSID("TrackerStatus",isRealData()),
    begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::status));
-TID.add (new AMSTimeID(AMSID("TrackerIndNoise",getjobtype()),
+TID.add (new AMSTimeID(AMSID("TrackerIndNoise",isRealData()),
    begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::indnoise));
-TID.add (new AMSTimeID(AMSID("TrackerCommonNoise",getjobtype()),
+TID.add (new AMSTimeID(AMSID("TrackerCommonNoise",isRealData()),
    begin,end,sizeof(AMSTrIdSoft::cmnnoise[0])*ms,
    (void*)AMSTrIdSoft::cmnnoise));
 }
@@ -972,15 +1056,15 @@ end.tm_mon=TOFRECFFKEY.mon[1];
 end.tm_year=TOFRECFFKEY.year[1];
 
    
-TID.add (new AMSTimeID(AMSID("Tofbarcal1",getjobtype()),
+TID.add (new AMSTimeID(AMSID("Tofbarcal1",isRealData()),
    begin,end,SCBLMX*sizeof(scbrcal[0][0]),
    (void*)&scbrcal[0][0]));
    
-TID.add (new AMSTimeID(AMSID("Tofvpar",getjobtype()),
+TID.add (new AMSTimeID(AMSID("Tofvpar",isRealData()),
    begin,end,sizeof(TOFVarp),
    (void*)&tofvpar));
    
-TID.add (new AMSTimeID(AMSID("Tofmcscans",getjobtype()),
+TID.add (new AMSTimeID(AMSID("Tofmcscans",isRealData()),
    begin,end,SCBLMX*sizeof(AMSTOFScan),
    (void*)&scmcscan[0]));
 }
@@ -1007,22 +1091,22 @@ end.tm_year=AMSCharge::_year[1];
 
 
 
-TID.add (new AMSTimeID(AMSID("ChargeLkhd1",getjobtype()),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd1",isRealData()),
    begin,end,100*ncharge*sizeof(AMSCharge::_lkhdTracker[0][0]),
    (void*)AMSCharge::_lkhdTracker[0]));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd2",getjobtype()),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd2",isRealData()),
    begin,end,100*ncharge*sizeof(AMSCharge::_lkhdTOF[0][0]),
    (void*)AMSCharge::_lkhdTOF[0]));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd3",getjobtype()),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd3",isRealData()),
    begin,end,ncharge*sizeof(AMSCharge::_lkhdStepTOF[0]),
    (void*)AMSCharge::_lkhdStepTOF));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd4",getjobtype()),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd4",isRealData()),
    begin,end,ncharge*sizeof(AMSCharge::_lkhdStepTracker[0]),
    (void*)AMSCharge::_lkhdStepTracker));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd5",getjobtype()),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd5",isRealData()),
    begin,end,ncharge*sizeof(AMSCharge::_chargeTOF[0]),
    (void*)AMSCharge::_chargeTOF));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd6",getjobtype()),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd6",isRealData()),
    begin,end,ncharge*sizeof(AMSCharge::_chargeTracker[0]),
    (void*)AMSCharge::_chargeTracker));
 

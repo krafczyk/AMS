@@ -35,9 +35,9 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0,
         }
       }
 #ifdef __AMSDEBUG__
-        if(getid() != AMSJob::gethead()->getjobtype()){
+        if(getid() != AMSJob::gethead()->isRealData()){
           cerr << "AMSTimeID-ctor-F-numerical id mismatch "<<
-          getid()<<AMSJob::gethead()->getjobtype()<<endl;
+          getid()<<AMSJob::gethead()->isRealData()<<endl;
           exit(1);
         }
 #endif
