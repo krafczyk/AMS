@@ -271,7 +271,7 @@ ooStatus TOFDBcD::CmpConstants()
   if (_ftdelm      != TOFDBc::_ftdelm) {
       rstatus = oocError;
       Error("TOFDBc::CmpConstants :_ftdelm is different ");
-      cerr<<" _strrat: dbase, mem "<<_ftdelm<<", "<<TOFDBc::_ftdelm<<endl;
+      cerr<<" _ftdelm: dbase, mem "<<_ftdelm<<", "<<TOFDBc::_ftdelm<<endl;
   }
 
 

@@ -143,7 +143,7 @@ class tdv_time {
 //
 };
 
-const int ntdv = 26;
+const int ntdv = 24;
 
 static tdv_time*              tdv;
 static integer                ptr_start[ntdv];
@@ -267,10 +267,14 @@ int main(int argc, char** argv)
   int jj_start = jj;
   for (k=0; k<nobj; k++) {
     char* name = tdvt[k].getname();
-    if (strcmp(tdvnames[i],name) == 0) {
-     tdv[jj] = tdvt[k];
-     jj++;
-     ptr_end[i] =jj;
+    if(name) {
+     if (strcmp(tdvnames[i],name) == 0) {
+      tdv[jj] = tdvt[k];
+      jj++;
+      ptr_end[i] =jj;
+     }
+    } else {
+      cout<<"Warning : name of object is NULL"<<endl;
     }
   }
   if (ptr_end[i] > 0) ptr_start[i] = jj_start;

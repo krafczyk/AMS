@@ -352,12 +352,15 @@ int main(int argc, char* argv[])
      }
       else {
        cerr<<"Error - Failed to allocate memory "<<Nbytes<<endl;
+       exit(0);
      }
     } else {
       cerr<<"Error - CouldNot open file "<<filepath<<endl;
+      exit(0);
     }
    } else {
     cerr<<"Error - UnixFileStat cannot get information about "<<filepath<<endl;
+    exit(0);
    }
 
   if(!fbin.good()) exit(1);
@@ -447,6 +450,7 @@ int main(int argc, char* argv[])
        Warning("found the object with the same i/b/e,  but different CRC");  
        Warning("do nothing");
       } else {
+       cout<<"CRC_db, CRC... "<<crc<<", "<<CRC<<endl;
        Message("CRC is the same do nothing");
       }
      }
@@ -462,7 +466,7 @@ int main(int argc, char* argv[])
    int status = lms.Container(dbH, contName, contH);
    if (status != -1) {
     tdvH = new(contH) AMSTimeIDD(objname, iid, Begin, Insert, End);
-    tdvH -> CopyIn(Nbytes, pdata);
+    tdvH -> CopyIn(Nbytes, pdata,CRC);
     tdvH -> setCRC(CRC);
     lms.Commit();
     Message("Write TDV's to the database and Commit");

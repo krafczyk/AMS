@@ -42,6 +42,6 @@ void    GetTime(time_t & insert, time_t & begin, time_t & end);
 void    PrintTime();
 void    update(AMSTimeID* p);
 void    copy(uinteger* tmp);
-integer CopyIn(integer nbutes, uinteger *pdata);
+integer CopyIn(integer nbutes, uinteger *pdata, uinteger CRC);
 };
 

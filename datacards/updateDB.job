@@ -17,7 +17,7 @@ fi
 
 
 
-../exe/$MACHINE/lmsS <<!
+../exe/$MACHINE/lmsS_O4 <<!
 LIST
 KINE 14 
 MULS 1
@@ -47,7 +47,7 @@ AMSJOB 1=11   2=0      3=50.   4=0  5=1 6='v203a'
 C Special HP-UX
 TIME 3=10000000
 TERM 1=1234567890
-DAQC 1=1 2='/offruns/runs/887951615'
+DAQC 1=1 2='/offruns/runs/888622690'
 END
 
 

@@ -102,7 +102,7 @@ void AMSTimeIDD::PrintTime() {
       <<"   "<<asctime(localtime(&_End))<<endl;
 }
 
-integer AMSTimeIDD::CopyIn(integer nbytes, uinteger *pdata) {
+integer AMSTimeIDD::CopyIn(integer nbytes, uinteger *pdata, uinteger CRC) {
  
    integer n = nbytes/sizeof(uinteger) - 1;
    _pData.resize(n);
@@ -110,6 +110,6 @@ integer AMSTimeIDD::CopyIn(integer nbytes, uinteger *pdata) {
      uinteger tmp = pdata[i];
      _pData.set(i,tmp);
     }
-    //    _CRC = pdata[n];
+    pdata[n] = CRC;
  return 0;
 }
