@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.39 2003/04/14 09:14:16 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.40 2003/04/17 17:11:41 alexei Exp $
 
 #
 #
@@ -192,18 +192,6 @@ sub Create{
         cputime   int,
         elapsed   int,
        jobtype   VARCHAR(20))",
-#      "CREATE TABLE Jobs 
-#      (jid     INT NOT NULL,
-#       jobname VARCHAR(255),
-#       mid     INT,
-#       cid     INT,
-#       did     INT,
-#       time    INT,
-#       triggers INT,
-#       timeout  INT,
-#       content TEXT,
-#       timestamp INT,
-#       nickname VARCHAR(80))",
 
       "CREATE TABLE RNDM
       (rid     INT NOT NULL,
@@ -242,7 +230,8 @@ sub Create{
          crc INT)",
         "CREATE TABLE DataSets
          (did    INT NOT NULL,
-          name   VARCHAR(255))",
+          name   VARCHAR(255),
+          timestamp int)",
         "CREATE TABLE Environment
          (mykey    VARCHAR(255),
           myvalue   VARCHAR(255))"
@@ -296,28 +285,35 @@ sub Create{
 # my $RNDMTable="/afs/cern.ch/user/b/biland/public/AMS/rndm.seeds";
 my $RNDMTable="/scratchA/groupA/biland/seed_1E12";
 
-open(FILEI,"<".$RNDMTable) or die "Unable to open file $RNDMTable\n";
+my $cntr = 0;
+my $cnt  = 0;
+my $sql;
 
-    my $line;
-while ( $line = <FILEI>){
-    my @pat=split / /,$line;
-    my @arr;
-    foreach my $chop (@pat){
+
+   if($self->{dbdriver} =~ m/Oracle/){
+    $sql="SELECT COUNT(rid) FROM RNDM";
+    $cntr=$self->Query($sql);
+     foreach my $ret (@{$cntr}) {
+        $cnt = $ret->[0];
+     }
+    }
+    if ($cnt == 0) {
+     open(FILEI,"<".$RNDMTable) or die "Unable to open file $RNDMTable\n";
+     my $line;
+     while ( $line = <FILEI>){
+       my @pat=split / /,$line;
+       my @arr;
+      foreach my $chop (@pat){
         if($chop  =~/^\d/){
             $arr[$#arr+1]=$chop;
         }
-    }
+     }
      $dbh->do("insert into RNDM values($arr[0],$arr[1],$arr[2])") or die "cannot do: ".$dbh->errstr();     
-    
-}
+    }    
     close(FILEI);
 # create indecies, it takes a while.
     $dbh->do("create index rid_ind on rndm (rid)") or die "cannot do: ".$dbh->errstr(); 
-
-    my $cntr = 0;
-    my $cnt  = 0;
-    my $sql;
-
+   }
 
 # initialize 
      if($self->{dbdriver} =~ m/Oracle/){
@@ -328,7 +324,7 @@ while ( $line = <FILEI>){
     }
 }
     if ($cnt == 0) {
-     $dbh->do("insert into Environment values('AMSDataDir','/f0dat1/AMSDataDir')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('AMSDataDir','/afs/ams.cern.ch/AMSDataDir')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('CERN_ROOT','/cern/2001')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('UploadsDir','/var/www/cgi-bin/AMS02MCUploads')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('UploadsHREF','AMS02MCUploads')") or die "cannot do: ".$dbh->errstr();     
@@ -441,6 +437,81 @@ while ( $line = <FILEI>){
     warn "Table Filesystems has $cnt entries. Not initialized";
   }
  
+#
+# INSERT INTO datasets
+#
+    $cnt = 0;
+    if($self->{dbdriver} =~ m/Oracle/){
+     $sql="SELECT COUNT(did) FROM Datasets";
+     $cntr=$self->Query($sql);
+     foreach my $ret (@{$cntr}) {
+        $cnt = $ret->[0];
+     }
+    }
+    if ($cnt == 0) {
+     my $did  = 0;
+     my $timestamp = time();    
+     my $dir  => undef;
+     my $key='AMSDataDir';
+     $sql="select myvalue from Environment where mykey='".$key."'";
+     my $ret = $self->Query($sql);
+     if( defined $ret->[0][0]){
+      $dir=$ret->[0][0];
+     }
+     $key='AMSSoftwareDir';
+     $sql="select myvalue from Environment where mykey='".$key."'";
+     $ret = $self->Query($sql);
+     if( defined $ret->[0][0]){
+      $dir=$dir."/".$ret->[0][0];
+     }
+     if (defined $dir) {
+      $dir="$dir/DataSets";  # top level directory for datasets
+      opendir THISDIR ,$dir or die "unable to open $dir";
+      my @allfiles= readdir THISDIR;
+      closedir THISDIR;    
+       foreach my $file (@allfiles){
+        my $newfile="$dir/$file";
+        if(readlink $newfile or  $file =~/^\./){
+         next;
+        }
+          my $dataset={};
+          my @tmpa;
+          opendir THISDIR, $newfile or die "unable to open $newfile";
+          my @jobs=readdir THISDIR;
+          closedir THISDIR;
+          foreach my $job (@jobs){
+           if($job =~ /\.job$/){
+            if($job =~ /^\./){
+             next;
+            }
+           my $template={};
+           my $full="$newfile/$job";
+           my $buf;
+           open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
+           read(FILE,$buf,1638400) or next;
+           close FILE;
+           my @sbuf=split "\n",$buf;
+           my $datasetdesc= "generate";
+           foreach my $line (@sbuf){
+            if($line =~/$datasetdesc/){
+              my ($junk,$dataset) = split "#",$line;                 
+              $dbh->do(
+                       "INSERT INTO datasets values($did,'$dataset',$timestamp)")
+              or die "cannot do: ".$dbh->errstr();    
+              $did++;
+              last;
+          }
+         }
+        }
+       }
+    }
+      } else {
+       die "$key is not defined in Environment table";
+    }
+ }
+#
+# end INSERT INTO datasets
+#
     $cnt = 0;
      if($self->{dbdriver} =~ m/Oracle/){
     $sql="SELECT COUNT(mid) FROM Mails";
@@ -463,6 +534,7 @@ while ( $line = <FILEI>){
          $mails = 1;
          $cites = 0;
      } 
+
      if ($line =~/CITES/) {
          $cites = 1;
          $mails = 0

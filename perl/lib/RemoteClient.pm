@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.105 2003/04/17 14:37:52 choutko Exp $
+# $Id: RemoteClient.pm,v 1.106 2003/04/17 17:11:41 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -432,7 +432,8 @@ my %mv=(
                }
                $did++;
                $dataset->{did}=$did;
-             $sql="insert into DataSets values($did,'$dataset->{name}')";
+               my $timestamp = time();
+             $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
              $self->{sqlserver}->Update($sql); 
            }
           
@@ -931,6 +932,7 @@ sub Connect{
         $self->{read}=0;
     my $q=$self->{q};
     my $sql=>undef;
+    my $color;
 # db query
     if ($self->{q}->param("getJobID")) {
      $self->{read}=1;
@@ -938,13 +940,32 @@ sub Connect{
         htmlTop();
         my $title = "Job : ";
         my $jobid = 0;
+        my $jobmin= 0;
+        my $jobmax= 0;
         if (defined $q->param("JobID")) {
-          $jobid =  trimblanks($q->param("JobID"));
+            if ($q->param("JobID") =~ /-/) {
+                ($jobmin,$jobmax) = split '-',$q->param("JobID");
+                $title = $title.$q->param("JobID");
+                $sql = "SELECT jobname, triggers, host, events, errors, cputime, 
+                               elapsed, cites.name, jobs.did, jobs.timestamp, jobs.jid   
+                          FROM jobs, cites 
+                          WHERE jobs.jid>$jobmin AND jobs.jid<$jobmax 
+                                AND jobs.cid=cites.cid ORDER BY jobs.jid";
+            } else {
+             $jobid =  trimblanks($q->param("JobID"));
+             $title = $title.$jobid;
+             $sql = "SELECT jobname, triggers , host, events, errors, cputime, 
+                            elapsed, cites.name, content, jobs.timestamp, jobs.jid 
+                          FROM jobs, cites 
+                          WHERE jobs.jid=$jobid AND jobs.cid=cites.cid";
+            }
         }
-        $title = $title.$jobid;
         my $content = " ";
         $self->htmlTemplateTable($title);
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+        if ($jobmax > 0) {
+               print "<td align=center><b><font color=\"blue\">JID </font></b></td>";
+        }
                print "<td align=center><b><font color=\"blue\">Name </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Triggers</font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Cite </font></b></td>";
@@ -956,10 +977,7 @@ sub Connect{
                print "<td align=center><b><font color=\"blue\" >Status </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Timestamp </font></b></td>";
               print "</tr>\n";
-        my $sql = "SELECT jobname, triggers, host, events, errors, cputime, elapsed,  
-                          cites.name, content, jobs.timestamp  
-                          FROM jobs, cites 
-                          WHERE jobs.jid=$jobid AND jobs.cid=cites.cid";
+        
         my $ret=$self->{sqlserver}->Query($sql);
         if (defined $ret->[0][0]) {
          foreach my $r (@{$ret}){
@@ -974,8 +992,9 @@ sub Connect{
              my $cite    =trimblanks($r->[7]);
              $content    =$r->[8];
              my $timestamp=$r->[9];
+             my $jid      =$r->[10];
              my $status = "Submitted";
-             $sql = "SELECT status, submit FROM runs WHERE jid=$jobid";
+             $sql = "SELECT status, submit FROM runs WHERE jid=$jid";
              $ret=$self->{sqlserver}->Query($sql);
              if (defined $ret->[0][0]) {
               foreach my $r (@{$ret}){
@@ -983,7 +1002,16 @@ sub Connect{
                   $timestamp = $r->[1];
               }
              }
-           my $color="black";
+             $color="black";
+             if ($status eq 'Finished') {
+                 $color = "green";
+             } elsif ($status eq 'Failed') {
+                 $color = "red";
+             }
+             if ($jobmax > 0) {
+              print "
+                  <td align=left><b><font color=$color> $jid </font></td></b>";
+          }
            print "
                   <td align=left><b><font color=$color> $jobname </font></td></b>
                   <td align=center><b><font color=$color> $triggers </font></b></td>
@@ -995,13 +1023,15 @@ sub Connect{
                   <td align=center><b><font color=$color> $elapsed </font></b></td>
                   <td align=center><b><font color=$color> $status </font></b></td>
                   <td align=center><b><font color=$color> $timestamp </font></b></td>\n";
+              print "</tr>\n";
+
          }
-        print "</tr>\n"
        } 
        htmlTableEnd();
+        if ($jobid > 0) {
           print "<p></p>\n";
           print $q->textarea(-name=>"CCA",-default=>"$content",-rows=>30,-columns=>80);
-   
+        }   
         htmlBottom();
      }
     }
@@ -1521,7 +1551,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
       print "<tr></tr>\n";
       print "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\" width=\"100%\">\n";
       print "<tr><td valign=\"middle\" bgcolor=\"whitesmoke\"><font size=\"+2\"><B>\n";
-      print "Find Job : (eg 805306383) </B></font></td></tr></table> \n";
+      print "Find Job : (eg 805306383 or From-To) </B></font></td></tr></table> \n";
       print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
       print "<b>JobID : </b> <input type =\"text\" name=\"JobID\">\n";
       print "<input type=\"submit\" name=\"getJobID\" value=\"Submit\"> \n";
@@ -3214,9 +3244,9 @@ print qq`
          $buf=~ s/CPULIM=/CPULIM=$cputf/;         
          $buf=~ s/PMIN=/PMIN=$pminf/;         
          $buf=~ s/PMAX=/PMAX=$pmaxf/;         
+         $buf= $buf."CLOCK=$clock \n";
          my $cputype=$q->param("QCPUType");
-         $buf=~ s/PART=/CLOCK=$clock \nPART=/;         
-         $buf=~ s/PART=/CPUTYPE=$cputype\nPART=/;         
+         $buf= $buf."CPUTYPE=$cputype\n";
          if($self->{CCT} eq "local"){
            $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;         
          }       
