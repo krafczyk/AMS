@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.1 2001/02/06 15:35:19 choutko Exp $
+//  $Id: dbserver.C,v 1.2 2001/02/06 15:46:20 choutko Exp $
 #include <dbserver.h>
 
 void  DBServer_impl::_init(){
@@ -128,6 +128,8 @@ void  DBServer_impl::_init(){
   void  DBServer_impl::sendDSTEnd(const DPS::Client::CID & ci, const  DST & ne, DPS::Client::RecordChange rc){
 }
 
+   int  DBServer_impl::getFreeHost(const DPS::Client::CID & ci, DPS::Client::ActiveHost_out host){
+}
 
 
 

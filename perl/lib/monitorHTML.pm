@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.8 2001/01/23 11:50:38 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.9 2001/02/06 15:46:20 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -119,6 +119,7 @@ sub Update{
 <INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="Runs">Runs Table<BR>
 <INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="Ntuples" >Ntuples Table<BR>
 <INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="CAC" CHECKED>Server Active Clients<BR>
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="DBAC" CHECKED>DBServer Active Clients<BR>
 <INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="DB" CHECKED>Disk Space<BR>
 `;
         print $q->submit(-value=>"SubmitRequest", -name=>"Monitor");
@@ -225,6 +226,23 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
      my $buffer="Server_ActiveClients";
 
     my @output=Monitor::getactiveclients("Server");
+     print_table($q,$buffer,$#titles,@titles,@output);
+ }
+     $#titles=-1;
+                        @titles = (
+            "ID",
+            "HostName",
+            "Process ID",
+            "Start Time",
+            "LastUpdate Time",
+            "Status",
+                                   );
+ 
+    if($ref->{DBAC}){
+
+     my $buffer="DBServer_ActiveClients";
+
+    my @output=Monitor::getactiveclients("DBServer");
      print_table($q,$buffer,$#titles,@titles,@output);
  }
         @titles = (
