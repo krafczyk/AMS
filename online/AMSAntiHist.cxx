@@ -54,16 +54,17 @@ for(int mf=0;mf<_m2filled;mf++)_filled2[mf]=0;
 
 void AMSAntiHist::_Fetch(){
   char text[80];
-  _m2fetched=16;
-  _fetched2= new TH1*[_m2fetched];
-  for(int i=0;i<16;i++){
-    sprintf(text,"h1%02d3",i+1);
-    _fetched2[i]=(TH1*)gAMSDisplay->GetRootFile()->Get(text);
-    if(_fetched2[i]){
-      _fetched2[i]->SetXTitle("Up counter Amplitude (MeV)");
-      _fetched2[i]->SetYTitle("Down Counter Amplitude (MeV)");
-    }
-  }
+    _m2fetched=16;
+    _fetched2= new TH1*[_m2fetched];
+    for(int i=0;i<16;i++)_fetched2[i]=0;
+  //  for(i=0;i<16;i++){
+  //    sprintf(text,"h1%02d3",i+1);
+  //    _fetched2[i]=(TH1*)gAMSDisplay->GetRootFile()->Get(text);
+  //    if(_fetched2[i]){
+  //      _fetched2[i]->SetXTitle("Up counter Amplitude (MeV)");
+  //      _fetched2[i]->SetYTitle("Down Counter Amplitude (MeV)");
+  //    }
+  //  }
 }
 
 void AMSAntiHist::ShowSet(Int_t Set){
