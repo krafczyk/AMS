@@ -1,4 +1,4 @@
-#  $Id: Mgxint,v 1.75 2003/07/07 12:58:55 choutko Exp $
+#  $Id: Mgxint,v 1.76 2003/07/16 22:49:17 schol Exp $
 #
 SHELL=/bin/sh
 
@@ -26,7 +26,7 @@ TIMEL=../bin/aix/timel.o
 endif
 ifeq  "$(shell uname)"  "OSF1" 
 CFLAGS= -D__AMSDEBUG__   -D__ALPHA__ -g   -I../include -I../include/stl -tlocal 
-LDFLAGS=  -lUfor -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321  -lpawlib -llapack3 -lgraflib -lgrafX11  -lmathlib -lpacklib_noshift -lkernlib_noshift -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag  -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
+LDFLAGS=  -lUfor -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321  -lpawlib -llapack3 -lgraflib -lgrafX11  -lmathlib -lpacklib_noshift -lkernlib_noshift -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag  -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lkernlib_noshift -lm
 CC=cxx -D__NAMESPACE__
 ifeq "$(shell cxx -V | grep -c 6.)" "1"
 #CC=cxx -D__NAMESPACE__  -oldcxx
@@ -64,7 +64,7 @@ CFLAGSTOFSIM=             -I../include   -I../db
 CFLAGSn=           -I../include   -I../db
 FFLAGS=   -fno-automatic -g -I../include  
 CFLAGSDAQ=         -I../include 
-LDFLAGS=    -static  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib  -lgeant321  -lpawlib -llapack3 -lpacklib_noshift -lgraflib -lgrafX11  -lmathlib -lpacklib_noshift -lkernlib_noshift -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib   -lcrypt -ldl   -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
+LDFLAGS=    -static  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib  -lgeant321  -lpawlib -llapack3 -lpacklib_noshift -lgraflib -lgrafX11  -lmathlib -lpacklib_noshift -lkernlib_noshift -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib   -lcrypt -ldl   -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lkernlib -lg2c
 CC=g++ -D__NAMESPACE__ -Wno-deprecated -mcpu=i686
 FF=g77
 LD=g++
@@ -80,10 +80,10 @@ BIN=$(AMSWD)/bin/linuxr/icc
 EXE=$(AMSWD)/exe/linux/icc
 ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
 FF=/opt/intel/compiler60/ia32/bin/ifc
-LDFLAGS=  -static    -L$(ROOTSYS)/lib -lRoot -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lmy2  -lPEPCF90 -lPOSF90 -limf -lirc -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -aL$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut    $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf
+LDFLAGS=  -static    -L$(ROOTSYS)/lib -lRoot -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lmy2  -lPEPCF90 -lPOSF90 -limf -lirc -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -aL$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut -lkernlib   $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf
 else
 FF=/opt/intel/compiler70/ia32/bin/ifc
-LDFLAGS=  -static   -L$(ROOTSYS)/lib -lRoot  -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90 -limf -lirc -L$(CERNDIR)/lib   -lgeant321  -lpawlib -llapack3 -lpacklib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib   -lcrypt -ldl -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut    $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf
+LDFLAGS=  -static   -L$(ROOTSYS)/lib -lRoot  -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90 -limf -lirc -L$(CERNDIR)/lib   -lgeant321  -lpawlib -llapack3 -lpacklib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib   -lcrypt -ldl -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut -lkernlib   $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf
 endif
 endif
 
