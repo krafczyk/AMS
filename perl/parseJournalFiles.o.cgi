@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: parseJournalFiles.o.cgi,v 1.3 2003/05/23 17:52:37 alexei Exp $
+#  $Id: parseJournalFiles.o.cgi,v 1.4 2004/02/18 10:38:28 alexei Exp $
 use Gtk;
 use strict;
 
@@ -18,7 +18,7 @@ unshift @ARGV, "-N/cgi-bin/mon/validateRuns.o.cgi";
 my $nocgi=1;
 my $html=new RemoteClient($nocgi);
 
-$html->parseJournalFiles();
+my $ok = $html->parseJournalFiles();
 
 
 
