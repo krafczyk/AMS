@@ -169,7 +169,7 @@ if (Time >= _Begin && Time <= _End){
       cerr<<"AMSTimeID::validate-S-CRC Error "<<getname()<<" Old CRC "
       <<_CRC<<" New CRC "   <<_CalcCRC()<<endl;
   }
-  if(!reenter)validate(Time,1);
+  if(!reenter)return validate(Time,1);
   AMSgObj::BookTimer.stop("TDV");
   return 0;
 }
