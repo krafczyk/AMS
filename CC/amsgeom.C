@@ -84,7 +84,7 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  antigeom02(mother);
  pshgeom02(mother);
  tkgeom02(mother);
-// richgeom02(mother);
+ richgeom02(mother);
  ecalgeom02(mother);
  trdgeom02(mother);
  srdgeom02(mother);
