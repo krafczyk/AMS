@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.25 2002/07/10 15:29:22 choutko Exp $
+#  $Id: 00index.txt,v 1.26 2002/07/18 12:00:29 alexei Exp $
 Mopt      // makefile to gmake geant batch 
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
           // setenv AMSPROFILE 1  adds gprof
@@ -40,7 +40,7 @@ To build version with "ROOT" static libraries
 
  gmake -f Mopt_Root static
 
-($(ROOTSYS)/libRoot.a should be available)
+($ROOTSYS/libRoot.a should be available)
 
 To build ams "ROOT" shared library
 

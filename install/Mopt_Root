@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.24 2002/07/18 11:42:02 choutko Exp $
+#  $Id: Mopt_Root,v 1.25 2002/07/18 12:00:48 alexei Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -87,6 +87,17 @@ TIMEL=
 endif
 #################################################
 ifeq  "$(shell uname)"  "Linux"
+ifdef AMSICC
+CERNDIR = /f2dat1/CERN/2002/icc
+NAGDIR  = /f2dat1/NagLib
+CC=/opt/intel/compiler60/ia32/bin/icc
+FF=/opt/intel/compiler60/ia32/bin/ifc
+LD=/opt/intel/compiler60/ia32/bin/icc
+BINMT=$(AMSWD)/bin/linux/icc/mt/
+BIN=$(AMSWD)/bin/linuxr/icc/
+EXE=$(AMSWD)/exe/linux/icc/
+LIB=$(AMSWD)/lib/linux/icc/
+else
 #CERN_LEVEL=2000
 #CERNDIR = /afs/cern.ch/asis/i386_redhat61/cern/$(CERN_LEVEL)
 #CERNSRCDIR = /afs/cern.ch/asis/share/cern/$(CERN_LEVEL)
@@ -100,48 +111,89 @@ BIN=$(AMSWD)/bin/linuxr/
 EXE=$(AMSWD)/exe/linux/
 LIB=$(AMSWD)/lib/linux/
 SHLD=$(LIB)/ntuple.so
+endif
 LDFLAGSIDL=   -lorbitcpp -lorbitcppCosNaming -lORBitCosNaming
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit -lglib -lIIOP -lORBitutil -lglib -lnsl  
 IDL=orbit-idl
+IDLMT=orbit-idl-mt
 IDLCPP=orbit-idl -l c++
 CPP=g++  -I/usr/include/orbit-1.0
 CCC=gcc -I/usr/include/orbit-1.0
 CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT  -I/usr/include/orbit-mt-1.0 -fpermissive 
 SRC=$(BIN)
+SRCMT=$(BINMT)
 INCLUDE=../include/
 IFLAGS= -I/usr/include -I$(SRC)
+PFLAGS=
+ifdef AMSPROFILE
+PFLAGS+=-pg
+endif
+
 ifdef AMSDEBUG
-CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include  -D__WRITEROOT__ -D__WRITEROOTCLONES__ -I$(ROOTSYS)/include
+CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include  -I../db  -D__WRITEROOT__ -D__WRITEROOTCLONES__ -I$(ROOTSYS)/include $(PFLAGS)
+else
+CFLAGSB=      -D__BATCH__  -I../include   -I../db  -D__WRITEROOT__ -D__WRITEROOTCLONES__ -I$(ROOTSYS)/include  $(PFLAGS)
+endif
+
+ifdef AMSICC
+PFLAGS+=  -D__ICC__ -tpp6 -mp1 -xi
+ifdef AMSDEBUG
+CFLAGS=      $(CFLAGSB)
 CFLAGSTOFSIM= $(CFLAGS)
 CFLAGSn=      $(CFLAGS)
 CFLAGSDAQ=    $(CFLAGS)
-FFLAGS=   -fno-automatic -g -I../include  
-FFLAGSn=   -fno-automatic -g -I../include  
+FFLAGS=     -fp_port  -g -I../include   $(PFLAGS)
+FFLAGSn=    -fp_port   -g -I../include   $(PFLAGS)
+else
+CFLAGSTOFSIM= $(CFLAGSB)     -O2
+CFLAGSDAQ=    $(CFLAGSB) -O2
+CFLAGSn=      $(CFLAGSB) -O2
+CFLAGS=      $(CFLAGSB) -O3
+FFLAGS=    -fp_port  -O3 -I../include  $(PFLAGS)
+FFLAGSn=   -fp_port  -O   -I../include  $(PFLAGS)
+endif
+else
+ifdef AMSDEBUG
+CFLAGSTOFSIM= $(CFLAGS)
+CFLAGSn=      $(CFLAGS)
+CFLAGSDAQ=    $(CFLAGS)
+FFLAGS=   -fno-automatic -g -I../include  $(PFLAGS)
+FFLAGSn=   -fno-automatic -g -I../include $(PFLAGS) 
 CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db  
 else
-CFLAGSB=      -D__BATCH__      -I../include    -D__WRITEROOT__ -D__WRITEROOTCLONES__ -I$(ROOTSYS)/include
 CFLAGSTOFSIM= $(CFLAGSB)     -O1   
 CFLAGSDAQ=    $(CFLAGSB) -O2
 CFLAGSn=      $(CFLAGSB) -O1
 CFLAGS=      $(CFLAGSB) -O2
-FFLAGS=   -fno-automatic -O -I../include
+FFLAGS=   -fno-automatic -O3 -I../include $(PFLAGS)
 FFLAGSn=   -fno-automatic  -I../include
 endif
+endif
+
 DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include  -I$(SRC)
-#LDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux $(ROOTLIBS) -lamsut  -lg2c -ldl
+ifdef AMSICC
+LDFLAGS=    -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib -L../lib/linux/icc  $(ROOTLIBS) -lamsut -ldl
+LDFLAGSSTATIC=      -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lamsut -ldl
+else
 LDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux $(ROOTLIBS) -lamsut  -lg2c -ldl
 LDFLAGSSTATIC=      -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -lamsut  -lg2c -ldl
-SHLDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lg2c -ldl
-SOFLAGS = -shared
-FLAGSSTATIC=
+endif
 TIMEL=
-INCS= $(wildcard $(SRC)*.*h)    
-SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c 
-SRCSCPP= $(SRC)server-cpp-stubs.cc $(SRC)server-cpp-skels.cc $(SRC)server-cpp-common.cc 
-OBJECTCO=$(BIN)server-stubs.o $(BIN)server-skels.o $(BIN)server-common.o $(BIN)server-cpp-common.o 
-OBJECTCL= $(BIN)server-cpp-stubs.o 
+INCS= $(wildcard $(SRC)*.*h)
+INCSCPP= $(SRC)server-cpp-stubs.hh $(SRC)server-cpp-skels.hh $(SRC)server-cpp-common.hh
+SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c
+SRCSMT= $(SRCMT)server-stubs.c $(SRCMT)server-skels.c $(SRCMT)server-common.c
+SRCSCPP= $(SRC)server-cpp-stubs.cc $(SRC)server-cpp-skels.cc $(SRC)server-cpp-common.cc
+SRCSCPPMT= $(SRCMT)server-cpp-stubs.cc $(SRCMT)server-cpp-skels.cc $(SRCMT)server-cpp-common.cc
+OBJECTCO=$(BIN)server-stubs.o $(BIN)server-skels.o $(BIN)server-common.o
+OBJECTCOMT=$(BINMT)server-stubs.o $(BINMT)server-skels.o $(BINMT)server-common.o
+OBJECTCL= $(BIN)server-cpp-stubs.o $(BIN)server-cpp-common.o
+OBJECTCLMT= $(BINMT)server-cpp-stubs.o $(BINMT)server-cpp-common.o
 OBJECTSEAUX=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver.o
-OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL) 
+OBJECTSEAUXMT=$(BIN)id_mt.o $(BIN)node_mt.o $(BIN)astring_mt.o $(BIN)client_mt.o  $(BIN)amsdbc_mt.o $(BIN)timeid_mt.o  $(BIN)apool_mt.o $(BIN)snode_mt.o $(BIN)dbserver_mt.o
+OBJECTSEAUXMT=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client_mt.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver_mt.o
+OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL)
+OBJECTSEMT=  $(BINMT)server-cpp-skels.o   $(OBJECTCLMT)
 endif
 
 ifeq  "$(shell uname)"  "AIX"

@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.223 2002/07/15 14:29:23 choutko Exp $
+#  $Id: Mopt,v 1.224 2002/07/18 12:00:29 alexei Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -277,7 +277,7 @@ endif
 
 DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include  -I$(SRC)
 ifdef AMSICC
-LDFLAGS=  -static   -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/lib -L/usr/local/lib -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lamsut 
+LDFLAGS=  -static   -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/lib -L/usr/local/lib -L../lib/linux/icc -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lamsut 
 else
 LDFLAGS=  -static   -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut  -lg2c  $(PFLAGS)
 endif

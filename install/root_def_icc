@@ -1,0 +1,9 @@
+#! /bin/sh
+
+setenv ROOTSYS /f2users/alexei/cmplrs/root
+setenv PATH "${PATH}:$ROOTSYS/bin"
+setenv LIBPATH "$ROOTSYS/lib:"
+setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:$ROOTSYS/lib:/opt/intel/compiler60/ia32/lib"
+
+
+
