@@ -683,6 +683,23 @@ void LMS::ContainersM(ooHandle(ooDBObj) & dbH, char* listname)
      contH   = new(contName,0,0,0,dbH) ooContObj;
      if (contName) delete [] contName;
      Message("mcEventg is opened/created");
+
+// trigger1
+    contName = StrCat("Triggerlvl1_",listname);
+    if (!contH.exist(dbH,contName, openMode) && openMode == oocUpdate)
+     contH    = new(contName,0,0,0,dbH) ooContObj;
+    if (contName) delete [] contName;
+    Message("Triggerlvl1 are opened/created");
+
+//
+// trigger3
+    contName = StrCat("Triggerlvl3_",listname);
+    if (!contH.exist(dbH,contName, openMode) && openMode == oocUpdate)
+     contH    = new(contName,0,0,0,dbH) ooContObj;
+    if (contName) delete [] contName;
+    Message("Triggerlvl3 are opened/created");
+
+
 }
 
 void LMS::ContainersC(ooHandle(ooDBObj) & dbH, ooHandle(AMSdbs) & dbTabH)

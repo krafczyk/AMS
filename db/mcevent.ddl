@@ -44,6 +44,13 @@ class AMSTrMCClusterV;
 #pragma ooclassref AMSTrMCClusterV <tmcclusterV_ref.h>
 
 
+class Triggerlvl1D;
+#pragma ooclassref Triggerlvl1D <trigger1D_ref.h>
+
+
+class Triggerlvl3D;
+#pragma ooclassref Triggerlvl3D <trigger3D_ref.h>
+
 class AMSmcevent : public dbEvent {
 
  private:
@@ -59,6 +66,8 @@ class AMSmcevent : public dbEvent {
   ooRef(AMSmceventgD)      pmcEventg        : delete (propagate);
   ooRef(AMSTOFMCClusterV)  pTOFMCCluster    : delete (propagate);
   ooRef(AMSTrMCClusterV)   pMCCluster       : delete (propagate);
+  ooRef(Triggerlvl1D)      pTriggerlvl1     : delete (propagate);
+  ooRef(Triggerlvl3D)      pTriggerlvl3     : delete (propagate);
 
 //Constructors
 

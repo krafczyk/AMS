@@ -101,7 +101,7 @@ ooItr(AMSgmatD)        gmatItr;                 // material
 ooItr(AMSgtmedD)       gtmedItr;                // tmedia
 
 ooItr(AMSDBcD)         amsdbcItr;               // amsdbc
-ooItr(AntiDBcD)        antidbcItr;               // amsdbc
+ooItr(AntiDBcD)        antidbcItr;              // antidbc
 ooItr(TOFDBcD)         tofdbcItr;               // tofdbc
 ooItr(AMScommonsD)     commonsItr;              // commons
 ooItr(CTCDBcD)         ctcdbcItr;               // ctcdbc

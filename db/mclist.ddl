@@ -38,6 +38,8 @@ ooStatus  Addctcmccluster(ooHandle(AMSmcevent)& eventH);
 ooStatus  Addmceventg(ooHandle(AMSmcevent)& eventH);
 ooStatus  Addtofmccluster(ooHandle(AMSmcevent)& eventH);
 ooStatus  Addtrmccluster(ooHandle(AMSmcevent)& eventH);
+ooStatus  Addtriggerlvl1(ooHandle(AMSmcevent)& eventH);
+ooStatus  Addtriggerlvl3(ooHandle(AMSmcevent)& eventH);
 
 // read methods
 ooStatus  Readantimccluster(ooHandle(AMSmcevent)& eventH);
@@ -45,6 +47,7 @@ ooStatus  Readctcmccluster(ooHandle(AMSmcevent)& eventH);
 ooStatus  Readmceventg(ooHandle(AMSmcevent)& eventH);
 ooStatus  Readtofmccluster(ooHandle(AMSmcevent)& eventH);
 ooStatus  Readtrmccluster(ooHandle(AMSmcevent)& eventH);
+ooStatus  Readtriggerlvl1(ooHandle(AMSmcevent)& eventH);
 
 };
 

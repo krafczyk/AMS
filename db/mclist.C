@@ -24,6 +24,8 @@
 #include <mceventgD_ref.h>
 #include <mctofclusterV_ref.h>
 #include <tmcclusterV_ref.h>
+#include <trigger1D_ref.h>
+#include <trigger3D_ref.h>
 
 #include <mclist.h>
 #include <mcevent.h>
@@ -34,6 +36,8 @@
 #include <mctofclusterV.h>
 #include <mctofclusterD.h>
 #include <tmcclusterV.h>
+#include <trigger1D.h>
+#include <trigger3D.h>
 
 
 #include <job.h>
@@ -46,13 +50,18 @@
   static char* mceventgCont;
   static char* tofmcclusterCont;
   static char* trmcclusterCont;
+  static char* triggerlvl1Cont;
+  static char* triggerlvl3Cont;
 
-//
+
+// ooContObj classes
 ooHandle(ooContObj)  contAntiMCClusterH;      // Anti MC cluster 
 ooHandle(ooContObj)  contCTCMCClusterH;       // CTC MC cluster 
 ooHandle(ooContObj)  contmceventgH;           // MC Event
 ooHandle(ooContObj)  contMCClusterH;          // MC cluster 
 ooHandle(ooContObj)  contTOFMCClusterH;       // TOF MC cluster 
+ooHandle(ooContObj)  conttriggerlvl1H;       //  Level1 trigger 
+ooHandle(ooContObj)  conttriggerlvl3H;       // Level3 trigger 
 
 // ooObj classes
 ooHandle(AMSAntiMCClusterD) AntiMCClusterH;
@@ -60,6 +69,8 @@ ooHandle(AMSCTCMCClusterD)  CTCMCClusterH;
 ooHandle(AMSmceventgD)      mceventgH;
 ooHandle(AMSTOFMCClusterV)  tofmcclusterH;
 ooHandle(AMSTrMCClusterV)   trmcclusterH;
+ooHandle(Triggerlvl1D)    triggerlvl1H;
+ooHandle(Triggerlvl3D)    triggerlvl3H;
 
 // Iterators
 ooItr(AMSAntiMCClusterD) AntiMCClusterItr;        // Anti MC cluster
@@ -67,6 +78,8 @@ ooItr(AMSCTCMCClusterD)  CTCMCClusterItr;         // CTC MC cluster
 ooItr(AMSmceventgD)      mceventgItr;             // mc event
 ooItr(AMSTOFMCClusterV)  tofmcclusterItr;         // TOF MC cluster
 ooItr(AMSTrMCClusterV)    trmcclusterItr;          // MC cluster
+ooItr(Triggerlvl1D)     triggerlvl1Itr;       // for trigger1   
+ooItr(Triggerlvl3D)     triggerlvl3Itr;       // for trigger3
 
 static integer mcevent_size;
 
@@ -103,7 +116,12 @@ void AMSMCEventList::SetContainersNames(char* prefix)
    if (!tofmcclusterCont) tofmcclusterCont =  StrCat("TOFMCCluster_",prefix);
 //trMCCluster
    if (!trmcclusterCont) trmcclusterCont =  StrCat("TrMCCluster_",prefix);
-} 
+//trigger1
+   if (!triggerlvl1Cont) triggerlvl1Cont =  StrCat("Triggerlvl1_",prefix);
+//trigger3
+   if (!triggerlvl3Cont) triggerlvl3Cont =  StrCat("Triggerlvl3_",prefix);
+}
+
 
 ooStatus      AMSMCEventList::Addmceventg(ooHandle(AMSmcevent)& eventH)
 {
@@ -273,6 +291,83 @@ ooStatus AMSMCEventList::Addantimccluster(ooHandle(AMSmcevent) & eventH)
          p = p -> next();
        }
         return rstatus;
+}
+
+ooStatus AMSMCEventList::Addtriggerlvl1(ooHandle(AMSmcevent) & eventH)
+{
+        ooStatus                rstatus = oocSuccess;   // Return status
+        ooHandle(AMSMCEventList)  listH = ooThis();
+
+        if (conttriggerlvl1H == NULL) {
+         rstatus = CheckContainer(
+                            triggerlvl1Cont, oocUpdate, conttriggerlvl1H);
+         if (rstatus != oocSuccess) return rstatus;
+        }
+
+        // get triggerlvl1 pointer 
+        TriggerLVL1* p = (TriggerLVL1*)AMSEvent::gethead() ->
+                                           getheadC("TriggerLVL1",0);
+        if (p == NULL && dbg_prtout == 1)  {
+//        if (p == NULL )  {
+         Message("AddtriggerLVL1 : TriggerLVL1* p == NULL");
+         return oocSuccess;
+        }
+//        while ( p != NULL) {
+         if ( p != NULL) {
+         triggerlvl1H = new(conttriggerlvl1H) Triggerlvl1D(p);
+         rstatus = eventH -> set_pTriggerlvl1(triggerlvl1H);
+         if (rstatus != oocSuccess) {
+          Error("Addtriggerlvl1: cannot set the Triggerlvl1 to Event assoc.");
+          return rstatus;
+         }
+//         p = p -> next();
+       }
+        return rstatus;
+}
+//
+ooStatus AMSMCEventList::Addtriggerlvl3(ooHandle(AMSmcevent) & eventH)
+{
+        ooStatus                rstatus = oocSuccess;   // Return status
+        ooHandle(AMSMCEventList)  listH = ooThis();
+
+        if (conttriggerlvl3H == NULL) {
+         rstatus = CheckContainer(
+                            triggerlvl3Cont, oocUpdate, conttriggerlvl3H);
+         if (rstatus != oocSuccess) return rstatus;
+        }
+
+        // get triggerlvl3 pointer
+        TriggerLVL3* p = (TriggerLVL3*)AMSEvent::gethead() ->
+                                           getheadC("TriggerLVL3",0);
+        if (p == NULL && dbg_prtout == 1)  {
+         Message("AddtriggerLVL3 : TriggerLVL3* p == NULL");
+         return oocSuccess;
+        }
+         if ( p != NULL) {
+         triggerlvl3H = new(conttriggerlvl3H) Triggerlvl3D(p);
+         rstatus = eventH -> set_pTriggerlvl3(triggerlvl3H);
+         if (rstatus != oocSuccess) {
+          Error("Addtriggerlvl3: cannot set the Triggerlvl3 to Event assoc.");
+          return rstatus;
+         }
+                        }
+        return rstatus;
+}
+
+//
+
+ooStatus AMSMCEventList::Readtriggerlvl1(ooHandle(AMSmcevent) & eventH)
+{
+        ooStatus                rstatus = oocSuccess;   // Return status
+        ooHandle(AMSMCEventList) listH = ooThis();
+
+        ooMode mode = oocRead;
+
+        if (conttriggerlvl1H == NULL) {
+         rstatus =
+          CheckContainer(triggerlvl1Cont, mode, conttriggerlvl1H);
+          if (rstatus != oocSuccess) return rstatus;
+        }
 }
 
 ooStatus AMSMCEventList::Readantimccluster(ooHandle(AMSmcevent) & eventH)

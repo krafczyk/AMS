@@ -40,12 +40,16 @@
 #include <mceventgD_ref.h>
 #include <mctofclusterV_ref.h>
 #include <tmcclusterV_ref.h>
+#include <trigger1D_ref.h>
+#include <trigger3D_ref.h>
 
 #include <mcanticlusterD.h>
 #include <mcctcclusterD.h>
 #include <mceventgD.h>
 #include <mctofclusterV.h>
 #include <tmcclusterV.h>
+#include <trigger1D.h>
+#include <trigger3D.h>
 
 #include <event.h>
 #include <job.h>
@@ -100,6 +104,8 @@ ooStatus LMS::AddMCEvent(ooHandle(AMSEventTag)&  tageventH,
      rstatus = listH -> Addctcmccluster(eventH);
      rstatus = listH -> Addtofmccluster(eventH);
      rstatus = listH -> Addtrmccluster(eventH);
+     rstatus = listH -> Addtriggerlvl1(eventH);
+     rstatus = listH -> Addtriggerlvl3(eventH);
     }
 
     rstatus = oocSuccess;
@@ -269,6 +275,131 @@ ooStatus LMS::ReadMCEvents(uinteger& run, uinteger& eventn,
         mcevent_size = mcevent_size + sizeof(AMSAntiMCClusterD)*imcs;
         if (imcs == 0) 
             Message("ReadMCEvents : no Anti MC clusters for this event");
+//
+// read triggerlvl1
+       integer TofPatt[SCLRS];
+       ooItr(Triggerlvl1D) Triggerlvl1Itr;
+       eventItr -> pTriggerlvl1(Triggerlvl1Itr, mode);
+       if (Triggerlvl1Itr !=NULL) {
+        if (dbread_only != 0) {
+         Triggerlvl1Itr -> getTofPatt(TofPatt);
+
+         TriggerLVL1* p = new TriggerLVL1(
+                                       Triggerlvl1Itr -> getTrigMode(),
+                                       Triggerlvl1Itr -> getTofFlag(),
+                                       TofPatt,
+//                                       Triggerlvl1Itr -> getTofPatt(TofPatt),
+//                                       Triggerlvl1Itr -> getTofPatt(),
+                                       Triggerlvl1Itr -> getAntiPatt()
+                                      );
+         AMSEvent::gethead() -> addnext(AMSID("TriggerLVL1",0),p);
+         mcevent_size = mcevent_size + sizeof(Triggerlvl1D);
+        }
+       }
+       else{
+            Message("ReadMCEvents : no Trigger1 info for this event");
+       }
+
+// read triggerlvl3 static members
+//       integer TofPatt[SCLRS];
+         integer TOFPattern[SCMXBR][SCMXBR];
+         integer TOFStatus[SCLRS][SCMXBR];
+         integer TrackerStatus[NTRHDRP2];
+         integer TrackerAux[NTRHDRP][2];
+         integer TOFAux[SCLRS][SCMXBR];
+         integer NTOF[SCLRS];
+         geant TOFCoo[SCLRS][SCMXBR][3];
+         geant TrackerCoo[NTRHDRP][2][3];
+         geant TrackerCooZ[nl];
+         integer TrackerDRP2Layer[NTRHDRP];
+
+//
+ integer nhits[nl];
+ integer drp[nl][maxtrpl];
+ integer bufdrp[nl*maxtrpl];
+ geant   coo[nl][maxtrpl];
+ geant   bufcoo[maxtrpl*nl];
+ geant   llimitY[nl];
+ geant   ulimitY[nl];
+ geant   llimitX[nl];
+ geant   ulimitX[nl];
+ integer Pattern[2];
+ number  Residual[2];
+
+//
+ integer nbuff0[SCMXBR*SCMXBR];
+ integer nbuff1[SCLRS*SCMXBR];
+ integer nbuff2[NTRHDRP*2];
+ integer nbuff3[NTRHDRP*2];
+ integer nbuff4[SCLRS*SCMXBR];
+ integer nbuff5[SCLRS];
+ geant   nbuff6[SCLRS*SCMXBR*3];
+ geant   nbuff7[NTRHDRP*2*3];
+ geant   nbuff8[nl];
+ integer nbuff9[NTRHDRP];
+//
+       ooItr(Triggerlvl3D) Triggerlvl3Itr;
+       eventItr -> pTriggerlvl3(Triggerlvl3Itr, mode);
+       if (Triggerlvl3Itr !=NULL) {
+        if (dbread_only != 0) {
+        Triggerlvl3Itr -> getPattern(Pattern);
+        Triggerlvl3Itr -> getResidual(Residual);
+//
+         TriggerLVL3* p = new TriggerLVL3(
+                                       Triggerlvl3Itr -> getTracTrig(),
+                                       Triggerlvl3Itr -> getTofTrig(),
+                                       Triggerlvl3Itr -> getAntiTrig(),
+                                       Triggerlvl3Itr -> getNTrHits(),
+                                       Triggerlvl3Itr -> getNPatFound(),
+                                       Pattern,
+                                       Residual,
+                                       Triggerlvl3Itr -> getTime()
+                                      );
+         Triggerlvl3Itr -> getnhits(nhits);
+         Triggerlvl3Itr -> getdrp(bufdrp);
+                           UCOPY(bufdrp,drp,sizeof(integer)*nl*maxtrpl/4);
+         Triggerlvl3Itr -> getcoo(bufcoo);
+                           UCOPY(bufcoo,coo,sizeof(geant)*nl*maxtrpl/4);
+
+         Triggerlvl3Itr -> getlowlimitY(llimitY);
+         Triggerlvl3Itr -> getupperlimitY(ulimitY);
+         Triggerlvl3Itr -> getlowlimitX(llimitX);
+         Triggerlvl3Itr -> getupperlimitX(ulimitX);
+//
+         Triggerlvl3Itr -> getTOFPattern(nbuff0);
+         Triggerlvl3Itr -> getTOFStatus(nbuff1);
+         Triggerlvl3Itr -> getTrackerStatus(nbuff2);
+         Triggerlvl3Itr -> getTrackerAux(nbuff3);
+         Triggerlvl3Itr -> getTOFAux(nbuff4);
+         Triggerlvl3Itr -> getNTOF(nbuff5);
+         Triggerlvl3Itr -> getTOFCoo(nbuff6);
+         Triggerlvl3Itr -> getTrackerCoo(nbuff7);
+         Triggerlvl3Itr -> getTrackerCooZ(nbuff8);
+         Triggerlvl3Itr -> getTrackerDRP2Layer(nbuff9);
+         Triggerlvl3Itr -> getstripsize();
+//
+
+         UCOPY(nbuff0,TOFPattern,sizeof(integer)*SCMXBR*SCMXBR/4);
+         UCOPY(nbuff1,TOFStatus,sizeof(integer)*SCLRS*SCMXBR/4);
+         UCOPY(nbuff2,TrackerStatus,sizeof(integer)*NTRHDRP2/4);
+         UCOPY(nbuff3,TrackerAux,sizeof(integer)*NTRHDRP*2/4);
+         UCOPY(nbuff4,TOFAux,sizeof(integer)*SCLRS*SCMXBR/4);
+         UCOPY(nbuff5,NTOF,sizeof(integer)*SCLRS/4);
+         UCOPY(nbuff6,TOFCoo,sizeof(geant)*SCLRS*SCMXBR*3/4);
+         UCOPY(nbuff7,TrackerCoo,sizeof(geant)*NTRHDRP*2*3/4);
+         UCOPY(nbuff8,TrackerCooZ,sizeof(geant)*nl/4);
+         UCOPY(nbuff9,TrackerDRP2Layer,sizeof(integer)*NTRHDRP/4);
+
+         AMSEvent::gethead() -> addnext(AMSID("TriggerLVL3",0),p);
+         mcevent_size = mcevent_size + sizeof(Triggerlvl3D);
+        }
+       }
+       else{
+            Message("ReadMCEvents : no Trigger3 info for this event");
+       }
+
+
+//
        // read ctcmccluster
        ooItr(AMSCTCMCClusterD) CTCMCClusterItr;        
        imcs=0;
@@ -320,6 +451,7 @@ end:
          mrowmode = mrowMode();
          StartRead(mrowmode);
         }
+        Refresh();
       }
     } else {
      Commit();

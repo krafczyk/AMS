@@ -91,6 +91,7 @@ private:
 
        ooMode            _mrowmode;
 
+// Handles for objects of type ooDBObj
        ooHandle(ooDBObj)    _catdbH;       // MC events dbase
        ooHandle(ooDBObj)    _mcdbH;       // MC events dbase
        ooHandle(ooDBObj)    _rawdbH;      // raw events dbase
