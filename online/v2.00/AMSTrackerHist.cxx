@@ -65,10 +65,10 @@ void AMSTrackerHist::_Fill(){
   _filled2[11]->SetFillColor(22);
 
    float bin=8./64.;
-  _filled2[28]=new TH1F("s2nK", "Seed signal/noise K side",64,-bin/2,8.-bin/2);
+  _filled2[28]=new TH1F("s2nK", "Max signal/noise K side",64,-bin/2,8.-bin/2);
   _filled2[28]->SetXTitle("S/N");
   _filled2[28]->SetFillColor(23);
-  _filled2[29]=new TH1F("s2nS", "Seed signal/noise S side",64,-bin/2,8.-bin/2);
+  _filled2[29]=new TH1F("s2nS", "Maxsignal/noise S side",64,-bin/2,8.-bin/2);
   _filled2[29]->SetXTitle("S/N");
   _filled2[29]->SetFillColor(23);
 }
@@ -76,7 +76,7 @@ void AMSTrackerHist::_Fill(){
 
 
 void AMSTrackerHist::_Fetch(){
- _m2fetched=4+4+4;
+ _m2fetched=4+4+4+1;
  _fetched2= new TH1*[_m2fetched];
  _fetched2[0]=(TH1*)gAMSDisplay->GetRootFile()->Get("h500001"); 
  _fetched2[1]=(TH1*)gAMSDisplay->GetRootFile()->Get("h500002"); 
@@ -111,6 +111,8 @@ _fetched2[11]= (TH1*)gAMSDisplay->GetRootFile()->Get("h700012");
  }
  }
 
+ _fetched2[12]=(TH1*)gAMSDisplay->GetRootFile()->Get("h501101"); 
+  if(_fetched2[12])_fetched2[12]->SetXTitle("S/N(Online)-S/N(Offline)");
 
 }
 
@@ -145,13 +147,14 @@ case 1:
   }
   break;
 case 2:
-  gPad->Divide(2,1);
-  for(i=0;i<2;i++){
+  gPad->Divide(3,1);
+  for(i=0;i<3;i++){
     gPad->cd(i+1);
     gPad->SetLogx(gAMSDisplay->IsLogX());
     gPad->SetLogy(gAMSDisplay->IsLogY());
     gPad->SetLogz(gAMSDisplay->IsLogZ());
-    _filled2[28+i]->Draw();
+    if(i<2)_filled2[28+i]->Draw();
+    else if(_fetched2[12])_fetched2[12]->Draw();
     gPadSave->cd();
   }
   break;
