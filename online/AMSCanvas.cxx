@@ -85,9 +85,15 @@ MenuDesc_t AMSCanvas::fgAMSFileTracker[] = {
 };
 
 MenuDesc_t AMSCanvas::fgAMSFileTOF[] = {
-   { kAction, "Occupancies Distibutions ",  TOFSet0CB, NULL },
-   { kAction, "Mean Amplitudes Distributions ",  TOFSet1CB, NULL },
-   { kAction, "NTof/Amplitud Distributions ",  TOFSet2CB, NULL },
+   { kAction, "Side Occupancies",        TOFSet0CB, NULL },
+   { kAction, "Counter Occupancies",     TOFSet1CB, NULL },
+   { kAction, "High Level informations", TOFSet2CB, NULL },
+   { kAction, "Anode Charge Spectra",    TOFSet3CB, NULL },
+   { kAction, "Dynode Charge Spectra",   TOFSet4CB, NULL },
+   { kAction, "Time Stretcher Ratios",   TOFSet5CB, NULL },
+   { kAction, "Occupancies Distibutions ",  TOFSet6CB, NULL },
+   { kAction, "Mean Amplitudes Distributions ",  TOFSet7CB, NULL },
+   { kAction, "NTof/Amplitud Distributions ",  TOFSet8CB, NULL },
    { kEnd },
 };
 
@@ -492,21 +498,6 @@ void AMSCanvas::HandleInput(Int_t event, Int_t px, Int_t py)
 
 
 //______________________________________________________________________
-void AMSCanvas::TOFSet0CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(4,0);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TOFSet1CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(4,1);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TOFSet2CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(4,2);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
 
 void AMSCanvas::CTCSet0CB(Widget wid, XtPointer cd, XtPointer pointer)
 {
@@ -540,7 +531,6 @@ void AMSCanvas::LVL3Set1CB(Widget wid, XtPointer cd, XtPointer pointer)
    gAMSDisplay->Dispatch(3,1);
    gAMSDisplay->GetCanvas()->Update();		// refresh the screen
 }
-
 void AMSCanvas::LVL1Set0CB(Widget wid, XtPointer cd, XtPointer pointer)
 {
    gAMSDisplay->Dispatch(2,0);
@@ -579,6 +569,51 @@ void AMSCanvas::AntiSet3CB(Widget wid, XtPointer cd, XtPointer pointer)
 void AMSCanvas::AntiSet4CB(Widget wid, XtPointer cd, XtPointer pointer)
 {
    gAMSDisplay->Dispatch(0,4);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+void AMSCanvas::TOFSet0CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(4,0);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+void AMSCanvas::TOFSet1CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(4,1);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+void AMSCanvas::TOFSet2CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(4,2);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+void AMSCanvas::TOFSet3CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(4,3);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+void AMSCanvas::TOFSet4CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(4,4);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+void AMSCanvas::TOFSet5CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(4,5);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+void AMSCanvas::TOFSet6CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(4,6);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+void AMSCanvas::TOFSet7CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(4,7);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+void AMSCanvas::TOFSet8CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(4,8);
    gAMSDisplay->GetCanvas()->Update();		// refresh the screen
 }
 

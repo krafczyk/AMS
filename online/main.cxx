@@ -20,8 +20,8 @@
 #include "AMSAxAMSHist.h"
 
 void Myapp::HandleIdleTimer(){
-SetReturnFromRun(1);
-Terminate();
+  SetReturnFromRun(1);
+  Terminate();
 }
 extern void InitGui(); // loads the device dependent graphics system
 VoidFuncPtr_t initfuncs[] = { InitGui, 0 };
@@ -34,8 +34,8 @@ void main(int argc, char *argv[])
 // First create application environment. If you replace TApplication
 // by TRint (which inherits from TApplication) you will be able
 // to execute CINT commands once in the eventloop (via Run()).
-Myapp *theApp = new Myapp("App", &argc, argv);
-theApp->SetIdleTimer(5,"");
+  Myapp *theApp = new Myapp("App", &argc, argv);
+  theApp->SetIdleTimer(5,"");
 
   debugger.Off();
   
@@ -45,9 +45,8 @@ theApp->SetIdleTimer(5,"");
     filename = *++argv;
   }
 
-
-   printf("opening file %s...\n", filename);
-   TFile f(filename);
+  printf("opening file %s...\n", filename);
+  TFile f(filename);
   AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Online Display",&f);
   AMSAntiHist  antih("ANTI","Anti counter Hists",1,1);
   amd->AddSubDet(antih);
@@ -57,7 +56,7 @@ theApp->SetIdleTimer(5,"");
   amd->AddSubDet(LVL1h);
   AMSLVL3Hist  LVL3h("LVL3","LVL3  Hists",2,1);
   amd->AddSubDet(LVL3h);
-  AMSTOFHist  TOFh("TOF","TOF  Hists",3,1);
+  AMSTOFHist  TOFh("TOF","TOF  Hists",9,1);
   amd->AddSubDet(TOFh);
   AMSCTCHist  CTCh("CTC","CTC  Hists",2,1);
   amd->AddSubDet(CTCh);

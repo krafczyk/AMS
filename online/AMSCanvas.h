@@ -79,6 +79,12 @@ public:
    static void        TOFSet0CB(Widget, XtPointer, XtPointer);
    static void        TOFSet1CB(Widget, XtPointer, XtPointer);
    static void        TOFSet2CB(Widget, XtPointer, XtPointer);
+   static void        TOFSet3CB(Widget, XtPointer, XtPointer);
+   static void        TOFSet4CB(Widget, XtPointer, XtPointer);
+   static void        TOFSet5CB(Widget, XtPointer, XtPointer);
+   static void        TOFSet6CB(Widget, XtPointer, XtPointer);
+   static void        TOFSet7CB(Widget, XtPointer, XtPointer);
+   static void        TOFSet8CB(Widget, XtPointer, XtPointer);
    // CTC
    static void        CTCSet0CB(Widget, XtPointer, XtPointer);
    static void        CTCSet1CB(Widget, XtPointer, XtPointer);
