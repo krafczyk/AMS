@@ -5506,7 +5506,7 @@ CDECK  ID>, TKFINI.
            nitm=100
            maxcal=8
            smax=50.
-           fieldmm=2.
+           fieldmm=20.
            npars=5
            tmaxf=0.2
            pii=3.1415927

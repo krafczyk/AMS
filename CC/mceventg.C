@@ -297,9 +297,9 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       //
       // find a modulation
       //
-      geant modul[8]={400.,350.,550.,650.,950.,1300.,1200.,1000.};
+      geant modul[11]={400.,350.,550.,650.,950.,1300.,1200.,1000.,1000.,1000.,1000.};
       integer year=(begindate%10000+enddate%10000)/2-1997; 
-      if(year <=0 || year > 7){
+      if(year <=0 || year > 10){
         cerr<<"AMSmceventg::setspectra-F-year not supported yet: "<<year<<endl;
         exit(1);
       }

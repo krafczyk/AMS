@@ -422,7 +422,7 @@ R67  ThrClR[2](0,0)         // mark trreccl good if ampl/s > ThrClR
 TKFIT
 R 1 tmaxf(0.2)    // max angle for grkuta   
 R 2 smax(50)      // max step for grkuta
-R 3 fieldm(2)     // max fiels (in kg) for grkuta 
+R 3 fieldm(20)     // max fiels (in kg) for grkuta 
 R 4 cconv(5.e-4)  // conv parameter
 I 5 maxcal(8)     // internal
 I 6 nitm(1000)    // internal

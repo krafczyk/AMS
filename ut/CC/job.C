@@ -1036,10 +1036,10 @@ else{
 
   if(strstr(getsetup(),"AMS02")){
    if(CCFFKEY.enddate%10000 < 2000){
-     CCFFKEY.enddate+=4;
-     CCFFKEY.begindate+=4;
-     TRMCFFKEY.year[0]+=4;
-     TRMCFFKEY.year[1]+=4;
+     CCFFKEY.enddate+=5;
+     CCFFKEY.begindate+=5;
+     TRMCFFKEY.year[0]+=5;
+     TRMCFFKEY.year[1]+=5;
    }
   }
 
