@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.163 2003/05/12 17:04:22 alexei Exp $
+# $Id: RemoteClient.pm,v 1.164 2003/05/13 12:53:39 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2772,7 +2772,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
               htmlTextField("Setup","text",20,"AMS02","QSetup"," ");
               htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
            htmlTableEnd();
-            print "<tr><td><b><font color=\"green\">DST file type</font></b>\n";
+            print "<tr><td><b><font color=\"green\">DST file format</font></b>\n";
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
@@ -2997,6 +2997,16 @@ DDTAB:         $self->htmlTemplateTable(" ");
              print "</b></font></td></tr>\n";
            htmlTableEnd();
          }
+# DST format
+            print "<tr><td><b><font color=\"green\">DST file format</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+              print "<tr><td><font size=\"-1\"<b>\n";
+              print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 2=\" CHECKED><b> NTUPLE </b>\n";
+              print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 127=1 128=\" ><b> ROOT </b><BR>\n";
+            print "</b></font></td></tr>\n";
+           htmlTableEnd();
 # DST transfer
              print "<tr><td><b><font color=\"green\">DST Transfer Mode </font></b>\n";
              print "</td><td>\n";
