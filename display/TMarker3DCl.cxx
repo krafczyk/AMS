@@ -1,6 +1,4 @@
-//  $Id: TMarker3DCl.cxx,v 1.2 2003/07/18 08:50:59 choutko Exp $
-
-
+//  $Id: TMarker3DCl.cxx,v 1.3 2003/07/18 11:54:39 choutko Exp $
 
 #include "Riostream.h"
 #include "TROOT.h"
@@ -12,7 +10,11 @@
 #include "TH1.h"
 #include "TH3.h"
 #include "TFile.h"
+
+//remove me when PaintFillArea3D will be in TVirtualPad
+//
 #include "TPad.h"
+
 ClassImp(TMarker3DCl)
 
 //______________________________________________________________________________
@@ -24,6 +26,8 @@ ClassImp(TMarker3DCl)
 //    fDx;              half length in X
 //    fDy;              half length in Y
 //    fDz;              half length in Z
+//    fProfileX         array containing cluster profile in X     
+//    fProfileY         array containg   cluster profile in Y     
 //    fTheta;           Angle of box z axis with respect to main Z axis
 //    fPhi;             Angle of box x axis with respect to main Xaxis
 //    fRefObject;       A reference to an object
@@ -55,10 +59,8 @@ TMarker3DCl::TMarker3DCl()
    fProfileY.push_back(1);
    fNx=1;
    fNy=1; 
-   fShowProfileX=false;   
-   fShowProfileY=false;   
-   CofGX=0;
-   CofGY=0;
+   fShowProfileX=true;   
+   fShowProfileY=true;   
 }
 
 
@@ -88,10 +90,8 @@ TMarker3DCl::TMarker3DCl( Float_t x, Float_t y, Float_t z,
    fProfileY.push_back(1);
    fNx=1;
    fNy=1; 
-   fShowProfileX=false;   
-   fShowProfileY=false;   
-   CofGX=0;
-   CofGY=0;
+   fShowProfileX=true;   
+   fShowProfileY=true;   
 }
 
 
@@ -103,12 +103,12 @@ TMarker3DCl::~TMarker3DCl()
 
 }
 
-void TMarker3DCl::SetShowProfileX(bool set){
+void TMarker3DCl::SetShowProfileX(Bool_t set){
   fShowProfileX=set;
  if(set)fNx=fProfileX.size();
  else fNx=1;
 }
-void TMarker3DCl::SetShowProfileY(bool set){
+void TMarker3DCl::SetShowProfileY(Bool_t set){
   fShowProfileY=set;
  if(set)fNy=fProfileY.size();
  else fNy=1;
@@ -205,19 +205,18 @@ void TMarker3DCl::Paint(Option_t *option)
     buff->points = points;
     buff->segs = new Int_t[buff->numSegs*3];
     if (buff->segs) {
-      int step=0;
-        buff->segs[step+ 0] = c;    buff->segs[step+ 1] = 0;    buff->segs[step+ 2] = 1;
-        buff->segs[step+ 3] = c+1;  buff->segs[step+ 4] = 1;    buff->segs[step+ 5] = 2;
-        buff->segs[step+ 6] = c+1;  buff->segs[step+ 7] = 2;    buff->segs[step+ 8] = 3;
-        buff->segs[step+ 9] = c;    buff->segs[step+10] = 3;    buff->segs[step+11] = 0;
-        buff->segs[step+12] = c+2;  buff->segs[step+13] = 4;    buff->segs[step+14] = 5;
-        buff->segs[step+15] = c+2;  buff->segs[step+16] = 5;    buff->segs[step+17] = 6;
-        buff->segs[step+18] = c+3;  buff->segs[step+19] = 6;    buff->segs[step+20] = 7;
-        buff->segs[step+21] = c+3;  buff->segs[step+22] = 7;    buff->segs[step+23] = 4;
-        buff->segs[step+24] = c;    buff->segs[step+25] = 0;    buff->segs[step+26] = 4;
-        buff->segs[step+27] = c+2;  buff->segs[step+28] = 1;    buff->segs[step+29] = 5;
-        buff->segs[step+30] = c+1;  buff->segs[step+31] = 2;    buff->segs[step+32] = 6;
-        buff->segs[step+33] = c+3;  buff->segs[step+34] = 3;    buff->segs[step+35] = 7;
+        buff->segs[ 0] = c;    buff->segs[ 1] = 0;    buff->segs[ 2] = 1;
+        buff->segs[ 3] = c+1;  buff->segs[ 4] = 1;    buff->segs[ 5] = 2;
+        buff->segs[ 6] = c+1;  buff->segs[ 7] = 2;    buff->segs[ 8] = 3;
+        buff->segs[ 9] = c;    buff->segs[10] = 3;    buff->segs[11] = 0;
+        buff->segs[12] = c+2;  buff->segs[13] = 4;    buff->segs[14] = 5;
+        buff->segs[15] = c+2;  buff->segs[16] = 5;    buff->segs[17] = 6;
+        buff->segs[18] = c+3;  buff->segs[19] = 6;    buff->segs[20] = 7;
+        buff->segs[21] = c+3;  buff->segs[22] = 7;    buff->segs[23] = 4;
+        buff->segs[24] = c;    buff->segs[25] = 0;    buff->segs[26] = 4;
+        buff->segs[27] = c+2;  buff->segs[28] = 1;    buff->segs[29] = 5;
+        buff->segs[30] = c+1;  buff->segs[31] = 2;    buff->segs[32] = 6;
+        buff->segs[33] = c+3;  buff->segs[34] = 3;    buff->segs[35] = 7;
     }
 
 //*-* Allocate memory for polygons *-*
@@ -240,8 +239,8 @@ void TMarker3DCl::Paint(Option_t *option)
     }
 
     //*-* Paint in the pad
-    if(GetFillStyle()==1001)PaintShape3D(buff,rangeView);
-    else PaintShape(buff,rangeView);
+    if(GetFillStyle()==0)PaintShape(buff,rangeView);
+    else PaintShape3D(buff,rangeView);
 
     if (strstr(option, "x3d")) {
         if(buff && buff->points && buff->segs)
@@ -287,9 +286,9 @@ void TMarker3DCl::PaintShape3D(X3DBuffer *buff, Bool_t rangeView)
     TAttFill::Modify();  //Change fill area attributes only if necessary
 
     for (Int_t i = 0; i < buff->numPolys; i++) {
-    for(int kx=0;kx<fNx;kx++){
-     for(int ky=0;ky<fNy;ky++){
-      int step=24*(kx+ky*fNx);
+    for(Int_t kx=0;kx<fNx;kx++){
+     for(Int_t ky=0;ky<fNy;ky++){
+      Int_t step=24*(kx+ky*fNx);
         i0 = 3*buff->polys[6*i+1];
         points[0] = buff->points[step+i0++];
         points[1] = buff->points[step+i0++];
@@ -339,7 +338,7 @@ void TMarker3DCl::PaintShape(X3DBuffer *buff, Bool_t rangeView)
 
     Double_t points[6], x0, y0, z0, x1, y1, z1;
     const Int_t kExpandView = 2;
-    int i0;
+    Int_t i0;
 
     x0 = y0 = z0 = x1 = y1 = z1 = buff->points[0];
 
@@ -347,9 +346,9 @@ void TMarker3DCl::PaintShape(X3DBuffer *buff, Bool_t rangeView)
     TAttFill::Modify();  //Change fill area attributes only if necessary
 
     for (Int_t i = 0; i < buff->numSegs; i++) {
-    for(int kx=0;kx<fNx;kx++){
-     for(int ky=0;ky<fNy;ky++){
-      int step=24*(kx+ky*fNx);
+    for(Int_t kx=0;kx<fNx;kx++){
+     for(Int_t ky=0;ky<fNy;ky++){
+      Int_t step=24*(kx+ky*fNx);
         i0 = 3*buff->segs[3*i+1];
         points[0] = buff->points[step+i0++];
         points[1] = buff->points[step+i0++];

@@ -1,4 +1,4 @@
-//  $Id: TMarker3DCl.h,v 1.2 2003/07/18 08:50:59 choutko Exp $
+//  $Id: TMarker3DCl.h,v 1.3 2003/07/18 11:54:39 choutko Exp $
 
 #ifndef ROOT_TMarker3DCl
 #define ROOT_TMarker3DCl
@@ -8,13 +8,13 @@
 //                                                                        //
 // TMarker3DCl                                                           //
 //                                                                        //
-// Marker3DBCl is a special 3-D marker designed for event display.        //
+// TMarker3DCl is a special 3-D marker designed for event display.        //
 // It has the following parameters:                                       //
 //    fDx;              half length in X                                  //
 //    fDy;              half length in Y                                  //
 //    fDz;              half length in Z                                  //
-//    fProfileX         profile in X     
-//    fProfileY         profile in Y     
+//    fProfileX         array containing cluster profile in X     
+//    fProfileY         array containg   cluster profile in Y     
 //    fTranslation[3];  the coordinates of the center of the box          //
 //    fDirCos[3];       the direction cosinus defining the orientation    //
 //    fRefObject;       A reference to an object                          //
@@ -44,20 +44,18 @@ class TMarker3DCl : public TObject, public TAttLine, public TAttFill,
 
 protected:
 
-    Float_t  fX;               // X coordinate of center of box
-    Float_t  fY;               // Y coordinate of center of box
-    Float_t  fZ;               // Z coordinate of center of box
+    Float_t  fX;               // X coordinate of center of cluster
+    Float_t  fY;               // Y coordinate of center of cluster
+    Float_t  fZ;               // Z coordinate of center of cluster
     Float_t  fDx;              // half length in x
     Float_t  fDy;              // half length in y
     Float_t  fDz;              // half length in z
-    vector<float> fProfileX;
-    vector<float> fProfileY;
-    float CofGX;
-    float CofGY;
-    int fNx;
-    int fNy;
-    bool fShowProfileX;
-    bool fShowProfileY;
+    vector<Float_t> fProfileX;
+    vector<Float_t> fProfileY;
+    Int_t fNx;                //  number of hits along X
+    Int_t fNy;                //  number of hits along Y
+    Bool_t fShowProfileX;     //  Draw cluster (true) or simple box (false) in X                            
+    Bool_t fShowProfileY;     //  Draw cluster (true) or simple box (false) in Y
     Float_t  fTheta;           // Angle of box z axis with respect to main Z axis
     Float_t  fPhi;             // Angle of box x axis with respect to main Xaxis
     TObject *fRefObject;       // Pointer to an object
@@ -87,12 +85,10 @@ public:
     virtual void    SetPoints(Float_t *buff);
     virtual void    SetDirection(Float_t theta, Float_t phi);
     virtual void    SetPosition(Float_t x, Float_t y, Float_t z);
-    void SetCofGX(float cofgx){CofGX=cofgx;}
-    void SetCofGY(float cofgy){CofGY=cofgy;}
-    void SetProfileX(int n,float *x){fProfileX.clear();for(int k=0;k<n;k++)fProfileX.push_back(x[k]);}
-    void SetProfileY(int n,float *x){fProfileY.clear();for(int k=0;k<n;k++)fProfileY.push_back(x[k]);}
-    void SetShowProfileX(bool set);
-    void SetShowProfileY(bool set);
+    void SetProfileX(Int_t n,Float_t *x){fProfileX.clear();for(Int_t k=0;k<n;k++)fProfileX.push_back(x[k]);}
+    void SetProfileY(Int_t n,Float_t *x){fProfileY.clear();for(Int_t k=0;k<n;k++)fProfileY.push_back(x[k]);}
+    void SetShowProfileX(Bool_t set);
+    void SetShowProfileY(Bool_t set);
     virtual void    SetSize(Float_t dx, Float_t dy, Float_t dz);
     virtual void    SetRefObject(TObject *obj=0) {fRefObject = obj;}
 
