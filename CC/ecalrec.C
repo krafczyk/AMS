@@ -251,7 +251,7 @@ void AMSEcalCell::build(int &stat){
   for(i=0;i<ECALDBc::slstruc(3);i++){
     for(j=0;j<ECALDBc::slstruc(4);j++){
       for(k=0;k<4;k++){
-        if(edep_in_cell[i][j][k]>0.001){
+        if(edep_in_cell[i][j][k]>0.0005){
           ncelle++;
           edepcell=edep_in_cell[i][j][k];
 	  edepatt=edep_att[i][j][k];
