@@ -411,9 +411,9 @@ void AMSTOFTovt::build()
       }// ---> end of next/last bar check
 //
     ptr=ptr->next();
-    if(AMSgObj::BookTimer.check("TOF:Tovt->RwEv")>AMSFFKEY.CpuLimit){
-     AMSgObj::BookTimer.stop("TOF:Tovt->RwEv");
-     throw amsglobalerror("TOFsim-cpulimitExceeded");
+    if(AMSgObj::BookTimer.check("TOF:Ghit->Tovt")>AMSFFKEY.CpuLimit){
+     AMSgObj::BookTimer.stop("TOF:Ghit->Tovt");
+     throw amsglobalerror("TOF:Ghit->Tovt-cpulimitExceeded");
     }
   }// ------ end of geant hits loop ---->
 //
