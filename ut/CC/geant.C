@@ -29,7 +29,7 @@
 //                              eventRtype 
 //           Oct    , 1997 ak.  TDV dbase version implementation
 //
-//  Last Edit: Oct 10, 1997. ak
+//  Last Edit: Oct 12, 1997. ak
 //
 
 #include <typedefs.h>
@@ -144,12 +144,6 @@ extern "C" void uginit_(){
   AMSJob::map();
   AMSJob::gethead()->init();
   AMSJob::map(1);
-#ifdef __DB__
-  int n = AMSJob::gethead()->FillTDVTable();
-  ooStatus rstatus = dbout.FillTDV(n);
-  if (rstatus != oocSuccess) cerr<<"uginit_ -W- FillTDV"<<endl;
-  AMSJob::gethead() -> seteventRtype(eventR);
-#endif
 #ifndef __BATCH__
 GDINIT();
 #endif
@@ -157,6 +151,10 @@ GDINIT();
 #ifdef __DB__
   if ((AMSFFKEY.Read%2) == 1) dbout.CheckCommons();
   writeSetup();
+  int n = AMSJob::gethead()->FillTDVTable();
+  ooStatus rstatus = dbout.FillTDV(n);
+  if (rstatus != oocSuccess) cerr<<"uginit_ -W- FillTDV"<<endl;
+  AMSJob::gethead() -> seteventRtype(eventR);
 #endif
 
   GPHYSI();

@@ -54,8 +54,13 @@ M A I N  ->      gbatch.C
  |    |   |->    settypeR           = datacards Read
  |    |   |->    settypeW           = datacards Write
  |    |   |->    ClusteringInit   
- |    |->readGeomDB        read geometry, materials definitions from dbase
- |    |->CheckConstants    check amsdbc, antidbc, ctcdbc, tofdbc
+ |    |->readGeomDB             read geometry, materials definitions from dbase
+ |    |->CheckConstants         check amsdbc, antidbc, ctcdbc, tofdbc
+ |    |->CheckCommons           compare content of 'common' blocks in memory 
+ |    |                         and dbase
+ |    |->AMSJob::FillTDVTable   fill TDV table wih names of known TDV's
+ |    |->FillTDV                read TDV's from dbase and fill table in memory
+ |    |                         of insert/begin/end time for all TDV's.
  |#endif
  |    |   
  |    |->AMSJob::init      User initialization routine 

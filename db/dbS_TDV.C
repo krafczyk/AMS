@@ -365,6 +365,7 @@ ooStatus   LMS::ReadTDV
      tdvItr -> GetTime(insert, begin, end);
      if (insert == I && begin == B && end == E) {
       cout<<"ReadTDV -I- found TDV in database for "<<tdvname<<endl;
+      cout<<endl;
       tdvItr -> copy(buff);
       rstatus = oocSuccess;
       break;
