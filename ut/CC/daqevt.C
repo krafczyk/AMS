@@ -131,11 +131,12 @@ while(fpl){
 
 
 if(ntot)_Length=lover+ntot;
-#ifdef __AMSDEBUG__
 if(_Length > 65535*4){
   cerr<<"DAQEvent::buildDAQ-F-lengthToobig "<<_Length<<endl;
-  exit(1);
+  _Length=65535*4-1;
+  return; 
 }
+#ifdef __AMSDEBUG__
 assert(sizeof(time_t) == sizeof(integer));
 #endif
 
