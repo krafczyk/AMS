@@ -7954,3 +7954,7 @@ c         ENDIF
 CDECK  ID>, DUMMY.  
       SUBROUTINE QNEXT
       END
+      subroutine npq
+      common /quest/iquest(100)
+      iquest(10)=64000
+      end
