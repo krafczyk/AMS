@@ -86,6 +86,7 @@ int16u pData[24][1536];
   }
     
     FILE * fbin=fopen(in,"r");
+    int tevt=0;
     int evt;
     char name[80];
     strncpy(name,in+strlen(in)-9,5);
@@ -154,19 +155,29 @@ int16u pData[24][1536];
              // make address
              int16u conn, tdrs;
              if(k%2 ==0 ){
-              if(j==0)conn=0;
-              else conn=1; 
+               if(j==0)conn=0;
+               else conn=1; 
              }             
              else{
-              if(j==0)conn=2;
-              else conn=3; 
+               if(j==0)conn=2;
+               else conn=3; 
              }
              tdrs=k/2;
              int16u addr=(conn<<10) | (tdrs <<12);
              Record[frp]=addr;
              frp++;
-             for(int l=0;l<640;l++){
-              Record[frp]=pData[k][j*768+l];
+             int lj;
+             if(j==0)lj=3;
+             else lj=1;
+             for(int l=0;l<320;l++){
+              Record[frp]=pData[k][lj*384+l];
+              Record[frp]=Record[frp] | (1<<15);
+              frp++;     
+             }
+             if(j==0)lj=2;
+             else lj=0;
+             for( l=0;l<320;l++){
+              Record[frp]=pData[k][lj*384+l];
               Record[frp]=Record[frp] | (1<<15);
               frp++;     
              }
@@ -177,11 +188,16 @@ int16u pData[24][1536];
              // make address
              int16u conn, tdrk;
              if(k%2 ==0){
-              conn=j;
+              if(j<2)conn=j+2;
+              else conn=j-2;
              }
-             else conn= 4+j;
+             else {
+              if(j<2)conn=j+2;
+              else conn=j-2;
+               conn+= 4;
+             }
              tdrk=(k-16)/2;
-             int16u addr=(10<<6 | conn<<10) | (tdrk <<13);
+             int16u addr=(10<<6) |( conn<<10) | (tdrk <<13);
              Record[frp]=addr;
              frp++;
              for(int l=0;l<384;l++){
@@ -193,6 +209,7 @@ int16u pData[24][1536];
            }
          }
          int tl=Record[0]+1;
+         tevt++;
               //  Dump every 1000 event
          //                  if(evt%1000 == 0){
          //                    for(int itl=0;itl<tl;itl++){
@@ -207,7 +224,7 @@ int16u pData[24][1536];
   fclose(fbin);
   if(iend==0){
       fbout.close();
-      cout <<" Total of "<<evt<<" events  converted"<<endl;
+      cout <<" Total of "<<tevt<<" events  converted"<<endl;
   }
 }
 

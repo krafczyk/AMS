@@ -182,8 +182,10 @@ TKGEOMFFKEY.WriteGeomToFile=0;
 TKGEOMFFKEY.UpdateGeomFile=0;
 FFKEY("TKGE",(float*)&TKGEOMFFKEY,sizeof(TKGEOMFFKEY_DEF)/sizeof(integer),
 "MIXED");
+
+
 TRMCFFKEY.alpha=220;
-TRMCFFKEY.beta=1;
+TRMCFFKEY.beta=0.5;
 TRMCFFKEY.gamma=0.08;
 TRMCFFKEY.fastswitch=5.e-5;  // inverse linear density of primary electrons
 TRMCFFKEY.dedx2nprel=0.33e6;
@@ -191,8 +193,12 @@ TRMCFFKEY.ped[0]=500;
 TRMCFFKEY.ped[1]=500;
 TRMCFFKEY.gain[0]=8;
 TRMCFFKEY.gain[1]=8;
-TRMCFFKEY.sigma[1]=110/20/sqrt(3.); // sig/noise ratio is about 20 for y
+TRMCFFKEY.sigma[1]=55./14./sqrt(3.); // sig/noise ratio is about 14 for y
 TRMCFFKEY.sigma[0]=TRMCFFKEY.sigma[1]*1.41;   // x strip two times larger y
+
+
+
+
 TRMCFFKEY.cmn[0]=50;
 TRMCFFKEY.cmn[1]=50;
 TRMCFFKEY.adcoverflow=32767;
@@ -446,32 +452,37 @@ FFKEY("BMAP",(float*)&TKFIELD,11,"MIXED");
 
 void AMSJob::_retkdata(){
 
-TRCLFFKEY.ThrClA[1]=45;
-TRCLFFKEY.Thr1A[1] =25;
-TRCLFFKEY.Thr2A[1] =7;
+number fac=AMSTrRawCluster::ADC2KeV();
+TRCLFFKEY.ThrClA[1]=45/fac;
+TRCLFFKEY.Thr1A[1] =25/fac;
+TRCLFFKEY.Thr2A[1] =7/fac;
 
 TRCLFFKEY.ThrClS[1]=10;
 TRCLFFKEY.Thr1S[1] =7;
 TRCLFFKEY.Thr2S[1] =7;
 
-TRCLFFKEY.ThrClR[1]=8;
-TRCLFFKEY.Thr1R[1] =5;
+TRCLFFKEY.ThrClR[1]=8/fac;
+TRCLFFKEY.Thr1R[1] =5/fac;
 TRCLFFKEY.Thr2R[1] =1.;  // should be around 1 if ThrClNEl[1]=3;
 TRCLFFKEY.Thr3R[1] =-2.;
 
 TRCLFFKEY.ThrClNMin[1]=2;
 TRCLFFKEY.ThrClNEl[1]=3;
 
-TRCLFFKEY.ThrClA[0]=45;
-TRCLFFKEY.Thr1A[0] =30;
-TRCLFFKEY.Thr2A[0] =6;
+TRCLFFKEY.ThrClA[0]=45/fac;
+TRCLFFKEY.Thr1A[0] =30/fac;
+TRCLFFKEY.Thr2A[0] =6/fac;
+
+
+
+
 
 TRCLFFKEY.ThrClS[0]=14;
 TRCLFFKEY.Thr1S[0] =10;
 TRCLFFKEY.Thr2S[0] =10;
 
-TRCLFFKEY.ThrClR[0]=7;
-TRCLFFKEY.Thr1R[0] =6;
+TRCLFFKEY.ThrClR[0]=7/fac;
+TRCLFFKEY.Thr1R[0] =5/fac;
 TRCLFFKEY.Thr2R[0] =1.;
 TRCLFFKEY.Thr3R[0] =-2.;
 

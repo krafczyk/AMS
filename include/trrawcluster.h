@@ -5,7 +5,6 @@
 #include <upool.h>
 #include <apool.h>
 #include <gsen.h>
-#include <trid.h>
 #include <event.h>
 #include <cont.h>
 #include <amsstl.h>

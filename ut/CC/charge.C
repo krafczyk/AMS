@@ -77,7 +77,7 @@ void AMSCharge::build(){
           AMSPoint SenPnt=phit->getHit();
            ptrack->interpolate(SenPnt, SenDir, P1, theta, phi, sleng);
            AMSDir DTr(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));
-           EdepTracker[nhitTracker]=phit->getsum()*
+           EdepTracker[nhitTracker]=AMSTrRawCluster::ADC2KeV()*phit->getsum()*
            pow(min(one,pbeta->getbeta()),2)*fabs(SenDir.prod(DTr));
          nhitTracker++;
          } else {

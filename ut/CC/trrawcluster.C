@@ -8,7 +8,7 @@
 #include <amsgobj.h>
 #include <mccluster.h>
 #include <timeid.h>
-
+#include <trid.h>
 integer AMSTrRawCluster::TestRawMode(){
   AMSTrIdSoft id(_address);
   int icmpt=id.gettdr();
@@ -48,7 +48,7 @@ void AMSTrRawCluster::expand(number *adc)const {
 AMSTrIdSoft id(_address);
   for (int i=0;i<_nelem;i++){
    id.upd(_strip+i);
-   adc[id.getstrip()]=_array[i]/id.getgain()*ADC2KeV();
+   adc[id.getstrip()]=_array[i]/id.getgain();
   }
 
 

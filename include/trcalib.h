@@ -8,6 +8,15 @@
 #include <point.h>
 #include <particle.h>
 #include <trid.h>
+class PSStr_def{
+public:
+integer Layer;
+integer Ladder;
+integer Half;
+integer Side;
+geant Ped;
+geant Sigma;
+};
 class AMSTrCalibPar{
 protected:
 AMSPoint _Coo;

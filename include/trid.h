@@ -6,6 +6,7 @@
 #define __AMSTRID__
 #include <typedefs.h>
 #include <amsdbc.h>
+#include <trrawcluster.h>
 #include <iostream.h>
 #include <amsstl.h>
 #include <commons.h>

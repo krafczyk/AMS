@@ -404,22 +404,24 @@ void AMSTrIdCalib::_hist(){
   HBOOK1(400020+1,"Peds System",200,0.,2200.,0.);
   HBOOK1(400000+2,"Sigmas Diff",200,-2.,8.,0.);
   HBOOK1(400010+2,"Sigmas Calcs",200,0.,20.,0.);
-  HBOOK1(400020+2,"Sigmas System",200,0.,10.,0.);
+  HBOOK1(400020+2,"Sigmas System",200,0.,20.,0.);
   HBOOK1(400000+3,"Ped Accuracy Estimated",200,0.,1.,0.);
   HBOOK1(400100+1,"Peds Diff",200,-10.,10.,0.);
   HBOOK1(400110+1,"Peds Calcs",200,0.,2200.,0.);
   HBOOK1(400120+1,"Peds System",200,0.,2200.,0.);
   HBOOK1(400100+2,"Sigmas Diff",200,-2.,8.,0.);
   HBOOK1(400110+2,"Sigmas Calcs",200,0.,20.,0.);
-  HBOOK1(400120+2,"Sigmas System",200,0.,10.,0.);
+  HBOOK1(400120+2,"Sigmas System",200,0.,20.,0.);
   HBOOK1(400100+3,"Ped Accuracy Estimated",200,0.,1.,0.);
   HBOOK1(400200+1,"Peds Diff",200,-10.,10.,0.);
   HBOOK1(400210+1,"Peds Calcs",200,0.,2200.,0.);
   HBOOK1(400220+1,"Peds System",200,0.,2200.,0.);
   HBOOK1(400200+2,"Sigmas Diff",200,-2.,8.,0.);
   HBOOK1(400210+2,"Sigmas Calcs",200,0.,20.,0.);
-  HBOOK1(400220+2,"Sigmas System",200,0.,10.,0.);
+  HBOOK1(400220+2,"Sigmas System",200,0.,20.,0.);
   HBOOK1(400200+3,"Ped Accuracy Estimated",200,0.,1.,0.);
+  PSStr_def PS;
+  HBNAME(IOPA.ntuple,"PedsSigmas",(int*)(&PS),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, Ped:R,Sigma:R");
   int i,j,k,l,m;
    for(l=0;l<2;l++){
     for(k=0;k<2;k++){
@@ -431,18 +433,25 @@ void AMSTrIdCalib::_hist(){
          cid.upd(m);
          if(cid.getcount()>1){
           int ch=cid.getchannel();
+          PS.Layer=i+1;
+          PS.Ladder=j+1;
+          PS.Half=k;
+          PS.Side=l;
+          PS.Ped=_ADC[ch];
+          PS.Sigma=_ADC2[ch];
+          HFNTB(IOPA.ntuple,"PedsSigmas");
           HF1(400000+1,_ADC[ch]-cid.getped(),1.);
           HF1(400010+1,_ADC[ch],1.);
           HF1(400020+1,cid.getped(),1.);
-          HF1(400000+2,_ADC2[ch]-cid.getsig(),1.);
+          HF1(400000+2,_ADC2[ch]-sigmas[ch],1.);
           HF1(400010+2,_ADC2[ch],1.);
-          HF1(400020+2,cid.getsig(),1.);
+          HF1(400020+2,sigmas[ch],1.);
           HF1(400000+3,_ADC2[ch]/sqrt(_Count[ch]),1.);
 
           HF1(400000+(l+1)*100+1,_ADC[ch]-cid.getped(),1.);
           HF1(400010+(l+1)*100+1,_ADC[ch],1.);
           HF1(400020+(l+1)*100+1,cid.getped(),1.);
-          HF1(400000+(l+1)*100+2,_ADC2[ch]-cid.getsig(),1.);
+          HF1(400000+(l+1)*100+2,_ADC2[ch]-sigmas[ch],1.);
           HF1(400010+(l+1)*100+2,_ADC2[ch],1.);
           HF1(400020+(l+1)*100+2,cid.getsig(),1.);
           HF1(400000+(l+1)*100+3,_ADC2[ch]/sqrt(_Count[ch]),1.);
@@ -525,7 +534,6 @@ void AMSTrIdCalib::_update(){
        }
      }
     }
-    cout << "AMSTrIdCalib::_update-I-total of "<<total<<" channels updated"<<endl;
     AMSTimeID * ptdv = 
     AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVped(k));
     ptdv->UpdateMe()=1;
@@ -566,6 +574,7 @@ void AMSTrIdCalib::_update(){
 
 
   }
+    cout << "AMSTrIdCalib::_update-I-total of "<<total<<" channels updated"<<endl;
 
 
 

@@ -519,7 +519,7 @@ void AMSTrIdSoft::inittable(){
 
   _GetHard[2][6][0][2]=0;            //crate
   _GetHard[2][6][0][0]=4 | 2<<3;     //side x
-  _GetHard[2][6][0][1]=0 | 5<<2;     //side y
+  _GetHard[2][6][0][1]=0 | 4<<2;     //side y
 
   _GetHard[2][7][0][2]=0;            //crate
   _GetHard[2][7][0][0]=6 | 2<<3;     //side x

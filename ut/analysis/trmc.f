@@ -235,7 +235,7 @@ c      real cy(nchy)
               endif
               call hf1(100+k,r,1.)
               call hf1(200+k,sumt(l),1.)
-              call hf1(210+k,sumt(l),1.)
+              call hf1(210+k,sigmat(l),1.)
               if(sigmat(l).ne.0)
      +        call hf1(220+k,sumt(l)/sigmat(l),1.)
               call hf1(230+k,float(nelemr(l)-neleml(l)+1),1.)
