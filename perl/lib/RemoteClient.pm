@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.228 2003/12/12 10:35:42 choutko Exp $
+# $Id: RemoteClient.pm,v 1.229 2003/12/17 16:12:03 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7316,6 +7316,7 @@ foreach my $block (@blocks) {
 # LastEvent 0 , Errors 0 , CPU 0 , Elapsed 0 , CPU/Event 0 , Status Processing
 #
    
+
       $patternsmatched = 0;
       my @StartingRunPatterns = ("StartingRun","ID","Run","FirstEvent","LastEvent",
                                  "Prio","Path","Status","History","CounterFail", "ClientID",
@@ -7335,14 +7336,15 @@ foreach my $block (@blocks) {
           }
        }
        $j++;
-      }  
+     }
 
 
    
-   if ($patternsmatched == $#StartingRunPatterns+4) { # Ignore one 'Run' 
+   if ($patternsmatched == $#StartingRunPatterns+3) { # Ignore one 'Run' 
     $run = $startingrun[2];
     $startingrun[0] = "StartingRun";
     $startingrunR   = 1;
+# insert run : run #, $jid, $fevent, $levent, $fetime, $letime, $submit, $status;
     $self->insertRun(
              $startingrun[2],
              $lastjobid,
@@ -7350,16 +7352,16 @@ foreach my $block (@blocks) {
              $startingrun[4],
              0,
              0,
-             $startingrun[11],
+             $startingrun[12],
              $startingrun[7]);
 
-     if (defined $startingrun[12]) {
-      $host=$startingrun[12];
+     if (defined $startingrun[13]) {
+      $host=$startingrun[13];
      }
      $sql = "UPDATE Jobs SET 
                  host='$host',
-                 events=$startingrun[13], errors=$startingrun[15],
-                 cputime=$startingrun[16], elapsed=$startingrun[17],
+                 events=$startingrun[14], errors=$startingrun[16],
+                 cputime=$startingrun[17], elapsed=$startingrun[18],
                  timestamp=$timestamp, mips = $jobmips  
                 where jid=$lastjobid";
      print FILE "$sql \n";
