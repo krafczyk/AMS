@@ -35,7 +35,7 @@ ooStatus LMS::FindTagEvent(uinteger runUni, uinteger eventNumber,
   char                      *contName;
   integer                   ret;
   contName  = StrCat("Events_",_prefix); 
-  ret = TagList(contName, _prefix, listH);
+  ret = TagList(dbH, contName, _prefix, listH);
   if (listH != NULL) {
 //ooEqualLookupField runLookupField(ooTypeN(AMSEventTag), "_runUni", &runUni);
    ooEqualLookupField runLookupField(ooTypeN(AMSEventTag), "_run", &runUni);

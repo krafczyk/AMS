@@ -1,8 +1,8 @@
 // Last Edit 
 //           
-// Oct 22, 1996 ak. delete run and all associated events
+// Oct 22, 1996 ak. print content of database
 //
-// Last Edit : Oct 31, 1996. use listname as a parameter
+// Last Edit : Jun 16, 1996. use listname as a parameter
 //
 #include <iostream.h>
 #include <strstream.h>
@@ -12,11 +12,14 @@
 #include <ooSession.h>
 #include <rd45.h>
 
+#include <dbcatalog_ref.h>
 #include <dbevent_ref.h>
 #include <list_ref.h>
 
+#include <dbcatalog.h>
 #include <dbevent.h>
 #include <list.h>
+
 
 class LMS : public ooSession {
 private:
@@ -24,9 +27,11 @@ private:
 public:
   LMS();
  ~LMS();
-  void StartRead(ooMode mrowmode, const char *tag=NULL);
+
+  void ContainersC(ooHandle(ooDBObj) & dbH, ooHandle(AMSdbs) & dbTabH);
   void Commit();
   ooStatus Init(ooMode mode, ooMode mrowmode);
+  void StartRead(ooMode mrowmode, const char *tag=NULL);
 };
 
 LMS::LMS(){}
@@ -54,20 +59,52 @@ void LMS::Commit()
       Fatal("could not commit transaction");
 }
 
+void LMS::ContainersC(ooHandle(ooDBObj) & dbH, ooHandle(AMSdbs) & dbTabH)
+//
+// create all containers for MC database
+//
+{	
+  integer              rstatus = 1;
+  ooHandle(ooContObj)  contH;
+  ooItr(AMSdbs)        dbTabItr;
+  ooMode               openMode =   oocRead;
+  
+  dbTabH = NULL;
+
+  if (contH.exist(dbH, "DbCatalog", openMode)) {
+    dbTabItr.scan(contH, openMode);
+    if (dbTabItr.next()) {
+      dbTabH = dbTabItr;
+    } else {
+      Fatal
+       ("DbCatalog container is empty. Cannot create the object in Read mode");
+    }
+  } else {
+   Fatal("DbCatalog container does not exist");
+  }
+}
+
+implement (ooVArray, ooRef(ooDBObj))
+
 int main(int argc, char** argv)
 {
  char*                  dbase = "MCEvents";
  char*                  list  = NULL;
  char*                  printMode = "S";
+ char*                  cptr;
 
  const char *tag=NULL;
  ooMode      mode = oocRead;
 
  LMS                    lms;
  ooHandle(ooDBObj)      dbH;
+ ooHandle(ooDBObj)      _catdbH;
  ooHandle(EventList)    listH;
  ooItr(EventList)       listItr;
  ooItr(dbEvent)         eventItr;
+
+ cptr = getenv("OO_FD_BOOT");
+ if (!cptr) Fatal("environment OO_FD_BOOT in undefined");
 
  cout<<" "<<endl;
  if(argc > 2)  list  = argv[2];
@@ -83,10 +120,27 @@ int main(int argc, char** argv)
  // if oosession has not been initialised do it now
  lms.Init(oocRead,oocMROW);
  lms.StartRead(oocMROW);
- dbH = lms.db("EventTag");
- if (!dbH) Fatal ("Pointer to selected dbase is NULL");
- ooStatus rstatus = listItr.scan(dbH, oocNoOpen);
- if (rstatus == oocSuccess) {
+
+ ooHandle(AMSdbs)        dbTabH;
+
+ _catdbH = lms.db("DbList");
+ lms.ContainersC(_catdbH, dbTabH);
+
+ if (dbTabH == NULL) Fatal("ClusteringInit: catalog of databases not found");
+
+
+ // get TagDB pathname
+ cptr = getenv("AMS_TagDB_Path");
+ if ( cptr ) AMSdbs::pathNameTab[0] = strdup(cptr);
+ cout<<"ClusteringInit: TagDB path name "<<AMSdbs::pathNameTab[0]<<endl;
+
+ integer ntagdbs = dbTabH -> size(dbtag);
+
+ for (int j = 0; j < ntagdbs; j++) {
+  dbH = dbTabH -> getDB(dbtag,j);
+  if (!dbH) Fatal ("Pointer to selected dbase is NULL");
+  ooStatus rstatus = listItr.scan(dbH, oocNoOpen);
+  if (rstatus == oocSuccess) {
    while (listItr.next()) {
     cout<<" "<<endl;
     listItr -> printListHeader();
@@ -112,9 +166,10 @@ int main(int argc, char** argv)
      }
     }
    }       
- } else {
+  } else {
    Error("LMS::PrintList : scan operation failed");
- }
+  }
 
+ }
  lms.Commit();
 }

@@ -14,8 +14,9 @@
 // Mar  18, 1997. ak. Getmceventg and GetNEvents are modified
 //                    setup moved to AMSsetupDB
 // May    , 1997. ak. 
+// June   , 1997. ak. db size limit, navigate through many dbs
 //
-// last edit June 04, 1997, ak.
+// last edit June 16, 1997, ak.
 //
 
 #include <stdio.h>
@@ -32,9 +33,9 @@
 #include <db_comm.h>
 #include <dbA.h>
 
+#include <raweventD.h>
 #include <eventTag.h>
 #include <mcevent.h>
-#include <raweventD.h>
 #include <recevent.h>
 
 #include <event.h>
@@ -48,20 +49,18 @@ static  integer NN_events;        // number of events written to the database
 static  integer NW_commit = 100;  // commit after each NW_commit events
 static  integer NR_commit = 200;  // commit after each NR_commit events
 static  integer checkevent;
+static  integer curContN;
+static  integer nTagCont;
 
 static  ooItr(AMSEventTag)     tageventItr;             
+static  char                   pred[40];
 
 
 ooStatus LMS::AddRawEvent(ooHandle(ooContObj)& contH, 
                                     uinteger run, uinteger runAux,
                                     uinteger eventNumber, 
-                                    uinteger status, time_t time, 
-                                    integer ltrig, integer* trig, 
-                                    integer ltracker, integer* tracker,
-                                    integer lscint, integer* scint,
-                                    integer lanti, integer* anti,
-                                    integer lctc, integer* ctc,
-                                    integer lslow, integer* slow,
+                                    time_t time, 
+                                    integer ldata, uint16* data, 
                                     integer WriteStartEnd)
 //
 // contH         - pointer to the container to place event in
@@ -69,8 +68,8 @@ ooStatus LMS::AddRawEvent(ooHandle(ooContObj)& contH,
 // runAux        - auxillary run number
 // eventNumber   - event number
 // status        -
-//time           - level-1 trigger time
-//others         - subdetector's blocks
+// time          - level-1 trigger time
+// data          - subdetector's blocks
 // WriteStartEnd - flag;
 //                       1 - start transaction
 //                      -1 - end transaction
@@ -118,7 +117,7 @@ ooStatus LMS::AddRawEvent(ooHandle(ooContObj)& contH,
     }
 
     tageventH = new(tagcontH) 
-                          AMSEventTag(run, runAux, eventNumber, time, status);
+                          AMSEventTag(run, runAux, eventNumber, time);
     tagcontH -> incNEvents();
 
     //rstatus = ooUpdateIndexes(tageventH);
@@ -127,13 +126,8 @@ ooStatus LMS::AddRawEvent(ooHandle(ooContObj)& contH,
     //  rstatus = oocSuccess;
     //}
 
-    eventH = new(contH) AMSraweventD(run, runAux, eventNumber, status, time,
-                                     ltrig, trig, 
-                                     ltracker, tracker, 
-                                     lscint, scint,
-                                     lanti, anti,
-                                     lctc, ctc,
-                                     lslow, slow);
+    eventH = new(contH) AMSraweventD(run, runAux, eventNumber, time, 
+                                     ldata, data); 
 
     rstatus = tageventH -> set_itsRawEvent(eventH);
 
@@ -363,14 +357,8 @@ ooStatus LMS::FindEventList(ooHandle(ooDBObj)& dbH,
 
 
 ooStatus LMS::ReadRawEvent(uinteger& run, uinteger & runAux,
-                           uinteger & eventNumber, uinteger & status,
-                           time_t & time,
-                           integer & ltrig, integer* trig,
-                           integer & lscint, integer* scint,
-                           integer & ltracker, integer* tracker,
-                           integer & lanti, integer* anti,
-                           integer & lctc, integer* ctc,
-                           integer & lslow, integer* slow,
+                           uinteger & eventNumber, time_t & time, 
+                           integer & ldata, uint16* data,
                            integer StartCommit)
 //
 // run           - unique run number
@@ -380,24 +368,16 @@ ooStatus LMS::ReadRawEvent(uinteger& run, uinteger & runAux,
 //
   {
     ooStatus rstatus = oocError;
-    ooMode mrowmode;
+    ooMode mrowmode = mrowMode();
 
     if (!isTagKeyValid(run, eventNumber)) return rstatus;
 
-    if (tagCont() == NULL) 
-                       Fatal("ReadEvent : pointer to tag container is NULL");
 
     // Start the transaction
     if (StartCommit == 1 || StartCommit == -2) {
-     mrowmode = mrowMode();
      StartRead(mrowmode);     
      NN_events = 0;
     }
-
-    //get pointer to the database
-    ooHandle(ooDBObj)  dbH = rawdb();
-    if (dbH == NULL) 
-                Fatal("ReadEvent : pointer to raw event database is NULL");
 
     ooHandle(AMSEventTag)  tageventH;
     ooHandle(AMSraweventD) eventH;
@@ -416,14 +396,7 @@ ooStatus LMS::ReadRawEvent(uinteger& run, uinteger & runAux,
           <<", with number "<<eventNumber<<" does not exist "<<endl;
      goto end;
     }
-    raweventItr -> readEvent  (run, runAux,
-                               eventNumber, status, time,
-                               ltrig, trig,
-                               lscint, scint,
-                               ltracker, tracker,
-                               lanti, anti,
-                               lctc, ctc,
-                               lslow, slow);
+    raweventItr -> readEvent  (run, runAux, eventNumber, time, ldata, data);
     rstatus = oocSuccess;
 
 end:
@@ -442,14 +415,8 @@ end:
   }
 
 ooStatus LMS::ReadRawEvents(uinteger& run, uinteger & runAux,
-                           uinteger & eventNumber, uinteger & status,
-                           time_t & time,
-                           integer & ltrig, integer* trig,
-                           integer & lscint, integer* scint,
-                           integer & ltracker, integer* tracker,
-                           integer & lanti, integer* anti,
-                           integer & lctc, integer* ctc,
-                           integer & lslow, integer* slow,
+                           uinteger & eventNumber, time_t & time,
+                           integer & ldata, uint16* data,
                            integer nevents, integer StartCommit)
 //
 // run           - unique run number
@@ -459,53 +426,56 @@ ooStatus LMS::ReadRawEvents(uinteger& run, uinteger & runAux,
 // StartCommit   - start/commit transaction flag
 //
   {
-    ooStatus rstatus = oocError;
-    ooMode   mrowmode;
-    integer                do_commit = 0;
-    char                   pred[40];
-    ooItr(AMSraweventD)    raweventItr;             
-
-    if (!isTagKeyValid(run, eventNumber)) return rstatus;
+    ooStatus rstatus  = oocError;
+    ooMode   mode     = Mode();
+    ooMode   mrowmode = mrowMode();
+    ooHandle(AMSEventTagList) contH;
+    ooItr(AMSraweventD)       raweventItr;             
+    integer                   do_commit  = 0;
+    integer                   flagNextDB = 0;
 
     // Start the transaction
     if (StartCommit == 1 || StartCommit == -2) {
-     mrowmode = mrowMode();
      StartRead(mrowmode);     
      NN_events = 0;
+     curContN  = 0;
+     nTagCont  = ntagconts();
     }
-    ooMode mode     = Mode();
 
-    //get pointer to the database
-    ooHandle(ooContObj)  tagContH = tagCont();
-    if (tagContH == NULL) 
-                   Fatal("ReadRawEvents : pointer to tag container is NULL");
+    ooHandle(AMSEventTagList)  tagContH;
 
-    if (StartCommit == 1 || StartCommit == -2) { //init Itr if Start
-      if (run < 1) {
-        //(void) sprintf(pred,"_runUni>%d",run);
+  newDB:
+    do_commit = 0;
+    if (StartCommit == 1 || StartCommit == -2 || flagNextDB == 1) { 
+     if (flagNextDB != 1) {
+      if (run < 1) {                                   //init Itr if Start
         (void) sprintf(pred,"_run>%d",run);
       } else {
-        //if (run > 0) (void) sprintf(pred,"_runUni=%d",run);
        if (run > 0) (void) sprintf(pred,"_run=%d",run);
        if (eventNumber > 0) (void)
-        //sprintf(pred,"_runUni=%d && _eventNumber >=%d",run,eventNumber);
          sprintf(pred,"_run=%d && _eventNumber >=%d",run,eventNumber);
       }
-      tageventItr.scan(tagContH, mode, oocAll, pred);
-      cout<<"ReadRawEvents -I- scan event of "<<pred<<endl;
+     }
+
+     flagNextDB = 0;
+     int rc = tagcontN(curContN, tagContH);
+     if (rc == 0) {
+      Message("ReadRawEvents : All done ");
+      return oocError;
+     }
+     if (tagContH == NULL) 
+                    Fatal("ReadRawEvents : pointer to tag container is NULL");
+     rc = tageventItr.scan(tagContH, mode, oocAll, pred);
+     if (rc != oocSuccess) Fatal("ReadRawEvents : tageventItr scan failed");
+     cout<<"ReadRawEvents -I- scan event of "<<pred<<endl;
     }
+
     rstatus = oocSuccess;
+
     if (tageventItr.next() != NULL) {
      tageventItr -> itsRawEvent(raweventItr);
      if (raweventItr != NULL) {
-      raweventItr -> readEvent(run, runAux,
-                               eventNumber, status, time,
-                               ltrig, trig,
-                               lscint, scint,
-                               ltracker, tracker,
-                               lanti, anti,
-                               lctc, ctc,
-                               lslow, slow);
+      raweventItr -> readEvent(run, runAux,eventNumber, time, ldata, data);
        NN_events++;
      } 
      if (NN_events > nevents) do_commit = 1;
@@ -513,9 +483,13 @@ ooStatus LMS::ReadRawEvents(uinteger& run, uinteger & runAux,
        //do_commit = 1;
      }
     } else {
-      do_commit = 1;
-      if (NN_events == 0) 
-                     Warning("ReadRawEvents: no events match to the query ");
+     curContN++;
+     if(curContN < nTagCont) {
+      flagNextDB = 1;
+      goto newDB;
+     }
+      Message("ReadRawEvents: all done");
+      rstatus = oocError; // don't call me anymore
     }
 
 end:
@@ -548,33 +522,45 @@ ooStatus LMS::ReadEvents(uinteger& run, uinteger& eventNumber,
   {
     ooStatus rstatus = oocError;
     ooMode   mrowmode;
-    integer                do_commit = 0;
-    char                   pred[40];
+    integer                do_commit;
     ooItr(AMSeventD)       eventItr;             
+    integer                flagNextDB = 0;
 
     // Start the transaction
     if (StartCommit == 1 || StartCommit == -2) {
      mrowmode = mrowMode();
      StartRead(mrowmode);     
      NN_events = 0;
+     curContN = 0;
+     nTagCont = ntagconts();
     }
 
     ooMode mode     = Mode();
 
-    //get pointer to the database
-    ooHandle(ooContObj)  tagContH = tagCont();
-    if (tagContH == NULL) 
-                   Fatal("ReadRawEvents : pointer to tag container is NULL");
-
-    if (StartCommit == 1 || StartCommit == -2) { //init Itr if Start
-      if (run < 1) {
+    // get number of containers 
+    ooHandle(AMSEventTagList)  tagContH;
+  newDB:
+    do_commit = 0;
+    if (StartCommit == 1 || StartCommit == -2 || flagNextDB == 1) { 
+     if(flagNextDB != 1) {
+      if (run < 1) {  //init Itr if Start or new dbase
         (void) sprintf(pred,"_run>%d",run);
       } else {
        if (run > 0) (void) sprintf(pred,"_run=%d",run);
        if (eventNumber > 0) (void)
          sprintf(pred,"_run=%d && _eventNumber >=%d",run,eventNumber);
       }
-      tageventItr.scan(tagContH, mode, oocAll, pred);
+     }
+      flagNextDB = 0;
+      int rc = tagcontN(curContN, tagContH); 
+      if (rc == 0) { 
+        Message("ReadEvents : All done. ");
+        return oocError;
+      }
+      if (tagContH == NULL) 
+                       Fatal("ReadEvents : pointer to tag container is NULL");
+      rc = tageventItr.scan(tagContH, mode, oocAll, pred);
+      if (rc != oocSuccess) Fatal("ReadEvents: tageventItr scan failed");
       cout<<"ReadEvents -I- scan event of "<<pred<<endl;
     }
 
@@ -617,6 +603,9 @@ ooStatus LMS::ReadEvents(uinteger& run, uinteger& eventNumber,
        rstatus = listH -> CopyCTCCluster(eventH);
        if(rstatus != oocSuccess) Fatal("ReadEvents: cannot read CTCCluster");
 
+       rstatus = listH -> CopyAntiCluster(eventH);
+       if(rstatus != oocSuccess) Fatal("ReadEvents: cannot read AntiCluster");
+
        rstatus = listH -> CopyBeta(eventH);
        if(rstatus != oocSuccess) Fatal("ReadEvents: cannot read Beta");
 
@@ -633,8 +622,14 @@ ooStatus LMS::ReadEvents(uinteger& run, uinteger& eventNumber,
       }
      } 
    } else {
-      do_commit = 1;
-      if (NN_events == 0) Warning("ReadEvents: no events match to the query ");
+      curContN++;
+      if (curContN < nTagCont) {
+       flagNextDB = 1;
+       goto newDB;
+      } else {
+        Message("ReadEvents: All done");
+        rstatus = oocError; // don't call me anymore
+      }
     }
 
 end:
@@ -642,6 +637,7 @@ end:
      if (StartCommit == -1 || StartCommit == -2 || do_commit == 1) 
       {
        cout<<"NN_events "<<NN_events<<endl;
+       cout<<"StartCommit, do_commit "<<StartCommit<<", "<<do_commit<<endl;
        Commit();
        if(NN_events%NR_commit == 0 && StartCommit > -1) {
          mrowmode = mrowMode();
@@ -653,3 +649,101 @@ end:
     }
    return rstatus;
   }
+
+ooStatus LMS::AddRawEvent(ooHandle(ooContObj)& contH, 
+                          DAQEvent *pdaq, integer WriteStartEnd)
+//
+// contH         - pointer to the container to place event in
+// pdaq          - pointer to DAQ event (V.Shoutko version)
+// WriteStartEnd - flag;
+//                       1 - start transaction
+//                      -1 - end transaction
+//                      -2 - start&end trasaction
+//
+  {
+    ooStatus rstatus = oocError;
+    struct    tms cpt;
+
+    if (Mode() != oocUpdate) {
+     Error("AddRawEvent : Cannot add event in non-oocUpdate mode");
+     return rstatus;
+    }
+
+    if (!pdaq) Fatal("AddRawEvent : pointer to DAQ event is NULL");
+
+    if (contH == NULL) Fatal("AddRawEvent : pointer to the container is NULL");
+      
+
+    integer     eventlength = pdaq -> eventlength();
+    if (eventlength < 1) {
+      Error("AddRawEvent : invalid event length");
+      return rstatus;
+    }
+
+    integer     run = pdaq -> runno();
+    integer     eventNumber = pdaq -> eventno();
+    if(!isTagKeyValid(run,eventNumber)) return rstatus;
+    time_t      time = pdaq -> time();
+    integer     status = 0;
+    integer     runAux = 0;
+
+    ooHandle(AMSEventTagList) tagcontH = tagCont();
+    if (tagcontH == NULL) 
+                       Fatal("AddRawEvent : pointer to tag container is NULL");
+
+    // Start the transaction
+    if (WriteStartEnd == 1 || WriteStartEnd == -2) {
+      StartUpdate();     
+      checkevent = FindRun(run);
+      StartRealTime = times(&cpt);
+    }
+
+    //get pointer to the database
+    ooHandle(ooDBObj)  dbH = rawdb();
+    if (dbH == NULL) 
+                Fatal("AddRawEvent : pointer to raw event database is NULL");
+    ooHandle(AMSEventTag)  tageventH;
+    ooHandle(AMSraweventD) eventH;
+    ooItr(AMSraweventD)    raweventItr;             
+
+    if (checkevent == 1) {
+     rstatus = FindTagEvent(run, eventNumber, tageventH);
+     if (rstatus == oocSuccess) { // tag event exists
+       cout<<"AddrawEvent :: overwrite "; tageventH -> print();
+       rstatus = ooDelete(tageventH);
+       tagcontH -> decNEvents();
+     }
+    }
+
+    tageventH = new(tagcontH) AMSEventTag(run, runAux, eventNumber, time);
+    tagcontH -> incNEvents();
+
+    eventH = new(contH) AMSraweventD(run, eventNumber, time, pdaq);
+
+    rstatus = tageventH -> set_itsRawEvent(eventH);
+
+end:
+    if (rstatus == oocSuccess) {
+     NN_events++;
+     if (WriteStartEnd == -1 || WriteStartEnd == -2 || 
+     NN_events%NW_commit == 0) {
+      cout<<"events... "<<NN_events<<endl;
+      Commit();
+      if (NN_events > 0) {
+       if(NN_events%NW_commit == 0 && WriteStartEnd > -1) {
+        StartUpdate();
+        Refresh();
+        StartRealTime = times(&cpt);
+       }
+      }
+     }
+    } else {
+     checkevent = 0;
+     Error(" in AddRawEvent");
+     Error(" Transaction is aborted");
+     Abort();
+     return oocError;
+    }
+ return rstatus;
+  }
+

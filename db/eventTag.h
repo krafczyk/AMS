@@ -75,9 +75,7 @@ class AMSEventTag : public dbEvent {
 
 
 
-
 uinteger _runAux; 
-uinteger _status; 
 
 uinteger _runOff; 
 uinteger _statusR; 
@@ -85,10 +83,10 @@ uinteger _statusR;
 number _NorthPolePhi; 
 number _StationTheta; 
 number _StationPhi; 
-#line 40 "eventTag.ddl"
+#line 38 "eventTag.ddl"
 public: 
 #ifdef OO_DDL_TRANSLATION
-#line 40 "eventTag.ddl"
+#line 38 "eventTag.ddl"
     ooRef(AMSraweventD) itsRawEvent : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: itsRawEvent */
@@ -111,7 +109,7 @@ public:
     ooRef(AMSraweventD)& itsRawEvent(ooRef(AMSraweventD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 41 "eventTag.ddl"
+#line 39 "eventTag.ddl"
     ooRef(AMSeventD) itsRecEvent : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: itsRecEvent */
@@ -134,7 +132,7 @@ public:
     ooRef(AMSeventD)& itsRecEvent(ooRef(AMSeventD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 42 "eventTag.ddl"
+#line 40 "eventTag.ddl"
     ooRef(AMSmcevent) itsMCEvent : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: itsMCEvent */
@@ -156,14 +154,13 @@ public:
     static ooAssocNumber itsMCEvent_ooAssocN;
     ooRef(AMSmcevent)& itsMCEvent(ooRef(AMSmcevent)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
-#line 46 "eventTag.ddl"
+#line 44 "eventTag.ddl"
 inline AMSEventTag() { }
 AMSEventTag(uinteger, uinteger); 
-AMSEventTag(uinteger, uinteger, uinteger, time_t, uinteger); 
-#line 54
+AMSEventTag(uinteger, uinteger, uinteger, time_t); 
+#line 52
 inline uinteger runAux() const { return _runAux; }
 inline uinteger runUni() { return Run (); }
-inline uinteger status() const { return _status; }
 inline uinteger runOff() const { return _runOff; }
 inline void GetGeographicCoo(number &pole, number &theta, number &phi) {
                       pole = _NorthPolePhi; theta = _StationTheta; phi = _StationPhi; }
@@ -206,7 +203,7 @@ inline void SetGeographicCoo(number pole, number theta, number phi) {
     static void ooAssocRegister();
     ooRef(AMSEventTag)& ooThis(ooRef(AMSEventTag)& objId, ooMode aMode = oocNoOpen) const;
     AMSEventTag(ooInternalObj iobj);
-#line 66 "eventTag.ddl"
+#line 63 "eventTag.ddl"
 }; 
 
 #endif /* !defined(EVENT_TAG_H) */

@@ -9,6 +9,7 @@ typedef float float_r;
 typedef double float_d;
 typedef unsigned char uchar;
 typedef unsigned short int int16u;
+typedef unsigned short int uint16;
 typedef  short int int16;
 typedef long int_L;
 typedef unsigned int uinteger;

@@ -24,10 +24,10 @@ protected:
  number _time;     // average cluster time
  number _etime;    // error on cluster time
 
- integer _status;
  integer _ntof;
  integer _plane;     // plane number (10.5 cm width)  left
 
+ integer  _status;
  integer  _Position;
 
 public:
@@ -35,9 +35,6 @@ public:
 static const integer BAD;
 static const integer USED;
 // Get/Set Methods
- integer checkstatus(integer checker) const{return _status & checker;}
- inline void setstatus(integer status)     {_status=_status | status;}
- integer getstatus()                 const {return _status;}
  integer getntof()                   const {return _ntof;}
  integer getplane()                  const {return _plane;}
  number  gettime()                   const {return _time;}
@@ -46,9 +43,12 @@ static const integer USED;
  AMSPoint getcoo()                   const {return _Coo;}
  AMSPoint getecoo()                  const {return _ErrorCoo;}
 
+ integer  getstatus()               {return _status;}
+
  integer  getPosition()             {return _Position;}
  void     setPosition(integer pos ) {_Position = pos;}
  void     copy(AMSTOFCluster* p);
+
 // Constructor
  AMSTOFClusterD();
  AMSTOFClusterD(AMSTOFCluster* p);

@@ -31,17 +31,15 @@ number _CorrectedSignal;
 number _ErrorSignal; 
 
 
-integer _Status; 
 integer _Layer; 
 
+integer _status; 
 integer _Position; 
 
 
 
 
-public: inline integer checkstatus(integer checker) const { return _Status & checker; }
-inline void setstatus(integer status) { _Status = _Status | status; }
-inline void correct(number factor) {
+public: inline void correct(number factor) {
                _CorrectedSignal = _CorrectedSignal * factor;
                _ErrorSignal = _ErrorSignal * factor; }
 
@@ -52,8 +50,8 @@ inline AMSPoint getcoo() const { return _Coo; }
 inline AMSPoint getecoo() const { return _ErrorCoo; }
 inline integer getPosition() { return _Position; }
 inline integer getLayer() { return _Layer; }
-inline integer getstatus() { return _Status; }
 
+inline integer getstatus() { return _status; }
 inline void setPosition(integer pos) { _Position = pos; }
 void copy(class AMSCTCCluster *); 
 
@@ -94,7 +92,7 @@ AMSCTCClusterD(AMSCTCCluster *);
     static void ooAssocRegister();
     ooRef(AMSCTCClusterD)& ooThis(ooRef(AMSCTCClusterD)& objId, ooMode aMode = oocNoOpen) const;
     AMSCTCClusterD(ooInternalObj iobj);
-#line 52 "ctcrecD.ddl"
+#line 50 "ctcrecD.ddl"
 }; 
 
 #endif /* !defined(CTCREC_D_H) */

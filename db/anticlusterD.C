@@ -16,7 +16,7 @@
   _ecoo     = p -> _ecoo;
   _edep     = p -> _edep;
   _sector   = p -> _sector;
-  _status   = p -> _status;
+  _status   = p -> getstatus();
 }
  
 void AMSAntiClusterD::copy(AMSAntiCluster* p)
@@ -25,8 +25,7 @@ void AMSAntiClusterD::copy(AMSAntiCluster* p)
   p -> _ecoo   = _ecoo;     
   p -> _edep   = _edep;     
   p -> _sector = _sector;
-  p -> _status = _status;
-
+  p -> setstatus(_status);
 }
  
 void AMSAntiClusterD::add(AMSAntiCluster* p)
@@ -35,6 +34,6 @@ void AMSAntiClusterD::add(AMSAntiCluster* p)
   _ecoo     = p -> _ecoo;
   _edep     = p -> _edep;
   _sector   = p -> _sector;
-  _status   = p -> _status;
+  _status   = p -> getstatus();
 
 }

@@ -31,9 +31,11 @@ class AMSTrClusterD : public ooObj {
    number       _Rms;
    number       _ErrorMean;
 
-   integer      _Status;
    integer      _NelemL;
    integer      _NelemR;
+
+   integer      _status;
+
    integer      _Position;
 
    ooVArray(number) _pValues;
@@ -50,7 +52,6 @@ class AMSTrClusterD : public ooObj {
   AMSTrClusterD(AMSTrCluster* p);
 
 // Get Methods
-  integer  getstatus()   {return _Status;}
   integer  getnelem()    {return -_NelemL + _NelemR;}
   integer  getnelemL()   {return _NelemL;}
   integer  getnelemR()   {return _NelemR;}
@@ -61,6 +62,8 @@ class AMSTrClusterD : public ooObj {
   number   getecofg()    {return _ErrorMean;}
   integer  getPosition() {return _Position;}
   integer  getSide()     {return _Id.getside();}
+
+  integer  getstatus()   {return _status;}
 
   AMSTrIdSoft  getidsoft()   {return _Id;}
 

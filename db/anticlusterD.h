@@ -18,6 +18,7 @@ public:
 
  number    _edep;
  integer   _sector;
+
  integer   _status;
 
 // Constructor
@@ -33,6 +34,5 @@ public:
  inline number   getedep() {return _edep;}
  inline integer  getsector() {return _sector;}
  inline integer  getstatus() {return _status;}
-
 };
 #endif

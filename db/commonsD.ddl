@@ -37,9 +37,9 @@ protected :
  ooVArray(integer) trfitffkeyD;
  ooVArray(integer) trclffkeyD;
 
- ooVArray(integer) trigffkeyD;
-
- ooVArray(integer) tkfield;
+ ooVArray(integer) lvl1ffkey;
+ ooVArray(integer) lvl3simffkey;
+ ooVArray(integer) lvl3ffkey;
 
 //
 public:

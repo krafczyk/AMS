@@ -23,9 +23,7 @@ class AMSEventTag : public dbEvent {
 
 private:
 
-
 uinteger _runAux;        // auxillary run number
-uinteger _status;        // event status, tag, label, type
 
 uinteger _runOff;        // run number set by offline
 uinteger _statusR;       // reco status
@@ -46,14 +44,13 @@ ooRef(AMSmcevent)   itsMCEvent  : delete (propagate);
 AMSEventTag() {};
 AMSEventTag(uinteger run, uinteger eventNumber);
 AMSEventTag(uinteger runUni, uinteger runAux, uinteger eventNumber, 
-            time_t time, uinteger status);
+            time_t time);
 
 
 // get/set methods
 
 uinteger runAux()   const { return _runAux;}
 uinteger runUni()         {return Run();}
-uinteger status()   const { return _status;}
 uinteger runOff()   const {return  _runOff;}
 void GetGeographicCoo(number & pole, number & theta, number &phi){
                       pole=_NorthPolePhi;theta=_StationTheta;phi=_StationPhi;}

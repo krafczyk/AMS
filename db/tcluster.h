@@ -33,21 +33,22 @@ number _Mean;
 number _Rms; 
 number _ErrorMean; 
 
-integer _Status; 
 integer _NelemL; 
 integer _NelemR; 
+
+integer _status; 
+
 integer _Position; 
 
 ooVArray(number) _pValues; 
 
 
 protected: void _printEl(); 
-#line 49
+#line 51
 public: AMSTrClusterD(); 
 AMSTrClusterD(class AMSTrCluster *); 
 
 
-inline integer getstatus() { return _Status; }
 inline integer getnelem() { return - _NelemL + _NelemR; }
 inline integer getnelemL() { return _NelemL; }
 inline integer getnelemR() { return _NelemR; }
@@ -58,6 +59,8 @@ inline number getcofg() { return _Mean; }
 inline number getecofg() { return _ErrorMean; }
 inline integer getPosition() { return _Position; }
 inline integer getSide() { return _Id . getside (); }
+
+inline integer getstatus() { return _status; }
 
 inline AMSTrIdSoft getidsoft() { return _Id; }
 
@@ -100,7 +103,7 @@ void setValues(number *);
     static void ooAssocRegister();
     ooRef(AMSTrClusterD)& ooThis(ooRef(AMSTrClusterD)& objId, ooMode aMode = oocNoOpen) const;
     AMSTrClusterD(ooInternalObj iobj);
-#line 74 "tcluster.ddl"
+#line 77 "tcluster.ddl"
 }; 
 
 #endif /* !defined(TCLUSTER_H) */

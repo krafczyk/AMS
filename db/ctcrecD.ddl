@@ -19,16 +19,14 @@ protected:
  number   _ErrorSignal;     // error in corrected signal to length and charge
                             // signal
 
- integer  _Status;          // if USED bit on -- correction done
  integer  _Layer;           // layer no.
 
+ integer  _status;
  integer  _Position;        // position in the database container
 
 public:
 
 // Get/Set Methods
- integer checkstatus(integer checker) const{return _Status & checker;}
- inline void setstatus(integer status)     {_Status=_Status | status;}
  inline void correct(number factor) {
                _CorrectedSignal=_CorrectedSignal*factor;
                _ErrorSignal=_ErrorSignal*factor;}
@@ -40,8 +38,8 @@ public:
  AMSPoint getecoo()       const {return _ErrorCoo;}
  integer  getPosition()             {return _Position;}
  integer  getLayer()                {return _Layer;}
- integer  getstatus()               {return _Status;}
 
+ integer  getstatus()              {return _status;}
  void     setPosition(integer pos ) {_Position = pos;}
  void     copy(AMSCTCCluster* p);
 

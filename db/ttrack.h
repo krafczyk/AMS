@@ -68,7 +68,6 @@ number _GChi2MS;
 number _RidgidityMS; 
 number _GRidgidityMS; 
 
-integer _Status; 
 integer _Pattern; 
 integer _NHits; 
 integer _FastFitDone; 
@@ -76,10 +75,10 @@ integer _GeaneFitDone;
 integer _AdvancedFitDone; 
 
 integer _Position; 
-#line 66 "ttrack.ddl"
+#line 65 "ttrack.ddl"
 public: 
 #ifdef OO_DDL_TRANSLATION
-#line 66 "ttrack.ddl"
+#line 65 "ttrack.ddl"
     ooRef(AMSTrRecHitD) pTrRecHitT[] : copy(delete);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pTrRecHitT[] */
@@ -118,7 +117,7 @@ public:
       }
     static ooAssocNumber pTrRecHitT_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
-#line 70 "ttrack.ddl"
+#line 69 "ttrack.ddl"
 AMSTrTrackD(); 
 AMSTrTrackD(class AMSTrTrack *); 
 
@@ -164,7 +163,7 @@ inline void setPosition(integer pos) { _Position = pos; }
     static void ooAssocRegister();
     ooRef(AMSTrTrackD)& ooThis(ooRef(AMSTrTrackD)& objId, ooMode aMode = oocNoOpen) const;
     AMSTrTrackD(ooInternalObj iobj);
-#line 82 "ttrack.ddl"
+#line 81 "ttrack.ddl"
 }; 
 
 #endif /* !defined(TTRACK_H) */

@@ -2,108 +2,123 @@
 // methods for AMSraweventD class
 //
 // use event format from A.Lebedev (version Jan '97) to check overhead
-//
-// Last Edit: Apr 9, 1997 ak.
+// June 21, 1997. DAQEvent format is added.
+//                use one VArray for all data blocks
+// Last Edit: Jun 22, 1997 ak.
 //
 #include <typedefs.h>
 #include <cern.h>
 #include <raweventD.h>
 
+enum {headerid = 0, lvl1id = 1, lvl3id = 3, tofid = 10, antiid =20, 
+      trackerid = 30, ctcid = 40};
+
+
 AMSraweventD::AMSraweventD(
              uinteger runUni, uinteger runAux, uinteger eventNumber, 
-             uinteger status, time_t time, integer ltrig, integer trig[], 
-             integer ltracker, integer tracker[],
-             integer ltof, integer tof[], 
-             integer lanti, integer anti[], 
-             integer lctc, integer ctc[],
-             integer lslow, integer slow[])
+             time_t time, integer ldata, uint16 data[])
 {
  integer i;
 
  setrun(runUni);
  _runAux = runAux;
  setevent(eventNumber);
- _status = status;
  settime(time);
 
- if (ltrig > 0) {
-   Trig.resize(ltrig);
-   for (i=0; i<ltrig; i++) Trig.elem(i) = trig[i];
+ if (ldata > 0) {
+   Data.resize(ldata);
+   for (i=0; i<ldata; i++) Data.elem(i) = data[i];
  }
 
- if (ltof > 0) {
-   TOF.resize(ltof);
-   for (i=0; i<ltof; i++) TOF.elem(i) = tof[i];
- }
+}
 
- if (lanti > 0) {
-   Anti.resize(lanti);
-   for (i=0; i<lanti; i++) Anti.elem(i) = anti[i];
- }
+AMSraweventD::AMSraweventD
+        (uinteger runUni, uinteger eventNumber, time_t time, DAQEvent *pdaq)
+{
+ integer i;
 
- if (lctc > 0) {
-   CTC.resize(lctc);
-   for (i=0; i<lctc; i++) CTC.elem(i) = ctc[i];
- }
-
-
- if (lslow > 0) {
-   Slow.resize(lslow);
-   for (i=0; i<lslow; i++) Slow.elem(i) = slow[i];
- }
-
- if (ltracker > 0) {
-   Tracker.resize(ltracker);
-   for (i=0; i<ltracker; i++) Tracker.elem(i) = tracker[i];
+ setrun(runUni);
+ setevent(eventNumber);
+ settime(time);
+ 
+ int l = pdaq -> eventlength();
+ if (l > 0) {
+   Data.resize(l);
+   uint16 *buff = new uint16[l];
+   pdaq -> data(buff);
+   for (i=0; i<l; i++) Data.elem(i) = buff[i];
+   delete [] buff;
  }
 }
 
 void AMSraweventD::readEvent (uinteger& run, uinteger & runAux, 
-                              uinteger & eventNumber, uinteger & status, 
-                              time_t & time,
-                              integer & ltrig, integer* trig, 
-                              integer & ltof,  integer* tof,
-                              integer & ltracker, integer* tracker,
-                              integer & lanti,  integer* anti,
-                              integer & lctc, integer* ctc,
-                              integer& lslow, integer* slow)
+                              uinteger & eventNumber, time_t & time,
+                              integer & ldata, uint16* data)
 {
  integer i;
 
  run         = Run();
  runAux      = _runAux;
  eventNumber = Event();
- status      = _status;
  time        = Time();
 
- ltrig = Trig.size();
- if (ltrig > 0) {
-   for (i=0; i<ltrig; i++) trig[i] = Trig[i];
- }
-
- ltof = TOF.size();
- if (ltof > 0) {
-   for (i=0; i<ltof; i++) tof[i] = TOF[i];
- }
-
- lanti = Anti.size();
- if (lanti > 0) {
-   for (i=0; i<lanti; i++) anti[i] = Anti[i];
- }
-
- lctc = CTC.size();
- if (lctc > 0) {
-   for (i=0; i<lctc; i++) ctc[i] = CTC[i];
- }
-
-
- lslow = Slow.size();
- if (lslow > 0) {
-   for (i=0; i<lslow; i++) slow[i] = Slow[i];
- }
-
- ltracker = Tracker.size();
- if (ltracker > 0) {
-   for (i=0; i<ltracker; i++) tracker[i] = Tracker[i];
+ ldata = Data.size();
+ if (ldata > 0) {
+   for (i=0; i<ldata; i++) data[i] = Data[i];
  }
 }
+void AMSraweventD::dump(integer sdetid) {
+// dump event
+// if sdetid == -1 dump whole event
+//
+  cout<<"run, event, length "<<Run()<<", "<<Event()<<", "<<eventlength()
+      <<endl;
+  enum {header_offset = 1};
+  integer offset = header_offset + 1;
+  integer id;
+  integer l;
+  for (;;) {
+   id = Data[offset];
+   l  = Data[offset - 1];
+   if (id == sdetid || sdetid == -1) {
+    cout<<"sub.detector id "<<id<<", length "<<l<<endl;
+    for (int i = 1; i < l-1; i++) {
+      cout<<Data[offset + i]<<" ";
+    }
+    cout<<endl;
+   }
+   cout<<endl;
+   offset = offset  + l;
+   if (offset > eventlength()) break;
+  }
+}
+
+integer AMSraweventD::sdetlength(integer sdetid) {
+  enum {header_offset = 1};
+  integer offset = header_offset + 1;
+  integer id;
+  integer l;
+  for (;;) {
+   id = Data[offset];
+   l  = Data[offset - 1];
+   if (id == sdetid) return l;
+   offset = offset  + l;
+   if (offset > eventlength()) break;
+  }
+  return -1;
+}  
+
+integer AMSraweventD::sdet(integer sdetid) {
+  enum {header_offset = 1};
+  integer offset = header_offset + 1;
+  integer id;
+  integer l;
+  for (;;) {
+   id = Data[offset];
+   l  = Data[offset - 1];
+   if (id == sdetid) return offset;
+   offset = offset  + l;
+   if (offset > eventlength()) break;
+  }
+  return -1;
+}  

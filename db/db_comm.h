@@ -2,7 +2,7 @@
 #define __AMSDBCOMMONS__
 
 const int dbg_prtout  =        0; // debug printout flag
-const int dbread_only =        1; // 0- read database, but not fill AMS classes
+const int dbread_only =        0; // 0- read database, but not fill AMS classes
 
 const int DBWriteGeom =        1; // write geometry to dbase
 const int DBWriteMCEg =       10; // write mceventg

@@ -147,11 +147,25 @@ AMScommonsD::AMScommonsD() {
   delete [] buff;
 
 //trigffkey
-  l = sizeof(TRIGFFKEY);
-  trigffkeyD.resize(l/4);
+  l = sizeof(LVL1FFKEY);
+  lvl1ffkey.resize(l/4);
   buff = new integer[l/4];
-  memcpy(buff,&TRIGFFKEY,l);
-  for (i=0; i<l/4; i++) { trigffkeyD.set(i,buff[i]);}
+  memcpy(buff,&LVL1FFKEY,l);
+  for (i=0; i<l/4; i++) { lvl1ffkey.set(i,buff[i]);}
+  delete [] buff;
+
+  l = sizeof(LVL3FFKEY);
+  lvl3ffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&LVL3FFKEY,l);
+  for (i=0; i<l/4; i++) { lvl3ffkey.set(i,buff[i]);}
+  delete [] buff;
+
+  l = sizeof(LVL3SIMFFKEY);
+  lvl3simffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&LVL3SIMFFKEY,l);
+  for (i=0; i<l/4; i++) { lvl3simffkey.set(i,buff[i]);}
   delete [] buff;
 
 }
@@ -412,24 +426,64 @@ chargefitffkey:
   delete [] buff;
 
 trigffkey:
-  ld = trigffkeyD.size();
-  cout<<"AMScommonsD::CmpConstants -I- TRIGFFKEY, size "<<ld
+  ld = lvl1ffkey.size();
+  cout<<"AMScommonsD::CmpConstants -I- LVL1FFKEY, size "<<ld
       <<" int words"<<endl;
-  lm = sizeof(TRIGFFKEY);
+  lm = sizeof(LVL1FFKEY);
   if (lm/4 != ld) {
-   cout <<"AMScommonsD::CmpConstants -W- TRIGFFKEY and trigffkeyD "
+   cout <<"AMScommonsD::CmpConstants -W- LVL1FFKEY and lvl1ffkey "
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
+   goto lvl3;
+  }
+  buff = new integer[lm/4];
+  memcpy(buff,&LVL1FFKEY,lm);
+  for (i=0; i<ld; i++) {
+   if (buff[i] != lvl1ffkey[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- LVL1FFKEY element "<<i
+        <<" is different "<<buff[i]<<", "<<lvl1ffkey[i]<<endl;
+    }
+  }
+  delete [] buff;
+lvl3:
+  ld = lvl3ffkey.size();
+  cout<<"AMScommonsD::CmpConstants -I- LVL3FFKEY, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(LVL3FFKEY);
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- LVL3FFKEY and lvl3ffkey "
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
+   goto lvl3sim;
+  }
+  buff = new integer[lm/4];
+  memcpy(buff,&LVL3FFKEY,lm);
+  for (i=0; i<ld; i++) {
+   if (buff[i] != lvl3ffkey[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- LVL3FFKEY element "<<i
+        <<" is different "<<buff[i]<<", "<<lvl3ffkey[i]<<endl;
+    }
+  }
+  delete [] buff;
+
+lvl3sim:
+  ld = lvl3simffkey.size();
+  cout<<"AMScommonsD::CmpConstants -I- LVL3SIMFFKEY, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(LVL3SIMFFKEY);
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- LVL3SIMFFKEY and lvl3simffkey "
         <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
    goto antigeom;
   }
   buff = new integer[lm/4];
-  memcpy(buff,&TRIGFFKEY,lm);
+  memcpy(buff,&LVL3SIMFFKEY,lm);
   for (i=0; i<ld; i++) {
-   if (buff[i] != trigffkeyD[i]) {
-    cout<<"AMScommonsD::CmpConstants -W- TRIGFFKEY element "<<i
-        <<" is different "<<buff[i]<<", "<<trigffkeyD[i]<<endl;
+   if (buff[i] != lvl3simffkey[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- LVL3SIMFFKEY element "<<i
+        <<" is different "<<buff[i]<<", "<<lvl3simffkey[i]<<endl;
     }
   }
   delete [] buff;
+
 
 antigeom:
   ld = antigeomffkey.size();
@@ -655,11 +709,25 @@ void AMScommonsD::CopyConstants() {
   delete [] buff;
 
 //trigffkey
-  l = sizeof(TRIGFFKEY);
-  trigffkeyD.resize(l/4);
+  l = sizeof(LVL1FFKEY);
+  lvl1ffkey.resize(l/4);
   buff = new integer[l/4];
-  memcpy(buff,&TRIGFFKEY,l);
-  for (i=0; i<l/4; i++) { trigffkeyD.set(i,buff[i]);}
+  memcpy(buff,&LVL1FFKEY,l);
+  for (i=0; i<l/4; i++) { lvl1ffkey.set(i,buff[i]);}
+  delete [] buff;
+
+  l = sizeof(LVL3FFKEY);
+  lvl3ffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&LVL3FFKEY,l);
+  for (i=0; i<l/4; i++) { lvl3ffkey.set(i,buff[i]);}
+  delete [] buff;
+
+  l = sizeof(LVL3SIMFFKEY);
+  lvl3simffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&LVL3SIMFFKEY,l);
+  for (i=0; i<l/4; i++) { lvl3simffkey.set(i,buff[i]);}
   delete [] buff;
 
 //antigeomffkey

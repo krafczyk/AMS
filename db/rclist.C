@@ -160,21 +160,21 @@ ooItr(AMSTrTrackD)     trTrackItr;              // track iterator
 
 
 
-AMSEventList::AMSEventList(char* listname)
+AMSEventList::AMSEventList(char* listname, char* prefix)
 {
   setlistname(listname);
   resetCounters();
   resetRCCounters();
-  SetContainersNames();
+  SetContainersNames(prefix);
 }
 
-AMSEventList::AMSEventList(char* listname, char* setup)
+AMSEventList::AMSEventList(char* listname, char* setup, char* prefix)
 {
   setlistname(listname);
   setsetupname(setup);
   resetCounters();
   resetRCCounters();
-  SetContainersNames();
+  SetContainersNames(prefix);
 }
 
 void AMSEventList::resetRCCounters()
@@ -191,46 +191,45 @@ void AMSEventList::resetRCCounters()
   _nTracks   = 0;
 }
 
-void AMSEventList::SetContainersNames()
+void AMSEventList::SetContainersNames(char* prefix)
 {
   char*   name;
   integer i;
 
 //AntiClusters
-   if (!anticlusterCont)  
-                   anticlusterCont =  StrCat("AntiCluster_",ListName());
+   if (!anticlusterCont)  anticlusterCont =  StrCat("AntiCluster_",prefix);
 
 //TrLayer
    char       nameTrL[6][10] = {
      "TrLayer1_","TrLayer2_","TrLayer3_","TrLayer4_","TrLayer5_","TrLayer6_"};
    for (i=0; i<6; i++) {
-     if (!trlayerCont[i]) trlayerCont[i] = StrCat(nameTrL[i],ListName());
+     if (!trlayerCont[i]) trlayerCont[i] = StrCat(nameTrL[i],prefix);
    }
 
 //TrCluster
-   if (!trclusterCont[0]) trclusterCont[0] =  StrCat("TrClusterX_",ListName());
-   if (!trclusterCont[1]) trclusterCont[1] =  StrCat("TrClusterY_",ListName());
+   if (!trclusterCont[0]) trclusterCont[0] =  StrCat("TrClusterX_",prefix);
+   if (!trclusterCont[1]) trclusterCont[1] =  StrCat("TrClusterY_",prefix);
 
 //ScLayer
    char  nameSc[4][10] = {"ScLayer1_","ScLayer2_","ScLayer3_","ScLayer4_"};
    for (i=0; i<4; i++) {
-    if (!sclayerCont[i]) sclayerCont[i] =  StrCat(nameSc[i],ListName());
+    if (!sclayerCont[i]) sclayerCont[i] =  StrCat(nameSc[i],prefix);
    }
 
 //CTCCluster
-   if (!ctcclusterCont)  ctcclusterCont =  StrCat("CTCCluster_",ListName());
+   if (!ctcclusterCont)  ctcclusterCont =  StrCat("CTCCluster_",prefix);
 
 //TrTracks
-   if (!trtrackCont)     trtrackCont =  StrCat("TrTracks_",ListName());
+   if (!trtrackCont)     trtrackCont =  StrCat("TrTracks_",prefix);
 
 //Beta
-   if (!betaCont)        betaCont = StrCat("Beta_",ListName());
+   if (!betaCont)        betaCont = StrCat("Beta_",prefix);
 
 //Charge
-   if (!chargeCont)      chargeCont =  StrCat("Charge_",ListName());
+   if (!chargeCont)      chargeCont =  StrCat("Charge_",prefix);
 
 //Particle
-   if (!particleCont)    particleCont =  StrCat("Particle_",ListName());
+   if (!particleCont)    particleCont =  StrCat("Particle_",prefix);
 } 
 
 ooStatus      AMSEventList::AddTrCluster(
@@ -1049,6 +1048,8 @@ ooStatus   AMSEventList::CopyTrRecHit(ooHandle(AMSeventD)& eventH)
              if(j==1) clusterH = trRecHitItr -> pClusterY();
              if(clusterH != NULL) {
               integer pos = clusterH -> getPosition(); 
+              integer status = trRecHitItr -> getStatus();
+              p -> setstatus(status);
               AMSTrCluster* pU = (AMSTrCluster*)AMSEvent::gethead() -> 
                                                 getheadC("AMSTrCluster",j);
               while (pU != NULL ) {
@@ -1640,4 +1641,51 @@ ooStatus      AMSEventList::CopyCTCCluster(ooHandle(AMSeventD)& eventH)
         return rstatus;
 }
 
+ooStatus      AMSEventList::CopyAntiCluster(ooHandle(AMSeventD)& eventH)
 
+{
+	ooStatus	         rstatus = oocSuccess;	// Return status
+        ooItr(AMSAntiClusterV)   anticlusterItr;
+        integer                  ictccl = 0;
+        ooHandle(AMSEventList)  listH = ooThis();
+        ooMode                  mode = oocRead;
+
+        if (eventH == NULL) {
+         Error("CopyAntiCluster: eventH  == NULL ");
+         return oocError;
+        }
+
+         if (contAntiClusterH == NULL) {
+          rstatus = CheckContainer(anticlusterCont, mode, contAntiClusterH);
+          if (rstatus != oocSuccess) return rstatus;
+         }
+
+
+        eventH -> pAntiCluster(anticlusterItr, mode);
+        integer imcs = 0;
+        while (anticlusterItr.next()) {
+         if (dbread_only != 0) {
+          integer nelem = anticlusterItr -> getnelem();
+          if (nelem > 0) {
+            AMSAntiClusterD anticlusterD = anticlusterItr -> get(imcs);
+            AMSAntiClusterD* pD = & anticlusterD;
+            AMSAntiCluster* p = new AMSAntiCluster(
+                                                   pD -> getstatus(),
+                                                   pD -> getsector(),
+                                                   pD -> getedep(),
+                                                   pD -> getcoo(),
+                                                   pD -> getecoo()
+                                                  );
+            AMSEvent::gethead() -> addnext(AMSID("AMSAntiCluster",0),p);
+
+          }
+         }
+         imcs++;
+        }
+       if (dbg_prtout==1) cout<<"ReadAntiCluster:  clusters "
+                                <<imcs<<" total size "
+                                << sizeof(AMSAntiClusterD)*imcs<<endl;
+         recevent_size = recevent_size + sizeof(AMSAntiClusterD)*imcs;
+
+        return rstatus;
+}

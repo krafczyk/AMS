@@ -31,10 +31,10 @@ number _edep;
 number _time; 
 number _etime; 
 
-integer _status; 
 integer _ntof; 
 integer _plane; 
 
+integer _status; 
 integer _Position; 
 
 
@@ -42,9 +42,6 @@ integer _Position;
 public: static const integer BAD; 
 static const integer USED; 
 
-inline integer checkstatus(integer checker) const { return _status & checker; }
-inline void setstatus(integer status) { _status = _status | status; }
-inline integer getstatus() const { return _status; }
 inline integer getntof() const { return _ntof; }
 inline integer getplane() const { return _plane; }
 inline number gettime() const { return _time; }
@@ -53,9 +50,12 @@ inline number getedep() const { return _edep; }
 inline AMSPoint getcoo() const { return _Coo; }
 inline AMSPoint getecoo() const { return _ErrorCoo; }
 
+inline integer getstatus() { return _status; }
+
 inline integer getPosition() { return _Position; }
 inline void setPosition(integer pos) { _Position = pos; }
 void copy(class AMSTOFCluster *); 
+
 
 AMSTOFClusterD(); 
 AMSTOFClusterD(AMSTOFCluster *); 

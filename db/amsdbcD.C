@@ -1,7 +1,7 @@
 // Oct 07, 1996. ak. first try with Objectivity
 //                   method source file of object AMSDBcD
 //
-// Last Edit : Oct 14, 1996. ak.
+// Last Edit : Jun 19, 1996. ak.
 //
 
 #include <iostream.h>
@@ -34,7 +34,8 @@ AMSDBcD:: AMSDBcD()
    _c2cD[i]   = AMSDBc::_c2c[i];
     _silicon_zD[i]  = AMSDBc::_silicon_z[i];
    _support_wD[i]  = AMSDBc::_support_w[i];
-
+   _nladshuttle[i] = AMSDBc::_nladshuttle[i];
+   _boundladshuttle[i] = AMSDBc::_boundladshuttle[i];
   }
 
   for (i = 0; i<nl; i++) {
@@ -56,6 +57,7 @@ AMSDBcD:: AMSDBcD()
 
   raddegD = AMSDBc::raddeg;
   piD     = AMSDBc::pi;
+  twopi   = AMSDBc::twopi;
 
   for (i=0; i<3; i++) {
    ams_sizeD[i] = AMSDBc::ams_size[i];
@@ -100,7 +102,9 @@ ooStatus AMSDBcD::CmpConstants()
        (_zposD[i]  != AMSDBc::_zpos[i])  ||
        (_c2cD[i]   != AMSDBc::_c2c[i])   ||
        (_silicon_zD[i]  != AMSDBc::_silicon_z[i]) ||
-       (_support_wD[i] != AMSDBc::_support_w[i]) )
+       (_support_wD[i] != AMSDBc::_support_w[i])  ||
+       (_nladshuttle[i] != AMSDBc::_nladshuttle[i]) ||
+       (_boundladshuttle[i] != AMSDBc::_boundladshuttle[i]))
       {
         rstatus = oocError;
         cout<<"zposl "<<_zposlD[i]<<" "<<AMSDBc::_zposl[i]<<endl;
@@ -109,6 +113,10 @@ ooStatus AMSDBcD::CmpConstants()
         cout<<"c2c "<<_c2cD[i]<<" "<<AMSDBc::_c2c[i]<<endl;
         cout<<"silicon z"<<_silicon_zD[i]<<" "<<AMSDBc::_silicon_z[i]<<endl;
         cout<<"support_w"<<_support_wD[i]<<" "<<AMSDBc::_support_w[i]<<endl;
+        cout<<"n_ladshuttle "<<_nladshuttle[i]<<" "
+             <<AMSDBc::_nladshuttle[i]<<endl;
+        cout<<"boundladshuttle "<<_boundladshuttle[i]<<" "
+            <<AMSDBc::_boundladshuttle[i]<<endl;
         break;
       }
   }
@@ -150,11 +158,13 @@ ooStatus AMSDBcD::CmpConstants()
   }
 
   if ( (raddegD != AMSDBc::raddeg) ||
-        (piD != AMSDBc::pi) )
+        (piD != AMSDBc::pi)        ||
+        (twopi != AMSDBc::twopi))
     {
       rstatus = oocError;
       cout<<"raddeg "<<raddegD<<" "<<AMSDBc::raddeg<<endl;
       cout<<"pi "<<piD<<" "<<AMSDBc::pi<<endl;
+      cout<<"twopi "<<twopi<<" "<<AMSDBc::twopi<<endl;
     }
 
   for (i=0; i<3; i++) {

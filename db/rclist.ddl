@@ -46,8 +46,8 @@ class AMSEventList : public EventList {
 
 // Constructor
   AMSEventList();
-  AMSEventList(char* listName);
-  AMSEventList(char* listName, char* setup);
+  AMSEventList(char* listName, char* prefix);
+  AMSEventList(char* listName, char* setup, char* prefix);
  ~AMSEventList() {};
 
 // Set/Get Methods
@@ -95,7 +95,7 @@ class AMSEventList : public EventList {
  
 //
 void     resetRCCounters();
-void     SetContainersNames();
+void     SetContainersNames(char* prefix);
 
 // Add Objects
 ooStatus  AddAntiCluster(ooHandle(AMSeventD)& eventH);
@@ -113,6 +113,7 @@ ooStatus  LinkHitClusterD(const integer N, ooHandle(AMSeventD)& eventH);
 ooStatus  LinkTrackHitD(ooHandle(AMSeventD)& eventH);
 
 // Copy Objects
+ooStatus CopyAntiCluster(ooHandle(AMSeventD)& eventH);
 ooStatus CopyBeta(ooHandle(AMSeventD)& eventH);
 ooStatus CopyCharge(ooHandle(AMSeventD)& eventH);
 ooStatus CopyCTCCluster(ooHandle(AMSeventD)& eventH);

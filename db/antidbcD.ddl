@@ -13,7 +13,6 @@ class AntiDBcD : public ooObj{
 //
 private:
 // geom. constants:
-  integer _nscpad;  // number of sc. paddles
   geant   _scradi;   // internal radious of ANTI sc. cylinder
   geant   _scinth;   // thickness of scintillator
   geant   _scleng;   // scintillator paddle length (glob. Z-dim)

@@ -16,7 +16,6 @@
 AMSTOFClusterD::AMSTOFClusterD() {}
 AMSTOFClusterD::AMSTOFClusterD(AMSTOFCluster* p)
 {
-  _status = p -> _status;
   _ntof   = p -> _ntof;
   _plane  = p -> _plane;
   _edep   = p -> _edep;
@@ -24,11 +23,11 @@ AMSTOFClusterD::AMSTOFClusterD(AMSTOFCluster* p)
   _ErrorCoo = p -> _ErrorCoo;
   _time     =  p -> _time;
   _etime    =  p -> _etime;
+  _status   =  p -> getstatus();
 }
 
 void AMSTOFClusterD::copy(AMSTOFCluster* p)
 {
-   p -> _status = _status; 
    p -> _ntof   = _ntof;   
    p -> _plane =  _plane;  
    p -> _edep  =  _edep;   
@@ -36,5 +35,6 @@ void AMSTOFClusterD::copy(AMSTOFCluster* p)
    p -> _ErrorCoo = _ErrorCoo; 
    p -> _time     = _time;     
    p -> _etime    = _etime;    
+   p -> setstatus(_status);
 }
 

@@ -14,7 +14,6 @@ class EventList : public ooContObj {
  private:
 
   integer   _nEvents;           // number of events
-  integer   _nEventsP;          // number of events
 
   ooVString _listName;          // name of list
   ooVString _setupName;         // setup assoc. with list
@@ -34,11 +33,8 @@ class EventList : public ooContObj {
    integer getNEvents()                  {return _nEvents;}
    void    incNEvents()                  {_nEvents++;}
    void    decNEvents()                  {if (_nEvents > 0) _nEvents--;}
-   integer getNEventsP()                 {return _nEventsP;}
-   void    incNEventsP()                 {_nEventsP++;}
 
-
-   void    resetCounters()               {_nEvents = 0; _nEventsP = 0;}
+   void    resetCounters()               {_nEvents = 0;}
    void    setlistname(char* name);
    void    setsetupname(char* name);
  

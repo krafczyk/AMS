@@ -22,8 +22,8 @@ class AMSMCEventList : public EventList {
 
 // Constructor
   AMSMCEventList();
-  AMSMCEventList(char* listName);
-  AMSMCEventList(char* listName, char* setup);
+  AMSMCEventList(char* listName, char* prefix);
+  AMSMCEventList(char* listName, char* setup, char* prefix);
  ~AMSMCEventList() {};
 
 // Set/Get Methods

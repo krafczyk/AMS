@@ -12,8 +12,10 @@
 // Mar  5, 1997 ak.  non-hashed containers.
 //                   new function dbend
 //                   use contH instead of trclusterH, etc
+// May   , 1997 ak.  tag, mc, raw databases, dbA instead of LMS
+// June  , 1997 ak.  dbase size limitation, dbcatalog, db paths
 //
-// last edit Jun 01, 1997, ak.
+// last edit Jun 17, 1997, ak.
 //
 
 #include <stdio.h>
@@ -30,6 +32,7 @@
 #include <db_comm.h>
 
 #include <dbA.h>
+
 
 void LMS::resetTransCount()
 {
@@ -54,114 +57,6 @@ LMS::~LMS() {
                      if (_setup)  delete [] _setup;
 }
 
-
-ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
-  {
-    ooStatus rstatus = oocSuccess;
-    integer  status  = 0;
-    ooHandle(ooDBObj)           dbH;
-    ooHandle(ooContObj)       contH;
-    char                      *contName;
-    char                      *message;
-
-    // if oosession has not been initialised do it now
-    if (!ooSession::initialized()) ooSession::Init();
-
-    if (mode == oocUpdate) StartUpdate();
-    if (mode != oocUpdate) {
-      setmrowMode(mrowmode);
-      StartRead(mrowmode);
-    }
-
-// Tag DB
-    ooHandle(AMSEventTagList) taglistH;
-    ooHandle(ooKeyField)      keyFieldH;
-    ooHandle(ooKeyDesc)       keyDescH;
-
-     _tagdbH = db("EventTag");
-     if (_tagdbH == NULL) Fatal("ClusteringInit : tagdbH is NULL");
-
-    contName  = StrCat("Events_",_prefix); 
-    status = TagList(contName, _setup, taglistH);
-    if (status == -1) {
-     message =StrCat("ClusteringInit: Cannot open/create container ",contName);
-     Fatal(message);
-    } else {
-      if (status == 1 ) {
-        keyDescH  = new(taglistH) ooKeyDesc(ooTypeN(AMSEventTag),oocTrue);
-        keyFieldH = new(keyDescH) ooKeyField(ooTypeN(AMSEventTag),"_run");
-        keyDescH  -> addField(keyFieldH);
-        keyFieldH = 
-                 new(keyDescH) ooKeyField(ooTypeN(AMSEventTag),"_eventNumber");
-        keyDescH  -> addField(keyFieldH);
-        if (keyDescH -> createIndex(taglistH) != oocSuccess) 
-                                Fatal("ClusteringInit: error creating index");
-      }
-    }
-    _tagcontH = taglistH;
-     if(contName) delete [] contName;
-
-//MC DB
-    ooHandle(AMSMCEventList)  mclistH;
-    if (mcevents() || mceventg()) {
-     _mcdbH   = db("MCEvents");   // Raw Events containers
-     if (_mcdbH == NULL) Fatal ("_mcdbH is NULL");
-     contName = StrCat("Events_",_prefix);
-     status = mcList(contName, mclistH);
-     if (status == -1) {
-      message = StrCat("Cannot open/create container ",contName);
-      Fatal(message);
-     }
-     _mccontH = mclistH;
-     ContainersM(_mcdbH, contName);
-     mclistH -> SetContainersNames(contName);
-     if(contName) delete [] contName;
-    }
-
-//Raw DB
-    if (rawevents()) {
-     _rawdbH   = db("RawEvents");   // Raw Events containers
-     contName = StrCat("Events_",_prefix);
-     status = Container(_rawdbH, contName, contH);
-     if (status == -1) {
-      message = StrCat("Cannot open/create container ",contName);
-      Fatal(message);
-     }
-     _rawcontH = contH;
-     if (contName) delete [] contName;
-    }
-
-//Reco DB
-    ooHandle(AMSEventList)    listH;
-    if (recoevents()) {
-     _recodbH  = db("RecoEvents"); // Reconstructed Events containers
-     if (_recodbH == NULL) Fatal ("_recodbH is NULL");
-     contName = StrCat("Events_",_prefix);
-     status = List(contName, listH);
-     if (status == -1) {
-      message = StrCat("Cannot open/create container ",contName);
-      Fatal(message);
-     }
-     _recocontH = listH;
-     if(contName) delete [] contName;
-     char* listname = StrDup(listH ->ListName());
-     ContainersR(_recodbH, listname);
-     listH -> SetContainersNames();
-     if (listname) delete [] listname;
-    } 
-    
-    if (setup()) {
-     _setupdbH = db("Setup");      // setup (geometry, constants, materials...)
-    }
-
-    if (slow()) {
-     _slowdbH  = db("Slow");        // house keeping and slow control
-    }
-
-    Commit();
-
-    return rstatus;
-  }    
 
 void LMS::dbend()
 {
@@ -207,193 +102,6 @@ void LMS::Abort()
       Fatal("could not abort transaction");
     _transAbort++;
 }
-
-integer  LMS::TagList(char* listName, char* setup,
-                                ooHandle(AMSEventTagList)& taglistH)
-
-  // listName  - name of container to store events
-  // setup     - name of setup
-  // listH     - pointer to the created container
-  // return    -1  - error
-  //            0  - container exists
-  //            1  - container is created
-{
-  integer         rstatus = -1;
-
-  if (!listName) Fatal ("AddTagList: listName is NULL");
-
-  ooHandle(ooDBObj) tagdbH = tagdb();
-  if(!tagdbH) Fatal("AddTagList: _tagdbH is NULL");
-
-  ooMode mode = Mode();
-  if (taglistH.exist(tagdbH, listName, mode)) {
-   rstatus = 0;
-  } else {
-    if (mode == oocUpdate) {
-     taglistH = new(listName,1,0,0,tagdbH) AMSEventTagList(listName, setup);
-     rstatus = 1;
-    } else {
-      cerr<<"TagList: "<<listName<<endl;
-      Warning("Container does not exist. Cannot be created in read mode");
-      rstatus = -1;
-    }
-  }
-  return rstatus;
-}
-
-void LMS::ContainersR(ooHandle(ooDBObj) & dbH, char* listname)
-//
-// create all containers for Reconstructed database
-//
-{	
-  ooHandle(ooContObj)  contH;
-  char*                contName;
-  int                  i;
-
-  ooMode openMode = Mode();
-
-   // create the "TrLayersN" containers, if it does not exist
-    char       nameL[6][10] = {
-     "TrLayer1_","TrLayer2_","TrLayer3_","TrLayer4_","TrLayer5_","TrLayer6_"};
-     for (i = 0; i<6; i++) {
-      contName = StrCat(nameL[i],listname);
-      if (!contH.exist(dbH, contName, openMode) && openMode == oocUpdate) {
-       contH    = new(contName,0,0,0,dbH) ooContObj;
-      }
-      delete [] contName;
-     }
-      Message(" TrLayers are created");
-
-   // create the "TrClusterN" container, if it does not exist
-    char       nameC[2][12] = {"TrClusterX_","TrClusterY_"};
-
-    for (i=0; i<2; i++) {
-     contName = StrCat(nameC[i],listname);
-     if (!contH.exist(dbH, contName, openMode) && openMode == oocUpdate) 
-      contH    = new(contName,0,0,0,dbH) ooContObj;
-      delete [] contName;
-    }
-    Message("TrClusters are opened/created");
-
-   // create the "ScLayersN" containers, if the do not exist
-    char  nameSc[4][10] = {"ScLayer1_","ScLayer2_","ScLayer3_","ScLayer4_"};
-    for (i = 0; i<4; i++) {
-     contName = StrCat(nameSc[i],listname);
-     if (!contH.exist(dbH, contName, openMode) && openMode == oocUpdate) 
-       contH    =  new(contName,0,0,0,dbH) ooContObj; 
-      delete [] contName;
-    }
-    Message("ScLayers are opened/created");
-
-
-    // create the "AntiCluster" container, if it does not exist
-    contName = StrCat("AntiCluster_",listname);
-    if (!contH.exist(dbH, contName, openMode)&& openMode == oocUpdate)
-      contH    = new(contName,0,0,0,dbH) ooContObj;
-      delete [] contName;
-      Message("AntiCluster is opened/created");
-
-   // create the "CTCCluster" container, if it does not exist
-    contName = StrCat("CTCCluster_",listname);
-    if (!contH.exist(dbH,contName, openMode) && openMode == oocUpdate)
-     contH    = new(contName,0,0,0,dbH) ooContObj;
-     delete [] contName;
-    Message("CTCClusters are opened/created");
-
-    // create the "TrTracks" container, if it does not exist
-    contName = StrCat("TrTracks_",listname);
-    if (!contH.exist(dbH, contName, openMode) && openMode == oocUpdate)
-     contH    = new(contName,0,0,0,dbH) ooContObj; 
-     delete [] contName;
-    Message("TrTracks is opened/created");
-
-    // create the "Beta" container, if it does not exist
-    contName = StrCat("Beta_",listname);
-    if (!contH.exist(dbH, contName, openMode) && openMode == oocUpdate)
-     contH    = new(contName,0,0,0,dbH) ooContObj;
-     delete [] contName;
-     Message("Beta is opened/created");
-
-    // create the "Charge" container, if it does not exist
-    contName = StrCat("Charge_",listname);
-    if (!contH.exist(dbH, contName, openMode)&& openMode == oocUpdate)
-      contH    = new(contName,0,0,0,dbH) ooContObj;
-      delete [] contName;
-      Message("Charge is opened/created");
-
-    // create the "Particle" container, if it does not exist
-    contName = StrCat("Particle_",listname);
-    if (!contH.exist(dbH, contName, openMode) && openMode == oocUpdate)
-     contH    = new(contName,0,0,0,dbH) ooContObj;
-     delete [] contName;
-     Message("Particle is opened/created");
-
-}
-
-integer LMS::List(char* listName, ooHandle(AMSEventList)& listH)
-
-  // listName  - name of container to store events
-  // listH     - pointer to the created container
-  // return    -1  - error
-  //            0  - container exists
-  //            1  - container is created
-{
-  integer rstatus = -1;
-  if (!listName) Fatal ("List: listName is NULL");
-
-  ooHandle(ooDBObj) dbH = recodb();
-  if(!dbH) Fatal("List: recodbH is NULL");
-
-  ooMode mode = Mode();
-  if (listH.exist(dbH, listName, mode)) {
-   rstatus = 0;
-  } else {
-    if (mode == oocUpdate) {
-     listH = new(listName,1,0,0,dbH) AMSEventList(listName);
-     if (getsetup()) listH -> setsetupname(getsetup());
-     rstatus = 1;
-    } else {
-      cerr<<"List: "<<listName<<endl;
-      Warning("Container does not exist. Cannot be created in read mode");
-      rstatus = -1;
-    }
-  }
-  return rstatus;
-}
-
-integer LMS::Container(ooHandle(ooDBObj) & dbH, const char* name, 
-                                 ooHandle(ooContObj) & contH)
-// Open/Create container 
-//
-// dbH    - pointer to dbase
-// name   - container name
-// contH  - pointer to container
-//
-// return 
-//      -1 - cannot open or create container
-//       0 - container exists
-//       1 - container is created
-//
-  {
-    integer rstatus = -1;
-    ooMode mode = Mode();
-
-    if (!name) Fatal("Container name is NULL. Exit");
-    if (!dbH)  Fatal("dbH is NULL. Exit");
-    if (contH.exist(dbH, name, mode)) {
-     rstatus = 0;
-    } else {
-     if( mode == oocUpdate) {
-      contH    = new(name,0,0,0,dbH) ooContObj;
-      rstatus = 1; // created
-     } else {
-      cerr<<"Container: "<<name<<endl;
-      Warning("Container does not exist. Cannot be created in read mode");
-      rstatus = -1;
-     }
-    }
-  return rstatus;
-  }
 
   integer LMS::recoevents() 
 {
@@ -441,79 +149,43 @@ integer LMS::Container(ooHandle(ooDBObj) & dbH, const char* name,
    return (_applicationTypeR/DBWriteSlow)%2;
 }
 
-integer  LMS::mcList(char* listName, ooHandle(AMSMCEventList)& listH)
-
-  // listName  - name of container to store events
-  // listH     - pointer to the created container
-  // return    -1  - error
-  //            0  - container exists
-  //            1  - container is created
-{
-  integer         rstatus = -1;
-
-  if (!listName) Fatal ("mcList: listName is NULL");
-
-  ooHandle(ooDBObj) dbH = mcdb();
-  if(!dbH) Fatal("List: mcdbH is NULL");
-
-  ooMode mode = Mode();
-  if (listH.exist(dbH, listName, mode)) {
-   rstatus = 0;
-  } else {
-    if (mode == oocUpdate) {
-     listH = new(listName,1,0,0,dbH) AMSMCEventList(listName,getsetup());
-     rstatus = 1;
-    } else {
-      cerr<<"List: "<<listName<<endl;
-      Warning("Container does not exist. Cannot be created in read mode");
-      rstatus = -1;
-    }
+ integer  LMS::tagcontN(integer n, ooHandle(AMSEventTagList)& listH)
+  {
+     int rc = 0;
+     if (ntagconts() >= n) {
+       listH = tagcontCat[n];
+       rc = 1;
+     }
+     return rc;
   }
-  return rstatus;
-}
 
-void LMS::ContainersM(ooHandle(ooDBObj) & dbH, char* listname)
-//
-// create all containers for MC database
-//
-{	
-  integer              rstatus = 1;
-  ooHandle(ooContObj)  contH;
-  char*                contName;
+ integer  LMS::rawcontN(integer n, ooHandle(ooContObj)& contH)
+  {
+     int rc = 0;
+     if (nrawconts() >= n) {
+       contH = rawcontCat[n];
+       rc = 1;
+     }
+     return rc;
+  }
 
-  ooMode openMode = Mode();
+ integer   LMS::mccontN(integer n, ooHandle(AMSMCEventList) & contH)
+  {
+     int rc = 0;
+     if (nmcconts() >= n) {
+       contH = mccontCat[n];
+       rc = 1;
+     }
+     return rc;
+  }
 
+ integer   LMS::recocontN(integer n, ooHandle(AMSEventList) & contH)
+  {
+     int rc = 0;
+     if (nrecoconts() >= n) {
+       contH = recocontCat[n];
+       rc = 1;
+     }
+     return rc;
+  }
 
-  contName = StrCat("TrMCCluster_",listname);
-  
-  if (!contH.exist(dbH, contName, openMode) && openMode == oocUpdate)
-   contH    = new(contName,0,0,0,dbH) ooContObj;
-   
-  if (contName) delete [] contName;
-  Message("TrMCClusters are opened/created");
-
-  contName = StrCat("TOFMCCluster_",listname);
-  if (!contH.exist(dbH, contName, openMode) && openMode == oocUpdate)
-   contH    = new(contName,0,0,0,dbH) ooContObj;
-   if (contName) delete [] contName;
-   Message("TOFMCClusters are opened/created");
-
-  contName = StrCat("CTCMCCluster_",listname);
-  if (!contH.exist(dbH,contName, openMode)&& openMode == oocUpdate)
-    contH    = new(contName,0,0,0,dbH) ooContObj;
-  if (contName) delete [] contName;
-  Message("CTCMCClusters are opened/created");
-
-    contName = StrCat("AntiMCCluster_",listname);
-    if (!contH.exist(dbH,contName, openMode) && openMode == oocUpdate)
-     contH    = new(contName,0,0,0,dbH) ooContObj;
-    if (contName) delete [] contName;
-    Message("AntiMCClusters are opened/created");
-
-   // create the "mcEventg" container, if it does not exist
-    contName = StrCat("mceventg_",listname);
-    if (!contH.exist(dbH, contName, openMode) && openMode == oocUpdate)
-     contH   = new(contName,0,0,0,dbH) ooContObj;
-     if (contName) delete [] contName;
-     Message("mcEventg is opened/created");
-}

@@ -25,6 +25,7 @@ protected:
   virtual void _writeEl()=0;
 public:
  integer checkstatus(integer checker) const{return _status & checker;}
+ integer getstatus() const{return _status;}
  void setstatus(integer status){_status=_status | status;}
  void clearstatus(integer status){_status=_status & ~status;}    
  

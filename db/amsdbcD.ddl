@@ -35,9 +35,14 @@ protected:
    number  _zelecD[nl][2];
    number  _c2cD[nl];
    number  _support_wD[nl];
+   integer _nladshuttle[nl];
+   integer _boundladshuttle[nl];
+    
 
    number raddegD;
    number piD;
+   number twopi;
+
 // AMS parameters
    geant ams_sizeD[3];
    char ams_nameD[129];

@@ -22,7 +22,6 @@ AMSTrClusterD::AMSTrClusterD(){}
 AMSTrClusterD::AMSTrClusterD ( AMSTrCluster* p)
 {
   _Id     = p -> _Id;
-  _Status = p -> _Status;
   _NelemL = p -> _NelemL;
   _NelemR = p -> _NelemR;
   _Sum    = p -> _Sum;
@@ -30,6 +29,7 @@ AMSTrClusterD::AMSTrClusterD ( AMSTrCluster* p)
   _Mean   = p -> _Mean;
   _Rms    = p -> _Rms;
   _ErrorMean = p -> _ErrorMean;
+  _status = p -> getstatus();
 }
 
 void AMSTrClusterD::setValues(number* values)
@@ -50,7 +50,6 @@ void AMSTrClusterD::getValues(number* values)
  void AMSTrClusterD::copy(AMSTrCluster* p)
 {
    p -> _Id      = _Id;
-   p -> _Status  = _Status; 
    p -> _NelemL  = _NelemL;  
    p -> _NelemR  = _NelemR;  
    p -> _Sum     = _Sum;    
@@ -58,6 +57,7 @@ void AMSTrClusterD::getValues(number* values)
    p -> _Mean    = _Mean;   
    p -> _Rms     = _Rms;    
    p -> _ErrorMean = _ErrorMean; 
+   p -> setstatus(_status);
 }
 
   

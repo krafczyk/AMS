@@ -17,7 +17,6 @@
 AMSTrTrackD::AMSTrTrackD() {}
 AMSTrTrackD::AMSTrTrackD(AMSTrTrack* p)
 {
- _Status          = p -> _Status;
  _Pattern         = p -> _Pattern;
  _NHits           = p -> _NHits;
  _FastFitDone     = p -> _FastFitDone;
@@ -54,7 +53,6 @@ AMSTrTrackD::AMSTrTrackD(AMSTrTrack* p)
 
 void AMSTrTrackD::copy(AMSTrTrack* p)
 {
-  p -> _Status          = _Status;          
   p -> _Pattern         = _Pattern;         
   p -> _NHits           = _NHits;           
   p -> _FastFitDone     = _FastFitDone;    

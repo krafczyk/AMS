@@ -17,7 +17,7 @@
 AMSTrRecHitD::AMSTrRecHitD() {}
 AMSTrRecHitD::AMSTrRecHitD(AMSTrRecHit* p)
 {
-  _Status = p -> _Status;
+  _Status = p -> getstatus();
   _Layer  = p -> _Layer;
   _Hit    = p -> _Hit;
   _EHit   = p -> _EHit;
@@ -26,7 +26,7 @@ AMSTrRecHitD::AMSTrRecHitD(AMSTrRecHit* p)
 }
 void AMSTrRecHitD::copy(AMSTrRecHit* p)
 {
-  p -> _Status = _Status; 
+  p -> setstatus(_Status); 
   p -> _Layer  = _Layer;  
   p -> _Hit    = _Hit;    
   p -> _EHit   = _EHit;   

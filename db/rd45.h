@@ -5,9 +5,10 @@
 // some basic types used in rd45 programms
 // D.Duellmann
 //
-// $Id: rd45.h,v 1.1 1997/05/21 17:33:54 alexei Exp $
+// $Id: rd45.h,v 1.2 1997/06/27 08:13:35 alexei Exp $
 //
-
+// add AMS related functions .  A.Klimentov May, 1997.
+//
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +17,10 @@
 
 #include <sys/times.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <sys/file.h>
+
+
 
 inline char *StrDup(const char *str)
 {
@@ -75,6 +80,42 @@ inline char   *PromptForValue(char* promptString)
 	returnString = new char[strlen(buffer) + 1];
 	if (returnString) strcpy(returnString, buffer);
 	return returnString;
+}
+
+inline int UnixFilestat(const char *path, long *id, long *size,
+                              long *flags, time_t *modtime)
+{
+   // Get info about a file: id, size, flags, modification time.
+   // Id      is (statbuf.st_dev << 24) + statbuf.st_ino
+   // Size    is the file size
+   // Flags   is file type: bit 0 set executable, bit 1 set directory,
+   //                       bit 2 set regular file
+   // Modtime is modification time
+   // The function returns 0 in case of success and 1 if the file could
+   // not be stat'ed.
+   //
+   struct stat statbuf;
+
+   if (path != 0 && stat(path, &statbuf) >= 0) {
+      if (id)
+         *id = (statbuf.st_dev << 24) + statbuf.st_ino;
+      if (size)
+         *size = statbuf.st_size;
+      if (modtime)
+         *modtime = statbuf.st_mtime;
+      if (flags) {
+         *flags = 0;
+         if (statbuf.st_mode & ((S_IEXEC)|(S_IEXEC>>3)|(S_IEXEC>>6)))
+            *flags |= 1;
+         if ((statbuf.st_mode & S_IFMT) == S_IFDIR)
+            *flags |= 2;
+         if ((statbuf.st_mode & S_IFMT) != S_IFREG &&
+             (statbuf.st_mode & S_IFMT) != S_IFDIR)
+            *flags |= 4;
+      }
+      return 0;
+   }
+   return 1;
 }
 
 

@@ -15,7 +15,7 @@
 //                    setup moved to AMSsetupDB
 // June   , 1997. ak. Geographic coordinates are moved to tag event
 //
-// last edit June 4, 1997, ak.
+// last edit June 17, 1997, ak.
 //
 
 #include <stdio.h>
@@ -61,6 +61,10 @@ static  integer NR_commit = 100;  // commit after each NR_commit events
 static  integer NN_events;        // number of events written to the database
 static  integer checkevent;
 static  integer mcevent_size;
+
+static  char                   pred[40];
+static  integer curContN;
+static  integer nTagCont;
 
 static  ooItr(AMSEventTag)     tageventItr;             
 
@@ -114,39 +118,48 @@ ooStatus LMS::ReadMCEvents(uinteger& run, uinteger& eventn,
 // StartCommit   - start/commit transaction flag
 //
   {
-    ooStatus rstatus = oocError;
-    ooMode   mrowmode;
+    ooStatus               rstatus = oocError;
+    ooMode                 mode     = oocRead;
+    ooMode                 mrowmode = mrowMode();;
     integer                do_commit = 0;
-    char                   pred[40];
-    ooMode mode     = oocRead;
-
+    integer                flagNextDB = 0;
 
     // Start the transaction
     if (StartCommit == 1 || StartCommit == -2) {
-     mrowmode = mrowMode();
      StartRead(mrowmode);     
      NN_events = 0;
+     curContN  = 0;
+     nTagCont  = ntagconts();
     }
 
-    //get pointer to the database
-    ooHandle(ooContObj)  tagContH = tagCont();
-    if (tagContH == NULL) 
-                   Fatal("ReadMCEvents : pointer to tag container is NULL");
+    ooHandle(AMSEventTagList) tagContH;
 
-    if (StartCommit == 1 || StartCommit == -2) { //init Itr if Start
+  newDB:
+    do_commit = 0;
+    if (StartCommit == 1 || StartCommit == -2 || flagNextDB == 1) { 
+     if(flagNextDB != 1) {
       if (run < 1 ) {
-        //(void) sprintf(pred,"_runUni>%d",run);
         (void) sprintf(pred,"_run>%d",run);
       } else {
-        //if (run > 0) (void) sprintf(pred,"_runUni=%d",run,eventn);
        if (run > 0) (void) sprintf(pred,"_run=%d",run,eventn);
        if (eventn > 0) (void)
-        // sprintf(pred,"_runUni=%d && _eventNumber >=%d",run,eventn);
          sprintf(pred,"_run=%d && _eventNumber >=%d",run,eventn);
       }
-      tageventItr.scan(tagContH, mode, oocAll, pred);
-      cout<<"ReadMCEvents -I- scan event of "<<pred<<endl;
+     }
+     flagNextDB = 0;
+     int rc = tagcontN(curContN, tagContH);
+     if (rc == 0) {
+      Message("ReadMCEvents : All done");
+      return oocError;
+     }
+     if (tagContH == NULL) 
+                    Fatal("ReadMCEvents : pointer to tag container is NULL");
+     rc = tageventItr.scan(tagContH, mode, oocAll, pred);
+     if (rc != oocSuccess) Fatal("ReadMCEvents : tageventItr scan failed");
+     cout<<"ReadMCEvents -I- scan event of "<<pred<<endl;
     }
+
+    rstatus = oocSuccess;
 
     integer               runtype;
     number                pole, stationtheta, stationphi;
@@ -279,25 +292,22 @@ ooStatus LMS::ReadMCEvents(uinteger& run, uinteger& eventn,
        if (imcs == 0) 
             Message("ReadMCEvents : no CTC MC clusters for this event");
        }
-      if (dbg_prtout == 1)cout<<"Readmcevent:  MC event(s) size "
+       if (dbg_prtout == 1)cout<<"Readmcevent:  MC event(s) size "
                                << mcevent_size<<endl;
       NN_events++;
-     } else {
-      Warning("ReadMCEvents : ptr to mcevent is NULL");
-      rstatus = oocError;
-      goto end;
+      if (NN_events > nevents) do_commit = 1;
+      if (NN_events%NR_commit == 0) do_commit = 1;
      } 
-     if (NN_events > nevents) do_commit = 1;
-     if (NN_events%NR_commit == 0) {
-       //do_commit = 1;
-     }
     } else {
-      do_commit = 1;
-      if (NN_events == 0) 
-                     Warning("ReadMCEvents: no events match to the query ");
+     curContN++;
+     if (curContN < nTagCont) {
+      flagNextDB = 1;
+      goto newDB;
+     } else {
+      Message("ReadMCEvents : All done");
+      rstatus = oocError;
+      }
     }
-
-    rstatus = oocSuccess;
 
 end:
     if (NN_events == 0) rstatus = oocError;

@@ -70,42 +70,39 @@ ooItr(AMSTrMCClusterV)    trmcclusterItr;          // MC cluster
 
 static integer mcevent_size;
 
-AMSMCEventList::AMSMCEventList(char* listname)
+AMSMCEventList::AMSMCEventList(char* listname, char* prefix)
 {
   setlistname(listname);
   resetCounters();
   resetMCCounters();
-  SetContainersNames(listname);
+  SetContainersNames(prefix);
 }
 
-AMSMCEventList::AMSMCEventList(char* listname, char* setup)
+AMSMCEventList::AMSMCEventList(char* listname, char* setup, char* prefix)
 {
   setlistname(listname);
   setsetupname(setup);
   resetCounters();
   resetMCCounters();
-  SetContainersNames(listname);
+  SetContainersNames(prefix);
 }
 
 void AMSMCEventList::resetMCCounters()
 {
 }
 
-void AMSMCEventList::SetContainersNames(char* listname)
+void AMSMCEventList::SetContainersNames(char* prefix)
 {
 //mceventg
-  if (!mceventgCont) mceventgCont =  StrCat("mceventg_",listname);
+  if (!mceventgCont) mceventgCont =  StrCat("mceventg_",prefix);
 //AntiMCCluster
-   if (!antimcclusterCont) 
-                    antimcclusterCont =  StrCat("AntiMCCluster_",listname);
+   if (!antimcclusterCont) antimcclusterCont = StrCat("AntiMCCluster_",prefix);
 //CTCMCCluster
-   if (!ctcmcclusterCont) 
-                    ctcmcclusterCont =  StrCat("CTCMCCluster_",listname);
+   if (!ctcmcclusterCont) ctcmcclusterCont =  StrCat("CTCMCCluster_",prefix);
 //TOFMCCluster
-   if (!tofmcclusterCont) 
-                    tofmcclusterCont =  StrCat("TOFMCCluster_",listname);
+   if (!tofmcclusterCont) tofmcclusterCont =  StrCat("TOFMCCluster_",prefix);
 //trMCCluster
-   if (!trmcclusterCont) trmcclusterCont =  StrCat("TrMCCluster_",listname);
+   if (!trmcclusterCont) trmcclusterCont =  StrCat("TrMCCluster_",prefix);
 } 
 
 ooStatus      AMSMCEventList::Addmceventg(ooHandle(AMSmcevent)& eventH)

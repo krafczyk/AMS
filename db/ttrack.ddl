@@ -51,7 +51,6 @@ number _GChi2MS;
 number _RidgidityMS;
 number _GRidgidityMS;
 
-integer _Status;
 integer _Pattern;
 integer _NHits;
 integer _FastFitDone;

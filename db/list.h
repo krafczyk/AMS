@@ -25,7 +25,6 @@ class EventList : public ooContObj {
 
 
 integer _nEvents; 
-integer _nEventsP; 
 
 class ooVString _listName; 
 ooVString _setupName; 
@@ -45,11 +44,8 @@ inline integer Events() { return _nEvents; }
 inline integer getNEvents() { return _nEvents; }
 inline void incNEvents() { _nEvents ++; }
 inline void decNEvents() { if (_nEvents> 0) _nEvents --; }
-inline integer getNEventsP() { return _nEventsP; }
-inline void incNEventsP() { _nEventsP ++; }
 
-
-inline void resetCounters() { _nEvents = 0; _nEventsP = 0; }
+inline void resetCounters() { _nEvents = 0; }
 void setlistname(char *); 
 void setsetupname(char *); 
 
@@ -98,7 +94,7 @@ ooStatus PrintListStatistics(char *);
 		       uint32, ooConstCPtr(ooObj) nearObj);
     ooRef(EventList)& ooThis(ooRef(EventList)& objId, ooMode aMode = oocNoOpen) const;
     EventList(ooInternalObj iobj);
-#line 51 "list.ddl"
+#line 47 "list.ddl"
 }; 
 
 #endif /* !defined(LIST_H) */

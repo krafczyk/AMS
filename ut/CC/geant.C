@@ -91,20 +91,23 @@ class AMSEventList;
 #include <anticlusterV_ref.h>
 #include <anticlusterV.h>
 
+#include <dbcatalog_ref.h>
+#include <dbcatalog.h>
 
-//#include <timeidD_ref.h>
-//#include <timeidD.h>
-
+#include <ooVArray_uint16.h>
 // -
-
+implement (ooVArray, uint16)
 implement (ooVArray, geant)   
 implement (ooVArray, number)  
 implement (ooVArray, integer) 
-  //implement (ooVArray, uinteger) 
 implement (ooVArray, AMSAntiClusterD) 
 implement (ooVArray, AMSTOFMCClusterD) 
 implement (ooVArray, AMSTrMCClusterD) 
 implement (ooVArray, ParticleS) 
+implement (ooVArray, ooRef(ooDBObj)) 
+implement (ooVArray, ooRef(AMSEventList))
+implement (ooVArray, ooRef(AMSEventTagList))
+implement (ooVArray, ooRef(AMSMCEventList))
 
 LMS	               dbout;
 
@@ -519,8 +522,15 @@ ooStatus               rstatus;
     integer rtype;
     if (readEvents == 0) AMSJob::gethead() -> seteventRtype(eventR);
     if ((readEvents == 0) || (nST == (nCT + nAT))) ReadStartEnd = 1;
+    if (dbout.recoevents()) {
+     for (;;) {
+      rstatus = dbout.ReadEvents(run, eventn, nevents, time, ReadStartEnd);
+      if (rstatus != oocSuccess) break;
+      ReadStartEnd = 0;
+     }
+    }
     if (dbout.mcevents() || dbout.mceventg())
-    rstatus =dbout.ReadMCEvents(run, eventn, nevents, time, ReadStartEnd);
+      rstatus =dbout.ReadMCEvents(run, eventn, nevents, time, ReadStartEnd);
    if (rstatus == oocSuccess) {
     readEvents++;
     if ((eventR < DBWriteMC) || dbout.mceventg()) {

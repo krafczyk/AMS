@@ -16,7 +16,6 @@
 
 AntiDBcD::AntiDBcD() 
 {
-  _nscpad  =  ANTIDBc::_nscpad;
   _scradi  =  ANTIDBc::_scradi;
   _scinth  =  ANTIDBc::_scinth;
   _scleng  =  ANTIDBc::_scleng;
@@ -33,12 +32,6 @@ ooStatus AntiDBcD::CmpConstants()
   ooStatus rstatus = oocSuccess;  
   
   Message("AntiDBcD::CmpConstants : start comparison ");
-
-   if( _nscpad  !=  ANTIDBc::_nscpad){
-    cout<<"AntiDBcD::CmpConstants : _nscpad "<<_nscpad<<", "
-        <<ANTIDBc::_nscpad<<". Set to "<<_nscpad<<endl;
-    ANTIDBc::_nscpad = _nscpad;
-   }
 
    if( _scradi  !=  ANTIDBc::_scradi){
     cout<<"AntiDBcD::CmpConstants : _scradi "<<_scradi<<", "
