@@ -110,7 +110,7 @@ if(AMSFFKEY.Update){
    }
    else{
      // ItSelf
-
+{
     AMSTrAligPar::AMSTrAligDBEntry e(address,1,o,fcni,fcn,pav,pav2);
     int out=AMSbins(getdbtopp(),e, getdbentries());
     int lexplicit=0;
@@ -129,29 +129,29 @@ if(AMSFFKEY.Update){
      *(getdbtopp()+out-1)=e;
      cout<<"AMSTrAligPar::UpdateDB-I-EntryReplaced"<<address<<" "<<getdbentries()<<endl;
     }
-
+}
     // childs
 
     uinteger nchild;
     uinteger * pimplicit=AMSTrTrack::getchild(address,nchild);
     for(int i=0;i<nchild;i++){
      uinteger addr=pimplicit[i];
-     AMSTrAligPar::AMSTrAligDBEntry e(addr,0,o,fcni,fcn,pav,pav2);
-    int out=AMSbins(getdbtopp(),e, getdbentries());
+     AMSTrAligPar::AMSTrAligDBEntry ec(addr,0,o,fcni,fcn,pav,pav2);
+    int out=AMSbins(getdbtopp(),ec, getdbentries());
     int lexplicit=0;
     if(out>0)lexplicit=(getdbtopp()+out-1)->status;
     if(out>0 && (TRALIG.ReWriteDB==0 || lexplicit==1)){
      cerr<<"AMSTrAligPar::UpdateDB-E-ImpObjectAlreadyExists "<<pimplicit[i]<<" "<<getdbentries()<<endl;
     }
     else if(out<=0){
-     *(getdbtopp()+getdbentries())=e;
+     *(getdbtopp()+getdbentries())=ec;
      incdbentries();
      AMSsortNAGa(getdbtopp(),getdbentries());
      cout<<"AMSTrAligPar::UpdateDB-I-NewImpEntryAdded "<<pimplicit[i]<<" "<<getdbentries()<<endl;
      
     }
     else{
-     *(getdbtopp()+out-1)=e;
+     *(getdbtopp()+out-1)=ec;
      cout<<"AMSTrAligPar::UpdateDB-I-EntryReplaced"<<pimplicit[i]<<" "<<getdbentries()<<endl;
     }
 
