@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.15 2003/06/18 08:25:54 choutko Exp $
+//  $Id: main.cxx,v 1.16 2003/06/18 15:36:58 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -172,11 +172,11 @@ void OpenChain(TChain & chain, char * filenam){
               TString ts(filename,k+1);
               for(int l=i+1;l<strlen(filename);l++){
                if(filename[l]=='/'){
-                if(l-i-1>0)Selector= new TString(filename+i+1,l-i-1);
+                
+                if(l-k-1>0)Selector= new TString(filename+k+1,l-k-1);
                 else Selector=0;
-               }
                 dirent ** namelistsubdir;
-                cout <<"  scanning "<<ts<<endl;
+                cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
                 if(Selector)cout <<" sela "<<*Selector<<endl;
                 int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,NULL);
                 for( int nsd=0;nsd<nptrdir;nsd++){
@@ -188,6 +188,7 @@ void OpenChain(TChain & chain, char * filenam){
                   OpenChain(chain,fsdir);
                 } 
                 return;               
+               }
                }
               }
              }                  
@@ -204,7 +205,7 @@ int Selectsdir(const dirent *entry){
 if(Selector){
  TString a(entry->d_name);
  TRegexp b(Selector->Data(),true);
- return a.Contains(b);
+ return a.Contains(b) && entry->d_name[0]!='.';
 }
 else return entry->d_name[0]!='.';
 }

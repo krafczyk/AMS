@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.1 2003/06/17 08:13:22 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.2 2003/06/18 15:36:58 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSTOFHist.h"
@@ -12,12 +12,26 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
   TGHotString *ptg1=0;
   TGHotString *ptg2=0;
   // Process messages sent to this dialog.
-
+  
   switch (GET_MSG(msg)) {
+  case kC_HSLIDER:
+  case kC_VSLIDER:
+       if(parm1==601){
+    switch (GET_SUBMSG(msg)) {
+      case kSL_POS:
+         //Zoom
+          gAMSDisplay->ReSizeCanvas(parm2,false);
+        break;
+      case kSL_RELEASE:
+          gAMSDisplay->ReSizeCanvas(parm2,true);
+       break;
+    }
+   }   
+  return true;
   case kC_COMMAND:
     
     switch (GET_SUBMSG(msg)) {
-      
+          
     case kCM_CHECKBUTTON:
     case kCM_RADIOBUTTON:
     case kCM_BUTTON:
@@ -251,11 +265,11 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     
     fL1 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 0, 0, 2, 2);
     fL2 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 1, 1, 1, 1);
-    fL3 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 1, 1, 1, 1);
+    fL3 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 0,0,0,0);
     fL4 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 1, 1, 1, 1);
-    fL5 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX , 1, 1, 1, 1);
+    fL5 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX , 0,0,0,0);
     
-
+   
     for(i=0;i<fSubDetMenu.size();i++){
        _pbutton.push_back(new TGTextButton(_pbutfr, gAMSDisplay->getSubDet(i)->GetName(), 20000+i));
       wattr.fMask = kWABackPixel | kWAEventMask;
@@ -298,6 +312,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     _pcontrol.push_back(new TGTextButton(_pcontrolfr,"Fill",402));
     _pcontrol.push_back(new TGTextButton(_pcontrolfr,"Reset",403));
     _pcontrol.push_back(new TGTextButton(_pcontrolfr,"Load UF",404));
+
     
     for(i=0;i<_pcontrol.size();i++){
       wattr.fMask = kWABackPixel | kWAEventMask;
@@ -308,6 +323,18 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     for(i=0;i<_pcontrol.size();i++)_pcontrol[i]->Associate(this);
     for(i=0;i<_pcontrol.size();i++)_pcontrolfr->AddFrame(_pcontrol[i],fL1);
     for(i=0;i<_pbutton.size();i++)_pbutfr->AddFrame(_pbutton[i],fL1);
+// slider
+//   TGLabel *flabel=new TGLabel(_pcontrolfr,"Zoom");
+   fslider=new TGHSlider(_pcontrolfr,150,kSlider1 | kScaleDownRight,601);
+//   fslider=new TGHSlider(_pcontrolfr,150,kSlider2 | kScaleDownRight,601);
+   fslider->SetRange(10,40);
+   fslider->SetPosition(1);
+   fslider->ChangeBackground(tggcolor);
+   fslider->Associate(this);
+  //   _pcontrolfr->AddFrame(flabel,fL1);
+   _pcontrolfr->AddFrame(fslider,fL1);
+
+
     for(i=0;i<_pcycle.size();i++)_pcyclefr->AddFrame(_pcycle[i],fL1);
     for(i=0;i<2;i++)_plogfr->AddFrame(_plogx[i],fL1);
     for(i=0;i<2;i++)_plogfr->AddFrame(_plogy[i],fL1);
@@ -319,8 +346,14 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     
     AddFrame(_pcontrolfr,fL5);
     AddFrame(_plogfr,fL5);
-    AddFrame(_pbutfr,fL3);
-    AddFrame(_pcyclefr,fL4);
+    AddFrame(_pbutfr,fL4);
+    AddFrame(_pcyclefr,fL3);
+   
+//  Progress bar
+    fbar=new TGHProgressBar(this,TGProgressBar::kStandard,300);
+    fbar->SetFillType(TGProgressBar::kBlockFill);
+    fbar->SetBarColor("yellow");
+    AddFrame(fbar,fL5);
     MapSubwindows();
     Resize(110,768);
    //    _pcontrolfr->Resize(_pcontrolfr->GetWidth(),_pcontrolfr->GetHeight()/2);

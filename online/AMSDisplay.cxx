@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.13 2003/06/18 08:25:54 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.14 2003/06/18 15:36:58 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -51,12 +51,15 @@ AMSOnDisplay::AMSOnDisplay() : TObject(){
    _grset[0]='\0';
    _Begin=0;
    _Sample=10000;
+   m_scale=10;
    gAMSDisplay=this;
 }
 
 
 //_____________________________________________________________________________
 AMSOnDisplay::AMSOnDisplay(const char *title, AMSNtupleR *file):TObject(){
+   m_scale=10;
+   m_ControlFrame=0;
    m_ntuple=file;
    m_theapp=0;
    m_logx=kFALSE;
@@ -117,7 +120,7 @@ AMSOnDisplay::AMSOnDisplay(const char *title, AMSNtupleR *file):TObject(){
 
 }
  void AMSOnDisplay::Init(){  // Create user interface control pad
-
+   m_ControlFrame=0;
    m_Canvas->cd();
    Draw();
    m_Canvas->cd();
@@ -195,7 +198,7 @@ void AMSOnDisplay::DrawRunInfo(Option_t *option)
    m_ObjInfoPad->cd();
    m_ObjInfoPad->Clear();
    atext[0]=0;
-   sprintf(atext,"Run %d   EventsProcessed %d OutOf %d",m_ntuple->GetRun(),_Begin,m_ntuple->Entries(),m_ntuple->GetTime());
+   sprintf(atext,"Run %d   EventsProcessed %d OutOf %d %s",m_ntuple->GetRun(),_Begin,m_ntuple->Entries(),m_ntuple->GetTime());
 
    if (! text) {
 	text = new TText(0.5, 0.38, atext);
@@ -209,6 +212,10 @@ void AMSOnDisplay::DrawRunInfo(Option_t *option)
    text->Draw();
 
    gPadSave->cd();
+          if(m_ControlFrame){
+            m_ControlFrame->SetPosition(_Begin/(m_ntuple->Entries()+1.e-20)*100);
+            m_ControlFrame->ShowPosition();
+          }
 }
 
 
@@ -370,10 +377,17 @@ bool AMSOnDisplay::Fill(bool checkonly){
    }
      _Begin++;
      time(&timett2);
-     if(timett2-timett1>1 && (i-cur)>(_End-_Begin)/100){
+     if(timett2-timett1>0 && (i-cur)>(_End-_Begin)/100){
          timett1=timett2;
-         DrawRunInfo();
-         m_Canvas->Update();
+         if(!(_Begin%GetScale())){
+           DrawRunInfo();
+           m_Canvas->Update();
+          }
+          else if(m_ControlFrame){
+            m_ControlFrame->SetPosition(_Begin/(m_ntuple->Entries()+1.e-20)*100);
+            m_ControlFrame->ShowPosition();
+          }
+
          cur=i;
      }
 //     if(_Begin>=_End){
@@ -461,3 +475,17 @@ void AMSOnDisplay::PrintCB()
 }
 
 
+void AMSOnDisplay::ReSizeCanvas(Long_t zoom, bool draw){
+   static Long_t scaleprev=m_scale;
+   if(!draw){
+    m_scale=zoom;
+   }
+   else if(m_scale){
+    UInt_t w=((TRootCanvas*)m_Canvas->GetCanvasImp())->GetCwidth();
+    UInt_t h=((TRootCanvas*)m_Canvas->GetCanvasImp())->GetCheight();
+    UInt_t wz=w*m_scale/scaleprev;
+    UInt_t hz=h*m_scale/scaleprev;
+    m_Canvas->SetCanvasSize(wz,hz);
+    scaleprev=m_scale;      
+}
+}

@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.h,v 1.1 2003/06/17 08:13:22 choutko Exp $
+//  $Id: ControlFrame.h,v 1.2 2003/06/18 15:36:58 choutko Exp $
 #ifndef __CONTROLFRAME__
 #define __CONTROLFRAME__
 #include <stdlib.h>
@@ -19,6 +19,8 @@
 #include <TGSlider.h>
 #include <TGFileDialog.h>
 #include <vector>
+#include <TGProgressBar.h>
+#include <TGSlider.h>
 using namespace std;
 
 class AMSControlFrame : public TGTransientFrame {
@@ -35,7 +37,7 @@ protected:
   vector<TGPopupMenu*>         fSubDetMenu;      //sub det
   vector<TGPopupMenu*>   fSubDetCascadeMenu;
   TGPopupMenu         *fSaveAsMenu;        //  saveas
-  
+    
   
   TGLayoutHints       *fMenuBarLayout;      // menubar layout hints
   TGLayoutHints       *fMenuBarItemLayout;  // layout hints for menu in menubar
@@ -45,11 +47,14 @@ protected:
   TGLayoutHints       *fL3;
   TGLayoutHints       *fL4;
   TGLayoutHints       *fL5;
+  TGHProgressBar *fbar;
+  TGHSlider *fslider;
 public:
   AMSControlFrame(const TGWindow *p, const TGWindow *main, UInt_t w, UInt_t h,
 		  UInt_t options = kMainFrame | kVerticalFrame);
   virtual ~AMSControlFrame();
-  
+  void ShowPosition(){if(fbar)fbar->ShowPosition();}
+  void SetPosition(float t){if(fbar)fbar->SetPosition(t);}
   virtual void CloseWindow();
   virtual Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
 ClassDef(AMSControlFrame,0)

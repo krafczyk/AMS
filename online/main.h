@@ -1,4 +1,4 @@
-//  $Id: main.h,v 1.3 2003/06/17 07:39:55 choutko Exp $
+//  $Id: main.h,v 1.4 2003/06/18 15:36:58 choutko Exp $
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TEnv.h>
@@ -22,14 +22,14 @@ public:
 }
  void SetStatic(){
        const char *ttpath = gEnv->GetValue("Root.TTFontPath","$(HOME)/ttf/fonts");
-   if(ttpath ){
+   if(ttpath && !getenv("OffmonNoTTF")){
     if(gSystem->Which(ttpath, "arialbd.ttf", kReadPermission)){
      cout << "Using TTF Fonts  from "<<ttpath<<endl;
      gVirtualX=new TGX11TTF(*(TGX11*)gVirtualX);
     }
    }
    else{
-     cerr<<"Myapp-ctor-W-TrueTypeFontsWillNotBeUsedBecauseRootInstallationWasNotFound"<<endl;
+     cerr<<"Myapp-ctor-W-TrueTypeFontsWillNotBeUsed"<<endl;
    }
 
     TVirtualFitter::SetFitter(&b);

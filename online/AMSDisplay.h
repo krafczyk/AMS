@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.10 2003/06/17 08:11:18 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.11 2003/06/18 15:36:58 choutko Exp $
 #ifndef AMSOnDisplay_H
 #define AMSOnDisplay_H
 
@@ -30,8 +30,8 @@ protected:
   Bool_t           m_logx;
   Bool_t           m_logy;
   Bool_t           m_logz;
+  UInt_t           m_scale;
   AMSControlFrame        *m_ControlFrame;               //Pointer to the display canvas
-//  AMSCanvas        *m_Canvas;               //Pointer to the display canvas
   TCanvas        *m_Canvas;               //Pointer to the display canvas
   TPad             *m_TrigPad;              //Pointer to the trigger pad 
   TPad             *m_ButtonPad;            //Pointer to the buttons pad
@@ -49,7 +49,7 @@ protected:
   Int_t            _Begin;
   Int_t            _Sample;
 public:
-   
+      
                     AMSOnDisplay();
                     AMSOnDisplay(const char *title,AMSNtupleR *file);
   virtual void              SetApplication(TApplication* papp){m_theapp=papp;}
@@ -59,6 +59,7 @@ public:
           int      ReLoad();
           void      DrawTitle(Option_t *option="");
           void      DrawRunInfo(Option_t *option="");
+  int   GetScale(){return (m_scale+5)/10;}
   AMSNtupleR *       GetNtuple()const{return m_ntuple;}
   AMSHist *         getCurSubDet(){return _subdet[_cursubdetb];}
   Int_t             getCurSubDetNo(){return _cursubdet;}
@@ -88,6 +89,7 @@ public:
   void SaveParticleCB();
   void SaveParticleGIF();  
   void PrintCB();
+  void ReSizeCanvas(Long_t zoom, bool draw);
   ClassDef(AMSOnDisplay, 0)   //Utility class to display AMS Hist Online
 
 };
