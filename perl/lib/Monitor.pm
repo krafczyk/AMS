@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.57 2003/05/06 16:02:56 choutko Exp $
+# $Id: Monitor.pm,v 1.58 2003/05/08 11:23:20 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -880,6 +880,8 @@ sub getruns{
 }
 
 sub getntuples{
+     sub prio{ $a->{Run} <=> $b->{Run};}
+     my @sorteddst=sort prio @{$Monitor::Singleton->{dsts}};
     my @output=();
     my @text=();
     my @final_text=();
@@ -887,9 +889,9 @@ sub getntuples{
      my $total_ev=0;
     my @sort=("Failure","InProgress","Success","Validated");
     for my $j (0 ... $#sort){
-    for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
+    for my $i (0 ... $#sorteddst){
      $#text=-1;
-     my $hash=$Monitor::Singleton->{dsts}[$i];
+     my $hash=$sorteddst[$i];
      if($hash->{Type} eq "Ntuple"){
          if($hash->{Status} eq $sort[$j]){
      my $ctime=localtime($hash->{Insert});

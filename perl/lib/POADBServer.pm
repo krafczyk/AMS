@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.11 2002/06/12 15:20:37 choutko Exp $
+#  $Id: POADBServer.pm,v 1.12 2003/05/08 11:23:20 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -241,6 +241,7 @@ OUT:
                          return;
                      } 
                  }
+                 
       
              }
              elsif($rc eq "Delete"){
@@ -275,9 +276,9 @@ OUT:
                          untie %hash;
                          return;
       
-             }
+                }
                          untie %hash;
-              throw DPS::DBProblem message=>"Unable to $rc the rtb $ri->{uid}";
+              throw DPS::DBProblem message=>"Unable to $rc the rtb $ri->{uid} $ri->{Run}";
           }
           else{
              throw DPS::DBProblem message=>"Unable to Open DB File";
