@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.412 2002/09/04 09:11:11 choumilo Exp $
+// $Id: job.C,v 1.413 2002/09/17 12:12:05 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2428,9 +2428,9 @@ end.tm_year=TRDMCFFKEY.year[1];
      begin,end,sizeof(ECALVarp::ecalvpar),
                                       (void*)&ECALVarp::ecalvpar,server));
    
-//  TID.add (new AMSTimeID(AMSID("Ecalpeds",isRealData()),
-//    begin,end,ecalconst::ECPMSL*sizeof(ECPMPeds::pmpeds[0][0]),
-//    (void*)&ECPMPeds::pmpeds[0][0],server));
+  TID.add (new AMSTimeID(AMSID("Ecalpeds",isRealData()),
+    begin,end,ecalconst::ECPMSL*sizeof(ECPMPeds::pmpeds[0][0]),
+    (void*)&ECPMPeds::pmpeds[0][0],server));
 }
 //
 //---------------------------------------

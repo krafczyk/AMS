@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.115 2002/07/16 05:43:05 kscholbe Exp $
+//  $Id: particle.C,v 1.116 2002/09/17 12:12:06 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -432,7 +432,7 @@ void AMSParticle::richfit(){
   AMSRichRing* ptr=(AMSRichRing*)AMSEvent::gethead()->getheadC("AMSRichRing",0);
   while(ptr){
    if(ptr->gettrack()==_ptrack){
-    if(ptr->getused()>1)_prich=ptr;
+    if(ptr->getused()>2 & ptr->IsGood())_prich=ptr;
     break;
    }
    ptr=ptr->next();
