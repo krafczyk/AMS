@@ -431,7 +431,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
   for(iw=0;iw<RICHDB::entries;iw++)
     abs_l[iw]=1.-0.9; // Reflectivity=90%
   index[0]=0;         // The mirror is a metal
-  GSCKOV(GetLastMedNo(),RICHDB::entries,p,RICHDB::abs_length,dummy,index);
+  GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index);
   
   tmed.add (new AMSgtmed("RICH PMTS","PMT_WINDOW",1));   //35
   for(iw=0;iw<RICHDB::entries;iw++)
