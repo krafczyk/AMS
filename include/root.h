@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.109 2003/09/22 08:44:50 choutko Exp $
+//  $Id: root.h,v 1.110 2003/09/26 11:07:01 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -203,7 +203,7 @@ public:
                          double sr=sin(Roll);
                          double cams=-sr*sy*sp+cr*cp;
                          cams=acos(cams)*180/3.1415926; 
-    sprintf(_Info,"Header: Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o}",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams);
+    sprintf(_Info,"Header: Status %s, Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o} ",(Status[0] & (1<<30))?"Error ":"OK ",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams);
   return _Info;
   }
 
