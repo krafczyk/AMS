@@ -3,7 +3,9 @@
 # Update Castor time according to path
 # A.Klimentov, O.Kounina
 # 
-# Last Edit : Mar 29, 2005.
+# Apr 4, 2005 : minor bug in cmpFiles
+#
+# Last Edit : Apr 4, 2005.
 #
 
 my $helpCastor_update = "
@@ -152,7 +154,7 @@ my $castorquery = " ";
 if ($force == 0){
     $castorquery = " AND castortime = 0";
 }
-$query = $query.$castorquery;
+$query = $query.$castorquery." ORDER BY run";
 my $ret = Query($db,$query);
 
 if (defined $ret->[0][0]) {
@@ -182,15 +184,15 @@ foreach my $line (@lines) {
          my ($prot,$unk,$owner,$grp,$size,$mon,$day,$time,$file) =  split " ",$line;
          if (defined $size && defined $file) {
           $file = trimblanks($file);
-          $file = $subdir."/".$file;
-          push (@castorfiles,$file);
-          push (@castorsizes, $size);
+          if ($file =~ m/./) {
+           push (@castorfiles,$file);
+           push (@castorsizes, $size);
+          }
         }
      }
    }
 }
 cmpFiles();
-
 $query = "UPDATE amsdes.ntuples SET castortime = $utime WHERE path LIKE '%";
 foreach my $q (@alldirs) {
    my $upd = $query.$q."%'".$castorquery;
@@ -224,39 +226,44 @@ sub Query {
 
 sub cmpFiles {
          my $i        = 0;
+         if ($verbose == 1) {print "cmpFiles -I- files in DB matched query : $#dbfiles \n";}
          foreach my $dbf (@dbfiles) {
            my $notfound = 1;
            my $j = 0;
            my @junk = split '/',$dbf;
-           my $filename = trimblanks($junk[$#junk]);
-
-           foreach my $casf (@castorfiles) {
-             @junk = split '/',$casf;
-             my $cf = trimblanks($junk[$#junk]);
-#            print "$filename...$cf \n";
-             if ($filename =~ $cf) {
-               my $csize = $castorsizes[$j];
-               my $sizemb = sprintf("%.1f",$csize/1000000.);
-               if ($dbsizes[$i] - $sizemb > 0.8 || $sizemb - $dbsizes[$i] > 0.8) {
+           if ($#junk > 1) {
+            my $filename = trimblanks($junk[$#junk]);
+            foreach my $casf (@castorfiles) {
+               if ($filename =~ $casf) {
+                if ($j <= $#castorsizes) { 
+                 my $csize = $castorsizes[$j];
+                 my $sizemb = sprintf("%.1f",$csize/1000000.);
+                 if ($dbsizes[$i] - $sizemb > 0.8 || $sizemb - $dbsizes[$i] > 0.8) {
                   if ($verbose) {
                       print "Size mismatch : file $dbf $sizemb, $dbsizes[$i] \n";
                   }
                   $filesizemismatch++;
-              }
-              $notfound = 0;
-              last;
+                 }
+                 $notfound = 0;
+                 last;
+                } else {
+                 print "Error in program j=$j, array size = $#castorsizes \n";
+                }
+             }
+             $j++;
            }
-          $j++;
-         }
-         if ($notfound == 1) {
+          if ($notfound == 1) {
              $filenotfound++;
              if ($verbose) {
               print "File $dbf not copied to CASTOR, yet \n";
              }
          }
-           $i++;
+       } else {
+           print "Error - invalid DB file $dbf \n";
        }
-        if ($filenotfound == 0 && $filesizemismatch == 0) {
+        $i++;
+      }
+      if ($filenotfound == 0 && $filesizemismatch == 0) {
              if ($nfiles > 0) { 
               my @junk = split '/castor/cern.ch/ams/',$subdir;
               if (defined $junk[1]) {
