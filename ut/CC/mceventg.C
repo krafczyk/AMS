@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.104 2001/01/22 17:32:21 choutko Exp $
+//  $Id: mceventg.C,v 1.105 2001/03/05 10:25:16 ren Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -356,7 +356,12 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
         number beta=sqrt(1.-mass*mass/xt/xt);
         number xrig=beta*xt/z;
         geant y;
-        if(ipart ==2){
+        if(ipart ==1){
+          // EGDB gamma-ray photon energy spec.(EGRET) per (m^2-sr-s-GeV)
+          y= 0.0137/pow(xt,2.10);
+	            
+        }
+        else if(ipart ==2){
           // positron          
           y=700./1.5/pow(xt,3.3)*(0.02+0.1/sqrt(xt));
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
@@ -369,7 +374,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
         }
         else if (ipart ==14 ){
-          // a-la proton
+          // a-la proton energy spec. (EGRET) per (m^2-sr-s-GeV) 
           y=1.5e4/beta/pow(xrig,2.74);
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
         }    
