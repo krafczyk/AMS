@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.6 2001/02/09 13:08:32 choutko Exp $
+//  $Id: dbserver.C,v 1.7 2001/02/19 11:21:39 choutko Exp $
 #include <dbserver.h>
 
 
@@ -39,14 +39,7 @@ for(MOI i=mo.begin();i!=mo.end();++i){
 }
 //Now Read ActiveClient
 
-DPS::Client::ACS * pacs;
-int length=_cvar->getACS(cid,pacs,_Submit);
-ACS_var acs=pacs;
-for(int i=0;i<length;i++){
- DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(acs[i]);
- _acl.push_back(vac);
-}
-
+ReReadTables(_cvar);
 
 
 }

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.44 2001/02/18 15:06:43 choutko Exp $
+//  $Id: server.C,v 1.45 2001/02/19 11:21:39 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -596,57 +596,8 @@ for(MOI i=mo.begin();i!=mo.end();++i){
     _defaultorb=(i->second)._orb;
    }
 }
-//Get NominalServer
-{
-DPS::Client::NCS * pncs;
-int length=_pvar->getNC(cid,pncs);
-NCS_var ncs=pncs;
-for(int i=0;i<length;i++){
- DPS::Client::NominalClient_var vnh= new DPS::Client::NominalClient(ncs[i]);
- _ncl.push_back(vnh);
-}
-}
-//Get NominalKiller
 
-DPS::Client::NCS * pncs;
-int length=_pvar->getNK(cid,pncs);
-NCS_var ncs=pncs;
-for(int i=0;i<length;i++){
- DPS::Client::NominalClient_var vnh= new DPS::Client::NominalClient(ncs[i]);
- _nki.push_back(vnh);
-}
-
-//Now Read NominalHost
-
-DPS::Client::NHS * pnhs;
-length=_pvar->getNHS(cid,pnhs);
-NHS_var nhs=pnhs;
-for(int i=0;i<length;i++){
- DPS::Client::NominalHost_var vnh= new DPS::Client::NominalHost(nhs[i]);
- _nhl.push_back(vnh);
-}
-
-//Now Read ActiveHost
-
-DPS::Client::AHS * pahs;
-length=_pvar->getAHS(cid,pahs);
-AHS_var ahs=pahs;
-for(int i=0;i<length;i++){
- DPS::Client::ActiveHost_var vah= new DPS::Client::ActiveHost(ahs[i]);
- _parent->IMessage(AMSClient::print(vah, "getAHS: "));
- _ahl.push_back(vah);
-}
-
-//Now Read ActiveClient
-
-DPS::Client::ACS * pacs;
-length=_pvar->getACS(cid,pacs,_Submit);
-ACS_var acs=pacs;
-for(int i=0;i<length;i++){
- DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(acs[i]);
- _acl.push_back(vac);
-}
- cout <<"ACL size"<<_acl.size()<<" "<<(*_ncl.begin())->MaxClients<<" "<<_Submit<<" "<<endl;
+     ReReadTables(_pvar);
 
 }
 
@@ -879,7 +830,12 @@ _pser->Lock(cid,DPS::Server::ClearCheckClient,getType(),_KillTimeOut);
 void Server_impl::_init(){
 // here active host list
 if(_ahl.size())return;
+
+
  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+  
+
+
  if(_pser){
   for(NHLI i=(_pser->getnhl()).begin();i!=(_pser->getnhl()).end();++i){
    DPS::Client::ActiveHost ah;
@@ -1555,7 +1511,22 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
    DPS::Client::ActiveClient_var acv=new DPS::Client::ActiveClient(as);
    PropagateAC(acv,rc);
    DPS::Client::CID asid=as.id;
-    sendAC(asid,as,rc);
+   sendAC(asid,as,rc);
+   if(rc ==DPS::Client::Create){
+// Reread everything in case of db-aware program
+
+    CORBA::Object_var obj=_defaultorb->string_to_object((const char *)((_refmap.begin())->second));
+
+    DPS::Server_var _pvar=DPS::Server::_narrow(obj);
+
+  for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+     
+     pcur->ReReadTables(_pvar);
+  }
+
+
+
+   }
 }
 
 
@@ -1726,42 +1697,8 @@ for(MOI i=mo.begin();i!=mo.end();++i){
    }
 }
 
-//Here Read NominalClient
 
-cid.Type=getType();
-
-DPS::Client::NCS * pncs;
-int length=_svar->getNC(cid,pncs);
-NCS_var ncs=pncs;
-for(int i=0;i<length;i++){
- DPS::Client::NominalClient_var vnh= new DPS::Client::NominalClient(ncs[i]);
- _ncl.push_back(vnh);
-}
-
-
-
-//Now Read ActiveHost
-
-DPS::Client::AHS * pahs;
- length=_svar->getAHS(cid,pahs);
-AHS_var ahs=pahs;
-for(int i=0;i<length;i++){
- DPS::Client::ActiveHost_var vah= new DPS::Client::ActiveHost(ahs[i]);
- _parent->IMessage(AMSClient::print(vah, "getAHSP: ")); 
- _ahl.push_back(vah);
-}
-
-//Now Read ActiveClient
-
-DPS::Client::ACS * pacs;
-length=_svar->getACS(cid,pacs,_Submit);
-ACS_var acs=pacs;
-for(int i=0;i<length;i++){
- DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(acs[i]);
- _acl.push_back(vac);
-}
-
- cout <<"ACL size pr"<<_acl.size()<<" "<<(*_ncl.begin())->MaxClients<<" "<<_Submit<<" "<<endl;
+   ReReadTables(_svar);
 
 }
 
@@ -3430,27 +3367,21 @@ void Client_impl::getId(DPS::Client::CID_out  cid)throw (CORBA::SystemException)
 }
 
   Client_impl::Client_impl(DPS::Client::ClientType type, const char* ctype,AMSClient * parent):POA_DPS::Client(),AMSServerI(AMSID(ctype,0),parent,type){
- if(type==DBServer){
- }
 }
 
 Client_impl::Client_impl(DPS::Client::ClientType type, const char* ctype,DPS::Server_ptr _svar,DPS::Client::CID  cid,AMSClient * parent):POA_DPS::Client(),AMSServerI(AMSID(ctype,0),parent,type){
 
-DPS::Client::ACS * pacs;
-cid.Type=getType();
-int length=_svar->getACS(cid,pacs,_Submit);
-ACS_var acs=pacs;
-for(int i=0;i<length;i++){
- DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(acs[i]);
- _acl.push_back(vac);
-}
- cout <<"AML size "<<_acl.size()<<" "<<_Submit<<endl;
+ReReadTables(_svar);
 
 }
 
 void Client_impl::_init(){
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
   _defaultorb=_pser->getdefaultorb();
+ if(getType()==DBServer && _parent->getdbfile()){
+//  StartClients(_parent->getcid());
+ }
+
 }
 
 
@@ -4135,5 +4066,113 @@ void AMSServerI::HostClientFailed(DPS::Client::ActiveHost_var &ahlv){
      ((ahlv)->ClientsFailed)++; 
      ((ahlv)->ClientsProcessed)++; 
      if( (ahlv)->ClientsProcessed>3 && (ahlv)->ClientsFailed>((ahlv)->ClientsProcessed+1)/2)(ahlv)->Status=DPS::Client::InActive;
+
+}
+
+
+
+void AMSServerI::ReReadTables( DPS::Server_ptr _pvar){
+
+DPS::Client::CID cid=_parent->getcid();
+cid.Type=getType();
+//Get NominalClient
+DPS::Client::NCS * pncs;
+int length=_pvar->getNC(cid,pncs);
+DPS::Client::NCS_var ncs=pncs;
+_ncl.clear();
+for(int i=0;i<length;i++){
+ DPS::Client::NominalClient_var vnh= new DPS::Client::NominalClient(ncs[i]);
+ _ncl.push_back(vnh);
+}
+
+
+//Now Read ActiveHost
+
+DPS::Client::AHS * pahs;
+length=_pvar->getAHS(cid,pahs);
+DPS::Client::AHS_var ahs=pahs;
+_ahl.clear();
+for(int i=0;i<length;i++){
+ DPS::Client::ActiveHost_var vah= new DPS::Client::ActiveHost(ahs[i]);
+ _parent->IMessage(AMSClient::print(vah, "getAHS: "));
+ _ahl.push_back(vah);
+}
+
+//Now Read ActiveClient
+
+DPS::Client::ACS * pacs;
+length=_pvar->getACS(cid,pacs,_Submit);
+DPS::Client::ACS_var acs=pacs;
+_acl.clear();
+for(int i=0;i<length;i++){
+ DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(acs[i]);
+ _acl.push_back(vac);
+}
+ cout <<"ACL size"<<_acl.size()<<" "<<_Submit<<" "<<endl;
+
+
+}
+
+void Server_impl::ReReadTables( DPS::Server_ptr _pvar){
+
+DPS::Client::CID cid=_parent->getcid();
+cid.Type=getType();
+//Get NominalServer
+{
+DPS::Client::NCS * pncs;
+int length=_pvar->getNC(cid,pncs);
+NCS_var ncs=pncs;
+_ncl.clear();
+for(int i=0;i<length;i++){
+ DPS::Client::NominalClient_var vnh= new DPS::Client::NominalClient(ncs[i]);
+ _ncl.push_back(vnh);
+}
+}
+//Get NominalKiller
+
+DPS::Client::NCS * pncs;
+int length=_pvar->getNK(cid,pncs);
+NCS_var ncs=pncs;
+_nki.clear();
+for(int i=0;i<length;i++){
+ DPS::Client::NominalClient_var vnh= new DPS::Client::NominalClient(ncs[i]);
+ _nki.push_back(vnh);
+}
+
+//Now Read NominalHost
+
+DPS::Client::NHS * pnhs;
+length=_pvar->getNHS(cid,pnhs);
+NHS_var nhs=pnhs;
+_nhl.clear();
+for(int i=0;i<length;i++){
+ DPS::Client::NominalHost_var vnh= new DPS::Client::NominalHost(nhs[i]);
+ _nhl.push_back(vnh);
+}
+
+//Now Read ActiveHost
+
+DPS::Client::AHS * pahs;
+length=_pvar->getAHS(cid,pahs);
+AHS_var ahs=pahs;
+_ahl.clear();
+for(int i=0;i<length;i++){
+ DPS::Client::ActiveHost_var vah= new DPS::Client::ActiveHost(ahs[i]);
+ _parent->IMessage(AMSClient::print(vah, "getAHS: "));
+ _ahl.push_back(vah);
+}
+
+//Now Read ActiveClient
+
+DPS::Client::ACS * pacs;
+length=_pvar->getACS(cid,pacs,_Submit);
+ACS_var acs=pacs;
+_acl.clear();
+for(int i=0;i<length;i++){
+ DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(acs[i]);
+ _acl.push_back(vac);
+}
+ cout <<"ACL size"<<_acl.size()<<" "<<(*_ncl.begin())->MaxClients<<" "<<_Submit<<" "<<endl;
+
 
 }
