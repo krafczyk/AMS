@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.264 2004/05/06 07:29:57 alexei Exp $
+# $Id: RemoteClient.pm,v 1.265 2004/05/11 12:43:39 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -52,7 +52,10 @@
 # Apr 18, 2004   : validateRuns - check number of events and errors if both = 0
 #                : mark run as 'Unchecked', even if server's status is 'Finished'
 #
-
+# May 11, 2004   : check CRC in validateRuns before file copying
+#                : don't validate run if status != 'Finished' 
+#                : journal files : CRC/crc
+#                 
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
 
@@ -1010,12 +1013,15 @@ sub ValidateRuns {
    $validateStartTime = $timenow;
 
 # get list of runs from DataBase
+    if ($webmode ==0  and $verbose ==1) { print "ValidateRuns -I- select list of runs from DB \n";}
     $sql="SELECT run,submit FROM Runs";
     $ret=$self->{sqlserver}->Query($sql);
 # get list of runs from Server
+    if ($webmode ==0  and $verbose ==1) { print "ValidateRuns -I- get list of runs from server \n";}
     if( not defined $self->{dbserver}->{rtb}){
       DBServer::InitDBFile($self->{dbserver});
     }
+    if ($webmode ==0  and $verbose ==1) { print "ValidateRuns -I- set active production set \n";}
     $self->setActiveProductionSet();
     if (not defined $ActiveProductionSet || $ActiveProductionSet eq $UNKNOWN) {
       $self->amsprint("parseJournalFiles -ERROR- cannot get active production set",0);
@@ -1032,6 +1038,7 @@ sub ValidateRuns {
                        # in particular :
    $BadDSTCopy[0]  = 0;  #                 doCopy failed to copy DST
    $BadCRCo[0]     = 0;  #                 dsts with crc error (after copying)
+   $BadCRCi[0]     = 0;  #                 dsts with crc error (before copying)
    $gbDST[0]       = 0;
 
 
@@ -1103,8 +1110,9 @@ sub ValidateRuns {
         print "$run->{Run},$run->{FirstEvent},$run->{LastEvent},$run->{SubmitTime},$run->{Status} \n";
        }
   }
-     if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") && 
+#--     if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") && 
 #--     (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked" && $r0->[0][1] ne "TimeOut"))
+     if(($run->{Status} eq "Finished") && 
       (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "TimeOut"))
         ){
 # 
@@ -1194,8 +1202,19 @@ sub ValidateRuns {
                       }
                   }  
                   else{
+
+                   my  $retcrc = $self->calculateCRC($fpath,$ntuple->{crc});
+                   print FILEV "calculateCRC($fpath, $ntuple->{crc}) : Status : $retcrc \n";
+                   if ($retcrc != 1) {
+                       $self->amsprint("********* validateRuns - ERROR- crc status :",666);
+                       $self->amsprint($retcrc,0);
+                       $BadCRCi[0]++;
+                       $BadDSTs[0]++;
+                       $bad++;
+                   } else { # CRCi - correct
                    close FILE;
-                   my ($ret,$i) = $self->validateDST($fpath,$ntuple->{EventNumber},$ntuple->{Type},$ntuple->{LastEvent});
+                   my ($ret,$i) = 
+                       $self->validateDST($fpath,$ntuple->{EventNumber},$ntuple->{Type},$ntuple->{LastEvent});
                    if( ($i == 0xff00) or ($i & 0xff)){
                     if($ntuple->{Status} ne "Validated"){
                      $status="Unchecked";                     
@@ -1279,7 +1298,8 @@ sub ValidateRuns {
                          }
                        }  # ntuple status 'OK'
                      }
-               }
+               } # passed CRCi
+              } 
              } # ntuple ->{Status} == "Validated"
          } #loop for ntuples
          my $status='Failed';
@@ -7634,7 +7654,9 @@ foreach my $block (@blocks) {
        my $found = 0;
        my $j     = 0;
         while ($j<$#OpenDSTPatterns+1 && $found == 0) { 
-         if ($jj[0] eq $OpenDSTPatterns[$j]) {
+            my $pattern = $OpenDSTPatterns[$j]; 
+            if ($pattern eq 'CRC') { $pattern="crc";}
+         if ($jj[0] eq $OpenDSTPatterns[$j] || $jj[0] eq $pattern) {
             $opendst[$j] = trimblanks($jj[1]);
             $patternsmatched++;
             $found = 1;
@@ -7673,7 +7695,9 @@ foreach my $block (@blocks) {
        my $found = 0;
        my $j     = 0;
        while ($j<$#CloseDSTPatterns+1 && $found == 0) { 
-        if ($jj[0] eq $CloseDSTPatterns[$j]) {
+        my $pattern = $CloseDSTPatterns[$j]; 
+        if ($pattern eq 'CRC') { $pattern="crc";}
+        if ($jj[0] eq $CloseDSTPatterns[$j] || $jj[0] eq $pattern) {
           $closedst[$j] = trimblanks($jj[1]);
           $patternsmatched++;
           $found = 1;
@@ -9497,8 +9521,8 @@ sub printValidateStat {
 
 
       my $l0 = "   Runs (Listed, Completed, Bad, Failed) :  $CheckedRuns[0], $GoodRuns[0],  $BadRuns[0] \n";
-      my $l1 = "   DSTs (Checked, Good, Bad, CopyFail/CRC ) :  ";
-      my $l2 = "$CheckedDSTs[0],  $GoodDSTs[0], $BadDSTs[0], $BadDSTCopy[0] \n";
+      my $l1 = "   DSTs (Checked, Good, Bad, Crci, CopyFail/CRC ) :  ";
+      my $l2 = "$CheckedDSTs[0],  $GoodDSTs[0], $BadDSTs[0], $BadCRCi[0], $BadDSTCopy[0] \n";
       print "\n ",$l0,$l1,$l2;
       print FILEV "\n",$l0,$l1,$l2;
 
