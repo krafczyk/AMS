@@ -1,4 +1,5 @@
-#  $Id: g4i.old,v 1.2 2002/01/09 18:38:55 choutko Exp $
+#  $Id: g4i.old,v 1.3 2002/07/17 21:22:04 choutko Exp $
+unsetenv GEANT4NEW
 if $OS == "Linux"  then
 setenv LinuxBUG 0
 if $LinuxBUG == "1" then
@@ -17,11 +18,13 @@ endif
 if $OS == "OSF1" then
 setenv  G4WORKDIR /amsdat1/scratch/choutko/tmp
 setenv G4SYSTEM "DEC-cxx"
-setenv G4USE_OSPACE 1
-unsetenv G4USE_STL
-setenv OSPACE_BASE_DIR /afs/cern.ch/sw/lhcxx/specific/dec/ObjectSpace/2.1/ToolKit
+unsetenv G4USE_OSPACE 
+setenv G4USE_STL  1
+#setenv OSPACE_BASE_DIR /afs/cern.ch/sw/lhcxx/specific/dec/ObjectSpace/2.1/ToolKit
 #setenv CLHEP_BASE_DIR  /afs/cern.ch/sw/lhcxx/specific/$OS/CLHEP/pro
-setenv CLHEP_BASE_DIR  /afs/cern.ch/exp/ams/Offline/CLHEP/DEC-cxx 
+#setenv CLHEP_BASE_DIR  /afs/cern.ch/exp/ams/Offline/CLHEP.old/DEC-cxx
+setenv CLHEP_BASE_DIR  /afs/cern.ch/exp/ams/Offline/CLHEP
+
 setenv OGLHOME /usr/local
 endif
 #for geant4 ex

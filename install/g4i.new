@@ -1,4 +1,4 @@
-#  $Id: g4i.new,v 1.5 2002/01/17 14:33:52 choutko Exp $
+#  $Id: g4i.new,v 1.6 2002/07/17 21:22:04 choutko Exp $
 setenv GEANT4NEW 1
 if $OS == "Linux"  then
 endif
@@ -6,7 +6,7 @@ setenv G4SYSTEM Linux-g++
 setenv G4USE_STL 1
 setenv CLHEP_BASE_DIR  /afs/cern.ch/sw/lhcxx/specific/$OS/CLHEP/1.7.0.0
 #setenv CLHEP_BASE_DIR  /afs/cern.ch/exp/ams/Offline/CLHEP/1.7.0.0
-setenv OGLHOME /usr/Mesa
+setenv OGLHOME /usr
 setenv  G4WORKDIR /tmp
 
 endif
@@ -24,7 +24,7 @@ endif
 #for geant4 ex
 #setenv LD_LIBRARY_PATH= .:$CLHEP_BASE_DIR/lib:$OGLHOME/lib
 
-setenv G4INSTALL /afs/cern.ch/exp/ams/Offline/geant4.4.0
+setenv G4INSTALL /afs/cern.ch/exp/ams/Offline/geant4.4.1
 setenv G4LIB $G4INSTALL/lib
 setenv G4_NO_VERBOSE 1
 setenv G4VIS_BUILD_DAWNFILE_DRIVER 1
@@ -43,5 +43,5 @@ setenv G4VIS_USE_ASCIITREE 1
 #setenv G4LEVELGAMMADATA $G4INSTALL/data/G4PhotonEvap.1.0/data/PhotonEvaporation
 setenv G4LEVELGAMMADATA  $G4INSTALL/data/G4RadiativeDecay.2.0/data/PhotonEvaporation
 setenv G4RADIOACTIVEDATA  $G4INSTALL/data/G4RadiativeDecay.2.0/data/RadiativeDecay
-setenv G4LEDATA $G4INSTALL/data/G4EMLOW0.5
-setenv NeutronHPCrossSections $G4INSTALL/data/G4NDL0.5
+setenv G4LEDATA $G4INSTALL/data/G4EMLOW1.1
+setenv NeutronHPCrossSections $G4INSTALL/data/G4NDL0.2
