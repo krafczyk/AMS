@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.169 2003/05/13 14:29:56 choutko Exp $
+# $Id: RemoteClient.pm,v 1.168 2003/05/13 14:27:18 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3822,7 +3822,7 @@ print qq`
            $buf=~ s/COSMAX=/COSMAX=$cosmax/;         
            $buf=~ s/FOCUS=/FOCUS=$focus/;         
            $buf=~ s/PLANENO=/PLANENO=$plane/;         
-           $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
+           $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/g;         
            $buf=~ s/TRIGGER=/TRIGGER=$trtype/;         
            $buf=~ s/SETUP=/SETUP=$setup/;         
            $buf=~ s/OUPUTMODE=/OUPUTMODE=$rno/;         
@@ -3865,8 +3865,8 @@ print qq`
          }
          $buf=~ s/PART=/CPUTIME=$cpus \nPART=/; 
          $rootntuple=$q->param("RootNtuple");
-         $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
-         $tmpb=~ s/ROOTNTUPLE=/C ROOTNTUPLE/g;
+         $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/g;         
+         $tmpb=~ s/ROOTNTUPLE=/C ROOTNTUPLE/;
          my $cputype=$q->param("QCPUType");
          $buf=~ s/PART=/CPUTYPE=\"$cputype\" \nPART=/; 
          $buf=~ s/PART=/CLOCK=$clock \nPART=/;         
