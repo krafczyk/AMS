@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.167 2004/02/26 13:17:38 alcaraz Exp $
+//  $Id: trrec.C,v 1.168 2004/05/19 14:43:39 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1745,6 +1745,7 @@ next_pattern:
 
 
       }
+      if (NTrackFound==0) return NTrackFound;
 
   }
 
@@ -2030,8 +2031,10 @@ next_pattern:
 
 
       }
+      if (NTrackFound==0) return NTrackFound;
 
   }
+  return NTrackFound;
 
 }
 
@@ -2147,11 +2150,12 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
 #endif
 
     number gers=0.03;
-    ptrack->SimpleFit(AMSPoint(gers,gers,gers));
+    if(TRFITFFKEY.OldTracking)ptrack->VerySimpleFit(AMSPoint(gers,gers,gers));
+    else ptrack->SimpleFit(AMSPoint(gers,gers,gers));
     if(ptrack->_Chi2StrLine< TRFITFFKEY.Chi2StrLine){
      if(ptrack->_Chi2WithoutMS< TRFITFFKEY.Chi2WithoutMS && 
       fabs(ptrack->_RigidityWithoutMS)>TRFITFFKEY.RidgidityMin ){
-      if( (  (ptrack->Fit(0) < TRFITFFKEY.Chi2FalseX))
+      if( (  (ptrack->Fit(0) < TRFITFFKEY.Chi2FastFit))
            && ptrack->TOFOK()){
         // Here we should add at least one point and fit 
         // First determine which planes are missed and interpolate to them,
@@ -3644,8 +3648,10 @@ next_pattern:
 
 
       }
+      if (NTrackFound==0) return NTrackFound;
 
   }
+  return NTrackFound;
 }
 
 integer AMSTrTrack::DistanceTOF(number par[2][3], AMSTrRecHit *ptr){
