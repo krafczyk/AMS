@@ -55,7 +55,7 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
   AMSDisplay display("AMSRoot Event Display", geo);
 
   amsroot.GetEvent(0);
-  display.ShowNextEvent(0);
+  display.ShowNextEvent(-1);
 
   display.GetCanvas()->Update();	// force it to draw
 

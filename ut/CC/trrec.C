@@ -1274,6 +1274,7 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
               }
               py=py->next();
              }
+               
              if(yfound){
               AMSgSen * pls=0;
               AMSPoint PS(p->getpar(0),p->getpar(1),p->getpar(2));

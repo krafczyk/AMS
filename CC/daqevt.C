@@ -4,7 +4,7 @@
 #include <event.h>
 #include <commons.h>
 
-integer DAQEvent::_Buffer[75000];
+integer DAQEvent::_Buffer[40000];
 integer DAQEvent::_BufferLock=0;
 const integer lover=2;
 DAQEvent::~DAQEvent(){

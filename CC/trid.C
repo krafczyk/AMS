@@ -938,6 +938,7 @@ integer AMSTrIdGeom::FindAtt(const AMSPoint & pnt,  AMSPoint  size){
     }
    p=  AMSJob::gethead()->getgeomvolume(crgid());
    if(p){
+     loc=p->gl2loc(pnt);
      geant dl=floor(0.5+loc[0]/AMSDBc::ssize_inactive(_layer-1,0));
     _sensor+=dl;
     p=  AMSJob::gethead()->getgeomvolume(crgid());
