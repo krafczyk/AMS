@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.199 2003/07/24 11:58:13 alexei Exp $
+# $Id: RemoteClient.pm,v 1.200 2003/07/25 09:04:35 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -973,6 +973,9 @@ sub ValidateRuns {
                    } else {
                        print FILE "***** Unknown ntuple->{Type : $ntuple->{Type} \n";
                    }
+                   if (defined $validatecmd) {
+                     print FILE $validatecmd;
+                   }
                    my $i = 0;
                    if (defined $validatecmd) {
                     $i=system($validatecmd);
@@ -1140,7 +1143,7 @@ sub doCopy {
          foreach my $disk (@{$ret}) {
            $outputdisk = trimblanks($disk->[0]);
            $outputpath = trimblanks($disk->[1]);
-           $outputpath = $outputpath."/".$pset;
+           $outputpath = $outputdisk.$outputpath."/".$pset;
            $mtime = (stat $outputpath)[9];
            if ($mtime) { last;}
           }   
@@ -1168,6 +1171,7 @@ sub doCopy {
                $outputpath = $outputpath."/".$file;
                $cmd = "cp -pi -d -v $inputfile  $outputpath >> $logfile";
                $cmdstatus = system($cmd);
+               print "docopy - $cmd \n";
                if ($cmdstatus == 0 ) {
                  my $rstatus = system("$self->{AMSSoftwareDir}/exe/linux/crc $outputpath $crc");
                  $rstatus=($rstatus>>8);
@@ -1190,7 +1194,7 @@ sub doCopy {
             htmlWarning("doCopy","cannot get info for JID=$jid");
            }
         } else {
-         htmlWarning("doCopy","cannot stat disk from Filesystems");
+         htmlWarning("doCopy","cannot stat disk ($outputdisk$outputpath) from Filesystems");
         } 
       } else {
        htmlWarning("doCopy","cannot get ProductionSet status=Active");
