@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: getior.cgi,v 1.2 2002/03/22 09:06:41 alexei Exp $
+#  $Id: getior.cgi,v 1.3 2002/03/22 17:56:53 alexei Exp $
 use Gtk;
 use strict;
 use DBI;
@@ -9,11 +9,20 @@ my $dbh;
 my $output=>undef;
 
 
-#activate CGI
-
+my $help = "
+getior selects IOR string from Oracle DB
+for the Server with the latest CREATETIME and 
+prints it.
+-o filename - write output to filename (optional)
+-h          - print help
+";
 
 #get all info from the db
 foreach my $chop  (@ARGV){
+    if($chop =~/^-h/){
+        print "$help \n";
+        die "...";
+    }
     if($chop =~/^-o/){
         $output=unpack("x2 A*",$chop);
     }
