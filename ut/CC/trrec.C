@@ -925,7 +925,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
 // LVL3 required if existing
     if (plvl3==NULL) {
 #ifdef __AMSDEBUG__
-      cout << "makeFalseTOFXHits: No Level3 Trigger existing" << endl;
+      cout << "markAwayTOFHits: No Level3 Trigger existing" << endl;
 #endif
       return 1;
     }
@@ -975,14 +975,13 @@ integer AMSTrRecHit::markAwayTOFHits(){
     if ( (phit[1]==NULL) && (phit[2]==NULL) ) return 1;
 
 // Straight line parameters for the ZX plane 
-// 4 TOF planes: use only Pad information (planes2+3: TOF calib. independent)
-// 3 TOF planes: use all 3 planes (TOF calib. dependent)
+// Use only Pad information (planes2,3: TOF calib. independent)
+// unless they are missing
     number sw=0, sz=0, sx=0, sxz=0, szz=0;
     for (i=0; i<4; i++){
       if (phit[i]==NULL) continue;
-      if (i==0 || i==4) {
-        if (phit[1]!=NULL && phit[2]!=NULL) continue;
-      }
+      if (i==0 && phit[1]!=NULL) continue;
+      if (i==3 && phit[2]!=NULL) continue;
       number w = phit[i]->getecoo()[0]; if (w<=0.) continue; w = 1./w/w;
       number x = phit[i]->getcoo()[0];
       number z = phit[i]->getcoo()[2];
@@ -2288,9 +2287,8 @@ integer AMSTrTrack::makeFalseTOFXHits(){
                (phit[3]->getcoo()[2] - phit[0]->getcoo()[2]);
     number intercept_x= phit[0]->getcoo()[0] - slope_x*phit[0]->getcoo()[2];
 
-// Look for the best AMSTOFCluster on plane 2 within errors
-// to improve the X prediction on the tracker
-    number resmax2=(number)TRFITFFKEY.SearchRegTOF;
+// Look for the closest AMSTOFCluster on plane 2
+    number resmax2=999;
     phit[1]=NULL;
     for (ploop = AMSTOFCluster::gethead(1); ploop ; ploop=ploop->next() ){
       number resx2 = fabs(ploop->getcoo()[0] 
@@ -2301,9 +2299,9 @@ integer AMSTrTrack::makeFalseTOFXHits(){
       }
     }
 
-// Look for the best AMSTOFCluster on plane 3 within errors
+// Look for the closest AMSTOFCluster on plane 3
 // to improve the X prediction
-    number resmax3=(number)TRFITFFKEY.SearchRegTOF;
+    number resmax3=999;
     phit[2]=NULL;
     for (ploop = AMSTOFCluster::gethead(2); ploop ; ploop=ploop->next() ){
       number resx3 = fabs(ploop->getcoo()[0] 
@@ -2317,11 +2315,14 @@ integer AMSTrTrack::makeFalseTOFXHits(){
 // We require at least 3 AMSTOFClusters
     if ( (phit[1]==NULL) && (phit[2]==NULL) ) return 1;
 
-// Final Straight line parameters for the ZX plane 
-// (TOFCalib dependent, but we need accuracy)
+// Straight line parameters for the ZX plane 
+// Use only Pad information -planes 2 or 3- if not consistent with planes 
+// 1 or 4, respectively (info from planes 1,4 is TOF-calibration dependent)
     number sw=0, sz=0, sx=0, sxz=0, szz=0;
     for (i=0; i<4; i++){
       if (phit[i]==NULL) continue;
+      if (i==0 && phit[1]!=NULL && resmax2>TOFDBc::plnstr(5)) continue;
+      if (i==3 && phit[2]!=NULL && resmax3>TOFDBc::plnstr(5)) continue;
       number w = phit[i]->getecoo()[0]; if (w<=0.) continue; w = 1./w/w;
       number x = phit[i]->getcoo()[0];
       number z = phit[i]->getcoo()[2];
