@@ -73,7 +73,7 @@ void AMSRichRawEvent::mc_build(){
           new AMSRichRawEvent(16*pmt+j,n_hits[j]>0?0:1,adc,
                   RICHDB::pmt_p[pmt][0]+(j%4)*RICcatolength/4-RICcatolength/2,
 		  RICHDB::pmt_p[pmt][1]+(j/4)*RICcatolength/4-RICcatolength/2,
-				      origin[j],momentum[j]));
+                  n_hits[j]>0?origin[j]:AMSPoint(),n_hits[j]>0?momentum[j]:AMSPoint()));
       
   
 #ifdef __AMSDEBUG__
