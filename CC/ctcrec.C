@@ -726,7 +726,7 @@ void AMSCTCRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 // on output: len=CTC_data_length.
 //
   integer i,j,jj,ic,ibar,isid,lentot,bias;
-  integer val;
+  integer val,warnfl;
   int16u btyp,ntyp,naddr,dtyp,crate,sfet,tdcc,hwch,hmsk,slad,chip,chipc,chc;
   int16u swid[CTCCHCH],mtyp,hcnt,shft,nhit,nzch,nzcch,sbit;
   int16u phbit,maxv,phbt,phbtp; 
@@ -847,11 +847,14 @@ void AMSCTCRawEvent::buildraw(int16u blid, integer &len, int16u *p){
         tdcc=8*(1-chip)+chc; // channel inside SFEC(0-15)(1-chip to be uniform with TOF)
         hitv=(tdcw & maxv)|(phbt*phbit);// tdc-value with phase bit set as for RawEvent
         if(nhits[tdcc]<16){
+          warnfl=0;
           hits[tdcc][nhits[tdcc]]=hitv;
           nhits[tdcc]+=1;
         }
         else{
-          cout<<"CTC:RawFmt:read_error: more 16 hits in h/w channel "<<tdcc<<endl;
+          if(warnfl==0)cout<<"CTC:RawFmt:read_warning: > 16 hits in channel: crate= "<<crate
+          <<" sfet="<<sfet<<" chip="<<chip<<" chipch="<<chc<<endl;
+          warnfl=1;
         }
       }
 //
@@ -942,25 +945,25 @@ int16u AMSCTCRawEvent::hw2swid(int16u a1, int16u a2){
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 //
 // mycrate-2(cr31) = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
-  14, 13,  8,  7,  6,  5, 16,  0, 15, 56, 55, 48, 47, 46, 45,  0,
+   6,  5,  8,  7, 14, 13, 16,  0, 15, 46, 45, 48, 47, 56, 55,  0,
 //
 // mycrate-3 = (no SFEC card) :
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 //
 // mycrate-4(cr71) = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
-  34, 33, 28, 27, 26, 25, 36,  0, 35, 82, 81, 74, 73, 66, 65,  0,
+  26, 25, 28, 27, 34, 33, 36,  0, 35, 66, 65, 74, 73, 82, 81,  0,
 //
 // mycrate-5(cr03) = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
-  40, 39, 38, 37, 32, 31, 72,  0, 71, 84, 83, 80, 79, 78, 77,  0,
+  32, 31, 38, 37, 40, 39, 72,  0, 71, 78, 77, 80, 79, 84, 83,  0,
 //
 // mycrate-6(cr33) = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
-  64, 63, 62, 61, 54, 53, 70,  0, 69, 30, 29, 24, 23, 22, 21,  0,
+  54, 53, 62, 61, 64, 63, 70,  0, 69, 22, 21, 24, 23, 30, 29,  0,
 //
 // mycrate-7(cr43) = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
-  52, 51, 44, 43, 42, 41, 50,  0, 49, 10,  9,  4,  3,  2,  1,  0,
+  42, 41, 44, 43, 52, 51, 50,  0, 49,  2,  1,  4,  3, 10,  9,  0,
 //
 // mycrate-8(cr73) = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
-  20, 19, 18, 17, 12, 11, 58,  0, 57, 76, 75, 68, 67, 60, 59,  0};
+  12, 11, 18, 17, 20, 19, 58,  0, 57, 60, 59, 68, 67, 76, 75,  0};
 //
 #ifdef __AMSDEBUG__
   assert(a1>=0 && a1<SCCRAT);//crate(0-7)

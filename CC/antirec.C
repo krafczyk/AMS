@@ -779,7 +779,7 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 // on output: len=Anti_data_length.
 //
   integer i,j,jj,ic,ibar,isid,lentot,bias;
-  integer val;
+  integer val,warnfl;
   int16u btyp,ntyp,naddr,dtyp,crate,sfet,tdcc,hwch,hmsk,slad,chip,chipc,chc;
   int16u swid[ANCHCH],mtyp,hcnt,shft,nhit,nzch,nzcch,sbit;
   int16u phbit,maxv,phbt,phbtp; 
@@ -902,12 +902,14 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
         tdcc=8*(1-chip)+chc; // channel inside SFEA(0-15) (1-chip to be unified with TOF)
         hitv=(tdcw & maxv)|(phbt*phbit);// tdc-value with phase bit set as for RawEvent
         if(nhits[tdcc]<16){
+          warnfl=0;
           hits[tdcc][nhits[tdcc]]=hitv;
           nhits[tdcc]+=1;
         }
         else{
-          cout<<"ANTI:RawFmt:read_warning: > 16 hits in channel: crate= "<<crate<<" sfet="<<sfet
-                              <<" chip="<<chip<<" chipch="<<chc<<endl;
+          if(warnfl==0)cout<<"ANTI:RawFmt:read_warning: > 16 hits in channel: crate= "<<crate
+          <<" sfet="<<sfet<<" chip="<<chip<<" chipch="<<chc<<endl;
+          warnfl=1;
         }
       }
 //

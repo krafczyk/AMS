@@ -87,13 +87,13 @@ void TOFTZSLcalib::mfit(){  // calibr. fit procedure
     for(ib=0;ib<SCMXBR;ib++){
       id=(il+1)*100+ib+1;
       ii=il*SCMXBR+ib;
-      start[ii+2]=6.;// def.T0 for all counters
+      start[ii+2]=6.+3.5*rnormx();// def.T0 for all counters
       for(j=0;j<2;j++){
         if(id == TOFCAFFKEY.idref[j])
           start[ii+2]=TOFCAFFKEY.tzref[j];//def. t0 for ref.counters
       }
       step[ii+2]=1.;
-      plow[ii+2]=0.;
+      plow[ii+2]=-30.;
       phigh[ii+2]=30.;
       ifit[ii+2]=0;
       strcpy(pnm,p3nam);
@@ -391,7 +391,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     ptra=ptra->next();
   }// --- end of hits loop --->
   HF1(1503,geant(eanti),1.);
-  if(eanti>eacut)return;// remove events with big signal in Anti
+  if(eanti>eacut)return;// remove events with big signal in Anti. tempor commented
 //
 // -----> check amplitudes :
 //
@@ -403,7 +403,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   qmax=*pntr[SCLRS-1];
   rr=qmax/meanq;
   HF1(1505,geant(rr),1.);
-  if(rr>qrcut)return; // remove events with "spike" dE/dX
+  if(rr>qrcut)return; // remove events with "spike" dE/dX.  tempor commented
   TOFJobStat::addre(8);
 //------>
     number t1,t2,t3,t4,t13,t24;
@@ -494,7 +494,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     if(cptr)
            ntrk+=cptr->getnelem();
     HF1(1506,geant(ntrk),1.);
-    if(ntrk!=1)return;// require events with 1 track 
+    if(ntrk!=1)return;// require events with 1 track.  tempor commented to bypass tracker
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",0);
     if(ppart){
@@ -503,9 +503,10 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     } 
     else rid=0;
     pmom=fabs(rid);
+//  pmom=2.7;// tempor to bypass tracker
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
     if(pmom<TOFCAFFKEY.pcut[0] || pmom>TOFCAFFKEY.pcut[1])return;//remove low/too_high mom.
-//    if(pmom<TOFCAFFKEY.pcut[0])return;//remove low mom.
+    if(pmom<TOFCAFFKEY.pcut[0])return;//remove low mom.
     if(TOFCAFFKEY.caltyp==0)bet=pmom/sqrt(pmom*pmom+pmas*pmas);// space calibration
     else bet=pmom/sqrt(pmom*pmom+mumas*mumas);// earth calibration
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1501,bet,1.);
@@ -642,6 +643,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
 //
     if(TOFCAFFKEY.caltyp==0)betm=TOFCAFFKEY.bmeanpr;// tempor! better use measured one ?
     else betm=TOFCAFFKEY.bmeanmu;
+    betm=bet;// tempor
 //
     TOFTZSLcalib::fill(betm,brnl,tld,tdi,dum); // fill calib.working arrays
 }
@@ -663,12 +665,12 @@ void TOFTDIFcalib::init(){ // ----> initialization for TDIF-calibration
   char in[2]="0";
 //
   for(i=0;i<SCBLMX;i++){
-  for(j=0;j<SCTDBM;j++){
-    tdiff[i][j]=0.;
-    tdif2[i][j]=0.;
-    clong[i][j]=0.;
-    nevnt[i][j]=0;
-  }
+    for(j=0;j<SCTDBM;j++){
+      tdiff[i][j]=0.;
+      tdif2[i][j]=0.;
+      clong[i][j]=0.;
+      nevnt[i][j]=0;
+    }
   }
 // ---> book histograms for "Tdiff_mean vs Clong"
   strcpy(inum,"0123456789");
@@ -1781,6 +1783,9 @@ number TOFSTRRcalib::dtin[SCCHMX][SCSRCHB];//for mean Tin calc. in bin (for each
 number TOFSTRRcalib::dtinq[SCCHMX][SCSRCHB];//for sigma Tin calc. in bin (for each channel)
 integer TOFSTRRcalib::nevnt[SCCHMX][SCSRCHB];// events in bin,channel
 integer TOFSTRRcalib::nevtot[SCCHMX];       // total number of analized events
+integer TOFSTRRcalib::nevnt2[SCCHMX];// for f/s-tdc time difference
+number TOFSTRRcalib::fstdif[SCCHMX];
+number TOFSTRRcalib::fstdif2[SCCHMX];
 //----------
 void TOFSTRRcalib::init(){
   integer i,j,il,ib,id,ii,jj;
@@ -1823,6 +1828,9 @@ void TOFSTRRcalib::init(){
 // ---> clear arrays:
 //
   for(i=0;i<SCCHMX;i++){
+    nevnt2[i]=0;
+    fstdif[i]=0.;
+    fstdif2[i]=0.;
     for(j=0;j<SCSRCHB;j++){
       dtin[i][j]=0.;
       dtinq[i][j]=0.;
@@ -1849,12 +1857,18 @@ void TOFSTRRcalib::fill(integer ichan, number tm[3]){
   dti=tm[0]-tm[1];
   dto=tm[1]-tm[2];
   idto=integer(dto/SCSRCTB);// time bin = SCSRCTB ns
-  if(idto>=idtol[0] && idto<idtol[1] && dti>0.){
+  if(idto>=idtol[0] && idto<idtol[1] && dti>20. && dti<150.){
     nevnt[ichan][idto]+=1;
     dtin[ichan][idto]+=dti;
     dtinq[ichan][idto]+=(dti*dti);
   }
   HF2(1600+ichan,geant(dti),geant(dto),1.);
+}
+//-----------
+void TOFSTRRcalib::fill2(integer ichan, number tdif){
+  nevnt2[ichan]+=1;
+  fstdif[ichan]+=tdif;
+  fstdif2[ichan]+=(tdif*tdif);
 }
 //-----------
 void TOFSTRRcalib::outp(){
@@ -2004,7 +2018,68 @@ void TOFSTRRcalib::outp(){
       }
     }
   }
-//---
+//------------------------------------------------
+// ===> f/s-tdc time difference calculation :
+//
+  number fstdm[SCCHMX],fstds[SCCHMX];
+  number nttd,tdfs;
+  for(i=0;i<SCCHMX;i++){
+    fstdm[i]=0.;
+    fstds[i]=0.;
+    if(nevnt2[i]>5){
+      nttd=number(nevnt2[i]);
+      fstdm[i]=fstdif[i]/nttd;
+      fstds[i]=fstdif2[i]/nttd;
+      tdfs=fstds[i]-fstdm[i]*fstdm[i];
+      if(tdfs<0.)tdfs=0.;
+      fstds[i]=sqrt(tdfs);
+    }
+  }
+  printf("\n\n");
+  printf("===========> Channels f/s-tdc t-differences :\n\n");
+  printf("\n");
+  printf("Event/channel collected :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 6d",nevnt2[ic]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 6d",nevnt2[ic]);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Time differences :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 5.1f",fstdm[ic]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 5.1f",fstdm[ic]);
+    }
+    printf("\n\n");
+  }
+//
+  printf("RMS of time differences :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 5.1f",fstds[ic]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 5.1f",fstds[ic]);
+    }
+    printf("\n\n");
+  }
+//------------------------------------------------
 //
   ofstream tcfile(fname,ios::out|ios::trunc);
   if(!tcfile){

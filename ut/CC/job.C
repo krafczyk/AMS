@@ -597,7 +597,7 @@ TKFINI();
 void AMSJob::_retofdata(){
 // 
   TOFRECFFKEY.Thr1=0.45;// Threshold (mev) on peak bar energy
-  TOFRECFFKEY.ThrS=0.9; // Threshold (mev) on total cluster energy
+  TOFRECFFKEY.ThrS=0.45; // Threshold (mev) on total cluster energy
 //
   TOFRECFFKEY.reprtf[0]=0; // RECO print flag for statistics 
   TOFRECFFKEY.reprtf[1]=0; // print flag for DAQ (1/2-> print for decoding/dec+encoding)
@@ -1169,6 +1169,8 @@ void AMSJob::_retofinitjob(){
     AMSgObj::BookTimer.book("TOF:RwCl->Cl");
     if(TOFRECFFKEY.reprtf[2]!=0){ // Book reco-hist
       HBOOK1(1100,"Fast-Slow hit time-difference(single hist/slow-hit measurements)",80,0.,80.,0.);
+      HBOOK1(1105,"Anode-Slow hit time-difference(single an/slow-hit measurements)",80,-40.,40.,0.);
+      HBOOK1(1106,"Dynode-Slow hit time-difference(single dyn/slow-hit measurements)",80,-120.,40.,0.);
       HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,160.,0.);
       HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,1600.,0.);
       HBOOK1(1103,"Time_history:inp.pulse width(ns)",80,0.,80.,0.);
@@ -1185,11 +1187,11 @@ void AMSJob::_retofinitjob(){
       HBOOK1(1527,"L=3,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
       HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,24.,0.);
       HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,240.,0.);
-      HBOOK1(1532,"(T1-T3)(ns),corr,trl-normalized,ideal evnt",50,3.,6.,0.);
+      HBOOK1(1532,"(T1-T3)(ns),corr,trl-normalized,ideal evnt",80,1.,9.,0.);
       HBOOK1(1533,"L=1,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
       HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
-      HBOOK1(1534,"(T2-T4)(ns),corr,trl-normalized,ideal evnt",50,3.,6.,0.);
-      HBOOK1(1544,"(T1-T3)-(T2-T4),(ns),corr,ideal evnt",50,-2.,2.,0.);
+      HBOOK1(1534,"(T2-T4)(ns),corr,trl-normalized,ideal evnt",80,1.,9.,0.);
+      HBOOK1(1544,"(T1-T3)-(T2-T4),(ns),corr,ideal evnt",80,-4.,4.,0.);
       HBOOK1(1545,"(T1-T4),(ns),uncorr,ideal evnt",50,3.5,6.5,0.);
       HBOOK1(1535,"L=1,TOF Eclust(mev)",80,0.,24.,0.);
       HBOOK1(1536,"L=3,TOF Eclust(mev)",80,0.,24.,0.);
@@ -1771,6 +1773,8 @@ void AMSJob::_tofendjob(){
          if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
            HPRINT(1100);
            HPRINT(1115);
+           HPRINT(1105);
+           HPRINT(1106);
            HPRINT(1101);
            HPRINT(1102);
            HPRINT(1103);

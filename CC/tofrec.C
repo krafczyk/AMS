@@ -36,7 +36,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   int16u pbanti;
   int16u pbup,pbdn,pbup1,pbdn1;
   int16u id,idd,idN,stat[2];
-  number tsr[3];
+  number tsr[3],ths[2],fstd;
   geant mtma[2],mtmd[2];
   int bad(1);
   geant charge,edep;
@@ -224,18 +224,25 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //
 // --> fill for STRR-calibration :
 //
+        nftdc[isid]=ptr->getftdc(ftdc1);
         nstdc[isid]=ptr->getstdc(stdc1);
+        nadca[isid]=ptr->getadca(adca1);
+        nadcd[isid]=ptr->getadcd(adcd1);
         if(nstdc[isid]==4){ // require only one "4-edge" sTDC-hit
           tsr[0]=(stdc1[3]&pbanti)*TOFDBc::tdcbin(1);
           tsr[1]=(stdc1[2]&pbanti)*TOFDBc::tdcbin(1);
           tsr[2]=(stdc1[0]&pbanti)*TOFDBc::tdcbin(1);
           TOFSTRRcalib::fill(chnum,tsr);
+          if(nftdc[isid]==2 && nadca[isid]==2){ // require only one "2-edge" f/a-TDC-hit
+            ths[0]=(ftdc1[1]&pbanti)*TOFDBc::tdcbin(0);
+            ths[1]=(ftdc1[0]&pbanti)*TOFDBc::tdcbin(0);
+            fstd=ths[0]-tsr[0];
+            TOFSTRRcalib::fill2(chnum,fstd);
+          }
         }
 //
 // --> fill for AVSD-calibration :
 //
-        nadca[isid]=ptr->getadca(adca1);
-        nadcd[isid]=ptr->getadcd(adcd1);
         mtmd[0]=0.;
         mtmd[1]=0.;
         if(nadca[isid]==2 && (nadcd[isid]==0 || nadcd[isid]==2)){ // accept "2-edge" aTDC-hit
@@ -402,7 +409,7 @@ void AMSTOFRawCluster::build(int &status){
   int16u pbanti;
   int16u id,idd,idN,stat[2];
   number zc,ama[2],amd[2],qtota,qtotd,tmf[2],time,coo,ecoo;//input to RawCluster Constr
-  number tm[2],tf,dt,fstd;
+  number tm[2],tf,tff,dt,fstd;
   number amf[2],timeD,tamp;
   number charg[2]={0.,0.};
   number t1,t2,t3,t4;
@@ -503,24 +510,46 @@ void AMSTOFRawCluster::build(int &status){
           if(smty[0]>0)tm[0]=number((stdc1[3]&pbanti)*TOFDBc::tdcbin(1));//last(in real time) s-tdc hit
           else tm[0]=0; 
           if(smty[1]>0)tm[1]=number((stdc2[3]&pbanti)*TOFDBc::tdcbin(1));
-          else tm[1]=0; 
-// --> hist. for single history/slow-hit bars :
+          else tm[1]=0;
+// 
+// --> hist. for single history/slow/a/d-hit bars :
+//
           if(TOFRECFFKEY.reprtf[2]>0){
             if(smty[0]>0 && nftdc[0]==2 && nstdc[0]==4){
-              tf=number((ftdc1[1]&pbanti)*TOFDBc::tdcbin(0));//2-nd hit is leading(up)-edge
-              dt=tf-tm[0];
+              tff=number((ftdc1[1]&pbanti)*TOFDBc::tdcbin(0));//2-nd hit is leading(up)-edge
+              dt=tff-tm[0];
               HF1(1100,geant(dt),1.);//hist. the same hit f/s-TDC difference
               dt=(int(ftdc1[1]&pbanti)-int(ftdc1[0]&pbanti))
                                          *TOFDBc::tdcbin(0);//f-TDC inp.pulse width
               HF1(1103,geant(dt),1.);
+              if(nadca[0]==2){// check anode-stdc correlations
+                tf=number((adca1[1]&pbanti)*TOFDBc::tdcbin(2));//2-nd hit is leading(up)-edge
+                dt=tf-tff;
+                HF1(1105,geant(dt),1.);//hist. the same hit a/f-TDC difference
+              }
+              if(nadcd[0]==2){// check dynode-stdc correlations
+                tf=number((adcd1[1]&pbanti)*TOFDBc::tdcbin(3));//2-nd hit is leading(up)-edge
+                dt=tf-tff;
+                HF1(1106,geant(dt),1.);//hist. the same hit d/f-TDC difference
+              }
             }
             if(smty[1]>0 && nftdc[1]==2 && nstdc[1]==4){
-              tf=number((ftdc2[1]&pbanti)*TOFDBc::tdcbin(0));
-              dt=tf-tm[1];
+              tff=number((ftdc2[1]&pbanti)*TOFDBc::tdcbin(0));
+              dt=tff-tm[1];
               HF1(1100,geant(dt),1.);
               dt=(int(ftdc2[1]&pbanti)-int(ftdc2[0]&pbanti))
                                          *TOFDBc::tdcbin(0);//f-TDC inp.pulse width
               HF1(1103,geant(dt),1.);
+              if(nadca[1]==2){
+                tf=number((adca2[1]&pbanti)*TOFDBc::tdcbin(2));//2-nd hit is leading(up)-edge
+                dt=tf-tff;
+                HF1(1105,geant(dt),1.);//hist. the same hit a/f-TDC difference
+              }
+              if(nadcd[1]==2){// check dynode-stdc correlations
+                tf=number((adcd2[1]&pbanti)*TOFDBc::tdcbin(3));//2-nd hit is leading(up)-edge
+                dt=tf-tff;
+                HF1(1106,geant(dt),1.);//hist. the same hit d/f-TDC difference
+              }
             }
           }
 // --> loop over f-TDC hits (up-edges) to find f-tdc hit, coresponding s-tdc hit (MATCHING):
@@ -893,7 +922,7 @@ void AMSTOFCluster::build(int &stat){
   geant barl,barw,bars,cofg,cofgl,yloc,eyloc,ylocm,c0,ct,cl;
   geant ed;
   AMSPoint coo,ecoo;
-  int i,j,il,ib,ilay,ibar;
+  int i,j,il,ib,ilay,ibar,ill,ibb;
   int nclust,cllay[SCLRS];
 //-----
   stat=1; // bad
@@ -944,10 +973,11 @@ void AMSTOFCluster::build(int &stat){
       scbrcal[ilay][ibar].getd2p(speedl,err);//get light speed
       yloc=ptr->gettimeD();// get yloc/err for "peak" bar
       eyloc=ptr->getetimeD();
-      ylocm=0.5*barl+3.*eyloc;// limit on max. long. coord.
+      ylocm=0.5*barl;// limit on max. long. coord.
       if(fabs(yloc) > ylocm){//out of bar size
         eyloc=barl/sqrt(12.);
-        yloc=0.;//at bar center
+        if(yloc>0.)yloc=ylocm;//at bar edge
+        else yloc=-ylocm;
       }
       status=ptr->getstatus();//may be !=0(bad history or single-sided)
       edep=0.;
@@ -955,16 +985,21 @@ void AMSTOFCluster::build(int &stat){
       cofg=0.;
       cofgl=0.;
       for(j=i-1;j<i+2;j++){// calc. clust. energy/COG-transv/COG-long
-       ptrr=xptr[j];   
-       if(ptrr){
-        edep+=eplane[j];
-        cofg+=eplane[j]*(j-i);// relative to "peak" bar
-        yloc=ptrr->gettimeD();
-        if(fabs(yloc) < ylocm){
-         edepl+=eplane[j];
-         cofgl+=eplane[j]*yloc;
+        ptrr=xptr[j];   
+        if(ptrr){
+          ill=ptrr->getntof()-1;
+          ibb=j-1;
+          ylocm=0.5*TOFDBc::brlen(ill,ibb);// neigbour bar length
+          edep+=eplane[j];
+          cofg+=eplane[j]*(j-i);// relative to "peak" bar
+          yloc=ptrr->gettimeD();
+          if(fabs(yloc) > ylocm){
+            if(yloc>0.)yloc=ylocm;//at bar edge
+            else yloc=-ylocm;
+          }
+          edepl+=eplane[j];
+          cofgl+=eplane[j]*yloc;
         }
-       }
       }
       time=ptr->gettime();// (ns)
       etime=TOFMCFFKEY.TimeSigma/sqrt(2.);//(sec !!) tempor(later put in TOFBrcal needed data!)
