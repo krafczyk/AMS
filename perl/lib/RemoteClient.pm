@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.168 2003/05/13 14:27:18 choutko Exp $
+# $Id: RemoteClient.pm,v 1.170 2003/05/15 16:47:13 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -871,7 +871,7 @@ sub ValidateRuns {
           $self->{sqlserver}->Update($sql);
           $warn = "cannot find status, content in Jobs for JID=$run->{Run}. *TRY* Delete Run=$run->{Run} from server \n";
           htmlWarning("ValidateRuns",$warn);
-          print FILE $warn;
+          print FILE "$warn \n";
 # ---          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
          } else {
           my $jobstatus  = $r1->[0][0];
@@ -991,7 +991,7 @@ sub ValidateRuns {
          my $status='Failed';
          if ($copyfailed == 0) {
           $warn = "Validation done : *TRY* send Delete to DBServer, Run =$run->{Run} \n";
-          print FILE $warn;
+          print FILE "$warn \n";
           htmlText($warn," ");
 #--          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
           foreach my $ntuple (@cpntuples) {
@@ -3822,7 +3822,7 @@ print qq`
            $buf=~ s/COSMAX=/COSMAX=$cosmax/;         
            $buf=~ s/FOCUS=/FOCUS=$focus/;         
            $buf=~ s/PLANENO=/PLANENO=$plane/;         
-           $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/g;         
+           $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
            $buf=~ s/TRIGGER=/TRIGGER=$trtype/;         
            $buf=~ s/SETUP=/SETUP=$setup/;         
            $buf=~ s/OUPUTMODE=/OUPUTMODE=$rno/;         
@@ -3865,8 +3865,8 @@ print qq`
          }
          $buf=~ s/PART=/CPUTIME=$cpus \nPART=/; 
          $rootntuple=$q->param("RootNtuple");
-         $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/g;         
-         $tmpb=~ s/ROOTNTUPLE=/C ROOTNTUPLE/;
+         $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
+         $tmpb=~ s/ROOTNTUPLE=/C ROOTNTUPLE/g;
          my $cputype=$q->param("QCPUType");
          $buf=~ s/PART=/CPUTYPE=\"$cputype\" \nPART=/; 
          $buf=~ s/PART=/CLOCK=$clock \nPART=/;         
@@ -6151,6 +6151,11 @@ sub parseJournalFiles {
 
  my $self = shift;
 
+ my $firstjobtime = 0;      # first job order time
+ my $lastjobtime  = 0;      # last
+ my $cid          = undef;
+ my $sql          = undef;
+ my $ret          = undef;
 
     if( not $self->Init()){
         die "parseJournalFiles -F- Unable To Init";
@@ -6160,15 +6165,24 @@ sub parseJournalFiles {
         die "parseJournalFiles -F- Unable To Connect To Server";
     }
 
+ $sql = "SELECT begin FROM productionset WHERE STATUS='Active'";
+ $ret = $self->{sqlserver}->Query($sql);
+ if(not defined $ret->[0][0]){
+     print "parseJournalFiles - cannot find 'Active' production set\n";
+     die "exit\n";
+ } 
+
+ $firstjobtime = $ret->[0][0] - 24*60*60;
+ $lastjobtime  = time() + 24*60*60;
 
  htmlTop();
  htmlTable("Parse Journal Files");
 
- my $sql = "SELECT dirpath,journals.timestamp,name,journals.cid  
+
+ $sql = "SELECT dirpath,journals.timestamp,name,journals.cid  
               FROM journals,cites WHERE journals.cid=cites.cid";
 
- my $cid = undef;
- my $ret = $self->{sqlserver}->Query($sql);
+ $ret = $self->{sqlserver}->Query($sql);
 
  if(defined $ret->[0][0]){
   foreach my $jou (@{$ret}){
@@ -6214,7 +6228,11 @@ sub parseJournalFiles {
        print "<td><b><font color=$color >$fstatus</font></b></td>";
        print "</tr>\n";
        if ($writetime > $timestamp) {
-         $self->parseJournalFile($logdir,$newfile,$ntdir);
+         $self->parseJournalFile($firstjobtime,
+                                 $lastjobtime,
+                                 $logdir,
+                                 $newfile,
+                                 $ntdir);
        }
    }
    htmlTableEnd();
@@ -6240,10 +6258,12 @@ sub parseJournalFile {
 #         copy to final destination
 #
 
- my $self      = shift;
- my $logdir    = shift;
- my $inputfile = shift;
- my $dirpath   = shift;
+ my $self         = shift;
+ my $firstjobtime = shift;
+ my $lastjobtime  = shift;
+ my $logdir       = shift;
+ my $inputfile    = shift;
+ my $dirpath      = shift;
 
 
  my $jobnotfound  = 0;       # check that job exists in database
@@ -6318,6 +6338,7 @@ foreach my $block (@blocks) {
 #    
     my ($utime,@jj) = split " ",$block;
     if (defined $utime) {
+     if ($utime > $firstjobtime && $utime < $lastjobtime) {
 #
 # find one of the following : RunIncomplete StartingJob, StartingRun, 
 #                             OpenDST, CloseDST, RunFinished
@@ -6371,7 +6392,7 @@ foreach my $block (@blocks) {
      print FILE "$sql \n";
     }
    } else {
-       print FILE "parseJournalFile -W- RunIncomplete - cannot find all patterns \n";
+    print FILE "parseJournalFile -W- RunIncomplete - cannot find all patterns \n";
    }
    #
    # end RunIncomplete - normal
@@ -6751,8 +6772,13 @@ foreach my $block (@blocks) {
    #
    # end RunFinished
    # 
-   } 
-  }
+   }
+  } else {
+    print FILE "*********** wrong timestamp : $utime ($firstjobtime,$lastjobtime)\n";
+    $copyfailed = 1;
+    last;
+   }
+  } #if defined $utime 
  }
 
  if ($startingrunR == 1 || $runfinishedR == 1) {
@@ -6793,11 +6819,13 @@ foreach my $block (@blocks) {
        system($cmd);
       }
       print FILE "Validation/copy failed : mv ntuples to $junkdir \n";
-    }
+  }
 }
-  $sql = $runupdate." STATUS='$status' WHERE run=$run";
-  $self->{sqlserver}->Update($sql);
-  print FILE "Update Runs : $sql \n";
+ if ($run != 0) {
+   $sql = $runupdate." STATUS='$status' WHERE run=$run";
+   $self->{sqlserver}->Update($sql);
+   print FILE "Update Runs : $sql \n";
+  }
   system("mv $inputfile $inputfileLink"); 
   print FILE "mv $inputfile $inputfileLink\n";
   if ($status eq "Completed") {
@@ -6999,7 +7027,7 @@ sub deleteTimeOutJobs {
             foreach my $runinfo (@{$self->{dbserver}->{rtb}}){
              if($runinfo->{Run}=$jid) {
 #--              DBServer::sendRunEvInfo($self->{dbserver},$runinfo,"Delete"); 
-              print FILE "*TRY* send Delete to DBServer, run=$runinfo->{Run}\n";
+              print FILE "*TRY* send Delete to DBServer, run=$runinfo->{Run} \n";
               last;
              }
             }
@@ -7273,8 +7301,12 @@ sub printJobParamFormatDST {
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 127=1 128=\" CHECKED><b> ROOT </b><BR>\n";
             print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 2=\"><b> NTUPLE </b>\n";
+<<<<<<< RemoteClient.pm
+=======
             print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 127=2 128=\" CHECKED><b> ROOT </b><BR>\n";
+>>>>>>> 1.169
             print "</b></font></td></tr>\n";
            htmlTableEnd();
 }
