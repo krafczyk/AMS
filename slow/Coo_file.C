@@ -266,7 +266,13 @@ fbin.close();
 	ftemp=fopen(temp_file,"w");
       
       if (!bad_stat) {
-	fbuf=(float)(Geo.R);
+        if(fabs(Geo.R)<FLT_MAX){ 
+          fbuf=(float)(Geo.R);
+        }
+        else {
+          cerr<<"Geo.R corrupted "<<Geo.R<<endl;
+          fbuf=0;
+        }
 	fwrite(&fbuf,sizeof(float),1,ftemp);
 	fbuf=(float)(Geo.Teta);
 	fwrite(&fbuf,sizeof(float),1,ftemp);
