@@ -25,13 +25,17 @@
    int iflg;
    char fname[256];
 //
+   bool verbose=false;
    iflg=0;
-   if(argc==3){
+   if(argc>2){
      strcpy(fname,argv[1]);
      int nevents=atoi(argv[2]);
+     if(argc>3){
+      verbose=true;
+     }
 //     cout<<"Requested file: "<<fname<<" imply "<<nevents<<" events"<<endl;
      iflg=IFNTREAD(fname,nevents);
-     if(iflg>0){
+     if(iflg>=0){
 //       float proc;
 //       proc=float(iflg%128);
 //       cout<<" proc="<<proc<<endl;
@@ -40,13 +44,12 @@
        iflg=abs(iflg)+128; // abs(-1/-2/-3/-4) + bit 8 for "-"
      }
 //     cout<<"Flag="<<iflg<<endl;
-     return(iflg);
    }
    else
    {
 //     cout<<"FastNtupleRead-Error: missing arguments ???"<<endl;
      iflg=5+128; // abs(-5) + bit 8 for "-"
-//     cout<<"Flag="<<iflg<<endl;
-     return(iflg);
    }
+     if(verbose)cout<<"Flag="<<iflg<<endl;
+     return(iflg);
  }

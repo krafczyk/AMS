@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.2 2002/02/21 12:02:43 choutko Exp $
+# $Id: RemoteClient.pm,v 1.3 2002/02/21 13:14:53 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -1327,7 +1327,13 @@ print qq`
 #here the default action
     if($self->{read}==0){
     print $q->header( "text/html" ),
-    $q->start_html( "Welcome");
+    $q->start_html(-title=>'Welcome');
+#       -bgcolor=>'blue.jpg' );
+#print qq`
+#<TITLE> Welcome </TITLE>
+#<body background="blue.jpg" >
+#<hr>
+#`;
     print $q->h1( "Welcome to the AMS02 RemoteClient MC Request Form" );
         print $q->start_form(-method=>"GET", 
           -action=>$self->{Name});
