@@ -62,7 +62,9 @@ static void sitkdigi();
  static integer checkdaqid(int16u id);
  static integer calcdaqlength(integer i);
  static int16u getdaqidRaw(int i);
+ static int16u getdaqidMixed(int i);
  static integer checkdaqidRaw(int16u id);
+ static integer checkdaqidMixed(int16u id);
  static integer calcdaqlengthRaw(integer i);
  static integer getmaxblocks(){return 2;}
  static integer getmaxblocksRaw(){return 2;}
@@ -72,6 +74,7 @@ static void sitkdigi();
  static void buildrawRaw(integer n, int16u *p);
  static void buildrawRawA(integer n, int16u *p);
  static void buildrawRawB(integer n, int16u *p);
+ static void buildrawMixed(integer n, int16u *p);
  static void buildpreclusters( AMSTrIdSoft & idd, integer len, geant id[]);
  integer TestRawMode();
   // H/K data read

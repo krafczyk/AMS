@@ -1063,6 +1063,11 @@ void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
   //VZERO(id,ms*sizeof(id[0])/sizeof(integer));
   int i,j,k;
   integer ic=AMSTrRawCluster::checkdaqidRaw(*p)-1;
+  integer mixed=0;
+  if(ic<0){
+      ic=AMSTrRawCluster::checkdaqidMixed(*p)-1;
+      mixed=2;
+  }
   int16u * ptr=p+1;
   // Main loop
   integer oldformat=1;
@@ -1070,6 +1075,8 @@ void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
     // Read two tdrs
     integer subl=*ptr;
     integer ntdr = *(ptr+1) & 31;
+    int16u *ptro=ptr;
+    
     if(subl != 3084){
       // Probably new format
       oldformat=0; 
@@ -1099,11 +1106,11 @@ void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
           // copy to local buffer and subtract peds
           for(k=0;k<320;k++){
            idd.upd(k);
-           id[k]=float(*(ptr+2+k+j*(640+128*oldformat))); 
+           id[k]=float(*(ptr+mixed+2+k+j*(640+128*oldformat))); 
           }
           for(k=320;k<640;k++){
            idd.upd(k);
-           id[k]=float(*(ptr+2+k+64*oldformat+j*(640+128*oldformat))); 
+           id[k]=float(*(ptr+mixed+2+k+64*oldformat+j*(640+128*oldformat))); 
           }
           buildpreclusters(idd,len,id);
          }
@@ -1130,7 +1137,7 @@ void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
           // copy to local buffer and subtract peds
           for(k=0;k<384;k++){
            idd.upd(k);
-          id[k]=float(*(ptr+2+k+j*384)); 
+          id[k]=float(*(ptr+mixed+2+k+j*384)); 
           }
           buildpreclusters(idd,len,id);
          }
@@ -1141,7 +1148,7 @@ void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
      }
      ptr+=lrec;
     }
-    if(!oldformat)ptr+=3;
+    if(!oldformat)ptr=ptro+subl;
   }
 
 

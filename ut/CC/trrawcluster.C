@@ -225,6 +225,12 @@ int16u AMSTrRawCluster::getdaqidRaw(int i){
 else return 0x0;
 }
 
+int16u AMSTrRawCluster::getdaqidMixed(int i){
+  if (i==0)return (12 | 2<<6 | 11 <<9);
+  else if(i==1)return (12 | 5<<6 | 11 <<9);
+else return 0x0;
+}
+
 integer AMSTrRawCluster::checkdaqid(int16u id){
 if(id==getdaqid(0))return 1;
 else if(id==getdaqid(1))return 2 ;
@@ -234,6 +240,12 @@ else return 0;
 integer AMSTrRawCluster::checkdaqidRaw(int16u id){
 if(id==getdaqidRaw(0))return 1;
 else if(id==getdaqidRaw(1))return 2 ;
+else return 0;
+}
+
+integer AMSTrRawCluster::checkdaqidMixed(int16u id){
+if(id==getdaqidMixed(0))return 1;
+else if(id==getdaqidMixed(1))return 2 ;
 else return 0;
 }
 
@@ -347,11 +359,11 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
         AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
         AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+leng,
         (int16*)ptr+2));
-        //        cout <<" ok "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
+        //cout <<" ok "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
        }
         else {
           // split into two clusters;
-          // cout <<" split "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
+          //cout <<" split "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
         AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
         AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getmaxstrips(),
         (int16*)ptr+2));
@@ -378,6 +390,34 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
   if(ptrc && AMSEvent::debug>1)ptrc->printC(cout);
 }
 #endif
+
+
+
+  // Get rid of K without S 
+
+  for (int crate=0;crate<2;crate++){
+   AMSTrRawCluster *pk=(AMSTrRawCluster*)AMSEvent::gethead()->
+    getheadC("AMSTrRawCluster",crate);
+   AMSTrRawCluster *pb=pk;
+    while(pk){
+       AMSTrIdSoft idk(pk->_address);
+       if(idk.getside()==0){
+        AMSTrRawCluster *ps=pb;
+        while(ps){
+          AMSTrIdSoft ids(ps->_address);
+          if(ids.getside()==1 && ids.getdrp()==idk.getdrp()&& ids.getlayer()==idk.getlayer()){
+            pk->setstatus(AMSTrRawCluster::MATCHED);
+            break;
+          }
+          ps=ps->next();
+        }          
+       } 
+       pk=pk->next();
+    }             
+
+  }
+         
+
 
 
 }
@@ -548,6 +588,7 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
   while (ptr<p+n){
     // Read two tdrs
     integer subl=*ptr;
+    int16u *ptro=ptr;
     integer ntdr = *(ptr+1) & 31;
     if(subl != 3084){
       // Probably new format
@@ -555,6 +596,7 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
     }
     ptr+=2;
     for(i=0;i<ntdr;i++){
+     
      int16u tdrn=*ptr;
      int16u lrec=*(ptr+1);
      ptr++;
@@ -621,8 +663,8 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
      ptr+=lrec;
     }
     if(oldformat == 0){
-      ptr+=3;         // add one word
-      
+      //      ptr+=3;         // add one word
+      ptr=ptro+subl;
     }
   }
 
@@ -653,6 +695,170 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
 
 
 }
+
+
+void AMSTrRawCluster::buildrawMixed(integer n, int16u *p){
+  integer const ms=640;
+  integer len;
+  static geant id[ms];
+  //VZERO(id,ms*sizeof(id[0])/sizeof(integer));
+  int i,j,k;
+  integer ic=checkdaqidMixed(*p)-1;
+  int16u * ptr=p+1;
+  // Main loop
+  while (ptr<p+n){
+    // Read two tdrs
+    integer subl=*ptr;
+    int16u *ptro=ptr;
+    integer ntdr = *(ptr+1) & 31;
+    //cout <<"ntdr "<<subl<<" "<<ntdr<<endl;
+    ptr+=2;
+    for(i=0;i<ntdr;i++){
+     int16u tdrn=*ptr;
+     int16u lreca=*(ptr+1);
+     int16u lrec=*(ptr+3);
+     
+     //cout <<"tdrn "<<tdrn<<" "<<lrec<<endl;
+     ptr+=3;
+     if(DAQCFFKEY.TrFormatInDAQ>=2){
+     if(tdrn < 16){
+       // S side
+       len=640;
+       for(j=0;j<2;j++){
+         int16u conn,tdrs;
+         tdrs=tdrn/2;
+         if(tdrn%2==0){
+          if(j==0)conn=1;
+          else conn=0;
+         }
+         else {
+          if(j==0)conn=3;
+          else conn=2;
+         }
+         int16u haddr=(conn<<10) | (tdrs <<12);
+         AMSTrIdSoft idd(ic,haddr);
+         if(!idd.dead()){
+          // copy to local buffer and subtract peds
+          for(k=0;k<320;k++){
+           idd.upd(k);
+           id[k]=float(*(ptr+2+k+j*(640)))-idd.getped(); 
+          }
+          for(k=320;k<640;k++){
+           idd.upd(k);
+           id[k]=float(*(ptr+2+k+j*(640)))-idd.getped(); 
+          }
+          buildpreclusters(idd,len,id);
+         }
+       }
+     }
+     else if(tdrn<24){
+       // K Side
+       len=384;
+       for(j=0;j<4;j++){
+          int16u conn, tdrk;
+          if(tdrn%2 ==0){
+            if(j<2)conn=j+2;
+            else conn=j-2;
+          }
+          else {
+           if(j<2)conn=j+2;
+           else conn=j-2;
+           conn+= 4;
+          }
+          tdrk=(tdrn-16)/2;
+          int16u haddr=(10<<6) |( conn<<10) | (tdrk <<13);
+          AMSTrIdSoft idd(ic,haddr);
+         if(!idd.dead()){
+          // copy to local buffer and subtract peds
+          for(k=0;k<384;k++){
+           idd.upd(k);
+          id[k]=float(*(ptr+2+k+j*384))-idd.getped(); 
+          }
+          buildpreclusters(idd,len,id);
+         }
+       }
+     }
+     else {
+       cerr<<"trrawcluster::buildrawMixed-ETDRNOutOfRange "<<tdrn<<endl;
+     }
+     }
+     ptr+=lrec;
+     // Now reduced format
+     int rl=*ptr;
+     if(rl+lrec+2!=lreca){
+       cerr<<"trrawcluster::buildrawMixed-LengthMismatch All "<<lreca-2<<" Raw "<<lrec<<" Compressed "<<rl<<endl;
+     }
+     //  cout<<"mixed: "<<lreca-2<<" Raw "<<lrec<<" Compressed "<<rl<<endl;
+     if(DAQCFFKEY.TrFormatInDAQ%2){
+      int16u *p2=ptr;
+      int leng=0;
+      for(p2=ptr+2;p2<ptr+rl-1;p2+=leng+3){
+        leng=(*p2)&255;
+        AMSTrIdSoft id(ic,int16u(*(p2+1)));
+        if(!id.dead() ){
+          if(id.teststrip(id.getstrip()+leng)){
+            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
+            AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+leng,
+            (int16*)p2+2));
+            //cout <<" ok "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
+          }
+          else {
+            // split into two clusters;
+            //cout <<" split "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
+            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
+            AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getmaxstrips(),
+           (int16*)p2+2));
+            integer second=id.getstrip()+leng-id.getmaxstrips();
+            id.upd(0);
+            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
+            AMSTrRawCluster(id.getaddr(),id.getstrip(),second,
+            (int16*)p2+2+leng-second));
+          }
+        }
+        #ifdef __AMSDEBUG__
+        else cerr <<" AMSTrRawCluster::buildrawMixed-E-Id.Dead "<<id.gethaddr()<<endl;
+        #endif
+        //     cout <<"br- "<<ic<<" "<<id.getaddr()<<" "
+        // <<id.getstrip()<<" "<<leng<<" "<<*((int16*)p2+2)<<endl;
+      } 
+     }
+     ptr+=rl;
+     
+    }
+      ptr=ptro+subl;         // add one word
+      
+  }
+
+  // Get rid of K without S 
+
+  for (int crate=0;crate<2;crate++){
+   AMSTrRawCluster *pk=(AMSTrRawCluster*)AMSEvent::gethead()->
+    getheadC("AMSTrRawCluster",crate);
+   AMSTrRawCluster *pb=pk;
+    while(pk){
+       AMSTrIdSoft idk(pk->_address);
+       if(idk.getside()==0){
+        AMSTrRawCluster *ps=pb;
+        while(ps){
+          AMSTrIdSoft ids(ps->_address);
+          if(ids.getside()==1 && ids.getdrp()==idk.getdrp()&& ids.getlayer()==idk.getlayer()){
+            pk->setstatus(AMSTrRawCluster::MATCHED);
+            break;
+          }
+          ps=ps->next();
+        }          
+       } 
+       pk=pk->next();
+    }             
+
+  }
+         
+
+
+}
+
+
+
 
 void AMSTrRawCluster::buildpreclusters(AMSTrIdSoft & idd, integer len, geant id[]){
      // calc cmn noise
@@ -931,6 +1137,8 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
     //  cerr <<"updpedsRaw-E-bad event length, skipped "<<*ptr<<endl; 
     //  return;
     //}
+    integer subl=*ptr;
+    int16u *ptro=ptr;
     int ntdr=*(ptr+1) & 31; 
     ptr+=2;
     
@@ -998,7 +1206,7 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
      }
      ptr+=lrec;
     }
-    ptr+=3;
+    ptr=ptro+subl;
   }
 
 
@@ -1084,6 +1292,8 @@ void AMSTrRawCluster::updsigSRaw(integer n, int16u* p){
     //  cerr <<"updpedsRaw-E-bad event length, skipped "<<*ptr<<endl; 
     //  return;
     //}
+    integer subl=*ptr;
+    int16u *ptro=ptr;
     int ntdr=*(ptr+1) & 31; 
     ptr+=2;
     
@@ -1151,7 +1361,7 @@ void AMSTrRawCluster::updsigSRaw(integer n, int16u* p){
      }
      ptr+=lrec;
     }
-    ptr+=3;
+    ptr=ptro+subl;
   }
 
 
@@ -1289,6 +1499,8 @@ void AMSTrRawCluster::updstatusSRaw(integer n, int16u* p){
     //  cerr <<"updpedsRaw-E-bad event length, skipped "<<*ptr<<endl; 
     //  return;
     //}
+    integer subl=*ptr;
+    int16u *ptro=ptr;
     int ntdr=*(ptr+1) & 31; 
     ptr+=2;
     
@@ -1355,7 +1567,7 @@ void AMSTrRawCluster::updstatusSRaw(integer n, int16u* p){
      }
      ptr+=lrec;
     }
-    ptr+=3;
+    ptr=ptro+subl;
   }
 
 

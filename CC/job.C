@@ -1792,6 +1792,7 @@ if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProce
   }
   else{
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrIdCalib::buildSigmaPedB);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidMixed,&AMSTrIdCalib::buildSigmaPedB);
  
     if(TRMCFFKEY.GenerateConst){
     //Tracker ped/sigma etc ( "Event" mode)
@@ -1811,6 +1812,7 @@ else {
 if(DAQCFFKEY.LCrateinDAQ){
 //           tracker reduced
 
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidMixed,&AMSTrRawCluster::buildrawMixed);
     if(DAQCFFKEY.TrFormatInDAQ & 1)
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,

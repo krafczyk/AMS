@@ -552,12 +552,9 @@ AMSgObj::BookTimer.start("RETKEVENT");
 
 // do not reconstruct events without lvl3 if 
 // fast tracking or monitoring
-TriggerLVL3 *ptr=0;
-if(AMSJob::gethead()->isMonitoring() || TRFITFFKEY.FastTracking){
-ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
+TriggerLVL3 *ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
 
-}
-if(ptr && ptr->LVL3OK()){
+if(!AMSJob::gethead()->isMonitoring() || (ptr && ptr->LVL3OK())){
   AMSgObj::BookTimer.start("TrCluster");
   buildC("AMSTrCluster",refit);
   AMSgObj::BookTimer.stop("TrCluster");
