@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.37 2002/09/20 12:59:31 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.38 2002/09/20 13:12:17 choutko Exp $          
 
 
 0. In the current version only AMS02-setup is supported.
@@ -102,15 +102,6 @@ VII.  Standalone version
            setenv Offline /afs/cern.ch/exp/ams/Offline
            source $Offline/vdev/install/amsvar
 
-           
-           
-or (preferably)
-
-           get an afs ams.cern account   (ask a.klimentov@cern.ch)
-           klog{.krb} -pr username -cell ams.cern.ch (see man klog for the details,           you may need type pagsh{.krb} before in some cases)
-           setenv Offline /afs/ams.cern.ch/Offline
-           source $Offline/vdev/install/amsvar
-            
  
          
 
