@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.150 2003/03/12 16:38:01 choutko Exp $
+//  $Id: amsgeom.C,v 1.151 2003/03/14 11:11:29 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -184,14 +184,10 @@ if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 
 #ifdef  __G4AMS__
    //testg4geom(mother);
- trdgeom02(mother);
- ecalgeom02(mother);
- richgeom02(mother);
-#else
- trdgeom02(mother);
- ecalgeom02(mother);
- richgeom02(mother);
 #endif
+ trdgeom02(mother);
+ ecalgeom02(mother);
+ richgeom02(mother);
 }
 else{ 
  cerr <<" AMSGeom-F-Unknown setup selected. "<<AMSJob::gethead()->getsetup()<<endl;
@@ -1041,7 +1037,8 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant r13dx=184.9;//section 13(top) width(Should match to us1x1 !!!)
  geant r1dy=2.6;//thickness
  geant r13dz=58.;//height
- geant r1cy=(173.5+r1dy/2.);//Y0
+// geant r1cy=(173.5+r1dy/2.);//Y0
+ geant r1cy=(173.5+r1dy/2.+0.5);//Y0
  geant r1cx=0.;//X0 
  geant r13cz=81.5;//Z0
 //

@@ -1,6 +1,6 @@
-#  $Id: amsvar,v 1.30 2003/03/10 12:19:35 choutko Exp $
+#  $Id: amsvar,v 1.31 2003/03/14 11:12:52 choutko Exp $
 setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/new
-#setenv ROOTSYS /f2users/alexei/ROOT/v3.05.02gcc
+#setenv ROOTSYS /f2users/alexei/ROOT/v3.05.03gcc
 #setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/v3.03.09gcc2953
 #setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/v3.03.04
 set path=( $path . /usr/sbin $ROOTSYS/bin )
