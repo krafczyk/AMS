@@ -135,7 +135,7 @@ I 6   Print-flag(0)       // separate flag for TDC-hit multiplicity histograms(1
 I 7   Print-flag(0)       // if nonzero(=LBBS) permits fill stretcher w1/w3 histogr. for LBBS
 I 8   RECO logic-flag(0)  // Normal/STRR+AVSD/TDIF/TZSL/AMPL-calibr_run(if=0/1/2/3/4)
 I 9   RECO logic-flag(0)  // full_fTDC_usage/presence(noMatching)/do_not_use (if =0/1/2)
-I 10  RECO logic-flag(0)  // spare
+I 10  RECO logic-flag(0)  // if ==1 -> switch off side 2 in counters of layer 4.
 I 11  RECO logic-flag(0)  // spare
 I 12  RECO logic-flag(0)  // spare
 R 13  DAQ-thresh-1 (40)     // thresh.(mv) for fast t-discriminator (z>=1 trig)

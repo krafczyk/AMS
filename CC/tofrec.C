@@ -515,7 +515,7 @@ void AMSTOFRawCluster::build(int &ostatus){
 //
   rml4s2=0;
   if(TOFRECFFKEY.relogic[2]!=0)rml4s2=1;
-  if(AMSJob::gethead()->isRealData()!=0 && Runum>896888674)rml4s2=1;
+  if(AMSJob::gethead()->isRealData()!=0 && Runum>896888674 && Runum<900000000)rml4s2=1;
 //
 //    cout<<"TOF_Crate Temperatures :"<<endl;
 //    for(k=0;k<8;k++){ 
@@ -1681,7 +1681,8 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
 //
 //--------> find beta from TOF :
 //
-    if(Runum>896888674){
+    if(TOFRECFFKEY.relogic[2]!=0 || (AMSJob::gethead()->isRealData()!=0
+                                     && Runum>896888674 && Runum<900000000)){
       sigt[3]=0.16;// for good+FalseX
       if((status&16384)!=0)sigt[3]=0.248;//for FalseTOFX
     }

@@ -2221,6 +2221,10 @@ void TOFAMPLcalib::fit(){
   start[2]=0.28;
   start[3]=195.;
   start[4]=10.4;
+  if(AMSJob::gethead()->isMCData()){ // tempor solution for MC
+    start[3]=207.;
+    start[4]=5.;
+  }
   pstep[0]=10.;
   pstep[1]=10.;
   pstep[2]=0.1;

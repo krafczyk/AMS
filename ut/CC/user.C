@@ -10,7 +10,7 @@
 #include <event.h>
 #include <daqevt.h>
 void AMSUser::InitJob(){
-  TOFUser::InitJob();
+  if(!AMSJob::gethead()->isCalibration())TOFUser::InitJob();
 }
 
 void AMSUser::InitRun(){

@@ -250,7 +250,7 @@ void AMSTOFTovt::build()
     for(i=0;i<3000;i++){
 //      rnd=RNDM(dummy);
 //      am=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
-      am=seres+sesig*rnormx();
+      am=seres+sesig*rnormx();// tempor use simple goussian
       if(am<0)am=0;
       HF1(1111,am,1.);
     }
@@ -299,7 +299,7 @@ void AMSTOFTovt::build()
     y=cloc[1];
     z=cloc[2];
     if(time>=tmax){
-      //      cerr<<"TOF: Bad G-hit, id="<<id<<" t/de="<<time<<" "<<de<<'\n';
+      //      cout<<"TOF: Bad G-hit, id="<<id<<" t/de="<<time<<" "<<de<<'\n';
       ptr=ptr->next(); // next hit
       continue;
     }
@@ -548,7 +548,7 @@ void AMSTOFTovt::displ_a(const int id, const int mf, const geant arr[]){
     HBOOK1(1000,"PMT flash-ADC pulse (MC)",80,0.,80*tb,0.);
   }
   HRESET(1000," ");
-  cerr<<"PMT:counter-id = "<<id<<" (LBBS, L-layer, BB-bar, S-side)"<<'\n';
+  cout<<"PMT:counter-id = "<<id<<" (LBBS, L-layer, BB-bar, S-side)"<<'\n';
   for(i=1;i<=SCTBMX;i++){
     if(i%mf==0){
       a+=arr[i-1];
@@ -577,7 +577,7 @@ void AMSTOFTovt::displ_as(const int id, const int mf, const geant arr[]){
     tbi=TOFDBc::shaptb();
     HBOOK1(1001,"Shaper pulse (MC)",80,0.,80*tb,0.);
   }
-  cerr<<"SHP:counter-id = "<<id<<" (LBBS, L-layer, BB-bar, S-side)"<<'\n';
+  cout<<"SHP:counter-id = "<<id<<" (LBBS, L-layer, BB-bar, S-side)"<<'\n';
   HRESET(1001," ");
   for(i=1;i<=SCSBMX;i++){
     if(i%mf==0){
@@ -670,7 +670,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
 // -----> create/fill summary Tovt-object for idsoft=idd :
 //
         if(tslice[SCTBMX]>daqt0){
-          cerr<<"SITOFTovt-warning: MC_flash-ADC overflow, id="<<idd<<
+          cout<<"SITOFTovt-warning: MC_flash-ADC overflow, id="<<idd<<
              "  A-last= "<<tslice[SCTBMX]<<'\n';
 //          if(TOFMCFFKEY.mcprtf[2])AMSTOFTovt::displ_a(idd,125,tslice);//print PMT pulse
         }
@@ -940,7 +940,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
                   _nadca+=1;
                 }
                 else{
-                  cerr<<"AMSTOFTovt::build-warning: a-ADC hits ovfl"<<'\n';
+                  cout<<"AMSTOFTovt::build-warning: a-ADC hits ovfl"<<'\n';
                   updsh=2;//blockade on overflow
                 }
               }//end of out_of_gate
@@ -957,7 +957,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
                 _nadca+=1;
               }
               else{
-                cerr<<"AMSTOFTovt::build-warning: a-ADC hits ovfl"<<'\n';
+                cout<<"AMSTOFTovt::build-warning: a-ADC hits ovfl"<<'\n';
                 updsh=2;//blockade on overflow
               }
             } 
@@ -1029,7 +1029,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
                   _nadcd+=1;
                 }
                 else{
-                  cerr<<"AMSTOFTovt::build-warning: d-ADC hits ovfl"<<'\n';
+                  cout<<"AMSTOFTovt::build-warning: d-ADC hits ovfl"<<'\n';
                   updsh=2;//blockade on overflow
                 }
               }//end of out_of_gate
@@ -1046,7 +1046,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
                 _nadcd+=1;
               }
               else{
-                cerr<<"AMSTOFTovt::build-warning: d-ADC hits ovfl"<<'\n';
+                cout<<"AMSTOFTovt::build-warning: d-ADC hits ovfl"<<'\n';
                 updsh=2;//blockade on overflow
               }
             } 

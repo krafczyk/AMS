@@ -66,8 +66,8 @@ geant TOFDBc::_plnstr[15]={
 //
   geant TOFDBc::_edep2ph={8000.};// edep(Mev)-to-Photons convertion
   geant TOFDBc::_seresp=1.45;    // PMT Single elec.responce (MP=Mean,mV)
-  geant TOFDBc::_seresv=0.8;     // PMT Single elec.responce variance(relative to Mean)
-  geant TOFDBc::_fladctb=0.1;    // MC "flash-ADC" internal time binning (ns)
+  geant TOFDBc::_seresv=0.87;     // PMT Single elec.responce variance(relative to Mean)
+  geant TOFDBc::_fladctb=0.05;    // MC "flash-ADC" internal time binning (ns)
   geant TOFDBc::_shaptb=1.;      // MC shaper internal time binning (ns)
   geant TOFDBc::_shrtim=1.0;     // MC shaper pulse rise time (ns)(exp)
   geant TOFDBc::_shctim=600.;    // MC shaper pulse cut-time(gate width)(ns)
@@ -620,11 +620,9 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //
 // ---> read A-prof. parameters:
 //
- if(AMSJob::gethead()->isRealData()){// tempor only for Real events
    for(ibt=0;ibt<SCBTPN;ibt++){  // <-------- loop over bar-types
      for(i=0;i<SCPROFP;i++)gcfile >> aprofp[ibt][i];
    }
- }
 //
    gcfile.close();
 //   
@@ -712,20 +710,20 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //-->prepare position correction array (valid for local !!! r.c.):
 //
     mrfp=SCANPNT/2;//central point (coo=0.)
-    if(AMSJob::gethead()->isMCData()){// pos.corrections for MC
-      scmcscan[cnum].getefarr(ef1,ef2);//read eff1/2 from scmcscan-object
-      for(isp=0;isp<SCANPNT;isp++){ // fill 2-ends rel. l.output at scan-points
-        rlo[isp]=(ef1[isp]+ef2[isp])/(ef1[mrfp]+ef2[mrfp]);
-      }
-      if(ila==0 && (ibr==0 || ibr==1 || ibr==2 || ibr==3 || ibr==4)){
-        cout<<"MC: brt="<<brt<<endl;
-        for(isp=0;isp<SCANPNT;isp++){
-          cout<<rlo[isp]<<" "<<scp[isp]<<endl;;
-        }
-        cout<<endl;
-      }
-    }
-    else{// pos.correction for Real
+//    if(AMSJob::gethead()->isMCData()){// pos.corrections for MC
+//      scmcscan[cnum].getefarr(ef1,ef2);//read eff1/2 from scmcscan-object
+//      for(isp=0;isp<SCANPNT;isp++){ // fill 2-ends rel. l.output at scan-points
+//        rlo[isp]=(ef1[isp]+ef2[isp])/(ef1[mrfp]+ef2[mrfp]);
+//      }
+//      if(ila==0 && (ibr==0 || ibr==1 || ibr==2 || ibr==3 || ibr==4)){
+//        cout<<"MC: brt="<<brt<<endl;
+//        for(isp=0;isp<SCANPNT;isp++){
+//          cout<<rlo[isp]<<" "<<scp[isp]<<endl;;
+//        }
+//        cout<<endl;
+//      }
+//    }
+//    else{// pos.correction for Real
       for(i=0;i<5;i++)apr[i]=aprofp[brt-1][i];
       p1=aprofp[brt-1][0];
       p2=aprofp[brt-1][1];
@@ -739,14 +737,14 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
            +p2*(exp(-(hblen-scp[isp])/p4)+p3*exp(-(hblen-scp[isp])/p5));
         rlo[isp]=nom/denom;
       }
-      if(ila==0 && (ibr==0 || ibr==1 || ibr==2 || ibr==3 || ibr==4)){
-        cout<<"REAL: brt="<<brt<<endl;
-        for(isp=0;isp<SCANPNT;isp++){
-          cout<<rlo[isp]<<" ";
-        }
-        cout<<endl;
-      }
-    }
+//      if(ila==0 && (ibr==0 || ibr==1 || ibr==2 || ibr==3 || ibr==4)){
+//        cout<<"REAL: brt="<<brt<<endl;
+//        for(isp=0;isp<SCANPNT;isp++){
+//          cout<<rlo[isp]<<" ";
+//        }
+//        cout<<endl;
+//      }
+//    }
 //
     sid=100*(ila+1)+(ibr+1);
     strat[0][0]=strf[cnum][0];//stretcher param. from ext.file
@@ -1597,7 +1595,7 @@ void TOFJobStat::bookhistmc(){
       HBOOK1(1061,"Geant-Edep(mev) in layer-1",80,0.,240.,0.);
       HBOOK1(1062,"Geant-Edep(mev) in layer-3",80,0.,24.,0.);
       HBOOK1(1063,"Geant-Edep(mev) in layer-3",80,0.,240.,0.);
-      HBOOK2(1070,"Log(Qa) vs TovT,all channels",80,0.,320.,70,0.,8.4,0.);
+      HBOOK2(1070,"Log(Qa) vs TovT,all channels",80,0.,480.,70,0.,8.4,0.);
       HBOOK1(1071,"Total bar pulse-charge(pC),L-1",80,0.,1600.,0.);
       HBOOK1(1072,"Total bar pulse-charge(pC),L-1",80,0.,16000.,0.);
       HBOOK1(1073,"PMT-pulse amplitude(mV,id=108,s1)",80,0.,1000.,0.);
