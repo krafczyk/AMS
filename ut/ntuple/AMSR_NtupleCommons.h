@@ -11,7 +11,7 @@
 //#include "hbook.h"
 
 //static const int NWPAW=1000000;
-static const int NWPAW=2000000;
+static const int NWPAW=4000000;
 struct PAWC_DEF { float hmem[NWPAW]; };
 #define PAWC COMMON_BLOCK(PAWC,pawc)
 COMMON_BLOCK_DEF(PAWC_DEF,PAWC);

@@ -1,4 +1,6 @@
 #include "NtupleSelectorFor.h"
+#include <signal.h>
+#include <unistd.h>
 #include <iostream.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -76,9 +78,15 @@ class FileContainer
 };
 
 enum Bool { kFALSE=0, kTRUE=1 };
-
+void (handler)(int);           
 int main(int argc, char *argv[])
 {
+     *signal(SIGFPE, handler);
+     *signal(SIGCONT, handler);
+  //   *signal(SIGTERM, handler);
+  //   *signal(SIGINT, handler);
+     *signal(SIGQUIT, handler);
+     *signal(SIGUSR1, handler);
   int   idNull    = -1;
   int   ntupleID  = idNull; //initial value
   Bool  useBuffer = kFALSE;
@@ -373,3 +381,23 @@ int mySelect(struct dirent * entry)
 //   return 0;
 }
 
+void (handler)(int sig){
+  switch(sig){
+  case SIGFPE:
+//   cerr <<" FPE intercepted"<<endl;
+   break;
+  case SIGTERM: case SIGINT:
+    cerr <<" SIGTERM intercepted"<<endl;
+    break;
+  case SIGQUIT:
+    cerr <<" Process suspended"<<endl;
+    pause();
+    break;
+  case SIGCONT:
+      cerr <<" Process resumed"<<endl;
+      break;
+  case SIGUSR1:
+      cerr<< "New Run Forced"<<endl;
+      break;
+  }
+}
