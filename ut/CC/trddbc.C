@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.33 2003/03/25 12:21:12 choutko Exp $
+//  $Id: trddbc.C,v 1.34 2003/03/29 19:01:28 schol Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -300,10 +300,11 @@ const number  TRDDBc::_BulkheadWidth=0.3;
 const number  TRDDBc::_LadderThickness=2.9;
 const number  TRDDBc::_CutoutThickness=0.88;
 const number  TRDDBc::_CutoutWidth=10.2;
+const number  TRDDBc::_LadderRefRadius = 154.1/2.; // Ref radius for ladder calc
 const number  TRDDBc::_FirstLayerHeight = 1.7-0.05; // Distance of first layer-line from bottom (center of bottom main octagon skin)
 const number TRDDBc::_WirePosition = 0.725-0.05; // Distance of wire below layer-line (VC added 0.05 to compensate firstlayer -0.05, needs check)
 const number TRDDBc::_ManifoldThickness = 0.70; // Z-height of manifold
-const number TRDDBc::_ManifoldLength = 1.51/2; // Half Length of manifold along wire
+const number TRDDBc::_ManifoldLength = 1.15; // Length of manifold along wire
 const number TRDDBc::_ManifoldWidth = 10.1; // Width of manifold 
 const number TRDDBc::_BulkheadGap = 0.78; // Gap between ladders at bulkhead
 
@@ -900,10 +901,8 @@ void TRDDBc::init(){
 	    // This is the inner tangent radius of the octagon
             //  at the center of the side inner skin
 
-	    // Reset rmin here for check
 
-
-	    	    number r=rmin+2./20./cos(ang);
+       number r=LadderRefRadius()-2./20./cos(ang);
 
 	    // Height of the bottom of manifold for the layer
             // Measured above the top of the lower carbon skin
@@ -970,7 +969,7 @@ void TRDDBc::init(){
 	    // This octagon inner tangent circle radius to be
             // used for "90 deg" ladders.
  
-	    number r90 = r+lhgt*tang;
+	    number r90 = r+lhgt*tan(ang);
 
 	    // Length of octagon side at this given height
 
@@ -987,7 +986,7 @@ void TRDDBc::init(){
 	    //	    if (past_corner)
 	    
 	    int deg = 90;
-	    if (fabs(num_from_center)>=5)
+	    if (fabs(num_from_center)>=5 || (past_corner && (j<=3 || j>=16)))
 	      {
 		deg = 45;
 		//		cout <<"45 deg condition"<<endl;
@@ -1003,7 +1002,7 @@ void TRDDBc::init(){
                 // Inner tangent radius of center of HC octagon 
                 // at the height of the manifold bottom
 
-                number r45 =  r + lhgt*tang;
+                number r45 =  r + lhgt*tan(ang);
 
 		// Length of side of the octagon at this height
 
@@ -1022,12 +1021,13 @@ void TRDDBc::init(){
 	      {
 		//		cout<< "90 deg "<<r90<<" "<<past_corner<<endl;
 		// If center sticks out past the corner
-		//if (past_corner)
-		  //		  {
-		    //		    cout <<"Past corner!!"<<endl;
-		  //coo[2] = (r90-man_center)+a/2;
-		  //}
-		//else
+//		if (past_corner)
+//		  		  {
+		//
+//    		    cout <<"Past corner!!"<<endl;
+//		  coo[2] = (r90-man_center)+a/2;
+//		  }
+//		else
 		// Use r90
 		coo[2] = r90;
 		}
@@ -1036,16 +1036,23 @@ void TRDDBc::init(){
             // length up to halfway along the manifold, in mm
 
 
+           number length_to_compare = 20.*(coo[2]+ManifoldLength()/2.);
+
+
 	    // Add manifold length along wire
 
-	    coo[2]+= ManifoldLength();
+	    coo[2]+= ManifoldLength()/2.;
 
 	    // Full ladder length
 
 	    coo[2]*=2;
 	
-//	   cout <<j<<" "<<k<<" "<<j+1<<" "<<num_from_center<<" "<<deg<<" "<<past_corner<<" "<<coo[2]<<" "<<_LaddersLength[j][k]<<" "<<coo[2]-_LaddersLength[j][k]<<endl;
-            coo[2]=_LaddersLength[j][k];
+
+//	if (fabs(coo[2]-_LaddersLength[j][k])>0.01) cout<<"Error!"<<endl;
+//          cout <<j<<" "<<k<<" "<<j+1<<" "<<num_from_center<<" "<<deg<<" "<<past_corner<<" "<<coo[2]<<" "<<_LaddersLength[j][k]*10.<<" "<<length_to_compare<<" "<<coo[2]-_LaddersLength[j][k]<<endl;
+
+//            coo[2]=_LaddersLength[j][k];
+
 	    for(int l=0;l<3;l++)LaddersDimensions(i,j,k,l)=coo[l]/2;          
 	  }  
 	}

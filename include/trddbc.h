@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.15 2003/03/21 12:49:02 choutko Exp $
+//  $Id: trddbc.h,v 1.16 2003/03/29 19:01:52 schol Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>
@@ -76,6 +76,7 @@ private:
     static const number  _CutoutThickness;
     static const number  _CutoutWidth;
     static const number  _FirstLayerHeight;
+    static const number  _LadderRefRadius;
     static const number  _WirePosition;
     static const number  _ManifoldThickness;
     static const number  _ManifoldLength;
@@ -285,6 +286,7 @@ public:
     static  number  FirstLayerHeight(){return _FirstLayerHeight;}
     static  number  WirePosition(){return _WirePosition;}
     static  number  ManifoldThickness(){return _ManifoldThickness;}
+    static  number  LadderRefRadius(){return _LadderRefRadius;}
     static  number  ManifoldLength(){return _ManifoldLength;}
     static  number  ManifoldWidth(){return _ManifoldWidth;}
     static  number  BulkheadGap(){return _BulkheadGap;}
