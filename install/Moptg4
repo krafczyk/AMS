@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.70 2003/07/16 12:59:01 choutko Exp $
+#  $Id: Moptg4,v 1.71 2003/07/16 15:51:54 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -65,7 +65,7 @@ CP1F=-D__NAMESPACE__  -D__G4AMS__ -ieee   -use_std  -timplicit_local -D__USE_STD
 CP2F=-D__NAMESPACE__  -D__G4AMS__ -ieee  -use_std -timplicit_local -D__USE_STD_IOSTREAM
 endif
 endif
-XLDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm  -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
+XLDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm  -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lkernlib -lm
 ifeq "$(shell cxx -V | grep -c 5.5)" "1"
 CC=cxx
 endif
@@ -98,7 +98,7 @@ endif
 DFLAGS=    -g  -I../include
 CERNDIR = /f2dat1/CERN/2002/icc
 NAGDIR  = /f2dat1/NagLib
-XLDFLAGS=   -static -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib -lm -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc  -lamsut -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins 
+XLDFLAGS=   -static -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib -lm -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc  -lamsut -klernlib -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins 
 CC=icc  -D__NAMESPACE__ -D__G4AMS__
 FF=ifc
 LD=icc
@@ -131,7 +131,7 @@ FFLAGS=   -fno-automatic -O -I../include
 FFLAGSn=   -fno-automatic  -I../include
 endif
 DFLAGS=    -g   -I/usr/local/include/g++  -I../include 
-XLDFLAGS=   -static  -L$(ROOTSYS)/lib -lRoot -L/cern/pro/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c -ldl
+XLDFLAGS=   -static  -L$(ROOTSYS)/lib -lRoot -L/cern/pro/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lkernlib -lg2c -ldl
 ifndef LinuxBUG
 CC=g++  -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
 FF=g77
