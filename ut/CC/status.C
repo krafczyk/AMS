@@ -65,17 +65,17 @@ uinteger AMSStatus::getstatus(uinteger evt){
    cerr<<"AMSStatus::getstatus-E-NoMatchFound "<<out<<" "<<evt<<" "<<_Nelem<<endl;
    repeat++;
    AMSgObj::BookTimer.stop("EventStatus");
-   return (1<<32);
+   return (1<<31);
  }
  else if(repeat==10 ){
    cerr<<"AMSStatus::getstatus-E-NoMatchFoundLastMessage"<<out<<" "<<evt<<endl;
    repeat++;
    AMSgObj::BookTimer.stop("EventStatus");
-   return (1<<32);
+   return (1<<31);
  }
  else {
    AMSgObj::BookTimer.stop("EventStatus");
-   return (1<<32);
+   return (1<<31);
 }
 }
 
