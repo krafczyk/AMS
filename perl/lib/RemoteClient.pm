@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.268 2004/06/02 09:16:32 alexei Exp $
+# $Id: RemoteClient.pm,v 1.269 2004/06/03 09:23:50 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -10617,12 +10617,13 @@ if ($verbose) {
  }
 }   
 
-
-open(HISTORY,"$filename");
-while(<HISTORY>)
-{
+if (defined $filename) {
+ open(HISTORY,"$filename");
+ while(<HISTORY>)
+ {
 	my $comma = index($_,",");
 	my $run_num = substr($_,0,$comma-1);
+        $run_num = trimblanks($run_num);
 	my $old_comma = $comma;
 
 	$comma = index($_,",",$old_comma+1);
@@ -10635,19 +10636,40 @@ while(<HISTORY>)
 
 	$comma = index($_,",",$old_comma+1);
 	my $unixtime = substr($_,$old_comma+1);
-        
+        $unixtime=trimblanks($unixtime);
         if ($verbose) {
-	 print "Run, Cite, File, Time... $run_num, $site_prefix, $file_path, $unixtime \n";
+	 print "Cite, Run, Time... $cite, $run_num, $unixtime \n";
+         print "File... $site_prefix, $file_path   \n";
         }
         if ($update ==1) {
  	 $self->updateMCDSTCopy($run_num,$cite,$site_prefix,$file_path,$unixtime);
         }
-}
+ }
  close HISTORY;
+} else {
+    if (defined $run) {
+        $self->updateMCDSTCopyRun($run,$cite,$timestamp);
+    }
+}
+
  return 1;
 }
 
+sub updateMCDSTCopyRun {
+    my $self = shift;
+    my $run  = shift;
+    my $cite = shift;
+    my $unixtime  = shift;
 
+    $cite     = trimblanks($cite);
+    my $timestamp = time();
+
+    my $sql = "UPDATE MC_DST_Copy SET copytime=$unixtime, timestamp=$timestamp 
+               WHERE run=$run and cite='$cite'";
+     $self->{sqlserver}->Update($sql);
+
+    return 1;
+}
 
 sub updateMCDSTCopy {
     my $self = shift;
@@ -10667,14 +10689,14 @@ sub updateMCDSTCopy {
      $sql = "DELETE MC_DST_Copy WHERE PATH='$filepath' AND CITE='$cite'";
      $self->{sqlserver}->Update($sql);
 
-      my $timestamp = time();
+     my $timestamp = time();
 
      $sql = "INSERT INTO MC_DST_Copy VALUES($run,
                                             '$filepath',
                                             '$cite_prefix',
                                             $unixtime,
                                             '$cite',
-                                            $timestamp);";
+                                            $timestamp)";
     $self->{sqlserver}->Update($sql); 
   } else {
      print "updateRemoteCopy -W- could not find DST with path : $filepath \n";
