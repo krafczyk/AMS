@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.41 2002/03/27 18:43:04 choutko Exp $
+//  $Id: ecalrec.C,v 1.42 2002/03/28 15:13:01 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -2038,21 +2038,26 @@ void EcalShower::SphFit(){
    }
    number snorm=0;
    for (int j=0;j<2;j++){
+/*
      number th=atan2(_EMDir[_pCl[j]->getproj()],_Dir[2]);
      number cth=cos(th);
      number sth=sin(th);
+*/
      int over=_pCl[j]->getproj()==0?1:0;
    for (int i=0;i<_pCl[j]->getNClust();i++){
     Ecal1DCluster *p=_pCl[j]->getpClust(i);
     AMSPoint coo=p->getcoo();
     coo[over]=_EntryPoint[over];
     AMSDir e=coo-_EntryPoint;
+/*
     AMSPoint newdirp;
      newdirp[p->getproj()]=cth*e[p->getproj()]-sth*e[2];
      newdirp[over]=0;
      newdirp[2]=sth*e[p->getproj()]+cth*e[2];
      AMSDir newdir(newdirp);
     AMSPoint v=newdir*p->getEnergy();
+*/
+    AMSPoint v=e*p->getEnergy();
     for(int m=0;m<3;m++){
      for(int n=0;n<3;n++){
        sab[m][n]+=v[m]*v[n];

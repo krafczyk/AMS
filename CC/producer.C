@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.55 2002/03/28 14:33:43 choutko Exp $
+//  $Id: producer.C,v 1.56 2002/03/28 15:13:02 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -222,7 +222,7 @@ else{
      int i=system(cmd);
      if(i==0){
       writeable=true;
-      cmd+=getenv("NtupleDir");
+      cmd=ntd;
       cmd+="/qq";
       unlink((const char*)cmd);
      }
