@@ -1,8 +1,8 @@
 /* Monitoring of working processes */
 #include <sys/stat.h>
 #include <ctype.h>
-#include "xform_proc_3x3.h"
-int lll;
+#include "xform_proc_10comp.h"
+
 int open_log(int i, int mode);
 int open_elog(int i);
 int read_status();
@@ -29,36 +29,26 @@ pid_t pid;
   cpu_lim=50;
   N_lim_log_length=100000000;
   user_name="ams";
-
-
-  fp=fopen("/afs/cern.ch/user/a/ams/.xprocess","r");
-  if (fp==NULL) {
-    fclose(fp);
-     puts("read_status: cannot open status file\n");      
-    exit(1);
-  }
-  for (i=0; i<N_comp; i++) {
-    ch1=fgets(ch,256,fp);
-    if (feof(fp)){
-     fclose(fp);
-      puts("read_status: unexpected oef\n");      
-     exit(1);
-     }
-    token=strtok(ch,delim);
-    sprintf(host_name[i],token);
-  }
-
-
-
-  sprintf(names[0][0],"gbatch.");
-  sprintf(names[0][1],"gbatch.");
-  sprintf(names[0][2],"gbatch.");
-  sprintf(names[0][3],"gbatch.");
-  sprintf(names[0][4],"gbatch.");
-  sprintf(names[0][5],"gbatch.");
-  sprintf(names[0][6],"gbatch.");
-  sprintf(names[0][7],"gbatch.");
-
+  sprintf(host_name[0],"helium");
+  sprintf(host_name[1],"ahelium");
+  sprintf(host_name[2],"carbon");
+  sprintf(host_name[3],"acarbon");
+  sprintf(host_name[4],"proton");
+  sprintf(host_name[5],"afl3u1");
+  sprintf(host_name[6],"pcamsa0");
+  sprintf(host_name[7],"ams");
+  sprintf(host_name[8],"pcamsp1");
+  sprintf(host_name[9],"pcamsp0");
+  sprintf(names[0][0],"gbatch.exe");
+  sprintf(names[0][1],"gbatch.exe");
+  sprintf(names[0][2],"gbatch.exe");
+  sprintf(names[0][3],"gbatch.exe");
+  sprintf(names[0][4],"gbatch.exe");
+  sprintf(names[0][5],"gbatch.exe");
+  sprintf(names[0][6],"gbatch.exe");
+  sprintf(names[0][7],"gbatch.exe");
+  sprintf(names[0][8],"gbatch.exe");
+  sprintf(names[0][9],"gbatch.exe");
   pid=getpid();
   sprintf(a_name,"tmp.%d",pid);
   sprintf(temp_name,"temp.%d",pid);
@@ -141,8 +131,6 @@ pid_t pid;
         sprintf(ch,"rm %s",a_name);
         system(ch);
       END_stat:
-       lll=0;
-
       }
 
 
@@ -164,7 +152,7 @@ pid_t pid;
     CPU:
       count[0]=0;   
       if (strlen(names[0][j])>0) {
-        if (j<N_comp-3) 
+        if (j<N_comp-2) 
           sprintf(chbuf,"/usr/sue/bin/rsh %s ps -fe | grep %s > %s",host_name[j],names[0][j],a_name);
         else
           sprintf(chbuf,"/usr/sue/bin/rsh %s ps xuw | grep %s > %s",host_name[j],names[0][j],a_name);
@@ -361,13 +349,15 @@ pid_t pid;
         conn=1;
         while ((!feof(fp))&&(conn)) {
 	  ch1=fgets(chh[nn],256,fp);
-          if (nn>25)conn=0;
+          if (nn>25)
+            conn=0;
           if (ch1!=NULL) { 
             ch2=strrchr(chh[nn],'.');
             if (ch2!=NULL) {
-              if (strcmp(ch2,".hbk\n")==0)nn++;
+              if (strcmp(ch2,".hbk\n")==0)
+                nn++;
             }
-            else if(nn>0)nn--;
+            else nn--;
           }
 	}
         fclose(fp);
