@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.33 2003/09/26 11:06:52 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.34 2003/10/02 12:29:16 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -657,14 +657,19 @@ void AMSDisplay::PrintCB(){
 
 int  AMSDisplay::ReLoad(){
         static void *handle=0;
-//        static void *handle_ntuple=dlopen("/afs/cern.ch/exp/ams/offline/vdev/lib/linux/icc/ntuple.so",RTLD_NOW);
-        char cmd[]="g++ -I$ROOTSYS/include -c AMSNtupleSelect.C";
+        char *CC=getenv("CC");
+        if(!CC){
+          setenv("CC","g++",0);
+        }
+        char cmd[]="$CC -I$ROOTSYS/include -c AMSNtupleSelect.C";
         int $i=system(cmd);
         if(!$i){
-         char cmd1[]="g++ -shared AMSNtupleSelect.o -o libuser.so";
+         char cmd1[]="ld -init fgSelect  -shared AMSNtupleSelect.o -o libuser.so";
          $i=system(cmd1);
-         if(!$i){  
-           if(handle)dlclose(handle);
+         if( !$i){  
+           if(handle){
+             dlclose(handle);
+           }
            if(handle=dlopen("libuser.so",RTLD_NOW)){
               return 0;
            }

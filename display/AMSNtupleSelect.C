@@ -1,9 +1,7 @@
 #include "AMSNtupleHelper.h"
-extern void* gAMSUserFunction;
-extern AMSNtupleHelper* AMSNtupleHelper::fgHelper;
 class AMSNtupleSelect: public AMSNtupleHelper{
 public:
-AMSNtupleSelect(){cout <<"hhhhhhh"<<endl;};
+AMSNtupleSelect(){};
 bool IsGolden(AMSEventR *ev){
 // 
 // This is a user function to be modified
@@ -13,7 +11,7 @@ bool IsGolden(AMSEventR *ev){
 // if(ev && ev->nParticle()>0 && ev->nRichRing()>0){
    for(int i=0;i<ev->nParticle();i++){
     if(ev->pParticle(i)->Particle==1){
-     cout <<" found photon "<<i<<" "<<ev->pParticle(i)->Momentum<<endl;
+     cout <<" foundd particle "<<ev->pParticle(i)->Particle<<" "<<ev->pParticle(i)->Momentum<<endl;
      return true;  
     }
    }
@@ -27,17 +25,11 @@ bool IsGolden(AMSEventR *ev){
 }
 };
 
-class AMSNtupleSelectI{
-public:
-AMSNtupleSelectI(){
- void ** cp=(void**)0x812e44c;
+//
+//  The code below should not be modified
+//
+
+extern "C" void fgSelect(){
   AMSNtupleHelper::fgHelper=new AMSNtupleSelect(); 
-  cout <<(void*)&AMSNtupleHelper::fgHelper<<" "<<gAMSUserFunction<<endl; 
+  cout <<"  Handle Loaded "<<endl;
 }
-};
-AMSNtupleSelectI fgSelect;
-bool AMSNtupleHelper::IsGolden(AMSEventR *o){
-return true;
-}
-
-

@@ -29,6 +29,7 @@ ld -v \
     -lcrypt \
     -L \
     /usr/X11R6/lib \
+    -Bstatic \
     -lXpm \
     -lXmu \
     -lXt \
