@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.29 2003/03/21 12:48:57 choutko Exp $
+//  $Id: trddbc.C,v 1.30 2003/03/21 13:22:15 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -300,8 +300,8 @@ const number  TRDDBc::_BulkheadWidth=0.3;
 const number  TRDDBc::_LadderThickness=2.9;
 const number  TRDDBc::_CutoutThickness=0.88;
 const number  TRDDBc::_CutoutWidth=10.2;
-const number  TRDDBc::_FirstLayerHeight = 1.65; // Distance of first layer-line from bottom (center of bottom main octagon skin)
-const number TRDDBc::_WirePosition = 0.725; // Distance of wire below layer-line
+const number  TRDDBc::_FirstLayerHeight = 1.7-0.05; // Distance of first layer-line from bottom (center of bottom main octagon skin)
+const number TRDDBc::_WirePosition = 0.725-0.05; // Distance of wire below layer-line (VC added 0.05 to compensate firstlayer -0.05, needs check)
 const number TRDDBc::_ManifoldThickness = 0.70; // Z-height of manifold
 const number TRDDBc::_ManifoldLength = 1.51/2; // Half Length of manifold along wire
 const number TRDDBc::_ManifoldWidth = 10.2; // Width of manifold 
