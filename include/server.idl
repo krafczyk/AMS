@@ -10,7 +10,7 @@ module DPS{
    enum ErrorType{Info,Warning,Error,Severe};
    enum ClientStatus{Lost,Unknown,Submitted,Registered,Active,TimeOut,Killed};
    enum ClientStatusType{Permanent,OneRunOnly};
-   enum ClientType{Generic,Server,Consumer,Producer,Monitor,Killer,DBServer,ODBServer};
+   enum ClientType{Generic,Server,Consumer,Producer,Monitor,Killer,DBServer,ODBServer,Standalone};
    enum ClientExiting{NOP,CInExit,SInExit,CInAbort,SInAbort,SInKill};
    enum HostStatus{NoResponse,InActive,LastClientFailed,OK};
 

@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.78 2003/04/03 10:15:59 kscholbe Exp $
+//  $Id: ntuple.h,v 1.79 2003/04/07 08:49:14 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -342,7 +342,7 @@ public:
   int Ladder[MAXTRDCLMC];
   int Tube[MAXTRDCLMC];
   int ParticleNo[MAXTRDCLMC];
-  int TrackNo[MAXTRDCLMC];
+//  int TrackNo[MAXTRDCLMC];
   float Edep[MAXTRDCLMC];
   float Ekin[MAXTRDCLMC];
   float Xgl[MAXTRDCLMC][3];

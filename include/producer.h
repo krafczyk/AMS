@@ -1,4 +1,4 @@
-//  $Id: producer.h,v 1.16 2002/03/26 21:21:58 choutko Exp $
+//  $Id: producer.h,v 1.17 2003/04/07 08:49:14 choutko Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__
@@ -16,6 +16,7 @@ static AMSProducer * _Head;
 bool _OnAir;
 bool _FreshMan;
 bool _Local;
+bool _Solo;
 bool _RemoteDST;
 DPS::Producer::CurrentInfo _cinfo;
 DPS::Producer::DST   _ntend[2];  // 0 - ntuple 1 -root
@@ -33,6 +34,7 @@ static AMSProducer* gethead(){return _Head;}
 DPS::Producer::DST * getdst(DPS::Producer::DSTType type);
 bool & OnAir(){return _OnAir;}
 bool  IsLocal(){return _Local;}
+bool  IsSolo(){return _Solo;}
 bool getior(const char * getiorvar);
 void AddEvent();
 void UpdateARS();

@@ -1,4 +1,4 @@
-//  $Id: client.h,v 1.20 2002/03/26 21:21:58 choutko Exp $
+//  $Id: client.h,v 1.21 2003/04/07 08:49:14 choutko Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
 #include <typedefs.h>
@@ -35,6 +35,7 @@ uinteger _LastServiceTime;
  int _MaxDBProcesses;
  CORBA::ORB_var _orb;
  fstream _fbin;
+ fstream _fbin2;
  DPS::Client::CID _pid;
  DPS::Client::ClientExiting _exit;
  void _openLogFile(char * prefix);
@@ -65,6 +66,7 @@ DPS::Client::ClientExiting & ExitReason(){return _exit;}
 void FMessage(const char * ch, DPS::Client::ClientExiting res);
 void EMessage(const char * ch);
 void IMessage(const char * ch);
+void LMessage(const char * ch);
 virtual void Exiting(const char * message=0)=0;
 static char * print(const DPS::Producer::TDVTableEntry & a, const char *m=" ");
 static char * print(const DPS::Producer::TDVName & a, const char *m=" ");
