@@ -1124,15 +1124,17 @@ void AMSTOFRawCluster::build(int &ostatus){
   cosi=sqrt(1.+tgx*tgx+tgy*tgy);// this is 1/cos(theta) !!!
   trlen13=(zcb[0]-zcb[2])*cosi;//1->3
   trlen24=(zcb[1]-zcb[3])*cosi;//2->4
-  td13=(tcorr[0]-tcorr[2])*130./trlen13;// tormalized to 130cm distance
-  td24=(tcorr[1]-tcorr[3])*130./trlen24;// tormalized to 130cm distance
+  td13=(tcorr[0]-tcorr[2]);
+  td24=(tcorr[1]-tcorr[3]);
   td14=tuncorr[0]-tuncorr[3];
 //
   if(TOFRECFFKEY.reprtf[2]>0 || 
      (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
       HF1(1532,td13,1.);//ToF for L0->L2
       HF1(1534,td24,1.);//ToF for L1->L3
-      HF1(1544,(td13-td24),1.);
+      gdt=(td13/trlen13-td24/trlen24)*146.6;// normalized to 146.6cm dist. for AMS02
+//                                                           (130cm for AMS01)
+      HF1(1544,gdt,1.);
       if(TOFRECFFKEY.reprtf[2]>1){ 
         for(il=0;il<SCLRS;il++){// fill de/dx hist. for each bar
           ib=brnl[il];

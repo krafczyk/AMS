@@ -105,7 +105,7 @@ if(_fixeddir){
   _coo=AMSPoint(x+lx*RNDM(d),y+ly*RNDM(d),z+lz*RNDM(d));
  }
 }
-else {
+else {   // <--- random dir
  geant d;
  phi=2*AMSDBc::pi*RNDM(d);
  theta=sqrt((double)RNDM(d));
@@ -140,10 +140,36 @@ else {
   number lx=xb-xa;
   number ly=yb-ya;
   number lz=zb-za;
+//  number zanti=49.;// uncoment for fast tests (not for accept.calculations !)
+//  number ranti=54.;
+//  number zcal=-141.;
+//  number calhs=30.;//cal.half-size(-5cm from edge)
+//  number xin,yin,dxy,xcr,ycr;
  switch(curp){
  case 1:
+//   while(1){ //<-- loop to check crossings with top/bot anti(magnet) holes and calor.
+//     phi=2*AMSDBc::pi*RNDM(d);
+//     theta=sqrt((double)RNDM(d));
+//     theta=acos(theta);
+//     xin=xa+lx*RNDM(d);
+//     yin=ya+ly*RNDM(d);
+//     dxy=(zb-zanti)*sin(theta); // cr.with anti-top
+//     xcr=xin+dxy*cos(phi);
+//     ycr=yin+dxy*sin(phi);
+//     if((xcr*xcr+ycr*ycr)>(ranti*ranti))continue;
+//     dxy=(zb+zanti)*sin(theta); // cr.with anti-bot
+//     xcr=xin+dxy*cos(phi);
+//     ycr=yin+dxy*sin(phi);
+//     if((xcr*xcr+ycr*ycr)>(ranti*ranti))continue;
+//     dxy=(zb-zcal)*sin(theta); // cr.with calor-top
+//     xcr=xin+dxy*cos(phi);
+//     ycr=yin+dxy*sin(phi);
+//     if((fabs(xcr)>calhs) || (fabs(ycr)>calhs))continue;
+//     break;
+//   }
   _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
   _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),zb);
+//  _coo=AMSPoint(xin,yin,zb);
   break;
  case 2:  
   _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),cos(theta));

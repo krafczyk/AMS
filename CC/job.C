@@ -541,12 +541,12 @@ FFKEY("CTCMC",(float*)&CTCMCFFKEY,sizeof(CTCMCFFKEY_DEF)/sizeof(integer),"MIXED"
 void AMSJob::_siantidata(){
   ANTIGEOMFFKEY.scradi=54.385; // internal radious of ANTI sc. cylinder (cm)
   ANTIGEOMFFKEY.scinth=1.;     // thickness of scintillator (cm)
-  ANTIGEOMFFKEY.scleng=83.;    // scintillator paddle length (glob. Z-dim)
+  ANTIGEOMFFKEY.scleng=83.;    //(ams01) scintillator paddle length (glob. Z-dim)
   ANTIGEOMFFKEY.wrapth=0.04;   // wrapper thickness (cm)
   ANTIGEOMFFKEY.groovr=0.45;   // groove radious (bump_rad = groove_rad-pdlgap)
   ANTIGEOMFFKEY.pdlgap=0.1;   // inter paddle gap (cm)(2*wrapth+extra)
   ANTIGEOMFFKEY.stradi=54.235; // inner radious of supp. tube
-  ANTIGEOMFFKEY.stleng=83.;    // length of supp. tube
+  ANTIGEOMFFKEY.stleng=83.;    // (ams01)length of supp. tube
   ANTIGEOMFFKEY.stthic=0.12;   // thickness of supp. tube
   
 //---
@@ -759,7 +759,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.mon[0]=0;
   TOFRECFFKEY.mon[1]=0;
   TOFRECFFKEY.year[0]=96;
-  TOFRECFFKEY.year[1]=99;
+  TOFRECFFKEY.year[1]=105;
   FFKEY("TOFREC",(float*)&TOFRECFFKEY,sizeof(TOFRECFFKEY_DEF)/sizeof(integer),
   "MIXED");
 
@@ -780,8 +780,8 @@ void AMSJob::_retofdata(){
 //
 // AMPL-calibration:
   TOFCAFFKEY.truse=1; // (12) 1/-1-> to use/not tracker
-  TOFCAFFKEY.plhc[0]=2.8;// (13) track mom. low limit(gev/c) for space calibr
-  TOFCAFFKEY.plhc[1]=100.;// (14) track mom. high limit(gev/c) ..............
+  TOFCAFFKEY.plhc[0]=0.;// (13) track mom. low limit(gev/c) for space calibr
+  TOFCAFFKEY.plhc[1]=500.;// (14) track mom. high limit(gev/c) ..............
   TOFCAFFKEY.minev=50;// (15)min.events needed for measurement in channel or bin
   TOFCAFFKEY.trcut=0.75;// (16) cut to use for "truncated average" calculation
   TOFCAFFKEY.refbid[0]=201;//(17) ref.bar id's list (LBB) for btype=1->5
@@ -826,7 +826,7 @@ void AMSJob::_reantidata(){
   ANTIRECFFKEY.mon[0]=0;
   ANTIRECFFKEY.mon[1]=0;
   ANTIRECFFKEY.year[0]=96;
-  ANTIRECFFKEY.year[1]=99;
+  ANTIRECFFKEY.year[1]=105;
   FFKEY("ANRE",(float*)&ANTIRECFFKEY,sizeof(ANTIRECFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
   ANTICAFFKEY.cfvers=2; // (01-99) vers.number NN for antiverlistNN.dat file
@@ -856,7 +856,7 @@ void AMSJob::_rectcdata(){
   CTCRECFFKEY.mon[0]=0;
   CTCRECFFKEY.mon[1]=0;
   CTCRECFFKEY.year[0]=96;
-  CTCRECFFKEY.year[1]=99;
+  CTCRECFFKEY.year[1]=105;
   FFKEY("CTCREC",(float*)&CTCRECFFKEY,sizeof(CTCRECFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
   CTCCAFFKEY.cfvers=2; // (01-99) vers.number NN for ctcverlistNN.dat file

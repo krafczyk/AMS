@@ -289,6 +289,14 @@ extern "C" void gustep_(){
   if(GCTRAK.destep != 0  && GCTMED.isvol != 0 && manti==1){
      GBIRK(dee);
      AMSAntiMCCluster::siantihits(numv,GCTRAK.vect,dee,GCTRAK.tofg);
+//     HF1(1510,geant(iprt),1.);
+  }
+//
+//  ECAL, temp. by E.C.
+  int mecal(0);
+  if(lvl==3 && GCVOLU.names[lvl][0]== 'E' && GCVOLU.names[lvl][1]=='C'
+                                       && GCVOLU.names[lvl][2]=='_')mecal=1;
+  if(GCTRAK.destep != 0 && mecal==1){
   }
   GSKING(0);
 #ifndef __BATCH__

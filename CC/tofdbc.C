@@ -41,7 +41,7 @@ integer TOFDBc::_plrotm[SCLRS]={
 };
 //---> honeycomb supporting str. data:
 geant TOFDBc::_supstr[10]={
-   59.9,    // i=1    Z-coo of TOP honeycomb (BOT-side)
+   59.9,    // i=1    Z-coo of TOP honeycomb (BOT-side)(68.3 for AMS02)
   -59.9,    //  =2    Z-coo    BOT           (TOP     )
    0.,0.,  //  =3,4  X/Y-shifts of TOP honeycomb centre in Mother r.s.
    0.,0.,  //  =5,6                BOT

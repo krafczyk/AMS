@@ -1503,8 +1503,8 @@ void AMSEvent:: _sitrigevent(){
 void AMSEvent:: _retrigevent(){
   // Backup solution to "simulate" trigger 1 & 3 for rec data
   
-   if(LVL1FFKEY.RebuildLVL1)TriggerLVL1::build();
-   if(LVL3FFKEY.RebuildLVL3)TriggerLVL3::build();
+//   if(LVL1FFKEY.RebuildLVL1)TriggerLVL1::build();
+//   if(LVL3FFKEY.RebuildLVL3)TriggerLVL3::build();
 }
 
 

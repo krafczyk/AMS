@@ -153,6 +153,7 @@ mat.add (new AMSgmat( 36,"FOAM",12.01, 6., 0.1 , 425.82, 900.));
   geant w[]={1.,2.};
 mat.add (new AMSgmat(37,"PMT_WINDOW",a,z,w,2,2.64));
 }
+//
 
 
 
@@ -277,9 +278,13 @@ for(iw=0;iw<44;iw++)
 }
 
 GSCKOV(16,44,p,abs_l,dummy,index);
-
 }
-
+//-------------------
+// Light lead for ECAL test :
+{
+mat.add (new AMSgmat(45,"LIGHTLEAD",207.19,82., 6.36 ,1.,32.5));
+}
+//-------------------
 #ifdef __AMSDEBUG__
 if(AMSgmat::debug)GPMATE(0);
 #endif
@@ -295,17 +300,22 @@ tmed.add (new AMSgtmed(7,"NONACTIVE_SILICON",22));
 tmed.add (new AMSgtmed(8,"CARBON",6,0));
 tmed.add (new AMSgtmed(9,"ELECTRONICS",6,0));
 //
+{
 geant birks[]={1.,0.013,9.6e-6};
 tmed.add (new AMSgtmed(10,"TOF_SCINT",21,1,'Y',birks,1,5,10,
                        -0.25, -1, 0.001, -0.05));
+}
 //(for tof_scint.: max_step=0.25cm/autom, min_step=0.05cm/autom )
+//
+{
+geant birks[]={1.,0.013,9.6e-6};
+tmed.add (new AMSgtmed(11,"ANTI_SCINT",21,1,'Y',birks));
+}
 //
 tmed.add (new AMSgtmed(12,"TOF_HONEYCOMB",24,0));
 tmed.add (new AMSgtmed(13,"TOF_PMT_BOX",25,0));
 tmed.add (new AMSgtmed(14,"TOF_SC_COVER",26,0));
 tmed.add (new AMSgtmed(15,"IRON",10,0));
-//
-tmed.add (new AMSgtmed(11,"ANTI_SCINT",21,1,'Y',birks));
 //
 tmed.add (new AMSgtmed(16,"CTC_WLS",27,1));
 //
@@ -334,14 +344,12 @@ geant birks[]={1.,0.013,9.6e-6};
 tmed.add (new AMSgtmed(27,"BGO",34,1,'Y',birks));
 }
 int ip=27;
-tmed.add (new AMSgtmed(++ip,"Tr_Honeycomb",35,0));
-tmed.add (new AMSgtmed(++ip,"Tr_Foam",36,0));
+tmed.add (new AMSgtmed(++ip,"Tr_Honeycomb",35,0));//28
+tmed.add (new AMSgtmed(++ip,"Tr_Foam",36,0));//29
 
-tmed.add (new AMSgtmed(++ip,"ATC_PTAE",31,0));
-tmed.add (new AMSgtmed(++ip,"TOF_PMT_WINDOW",37,1));
-//
-
-
+tmed.add (new AMSgtmed(++ip,"ATC_PTAE",31,0));//30
+tmed.add (new AMSgtmed(++ip,"TOF_PMT_WINDOW",37,1));//31
+//---------------
 // RICH media
 
 {
@@ -349,8 +357,13 @@ tmed.add (new AMSgtmed(++ip,"TOF_PMT_WINDOW",37,1));
   tmed.add (new AMSgtmed(++ip,"RICH MIRRORS",39,0));//33
   tmed.add (new AMSgtmed(++ip,"RICH WALLS",41,0)); //34
   tmed.add (new AMSgtmed(++ip,"RICH PMTS",40,0));   //35
+// DON'T use media numbers above 39 !!!!
 }
-
+//---------------
+//  ECAL nedia
+//
+tmed.add (new AMSgtmed(40,"EC_DUMMYMOTH",45,0));// tempor for ECAL test(not sens !!!)
+//---------------
 AMSgObj::GTrMedMap.map(tmed);
 #ifdef __AMSDEBUG__
 if(AMSgtmed::debug)AMSgObj::GTrMedMap.print();

@@ -23,13 +23,13 @@ extern TOFVarp tofvpar;// TOF general parameters
 //
 //=======================================================================
 void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
-  integer i,ilay,ibar,nbrl[SCLRS],brnl[SCLRS],bad,status,sector;
+  integer i,ilay,ibar,nbrl[SCLRS],brnl[SCLRS],bad,status,sector,nanti(0);
   integer il,ib,ix,iy,chan;
   geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cost,cosc;
   number ama[2],amd[2],coo[SCLRS],coot[SCLRS],cstr[SCLRS],dx,dy;
   number tovta1[SCLRS],tovta2[SCLRS],tovtd1[SCLRS],tovtd2[SCLRS];
   geant elosa[SCLRS],elosd[SCLRS];
-  number am1[SCLRS],am2[SCLRS],am1d[SCLRS],am2d[SCLRS],am[2],eanti(0);
+  number am1[SCLRS],am2[SCLRS],am1d[SCLRS],am2d[SCLRS],am[2],eanti(0),eacl;
   geant ainp[2],dinp[2],cinp;
   number ltim[SCLRS],tdif[SCLRS],trle[SCLRS],trlr[SCLRS];
   number fpnt,bci,sut,sul,sul2,sutl,sud,sit2,tzer,chsq,betof,lflgt;
@@ -78,32 +78,31 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
     ptr=ptr->next();
   }// --- end of hits loop --->
 //
-//------> Select events with bars/layer=1 :
+//------> check  bars/layer=1 :
   bad=0;
   for(i=0;i<SCLRS;i++)if(nbrl[i] != 1)bad=1;
-  if(bad==1)return; // remove events with bars/layer != 1
-  TOFJobStat::addre(12);
 //
 // -----> check Anti-counter :
   eanti=0;
-  while (ptra){ // <--- loop over AMSTOFRawCluster hits
+  nanti=0;
+  while (ptra){ // <--- loop over AMSANTIRawCluster hits
     status=ptra->getstatus();
     if(status==0){ //select only good hits
       sector=(ptra->getsector())-1;
+      eacl=ptra->getedep();
       eanti=eanti+(ptra->getedep());
+      if(eacl>eacut)nanti+=1;
+      if(TOFRECFFKEY.reprtf[2]>0)HF1(1503,geant(eacl),1.);
     }
     ptra=ptra->next();
   }// --- end of hits loop --->
-  if(TOFRECFFKEY.reprtf[2]>0)HF1(1503,geant(eanti),1.);
-  if(eanti>eacut)return;// remove events with big signal in Anti
+  if(TOFRECFFKEY.reprtf[2]>0)HF1(1505,geant(nanti),1.);
 //
-// -----> remove albedo and very slow part. :
-//
-  lflgt=2.*TOFDBc::supstr(1)+TOFDBc::supstr(7);
-  betof=2.*lflgt/(ltim[0]+ltim[1]-ltim[2]-ltim[3])/cvel;//uderestim.raw TOFbeta
-  if(betof<0.1)return;
-//
+//  if(eanti>eacut)return;// remove events with big signal in Anti
+  if(nanti>1)return;// remove events with >1 sector(e>ecut) in Anti
   TOFJobStat::addre(13);
+  if(bad==1)return; // remove events with bars/layer != 1
+  TOFJobStat::addre(12);
 //
   for(i=0;i<SCLRS;i++){
     HF1(5040+i,geant(brnl[i]+1),1.);
@@ -246,8 +245,8 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
     if(chsq>6. || betof<0.3)return;//cut on chi2/beta
 //
     geant td13,td24;
-    td13=tdif[2]*130./trle[2];// tormalized to 130cm distance
-    td24=(ltim[1]-ltim[3])*130./(trle[3]-trle[1]);// tormalized to 130cm distance
+    td13=tdif[2]*146.6/trle[2];// normalized to 146.6cm distance
+    td24=(ltim[1]-ltim[3])*146.6/(trle[3]-trle[1]);// normalized to 146.6cm distance
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1504,(td13-td24),1.);
 //
     HF1(1507,geant(chargeTOF),1.);
@@ -256,44 +255,44 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
 //
     geant *pntr[SCLRS];
     geant avera[4],averd[2];
-    if(betof>0.9){ // dE/dX only relativistic particles
-      for(il=0;il<SCLRS;il++){
-        HF1(5001+il,sqrt(elosa[il]/1.8),1.);
-        HF1(5011+il,sqrt(elosd[il]/1.8),1.);
-      }
+//    if(betof>0.9){ // dE/dX only relativistic particles
+//      for(il=0;il<SCLRS;il++){
+//        HF1(5001+il,sqrt(elosa[il]/1.8),1.);
+//        HF1(5011+il,sqrt(elosd[il]/1.8),1.);
+//      }
 //                  ---> look at truncated averages :
-      for(il=0;il<SCLRS;il++)pntr[il]=&elosa[il];//pointers to layer edep's 
-      AMSsortNAG(pntr,SCLRS);//sort in increasing order
-      avera[0]=(*pntr[0]);// lowest
-      avera[1]=avera[0]+(*pntr[1]);// sum of 2 lowest
-      avera[2]=avera[1]+(*pntr[2]);//        3 lowest
-      avera[3]=avera[2]+(*pntr[3]);// average
-      avera[1]/=2.;
-      avera[2]/=3.;
-      avera[3]/=4.;
-      if(elosd[2]<=0.)elosd[2]=9999.;
-      if(elosd[3]<=0.)elosd[3]=9999.;
-      averd[0]=0.;
-      averd[1]=0.;
-      if(elosd[2]<9999. || elosd[3]<9999.){
-        averd[0]=elosd[2];// lowest of 2 dynodes(l=3,4)
-        if(elosd[2]>elosd[3])averd[0]=elosd[3];
-      }
-      if(elosd[2]<9999. && elosd[3]<9999.)averd[1]=(elosd[2]+elosd[3])/2.;
-      for(il=0;il<SCLRS;il++)HF1(5005+il,avera[il],1.);
-      if(averd[0]>0.)HF1(5015,averd[0],1.);
-      if(averd[1]>0.)HF1(5016,averd[1],1.);
-      if(avera[0]>0.)HF1(5020,log(avera[0])/2.303,1.);
-      if(avera[1]>0.)HF1(5021,log(avera[1])/2.303,1.);
-      if(avera[2]>0.)HF1(5022,log(avera[2])/2.303,1.);
-      if(averd[0]>0.)HF1(5023,log(averd[0])/2.303,1.);
-      HF1(5030,sqrt(avera[0]/1.8),1.);// eff.Z
-      HF1(5031,sqrt(avera[1]/1.8),1.);
-      HF1(5032,sqrt(avera[2]/1.8),1.);
-      HF1(5033,sqrt(avera[3]/1.8),1.);
-      if(averd[0]>0.)HF1(5034,sqrt(averd[0]/1.8),1.);
-      if(averd[1]>0.)HF1(5035,sqrt(averd[1]/1.8),1.);
-    }
+//      for(il=0;il<SCLRS;il++)pntr[il]=&elosa[il];//pointers to layer edep's 
+//      AMSsortNAG(pntr,SCLRS);//sort in increasing order
+//      avera[0]=(*pntr[0]);// lowest
+//      avera[1]=avera[0]+(*pntr[1]);// sum of 2 lowest
+//      avera[2]=avera[1]+(*pntr[2]);//        3 lowest
+//      avera[3]=avera[2]+(*pntr[3]);// average
+//      avera[1]/=2.;
+//      avera[2]/=3.;
+//      avera[3]/=4.;
+//      if(elosd[2]<=0.)elosd[2]=9999.;
+//      if(elosd[3]<=0.)elosd[3]=9999.;
+//      averd[0]=0.;
+//      averd[1]=0.;
+//      if(elosd[2]<9999. || elosd[3]<9999.){
+//        averd[0]=elosd[2];// lowest of 2 dynodes(l=3,4)
+//        if(elosd[2]>elosd[3])averd[0]=elosd[3];
+//      }
+//      if(elosd[2]<9999. && elosd[3]<9999.)averd[1]=(elosd[2]+elosd[3])/2.;
+//      for(il=0;il<SCLRS;il++)HF1(5005+il,avera[il],1.);
+//      if(averd[0]>0.)HF1(5015,averd[0],1.);
+//      if(averd[1]>0.)HF1(5016,averd[1],1.);
+//      if(avera[0]>0.)HF1(5020,log(avera[0])/2.303,1.);
+//      if(avera[1]>0.)HF1(5021,log(avera[1])/2.303,1.);
+//      if(avera[2]>0.)HF1(5022,log(avera[2])/2.303,1.);
+//      if(averd[0]>0.)HF1(5023,log(averd[0])/2.303,1.);
+//      HF1(5030,sqrt(avera[0]/1.8),1.);// eff.Z
+//      HF1(5031,sqrt(avera[1]/1.8),1.);
+//      HF1(5032,sqrt(avera[2]/1.8),1.);
+//      HF1(5033,sqrt(avera[3]/1.8),1.);
+//      if(averd[0]>0.)HF1(5034,sqrt(averd[0]/1.8),1.);
+//      if(averd[1]>0.)HF1(5035,sqrt(averd[1]/1.8),1.);
+//    }
 //
     return;
 //
@@ -306,11 +305,13 @@ void TOFUser::InitJob(){
     HBOOK1(1501,"Particle beta(tracker)",80,0.5,1.,0.);
     HBOOK1(1502,"Particle beta(tof)",80,0.7,1.2,0.);
     HBOOK1(1504,"T13-T24(ns,high momentum)",80,-4.,4.,0.);
-    HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,40.,0.);
+    HBOOK1(1503,"AntiRawCluster energy(mev)",80,0.,20.,0.);
+    HBOOK1(1505,"Number of AntiRawClusters",20,0.,20.,0.);
     HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
     HBOOK1(1507,"TOF-charge",10,0.,10.,0.);
     HBOOK1(1508,"Ttacker-charge",10,0.,10.,0.);
     HBOOK2(1509,"TOF-ch vs Tracker-ch",10,0.,10.,10,0.,10.,0.);
+    HBOOK1(1510,"Anti-hit part.index",50,0.,50.,0.);
     HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
     HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
     HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
@@ -321,30 +322,30 @@ void TOFUser::InitJob(){
     HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
     HBOOK1(1205,"Chisq (tof-beta-fit)",50,0.,10.,0.);
     HBOOK1(1206,"Tzer (tof-beta-fit)",50,-2.5,2.5,0.);
-      HBOOK1(5001,"Anode SQRT(dE/dX/Mip), L=1",100,0.,10.,0.);
-      HBOOK1(5002,"Anode SQRT(dE/dX/Mip), L=2",100,0.,10.,0.);
-      HBOOK1(5003,"Anode SQRT(dE/dX/Mip), L=3",100,0.,10.,0.);
-      HBOOK1(5004,"Anode SQRT(dE/dX/Mip), L=4",100,0.,10.,0.);
-      HBOOK1(5011,"Dynode SQRT(dE/dX/Mip), L=1",100,0.,10.,0.);
-      HBOOK1(5012,"Dynode SQRT(dE/dX/Mip), L=2",100,0.,10.,0.);
-      HBOOK1(5013,"Dynode SQRT(dE/dX/Mip), L=3",100,0.,10.,0.);
-      HBOOK1(5014,"Dynode SQRT(dE/dX/Mip), L=4",100,0.,10.,0.);
-    HBOOK1(5005,"Anode dE/dX(mev),1/4",80,0.,32.,0.);
-    HBOOK1(5006,"Anode dE/dX(mev),2/4",80,0.,32.,0.);
-    HBOOK1(5007,"Anode dE/dX(mev),3/4",80,0.,32.,0.);
-    HBOOK1(5008,"Anode dE/dX(mev),4/4",80,0.,32.,0.);
-    HBOOK1(5015,"Dynode dE/dX(mev),1/2",80,0.,32.,0.);
-    HBOOK1(5016,"Dynode dE/dX(mev),2/2",80,0.,32.,0.);
-    HBOOK1(5020,"Anode Log10(dE/dX(mev)),1/4",80,-0.2,2.2,0.);
-    HBOOK1(5021,"Anode Log10(dE/dX(mev)),2/4",80,-0.2,2.2,0.);
-    HBOOK1(5022,"Anode Log10(dE/dX(mev)),3/4",80,-0.2,2.2,0.);
-    HBOOK1(5023,"Dynode Log10(dE/dX(mev)),1/2",80,-0.2,2.2,0.);
-    HBOOK1(5030,"Anode Z , 1/4",100,0.,10.,0.);
-    HBOOK1(5031,"Anode Z , 2/4",100,0.,10.,0.);
-    HBOOK1(5032,"Anode Z , 3/4",100,0.,10.,0.);
-    HBOOK1(5033,"Anode Z , 4/4",100,0.,10.,0.);
-    HBOOK1(5034,"Dynode Z , 1/2",100,0.,10.,0.);
-    HBOOK1(5035,"Dynode Z , 2/2",100,0.,10.,0.);
+//      HBOOK1(5001,"Anode SQRT(dE/dX/Mip), L=1",100,0.,10.,0.);
+//      HBOOK1(5002,"Anode SQRT(dE/dX/Mip), L=2",100,0.,10.,0.);
+//      HBOOK1(5003,"Anode SQRT(dE/dX/Mip), L=3",100,0.,10.,0.);
+//      HBOOK1(5004,"Anode SQRT(dE/dX/Mip), L=4",100,0.,10.,0.);
+//      HBOOK1(5011,"Dynode SQRT(dE/dX/Mip), L=1",100,0.,10.,0.);
+//      HBOOK1(5012,"Dynode SQRT(dE/dX/Mip), L=2",100,0.,10.,0.);
+//      HBOOK1(5013,"Dynode SQRT(dE/dX/Mip), L=3",100,0.,10.,0.);
+//      HBOOK1(5014,"Dynode SQRT(dE/dX/Mip), L=4",100,0.,10.,0.);
+//    HBOOK1(5005,"Anode dE/dX(mev),1/4",80,0.,32.,0.);
+//    HBOOK1(5006,"Anode dE/dX(mev),2/4",80,0.,32.,0.);
+//    HBOOK1(5007,"Anode dE/dX(mev),3/4",80,0.,32.,0.);
+//    HBOOK1(5008,"Anode dE/dX(mev),4/4",80,0.,32.,0.);
+//    HBOOK1(5015,"Dynode dE/dX(mev),1/2",80,0.,32.,0.);
+//    HBOOK1(5016,"Dynode dE/dX(mev),2/2",80,0.,32.,0.);
+//    HBOOK1(5020,"Anode Log10(dE/dX(mev)),1/4",80,-0.2,2.2,0.);
+//    HBOOK1(5021,"Anode Log10(dE/dX(mev)),2/4",80,-0.2,2.2,0.);
+//    HBOOK1(5022,"Anode Log10(dE/dX(mev)),3/4",80,-0.2,2.2,0.);
+//    HBOOK1(5023,"Dynode Log10(dE/dX(mev)),1/2",80,-0.2,2.2,0.);
+//    HBOOK1(5030,"Anode Z , 1/4",100,0.,10.,0.);
+//    HBOOK1(5031,"Anode Z , 2/4",100,0.,10.,0.);
+//    HBOOK1(5032,"Anode Z , 3/4",100,0.,10.,0.);
+//    HBOOK1(5033,"Anode Z , 4/4",100,0.,10.,0.);
+//    HBOOK1(5034,"Dynode Z , 1/2",100,0.,10.,0.);
+//    HBOOK1(5035,"Dynode Z , 2/2",100,0.,10.,0.);
 //
     HBOOK1(5040,"L=1,Fired bar number",14,1.,15.,0.);
     HBOOK1(5041,"L=2,Fired bar number",14,1.,15.,0.);
@@ -413,31 +414,33 @@ void TOFUser::EndJob(){
   HPRINT(1205);
   HPRINT(1206);
   HPRINT(1503);
+  HPRINT(1505);
+  HPRINT(1510);
   for(i=0;i<SCLRS;i++)HPRINT(5040+i);
-  for(i=0;i<SCLRS;i++)HPRINT(5001+i);
-  for(i=0;i<SCLRS;i++)HPRINT(5011+i);
-  for(i=0;i<SCLRS;i++)HPRINT(5005+i);
-  HPRINT(5015);
-  HPRINT(5016);
-  HIDOPT(5020,chopt1);
-  HPRINT(5020);
-  HIDOPT(5021,chopt1);
-  HPRINT(5021);
-  HIDOPT(5022,chopt1);
-  HPRINT(5022);
-  HIDOPT(5023,chopt1);
-  HPRINT(5023);
-  HIDOPT(5030,chopt1);
-  HPRINT(5030);
-  HIDOPT(5031,chopt1);
-  HPRINT(5031);
-  HIDOPT(5032,chopt1);
-  HPRINT(5032);
-  HIDOPT(5033,chopt1);
-  HPRINT(5033);
-  HIDOPT(5034,chopt1);
-  HPRINT(5034);
-  HIDOPT(5035,chopt1);
-  HPRINT(5035);
+//  for(i=0;i<SCLRS;i++)HPRINT(5001+i);
+//  for(i=0;i<SCLRS;i++)HPRINT(5011+i);
+//  for(i=0;i<SCLRS;i++)HPRINT(5005+i);
+//  HPRINT(5015);
+//  HPRINT(5016);
+//  HIDOPT(5020,chopt1);
+//  HPRINT(5020);
+//  HIDOPT(5021,chopt1);
+//  HPRINT(5021);
+//  HIDOPT(5022,chopt1);
+//  HPRINT(5022);
+//  HIDOPT(5023,chopt1);
+//  HPRINT(5023);
+//  HIDOPT(5030,chopt1);
+//  HPRINT(5030);
+//  HIDOPT(5031,chopt1);
+//  HPRINT(5031);
+//  HIDOPT(5032,chopt1);
+//  HPRINT(5032);
+//  HIDOPT(5033,chopt1);
+//  HPRINT(5033);
+//  HIDOPT(5034,chopt1);
+//  HPRINT(5034);
+//  HIDOPT(5035,chopt1);
+//  HPRINT(5035);
   return;
 }

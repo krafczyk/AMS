@@ -1,6 +1,7 @@
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
+// Primitive(tempor) ECAL Geometry E. Choumilov 14-07-1999 
 // Passive Shield Geometry V. Choutko 22-jul-1996
 // CTC (Cherenkov Thresh. Counter) geometry E.Choumilov 26-sep-1996
 // ATC (Aerogel Threshold Cerenkov) geometry A.K.Gougas 14-Mar-1997
@@ -13,6 +14,7 @@
 #include <tofdbc.h>
 #include <ctcdbc.h>
 #include <antidbc.h>
+#include <ecaldbc.h>
 #include <gmat.h>
 #include <extC.h>
 #include <stdlib.h>
@@ -2404,8 +2406,43 @@ void trdgeom02(AMSgvolume & mother){
 void antigeom02(AMSgvolume & mother){
    antigeom(mother);
 }
+//------------------------------------------------------------
 void ecalgeom02(AMSgvolume & mother){
+//
+  geant par[6]={0.,0.,0.,0.,0.,0.};
+  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+  number nrm1[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};
+  number nrm2[3][3]={0.,-1.,0.,1.,0.,0., 0.,0.,1.};// for rotated layers (90degr)
+  geant coo[3]={0.,0.,0.};
+  geant dx1,dy1,dx2,dy2,dz,xpos,ypos,zpos;
+  integer i,nrot,gid(0);
+  AMSNode * pECmother;
+//
+  dx1=ECALDBc::gendim(1);// x-size at -DZ
+  dx2=ECALDBc::gendim(2);// x-size at +DZ
+  dy1=ECALDBc::gendim(3);// y-size at -DZ
+  dy2=ECALDBc::gendim(4);// y-size at +DZ
+  dz=ECALDBc::gendim(5);// Z-size
+  xpos=ECALDBc::gendim(6);// x-pos
+  ypos=ECALDBc::gendim(7);// y-pos
+  zpos=ECALDBc::gendim(8)-dz/2.;// z-pos
+//
+// create Ecal mother volume as trapezoid TRD2:
+//
+  par[0]=dx1/2.;
+  par[1]=dx2/2.;
+  par[2]=dy1/2.;
+  par[3]=dy2/2.;
+  par[4]=dz/2.;
+  coo[0]=xpos;
+  coo[1]=ypos;
+  coo[2]=zpos;
+  gid=100;
+  pECmother=mother.add(new AMSgvolume(
+       "EC_DUMMYMOTH",0,"ECDM","TRD2",par,5,coo,nrm1,"ONLY",0,gid,1));
+  cout<<"AMSGEOM: ECAL-geometry done!"<<endl;
 }
+//------------------------------------------------------------
 void srdgeom02(AMSgvolume & mother){
 }
 void richgeom02(AMSgvolume & mother)
