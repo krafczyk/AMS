@@ -1241,6 +1241,7 @@ integer AMSTrTrack::build(integer refit){
 
   for (int pat=0;pat<npat;pat++){
     if(patpoints[pat]==3 && ThreePointNotWanted)continue;
+    //cout << patpoints[pat]<<"  " <<ThreePointNotWanted<<endl;
     AMSTrRecHit * phit[6]={0,0,0,0,0,0};
     if(TRFITFFKEY.pattern[pat]){
       int fp=patpoints[pat]-1;    
@@ -2695,6 +2696,7 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
     AMSTrRecHit * phit[6]={0,0,0,0,0,0};
     if(TRFITFFKEY.pattern[pat]){
     if(patpoints[pat]==3 && ThreePointNotWanted)continue;
+    //cout << patpoints[pat]<<"  " <<ThreePointNotWanted<<endl;
       int fp=patpoints[pat]-1;    
       // Try to make StrLine Fit
       integer first=AMSTrTrack::patconf[pat][0]-1;

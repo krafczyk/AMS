@@ -530,7 +530,9 @@ SELECT   // Choose run & event
 
 I 1 run number                      // Run number
 I 2 event(position) number          // Event (if > 0) Position(<0)
-
+I 3 File                            // File with selected events
+                                    // format ascii Run Event
+                                     
 
 
 

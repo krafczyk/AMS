@@ -6,6 +6,7 @@
 //
 #ifndef __AMSEVENT__
 #define __AMSEVENT__
+#include <fstream.h>
 #include <job.h>
 #include <typedefs.h>
 #include <upool.h>
@@ -50,6 +51,23 @@ private:
     uinteger  Cond;  //  Position no
     float BeamSize;  //beam size in cm;
  };
+ class EventId{
+    public:
+    uinteger Run;
+    uinteger Event;
+  EventId(uinteger run=0, uinteger event=0):Run(run),Event(event){};
+ int operator !=(const EventId & o)const{
+   return Run!=o.Run || Event!=o.Event ;
+ }
+ int operator < (const EventId & o) const{
+    if(Run<o.Run)return 1;
+    else if(o.Run<Run)return 0;
+    else{
+     if(Event<o.Event)return 1;
+     else return 0;
+    }
+ }
+ };
 
 uinteger _status;
 uinteger _run;
@@ -75,6 +93,7 @@ static AMSEvent * _Head;
 static AMSNodeMap EventMap;
 static ShuttlePar Array[60];
 static BeamPar ArrayB[60];
+static EventId * _SelectedEvents;
 void _copyEl();
 void _writeEl();
 void _init();
@@ -159,6 +178,7 @@ AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMS
 ~AMSEvent(){_Head=0;}
 void _printEl(ostream & stream);
 void loc2gl();
+static void setfile(char file[]);
 static integer IsTest();
 static void SetShuttlePar();
 static AMSEvent * gethead()  {return _Head;}

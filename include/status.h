@@ -45,6 +45,7 @@ public:
   integer   getnextok();
   static void UpdateStatusTableDB();
   uinteger getstatus(uinteger evt, uinteger run);
+  void geteventpos(uinteger run, uinteger evt, uinteger curevent);
   static void create();
   static void init();
   static void setmode(integer mode){_Mode=mode;}

@@ -320,7 +320,7 @@ c
         call hf1(101,r,1.)
         cuts(2)=r.lt.20.
         if(cuts(2))then
-         cuts(3)=chi2circle(iptr).lt.2.5.and.
+         cuts(3)=chi2circle(iptr).lt.1.and.
      +   chi2fastfit(iptr).lt.10.
          call hf1(201,chi2circle(iptr),1.)
          call hf1(202,chi2fastfit(iptr),1.)

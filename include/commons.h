@@ -39,6 +39,7 @@ class SELECTFFKEY_DEF {
 public:
 integer Run;
 integer Event;
+integer File[40];
 };
 #define SELECTFFKEY COMMON_BLOCK(SELECTFFKEY,selectffkey)
 COMMON_BLOCK_DEF(SELECTFFKEY_DEF,SELECTFFKEY);

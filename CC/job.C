@@ -119,6 +119,7 @@ void AMSJob::data(){
 
   SELECTFFKEY.Run=0;
   SELECTFFKEY.Event=0;
+  VBLANK(SELECTFFKEY.File,40);
   FFKEY("SELECT",(float*)&SELECTFFKEY,sizeof(SELECTFFKEY_DEF)/sizeof(integer),"MIXED");
 
   { 
@@ -334,8 +335,8 @@ TRCALIB.MomentumCut[1][0]=3;
 TRCALIB.MomentumCut[1][1]=FLT_MAX;
 TRCALIB.MomentumCut[2][0]=0.4;
 TRCALIB.MomentumCut[2][1]=2.5;
-TRCALIB.MomentumCut[3][0]=-FLT_MAX;
-TRCALIB.MomentumCut[3][1]=FLT_MAX;
+TRCALIB.MomentumCut[3][0]=0.1;
+TRCALIB.MomentumCut[3][1]=10;
 TRCALIB.Chi2Cut[0]=3;
 TRCALIB.Chi2Cut[1]=3;
 TRCALIB.Chi2Cut[2]=100;
@@ -916,6 +917,8 @@ char tdvname[1601];
 char ffile[cl];
 char ifile[cl];
 char ofile[cl];
+char sfile[cl];
+UHTOC(SELECTFFKEY.File,cl/sizeof(integer),sfile,cl-1);
 UHTOC(DAQCFFKEY.ifile,cl/sizeof(integer),ifile,cl-1);
 UHTOC(DAQCFFKEY.ofile,cl/sizeof(integer),ofile,cl-1);
 UHTOC(AMSFFKEY.Jobname,cl/sizeof(integer),jobname,cl-1);
@@ -939,6 +942,10 @@ for (i=cl-2; i>=0; i--) {
 }
 for (i=cl-2; i>=0; i--) {
  if(ifile[i] == ' ') ifile[i]='\0';
+ else break;
+}
+for (i=cl-2; i>=0; i--) {
+ if(sfile[i] == ' ') sfile[i]='\0';
  else break;
 }
 for (i=cl-2; i>=0; i--) {
@@ -1000,6 +1007,7 @@ if(DAQCFFKEY.mode){
    DAQEvent::setfiles(ifile,ofile);
    DAQEvent::init(DAQCFFKEY.mode);
 }
+  AMSEvent::setfile(sfile);
 
 
 
@@ -1041,6 +1049,9 @@ if(AMSFFKEY.Update){
         getsetup()<< "yet "<<endl;
     }
        AMSTrIdSoft::init();
+
+
+     // Select run stuff
 
 }
 

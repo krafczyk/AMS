@@ -6,7 +6,7 @@ FORTRAN/FILE 98 la.eps
 METAFILE -98 -111
 pic/plot ' '
 close 98
-shell xprint -P32_l3_a  la.eps
+shell xprint -P32_l3_d  la.eps
 METAFILE 0
 EXIT:  
 return

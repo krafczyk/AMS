@@ -28,6 +28,8 @@ integer Pattern;
 integer Alg;
 geant FCN;
 geant FCNI;
+geant Pfit;
+geant Pfitsig;
 geant Coo[6][3];
 geant Angle[6][3];
 };
@@ -127,10 +129,14 @@ AMSTrCalibData * _pData;
 integer _Algorithm;
 integer _flag;    // 
 number _tmp;
+number _tmppav;
+number _tmppsi;
 integer _NLad;    // Ladder No
 integer _Pid;   // presumed particleid 
 number* _fcn;   // pointer to fcns;
 number* _fcnI;   // pointer to fcns;
+number *_pfit;  //pointer to fitterd mom
+number *_pfits;  //pointer to fitterd mom sigma
 AMSTrCalibPar * _pParC[6];       // pointer to fitted current par
 static  AMSTrCalibFit  * _pCalFit[nalg][tkcalpat];
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)

@@ -5600,7 +5600,7 @@ c              pinit=abs(pinit)
              else
              pinit=1000
              endif
-             if(ialgo/10.eq.1)pinit=1/out(1)
+             if(ialgo/10.eq.1)pinit=1/out(1)*chrg
              x(1)=xp(1,1)
              x(2)=nx/nz
              x(3)=xp(2,1)

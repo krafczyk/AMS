@@ -885,6 +885,34 @@ for (int i=0;;){
 }
 //------------------------------------------------------------------
 void AMSEvent::event(){
+  // First Selected Events
+  if(_SelectedEvents){
+    if(_SelectedEvents->Run==0){
+       GCFLAG.IEORUN=1;
+       GCFLAG.IEOTRI=1;
+       return;
+    }
+    else{
+      EventId o(getrun(),getid());
+      if(_SelectedEvents->Run > o.Run){
+         if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=2;
+         return;
+      }
+      else if(*_SelectedEvents < o){
+       while(*_SelectedEvents<o){
+         cerr<<"AMSEvent::event-E-SelectedRunEventNotFound"<<_SelectedEvents->Run<<" "<<_SelectedEvents->Event<<endl;
+         _SelectedEvents++;
+       }
+         if(_SelectedEvents->Run!=o.Run)return;
+       }
+       if(o!=*_SelectedEvents){
+         AMSJob::gethead()->getstatustable()->geteventpos(_SelectedEvents->Run,_SelectedEvents->Event,o.Event);
+         return;
+       }
+       _SelectedEvents++;
+       
+      }
+    }
     AMSgObj::BookTimer.start("EventStatus");
   if(STATUSFFKEY.status[32]){
     integer ok=AMSJob::gethead()->getstatustable()->statusok(getid(),getrun());
@@ -1001,7 +1029,7 @@ void AMSEvent::_catkevent(){
 int i,j;
 for(i=0;i<nalg;i++){
   if(TRCALIB.Method==0 || TRCALIB.Method==i){
-   for(j=0;j<tkcalpat;j++){
+   for(j=TRCALIB.PatStart;j<tkcalpat;j++){
      if(AMSTrCalibFit::getHead(i,j)->Test()){
       AMSgObj::BookTimer.start("CalTrFit");
       AMSTrCalibFit::getHead(i,j)->Fit();
@@ -2250,4 +2278,58 @@ integer AMSEvent::IsTest(){
  if(MISCFFKEY.BeamTest || AMSmceventg::fixeddir() || AMSmceventg::fixedmom() ||
     CCFFKEY.low)return 1;
  else return 0;   
+}
+
+AMSEvent::EventId * AMSEvent::_SelectedEvents=0;
+
+void AMSEvent::setfile(char file[]){
+  if(strlen(file)){
+    ifstream ifile;
+    ifile.open(file);
+    if(ifile){
+     // get total number of lines;
+     int nline=0;
+     EventId o;
+     while(1){
+      ifile >>o.Run >>o.Event;
+      ifile.ignore(INT_MAX,'\n');        
+      if(ifile.eof())break;
+      if(o.Run && o.Event)nline++;
+     }    
+     if(nline>0){ 
+       int nar=nline+1;
+       _SelectedEvents=new EventId[nar];
+       if(_SelectedEvents){
+         cout << " AMSEvent::setfile-I-SelectedEventsFound "<<nline<<endl;
+         ifile.close();
+         ifile.open(file);
+         nline=0;
+         if(ifile){ 
+          while(1){
+                ifile >>o.Run >> o.Event;
+                ifile.ignore(INT_MAX,'\n');        
+                if(ifile.eof())break;
+                if(o.Run && o.Event)_SelectedEvents[nline++]=o;
+          }
+          if(nar!=nline+1){
+           cerr<<"AMSEvent::setfile-F-LogicError "<<nar<< " "<<nline+1<<endl;
+           exit(1);
+          }
+          // order
+          AMSsortNAGa(_SelectedEvents,nline);
+          _SelectedEvents[nline].Run=0;
+          _SelectedEvents[nline].Event=0;
+          SELECTFFKEY.Run=_SelectedEvents[0].Run;
+          SELECTFFKEY.Event=-1;
+
+         }
+       }
+       else cerr<<" AMSEvent::setfile-E-UnableToAllMemory for "<<nline<< 
+       "events"<<endl;
+     }
+    }
+    else{
+      cerr<<"AMSEvent::setfile-E-UnableToOpenFile" <<file<<endl;
+    }
+  }
 }

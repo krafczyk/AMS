@@ -121,28 +121,40 @@
 *
 *--   Enter user code here
 *
+      vector ista(1)
+      vector nonzerob(10000)
+      integer ladder(6),half(6)
+      vector ioffset(6),ihalf(6),icumulus(6)
       integer position(14,14)
       logical cuts(10)      
       integer init,wide
+      vector iar1(999999)
+c      vector iar2(999999)
        integer idsofttr(5,200)
       parameter(nchx=384)
       parameter(nchy=642)
       if(init.eq.0)then
-        trigacc=0.34
-        if(trigacc.lt.0.5)then
-         open(20,file='pos.dat',form='formatted')
-        else
-         open(20,file='pos.07.dat',form='formatted')
-        endif
-        read(20,*)position
-        close(20)
-        cc=0
-        do i=1,14
-         do j=1,14
-          if(position(j,i).eq.1)cc=cc+1
-         enddo
-        enddo 
-        write(*,*)cc, ' trigger combinations found'
+        do i=1,999999
+          if(ista(1).lt.4)iar1(i)=0
+c          iar2(i)=0
+        enddo
+        ioffset(1)=7
+        ioffset(2)=4
+        ioffset(3)=4
+        ioffset(4)=4
+        ioffset(5)=4
+        ioffset(6)=7
+        ihalf(1)=4
+        ihalf(2)=6
+        ihalf(3)=6
+        ihalf(4)=6
+        ihalf(5)=6
+        ihalf(6)=3
+        icumulus(1)=1
+        do i=2,6
+         icumulus(i)=icumulus(i-1)*(2*ihalf(i-1)+1)
+         write(*,*)i,icumulus(i)
+        enddo
          call hbook1(2,'Nparticles',20,-0.5,19.5,0.)
          call hbook1(11,'Trclusters',200,-0.5,199.5,0.)
          call hbook1(12,'TOFclusters',50,-0.5,49.5,0.)
@@ -248,12 +260,12 @@
          call hbook1(1014,'k.e. before',20,0.1,4.1,0.)
          call hbook1(11013,'k.e. before',50,0.15,5.15,0.)
          call hbook1(11014,'k.e. before',20,0.1,4.1,0.)
-         do i=1,23
-          call hbook1(21000+(i-1),'x',100,-80.,80.,0.)
-          call hbook1(22000+(i-1),'y',100,-80.,80.,0.)
-          call hbook1(23000+(i-1),'theta',100,0.,180.,0.)
-          call hbook1(24000+(i-1),'phi',100,0.,360.,0.)
-         enddo
+ccc         do i=1,1200
+c          call hbook1(21000+i,'x',80,-80.,80.,0.)
+c          call hbook1(23000+i,'y',80,-80.,80.,0.)
+c          call hbook1(25000+i,'theta',80,-1.,1.,0.)
+c          call hbook1(27000+i,'phi',80,-1.,1.,0.)
+c         enddo
         init=1
         return
       endif
@@ -292,7 +304,47 @@
       enddo
       if(npart.gt.0.and.pcharge(1).eq.2.)then
       call hf1(2,float(npart),1.)
-      if(npart.eq.1)then
+      goto 777
+      if(npart.eq.1.and.beta(pbetap(1)).gt.0.8)then
+        iptr=ptrackp(1)
+        iad=0
+        nl=0
+        n16=0
+        do i=1,nhits(iptr)
+         ila=layer(phits(i,iptr))
+         ipy=py(phits(i,iptr))
+         if(ila.eq.1.or.ila.eq.6)n16=1
+         if(ipy.lt.500)then
+          nl=nl+1
+          if(idsofttr(4,ipy).gt.1)write(*,*)idsofttr(4,ipy)
+          lad=idsofttr(2,ipy)-ioffset(ila)+idsofttr(4,ipy)*
+     +    (ihalf(ila)+1)
+          iad=iad+icumulus(ila)*lad
+          endif
+        enddo
+         nl=nl-n16
+         if(nl.ge.4)then
+          if(ista(1).eq.4)then
+          do j=1,1200
+          if(iad.eq.nonzerob(j))then
+            call hf1(21000+j,cootof(1,1,1),1.)
+            call hf1(23000+j,cootof(2,1,1),1.)
+            call hf1(25000+j,sin(ptheta(1))*cos(pphi(1)),1.)
+            call hf1(27000+j,sin(ptheta(1))*sin(pphi(1)),1.)
+           endif
+          enddo
+           endif
+          if(iad.lt.1000000)then
+           if(ista(1).eq.1) iar1(iad)=iar1(iad)+1
+         else if(iad.lt.1999999)then 
+           if(ista(1).eq.2)iar1(iad-999999)=iar1(iad-999999)+1
+         else if(ista(1).eq.3)then
+           if(ista(1).eq.3)
+     +     iar1(iad-999999-999999)=iar1(iad-999999*2)+1 
+         endif
+         endif
+        return 
+ 777               continue
 *
 * Trigger
 *
@@ -446,6 +498,7 @@ c                   cuts(8)=.true.
                       write(*,*)run,eventno,pmass(1),pmom(1),pcharge(1),
      +               probtof(pcharge(1)+1,1)*probtracker(pcharge(1)+1,1)
      +               ,pattern(iptr)
+                     write(26,*)run,eventno,pmass(1),pmom(1)
                      call hf1(961,float(pattern(iptr)),1.)
                      call hf1(21001+pattern(iptr),cootof(1,1,1),1.)
                      call hf1(22001+pattern(iptr),cootof(2,1,1),1.)
@@ -652,3 +705,13 @@ c                     write(*,*)itra(i)
 
 
 
+           subroutine decode(iaddr, ladder,half)
+                integer   ladder(6),half(6)         
+                vector ioffset(6),ihalf(6),icumulus(6)
+                do i=1,6
+                  lad=mod(iaddr/icumulus(i),2*ihalf(i)+1)
+                  ladder(i)=ioffset(i)+mod(lad,ihalf(i)+1)
+                  half(i)=lad/(ihalf(i)+1) 
+c                  write(*,*)i,lad,ladder(i),half(i)
+                enddo
+            end

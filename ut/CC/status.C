@@ -100,6 +100,35 @@ uinteger AMSStatus::getstatus(uinteger evt, uinteger run){
 }
 }
 
+
+void AMSStatus::geteventpos(uinteger run, uinteger evt, uinteger curevent){
+  if(_Run && run != _Run){
+   cerr<<"AMSStatus::geteventpos-E-WrongRun "<<run<<" Expected "<<_Run<<endl;
+   return;
+  }
+  // try hint +
+  int out;
+  if(_Hint>=_Nelem || evt!=_Status[0][_Hint])out= AMSbins(_Status[0],evt,_Nelem);
+  else out=_Hint+1;
+ if (out>0){
+   _Hint=out;
+   //event found;
+ ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][out-1]);
+  return;   
+ }
+ else {
+   // No Match Found
+   if(evt>_Status[0][_Nelem-1] && curevent!=_Status[0][_Nelem-1]){
+      ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][_Nelem-1]);
+   }
+   else if(evt<_Status[0][_Nelem-1]){ 
+    cerr<<"AMSStatus::geteventpos-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<" "<<_Status[0][-out]<<" "<<_Status[0][-out-1]<<endl;
+      ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][-out]);
+   }
+}
+}
+
+
 void AMSStatus::init(){
    AMSJob::map(1);
   _Mode=1;
