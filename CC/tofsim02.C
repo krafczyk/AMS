@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.20 2003/02/25 09:41:54 choumilo Exp $
+//  $Id: tofsim02.C,v 1.21 2003/03/06 15:25:32 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 #include <tofdbc02.h>
@@ -860,6 +860,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
               tmd3d=tm;
             }
           }
+//----------
           amp=am;// store ampl to use as "previous" one in next i-loop
           tmp=tm;// .......
 //--------------------------

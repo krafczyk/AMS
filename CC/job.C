@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.440 2003/02/11 15:27:37 choutko Exp $
+// $Id: job.C,v 1.441 2003/03/06 15:25:32 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1110,7 +1110,8 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.year[1]=110;
   FFKEY("ATRE",(float*)&ATREFFKEY,sizeof(ATREFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
-  ATCAFFKEY.cfvers=2; // (01-99) vers.number NN for antiverlistNN.dat file
+  ATCAFFKEY.cfvers=2; //(1) (01-99) vers.number NN for antiverlistNN.dat file
+  ATCAFFKEY.cafdir=1;// (2)  0/1-> use official/private directory for calibr.files
   FFKEY("ATCA",(float*)&ATCAFFKEY,sizeof(ATCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //========================================================================

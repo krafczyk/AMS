@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.146 2003/02/14 15:18:12 choumilo Exp $
+//  $Id: amsgeom.C,v 1.147 2003/03/06 15:25:31 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1115,37 +1115,34 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
 //
 // ------------> #3(inclined at +Y(Wake)):
 //
- geant r3cy1=120.9;// top/unner(wrt AMS"0") corner y-pos.(~ r of TRD  top honeycomb)
- geant r3cz1=154.15;// top/inner corner z-pos(~ midd. of TRD top honeycomb)
- geant r3cy2=174.1;// bot/inner corner y-pos.
- geant r3cz2=112.6;//bot/inner corner z-pos
+ geant r3rex=40.;// external radious of radiator cylinder
+ geant r3ang=87.5;//angle(degrees) of cylinder 
+ geant r3cy2=174.7;// bot/inner cylinder corner y-pos.
+ geant r3cz2=110.6;//bot/inner corner z-pos
  geant r3dy=1.6;// thickness
- geant r3dx1=250.;// dx1(top edge)
- geant r3dx2=225.;// dx2(bot edge)
- geant alp3=atan((r3cz1-r3cz2)/(r3cy2-r3cy1));
- geant cosa=cos(alp3);
- geant sina=sin(alp3);
- number nrm3[3][3]={-1.,0.,0.,0.,sina,cosa,0.,cosa,-sina};//rot matrix.v#3
+ geant r3dx1=237.2;// dx(height) of the cylinder.
+ number nrm3[3][3]={0.,0.,1., 1.,0.,0., 0.,1.,0.};//rot matrix.v#3
 //
- par[0]=r3dx1/2.;//dx at -z of TRD1
- par[1]=r3dx2/2.;//dx at +z
- par[2]=r3dy/2.;
- par[3]=sqrt(pow((r3cz1-r3cz2),2)+pow((r3cy2-r3cy1),2))/2.;//dz(local)
+ par[0]=r3rex-r3dy;//Rmin
+ par[1]=r3rex;//Rmax
+ par[2]=r3dx1/2.;
+ par[3]=0.;//phi-1
+ par[4]=r3ang;//phi-2
  coo[0]=0.;
- coo[1]=0.5*(r3cy2+r3cy1)+0.5*r3dy*sina;
- coo[2]=0.5*(r3cz1+r3cz2)+0.5*r3dy*cosa;
+ coo[1]=r3cy2+r3dy-r3rex;//cylinder center y-pos
+ coo[2]=r3cz2;
  gid=1;
  dau=mother.add(new AMSgvolume(
-     "RADMED2",1,"RA3T","TRD1",par,4,coo,nrm3,"ONLY",1,gid,1));//radiator #3,top.
+     "RADMED2",1,"RA3T","TUBS",par,5,coo,nrm3,"ONLY",1,gid,1));//radiator #3,top.
 //
 // ------------> #4(inclined at -Y):
 //
- number nrm4[3][3]={1.,0.,0.,0.,-sina,-cosa,0.,cosa,-sina};//rot matrix.v#4
+ number nrm4[3][3]={0.,0.,-1., -1.,0.,0., 0.,1.,0.};//rot matrix.v#4
 //
  coo[1]=-coo[1];
  gid=1;
  dau=mother.add(new AMSgvolume(
-     "RADMED2",1,"RA4T","TRD1",par,4,coo,nrm4,"ONLY",1,gid,1));//radiator #4,top.
+     "RADMED2",1,"RA4T","TUBS",par,5,coo,nrm4,"ONLY",1,gid,1));//radiator #4,top.
 //
 // -----------------------------> Crates:
 //

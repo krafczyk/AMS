@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.180 2003/02/04 15:02:13 choutko Exp $
+//  $Id: commons.h,v 1.181 2003/03/06 15:25:45 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -425,6 +425,7 @@ COMMON_BLOCK_DEF(ATREFFKEY_DEF,ATREFFKEY);
 class ATCAFFKEY_DEF {
   public:
   integer cfvers; // vers.number NN for antiverlistNN.dat file
+  integer cafdir; // use official/private directory for calib.file
 };
 #define ATCAFFKEY COMMON_BLOCK(ATCAFFKEY,atcaffkey)
 COMMON_BLOCK_DEF(ATCAFFKEY_DEF,ATCAFFKEY);
