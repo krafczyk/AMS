@@ -99,7 +99,7 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
 }
 else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  cout <<" AMSGeom-I-AMS02 setup selected."<<endl;
- magnetgeom02(mother);
+ magnetgeom02o(mother);
  tofgeom02(mother);
  tkgeom02(mother);
  pshgeom02(mother);
@@ -110,7 +110,7 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  trdgeom02(mother);
 //     srdgeom02(mother);
  ecalgeom02(mother);
- richgeom02(mother);
+ //richgeom02(mother);
 #else
  trdgeom02(mother);
 //     srdgeom02(mother);
