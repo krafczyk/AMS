@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.131 2001/08/07 07:29:58 choutko Exp $
+//  $Id: amsgeom.C,v 1.132 2001/09/11 12:57:02 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -70,8 +70,8 @@ extern void Put_pmt(AMSgvolume *,integer);
 using namespace amsgeom;
 void AMSgvolume::amsgeom(){
 AMSID amsid;
-geant par[3];
-geant parf[3];
+geant par[10];
+geant parf[10];
 geant coo[3]={0,0,0};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 integer gid=1;
@@ -118,6 +118,7 @@ false_mother.add(&mother);
 if (strstr(AMSJob::gethead()->getsetup(),"BIG")){
 
 number nrm1[3][3];
+integer nrot(1);
  number angle=10./180*AMSDBc::pi;
  nrm1[0][0]=cos(angle);
  nrm1[1][0]=0;
@@ -148,6 +149,36 @@ number nrm1[3][3];
    AMSgvolume *solar2 = new AMSgvolume("1/2ALUM",0,"SPA2","BOX ",pars,3,coos,nrm,"ONLY",0,1,1);
 span->add(solar1);
 span->add(solar2);
+//
+// --------> add ISS payload place around AMS as polygon(6)(ISS "tube"):
+//
+ geant issang=12./180.*AMSDBc::pi;// AMS slope along ISS "tube" axis
+ geant issdfi=360./6;//PGON azimuthal phi-division
+ geant isssin=sin(issang);
+ geant isscos=cos(issang);
+ geant issdz=800.;//"tube" length(its z-size)(limited by +-4m arount AMS att.point)
+ geant issrad=200.;//"tube" radious
+ geant issxp=issrad*isssin;//"tube" origin x-pos in AMS ref.syst.
+ geant issyp=-90.;//"tube" origin y-pos
+ geant isszp=-(182.6/isscos+issrad*isscos);//"tube" origin y-pos
+ number issrm[3][3]={0.,-isssin,isscos,1.,0.,0.,0.,isscos,isssin};
+//
+ par[0]=issdfi/2.;
+ par[1]=360.;
+ par[2]=6;
+ par[3]=2;
+ par[4]=-issdz/2.;
+ par[5]=0.;
+ par[6]=issrad;
+ par[7]=issdz/2.;
+ par[8]=0.;
+ par[9]=issrad;
+ coo[0]=issxp;
+ coo[1]=issyp;
+ coo[2]=isszp;
+ gid=1;
+// dau=mother.add(new AMSgvolume(
+//     "ISSTUBEMED",nrot++,"ISST","PGON",par,10,coo,issrm,"ONLY",1,gid,1));// ISS "tube"
 
 // update amsg
  for(int i=0;i<3;i++)AMSDBc::ams_size[i]*=10;
@@ -689,10 +720,10 @@ dau=mother.add(new AMSgvolume(
 gid=2;
 par[0]=0.;                //Ri
 par[1]=TOF2DBc::supstr(8); //Ro
-par[2]=TOF2DBc::supstr(7)/2.; //Dz
+par[2]=TOF2DBc::supstr(9)/2.; //Dz
 coo[0]=TOF2DBc::supstr(5);    // x-shift from "0" of mother
 coo[1]=TOF2DBc::supstr(6);    // y-shift ...
-coo[2]=TOF2DBc::supstr(2)-TOF2DBc::supstr(7)/2.;// z-centre of bot supp. honeycomb
+coo[2]=TOF2DBc::supstr(2)-TOF2DBc::supstr(9)/2.;// z-centre of bot supp. honeycomb
 dau=mother.add(new AMSgvolume(
     "TOF_HONEYCOMB",0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
 //----------------------------------------------------------------------
@@ -2503,7 +2534,7 @@ AMSgtmed *p;
 }
 //------------------------------------------------
 void amsgeom::magnetgeom02(AMSgvolume & mother){
-// "real" AMS02 design, but the shape of coils/he-vess is rectang. 
+// "real" AMS02 design, but the shape of coils/he-vessel is rectang. 
 // with "the same weight(cross-section area)" dimensions.
 AMSID amsid;
 geant par[15]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
@@ -2725,7 +2756,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
 // ----------------------------> Radiators:
 // -------------> #1(vertical at +Y):
 //
- geant r11dx=186.;//section 11
+ geant r11dx=180.;//section 11 (should match to us1x1 !!!)
  geant r1dy=2.1;
  geant r11dz=180.4;
  geant r1cy=(170.5+r1dy/2.);//Y0
@@ -2764,7 +2795,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant r2cy=-(170.5+r2dy/2.);//Y0
  geant r21cz=-82.8;//Z0
 //
- geant r22dx=186.;// section 22
+ geant r22dx=r11dx;// section 22
  geant r22dz=129.6;
  geant r22cz=7.4;//Z0
 //
@@ -2867,7 +2898,9 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant cr2dy=28.;
  geant cr2dz=28.;
  geant cr2cy=99.5;//center y-pos
+ cr2cy+=15.;//tempor solution of ISS overlaping problem
  geant cr2cz=-125.;//top wall z-pos
+ cr2cz+=10.;//tempor solution of ISS overlaping problem
 //
  par[0]=cr2dx/2.;
  par[1]=cr2dy/2.;
@@ -2884,19 +2917,19 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
 //
 //------------> TOF/TRD-interfaces:
 // MSF
- geant msfr1=100.;// M-struct. frame (MSF) radial pos. ???
- geant msfz1=85.;// MSF Z-pos ???
- geant msfdz=4.;// MSF z-thickness
- geant msfdr=4.;// MSF radial thickness
+ geant msfr1=101.4;//(final) M-struct. frame (MSF) internal radious
+ geant msfz1=93.64;//(final) MSF Z-pos 
+ geant msfdz=6.;//(final) MSF z-thickness
+ geant msfdr=6.;//(final) MSF radial thickness
 // MS
- geant msdy=4.;// M-structure thickness (MS)
- geant msr2=112.;// MS radial poc.(at TRD top honeyc) ???
- geant msz2=147.;// MS z-pos.(at TRD top honeyc) ???
- geant msdx1=msfr1-5.;// MS dx on MSF side(to fit complete "M" on one side of the frame)
- geant msdx2=15.;// MS dx on TRD_top_honeyc side
+ geant msdy=6.;//(final) M-structure thickness (MS)
+ geant msr2=112.;//(final) MS radial poc.(near bot.edge of TRD top honeyc)
+ geant msz2=146.2;//(final) MS z-pos.(near bot.edge of TRD top honeyc)
+ geant msdx1=msfr1-22.4;//(final) MS-dx on MSF-side(to fit whole "M" on the frame side)
+ geant msdx2=12.6;//(final) MS dx on TRD_top_honeyc side
  geant msang1=atan((msr2-msfr1-msfdr)/(msz2-msfz1-msfdz));
  geant msdz=sqrt(pow(msfr1+msfdr-msr2,2)+pow(msfz1+msfdz-msz2,2)-pow(msdy,2));//MS dz 
- geant msang=atan(msdy/msdz)+msang1;//MS slope angle
+ geant msang=atan(msdy/msdz)+msang1;//MS-plane slope angle(~13degr)
  geant cosb=cos(msang);
  geant sinb=sin(msang);
  geant mscr=0.5*(msr2+msfr1+msfdr);//radial dist. of MS "0"
@@ -2908,28 +2941,29 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  number rmms2[3][3]={1.,0.,0.,0.,cosb,sinb,0.,-sinb,cosb};//rot.matr.at +Y
  number rmms3[3][3]={0.,-cosb,-sinb,1.,0.,0.,0.,-sinb,cosb};//rot.matr.at -X
  number rmms4[3][3]={-1.,0.,0.,0.,-cosb,-sinb,0.,-sinb,cosb};//rot.matr.at -Y
-// TFHS
- geant tfsr1=75.;//tof-honeyc.support(TFHS) radial pos.
- geant tfsz1=TOF2DBc::supstr(1)+TOF2DBc::supstr(7);// TFHS  Z-pos on TOF-honeyc.
+// TFHS(TOF-hoheycomb support)
  geant tfsdy=3.;// TFHS thickness
- geant tfsdx1=15.;// TFHS dx on honeycomb side
+ geant tfsr1=TOF2DBc::supstr(8)+tfsdy;//tof-honeyc.support(TFHS) "low end" radial pos.
+ geant tfsz1=TOF2DBc::supstr(1)+0.5*TOF2DBc::supstr(7);//"low end" Z-pos(mid of TOF-hon.side)
+ geant tfsr2=msfr1;//"high end" radial pos
+ geant tfsdx1=15.;// TFHS dx on TOF-honeycomb side
  geant tfsdx2=35.;// TFHS dx on M-structure side
- geant tfsang1=atan((msfr1-tfsr1)/(msfz1-tfsz1));
- geant tfsdz=sqrt(pow(msfr1-tfsr1,2)+pow(msfz1-tfsz1,2)-pow(tfsdy,2));//MS dz 
- geant tfsang=atan(tfsdy/tfsdz)+tfsang1;//TFHS slope angle
+ geant tfsang1=atan((tfsr2-tfsr1)/(msfz1-tfsz1));
+ geant tfsdz=sqrt(pow(tfsr2-tfsr1,2)+pow(msfz1-tfsz1,2)-pow(tfsdy,2));//MS dz 
+ geant tfsang=atan(tfsdy/tfsdz)+tfsang1;//TFHS-plane slope angle
  geant cosc=cos(tfsang);
  geant sinc=sin(tfsang);
- geant tfscr=0.5*(msfr1+tfsr1);//radial dist. of TFHS "0"
+ geant tfscr=0.5*(tfsr1+tfsr2);//radial pos. of TFHS "0"
  geant tfsct=25.;//tang.dist. of TFHS "0"
  geant tfscx[8]={tfscr,tfscr,tfsct,-tfsct,-tfscr,-tfscr,-tfsct,tfsct};//X-pos for 8 TFHS's
  geant tfscy[8]={-tfsct,tfsct,tfscr,tfscr,tfsct,-tfsct,-tfscr,-tfscr};//Y-pos for 8 TFHS's
- geant tfscz=0.5*(tfsz1+msfz1);//Z-pos for TFHS
+ geant tfscz=0.5*(tfsz1+msfz1);//Z-pos of TFHS "0"
  number rmtfs1[3][3]={0.,cosc,sinc,-1.,0.,0.,0.,-sinc,cosc};//rot.matr.at +X
  number rmtfs2[3][3]={1.,0.,0.,0.,cosc,sinc,0.,-sinc,cosc};//rot.matr.at +Y
  number rmtfs3[3][3]={0.,-cosc,-sinc,1.,0.,0.,0.,-sinc,cosc};//rot.matr.at -X
  number rmtfs4[3][3]={-1.,0.,0.,0.,-cosc,-sinc,0.,-sinc,cosc};//rot.matr.at -Y
 //
-//----> Create MSF(PGON):
+//----> Create MSF(M-structure frame,PGON):
 //
  par[0]=45.;//begin phi
  par[1]=360;//dphi
@@ -2948,7 +2982,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  dau=mother.add(new AMSgvolume(
      "MSFMED1",0,"MSFR","PGON",par,10,coo,nrm,"ONLY",1,gid,1));// M-structure frame
 //
-//----> create TFHS(TRD1 shape):
+//----> create TFHS(TOF-honeycomb supports, TRD1 shape):
 //
  par[0]=tfsdx1/2.;
  par[1]=tfsdx2/2.;
@@ -2969,9 +3003,9 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
      "TFSUPMED1",nrot,"TFHS","TRD1",par,4,coo,nrm0,"ONLY",gid==1?1:-1,gid,1));//TOF-honeyc.supp.
  }
 //
-//----> create MS(TRD1 shape):
+//----> create M-structure legs:
 //
- geant msalf=atan(2.*msdz/(msdx1-msdx2));
+ geant msalf=atan(2.*msdz/(msdx1-msdx2));// "M" triang.angle
  for(int is=0;is<8;is++){
    par[0]=msdx1/2.;
    par[1]=msdx2/2.;
@@ -2988,7 +3022,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
    gid=is+1;
    nrot+=ii;
    dau=mother.add(new AMSgvolume(
-     "TFSUPMED1",nrot,"MSBO","TRD1",par,4,coo,nrm0,"ONLY",gid==1?1:-1,gid,1));//M-structure body
+     "MSFMED1",nrot,"MSBO","TRD1",par,4,coo,nrm0,"ONLY",gid==1?1:-1,gid,1));//M-structure M-body
 #ifndef __G4AMS__
    if(is==0){
 #else
@@ -3012,15 +3046,15 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
 //------------> USS :
 //
 //----> bar-1 type(attached to magnet top + TOF/TRD interface):
- geant us1dz=18.;
- geant us1dx=12.;
- geant us1x1=99.5-us1dx/2.;//inner(wrt AMS "0") edge x-pos
- geant us1y1=99.5;// ...y-pos(together with us1x1 are defined by attach to VC
+ geant us1dz=18.4;//final
+ geant us1dx=15.2;//final
+ geant us1x1=99.5-us1dx/2.;//(final)inner(wrt AMS "0") edge x-pos
+ geant us1y1=99.5;//(final) inner edge y-pos(with us1x1 are defined by attach to VC
 //                             at R=140.7cm and angle 45 degr.)                            
- geant us1z1=msfz1-us1dz;// z-pos to match with M-structure frame z-position
+ geant us1z1=68.12-us1dz/2.;//(final) inner/bot edge z-pos 
  geant us1x2=us1x1;// outer edge x-pos
- geant us1y2=188.;//             y-pos
- geant us1z2=50.;//              z-pos
+ geant us1y2=192.;//(final+cutted) outer edge y-pos
+ geant us1z2=59.5-us1dz/2.;//(final+cutted) outer edge z-pos
  geant us1dy=sqrt(pow(us1y2-us1y1,2)+pow(us1z1-us1z2,2));
  geant us1ang=atan((us1z1-us1z2)/(us1y2-us1y1));//slope(>0)
  geant cosb1=cos(us1ang);
@@ -3030,16 +3064,18 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
 //
 //----> bar-2 type(attached to magnet bottom):
 //
- geant us2dx=12.;
- geant us2x1=100.-us2dx/2.;//inner(wrt AMS "0") edge x-pos
- geant us2y1=us1y1;// ...........y-pos
- geant us2z1=-79.;// ...........  z-pos
- geant us2x2=us1x1;// outer edge x-pos
- geant us2y2=179.;//             y-pos
- geant us2z2=50.;//              z-pos
- geant us2dz=18.;
+ geant us2aan=46.3/180.*AMSDBc::pi;//beams angle abs.value
+ geant us2dx=12.6;//(final)
+ geant us2dz=15.2;//(final)
+ geant us2x1=99.5-us2dx/2.;//(final)inner(wrt AMS "0") edge x-pos
+ geant us2y1=us1y1;// inner edge y-pos
+ geant us2z1=-90.14+0.5*us2dz*cos(us2aan);//(final) inner edge  z-pos
+ geant us2x2=us2x1;// outer edge x-pos
+ geant us2z2=us1z2-48.;//(final+cutted) outer edge z-pos
+ geant us2y2=us2y1+(us2z2-us2z1)/tan(us2aan);//(final) outer edge y-pos
+// (this y-pos is calc.from hand-fixed z-pos and known angle 46.3)
  geant us2dy=sqrt(pow(us2y2-us2y1,2)+pow(us2z2-us2z1,2));
- geant us2ang=atan((us2z1-us2z2)/(us2y2-us2y1));// slope(<0)
+ geant us2ang=atan((us2z1-us2z2)/(us2y2-us2y1));// slope(<0) for +Y beams
  geant cosb2=cos(us2ang);
  geant sinb2=sin(us2ang);
  number rmus2[3][3]={1.,0.,0.,0.,cosb2,sinb2,0.,-sinb2,cosb2};
@@ -3048,10 +3084,10 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
 //----> bar-3 type:
 //
  geant us3x=0.;//center x-pos
- geant us3y=183.;//center y-pos
- geant us3z=59.;//center z-pos
+ geant us3y=211.4;//(final)center y-pos
+ geant us3z=57.6;//(final)center z-pos
  geant us3dx=2.*us1x1-0.001;
- geant us3dy=8.;
+ geant us3dy=8.;// tempor
  geant us3dz=8.;
 //
 //------------> create 4 bars of type-1:
@@ -3110,7 +3146,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  dau=mother.add(new AMSgvolume(
    "US2BMED",nrot,"US2B","BOX",par,3,coo,rmus2a,"ONLY",gid==1?1:-1,gid,1));//at (-x,-y)
 //
-//-----------> create 2 bars of type-3
+//-----------> create 2 bars of type-3 (innored now !!!)
 //
  par[0]=us3dx/2.;
  par[1]=us3dy/2.;
@@ -3119,21 +3155,21 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  coo[1]=us3y;
  coo[2]=us3z;
  gid=1;
- dau=mother.add(new AMSgvolume(
-   "US3BMED",0,"US3B","BOX",par,3,coo,nrm,"ONLY",gid==1?1:-1,gid,1));//at (+y)
+// dau=mother.add(new AMSgvolume(
+//   "US3BMED",0,"US3B","BOX",par,3,coo,nrm,"ONLY",gid==1?1:-1,gid,1));//at (+y)
  coo[1]=-coo[1];
  gid+=1;
- dau=mother.add(new AMSgvolume(
-   "US3BMED",0,"US3B","BOX",par,3,coo,nrm,"ONLY",gid==1?1:-1,gid,1));//at (-y)
+// dau=mother.add(new AMSgvolume(
+//   "US3BMED",0,"US3B","BOX",par,3,coo,nrm,"ONLY",gid==1?1:-1,gid,1));//at (-y)
 //-------------------------------------
 //----> bar-4 type(attached to magnet bottom and frame around EC):
 //
- geant us4dx=12.;
- geant us4dz=12.;
- geant us4r1=107.5;//radial pos. of bar low end(center)(check matching with low frame z-top)
- geant us4r2=140.7;//radial pos. of bar high end(center)
- geant us4z1=-134.;//                                  ................................
- geant us4z2=-83.;//                                   ................................
+ geant us4dx=11.5;//final
+ geant us4dz=14.2;//final
+ geant us4r1=106.5;//(final)radial pos. of low end(center)(check matching with low frame)
+ geant us4r2=140.7;//(final)radial pos. of high end(center)(match top/bot USS joint radious)
+ geant us4z1=-135.9;//final                               ................................
+ geant us4z2=-95.;//final(to have 50.1 degr. slope)        ................................
  geant us4dy=sqrt(pow(us4r2-us4r1,2)+pow(us4z2-us4z1,2));
  geant us4bet=atan((us4z2-us4z1)/(us4r2-us4r1));//vert.slope
  geant cosb4=cos(us4bet);
@@ -3218,7 +3254,7 @@ AMSgtmed *p;
 }
 //-------------------------------------------------------------------
 void amsgeom::ext2structure(AMSgvolume & mother){
-//USS low frame + triang., by V.Choutko
+//USS low frame + triang., by V.Choutko(frame parameters modified by E.C
 AMSID amsid;
 geant par[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
@@ -3234,28 +3270,28 @@ AMSgtmed *p;
 
  nrot=TOF2GC::SCROTN+300;
 // Low quadrant(frame)
-geant frameztop=-134.5;//Z-pos of the frame(top)
+geant frameztop=-135.95;//(final)Z-pos of the frame(top face)
         
    par[0]=45;   //  phi angle
    par[1]=360;   // open angle
    par[2]=4;     // quadrant
    par[3]=2;
-   par[4]=-4.5*2.54/2;
-   par[5]=(78.67/2-11.79)*2.54-4.5*2.54/2;
-   par[6]=par[5]+4.5*2.54;
+   par[4]=-5.08;//final
+   par[5]=130.22/2.;//final
+   par[6]=par[5]+5.08*2.;//final
    par[7]=-par[4];
    par[8]=par[5];
    par[9]=par[6];
    coo[0]=0;
    coo[1]=0;
    coo[2]=frameztop+par[4];//z-center of the frame
-   mother.add(new AMSgvolume("USSALLOY",nrot++,"USS1","PGON",par,10,coo,nrm,"ONLY",0,gid++,1));
+   mother.add(new AMSgvolume("US5BMED",nrot++,"USLF","PGON",par,10,coo,nrm,"ONLY",0,gid++,1));
 
 
 // Low Triangle ( two para)
 
    coo[1]=-(par[5]+par[6])/2/2;
-   coo[0]=(par[5]+par[6])/2;
+   coo[0]=-(par[5]+par[6])/2;
    coo[2]=coo[2]+par[4];
    par[0]=4.5*2.54/2;
    par[1]=4.5*2.54/2;
@@ -3277,6 +3313,8 @@ geant frameztop=-134.5;//Z-pos of the frame(top)
 
 
    mother.add(new AMSgvolume("USSALLOY",nrot++,"USS2","PARA",par,6,coo,nrm1,"ONLY",0,gid++,1));
+//
+  cout<<"AMSGEOM: Low_USS_frame geometry(G3/G4-compatible) done!"<<endl;
 }
 //--------------------------------------------------------------
 void amsgeom::tkgeom02(AMSgvolume & mother){

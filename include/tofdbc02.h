@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.4 2001/01/22 17:32:45 choutko Exp $
+//  $Id: tofdbc02.h,v 1.5 2001/09/11 12:57:06 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -299,6 +299,8 @@ private:
 //          =18 -> TDIF: multiplicity OK
 //          =19 -> TDIF: tracker OK
 //           21-25 TOF-user event-counters
+//          =33 -> TOF reco with TOF in LVL1
+//          =34 -> TOF reco with EC in LVL1
 //------
   static integer chcount[TOF2GC::SCCHMX][TOF2GC::SCCSTA];//channel statistics
 //                              [0] -> h/w-status="ON" frequency 

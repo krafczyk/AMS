@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.200 2001/09/04 13:21:08 choutko Exp $
+#  $Id: datacards.doc,v 1.201 2001/09/11 12:57:05 choumilo Exp $
 Datacards
 
 // Protection from some myst bug
@@ -919,6 +919,7 @@ R 19   cuts[0](5)          // mev/cell threshold for cluster search(~2adc)
 R 23.................      // spares
 
 I 24   ReadConstFiles(1)   // read const. from DB/RawFiles (0/1)
+
 R 25   Thr1DSeed(10.)     //  minimal energy seed to start cluster search (mev)
 R 26   Thr1DRSeed(0.18)   //  minimal 2nd/1st cluster energy ratio (same row)
 R 27   Cl1DLeakSize(9)    //  search region for energy leraks (+-cells)

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.9 2001/04/18 08:32:07 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.10 2001/09/11 12:57:04 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -959,14 +959,16 @@ void TOF2JobStat::printstat(){
   printf("\n");
   printf("    ====================== JOB TOF-statistics ======================\n");
   printf("\n");
-  printf(" MC: entries             : % 6d\n",mccount[0]);
-  printf(" MC: TovT->RawEvent OK   : % 6d\n",mccount[1]);
-  printf(" MC: Ghits->RawCluster OK: % 6d\n",mccount[2]);
-  printf(" RECO-entries            : % 6d\n",recount[0]);
-  printf(" LVL1-trig includes TOF  : % 6d\n",recount[1]);
-  printf(" RawEvent-validation OK  : % 6d\n",recount[2]);
-  printf(" RawEvent->RawCluster OK : % 6d\n",recount[3]);
-  printf(" RawCluster->Cluster OK  : % 6d\n",recount[4]);
+  printf(" MC: entries                : % 6d\n",mccount[0]);
+  printf("   MC: TovT->RawEvent OK    : % 6d\n",mccount[1]);
+  printf("   MC: Ghits->RawCluster OK : % 6d\n",mccount[2]);
+  printf(" RECO-entries               : % 6d\n",recount[0]);
+  printf("   LVL1-trig OK             : % 6d\n",recount[1]);
+  printf("   Usage of TOF in LVL1     : % 6d\n",recount[33]);
+  printf("   Usage of EC  in LVL1     : % 6d\n",recount[34]);
+  printf("   RawEvent-validation OK   : % 6d\n",recount[2]);
+  printf("   RawEvent->RawCluster  OK : % 6d\n",recount[3]);
+  printf("   RawCluster->Cluster OK   : % 6d\n",recount[4]);
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF){
     printf(" Entries to TZSl-calibr. : % 6d\n",recount[6]);
     printf(" TZSl: multiplicity OK   : % 6d\n",recount[7]);
@@ -987,11 +989,11 @@ void TOF2JobStat::printstat(){
     printf(" TDIF: Tracker OK        : % 6d\n",recount[19]);
   }
   else{
-    printf(" TOFUser entries         : % 6d\n",recount[21]);
-    printf(" TOFU: no ANTI-sectors   : % 6d\n",recount[22]);
-    printf(" TOFU: 1bar/layer OK     : % 6d\n",recount[23]);
-    printf(" TOFU: Track momentum OK : % 6d\n",recount[24]);
-    printf(" TOFU: TOF-TRK match OK  : % 6d\n",recount[25]);
+    printf(" TOFUser entries            : % 6d\n",recount[21]);
+    printf("   TOFU: no ANTI-sectors    : % 6d\n",recount[22]);
+    printf("   TOFU: 1bar/layer OK      : % 6d\n",recount[23]);
+    printf("   TOFU: Track momentum OK  : % 6d\n",recount[24]);
+    printf("   TOFU: TOF-TRK match OK   : % 6d\n",recount[25]);
   }
   printf("\n\n");
 //
@@ -1629,6 +1631,8 @@ void TOF2JobStat::bookhistmc(){
       HBOOK1(1073,"SIMU: pm1 pulse-hight(mV,id=107,s1)",80,0.,1000.,0.);
       HBOOK1(1074,"SIMU: pm1 ADC(+noise(ped))(H-chan,id=107,s1)",100,0.,500.,0.);
       HBOOK1(1075,"SIMU: pm1 ADC(+noise(ped))(L-chan,id=107,s1)",100,0.,100.,0.);
+      HBOOK1(1076,"ECTrigFlag when TOFTrflag OK",20,0.,20.,0.);
+      HBOOK1(1077,"TOFFTTime-ECFTTime",100,-50.,50.,0.);
     }
 }
 //----------------------------
@@ -1845,6 +1849,8 @@ void TOF2JobStat::outpmc(){
          HPRINT(1073);
          HPRINT(1074);
          HPRINT(1075);
+         HPRINT(1076);
+         HPRINT(1077);
 //         if(TFCAFFKEY.mcainc)TOF2Tovt::aintfit();
        }
 }

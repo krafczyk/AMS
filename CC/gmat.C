@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.66 2001/07/23 09:57:43 choumilo Exp $
+//  $Id: gmat.C,v 1.67 2001/09/11 12:57:03 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -400,7 +400,7 @@ mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
                                    8.9/rraden, 39.4/rraden));// low dens.AL for supports
 }
 {
-  geant rraden=0.2;//relat(to norm.AL) density of M-structure frame
+  geant rraden=0.4;//(final) Relat(to norm.AL) density of M-structure frame and M-legs
   mat.add (new AMSgmat("MSFALUMIN",26.98, 13., 2.7*rraden,
                                    8.9/rraden, 39.4/rraden));// low dens.AL 
 }
@@ -427,8 +427,18 @@ mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
                                    8.9/rraden, 39.4/rraden));// low dens.AL 
 }
 {
-  geant rraden=0.3;//relat(to norm.AL) density of bar-4 type of USS
+  geant rraden=0.454;//(final)Relat(to norm.AL) density of bar-4 type of USS
   mat.add (new AMSgmat("US4BALUMIN",26.98, 13., 2.7*rraden,
+                                   8.9/rraden, 39.4/rraden));// low dens.AL 
+}
+{
+  geant rraden=0.65;//(final)Relat(to norm.AL) density of frame of USS lower part
+  mat.add (new AMSgmat("US5BALUMIN",26.98, 13., 2.7*rraden,
+                                   8.9/rraden, 39.4/rraden));// low dens.AL 
+}
+{
+  geant rraden=0.005;//Relat(to norm.AL) density of ISS "tube" near AMS attachment
+  mat.add (new AMSgmat("ISSTUBEALU",26.98, 13., 2.7*rraden,
                                    8.9/rraden, 39.4/rraden));// low dens.AL 
 }
 //-------------------------------
@@ -825,6 +835,14 @@ radmed=(AMSgtmed*)tmed.add (new AMSgtmed("US3BMED","US3BALUMIN",0));
   radmed->CUTELE(cutge);
 //
 radmed=(AMSgtmed*)tmed.add (new AMSgtmed("US4BMED","US4BALUMIN",0));
+  radmed->CUTGAM(cutge);
+  radmed->CUTELE(cutge);
+//
+radmed=(AMSgtmed*)tmed.add (new AMSgtmed("US5BMED","US5BALUMIN",0));
+  radmed->CUTGAM(cutge);
+  radmed->CUTELE(cutge);
+//
+radmed=(AMSgtmed*)tmed.add (new AMSgtmed("ISSTUBEMED","ISSTUBEALU",0));
   radmed->CUTGAM(cutge);
   radmed->CUTELE(cutge);
 }

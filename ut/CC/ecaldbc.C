@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.27 2001/08/07 15:21:23 choutko Exp $
+//  $Id: ecaldbc.C,v 1.28 2001/09/11 12:57:02 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -649,7 +649,6 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+17,"ECMC: Transv.Width(proj2,L-cuts,LE)",80,0.,80.,0.);
       HBOOK1(ECHIST+18,"ECMC: Etot(trig.sum,L-cuts,mev)",100,0.,20000.,0.);
       HBOOK1(ECHIST+19,"ECMC: ECTriggerFlag",30,0.,30.,0.);
-      HBOOK1(ECHIST+20,"ECMC: ECTriggerFlag(when TOFTrFlag)",30,0.,30.,0.);
     }
 }
 //----------------------------
@@ -806,7 +805,6 @@ void EcalJobStat::outpmc(){
       HPRINT(ECHIST+17);
       HPRINT(ECHIST+18);
       HPRINT(ECHIST+19);
-      HPRINT(ECHIST+20);
     }
 }
 //==========================================================================

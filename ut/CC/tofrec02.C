@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.6 2001/08/02 16:42:37 choutko Exp $
+//  $Id: tofrec02.C,v 1.7 2001/09/11 12:57:04 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -1305,24 +1305,8 @@ void AMSTOFCluster::build2(int &stat){
       ibar=barn-1;
       barl=TOF2DBc::brlen(ilay,ibar);// peak bar length
       barw=TOF2DBc::plnstr(5);//bar width
-
-
-// changed by VC 02-Aug-2001
-/*
-      bars=TOF2DBc::plnstr(5)-TOF2DBc::plnstr(4)
-                            +2.*TOF2DBc::plnstr(13);//sc.bar transv. step
-
-*/
-
-
-
       bars=TOF2DBc::plnstr(5)-TOF2DBc::plnstr(4)
                             +2.*TOF2DBc::plnstr(8);//sc.bar transv. step
-
-
-// end change
-
-
       TOF2Brcal::scbrcal[ilay][ibar].getd2p(speedl,err);//get light speed
       yloc=ptr->gettimeD();// get yloc/err for "peak" bar
       eyloc=ptr->getetimeD();

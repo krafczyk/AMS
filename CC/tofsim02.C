@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.8 2001/01/22 17:32:23 choutko Exp $
+//  $Id: tofsim02.C,v 1.9 2001/09/11 12:57:04 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 #include <tofdbc02.h>
 #include <iostream.h>
@@ -16,6 +16,7 @@
 #include <mccluster.h>
 #include <trigger3.h>
 #include <mceventg.h>
+#include <ecalrec.h>
 //
 TOF2Scan TOF2Scan::scmcscan[TOF2GC::SCBLMX];
 //
@@ -1624,13 +1625,14 @@ void TOF2RawEvent::mc_build(int &status)
   number  tftdc[TOF2GC::SCTHMX2],tftdcd[TOF2GC::SCTHMX2],tstdc[TOF2GC::SCTHMX3];
   number tadch[TOF2GC::SCTHMX4],tadcl[TOF2GC::SCTHMX4];
   int16u  ftdc[TOF2GC::SCTHMX2*2],stdc[TOF2GC::SCTHMX3*4],adch[TOF2GC::SCTHMX4],adcl[TOF2GC::SCTHMX4];
-  number t,t1,t2,t3,t4,tprev,ttrig1,ttrig3,dt,tlev1,tl1d,ftrig;
+  number t,t1,t2,t3,t4,tprev,ttrig1,ttrig3,dt,tlev1,tl1d,ftrig,ecftrig;
   geant charge,edep,strr[2][2],str,offs;
   geant peds[4],daqt1,rrr;
   number pedv,amp;
   integer iamp;
   int trcode,trcode3;
   integer trflag(0),trpatt3[TOF2GC::SCLRS];
+  uinteger ectrfl(0);
   integer trpatt[TOF2GC::SCLRS]={0,0,0,0};
   integer it,it1,it2,it3,it4,it0;
   int16u phbit,maxv;
@@ -1643,31 +1645,45 @@ void TOF2RawEvent::mc_build(int &status)
   daqt1=TOF2Varp::tofvpar.daqthr(3);
 //
   trflag=0;
+  TOF2RawEvent::settrfl(trflag);// reset  TOF-trigger flag
   ttrig1=TOF2Tovt::tr1time(trcode,trpatt);//get abs.trig1(FT"z>=1") signal time/patt
-  if(trcode<0){
-    TOF2RawEvent::settrfl(trflag);// set trig_flag to 0 ("no trigger")
-    TOF2RawEvent::setpatt(trpatt);//set 0 trigger pattern 
-    return;
-  } 
-  status=0;
-  trflag=1;// ok: h/w trigger(z>=1) present -> do digitization:
+  if(trcode>=0){// <---- use own(TOF) FT 
+    status=0;
+    trflag=1;// ok: h/w trigger(z>=1) present -> do digitization:
 //
-  ttrig3=TOF2Tovt::tr3time(trcode3,trpatt3);//get abs.trig3("z>2") signal time/patt
-  if(trcode3>=0){
-    trflag=3;
-    if(ttrig3<ttrig1){ // tempor: priority is not clear now !
-      ttrig1=ttrig3;
-      for(i=0;i<TOF2GC::SCLRS;i++)trpatt[i]=trpatt3[i];
+    ttrig3=TOF2Tovt::tr3time(trcode3,trpatt3);//get abs.trig3("z>2") signal time/patt
+    if(trcode3>=0){
+      trflag=3;
+      if(ttrig3<ttrig1){ // tempor: priority is not clear now !
+        ttrig1=ttrig3;
+        for(i=0;i<TOF2GC::SCLRS;i++)trpatt[i]=trpatt3[i];
+      }
+    }
+//
+    if(trcode==0)trflag+=10;// mark 4-layer trigger 
+    TOF2RawEvent::settrfl(trflag);// set final trigger flag
+    TOF2RawEvent::setpatt(trpatt);// set trigger pattern
+    ftrig=ttrig1+TOF2Varp::tofvpar.ftdelf();// FTrigger abs time (fixed delay added)
+    TOF2RawEvent::settrtime(ftrig);// set final FTrigger time
+    tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
+    if(TFMCFFKEY.mcprtf[2]!=0){
+      ectrfl=AMSEcalRawEvent::gettrfl();
+      HF1(1076,geant(ectrfl),1.); 
+      if(ectrfl>0){
+        ecftrig=AMSEcalRawEvent::gettrtm();
+	HF1(1077,geant(ftrig-ecftrig),1.);
+      }
     }
   }
-//
-  if(trcode==0)trflag+=10;// mark 4-layer trigger 
-  TOF2RawEvent::settrfl(trflag);// set final trigger flag
-  TOF2RawEvent::setpatt(trpatt);// set trigger pattern
-  ftrig=ttrig1+TOF2Varp::tofvpar.ftdelf();// FTrigger abs time (fixed delay added)
-  TOF2RawEvent::settrtime(ftrig);// set final FTrigger time
-//
-  tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
+  else{// <---- have to use FT from ECAL
+    TOF2RawEvent::settrfl(trflag);// set tof_trig_flag to 0 ("no toftrigger")
+    TOF2RawEvent::setpatt(trpatt);//set toftrigger pattern
+    ectrfl=AMSEcalRawEvent::gettrfl(); 
+    if(ectrfl<=0)return;//no EC trigger also -> no chance to digitize TOF
+    ftrig=AMSEcalRawEvent::gettrtm();
+    tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
+  }
+  
 //
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(TOF2Tovt*)AMSEvent::gethead()->

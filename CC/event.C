@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.271 2001/08/08 14:34:09 choutko Exp $
+//  $Id: event.C,v 1.272 2001/09/11 12:57:03 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -754,6 +754,7 @@ void AMSEvent::_siecalinitevent(){
     ptr = AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalMCHit",i),0));
   }
+  AMSEcalRawEvent::settrfl(0);//reset EC-trig. flag 
 }
 
 void AMSEvent::_sirichinitevent(){
@@ -776,6 +777,7 @@ void AMSEvent::_sitrdinitevent(){
 void AMSEvent::_sitofinitevent(){
   int il;
   AMSNode *ptr;
+  integer trpatt[TOF2GC::SCLRS]={0,0,0,0};
 //
 //           declare some TOF containers for MC:
 //
@@ -791,6 +793,8 @@ void AMSEvent::_sitofinitevent(){
     ptr=AMSEvent::gethead()->add(
         new AMSContainer(AMSID("AMSContainer:TOF2Tovt",il),0));
   }
+  TOF2RawEvent::settrfl(0);// reset  TOF-trigger flag
+  TOF2RawEvent::setpatt(trpatt);// reset TOF-trigger pattern
  }
  else{
   for(il=0;il<TOF1GC::SCLRS;il++){
@@ -1239,15 +1243,6 @@ void AMSEvent::event(){
      }
     }
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-      _sitof2event();
-      _sianti2event();
-    }
-    else{
-      _sitofevent();
-      _siantievent();
-    } 
-    _sitkevent(); 
-    if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
       _siecalevent(); 
       _sitrdevent(); 
       _sirichevent();
@@ -1255,6 +1250,15 @@ void AMSEvent::event(){
      else{
       _sictcevent(); 
      }
+    if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+      _sitof2event();//important to call after siecalevent to have FT from EC
+      _sianti2event();//from EC in case of absence FT from TOF
+    }
+    else{
+      _sitofevent();
+      _siantievent();
+    } 
+    _sitkevent(); 
     _sitrigevent(); 
     _sidaqevent(); //DAQ-simulation 
   AMSgObj::BookTimer.stop("SIAMSEVENT");
@@ -1572,8 +1576,8 @@ void AMSEvent::_reantievent(){
 }
 //-------------------------------------
 void AMSEvent::_reanti2event(){
-  integer trflag(0);
-  uinteger ecalflg(0);
+  integer toftrigfl(0);
+  uinteger ectrigfl(0);
   int stat;
 //
   AMSgObj::BookTimer.start("REANTIEVENT");
@@ -1584,14 +1588,16 @@ void AMSEvent::_reanti2event(){
 //
     Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr){
-      trflag=ptr->gettoflg();
-      ecalflg=ptr->getecflg();
+      toftrigfl=ptr->gettoflg();
+      ectrigfl=ptr->getecflg();
     }
-    if(trflag<=0){
+    if(toftrigfl<=0 && ectrigfl<=0){
       AMSgObj::BookTimer.stop("REANTIEVENT");
-      return;// "no TOF in LVL1-trigger"(need TOF-f.trig for digitization)
+      return;// "no TOF/EC in LVL1-trigger"
     }
     ANTI2JobStat::addre(1);
+    if(toftrigfl>0)ANTI2JobStat::addre(5);
+    if(toftrigfl<=0 && ectrigfl>0)ANTI2JobStat::addre(6);
 //
     Anti2RawEvent::validate(stat);// RawEvent-->RawEvent
     if(stat!=0){
@@ -1671,18 +1677,23 @@ int stat;
 }
 //----------------------------------------
 void AMSEvent::_retof2event(){
-integer trflag(0);
+integer toftrigfl(0),ectrigfl(0);
 int stat;
 //
   AMSgObj::BookTimer.start("RETOFEVENT");
     TOF2JobStat::addre(0);
     Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-    if(ptr)trflag=ptr->gettoflg();
-    if(trflag<=0){
-      AMSgObj::BookTimer.stop("RETOFEVENT");
-      return;// "no TOF in LVL1-trigger"   
+    if(ptr){
+      toftrigfl=ptr->gettoflg();
+      ectrigfl=ptr->getecflg();
+      if(toftrigfl<=0 && ectrigfl<=0){
+        AMSgObj::BookTimer.stop("RETOFEVENT");
+        return;// "no TOF/EC in LVL1-trigger"
+      }   
     }
     TOF2JobStat::addre(1);
+    if(toftrigfl>0)TOF2JobStat::addre(33);
+    if(toftrigfl<=0 && ectrigfl>0)TOF2JobStat::addre(34);
 //
 //                   ===> reco of real or MC events :
 //
@@ -1863,7 +1874,7 @@ void AMSEvent::_rerichevent(){
   if(ptr)trflag=ptr->gettoflg();
   if(trflag<=0){
     AMSgObj::BookTimer.stop("RERICH");
-    return;// "no LVL1 trigger"   
+    return;// "no TOF in LVL1 trigger"   
   }
   // Reconstruction CJD
   if(RICCONTROL.recon)

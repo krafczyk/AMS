@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.158 2001/08/01 13:28:50 choutko Exp $
+//  $Id: commons.h,v 1.159 2001/09/11 12:57:06 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -274,7 +274,7 @@ class ECREFFKEY_DEF {
 public:
   integer reprtf[3];   //reco print-flags
   integer relogic[5];  //reco logic-flags
-  geant thresh[10];       //Time dependent DAQ-thresholds (trig.thresh.,...)
+  geant thresh[10];       //Time dependent DAQ/Trig-thresholds
   geant cuts[5];       // ........ RECO cuts (clust.thr.,...)
   integer ReadConstFiles;
 //

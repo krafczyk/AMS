@@ -1,4 +1,4 @@
-//  $Id: antidbc02.h,v 1.2 2001/01/22 17:32:42 choutko Exp $
+//  $Id: antidbc02.h,v 1.3 2001/09/11 12:57:05 choumilo Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
@@ -12,7 +12,7 @@ namespace ANTI2C{
  const integer ANCHMX=2*MAXANTI;// max. number of phys. channels 
  const integer ANAHMX=8; // max. number of TovT-pulse hits (pairs of edges) per chan.
  const integer ANTHMX=8; // max. number of FT-pulse hits (pairs of edges) per channel
- const integer ANJSTA=5;// size of Job-statistics array 
+ const integer ANJSTA=10;// size of Job-statistics array 
  const integer ANCSTA=10;// size of Channel-statistics array
  const integer ANCRAT=4; // number of crates with SFEA cards
  const integer ANSFEA=1; // number of SFEA cards per crate
@@ -138,7 +138,8 @@ private:
 //          i=2 -> RawEv-validate OK
 //           =3 -> RawEvent->RawCluster OK
 //           =4 -> RawCluster->Cluster OK
-//           =5- -> spare
+//           =5 -> Using TOF in LVL1
+//           =6 -> Using EC  in LVL1
 //
 //------
   static integer chcount[ANTI2C::ANCHMX][ANTI2C::ANCSTA];//channel statistics

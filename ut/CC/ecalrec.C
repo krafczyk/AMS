@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.32 2001/09/04 13:20:49 choutko Exp $
+//  $Id: ecalrec.C,v 1.33 2001/09/11 12:57:03 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -23,6 +23,7 @@
 using namespace ecalconst;
 //
 uinteger AMSEcalRawEvent::trigfl=0;// just memory reservation/initialization for static
+number AMSEcalRawEvent::trigtm=0.;// just memory reservation/initialization for static
 //----------------------------------------------------
 void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   int i,j,k;
@@ -105,7 +106,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
   geant pedh[4],pedl[4],sigh[4],sigl[4];
   AMSEcalMCHit * ptr;
   integer id,sta,adc[2],scsta,nslmx,npmmx;
-  number dyresp,dyrespt;// dynode resp. in mev(~mV) (for trigger)
+  number dyresp,dyrespt,toftrtm;// dynode resp. in mev(~mV) (for trigger)
   number an4resp,an4respt;// (for trigger)
 //
   nslmx=ECALDBc::slstruc(3);
@@ -367,12 +368,15 @@ nonEM:
     if(an4respt>ECALVarp::ecalvpar.daqthr(3))trigfl+=10;//high energy
   }
 //
+//-------> create ECAL fast trigger(FT):
+//
+  if(trigfl>0){
+    trigtm=timet/edept;// FT abs.time(ns) (stored in AMSEcalRawEvent object)
+    trigtm+=TOF2Varp::tofvpar.ftdelf();// add the same fixed delay as for TOF-FT
+  }
 //---
-  integer tofflag(0);
-  tofflag=TOF2RawEvent::gettrfl();
   if(ECMCFFKEY.mcprtf==1){
     HF1(ECHIST+19,geant(trigfl),1.);
-    if(tofflag>0)HF1(ECHIST+20,geant(trigfl),1.);
   }
   if(trigfl>0)stat=0;
   return;

@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.3 2001/01/22 17:32:18 choutko Exp $
+//  $Id: antidbc02.C,v 1.4 2001/09/11 12:57:02 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //
 #include <typedefs.h>
@@ -314,6 +314,8 @@ void ANTI2JobStat::print(){
   printf(" MC: Ghits->RawEvent OK  : % 6d\n",mccount[1]);
   printf(" RECO-entries            : % 6d\n",recount[0]);
   printf(" Lev-1 trigger OK        : % 6d\n",recount[1]);
+  printf(" Usage of TOF in LVL1    : % 6d\n",recount[5]);
+  printf(" Usage of EC  in LVL1    : % 6d\n",recount[6]);
   printf(" RawEvent-validation OK  : % 6d\n",recount[2]);
   printf(" RawEvent->RawCluster OK : % 6d\n",recount[3]);
   printf(" RawCluster->Cluster OK  : % 6d\n",recount[4]);

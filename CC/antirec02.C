@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.2 2001/01/22 17:32:18 choutko Exp $
+//  $Id: antirec02.C,v 1.3 2001/09/11 12:57:02 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -19,6 +19,7 @@
 #include <antidbc02.h>
 #include <daqs2block.h>
 #include <antirec02.h>
+#include <ecalrec.h>
 #include <ntuple.h>
 //
 //
@@ -130,6 +131,7 @@ void Anti2RawEvent::mc_build(int &stat){
   geant eup(0),edown(0),tup(0),tdown(0);
   geant thresh[2];
   integer i,j,nup,ndown,sector,ierr,trflag(0),it,sta[2];
+  uinteger ectrfl(0);
   integer sbt,trpatt,lsbit,hcount[4];
   int16u phbit,maxv,id,chsta,ntdca,tdca[ANTI2C::ANAHMX],ntdct,tdct[ANTI2C::ANAHMX],itt;
   number edep,ede,edept(0),time,z,c0,c1,tlev1,ftrig,t1,t2,dt,tovt;
@@ -143,10 +145,17 @@ void Anti2RawEvent::mc_build(int &stat){
   stat=1;//bad
   trflag=TOF2RawEvent::gettrfl();
   Anti2RawEvent::setpatt(trpatt);// reset trigger-pattern in Anti2RawEvent::
-  if(trflag<=0)return;// because needs FTrigger abs. time
+  if(trflag>0){// use FT from TOF
+    ftrig=TOF2RawEvent::gettrtime();// FTrigger abs.time (ns)(incl. fixed delay)
+    tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
+  }
+  else{// have to use FT from ECAL
+    ectrfl=AMSEcalRawEvent::gettrfl(); 
+    if(ectrfl<=0)return;//no EC trigger also -> no chance to digitize ANTI
+    ftrig=AMSEcalRawEvent::gettrtm();
+    tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
+  }
   stat=0;// ok
-  ftrig=TOF2RawEvent::gettrtime();// FTrigger abs.time (ns)(incl. fixed delay)
-  tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
   c0=exp(-ATMCFFKEY.PMulZPos/ATMCFFKEY.LZero);
   c1=0.5*ANTI2DBc::scleng();
   phbit=TOF2GC::SCPHBP;// phase bit position as for TOF !!!

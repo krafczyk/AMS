@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.379 2001/09/04 13:20:49 choutko Exp $
+// $Id: job.C,v 1.380 2001/09/11 12:57:03 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -669,6 +669,9 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.cuts[2]=0.;   // (21)
   ECREFFKEY.cuts[3]=0.;// (22)
   ECREFFKEY.cuts[4]=0.;// (23)
+//
+  ECREFFKEY.ReadConstFiles=1;//(24)read const. from DB/RawFiles (0/1)
+//
   ECREFFKEY.Thr1DSeed=10;
   ECREFFKEY.Thr1DRSeed=0.18;
   ECREFFKEY.Cl1DLeakSize=9;
@@ -685,8 +688,6 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.SimpleRearLeak[3]=0.975e-3;
   ECREFFKEY.CalorTransSize=32;
   ECREFFKEY.EMDirCorrection=1.035;
-//
-  ECREFFKEY.ReadConstFiles=1;//(24)read const. from DB/RawFiles (0/1)
 //  
   ECREFFKEY.sec[0]=0;//(25) 
   ECREFFKEY.sec[1]=0;//(26)

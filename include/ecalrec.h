@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.14 2001/09/04 13:21:08 choutko Exp $
+//  $Id: ecalrec.h,v 1.15 2001/09/11 12:57:06 choumilo Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -15,7 +15,8 @@
 //---------------------------------------
 class AMSEcalRawEvent: public AMSlink{
 private:
-  static uinteger trigfl; // =1/2/3 -> "mip/low/high, =0->no trig.
+  static uinteger trigfl; // =1/2/3... -> "mip/low/high, =0->no trig.
+  static number trigtm; // ECAL FT abs. time
   integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
   integer _padc[2];// Pulse hight (ADC-channels)[HighGain,LowGain]
 public:
@@ -36,6 +37,7 @@ public:
   static void validate(int &stat);
   static void settrfl(uinteger trfl){trigfl=trfl;}
   static uinteger gettrfl(){return trigfl;}
+  static number gettrtm(){return trigtm;}
 //
 // interface with DAQ :
 //
