@@ -34,7 +34,7 @@ TOFRAWCL_DEF blkTofrawcl;
 static char dir_old[] = "//OLD", *top_old = "OLD";
 static char dir_new[] = "//NEW", *top_new = "NEW";
 static char dir_usr[] = "//USR", *top_usr = "USR";      // for user's histogram
-static char *defInsert = ".select";
+static char *defInsert = ".s";
 static char *defNewDir = "./";
 static int newFileLen = 100;
 
