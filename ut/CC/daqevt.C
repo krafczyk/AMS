@@ -7,7 +7,7 @@
 integer DAQEvent::_Buffer[50000];
 integer DAQEvent::_BufferLock=0;
 const integer lover=2;
-time_t        Time_1;
+uinteger      Time_1;
 
 DAQEvent::~DAQEvent(){
 shrink();
@@ -199,12 +199,12 @@ integer DAQEvent::_HeaderOK(){
       AMSEvent::buildraw(*(_pcur)+_OffsetL-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
       _Checked=1;
     if (AMSJob::gethead()->isMonitoring()) {
-     if (Time_1 != 0 && _Time > Time_1) {
-      geant d = _Time - Time_1;
+     if (Time_1 != 0 && _usec > Time_1) {
+      geant d = _usec - Time_1;
             d = d/1000.;
       HF1(300003,d,1.);
      }
-     Time_1 = _Time;
+     Time_1 = _usec;
     }      
 #ifdef __AMSDEBUG__
       //cout << "Run "<<_Run<<" Event "<<_Event<<" RunType "<<_RunType<<endl;
