@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.70 2003/04/01 10:29:44 choutko Exp $
+# $Id: RemoteClient.pm,v 1.71 2003/04/01 11:35:34 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -1818,8 +1818,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             htmlTextField("Total Events","number",9,1000000.,"QEv"," ");  
             htmlTextField("Total Runs","number",7,3.,"QRun"," ");  
             my ($rndm1,$rndm2) = $self->getrndm();
-            htmlTextField("rndm1","text",9,$rndm1,"QRNDM1"," ");  
-            htmlTextField("rndm2","text",9,$rndm2,"QRNDM2"," ");  
+            htmlTextField("rndm1","text",12,$rndm1,"QRNDM1"," ");  
+            htmlTextField("rndm2","text",12,$rndm2,"QRNDM2"," ");  
             htmlTextField("Begin Time","text",8,"01062005","QTimeB"," (ddmmyyyy)");  
             htmlTextField("End Time","text",8,"01062008","QTimeE"," (ddmmyyyy)");  
             htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
@@ -1828,13 +1828,16 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            if ($self->{CCT} eq "remote") {
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
-            } else {
+# Apr 1.2003 set default transfer to 'No' for both mode - remote/local
+#            if ($self->{CCT} eq "remote") {
+#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
+#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
+#            } 
+#
+#else {
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Yes </b><BR>\n";
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
-            }
+#            }
             print "</b></font></td></tr>\n";
            htmlTableEnd();
             if ($self->{CCT} eq "remote") {
@@ -1844,7 +1847,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
                   <i>(server sends to client <b> ALL  files </b> including EXE's [~7MB] if box  <BR>\n";
              print "  <b> Checked </b>, and it sends <b> ONLY scripts </b> if box <b> NOT checked</b>)
                       </i></font></b>\n";
-             print "</tr></td><td>\n";
+#             print "</tr></td><td>\n";
+             print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
              print "<input type=\"checkbox\" name=\"SONLY\" value=\"Yes\"><b> Yes </b>";
@@ -1950,13 +1954,14 @@ DDTAB:         $self->htmlTemplateTable(" ");
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            if ($self->{CCT} eq "remote") {
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
-            } else {
+# Apr 1.2003 set default transfer to 'No' for both mode - remote/local
+#            if ($self->{CCT} eq "remote") {
+#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
+#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
+#            } else {
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Yes </b><BR>\n";
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
-            }
+#            }
             print "</b></font></td></tr>\n";
            htmlTableEnd();
             if ($self->{CCT} eq "remote") {
@@ -1966,7 +1971,8 @@ DDTAB:         $self->htmlTemplateTable(" ");
                   <i>(server sends to client <b> ALL  files </b> including EXE's [~7MB] if box  <BR>\n";
              print "  <b> Checked </b>, and it sends <b> ONLY scripts </b> if box <b> NOT checked</b>)
                       </i></font></b>\n";
-             print "</tr></td><td>\n";
+#             print "</tr></td><td>\n";
+             print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
              print "<input type=\"checkbox\" name=\"SONLY\" value=\"Yes\"><b> Yes </b>";
@@ -2123,13 +2129,14 @@ DDTAB:         $self->htmlTemplateTable(" ");
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
-            if ($self->{CCT} eq "remote") {
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
-            } else {
+# Apr 1.2003 set default transfer to 'No' for both mode - remote/local
+#            if ($self->{CCT} eq "remote") {
+#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
+#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
+#            } else {
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Yes </b><BR>\n";
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
-            }
+#            }
              print "</b></font></td></tr>\n";
             htmlTableEnd();
             if ($self->{CCT} eq "remote") {
@@ -2139,7 +2146,8 @@ DDTAB:         $self->htmlTemplateTable(" ");
                   <i>(server sends to client <b> ALL  files </b> including EXE's [~7MB] if box  <BR>\n";
              print "  <b> Checked </b>, and it sends <b> ONLY scripts </b> if box <b> NOT checked</b>)
                       </i></font></b>\n";
-             print "</tr></td><td>\n";
+#             print "</tr></td><td>\n";
+             print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
              print "<input type=\"checkbox\" name=\"SONLY\" value=\"Yes\"><b> Yes </b>";
