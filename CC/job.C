@@ -2047,12 +2047,11 @@ integer AMSJob::FillJobTDV(integer nobj, tdv_time *tdv)
 
 void       _genonlinebookhist() 
 {
-const   int nids = 24;
+const   int nids = 18;
 
 int16u ids[nids] =
   { 0x200,
     0x1401,0x1441,0x1481,0x14C1,0x1501,0x1541,0x1581,0x15C1,  //  TOF Raw
-    0x1400,0x1440,0x1480,0x14C0,0x1500,0x1540,0x1580,0x15C0,  //  TOF Reduced
     0x1680, 0x1740,                                           //  TRK Reduced
     0x1681, 0x1741,                                           //  TRK Raw
     0x168C, 0x174C,                                           //  TRK Mixed
@@ -2060,33 +2059,25 @@ int16u ids[nids] =
   };
 
 
-char   *ids_names[]  = {"Length GenBlock    ",
-                        "Length TOF(raw) 0 ",
-                        "Length TOF(raw) 1 ",
-                        "Length TOF(raw) 2 ",
-                        "Length TOF(raw) 3 ",
-                        "Length TOF(raw) 4 ",
-                        "Length TOF(raw) 5 ",
-                        "Length TOF(raw) 6 ",
-                        "Length TOF(raw) 7 ",
-                        "Length TOF(red) 0 ",
-                        "Length TOF(red) 1 ",
-                        "Length TOF(red) 2 ",
-                        "Length TOF(red) 3 ",
-                        "Length TOF(red) 4 ",
-                        "Length TOF(red) 5 ",
-                        "Length TOF(red) 6 ",
-                        "Length TOF(raw) 7 ",
-                        "Length TRK(red) 32",
-                        "Length TRK(red) 72",
-                        "Length TRK(raw) 32",
-                        "Length TRK(raw) 72",
-                        "Length TRK(mix) 32",
-                        "Length TRK(mix) 72",
-                        "Length Level1 block "};
+char   *ids_names[]  = {"Length (words) GenBlock    ",
+                        "Length (words) TOF(raw) 0 ",
+                        "Length (words) TOF(raw) 1 ",
+                        "Length (words) TOF(raw) 2 ",
+                        "Length (words) TOF(raw) 3 ",
+                        "Length (words) TOF(raw) 4 ",
+                        "Length (words) TOF(raw) 5 ",
+                        "Length (words) TOF(raw) 6 ",
+                        "Length (words) TOF(raw) 7 ",
+                        "Length (words) TOF(red) 0 ",
+                        "Length (words) TRK(red) 32",
+                        "Length (words) TRK(red) 72",
+                        "Length (words) TRK(raw) 32",
+                        "Length (words) TRK(raw) 72",
+                        "Length (words) TRK(mix) 32",
+                        "Length (words) TRK(mix) 72",
+                        "Length (words) Level1 block "};
 
   int nchans[nids] ={100,
-                    100.,100.,100.,100.,100.,100.,100.,100.,
                     100.,100.,100.,100.,100.,100.,100.,100.,
                     1000.,1000.,
                     800.,800.,
@@ -2100,9 +2091,9 @@ char   *ids_names[]  = {"Length GenBlock    ",
      if (i>17) nbin = 100;
      HBOOK1(hid,ids_names[i],nbin,0.,f,0.);
   }
-    HBOOK1(300000,"Length (bytes) event",400,0.,1200.,0.);
-    HBOOK1(300001,"Length (bytes) TOF",200,0.,600.,0.);
-    HBOOK1(300002,"Length (bytes) Tracker",400,0.,1200.,0.);
+    HBOOK1(300000,"Length (words) event",400,0.,1200.,0.);
+    HBOOK1(300001,"Length (words) TOF",200,0.,600.,0.);
+    HBOOK1(300002,"Length (words) Tracker",400,0.,1200.,0.);
 }
 
 #ifdef __DB__
