@@ -1,4 +1,4 @@
-#  $Id: Mopt_oracle,v 1.1 2001/02/28 09:22:47 alexei Exp $
+#  $Id: Mopt_oracle,v 1.2 2001/02/28 09:25:28 alexei Exp $
 #
 include $(ORACLE_HOME)/precomp/lib/env_precomp.mk
 PROCPPFLAGS= code=cpp $(CPLUS_SYS_INCLUDE)
@@ -116,7 +116,7 @@ SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c
 SRCSCPP= $(SRC)server-cpp-stubs.cc $(SRC)server-cpp-skels.cc $(SRC)server-cpp-common.cc 
 OBJECTCO=$(BIN)server-stubs.o $(BIN)server-skels.o $(BIN)server-common.o $(BIN)server-cpp-common.o 
 OBJECTCL= $(BIN)server-cpp-stubs.o 
-OBJECTSEAUX=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver.o
+OBJECTSEAUX=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver_o.o
 OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL) 
 OBJECTORA= $(BIN)oracle.o
 endif
@@ -581,8 +581,8 @@ $(BIN)oracle.o: 	 $(SCC)oracle.pc
 
 	$(CPLUSPLUS) -w  -c -fpermissive $(PROINCLUDE) $(CFLAGS) $(BIN)oracle.C -o $(BIN)oracle.o
 
-$(BIN)dbserver.o: 	 $(SCC)dbserver.C
-	$(CC)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
+$(BIN)dbserver_o.o: 	 $(SCC)dbserver.C
+	$(CC)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver_o.o
 
 
 
