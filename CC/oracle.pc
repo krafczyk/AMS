@@ -1,4 +1,4 @@
-//  $Id: oracle.pc,v 1.5 2001/06/06 15:02:03 alexei Exp $
+//  $Id: oracle.pc,v 1.6 2001/06/07 16:33:37 alexei Exp $
 //
 // Subroutines to work with AMS ORACLE database
 //
@@ -16,8 +16,10 @@
 //                             m_active_clients, m_dst, m_runtable
 //              June  1, 2001. unsigned int/int clashes in functions call for 
 //                             the new version of ORACLE
+//              June  7, 2001. subroutine gettdvbody, use amsdatadir as a 
+//                             prefix to TDV file
 //
-// Last Edit : June 1, 2001
+// Last Edit : June 7, 2001
 //
 
 #include <iostream.h>
@@ -215,6 +217,7 @@ EXEC SQL BEGIN DECLARE SECTION;
  } runsT[2000];
 
   char         filepath[1024];
+  char         tline[1024];
 
   long          mindatetime;
   long          maxdatetime;
@@ -709,9 +712,11 @@ int AMSoracle::finddeftdv(char *name, int datamc, TDVutime *utime)
    return rstatus;
 }    
 
-int  AMSoracle::gettdvbody(TDVrec *tdv, unsigned int *pdata)
+int  AMSoracle::gettdvbody(const char *amsdatadir, TDVrec *tdv, unsigned int *pdata)
 //  
 // get TDV body for the given i/b/e time
+//
+// replace /offline/AMSDataDir/DataBase by amsdatadir
 //
 {
  
@@ -724,6 +729,12 @@ int  AMSoracle::gettdvbody(TDVrec *tdv, unsigned int *pdata)
      strcpy(filepath, tdv -> getfilepath());
      suppressBlanks(filepath);
      suppressCR(filepath);
+     if (strstr(filepath,"/DataBase")) {
+       strcpy(tline,amsdatadir);
+       strcat(tline,strstr(filepath,"/DataBase"));
+       strcpy(filepath,tline);
+     }
+
      tdvsize = tdv -> getsize();
      if (debug) cout<<"AMSoracle::gettdvbody -I- file "<<filepath
                     <<", "<<tdvsize<<" bytes"<<endl;
@@ -4245,6 +4256,12 @@ int AMSoracle::insertNominalClient(
       strcpy(tsubmitcmd, submitcmd);
       tlogend     = logintheend; 
       tinsert     = time((time_t)0);
+     
+      cout<<"Insert Nominal Client"<<endl;
+      cout<<"id, type "<<tid<<", "<<ttype<<endl;
+      cout<<"maxclients, cpu, mem "<<tmaxclients<<", "<<tcpuneeded<<", "<<tmem<<endl;
+      cout<<"hostid "<<thostid<<endl;
+      cout<<"logintheend "<<tlogend<<endl;;
 
       EXEC SQL INSERT INTO m_nominal_clients 
               VALUES(:tid,

@@ -1,4 +1,4 @@
-//  $Id: oracle.h,v 1.6 2001/06/07 09:19:28 alexei Exp $
+//  $Id: oracle.h,v 1.7 2001/06/07 16:33:41 alexei Exp $
 //
 // ORACLE related subroutines 
 //
@@ -10,8 +10,9 @@
 //                             Tag and prodruns tables
 //              Jan    , 2001. Hosts, Clients, Runs
 //              Feb    , 2001. Active CLients, hosts.
+//              Jun   7, 2001. gettdvbody add amsdatadir
 //
-// Last Edit : June 1, 2001
+// Last Edit : June 7, 2001
 //
 
 
@@ -1027,7 +1028,7 @@ namespace AMSoracle {
   unsigned int  getHostId(unsigned int cid);
   void gettablename(char *tdvn);
   int  getTableSize(const char *table);
-  int  gettdvbody(TDVrec *tdv, unsigned int *pdata);
+  int  gettdvbody(const char *amsdatadir, TDVrec *tdv, unsigned int *pdata);
   int  gettdv(TDVrec *tdv, int deftable);
   int  decHostClientsActive(unsigned int clientId, unsigned int ctype);
   int  incHostClientsActive(unsigned int clientId, unsigned int ctype);

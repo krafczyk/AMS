@@ -1,10 +1,11 @@
-//  $Id: dbserver.C,v 1.15 2001/03/26 14:19:26 alexei Exp $
+//  $Id: dbserver.C,v 1.16 2001/06/07 16:33:36 alexei Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
 //  Mar,    2001. a.k. debugging   
-//                    
-//  Last Edit : Mar 26, 2001. ak
+//  Jun,    2001. a.k. use amsdatadir as TDV file prefix                  
+//
+//  Last Edit : Jun 7, 2001. ak
 //
 #include <stdlib.h>
 #include <server.h>
@@ -292,7 +293,7 @@ void  DBServer_impl::_init(){
     }
    if (nclients < 1) {
      cout<<"DBServer_impl::getACS -I- cannot get ActiveProcess information for "
-         <<_parent->CT2string(cid.Type)<<endl;     
+         <<_parent->CT2string(cid.Type)<< " on "<<(const char *)hostname<<endl;     
      acv -> length(1);
      nclients = 0;
      maxc = 0;
@@ -708,9 +709,15 @@ void  DBServer_impl::_init(){
   int  DBServer_impl::getTDV(const DPS::Client::CID & cid,  TDVName & tdvname, TDVbody_out body)
 {
 
-int length=0;
-TDVbody_var vbody=new TDVbody();
-
+ int length=0;
+ TDVbody_var vbody=new TDVbody();
+ AString   amsdatadir;
+ char *gtv=getenv("AMSDataDir");
+ if (gtv && strlen(gtv)>0) {
+   amsdatadir = gtv;
+ } else {
+   _parent -> FMessage("AMSDataDirNotDefined",DPS::Client::CInAbort);
+ }
   int  rstat = -1;
   unsigned int *pdata = 0;
   AMSoracle::TDVrec   *tdv = 0;
@@ -724,7 +731,7 @@ TDVbody_var vbody=new TDVbody();
     int nbytes = tdv -> getsize();
     pdata = new unsigned int[nbytes/sizeof(unsigned int)-1];
     if (pdata) {
-      if (AMSoracle::gettdvbody(tdv, pdata) == 1) {
+      if (AMSoracle::gettdvbody((const char *)amsdatadir, tdv, pdata) == 1) {
         length = nbytes/sizeof(uinteger);
         //        AMSTimeID::_convert(pdata,length);
         cout<<"Insert "<<pdata[length-3]<<endl;
@@ -760,7 +767,19 @@ TDVbody_var vbody=new TDVbody();
 {
  st=Continue;
 
+ AString   amsdatadir;
+ char *gtv=getenv("AMSDataDir");
+ if (gtv && strlen(gtv)>0) {
+   amsdatadir = gtv;
+ } else {
+   _parent -> FMessage("AMSDataDirNotDefined",DPS::Client::CInAbort);
+ }
+
+
  int length=0;
+
+
+
  TDVbody_var vbody= new TDVbody();
 
   int rstat = -1;
@@ -779,7 +798,7 @@ TDVbody_var vbody=new TDVbody();
     length = nbytes/sizeof(uinteger);
     cout <<" length "<<length<<endl;;
     vbody->length(length);
-      if ( AMSoracle::gettdvbody(tdv, vbody->get_buffer()) == 1) {
+      if ( AMSoracle::gettdvbody((const char*)amsdatadir, tdv, vbody->get_buffer()) == 1) {
         //        AMSTimeID::_convert(pdata,length);
         length = length - 3; // i/b/e
         tdvname.Success=true;
