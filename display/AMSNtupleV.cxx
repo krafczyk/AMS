@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.13 2003/09/24 12:20:59 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.14 2003/09/26 11:06:52 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -113,18 +113,18 @@ info=0;
 }
 
 
-
 {
  int cand=-1;
- for(int i=0;i<fEcalClusterV.size();i++){
-   int current=fEcalClusterV[i].DistancetoPrimitive(px,py);
+ for(int i=0;i<fEcalShowerV.size();i++){
+   int current=fEcalShowerV[i].DistancetoPrimitive(px,py);
   if(abs(current)<abs(dist)){
    dist=current;
    cand=i;
   }
  }
- if(dist<7 && cand>=0)info=fEcalClusterV[cand].GetObjectInfo(px,py);
+ if(dist<7 && cand>=0)info=fEcalShowerV[cand].GetObjectInfo(px,py);
 }
+
 
 
 {
@@ -140,22 +140,23 @@ info=0;
 }
 
 
-{
- int cand=-1;
- for(int i=0;i<fEcalShowerV.size();i++){
-   int current=fEcalShowerV[i].DistancetoPrimitive(px,py);
-  if(abs(current)<abs(dist)){
-   dist=current;
-   cand=i;
-  }
- }
- if(dist<7 && cand>=0)info=fEcalShowerV[cand].GetObjectInfo(px,py);
-}
 
 
 if(info)return info;
+else dist=1000000;
 
-
+{
+ int cand=-1;
+ for(int i=0;i<fEcalClusterV.size();i++){
+   int current=fEcalClusterV[i].DistancetoPrimitive(px,py);
+  if(abs(current)<abs(dist)){
+   dist=current;
+   cand=i;
+   //cout <<"  cluster "<<i<<dist<<" "<<current<<endl;
+  }
+ }
+ if(dist<7 && cand>=0)info=fEcalClusterV[cand].GetObjectInfo(px,py);
+}
 
 
 
@@ -409,9 +410,6 @@ void AMSNtupleV::Draw( EAMSType type){
   }
 
 
- for(int i=0;i<fRichRingV.size();i++){
-   fRichRingV[i].AppendPad();
-  }
 
 
  for(int i=0;i<fTrTrackV.size();i++){
@@ -428,6 +426,10 @@ void AMSNtupleV::Draw( EAMSType type){
 
  for(int i=0;i<fEcalClusterV.size();i++){
    fEcalClusterV[i].AppendPad();
+  }
+
+ for(int i=0;i<fRichRingV.size();i++){
+   fRichRingV[i].AppendPad();
   }
 
  for(int i=0;i<fEcalShowerV.size();i++){

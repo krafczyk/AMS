@@ -1,4 +1,4 @@
-//  $Id: TMarker3DCl.cxx,v 1.4 2003/07/18 13:48:51 choutko Exp $
+//  $Id: TMarker3DCl.cxx,v 1.5 2003/09/26 11:06:53 choutko Exp $
 
 #include "Riostream.h"
 #include "TROOT.h"
@@ -216,7 +216,7 @@ Int_t TMarker3DCl::DistancetoPrimitive(Int_t px, Int_t py){
      }
    }
    if(inside)dist=-dist;
-   if (dist < 5) {
+   if (dist < 0) {
       gPad->SetCursor(kCross);
    }
    return dist;
@@ -234,8 +234,9 @@ void TMarker3DCl::ExecuteEvent(Int_t event, Int_t px, Int_t py)
 //*-*
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-        if (gPad->GetView())
-                gPad->GetView()->ExecuteRotateView(event, px, py);
+        if (gPad->GetView()){
+                //gPad->GetView()->ExecuteRotateView(event, px, py);
+        }
 
 }
 
@@ -399,7 +400,7 @@ void TMarker3DCl::PaintShape3D(X3DBuffer *buff, Bool_t rangeView)
     }
     if (rangeView){
       TView *view = gPad->GetView();
-      if (view->GetAutoRange()) view->SetRange(x0,y0,z0,x1,y1,z1,kExpandView);
+      //if (view->GetAutoRange()) view->SetRange(x0,y0,z0,x1,y1,z1,kExpandView);
     }
 
 }

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.32 2003/09/22 08:44:44 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.33 2003/09/26 11:06:52 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -36,12 +36,17 @@ AMSDisplay *gAMSDisplay;
 AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple):m_ntuple(ntuple), TObject(){
 
 
-     fCooDef[0][0]=-65.;
-     fCooDef[0][1]=-65.;
-     fCooDef[0][2]=-90.;
-     fCooDef[1][0]=65.;
-     fCooDef[1][1]=65.;
-     fCooDef[1][2]=100.;
+     fCooDef[0][0]=-115.;
+     fCooDef[0][1]=-115.;
+     fCooDef[0][2]=-170;
+     fCooDef[1][0]=115.;
+     fCooDef[1][1]=115.;
+     fCooDef[1][2]=170.;
+     //double jopa= fCooDef[1][2]+fCooDef[0][2];
+     //jopa*=(sqrt(3.)-1)/2.;
+     //jopa=0;
+     //fCooDef[0][2]+=jopa;
+     //fCooDef[1][2]+=jopa;
      ResetCoo();
      m_Geometry     = 0;
      m_selected=0;
@@ -224,7 +229,7 @@ void AMSDisplay::DrawAllViews(){
    // draw side view
    m_Pad->cd(4);
    DrawView(90, -90, 3);
-   DrawCaption("Side");
+   DrawCaption("Side ");
 
    m_Pad->cd(2);
 }
@@ -345,7 +350,7 @@ void AMSDisplay::DrawAxis(Int_t index, Option_t * option)
    Double_t latitude  = eventView->GetLatitude();
 
 
-   TPad * axisPad = new TPad("axis","axis", 0.0, 0.0, 0.15, 0.15);
+   TPad * axisPad = new TPad("axis","axis", 0.0, 0.0, 0.12, 0.12);
 					// this will be deleted when
 					// the parent pad calls Clear()
 
@@ -377,7 +382,7 @@ void AMSDisplay::DrawAxis(Int_t index, Option_t * option)
    TView * axisView = new TView(1);
    m_AxisPadP[index] = (TPad*)gPadSave;
    m_AxisPad[index] = axisPad;
-   axisView->SetRange(-1.5,-1.5,-1.5, 1.5,1.5,1.5);
+   axisView->SetRange(-2.,-2.,-2., 2.,2.,2.);
    Int_t iret;
 
    axisView->SetView(longitude, latitude, 0, iret);
@@ -449,6 +454,8 @@ void AMSDisplay::DrawView(Double_t theta, Double_t phi, Int_t index){
    // add the geomtry to the pad
     if(DrawGeometry())m_Geometry->Draw("same");
     view->SetRange(fCooCur[0][0], fCooCur[0][1],fCooCur[0][2],fCooCur[1][0],fCooCur[1][1],fCooCur[1][2]);
+           Int_t iret;
+     if ( theta != 9999 && phi != 9999 ) view->SetView(phi, theta, 0, iret);
      if(m_zoom){
       TAxis3D *axis=TAxis3D::ToggleZoom(gPad);
      if(axis){
@@ -465,9 +472,9 @@ void AMSDisplay::DrawView(Double_t theta, Double_t phi, Int_t index){
    }
      Int_t iret;
      if ( theta != 9999 && phi != 9999 ) view->SetView(phi, theta, 0, iret);
+
    if( m_PrevView!=m_View){
      DrawAxis(index);
-     //DrawTrigger();
    }
    else if ( theta != 9999 && phi != 9999 ){
     m_AxisPad[index]->GetView()->SetView(phi,theta,0,iret);
@@ -784,52 +791,52 @@ void AMSDisplay::SetFocus(int selected){
    ResetCoo();
    break;
   case 1:   //TRD
-   fCooCur[0][0]=-60; 
-   fCooCur[0][1]=-60; 
-   fCooCur[0][2]=90; 
-   fCooCur[1][0]=60; 
-   fCooCur[1][1]=60; 
-   fCooCur[1][2]=130; 
+   fCooCur[0][0]=-110; 
+   fCooCur[0][1]=-110; 
+   fCooCur[0][2]=80; 
+   fCooCur[1][0]=110; 
+   fCooCur[1][1]=110; 
+   fCooCur[1][2]=165; 
    break;
   case 2:   //TOF Top
-   fCooCur[0][0]=-60; 
-   fCooCur[0][1]=-60; 
-   fCooCur[0][2]=50; 
-   fCooCur[1][0]=60; 
-   fCooCur[1][1]=60; 
-   fCooCur[1][2]=80; 
+   fCooCur[0][0]=-90; 
+   fCooCur[0][1]=-90; 
+   fCooCur[0][2]=52; 
+   fCooCur[1][0]=90; 
+   fCooCur[1][1]=90; 
+   fCooCur[1][2]=75; 
    break;
   case 3:   //Tracker
-   fCooCur[0][0]=-45; 
-   fCooCur[0][1]=-45; 
-   fCooCur[0][2]=-45; 
-   fCooCur[1][0]=45; 
-   fCooCur[1][1]=45; 
-   fCooCur[1][2]=45; 
+   fCooCur[0][0]=-58; 
+   fCooCur[0][1]=-58; 
+   fCooCur[0][2]=-65; 
+   fCooCur[1][0]=58; 
+   fCooCur[1][1]=58; 
+   fCooCur[1][2]=65; 
    break;
   case 4:   //TOF Bottom
-   fCooCur[0][0]=-60; 
-   fCooCur[0][1]=-60; 
-   fCooCur[0][2]=-78; 
-   fCooCur[1][0]=60; 
-   fCooCur[1][1]=60; 
-   fCooCur[1][2]=-60; 
+   fCooCur[0][0]=-90; 
+   fCooCur[0][1]=-90; 
+   fCooCur[0][2]=-75; 
+   fCooCur[1][0]=90; 
+   fCooCur[1][1]=90; 
+   fCooCur[1][2]=-52; 
    break;
   case 5:   //RICH
-   fCooCur[0][0]=-40; 
-   fCooCur[0][1]=-40; 
-   fCooCur[0][2]=-130; 
-   fCooCur[1][0]=40; 
-   fCooCur[1][1]=40; 
-   fCooCur[1][2]=-110; 
+   fCooCur[0][0]=-69; 
+   fCooCur[0][1]=-69; 
+   fCooCur[0][2]=-131; 
+   fCooCur[1][0]=69; 
+   fCooCur[1][1]=69; 
+   fCooCur[1][2]=-70; 
    break;
   case 6:   //ECAL
-   fCooCur[0][0]=-35; 
-   fCooCur[0][1]=-35; 
-   fCooCur[0][2]=-160; 
-   fCooCur[1][0]=35; 
-   fCooCur[1][1]=35; 
-   fCooCur[1][2]=-125; 
+   fCooCur[0][0]=-38; 
+   fCooCur[0][1]=-38; 
+   fCooCur[0][2]=-162; 
+   fCooCur[1][0]=38; 
+   fCooCur[1][1]=38; 
+   fCooCur[1][2]=-140; 
    break;
  }
 }

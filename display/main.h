@@ -1,4 +1,4 @@
-//  $Id: main.h,v 1.4 2003/07/08 16:17:34 choutko Exp $
+//  $Id: main.h,v 1.5 2003/09/26 11:06:53 choutko Exp $
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TEnv.h>
@@ -23,7 +23,10 @@ public:
  void SetStatic(){
        const char *ttpath = gEnv->GetValue("Root.TTFontPath","$(HOME)/ttf/fonts");
    if(ttpath && !getenv("OffmonNoTTF")){
-    if(gSystem->Which(ttpath, "arialbd.ttf", kReadPermission)){
+    char file[512];
+    strcpy(file,ttpath);
+    strcat(file,"/arialbd.ttf");
+    if(!access(file,kReadPermission)){
      cout << "Using TTF Fonts  from "<<ttpath<<endl;
      gVirtualX=new TGX11TTF(*(TGX11*)gVirtualX);
     }

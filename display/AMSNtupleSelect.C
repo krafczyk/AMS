@@ -9,12 +9,19 @@ bool IsGolden(AMSEventR *ev){
 // This is a user function to be modified
 //  return true if event has to be drawn false otherwise
 //
-// if(ev && ev->nParticle()>0 && ev->pParticle(0)->Particle==1){
- if(ev && ev->nParticle()>0 && ev->nRichRing()>0){
+ if(ev && ev->nParticle()>0 ){
+// if(ev && ev->nParticle()>0 && ev->nRichRing()>0){
+   for(int i=0;i<ev->nParticle();i++){
+    if(ev->pParticle(i)->Particle==1){
+     cout <<" found photon "<<i<<" "<<ev->pParticle(i)->Momentum<<endl;
+     return true;  
+    }
+   }
+   return false;
    for(int i=0;i<ev->nRichRing();i++){
     if(ev->pRichRing(i)->UsedM)return true;
    }
-   return true;
+   return false;
  }
   else return false;
 }
