@@ -165,6 +165,8 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     //create menus
 
 #define TOFmenu // TEMP!
+    /* Now I have a multilevel cascade menu to select a TOF channel.  *
+     * If it is annoying, I could implement some dialog menu ;-)      */
 
 #ifdef TOFmenu
    // TOF channel submenus
