@@ -185,7 +185,7 @@ NEW_FILES: /* look for new files in the directory */
       Coo_M1950[1]=CASvalue((4508),8) * foot_cm;
       Coo_M1950[2]=CASvalue((4526),8) * foot_cm;
 
-      Vel_M1950[0]=CASvalue((4678),8) * foot_cm;
+      Vel_M1950[0]=CASvalue((4687),8) * foot_cm;
       Vel_M1950[1]=CASvalue((4701),8) * foot_cm;
       Vel_M1950[2]=CASvalue((4715),8) * foot_cm;
 //        printf(".......................... %d %d\n",record_n,Umin); 
