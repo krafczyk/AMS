@@ -65,13 +65,8 @@ if(CTCDBc::getgeom()<2){
 }
 else {
  for(integer kk=0;kk<CTCDBc::getnlay();kk++){
-#if 1  // change to 0 when EC  writes the proper code
   AMSCTCRawHit *ptr=(AMSCTCRawHit*)AMSEvent::gethead()->
-  getheadC("AMSCTCRawHit",kk);
-#else
-  AMSCTCRawCluster *ptr=(AMSCTCRawCluster*)AMSEvent::gethead()->
-  getheadC("AMSCTCRawCluster",kk);
-#endif
+  getheadC("AMSCTCRawHit",kk,1);
   integer const maxpl=200;
   static number xplane[maxpl];
   static integer xstatus[maxpl];
@@ -117,7 +112,7 @@ if(imax >=0 && smax >0 && smax>=CTCRECFFKEY.Thr1){
     if(col-1+j >=0 && col-1+j <CTCDBc::getnx(layer)*2 && row-1+i >=0 
     && row-1+i < CTCDBc::getny()*2){ 
     if(k>=0 && k<maxpl && xplane[k]>0){
-     AMSCTCRawHit d(0,row+i,layer,0,col+j);
+     AMSCTCRawHit d(row+i,layer,col+j);
      AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(0));
      if(p){
       cofg=cofg+p->loc2gl(AMSPoint(0,0,0))*xplane[k];
@@ -131,7 +126,7 @@ if(imax >=0 && smax >0 && smax>=CTCRECFFKEY.Thr1){
   }
   if(edep>0)cofg=cofg/edep;
   // GetTypical Error Size - 
-  AMSCTCRawHit d(0,1,1,0,1);
+  AMSCTCRawHit d(1,1,1);
   AMSgvolume *p0= AMSJob::gethead()->getgeomvolume(d.crgid(0));
   if(p0 ){
           xsize=p0->getpar(0);

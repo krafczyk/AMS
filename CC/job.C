@@ -1204,6 +1204,7 @@ void AMSJob::_reantiinitjob(){
 //===================================================================
 void AMSJob::_rectcinitjob(){
 AMSgObj::BookTimer.book("RECTCEVENT");
+AMSCTCRawHit::init();
 }
 
 void AMSJob::_reaxinitjob(){

@@ -110,13 +110,6 @@ for(kk=0;kk<CTCDBc::getnlay();kk++){
   while(pctc){
     if(pctc->checkstatus(AMSDBc::USED)==0 ){
         AMSPoint coo=pctc->getcoo();
-        // Change Z
-        AMSCTCRawHit d(0,1,pctc->getlayno(),0);
-        AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(0));
-#ifdef __AMSDEBUG__
-assert (p != NULL);
-#endif
-        coo[2]=p->loc2gl(AMSPoint(0,0,0))[2];
         _ptrack->interpolate(coo,dir,outp,theta,phi,sleng);
         if(((outp-coo)/pctc->getecoo()).abs() < SearchReg)break;
     }
@@ -151,7 +144,7 @@ assert (p != NULL);
    signal=0;
    beta=0;
    ebeta=1;
-   AMSCTCRawHit d(0,1,kk+1,0);
+   AMSCTCRawHit d(1,kk+1,1);
    AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(0));
    if(p)
    _ptrack->interpolate(p->loc2gl(AMSPoint(0,0,0)),dir,outp,theta,phi,sleng);

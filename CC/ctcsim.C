@@ -86,7 +86,7 @@ void AMSCTCRawHit::sictcdigi(){
      if(Tmp[i]>0){
       POISSN(Tmp[i],ival,ierr);
       AMSEvent::gethead()->addnext(AMSID("AMSCTCRawHit",icnt),
-      new AMSCTCRawHit(0,i/ncol+1,icnt+1,ival,TmpT[i],i%ncol+1));
+      new AMSCTCRawHit(0,i/ncol+1,icnt+1,i%ncol+1,ival,TmpT[i]));
      }      
     }
    UPool.udelete(Tmp); 
@@ -131,6 +131,109 @@ void AMSCTCRawHit::_copyEl(){
 
 
 void AMSCTCRawHit::_printEl(ostream & stream){
-  stream <<"AMSCTCRawHit  "<<_row<<" "<<" "<<_layer<<" "<<_signal<<endl;
+  stream <<"AMSCTCRawHit row "<<_row<<" col  "<<_column<<" lay  "<<_layer<<
+    " soft  "<<_idsoft<<" sig "<<_signal<<endl;
 }
 
+integer * AMSCTCRawHit::_pMap[4]={0,0,0,0};
+
+integer AMSCTCRawHit::_nelem=0;
+void AMSCTCRawHit::init(){
+  int icnt;
+  for(icnt=0;icnt<CTCDBc::getnlay();icnt++){
+    integer nrow=CTCDBc::getny()*2;
+    integer ncol=CTCDBc::getnx(icnt+1)*2;
+    _nelem+=nrow*ncol;
+  }
+  for(icnt=0;icnt<4;icnt++){
+   _pMap[icnt]=new integer[_nelem];
+   assert(_pMap[icnt] != NULL);
+  }
+  int il,ir,ic,itot;
+  itot=0;
+  int ielec=0;    // Eugeni's id ( should be changed)
+  for(il=0;il<CTCDBc::getnlay();il++){
+    integer nrow=CTCDBc::getny()*2;
+    integer ncol=CTCDBc::getnx(il+1)*2;
+    for(ir=0;ir<nrow;ir++){
+      for(ic=0;ic<ncol;ic++){
+        _pMap[0][itot]=ic+1;
+        _pMap[1][itot]=ir+1;
+        _pMap[2][itot]=il+1;
+        if(il ==0 || ic<ncol-2){
+         if(ir%2 ==0)_pMap[3][itot]=ielec++;    
+         else if(ic%2)_pMap[3][itot]=_pMap[3][itot-ncol-1];
+         else _pMap[3][itot]=_pMap[3][itot-ncol+1];
+        }
+        else {
+         if(ir%2 ==0)_pMap[3][itot]=ielec++;
+         else _pMap[3][itot]=_pMap[3][itot-ncol];
+        }
+         
+        itot++;
+      }
+    }
+  }
+  // Sort (tricky)
+  //aux address array
+  integer ** aux=new integer*[_nelem];
+  for(int i=0;i<_nelem;i++)aux[i]=_pMap[3]+i;
+  AMSsortNAG(aux,_nelem);
+  // rebuild array;
+  integer tmp;
+  for( i=0;i<_nelem;i++){
+    for(int k=0;k<_nelem;k++){
+      if(_pMap[3]+k == aux[i]){
+        for(int l=0;l<3;l++){
+         tmp=_pMap[l][i];
+         _pMap[l][i]=_pMap[l][k];
+         _pMap[l][k]=tmp; 
+        }
+       }
+    }
+  }
+  AMSsortNAGa(_pMap[3],_nelem);
+  delete [] aux;
+
+}
+
+integer AMSCTCRawHit::_crsid(){
+
+  for(int i=0;i<_nelem;i++){
+   if(_pMap[2][i]==_layer && _pMap[0][i] == _column && _pMap[1][i]== _row){
+#ifdef __AMSDEBUG__
+   integer *col;
+   integer *row;
+   integer *lay;
+   int n=soft2geo(_pMap[3][i],col,row,lay);
+#endif
+    return _pMap[3][i];
+   }
+  }
+  cerr <<"AMSCTCRawHit::_crsid()-S- cannot find softid"<<endl;
+  _printEl(cerr);
+  return -1;
+}
+
+
+integer AMSCTCRawHit::soft2geo(integer softid, integer col[], integer row[], integer lay[]){
+integer ind=AMSbins(_pMap[3],softid,_nelem);
+if (ind <=0){
+  cerr << "AMSCTCRawHit::soft2geo-E-no geo id for "<<softid<<endl;
+  col=0;  
+  row=0;  
+  lay=0;  
+  return 0;
+}
+else{
+ int m=1;
+ col=_pMap[0]+ind-1;
+ row=_pMap[1]+ind-1;
+ lay=_pMap[2]+ind-1;
+ for(int i=ind;i<_nelem;i++){
+  if(softid==_pMap[3][i])m++;
+  else return m;
+ }
+return m;
+}
+}
