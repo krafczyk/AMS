@@ -377,9 +377,9 @@ I 1 Pattern[42](22*1,20*0)
   ...   20 .... 3 points (see trrec.C)......
 I43  UseTOF(1)                    // Use(>=1 == Min No TOF clusters matched)/
                                   // Not use(0) TOF  for pattern No 16
-R44  Chi2FastFit(20)              // Max  chi2 for tkhmd;
-R45  Chi2StrLine(20)              // The same for Straight line fit
-R46  Chi2Circle(20)         // The same for Circle fit
+R44  Chi2FastFit(2000)              // Max  chi2 for tkhmd;
+R45  Chi2StrLine(9)              // The same for Straight line fit
+R46  Chi2Circle(3)         // The same for Circle fit
 R47  ResCutFastFit(0.5)     // Max residual distance in cm between 
                                   // point and fitted curve (not yet impl)
 R48  ResCutStrLine(0.5)     // --- strline    (not yet impl)
@@ -410,6 +410,10 @@ I63  TOFTracking(1)         // Filter out(1) or not(0) hits inconsistent with TO
                             // before tracking
 
 I64  ForceAdvencedFit(0)    // Force(1) or not advanced fit for all particles
+
+R65  ThrClA[2](0,0)         // mark trreccl good if ampl > ThrClA
+R67  ThrClR[2](0,0)         // mark trreccl good if ampl/s > ThrClR
+
 
 // Tracker fitting
 

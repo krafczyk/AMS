@@ -498,7 +498,8 @@ public:
   integer FalseTOFXTracking;
   integer TOFTracking;
   integer ForceAdvancedFit;
-
+  geant ThrClA[2];
+  geant ThrClR[2];
 };
 //
 

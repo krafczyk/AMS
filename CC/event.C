@@ -1150,7 +1150,7 @@ if(!LVL3FFKEY.Accept || (ptr1 && ptr && ptr->LVL3OK())){
   // Default reconstruction: 4S + 4K or more
   if(TRFITFFKEY.FalseXTracking && !TRFITFFKEY.FastTracking)
     itrk = buildC("AMSTrTrackFalseX",0);
-  if(itrk)itrk=buildC("AMSTrTrack",refit);
+  if(itrk>0)itrk=buildC("AMSTrTrack",refit);
   // Reconstruction with looser cuts on the K side
   if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.WeakTracking ){
     buildC("AMSTrClusterWeak",refit);
@@ -1830,11 +1830,11 @@ void AMSEvent::_writeEl(){
 }
 
 
-integer AMSEvent::addnext(AMSID id, AMSlink *p){
+AMSlink * AMSEvent::addnext(AMSID id, AMSlink *p){
  AMSContainer * ptr= AMSEvent::gethead()->getC(id);
    if(ptr){
      ptr->addnext(p);
-     return 1;
+     return p;
    }
    else {
     cerr<<"AMSEvent::addnext-S-NoContainer "<<id<<endl;

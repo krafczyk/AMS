@@ -216,7 +216,7 @@ integer HasNoErrors(){return _Error==0;}
 uinteger getEvent() {return uinteger(_id);}
 static integer _checkUpdate();
 //-
-integer addnext(AMSID id, AMSlink * p);
+AMSlink * addnext(AMSID id, AMSlink * p);
 integer replace(AMSID id, AMSlink * p, AMSlink *prev);
 uinteger getrun() const{return _run;}
 uinteger  getstatus()const {return _status;}

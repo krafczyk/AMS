@@ -1135,13 +1135,27 @@ integer AMSTrRecHit::markAwayTOFHits(){
                             AMSTrCluster * y, const AMSPoint & hit,
                             const AMSPoint & ehit){
     number s1=0,s2=0;
-    if(x)s1=x->getVal();
-    if(y)s2=y->getVal();
-    if(x)x->setstatus(AMSDBc::USED);
-    if(y)y->setstatus(AMSDBc::USED);
-    AMSEvent::gethead()->addnext(AMSID("AMSTrRecHit",layer-1),
+    number ss1,ss2;
+    integer GOOD=1;
+    if(x){
+      s1=x->getVal();
+      x->setstatus(AMSDBc::USED);
+      ss1=x->getsigma();
+      if(s1<TRFITFFKEY.ThrClA[0] || (ss1 && s1/ss1 < TRFITFFKEY.ThrClR[0])){
+       GOOD=0;
+      }
+    }
+    if(y){
+      s2=y->getVal();
+      y->setstatus(AMSDBc::USED);
+      ss2=y->getsigma();
+      if(s2<TRFITFFKEY.ThrClA[1] || (ss2 && s2/ss2 < TRFITFFKEY.ThrClR[1])){
+       GOOD=0;
+      }
+    }
+    AMSlink * ptr = AMSEvent::gethead()->addnext(AMSID("AMSTrRecHit",layer-1),
     new     AMSTrRecHit(pSen, status,layer,cofgx,cofgy,x,y,hit,ehit,s1+s2,(s1-s2)/(s1+s2)));
-      
+    if(ptr && GOOD)ptr->setstatus(AMSDBc::GOOD);  
 }
 
 
@@ -1462,10 +1476,10 @@ integer AMSTrTrack::buildFalseX(integer patstart){
       phit[0]=AMSTrRecHit::gethead(first);
       number par[2][2];
       while( phit[0]){
-       if(phit[0]->Good() && phit[0]->checkstatus(AMSDBc::WEAK)==0){
+       if(phit[0]->Good() && phit[0]->checkstatus(AMSDBc::WEAK)==0 && phit[0]->checkstatus(AMSDBc::FalseX)==0){
        phit[fp]=AMSTrRecHit::gethead(second);
        while( phit[fp]){
-        if(phit[fp]->Good() && phit[fp]->checkstatus(AMSDBc::WEAK)==0){
+        if(phit[fp]->Good() && phit[fp]->checkstatus(AMSDBc::WEAK)==0 && phit[fp]->checkstatus(AMSDBc::FalseX)==0){
         par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
         par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
@@ -1476,7 +1490,7 @@ integer AMSTrTrack::buildFalseX(integer patstart){
         if(NTrackFound<0)NTrackFound=0;
         phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
         while(phit[1]){
-         if(phit[1]->Good()){
+         if(phit[1]->Good()&& phit[1]->checkstatus(AMSDBc::FalseX)==0){
           // Check if the point lies near the str line
            if(AMSTrTrack::Distance(par,phit[1]))
            {phit[1]=phit[1]->next();continue;}
@@ -1487,19 +1501,19 @@ integer AMSTrTrack::buildFalseX(integer patstart){
          phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
          while(phit[2]){
           // Check if the point lies near the str line
-          if(phit[2]->Good()){
+          if(phit[2]->Good()&& phit[2]->checkstatus(AMSDBc::FalseX)==0){
           if(AMSTrTrack::Distance(par,phit[2]))
           {phit[2]=phit[2]->next();continue;}
           if(AMSTrTrack::patpoints[pat] >4){         
           phit[3]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][3]-1);
           while(phit[3]){
-           if(phit[3]->Good()){
+           if(phit[3]->Good()&& phit[3]->checkstatus(AMSDBc::FalseX)==0){
            if(AMSTrTrack::Distance(par,phit[3]))
            {phit[3]=phit[3]->next();continue;}
            if(AMSTrTrack::patpoints[pat]>5){
            phit[4]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][4]-1);
            while(phit[4]){
-             if(phit[4]->Good()){
+             if(phit[4]->Good()&& phit[4]->checkstatus(AMSDBc::FalseX)==0){
               if(AMSTrTrack::Distance(par,phit[4]))
               {phit[4]=phit[4]->next();continue;}
                 // 6 point combination found
@@ -1602,8 +1616,6 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
           
        if( (  (ptrack->Fit(0) < 
             TRFITFFKEY.Chi2FastFit)) && ptrack->TOFOK()){
-             geant dummy;
-             ptrack->AdvancedFit((TRFITFFKEY.ForceAdvancedFit==1 || (TRFITFFKEY.ForceAdvancedFit==2 && RNDM(dummy)<IOPA.Portion))&&  !AMSJob::gethead()->isMonitoring());
          // permanently add;
 #ifdef __UPOOL__
           ptrack=new AMSTrTrack(track);
@@ -1816,17 +1828,13 @@ AMSgObj::BookTimer.start("TrFalseX");
 
 
 
-void AMSTrTrack::AdvancedFit(int forced){
-   if( (forced || _Ridgidity < 0) && !(AMSJob::gethead()->isCalibration() & AMSJob::CTracker) ){
+void AMSTrTrack::AdvancedFit(){
     if(_Pattern <22){
       Fit(1);
       Fit(2);
     }
-    Fit(3);
     Fit(4);
     Fit(5);
-   }
-
 }
 
 integer AMSTrTrack::TOFOK(){
@@ -2019,7 +2027,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
     for(i=0;i<_NHits;i++){
      normal[i][0]=0;
      normal[i][1]=0;
-     normal[i][2]=-1;
+     normal[i][2]=fits<0?1:-1;
     }
   if(fit == 0 || fit==3 || fit==4 || fit==5){
     for(i=0;i<_NHits;i++){
@@ -2711,7 +2719,7 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
     for (int kk=0;kk<6;kk++){
       AMSTrRecHit * phit;
       for (phit=AMSTrRecHit::gethead(kk); phit!=NULL; phit=phit->next()){
-        if (phit->Good() && phit->getstatus()==AMSDBc::FalseTOFX) {
+        if (phit->Good() && phit->checkstatus(AMSDBc::FalseTOFX)) {
           xs++; 
           break;
         }
@@ -2773,7 +2781,7 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
               {phit[4]=phit[4]->next();continue;}
                 // 6 point combination found
               if(AMSTrTrack::_addnext(pat,6,phit)){
-                  // cout << "FalseTOFX track found with 5 hits" << endl;
+                  //cout << "FalseTOFX track found with 6 hits" << endl;
                   NTrackFound++;
                    ThreePointNotWanted=1;
                   goto out;
@@ -2786,7 +2794,7 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
            else{  // 5 points only
                 // 5 point combination found
              if(AMSTrTrack::_addnext(pat,5,phit)){
-                  // cout << "FalseTOFX track found with 5 hits" << endl;
+                   //cout << "FalseTOFX track found with 5 hits" << endl;
                   NTrackFound++;
                    ThreePointNotWanted=1;
                   goto out;
@@ -2801,7 +2809,7 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
                 // 4 point combination found
                 
                 if(AMSTrTrack::_addnext(pat,4,phit)){
-                  // cout << "FalseTOFX track found with 4 hits" << endl;
+                  //cout << "FalseTOFX track found with 4 hits" << endl;
                   NTrackFound++;
                   goto out;
                 }                

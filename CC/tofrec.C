@@ -951,9 +951,9 @@ void AMSTOFRawCluster::build(int &ostatus){
               coo=co;// Local coord.!!!
               ecoo=eco;
               if(isds==1)ecoo=blen/sqrt(12.);//for single-sided counters
-              st=AMSEvent::gethead()->addnext(AMSID("AMSTOFRawCluster",0)
+              if(AMSEvent::gethead()->addnext(AMSID("AMSTOFRawCluster",0)
               ,new AMSTOFRawCluster(sta,ilay+1,ibar+1,zc,ama,amd,
-                                  qtota,qtotd,tm,time,coo,ecoo));//store values
+                                  qtota,qtotd,tm,time,coo,ecoo)))st=1;;//store values
             } // ---> end of run-type check
 //-----------
         } // ---> end of "side measurement-multiplicity" check

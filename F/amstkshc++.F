@@ -5750,20 +5750,25 @@ C
 *
 
       if(xhits(3,1).lt.xhits(3,npt))then
-        iver=1
-        do i=1,npt/2
-          do j=1,3
-           tmp=xhits(j,i)
-           xhits(j,i)=xhits(j,npt+1-i)
-           xhits(j,npt+1-i)=tmp
-           tmp=ysigma(j,i)
-           ysigma(j,i)=ysigma(j,npt+1-i)
-           ysigma(j,npt+1-i)=tmp
-           tmp=ynormal(j,i)
-           ynormal(j,i)=ynormal(j,npt+1-i)
-           ynormal(j,npt+1-i)=tmp
-          enddo
-        enddo
+c         do i=1,npt
+c          do j=1,3
+c            ynormal(j,i)=-ynormal(j,i)
+c          enddo
+c         enddo
+c        iver=1
+c        do i=1,npt/2
+c          do j=1,3
+c           tmp=xhits(j,i)
+c           xhits(j,i)=xhits(j,npt+1-i)
+c           xhits(j,npt+1-i)=tmp
+c           tmp=ysigma(j,i)
+c           ysigma(j,i)=ysigma(j,npt+1-i)
+c           ysigma(j,npt+1-i)=tmp
+c           tmp=ynormal(j,i)
+c           ynormal(j,i)=ynormal(j,npt+1-i)
+c           ynormal(j,npt+1-i)=tmp
+c          enddo
+c        enddo
       endif   
 
 *
@@ -7176,7 +7181,7 @@ C            ENDDO
 c                PRINT *,'DSINV IFAIL',IFAIL,' AT PLANE ',JSTOP
                 CALL VZERO(WW(1,1,JSTOP),50)
                 IFAFT = 1
-c                GOTO 999
+                GOTO 999
              endif
 *
 

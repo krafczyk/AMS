@@ -365,7 +365,7 @@ Below there is a description of a  ntuple.
 17 - LocalDB was used to align track                     (status&65536 !=0)
 18 - GlobalDB was used to align the track                (status&(65536*2)!=0)
 19 - Cluster was used to get the charge                  (status&(65536*4)!=0)
-
+20 - TrRecHit was good enough to be used in track find   (status&(65536*8)!=0)
 **) AMS global system definition :
 GTOD
 
@@ -375,6 +375,22 @@ GTOD
 
 
 
+Known bugs:
 
+1. if beta<0 then ~%50 non-proton events have wrong info in particle block
+      namely pmom,pid,probpid,pmass (angles are O.K.)
+      thanks to:
+        geane backtracking bug
+
+   partial work around:
+   
+
+      if(geanefitdone(ptrackp(1)).ne.0 .and. gridgidity(ptrackp(1))/
+     +  ridgidity(ptrackp(1)).lt.0.5 .and. beta(pbetap(1)).lt.0.and.
+     +  pid(1).ne.14)then
+       pmom(1)=pmom(1)*ridgidity(ptrackp(1))/gridgidity(ptrackp(1))
+       pmass(1)=pmass(1)*
+     + abs(ridgidity(ptrackp(1))/gridgidity(ptrackp(1)))
+      endif
 
 

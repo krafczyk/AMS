@@ -86,7 +86,7 @@ number geteta(){return _Eta;}
 
      integer getnelem()      {return -_NelemL+_NelemR;}
      number  getrms()        {return _Rms;}
-     number  getsigma()      {return _Sigma;}
+     number  getsigma()      {return TRCLFFKEY.CommonGain[_Id.getside()]*_Sigma;}
 
 inline void setid(const AMSTrIdSoft& id) { _Id = id;}
 number getMean() { return _Mean;}
@@ -174,8 +174,8 @@ integer operator < (AMSlink & o) const {
 } 
 
 inline integer Good() { 
-  return (TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0) 
-            && checkstatus(AMSDBc::AwayTOF)==0;
+  return ((TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0) 
+            && checkstatus(AMSDBc::AwayTOF )==0) && checkstatus(AMSDBc::GOOD);
 }
 static integer markAwayTOFHits();
 
@@ -327,7 +327,7 @@ integer operator < (AMSlink & o) const {
   friend class AMSTrAligPar;
 
 uinteger getaddress(){return _Address;}
-void   AdvancedFit(int forced=0);
+void   AdvancedFit();
 integer getpattern()const{return _Pattern;}
 static integer Out(integer);
 number Fit(integer i=0, integer ipart=14);

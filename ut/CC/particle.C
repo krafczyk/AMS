@@ -52,23 +52,6 @@ integer AMSParticle::build(integer refit){
           if(pbeta->checkstatus(AMSDBc::AMBIG)==0 ||BETAFITFFKEY.FullReco ){
           number chi2(0),rid(0),err(0);
           ptrack->getParFastFit( chi2, rid, err, theta,  phi,  coo);
-            if(ptrack->AdvancedFitDone() && ptrack->GeaneFitDone()){
-              number gchi2(0),grid(0),gerr(0),gtheta(0),gphi(0);
-              AMSPoint gcoo;
-              number hchi2[2],hrid[2],herr[2],htheta[2],hphi[2];
-              AMSPoint hcoo[2];
-              ptrack-> getParAdvancedFit(gchi2, grid, gerr, gtheta, gphi, 
-              gcoo, hchi2, hrid, herr, htheta, hphi,   hcoo );
-              if(sign(rid) != sign(grid) || sign(rid) != sign(hrid[0]) ||
-                 sign(rid) != sign(hrid[1])){
-#ifdef __AMSDEBUG__
-                 cout <<" Fast & Advanced Fits disagree. "<<rid<<" "<<grid<<
-                 " "<<hrid[0]<< " "<<hrid[1]<<endl;
-#endif             
-//                 goto out;
-              } 
-              else {rid=grid; err=gerr; }
-            }
           // Add new element
           int index;
           charge=pcharge->getvotedcharge(index);
@@ -76,32 +59,18 @@ integer AMSParticle::build(integer refit){
           emomentum=err*rid*rid*charge;
           number beta=pbeta->getbeta();
           number ebeta=pbeta->getebeta()*beta*beta;
-          if(fabs(beta)>=1.99){
-           mass=0;
-           emass=FLT_MAX;
-          }
-          else if(fabs(beta)<=1.e-10 ){
+          if(fabs(beta)<=1.e-10 ){
            cerr<< " beta too low " <<beta<<endl;
            mass=FLT_MAX;
            emass=FLT_MAX;
           }
-          else if(fabs(beta)<1.){
+          else{ 
            number one=1;
-           number gamma=sqrt(one/(one-beta*beta)); 
-           mass=fabs(momentum/gamma/beta);
-//           emass=mass*sqrt(pow(emomentum/momentum,2.)+pow(gamma,4)*
-//           pow(ebeta/beta,2));
-           emass=mass*sqrt((emomentum/momentum)*(emomentum/momentum)+
-           (gamma*gamma*ebeta/beta)*(gamma*gamma*ebeta/beta));
-          }
-          else{
-           number one=1;
-           if(beta>0)beta=2-beta;
-           else beta=-2-beta;
-           number gamma=sqrt(one/(one-beta*beta)); 
-           mass=-fabs(momentum/gamma/beta);
+           number gamma2=one/(one-beta*beta); 
+           number mass2=momentum*momentum/gamma2/beta/beta;
+           mass=mass2>0? sqrt(mass2) : -sqrt(-mass2);
            emass=fabs(mass)*sqrt((emomentum/momentum)*(emomentum/momentum)+
-           (gamma*gamma*ebeta/beta)*(gamma*gamma*ebeta/beta));
+           (gamma2*ebeta/beta)*(gamma2*ebeta/beta));
           }
           if(beta<0)momentum=-momentum;
           ppart=new AMSParticle(pbeta, pcharge, ptrack,
@@ -526,18 +495,17 @@ void AMSParticle::refit(int fast){
     }
     _loc2gl();
     if(fast)return;
-
-  if(_GPart !=14 ){
-     if(1){
-   //if(_Charge >= 1.5 || fabs(_Mass-0.938)>1.5*_ErrMass){
+      geant dummy;
+      integer dorefit=TRFITFFKEY.ForceAdvancedFit==1 ||
+      (TRFITFFKEY.ForceAdvancedFit==2 && RNDM(dummy)<IOPA.Portion) ||
+      !TRFITFFKEY.FastTracking;
+  if(_GPart !=14 || dorefit){
         if(!_ptrack->AdvancedFitDone()){
-          _ptrack->AdvancedFit(1);
+          _ptrack->AdvancedFit();
         }
-
-    if(1){
      _ptrack->Fit(_pbeta->getbeta()>0?3:-3,_GPart);
-     if(_ptrack->GeaneFitDone()){
-      number fac=_ptrack->getgrid()*_Charge/_Momentum/sign(_pbeta->getbeta());
+     if(_ptrack->GeaneFitDone() && fabs(_ptrack->getgrid())>TRFITFFKEY.RidgidityMin/2){
+      number fac=_ptrack->getgrid()*_Charge/_Momentum;
       integer itr;
       geant xmass,chrg,tlt7,uwb[1];
       integer nwb=0;
@@ -562,8 +530,6 @@ void AMSParticle::refit(int fast){
       }
 #endif
      }
-    }
-   }
   }   
 }  
 integer AMSParticle::_partP[38]={2,3,5,6,8,9,11,12,14,15,45,145,

@@ -1082,11 +1082,11 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
       if(_ntr1>0 && _nftdc>0){ 
         _sta=0;    
         stat=0;
-        stat=AMSEvent::gethead()->addnext(AMSID("AMSTOFTovt",ilay), new
+        if(AMSEvent::gethead()->addnext(AMSID("AMSTOFTovt",ilay), new
              AMSTOFTovt(idd,_sta,charge,edepb,
              _ntr1,_ttr1,_ntr3,_ttr3,
              _nftdc,_tftdc,_tftdcd,_nstdc,_tstdc,
-             _nadca,_tadca,_tadcad,_nadcd,_tadcd,_tadcdd));
+             _nadca,_tadca,_tadcad,_nadcd,_tadcd,_tadcdd)))stat=1;
       }
         return;
 //
@@ -1797,9 +1797,9 @@ void AMSTOFRawEvent::mc_build(int &status)
 //
 //     ---> create/fill RawEvent-object :
       stat=0;
-      stat=AMSEvent::gethead()->addnext(AMSID("AMSTOFRawEvent",0), new
+      if(AMSEvent::gethead()->addnext(AMSID("AMSTOFRawEvent",0), new
            AMSTOFRawEvent(idd,_sta,charge,edep,_nftdc,ftdc,_nstdc,stdc,
-                               _nadca,adca,_nadcd,adcd));
+                               _nadca,adca,_nadcd,adcd)))stat=1;
 //
       ptr=ptr->next();// take next Tovt-hit
 // 
