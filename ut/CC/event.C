@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.321 2003/11/07 17:35:06 alcaraz Exp $
+//  $Id: event.C,v 1.322 2003/11/10 16:08:05 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1672,19 +1672,9 @@ void AMSEvent::_rerichevent(){
 void AMSEvent::_reaxevent(){
   AMSgObj::BookTimer.start("REAXEVENT");
 
-  AMSTRDTrack *ptrd = (AMSTRDTrack*)getheadC("AMSTRDTrack",0); 
-  bool veto = true;
-  while (ptrd){
-    veto = ptrd->Veto(trdconst::maxlad-1);
-    if (!veto) break;
-    ptrd = ptrd->next();
-  }
-
-  if (veto) {
-    AMSgObj::BookTimer.start("Vtx");
-    buildC("AMSVtx");
-    AMSgObj::BookTimer.stop("Vtx");
-  }
+  AMSgObj::BookTimer.start("Vtx");
+  buildC("AMSVtx");
+  AMSgObj::BookTimer.stop("Vtx");
 
   buildC("AMSBeta");
 #ifdef __AMSDEBUG__
