@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.40 2002/07/16 05:43:23 kscholbe Exp $
+//  $Id: particle.h,v 1.41 2002/08/31 12:28:17 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -167,9 +167,11 @@ public:
 
 
 #endif
-AMSBeta*       getpbeta()       { return _pbeta;}
-AMSCharge*     getpcharge()     { return _pcharge;}
-AMSTrTrack*    getptrack()      { return _ptrack;}
+AMSBeta*       getpbeta()    const   { return _pbeta;}
+AMSCharge*     getpcharge()  const   { return _pcharge;}
+AMSTrTrack*    getptrack()   const   { return _ptrack;}
+AMSTRDTrack*    getptrd()    const  { return _ptrd;}
+AMSRichRing * getprich()     const {return  _prich;}
 
 number  getmass() const {return _Mass;}
 number  getmomentum() const {return _Momentum;}
