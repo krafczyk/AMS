@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.225 2003/12/04 16:55:21 alexei Exp $
+# $Id: RemoteClient.pm,v 1.226 2003/12/09 14:31:53 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3958,6 +3958,7 @@ print qq`
               }
              }          
              $self->ErrorPlus("Run Capacity Exceeds.");
+             return;
           }
              
 #       now everything is o.k except server check
