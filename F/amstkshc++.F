@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.62 2001/04/27 21:50:07 choutko Exp $
+*  $Id: amstkshc++.F,v 1.63 2001/05/23 14:37:22 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -9097,9 +9097,12 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.62 2001/04/27 21:50:07 choutko Exp $
+* $Id: amstkshc++.F,v 1.63 2001/05/23 14:37:22 choutko Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.63  2001/05/23 14:37:22  choutko
+* *** empty log message ***
+*
 * Revision 1.62  2001/04/27 21:50:07  choutko
 * trd alpha version released - see ~/doc/trd.doc on todo/status
 *
@@ -9175,3 +9178,13 @@ c      END
 
        subroutine xdummy(io)
        end
+
+       subroutine getscanfl(iscan)
+#include "geant321/gcscan.inc"
+       if(SCANFL)then
+        iscan=1
+       else
+        iscan=0
+       endif
+       end
+

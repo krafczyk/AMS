@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.8 2001/04/27 21:50:33 choutko Exp $
+//  $Id: linkdef.h,v 1.9 2001/05/23 14:37:23 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -26,6 +26,7 @@
 #pragma link C++ class TrTrackNtuple02;
 #pragma link C++ class MCEventGNtuple;
 #pragma link C++ class MCEventGNtuple02;
+#pragma link C++ class MCTrackNtuple;
 #pragma link C++ class CTCClusterNtuple;
 #pragma link C++ class CTCMCClusterNtuple;
 #pragma link C++ class AntiClusterNtuple;

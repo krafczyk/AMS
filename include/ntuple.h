@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.45 2001/04/27 21:50:33 choutko Exp $
+//  $Id: ntuple.h,v 1.46 2001/05/23 14:37:23 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -34,6 +34,7 @@ protected:
   TrTrackNtuple _trtr;
   TrTrackNtuple02 _trtr02;
   MCEventGNtuple _mcg;
+  MCTrackNtuple _mct;
   MCEventGNtuple02 _mcg02;
   CTCClusterNtuple _ctccl;
   CTCMCClusterNtuple _ctcclmc;
@@ -93,6 +94,7 @@ public:
   TrTrackNtuple* Get_trtr() {return &_trtr;}
   TrTrackNtuple02* Get_trtr02() {return &_trtr02;}
   MCEventGNtuple* Get_mcg() {return &_mcg;}
+  MCTrackNtuple* Get_mct() {return &_mct;}
   MCEventGNtuple02* Get_mcg02() {return &_mcg02;}
   CTCClusterNtuple* Get_ctccl() { return &_ctccl;}
   CTCMCClusterNtuple* Get_ctcclmc() {return &_ctcclmc;}

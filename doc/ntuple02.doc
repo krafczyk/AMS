@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.13 2001/05/16 15:24:17 choutko Exp $
+#  $Id: ntuple02.doc,v 1.14 2001/05/23 14:37:23 choutko Exp $
 This is AMS02 Ntuple Description
 
  *****************************************
@@ -258,6 +258,13 @@ This is AMS02 Ntuple Description
 * R*4  *           * MCEVENTG * momentum(nmcg)	 // momentum
 * R*4  *           * MCEVENTG * mass(nmcg)	 // mass
 * R*4  *           * MCEVENTG * charge(nmcg)	 // charge
+
+* I*4  *         * [0,150]      * MCTRACK  * nmct  (activated by SCAN TRUE
+                                                    and PART 48)
+* R*4  *         *              * MCTRACK  * radl(nmct)  
+* R*4  *         *              * MCTRACK  * absl(nmct)
+* R*4  *         *              * MCTRACK  * pos(3,nmct)
+* I*4  *         *              * MCTRACK  * vname(nmct)
 
 
 * I*4  * [0,16]    * ANTICLUS * nanti                 // Anti clusters number

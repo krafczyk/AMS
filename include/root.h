@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.41 2001/05/09 15:16:41 choutko Exp $
+//  $Id: root.h,v 1.42 2001/05/23 14:37:23 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -48,6 +48,7 @@ const int MAXTRDRHT   =   200;
 const int MAXTRDCL   =   100;
 const int MAXTRDSEG   =   100;
 const int MAXTRDTRK   =   40;
+const int MAXMCVOL   =   150;
 };
 using namespace root;
 #ifdef __WRITEROOT__
@@ -735,6 +736,21 @@ friend class AMSTrTrack;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__
 ClassDef(TrTrackNtuple02,1)       //TrTrackNtuple
+#endif
+};
+#ifdef __WRITEROOT__
+class MCTrackNtuple : public TObject {
+#else
+class MCTrackNtuple {
+#endif
+public:
+int Nmct;
+float radl[MAXMCVOL];
+float absl[MAXMCVOL];
+float pos[MAXMCVOL][3];
+char  vname[MAXMCVOL][4];
+#ifdef __WRITEROOT__
+ClassDef(MCTrackNtuple,1)       //MCTrackNtuple
 #endif
 };
 

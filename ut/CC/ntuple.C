@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.76 2001/05/09 15:16:37 choutko Exp $
+//  $Id: ntuple.C,v 1.77 2001/05/23 14:37:21 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -69,6 +69,10 @@ void AMSNtuple::init(){
 
   HBNAME(_lun,"MCEventG",&_mcg.Nmcg,
   "nmcg[0,20],nskip(nmcg):I,Particle(nmcg)[-200,500]:I,coo(3,nmcg),dir(3,nmcg),momentum(nmcg):R,mass(nmcg):R,charge(nmcg):R");
+
+  HBNAME(_lun,"MCTrack",&_mct.Nmct,
+  "nmct[0,150],radl(nmct),absl(nmct),pos(3,nmct),vname(nmct):I");
+
 
   HBNAME(_lun,"CTCClust",&_ctccl.Nctccl,
   "nctccl[0,20],CTCStatus(nctccl):I,CTCLayer(nctccl)[0,10]:I,ctccoo(3,nctccl),ctcercoo(3,nctccl),ctcrawsignal(nctccl),ctcsignal(nctccl),ctcesignal(nctccl)");
@@ -155,6 +159,8 @@ else{
   HBNAME(_lun,"MCEventG",&_mcg02.Nmcg,
   "nmcg[0,100],nskip(nmcg):I,Particle(nmcg)[-200,500]:I,coo(3,nmcg),dir(3,nmcg),momentum(nmcg):R,mass(nmcg):R,charge(nmcg):R");
 
+  HBNAME(_lun,"MCTrack",&_mct.Nmct,
+  "nmct[0,150],radl(nmct),absl(nmct),pos(3,nmct),vname(nmct):I");
 
   HBNAME(_lun,"AntiClus",&_anti.Nanti,
   "nanti[0,16],AntiStatus(nanti):I,AntiSector(nanti)[0,100]:I,AntiEdep(nanti),AntiCoo(3,nanti),AntiErCoo(3,nanti)");
@@ -218,6 +224,7 @@ int sto=0;
     VZERO(&_trtr.Ntrtr,(sizeof(_trtr)-sto)/sizeof(integer));
     VZERO(&_trtr02.Ntrtr,(sizeof(_trtr02)-sto)/sizeof(integer));
     VZERO(&_mcg.Nmcg,(sizeof(_mcg)-sto)/sizeof(integer));
+    VZERO(&_mct.Nmct,(sizeof(_mct)-sto)/sizeof(integer));
     VZERO(&_mcg02.Nmcg,(sizeof(_mcg02)-sto)/sizeof(integer));
     VZERO(&_ctccl.Nctccl,(sizeof(_ctccl)-sto)/sizeof(integer));
     VZERO(&_ctcclmc.Nctcclmc,(sizeof(_ctcclmc)-sto)/sizeof(integer));
@@ -328,6 +335,8 @@ void AMSNtuple::initR(char* fname){
    TBranch *be=_tree->Branch("trtr", "TrTrackNtuple",  &peve, 64000,1);
    static void *pevg=(void*)&_mcg;
    TBranch *bg=_tree->Branch("mcg", "MCEventGNtuple",  &pevg, 64000,1);
+   static void *pevt1=(void*)&_mct;
+   TBranch *bg1=_tree->Branch("mct", "MCTrackNtuple",  &pevt1, 64000,1);
    static void *pevh=(void*)&_ctccl;
    TBranch *bh=_tree->Branch("ctccl", "CTCClusterNtuple",  &pevh, 64000,1);
    static void *pevi=(void*)&_ctcclmc;
@@ -381,6 +390,8 @@ void AMSNtuple::initR(char* fname){
    TBranch *bb4=_tree->Branch("trdseg", "TRDSegmentNtuple",  &pevb4, 64000,1);
    static void *pevf=(void*)&_trtr02;
    TBranch *bf=_tree->Branch("trtr02", "TrTrackNtuple02",  &pevf, 64000,1);
+   static void *pevgg1=(void*)&_mct;
+   TBranch *bgg1=_tree->Branch("mct", "MCTrackNtuple",  &pevgg1, 64000,1);
    static void *pevgg=(void*)&_mcg02;
    TBranch *bgg=_tree->Branch("mcg02", "MCEventGNtuple02",  &pevgg, 64000,1);
    static void *pevs=(void*)&_ecclust;

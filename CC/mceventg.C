@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.108 2001/05/17 22:13:53 choutko Exp $
+//  $Id: mceventg.C,v 1.109 2001/05/23 14:37:21 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -922,7 +922,33 @@ else
 }
 
 #endif
+extern "C" void getscanfl_(int &scan);
 void AMSmceventg::FillMCInfo(){
+static number radl=0;
+static number absl=0;
+
+if(GCTRAK.sleng==0){
+ radl=0;
+ absl=0;
+ 
+}
+int scan=0;
+getscanfl_(scan);
+if(GCKINE.ipart==48 && scan){
+ radl+=GCTRAK.step/GCMATE.radl;
+ absl+=GCTRAK.step/GCMATE.absl;
+ char nvol[5]="EXIT";
+ if(GCTRAK.inwvol==1 && GCVOLU.nlevel<3){
+       for(int i=0;i<4;i++)nvol[i]=GCVOLU.names[GCVOLU.nlevel-1][i];
+       AMSmctrack* genp=new AMSmctrack(radl,absl,GCTRAK.vect,nvol);
+       AMSEvent::gethead()->addnext(AMSID("AMSmctrack",0), genp);
+
+ }
+ else if(GCTRAK.inwvol==3){
+       AMSmctrack* genp=new AMSmctrack(radl,absl,GCTRAK.vect,nvol);
+       AMSEvent::gethead()->addnext(AMSID("AMSmctrack",0), genp);
+ }
+}
      for (int i=0;i<GCKING.ngkine;i++){
        number mom=(GCKING.gkin[i][0]*GCKING.gkin[i][0]+
                        GCKING.gkin[i][1]*GCKING.gkin[i][1]+
@@ -1062,3 +1088,19 @@ else{
 
 
 }
+
+
+
+void AMSmctrack::_writeEl(){
+  MCTrackNtuple* GN = AMSJob::gethead()->getntuple()->Get_mct();
+
+  if (GN->Nmct>=MAXMCVOL) return;
+
+// Fill the ntuple
+  GN->radl[GN->Nmct]=_radl;
+  GN->absl[GN->Nmct]=_absl;
+  for(int i=0;i<3;i++)GN->pos[GN->Nmct][i]=_pos[i];
+  for(int i=0;i<4;i++)GN->vname[GN->Nmct][i]=_vname[i];
+  GN->Nmct++;
+}
+

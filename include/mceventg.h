@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.34 2001/01/22 17:32:44 choutko Exp $
+//  $Id: mceventg.h,v 1.35 2001/05/23 14:37:23 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -46,6 +46,22 @@ void UpdateAxis(number veltheta, number velphi, number theta, number phi);
 orbit(geant ThetaI,geant PhiI, geant PolePhi, integer Dir);
 orbit(){};
 ~orbit(){cout <<"Nskip "<<Nskip<<" Nskip2 "<<Nskip2<<endl;}
+};
+
+class AMSmctrack: public AMSlink{
+protected:
+number _radl;
+number _absl;
+number _pos[3];
+char _vname[4];
+void _copyEl(){};
+void _writeEl();
+void _printEl(ostream & stream){};
+public:
+AMSmctrack(number radl,number absl, float pos[3], char name[]):AMSlink(),_radl(radl),_absl(absl){
+ for (int i=0;i<3;i++)_pos[i]=pos[i];
+ for (int i=0;i<4;i++)_vname[i]=name[i];
+}
 };
 
 class AMSmceventg: public AMSlink {

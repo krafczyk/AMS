@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.53 2001/05/21 13:32:34 choutko Exp $
+//  $Id: geant3.C,v 1.54 2001/05/23 14:37:21 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -45,6 +45,7 @@ void DumpG3Commons(ostream & o){
 extern "C" void simde_(int&);
 extern "C" void trphoton_(int&);
 extern "C" void simtrd_(int& );
+extern "C" void getscanfl_(int &scan);
 extern "C" void gustep_(){
 
 //AMSmceventg::SaveSeeds();
@@ -80,6 +81,9 @@ extern "C" void gustep_(){
 // TRD here
 //
 //  if(trig==0 && freq>1)AMSgObj::BookTimer.start("TrdRadiationGen");
+   int scan=0;
+   getscanfl_(scan);
+  if(!scan){
   if(TRDMCFFKEY.mode <3 && TRDMCFFKEY.mode >=0) {
     //saveliev
     simtrd_(TRDMCFFKEY.g3trd);
@@ -89,6 +93,7 @@ extern "C" void gustep_(){
   else if(TRDMCFFKEY.mode ==3){
     // garibyan
    
+  }
   }
 #ifdef __AMSDEBUG__
   if( globalbadthinghappened){

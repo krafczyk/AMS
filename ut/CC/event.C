@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.263 2001/05/17 12:10:12 choumilo Exp $
+//  $Id: event.C,v 1.264 2001/05/23 14:37:21 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -471,6 +471,8 @@ else{
 void AMSEvent::_signinitevent(){
   AMSNode *ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSmceventg",0),0));
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSmctrack",0),0));
 }
 
  void AMSEvent::SetTimeCoo(integer rec){    

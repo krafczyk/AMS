@@ -1,4 +1,4 @@
-//  $Id: geant321g.h,v 1.12 2001/05/17 22:13:54 choutko Exp $
+//  $Id: geant321g.h,v 1.13 2001/05/23 14:37:23 choutko Exp $
  /*------------------------------------------------------------------
 fortran filename   : gudcay.f
 ------------------------------------------------------------------*/
@@ -852,4 +852,5 @@ COMMON_BLOCK_DEF(GCSTAK_DEF,GCSTAK);
    };
 #define GCNUMX COMMON_BLOCK(GCNUMX,gcnumx)
 COMMON_BLOCK_DEF(GCNUMX_DEF,GCNUMX);
+
 
