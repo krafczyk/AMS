@@ -1,4 +1,16 @@
-#  $Id: 00index.txt,v 1.2 2001/01/22 17:32:53 choutko Exp $
-monitor.perl  //  standalone gtk based monitor
-monitor.cgi   //  cgi monitor script
- 
+#  $Id: 00index.txt,v 1.3 2002/11/28 14:19:50 alexei Exp $
+#
+castor.cmp          //  compare content of two directories
+castor.cp           //  copy local directory tree to CASTOR
+dbsqlserver.perl    //  start perl SQL server
+download.mysql.cgi  //  get files using MySQL interface 
+download.o.cgi      //  get files using Oracle interface
+monitor.perl        //  standalone gtk based monitor
+monitor.cgi         //  cgi monitor script
+rc.dsp.cgi          //  remote client start
+rc.dsp.mysql.cgi    //                     using MySQL
+showcites.cgi       //  show MC production cites
+showcites.mysql.cgi //                    using MySQL
+validate.cgi        //  validate NTuples
+validate.mysql.cgi  //                  using MySQL
+validate.o.cgi      //                  using Oracle
