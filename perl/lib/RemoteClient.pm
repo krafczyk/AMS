@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.286 2005/01/05 08:21:18 alexei Exp $
+# $Id: RemoteClient.pm,v 1.287 2005/02/03 17:34:43 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6242,7 +6242,7 @@ sub listStat {
 
 # finished/completed jobs
     $sql = "SELECT COUNT(jid), sum(fevent), sum(levent) FROM Runs 
-                WHERE status='Finished' OR status='Completed' AND 
+                WHERE (status='Finished' OR status='Completed') AND 
                 Runs.submit > $ProductionStartTime";
 
     $ret = $self->{sqlserver}->Query($sql);
@@ -6253,7 +6253,7 @@ sub listStat {
 
 # failed/unchecked jobs
     $sql = "SELECT COUNT(jid) FROM Runs 
-                WHERE status='Failed' OR status='Unchecked' AND 
+                WHERE (status='Failed' OR status='Unchecked') AND 
                 Runs.submit > $ProductionStartTime";
 
 
@@ -6290,8 +6290,7 @@ sub listStat {
                 $csizegb = sprintf("%.1f",$ret->[0][1]/1000);
                }
 #
-               my $timenow = time();
-               my $timepassed = sprintf("%.1f",($timenow - $timestart)/60/60/24);
+               my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays();
                
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
                print "<td align=center><b><font color=\"blue\">Jobs </font></b></td>";
@@ -6316,7 +6315,7 @@ sub listStat {
                print "<td align=center><b><font color=\"blue\" > [GB]     </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >NTuples</font></b></td>";
                print "<td align=center><b><font color=\"blue\" > [GB]     </font></b></td>";
-               print "<td align=center><b><font color=\"green\" > $timepassed days</font></b></td>";
+               print "<td align=center><b><font color=\"green\" > $totaldays days</font></b></td>";
               print "</tr>\n";
            my $color="black";
            my $reqevents = $trigreq;
@@ -9786,15 +9785,15 @@ sub getRunningDays {
       $ret=$self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
        $timestart = $ret->[0][0];
-       $timepassed = ($timenow - $timestart)/60/60/24;
-      }
+       if ($timenow > $timestart) {
+        $timepassed = sprintf("%.1f",($timenow - $timestart)/60/60/24);
+       }
       if (defined $ret->[0][1]) {
        $lastupd=$ret->[0][1];
       }
-
-
+    }
     return $timestart, $lastupd, $timepassed;
-  }
+   }
 
 sub printValidateStat {
    my $self      = shift;
