@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.71 2002/02/27 16:19:54 mdelgado Exp $
+//  $Id: gmat.C,v 1.72 2002/03/12 19:14:16 mdelgado Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -628,7 +628,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
 
 // RICH MOTHER VOLUME
 
-  pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH VACUUM","VACUUM",1));  // absorber
+  pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH VACUUM","VACUUM",0));  // absorber
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       abs_l[iw]=1e5;
