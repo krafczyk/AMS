@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.82 2003/12/12 11:07:27 choutko Exp $
+//  $Id: producer.C,v 1.83 2004/01/14 16:29:35 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -296,7 +296,10 @@ else{
    bool writeable=false;
    
    if(char *ntd=getenv("NtupleDir")){
-     AString cmd=" touch ";
+     AString cmd=" mkdir -p  ";
+     cmd+=ntd;
+     system(cmd);
+     cmd=" touch ";
      cmd+=ntd;
      cmd+="/qq";
      int i=system(cmd);
@@ -318,6 +321,7 @@ else{
    if(IsLocal() && !writeable){
     cout <<"AMSProducer-getRunEvInfo-S-NtupleDir "<<getenv("NtupleDir")<<" IsNotWriteable"<<endl; 
     AString ntpath=(const char *)_dstinfo->OutputDirPath;
+    setenv("NtupleDir",(const char*)ntpath,1);
 //  check if it is writeable
      AString cmd=" touch ";
      cmd+=ntpath;

@@ -159,7 +159,7 @@ void AMSVtx::set_vertex(){
   for (int j=0; j<3; j++) {
       _Vertex[j] = _Vertex[j]/number_of_pairs;
   }
-//  cout <<" vertex "<<_Vertex<<endl;
+  if(checkstatus(AMSDBc::BAD))cout <<" vertex "<<_Vertex<<endl;
   
 
 }

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.104 2003/12/12 11:07:28 choutko Exp $
+//  $Id: server.C,v 1.105 2004/01/14 16:29:35 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -993,7 +993,7 @@ for(AHLI li=_ahl.begin();li!=_ahl.end();++li){
      DPS::Client::CID cid=_parent->getcid();      
      cid.Type=getType();
      cid.Interface= (const char *) " "; 
-         PropagateAH(cid,*li,DPS::Client::Update,DPS::Client::AnyButSelf);
+     PropagateAH(cid,*li,DPS::Client::Update,DPS::Client::AnyButSelf);
 
     }
  }
@@ -2261,8 +2261,9 @@ if(pcur->InactiveClientExists(getType()))return;
     if(_parent->MT())submit+=" -M";
     if(_parent->Debug())submit+=" -D1";
     int corfac=70000/(ahlv)->Clock;
-    sprintf(uid," -C%d",corfac);
-    submit+=uid;
+    char cuid[80];
+    sprintf(cuid," -C%d",corfac);
+    submit+=cuid;
     submit+=" -A";
      submit+=getenv("AMSDataDir");
     if((*cli)->LogInTheEnd){
@@ -2325,6 +2326,30 @@ ACLI li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::Killed));
  uinteger TimeCheckValue=0;
  if(li!=_acl.end())TimeCheckValue=(*li)->LastUpdate>getSubmitTime()?(*li)->LastUpdate+1.41*((*li)->TimeOut):getSubmitTime()+((*li)->TimeOut);
 if(li!=_acl.end() && TimeCheckValue<tt){
+
+ if(!_pser->pingHost((const char*)((*li)->id.HostName))){
+    for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
+      if(!strcmp((const char *)(*i)->HostName, (const char *)((*li)->id).HostName)){
+       (*i)->Status=DPS::Server::NoResponse;
+
+       DPS::Client::CID cid=_parent->getcid();      
+       cid.Type=getType();
+       cid.Interface= (const char *) " "; 
+       PropagateAH(cid,*i,DPS::Client::Update,DPS::Client::AnyButSelf);
+
+
+       _pser->MonInfo(AMSClient::print(*i,"No Response From: "),DPS::Client::Warning);
+      _parent->EMessage(AMSClient::print(*i,"  No Response from "));
+      break;
+    }
+} 
+      (*li)->id.Status=DPS::Client::SInKill;
+      (*li)->Status=DPS::Client::Killed;
+      DPS::Client::ActiveClient_var acv=*li;
+      PropagateAC(acv,DPS::Client::Delete);
+
+ }
+ else{
    if(_pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
  //kill by -9 here
  
@@ -2341,6 +2366,7 @@ if(li!=_acl.end() && TimeCheckValue<tt){
     _UpdateACT((*li)->id,DPS::Client::Active);
   }
 
+}
 }
  li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::TimeOut));
 if(li!=_acl.end()){
