@@ -427,7 +427,7 @@ void AMSEvent::_sitofinitrun(){
   for(ibt=1;ibt<=SCBTPN;ibt++){ // <-------- loop over bar types
     TOFDBc::brfnam(ibt,name);
     strcat(name,".dat");
-    strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");
+    strcpy(fname,AMSDATADIR.amsdatadir);
     strcat(fname,name);
     cout<<"Open file : "<<fname<<'\n';
     ifstream tcfile(fname,ios::in); // open needed t-calib. file for reading

@@ -224,6 +224,7 @@ public:
   geant RidgidityMin;
   integer FullReco;
   geant MinRefitCos[2];
+  integer FastTracking;
 };
 //
 
@@ -301,9 +302,23 @@ integer iyear[2];
 #define TKFIELD COMMON_BLOCK(TKFIELD,tkfield)
 COMMON_BLOCK_DEF(TKFIELD_DEF,TKFIELD);
 
+class AMSDATADIR_DEF{
+public:
+integer amsdlength;
+char amsdatadir[128];
+};
+#define AMSDATADIR COMMON_BLOCK(AMSDATADIR,amsdatadir)
+COMMON_BLOCK_DEF(AMSDATADIR_DEF,AMSDATADIR);
 
 
 
+class AMSCommonsI{
+public:
+AMSCommonsI();
+private:
+static integer _Count;
+};
+static AMSCommonsI cmnI;
 
 
 

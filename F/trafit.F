@@ -1,6 +1,6 @@
       SUBROUTINE TRAFIT
      $      (IFIT,X,Y,WXY,Z,SSZ,NPT,RESXY,RESSZ,IFLAG,SPCOR,WORK,
-     +       SCHIXY,SCHIZ,xmom,dip,phit)
+     +       SCHIXY,SCHIZ,xmom,exmom,p0,theta,phit)
 C
 C********************************************************************012
 C.
@@ -37,7 +37,7 @@ C.----------------------------------------------------------------------
 C
 #include "trfitcl.h"
 C
-       DIMENSION  X(*), Y(*), WXY(*), Z(*), SSZ(*)
+       DIMENSION  X(*), Y(*), WXY(*), Z(*), SSZ(*), p0(*)
        DIMENSION  RESXY(*), RESSZ(*), SPCOR(*)
        double precision WORK(*)
 C
@@ -110,9 +110,20 @@ C
       TPERR(15) = S2XOYS
       TPERR(16) = S2ZAS
       TPERR(17) = COVPRS*CDIP
+      p0(1)=tparam(6)
+      p0(2)=tparam(7)
+      p0(3)=tparam(8)
+      exmom=tperr(7)
+      if(dip.gt.0)then
+          theta=3.1415926-dip
+          phit=-3.1415926/2.-phis
+          if(phit.lt.-3.1415926)phit=2*3.1415926+phit
+       else
+          theta=3.1415926+dip
+          phit=phis-3.1415926/2.
+       endif
       if(pinv.ne.0) then
        xmom=1./pinv/charge
-       phit=phis
        SCHIXY=CHIXY/pinv
        SCHIZ=CHIZ/pinv
       else

@@ -54,17 +54,30 @@ CDECK  ID>, SPECTRA.
 *                                         Y.F. Wang
 *     Bug fixed V. Shoutko
 **************************************************************
+      PARAMETER (nx=29,ny=29,nz=35)
+      DIMENSION X(nx),y(ny),z(nz)
+          DIMENSION Bx(nx,ny,nz), by(nx,ny,nz),
+     +    BZ(nx,ny,nz)
+         dimension xyz(nx+ny+nz)
+         integer isec(2),imin(2),ihour(2),iday(2),imon(2),iyear(2)
+      common /tkfield/iniok,x,y,z,bx,by,bz,xyz,
+     + isec,imin,ihour,iday,imon,iyear
+      common /amsdatadir/amsdlength,amsdatadir
+      integer amsdlength
+      character *64 amsdatadir
       DIMENSION AREAD1(28),AREAD2(28)
       CHARACTER*100 FILE1,FILE2
       DATA FILE1
-     &/'/afs/cern.ch/user/c/choutko/public/AMS_SS_2002_AC_GEO.LIN'/
+     &/'AMS_SS_2002_AC_GEO.LIN'/
       DATA FILE2
-     &/'/afs/cern.ch/user/c/choutko/public/AMS_SS_2002_GCR_GEO.LIN'/
+     &/'AMS_SS_2002_GCR_GEO.LIN'/
       DO I = 1, 28
        CALL HBOOK1(20000+I,'Spectra',120,1.005,5.005,0.)
       ENDDO
-      OPEN(10, FILE=FILE1, FORM='FORMATTED',STATUS='OLD')
-      OPEN(11, FILE=FILE2, FORM='FORMATTED',STATUS='OLD')
+      OPEN(10, FILE=
+     +amsdatadir(1:amsdlength)//FILE1, FORM='FORMATTED',STATUS='OLD')
+      OPEN(11, FILE=
+     +amsdatadir(1:amsdlength)//FILE2, FORM='FORMATTED',STATUS='OLD')
       DO I = 1, 8
       READ(10,*)
       READ(11,*)
@@ -6160,6 +6173,9 @@ CDECK  ID>, TKFLD.
          integer isec(2),imin(2),ihour(2),iday(2),imon(2),iyear(2)
       common /tkfield/iniok,x,y,z,bx,by,bz,xyz,
      + isec,imin,ihour,iday,imon,iyear
+      common /amsdatadir/amsdlength,amsdatadir
+      integer amsdlength
+      character *64 amsdatadir
           DIMENSION BDx(nx,ny,nz,2), bDy(nx,ny,nz,2),
      +    BdZ(nx,ny,nz,2)
          real xx(3),hxy(3,3),x1(3)
@@ -6168,7 +6184,8 @@ CDECK  ID>, TKFLD.
          if(ini.eq.0.and.iniok.ne.2)then
            call timex(st0)
            ini=1
-           open(33,file='/afs/cern.ch/user/c/choutko/public/amsbd.dat',
+           open(33,file=
+     +     amsdatadir(1:amsdlength)//'amsbd.dat',
      +     form='unformatted',status='old',iostat=iostat)
            if(iostat.ne.0)then
            write(*,*)'Cannot open derivatives file'
@@ -6197,7 +6214,7 @@ CDECK  ID>, TKFLD.
             enddo
            enddo
            open(33,file=
-     +     '/afs/cern.ch/user/c/choutko/public/amsbd.dat',
+     +     amsdatadir(1:amsdlength)//'amsbd.dat',
      +     form='unformatted',status='new',iostat=iostat)
            if(iostat.ne.0)then
             write(*,*)'Cannot write derivatives file'
@@ -7730,6 +7747,9 @@ C---------------------------------------------------------------------
          integer isec(2),imin(2),ihour(2),iday(2),imon(2),iyear(2)
       common /tkfield/iniok,x,y,z,bx,by,bz,xyz,
      + isec,imin,ihour,iday,imon,iyear
+      common /amsdatadir/amsdlength,amsdatadir
+      integer amsdlength
+      character *64 amsdatadir
         parameter (idai=1)
       DIMENSION V(3),B(3),VV(3)
       real x1(3)
@@ -7751,7 +7771,7 @@ C
         FIRST=.FALSE.
         PRINT*,'Opening field file...'
         OPEN(21,
-     +  FILE='/afs/cern.ch/user/c/choutko/public/rgmagall.datin',
+     +  FILE=amsdatadir(1:amsdlength)//'rgmagall.datin',
      +   STATUS='OLD',form='formatted')
         NL=0
            do iz=1,6

@@ -865,7 +865,7 @@ depend:
 ../bin/osf1/commons.o: ../include/cfortran.h /usr/include/string.h
 ../bin/osf1/commons.o: /usr/include/sys/types.h /usr/include/malloc.h
 ../bin/osf1/commons.o: ../include/hbook.h ../include/geant321.h
-../bin/osf1/commons.o: ../include/geant321g.h
+../bin/osf1/commons.o: ../include/geant321g.h /usr/include/stdlib.h
 ../bin/osf1/apool.o: ../include/apool.h ../include/typedefs.h
 ../bin/osf1/apool.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/apool.o: /usr/include/cxx/iostream.h

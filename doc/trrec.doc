@@ -124,14 +124,14 @@ number _Chi2Circle;         // Chi^2  Circle fit
 number _CircleRidgidity;    // Circle fit Ridgidity
 number _Chi2FastFit;        // Chi^2 5x5 fit (see tkfitg in amstkshc++.F)
 number _Ridgidity;          // 5x5 fit ridgidity
-number _ErrRidgidity;       // Err in ridgidity 
+number _ErrRidgidity;       // Err in 1/ridgidity  
 number _Theta;              // 5x5 theta
 number _Phi;                // 5x5 phi
 AMSPoint _P0;               // 5x5 x,y,z
 number _GChi2;              // Geane chi^2 
 number _GRidgidity;         // Geane  Ridgidity or momentum 
                             // if (geanefitdone != 14)
-number _GErrRidgidity;      // Err of  Ridgidity
+number _GErrRidgidity;      // Err of  1/Ridgidity
 number _GTheta;             // Geane theta
 number _GPhi;               // Geane phi
 AMSPoint _GP0;              // Geane x,y,z

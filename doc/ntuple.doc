@@ -125,6 +125,7 @@ Below there is a description of a converted ntuple.
 * I*4  *              * TRTRACK  * pattern(ntrtr)  // Pattern (datacards.doc)
 * I*4  *              * TRTRACK  * nhits(ntrtr)    // number of hits 
 * I*4  *              * TRTRACK  * phits(6,ntrtr)  // pointers to trrechit
+* I*4  *              * TRTRACK  * FastFitDone(ntrtr) // != 0 if done
 * I*4  *              * TRTRACK  * GeaneFitDone(ntrtr) // != 0 if done
 * I*4  *              * TRTRACK  * AdvancedFitDone(ntrtr) --------------
 * R*4  *              * TRTRACK  * Chi2StrLine(ntrtr) // chi2 sz fit

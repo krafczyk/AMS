@@ -202,6 +202,7 @@ int Status;
 int Pattern;
 int NHits;
 int pHits[6];
+int FastFitDone;
 int GeaneFitDone;
 int AdvancedFitDone;
 float Chi2StrLine;

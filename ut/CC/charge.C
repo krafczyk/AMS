@@ -27,7 +27,7 @@ number AMSCharge::_lkhdStepTOF[ncharge];
 number AMSCharge::_lkhdStepTracker[ncharge];
 integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6,7,8,9};
 integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6,7,8,9};
-char AMSCharge::_fnam[128]="/afs/cern.ch/user/c/choutko/public/lkhd_v205+.data";
+char AMSCharge::_fnam[128]="lkhd_v205+.data";
 void AMSCharge::build(){
   // charge finding
   number EdepTOF[4];
@@ -233,9 +233,12 @@ void AMSCharge::init(){
 geant v[3],x[3];
 GUFLD(x,v);
 int i,j;
-  ifstream iftxt(_fnam,ios::in);
+char fnam[256]="";
+strcpy(fnam,AMSDATADIR.amsdatadir);
+strcat(fnam,_fnam);
+  ifstream iftxt(fnam,ios::in);
   if(!iftxt){
-     cerr <<"AMSCharge::init-F-Error open file "<<_fnam<<endl;
+     cerr <<"AMSCharge::init-F-Error open file "<<fnam<<endl;
      
       exit(1);
   }

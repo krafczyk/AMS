@@ -641,7 +641,8 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
      if(ptrack->_Chi2Circle< TRFITFFKEY.Chi2Circle && 
       fabs(ptrack->_CircleRidgidity)>TRFITFFKEY.RidgidityMin ){
           
-       if(  ptrack->Fit(0) < TRFITFFKEY.Chi2FastFit && ptrack->TOFOK()){
+       if( TRFITFFKEY.FastTracking || (ptrack->Fit(0) < TRFITFFKEY.Chi2FastFit)
+            && ptrack->TOFOK()){
          ptrack->AdvancedFit();
          int i;   
          // Mark hits as USED
@@ -680,6 +681,7 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
 
 void AMSTrTrack::AdvancedFit(){
   if(_Ridgidity < 0){
+   if(TRFITFFKEY.FastTracking)Fit(0);
    Fit(1);
    Fit(2);
    Fit(3);
@@ -734,8 +736,9 @@ geant spcor[maxhits];
 number work[maxhits];
 geant chixy;
 geant chiz;
-geant xmom,dip,phis;
+geant xmom,dip,phis,exmom;
 integer iflag=0;
+geant p0[3];
 for (int i=0;i<npt;i++){
  z[npt-i-1]=_Pthit[i]->getHit()[0];
  x[npt-i-1]=_Pthit[i]->getHit()[1];
@@ -751,12 +754,24 @@ for (int i=0;i<npt;i++){
 }
 
 TRAFIT(ifit,x,y,wxy,z,ssz,npt,resxy,ressz,iflag,spcor,work,chixy,chiz,xmom,
-       dip,phis);
+       exmom,p0,dip,phis);
 if(iflag/1000 == 0)_Chi2Circle=chixy;
 else _Chi2Circle=FLT_MAX;
 if(iflag%1000 ==0)_Chi2StrLine=chiz;
 else _Chi2StrLine=FLT_MAX;
 _CircleRidgidity=xmom;
+if(TRFITFFKEY.FastTracking){
+  // Fill fastfit here
+  _Ridgidity=_CircleRidgidity; 
+  _ErrRidgidity=exmom;
+  _P0[0]=p0[0];
+  _P0[1]=p0[1];
+  _P0[2]=p0[2];
+
+  _Theta=dip;
+  _Phi=phis;
+
+}
 }
 
 
@@ -876,6 +891,7 @@ if(fit<4)ims=1;
 else ims=0;
 TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,out);
 if(fit==0){
+_FastFitDone=1;
 _Chi2FastFit=out[6];
 if(out[7] != 0)_Chi2FastFit=FLT_MAX;
 _Ridgidity=out[5];
@@ -1002,7 +1018,7 @@ if(AMSTrTrack::Out(IOPA.WriteAll || getstatus(AMSDBc::USED))){
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"TrTrack",TrTN.getaddress(),
-  "TrTrack:I*4,TrStatus:I*4,Pattern:I*4,  NHits:I*4 , pHits(6):I*4 , GeaneFitDone:I*4,AdvancedFitDone:I*4,Chi2StrLine:R*4,Chi2Circle:R*4,CircleRidgidity:R*4,Chi2FastFit:R*4,Ridgidity:R*4,ErrRidgidity:R*4,Theta:R*4,Phi:R*4,P0(3):R*4,GChi2:R*4,GRidgidity:R*4,GErrRidgidity:R*4,GTheta:R*4,GPhi:R*4,GP0(3):R*4,HChi2(2):R*4,HRidgidity(2):R*4,HErrRidgidity(2):R*4,  HTheta(2):R*4,HPhi(2):R*4,HP0(3,2):R*4,FChi2MS:R*4,GChi2MS:R*4,RidgidityMS:R*4,GRidgidityMS:R*4");
+  "TrTrack:I*4,TrStatus:I*4,Pattern:I*4,  NHits:I*4 , pHits(6):I*4 , FastFitdone:I*4,GeaneFitDone:I*4,AdvancedFitDone:I*4,Chi2StrLine:R*4,Chi2Circle:R*4,CircleRidgidity:R*4,Chi2FastFit:R*4,Ridgidity:R*4,ErrRidgidity:R*4,Theta:R*4,Phi:R*4,P0(3):R*4,GChi2:R*4,GRidgidity:R*4,GErrRidgidity:R*4,GTheta:R*4,GPhi:R*4,GP0(3):R*4,HChi2(2):R*4,HRidgidity(2):R*4,HErrRidgidity(2):R*4,  HTheta(2):R*4,HPhi(2):R*4,HP0(3,2):R*4,FChi2MS:R*4,GChi2MS:R*4,RidgidityMS:R*4,GRidgidityMS:R*4");
 
 }
   TrTN.Event()=AMSEvent::gethead()->getid();
@@ -1036,6 +1052,7 @@ if(init++==0){
 
 
   }
+  TrTN.FastFitDone=_FastFitDone;
   TrTN.GeaneFitDone=_GeaneFitDone;
   TrTN.AdvancedFitDone=_AdvancedFitDone;
   TrTN.Chi2StrLine=(geant)_Chi2StrLine;

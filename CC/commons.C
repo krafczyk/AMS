@@ -1,8 +1,8 @@
-#ifndef COMMONS_C
-#define COMMONS_C
 
 
 #include <commons.h>
+#include <stdlib.h>
+#include <iostream.h>
 SELECTFFKEY_DEF SELECTFFKEY;
 AMSFFKEY_DEF AMSFFKEY;
 IOPA_DEF IOPA;
@@ -30,5 +30,27 @@ GCKINE_DEF GCKINE;
 
 // Fortran commons
 //TKFIELD_DEF TKFIELD;
+//AMSDATADIR_DEF AMSDATADIR
 
-#endif /* !defined(COMMONS_C) */
+
+AMSCommonsI::AMSCommonsI(){
+  if(_Count++==0){
+   char dt[128]="/afs/cern.ch/user/c/choutko/public/data/";
+   char* gtv=getenv("AMSDataDir");
+   if(gtv && strlen(gtv)>0){
+    AMSDATADIR.amsdlength=strlen(gtv);
+    if(AMSDATADIR.amsdlength>127)AMSDATADIR.amsdlength=127;
+    strncpy(AMSDATADIR.amsdatadir,gtv,
+    AMSDATADIR.amsdlength);
+   }
+   else {
+     cout<<"AMSCommonsI-W-AMSDataDir variable not defined."<<endl;
+     cout <<" Will use default "<<
+        dt<< "instead."<<endl;
+      strcpy(AMSDATADIR.amsdatadir,dt);
+      AMSDATADIR.amsdlength=strlen(dt);
+   }
+  }
+}
+
+integer AMSCommonsI::_Count=0;

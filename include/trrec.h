@@ -198,6 +198,7 @@ AMSTrRecHit * _Pthit[6];
 integer _Status;
 integer _Pattern;
 integer _NHits;
+integer _FastFitDone;
 integer _GeaneFitDone;
 integer _AdvancedFitDone;
 
@@ -257,7 +258,7 @@ inline void setstatus(integer status){_Status=_Status | status;}
 inline integer getstatus(integer checker) const{return _Status & checker;}
 number Fit(integer i=0, integer ipart=14);
 AMSTrTrack(const AMSTrTrack & o):AMSlink(o._next),_Pattern(o._Pattern),
-_NHits(o._NHits),_GeaneFitDone(o._GeaneFitDone),
+_NHits(o._NHits),_GeaneFitDone(o._GeaneFitDone),_FastFitDone(o._FastFitDone),
 _AdvancedFitDone(o._AdvancedFitDone),_Chi2StrLine(o._Chi2StrLine),
 _Chi2Circle(o._Chi2Circle),_CircleRidgidity(o._CircleRidgidity),
 _Chi2FastFit(o._Chi2FastFit),_Ridgidity(o._Ridgidity),
@@ -280,7 +281,7 @@ for(i=0;i<2;i++){
 ~AMSTrTrack(){};
 AMSTrTrack *  next(){return (AMSTrTrack*)_next;}
 AMSTrTrack (integer pattern, integer nhits, AMSTrRecHit * phit[]): 
-AMSlink(0), _Status(0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0)
+AMSlink(0), _Status(0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0)
   {init(  phit);}
 void init( AMSTrRecHit * phit[]);
 static void build(integer refit);

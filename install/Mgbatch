@@ -746,7 +746,7 @@ depend:
 ../bin/aix/commons.o: /usr/include/sys/types.h ../include/cfortran.h
 ../bin/aix/commons.o: /usr/include/stdio.h /usr/include/malloc.h
 ../bin/aix/commons.o: ../include/hbook.h ../include/geant321.h
-../bin/aix/commons.o: ../include/geant321g.h
+../bin/aix/commons.o: ../include/geant321g.h /usr/include/stdlib.h
 ../bin/aix/apool.o: ../include/apool.h ../include/typedefs.h
 ../bin/aix/apool.o: /usr/include/assert.h /usr/lpp/xlC/include/iostream.h
 ../bin/aix/apool.o: /usr/include/memory.h /usr/include/string.h
