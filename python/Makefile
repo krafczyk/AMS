@@ -47,6 +47,9 @@ $(file)_wrapnew.cxx :
 	./configure
 	mv -f $(file).py $(MYPY)
 
+clean_wrap :
+	rm -f $(file)_wrap* $(file).h
+
 clean :
 	rm -f $(file)_wrap* $(file).h
 	cd $(MY_OS)

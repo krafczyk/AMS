@@ -33,6 +33,9 @@ $(file)_wrapnew.o : $(file)_wrapnew.cxx
 $(file)_wrapnew.cxx : 
 	./configure
 
+clean_wrap :
+	rm -f $(file)_wrap* $(file).h
+
 clean :
 	rm -f $(file)_wrap* $(file).h
 	cd $(MY_OS)
