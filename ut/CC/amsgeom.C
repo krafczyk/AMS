@@ -2051,7 +2051,7 @@ integer gid=0;
 AMSNode * cur;
 AMSNode * dau;
 AMSgtmed *p;
-     geant magnetl=99.;
+     geant magnetl=86.;
       gid=1;
       par[0]=113.2/2;
       par[1]=129.6/2;
@@ -2060,11 +2060,12 @@ AMSgtmed *p;
       "MAGNET",0,name,"TUBE",par,3,coo,
        nrm, "ONLY",0,gid,1));
       gid=2;
-      par[0]=111.4/2.;
+      par[0]=111.5/2.;
       par[1]=112.0/2.;
       par[2]=magnetl/2.;
       dau=mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT1","TUBE",par,3,coo,nrm, "ONLY",0,gid,1));
+/*
       gid=3;
       par[0]=129.6/2.;
       par[1]=130.4/2.;
@@ -2084,6 +2085,7 @@ AMSgtmed *p;
       coo[2]=-magnetl/2.-par[2];
       dau=mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT4","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
+*/
     
 }
 void magnetgeom02Test(AMSgvolume & mother){
