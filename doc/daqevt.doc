@@ -1,11 +1,11 @@
 
 I. Proposed Daq Event format  (based on lebedev&capell 15/7/97)
                                 & updated 18/12/1997
-All 16 bit unsigned integers. 32 & more bits are in little endian,i.e.
+All 16 bit unsigned integers. 32 & more bits are now in BIG(!) endian,i.e.
  unsigned short int ui16[2];
  integer r;
- ui16[0[=((unsigned integer)r)&65535;
- ui16[1]=(((unsigned integer)r)>>16)&65535;
+ ui16[1[=((unsigned integer)r)&65535;
+ ui16[0]=(((unsigned integer)r)>>16)&65535;
 
  
 

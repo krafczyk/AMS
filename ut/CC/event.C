@@ -1375,43 +1375,50 @@ pdaq->buildDAQ(4);
 void AMSEvent::builddaq(integer i, integer length, int16u *p){
 
 *p= getdaqid(0);
-*(p+1)=int16u(_Head->_run&65535);
-*(p+2)=int16u((_Head->_run>>16)&65535);
-*(p+3)=int16u(_Head->_runtype&65535);
-*(p+4)=int16u(_Head->_runtype>>16&65535);
+*(p+2)=int16u(_Head->_run&65535);
+*(p+1)=int16u((_Head->_run>>16)&65535);
+*(p+4)=int16u(_Head->_runtype&65535);
+*(p+3)=int16u(_Head->_runtype>>16&65535);
 uinteger _event=uinteger(_Head->_id);
-*(p+5)=int16u(_event&65535);
-*(p+6)=int16u((_event>>16)&65535);
-*(p+7)=int16u(_Head->_time&65535);
-*(p+8)=int16u((_Head->_time>>16)&65535);
-*(p+9)=int16u(_Head->_usec&65535);
-*(p+10)=int16u((_Head->_usec>>16)&65535);
+*(p+6)=int16u(_event&65535);
+*(p+5)=int16u((_event>>16)&65535);
+*(p+8)=int16u(_Head->_time&65535);
+*(p+7)=int16u((_Head->_time>>16)&65535);
+*(p+10)=int16u(_Head->_usec&65535);
+*(p+9)=int16u((_Head->_usec>>16)&65535);
 }
 void AMSEvent::buildTrackerHKdaq(integer i, integer length, int16u *p){
 
 *p= getdaqid(4);
-*(p+1)=int16u(_Head->_run&65535);
-*(p+2)=int16u((_Head->_run>>16)&65535);
-*(p+3)=int16u(_Head->_runtype&65535);
-*(p+4)=int16u(_Head->_runtype>>16&65535);
+*(p+2)=int16u(_Head->_run&65535);
+*(p+1)=int16u((_Head->_run>>16)&65535);
+*(p+4)=int16u(_Head->_runtype&65535);
+*(p+3)=int16u(_Head->_runtype>>16&65535);
 uinteger _event=uinteger(_Head->_id);
-*(p+5)=int16u(_event&65535);
-*(p+6)=int16u((_event>>16)&65535);
-*(p+7)=int16u(_Head->_time&65535);
-*(p+8)=int16u((_Head->_time>>16)&65535);
-*(p+9)=int16u(_Head->_usec&65535);
-*(p+10)=int16u((_Head->_usec>>16)&65535);
+*(p+6)=int16u(_event&65535);
+*(p+5)=int16u((_event>>16)&65535);
+*(p+8)=int16u(_Head->_time&65535);
+*(p+7)=int16u((_Head->_time>>16)&65535);
+*(p+10)=int16u(_Head->_usec&65535);
+*(p+9)=int16u((_Head->_usec>>16)&65535);
 }
 
 
 void AMSEvent::buildraw(
               integer length, int16u *p, uinteger & run, uinteger &id,
               uinteger &runtype, time_t & time, uinteger &usec){
-  run=(*(p+1)) |  (*(p+2))<<16;
-  runtype=(*(p+3)) |  (*(p+4))<<16;
-  id=(*(p+5)) |  (*(p+6))<<16;
-  time=(*(p+7)) |  (*(p+8))<<16;
-  usec=(*(p+9)) |  (*(p+10))<<16;
+  //  run=(*(p+1)) |  (*(p+2))<<16;
+  //  runtype=(*(p+3)) |  (*(p+4))<<16;
+  //  id=(*(p+5)) |  (*(p+6))<<16;
+  //  time=(*(p+7)) |  (*(p+8))<<16;
+  //  usec=(*(p+9)) |  (*(p+10))<<16;
+
+    run=(*(p+2)) |  (*(p+1))<<16;
+    runtype=(*(p+4)) |  (*(p+3))<<16;
+    id=(*(p+6)) |  (*(p+5))<<16;
+    time=(*(p+8)) |  (*(p+7))<<16;
+    usec=(*(p+10)) |  (*(p+9))<<16;
+
 
 }
 

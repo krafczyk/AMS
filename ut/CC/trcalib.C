@@ -1211,6 +1211,7 @@ void AMSTrIdCalib::buildpreclusters(AMSTrIdSoft & idd, integer len, geant id[]){
            }
            else id[l]+=-cmn;
          }
+
          for(l=vamin;l<vamax;l++){
           cid.upd(l);
        integer ids=(cid.getlayer()-1)*10+cid.getdrp();
@@ -1236,5 +1237,20 @@ void AMSTrIdCalib::buildpreclusters(AMSTrIdSoft & idd, integer len, geant id[]){
           cid.updcounter();
 
         }
+      }
+
+
+      // Dynamically Update pedestals if needed
+      if(TRCALIB.DPS && TRCALIB.Pass>=2){
+       for(j=0;j<len;j++){
+          idd.upd(j);
+          if(fabs(id[j]-idd.getped())<TRCALIB.DPS*idd.getsig()){
+           idd.setped()=idd.getped()+(id[j]-idd.getped())/TRCALIB.UPDF;
+         }           
        }
+      }
+
+
+
+
 }

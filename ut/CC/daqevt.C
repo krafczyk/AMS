@@ -16,7 +16,7 @@ void DAQEvent::shrink(){
 if(_pData && !_BufferOwner)UPool.udelete(_pData);
 if(_BufferOwner)_BufferLock=0;
 _pData=0;
-_Length=0;
+//_Length=0;
 _pcur=0;
 _Event=0;
 _Run=0;
@@ -137,7 +137,11 @@ integer DAQEvent::_EventOK(){
      _pcur=_pData+2;
      for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL)
        cerr <<" ID " <<*(_pcur+1)<<" Length "<< *(_pcur)+_OffsetL<<endl;
-   
+#ifdef __AMSDEBUG__
+     //     int ic=0;
+     //     for(_pcur=_pData;_pcur<_pData+_Length;_pcur++)
+     //       cout <<ic++ <<" "<<*(_pcur)<<endl;
+#endif   
        return 0;
      }
      else return 1;    
@@ -156,6 +160,10 @@ integer DAQEvent::_HeaderOK(){
     if(AMSEvent::checkdaqid(*(_pcur+1))){
       AMSEvent::buildraw(*(_pcur)+_OffsetL-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
       _Checked=1;
+#ifdef __AMSDEBUG__
+      //      cout << "Run "<<_Run<<" Event "<<_Event<<" RunType "<<_RunType<<endl;
+      //      cout <<ctime(&_Time)<<" usec "<<_usec<<endl;
+#endif
       return 1;
     }
   }
@@ -220,6 +228,7 @@ integer DAQEvent::read(){
      fbin.read((unsigned char*)(&l16),sizeof(_pData[0]));
      _convertl(l16);
      _Length= _Length | ((l16 & 63)<<16);
+     //cout <<" Length "<<_Length<<endl;
      if(fbin.good() && !fbin.eof()){
       if(_create()){
        fbin.seekg(fbin.tellg()-2*sizeof(_pData[0]));
