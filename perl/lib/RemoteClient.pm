@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.161 2003/05/12 15:57:02 choutko Exp $
+# $Id: RemoteClient.pm,v 1.162 2003/05/12 17:00:49 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4036,9 +4036,8 @@ print qq`
               DBServer::sendRunEvInfo($self->{dbserver},$ri,"Create");
             }
             my $lu=time();
-            $sql="update Servers set lastupdate=$lu where dbfilename='$self->{db
-file}'";
-            $self->{sqlserver}->Update($sql);
+            my $sqll="update Servers set lastupdate=$lu where dbfilename='$self->{dbfile}'";
+            $self->{sqlserver}->Update($sqll);
             }
         }
         else{
