@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.36 2003/04/08 09:20:53 choutko Exp $
+//  $Id: gamma.C,v 1.37 2003/04/08 09:22:14 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -2980,11 +2980,6 @@ AMSTrRecHit * parrayR[trconst::maxlay];
        setstatus(AMSDBc::BAD);
        return;
      }
-     if(_PGAMM!=_PGAMM){
-       cerr<<" AMSTrTrackGamma::_writeEl-S-_PGAMMisNAN, please fix me "<<endl;
-       setstatus(AMSDBc::BAD);
-       return;
-     }
      if(_GThetaMSL!=_GThetaMSL){
        cerr<<" AMSTrTrackGamma::_writeEl-S-_GThetaMSLisNAN, please fix me "<<endl;
         _GThetaMSL=0;
@@ -2992,8 +2987,6 @@ AMSTrRecHit * parrayR[trconst::maxlay];
      if(_GThetaMSR!=_GThetaMSR){
         _GThetaMSR=0;
         cerr<<" AMSTrTrackGamma::_writeEl-S-_GThetaMSRisNAN, please fix me "<<endl;
-       setstatus(AMSDBc::BAD);
-       return;
      }
      // Fill the ntuple
      
