@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.19 2003/03/12 09:33:57 delgadom Exp $
+//  $Id: richgeom.C,v 1.20 2003/03/13 09:46:55 delgadom Exp $
 #include <typedefs.h>
 #include <node.h>
 #include <snode.h>
@@ -278,8 +278,8 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   par[4]=RICHDB::lg_bottom_length/2.+RIClgthk_bot;
   par[5]=par[4];
   par[6]=0;
-  par[7]=RICepsln;  // This is a patch for G4
-//  par[7]=0.;
+  //  par[7]=RICepsln;  // This is a patch for G4
+  par[7]=0.;
   par[8]=RICHDB::lg_length/2.;
   par[9]=par[8];
   par[10]=0;
@@ -886,8 +886,10 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   coo[0]=0;
   coo[1]=RICHDB::hole_radius[1]-RICpmtsupport/2;
   coo[2]=RICHDB::total_height()/2-RICHDB::pmt_pos()+
-    (RICpmtlength+RICeleclength+RICHDB::lg_height-RICpmtsupportheight)/2;
-
+    (RICHDB::pmtb_height()-RICpmtsupportheight)/2;
+  
+  //  coo[2]=RICHDB::total_height()/2-RICHDB::pmt_pos()+
+  //    (RICpmtlength+RICeleclength+RICHDB::lg_height-RICpmtsupportheight)/2;
 
   par[0]=RICHDB::bottom_radius;
   par[1]=RICpmtsupport/2;
@@ -927,7 +929,10 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   coo[0]=RICHDB::hole_radius[0]-RICpmtsupport/2;
   coo[1]=0;
   coo[2]=RICHDB::total_height()/2-RICHDB::pmt_pos()+
-    (RICpmtlength+RICeleclength+RICHDB::lg_height-RICpmtsupportheight)/2;
+    (RICHDB::pmtb_height()-RICpmtsupportheight)/2;
+
+  //  coo[2]=RICHDB::total_height()/2-RICHDB::pmt_pos()+
+  //    (RICpmtlength+RICeleclength+RICHDB::lg_height-RICpmtsupportheight)/2;
 
 
   par[0]=RICpmtsupport/2;
