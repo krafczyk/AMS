@@ -169,6 +169,7 @@
          call hbook1(702,' ',100,0.,50.,0.)
          call hbook1(703,'TOFclusters',50,-0.5,49.5,0.)
          call hbook1(1702,' ',100,0.,50.,0.)
+         call hbook1(801,'dchi',100,0.,2.,0.)
          call hbook1(901, 'p1/p2',200,-1.,3.,0.)
          call hbook1(902 ,'theta dif',200,-0.02,0.02,0.)
          call hbook1(903,'phi diff',200,-0.05,0.05,0.)
@@ -336,6 +337,8 @@
                call hf1(454,gchi2(iptr),1.)
                call hf1(455,fchi2ms(iptr),1.)
                call hf1(456,gchi2ms(iptr),1.)
+               if(htheta(2,iptr).lt.3.14159267/2)
+     +         htheta(2,iptr)=3.14159267-htheta(2,iptr)
                if(advancedfitdone(iptr).ne.0..and.
      +         hchi2(1,iptr).lt.1.e10.and.hchi2(2,iptr).lt.1.e10)then
                  call hf1(1461,htheta(2,iptr)-htheta(1,iptr),1.)
@@ -343,10 +346,11 @@
                  call hf1(462,betachi2(pbetap(1)),1.)
                  cuts(5)=abs(htheta(2,iptr)-htheta(1,iptr)).lt.
      +           0.8e-3+0.15e-3/abs(pmom(1))
-                  if(cuts(5))then 
-                   call hf1(501,hphi(2,iptr)-hphi(1,iptr),1.)
+                  if(cuts(5))then
+                   rp= asin(sin(hphi(2,iptr)-hphi(1,iptr)))
+                   call hf1(501,rp,1.)
                    cuts(6)=
-     +             abs(hphi(2,iptr)-hphi(1,iptr)).lt.0.003/abs(pmom(1))
+     +             abs(rp).lt.0.003/abs(pmom(1))
                    if(cuts(6))then
                    r1=gridgidity(iptr)/hridgidity(1,iptr)
                    r2=gridgidity(iptr)/hridgidity(2,iptr)
@@ -363,6 +367,7 @@ c                   cuts(8)=.true.
                     call hf1(701,panti,1.)
                     call hf1(703,float(tofclusters),1.)
                     r=chi2fastfit(iptr)-hchi2(1,iptr)-hchi2(2,iptr)
+                    call hf1(801,r,1.)
                     cuts(9)=panti.lt.0.5.and.tofclusters.lt.5.and.
      +              betachi2(pbetap(1)).lt.5..and.r.lt.0.5
 *

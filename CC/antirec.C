@@ -629,10 +629,10 @@ integer AMSAntiRawEvent::calcdaqlength(int16u blid){
   }
 //
   else{ // =====> Raw format :
-//    if(nhits>0){
+    if(nhits>0){
       nhits+=(2*1);// add 2x1 TDCT-hits(for MC each FT-channel contains 1 hit(edge))
       len=2*nhits;// each hit(edge) require 2 words (header+TDCvalue)
-//    }
+    }
   }// end of format check
 //
   }// end of SFEA-presence test
