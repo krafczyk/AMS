@@ -310,6 +310,9 @@ void AMSEvent::_reaxinitevent(){
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AntiMatter",0),0));
 
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:Test",0),0));
+
 
 
 

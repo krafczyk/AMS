@@ -18,6 +18,13 @@
 #include <ntuple.h>
 #include <cont.h>
 #include <tkdbc.h>
+
+
+
+
+
+
+
 integer AMSTrTrack::_RefitIsNeeded=0;
 const integer AMSTrCluster::WIDE=1;
 const integer AMSTrCluster::NEAR=2;
@@ -538,6 +545,17 @@ integer AMSTrTrack::build(integer refit=0){
   } 
   _RefitIsNeeded=0;
   _Start();
+  // Add test here
+   
+  { 
+    int xs=0; 
+    for (int kk=0;kk<6;kk++){
+    AMSTrRecHit * phit=AMSTrRecHit::gethead(kk);
+    if(phit)xs++;
+  }
+    if(xs>3)AMSEvent::gethead()->addnext(AMSID("Test",0),new Test());
+  }
+
   for (int pat=0;pat<npat;pat++){
     AMSTrRecHit * phit[6]={0,0,0,0,0,0};
     if(TRFITFFKEY.pattern[pat]){
@@ -647,7 +665,7 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
 #else
     AMSTrTrack *ptrack=   new AMSTrTrack(pat, nhit ,pthit);
 #endif
-    
+
     number gers=0.03;
     ptrack->SimpleFit(AMSPoint(gers,gers,gers));
     if(ptrack->_Chi2StrLine< TRFITFFKEY.Chi2StrLine){

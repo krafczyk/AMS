@@ -28,6 +28,20 @@
 #include <event.h>
 
 
+class Test: public AMSlink{
+protected:
+ integer _pid;
+ void _copyEl(){}
+ void _printEl(ostream & stream){}
+ void _writeEl(){}
+public:
+ Test(integer pid=0):_pid(pid){}
+};
+
+
+
+
+
 class AMSTrCluster: public AMSlink {
 protected:
   void _ErrorCalc();

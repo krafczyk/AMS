@@ -522,7 +522,7 @@ void AMSTrIdCalib::_calc(){
           if( TRCALIB.Pass >= 2){
             geant thr=TRCALIB.BadChanThr[1]*_Count[ch];
             if(thr<3)thr=3;
-            if(_BadCh[ch]*_Count[ch]>thr || cid.getsig()==0 ||(cid.getsig()<2 && cid.getside()==0)){ 
+            if(_BadCh[ch]*_Count[ch]>thr || cid.getsig()==0 ){ 
               cid.setstatus(AMSDBc::BAD);
               bad[l]++;
             }
@@ -938,7 +938,7 @@ void AMSTrIdCalib::buildSigmaPed(integer n, int16u *p){
        if(cid.getsig()!=0 && TRCALIB.Pass>1){
           geant r=(id[j]-cid.getped())/cid.getsig();
           if(r<-TRCALIB.BadChanThr[0])cid.updBadCh();
-          if(TRCALIB.Pass > 2){
+          if(TRCALIB.Pass >= 2){
            HF1(100000*cid.gethalf()+(cid.getside()+1)*10000+ids,r,1.);
            if(cid.checkstatus(AMSDBc::BAD)){
               HF1(100000*cid.gethalf()+(cid.getside()+1)*40000+ids,r,1.);
@@ -1053,7 +1053,7 @@ void AMSTrIdCalib::buildSigmaPedA(integer n, int16u *p){
        if(cid.getsig()!=0 && TRCALIB.Pass>1){
           geant r=(id[l]-cid.getped())/cid.getsig();
           if(r<-TRCALIB.BadChanThr[0])cid.updBadCh();
-          if(TRCALIB.Pass > 2) {
+          if(TRCALIB.Pass >= 2) {
            HF1(100000*cid.gethalf()+(cid.getside()+1)*10000+ids,r,1.);
            if(cid.checkstatus(AMSDBc::BAD)){
                HF1(100000*cid.gethalf()+(cid.getside()+1)*40000+ids,r,1.);
