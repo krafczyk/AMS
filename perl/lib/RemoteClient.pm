@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.171 2003/05/15 17:27:23 alexei Exp $
+# $Id: RemoteClient.pm,v 1.172 2003/05/16 10:24:44 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -899,8 +899,10 @@ sub ValidateRuns {
 # validate ntuples
 # Find corresponding ntuples from server
               foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
-              if($ntuple->{Type} eq "Ntuple" and ($ntuple->{Status} eq "Success" or 
-                $ntuple->{Status} eq "Validated") and $ntuple->{Run}== $run->{Run}){
+#              if($ntuple->{Type} eq "Ntuple" and ($ntuple->{Status} eq "Success" or 
+#                $ntuple->{Status} eq "Validated") and $ntuple->{Run}== $run->{Run}){
+              if(($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and $
+                  ntuple->{Run}== $run->{Run}){
                   $levent += $ntuple->{LastEvent}-$ntuple->{FirstEvent}+1;
                   $ntuple->{Name}=~s/\/\//\//;                  
                   my @fpatha=split ':', $ntuple->{Name};
@@ -924,8 +926,20 @@ sub ValidateRuns {
                   }  
                   else{
                    close FILE;
-                   my $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber}";
-                   my $i=system($validatecmd);
+                   my $validatecmd = undef;
+                   if($ntuple->{Type} eq "Ntuple") {
+                    $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber} 0";
+                   } elsif ($ntuple->{Type} eq "RootFile") {
+                    $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber} 1";
+                   } else {
+                       print FILE "***** Unknown ntuple->{Type : $ntuple->{Type} \n";
+                   }
+                   my $i = 0;
+                   if (defined $validatecmd) {
+                    $i=system($validatecmd);
+                   } else {
+                    $i = 0xff00;
+                   }
                       if( ($i == 0xff00) or ($i & 0xff)){
                       if($ntuple->{Status} ne "Validated"){
                        $status="Unchecked";                     
@@ -5075,8 +5089,8 @@ sub listStat {
          $jobsreq = $ret->[0][0];
          $trigreq = $ret->[0][1];
       }
-     $sql = "SELECT COUNT(runs.jid) FROM Jobs, Runs, Cites 
-              WHERE  runs.jid = jobs.jid AND 
+     $sql = "SELECT COUNT(runs.jid) FROM Jobs, Runs, Cites   
+              WHERE  runs.jid = jobs.jid AND
                      (Jobs.cid != Cites.cid AND
                       Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
       $ret = $self->{sqlserver}->Query($sql);
