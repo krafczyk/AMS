@@ -6,14 +6,19 @@ linux-g++(egcs only, no gcc2.95.2) and dec-cxx >= v6.2
 Installer:
 
 
-source install/g4i
+source AMS/install/g4i
+
+see $G4INSTALL/ReleaseNotes.VC for ams specifics
+
 
 <recommended>
 setenv AMSWD smth
 mkdir $AMSWD/bin
 mkdir $AMSWD/exe
 
-gmake -if install/Moptg4
+gmake -if install/Moptg4   (batch)
+gmake -if install/Moptg4   (interactive)
+
 n.b
 setenv AMSDEBUG 1 switch on debug mode
 unsetenv AMSDEBUG switch it off
@@ -24,6 +29,20 @@ Datacards Switch:
 MISCFFKEY.G4On=1
 
 
+
+--------
+Running conditions:
+
+need to set
+limit data 512000
+for dec-cxx
+limit data 384000
+for linux-g++
+
+---------
+Example
+
+AMS/datacards/g4.test.job
 
 ---------
 New Files:
@@ -57,13 +76,6 @@ CC/gmat.C    << new geant4  constructors
 
 
 
-To be done
-
-
-
-F/rndm.F  <-- heprandom
-
-
 
 
 
@@ -71,7 +83,7 @@ Status (geant4.2.0):
 
 
 Tracking is ok for dec/cxx, memory leak for linux/gcc2.95.2,
-                            looping for linux/egcs.1.1.2
+                            ok for          linux/egcs.1.1.2
 
 interactive version ok
 
@@ -80,7 +92,6 @@ geometry tested: tof,tracker,trd,srd,magnet,ecal,anti,rich
 
 
 
-Important:
 
 <User cuts a-la geant3>
 
@@ -92,7 +103,7 @@ for e+- is 100 mkm (to properly handle  tracker)
 
 The following routines are available to manually
 set up some geant-3 tracking cuts:
-CUTGAM CUTELE CUTNEU CUTMUO CUTHAD TOFMAX
+(gmat.h,gmat.C) CUTGAM CUTELE CUTNEU CUTMUO CUTHAD TOFMAX
 
 Example:
 AMSgtmed ptmed= (AMSgtmed*)tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0,'N',birks,2,20.,10.,1000.,
@@ -114,5 +125,12 @@ For debug purposes all geant3-like cuts may be switch on/off via
 G4FF 4=1/0   datacard
 
 
+
+
+To be done
+
+
+
+F/rndm.F  <-- change to heprandom
 
 
