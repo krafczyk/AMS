@@ -29,23 +29,37 @@ void AMSRichRawEvent::mc_build(){
   AMSRichMCHit *hits;
 
   hits=(AMSRichMCHit *)AMSEvent::gethead()->getheadC("AMSRichMCHit",0);
-  int n_times=0;
   while(hits){
-    n_times++;
+    if(hits->getkind()!=0) continue; // Don't kwnow how to treat others
     integer pmt=integer(hits->getid()/10000);
     integer window=integer(hits->getid()%10000);
 
-    geant x=RICHDB::x(pmt,window);
-    geant y=RICHDB::y(pmt,window);
-    geant xr=hits->getcoo(0);
-    geant yr=hits->getcoo(1);
+    n_hits[pmt][window]++;
 
-#ifdef __AMSDEBUG__
-    cout << "RICH:mc-build pos diff x:" << xr-x << " y:" << yr-y << endl; // debug
-
-#endif
-   
     hits=hits->next();
     
   }
+
+  integer n_times=0;
+  integer real=0;
+
+  for(int i=0;i<RICHDB::total;i++)
+    for(int j=0;j<RICnwindows;j++){
+      integer adc;
+      adc=RICHDB::pmt_response(n_hits[i][j]);
+      real+=n_hits[i][j];
+      if(adc>RICHDB::c_ped+1){// So we get a signal
+      	AMSEvent::gethead()->addnext(AMSID("AMSRichRawEvent",0), 
+      				     new AMSRichRawEvent(10000*i+j,0,adc,
+      							 RICHDB::x(i,j),
+      							 RICHDB::y(i,j)));
+      	n_times++;
+      }
+    }
+#ifdef __AMSDEBUG__
+  cout<<"RICH:mc_build Number of photons detected:" << n_times << endl;
+#endif
+
 }
+
+

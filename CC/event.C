@@ -377,6 +377,7 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 _reecalinitrun();
 _resrdinitrun();
 _retrdinitrun();
+_rerichinitrun();
 }
 else{
 _rectcinitrun();
@@ -412,6 +413,7 @@ void AMSEvent::_reamsinitevent(){
 _reecalinitevent();
 _retrdinitevent();
 _resrdinitevent();
+_rerichinitevent();
 }
 else{
  _rectcinitevent();
@@ -827,6 +829,11 @@ void AMSEvent::_reecalinitevent(){
 void AMSEvent::_resrdinitevent(){
 }
 void AMSEvent::_retrdinitevent(){
+}
+void AMSEvent::_rerichinitevent(){
+  AMSNode *ptr;
+  ptr=AMSEvent::gethead()->add(
+    new AMSContainer(AMSID("AMSContainer:AMSRichRawEvent",0),0));
 }
 //=====================================================================
 void AMSEvent::_reaxinitevent(){
@@ -1614,6 +1621,8 @@ void AMSEvent::_reecalinitrun(){
 void AMSEvent::_retrdinitrun(){
 }
 void AMSEvent::_resrdinitrun(){
+}
+void AMSEvent::_rerichinitrun(){
 }
 
 void AMSEvent::_reaxinitrun(){
