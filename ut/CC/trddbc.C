@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.40 2003/04/04 20:23:28 kscholbe Exp $
+//  $Id: trddbc.C,v 1.41 2003/04/07 08:48:35 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -25,44 +25,43 @@ char * TRDDBc::_StripsMedia="TRDCarbonFiber";
 //      some spikes & pipes parameters are correlated with xe rad octagons
 //      ones, so change them in case of changing the latter.
 //
-
 float TRDDBc::_SpikesPar[trdconst::maxspikes][4][6]={
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
-                          4.,   -102.,-1.19/2,0.,0.125,1.75,
+                          4.,   -102.,-1.19/2,0.,0.125,1.05,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
-                          4,    -62., -1.19/2,0.,0.125,1.75,
+                          4,    -62., -1.19/2,0.,0.125,1.05,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
-                          8.33, -6.15,-1.19/2,0.,0.125,1.75,
+                          8.33, -6.15,-1.19/2,0.,0.125,1.05,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
-                          62.,  -4.,  -1.19/2,0.,0.125,1.75,
+                          62.,  -4.,  -1.19/2,0.,0.125,1.05,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
-                          102., -4.,  -1.19/2,0.,0.125,1.75,
+                          102., -4.,  -1.19/2,0.,0.125,1.05,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
-                          42., -42.,  -1.19/2,0.,0.125,1.75,
+                          42., -42.,  -1.19/2,0.,0.125,1.05,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
-                          42., -82.,  -1.19/2,0.,0.125,1.75,
+                          42., -82.,  -1.19/2,0.,0.125,1.05,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
-                          82., -42.,  -1.19/2,0.,0.125,1.75,
+                          82., -42.,  -1.19/2,0.,0.125,1.05,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
                           0,0,0,0,0,0,
-                          68.5,-86.,  -1.19/2,0.,0.125,1.75
+                          68.5,-86.,  -1.19/2,0.,0.125,1.05
                                                        };
 
 float TRDDBc::_PipesPar[trdconst::maxpipes][4][7]={
@@ -512,19 +511,21 @@ void TRDDBc::init(){
       OctagonDimensions(4,8)=0;         // rmin
       OctagonDimensions(4,9)=1550./20.;  // rmax
 
-// Xe Radiator  Octagon
+// Ze Radiator  Octagon
 
-
-      OctagonDimensions(5,4)=-(35+11.9)/20.;   // z coord
+      
+      OctagonDimensions(5,4)=-(21+11.9)/20.;   // z coord
 
    // Bottom edge
 
       OctagonDimensions(5,5)=0;         // rmin
-      OctagonDimensions(5,6)=1110./10.; // rmax
+//      OctagonDimensions(5,5)=1110/10.;         // rmin
+      OctagonDimensions(5,6)=1210./10.; // rmax
 
       // Top edge
       OctagonDimensions(5,8)=0;         // rmin
-      OctagonDimensions(5,9)=1110./10.;  // rmax
+//      OctagonDimensions(5,8)=1110/10.;         // rmin
+      OctagonDimensions(5,9)=1210./10.;  // rmax
 
      
 
@@ -586,7 +587,7 @@ void TRDDBc::init(){
 //      OctagonDimensions(9,6)+=AccuracyLost;
 //      OctagonDimensions(9,9)+=AccuracyLost;
 
-//  Top Alum cover of Xe radiator
+//  Top Alum cover of Ze radiator
       
       OctagonDimensions(10,4)=-1.8/20.;  // z coord
 
@@ -598,7 +599,7 @@ void TRDDBc::init(){
       OctagonDimensions(10,8)=0;
       OctagonDimensions(10,9)=OctagonDimensions(5,9);
 
-//  Rohacell of Xe radiator
+//  Rohacell of Ze radiator
       
       OctagonDimensions(11,4)=-(11.9-1.8-0.3)/20.;  // z coord
 
@@ -610,7 +611,7 @@ void TRDDBc::init(){
       OctagonDimensions(11,8)=0;
       OctagonDimensions(11,9)=OctagonDimensions(5,9);
 
-//  Bottom Alum cover of Xe radiator
+//  Bottom Alum cover of Ze radiator
       
       OctagonDimensions(12,4)=-0.3/20.;  // z coord
 
@@ -647,7 +648,7 @@ void TRDDBc::init(){
      // 835. is position of bottom of bottom carbon fiber ring
 
        switch(i){
-       case 5:    // Xe Radiator octagon  (up from hc)
+       case 5:    // Ze Radiator octagon  (up from hc)
           coo[2]= (1476+94.+6.+35+11.9)/10.+OctagonDimensions(i,4);
           break;
        case 4:    // bottom honeycomb... starts 1.5 mm below carbon
@@ -679,13 +680,13 @@ void TRDDBc::init(){
         coo[j]=0;
        }
        switch(i){
-        case 10:  // top alu of Xe rad
+        case 10:  // top alu of Ze rad
          coo[2]=OctagonDimensions(GetPrimaryOctagon(i),7)+OctagonDimensions(i,4);
         break;
         case 11:  // rohacell
          coo[2]=OctagonDimensions(GetPrimaryOctagon(i),7)+2*OctagonDimensions(i-1,4)+OctagonDimensions(i,4);
         break;
-        case 12:  // bot alu of Xe rad
+        case 12:  // bot alu of Ze rad
          coo[2]=OctagonDimensions(GetPrimaryOctagon(i),7)+2*OctagonDimensions(i-2,4)+2*OctagonDimensions(i-1,4)+OctagonDimensions(i,4);
         break;
        }       
@@ -2749,7 +2750,7 @@ char* TRDDBc::CodeLad(uinteger gid){
  static char output[3]={'\0','\0','\0'};
  static char code[]="QWERTYUIOPASFGJKLZXVNM1234567890";
  integer size=strlen(code);
- if(gid<size*size){
+ if(gid<size*size-size){
   output[0]=code[gid%size]; 
   output[1]=code[gid/size]; 
  }

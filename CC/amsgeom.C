@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.170 2003/04/04 20:23:28 kscholbe Exp $
+//  $Id: amsgeom.C,v 1.171 2003/04/07 08:48:33 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2331,7 +2331,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 
 {
-//  Now Xe Rad Spikes
+//  Now Ze Rad Spikes
     
    number nrml[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
     gid=0;

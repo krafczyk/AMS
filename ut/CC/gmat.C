@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.82 2003/04/01 10:49:00 kscholbe Exp $
+//  $Id: gmat.C,v 1.83 2003/04/07 08:48:34 choutko Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -556,15 +556,9 @@ else{
 #ifdef __G4AMS__
 }
 #endif
- uwbuf[1]=TRDMCFFKEY.mode;
- if(TRDMCFFKEY.mode<3){
-  uwbuf[3]=TRDMCFFKEY.cor;
+  uwbuf[1]=TRDMCFFKEY.mode;
+  uwbuf[3]=0;
   uwbuf[4]=0;
- }
- else{
-  uwbuf[3]=TRDMCFFKEY.alpha;
-  uwbuf[4]=TRDMCFFKEY.beta;
- }
  pvac=new AMSgtmed("VACUUM","VACUUMTRD",0);
  uwbuf[2]=6;
  pvac->setubuf(nwbuf,uwbuf);
@@ -814,7 +808,6 @@ integer nwbuf=5;
 #ifdef __G4AMS__
 if (MISCFFKEY.G4On){
  uwbuf[0]=0;
- uwbuf[0]=TRDMCFFKEY.g3trd;
 }
 else{
 #endif

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.61 2002/07/12 11:18:59 choutko Exp $
+//  $Id: producer.C,v 1.62 2003/04/07 08:48:35 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 AMSProducer * AMSProducer::_Head=0;
-AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)),_RemoteDST(false),_OnAir(false),_FreshMan(true),_Local(true){
+AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)),_RemoteDST(false),_OnAir(false),_FreshMan(true),_Local(true),_Solo(false){
 DPS::Producer_var pnill=DPS::Producer::_nil();
 _plist.push_back(pnill);
 if(_Head){
@@ -47,6 +47,11 @@ else{
      break;
     case 'A': //amsdatadir
       setenv("AMSDataDir",++pchar,1);
+      break;
+    case 'S':   // Solo, no IOR 
+      if(pchar+1 && *(pchar+1)=='Y'){
+       _Solo=true;
+      }
       break;
   }
  }
@@ -95,6 +100,14 @@ FMessage("AMSProducer::AMSProducer-F-UnableToInitCorba",DPS::Client::CInAbort);
 }
 
 void AMSProducer::sendid(){
+if (_Solo){
+      _pid.Type=DPS::Producer::Standalone;
+      _pid.StatusType=DPS::Producer::OneRunOnly;
+      LMessage(AMSClient::print(_pid,""));
+      return;
+}
+
+
 again:
 
      list<DPS::Producer_var>::iterator li = _plist.begin();
@@ -111,6 +124,7 @@ again:
       }
      }
      IMessage(AMSClient::print(_pid,"sendID-I-Success"));
+     LMessage(AMSClient::print(_pid,"JobStarted"));
       return;       
      }
    catch (CORBA::MARSHAL a){
@@ -131,6 +145,47 @@ again:
 
 
 void AMSProducer::getRunEventInfo(){
+if (_Solo){
+    struct timeb  ft;
+    ftime(&ft);
+    _ST0=ft.time+ft.millitm/1000.;
+    if(_debug)cout <<"ST0 "<<_ST0<<endl;
+    TIMEX(_T0);
+    if(_debug)cout <<"T0 "<<_T0<<endl;
+     _reinfo =new DPS::Producer::RunEvInfo(); 
+     _dstinfo =new DPS::Producer::DSTInfo(); 
+     _dstinfo->UpdateFreq=1000;
+     _reinfo->uid=0;
+     _reinfo->Priority=0;
+     time_t ct;
+     time(&ct);
+     _reinfo->SubmitTime=ct;
+     _reinfo->cuid=_pid.uid;
+     _reinfo->cinfo.HostName=_pid.HostName; 
+     _reinfo->cinfo.Status=DPS::Producer::Processing;
+   if(AMSJob::gethead()->isSimulation()){
+    _reinfo->FirstEvent=GCFLAG.IEVENT+1;
+    _reinfo->LastEvent=GCFLAG.NEVENT;
+    _reinfo->Run=CCFFKEY.run;
+    _reinfo->Status=DPS::Producer::Allocated;
+    _reinfo->History=DPS::Producer::Foreign;
+   }
+    SELECTFFKEY.Run=_reinfo->Run;
+    SELECTFFKEY.Event=_reinfo->FirstEvent;
+    SELECTFFKEY.RunE=_reinfo->Run;
+    SELECTFFKEY.EventE=_reinfo->LastEvent;    
+    _cinfo.EventsProcessed=0;
+    _cinfo.ErrorsFound=0;
+    _cinfo.Status=DPS::Producer::Processing;
+    _cinfo.CPUTimeSpent=0;
+    _cinfo.TimeSpent=0;
+    _cinfo.HostName=_pid.HostName; 
+    _cinfo.Run=_reinfo->Run;
+     LMessage(AMSClient::print(_reinfo,"StartingRun"));
+  return;
+}
+
+
 UpdateARS();
 again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
@@ -157,7 +212,7 @@ again:
 
    if(AMSJob::gethead()->isSimulation()){
     GCFLAG.IEVENT=_reinfo->FirstEvent;
-    if(GCFLAG.IEVENT>1){
+    if(GCFLAG.IEVENT>1 ){
      // should call the rndm odnako
      geant dum;
      RNDM(dum);
@@ -231,6 +286,8 @@ else{
      }     
    }
 
+   LMessage(AMSClient::print(_reinfo,"StartingRun"));
+
    if(IsLocal() && !writeable){
     AString ntpath=(const char *)_dstinfo->OutputDirPath;
     ntpath+="/";
@@ -279,6 +336,7 @@ else{
 }
 
 void AMSProducer::sendCurrentRunInfo(bool force){
+if (_Solo)return;
 if(_OnAir){
   EMessage("AMSProducer::sendCurrentrunInfo-W-AlreadyOnAir ");
  return;
@@ -421,8 +479,10 @@ if(exedir && nve && AMSCommonsI::getosname()){
 
 
 
+LMessage(AMSClient::print(*ntend,"CloseDST"));
 
 cout << " nt end " <<ntend->Insert<<" "<<ntend->Begin<<" "<<ntend->End<<endl;
+if(_Solo)return;
 UpdateARS();
 sendDSTInfo();
 
@@ -576,6 +636,7 @@ a+="/os";
 a+=tmp;
 ntend->Version=(const char*)a;
 ntend->Run=run;
+ntend->crc=0;
 ntend->FirstEvent=first;
 ntend->Begin=begin;
 time_t tt;
@@ -588,6 +649,10 @@ ntend->ErrorNumber=0;
 ntend->Status=DPS::Producer::InProgress;
 ntend->Type=type;
 ntend->size=0;
+
+
+LMessage(AMSClient::print(*ntend,"OpenDST"));
+if(_Solo)return;
 UpdateARS();
 
 
@@ -615,6 +680,7 @@ FMessage("AMSProducer::sendNtupleEnd-F-UNknownDSTType ",DPS::Client::CInAbort);
 }
 
 void AMSProducer::sendNtupleUpdate(DPS::Producer::DSTType type){
+if(_Solo)return;
 cout <<" sendntupleupdate start "<<endl;
 DPS::Producer::DST *ntend=getdst(type);
 if(ntend){
@@ -664,6 +730,7 @@ FMessage("AMSProducer::sendNtupleUpdate-F-UNknownDSTType ",DPS::Client::CInAbort
 }
 
 void AMSProducer::Exiting(const char * message){
+if(_Solo)return;
 if(_ExitInProgress)return;
 cout<< " Exiting ...."<<(message?message:" ")<<endl;
 _ExitInProgress=true;
@@ -793,13 +860,13 @@ else FMessage("AMSProducer::sendRunEnd-F-UnableToSendRunEndInfo ",DPS::Client::C
 
 }
 void AMSProducer::sendRunEndMC(){
-double error=3./sqrt(double(GCFLAG.IDEVT+1));
+double error=5./sqrt(double(GCFLAG.IDEVT+1));
 if (error<0.01)error=0.01;
 if(error>0.5)error=0.5;
 if(GCFLAG.NEVENT*(1-error) > GCFLAG.IEVENT+1 || GCFLAG.NEVENT==0){
-        FMessage("RunIncomplete ", DPS::Client::CInAbort); 
+_cinfo.Status= DPS::Producer::Failed;
 }
-_cinfo.Status= DPS::Producer::Finished;
+else _cinfo.Status= DPS::Producer::Finished;
 
     struct timeb  ft;
     ftime(&ft);
@@ -808,6 +875,12 @@ _cinfo.TimeSpent=st-_ST0;
 
 TIMEX(_cinfo.CPUTimeSpent);
 _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
+        if(_cinfo.Status!= DPS::Producer::Finished){
+         LMessage(AMSClient::print(_cinfo," RunIncomplete"));
+         FMessage("RunIncomplete ", DPS::Client::CInAbort); 
+        }
+        else LMessage(AMSClient::print(_cinfo," RunFinished"));
+        if(_Solo)return;
 UpdateARS();
 again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){

@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.78 2002/09/26 08:04:16 choutko Exp $
+//  $Id: timeid.C,v 1.79 2003/04/07 08:48:35 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -65,11 +65,7 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes,
       _Nbytes=nbytes;
 
 if(_Type!=Client){
-#ifndef __DB__
       _fillDB((const char*)AMSDBc::amsdatabase,0);
-#else
-      _fillfromDB();
-#endif
 }
 else{
  for( int i=0;i<5;i++) _pDataBaseEntries[i]=0;

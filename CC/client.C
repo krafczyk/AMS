@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.22 2002/03/14 14:13:19 choutko Exp $
+//  $Id: client.C,v 1.23 2003/04/07 08:48:34 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -32,6 +32,10 @@ else fnam=logdir;
  time(&timecur);
  char time[255];
  sprintf(time,"%s.%d.%d",(const char *)_pid.HostName,_pid.uid,_pid.pid);
+//
+//  Journal File  
+//
+ AString fnam2(fnam);
  fnam+=time;
  _fbin.open(fnam,ios::out);
  if(!_fbin){
@@ -44,6 +48,21 @@ else fnam=logdir;
      a+=fnam; 
      IMessage((const char *) a);
  }
+
+ sprintf(time,"%010d.journal",_pid.uid);
+ fnam2+=time;
+ _fbin2.open(fnam2,ios::out);
+ if(!_fbin2){
+    AString a("AMSClient::_openLogFile-F-UnableOpenJournalFile ");
+     a+=fnam2; 
+    FMessage((char *) a,DPS::Client::CInAbort);
+  }
+ else{
+    AString a("AMSClient::_openLogFile-I-JournalFileOpened");
+     a+=fnam2; 
+     IMessage((const char *) a);
+ }
+
 }
 /*
 extern "C" pid_t getpid();
@@ -83,7 +102,7 @@ else{
    if(!isdot && !getdomainname(name,len)){
      as+=(const char*)name;
    }
-*/
+*/  
   _pid.HostName=(const char*)as;
   return true;
 }
@@ -121,6 +140,16 @@ cout<<message<<endl;
      time_t tcur;
      time(&tcur);
      _fbin <<endl<<" -I- "<<ctime(&tcur)<<endl<<message <<endl;
+   }
+}
+
+void AMSClient::LMessage(const char * message){
+
+cout<<message<<endl;
+   if(_fbin2){
+     time_t tcur;
+     time(&tcur);
+     _fbin2 <<endl<<"-I-TimeStamp "<<tcur<<" "<<ctime(&tcur)<<message <<endl;
    }
 }
 
@@ -169,7 +198,7 @@ return _streambuffer;
 
 char * AMSClient::print(const DPS::Client::CID & a,const char * mes){
 _ost.seekp(0);
-_ost<<mes<<" CID ";
+_ost<<mes<<" HostName ";
 print(a,_ost);
 _ost<<ends;
 return _streambuffer;
@@ -177,7 +206,7 @@ return _streambuffer;
 
 
 ostream & AMSClient::print(const DPS::Client::CID & a, ostream & o){
-return o<<a.HostName<<" "<<a.Interface<<"  UID "<<a.uid<<" PID "<<a.pid<<" "<<a.ppid<<" Type "<<CT2string(a.Type)<<" ExitStatus "<<CSE2string(a.Status)<<" StatusType "<<CST2string(a.StatusType);
+return o<<a.HostName<<" "<<a.Interface<<" , UID "<<a.uid<<" , PID "<<a.pid<<" "<<a.ppid<<" , Type "<<CT2string(a.Type)<<" , ExitStatus "<<CSE2string(a.Status)<<" , StatusType "<<CST2string(a.StatusType);
 }
 
 
@@ -193,11 +222,6 @@ _ost<<mes <<" NH "<<a.HostName<<" "<<a.Interface<<"OS  "<<a.OS<< " CPU "<<a.CPUN
 return _streambuffer;
 }
 
-char * AMSClient::print(const DPS::Producer::DST & a,const char * mes){
-_ost.seekp(0);
-_ost<<mes << "DST Type "<<DSTT2string(a.Type)<<" "<<a.Name <<" Insert "<<a.Insert<<" Begin "<<((a.Begin))<<" End "<<((a.End))<<" Run "<<a.Run << " 1stEvent "<<a.FirstEvent<<" LastEvent "<<a.LastEvent<<" Status "<<DSTS2string(a.Status)<<" Total "<<a.EventNumber<<ends;
-return _streambuffer;
-}
 
 char * AMSClient::print(const DPS::Server::CriticalOps & a,const char * mes){
 _ost.seekp(0);
@@ -207,7 +231,7 @@ return _streambuffer;
 
 char * AMSClient::print(const DPS::Producer::RunEvInfo & a,const char * mes){
 _ost.seekp(0);
-_ost<<mes<<" REI ID "<<a.uid<<" Run "<<a.Run<<" 1st Event "<<a.FirstEvent<<" Last Event "<<a.LastEvent<<" Prio "<<a.Priority<<" Path "<<a.FilePath<< "Status "<<RS2string(a.Status)<<"History "<<RS2string(a.History)<<" Client id "<<a.cuid<<" SubmitTime "<<ctime((const time_t *)&a.SubmitTime);
+_ost<<mes<<" REI, ID "<<a.uid<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , Prio "<<a.Priority<<" , Path "<<a.FilePath<< " , Status "<<RS2string(a.Status)<<" , History "<<RS2string(a.History)<<" , ClientID "<<a.cuid<<" , SubmitTimeU "<<a.SubmitTime<<" , SubmitTime "<<ctime((const time_t *)&a.SubmitTime);
 print(a.cinfo,_ost);
 _ost<<ends;
 return _streambuffer;
@@ -219,6 +243,14 @@ _ost<<mes<<" "<<a.uid<<" Host "<<a.HostName<<" Mode "<<RunMode2string(a.Mode)<<"
 return _streambuffer;
 }
 
+
+char * AMSClient::print(const DPS::Producer::DST & a,const char * mes){
+_ost.seekp(0);
+_ost<<mes<<" "<<" , Status "<<DSTS2string(a.Status)<<" , Type "<<DSTT2string(a.Type)<<" , Name "<<a.Name<<" , Version "<<a.Version<<" , Size "<<a.size<<" , CRC "<<a.crc<<" , Insert "<<a.Insert<<" , Begin "<<a.Begin<<" , End "<<a.End<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , EventNumber "<<a.EventNumber<<" , ErrorNumber "<<a.ErrorNumber<<ends;
+return _streambuffer;
+}
+
+
 char * AMSClient::print(const DPS::Producer::CurrentInfo & a,const char * mes){
 _ost.seekp(0);
 _ost<<mes<<" CInfo ";
@@ -229,7 +261,7 @@ return _streambuffer;
 
 
 ostream & AMSClient::print(const DPS::Producer::CurrentInfo & a, ostream & o){
-return o<<" Host " <<a.HostName <<" EventsProcessed "<<a.EventsProcessed<<" LastEvent "<<a.LastEventProcessed<<" Errors "<<a.ErrorsFound<<" CPU "<<a.CPUTimeSpent<<" Elapsed "<<a.TimeSpent<<" CPU/Event "<<a.CPUTimeSpent/(a.EventsProcessed+1)<<" Status "<<RS2string(a.Status);
+return o<<" , Host " <<a.HostName <<" , EventsProcessed "<<a.EventsProcessed<<" , LastEvent "<<a.LastEventProcessed<<" , Errors "<<a.ErrorsFound<<" , CPU "<<a.CPUTimeSpent<<" , Elapsed "<<a.TimeSpent<<" , CPU/Event "<<a.CPUTimeSpent/(a.EventsProcessed+1)<<" , Status "<<RS2string(a.Status);
 }
 
 char * AMSClient::CS2string(DPS::Client::ClientStatus a){
@@ -258,6 +290,8 @@ char * AMSClient::CT2string(DPS::Client::ClientType a){
 switch (a){
 case DPS::Client::Generic:
 return "Generic";
+case DPS::Client::Standalone:
+return "Standalone";
 case DPS::Client::Server:
 return "Server";
 case DPS::Client::Consumer:

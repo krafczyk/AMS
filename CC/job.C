@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.443 2003/03/24 13:23:46 choumilo Exp $
+// $Id: job.C,v 1.444 2003/04/07 08:48:34 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2191,7 +2191,7 @@ gethead()->addup( &TID);
 //
 AMSTimeID::CType server=AMSTimeID::Standalone;
 #ifdef __CORBA__
-server=AMSTimeID::Client;
+if(!AMSProducer::gethead()->IsSolo())server=AMSTimeID::Client;
 #endif
 {
 tm begin;
