@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.119 2003/04/24 11:22:59 alexei Exp $
+# $Id: RemoteClient.pm,v 1.120 2003/04/24 11:24:24 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4230,7 +4230,7 @@ sub checkJobsTimeout {
           $sql="SELECT address FROM mails WHERE mid = $mid";
           my $r2=$self->{sqlserver}->Query($sql);
           if (defined $r2->[0][0]) {
-              my $address = $r2->[0][0]."alexei.klimentov\@cern.ch";
+              my $address = $r2->[0][0].",alexei.klimentov\@cern.ch";
               my $sujet = "Job : $jid - expired";
               my $submittime = localtime($timestamp);
               my $timeouttime= localtime($timestamp+$timeout);

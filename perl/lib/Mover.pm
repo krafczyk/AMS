@@ -1,5 +1,6 @@
 package Mover;
 #
+# Last Edit : Apr 24, 2003. ak.
 #
 my $help = "
 # Program copies files from 'source' directory to 'target'.
@@ -9,7 +10,9 @@ my $help = "
 # its status is Success, copies NTuples to Target directory 
 # validates them, sends new NTuple path to server and 
 # remove copied NTuples from 'source' directory
-# 
+#
+# mover.cgi -S/f2users/scratch/MC/ciemat/nt -T/f2dah1/MC/AMS02/2003Trial/ -db -pwdPASSWD -v
+#
 # arguments :
 # -S    - source files path
 # -T    - target directory path
