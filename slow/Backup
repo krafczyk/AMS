@@ -1,11 +1,6 @@
-        DirFrom=/Offline/AMSDataDir/DataBase
-        DirTo=/runsALL/AMSDataDir/DataBase
+        DirFrom=/Offline
+        DirTo=/data18/xv/choutko/Offline
         export DirFrom
         export  DirTo
-        /Offline/vdev/slow/backup 1>/offruns/logs/backup.1.log 2>/offruns/logs/backup.1.e.log &
-        DirFrom=/Offline/AMSDataDir/v2.16
-        DirTo=/runsALL/AMSDataDir/v2.16
-        export DirFrom
-        export  DirTo
-        /Offline/vdev/slow/backup 1>/offruns/logs/backup.2.log 2>/offruns/logs/backup.2.e.log &
+        /Offline/vdev/slow/backup 1>/Offline/logs/backup.log 2>/Offline/logs/backup.e.log&
 
