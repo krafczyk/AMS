@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.449 2003/05/22 08:36:30 choumilo Exp $
+// $Id: job.C,v 1.450 2003/06/03 10:13:04 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -271,13 +271,15 @@ void AMSJob::_sirichdata(){
 void AMSJob::_sitrig2data(){
   TGL1FFKEY.trtype=0; //(1) trigger type (0/1/2/3/4/5/6/7/8)
 // TOF :
-// these are additional requir. to "hardware"-defined TFMCFFKEY.trlogic[]
-  TGL1FFKEY.toflc=0;//(2)required(in LookupTable) TOF-FastTrigger LAYER configuration
+// 
+  TGL1FFKEY.toflc=0;//(2)required TOF-FastTrigger LAYER configuration
 //                 (=0/1/2-> accept at least ANY3of4/ALL4/ANYTopBot2of4 layer coincidence)
-  TGL1FFKEY.tofsc=1;//(3)required(in LookupTable) TOF-FastTrigger SIDE configuration
+  TGL1FFKEY.tofsc=1;//(3)required TOF-FastTrigger SIDE configuration
 //                                 (=0/1-> two-sides-AND/OR selection)
+  TGL1FFKEY.tfhzlc=1;//(4)TOF_HiZ_FT 2-top(2-bot)fired layers configurations(0/1/2/3-> 
+//                                              ->top(bot)OR/topAND/botAND/top(bot)AND 
 // ANTI :
-  TGL1FFKEY.nanti=20;//(4) max. fired ANTI-paddles 
+  TGL1FFKEY.nanti=20;//(5) max. fired ANTI-paddles 
 //
   TGL1FFKEY.RebuildLVL1=0;
 // 
@@ -1036,7 +1038,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[1]=15.;//(19)"befor"-cut in time history (ns)(max.PMT-pulse length?)
   TFREFFKEY.cuts[2]=400.;//(20)"after"-cut in time history (ns)(max. shaper integr.time?)
   TFREFFKEY.cuts[3]=2.8; //(21) error(cm) in longitudinal coordinate (single TOF bar)
-  TFREFFKEY.cuts[4]=50.;//(22) FT const. delay(min)
+  TFREFFKEY.cuts[4]=80.;//(22) FT delay(min), for me is constant now
   TFREFFKEY.cuts[5]=40.;//(23) sTDC-delay wrt fTDC
   TFREFFKEY.cuts[6]=0.6;//(24) 2-bars assim.cut in TOFCluster energy calculation
   TFREFFKEY.cuts[7]=8.;// (25) internal longit.coo matching cut ...Not used (spare)
@@ -2610,7 +2612,6 @@ if(ECREFFKEY.ReadConstFiles/10==0)end.tm_year=ECREFFKEY.year[0]-1;//DataCardThre
   end.tm_year=ECREFFKEY.year[1];
 //--------
 if(!isRealData()){//"MC.Seeds" TDV only for MC-run.    
-  cout<<"AMSJob::_timeinitjob:create ECcalibMS-TDV"<<endl;
   if((ECMCFFKEY.ReadConstFiles%100)/10==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib"MC.Seeds" fromDB
 	     
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalibMS(),

@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.13 2003/05/22 08:36:29 choumilo Exp $
+//  $Id: antirec02.C,v 1.14 2003/06/03 10:13:04 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -167,7 +167,7 @@ void Anti2RawEvent::mc_build(int &stat){
   if(TGL1FFKEY.trtype!=10){//<==== NotExternalTrigger"
 //
     if(trflag>=0){// use FT from TOF
-      ftrig=TOF2RawEvent::gettrtime();// FTrigger abs.time (ns)(incl. fixed delay)
+      ftrig=TOF2RawEvent::gettrtime();//Time when FT came to S-crate(incl. fixed delay)
       tlev1=ftrig+TOF2DBc::accdel();// "common_stop"-signal abs.time
     }
     else{// have to use FT from ECAL
@@ -461,7 +461,8 @@ void Anti2RawEvent::mc_build(int &stat){
 //cout<<endl;
         AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
                        new Anti2RawEvent(id,chsta,nadca,adca,nhtdch,htdc));
-        tg1=ftrig;//gate_start_time=FTime
+        tg1=ftrig-TOF2Varp::tofvpar.ftdelf()/2.;//GateUpTime=FTime(subtr.FT-delay because patt. made in TgBox
+//                                             and above FTtime is time at S-crate)
         tg2=tg1+pgate;//gate_end_time
 	for(i=0;i<nptr;i++){// check up-time of each "pattern" pulse for coinc.with FT
           t1=ptup[i];//"pattern" pulse up-time
@@ -498,7 +499,7 @@ void Anti2RawEvent::mc_build(int &stat){
   if(ncoinct>0)ANTI2JobStat::addmc(5);
 //----------------------
 //----> create Anti-trigger pattern:
-//(bits 1-16->sector's OR; 17-24->4trig.counters)
+//(bits 1-8->sector's s1, 8-16-> s2; 17-24-> 4 trig.counters)
 //                         
   for(i=0;i<4;i++)hcount[i]=0;
   trpatt=0;//reset patt.
@@ -512,9 +513,10 @@ void Anti2RawEvent::mc_build(int &stat){
       if(atrpat[1]&cbit)hcount[1]+=1; // z>0
       if(atrpat[0]&cbit)hcount[0]+=1; // z<0
     }
-    if(atrpat[0]&cbit>0 || atrpat[1]&cbit>0)trpatt|=cbit;//two side OR
+//    if(atrpat[0]&cbit>0 || atrpat[1]&cbit>0)trpatt|=cbit;//two side OR
   }
 //
+  trpatt=(atrpat[0] | (atrpat[1]<<8));//1-8=>s1(bot), 9-16=>s2(top)
   for(i=0;i<4;i++){//add 4 trig.counters
     if(hcount[i]>3)hcount[i]=3;
     trpatt|=hcount[i]<<(16+i*2);

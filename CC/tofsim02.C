@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.23 2003/05/22 08:36:31 choumilo Exp $
+//  $Id: tofsim02.C,v 1.24 2003/06/03 10:13:05 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 #include <tofdbc02.h>
@@ -362,7 +362,7 @@ void TOF2Tovt::build()
     if(TFMCFFKEY.mcprtf[2]!=0)HPRINT(1099);
     am/=5000.;
     am2/=5000.;
-    sesave=am;
+    sesave=am;//asimptotic average(MP of "gaussized" sum of 5000 s.e.spectra)
     sessig=sqrt(am2-am*am);
     sesrat=sessig/sesave;
     cout<<"S.E. Specrtum Aver/Sigm="<<sesave<<" "<<sessig<<" ratio="<<sesrat<<endl;
@@ -1074,7 +1074,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
 //
 // function to get absolute time of the FIRST trigger(coincidence) "z>=1";
 // trcode - trigger code (L-pattern) =-1/n, n>=0 -> MissingPlaneCode(=missing
-// planeN if <=4), =-1 -> no trigger.
+// planeN if <=4), =-1 -> no trigger. AND create pattern also!
 //
 number TOF2Tovt::tr1time(int &trcode, uinteger toftrp[]){
   integer i1,i2,isd,isds(0),first(0);
@@ -1225,7 +1225,7 @@ Exit1:
   if(TGL1FFKEY.toflc==2 && trcode<-8)return ftime;//NoFT: fail of "at least 2of4" request  
   trcode=-trcode;//back to normal(>=0)
 //
-  geant cgate=TOF2DBc::daqpwd(5);//Trig.box gate for tof-pattern creation(z>=1)
+  geant cgate=TOF2DBc::daqpwd(5);//gate for tof-pattern creation(z>=1)
   geant tg1=ftime+TOF2Varp::tofvpar.ftdelf();//gate_start_time=FTime+fix.delay
   geant tg2=tg1+cgate;//gate_end_time
   int ncoins;
@@ -1269,7 +1269,7 @@ Exit1:
 //
 // function to get absolute time of the FIRST trigger(coincidence) "z>=2";
 // trcode - trigger code (L-pattern) =-1/n, n>=0 -> MissingPlaneCode(=missing
-// planeN if <=4), =-1 -> no trigger.
+// planeN if <=4), =-1 -> no trigger. It creates pattern also!
 //
 number TOF2Tovt::tr2time(int &trcode, uinteger toftrp[]){
   integer i1,i2,isd,isds(0),first(0);
@@ -1283,7 +1283,8 @@ number TOF2Tovt::tr2time(int &trcode, uinteger toftrp[]){
   TOF2Tovt *ptr;
 //
   geant trigb=TOF2DBc::trigtb();
-  geant pwid=TOF2DBc::daqpwd(0);
+  geant pwid=TOF2DBc::daqpwd(2);//pulse-width for top(bot)-layers coincidence
+  geant pwext=TOF2DBc::daqpwd(13);//pulse-width for top/bot-sum coincidence
   for(i=0;i<TOF2GC::SCLRS;i++)toftrp[i]=0;
 //
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
@@ -1311,7 +1312,7 @@ number TOF2Tovt::tr2time(int &trcode, uinteger toftrp[]){
           if(i1>=TOFGC::SCBITM)i1=TOFGC::SCBITM-1;
           if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
           trbi.bitset(i1,i2);//set bits according to hit-time and pulse width
-	  trbs[isd]=trbs[isd] | trbi;//make side-OR
+	  trbs[isd]=trbs[isd] | trbi;//make 1plane/1side-OR
         }// --- end of trig-hits loop --->
 //
       }//--> endof "in trig" check
@@ -1330,37 +1331,111 @@ number TOF2Tovt::tr2time(int &trcode, uinteger toftrp[]){
 //
   trcode=-99;
   t1=0.;
-  AMSBitstr coinc1234,rr1,rr2;
-  rr1=trbl[0]&trbl[1];
-  rr2=trbl[2]&trbl[3];
-  coinc1234=rr1&rr2;
+//             <---check 4-fold coincidence:
+  AMSBitstr coinc1234,top,bot,etop,ebot;
+  etop.bitclr(1,0);
+  ebot.bitclr(1,0);
+  top=trbl[0]&trbl[1];
+  top.testbit(i1,i2);
+  if(i2>=i1){
+    t1=i1*trigb;
+    t2=t1+pwext;
+    i2=integer(t2/trigb);
+    if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+    etop.bitset(i1,i2);//extended top-coinc
+  }
+  bot=trbl[2]&trbl[3];
+  bot.testbit(i1,i2);
+  if(i2>=i1){
+    t1=i1*trigb;
+    t2=t1+pwext;
+    i2=integer(t2/trigb);
+    if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+    ebot.bitset(i1,i2);//extended bot-coinc
+  }
+  coinc1234=etop&ebot;
   coinc1234.testbit(i1,i2);
   if(i2>=i1){// found 4-fold coincidence
     trcode=0;
     t1=i1*trigb;
     goto Exit1;
   }
-  else{   // check 3-fold coincidence:
+//----
+  else{   // <---check 3-fold coincidence:
+//---0234c
     int imin=9999;
-    AMSBitstr coinc0234=trbl[1]&trbl[2]&trbl[3];
-    AMSBitstr coinc1034=trbl[0]&trbl[2]&trbl[3];
-    AMSBitstr coinc1204=trbl[0]&trbl[1]&trbl[3];
-    AMSBitstr coinc1230=trbl[0]&trbl[1]&trbl[2];
+    top=trbl[1];
+    etop.bitclr(1,0);
+    top.testbit(i1,i2);
+    if(i2>=i1){
+      t1=i1*trigb;
+      t2=t1+pwext;
+      i2=integer(t2/trigb);
+      if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+      etop.bitset(i1,i2);//extended top-coinc
+    }
+    AMSBitstr coinc0234=etop&ebot;
     coinc0234.testbit(i1,i2);
     if((i2>=i1) && (i1<imin)){
       imin=i1;
       trcode=1;
     }
+//---1034c
+    top=trbl[0];
+    etop.bitclr(1,0);
+    top.testbit(i1,i2);
+    if(i2>=i1){
+      t1=i1*trigb;
+      t2=t1+pwext;
+      i2=integer(t2/trigb);
+      if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+      etop.bitset(i1,i2);//extended top-coinc
+    }
+    AMSBitstr coinc1034=etop&ebot;
     coinc1034.testbit(i1,i2);
     if((i2>=i1) && (i1<imin)){
       imin=i1;
       trcode=2;
     }
+//---1204c
+    top=trbl[0]&trbl[1];
+    etop.bitclr(1,0);
+    top.testbit(i1,i2);
+    if(i2>=i1){
+      t1=i1*trigb;
+      t2=t1+pwext;
+      i2=integer(t2/trigb);
+      if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+      etop.bitset(i1,i2);//extended top-coinc
+    }
+    bot=trbl[3];
+    ebot.bitclr(1,0);
+    bot.testbit(i1,i2);
+    if(i2>=i1){
+      t1=i1*trigb;
+      t2=t1+pwext;
+      i2=integer(t2/trigb);
+      if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+      ebot.bitset(i1,i2);//extended bot-coinc
+    }
+    AMSBitstr coinc1204=etop&ebot;
     coinc1204.testbit(i1,i2);
     if((i2>=i1) && (i1<imin)){
       imin=i1;
       trcode=3;
     }
+//---1230c
+    bot=trbl[2];
+    ebot.bitclr(1,0);
+    bot.testbit(i1,i2);
+    if(i2>=i1){
+      t1=i1*trigb;
+      t2=t1+pwext;
+      i2=integer(t2/trigb);
+      if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+      ebot.bitset(i1,i2);//extended bot-coinc
+    }
+    AMSBitstr coinc1230=etop&ebot;
     coinc1230.testbit(i1,i2);
     if((i2>=i1) && (i1<imin)){
       imin=i1;
@@ -1370,13 +1445,32 @@ number TOF2Tovt::tr2time(int &trcode, uinteger toftrp[]){
       t1=imin*trigb;
       goto Exit1;
     }
-    else{ // check 2-fold coincidence:
+//----
+    else{ // <---check 2-fold coincidence:
       imin=9999;
       integer misl1,misl2;
-      AMSBitstr coinc13=trbl[0]&trbl[2];
-      AMSBitstr coinc14=trbl[0]&trbl[3];
-      AMSBitstr coinc23=trbl[1]&trbl[2];
-      AMSBitstr coinc24=trbl[1]&trbl[3];
+//---13c
+      top=trbl[0];
+      etop.bitclr(1,0);
+      top.testbit(i1,i2);
+      if(i2>=i1){
+        t1=i1*trigb;
+        t2=t1+pwext;
+        i2=integer(t2/trigb);
+        if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+        etop.bitset(i1,i2);//extended top-coinc
+      }
+      bot=trbl[2];
+      ebot.bitclr(1,0);
+      bot.testbit(i1,i2);
+      if(i2>=i1){
+        t1=i1*trigb;
+        t2=t1+pwext;
+        i2=integer(t2/trigb);
+        if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+        ebot.bitset(i1,i2);//extended bot-coinc
+      }
+      AMSBitstr coinc13=etop&ebot;
       coinc13.testbit(i1,i2);
       if((i2>=i1) && (i1<imin)){
         imin=i1;
@@ -1384,6 +1478,18 @@ number TOF2Tovt::tr2time(int &trcode, uinteger toftrp[]){
 	misl1=2;
 	misl2=4;
       }
+//---14c
+      bot=trbl[4];
+      ebot.bitclr(1,0);
+      bot.testbit(i1,i2);
+      if(i2>=i1){
+        t1=i1*trigb;
+        t2=t1+pwext;
+        i2=integer(t2/trigb);
+        if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+        ebot.bitset(i1,i2);//extended bot-coinc
+      }
+      AMSBitstr coinc14=etop&ebot;
       coinc14.testbit(i1,i2);
       if((i2>=i1) && (i1<imin)){
         imin=i1;
@@ -1391,19 +1497,43 @@ number TOF2Tovt::tr2time(int &trcode, uinteger toftrp[]){
 	misl1=2;
 	misl2=3;
       }
-      coinc23.testbit(i1,i2);
-      if((i2>=i1) && (i1<imin)){
-        imin=i1;
-        trcode=7;
-	misl1=1;
-	misl2=4;
+//---24c
+      top=trbl[1];
+      etop.bitclr(1,0);
+      top.testbit(i1,i2);
+      if(i2>=i1){
+        t1=i1*trigb;
+        t2=t1+pwext;
+        i2=integer(t2/trigb);
+        if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+        etop.bitset(i1,i2);//extended top-coinc
       }
+      AMSBitstr coinc24=etop&ebot;
       coinc24.testbit(i1,i2);
       if((i2>=i1) && (i1<imin)){
         imin=i1;
         trcode=8;
 	misl1=1;
 	misl2=3;
+      }
+//---23c
+      bot=trbl[2];
+      ebot.bitclr(1,0);
+      bot.testbit(i1,i2);
+      if(i2>=i1){
+        t1=i1*trigb;
+        t2=t1+pwext;
+        i2=integer(t2/trigb);
+        if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+        ebot.bitset(i1,i2);//extended bot-coinc
+      }
+      AMSBitstr coinc23=etop&ebot;
+      coinc23.testbit(i1,i2);
+      if((i2>=i1) && (i1<imin)){
+        imin=i1;
+        trcode=7;
+	misl1=1;
+	misl2=4;
       }
       if(imin!=9999){ // found 2-fold coincidence
         t1=imin*trigb;
@@ -1415,12 +1545,18 @@ Exit1:
   ftime=t1;
   if(trcode==-99)return ftime;//NoFT: fail of any request
   trcode=-trcode;//invert code
-  if(TGL1FFKEY.toflc==1 && trcode<=-1)return ftime;//NoFT: fail of "4of4" request
-  if(TGL1FFKEY.toflc==0 && trcode<=-5)return ftime;//NoFT: fail of "at least 3of4" request
-  if(TGL1FFKEY.toflc==2 && trcode<-8)return ftime;//NoFT: fail of "at least 2of4" request  
+  if(TGL1FFKEY.tfhzlc==1){//"top-AND" requested
+    if(!(trcode==0 || trcode==-3 || trcode==-4))return ftime;//NoFT: fail of "top-AND" request
+  }
+  if(TGL1FFKEY.tfhzlc==2){//"bot-AND" requested
+    if(!(trcode==0 || trcode==-1 || trcode==-2))return ftime;//NoFT: fail of "bot-AND" request
+  }
+  if(TGL1FFKEY.tfhzlc==3){//"top-AND && bot-AND" request
+    if(trcode!=0)return ftime;//NoFT: fail of "4of4" request
+  }  
   trcode=-trcode;//back to normal(>=0)
 //
-  geant cgate=TOF2DBc::daqpwd(6);//Trig.box gate for tof-pattern creation(z>=2)
+  geant cgate=TOF2DBc::daqpwd(6);//gate for tof-pattern creation(z>=2)
   geant tg1=ftime+TOF2Varp::tofvpar.ftdelf();//gate_start_time=FTime+fix.delay
   geant tg2=tg1+cgate;//gate_end_time
   int ncoins;
@@ -1662,7 +1798,7 @@ void TOF2RawEvent::mc_build(int &status)
     trflag=trcode1;// ok: h/w trigger(z>=1) present -> do digitization:
     TOF2RawEvent::setpatt(trpatt1);// set trigger pattern(z>=1)
     if(TFMCFFKEY.mcprtf[2]!=0){
-      for(int il=0;il<TOF2GC::SCLRS;il++){// prepare old style AND+OR tofpatt:
+      for(int il=0;il<TOF2GC::SCLRS;il++){// pattern histogr
       for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
         if((trpatt1[il]&(1<<ib)) > 0)HF1(1065,geant(il*20+ib),1.);
         if((trpatt1[il]&(1<<(16+ib))) > 0)HF1(1066,geant(il*20+ib),1.);
@@ -1675,14 +1811,22 @@ void TOF2RawEvent::mc_build(int &status)
       if(TFMCFFKEY.mcprtf[2]!=0)HF1(1069,geant(trcode2)+10.,1.);
       trflag=10+trcode2;//mark z>=2
       TOF2RawEvent::setpatt1(trpatt2);// set trigger pattern(z>=2)
-//      if(ttrig2>ttrig1){ // tempor: priority is not clear now !
-//        ttrig1=ttrig2;
-//      }
+      if(TFMCFFKEY.mcprtf[2]!=0){
+        for(int il=0;il<TOF2GC::SCLRS;il++){// pattern histogr
+        for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
+          if((trpatt2[il]&(1<<ib)) > 0)HF1(1067,geant(il*20+ib),1.);
+          if((trpatt2[il]&(1<<(16+ib))) > 0)HF1(1068,geant(il*20+ib),1.);
+        }
+        }
+      }    
+      if(ttrig2<ttrig1){//should not be a real case, but not forbidden in principle(jitters) 
+        ttrig1=ttrig2; // because FT z>=1 and z>=2 (+ECFT) are ORed on "TrigBox" output
+      }
     }
 //
     TOF2RawEvent::settrfl(trflag);// set final trigger flag
-    ftrig=ttrig1+TOF2Varp::tofvpar.ftdelf();// FTrigger abs time (fixed delay added)
-    TOF2RawEvent::settrtime(ftrig);// set final FTrigger time
+    ftrig=ttrig1+TOF2Varp::tofvpar.ftdelf();//FT abs time(+fixed delay) as it came to SFET from "TrBox"
+    TOF2RawEvent::settrtime(ftrig);// store FTrigger time 
     tlev1=ftrig+TOF2DBc::accdel();// "common stop"-signal abs.time
     if(TFMCFFKEY.mcprtf[2]!=0){
       ectrfl=AMSEcalRawEvent::gettrfl();
@@ -1696,7 +1840,7 @@ void TOF2RawEvent::mc_build(int &status)
   else{// <---- have to use FT from ECAL(if any)
     ectrfl=AMSEcalRawEvent::gettrfl(); 
     if(ectrfl<=0)return;//no EC trigger also -> no chance to digitize TOF
-    ftrig=AMSEcalRawEvent::gettrtm();//(already include fixed delay = TOF-delay)
+    ftrig=AMSEcalRawEvent::gettrtm();//(includes delay = TOF-delay)
     tlev1=ftrig+TOF2DBc::accdel();// "common stop"-signal abs.time
   }
 //
@@ -1816,7 +1960,7 @@ void TOF2RawEvent::mc_build(int &status)
           if(TOF2DBc::pbonup())itt=itt|phbit;//add phase bit on up-edge,if necessary
           stdc[_nstdc]=itt;
           _nstdc+=1;
-        }
+        }//--endof max.delay check-->
       }//--- end of stdc-hits loop --->
     }//--> end of alive check
 //----------------

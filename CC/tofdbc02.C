@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.21 2003/05/22 08:36:31 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.22 2003/06/03 10:13:05 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -87,20 +87,20 @@ geant TOF2DBc::_plnstr[20]={
     0.                             // spare
   };
   geant TOF2DBc::_daqpwd[15]={
-    250.,   // (0)pulse width of "z>=1(FT)" paddle signal(going to TrigBox) (ns) 
+    250.,   // (0)pulse width of "z>=1(FT)" indiv.paddle signal(going to SFET OR) (ns) 
     5500.,  // (1)max.pulse(triang) duration of sTDC(charge+discharge) signal
-    250.,    // (2)pulse width of "z>=2" paddle signal 
+    250.,   // (2)pulse width of "z>=2" indiv.paddle signal (going to SFET OR)
     10.,    // (3)double pulse resolution of fast(history) TDC (ns)
     5600.,  // (4)max.buzy time of sTDC-system(charge+discarge+dead) (ns)
-    80.,    // (5) TrigBox gate-width for z>=1 tof-trig-pattern creation
-    120.,   // (6) ....... gate-width for z>=2 tof-trig-pattern creation
+    80.,    // (5) gate-width for z>=1 tof-trig-pattern creation(in SFET)
+    120.,   // (6) gate-width for z>=2 tof-trig-pattern creation
     2.,     // (7)dead time(min.dist last_down<->next_up) of "z>=1(FT)" branch of HiThr-discr
     2.,     // (8)dead time of discr.itself(ns)
     2.,     // (9)dead time of "z>=2" branch of SuperHiThr-discr
     0.02,   // (10)fast discr. internal accuracy(ns) + (?) to have exp.resolution
     2.,     // (11)min. pulse duration (ns) of fast discr.(comparator) 
     18.,    // (12)(as dummy gap in s-TDC pulse,ns) 
-    10.36,  // (13)spare 
+    640.,   // (13)Pulse width for top/bot-coinc. in TOF Z>=2 FastTrigger logic 
     10.36   // (14)spare 
   };
   geant TOF2DBc::_trigtb=0.5;  // MC time-bin in logic(trig) pulse handling (ns)
@@ -109,7 +109,7 @@ geant TOF2DBc::_plnstr[20]={
   geant TOF2DBc::_strjit1=0.;  // "start"-pulse jitter at stretcher input
   geant TOF2DBc::_strjit2=0.;  // "stop"(FT)-pulse jitter at stretcher input
   geant TOF2DBc::_accdel=6000.;// "Lev-1"(CommonStop) signal delay with respect to FT (ns)
-  geant TOF2DBc::_ftdelf=100.; // spare       (because now taken from DC/DB)
+  geant TOF2DBc::_ftdelf=0.;   // spare       (because now taken from DC/DB)
   geant TOF2DBc::_ftdelm=220.; // FT max delay (allowed by stretcher logic) (ns)
   geant TOF2DBc::_fstdcd=28.;  // spare       (because now taken from DC/DB)
   geant TOF2DBc::_fatdcd=5.;   // spare
@@ -2427,6 +2427,8 @@ void TOF2JobStat::bookhistmc(){
       HBOOK1(1064,"SIMU: pm1 Dadc(l)(no peds)(id=104,s1)",100,0.,100.,0.);
       HBOOK1(1065,"SIMU: LZTrigPat:S1-frequence(L=1,4)",80,0.,80.,0.);
       HBOOK1(1066,"SIMU: LZTrigPat:S2-frequence(L=1,4)",80,0.,80.,0.);
+      HBOOK1(1067,"SIMU: HZTrigPat:S1-frequence(L=1,4)",80,0.,80.,0.);
+      HBOOK1(1068,"SIMU: HZTrigPat:S2-frequence(L=1,4)",80,0.,80.,0.);
       HBOOK1(1069,"SIMU: TOF-FT code(Rejected/LZ/HZ)",30,-10.,20.,0.);
       HBOOK1(1076,"SIMU: ECTrigFlag when TOFTrflag OK",40,0.,40.,0.);
       HBOOK1(1077,"SIMU: TOFFTTime-ECFTTime",100,-50.,50.,0.);
@@ -2660,6 +2662,8 @@ void TOF2JobStat::outpmc(){
          HPRINT(1064);
          HPRINT(1065);
          HPRINT(1066);
+         HPRINT(1067);
+         HPRINT(1068);
          HPRINT(1069);
          HPRINT(1076);
          HPRINT(1077);

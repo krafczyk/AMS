@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.20 2003/05/22 08:36:31 choumilo Exp $
+//  $Id: trigger102.C,v 1.21 2003/06/03 10:13:05 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -68,10 +68,10 @@ void Trigger2LVL1::build(){
 //   
 //-->ANTI:
     
-    antipatt=Anti2RawEvent::getpatt();
+    antipatt=Anti2RawEvent::getpatt();//bits (1-8)->s1(bot), (9-16)->s2(top)
     for(i=0;i<ANTI2C::MAXANTI;i++){
       cbt=1<<i;
-      if((antipatt&cbt)>0)nanti+=1;//counts fired && FTcoinc paddles(2ends are ORed in antipatt)
+      if((antipatt&cbt)>0 || (antipatt&(cbt<<8))>0)nanti+=1;//counts FTcoinc-paddles(2 OR-ed ends)
     }
 //
 //-->ECAL:
@@ -135,7 +135,7 @@ void Trigger2LVL1::build(){
   bool tofok(0),antiok(0),ecok(0),ec1ok(0),ec2ok(0),comtrok(0);
   bool unbtr1(0),unbtr2(0),unbtr3(0),zge1ptr(0),zge2ptr(0),elpotr(0),photr(0),unitr(0);
 //
-  if(tofinf>0)tofok=1;
+  if(tofflag>=0)tofok=1;
   if(fabs(gmaglat)>TGL1FFKEY.TheMagCut && nanti==0)antiok=1;
   if(fabs(gmaglat)<TGL1FFKEY.TheMagCut && nanti <= TGL1FFKEY.nanti)antiok=1;
   if(ectrigfl>0)ecok=1;//"at least MIP" activity in ECAL
@@ -144,7 +144,7 @@ void Trigger2LVL1::build(){
   unbtr2=ecok;                               //unbiased#2 trigger (EC(ectrigfl>0) only)
   unbtr3=tofok && ecok;                      //unbiased#3 trigger (TOF+EC(ectrigfl>0))
   zge1ptr=tofok && antiok;                   // Z>=1 particle trigger
-  zge2ptr=tofok && (tofinf%10>2);              // Z>=2 particle trigger
+  zge2ptr=tofok && (tofflag/10>0);           // Z>=2 particle trigger
   elpotr=tofok && (ectrigfl/10>=2);          //e+- trigger(SoftEn +TOF)
   photr=(ectrigfl/10>=3 && ectrigfl%10==2);   //photon trigger (HardEn + GoodWidth(em))
   unitr=zge1ptr || zge2ptr || elpotr || photr;//univers.trigger
@@ -175,7 +175,7 @@ void Trigger2LVL1::build(){
 //
   if(comtrok && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime)){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-          new Trigger2LVL1(floor(lifetime*1000)+tm*10000,tofinf,ttrpatt,
+          new Trigger2LVL1(floor(lifetime*1000)+tm*10000,tofflag,tofpatt,
 	                                                antipatt,ectrigfl,ectrsum));
   }
   else if(AMSJob::gethead()->isRealData() && sumsc>=TGL1FFKEY.MaxScalersRate && lifetime<=TGL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.90 2003/05/20 09:06:53 choutko Exp $
+//  $Id: root.h,v 1.91 2003/06/03 10:13:26 choumilo Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 #include <TObject.h>
@@ -182,17 +182,23 @@ public:
 class EcalHitR {
 public:
   int   Status;   ///< Statusword
-  int   Idsoft;   ///< SupLayer/PM/subCell  0:8/0:7/0:3  (?)
+  int   Idsoft;   ///< 4digits number SPPC=SuperLayer/PM/subCell  0:8/0:35/0:3  
+               /*!<
+Idsoft SubCells(pixels) numbering(looking in +Y/+X direction):\n
+...............|0|1|................. \n
+PM1(at -X/Y)>> ----- >> PM36(at +X/Y) \n
+...............|2|3|................. \n
+                */
   int   Proj;     ///< projection (0-x,1-y)
-  int   Plane;    ///< ECAL plane number (0,...)
-  int   Cell;     ///< ECAL Cell number (0,...)    
+  int   Plane;    ///< ECAL plane number (0(top),..,17(bot))
+  int   Cell;     ///< ECAL Cell number (0(-x/y),..,71(+x/y))    
   float Edep;     ///< ECAL measured energy (MeV)
   float EdCorr;   ///< ECAL PMsaturation1-correction(MeV) added to Edep
-  float AttCor;   ///<  Attenuation Correction applied (w/r  to center of ecal) (MeV)
+  float AttCor;   ///< Attenuation Correction applied (w/r  to center of ecal) (MeV)
   float Coo[3];   ///< ECAL Coo (cm)
   float ADC[3];   ///< ECAL (ADC-Ped) for Hi/Low/Dynode channels
   float Ped[3];   ///< ECAL Pedestals   
-  float Gain;     ///<  1/gain (!)
+  float Gain;     ///< 1/gain (!)
 
   EcalHitR(AMSEcalHit *ptr);
   EcalHitR(){};
@@ -449,15 +455,15 @@ public:
 
 class TofRawClusterR {
 public:
-  int   Status;  ///< statusword (Ask E.Choumilov)
-  int   Layer;   ///< Tof plane 1(top)...4
-  int   Bar;     ///< Tof Bar number 1...14
-  float tovta[2]; ///<anode time over_thres (ns)
-  float tovtd[2]; ///<dinode time over_thres (ns)
-  float sdtm[2];  ///< A-noncorrected side times
-  float edepa;   ///<  Anode Edep (mev)
-  float edepd;   ///<  dinode Edep (mev)
-  float time;    ///<Time (ns)
+  int   Status;  ///< statusword (as for TofCluster)
+  int   Layer;   ///< Tof plane 1(top)...4(bot)
+  int   Bar;     ///< Tof paddle number 1...10
+  float tovta[2]; ///< 2-sides Anode ADC
+  float tovtd[2]; ///< 2-sides Dynode ADC(HiGain channel)
+  float sdtm[2];  ///< 2-sides raw(no slewing correction) times
+  float edepa;   ///<  Paddle Edep(Anode-made, mev)
+  float edepd;   ///<  Paddle Edep(DynodeHiChan-made, mev)
+  float time;    ///< Time (ns)
   float cool;     ///< Long.coord.(cm)
   TofRawClusterR(){};
   TofRawClusterR(TOF2RawCluster *ptr);
@@ -477,14 +483,15 @@ public:
   int Status;   ///< Statusword
                 /*!<
                                                  // bit 4 - ambig
-                                                 // bit 128 -> problems with history
-                                                 // bit 256 -> "1-sided" counter
-                                                 // bit 512 -> bad t-measurement on one of the sides
+                                                 // bit 128 -> problems with history on any side
+                                                 // bit 256 -> Reco: 1side info missing("1-sided" counter)
+                                                 // bit 512 -> DBinfo: at least 1 side is bad for t-meas
+					         // bit 1024 -> missing side number(=0/1 for 1-sided counter
                                                  // bit 2048 -> recovered from 
                                                  // 1-sided (bit256 also set)
    */
   int Layer;    ///<  Tof plane 1(top)...4
-  int Bar;      ///< Tof Bar number 1...14
+  int Bar;      ///< Tof Bar(paddle) number 1...10
   float Edep;  ///< TOF energy loss (MeV) from anode
   float Edepd; ///< TOF energy loss (MeV) from dinode
   float Time;  ///<TOF time (sec, wrt FastTrig-time)
@@ -522,7 +529,7 @@ ClassDef(TofClusterR,1)       //TofClusterR
 */
 class AntiClusterR {
 public:
-  int   Status;   ///< Statusword Bit"256"->1sideSector;"1024"->s2 missing if set  s1 missing if not
+  int   Status;   ///< Statusword Bit"256"->1sideSector;"1024"->s2 missing if set,  s1 missing if not
   int   Sector;   ///< //Sector number(1-8)
   int   Ntimes;  ///<Number of time-hits(1st come paired ones)
   int   Npairs;   ///<Numb.of time-hits, made of 2 side-times(paired)
@@ -842,20 +849,19 @@ ClassDef(TrdTrackR,1)       //TrdTrackR
 class Level1R {
 public:
   int   Mode;   ///< reserved
-  int   TofFlag;   ///< =0/1/3->NoTofTrig/z>=1/z>2 +10, if TofTrig with all 4counters
-  int   TofPatt[4]; ///< tof pattern 
+  int   TofFlag;   ///< <0->noTOF,=0->4planes,(1-8)->miss.pln.code(at least 1top+1bot required), +10->Z>=2
+  int   TofPatt[4]; ///< 4-layers TOF pattern(separately for each side): 
 
                     /*!<
-                                                       0-13 bit  or  \n
-                                                       16-29    and  \n
-                                                       31       plane not in trigger (MC)
+                                                       1-10  bits  Side-1  \n
+                                                       17-26       Side-2  \n
                    */
-  int   TofPatt1[4]; ///< same tof pattern for Z>1 trigger
-  int   AntiPatt;   ///< Antipattern 16-23 bits -> OR of paddle ends  
+  int   TofPatt1[4]; ///< same TOF pattern for Z>=2 trigger
+  int   AntiPatt;   ///< Antipatt:(1-8)/(9-16)bits->s1(bot)/s2(top), (17-24)->fired sect-ends counters(4) x,z><0   
   int   EcalFlag;   ///< =MN, where 
                     /*!< 
                           M=0/1/2/3->Etot<Mip / Etot>Mip / Etot>LowThr / Etot>HighThr; \n
-                         N=2/1/0->ShowerWidthTest=OK/Bad/Unknown
+                          N=2/1/0->ShowerWidthTest=OK/Bad/Unknown
                     */
   float EcalTrSum; ///< EC-energy trig.sum(Gev)                    
 

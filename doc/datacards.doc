@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.225 2003/05/22 08:36:39 choumilo Exp $
+#  $Id: datacards.doc,v 1.226 2003/06/03 10:13:25 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -566,16 +566,18 @@ I 1 trtype(0)          //TriggerType:
 			   // ECflag=MN, where M=0/1/2/3->EnerFlag, N=0/1/2->WidthFlag
 			   // M=1->Etot>MIP; =2->Etot>(ECRE #12); =3->Etot>(ECRE #14); 
 			   // N=2->WidthCheckOK; N=1->WidthCheckFailed; N=0->unknown 
-I 2 toflc(0)               // required(in LookupTable) TOF-FastTrigger LAYER configuration
+I 2 toflc(0)               // required TOF-FastTrigger LAYER configuration
 //                 (=0/1/2-> accept at least ANY3of4/ALL4/ANYTopBot2of4 layer coincidence)
-I 3 tofsc(1)               //required(in LookupTable) TOF-FastTrigger SIDE configuration
+I 3 tofsc(1)               //required TOF-FastTrigger SIDE configuration
 //                                 (=0/1-> two-sides-AND/OR selection)
-I 4 nanti(20)              // max. fired ANTI-paddles 
-I 5 RebuildLVL1(0)         // Rebuild or not lvl1 if reconstruction
-R 6 MaxScalersRate(20k)    // max acceptable av scalers rate
-R 7 MinLifeTime   (0.015)  // min acceptable lifetime
-R 8 TheMagCut(0.7)         // mag.latitude boundary when anti-cut nanti=0 change to <=1
-I 9 ectrlog(2)             // EC-trigger logic type(1->MyOld,2->MyNew+ANSI,3->Pisa)
+I 4 tfhzlc(1)              //TOF_HiZ_FT 2-top(2-bot)fired layers configurations(0/1/2/3-> 
+//                                              ->top(bot)OR/topAND/botAND/top(bot)AND 
+I 5 nanti(20)              // max. fired ANTI-paddles 
+I 6 RebuildLVL1(0)         // Rebuild or not lvl1 if reconstruction
+R 7 MaxScalersRate(20k)    // max acceptable av scalers rate
+R 8 MinLifeTime   (0.015)  // min acceptable lifetime
+R 9 TheMagCut(0.7)         // mag.latitude boundary when anti-cut nanti=0 change to <=1
+I 10 ectrlog(2)            // EC-trigger logic type(1->MyOld,2->MyNew+ANSI,3->Pisa)
 //-----------------------------------------------------------------------------
 
 // AMS02 TOF  Simulation

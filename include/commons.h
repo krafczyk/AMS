@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.184 2003/05/22 08:36:39 choumilo Exp $
+//  $Id: commons.h,v 1.185 2003/06/03 10:13:25 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -487,6 +487,7 @@ public:
 integer trtype;
 integer toflc;
 integer tofsc;
+integer tfhzlc;
 integer nanti;
 integer RebuildLVL1;
 geant MaxScalersRate;

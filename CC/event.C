@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.313 2003/05/22 08:36:30 choumilo Exp $
+//  $Id: event.C,v 1.314 2003/06/03 10:13:04 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1292,12 +1292,12 @@ for(i=0;i<nalg;i++){
 
 //---------------------------------------------------------------------------
 void AMSEvent::_catofevent(){
-  integer trflag(0);
+  integer trflag(-1);
   Trigger2LVL1 *ptr2;
 //
     ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr2)trflag=ptr2->gettoflg();
-    if(trflag <= 0)return;// use only H/W-triggered event tempor
+    if(trflag < 0)return;// use only H/W-triggered event tempor
     if(TFREFFKEY.relogic[0]==2)
              TOF2TDIFcalib::select();// event selection for TOF TDIF-calibration
     if(TFREFFKEY.relogic[0]==3){
@@ -1312,7 +1312,7 @@ void AMSEvent::_cantievent(){
 }
 //--------------------------------------------------------------------------
 void AMSEvent::_caecevent(){
-  integer toflag(0),ecflag(0);
+  integer toflag(-1),ecflag(0);
   Trigger2LVL1 *ptr;
 //
     ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
@@ -1320,7 +1320,7 @@ void AMSEvent::_caecevent(){
       toflag=ptr->gettoflg();
       ecflag=ptr->getecflg();
     }
-    if(toflag <= 0 || ecflag<=0)return;// use only TOF+ECAL-triggered event
+    if(toflag < 0 || ecflag<=0)return;// use only TOF+ECAL-triggered event
     if(ECREFFKEY.relogic[1]>0){
       if(ECREFFKEY.relogic[1]<=2)ECREUNcalib::select();// RLGA/FIAT part of REUN-calibration
       if(ECREFFKEY.relogic[1]==3)ECREUNcalib::selecte();// ANOR part of REUN-calibration
@@ -1423,7 +1423,7 @@ AMSgObj::BookTimer.start("RETKEVENT");
 }
 //----------------------------------------
 void AMSEvent::_reanti2event(){
-  integer toftrigfl(0);
+  integer toftrigfl(-1);
   uinteger ectrigfl(0);
   int stat;
 //
@@ -1438,13 +1438,13 @@ void AMSEvent::_reanti2event(){
       toftrigfl=ptr->gettoflg();
       ectrigfl=ptr->getecflg();
     }
-    if(toftrigfl<=0 && ectrigfl<=0 && TGL1FFKEY.trtype!=10){
+    if(toftrigfl<0 && ectrigfl<=0 && TGL1FFKEY.trtype!=10){
       AMSgObj::BookTimer.stop("REANTIEVENT");
       return;// "no TOF/EC in LVL1-trigger"
     }
     ANTI2JobStat::addre(1);
-    if(toftrigfl>0)ANTI2JobStat::addre(5);
-    if(toftrigfl<=0 && ectrigfl>0)ANTI2JobStat::addre(6);
+    if(toftrigfl>=0)ANTI2JobStat::addre(5);
+    if(toftrigfl<0 && ectrigfl>0)ANTI2JobStat::addre(6);
 //
     Anti2RawEvent::validate(stat);// RawEvent-->RawEvent
     if(stat!=0){
@@ -1465,7 +1465,7 @@ void AMSEvent::_reanti2event(){
 }
 //===============================================================================
 void AMSEvent::_retof2event(){
-integer toftrigfl(0),ectrigfl(0);
+integer toftrigfl(-1),ectrigfl(0);
 int stat;
 //
   AMSgObj::BookTimer.start("RETOFEVENT");
@@ -1475,13 +1475,13 @@ int stat;
       toftrigfl=ptr->gettoflg();
       ectrigfl=ptr->getecflg();
     }
-    if(toftrigfl<=0 && ectrigfl<=0 && TGL1FFKEY.trtype!=10){
+    if(toftrigfl<0 && ectrigfl<=0 && TGL1FFKEY.trtype!=10){
       AMSgObj::BookTimer.stop("RETOFEVENT");
       return;// "no TOF/EC in LVL1-trigger"
     }   
     TOF2JobStat::addre(1);
-    if(toftrigfl>0)TOF2JobStat::addre(33);
-    if(toftrigfl<=0 && ectrigfl>0)TOF2JobStat::addre(34);
+    if(toftrigfl>=0)TOF2JobStat::addre(33);
+    if(toftrigfl<0 && ectrigfl>0)TOF2JobStat::addre(34);
 //
 //                   ===> reco of real or MC events :
 //
@@ -1618,7 +1618,7 @@ void AMSEvent::_retrdevent(){
   AMSgObj::BookTimer.stop("RETRDEVENT");
 }
 void AMSEvent::_rerichevent(){
-  integer trflag(0);
+  integer trflag(-1);
   Trigger2LVL1 *ptr;
   int stat;
 //
@@ -1626,7 +1626,7 @@ void AMSEvent::_rerichevent(){
 //
   ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptr)trflag=ptr->gettoflg();
-  if(trflag<=0){
+  if(trflag<0){
     AMSgObj::BookTimer.stop("RERICH");
     return;// "no TOF in LVL1 trigger"   
   }

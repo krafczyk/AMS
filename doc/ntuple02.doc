@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.61 2003/05/12 13:11:24 choutko Exp $
+#  $Id: ntuple02.doc,v 1.62 2003/06/03 10:13:25 choumilo Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -481,18 +481,16 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
  * I*4  * [0,1]    * LVL1     * nlvl1                 // lvl1trigger number
 
  * I*4  *          * LVL1     * mode(nlvl1)           // 
- * I*4  *          * LVL1     * LVL1Flag(nlvl1)       // =0/1/3->NoTofTrig/z>=1/z>2
-                                                      // +10, if TofTrig with all 4counters
+ * I*4  *          * LVL1     * LVL1Flag(nlvl1)       // -1/0/(1-8)->NoTof/4planes_coinc/
+                                                      //  /MissPlanesCode, +10->Z>=2 
  * I*4  *          * LVL1     * LVL1TOFPatt(4,nlvl1)  // tof pattern
-                                                      // 0-13 bit  or
-                                                      // 16-29    and
-                                                      // 31       plane not
-                                                      // in trigger (MC)
- * I*4  *          * LVL1     * LVL1TOFPatt1(4,nlvl1) // Tof pattern z>1
+                                                      // 1-10 bits  paddles of Side-1 
+                                                      // 17-26      paddles of Side-2
+ * I*4  *          * LVL1     * LVL1TOFPatt1(4,nlvl1) // Tof pattern z>=2
                                                       // -------------
  * I*4  *          * LVL1     * LVL1AntiPatt(nlvl1)   // antipattern
-                                                      // 16-23 bits -> OR of paddle ends  
-                                                      //  
+                                                      // 1-8 bits -> OR of paddle ends  
+                                                      // 17-24->fired ends counters(4) x>/<0,z>/<0 
  * I*4  *          * LVL1     * LVL1ECALflag(nlvl1)   // =MN, where M=0/1/2/3->Etot<Mip/
  *                                                    // >Mip/>LowThr/>HighThr;
  *                                                    //  N=2/1/0->ShowerWidthTest=OK/
@@ -511,16 +509,16 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 
  * I*4  * [0,48]   * TOFRAWCL * ntofraw                 // tofrawclnum (used)
  * I*4  *          * TOFRAWCL * tofrstatus(ntofraw)     // status
- * I*4  *          * TOFRAWCL * tofrplane(ntofraw)      // tof plane1-4
- * I*4  *          * TOFRAWCL * tofrbar(ntofraw)        // tof bar 1-14
- * R*4  *          * TOFRAWCL * tofrtovta(2,ntofraw)    // anode time 
-                                                        //over_thresh (ns)
- * R*4  *          * TOFRAWCL * tofrtovtd(2,ntofraw)    // dinode time
-                                                        //over_thresh (ns)
+ * I*4  *          * TOFRAWCL * tofrplane(ntofraw)      // tof plane 1-4
+ * I*4  *          * TOFRAWCL * tofrbar(ntofraw)        // tof bar 1-10
+ * R*4  *          * TOFRAWCL * tofrtovta(2,ntofraw)    // anode ADC(2sides) 
+                                                        //
+ * R*4  *          * TOFRAWCL * tofrtovtd(2,ntofraw)    // dynode ADC(Hi-chan,2sides)
+                                                        //
  * R*4  *          * TOFRAWCL * tofrsdtm(2,ntofraw)     // A-noncorrected
                                                         //  side times
  * R*4  *          * TOFRAWCL * tofreda(ntofraw)        // Edep-A (mev)
- * R*4  *          * TOFRAWCL * tofredd(ntofraw)        // Edep-D (mev)
+ * R*4  *          * TOFRAWCL * tofredd(ntofraw)        // Edep-D (Hi-chan,mev)
  * R*4  *          * TOFRAWCL * tofrtm(ntofraw)         // Time (ns)
  * R*4  *          * TOFRAWCL * tofrcoo(ntofraw)        // Long.coord.(cm)
  * I*4  * [0,100]  * RICMCCL  * nsignals              // Number of signals in

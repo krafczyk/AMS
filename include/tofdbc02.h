@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.15 2003/05/22 08:36:40 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.16 2003/06/03 10:13:26 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -21,8 +21,8 @@
 //some general(tof version-independent) constants
 namespace TOFGC{
   const integer AMSDISL=500;//max length of distributions in AMSDistr class
-  const integer SCWORM=128;// Max.length (in 16-bits words) in bit-stream class
-  const integer SCBITM=SCWORM*16;// same in bits(-> 1.024 mks with 0.5 ns binning)
+  const integer SCWORM=256;// Max.length (in 16-bits words) in bit-stream class
+  const integer SCBITM=SCWORM*16;// same in bits(-> 2.048 mks with 0.5 ns binning)
   const integer SCBADB1=128; // status bit to mark counter with bad "history"
   const integer SCBADB2=256; // status bit to mark counter with only one_side measurement
   const integer SCBADB3=512; // ... bad for t-meas.based on DB(don't use for tzcalibr/beta-meas)
