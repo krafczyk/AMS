@@ -194,7 +194,7 @@ integer AMSStatus::getnextok(){
    }
    skipped++;
  }
- if(_Hint<_Nelem)((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][i]);
+ if(_Hint<_Nelem)((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][_Nelem-1]);
  else  if(AMSFFKEY.Update && isDBUpdateR()){
    UpdateStatusTableDB();
  }
