@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.67 2002/07/23 14:35:13 alexei Exp $
+//  $Id: gbatch.C,v 1.68 2002/08/07 08:49:55 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -31,9 +31,9 @@ GCBANK_DEF GCBANK;
 
 #ifdef __ROOTA__
 // Jul 23, 02 Root version 3.03.07
-#define PAWC COMMON_BLOCK(PAWC,pawc)
-COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
-PAWC_DEF PAWC;
+//#define PAWC COMMON_BLOCK(PAWC,pawc)
+//COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
+//PAWC_DEF PAWC;
 #else
 #define PAWC COMMON_BLOCK(PAWC,pawc)
 COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
