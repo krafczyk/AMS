@@ -260,7 +260,7 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.mcprtf[4]=0;     // spare
   TOFMCFFKEY.trlogic[0]=0; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
   TOFMCFFKEY.trlogic[1]=0; // ......................(=0/1-> ANY3/ALL4 layer coincidence) 
-  TOFMCFFKEY.fast=1;       // 0/1-> fast/slow simulation algorithm
+  TOFMCFFKEY.fast=0;       // 0/1-> fast/slow simulation algorithm
   UCTOH(tfname,TOFMCFFKEY.tdfnam,4,12);
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }

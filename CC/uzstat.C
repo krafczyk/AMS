@@ -54,7 +54,8 @@ ostream & AMSStatNode::print(ostream &stream) const{
 char *name=new char[strlen(getname())+1];
 strcpy(name,getname());
 if(name && strlen(name)>15)name[14]='\0';
-return stream <<setw(15)<<name<<" "<<setw(12)<<_entry<<" "<<setw(12)<<_min
-<<" "<<setw(12)<<_sum/(_entry+1.e-20)<<" "<<setw(12)<<_max<<" "<<setw(12)<<_sum<<endl;
+
+return _entry >0 ? stream <<setw(15)<<name<<" "<<setw(12)<<_entry<<" "<<setw(12)<<_min
+ <<" "<<setw(12)<<_sum/(_entry+1.e-20)<<" "<<setw(12)<<_max<<" "<<setw(12)<<_sum<<endl:stream;
 delete name;
 }

@@ -1,11 +1,11 @@
 I. Proposed Daq Event format 
 
 All 32 bit integers. Means e.g. two 16bit integers should be packed
-   as i32=i16_1 + (i16_2<<16), that is converted to little endian, so no conversion is
+   as i32=i16_1 + (i16_2<<16),that is converted to little endian, so no conversion is
    needed for alpha. 
    
 -----------------------------------------------------------------------------
-| LT  | LH |IDH |CRC | Run | Evt | RType | Time|LSubdet| ID Subdet|..data subdet.|
+| LT  | LH |IDH |CRC | Run | Evt | RType | Time|...|LSubdet| ID Subdet|..data subdet.|
 -----------------------------------------------------------------------------
 
 Legend:
@@ -35,9 +35,10 @@ b.Trig3 Event Format
 Word1
 16 bit tracker  output + 8 bit tof output  +8 bit anti output
 Word2 16 bit(signed) residual in mkm + 8 bit pattern + 8 bit nhits
+
 c.TOF Event Format
 
-To be filled
+To be defined
 
 
 
@@ -45,7 +46,7 @@ To be filled
 d.Anti Event Format
 
 
-To be filled
+To be defined
 
 
 e.Tracker Event Format
@@ -55,7 +56,7 @@ e.Tracker Event Format
 8bit max hit offset
 16bit word 2
 leftmost hit address
-16 bit word 3 - length
+16 bit word 3-length
 amplitudes*8
 .............
 
@@ -64,7 +65,11 @@ amplitudes*8
 f.CTC(Aerogel) Event Format
 
 
-To be filled
+To be defined
+
+Now Used :
+
+columnn | row <<5 | layer<<10 | status <<11 | (signal in adc==phel)<<16
 
 
 

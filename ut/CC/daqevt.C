@@ -258,9 +258,10 @@ void DAQEvent::init(integer mode, integer format){
       exit(1);
     }
   }
-  if(mode/10 ==1){
+  if(mode/10 ){
    if(ofnam){
-    fbout.open(ofnam,ios::out|binary|ios::app);
+    if(mode/10 ==1)fbout.open(ofnam,ios::out|binary|ios::noreplace);
+    if(mode/10 ==2)fbout.open(ofnam,ios::out|binary|ios::app);
      if(fbout){ 
        // Associate buffer
       static char buffer[1000+1];

@@ -390,6 +390,7 @@ DAQC    //   DAQ Control
 
 I 1 mode(0)                         // 0 do nothing
                                     // mode%10 = 1 read daq if isReconstruction()
-                                    // mode/10 = 1 write daq (in append mode)
+                                    // mode/10 = 1 write daq (noreplace)
+                                    // mode/10 = 1 write daq (append)
 I 2 ifile[40]("")                   // input file name
 I42 ofile[40]("")                   // output file name

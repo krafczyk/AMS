@@ -291,7 +291,7 @@ void AMSCTCCluster::_writeEl(){
 static integer init=0;
 static CTCClusterNtuple CTCCLN;
 int i;
-if(AMSCTCCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
+if(AMSCTCCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED))){
 
 if(init++==0){
 //book the ntuple block

@@ -55,7 +55,7 @@ void buildRawStructures();
 void write();
 integer read();
 void shrink();
-integer getlength() const {return _Length;}
+integer getlength() const {return _Length*sizeof(_pData[0]);}
 void close(){ fbin.close();fbout.close();}
 static char * ifnam;
 static fstream fbin;
