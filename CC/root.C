@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.65 2004/01/27 10:39:59 alcaraz Exp $
+//  $Id: root.C,v 1.66 2004/02/05 12:00:08 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2263,8 +2263,7 @@ void AMSChain::Add(const char* filename) {
       TChain::Add(filename);
       if (_EVENT==NULL) {
             _EVENT = new AMSEventR;
-            SetMakeClass(1);
-            _EVENT->SetBranchA((TChain*)this);
+            this->SetBranchAddress("ev.",&_EVENT);
       }
 };
 

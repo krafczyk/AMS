@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.130 2004/01/31 16:41:35 choutko Exp $
+//  $Id: root.h,v 1.131 2004/02/05 12:00:46 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -3042,9 +3042,10 @@ class AMSChain : public TChain {
 private:
       AMSEventR* _EVENT;
       unsigned int _ENTRY;
+      const char* _NAME;
 
 public:
-      AMSChain(const char* name="AMSRoot"):TChain(name),_ENTRY(0),_EVENT(NULL){};
+      AMSChain(const char* name="AMSRoot"):TChain(name),_ENTRY(0),_EVENT(NULL),_NAME(name){};
       ~AMSChain(){
             if (_EVENT) delete _EVENT;
       };
