@@ -208,8 +208,8 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
 
   }
   uinteger z,mode,antip,tofp[4]={0,0,0,0},tofp1[4]={0,0,0,0};  
-  int16u tempor[4]={0,0,0,0};
-  int16u tempand[4]={0,0,0,0};
+  uinteger tempor[4]={0,0,0,0};
+  uinteger tempand[4]={0,0,0,0};
   //  tofp[0]=*(p+1);
   //  tofp[1]=*(p+2);
   //  tofp[2]=*(p+3);
@@ -226,7 +226,7 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
    for(int i=0;i<16;i++){
      tofp[k]=tofp[k] | (((tofp[k]>>i) & 1) <<(29-i));
    }  
-   tempor[i]=tofp[k]>>16;     
+   tempor[k]=tofp[k]>>16;     
 
   }
   tofp[0]=*(p+6) & *(p+10);
@@ -237,7 +237,7 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
    for(int i=0;i<16;i++){
      tofp[k]=tofp[k] | (((tofp[k]>>i) & 1) <<(29-i));
    }  
-   tempand[i]=tofp[k]>>16;     
+   tempand[k]=tofp[k]>>16;     
   }
   for(k=0;k<4;k++){
     tofp[k]=tempor[k] | (tempand[k] <<16);
