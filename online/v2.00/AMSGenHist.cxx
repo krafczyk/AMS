@@ -6,8 +6,7 @@
 #include <TPaveText.h>
 ClassImp(AMSGenHist)
 
-const   int nids    =     20;
-const   int tdiffId = 300003;
+const   int nids = 20;
 
 unsigned int hids[nids] =
   { 0, 1, 2, 0x200,
