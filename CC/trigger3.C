@@ -484,7 +484,7 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
       }  
       else {
         // Probably normal mode
-        if(*(ptr+1+nmax)< 0 && *(ptr+3+nmax) < 0)goto next;
+        if(*(ptr+1+nmax)< 16 && *(ptr+3+nmax) < 16)goto next;
       } 
       
               float coo=0;

@@ -324,9 +324,11 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
         AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
         AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+leng,
         (int16*)ptr+2));
+        //        cout <<" ok "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
        }
         else {
           // split into two clusters;
+          // cout <<" split "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
         AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
         AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getmaxstrips(),
         (int16*)ptr+2));
@@ -342,7 +344,7 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
      else cerr <<" AMSTrRawCluster::buildraw-E-Id.Dead "<<id.gethaddr()<<endl;
 #endif
      //     cout <<"br- "<<ic<<" "<<id.getaddr()<<" "
-     //          <<id.getstrip()<<" "<<leng<<" "<<*((int16*)ptr+2)<<endl;
+     // <<id.getstrip()<<" "<<leng<<" "<<*((int16*)ptr+2)<<endl;
   }
   
 
@@ -519,21 +521,20 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
   integer ic=checkdaqidRaw(*p)-1;
   int16u * ptr=p+1;
   // Main loop
+  integer oldformat=1;
   while (ptr<p+n){
     // Read two tdrs
-    if(*ptr != 3084){
-      cerr <<"buildrawRaw-E-bad event length, skipped "<<*ptr<<endl; 
-      return;
+    integer subl=*ptr;
+    integer ntdr = *(ptr+1) & 31;
+    if(subl != 3084){
+      // Probably new format
+      oldformat=0; 
     }
     ptr+=2;
-    for(i=0;i<2;i++){
+    for(i=0;i<ntdr;i++){
      int16u tdrn=*ptr;
      int16u lrec=*(ptr+1);
      ptr++;
-     if(lrec !=1540){
-      cerr <<"buildrawRaw-E-bad event sublength, skipped "<<lrec<<endl; 
-      return;
-     }   
      if(tdrn < 16){
        // S side
        len=640;
@@ -554,11 +555,11 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
           // copy to local buffer and subtract peds
           for(k=0;k<320;k++){
            idd.upd(k);
-           id[k]=float(*(ptr+2+k+j*768))-idd.getped(); 
+           id[k]=float(*(ptr+2+k+j*(640+128*oldformat)))-idd.getped(); 
           }
           for(k=320;k<640;k++){
            idd.upd(k);
-           id[k]=float(*(ptr+2+k+64+j*768))-idd.getped(); 
+           id[k]=float(*(ptr+2+k+64*oldformat+j*(640+128*oldformat)))-idd.getped(); 
           }
           buildpreclusters(idd,len,id);
          }
@@ -593,6 +594,7 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
      }
      ptr+=lrec;
     }
+    if(oldformat == 0)ptr+=2;
   }
 
 }
@@ -743,6 +745,19 @@ else if(id==getpedSRawid(1))return 2 ;
 else return 0;
 }
 
+integer AMSTrRawCluster::checksigSRawid(int16u id){
+if(id==getsigSRawid(0))return 1;
+else if(id==getsigSRawid(1))return 2 ;
+else return 0;
+}
+
+integer AMSTrRawCluster::checkstatusSRawid(int16u id){
+if(id==getstatusSRawid(0))return 1;
+else if(id==getstatusSRawid(1))return 2 ;
+else return 0;
+}
+
+
 integer AMSTrRawCluster::checksigmaSid(int16u id){
 if(id==getsigmaSid(0))return 1;
 else if(id==getsigmaSid(1))return 2 ;
@@ -763,6 +778,18 @@ else return 0x0;
 }
 
 int16u AMSTrRawCluster::getpedSRawid(int i){
+  if (i==0)return (3 | 2<<6 | 11 <<9 );
+  else if(i==1)return (3 | 5<<6 | 11 <<9 );
+else return 0x0;
+}
+
+int16u AMSTrRawCluster::getsigSRawid(int i){
+  if (i==0)return (4 | 2<<6 | 11 <<9 );
+  else if(i==1)return (4 | 5<<6 | 11 <<9 );
+else return 0x0;
+}
+
+int16u AMSTrRawCluster::getstatusSRawid(int i){
   if (i==0)return (2 | 2<<6 | 11 <<9 );
   else if(i==1)return (2 | 5<<6 | 11 <<9 );
 else return 0x0;
@@ -845,12 +872,14 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
   // Main loop
   while (ptr<p+n){
     // Read two tdrs
-    if(*ptr != 3084){
-      cerr <<"buildrawRaw-E-bad event length, skipped "<<*ptr<<endl; 
-      return;
-    }
+    //    if(*ptr != 3084){
+    //  cerr <<"updpedsRaw-E-bad event length, skipped "<<*ptr<<endl; 
+    //  return;
+    //}
+    int ntdr=*(ptr+1) & 31; 
     ptr+=2;
-    for(i=0;i<2;i++){
+    
+    for(i=0;i<ntdr;i++){
      int16u tdrn=*ptr;
      int16u lrec=*(ptr+1);
      ptr++;
@@ -874,11 +903,11 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
           // copy to local buffer and subtract peds
           for(k=0;k<320;k++){
            idd.upd(k);
-           idd.setped()=float(*(ptr+2+k+j*768))/idd.getgain(); 
+           idd.setped()=float(*(ptr+2+k+j*640))/idd.getgain(); 
           }
           for(k=320;k<640;k++){
            idd.upd(k);
-           idd.setped()=float(*(ptr+2+k+64+j*768))/idd.getgain(); 
+           idd.setped()=float(*(ptr+2+k+j*640))/idd.getgain(); 
           }
          }
        }
@@ -911,6 +940,7 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
      }
      ptr+=lrec;
     }
+    ptr+=2;
   }
 
 
@@ -929,6 +959,9 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
    cout <<" Time Begin "<<ctime(&begin);
    cout <<" Time End "<<ctime(&end);
 }
+
+
+
 void AMSTrRawCluster::updpedS(integer n, int16u* p){
 
   integer const ms=640;
@@ -973,6 +1006,112 @@ nt is "<<len<<endl;
    cout <<" Time Begin "<<ctime(&begin);
    cout <<" Time End "<<ctime(&end);
 }
+
+
+
+
+
+void AMSTrRawCluster::updsigSRaw(integer n, int16u* p){
+
+
+  integer const ms=640;
+  integer len;
+  int i,j,k;
+  integer ic=checksigSRawid(*p)-1;
+  int16u * ptr=p+1;
+  // Main loop
+  while (ptr<p+n){
+    // Read two tdrs
+    //    if(*ptr != 3084){
+    //  cerr <<"updpedsRaw-E-bad event length, skipped "<<*ptr<<endl; 
+    //  return;
+    //}
+    int ntdr=*(ptr+1) & 31; 
+    ptr+=2;
+    
+    for(i=0;i<ntdr;i++){
+     int16u tdrn=*ptr;
+     int16u lrec=*(ptr+1);
+     ptr++;
+     if(tdrn < 16){
+       // S side
+       len=640;
+       for(j=0;j<2;j++){
+         int16u conn,tdrs;
+         tdrs=tdrn/2;
+         if(tdrn%2==0){
+          if(j==0)conn=1;
+          else conn=0;
+         }
+         else {
+          if(j==0)conn=3;
+          else conn=2;
+         }
+         int16u haddr=(conn<<10) | (tdrs <<12);
+         AMSTrIdSoft idd(ic,haddr);
+         if(!idd.dead()){
+          // copy to local buffer and subtract peds
+          for(k=0;k<320;k++){
+           idd.upd(k);
+           idd.setsig()=float(*(ptr+2+k+j*640))/idd.getgain(); 
+          }
+          for(k=320;k<640;k++){
+           idd.upd(k);
+           idd.setsig()=float(*(ptr+2+k+j*640))/idd.getgain(); 
+          }
+         }
+       }
+     }
+     else {
+       // K Side
+       len=384;
+       for(j=0;j<4;j++){
+          int16u conn, tdrk;
+          if(tdrn%2 ==0){
+            if(j<2)conn=j+2;
+            else conn=j-2;
+          }
+          else {
+           if(j<2)conn=j+2;
+           else conn=j-2;
+           conn+= 4;
+          }
+          tdrk=(tdrn-16)/2;
+          int16u haddr=(10<<6) |( conn<<10) | (tdrk <<13);
+          AMSTrIdSoft idd(ic,haddr);
+         if(!idd.dead()){
+          // copy to local buffer and subtract peds
+          for(k=0;k<384;k++){
+           idd.upd(k);
+           idd.setsig()=float(*(ptr+2+k+j*384))/idd.getgain(); 
+          }
+         }
+       }
+     }
+     ptr+=lrec;
+    }
+    ptr+=2;
+  }
+
+
+
+  // Set UpdateMe for corr TDV
+
+  AMSTimeID * ptdv = AMSJob::gethead()->gettimestructure(getTDVsigma(ic));
+   ptdv->UpdateMe()=1;
+   ptdv->UpdCRC();
+   time_t begin,end,insert;
+   time(&insert);
+   ptdv->SetTime(insert,AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()+86400);
+   ptdv->gettime(insert,begin,end);
+   cout <<" Tracker H/K  info has been read for "<<*ptdv;
+   cout <<" Time Insert "<<ctime(&insert);
+   cout <<" Time Begin "<<ctime(&begin);
+   cout <<" Time End "<<ctime(&end);
+}
+
+
+
 
 
 void AMSTrRawCluster::updsigmaS(integer n, int16u* p){
@@ -1052,7 +1191,7 @@ void AMSTrRawCluster::updstatusS(integer n, int16u* p){
   while (ptr<p+n){
      AMSTrIdSoft idd(ic,int16u(*(ptr)));
      // Here put status into memory
-      idd.setstatus(1);     
+      idd.setstatus(AMSDBc::BAD);     
       nbad++;
       ptr=ptr+1;
   }
@@ -1071,6 +1210,113 @@ void AMSTrRawCluster::updstatusS(integer n, int16u* p){
    cout <<" Time Begin "<<ctime(&begin);
    cout <<" Time End "<<ctime(&end);
 }
+
+
+
+void AMSTrRawCluster::updstatusSRaw(integer n, int16u* p){
+  // bits from most to least and 1 means good; 
+
+  integer const ms=640;
+  integer len;
+  int i,j,k;
+  integer ic=checkstatusSRawid(*p)-1;
+  int16u * ptr=p+1;
+  // Main loop
+  while (ptr<p+n){
+    // Read two tdrs
+    //    if(*ptr != 3084){
+    //  cerr <<"updpedsRaw-E-bad event length, skipped "<<*ptr<<endl; 
+    //  return;
+    //}
+    int ntdr=*(ptr+1) & 31; 
+    ptr+=2;
+    
+    for(i=0;i<ntdr;i++){
+     int16u tdrn=*ptr;
+     int16u lrec=*(ptr+1);
+     ptr++;
+     if(tdrn < 16){
+       // S side
+       len=40;
+       for(j=0;j<2;j++){
+         int16u conn,tdrs;
+         tdrs=tdrn/2;
+         if(tdrn%2==0){
+          if(j==0)conn=1;
+          else conn=0;
+         }
+         else {
+          if(j==0)conn=3;
+          else conn=2;
+         }
+         int16u haddr=(conn<<10) | (tdrs <<12);
+         AMSTrIdSoft idd(ic,haddr);
+         if(!idd.dead()){
+          // copy to local buffer and subtract peds
+          for(k=0;k<len;k++){
+            for(int kbit=0;kbit<16;kbit++){
+             idd.upd(k*16+kbit);
+             if(*(ptr+2+k+j*len) & (1<<(15-kbit)))idd.clearstatus(AMSDBc::BAD);
+             else idd.setstatus(AMSDBc::BAD);
+            } 
+          }
+         }
+       }
+     }
+     else {
+       // K Side
+       len=24;
+       for(j=0;j<4;j++){
+          int16u conn, tdrk;
+          if(tdrn%2 ==0){
+            if(j<2)conn=j+2;
+            else conn=j-2;
+          }
+          else {
+           if(j<2)conn=j+2;
+           else conn=j-2;
+           conn+= 4;
+          }
+          tdrk=(tdrn-16)/2;
+          int16u haddr=(10<<6) |( conn<<10) | (tdrk <<13);
+          AMSTrIdSoft idd(ic,haddr);
+         if(!idd.dead()){
+          // copy to local buffer and subtract peds
+          for(k=0;k<len;k++){
+            for(int kbit=0;kbit<16;kbit++){
+             idd.upd(k*16+kbit);
+             if(*(ptr+2+k+j*len) & (1<<(15-kbit)))idd.clearstatus(AMSDBc::BAD);
+             else idd.setstatus(AMSDBc::BAD);
+            } 
+          }
+         }
+       }
+     }
+     ptr+=lrec;
+    }
+    ptr+=2;
+  }
+
+
+
+  // Set UpdateMe for corr TDV
+
+  AMSTimeID * ptdv = AMSJob::gethead()->gettimestructure(getTDVstatus(ic));
+   ptdv->UpdateMe()=1;
+   ptdv->UpdCRC();
+   time_t begin,end,insert;
+   time(&insert);
+   ptdv->SetTime(insert,AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()+86400);
+   cout <<" Tracker H/K  info has been read for "<<*ptdv;
+   ptdv->gettime(insert,begin,end);
+   cout <<" Time Insert "<<ctime(&insert);
+   cout <<" Time Begin "<<ctime(&begin);
+   cout <<" Time End "<<ctime(&end);
+}
+
+
+
+
 
 
 AMSID AMSTrRawCluster::getTDVstatus(int i){

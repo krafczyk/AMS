@@ -268,6 +268,7 @@ TRCALIB.Method=2;
 TRCALIB.Pass=1;
 TRCALIB.DPS=0;
 TRCALIB.UPDF=4;
+TRCALIB.PrintBadChList=0;
 TRCALIB.EventsPerIteration[0]=100;
 TRCALIB.EventsPerIteration[1]=100;
 TRCALIB.NumberOfIterations[0]=200;
@@ -740,6 +741,7 @@ DAQCFFKEY.OldFormat=0;
 DAQCFFKEY.LCrateinDAQ=1;
 DAQCFFKEY.SCrateinDAQ=1;
 DAQCFFKEY.NoRecAtAll=0;
+DAQCFFKEY.TrFormatInDAQ=3;
 VBLANK(DAQCFFKEY.ifile,40);
 VBLANK(DAQCFFKEY.ofile,40);
   FFKEY("DAQC",(float*)&DAQCFFKEY,sizeof(DAQCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -1737,7 +1739,10 @@ void AMSJob::_tkendjob(){
 
   if((isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){
     AMSTrIdCalib::check(1);
+   
   }
+  AMSTrIdCalib::printbadchanlist();
+    
 
 }
 
@@ -2074,6 +2079,16 @@ if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProce
   }
   else{
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrIdCalib::buildSigmaPedB);
+ 
+    if(TRMCFFKEY.GenerateConst){
+    //Tracker ped/sigma etc ( "Event" mode)
+
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checksigSRawid,&AMSTrRawCluster::updsigSRaw);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSRawid,&AMSTrRawCluster::updstatusSRaw);
+
+
+    }
   }
 
 }
@@ -2083,15 +2098,24 @@ else {
 if(DAQCFFKEY.LCrateinDAQ){
 //           tracker reduced
 
+    if(DAQCFFKEY.TrFormatInDAQ & 1)
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,
     &AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
 
 
+
+    //Tracker ped/sigma etc ( "Event" mode)
+
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checksigSRawid,&AMSTrRawCluster::updsigSRaw);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSRawid,&AMSTrRawCluster::updstatusSRaw);
+
+
 }   
 
 
-if(DAQCFFKEY.LCrateinDAQ){
+if(DAQCFFKEY.LCrateinDAQ && (DAQCFFKEY.TrFormatInDAQ & 2)){
 //           tracker raw
 
   if(DAQCFFKEY.OldFormat || !isRealData()){
@@ -2108,9 +2132,6 @@ if(DAQCFFKEY.LCrateinDAQ){
     &AMSTrRawCluster::calcdaqlengthRaw,&AMSTrRawCluster::builddaqRaw);
 
 
-    //Tracker ped/sigma etc ( "Event" mode)
-
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
 
 }    
 

@@ -41,7 +41,7 @@ endif
 #
 #
 FILES= ../CC/readio.C  ../CC/io.C ../CC/commons.C ../CC/amsdbc.C
-OBJECTS= ..$(BIN)/readio.o ..$(BIN)/trid.o ..$(BIN)/io.o ..$(BIN)/commons.o ..$(BIN)/id.o ..$(BIN)/apool.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/link.o ..$(BIN)/uzstat.o ..$(BIN)/amsdbc.o 
+OBJECTS= ..$(BIN)/readio.o  ..$(BIN)/io.o ..$(BIN)/commons.o ..$(BIN)/id.o ..$(BIN)/apool.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/link.o ..$(BIN)/uzstat.o ..$(BIN)/amsdbc.o 
 readio:	$(OBJECTS)
 	$(LD) -v -o ..$(EXE)/readio $(OBJECTS)  $(LDFLAGS)
 

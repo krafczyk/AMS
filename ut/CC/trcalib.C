@@ -445,7 +445,7 @@ void AMSTrIdCalib::_hist(){
           PS.Strip=m;
           PS.Ped=_ADC[ch];
           PS.Sigma=_ADC2[ch];
-          PS.BadCh=_BadCh[ch];
+          PS.BadCh=cid.checkstatus(AMSDBc::BAD);
           PS.SigmaRaw=_ADC2Raw[ch];
           PS.Rho[0]=sigmas[ch];
           for(int kk=1;kk<nrho;kk++)PS.Rho[kk]=_ADCRho[kk][ch];
@@ -500,6 +500,43 @@ integer AMSTrIdCalib::CalcBadCh(integer half, integer side){
      return badch;
 }
 
+void AMSTrIdCalib::printbadchanlist(){
+  if(TRCALIB.PrintBadChList){
+  ofstream fcluster;
+  ofstream fcommon;
+  fcluster.open("../datacards/BadChannelList.Clusters",ios::out);
+  fcommon.open("../datacards/BadChannelList.CommonNoise",ios::out);
+
+
+ int i,j,k,l,m;
+   for(l=0;l<2;l++){
+    for(k=0;k<2;k++){
+     for(i=0;i<AMSDBc::nlay();i++){
+       for(j=0;j<AMSDBc::nlad(i+1);j++){
+        AMSTrIdSoft id(i+1,j+1,k,l,0);
+        if(id.dead())continue;
+        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+         id.upd(m);
+         if(!id.getsignsigraw())fcommon << hex<< id.gethaddr()<<endl;
+         if(id.checkstatus(AMSDBc::BAD))fcluster << hex<< id.gethaddr()<<endl;
+        }
+       }
+     }
+    }
+   }
+
+
+
+
+
+
+
+  fcluster.close();
+  fcommon.close();
+
+    
+  }
+}
 
 
 void AMSTrIdCalib::_calc(){
@@ -995,21 +1032,20 @@ void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
   integer ic=AMSTrRawCluster::checkdaqidRaw(*p)-1;
   int16u * ptr=p+1;
   // Main loop
+  integer oldformat=1;
   while (ptr<p+n){
     // Read two tdrs
-    if(*ptr != 3084){
-      cerr <<"buildrawRaw-E-bad event length, skipped "<<*ptr<<endl; 
-      return;
+    integer subl=*ptr;
+    integer ntdr = *(ptr+1) & 31;
+    if(subl != 3084){
+      // Probably new format
+      oldformat=0; 
     }
     ptr+=2;
-    for(i=0;i<2;i++){
+    for(i=0;i<ntdr;i++){
      int16u tdrn=*ptr;
      int16u lrec=*(ptr+1);
      ptr++;
-     if(lrec !=1540){
-      cerr <<"buildrawRaw-E-bad event sublength, skipped "<<lrec<<endl; 
-      return;
-     }   
      if(tdrn < 16){
        // S side
        len=640;
@@ -1030,11 +1066,11 @@ void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
           // copy to local buffer and subtract peds
           for(k=0;k<320;k++){
            idd.upd(k);
-           id[k]=float(*(ptr+2+k+j*768)); 
+           id[k]=float(*(ptr+2+k+j*(640+128*oldformat))); 
           }
           for(k=320;k<640;k++){
            idd.upd(k);
-           id[k]=float(*(ptr+2+k+64+j*768)); 
+           id[k]=float(*(ptr+2+k+64*oldformat+j*(640+128*oldformat))); 
           }
           buildpreclusters(idd,len,id);
          }
@@ -1069,6 +1105,7 @@ void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
      }
      ptr+=lrec;
     }
+    if(!oldformat)ptr+=2;
   }
 
 

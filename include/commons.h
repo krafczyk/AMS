@@ -44,6 +44,7 @@ integer OldFormat;
 integer LCrateinDAQ;
 integer SCrateinDAQ;
 integer NoRecAtAll;
+integer TrFormatInDAQ;
 };
 #define DAQCFFKEY COMMON_BLOCK(DAQCFFKEY,daqcffkey)
 COMMON_BLOCK_DEF(DAQCFFKEY_DEF,DAQCFFKEY);
@@ -556,6 +557,7 @@ integer Pass;
 integer DPS;
 integer UPDF;
 integer LaserRun;
+integer PrintBadChList;
                                 // Proc # 2 starts here
 integer EventsPerIteration[2];
 integer NumberOfIterations[2];

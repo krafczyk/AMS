@@ -410,14 +410,15 @@ I13 DPS;                               // Dynamic pedestal subtraction off(0)
                                        // on ( >0)
 I14 UPDF;                               // Dynamic pedestal update freq
 I15 LaserRun(0)
-I16  EventsPerIteration[2](100,100)    // Events in one bunch
-I18 NumberOfIterations[2](200,200)    // number of bunches
-R20 BetaCut[2][2](0.7,10.,1.,10.)    // Beta limits
-R24 HitsRatioCut[2](2.5,2.5)          // Hit Ratio Limits
-R26 MomentumCut[2][2](-inf,inf,3,inf) // momentum ----------
-R30 Chi2Cut[2](3.,3.)                 // chi2 ---------------
-R32 InitialCoo[6][3](0)               // Coordinates displacement
-R50 InitialRM[6][3][3](0)             // Rot Matrix --------
+I16 PrintBadChList(0)                  // 
+I17  EventsPerIteration[2](100,100)    // Events in one bunch
+I19 NumberOfIterations[2](200,200)    // number of bunches
+R21 BetaCut[2][2](0.7,10.,1.,10.)    // Beta limits
+R25 HitsRatioCut[2](2.5,2.5)          // Hit Ratio Limits
+R27 MomentumCut[2][2](-inf,inf,3,inf) // momentum ----------
+R31 Chi2Cut[2](3.,3.)                 // chi2 ---------------
+R33 InitialCoo[6][3](0)               // Coordinates displacement
+R51 InitialRM[6][3][3](0)             // Rot Matrix --------
 };
 
 
@@ -479,6 +480,7 @@ I82 OldFormat(0)                    // old(1) new(0) format
 I83 LCrateinDAQ(1)                  // in(1) out(0) of DAQ
 I84 SCrateinDAQ(1)                  // in(1) out(0) of DAQ
 I85 NoRecAtAll(0)                   // skip or not reconstruction phase
+I86 TrformatInDAQ(3)                // 0 no 1 reduced 2 raw 3 both in daq
 
 BMAP   // Magnetic field control
 I 1 iniok(1)                       // 0 for update mag field
