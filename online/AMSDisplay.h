@@ -44,6 +44,8 @@ protected:
   AMSHist *         _subdet[10];      
   Int_t            _msubdet;
   Int_t            _cursubdet;
+  Int_t            _Begin;
+  Int_t            _Sample;
 public:
 
                     AMSOnDisplay();
@@ -68,8 +70,11 @@ public:
   Bool_t   IsLogY()const {return m_logy;} 
   Bool_t   IsLogZ()const {return m_logz;} 
   static AMSOnDisplay * GetAMSDisplay(){return _Head;}
+  Int_t & Begin(){ return _Begin;}
+  Int_t & Sample(){ return _Sample;}
   void Init();
-  void Fill(Int_t Begin, Int_t Sample);
+  void Filled();
+  Int_t Fill();
   Int_t Dispatch(Int_t subdet, Int_t set=-1);
   void DispatchProcesses();
   void AddSubDet( AMSHist & subdet);

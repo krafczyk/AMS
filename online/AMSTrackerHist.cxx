@@ -41,9 +41,9 @@ void AMSTrackerHist::_Fill(){
   sprintf(title ,"Number of S Clusters per Ladder Crate 72"); 
   _filled2[7]=new TProfile(name,title,100,0.5,100.5);
   for(i=4;i<8;i+=2){
-   _filled2[i]->SetMarkerStyle(24);
+   _filled2[i]->SetMarkerStyle(20);
    _filled2[i]->SetMarkerSize(0.7);
-   _filled2[i+1]->SetMarkerStyle(25);
+   _filled2[i+1]->SetMarkerStyle(21);
    _filled2[i+1]->SetMarkerSize(0.7);
   }
   sprintf(name,"xclampl");
@@ -153,7 +153,7 @@ gPad->Divide(2,2);
 for(i=0;i<4;i++){
  gPad->cd(i+1);
  gPad->SetLogx(gAMSDisplay->IsLogX());
- gPad->SetLogy(1);
+ gPad->SetLogy(gAMSDisplay->IsLogY());
  gPad->SetLogz(gAMSDisplay->IsLogZ());
  if(_fetched2[i+4]){
   _fetched2[i+4]->Draw();
@@ -180,7 +180,7 @@ void AMSTrackerHist::Fill(AMSNtuple * ntuple){
    }
   for(int i=0;i<ntuple->_Tracker.ntrraw;i++){
    int lay=   ntuple->_Tracker.rawaddress[i]%10-1;
-   int lad=   (ntuple->_Tracker.rawaddress[i]/10)%10;
+   int lad=   (ntuple->_Tracker.rawaddress[i]/10)%100;
    int ir=(ntuple->_Tracker.rawaddress[i]/1000)%10;
    int side= ir<2?0:1;
    int crate= (ir==0 || ir==2)?0:1;
@@ -203,7 +203,7 @@ void AMSTrackerHist::Fill(AMSNtuple * ntuple){
   int nc[2]={0,0};
   for(i=0;i<ntuple->_Tracker.ntrcl;i++){
    int lay=   ntuple->_Tracker.idsoft[i]%10-1;
-   int lad=   (ntuple->_Tracker.idsoft[i]/10)%10;
+   int lad=   (ntuple->_Tracker.idsoft[i]/10)%100;
    int ir=(ntuple->_Tracker.idsoft[i]/1000)%10;
    int side= ir<2?0:1;
    int crate= (ir==0 || ir==2)?0:1;

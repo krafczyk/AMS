@@ -64,11 +64,11 @@ void main(int argc, char *argv[])
   amd->AddSubDet(AxAMSh);
   amd->Init();
   amd->SetApplication(theApp);
-  int Begin=0;
+  amd->Begin()=0;
+  amd->Sample()=900;
   int Sample=1000;
       for(;;){
-        amd->Fill(Begin,Sample);
-        Begin+=Sample;
+        amd->Fill();
         amd->DispatchProcesses();  
         theApp->Run();
         

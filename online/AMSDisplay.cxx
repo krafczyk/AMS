@@ -47,6 +47,8 @@ AMSOnDisplay::AMSOnDisplay() : TObject()
    _msubdet=0;
    _Head=this;   
    _cursubdet=0;
+   _Begin=0;
+   _Sample=10000;
    gAMSDisplay=this;
 }
 
@@ -58,6 +60,8 @@ AMSOnDisplay::AMSOnDisplay(const char *title, TFile *file):TObject(){
    m_logx=kFALSE;
    m_logy=kFALSE;
    m_logz=kFALSE;
+   _Begin=0;
+   _Sample=10000;
    _msubdet=0;
    _Head=this;
    _cursubdet=0;
@@ -146,7 +150,7 @@ AMSOnDisplay::AMSOnDisplay(const char *title, TFile *file):TObject(){
 
    TSwitch * sw[8];
 
-   Float_t y = 1.0, dy = 0.09, height=0.09;
+   Float_t y = 0.96, dy = 0.09, height=0.09;
    sw[0] = new TSwitch("LogX", &(m_logx), 
 			"gAMSDisplay->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
@@ -184,7 +188,7 @@ void AMSOnDisplay::DisplayButtons()
 
    Int_t butcolor = 33;
    Float_t dbutton = 0.09;
-   Float_t y  = 0.96;
+   Float_t y  = 1.0;
    Float_t dy = 0.014;
    Float_t x0 = 0.05;
    Float_t x1 = 0.95;
@@ -200,6 +204,10 @@ void AMSOnDisplay::DisplayButtons()
    button = new TButton("Stop Timer","gAMSDisplay->StartStop()",x0,y-dbutton,x1,y);
    button->SetFillColor(butcolor);
    button->Draw();
+    y -= dbutton +dy;
+    button = new TButton("Fill","gAMSDisplay->Filled()",x0,y-dbutton,x1,y);
+    button->SetFillColor(butcolor);
+    button->Draw();
 
 
 }
@@ -392,13 +400,46 @@ void AMSOnDisplay::DispatchProcesses(){
    }
    change=Dispatch(_cursubdet);
 }
-void AMSOnDisplay::Fill(Int_t Begin, Int_t Sample){
-  for(int i=Begin;i<Begin+Sample;i++){
-  if(!m_ntuple->ReadOneEvent(i))break;
+
+void AMSOnDisplay::Filled(){
+  static int filled=0;
+  if(filled)return;
+   filled=Fill();
+  gPad->Clear();
+  static int state=0;
+   static TText * text=0;
+   static char atext2[20]="Fill";
+   static char atext1[20]="Filled";
+
+   if (! text) {
+	if(filled%2)text = new TText(0.5, 0.5, atext1);
+	else text = new TText(0.5, 0.5, atext2);
+   }
+   else{
+	if(filled%2)text->SetText(0.5, 0.5, atext1);
+	else text = new TText(0.5, 0.5, atext2);
+   }
+   text->SetTextAlign(22);
+   text->SetTextSize(0.55);
+   text->Draw();
+
+}
+
+
+
+Int_t AMSOnDisplay::Fill(){
+  int retcode=0;
+  for(int i=_Begin;i<_Begin+_Sample;i++){
+   if(!m_ntuple->ReadOneEvent(i)){
+     retcode=1;
+     break;
+   }
      for(int j=0;j<_msubdet;j++){
       _subdet[j]->Fill(m_ntuple);
      }
   }
+    _Begin+=_Sample;
+  return retcode;
 }
 
 

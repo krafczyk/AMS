@@ -90,11 +90,10 @@ out:
   amd->AddSubDet(AxAMSh);
   amd->Init();
   amd->SetApplication(theApp);
-  int Begin=0;
-  int Sample=1000;
+  amd->Begin()=0;
+  amd->Sample()=990;
       for(;;){
-        amd->Fill(Begin,Sample);
-        Begin+=Sample;
+        amd->Filled();
         amd->DispatchProcesses();  
         theApp->Run();
 
