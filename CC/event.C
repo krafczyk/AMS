@@ -2,7 +2,7 @@
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 // add TDV/dbase version October 1, 1997. a.k.
 //
-// Last Edit : Sep 3, 1998. ak.
+// Last Edit : Sep 11, 1998. ak.
 //
 #include <trrawcluster.h>
 #include <typedefs.h> 
@@ -215,7 +215,7 @@ void AMSEvent::_endofrun() {
   char u1[4]  = "U1";
   char comp[4];
 
-
+  char aster[4] = "  *";
   
   geant cputime = Tcpu1 - Tcpu0;
 
@@ -277,7 +277,9 @@ void AMSEvent::_endofrun() {
       int  icputime = cputime;
       rfile<<setw(10)<<SRun<<" "<<setw(7)<<events<<" "<<setw(7)
           <<eventsp<<" "<<setw(7)<<T1-T0<<setw(7)<<icputime<<" "<<setw(16)
-          <<time11<<setw(7)<<comp<<endl;
+          <<time11<<setw(7)<<comp;
+      if (events != eventsp) rfile<<aster;
+      rfile<<endl;
        rfile.close();
      }
      else{
