@@ -763,11 +763,11 @@ void AMSTrTrackGamma::_Combi(integer& NC, integer Nele, integer Ngrp){
 
 
 
-void AMSTrTrackGamma::_LeftRight(AMSTrRecHit* pre, vector<double> HH, integer inhi, number CEN, integer & status,
+void AMSTrTrackGamma::_LeftRight(vector<double> HH, integer inhi, number CEN, integer & status,
                       const AMSPoint & HLR, const AMSPoint & EHLR){
  AMSPoint p_hi;
 
-    for (pre=AMSTrRecHit::gethead(inhi); pre!=NULL; pre=pre->next()){
+    for (AMSTrRecHit *pre=AMSTrRecHit::gethead(inhi); pre!=NULL; pre=pre->next()){
       p_hi = pre->getHit(); 
       number cha = pre->getsum(); 
       //first of all
@@ -855,7 +855,6 @@ integer AMSTrTrackGamma::build(integer refit){
   int NCO[trconst::maxlay];
   vector<double> H[trconst::maxlay];
   int FLPAT[trconst::maxlay];
-  AMSTrRecHit * p;
   AMSPoint p_hi;
   int Nuser=0;
   int Nlayu[trconst::maxlay];
@@ -1007,7 +1006,7 @@ _SingleHit(FLPAT,CE,esc_22);
 #ifdef __AMSDEBUG__
  cout<< "******1 in piu` CE["<<i<<"]= "<< CE[i]<<endl;
 #endif
-_LeftRight(p,H[i],i,CE[i],statusg,HLR,EHLR);
+_LeftRight(H[i],i,CE[i],statusg,HLR,EHLR);
  }
 
 XZLine_TOF RoadXZ(ii,neca,tm34,ecc);
@@ -1052,7 +1051,7 @@ RoadXZ.getParRoadXZ(fbotf,ftopf,x_starf,z_starf,SLOPEf,INTERf);
  int las_planeR,las_planeL;
  
  for (int i=0;i<TKDBc::nlay();i++){
-   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+   for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
      p->clearstatus(AMSDBc::TOFFORGAMMA); 
      p_hi = p->getHit(); 
      //
@@ -1120,7 +1119,7 @@ RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
  }
  
  for (int i=0;i<TKDBc::nlay();i++){
-   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+   for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
      if (p->checkstatus(AMSDBc::GAMMARIGHT)){
        INDEXPL[i]++;
      }
@@ -1148,7 +1147,7 @@ RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
 //
  if (refitting != 0){
    for(int i=0;i<TKDBc::nlay();i++){
-_LeftRight(p,H[i],i,CE[i],statusg,HLR,EHLR);
+       _LeftRight(H[i],i,CE[i],statusg,HLR,EHLR);
    } 
    
 RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
@@ -1163,7 +1162,7 @@ RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
  AMSTrRecHit * parrayR[trconst::maxlay];
  int nright=-1; 
   for (int i=0;i<TKDBc::nlay();i++){
-   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+   for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
      if (p->checkstatus(AMSDBc::GAMMARIGHT)){
       AMSPoint p_hi = p->getHit(); 
 #ifdef __AMSDEBUG__
@@ -1179,7 +1178,7 @@ cout<< "*$$$$$$$ RIGHT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<en
   AMSTrRecHit * parrayL[trconst::maxlay]; 
   int nleft=-1;
   for (int i=0;i<TKDBc::nlay();i++){
-   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+   for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
      if (p->checkstatus(AMSDBc::GAMMALEFT)){
       AMSPoint p_hi = p->getHit(); 
 #ifdef __AMSDEBUG__
@@ -1236,7 +1235,7 @@ cout<< "*$$$$$$$ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<end
    nright=-1;  
    nleft=-1;
    for (int i=0;i<TKDBc::nlay();i++){
-     for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+     for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
        if (p->checkstatus(AMSDBc::GAMMARIGHT)){
 	 nright++;
 	 parrayR[nright]=p;
@@ -1307,7 +1306,7 @@ delete pntLR;
   nright=-1;  
   nleft=-1;
   for (int i=0;i<TKDBc::nlay();i++){
-    for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+    for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
       if (p->checkstatus(AMSDBc::GAMMARIGHT)){
 	nright++;
 	parrayR[nright]=p;
@@ -1355,7 +1354,7 @@ delete pntLR;
   nright=-1;  
   nleft=-1;
   for (int i=0;i<TKDBc::nlay();i++){
-   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+   for (AMSTrRecHit * p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
      if (p->checkstatus(AMSDBc::GAMMARIGHT)){
        nright++;
        parrayR[nright]=p;

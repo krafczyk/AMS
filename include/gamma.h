@@ -129,7 +129,7 @@ inline  AMSPoint  getEHleft(int i){return _EHLEFT[i];}
 inline  AMSPoint  getHright(int i, int dir=0){return _HRIGH[dir==0?i:_NhRight-1-i];}
 inline  AMSPoint  getEHright(int i){return _EHRIGH[i];}
 //_____-
-static void _LeftRight(AMSTrRecHit * p, vector<double>, integer , number, integer &, const AMSPoint &, const AMSPoint &);
+static void _LeftRight(vector<double>, integer , number, integer &, const AMSPoint &, const AMSPoint &);
 //-----
 public:
 static void _Combi(integer&, integer, integer);
