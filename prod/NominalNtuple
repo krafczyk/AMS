@@ -1,5 +1,4 @@
 # hostname mode updatefreq ntupleoutputdir  
-defaulthost 0 200 /p0dat4/local/amsdatantuple/tmp
+defaulthost 0 200 /f0dat1/local/amsdatantuple/tmp
 pcamsf0     0 400 /f0dat1/local/amsdatantuple/tmp
-pcamsp1     0 200 /p0dat4/local/amsdatantuple/tmp
-pcamsa0     0 200 /p0dat4/local/amsdatantuple/tmp
+pcamsp0     0 200 /p0dat4/local/amsdatantuple/tmp

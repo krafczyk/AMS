@@ -130,6 +130,7 @@ module DPS{
       unsigned long Run;
       long EventsProcessed;     
       long LastEventProcessed;
+      long CriticalErrorsFound;
       long ErrorsFound;
       float CPUTimeSpent;
       float TimeSpent;

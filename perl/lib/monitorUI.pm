@@ -278,7 +278,7 @@ my %fields=(
                maskb=>[],
                notebookw=>undef,
                statusbar=>undef,
-               notebook=>[0,0,0,0],
+               notebook=>[0,0,0,0,0],
                current_page=>undef,
             );
     my $type=shift;
@@ -405,7 +405,7 @@ $self->{pixmapb}[2]=$book_closed;
 $self->{maskb}[2]=$book_closed_mask;
 
 
-$self->notebook_create_pages($notebook, 0, 3);
+$self->notebook_create_pages($notebook, 0, 4);
 
 my $statusbar = new Gtk::Statusbar;
 $vbox->pack_end($statusbar, 1, 1, 0);
@@ -415,7 +415,7 @@ if (not $Monitor::Singleton->{ok}){
 }else{
     $statusbar->push(1," Connected to Servers");
 }		
-Gtk->timeout_add(60000,\&Update);
+Gtk->timeout_add(90000,\&Update);
 return $mybless;
 }
 
@@ -495,6 +495,8 @@ sub notebook_create_pages {
                   $buffer="Server";
               }elsif($i==3){
                  $buffer="DiskUsage";
+              }elsif($i==4){
+                 $buffer="Control";
               } 	
 
 # 
@@ -521,7 +523,7 @@ sub notebook_create_pages {
 		
 		
 		$notebook->append_page_menu($child, $label_box, $menu_box);
-
+            $child->set_usize(900,400);
           my (@titles,$policy_x,$policy_y);
             if($i==0){
                 	@titles = (
@@ -533,14 +535,15 @@ sub notebook_create_pages {
             "EventTags ",
 	    " Events ",
 	    "  % of Total",
+	    " Warnings  ",
 	    " Errors  ",
-	    " CPU/Event (sec)",
+	    " CPU/Event ",
 	    " Efficiency",
 	    "Status ",
 	);
 
         $policy_x="never";
-        $policy_y="never";
+        $policy_y="automatic";
                 $buffer="Producer_ActiveHosts";
                 create_frame ($child,$self,$buffer,$policy_x,$policy_y,20,@titles);
 
@@ -621,6 +624,12 @@ sub notebook_create_pages {
         $policy_y='automatic';
                  $buffer="DiskUsage";
               create_frame ($child,$self,$buffer,$policy_x,$policy_y,20,@titles);
+
+              }elsif($i==4){
+#
+# Control page
+#
+
               } 	
 
 

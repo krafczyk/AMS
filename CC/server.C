@@ -683,6 +683,10 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
      _parent->EMessage((const char *) a);
      
     }
+     DPS::Client::CID cid;      
+      cid.Type=getType();
+      cid.Interface= (const char *) " "; 
+    PropagateAH(cid,(*i),DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);
     break;
    }
   }
@@ -1048,7 +1052,7 @@ return 0;
    void Server_impl::sendAH(const DPS::Client::CID &  cid,  DPS::Client::ActiveHost & ah, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==cid.Type){
-      AHLI li=find_if(pcur->getahl().begin(),pcur->getahl().end(),Eqs(ah));
+      AHLI li=find_if(pcur->getahl().begin(),pcur->getahl().end(),Eqs_h(ah));
       switch (rc){
        case DPS::Client::Update:
        if(li==pcur->getahl().end())_parent->EMessage(AMSClient::print(cid,"Host not found for editing"));
@@ -1616,6 +1620,10 @@ if(getServer()->InactiveClientExists())return;
      a+=submit;
      _parent->EMessage((const char *)a);
     }
+     DPS::Client::CID cid;      
+      cid.Type=getType();
+      cid.Interface= (const char *) " "; 
+    PropagateAH(cid,(*i),DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);
     break;
    }
   }
@@ -2593,13 +2601,13 @@ void Server_impl::sendNC(const DPS::Client::CID &  cid, const  DPS::Client::Nomi
 
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==cid.Type){
-      NCLI li=find_if(pcur->getncl().begin(),pcur->getncl().end(),Eqs(nc));
+      NCLI li=find_if(pcur->getncl().begin(),pcur->getncl().end(),Eqs_n(nc));
       switch (rc){
        case DPS::Client::Update:
        if(li==pcur->getncl().end())_parent->EMessage(AMSClient::print(nc,"Client not found for editing"));
        else{
         DPS::Client::NominalClient_var vac= new DPS::Client::NominalClient(nc);
-        replace_if(li,pcur->getncl().end(),Eqs(nc),vac);
+        replace_if(li,pcur->getncl().end(),Eqs_n(nc),vac);
        }
        break;
      }

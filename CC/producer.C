@@ -235,7 +235,9 @@ _ntend.Name=(const char *)a;
 _ntend.Run=run;
 _ntend.FirstEvent=first;
 _ntend.Begin=begin;
-_ntend.Insert=0;
+time_t tt;
+time(&tt);
+_ntend.Insert=tt;
 _ntend.End=0;
 _ntend.LastEvent=0;
 _ntend.EventNumber=0;
@@ -362,6 +364,7 @@ if(_cinfo.Run == AMSEvent::gethead()->getrun()){
  _cinfo.EventsProcessed++;
  _cinfo.LastEventProcessed=AMSEvent::gethead()->getid();
   if(!AMSEvent::gethead()->HasNoErrors())_cinfo.ErrorsFound++;
+  if(!AMSEvent::gethead()->HasNoCriticalErrors())_cinfo.CriticalErrorsFound++;
 }
 if(!(AMSEvent::gethead()->HasNoCriticalErrors())){
   TIMEX(_cinfo.CPUTimeSpent);
@@ -559,7 +562,9 @@ FMessage("AMSProducer::sendRunEnd-F-UnableToSendEventTagEndInfo ",DPS::Client::C
 
 
 void AMSProducer::sendEventTagBegin(const char * name,uinteger run,uinteger first){
-AString a=name;
+AString a=(const char*)_pid.HostName;
+a+=":";
+a+=name;
 a+=".";
 char tmp[80];
 sprintf(tmp,"%d",run);
@@ -621,4 +626,20 @@ void AMSProducer::sendDSTInfo(){
 
 
 
+}
+
+bool AMSProducer::Progressing(){
+static integer total=-1;
+ if(total>0 && total == _cinfo.EventsProcessed){
+   total=-1;   
+   return false;
+ }
+ else if(total<0){
+  total=_cinfo.EventsProcessed;
+  return true;
+ }
+ else{
+  total=-1;
+  return true;
+ }
 }

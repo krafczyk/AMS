@@ -26,7 +26,7 @@ else fnam=logdir;
  time_t timecur;
  time(&timecur);
  char time[255];
- sprintf(time,"%d.%s.%d.%d",timecur,(const char *)_pid.HostName,_pid.pid,_pid.uid);
+ sprintf(time,"%s.%d.%d",(const char *)_pid.HostName,_pid.uid,_pid.pid);
  fnam+=time;
  _fbin.open(fnam,ios::out);
  AString a("AMSClient::_openLogFile-F-UnableOpenLogFile ");

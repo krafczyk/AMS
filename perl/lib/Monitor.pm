@@ -416,6 +416,7 @@ sub getactivehosts{
      my $evt=0;
      my $lastevt=0;
      my $err=0;
+     my $cerr=0;
      my $cpu=0;
      my $time=0;
      my $total=0;
@@ -427,6 +428,7 @@ sub getactivehosts{
            if( $rdstc->{HostName} eq $host){
                $evt+=$rdstc->{EventsProcessed};
                $lastevt+=$rdstc->{LastEventProcessed}+1-$rdst->{FirstEvent};
+               $cerr+=$rdstc->{CriticalErrorsFound};
                $err+=$rdstc->{ErrorsFound};
                $cpu+=$rdstc->{CPUTimeSpent};
                $time+=$rdstc->{TimeSpent};
@@ -435,12 +437,12 @@ sub getactivehosts{
    }
    push @text, $evt; 
    push @text, int(1000*$lastevt/$total)/10.; 
-   push @text, $err; 
+   push @text, $err,$cerr; 
      $total_cpu+=$cpu;
      $total_time+=$time;
      $total_ev+=$evt;
    my $cpuper=int ($cpu*1000/($evt+1));
-    my $effic=int ($cpu*100/$time); 
+    my $effic=$time==0?0:int ($cpu*100/$time); 
   push @text, $cpuper/1000., $effic/100.;
      push @text, $hash->{Status};
     if( $hash->{Status} eq "LastClientFailed"){
@@ -457,7 +459,7 @@ sub getactivehosts{
          $final_text[12]=0;
      }
      else{
-        for my $i (1 ...8){ 
+        for my $i (1 ...9){ 
          $final_text[$i]+=$text[$i];
         }
      }
@@ -465,8 +467,8 @@ sub getactivehosts{
  }
     my $total_pr=$final_text[1]==0?1:$final_text[1];
    my $cpuper=int ($total_cpu*1000/($total_ev+1)/$total_pr);
-   $final_text[9]= $cpuper/1000.;
-    $final_text[10]= int($total_cpu/$total_time*100)/100.;
+   $final_text[10]= $cpuper/1000.;
+   $final_text[11]= int($total_cpu/($total_time+0.001)*100)/100.;
     
     push @output, [@final_text];
 

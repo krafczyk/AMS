@@ -66,17 +66,24 @@ virtual void _PurgeQueue()=0;
 
   void _UpdateACT(const DPS::Client::CID & cid, DPS::Client::ClientStatus status);
  public:
- class Eqs :public unary_function<DPS::Client::ActiveClient,bool>{
+// class Eqs :public unary_function<DPS::Client::ActiveClient,bool>{
+ class Eqs{
  DPS::Client::ActiveClient _a;
- DPS::Client::ActiveHost _b;
- DPS::Client::NominalClient _c;
  public:
  explicit Eqs( const  DPS::Client::ActiveClient & a):_a(a){}
- explicit Eqs( const  DPS::Client::ActiveHost & b):_b(b){}
- explicit Eqs( const  DPS::Client::NominalClient & c):_c(c){}
   bool operator () (const DPS::Client::ActiveClient_var & a){return _a.id.uid==a->id.uid;}
+};
+ class Eqs_n{
+ DPS::Client::NominalClient _c;
+ public:
+ explicit Eqs_n( const  DPS::Client::NominalClient & c):_c(c){}
   bool operator () (const DPS::Client::NominalClient_var & a){return _c.uid==a->uid;}
-  bool operator () (const DPS::Client::ActiveHost_var & b){return !strstr((const char*)b->HostName,(const char *)_b.HostName);}
+};
+ class Eqs_h{
+ DPS::Client::ActiveHost _b;
+ public:
+ explicit Eqs_h( const  DPS::Client::ActiveHost & b):_b(b){}
+  bool operator () (const DPS::Client::ActiveHost_var & b){return !strstr((const char*)(b->HostName),(const char *)(_b.HostName));}
 };
  class find :public unary_function<DPS::Client::ActiveClient,bool>{
  DPS::Client::ClientStatus _st;

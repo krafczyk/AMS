@@ -107,7 +107,7 @@ using namespace glconst;
   case SIGHUP:
 #ifdef __CORBA__
    cout <<"got sighup "<<endl;
-if(AMSProducer::gethead())AMSProducer::gethead()->sendCurrentRunInfo();
+if(AMSProducer::gethead() && AMSProducer::gethead()->Progressing())AMSProducer::gethead()->sendCurrentRunInfo();
 #endif
       break;
   case SIGUSR1:
