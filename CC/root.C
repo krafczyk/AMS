@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.15 2001/08/24 15:53:48 kscholbe Exp $
+//  $Id: root.C,v 1.16 2001/09/02 12:49:20 kscholbe Exp $
 #include <root.h>
 #include <ntuple.h>
 #ifdef __WRITEROOT__
@@ -44,7 +44,7 @@ EcalHitNtuple::EcalHitNtuple(){}
 RICMCNtuple::RICMCNtuple(){}
 RICEventNtuple::RICEventNtuple(){}
 RICRing::RICRing(){}
-ClassImp(AMSNtuple)
+//ClassImp(AMSNtuple)
 ClassImp(EventNtuple)
 ClassImp(EventNtuple02)
 ClassImp(BetaNtuple)
