@@ -1,4 +1,4 @@
-//  $Id: AMSR_Canvas.cxx,v 1.2 2001/01/22 17:32:34 choutko Exp $
+//  $Id: AMSR_Canvas.cxx,v 1.3 2001/06/25 20:10:24 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -29,7 +29,7 @@
 #include "AMSR_Canvas.h"
 //#include "AMSR_CanvasImp.h"
 #include "Debugger.h"
-
+#include <TBox.h>
 
 
 TRootCanvas * AMSR_Canvas::fTheCanvas = 0;
@@ -179,11 +179,11 @@ void AMSR_Canvas::DrawEventStatus(Int_t event, Int_t px, Int_t py, TObject *sele
    }
    for (Int_t i=strlen(atext);i<kTMAX-1;i++) atext[i] = ' ';
    atext[kTMAX-1] = 0;
-   gGXW->SetTextColor(1);
-   gGXW->SetTextAlign(12);
-   gGXW->SetTextSize(0.65*(y2-y1));
+   gVirtualX->SetTextColor(1);
+   gVirtualX->SetTextAlign(12);
+   gVirtualX->SetTextSize(0.65*(y2-y1));
 
-   gGXW->DrawText(pxt, pyt,    0,             1, atext, TGXW::kOpaque);
+   gVirtualX->DrawText(pxt, pyt,    0,             1, atext, TVirtualX::kOpaque);
 	//        x,   y,  angle, magnification, text, option
 
 #else
