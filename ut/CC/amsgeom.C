@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.156 2003/03/18 15:40:12 choumilo Exp $
+//  $Id: amsgeom.C,v 1.157 2003/03/19 12:27:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2003,7 +2003,7 @@ AMSgvolume * oct[maxo];
  ostrstream ost(name,sizeof(name));
 
 int i;
-// changed by VC 11-nov-2002  (removed trd radiator (i==0))
+// changed by VC 11-nov-2002  (removed trd hc (i==0))
 for ( i=1;i<TRDDBc::PrimaryOctagonNo();i++){
  ost.seekp(0);  
  ost << "TRD"<<i<<ends;
@@ -2013,9 +2013,22 @@ for ( i=1;i<TRDDBc::PrimaryOctagonNo();i++){
 
 
  for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
+     if(i!=1){
        oct[i]=(AMSgvolume*)mother.add(new AMSgvolume(TRDDBc::OctagonMedia(i),
        nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
-
+     }
+     else{
+#ifdef __G4AMS__
+      if(MISCFFKEY.G4On){
+       oct[i]=(AMSgvolume*)mother.add(new AMSgvolume(TRDDBc::OctagonMedia(i),
+       nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+      }
+      else
+#endif
+       oct[i]=(AMSgvolume*)mother.add(new AMSgvolume(TRDDBc::OctagonMedia(i),
+       nrot++,name,"PGON",par,10,coo,nrm, "MANY",1,gid,1));
+     }
+   
 }
 
 
@@ -2038,8 +2051,21 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo();i++){
 
 
  for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
+     if(po!=1){
        oct[i]=(AMSgvolume*)oct[po]->add(new AMSgvolume(TRDDBc::OctagonMedia(i),
        nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+     }
+     else{
+#ifdef __G4AMS__
+      if(MISCFFKEY.G4On){
+        oct[i]=(AMSgvolume*)oct[po]->add(new AMSgvolume(TRDDBc::OctagonMedia(i),
+        nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+      }
+      else
+#endif
+       oct[i]=(AMSgvolume*)oct[po]->add(new AMSgvolume(TRDDBc::OctagonMedia(i),
+       nrot++,name,"PGON",par,10,coo,nrm, "MANY",1,gid,1));
+     }
 }
 
 
@@ -2119,6 +2145,10 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
   }
 
   // Now the ladders and their contents
+  // ladders should go directly to mother volume now
+  // assuming no rotations etc for octagons
+  //
+   int itrd=TRDDBc::NoTRDOctagons(i);
  for(j=0;j<TRDDBc::LayersNo(i);j++){
   for(k=0;k<TRDDBc::LaddersNo(i,j);k++){
    int ip;
@@ -2127,15 +2157,22 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    ost << "TR"<<TRDDBc::CodeLad(gid-1)<<ends;
    TRDDBc::GetLadder(k,j,i,status,coo,nrm,rgid);
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::LaddersDimensions(i,j,k,ip);
-   int itrd=TRDDBc::NoTRDOctagons(i);
    //   cout <<name<<" "<<j<<" "<<k<<" "<<
    // coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
    //par[0]<<" "<<par[1]<<" "<<par[2]<<endl;
-
+#ifdef __G4AMS__
+   if(MISCFFKEY.G4On){
    dau=(AMSgvolume*)oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
        nrot++,name,"BOX",par,3,coo,nrm, "ONLY",0,gid,1));
-#ifdef __G4AMS__
 //   ((AMSgvolume*) dau)->Smartless()=1;
+    }
+    else{
+#endif
+    for(ip=0;ip<3;ip++)coo[ip]+=oct[itrd]->getcooA(ip);
+   dau=(AMSgvolume*)mother.add(new AMSgvolume(TRDDBc::LaddersMedia(),
+       nrot++,name,"BOX",par,3,coo,nrm, "ONLY",0,gid,1));
+#ifdef __G4AMS__
+    }
 #endif
 //
 // Tubes & Radiators have no rotation matrix at the moment

@@ -1,8 +1,9 @@
-//  $Id: trddbc.C,v 1.25 2003/03/18 11:43:08 choutko Exp $
+//  $Id: trddbc.C,v 1.26 2003/03/19 12:27:05 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
 #include <tkdbc.h>
+#include <commons.h>
 using namespace trdconst;
 char * TRDDBc::_OctagonMedia[maxo]={"TRDCarbonFiber", "TRDCarbonFiber",
 "TRDCarbonFiber","TRDCarbonFiber","TRDCarbonFiber","VACUUM","TRDHC","TRDHC",
@@ -309,7 +310,7 @@ const number  TRDDBc::_CutoutWidth=10.1;
 const number  TRDDBc::_FirstLayerHeight = 1.65; // Distance of first layer-line from bottom (center of bottom main octagon skin)
 const number TRDDBc::_WirePosition = 0.725; // Distance of wire below layer-line
 const number TRDDBc::_ManifoldThickness = 0.70; // Z-height of manifold
-const number TRDDBc::_ManifoldLength = 1.15; // Length of manifold along wire
+const number TRDDBc::_ManifoldLength = 1.51/2; // Half Length of manifold along wire
 const number TRDDBc::_ManifoldWidth = 10.1; // Width of manifold 
 const number TRDDBc::_BulkheadGap = 0.78; // Gap between ladders at bulkhead
 
@@ -322,6 +323,28 @@ number TRDDBc::_OctagonDimensions[maxo][10];
 number TRDDBc::_BulkheadsDimensions[mtrdo][maxbulk][4];
 number TRDDBc::_CutoutsDimensions[mtrdo][maxlay][maxlad][3];
 number TRDDBc::_LaddersDimensions[mtrdo][maxlay][maxlad][3];
+number TRDDBc::_LaddersLength[maxlay][maxlad]={
+ 92.63,111.13,133.03,151.53,156.75,155.55,156.75,155.55,156.75,155.55,153.23,131.33,112.83, 90.93,  0.00,  0.00,  0.00,  0.00,
+ 96.03,114.53,136.43,154.93,159.15,157.95,159.15,157.95,159.15,157.95,156.63,134.73,116.23, 94.33,  0.00,  0.00,  0.00,  0.00,
+ 99.43,117.93,139.83,158.33,161.56,160.36,161.56,160.36,161.56,160.36,160.03,138.13,119.63, 97.73,  0.00,  0.00,  0.00,  0.00,
+102.82,121.33,143.22,161.73,163.96,162.76,163.96,162.76,163.96,162.76,163.42,141.53,123.02,101.13,  0.00,  0.00,  0.00,  0.00,
+ 85.88,107.78,126.28,148.18,165.16,166.36,165.16,166.36,165.16,166.36,165.16,166.36,146.48,127.98,106.08, 87.58,  0.00,  0.00,
+ 89.28,111.18,129.68,151.58,167.56,168.76,167.56,168.76,167.56,168.76,167.56,168.76,149.88,131.38,109.48, 90.98,  0.00,  0.00,
+ 92.68,114.58,133.08,154.98,169.97,171.17,169.97,171.17,169.97,171.17,169.97,171.17,153.28,134.78,112.88, 94.38,  0.00,  0.00,
+ 96.08,117.97,136.48,158.37,172.37,173.57,172.37,173.57,172.37,173.57,172.37,173.57,156.68,138.17,116.28, 97.77,  0.00,  0.00,
+ 99.47,121.37,139.87,161.77,174.77,175.97,174.77,175.97,174.77,175.97,174.77,175.97,160.07,141.57,119.67,101.17,  0.00,  0.00,
+102.87,124.77,143.27,165.17,177.17,178.37,177.17,178.37,177.17,178.37,177.17,178.37,163.47,144.97,123.07,104.57,  0.00,  0.00,
+106.27,128.17,146.67,168.57,179.58,180.78,179.58,180.78,179.58,180.78,179.58,180.78,166.87,148.37,126.47,107.97,  0.00,  0.00,
+109.67,131.56,150.07,171.96,181.98,183.18,181.98,183.18,181.98,183.18,181.98,183.18,170.27,151.76,129.87,111.36,  0.00,  0.00,
+ 94.56,113.06,134.96,153.46,175.36,184.38,185.58,184.38,185.58,184.38,185.58,184.38,185.58,173.66,155.16,133.26,114.76, 92.86,
+ 97.96,116.46,138.36,156.86,178.76,186.78,187.98,186.78,187.98,186.78,187.98,186.78,187.98,177.06,158.56,136.66,118.16, 96.26,
+101.36,119.86,141.76,160.26,182.16,189.19,190.39,189.19,190.39,189.19,190.39,189.19,190.39,180.46,161.96,140.06,121.56, 99.66,
+104.75,123.26,145.15,163.66,185.55,191.59,192.79,191.59,192.79,191.59,192.79,191.59,192.79,183.86,165.35,143.46,124.95,103.06,
+106.59,125.09,146.99,165.49,187.39,193.99,195.19,193.99,195.19,193.99,195.19,193.99,195.19,185.69,167.19,145.29,126.79,104.89,
+109.99,128.49,150.39,168.89,190.79,196.39,197.59,196.39,197.59,196.39,197.59,196.39,197.59,189.09,170.59,148.69,130.19,108.29,
+113.39,131.89,153.79,172.29,194.19,198.80,200.00,198.80,200.00,198.80,200.00,198.80,200.00,192.49,173.99,152.09,133.59,111.69,
+116.78,135.29,157.18,175.69,197.58,201.20,202.40,201.20,202.40,201.20,202.40,201.20,202.40,195.89,177.38,155.49,136.98,115.09
+};
 number TRDDBc::_TubesDimensions[mtrdo][maxlay][maxlad][3];    
 number TRDDBc::_SpacerDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3][2];    
 number TRDDBc::_TubesBoxDimensions[mtrdo][maxlay][maxlad][10];    
@@ -443,7 +466,8 @@ void TRDDBc::init(){
       OctagonDimensions(1,5)=0;                // rmin
 
       // On drawing, 1600 is intersection with middle of bottom skin
-      OctagonDimensions(1,6)=1600./20.-2./10./cos(ang);   // rmax
+      
+      OctagonDimensions(1,6)=1600./20.-2./10*tan(ang)+1./10/cos(ang);   // rmax
 
       // Top edge
       OctagonDimensions(1,8)=0;    // rmin
@@ -882,9 +906,8 @@ void TRDDBc::init(){
 
 	    // Reset rmin here for check
 
-	    number r = 1541./20.-2./20./cos(ang);
 
-	    //	    number r=rmin+2./20./cos(ang);
+	    	    number r=rmin+2./20./cos(ang);
 
 	    // Height of the bottom of manifold for the layer
             // Measured above the top of the lower carbon skin
@@ -951,7 +974,7 @@ void TRDDBc::init(){
 	    // This octagon inner tangent circle radius to be
             // used for "90 deg" ladders.
  
-	    number r90 = r+lhgt*tan(ang);
+	    number r90 = r+lhgt*tang;
 
 	    // Length of octagon side at this given height
 
@@ -984,7 +1007,7 @@ void TRDDBc::init(){
                 // Inner tangent radius of center of HC octagon 
                 // at the height of the manifold bottom
 
-                number r45 =  r + lhgt*tan(ang);
+                number r45 =  r + lhgt*tang;
 
 		// Length of side of the octagon at this height
 
@@ -1016,7 +1039,6 @@ void TRDDBc::init(){
 	    // Length to compare with engineer's numbers, which give
             // length up to halfway along the manifold, in mm
 
-	    number length_to_compare = 20.*(coo[2]+ManifoldLength()/2.);
 
 	    // Add manifold length along wire
 
@@ -1026,8 +1048,9 @@ void TRDDBc::init(){
 
 	    coo[2]*=2;
 	
-	    //	    cout <<j<<" "<<k<<" "<<j+1<<" "<<num_from_center<<" "<<deg<<" "<<past_corner<<" "<<length_to_compare<<endl;
+//	   cout <<j<<" "<<k<<" "<<j+1<<" "<<num_from_center<<" "<<deg<<" "<<past_corner<<" "<<coo[2]<<" "<<_LaddersLength[j][k]<<" "<<coo[2]-_LaddersLength[j][k]<<endl;
 	    for(int l=0;l<3;l++)LaddersDimensions(i,j,k,l)=coo[l]/2;          
+            LaddersDimensions(i,j,k,2)=_LaddersLength[j][k]/2;
 	  }  
 	}
 
@@ -1109,12 +1132,16 @@ void TRDDBc::init(){
        }
       }
 
+
+
 //
 //    Now with known ladder positions (assuming they are o.k.) 
 //    recalculate  ladder length matched with octgon dim 
 //    VC 12-mar/2003
 //
 
+#ifdef __G4AMS__
+   if(MISCFFKEY.G4On){
 
 
       for(i=0;i<TRDOctagonNo();i++){
@@ -1141,7 +1168,7 @@ void TRDDBc::init(){
 //            Now   ladder length 
 
               number r=rmin+tang*(LadderLowestZ-OctagonDimensions(NoTRDOctagons(i),4));
-//              cout <<"jka  "<<j<<" "<<k<<" "<< LaddersDimensions(i,j,k,2)<<endl;
+//              cout <<"jka  "<<j<<" "<<k<<" "<< LaddersDimensions(i,j,k,2)<<" "<<lcoo[0]<<" "<<lcoo[1]<<" "<<lcoo[2]<<endl;
               LaddersDimensions(i,j,k,2)=LadderCornerCoo<r*tan(ang)?r:r-(LadderCornerCoo-r*tan(ang))*tan(2*ang);
 
 //              cout <<"jkb  "<<j<<" "<<k<<" "<< LaddersDimensions(i,j,k,2)<<endl;
@@ -1151,7 +1178,8 @@ void TRDDBc::init(){
 
       }
 
-
+}
+#endif
 
 
 
@@ -1220,7 +1248,6 @@ void TRDDBc::init(){
           TubesDimensions(i,j,k,1)=(TubeInnerDiameter()+2*TubeWallThickness())/2;
           // length
 
-//        (Manifold (???)  added by VC (probably wrong) 12-03-2003
           TubesDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2)-ManifoldLength();
 
 
