@@ -12,9 +12,23 @@ extern "C" int _select(const dirent *entry);
 extern "C" int _selectsdir(const dirent *entry);
 extern "C" int _sort(const dirent ** e1, const dirent ** e2);
 extern "C" int _sorta(const dirent ** e1, const dirent ** e2);
+
+// return codes 
+//       1         everything ok
+//       0         wrong crc or crc was not compared
+//       128+1     too few parameters
+//       128+2     file is not a plain file
+//       128+3     unable to open file 
+
   int main(int argc, char * argv[]){
+    unsigned int crc_to_compare=0;
     if(argc<2){
       cerr<< "  Please provide Directory Or File Name"<<endl;
+      return 128+1;
+    }
+    else if(argc>2){
+      //   crc mode
+      sscanf(argv[2],"%u",&crc_to_compare);
     }
       _inittable();
       AString fdir(argv[1]);
@@ -22,7 +36,10 @@ extern "C" int _sorta(const dirent ** e1, const dirent ** e2);
           struct stat statdir_map;
           stat((const char*)fdir,&statdir_map);
          ifstream fbin;
-          if((statdir_map.st_mode & 16384)){
+          if((statdir_map.st_mode & 16384) ){
+            if( crc_to_compare!=0){
+                return 128+2;
+            }
       fout+=".crc";
       ofstream fbout;
       fbout.open((const char*)fout);
@@ -78,6 +95,9 @@ extern "C" int _sorta(const dirent ** e1, const dirent ** e2);
   }
   else{
          fbin.open((const char*)fdir);
+         if(!fbin){
+            return 128+3;
+         }
          unsigned int data;
          unsigned int crc;
           int fsize=statdir_map.st_size;
@@ -107,7 +127,8 @@ extern "C" int _sorta(const dirent ** e1, const dirent ** e2);
          }
          fbin.close();
          crc=~crc;
-         cout <<fdir<<" "<<crc<<endl;
+         if(crc_to_compare==crc)return 1;  
+         cout <<fdir<<" "<<crc<<" "<<crc_to_compare<<endl;
   }
    return 0;
   }

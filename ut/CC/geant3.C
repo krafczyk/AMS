@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.80 2003/04/25 16:38:05 choutko Exp $
+//  $Id: geant3.C,v 1.81 2003/04/26 13:26:55 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -865,9 +865,6 @@ AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime());
    TIMEL(yy);   
    if(GCTIME.TIMEND < xx || (yy>0 && yy<AMSFFKEY.CpuLimit) ){
     GCTIME.ITIME=1;
-   }
-   else{
-    
    }
 }
 }
