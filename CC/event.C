@@ -761,11 +761,9 @@ void AMSEvent::_sitofinitevent(){
 }
 //--------------
 void AMSEvent::_sictcinitevent(){
-  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
   for(int i=0;i<CTCDBc::getnlay();i++){
    AMSEvent::gethead()->add (
    new AMSContainer(AMSID("AMSContainer:AMSCTCMCCluster",i),0));
-  }
   }
 }
 
@@ -840,7 +838,6 @@ void AMSEvent::_retofinitevent(){
 }
 //=====================================================================
 void AMSEvent::_rectcinitevent(){
-  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
    integer i;
  
    AMSEvent::gethead()->add(
@@ -858,7 +855,6 @@ void AMSEvent::_rectcinitevent(){
     AMSEvent::gethead()->add (
      new AMSContainer(AMSID("AMSContainer:AMSCTCCluster",i),0));
    }
-  }
 }
 //=====================================================================
 void AMSEvent::_reecalinitevent(){
@@ -2871,7 +2867,12 @@ AMSID AMSEvent::getTDVStatus(){
 
 
 void AMSEvent::_collectstatus(){
+
+
+
  uinteger __status=0;
+  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
+
   {
     TriggerLVL3 *ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
     if(ptr){
@@ -2886,49 +2887,14 @@ void AMSEvent::_collectstatus(){
     AMSParticle *ptr=(AMSParticle*)getheadC("AMSParticle",0);
     AMSParticle *ptr1=(AMSParticle*)getheadC("AMSParticle",1);
     int npart=0;
+    AMSContainer *ptrc;
     if(ptr){
-      AMSContainer *ptrc=getC("AMSParticle",0);
-      npart=ptrc->getnelem();
-      if(npart>3)npart=3;
-      __status= __status | (npart<<21);
-      integer charge=ptr->getcharge()-1;
-      if(charge>7)charge=7;
-      __status=__status | (charge<<5);
-      number pmom=ptr->getmomentum();
-      integer sign=pmom<0?0:1;
-      __status=__status | (sign<<8);
-      sign=(ptr->getpbeta())->getbeta()<0?0:1;
-      __status=__status | (sign<<9);
-      integer pat=(ptr->getptrack())->getpattern();
-      if(pat>31)pat=31;
-      if(pat<0)pat=31;
-      __status=__status | (pat<<10);
-       pat=(ptr->getpbeta())->getpattern();
-      integer spat=0;
-      if(pat==0)spat==0;
-      else if(pat<5)spat=1;
-      else spat=2;
-      __status=__status | (spat<<15);       
-      number rig=fabs(pmom)/(charge+1);
-      uinteger srig;
-      if(rig<2)srig=0;
-      else if(rig<8)srig=1;
-      else if(rig<20)srig=2;
-      else srig=3;
-      __status=__status | (srig<<23);
-      uinteger trquality;
-      if((ptr->getptrack())->checkstatus(AMSDBc::FalseTOFX))trquality=3;
-      else if( (ptr->getptrack())->checkstatus(AMSDBc::FalseX))trquality=2;
-      else if((ptr->getptrack())->checkstatus(AMSDBc::WEAK) )trquality=1;
-      else trquality=0;   
-      __status=__status | (trquality<<25);
-       uinteger localdb=0;
-       if((ptr->getptrack())->checkstatus(AMSDBc::LocalDB))localdb=1;
-      __status=__status | (localdb<<29);
+      ptrc=getC("AMSParticle",0);
     }
     else if(ptr1){
       ptr=ptr1;     
       AMSContainer *ptrc=getC("AMSParticle",1);
+    }
       npart=ptrc->getnelem();
       if(npart>3)npart=3;
       __status= __status | (npart<<21);
@@ -2945,10 +2911,8 @@ void AMSEvent::_collectstatus(){
       if(pat<0)pat=31;
       __status=__status | (pat<<10);
        pat=(ptr->getpbeta())->getpattern();
-      integer spat=0;
-      if(pat==0)spat==0;
-      else if(pat<5)spat=1;
-      else spat=2;
+      uinteger spat=TKDBc::nlay()-TKDBc::patpoints((ptr->getptrack())->getpattern());
+      if(spat>3)spat=3;
       __status=__status | (spat<<15);       
       number rig=fabs(pmom)/(charge+1);
       uinteger srig;
@@ -2966,7 +2930,6 @@ void AMSEvent::_collectstatus(){
        uinteger localdb=0;
        if((ptr->getptrack())->checkstatus(AMSDBc::LocalDB))localdb=1;
       __status=__status | (localdb<<29);
-    }
   }
   {
     integer ctcl[2]={0,0};
@@ -2999,9 +2962,11 @@ void AMSEvent::_collectstatus(){
      if(_Error==1){
       __status=__status | (1<<30);
     } 
+}
  _status[0]=__status;
  _status[1]=0;
 }
+
 
 
 integer AMSEvent::IsTest(){

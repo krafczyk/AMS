@@ -387,7 +387,7 @@ if(!_pv){
  fnam+=AMSJob::gethead()->getsetup();
  fnam+= AMSJob::gethead()->isRealData()?".1":".0";
 // as usual doesn't work...
-  AMSJob::gethead()->getgeom()->ReadG4StepVolumes((char*)fnam);  
+//  AMSJob::gethead()->getgeom()->ReadG4StepVolumes((char*)fnam);  
   cout << "AMSG4DetectorInterface::Construct-I-"<<AMSgvolume::getNpv()<<" Physical volumes, "<<AMSgvolume::getNlv()<<" logical volumes and "<<AMSgvolume::getNrm()<<" rotation matrixes have been created "<<endl;
  _pv=AMSJob::gethead()->getgeom()->pg4v();
 }
