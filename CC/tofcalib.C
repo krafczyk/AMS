@@ -795,7 +795,158 @@ void TOFAMPLcalib::fit(){
   integer id,idr,idh,ibt,nbn,nb;
 }
 //=========================================================================
-
-
-
-
+number TOFSTRRcalib::srm1[SCCHMX];//sum of str-ratio for ind.channels (case-1)
+number TOFSTRRcalib::srmq1[SCCHMX];//sum of squares of ......................
+number TOFSTRRcalib::srm2[SCCHMX];//sum of str-ratio for ind.channels (case-2)
+number TOFSTRRcalib::srmq2[SCCHMX];//sum of squares of ......................
+number TOFSTRRcalib::srp12[SCCHMX];//sum of products str1*str2
+integer TOFSTRRcalib::nevnt[SCCHMX];// events in sum
+integer TOFSTRRcalib::nevtot;       // total number of analized events
+//----------
+void TOFSTRRcalib::init(){
+  integer i;
+  for(i=0;i<SCCHMX;i++){
+    srm1[i]=0.;
+    srmq1[i]=0.;
+    srm2[i]=0.;
+    srmq2[i]=0.;
+    srp12[i]=0.;
+    nevnt[i]=0;
+  }
+  nevtot=0;
+} 
+//----------
+void TOFSTRRcalib::fill(integer ichan, number tm[3]){
+  number r1,r2,dtm;
+  nevtot+=1;
+  assert(ichan>=0 && ichan<SCCHMX);
+  dtm=tm[0]-tm[1];
+  if(dtm>0.){
+    nevnt[ichan]+=1;
+    r1=(tm[1]-tm[2])/dtm;
+    srm1[ichan]+=r1;
+    srmq1[ichan]+=r1*r1;
+    r2=(tm[0]-tm[2])/dtm-1.;
+    srm2[ichan]+=r2;
+    srmq2[ichan]+=r2*r2;
+    srp12[ichan]+=r1*r2;
+  }
+}
+//-----------
+void TOFSTRRcalib::outp(){
+  integer i,j,il,ib,ic,stat(0);
+  geant rm1[SCCHMX],s1[SCCHMX],rm2[SCCHMX],s2[SCCHMX],cc[SCCHMX],nev;
+  char fname[80]="strrcalib.dat";
+//
+  for(ic=0;ic<SCCHMX;ic++){
+    rm1[ic]=0.;
+    s1[ic]=0.;
+    rm2[ic]=0.;
+    s2[ic]=0.;
+    cc[ic]=0.;
+    nev=geant(nevnt[ic]);
+    if(nevnt[ic]>10){
+      stat=1;
+      rm1[ic]=geant(srm1[ic]/nev);
+      s1[ic]=geant(srmq1[ic]/nev)-rm1[ic]*rm1[ic];// rms**2
+      if(s1[ic]>=0.)s1[ic]=sqrt(s1[ic]/(nev-1.));// err. on mean value
+      rm2[ic]=geant(srm2[ic]/nev);
+      s2[ic]=geant(srmq2[ic]/nev)-rm2[ic]*rm2[ic];// rms**2
+      if(s2[ic]>=0.)s2[ic]=sqrt(s2[ic]/(nev-1.));// err. on mean value
+      cc[ic]=geant((srp12[ic]/nev-rm1[ic]*rm2[ic])/(s1[ic]*s2[ic]));
+    }
+  }
+//
+  printf("\n\n");
+  printf("===========> Channels STRR-calibration report :\n\n");
+  printf("     Total channel entries  : % 6d\n\n",nevtot);
+  printf("Event/channel collected :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 6d",nevnt[ic]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 6d",nevnt[ic]);
+    }
+    printf("\n\n");
+  }
+  if(stat==0)return;
+//---
+  printf("Mean Stretcher ratios (case-1) :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 5.1f",rm1[ic]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 5.1f",rm1[ic]);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Stretcher ratio errors (case-1) :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 5.2f",s1[ic]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 5.2f",s1[ic]);
+    }
+    printf("\n\n");
+  }
+//---
+  printf("Mean Stretcher ratios (case-2) :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 5.1f",rm2[ic]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 5.1f",rm2[ic]);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Stretcher ratio errors (case-2) :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 5.2f",s2[ic]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 5.2f",s2[ic]);
+    }
+    printf("\n\n");
+  }
+//---
+//
+  ofstream tcfile(fname,ios::out);
+  if(!tcfile){
+    cerr<<"TOFSTRRcalib:error opening file for output"<<fname<<'\n';
+    exit(8);
+  }
+  cout<<"Open file for STRR-calibration output, fname:"<<fname<<'\n';
+  cout<<"Stretcher ratios for indiv.channels will be written !"<<'\n';
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      tcfile << 0.5*(rm1[ic]+rm2[ic]);// side-1
+      ic=il*SCMXBR*2+ib*2+1;
+      tcfile << 0.5*(rm1[ic]+rm2[ic]);// side-2
+    }
+  }
+  tcfile.close();
+}
+//=============================================================================

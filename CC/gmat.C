@@ -145,12 +145,12 @@ tmed.add (new AMSgtmed(10,"TOF_SCINT",21,1,'Y',birks,1,5,10,
                        -0.25, -1, 0.001, -0.05));
 //(for tof_scint.: max_step=0.25cm/autom, min_step=0.05cm/autom )
 //
-tmed.add (new AMSgtmed(11,"ANTI_SCINT",21,1,'Y',birks));
 tmed.add (new AMSgtmed(12,"TOF_HONEYCOMB",24,0));
 tmed.add (new AMSgtmed(13,"TOF_PMT_BOX",25,0));
 tmed.add (new AMSgtmed(14,"TOF_SC_COVER",26,0));
 tmed.add (new AMSgtmed(15,"IRON",10,0));
-
+//
+tmed.add (new AMSgtmed(11,"ANTI_SCINT",21,1,'Y',birks));
 //
 tmed.add (new AMSgtmed(16,"CTC_WLS",27,1));
 //
@@ -167,7 +167,11 @@ tmed.add (new AMSgtmed(21,"CTC_AEROGEL",32,1));
 tmed.add (new AMSgtmed(22,"CTC_DUMMYMED",16,0));// fill all gaps inside CTC
 //
 tmed.add (new AMSgtmed(23,"ATC_AEROGEL",33,1));
-
+//
+tmed.add (new AMSgtmed(24,"ANTI_WRAP",17,0));//  tempor. mylar
+//
+tmed.add (new AMSgtmed(25,"ANTI_SUPTB",26,0));//  tempor. carb.fiber
+//
 AMSgObj::GTrMedMap.map(tmed);
 #ifdef __AMSDEBUG__
 if(AMSgtmed::debug)AMSgObj::GTrMedMap.print();

@@ -145,7 +145,7 @@ void AMSAntiCluster::build(){
      number sup=counter[0][j];
      number sdown=counter[1][j];
      if(sup+sdown > ANTIRECFFKEY.ThrS){
-      AMSgvolume *pg=AMSJob::gethead()->getgeomvolume(AMSID("ASCI",j+1));
+      AMSgvolume *pg=AMSJob::gethead()->getgeomvolume(AMSID("ANTS",j+1));
       #ifdef __AMSDEBUG__
        assert (pg != NULL);
       #endif     

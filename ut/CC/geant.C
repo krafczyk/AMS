@@ -197,10 +197,12 @@ extern "C" void gustep_(){
   // TOF
 
   geant t,x,y,z;
+  char name[5]="dumm";
+  char media[21]="dummy_media         ";
   geant de,dee,dtr2,div,tof;
   static geant xpr(0.),ypr(0.),zpr(0.),tpr(0.);
   geant trcut2(0.09);// Max. transv.shift (0.3cm)**2
-  int i,nd,numv,iprt;
+  int i,nd,numv,iprt,numl;
   static int numvo(-999),iprto(-999);
   if(GCVOLU.names[1][0]== 'T' && GCVOLU.names[1][1]=='O' &&
   GCVOLU.names[1][2]=='F' && GCVOLU.names[1][3]=='S'){// in "TOFS"
@@ -270,11 +272,24 @@ extern "C" void gustep_(){
      GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep);
 
 
-  // ANTI     
-
-  if(GCVOLU.nlevel >1 && GCTRAK.destep != 0  && GCTMED.isvol != 0 && 
-  GCVOLU.names[1][0]== 'A' && GCVOLU.names[1][1]=='S' 
-  && GCVOLU.names[1][2]=='C'){
+  // ANTI,  mod. by E.C.
+  numl=GCVOLU.nlevel;
+//  numv=GCVOLU.number[numl-1];
+//  for(i=0;i<4;i++)name[i]=GCVOLU.names[numl-1][i];
+//  cerr<<"Volume "<<name<<" number="<<numv<<" level="<<numl<<endl;
+//  iprt=GCKINE.ipart;
+//  x=GCTRAK.vect[0];
+//  y=GCTRAK.vect[1];
+//  z=GCTRAK.vect[2];
+//  t=GCTRAK.tofg;
+//  de=GCTRAK.destep;
+//  cerr<<"Part="<<iprt<<" x/y/z="<<x<<" "<<y<<" "<<z<<endl;
+//  UHTOC(GCTMED.natmed,4,media,20);
+//  cerr<<" Media "<<media<<endl;
+  int manti(0);
+  if(numl==3 && GCVOLU.names[numl-1][0]== 'A' && GCVOLU.names[numl-1][1]=='N'
+                                       && GCVOLU.names[numl-1][2]=='T')manti=1;
+  if(GCTRAK.destep != 0  && GCTMED.isvol != 0 && manti==1){
      geant dee;
      GBIRK(dee);
      AMSAntiMCCluster::siantihits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,

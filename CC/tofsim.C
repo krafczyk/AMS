@@ -1129,7 +1129,7 @@ void AMSTOFRawEvent::mc_build()
   if(trcode<0)return; // no trigger
   tlev1=ttrig1+TOFDBc::ftdelf()+TOFDBc::accdel();// Lev-1 accept-signal abs.time
   tl1d=tlev1-TOFDBc::fatdcd();// just to sumulate A-tdc-pulse delay wrt ftdc-pulse
-//  
+//
   for(ilay=0;ilay<SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(AMSTOFTovt*)AMSEvent::gethead()->
                                getheadC("AMSTOFTovt",ilay,0);
@@ -1176,7 +1176,7 @@ void AMSTOFRawEvent::mc_build()
         t1=tstdc[jj]+rnormx()*TOFDBc::strjit1();//"start"-signal time + jitter
         t2=ttrig1+rnormx()*TOFDBc::strjit2()+TOFDBc::ftdelf();//"stop"-signal + jitter
         t3=t2+ftpw;//"dummy"-signal time (fixed delay = FT-pulse width)
-        t4=t2+(t2-t1)*TOFDBc::strrat()+rnormx()*TOFDBc::strflu();//"end-mark"-signal + fluct           
+        t4=t2+(t2-t1)*TOFDBc::strrat()+rnormx()*TOFDBc::strflu();//"end-mark"-signal + fluct 
         dt=ttrig1+TOFDBc::ftdelf()-t1;// total FT-delay wrt t1
         if(dt<=TOFDBc::ftdelm()){ // check max. delay of "fast-trigger" signal
           it0=integer((tlev1-TOFDBc::fstdcd())/TOFDBc::tdcbin(1));//sTDC is delayed wrt fTDC

@@ -66,7 +66,7 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::_shaptb=2.;      // MC shaper pulse time binning
   geant TOFDBc::_shrtim=0.5;     // MC shaper pulse rise time (ns)
   geant TOFDBc::_shftim=50.;     // MC shaper pulse fall time (ns)
-  geant TOFDBc::_strflu=0.;   // Stretcher "end-mark" time fluctuations (ns)
+  geant TOFDBc::_strflu=0.05;   // Stretcher "end-mark" time fluctuations (ns)
   geant TOFDBc::_tdcbin[4]={
     1.,                            // pipe/line TDC binning for fast-tdc meas.
     1.,                            // pipe/line TDC binning for slow-tdc meas.
@@ -93,8 +93,8 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::_trigtb=0.5;  // MC time-bin in logic(trig) pulse handling (ns)
   geant TOFDBc::_di2anr=0.1;  // dinode->anode signal ratio (default,mc-data)
   geant TOFDBc::_strrat=40.;  // stretcher ratio (default,mc-data)
-  geant TOFDBc::_strjit1=0.;  // "start"-pulse jitter at stretcher input
-  geant TOFDBc::_strjit2=0.;  // "stop"(FT)-pulse jitter at stretcher input
+  geant TOFDBc::_strjit1=0.025;  // "start"-pulse jitter at stretcher input
+  geant TOFDBc::_strjit2=0.025;  // "stop"(FT)-pulse jitter at stretcher input
   geant TOFDBc::_accdel=5000.;//Lev-1 signal delay with respect to FT (ns)
   geant TOFDBc::_ftdelf=20.;  // FastTrigger (FT) fixed (by h/w) delay (ns)
   geant TOFDBc::_ftdelm=100.; // FT max delay (allowed by stretcher logic) (ns)
@@ -571,11 +571,12 @@ void TOFJobStat::print(){
   printf(" Entries to AMPL-calibr. : % 6d\n",recount[10]);
   printf(" AMPL: multiplicity OK   : % 6d\n",recount[11]);
   printf(" AMPL: matching OK       : % 6d\n",recount[12]);
+  printf(" Entries to STRR-calibr. : % 6d\n",recount[15]);
   printf("\n\n");
 //
   if(!AMSJob::gethead()->isRealData() && TOFMCFFKEY.fast==1)return;
 //
-  printf("=====> Bars reconstruction report :\n\n");
+  printf("==========> Bars reconstruction report :\n\n");
 //
   printf("Bar H/w-2-sides status OK :\n\n");
   for(il=0;il<SCLRS;il++){
@@ -611,7 +612,100 @@ void TOFJobStat::print(){
 
 if(TOFRECFFKEY.reprtf[0]==0)return;
 //
-  printf("=====> Channels reconstruction report :\n\n");
+  printf("===========> Channels validation report :\n\n");
+//
+  printf("H/w-status OK (validation) :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 6d",chcount[ic][11]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 6d",chcount[ic][11]);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Hist-TDC wrong up/down sequence (percentage) :\n");
+  printf("\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][11]);
+      if(rc>0.)rc=100.*geant(chcount[ic][12])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][11]);
+      if(rc>0.)rc=100.*geant(chcount[ic][12])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Stretcher-TDC wrong up/down sequence (percentage) :\n");
+  printf("\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][11]);
+      if(rc>0.)rc=100.*geant(chcount[ic][13])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][11]);
+      if(rc>0.)rc=100.*geant(chcount[ic][13])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("A-TDC wrong up/down sequence (percentage) :\n");
+  printf("\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][11]);
+      if(rc>0.)rc=100.*geant(chcount[ic][14])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][11]);
+      if(rc>0.)rc=100.*geant(chcount[ic][14])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("D-TDC wrong up/down sequence (percentage) :\n");
+  printf("\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][11]);
+      if(rc>0.)rc=100.*geant(chcount[ic][15])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][11]);
+      if(rc>0.)rc=100.*geant(chcount[ic][15])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+//------------------------------------------------------
+  printf("============> Channels reconstruction report :\n\n");
 //
   printf("H/w-status OK :\n\n");
   for(il=0;il<SCLRS;il++){

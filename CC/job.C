@@ -21,6 +21,7 @@
 #include <mceventg.h>
 #include <trcalib.h>
 #include <tofdbc.h>
+#include <antidbc.h>
 #include <tofsim.h>
 #include <tofrec.h>
 #include <tofcalib.h>
@@ -222,15 +223,7 @@ void AMSJob::_sitofdata(){
   UCTOH(tfname,TOFMCFFKEY.tdfnam,4,12);
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
-
-void AMSJob::_siantidata(){
-  ANTIMCFFKEY.SigmaPed=1;
-  ANTIMCFFKEY.GeV2PhEl=20e3;
-  ANTIMCFFKEY.LZero=120;
-  FFKEY("ANTIMC",(float*)&ANTIMCFFKEY,sizeof(ANTIMCFFKEY_DEF)/sizeof(integer),
-  "MIXED");
-  
-}
+//===============================================================================
 
 
 void AMSJob::_sictcdata(){
@@ -299,6 +292,30 @@ void AMSJob::_sictcdata(){
 FFKEY("CTCGEOM",(float*)&CTCGEOMFFKEY,sizeof(CTCGEOMFFKEY_DEF)/sizeof(integer),"MIXED");
 FFKEY("CTCMC",(float*)&CTCMCFFKEY,sizeof(CTCMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
+//================================================================================
+void AMSJob::_siantidata(){
+  ANTIGEOMFFKEY.nscpad=16;     // number of scintillator paddles
+  ANTIGEOMFFKEY.scradi=54.385; // internal radious of ANTI sc. cylinder (cm)
+  ANTIGEOMFFKEY.scinth=1.;     // thickness of scintillator (cm)
+  ANTIGEOMFFKEY.scleng=83.;    // scintillator paddle length (glob. Z-dim)
+  ANTIGEOMFFKEY.wrapth=0.04;   // wrapper thickness (cm)
+  ANTIGEOMFFKEY.groovr=0.4;    // groove radious (bump_rad = groove_rad-pdlgap)
+  ANTIGEOMFFKEY.pdlgap=0.04;   // inter paddle gap (cm)
+  ANTIGEOMFFKEY.stradi=54.235; // inner radious of supp. tube
+  ANTIGEOMFFKEY.stleng=83.;    // length of supp. tube
+  ANTIGEOMFFKEY.stthic=0.12;   // thickness of supp. tube
+  
+//
+  ANTIMCFFKEY.SigmaPed=1;
+  ANTIMCFFKEY.GeV2PhEl=20e3;
+  ANTIMCFFKEY.LZero=120;
+//
+  FFKEY("ANGE",(float*)&ANTIGEOMFFKEY,sizeof(ANTIGEOMFFKEY_DEF)/sizeof(integer),
+  "MIXED");
+  FFKEY("ANMC",(float*)&ANTIMCFFKEY,sizeof(ANTIMCFFKEY_DEF)/sizeof(integer),
+  "MIXED");
+}
+//================================================================================
 
 void AMSJob::_sitrddata(){
 }
@@ -502,11 +519,11 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.refbid[4]=108; 
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
-
+//======================================================================
 void AMSJob::_reantidata(){
   ANTIRECFFKEY.ThrS=6;
   ANTIRECFFKEY.PhEl2MeV=0.05;
-  FFKEY("ANTIREC",(float*)&ANTIRECFFKEY,sizeof(ANTIRECFFKEY_DEF)/
+  FFKEY("ANRE",(float*)&ANTIRECFFKEY,sizeof(ANTIRECFFKEY_DEF)/
   sizeof(integer),"MIXED");
 }
 
@@ -739,7 +756,7 @@ void AMSJob::_sitofinitjob(){
 //----------------------------------------------------------------------------------
 void AMSJob::_siantiinitjob(){
 
-  AMSgvolume *pg=AMSJob::gethead()->getgeomvolume(AMSID("ASCI",1));
+  AMSgvolume *pg=AMSJob::gethead()->getgeomvolume(AMSID("ANTS",1));
       #ifdef __AMSDEBUG__
        assert (pg != NULL);
       #endif
@@ -795,6 +812,10 @@ void AMSJob::_catofinitjob(){
  if(TOFRECFFKEY.relogic[0]==2){
    TOFAMPLcalib::init();// TOF AMPL-calibr.
    cout<<"TOFAMPLcalib-init done !!!"<<'\n';
+ }
+ if(TOFRECFFKEY.relogic[0]==3){
+   TOFSTRRcalib::init();// TOF STRR-calibr.
+   cout<<"TOFSTRRcalib-init done !!!"<<'\n';
  }
 }
 //---------------------------------------------------------------------
@@ -1254,6 +1275,12 @@ void AMSJob::_tofendjob(){
          }
        }
        TOFJobStat::print(); // Print JOB-TOF statistics
+//
+       if(TOFRECFFKEY.relogic[0]==3){// for STRR-calibr. runs
+         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){//for Real/Mc-SLOW
+           TOFSTRRcalib::outp();
+         }
+       }
 }
 //-----------------------------------------------------------------------
 

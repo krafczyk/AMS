@@ -173,7 +173,7 @@ void AMSgvolume::_init(){
    }
    int ivol;
    if(newv) {
-    if(_posp){
+    if(_posp > 0){
      GSVOLU(_name,_shape,_matter,_par,0,ivol);
     }
    }

@@ -52,8 +52,8 @@ endif
 #
 #
 #
-FILES= ../CC/id.C ../CC/node.C ../CC/snode.C  ../CC/gbatch.C ../CC/gvolume.C  ../CC/amsdbc.C ../CC/cern.C  ../CC/gsen.C ../CC/point.C ../CC/upool.C ../CC/gmat.C ../CC/amsgobj.C ../CC/amsgeom.C ../CC/geant.C ../CC/mceventg.C ../F/tkmccl.F ../CC/rnormx.C  ../CC/trid.C ../CC/link.C ../CC/trrec.C ../CC/uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F ../CC/job.C ../CC/event.C ../CC/cont.C ../CC/mccluster.C ../CC/trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F ../CC/tofrec.C ../CC/antirec.C ../CC/tofsim.C ../CC/beta.C ../CC/charge.C ../CC/particle.C ../CC/commons.C ../CC/apool.C ../CC/tofdbc.C ../CC/ctcrec.C ../CC/ctcdbc.C ../CC/tofcalib.C ../CC/timeid.C ../CC/io.C ../CC/trcalib.C ../F/mtx2.F ../F/e04ccf.f ../CC/trigger.C
-OBJECTS= ..$(BIN)/gbatch.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geant.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o ..$(BIN)/rndm.o ..$(BIN)/tofrec.o ..$(BIN)/antirec.o ..$(BIN)/tofsim.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o ..$(BIN)/apool.o ..$(BIN)/tofdbc.o ..$(BIN)/ctcrec.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofcalib.o ..$(BIN)/timeid.o ..$(BIN)/io.o ..$(BIN)/trcalib.o ..$(BIN)/mtx2.o ..$(BIN)/e04ccf.o ..$(BIN)/trigger.o
+FILES= ../CC/id.C ../CC/node.C ../CC/snode.C  ../CC/gbatch.C ../CC/gvolume.C  ../CC/amsdbc.C ../CC/cern.C  ../CC/gsen.C ../CC/point.C ../CC/upool.C ../CC/gmat.C ../CC/amsgobj.C ../CC/amsgeom.C ../CC/geant.C ../CC/mceventg.C ../F/tkmccl.F ../CC/rnormx.C  ../CC/trid.C ../CC/link.C ../CC/trrec.C ../CC/uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F ../CC/job.C ../CC/event.C ../CC/cont.C ../CC/mccluster.C ../CC/trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F ../CC/tofrec.C ../CC/antirec.C ../CC/tofsim.C ../CC/beta.C ../CC/charge.C ../CC/particle.C ../CC/commons.C ../CC/apool.C ../CC/tofdbc.C ../CC/ctcrec.C ../CC/ctcdbc.C ../CC/tofcalib.C ../CC/timeid.C ../CC/io.C ../CC/trcalib.C ../F/mtx2.F ../F/e04ccf.f ../CC/trigger.C ../CC/antidbc.C
+OBJECTS= ..$(BIN)/gbatch.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geant.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o ..$(BIN)/rndm.o ..$(BIN)/tofrec.o ..$(BIN)/antirec.o ..$(BIN)/tofsim.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o ..$(BIN)/apool.o ..$(BIN)/tofdbc.o ..$(BIN)/ctcrec.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofcalib.o ..$(BIN)/timeid.o ..$(BIN)/io.o ..$(BIN)/trcalib.o ..$(BIN)/mtx2.o ..$(BIN)/e04ccf.o ..$(BIN)/trigger.o ..$(BIN)/antidbc.o
 ..$(EXE)/gbatch.exe:	$(OBJECTS)
 	$(FF) -c $(FFLAGS) ../F/timel.F -o ..$(BIN)/timel.o
 	$(LD) -v -o ..$(EXE)/gbatch.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
@@ -163,6 +163,9 @@ endif
 
 ..$(BIN)/ctcdbc.o:         ../CC/ctcdbc.C
 	$(CC) -c $(CFLAGS) ../CC/ctcdbc.C -o ..$(BIN)/ctcdbc.o
+
+..$(BIN)/antidbc.o:         ../CC/antidbc.C
+	$(CC) -c $(CFLAGS) ../CC/antidbc.C -o ..$(BIN)/antidbc.o
 
 ..$(BIN)/gsen.o:	         ../CC/gsen.C
 	$(CC) -c $(CFLAGS) ../CC/gsen.C -o ..$(BIN)/gsen.o
@@ -408,6 +411,7 @@ depend:
 ../bin/aix/amsgeom.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/aix/amsgeom.o: /usr/include/sys/limits.h ../include/timeid.h
 ../bin/aix/amsgeom.o: /usr/include/time.h ../include/ctcdbc.h
+../bin/aix/amsgeom.o: ../include/antidbc.h
 ../bin/aix/geant.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/aix/geant.o: /usr/lpp/xlC/include/iostream.h /usr/include/memory.h
 ../bin/aix/geant.o: /usr/include/string.h /usr/include/standards.h
@@ -563,7 +567,8 @@ depend:
 ../bin/aix/job.o: ../include/charge.h ../include/trrec.h ../include/tofrec.h
 ../bin/aix/job.o: ../include/tofdbc.h ../include/beta.h ../include/ctcrec.h
 ../bin/aix/job.o: ../include/trcalib.h ../include/particle.h ../include/ctc.h
-../bin/aix/job.o: ../include/tofsim.h ../include/tofcalib.h
+../bin/aix/job.o: ../include/antidbc.h ../include/tofsim.h
+../bin/aix/job.o: ../include/tofcalib.h
 ../bin/aix/event.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/aix/event.o: /usr/lpp/xlC/include/iostream.h /usr/include/memory.h
 ../bin/aix/event.o: /usr/include/string.h /usr/include/standards.h
@@ -1024,3 +1029,12 @@ depend:
 ../bin/aix/trigger.o: /usr/include/sys/times.h ../include/mccluster.h
 ../bin/aix/trigger.o: ../include/gsen.h ../include/trid.h ../include/amsstl.h
 ../bin/aix/trigger.o: ../include/commons.h ../include/ctcdbc.h
+../bin/aix/antidbc.o: ../include/typedefs.h /usr/include/assert.h
+../bin/aix/antidbc.o: /usr/lpp/xlC/include/iostream.h /usr/include/memory.h
+../bin/aix/antidbc.o: /usr/include/string.h /usr/include/standards.h
+../bin/aix/antidbc.o: /usr/include/sys/types.h ../include/commons.h
+../bin/aix/antidbc.o: ../include/cern.h ../include/cfortran.h
+../bin/aix/antidbc.o: /usr/include/stdio.h /usr/include/malloc.h
+../bin/aix/antidbc.o: ../include/hbook.h ../include/geant321.h
+../bin/aix/antidbc.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/aix/antidbc.o: ../include/antidbc.h

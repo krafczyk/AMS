@@ -20,8 +20,183 @@ extern TOFVarp tofvpar;// TOF general parameters
 //
 //
 //-----------------------------------------------------------------------
-void AMSTOFRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
-  stat=0;//ok
+void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
+  int16u nftdc[2],nstdc[2],nadca[2],nadcd[2];
+  int16u  ftdc1[SCTHMX2*2],stdc1[SCTHMX3*4],adca1[SCTHMX4*2],adcd1[SCTHMX4*2];
+  int16u  ftdc2[SCTHMX2*2],stdc2[SCTHMX3*4],adca2[SCTHMX4*2],adcd2[SCTHMX4*2];
+  integer ilay,last,ibar,isid,isds;
+  integer i,j,im,nhit,chnum,brnum,am[2],tmi[2],itmf[2],sta,st;
+  static int16u pbitn(32768);
+  static int16u pbanti(0x7FFF);
+  int16u pbup,pbdn,pbup1,pbdn1;
+  int16u id,idd,idN,stat[2];
+  number tsr[3];
+  int bad;
+  AMSTOFRawEvent *ptr;
+  AMSTOFRawEvent *ptrN;
+//
+  status=0;//ok
+//  return;
+//
+// =============> check/correct logical "up/down" sequence :
+//
+  ptr=(AMSTOFRawEvent*)AMSEvent::gethead()
+                        ->getheadC("AMSTOFRawEvent",0);//last 1 to sort
+  isds=0;
+//                             <---- loop over TOF RawEvent hits -----
+  while(ptr){
+    idd=ptr->getid();
+    id=idd/10;// short id=LBB, where L=1,4 BB=1,14
+    ilay=id/100-1;
+    ibar=id%100-1;
+    isid=idd%10-1;
+    chnum=ilay*SCMXBR*2+ibar*2+isid;//channels numbering
+    brnum=ilay*SCMXBR+ibar;//bar numbering
+    stat[isid]=ptr->getstat();
+    if(stat[isid] == 0){  // channel alive
+//       fill working arrays for given side:
+      isds+=1;
+      nftdc[isid]=ptr->getftdc(ftdc1);
+      nstdc[isid]=ptr->getstdc(stdc1);
+      nadca[isid]=ptr->getadca(adca1);
+      nadcd[isid]=ptr->getadcd(adcd1);
+      TOFJobStat::addch(chnum,11);
+//---> check hist-TDC :
+      nhit=0;
+      im=nftdc[isid];
+      for(i=0;i<im;i++)ftdc2[i]=0;
+      for(i=0;i<im-1;i++){// find all correct pairs of up/down bits settings
+        pbdn=(ftdc1[i]&pbitn);//check p-bit of down-edge (come first, LIFO mode !!!)
+        pbup=(ftdc1[i+1]&pbitn);//check p-bit of up-edge (come second)
+        if(TOFDBc::pbonup()==1){
+          if(pbup==0 || pbdn!=0)continue;//wrong sequence, take next pair
+        }
+        else{
+          if(pbup!=0 || pbdn==0)continue;//wrong  sequence, take next pair
+        }
+        ftdc2[nhit]=ftdc1[i];
+        nhit+=1;
+        ftdc2[nhit]=ftdc1[i+1];
+        nhit+=1;
+      }
+      if(nhit<im){//something was wrong
+        ptr->putftdc(int16u(nhit),ftdc2);// refill object with corrected data
+        TOFJobStat::addch(chnum,12);
+      }
+//---> check stretcher-TDC :
+      nhit=0;
+      im=nstdc[isid];
+      for(i=0;i<im;i++)stdc2[i]=0;
+      for(i=0;i<im-1;i++){// find all correct pairs of up/down bits settings
+        pbdn=(stdc1[i]&pbitn);//check p-bit of 2-nd down-edge (come first, LIFO mode !!!)
+        pbup=(stdc1[i+1]&pbitn);//check p-bit of 2-nd up-edge (come second)
+        pbdn1=(stdc1[i+2]&pbitn);//check p-bit of 1-st down-edge (come third)
+        pbup1=(stdc1[i+3]&pbitn);//check p-bit of 1-st up-edge (come fourth)
+        if(TOFDBc::pbonup()==1){
+          if(pbup==0||pbup1==0||pbdn!=0||pbdn1!=0)continue;//wrong sequence, take next "4"
+        }
+        else{
+          if(pbup!=0||pbup1!=0||pbdn==0||pbdn1==0)continue;//wrong  sequence, take next "4"
+        }
+        stdc2[nhit]=stdc1[i];
+        nhit+=1;
+        stdc2[nhit]=stdc1[i+1];
+        nhit+=1;
+        stdc2[nhit]=stdc1[i+2];
+        nhit+=1;
+        stdc2[nhit]=stdc1[i+3];
+        nhit+=1;
+      }
+      if(nhit<im){//something was wrong
+        ptr->putstdc(int16u(nhit),stdc2);// refill object with corrected data
+        TOFJobStat::addch(chnum,13);
+      }
+//---> check A-TDC :
+      nhit=0;
+      im=nadca[isid];
+      for(i=0;i<im;i++)adca2[i]=0;
+      for(i=0;i<im-1;i++){// find all correct pairs of up/down bits settings
+        pbdn=(adca1[i]&pbitn);//check p-bit of down-edge (come first)
+        pbup=(adca1[i+1]&pbitn);//check p-bit of up-edge (come second)
+        if(TOFDBc::pbonup()==1){
+          if(pbup==0 || pbdn!=0)continue;//wrong sequence, take next pair
+        }
+        else{
+          if(pbup!=0 || pbdn==0)continue;//wrong  sequence, take next pair
+        }
+        adca2[nhit]=adca1[i];
+        nhit+=1;
+        adca2[nhit]=adca1[i+1];
+        nhit+=1;
+      }
+      if(nhit<im){//something was wrong
+        ptr->putadca(int16u(nhit),adca2);// refill object with corrected data
+        TOFJobStat::addch(chnum,14);
+      }
+//---> check D-TDC :
+      nhit=0;
+      im=nadcd[isid];
+      for(i=0;i<im;i++)adcd2[i]=0;
+      for(i=0;i<im-1;i++){// find all correct pairs of up/down bits settings
+        pbdn=(adcd1[i]&pbitn);//check p-bit of down-edge (come first)
+        pbup=(adcd1[i+1]&pbitn);//check p-bit of up-edge (come second)
+        if(TOFDBc::pbonup()==1){
+          if(pbup==0 || pbdn!=0)continue;//wrong sequence, take next pair
+        }
+        else{
+          if(pbup!=0 || pbdn==0)continue;//wrong  sequence, take next pair
+        }
+        adcd2[nhit]=adcd1[i];
+        nhit+=1;
+        adcd2[nhit]=adcd1[i+1];
+        nhit+=1;
+      }
+      if(nhit<im){//something was wrong
+        cerr<<" !!! ------------------> found problem in dTDC !!!"<<endl;
+        ptr->putadcd(int16u(nhit),adcd2);// refill object with corrected data
+        TOFJobStat::addch(chnum,15);
+      }
+//-----      
+    } 
+//
+//---------------
+    ptr=ptr->next();// take next RawEvent hit
+  }//  ---- end of RawEvent hits loop ------->
+//
+//------------------------------------------------------
+//
+// =============> Stretcher-ratio calibration, if requested :
+//
+  if(TOFRECFFKEY.relogic[0]==3){
+    TOFJobStat::addre(15);
+//
+    ptr=(AMSTOFRawEvent*)AMSEvent::gethead()
+                        ->getheadC("AMSTOFRawEvent",0);
+    isds=0;
+//                           
+    while(ptr){ //  <---- loop over TOF RawEvent hits -----
+      idd=ptr->getid();
+      id=idd/10;// short id=LBB, where L=1,4 BB=1,14
+      ilay=id/100-1;
+      ibar=id%100-1;
+      isid=idd%10-1;
+      chnum=ilay*SCMXBR*2+ibar*2+isid;//channels numbering
+      stat[isid]=ptr->getstat();
+      if(stat[isid] == 0){  // channel alive
+        isds+=1;
+        nstdc[isid]=ptr->getstdc(stdc1);
+        if(nstdc[isid]==4){ // require only one "4-edge" sTDC-hit
+          tsr[0]=(stdc1[3]&pbanti)*TOFDBc::tdcbin(1);
+          tsr[1]=(stdc1[2]&pbanti)*TOFDBc::tdcbin(1);
+          tsr[2]=(stdc1[0]&pbanti)*TOFDBc::tdcbin(1);
+          TOFSTRRcalib::fill(chnum,tsr);
+        }
+      }// --- end of status check --->
+//
+      ptr=ptr->next();// take next RawEvent hit
+    }//  ---- end of RawEvent hits loop ------->
+    status=1;// set to "bad" to avoid further reconstruction
+  }
 }
 //-----------------------------------------------------------------------
 void AMSTOFRawCluster::sitofdigi(){

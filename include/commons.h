@@ -4,7 +4,7 @@
 
 
 // Author V. Choutko 24-may-1996
- 
+// modifications for TOF,ANTI by E.Choumilov 
 #ifndef __AMSCOMMONS__
 #define __AMSCOMMONS__
 #include <cern.h>
@@ -58,7 +58,7 @@ integer TDVC[400];
 };
 #define AMSFFKEY COMMON_BLOCK(AMSFFKEY,amsffkey)
 COMMON_BLOCK_DEF(AMSFFKEY_DEF,AMSFFKEY);
-
+//==============================================================
 class IOPA_DEF {
 public:
 integer hlun;
@@ -72,7 +72,7 @@ integer ffile[40];
 };
 #define IOPA COMMON_BLOCK(IOPA,iopa)
 COMMON_BLOCK_DEF(IOPA_DEF,IOPA);
-
+//=============================================================
 class TOFMCFFKEY_DEF {
 public:
 geant TimeSigma;
@@ -88,7 +88,23 @@ integer tdfnam[3];// f-name for PMT t-distr. files map
 };
 #define TOFMCFFKEY COMMON_BLOCK(TOFMCFFKEY,tofmcffkey)
 COMMON_BLOCK_DEF(TOFMCFFKEY_DEF,TOFMCFFKEY);
-
+//===================================================================
+class ANTIGEOMFFKEY_DEF {
+public:
+  integer nscpad;  // number of scintillator paddles 
+  geant scradi;    // internal radious of ANTI sc. cylinder (cm)
+  geant scinth;    // thickness of scintillator (cm)
+  geant scleng;    // scintillator paddle length (glob. Z-dim)
+  geant wrapth;    // wrapper thickness (cm)
+  geant groovr;    // groove radious (bump_rad = groove_rad - pdlgap)
+  geant pdlgap;    // inter paddle gap (cm)
+  geant stradi;    // support tube intern.radious
+  geant stleng;    // support tube length
+  geant stthic;    // support tube thickness
+};
+#define ANTIGEOMFFKEY COMMON_BLOCK(ANTIGEOMFFKEY,antigeomffkey)
+COMMON_BLOCK_DEF(ANTIGEOMFFKEY_DEF,ANTIGEOMFFKEY);
+//==============================================================
 class ANTIMCFFKEY_DEF {
 public:
 geant SigmaPed;
@@ -98,7 +114,7 @@ geant PMulZPos;
 };
 #define ANTIMCFFKEY COMMON_BLOCK(ANTIMCFFKEY,antimcffkey)
 COMMON_BLOCK_DEF(ANTIMCFFKEY_DEF,ANTIMCFFKEY);
-
+//==============================================================
 
 class ANTIRECFFKEY_DEF {
 public:
@@ -108,7 +124,7 @@ geant PhEl2MeV;
 #define ANTIRECFFKEY COMMON_BLOCK(ANTIRECFFKEY,antirecffkey)
 COMMON_BLOCK_DEF(ANTIRECFFKEY_DEF,ANTIRECFFKEY);
 
-
+//================================================================
 class TOFRECFFKEY_DEF {
 public:
 geant Thr1;  // limit on max
@@ -131,7 +147,7 @@ geant ThrS;  // limit on sum
 };
 #define TOFRECFFKEY COMMON_BLOCK(TOFRECFFKEY,tofrecffkey)
 COMMON_BLOCK_DEF(TOFRECFFKEY_DEF,TOFRECFFKEY);
-
+//===================================================================
 class TOFCAFFKEY_DEF {
 public:
 // TZSL-calibration :
