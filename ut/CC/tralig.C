@@ -588,41 +588,45 @@ void AMSTrAligFit::Fit(){
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
     for(i=0;i<mp;i++)x[i]=0;
      _pfitbefore=_tmppav;
-     ifail=1;
+     ifail=0;
      if(fabs(1-_pfitbefore)>TRALIG.GlobalGoodLimit){
+      ifail=1;
       maxcal=2000;
       _flag=0;
       e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
       cout << "AMSTrAligFit::Fit finished "<<ifail<<" "<<f<<endl;
+      if(ifail ==0 ){
+       _flag=2;
+       ifail=1;
+       number fd;
+       integer one(1);
+       e04ccf_(n,x,fd,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,one,ifail,this);
+       ifail=0;    
+      }
      }
-    if(ifail ==0 ){
-     _flag=2;
-     ifail=1;
-     number fd;
-     integer one(1);
-     e04ccf_(n,x,fd,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,one,ifail,this);
-     AMSPoint outc[6];
-     AMSPoint outa[6];
-     for(i=0;i<6;i++){
-       outc[i]=0;
-       outa[i]=0;
-     }
-     for(i=0;i<n;i++){
-      int plane=_PlaneNo[i];
-      int parno=_ParNo[i];
-      if(parno<3)outc[plane][parno]=x[i];
-      else outa[plane][parno-3]=x[i]*AMSDBc::pi/180.;
-     }
-
-     for(i=0;i<6;i++){
-       (_pParC[i]).setpar(outc[i],outa[i]);
-     }
-     _fcn=f;
-     _fcnI=_tmp;
-     _pfit=_tmppav;
-      cout <<"tmpav "<<_tmppav<<" "<<_tmppsi<<endl;
-     _pfits=_tmppsi;
-     Anal();
+     if(ifail==0){
+      AMSPoint outc[6];
+      AMSPoint outa[6];
+      for(i=0;i<6;i++){
+        outc[i]=0;
+        outa[i]=0;
+      }
+      for(i=0;i<n;i++){
+       int plane=_PlaneNo[i];
+       int parno=_ParNo[i];
+       if(parno<3)outc[plane][parno]=x[i];
+       else outa[plane][parno-3]=x[i]*AMSDBc::pi/180.;
+      }
+ 
+      for(i=0;i<6;i++){
+        (_pParC[i]).setpar(outc[i],outa[i]);
+      }
+      _fcn=f;
+      _fcnI=_tmp;
+      _pfit=_tmppav;
+       cout <<"tmpav "<<_tmppav<<" "<<_tmppsi<<endl;
+      _pfits=_tmppsi;
+      Anal();
      }
     else cerr <<"FIt-E-IfailNotZero "<<ifail<<endl;
 
@@ -1047,8 +1051,8 @@ void AMSTrAligFit::alfun(integer &n, number xc[], number &fc, AMSTrAligFit *p){
       out[5]=out1[5];
       geant xx=out[5]*p->_pData[niter]._InvRigidity;
       HF1(p->_Address+p->_flag,xx,1.);
-      pav+=out[5]*p->_pData[niter]._InvRigidity;
-      pav2+=out[5]*out[5]*p->_pData[niter]._InvRigidity*p->_pData[niter]._InvRigidity;
+      pav+=1/out[5]/p->_pData[niter]._InvRigidity;
+      pav2+=1/out[5]*1/out[5]/p->_pData[niter]._InvRigidity/p->_pData[niter]._InvRigidity;
     }
     number error=out[8];
     fc+=out[6];
@@ -1198,8 +1202,8 @@ mbreak:
       geant xx=out[5]*p->_pData[niter]._InvRigidity;;
       HF1(p->_Address+p->_flag,xx,1.);
     }
-    pav+=out[5]*p->_pData[niter]._InvRigidity;
-    pav2+=out[5]*out[5]*p->_pData[niter]._InvRigidity*p->_pData[niter]._InvRigidity;
+    pav+=1/out[5]/p->_pData[niter]._InvRigidity;
+    pav2+=1/out[5]/out[5]/p->_pData[niter]._InvRigidity/p->_pData[niter]._InvRigidity;
     number error=out[8];
     fc+=out[6];
     npfit++;

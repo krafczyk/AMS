@@ -359,6 +359,7 @@ for(int i=0;i<6;i++){
 
 
 
+ TRALIG.One=1.025;
  TRALIG.GlobalFit=0;
  TRALIG.InitDB=0;
  TRALIG.ReWriteDB=0;
