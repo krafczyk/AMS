@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.72 2003/04/02 14:17:38 alexei Exp $
+# $Id: RemoteClient.pm,v 1.73 2003/04/02 14:30:01 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2503,11 +2503,13 @@ print qq`
         }
          my $sonly="No";
          $sonly=$q->param("SONLY");
-#         if ($sonly eq "Yes") {
-#             $self->{scriptsOnly}=0;
-#             $self->{senddb}=1;
-#             $self->{sendaddon}=1;
-#         }
+# Apr 2. 2003. a.k. uncommented
+         if ($sonly eq "Yes") {
+             $self->{scriptsOnly}=0;
+             $self->{senddb}=1;
+             $self->{sendaddon}=1;
+         }
+#
         my $aft=$q->param("AFT");
         my $templatebuffer=undef;
         my $template=undef;
