@@ -53,7 +53,7 @@ void AMSGenHist::_Fetch(){
 void AMSGenHist::ShowSet(Int_t Set){
 
   TF1 f1("vcg","[0]*exp(-x*[1])+[2]*exp(-(x-[3])/[4]*(x-[3])/[4]/2)",0.5,10);
-  TF1 f2("vcg2","[0]*exp(-x*[1])",0.4,80);
+  TF1 f2("vcg2","[0]*exp(-x*[1])",0.4,100);
   TF1 f3("vcg3","[0]*exp(-x*[1])",0.4,2.0);
   TF1 f4("vcg4","[0]*exp(-(x-[1])/[2]*(x-[1])/[2]/2)",3.,10);
   int choise=0;
@@ -89,25 +89,29 @@ void AMSGenHist::ShowSet(Int_t Set){
           if(Set==4){
             _fetched2[i]->Fit("vcg2","VR");
             double chi2=f2.GetChisquare();
-            if(chi2>200){
-              choise=1;
-            _fetched2[i]->Fit("vcg4","VR");
-            _fetched2[i]->Fit("vcg3","VR");
-            _fetched2[i]->Fit("vcg","VR");
-            double chi2_2=f1.GetChisquare();
-            if(chi2_2>chi2)choise=0;
-            else if(chi2_2<500)choise=2;
-            } 
+            if(chi2>500){
+              choise=-1;
+            }
+            //if(chi2>200){
+            //choise=1;
+              //_fetched2[i]->Fit("vcg4","VR");
+              //_fetched2[i]->Fit("vcg3","VR");
+              //_fetched2[i]->Fit("vcg","VR");
+              //double chi2_2=f1.GetChisquare();
+              //if(chi2_2>chi2)choise=0;
+              //else if(chi2_2<500)choise=2;
+            //} 
           }
           _fetched2[i]->Draw();
           if(Set==4){
             char text[80];
             TPaveText *lf=new TPaveText(0.2,0.8,0.5,0.9,"NDC");
             lf->SetFillColor(18);
-            if(choise==0)sprintf(text,"Input Rate (Hz) %f",f2.GetParameter(1)*1000);    
-            else sprintf(text,"Input Rate (Hz) %f",f3.GetParameter(1)*1000);    
-            lf->AddText(text);
-            sprintf(text,"Output Rate (Hz) %f",1000/_fetched2[i]->GetMean());    
+            //if(choise==0)sprintf(text,"Input Rate (Hz) %f",f2.GetParameter(1)*1000);    
+            //else sprintf(text,"Input Rate (Hz) %f",f3.GetParameter(1)*1000);    
+            //  lf->AddText(text);
+            if(choise==-1)sprintf(text,"Output Rate (Hz) %f",1000/_fetched2[i]->GetMean());    
+            else if(choise==0)sprintf(text,"Output Rate (Hz) %f",1000*f2.GetParameter(1));    
             lf->AddText(text);
             if(choise==1){
                 sprintf(text,"DAQ Speed (Hz) %f",2000/f4.GetParameter(1));    
