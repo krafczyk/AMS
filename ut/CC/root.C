@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.54 2003/07/25 17:30:47 choutko Exp $
+//  $Id: root.C,v 1.55 2003/08/05 13:53:41 mdelgado Exp $
 //
 
 #include <root.h>
@@ -2020,6 +2020,7 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
     Beta  = ptr->_beta;
     ErrorBeta = ptr->_errorbeta;
     Chi2   = ptr->_quality;
+    BetaRefit = ptr->_wbeta;
     Status    = ptr->_status;
     NpCol= ptr->_collected_npe;
     NpExp     = ptr->_npexp;

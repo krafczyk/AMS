@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.56 2003/07/18 19:56:23 delgadom Exp $
+//  $Id: richrec.C,v 1.57 2003/08/05 13:53:40 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -761,9 +761,11 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
     uinteger cleaning=current_ring_status;
     current_ring_status&=~dirty_ring;
 
+
+
     if(best_prob>0){
-      // This piece is a bit redundant: computes chi2
-      
+      // This piece is a bit redundant: computes chi2 and weighted beta
+      geant wsum=0,wbeta=0;      
       geant chi2=0.;
       geant beta_track=
 	recs[best_cluster[0]][best_cluster[1]];
@@ -797,12 +799,17 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
 	hitp[i]->setbit(bit);
 	if(cleanup) current_ring_status|=hitp[i]->getbit(crossed_pmt_bit)?dirty_ring:0; 
 	chi2+=prob;
+	wsum+=hitp[i]->getnpe();
+	wbeta+=recs[i][closest]*hitp[i]->getnpe();
       }
       
+
+
       integer beta_used=size[best_cluster[0]][best_cluster[1]];
       integer mirrored_used=mirrored[best_cluster[0]][best_cluster[1]];
       beta_track=mean[best_cluster[0]][best_cluster[1]]/geant(beta_used);
-      
+
+      if(wsum>0) wbeta/=wsum; else wbeta=0.;       
       
       // Event quality numbers:
       // 0-> Number of used hits
@@ -817,6 +824,7 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
 						   mirrored_used,
 						   beta_track,
 						   chi2/geant(beta_used),
+						   wbeta,
 						   current_ring_status,  //Status word
 						   RICCONTROL.recon/10
 						   ));
@@ -1275,7 +1283,7 @@ trig=(trig+1)%freq;
 
 
   for(i=0;i<nh;i++){
-    if(hitd[1]<1.){
+    if(hitd[i]<1.){
       nu++;
       j=int(hitp[i]/dphi);
       dfphih[j]+=used_hits[i]->getnpe();
@@ -1299,7 +1307,7 @@ trig=(trig+1)%freq;
     }
   } else dmax=1;
   
-  
+
   // Probability for the ring
   if(nu){
     float z=sqrt(geant(nu))*dmax;
@@ -1342,9 +1350,6 @@ trig=(trig+1)%freq;
     if(value<window_size)
       _collected_npe+=hit->getnpe();
   }
-
-
-
 
 }
 

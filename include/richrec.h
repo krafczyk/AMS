@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.23 2003/07/18 19:56:30 delgadom Exp $
+//  $Id: richrec.h,v 1.24 2003/08/05 13:53:50 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -148,6 +148,7 @@ static geant _Time;
   integer _used;        // number of hits used
   integer _mused;       // number of mirrored hits used
   number  _beta;        // ring beta
+  number  _wbeta;       // weighted beta using the number of p.e. 
   number  _beta_blind;  // Unused: in the future reconstruction without using the track direction
   number  _errorbeta;   // Estimated error in beta
   number  _quality;     // Chi2  
@@ -235,9 +236,15 @@ protected:
   void CalcBetaError();
   void ReconRingNpexp(geant window_size=3.);
 public:
-  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,uinteger status=0,integer build_charge=0):AMSlink(status),
-   _ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality){
+  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,geant wbeta,uinteger status=0,integer build_charge=0):AMSlink(status),
+   _ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_wbeta(wbeta){
+
     CalcBetaError();
+
+    _npexp=0;
+    _collected_npe=0;
+    _probkl=0;
+
     if(build_charge)
       ReconRingNpexp();
 

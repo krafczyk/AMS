@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.103 2003/07/25 16:47:48 alcaraz Exp $
+//  $Id: root.h,v 1.104 2003/08/05 13:53:50 mdelgado Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -433,7 +433,7 @@ public:
     /// \param number index in container
   /// \return human readable info about RichHitR
   char * Info(int number=-1){
-    sprintf(_Info,"RichHit No %d Channel=%d Ampl=%d No_{PhotoEl}=%5.2f, Coo=(%5.2f,%5.2f,%5.2f) Status=%u Gain=%d HotSpot=%d ",number,Channel,Counts,Npe,Coo[0],Coo[1],Coo[2],Status%2048,(Status>>30)%2?5:1,(Status>>31));
+    sprintf(_Info,"RichHit No %d Channel=%d Ampl=%d No_{PhotoEl}=%5.2f, Coo=(%5.2f,%5.2f,%5.2f) Status=%u Gain=%d HotSpot=%d ",number,Channel,Counts,Npe,Coo[0],Coo[1],Coo[2],Status%2048,(Status>>29)%2?5:1,(Status>>30));
   return _Info;
   } 
 
@@ -470,6 +470,7 @@ public:
   float Beta;  ///< Reconstructed velocity
   float ErrorBeta;  ///< Error in the velocity
   float Chi2;       ///< chi2/ndof for the beta fit
+  float BetaRefit;  ///< Beta refitted
   float Prob;       ///< probability to be a good ring
   float NpExp;      ///< number of expected photoelectrons for Z=1 charge
   float NpCol;      ///< number of collected photoelectrons 
@@ -495,10 +496,10 @@ public:
   /// \param number index in container
   /// \return human readable info about RichRingR
   char * Info(int number=-1){
-    sprintf(_Info,"RichRing No %d N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,Used,UsedM,Beta,ErrorBeta,Chi2,NpExp,NpCol);
+    sprintf(_Info,"RichRing No %d %s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,Status&2?"NAF":"AGL",Status&1?"(refitted)":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
   return _Info;
   } 
-  ClassDef(RichRingR,2)           // RichRingR
+  ClassDef(RichRingR,3)           // RichRingR
 }; 
 
 
