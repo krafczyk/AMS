@@ -1851,7 +1851,7 @@ return float(tftt.tofav[7])/10.;
 break;
 case 0:
 int i;
-geant tsum;
+geant tsum=0;
 for(i=0;i<8;i++){
  tsum+=tftt.tofav[i]/10.;
 }
