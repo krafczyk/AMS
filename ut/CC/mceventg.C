@@ -403,7 +403,7 @@ integer AMSmceventg::EarthModulation(){
   number m2=cr*cy;
   number n2=cr*sy*sp+sr*cp;
   number l3=-sr*sy*cp-cr*sp;
-  number m3=sr*cy;
+  number m3=-sr*cy;
   number n3=-sr*sy*sp+cr*cp;
   amsx[0]=l1*amsxg[0]+m1*amsyg[0]+n1*amszg[0];
   amsx[1]=l1*amsxg[1]+m1*amsyg[1]+n1*amszg[1];

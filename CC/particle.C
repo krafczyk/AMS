@@ -498,7 +498,7 @@ void AMSParticle::_loc2gl(){
   number m2=cr*cy;
   number n2=cr*sy*sp+sr*cp;
   number l3=-sr*sy*cp-cr*sp;
-  number m3=sr*cy;
+  number m3=-sr*cy;
   number n3=-sr*sy*sp+cr*cp;
   number amsx[3],amsy[3],amsz[3];
   amsx[0]=l1*amsxg[0]+m1*amsyg[0]+n1*amszg[0];
