@@ -157,9 +157,9 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //      if(ilay==3 && ibar==2 && isid==1)HF1(1133,geant(dt),1.);
         if(dt<10. || dt>200.)continue;//wrong "1st_pulse" width(w1), ...
         dt=t2-t4;
-//      if(ilay==3 && ibar==2 && isid==0)HF1(1132,geant(dt),1.);
-//      if(ilay==3 && ibar==2 && isid==1)HF1(1135,geant(dt),1.);
-        if(dt<1600. || dt>6000.)continue;//wrong "2nd_pulse" width(w3), ...
+//      if(ilay==0 && ibar==11 && isid==1)HF1(1132,geant(dt),1.);
+//      if(ilay==2 && ibar==9 && isid==1)HF1(1135,geant(dt),1.);
+        if(dt<2000. || dt>6000.)continue;//wrong "2nd_pulse" width(w3), ...
 //
         stdc2[nhit]=stdc1[i];
         nhit+=1;
@@ -626,13 +626,15 @@ void AMSTOFRawCluster::build(int &status){
               HF1(1103,geant(dt),1.);
               if(nadca[0]==2){// check anode-stdc correlations
                 tf=number((adca1[1]&pbanti)*TOFDBc::tdcbin(2));//2-nd hit is leading(up)-edge
-                dt=tf-tff;
-                HF1(1105,geant(dt),1.);//hist. the same hit a/f-TDC difference
+//                dt=tf-tff;
+                dt=tf-tm[0];
+                HF1(1105,geant(dt),1.);//hist. the same hit a/s-TDC difference
               }
               if(nadcd[0]==2){// check dynode-stdc correlations
                 tf=number((adcd1[1]&pbanti)*TOFDBc::tdcbin(3));//2-nd hit is leading(up)-edge
-                dt=tf-tff;
-                HF1(1106,geant(dt),1.);//hist. the same hit d/f-TDC difference
+//                dt=tf-tff;
+                dt=tf-tm[0];
+                HF1(1106,geant(dt),1.);//hist. the same hit d/s-TDC difference
               }
             }
             if(smty[1]>0 && nftdc[1]==2 && nstdc[1]==4){
@@ -644,13 +646,15 @@ void AMSTOFRawCluster::build(int &status){
               HF1(1103,geant(dt),1.);
               if(nadca[1]==2){
                 tf=number((adca2[1]&pbanti)*TOFDBc::tdcbin(2));//2-nd hit is leading(up)-edge
-                dt=tf-tff;
-                HF1(1105,geant(dt),1.);//hist. the same hit a/f-TDC difference
+//                dt=tf-tff;
+                dt=tf-tm[1];
+                HF1(1105,geant(dt),1.);//hist. the same hit a/s-TDC difference
               }
               if(nadcd[1]==2){// check dynode-stdc correlations
                 tf=number((adcd2[1]&pbanti)*TOFDBc::tdcbin(3));//2-nd hit is leading(up)-edge
-                dt=tf-tff;
-                HF1(1106,geant(dt),1.);//hist. the same hit d/f-TDC difference
+//                dt=tf-tff;
+                dt=tf-tm[1];
+                HF1(1106,geant(dt),1.);//hist. the same hit d/s-TDC difference
               }
             }
           }
@@ -772,8 +776,8 @@ void AMSTOFRawCluster::build(int &status){
               tmf[1]=tmf[0];
               amf[1]=amf[0];
             }
-            if(amf[0]>600.)amf[0]=600.;//tempor
-            if(amf[1]>600.)amf[1]=600.;
+            if(amf[0]>800.)amf[0]=800.;//tempor
+            if(amf[1]>800.)amf[1]=800.;
 //
             zc=TOFDBc::getzsc(ilay,ibar);
             blen=TOFDBc::brlen(ilay,ibar);
@@ -782,7 +786,7 @@ void AMSTOFRawCluster::build(int &status){
 //--> Calc. longit. coord/err and position corr. to signal :
               scbrcal[ilay][ibar].tmd2p(tmf,amf,co,eco);// get A-corrected Local(!).coord/err
               brlm=0.5*TOFDBc::brlen(ilay,ibar)+3.*eco;//limit on max. coord
-              if(fabs(co) > brlm){   //means "coord. is more than counter half length"
+              if(fabs(co) > brlm){   //means: "coord. is more than counter half length"
                 pcorr=scbrcal[ilay][ibar].poscor(0.);// take position corr. as for "0"
               }
               else{
@@ -808,7 +812,9 @@ void AMSTOFRawCluster::build(int &status){
               }
 //  require 2-sides measurements for dinode (otherwise it is useless):
               if(nadcd[0]>=2 && nadcd[1]>=2){
-                 qtotd=scbrcal[ilay][ibar].amd2mip(amd)
+                if(amd[0]>600.)amd[0]=600.;//tempor
+                if(amd[1]>600.)amd[1]=600.;
+                qtotd=scbrcal[ilay][ibar].amd2mip(amd)
                                             /pcorr;//dinode-tot Edep(mev) with corrections
               }
 //-->
@@ -1091,6 +1097,7 @@ void AMSTOFCluster::build(int &stat){
 //    select between anode and dinode measurements:
         edep=edepa;
         asatl=scbrcal[il-1][ib-1].getasatl();
+    asatl=160.;// tempor !!! to avoid dynode (~80mips)
         if(edepd/2. > asatl)edep=edepd;
 //
         eplane[ib]=edep;

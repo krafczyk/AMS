@@ -461,10 +461,6 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     time=0.5*(tm[0]+tm[1]);
     relt=time-ftdel;// subtract FT fix.delay
     t1=time;
-    tamp=exp(-ama[0]/shft)+exp(-ama[1]/shft);
-    if(TOFRECFFKEY.reprtf[2]>0){
-      if(brnl[0]==6)HF2(1502,geant(tamp),geant(relt),1.);
-    }
 //
        ilay=1;
     tm[0]=trp1[ilay];
@@ -486,10 +482,6 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     time=0.5*(tm[0]+tm[1]);
     relt=time-ftdel;// subtract FT fix.delay
     t4=time;
-    tamp=exp(-ama[0]/shft)+exp(-ama[1]/shft);
-    if(TOFRECFFKEY.reprtf[2]>0){
-      if(brnl[3]==6)HF2(1504,geant(tamp),geant(relt),1.);
-    }
 //
     t13=t1-t3;
     t24=t2-t4;
@@ -693,7 +685,6 @@ void TOFTZSLcalib::select(){  // calibr. event selection
       HF1(1524,geant(tld[1]-tld[2]+tld[0]),1.);//Trlen13-Trlen24
       if(TOFCAFFKEY.truse > 0){
         HF1(1215,(cost-cosc)/cost,1.);
-        HF1(1216,cost,1.);
       }
     }
     tdi[0]=t1-t2;
@@ -770,7 +761,9 @@ void TOFTDIFcalib::init(){ // ----> initialization for TDIF-calibration
 //  }
 //  HBOOK2(1780,"T vs 1/Q, L=1",50,0.,0.1,80,40.,120.,0.);
 //  HBOOK2(1781,"T vs 1/Q, L=4",50,0.,0.1,80,40.,120.,0.);
+//
 // ---> book histograms for "Tdiff_mean vs Clong"
+//
   strcpy(inum,"0123456789");
   for(il=0;il<SCLRS;il++){  
     for(ib=0;ib<SCMXBR;ib++){
@@ -792,6 +785,7 @@ void TOFTDIFcalib::init(){ // ----> initialization for TDIF-calibration
   HBOOK1(1602,"Mean Tdiff (all layers/bars)",80,-0.4,0.4,0.);
   HBOOK1(1603,"Slope (all layers/bars)",80,0.02,0.1,0.);
   HBOOK1(1604,"Tdiff sigma in bin",50,0.,2.,0.);
+  HBOOK1(1605,"Chi2",50,0.,20.,0.);
 }
 //------------------------- 
 void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
@@ -857,7 +851,7 @@ void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
     qinv=1./q1+1./q2;
 //    HF2(1781,geant(qinv),geant(time),1.);
   }
-//------> find track slope(in projection) using only scint.pos.info :
+//------> find track slope(in projection) using scint.transv.position :
   ix=0;
   iy=0;
   for(il=0;il<SCLRS;il++){
@@ -877,7 +871,7 @@ void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
   tgx=(x[0]-x[1])/(zx[0]-zx[1]);
   tgy=(y[0]-y[1])/(zy[0]-zy[1]);
 //
-//-----> find track crossing points (long.coord):
+//-----> find track crossing points(i.e. long.coord for 2 other counters):
   for(il=0;il<SCLRS;il++){
     ib=brnl[il];
     crz=TOFDBc::getzsc(il,ib);
@@ -1007,14 +1001,15 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
         chi2[chan]=sumt2+t0[chan]*t0[chan]*sumid+sl[chan]*sl[chan]*sumc2
          -2*t0[chan]*sumt-2*sl[chan]*sumct+2*t0[chan]*sl[chan]*sumc;
         chi2[chan]/=number(bins-2);
-        if(chi2[chan]<6. &&
-                     fabs(sl[chan])>0.058 &&
+        if(chi2[chan]<10. &&
+                     fabs(sl[chan])>0.051 &&
                      fabs(sl[chan])<0.071){//only good for averaging
           bintot+=1;
           meansl+=sl[chan];
         }
         HF1(1602,geant(t0[chan]),1.);
         if(fabs(sl[chan])>0.)HF1(1603,geant(fabs(sl[chan])),1.);
+        HF1(1605,geant(chi2[chan]),1.);
       }
     }
   }
@@ -1025,7 +1020,7 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       chan=SCMXBR*il+ib;
-      if(chi2[chan]>0)HPRINT(1610+chan);
+//      if(chi2[chan]>0)HPRINT(1610+chan);// tempor commented
     }
   }
 //---  
@@ -1064,6 +1059,7 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
   HPRINT(1602);
   HPRINT(1603);
   HPRINT(1604);
+  HPRINT(1605);
 //
 //---> print T vs 1/Q histograms:
 //  for(il=0;il<SCLRS;il++){
@@ -1504,7 +1500,6 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
         HF1(1204,mass,1.);
         if(betg>TOFCAFFKEY.bgcut[0] && betg<TOFCAFFKEY.bgcut[1])HF1(1207,mass,1.);
         HF1(1215,(cost-cosc)/cost,1.);
-        HF1(1216,cost,1.);
         HF2(1218,geant(pmom),geant(betof),1.);
       }
     }
@@ -1643,7 +1638,7 @@ void TOFAMPLcalib::fillabs(integer il, integer ib, geant am[2], geant coo,
   if(mass>mcut[0] && mass<mcut[1])mflg=1;
   if(betg>TOFCAFFKEY.bgcut[0] && betg<TOFCAFFKEY.bgcut[1])bgflg=1;
 //
-  if(id==rbls[4])HF2(1219,geant(log10(betg)),amt,1.);// for ref.bar type=5
+  if(id==rbls[4])HF2(1219,geant(betg),amt,1.);// for ref.bar type=5
   if(bgflg==1 && mflg==1){// mass-mip region ok
     nevrfc[btyp]+=1;
     ammrfc[btyp]+=amt;
@@ -1668,10 +1663,6 @@ void TOFAMPLcalib::filla2d(integer il, integer ib, geant am[2], geant amd[2]){
     r=0;
     if(amd[i]>0){
       r=am[i]/amd[i];
-      if(id==idr && ibt==5 && r>0){
-//      HF2(1248,am[i],amd[i],1.);
-        HF2(1249,am[i],r,1.);
-      }
       tauf=scbrcal[il][ib].getdipar(i,0);
       t0=scbrcal[il][ib].getdipar(i,1);
       q0=scbrcal[il][ib].getdipar(i,2);// D-integrator parameters
@@ -1688,7 +1679,7 @@ void TOFAMPLcalib::filla2d(integer il, integer ib, geant am[2], geant amd[2]){
 //            ---> program to get final AMPL-calibration:
 void TOFAMPLcalib::fit(){
 //
-  integer il,ib,i,j,k,id,idr,btyp,nbnr,chan,bchan,nev,nm;
+  integer il,ib,i,j,k,id,idr,btyp,nbnr,chan,bchan,nev,nm,nmax,nmin;
   geant aref[SCBTPN][2],ar,aabs[SCBTPN],mip2q[SCBTPN];
   number *pntr[SCACMX];
   number aver;
@@ -1760,9 +1751,11 @@ void TOFAMPLcalib::fit(){
     if(nev>=TOFCAFFKEY.minev){
       for(k=0;k<nev;k++)pntr[k]=&amchan[i][k];//pointers to event-signals of chan=i 
       AMSsortNAG(pntr,nev);//sort in increasing order
-      nm=floor(nev*TOFCAFFKEY.trcut);// to keep (100*trcut)% of lowest amplitudes
-      for(j=0;j<nm;j++)aver+=(*pntr[j]);
-      if(nm>0)gains[i]=geant(aver/nm);
+      nmax=floor(nev*TOFCAFFKEY.trcut);// to keep (100*trcut)% of lowest amplitudes
+      nmin=floor(nev*0.004);// to remove 0.4 % of lowest amplitudes
+      if(nmin==0)nmin=1;
+      for(j=nmin;j<nmax;j++)aver+=(*pntr[j]);
+      if((nmax-nmin)>0)gains[i]=geant(aver/(nmax-nmin));
     }
   }
 //
@@ -1811,9 +1804,11 @@ void TOFAMPLcalib::fit(){
       if(nev>=TOFCAFFKEY.minev){
         for(k=0;k<nev;k++)pntr[k]=&ambin[bchan][k];//pointers to event-signals of chan=bchan
         AMSsortNAG(pntr,nev);//sort in increasing order
-        nm=floor(nev*TOFCAFFKEY.trcut);// to keep (100*trcut)% of lowest amplitudes
-        for(k=0;k<nm;k++)aver+=(*pntr[k]);
-        if(nm>0)btamp[bchan]=geant(aver/nm);
+        nmax=floor(nev*TOFCAFFKEY.trcut);// to keep (100*trcut)% of lowest amplitudes
+        nmin=floor(nev*0.004);// to remove 0.4 % of lowest amplitudes
+        if(nmin==0)nmin=1;
+        for(k=nmin;k<nmax;k++)aver+=(*pntr[k]);
+        if((nmax-nmin)>0)btamp[bchan]=geant(aver/(nmax-nmin));
       }
       HF1(1254+i,profp[i][j],btamp[bchan]);
     }
@@ -2169,7 +2164,7 @@ void TOFSTRRcalib::init(){
 //
   strcpy(inum,"0123456789");
 //
-//  ---> book hist. Tovt-D vs Tovt-A :
+//  ---> book hist. stretcher Tout vs Tin :
 //
   mrf=0;
   if(AMSJob::gethead()->isRealData())mrf=1;
@@ -2233,7 +2228,7 @@ void TOFSTRRcalib::fill(integer ichan, number tm[3]){
   dti=tm[0]-tm[1];
   dto=tm[1]-tm[2];
   idto=integer(dto/SCSRCTB);// time bin = SCSRCTB ns
-  if(idto>=idtol[0] && idto<idtol[1] && dti>20. && dti<130.){
+  if(idto>=idtol[0] && idto<idtol[1] && dti>20. && dti<110.){
     nevnt[ichan][idto]+=1;
     dtin[ichan][idto]+=dti;
     dtinq[ichan][idto]+=(dti*dti);
@@ -2256,10 +2251,12 @@ void TOFSTRRcalib::fill2(integer ichan, number tdif){
 //-----------
 void TOFSTRRcalib::outp(){
   integer i,j,il,ib,id,ic,stat(0),idtol[2],dbsta;
-  number t0,sl,chi2[SCCHMX],t,tq,co,dis,nev,bins;
+  number t0,sl,t,tq,co,dis,nev,bins;
   number sumc,sumt,sumct,sumc2,sumt2,sumid;
-  number strr[SCCHMX],offs[SCCHMX];
-  int method(1);// <------ method number to use for fit (0/1->bins/points)
+  number strr[SCCHMX],offs[SCCHMX],chi2[SCCHMX];
+  number strr2[SCCHMX],offs2[SCCHMX],chi22[SCCHMX];
+  number chi2mx(50.);//max.acceptable chi2
+  int replf(0),method(0);// <------ method number to use for fit (0/1->bins/points)
   number pndis(0.27);// rms**2 (ns) for points-method
   char fname[80];
   char frdate[30];
@@ -2301,7 +2298,7 @@ void TOFSTRRcalib::outp(){
     idtol[0]=SCSRCLBMC;
     idtol[1]=SCSRCHBMC;
   }
-if(method==0){// <----- "bin-method"
+// <-------------------------- "bin-method"
   for(ic=0;ic<SCCHMX;ic++){ // <-- chan. loop
     sumc=0.;
     sumt=0.;
@@ -2352,17 +2349,45 @@ if(method==0){// <----- "bin-method"
       HF1(1202,geant(chi2[ic]),1.);
     }
   }//--> end of chan. loop
-}
 //---
-else{// <--------"points=method"
+  printf("\n\n");
+  printf("Stretcher ratios: bin-methode :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 5.2f",strr[ic]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 5.2f",strr[ic]);
+    }
+    printf("\n\n");
+  }
+//---
+  printf("Chi2: bin-methode :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 5.2f",chi2[ic]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 5.2f",chi2[ic]);
+    }
+    printf("\n\n");
+  }
+//
+// <----------------------------"points=method"
+//
   dis=pndis;// rms**2 (ns**2)
   for(ic=0;ic<SCCHMX;ic++){ // <-- chan. loop
     t0=0.;
     sl=0.;
-    strr[ic]=0.;
-    offs[ic]=0.;
-    chi2[ic]=0.;
-    HF1(1204,geant(sqrt(dis)),1.);
+    strr2[ic]=0.;
+    offs2[ic]=0.;
+    chi22[ic]=0.;
     sumc=ssumc[ic]/dis;
     sumt=ssumt[ic]/dis;
     sumid=ssumid[ic]/dis;
@@ -2371,22 +2396,99 @@ else{// <--------"points=method"
     sumt2=ssumt2[ic]/dis;
     bins=sbins[ic];
 //
-    if(bins>=100.){
+    if(bins>=50.){// really number of events in channel ic
       t0=(sumt*sumc2-sumct*sumc)/(sumid*sumc2-(sumc*sumc));
       sl=(sumct*sumid-sumc*sumt)/(sumid*sumc2-(sumc*sumc));
-      chi2[ic]=sumt2+t0*t0*sumid+sl*sl*sumc2
+      chi22[ic]=sumt2+t0*t0*sumid+sl*sl*sumc2
         -2.*t0*sumt-2.*sl*sumct+2.*t0*sl*sumc;
-      chi2[ic]/=(bins-2.);
+      chi22[ic]/=(bins-2.);
       if(sl>0.){
-        strr[ic]=1./sl;
-        offs[ic]=-t0/sl;
+        strr2[ic]=1./sl;
+        offs2[ic]=-t0/sl;
       }
-      HF1(1200,geant(strr[ic]),1.);
-      HF1(1201,geant(offs[ic]),1.);
-      HF1(1202,geant(chi2[ic]),1.);
+      HF1(1205,geant(strr2[ic]),1.);
+      HF1(1206,geant(offs2[ic]),1.);
+      HF1(1207,geant(chi22[ic]),1.);
     }
   }//--> end of chan. loop
-}
+//---
+  printf("\n\n");
+  printf("Stretcher ratios: points-methode :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 5.2f",strr2[ic]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 5.2f",strr2[ic]);
+    }
+    printf("\n\n");
+  }
+//---
+  printf("Chi2: points-methode :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 5.2f",chi22[ic]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 5.2f",chi22[ic]);
+    }
+    printf("\n\n");
+  }
+//
+//<----- combine two methodes(bin-meth. is main):
+//
+  for(ic=0;ic<SCCHMX;ic++){ // <-- chan. loop
+    replf=0;
+    if(chi2[ic]>3. || strr[ic]==0.){//replace by better chi2 from pnt.methode
+      if(chi22[ic]<chi2[ic] && chi22[ic]>0.){
+        replf=1;
+      }
+    }
+    if(replf==1){//cancel replacement if have bad strr in point-methode
+      if(strr2[ic]>47. || strr2[ic]<40.5)replf=0;
+    }
+    if(replf){
+      chi2[ic]=chi22[ic];
+      strr[ic]=strr2[ic];
+      offs[ic]=offs2[ic];
+    }
+    if(strr[ic]>0.){
+      HF1(1208,geant(strr[ic]),1.);
+      HF1(1209,geant(offs[ic]),1.);
+      HF1(1210,geant(chi2[ic]),1.);
+    }
+  }
+//
+//<----- combine two methodes(points-meth. is main):
+//
+//  for(ic=0;ic<SCCHMX;ic++){ // <-- chan. loop
+//    replf=0;
+//    if(chi22[ic]>3.){//replace by better chi2 from bin-methode
+//      if(chi2[ic]<chi22[ic] && chi2[ic]>0.)replf=1;
+//    }
+//    if(replf==0){//force replacement if bad strr
+//      if(strr2[ic]>47. || strr2[ic]<40.5)replf=1;
+//    }
+//    if(replf){
+//      chi22[ic]=chi2[ic];
+//      strr2[ic]=strr[ic];
+//      offs2[ic]=offs[ic];
+//    }
+//    chi2[ic]=chi22[ic];
+//    strr[ic]=strr2[ic];
+//    offs[ic]=offs2[ic];
+//    if(strr[ic]>0.){
+//      HF1(1208,geant(strr[ic]),1.);
+//      HF1(1209,geant(offs[ic]),1.);
+//      HF1(1210,geant(chi2[ic]),1.);
+//    }
+//  }
 //------------
   printf("\n\n");
   printf("===========> Channels STRR-calibration report :\n\n");
@@ -2550,12 +2652,12 @@ else{// <--------"points=method"
       ic=il*SCMXBR*2+ib*2;
       dbsta=-1;
       if(chi2[ic]>0.)dbsta=0; 
-      if(chi2[ic]>20.)dbsta=10;//problem with t-measurement
+      if(chi2[ic]>chi2mx)dbsta=10;//problem with t-measurement
       tcfile <<strr[ic]<<" "<<offs[ic]<<" "<<dbsta<<"  ";// side-1
       ic+=1;
       dbsta=-1;
       if(chi2[ic]>0.)dbsta=0; 
-      if(chi2[ic]>20.)dbsta=10;//problem with t-measurement
+      if(chi2[ic]>chi2mx)dbsta=10;//problem with t-measurement
       tcfile <<strr[ic]<<" "<<offs[ic]<<" "<<dbsta<<endl;// side-2
     }
     tcfile << endl;
@@ -2660,7 +2762,7 @@ void TOFAVSDcalib::fit(){
     for(j=0;j<SCACHB;j++){//<-- Tout bin loop
       nevf=number(nevdyn[i][j]);
       co=(number(j)+0.5)*SCACBW;// mid. of TovT-anode bin
-      if(nevf>10.){ // min. 10 events
+      if(nevf>5.){ // min. 10 events
         t=dtdyn[i][j]/nevf; // get mean
         tq=dtdyn2[i][j]/nevf; // mean square
         dis=tq-t*t;// rms**2
@@ -2678,7 +2780,7 @@ void TOFAVSDcalib::fit(){
       }
     }//--> end of bin loop
 //
-    if(bins>=5){
+    if(bins>=4){
       t0=(sumt*sumc2-sumct*sumc)/(sumid*sumc2-(sumc*sumc));
       sl=(sumct*sumid-sumc*sumt)/(sumid*sumc2-(sumc*sumc));
       chi2[i]=sumt2+t0*t0*sumid+sl*sl*sumc2

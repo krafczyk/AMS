@@ -134,6 +134,7 @@ integer trlogic[2]; // to control trigger logic
 integer fast;    // 1/0 fast/slow algo;
 integer daqfmt;  // 0/1 raw/reduced TDC format for DAQ
 integer birks;     // 0/1  not apply/apply birks corrections
+integer adsimpl;   // 0/1->precise/simplified sim. of A/D-TovT
 };
 #define TOFMCFFKEY COMMON_BLOCK(TOFMCFFKEY,tofmcffkey)
 COMMON_BLOCK_DEF(TOFMCFFKEY_DEF,TOFMCFFKEY);
@@ -245,6 +246,7 @@ integer tofcoo;// 0/1-> use transv/longit coord. from TOF
 integer dynflg;// 0/1-> use stand/special(Contin's) dynode calibr.
 integer cfvers;// 1-99 -> vers.number for tofverslistNN.dat file
 integer cafdir;// 0/1->use officical/private directory for calib.files
+integer mcainc;// to swich on/off A-integr. calibr. in MC
 };
 #define TOFCAFFKEY COMMON_BLOCK(TOFCAFFKEY,tofcaffkey)
 COMMON_BLOCK_DEF(TOFCAFFKEY_DEF,TOFCAFFKEY);

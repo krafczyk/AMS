@@ -70,7 +70,7 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::_fladctb=0.1;    // MC "flash-ADC" internal time binning (ns)
   geant TOFDBc::_shaptb=1.;      // MC shaper internal time binning (ns)
   geant TOFDBc::_shrtim=1.0;     // MC shaper pulse rise time (ns)(exp)
-  geant TOFDBc::_shctim=300.;    // MC shaper pulse cut-time(gate width)(ns)
+  geant TOFDBc::_shctim=600.;    // MC shaper pulse cut-time(gate width)(ns)
   geant TOFDBc::_shftim=63.;     // MC shaper pulse fall time (ns)(exp). MC only !!!
   geant TOFDBc::_strflu=2.;    // Stretcher "end-mark" time fluctuations (ns)
   geant TOFDBc::_tdcbin[4]={
@@ -93,11 +93,11 @@ geant TOFDBc::_plnstr[15]={
     0.05,   // (10)fast discr.(comparator) internal accuracy(ns) + (?) to have exp.resol
     2.,     // (11)min. pulse duration (ns) of fast discr.(comparator) (for dinode also)
     18.,    // (12)(as dummy gap in s-TDC pulse)
-    0.,     // spare 
-    0.      // spare 
+    10.36,  // (13)thresh.(pC) in A-integrator(TovT conversion) 
+    10.36   // (14)thresh.(pC) in D-integrator(TovT conversion) 
   };
   geant TOFDBc::_trigtb=0.25;  // MC time-bin in logic(trig) pulse handling (ns)
-  geant TOFDBc::_di2anr=0.1;  // dinode->anode signal ratio (def,mc-data) not used now !
+  geant TOFDBc::_di2anr=0.2;  // dinode->anode signal ratio (def,mc-data) not used now !
   geant TOFDBc::_strrat=40.;  // stretcher ratio (default,mc-data) not used now !
   geant TOFDBc::_strjit1=0.035;  // "start"-pulse jitter at stretcher input
   geant TOFDBc::_strjit2=0.035;  // "stop"(FT)-pulse jitter at stretcher input
@@ -322,7 +322,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  char vers2[3]="rl";
  int mrfp;
 //
- geant asatl=20.;//(mev,~10MIPs),if E-dinode(1-end) higher - use it instead
+ geant asatl=20.;//(mev,~20MIPs),if E-dinode(1-end) higher - use it instead
 //                                 of anode measurements
 //---> TovT-electronics calibration for MC:
 //
@@ -694,7 +694,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     mip2q=m2q[brt-1];//(pC/mev),dE(mev)_at_counter_center->Q(pC)_at_PM_anode(2x3-sum)
     a2dr[0]=an2di[cnum][0];// from ext.file
     a2dr[1]=an2di[cnum][1];
-    fstrd=TOFDBc::fstdcd();//(ns),same hit(up-edge) relat.delay in fast-slow TDC
+    fstrd=tofvpar.sftdcd();//(ns),same hit(up-edge)delay in f/sTDC(const. for now)
 //
 //-->prepare position correction array (valid for local !!! r.c.):
 //
@@ -735,7 +735,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     tzer=tzerf[ila][ibr];//was read from ext. file
     tdif=tdiff[cnum];//was read from ext. file 
     td2p[0]=speedl;//mean speed of the light was read from external file
-    td2p[1]=TOFRECFFKEY.cuts[3]; // error on longit. coord. measurement(cm)
+    td2p[1]=tofvpar.lcoerr();//error on longit. coord. measurement(cm)
     for(ip=0;ip<SCIPAR;ip++)aip[0][ip]=ipara[2*cnum][ip];
     for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*cnum+1][ip];
     for(ip=0;ip<SCIPAR;ip++)dip[0][ip]=ipard[2*cnum][ip];
@@ -1314,13 +1314,13 @@ void TOFJobStat::bookhist(){
      (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){ // Monitoring Job
 // Book reco-hist
     HBOOK1(1100,"Fast-Slow hit time-difference(single hist/slow-hit measurements)",80,0.,80.,0.);
-    HBOOK1(1105,"Anode-Slow hit time-difference(single an/slow-hit measurements)",80,-40.,40.,0.);
-    HBOOK1(1106,"Dynode-Slow hit time-difference(single dyn/slow-hit measurements)",80,-120.,40.,0.);
+    HBOOK1(1105,"Anode-Slow hit time-difference(single an/slow-hit measurements)",80,-40.,120.,0.);
+    HBOOK1(1106,"Dynode-Slow hit time-difference(single dyn/slow-hit measurements)",80,-40.,120.,0.);
     HBOOK1(1107,"TOF+CTC+ANTI data length (16-bit words)",80,0.,1000.,0.);
     HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,160.,0.);
     HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,1600.,0.);
-    HBOOK1(1103,"Time_history:inp.pulse width(ns)",80,0.,80.,0.);
-    HBOOK1(1104,"Anode TovT:inp.pulse width(ns)",80,0.,320.,0.);
+    HBOOK1(1103,"Time_history: TovT(ns)",80,0.,80.,0.);
+    HBOOK1(1104,"Anode TovT: TovT(ns)",80,0.,640.,0.);
     HBOOK1(1110,"RawClusterLevel:Total fired layers per event",5,0.,5.,0.);
     HBOOK1(1111,"RawClusterLevel:Layer appearence frequency",4,0.5,4.5,0.);
     HBOOK1(1112,"RawClusterLevel:Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
@@ -1329,14 +1329,14 @@ void TOFJobStat::bookhist(){
     HBOOK1(1115,"Fast-Slow hit time-difference(all hist/slow-hit meas.",80,-40.,120.,0.);
 //    HBOOK1(1130,"W1,L4-B3-S1",50,0.,200.,0.);
 //    HBOOK1(1131,"W2,L4-B3-S1",50,0.,100.,0.);
-//    HBOOK1(1132,"W3,L4-B3-S1",60,0.,6000.,0.);
+//    HBOOK1(1132,"W3,L1-B12-S2",60,0.,6000.,0.);
 //    HBOOK1(1133,"W1,L4-B3-S2",50,0.,200.,0.);
 //    HBOOK1(1134,"W2,L4-B3-S2",50,0.,100.,0.);
-//    HBOOK1(1135,"W3,L4-B3-S2",60,0.,6000.,0.);
-    HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
-    HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
-    HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,24.,0.);
-    HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,240.,0.);
+//    HBOOK1(1135,"W3,L3-B10-S2",60,0.,6000.,0.);
+    HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,16.,0.);
+    HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,80.,0.);
+    HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,16.,0.);
+    HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,80.,0.);
     HBOOK1(1532,"(T1-T3)(ns),corr,trl-normalized,ideal evnt",80,1.,9.,0.);
 //    HBOOK1(1533,"L=1,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
 //    HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
@@ -1351,10 +1351,17 @@ void TOFJobStat::bookhist(){
     HBOOK1(1541,"L=2,TOF Eclust(mev)",80,0.,240.,0.);
     HBOOK1(1542,"L=4,TOF Eclust(mev)",80,0.,240.,0.);
     if(TOFRECFFKEY.relogic[0]==1){ // STRR-calibration
-      HBOOK1(1200,"Stretcher-ratio for indiv. channel",80,35.,55.,0.);
-      HBOOK1(1201,"Offsets for indiv. channels",80,-100.,2300.,0.);
-      HBOOK1(1202,"Chi2 for indiv. channel",50,0.,10.,0.);
-      HBOOK1(1204,"Bin Tin-RMS in Tin-Tout fit",50,0.,10.,0.);
+      HBOOK1(1200,"Stretcher-ratio for indiv. channel,bin.meth",80,35.,55.,0.);
+      HBOOK1(1201,"Offsets for indiv. channels,bin.meth",80,-100.,2300.,0.);
+      HBOOK1(1202,"Chi2 for indiv. channel,bin.meth",50,0.,10.,0.);
+      HBOOK1(1204,"Bin Tin-RMS in Tin-Tout fit,bin.meth",50,0.,10.,0.);
+      HBOOK1(1205,"Stretcher-ratio for indiv. channel,pnt.meth",80,35.,55.,0.);
+      HBOOK1(1206,"Offsets for indiv. channels,pnt.meth",80,-100.,2300.,0.);
+      HBOOK1(1207,"Chi2 for indiv. channel,pnt.meth",50,0.,10.,0.);
+      HBOOK1(1208,"Stretcher-ratio for indiv. channel,comb.meth",80,35.,55.,0.);
+      HBOOK1(1209,"Offsets for indiv. channels,comb.meth",80,-100.,2300.,0.);
+      HBOOK1(1210,"Chi2 for indiv. channel,comb.meth",50,0.,10.,0.);
+      
 // hist.1600-1711 are booked in init-function for Tin vs Tout correl.!!!(TDLV)
 // hist.1720-1790 are booked in init-function for BarRawTime histogr.!!!(TDLV)
       if(TOFCAFFKEY.dynflg==1){ // for special(Contin's) Dynode calibr.
@@ -1377,16 +1384,13 @@ void TOFJobStat::bookhist(){
       HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
       HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
       HBOOK1(1215,"(Cos_tr-Cos_sc)/Cos_tr",50,-1.,1.,0.);
-      HBOOK1(1216,"Cos_tr",50,0.5,1.,0.);
       HBOOK1(1217,"Cos_sc",50,0.5,1.,0.);
       HBOOK1(1218,"TOF track-fit chi2-x",50,0.,5.,0.);
       HBOOK1(1219,"TOF track-fit chi2-y",50,0.,5.,0.);
       HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,20.,0.);
       HBOOK1(1505,"Qmax ratio",80,0.,16.,0.);
       HBOOK1(1507,"T0-difference inside bar-types 5",80,-0.4,0.4,0.);
-      HBOOK2(1502,"Layer-1,T vs exp(-TovT)",50,0.,0.4,50,3.,8.,0.);
-      HBOOK2(1514,"Layer-1,T vs SUM(1/Q)",50,0.,0.1,50,3.,8.,0.);
-      HBOOK2(1504,"Layer-3,T vs exp(-TovT)",50,0.,0.4,50,-2.,3.,0.);
+      HBOOK2(1514,"Layer-1,T vs SUM(1/Q)",50,0.,0.5,50,1.,11.,0.);
       HBOOK1(1524,"TRlen13-TRlen24",80,-4.,4.,0.);
 //      HBOOK1(1550,"Bar-time(corected),L=1",80,24.,26.,0.);
 //      HBOOK1(1551,"Bar-time(corected),L=2",80,23.5,25.5,0.);
@@ -1412,14 +1416,11 @@ void TOFJobStat::bookhist(){
       HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
       HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
       HBOOK1(1215,"(Cos_tr-Cos_sc)/Cos_tr",50,-1.,1.,0.);
-      HBOOK1(1216,"Cos_tr",50,0.5,1.,0.);
       HBOOK1(1217,"Cos_sc",50,0.5,1.,0.);
       HBOOK2(1218,"TOF-beta vs TRACKER-momentum",80,0.,4.,60,0.5,1.1,0.);
-      HBOOK2(1219,"Q(ref.btyp=5) vs Log(beta*gamma)",50,-0.1,1.9,80,0.,240.,0.);
+      HBOOK2(1219,"Q(ref.btyp=5) vs (beta*gamma)",50,0.,20.,80,60.,460.,0.);
 // hist.# 1220-1239 are reserved for imp.point distr.(later in TOFAMPLcalib.init()
-      HBOOK2(1248,"Cnannel-2  D-signal vs A-signal",80,0.,320.,80,0.,160.,0.);
-      HBOOK2(1249,"Ref.bar(type=5) A2D-ratio vs A-signal",80,0.,320.,50,0.,10.,0.);
-      HBOOK1(1250,"Ref.bar(type=5) Q-distr.(s=1,centre)",80,0.,160.,0.);        
+      HBOOK1(1250,"Ref.bar(type=5) Q-distr.(s=1,centre)",80,0.,240.,0.);        
       HBOOK1(1251,"Ref.bar(type=5) Q-distr.(s=2,centre)",80,0.,240.,0.);
       HBOOK1(1252,"Relative anode-gains(all channels)",80,0.5,2.,0.);
       HBOOK1(1254,"Ref.bar A-profile (type-1)",70,-70.,70.,0.);        
@@ -1469,7 +1470,9 @@ void TOFJobStat::bookhistmc(){
       HBOOK1(1072,"Total bar pulse-charge(pC),L-1",80,0.,16000.,0.);
       HBOOK1(1073,"PMT-pulse amplitude(mV,id=108,s1)",80,0.,1000.,0.);
       HBOOK1(1074,"Shaper amplitude (pC),all channels",80,0.,160.,0.);
-      HBOOK1(1075,"L=1,PM=1,Shaper TovT (ns)",80,50.,290.,0.);
+      HBOOK1(1075,"A-Shaper TovT (ns)",80,0.,640.,0.);
+      HBOOK1(1076,"D-Shaper TovT (ns)",80,0.,640.,0.);
+      HBOOK2(1077,"TovT vs Q, MC A-Integrator",80,0.,4000,70,0.,490.,0.);
     }
 }
 //----------------------------
@@ -1504,9 +1507,9 @@ void TOFJobStat::outp(){
 //       HPRINT(1133);
 //       HPRINT(1134);
 //       HPRINT(1135);
+           HPRINT(1529);
            HPRINT(1526);
            HPRINT(1528);
-           HPRINT(1529);
            HPRINT(1531);
            HPRINT(1532);
 //           HPRINT(1533);
@@ -1529,9 +1532,7 @@ void TOFJobStat::outp(){
          HPRINT(1500);
          HPRINT(1501);
          HPRINT(1506);
-           HPRINT(1502);
            HPRINT(1514);
-           HPRINT(1504);
            HPRINT(1503);
            HPRINT(1505);
            HPRINT(1200);
@@ -1543,7 +1544,6 @@ void TOFJobStat::outp(){
            HPRINT(1212);
            HPRINT(1213);
            HPRINT(1215);
-           HPRINT(1216);
            HPRINT(1217);
            HPRINT(1218);
            HPRINT(1219);
@@ -1573,17 +1573,14 @@ void TOFJobStat::outp(){
            HPRINT(1212);
            HPRINT(1213);
            HPRINT(1215);
-           HPRINT(1216);
            HPRINT(1217);
            HPRINT(1218);
            HPRINT(1219);
            HPRINT(1204);
            HPRINT(1207);
-           HPRINT(1248);
-           HPRINT(1249);
            HPRINT(1250);
            HPRINT(1251);
-           TOFAMPLcalib::fit();
+             TOFAMPLcalib::fit();
            HPRINT(1259);
            HPRINT(1260);
            HPRINT(1252);
@@ -1601,6 +1598,12 @@ void TOFJobStat::outp(){
            HPRINT(1201);
            HPRINT(1202);
            HPRINT(1204);
+           HPRINT(1205);
+           HPRINT(1206);
+           HPRINT(1207);
+           HPRINT(1208);
+           HPRINT(1209);
+           HPRINT(1210);
            if(TOFCAFFKEY.dynflg==1){
              TOFAVSDcalib::fit();
              HPRINT(1240);
@@ -1631,6 +1634,9 @@ void TOFJobStat::outpmc(){
          HPRINT(1073);
          HPRINT(1074);
          HPRINT(1075);
+         HPRINT(1076);
+         HPRINT(1077);
+         if(TOFCAFFKEY.mcainc)AMSTOFTovt::aintfit();
        }
 }
 //==========================================================================

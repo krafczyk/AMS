@@ -81,7 +81,7 @@ c.TOF Event Format
     one block consists of :
     
     Block_Length
-    Block_id: 000 1010 nnn 000001   // nnn=0-7 is block(node) number
+    Block_id: 000 1010 nnn 000000   // nnn=0-7 is block(node) number
     TOF_data_SFET-1
     TOF_data_SFET-2
     TOF_data_SFET-3
@@ -106,7 +106,7 @@ c.TOF Event Format
     one block consists of :
 
     Block_Length
-    Block_id: 000 1010 nnn 000000   // nnn=0-7 is block(node) number
+    Block_id: 000 1010 nnn 000001   // nnn=0-7 is block(node) number
     header_word // Not final !!! : bits(12-15)->SFET_number(0-7); (8-11)->tdc_ch(0-15)
                                      bit(0)->phase_bit 
     TDC_value    

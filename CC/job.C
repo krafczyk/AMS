@@ -350,22 +350,23 @@ FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=================================================================================
 void AMSJob::_sitofdata(){
-  TOFMCFFKEY.TimeSigma=1.6e-10; // time resolution(sec) for simplified algorithm
-  TOFMCFFKEY.TimeSigma2=4.5e-10;
-  TOFMCFFKEY.TimeProbability2=0.035;
-  TOFMCFFKEY.padl=10.5;        // sc. bar transv. step ........................
-  TOFMCFFKEY.Thr=0.1;          // Sc.bar Elos-thresh.(Mev) to participate in Simul.   
+  TOFMCFFKEY.TimeSigma=1.7e-10; //(1) side time resolution(sec) 
+  TOFMCFFKEY.TimeSigma2=4.5e-10;//(2)
+  TOFMCFFKEY.TimeProbability2=0.035;//(3)
+  TOFMCFFKEY.padl=10.5;        //(4) sc. bar transv. step ........................
+  TOFMCFFKEY.Thr=0.1;          //(5) Sc.bar Elos-thresh.(Mev) to participate in Simul.   
 //
-  TOFMCFFKEY.mcprtf[0]=0;     // TOF MC print flag for init arrays
-  TOFMCFFKEY.mcprtf[1]=0;     // TOF MC print flag for MC pulses
-  TOFMCFFKEY.mcprtf[2]=0;     // ...................... histograms
-  TOFMCFFKEY.mcprtf[3]=0;     // spare
-  TOFMCFFKEY.mcprtf[4]=0;     // spare
-  TOFMCFFKEY.trlogic[0]=1; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
-  TOFMCFFKEY.trlogic[1]=0; // ......................(=0/1-> ANY3/ALL4 layer coincidence) 
-  TOFMCFFKEY.fast=0;       // 0/1-> fast/slow simulation algorithm
-  TOFMCFFKEY.daqfmt=0;     // 0/1-> raw/reduced TDC format for DAQ simulation
-  TOFMCFFKEY.birks=1;       // 0/1->  not apply/apply birks corrections
+  TOFMCFFKEY.mcprtf[0]=0;     //(6) TOF MC print flag for init arrays
+  TOFMCFFKEY.mcprtf[1]=0;     //(7) TOF MC print flag for MC pulses
+  TOFMCFFKEY.mcprtf[2]=0;     //(8) ...................... histograms
+  TOFMCFFKEY.mcprtf[3]=0;     //(9) spare
+  TOFMCFFKEY.mcprtf[4]=0;     //(10) spare
+  TOFMCFFKEY.trlogic[0]=1; //(11) MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
+  TOFMCFFKEY.trlogic[1]=0; //(12)......................(=0/1-> ANY3/ALL4 layer coincidence) 
+  TOFMCFFKEY.fast=0;       //(13) 0/1-> fast/slow simulation algorithm
+  TOFMCFFKEY.daqfmt=0;     //(14) 0/1-> raw/reduced TDC format for DAQ simulation
+  TOFMCFFKEY.birks=1;      //(15) 0/1->  not apply/apply birks corrections
+  TOFMCFFKEY.adsimpl=0;    //(16)0/1->precise/simplified sim. of A/D-TovT
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
@@ -644,16 +645,16 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.daqthr[3]=0.;//(16)spare  
   TOFRECFFKEY.daqthr[4]=0.;//(17)spare
 //
-  TOFRECFFKEY.cuts[0]=50.;//(18)t-window(ns) for "the same hit" search in f/s_tdc
+  TOFRECFFKEY.cuts[0]=26.;//(18)t-window(ns) for "the same hit" search in f/s_tdc
   TOFRECFFKEY.cuts[1]=15.;//(19)"befor"-cut in time history (ns)(max.PMT-pulse length?)
   TOFRECFFKEY.cuts[2]=400.;//(20)"after"-cut in time history (ns)(max. shaper integr.time?)
   TOFRECFFKEY.cuts[3]=2.;//(21) error in longitudinal coordinate (single TOF bar)
-  TOFRECFFKEY.cuts[4]=0.;//(22)
-  TOFRECFFKEY.cuts[5]=0.;//(23)
-  TOFRECFFKEY.cuts[6]=0.;//(24)
-  TOFRECFFKEY.cuts[7]=0.;//(25)
-  TOFRECFFKEY.cuts[8]=0.;//(26)
-  TOFRECFFKEY.cuts[9]=0.;//(27)
+  TOFRECFFKEY.cuts[4]=65.;//(22) FT const. delay
+  TOFRECFFKEY.cuts[5]=40.;//(23) sTDC-delay wrt fTDC
+  TOFRECFFKEY.cuts[6]=35.;//(24) sTDC-delay wrt aTDC
+  TOFRECFFKEY.cuts[7]=0.;// (25) sTDC-delay wrt dTDC 
+  TOFRECFFKEY.cuts[8]=26.;//(26) gate for a/s-TDC
+  TOFRECFFKEY.cuts[9]=40.;//(27) gate for d/s-TDC
 //
   TOFRECFFKEY.ReadConstFiles=0;//(28)read const. from DB/myFiles (0/1)
 //  
@@ -679,12 +680,14 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in the above range
   TOFCAFFKEY.tzref[0]=0.;// (4)T0 for ref. counters
   TOFCAFFKEY.tzref[1]=0.;// (5)T0 for ref. counters
-  TOFCAFFKEY.fixsl=25.;// (6)def. slope
-  TOFCAFFKEY.bmeanmu=0.996;// (7)mean muon velocity in the above range
+  TOFCAFFKEY.fixsl=6.;// (6)def. slope
+  TOFCAFFKEY.bmeanmu=0.998;// (7)mean muon velocity in the above range
   TOFCAFFKEY.idref[0]=108;//(8)LBB for first ref. counter 
   TOFCAFFKEY.idref[1]=0;//(9)LBB for second ref. counter (if nonzero)
   TOFCAFFKEY.ifsl=1;//(10) 0/1 to fix/release slope param.
+//
   TOFCAFFKEY.caltyp=0;// (11) 0/1->space/earth calibration
+//
 // AMPL-calibration:
   TOFCAFFKEY.truse=0; // (12) 1/0-> to use/not tracker
   TOFCAFFKEY.plhc[0]=1.;// (13) track mom. low limit(gev/c) for space calibr
@@ -705,6 +708,7 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.dynflg=1; // (27) 0/1-> use stand/special(Contin's) dynode-calibration
   TOFCAFFKEY.cfvers=1; // (28) 1-99 -> vers.number for tofverlistNN.dat file
   TOFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
+  TOFCAFFKEY.mcainc=0;// (30) 0/1-> off/on A-integr. calibration in MC
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //======================================================================
