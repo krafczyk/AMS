@@ -86,18 +86,14 @@ out:
    }
 
    AMSRoot amsroot("AMS", "AMS Display");
-   cout <<" "<<endl;
    amsroot.Init(t);
-   cout <<" "<<endl;
    cout <<"Open file "<<fnam<<endl;
    amsroot.MakeTree("AMSTree", "AMS Display Tree");
    TFile fgeo("ams_group.root");
-   cout <<" "<<endl;
    TGeometry * geo = (TGeometry *)fgeo.Get("ams");
    AMSDisplay display("AMSRoot Event Display", geo);
        display.SetApplication(theApp);
        display.SetView (kTwoView);
-       // display.SetView (kTwoView);
       for(int i=0;;i++){
        amsroot.Clear();
        if(!amsroot.GetEvent(i)){
