@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.182 2003/05/23 09:44:09 alexei Exp $
+# $Id: RemoteClient.pm,v 1.183 2003/05/23 17:52:41 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6351,6 +6351,7 @@ sub parseJournalFiles {
     if (not $self->ServerConnect()){
         die "parseJournalFiles -F- Unable To Connect To Server";
     }
+    $self->set_root_env();
 
  $sql = "SELECT begin FROM productionset WHERE STATUS='Active'";
  $ret = $self->{sqlserver}->Query($sql);
@@ -6398,6 +6399,12 @@ sub parseJournalFiles {
       foreach my $file (@allfiles) {
        if ($file =~/^\./){
          next;
+       }
+       my @junk = split "journal.",$file;
+       if (defined $junk[1]) {
+        if ($junk[1] == 1 || $junk[1] == 0) {
+           next;
+        }
        }
        $newfile=$joudir."/".$file;
        my $writetime = (stat($newfile)) [9];
@@ -7538,7 +7545,8 @@ sub set_root_env {
 #
     my $self = shift;
     my $ROOTSYS = $self->{ROOTSYS};
-    $ENV{"ROOTSYS"}='$ROOTSYS';
+    print "------------ ROOTSYS : $ROOTSYS \n";
+    $ENV{"ROOTSYS"}=$ROOTSYS;
     $ENV{"PATH"}=$ENV{"PATH"}.":".$ENV{"ROOTSYS"}."/bin";
     $ENV{"LD_LIBRARY_PATH"}=$ENV{"LD_LIBRARY_PATH"}.":".$ENV{"ROOTSYS"}."/lib";
     1;
