@@ -16,7 +16,7 @@ PROTOCCALLSFSUB0(GBATCH,gbatch)
 //
 void (handler)(int);
 main(){
-    *signal(SIGFPE, handler);
+     *signal(SIGFPE, handler);
   //  cout << "Debug ?";
   AMSgvolume::debug=0;
     GZEBRA(NWGEAN);

@@ -102,9 +102,9 @@ void AMSCTCRawCluster::sictcdigi(){
          number z1=p1[2]-wls[2];
          number z2=p2[2]-wls[2];
          #ifdef __AMSDEBUG__
-          if (z1<-3.e-4 || z1 > 3.e-4+2*wls[2])
+          if (z1<-3.e-4 || z1 > 3.e-4-2*wls[2])
            cerr <<"sictcdigi-E-z1 out of volume" <<z1<<" " <<p1<<endl;
-          if (z2<-0.2 || z2 > 0.2+2*wls[2])
+          if (z2<-0.2 || z2 > 0.2-2*wls[2])
            cerr <<"sictcdigi-E-z2 out of volume" <<z2<<" " <<p2<<endl;
          
          #endif

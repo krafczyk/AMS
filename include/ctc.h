@@ -20,7 +20,7 @@ private:
 
 public:
 
-CTC() {}; 
+CTC()  {_Coo[0]=0;_Coo[1]=0;_Coo[2]=0;}
 CTC(number signal, number beta, number error, AMSPoint coo):
   _Signal(signal), _Beta(beta), _ErrorBeta(error), _Coo(coo){}
 

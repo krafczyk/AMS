@@ -118,7 +118,7 @@ number theta, phi, sleng;
 number signal,beta,ebeta;
   // Find CTC hits 
 integer kk;
-for(kk=0;kk<2;kk++){  
+for(kk=0;kk<CTCDBc::getnlay();kk++){  
   AMSCTCCluster *pctc=(AMSCTCCluster*)AMSEvent::gethead()->
   getheadC("AMSCTCCluster",kk);
   while(pctc){
@@ -127,6 +127,9 @@ for(kk=0;kk<2;kk++){
         // Change Z
         AMSCTCRawCluster d(0,1,pctc->getlayno(),0);
         AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(0));
+#ifdef __AMSDEBUG__
+assert (p != NULL);
+#endif
         coo[2]=p->loc2gl(AMSPoint(0,0,0))[2];
         _ptrack->interpolate(coo,dir,outp,theta,phi,sleng);
         if(((outp-coo)/pctc->getecoo()).abs() < SearchReg)break;
@@ -164,8 +167,10 @@ for(kk=0;kk<2;kk++){
    ebeta=1;
    AMSCTCRawCluster d(0,1,kk+1,0);
    AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(0));
+   if(p)
    _ptrack->interpolate(p->loc2gl(AMSPoint(0,0,0)),dir,outp,theta,phi,sleng);
- }
+   else cerr << " ctcfit-S- No layer no " << kk+1<<endl ;
+}
     _Value[kk]=CTC(signal,beta,ebeta, outp);
     _pctc[kk]=pctc;
 }
@@ -198,7 +203,7 @@ if(init++==0){
  PN.Phi=_Phi;
  for(i=0;i<3;i++)PN.Coo[i]=_Coo[i];
  PN.Anti=_SumAnti;
- for(i=0;i<2;i++){
+ for(i=0;i<CTCDBc::getnlay();i++){
   PN.CTCP[i]=_pctc[i]?_pctc[i]->getpos():0;
   PN.Value[0][i]=_Value[i].getsignal();
   PN.Value[1][i]=_Value[i].getbeta();
