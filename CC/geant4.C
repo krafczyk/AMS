@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.51 2002/09/09 08:28:36 choumilo Exp $
+//  $Id: geant4.C,v 1.52 2002/12/16 10:33:57 choutko Exp $
 #include <job.h>
 #include <event.h>
 #include <trrec.h>
@@ -24,7 +24,6 @@
 #include "G4ThreeVector.hh"
 #include "G4Event.hh"
 #include "G4PVPlacement.hh"
-#include "G4Exception.hh"
 #include "G4StateManager.hh"
 #include "G4ApplicationState.hh"
 #include <g4xray.h>
@@ -627,7 +626,6 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 //       cout << "particle "<<particle->GetParticleName()<<endl;
 //}         
 //     geant d;
-//     if(RNDM(d)<1.e-3)G4Exception("qq");
      // Checking if Volume is sensitive one 
     G4StepPoint * PostPoint = Step->GetPostStepPoint();
     G4VPhysicalVolume * PostPV = PostPoint->GetPhysicalVolume();
