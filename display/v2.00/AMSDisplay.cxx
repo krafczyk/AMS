@@ -361,9 +361,9 @@ void AMSDisplay::DisplayButtons()
    m_ButtonPad->cd();
 
    Int_t butcolor = 33;
-   Float_t dbutton = 0.08;
-   Float_t y  = 0.98;
-   Float_t dy = 0.010;
+   Float_t dbutton = 0.075;
+   Float_t y  = 0.99;
+   Float_t dy = 0.007;
    Float_t x0 = 0.05;
    Float_t x1 = 0.95;
    TButton *button;
@@ -430,6 +430,18 @@ void AMSDisplay::DisplayButtons()
    y -= dbutton +dy;
    char *but9 = "gAMSRoot->Display()->Print()";
    button = new TButton("Print",but9,x0,y-dbutton,x1,y);
+   button->SetFillColor(butcolor);
+   button->Draw();
+
+   y -= dbutton +dy;
+   char *but10 = "gAMSRoot->Display()->SavePS()";
+   button = new TButton("Save as .ps",but10,x0,y-dbutton,x1,y);
+   button->SetFillColor(butcolor);
+   button->Draw();
+
+   y -= dbutton +dy;
+   char *but11 = "gAMSRoot->Display()->SaveGIF()";
+   button = new TButton("Save as .gif",but11,x0,y-dbutton,x1,y);
    button->SetFillColor(butcolor);
    button->Draw();
 /*

@@ -149,6 +149,8 @@ public:
    virtual void      SetGeometry(TGeometry * geo); // *--MENU*
    void              StartStop();
    void              Print(){m_Canvas->PrintCB();}
+   void              SavePS(){m_Canvas->SaveParticleCB();}
+   void              SaveGIF(){m_Canvas->SaveParticleGIF();}
    virtual void      SetView(Float_t theta, Float_t phi);
            void      SetView(EAMSView newView=kFrontView);
    virtual void      ShowNextEvent(Int_t delta=1);

@@ -47,6 +47,8 @@ public:
    virtual void StartStop()=0;
    virtual void Select()=0;
    virtual void Print()=0;
+   virtual void SavePS()=0;
+   virtual void SaveGIF()=0;
    virtual void      ShowNextEvent(Int_t delta=1) = 0;
 //   virtual void      SizeFruit() const;
    virtual void      SizeParticles() const;
