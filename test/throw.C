@@ -1,37 +1,65 @@
-//  $Id: throw.C,v 1.7 2001/01/22 17:32:56 choutko Exp $
+//  $Id: throw.C,v 1.8 2002/08/07 08:50:33 choutko Exp $
 #include <iostream.h>
 #include <stdio.h>
 
 #include <stdlib.h>
-class A{
+class AMSTrTrackError{
+private:
+ char msg[256];
+public:
+ AMSTrTrackError(char * name);
+ char * getmessage();
+};
+AMSTrTrackError::AMSTrTrackError(char * name){
+  if(name){
+    int n=strlen(name)+1;
+    if(n>255)n=255;
+    strncpy(msg,name,n);
+  }
+}
+char * AMSTrTrackError::getmessage(){return msg;}
+
+typedef int  (*pBuilder)(int refit);
+class B{
+ pBuilder _pb;
 int _i;
 public:
-  int geti(){return _i;}
-  A(int i=0):_i(i){
-    if(i<0){
-      throw i;
-      cout <<"This version of g++ is BUGGY"<<endl;
-      exit(1);
-    }
-  }
-  void seti(int i=0){_i=i;}
-  static void exc(int i)  ;
+ void run(){
+   _pb(_i);
+ }
+  B(pBuilder pb, int i):_pb(pb),_i(i){};
 };
 
-void A::exc(int i)  {
-  try{
-     A* pa=new A(i);
+class A{
+public:
+ static int exc(int i);
+  static int rec(int i){
+   if(i>0){
+    cout <<" gogo i"<<i<<endl;
+    throw AMSTrTrackError(" cpu time jipa");
+   }
+   else return rec(i+1);
   }
-catch (int i){
-  cerr <<" This version of g++ is OK"<<endl;
-}
+};
+
+int A::exc(int i)  {
+    rec(i);
 }
 
 main(){
 int i;
 for(;;){
-i=-5;
-A::exc(i);
+i=-50;
+B b(&A::exc,-50);
+  try{
+b.run();
+}
+catch (int i){
+  cerr <<" This version of icc is OK"<<endl;
+}
+catch (AMSTrTrackError e){
+  cerr <<e.getmessage()<<endl;
+}
 exit(1);
 }
 return 0;

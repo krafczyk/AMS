@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.55 2002/07/12 11:19:17 choutko Exp $
+# $Id: Monitor.pm,v 1.56 2002/08/07 08:50:25 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -1522,6 +1522,38 @@ sub SendId{
 sub ErrorPlus{
    my $ref=shift;
    die shift;
+}
+
+sub RemoveRuns{
+ my $ref=shift;
+
+
+      for my $j (0 ... $#{$ref->{rtb}}){
+        my %rdst=%{${$ref->{rtb}}[$j]};
+     if($rdst{Status} ne "Processing"){
+        my $arsref;
+        foreach $arsref (@{$ref->{arpref}}){
+            try{
+                $arsref->sendRunEvInfo(\%rdst,"Delete");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                $arsref->sendRunEvInfo(\%rdst,"Delete");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+
+
+    }
+}
 }
 
 

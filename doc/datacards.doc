@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.211 2002/07/17 10:49:46 delgadom Exp $
+#  $Id: datacards.doc,v 1.212 2002/08/07 08:50:04 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -149,7 +149,7 @@ I15 fixp(0)                       //fix the cube surface for particle
                                   //3,4,5,6 - others
 I18 npat(1)                       //number of particle to generate in one go
 I19 run(100)                      //run number
-I20 low(0)                        //normal(0);  undercutoff(1)  
+I20 low(0)                        //cosmic(0);  undercutoff(1)  
                                   //sea level muons(2) mev range electrons(3)
                                   //uniform momentum(4) 
                                   //uniform log(momentum) (5)
