@@ -101,9 +101,11 @@ not tracking media.
 Default production cut for all particles except e+- is 1mm,
 for e+- is 100 mkm (to properly handle  tracker)
 
-The following routines are available to manually
-set up some geant-3 tracking cuts:
-(gmat.h,gmat.C) CUTGAM CUTELE CUTNEU CUTMUO CUTHAD TOFMAX
+The default energy cuts are now set up automatically according
+to CUTS datacards values.
+
+It is also possible to set up the cuts  manually (a-la g3 GSTPAR)
+via (gmat.h,gmat.C) CUTGAM CUTELE CUTNEU CUTMUO CUTHAD TOFMAX routines.
 
 Example:
 AMSgtmed ptmed= (AMSgtmed*)tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0,'N',birks,2,20.,10.,1000.,
