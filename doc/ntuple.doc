@@ -43,6 +43,7 @@ Below there is a description of a  ntuple.
 * I*4  *              * EVENTH   * CTCMCClusters    // No of Cerenkov MC hits
 * I*4  *              * EVENTH   * AntiMCClusters   // No of Anti MC Hits
 * I*4  *              * EVENTH   * AntiClusters     // No of Anti clusters
+* I*4  *              * EVENTH   * EcalClusters     // No of ECAL Clusters
 * I*4  *              * EVENTH   * EventStatus      // EventStatus (see status.doc)
 
 * I*4  * [0,10]       * BETA     * nbeta             // betas number
@@ -266,6 +267,17 @@ Below there is a description of a  ntuple.
 * R*4  *              * ANTIMCCL * AntiMCXcoo(3,nantimc) // coo
 * R*4  *              * ANTIMCCL * AntiMCtof(nantimc)    // Tof
 * R*4  *              * ANTIMCCL * AntiMCedep(nantimc)   // energy dep (GeV)
+
+
+
+* I*4  * [0,50]       * ECALCLUST * necal                // ECAL clusters number
+* I*4  *              * ECALCLUST * EcalStatus(necal)    // Status: 
+* I*4  *              * ECALCLUST * EcalProj(ntof)       // projection (0-x,1-y)
+* I*4  *              * ECALCLUST * EcalPlane(necal)     // ECAL plane number (0,...)
+* R*4  *              * ECALCLUST * EcalEdep(necal)      // ECAL measured energy(MeV) 
+* R*4  *              * ECALCLUST * EcalCoo(3,necal)     // ECAL Coo (cm)
+* R*4  *              * ECALCLUST * EcalErrCoo(3,necal)  // ECAL Error Coo
+* I*4  * [0,10]       * ECALCLUST * EcalNmemb(necal)         // Number of hits in cluster 
 
 
  * I*4  * [0,2]       * LVL3     * nlvl3                 // lvl3trigger number 

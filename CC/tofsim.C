@@ -321,7 +321,7 @@ void AMSTOFTovt::build()
 //      rnd=RNDM(dummy);
 //      am=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
       am=seres+sesig*rnormx();//amplitude from single elect. spectrum
-//----->  summing of all amplitudes from photoelectrons :
+//------>  summing of all amplitudes from photoelectrons :
       if(am>0){
         ii=integer(tm*ifadcb);
         if(ii>SCTBMX)ii=SCTBMX;

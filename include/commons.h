@@ -177,6 +177,8 @@ COMMON_BLOCK_DEF(ECMCFFKEY_DEF,ECMCFFKEY);
 class ECREFFKEY_DEF {
 public:
 integer reprtf[3];   //reco print-flags
+geant hitthr1;       // thresh. in cluster search
+geant hitthr2;       // thresh. in cluster search
 };
 #define ECREFFKEY COMMON_BLOCK(ECREFFKEY,ecreffkey)
 COMMON_BLOCK_DEF(ECREFFKEY_DEF,ECREFFKEY);

@@ -373,7 +373,8 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           y=ampl*pow(zz,xa)/(pow(zz,xa+xb)+1.);
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
         }
-        else {
+        else if(!_fixedmom){
+	
          cerr<<"AMSmceventg::setspectra-F-NoPrimarySpectraDefinedForParticle "<<ipart<<endl;
          exit(1);
         }

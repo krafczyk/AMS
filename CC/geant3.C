@@ -46,7 +46,7 @@ extern "C" void gustep_(){
   static geant xpr(0.),ypr(0.),zpr(0.),tpr(0.);
   geant trcut2(0.1);// Max. transv.shift (0.316cm)**2
   geant vect[3],dx,dy,dz,dt; 
-  int i,nd,numv,iprt,numl;
+  int i,nd,numv,iprt,numl,numvp;
   static int numvo(-999),iprto(-999);
   if(lvl >1 && GCVOLU.names[lvl][0]== 'T' && GCVOLU.names[lvl][1]=='O' &&
   GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]=='S'){// in "TOFS"
@@ -133,17 +133,17 @@ extern "C" void gustep_(){
   }
 
   // ANTI,  mod. by E.C.
-  numl=GCVOLU.nlevel;
-  numv=GCVOLU.number[numl-1];
+//  numl=GCVOLU.nlevel;
+//  numv=GCVOLU.number[numl-1];
 //  for(i=0;i<4;i++)name[i]=GCVOLU.names[numl-1][i];
-//  cout<<"Volume "<<name<<" number="<<numv<<" level="<<numl<<endl;
+//  cout<<"Volume "<<name<<" number="<<numv<<" level="<<numl<<" sens="<<GCTMED.isvol<<endl;
 //  iprt=GCKINE.ipart;
 //  x=GCTRAK.vect[0];
 //  y=GCTRAK.vect[1];
 //  z=GCTRAK.vect[2];
 //  t=GCTRAK.tofg;
 //  de=GCTRAK.destep;
-//  cout<<"Part="<<iprt<<" x/y/z="<<x<<" "<<y<<" "<<z<<endl;
+//  cout<<"Part="<<iprt<<" x/y/z="<<x<<" "<<y<<" "<<z<<" de="<<de<<endl;
 //  UHTOC(GCTMED.natmed,4,media,20);
 //  cout<<" Media "<<media<<endl;
   int manti(0);
@@ -151,19 +151,24 @@ extern "C" void gustep_(){
                                        && GCVOLU.names[lvl][2]=='T')manti=1;
   if(GCTRAK.destep != 0  && GCTMED.isvol != 0 && manti==1){
      GBIRK(dee);
-     AMSAntiMCCluster::siantihits(numv,GCTRAK.vect,dee,GCTRAK.tofg);
+     AMSAntiMCCluster::siantihits(GCVOLU.number[lvl],GCTRAK.vect,dee,GCTRAK.tofg);
 //     HF1(1510,geant(iprt),1.);
   }
 //
 // -----> ECAL 1.0-version by E.C.
-  if(GCTRAK.destep != 0.){
-    if(lvl==4 && GCVOLU.names[lvl][0]== 'E' && GCVOLU.names[lvl][1]=='C'
-       && GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]=='B'){
-//       cout<<"lev/vol="<<numl<<" "<<numv<<" x/y="<<x<<" "<<y<<" z="<<z<<" de="<<de<<endl;
-     GBIRK(dee);
-     AMSEcalMCHit::siecalhits(numv,GCTRAK.vect,dee,GCTRAK.tofg);
-    } 
-  }
+    if(GCTRAK.destep != 0.){
+      if(lvl==6 && GCVOLU.names[lvl][0]== 'E' && GCVOLU.names[lvl][1]=='C'
+               ){
+//               && GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]=='C'){
+//       
+//       numvp=GCVOLU.number[numl-2];
+//       cout<<"lev/vol="<<numl<<" "<<numv<<" name="<<name<<" x/y="<<x<<" "<<y<<" z="<<z<<" de="<<de<<endl;
+//       for(i=0;i<4;i++)name[i]=GCVOLU.names[numl-2][i];
+//       cout<<"vol(lev-1)="<<numvp<<" name="<<name<<endl;
+       GBIRK(dee);
+       AMSEcalMCHit::siecalhits(GCVOLU.number[lvl-1],GCTRAK.vect,dee,GCTRAK.tofg);
+      }
+    }
 //
   GSKING(0);
 #ifndef __BATCH__

@@ -30,6 +30,7 @@ protected:
   TrRawClusterNtuple _trraw;
   AntiRawClusterNtuple _antiraw;
   TOFRawClusterNtuple _tofraw;
+  EcalClusterNtuple _ecclust;
 #ifdef __WRITEROOT__
   static TTree* _tree;  
   static TFile* _rfile;
@@ -68,6 +69,7 @@ public:
   TrRawClusterNtuple* Get_trraw() {return &_trraw;}
   AntiRawClusterNtuple* Get_antiraw() {return &_antiraw;}
   TOFRawClusterNtuple* Get_tofraw() {return &_tofraw;}
+  EcalClusterNtuple* Get_ecclust() {return &_ecclust;}
 
 //ClassDef(AMSNtuple ,1)       //AMSNtuple
 };

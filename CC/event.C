@@ -1,6 +1,6 @@
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
-//  ECAL edded 28-sep-1999 by E.Choumilov
+//  ECAL added 28-sep-1999 by E.Choumilov
 // add TDV/dbase version October 1, 1997. a.k.
 // Jan 07, 1999. ak.
 //   print EOF statistics, compare number of processed and expected 
@@ -799,11 +799,21 @@ void AMSEvent::_rectcinitevent(){
 }
 //=====================================================================
 void AMSEvent::_reecalinitevent(){
-  integer i;
+  integer i,maxp;
   AMSNode *ptr;
-  for(i=0;i<ECALDBc::slstruc(3);i++){// book containers for EcalRawEvent
+  maxp=2*ECALDBc::slstruc(3);// max SubCell-planes
+  for(i=0;i<maxp;i++){// <-- book S-layer containers for EcalRawEvent
     ptr=AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalRawEvent",i),0));
+  }
+//
+  for(i=0;i<maxp;i++){// <-- book  SubCell-plane containers for EcalHit
+    ptr=AMSEvent::gethead()->add (
+      new AMSContainer(AMSID("AMSContainer:AMSEcalHit",i),0));
+  }
+  for(i=0;i<maxp;i++){// <-- book  SubCell-plane containers for EcalCluster
+    ptr=AMSEvent::gethead()->add (
+      new AMSContainer(AMSID("AMSContainer:AMSEcalCluster",i),0));
   }
 }
 void AMSEvent::_resrdinitevent(){
@@ -1437,9 +1447,39 @@ void AMSEvent::_reecalevent(){
   AMSgObj::BookTimer.start("REECALEVENT");
 //
   EcalJobStat::addre(0);
+  if(ECMCFFKEY.fastsim==0){//           ===> slow algorithm:
+//
+    AMSEcalRawEvent::validate(stat);// EcalRawEvent->EcalRawEvent
+    if(stat!=0){
+      AMSgObj::BookTimer.stop("REECALEVENT");
+      return;
+    }
+    EcalJobStat::addre(1);
+//
+    AMSEcalHit::build(stat);// EcalRawEvent->EcalHit
+    if(stat!=0){
+      AMSgObj::BookTimer.stop("REECALEVENT");
+      return;
+    }
+    EcalJobStat::addre(2);
+//
+    AMSEcalCluster::build(stat);// EcalHit->EcalCluster
+    if(stat!=0){
+      AMSgObj::BookTimer.stop("REECALEVENT");
+      return;
+    }
+    EcalJobStat::addre(3);
+//
+  }
+  else{    //                         ===> fast algorithm:
+//
+//    to be done
+  }
+//
 //
   AMSgObj::BookTimer.stop("REECALEVENT");
 }
+//========================================================================
 void AMSEvent::_retrdevent(){
 //
   AMSgObj::BookTimer.start("RETRDEVENT");
@@ -1616,6 +1656,7 @@ void AMSEvent:: _sitrdevent(){
 }
 void AMSEvent:: _sisrdevent(){
 }
+//----------------------------------------------------------------
 void AMSEvent:: _siecalevent(){
   int stat;
   AMSgObj::BookTimer.start("SIECALEVENT");
@@ -1911,6 +1952,7 @@ void AMSEvent::_writeEl(){
   EN->CTCMCClusters=0;
   EN->AntiClusters=0;
   EN->AntiMCClusters=0;
+  EN->EcalClusters=0;
   getmag(EN->ThetaM,EN->PhiM);
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSParticle",i);
@@ -1992,6 +2034,13 @@ void AMSEvent::_writeEl(){
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSAntiMCCluster",i);
    if(p) EN->AntiMCClusters+=p->getnelem();
+   else break;
+  }
+
+ 
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSEcalCluster",i);
+   if(p) EN->EcalClusters+=p->getnelem();
    else break;
   }
 

@@ -1,5 +1,6 @@
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
+// modified by E.Choumilov 1.10.99. - add some ECAL materials.
 #include <gmat.h>
 #include <snode.h>
 #include <amsgobj.h>
@@ -333,7 +334,7 @@ for(iw=0;iw<44;iw++)
 
 GSCKOV(GetLastMatNo(),44,p,abs_l,dummy,index);
 }
-//-------------------
+//----------------------------------------------------------
 // Light lead for ECAL test :
 {
 mat.add (new AMSgmat("LIGHTLEAD",207.19,82., 6.36 ,1.,32.5));
@@ -345,7 +346,15 @@ mat.add (new AMSgmat("ECSCINT",a,z,w,2,1.032));
 //-------------------
 // effective material for ECAL PMT-boxes (low dens.(1:10) iron):
 mat.add (new AMSgmat("LOW_DENS_Fe_2",55.85,26.,0.787,17.6,168.));
-//-------------------
+//------------------
+{ // Fiber wall(cladding+glue, ~ plexiglass):  
+  geant a[]={12.01,1.01,16.0};
+  geant z[]={6.,1.,8.};
+  geant w[]={5.,8.,2.};
+
+  mat.add(new AMSgmat("ECFPLEX",a,z,w,3,1.16));
+}
+//----------------------------------------------------------
 
 
 {
@@ -493,18 +502,26 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
 //
 {
 geant birks[]={1.,0.013,9.6e-6};
-tmed.add (new AMSgtmed("EC_EFFRAD","LIGHTLEAD",0));// 36 eff.radiator for fast sim(not sens !!!)
-//tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0)); // 37
+tmed.add (new AMSgtmed("EC_EFFRAD","LIGHTLEAD",0));// eff.radiator for fast sim(not sens !!!)
+//tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0)); // 
 tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0,'N',birks,2,20.,10.,1000.,
-                                    -1.,0.001,-1.)); // 37 simplif.tracking in magn.f
+                                    -1.,0.001,-1.)); // simplif.tracking in magn.f
 GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_RADIATOR
 GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
-tmed.add (new AMSgtmed("EC_FIBER","ECSCINT",1,'Y',birks));// 38
-tmed.add (new AMSgtmed("EC_ELBOX","LOW_DENS_Fe_2",0));// 39 tempor as for TOF-boxes
+tmed.add (new AMSgtmed("EC_FCORE","ECSCINT",1,'Y',birks));//
+GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_FIBER-core
+GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+tmed.add (new AMSgtmed("EC_FWALL","ECFPLEX",0));// 
+GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_FIBER-wall
+GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+tmed.add (new AMSgtmed("EC_ELBOX","LOW_DENS_Fe_2",0));// tempor as for TOF-boxes
 GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_ELBOX
 GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+tmed.add (new AMSgtmed("EC_HONEYC","AL-HONEYC",0));// tempor as for TOF-honeycomb
+GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_HONEYC
+GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
 } 
-
+//----------------
 
 { // TRD Media by V. Choutko  seems to be also wrong
 

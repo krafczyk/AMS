@@ -508,9 +508,11 @@ FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
 void AMSJob::_reecaldata(){
-  ECREFFKEY.reprtf[0]=0;     // print_hist flag (0/1->no/yes)
-  ECREFFKEY.reprtf[1]=0;     // spare
-  ECREFFKEY.reprtf[2]=0;     // spare
+  ECREFFKEY.reprtf[0]=0;     // (1) print_hist flag (0/1->no/yes)
+  ECREFFKEY.reprtf[1]=0;     // (2) print_prof flag (0/1->no/yes)
+  ECREFFKEY.reprtf[2]=0;     // (3) spare
+  ECREFFKEY.hitthr1=6.2;     // (4) (mev) threshold in the cluster search
+  ECREFFKEY.hitthr2=10.;     // (5) (mev) threshold in the cluster search
 FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
@@ -1353,7 +1355,7 @@ void AMSJob::_signinitjob(){
   //
   AMSmceventg::setspectra(CCFFKEY.begindate,CCFFKEY.begintime,
   CCFFKEY.enddate, CCFFKEY.endtime, GCKINE.ikine,CCFFKEY.low);
-
+  
 }
 //----------------------------------------------------------------------------------------
 void AMSJob::_sitofinitjob(){
@@ -1597,12 +1599,20 @@ void AMSJob::_reantiinitjob(){
 //===================================================================
 void AMSJob::_reecalinitjob(){
 //
+  integer pr,pl,cell;
+  number ct,cl,cz;
+  integer fid,cid[4]={0,0,0,0};
+  number w[4]={0.,0.,0.,0.};
+//
     AMSgObj::BookTimer.book("REECALEVENT");
 //
     EcalJobStat::clear();// Clear JOB-statistics counters for SIM/REC
 //
     EcalJobStat::bookhist();// Book histograms for REC
-// 
+//
+    ECcalib::build(); // <--- create ecpmcal-calib-objects 
+//
+    ECALDBc::getscinfoa(0,0,0,pr,pl,cell,ct,cl,cz);// <--- init. readout tables
 }
 //===================================================================
 void AMSJob::_rectcinitjob(){

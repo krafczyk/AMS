@@ -230,7 +230,7 @@ I 13   mcprtf(0)                // print MC-hist. if !=0
 ECMC
 I 1    fastsim(0)                // =1 for fast(non-accurate) simulation
 I 1    mcprtf(0)                 // =1 to print MC-histograms
-R 1    cutge(0.001)              // Geant(cutele=cutgam) cut for EC_radiator+El_box
+R 1    cutge(0.001)              // Geant(cutele=cutgam(Gev)) cut for EC-volumes
 
     ECAL reconstruction:
 

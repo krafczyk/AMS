@@ -27,6 +27,7 @@ const int MAXMCG     =    20;
 const int MAXCTCCL   =    20;
 const int MAXCTCHT   =    50;
 const int MAXCTCCLMC =   200;
+const int MAXECCLUST =    50;
 const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
 
@@ -66,6 +67,7 @@ public:
   int CTCMCClusters;
   int AntiMCClusters;
   int AntiClusters;
+  int EcalClusters;
   int EventStatus; 
   
 friend class AMSEvent;
@@ -172,7 +174,7 @@ ClassDef(ParticleNtuple,1)       //ParticleNtuple
 #endif
 };
 
-
+//-------------------------
 #ifdef __WRITEROOT__
 class TOFClusterNtuple : public TObject {
 #else
@@ -197,7 +199,29 @@ friend class AMSNtuple;
 ClassDef(TOFClusterNtuple,1)       //TOFClusterNtuple
 #endif
 };
+//--------------------------
+#ifdef __WRITEROOT__
+class EcalClusterNtuple : public TObject {
+#else
+class EcalClusterNtuple {
+#endif
+public:
+  int Necal;
+  int Status[MAXECCLUST];
+  int Proj[MAXECCLUST];
+  int Plane[MAXECCLUST];
+  int Nmemb[MAXECCLUST];
+  float Edep[MAXECCLUST];
+  float Coo[MAXECCLUST][3];
+  float ErrCoo[MAXECCLUST][3];
 
+friend class AMSEcalCluster;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(EcalClusterNtuple,1)       //EcalClusterNtuple
+#endif
+};
+//--------------------------
 #ifdef __WRITEROOT__
 class TOFMCClusterNtuple : public TObject {
 #else

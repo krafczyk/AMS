@@ -21,4 +21,5 @@ ClassImp(CTCHitNtuple)
 ClassImp(TrRawClusterNtuple)
 ClassImp(AntiRawClusterNtuple)
 ClassImp(TOFRawClusterNtuple)
+ClassImp(EcalClusterNtuple)
 #endif
