@@ -35,7 +35,7 @@ TIMEL=../bin/osf1/timel.o
 endif
 ifeq  "$(shell uname)"  "Linux"
 CFLAGS=      -D__BATCH__  -O2    -I../include -I../include/stl  -I../db
-CFLAGSn=      -D__BATCH__      -I../include -I../include/stl  -I../db
+CFLAGSn=      -D__BATCH__       -I../include -I../include/stl  -I../db
 FFLAGS=   -static -O -I../include
 DFLAGS=    -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
 LDFLAGS=  /cern/pro/lib/lnblnk_.o   -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -ln  -L/usr/local/lib  -lF77 -lI77  -lm
@@ -289,7 +289,7 @@ $(BIN)charge.o: 	         $(SCC)charge.C
 	$(CC) -c $(CFLAGS) $(SCC)charge.C -o $(BIN)charge.o
 
 $(BIN)particle.o: 	         $(SCC)particle.C
-	$(CC) -c $(CFLAGS) $(SCC)particle.C -o $(BIN)particle.o
+	$(CC) -c $(CFLAGSn) $(SCC)particle.C -o $(BIN)particle.o
 
 $(BIN)link.o: 	         $(SCC)link.C
 	$(CC) -c $(CFLAGS) $(SCC)link.C -o $(BIN)link.o

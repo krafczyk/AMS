@@ -50,7 +50,8 @@ if(iftxt){
  int i,j,k,l,idum,gid;
  char lay;
  for(i=0;i<_NumberLayer;i++){
-   iftxt >> lay>>lay>>lay>>lay>>lay>>idum >> gid>>_HeadLayer[idum]._status;
+   iftxt >> lay>>lay>>lay>>lay>>lay>>idum;
+   iftxt >> gid>>_HeadLayer[idum]._status;
    for(j=0;j<3;j++)iftxt >> _HeadLayer[idum]._coo[j];
    for(j=0;j<3;j++){
      for(k=0;k<3;k++)iftxt >> _HeadLayer[idum]._nrm[j][k];
@@ -58,7 +59,8 @@ if(iftxt){
  }
  for(l=0;l<2;l++){
  for(i=0;i<_NumberMarkers;i++){
-   iftxt >> lay>>lay>>lay>>lay>>lay>>lay>>lay>>idum >> gid>>_HeadMarker[l][idum]._status;
+   iftxt >> lay>>lay>>lay>>lay>>lay>>lay>>lay>>idum;
+   iftxt >> gid>>_HeadMarker[l][idum]._status;
    for(j=0;j<3;j++)iftxt >> _HeadMarker[l][idum]._coo[j];
    for(j=0;j<3;j++){
      for(k=0;k<3;k++)iftxt >> _HeadMarker[l][idum]._nrm[j][k];
@@ -66,14 +68,16 @@ if(iftxt){
  }
  }
  for(i=0;i<_NumberLadder;i++){
-   iftxt >> lay>>lay>>lay>>lay>>lay>>lay>>lay>>idum >> gid>>_HeadLadder[0][idum]._status;
+   iftxt >> lay>>lay>>lay>>lay>>lay>>lay>>lay>>idum;
+   iftxt >> gid>>_HeadLadder[0][idum]._status;
    for(j=0;j<3;j++)iftxt >> _HeadLadder[0][idum]._coo[j];
    for(j=0;j<3;j++){
      for(k=0;k<3;k++)iftxt >> _HeadLadder[0][idum]._nrm[j][k];
    }
  }
  for(i=0;i<_NumberLadder;i++){
-   iftxt >> lay>>lay>>lay>>lay>>lay>>lay>>lay>>idum >> gid>>_HeadLadder[1][idum]._status;
+   iftxt >> lay>>lay>>lay>>lay>>lay>>lay>>lay>>idum;
+   iftxt >> gid>>_HeadLadder[1][idum]._status;
    for(j=0;j<3;j++)iftxt >> _HeadLadder[1][idum]._coo[j];
    for(j=0;j<3;j++){
      for(k=0;k<3;k++)iftxt >> _HeadLadder[1][idum]._nrm[j][k];
@@ -83,12 +87,13 @@ if(iftxt){
 
 
  for(i=0;i<_NumberSen;i++){
-   iftxt >> idum >> gid>>_HeadSensor[idum]._status;
+   iftxt >> idum >> gid;
+   iftxt>>_HeadSensor[idum]._status;
    for(j=0;j<3;j++)iftxt >> _HeadSensor[idum]._coo[j];
    for(j=0;j<3;j++){
      for(k=0;k<3;k++)iftxt >> _HeadSensor[idum]._nrm[j][k];
    }
-   if(_HeadSensor[idum]._status)active++;
+   if(_HeadSensor[idum]._status!=0)active++;
  }
 if(iftxt.eof() ){
   cerr<< "TKDBc::read-F-Unexpected EOF in file "<<fnam<<endl;
