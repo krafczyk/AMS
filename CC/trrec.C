@@ -2511,7 +2511,7 @@ AMSTrTrackError::AMSTrTrackError(char * name){
   AMSgObj::BookTimer.stop("TrTrack",1);
   AMSgObj::BookTimer.stop("RETKEVENT",1);
   AMSgObj::BookTimer.stop("REAMSEVENT",1);
-  AMSEvent::gethead()->seterror();
+  AMSEvent::gethead()->seterror(2);
 }
 char * AMSTrTrackError::getmessage(){return msg;}
 

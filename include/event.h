@@ -243,8 +243,9 @@ void write(int trig);
 void copy();
 void printA(integer debugl=0);
 void event();
-void seterror(){_Error=1;}
+void seterror(uinteger error=1){_Error=error;}
 integer HasNoErrors(){return _Error==0;}
+integer HasNoCriticalErrors(){return _Error<2;}
 //+
 uinteger getEvent() {return uinteger(_id);}
 static integer _checkUpdate();

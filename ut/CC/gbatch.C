@@ -53,21 +53,21 @@ try{
     GRUN();
 #endif
 } 
-catch (std::bad_alloc a){
+catch (amsglobalerror & a){
+ cerr<<a.getmessage()<< endl;
+    UGLAST(a.getmessage());
+    return 1;
+}
+catch (std::bad_alloc aba){
  std::cerr <<"catch-F-NoMemoryAvailable "<<endl;
     UGLAST("catch-F-NoMemoryAvailable ");
     return 1;
 }
-catch (amsglobalerror a){
- cerr<<a.getmessage()<<endl;
-    UGLAST(a.getmessage());
-    return 1;
-}
 #ifdef __CORBA__
-catch (AMSClientError & a){
- cerr<<a.getMessage()<<" "<<endl;
+catch (AMSClientError & ab){
+ cerr<<ab.getMessage()<<" "<<endl;
  if(AMSProducer::gethead()){
-  AMSProducer::gethead()->Error()=a;
+  AMSProducer::gethead()->Error()=ab;
  }
 }
 #endif

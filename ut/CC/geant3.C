@@ -1,3 +1,4 @@
+
 #include <typedefs.h>
 #include <cern.h>
 #include <mceventg.h>
@@ -25,6 +26,7 @@
 #include <iostream.h>
 #include <richdbc.h>
 #include <producer.h>
+#include <geantnamespace.h>         
 #ifdef __AMSDEBUG__
 static integer globalbadthinghappened=0;
 
@@ -466,7 +468,7 @@ extern "C" void guout_(){
    }
    catch (AMSuPoolError e){
      cerr << e.getmessage()<<endl;
-     AMSEvent::gethead()->seterror();
+     AMSEvent::gethead()->seterror(2);
 #ifdef __CORBA__
      AMSProducer::gethead()->AddEvent();
 #endif
@@ -475,7 +477,7 @@ extern "C" void guout_(){
    }
    catch (AMSaPoolError e){
      cerr << e.getmessage()<<endl;
-     AMSEvent::gethead()->seterror();
+     AMSEvent::gethead()->seterror(2);
 #ifdef __CORBA__
      AMSProducer::gethead()->AddEvent();
 #endif
@@ -486,7 +488,7 @@ extern "C" void guout_(){
      cerr << e.getmessage()<<endl;
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
-     AMSEvent::gethead()->seterror();
+     AMSEvent::gethead()->seterror(2);
 #ifdef __CORBA__
      AMSProducer::gethead()->AddEvent();
 #endif
@@ -503,10 +505,12 @@ extern "C" void guout_(){
      cerr << e.getmessage()<<endl;
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
-     AMSEvent::gethead()->seterror();
+     AMSEvent::gethead()->seterror(e.getlevel());
+     if(e.getlevel()>2)throw e; 
 #ifdef __CORBA__
      AMSProducer::gethead()->AddEvent();
 #endif
+     
 /*
      UPool.Release(0);
      AMSEvent::gethead()->remove();
@@ -600,7 +604,6 @@ extern "C" void abinelclear_();
 extern "C" void gukine_(){
 AMSgObj::BookTimer.start("GUKINE");
 abinelclear_();
-
 static integer event=0;
 
 #ifdef __DB_All__
@@ -610,6 +613,7 @@ static integer event=0;
      return;
   }
 #endif
+try{
 // create new event & initialize it
   if(AMSJob::gethead()->isSimulation()){
     AMSgObj::BookTimer.start("GEANTTRACKING");
@@ -624,7 +628,7 @@ static integer event=0;
      genp->run(GCKINE.ikine);
      //genp->_printEl(cout);
     }
-    }
+   }
    }
    else {
     AMSIO io;
@@ -657,7 +661,13 @@ static integer event=0;
     for(;;){
      if(res==DAQEvent::OK){ 
        pdaq = new DAQEvent();
+       uinteger run;
+       uinteger event;
+        time_t tt;
        if(pdaq->read()){
+         run=pdaq->runno();
+         event=pdaq->eventno();
+         tt=pdaq->time();   
         AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
         new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
         pdaq->runtype(),pdaq->time(),pdaq->usec())));
@@ -705,9 +715,10 @@ static integer event=0;
     else{
 #ifdef __CORBA__
     try{
-     AMSJob::gethead()->uhend();
+     AMSJob::gethead()->uhend(run,event,tt);
      AMSProducer::gethead()->sendRunEnd(res);
      AMSProducer::gethead()->getRunEventInfo();
+     res=DAQEvent::init();
     }
     catch (AMSClientError a){
      cerr<<a.getMessage()<<endl;
@@ -718,12 +729,14 @@ static integer event=0;
 #endif
     }
    }
+   else if (res==DAQEvent::Interrupt)break;
    else{
 #ifdef __CORBA__
     try{
      AMSJob::gethead()->uhend();
      AMSProducer::gethead()->sendRunEnd(res);
      AMSProducer::gethead()->getRunEventInfo();
+     res=DAQEvent::init();
     }
     catch (AMSClientError a){
      cerr<<a.getMessage()<<endl;
@@ -738,7 +751,13 @@ static integer event=0;
      GCFLAG.IEOTRI=1;
       AMSgObj::BookTimer.stop("GUKINE");
      return; 
-  }   
+  }
+}
+catch (amsglobalerror & a){
+ cerr<<a.getmessage()<< endl;
+    gams::UGLAST(a.getmessage());
+    exit(1);
+}
     AMSgObj::BookTimer.stop("GUKINE");
 }
 

@@ -53,9 +53,10 @@ AMSServer::AMSServer(int argc, char* argv[]):_GlobalError(false){
  char *iface=0;
  char *niface=0;
  char * ior=0;
- uinteger uid=0;
+ uinteger uid=1;
  char *rfile=0;
  char *nserver=0;
+ char *nkiller=0;
  char *nhost=0;
  char *nproducer=0;
  char *ntuplestring=0;
@@ -81,6 +82,9 @@ AMSServer::AMSServer(int argc, char* argv[]):_GlobalError(false){
      break;
     case 'S':   //NominalServer
      nserver=++pchar;
+     break;
+    case 'K':   //NominalKiller
+     nkiller=++pchar;
      break;
     case 'F':   //NominalInterface
      niface=++pchar;
@@ -158,7 +162,7 @@ else{
 }
 
  if(ior==0){      //  Primary
-  _pser= new Server_impl(_orbmap,_pid,this,nserver,nhost);
+  _pser= new Server_impl(_orbmap,_pid,this,nserver,nhost,nkiller);
   if(rfile){  
    _pser->add(new Producer_impl(_orbmap,_pid,this,nproducer,rfile,ntuplestring,eventtagstring));
    _pser->_init();
@@ -213,8 +217,10 @@ typedef map<AString, AMSServer::OrbitVars>::iterator MOI;
 
 void AMSServer::UpdateDB(){
 // Her don't know yet
+for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+pcur->UpdateDB();
 }
-
+}
 
 void AMSServer::SystemCheck(){
 // Here run Start,Stop,Kill,Check Clients
@@ -233,9 +239,7 @@ for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()
 
 void AMSServer::Exiting(const char * message){
 if(_ExitInProgress)return;
-#ifdef __AMSDEBUG__
 cout<< " Exiting ...."<<(message?message:" ")<<endl;
-#endif
 _ExitInProgress=true;
   Server_impl* pser=dynamic_cast<Server_impl*>(_pser);
     DPS::Client::ARS * pars;
@@ -280,7 +284,7 @@ void AMSServerI::PropagateAC(DPS::Client::ActiveClient & ac,DPS::Client::RecordC
       _parent->EMessage(AMSClient::print(ac,"PropagateAC-getARS retrurns 0"));
 //      _pser->sendAC(ac.id,ac,rc);
   }
-  cout <<"propagateAC - getars returns "<<length<<endl;
+//  cout <<"propagateAC - getars returns "<<length<<endl;
   for(int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
@@ -288,8 +292,6 @@ void AMSServerI::PropagateAC(DPS::Client::ActiveClient & ac,DPS::Client::RecordC
     _pvar->sendAC(ac.id,ac,rc);
    }
    catch (CORBA::SystemException &ex){
-     // Have to Kill Servers Here
-     _pser->KillClients(cid);
      cerr<<"oops corba exc found for "<<i<<endl;
    }
   } 
@@ -306,7 +308,7 @@ return false;
 }
 
 
-Server_impl::Server_impl(const map<AString, AMSServer::OrbitVars> & mo,  const DPS::Client::CID & cid,AMSClient* parent, char* NS, char * NH): POA_DPS::Server(),AMSServerI(AMSID("Server",0),parent,DPS::Client::Server){
+Server_impl::Server_impl(const map<AString, AMSServer::OrbitVars> & mo,  const DPS::Client::CID & cid,AMSClient* parent, char* NS, char * NH, char *NK): POA_DPS::Server(),AMSServerI(AMSID("Server",0),parent,DPS::Client::Server){
 
 typedef map<AString, AMSServer::OrbitVars>::const_iterator MOI;
 
@@ -341,6 +343,27 @@ if(NS){
  else{
   cerr<<"Server_impl::Server_impl-F-UnableToOpenNSFile "<<NS<<endl;
   _parent->FMessage("Server_impl::Server_impl-F-UnableToOpenNSFile ",DPS::Client::CInAbort);
+}
+}
+if(NK){
+ ifstream fbin;
+ fbin.open(NK);
+ if(fbin){
+   _nki= new DPS::Client::NominalClient();
+   if(fbin.get()=='#')fbin.ignore(1024,'\n');
+   else fbin.seekg(fbin.tellg()-sizeof(char));
+   fbin>>_nki->MaxClients>>_nki->CPUNeeded>>_nki->MemoryNeeded;
+   char tmpbuf[1024];
+   fbin>>tmpbuf;
+   _nki->WholeScriptPath=(const char*)tmpbuf;
+   fbin.getline(tmpbuf,1024);
+   _nki->LogPath= (const char*)tmpbuf;
+   fbin.getline(tmpbuf,1024);
+    _nki->SubmitCommand=(const char*)tmpbuf;
+ }
+ else{
+  cerr<<"Server_impl::Server_impl-F-UnableToOpenNKFile "<<NK<<endl;
+  _parent->FMessage("Server_impl::Server_impl-F-UnableToOpenNKFile ",DPS::Client::CInAbort);
 }
 }
 if(NH){
@@ -394,7 +417,11 @@ for(MOI i=mo.begin();i!=mo.end();++i){
 
 //Get NominalServer
 
-if(!_pvar->getNC(cid,_ncl))_parent->FMessage("Server-UnsbleToReadNServer",DPS::Client::CInAbort);
+if(!_pvar->getNC(cid,_ncl))_parent->FMessage("Server-UnableToReadNServer",DPS::Client::CInAbort);
+
+//Get NominalKiller
+
+if(!_pvar->getNK(cid,_nki))_parent->FMessage("Server-UnableToReadNKiller",DPS::Client::CInAbort);
 
 
 //Now Read NominalHost
@@ -433,7 +460,7 @@ for(int i=0;i<length;i++){
 
 
 void Server_impl::StartClients(const DPS::Client::CID & pid){
-
+if(!Master())return;
 if(InactiveClientExists())return;
 
 // Check if no lock
@@ -471,8 +498,6 @@ if(InactiveClientExists())return;
     _pvar->sendCriticalOps(pid,op);
   }
    catch (CORBA::SystemException &ex){
-     // Have to Kill Servers Here
-     _pser->KillClients(cid);
    }
   } 
  // Check if there are some hosts to run on
@@ -603,7 +628,7 @@ if(_ahl.size())return;
 
 
   CORBA::Boolean Server_impl::sendId(DPS::Client::CID& cid, uinteger timeout) throw (CORBA::SystemException){
- if(timeout>_KillTimeOut)_KillTimeOut=timeout;
+ _KillTimeOut=timeout;
 
      for(ACLI j=_acl.begin();j!=_acl.end();++j){
       if(((*j)->id).uid==cid.uid){
@@ -639,18 +664,23 @@ return true;
 return false;
 }
 
+CORBA::Boolean Server_impl::getNK(const DPS::Client::CID &cid, DPS::Client::NominalClient_out nc)throw (CORBA::SystemException){
+nc= new DPS::Client::NominalClient(_nki);
+return true;
+}
 
 
 
-int Server_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out  arf)throw (CORBA::SystemException){
+
+int Server_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out  arf,int maxcid)throw (CORBA::SystemException){
 DPS::Client::ARS_var arv=new ARS();
 int length=0;
 for (ACLI li=_acl.begin();li!=_acl.end();++li){
   for (int i=0;i<((*li)->ars).length();i++){
-    if( (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)cid.Interface)){
+    if( (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)cid.Interface) && (*li)->id.uid<maxcid){
       length++;
     }
-    else if( !strcmp(" ", (const char *)cid.Interface) && (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)((*li)->id).Interface)){
+    else if( !strcmp(" ", (const char *)cid.Interface) && (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)((*li)->id).Interface) && (*li)->id.uid<maxcid){
       length++;
     }
   }
@@ -664,10 +694,10 @@ else arv->length(length);
 length=0;
 for (ACLI li=_acl.begin();li!=_acl.end();++li){
   for (int i=0;i<((*li)->ars).length();i++){
-    if( (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)cid.Interface)){
+    if( (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)cid.Interface) && (*li)->id.uid<maxcid){
       arv[length++]=((*li)->ars)[i];
     }
-    else if( !strcmp(" ", (const char *)cid.Interface) && (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)((*li)->id).Interface)){
+    else if( !strcmp(" ", (const char *)cid.Interface) && (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)((*li)->id).Interface) && (*li)->id.uid<maxcid){
       arv[length++]=((*li)->ars)[i];
     }
   }
@@ -677,6 +707,7 @@ for (ACLI li=_acl.begin();li!=_acl.end();++li){
 arf=arv._retn();
 return length;
 }
+
 
 
 
@@ -723,14 +754,18 @@ return length;
        case DPS::Client::Delete:
        if(li==pcur->getacl().end())_parent->EMessage(AMSClient::print(cid,"Client not found for deleting"));
        else{
+        if(_parent->Debug())_parent->IMessage(AMSClient::print(ac,"Deleting Client "));
 //      Here find the corr Ahost and update it
          for(AHLI i=pcur->getahl().begin();i!=pcur->getahl().end();++i){
             if(!strcmp((const char *)(*i)->HostName, (const char *)((*li)->id).HostName)){
+          cout << " host found for deleteing "<<endl;
         ((*i)->ClientsRunning)--;
        ((*i)->ClientsProcessed)++; 
        switch (((*li)->id).Status){
-       case DPS::Client::CInExit:
+       case DPS::Client::CInExit: 
         break;
+        case DPS::Client::SInExit:
+            break;
        case DPS::Client::CInAbort:
         (*i)->Status=DPS::Client::LastClientFailed; 
         ((*i)->ClientsFailed)++; 
@@ -752,12 +787,13 @@ return length;
        }
        else{
         pcur->addone();
-        if(_parent->Debug())_parent->IMessage(AMSClient::print(*li,"added client "));
+        if(_parent->Debug())_parent->IMessage(AMSClient::print(ac,"added client "));
         DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(ac);
        pcur->getacl().push_back(vac);
 //     Here find the corr ahost and update it
          for(AHLI i=pcur->getahl().begin();i!=pcur->getahl().end();++i){
             if(!strcmp((const char *)(*i)->HostName, (const char *)(vac->id).HostName)){
+          cout << " host found for creating "<<endl;
         ((*i)->ClientsRunning)++;
         break;
 }
@@ -773,7 +809,7 @@ return length;
 
 
 void Server_impl::Exiting(const CID & cid, const char * message, DPS::Client::ClientExiting status)throw (CORBA::SystemException){
-_parent->IMessage(AMSClient::print(cid,"Server exits"));
+_parent->IMessage(AMSClient::print(cid,message?message:"Server exiting"));
 // find and remove client
 for( ACLI li=_acl.begin();li!=_acl.end();++li){
  if (cid.uid==((*li)->id).uid){
@@ -981,6 +1017,7 @@ if(RF){
    re.FilePath=(const char*)tmpbuf;
    if(re.LastEvent<re.FirstEvent)re.LastEvent=2000000000;
    re.Status=DPS::Producer::ToBeRerun;
+   re.History=DPS::Producer::ToBeRerun;
    re.UpdateFreq=100;
    re.DieHard=0;
    re.OutputDirPath=(const char*)NS;
@@ -993,6 +1030,7 @@ if(RF){
    re.cinfo.ErrorsFound=0;
    re.cinfo.CPUTimeSpent=0;
    re.cinfo.Status=re.Status;
+   re.cinfo.HostName=" ";
    RunEvInfo_var vre= new RunEvInfo(re);
    if(fbin.good())_rl.push_back(vre); 
 //    cout <<++cur<<" "<<re.Run<<endl;
@@ -1144,7 +1182,9 @@ else{
 
 
 void Producer_impl::StartClients(const DPS::Client::CID & pid){
+if(!Master())return;
 if(InactiveClientExists())return;
+if(getServer()->InactiveClientExists())return;
 // Check if no lock
       time_t tt;
       time(&tt);
@@ -1180,14 +1220,12 @@ if(InactiveClientExists())return;
     _pvar->sendCriticalOps(pid,op);
    }
    catch (CORBA::SystemException &ex){
-     // Have to Kill Servers Here
-     _pser->KillClients(cid);
    }
   }
  // Check if there are some hosts to run on
  _ahl.sort(Less());
  for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
-  if(_acl.size()<_ncl->MaxClients && _acl.size()<_rl.size()){
+  if(_acl.size()<_ncl->MaxClients && _acl.size()<count_if(_rl.begin(),_rl.end(),REInfo_Count())){
   if((*i)->Status!=NoResponse){
     if((*i)->ClientsRunning>=(*i)->ClientsAllowed)continue;
     // HereStartClient
@@ -1258,11 +1296,51 @@ if(InactiveClientExists())return;
 
 
 
-
+#include <signal.h>
 void Producer_impl::KillClients(const DPS::Client::CID & cid){
+Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+ACLI li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::Killed));
+if(li!=_acl.end()){
+ //kill by -9 here
+    _pser->Kill((*li),SIGKILL,true);
+    DPS::Client::ActiveClient_var acv=*li;
+    PropagateAC(acv,DPS::Client::Delete);
+}
+ li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::TimeOut));
+if(li!=_acl.end()){
+ 
+ if(_pser->pingHost((const char*)((*li)->id.HostName))){
+   (*li)->id.Status=DPS::Client::SInKill;
+   DPS::Client::ActiveClient_var acv=*li;
+   PropagateAC(acv,DPS::Client::Delete);
+ }
+ else{
+   (*li)->id.Status=DPS::Client::SInKill;
+   (*li)->Status=DPS::Client::Killed;
+   DPS::Client::ActiveClient_var acv=*li;
+   PropagateAC(acv,DPS::Client::Update);
+    _pser->Kill((*li),SIGTERM,true);
+    _pser->Kill((*li),SIGTERM,false);
+ }
 }
 
+}
+
+
+
 void Producer_impl::CheckClients(const DPS::Client::CID & cid){
+Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+for(AHLI li=_ahl.begin();li!=_ahl.end();++li){
+ if((*li)->Status==NoResponse)if(_pser->pingHost((const char*)((*li)->HostName)))(*li)->Status=DPS::Client::OK;
+}
+time_t tt;
+time(&tt);
+for(ACLI li=_acl.begin();li!=_acl.end();++li){
+ // find clients with timeout
+ if((*li)->LastUpdate+_KillTimeOut<tt)(*li)->Status=DPS::Client::TimeOut;
+}
+
+
 }
 
 
@@ -1274,7 +1352,7 @@ void Producer_impl::CheckClients(const DPS::Client::CID & cid){
 
 
 CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException){
- if(timeout>_KillTimeOut)_KillTimeOut=timeout;
+ _KillTimeOut=timeout;
      for(ACLI j=_acl.begin();j!=_acl.end();++j){
       if(((*j)->id).uid==cid.uid){
        ((*j)->id).pid=cid.pid;
@@ -1300,32 +1378,40 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
 }
 
 
-int Producer_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out arf)throw (CORBA::SystemException){
+int Producer_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out arf, int maxcid)throw (CORBA::SystemException){
+
 
 
  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 
-return _pser->getARS(cid, arf);
-
+return _pser->getARS(cid, arf,maxcid);
 
 }
 
 
 
 
+
 void Producer_impl::Exiting(const CID & cid, const char * message, DPS::Client::ClientExiting status)throw (CORBA::SystemException){
-_parent->IMessage(AMSClient::print(cid," Client Exits"));
+_parent->IMessage(AMSClient::print(cid,message?message:" Producer Exiting"));
 // find and remove client
 for( ACLI li=_acl.begin();li!=_acl.end();++li){
  if (cid.uid==((*li)->id).uid){
+   (*li)->id.Status=status;
    DPS::Client::ActiveClient_var acv=*li;
    PropagateAC(acv,DPS::Client::Delete);
    RLI li=find_if(_rl.begin(),_rl.end(),REInfo_EqsClient(cid));
     if(li!=_rl.end()){
      if((*li)->Status == Processing){
        RunEvInfo_var rv=*li;
-       rv->Status=Failed;
+       rv->cinfo.HostName=cid.HostName;
+      if(rv->History !=Failed){
+        rv->Status=ToBeRerun;
+        rv->History=Failed;
+      }
+      else      rv->Status=Failed;
        rv->cuid=0;
+       _parent->EMessage(AMSClient::print(rv, " run Failed "));
        PropagateRun(rv,DPS::Client::Update);
      }
     }
@@ -1376,13 +1462,40 @@ return length;
 
 
 void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out ro)throw (CORBA::SystemException){
-
+DPS::Client::CID pid;
+pid.Interface=(const char *)" ";
+pid.Type=getType();
+DPS::Client::ARS * pars;      
+int length=getARS(pid,pars,_parent->getcid().uid);
+DPS::Client::ARS_var arf=pars; 
+ for(int i=0;i<length;i++){
+  try{
+    CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+    DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
+     cout <<" transferred to master "<<_parent->getcid().uid<<endl;
+    _pvar->getRunEvInfo(cid,ro);
+    return;
+  }
+    catch (CORBA::SystemException &ex){
+     // Have to Kill Servers Here
+   }
+ }
+ cout <<" Master getrunevinfo "<<_parent->getcid().uid<<endl;
 _rl.sort(Less());
 RunEvInfo_var rv=new RunEvInfo(); 
-RLI li=find_if(_rl.begin(),_rl.end(),REInfo_find(ToBeRerun));
-if(li==_rl.end())li=find_if(_rl.begin(),_rl.end(),REInfo_find(Failed));
+RLI li=find_if(_rl.begin(),_rl.end(),REInfo_find(cid,ToBeRerun));
+if(li==_rl.end()){
+ li=find_if(_rl.begin(),_rl.end(),REInfo_find(cid,Failed));
+ if(li==_rl.end())rv->DieHard=1;
+ else if(_parent->Debug()){
+   cout <<  "****FAILED RUN RERUN "<<(*li)->Run<<" was "<<(*li)->cinfo.HostName <<" by "<<cid.HostName<<endl;
+ }
+}
 if(li==_rl.end())rv->DieHard=1;
-else if ( find_if(_rl.begin(),_rl.end(),REInfo_EqsClient(cid))!=_rl.end())rv->DieHard=1;
+else if ( find_if(_rl.begin(),_rl.end(),REInfo_EqsClient(cid))!=_rl.end()){
+rv->DieHard=1;
+if(_parent->Debug())_parent->IMessage(AMSClient::print(cid,"Die HARD  !!!!!!!"));
+}
 else {
  rv=*li;
  rv->Status=Processing;
@@ -1452,10 +1565,20 @@ if(li !=_rl.end()){
    RunEvInfo_var rv=*li; 
    rv->cinfo=ci;
    rv->Status=ci.Status;
-    if(rv->Status ==Finished || rv->Status==Failed)rv->cuid=0;
+    if(ci.Status ==Finished || ci.Status==Failed){
+      if(_parent->Debug()){
+       _parent->IMessage(AMSClient::print(cid,"sendCurrentInfo from "));
+       _parent->IMessage(AMSClient::print(ci));
+      }
+      rv->cuid=0;
+      rv->cinfo.HostName=cid.HostName;
+      if(rv->Status==Failed && rv->History !=Failed){
+        rv->Status=ToBeRerun;
+        rv->History=Failed;
+      }
+    }
    PropagateRun(rv,DPS::Client::Update);
    _UpdateACT(cid,DPS::Client::Active);
-   cout <<"sendcurrentinfo get from "<<cid.uid<<" "<<ci.EventsProcessed<<endl;
 }
 else{
  _parent->EMessage(AMSClient::print(cid,"sendCurrentInfo-EUnable to find Run Record for Client"));
@@ -1501,12 +1624,95 @@ void Producer_impl::PropagateRun(const RunEvInfo & ri, DPS::Client::RecordChange
    catch (CORBA::SystemException &ex){
      // Have to Kill Servers Here
       cid.Type=_pser->getType();
-     _pser->KillClients(cid);
-     //HaveTo reiterate here (later, as killclients will be ready)
    }
   } 
 
 }
+void Server_impl::UpdateDB(){
+}
+
+void Producer_impl::UpdateDB(){
+//just to do something
+
+static bool resultdone=false;
+if(!resultdone){
+ if(!count_if(_rl.begin(),_rl.end(),REInfo_process())){
+  resultdone=true;
+  for(RLI li= _rl.begin();li!=_rl.end();++li){
+    if((*li)->Status==Finished)_parent->IMessage(AMSClient::print((*li),"Finished :"));
+  }
+  for(RLI li= _rl.begin();li!=_rl.end();++li){
+   if((*li)->Status==Failed)_parent->IMessage(AMSClient::print((*li),"Failed :"));
+  }
+cout << "Host Status **********"<<endl;
+for (AHLI li=_ahl.begin();li!=_ahl.end();++li){
+_parent->IMessage(AMSClient::print((*li),"Host "));
+}
+
+cout <<"DST status ******" <<endl;
+for (DSTLI li=_ntuple.begin();li!=_ntuple.end();++li){
+_parent->IMessage(AMSClient::print((*li),"Ntuple "));
+}
+
+ }
+//
+}
 
 
+}
 
+bool Server_impl::Master(){
+
+DPS::Client::CID cid;
+cid.Interface=(const char *)" ";
+cid.Type=getType();
+DPS::Client::ARS * pars;
+int length=getARS(cid,pars,_parent->getcid().uid);
+DPS::Client::ARS_var arf=pars;
+ for(int i=0;i<length;i++){
+  try{
+    CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+    DPS::Server_var _pvar=DPS::Server::_narrow(obj);
+    if(!CORBA::is_nil(_pvar)){
+    _pvar->ping();
+     return false;
+   }
+  }
+    catch (CORBA::SystemException &ex){
+   }
+ }
+return true;
+}
+
+
+bool Producer_impl::Master(){
+ Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+
+return _pser->Master();
+}
+
+
+integer Server_impl::Kill(const DPS::Client::ActiveClient & ac, int signal, bool self){
+  //start  killer here
+
+   AString submit;
+    submit+=(const char*)(_nki->SubmitCommand);
+    submit+=" ";
+    submit+=(const char*)(ac.id.HostName);
+    submit+=" ";
+    submit+=(const char*)(_nki->LogPath);
+    submit+="Killer.";
+    char tmp[80];
+    sprintf(tmp,"%d",ac.id.uid);
+    submit+=tmp;
+    submit+=".log ";
+    submit+=(const char*)(_ncl->WholeScriptPath);
+    submit+=" -";
+    sprintf(tmp,"%d",signal);
+    submit+=tmp;
+    submit+=" ";
+    sprintf(tmp,"%d",(self?ac.id.pid:ac.id.ppid));
+    submit+=tmp;
+    cout <<"kill "<<submit;
+    return system(submit);
+}

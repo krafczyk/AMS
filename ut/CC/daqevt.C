@@ -404,6 +404,7 @@ DAQEvent::InitResult DAQEvent::init(){
   integer Run,Event;
     char * fnam=_getNextFile(Run, Event);
     if(fnam){
+    fbin.close();
     fbin.open(fnam,ios::in);
     if(fbin){ 
     if(Run){

@@ -90,6 +90,7 @@ CFLAGSn=      $(CFLAGS)
 CFLAGSDAQ=    $(CFLAGS)
 FFLAGS=   -fno-automatic -g -I../include  
 FFLAGSn=   -fno-automatic -g -I../include  
+CFLAGSB=   -g   -D__BATCH__      -I../include   -I../db  
 else
 CFLAGSB=      -D__BATCH__      -I../include   -I../db  
 CFLAGSTOFSIM= $(CFLAGSB)     -O1   
@@ -552,7 +553,7 @@ $(BIN)event_c.o: 	 $(SCC)event.C
 	$(CC) -c $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
 
 $(BIN)producer.o: 	 $(SCC)producer.C
-	$(CC) -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
+	$(CC) -c -w $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
 
 $(BIN)client.o: 	 $(SCC)client.C
 	$(CC) -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o

@@ -32,6 +32,8 @@ else{
  }
   if(!ior){
    if(_debug)_openLogFile("Producer");
+//   _Head=this;
+// return;
    FMessage("AMSProducer::AMSProducer-F-NoIOR",DPS::Client::CInAbort);
   }
   _orb= CORBA::ORB_init(argc,argv);
@@ -52,8 +54,7 @@ else{
       // dieHard
       FMessage("Server Requested Termination after sendID ",DPS::Client::SInExit);
      }
-     IMessage("sendID-I-Success");
-     UpdateARS();
+     IMessage(AMSClient::print(_pid,"sendID-I-Success"));
      getRunEventInfo();
      _Head=this;
       return;       
@@ -86,6 +87,7 @@ UpdateARS();
     (*li)->getRunEvInfo(_pid,_reinfo);
     if(_reinfo->DieHard)FMessage("AMSProducer::getRunEventinfo-I-ServerRequestedExit",DPS::Client::SInExit);
     _cinfo.Run=_reinfo->Run;
+    _cinfo.HostName=_pid.HostName; 
     SELECTFFKEY.Run=_reinfo->Run;
     SELECTFFKEY.Event=_reinfo->FirstEvent;
     SELECTFFKEY.RunE=_reinfo->Run;
@@ -97,6 +99,7 @@ UpdateARS();
     DAQEvent::setfile((const char *)(_reinfo->FilePath));
     AMSJob::gethead()->SetNtuplePath(_reinfo->OutputDirPath);
     TIMEX(_T0);
+    IMessage(AMSClient::print(_reinfo," get reinfo "));
     return;
   }
   catch  (CORBA::SystemException & a){
@@ -133,10 +136,12 @@ _ntend.Status=success?DPS::Producer::Success:DPS::Producer::Failure;
 _ntend.EventNumber=entries;
 _ntend.LastEvent=last;
 _ntend.End=end;
+if(_ntend.End==0 || _ntend.LastEvent==0)_ntend.Status=DPS::Producer::Failure;
 time_t tt;
 time(&tt);
 _ntend.Insert=tt;
 uinteger suc=0;
+cout << " nt end " <<_ntend.Insert<<" "<<_ntend.Begin<<" "<<_ntend.End<<endl;
 UpdateARS();
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
@@ -150,9 +155,11 @@ UpdateARS();
 }
 if(!suc)FMessage("AMSProducer::sendRunEnd-F-UnableToSendRunEndInfo ",DPS::Client::CInAbort);
 
-
-
+if( _ntend.Status==DPS::Producer::Failure)FMessage("Ntuple Failure",DPS::Client::CInAbort);
+  
 }
+
+
 
 void AMSProducer::sendNtupleStart(int run, int first,time_t begin){
 _ntend.Run=run;
@@ -163,10 +170,9 @@ _ntend.Begin=begin;
 
 void AMSProducer::Exiting(const char * message){
 if(_ExitInProgress)return;
-#ifdef __AMSDEBUG__
 cout<< " Exiting ...."<<(message?message:" ")<<endl;
-#endif
 _ExitInProgress=true;
+_pid.Status=AMSClient::_error.ExitReason();
 for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
 try{
 if(!CORBA::is_nil(*li))
@@ -183,7 +189,7 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
 try{
 if(!CORBA::is_nil(*li)){
      DPS::Client::ARS * pars;
-     int length=(*li)->getARS(_pid,pars);
+     int length=(*li)->getARS(_pid,pars,100000000);
      DPS::Client::ARS_var ars=pars;
      if(length==0){
       FMessage("getARS-S-UnableToGetARS ",DPS::Client::CInAbort);
@@ -231,9 +237,9 @@ void AMSProducer::AddEvent(){
 if(_cinfo.Run == AMSEvent::gethead()->getrun()){
  _cinfo.EventsProcessed++;
  _cinfo.LastEventProcessed=AMSEvent::gethead()->getid();
+  if(!AMSEvent::gethead()->HasNoErrors())_cinfo.ErrorsFound++;
 }
-if(!(AMSEvent::gethead()->HasNoErrors())){
-  _cinfo.ErrorsFound++;
+if(!(AMSEvent::gethead()->HasNoCriticalErrors())){
   TIMEX(_cinfo.CPUTimeSpent);
   _cinfo.CPUTimeSpent+=-_T0;
   sendCurrentRunInfo();
@@ -247,5 +253,6 @@ else if(_cinfo.EventsProcessed%_reinfo->UpdateFreq==1 ){
 
 AMSProducer::~AMSProducer(){
 const char * a=0;
+cout <<" ams producer destructor called "<<endl;
 Exiting(_up?_up->getMessage():a);
 }

@@ -368,12 +368,13 @@ void AMSEvent::_reamsinitrun(){
 if(AMSJob::gethead()->isProduction() ){
  if(!SRun){
   HDELET(0);
-  AMSJob::gethead()->uhinit(getrun(),getid());
+  AMSJob::gethead()->uhinit(getrun(),getid(),gettime());
   AMSJob::map(1);
  }
  else{
 #ifdef __CORBA__
-  AMSJob::gethead()->uhinit(getrun(),getid());
+  AMSJob::gethead()->uhinit(getrun(),getid(),gettime());
+  AMSJob::map(1);
 #endif
  }
 
@@ -421,8 +422,8 @@ else{
 void AMSEvent::_reamsinitevent(){
 #ifdef __CORBA__
  if( getrun() != SELECTFFKEY.Run){
-   seterror();
-   throw amsglobalerror("AMSProducer-E-RunIsDifferent ");
+   seterror(2);
+   throw amsglobalerror("AMSProducer-E-RunIsDifferent ",2);
  }
 #endif
  _signinitevent();
@@ -1031,7 +1032,7 @@ for(int il=0;il<TKDBc::nlay();il++){
        if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0 || AMSJob::gethead()->GetNtupleFileSize()>IOPA.MaxFileSize){
         if(GCFLAG.ITEST<0)GCFLAG.ITEST=-GCFLAG.ITEST;
         AMSJob::gethead()->uhend();
-        AMSJob::gethead()->uhinit(_run,getid()+1);
+        AMSJob::gethead()->uhinit(_run,getid()+1,gettime());
       }
     }        
   }

@@ -53,6 +53,7 @@
 #include <richdbc.h>
 #include <mccluster.h>
 #include <sys/stat.h>
+#include <producer.h>
 //+
  integer        ntdvNames;               // number of TDV's types
  char*          tdvNameTab[maxtdv];      // TDV's nomenclature
@@ -2893,7 +2894,10 @@ _axendjob();
   cout <<"axendjob finished"<<endl;
 delete _pntuple;
   cout <<"pntuple deleted"<<endl;
-
+#ifdef __CORBA__
+delete AMSProducer::gethead();
+  cout <<"producer deleted"<<endl;
+#endif
 #ifdef __G4AMS__
 if(MISCFFKEY.G4On){
 // due to infinite geant4 destructors
@@ -2905,7 +2909,7 @@ abort();
 #endif
 }
 #include <producer.h>
-void AMSJob::uhend(){
+void AMSJob::uhend(uinteger r, uinteger e, time_t t){
 if(IOPA.hlun && _NtupleActive){
   _NtupleActive=false;
   int ntuple_entries;
@@ -2922,7 +2926,7 @@ if(IOPA.hlun && _NtupleActive){
   CLOSEF(IOPA.hlun);
 #ifdef __CORBA__
   if(AMSEvent::gethead())AMSProducer::gethead()->sendNtupleEnd(_ntuplefilename,ntuple_entries,AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime(),true);
-else AMSProducer::gethead()->sendNtupleEnd(_ntuplefilename,ntuple_entries,0,0,false);
+else AMSProducer::gethead()->sendNtupleEnd(_ntuplefilename,ntuple_entries,e,t,true);
 #endif
 }
 }
@@ -2949,7 +2953,8 @@ void AMSJob::urinit(integer eventno){
 }
 
 
-void AMSJob::uhinit(integer run, integer eventno){
+void AMSJob::uhinit(integer run, integer eventno, time_t tt) 
+throw (amsglobalerror){
   if(_NtupleActive)uhend();
   if(IOPA.hlun ){
    
@@ -2974,7 +2979,7 @@ void AMSJob::uhinit(integer run, integer eventno){
     HROPEN(IOPA.hlun,"output",_ntuplefilename,"NPQ",rsize,iostat);
     if(iostat){
      cerr << "Error opening Histo file "<<_ntuplefilename<<endl;
-     throw amsglobalerror("UnableToOpenHistoFile");
+     throw amsglobalerror("UnableToOpenHistoFile",3);
     }
     else cout <<"Histo file "<<_ntuplefilename<<" opened."<<endl;
 
@@ -2992,7 +2997,7 @@ void AMSJob::uhinit(integer run, integer eventno){
    HBOOK1(200107," adc over",3000,29999.5,32999.5,0.);
     _NtupleActive=true;
 #ifdef __CORBA__
-  AMSProducer::gethead()->sendNtupleStart(run,eventno,AMSEvent::gethead()?AMSEvent::gethead()->gettime():0);
+  AMSProducer::gethead()->sendNtupleStart(run,eventno,tt);
 #endif
 }
 

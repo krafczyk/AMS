@@ -94,20 +94,24 @@ cout<<message<<endl;
 char * AMSClient::print(const DPS::Client::ActiveClient & a,const char * mes){
 
 _ost.seekp(0);
-_ost<<mes <<" AC "<<print(a.id,_ost)<<" ARS Length "<<a.ars.length()<<" LastUp "<<ctime((const time_t *)&a.LastUpdate)<<" Start "<<ctime((const time_t *)&a.Start)<< "  Status " <<CS2string(a.Status)<<ends;
+_ost<<mes <<" AC ";
+print(a.id,_ost);
+_ost<<" ARSLength "<<a.ars.length()<<" LastUpdate "<<ctime((const time_t *)&a.LastUpdate)<<" Start "<<ctime((const time_t *)&a.Start)<< "  Status " <<CS2string(a.Status)<<ends;
 return _streambuffer;
 }
 
 
 char * AMSClient::print(const DPS::Client::CID & a,const char * mes){
 _ost.seekp(0);
-_ost<<mes<<" CID "<<print(a,_ost)<<ends;
+_ost<<mes<<" CID ";
+print(a,_ost);
+_ost<<ends;
 return _streambuffer;
 }
 
 
 ostream & AMSClient::print(const DPS::Client::CID & a, ostream & o){
-return o<<a.HostName<<" "<<a.Interface<<"  UID "<<a.uid<<" PID "<<a.pid<<" "<<a.ppid<<" Type "<<CT2string(a.Type)<<" Exit Status "<<CSE2string(a.Status);
+return o<<a.HostName<<" "<<a.Interface<<"  UID "<<a.uid<<" PID "<<a.pid<<" "<<a.ppid<<" Type "<<CT2string(a.Type)<<" ExitStatus "<<CSE2string(a.Status);
 }
 
 
@@ -119,31 +123,35 @@ return _streambuffer;
 
 char * AMSClient::print(const DPS::Producer::DST & a,const char * mes){
 _ost.seekp(0);
-_ost<<mes << " DST "<<a.Name <<" Insert "<<ctime((const time_t *)&a.Insert)<<" Begin "<<ctime((const time_t *)&a.Begin)<<" End "<<ctime((const time_t *)&a.End)<<" Run "<<a.Run << " 1st Event "<<a.FirstEvent<<" Last Event "<<a.LastEvent<<" Status "<<DSTS2string(a.Status)<<ends;
+_ost<<mes << " DST "<<a.Name <<" Insert "<<a.Insert<<" Begin "<<((a.Begin))<<" End "<<((a.End))<<" Run "<<a.Run << " 1stEvent "<<a.FirstEvent<<" LastEvent "<<a.LastEvent<<" Status "<<DSTS2string(a.Status)<<" Total "<<a.EventNumber<<ends;
 return _streambuffer;
 }
 
 char * AMSClient::print(const DPS::Server::CriticalOps & a,const char * mes){
 _ost.seekp(0);
-_ost<<mes<< "COp Action "<<OPS2string(a.Action) << " Client Type "<<CT2string(a.Type)<<" Client id "<<a.id<<" Time  "<<ctime((const time_t *)&a.TimeStamp)<<" TimeOut "<<a.TimeOut<<ends;
+_ost<<mes<< "COp Action "<<OPS2string(a.Action) << " ClientType "<<CT2string(a.Type)<<" ClientID "<<a.id<<" Time  "<<ctime((const time_t *)&a.TimeStamp)<<" TimeOut "<<a.TimeOut<<ends;
 return _streambuffer;
 }
 
 char * AMSClient::print(const DPS::Producer::RunEvInfo & a,const char * mes){
 _ost.seekp(0);
-_ost<<mes<<" REI "<<a.uid<<" Run "<<a.Run<<" 1st Event "<<a.FirstEvent<<" Last Event "<<a.LastEvent<<" Prio "<<a.Priority<<" Path "<<a.FilePath<< "Status "<<RS2string(a.Status)<<" Client id "<<a.cuid<<" SubmitTime "<<ctime((const time_t *)&a.SubmitTime)<< print(a.cinfo,_ost)<<ends;
+_ost<<mes<<" REI ID "<<a.uid<<" Run "<<a.Run<<" 1st Event "<<a.FirstEvent<<" Last Event "<<a.LastEvent<<" Prio "<<a.Priority<<" Path "<<a.FilePath<< "Status "<<RS2string(a.Status)<<"History "<<RS2string(a.History)<<" Client id "<<a.cuid<<" SubmitTime "<<ctime((const time_t *)&a.SubmitTime);
+print(a.cinfo,_ost);
+_ost<<ends;
 return _streambuffer;
 }
 
 char * AMSClient::print(const DPS::Producer::CurrentInfo & a,const char * mes){
 _ost.seekp(0);
-_ost<<mes<<" CInfo "<<print(a,_ost)<<ends;
+_ost<<mes<<" CInfo ";
+print(a,_ost);
+_ost<<ends;
 return _streambuffer;
 }
 
 
 ostream & AMSClient::print(const DPS::Producer::CurrentInfo & a, ostream & o){
-return o<<" Run " <<a.Run <<" EventsProcessed "<<a.EventsProcessed<<" LastEvent "<<a.LastEventProcessed<<" Errors "<<a.ErrorsFound<<" CPU "<<a.CPUTimeSpent<<" CPU/Event "<<a.CPUTimeSpent/(a.EventsProcessed+1)<<" Status "<<RS2string(a.Status);
+return o<<" Host " <<a.HostName <<" EventsProcessed "<<a.EventsProcessed<<" LastEvent "<<a.LastEventProcessed<<" Errors "<<a.ErrorsFound<<" CPU "<<a.CPUTimeSpent<<" CPU/Event "<<a.CPUTimeSpent/(a.EventsProcessed+1)<<" Status "<<RS2string(a.Status);
 }
 
 char * AMSClient::CS2string(DPS::Client::ClientStatus a){
@@ -160,6 +168,8 @@ case DPS::Client::Active:
 return "Active";
 case DPS::Client::TimeOut:
 return "TimeOut";
+case DPS::Client::Killed:
+return "Killed";
 }
 return " ";
 }

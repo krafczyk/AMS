@@ -55,6 +55,12 @@ typedef map<AString,CORBA::String_var> MS;
  explicit Eqs( const  DPS::Client::ActiveClient & a):_a(a){}
   bool operator () (const DPS::Client::ActiveClient_var & a){return _a.id.uid==a->id.uid;}
 };
+ class find :public unary_function<DPS::Client::ActiveClient,bool>{
+ DPS::Client::ClientStatus _st;
+ public:
+ explicit find( const  DPS::Client::ClientStatus st):_st(st){}
+  bool operator () (const DPS::Client::ActiveClient_var & a){return a->Status==_st;}
+};
   uinteger getmaxcl() const {return _Submit;}
   DPS::Client::NominalClient_var getncl(){return _ncl;}
   void addone(){++_Submit;}
@@ -65,6 +71,7 @@ typedef map<AString,CORBA::String_var> MS;
   MS & getrefmap(){return _refmap;}
   DPS::Client::ClientType getType()const {return _Type;}
 
+ virtual void UpdateDB()=0;
  virtual void StartClients(const DPS::Client::CID &cid)=0;
  virtual void CheckClients(const DPS::Client::CID &cid)=0; 
  virtual void KillClients(const DPS::Client::CID &cid)=0;
@@ -116,21 +123,25 @@ void Exiting(const char * message=0);
 class Server_impl : public virtual POA_DPS::Server, public AMSServerI{
 protected:
 AString _iface;
+DPS::Client::NominalClient_var _nki;
 public:
   Server_impl(uinteger i=0):POA_DPS::Server(),AMSServerI(AMSID("Server",++i),0,DPS::Client::Server){};
-  Server_impl(const map<AString, AMSServer::OrbitVars> & mo,  const DPS::Client::CID & cid,AMSClient * parent, char * NS=0, char* NH=0);
+  Server_impl(const map<AString, AMSServer::OrbitVars> & mo,  const DPS::Client::CID & cid,AMSClient * parent, char * NS=0, char* NH=0, char *NK=0);
   Server_impl(const map<AString, AMSServer::OrbitVars> & mo, DPS::Server_ptr _cvar, const DPS::Client::CID & cid, AMSClient * parent);
   ~Server_impl(){if(_down)_down->remove();}
-
+ bool Master();
+ integer Kill(const DPS::Client::ActiveClient & ac, int signal, bool self);
  void setInterface(const char * iface){_iface=iface;}
  AMSServerI * getServer(){return this;}
+ virtual void UpdateDB();
  virtual void StartClients(const DPS::Client::CID &cid);
  virtual void CheckClients(const DPS::Client::CID &cid); 
  virtual void KillClients(const DPS::Client::CID &cid);
   void _init();
   CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException);
   CORBA::Boolean getNC(const DPS::Client::CID &cid, DPS::Client::NominalClient_out nc)throw (CORBA::SystemException);
-   int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars)throw (CORBA::SystemException);
+  CORBA::Boolean getNK(const DPS::Client::CID &cid, DPS::Client::NominalClient_out nc)throw (CORBA::SystemException);
+   int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars, int maxcid=100000000)throw (CORBA::SystemException);
    int getACS(const DPS::Client::CID &cid, ACS_out acs, unsigned int & maxc)throw (CORBA::SystemException);
    void sendAC(const DPS::Client::CID &cid,  DPS::Client::ActiveClient & ac,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
   void Exiting(const DPS::Client::CID& cid,const char * Error, DPS::Client::ClientExiting  Status)throw (CORBA::SystemException);
@@ -166,17 +177,19 @@ typedef list<DST_var>::iterator DSTLI;
 DSTL _ntuple;
 
 public:
+ bool Master();
  AMSServerI * getServer(){return up();}
 
   Producer_impl(const map<AString, AMSServer::OrbitVars> & mo,  const DPS::Client::CID & cid,AMSClient * parent,char * NC=0, char* RF=0, char* NS=0, char * TS=0);
   Producer_impl(uinteger i=0):POA_DPS::Producer(),AMSServerI(AMSID("Producer",++i),0,DPS::Client::Producer){};
   Producer_impl(const map<AString, AMSServer::OrbitVars> & mo, DPS::Server_ptr _cvar,DPS::Client::CID  cid, AMSClient * parent);
   void _init();
+ virtual void UpdateDB();
  virtual void StartClients(const DPS::Client::CID &cid);
  virtual void CheckClients(const DPS::Client::CID &cid); 
  virtual void KillClients(const DPS::Client::CID &cid);
   CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException);
-   int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars)throw (CORBA::SystemException);
+   int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars, int maxcid=100000000)throw (CORBA::SystemException);
   void Exiting(const DPS::Client::CID& cid,const char * Error, DPS::Client::ClientExiting  Status)throw (CORBA::SystemException);
 
   virtual TDV* getTDV(const char * name, DPS::time i, DPS::time b, DPS::time e)throw (CORBA::SystemException);
@@ -201,10 +214,20 @@ public:
 void PropagateRun(const RunEvInfo & ri, DPS::Client::RecordChange rc);
 
 class REInfo_find: public unary_function<RunEvInfo,bool>{
-DPS::Producer::RunStatus _rs;
+DPS::Client::CID _cid;
+RunStatus _rs;
 public:
- explicit REInfo_find(DPS::Producer::RunStatus rs):_rs(rs){}
- bool operator()(const RunEvInfo & a){return a.Status== _rs;}
+ explicit REInfo_find(const DPS::Client::CID & cid, RunStatus rs):_cid(cid),_rs(rs){}
+ bool operator()(const RunEvInfo & a){
+  return a.Status==ToBeRerun && a.History==_rs && strcmp((const char *) _cid.HostName, (const char *) a.cinfo.HostName);
+}
+};
+class REInfo_process: public unary_function<RunEvInfo,bool>{
+public:
+ explicit REInfo_process(){}
+ bool operator()(const RunEvInfo & a){
+  return a.Status!=Finished && a.Status!=Failed;
+}
 };
 
 class REInfo_Eqs: public unary_function<RunEvInfo,bool>{
@@ -212,6 +235,12 @@ RunEvInfo _re;
 public:
  explicit REInfo_Eqs(const RunEvInfo & re):_re(re){}
  bool operator()(const RunEvInfo & a){return a.uid== _re.uid;}
+};
+
+class REInfo_Count: public unary_function<RunEvInfo,bool>{
+public:
+ explicit REInfo_Count(){}
+ bool operator()(const RunEvInfo & a){return a.Status== ToBeRerun || a.Status==Processing;}
 };
 
 class REInfo_EqsClient: public unary_function<RunEvInfo,bool>{

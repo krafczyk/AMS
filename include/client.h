@@ -14,7 +14,7 @@ AString _message;
 public:
 const char* getMessage() const {return (const char*)_message;}
 DPS::Client::ClientExiting ExitReason() const {return _exit;}
-AMSClientError(const char * message,DPS::Client::ClientExiting exit=DPS::Client::CInExit):
+AMSClientError(const char * message=" Normal Exit",DPS::Client::ClientExiting exit=DPS::Client::CInExit):
 _message(message),_exit(exit){};
 };
 class AMSClient{

@@ -7,10 +7,12 @@
 class amsglobalerror{
 private:
 AString _a;
+uinteger _level;
 public:
 const char * getmessage(){return (const char*)_a;};
-amsglobalerror(char* a):_a(a){};
-amsglobalerror(const char* a=0):_a(a){};
+uinteger getlevel(){return _level;}
+amsglobalerror(char* a,uinteger level=1):_a(a),_level(level){};
+amsglobalerror(const char* a=0,uinteger level=1):_a(a),_level(level){};
 };
 
 class AMSDBc {
