@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.135 2004/02/11 17:47:03 alcaraz Exp $
+//  $Id: root.h,v 1.136 2004/02/11 18:21:07 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -3015,12 +3015,9 @@ ClassDef(AMSEventR,1)       //AMSEventR
   - {
       - gROOT->Reset();
       - gSystem->Load("$AMSDir/lib/linux/icc/ntuple.so");
-
       - AMSChain ams;
       - ams.Add("/f2users/choutko/g3v1g3.root");
-
       - TH1F* hrig = new TH1F ("hrig", "Momentum (GeV)", 50, -10., 10.);
-      
       - int ndata = ams.GetEntries();
       - for (int entry=0; entry<ndata; entry++) {
             - AMSEventR* ev = ams.GetEvent();
@@ -3030,7 +3027,6 @@ ClassDef(AMSEventR,1)       //AMSEventR
                   - hrig->Fill(part.Momentum);
             - }
       - }
-
       - hrig->Draw();
       - cout << "We have processed: " << ndata << " events" << endl;
   - }
@@ -3113,9 +3109,15 @@ public:
       ClassDef(AMSEventList,1)       //AMSEventList
 };
 
+//!  AMSMyTrackConst namespace
+
+namespace AMSMyTrackConst {
+        const int MAXLAY = 8; ///< Maximum number of hits in track
+}
+
 //!  AMSMyTrack class
 /*! 
-  - Contains:
+  Contains:
 
   - Utility class, to use your and fit your own tracks directly on the ROOT 
     file, with your own selected hits and optionally without magnetic field
@@ -3144,34 +3146,30 @@ public:
   
 */
 
-namespace AMSMyTrackConst {
-        const int MAXLAY = 8;
-}
-
 class AMSMyTrack {
 private:
-      TrRecHitR* pHit[AMSMyTrackConst::MAXLAY]; ///> Pointers to reconstructed hits 
+      TrRecHitR* pHit[AMSMyTrackConst::MAXLAY];
 public:
-      bool BFieldOn;                ///> Fit with Magnetic field? (default = true)
-      int NHits;                    ///> Number of track hits in use
-      float Chi2StrLine;            ///> Chi2/ndof in the XZ plane from fit
-      float Chi2;                   ///> Chi2/ndof in 3D from fit
-      float Rigidity;               ///> Rigidity from fit (GV)
-      float ErrRigidity;            ///> Error on 1/Rigidity (1/GV) from fit
-      float Theta;                  ///> Theta from fit
-      float Phi;                    ///> Phi from fit
-      float P0[3];                  ///> Reference point from fit (cm)
-
       AMSMyTrack(bool bflag=1):BFieldOn(bflag),NHits(0){};
       virtual ~AMSMyTrack(){};
 
-      void add_hit(TrRecHitR* phit); ///> Add hit pointed by phit
-      void del_hit(TrRecHitR* phit); ///> Remove hit pointed by phit
-      void reset();                  ///> Reset track (NHits=0)
-      void use_hits_from(TrTrackR* ptrack); ///> Reset and add hits from track at ptrack
-      bool Fit();                     ///> Perform the fit (return true if succesful)
+      bool BFieldOn; ///< Fit with Magnetic field? (default = true)
+      int NHits; ///< Number of track hits in use
+      float Chi2StrLine; ///< Chi2/ndof in the XZ plane from fit
+      float Chi2; ///< Chi2/ndof in 3D from fit
+      float Rigidity; ///< Rigidity from fit (GV)
+      float ErrRigidity; ///< Error on 1/Rigidity (1/GV) from fit
+      float Theta; ///< Theta from fit
+      float Phi; ///< Phi from fit
+      float P0[3]; ///< Reference point from fit (cm)
 
-      ClassDef(AMSMyTrack,1)         //AMSMyTrack
+      void add_hit(TrRecHitR* phit); ///< Add hit pointed by phit
+      void del_hit(TrRecHitR* phit); ///< Remove hit pointed by phit
+      void reset(); ///< Reset track (NHits=0)
+      void use_hits_from(TrTrackR* ptrack); ///< Reset and add hits from track at ptrack
+      bool Fit(); ///< Perform the fit (return true if succesful)
+
+      ClassDef(AMSMyTrack,1) //AMSMyTrack
 };
 
 #endif
