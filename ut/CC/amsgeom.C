@@ -722,19 +722,30 @@ void ctcgeomAG(AMSgvolume & mother){
   for(ilay=1;ilay<3;ilay++){
     if(ilay==1){
      for(i=0;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
-     coo[0]=coo[1]=0.;
+     coo[0]=0;
+     coo[1]=-3.;
      coo[2]=zr+0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
      pLayer=mother.add(new AMSgvolume(
        "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,1000000));
     }
     else{
       for(i=0;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
-      coo[0]=-5.5;
-      coo[1]=5.5;
+      coo[0]=-6.;
+      coo[1]=3.;
       coo[2]=zr-0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
       pLayer=mother.add(new AMSgvolume(
        "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000));
     }
+
+#ifdef __AMSDEBUG__
+    cout <<" Layer "<<ilay<<" "<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<endl;      
+    geant cool[3];
+    cool[0]=coo[0];
+    cool[1]=coo[1];
+    cool[2]=coo[2];
+#endif
+
+
   //<--- Introduce the walls between modules
 
      for(i=0;i<3;i++)parwal[i] = 0.5*CTCDBc::getwallsize(i);
@@ -798,6 +809,13 @@ void ctcgeomAG(AMSgvolume & mother){
              gid=1000000*ilay+1000*(i+1)+100*(j+1)+20+ix+1+2*iy+4*iz;
              char cvola[]="AGLU";
              cvola[3]=cdum[ilay-1][0];
+#ifdef __AMSDEBUG__
+             
+             cout <<" Cell "<<i<<" "<<j<<" "<<ix<<" "<<iy<<" "<<
+               cooagl[0]+cool[0]<<" "<<cooagl[1]+cool[1]<<" "<<
+               cooptf[2]+cool[2]<<" "<<cooagl[0]<<" "<<cooagl[1]<<" "<<cooptf[2]<<endl;
+#endif
+
              pLayer->add(new AMSgvolume(
              "ATC_AEROGEL",0,cvola,"BOX ",paragl,3,cooagl,nrm,"ONLY",1,gid,1));
             }
@@ -838,13 +856,21 @@ void ctcgeomAG(AMSgvolume & mother){
     else{
       par[0]= 0.25*CTCDBc::getcellsize(0)+0.5*CTCDBc::getwallsize(0);
       for(i=1;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
-      coo[0]=-5.5+0.5*CTCDBc::getupsize(0)+0.25*CTCDBc::getcellsize(0)+
+      coo[0]=-6.+0.5*CTCDBc::getupsize(0)+0.25*CTCDBc::getcellsize(0)+
       CTCDBc::getwallsize(0);
-      coo[1]=5.5;
+      coo[1]=3.;
       coo[2]=zr-0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
       pLayer=mother.add(new AMSgvolume(
        "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000));
     }
+#ifdef __AMSDEBUG__
+    cout <<" Layer "<<ilay<<" "<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<endl;      
+    geant cool[3];
+    cool[0]=coo[0];
+    cool[1]=coo[1];
+    cool[2]=coo[2];
+#endif
+
   //<--- Introduce the walls between modules
 
      for(i=0;i<3;i++)parwal[i] = 0.5*CTCDBc::getwallsize(i);
@@ -914,6 +940,13 @@ void ctcgeomAG(AMSgvolume & mother){
              gid=1000000*ilay+1000*(i+1)+100*(j+1)+20+ix+1+2*iy+4*iz;
              char cvola[]="AGLU";
              cvola[3]=cdum[ilay-1][0];
+#ifdef __AMSDEBUG__
+             
+             cout <<" Cell "<<i<<" "<<j<<" "<<ix<<" "<<iy<<" "<<
+               cooagl[0]+cool[0]<<" "<<cooagl[1]+cool[1]<<" "<<
+               cooptf[2]+cool[2]<<" "<<cooagl[0]<<" "<<cooagl[1]<<" "<<cooptf[2]<<endl;
+#endif
+
              pLayer->add(new AMSgvolume(
              "ATC_AEROGEL",0,cvola,"BOX ",paragl,3,cooagl,nrm,"ONLY",1,gid,1));
             }
