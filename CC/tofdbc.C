@@ -217,8 +217,8 @@ geant TOFDBc::_plnstr[15]={
   if(il==0)zc=zc+(ib%2)*_plnstr[2];
   else if(il==2){
           if((AMSJob::gethead()->isRealData()) && (AMSEvent::gethead() && AMSEvent::gethead()->getrun()>889992398))
-          zc=zc+(ib%2)*_plnstr[2];//new (correct ?)
-          else zc=zc+((ib+1)%2)*_plnstr[2];//old (wrong ?)
+          zc=zc+(ib%2)*_plnstr[2];//new (correct)
+          else zc=zc+((ib+1)%2)*_plnstr[2];//old (wrong)
   }
   else if(il==3)zc=zc-(ib%2)*_plnstr[2];
   else if(il==1)zc=zc-((ib+1)%2)*_plnstr[2];
@@ -301,7 +301,8 @@ geant TOFDBc::_plnstr[15]={
 //  TOFBrcal class functions :
 //
 void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
-// 
+//
+ int lsflg(1);//0/1->use common/individual values for Lspeed 
  integer i,j,k,ila,ibr,ip,ibrm,isd,isp,nsp,ibt,cnum,dnum,mult;
  geant scp[SCANPNT];
  geant rlo[SCANPNT];// relat.(to Y=0) light output
@@ -311,7 +312,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  geant r,eff1,eff2;
  integer sid,brt;
  geant gna[2],gnd[2],qath,qdth,a2dr[2],tth,strat[2][2];
- geant slope,slpf,fstrd,tzer,tdif,mip2q,speedl;
+ geant slope,slpf,fstrd,tzer,tdif,mip2q,speedl,lspeeda[SCLRS][SCMXBR];
  geant tzerf[SCLRS][SCMXBR],tdiff[SCBLMX],stat[SCBLMX][2];
  geant slops[2],slops1[SCLRS][SCMXBR],slops2[SCLRS][SCMXBR];
  geant strf[SCBLMX][2],strof[SCBLMX][2];
@@ -424,7 +425,15 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  }
 //
 // ---> read Lspeed/Tdiffs:
- tdcfile >> speedl;
+//
+ if(lsflg){// read bar indiv.Lspeed
+   for(ila=0;ila<SCLRS;ila++){   
+     for(ibr=0;ibr<SCMXBR;ibr++){  
+       tdcfile >> lspeeda[ila][ibr];
+     }
+   }
+ }
+ else tdcfile >> speedl;// read average Lspeed
  for(ila=0;ila<SCLRS;ila++){   
    for(ibr=0;ibr<SCMXBR;ibr++){  
      cnum=ila*SCMXBR+ibr; // sequential counters numbering(0-55)
@@ -737,8 +746,11 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     slops[0]=1.;// default indiv.slopes
     slops[1]=1.;
     tzer=tzerf[ila][ibr];//was read from ext. file
-    tdif=tdiff[cnum];//was read from ext. file 
-    td2p[0]=speedl;//mean speed of the light was read from external file
+    tdif=tdiff[cnum];//was read from ext. file
+    if(lsflg){
+      td2p[0]=lspeeda[ila][ibr];//indiv.bar speed of the light from external file
+    } 
+    else td2p[0]=speedl;//average speed of the light from external file
     td2p[1]=tofvpar.lcoerr();//error on longit. coord. measurement(cm)
     for(ip=0;ip<SCIPAR;ip++)aip[0][ip]=ipara[2*cnum][ip];
     for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*cnum+1][ip];
@@ -1331,6 +1343,25 @@ void TOFJobStat::bookhist(){
     HBOOK1(1113,"RawClusterLevel:SingleBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
     HBOOK1(1114,"RawClusterLevel:Single2SidedBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
     HBOOK1(1115,"Fast-Slow hit time-difference(all hist/slow-hit meas.",80,-40.,120.,0.);
+    HBOOK1(1116,"dEdX vs bar (norm.inc.,L=1)",14,0.,14.,0.);
+    HBOOK1(1117,"dEdX vs bar (norm.inc.,L=2)",14,0.,14.,0.);
+    HBOOK1(1118,"dEdX vs bar (norm.inc.,L=3)",14,0.,14.,0.);
+    HBOOK1(1119,"dEdX vs bar (norm.inc.,L=4)",14,0.,14.,0.);
+    for(il=0;il<SCLRS;il++){
+      for(ib=0;ib<SCMXBR;ib++){
+	strcpy(htit1,"dE/dX (norm.inc) for bar(LBB) ");
+	in[0]=inum[il+1];
+	strcat(htit1,in);
+	ii=(ib+1)/10;
+	jj=(ib+1)%10;
+	in[0]=inum[ii];
+	strcat(htit1,in);
+	in[0]=inum[jj];
+	strcat(htit1,in);
+	ich=SCMXBR*il+ib;
+	HBOOK1(1140+ich,htit1,50,0.,15.,0.);
+      }
+    }
     if(TOFRECFFKEY.reprtf[2]>1){
       HBOOK1(1120,"STR-tmp-reference in Crate-1",50,1980.,2030.,0.);
       HBOOK1(1121,"STR-tmp-reference in Crate-2",50,1940.,1990.,0.);
@@ -1349,12 +1380,8 @@ void TOFJobStat::bookhist(){
       HBOOK1(1136,"ANODE-tmp-reference in Crate-7",50,0.,100.,0.);
       HBOOK1(1137,"ANODE-tmp-reference in Crate-8",50,0.,100.,0.);
     }
-//    HBOOK1(1140,"W1,L4-B3-S1",50,0.,200.,0.);
-//    HBOOK1(1141,"W2,L4-B3-S1",50,0.,100.,0.);
-//    HBOOK1(1142,"W3,L1-B12-S2",60,0.,6000.,0.);
-//    HBOOK1(1143,"W1,L4-B3-S2",50,0.,200.,0.);
-//    HBOOK1(1144,"W2,L4-B3-S2",50,0.,100.,0.);
-//    HBOOK1(1145,"W3,L3-B10-S2",60,0.,6000.,0.);
+//    HBOOK1(1138,"W1,L4-B3-S1",50,0.,200.,0.);
+//    HBOOK1(1139,"W3,L1-B12-S2",60,0.,6000.,0.);
     HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,16.,0.);
     HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,80.,0.);
     HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,16.,0.);
@@ -1507,6 +1534,7 @@ void TOFJobStat::bookhistmc(){
 //----------------------------
 void TOFJobStat::outp(){
   int i,j,k,ich;
+  geant dedx[SCMXBR],dedxe[SCMXBR];
        if(TOFRECFFKEY.reprtf[2]!=0){ // print RECO-hists
          HPRINT(1535);
          HPRINT(1536);
@@ -1516,20 +1544,33 @@ void TOFJobStat::outp(){
          HPRINT(1540);
          HPRINT(1541);
          HPRINT(1542);
-           HPRINT(1100);
-           HPRINT(1115);
-           HPRINT(1105);
-           HPRINT(1106);
-           HPRINT(1107);
-           HPRINT(1101);
-           HPRINT(1102);
-           HPRINT(1103);
-           HPRINT(1104);
-           HPRINT(1110);
-           HPRINT(1111);
-           HPRINT(1112);
-           HPRINT(1113);
-           HPRINT(1114);
+         HPRINT(1100);
+         HPRINT(1115);
+         HPRINT(1105);
+         HPRINT(1106);
+         HPRINT(1107);
+         HPRINT(1101);
+         HPRINT(1102);
+         HPRINT(1103);
+         HPRINT(1104);
+         HPRINT(1110);
+         HPRINT(1111);
+         HPRINT(1112);
+         HPRINT(1113);
+         HPRINT(1114);
+         for(i=0;i<SCLRS;i++){
+           for(j=0;j<SCMXBR;j++){
+             HPRINT(1140+ich);
+             dedx[j]=0.;
+             dedxe[j]=0.;
+             ich=SCMXBR*i+j;
+             dedx[j]=HSTATI(1140+ich,1," ",0);
+             dedxe[j]=HSTATI(1140+ich,2," ",0);
+           }
+           HPAK(1116+i,dedx);
+           HPAKE(1116+i,dedxe);
+           HPRINT(1116+i);
+         }
            if(TOFRECFFKEY.reprtf[2]>1){
              HPRINT(1120);
              HPRINT(1121);
@@ -1548,12 +1589,8 @@ void TOFJobStat::outp(){
              HPRINT(1136);
              HPRINT(1137);
            }
-//       HPRINT(1140);
-//       HPRINT(1141);
-//       HPRINT(1142);
-//       HPRINT(1143);
-//       HPRINT(1144);
-//       HPRINT(1145);
+//       HPRINT(1138);
+//       HPRINT(1139);
            HPRINT(1529);
            HPRINT(1526);
            HPRINT(1528);

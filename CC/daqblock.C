@@ -154,6 +154,7 @@ void DAQSBlock::buildraw(integer len, int16u *p){
   }
 //---> Print TOF Crate temperatures:
   if(TOFRECFFKEY.reprtf[1]>=1){
+    im=DAQSTSC*DAQSTCS;
     cout<<"TOF_Crate Temperatures :"<<endl; 
     for(i=0;i<DAQSTSC;i++){//loop over temp. SFETs in crate (1)
       for(j=0;j<DAQSTCS;j++){//loop over temp. channels in SFET (4)
@@ -165,16 +166,16 @@ void DAQSBlock::buildraw(integer len, int16u *p){
     cout<<endl;
   }
 //
-//---> ANTI decoding:
-  if(lent<len && (msk&2)>0){
-    dlen=lent;//bias to first Anti_data_word (=1+TOF_data_length+CTC_data_length)
-    AMSAntiRawEvent::buildraw(blid, dlen, p);
-    lent+=dlen;
-  }
 //---> CTC decoding:
   if(lent<len && (msk&4)>0){
     dlen=lent;//bias to first CTC_data_word (=1+TOF_data_length)
     AMSCTCRawEvent::buildraw(blid, dlen, p);
+    lent+=dlen;
+  }
+//---> ANTI decoding:
+  if(lent<len && (msk&2)>0){
+    dlen=lent;//bias to first Anti_data_word (=1+TOF_data_length+CTC_data_length)
+    AMSAntiRawEvent::buildraw(blid, dlen, p);
     lent+=dlen;
   }
 //

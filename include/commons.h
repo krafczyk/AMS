@@ -299,6 +299,7 @@ class CTCRECFFKEY_DEF {
   integer reprtf[3];//  print flag
   geant ftwin; // time_window(ns) in true TDCA-hits search wrt TDCT-hit(FT)
   geant q2pe;  // charge to photoelectrons conversion
+  integer ft2edg;//  0/1 -> 1/2 edges readout for FT pulse
   integer sec[2];
   integer min[2];
   integer hour[2];

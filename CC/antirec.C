@@ -629,10 +629,10 @@ integer AMSAntiRawEvent::calcdaqlength(int16u blid){
   }
 //
   else{ // =====> Raw format :
-    if(nhits>0){
+//    if(nhits>0){
       nhits+=(2*1);// add 2x1 TDCT-hits(for MC each FT-channel contains 1 hit(edge))
       len=2*nhits;// each hit(edge) require 2 words (header+TDCvalue)
-    }
+//    }
   }// end of format check
 //
   }// end of SFEA-presence test
@@ -820,7 +820,8 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 // decoding of block-id :
 //
   crate=(blid>>6)&7;// node_address (0-7 -> DAQ crate #)
-  dtyp=1-(blid&63);// data_type ("0"->RawTDC; "1"->ReducedTDC)
+//  dtyp=1-(blid&63);// data_type ("0"->RawTDC; "1"->ReducedTDC)
+  dtyp=(blid&63);// data_type ("0"->RawTDC; "1"->ReducedTDC)
 #ifdef __AMSDEBUG__
   if(ANTIRECFFKEY.reprtf[1]>=1){
     cout<<"Anti::decoding: crate/format="<<crate<<" "<<dtyp<<"  bias="<<bias<<endl;
@@ -932,9 +933,12 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
           nhits[tdcc]+=1;
         }
         else{
-          if(warnfl==0)cout<<"ANTI:RawFmt:read_warning: > 16 hits in channel: crate= "<<crate
+          if(warnfl==0){
+          cout<<"ANTI:RawFmt:read_warning: > 16 hits in channel: crate= "<<crate
           <<" sfet="<<sfet<<" chip="<<chip<<" chipch="<<chc<<endl;
+          cout<<"event="<<(AMSEvent::gethead()->getid())<<endl;
           warnfl=1;
+          }
         }
       }
 //
@@ -1000,17 +1004,19 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
   if(ANTIRECFFKEY.reprtf[1]>=1){
     cout<<"AntiRawEventBuild::decoding: FOUND "<<len<<" good words, hex/bit dump follows:"<<endl;
     int16u tstw,tstb;
-    for(i=0;i<len;i++){
-      tstw=*(p+i+bias);
-      cout<<hex<<setw(4)<<tstw<<"  |"<<dec;
-      for(j=0;j<16;j++){
-        tstb=(1<<(15-j));
-        if((tstw&tstb)!=0)cout<<"x"<<"|";
-        else cout<<" "<<"|";
+    if(dtyp==1){ // only for red.data
+      for(i=0;i<len;i++){
+        tstw=*(p+i+bias);
+        cout<<hex<<setw(4)<<tstw<<"  |"<<dec;
+        for(j=0;j<16;j++){
+          tstb=(1<<(15-j));
+          if((tstw&tstb)!=0)cout<<"x"<<"|";
+          else cout<<" "<<"|";
+        }
+        cout<<endl;
       }
-      cout<<endl;
+      cout<<dec<<endl<<endl;
     }
-    cout<<dec<<endl<<endl;
   }
 #endif
 }

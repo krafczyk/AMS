@@ -1949,6 +1949,9 @@ depend:
 ../bin/osf1/timeid.o: /usr/include/sys/localedef.h
 ../bin/osf1/timeid.o: /usr/include/sys/lc_core.h /usr/include/locale.h
 ../bin/osf1/timeid.o: /usr/include/nl_types.h /usr/include/mesg.h
+../bin/osf1/timeid.o: /usr/include/unistd.h /usr/include/sys/access.h
+../bin/osf1/timeid.o: /usr/include/sys/stat.h /usr/include/sys/mode.h
+../bin/osf1/timeid.o: /usr/include/sys/file.h /usr/include/sys/fcntl.h
 ../bin/osf1/io.o: /usr/include/sys/types.h /usr/include/standards.h
 ../bin/osf1/io.o: /usr/include/mach/machine/vm_types.h
 ../bin/osf1/io.o: /usr/include/sys/select.h /usr/include/sys/stat.h
@@ -2393,7 +2396,10 @@ depend:
 ../bin/osf1/ntuple.o: /usr/include/string.h /usr/include/strings.h
 ../bin/osf1/ntuple.o: ../include/cfortran.h /usr/include/stdlib.h
 ../bin/osf1/ntuple.o: ../include/hbook.h ../include/geant321.h
-../bin/osf1/ntuple.o: ../include/geant321g.h ../include/ntuple.h
+../bin/osf1/ntuple.o: ../include/geant321g.h ../include/node.h
+../bin/osf1/ntuple.o: ../include/id.h /usr/include/cxx/strstream.h
+../bin/osf1/ntuple.o: /usr/include/cxx/strstream.hxx
+../bin/osf1/ntuple.o: ../include/ntuple.h
 ../bin/osf1/user.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/user.o: /usr/include/standards.h
 ../bin/osf1/user.o: /usr/include/cxx/iostream.h

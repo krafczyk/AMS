@@ -715,7 +715,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
 //    for(i=0;i<3;i++)dum[i]=ram[i+1]-ram[0];// old parametrization
     for(i=0;i<3;i++)dum[i]=ramm[i+1]-ramm[0];// new parametrization
 //
-    if(TOFCAFFKEY.caltyp==0)betm=TOFCAFFKEY.bmeanpr;// tempor! better use measured one ?
+    if(TOFCAFFKEY.caltyp==0)betm=TOFCAFFKEY.bmeanpr;// tempor! better use measured one ???
     else betm=TOFCAFFKEY.bmeanmu;
 //
     TOFTZSLcalib::fill(betm,brnl,tld,tdi,dum); // fill calib.working arrays
@@ -966,8 +966,9 @@ void TOFTDIFcalib::fill(integer il,integer ib, number td, number co){//--->fill 
 } 
 //------------------------- 
 void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
-  integer il,ib,chan,nb,btyp,nev,bins;
-  number bin,len,co,t,dis,sig,sli,meansl(0),bintot(0),speedl;
+  int lspflg(1);//0/1->use single/array  for Lspeed
+  integer il,ib,chan,nb,btyp,nev,bins,binsl[SCLRS];
+  number bin,len,co,t,dis,sig,sli,meansl(0),bintot(0),speedl,avsll[SCLRS];
   number sl[SCBLMX],t0[SCBLMX],sumc,sumc2,sumt,sumt2,sumct,sumid,chi2[SCBLMX];
   geant td[SCTDBM];
   char fname[80];
@@ -1006,6 +1007,8 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
   HPRINT(1600);
   HPRINT(1601);
   for(il=0;il<SCLRS;il++){
+    avsll[il]=0.;
+    binsl[il]=0;
     for(ib=0;ib<SCMXBR;ib++){
       len=TOFDBc::brlen(il,ib);
       btyp=TOFDBc::brtype(il,ib);//1-5 !!!
@@ -1061,15 +1064,22 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
                      fabs(sl[chan])<0.071){//only good for averaging
           bintot+=1;
           meansl+=sl[chan];
+          avsll[il]+=sl[chan];
+          binsl[il]+=1;
         }
         HF1(1602,geant(t0[chan]),1.);
         if(fabs(sl[chan])>0.)HF1(1603,geant(fabs(sl[chan])),1.);
         HF1(1605,geant(chi2[chan]),1.);
       }
-    }
-  }
+    }//<------ end of bar loop
+//
+    if(binsl[il]>0)avsll[il]=fabs(avsll[il])/geant(binsl[il]);
+    if(avsll[il]>0.)avsll[il]=1./avsll[il];
+    else avsll[il]=15.45;//def.value
+  }//<------ end of layer loop
+//
   if(bintot>0)meansl/=bintot; // mean slope
-  if(meansl!=0)speedl=fabs(1/meansl);// mean light speed
+  if(meansl!=0)speedl=fabs(1./meansl);// mean light speed
 //
 //---> print Td vs Coo histograms:
   for(il=0;il<SCLRS;il++){
@@ -1090,12 +1100,13 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
   }
   cout<<endl;
   cout<<"TOFTDIFcalib::fit: for bar 1-14  Light speed (cm/ns):"<<endl<<endl;
-  cout<<"            Mean light speed = "<<speedl<<endl<<endl;
+  cout<<"Average Lspeed = "<<speedl<<"  , vs layer : "<<avsll[0]<<" "<<avsll[1]
+                                   <<" "<<avsll[2]<<" "<<avsll[3]<<endl<<endl;
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       chan=SCMXBR*il+ib;
       sli=0;
-      if(sl[chan]!=0)sli=1/sl[chan];
+      if(sl[chan]!=0)sli=1./fabs(sl[chan]);
       cout<<" "<<sli;
     }
     cout<<endl;
@@ -1140,7 +1151,19 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
   tcfile.setf(ios::fixed);
   tcfile.width(6);
   tcfile.precision(2);// precision for Lspeed and Tdiff's
-  tcfile << geant(speedl)<<endl;
+  if(lspflg){
+    for(il=0;il<SCLRS;il++){
+      for(ib=0;ib<SCMXBR;ib++){
+        chan=SCMXBR*il+ib;
+        if(sl[chan]!=0.)tcfile << 1./geant(fabs(sl[chan]))<<" ";
+        else tcfile << geant(avsll[il])<<" ";
+      }
+      tcfile << endl;
+    }
+  }
+  else tcfile << geant(speedl)<<endl;
+  tcfile << endl;
+//
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       chan=SCMXBR*il+ib;

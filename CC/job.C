@@ -639,13 +639,13 @@ void AMSJob::_retofdata(){
 //
   TOFRECFFKEY.relogic[0]=0;//(8) 0/1/2/3/4 ->normal/STRR+AVSD-/TDIF-/TZSL-/AMPL-calibr. run. 
   TOFRECFFKEY.relogic[1]=0;//(9) 0/1/2-> full_fTDC_use/no_time_matching/not_use 
-  TOFRECFFKEY.relogic[2]=0;//(10) spare RECO logic flag 
+  TOFRECFFKEY.relogic[2]=0;//(10) spare 
   TOFRECFFKEY.relogic[3]=0;//(11) spare RECO logic flag 
   TOFRECFFKEY.relogic[4]=0;//(12) spare RECO logic flag
 //
   TOFRECFFKEY.daqthr[0]=35.;//(13)Fast discr. thresh(mV) for fast/slow_TDC 
   TOFRECFFKEY.daqthr[1]=150.;//(14)Fast discr. thresh(mV) for FT-trigger (z>=1)  
-  TOFRECFFKEY.daqthr[2]=150.;//(15)thresh(mV) for discr. of "z>2"-trig (dinode) 
+  TOFRECFFKEY.daqthr[2]=150.;//(15)thresh(mV) for discr. of "z>1"-trig  
   TOFRECFFKEY.daqthr[3]=0.;//(16)spare  
   TOFRECFFKEY.daqthr[4]=0.;//(17)spare
 //
@@ -679,13 +679,13 @@ void AMSJob::_retofdata(){
 
 //    defaults for calibration:
 // TZSL-calibration:
-  TOFCAFFKEY.pcut[0]=8.;// (1)track mom. low limit (gev/c) (prot, 0.85 for mu)
+  TOFCAFFKEY.pcut[0]=8.;// (1)track mom. low limit (gev/c) (prot, put 0.75 for mu)
   TOFCAFFKEY.pcut[1]=50.;// (2)track mom. high limit
   TOFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in the above range
   TOFCAFFKEY.tzref[0]=0.;// (4)T0 for ref. counters
   TOFCAFFKEY.tzref[1]=0.;// (5)T0 for ref. counters
   TOFCAFFKEY.fixsl=6.;// (6)def. slope
-  TOFCAFFKEY.bmeanmu=0.998;// (7)mean muon velocity in the above range
+  TOFCAFFKEY.bmeanmu=0.997;// (7)mean muon velocity in the above range
   TOFCAFFKEY.idref[0]=108;//(8)LBB for first ref. counter 
   TOFCAFFKEY.idref[1]=0;//(9)LBB for second ref. counter (if nonzero)
   TOFCAFFKEY.ifsl=1;//(10) 0/1 to fix/release slope param.
@@ -693,11 +693,11 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.caltyp=0;// (11) 0/1->space/earth calibration
 //
 // AMPL-calibration:
-  TOFCAFFKEY.truse=0; // (12) 1/0-> to use/not tracker
+  TOFCAFFKEY.truse=1; // (12) 1/-1-> to use/not tracker
   TOFCAFFKEY.plhc[0]=1.;// (13) track mom. low limit(gev/c) for space calibr
-  TOFCAFFKEY.plhc[1]=30.;// (14) track mom. high limit(gev/c) ..............
+  TOFCAFFKEY.plhc[1]=100.;// (14) track mom. high limit(gev/c) ..............
   TOFCAFFKEY.minev=100;// (15)min.events needed for measurement in channel or bin
-  TOFCAFFKEY.trcut=0.85;// (16) cut to use for "truncated average" calculation
+  TOFCAFFKEY.trcut=0.90;// (16) cut to use for "truncated average" calculation
   TOFCAFFKEY.refbid[0]=201;//(17) ref.bar id's list (LBB) for btype=1->5
   TOFCAFFKEY.refbid[1]=202; 
   TOFCAFFKEY.refbid[2]=103; 
@@ -744,13 +744,14 @@ void AMSJob::_reantidata(){
 }
 //========================================================================
 void AMSJob::_rectcdata(){
-  CTCRECFFKEY.Thr1=0.25;
-  CTCRECFFKEY.ThrS=0.5;
-  CTCRECFFKEY.reprtf[0]=0;// Reco print_hist flag (0/1->no/yes)
-  CTCRECFFKEY.reprtf[1]=0;// DAQ-print (1/2->print for decoding/decoding+encoding)
-  CTCRECFFKEY.reprtf[2]=0;//spare
-  CTCRECFFKEY.ftwin=100.;// t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT)
-  CTCRECFFKEY.q2pe=0.1;
+  CTCRECFFKEY.Thr1=0.25; //(1)
+  CTCRECFFKEY.ThrS=0.5;  //(2)
+  CTCRECFFKEY.reprtf[0]=0;//(3) Reco print_hist flag (0/1->no/yes)
+  CTCRECFFKEY.reprtf[1]=0;//(4) DAQ-print (1/2->print for decoding/decoding+encoding)
+  CTCRECFFKEY.reprtf[2]=0;//(5) spare
+  CTCRECFFKEY.ftwin=100.;//(6) t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT)
+  CTCRECFFKEY.q2pe=0.1;  //(7)
+  CTCRECFFKEY.ft2edg=1;  //(8) 0/1-> 1/2 edges readout for FT signal
   CTCRECFFKEY.sec[0]=0; 
   CTCRECFFKEY.sec[1]=0;
   CTCRECFFKEY.min[0]=0;
