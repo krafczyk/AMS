@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.70 2004/01/19 22:38:01 choutko Exp $
+# $Id: Monitor.pm,v 1.71 2004/03/01 12:03:37 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -631,6 +631,7 @@ sub getactivehosts{
     for $i (0 ... $#{$Monitor::Singleton->{ahlp}}){
      $#text=-1;
      my $hash=$Monitor::Singleton->{ahlp}[$i];
+  
      my $string=$hash->{HostName};
     push @text, $string;
     push @text, int $hash->{ClientsRunning};           
@@ -668,10 +669,12 @@ sub getactivehosts{
        my $rdst=$Monitor::Singleton->{rtb}[$j];
        $total+=$rdst->{LastEvent}+1-$rdst->{FirstEvent};
        my $rdstc=$rdst->{cinfo};
-       if( $rdst->{Status} eq "Finished" or   $rdst->{Status} eq "Processing"){
+       if( $rdst->{Status} eq "Finished" or $rdst->{Status} eq "Processing"){
            $lastevt+=$rdstc->{LastEventProcessed}+1-$rdst->{FirstEvent};
            $tevt+=$rdstc->{EventsProcessed};
-           if( $rdstc->{HostName} eq $host){
+                     $rdstc->{HostName}=~/^(.*?)(\.|$)/;
+                         if($1 eq $host){
+#           if( $rdstc->{HostName} eq $host){
                $evt+=$rdstc->{EventsProcessed};
                $cerr+=$rdstc->{CriticalErrorsFound};
                $err+=$rdstc->{ErrorsFound};
@@ -727,7 +730,7 @@ sub getactivehosts{
      }
     push @output, [@text];
  }
-    my $total_pr=$final_text[1]==0?1:$final_text[1];
+    my $total_pr=$final_text[2]==0?1:$final_text[2];
    my $cpuper=int ($total_cpu*1000/($total_ev+1)/$total_pr);
    $final_text[10]= $cpuper/1000.;
    $final_text[11]= int($total_cpu/$totcpu*$totproc/($total_time+0.001)*100)/100.;
@@ -1291,15 +1294,16 @@ sub sendback{
                 warn "sendback corba exc";
             };
         }
-        foreach $arsref (@{$ref->{ardref}}){
-            try{
-                $arsref->sendDSTEnd(\%cid,\%nc,$action);
-                last;
-            }
-            catch CORBA::SystemException with{
-                warn "sendback corba exc";
-            };
-        }
+warn " sent via arpref\n";
+#        foreach $arsref (@{$ref->{ardref}}){
+#            try{
+#                $arsref->sendDSTEnd(\%cid,\%nc,$action);
+#                last;
+#            }
+#            catch CORBA::SystemException with{
+#                warn "sendback corba exc";
+#            };
+#        }
     }elsif($name eq "Run"){
         my $ref=$Monitor::Singleton;
         my %nc=%{${$ref->{rtb}}[$row]};
@@ -1359,7 +1363,7 @@ my %ac;
            %ac=%{${$ref->{ahls}}[0]};
           $ac{ClientsAllowed}=shift @data;
           $ac{Status}=shift @data;
-          $ac{Hostname}=$nc{HostName};
+          $ac{HostName}=$nc{HostName};
           $ac{ClientsRunning}=0;
           $ac{ClientsProcessed}=0;
           $ac{ClientsFailed}=0;
@@ -1418,13 +1422,15 @@ my %ac;
           $ac{ClientsAllowed}=shift @data;
           $ac{ClientsFailed}=shift @data;
           $ac{Status}=shift @data;
-          $ac{Hostname}=$nc{HostName};
+          $ac{HostName}=$nc{HostName};
           $ac{ClientsRunning}=0;
           $ac{ClientsProcessed}=0;
           $ac{ClientsFailed}=0;
           $ac{ClientsKilled}=0;
           $ac{Clock}=$nc{Clock};
           $ac{Interface}=$nc{Interface};
+          $ac{LastFailed}=0;
+          $ac{LastUpdate}=time();
 FOUND3:
         my $arsref;
         foreach $arsref (@{$ref->{arsref}}){
