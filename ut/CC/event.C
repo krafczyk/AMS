@@ -694,7 +694,7 @@ TriggerLVL1 *ptr;
     if(ptr)trflag=ptr->gettoflg();
     if(trflag<=0){
 //      AMSgObj::BookTimer.stop("RETOFEVENT");
-//      return;// "no h/w TOF-trigger"   tempor
+//      return;// "no h/w TOF-trigger"   tempor commented
     }
     TOFJobStat::addre(1);
 //
@@ -760,7 +760,7 @@ void AMSEvent::_rectcevent(){
   if(ptr)trflag=ptr->gettoflg();
   if(trflag<=0){
 //    AMSgObj::BookTimer.stop("RECTCEVENT");
-//    return;// "no h/w TOF-trigger"
+//    return;// "no h/w TOF-trigger"          // tempor commented
   }
 //
   CTCJobStat::addre(1);

@@ -431,18 +431,18 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.ydiv=4;
 //
   CTCMCFFKEY.Refraction[0]=1.036;   // Refraction indexes
-  CTCMCFFKEY.Refraction[1]=1.55;
+  CTCMCFFKEY.Refraction[1]=1.40;
   CTCMCFFKEY.Refraction[2]=1.00;
-  CTCMCFFKEY.Path2PhEl[0]=15;   // Path to photoelectrons conv fact ( ~ 6 p.e.)
-  CTCMCFFKEY.Path2PhEl[1]=38;
+  CTCMCFFKEY.Path2PhEl[0]=5;   // Path to photoelectrons conv fact ( ~ 6 p.e.)
+  CTCMCFFKEY.Path2PhEl[1]=2;
   CTCMCFFKEY.Path2PhEl[2]=0;
   CTCMCFFKEY.AbsLength[0]=15;   // Abs Length in cm  
   CTCMCFFKEY.AbsLength[1]=100;
   CTCMCFFKEY.AbsLength[2]=100;
   CTCMCFFKEY.Edep2Phel[0]=0;      // Agel is not a scint
-  CTCMCFFKEY.Edep2Phel[1]=5000; 
-  CTCMCFFKEY.Edep2Phel[2]=1000;     
-  CTCMCFFKEY.mcprtf=0;//print MC-hist if !=0
+  CTCMCFFKEY.Edep2Phel[1]=0;      // ???  is not a scint 
+  CTCMCFFKEY.Edep2Phel[2]=0;      // ???  is not a scint
+  CTCMCFFKEY.mcprtf=0;//(13)print MC-hist if !=0
 
 FFKEY("CTCGEOM",(float*)&CTCGEOMFFKEY,sizeof(CTCGEOMFFKEY_DEF)/sizeof(integer),"MIXED");
 FFKEY("CTCMC",(float*)&CTCMCFFKEY,sizeof(CTCMCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -1102,7 +1102,7 @@ void AMSJob::_siantiinitjob(){
 void AMSJob::_sictcinitjob(){
      AMSgObj::BookTimer.book("SICTCEVENT");
      if(CTCMCFFKEY.mcprtf>0){
-       HBOOK1(3500,"CTC total MC raw signal(p.e.)",80,0.,80.,0.);
+       HBOOK1(3500,"CTC total MC raw signal(p.e.)",80,0.,40.,0.);
      }
 }
 

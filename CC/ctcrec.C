@@ -352,6 +352,7 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
 //
     ptr=ptr->next();// take next RawEvent hit
   }// ---> end of RawEvent hits loop
+//
   if(CTCRECFFKEY.reprtf[0]>0)HF1(3000,geant(totsig),1.);
 }
 //------------------------------------------------------------
