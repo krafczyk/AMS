@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.169 2003/04/01 11:45:18 kscholbe Exp $
+//  $Id: amsgeom.C,v 1.170 2003/04/04 20:23:28 kscholbe Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -364,7 +364,7 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
   dxo=TOF2DBc::outcp(ip,1);//dx(width) of outer sc.paddles
   nbm=TOF2DBc::getbppl(ip);                      // num. of bars in layer ip
   dxt=(nbm-3)*(dxi-TOF2DBc::plnstr(4)); // sc.paddles distance for "normal" counters
-//                                    (betw.centers, taking into account overlaping)
+//                                    (betw.centers, taking into ccount overlaping)
   if(ip<2){
     co[0]=TOF2DBc::supstr(3);// <--top TOF-subsystem X-shift
     co[1]=TOF2DBc::supstr(4);// <--top TOF-subsystem Y-shift
@@ -2160,6 +2160,8 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
   // ladders should go directly to mother volume now
   // assuming no rotations etc for octagons
   //
+
+   int radholeno=0;
    int itrd=TRDDBc::NoTRDOctagons(i);
  for(j=0;j<TRDDBc::LayersNo(i);j++){
   for(k=0;k<TRDDBc::LaddersNo(i,j);k++){
@@ -2186,59 +2188,33 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 #ifdef __G4AMS__
     }
 #endif
-//
-// Tubes & Radiators have no rotation matrix at the moment
-// This can be changed at any time
-//
 
-   // Radiators not radiators any more since now
-   // inner octagon is made of radiator ... just vacuum boxes for the bottom
-   // ladders (and possibly other holes).
-   ost.seekp(0);  
-   ost << "TRDR"<<ends;
+
+   // Radiator holes
    // Bottom layer has no radiator below the higher tubes
-   if (j==0)
-     {
-       TRDDBc::GetRadiator(k,j,i,status,coo,nrm,rgid);
-       for(ip=0;ip<3;ip++)par[ip]=TRDDBc::RadiatorDimensions(i,j,k,ip);
-       gid=i+mtrdo*j+mtrdo*maxlay*k+1;
-     // one has to put them into the octagon directly to proper accounted
-     // bulkheads
+   // 90 deg ladders only for now
 
-#ifdef __G4AMS__
- if(MISCFFKEY.G4On){
-       dau->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
-	0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
- }
- else{
-#endif
 
-//       dau->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
-//	0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
-//  don;t want to use proper nrm here
-//  too bad too lazy
-// 
-    coo[2]=coo[1]+dau->getcooA(2);
-    coo[1]=dau->getcooA(1);
-    coo[0]=dau->getcooA(0);
-    for(ip=0;ip<3;ip++)coo[ip]-=oct[itrd]->getcooA(ip);
-    geant cool[3];
-    number nrml[3][3];
-    TRDDBc::GetLadder(k,j,i,status,cool,nrml,rgid);
-       oct[itrd]->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
-	nrot++,name,"BOX",par,3,coo,nrml, "MANY",i==0 && j==0 && k==0?1:-1,gid,1));    
+   TRDDBc::GetRadiatorHole(k,j,i,status,coo,nrm,rgid);
+   for(ip=0;ip<4;ip++)par[ip]=TRDDBc::RadiatorHoleDimensions(i,j,k,ip);
+   gid=i+mtrdo*j+mtrdo*maxlay*k+1;
 
-#ifdef __G4AMS__
- }
-#endif
+   if (fabs(coo[1])>0){
+       
+       ost.seekp(0);  
+       ost << "TRR"<<radholeno<<ends;
+       radholeno++;
+       dau->add(new AMSgvolume(TRDDBc::RadiatorHoleMedia(),
+			       nrot++,name,"TRD1",par,4,coo,nrm,"MANY",0,gid,1));    
      }
+
+
+  
 
    // Wires (disabled for now)
    /*
       for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
    ost.seekp(0);
-// Need better name...  +geant3 doesn't see case (VC)
-
 
    ost << "TRDI"<<ends;
    TRDDBc::GetTube(l,k,j,i,status,coo,nrm,rgid);

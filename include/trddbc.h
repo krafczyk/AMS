@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.18 2003/03/31 09:56:48 choutko Exp $
+//  $Id: trddbc.h,v 1.19 2003/04/04 20:23:35 kscholbe Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>
@@ -42,7 +42,7 @@ private:
    static char* _WiresMedia;
    static char* _TubesMedia;
    static char* _ITubesMedia;
-   static char* _RadiatorMedia;
+   static char* _RadiatorHoleMedia;
    static char* _TubesBoxMedia;
    static char* _SpacerMedia;
    static char* _StripsMedia;
@@ -101,7 +101,7 @@ private:
    static number    _TubesDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];    
    static number    _SpacerDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3][2];    
    static number    _TubesBoxDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][10];    
-   static number    _RadiatorDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];
+   static number    _RadiatorHoleDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][4];
 
   // Positions & Orientations
   
@@ -109,7 +109,7 @@ private:
    static TRDDBc * _HeadBulkheadPos;
    static TRDDBc * _HeadCutoutPos;
    static TRDDBc * _HeadLadderPos;
-   static TRDDBc * _HeadRadiatorPos;
+   static TRDDBc * _HeadRadiatorHolePos;
    static TRDDBc * _HeadTubeBoxPos;
    static TRDDBc * _HeadTubePos;
 
@@ -241,11 +241,13 @@ public:
                           uinteger & status, geant coo[],number nrm[3][3],
                           uinteger &gid);
 
- static void SetRadiator(uinteger ladder, uinteger layer, uinteger oct,
+
+ static void SetRadiatorHole(uinteger ladder, uinteger layer, uinteger oct,
              uinteger  status, geant coo[],number nrm[3][3],uinteger gid);
- static void GetRadiator(uinteger ladder, uinteger layer, uinteger oct,
+ static void GetRadiatorHole(uinteger ladder, uinteger layer, uinteger oct,
                           uinteger & status, geant coo[],number nrm[3][3],
                           uinteger &gid);
+
 
  static void SetTubeBox(uinteger ladder, uinteger layer, uinteger oct,
              uinteger  status, geant coo[],number nrm[3][3],uinteger gid);
@@ -312,7 +314,7 @@ public:
    static number&    SpacerDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index, uinteger spacerpart);    
    static number    ITubesDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);    
    static number&    TubesBoxDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index); 
-   static number&    RadiatorDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);
+   static number&    RadiatorHoleDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);
 
  //Media
 
@@ -323,7 +325,7 @@ public:
    static char* WiresMedia(){return _WiresMedia;}
    static char* TubesMedia(){return _TubesMedia;}
    static char* ITubesMedia(){return _ITubesMedia;}
-   static char* RadiatorMedia(){return _RadiatorMedia;}
+   static char* RadiatorHoleMedia(){return _RadiatorHoleMedia;}
    static char* TubesBoxMedia(){return _TubesBoxMedia;}
    static char* SpacerMedia(){return _SpacerMedia;}
    static char* StripsMedia(){return _StripsMedia;}

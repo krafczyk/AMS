@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.39 2003/04/03 17:53:03 kscholbe Exp $
+//  $Id: trddbc.C,v 1.40 2003/04/04 20:23:28 kscholbe Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -15,7 +15,7 @@ char * TRDDBc::_CutoutsMedia="VACUUM";
 char * TRDDBc::_TubesMedia="TRDCapton";
 char * TRDDBc::_ITubesMedia="TRDGas";
 char * TRDDBc::_WiresMedia="TUNGSTENTRD";
-char * TRDDBc::_RadiatorMedia="VACUUM";  // Really hole in radiator
+char * TRDDBc::_RadiatorHoleMedia="VACUUM";  
 char * TRDDBc::_TubesBoxMedia="TRDFoam";
 char * TRDDBc::_SpacerMedia="TRDCarbonFiber";
 char * TRDDBc::_StripsMedia="TRDCarbonFiber";
@@ -296,7 +296,7 @@ const number  TRDDBc::_TubeWallThickness=72e-4;
 const number  TRDDBc::_TubeInnerDiameter=0.6;
 const number  TRDDBc::_TubeBoxThickness=(0.62-TRDDBc::_TubeInnerDiameter-2*TRDDBc::_TubeWallThickness)/2.;
 const number  TRDDBc::_ChamberThickness=0.04;
-const number  TRDDBc::_StripsDim[3]={9.48,0.03,0.6};
+const number  TRDDBc::_StripsDim[3]={9.6,0.03,0.6};
 const number  TRDDBc::_StripsCoo[2]={10.69,10.};
 const number  TRDDBc::_BulkheadWidth=0.3;
 const number  TRDDBc::_LadderThickness=2.9;
@@ -348,7 +348,7 @@ number TRDDBc::_TubesDimensions[mtrdo][maxlay][maxlad][3];
 number TRDDBc::_WiresDimensions[mtrdo][maxlay][maxlad][3];    
 number TRDDBc::_SpacerDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3][2];    
 number TRDDBc::_TubesBoxDimensions[mtrdo][maxlay][maxlad][10];    
-number TRDDBc::_RadiatorDimensions[mtrdo][maxlay][maxlad][3];
+number TRDDBc::_RadiatorHoleDimensions[mtrdo][maxlay][maxlad][4];
 
   // Positions & Orientations
   
@@ -356,7 +356,7 @@ TRDDBc* TRDDBc::_HeadOctagonPos=0;
 TRDDBc* TRDDBc::_HeadBulkheadPos=0;
 TRDDBc* TRDDBc::_HeadCutoutPos=0;
 TRDDBc* TRDDBc::_HeadLadderPos=0;
-TRDDBc* TRDDBc::_HeadRadiatorPos=0;
+TRDDBc* TRDDBc::_HeadRadiatorHolePos=0;
 TRDDBc* TRDDBc::_HeadTubeBoxPos=0;
 TRDDBc* TRDDBc::_HeadTubePos=0;
 
@@ -421,7 +421,7 @@ void TRDDBc::init(){
        _HeadLadderPos=new TRDDBc[_NumberLadders];
        _HeadBulkheadPos=new TRDDBc[_NumberBulkheads];
        _HeadCutoutPos=new TRDDBc[_NumberCutouts];
-       _HeadRadiatorPos=new TRDDBc[_NumberLadders];
+       _HeadRadiatorHolePos=new TRDDBc[_NumberLadders];
        _HeadTubeBoxPos=new TRDDBc[_NumberLadders];
        _HeadTubePos=new TRDDBc[_NumberTubes];
        _HeadOctagonPos= new TRDDBc[OctagonNo()]; 
@@ -1215,67 +1215,50 @@ void TRDDBc::init(){
 
       }
 
-
-
+      // Radiator holes
 
       const number Safety=0;
 
-      // Radiator and tube sizes
+     for(i=0;i<TRDOctagonNo();i++){
+       for(j=0;j<LayersNo(i);j++){
+        for(k=0;k<LaddersNo(i,j);k++){
+
+	  if (j==0 && (k==4 || k==6 || k==8))
+	    {
+
+	      // 90-deg side, Trapezoid
+	      // half-height: distance between bottom of tubes
+              // and bottom of ladder
+
+	      RadiatorHoleDimensions(i,j,k,3)= -WirePosition()+LaddersDimensions(i,j,k,1)-(TubeInnerDiameter()+2*TubeWallThickness()+2*TubeBoxThickness()+2*Safety)/2.;
+
+	      // bottom half-length
+	      integer itrd=TRDDBc::NoTRDOctagons(i);
+
+	      RadiatorHoleDimensions(i,j,k,0)= OctagonDimensions(itrd,6);
+
+	      // top half-length
+
+	      RadiatorHoleDimensions(i,j,k,1)= OctagonDimensions(itrd,6)+tan(ang)*RadiatorHoleDimensions(i,j,k,3)*2;
+
+ 
+	      // half-width
+
+	      RadiatorHoleDimensions(i,j,k,2)= LaddersDimensions(i,j,k,0);
+        
+	    }
+	  else{
+	    for (int l=0;l<4;l++){RadiatorHoleDimensions(i,j,k,l)=0.;}
+	  }
+	}
+	}
+       }
+
+      // Tube sizes
 
       for(i=0;i<TRDOctagonNo();i++){
        for(j=0;j<LayersNo(i);j++){
         for(k=0;k<LaddersNo(i,j);k++){
-	  // width
-          RadiatorDimensions(i,j,k,0)= LaddersDimensions(i,j,k,0);
-          // height
-
-          RadiatorDimensions(i,j,k,1)=LaddersDimensions(i,j,k,1)-(TubeInnerDiameter()+2*TubeWallThickness()+2*TubeBoxThickness()+2*Safety)/2.;
-        
-	  // It gets complicated when you're on an orientation change
-          // boundary... need to specially calculate....
-          // And the radiator may not be a uniform box.
-
-	  // Bottom layer has no radiator below the tubes
-          // This is what will be filled with vacuum
-
-	  if (j==0)
-	    {
-	      // This distance is above the bottom floor
-              //   of the bottom of the tube
-
-	      if (k%2 == 0)
-		{
-		// Upper tube
-	      // Start at height of 1st layer line... down to lower wire
-              // position... add half a layer to arrive at upper
-              ///  wire position... subtract 1/2 width of tube
-		  RadiatorDimensions(i,j,k,1)
-		    = FirstLayerHeight()-2./10.
-                    -WirePosition()+LadderThickness()/2.
-                    -(TubeInnerDiameter()+2*TubeWallThickness()
-                        +2*TubeBoxThickness()+2*Safety)/2.;
-
-		}
-	      else  
-		{
-		  // Lower tube
-
-		  RadiatorDimensions(i,j,k,1)
-		    = FirstLayerHeight()-2./10.
-                    -WirePosition()
-                    -(TubeInnerDiameter()+2*TubeWallThickness()
-                        +2*TubeBoxThickness()+2*Safety)/2.;
-		}
-	    }
-	  RadiatorDimensions(i,j,k,1)/= 2.;
-
-
-
-          // length
-          RadiatorDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2);
-
-
-
 
 	  // width
           TubesDimensions(i,j,k,0)=TubeInnerDiameter()/2;          
@@ -1293,7 +1276,7 @@ void TRDDBc::init(){
           WiresDimensions(i,j,k,1)=WireDiameter()/2.;
           // length
 
-          WiresDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2)-ManifoldLength();
+          WiresDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2)-_EndPieceLength/2.;
 
 
 
@@ -1322,48 +1305,41 @@ void TRDDBc::init(){
        for(j=0;j<LayersNo(i);j++){
         for(k=0;k<LaddersNo(i,j);k++){
 
-	  // x, y position of radiator wrt ladder
 
-         coo[0]=coo[2]=0;
+	 coo[0]=coo[2]=coo[1]=0;
 
-	 // z position of radiator wrt ladder
 
-         // This will be modified for the bottom layer
+	 if (j==0 && (k==4 || k==6 || k==8))
+	   {
+
+	     // 90 deg radiators on bottom
+
+	  // x, y position of radiator hole wrt ladder
+
+		 coo[1]=-WirePosition()+LadderThickness()/2
+       -(TubeInnerDiameter()+2*TubeWallThickness()+2*TubeBoxThickness()
+                +2*Safety)/2-RadiatorHoleDimensions(i,j,k,3);
+
+
+	   }
+
+         number radholenrm[3][3]={0,1,0,0,0,1,1,0,0};
+	 SetRadiatorHole(k,j,i,status,coo,radholenrm,gid);
+
 	 int tube_is_upper = 0;
-	 if (j<=3 ||j>=12)
-	   {
-	     if (k%2 == 0)  // Upper tube first
-	       {
-		 tube_is_upper = 1;
-	       }
-	   }
-	  else
-	   {
+	 if (j<=3 ||j>=12) {
+	   if (k%2 == 0){  // Upper tube first
+	      tube_is_upper = 1;
+	     }
+	  }
+        else
+        {
+	   if (k%2 == 1){  // Upper tube first
+	      tube_is_upper = 1;
+	     }
+	}
 
-	     if (k%2 == 1)  // Lower tube first
-	       {
-		 tube_is_upper = 1;
-	       }
-	   }
-
-	 if (tube_is_upper)
-	   {
-	     coo[1]=-WirePosition()+LadderThickness()/2.-(TubeInnerDiameter()+2*TubeWallThickness()+2*TubeBoxThickness()+2*Safety)/2.-RadiatorDimensions(i,j,k,1);		   }
-	 else
-	   {
-	     coo[1]=-WirePosition()+(TubeInnerDiameter()+2*TubeWallThickness()+2*TubeBoxThickness()+2*Safety)/2.+RadiatorDimensions(i,j,k,1);
-
-	     // Case of vacuum on bottom layer
-	     if (j==0)
-	       {
-		 coo[1]=-WirePosition()-(TubeInnerDiameter()+2*TubeWallThickness()+2*TubeBoxThickness()+2*Safety)/2.-RadiatorDimensions(i,j,k,1);
-	       }
-
-	   }
-
-         SetRadiator(k,j,i,status,coo,unitnrm,gid);
-
-         for(int l=0;l<TubesNo(i,j,k);l++){
+        for(int l=0;l<TubesNo(i,j,k);l++){
 
 	   // x, y positions of tubes wrt ladder
 
@@ -2543,42 +2519,43 @@ void TRDDBc::GetCutout(uinteger bh,uinteger ladder,
 }
 
 
-void TRDDBc::SetRadiator(uinteger ladder, uinteger layer,uinteger oct,
+void TRDDBc::SetRadiatorHole(uinteger ladder, uinteger layer,uinteger oct,
              uinteger  status, geant coo[],number nrm[3][3], uinteger gid){
 #ifdef __AMSDEBUG__
    _check(oct,layer,ladder);
 #endif
     oct=getnumLadder(ladder,layer,oct);    
-   _HeadRadiatorPos[oct]._status=status;     
-   _HeadRadiatorPos[oct]._gid=gid;     
+   _HeadRadiatorHolePos[oct]._status=status;     
+   _HeadRadiatorHolePos[oct]._gid=gid;     
    int i,j;
    for(i=0;i<3;i++){
-    _HeadRadiatorPos[oct]._coo[i]=coo[i];
+    _HeadRadiatorHolePos[oct]._coo[i]=coo[i];
     for(j=0;j<3;j++){
-     _HeadRadiatorPos[oct]._nrm[i][j]=nrm[i][j];
+     _HeadRadiatorHolePos[oct]._nrm[i][j]=nrm[i][j];
     }
    }
 }
 
 
-void TRDDBc::GetRadiator(uinteger ladder, uinteger layer, uinteger oct,
+void TRDDBc::GetRadiatorHole(uinteger ladder, uinteger layer, uinteger oct,
                           uinteger & status, geant coo[],number nrm[3][3],
                           uinteger &gid){
 #ifdef __AMSDEBUG__
    _check(oct,layer,ladder);
 #endif
    oct=getnumLadder(ladder,layer,oct);    
-   status=_HeadRadiatorPos[oct]._status;     
-   gid=_HeadRadiatorPos[oct]._gid;     
+   status=_HeadRadiatorHolePos[oct]._status;     
+   gid=_HeadRadiatorHolePos[oct]._gid;     
    int i,j;
    for(i=0;i<3;i++){
-    coo[i]=_HeadRadiatorPos[oct]._coo[i];
+    coo[i]=_HeadRadiatorHolePos[oct]._coo[i];
     for(j=0;j<3;j++){
-     nrm[i][j]=_HeadRadiatorPos[oct]._nrm[i][j];
+     nrm[i][j]=_HeadRadiatorHolePos[oct]._nrm[i][j];
     }
    }
 
 }
+
 
 void TRDDBc::SetTubeBox(uinteger ladder, uinteger layer,uinteger oct,
              uinteger  status, geant coo[],number nrm[3][3], uinteger gid){
@@ -2682,12 +2659,13 @@ number & TRDDBc::BulkheadsDimensions(uinteger toct, uinteger bulkhead ,uinteger 
 return _BulkheadsDimensions[toct][bulkhead][index];
 }
 
-number & TRDDBc::RadiatorDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index){
+
+number & TRDDBc::RadiatorHoleDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index){
 #ifdef __AMSDEBUG__
 _check(toct,lay,lad);
-assert(index<sizeof(_RadiatorDimensions)/sizeof(_RadiatorDimensions[0][0][0][0])/mtrdo/maxlay/maxlad);
+assert(index<sizeof(_RadiatorHoleDimensions)/sizeof(_RadiatorHoleDimensions[0][0][0][0])/mtrdo/maxlay/maxlad);
 #endif
-return _RadiatorDimensions[toct][lay][lad][index];
+return _RadiatorHoleDimensions[toct][lay][lad][index];
 }
 
 number & TRDDBc::TubesBoxDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index){
@@ -2769,7 +2747,7 @@ return _OctagonDimensions[toct][index];
 
 char* TRDDBc::CodeLad(uinteger gid){
  static char output[3]={'\0','\0','\0'};
- static char code[]="QWERTYUIOPASFGHJKLZXVNM1234567890";
+ static char code[]="QWERTYUIOPASFGJKLZXVNM1234567890";
  integer size=strlen(code);
  if(gid<size*size){
   output[0]=code[gid%size]; 
