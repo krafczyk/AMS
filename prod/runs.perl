@@ -11,7 +11,7 @@ LINE: while($line=<FILEI>){
     @args=split ' ',$line;
     if ($args[0] >= $runs[0] && $args[0] <= $runs[1]){
         $count=$args[2];
-        $xmax=262144;
+        $xmax=26214400;
         while($args[1]<$count){
         if($count-$args[1]>$xmax+$xmax/2){
             $args[2]=$args[1]+$xmax;
