@@ -98,12 +98,12 @@ c) setenv AMSDataDir  <your preferred dir>
 
 
 
-VIII. Current (Aug 11 1998) computer situation
+VIII. Current (Sep 10 1998) computer situation
 
 a. Accounts
    To get AFS account and account on shift51,rsplus,dxplus
     ask Pierantonio.Marchesini@cern.ch      ;
-   To get local accounts on helium & ahelium ask
+   To get local accounts on helium,ahelium,carbon,acarbon ask
    Alexei.Klimentov@cern.ch                 ;
    To get AFS accounts on afl3u0, afl3u1 ask Vitaly.Choutko@cern.ch
    (you have to have AFS account before)
@@ -112,7 +112,7 @@ b. Disk space
    AFS account can be as large as 300 mbytes
    Local ams scratch disks will be organized later.
 
-c. DataAccess
+c. SoftWare/DataAccess
 
    setenv Offline   as:
    /shift/shift51/data18/xv/choutko/Offline if on shift51
@@ -122,10 +122,12 @@ c. DataAccess
 
   source $Offline/vdev/install/amsvar
 
-  vdev version is in $Offline/vdev  (v 2.17 build 14)
+  vdev version is in $Offline/vdev  (v 2.17 build 21)
+  vdec/doc contains doc
 
   AMSDataBase is in $AMSDataDir/DataBase 
-  runs in $RunsDir  (samples) [those with .0 are bad]
+  runs in $RunsDir 
+  ntuples in $AMSDataNtuplesDir (acarbon only)
   
   Database Related Ntuples in $AMSDataDir/ntuples  [only on ams alphas now]
  
