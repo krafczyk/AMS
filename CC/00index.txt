@@ -13,7 +13,7 @@ convert.C // Utility to convert ntuples
 ctcdbc.C  // Various constants & parameters (geometry most) for CTC
 event.C   // Event class code
 gbatch.C  // Main for Geant batch
-geant.C   // Collection of Geant user routines forsimulation
+geant.C,geant3.C,geant4.C   // Collection of Geant user routines forsimulation
 gmat.C    // AMS materials class
 gsen.C    // Tracker Sensitive volume
 gvolume.C // Geant volume class

@@ -420,6 +420,7 @@ extern "C" void guout_(){
      cerr << e.getmessage()<<endl;
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
+     AMSEvent::gethead()->seterror();
 /*
      UPool.Release(0);
      AMSEvent::gethead()->remove();
