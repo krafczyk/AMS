@@ -1299,11 +1299,13 @@ void AMSJob::_siamsinitjob(){
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
     _siecalinitjob();
     _sirichinitjob();
-  }
-  _siantiinitjob();
   _sitrdinitjob();
   _sisrdinitjob();
-  _sictcinitjob();
+  }
+  else{ 
+   _sictcinitjob();
+  }
+  _siantiinitjob();
   _sitriginitjob();
 }
 
@@ -2267,8 +2269,6 @@ AMSJob::~AMSJob(){
   cout <<"uhend finished"<<endl;
 _tkendjob();
   cout <<"tkendjob finished"<<endl;
-_ctcendjob();
-  cout <<"ctcendjob finished"<<endl;
 _tofendjob();
   cout <<"tofendjob finished"<<endl;
 _antiendjob();
@@ -2276,11 +2276,16 @@ _antiendjob();
 if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
   _ecalendjob();
   cout <<"ecalendjob finished"<<endl;
-}
 _trdendjob();
   cout <<"trdendjob finished"<<endl;
 _srdendjob();
   cout <<"srdendjob finished"<<endl;
+}
+else{
+_ctcendjob();
+  cout <<"ctcendjob finished"<<endl;
+}
+
 _dbendjob();
   cout <<"dbendjob finished"<<endl;
 _axendjob();

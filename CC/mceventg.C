@@ -694,6 +694,7 @@ void AMSmceventg::builddaq(integer i, integer length, int16u *p){
   getheadC("AMSmceventg",0);
  *p=getdaqid();
 while(ptr){ 
+if(ptr->Primary()){
  const uinteger c=65535;
  *(p+1)=ptr->_ipart;
  uinteger momentum=uinteger(ptr->_mom*1000);
@@ -714,8 +715,9 @@ while(ptr){
  *(p+8+2*k)=int16u(cd&c);
  *(p+7+2*k)=int16u((cd>>16)&c);
  }
- ptr=ptr->next();
  p+=12;
+}
+ ptr=ptr->next();
 }
 
 }
@@ -742,8 +744,12 @@ void AMSmceventg::buildraw(integer n, int16u *p){
 
 integer AMSmceventg::calcdaqlength(integer i){
  AMSContainer *p = AMSEvent::gethead()->getC("AMSmceventg");
- if(p)return 1+12*p->getnelem();
- else return 1;
+   integer l=1;
+    for(AMSmceventg* pm=
+      (AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);pm;pm=pm->next()){
+       if(pm->Primary())l+=12;
+      }
+ return l;
 }
 
 void orbit::UpdateOrbit(number theta, number phi, integer sdir){
@@ -865,4 +871,8 @@ if(init == 0){
  }
 }
 return (WriteAll || status);
+}
+
+bool AMSmceventg::Primary(){
+ return _ipart>0 && _ipart<256;
 }

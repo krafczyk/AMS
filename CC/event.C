@@ -1099,7 +1099,6 @@ void AMSEvent::event(){
     }
     _sitofevent(); 
     _siantievent(); 
-    _sictcevent(); 
     _sitkevent(); 
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
       _siecalevent(); 
@@ -1107,6 +1106,9 @@ void AMSEvent::event(){
       _sisrdevent();
       _sirichevent();
       }
+     else{
+      _sictcevent(); 
+     }
     _sitrigevent(); 
     if(TOFMCFFKEY.fast==0)_sidaqevent(); //DAQ-simulation only for slow algorithm
   }

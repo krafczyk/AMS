@@ -98,6 +98,7 @@ AMSDir getdir()const {return _dir;}
 number getmom()const {return _mom;}
 void setmom(number mom) { _mom=mom;}
 integer & pid() {return _ipart;}
+bool Primary();
 number getmass() const {return _mass;}
 integer accept();
 integer acceptio();

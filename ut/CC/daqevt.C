@@ -79,7 +79,7 @@ void DAQEvent::addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget,uinteger
   if(p->_plength == NULL){
     cerr<<"DAQEvent::addblock-F-Memory exhausted "<<p->_maxbl<<endl;  
     p->_maxbl=0;
-    exit(1);
+    throw amsglobalerror();     
   }
 }
 
@@ -133,8 +133,7 @@ while(fpl){
 if(ntot)_Length=lover+ntot;
 if(_Length > 65535*4){
   cerr<<"DAQEvent::buildDAQ-F-lengthToobig "<<_Length<<endl;
-  _Length=65535*4-1;
-  return; 
+  throw amsglobalerror("The Subject Says It All"); 
 }
 #ifdef __AMSDEBUG__
 assert(sizeof(time_t) == sizeof(integer));

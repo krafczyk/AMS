@@ -2,6 +2,17 @@
 #ifndef __AMSDBC__
 #define __AMSDBC__
 #include <typedefs.h> 
+#include <astring.h>
+
+class amsglobalerror{
+private:
+AString _a;
+public:
+const char * getmessage(){return (const char*)_a;};
+amsglobalerror(char* a):_a(a){};
+amsglobalerror(const char* a=0):_a(a){};
+};
+
 class AMSDBc {
 //
 // Geometrical and other constants etc 

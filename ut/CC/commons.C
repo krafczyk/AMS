@@ -69,7 +69,7 @@ AMSCommonsI::AMSCommonsI(){
 }
 void AMSCommonsI::init(){ 
   if(_Count++==0){
-   char dt[128]="/afs/cern.ch/user/c/choutko/public/AMSDataDir";
+   char dt[128]="/afs/cern.ch/exp/ams/Offline/AMSDataDir";
    char* gtv=getenv("AMSDataDir");
    if(gtv && strlen(gtv)>0){
     AMSDATADIR.amsdlength=strlen(gtv)+strlen(getversion())+2;

@@ -54,6 +54,9 @@ try{
 catch (std::bad_alloc a){
  std::cerr <<"catch-F-NoMemoryAvailable "<<endl;
 }
+catch (amsglobalerror a){
+ cerr<<a.getmessage()<<endl;
+}
     UGLAST();
     
 return 0;
