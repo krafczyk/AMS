@@ -57,6 +57,7 @@ inline void setstatus(integer status){_Status=_Status | status;}
 integer getstatus(integer checker) const{return _Status & checker;}
 number getVal(){return _Sum;}
 number getcofg(integer side, AMSTrIdGeom * id);
+number cfgCorFun(number s, AMSTrIdGeom * id);
 number getecofg(){return _ErrorMean;}
 //+
 #ifdef __DB__

@@ -27,8 +27,8 @@ MULS 1
 C MSEL 1=0
 LOSS 2
 CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
-HADR 2
-TRIG 1500000
+HADR 2 
+TRIG 1000000
 DEBUG -1 10 1000
 C    tmaxf  smax   fieldm  cconv   maxcal  nitm    xtol iver ialg   steps 
 TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03 
@@ -41,9 +41,9 @@ TRMC 12=10. 13=10.
 TRCL 21=1       
 TRFIT 6=1 7=1 8=1 9=1 10=1 11=1 12=1 13=1 14=1 15=1 16=1 17=0 18=1 19=1
 C TRFIT 6=1 7=1 8=1 
-IOPA 1=3 2='/mcdata/ntuples/dumb/prmcl2h2b.hbk'
+IOPA 1=3 2='/mcdata/ntuples/dumb/prmcl2h2a.hbk'
 45='AMSParticle&AMSTrMCCluster'
-RNDM 1213780313 137843189
+RNDM 3376102393 1356078259
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=0   2=0      3=50.   4=0  5=0   6='v203 Protons '
 46=''

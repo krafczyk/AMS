@@ -38,16 +38,15 @@ integer AMSTrTrack::patconf[npat][6]={1,2,3,4,5,6,   // 123456  0
 integer AMSTrTrack::patpoints[npat]={6,5,5,5,5,5,5,4,4,4,4,4,4,4,4,4,4,4,4};
 
 void AMSTrCluster::build(){
-  number *  adc  = (number*)UPool.insert((AMSDBc::maxstrips()+
-  2*max(TRCLFFKEY.ThrClNEl[0],TRCLFFKEY.ThrClNEl[1]))*sizeof(number)); 
+  integer size=(AMSDBc::maxstrips()+1+
+  2*max(TRCLFFKEY.ThrClNEl[0],TRCLFFKEY.ThrClNEl[1]))*sizeof(number);
+  number *  adc  = (number*)UPool.insert(size); 
   AMSTrIdSoft id;
   AMSTrRawCluster *p=(AMSTrRawCluster*)AMSEvent::gethead()->
   getheadC("AMSTrRawCluster",0);
   while(p){
     // Unpack cluster into tmp space
-    VZERO(adc,(AMSDBc::maxstrips()+
-    2*max(TRCLFFKEY.ThrClNEl[0],TRCLFFKEY.ThrClNEl[1]))*sizeof(number)/4);
-
+    VZERO(adc,size/4);
     // find clusters
      id=AMSTrIdSoft(p->getid());
      integer ilay=id.getlayer(); 
@@ -69,7 +68,7 @@ void AMSTrCluster::build(){
      number rms;
      integer left,right,status,above,center;
      for (int i=TRCLFFKEY.ThrClNEl[side]/2;
-     i<id.getmaxstrips()+TRCLFFKEY.ThrClNEl[side]/2;i++){
+     i<id.getmaxstrips()+TRCLFFKEY.ThrClNEl[side]/2+1;i++){
      if(adc[i]<ref){
       // cluster cand found
       if( adc[i]< adc[i+1] && adc[i+1]> TRCLFFKEY.Thr1A[side]){
@@ -159,13 +158,30 @@ number AMSTrCluster::getcofg(integer side, AMSTrIdGeom * pid){
 #endif
 number cofg=0;
 number eval=0;
+number smax=0;
+number smt=0;
+if(_pValues)smax=_pValues[-_NelemL];
 integer i,error;
 for(i=_NelemL;i<_NelemR;i++){
  cofg+=_pValues[i-_NelemL]*pid->getcofg(side,i,error);
  if(error==0)eval+=_pValues[i-_NelemL];
 }
 if(eval > 0)cofg=cofg/eval;
-return cofg; 
+if(eval>0)smt=smax/eval;
+return cofg-cfgCorFun(smt,pid); 
+}
+number AMSTrCluster::cfgCorFun(number s, AMSTrIdGeom * pid){
+integer side=_Id.getside();
+integer strip=pid->getstrip(side);
+if(strip == 0  ){
+ if(s<TRCLFFKEY.CorFunParB[side]) return 0;
+ else return TRCLFFKEY.CorFunParA[side]*atan(s-TRCLFFKEY.CorFunParB[side]);
+}
+else if(strip== pid->getmaxstrips(side)-1){
+ if(s<TRCLFFKEY.CorFunParB[side]) return 0;
+ else return -TRCLFFKEY.CorFunParA[side]*atan(s-TRCLFFKEY.CorFunParB[side]);
+}
+else return 0;
 }
 void AMSTrCluster::_ErrorCalc(){
 #if 1  //Very Temporary
