@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.57 2001/10/08 14:38:14 choutko Exp $
+//  $Id: geant3.C,v 1.58 2001/10/15 11:14:52 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -611,6 +611,10 @@ if(    AMSEvent::gethead()->HasNoCriticalErrors()){
 extern "C" void abinelclear_();
 extern "C" void gukine_(){
 AMSgObj::BookTimer.start("GUKINE");
+
+// Set update flag to zero, as geant3 sometimes doesn;t do it itself
+ GCTMED.iupd=0;
+
 abinelclear_();
 static integer event=0;
 
