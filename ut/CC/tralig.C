@@ -118,7 +118,7 @@ AMSTrAligPar * AMSTrAligPar::SearchDB(uinteger address, integer & found, number 
   if(out >0){
     if((getdbtopp()+out-1)->status)found=1;
     else found=-1;
-    db[0]=((getdbtopp()+out-1)->pav;
+    db[0]=((getdbtopp()+out-1)->pav);
     db[1]=((getdbtopp()+out-1)->pav2);
 
     for(int i=0;i<6;i++){
