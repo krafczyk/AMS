@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.9 2001/09/11 12:57:04 choumilo Exp $
+//  $Id: tofsim02.C,v 1.10 2001/09/12 16:17:02 choutko Exp $
 // Author Choumilov.E. 10.07.96.
 #include <tofdbc02.h>
 #include <iostream.h>
@@ -291,7 +291,7 @@ void TOF2Tovt::build()
   static geant tslice[TOF2GC::SCTBMX+1]; //  flash ADC array
   geant bnw; 
   integer warr[TOFGC::AMSDISL]; 
-  int i,i0,ii,j,jj,jm,k,stat(0),nelec,ierr(0),lbn,nbm;
+  int i,i0,j,jj,jm,k,stat(0),nelec,ierr(0),lbn,nbm;
   int status[2];
   integer nhitl[TOF2GC::SCLRS];
   geant edepl[TOF2GC::SCLRS],edepb;
@@ -408,7 +408,7 @@ void TOF2Tovt::build()
 //    <-------- create phel. arrival-time distribution(PM-1) ---<<<
     for(i=0;i<nelec;i++){
       tm=TOF2Scan::scmcscan[cnum].gettm1(r,i1,i2);//phel.arrival time from interpol.distr.
-      ii=integer(floor(tm*ifadcb));
+      uinteger ii=uinteger(floor(tm*ifadcb));
       if(ii<TOFGC::AMSDISL)warr[ii]+=1;
     }
     i0=integer(floor(qtime));// 1st bin pos. in abs. scale (for tslice1)
@@ -417,7 +417,7 @@ void TOF2Tovt::build()
     for(i=0;i<TOFGC::AMSDISL;i++){
       nelec=warr[i];
       if(nelec!=0){
-      ii=i0+i;
+      uinteger ii=i0+i;
       if(ii>TOF2GC::SCTBMX)ii=TOF2GC::SCTBMX;
       if(nelec<30){
         for(k=0;k<nelec;k++){//<-- summing of all amplitudes from photoelectrons 
@@ -445,7 +445,7 @@ void TOF2Tovt::build()
 //    <-------- create phel. arrival-time distribution(PM-2) ---<<<
     for(i=0;i<nelec;i++){
       tm=TOF2Scan::scmcscan[cnum].gettm2(r,i1,i2);//phel.arrival time from interpol.distr.
-      ii=integer(floor(tm*ifadcb));
+      uinteger ii=uinteger(floor(tm*ifadcb));
       if(ii<TOFGC::AMSDISL)warr[ii]+=1;
     }
     i0=integer(floor(qtime));// 1st bin pos. in abs. scale (for tslice2)
@@ -454,7 +454,7 @@ void TOF2Tovt::build()
     for(i=0;i<TOFGC::AMSDISL;i++){
       nelec=warr[i];
       if(nelec!=0){
-      ii=i0+i;
+      uinteger ii=i0+i;
       if(ii>TOF2GC::SCTBMX)ii=TOF2GC::SCTBMX;
       if(nelec<30){
         for(k=0;k<nelec;k++){//<-- summing of all amplitudes from photoelectrons 
@@ -471,10 +471,11 @@ void TOF2Tovt::build()
     } // >>>----- end of PM-2 loop ------>
   }
 //-----------------------------------
-      ptrN=ptr->next();
-      idN=0; 
-      if(ptrN)idN=ptrN->getid();// id of the next G-hit
-      if(idN != id){ // <---- last or new bar -> create Tovt-objects :
+//      ptrN=ptr->next();
+//      idN=0; 
+//      if(ptrN)idN=ptrN->getid();// id of the next G-hit
+//      if(idN != id){ // <---- last or new bar -> create Tovt-objects :
+        if(ptr->testlast()){
         edepb*=1000.;// --->MeV
         if(edepb>TFMCFFKEY.Thr){// process only bar with Edep>Ethr
 // PM-1 loop to apply pulse shape :
