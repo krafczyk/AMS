@@ -1,4 +1,4 @@
-//  $Id: mainRint.cxx,v 1.3 2001/08/21 13:11:18 kscholbe Exp $
+//  $Id: mainRint.cxx,v 1.4 2003/02/26 13:12:39 choutko Exp $
 //--------------------------------------------------------------------------
 //
 // Usage:
@@ -139,9 +139,13 @@ main(int argc, char *argv[])
   //
   // Load "IdleHandle()"
   //
-  char *idleMacro;
-  if (dataInIdleHandle) idleMacro = "IdleHandle_c.C";
-  else idleMacro = "IdleHandle.C";
+  char *idleMacro_tmp;
+  char idleMacro[255];
+  if (dataInIdleHandle) idleMacro_tmp = "/../ams02/IdleHandle_c.C";
+  else idleMacro_tmp = "/../ams02/IdleHandle.C";
+  strcpy(idleMacro,geo_dir);
+  strcat(idleMacro,idleMacro_tmp);
+
 //  theApp->ProcessLine(".L IdleHandle.C");
   ifstream cwdIdle(idleMacro, ios::in);
   if (cwdIdle) {

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.11 2002/12/31 21:31:46 schol Exp $
+#  $Id: Makefile,v 1.12 2003/02/26 13:12:37 choutko Exp $
 # ------------------------------
 # Makefile for AMS Event Display
 # ------------------------------
@@ -20,7 +20,10 @@
 
 ROOTLIBS      = -L$(ROOTSYS)/lib  -lCore -lCint -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lTreePlayer -lProof 
 
+#ROOTLIBS      =  -L$(ROOTSYS)/lib  -lRoot
+
 ROOTGLIBS     = -lRint -lGpad -lGui -lGX11 -lX3d
+#ROOTGLIBS     = 
 CERNLIBS      = -L$(CERN)/2001/lib -lmathlib -lpacklib -lkernlib
 #OPT           = -g -DROOT10308
 OPT           = -g 
@@ -81,7 +84,8 @@ ifeq  "$(OS)"  "OSF1"
  CXXFLAGS      = -D__osf__  -D__alpha -D_ALPHA_  $(INCLUDES) 
  FF            = f77
  FFLAGS        = -g
- LD            = cxx
+# LD            = cxx -non_shared
+ LD            = cxx 
  LDFLAGS       = -g
  SOFLAGS       =
  SOGFLAGS      = $(SOFLAGS)

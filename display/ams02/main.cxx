@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.7 2002/07/03 20:33:04 schol Exp $
+//  $Id: main.cxx,v 1.8 2003/02/26 13:12:38 choutko Exp $
 
 
 //--------------------------------------------------------------------------
@@ -142,9 +142,12 @@ main(int argc, char *argv[])
   //
   // Load "IdleHandle()"
   //
-  char *idleMacro;
-  if (dataInIdleHandle) idleMacro = "IdleHandle_c.C";
-  else idleMacro = "IdleHandle.C";
+  char *idleMacro_tmp;
+  char idleMacro[255];
+  if (dataInIdleHandle) idleMacro_tmp = "/../ams02/IdleHandle_c.C";
+  else idleMacro_tmp = "/../ams02/IdleHandle.C";
+  strcpy(idleMacro,geo_dir);
+  strcat(idleMacro,idleMacro_tmp);
 //  theApp->ProcessLine(".L IdleHandle.C");
   ifstream cwdIdle(idleMacro, ios::in);
   if (cwdIdle) {
