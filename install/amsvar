@@ -1,0 +1,12 @@
+setenv ROOTSYS $Offline/root
+set path=( $path . /usr/sbin $ROOTSYS/bin )
+setenv LD_LIBRARY_PATH .:$ROOTSYS/lib
+setenv CVSROOT $Offline/CVS
+setenv AMSDataDir $Offline/AMSDataDir
+setenv EDITOR  emacs
+setenv CVSEDITOR  emacs
+setenv RunsDir $Offline/offruns/runs/runs
+setenv AMSDataNtuplesDir $Offline/AMSDataNtuplesDir
+setenv AMSMCNtuplesDir   $Offline/AMSMCNtuplesDir
+limit core 0
+
