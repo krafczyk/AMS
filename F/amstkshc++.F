@@ -5604,7 +5604,9 @@ CDECK  ID>, TKFITG.
      +       nz*(xp(3,npt)-xp(3,npt-1))/r2
              dt=aycos(cx)
              if(dt.ne.0)then
-             pinit=-(xhits(3,npt)-xhits(3,1))*chrg*1.5*2.99e-4/dt
+                 call getfield(bb)
+             pinit=-(xhits(3,npt)-xhits(3,1))*chrg*abs(bb)*10
+     +       *2.99e-4/dt
 c              pinit=abs(pinit)
              else
              pinit=1000
@@ -5802,7 +5804,9 @@ c        enddo
      +       nz*(xhits(3,npt)-xhits(3,npt-1))/r2
              dt=aycos(cx)
              if(dt.ne.0)then
-             pinit=-(xhits(3,npt)-xhits(3,1))*abs(chrg)*1.5*2.99e-4/dt
+              call getfield(bb)
+              pinit=-(xhits(3,npt)-xhits(3,1))*abs(chrg)*abs(bb)*
+     +        10*2.99e-4/dt
 c             pinit=abs(pinit)
              else
              pinit=1000
