@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.46 2003/04/09 14:05:06 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.47 2003/05/22 08:36:29 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <cern.h>
@@ -462,10 +462,11 @@ void EcalJobStat::printstat(){
   printf("                    Epk/Efr OK     : % 6d\n",srcount[3]);
   printf("                    TrWidth OK     : % 6d\n",srcount[4]);
   printf(" RECO-entries                      : % 6d\n",recount[0]);
-  printf(" LVL1-trig includes ECAL           : % 6d\n",recount[1]);
+  printf(" LVL1-trigs with ECAL flag         : % 6d\n",recount[1]);
   printf(" Validation OK                     : % 6d\n",recount[2]);
   printf(" RawEvent->EcalHit OK              : % 6d\n",recount[3]);
   printf(" EcalHit->EcalCluster OK           : % 6d\n",recount[4]);
+  printf(" CatastrRearLeak detected          : % 6d\n",recount[5]);
   number rrr(0);
   if(recount[3]>0)rrr=number(srcount[10])/number(recount[3]);
   printf(" Saturated PMTs per EcalHitOK-event: % 6.4f\n",rrr);
@@ -516,6 +517,7 @@ void EcalJobStat::bookhist(){
       HBOOK1(ECHISTR+12,"ECRE: RawEvent-hits ADCtot(gain-corr)",100,0.,500.,0.);
       HBOOK1(ECHISTR+13,"ECRE: EcalHit-hits number",80,0.,160.,0.);
       HBOOK1(ECHISTR+14,"ECRE: EcalHit-hits Etot(NoDynCorr,Mev)",200,0.,200000,0.);
+      HBOOK1(ECHISTR+9,"ECRE: EcalHit-hit Energy(Mev)",100.,0.,100.,0.);
       HBOOK1(ECHISTR+15,"ECRE: EcalHit-hits DyCorrectionEn(tot,Mev)",100,0.,100000,0.);
       HBOOK1(ECHISTR+16,"ECRE: RawEvent-hits value(adc,gain-corr)",200,0.,10000.,0.);
       HBOOK1(ECHISTR+17,"ECRE: RawEvent-hits value(adc,gain-corr)",100,0.,100.,0.);
@@ -751,9 +753,9 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+19,"ECMC: ECTriggerFlag",40,0.,40.,0.);
       HBOOK1(ECHIST+20,"ECMC: Tot.Anode charge(4subc.sum, pC)",100,0.,20.,0.);
       HBOOK1(ECHIST+21,"ECMC: Max TotAnodeCharge(4subc.sum, pC)",100,0.,1000.,0.);
-      HBOOK1(ECHIST+22,"ECMC: Max ADC-H(No ovfl.limit)",100,0.,4100.,0.);
-      HBOOK1(ECHIST+23,"ECMC: Max ADC-L(No ovfl.limit)",100,0.,4100.,0.);
-      HBOOK1(ECHIST+24,"ECMC: Max ADC-D(No ovfl.limit)",100,0.,4100.,0.);
+      HBOOK1(ECHIST+22,"ECMC: Max ADC-H(incl.ped, No ovfl.limit)",100,0.,4100.,0.);
+      HBOOK1(ECHIST+23,"ECMC: Max ADC-L(incl.ped, No ovfl.limit)",100,0.,4100.,0.);
+      HBOOK1(ECHIST+24,"ECMC: Max ADC-D(incl.ped, No ovfl.limit)",100,0.,4100.,0.);
     }
     HBOOK1(ECHIST+25,"LVL1: TrigType(entr,z1,z2,elec,phot,uni",10,0.,10.,0.);
 }
@@ -765,6 +767,7 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTR+12);
       HPRINT(ECHISTR+13);
       HPRINT(ECHISTR+14);
+      HPRINT(ECHISTR+9);
       HPRINT(ECHISTR+15);
       HPRINT(ECHISTR+16);
       HPRINT(ECHISTR+17);
@@ -1415,7 +1418,8 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //
   char fname[80];
   char name[80];
-  char vers2[3]="rl";
+  char vers1[3]="mc";
+  char vers2[3]="sd";
   char in[2]="0";
   char inum[11];
   int ctyp,ntypes,mcvern[10],rlvern[10];
@@ -1461,14 +1465,14 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //
 //------------------------------
 //
-//   --->  Read Latest RealData status/rel.gains calib. file(to use as MC-Seed) :
-//
+// --->  Read copy of RealData RLGA calib. file(to use as MC-Seed) :
+//                   (or MC, if silogic[1]=1)
   ctyp=1;//1st type of calibration 
   strcpy(name,"ecalrlga");
   mcvn=mcvern[ctyp-1]%1000;
   rlvn=rlvern[ctyp-1]%1000;
 // 
-       cout <<" ECcalibMS_build: RealData RLGA-calib file have to be read"<<endl;
+       cout <<" ECcalibMS_build: RealDataCopy/MC RLGA-calib file have to be read"<<endl;
        dig=rlvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -1478,7 +1482,8 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
        dig=rlvn%10;
        in[0]=inum[dig];
        strcat(name,in);
-       strcat(name,vers2);
+       if(ECMCFFKEY.silogic[1]==0)strcat(name,vers1);//mc
+       else strcat(name,vers2);//sd = copy of rl
 //
   strcat(name,".dat");
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
@@ -1487,7 +1492,7 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
   cout<<"ECcalibMS::build: Open file : "<<fname<<'\n';
   ifstream rlgfile(fname,ios::in); // open  file for reading
   if(!rlgfile){
-    cerr <<"ECcalibMS_build: missing RealData stat/rel.gains file "<<fname<<endl;
+    cerr <<"ECcalibMS_build: missing RealData/MC stat/rel.gains file "<<fname<<endl;
     exit(1);
   }
 //
@@ -1551,20 +1556,20 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //
   rlgfile.close();
   if(endflab==12345){
-    cout<<"ECcalibMS::build: RealData RLGA-calib file is successfully read !"<<endl;
+    cout<<"ECcalibMS::build: RealDataCopy/MC RLGA-calib file is successfully read as MCSeed !"<<endl;
   }
-  else{cout<<"ECcalibMS::build: Problems while reading RealData RLGA-calib.file"<<endl;
+  else{cout<<"ECcalibMS::build: Problems reading RealDataCopy/MC RLGA-calib.file as MCSeed "<<endl;
     exit(1);
   }
 //==================================================================
 //
-//   --->  Read latest RealData fiber-attenuation calib. file(used as MC-Seeds) :
-//
+//   --->  Read copy of RealData FIAT calib. file(used as MC-Seeds) :
+//                      (or MC)
   ctyp=2;//2nd type of calibration 
   strcpy(name,"ecalfiat");
   mcvn=mcvern[ctyp-1]%1000;
   rlvn=rlvern[ctyp-1]%1000;
-       cout <<" ECcalibMS_build: RealData FIAT-calib file have to be read"<<endl;
+       cout <<" ECcalibMS_build: RealDataCopy FIAT-calib file have to be read"<<endl;
        dig=rlvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -1574,7 +1579,8 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
        dig=rlvn%10;
        in[0]=inum[dig];
        strcat(name,in);
-       strcat(name,vers2);
+       if(ECMCFFKEY.silogic[1]==0)strcat(name,vers1);//mc
+       else strcat(name,vers2);//sd = copy of rl
 //
   strcat(name,".dat");
   if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
@@ -1583,7 +1589,7 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
   cout<<"ECcalibMS::build: Open file : "<<fname<<'\n';
   ifstream fatfile(fname,ios::in); // open  file for reading
   if(!fatfile){
-    cerr <<"ECcalibMS_build: missing RealData fiber_att.calib file "<<fname<<endl;
+    cerr <<"ECcalibMS_build: missing RealDataCopy fiber_att.calib file "<<fname<<endl;
     exit(1);
   }
 //
@@ -1615,9 +1621,9 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //
   fatfile.close();
   if(endflab==12345){
-    cout<<"ECcalibMS::build: RealData FIAT-calib file is successfully read !"<<endl;
+    cout<<"ECcalibMS::build: RealDataCopy/MC FIAT-calib file is successfully read as MCSeed !"<<endl;
   }
-  else{cout<<"ECcalibMS::build: Problems while reading RealData FIAT-calib.file)"<<endl;
+  else{cout<<"ECcalibMS::build: Problems reading RealDataCopy/MC FIAT-calib.file as MCSeed !"<<endl;
     exit(1);
   }
 //------------------------------

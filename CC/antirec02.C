@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.12 2003/05/03 08:43:53 choutko Exp $
+//  $Id: antirec02.C,v 1.13 2003/05/22 08:36:29 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -123,9 +123,8 @@ void Anti2RawEvent::mc_build(int &stat){
   geant up(0),down(0),slope[2],athr[2],tau,q2pe;
   geant eup(0),edown(0),tup(0),tdown(0);
   geant thresh[2];
-  int ii,nup,ndown,nupt,ndownt,sector,sectorN,ierr,trflag(0),it,sta[2];
-  uinteger ibmn[2],ibmx[2],i,j;
-  int nsides(0);
+  int i,ii,nup,ndown,nupt,ndownt,sector,sectorN,ierr,trflag(0),it,sta[2];
+  uinteger j,ibmn[2],ibmx[2],nsides(0);
   uinteger ectrfl(0),trpatt(0),hcount[4],cbit,lsbit(1);
   int16u atrpat[2]={0,0};
   int16u phbit,maxv,id,chsta,nadca,adca[ANTI2C::ANAHMX];
@@ -133,11 +132,14 @@ void Anti2RawEvent::mc_build(int &stat){
   number edep,ede,edept(0),time,z,tlev1,ftrig,t1,t2,dt;
   geant fadcb[2][ANTI2C::ANFADC+1];
   geant hdthr,tdthr,gain[2],fladcb,htdcb,htdpr,hdmn;
-  geant ped,sig,am,amp,tm,tmp,tmd1u,tmd1d,td1b1u,td1b1d,tmark;
-  int upd1,upd11,stackof;
+  geant ped,sig,am,amp,tm,tmp,tmd1u,tmd1d,td1b1u,td1b1d,td1b2u,td1b2d,tmark;
+  int upd1,upd11,upd12,stackof;
   integer nhtdc,iamp,ncoinc,ncoinct(0);
   number esignal[2][ANTI2C::MAXANTI];
   number htup[ANTI2C::ANTHMX],htdw[ANTI2C::ANTHMX];
+  number ptup[ANTI2C::ANTHMX];
+  integer nptr;
+  geant pwid,pdbr,pgate,tg1,tg2;
   AMSAntiMCCluster * ptr;
   AMSAntiMCCluster * ptrN;
   geant * parr;
@@ -156,12 +158,15 @@ void Anti2RawEvent::mc_build(int &stat){
   htdcb=ANTI2DBc::htdcbw();//hist-tdc bin width
   htdpr=ANTI2DBc::htdcdr();//h-tdc double pulse resol.
   hdmn=ANTI2DBc::hdpdmn();//h-discr. min. pulse-duration
+  pwid=ANTI2DBc::ppfwid();//"pattern" pulse fixed width
+  pdbr=ANTI2DBc::pbdblr();// .............. dbl-resol(dead time)
+  pgate=ANTI2DBc::pbgate();// gate, applied to "pattern" pulse
   trflag=TOF2RawEvent::gettrfl();
   Anti2RawEvent::setpatt(trpatt);// reset trigger-pattern in Anti2RawEvent::
 //
   if(TGL1FFKEY.trtype!=10){//<==== NotExternalTrigger"
 //
-    if(trflag>0){// use FT from TOF
+    if(trflag>=0){// use FT from TOF
       ftrig=TOF2RawEvent::gettrtime();// FTrigger abs.time (ns)(incl. fixed delay)
       tlev1=ftrig+TOF2DBc::accdel();// "common_stop"-signal abs.time
     }
@@ -172,7 +177,7 @@ void Anti2RawEvent::mc_build(int &stat){
       tlev1=ftrig+TOF2DBc::accdel();// "common_stop"-signal abs.time
     }
 //
-  }//===>ednof "NotExtTrig" check
+  }//===>endof "NotExtTrig" check
 //
   else{//<=== ExtTrigger
     geant ttrig1=0.;//tempor (true ExtTrigSignal-time)
@@ -263,6 +268,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //
     for(j=0;j<2;j++){//<---------------- side loop(down->up)
       ncoinc=0;
+      nptr=0;
       id=sector*10+j+1;//BBS (BB=paddle, S=side(1->down,2->up))
       parr=&fadcb[j][0];
       if(ATMCFFKEY.mcprtf==3)ANTI2DBc::displ_a(id,1,parr);//print pulse
@@ -278,6 +284,10 @@ void Anti2RawEvent::mc_build(int &stat){
       upd11=0;//up/down flag for hist-TDC(branche-1 of discr-1)
       td1b1u=-9999.;//discr1_branch1(hist-TDC) up-time
       td1b1d=-9999.;// ......................down-time
+//
+      upd12=0;//up/down flag for "pattern"(branche-2 of discr-1)
+      td1b2u=-9999.;//discr1_branch2(pattern) up-time
+      td1b2d=-9999.;// ......................down-time
       stackof=0;//stack overfl.flag
       amp=0.;
       tmp=fladcb*ibmn[j];
@@ -291,7 +301,7 @@ void Anti2RawEvent::mc_build(int &stat){
 	ibmx[j]=ANTI2C::ANFADC-1;//don't use overflow-bin
       }
 //====>
-      for(i=ibmn[j];i<=ibmx[j];i++){//<--- flash-adc buffer loop
+      for(i=ibmn[j];i<=ibmx[j];i++){//<====== flash-adc buffer loop
         tm+=fladcb;
         am=fadcb[j][i];//instant ampl. from flash-adc buffer
 //----------
@@ -315,7 +325,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //----------
 //--->try set all branches of discr  when it is up:
 // 
-        if(upd1>0){
+        if(upd1>0){//<--- disc-1 up ?
 //"history-TDC branche" :        
           if(upd11==0){
             if((tm-td1b1d)>htdpr){ //dead-time(=h_TDC dbl.resol ?)-check
@@ -323,14 +333,29 @@ void Anti2RawEvent::mc_build(int &stat){
               td1b1u=tmark;//store up-time
             }
           }
+//"pattern-branch" :
+            if(upd12==0){
+              if((tm-td1b2u)>(pwid+pdbr)){//buzy time(pwid+dead) check for "pattern"
+                upd12=1;  // set flag 
+		td1b2u=tm;//store up-time to use as previous in next "up" set
+                if(nptr<ANTI2C::ANTHMX){//store upto ANTHMX(=8) up-edges
+                  ptup[nptr]=tm;
+                  nptr+=1;
+                }
+                else{
+                  cerr<<"AntiRawEvent::mc_build-W: PatternPulse ovfl(hits number)"<<nptr<<endl;
+                  upd12=2;//blockade on overflow for safety
+                }
+              } 
+            }
 	}//<-- end of discr-1 up-check     
 //
 //----------
 //--->try reset all branches:
 //
-//"history-TDC branche:
+//"history-TDC branche":
         if(upd11==1){ 
-          if(upd1==0 || i==(ANTI2C::ANFADC-1)){//reset "h-TDC" if discr-1 down, or out-of-time 
+          if(upd1==0 || i==ibmx[j]){//reset "h-TDC" if discr-1 down, or out-of-time 
             upd11=0;
             td1b1d=tm;
 	    for(ii=nhtdc-1;ii>=0;ii--){//move up/down-times in the LIFO-stack
@@ -353,7 +378,14 @@ void Anti2RawEvent::mc_build(int &stat){
             }
           }
         }
-      }//--->endof flash-adc buffer loop
+//"pattern branch":
+        if(upd12==1){// "pattern pulse" self-reset(independ.of discr-1 state)
+            if((tm-td1b2u)>pwid){//min duration (fixed pulse width) check
+              upd12=0;                    // for self-clear
+            }
+        }
+//-------------
+      }//======> endof flash-adc buffer loop
 //-------------
       bool anchok=(ANTIPeds::anscped[sector-1].PedStOK(j) &&
                   ANTI2Pcal::antisccal[sector-1].CalStOK(j));//Chan-OK
@@ -429,14 +461,15 @@ void Anti2RawEvent::mc_build(int &stat){
 //cout<<endl;
         AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
                        new Anti2RawEvent(id,chsta,nadca,adca,nhtdch,htdc));
-	t2=ftrig-TOF2Varp::tofvpar.ftdelf();
-	for(i=0;i<nhtdc;i++){// check each up-time coinc.with FT
-          t1=htup[i];
-	  dt=t2-t1;
-	  if(nhtdc==1 && ATMCFFKEY.mcprtf>0)HF1(2601,geant(dt),1.);
-	  if(fabs(dt)<ATREFFKEY.ftwin){//found FT-coinc. in window
-	    ncoinc+=1;
-	  }
+        tg1=ftrig;//gate_start_time=FTime
+        tg2=tg1+pgate;//gate_end_time
+	for(i=0;i<nptr;i++){// check up-time of each "pattern" pulse for coinc.with FT
+          t1=ptup[i];//"pattern" pulse up-time
+	  t2=t1+pwid;//"pattern" pulse down-time
+	  dt=tg1-t1;
+	  if(nptr==1 && ATMCFFKEY.mcprtf>0)HF1(2601,geant(dt),1.);
+	  if(tg2<=t1 || tg1>=t2)continue;
+	  ncoinc+=1;
 	}
 	if(ncoinc){
 	  atrpat[j]|=1<<(sector-1);//set bit

@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.8 2003/04/09 14:05:05 choumilo Exp $
+//  $Id: antidbc02.C,v 1.9 2003/05/22 08:36:29 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -30,11 +30,14 @@ ANTIPeds ANTIPeds::anscped[ANTI2C::MAXANTI];//mem.reserv. ANTI-paddles pedestals
   geant ANTI2DBc::_stthic=0.;
 //
   geant ANTI2DBc::_fadcbw=2.5;//Flash-ADC bin width(ns)
-  geant ANTI2DBc::_htdcdr=10.;//Hist-discrim. double pulse resolution(ns)
-  geant ANTI2DBc::_htdcbw=1.2;  // bin width in Hist-TDC (ns)
+  geant ANTI2DBc::_htdcdr=5.;//Hist-discrim. double pulse resolution(ns)
+  geant ANTI2DBc::_htdcbw=1.25;  // bin width in Hist-TDC (ns)
   integer ANTI2DBc::_daqscf=2; //daq scaling factor for charge
   geant ANTI2DBc::_ftcoinw=50.;//not used
-  geant ANTI2DBc::_hdpdmn=2.;// hist-discrim. min pulse duration
+  geant ANTI2DBc::_hdpdmn=2.5;// hist-discrim. min pulse duration
+  geant ANTI2DBc::_ppfwid=70.;//"pattern" pulse fixed width(ns)
+  geant ANTI2DBc::_pbdblr=5.;//"pattern" branche dbl-resol(dead time,ns)
+  geant ANTI2DBc::_pbgate=120.;//gate for "pattern" branche to check FT coinc.
 //
 //  ANTI2DBc class member functions :
 //
@@ -53,6 +56,9 @@ ANTIPeds ANTIPeds::anscped[ANTI2C::MAXANTI];//mem.reserv. ANTI-paddles pedestals
   integer ANTI2DBc::daqscf(){return _daqscf;}
   geant ANTI2DBc::ftcoinw(){return _ftcoinw;}
   geant ANTI2DBc::hdpdmn(){return _hdpdmn;}
+  geant ANTI2DBc::ppfwid(){return _ppfwid;}
+  geant ANTI2DBc::pbdblr(){return _pbdblr;}
+  geant ANTI2DBc::pbgate(){return _pbgate;}
 //----
   void ANTI2DBc::setgeom(){ //get parameters from data cards (for now)
     _scradi=ATGEFFKEY.scradi;

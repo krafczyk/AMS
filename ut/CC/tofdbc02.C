@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.20 2003/04/09 14:05:07 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.21 2003/05/22 08:36:31 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -70,49 +70,49 @@ geant TOF2DBc::_plnstr[20]={
 };
 //---> Initialize TOF MC/RECO "time-stable" parameters :
 //
-  geant TOF2DBc::_edep2ph={8000.};// edep(Mev)-to-Photons convertion
-  geant TOF2DBc::_seresp=1.45;    // PMT Single elec.responce (MP=Mean,mV)
-  geant TOF2DBc::_seresv=0.87;     // PMT Single elec.responce variance(relative to Mean)
+  geant TOF2DBc::_edep2ph={10000.};//(was 8k for old scint)edep(Mev)-to-Photons convertion
+  geant TOF2DBc::_seresp=1.16;    // PMT Sing.elec.responce(MP=Mean,mV), was 1.45 for ams01
+  geant TOF2DBc::_seresv=0.87;     // PMT Sing.elec.responce sigma(rel. to Mean)
   geant TOF2DBc::_adc2q=1.;       // Generic ADCch->Q conv.factor (pC/chan)
   geant TOF2DBc::_fladctb=0.1;    // MC "flash-ADC" internal time binning (ns)
-  geant TOF2DBc::_shaptb=1.;      // MC shaper internal time binning (ns)
-  geant TOF2DBc::_shrtim=1.0;     // MC shaper pulse rise time (ns)(exp)
-  geant TOF2DBc::_shctim=400.;    // MC max integration time(max.gate width)(ns) fot Anode TovT
-  geant TOF2DBc::_shftim=63.;     // MC shaper pulse fall time (ns)(exp). MC only !!!don't need now
-  geant TOF2DBc::_strflu=1.5;     // Stretcher "end-mark" time fluctuations (ns)
+  geant TOF2DBc::_shaptb=1.;      // spare
+  geant TOF2DBc::_shrtim=1.0;     // spare
+  geant TOF2DBc::_shctim=400.;    // 
+  geant TOF2DBc::_shftim=63.;     // spare
+  geant TOF2DBc::_strflu=0.36;     // Stretcher "end-mark" time uncertainty (ns)
   geant TOF2DBc::_tdcbin[4]={
-    1.,                            // pipe/line TDC binning for fast-tdc meas.
-    1.,                            // pipe/line TDC binning for slow-tdc meas.
+    1.25,                           // pipe/line TDC binning for fast-tdc meas.
+    1.25,                           // pipe/line TDC binning for slow-tdc meas.
     0.5,                           // supl.DAQ binning for charge meas.(in ADC-chan units)
     0.                             // spare
   };
   geant TOF2DBc::_daqpwd[15]={
-    50.,    // (0)pulse width of "z>=1(FT)" trig. signal (ns) (anode)
-    50.,    // (1)pulse width of "z>1" trig. signal
-    50.,    // (2)pulse width of "z>2" trig. signal (dinode)
+    250.,   // (0)pulse width of "z>=1(FT)" paddle signal(going to TrigBox) (ns) 
+    5500.,  // (1)max.pulse(triang) duration of sTDC(charge+discharge) signal
+    250.,    // (2)pulse width of "z>=2" paddle signal 
     10.,    // (3)double pulse resolution of fast(history) TDC (ns)
-    2000.,  // (4)min. double pulse resolution of slow TDC (ns)
-    500.,   // (5)dead time of anode TovT measurements (ns)
-    500.,   // (6)dead time of dinode TovT measurements (ns)
-    2.,     // (7)dead time for making of "z>=1(FT)" trig. signal (ns)
-    2.,     // (8)dead time for making of "z>1" trig. (ns)
-    2.,     // (9)dead time for making of "z>2" trig. signal (ns)
+    5600.,  // (4)max.buzy time of sTDC-system(charge+discarge+dead) (ns)
+    80.,    // (5) TrigBox gate-width for z>=1 tof-trig-pattern creation
+    120.,   // (6) ....... gate-width for z>=2 tof-trig-pattern creation
+    2.,     // (7)dead time(min.dist last_down<->next_up) of "z>=1(FT)" branch of HiThr-discr
+    2.,     // (8)dead time of discr.itself(ns)
+    2.,     // (9)dead time of "z>=2" branch of SuperHiThr-discr
     0.02,   // (10)fast discr. internal accuracy(ns) + (?) to have exp.resolution
-    2.,     // (11)min. pulse duration (ns) of fast discr.(comparator) (for dinode also)
-    18.,    // (12)(as dummy gap in s-TDC pulse)
-    10.36,  // (13)thresh.(pC) in A-integrator(TovT conversion) 
-    10.36   // (14)thresh.(pC) in D-integrator(TovT conversion) 
+    2.,     // (11)min. pulse duration (ns) of fast discr.(comparator) 
+    18.,    // (12)(as dummy gap in s-TDC pulse,ns) 
+    10.36,  // (13)spare 
+    10.36   // (14)spare 
   };
-  geant TOF2DBc::_trigtb=0.25;  // MC time-bin in logic(trig) pulse handling (ns)
-  geant TOF2DBc::_di2anr=0.2;  // dinode->anode signal ratio (def,mc-data) not used now !
-  geant TOF2DBc::_strrat=40.;  // stretcher ratio (default,mc-data) not used now !
+  geant TOF2DBc::_trigtb=0.5;  // MC time-bin in logic(trig) pulse handling (ns)
+  geant TOF2DBc::_di2anr=0.2;  // spare
+  geant TOF2DBc::_strrat=25.;  // spare
   geant TOF2DBc::_strjit1=0.;  // "start"-pulse jitter at stretcher input
   geant TOF2DBc::_strjit2=0.;  // "stop"(FT)-pulse jitter at stretcher input
-  geant TOF2DBc::_accdel=5000.;//Lev-1 signal delay with respect to FT (ns)
-  geant TOF2DBc::_ftdelf=65.;  // FastTrigger (FT) fixed (by h/w) delay (ns)
-  geant TOF2DBc::_ftdelm=200.; // FT max delay (allowed by stretcher logic) (ns)
-  geant TOF2DBc::_fstdcd=28.;   // Same hit(up-edge) relative delay in fast-slow TDC
-  geant TOF2DBc::_fatdcd=5.;   // Same hit(up-edge) relative delay in fast-A(D) TDC
+  geant TOF2DBc::_accdel=6000.;// "Lev-1"(CommonStop) signal delay with respect to FT (ns)
+  geant TOF2DBc::_ftdelf=100.; // spare       (because now taken from DC/DB)
+  geant TOF2DBc::_ftdelm=220.; // FT max delay (allowed by stretcher logic) (ns)
+  geant TOF2DBc::_fstdcd=28.;  // spare       (because now taken from DC/DB)
+  geant TOF2DBc::_fatdcd=5.;   // spare
   integer TOF2DBc::_pbonup=1;  // set phase-bit for leading(up) edge (yes/no->1/0) 
 //
 //  member functions :
@@ -890,10 +890,10 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
   cnum=0;
   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
-    brt=TOF2DBc::brtype(ila,ibr);
+    brt=TOF2DBc::brtype(ila,ibr);//1->11
     hblen=0.5*TOF2DBc::brlen(ila,ibr);
-    nsp=TOFWScan::scmcscan[cnum].getnscp(0);//get scan-points number for wdiv=1(most long)
-    TOFWScan::scmcscan[cnum].getscp(0,scp);//get scan-points for wdiv=1(most long)
+    nsp=TOFWScan::scmcscan[brt-1].getnscp(0);//get scan-points number for wdiv=1(most long)
+    TOFWScan::scmcscan[brt-1].getscp(0,scp);//get scan-points for wdiv=1(most long)
 // read from file or DB:
     gna[0]=gaina[cnum][0];
     gna[1]=gaina[cnum][1];
@@ -1109,7 +1109,7 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
  char name[80];
  geant a2q,td2p[2];
  char vers1[3]="mc";
- char vers2[3]="rl";
+ char vers2[3]="sd";
  int mrfp;
 //------------------------------
   char in[2]="0";
@@ -1152,13 +1152,13 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
   vlfile.close();
 //------------------------------------------------
 //
-//   ---> Prepare to read tof-chan RealData calib-status file(used as "MC Seed") :
+//   ---> Prepare to read tof-chan MCSeed calib-status file(used as "MC Seed") :
 //
  ctyp=2;//line# corresponding calib-status parameters file
  strcpy(name,"tof2stcf");
  mcvn=mcvern[ctyp-1]%1000;
  rlvn=rlvern[ctyp-1]%1000;
-   cout <<" TOFBrcalMS_build: TOF-ch Real-data status file is requested"<<endl;
+   cout <<" TOFBrcalMS_build: MCSeed TOF-ch status file is requested"<<endl;
    dig=rlvn/100;
    in[0]=inum[dig];
    strcat(name,in);
@@ -1168,7 +1168,8 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
    dig=rlvn%10;
    in[0]=inum[dig];
    strcat(name,in);
-   strcat(name,vers2);
+   if(TFMCFFKEY.mcseedo==0)strcat(name,vers1);//mc
+   else strcat(name,vers2);//sd = copy of rl
 //
    strcat(name,".dat");
    if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
@@ -1181,7 +1182,7 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
      exit(1);
    }
 //------------------------------
-//   --->  Read TOF-channels status values:
+//   --->  Read MCSeed TOF-channels status values:
 //
    cnum=0;
    for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
@@ -1198,21 +1199,21 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
    stfile.close();
 //
    if(endflab==12345){
-     cout<<"TOFBrcalMS_build: TOF RealData calib-status file is successfully read !"<<endl;
+     cout<<"TOFBrcalMS_build: MCSeed calib-status file is successfully read !"<<endl;
    }
-   else{cout<<"TOFBrcalMS_build: ERROR(problems with TOF RealData calib-status file)"<<endl;
+   else{cout<<"TOFBrcalMS_build: ERROR(problems with MCSeed calib-status file)"<<endl;
      exit(1);
    }
 //
 //------------------------------------------------- 
 //
-//   ---> Prepare to read RealData stretcher_ratios/offs file(used as "MC Seeds") :
+//   ---> Prepare to read MCSeed stretcher_ratios/offs file :
 //
  ctyp=3;
  strcpy(name,"tof2srcf");
  mcvn=mcvern[ctyp-1]%1000;
  rlvn=rlvern[ctyp-1]%1000;
-   cout <<" TOFBrcalMS_build: str_ratio/offs params for Real-data are requested"<<endl;
+   cout <<" TOFBrcalMS_build: MCSeeds str_ratio/offs params are requested"<<endl;
    dig=rlvn/100;
    in[0]=inum[dig];
    strcat(name,in);
@@ -1222,7 +1223,8 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
    dig=rlvn%10;
    in[0]=inum[dig];
    strcat(name,in);
-   strcat(name,vers2);
+   if(TFMCFFKEY.mcseedo==0)strcat(name,vers1);//mc
+   else strcat(name,vers2);//sd = copy of rl
 //
    strcat(name,".dat");
    if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
@@ -1231,7 +1233,7 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
    cout<<"Open file : "<<fname<<'\n';
    ifstream scfile(fname,ios::in); // open file for reading
    if(!scfile){
-     cerr <<"TOFBrcalMS_build: missing RealData str_ratio/offsets file "<<fname<<endl;
+     cerr <<"TOFBrcalMS_build: missing TOF MCSeed str_ratio/offsets file "<<fname<<endl;
      exit(1);
    }
 //-----------------> read str_ratios/offsets:
@@ -1252,22 +1254,22 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
    scfile.close();
 //
    if(endflab==12345){
-     cout<<"TOFBrcal_buildMS: TOF RealData str_ratio/offs file is successfully read !"<<endl;
+     cout<<"TOFBrcal_buildMS: MCSeed str_ratio/offs file is successfully read !"<<endl;
    }
-   else{cout<<"TOFBrcalMS_build: ERROR(problems with TOF RealData str_ratio/offs file)"<<endl;
+   else{cout<<"TOFBrcalMS_build: ERROR(problems with MCSeed str_ratio/offs file)"<<endl;
      exit(1);
    }
 //
 //-------------------------------------------------------
 //
-//   --->Prepare to read anodes relat.gains, anode/dynode(hichan) ratios,
-//             dynode hi/low-ratios, adc2qf RealData calib.file(used as "MC Seeds") :
+//   --->Prepare to read MCSeed anodes relat.gains, anode/dynode(hichan) ratios,
+//             dynode hi/low-ratios, adc2qf  calib.file :
 //
  ctyp=6;
  strcpy(name,"tof2chcf");
  mcvn=mcvern[ctyp-1]%1000;
  rlvn=rlvern[ctyp-1]%1000;
-   cout <<" TOFBrcalMS_build: dE/dX calib-params for Real-data are requested"<<endl;
+   cout <<" TOFBrcalMS_build: MCSeeds dE/dX calib-params are requested"<<endl;
    dig=rlvn/100;
    in[0]=inum[dig];
    strcat(name,in);
@@ -1277,7 +1279,8 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
    dig=rlvn%10;
    in[0]=inum[dig];
    strcat(name,in);
-   strcat(name,vers2);
+   if(TFMCFFKEY.mcseedo==0)strcat(name,vers1);//mc
+   else strcat(name,vers2);//sd = copy of rl
 //
    strcat(name,".dat");
    if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
@@ -1350,9 +1353,9 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
    gcfile.close();
 //
    if(endflab==12345){
-     cout<<"TOFBrcalMS_build: dE/dX RealData calib-params file is successfully read !"<<endl;
+     cout<<"TOFBrcalMS_build: MCSeeds dE/dX calib-params file is successfully read !"<<endl;
    }
-   else{cout<<"TOFBrcalMS_build: ERROR(problems with dE/dX RealData calib-params file)"<<endl;
+   else{cout<<"TOFBrcalMS_build: ERROR(problems with dE/dX MCSeeds calib-params file)"<<endl;
      exit(1);
    }
 //   
@@ -1717,16 +1720,20 @@ void TOF2JobStat::printstat(){
   printf(" MC: entries                : % 6d\n",mccount[0]);
   printf("   MC: TovT->RawEvent OK    : % 6d\n",mccount[1]);
   printf("   MC: Ghits->RawCluster OK : % 6d\n",mccount[2]);
+  printf("   MC: GHitTime > FADC range: % 6d\n",mccount[11]);
+  printf("   MC: out of total GHits   : % 6d\n",mccount[12]);
   printf("   MC: Bars with OutOfHits  : % 6d\n",mccount[3]);
   printf("   MC: Bars fired           : % 6d\n",mccount[4]);
   printf("   MC: Flash-ADC overflows  : % 6d\n",mccount[5]);
+  printf("   MC: fTDC stack overflows : % 6d\n",mccount[9]);
   printf("   MC: Stretch-TDC overflows: % 6d\n",mccount[6]);
   printf("   MC: Anode-ADC overflows  : % 6d\n",mccount[7]);
-  printf("   MC: Dynode-ADC overflows : % 6d\n",mccount[8]);
+  printf("   MC: DynodeH-ADC overflows: % 6d\n",mccount[8]);
+  printf("   MC: DynodeL-ADC overflows: % 6d\n",mccount[10]);
   printf(" RECO-entries               : % 6d\n",recount[0]);
   printf("   LVL1-trig OK             : % 6d\n",recount[1]);
-  printf("   Usage of TOF in LVL1     : % 6d\n",recount[33]);
-  printf("   Usage of EC  in LVL1     : % 6d\n",recount[34]);
+  printf("   LVL1 with TOF flag       : % 6d\n",recount[33]);
+  printf("   LVL1 with only ECAL flag : % 6d\n",recount[34]);
   printf("   RawEvent-validation OK   : % 6d\n",recount[2]);
   printf("   RawEvent->RawCluster  OK : % 6d\n",recount[3]);
   printf("   RawCluster->Cluster OK   : % 6d\n",recount[4]);
@@ -2403,14 +2410,14 @@ void TOF2JobStat::bookhist(){
 //-----------------------------
 void TOF2JobStat::bookhistmc(){
     if(TFMCFFKEY.mcprtf[2]!=0){ // Book mc-hist
-      HBOOK1(1050,"Geant-hits in layer-1",80,0.,80.,0.);
-      HBOOK1(1051,"Geant-hits in layer-2",80,0.,80.,0.);
-      HBOOK1(1052,"Geant-hits in layer-3",80,0.,80.,0.);
-      HBOOK1(1053,"Geant-hits in layer-4",80,0.,80.,0.);
-      HBOOK1(1060,"Geant-Edep(mev) in layer-1",80,0.,24.,0.);
-      HBOOK1(1061,"Geant-Edep(mev) in layer-2",80,0.,24.,0.);
-      HBOOK1(1062,"Geant-Edep(mev) in layer-3",80,0.,24.,0.);
-      HBOOK1(1063,"Geant-Edep(mev) in layer-4",80,0.,24.,0.);
+      HBOOK1(1050,"SIMU: Geant-hits in layer-1",80,0.,80.,0.);
+      HBOOK1(1051,"SIMU: Geant-hits in layer-2",80,0.,80.,0.);
+      HBOOK1(1052,"SIMU: Geant-hits in layer-3",80,0.,80.,0.);
+      HBOOK1(1053,"SIMU: Geant-hits in layer-4",80,0.,80.,0.);
+      HBOOK1(1060,"SIMU: Geant-Edep(mev) in layer-1",80,0.,24.,0.);
+      HBOOK1(1061,"SIMU: Geant-Edep(mev) in layer-2",80,0.,24.,0.);
+      HBOOK1(1062,"SIMU: Geant-Edep(mev) in layer-3",80,0.,24.,0.);
+      HBOOK1(1063,"SIMU: Geant-Edep(mev) in layer-4",80,0.,24.,0.);
       HBOOK1(1070,"SIMU: PM-1 charge(pC,id=104,s1)",80,0.,400.,0.);
       HBOOK1(1071,"SIMU: s1+s2 pulse-charge(pC),L-1",80,0.,160.,0.);
       HBOOK1(1072,"SIMU: s1+s2 pulse-charge(pC),L-1",80,0.,1600.,0.);
@@ -2418,10 +2425,14 @@ void TOF2JobStat::bookhistmc(){
       HBOOK1(1074,"SIMU: pm1 Aadc(no peds)(id=104,s1)",100,0.,500.,0.);
       HBOOK1(1075,"SIMU: pm1 Dadc(h)(no peds)(id=104,s1)",100,0.,100.,0.);
       HBOOK1(1064,"SIMU: pm1 Dadc(l)(no peds)(id=104,s1)",100,0.,100.,0.);
-      HBOOK1(1076,"ECTrigFlag when TOFTrflag OK",40,0.,40.,0.);
-      HBOOK1(1077,"TOFFTTime-ECFTTime",100,-50.,50.,0.);
-      HBOOK1(1078,"Out-of-width hit",50,0.,5.,0.);
-      HBOOK1(1079,"Out-of-thickness hit",50,0.,5.,0.);
+      HBOOK1(1065,"SIMU: LZTrigPat:S1-frequence(L=1,4)",80,0.,80.,0.);
+      HBOOK1(1066,"SIMU: LZTrigPat:S2-frequence(L=1,4)",80,0.,80.,0.);
+      HBOOK1(1069,"SIMU: TOF-FT code(Rejected/LZ/HZ)",30,-10.,20.,0.);
+      HBOOK1(1076,"SIMU: ECTrigFlag when TOFTrflag OK",40,0.,40.,0.);
+      HBOOK1(1077,"SIMU: TOFFTTime-ECFTTime",100,-50.,50.,0.);
+      HBOOK1(1078,"SIMU: Out-of-width hit",50,0.,5.,0.);
+      HBOOK1(1079,"SIMU: Out-of-thickness hit",50,0.,5.,0.);
+      HBOOK1(1080,"SIMU: GHitTime",100,0.,1000.,0.);
     }
 }
 //----------------------------
@@ -2647,10 +2658,14 @@ void TOF2JobStat::outpmc(){
          HPRINT(1074);
          HPRINT(1075);
          HPRINT(1064);
+         HPRINT(1065);
+         HPRINT(1066);
+         HPRINT(1069);
          HPRINT(1076);
          HPRINT(1077);
          HPRINT(1078);
          HPRINT(1079);
+         HPRINT(1080);
 //         if(TFCAFFKEY.mcainc)TOF2Tovt::aintfit();
        }
 }

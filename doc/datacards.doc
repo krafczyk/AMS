@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.224 2003/04/09 14:05:15 choumilo Exp $
+#  $Id: datacards.doc,v 1.225 2003/05/22 08:36:39 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -566,13 +566,16 @@ I 1 trtype(0)          //TriggerType:
 			   // ECflag=MN, where M=0/1/2/3->EnerFlag, N=0/1/2->WidthFlag
 			   // M=1->Etot>MIP; =2->Etot>(ECRE #12); =3->Etot>(ECRE #14); 
 			   // N=2->WidthCheckOK; N=1->WidthCheckFailed; N=0->unknown 
-I 2 ntof(2)                           // min number of tof planes in trig
-I 3 nanti(20)                         // max number of anti counters in trig
-I 4 RebuildLVL1(0)                   // Rebuild or not lvl1 if reconstruction
-R 5 MaxScalersRate(20k)               // max acceptable av scalers rate
-R 6 MinLifeTime   (0.015)            // min acceptable lifetime
-R 7 TheMagCut(0.7)                   //mag.latitude boundary when anti-cut nanti=0 change to <=1
-
+I 2 toflc(0)               // required(in LookupTable) TOF-FastTrigger LAYER configuration
+//                 (=0/1/2-> accept at least ANY3of4/ALL4/ANYTopBot2of4 layer coincidence)
+I 3 tofsc(1)               //required(in LookupTable) TOF-FastTrigger SIDE configuration
+//                                 (=0/1-> two-sides-AND/OR selection)
+I 4 nanti(20)              // max. fired ANTI-paddles 
+I 5 RebuildLVL1(0)         // Rebuild or not lvl1 if reconstruction
+R 6 MaxScalersRate(20k)    // max acceptable av scalers rate
+R 7 MinLifeTime   (0.015)  // min acceptable lifetime
+R 8 TheMagCut(0.7)         // mag.latitude boundary when anti-cut nanti=0 change to <=1
+I 9 ectrlog(2)             // EC-trigger logic type(1->MyOld,2->MyNew+ANSI,3->Pisa)
 //-----------------------------------------------------------------------------
 
 // AMS02 TOF  Simulation
@@ -588,8 +591,8 @@ I  7   Print-flag(0)       // to print PMT pulses if=1
 I  8   Print-flag(0)       // to print MC-histograms if=1        
 I  9   Print-flag(0)       // spare        
 I 10   Print-flag(0)       // spare
-I 11   trlogic-flag(0)  //  use AND/OR(if=0/1) for two side logic signals   
-I 12   trlogic-flag(0)  //  require at least ANY3/ALL4/SPECIAL2(if=0/1/2) coinc. of 4 TOF-layers         
+I 11   trlogic-flag(1)     //  spare   
+I 12   trlogic-flag(0)     //  spare         
 I 13   fast(0)             //  0/1/2(for fast gener. in mceventg.C),0->off; 1->require initial
                                direction not to touch ANTI; 2->+ require to touch top surface of EC
 			       DR(cm) far from EC sides(DR is defined in ECMC 8, i.e. DC<0 decrease
@@ -597,11 +600,11 @@ I 13   fast(0)             //  0/1/2(for fast gener. in mceventg.C),0->off; 1->r
                                (Don't use fast mode for Acceptance calculation !)
 I 14   daqfmt(1)           // Raw/Reduced(0/1) TDC format for DAQ simulation
 I 15   birks(1)            // apply or not birks correction
-I 16   adsimpl(0)          // 1/0->use/not simple Anode-TovT simulation
+I 16   mcseedo(0)          // 1/0->Use RealDataCalib_Copy/MCCalib files as MCSeed
 R 17   blshift(0.)         // base line shift at fast discr.input (mv)
 R 18   hfnoise(5.)         // high freq. noise .......   
 //     
-I 19   ReadConstFiles(0)   // PTS(P=PedsMC,T=TimeDistr,S=barcalibSeeds);P(T,S)=0/1->read DB/RawFiles
+I 19   ReadConstFiles(000)   // PTS(P=PedsMC,T=TimeDistr,S=MCCalibSeeds);P(T,S)=0/1->read DB/RawFiles
 
 
 // AMS02 TOF Reconstruction
@@ -630,21 +633,22 @@ R 18  cuts[0] (40)      //t-window(ns) for "the same hit" search in f/s_tdc
 R 19  cuts[1] (15)      // cut on min. distance of "befor"-hit in time history TDC
 R 20  cuts[2] (400)     // ........................"after"-hit in time history TDC
 R 21  cuts[3] (2.8)     // error in longitudinal coordinate (cm, single TOF bar)
-R 22  cuts[4] (65)      // FT delay constant term (ns)
+R 22  cuts[4] (50)      // FT delay constant term (ns)
 R 23  cuts[5] (40)      // sTDC-delay wrt fTDC (ns)
 R 24  cuts[6] (0.6)     // 2-bars assim.cut in TOFCluster energy calculation 
 R 25  cuts[7] (8)       // internal longit.coo matching cut ...Not used (spare) 
 R 26  cuts[8] (26)      // spare
 R 27  cuts[9] (40)      // spare
 //
-I 28  ReadConstFiles(0)   // PC(P=Peds-files,C=BarCalib);P(C)=0/1->read from DB/RawFiles
+I 28  ReadConstFiles(100)   // DPC(D->ThreshCuts-set,P->Peds,C->CalibConst(RD/MC))
+// D=1/0->Take ThrCuts-set from Data-Cards/DB; P(C)=1/0->Take Peds(CalibConst) from Files/DB
 //
-I 29   sec[2](0,0)        // Validity time:
-I 31   min[2](0,0)        //
-I 33   hour[2](0,0)       // 
-I 35   day[2](1,1)        //
-I 37   mon[2](0,0)        //
-I 39   year[2](101,110)   //
+I 29-30   sec[2](0,0)        // Validity time: beg/end
+I 31-32   min[2](0,0)        //
+I 33-34   hour[2](0,0)       // 
+I 35-36   day[2](1,1)        //
+I 37-38   mon[2](0,0)        //
+I 39-40   year[2](101,110)   //
 
 // AMS02 TOF calibration
 
@@ -690,34 +694,35 @@ ECMC
 
 I 1    fastsim(0)                // =1 for fast(non-accurate) simulation(missing now)
 I 2    mcprtf(0)                 // =1 to print MC-histograms
-R 3    cutge(0.001)              // Geant(cutele=cutgam(Gev)) cut for EC-volumes
-I 4    silogic[0]                // =0/1/2->peds+noise(noncor)/no_noise/no_peds
-I 5    silogic[1]                // spare
+R 3    cutge(0.0005)             // Geant(cutele=cutgam(Gev)) cut for EC-volumes
+I 4    silogic[0](0)             // =0/1/2->peds+noise(noncor)/no_noise/no_peds
+I 5    silogic[1](1)             // 1/0-> to use RealDataCopy(sd)/MC(mc) RLGA/FIAT-files as MCSeeds
 R 6    mev2mev                   // Geant_de/dx->Emeasured(input) convertion
 R 7    mev2adc                   // (acd/mev) Emeasured->ADCchannel convertion
 R 8    safext                    // extention(>0)/reduction(<0) of EC transv. size
                                     (is used when TFMC 13=2)
 R 9    mev2pes(55)               // Geant dE/dE(mev) to PM photoelectrons conversion.
 R 10   pmseres(0.8)              // PM single-elecrton ampl.resolution
-R 11   mev2adcd(1.576)           // Dynode Emeas(MeV)->ADCch factor(MIP-m.p. -> 2nd channel)
-R 12   an2dyr(25)                // Anode/dynode ratio
-R 13   pedh(150)                 // Default Ped-HiCh    
-R 14   pedvh(30)                 // Default ch-to-ch variation(%)     
-R 15   pedl(150)                 // ........Ped-LoCh    
-R 16   pedvl(30)                 // ........ch-to-ch variations(%)
-R 17   pedsh(0.55)               // ........PedSig-HiCh     
-R 18   pedsvh(30)                // ........ch-to-ch variation(%)     
-R 19   pedsl(0.55)               // ........PedSig-LoCh    
-R 20   pedsvl(30)                // ........ch-to-ch variation(%)
+R 11   adc2q(0.045)              // Anode(H,L) ADCch->Q(pC) conv.factor(pC/adc)
+R 12   fendrf(0.3)               // fiber end-cut reflection factor
+R 13   physa2d(6.)               // physical(for trigger) an/dyn ratio(mv/mv)
+R 14-15                          // spares
+R 16   pedh(150)                 // Default Ped-HiCh    
+R 17   pedvh(30)                 // Default ch-to-ch variation(%)     
+R 18   pedl(150)                 // ........Ped-LoCh    
+R 19   pedvl(30)                 // ........ch-to-ch variations(%)
+R 20   pedsh(0.55)               // ........PedSig-HiCh     
+R 21   pedsvh(30)                // ........ch-to-ch variation(%)     
+R 22   pedsl(0.55)               // ........PedSig-LoCh    
+R 23   pedsvl(30)                // ........ch-to-ch variation(%)
+R 24   pedd(150)                 // Ped-DyCh    
+R 25   peddv(30)                 // ch-to-ch variation(%)     
+R 26   pedds(0.55)               // PedSig-DyCh    
+R 27   peddsv(30)                // ch-to-ch variation(%)
 //
-I 21   generpeds(0)              // 1/0->generate_def_PedS/read_them_from_DB
+I 28   ReadConstFiles(00)        // CP=MCCalibSeeds|Peds:C=1/0->Read MCCalibSeedsFile/DB
+//                                                       P=1/0->GeneratePeds/ReadFromDB
 // 
-I 22-23 sec[2](0,0)              // PedSig-update begin/end time (sec) 
-I 24-25 min[2](0,0               // ............................ (min)
-I 26-27 hour[2](0,0)             // ............................ (hour)
-I 28-29 day[2](1,1)              // ............................ (day)
-I 30-31 mon[2](0,0)              // ............................ (month)
-I 32-33 year[2](101,110)         // ............................ (year)
 
     ECAL reconstruction:
 
@@ -741,39 +746,52 @@ R 15   thresh[6](3.5)      // min Epeak/Ebase (add. to #11 for "electromagnetici
 R 16   thresh[7](1.)       // min Epeak/Efron ..................................... spare
 R 17   thresh[8](25.)      // Anode(high) chan.threshold for width calc.(mev tempor) 
 R 18   thresh[9](12.)      // trig. width cut(columns, bending plane)
+R 19   thresh[10](0.)      // Trig. PMDynThr sl1(y) not used (mev, for italian algorithm)
+R 20   thresh[11](80.)     // Trig. PMDynThr sl2(x)
+R 21   thresh[12](180.)    // Trig. PMDynThr sl3(y)
+R 22   thresh[13](140.)    // Trig. PMDynThr sl4(x)
+R 23   thresh[14](60.)     // Trig. PMDynThr sl5(y)
+R 24   thresh[15](100.)    // Trig. PMDynThr sl6(x)
+R 25   thresh[16](100.)    // Trig. PMDynThr sl7(y)
+R 26   thresh[17](0.)      // Trig. PMDynThr sl8(x) not used 
+R 27   thresh[18](0.)      // Trig. PMDynThr sl9(y) not used
+R 28   thresh[19](0.)      // spare 
 
-R 19   cuts[0](5)          // mev/cell threshold for cluster search(~2adc)
-R 23.................      // spares
+R 29   cuts[0](5)          // mev/cell threshold for cluster search(~2adc)
+R 30-32.................   // spares
+R 33   cuts[4](0.65)       // LVL3-trig. EC-algorithm: "peak"/"average" methode boundary
 
-I 24   ReadConstFiles(1)   // read const. from DB/RawFiles (0/1)
-
-R 25   Thr1DSeed(10.)     //  minimal energy seed to start cluster search (mev)
-R 26   Thr1DRSeed(0.18)   //  minimal 2nd/1st cluster energy ratio (same row)
-R 27   Cl1DLeakSize(9)    //  search region for energy leraks (+-cells)
-R 28   Cl1DcoreSize(2)    //  max core cluster size(+-cells)
-R 29   Thr2Dmax(1.2)      //  max tangent for shower direction
-R 30   Lenghth2DMin(4)    //  min-1 2d cluster length (planes)
-R 31   Chi22DMax(1000)    //  max chi2 for direction fit
-R 32   PosError1D(0.1)    //  Est error between cluster cofg and shower core (cm)
-R 33   Chi2Change2D(0.33) //  minimal chi2 rel change to remove higest resid hit in dir fit
-R 34   TranShowerSize2d(10) // transwersal shower size (cm) (to add orphaned clusters)
-R 35   SimpleRearLeak[4](0.01,0.94e-3,3.7*0.8,0.975e-3)  // parameters to correct rear leak (see EcalShower::EnergyFit)
-R 39   CalorTransSize(32)  // trans calorimeter size (cm)     
-R 40   EMDirCorrection(1.035)  // em shower shape direction correction 
-R 41   HiEnThr(1650)           // pmt saturation limit (gev)
-R 42   HiEnCorFac(0.225)       // energy correction as (1-HiEnCorFac)/(1-HiEnCorFac*Energy/HiEnThr) 
-R 43 sec[0](0)               // cards below are used as validity time when need to write
-R 44 sec[1](0)                // to DB new calibration/status parameters
-R 45 min[0](0)                //
-R 46 min[1](0)                //
-R 47 hour[0](0)               //
-R 48 hour[1](0)               //
-R 49 day[0](1)                //
-R 50 day[1](1)                //
-R 51 mon[0](0)                //
-R 52 mon[1](0)                //
-R 53 year[0](101)             //
-R 54 year[1](108)             //
+I 34   ReadConstFiles(00)  // DC(RecoThresCuts|CalibConst),C=0/1->Take CalibConst(RD/MC) from DB/RawFiles
+                           // D=0/1->Take ThreshCuts-set from DB/DataCards
+			    
+R 35   Thr1DSeed(10.)     //  minimal energy seed to start cluster search (mev)
+R 36   Thr1DRSeed(0.18)   //  minimal 2nd/1st cluster energy ratio (same row)
+R 37   Cl1DLeakSize(9)    //  search region for energy leraks (+-cells)
+R 38   Cl1DcoreSize(2)    //  max core cluster size(+-cells)
+R 39   Thr2Dmax(1.2)      //  max tangent for shower direction
+R 40   Lenghth2DMin(4)    //  min-1 2d cluster length (planes)
+R 41   Chi22DMax(1000)    //  max chi2 for direction fit
+R 42   PosError1D(0.1)    //  Est error between cluster cofg and shower core (cm)
+R 43   Chi2Change2D(0.33) //  minimal chi2 rel change to remove higest resid hit in dir fit
+R 44   TranShowerSize2d(10) // transwersal shower size (cm) (to add orphaned clusters)
+R 45-48SimpleRearLeak[4](0.01,0.94e-3,3.7*0.8,0.975e-3)  // parameters to correct rear leak (see EcalShower::EnergyFit)
+R 49   CalorTransSize(32)  // trans calorimeter size (cm)     
+R 50   EMDirCorrection(1.035)  // em shower shape direction correction 
+R 51   HiEnThr(1650)           // pmt saturation limit (gev)
+R 52   HiEnCorFac(0.225)       // energy correction as (1-HiEnCorFac)/(1-HiEnCorFac*Energy/HiEnThr)
+ 
+R 53 sec[0](0)                // cards below are used as validity time when need to write
+R 54 sec[1](0)                // to DB new calibration/status parameters
+R 55 min[0](0)                //
+R 56 min[1](0)                //
+R 57 hour[0](0)               //
+R 58 hour[1](0)               //
+R 59 day[0](1)                //
+R 60 day[1](1)                //
+R 61 mon[0](0)                //
+R 62 mon[1](0)                //
+R 63 year[0](101)             //
+R 64 year[1](108)             //
 
    ECAL calibration:
 
@@ -850,7 +868,7 @@ ATMC
 I 1   mcprtf(0)           // MC-hist print flag
 R 2   LZero(120.)         // light attenuation length in scint.(cm)
 R 3   Lspeed(17)          // eff. speed of the light in anti paddle (cm/ns)
-I 4   ReadConstFiles=1;   // P(Peds), P=0/1-> read Peds from DB/RawFiles
+I 4   ReadConstFiles(0);   // P(PedsMC), P=0/1-> read Peds from DB/RawFiles
 
 
 
@@ -867,10 +885,10 @@ R 6 daqthr(3)             // DAQ-readout theshold(in PedSigmas)
 R 7 dathr(2)              // History-discriminator theshold(pe)
 R 8 ftwin(50)            //  time-window(+-ns) to have coincidence with FastTrig
 //
-I 9 ReadConstFiles(11);  //PC(Peds,CalibConst), P(C)=0/1-> read from DB/RawFiles
+I 9 ReadConstFiles(00));  //PC(Peds,CalibConst), P(C)=0/1-> read from DB/RawFiles
 //  
 I 10 sec[0](0)             // cards below are used as validity time when need to write
-I 11 sec[1](0)             // to DB new calibration/status parameters
+I 11 sec[1](0)             // to DB new calibration/peds parameters
 I 12 min[0](0)             //
 I 13 min[1](0)             //
 I 14 hour[0](0)            //

@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.176 2003/05/16 22:10:14 choutko Exp $
+//  $Id: amsgeom.C,v 1.177 2003/05/22 08:36:29 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -496,17 +496,17 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
 //
 // --------> for top TOF:
 //            common box at +X, -X :                                   
-    brlen=TOF2DBc::brlen(0,3);//sc.length Plane-1, middle bar4
-    lglen=TOF2DBc::lglen(0,3);//eff.lg.length ...........
+    brlen=TOF2DBc::brlen(0,0);//sc.length Plane-1, outer bar1 (longest scint+ext)
+    lglen=TOF2DBc::lglen(0,0);//eff.lg.length ...........
     xbias=brlen/2+lglen;
     zbias=TOF2DBc::plnstr(1)+TOF2DBc::plnstr(6)-
-          TOF2DBc::plnstr(13)/2;//box Z-"0" wrt int.surf. of top honeycomb
+          TOF2DBc::plnstr(13)/2;//shift box_z0 outside to prevent cross with eff.envelop
     par[0]=TOF2DBc::plnstr(11)/2.; // dx/2
     par[1]=TOF2DBc::plnstr(12)/2;  // dy/2
     par[2]=TOF2DBc::plnstr(13)/2;  // dz/2
     coo[0]=TOF2DBc::supstr(3)+xbias+TOF2DBc::plnstr(11)/2+0.1;//"0.1" for safety
     coo[1]=TOF2DBc::supstr(4);
-    coo[2]=TOF2DBc::supstr(1)-zbias;// box abs. z-center
+    coo[2]=TOF2DBc::supstr(1)-zbias;// box abs. z-center(no overl with Hon - it is shorter)
     gid=1;
     dau=mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPB","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
@@ -539,11 +539,11 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
 //
 // --------> for bot TOF:
 //            common box at +X, -X :                                   
-    brlen=TOF2DBc::brlen(3,3);//sc.length Plane-4, middle bar4
-    lglen=TOF2DBc::lglen(3,3);//eff.lg.length ...........
+    brlen=TOF2DBc::brlen(3,0);//sc.length Plane-4, outer bar1(longest scint+ext)
+    lglen=TOF2DBc::lglen(3,0);//eff.lg.length ...........
     xbias=brlen/2+lglen;
     zbias=TOF2DBc::plnstr(1)+TOF2DBc::plnstr(6)-
-          TOF2DBc::plnstr(13)/2;//box Z-"0" wrt int.surf. of top honeycomb
+          TOF2DBc::plnstr(13)/2;//shift box_z0 outside to prevent cross with eff.envelop
     par[0]=TOF2DBc::plnstr(11)/2.; // dx/2
     par[1]=TOF2DBc::plnstr(12)/2;  // dy/2
     par[2]=TOF2DBc::plnstr(13)/2;  // dz/2

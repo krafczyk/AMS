@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.84 2003/05/14 17:00:41 choutko Exp $
+//  $Id: ntuple.h,v 1.85 2003/05/22 08:36:39 choumilo Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -24,7 +24,7 @@ const int MAXMCG02     =    100;
 const int MAXECSHOW =    5;
 const int MAXECCLUST =    60;
 const int MAXEC2DCLUST =    10;
-const int MAXECHITS  =   450;
+const int MAXECHITS  =   1296;//was 450
 const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
 const int MAXRICMC   =   250;

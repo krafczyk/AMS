@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.29 2003/04/09 14:05:16 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.30 2003/05/22 08:36:39 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -98,7 +98,8 @@ private:
 //          i=1 => MCHits->RawEvent OK
   static integer recount[ecalconst::ECJSTA];// event passed RECO-cut "i"
 //          i=0 -> entries
-//          i=1 -> 
+//          i=1 ->
+//          i=5 -> CatastrRearLeak detected 
   static integer cacount[ecalconst::ECJSTA];// event passed CALIB-cut "i"
 //          i=0 -> entries
 //          i=1 ->
@@ -248,7 +249,7 @@ class ECALVarp {
 //
 private:
 // ---> ECAL DAQ-system thresholds :
-  geant _daqthr[10];   // DAQ-system thresholds
+  geant _daqthr[20];   // DAQ-system thresholds
           // (0) -> anode readout DAQ-threshold(ped sigmas)
 	  // (1) -> Dynode Etot cut for "MIP"-trigger(mev tempor)  
 	  // (2) ->                      high cut for "MIP"-trigger(mev tempor)  
@@ -259,22 +260,26 @@ private:
 	  // (7) ->   
 	  // (8) ->   
 	  // (9) -> Thresh for columns number(bending plane)
+          // (10)-> LayerTrigThresholds 
 //   
 // ---> RECO Run-Time Cuts :
   geant _cuts[5];                    
-          //  (0)  -> cut for cluster search(mev)
-          //  (1)  -> 
+          //  (0)  -> spare
+          //  (1)  -> spare 
+          //  (2)  -> spare 
+          //  (3)  -> spare 
+          //  (4)  -> LVL3-trig. EC-algorithm: "peak"/"average" methode boundary 
 public:
   static ECALVarp ecalvpar;
   ECALVarp(){};
 // member functions :
 //
-  void init(geant daqthr[10], geant cuts[5]);
+  void init(geant daqthr[20], geant cuts[5]);
 //
   geant daqthr(int i){;
     #ifdef __AMSDEBUG__
       if(ECALDBc::debug){
-        assert(i>=0 && i<10);
+        assert(i>=0 && i<20);
       }
     #endif
     return _daqthr[i];}

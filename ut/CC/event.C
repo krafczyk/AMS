@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.312 2003/05/09 15:59:52 choutko Exp $
+//  $Id: event.C,v 1.313 2003/05/22 08:36:30 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -754,7 +754,7 @@ void AMSEvent::_sitrdinitevent(){
 void AMSEvent::_sitofinitevent(){
   int il;
   AMSNode *ptr;
-  integer trpatt[TOF2GC::SCLRS]={0,0,0,0};
+  uinteger trpatt[TOF2GC::SCLRS]={0,0,0,0};
 //
 //           declare some TOF containers for MC:
 //
@@ -771,6 +771,7 @@ void AMSEvent::_sitofinitevent(){
   }
   TOF2RawEvent::settrfl(0);// reset  TOF-trigger flag
   TOF2RawEvent::setpatt(trpatt);// reset TOF-trigger pattern
+  TOF2RawEvent::setpatt1(trpatt);// reset TOF-trigger pattern
 }
 
 
@@ -1521,10 +1522,10 @@ int stat;
 }
 //========================================================================
 void AMSEvent::_reecalevent(){
-  integer tofflg(0);
+  integer tofflg(-1);
   uinteger ecalflg(0);
   Trigger2LVL1 *ptr;
-  int stat(0);
+  int stat(0),nsuc(0);
 //
   AMSgObj::BookTimer.start("REECALEVENT");
 //
@@ -1536,7 +1537,7 @@ void AMSEvent::_reecalevent(){
   }
   if(ecalflg<=0){
     AMSgObj::BookTimer.stop("REECALEVENT");
-    return;// "no ECAL in LVL1-trigger"   
+    return;// "no ECAL-flag set in LVL1-trigger"   
   }
   EcalJobStat::addre(1);
   if(ECMCFFKEY.fastsim==0){//           ===> slow algorithm:
@@ -1557,7 +1558,6 @@ void AMSEvent::_reecalevent(){
     }
     EcalJobStat::addre(3);
 //
-    EcalJobStat::addre(4);
       
        AMSgObj::BookTimer.start("ReEcalShowerFit");
        //two phase run due to att corr 
@@ -1567,7 +1567,10 @@ void AMSEvent::_reecalevent(){
        int suc=buildC("EcalShower",i);
 //        cout <<" succ*** "<<i<<" "<<suc<<endl;
        if(!suc)break;
-     }
+       nsuc+=1;
+      }
+      if(nsuc==2)EcalJobStat::addre(4);
+
        AMSgObj::BookTimer.stop("ReEcalShowerFit");
 
 //

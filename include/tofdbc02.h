@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.14 2003/03/18 09:04:19 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.15 2003/05/22 08:36:40 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -22,7 +22,7 @@
 namespace TOFGC{
   const integer AMSDISL=500;//max length of distributions in AMSDistr class
   const integer SCWORM=128;// Max.length (in 16-bits words) in bit-stream class
-  const integer SCBITM=SCWORM*16;// same in bits
+  const integer SCBITM=SCWORM*16;// same in bits(-> 1.024 mks with 0.5 ns binning)
   const integer SCBADB1=128; // status bit to mark counter with bad "history"
   const integer SCBADB2=256; // status bit to mark counter with only one_side measurement
   const integer SCBADB3=512; // ... bad for t-meas.based on DB(don't use for tzcalibr/beta-meas)
@@ -46,7 +46,7 @@ const integer TOFPNMX=1000;// max integral-bins  in TOFTpoints class
 const integer SCANPNT=15; //max scan points in MC/REC t/a-calibration
 const integer SCANTDL=400;//scan time distribution max.length(should be SCANTDL<AMSDISL) 
 const integer SCANWDS=10; //max. width-divisions in the sc.paddle scan
-const integer SCTBMX=5000;//length of MC "flash-ADC" buffer
+const integer SCTBMX=10000;//length of MC "flash-ADC" buffer(-> 1mks with 0.1ns binning)
 // 
 //DAQ
 const int16u SCPHBP=16384; // phase bit position in Reduced-format TDC word (15th bit)
@@ -66,7 +66,7 @@ const integer DAQSTSC=1;// number of slots with Temp-info per crate
 const integer DAQSTCS=4;// number of temp-channel(tdcc) per slot(if present)
 const integer DAQSTMX=DAQSBLK*DAQSTSC*DAQSTCS;// max. temp. channels
 //RECO
-const integer SCTHMX1=8;//max trigger hits( multpl.factor=2 for tr/ftdc/adc, =4 for stdc)
+const integer SCTHMX1=8;//max trigger hits( multpl.factor=2 for trig/ftdc, =4 for stdc)
 const integer SCTHMX2=8;//max fast TDC (history) hits  
 const integer SCTHMX3=4;//max slow TDC (stretcher) hits
 const integer SCTHMX4=1;//max adca(anode)/adcd/adcdl hits  
@@ -123,13 +123,13 @@ private:
   static geant _trigtb;      // MC time-binning in logic(trig) pulse handling
   static geant _strflu;      // Stretcher "end-mark" time fluctuations (ns)
   static geant _daqpwd[15];  // MC DAQ-system pulse_widths/dead_times/...
-  static geant _di2anr;      // default(MC-data) dinode-to-anode signal ratio
-  static geant _strrat;      // default(-------) stretcher ratio
+  static geant _di2anr;      // not used
+  static geant _strrat;      // not used
   static geant _strjit1;     // "start" signal jitter at stretcher input(ns) 
   static geant _strjit2;     // "stop"(FT) signal jitter at stretcher input(ns)
   static geant _ftdelf;      // FastTrigger (FT) fixed (by h/w) delay (ns)
   static geant _ftdelm;      // FT max delay (allowed by stretcher logic) (ns)
-  static geant _accdel;      // Lev-1 signal delay with respect to FT (ns)
+  static geant _accdel;      // "Lev-1"(Common stop) signal delay wrt FT (ns)
   static geant _fstdcd;      // Same hit(up-edge) relative delay of slow- wrt hist-TDC
   static geant _fatdcd;      // not used
   static integer _pbonup;    // set phase bit "on" for leading(up) edge (yes/no->1/0)
@@ -288,9 +288,13 @@ private:
 //          i=3 => Out-of-volume hit
 //          i=4 => Fired TOF-bars
 //          i=5 => MC flash-ADC overflows
+//          i=9 => MC fTDC stack overflows
 //          i=6 => MC stretch-TDC overflows
 //          i=7 => MC anode-ADC overflows
-//          i=8 => MC dynode-ADC overflows
+//          i=8 => MC dynodeH-ADC overflows
+//          i=10=> MC dynodeL-ADC overflows
+//          i=11=> MC GHitT out of FADC
+//          i=12=> MC GHitT total
   static integer recount[TOF2GC::SCJSTA];// event passed RECO-cut "i"
 //          i=0 -> entries
 //          i=1 -> H/W TOF-trigger OK

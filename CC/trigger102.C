@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.19 2003/05/03 08:43:55 choutko Exp $
+//  $Id: trigger102.C,v 1.20 2003/05/22 08:36:31 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -19,35 +19,62 @@ using namespace ecalconst;
 //
 Trigger2LVL1::Scalers Trigger2LVL1::_scaler;
 void Trigger2LVL1::build(){
-// Trigger mode 1 : ntof >= TGL1FFKEY.ntof + nanti <= TGL1FFKEY.nanti
+//
+  uinteger trigflag(0);//glob trig.patt
 // TOF : 
-  int i;
+  int i,il,ib,ibmx,ns1,ns2;
   integer ntof=0;
-  integer tofpatt[TOF2GC::SCLRS]={0,0,0,0};
-  uinteger ttrpatt[TOF2GC::SCLRS]={0,0,0,0};
-  integer tofflag(0);
+  uinteger tofpatt[TOF2GC::SCLRS]={0,0,0,0};//new: all sides
+  uinteger ttrpatt[TOF2GC::SCLRS]={0,0,0,0};//old: AND+OR
+  integer tflg(0);
+  integer tofflag(0);//new: 0->4planes, (1-4)->3plns, (5-8)->2plns, <0->noFT, +10->Z>=2
+  integer tofinf(0);//old: 1-> z>=1, 3-> Z>=2, +10-> 4-PlanesCoinc
   integer nanti=0;
-  integer antipatt=0;
+  uinteger antipatt=0;
   uinteger ectrigfl=0;
   geant ectrsum=0;
   geant gmaglat,gmagphi;
+  int tofmatr(1);//tof.matr(centr.area).trigger(if=1)
+  uinteger cbt,lsbit(1);
+  
 //
   if(!AMSJob::gethead()->isReconstruction()){// <---- MC
-    tofflag=TOF2RawEvent::gettrfl();
-    TOF2RawEvent::getpatt(tofpatt);
-    for(i=0;i<TOF2GC::SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
-    for(i=0;i<TOF2GC::SCLRS;i++){ // create unsigned pattern
-      if(tofpatt[i]>0)ttrpatt[i]=tofpatt[i];
-      else ttrpatt[i]=0;
+//
+//-->TOF:
+    tofflag=TOF2RawEvent::gettrfl();//<0 ->noFT, >=0 ->OK
+    if(tofflag>=0){
+      if(tofflag/10>0)TOF2RawEvent::getpatt1(tofpatt);//z>=2
+      else TOF2RawEvent::getpatt(tofpatt);//z>=1
+      tflg=tofflag%10;//0->4planes, (1-4)->3plns, (5-8)->2plns, <0->noFT
+      if(tflg==0)ntof=4;
+      if(tflg>0 && tflg<=4)ntof=3;
+      if(tflg>4 && tflg<=8)ntof=2;
+//set/reset TOF-matr(center) trig-flag:
+      ns1=0;
+      ns2=0;
+      for(int il=0;il<TOF2DBc::getnplns();il++){   // <-------- loop over layers
+        ibmx=TOF2DBc::getbppl(il);
+        cbt=lsbit<<(ibmx-1);
+        if((tofpatt[il] & 1)>0 || (tofpatt[il] & cbt)>0)ns1+=1;//s1 fired   
+        if((tofpatt[il] & 1<<16)>0 || (tofpatt[il] & cbt<<16)>0)ns2+=1;//s2 fired
+      }
+      if(ns1>0 || ns2>0)tofmatr=0;//reset(i.e. trig is not center one)
+//tempor.keep below codes for backward compatibility,i.e.tofinf>0 when TOF present
+//                (diff.from tofflag in TOFRawEvent, where it >=0 ................)
+      tofinf=1;
+      if(tofflag/10>0)tofinf=3;//z>=2 tempor as old vers.
+      if(tofflag%10==0)tofinf+=10;//mark 4planes --//--
     }
-// ANTI :
-    integer cbt,lsbit(1);
+//   
+//-->ANTI:
+    
     antipatt=Anti2RawEvent::getpatt();
     for(i=0;i<ANTI2C::MAXANTI;i++){
       cbt=1<<i;
-      if((antipatt&cbt)>0)nanti+=1;//counts fired+FTcoinc paddles(2ends are ORed in antipatt)
+      if((antipatt&cbt)>0)nanti+=1;//counts fired && FTcoinc paddles(2ends are ORed in antipatt)
     }
-// ECAL :
+//
+//-->ECAL:
     ectrigfl=AMSEcalRawEvent::gettrfl();
     ectrsum=AMSEcalRawEvent::gettrsum();
 // Event: latitude
@@ -89,9 +116,13 @@ void Trigger2LVL1::build(){
   }
 */
 //------
-  for(i=0;i<TOF2GC::SCLRS;i++){
-    ttrpatt[i]=ttrpatt[i] | (ttrpatt[i]<<16);// create AND+OR pattern 
+  for(il=0;il<TOF2GC::SCLRS;il++){// prepare old style AND+OR tofpatt:
+  for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+    if((tofpatt[il]&1<<ib)>0 && (tofpatt[il]&1<<(16+ib))>0)ttrpatt[il]|=(1<<ib);  
+    if((tofpatt[il]&1<<ib)>0 || (tofpatt[il]&1<<(16+ib))>0)ttrpatt[il]|=(1<<ib+16);  
   }
+  }
+//
   geant sumsc=_scaler.getsum(AMSEvent::gethead()->gettime());
   geant lifetime=_scaler.getlifetime(AMSEvent::gethead()->gettime());
   // mark default as error here
@@ -104,7 +135,7 @@ void Trigger2LVL1::build(){
   bool tofok(0),antiok(0),ecok(0),ec1ok(0),ec2ok(0),comtrok(0);
   bool unbtr1(0),unbtr2(0),unbtr3(0),zge1ptr(0),zge2ptr(0),elpotr(0),photr(0),unitr(0);
 //
-  if(tofflag>0 && ntof >=TGL1FFKEY.ntof)tofok=1;
+  if(tofinf>0)tofok=1;
   if(fabs(gmaglat)>TGL1FFKEY.TheMagCut && nanti==0)antiok=1;
   if(fabs(gmaglat)<TGL1FFKEY.TheMagCut && nanti <= TGL1FFKEY.nanti)antiok=1;
   if(ectrigfl>0)ecok=1;//"at least MIP" activity in ECAL
@@ -113,7 +144,7 @@ void Trigger2LVL1::build(){
   unbtr2=ecok;                               //unbiased#2 trigger (EC(ectrigfl>0) only)
   unbtr3=tofok && ecok;                      //unbiased#3 trigger (TOF+EC(ectrigfl>0))
   zge1ptr=tofok && antiok;                   // Z>=1 particle trigger
-  zge2ptr=tofok && (tofflag%10>2);              // Z>=2 particle trigger
+  zge2ptr=tofok && (tofinf%10>2);              // Z>=2 particle trigger
   elpotr=tofok && (ectrigfl/10>=2);          //e+- trigger(SoftEn +TOF)
   photr=(ectrigfl/10>=3 && ectrigfl%10==2);   //photon trigger (HardEn + GoodWidth(em))
   unitr=zge1ptr || zge2ptr || elpotr || photr;//univers.trigger
@@ -144,7 +175,7 @@ void Trigger2LVL1::build(){
 //
   if(comtrok && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime)){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-          new Trigger2LVL1(floor(lifetime*1000)+tm*10000,tofflag,ttrpatt,
+          new Trigger2LVL1(floor(lifetime*1000)+tm*10000,tofinf,ttrpatt,
 	                                                antipatt,ectrigfl,ectrsum));
   }
   else if(AMSJob::gethead()->isRealData() && sumsc>=TGL1FFKEY.MaxScalersRate && lifetime<=TGL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();

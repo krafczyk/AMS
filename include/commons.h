@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.183 2003/04/09 14:05:16 choumilo Exp $
+//  $Id: commons.h,v 1.184 2003/05/22 08:36:39 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -158,7 +158,7 @@ integer trlogic[2]; // to control trigger logic
 integer fast;    // 1/0 fast/slow algo;
 integer daqfmt;  // 0/1 raw/reduced TDC format for DAQ
 integer birks;     // 0/1  not apply/apply birks corrections
-integer adsimpl;   // 0/1->precise/simplified sim. of A/D-TovT
+integer mcseedo;   // 0/1->use MCCalib/RealData files as MCseed
 geant blshift;     // base line shift
 geant hfnoise;     // high freq. noise
 integer ReadConstFiles;
@@ -280,7 +280,7 @@ class ECREFFKEY_DEF {
 public:
   integer reprtf[3];   //reco print-flags
   integer relogic[5];  //reco logic-flags
-  geant thresh[10];       //Time dependent DAQ/Trig-thresholds
+  geant thresh[20];       //Time dependent DAQ/Trig-thresholds
   geant cuts[5];       // ........ RECO cuts (clust.thr.,...)
   integer ReadConstFiles;
 //
@@ -485,12 +485,14 @@ COMMON_BLOCK_DEF(TFCAFFKEY_DEF,TFCAFFKEY);
 class TGL1FFKEY_DEF {
 public:
 integer trtype;
-integer ntof;
+integer toflc;
+integer tofsc;
 integer nanti;
 integer RebuildLVL1;
 geant MaxScalersRate;
 geant MinLifeTime;
 geant TheMagCut;
+integer ectrlog;
 };
 #define TGL1FFKEY COMMON_BLOCK(TGL1FFKEY,tgl1ffkey)
 COMMON_BLOCK_DEF(TGL1FFKEY_DEF,TGL1FFKEY);

@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.10 2003/02/25 09:41:52 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.11 2003/05/22 08:36:31 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <typedefs.h>
@@ -329,7 +329,7 @@ void TOF2TZSLcalib::mfun(int &np, number grad[], number &f, number x[]
     seqnum=0;
     for(il=0;il<TOF2DBc::getnplns();il++){
       for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-        tzero[il][ib]=geant(x[2+seqnum]);
+        tzero[il][ib]=geant(x[1+seqnum]);
         tcfile <<" "<<tzero[il][ib];
 	seqnum+=1;
       }

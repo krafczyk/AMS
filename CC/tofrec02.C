@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.25 2003/05/14 17:00:25 choutko Exp $
+//  $Id: tofrec02.C,v 1.26 2003/05/22 08:36:31 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -27,7 +27,7 @@
 //
 // mem.reservation for some static arrays:
 //
-integer TOF2RawCluster::trpatt[TOF2GC::SCLRS]={0,0,0,0};//just init. of static var.
+uinteger TOF2RawCluster::trpatt[TOF2GC::SCLRS]={0,0,0,0};//just init. of static var.
 integer TOF2RawCluster::trflag=0;
 uinteger TOF2RawEvent::StartRun(0);
 time_t TOF2RawEvent::StartTime(0);
@@ -328,7 +328,7 @@ void TOF2RawCluster::build(int &ostatus){
   int16u adca2[TOF2GC::SCTHMX4],adcd2[TOF2GC::SCTHMX4],adcdl2[TOF2GC::SCTHMX4];
   integer ilay,last,ibar,isid,isds,isd,isdsl[TOF2GC::SCLRS],hwid,tchan,crat,sfet,slnu,tdcc;
   integer i,j,k,chnum,brnum,am[2],tmi[2],itmf[2],sta,st,smty[2],ftdcfl,reject;
-  integer trpatt[TOF2GC::SCLRS];
+  uinteger trpatt[TOF2GC::SCLRS];
   uinteger Runum(0);
   int statdb[2];
   int16u pbitn;
@@ -1546,7 +1546,8 @@ void TOF2RawEvent::builddaq(int16u blid, integer &len, int16u *p){
   int16u ilay,ibar,isid,idd,id;
   int16u phbit,maxv,ntdc,tdc[16];
   geant charge,edep;
-  integer trflag,trpatt[TOF2GC::SCLRS];
+  integer trflag;
+  uinteger trpatt[TOF2GC::SCLRS];
   int16u mtyp,hwid,hwch,swid,swch,htmsk,mskb,fmt,shft,hitc;
   int16u slad,tdcw,adrw,adr,chip,chipc,chc;
   int16u phbtp;  

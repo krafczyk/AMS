@@ -529,13 +529,15 @@ void ECREUNcalib::makeToyRLGAfile(){
   char fname[80];
   char frdate[30];
   char vers1[3]="mc";
-  char vers2[3]="rl";
+  char vers2[3]="sd";
   integer cfvn;
   int dig;
   geant pmrg,pxrg[4],hi2lr,a2dr;
 //
-//--> create RLGA output file(PM/SubCell rel.gains,Hi2Low-ratios,An2Dyn-ratios):
-//    for "MC-Seeds"
+//--> create RLGA-type 2 files(PM/SubCell rel.gains,Hi2Low-ratios,An2Dyn-ratios):
+//    ...sd.cof simulate copy of RealData RLGA-calib.file used as MCSeed
+//    ...mc.cof simulate RLGA-calibration OUTPUT-file using seeds from ...sd.cof file
+//                                i.e. simulating calibration procedure accuracies !!!
 // 
   integer endfm(12345);
   strcpy(inum,"0123456789");
@@ -550,12 +552,12 @@ void ECREUNcalib::makeToyRLGAfile(){
   dig=cfvn%10;
   in[0]=inum[dig];
   strcat(fname,in);
-  strcat(fname,vers2);
+  strcat(fname,vers2);//sd = copy of rl
   strcat(fname,".cof");
 //---
     ofstream tcfile(fname,ios::out|ios::trunc);
     if(!tcfile){
-      cerr<<"ECREUNcalib:error opening RLGA-file for output"<<fname<<endl;
+      cerr<<"ECREUNcalib::makeToyRLGAfile:Error opening ToyRLGA-file for output"<<fname<<endl;
       exit(8);
     }
     cout<<"Open file for ToyRLGA-calibration output(MC-Seeds) "<<fname<<endl;
@@ -670,10 +672,12 @@ void ECREUNcalib::makeToyRLGAfile(){
 //
     cout<<"...done!"<<endl;
     tcfile << endl<<"======================================================"<<endl;
-    tcfile << endl<<" Toy RLGA-file for MC-Seeds is done !"<<endl;
+    tcfile << endl<<" Toy MCSeeds RLGA-file  is done !"<<endl;
     tcfile.close();
-    cout<<"ECREUNcalib: Toy RLGA-file for MC-Seeds closed !"<<endl;
+    cout<<"ECREUNcalib: Toy MCSeeds RLGA-file closed !"<<endl;
 //------------------------
+// now simulate RLGA-calibr.procedure and create ...mc.cof file:
+//
   strcpy(fname,"ecalrlga");
   dig=cfvn/100;
   in[0]=inum[dig];
@@ -684,12 +688,12 @@ void ECREUNcalib::makeToyRLGAfile(){
   dig=cfvn%10;
   in[0]=inum[dig];
   strcat(fname,in);
-  strcat(fname,vers1);
+  strcat(fname,vers1);//mc
   strcat(fname,".cof");
 //
     ofstream tcfile1(fname,ios::out|ios::trunc);
     if(!tcfile1){
-      cerr<<"ECREUNcalib:error opening RLGA-file for output"<<fname<<endl;
+      cerr<<"ECREUNcalib::makeToyRLGAfile:error opening RLGA-file for output"<<fname<<endl;
       exit(8);
     }
     cout<<"Open file for ToyRLGA-calibration output(MC-calib) "<<fname<<endl;
@@ -794,9 +798,9 @@ void ECREUNcalib::makeToyRLGAfile(){
 //
     cout<<"...done!"<<endl;
     tcfile1 << endl<<"======================================================"<<endl;
-    tcfile1 << endl<<" Toy RLGA-file for MC-calib is done !"<<endl;
+    tcfile1 << endl<<" Toy RLGA-MC-calib file is done !"<<endl;
     tcfile1.close();
-    cout<<"ECREUNcalib: Toy RLGA-file for MC-calib closed !"<<endl;
+    cout<<"ECREUNcalib: Toy RLGA-MC-calib file closed !"<<endl;
 }
 //----------------------------------------------------------------------------
 void ECREUNcalib::mfit(){

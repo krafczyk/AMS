@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.7 2002/12/06 14:43:40 choumilo Exp $
+//  $Id: tofsim02.h,v 1.8 2003/05/22 08:36:40 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 #ifndef __AMSTOF2SIM__
 #define __AMSTOF2SIM__
@@ -150,7 +150,7 @@ private:
   geant divxh[TOF2GC::SCANWDS];//division xhigh
   TOF2Scan wscan[TOF2GC::SCANWDS];//array of single-division scans
 public:
-  static TOFWScan scmcscan[TOF2GC::SCBLMX];
+  static TOFWScan scmcscan[TOF2GC::SCBTPN];
   TOFWScan(){};
   TOFWScan(const int nwdvs, const geant _dxl[], const geant _dxh[], 
                          const TOF2Scan  _sdsc[])
@@ -283,8 +283,8 @@ integer getstat(){return status;}
 static void inipsh(integer &nbn, geant arr[]);
 static geant pmsatur(const geant am);
 static void displ_a(const int id, const int mf, const geant arr[]);
-static number tr1time(int &trcode,integer arr[]);//to get "z>=1" trigger time/code/patt 
-static number tr3time(int &trcode,integer arr[]);//to get "z>2" trigger time/code/patt 
+static number tr1time(int &trcode,uinteger arr[]);//to get "z>=1" trigger time/code/patt 
+static number tr2time(int &trcode,uinteger arr[]);//to get "z>=2" trigger time/code/patt 
 static void build();
 static void totovt(integer id, geant edep, geant tslice[]);//flash_ADC_array->Tovt
 //
@@ -358,8 +358,9 @@ class TOF2RawEvent: public AMSlink{
 private:
  static uinteger StartRun;//first run of the job
  static time_t StartTime;//first run time
- static integer trflag; // =0/1/2/3 -> "no_trig"/"z>=1"/"z>1"/"z>2"
- static integer trpatt[TOF2GC::SCLRS];// Fired bars pattern
+ static integer trflag; //layer-pattern code(<0 ->noFT, >=0 -> as trcode, +10 if z>=2
+ static uinteger trpatt[TOF2GC::SCLRS];// Fired bars pattern(z>=1)
+ static uinteger trpatt1[TOF2GC::SCLRS];// Fired bars pattern(z>=2)
  static number trtime; //  abs. FTrigger time (ns) 
  int16u idsoft;        // LayBarBarSide: LBBS (as in Phel,Tovt MC-obj)
  int16u status;        // channel status (alive/dead/ ... --> 0/1/...)
@@ -416,11 +417,17 @@ public:
 
 
 
- static void setpatt(integer patt[]){
+ static void setpatt(uinteger patt[]){
    for(int i=0;i<TOF2GC::SCLRS;i++)trpatt[i]=patt[i];
  }
- static void getpatt(integer patt[]){
+ static void setpatt1(uinteger patt[]){
+   for(int i=0;i<TOF2GC::SCLRS;i++)trpatt1[i]=patt[i];
+ }
+ static void getpatt(uinteger patt[]){
    for(int i=0;i<TOF2GC::SCLRS;i++)patt[i]=trpatt[i];
+ }
+ static void getpatt1(uinteger patt[]){
+   for(int i=0;i<TOF2GC::SCLRS;i++)patt[i]=trpatt1[i];
  }
  static void settrfl(integer trfl){trflag=trfl;}
  static integer gettrfl(){return trflag;}

@@ -1,4 +1,4 @@
-//  $Id: antidbc02.h,v 1.7 2003/04/09 14:05:16 choumilo Exp $
+//  $Id: antidbc02.h,v 1.8 2003/05/22 08:36:39 choumilo Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
@@ -43,6 +43,9 @@ private:
   static integer _daqscf; // DAQ charge-readout scaling factor 
   static geant _ftcoinw;  // not used
   static geant _hdpdmn;   // MC: Hist-discr. min pulse duration 
+  static geant _ppfwid;   //"pattern" pulse fixed width(ns)
+  static geant _pbdblr;   //"pattern" branche dbl-resol(dead time,ns)
+  static geant _pbgate;   //"pattern" branche gate to check FT coinc.
 public:  
 //
 //  Member functions :
@@ -64,6 +67,9 @@ public:
   static integer daqscf();
   static geant ftcoinw();
   static geant hdpdmn();
+  static geant ppfwid();   
+  static geant pbdblr();   
+  static geant pbgate(); 
   static void inipulsh(int & nbn, geant arr[]);
   static void displ_a(const int id, const int f, const geant arr[]);
 #ifdef __DB__

@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.9 2003/05/08 16:42:14 choutko Exp $
+//  $Id: tofrec02.h,v 1.10 2003/05/22 08:36:40 choumilo Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -18,7 +18,8 @@
 class TOF2RawCluster: public AMSlink{
 protected:
  static integer trflag; // =1/2/3 -> "z>=1"/"z>1"/"z>2", =0->no trig.
- static integer trpatt[TOF2GC::SCLRS]; // triggered bars pattern
+ static uinteger trpatt[TOF2GC::SCLRS]; // triggered bars pattern(z>=1)
+ static uinteger trpatt1[TOF2GC::SCLRS]; // triggered bars pattern(z>=2)
  integer _ntof;    // number of TOF-plane(layer) (1-top,...,4-bot)
  integer _plane;   //  number of sc. bar in given plane(1->...)
  number _z;        // z coord of sc.bar
@@ -82,11 +83,17 @@ public:
 //
  TOF2RawCluster *  next(){return (TOF2RawCluster*)_next;}
 //
- static void setpatt(integer patt[]){
+ static void setpatt(uinteger patt[]){
    for(int i=0;i<TOF2GC::SCLRS;i++)trpatt[i]=patt[i];
+ }
+ static void setpatt1(uinteger patt[]){
+   for(int i=0;i<TOF2GC::SCLRS;i++)trpatt1[i]=patt[i];
  }
  static void getpatt(uinteger patt[]){
    for(int i=0;i<TOF2GC::SCLRS;i++)patt[i]=trpatt[i];
+ }
+ static void getpatt1(uinteger patt[]){
+   for(int i=0;i<TOF2GC::SCLRS;i++)patt[i]=trpatt1[i];
  }
  static void settrfl(integer trfl){trflag=trfl;}
  static integer gettrfl(){return trflag;}
