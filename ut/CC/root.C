@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.77 2004/02/17 11:08:17 alcaraz Exp $
+//  $Id: root.C,v 1.78 2004/02/17 14:32:21 alcaraz Exp $
 //
 
 #include <root.h>
@@ -155,6 +155,7 @@ char HeaderR::_Info[255];
 
 
 TTree*     AMSEventR::_Tree=0;
+TTree*     AMSEventR::_ClonedTree=0;
 AMSEventR* AMSEventR::_Head=0;
 int AMSEventR::_Count=0;
 int AMSEventR::_Entry=-1;
@@ -2258,6 +2259,12 @@ void AMSEventR::Terminate()
   
 }
 
+Int_t AMSEventR::Fill()
+{
+        if (_ClonedTree==NULL) _ClonedTree = _Tree->CloneTree(0);
+        return _ClonedTree->Fill();
+}
+
 void AMSEventR::UBegin(){
 }
 void AMSEventR::UProcessFill(){
@@ -2273,6 +2280,7 @@ AMSEventR* AMSChain::GetEvent(Int_t entry){
            _EVENT = new AMSEventR;
            this->SetBranchAddress("ev.",&_EVENT);
            _EVENT->Head() = _EVENT;
+           _EVENT->Tree() = (TTree*)this;
            _EVENT->GetBranch((TTree*)this);
       }
       if (_EVENT->ReadHeader(entry)==false) {
@@ -2362,7 +2370,7 @@ void AMSEventList::Read(const char* filename){
             while ( fscanf(listfile,"%d %d\n", &run, &event)==2 ) Add(run, event);
             fclose(listfile);
         } else {
-            cout << "AMSEvelist: Error opening file '" << filename << "';";
+            cout << "AMSEventlist: Error opening file '" << filename << "';";
             cout << " assuming an empty list" << endl;
         }
 };
