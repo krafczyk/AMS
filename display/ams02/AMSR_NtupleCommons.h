@@ -1,4 +1,4 @@
-//  $Id: AMSR_NtupleCommons.h,v 1.4 2001/01/23 19:02:53 kscholbe Exp $
+//  $Id: AMSR_NtupleCommons.h,v 1.5 2001/06/27 11:52:44 kscholbe Exp $
 #ifndef AMSR_NtupleCommons_H
 #define AMSR_NtupleCommons_H
 
@@ -56,12 +56,16 @@ struct EVENTH_DEF {
    int   Ecalhits;
    int   Richmcclusters;
    int   Richits;
+   int   TRDRawHits;
+   int   TRDClusters;
+   int   TRDSegments;
+   int   TRDTracks;
    int   Eventstatus[2];
 };
 #define blkEventh COMMON_BLOCK(EVENTH,eventh)
 COMMON_BLOCK_DEF(EVENTH_DEF,blkEventh);
 
-static const int NBETA = 100;
+static const int NBETA = 50;
 struct BETA_DEF {
    int   nbeta;
    int   betastatus[NBETA];
@@ -79,7 +83,7 @@ struct BETA_DEF {
 #define blkBeta COMMON_BLOCK(BETA,beta)
 COMMON_BLOCK_DEF(BETA_DEF,blkBeta);
 
-static const int NCHARGE = 100;
+static const int NCHARGE = 30;
 struct CHARGE_DEF {
    int   ncharge;
    int   chargestatus[NCHARGE];
@@ -98,12 +102,13 @@ struct CHARGE_DEF {
 #define blkCharge COMMON_BLOCK(CHARGE,charge)
 COMMON_BLOCK_DEF(CHARGE_DEF,blkCharge);
 
-static const int NPART = 50;
+static const int NPART = 20;
 struct PARTICLE_DEF {
    int   npart;
    int   pbetap[NPART];
    int   pchargep[NPART];
    int   ptrackp[NPART];
+   int   ptrdp[NPART];
    int   pid[NPART];
    int   pidvice[NPART];
    int   probpid[NPART][2];
@@ -112,6 +117,8 @@ struct PARTICLE_DEF {
    float perrmass[NPART];
    float pmom[NPART];
    float perrmom[NPART];
+   float pbeta[NPART];
+   float perrbeta[NPART];
    float pcharge[NPART];
    float ptheta[NPART];
    float pphi[NPART];
@@ -123,6 +130,7 @@ struct PARTICLE_DEF {
    float cooanti[NPART][2][3];
    float cooecal[NPART][18][3];
    float cootr[NPART][8][3];
+   float cootrd[NPART][3];
 };
 #define blkParticle COMMON_BLOCK(PARTICLE,particle)
 COMMON_BLOCK_DEF(PARTICLE_DEF,blkParticle);
@@ -205,6 +213,21 @@ struct TRRECHIT_DEF {
 };
 #define blkTrrechit COMMON_BLOCK(TRRECHIT,trrechit)
 COMMON_BLOCK_DEF(TRRECHIT_DEF,blkTrrechit);
+
+static const int NTRDCLMC = 200;
+struct TRDCLMC_DEF {
+   int   ntrdclmc;
+   int   layer[NTRDCLMC];
+   int   ladder[NTRDCLMC];
+   int   tube[NTRDCLMC];
+   int   trackno[NTRDCLMC];
+   float edep[NTRDCLMC];
+   float ekin[NTRDCLMC];
+   float xgl[NTRDCLMC];
+   float step[NTRDCLMC];
+};
+#define blkTrdclmc COMMON_BLOCK(TRDCLMC,trdclmc)
+COMMON_BLOCK_DEF(TRDCLMC_DEF,blkTrdclmc);
 
 static const int NTRTR = 100;
 struct TRTRACK_DEF {
