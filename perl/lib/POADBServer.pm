@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.17 2004/01/21 11:14:48 choutko Exp $
+#  $Id: POADBServer.pm,v 1.18 2004/03/12 16:32:14 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -1166,14 +1166,20 @@ OUT:
         my $hash=$ref->{ncl}[0];
 #        warn "a getfreehost $#{$ref->{asl}}+1 $hash->{MaxClients}";
         if ($#{$ref->{acl}}+1 < $hash->{MaxClients}){
-        my $runstorerun=0;
+        my $runstotal=0;
+        my $runstoreryn=0;
         foreach my $run (@{$ref->{rtb}}){
-         if($run->{Status} eq "ToBeRerun" or $run->{Status} eq "Processing"){
+         if($run->{Status} eq "ToBeRerun"){
           $runstorerun=$runstorerun+1;
+          $runstotal=$runstotal+1;
+           if($run->{Status} eq "Processing"){
+            $runstotal=$runstotal+1;
+           }
+         }
       }
      }
 #        warn "b getfreehost $#{$ref->{acl}}+1  $runstorerun";
-        if($#{$ref->{acl}}+1 <$runstorerun){
+        if($#{$ref->{acl}}+1 <$runstotal and $runstorerun>0){
         my @sortedahl=sort Clock @{$ref->{ahlp}};
               foreach my $ahl (@sortedahl){
                   if ($ahl->{Status} ne "NoResponse" and $ahl->{Status} ne "InActive" ){
