@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.318 2003/07/25 16:46:50 alcaraz Exp $
+//  $Id: event.C,v 1.319 2003/09/19 10:58:16 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1401,13 +1401,6 @@ AMSgObj::BookTimer.start("RETKEVENT");
     }
   }
 
-// TEMPORARY....
-  if (!veto) {
-    AMSgObj::BookTimer.stop("TrTrack");
-    return;
-  }
-// TEMPORARY....
-
 //   cout <<" ptrd "<<hmul<<endl;
   Trigger2LVL1 * ptr12= dynamic_cast<Trigger2LVL1*>(ptr1);
   if(ptr12 && (ptr12->IsECHighEnergy() || ptr12->IsECEMagEnergy() || TRFITFFKEY.LowMargin || hmul  || veto)){
@@ -1690,13 +1683,6 @@ void AMSEvent::_reaxevent(){
   if (veto) {
     AMSgObj::BookTimer.start("Vtx");
     buildC("AMSVtx");
-#ifdef __AMSDEBUG__
-    AMSVtx* pvtx;
-    for(int i=0;;i++){
-       pvtx = (AMSVtx*)AMSEvent::gethead()->getheadC("AMSVtx",i,1);
-                     if (!ptr) break;
-   }
-#endif
     AMSgObj::BookTimer.stop("Vtx");
   }
 
