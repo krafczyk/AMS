@@ -3,7 +3,9 @@
 #include <root.h>
 #include <stdio.h>
 
-int rootread(char * fname, int nev, int iver){
+int rootread(char * fname, int nev, int iver,  int & lastevent){
+ int LastEvent=lastevent;
+int firstevent=-1;
  if(!iver){
   fclose(stderr);
   cout.setstate(ios_base::failbit);
@@ -33,10 +35,19 @@ int rootread(char * fname, int nev, int iver){
   for (int i=0;i<nevents;i++){
    if(!pev->ReadHeader(i))break;
    if((pev->fHeader.Status[0]/1073741824)%2)nbadev++;
+   if(firstevent<0)firstevent=pev->fHeader.Event;
+   lastevent=pev->fHeader.Event;
    nevread++;
   }
   rfile->Close();
   if(nevread!=nev)return -2;
+  if(nev>2){
+   int rate=(lastevent+1-firstevent)/nevread;
+   if(iver)cout <<"last event "<<LastEvent <<" " <<lastevent<<endl; 
+   if(abs(LastEvent-lastevent)>5*rate){
+     return -5;
+   } 
+  }
   float rrr=100*float(nbadev)/float(nevread);
   return int(rrr); 
 }
