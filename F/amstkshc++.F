@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.60 2001/01/22 17:32:24 choutko Exp $
+*  $Id: amstkshc++.F,v 1.61 2001/03/29 14:23:34 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -8610,8 +8610,8 @@ C
       WRITE(CHMAIL,11800) (Q(JTMED+K),K=14,16)
       CALL GMAIL(0,0)
       IF(Q(JTMED+18).EQ.3.) THEN
-         NUCRIN = .TRUE.
-         Q(JTMED+18)=1.
+         NUCRIN = .FALSE.
+         Q(JTMED+18)=3.
       ELSE
          NUCRIN = .FALSE.
       ENDIF
@@ -8787,8 +8787,8 @@ C
             WRITE(CHMAIL,11800) (Q(JTP+K),K=14,16)
             CALL GMAIL(0,0)
             IF(Q(JTP+18).EQ.3.) THEN
-               NUCRIN = .TRUE.
-               Q(JTP+18)=1.
+               NUCRIN = .FALSE.
+               Q(JTP+18)=3.
             ELSE
                NUCRIN = .FALSE.
             ENDIF
@@ -9096,9 +9096,12 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.60 2001/01/22 17:32:24 choutko Exp $
+* $Id: amstkshc++.F,v 1.61 2001/03/29 14:23:34 choutko Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.61  2001/03/29 14:23:34  choutko
+* gheisha/fluka switch fixed
+*
 * Revision 1.60  2001/01/22 17:32:24  choutko
 * prepend 1st line
 *
