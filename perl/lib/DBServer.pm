@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.7 2002/02/20 18:00:24 choutko Exp $
+# $Id: DBServer.pm,v 1.8 2002/03/28 14:33:43 choutko Exp $
 
 package DBServer;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -110,6 +110,11 @@ sub UpdateEverything{
              $ref->{asl}=$ahl;
              $ref->{asl_maxc}=$maxc;
           }
+#         if(defined $sendback){
+#           foreach my $acl (@{$ref->{asl}}){
+#           $ref->{myref}->sendACPerl(\%cid,$acl,"Create");
+#         }
+#       }
          if(defined $sendback and defined $ref->{nhl} and $#{$ref->{nhl}}>=0){
            my @acl=@{$ref->{nhl}};
           $arsref->sendNHS(\%cid,\@acl);
@@ -553,7 +558,12 @@ sub InitDBFile{
          $ref->{dbfile}=$amsprodlogdir."/".$ref->{dbfile};
      }
 #        die "trying to open dbfile $ref->{dbfile}\n";
-      $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDONLY;
+         if(defined $amsprodlogdir){
+            $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
+        }
+        else{
+            $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDONLY;
+        }
     }
     else{
 #        die " tried to init db file sobaka";
@@ -633,9 +643,16 @@ sub InitDBFile{
         $ref->{rtb}=$hash{rtb};
         $ref->{rtb_maxr}=$hash{rtb_maxr};
         warn "db file read\n";
-        if(defined $amsprodlogdir and not $ref->UpdateEverything(1)){
+        if(defined $amsprodlogdir){
+          if( not $ref->UpdateEverything(1)){
           $ref->Exiting("Unable to send Tables To Server","CInAbort");
           return 0;
+          }
+          else{
+           $hash{ahls}=$ref->{ahls};
+           $hash{asl}=$ref->{asl};
+           $hash{asl_maxc}=$#{$ref->{asl}}+2;
+          }
         }       
     }
     untie %hash;

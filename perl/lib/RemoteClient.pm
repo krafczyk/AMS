@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.36 2002/03/28 14:14:30 alexei Exp $
+# $Id: RemoteClient.pm,v 1.37 2002/03/28 14:33:44 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -1978,7 +1978,7 @@ print qq`
          if (not defined $ntdir) {
              $self->ErrorPlus("The NTuples output directory NOT DEFINED");
          } else {
-             if (not $ntdir =~ /\// or $ntdir=~ /:/ ) {
+             if (not $ntdir =~ /\//  ) {
               $self->ErrorPlus("Invalid NTuples output directory : $ntdir");
             } else {
                 $self->{AMSDSTOutputDir}=$ntdir;
@@ -2374,6 +2374,9 @@ print qq`
          return 1;   
         }
          open(FILE,">".$root) or die "Unable to open file $root\n";  
+         if($self->{CCT} eq "local"){
+          print FILE "export NtupleDir=$self->{AMSDSTOutputDir} \n";
+      }
          print FILE $buf;
          print FILE $tmpb;
          close FILE;

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.54 2002/03/27 18:43:05 choutko Exp $
+//  $Id: producer.C,v 1.55 2002/03/28 14:33:43 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -212,7 +212,26 @@ else{
     fbin.close();
 }
 }
-   if(IsLocal()){
+// check if proposed dst file is writeable
+   bool writeable=false;
+   
+   if(char *ntd=getenv("NtupleDir")){
+     AString cmd=" touch ";
+     cmd+=ntd;
+     cmd+="/qq";
+     int i=system(cmd);
+     if(i==0){
+      writeable=true;
+      cmd+=getenv("NtupleDir");
+      cmd+="/qq";
+      unlink((const char*)cmd);
+     }
+     else{
+      cerr<<"AMSProducer::getRunEventInfo-E-UnwritableDir "<<ntd<<endl;
+     }     
+   }
+
+   if(IsLocal() && !writeable){
     AString ntpath=(const char *)_dstinfo->OutputDirPath;
     ntpath+="/";
     char tmp[80];
@@ -363,8 +382,8 @@ UpdateARS();
 sendDSTInfo();
 
 if(_dstinfo->Mode==DPS::Producer::LIRO || _dstinfo->Mode==DPS::Producer::RIRO){
+aga1:
 for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
-
   try{
    if(!CORBA::is_nil(*li)){
     _OnAir=true;
@@ -375,6 +394,8 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
   }
   catch  (CORBA::SystemException & a){
     _OnAir=false;
+ if(getior("GetIorExec"))goto aga1;
+ else FMessage("AMSProducer::sendNtupleEnd-F-UnableToDeleteNtuple ",DPS::Client::CInAbort);
   }
 }
    AString a=(const char*)ntend->Name;
@@ -413,7 +434,7 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
      if(!fbin.good()){
       FMessage("AMSProducer::sendNtupleEnd-F-UnableToReadNtuplein mode RO ",DPS::Client::CInAbort);
      }
-     for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+      for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
       try{
        _OnAir=true;
        (*li)->sendFile(_pid,fpath,vrun,st);
@@ -426,6 +447,7 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
        }
        catch  (CORBA::SystemException & a){
        _OnAir=false;
+       FMessage("AMSProducer::sendNtupleEnd-F-UnableToSendNtupleBody ",DPS::Client::CInAbort);
        }
      }
      fpath.pos+=last;
@@ -723,7 +745,7 @@ else FMessage("AMSProducer::sendRunEnd-F-UnableToSendRunEndInfo ",DPS::Client::C
 
 }
 void AMSProducer::sendRunEndMC(){
-double error=3./sqrt(double(GCFLAG.NEVENT+1));
+double error=3./sqrt(double(GCFLAG.IDEVT+1));
 if (error<0.01)error=0.01;
 if(error>0.5)error=0.5;
 if(GCFLAG.NEVENT*(1-error) > GCFLAG.IEVENT+1 || GCFLAG.NEVENT==0){

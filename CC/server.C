@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.81 2002/03/26 21:21:54 choutko Exp $
+//  $Id: server.C,v 1.82 2002/03/28 14:33:43 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -1727,7 +1727,7 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
    if(rc ==DPS::Client::Create){
          for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
             if(!strcmp((const char *)(*i)->HostName, (const char *)(as.id).HostName)){
-//          cout << " host found for creating "<<endl;
+          cout << " host found for creating "<<endl;
             PropagateAH(asid,*i,DPS::Client::Update);
             break;
         }
@@ -3555,6 +3555,16 @@ _UpdateACT(cid,DPS::Client::Active);
    if(gtv && strlen(gtv)>0){
      fname=gtv;
      fname+="/";
+     char tmp[80];
+     sprintf(tmp,"%d",cid.uid);
+     fname+=tmp;
+     if(st==DPS::Producer::Begin){
+      AString fmake="mkdir -p ";
+      fmake+=fname;
+      system((const char*)fmake);
+     }
+     fname+="/";
+     
    }
    else throw FailedOp((const char*)"Server-F-AMSProdOutputDir NotDefined");
    fname+=(const char*)fpath.fname;

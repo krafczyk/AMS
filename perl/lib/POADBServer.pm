@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.9 2002/02/20 18:00:25 choutko Exp $
+#  $Id: POADBServer.pm,v 1.10 2002/03/28 14:33:44 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -931,6 +931,7 @@ sub getACS{
               }
    
     getGeneric($cid,@tag);
+#    warn "poadbserver getacs $#{$ref->{$tag[0]}}+1 for $cid->{Type}";
     return ($#{$ref->{$tag[0]}}+1,$ref->{$tag[0]},$ref->{$tag[1]});
 }
 
@@ -950,7 +951,58 @@ sub getACS{
                 }
            }
 sub getFreeHost{
+
     my $ref=$DBServer::Singleton;
+
+# need to explicitely open db file in every sub 
+    my $ok=0;
+    my %hash;
+    local *DBM;
+    my $db;
+    if (defined $ref->{dbfile}){
+      $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
+    }
+    else{
+        goto OUT;
+    }
+     if(not $db){
+        goto OUT;
+      }
+      my $fd=$db->fd;
+      $ok=open DBM, "<&=$fd";
+      if( not $ok){
+        untie %hash;
+        goto OUT;
+      }
+     my $ntry=0;
+     $ok=0;
+     until (flock DBM, LOCK_EX|LOCK_NB){
+         sleep 2;
+         $ntry=$ntry+1;
+         if($ntry>10){
+             untie %hash;
+             goto OUT;
+         }
+     }
+    $ok=1;
+OUT:
+      undef $db;
+          if($ok){
+#              $ref->{ahlp}=$hash{ahlp};           
+#              $ref->{ahls}=$hash{ahls};           
+              $ref->{acl}=$hash{acl};           
+              $ref->{asl}=$hash{asl};           
+              $ref->{nsl}=$hash{nsl};           
+              $ref->{ncl}=$hash{ncl};           
+              $ref->{rtb}=$hash{rtb};           
+              $ref->{rtb_maxr}=$hash{rtb_maxr}; 
+          }
+    else{
+        warn "getfreehost unable to read db $ref->{dbfile}";
+    }
+    untie %hash;
+
+#    my $ref=$DBServer::Singleton;
     my ($class,$cid)=@_;
     if($cid->{Type} eq "Server"){
         getGeneric($cid,"ahls","nsl","asl");
@@ -971,20 +1023,24 @@ sub getFreeHost{
 }elsif($cid->{Type} eq "Producer"){
         getGeneric($cid,"ahlp","ncl","acl","rtb");
         my $hash=$ref->{ncl}[0];
+#        warn "a getfreehost $#{$ref->{asl}}+1 $hash->{MaxClients}";
         if ($#{$ref->{acl}}+1 < $hash->{MaxClients}){
         my $runstorerun=0;
         foreach my $run (@{$ref->{rtb}}){
-         if($run->{Status} eq "ToBeRerun"){
+         if($run->{Status} eq "ToBeRerun" or $run->{Status} eq "Processing"){
           $runstorerun=$runstorerun+1;
       }
-        }
+     }
+#        warn "b getfreehost $#{$ref->{acl}}+1  $runstorerun";
         if($#{$ref->{acl}}+1 <$runstorerun){
         my @sortedahl=sort Clock @{$ref->{ahlp}};
               foreach my $ahl (@sortedahl){
                   if ($ahl->{Status} ne "NoResponse" and $ahl->{Status} ne "InActive" ){
+#                      warn "c getfreehost $ahl->{Name} $ahl->{ClientsRunning} $ahl->{ClientsAllowed}";
                       if ($ahl->{ClientsRunning}<$ahl->{ClientsAllowed}){
                           $ahl->{Status}="InActive";
                            sendAH("Class",$cid,$ahl,"Update");
+#                          warn "d getfree host ok!!!!!!";
                           return (1,$ahl);                
                       }
                   }

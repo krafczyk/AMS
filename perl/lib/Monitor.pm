@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.50 2002/03/22 09:06:48 alexei Exp $
+# $Id: Monitor.pm,v 1.51 2002/03/28 14:33:44 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -207,6 +207,9 @@ sub ForceCheck{
          print "SystemCheckFailed.\n";
      };
  }
+}
+
+sub UpdateServers{
 }
 
 sub UpdateEverything{

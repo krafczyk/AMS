@@ -29,7 +29,8 @@ foreach my $chop  (@ARGV){
     if($oracle){
      unshift @ARGV, "-DOracle:";
      unshift @ARGV, "-Famsdb";
-    }
+    
+    
     my $sqls=new DBSQLServer();
     if($sqls->Connect()){
     foreach my $ac (@{$dbserver->{asl}}){
@@ -61,7 +62,7 @@ foreach my $chop  (@ARGV){
         }
       }
      }        
-
+}
     $dbserver->{orb}->run();
 }
 
