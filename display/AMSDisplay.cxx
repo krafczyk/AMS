@@ -398,7 +398,7 @@ void AMSDisplay::DisplayButtons()
    button->Draw();
 
    y -= dbutton +dy;
-   char *but8 = "gAMSRoot->Display()->SetView(20)";
+   char *but8 = "gAMSRoot->Display()->StartStop()";
    button = new TButton("Stop Timer",but8,x0,y-dbutton,x1,y);
    button->SetFillColor(butcolor);
    button->Draw();

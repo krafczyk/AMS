@@ -1,0 +1,180 @@
+##### DEPENDENCIES #####
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TROOT.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TButton.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TCanvas.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TView.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TArc.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TText.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TPaveLabel.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TPaveText.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TList.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TDiamond.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TNode.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TTUBE.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TMath.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TPolyLine3D.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/X3DBuffer.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/DllImport.h AMSDisplay.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSDisplay.o: AMSHist.h /pgm0/EventDisplay/root/include/TTree.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TPad.h TSwitch.h TRadioButton.h
+AMSDisplay.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSCanvas.o: /usr/include/unistd.h /usr/include/standards.h
+AMSCanvas.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
+AMSCanvas.o: /usr/include/sys/select.h /usr/include/sys/access.h
+AMSCanvas.o: /usr/include/sys/seek.h /usr/include/getopt.h
+AMSCanvas.o: /usr/include/stdlib.h /pgm0/EventDisplay/root/include/TROOT.h
+AMSCanvas.o: TMotifCanvas.h /pgm0/EventDisplay/root/include/TControlBar.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TMenuBar.h
+AMSCanvas.o: /usr/include/Xm/RowColumn.h /usr/include/Xm/Xm.h
+AMSCanvas.o: /usr/include/X11/Intrinsic.h /usr/include/X11/Xlib.h
+AMSCanvas.o: /usr/include/X11/X.h /usr/include/X11/Xfuncproto.h
+AMSCanvas.o: /usr/include/X11/Xosdefs.h /usr/include/stddef.h
+AMSCanvas.o: /usr/include/X11/Xutil.h /usr/include/X11/Xresource.h
+AMSCanvas.o: /usr/include/string.h /usr/include/strings.h
+AMSCanvas.o: /usr/include/X11/Core.h /usr/include/X11/Composite.h
+AMSCanvas.o: /usr/include/X11/Constraint.h /usr/include/X11/Object.h
+AMSCanvas.o: /usr/include/X11/RectObj.h /usr/include/X11/Shell.h
+AMSCanvas.o: /usr/include/X11/SM/SMlib.h /usr/include/X11/SM/SM.h
+AMSCanvas.o: /usr/include/X11/ICE/ICElib.h /usr/include/X11/ICE/ICE.h
+AMSCanvas.o: /usr/include/X11/Xatom.h /usr/include/Xm/XmStrDefs.h
+AMSCanvas.o: /usr/include/X11/StringDefs.h /usr/include/Xm/VirtKeys.h
+AMSCanvas.o: /usr/include/Xm/VendorS.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TMenuToggle.h
+AMSCanvas.o: /usr/include/Xm/ToggleBG.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TContextMenu.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TMenu.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TMotifDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TFileSelectionDialog.h
+AMSCanvas.o: /usr/include/Xm/FileSB.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TErrorDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TInfoDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TBusyDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TPromptDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TQuestionDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TWarningDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TSelectionDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TText.h AMSDisplay.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSCanvas.o: AMSHist.h /pgm0/EventDisplay/root/include/TTree.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TPaveLabel.h Debugger.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TObject.h
+AMSHist.o: AMSHist.h /pgm0/EventDisplay/root/include/TTree.h
+AMSHist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSHist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSHist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSHist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSHist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h
+AMSAntiHist.o: AMSAntiHist.h AMSHist.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TTree.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSTrackerHist.o: AMSTrackerHist.h AMSHist.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TTree.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSCTCHist.o: AMSCTCHist.h AMSHist.h /pgm0/EventDisplay/root/include/TTree.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSTOFHist.o: AMSTOFHist.h AMSHist.h /pgm0/EventDisplay/root/include/TTree.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSLVL1Hist.o: AMSLVL1Hist.h AMSHist.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TTree.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSLVL3Hist.o: AMSLVL3Hist.h AMSHist.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TTree.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSAxAMSHist.o: AMSAxAMSHist.h AMSHist.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TTree.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+TRadioButton.o: /pgm0/EventDisplay/root/include/TCanvas.h
+TRadioButton.o: /pgm0/EventDisplay/root/include/TInterpreter.h TRadioButton.h
+TRadioButton.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+TSwitch.o: /pgm0/EventDisplay/root/include/TCanvas.h
+TSwitch.o: /pgm0/EventDisplay/root/include/TMath.h TSwitch.h TRadioButton.h
+TSwitch.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+Debugger.o: /usr/include/stdio.h /usr/include/standards.h
+Debugger.o: /usr/include/sys/seek.h /usr/include/va_list.h
+Debugger.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
+Debugger.o: /usr/include/sys/select.h /usr/include/getopt.h
+Debugger.o: /usr/include/sys/limits.h /usr/include/sys/machine/machlimits.h
+Debugger.o: /usr/include/sys/syslimits.h /usr/include/sys/machine/machtime.h
+Debugger.o: /usr/include/sys/rt_limits.h /usr/include/stdarg.h Debugger.h
+Debugger.o: /pgm0/EventDisplay/root/include/TObject.h
+main.o: /pgm0/EventDisplay/root/include/TROOT.h
+main.o: /pgm0/EventDisplay/root/include/TApplication.h
+main.o: /pgm0/EventDisplay/root/include/TFile.h
+main.o: /pgm0/EventDisplay/root/include/TTree.h
+main.o: /pgm0/EventDisplay/root/include/TGeometry.h AMSDisplay.h AMSCanvas.h
+main.o: AMSHist.h /pgm0/EventDisplay/root/include/TNamed.h
+main.o: /pgm0/EventDisplay/root/include/TH2.h
+main.o: /pgm0/EventDisplay/root/include/TH1.h
+main.o: /pgm0/EventDisplay/root/include/TPad.h
+main.o: /pgm0/EventDisplay/root/include/TPaveLabel.h Debugger.h
+main.o: /pgm0/EventDisplay/root/include/TObject.h /usr/include/sys/stat.h
+main.o: /usr/include/standards.h /usr/include/sys/types.h
+main.o: /usr/include/mach/machine/vm_types.h /usr/include/sys/select.h
+main.o: /usr/include/sys/mode.h /usr/include/sys/file.h
+main.o: /usr/include/sys/param.h /usr/include/sys/limits.h
+main.o: /usr/include/sys/machine/machlimits.h /usr/include/sys/syslimits.h
+main.o: /usr/include/sys/machine/machtime.h /usr/include/sys/rt_limits.h
+main.o: /usr/include/sys/machine/machparam.h /usr/include/machine/endian.h
+main.o: /usr/include/sys/signal.h /usr/include/sys/siginfo.h
+main.o: /usr/include/sys/sysmisc.h /usr/include/sys/machine/signal.h
+main.o: /usr/include/machine/context.h /usr/include/sys/procset.h
+main.o: /usr/include/sys/access.h /usr/include/sys/fcntl.h
+main.o: /usr/include/sys/seek.h /usr/include/stdlib.h /usr/include/getopt.h
+main.o: main.h AMSAntiHist.h AMSTrackerHist.h AMSTOFHist.h AMSLVL1Hist.h
+main.o: AMSLVL3Hist.h AMSCTCHist.h AMSAxAMSHist.h

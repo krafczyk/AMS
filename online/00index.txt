@@ -1,0 +1,61 @@
+
+=========================================================================
+
+     Introduction  to  a  Offline Monitor  Based  on  ROOT  and
+     AMS Event  Display ( Ping  Yeh /Academia Sinica)
+
+				
+		  	     
+
+
+-------------------------------------------------------------------------
+1. Obtaining the program
+------------------------
+
+The program sources can be obtained by doing
+
+	cvs checkout AMS/online
+
+This will create AMS/pnline directory and put all source files
+of AMS offline monitor into it.
+
+
+-------------------------------------------------------------------------
+2. Making the program
+---------------------
+
+This program is based on Rene Brun's ROOT and ATLFast program.  To build it,
+cd to AMS/pnline directory, then type 
+
+	gmake depend
+
+followed by
+
+	gmake standalone
+
+and all .cxx files are compiled and linked into a shared library called
+libAMS.so.  Please note that this has only been tested on alpha workstations
+running DEC/UNIX.
+
+
+-------------------------------------------------------------------------
+3. Running the program
+----------------------
+
+To run it, please make sure you have the environment to run ROOT.
+Only 3 things needs to be set:
+
+1. Environment variable ROOTSYS  should point to the ROOT directory.
+   (On boronams $ROOTSYS should be set to /pgm0/EventDisplay/root)
+2. .:$ROOTSYS/lib is added into Environment variables LD_LIBRARY_PATH.
+3. $ROOTSYS/bin is in your path.
+
+Then you are ready to go.
+Type h2root your_converted_ntuple_file_name your_preferred_name
+Type amsed your_preferred_name.
+
+
+
+
+
+4. Files
