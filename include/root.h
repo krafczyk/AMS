@@ -112,9 +112,9 @@ public:
   int ChargeTOF[MAXCHARGE];
   int ChargeTracker[MAXCHARGE];
   float ProbTOF[MAXCHARGE][4];
-  int CharTOF[MAXCHARGE][4];
+  int ChInTOF[MAXCHARGE][4];
   float ProbTracker[MAXCHARGE][4];
-  int CharTracker[MAXCHARGE][4];
+  int ChInTracker[MAXCHARGE][4];
   float ProbAllTracker[MAXCHARGE];
   float TrunTOF[MAXCHARGE];
   float TrunTOFD[MAXCHARGE];

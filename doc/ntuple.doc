@@ -69,10 +69,10 @@ Below there is a description of a  ntuple.
 * I*4  *              * CHARGE   * chargetof(ncharge)    // TOF charge
 * I*4  *              * CHARGE   * chargetracker(ncharge) // Tracker Charge
 * R*4  *              * CHARGE   * probtof(4,ncharge)    // TOF highest Probs
-* I*4  *              * CHARGE   * chartof(4,ncharge)    // charge indices for highest Probs
+* I*4  *              * CHARGE   * chintof(4,ncharge)    // charge indices for highest Probs
                                                             charge.doc
 * R*4  *              * CHARGE   * probtracker(4,ncharge) // Tracker highest Probs
-* I*4  *              * CHARGE   * chartracker(4,ncharge) // charge indices for highest Probs
+* I*4  *              * CHARGE   * chintracker(4,ncharge) // charge indices for highest Probs
                                                             charge.doc
 * R*4  *              * CHARGE   * proballtracker(ncharge)// Tracker highest Prob (all hits)
 * R*4  *              * CHARGE   * truntof                // Trun (-1) mean (Anodes)

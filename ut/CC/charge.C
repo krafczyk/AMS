@@ -317,11 +317,11 @@ void AMSCharge::_writeEl(){
     for(j=0; j<ncharge; j++){
       if(_IndxTOF[j]==i){
         CN->ProbTOF[CN->Ncharge][i]=_ProbTOF[j];
-        CN->CharTOF[CN->Ncharge][i]=j+1;
+        CN->ChInTOF[CN->Ncharge][i]=j+1;
       }
       if(_IndxTracker[j]==i){
         CN->ProbTracker[CN->Ncharge][i]=_ProbTracker[j];
-        CN->CharTracker[CN->Ncharge][i]=j+1;
+        CN->ChInTracker[CN->Ncharge][i]=j+1;
         if(i==0) CN->ProbAllTracker[CN->Ncharge]=_ProbTracker[j];
       }
     }
