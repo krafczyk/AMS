@@ -46,7 +46,7 @@ if(charge>_chargeTracker[ncharge-1]){
  int index;
  int voted=getvotedcharge(index);
  int i=charge;
- if(voted<=3)return _ProbTOF[i]*_ProbTracker[i]/_ProbTOF[index]/_ProbTracker[index];
+ if(voted<=CHARGEFITFFKEY.TrackerOnly)return _ProbTOF[i]*_ProbTracker[i]/_ProbTOF[index]/_ProbTracker[index];
  else return _ProbTracker[i]/_ProbTracker[index];
 }
 
@@ -55,8 +55,10 @@ integer AMSCharge::getvotedcharge(int & index){
   int charge=0;
 
 // Only tracker above this value
-  if (_ChargeTOF>CHARGEFITFFKEY.TrackerOnly) return _ChargeTracker;
-
+  if (_ChargeTOF>CHARGEFITFFKEY.TrackerOnly){
+    index=_ChargeTracker;
+    return _ChargeTracker;
+  }
 // Exclude bad measurement if possible
   number probmin=CHARGEFITFFKEY.ProbMin;
   int usetof=_ProbTOF[_iTOF]>probmin?1:0;

@@ -258,7 +258,7 @@ static integer calcTrackerHKl(integer i);
 static void builddaq(integer i, integer length, int16u *p);
 static void builddaqSh(integer i, integer length, int16u *p);
 static void buildTrackerHKdaq(integer i, integer length, int16u *p);
-
+static integer getselrun(integer i=0);
 friend class AMSJob;
 };
 #endif
