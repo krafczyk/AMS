@@ -6,7 +6,7 @@
 
 typedef char ch80[80];
 
-int last_file_read;
+int last_file_read, new_files=0;
 char * CAS_dir, * Coo_db_dir, last_file_n[80], chb80[80];
 char last_name[80]="last.file";
 time_t file_t, last_file_time;
@@ -26,7 +26,6 @@ int new_files_coming() {
   struct dirent *dp;
   struct stat statf;
   time_t tmin=0x7ffffffa;
-
 
   /* reads the last read file name */
   last_f=fopen(last_name,"r");

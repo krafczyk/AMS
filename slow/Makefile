@@ -11,10 +11,10 @@ CC=gcc
 OBJS =	Coo.c
 
 recalc: Coordinates.o
-	$(CC) $(CFLAGS) -o Coo_file Coo_file.c Coordinates.o $(LDFLAGS) $(LOADLIBES)
+	$(CC) $(CFLAGS) -g -o Coo_file Coo_file.c Coordinates.o $(LDFLAGS) $(LOADLIBES)
 
 coo_recalc.o: Coordinates.h
-	$(CC)  $(CFLAGS) -c Coordinates.c  $(LDFLAGS) $(LOADLIBES)
+	$(CC)  $(CFLAGS) -g -c Coordinates.c  $(LDFLAGS) $(LOADLIBES)
 
 
 
