@@ -1,0 +1,4 @@
+while amsedc
+do
+echo amsedc terminated
+done

@@ -24,7 +24,7 @@ int Error; // needed by Motif
 
 TROOT root("AMS", "AMS ROOT", initfuncs);
 
-void main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 // First create application environment. If you replace TApplication
 // by TRint (which inherits from TApplication) you will be able
@@ -64,10 +64,7 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
   ifstream iftxt(fnama,ios::in);
   if(!iftxt){
      cerr <<"amsedc::init-F-ErrorOpenFile "<<fnama<<endl;
-
-      if(argc<=1)exit(1);
-      fnam[0]=0;
-      strcpy(fnam,filename);
+     return 1;
   }
   else {
     fnam[0]=0;
@@ -84,8 +81,8 @@ out:
    TTree * t = (TTree *)f.Get("h1");
 
    if(!t){
-    if(argc <=1)cout <<"Please type file name as first parameter"<<endl;
-    return;
+     //if(argc <=1)cout <<"Please type file name as first parameter"<<endl;
+    return 1;
    }
 
    cout <<" "<<endl;
@@ -120,7 +117,7 @@ out:
                        iftxt.close();
                        if(strcmp(fnamo,fnam)){
                         strcpy(fnam,fnamo);
-                        goto out;
+                        //                        goto out;
                         goto end;
                        }
                       }
@@ -129,7 +126,7 @@ out:
 
   }
 end:              
-      return ;
+      return 0;
   
 
 
