@@ -331,7 +331,7 @@ bind all <Enter> {focus %W}
 # b) During execution, the button becomes "Stop  gbatch.exe" (to kill/stop the command)
 proc AMSMake {} {
   global MakeInput log make AMSDir
-  set command "bash -c \"cd $AMSDir/install; gmake -if Mopt\""
+  set command "bash -c \"cd $AMSDir/install; gmake gbatch\""
   if {[catch {open "|$command |& cat"} MakeInput]} {
         $log insert end $MakeInput\n
         $log see end
@@ -385,7 +385,7 @@ proc AMSUpdate {} {
 # a) gmake shared -f Mopt; output is shown in the log zone ".t.log"
 proc AMSRoot {} {
   global RootInput log AMSDir
-  set command "bash -c \"cd $AMSDir/install; gmake shared -f Mopt\""
+  set command "bash -c \"cd $AMSDir/install; gmake shared\""
   if {[catch {open "|$command |& cat"} RootInput]} {
         $log insert end $RootInput\n
   } else {
@@ -408,7 +408,7 @@ proc AMSRoot {} {
 # a) gmake -if Mopt clean; output is shown in the log zone ".t.log"
 proc AMSClean {} {
   global CleanInput log AMSDir
-  set command "bash -c \"cd $AMSDir/install; gmake -if Mopt clean\""
+  set command "bash -c \"cd $AMSDir/install; gmake clean\""
   if {[catch {open "|$command |& cat"} CleanInput]} {
         $log insert end $CleanInput\n
   } else {
