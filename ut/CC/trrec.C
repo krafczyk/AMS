@@ -1719,7 +1719,7 @@ AMSgObj::BookTimer.start("TrFalseX");
 
 
 void AMSTrTrack::AdvancedFit(){
-   if(_Ridgidity < 0){
+   if( _Ridgidity < 0){
     if(_Pattern <22){
       Fit(1);
       Fit(2);

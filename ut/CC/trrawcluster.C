@@ -151,25 +151,25 @@ for ( i=0;i<ms;i++){
      integer ilay=idd.getlayer();
      integer half=idd.gethalf();
      AMSTrRawCluster *pcl;
-     k=idd.getside();
+     int side=idd.getside();
       pcl=0;
       integer nlmin;
       integer nleft=0;
       integer nright=0;
-      for (j=0;j<AMSDBc::NStripsDrp(ilay,k);j++){
+      for (j=0;j<AMSDBc::NStripsDrp(ilay,side);j++){
       geant s2n=0;
         idd.upd(j);
-        if(*(ida[i]+j)> TRMCFFKEY.thr1R[k]*idd.getsig()){
+        if(idd.getsig()>0 && *(ida[i]+j)> TRMCFFKEY.thr1R[side]*idd.getsig()){
           s2n= *(ida[i]+j)/idd.getsig();
           nlmin = nright==0?0:nright+1; 
-          nleft=max(j-TRMCFFKEY.neib[k],nlmin);
+          nleft=max(j-TRMCFFKEY.neib[side],nlmin);
           idd.upd(nleft);
           while(nleft >nlmin && 
-          *(ida[i]+nleft)> TRMCFFKEY.thr2R[k]*idd.getsig())idd.upd(--nleft);
-          nright=min(j+TRMCFFKEY.neib[k],AMSDBc::NStripsDrp(ilay,k)-1);
+          *(ida[i]+nleft)> TRMCFFKEY.thr2R[side]*idd.getsig())idd.upd(--nleft);
+          nright=min(j+TRMCFFKEY.neib[side],AMSDBc::NStripsDrp(ilay,side)-1);
           idd.upd(nright);
-          while(nright < AMSDBc::NStripsDrp(ilay,k)-1 && 
-          *(ida[i]+nright)> TRMCFFKEY.thr2R[k]*idd.getsig())idd.upd(++nright);
+          while(nright < AMSDBc::NStripsDrp(ilay,side)-1 && 
+          *(ida[i]+nright)> TRMCFFKEY.thr2R[side]*idd.getsig())idd.upd(++nright);
           for (int k=nleft;k<=nright;k++){
             *(ida[i]+k)=idd.getgain()*(
             *(ida[i]+k)+(TRMCFFKEY.CalcCmnNoise[0]==0?idd.getsig()*rnormx():0));
