@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.7 2001/02/19 11:21:39 choutko Exp $
+//  $Id: dbserver.C,v 1.8 2001/02/19 13:48:53 choutko Exp $
 #include <dbserver.h>
 
 
@@ -19,6 +19,38 @@ for(MOI i=mo.begin();i!=mo.end();++i){
    }
 }
 
+// local client
+
+     DPS::Client::ActiveClient_var as=new DPS::Client::ActiveClient();
+     as->id= cid;
+     as->id.Type=getType();
+     as->Status=DPS::Client::Active;
+     time_t tt;
+     time(&tt);
+     as->LastUpdate=tt;     
+     as->Start=tt;
+    int length=_refmap.size();
+    if(length){
+     (as->ars).length(length);
+    length=0;
+      for(  map<AString,CORBA::String_var>::iterator mi=getrefmap().begin();mi!=getrefmap().end();++mi){
+        ((as->ars)[length]).Interface=(const char *)(mi->first);
+        ((as->ars)[length]).IOR=(const char *)(mi->second);
+        ((as->ars)[length]).Type=getType();
+        ((as->ars)[length]).uid=as->id.uid;
+        length++;
+       }
+    }
+     else {
+      (as->ars).length(1);
+      ((as->ars)[0]).Interface=(const char *)("Dummy");
+      ((as->ars)[0]).IOR=(const char *)(" ");
+      ((as->ars)[0]).Type=DPS::Client::Generic;
+      ((as->ars)[0]).uid=0;
+     }
+     _acl.push_back(as);
+
+
 
 
 
@@ -37,7 +69,45 @@ for(MOI i=mo.begin();i!=mo.end();++i){
     _defaultorb=(i->second)._orb;
    }
 }
+
+
+// local client
+
+     DPS::Client::ActiveClient_var as=new DPS::Client::ActiveClient();
+     as->id= cid;
+     as->id.Type=getType();
+     as->Status=DPS::Client::Active;
+     time_t tt;
+     time(&tt);
+     as->LastUpdate=tt;     
+     as->Start=tt;
+    int length=_refmap.size();
+    if(length){
+     (as->ars).length(length);
+    length=0;
+      for(  map<AString,CORBA::String_var>::iterator mi=getrefmap().begin();mi!=getrefmap().end();++mi){
+        ((as->ars)[length]).Interface=(const char *)(mi->first);
+        ((as->ars)[length]).IOR=(const char *)(mi->second);
+        ((as->ars)[length]).Type=getType();
+        ((as->ars)[length]).uid=as->id.uid;
+        length++;
+       }
+    }
+     else {
+      (as->ars).length(1);
+      ((as->ars)[0]).Interface=(const char *)("Dummy");
+      ((as->ars)[0]).IOR=(const char *)(" ");
+      ((as->ars)[0]).Type=DPS::Client::Generic;
+      ((as->ars)[0]).uid=0;
+     }
+     _acl.push_back(as);
+
+
+
 //Now Read ActiveClient
+
+
+
 
 ReReadTables(_cvar);
 

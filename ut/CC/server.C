@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.45 2001/02/19 11:21:39 choutko Exp $
+//  $Id: server.C,v 1.46 2001/02/19 13:48:53 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -3379,7 +3379,6 @@ void Client_impl::_init(){
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
   _defaultorb=_pser->getdefaultorb();
  if(getType()==DBServer && _parent->getdbfile()){
-//  StartClients(_parent->getcid());
  }
 
 }
