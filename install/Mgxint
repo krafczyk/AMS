@@ -1,4 +1,4 @@
-#  $Id: Mgxint,v 1.62 2001/07/05 17:15:47 choutko Exp $
+#  $Id: Mgxint,v 1.63 2001/07/11 08:54:55 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -14,7 +14,7 @@ TIMEL=../bin/aix/timel.o
 endif
 ifeq  "$(shell uname)"  "OSF1" 
 CFLAGS= -D__AMSDEBUG__   -D__ALPHA__ -g   -I../include -I../include/stl -tlocal 
-LDFLAGS=  -lUfor -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321  -lpawlib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag  -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
+LDFLAGS=  -lUfor -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321  -lpawlib -llapack3 -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag  -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
 CC=cxx -D__NAMESPACE__
 ifeq "$(shell cxx -V | grep -c 6.)" "1"
 #CC=cxx -D__NAMESPACE__  -oldcxx
@@ -43,7 +43,7 @@ CFLAGSTOFSIM=             -I../include   -I../db
 CFLAGSn=           -I../include   -I../db
 FFLAGS=   -fno-automatic -g -I../include  
 CFLAGSDAQ=         -I../include 
-LDFLAGS=    -static -L/cern/pro/lib  -lgeant321  -lpawlib -lpacklib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib   -lcrypt -ldl   -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
+LDFLAGS=    -static -L/cern/pro/lib  -lgeant321  -lpawlib -llapack3 -lpacklib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib   -lcrypt -ldl   -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
 CC=g++ -D__NAMESPACE__
 FF=g77
 LD=g++
