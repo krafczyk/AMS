@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.9 2001/02/09 18:40:45 kscholbe Exp $
+//  $Id: trddbc.C,v 1.10 2001/02/09 18:44:30 kscholbe Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -161,7 +161,7 @@ void TRDDBc::init(){
        switch(i){
         case 2:
 //        coo[2]=839./10+OctagonDimensions(i,4);
-        coo[2]=794./10+OctagonDimensions(i,4);// tempor solution by E.Choumilov
+        coo[2]=794./10+OctagonDimensions(i,4);// temporary solution by E.Choumilov
         break;
         case 1:
 //        coo[2]=839./10-OctagonDimensions(i,4);
