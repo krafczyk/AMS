@@ -4,11 +4,11 @@ module DPS{
   interface Client{
 
    struct NominalClient{
-    string HostName;
-    short  ClientsPerHost;
+    short MaxClients;
+    float CPUNeeded; 
+    short MemoryNeeded;
     string WholeScriptPath;
-    string ExecPath;
-    string InputFilePath;
+    string LogPath;
     string SubmitCommand;
    }; 
 
@@ -32,11 +32,11 @@ module DPS{
      ClientType   Type;
    };
 
-    typedef sequence<ActiveClient> ACL;
-    void getACL(out ACL acl);
+    typedef sequence<ActiveClient> ACS;
+    void getACL(out ACS acl);
 
-    typedef sequence<NominalClient> NCL;
-    void  getNCL(out NCL ncl);
+    typedef sequence<NominalClient> NCS;
+    void  getNCL(out NCS ncl);
       
     void sendId(in CID id, in long Propagate, in long Error);      
    
@@ -47,15 +47,14 @@ module DPS{
     typedef sequence<octet> TDV;
     TDV getTDV(in string name, in time Insert, in time Begin, in time End);
     void sendTDV(in TDV tdv, in string name, in time Insert, in time Begin, in time End, in long Propagate, in long Error );
-    struct RunEv{
+    enum RunStatus{Failed,ToBeRerun, Processing, Finished};
+     struct RunEvInfo{
      unsigned long Run;
      long FirstEvent;
      long LastEvent;
      long Priority;
-    };
-     struct RunEvInfo{
-     RunEv rv;
      string FilePath;
+     RunStatus Status;
      string OutputDirPath;
      long UpdateFreq;
      long DieHard;
@@ -89,7 +88,7 @@ module DPS{
      time End;
     };
     typedef sequence<TDVTableEntry> TDVTable; 
-    TDVTable getTDVTable(in string Name, in RunEv rv,in long Propagate, in long Error);     
+    TDVTable getTDVTable(in string Name, in unsigned long Run,in long Propagate, in long Error);     
     
     enum DSTStatus{Success,Failure};
     struct DSTEnd{
@@ -125,7 +124,7 @@ module DPS{
 */
     struct EndRunInfo{
      CID id;
-     RunEv rv;
+     unsigned long Run;
      long EventsProcessed;
      long ErrorsFound;
     };
@@ -145,13 +144,15 @@ module DPS{
      time TimeStamp;
     };
     void sendCriticalOps(in CriticalOps op, in long Propagate,in long Error);
-    void sendACL(in ACL acl, in long Propagate,in long Error);
-    void sendNCL(in NCL ncl, in long Propagate,in long Error);
+    void sendACL(in ACS acl, in long Propagate,in long Error);
+    void sendNCL(in NCS ncl, in long Propagate,in long Error);
     void ping();
    struct NominalHost{
     string HostName;
     string OS;
-    long   Clock;
+    short   CPUNumber;
+    short   Memory;
+    long    Clock;      
    };
    
    enum HostStatus{Unknown,NoResponse,LastClientFailed,OK};
@@ -163,9 +164,9 @@ module DPS{
       string UpTime;
       time LastUpdate;
    };
-    typedef sequence<ActiveHost> AHL;
-    void getAHL(out AHL ahl);
-    void sendAHL(in AHL ahl, in long Propagate,in long Error);
+    typedef sequence<ActiveHost> AHS;
+    void getAHL(out AHS ahl);
+    void sendAHL(in AHS ahl, in long Propagate,in long Error);
    };
   interface Monitor: Client{
   };
