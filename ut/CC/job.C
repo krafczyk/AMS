@@ -532,6 +532,9 @@ TRCLFFKEY.Thr2S[1] =10;
 TRCLFFKEY.Thr1R[0] =2.75;
 TRCLFFKEY.Thr1R[1] =3.5;
 
+TRCLFFKEY.ThrClS[0]=20;
+TRCLFFKEY.Thr1S[0] =15;
+TRCLFFKEY.Thr2S[0] =15;
 
 TRCLFFKEY.Thr2R[0] =1.;
 TRCLFFKEY.Thr2R[1] =1.;  // should be around 1 if ThrClNEl[1]=3;
@@ -2024,7 +2027,7 @@ integer AMSJob::FillJobTDV(integer nobj, tdv_time *tdv)
 
 void       _genonlinebookhist() 
 {
-const   int nids = 32;
+const   int nids = 24;
 
 int16u ids[nids] =
   { 0x200,
@@ -2033,47 +2036,53 @@ int16u ids[nids] =
     0x1680, 0x1740,                                           //  TRK Reduced
     0x1681, 0x1741,                                           //  TRK Raw
     0x168C, 0x174C,                                           //  TRK Mixed
-    0x1682, 0x1742,                                           //  TRK Status
-    0x1683, 0x1743,                                           //  TRK Peds
-    0x1684, 0x1744,                                           //  TRK Sigm
-    0x1685, 0x1745,                                           //  TRK CmN
     0x0440                                                    //  Level-3
   };
 
 
-
-  char   *ids_names[]  = {"general    ",
-                        "tof(raw)_0 ","tof(raw)_1 ","tof(raw)_2 ",
-                        "tof(raw)_3 ","tof(raw)_4 ","tof(raw)_5 ",
-                        "tof(raw)_6 ","tof(raw)_7 ",
-                        "tof(red)_0 ","tof(red)_1 ","tof(red)_2 ",
-                        "tof(red)_3 ","tof(red)_4 ","tof(red)_5 ",
-                        "tof(red)_6 ","tof(red)_7 ",
-                        "trk(red)_32","trk(red)_72",
-                        "trk(raw)_32","trk(raw)_72",
-                        "trk(mix)_32","trk(mix)_72",
-                        "trk(sts)_32","trk(sts)_72",
-                        "trk(ped)_32","trk(ped)_72",
-                        "trk(sgm)_32","trk(sgm)_72",
-                        "trk(cmn)_32","trk(cmn)_72",
+char   *ids_names[]  = {"Length (bytes) GenBlock    ",
+                        "Length (bytes) TOF(raw) 0 ",
+                        "Length (bytes) TOF(raw) 1 ",
+                        "Length (bytes) TOF(raw) 2 ",
+                        "Length (bytes) TOF(raw) 3 ",
+                        "Length (bytes) TOF(raw) 4 ",
+                        "Length (bytes) TOF(raw) 5 ",
+                        "Length (bytes) TOF(raw) 6 ",
+                        "Length (bytes) TOF(raw) 7 ",
+                        "Length (bytes) TOF(red) 0 ",
+                        "Length (bytes) TOF(red) 1 ",
+                        "Length (bytes) TOF(red) 2 ",
+                        "Length (bytes) TOF(red) 3 ",
+                        "Length (bytes) TOF(red) 4 ",
+                        "Length (bytes) TOF(red) 5 ",
+                        "Length (bytes) TOF(red) 6 ",
+                        "Length (bytes) TOF(raw) 7 ",
+                        "Length (bytes) TRK(red) 32",
+                        "Length (bytes) TRK(red) 72",
+                        "Length (bytes) TRK(raw) 32",
+                        "Length (bytes) TRK(raw) 72",
+                        "Length (bytes) TRK(mix) 32",
+                        "Length (bytes) TRK(mix) 72",
                         "Level1     "};
+
   int nchans[nids] ={100,
                     100.,100.,100.,100.,100.,100.,100.,100.,
                     100.,100.,100.,100.,100.,100.,100.,100.,
-                    100.,100.,
-                    160000.,160000.,
-                    160000.,160000.,
-                    160000.,160000.,
-                    160000.,160000.,
-                    160000.,160000.,
+                    1000.,1000.,
+                    40000.,40000.,
+                    40000.,40000.,
                     100.};
                     
   for (int i=0; i<nids; i++) {
      int hid  = 300000 + ids[i];
      geant f = nchans[i];
-     HBOOK1(hid,ids_names[i],100,0.,f,0.);
+     integer nbin = 50;
+     if (i>17) nbin = 100;
+     HBOOK1(hid,ids_names[i],nbin,0.,f,0.);
   }
-    HBOOK1(300000,"Event Length (words)",1000,0.,1000.,0.);
+    HBOOK1(300000,"Length (bytes) event",400,0.,80000.,0.);
+    HBOOK1(300001,"Length (bytes) TOF",200,0.,800.,0.);
+    HBOOK1(300002,"Length (bytes) Tracker",400,0.,80000.,0.);
 }
 
 #ifdef __DB__

@@ -127,6 +127,16 @@ if(_create(btype) ){
  
 
 integer DAQEvent::_EventOK(){
+
+  const int tofidL = 0x1401;
+  const int tofidR = 0x15C1;
+
+  const int trkidL = 0x1680;
+  const int trkidR = 0x174C;
+
+  integer tofL = 0;
+  integer trkL = 0;
+
   if(_Length >1 && _pData ){
     if( (_pData[1] & ~63)<<3 ==0){
       // envelop header
@@ -136,11 +146,26 @@ integer DAQEvent::_EventOK(){
       ntot+=*(_pcur)+_OffsetL;
       if (AMSJob::gethead() -> isMonitoring()) {
         int l   = *(_pcur) + _OffsetL;
-        int hid    = 300000 + *(_pcur+1);
-        HF1(hid,l,1.);
+        int bid = *(_pcur+1);
+        int hid    = 300000 + bid; 
+        if (bid == 0x200 ||  bid == 0x0440) HF1(hid,l,1.);
+        if (bid >= tofidL && bid<=tofidR) {
+         HF1(hid,l,1.);
+         tofL = tofL + l;
+        }
+        if (bid == 0x1680 || bid == 0x1740 ||
+            bid == 0x1681 || bid == 0x1741 ||
+            bid == 0x168C || bid == 0x174C) {
+              trkL = trkL + l;
+              HF1(hid,l,1.);
+         }
       }
-     } 
-    if (AMSJob::gethead()->isMonitoring()) HF1(300000,_Length,1.);
+     }
+    if (AMSJob::gethead()->isMonitoring()) {
+     HF1(300000,_Length,1.);
+     if (tofL) HF1(300001,tofL,1.);
+     if (trkL) HF1(300002,trkL,1.);
+    }
     if(ntot != _Length-2){
        cerr <<"DAQEvent::_Eventok-E-length mismatch: Header says length is "<<
          _Length<<" Blocks say length is "<<ntot+2<<endl;
@@ -154,7 +179,7 @@ integer DAQEvent::_EventOK(){
      //       cout <<ic++ <<" "<<*(_pcur)<<endl;
 #endif   
        return 0;
-     }
+    }
      else return 1;    
     }
     else {
