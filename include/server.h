@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.34 2001/02/21 12:45:35 choutko Exp $
+//  $Id: server.h,v 1.35 2001/03/09 16:41:18 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -62,6 +62,7 @@ typedef list<DPS::Client::NominalHost_var>::iterator NHLI;
 NHL  _nhl;
 
 typedef map<AString,CORBA::String_var> MS;
+typedef map<AString,CORBA::String_var>::iterator MSI;
  MS _refmap;
 virtual void _PurgeQueue()=0;
 

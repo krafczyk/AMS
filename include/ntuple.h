@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.43 2001/03/05 10:51:32 choutko Exp $
+//  $Id: ntuple.h,v 1.44 2001/03/09 16:41:17 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -50,6 +50,7 @@ protected:
 #ifdef __WRITEROOT__
   static TTree* _tree;  
   static TFile* _rfile;
+//  static TROOT _troot;
 #endif
   virtual void _init(){};
 

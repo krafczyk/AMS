@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.187 2001/03/06 16:37:06 choumilo Exp $
+#  $Id: Mopt,v 1.188 2001/03/09 16:41:06 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -522,11 +522,11 @@ $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC)
 	$(LD) -v -o $(CLIENT) $(OBJECTSC)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGS)
 
 $(OBJECTSE):         $(SRCSCPP)
-	$(CPP)  -c $(CFLAGS) $(SRCSCPP) 
+	$(CPP)  -fpermissive  -c $(CFLAGS) $(SRCSCPP) 
 	mv *.o $(BIN)
 
 $(OBJECTCO):         $(SRCS)
-	$(CCC)  -c $(CFLAGS) $(SRCS) 
+	$(CCC) -c $(CFLAGS) $(SRCS) 
 	mv *.o $(BIN)
 
 
@@ -544,34 +544,34 @@ $(SRCSCPP):   $(SRCS) 	 $(INCLUDE)server.idl
 
 
 $(BIN)gbatch_c.o:         $(SCC)gbatch.C
-	$(CC) -c $(CFLAGS) -D__USE_STD_IOSTREAM $(SCC)gbatch.C $(IDLFLAGS)  -o $(BIN)gbatch_c.o
+	$(CC) -c -fpermissive $(CFLAGS) -D__USE_STD_IOSTREAM $(SCC)gbatch.C $(IDLFLAGS)  -o $(BIN)gbatch_c.o
 
 $(BIN)geant_c.o: 	 $(SCC)geant.C
-	$(CC) -c $(CFLAGSB) $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
+	$(CC) -c -fpermissive $(CFLAGSB) $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
 
 $(BIN)job_c.o: 	 $(SCC)job.C
-	$(CC) -c $(CFLAGS) $(IDLFLAGS) $(SCC)job.C -o $(BIN)job_c.o
+	$(CC) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)job.C -o $(BIN)job_c.o
 
 $(BIN)geant3_c.o: 	 $(SCC)geant3.C
-	$(CC) -c $(CFLAGS) $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
+	$(CC) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
 
 $(BIN)event_c.o: 	 $(SCC)event.C
-	$(CC) -c $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
+	$(CC) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
 
 $(BIN)timeid_c.o:        $(SCC)timeid.C
-	$(CC) -c $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
+	$(CC) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
            
 $(BIN)producer.o: 	 $(SCC)producer.C $(INCLUDE)client.h
-	$(CC) -c -w $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
+	$(CC) -c -w -fpermissive $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
 
 $(BIN)client.o: 	 $(SCC)client.C
-	$(CC) -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o
+	$(CC) -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o
 
 $(BIN)server.o: 	 $(SCC)server.C
-	$(CC)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
+	$(CC)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
 
 $(BIN)dbserver.o: 	 $(SCC)dbserver.C
-	$(CC)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
+	$(CC)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
 
 
 
