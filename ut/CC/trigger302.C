@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.8 2001/12/04 10:36:19 choumilo Exp $
+//  $Id: trigger302.C,v 1.9 2001/12/04 15:13:09 choutko Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -718,7 +718,7 @@ out:
     for(int i=0;i<TKDBc::nlay();i++){
       geant coo=coodown+(cooup-coodown)/(_TOFCoo[toftop[icase]][0][2]-_TOFCoo[tofbot[icase]][0][2])*
       (_TrackerCooZ[i]-_TOFCoo[tofbot[icase]][0][2]);
-      geant addmagfield=icase==0?0:LVL3FFKEY.TrTOFSearchReg*(1-fabs(_TrackerCooZ[i]-z12)/dz12);
+      geant addmagfield=(icase==0?0.1:1)*LVL3FFKEY.TrTOFSearchReg*(1-fabs(_TrackerCooZ[i]-z12)/dz12);
       geant addtof=addtofup+(_TOFCoo[toftop[icase]][0][2]-_TrackerCooZ[i])/dz12/2*(addtofdown-addtofup);
       _lowlimitTOF[icase][i]=-addmagfield-addtof+coo;
       _upperlimitTOF[icase][i]=addtof+addmagfield+coo;
@@ -777,7 +777,7 @@ out:
    for(int i=0;i<TKDBc::nlay();i++){
      geant coo=TRDAux._Par[icase][0]*(_TrackerCooZ[i]-TRDAux._Par[icase][2])+TRDAux._Par[icase][1];
      geant addtrd=fabs(3*TRDAux._Par[icase][3]*(_TrackerCooZ[i]-TRDAux._Par[icase][2]));
-      geant addmagfield=icase==0?0:2*LVL3FFKEY.TrTOFSearchReg*fabs((_TrackerCooZ[i]-_TrackerCooZ[0])/(_TrackerCooZ[TKDBc::nlay()-1]-_TrackerCooZ[0]));
+      geant addmagfield=(icase==0?0.2:2)*LVL3FFKEY.TrTOFSearchReg*fabs((_TrackerCooZ[i]-_TrackerCooZ[0])/(_TrackerCooZ[TKDBc::nlay()-1]-_TrackerCooZ[0]));
       _lowlimitTRD[icase][i]=-addmagfield-addtrd+coo;
       _upperlimitTRD[icase][i]=addmagfield+addtrd+coo;
    }
@@ -939,11 +939,6 @@ geant TriggerLVL302::Discriminator(integer nht){
         }
       }
     }
-//
-//===> 3rd: check that TOF criteria OK:
-//
-    if(plvl3->TOFOK() == 0) goto formed;//bad?
-//----------------------------------------
 
 
 
@@ -1060,8 +1055,9 @@ geant TriggerLVL302::Discriminator(integer nht){
        cout << "Trigger3  s/n*8 "<<((*((int16u*)ptr)>>6)&63)<<" lay "<<layer<<" strip "<<strip<<" coo "<<coo<<endl;
       }
       if (coo > plvl3->getlowlimitY(layer) && coo < plvl3->getupperlimitY(layer)){
-        if((_TrackerCoo[drp][crate][0]<0 && plvl3->getlowlimitX(layer) < 0) ||
-           (_TrackerCoo[drp][crate][0]>0 && plvl3->getupperlimitX(layer) > 0) ){
+//           cout << "added  y ok "<<endl;
+        if((_TrackerCoo[drp][crate][0]-0.1 <0 && plvl3->getlowlimitX(layer) < 0) ||
+           (_TrackerCoo[drp][crate][0]+0.1>0 && plvl3->getupperlimitX(layer) > 0) ){
 //           cout << "added ok "<<endl;
            if(!(plvl3->addnewhit(coo,amp,layer,drp+crate*NTRHDRP))){
            plvl3->TrackerTrigger()=2;
@@ -1077,8 +1073,8 @@ geant TriggerLVL302::Discriminator(integer nht){
   plvl3->fit(idum);
 
  formed:
-   tt2=HighResTime();
    plvl3->Finalize(); 
+   tt2=HighResTime();
       }
        if(plvl3->MainTrigger()>=LVL3FFKEY.Accept){ 
          plvl3->settime(tt2-tt1);
@@ -1189,8 +1185,16 @@ void TriggerLVL302::fit(integer idum){
   }
 
   _NTrHits=0;
-  for(int i=0;i<TKDBc::nlay();i++)_NTrHits+=_nhits[i];
-  if(_NTrHits > LVL3FFKEY.TrMaxHits){
+  int lla=-1;
+  int ula=-1;
+  for(int i=0;i<TKDBc::nlay();i++){
+   if(_nhits[i]){
+    if(lla<0)lla=i;
+    ula=i;
+    _NTrHits+=_nhits[i];
+   }
+  }
+  if(_NTrHits > LVL3FFKEY.TrMaxHits  ){
    _TrackerTrigger=2;
    return;
   }   
@@ -1227,7 +1231,7 @@ void TriggerLVL302::fit(integer idum){
    if( _NPatFound  == 0){
      int nht=0;
      for(int i=0;i<TKDBc::nlay();i++)if(_nhits[i])nht++;
-     if(nht>TKDBc::nlay()/2)_TrackerTrigger=5;
+     if(nht>TKDBc::nlay()/2 - (ula-lla==TKDBc::nlay()-1?1:0))_TrackerTrigger=5;
      else  _TrackerTrigger=1;
   }
    else if ( _NPatFound >2)_TrackerTrigger = 4;
@@ -1387,20 +1391,20 @@ integer TriggerLVL302::_Level3Searcher(int call, int j){
 void TriggerLVL302::Finalize(){
 // Finalize main trigger output
   if(_TrackerTrigger%8==1)_MainTrigger|=1;
-  if(((_TRDTrigger>>1)&1) ==0 && UseTRD())_MainTrigger|= 2;
-  if(_TrackerTrigger%8==2 )_MainTrigger|=4;
-  if(_TRDTrigger==4)_MainTrigger|=8;
-  if(_TOFTrigger==0)_MainTrigger|=16;
-  if((_TOFDirection==0)  && UseTOFTime())_MainTrigger|= 32;
-  if((_TOFDirection==-1) )_MainTrigger|= 64;
+  if(((_TRDTrigger>>1)&1) ==0 && UseTRD())_MainTrigger|= 16;
+  if(_TrackerTrigger%8==2 )_MainTrigger|=2;
+  if(_TRDTrigger==4)_MainTrigger|=4;
+  if(_TOFTrigger==0)_MainTrigger|=8;
+  if((_TOFDirection==0)  && UseTOFTime())_MainTrigger|= 64;
+  if((_TOFDirection==-1) )_MainTrigger|= 32;
   if(_TrackerTrigger%8==3  && _TOFDirection==-1)_MainTrigger|=1024;
   else if(_TrackerTrigger%8==3)_MainTrigger|=128;
   if(_TrackerTrigger%8==4 )_MainTrigger|=256;
   if(_TrackerTrigger%8==5 )_MainTrigger|=512;
   if(_TrackerTrigger%8==6 && _TOFDirection==-1)_MainTrigger|=128;
   else if(_TrackerTrigger%8==6)_MainTrigger|=1024;
-  if((_TrackerTrigger>>3)&1 )_MainTrigger|=2048;
-  if((_TRDTrigger>>3)&1 )_MainTrigger|=4096;
+  if((_TrackerTrigger>>3)&1 )_MainTrigger|=4096;
+  if((_TRDTrigger>>3)&1 )_MainTrigger|=2048;
 //  bit 13 not set up
 }
 

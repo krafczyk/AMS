@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.163 2001/11/30 16:47:13 choutko Exp $
+//  $Id: commons.h,v 1.164 2001/12/04 15:13:33 choutko Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -699,6 +699,7 @@ integer WriteHK;
 geant delta[2];
 geant gammaA[2];
 geant NonGaussianPart[2];
+geant BadCh[2];
 };
 #define TRMCFFKEY COMMON_BLOCK(TRMCFFKEY,trmcffkey)
 COMMON_BLOCK_DEF(TRMCFFKEY_DEF,TRMCFFKEY);

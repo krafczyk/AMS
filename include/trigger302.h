@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.6 2001/12/04 10:36:30 choumilo Exp $
+//  $Id: trigger302.h,v 1.7 2001/12/04 15:13:33 choutko Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include <link.h>
@@ -84,18 +84,18 @@ protected:
 
  uinteger _MainTrigger;     //  0  - initial state
                             // bit  0 No Tr Tracks found
-                            // bit  1 No TRD Tracks found
-                            // bit  2 Too Many Hits in Tracker
-                            // bit  3 Too Many Hits in TRD
-                            // bit  4 Too Many Hits in TOF
-                            // bit  5 No TOF Time Information found
-                            // bit  6 Upgoing event found
+                            // bit  1 Too Many Hits in Tracker
+                            // bit  2 Too Many Hits in TRD
+                            // bit  3 Too Many Hits in TOF
+                            // bit  4 No TRD Tracks found
+                            // bit  5 Upgoing event found
+                            // bit  6 No TOF Time Information found
                             // bit  7 Positive Rigidity(Momentum) found
                             // bit  8 Ambigious Comb (A) found 
                             // bit  9 Ambigious Comb (B) found 
                             // bit  10  Negative Rigidity(Momentum) found
-                            // bit  11   Heavy Ion (Tracker)
-                            // bit  12  High Gamma (TRD)  
+                            // bit  11  High Gamma (TRD)  
+                            // bit  12   Heavy Ion (Tracker)
                             // bit  13 Prescaled event  
 
 // TOF Time Part

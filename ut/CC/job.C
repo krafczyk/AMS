@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.388 2001/12/03 13:33:13 choutko Exp $
+// $Id: job.C,v 1.389 2001/12/04 15:13:08 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -382,7 +382,8 @@ TRMCFFKEY.gammaA[0]=-0.3;
 TRMCFFKEY.gammaA[1]=0.1;
 TRMCFFKEY.NonGaussianPart[0]=0;
 TRMCFFKEY.NonGaussianPart[1]=0.1;
-
+TRMCFFKEY.BadCh[0]=0.02;
+TRMCFFKEY.BadCh[1]=0.02;
 
 TRMCFFKEY.cmn[0]=10;
 TRMCFFKEY.cmn[1]= 6;
@@ -1832,6 +1833,22 @@ void AMSJob::_sitrig2initjob(){
 //-------------------------------------------------------------------------------------------
 void AMSJob::_sitkinitjob(){
   if(TRMCFFKEY.GenerateConst){
+    AString fnam(AMSDATADIR.amsdatadir);
+    fnam+="trsigma.hbk";
+    int iostat;
+    int rstat=1024;
+    HROPEN(1,"input",fnam,"P",rstat,iostat);
+    if(iostat){
+     cerr << "Error opening TrSigmaFile file "<<fnam<<endl;
+     throw amsglobalerror("UnableToOpenHistoFile",3);
+    }
+    char input[]="//input";
+    HCDIR(input," ");
+    HRIN(0,9999,0);
+//    HPRINT(101);
+//    HPRINT(102);
+//    HPRINT(201);
+//    HPRINT(202);
      for(int l=0;l<2;l++){
        for (int i=0;i<TKDBc::nlay();i++){
          for (int j=0;j<TKDBc::nlad(i+1);j++){
@@ -1844,7 +1861,17 @@ void AMSJob::_sitkinitjob(){
              geant d;
              id.setped()=TRMCFFKEY.ped[l]*(1+RNDM(d));
              id.clearstatus(~0);
-             id.setsig()=TRMCFFKEY.sigma[l]*(0.9+0.2*RNDM(d));
+             if(RNDM(d)<TRMCFFKEY.BadCh[l]){
+              id.setstatus(AMSDBc::BAD);
+              id.setsig()=HRNDM1(201+l);
+             }
+             else{
+              id.setsig()=HRNDM1(101+l);
+              if(id.getsig()<1){
+               id.setstatus(AMSDBc::BAD);
+              }
+             } 
+             if(TRMCFFKEY.GenerateConst>1)id.setsig()=TRMCFFKEY.sigma[l]*(0.9+0.2*RNDM(d));
              id.setgain()=TRMCFFKEY.gain[l];
              id.setcmnnoise()=TRMCFFKEY.cmn[l]*(1+RNDM(d));
              id.setindnoise()=oldone+
@@ -1855,6 +1882,14 @@ void AMSJob::_sitkinitjob(){
          }
        }
      }
+  HREND("input");
+  CLOSEF(1);
+  char pawc[]="//PAWC";
+  HCDIR(pawc," " );
+  HDELET(101);
+  HDELET(102);
+  HDELET(201);
+  HDELET(202);
   }
 else TRMCFFKEY.year[1]=TRMCFFKEY.year[0]-1;
 
