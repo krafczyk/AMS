@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.63 2003/10/11 11:47:48 choutko Exp $
+# $Id: Monitor.pm,v 1.64 2003/10/23 15:10:32 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -1516,7 +1516,8 @@ sub SendId{
                 my %ac=%{$ref->{ac}};
                 my $hash_ac=\%ac;
             try{
-                $arsref->sendAC($hash,\$hash_ac,"Create");
+                 $arsref->sendACPerl($hash,$hash_ac,"Create");
+#                $arsref->sendAC($hash,\$hash_ac,"Create");
             }            
             catch DPS::DBProblem   with{
                 my $e=shift;

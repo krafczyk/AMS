@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.217 2003/10/02 10:11:15 alexei Exp $
+# $Id: RemoteClient.pm,v 1.218 2003/10/23 15:10:32 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3282,6 +3282,16 @@ DDTAB:          $self->htmlTemplateTable(" ");
               $q->param("QEv",0);
               htmlTextField("CPU Time Limit Per Job","number",9,80000,"QCPUTime"," seconds (Native)");  
               htmlTextField("Total Jobs Requested","number",7,5.,"QRun"," ");  
+                 if($self->{CCT} eq "local"){
+   print qq`
+<INPUT TYPE="checkbox" NAME="ForceCpuLimit" VALUE="FCL" >Force CPULimit<BR> 
+`;
+}
+                 else{
+   print qq`
+<INPUT TYPE="checkbox" NAME="ForceCpuLimit" VALUE="FCL" CHECKED>Force CPULimit<BR> 
+`;
+                 }
               htmlTextField("Total  Real Time Required","number",3,10,"QTimeOut"," (days)");  
               my ($rid) = $self->getRID();
               htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");  
@@ -4189,7 +4199,9 @@ print qq`
          if(defined  $q->param("QCPUTime")){
           my $cpus=$q->param("QCPUTime");
           my $cpusf=sprintf("%.3f",$cpus);
-          $tmpb=~ s/TIME 3=/TIME 1=$cpusf TIME 3=/; 
+          if($q->param("ForceCpuLimit")){
+           $tmpb=~ s/TIME 3=/TIME 1=$cpusf TIME 3=/; 
+          }
          }
          $buf=~ s/PART=/CPUTIME=$cpus \nPART=/; 
          $rootntuple=$q->param("RootNtuple");

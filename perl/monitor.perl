@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: monitor.perl,v 1.8 2002/02/08 15:36:49 choutko Exp $
+#  $Id: monitor.perl,v 1.9 2003/10/23 15:10:28 choutko Exp $
 
 use Error qw(:try);
 use Gtk;
@@ -35,11 +35,13 @@ my $window=new monitorUI;
 #show window and run orbit
 
  if($ok){
-  $window->Update();
+  $ok=$window->Update();
  }
  $window->{window}->show_all;
 if(not $ok){
   monitorUI::Warning();
 }
+else{
  $monitor->{orb}->run();
+}
 # Gtk->main();
