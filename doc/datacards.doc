@@ -1,3 +1,5 @@
+t
+P
 Datacards
 
 //General 
@@ -430,8 +432,8 @@ I 2 nanti(2)                         // max number of anti counters in trig
 
 L3SIM
 
-R 1 NoiseProbX(3.3e-4)                  // Noise Probability for x side
-R 2 NoiseProbY(2.0e-4)                  // Noise Probability for y side
+R 1 NoiseProbX(3.3e-10)                  // Noise Probability for x side
+R 2 NoiseProbY(2.0e-10)                  // Noise Probability for y side
 
 
 L3REC    // LVL3 Trigger Rec
@@ -445,8 +447,8 @@ I 8 TrMaxHits(20)                      // Max Number of hits in Tracker
 R 9 Splitting(0.04)                    // Min distance between hits
 I10 Nrep(1)                            // Aux no of rep to calc lvl3 time
 I11 Accept(0)                        // Min value of lvl3 trigger to accept
-
-
+I12 RebuildLVL1(0)                   // rebuild/not rebuild lvl1 in reconstruction
+I13 NoK(0)                           // NotMatch(1) Match(0) S & K in lvl3
 L3EXP   // LVL3 Expert 
 
 I 1 NEvents(1024)                       // Number of Events in Sequence 
@@ -473,7 +475,7 @@ I 1 mode(0)                         // 0 do nothing
                                     // mode/10 = 2 write daq (append)
 I 2 ifile[40]("")                   // input file name
 I41 ofile[40]("")                   // output file name
-I82 OldFormat(0)                    // old(0) new(1) format
+I82 OldFormat(0)                    // old(1) new(0) format
 I83 LCrateinDAQ(1)                  // in(1) out(0) of DAQ
 I84 SCrateinDAQ(1)                  // in(1) out(0) of DAQ
 I85 RunChanger                     // Tmp fix to run no problem

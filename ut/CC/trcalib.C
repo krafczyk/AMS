@@ -4,6 +4,7 @@
 #include <timeid.h>
 #include <trrawcluster.h>
 #include <float.h>
+#include <mccluster.h>
 //PROTOCCALLSFSUB15(E04CCF,e04ccf,INT,DOUBLEV,DOUBLE,DOUBLE,INT,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,ROUTINE,ROUTINE,INT,INT)
 //#define E04CCF(N,X,F,TOL,IW,W1,W2,W3,W4,W5,W6,ALFUN1,MONIT,MAXCAL,IFAIL) CCALLSFSUB15(E04CCF,e04ccf,INT,DOUBLEV,DOUBLE,DOUBLE,INT,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,ROUTINE,ROUTINE,INT,INT,N,X,F,TOL,IW,W1,W2,W3,W4,W5,W6,ALFUN1,MONIT,MAXCAL,IFAIL)
 
@@ -404,6 +405,7 @@ void AMSTrIdCalib::_hist(){
   HBOOK1(400000+1,"Peds Diff",200,-10.,10.,0.);
   HBOOK1(400010+1,"Peds Calcs",200,0.,2200.,0.);
   HBOOK1(400020+1,"Peds System",200,0.,2200.,0.);
+  HBOOK1(400030+1,"CMNNoise",200,0.,100.,0.);
   HBOOK1(400000+2,"Sigmas Diff",200,-2.,8.,0.);
   HBOOK1(400010+2,"Sigmas Calcs",200,0.,20.,0.);
   HBOOK1(400020+2,"Sigmas System",200,0.,20.,0.);
@@ -451,6 +453,7 @@ void AMSTrIdCalib::_hist(){
           HF1(400000+1,_ADCRaw[ch]-cid.getped(),1.);
           HF1(400010+1,_ADCRaw[ch],1.);
           HF1(400020+1,cid.getped(),1.);
+          HF1(400030+1,cid.getcmnnoise(),1.);
           HF1(400000+2,_ADC2[ch]-sigmas[ch],1.);
           HF1(400010+2,_ADC2[ch],1.);
           HF1(400020+2,sigmas[ch],1.);
@@ -617,13 +620,13 @@ if(TRCALIB.Pass ==2){
          }
         }
 
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
-         cid.upd(m);
-         if(cid.getcount()>1){
-          int ch=cid.getchannel();
-          _ADC[ch]=_ADC[ch]+cid.getcmnnoise();
-         }
-        }
+        //        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+        //         cid.upd(m);
+        //         if(cid.getcount()>1){
+        //          int ch=cid.getchannel();
+        //          _ADC[ch]=_ADC[ch]+cid.getcmnnoise();
+        //         }
+        //        }
 
 
        }
@@ -704,6 +707,7 @@ void AMSTrIdCalib::_update(){
         AMSTrIdSoft id(i+1,j+1,k,l,0);
         AMSTrIdCalib cid(id);
         if(cid.dead())continue;
+        number oldone=0;
         for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
          if(cid.getcount()){
@@ -712,8 +716,29 @@ void AMSTrIdCalib::_update(){
           cid.setped()=_ADCRaw[ch];
           cid.setsig()=_ADC2[ch];
           cid.setsigraw()=(_ADC2Raw[ch]==0?0:1./_ADC2Raw[ch]);
+          cid.setindnoise()=oldone+
+          AMSTrMCCluster::sitknoiseprob(cid ,cid.getsig()*TRMCFFKEY.thr1R[l]);
+          oldone=cid.getindnoise();
+
          }
         }
+        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m+=64){
+          number avs=0;
+          number navs=0;
+          for(int mm=0;mm<64;mm++){
+           cid.upd(mm);
+           if(cid.getcount()){
+           int ch=cid.getchannel();
+            avs+=_ADC2[ch]*_ADC2[ch];
+            navs++;
+           }
+           if(navs)avs=avs/navs;
+           cid.setcmnnoise()=sqrt(cid.getcmnnoise()-avs);
+          }
+        }
+
+
+
        }
      }
      }
@@ -773,6 +798,35 @@ void AMSTrIdCalib::_update(){
      cout <<" Time Insert "<<ctime(&insert);
      cout <<" Time Begin "<<ctime(&begin);
      cout <<" Time End "<<ctime(&end);
+     }
+     if(TRCALIB.Pass ==1 && k==1 && !TRMCFFKEY.GenerateConst){
+
+      ptdv = 
+      AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVCmnNoise());
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time(&insert);
+      ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
+      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+
+
+      ptdv = 
+      AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVIndNoise());
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time(&insert);
+      ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
+      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+
+
      }
      if(TRCALIB.Pass ==2){
 
@@ -1195,9 +1249,8 @@ void AMSTrIdCalib::buildpreclusters(AMSTrIdSoft & idd, integer len, geant id[]){
            idlocal[l-vamin]=id[l]-cid.getped();
          }
          if(avsig>1)cmn=cmn/avsig;
-
-
-
+         cid.updcmnnoise(cmn);
+         cid.updcmnnoiseC();
          for (l=vamin;l<vamax;l++){
            cid.upd(l);
            cid.updADCRaw(id[l]);         

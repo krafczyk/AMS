@@ -851,11 +851,10 @@ void AMSEvent:: _sitrigevent(){
 void AMSEvent:: _retrigevent(){
   // Backup solution to "simulate" trigger 1 & 3 for rec data
   
-  AMSContainer *pc= getC("TriggerLVL1",0);
-   if(pc && pc->getnelem()==0)TriggerLVL1::build();
-  pc= getC("TriggerLVL3",0);
-    if(pc && pc->getnelem()==0)TriggerLVL3::build();
-
+   if(LVL3FFKEY.RebuildLVL1){
+       TriggerLVL1::build();
+       TriggerLVL3::build();
+   }
 }
 
 

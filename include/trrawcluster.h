@@ -94,6 +94,8 @@ static void sitkdigi();
   static integer calcsigmaSl(int i);
   // H/K TDV correspondance
   static AMSID getTDVstatus(int i);
+  static AMSID getTDVCmnNoise();
+  static AMSID getTDVIndNoise();
   static AMSID getTDVped(int i);
   static AMSID getTDVsigma(int i);
   static AMSID getTDVrawsigma(int i);

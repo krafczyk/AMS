@@ -100,7 +100,7 @@ To be defined
 e. Reduced Tracker Event Format
 
 ID =  2<<6 | 11 <<9 (x<0)   or     5<<6 | 11<<9 (x>0)
-word1 8bit cluster length - 3 | 8bit max hit offset
+word1 8bit cluster length - 3 | (8bit max hit offset << 8)
 word2 leftmost hit address
 word 3 to length+3
 amplitudes*8

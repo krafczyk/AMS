@@ -230,7 +230,7 @@ number z;
 number sigma=id.getsig();
 if(sigma >0)z=threshold/sigma/sqrt(2.);
 else z=FLT_MAX;
-return DERFC(z);  // two times higher due to nongaussian tails
+return DERFC(z)/2;  
 
 }
 
@@ -275,6 +275,7 @@ integer idsoft , geant vect[],geant edep, geant step, integer itra ){
 
 
 void AMSTrMCCluster::sitknoise(){
+  // Only add noise when not in raw mode
   AMSgObj::BookTimer.start("SITKNOISE");
    geant dummy;
    number noise,oldone=0;
@@ -289,6 +290,8 @@ void AMSTrMCCluster::sitknoise(){
            if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ||
             AMSDBc::activeladdshuttle(i+1,j+1,s)){
             AMSTrIdSoft id(i+1,j+1,s,l,0);
+             int icmpt=id.gettdr();
+             if(TRMCFFKEY.RawModeOn[id.gethalf()][id.getside()][icmpt])continue;
             id.upd(id.getmaxstrips()-1);
             geant r=RNDM(dummy);
             if(r<id.getindnoise()){

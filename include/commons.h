@@ -80,6 +80,8 @@ integer TrMaxHits;
 geant Splitting;
 integer NRep;
 integer Accept;
+integer RebuildLVL1;
+integer NoK;
 };
 #define LVL3FFKEY COMMON_BLOCK(LVL3FFKEY,lvl3ffkey)
 COMMON_BLOCK_DEF(LVL3FFKEY_DEF,LVL3FFKEY);

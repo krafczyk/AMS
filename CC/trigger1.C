@@ -12,13 +12,15 @@
 #include <ntuple.h>
 //
 void TriggerLVL1::build(){
-  if(!AMSJob::gethead()->isReconstruction()){
 // Trigger mode 1 : ntof >= LVL1FFKEY.ntof + nanti <= LVL1FFKEY.nanti
 // TOF : 
   int i;
   integer ntof=0;
-  integer tofpatt[SCLRS];
+  integer tofpatt[SCLRS]={0,0,0,0};
   integer tofflag(0);
+  integer nanti=0;
+  integer antipatt=0;
+  if(!AMSJob::gethead()->isReconstruction()){
   if(TOFMCFFKEY.fast==0){ // for slow algorithm
     tofflag=AMSTOFRawEvent::gettrfl();
     AMSTOFRawEvent::getpatt(tofpatt);
@@ -29,22 +31,47 @@ void TriggerLVL1::build(){
   }
   for(i=0;i<SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
 // ANTI :
-  integer antipatt(0);
-  integer cbt,nanti(0),lsbit(1);
+  integer cbt,lsbit(1);
   antipatt=AMSAntiRawEvent::getpatt();
   for(i=0;i<MAXANTI;i++){
     cbt=lsbit<<i;
     if((antipatt&cbt)>0)nanti+=1;//counts paddles
   }
-//
-//cout<<"LVL1:Tr_flag= "<<tofflag<<" tofpatt: "<<tofpatt[0]<<" "<<tofpatt[1]<<
-//                               " "<<tofpatt[2]<<" "<<tofpatt[3]<<endl;
+  }
+  else if(LVL3FFKEY.RebuildLVL1){
+    (AMSEvent::gethead()->getC("TriggerLVL1",0))->eraseC();
+    tofflag=1;
+    AMSTOFRawCluster *pcl=(AMSTOFRawCluster*)AMSEvent::gethead()->getheadC("AMSTOFRawCluster",0);
+    while(pcl){
+     int plane=pcl->getntof()-1;
+     int bar=pcl->getplane()-1;
+     tofpatt[plane]=tofpatt[plane] | ( 1 << bar);  
+     pcl=pcl->next();
+    }
+  for(i=0;i<SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
+// ANTI :
+  integer antip[2]={0,0};
+  for(int k=0;k<2;k++){
+    AMSAntiRawCluster *pcl=(AMSAntiRawCluster *)AMSEvent::gethead()->getheadC("AMSAntiRawCluster",k);
+    while(pcl){
+     int sector=pcl->getsector()-1;
+     int updown=pcl->getupdown();
+     antip[updown]=antip[updown] | ( 1 << sector);  
+     pcl=pcl->next();
+    }
+  }
+  antipatt=antip[0] & antip[1];
+ 
+  integer cbt;
+  for(i=0;i<MAXANTI;i++){
+    cbt=1<<i;
+    if((antipatt&cbt)>0)nanti+=1;//counts paddles
+  }
+    
+  }
   if(tofflag && ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti)
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
                        new TriggerLVL1(1,tofflag,tofpatt,antipatt));
-
-  }
-
 }
 
 

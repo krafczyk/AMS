@@ -154,7 +154,7 @@ void AMSJob::_sitrigdata(){
   FFKEY("LVL1",(float*)&LVL1FFKEY,sizeof(LVL1FFKEY_DEF)/sizeof(integer),"MIXED");
 
 
-  LVL3SIMFFKEY.NoiseProb[1]=2.e-4;
+  LVL3SIMFFKEY.NoiseProb[1]=2.e-10;
   LVL3SIMFFKEY.NoiseProb[0]=LVL3SIMFFKEY.NoiseProb[1]*1.65;
   FFKEY("L3SIM",(float*)&LVL3SIMFFKEY,sizeof(LVL3SIMFFKEY_DEF)/sizeof(integer),"MIXED");
 
@@ -183,6 +183,8 @@ void AMSJob::_sitrigdata(){
   LVL3FFKEY.Splitting=0.04;
   LVL3FFKEY.NRep=1;
   LVL3FFKEY.Accept=0;
+  LVL3FFKEY.RebuildLVL1=0;
+  LVL3FFKEY.NoK=0;
   FFKEY("L3REC",(float*)&LVL3FFKEY,sizeof(LVL3FFKEY_DEF)/sizeof(integer),"MIXED");
 
 
@@ -735,7 +737,7 @@ DAQCFFKEY.mode=0;
 DAQCFFKEY.OldFormat=0;
 DAQCFFKEY.LCrateinDAQ=1;
 DAQCFFKEY.SCrateinDAQ=1;
-DAQCFFKEY.RunChanger=883605600;
+DAQCFFKEY.RunChanger=883609200;
 VBLANK(DAQCFFKEY.ifile,40);
 VBLANK(DAQCFFKEY.ofile,40);
   FFKEY("DAQC",(float*)&DAQCFFKEY,sizeof(DAQCFFKEY_DEF)/sizeof(integer),"MIXED");

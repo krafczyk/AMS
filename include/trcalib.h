@@ -159,7 +159,7 @@ static void buildSigmaPedA(integer n, int16u* p);
 static void buildSigmaPedB(integer n, int16u* p);
 inline getcount() const {return _Count[getchannel()];}
 geant getcmnnoise() const {return _CmnNoise[_VANumber][_addr];}
-void updcmnnoise(geant cmn){(_CmnNoise[_VANumber][_addr])+=cmn;}
+void updcmnnoise(geant cmn){(_CmnNoise[_VANumber][_addr])+=cmn*cmn;}
 void updcmnnoiseC(){(_CmnNoiseC[_VANumber][_addr])++;}
 void updADC(geant ped){(_ADC[getchannel()])+=ped;}
 void updBadCh(){_BadCh[getchannel()]++;}

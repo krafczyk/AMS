@@ -968,6 +968,17 @@ AMSID AMSTrRawCluster::getTDVstatus(int i){
     exit(1);
   }
 }
+
+AMSID AMSTrRawCluster::getTDVCmnNoise(){
+  return AMSID("TrackerCmnNoise",AMSJob::gethead()->isRealData());
+}
+
+AMSID AMSTrRawCluster::getTDVIndNoise(){
+  return AMSID("TrackerIndNoise",AMSJob::gethead()->isRealData());
+}
+
+
+
 AMSID AMSTrRawCluster::getTDVsigma(int i){
   if(i ==0)return AMSID("TrackerSigmas.l",AMSJob::gethead()->isRealData());
   else if(i ==1)return AMSID("TrackerSigmas.r",AMSJob::gethead()->isRealData());

@@ -143,7 +143,7 @@ return _ctr < _ltr ? _ptr+_ctr : 0;
     {6,5,5,5,5,5,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
      3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3};
   const integer TriggerLVL3::_patd[5]={0,1,7,22,42};
-  number TriggerLVL3::_stripsize;
+  number TriggerLVL3::_stripsize=0.0055;
 integer TriggerLVL3::_TrackerOtherTDR[NTRHDRP][2];
 
 
@@ -262,14 +262,6 @@ void TriggerLVL3::init(){
 #endif
       }
     }
-{
-    AMSTrIdGeom id;
-    _stripsize=id.getsize(1);
-    if(_stripsize>0.01){
-      cout <<"Trigger3::init-I-entered IdGeom 2.12 compatibility mode"<<endl;
-       _stripsize=_stripsize/2;
-    }
-}
     for(i=0;i<NTRHDRP;i++){
        for( int k=0;k<2;k++){
         AMSTrIdSoft id(k,i,1,0);
@@ -421,6 +413,9 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
 
 
   void TriggerLVL3::build(){
+    if(LVL3FFKEY.RebuildLVL1){
+      AMSEvent::gethead()->getC("TriggerLVL3",0)->eraseC();
+    }
     if(!strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ){     
     // Shuttle    
      AMSgObj::BookTimer.start("LVL3");
@@ -479,7 +474,7 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
      integer drp,half,va,strip,side;
      AMSTrRawCluster::lvl3CompatibilityAddress
       (ptr[1],strip,va,side,half,drp);
-     if(side != 0 && _TrackerAux[drp][half]){
+     if(side != 0 && (LVL3FFKEY.NoK || _TrackerAux[drp][half])){
       integer layer=_TrackerDRP2Layer[drp][half];
       // set filsafe cluster def > 1 strip || ( > 2 && two adj to max >=0)
       integer nmax= (*ptr)>>8;
