@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.259 2004/03/18 18:28:17 alexei Exp $
+# $Id: RemoteClient.pm,v 1.260 2004/03/24 10:07:00 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -46,7 +46,8 @@
 #                  2 new tables cern_hosts and cpu_coeff
 # Mar 15, 2004   : argument list of fastntrd is modified, lastEvent is added
 #                  implement timing (decrease number of logfiles, f.e. /tmp/cp.log
-#
+# Mar 23, 2004   : always validate DSTs
+#                : $rmpromt option
 
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
@@ -73,6 +74,7 @@ my     $webmode         = 1; # 1- cgi is executed from Web interface and
                              # expects Web like output
                              # 0- cgi is executed from command line
 my     $verbose         = 0; # verbose mode
+my     $rmprompt        = 1; # prompt before files removal
 
 #+ parser Statistics
  my $parserStartTime=0;# start jopurnal files check
@@ -947,17 +949,23 @@ sub ValidateRuns {
                   update Runs and NTuples DB tables
      -c    - output will be produced as ASCII page (default)
      -h    - print help
+     -i    - prompt before files removal
      -v    - verbose mode
      -w    - output will be produced as HTML page
      ./validateRuns.o.cgi -c -v
 ";
 
-  foreach my $chop  (@ARGV){
+  $rmprompt = 0;
+
+   foreach my $chop  (@ARGV){
     if ($chop =~/^-c/) {
         $webmode = 0;
     }
     if ($chop =~/^-v/) {
         $verbose = 1;
+    }
+    if ($chop =~/^-i/) {
+     $rmprompt = 1;
     }
     if ($chop =~/^-w/) {
      $webmode = 1;
@@ -997,14 +1005,13 @@ sub ValidateRuns {
     if( not defined $self->{dbserver}->{rtb}){
       DBServer::InitDBFile($self->{dbserver});
     }
-    foreach my $run (@{$self->{dbserver}->{rtb}}){
-#
-   $self->setActiveProductionSet();
-   if (not defined $ActiveProductionSet || $ActiveProductionSet eq $UNKNOWN) {
+    $self->setActiveProductionSet();
+    if (not defined $ActiveProductionSet || $ActiveProductionSet eq $UNKNOWN) {
       $self->amsprint("parseJournalFiles -ERROR- cannot get active production set",0);
       die "bye";
-  }
-# check flag
+   }
+    foreach my $run (@{$self->{dbserver}->{rtb}}){
+ # check flag
      $timenow = time();
      my $rflag = $self->getFilesProcessingFlag();
      if ($rflag == 0) {
@@ -1069,7 +1076,8 @@ sub ValidateRuns {
        }
   }
      if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") && 
-         (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked" && $r0->[0][1] ne "TimeOut"))
+#--     (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked" && $r0->[0][1] ne "TimeOut"))
+      (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "TimeOut"))
         ){
         my $fevent =  1;
         my $levent =  0;
@@ -1201,8 +1209,8 @@ sub ValidateRuns {
                            push @cpntuples, $fpath;
                            $runupdate = "UPDATE runs SET FEVENT = $fevent, LEVENT=$levent, ";
                          } else {
-                           print FILEV "failed to copy $fpath\n";
-                           $copyfailed = 1;
+                           print FILEV "failed to copy or wrong CRC for : $fpath\n";
+#--                           $copyfailed = 1;
                            $nBadCopiesInRow++;
                            if ($nBadCopiesInRow > $MAX_FAILED_COPIES) {
                             $self->amsprint("Too many doCopy failures : $nBadCopiesInRow. Quit",0);
@@ -1212,7 +1220,16 @@ sub ValidateRuns {
                             close FILEV;
                             die "Bye";
                            }
-                           last;
+                           $levent -= $ntuple->{LastEvent}-$ntuple->{FirstEvent}+1;
+                           $bad++;
+                           if ($outputpath) {
+                               my $cmd = "rm $outputpath";
+                               if ($rmprompt == 1) {
+                                $cmd = "rm -i $outputpath";
+                               }
+                               my $rstat = system($cmd);
+                               print FILEV "Remove bad file $cmd";
+                           }
                          }
                        }  # ntuple status 'OK'
                      }
@@ -1226,7 +1243,8 @@ sub ValidateRuns {
           $self->printWarn($warn);
 #--          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
           foreach my $ntuple (@cpntuples) {
-           my $cmd="rm -i $ntuple";
+           my $cmd="rm $ntuple";
+           if ($rmprompt == 1) {$cmd = "rm -i $ntuple";}
            system($cmd);
            $warn = "Validation done : $cmd \n";
            print FILEV $warn;
@@ -1242,7 +1260,8 @@ sub ValidateRuns {
 
                $status='Unchecked';
                foreach my $ntuple (@mvntuples) {
-                my $cmd = "rm -i $ntuple";
+                my $cmd = "rm $ntuple";
+                if ($rmprompt == 1) {$cmd = "rm -i $ntuple";}
 
                 $warn="Validation failed : $cmd \n";
                 print FILEV $warn;
@@ -6955,17 +6974,22 @@ sub parseJournalFiles {
      parseJournalFiles check journal file directory for all cites 
      -c    - output will be produced as ASCII page (default)
      -h    - print help
+     -i    - prompt before files removal 
      -v    - verbose mode
      -w    - output will be produced as HTML page
      ./parseJournalFiles.o.cgi -c
 ";
 
+  $rmprompt = 0;
   foreach my $chop  (@ARGV){
     if ($chop =~/^-c/) {
         $webmode = 0;
     }
     if ($chop =~/^-v/) {
         $verbose = 1;
+    }
+    if ($chop =~/^-i/) {
+        $rmprompt = 1;
     }
     if ($chop =~/^-w/) {
      $webmode = 1;
@@ -7608,14 +7632,13 @@ foreach my $block (@blocks) {
      last;
     } else {
      if ($closedst[1] ne "Validated" and $closedst[1] ne "Success" and $closedst[1] ne "OK") {
-      print FILE "parseJournalFile -W- CloseDST block : $dstfile,  DST status  $closedst[1]. Skip it.\n";
-#-- to be checked      push @mvntuples, $dstfile; 
-     } else {
+      print FILE "parseJournalFile -W- CloseDST block : $dstfile,  DST status  $closedst[1]. Check anyway.\n";
+     } 
       $dstsize = sprintf("%.1f",$dstsize/1000/1000);
       $closedst[0] = "CloseDST";
        print FILE "$dstfile.... \n";
        my $ntstatus =$closedst[1];
-       my $nttype  =$closedst[2];
+       my $nttype   =$closedst[2];
        my $version  =$closedst[4];
        my $ntcrc    =$closedst[6];
        my $run      =$closedst[10];
@@ -7681,6 +7704,7 @@ foreach my $block (@blocks) {
             $tevents += $ntevents;
             $terrors += $badevents;
             $validated++;
+            $ntstatus = "Validated";
             my ($outputpath,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc);
             if(defined $outputpath){
               push @mvntuples, $outputpath; 
@@ -7711,7 +7735,6 @@ foreach my $block (@blocks) {
            }
          }
         }
-      }
      }
     } # CRC != 0
    } else  {
@@ -7784,9 +7807,10 @@ foreach my $block (@blocks) {
   if ($copyfailed == 0) {
     foreach my $ntuple (@cpntuples) {
       $cmd="rm  $ntuple";
+      if ($rmprompt == 1) {$cmd = "rm -i $ntuple";}
       print FILE "$cmd\n";
       system($cmd);
-      print FILE "Validation done : system command rm -i $ntuple \n";
+      print FILE "Validation done : system command $cmd \n";
       $GoodDSTs[$nCheckedCite]++;
     }
    if ($#cpntuples >= 0) { 
@@ -7814,7 +7838,8 @@ foreach my $block (@blocks) {
    $BadRuns[$nCheckedCite]++;
    foreach my $ntuple (@mvntuples) {
      $cmd = "rm  $ntuple";
-     print FILE "Validation failed : system command rm -i $ntuple \n";
+     if ($rmprompt == 1) {$cmd = "rm -i $ntuple";}
+     print FILE "Validation failed : system command $cmd \n";
      print FILE "$cmd\n";
      system($cmd);
     }
@@ -8984,19 +9009,29 @@ sub getOutputPath {
 sub getHostsList {
     my $self = shift;
 
-    my $sql  = undef;
-    my $c    = undef;
-    my $h    = undef;
+    my $sql       = undef;
+    my $shortlist = 0;
+    my $cl        = undef; # cites returned by sql
+    my $hl        = undef; # hosts returned by sql
 
-    my @hostlist   =();
+    my @hostlist   =(); # host;s liat per cite
     my @njobs      =(); # jobs per host
     my @nmips      =(); # mips per host
+
+    my @chhosts    =(); # all hosts for all cites
+    my @chjobs     =(); # jobs " "
+    my @chmips     =(); # mips " "
+    my @cnames     =(); # cites names
+    my @chosts     =(); # total hosts per cite
+    my @cjobs      =(); # total jobs per cite
+    my @cmips      =(); # total mips per cite
     my @gbytes     =(); # gbytes per cite
 
     my $totaljobs  = 0;
     my $totalmips  = 0;
     my $totalgb    = 0;
 
+    my $kCites   = 0; # known Cites
     my $nCites   = 0;
     my $nHosts   = 0;
     my $nJobs    = 0; # jobs per cite
@@ -9012,6 +9047,7 @@ sub getHostsList {
 
      -c    - get list for particular cite (c:mycite)
      -h    - print help
+     -s    - print short list (no hosts info per cite)
      -v    - verbose mode
      
      from pcamsf0 only :
@@ -9032,6 +9068,9 @@ sub getHostsList {
       print "$HelpTxt \n";
       return 1;
     }
+    if ($chop =~/^-s/) {
+        $shortlist = 1;
+    }
    }
 
     my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays();
@@ -9041,16 +9080,18 @@ sub getHostsList {
     print "\n \n ************** Production Started : $lt (Last Updated $lu) \n";
     print "  ******************     Production time : $ld days \n";
     if (defined $CiteName) {
-     $sql = "SELECT cid, name FROM CITES WHERE name='$CiteName'";
+     $sql = "SELECT cid, descr FROM CITES WHERE name='$CiteName'";
     } else {
-     $sql = "SELECT cid, name FROM CITES ORDER BY cid";
+     $sql = "SELECT cid, descr FROM CITES ORDER BY cid";
     }
-    $c   =$self->{sqlserver}->Query($sql);
+    $cl   =$self->{sqlserver}->Query($sql);
     
-    if (defined $c->[0][0]) {    
-        foreach my $cite (@{$c}) {
+    if (defined $cl->[0][0]) {    
+        foreach my $cite (@{$cl}) {
+         $kCites++;
          my $cid = $cite->[0];
-         my $name= $cite->[1];
+         $cnames[$cid] = $cite->[1];
+
          $sql = "SELECT SUM(sizemb)  from jobs, ntuples where ntuples.jid=jobs.jid and cid=$cid";
          my $r = $self->{sqlserver}->Query($sql);
          if (defined $r->[0][0]) {
@@ -9060,18 +9101,13 @@ sub getHostsList {
          } else {
              $gbytes[$cid] = 0;
          }
-         @hostlist   =();
          $totaljobs  = 0;
          $totalmips  = 0;
 
-         for (my $i=0; $i<1000; $i++) {
-          $njobs[$i] = 0;
-          $nmips[$i] = 0;
-         }
          $sql  = "SELECT host, mips FROM Jobs WHERE host != 'host' and cid=$cid ORDER BY host";
-         $h=$self->{sqlserver}->Query($sql);
-         if (defined $h->[0][0]) {
-          foreach my $host (@{$h}){
+         $hl=$self->{sqlserver}->Query($sql);
+         if (defined $hl->[0][0]) {
+          foreach my $host (@{$hl}){
             my $hostname = trimblanks($host->[0]);
             my $mips = 0;
             if (defined $host->[1]) {$mips = $host->[1];}
@@ -9096,33 +9132,73 @@ sub getHostsList {
           }
       }
        my $j = $#hostlist+1;
+
        if ($totaljobs > 0) {
         $nCites++;
         $nJobs  += $totaljobs;
         $nMips  += $totalmips;
         $nHosts += $j;
-        print "\n \n ";
-        my $sgb = sprintf(" %6.1f",$gbytes[$cid]);
-        print "Cite : $cid, $name , Hosts : $j, Jobs : $totaljobs Mips : $totalmips, GB : $sgb \n";
-        $p3ghz = $totalmips/1000;
-        if ($totaldays > 1) { 
-         $p3ghzday = $p3ghz/$totaldays;
-        } else {
-         $p3ghzday = $p3ghz;
-        } 
-        $p3ghz    = sprintf("%3.1f",$p3ghz);
-        $p3ghzday = sprintf("%3.1f",$p3ghzday);
-        print " PIII 1GHz equivalent : $p3ghz or per day $p3ghzday \n";
-         my $i = 0;
-         $j = 0;
-         foreach my $comp (@hostlist) {
-             if ($j == 0) { print "\n";}
-             printf (" %10s %5d %6d",$hostlist[$i],$njobs[$i],$nmips[$i]);
-             $i++;
-             $j++;
-             if ($j == 3) { $j=0;}
+
+        my $n = $cid*1000;
+
+        for (my $i=0; $i<$j+1; $i++) {
+            $chhosts[$n+$i] = $hostlist[$i];
+            $chjobs[$n+$i]  = $njobs[$i];
+            $chmips[$n+$i]  = $nmips[$i];
+        }
+        $cjobs[$cid]  = $totaljobs;
+        $chosts[$cid] = $j;
+        $cmips[$cid]  = $totalmips;
+
+        @hostlist =();
+        @njobs    =();
+        @nmips    =();
+
+      } else {
+        $gbytes[$cid] = 0;
+        $cjobs[$cid]  = 0;
+        $chosts[$cid] = 0;
+        $cmips[$cid]  = 0;
+      }
+     }
+        for (my $c=1; $c<$kCites+1; $c++) {
+         my $cite = -1;
+         my $maxgb    =  0;
+         for (my $m=1; $m<$kCites+1; $m++) {
+           if ($gbytes[$m] > $maxgb) {
+               $maxgb = $gbytes[$m];
+               $cite = $m;
+           }
          }
-    }
+           if ($cite != -1) {
+           print "\n \n ";
+            my $sgb = sprintf(" %6.1f",$gbytes[$cite]);
+            $gbytes[$cite] = -1;
+            print "Cite : $cnames[$cite] \n";
+            print " Hosts : $chosts[$cite], Jobs : $cjobs[$cite],  GB : $sgb \n";
+            $p3ghz = $cmips[$cite]/1000;
+            if ($totaldays > 1) { 
+             $p3ghzday = $p3ghz/$totaldays;
+            } else {
+             $p3ghzday = $p3ghz;
+            } 
+            $p3ghz    = sprintf("%3.1f",$p3ghz);
+            $p3ghzday = sprintf("%3.1f",$p3ghzday);
+            print " Mips : $cmips[$cite], PIII 1GHz equivalent : $p3ghz or per day $p3ghzday \n";
+            if ($shortlist == 0) {
+             my $i = 0;
+             my $j = 0;
+             my $n = $cite*1000;
+             for (my $i=0; $i<$chosts[$cite]; $i++) {
+              if ($j == 0) { print "\n";}
+              printf (" %10s %5d %6d",$chhosts[$n+$i],$chjobs[$n+$i],$chmips[$n+$i]);
+              $j++;
+              if ($j == 3) { $j=0;}
+             }
+            }
+        } else {
+            last;
+        }
      }
         print "\n";
         print "---------------- Summary --------------------- \n";
