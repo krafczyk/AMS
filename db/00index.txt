@@ -8,7 +8,10 @@ config.user_ibmrs6000 configuration file for Objectivity on IBM RS6000
 *_ddl.C              // (Data Definition Language) 
 *.h                  // processor
 
-MakeDB               // makefile to build AMS+DB exe file
+MakeSDB              // makefile to build AMS+DB exe file, build private 
+                     // version of the database
+MakeSDB_C_opt        // makefile to build AMS+DB exe file, optimized, for 
+                     // /offdata/database, common database
 
 MakeDL               // makefile to build deleteList exe
 MakeDR               // makefile to build deleteRun exe
