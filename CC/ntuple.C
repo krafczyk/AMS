@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.138 2003/04/07 08:48:35 choutko Exp $
+//  $Id: ntuple.C,v 1.139 2003/04/11 09:30:34 glamanna Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -126,7 +126,7 @@ void AMSNtuple::init(){
 
 
    HBNAME(_lun,"Vertex",&_tpai02.Ngam,
-   "ngam[0,3],trgmom(ngam):R,trgerrmom(ngam),trgTheta(ngam):R,trgPhi(ngam):R,trgmass(ngam),trgVert(3,ngam):R,trgdist(ngam),trgcharge(ngam)[-2,2]:I,trgStatus(ngam):I,trgpLeft(ngam)[-1,254]:I,trgpRight(ngam)[-1,254]:I,Jthetal(ngam):R,Jphil(ngam):R,Jthetar(ngam):R,Jphir(ngam):R,Jp0l(3,ngam):R,Jp0r(3,ngam):R");
+   "ngam[0,3],trgmom(ngam):R,trgerrmom(ngam),trgTheta(ngam):R,trgPhi(ngam):R,trgmass(ngam),trgVert(3,ngam):R,trgdist(ngam),trgcharge(ngam)[-2,2]:I,trgStatus(ngam):I,trgpLeft(ngam)[-1,254]:I,trgpRight(ngam)[-1,254]:I,Jthetal(ngam):R,Jphil(ngam):R,Jthetar(ngam):R,Jphir(ngam):R,JChi2l(ngam):R,JChi2r(ngam):R,Jp0l(3,ngam):R,Jp0r(3,ngam):R");
 
   HBNAME(_lun,"TrTrack",&_trtr02.Ntrtr,
   "ntrtr[0,100],trstatus(ntrtr):I,pattern(ntrtr)[-1,100]:I,address(ntrtr):I,nhits(ntrtr)[0,8],phits(8,ntrtr)[-1,30000]:I,LocDBAver(ntrtr):R,GeaneFitDone(ntrtr)[0,1000]:I,AdvFitDone(ntrtr)[0,1000]:I,Chi2StrLine(ntrtr),Chi2Circle(ntrtr),CircleRig(ntrtr),Chi2FastFit(ntrtr),Rigidity(ntrtr),ErrRig(ntrtr),Theta(ntrtr),phi(ntrtr),p0(3,ntrtr),gchi2(ntrtr),grig(ntrtr),gerrrig(ntrtr),hchi2(2,ntrtr),HRigidity(2,ntrtr),HErrRigidity(2,ntrtr),htheta(2,ntrtr),hphi(2,ntrtr),hp0(3,2,ntrtr),fchi2ms(ntrtr),pirigerr(ntrtr),rigms(ntrtr),pirig(ntrtr)");

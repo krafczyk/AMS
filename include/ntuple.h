@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.79 2003/04/07 08:49:14 choutko Exp $
+//  $Id: ntuple.h,v 1.80 2003/04/11 09:31:03 glamanna Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -449,8 +449,11 @@ public:
   float Jphil[MAXPAIR02];
   float Jthetar[MAXPAIR02];
   float Jphir[MAXPAIR02];
+  float JChi2l[MAXPAIR02];
+  float JChi2r[MAXPAIR02];
   float Jp0l[MAXPAIR02][3];
   float Jp0r[MAXPAIR02][3];
+
 
 friend class AMSTrTrackGamma;
 friend class AMSNtuple;

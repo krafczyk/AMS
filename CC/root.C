@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.35 2003/04/07 12:46:32 kscholbe Exp $
+//  $Id: root.C,v 1.36 2003/04/11 09:30:34 glamanna Exp $
 //  Last Edit : Nov 19, 2002. A.Klimentov
 //              check Root classes
 //              ? TrGammaRoot02 - commented
@@ -730,6 +730,8 @@ TrGammaRoot02::TrGammaRoot02(AMSTrTrackGamma *ptr)
   Jphil   = (geant)ptr->_GPhiMSL;
   Jthetar = (geant)ptr->_GThetaMSR;
   Jphir   = (geant)ptr->_GPhiMSR;
+  JChi2l  = (geant)ptr->_GChi2MSL;
+  JChi2r  = (geant)ptr->_GChi2MSR;
   for(int i=0;i<3;i++) {Jp0l[i] = (geant)ptr->_GP0MSL[i];}
   for(int i=0;i<3;i++) {Jp0r[i] = (geant)ptr->_GP0MSR[i];}
 

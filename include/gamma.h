@@ -1,4 +1,4 @@
-//  $Id: gamma.h,v 1.13 2003/03/28 15:17:06 alexei Exp $
+//  $Id: gamma.h,v 1.14 2003/04/11 09:31:03 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 
 #ifndef __AMSTRGAMMA__
@@ -83,14 +83,14 @@ number _Chi2MSR;
 number _GChi2MSR;//JUAN
 number _RidgidityMSR;
 number _GRidgidityMSR;//JUAN
+number _GThetaMSR;
+number _GPhiMSR;
+AMSPoint _GP0MSR;
 //...
 number _Chi2MSL;
 number _GChi2MSL;//JUAN
 number _RidgidityMSL;
 number _GRidgidityMSL;//JUAN
-number _GThetaMSR;
-number _GPhiMSR;
-AMSPoint _GP0MSR;
 number _GThetaMSL;
 number _GPhiMSL;
 AMSPoint _GP0MSL;

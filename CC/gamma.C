@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.38 2003/04/11 08:58:46 glamanna Exp $
+//  $Id: gamma.C,v 1.39 2003/04/11 09:30:33 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -3023,8 +3023,8 @@ AMSTrRecHit * parrayR[trconst::maxlay];
      TrTN->Jthetar[TrTN->Ngam]=(geant)_GThetaMSR;
      TrTN->Jphir[TrTN->Ngam]=(geant)_GPhiMSR;
      //
-     //     TrTN->JChi2r[TrTN->Ngam]=(geant)_GChi2MSR;
-     //     TrTN->JChi2l[TrTN->Ngam]=(geant)_GChi2MSL;
+     TrTN->JChi2l[TrTN->Ngam]=(geant)_GChi2MSL;
+     TrTN->JChi2r[TrTN->Ngam]=(geant)_GChi2MSR;
      //
      for(i=0;i<3;i++)TrTN->Jp0l[TrTN->Ngam][i]=(geant)_GP0MSL[i];
      for(i=0;i<3;i++)TrTN->Jp0r[TrTN->Ngam][i]=(geant)_GP0MSR[i];

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.77 2003/04/07 12:46:38 kscholbe Exp $
+//  $Id: root.h,v 1.78 2003/04/11 09:31:03 glamanna Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -574,6 +574,8 @@ public:
   float Jphir;
   float Jp0l[3];
   float Jp0r[3];
+  float JChi2l;
+  float JChi2r;
 
   TRefArray *fTrTrack;
 
