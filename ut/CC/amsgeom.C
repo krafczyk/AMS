@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.164 2003/03/30 22:48:11 kscholbe Exp $
+//  $Id: amsgeom.C,v 1.165 2003/03/31 08:29:39 kscholbe Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2251,7 +2251,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 
      //strips
-   ost.seekp(0);  
+   /*   ost.seekp(0);  
    ost << "TRDB"<<ends;
    // Get tube info for z positioning
    TRDDBc::GetTube(0,k,j,i,status,coo,nrm,rgid);
@@ -2295,7 +2295,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
     // Back to center of tubes
     coo[1]+=strip_pos;
    }
-
+   */
 /*
      //chamber 
    ost.seekp(0);  
