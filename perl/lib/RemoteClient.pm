@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.63 2002/08/21 08:07:20 alexei Exp $
+# $Id: RemoteClient.pm,v 1.64 2002/08/23 09:55:27 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -22,6 +22,8 @@ my     $purplebullet = 'http://ams.cern.ch/AMS/icons/bullet_purple.gif';
 my     $srvtimeout = 30; # server timeout 30 seconds
 my     @colors=("red","green","blue","magenta","orange","cyan","tomato");
 
+my     $amscomp_page ='http://ams.cern.ch/AMS/Computing/computing.html';
+my     $amshome_page ='http://ams.cern.ch/AMS/ams_homepage.html';
 my     $dbqueryR   ='http://ams.cern.ch/AMS/Computing/dbqueryR.html';
 
 my     $downloadcgi       ='http://pcamsf0.cern.ch/cgi-bin/mon/download.o.cgi';
@@ -1212,8 +1214,8 @@ PART:
    print "<table border=0   cellpadding=5 cellspacing=0 width=\"100%\">\n";
    print "<tr bgcolor=\"#ffdc99\">\n";
    print "<td align=left> <font size=\"-1\"><b>\n";
-   print "<a href=\"/AMS/ams_homepage.html\">AMS</a>\n";
-   print "&nbsp; <a href=\"/AMS/Computing/computing.html\">Computing</a>\n";
+   print "<a href=$amshome_page>AMS</a>\n";
+   print "&nbsp; <a href=$amscomp_page>Computing</a>\n";
    print "</b>\n";
    print "&nbsp;<b><a href=\"http://pcamsf0.cern.ch/mm.html\">MC production</a>\n";
    print "</b></td>\n";
@@ -3671,8 +3673,8 @@ sub queryDB {
    print "<table border=0   cellpadding=5 cellspacing=0 width=\"100%\">\n";
     print "<tr bgcolor=\"#ffdc99\">\n";
   print "<td align=left> <font size=\"-1\"><b>\n";
-  print "<a href=\"/AMS/ams_homepage.html\">AMS</a>\n";
-  print "&nbsp; <a href=\"/AMS/Computing/computing.html\">Computing</a>\n";
+  print "<a href=$amshome_page>AMS</a>\n";
+  print "&nbsp; <a href=$amscomp_page>Computing</a>\n";
   print "</b>\n";
    print "&nbsp;<b><a href=\"http://pcamsf0.cern.ch/mm.html\">MC production</a>\n";
    print "</b></td>\n";
@@ -4418,8 +4420,8 @@ sub ht_init{
   print "<table border=0   cellpadding=5 cellspacing=0 width=\"100%\">";
    print "<tr bgcolor=\"#ffdc99\">\n";
     print "<td align=left> <font size=\"-1\"><b>";
-     print  "<a href=\"/AMS/ams_homepage.html\">AMS</a>\n";
-     print "&nbsp; <a href=\"/AMS/Computing/computing.html\">Computing</a>\n";
+     print  "<a href=$amshome_page>AMS</a>\n";
+     print "&nbsp; <a href=$amscomp_page>Computing</a>\n";
      print "</b></font>\n";
       print "&nbsp;<b><a href=\"http://pcamsf0.cern.ch/mm.html\">MC production</a>\n";
     print "</b></td>\n";
