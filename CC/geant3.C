@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.84 2003/07/11 07:39:26 choutko Exp $
+//  $Id: geant3.C,v 1.85 2003/07/11 09:12:56 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -766,7 +766,7 @@ AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime());
       globalbadthinghappened=1;
 #endif
         }
-       //throw AMSTrTrackError("SimCPULimit exceeded");
+       throw AMSTrTrackError("SimCPULimit exceeded");
       }
    }
           if(AMSEvent::gethead()->HasNoErrors())AMSEvent::gethead()->event();
