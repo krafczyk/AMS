@@ -32,7 +32,7 @@ const integer RICentries=44;   // no. of entries in wave_length,eff...
 const integer RICmaxpmts=2000; // max no. of pmts
 const integer RICnwindows=16;  // Number of windows for pmt
 const integer RIChistos=30000; // Starting point for RICH histos 
-const integer RICmaxphotons=200; //Max mean number of photons generated
+const integer RICmaxphotons=650; //Max mean number of photons generated
 
 // Particle types
 
