@@ -27,15 +27,15 @@ int rootread(char * fname, int nev, int iver){
   AMSEventR *pev = new AMSEventR();
   tree->SetMakeClass(1);
   pev->SetBranchA(tree);
-  pev->GetBranchA(tree);
+  pev->GetBranch(tree);
   int nbadev=0;
   int nevread=0;
   for (int i=0;i<nevents;i++){
-   pev->ReadHeader(i);
+   if(!pev->ReadHeader(i))break;
    if((pev->fHeader.Status[0]/1073741824)%2)nbadev++;
    nevread++;
   }
-//  rfile->Close();
+  rfile->Close();
   if(nevread!=nev)return -2;
   float rrr=100*float(nbadev)/float(nevread);
   return int(rrr); 

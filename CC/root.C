@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.43 2003/05/15 18:04:54 choutko Exp $
+//  $Id: root.C,v 1.44 2003/05/16 16:53:57 choutko Exp $
 //
 #include <root.h>
 #include <ntuple.h>
@@ -22,7 +22,7 @@
 using namespace root;
 #ifdef __WRITEROOT__
 
-
+/*
   ClassImp(HeaderR)
   ClassImp(EcalHitR)
   ClassImp(EcalClusterR)
@@ -53,6 +53,8 @@ using namespace root;
   ClassImp(RichMCClusterR)
   ClassImp(MCTrackR)
   ClassImp(MCEventgR)
+*/
+  ClassImp(AMSEventR)
 
 
 
@@ -91,6 +93,7 @@ TBranch* AMSEventR::bTrdMCCluster;
 TBranch* AMSEventR::bRichMCCluster;
 TBranch* AMSEventR::bMCTrack;
 TBranch* AMSEventR::bMCEventg;
+TBranch* AMSEventR::bAux;
 
 void* AMSEventR::vHeader=0;
 void* AMSEventR::vEcalHit=0;
@@ -123,9 +126,11 @@ void* AMSEventR::vTrdMCCluster=0;
 void* AMSEventR::vRichMCCluster=0;
 void* AMSEventR::vMCTrack=0;
 void* AMSEventR::vMCEventg=0;
+void* AMSEventR::vAux=0;
 
 
 
+TTree*     AMSEventR::_Tree=0;
 AMSEventR* AMSEventR::_Head=0;
 int AMSEventR::_Count=0;
 int AMSEventR::_Entry=-1;
@@ -359,6 +364,14 @@ void AMSEventR::SetBranchA(TTree *fChain){
      fChain->SetBranchAddress(tmp,&fMCEventg);
     }
 
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fAux");
+     vAux=&fAux;
+     fChain->SetBranchAddress(tmp,&fAux);
+    }
+
 }
 
 
@@ -558,6 +571,11 @@ void AMSEventR::ReSetBranchA(TTree *fChain){
      fChain->SetBranchAddress(tmp,vMCEventg);
     }
 
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fAux");
+     fChain->SetBranchAddress(tmp,vAux);
+    }
 }
 
 
@@ -752,6 +770,12 @@ void AMSEventR::GetBranch(TTree *fChain){
      strcpy(tmp,_Name);
      strcat(tmp,"fMCEventg");
      bMCEventg=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fAux");
+     bAux=fChain->GetBranch(tmp);
     }
 }
 
@@ -986,21 +1010,32 @@ void AMSEventR::SetCont(){
 // cout <<" fHeader.TrRecHits "<<fHeader.TrRecHits<<endl;
 }
 
-void AMSEventR::ReadHeader(int entry){
+bool AMSEventR::ReadHeader(int entry){
+    static unsigned int runo=0;
     if(this!=_Head){
        cerr<<" AMSEventR::ReadHeader-S-WrongHeadPointer"<<endl;
       _Entry=entry;
        clear();
-       return;
+       return false;
      }
    _Entry=entry;
-   bHeader->GetEntry(entry);
-   clear();
+    int i=bHeader->GetEntry(entry);
+    clear();
+   if(i>0){
+    if(_Entry==0)cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<endl;
+    if(fHeader.Run!=runo){
+     cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
+     runo=fHeader.Run;
+    }
+   }
+   else fService.BadEv++;    
+    fService.TotalEv++;
+    return i>0;
 }
 
 
 
-AMSEventR::AMSEventR():TObject(){
+AMSEventR::AMSEventR():TSelector(){
  if(_Count++)cerr<<"AMSEventR::ctor-W-OnlyOneSingletonAllowed "<<this<<" "<<_Count<<endl;
  else cout<<"AMSEventR::ctor-I-SingletonInitialized "<<this<<endl;
 
@@ -1097,14 +1132,14 @@ fMCEventg.clear();
 void AMSEventR::AddAMSObject(AMSEcalHit *ptr)
 {
   fEcalHit.push_back(EcalHitR(ptr));
-  ptr->SetClonePointer(& fEcalHit.back(),fEcalHit.size()-1);
+  ptr->SetClonePointer(fEcalHit.size()-1);
 }
 
 void AMSEventR::AddAMSObject(Ecal1DCluster *ptr) 
 {
   if (ptr) {
   fEcalCluster.push_back(EcalClusterR(ptr));
-  ptr->SetClonePointer(& fEcalCluster.back(), fEcalCluster.size()-1);
+  ptr->SetClonePointer(fEcalCluster.size()-1);
   }  else {
    cout<<"AddAMSObject -E- Ecal1DCluster ptr is NULL"<<endl;
   }
@@ -1113,7 +1148,7 @@ void AMSEventR::AddAMSObject(Ecal1DCluster *ptr)
 void AMSEventR::AddAMSObject(AMSEcal2DCluster *ptr) {
   if (ptr) {
   fEcal2DCluster.push_back(Ecal2DClusterR(ptr));
-  ptr->SetClonePointer(& fEcal2DCluster.back(),fEcal2DCluster.size()-1);
+  ptr->SetClonePointer(fEcal2DCluster.size()-1);
   }  else {
    cout<<"AddAMSObject -E- (Ecal2DCluster ptr is NULL"<<endl;
   }
@@ -1123,7 +1158,7 @@ void AMSEventR::AddAMSObject(AMSEcalShower *ptr)
 {
   if (ptr) {
   fEcalShower.push_back(EcalShowerR(ptr));
-  ptr->SetClonePointer(& fEcalShower.back(),fEcalShower.size()-1);
+  ptr->SetClonePointer(fEcalShower.size()-1);
   }  else {
    cout<<"AddAMSObject -E- EcalShower ptr is NULL"<<endl;
   }
@@ -1133,7 +1168,7 @@ void AMSEventR::AddAMSObject(AMSRichRawEvent *ptr, float x, float y)
 {
   if (ptr) {
   fRichHit.push_back(RichHitR(ptr,x,y));
-  ptr->SetClonePointer(& fRichHit.back(),fRichHit.size()-1);
+  ptr->SetClonePointer(fRichHit.size()-1);
   }  else {
     cout<<"AddAMSObject -E- AMSRichRawEvent ptr is NULL"<<endl;
   }
@@ -1142,20 +1177,20 @@ void AMSEventR::AddAMSObject(AMSRichRawEvent *ptr, float x, float y)
 void AMSEventR::AddAMSObject(AMSRichRing *ptr)
 {
   fRichRing.push_back(RichRingR(ptr));
-  ptr->SetClonePointer(& fRichRing.back(),fRichRing.size()-1);
+  ptr->SetClonePointer(fRichRing.size()-1);
 }
 
 
 void AMSEventR::AddAMSObject(AMSTrTrackGamma *ptr){
   fVertex.push_back(VertexR(ptr));
-  ptr->SetClonePointer(& fVertex.back(),fVertex.size()-1);
+  ptr->SetClonePointer(fVertex.size()-1);
 }
 
 
 void AMSEventR::AddAMSObject(AMSTOFCluster *ptr){
   if (ptr) {
   fTofCluster.push_back(TofClusterR(ptr));
-  ptr->SetClonePointer(& fTofCluster.back(),fTofCluster.size()-1);
+  ptr->SetClonePointer(fTofCluster.size()-1);
   }  else {
    cout<<"AddAMSObject -E- AMSTofCluster ptr is NULL"<<endl;
   }
@@ -1165,7 +1200,7 @@ void AMSEventR::AddAMSObject(TOF2RawCluster *ptr)
 {
   if (ptr) {
   fTofRawCluster.push_back(TofRawClusterR(ptr));
-  ptr->SetClonePointer(& fTofRawCluster.back(),fTofRawCluster.size()-1);
+  ptr->SetClonePointer(fTofRawCluster.size()-1);
   }  else {
    cout<<"AddAMSObject -E- AMSTOF2RawCluster ptr is NULL"<<endl;
   }
@@ -1176,7 +1211,7 @@ void AMSEventR::AddAMSObject(AMSAntiCluster *ptr)
 {
   if (ptr) {
   fAntiCluster.push_back(AntiClusterR(ptr));
-  ptr->SetClonePointer(&fAntiCluster.back(),fAntiCluster.size()-1);  
+  ptr->SetClonePointer(fAntiCluster.size()-1);  
   }  else {
     cout<<"AddAMSObject -E- AMSAntiCluster ptr is NULL"<<endl;
   }
@@ -1187,7 +1222,7 @@ void AMSEventR::AddAMSObject(AMSTrRawCluster *ptr)
 {
   if (ptr) {
   fTrRawCluster.push_back(TrRawClusterR(ptr));
-  ptr->SetClonePointer(& fTrRawCluster.back(), fTrRawCluster.size()-1);
+  ptr->SetClonePointer( fTrRawCluster.size()-1);
   }  else {
    cout<<"AddAMSObject -E- TrRawCluster ptr is NULL"<<endl;
   }
@@ -1197,7 +1232,7 @@ void AMSEventR::AddAMSObject(AMSTrRawCluster *ptr)
 void AMSEventR::AddAMSObject(AMSTrCluster *ptr){
   if (ptr) {
   fTrCluster.push_back(TrClusterR(ptr));
-  ptr->SetClonePointer(& fTrCluster.back(),fTrCluster.size()-1);
+  ptr->SetClonePointer(fTrCluster.size()-1);
   }  else {
    cout<<"AddAMSObject -E- AMSTrCluster ptr is NULL"<<endl;
   }
@@ -1207,7 +1242,7 @@ void AMSEventR::AddAMSObject(AMSTrRecHit *ptr)
 {
   if (ptr) {
   fTrRecHit.push_back(TrRecHitR(ptr));
-  ptr->SetClonePointer(& fTrRecHit.back(),fTrRecHit.size()-1);
+  ptr->SetClonePointer(fTrRecHit.size()-1);
   }  else {
    cout<<"AddAMSObject -E- AMSTrRecHit ptr is NULL"<<endl;
   }
@@ -1218,7 +1253,7 @@ void AMSEventR::AddAMSObject(AMSTrTrack *ptr)
 {
   if (ptr) {
   fTrTrack.push_back(TrTrackR(ptr));
-  ptr->SetClonePointer(&fTrTrack.back(), fTrTrack.size()-1);
+  ptr->SetClonePointer( fTrTrack.size()-1);
   }  else {
    cout<<"AddAMSObject -E- AMSTrTrack ptr is NULL"<<endl;
   }
@@ -1229,7 +1264,7 @@ void AMSEventR::AddAMSObject(AMSTRDRawHit *ptr)
 {
   if (ptr) {
   fTrdRawHit.push_back(TrdRawHitR(ptr));
-  ptr->SetClonePointer(& fTrdRawHit.back(), fTrdRawHit.size()-1);
+  ptr->SetClonePointer( fTrdRawHit.size()-1);
   }  else {
    cout<<"AddAMSObject -E- AMSTRDRawHit ptr is NULL"<<endl;
   }
@@ -1239,7 +1274,7 @@ void AMSEventR::AddAMSObject(AMSTRDCluster *ptr)
 {
   if (ptr) {
   fTrdCluster.push_back(TrdClusterR(ptr));
-  ptr->SetClonePointer(& fTrdCluster.back(), fTrdCluster.size()-1);
+  ptr->SetClonePointer( fTrdCluster.size()-1);
   }  else {
    cout<<"AddAMSObject -E- AMSTRDCluster ptr is NULL"<<endl;
   }
@@ -1249,7 +1284,7 @@ void AMSEventR::AddAMSObject(AMSTRDSegment *ptr)
 {
   if (ptr) {
   fTrdSegment.push_back(TrdSegmentR(ptr));
-  ptr->SetClonePointer(& fTrdSegment.back(),fTrdSegment.size()-1);
+  ptr->SetClonePointer(fTrdSegment.size()-1);
   }  else {
    cout<<"AddAMSObject -E- AMSTRDSegment ptr is NULL"<<endl;
   }
@@ -1260,7 +1295,7 @@ void AMSEventR::AddAMSObject(AMSTRDTrack *ptr)
 {
   if (ptr) {
   fTrdTrack.push_back(TrdTrackR(ptr));
-  ptr->SetClonePointer(& fTrdTrack.back(),fTrdTrack.size()-1);
+  ptr->SetClonePointer(fTrdTrack.size()-1);
   }  else {
    cout<<"AddAMSObject -E- AMSTRDTrack ptr is NULL"<<endl;
   }
@@ -1271,7 +1306,7 @@ void AMSEventR::AddAMSObject(Trigger2LVL1 *ptr)
 {
   if (ptr) {
   fLevel1.push_back(Level1R(ptr));
-  ptr->SetClonePointer(& fLevel1.back(),fLevel1.size()-1);
+  ptr->SetClonePointer(fLevel1.size()-1);
   }  else {
    cout<<"AddAMSObject -E- Trigger2LVL1 ptr is NULL"<<endl;
   }
@@ -1281,7 +1316,7 @@ void AMSEventR::AddAMSObject(TriggerLVL302 *ptr)
 {
   if (ptr) {
   fLevel3.push_back(Level3R(ptr));
-  ptr->SetClonePointer(& fLevel3.back(),fLevel3.size()-1);
+  ptr->SetClonePointer(fLevel3.size()-1);
   }  else {
    cout<<"AddAMSObject -E- TriggerLVL302 ptr is NULL"<<endl;
   }
@@ -1291,7 +1326,7 @@ void AMSEventR::AddAMSObject(AMSBeta *ptr)
 {
   if (ptr) {
    fBeta.push_back(BetaR(ptr));
-   ptr->SetClonePointer(&fBeta.back(),fBeta.size()-1);
+   ptr->SetClonePointer(fBeta.size()-1);
    }  else {
      cout<<"AddAMSObject -E- AMSBeta ptr is NULL"<<endl;
   }
@@ -1303,7 +1338,7 @@ void AMSEventR::AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[],
 {
   if (ptr) {
    fCharge.push_back(ChargeR(ptr, probtof, chintof, probtr, chintr, probrc, chinrc, proballtr));
-   ptr->SetClonePointer(&fCharge.back(),fCharge.size()-1);
+   ptr->SetClonePointer(fCharge.size()-1);
   }  else {
     cout<<"AddAMSObject -E- AMSCharge ptr is NULL"<<endl;
   }
@@ -1314,7 +1349,7 @@ void AMSEventR::AddAMSObject(AMSParticle *ptr, float phi, float phigl)
 {
   if (ptr) {
   fParticle.push_back(ParticleR(ptr, phi, phigl));
-  ptr->SetClonePointer(& fParticle.back(),fParticle.size()-1);
+  ptr->SetClonePointer(fParticle.size()-1);
   }  else {
    cout<<"AddAMSObject -E- AMSParticle ptr is NULL"<<endl;
   }
@@ -1325,7 +1360,7 @@ void AMSEventR::AddAMSObject(AMSAntiMCCluster *ptr)
 {
   if (ptr) {
   fAntiMCCluster.push_back(AntiMCClusterR(ptr));
-  ptr->SetClonePointer(&fAntiMCCluster.back(),fAntiMCCluster.size()-1);  
+  ptr->SetClonePointer(fAntiMCCluster.size()-1);  
   }  else {
     cout<<"AddAMSObject -E- AMSAntiMCCluster ptr is NULL"<<endl;
   }
@@ -1339,7 +1374,7 @@ void AMSEventR::AddAMSObject(AMSAntiMCCluster *ptr)
 void AMSEventR::AddAMSObject(AMSRichMCHit *ptr, int _numgen)
 {
   fRichMCCluster.push_back(RichMCClusterR(ptr,_numgen));
-  ptr->SetClonePointer(& fRichMCCluster.back(),fRichMCCluster.size()-1);
+  ptr->SetClonePointer(fRichMCCluster.size()-1);
 }
 
 
@@ -1350,7 +1385,7 @@ void AMSEventR::AddAMSObject(AMSTOFMCCluster *ptr)
 {
   if (ptr) {
   fTofMCCluster.push_back(TofMCClusterR(ptr));
-  ptr->SetClonePointer(& fTofMCCluster.back(),fTofMCCluster.size()-1);
+  ptr->SetClonePointer(fTofMCCluster.size()-1);
   }  else {
    cout<<"AddAMSObject -E- AMSTofMCCluster ptr is NULL"<<endl;
   }
@@ -1363,7 +1398,7 @@ void AMSEventR::AddAMSObject(AMSTrMCCluster *ptr)
 {
   if (ptr) {
   fTrMCCluster.push_back(TrMCClusterR(ptr));
-  ptr->SetClonePointer(& fTrMCCluster.back(), fTrMCCluster.size()-1);
+  ptr->SetClonePointer( fTrMCCluster.size()-1);
   }  else {
    cout<<"AddAMSObject -E- AMSTrMCCluster ptr is NULL"<<endl;
   }
@@ -1374,7 +1409,7 @@ void AMSEventR::AddAMSObject(AMSTRDMCCluster *ptr)
 {
   if (ptr) {
   fTrdMCCluster.push_back(TrdMCClusterR(ptr));
-  ptr->SetClonePointer(& fTrdMCCluster.back(),fTrdMCCluster.size()-1);
+  ptr->SetClonePointer(fTrdMCCluster.size()-1);
   }  else {
    cout<<"AddAMSObject -E- AMSTRDMCCluster ptr is NULL"<<endl;
   }
@@ -1386,7 +1421,7 @@ void AMSEventR::AddAMSObject(AMSmceventg *ptr)
 {
   if (ptr) {
   fMCEventg.push_back(MCEventgR(ptr));
-  ptr->SetClonePointer(& fMCEventg.back(), fMCEventg.size()-1);
+  ptr->SetClonePointer( fMCEventg.size()-1);
   }  else {
     cout<<"AddAMSObject -E- AMSmceventg ptr is NULL"<<endl;
   }
@@ -1397,7 +1432,7 @@ void AMSEventR::AddAMSObject(AMSmctrack *ptr)
 {
   if (ptr) {
   fMCTrack.push_back(MCTrackR(ptr));
-  ptr->SetClonePointer(& fMCTrack.back(),fMCTrack.size()-1);
+  ptr->SetClonePointer(fMCTrack.size()-1);
   }  else {
     cout<<"AddAMSObject -E- AMSmctrack ptr is NULL"<<endl;
   }
@@ -2094,5 +2129,72 @@ EcalHitR::EcalHitR(AMSEcalHit *ptr) {
    VertexR* ParticleR::pVertex(){
      return (AMSEventR::Head() )?AMSEventR::Head()->pVertex(fVertex):0;
    }
+
+   void AMSEventR::CreateBranch(TTree *tree, int branchSplit){
+   if(tree){
+     _Head=this;
+     tree->Branch(BranchName(),"AMSEventR",&_Head,64000,branchSplit);
+     tree->SetBranchStatus("ev.TSelector",false);
+//     tree->SetBranchStatus("ev.fService",false);
+}
+}
+
+
+
+void AMSEventR::Begin(TTree *tree){
+   // Function called before starting the event loop.
+   // Initialize the tree branches.
+   Init(tree);
+   TString option = GetOption();
+
+   // open file if...
+   
+   if(option.Length()>1){
+    fService._pOut=new TFile(option,"RECREATE");
+    cout <<"AMSEventR::Begin-I-WriteFileOpened "<<option<< endl;
+   }
+
+   UBegin();     
+   fService._w.Start(); 
+   
+   
+   
+   
+
+}
+
+
+void AMSEventR::Init(TTree *tree){
+//   Set branch addresses
+   if (tree == 0) return;
+   _Tree    = tree;
+   _Tree->SetMakeClass(1);
+   SetBranchA(_Tree);
+   
+}
+
+
+
+
+void AMSEventR::Terminate()
+{
+   // Function called at the end of the event loop.
+   _Tree->SetMakeClass(0);
+   fService._w.Stop();
+   cout <<"AMSEventR::Terminate-I-CputimeSpent "<<fService._w.CpuTime()<<" sec"<<endl;
+   UTerminate();
+   cout <<"AMSEventR::Terminate-I-Total/Bad "<<fService.TotalEv<<"/"<<fService.BadEv<<" events processed "<<endl;
+   if(fService._pOut){
+     fService._pOut->Write();
+     fService._pOut->Close();
+   cout <<"AMSEventR::Terminate-I-WriteFileClosed "<<GetOption()<<endl;
+   }
+  
+}
+
+void AMSEventR::UBegin(){
+}
+void AMSEventR::UTerminate(){
+}
 
 #endif

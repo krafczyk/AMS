@@ -1,5 +1,5 @@
 #define stlv_cxx
-#include "stlv.h"
+#include "/offline/vdev/include/root_RVS.h"
 #include "TF1.h"
 #include "TH2.h"
 #include "TStyle.h"
@@ -12,13 +12,56 @@
 #include <TTree.h>
 #include <iostream.h>
 #include <stdlib.h>
-#include "TStopwatch.h"
-static    TStopwatch  * _pw;
 /** \example stlv.C 
  * This is an example of how to work with AMS Root Files. 
  *  \sa stlv
  */
 
+
+
+///  This is an example of user class to process AMS Root Files 
+/*!
+ This class is derived from the ROOT class TSelector. \n
+ The following members functions are called by the TTree::Process() functions: \n
+    UBegin():       called everytime a loop on the tree starts, \n
+                    a convenient place to create your histograms. \n
+    ProcessFill():  called in the entry loop for all entries \n
+    UTerminate():   called at the end of a loop on the tree,
+                    a convenient place to draw/fit your histograms. \n
+
+   To use this file, try the following session on your Tree T \n
+
+ Root > T->Process("stlv.C")  \n
+ Root > T->Process("stlv.C","some options") \n
+  Root > T->Process("stlv.C+") \n
+ Root > T->Process("stlv.C++") \n
+
+*/
+class stlv : public AMSEventR {
+   public :
+
+    vector<TH1F*>   h1A;   ///< An (alt) way of having array of histos
+    
+   stlv(TTree *tree=0){ };
+
+   ~stlv() { 
+    for(unsigned int i=0;i<h1A.size();i++)delete h1A[i];
+        h1A.clear(); 
+   }
+
+
+   /// User Function called before starting the event loop.
+   /// Book Histos
+   virtual void    UBegin();
+   /// User Function called for selected entries only.
+   /// Entry is the entry number in the current tree.
+   /// Fills histograms.
+   void    ProcessFill(Int_t entry);
+
+   /// Called at the end of a loop on the tree,
+   /// a convenient place to draw/fit your histograms. \n
+   virtual void    UTerminate();
+};
 
 
 //create here pointers to histos and/or array of histos
@@ -28,20 +71,8 @@ static    TStopwatch  * _pw;
 
 
 
-void stlv::Begin(TTree *tree){
+void stlv::UBegin(){
     cout << " Begin called "<<endl;
-   // User Function called before starting the event loop.
-   // Initialize the tree branches.
-   // Book Histos
-   Init(tree);
-   TString option = GetOption();
-
-   // open file if...
-   
-   if(option.Length()>1){
-    pOutFile=new TFile(option,"RECREATE");
-    cout <<" write file opened"<<endl;
-   }
 
    //here create histograms
 
@@ -62,25 +93,9 @@ void stlv::Begin(TTree *tree){
    } 
    
    
-        _pw =new TStopwatch();
-        _pw->Start(); 
-   
-   
-   
-   
 
 }
 
-Bool_t stlv::ProcessCut(Int_t entry)
-{
-   // Selection function.
-   // Entry is the entry number in the current tree.
-   // Read only the header to select entries.
-   // May return kFALSE as soon as a bad entry is detected.
-   // Should Not be modified by (Non)Advanced User
-     ev.ReadHeader(entry);
-     return kTRUE;
- }
 
 void stlv::ProcessFill(Int_t entry)
 {
@@ -90,39 +105,39 @@ void stlv::ProcessFill(Int_t entry)
    
     
     Float_t xm=0;
-    if(ev.nMCEventg()>0){		
-     MCEventgR mc_ev=ev.MCEventg(0);
+    if(nMCEventg()>0){		
+     MCEventgR mc_ev=MCEventg(0);
       xm = log(mc_ev.Momentum);
       acc[0]->Fill(xm,1);
       h1A[0]-> Fill(xm,1);
-     if(ev.nParticle()>0){
-       int ptrack = ev.Particle(0).TrTrack();
-       int ptrd = ev.Particle(0).TrdTrack();
-       if(ev.NParticle()== 1 && ptrack>=0 && ptrd>=0){ //final if
+     if(nParticle()>0){
+       int ptrack = Particle(0).TrTrack();
+       int ptrd = Particle(0).TrdTrack();
+       if(NParticle()== 1 && ptrack>=0 && ptrd>=0){ //final if
          acc[1]->Fill(xm,1);
          h1A[1]-> Fill(xm,1);
      
-        int pbeta = ev.Particle(0).iBeta();   // here iBeta, not Beta
-        BetaR *pb =  ev.Particle(0).pBeta();   // another way 
+        int pbeta = Particle(0).iBeta();   // here iBeta, not Beta
+        BetaR *pb =  Particle(0).pBeta();   // another way 
         if(pbeta>=0){			//check beta
-	  BetaR Beta=ev.Beta(pbeta);
-          if(fabs(Beta.Beta) < 2 && pb->Chi2S < 5 && Beta.Pattern < 4){
-	    if(ev.nTrdTrack()<2){
+	  BetaR BetaI=Beta(pbeta);
+          if(fabs(BetaI.Beta) < 2 && pb->Chi2S < 5 && BetaI.Pattern < 4){
+	    if(nTrdTrack()<2){
 	    Int_t Layer1 =0;
             Int_t Layer2 =0;  
-             TrTrackR tr_tr=ev.TrTrack(ptrack);
+             TrTrackR tr_tr=TrTrack(ptrack);
 		 int  ptrh=tr_tr.TrRecHit(0);			//pht1
-   	          Layer1=ev.TrRecHit(ptrh).Layer;
+   	          Layer1=TrRecHit(ptrh).Layer;
 		    
 		 
 		  ptrh=tr_tr.TrRecHit(tr_tr.NTrRecHit()-1);			//pht2
-   	           Layer2=ev.TrRecHit(ptrh).Layer;
+   	           Layer2=TrRecHit(ptrh).Layer;
 
  // alt method
 
                   TrRecHitR* pph=tr_tr.pTrRecHit(tr_tr.NTrRecHit()-1);
                   int l2=pph->Layer;
-                           
+                  cout <<"l "<<Layer2<<l2<<endl;                           
 }
 }
 }
@@ -131,15 +146,8 @@ void stlv::ProcessFill(Int_t entry)
 }
 }
 
-void stlv::Terminate()
+void stlv::UTerminate()
 {
-   // Function called at the end of the event loop.
-   fChain->SetMakeClass(0);
-   _pw->Stop();
-   cout <<_pw->CpuTime()<<endl;
-   if(pOutFile){
-     pOutFile->Write();
-     pOutFile->Close();
-   }
   
 }
+

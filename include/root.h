@@ -1,14 +1,16 @@
-//  $Id: root.h,v 1.87 2003/05/15 18:05:00 choutko Exp $
+//  $Id: root.h,v 1.88 2003/05/16 16:54:12 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 #include <TObject.h>
 #include <TTree.h>
 #include <TFile.h>
+#include <TSelector.h>
 #include <TROOT.h>
 #include <TBranch.h>
 #include <list>
 #include <vector>
 #include <iostream>
+#include <TStopwatch.h>
 using namespace std;
 #ifndef __ROOTSHAREDLIBRARY__
 class AMSAntiCluster;
@@ -95,7 +97,7 @@ class EventNtuple02{};
  \author v.choutko@cern.ch
 
 */
-class HeaderR: public TObject {
+class HeaderR{
  public:
 
 
@@ -177,7 +179,7 @@ public:
 
    \author e.choumilov@cern.ch
 */
-class EcalHitR : public TObject {
+class EcalHitR {
 public:
   int   Status;   ///< Statusword
   int   Idsoft;   ///< SupLayer/PM/subCell  0:8/0:7/0:3  (?)
@@ -202,7 +204,7 @@ ClassDef(EcalHitR,1)       //EcalHitR
 
    \author v.choutko@cern.ch
 */
-class EcalClusterR : public TObject {
+class EcalClusterR {
 public:
   int Status;    ///<  Statusword
                  /*!< valid values are:\n
@@ -253,7 +255,7 @@ ClassDef(EcalClusterR,1)       //EcalClusterR
    \author v.choutko@cern.ch
 */
 
-class Ecal2DClusterR: public TObject {
+class Ecal2DClusterR{
 public:
   int Status;   ///< statusword
   int Proj;     ///< projection 0-x 1-y
@@ -293,7 +295,7 @@ friend class AMSEcal2DCluster;
 */
 
 
-class EcalShowerR : public TObject {
+class EcalShowerR {
 public:
   int   Status;    ///< status word \sa EcalHitR status
   float Dir[3];    ///< direction cos array 
@@ -353,7 +355,7 @@ ClassDef(EcalShowerR,1)       //EcalShowerR
  \author Carlos.Jose.Delgado.Mendez@cern.ch
 */
 
-class RichHitR : public TObject {
+class RichHitR {
 public:
   unsigned int Status;   ///< statusword
                          /*!<
@@ -396,7 +398,7 @@ ClassDef(RichHitR,1)       // RichHitR
  \author Carlos.Jose.Delgado.Mendez@cern.ch
 */
 
-class RichRingR : public TObject {
+class RichRingR {
 public:
 
   unsigned int Status;     ///< status word
@@ -445,7 +447,7 @@ public:
 
 */
 
-class TofRawClusterR : public TObject {
+class TofRawClusterR {
 public:
   int   Status;  ///< statusword (Ask E.Choumilov)
   int   Layer;   ///< Tof plane 1(top)...4
@@ -470,7 +472,7 @@ public:
 
 */
 
-class TofClusterR : public TObject {
+class TofClusterR {
 public:
   int Status;   ///< Statusword
                 /*!<
@@ -518,7 +520,7 @@ ClassDef(TofClusterR,1)       //TofClusterR
  \author e.choumilov@cern.ch
 
 */
-class AntiClusterR : public TObject {
+class AntiClusterR {
 public:
   int   Status;   ///< Statusword Bit"256"->1sideSector;"1024"->s2 missing if set  s1 missing if not
   int   Sector;   ///< //Sector number(1-8)
@@ -542,7 +544,7 @@ ClassDef(AntiClusterR,1)       //AntiClusterR
  \author v.choutko@cern.ch
 
 */
-class TrRawClusterR : public TObject {
+class TrRawClusterR {
 public:
   int address;   ///<Address \sa TrClusterR Idsoft
   int nelem;     ///< number of strips 
@@ -559,7 +561,7 @@ ClassDef(TrRawClusterR,1)       //TrRawClusterR
  \author v.choutko@cern.ch
 
 */
-class TrClusterR : public TObject {
+class TrClusterR {
 public:
   int Idsoft;  ///< software id
                /*!<
@@ -621,7 +623,7 @@ ClassDef(TrClusterR,1)       //TrClusterR
 
 */
 
-class TrRecHitR : public TObject {
+class TrRecHitR {
 public:
   int   Status;   ///< statusword \sa TrClusterR Status
   int   Layer;    ///<Layer no 1-6 up-down
@@ -659,7 +661,7 @@ ClassDef(TrRecHitR,1)       //TrRecHitR
 
 */
 
-class TrTrackR : public TObject {
+class TrTrackR {
 public:
   int Status;   ///< statusword \sa TrClusterR
   int Pattern;  ///< see datacards.doc
@@ -715,7 +717,7 @@ friend class AMSTrTrack;
 
 */
 
-class TrdRawHitR : public TObject {
+class TrdRawHitR {
 public:
   int Layer;   ///< Layer 0(bottom)...19(top) 
   int Ladder;  ///<  Ladder  number
@@ -734,7 +736,7 @@ ClassDef(TrdRawHitR,1)       //TrdRawHitR
 
 */
 
-class TrdClusterR : public TObject {
+class TrdClusterR {
 public:
   int   Status;    ///< statusword
   float Coo[3];    ///<cluster coo (cm)
@@ -765,7 +767,7 @@ ClassDef(TrdClusterR,1)       //TrdClusterR
 */
 
 
-class TrdSegmentR : public TObject {
+class TrdSegmentR {
 public:
   int   Status;            ///< status word
   int   Orientation;       ///< segment orientation (0-x 1-y)
@@ -790,7 +792,7 @@ public:
   friend class AMSTRDSegment;
   TrdSegmentR(){};
   TrdSegmentR(AMSTRDSegment *ptr);
-
+  virtual ~TrdSegmentR(){};
 ClassDef(TrdSegmentR,1)       //TrdSegmentR
 };
 
@@ -801,7 +803,7 @@ ClassDef(TrdSegmentR,1)       //TrdSegmentR
 
 */
 
-class TrdTrackR : public TObject {
+class TrdTrackR {
 public:
   int   Status;  ///< statusword
   float Coo[3];  ///< trac coo (cm)
@@ -837,7 +839,7 @@ ClassDef(TrdTrackR,1)       //TrdTrackR
 
 */
 
-class Level1R : public TObject {
+class Level1R {
 public:
   int   Mode;   ///< reserved
   int   TofFlag;   ///< =0/1/3->NoTofTrig/z>=1/z>2 +10, if TofTrig with all 4counters
@@ -869,7 +871,7 @@ ClassDef(Level1R,1)       //Level1R
 
 */
 
-class Level3R : public TObject {
+class Level3R {
 public:
   int   TOFTr;  ///< TOF Trigger
                 /*!<
@@ -955,7 +957,7 @@ ClassDef(Level3R,1)       //Level3R
 
 */
 
-class BetaR : public TObject {
+class BetaR {
  public:
   int       Status;   ///< status word  4 - ambig
   int       Pattern;   ///< beta pattern \sa beta.doc
@@ -989,6 +991,7 @@ public:
    BetaR(){};
    BetaR(AMSBeta *ptr);
    friend class AMSBeta;
+   virtual ~BetaR(){};
    ClassDef(BetaR,1)         //BetaR
 };
 
@@ -1000,7 +1003,7 @@ public:
     Still Incomplete \n
     Only Tr, Tof aand Rich re used at the moment \n
 */    
-class ChargeR : public TObject {
+class ChargeR {
 /*!
   \author Carlos.Jose.Delgado.Mendez@cern.ch
 
@@ -1054,7 +1057,7 @@ ClassDef(ChargeR,1)       //ChargeR
    \sa gamma.h gamma.C
    \author g.lamanna@cern.ch
 */
-class VertexR : public TObject {
+class VertexR {
  public:
 public:
   int   Status;       //
@@ -1120,7 +1123,7 @@ public:
          
    
    
-class ParticleR : public TObject {
+class ParticleR {
 public:
   int Status;   ///< status word (not really used at the moment)
   int   Particle;     ///< voted particle id a-la geant3 (not really reliable)
@@ -1234,7 +1237,7 @@ public:
 
    \author e.choumilov@cern.ch
 */
-class AntiMCClusterR : public TObject {
+class AntiMCClusterR {
 public:
   int   Idsoft;   ///< software id  (ask E.Choumilov for details)
   float Coo[3];   ///< coo (cm)
@@ -1251,7 +1254,7 @@ ClassDef(AntiMCClusterR,1)       //AntiMCClusterR
 
    \author v.choutko@cern.ch
 */
-class TrMCClusterR : public TObject {
+class TrMCClusterR {
 public:
   int Idsoft;   ///< idsoft
                /*!<
@@ -1280,7 +1283,7 @@ ClassDef(TrMCClusterR,1)       //TrMCClusterR
 
    \author e.choumilov@cern.ch
 */
-class TofMCClusterR : public TObject {
+class TofMCClusterR {
 public:
   int   Idsoft;  ///< software id  (ask E.Choumilov for details)
   float Coo[3];  ///< coo cm
@@ -1297,7 +1300,7 @@ ClassDef(TofMCClusterR,1)       //TOFMCClusterRoot
 
    \author k.scholberg@cern.ch
 */
-class TrdMCClusterR : public TObject {
+class TrdMCClusterR {
 public:
   int   Layer;             ///< layer 0(top) 19 (bottom) no
   int   Ladder;     ///< ladder  no
@@ -1319,7 +1322,7 @@ ClassDef(TrdMCClusterR,1)       //TrdMCClusterR
 
    \author Carlos.Jose.Delgado.Mendez@cern.ch
 */
-class RichMCClusterR : public TObject {
+class RichMCClusterR {
 public:
   int   Id;            ///< Particle id, -666 if noise
   float Origin[3];     ///< Particle origin coo
@@ -1375,7 +1378,7 @@ Contains radiation/absorption length ticknesses.
 \author v.choutko@cern.ch
 */
 
-class MCTrackR : public TObject {
+class MCTrackR {
 public:
 float RadL;   ///< integrated radiation length 
 float AbsL;   ///< integrated nuclear absorption length 
@@ -1392,7 +1395,7 @@ ClassDef(MCTrackR,1)       //MCTrackR
 
    \author v.choutko@cern.ch
 */
-class MCEventgR : public TObject {
+class MCEventgR {
 public:
   int Nskip;      ///<  reserved
   int Particle;   ///< geant3 particle id
@@ -1437,9 +1440,17 @@ ClassDef(MCEventgR,1)       //MCEventgR
 
     \author v.choutko@cern.ch
 */
-class AMSEventR: public  TObject {   
+class AMSEventR: public  TSelector {   
 protected:
-
+class Service{
+public:
+ TFile *            _pOut;
+ TStopwatch         _w;
+ unsigned int       TotalEv;
+ unsigned int       BadEv;
+Service():_pOut(0),TotalEv(0),BadEv(0){}
+};
+Service  fService;
 static TBranch*  bHeader;
 static TBranch*  bEcalHit;
 static TBranch*  bEcalCluster;
@@ -1471,6 +1482,7 @@ static TBranch*  bTrdMCCluster;
 static TBranch*  bRichMCCluster;
 static TBranch*  bMCTrack;
 static TBranch*  bMCEventg;
+static TBranch*  bAux;
 
 
 static void*  vHeader;
@@ -1504,30 +1516,87 @@ static void*  vTrdMCCluster;
 static void*  vRichMCCluster;
 static void*  vMCTrack;
 static void*  vMCEventg;
+static void*  vAux;
 
+static TTree     * _Tree;
 
 static AMSEventR * _Head;
 static int         _Count;
 static int         _Entry;
- static char      * _Name;
+static char      * _Name;
 public:
  static AMSEventR* & Head()  {return _Head;}
  static char *  BranchName() {return _Name;}
  void SetBranchA(TTree *tree);
+ void CreateBranch(TTree *tree, int brs);
  void ReSetBranchA(TTree *tree);
  void GetBranch(TTree *tree);
  void GetBranchA(TTree *tree);
  void SetCont(); 
  int & Entry(){return _Entry;}
+protected:
+//
+//  TSelector functions
+
+   /// System function called before starting the event loop.
+   /// Initializes the tree branches.
+   /// Optionally opens the output file via chain.Process("xyz.C+","outputfilename");
+   /// calls user UBegin()  function
+   void    Begin(TTree *tree);
+
+   // System function called when loading a new file.
+   // Get branch pointers.
+   bool  Notify(){GetBranch(_Tree);return true;}
+   void    Init(TTree *tree);   ///< InitTree
+
+
+   void    SetOption(const char *option) { fOption = option; }
+   void    SetObject(TObject *obj) { fObject = obj; }
+   void    SetInputList(TList *input) {fInput = input;}
+   TList  *GetOutputList() const { return fOutput; }
+   /// System Function called at the end of a loop on the tree
+   ///  optionally stores histos in a file \sa Begin 
+   /// Calls UTerminate();
+   void    Terminate();
+
+
+
 public:
 
 
+
+
+// TSelector user functions
  
-  HeaderR  fHeader;  ///<  Event Header \sa HeaderR
+   /// User Analysis function called before starting the event loop.
+   /// Place to book histos etc
+   /// \sa stlv.C
+   virtual void UBegin();
+   /// User Analysis Function called at the end of a loop on the tree,
+   /// a convenient place to draw/fit your histograms. \n
+   /// \sa stlv.C
+   virtual void UTerminate();
+
+
+   /// Analysis Selection function.
+   /// Entry is the entry number in the current tree.
+   /// Read only the header to select entries.
+   /// May return kFALSE as soon as a bad entry is detected.\n
+   /// Should Not be modified by (Non)Advanced User\n
+   /// \sa stlv.C
+   /// \param entry - event no
+   /// \ return false if error;
+   Bool_t  ProcessCut(int entry){return ReadHeader(entry);}
 
   ///  Reads Header 
   /// \param Entry - event no
-  void ReadHeader(int Entry);
+   /// \ return false if error;
+  bool ReadHeader(int Entry);
+
+public:
+ 
+  HeaderR  fHeader;  ///<  Event Header \sa HeaderR
+
 
 int Version() const {return fHeader.Version/4;} ///< \retun producer version number
 int OS() const {return fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun )

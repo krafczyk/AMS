@@ -1,4 +1,4 @@
-//  $Id: link.h,v 1.16 2003/05/12 21:40:40 choutko Exp $
+//  $Id: link.h,v 1.17 2003/05/16 16:54:12 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 04, 1996. add _ContPos
@@ -27,7 +27,7 @@ public:
  void setstatus(uinteger status){_status=_status | status;}
  void clearstatus(uinteger status){_status=_status & ~status;}
  int      GetClonePointer(){return _vpos;}
- void SetClonePointer(TObject *ptr, int vpos=-1){
+ void SetClonePointer(int vpos=-1){
  _vpos=vpos;
 }
  bool PointerNotSet()const {return _vpos<0;}
