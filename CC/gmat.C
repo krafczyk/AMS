@@ -289,6 +289,9 @@ w[0]=8.; w[1]=8.;
 mat.add (new AMSgmat(46,"ECSCINT",a,z,w,2,1.032));
 }
 //-------------------
+// effective material for ECAL PMT-boxes (low dens.(1:10) iron):
+mat.add (new AMSgmat(47,"LOW_DENS_Fe_2",55.85,26.,0.787,17.6,168.));
+//-------------------
 #ifdef __AMSDEBUG__
 if(AMSgmat::debug)GPMATE(0);
 #endif
@@ -374,7 +377,7 @@ tmed.add (new AMSgtmed(++ip,"EC_RADIATOR",13,0,'N',birks,2,20.,10.,1000.,
 GSTPAR(ip,"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_RADIATOR
 GSTPAR(ip,"CUTELE",ECMCFFKEY.cutge);
 tmed.add (new AMSgtmed(++ip,"EC_FIBER",46,1,'Y',birks));// 38
-tmed.add (new AMSgtmed(++ip,"EC_ELBOX",25,0));// 39 tempor as for TOF
+tmed.add (new AMSgtmed(++ip,"EC_ELBOX",47,0));// 39 tempor as for TOF-boxes
 GSTPAR(ip,"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_ELBOX
 GSTPAR(ip,"CUTELE",ECMCFFKEY.cutge);
 } 

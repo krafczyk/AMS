@@ -2488,7 +2488,7 @@ void ecalgeom02(AMSgvolume & mother){
   p=ECmother->add(new AMSgvolume(
        "EC_ELBOX",0,"ECEB","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));//+Y box
 //------------------------------------
-  if(ECMCFFKEY.fastsim==1){ // <--- simplified (fast) geometri
+  if(ECMCFFKEY.fastsim==1){ // <--- simplified (fast) geometry
 //
 // create Ecal EFFECTIVE Radiator volume as box:
 //
