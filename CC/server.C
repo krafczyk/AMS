@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.42 2001/02/12 17:40:32 choutko Exp $
+//  $Id: server.C,v 1.43 2001/02/15 10:59:30 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -2201,12 +2201,12 @@ _UpdateACT(cid,DPS::Client::Active);
  if(li!=_tid.end()){
   time_t b=tdvname.Entry.Begin;
   tdvname.Success=li->second->read((const char*)AMSDBc::amsdatabase,tdvname.Entry.id,b);
- }
- time_t i,b,e;
+  time_t i,e;
  li->second->gettime(i,b,e);
   tdvname.Entry.Insert=i;
   tdvname.Entry.Begin=b;
   tdvname.Entry.End=e;
+ }
   TDVbody_var vbody=new TDVbody();
   if(tdvname.Success){
    length=li->second->GetNbytes()/sizeof(uinteger);
@@ -2263,12 +2263,12 @@ tdvname.Success=false;
 if(li!=_tid.end()){
  time_t b=tdvname.Entry.Begin;
  tdvname.Success=li->second->read((const char*)AMSDBc::amsdatabase,tdvname.Entry.id,b);
-}
-time_t i,b,e;
+time_t i,e;
 li->second->gettime(i,b,e);
  tdvname.Entry.Insert=i;
  tdvname.Entry.Begin=b;
  tdvname.Entry.End=e;
+}
  TDVbody_var vbody=new TDVbody();
  if(tdvname.Success){
   length=li->second->GetNbytes()/sizeof(uinteger);
@@ -2287,6 +2287,7 @@ li->second->gettime(i,b,e);
    pos+=length;
  }
  else{
+  st=End;
   vbody->length(1);
  }
  body=vbody._retn();

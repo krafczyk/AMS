@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.32 2001/02/12 17:40:43 choutko Exp $
+# $Id: Monitor.pm,v 1.33 2001/02/15 11:00:01 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -676,8 +676,23 @@ if ($producer eq "Producer"){
         push @text, $run;
         my @dummy=split "//",$ntuple;
         push @text, $dummy[1];
-    }
+        push @text, $hash->{Status};
+        if ($hash->{Status} eq "Registered" or $hash->{Status} eq "Active"){
+            if($lastev>0){
+             push @text, 0;
+            }
+            else{
+             push @text, 1;
+            }   
+     }elsif( $hash->{Status} eq "TimeOut" or $hash->{Status} eq "Submitted"){
+         push @text, 1;
+     }else{
+         push @text, 2;
+     }
 
+
+    }
+    else{
         push @text, $hash->{Status};
         if ($hash->{Status} eq "Registered" or $hash->{Status} eq "Active"){
          push @text, 0;
@@ -686,6 +701,7 @@ if ($producer eq "Producer"){
      }else{
          push @text, 2;
      }
+    }
     push @output, [@text];
 }
     return @output;
