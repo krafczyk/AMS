@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.123 2003/04/25 07:11:29 alexei Exp $
+# $Id: RemoteClient.pm,v 1.124 2003/04/25 09:27:48 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -967,7 +967,7 @@ sub ValidateRuns {
       }
        foreach my $run (@cpruns) {
 #         DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete");
-           print "DBServer::sendRunEvInfo($self->{dbserver},$run,\"Delete\"); \n";
+           print "DBServer::sendRunEvInfo(dbserver,$run->{Run},\"Delete\"); \n";
        }
        $sql = "COMMIT";
        print "$sql \n";
@@ -992,24 +992,29 @@ sub doCopy {
      my $outputdisk => undef;
      my $outputpath => undef;
 
-# find disk
      my $filesize = 0;
      $filesize    = (stat($inputfile))[7];
      if ($filesize > 0) {
-      $filesize = 1+$filesize/1000000;
-      my $sql = "SELECT disk, path FROM filesystems WHERE AVAILABLE > $filesize 
-                   ORDER BY priority DESC, available DESC";
-      my $ret = $self->{sqlserver}->Query($sql);
-      if (defined $ret->[0][0]) {
-       $outputdisk = trimblanks($ret->[0][0]);
-       $outputpath = trimblanks($ret->[0][1]);
+      $filesize = 1+$filesize/1000000/1000;
+      my $mtime = 0;
+      my $pset  => undef;
+      my $sql   => undef;
 # get production set path
        $sql = "SELECT NAME FROM ProductionSet WHERE STATUS='Active'";
        my $r0 = $self->{sqlserver}->Query($sql);
        if (defined $r0->[0][0]) {
-         my $pset=trimblanks($r0->[0][0]);
-         $outputpath = $outputpath."/".$pset;
-         my $mtime = (stat $outputpath)[9];
+         $pset=trimblanks($r0->[0][0]);
+# find disk
+         $sql = "SELECT disk, path FROM filesystems WHERE AVAILABLE > $filesize 
+                   ORDER BY priority DESC, available DESC";
+         my $ret = $self->{sqlserver}->Query($sql);
+         foreach my $disk (@{$ret}) {
+           $outputdisk = trimblanks($disk->[0]);
+           $outputpath = trimblanks($disk->[1]);
+           $outputpath = $outputpath."/".$pset;
+           $mtime = (stat $outputpath)[9];
+           if ($mtime) { last;}
+          }   
          if ($mtime) {
 # find job
           $sql = "SELECT cites.name,jobname,jobs.jid  FROM jobs,cites 
@@ -1034,19 +1039,16 @@ sub doCopy {
              print "doCopy -W- failed $cmd";
             }
            } else {
-            print "doCopy -W- cannot get info for JID=$jid";
+            print "doCopy -W- cannot get info for JID=$jid \n";
            }
         } else {
-          print "doCopy -W- cannot stat($outputpath)";
-        }
+         print "doCopy -W- cannot stat disk from Filesystems \n";
+        } 
       } else {
-       print "doCopy -W- cannot get ProductionSet";
-     }
-    } else {
-       print "doCopy -W- cannot $sql";
+       print "doCopy -W- cannot get ProductionSet\n";
      }
   } else {
-    print "doCopy -W- cannot stat $inputfile or file size is 0";
+    print "doCopy -W- cannot stat $inputfile or file size is 0\n";
   } 
   return undef;
  }
@@ -3842,7 +3844,7 @@ print qq`
         $self->{FileAttDBLastLoad}=$uplt1;
 
         if ($self->{dwldaddon} == 1) {
-         if($uplt0 == 0 or $uplt0 < $self->{FileDBTimestamp} or $uplt1 == 0 or $uplt1 < $self->FileAttDBTimestamp) {
+         if($uplt0 == 0 or $uplt0 < $self->{FileDBTimestamp} or $uplt1 == 0 or $uplt1 < $self->{FileAttDBTimestamp}) {
             $self->Download();
          } else {
           $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
