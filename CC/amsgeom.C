@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.137 2002/01/17 14:33:41 choutko Exp $
+//  $Id: amsgeom.C,v 1.138 2002/02/12 08:43:43 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -737,9 +737,9 @@ dz=TOF2DBc::plnstr(6)+2.*TOF2DBc::plnstr(7);// dz(thickn)of sc.counter(bar+cover
 pr[0]=dx/2.;
 pr[2]=dz/2.; 
 //                                 
-for (int ip=0;ip<TOF2GC::SCLRS;ip++){ //  <<<=============== loop over sc. planes
+for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc. planes
 //
-  nbm=TOF2GC::SCBRS[ip];                      // num. of bars in layer ip
+  nbm=TOF2DBc::getbppl(ip);                      // num. of bars in layer ip
   dxt=(nbm-1)*(dx-TOF2DBc::plnstr(4)); // first-last sc.count. bars distance 
 //                                   (betw.centers, taking into account overlaping)
   if(ip<2){
@@ -765,7 +765,6 @@ for (int ip=0;ip<TOF2GC::SCLRS;ip++){ //  <<<=============== loop over sc. plane
 //   <-- cr/position sc. counter (cover + scint. as solid cover)
 //
     btyp=TOF2DBc::brtype(ip,ib);
-    if(btyp==0)continue;// skip physically missing counters
     pr[1]=TOF2DBc::brlen(ip,ib)/2.+TOF2DBc::lglen(ip,ib); // dy/2 (sc.length+lg) 
     if(TOF2DBc::plrotm(ip)==0){  // <-- unrotated planes
       coo[0]=co[0]-dxt/2.+ib*(dx-TOF2DBc::plnstr(4));
@@ -832,6 +831,8 @@ for (int ip=0;ip<TOF2GC::SCLRS;ip++){ //  <<<=============== loop over sc. plane
 //
 //-----
   cout<<"AMSGEOM: TOF02-geometry(G3/G4-compatible) done!"<<endl;
+  cout<<"         "<<TOF2DBc::getbppl(0)<<"/"<<TOF2DBc::getbppl(1)<<"/"
+  <<TOF2DBc::getbppl(2)<<"/"<<TOF2DBc::getbppl(3)<<" bars/plane selected !"<<endl;
 }
 
 

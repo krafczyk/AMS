@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.6 2001/12/04 10:36:30 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.7 2002/02/12 08:44:09 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -38,8 +38,8 @@ namespace TOFGC{
 namespace TOF2GC{
 //geometry :
 const integer SCMXBR=12; // max nmb of bars/layer
-const integer SCLRS=4; // nmb of layers in TOF-systems
-const integer SCBRS[SCLRS]={12,12,12,12}; // nmb of bars per layer (top->bot)
+const integer SCLRS=4; // max nmb of layers in TOF-systems
+//const integer SCBRS[SCLRS]={12,12,12,12}; // nmb of bars per layer (top->bot)
 const integer SCROTN=2; // start nmb of abs. numbering of TOF rot. matrixes
 const integer SCBTPN=10;    //nmb of sc. bar types (different by length now)
 const integer SCCHMX=SCLRS*SCMXBR*2; //MAX scint. channels
@@ -103,6 +103,8 @@ private:
 // geom. constants:
   static integer _brtype[TOF2GC::SCBLMX];  // layer-map of bar types (diff. by length)
   static integer _plrotm[TOF2GC::SCLRS]; // TOF planes rotation mask
+  static integer _planes;                // real TOF planes
+  static integer _bperpl[TOF2GC::SCLRS]; // real bars per plane
   static geant _brlen[TOF2GC::SCBTPN]; // bar lengthes for SCBTPN types
   static geant _lglen[TOF2GC::SCBTPN]; // light-guide lengthes for SCBTPN types
   static geant _supstr[10]; // supp. structure parameters
@@ -146,11 +148,19 @@ public:
 //---
   static integer brtype(integer ilay, integer ibar);
 //
+  static integer barseqn(integer ilay, integer ibar);
+//
   static geant brlen(integer ilay, integer ibar);
 //
   static geant lglen(integer ilay, integer ibar);
 //
   static integer plrotm(integer ilay);
+//
+  static integer getbppl(integer ilay);
+//
+  static integer getnplns(){
+    return _planes;
+  }
 //
   static geant supstr(integer i);
 //

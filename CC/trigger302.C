@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.12 2001/12/10 18:24:25 choutko Exp $
+//  $Id: trigger302.C,v 1.13 2002/02/12 08:43:47 choumilo Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -214,8 +214,8 @@ void TriggerLVL302::init(){
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
       if(TOF2DBc::plrotm(ltop)==0)ltop=1;
       if(TOF2DBc::plrotm(lbot)==0)lbot=2;
-      planes=TOF2GC::SCLRS;
-      for(i=0;i<planes;i++)padspl[i]=TOF2GC::SCBRS[i];
+      planes=TOF2DBc::getnplns();
+      for(i=0;i<planes;i++)padspl[i]=TOF2DBc::getbppl(i);
     }
     else{
       if(TOFDBc::plrotm(ltop)==0)ltop=1;
@@ -279,7 +279,7 @@ void TriggerLVL302::init(){
  char name[80];
  char vers1[3]="mc";
  char vers2[3]="rl";
- strcpy(name,"TOFTZLVL3.AMS02");
+ strcpy(name,"TOFT0LVL3.AMS02");
  if(AMSJob::gethead()->isMCData()) //      for MC-event
  {
        cout <<" TriggerLVL302_build: MC-tofT0-calibration is used"<<endl;
@@ -289,6 +289,17 @@ void TriggerLVL302::init(){
  {
        cout <<" TriggerLVL302_build: REAL-tofT0-calibration is used"<<endl;
        strcat(name,vers2);
+ }
+//
+ char setu1[4]="12p";
+ char setu2[4]="8p";
+ if(strstr(AMSJob::gethead()->getsetup(),"TOF:8PAD")){
+    cout <<" T0LVL3-I-TOF:8PAD setup selected."<<endl;
+    strcat(name,setu2);
+ }
+ else{
+    cout <<" T0LVL3-I-TOF:12PAD setup selected."<<endl;
+    strcat(name,setu1);
  }
 //
  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
@@ -302,8 +313,8 @@ void TriggerLVL302::init(){
  }
 //
 // ---> read Tzero's:
- for(int ila=0;ila<TOF2GC::SCLRS;ila++){ 
-   for(int ibr=0;ibr<TOF2GC::SCMXBR;ibr++){
+ for(int ila=0;ila<TOF2DBc::getnplns();ila++){ 
+   for(int ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
      tzcfile >> _TOFTzero[ila][ibr];
    } 
  }

@@ -1865,6 +1865,126 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
   if(sta>0)return;
   EcalJobStat::addca(8);
 //
+//g.chen
+  if(ECCAFFKEY.ecshswit==1){ // add shower info here
+    EcalShower * ptsh;
+    number ecshen,ecshener,efront,chi2dir,difosum,ecshsleak,ecshrleak,ecshdleak,ecsholeak;
+    number ecsherdir,profchi2,transchi2;
+    AMSDir ecshdir(0.,0.,0.);
+    AMSPoint ecshentry,ecshexit,ecshcog;
+    int  ecshnum;
+    ecshnum=0;
+    ecshen=0.;
+    ecshener=0.;
+    efront=0.;
+    ptsh=(EcalShower*)AMSEvent::gethead()->
+      getheadC("EcalShower",0);
+    while(ptsh){ // <------- ecal shower
+      ecshnum++;
+      ptsh=ptsh->next();
+    }
+    if(ecshnum!=1)return;          // only use event with one shower  
+    
+    ptsh=(EcalShower*)AMSEvent::gethead()->
+      getheadC("EcalShower",0);
+    //  while(ptsh){ // <------- ecal shower
+    ecshen=ptsh->getEnergy();
+    //    ecshener=ptsh->getEnergyErr();
+    ecshdir=ptsh->getDir();
+    ecshentry=ptsh->getEntryPoint();
+    ecshexit=ptsh->getExitPoint();
+    ecshcog=ptsh->getCofG();
+    efront=ptsh->getEnFront();
+    chi2dir=ptsh->getDirChi2();
+    ecsherdir=ptsh->getErDir();
+    difosum=ptsh->getDifoSum();
+    ecshsleak=ptsh->getSLeak();
+    ecshrleak=ptsh->getRLeak();
+    ecshdleak=ptsh->getDLeak();
+    ecsholeak=ptsh->getOLeak();
+    profchi2=ptsh->getProfChi2();
+    transchi2=ptsh->getTransChi2();
+    
+    if(ECREFFKEY.reprtf[0]!=0){
+      HF1(ECHISTC+62,ecshen,1.);
+      HF1(ECHISTC+63,chi2dir,1.);
+      HF1(ECHISTC+64,efront,1.);
+      HF1(ECHISTC+65,difosum,1.);
+      HF1(ECHISTC+66,ecshsleak,1.);
+      HF1(ECHISTC+67,ecshrleak,1.);
+      HF1(ECHISTC+68,ecshdleak,1.);
+      HF1(ECHISTC+69,ecsholeak,1.);
+      HF1(ECHISTC+70,profchi2,1.);
+      HF1(ECHISTC+71,transchi2,1.);
+      HF1(ECHISTC+79,ecshen/fabs(rid),1.);
+      HF1(ECHISTC+102,ecshener,1.);
+      HF1(ECHISTC+103,geant(1000.*fabs(rid)),1.);
+    }
+    if(chi2dir>ECCAFFKEY.chi2dirmx) return;
+    if(profchi2>ECCAFFKEY.prchi2mx) return;   //profile fit (long.)
+    if(transchi2>ECCAFFKEY.trchi2mx) return; //trans. fit
+    if(ECREFFKEY.reprtf[0]!=0){
+      HF1(ECHISTC+104,ecshen,1.);
+      HF1(ECHISTC+105,geant(1000.*fabs(rid)),1.);
+    }
+    icr=0;
+    sfg=-1.;
+    if(fabs(ecshentry[0])<(ECALDBc::gendim(1)/2.+sfg) && fabs(ecshentry[1])<(ECALDBc::gendim(2)/2.+sfg))icr+=1;
+    sfg=-4.;
+    if(fabs(ecshexit[0])<(ECALDBc::gendim(1)/2.+sfg) && fabs(ecshexit[1])<(ECALDBc::gendim(2)/2.+sfg))icr+=1;
+    if(icr<=1) return; //shower entry and exit should cross with ECAL
+    //    if(ecshener>ECCAFFKEY.eshermax) return;
+    if(ecshsleak>ECCAFFKEY.eshsleakmx) return;  // side leakage
+    if(ecshrleak>ECCAFFKEY.eshrleakmx) return;  // rear leakage
+    if(ECREFFKEY.reprtf[0]!=0){
+      HF1(ECHISTC+106,ecshen,1.);
+      HF1(ECHISTC+107,geant(1000.*fabs(rid)),1.);
+    }
+    if(ecshdleak>ECCAFFKEY.eshdleakmx) return;  // dead leakage
+    if(ecsholeak>ECCAFFKEY.esholeakmx) return;   // orphan hits
+    if(ECREFFKEY.reprtf[0]!=0){
+      HF1(ECHISTC+108,ecshen,1.);
+      HF1(ECHISTC+109,geant(1000.*fabs(rid)),1.);
+    }
+    if(difosum>ECCAFFKEY.difsummx) return; // (E_x-E_y)/(E_x+E_y)
+    //
+    EcalJobStat::addca(9);
+    //
+    // ---->track match with shower:
+    //
+    number dxent, dyent, dxext, dyext, rematch;
+    C0[2]=ECALDBc::gendim(7);// Z-top of ECAL
+    C0[0]=0.;
+    C0[1]=0.;
+    ptrack->interpolate(C0,dir,Cout1,the,phi,trl);//<--- cross. with Ztop of EC
+    dxent=Cout1[0]-ecshentry[0];
+    dyent=Cout1[1]-ecshentry[1];
+    C0[2]=ECALDBc::gendim(7)-nslmx*(ECALDBc::gendim(9)+2.*ECALDBc::gendim(10));// Z-bot of ECAL
+    ptrack->interpolate(C0,dir,Cout1,the,phi,trl);//<--- cross. with Zbot of EC
+    dxext=Cout1[0]-ecshexit[0];
+    dyext=Cout1[1]-ecshexit[1];
+    rematch=ecshen/fabs(rid)-1.;
+    
+    if(ECREFFKEY.reprtf[0]!=0){
+      HF1(ECHISTC+72,fabs(rid)/ecshen,1.);
+      HF1(ECHISTC+73,rematch,1.);
+      HF1(ECHISTC+74,dxent,1.);
+      HF1(ECHISTC+75,dyent,1.);
+      HF1(ECHISTC+76,dxext,1.);
+      HF1(ECHISTC+77,dyext,1.);
+      HF1(ECHISTC+110,ecshen,1.);
+      HF1(ECHISTC+111,geant(1000.*fabs(rid)),1.);
+    }
+    if(fabs(rematch)>ECCAFFKEY.ed2momc) return;
+    if(fabs(dxent)>ECCAFFKEY.trentmax[0]) return;
+    if(fabs(dyent)>ECCAFFKEY.trentmax[1]) return;
+    if(fabs(dxext)>ECCAFFKEY.trextmax[0]) return;
+    if(fabs(dyext)>ECCAFFKEY.trextmax[1]) return;
+    EcalJobStat::addca(10);
+    HF1(ECHISTC+112,ecshen,1.);
+    //
+  }
+//
   if(ECREFFKEY.reprtf[0]!=0){
     HF1(ECHISTC+16,geant(0.001*edept/fabs(rid)),1.);
     HF1(ECHISTC+18,geant(1000.*fabs(rid)/edept),1.);

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.16 2001/09/19 08:56:56 choumilo Exp $
+//  $Id: ecalrec.h,v 1.17 2002/02/12 08:44:09 choumilo Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -339,6 +339,17 @@ AMSDir getDir()const {return _Dir;}
 number getEnergy()const {return _EnergyC;}
 number getEnergyErr()const{return _ErrEnergyC;}
 integer getDirection() const{return _Direction==0?1:-1;}
+//gchen
+ number getDirChi2() const {return _AngleTrue3DChi2;}
+ number getErDir() const {return _Angle3DError;}
+ number getEnFront() const {return _FrontEnergyDep;}
+ number getDifoSum() const {return _DifoSum;}
+ number getSLeak() const {return _SideLeak;}
+ number getRLeak() const {return _RearLeak;}
+ number getDLeak() const {return _DeadLeak;}
+ number getOLeak() const {return _OrpLeak;}
+ number getProfChi2() const {return _ProfilePar[4+_Direction*5];}
+ number getTransChi2() const {return _TransFitChi2;}
 };
 
 #endif

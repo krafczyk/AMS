@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.11 2001/12/04 10:36:18 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.12 2002/02/12 08:43:47 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -44,6 +44,13 @@ geant TOF2DBc::_lglen[TOF2GC::SCBTPN]={
 //---> plane rotation mask for 4 layers (1/0 -> rotated/not):
 integer TOF2DBc::_plrotm[TOF2GC::SCLRS]={
   1,0,0,1
+};
+//---> real planes:
+integer TOF2DBc::_planes=0;
+//
+//---> real bars/plane for 4 planes:
+integer TOF2DBc::_bperpl[TOF2GC::SCLRS]={
+  0,0,0,0
 };
 //---> honeycomb supporting str. data:
 geant TOF2DBc::_supstr[10]={
@@ -107,11 +114,21 @@ geant TOF2DBc::_plnstr[15]={
   void TOF2DBc::readgconf(){
     int i;
     char fname[80];
-    char name[80]="tof2geomv";
-    char vers1[3]="1";
+    char name[80]="tof2geom";
+    char vers1[4]="12p";
+    char vers2[4]="8p";
     if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-          cout <<" TOFGeom-I-AMS02 setup selected."<<endl;
-          strcat(name,vers1);
+      cout <<" TOFGeom-I-AMS02 setup selected."<<endl;
+      if(strstr(AMSJob::gethead()->getsetup(),"TOF:8PAD")){
+        cout <<" TOFGeom-I-TOF:8PAD setup selected."<<endl;
+        strcat(name,vers2);
+      }
+      else{
+        cout <<" TOFGeom-I-TOF:12PAD setup selected."<<endl;
+        strcat(name,vers1);
+	TFCAFFKEY.cfvers=0;//reset vers.numb. to 0 for old(12pads) setup
+      }
+	  
     }
     else
     {
@@ -128,8 +145,12 @@ geant TOF2DBc::_plnstr[15]={
       cerr <<"TOFgeom-read: missing geomconfig-file "<<fname<<endl;
       exit(1);
     }
-    for(int ic=0;ic<TOF2GC::SCBLMX;ic++) tcfile >> _brtype[ic];
-    for(i=0;i<TOF2GC::SCLRS;i++) tcfile >> _plrotm[i];
+    tcfile >> _planes;
+    for(i=0;i<_planes;i++) tcfile >> _bperpl[i];
+    int icm=0;
+    for(i=0;i<_planes;i++)icm+=_bperpl[i];
+    for(int ic=0;ic<icm;ic++) tcfile >> _brtype[ic];
+    for(i=0;i<_planes;i++) tcfile >> _plrotm[i];
     for(i=0;i<TOF2GC::SCBTPN;i++) tcfile >> _brlen[i];
     for(i=0;i<TOF2GC::SCBTPN;i++) tcfile >> _lglen[i];
     for(i=0;i<10;i++) tcfile >> _supstr[i];
@@ -139,19 +160,35 @@ geant TOF2DBc::_plnstr[15]={
   integer TOF2DBc::brtype(integer ilay, integer ibar){
     #ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
-        assert(ilay>=0 && ilay < TOF2GC::SCLRS);
-        assert(ibar>=0 && ibar < TOF2GC::SCBRS[ilay]);
+        assert(ilay>=0 && ilay < _planes);
+        assert(ibar>=0 && ibar < _bperpl[ilay]);
       }
     #endif
-    int cnum;
-    cnum=TOF2GC::SCMXBR*ilay+ibar;
+    int cnum=0;
+    for(int i=0;i<ilay;i++)cnum+=_bperpl[i];
+    cnum+=ibar;
     return _brtype[cnum];
   }
 //
+  integer TOF2DBc::barseqn(integer ilay, integer ibar){
+    #ifdef __AMSDEBUG__
+      if(TOF2DBc::debug){
+        assert(ilay>=0 && ilay < _planes);
+        assert(ibar>=0 && ibar < _bperpl[ilay]);
+      }
+    #endif
+    int cnum=0;
+    for(int i=0;i<ilay;i++)cnum+=_bperpl[i];
+    cnum+=ibar;
+    return cnum;
+  }
+//
   geant TOF2DBc::brlen(integer ilay, integer ibar){
-    int cnum;
-    cnum=TOF2GC::SCMXBR*ilay+ibar;
-    int btyp=_brtype[cnum];
+    int cnum=0;
+    int btyp;
+    for(int i=0;i<ilay;i++)cnum+=_bperpl[i];
+    cnum+=ibar;
+    btyp=_brtype[cnum];
     #ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(btyp>0 && btyp <= TOF2GC::SCBTPN);
@@ -161,8 +198,9 @@ geant TOF2DBc::_plnstr[15]={
   }
 //
   geant TOF2DBc::lglen(integer ilay, integer ibar){
-    int cnum;
-    cnum=TOF2GC::SCMXBR*ilay+ibar;
+    int cnum=0;
+    for(int i=0;i<ilay;i++)cnum+=_bperpl[i];
+    cnum+=ibar;
     int btyp=_brtype[cnum];
     #ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
@@ -175,10 +213,19 @@ geant TOF2DBc::_plnstr[15]={
   integer TOF2DBc::plrotm(integer ilay){
     #ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
-        assert(ilay>=0 && ilay < TOF2GC::SCLRS);
+        assert(ilay>=0 && ilay < _planes);
       }
     #endif
     return _plrotm[ilay];
+  }
+//
+  integer TOF2DBc::getbppl(integer ilay){
+    #ifdef __AMSDEBUG__
+      if(TOF2DBc::debug){
+        assert(ilay>=0 && ilay < _planes);
+      }
+    #endif
+    return _bperpl[ilay];
   }
 //
   geant TOF2DBc::supstr(integer i){
@@ -203,8 +250,8 @@ geant TOF2DBc::_plnstr[15]={
   geant TOF2DBc::getzsc(integer il, integer ib){
     #ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
-        assert(il>=0 && il < TOF2GC::SCLRS);
-        assert(ib>=0 && ib < TOF2GC::SCBRS[il]);
+        assert(il>=0 && il < _planes);
+        assert(ib>=0 && ib < _bperpl[il]);
       }
     #endif
   geant dz,zc;
@@ -228,14 +275,14 @@ geant TOF2DBc::_plnstr[15]={
   geant TOF2DBc::gettsc(integer il, integer ib){
     #ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
-        assert(il>=0 && il < TOF2GC::SCLRS);
-        assert(ib>=0 && ib < TOF2GC::SCBRS[il]);
+        assert(il>=0 && il < _planes);
+        assert(ib>=0 && ib < _bperpl[il]);
       }
     #endif
   static geant dx;
   geant x,co[2],dxt;
   dx=_plnstr[4]+2.*_plnstr[7];//width of sc.counter(bar+cover)
-  dxt=(TOF2GC::SCBRS[il]-1)*(dx-_plnstr[3]);//first-last sc.count. bars distance
+  dxt=(_bperpl[il]-1)*(dx-_plnstr[3]);//first-last sc.count. bars distance
   if(il<2){
     co[0]=_supstr[2];// <--top TOF-subsystem X-shift
     co[1]=_supstr[3];// <--top TOF-subsystem Y-shift
@@ -460,17 +507,19 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 // ---> read Lspeed/Tdiffs:
 //
  if(lsflg){// read bar indiv.Lspeed
-   for(ila=0;ila<TOF2GC::SCLRS;ila++){   
-     for(ibr=0;ibr<TOF2GC::SCMXBR;ibr++){  
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  
        tdcfile >> lspeeda[ila][ibr];
      }
    }
  }
  else tdcfile >> speedl;// read average Lspeed
- for(ila=0;ila<TOF2GC::SCLRS;ila++){   
-   for(ibr=0;ibr<TOF2GC::SCMXBR;ibr++){  
-     cnum=ila*TOF2GC::SCMXBR+ibr; // sequential counters numbering(0-55)
+//
+ cnum=0;
+ for(ila=0;ila<TOF2DBc::getnplns();ila++){   
+   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  
      tdcfile >> tdiff[cnum];
+     cnum+=1; // sequential counters numbering(0-...)
    }
  }
  tdcfile.close();
@@ -524,8 +573,8 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //
 // ---> read Slope/Tzero's:
  tzcfile >> slpf;
- for(ila=0;ila<TOF2GC::SCLRS;ila++){ 
-   for(ibr=0;ibr<TOF2GC::SCMXBR;ibr++){
+ for(ila=0;ila<TOF2DBc::getnplns();ila++){ 
+   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
      tzcfile >> tzerf[ila][ibr];
    } 
  }
@@ -579,15 +628,16 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
    }
 //---> read str_ratio/status:
 //
-   for(ila=0;ila<TOF2GC::SCLRS;ila++){   // <-------- loop over layers
-   for(ibr=0;ibr<TOF2GC::SCMXBR;ibr++){  // <-------- loop over bar in layer
-     cnum=ila*TOF2GC::SCMXBR+ibr; // sequential counter numbering(0-55)
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
      scfile >> strf[cnum][0];
      scfile >> strof[cnum][0];
      scfile >> stat[cnum][0];
      scfile >> strf[cnum][1];
      scfile >> strof[cnum][1];
      scfile >> stat[cnum][1];
+     cnum+=1; // sequential counter numbering(0-...)
    } // --- end of bar loop --->
    } // --- end of layer loop --->
    scfile.close();
@@ -639,28 +689,28 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
    }
 // ---> read hi/low-ratios:
 //
-   for(ila=0;ila<TOF2GC::SCLRS;ila++){   // <-------- loop over layers
-     for(ibr=0;ibr<TOF2GC::SCMXBR;ibr++){  // read side-1
-       cnum=ila*TOF2GC::SCMXBR+ibr; 
-       gcfile >> cahlr[cnum][0];
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-1
+       gcfile >> cahlr[cnum+ibr][0];
      }
-     for(ibr=0;ibr<TOF2GC::SCMXBR;ibr++){  // read side-2
-       cnum=ila*TOF2GC::SCMXBR+ibr; 
-       gcfile >> cahlr[cnum][1];
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-2 
+       gcfile >> cahlr[cnum+ibr][1];
      }
+     cnum+=TOF2DBc::getbppl(ila);
    } // --- end of layer loop --->
 //
 // ---> read gains(anode):
 //
-   for(ila=0;ila<TOF2GC::SCLRS;ila++){   // <-------- loop over layers
-     for(ibr=0;ibr<TOF2GC::SCMXBR;ibr++){  // read side-1
-       cnum=ila*TOF2GC::SCMXBR+ibr; 
-       gcfile >> gaina[cnum][0];
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-1
+       gcfile >> gaina[cnum+ibr][0];
      }
-     for(ibr=0;ibr<TOF2GC::SCMXBR;ibr++){  // read side-2
-       cnum=ila*TOF2GC::SCMXBR+ibr; 
-       gcfile >> gaina[cnum][1];
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-2
+       gcfile >> gaina[cnum+ibr][1];
      }
+     cnum+=TOF2DBc::getbppl(ila);
    } // --- end of layer loop --->
 //
 // ---> read mip2q's:
@@ -680,12 +730,11 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //---------------------------------------------
 //   ===> fill TOFBrcal bank :
 //
-  for(ila=0;ila<TOF2GC::SCLRS;ila++){   // <-------- loop over layers
-  for(ibr=0;ibr<TOF2GC::SCMXBR;ibr++){  // <-------- loop over bar in layer
+  cnum=0;
+  for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
     brt=TOF2DBc::brtype(ila,ibr);
-    if(brt==0)continue; // skip missing counters
     hblen=0.5*TOF2DBc::brlen(ila,ibr);
-    cnum=ila*TOF2GC::SCMXBR+ibr; // sequential counter numbering(0-55)
     nsp=TOF2Scan::scmcscan[cnum].getnscp();//read number of scan-points from scmcscan-object
     TOF2Scan::scmcscan[cnum].getscp(scp);//read scan-points from scmcscan-object
 // read from file or DB:
@@ -739,6 +788,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
     scbrcal[ila][ibr]=TOF2Brcal(sid,sta,gna,gnd,asatl,tth,strat,fstrd,tzer,slope,
                                slops,tdif,td2p,mip2q,nsp,scp,rlo,apr,ahlr,a2q);
 //
+    cnum+=1;// sequential numbering of all counter
   } // --- end of bar loop --->
   } // --- end of layer loop --->
 //
@@ -870,7 +920,7 @@ void TOFBPeds::build(){// create TOFBPeds-objects for each sc.bar
 //
 //   --->  Read high/low pedestals file :
 //
-  strcpy(name,"tof2peds");
+  strcpy(name,"tof2ped");
   if(AMSJob::gethead()->isMCData())           // for MC-event
   {
     cout <<" TOFBPeds_build: default MC peds-file is used..."<<endl;
@@ -881,6 +931,28 @@ void TOFBPeds::build(){// create TOFBPeds-objects for each sc.bar
     cout <<" TOFBPeds_build: default RealData peds-file is used..."<<endl;
     strcat(name,"rl");
   }
+// ---> check setup:
+//
+  char vers1[4]="12p";
+  char vers2[4]="8p";
+  if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+    cout<<" TOFPEDS-I-AMS02 setup selected."<<endl;
+    if(strstr(AMSJob::gethead()->getsetup(),"TOF:8PAD")){
+      cout <<" TOFPEDS-I-TOF:8PAD setup selected."<<endl;
+      strcat(name,vers2);
+    }
+    else{
+      cout <<" TOFPEDS-I-TOF:12PAD setup selected."<<endl;
+      strcat(name,vers1);
+    }
+	  
+  }
+  else
+  {
+        cout <<" TOFGeom-E-Unknown setup !!!"<<endl;
+        exit(10);
+  }
+//
   strcat(name,".dat");
   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
@@ -892,27 +964,28 @@ void TOFBPeds::build(){// create TOFBPeds-objects for each sc.bar
     exit(1);
   }
 //
-  for(ila=0;ila<TOF2GC::SCLRS;ila++){   // <-------- loop over layers
-  for(ibr=0;ibr<TOF2GC::SCMXBR;ibr++){  // <-------- loop over bar in layer
-    cnum=ila*TOF2GC::SCMXBR+ibr; // sequential counter numbering(0-47)
+  cnum=0;
+  for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
     for(i=0;i<4;i++)icfile >> cpeds[cnum][i];// sequence: side1(h,l),side2(h,l)
     for(i=0;i<4;i++)icfile >> csigs[cnum][i];// sequence: side1(h,l),side2(h,l)
+    cnum+=1;// sequential counter numbering(0-...)
   } // --- end of bar loop --->
   } // --- end of layer loop --->
   icfile.close();
 //---------------------------------------------
 //   ===> fill TOFBPeds bank :
 //
-  for(ila=0;ila<TOF2GC::SCLRS;ila++){   // <-------- loop over layers
-  for(ibr=0;ibr<TOF2GC::SCMXBR;ibr++){  // <-------- loop over bar in layer
+  cnum=0;
+  for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
     brt=TOF2DBc::brtype(ila,ibr);
-    if(brt==0)continue; // skip missing counters
-    cnum=ila*TOF2GC::SCMXBR+ibr; // sequential counter numbering(0-47)
     sid=100*(ila+1)+(ibr+1);
     for(i=0;i<4;i++)peds[i]=cpeds[cnum][i];// from ext.file
     for(i=0;i<4;i++)sigs[i]=csigs[cnum][i];// from ext.file
     scbrped[ila][ibr]=TOFBPeds(sid,peds,sigs);
 //
+  cnum+=1;
   } // --- end of bar loop --->
   } // --- end of layer loop --->
 }
@@ -1679,7 +1752,6 @@ void TOF2JobStat::outp(){
          HPRINT(1097);
          HPRINT(1098);
          HPRINT(1092);
-         HPRINT(1093);
          if(TFREFFKEY.reprtf[2]>1){
            HPRINT(1529);
            HPRINT(1526);

@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.10 2001/12/04 10:36:18 choumilo Exp $
+//  $Id: tofrec02.C,v 1.11 2002/02/12 08:43:47 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -93,8 +93,8 @@ void TOF2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
     ibar=id%100-1;
     isid=idd%10-1;
 #ifdef __AMSDEBUG__
-    assert(ilay>=0 && ilay<TOF2GC::SCLRS);
-    assert(ibar>=0 && ibar<TOF2GC::SCMXBR);
+    assert(ilay>=0 && ilay<TOF2DBc::getnplns());
+    assert(ibar>=0 && ibar<TOF2DBc::getbppl(ilay));
     assert(isid>=0 && isid<2);
     if(TFREFFKEY.reprtf[1]>=1)ptr->_printEl(cout);
 #endif
@@ -499,8 +499,8 @@ void TOF2RawCluster::build(int &ostatus){
     ibar=id%100-1;
     isid=idd%10-1;
 //    edep=ptr->getedep();
-    chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isid;//channels numbering
-    brnum=ilay*TOF2GC::SCMXBR+ibar;//bar numbering
+    chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isid;//channel numbering for job-stat counters
+    brnum=ilay*TOF2GC::SCMXBR+ibar;//bar numbering ...
     stat[isid]=ptr->getstat();
 //    if(stat[isid] == 0){  
     TOF2Brcal::scbrcal[ilay][ibar].getbstat(statdb); // "alive" status from DB
@@ -1239,8 +1239,8 @@ AMSContainer *p =AMSEvent::gethead()->getC("AMSTOFCluster",i);
 void AMSTOFCluster::init(){
   int i;
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-    _planes=TOF2GC::SCLRS;
-    for(i=0;i<_planes;i++)_padspl[i]=TOF2GC::SCBRS[i];
+    _planes=TOF2DBc::getnplns();
+    for(i=0;i<_planes;i++)_padspl[i]=TOF2DBc::getbppl(i);
   }
   else{
     _planes=TOF1GC::SCLRS;

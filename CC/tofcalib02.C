@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.4 2001/03/06 16:37:03 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.5 2002/02/12 08:43:47 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <typedefs.h>
@@ -48,7 +48,7 @@ number TOF2TZSLcalib::events;
 number TOF2TZSLcalib::resol;
 //-----
 void TOF2TZSLcalib::mfit(){  // calibr. fit procedure
-  int i,id,ii,j,ier,il,ib,npar(TOF2GC::SCBLMX+2),nparr;
+  int i,id,ii,j,ier,il,ib,npar(TOF2GC::SCBLMX+2),nparr,seqnum;
 //
   char pnm[6];
   char p1nam[6];
@@ -82,10 +82,11 @@ void TOF2TZSLcalib::mfit(){  // calibr. fit procedure
   phigh[1]=2.;
   ifit[1]=0;// fixed(known) now !!!
 //
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+  ii=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       id=(il+1)*100+ib+1;
-      ii=il*TOF2GC::SCMXBR+ib;
+//      ii=il*TOF2GC::SCMXBR+ib;
       start[ii+2]=TOF2Brcal::scbrcal[il][ib].gettzero();// def.T0's from current calibration
       for(j=0;j<2;j++){
         if(id == TFCAFFKEY.idref[j])
@@ -105,15 +106,16 @@ void TOF2TZSLcalib::mfit(){  // calibr. fit procedure
       in[0]=inum[j];
       strcat(pnm,in);
       strcpy(pnam[2+ii],pnm);
+      ii+=1;//use sequential numbering of counters
     }
   }
 // ------------> release T0-parameters with good statistics:
 // 
   printf(" Collected events (total) : %9.0f\n",events);
   printf(" Collected events per sc. bar : \n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=1;ib<=TOF2GC::SCMXBR;ib++){
-      if(ib%TOF2GC::SCMXBR !=0)
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=1;ib<=TOF2DBc::getbppl(il);ib++){
+      if(ib%TOF2DBc::getbppl(il) !=0)
                      printf("% 7.0f",s3[il][ib-1]);
       else
                      printf("% 7.0f\n",s3[il][ib-1]);
@@ -121,15 +123,16 @@ void TOF2TZSLcalib::mfit(){  // calibr. fit procedure
   }
 //
   nparr=0;
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+  seqnum=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       id=(il+1)*100+ib+1;
       if(s3[il][ib]>=1.){
-        ifit[2+il*TOF2GC::SCMXBR+ib]=1;//bar with high statist.-> release
+        ifit[2+seqnum]=1;//bar with high statist.-> release
         nparr+=1;
         for(j=0;j<2;j++){
           if(id == TFCAFFKEY.idref[j]){
-            ifit[2+il*TOF2GC::SCMXBR+ib]=0;//fix, if ref counter
+            ifit[2+seqnum]=0;//fix, if ref counter
             nparr-=1;
           }
         }
@@ -141,8 +144,9 @@ void TOF2TZSLcalib::mfit(){  // calibr. fit procedure
             return;
           }
         }
-        ifit[2+il*TOF2GC::SCMXBR+ib]=0;//bar with low statist.-> fix
+        ifit[2+seqnum]=0;//bar with low statist.-> fix
       }
+      seqnum+=1;
     }
   }
   nparr+=2;
@@ -202,7 +206,7 @@ void TOF2TZSLcalib::mfit(){  // calibr. fit procedure
 // This is standard Minuit FCN :
 void TOF2TZSLcalib::mfun(int &np, number grad[], number &f, number x[]
                                                         , int &flg, int &dum){
-  int i,j,il,ib;
+  int i,j,il,ib,seqnum;
   integer id,ibt,idr,ibtr;
   static int first(0);
   number f1[4],f2[3],f3(0.),f4[3],f5(0.),f6(0.),f7(0.),f8(0.);
@@ -245,47 +249,50 @@ void TOF2TZSLcalib::mfun(int &np, number grad[], number &f, number x[]
 //
 //
 //
-  for(il=0;il<TOF2GC::SCLRS;il++){
+  seqnum=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
     f1[il]=0.;
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++)f1[il]+=s3[il][ib]*x[2+il*TOF2GC::SCMXBR+ib]
-                                              *x[2+il*TOF2GC::SCMXBR+ib];
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      f1[il]+=s3[il][ib]*x[2+seqnum]*x[2+seqnum];//l=1,4
+      seqnum+=1;
+    }
   }
 //
   for(i=0;i<3;i++){
     f2[i]=0.;
     il=i+1;
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++)f2[i]+=s6[i][ib]*x[2+il*TOF2GC::SCMXBR+ib];
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++)f2[i]+=s6[i][ib]*x[2+TOF2DBc::barseqn(il,ib)];//l=2,4
   }
 //
-  for(ib=0;ib<TOF2GC::SCMXBR;ib++)f3+=s7[ib]*x[2+ib];
+  for(ib=0;ib<TOF2DBc::getbppl(0);ib++)f3+=s7[ib]*x[2+ib];//l=1
 //
   for(i=0;i<3;i++){
     f4[i]=0.;
     il=i+1;
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++)f4[i]+=s9[i][ib]*x[2+il*TOF2GC::SCMXBR+ib];
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++)f4[i]+=s9[i][ib]*x[2+TOF2DBc::barseqn(il,ib)];//l=2,4
   }
 //
-  for(ib=0;ib<TOF2GC::SCMXBR;ib++)f5+=s10[ib]*x[2+ib];
+  for(ib=0;ib<TOF2DBc::getbppl(0);ib++)f5+=s10[ib]*x[2+ib];//l=1
 //
-  for(i=0;i<TOF2GC::SCMXBR;i++){
-    for(j=0;j<TOF2GC::SCMXBR;j++)f6+=s12[i][j]*x[2+i]*x[2+1*TOF2GC::SCMXBR+j];
+  for(i=0;i<TOF2DBc::getbppl(0);i++){
+    for(j=0;j<TOF2DBc::getbppl(1);j++)f6+=s12[i][j]*x[2+i]*x[2+TOF2DBc::barseqn(1,j)];//L12
   }
 //
-  for(i=0;i<TOF2GC::SCMXBR;i++){
-    for(j=0;j<TOF2GC::SCMXBR;j++)f7+=s13[i][j]*x[2+i]*x[2+2*TOF2GC::SCMXBR+j];
+  for(i=0;i<TOF2DBc::getbppl(0);i++){
+    for(j=0;j<TOF2DBc::getbppl(2);j++)f7+=s13[i][j]*x[2+i]*x[2+TOF2DBc::barseqn(2,j)];//L13
   }
 //
-  for(i=0;i<TOF2GC::SCMXBR;i++){
-    for(j=0;j<TOF2GC::SCMXBR;j++)f8+=s14[i][j]*x[2+i]*x[2+3*TOF2GC::SCMXBR+j];
+  for(i=0;i<TOF2DBc::getbppl(0);i++){
+    for(j=0;j<TOF2DBc::getbppl(3);j++)f8+=s14[i][j]*x[2+i]*x[2+TOF2DBc::barseqn(3,j)];//L14
   }
 //
   for(i=0;i<3;i++){
     f9[i]=0.;
     il=i+1;
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++)f9[i]+=s15[i][ib]*x[2+il*TOF2GC::SCMXBR+ib];
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++)f9[i]+=s15[i][ib]*x[2+TOF2DBc::barseqn(il,ib)];//l=2,4
   }
 //
-  for(ib=0;ib<TOF2GC::SCMXBR;ib++)f10+=s16[ib]*x[2+ib];
+  for(ib=0;ib<TOF2DBc::getbppl(0);ib++)f10+=s16[ib]*x[2+ib];//l=1
 //
   f=s1+s2*x[1]*x[1]+3.*f1[0]+f1[1]+f1[2]+f1[3]+s4*x[0]*x[0]
    -2.*s5*x[1]+2.*(f2[0]+f2[1]+f2[2])-2.*f3+2.*s8*x[0]
@@ -299,11 +306,13 @@ void TOF2TZSLcalib::mfun(int &np, number grad[], number &f, number x[]
     il=idr/100-1;
     ib=idr%100-1;
     ibtr=TOF2DBc::brtype(il,ib);// ref. bar type (1-5)
-    for(il=0;il<TOF2GC::SCLRS;il++){
-      for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-        tz=geant(x[2+il*TOF2GC::SCMXBR+ib]);
+    seqnum=0;
+    for(il=0;il<TOF2DBc::getnplns();il++){
+      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+        tz=geant(x[2+seqnum]);
         ibt=TOF2DBc::brtype(il,ib);// bar type (1-5)
         if(ibt==ibtr)HF1(1507,(tz-tzr),1.);
+	seqnum+=1;
       }
     }
 // write parameters to ext.file:
@@ -325,10 +334,12 @@ void TOF2TZSLcalib::mfun(int &np, number grad[], number &f, number x[]
     slope=geant(x[0]);
     tcfile << slope<<endl;
     tcfile.precision(3);// precision for T0
-    for(il=0;il<TOF2GC::SCLRS;il++){
-      for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-        tzero[il][ib]=geant(x[2+il*TOF2GC::SCMXBR+ib]);
+    seqnum=0;
+    for(il=0;il<TOF2DBc::getnplns();il++){
+      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+        tzero[il][ib]=geant(x[2+seqnum]);
         tcfile <<" "<<tzero[il][ib];
+	seqnum+=1;
       }
       tcfile << endl;
     }
@@ -745,7 +756,7 @@ integer TOF2TDIFcalib::nbins[TOF2GC::SCBTPN]={8,14,15,17,17,
 //                                                   to have bin width = 8-9cm
 //--------------------------
 void TOF2TDIFcalib::init(){ // ----> initialization for TDIF-calibration
-  int i,j,id,il,ib,ii,jj;
+  int i,j,id,il,ib,ii,jj,cnum;
   char htit1[60];
   char htit2[60];
   char htit3[7];
@@ -783,8 +794,9 @@ void TOF2TDIFcalib::init(){ // ----> initialization for TDIF-calibration
 // ---> book histograms for "Tdiff_mean vs Clong"
 //
   strcpy(inum,"0123456789");
-  for(il=0;il<TOF2GC::SCLRS;il++){  
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+  cnum=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){  
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       strcpy(htit1,"Mean time_difference(ns) vs coord(cm) for chan(LBB) ");
       in[0]=inum[il+1];
       strcat(htit1,in);
@@ -794,8 +806,9 @@ void TOF2TDIFcalib::init(){ // ----> initialization for TDIF-calibration
       strcat(htit1,in);
       in[0]=inum[jj];
       strcat(htit1,in);
-      id=1610+il*TOF2GC::SCMXBR+ib;
+      id=1610+cnum;
       HBOOK1(id,htit1,TOF2GC::SCTDBM,0.,geant(TOF2GC::SCTDBM),0.);
+      cnum+=1;//sequential numbering
     }
   }
   HBOOK2(1600,"L=1,B=7, Tdif vs Coord",35,-70.,70.,40,-5.,5.,0.);
@@ -976,7 +989,7 @@ void TOF2TDIFcalib::fill(integer il,integer ib, number td, number co){//--->fill
   }
   if((col<-hlen) || (col>=hlen))return;// out of range
   nbin=(col+hlen)/bin;
-  chan=TOF2GC::SCMXBR*il+ib;
+  chan=TOF2DBc::barseqn(il,ib);
   nevnt[chan][nbin]+=1;
   clong[chan][nbin]+=col;
   tdiff[chan][nbin]+=td;
@@ -1029,14 +1042,14 @@ void TOF2TDIFcalib::fit(){//---> get the slope,td0,chi2
 //
   HPRINT(1600);
   HPRINT(1601);
-  for(il=0;il<TOF2GC::SCLRS;il++){
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
     avsll[il]=0.;
     binsl[il]=0;
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       len=TOF2DBc::brlen(il,ib);
       btyp=TOF2DBc::brtype(il,ib);//1-5 !!!
       bin=len/nbins[btyp-1];
-      chan=TOF2GC::SCMXBR*il+ib;
       sumc=0;
       sumt=0;
       sumct=0;
@@ -1094,6 +1107,7 @@ void TOF2TDIFcalib::fit(){//---> get the slope,td0,chi2
         if(fabs(sl[chan])>0.)HF1(1603,geant(fabs(sl[chan])),1.);
         HF1(1605,geant(chi2[chan]),1.);
       }
+      chan+=1;
     }//<------ end of bar loop
 //
     if(binsl[il]>0)avsll[il]=fabs(avsll[il])/geant(binsl[il]);
@@ -1105,19 +1119,21 @@ void TOF2TDIFcalib::fit(){//---> get the slope,td0,chi2
   if(meansl!=0)speedl=fabs(1./meansl);// mean light speed
 //
 //---> print Td vs Coo histograms:
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=TOF2GC::SCMXBR*il+ib;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
 //      if(chi2[chan]>0)HPRINT(1610+chan);// tempor commented
+    chan+=1;
     }
   }
 //---  
   cout<<endl<<endl;
   cout<<"TOF2TDIFcalib::fit: for bar 1-12  Tdiff@center (ns):"<<endl<<endl;
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=TOF2GC::SCMXBR*il+ib;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       cout<<" "<<t0[chan];
+      chan+=1;
     }
     cout<<endl;
   }
@@ -1125,21 +1141,23 @@ void TOF2TDIFcalib::fit(){//---> get the slope,td0,chi2
   cout<<"TOF2TDIFcalib::fit: for bar 1-12  Light speed (cm/ns):"<<endl<<endl;
   cout<<"Average Lspeed = "<<speedl<<"  , vs layer : "<<avsll[0]<<" "<<avsll[1]
                                    <<" "<<avsll[2]<<" "<<avsll[3]<<endl<<endl;
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=TOF2GC::SCMXBR*il+ib;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       sli=0;
       if(sl[chan]!=0)sli=1./fabs(sl[chan]);
       cout<<" "<<sli;
+      chan+=1;
     }
     cout<<endl;
   }
   cout<<endl;
   cout<<"TOF2TDIFcalib::fit: for bar 1-12  Chi2 :"<<endl<<endl;
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=TOF2GC::SCMXBR*il+ib;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       cout<<" "<<chi2[chan];
+      chan+=1;
     }
     cout<<endl;
   }
@@ -1151,10 +1169,11 @@ void TOF2TDIFcalib::fit(){//---> get the slope,td0,chi2
   HPRINT(1605);
 //
 //---> print T vs 1/Q histograms:
-//  for(il=0;il<TOF2GC::SCLRS;il++){
-//    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-//      chan=TOF2GC::SCMXBR*il+ib;
+//  chan=0;
+//  for(il=0;il<TOF2DBc::getnplns();il++){
+//    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
 //      HPRINT(1720+chan);
+//      chan+=1;
 //    }
 //  }
 //  HPRINT(1780);
@@ -1175,11 +1194,12 @@ void TOF2TDIFcalib::fit(){//---> get the slope,td0,chi2
   tcfile.width(6);
   tcfile.precision(2);// precision for Lspeed and Tdiff's
   if(lspflg){
-    for(il=0;il<TOF2GC::SCLRS;il++){
-      for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-        chan=TOF2GC::SCMXBR*il+ib;
+    chan=0;
+    for(il=0;il<TOF2DBc::getnplns();il++){
+      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
         if(sl[chan]!=0.)tcfile << 1./geant(fabs(sl[chan]))<<" ";
         else tcfile << geant(avsll[il])<<" ";
+	chan+=1;
       }
       tcfile << endl;
     }
@@ -1187,10 +1207,11 @@ void TOF2TDIFcalib::fit(){//---> get the slope,td0,chi2
   else tcfile << geant(speedl)<<endl;
   tcfile << endl;
 //
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=TOF2GC::SCMXBR*il+ib;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       tcfile << geant(t0[chan])<<" ";
+      chan+=1;
     }
     tcfile << endl;
   }
@@ -1209,11 +1230,11 @@ number TOF2AMPLcalib::amchan[TOF2GC::SCCHMX][TOF2GC::SCACMX];// side-signals for
 integer TOF2AMPLcalib::nevenc[TOF2GC::SCCHMX];// numb.of events accum. per channel
 geant TOF2AMPLcalib::gains[TOF2GC::SCCHMX];//trunc. mean ch.signals ("0" impact) relat. to ref.ones
 geant TOF2AMPLcalib::btamp[TOF2GC::SCBTBN];// trunc. mean. bar-signals for each bin(ref.bars) 
-integer TOF2AMPLcalib::rbls[TOF2GC::SCBTPN]={401,102,103,104,106,
-                                    301,202,203,204,206};//ref.bar id's (for bar types 1-10)
+integer TOF2AMPLcalib::rbls[TOF2GC::SCBTPN]={0,0,101,102,103,
+                                    0,301,201,202,203};//ref.bar id's (for bar types 1-10)
 geant TOF2AMPLcalib::profb[TOF2GC::SCBTPN][TOF2GC::SCPRBM];// bin width for each bar type
 geant TOF2AMPLcalib::profp[TOF2GC::SCBTPN][TOF2GC::SCPRBM];// middle of the bin .........
-integer TOF2AMPLcalib::nprbn[TOF2GC::SCBTPN]={10,15,16,17,17,12,14,15,16,17};//profile-bins vs bar-type
+integer TOF2AMPLcalib::nprbn[TOF2GC::SCBTPN]={0,0,16,17,17,0,14,15,16,17};//profile-bins vs bar-type
 number TOF2AMPLcalib::a2dr[TOF2GC::SCCHMX];// sum of a/d signal-ratios for each channel
 number TOF2AMPLcalib::a2dr2[TOF2GC::SCCHMX];// sum of a/d (signal-ratios)**2 
 integer TOF2AMPLcalib::nevenr[TOF2GC::SCCHMX];// number of accumulated events for above sums
@@ -1237,7 +1258,7 @@ char TOF2AMPLcalib::eltit[60];
 //
 //--------------------------
 void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration 
-  integer i,j,il,ib,ii,jj,id,nadd,nbnr;
+  integer i,j,il,ib,ii,jj,id,nadd,nbnr,chan;
   geant blen,dd,bw,bl,bh,hll,hhl;
   integer stbns(4);// number of standard bins
   geant bwid[4]={4.,5.,6.,8.};// bin width (first "stbns" bins, closed to the edge(s=23cm)
@@ -1267,7 +1288,7 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
   }
   }
 //
-  for(i=0;i<TOF2GC::SCBTPN;i++){
+  for(i=0;i<TOF2GC::SCBTPN;i++){//bar type loop
     nevrfc[i]=0;
     ammrfc[i]=0;
     nrefb[i]=0;
@@ -1286,8 +1307,9 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
 //
 //  ---> book hist. for side-signals:
 //
-  for(il=0;il<TOF2GC::SCLRS;il++){   
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){   
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       for(i=0;i<2;i++){
         hll=25.;
         hhl=345.;
@@ -1308,14 +1330,16 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
         strcat(htit1,in);
         in[0]=inum[i+1];
         strcat(htit1,in);
-        id=1600+il*TOF2GC::SCMXBR*2+ib*2+i;
+        id=1600+chan;
 //        HBOOK1(id,htit1,80,hll,hhl,0.);
+        chan+=1;
       }
     }
   }
 // ---> book hist. for ref.bars bin-signals (profiles):
   for(i=0;i<TOF2GC::SCBTPN;i++){ // loop over bar types  
     id=rbls[i];
+    if(id==0)continue;//skip dummy bar types(<-> ref.bars)
     il=id/100;
     in[0]=inum[il];
     strcpy(htit3,in);
@@ -1344,6 +1368,7 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
 //
   for(i=0;i<TOF2GC::SCBTPN;i++){ // prepare profile bin width array
     id=rbls[i];
+    if(id==0)continue;//skip dummy bar types(<-> ref.bars)
     il=id/100-1;
     ib=id%100-1;
     blen=TOF2DBc::brlen(il,ib);
@@ -1363,6 +1388,7 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
 //
   for(i=0;i<TOF2GC::SCBTPN;i++){ // prepare mid.points positions (loc.r.s) of profile bins
     id=rbls[i];
+    if(id==0)continue;//skip dummy bar types(<-> ref.bars)
     il=id/100-1;
     ib=id%100-1;
     blen=TOF2DBc::brlen(il,ib);
@@ -1377,6 +1403,7 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
   for(i=0;i<TOF2GC::SCBTPN;i++){// book hist. for longit.imp.point distr.(ref.bar only)
     strcpy(htit1,"Impact point distr.for ref.bar(LBB) ");
     id=rbls[i];
+    if(id==0)continue;//skip dummy bar types(<-> ref.bars)
     il=id/100;
     in[0]=inum[il];
     strcat(htit1,in);
@@ -1714,12 +1741,16 @@ void TOF2AMPLcalib::fill(integer il, integer ib, geant am[2], geant coo){
   geant bl,bh,qthrd;
   static geant cbin(15.);// centr. bin half-width for gain calibr.
 //
-  chan=2*TOF2GC::SCMXBR*il+2*ib;
-  isb=TOF2GC::SCMXBR*il+ib;
+  isb=TOF2DBc::barseqn(il,ib);//bar sequential number
+  chan=2*isb;//side seq. number
   ibt=TOF2DBc::brtype(il,ib);// bar type (1-10)
   btyp=ibt-1;
   id=100*(il+1)+ib+1;
   idr=rbls[btyp];// ref.bar id for given bar
+  if(idr==0){
+    cerr<<"TOF2AMPLcalib::fill:illegal ref.bar id ! "<<id<<endl;
+    return;
+  }
   nbn=nprbn[btyp];// number of long.bins
 //
   nbc=-1;
@@ -1766,7 +1797,7 @@ void TOF2AMPLcalib::fill(integer il, integer ib, geant am[2], geant coo){
       HF1(1250,am[0],1.);// Q-distr. for ref.bar type=5, s=1
       HF1(1251,am[1],1.);// Q-distr. for ref.bar type=5, s=2
     }
-    idh=1601+TOF2GC::SCLRS*TOF2GC::SCMXBR*2+(ibt-1)*TOF2GC::SCPRBM+nbc;
+    idh=1601+TOF2GC::SCLRS*TOF2GC::SCMXBR*2+bchan;
 //    HF1(idh,geant(am[0]+am[1]),1.);
   }
 }
@@ -1781,7 +1812,7 @@ void TOF2AMPLcalib::fillabs(integer il, integer ib, geant am[2], geant coo,
   static geant mucut[2]={-0.3,0.3};
   geant amt,mcut[2];
 //
-  ibt=TOF2DBc::brtype(il,ib);// bar type (1-5)
+  ibt=TOF2DBc::brtype(il,ib);// bar type (1-10)
   btyp=ibt-1;
   id=100*(il+1)+ib+1;
   idr=rbls[btyp];// ref.bar id for given bar
@@ -1818,14 +1849,15 @@ void TOF2AMPLcalib::fillabs(integer il, integer ib, geant am[2], geant coo,
 //            ---> program to fill H/L channel ratio arrays:
 void TOF2AMPLcalib::filla2d(integer il, integer ib, geant am[2], geant amd[2]){
 //
-  integer i,id,idr,ibt,btyp,chan;
+  integer i,id,idr,ibt,btyp,chan,isb;
   geant r,qthrd,q0,tauf,t0;
 //
   for(i=0;i<2;i++){
     am[i]+=0.5;// tempor  +0.5 to be at the middle of ADC-bin=1
     amd[i]+=0.5;
   }
-  chan=2*TOF2GC::SCMXBR*il+2*ib;
+  isb=TOF2DBc::barseqn(il,ib);//bar sequential number
+  chan=2*isb;//side seq. number
   ibt=TOF2DBc::brtype(il,ib);// bar type (1-5)
   btyp=ibt-1;
   id=100*(il+1)+ib+1;
@@ -1891,11 +1923,13 @@ void TOF2AMPLcalib::fit(){
 //
 //
 // ---> print "gain"-hist. (side-signals for center bin)
-  for(il=0;il<TOF2GC::SCLRS;il++){   
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){   
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       for(i=0;i<2;i++){
-        id=1600+il*TOF2GC::SCMXBR*2+ib*2+i;
+        id=1600+chan;
 //        HPRINT(id);
+        chan+=1;
       }
     }
   }
@@ -1910,6 +1944,7 @@ void TOF2AMPLcalib::fit(){
 //
 //  for(i=0;i<TOF2GC::SCBTPN;i++){ // loop over bar types  
 //    nbnr=nprbn[i];//real numb. of bins
+//    if(nbnr==0)continue;
 //    for(j=0;j<nbnr;j++){ // loop over longit.bins
 //      id=1601+TOF2GC::SCLRS*TOF2GC::SCMXBR*2+i*TOF2GC::SCPRBM+j;
 //      HPRINT(id);
@@ -1987,10 +2022,10 @@ void TOF2AMPLcalib::fit(){
   char choice[5]=" ";
   int bnn,jmax;
   geant rbnn,bnw,bnl,bnh;
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+  i=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       for(is=0;is<2;is++){
-        i=2*TOF2GC::SCMXBR*il+2*ib+is;
         nev=nevenc[i];
         aver=0;
         if(nev>=TFCAFFKEY.minev){
@@ -2078,6 +2113,7 @@ void TOF2AMPLcalib::fit(){
           HDELET(1599);
 //
         }
+	i+=1;//sequential numbering of bar sides
       }
     }
   }
@@ -2086,9 +2122,10 @@ void TOF2AMPLcalib::fit(){
 //
   for(i=0;i<TOF2GC::SCBTPN;i++){
     id=rbls[i];
+    if(id==0)continue;//skip dummy bar types
     il=id/100-1;
     ib=id%100-1;
-    chan=2*TOF2GC::SCMXBR*il+2*ib;
+    chan=2*TOF2DBc::barseqn(il,ib);
     nev1=nevenc[chan];
     nev2=nevenc[chan+1];
     if(nev1>=(2*TFCAFFKEY.minev) && nev2>=(2*TFCAFFKEY.minev)){
@@ -2100,13 +2137,16 @@ void TOF2AMPLcalib::fit(){
       aref[i][1]=0;
     }
   }
+//
 // ---> calc. relative gains:
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+//
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       btyp=TOF2DBc::brtype(il,ib)-1;
       id=100*(il+1)+ib+1;
       idr=rbls[btyp];// ref.bar id for given bar
-      chan=2*TOF2GC::SCMXBR*il+2*ib;
+      if(idr==0)continue;//skip dummy bar types
+      chan=2*TOF2DBc::barseqn(il,ib);
       for(i=0;i<2;i++){
         ar=aref[btyp][i];
         if(ar>0. && gains[chan+i]>0.)gains[chan+i]/=ar;
@@ -2154,7 +2194,8 @@ void TOF2AMPLcalib::fit(){
 //---
 //----
   for(ibt=0;ibt<TOF2GC::SCBTPN;ibt++){//loop over bar-types
-    nbnr=nprbn[ibt];//real numb. of bins
+    nbnr=nprbn[ibt];//real numb. of bins for bar-type ibt
+    if(nbnr==0)continue;//skip dummy bar types
     for(ibn=0;ibn<nbnr;ibn++){ // loop over longit.bins
       bchan=ibt*TOF2GC::SCPRBM+ibn;
       nev=nevenb[bchan];
@@ -2314,8 +2355,9 @@ void TOF2AMPLcalib::fit(){
   }
 //----
   for(i=0;i<TOF2GC::SCBTPN;i++){//loop over bar-types
-    nbnr=nprbn[i];//numb. of bins for given bar type
     id=rbls[i];
+    if(id==0)continue;//skip dummy bar types
+    nbnr=nprbn[i];//numb. of bins for given bar type
     il=id/100-1;
     ib=id%100-1;
     clent=TOF2DBc::brlen(il,ib);
@@ -2394,7 +2436,9 @@ void TOF2AMPLcalib::fit(){
   }// <----- end of param. init.
 //---
 //----
-  for(ibt=0;ibt<TOF2GC::SCBTPN;ibt++){
+  for(ibt=0;ibt<TOF2GC::SCBTPN;ibt++){//loop over bar types
+    id=rbls[ibt];//ref.bar id
+    if(id==0)continue;//skip dummy bar types
     aabs[ibt]=0.;
     mip2q[ibt]=100.;//default value
     nev=nrefb[ibt];
@@ -2490,45 +2534,49 @@ void TOF2AMPLcalib::fit(){
 //
 //
 //         <-- put aver.values for low statist.channels
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       for(i=0;i<2;i++){
-        chan=2*TOF2GC::SCMXBR*il+2*ib+i;
         if(a2d[chan]==0.)a2d[chan]=avsl;
         if(a2do[chan]==0.)a2do[chan]=avof;
+	chan+=1;//seq.numbering of bar sides
       }
     }
   }
 //
 //--------------------------------------------------
 //
+  integer ic;
   printf("\n");
   printf(" ===============>  Relative gains :\n");
   printf("\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
+  ic=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
     printf("Layer= %2d\n",(il+1));
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=2*TOF2GC::SCMXBR*il+2*ib;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      chan=ic+2*ib;
       printf("%6d",nevenc[chan]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=2*TOF2GC::SCMXBR*il+2*ib+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      chan=ic+2*ib+1;
       printf("%6d",nevenc[chan]);
     }
     printf("\n");
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=2*TOF2GC::SCMXBR*il+2*ib;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      chan=ic+2*ib;
       printf("%6.3f",gains[chan]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=2*TOF2GC::SCMXBR*il+2*ib+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      chan=ic+2*ib+1;
       printf("%6.3f",gains[chan]);
     }
     printf("\n");
     printf("\n");
+    ic+=2*TOF2DBc::getbppl(il);
   }
 //
 // ---------
@@ -2565,33 +2613,37 @@ void TOF2AMPLcalib::fit(){
   tcfile.width(6);
 //                      <-- for High_to_Low chan. calibr.
     tcfile.precision(2);// precision for H/L ratio
-    for(il=0;il<TOF2GC::SCLRS;il++){ // <--- H/L-ratios:
-      for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-        chan=2*TOF2GC::SCMXBR*il+2*ib;
+    ic=0;
+    for(il=0;il<TOF2DBc::getnplns();il++){ // <--- H/L-ratios:
+      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+        chan=ic+2*ib;
         tcfile << a2d[chan]<<" ";
       }
       tcfile << endl;
-      for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-        chan=2*TOF2GC::SCMXBR*il+2*ib+1;
+      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+        chan=ic+2*ib+1;
         tcfile << a2d[chan]<<" ";
       }
       tcfile << endl;
+      ic+=2*TOF2DBc::getbppl(il);
     }
     tcfile << endl;
 //
 //
   tcfile.precision(3);// precision for gains
-  for(il=0;il<TOF2GC::SCLRS;il++){ // <--- gains:
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=2*TOF2GC::SCMXBR*il+2*ib;
+  ic=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){ // <--- gains:
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      chan=ic+2*ib;
       tcfile << gains[chan]<<" ";
     }
     tcfile << endl;
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=2*TOF2GC::SCMXBR*il+2*ib+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      chan=ic+2*ib+1;
       tcfile << gains[chan]<<" ";
     }
     tcfile << endl;
+    ic+=2*TOF2DBc::getbppl(il);
   }
   tcfile << endl;
 //
@@ -2681,7 +2733,7 @@ number TOF2STRRcalib::ssumc2[TOF2GC::SCCHMX];
 number TOF2STRRcalib::ssumt2[TOF2GC::SCCHMX];
 //----------
 void TOF2STRRcalib::init(){
-  integer i,j,il,ib,id,ii,jj;
+  integer i,j,il,ib,id,ii,jj,chan;
   char htit1[60];
   char inum[11];
   char in[2]="0";
@@ -2698,8 +2750,9 @@ void TOF2STRRcalib::init(){
   mrf=0;
   if(AMSJob::gethead()->isRealData())mrf=1;
 //
-  for(il=0;il<TOF2GC::SCLRS;il++){   
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){   
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       for(i=0;i<2;i++){
         strcpy(htit1,"Stretcher Tout vs Tin for chan(LBBS) ");
         in[0]=inum[il+1];
@@ -2712,8 +2765,9 @@ void TOF2STRRcalib::init(){
         strcat(htit1,in);
         in[0]=inum[i+1];
         strcat(htit1,in);
-        id=1600+il*TOF2GC::SCMXBR*2+ib*2+i;
+        id=1600+chan;
         HBOOK2(id,htit1,50,til[mrf],tih[mrf],50,tol[mrf],toh[mrf],0.);
+	chan+=1;
       }
     }
   }
@@ -2779,7 +2833,7 @@ void TOF2STRRcalib::fill2(integer ichan, number tdif){
 }
 //-----------
 void TOF2STRRcalib::outp(){
-  integer i,j,il,ib,id,ic,stat(0),idtol[2],dbsta;
+  integer i,j,il,ib,id,ic,stat(0),idtol[2],dbsta,chan,chmax;
   number t0,sl,t,tq,co,dis,nev,bins;
   number sumc,sumt,sumct,sumc2,sumt2,sumid;
   number strr[TOF2GC::SCCHMX],offs[TOF2GC::SCCHMX],chi2[TOF2GC::SCCHMX];
@@ -2830,8 +2884,15 @@ void TOF2STRRcalib::outp(){
     idtol[0]=TOF2GC::SCSRCLBMC;
     idtol[1]=TOF2GC::SCSRCHBMC;
   }
+//
+  chmax=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    chmax+=TOF2DBc::getbppl(il);
+  }
+  chmax*=2;//max.number of sc.channels
+//
 // <-------------------------- "bin-method"
-  for(ic=0;ic<TOF2GC::SCCHMX;ic++){ // <-- chan. loop
+  for(ic=0;ic<chmax;ic++){ // <-- chan. loop
     sumc=0.;
     sumt=0.;
     sumct=0.;
@@ -2884,52 +2945,58 @@ void TOF2STRRcalib::outp(){
 //---
   printf("\n\n");
   printf("Stretcher ratios: bin-methode :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2;
       printf(" % 5.2f",strr[ic]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2+1;
       printf(" % 5.2f",strr[ic]);
     }
     printf("\n\n");
+    chan+=2*TOF2DBc::getbppl(il);
   }
 //---
   printf("Chi2: bin-methode :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2;
       printf(" % 5.2f",chi2[ic]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2+1;
       printf(" % 5.2f",chi2[ic]);
     }
     printf("\n\n");
+    chan+=2*TOF2DBc::getbppl(il);
   }
 //---
   printf("Offsets(ns),bin-methode :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2;
       printf(" % 6.1f",offs[ic]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2+1;
       printf(" % 6.1f",offs[ic]);
     }
     printf("\n\n");
+    chan+=2*TOF2DBc::getbppl(il);
   }
 //
 //
 // <----------------------------"points=method"
 //
   dis=pndis;// rms**2 (ns**2)
-  for(ic=0;ic<TOF2GC::SCCHMX;ic++){ // <-- chan. loop
+  for(ic=0;ic<chmax;ic++){ // <-- chan. loop
     t0=0.;
     sl=0.;
     strr2[ic]=0.;
@@ -2961,51 +3028,57 @@ void TOF2STRRcalib::outp(){
 //---
   printf("\n\n");
   printf("Stretcher ratios: points-methode :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2;
       printf(" % 5.2f",strr2[ic]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2+1;
       printf(" % 5.2f",strr2[ic]);
     }
     printf("\n\n");
+    chan+=2*TOF2DBc::getbppl(il);
   }
 //---
   printf("Chi2: points-methode :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2;
       printf(" % 5.2f",chi22[ic]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2+1;
       printf(" % 5.2f",chi22[ic]);
     }
     printf("\n\n");
+    chan+=2*TOF2DBc::getbppl(il);
   }
 //---
   printf("Offsets(ns),pnt-methode :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2;
       printf(" % 6.1f",offs2[ic]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2+1;
       printf(" % 6.1f",offs2[ic]);
     }
     printf("\n\n");
+    chan+=2*TOF2DBc::getbppl(il);
   }
 //
 //
 //<----- combine two methodes(bin-meth. is main):
 //
-  for(ic=0;ic<TOF2GC::SCCHMX;ic++){ // <-- chan. loop
+  for(ic=0;ic<chmax;ic++){ // <-- chan. loop
     replf=0;
     if(chi2[ic]>6. || strr[ic]==0.){//replace by better chi2 from pnt.methode
       if(strr[ic]==0. && chi22[ic]>0.)replf=1;
@@ -3028,7 +3101,7 @@ void TOF2STRRcalib::outp(){
 //
 //<----- combine two methodes(points-meth. is main):
 //
-//  for(ic=0;ic<TOF2GC::SCCHMX;ic++){ // <-- chan. loop
+//  for(ic=0;ic<chmax;ic++){ // <-- chan. loop
 //    replf=0;
 //    if(chi22[ic]>3.){//replace by better chi2 from bin-methode
 //      if(chi2[ic]<chi22[ic] && chi2[ic]>0.)replf=1;
@@ -3055,81 +3128,93 @@ void TOF2STRRcalib::outp(){
   printf("===========> Channels STRR-calibration report :\n\n");
   printf("\n");
   printf("Event/channel collected :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2;
       printf(" % 6d",nevtot[ic]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2+1;
       printf(" % 6d",nevtot[ic]);
     }
     printf("\n\n");
+    chan+=2*TOF2DBc::getbppl(il);
   }
 //---
   printf("Stretcher ratios :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2;
       printf(" % 5.2f",strr[ic]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2+1;
       printf(" % 5.2f",strr[ic]);
     }
     printf("\n\n");
+    chan+=2*TOF2DBc::getbppl(il);
   }
 //---
   printf("Offsets(ns),comb. :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2;
       printf(" % 6.1f",offs[ic]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2+1;
       printf(" % 6.1f",offs[ic]);
     }
     printf("\n\n");
+    chan+=2*TOF2DBc::getbppl(il);
   }
 //
 //  printf("Stretcher ratio errors :\n\n");
-//  for(il=0;il<TOF2GC::SCLRS;il++){
-//    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-//      ic=il*TOF2GC::SCMXBR*2+ib*2;
+//  chan=0;
+//  for(il=0;il<TOF2DBc::getnplns();il++){
+//    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+//      ic=chan+ib*2;
 //      printf(" % 5.2f",s1[ic]);
 //    }
 //    printf("\n");
-//    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-//      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+//    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+//      ic=chan+ib*2+1;
 //      printf(" % 5.2f",s1[ic]);
 //    }
 //    printf("\n\n");
+//    chan+=2*TOF2DBc::getbppl(il);
 //  }
 //---
   printf("Chi2 :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2;
       printf(" % 5.2f",chi2[ic]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2+1;
       printf(" % 5.2f",chi2[ic]);
     }
     printf("\n\n");
+    chan+=2*TOF2DBc::getbppl(il);
   }
 //
 //---
-  for(il=0;il<TOF2GC::SCLRS;il++){ // print 2-D histogr.  
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){ // print 2-D histogr.  
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       for(i=0;i<2;i++){
-        id=1600+il*TOF2GC::SCMXBR*2+ib*2+i;
+        id=1600+chan;
         HPRINT(id);
+	chan+=1;
       }
     }
   }
@@ -3138,7 +3223,7 @@ void TOF2STRRcalib::outp(){
 //
   number fstdm[TOF2GC::SCCHMX],fstds[TOF2GC::SCCHMX];
   number nttd,tdfs;
-  for(i=0;i<TOF2GC::SCCHMX;i++){
+  for(i=0;i<chmax;i++){
     fstdm[i]=0.;
     fstds[i]=0.;
     if(nevnt2[i]>5){
@@ -3154,45 +3239,51 @@ void TOF2STRRcalib::outp(){
   printf("===========> Channels f/s-tdc t-differences :\n\n");
   printf("\n");
   printf("Event/channel collected :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2;
       printf(" % 6d",nevnt2[ic]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2+1;
       printf(" % 6d",nevnt2[ic]);
     }
     printf("\n\n");
+    chan+=2*TOF2DBc::getbppl(il);
   }
 //
   printf("Time differences :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2;
       printf(" % 5.1f",fstdm[ic]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2+1;
       printf(" % 5.1f",fstdm[ic]);
     }
     printf("\n\n");
+    chan+=2*TOF2DBc::getbppl(il);
   }
 //
   printf("RMS of time differences :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2;
       printf(" % 5.1f",fstds[ic]);
     }
     printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      ic=chan+ib*2+1;
       printf(" % 5.1f",fstds[ic]);
     }
     printf("\n\n");
+    chan+=2*TOF2DBc::getbppl(il);
   }
 //------------------------------------------------
 //
@@ -3207,10 +3298,11 @@ void TOF2STRRcalib::outp(){
   cout<<" Date of the first event : "<<frdate<<endl;
   tcfile.setf(ios::fixed);
   tcfile.width(6);
-  tcfile.precision(2);// precision 
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){// str-ratios
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
+  tcfile.precision(2);// precision
+  chan=0; 
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){// str-ratios
+      ic=chan+ib*2;
       dbsta=-1;
       if(chi2[ic]>0.)dbsta=0; 
       if(chi2[ic]>chi2mx)dbsta=10;//problem with t-measurement
@@ -3222,6 +3314,7 @@ void TOF2STRRcalib::outp(){
       tcfile <<strr[ic]<<" "<<offs[ic]<<" "<<dbsta<<endl;// side-2
     }
     tcfile << endl;
+    chan+=2*TOF2DBc::getbppl(il);
   }
   tcfile << endl<<"======================================================"<<endl;
   tcfile << endl<<" First run used for calibration is "<<StartRun<<endl;
@@ -3236,7 +3329,7 @@ integer TOF2AVSDcalib::nevdyn[TOF2GC::SCCHMX][TOF2GC::SCACHB];// events in above
 integer TOF2AVSDcalib::nevdynt[TOF2GC::SCCHMX];// events in above sums per chan
 //--------------------------
 void TOF2AVSDcalib::init(){ // ----> initialization for AVSD-calibration 
-  integer i,j,il,ib,id,ii,jj;
+  integer i,j,il,ib,id,ii,jj,chan;
   char htit1[60];
   char inum[11];
   char in[2]="0";
@@ -3245,8 +3338,9 @@ void TOF2AVSDcalib::init(){ // ----> initialization for AVSD-calibration
 //
 //  ---> book hist. Tovt-D vs Tovt-A :
 //
-  for(il=0;il<TOF2GC::SCLRS;il++){   
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){   
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       for(i=0;i<2;i++){
         strcpy(htit1,"Low-gain signal vs High-gain for chan(LBBS) ");
         in[0]=inum[il+1];
@@ -3259,8 +3353,9 @@ void TOF2AVSDcalib::init(){ // ----> initialization for AVSD-calibration
         strcat(htit1,in);
         in[0]=inum[i+1];
         strcat(htit1,in);
-        id=1800+il*TOF2GC::SCMXBR*2+ib*2+i;
+        id=1800+chan;
         HBOOK2(id,htit1,50,0.,500.,50,0.,100.,0.);
+	chan+=1;
       }
     }
   }
@@ -3296,7 +3391,7 @@ void TOF2AVSDcalib::filltovt(integer chan, geant adch, geant adcl){
 //            ---> program to get final  parameters :
 void TOF2AVSDcalib::fit(number slop[TOF2GC::SCCHMX], number offs[TOF2GC::SCCHMX], number &avs, number &avo){
 //
-  integer i,j,il,ib,idd,is,chan;
+  integer i,j,il,ib,idd,is,chan,chmax,ich;
   number t0,sl,t,tq,co,dis,nevf,bins;
   number sumc,sumt,sumct,sumc2,sumt2,sumid,nonzer;
   number chi2[TOF2GC::SCCHMX];
@@ -3304,10 +3399,17 @@ void TOF2AVSDcalib::fit(number slop[TOF2GC::SCCHMX], number offs[TOF2GC::SCCHMX]
 // ---> calculate/print Low-High channel correl. param.(AVSD-calibr):
 //
 //
+//
+  chmax=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
+    chmax+=TOF2DBc::getbppl(il);
+  }
+  chmax*=2;//max.number of sc.channels
+//
   avs=0.;
   avo=0.;
   nonzer=0.;
-  for(i=0;i<TOF2GC::SCCHMX;i++){ // <-- chan. loop
+  for(i=0;i<chmax;i++){ // <-- chan. loop
     sumc=0.;
     sumt=0.;
     sumct=0.;
@@ -3369,60 +3471,64 @@ void TOF2AVSDcalib::fit(number slop[TOF2GC::SCCHMX], number offs[TOF2GC::SCCHMX]
   printf("Average HvsL slop: %6.2f\n",avs);
   printf("Average LvsH offset: %6.2f\n",avo);
   printf("\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
+  ich=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){
     printf("Layer= %2d\n",(il+1));
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=2*TOF2GC::SCMXBR*il+2*ib;
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      chan=ich+2*ib;
       printf("%6d",nevdynt[chan]);
     }
     printf("\n");
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=2*TOF2GC::SCMXBR*il+2*ib+1;
+      chan=ich+2*ib+1;
       printf("%6d",nevdynt[chan]);
     }
     printf("\n");
     printf("\n");
     
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=2*TOF2GC::SCMXBR*il+2*ib;
+      chan=ich+2*ib;
       printf("%6.2f",slop[chan]);
     }
     printf("\n");
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=2*TOF2GC::SCMXBR*il+2*ib;
+      chan=ich+2*ib;
       printf("%6.1f",offs[chan]);
     }
     printf("\n");
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=2*TOF2GC::SCMXBR*il+2*ib;
+      chan=ich+2*ib;
       printf("%6.2f",chi2[chan]);
     }
     printf("\n");
     printf("\n");
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=2*TOF2GC::SCMXBR*il+2*ib+1;
+      chan=ich+2*ib+1;
       printf("%6.2f",slop[chan]);
     }
     printf("\n");
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=2*TOF2GC::SCMXBR*il+2*ib+1;
+      chan=ich+2*ib+1;
       printf("%6.1f",offs[chan]);
     }
     printf("\n");
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      chan=2*TOF2GC::SCMXBR*il+2*ib+1;
+      chan=ich+2*ib+1;
       printf("%6.2f",chi2[chan]);
     }
     printf("\n");
     printf("\n");
+    ich+=2*TOF2DBc::getbppl(il);
   }
 //
 //---
-  for(il=0;il<TOF2GC::SCLRS;il++){ // print 2-D histogr.  
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+  chan=0;
+  for(il=0;il<TOF2DBc::getnplns();il++){ // print 2-D histogr.  
+    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
       for(i=0;i<2;i++){
-        idd=1800+il*TOF2GC::SCMXBR*2+ib*2+i;
+        idd=1800+chan;
         HPRINT(idd);// tempor commented
+	chan+=1;
       }
     }
   }

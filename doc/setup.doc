@@ -1,4 +1,4 @@
-#  $Id: setup.doc,v 1.5 2001/01/22 17:00:58 vitali Exp $
+#  $Id: setup.doc,v 1.6 2002/02/12 08:44:08 choumilo Exp $
 Geometrical setup is defined thru  AMSJob.Setupname datacard (see datacards.doc)
 
 
@@ -48,6 +48,7 @@ CAL01
 TRD:
 TRD01
 
-
+TOF:
+"AMS02"/"AMS02 TOF:8PAD" --> (AMS02 with TOF:12PAD(default)) / (AMS02 with TOF:8PAD)
 
  

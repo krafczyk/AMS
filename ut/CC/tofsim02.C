@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.14 2001/12/04 10:36:19 choumilo Exp $
+//  $Id: tofsim02.C,v 1.15 2002/02/12 08:43:47 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 #include <tofdbc02.h>
 #include <iostream.h>
@@ -215,11 +215,10 @@ void TOF2Scan::build(){
  TOFTpoints td2[TOF2GC::SCANPNT];
  geant eff1,eff2;
 //
-  for(ila=0;ila<TOF2GC::SCLRS;ila++){   // <-------- loop over layers
-  for(ibr=0;ibr<TOF2GC::SCMXBR;ibr++){  // <-------- loop over bar in layer
+  cnum=0;//for sequential numbering
+  for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
     brt=TOF2DBc::brtype(ila,ibr);
-    if(brt==0)continue; // skip missing counters
-    cnum=ila*TOF2GC::SCMXBR+ibr; // sequential counter numbering(0-55)
     dnum=brfnam[cnum];// 4-digits t-distr. file name (VLBB)
     mult=1000;
     strcpy(name,"tof2c");
@@ -272,6 +271,7 @@ void TOF2Scan::build(){
 //
     scmcscan[cnum]=TOF2Scan(nsp,scp,ef1,ef2,rg1,rg2,td1,td2);// create bar MC-t-scan obj
     tcfile.close(); // close file
+  cnum+=1;//sequential numbering
   } // --- end of bar loop --->
   } // --- end of layer loop --->
 }
@@ -391,7 +391,8 @@ void TOF2Tovt::build()
       continue;
     }
     qtime=time*ifadcb;
-    cnum=ilay*TOF2GC::SCMXBR+ibar;// sequential counter number
+//    cnum=ilay*TOF2GC::SCMXBR+ibar;// sequential counter number
+    cnum=TOF2DBc::barseqn(ilay,ibar);// sequential counter number
     TOF2Scan::scmcscan[cnum].getxbin(y,i1,i2,r);//y-bin # (longit.(x !)-coord. in LTRANS )
     TOF2Brcal::scbrcal[ilay][ibar].getbstat(status);//get status of two ends (from DB)
     nel0=de*convr;// -> photons

@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.35 2002/02/08 13:48:03 choutko Exp $
+//  $Id: tkdbc.C,v 1.36 2002/02/12 08:43:46 choumilo Exp $
 #include <tkdbc.h>
 #include <amsdbc.h>
 #include <astring.h>
@@ -2195,7 +2195,15 @@ if(!TKGEOMFFKEY.ReadGeomFromFile)return;
 
 AString fnam=(const char*)AMSDATADIR.amsdatadir;
 fnam+="TKGeom_";
-fnam+=AMSJob::gethead()->getsetup();
+AString tmp(AMSJob::gethead()->getsetup());
+char del[]=" ";
+for(char* result=strtok((char*)tmp,del);result;result=strtok(NULL,del)){
+  if(strstr(result,"AMS")){
+    fnam+=result;
+    break;
+  }
+}  
+
 fnam+= AMSJob::gethead()->isRealData()?".1":".0";
 ifstream iftxt((const char *)fnam,ios::in);
 int active=0;

@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.31 2002/01/17 14:33:43 choutko Exp $
+//  $Id: ecaldbc.C,v 1.32 2002/02/12 08:43:46 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -636,6 +636,61 @@ void EcalJobStat::bookhist(){
 	HBOOK1(ECHISTC+59,"ECCA: Emism/Ematch(pl4)",80,0.,4.,0.);
 	HBOOK1(ECHISTC+60,"ECCA: Emism/Ematch(pl5)",80,0.,4.,0.);
 	HBOOK1(ECHISTC+61,"ECCA: Emism/Ematch(pl6)",80,0.,4.,0.);
+//gchen
+	if(ECCAFFKEY.ecshswit==1){// =====> ecal_shower used.
+	  HBOOK1(ECHISTC+62,"ECCA: shower energy, track ok",80,0.,18.,0.);
+	  HBOOK1(ECHISTC+63,"ECCA: chi2 of dir fit",100,0.,100.,0.);
+	  HBOOK1(ECHISTC+64,"ECCA: Energy of Front layers",125,0.,250.,0.);
+	  HBOOK1(ECHISTC+65,"ECCA: Dif. over sum",80,-1.,0.6,0.);
+	  HBOOK1(ECHISTC+66,"ECCA: Rel. Side leak",40,0.,0.4,0.);
+	  HBOOK1(ECHISTC+67,"ECCA: Rel. Rear Leak",40,0.,0.4,0.);
+	  HBOOK1(ECHISTC+68,"ECCA: Rel. Dead Cell Leak",20,0.,0.2,0.);
+	  HBOOK1(ECHISTC+69,"ECCA: out of core leak",50,0.,0.5,0.);
+	  HBOOK1(ECHISTC+70,"ECCA: chi2 of prof. fit",50,0.,35.,0.);
+	  HBOOK1(ECHISTC+71,"ECCA: chi2 of trans. fit",50,0.,35.,0.);
+	  HBOOK1(ECHISTC+72,"ECCA: Mom/Edep",100,0.,2.,0.);
+	  HBOOK1(ECHISTC+73,"ECCA: Eshower/Mom-1",100,-1.,1.,0.);
+	  HBOOK1(ECHISTC+74,"ECCA: Track-shower entry x dist",100,-10.,10.,0.);
+	  HBOOK1(ECHISTC+75,"ECCA: Track-shower entry y dist",100,-10.,10.,0.);
+	  HBOOK1(ECHISTC+76,"ECCA: Track-shower exit x dist",100,-10.,10.,0.);
+	  HBOOK1(ECHISTC+77,"ECCA: Track-shower exit y dist",100,-10.,10.,0.);
+	  HBOOK1(ECHISTC+78,"ECCA: Edep/Mom(all cuts)",100,0.,2.,0.);
+	  HBOOK1(ECHISTC+79,"ECCA: Edep/Mom",100,0.,2.,0.);
+	  HBOOK1(ECHISTC+80,"ECCA: Mom/Edep(all cuts)",100,0.,2.,0.);
+	  HBOOK1(ECHISTC+81,"ECCA: Track beta",96,-1.2,1.2,0.);
+	  HBOOK1(ECHISTC+82,"ECCA: Track rigidity (Gv,FastFit,BadEbkg)",100,2.,12.,0.);
+	  HBOOK1(ECHISTC+83,"ECCA: Track Chi2(FastFit) ",80,0.,40.,0.);
+	  HBOOK1(ECHISTC+84,"ECCA: Track rigidity (Gv,FastFit)",100,2.,12.,0.);
+	  HBOOK1(ECHISTC+85,"ECCA: Track dR/R(FastFit)",100,0.,0.05,0.);
+	  HBOOK1(ECHISTC+86,"ECCA: Track half-rig. assymetry(AdvFit)",80,-0.4,0.4,0.);
+	  HBOOK1(ECHISTC+87,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
+	  HBOOK1(ECHISTC+88,"ECCA: Track rigidity (Gv,FastFit,TrackOK)",100,2.,12.,0.);
+	  HBOOK1(ECHISTC+89,"ECCA: Track Layer ampl.",80,0.,400.,0.);
+	  HBOOK1(ECHISTC+90,"ECCA: Rigidity(all cuts,mev)",100,2000.,12000.,0.);
+	  HBOOK1(ECHISTC+91,"ECCA: ANTI fired sectors",17,0.,17.,0.);
+	  HBOOK1(ECHISTC+92,"ECCA: Tracker backgr. Ycl/layer",50,0.,50.,0.);
+	  HBOOK1(ECHISTC+93,"ECCA: Tracker backgr. Xcl/layer",50,0.,50.,0.);
+	  HBOOK1(ECHISTC+94,"ECCA: Tracker X-layer backgr.",50,0.,10.,0.);
+	  HBOOK1(ECHISTC+95,"ECCA: Tracker Y-layer backgr.",50,0.,10.,0.);
+	  HBOOK1(ECHISTC+96,"ECCA: Track X-layer ampl.",80,0.,400.,0.);
+	  HBOOK1(ECHISTC+97,"ECCA: Track Y-layer ampl.",80,0.,400.,0.);
+	  HBOOK1(ECHISTC+98,"ECCA: Track rigidity (Gv,FastFit,BadClam)",100,2.,12.,0.);
+	  HBOOK1(ECHISTC+99,"ECCA: Track Xcross At ECTop",70,-35.,35.,0.);
+	  HBOOK1(ECHISTC+100,"ECCA: Track Ycross At ECTop",70,-35.,35.,0.);
+	  HBOOK1(ECHISTC+101,"ECCA: ANTI sector energy",80,0.,40.,0.);
+	  HBOOK1(ECHISTC+102,"ECCA: energy error of shower",50,0.,5.,0.);
+	  HBOOK1(ECHISTC+103,"ECCA: Rigidity(track ok)",100,2000.,12000.,0.);
+	  HBOOK1(ECHISTC+104,"ECCA: shower energy(chi2 ok)",80,0.,18.,0.);
+	  HBOOK1(ECHISTC+105,"ECCA: Rigidity(chi2 ok)",100,2000.,12000.,0.);
+	  HBOOK1(ECHISTC+106,"ECCA: shower energy(s/b leak ok)",80,0.,18.,0.);
+	  HBOOK1(ECHISTC+107,"ECCA: Rigidity(s/b leak ok)",100,2000.,12000.,0.);
+	  HBOOK1(ECHISTC+108,"ECCA: shower energy(d/o leak ok)",80,0.,18.,0.);
+	  HBOOK1(ECHISTC+109,"ECCA: Rigidity(d/o leak ok)",100,2000.,12000.,0.);
+	  HBOOK1(ECHISTC+110,"ECCA: shower energy(difsum ok)",80,0.,18.,0.);
+	  HBOOK1(ECHISTC+111,"ECCA: Rigidity(difsum ok)",100,2000.,12000.,0.);
+	  HBOOK1(ECHISTC+112,"ECCA: shower energy(all cuts ok)",80,0.,18.,0.);
+	  HBOOK1(ECHISTC+113,"ECCA: Rigidity(all cuts ok)",100,2000.,12000.,0.);
+	}
       }
     }
 //
@@ -785,6 +840,81 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTC+27);
       HPRINT(ECHISTC+28);
       HPRINT(ECHISTC+29);
+//gchen
+      if(ECCAFFKEY.ecshswit==1){// =====> ecal_shower used.
+	HPRINT(ECHISTC+62);
+	HPRINT(ECHISTC+63);
+	HPRINT(ECHISTC+64);
+	HPRINT(ECHISTC+65);
+	HPRINT(ECHISTC+66);
+	HPRINT(ECHISTC+67);
+	HPRINT(ECHISTC+68);
+	HPRINT(ECHISTC+69);
+	HPRINT(ECHISTC+70);
+	HPRINT(ECHISTC+71);
+	HPRINT(ECHISTC+72);
+	HPRINT(ECHISTC+73);
+	HPRINT(ECHISTC+74);
+	HPRINT(ECHISTC+75);
+	HPRINT(ECHISTC+76);
+	HPRINT(ECHISTC+77);
+	HPRINT(ECHISTC+78);
+	HPRINT(ECHISTC+79);
+	HPRINT(ECHISTC+80);
+	HPRINT(ECHISTC+81);
+	HPRINT(ECHISTC+82);
+	HPRINT(ECHISTC+83);
+	HPRINT(ECHISTC+84);
+	HPRINT(ECHISTC+85);
+	HPRINT(ECHISTC+86);
+	HPRINT(ECHISTC+87);
+	HPRINT(ECHISTC+88);
+	HPRINT(ECHISTC+89);
+	HPRINT(ECHISTC+90);
+	HPRINT(ECHISTC+91);
+	HPRINT(ECHISTC+92);
+	HPRINT(ECHISTC+93);
+	HPRINT(ECHISTC+94);
+	HPRINT(ECHISTC+95);
+	HPRINT(ECHISTC+96);
+	HPRINT(ECHISTC+97);
+	HPRINT(ECHISTC+98);
+	HPRINT(ECHISTC+99);
+	HPRINT(ECHISTC+100);
+	HPRINT(ECHISTC+101);
+	HPRINT(ECHISTC+102);
+	HPRINT(ECHISTC+103);
+	HPRINT(ECHISTC+104);
+	HPRINT(ECHISTC+105);
+	HPRINT(ECHISTC+106);
+	HPRINT(ECHISTC+107);
+	HPRINT(ECHISTC+108);
+	HPRINT(ECHISTC+109);
+	HPRINT(ECHISTC+110);
+	HPRINT(ECHISTC+111);
+	HPRINT(ECHISTC+112);
+	HPRINT(ECHISTC+113);
+	HPRINT(ECHISTC+114);
+	HPRINT(ECHISTC+115);
+	HPRINT(ECHISTC+116);
+	HPRINT(ECHISTC+117);
+	HPRINT(ECHISTC+118);
+	HPRINT(ECHISTC+119);
+	HPRINT(ECHISTC+120);
+	HPRINT(ECHISTC+121);
+	HPRINT(ECHISTC+122);
+	HPRINT(ECHISTC+123);
+	HPRINT(ECHISTC+124);
+	HPRINT(ECHISTC+125);
+	HPRINT(ECHISTC+126);
+	HPRINT(ECHISTC+127);
+	HPRINT(ECHISTC+128);
+	HPRINT(ECHISTC+129);
+	HPRINT(ECHISTC+130);
+	HPRINT(ECHISTC+131);
+	HPRINT(ECHISTC+132);
+	HPRINT(ECHISTC+133);
+      }
       ECREUNcalib::mfite();
     }
 }
@@ -1210,7 +1340,6 @@ void ECPMPeds::build(){// create TOFBPeds-objects for each sc.bar
   dig=cfvn%10;
   in[0]=inum[dig];
   strcat(name,in);
-
   if(AMSJob::gethead()->isMCData())           // for MC-event
   {
     cout <<" ECPMPeds_build: default MC peds-file is used..."<<endl;

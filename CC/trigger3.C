@@ -1,4 +1,4 @@
-//  $Id: trigger3.C,v 1.54 2001/12/07 11:32:19 choutko Exp $
+//  $Id: trigger3.C,v 1.55 2002/02/12 08:43:47 choumilo Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofdbc.h>
@@ -146,8 +146,8 @@ void TriggerLVL3::init(){
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
       if(TOF2DBc::plrotm(ltop)==0)ltop=1;
       if(TOF2DBc::plrotm(lbot)==0)lbot=2;
-      planes=TOF2GC::SCLRS;
-      for(i=0;i<planes;i++)padspl[i]=TOF2GC::SCBRS[i];
+      planes=TOF2DBc::getnplns();
+      for(i=0;i<planes;i++)padspl[i]=TOF2DBc::getbppl(i);
     }
     else{
       if(TOFDBc::plrotm(ltop)==0)ltop=1;

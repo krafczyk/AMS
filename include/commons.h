@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.167 2002/02/08 13:48:26 choutko Exp $
+//  $Id: commons.h,v 1.168 2002/02/12 08:44:09 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -347,6 +347,18 @@ public:
   geant scdismx[6];    // max sc-track dist. to consider hit as backgroubd(pl 1-6) 
   geant scdisrs;       // as above for all other planes(not used really)
   geant b2scut[6];     // max backgr/signal energy(bound.from above) for pl 1-6 
+//g.chen
+  integer ecshswit;      // 0/1 switch to/(not to)  use shower info in calibration
+  geant chi2dirmx;     // max chi2 of shower dir fit
+  geant prchi2mx;      // max chi2 of shower profile fit
+  geant trchi2mx;      // max chi2 of shower trans. fit
+  geant eshsleakmx;    // max Eleak(shower side)/Etot
+  geant eshrleakmx;    // max Eleak(shower back)/Etot
+  geant eshdleakmx;    // max Eleak(shower dead)/Etot
+  geant esholeakmx;    // max Eleak(shower orph)/Etot
+  geant difsummx;      // cut of (E_x-E_y)/(E_x+E_y)
+  geant trentmax[2];   // cut of distance between track and shower entry
+  geant trextmax[2];   // cut of distance between track and shower exit
 };
 #define ECCAFFKEY COMMON_BLOCK(ECCAFFKEY,eccaffkey)
 COMMON_BLOCK_DEF(ECCAFFKEY_DEF,ECCAFFKEY);

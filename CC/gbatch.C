@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.64 2002/02/08 13:48:01 choutko Exp $
+//  $Id: gbatch.C,v 1.65 2002/02/12 08:43:46 choumilo Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -31,7 +31,7 @@ void (handler)(int);
  }
  main(int argc, char * argv[] ){
       using namespace gams;
-//     *signal(SIGFPE, handler);
+     *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
      *signal(SIGXCPU,handler);

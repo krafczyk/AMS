@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.395 2002/02/08 13:48:02 choutko Exp $
+// $Id: job.C,v 1.396 2002/02/12 08:43:46 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -772,6 +772,20 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.b2scut[3]=0.2;  // (53) max backgr/signal energy(bound.from above) for pl-4 
   ECCAFFKEY.b2scut[4]=0.15;  // (54) max backgr/signal energy(bound.from above) for pl-5 
   ECCAFFKEY.b2scut[5]=0.15;  // (55) max backgr/signal energy(bound.from above) for pl-6 
+//g.chen
+  ECCAFFKEY.ecshswit=0;        // (56) 0/1 switch to/(not to) use shower info in ANOR calibration
+  ECCAFFKEY.chi2dirmx=10.;      // (57) max chi2 of shower dir fit
+  ECCAFFKEY.prchi2mx=5.;       // (58)max chi2 of shower profile fit
+  ECCAFFKEY.trchi2mx=10.;      // (59)max chi2 of shower trans. fit
+  ECCAFFKEY.eshsleakmx=0.01;   // (60) max Eleak(shower side)/Etot
+  ECCAFFKEY.eshrleakmx=0.05;;  // (61) max Eleak(shower back)/Etot
+  ECCAFFKEY.eshdleakmx=0.02;   // (62) max Eleak(shower dead)/Etot
+  ECCAFFKEY.esholeakmx=0.1;;  // (63) max Eleak(shower orph)/Etot
+  ECCAFFKEY.difsummx=0.2;      // (64) cut of (E_x-E_y)/(E_x+E_y)
+  ECCAFFKEY.trentmax[0]=0.5;   // (65) cut of distance between track and shower entry x-proj
+  ECCAFFKEY.trentmax[1]=0.5;   // (66) cut of distance between track and shower entry y-proj
+  ECCAFFKEY.trextmax[0]=1.0;   // (67) cut of distance between track and shower enit x-proj
+  ECCAFFKEY.trextmax[1]=1.0;   // (68) cut of distance between track and shower exit y-proj
 FFKEY("ECCA",(float*)&ECCAFFKEY,sizeof(ECCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
@@ -1298,7 +1312,7 @@ void AMSJob::_retof2data(){
 //
   TFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TFCAFFKEY.dynflg=0; // (27)  not used now
-  TFCAFFKEY.cfvers=1; // (28) 1-999 -> vers.number for tofverlistNN.dat file
+  TFCAFFKEY.cfvers=2; // (28) 1-999 -> vers.number for tofverlistNN.dat file
   TFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
   TFCAFFKEY.mcainc=0;// (30) not used now
   TFCAFFKEY.tofbetac=0.6;// (31) if nonzero->low beta cut (own TOF measurements !!!)
