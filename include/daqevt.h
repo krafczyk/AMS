@@ -100,7 +100,7 @@ static void addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget);
 
 //+
 integer eventlength() {return _Length;}
-void    data(uinteger *buff) {memcpy(buff,_pData,eventlength()*2);}
+void    data(uint16 *buff) {memcpy(buff,_pData,eventlength()*2);}
 uint16  sdetlength(uint16 sdetid) {
   enum {block_offset = 3};
   integer offset = block_offset;
