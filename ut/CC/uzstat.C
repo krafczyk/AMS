@@ -27,6 +27,12 @@ p->_startstop=1;
 }
 else cerr<<"AMSStat-Start-E-Name "<<name<<" does not exist"<<endl;
 }
+number AMSStat::check(char * name){
+AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
+ if(p){
+   return HighResTime()-p->_time;
+ }
+}
 void AMSStat::stop(char *name){
 AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
 if(p){
