@@ -54,12 +54,12 @@
 #include <mccluster.h>
 #include <sys/stat.h>
 #include <producer.h>
+#ifdef __DB__
 //+
  integer        ntdvNames;               // number of TDV's types
  char*          tdvNameTab[maxtdv];      // TDV's nomenclature
  int            tdvIdTab[maxtdv];
 //
-#ifdef __DB__
 
 #include <dbS.h>
 integer*   AMSJob::_ptr_start;
@@ -2305,6 +2305,10 @@ gethead()->addup( &TID);
 //
 // Magnetic Field Map
 //
+AMSTimeID::CType server=AMSTimeID::Standalone;
+#ifdef __CORBA__
+server=AMSTimeID::Client;
+#endif
 {
 tm begin;
 tm end;
@@ -2323,7 +2327,7 @@ end.tm_mday=TKFIELD.iday[1];
 end.tm_mon=TKFIELD.imon[1];
 end.tm_year=TKFIELD.iyear[1];
 TID.add (new AMSTimeID(AMSID("MagneticFieldMap",isRealData()),
-   begin,end,sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile),(void*)&TKFIELD.iniok));
+   begin,end,sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile),(void*)&TKFIELD.iniok,server));
 }
 //----------------------------
 //
@@ -2348,58 +2352,56 @@ end.tm_hour=TRMCFFKEY.hour[1];
 end.tm_mday=TRMCFFKEY.day[1];
 end.tm_mon=TRMCFFKEY.mon[1];
 end.tm_year=TRMCFFKEY.year[1];
-
-
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerPedestals(0),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numell,
-    (void*)AMSTrIdSoft::peds));
+    (void*)AMSTrIdSoft::peds,server));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerPedestals(1),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::peds[0])*
     (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-    (void*)(AMSTrIdSoft::peds+AMSTrIdSoft::_numell)));
+    (void*)(AMSTrIdSoft::peds+AMSTrIdSoft::_numell),server));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerRawSigmas(0),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::sigmaraws[0])*AMSTrIdSoft::_numell,
-    (void*)AMSTrIdSoft::sigmaraws));
+    (void*)AMSTrIdSoft::sigmaraws,server));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerRawSigmas(1),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::sigmaraws[0])*
     (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-    (void*)(AMSTrIdSoft::sigmaraws+AMSTrIdSoft::_numell)));
+    (void*)(AMSTrIdSoft::sigmaraws+AMSTrIdSoft::_numell),server));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerGains(0),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numell,
-    (void*)AMSTrIdSoft::gains));
+    (void*)AMSTrIdSoft::gains,server));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerGains(1),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::gains[0])*
     (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-    (void*)(AMSTrIdSoft::gains+AMSTrIdSoft::_numell)));
+    (void*)(AMSTrIdSoft::gains+AMSTrIdSoft::_numell),server));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerSigmas(0),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numell,
-    (void*)AMSTrIdSoft::sigmas));
+    (void*)AMSTrIdSoft::sigmas,server));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerSigmas(1),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::sigmas[0])*
     (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-    (void*)(AMSTrIdSoft::sigmas+AMSTrIdSoft::_numell)));
+    (void*)(AMSTrIdSoft::sigmas+AMSTrIdSoft::_numell),server));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerStatus(0),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numell,
-    (void*)AMSTrIdSoft::status));
+    (void*)AMSTrIdSoft::status,server));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerStatus(1),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::status[0])*
     (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-    (void*)(AMSTrIdSoft::status+AMSTrIdSoft::_numell)));
+    (void*)(AMSTrIdSoft::status+AMSTrIdSoft::_numell),server));
  /*
  TID.add (new AMSTimeID(AMSID("TrackerRhoMatrix.l",isRealData()),
     begin,end,sizeof(AMSTrIdSoft::rhomatrix[0])*AMSTrIdSoft::_numell*2,
-    (void*)AMSTrIdSoft::rhomatrix));
+    (void*)AMSTrIdSoft::rhomatrix,server));
  TID.add (new AMSTimeID(AMSID("TrackerRhoMatrix.r",isRealData()),
     begin,end,sizeof(AMSTrIdSoft::rhomatrix[0])*
     (2*AMSTrIdSoft::_numel-2*AMSTrIdSoft::_numell),
-    (void*)(AMSTrIdSoft::rhomatrix+2*AMSTrIdSoft::_numell)));
+    (void*)(AMSTrIdSoft::rhomatrix+2*AMSTrIdSoft::_numell),server));
  */
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerCmnNoise(),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::cmnnoise),
-    (void*)AMSTrIdSoft::cmnnoise));
+    (void*)AMSTrIdSoft::cmnnoise,server));
 //TID.add (new AMSTimeID(AMSID("TrackerIndNoise",isRealData()),
 //   begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
-//   (void*)AMSTrIdSoft::indnoise));
+//   (void*)AMSTrIdSoft::indnoise,server));
 }
 
 
@@ -2435,19 +2437,19 @@ end.tm_year=TRMCFFKEY.year[1];
 
   TID.add (new AMSTimeID(AMSID("Tofbarcal2",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
-    (void*)&TOF2Brcal::scbrcal[0][0]));
+    (void*)&TOF2Brcal::scbrcal[0][0],server));
    
   TID.add (new AMSTimeID(AMSID("Tofvpar2",isRealData()),
     begin,end,sizeof(TOF2Varp::tofvpar),
-    (void*)&TOF2Varp::tofvpar));
+    (void*)&TOF2Varp::tofvpar,server));
    
   TID.add (new AMSTimeID(AMSID("Tofmcscans2",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOF2Scan::scmcscan[0]),
-    (void*)&TOF2Scan::scmcscan[0]));
+    (void*)&TOF2Scan::scmcscan[0],server));
    
   TID.add (new AMSTimeID(AMSID("Tofpeds",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOFBPeds::scbrped[0][0]),
-    (void*)&TOFBPeds::scbrped[0][0]));
+    (void*)&TOFBPeds::scbrped[0][0],server));
  }
 //
  else{   
@@ -2468,15 +2470,15 @@ end.tm_year=TRMCFFKEY.year[1];
 
   TID.add (new AMSTimeID(AMSID("Tofbarcal1",isRealData()),
     begin,end,TOF1GC::SCBLMX*sizeof(TOFBrcal::scbrcal[0][0]),
-    (void*)&TOFBrcal::scbrcal[0][0]));
+    (void*)&TOFBrcal::scbrcal[0][0],server));
    
   TID.add (new AMSTimeID(AMSID("Tofvpar",isRealData()),
     begin,end,sizeof(TOFVarp::tofvpar),
-    (void*)&TOFVarp::tofvpar));
+    (void*)&TOFVarp::tofvpar,server));
    
   TID.add (new AMSTimeID(AMSID("Tofmcscans",isRealData()),
     begin,end,TOF1GC::SCBLMX*sizeof(AMSTOFScan::scmcscan[0]),
-    (void*)&AMSTOFScan::scmcscan[0]));
+    (void*)&AMSTOFScan::scmcscan[0],server));
  }
    
 }
@@ -2507,11 +2509,11 @@ end.tm_year=TRMCFFKEY.year[1];
 
   TID.add (new AMSTimeID(AMSID("Antisccal2",isRealData()),
      begin,end,ANTI2C::MAXANTI*sizeof(ANTI2Pcal::antisccal[0]),
-                                  (void*)&ANTI2Pcal::antisccal[0]));
+                                  (void*)&ANTI2Pcal::antisccal[0],server));
 //
 // TID.add (new AMSTimeID(AMSID("Antivpar2",isRealData()),
 //    begin,end,sizeof(ANTI2Varp::antivpar),
-//    (void*)&ANTI2Varp::antivpar));
+//    (void*)&ANTI2Varp::antivpar,server));
  }
 //
  else{   
@@ -2532,11 +2534,11 @@ end.tm_year=TRMCFFKEY.year[1];
 
   TID.add (new AMSTimeID(AMSID("Antisccal",isRealData()),
      begin,end,MAXANTI*sizeof(ANTIPcal::antisccal[0]),
-                                  (void*)&ANTIPcal::antisccal[0]));
+                                  (void*)&ANTIPcal::antisccal[0],server));
 //
 // TID.add (new AMSTimeID(AMSID("Antivpar",isRealData()),
 //    begin,end,sizeof(ANTIVarp::antivpar),
-//    (void*)&ANTIVarp::antivpar));
+//    (void*)&ANTIVarp::antivpar,server));
  }   
 }
 //---------------------------------------
@@ -2566,15 +2568,15 @@ end.tm_year=TRMCFFKEY.year[1];
 
   TID.add (new AMSTimeID(AMSID("Ecalpmcalib",isRealData()),
      begin,end,ECPMSL*sizeof(ECcalib::ecpmcal[0][0]),
-                                  (void*)&ECcalib::ecpmcal[0][0]));
+                                  (void*)&ECcalib::ecpmcal[0][0],server));
 //
   TID.add (new AMSTimeID(AMSID("Ecalvpar",isRealData()),
      begin,end,sizeof(ECALVarp::ecalvpar),
-                                      (void*)&ECALVarp::ecalvpar));
+                                      (void*)&ECALVarp::ecalvpar,server));
    
 //  TID.add (new AMSTimeID(AMSID("Ecalpeds",isRealData()),
 //    begin,end,ECPMSL*sizeof(ECPMPeds::pmpeds[0][0]),
-//    (void*)&ECPMPeds::pmpeds[0][0]));
+//    (void*)&ECPMPeds::pmpeds[0][0],server));
  }
 }
 //
@@ -2604,7 +2606,7 @@ end.tm_year=CTCRECFFKEY.year[1];
    
 TID.add (new AMSTimeID(AMSID("CTCccal",isRealData()),
    begin,end,CTCCCMX*sizeof(ctcfcal[0]),
-   (void*)&ctcfcal[0]));
+   (void*)&ctcfcal[0],server));
 }
 //---------------------------------------
 //
@@ -2633,34 +2635,34 @@ end.tm_year=AMSCharge::_year[1];
 
 TID.add (new AMSTimeID(AMSID("ChargeLkhd01",isRealData()),
    begin,end,100*ncharge*TOFTypes*sizeof(AMSCharge::_lkhdTOF[0][0][0]),
-   (void*)AMSCharge::_lkhdTOF[0]));
+   (void*)AMSCharge::_lkhdTOF[0],server));
 TID.add (new AMSTimeID(AMSID("ChargeLkhd02",isRealData()),
    begin,end,100*ncharge*TrackerTypes*sizeof(AMSCharge::_lkhdTracker[0][0][0]),
-   (void*)AMSCharge::_lkhdTracker[0]));
+   (void*)AMSCharge::_lkhdTracker[0],server));
 TID.add (new AMSTimeID(AMSID("ChargeLkhd03",isRealData()),
    begin,end,ncharge*TOFTypes*sizeof(AMSCharge::_lkhdStepTOF[0][0]),
-   (void*)AMSCharge::_lkhdStepTOF));
+   (void*)AMSCharge::_lkhdStepTOF,server));
 TID.add (new AMSTimeID(AMSID("ChargeLkhd04",isRealData()),
    begin,end,ncharge*TrackerTypes*sizeof(AMSCharge::_lkhdStepTracker[0][0]),
-   (void*)AMSCharge::_lkhdStepTracker));
+   (void*)AMSCharge::_lkhdStepTracker,server));
 TID.add (new AMSTimeID(AMSID("ChargeLkhd05",isRealData()),
    begin,end,ncharge*TOFTypes*sizeof(AMSCharge::_lkhdNormTOF[0][0]),
-   (void*)AMSCharge::_lkhdNormTOF));
+   (void*)AMSCharge::_lkhdNormTOF,server));
 TID.add (new AMSTimeID(AMSID("ChargeLkhd06",isRealData()),
    begin,end,ncharge*TrackerTypes*sizeof(AMSCharge::_lkhdNormTracker[0][0]),
-   (void*)AMSCharge::_lkhdNormTracker));
+   (void*)AMSCharge::_lkhdNormTracker,server));
 TID.add (new AMSTimeID(AMSID("ChargeLkhd07",isRealData()),
    begin,end,ncharge*TOFTypes*sizeof(AMSCharge::_lkhdSlopTOF[0][0]),
-   (void*)AMSCharge::_lkhdSlopTOF));
+   (void*)AMSCharge::_lkhdSlopTOF,server));
 TID.add (new AMSTimeID(AMSID("ChargeLkhd08",isRealData()),
    begin,end,ncharge*TrackerTypes*sizeof(AMSCharge::_lkhdSlopTracker[0][0]),
-   (void*)AMSCharge::_lkhdSlopTracker));
+   (void*)AMSCharge::_lkhdSlopTracker,server));
 TID.add (new AMSTimeID(AMSID("ChargeLkhd09",isRealData()),
    begin,end,ncharge*sizeof(AMSCharge::_chargeTOF[0]),
-   (void*)AMSCharge::_chargeTOF));
+   (void*)AMSCharge::_chargeTOF,server));
 TID.add (new AMSTimeID(AMSID("ChargeLkhd10",isRealData()),
    begin,end,ncharge*sizeof(AMSCharge::_chargeTracker[0]),
-   (void*)AMSCharge::_chargeTracker));
+   (void*)AMSCharge::_chargeTracker,server));
 
 
 }
@@ -2674,13 +2676,13 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd10",isRealData()),
    
      TID.add (new AMSTimeID(AMSID("TOF2Temperature",isRealData()),
                          begin,end,
-                         TOF2Varp::tofvpar.gettoftsize(),(void*)TOF2Varp::tofvpar.gettoftp()));
+                         TOF2Varp::tofvpar.gettoftsize(),(void*)TOF2Varp::tofvpar.gettoftp(),server));
    }
    else{
    
      TID.add (new AMSTimeID(AMSID("TOFTemperature",isRealData()),
                          begin,end,
-                         TOFVarp::tofvpar.gettoftsize(),(void*)TOFVarp::tofvpar.gettoftp()));
+                         TOFVarp::tofvpar.gettoftsize(),(void*)TOFVarp::tofvpar.gettoftp(),server));
    }   
 }
 //-----------------------------
@@ -2691,7 +2693,7 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd10",isRealData()),
    tm end=AMSmceventg::Orbit.Begin;
    TID.add (new AMSTimeID(AMSID("MagnetTemperature",isRealData()),
                          begin,end,
-                         MagnetVarp::getmagnettsize(),(void*)MagnetVarp::getmagnettp()));
+                         MagnetVarp::getmagnettsize(),(void*)MagnetVarp::getmagnettp(),server));
    
 }
 //-----------------------------
@@ -2703,12 +2705,12 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd10",isRealData()),
    if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
      TID.add (new AMSTimeID(AMSID("ScalerN",isRealData()),
                          begin,end,
-                         Trigger2LVL1::getscalerssize(),(void*)Trigger2LVL1::getscalersp()));
+                         Trigger2LVL1::getscalerssize(),(void*)Trigger2LVL1::getscalersp(),server));
    }
    else{
      TID.add (new AMSTimeID(AMSID("ScalerN",isRealData()),
                          begin,end,
-                         TriggerLVL1::getscalerssize(),(void*)TriggerLVL1::getscalersp()));
+                         TriggerLVL1::getscalerssize(),(void*)TriggerLVL1::getscalersp(),server));
    }
    
 }
@@ -2727,7 +2729,7 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd10",isRealData()),
   }
   TID.add (new AMSTimeID(AMSID("ShuttlePar",isRealData()),
                          begin,end,
-                         sizeof(AMSEvent::Array),(void*)AMSEvent::Array));
+                         sizeof(AMSEvent::Array),(void*)AMSEvent::Array,server));
 }
 
 
@@ -2736,7 +2738,7 @@ if(MISCFFKEY.BeamTest){
   tm end=AMSmceventg::Orbit.Begin;
   TID.add (new AMSTimeID(AMSID("BeamPar",isRealData()),
                          begin,end,
-                         sizeof(AMSEvent::ArrayB),(void*)AMSEvent::ArrayB));
+                         sizeof(AMSEvent::ArrayB),(void*)AMSEvent::ArrayB,server));
 }
 
 
@@ -2755,7 +2757,7 @@ if(MISCFFKEY.BeamTest){
   }
   AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
                           isRealData()),begin,end,getstatustable()->getsize(),
-                          getstatustable()->getptr()));
+                          getstatustable()->getptr(),server));
 }
 
 {
@@ -2772,7 +2774,7 @@ if(MISCFFKEY.BeamTest){
   }
   AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID("TrAligDB",
                           isRealData()),begin,end,AMSTrAligPar::gettraligdbsize(),
-                          AMSTrAligPar::gettraligdbp()));
+                          AMSTrAligPar::gettraligdbp(),server));
 }
 
 
@@ -2791,8 +2793,9 @@ if(MISCFFKEY.BeamTest){
   }
   AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID("TrAligglDB",
                           isRealData()),begin,end,AMSTrAligFit::gettraliggldbsize(),
-                          AMSTrAligFit::gettraliggldbp()));
+                          AMSTrAligFit::gettraliggldbp(),server));
 }
+
 
 
 
@@ -2805,6 +2808,9 @@ if (AMSFFKEY.Update){
 
     AMSTimeID * offspring=(AMSTimeID*)TID.down();
     while(offspring){
+            for(int i=0;i<AMSJob::gethead()->gettdvn();i++){     
+               offspring->checkupdate(AMSJob::gethead()->gettdvc(i));
+             }
     if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
       cerr <<"AMSJob::_timeinitjob-S-ProblemtoUpdate "<<*offspring;
     offspring=(AMSTimeID*)offspring->next();
@@ -2925,8 +2931,8 @@ if(IOPA.hlun && _NtupleActive){
   HREND ("output");
   CLOSEF(IOPA.hlun);
 #ifdef __CORBA__
-  if(AMSEvent::gethead())AMSProducer::gethead()->sendNtupleEnd(_ntuplefilename,ntuple_entries,AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime(),true);
-else AMSProducer::gethead()->sendNtupleEnd(_ntuplefilename,ntuple_entries,e,t,true);
+  if(AMSEvent::gethead())AMSProducer::gethead()->sendNtupleEnd(ntuple_entries,AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime(),true);
+else AMSProducer::gethead()->sendNtupleEnd(ntuple_entries,e,t,true);
 #endif
 }
 }
@@ -2997,7 +3003,7 @@ throw (amsglobalerror){
    HBOOK1(200107," adc over",3000,29999.5,32999.5,0.);
     _NtupleActive=true;
 #ifdef __CORBA__
-  AMSProducer::gethead()->sendNtupleStart(run,eventno,tt);
+  AMSProducer::gethead()->sendNtupleStart(_ntuplefilename,run,eventno,tt);
 #endif
 }
 
@@ -3584,7 +3590,6 @@ integer AMSJob::FillJobTDV(integer nobj, tdv_time *tdv)
 {
   integer rstatus = -1;
 
-#ifdef __DB__
   
   if (nobj < 1) {
     cerr <<"AMSJob::FillJobTDV -E- value out of range "<<nobj<<endl;
@@ -3593,7 +3598,6 @@ integer AMSJob::FillJobTDV(integer nobj, tdv_time *tdv)
   _tdv = new tdv_time[nobj];
   for (int i=0; i<nobj; i++) { _tdv[i] = tdv[i];}
  
-#endif
   return 1;
 }
 #endif
@@ -3606,12 +3610,10 @@ integer AMSJob::SetTDVPtrs(integer start[], integer end[])
 // Set start/end ptrs for TDV table 
 //
 {
-#ifdef __DB__
   for (int i=0; i<ntdvNames; i++) {
    _ptr_start[i] = start[i];
    _ptr_end[i]   = end[i];
   }
-#endif
  return 1;
 }
 integer AMSJob::FillTDVTable(){

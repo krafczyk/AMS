@@ -2,7 +2,7 @@
  
 #include <apool.h>
 #include <amsstl.h>
-#include <amsgobj.h>
+//#include <amsgobj.h>
 #include <new.h>
     AMSaPool APool(512000);
 #ifndef __UPOOL__

@@ -61,6 +61,7 @@
 #include <iostream.h>
 #include <status.h>
 #include <geantnamespace.h>
+#include <timeid.h>
 #ifdef __DB__
 #include <db_comm.h>
 integer trigEvents;               // number of events written to the DBase
@@ -159,7 +160,14 @@ void gams::UGINIT(int argc,  char * argv[]){
  //GREND(1);
 
   AMSJob::map();
+
   AMSJob::gethead()->init();
+#ifdef __CORBA__
+    AMSTimeID * phead=AMSJob::gethead()->gettimestructure();
+    AMSTimeID * down=(AMSTimeID *)phead->down();
+    int nb=down->GetNbytes();
+ AMSProducer::gethead()->getRunEventInfo();
+#endif
   if(!AMSJob::gethead()->isProduction())AMSJob::gethead()->uhinit();
   AMSJob::gethead()->urinit();
   AMSJob::map(1);

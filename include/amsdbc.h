@@ -24,7 +24,7 @@ public:
 #ifdef __DB__
    friend class AMSDBcD;
 #endif
-
+static char * amsdatabase;
 // constants
    static const number raddeg;
    static const number pi;

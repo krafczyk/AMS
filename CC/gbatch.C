@@ -41,6 +41,7 @@ void (handler)(int);
      *signal(SIGQUIT, handler);
      *signal(SIGUSR1, handler); 
      *signal(SIGUSR2, handler); 
+     *signal(SIGHUP, handler); 
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
 try{
@@ -102,6 +103,11 @@ using namespace glconst;
     break;
   case SIGCONT:
       cerr <<" Process resumed"<<endl;
+      break;
+  case SIGHUP:
+      cerr <<" Artificial Loop"<<endl;
+      for(;;){
+      }
       break;
   case SIGUSR1:
       cerr<< "New Run Forced"<<endl;

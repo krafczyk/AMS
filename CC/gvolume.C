@@ -68,7 +68,7 @@ if(_nrm != &_UnitRM)delete _nrm;
 geant AMSgvolume::dgeant=1.e-4;
 uinteger AMSgvolume::_GlobalRotMatrixNo=0;
 integer AMSgvolume::_LastRotMatrixOutOfOrder=0;
-AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[], 
+AMSgvolume::AMSgvolume (const char  matter[],integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
            integer posp,integer gid, integer rel) :

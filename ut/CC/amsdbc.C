@@ -5,6 +5,7 @@
 #include <amsstl.h>
 //
 
+char* AMSDBc::amsdatabase=0;
 const integer AMSDBc::REFITTED=1;
 const integer AMSDBc::WIDE=2;
 const integer AMSDBc::AMBIG=4;

@@ -34,7 +34,7 @@ class AMSID
    virtual int operator == (const AMSID&) const;
 // get
    inline integer getid() const{return _id;}
-   inline char *  getname() const{return _name;}
+   inline const char *  getname() const{return _name;}
 // set
    inline integer & id(){return _id;}  //getsetid
    inline void setid(integer id){_id=id;}

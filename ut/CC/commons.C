@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <iostream.h>
 #include <cern.h>
+#include <amsdbc.h>
 //
 STATUSFFKEY_DEF STATUSFFKEY;
 SELECTFFKEY_DEF SELECTFFKEY;
@@ -77,7 +78,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v3.00";
-uinteger AMSCommonsI::_build=957;
+uinteger AMSCommonsI::_build=958;
 uinteger AMSCommonsI::_os=0;
 AMSCommonsI::AMSCommonsI(){
   init();
@@ -142,6 +143,33 @@ void AMSCommonsI::init(){
       AMSDATADIR.amsdblength=strlen(AMSDATADIR.amsdatabase);
       
    }
+          if(sizeof(int) <= sizeof(short int)){
+         cerr<<"AMSTrIdSoftI-F-16 bit machine is not supported."<<endl;
+         exit(1);
+       }
+       integer b64=0;
+       if(sizeof(ulong)>sizeof(uinteger))b64=1;
+       uinteger test1,test2;
+       test1=1;
+       test1+=2<<8;
+       test1+=4<<16;
+       test1+=8<<24;
+       unsigned char *pt= (unsigned char*)&test1;
+       test2=pt[0];
+       test2+=pt[1]<<8;
+       test2+=pt[2]<<16;
+       test2+=pt[3]<<24;
+       integer lend = test1==test2;
+       if(lend)cout <<"AMSTrIdSoftI-I-Identified as LittleEndian";
+       else {
+         cout <<"AMSTrIdSoftI-I-Identified as BigEndian";
+         AMSDBc::BigEndian=1;
+       }
+       if(b64)cout <<" 64 bit machine."<<endl;
+       else cout <<" 32 bit machine."<<endl;
+       AMSDBc dummy;
+       AMSDBc::amsdatabase=new char[strlen(AMSDATADIR.amsdatabase)+1];
+       strcpy(AMSDBc::amsdatabase,AMSDATADIR.amsdatabase);
   }
 }
 integer AMSCommonsI::_Count=0;

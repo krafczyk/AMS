@@ -2548,6 +2548,7 @@ integer AMSEvent::replace(AMSID id, AMSlink *p, AMSlink *prev){
 }
 
 void AMSEvent::_validate(int print){
+AMSgObj::BookTimer.start("TDV");
 
 AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
 AMSTimeID * offspring=(AMSTimeID*)ptid->down();
@@ -2575,11 +2576,13 @@ while(offspring){
       cerr<<" Begin : " <<ctime(&b)<<endl; 
       cerr<<" End : " <<ctime(&e)<<endl; 
       cerr<<" Insert : " <<ctime(&i)<<endl; 
-      gams::UGLAST();
+      gams::UGLAST("TDV not validated");
       exit(1);
     }
     offspring=(AMSTimeID*)offspring->next();
   }
+     AMSgObj::BookTimer.stop("TDV");
+
 }
 
 void AMSEvent::_validateDB()

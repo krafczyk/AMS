@@ -154,7 +154,10 @@ if(AMSFFKEY.Update){
        time_t begin,end,insert;
        ptdv->gettime(insert,begin,end);
        ptdv->SetTime(insert,end,begin);
-       if(!ptdv->read(AMSDATADIR.amsdatabase)){
+       time_t asktime;
+       if(AMSEvent::gethead())asktime=AMSEvent::gethead()->gettime();
+       else asktime=0;
+       if(!ptdv->readDB(AMSDATADIR.amsdatabase,asktime)){
         cerr<<"AMSTrAligFit-F-ProblemToReadDB "<<*ptdv;
         UnlockDB();
         exit(1);

@@ -2,17 +2,19 @@
 // Feb 7, 1998. ak. do not write if DB is on
 //
 #include <timeid.h>
-#include <job.h>
-#include <event.h>
 #include <astring.h>
 #include <fstream.h>
-#include <commons.h>
 #include <sys/types.h>
-#include <trcalib.h>
 #include <ctype.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+#include <amsdbc.h>
+#include <amsstl.h>
+#include <stdio.h>
+#ifdef __CORBA__
+#include <producer.h>
+#endif
 #ifndef __IBMAIX__
 #include <dirent.h>
 #else
@@ -37,10 +39,10 @@ extern "C" int scandir(		const char *, struct dirent ***,
                                 int (*)(struct dirent **, struct dirent **));
 #endif
 
+#ifdef __DB__
 extern char *tdvNameTab[maxtdv];
 extern int  tdvIdTab[maxtdv];
 extern int  ntdvNames;
-#ifdef __DB__
 
 #include <dbS.h>
 
@@ -50,19 +52,24 @@ extern LMS* lms;
 
 uinteger * AMSTimeID::_Table=0;
 const uinteger AMSTimeID::CRC32=0x04c11db7;
-AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0, 
-                     void *pdata=0):
-           AMSNode(id),_pData((uinteger*)pdata),_UpdateMe(0){
+AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes, 
+                     void *pdata, AMSTimeID::CType server):
+           AMSNode(id),_pData((uinteger*)pdata),_UpdateMe(0),_Type(server){
       _Nbytes=nbytes;
 
+if(_Type!=Client){
 #ifndef __DB__
-      _fillDB(AMSDATADIR.amsdatabase,0);
-#endif
-#ifdef __DB__
+      _fillDB(AMSDBc::amsdatabase,0);
+#else
       _fillfromDB();
 #endif
-
+}
+else{
+ for( int i=0;i<5;i++) _pDataBaseEntries[i]=0;
+ _DataBaseSize=0;
+}
 #ifdef __AMSDEBUG__
+      cout <<id.getname()<<" Size "<<_Nbytes<<endl;
       if(_Nbytes%sizeof(uinteger)!=0){
         cerr <<"AMSTimeID-ctor-F-Nbytes not aligned "<<_Nbytes<<endl;
         exit(1);
@@ -76,37 +83,9 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0,
       time(&_Insert);
       _Nbytes+=sizeof(uinteger);
       _CRC=_CalcCRC();
-      int i;
-      for(i=0;i<AMSJob::gethead()->gettdvn();i++){
-        if( (
-           strcmp(AMSJob::gethead()->gettdvc(i),getname())==0 ||
-           strcmp(AMSJob::gethead()->gettdvc(i),"UpdateAllTDV")==0) &&
-           (_Begin < _End) ){
-         _UpdateMe=1;
-         time(&_Insert);
-         cout <<"AMSTimeID-ctor-I-Update for "<<getname()<<" "<<getid()<<
-           " requested. "<<endl;
-         if(_Begin >= _End){
-           cout <<" But validity period is zero. Request rejected. "<<endl;
-           _UpdateMe=0;
-         }
-         time_t linuxcrazy=_Begin;
-         cout <<" Begin "<<ctime(&linuxcrazy);
-         linuxcrazy=_End;
-         cout <<" End "<<ctime(&linuxcrazy);
-          linuxcrazy=_Insert;
-          cout << " Insert "<<ctime(&linuxcrazy)<<endl;
-         break;
-        }
-      }
-#ifdef __AMSDEBUG__
-        if(getid() != AMSJob::gethead()->isRealData()){
-          cerr << "AMSTimeID-ctor-F-numerical id mismatch "<<
-          getid()<<AMSJob::gethead()->isRealData()<<endl;
-          exit(1);
-        }
-#endif
+
 }
+
 
 void AMSTimeID::UpdCRC(){
 _CRC=_CalcCRC();
@@ -125,7 +104,7 @@ _End=end;
 }
 
 
-integer AMSTimeID::CopyIn(void *pdata){
+integer AMSTimeID::CopyIn(const void *pdata){
   if(pdata && _pData){
     integer n=_Nbytes/sizeof(uinteger)-1;
     integer i;
@@ -155,10 +134,9 @@ integer AMSTimeID::CopyOut(void *pdata){
 
 
 integer AMSTimeID::validate(time_t & Time, integer reenter){
-AMSgObj::BookTimer.start("TDV");
 
 #ifndef __DB__
-int ok = read(AMSDATADIR.amsdatabase,reenter);
+int ok = readDB(AMSDBc::amsdatabase,Time,reenter);
 #endif
 
 #ifdef __DB__
@@ -167,7 +145,6 @@ int ok = readDB();
 
 if (Time >= _Begin && Time <= _End){
   if(ok==-1 || _CRC == _CalcCRC()){
-     AMSgObj::BookTimer.stop("TDV");
      return 1;
   }
   else {
@@ -175,7 +152,6 @@ if (Time >= _Begin && Time <= _End){
       <<_CRC<<" New CRC "   <<_CalcCRC()<<endl;
   }
   if(!reenter)return validate(Time,1);
-  AMSgObj::BookTimer.stop("TDV");
   return 0;
 }
   return 0;
@@ -211,11 +187,12 @@ void AMSTimeID::_InitTable(){
   }
 }
 
-integer AMSTimeID::write(const char * dir, int slp){
+bool AMSTimeID::write(const char * dir, int slp){
 
 // add explicitely one second delay to prevent same insert time
    if(slp)sleep(1);
 #ifndef __DB__
+if(_Type!=Client){
   enum open_mode{binary=0x80};
     fstream fbin;
     AString fnam(dir);
@@ -256,37 +233,52 @@ integer AMSTimeID::write(const char * dir, int slp){
 
       return fbin.good();
     }
-     else cerr<<"AMSTimeID::write-E-Failed to allocate memory "<<_Nbytes<<endl;
+     else{
+      cerr<<"AMSTimeID::write-E-Failed to allocate memory "<<_Nbytes<<endl;
+      return false;
+     }
     }
     else {
       cerr<<"AMSTimeID::write-E-CouldNot open file "<<fnam<<endl;
     }
 #endif
 
-    return 0;
+    return false;
 
+}
+else{
+#ifdef __CORBA__
+return AMSProducer::gethead()->sendTDV(this);
+#endif
+}
 }
 
 
-integer AMSTimeID::read(char * dir, integer reenter){
+integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 
-  // first get a run no from dbase
-  integer dflt=0;
-  time_t asktime;
-  if(AMSEvent::gethead()){
-   asktime=AMSEvent::gethead()->gettime();
-  }
-  else{
-   asktime=(_Begin+_End)/2;
-  }
-  integer run=_getDBRecord(asktime);
-  enum open_mode{binary=0x80};
+  // first get a id no from dbase
+  if(asktime==0)asktime=(_Begin+_End)/2;
+  integer index;
+  integer id=_getDBRecord(asktime,index);
+    if(id>0 && !reenter){
+    }
+    else if(id==0 || reenter){
+      id=0;
+    }
+    else return -1;
+    return read(dir,id,asktime,index);
+   
+}
+
+bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
+if(_Type!=Client){
+    enum open_mode{binary=0x80};
     fstream fbin;
     AString fnam(dir);
-    if(run>0 && !reenter){
+    if(run>0){
      fnam+=getname();
      fnam+="/";
-     fnam+=_getsubdirname(asktime);
+     fnam+=_getsubdirname(begin);
      fnam+="/";
      fnam+=getname();
      fnam+= getid()==0?".0":".1";
@@ -295,27 +287,14 @@ integer AMSTimeID::read(char * dir, integer reenter){
      ost << "."<<run<<ends;
      fnam+=name;     
     }
-
-    else if(run==0 || reenter){
+    else{
       fnam+=".";
       fnam+=getname();
       fnam+= getid()==0?".0":".1";
       cout <<"AMSTimeID::read-W-Default value for TDV "<<getname()<<" will be used."<<endl;
-      dflt=1;
     }
-    else return -1;
-//    if(AMSFFKEY.Update==1 && !dflt){
-//      for(int i=0;i<AMSJob::gethead()->gettdvn();i++){
-//        if( strcmp(AMSJob::gethead()->gettdvc(i),getname())==0 ){
-//          // Never read tdv 
-//          cerr<<"AMSTimeID::read-W-UpdateTDVSet "<<getname()<<", reading from DB is disabled"<<endl;
-//         return -1;
-//        }
-//      }
-//    }
     fbin.open((const char *)fnam,ios::in|binary);
     if(fbin){
-
      uinteger * pdata;
      integer ns=_Nbytes/sizeof(pdata[0])+3;
      pdata =new uinteger[ns];
@@ -327,34 +306,47 @@ integer AMSTimeID::read(char * dir, integer reenter){
        _Insert=time_t(pdata[_Nbytes/sizeof(pdata[0])]);
        _Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
        _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
-       if(dflt)_getDefaultEnd(asktime,_End);
+//       if(dflt)_getDefaultEnd(asktime,_End);
+         if(run==0)_Insert=1;
        cout <<"AMSTimeID::read-I-Open file "<<fnam<<endl;
 #ifdef __AMSDEBUG__
        cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;
        cout <<"AMSTimeID::read-I-Begin "<<ctime(&_Begin)<<endl;
        cout <<"AMSTimeID::read-I-End "<<ctime(&_End)<<endl;
 #endif
+       fbin.close();
+       delete [] pdata;
+       return true;
       }
       else {
-        cout<<"AMSTimeID::read-W-Problems to Read File "<<fnam<<endl;//tempor
-        if(dflt)exit(1);
+        cerr<<"AMSTimeID::read-E-Problems to Read File "<<fnam<<endl;
+        fbin.close();
+        delete [] pdata;
+        return false;
       }
-      fbin.close();
-      delete [] pdata;
-
-
-
-
-      return fbin.good();
      }
-     else cerr<<"AMSTimeID::read-E-Failed to allocate memory "<<_Nbytes<<endl;
+     else {
+       cerr<<"AMSTimeID::read-E-Failed to allocate memory "<<_Nbytes<<endl;
+       return false;
+     }
     }
     else {
-      cerr<<"AMSTimeID::read-W-CouldNot open file "<<fnam<<endl;
-      return 0;
+      cerr<<"AMSTimeID::read-E-CouldNot open file "<<fnam<<endl;
+      return false;
     }
-    return 1;
+    return true;
 
+}
+else{
+#ifdef __CORBA__
+if(run>0){
+_Insert=_pDataBaseEntries[1][index];
+_Begin=_pDataBaseEntries[2][index];
+_End=_pDataBaseEntries[3][index];
+}
+return AMSProducer::gethead()->getTDV(this,run);
+#endif
+}
 }
 
 void AMSTimeID::_convert(uinteger *pdata, integer n){
@@ -377,11 +369,11 @@ void AMSTimeID::_convert(uinteger *pdata, integer n){
 
 
 }
-integer AMSTimeID::_getDBRecord(time_t & atime){
+integer AMSTimeID::_getDBRecord(time_t & atime, int & rec){
 uinteger time(atime);
  integer index=AMSbiel(_pDataBaseEntries[3],time,_DataBaseSize);
  //cout <<getname()<<" "<<index<<" "<<time<<" "<<_pDataBaseEntries[3][index]<<" "<<_DataBaseSize<<endl;
-  int rec=-1;
+  rec=-1;
  int insert= (time>=_Begin && time<=_End)?_Insert:0;
  for (int i=index<0?_DataBaseSize:index;i<_DataBaseSize;i++){
    if(time>=_pDataBaseEntries[2][i] && insert<_pDataBaseEntries[1][i]){
@@ -608,9 +600,9 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
     }
 }
 
+#ifdef __DB__
 void AMSTimeID::_fillfromDB()
   {
-#ifdef __DB__
 
     const integer S = 0;
     const integer I = 1;
@@ -645,13 +637,12 @@ void AMSTimeID::_fillfromDB()
 
     cout <<"AMSTimeID::_fillfromDB-I-"<<nobj<<" entries found for TDV "
          <<getname()<<endl; 
-#endif
 }
 
+#include <event.h>
 integer AMSTimeID::readDB(integer reenter){
 
   integer rec = -1;
-#ifdef __DB__
 
   time_t  I, B, E;
   integer S;
@@ -674,9 +665,9 @@ integer AMSTimeID::readDB(integer reenter){
      cout<<"AMSTimeID::readDB -W- TDV object with zero size"<<endl;
    }
   }
-#endif
   return rec;
 }
+#endif
 
 char* AMSTimeID::_getsubdirname(time_t begin){
 static char  _buf[32];
@@ -757,7 +748,7 @@ void AMSTimeID::_rewrite(const char *dir, AString & ffile){
                  cout <<"AMSTimeID::read-I-Begin "<<ctime(&_Begin)<<endl;
                  cout <<"AMSTimeID::read-I-End "<<ctime(&_End)<<endl;
 #endif
-                 int ok=write(dir,0);
+                 bool ok=write(dir,0);
                  fbin.close();
                  delete [] pdata;
                  AString rm("rm -f ");
@@ -778,3 +769,90 @@ void AMSTimeID::_rewrite(const char *dir, AString & ffile){
 
 }
 
+void AMSTimeID::checkupdate(const char * tdvc){
+
+        if( (
+           strcmp(tdvc,getname())==0 ||
+           strcmp(tdvc,"UpdateAllTDV")==0) &&
+           (_Begin < _End) ){
+         _UpdateMe=1;
+         time(&_Insert);
+         cout <<"AMSTimeID-ctor-I-Update for "<<getname()<<" "<<getid()<<
+           " requested. "<<endl;
+         if(_Begin >= _End){
+           cout <<" But validity period is zero. Request rejected. "<<endl;
+           _UpdateMe=0;
+         }
+         time_t linuxcrazy=_Begin;
+         cout <<" Begin "<<ctime(&linuxcrazy);
+         linuxcrazy=_End;
+         cout <<" End "<<ctime(&linuxcrazy);
+          linuxcrazy=_Insert;
+          cout << " Insert "<<ctime(&linuxcrazy)<<endl;
+        }
+}
+
+#ifdef __CORBA__
+void AMSTimeID::fillDB (int length, uinteger *ibe[5]){
+if(length==0)return;
+_DataBaseSize=length;
+for(int  i=0;i<5;i++){
+ delete _pDataBaseEntries[i];
+ _pDataBaseEntries[i]=ibe[i];
+
+}
+
+        uinteger **padd= new uinteger*[_DataBaseSize+1];
+        uinteger *tmp=  new uinteger[_DataBaseSize+1];
+        for(int i=0;i<_DataBaseSize;i++){
+          tmp[i]=_pDataBaseEntries[3][i];
+          _pDataBaseEntries[4][i]=_pDataBaseEntries[2][i];
+          padd[i]=tmp+i;
+        }
+        AMSsortNAG(padd,_DataBaseSize);
+        AMSsortNAGa(_pDataBaseEntries[4],_DataBaseSize);
+        for(int i=0;i<4;i++){
+          int k;
+          for(k=0;k<_DataBaseSize;k++){
+            tmp[k]=_pDataBaseEntries[i][k];
+          }
+          for(k=0;k<_DataBaseSize;k++){
+            _pDataBaseEntries[i][k]=*(padd[k]);
+          }
+        }
+        delete[] padd;
+        delete[] tmp;
+}
+
+
+
+#endif
+
+
+AMSTimeID::IBE & AMSTimeID::findsubtable(time_t begin, time_t end){
+if(_ibe.size())_ibe.clear();
+int insert=0;
+iibe a;
+for (int i=0;i<_DataBaseSize;i++){
+  a.id=_pDataBaseEntries[0][i];
+  a.insert=_pDataBaseEntries[1][i];
+  a.begin=_pDataBaseEntries[2][i];
+  a.end=_pDataBaseEntries[3][i];
+ if(a.begin<end && a.end>begin){
+  if(a.begin<begin && a.end>end){
+   if(a.insert>insert){
+    if(insert){
+      _ibe.erase(_ibe.begin());
+    }
+    _ibe.push_front(a);
+    insert=a.insert;
+   }
+  }
+  else _ibe.push_back(a);
+ }
+}
+#ifdef __AMSDEBUG__
+cout <<" AMSTimeID::findsubtable-I-"<<_ibe.size()<<" Entries Found "<<endl;
+#endif
+return _ibe;
+}

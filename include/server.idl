@@ -88,11 +88,33 @@ module DPS{
   interface Producer: Client{
 
     enum RunStatus{ToBeRerun, Failed,Processing, Finished};
-    enum DSTStatus{Success,Failure};
+    enum DSTStatus{Success,InProgress,Failure};
 
-    typedef sequence<octet> TDV;
-    TDV getTDV(in string name, in time Insert, in time Begin, in time End);
-    void sendTDV(in TDV tdv, in string name, in time Insert, in time Begin, in time End, in long Propagate, in long Error );
+    struct TDVTableEntry{
+     unsigned long id;
+     time Insert;
+     time Begin;
+     time End;
+    };
+
+    struct TDVName{
+     string Name;
+     unsigned long Size;
+     unsigned long CRC;
+     TDVTableEntry Entry;
+     long DataMC;
+     boolean Success;
+    };  
+    typedef sequence<TDVName> TDV;
+    typedef sequence<unsigned long> TDVbody;
+    long getTDV(in DPS::Client::CID cid,inout TDVName tdvname, out TDVbody body);
+    void sendTDV(in DPS::Client::CID cid,in TDVbody tdv, inout TDVName tdvname );
+
+
+    typedef sequence<TDVTableEntry> TDVTable; 
+    long getTDVTable(in DPS::Client::CID cid,inout TDVName tdvname, in unsigned long Run, out TDVTable table);     
+    
+
 
     struct CurrentInfo{
       unsigned long Run;
@@ -112,6 +134,8 @@ module DPS{
      unsigned long Run;
      long FirstEvent;
      long LastEvent;
+     time TFEvent;
+     time TLEvent; 
      long Priority;
      string FilePath;
      RunStatus Status;
@@ -128,16 +152,6 @@ module DPS{
     void getRunEvInfo(in CID id, out RunEvInfo rv);
     void sendRunEvInfo(in RunEvInfo ri, in RecordChange rch);
 
-    struct TDVTableEntry{
-     unsigned long CRC;
-     time Insert;
-     time Begin;
-     time End;
-    };
-
-    typedef sequence<TDVTableEntry> TDVTable; 
-    TDVTable getTDVTable(in string Name, in unsigned long Run,in long Propagate, in long Error);     
-    
     struct DST{
      time   Insert;
      time   Begin;
@@ -165,7 +179,7 @@ module DPS{
 
   interface Server: Client{
 
-    enum OpType{StartClient,KillClient,ClearStartClient,ClearKillClient};
+    enum OpType{StartClient,KillClient,CheckClient,ClearStartClient,ClearKillClient,ClearCheckClient};
 
     struct CriticalOps{
      time TimeOut;

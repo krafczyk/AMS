@@ -107,7 +107,7 @@ static  integer & getNrm()  {return _Nrm;}
   int VolumeHasSameRotationMatrixAs(AMSgvolume *pvo );
   int VolumeHasSameG3AttributesAs(AMSgvolume *pvo );
   int VolumeHasG3Attributes();
-  AMSgvolume (char matter[], integer rotmno,const char name[], 
+  AMSgvolume (const char matter[], integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
            integer posp,integer gid, integer rel=0);

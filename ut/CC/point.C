@@ -45,3 +45,4 @@ AMSDir AMSDir::cross(const AMSDir & o){
  number z=_x*o._y-_y*o._x;
  return AMSDir(x,y,z);
 }
+

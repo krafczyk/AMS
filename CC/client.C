@@ -99,6 +99,26 @@ print(a.id,_ost);
 _ost<<" ARSLength "<<a.ars.length()<<" LastUpdate "<<ctime((const time_t *)&a.LastUpdate)<<" Start "<<ctime((const time_t *)&a.Start)<< "  Status " <<CS2string(a.Status)<<ends;
 return _streambuffer;
 }
+ostream & AMSClient::print(const DPS::Producer::TDVTableEntry & a, ostream & o){
+return o<<" id "<<a.id<<" Insert "<<a.Insert<<" Begin "<<a.Begin<<" End "<<a.End;
+}
+
+char * AMSClient::print(const DPS::Producer::TDVTableEntry & a,const char * mes){
+_ost.seekp(0);
+_ost<<mes <<" TDVTableEntry ";
+print(a,_ost);
+_ost<<ends;
+}
+
+char * AMSClient::print(const DPS::Producer::TDVName & a,const char * mes){
+
+_ost.seekp(0);
+_ost<<mes <<" TDV ";
+_ost<<a.Name<<" Size "<<a.Size<<" CRC "<< a.CRC<< " DataMC " <<a.DataMC<<" Success "<<a.Success;
+print(a.Entry,_ost);
+_ost<<ends;
+return _streambuffer;
+}
 
 
 char * AMSClient::print(const DPS::Client::CID & a,const char * mes){
@@ -243,6 +263,8 @@ char * AMSClient::DSTS2string(DPS::Producer::DSTStatus a){
 switch (a){
 case DPS::Producer::Success:
 return "Success";
+case DPS::Producer::InProgress:
+return "InProgress";
 case DPS::Producer::Failure:
 return "Failure";
 }

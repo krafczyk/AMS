@@ -1,4 +1,3 @@
-
 #Max CPU Mem          Job                                Log       //    Submit
  1   0.9  50          kill                     -o /dat0/local/logs/
  /usr/local/lsf/bin/bsub -K -q linux_control -m            

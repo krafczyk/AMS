@@ -33,7 +33,8 @@ AMSNtuple::AMSNtuple(integer lun, char* name) : AMSNode(AMSID(name,0)) {
 
 void AMSNtuple::init(){
   _Nentries=0;
-  HBNT(_lun, getname()," ");
+  AString a=getname();
+  HBNT(_lun, (char *)a," ");
   if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
   HBNAME(_lun,"EventH",&_event.Eventno,
  

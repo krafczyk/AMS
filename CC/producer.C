@@ -6,6 +6,7 @@
 #include <iostream.h>
 #include <event.h>
 #include <job.h>
+#include<algorithm>
 AMSProducer * AMSProducer::_Head=0;
 AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)){
 DPS::Producer_var pnill=DPS::Producer::_nil();
@@ -55,7 +56,6 @@ else{
       FMessage("Server Requested Termination after sendID ",DPS::Client::SInExit);
      }
      IMessage(AMSClient::print(_pid,"sendID-I-Success"));
-     getRunEventInfo();
      _Head=this;
       return;       
      }
@@ -74,11 +74,7 @@ else{
 FMessage("AMSProducer::AMSProducer-F-UnableToInitCorba",DPS::Client::CInAbort);
 }
 
-void AMSProducer::getTDVTable(uinteger size, uinteger * db[5]){
-}
 
-void AMSProducer::getTDV(const char * tdv,uinteger Tag, uinteger Insert, uinteger Begin, uinteger End){
-}
 
 void AMSProducer::getRunEventInfo(){
 UpdateARS();
@@ -97,9 +93,16 @@ UpdateARS();
     _cinfo.Status=DPS::Producer::Processing;
     _cinfo.CPUTimeSpent=0;
     DAQEvent::setfile((const char *)(_reinfo->FilePath));
-    AMSJob::gethead()->SetNtuplePath(_reinfo->OutputDirPath);
+    AString ntpath=(const char *)_reinfo->OutputDirPath;
+    ntpath+="/";
+    char tmp[80];
+    sprintf(tmp,"%d",_pid.uid);
+    ntpath+=tmp;
+    ntpath+="/";
+    AMSJob::gethead()->SetNtuplePath((const char *)ntpath);
     TIMEX(_T0);
     IMessage(AMSClient::print(_reinfo," get reinfo "));
+    InitTDV(_reinfo->uid);
     return;
   }
   catch  (CORBA::SystemException & a){
@@ -130,8 +133,7 @@ void AMSProducer::getASL(){
 }
 
 
-void AMSProducer::sendNtupleEnd(const char * name, int entries, int last, time_t end, bool success){
-_ntend.Name=name;
+void AMSProducer::sendNtupleEnd(int entries, int last, time_t end, bool success){
 _ntend.Status=success?DPS::Producer::Success:DPS::Producer::Failure;
 _ntend.EventNumber=entries;
 _ntend.LastEvent=last;
@@ -146,14 +148,14 @@ UpdateARS();
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
-    (*li)->sendNtupleEnd(_pid,_ntend,DPS::Client::Create);
+    (*li)->sendNtupleEnd(_pid,_ntend,DPS::Client::Update);
      suc++;
    }
   }
   catch  (CORBA::SystemException & a){
   }
 }
-if(!suc)FMessage("AMSProducer::sendRunEnd-F-UnableToSendRunEndInfo ",DPS::Client::CInAbort);
+if(!suc)FMessage("AMSProducer::sendRunEnd-F-UnableToSendNtupleEndInfo ",DPS::Client::CInAbort);
 
 if( _ntend.Status==DPS::Producer::Failure)FMessage("Ntuple Failure",DPS::Client::CInAbort);
   
@@ -161,10 +163,29 @@ if( _ntend.Status==DPS::Producer::Failure)FMessage("Ntuple Failure",DPS::Client:
 
 
 
-void AMSProducer::sendNtupleStart(int run, int first,time_t begin){
+void AMSProducer::sendNtupleStart(const char * name, int run, int first,time_t begin){
+_ntend.Name=name;
 _ntend.Run=run;
 _ntend.FirstEvent=first;
 _ntend.Begin=begin;
+_ntend.Insert=0;
+_ntend.End=0;
+_ntend.LastEvent=0;
+_ntend.EventNumber=0;
+_ntend.Status=DPS::Producer::InProgress;
+uinteger suc=0;
+UpdateARS();
+ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+  try{
+   if(!CORBA::is_nil(*li)){
+    (*li)->sendNtupleEnd(_pid,_ntend,DPS::Client::Create);
+     suc++;
+   }
+  }
+  catch  (CORBA::SystemException & a){
+  }
+}
+if(!suc)FMessage("AMSProducer::sendRunEnd-F-UnableToSendNtupleStartInfo ",DPS::Client::CInAbort);
 }
 
 
@@ -200,7 +221,9 @@ if(!CORBA::is_nil(*li)){
         DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
         if(!CORBA::is_nil(_pvar)){
          if(i==0)_plist.clear();
-         _plist.push_front(_pvar);
+         double r=double(rand())/RAND_MAX;
+         if(r>0.5)_plist.push_front(_pvar);
+         else _plist.push_back(_pvar);
         }
         }
        }
@@ -255,4 +278,99 @@ AMSProducer::~AMSProducer(){
 const char * a=0;
 cout <<" ams producer destructor called "<<endl;
 Exiting(_up?_up->getMessage():a);
+}
+
+
+void AMSProducer::InitTDV( uinteger run){
+AMSTimeID * head=AMSJob::gethead()->gettimestructure();
+for (AMSTimeID * pser=dynamic_cast<AMSTimeID*>(head->down());pser;pser=dynamic_cast<AMSTimeID*>(pser->next())){
+DPS::Producer::TDVName a;
+a.Name=pser->getname();
+a.DataMC=pser->getid();
+a.Size=pser->GetNbytes();
+a.CRC=pser->getCRC();
+time_t i,b,e;
+pser->gettime(i,b,e);
+a.Entry.id=0;
+a.Entry.Insert=i;
+a.Entry.Begin=b;
+a.Entry.End=e;
+DPS::Producer::TDVTable * ptdv;
+//IMessage(AMSClient::print(a," INITDV "));
+ int suc=0;
+ int length;
+ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+  
+  try{
+    length=(*li)->getTDVTable(_pid,a,run,ptdv);
+    suc++;
+    break;
+  }
+  catch  (CORBA::SystemException & a){
+  }
+ }
+if(!suc)FMessage("AMSProducer::getinitTDV-F-UnableTogetTDVTable",DPS::Client::CInAbort);
+DPS::Producer::TDVTable_var tvar=ptdv;
+uinteger *ibe[5];
+
+if(a.Success){
+for(int i=0;i<5;i++){
+ ibe[i]=new uinteger[length];
+}
+ for(int j=0;j<length;j++){
+    ibe[0][j]=tvar[j].id;
+    ibe[1][j]=tvar[j].Insert;
+    ibe[2][j]=tvar[j].Begin;
+    ibe[3][j]=tvar[j].End;
+  }
+  pser->fillDB(length,ibe);
+}
+else{
+FMessage("AMSProducer::getinitTDV-F-tdvgetFailed",DPS::Client::CInAbort);
+}
+}
+}
+
+bool AMSProducer::getTDV(AMSTimeID * tdv, int id){
+DPS::Producer::TDVbody * pbody;
+DPS::Producer::TDVName name;
+name.Name=tdv->getname();
+name.DataMC=tdv->getid();
+name.CRC=tdv->getCRC();
+name.Size=tdv->GetNbytes();
+name.Entry.id=id;
+time_t i,b,e;
+tdv->gettime(i,b,e);
+name.Entry.Insert=i;
+name.Entry.Begin=b;
+name.Entry.End=e;
+ int length=0;
+ int suc=0;
+ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+  
+  try{
+    length=(*li)->getTDV(_pid,name,pbody);
+    suc++;
+    break;
+  }
+  catch  (CORBA::SystemException & a){
+  }
+ }
+if(!suc){
+ FMessage("AMSProducer::getTDV-F-UnableTogetTDV",DPS::Client::CInAbort);
+ return false;
+}
+DPS::Producer::TDVbody_var vbody=pbody;
+if(name.Success){
+ int nb=tdv->CopyIn(vbody->get_buffer());
+ if(nb){
+  tdv->SetTime(name.Entry.Insert,name.Entry.Begin,name.Entry.End);
+  return true;
+ }
+}
+return false;
+}
+
+bool AMSProducer::sendTDV(const AMSTimeID * tdv){
+return true;
 }
