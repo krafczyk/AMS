@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.75 2004/02/16 14:31:47 alcaraz Exp $
+//  $Id: root.C,v 1.76 2004/02/16 18:17:27 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2355,9 +2355,11 @@ void AMSEventList::Reset(){
 
 void AMSEventList::Read(const char* filename){
         FILE* listfile = fopen(filename,"r");
-        int run, event;
-        while ( fscanf(listfile,"%d %d\n", &run, &event)==2 ) Add(run, event);
-        fclose(listfile);
+        if (listfile) {
+            int run, event;
+            while ( fscanf(listfile,"%d %d\n", &run, &event)==2 ) Add(run, event);
+            fclose(listfile);
+        }
 };
 
 void AMSEventList::Write(){
