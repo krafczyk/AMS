@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.164 2001/12/04 15:13:33 choutko Exp $
+//  $Id: commons.h,v 1.165 2001/12/20 13:11:35 mdelgado Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -1027,6 +1027,7 @@ class RICCONTROL_DEF{
 public:
 integer iflgk_flag;
 integer recon;
+integer setup;  // Allows to choose among several differen geometries
 };
 #define RICCONTROL COMMON_BLOCK(RICCONTROL,riccontrol)
 COMMON_BLOCK_DEF(RICCONTROL_DEF,RICCONTROL);

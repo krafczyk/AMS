@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.12 2001/12/10 15:25:10 mdelgado Exp $
+//  $Id: richgeom.C,v 1.13 2001/12/20 13:11:18 mdelgado Exp $
 #include <typedefs.h>
 #include <node.h>
 #include <snode.h>
@@ -14,7 +14,7 @@
 
 #define SQR(x) ((x)*(x))
 
-#define VERSION "28/04/00"
+#define VERSION "28/04/00 updated"
 
 namespace amsgeom{
 extern void tkgeom(AMSgvolume &);
@@ -181,12 +181,8 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 #endif
 
 
-#ifndef __HOLLOW__
-// Solid light guides
-#ifdef __AMSDEBUG__
-  cout <<"RICH: Solid LG chosen at compilation time."<<endl;
-#endif
 
+  // LG definition
 
   coo[0]=0;
   coo[1]=0;
@@ -811,280 +807,6 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   ((AMSgvolume*)dummy)->Smartless()=-2;
 #endif
 
-
-#else
-#ifdef __AMSDEBUG__
-  cout <<"RICH: Hollow LG chosen at compilation time."<<endl;
-#endif
-  
-  
-  // Hollow light guides
-  
-  coo[0]=0;
-  coo[1]=0;
-  coo[2]=RICHDB::lg_pos();
-  
-  par[0]=RICGEOM.light_guides_height/2;
-  par[1]=RICHDB::lg_mirror_angle(1);
-  par[2]=90;
-  par[3]=RIClgthk/2;
-  par[4]=RICcatolength/2;
-  par[5]=RICcatolength/2;
-  par[6]=0;
-  par[7]=RIClgthk/2;
-  par[8]=RICGEOM.light_guides_length/2;
-  par[9]=RICGEOM.light_guides_length/2;
-  par[10]=0;
-  
-  coo[1]=RICHDB::lg_mirror_pos(1);
-  dummy=lig->add(new AMSgvolume("RICH MIRRORS",
-				0,
-				"MIRA",
-				"TRAP",
-				par,
-				11,
-				coo,
-				nrm,
-				"ONLY", // This seems to be safe
-				0,
-				2*copia-1,
-				rel));
-  
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-  
-  coo[0]=-coo[1];
-  coo[1]=0;
-  
-  dummy=lig->add(new AMSgvolume("RICH MIRRORS",
-				RICnrot,
-				"MIRA",
-				"TRAP",
-				par,
-				11,
-				coo,
-				nrma,
-				"ONLY",
-				0,
-				2*copia,
-				rel));
-  
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif  
-
-
-   par[0]=RICGEOM.light_guides_height/2;
-   par[1]=RICHDB::lg_mirror_angle(2);
-   par[2]=90;
-   par[3]=RIClgthk/2;
-   par[4]=RICcatolength/2;
-   par[5]=RICcatolength/2;
-   par[6]=0;
-   par[7]=RIClgthk/2;
-   par[8]=RICGEOM.light_guides_length/2;
-   par[9]=RICGEOM.light_guides_length/2;
-   par[10]=0;
-   
-   coo[0]=0;
-   coo[1]=RICHDB::lg_mirror_pos(2);
-
-
-   dummy=lig->add(new AMSgvolume("RICH MIRRORS",
-				 0,
-				 "MIRB",
-				 "TRAP",
-				 par,
-				 11,
-				 coo,
-				 nrm,  
-				 "ONLY",
-				 0,
-				 2*copia-1,
-				 rel));
-#ifdef __G4AMS__
-     ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif   
-
-
-   coo[0]=-coo[1];
-   coo[1]=0;
-
-   dummy=lig->add(new AMSgvolume("RICH MIRRORS",
-				 RICnrot,
-				 "MIRB",
-				 "TRAP",
-				 par,
-				 11,
-				 coo,
-				 nrma,  // Rotated 90 degrees
-				 "ONLY",
-				 0,
-				 2*copia,
-				 rel));
-   
-#ifdef __G4AMS__
-     ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
-   par[0]=RICGEOM.light_guides_height/2;;
-   par[1]=0;
-   par[2]=90;
-   par[3]=RIClgthk/2;
-   par[4]=RICcatolength/2;
-   par[5]=RICcatolength/2;
-   par[6]=0;
-   par[7]=RIClgthk/2;
-   par[8]=RICGEOM.light_guides_length/2;
-   par[9]=RICGEOM.light_guides_length/2;
-   par[10]=0;
-   
-   coo[0]=0;
-   coo[1]=0;
-   
-
-   dummy=lig->add(new AMSgvolume("RICH MIRRORS",
-				 0,
-				 "MIRC",
-				 "TRAP",
-				 par,
-				 11,
-				 coo,
-				 nrm,  // Rotated 90 degrees
-				 "ONLY",
-				 0,
-				 2*copia-1,
-				 rel));
-#ifdef __G4AMS__
-     ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif   
-
-
-   dummy=lig->add(new AMSgvolume("RICH MIRRORS",
-				 RICnrot,
-				 "MIRC",
-				 "TRAP",
-				 par,
-				 11,
-				 coo,
-				 nrma,  // Rotated 90 degrees
-				 "ONLY",
-				 0,
-				 2*copia,
-				 rel));
-#ifdef __G4AMS__
-   ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
-    par[0]=RICGEOM.light_guides_height/2;
-    par[1]=RICHDB::lg_mirror_angle(1);
-    par[2]=270;
-    par[3]=RIClgthk/2;
-    par[4]=RICcatolength/2;
-    par[5]=RICcatolength/2;
-    par[6]=0;
-    par[7]=RIClgthk/2;
-    par[8]=RICGEOM.light_guides_length/2;
-    par[9]=RICGEOM.light_guides_length/2;
-    par[10]=0;
-    
-    coo[0]=0;
-    coo[1]=-RICHDB::lg_mirror_pos(1);
-
-    dummy=lig->add(new AMSgvolume("RICH MIRRORS",
-				  0,
-				  "MIRD",
-				  "TRAP",
-				  par,
-				  11,
-				  coo,
-				  nrm,
-				  "ONLY",
-				  0,
-				  2*copia-1,
-				  rel));
-#ifdef __G4AMS__
-     ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
-
-    coo[0]=-coo[1];
-    coo[1]=0;
-
-    dummy=lig->add(new AMSgvolume("RICH MIRRORS",
-				  RICnrot,
-				  "MIRD",
-				  "TRAP",
-				  par,
-				  11,
-				  coo,
-				  nrma,
-				  "ONLY",
-				  0,
-				  2*copia,
-				  rel));
-#ifdef __G4AMS__
-     ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
-
-    par[0]=RICGEOM.light_guides_height/2;;
-    par[1]=RICHDB::lg_mirror_angle(2);
-    par[2]=270;
-    par[3]=RIClgthk/2;
-    par[4]=RICcatolength/2;
-    par[5]=RICcatolength/2;
-    par[6]=0;
-    par[7]=RIClgthk/2;
-    par[8]=RICGEOM.light_guides_length/2;
-    par[9]=RICGEOM.light_guides_length/2;
-    par[10]=0;
-    
-    coo[0]=0;
-    coo[1]=-RICHDB::lg_mirror_pos(2);
-	  
-
-    dummy=lig->add(new AMSgvolume("RICH MIRRORS",
-				  0,
-				  "MIRE",
-				  "TRAP",
-				  par,
-				  11,
-				  coo,
-				  nrm,  // Rotated 90 degrees
-				  "ONLY",
-				  0,
-				  2*copia-1,
-				  rel));
-#ifdef __G4AMS__
-     ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif    
-
-
-    coo[0]=-coo[1];
-    coo[1]=0;
-
-    dummy=lig->add(new AMSgvolume("RICH MIRRORS",
-				  RICnrot,
-				  "MIRE",
-				  "TRAP",
-				  par,
-				  11,
-				  coo,
-				  nrma,  // Rotated 90 degrees
-				  "ONLY",
-				  0,
-				  2*copia,
-				  rel));
-
-#ifdef __G4AMS__
-     ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
-#endif
-
-
 }
 
 
@@ -1448,6 +1170,7 @@ geant xpos,ypos;
     coo[0]=AMSRICHIdGeom::pmt_pos(copia,0);
     coo[1]=AMSRICHIdGeom::pmt_pos(copia,1);
     coo[2]=AMSRICHIdGeom::pmt_pos(copia,2);
+
 
     lig=rich->add(new AMSgvolume("VACUUM",
 				 0,
