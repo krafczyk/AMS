@@ -105,6 +105,13 @@ int16u pData[24][1536];
         cerr <<"cdaq=F-CouldNotOPenFileI "<<in<<endl;
         exit(1);
       }
+       integer cdr[24];
+       integer nrecords=0; 
+       {
+       for(int  ll=0;ll<24;ll++)cdr[ll]=-1;
+       }
+         nrecords=0;
+
        do {
        int l16ptr=0;
        int tlength,ntdr,len,tdrn,ch1,ch2,elem;
@@ -124,6 +131,7 @@ int16u pData[24][1536];
        ie=fscanf(fbin,"%x",&tdrn);
        ie=fscanf(fbin,"%x",&len);
        ie=fscanf(fbin,"%x",&evt);
+       cdr[nrecords++]=tdrn;
        //         cout << " ntdr "<<ntdr <<" "<<tdrn<<" "<<len<<" "<<evt<<endl;
          assert(len-4 <= 1536);
          for(int i=0;i<len-4;i++){
@@ -135,6 +143,15 @@ int16u pData[24][1536];
           l16ptr+=len+1;         
        }while (l16ptr<tlength);
        if(tdrn == 23){
+         if(nrecords != 24 ){
+           cerr <<" cdaq-E-EventError-"<<nrecords<<" "<<endl;
+         }
+           for(int ll=0;ll<nrecords;ll++){
+             if(cdr[ll]!=ll)cout <<"cdaq-OrderError"<<ll<<" "<<cdr[ll]<<endl;
+           }
+
+         for( ll=0;ll<24;ll++)cdr[ll]=-1;
+         nrecords=0;
          // read whole event; try to write it
          Record[1]=0x0;
          Record[2]=9;
@@ -168,15 +185,15 @@ int16u pData[24][1536];
              Record[frp]=addr;
              frp++;
              int lj;
-             if(j==0)lj=3;
-             else lj=1;
+             if(j==0)lj=2;
+             else lj=0;
              for(int l=0;l<320;l++){
               Record[frp]=pData[k][lj*384+l];
               Record[frp]=Record[frp] | (1<<15);
               frp++;     
              }
-             if(j==0)lj=2;
-             else lj=0;
+             if(j==0)lj=3;
+             else lj=1;
              for( l=0;l<320;l++){
               Record[frp]=pData[k][lj*384+l];
               Record[frp]=Record[frp] | (1<<15);

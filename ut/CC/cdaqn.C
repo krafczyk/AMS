@@ -179,15 +179,15 @@ int16u pData[2][24][1536];
              Record[frp]=addr;
              frp++;
              int lj;
-             if(j==0)lj=3;
-             else lj=1;
+             if(j==0)lj=2;
+             else lj=0;
              for(int l=0;l<320;l++){
               Record[frp]=pData[icrt][k][lj*384+l];
               Record[frp]=Record[frp] | (1<<15);
               frp++;     
              }
-             if(j==0)lj=2;
-             else lj=0;
+             if(j==0)lj=3;
+             else lj=1;
              for( l=0;l<320;l++){
               Record[frp]=pData[icrt][k][lj*384+l];
               Record[frp]=Record[frp] | (1<<15);
