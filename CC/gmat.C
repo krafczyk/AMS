@@ -112,6 +112,7 @@ mat.add (new AMSgmat("TUNGSTEN",183.85,74., 19.3  ,0.35,10.3));
 mat.add (new AMSgmat("LEAD",207.19,82., 11.35 ,0.56,18.5));
 mat.add (new AMSgmat("URANIUM",238.03,92., 18.95 ,0.32,12. ));
 mat.add (new AMSgmat("AIR",14.61,7.3, 0.001205,30423.24,67500.));
+mat.add (new AMSgmat("VACUUM",1e-21,1e-21,1e-21,1.E+22,1.E+22));
 mat.add (new AMSgmat("MYLAR",  8.7   ,4.5,  1.39  ,28.7, 43.));
 
 geant a[]={20.18,12.01,1.01,0};
@@ -245,10 +246,6 @@ mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));
   mat.add (new AMSgmat("RICH_BSHIELD",55.85,26.,0.787,17.6,168.));
 }
 
-
-
-mat.add (new AMSgmat("VACUUM",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
-// Define vaccum optical properties
 
 
 }
