@@ -5,7 +5,7 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
 AMSNtupleSelect(){cout <<"hhhhhhh"<<endl;};
 bool IsGolden(AMSEventR *ev){
- if(ev && ev->nParticle()>0 && ev->nRichRing()>0 && ev->nTrTrack()>0){
+ if(ev && ev->nParticle()>0 ){
    for(int i=0;i<ev->nRichRing();i++){
     if(ev->pRichRing(i)->UsedM)return true;
    }

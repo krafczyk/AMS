@@ -1,17 +1,11 @@
-
+#  $Id: 00index.txt,v 1.9 2003/07/11 21:58:34 choutko Exp $
 =========================================================================
 
-     Introduction  to  a  Prototype  Event  Display  Based  on  ROOT
+     Introduction  to  AMS    Event  Display  Based  on  ROOT
 
-				Ping  Yeh
-		  	     Academia Sinica
-			       13 Nov 1997
 
 =========================================================================
-[major updated on 17 Aug 1998 by Shuwei YE]
-[minor updated on 1 Dec 1997 by Ping Yeh]
-[migrated into CVS repository on 16 Dec 1997 with help of Vitali Shoutko,
- and a major modification of this document is done to reflect this]
+[based partially on AMS01 event display by Ping Yeh & Shuwei Ye]
 
 
 -------------------------------------------------------------------------
@@ -19,14 +13,13 @@
 ---------------
    Main features: 3D, rotate with mouse, zooming
 
-
    Data format: root
 
    Requirements: X-window, ROOT, CERNLIB.
 
    System: only test on Linux 7.3 & root 3.05.05 
 
-   Status: still on development.
+   Status: beta release 
 
 
 -------------------------------------------------------------------------
@@ -78,7 +71,7 @@ Please note the amsedc should be relinked in case opsys is not rh7.3
 1. by mouse drag if radiobutton "zoom" is selected 
 2. by choosing appropriate "focus" and/or the using "Zoom" ruler. 
  In this case zooming is done by using the "window" techinique 
- so all the pad may be seen using the hor/ver scroll bars. 
+ so all the pad may be seen using  hor/ver scroll bars. 
 
 -------------------------------------------------------------------------
 4. Future Plan for the program
@@ -89,11 +82,10 @@ Please note the amsedc should be relinked in case opsys is not rh7.3
 1.    Move to new TGeoManager instead of TGeometry (M.Levtchenko)
 2.    Add some more objects (by user req)
 
-5. Known bags
-   RichRings with NaF are not properly drawn. Under investigation
+5. Known bugs
 
 
-5. Relevant files
+6. Relevant files
 
 LinkDef             //aux
 main                //main
@@ -102,6 +94,6 @@ AMSDisplay          // Main GUI Class
 ControlFrame        // Control Frame
 AMSR_GeometrySetter  //  geometry setter
 TGRunEventDialog    //   popup dialog for run/event 
-AMSR_Axis           //  aux class to draw axis (taken from old amsed)
+AMSR_Axis           //  aux class to draw axis 
 AMSNtupleSelect.C   //  user selection function
 
