@@ -37,7 +37,7 @@ integer il=1;
 integer ir=1;
 integer ib=i-1;
 int j=0;
-while(ia<ib-1){
+while(ia<ib-1 || il*ir){
 integer k=(ia+ib)/2;
 int i=cmpT(obj,*a[k]);
 if(!i)return -1;
@@ -52,9 +52,9 @@ ir=0;
 }
 //cout << il << ir <<endl;
 if(ir){
-j=cmpT(obj,*a[ib]);
-if(!j)return -1;
-else if(j>0)return ib+1;
+ j=cmpT(obj,*a[ib]);
+ if(!j)return -1;
+ else if(j>0)return ib+1;
 }
 else if(il){
 j=cmpT(obj,*a[ia]);
@@ -78,7 +78,7 @@ integer il=1;
 integer ir=1;
 integer ib=i-1;
 int j=0;
-while(ia<ib-1){
+while(ia<ib-1 || il*ir){
 integer k=(ia+ib)/2;
 int i=cmpT(obj,a[k]);
 if(i>0){
@@ -114,7 +114,7 @@ integer il=1;
 integer ir=1;
 integer ib=i-1;
 int j=0;
-while(ia<ib-1){
+while(ia<ib-1 || il*ir){
 integer k=(ia+ib)/2;
 int i=cmpT(obj,*a[k]);
 if(i>0){

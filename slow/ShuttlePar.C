@@ -19,6 +19,7 @@
 #include <Coordinates.h>
 #include <astring.h>
 
+int NAME;
 const int NWPAW=700000;
 struct PAWC_DEF{
 float q[NWPAW];
@@ -78,6 +79,8 @@ int main (int argc, char *argv[]) {
            }
            else cout <<"Histo file "<<"cas"<<" opened."<<endl;
         if(argv[1][0]=='+'){
+         sscanf(argv[1],"%d",&NAME);
+         cout <<" Only files with name >= " <<NAME<<" will be scanned"<<endl;
          int i;
          cout <<"ShuttlePar-I-Scanning directory "<<CAS_dir<<endl;
          dirent ** namelist;                            
@@ -165,7 +168,15 @@ int main (int argc, char *argv[]) {
 
 
        int _select(dirent *entry){
-           return isdigit((entry->d_name)[0]);
+        for(int i=0;i<strlen(entry->d_name);i++){
+         if(!isdigit((entry->d_name)[i]))return 0;
+        }
+        int e1;
+         sscanf(entry->d_name,"%d",&e1);
+         if(e1<NAME)return 0;
+         else return 1;
+
+
        }
        
        int ClockTune(time_t Time){
@@ -178,7 +189,7 @@ float d2f(double d){
   else return -1e30;
 }
 integer td2f(double d){
-  if(fabs(d)<1.e30)return 1;
+  if(fabs(d)<1.e20)return 1;
   else return 0;
 }
 integer Cas2Shuttle(CASblock & buffer, ShuttlePar & block){
@@ -278,7 +289,7 @@ int updShuttle(ShuttlePar & record, int close){
          cerr<<"Errror no 1 "<<Arrp<< " "<<record.Time<<" "<<Array[Arrp].Time<<endl;
          return 0;
        }
-     if(Arrp==60 || record.Time>Array[Arrp-1].Time+3600){
+     if(Arrp==60 || (Arrp>0 && record.Time>Array[Arrp-1].Time+3600)){
        for( int i=Arrp;i<60;i++)Array[i]=Array[Arrp-1];
           // close file
         AString fname(Coo_db_dir);
