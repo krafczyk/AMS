@@ -800,10 +800,18 @@ CDECK  ID>, ABSIIN.
          real *4 u(3),pmom_p(6)
          a_p=int(a_p+0.5)
          ekin=(pmom_p(6)-pmom_p(5))/a_p
+         if(z_t.ne.1.or.a_t.ne.1)then
 *
 *   call to rqmd
 *
-         call call_rqmd(a_p,z_p,a_t,z_t,ekin,nsec,p_sec,ierr)
+          call call_rqmd(a_p,z_p,a_t,z_t,ekin,nsec,p_sec,ierr)
+*          write(*,*)' rqmd called',a_t,z_t,nsec
+         else
+          
+          call call_fluka(a_p,z_p,a_t,z_t,ekin,
+     +    pmom_p(5),nsec,p_sec,ierr)
+*          write(*,*)' fluka called',a_t,z_t,nsec
+         endif
          if(ierr.ne.0)then
              nsec=0
              goto 999
