@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.42 2003/03/25 21:37:25 schol Exp $
+#  $Id: Mopt_Root,v 1.43 2003/04/07 12:33:15 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -345,7 +345,7 @@ $(EXE)/gbatch_r.exe:	$(OBJECTS)
 	$(LD) -v -o $(EXE)/gbatch_r.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
 
-producer: $(EXE)gbatch-orbit.exe
+producerz: $(EXE)gbatchr-orbit.exe
 
 $(EXE)gbatchr_orbit.exe:	$(OBJECTCO) $(OBJECTCL) $(OBJECTSA)
 	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatchr_orbit.exe $(OBJECTSA) $(OBJECTCL) $(OBJECTCO) $(TIMEL) $(LDFLAGSSTATICIDL) $(LDFLAGSSTATIC)
@@ -700,8 +700,8 @@ CLIENT=$(EXE)gbatch-orbit.exe
 
 producer:	$(CLIENT)
 
-$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC)
-	$(LD) $(FLAGSSTATIC) -v -o $(CLIENT) $(OBJECTSC)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
+$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSA)
+	$(LD) $(FLAGSSTATIC) -v -o $(CLIENT) $(OBJECTSA)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
 
 $(OBJECTSE):         $(SRCSCPP)
 	$(CPP)  -c $(CFLAGS) $(SRCSCPP) 
