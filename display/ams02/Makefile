@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.6 2001/06/27 10:31:55 kscholbe Exp $
+#  $Id: Makefile,v 1.7 2001/08/09 11:35:23 choutko Exp $
 # ------------------------------
 # Makefile for AMS Event Display
 # ------------------------------
@@ -128,7 +128,7 @@ endif
 #  ========  #
 ##############
 ifeq "$(OS)"  "Linux"
- CXX           = /usr/bin/g++
+ CXX           = g++
  INCLUDES      = -I$(ROOTSYS)/include
  CXXFLAGS      =  -Wall -fPIC $(INCLUDES)
  FF            = g77

@@ -1,4 +1,4 @@
-//  $Id: AMSR_MCParticleReader.cxx,v 1.3 2001/08/04 21:25:12 kscholbe Exp $
+//  $Id: AMSR_MCParticleReader.cxx,v 1.4 2001/08/09 11:35:23 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -90,11 +90,12 @@ void AMSR_MCParticleReader::Make()
    Int_t k, i;
    MCEVENTG_DEF *_ntuple = (gAMSR_Root->GetNtuple())->m_BlkMceventg;
 
-   m_NParticles = _ntuple->nmcg;
+   m_NParticles = _ntuple->nmcg>1?1:_ntuple->nmcg;
    //   m_NParticles=0;
    debugger.Print("AMSR_MCParticleReader::Make(): making %d particles.\n", m_NParticles);
    TClonesArray &particles = *(TClonesArray*)m_Fruits;
-   for (k=0; k<m_NParticles; k++) {
+    
+   for (k=0; k<m_NParticles;k++) {
       debugger.Print("Making particle #%d:\n",k);
 
       new(particles[k]) AMSR_MCParticle();
