@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.34 2003/03/28 15:16:56 alexei Exp $
+//  $Id: gamma.C,v 1.35 2003/03/28 16:10:46 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -2953,7 +2953,6 @@ AMSTrRecHit * parrayR[trconst::maxlay];
  void AMSTrTrackGamma::_copyEl(){
 /*
 #ifdef __WRITEROOTCLONES__
-/*
    TrGammaRoot02 *ptr = (TrGammaRoot02*)_ptr;
 //   if (ptr) {
      // //    if (_ptrack)  ptr->fTrack =_ptrack ->GetClonePointer();
@@ -2964,7 +2963,6 @@ AMSTrRecHit * parrayR[trconst::maxlay];
 //   } else {
      cout<<"AMSTrTrack::_copyEl -I-  AMSTrTrackGamma::TrGammaRoot02 *ptr is NULL "<<endl;
    }
-*/   
 #endif
 */
  }
