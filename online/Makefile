@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.6 2003/06/19 13:00:13 choutko Exp $
+#  $Id: Makefile,v 1.7 2003/07/09 14:54:43 choutko Exp $
 
 PLATFORM      =  Linux
 
@@ -82,8 +82,6 @@ AMSPRGC       = $(PREFIX)offmonc
 
 
 ##### TARGETS #####
-interprete:  $(AMSSHAREDLIB)
-
 standalone:  $(AMSPRG)
 
 osdepend:  $(AMSPRGC)
