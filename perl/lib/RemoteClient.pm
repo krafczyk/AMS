@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.78 2003/04/04 11:04:10 alexei Exp $
+# $Id: RemoteClient.pm,v 1.79 2003/04/04 13:15:15 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1980,8 +1980,8 @@ DDTAB:         $self->htmlTemplateTable(" ");
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"R\" ><b> Yes </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Yes </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> No </b><BR>\n";
 #             print "<input type=\"checkbox\" name=\"STALONE\" value=\"No\"><b> Yes </b>";
              print "</b></font></td></tr>\n";
            htmlTableEnd();
@@ -2159,8 +2159,8 @@ DDTAB:         $self->htmlTemplateTable(" ");
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"R\" ><b> Yes </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Yes </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> No </b><BR>\n";
 #             print "<input type=\"checkbox\" name=\"STALONE\" value=\"No\"><b> Yes </b>";
              print "</b></font></td></tr>\n";
            htmlTableEnd();
