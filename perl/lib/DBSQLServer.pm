@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.29 2002/08/07 12:09:42 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.30 2002/08/07 13:27:47 alexei Exp $
 
 #
 #
@@ -13,6 +13,8 @@
 #                                for mysql : AMSMC02:pcamsf0
 # example :
 #           ./dbsqlserver.perl -Iforce -Dmysql -F:AMSMC02:pcamsf0
+#
+# Aug 7, 2002 a.k. Tables names are case sensitive in MySQL
 #
 package DBSQLServer;
 use Error qw(:try);
@@ -101,9 +103,11 @@ sub Connect{
         $pwd=$_;
     }
     close FILE;
-    print "dbinfo.......DBI:$self->{dbdriver}$self->{dbfile} \n";
-    print "user.........$user identified by pwd\n";
-    print "init level...$self->{dbinit}\n";
+#- interactive debug
+#    print "dbinfo.......DBI:$self->{dbdriver}$self->{dbfile} \n";
+#    print "user.........$user identified by pwd\n";
+#    print "init level...$self->{dbinit}\n";
+#-
     if($self->{dbinit}){
     $self->{dbhandler}=DBI->connect('DBI:'.$self->{dbdriver}.$self->{dbfile},$user,$pwd,{PrintError => 0, AutoCommit => 1}) or die "Cannot connect: ".$DBI::errstr;
       $self->Create();

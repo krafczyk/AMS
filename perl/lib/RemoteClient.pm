@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.57 2002/08/07 08:08:14 alexei Exp $
+# $Id: RemoteClient.pm,v 1.58 2002/08/07 13:27:47 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -221,9 +221,9 @@ my %mv=(
      $self->{$key}="/var/www/cgi-bin/AMS02MCUploads";
     }
 
-    my $key='UploadsHREF';
-    my $sql="select myvalue from Environment where mykey='".$key."'";
-    my $ret=$self->{sqlserver}->Query($sql);
+    $key='UploadsHREF';
+    $sql="select myvalue from Environment where mykey='".$key."'";
+    $ret=$self->{sqlserver}->Query($sql);
     if( defined $ret->[0][0]){
      $self->{$key}=$ret->[0][0];
     }
@@ -231,18 +231,18 @@ my %mv=(
      $self->{$key}="AMS02MCUploads";
     }
 
-    my $key='FileDB';
-    my $sql="select myvalue from Environment where mykey='".$key."'";
-    my $ret=$self->{sqlserver}->Query($sql);
+    $key='FileDB';
+    $sql="select myvalue from Environment where mykey='".$key."'";
+    $ret=$self->{sqlserver}->Query($sql);
     if( defined $ret->[0][0]){
      $self->{$key}=$ret->[0][0];
     }
     else{    
      $self->{$key}="ams02mcdb.tar.gz";
     }
-    my $key='FileAttDB';
-    my $sql="select myvalue from Environment where mykey='".$key."'";
-    my $ret=$self->{sqlserver}->Query($sql);
+    $key='FileAttDB';
+    $sql="select myvalue from Environment where mykey='".$key."'";
+    $ret=$self->{sqlserver}->Query($sql);
     if( defined $ret->[0][0]){
      $self->{$key}=$ret->[0][0];
     }
@@ -847,7 +847,7 @@ sub Connect{
     if ($self->{q}->param("queryDB")) {
      $self->{read}=1;
      if ($self->{q}->param("queryDB") eq "Submit") {
-        $sql="SELECT run, particle FROM runscat, jobs WHERE ";
+        $sql="SELECT run, particle FROM runscat, Jobs WHERE ";
         htmlTop();
         my $nickname=>undef;
         my $cutoff=>undef;
@@ -892,7 +892,7 @@ sub Connect{
         if (defined $q->param("QNick") and $q->param("QNick") ne "Any") {
          $nickname = $q->param("QNick");
          print "<tr><td><font size=\"3\" color=$color><b>Job Nickname </b></td><td><b>  $nickname</b></td></tr>\n";
-         $sql = $sql." jobs.NICKNAME = '$nickname' AND ";
+         $sql = $sql." Jobs.NICKNAME = '$nickname' AND ";
         }
         if (defined $q->param("QPart") and $q->param("QPart") ne "Any") {
          $particle = $q->param("QPart");
@@ -3124,18 +3124,18 @@ print qq`
 # check last download time
 # but first check local/remote cite
       my $cite_status=>"remote";
-      $sql="SELECT Cites.status FROM Cites, Mails WHERE cites.cid=mails.cid  AND ADDRESS='$self->{CEM}'"; 
-      my $ret=$self->{sqlserver}->Query($sql);
+      $sql="SELECT Cites.status FROM Cites, Mails WHERE Cites.cid=Mails.cid  AND ADDRESS='$self->{CEM}'"; 
+      my $recites=$self->{sqlserver}->Query($sql);
       if(defined $ret->[0][0]){
-        $cite_status= $ret->[0][0];
+        $cite_status= $recites->[0][0];
       }
 # check last download time
      if ($cite_status eq "remote") {
           my $uplt0 = 0;  #last upload
           my $uplt1 = 0;  # for filedb and filedb.att
           $sql="SELECT timeu1, timeu2 FROM Mails WHERE ADDRESS='$self->{CEM}'";
-          my $ret=$self->{sqlserver}->Query($sql);
-          if(defined $ret->[0][0]){
+          my $retime=$self->{sqlserver}->Query($sql);
+          if(defined $retime->[0][0]){
           foreach my $uplt (@{$ret}){
            $uplt0    = $uplt->[0];
            $uplt1    = $uplt->[1];
@@ -3818,10 +3818,10 @@ sub listCites {
           my $status = $cite->[3];
           my $maxrun = $cite->[4];
           my $run=(($cid-1)<<27)+1;
-          $sql="SELECT jobs.jid, runs.jid, jobs.cid  
+          $sql="SELECT Jobs.jid, Runs.jid, Jobs.cid  
                 FROM Runs, Jobs  
-                WHERE jobs.jid=runs.jid AND cid=$cid 
-                      AND (runs.status='Finished' OR runs.status='Failed')";
+                WHERE Jobs.jid=Runs.jid AND cid=$cid 
+                      AND (Runs.status='Finished' OR Runs.status='Failed')";
           my $r4=$self->{sqlserver}->Query($sql);
           my $jobs = 0;
           foreach my $cnt (@{$r4}){
@@ -3957,7 +3957,7 @@ sub listDisks {
     my $self = shift;
     my $lastupd=>undef; 
     my $sql;
-    $sql="SELECT MAX(timestamp) FROM filesystems";
+    $sql="SELECT MAX(timestamp) FROM Filesystems";
     my $r4=$self->{sqlserver}->Query($sql);
     if( defined $r4->[0][0]){
       $lastupd=localtime($r4->[0][0]);
@@ -3977,7 +3977,7 @@ sub listDisks {
               print "<td><b><font color=\"blue\" >Status </font></b></td>";
      print_bar($bluebar,3);
      $sql="SELECT host, disk, path, totalsize, occupied, available, status, timestamp 
-              FROM filesystems ORDER BY available DESC";
+              FROM Filesystems ORDER BY available DESC";
      my $r3=$self->{sqlserver}->Query($sql);
      if(defined $r3->[0][0]){
       foreach my $dd (@{$r3}){
@@ -4005,9 +4005,9 @@ sub listMails {
      print "<b><h2><A Name = \"mails\"> </a></h2></b> \n";
      htmlTable("MC02 Authorized Users");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-     my $sql="SELECT address, mails.name, rsite, requests, mails.cid, cites.cid, 
-              cites.name, mails.status FROM  mails, cites WHERE cites.cid=mails.cid 
-              ORDER BY cites.name, mails.name";
+     my $sql="SELECT address, Mails.name, rsite, requests, Mails.cid, Cites.cid, 
+              Cites.name, Mails.status FROM  Mails, Cites WHERE Cites.cid=Mails.cid 
+              ORDER BY Cites.name, Mails.name";
 
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td><b><font color=\"blue\">Cite </font></b></td>";
@@ -4046,7 +4046,7 @@ sub listServers {
     print "<p>\n";
     print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-    my $sql="SELECT dbfilename, status, createtime, lastupdate FROM servers";
+    my $sql="SELECT dbfilename, status, createtime, lastupdate FROM Servers";
     my $r3=$self->{sqlserver}->Query($sql);
     print "<tr><td><b><font color=\"blue\">Server </font></b></td>";
     print "<td><b><font color=\"blue\" >Started </font></b></td>";
@@ -4087,12 +4087,12 @@ sub listJobs {
     my $self = shift;
      print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
      htmlTable("MC02 Jobs");
-     my $sql="SELECT jobs.jid, jobs.jobname, jobs.cid, jobs.mid, jobs.time, jobs.triggers,
-                     cites.cid, cites.name,
-                     mails.mid, mails.name
-              FROM   jobs, cites, mails
-              WHERE  jobs.cid=cites.cid AND jobs.mid=mails.mid
-              ORDER  BY cites.name, jobs.jid";
+     my $sql="SELECT Jobs.jid, Jobs.jobname, Jobs.cid, Jobs.mid, Jobs.time, Jobs.triggers,
+                     Cites.cid, Cites.name,
+                     Mails.mid, Mails.name
+              FROM   Jobs, Cites, Mails
+              WHERE  Jobs.cid=Cites.cid AND Jobs.mid=Mails.mid
+              ORDER  BY Cites.name, Jobs.jid";
      my $r3=$self->{sqlserver}->Query($sql);
      print_bar($bluebar,3);
      my $newline = " ";
@@ -4156,10 +4156,10 @@ sub listRuns {
      print "<b><h2><A Name = \"runs\"> </a></h2></b> \n";
      htmlTable("MC02 Runs");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-     my $sql="SELECT runs.run, runs.jid, jobs.jobname, runs.submit, runs.status, jobs.jid 
-              FROM   runs, jobs
-              WHERE  jobs.jid=runs.jid 
-              ORDER  BY jobs.jid";
+     my $sql="SELECT Runs.run, Runs.jid, Jobs.jobname, Runs.submit, Runs.status, Jobs.jid 
+              FROM   Runs, Jobs
+              WHERE  Jobs.jid=Runs.jid 
+              ORDER  BY Jobs.jid";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td><b><font color=\"blue\" >JobId </font></b></td>";
               print "<td><b><font color=\"blue\">Run </font></b></td>";
@@ -4193,10 +4193,10 @@ sub listNtuples {
      print "<p>\n";
      print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
               print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-     my $sql="SELECT ntuples.run, ntuples.jid, ntuples.nevents, ntuples.neventserr, 
-                     ntuples.timestamp, ntuples.status, ntuples.path
-              FROM   ntuples
-              ORDER  BY ntuples.timestamp";
+     my $sql="SELECT Ntuples.run, Ntuples.jid, Ntuples.nevents, Ntuples.neventserr, 
+                     Ntuples.timestamp, Ntuples.status, Ntuples.path
+              FROM   Ntuples
+              ORDER  BY Ntuples.timestamp";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td width=10% align=left><b><font color=\"blue\" > JobId </font></b></td>";
               print "<td width=10%><b><font color=\"blue\"> Run </font></b></td>";
@@ -4428,22 +4428,14 @@ sub lastDBUpdate {
      my $lastupd =0;
      my $sql;
      my $ret;
-      $sql="SELECT MAX(cites.timestamp) FROM cites"; 
+      $sql="SELECT MAX(Cites.timestamp) FROM Cites"; 
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){
           $lastupd=$ret->[0][0];
       }
     }
-      $sql="SELECT MAX(mails.timestamp) FROM mails"; 
-      $ret=$self->{sqlserver}->Query($sql);
-     if(defined $ret->[0][0]){
-        if($ret->[0][0]>$lastupd){
-          $lastupd=$ret->[0][0];
-      }
-    }
-
-      $sql="SELECT MAX(servers.lastupdate) FROM servers"; 
+      $sql="SELECT MAX(Mails.timestamp) FROM Mails"; 
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){
@@ -4451,7 +4443,7 @@ sub lastDBUpdate {
       }
     }
 
-      $sql="SELECT MAX(jobs.time) FROM jobs"; 
+      $sql="SELECT MAX(Servers.lastupdate) FROM Servers"; 
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){
@@ -4459,7 +4451,7 @@ sub lastDBUpdate {
       }
     }
 
-      $sql="SELECT MAX(runs.submit) FROM runs"; 
+      $sql="SELECT MAX(Jobs.time) FROM Jobs"; 
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){
@@ -4467,7 +4459,15 @@ sub lastDBUpdate {
       }
     }
 
-      $sql="SELECT MAX(ntuples.timestamp) FROM ntuples"; 
+      $sql="SELECT MAX(Runs.submit) FROM Runs"; 
+      $ret=$self->{sqlserver}->Query($sql);
+     if(defined $ret->[0][0]){
+        if($ret->[0][0]>$lastupd){
+          $lastupd=$ret->[0][0];
+      }
+    }
+
+      $sql="SELECT MAX(Ntuples.timestamp) FROM Ntuples"; 
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){
