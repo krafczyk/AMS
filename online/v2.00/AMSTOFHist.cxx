@@ -70,7 +70,7 @@ for(int mf=0;mf<_m2filled;mf++)_filled2[mf]=0;
 void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
   char text[80],name[80],title[80];
   const int step=30;
-
+  
   _fetched2=new TH1*[54]; 
   // Casadei
   for(int diego=0;diego<8;diego++){
@@ -164,12 +164,14 @@ void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
   }
   TH1*dummy=new TH1();
   dummy=(TH1*)gAMSDisplay->GetRootFile()->Get("h5013");
-  if(dummy)
+  if(dummy){
     _norm=dummy->GetEntries();
+  }
   else{
     cout<<"I will not normalize histograms!"<<endl;
     _norm=1;
   }
+  if(_norm==0)_norm=1;
   for(i=0;i<30;i++)
     if(_fetched2[i])
       _fetched2[i]->Scale(1./_norm);

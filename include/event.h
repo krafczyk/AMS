@@ -88,7 +88,7 @@ void _catofevent();
 void _cantievent();
 void _cactcevent();
 void _caaxevent();
-void _validate();
+void _validate(int i=0);
 //+
 void _validateDB();
 //-
