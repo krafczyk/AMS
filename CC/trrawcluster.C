@@ -204,12 +204,23 @@ for ( i=0;i<ms;i++){
             if(*(ida[i]+nrt)<= TRMCFFKEY.thr2R[side]*idd.getsig())break;
             else nright=nrt;
           }
-          for (int k=nleft;k<=nright;k++){
-            *(ida[i]+k)=idd.getgain()*(
-//            *(ida[i]+k)+(TRMCFFKEY.CalcCmnNoise[0]==0?idd.getsig()*rnormx():0));
-            *(ida[i]+k)+(1==0?idd.getsig()*rnormx():0));
-            if(*(ida[i]+k) > TRMCFFKEY.adcoverflow)*(ida[i]+k)=TRMCFFKEY.adcoverflow;
-            if(*(ida[i]+k) < -TRMCFFKEY.adcoverflow)*(ida[i]+k)=-TRMCFFKEY.adcoverflow;
+          number sum=0;
+          int k;
+          for (k=nleft;k<=nright;k++){
+           sum+=*(ida[i]+k);
+          }
+          for ( k=nleft;k<=nright;k++){
+            idd.upd(k);
+            (*(ida[i]+k))*=idd.getgain();
+             number addon=(idd.getped()+idd.getcmnnoise()+sum/maxva)*idd.getavgain();
+            if(*(ida[i]+k) +addon> TRMCFFKEY.adcoverflow){
+                 *(ida[i]+k)=TRMCFFKEY.adcoverflow-addon;
+            }
+            else if(*(ida[i]+k) +addon<0){
+                 *(ida[i]+k)=0-addon;
+            }            
+           if(*(ida[i]+k)>32767)*(ida[i]+k)=32767;
+           if(*(ida[i]+k)<-32767)*(ida[i]+k)=-32767;
           }
            pcl= new
            AMSTrRawCluster(i,nleft,nright,ida[i]+nleft,s2n);
@@ -600,11 +611,20 @@ void AMSTrRawCluster::buildrawRaw(integer n, int16u *p){
           idd.upd(nright);
           while(nright < TKDBc::NStripsDrp(ilay,k)-1 && 
           id[nright]> TRMCFFKEY.thr2R[k]*idd.getsig())idd.upd(++nright);
-          for (int k=nleft;k<=nright;k++){
-            id[k]=idd.getgain()*id[k];
-            if(id[k] > TRMCFFKEY.adcoverflow)id[k]=TRMCFFKEY.adcoverflow;
-            if(id[k] < -TRMCFFKEY.adcoverflow)id[k]=-TRMCFFKEY.adcoverflow;
+          number sum=0;
+          int k;
+          for (k=nleft;k<=nright;k++){
+           sum+=id[k];
           }
+          for (k=nleft;k<=nright;k++){
+            idd.upd(k);
+            id[k]*=idd.getgain();
+             number addon=(idd.getped()+idd.getcmnnoise()+sum/maxva)*idd.getavgain();
+            if(id[k] +addon> TRMCFFKEY.adcoverflow)id[k]=TRMCFFKEY.adcoverflow-addon;
+            if(id[k] +addon<0)id[k]=0-addon;
+          }
+           if(id[k]>32767)id[k]=32767;
+           if(id[k]<-32767)id[k]=-32767;
            pcl= new
            AMSTrRawCluster(idd.getaddr(),nleft,nright,id+nleft,s2n);
             AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic),pcl);
@@ -1318,10 +1338,19 @@ void AMSTrRawCluster::buildpreclusters(AMSTrIdSoft & idd, integer len, geant id[
           idd.upd(nright);
           while(nright < TKDBc::NStripsDrp(ilay,k)-1 && 
           id[nright]> TRMCFFKEY.thr2R[k]*idd.getsig())idd.upd(++nright);
-          for (int k=nleft;k<=nright;k++){
-            id[k]=idd.getgain()*id[k];
-            if(id[k] > TRMCFFKEY.adcoverflow)id[k]=TRMCFFKEY.adcoverflow;
-            if(id[k] < -TRMCFFKEY.adcoverflow)id[k]=-TRMCFFKEY.adcoverflow;
+          number sum=0;
+          int k;
+          for (k=nleft;k<=nright;k++){
+           sum+=id[k];
+          }
+          for ( k=nleft;k<=nright;k++){
+            idd.upd(k);
+            id[k]*=idd.getgain();
+             number addon=(idd.getped()+idd.getcmnnoise()+sum/maxva)*idd.getavgain();
+            if(id[k] +addon> TRMCFFKEY.adcoverflow)id[k]=TRMCFFKEY.adcoverflow-addon;
+            if(id[k] +addon<0)id[k]=0-addon;
+           if(id[k]>32767)id[k]=32767;
+           if(id[k]<-32767)id[k]=-32767;
           }
            pcl= new
            AMSTrRawCluster(idd.getaddr(),nleft,nright,id+nleft,s2n);

@@ -1276,7 +1276,7 @@ void AMSEvent::_retkevent(integer refit){
 // do not reconstruct events without lvl3 if 
 // LVL3FFKEY.Accept 
 TriggerLVL3 *ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
-TriggerLVL3 *ptr1=(TriggerLVL3*)getheadC("TriggerLVL1",0);
+TriggerLVL1 *ptr1=(TriggerLVL1*)getheadC("TriggerLVL1",0);
 
 if(ptr1 && (!LVL3FFKEY.Accept || (ptr1 && ptr && ptr->LVL3OK()))){
 AMSgObj::BookTimer.start("RETKEVENT");

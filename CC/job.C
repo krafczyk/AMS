@@ -306,7 +306,7 @@ TRMCFFKEY.NonGaussianPart[1]=0.1;
 
 TRMCFFKEY.cmn[0]=10;
 TRMCFFKEY.cmn[1]= 6;
-TRMCFFKEY.adcoverflow=32767;
+TRMCFFKEY.adcoverflow=32700;
 TRMCFFKEY.NoiseOn=1;
 TRMCFFKEY.sec[0]=0;
 TRMCFFKEY.sec[1]=0;
@@ -682,7 +682,7 @@ FFKEY("BMAP",(float*)&TKFIELD,60,"MIXED");
 
 void AMSJob::_retkdata(){
 
-number fac=AMSTrRawCluster::ADC2KeV()*0.46/0.4;
+//number fac=AMSTrRawCluster::ADC2KeV()*0.46/0.4;
 TRCLFFKEY.ThrClA[0]=10.;
 TRCLFFKEY.ThrClA[1]=10.;
 
@@ -1379,7 +1379,6 @@ else TRMCFFKEY.year[1]=TRMCFFKEY.year[0]-1;
     geant b=a+AMSTrMCCluster::ncha()*AMSTrMCCluster::step();
     HBOOK1(AMSTrMCCluster::hid(l),"x prob",AMSTrMCCluster::ncha(),a,b,0.);
    }
-
      AMSgObj::BookTimer.book("GEANTTRACKING");
      AMSgObj::BookTimer.book("GUSTEP",10);
      AMSgObj::BookTimer.book("AMSGUSTEP",10);
@@ -2402,6 +2401,7 @@ void AMSJob::uhinit(integer run, integer eventno){
    HBOOK1(200102,"Number of Nois Hits y",100,-0.5,99.5,0.);
    HBOOK1(200105,"Above threshold spectrum x",200,-0.5,49.5,0.);
    HBOOK1(200106,"Above threshold spectrum y",200,-0.5,49.5,0.);
+   HBOOK1(200107," adc over",3000,29999.5,32999.5,0.);
 
 }
 

@@ -61,7 +61,7 @@ number _Eta;
 
 number * _pValues;
 
-static void _addnext(const AMSTrIdSoft& id, integer status, integer nelemL,
+static AMSTrCluster * _addnext(const AMSTrIdSoft& id, integer status, integer nelemL,
   integer nelemR, number sum,  number ssum, number pos, number rms, number eta,
   number val[]);
 

@@ -193,11 +193,20 @@ integer AMSTrCluster::build(integer refit){
          number eta=AMSTrCluster::_etacalc(left-center,right-center+1,adc+left);
          number cor=1.;
          if (TRCLFFKEY.EtaCor[side]) cor=AMSTrCluster::_etacor(side,eta);
-         _addnext(
+         AMSTrCluster* pclnew=_addnext(
          id,status,left-center,right-center+1,cor*sum,cor*ssum,pos,rms,eta,adc+left);
            for (int j=left;j<right+1;j++){
-             if(j==right+1 && status==AMSDBc::NEAR)adc[j]=adc[j]/2;
-             else adc[j]=0;
+            id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
+             number addon=(id.getped()+id.getcmnnoise()+sum/64)*id.getavgain();
+//            if(adc[j]*id.getgain()+addon>=30000){
+//             cout <<"jopa "<<id.getgain()<<" "<<sum/8<<" "<<adc[j]*id.getgain()+addon<<" " <<addon<<endl;
+//            }
+            HF1(200107,adc[j]*id.getgain()+addon,1.);
+            if(adc[j]*id.getgain()+addon>=TRMCFFKEY.adcoverflow){
+             pclnew->setstatus(AMSDBc::AOVERFLOW);
+            }
+            if(j==right+1 && status==AMSDBc::NEAR)adc[j]=adc[j]/2;
+            else adc[j]=0;
            }
       }                      
      }
@@ -568,14 +577,19 @@ integer AMSTrCluster::buildWeak(integer refit){
            number eta=AMSTrCluster::_etacalc(left-center,right-center+1,adc+left);
            number cor=1.;
            if (TRCLFFKEY.EtaCor[side]) cor=AMSTrCluster::_etacor(side,eta);
-           _addnext(
+           AMSTrCluster* pclnew=_addnext(
            id,status,left-center,right-center+1,cor*sum,cor*ssum,pos,rms,eta,adc+left);
+           for (int j=left;j<right+1;j++){
+            id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
+             number addon=(id.getped()+id.getcmnnoise()+sum/64)*id.getavgain();
+            if(adc[j]*id.getgain()+addon>=TRMCFFKEY.adcoverflow){
+             pclnew->setstatus(AMSDBc::AOVERFLOW);
+            }
+            if(j==right+1 && status==AMSDBc::NEAR)adc[j]=adc[j]/2;
+            else adc[j]=0;
+           }
          }
          status=status &  (~AMSDBc::WEAK);
-           for (int j=left;j<right+1;j++){
-             if(j==right+1 && status==AMSDBc::NEAR)adc[j]=adc[j]/2;
-             else adc[j]=0;
-           }
       }                      
      }
      else{
@@ -747,11 +761,11 @@ number AMSTrCluster::_etacor(integer side, number eta) {
   return cor;
 }
 
-  void AMSTrCluster::_addnext(const AMSTrIdSoft & id, 
+  AMSTrCluster * AMSTrCluster::_addnext(const AMSTrIdSoft & id, 
                           integer status, integer nelemL,integer nelemR, 
                          number sum, number ssum, number pos, number rms,
                          number eta, number val[]) {
-    AMSEvent::gethead()->addnext(AMSID("AMSTrCluster",id.getside()),
+    return (AMSTrCluster*)AMSEvent::gethead()->addnext(AMSID("AMSTrCluster",id.getside()),
     new AMSTrCluster(id,status,nelemL,nelemR,sum,ssum,pos,rms,eta,val));
 }
 

@@ -400,7 +400,8 @@ Below there is a description of a  ntuple.
 20 - TrRecHit was good enough to be used in track find   (status&(65536*8)!=0)
 21 - Track->Trladder interpol was done on plane level    (status&(65536*16)!=0)
 22 - Track was created using TOF only                    (status&(65536*32)!=0)
-**) AMS global system definition :
+23 - Object Overflow                                     (status&(65536*64)!=0)
+**) AMS global system definition :        
 GTOD
 
 

@@ -56,6 +56,7 @@ public:
      static const integer GOOD;
      static const integer BADINTERPOL;
      static const integer NOTRACK;
+     static const integer AOVERFLOW;
 
 // machine dependent values
 

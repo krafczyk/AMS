@@ -157,6 +157,7 @@ inline integer getchannel() const { return idsoft2linear[_addr]+_strip;}
 inline integer checkstatus(integer checker) const 
 {return status[idsoft2linear[_addr]+_strip] & checker;}
 inline geant getped() const {return peds[idsoft2linear[_addr]+_strip];}
+inline integer getavgain() const {return 8;}
 inline geant getsig() const {return sigmas[idsoft2linear[_addr]+_strip];}
 inline geant getsigraw() const {return sigmaraws[idsoft2linear[_addr]+_strip];}
 inline geant getsignsigraw() const {return sigmaraws[idsoft2linear[_addr]+_strip]>0?1:0;}
