@@ -60,7 +60,7 @@ const number AMSDBc::twopi=2*pi;
    const number AMSDBc::_halfldist[_nlay]={0.08,0.08,0.08,0.08,0.08,0.08};
    const number  AMSDBc::_xposl[_nlay]={0,0,0,0,0,0};
    const number  AMSDBc::_yposl[_nlay]={0,0,0,0,0,0};
-   const number  AMSDBc::_zposl[_nlay]={50.985,29.185,7.785,-7.785,-29.185,-50.985};
+   const number  AMSDBc::_zposl[_nlay]={55.985,29.185,7.785,-7.785,-29.185,-55.985};
 const number AMSDBc::_nrml[_nlay][3][3]={
                                           1,0,0,
                                           0,1,0,
