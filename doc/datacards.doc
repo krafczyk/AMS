@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.188 2001/03/29 15:24:11 choumilo Exp $
+#  $Id: datacards.doc,v 1.189 2001/04/18 08:32:29 choumilo Exp $
 Datacards
 
 // Protection from some myst bug
@@ -700,11 +700,17 @@ R1 time        // max time allowd for prog execution
 
 ----------------------------------------------------------------
 TGL1    // LVL1 Trigger 
-
-I 1 ntof(3)                           // min number of tof planes in trig
-I 2 nanti(2)                         // max number of anti counters in trig
-I 3 RebuildLVL1(0)                   // Rebuild or not lvl1 if reconstruction
-I 4 ecintrig(0)                      // ECAL in trigger if =1
+I 1 trtype(0)          //TriggerType:
+                           //0->{TOF&(ANTI || ECALflag>1)} || ECALflag>11 (true combined)
+                           //1->{TOF&(ANTI || ECALflag>1)}         (EC hi-energy not included)
+			   //2->TOF&ANTI  (classical, no ECAL)
+			   // +10-> require at least MIP activity in ECAL
+			   // Note: ECAL "HighEnergy" threshold(to have ECflag=1,2 or 11,12)
+			   // is defined in ECRE 12 (in mev); ECflag=1->MIP
+			   //                                       =2->"electromagneticity"
+I 2 ntof(3)                           // min number of tof planes in trig
+I 3 nanti(2)                         // max number of anti counters in trig
+I 4 RebuildLVL1(0)                   // Rebuild or not lvl1 if reconstruction
 R 5 MaxScalersRate(20k)               // max acceptable av scalers rate
 R 6 MinLifeTime   (0.015)            // min acceptable lifetime
 

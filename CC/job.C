@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.364 2001/03/29 15:23:37 choumilo Exp $
+// $Id: job.C,v 1.365 2001/04/18 08:32:07 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -302,6 +302,7 @@ void AMSJob::_sitrigdata(){
 //----------
 //
 void AMSJob::_sitrig2data(){
+  TGL1FFKEY.trtype=0; //trigger type (0/1/2)
 // TOF :
 // these are additional requir. to "hardware"-defined TOFMCFFKEY.trlogic[]
   TGL1FFKEY.ntof=3;// min. fired TOF-planes
@@ -309,8 +310,6 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.nanti=20;// max. fired ANTI-paddles 
 //
   TGL1FFKEY.RebuildLVL1=0;
-// ECAL
-  TGL1FFKEY.ecintrig=0;// ECAL in trigger if =1
 // 
   TGL1FFKEY.MaxScalersRate=20000;
   TGL1FFKEY.MinLifeTime=0.015;
@@ -687,7 +686,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 // RLGA/FIAT part:
   ECCAFFKEY.cfvers=1;     // (1) 1-999 -> vers.number for ecalcvlistNNN.dat file
   ECCAFFKEY.cafdir=0;     // (2) 0/1-> use official/private directory for calibr.files
-  ECCAFFKEY.truse=1;      // (3) (1)/0-> use He4/prot tracks for calibration
+  ECCAFFKEY.truse=1;      // (3) (1)/0-> use He4/proton tracks for calibration
   ECCAFFKEY.refpid=118;   // (4) ref.pm ID (SPP-> S=SupLayer, PP=PM number) 
   ECCAFFKEY.trmin=4.;     // (5) presel-cut on min. rigidity of the track(gv) 
   ECCAFFKEY.adcmin=3.;    // (6) min ADC cut for indiv. SubCell (to remove noise)

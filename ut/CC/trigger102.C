@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.9 2001/03/29 15:23:38 choumilo Exp $
+//  $Id: trigger102.C,v 1.10 2001/04/18 08:32:07 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -87,22 +87,26 @@ void Trigger2LVL1::build(){
      if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData() )
                                                      AMSEvent::gethead()->seterror();
 //
-// check combined (tof+anti+ecal)trigger flag(tempor. solution for e,p !)
+// check combined (tof+anti+ecal)trigger flag:
 //
-  int tofok(0),antiok(0),comtrok(0);
+  bool tofok(0),antiok(0),ecok(0),ec1ok(0),ec2ok(0),comtrok(0);
   if(tofflag>0 && ntof >=TGL1FFKEY.ntof)tofok=1;
   if(nanti <= TGL1FFKEY.nanti)antiok=1;
-  if(ectrigfl>11){// <--- "High EM-energy" in ECAL
-    comtrok=tofok;
+  if(ectrigfl>0)ecok=1;//"at least MIP" activity in ECAL
+  if(ectrigfl>1)ec1ok=1;//"beyond MIP" activity in ECAL
+  if(ectrigfl>11)ec2ok=1;//"High EM-energy" in ECAL
+  if((TGL1FFKEY.trtype%10)==0)comtrok=((tofok && (antiok || ec1ok)) || ec2ok);//true combined
+  else if((TGL1FFKEY.trtype%10)==1)comtrok=(tofok && (antiok || ec1ok));//no EC hi-energy 
+  else if((TGL1FFKEY.trtype%10)==2)comtrok=(tofok && antiok);// classical(no EC) 
+  else{
+    cout<<"Trigger2LVL1::build Error: unknown trigger type "<<TGL1FFKEY.trtype<<endl;
+    exit(10);
   }
-  else{//           <--- "MIP" 
-    comtrok=tofok*antiok;
-  }
-//
-  if(TGL1FFKEY.ecintrig)comtrok*=ectrigfl;//add ECAL in trigger
+  if(TGL1FFKEY.trtype/10>0)comtrok=(comtrok && ecok);//require at least MIP in ECAL 
+// 
 //cout<<"comtr="<<comtrok<<"tof/anti/ec="<<tofok<<" "<<antiok<<" "<<ectrigfl<<endl;
 //
-  if(comtrok>0 && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime)){
+  if(comtrok && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime)){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
                        new Trigger2LVL1(lifetime*1000+tm*10000,tofflag,ttrpatt,antipatt,ectrigfl));
   }

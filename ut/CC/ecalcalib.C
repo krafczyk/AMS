@@ -173,7 +173,7 @@ void ECREUNcalib::select(){
   EcalJobStat::addca(2);
 //
   if(!(beta>0. && rid>0.))return;//---> it is not He4(prot)(charge>0) from AMS_top->bot
-  if(chi2>15.)return;//---> bad chi2
+  if(chi2>20.)return;//---> bad chi2
   if(fabs(rid)<ECCAFFKEY.trmin)return;//---> too low rigidity(too high mult.scatt)
   if(beta<0.88)return;// ----> low beta
   EcalJobStat::addca(3);
@@ -579,8 +579,14 @@ void ECREUNcalib::mfit(){
     in[0]=inum[sl+1];
     strcat(htit1,in);
     HBOOK1(ECHISTC+7,htit1,72,1.,73.,0.);
-    HMINIM(ECHISTC+7,0.6);
-    HMAXIM(ECHISTC+7,1.4);
+    if(ECCAFFKEY.truse==1){//He4
+      HMINIM(ECHISTC+7,0.6);
+      HMAXIM(ECHISTC+7,1.4);
+    }
+    else{//prot
+      HMINIM(ECHISTC+7,0.3);
+      HMAXIM(ECHISTC+7,0.9);
+    }
     HPAK(ECHISTC+7,arr);
     HPRINT(ECHISTC+7);
     HDELET(ECHISTC+7);
@@ -605,8 +611,14 @@ void ECREUNcalib::mfit(){
     strcpy(htit1,"Efficiency, bot cells of SL ");
     strcat(htit1,in);
     HBOOK1(ECHISTC+7,htit1,72,1.,73.,0.);
-    HMINIM(ECHISTC+7,0.6);
-    HMAXIM(ECHISTC+7,1.4);
+    if(ECCAFFKEY.truse==1){//He4
+      HMINIM(ECHISTC+7,0.6);
+      HMAXIM(ECHISTC+7,1.4);
+    }
+    else{//prot
+      HMINIM(ECHISTC+7,0.3);
+      HMAXIM(ECHISTC+7,0.9);
+    }
     HPAK(ECHISTC+7,arr);
     HPRINT(ECHISTC+7);
     HDELET(ECHISTC+7);

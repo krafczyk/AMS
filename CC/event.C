@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.259 2001/03/29 15:23:37 choumilo Exp $
+//  $Id: event.C,v 1.260 2001/04/18 08:32:06 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1577,7 +1577,7 @@ int stat;
     if(ptr)trflag=ptr->gettoflg();
     if(trflag<=0){
       AMSgObj::BookTimer.stop("RETOFEVENT");
-      return;// "no TOF-trigger"   
+      return;// "no TOF in LVL1-trigger"   
     }
     TOFJobStat::addre(1);
 //
@@ -1629,7 +1629,7 @@ int stat;
     if(ptr)trflag=ptr->gettoflg();
     if(trflag<=0){
       AMSgObj::BookTimer.stop("RETOFEVENT");
-      return;// "no TOF LVL1-trigger"   
+      return;// "no TOF in LVL1-trigger"   
     }
     TOF2JobStat::addre(1);
 //
@@ -1728,7 +1728,7 @@ void AMSEvent::_reecalevent(){
   }
   if(ecalflg<=0){
     AMSgObj::BookTimer.stop("REECALEVENT");
-    return;// "no ECAL trigger"   
+    return;// "no ECAL in LVL1-trigger"   
   }
   EcalJobStat::addre(1);
   if(ECMCFFKEY.fastsim==0){//           ===> slow algorithm:

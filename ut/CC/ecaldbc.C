@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.20 2001/03/29 15:23:37 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.21 2001/04/18 08:32:06 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -399,7 +399,7 @@ void EcalJobStat::printstat(){
   printf(" MC: entries                       : % 6d\n",mccount[0]);
   printf(" MC: MCHit->RawEven(ECTrigfl>0) OK : % 6d\n",mccount[1]);
   printf(" RECO-entries                      : % 6d\n",recount[0]);
-  printf(" ECAL trigger(ECTrigfl>0) OK       : % 6d\n",recount[1]);
+  printf(" LVL1-trig includes ECAL           : % 6d\n",recount[1]);
   printf(" Validation OK                     : % 6d\n",recount[2]);
   printf(" RawEvent->EcalHit OK              : % 6d\n",recount[3]);
   printf(" EcalHit->EcalCluster OK           : % 6d\n",recount[4]);
@@ -483,11 +483,19 @@ void EcalJobStat::bookhist(){
 	HMINIM(ECHISTC+13,0.9);
 	HMAXIM(ECHISTC+13,1.1);
         HBOOK1(ECHISTC+14,"ECCA: SubCell Efficiency L-profile",maxpl,1.,geant(maxpl+1),0.);
-	HMINIM(ECHISTC+14,0.8);
-	HMAXIM(ECHISTC+14,1.);
         HBOOK1(ECHISTC+15,"ECCA: PM Eff vs SL(full fib.length)",maxsl,1.,geant(maxsl+1),0.);
-	HMINIM(ECHISTC+15,0.85);
-	HMAXIM(ECHISTC+15,1.05);
+	if(ECCAFFKEY.truse==1){//He4
+	  HMINIM(ECHISTC+14,0.8);
+	  HMAXIM(ECHISTC+14,1.);
+	  HMINIM(ECHISTC+15,0.85);
+	  HMAXIM(ECHISTC+15,1.05);
+	}
+	else{//prot
+	  HMINIM(ECHISTC+14,0.4);
+	  HMAXIM(ECHISTC+14,0.8);
+	  HMINIM(ECHISTC+15,0.5);
+	  HMAXIM(ECHISTC+15,1.1);
+	}
         HBOOK1(ECHISTC+16,"ECCA: Edep/SLayer(PunchThrough,mev)",100,0.,200.,0.);
         HBOOK1(ECHISTC+17,"ECCA: Bad(non PunchThrough) scLayers",maxpl+1,0.,geant(maxpl+1),0.);
         HBOOK1(ECHISTC+18,"ECCA: SLayerEdep prof(punch-through)",maxsl,1.,geant(maxsl+1),0.);

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.8 2001/03/06 16:37:03 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.9 2001/04/18 08:32:07 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -963,7 +963,7 @@ void TOF2JobStat::printstat(){
   printf(" MC: TovT->RawEvent OK   : % 6d\n",mccount[1]);
   printf(" MC: Ghits->RawCluster OK: % 6d\n",mccount[2]);
   printf(" RECO-entries            : % 6d\n",recount[0]);
-  printf(" H/W TOF-trigger OK      : % 6d\n",recount[1]);
+  printf(" LVL1-trig includes TOF  : % 6d\n",recount[1]);
   printf(" RawEvent-validation OK  : % 6d\n",recount[2]);
   printf(" RawEvent->RawCluster OK : % 6d\n",recount[3]);
   printf(" RawCluster->Cluster OK  : % 6d\n",recount[4]);
@@ -987,7 +987,7 @@ void TOF2JobStat::printstat(){
     printf(" TDIF: Tracker OK        : % 6d\n",recount[19]);
   }
   else{
-    printf(" Entries to TOFUser      : % 6d\n",recount[21]);
+    printf(" TOFUser entries         : % 6d\n",recount[21]);
     printf(" TOFU: no ANTI-sectors   : % 6d\n",recount[22]);
     printf(" TOFU: 1bar/layer OK     : % 6d\n",recount[23]);
     printf(" TOFU: Track momentum OK : % 6d\n",recount[24]);
