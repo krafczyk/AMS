@@ -16,6 +16,7 @@
 #include "G4Para.hh"
 #include "G4Sphere.hh"
 #include "G4Trd.hh"
+#include "G4Trap.hh"
 #include "G4Polyhedra.hh"
 #include "G4BREPSolidPolyhedra.hh"
 #include "G4Polycone.hh"
@@ -318,6 +319,9 @@ integer AMSgvolume::_Norp=0;
        delete[] z;
        delete[] rmin;
        delete[] rmax;
+     }
+     else if(shape=="TRAP"){
+       psolid=new G4Trap(G4String(_name),_par[0]*cm,_par[1]*degree,_par[2]*degree,_par[3]*cm,_par[4]*cm,_par[5]*cm,_par[6]*degree,_par[7]*cm,_par[8]*cm,_par[9]*cm,_par[10]*degree);
      }
      else {
        cerr<<" AMSgvolume::G3ToG4Interface-F-NoSuchShapeYet "<<_shape<<endl;

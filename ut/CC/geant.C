@@ -182,7 +182,6 @@ GDINIT();
 #endif
 #ifdef __G4AMS__
 if(MISCFFKEY.G4On)g4ams::G4INIT();
-if(MISCFFKEY.G3On)
 #endif
 GPHYSI();
 AMSJob::map(1);

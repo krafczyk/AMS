@@ -8,7 +8,7 @@ const int NWPAW=2000000;
 struct PAWC_DEF{
 float q[NWPAW];
 };
-const int NWGEAN=6000000;
+const int NWGEAN=7000000;
 struct GCBANK_DEF{
 integer  IQ[NWGEAN];
 };

@@ -98,10 +98,7 @@ if(!G4FFKEY.UniformMagField){
  trdgeom02(mother);
  srdgeom02(mother);
  ecalgeom02(mother);
-#ifdef __AMSDEBUG__
- cout<<"G4 RICH geometry only for debugging."<<endl;
  richgeom02(mother);
-#endif
 }
 #else
  trdgeom02(mother);
@@ -2889,6 +2886,7 @@ par[5]=360;
 #define NO_REPLICATE
 #define SQR(x) ((x)*(x))
 
+
 void richgeom02(AMSgvolume & mother)
 {
   // New Rich Geometry by Carlos Delgado (CIEMAT)
@@ -3468,8 +3466,8 @@ void richgeom02(AMSgvolume & mother)
 
 	    //	    AMSNode *lg;
 
-#ifdef __G4AMSX__
-
+#ifdef __G4AMS__
+        if(MISCFFKEY.G4On){
 	    AMSgvolume *lg;
 
 	    par[0]=RICGEOM.light_guides_length/2-RICotherthk;
@@ -3480,8 +3478,7 @@ void richgeom02(AMSgvolume & mother)
 	    coo[1]=0;
 	    coo[2]=3.5;
 
-	    lg=dynamic_cast<AMSgvolume*>
-	      (p->add(new AMSgvolume("VACUUM",
+	    dummy=p->add(new AMSgvolume("VACUUM",
 				     0,
 				     "LGBO",
 				     "BOX",
@@ -3489,13 +3486,13 @@ void richgeom02(AMSgvolume & mother)
 				     3,
 				     coo,
 				     nrm,
-				     "BOOL",
+				     "ONLY",
 				     posp,
 				     1,
-				     rel)));
-	    
-	    
-	    
+				     rel));
+
+
+
 	    geant a1=atan2(RICGEOM.light_guides_length/2-RICotherthk-.875,
 			 RICGEOM.light_guides_height)*180/3.1415926;
 
@@ -3522,18 +3519,19 @@ void richgeom02(AMSgvolume & mother)
 	    coo[1]=d1;
 	    coo[2]=0;
 
-	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
-					  0,
-					  "MIRA",
-					  "TRAP",
-					  par,
-					  11,
-					  coo,
-					  nrm,
-					  "BOO+",
-					  posp,
-					  1,
-					  rel));
+	    lg=dynamic_cast<AMSgvolume*>
+	      (p->add(new AMSgvolume("RICH MIRRORS",
+				     0,
+				     "MIRA",
+				     "TRAP",
+				     par,
+				     11,
+				     coo,
+				     nrm,
+				     "BOOL",
+				     posp,
+				     1,
+				     rel)));
 	    coo[0]=-d1;
 	    coo[1]=0;
 
@@ -3737,9 +3735,10 @@ void richgeom02(AMSgvolume & mother)
 					  2,
 					  rel));
 	    
-
+	}
+        else if(MISCFFKEY.G3On){
 	    
-#else
+#endif
 
 	    AMSNode *lg;
 
@@ -4026,10 +4025,12 @@ void richgeom02(AMSgvolume & mother)
 					 posp,
 					 2,
 					 rel));
+#ifdef __G4AMS__
+	}
+#endif
 	    
 
-
-#endif	    
+	    //////////////
 	  }
       
 	// Here we add the other 3 parts
@@ -4117,6 +4118,10 @@ void richgeom02(AMSgvolume & mother)
   cout<< "RICH geometry finished" << endl;
 
 }  
+
+
+
+
 
 
 
