@@ -75,11 +75,20 @@ void AMSmceventg::gener(){
    number theta;
    geant d;
    if(_fixedmom)_mom=_momrange[0];
-   else if(CCFFKEY.low!=4){
+   else if(CCFFKEY.low==4){
+    _mom=_momrange[0]+(_momrange[1]-_momrange[0])*RNDM(d);
+   }
+   else if(CCFFKEY.low==5 ){
+    if(_momrange[0]<=0 ){
+     cerr<<"AMSmceventg::gener-F-LogInfinity "<<endl;
+     exit(1);
+    }              
+    number lrange=log(fabs(_momrange[1]))-log(fabs(_momrange[0]));
+    _mom=_momrange[0]*exp(lrange*RNDM(d));
+   }
+   else {
    _mom=HRNDM1(_hid)/1000.;  // momentum in GeV
    }
-   else _mom=_momrange[0]+(_momrange[1]-_momrange[0])*RNDM(d);
-
 if(_fixeddir){
  _dir=AMSDir(_dirrange[0]);
  if(_fixedpoint){
