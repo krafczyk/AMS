@@ -1,4 +1,4 @@
-//  $Id: gamma.h,v 1.9 2002/11/29 20:04:59 choutko Exp $
+//  $Id: gamma.h,v 1.10 2002/12/16 09:54:21 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 
 #ifndef __AMSTRGAMMA__
@@ -146,6 +146,7 @@ static void _Cente(number&, number&, vector<double>, integer, integer, number, n
 static vector<double> _TK1YRemoveTRD2TOF(vector<double>, integer);
 static void _LSQP2(integer FLPAT[], vector<double> H[], integer, integer);
 static void _LookOneEight(integer FLPAT[], vector<double> H[]);
+static void _SingleCommonHit(integer FLPAT[], vector<double> H[]);
 static void _SingleHit(integer FLPAT[], double CE[], integer );
 inline static void _intercept(double X1,double Y1,double Z1,double X2,double Y2,double Z2,double& MX,double& QX,double& MY,double& QY){
   // slope in XZ : MX
@@ -176,12 +177,19 @@ double _vdmin(double v[], int size);
 void interpolate(int which, AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 
                  number & theta, number & phi, number & length);
 //
+static void RecoXLeft(double X2P, double X3P, double DeltaRecoTop, double DeltaRecoBottom, 
+		      int ifi, int ila, double RegStr0, int & lkfil, double & VAMAXL);
+static void RecoXRight(double X2P, double X3P, double DeltaRecoTop, double DeltaRecoBottom, 
+		      int ifi, int ila, double RegStr0, int & lkfir,double & VAMAXR);
+
 static void RecoLeftRight(int & refitting, integer FLPAT[], double SLOPEf, double INTERf,double x_starf,
                    double z_starf,int fbotf,int ftopf,
                    double firR,double lasR,double firL,double lasL,
                    int fir_planeR, int fir_planeL,
                    int las_planeR,int las_planeL,double & slr, double & qlr);
 
+// static void ResetXhits(int , double xl[], double yl[], double zl[], int , double xr[], double yr[], double zr[]);
+ static void ResetXhits(int & resetting);
 //
 void HITRESEARCH(int pla, double RES_REF, AMSPoint P_0L2, AMSPoint P_0R2);
 static integer Out(integer);
