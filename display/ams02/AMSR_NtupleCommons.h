@@ -1,6 +1,7 @@
-//  $Id: AMSR_NtupleCommons.h,v 1.13 2001/08/20 18:36:58 kscholbe Exp $
+//  $Id: AMSR_NtupleCommons.h,v 1.14 2001/08/21 13:11:17 kscholbe Exp $
 #ifndef AMSR_NtupleCommons_H
 #define AMSR_NtupleCommons_H
+
 
 #ifdef __ALPHA__
 #define DECFortran
@@ -301,31 +302,31 @@ struct TRTRACK_DEF {
 COMMON_BLOCK_DEF(TRTRACK_DEF,blkTrtrack);
 
 
-static const int MAXECSHOW =    5;
+static const int NECSHOW =    5;
 struct ECALSHOWER_DEF {
   int Necsh;
-  int   Status[MAXECSHOW];
-  float Dir[MAXECSHOW][3];
-  float EMDir[MAXECSHOW][3];
-  float Entry[MAXECSHOW][3];
-  float Exit[MAXECSHOW][3];
-  float CofG[MAXECSHOW][3];
-  float ErTheta[MAXECSHOW];
-  float Chi2Dir[MAXECSHOW];
-  float FirstLayerEdep[MAXECSHOW];
-  float EnergyC[MAXECSHOW];
-  float Energy3C[MAXECSHOW][3];
-  float ErEnergyC[MAXECSHOW];
-  float DifoSum[MAXECSHOW];
-  float SideLeak[MAXECSHOW];
-  float RearLeak[MAXECSHOW];
-  float DeadLeak[MAXECSHOW];
-  float OrpLeak[MAXECSHOW];
-  float Chi2Profile[MAXECSHOW];
-  float ParProfile[MAXECSHOW][4];
-  float Chi2Trans[MAXECSHOW];
-  float TransProfile[MAXECSHOW][3];
-  int   p2DCl[MAXECSHOW][2];
+  int   Status[NECSHOW];
+  float Dir[NECSHOW][3];
+  float EMDir[NECSHOW][3];
+  float Entry[NECSHOW][3];
+  float Exit[NECSHOW][3];
+  float CofG[NECSHOW][3];
+  float ErTheta[NECSHOW];
+  float Chi2Dir[NECSHOW];
+  float FirstLayerEdep[NECSHOW];
+  float EnergyC[NECSHOW];
+  float Energy3C[NECSHOW][3];
+  float ErEnergyC[NECSHOW];
+  float DifoSum[NECSHOW];
+  float SideLeak[NECSHOW];
+  float RearLeak[NECSHOW];
+  float DeadLeak[NECSHOW];
+  float OrpLeak[NECSHOW];
+  float Chi2Profile[NECSHOW];
+  float ParProfile[NECSHOW][4];
+  float Chi2Trans[NECSHOW];
+  float TransProfile[NECSHOW][3];
+  int   p2DCl[NECSHOW][2];
 };
 
 #define blkecsh COMMON_BLOCK(ECALSHOWER,ecalshower)

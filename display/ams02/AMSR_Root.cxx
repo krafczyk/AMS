@@ -1,4 +1,4 @@
-//  $Id: AMSR_Root.cxx,v 1.7 2001/08/20 18:36:59 kscholbe Exp $
+//  $Id: AMSR_Root.cxx,v 1.8 2001/08/21 13:11:18 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -428,7 +428,7 @@ Int_t AMSR_Root::OpenDataFile(char * filename, EDataFileType type)
     //
     //  Make event tree
     //
-    MakeTree("AMSR_Tree", "AMS Display Tree");
+//    MakeTree("AMSR_Tree", "AMS Display Tree");
 
     //
     //  Initialize readers

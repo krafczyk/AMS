@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.h,v 1.8 2001/08/20 18:36:58 kscholbe Exp $
+//  $Id: AMSR_Ntuple.h,v 1.9 2001/08/21 13:11:17 kscholbe Exp $
 #ifndef AMSR_Ntuple_H
 #define AMSR_Ntuple_H
 
@@ -43,6 +43,7 @@
 #include <TNamed.h>
 #ifndef __CINT__
  #include "AMSR_NtupleCommons.h"
+#include "AMSR_Rootclasses.h"
 #endif
 #ifndef AMSR_Types_H
 #include "AMSR_Types.h"
@@ -94,6 +95,25 @@ class AMSR_Ntuple : public TNamed {
    TOFRAWCL_DEF *m_BlkTofrawcl;
    ECALSHOWER_DEF  *m_Blkecsh;
 
+   EventNtuple02* evt;
+   BetaNtuple02* beta;
+   ChargeNtuple02* charge;
+   ParticleNtuple02* part;
+   TOFClusterNtuple* tofcl;
+   TOFMCClusterNtuple* tofmccl;
+   TrClusterNtuple* trcl;
+   TrMCClusterNtuple* trclmc;
+   TrRecHitNtuple02* trrh;
+   TRDMCClusterNtuple* trdclmc;
+   TRDClusterNtuple* trdcl;
+   TrTrackNtuple02* trtr;
+   TRDTrackNtuple* trdtrk;
+   EcalShowerNtuple* ecalsh;
+   MCEventGNtuple02* mcg;
+   AntiClusterNtuple* anti;
+   ANTIMCClusterNtuple* antimc;
+   LVL3Ntuple* lvl3;
+   LVL1Ntuple02* lvl1;
 #endif
    
  protected:

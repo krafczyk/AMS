@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.7 2001/08/09 11:35:23 choutko Exp $
+#  $Id: Makefile,v 1.8 2001/08/21 13:11:18 kscholbe Exp $
 # ------------------------------
 # Makefile for AMS Event Display
 # ------------------------------
@@ -51,7 +51,7 @@ OBJDIR = ./$(OS)/bin
 ifeq  "$(OS)"  "AIX"
  CXX           = xlC
  INCLUDES      = -I$(ROOTSYS)/include -I/usr/lpp/xlC/include
- CXXFLAGS      = -O -qnoro -qnoroconst -qmaxmem=-1 $(INCLUDES)
+ CXXFLAGS      = -O -qnoro -qnoroconst -qmaxmem=-1  $(INCLUDES) 
  FF            = xlf
  FFLAGS        = -g -qextname
  LD            = xlC
@@ -77,8 +77,8 @@ endif
 ifeq  "$(OS)"  "OSF1"
  GCC  = cxx 
  CXX           = cxx
- INCLUDES      = -I$(ROOTSYS)/include -I/usr/include -I/usr/include/cxx
- CXXFLAGS      = -D__osf__  -D__alpha -D_ALPHA_ $(INCLUDES)
+ INCLUDES      = -I$(ROOTSYS)/include -I/usr/include -I/usr/include/cxx 
+ CXXFLAGS      = -D__osf__  -D__alpha -D_ALPHA_  $(INCLUDES) 
  FF            = f77
  FFLAGS        = -g
  LD            = cxx
@@ -105,8 +105,8 @@ endif
 ##############
 ifeq "$(OS)"  "HP-UX"
  CXX           = CC
- INCLUDES      = -I$(ROOTSYS)/include
- CXXFLAGS      = -O +a1 +Z $(INCLUDES)
+ INCLUDES      = -I$(ROOTSYS)/include 
+ CXXFLAGS      = -O +a1 +Z  $(INCLUDES) 
  FF            = f77
  FFLAGS        = -g +ppu +Z
  LD            = CC
@@ -129,8 +129,8 @@ endif
 ##############
 ifeq "$(OS)"  "Linux"
  CXX           = g++
- INCLUDES      = -I$(ROOTSYS)/include
- CXXFLAGS      =  -Wall -fPIC $(INCLUDES)
+ INCLUDES      = -I$(ROOTSYS)/include 
+ CXXFLAGS      =  -Wall -fPIC  $(INCLUDES) 
  FF            = g77
  FFLAGS        =
  LD            = g++

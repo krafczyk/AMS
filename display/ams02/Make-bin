@@ -1,4 +1,4 @@
-#  $Id: Make-bin,v 1.7 2001/08/18 20:01:49 kscholbe Exp $
+#  $Id: Make-bin,v 1.8 2001/08/21 13:11:18 kscholbe Exp $
 ##### MACROS #####
 
 ROOTH         = TTree.h TFile.h TH1.h
@@ -22,7 +22,7 @@ SRCS          = AMSR_Root.cxx AMSR_Maker.cxx \
 		AMSR_HistBrowser.cxx \
 		AMSR_Canvas.cxx \
 		AMSR_Display.cxx TGRunEventDialog.cxx \
-		TRadioButton.cxx TSwitch.cxx Debugger.cxx
+		TRadioButton.cxx TSwitch.cxx Debugger.cxx root.cxx 
 		# MySelectionDialog.cxx \
 		# MOTIF_DialogManager.cxx 
 		# AMSR_ColorManager.cxx 
@@ -49,7 +49,7 @@ HDRS          = TRadioButton.h TSwitch.h \
 		AMSR_Canvas.h \
 		AMSR_GeometrySetter.h \
 		AMSR_Display.h TGRunEventDialog.h \
-                LinkDef.h
+                AMSR_Rootclasses.h LinkDef.h
 		# MySelectionDialog.h \
 		# AMSR_ColorManager.h
 

@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.18 2001/08/20 18:55:02 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.19 2001/08/21 13:11:17 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -39,6 +39,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "AMSR_Ntuple.h"
+#include "AMSR_Rootclasses.h"
 #include "hbook.h"
 #include <TTree.h>
 //#include <TClonesArray.h>
@@ -469,6 +470,32 @@ void AMSR_Ntuple::GetEvent(Int_t event)
 	  debugger.Print("AMSR_Ntuple::GetEvent:getting event %d\n",event);
 
 	  m_Tree->GetEvent(event);
+	
+	  memcpy(&m_BlkEventh->eventno,&evt->Eventno,sizeof(EVENTH_DEF));
+	  memcpy(&m_BlkBeta->nbeta,&beta->Nbeta,sizeof(BETA_DEF));
+	  memcpy(&m_BlkCharge->ncharge,&charge->Ncharge,sizeof(CHARGE_DEF));
+	  memcpy(&m_BlkParticle->npart,&part->Npart,sizeof(PARTICLE_DEF));
+	  memcpy(&m_BlkTofclust->ntof,&tofcl->Ntof,sizeof(TOFCLUST_DEF));
+	  memcpy(&m_BlkTofmcclu->ntofmc,&tofmccl->Ntofmc,sizeof(TOFMCCLU_DEF));
+	  memcpy(&m_BlkTrcluste->Ntrcl,&trcl->Ntrcl,sizeof(TRCLUSTE_DEF));
+	  memcpy(&m_BlkTrmcclus->ntrclmc,&trclmc->Ntrclmc,sizeof(TRMCCLUS_DEF));
+	  memcpy(&m_BlkTrrechit->ntrrh,&trrh->Ntrrh,sizeof(TRRECHIT_DEF));
+	  memcpy(&m_BlkTrdclmc->ntrdclmc,&trdclmc->Ntrdclmc,sizeof(TRDCLMC_DEF));
+	  memcpy(&m_BlkTrdcl->ntrdcl,&trdcl->Ntrdcl,sizeof(TRDCL_DEF));
+	  memcpy(&m_BlkTrtrack->ntrtr,&trtr->Ntrtr,sizeof(TRTRACK_DEF));
+  	  memcpy(&m_BlkTrdtrk->ntrdtrk,&trdtrk->Ntrdtrk,sizeof(TRDTRK_DEF));
+  	  memcpy(&m_Blkecsh->Necsh,&ecalsh->Necsh,sizeof(ECALSHOWER_DEF));
+	  memcpy(&m_BlkMceventg->nmcg,&mcg->Nmcg,sizeof(MCEVENTG_DEF));
+	  memcpy(&m_BlkAnticlus->nanti,&anti->Nanti,sizeof(ANTICLUS_DEF));
+	  memcpy(&m_BlkAntimccl->nantimc,&antimc->Nantimc,sizeof(ANTIMCCL_DEF));
+	  memcpy(&m_BlkLvl3->nlvl3,&lvl3->Nlvl3,sizeof(LVL3_DEF));
+	  memcpy(&m_BlkLvl1->nlvl1,&lvl1->Nlvl1,sizeof(LVL1_DEF));
+
+//	  m_BlkEventh->run = evt->Run;
+
+	  debugger.Print("AMSR_Ntuple::GetEvent:event run nbeta %d %d %d %d\n",m_BlkEventh->eventno,m_BlkEventh->run,m_BlkBeta->nbeta,m_BlkParticle->npart);
+	  debugger.Print("AMSR_Ntuple::GetEvent:ntrdcl %d \n",trdcl->Ntrdcl);
+
 	}
 
    else if (m_DataFileType == kNtupleFile) {
@@ -680,6 +707,32 @@ void AMSR_Ntuple::SetTreeAddress()
    //
 
 
+   evt=0; beta=0; charge=0; part=0;
+   tofcl=0; tofmccl=0; trcl=0; trclmc=0;
+   trrh=0; trdclmc=0; trdcl=0; trtr=0; trdtrk=0;
+   ecalsh=0; mcg=0; anti=0; antimc=0; lvl3=0; lvl1=0;
+
+   m_Tree->SetBranchAddress("event02", &evt);
+   m_Tree->SetBranchAddress("beta02", &beta);
+   m_Tree->SetBranchAddress("charge02", &charge);
+   m_Tree->SetBranchAddress("part02", &part);
+   m_Tree->SetBranchAddress("tofcl", &tofcl);
+   m_Tree->SetBranchAddress("tofmccl", &tofmccl);
+   m_Tree->SetBranchAddress("trcl", &trcl);
+   m_Tree->SetBranchAddress("trclmc", &trclmc);
+   m_Tree->SetBranchAddress("trrh02", &trrh);
+   m_Tree->SetBranchAddress("trdclmc", &trdclmc);
+   m_Tree->SetBranchAddress("trdcl", &trdcl);
+   m_Tree->SetBranchAddress("trtr02", &trtr);
+   m_Tree->SetBranchAddress("trdtrk", &trdtrk);
+   m_Tree->SetBranchAddress("ecalsh", &ecalsh);
+   m_Tree->SetBranchAddress("mcg02", &mcg);
+   m_Tree->SetBranchAddress("anti", &anti);
+   m_Tree->SetBranchAddress("antimc", &antimc);
+   m_Tree->SetBranchAddress("lvl3", &lvl3);
+   m_Tree->SetBranchAddress("lvl102", &lvl1);
+
+  /*
    m_Tree->SetBranchAddress("event02.Eventno", &m_BlkEventh->eventno);
    m_Tree->SetBranchAddress("event02.Run", &m_BlkEventh->run);
    m_Tree->SetBranchAddress("event02.RunType", &m_BlkEventh->runtype);
@@ -716,7 +769,7 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("event02.TRDTracks", &m_BlkEventh->TRDTracks);
    m_Tree->SetBranchAddress("event02.EventStatus[2]", m_BlkEventh->Eventstatus);  
 
-/* 
+ 
    m_Tree->SetBranchAddress("beta02.Nbeta", &m_BlkBeta->nbeta);
    m_Tree->SetBranchAddress("beta02.Status[50]", m_BlkBeta->betastatus);
    m_Tree->SetBranchAddress("beta02.Pattern[50]", m_BlkBeta->betapattern);

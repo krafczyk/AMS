@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.3 2001/08/20 18:36:59 kscholbe Exp $
+//  $Id: main.cxx,v 1.4 2001/08/21 13:11:18 kscholbe Exp $
 
 
 //--------------------------------------------------------------------------
@@ -40,7 +40,7 @@ extern void InitGui(); // loads the device dependent graphics system
 VoidFuncPtr_t initfuncs[] = { InitGui, 0 };
 int Error; // needed by Motif
 
-TROOT root("AMS", "AMS ROOT", initfuncs);
+TROOT troot("AMS", "AMS ROOT", initfuncs);
 
 main(int argc, char *argv[])
 {
