@@ -1,7 +1,7 @@
-/*! \example run.stlv.C
- *  This is an example of how to load stlv.C
- *  (to run: root;  .x run.stlv.C)   
- */ 
+/// \example run.stlv.C
+/// This is an example of how to load stlv.C
+///  (to run: root;  .x run.stlv.C)   
+/// 
 {
 gROOT->Reset();
 
