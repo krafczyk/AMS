@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.42 2002/07/16 05:57:44 kscholbe Exp $
+#  $Id: ntuple02.doc,v 1.43 2002/07/17 10:49:43 delgadom Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -497,39 +497,41 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
  * R*4  *          * TOFRAWCL * tofredd(ntofraw)        // Edep-D (mev)
  * R*4  *          * TOFRAWCL * tofrtm(ntofraw)         // Time (ns)
  * R*4  *          * TOFRAWCL * tofrcoo(ntofraw)        // Long.coord.(cm)
-
-
- * I*4  * [0,100]  * RICMCCL  * nsignals         // Number of signals in
-                                                 // the PMTs including noise
- * I*4  *          * RICMCCL  * sid(nsignals)    // Geant3 code of the particle
-                                                 // producing the signal
-                                                 // (-666 if it's noise)
- * R*4  *          * RICMCCL  * rimcorg(3,nsignals) // Generation point of the 
-                                                   // particle producing 
-                                                   // the signal (geant3 only)
- * R*4  *          * RICMCCL  * rimcdir(3,nsignals) // Original direction of 
-                                                     // the particle producing 
-                                                     // the signal (geant3 only)
- * I*4  *          * RICMCCL  * rimcstatus(nsignals)   // Signal status *******)
- * I*4  *          * RICMCCL  * rimcnphg                // Number of cerenkov
+ * I*4  * [0,100]  * RICMCCL  * nsignals              // Number of signals in
+                                                      // the PMTs including noise
+ * I*4  *          * RICMCCL  * sid(nsignals)         // Geant3 code of the particle
+                                                      // producing the signal
+                                                      // (-666 if it's noise)
+ * R*4  *          * RICMCCL  * rimcorg(3,nsignals)   // Generation point of the 
+                                                      // particle producing 
+                                                      // the signal (geant3 only)
+ * R*4  *          * RICMCCL  * rimcdir(3,nsignals)   // Original direction of 
+                                                      // the particle producing 
+                                                      // the signal (geant3 only)
+ * I*4  *          * RICMCCL  * rimcstatus(nsignals)  // Signal status *******)
+ * I*4  *          * RICMCCL  * rimcnphg              // Number of cerenkov
                                                       // photons generated
                                                       // in radiator
- * I*4  *          * RICMCCL  * rimcphit(nsignals)        // Pointer to the
+ * I*4  *          * RICMCCL  * rimcphit(nsignals)    // Pointer to the
                                                       // hit if sid=50 or -666
  * I*4  * [0,100]  * RICEVENT * Rhits                 // Number of hits
- * I*4  *          * RICEVENT * Rchtch(Rhits)       // Channel
- * I*4  *          * RICEVENT * Rchtadc(Rhits)           // ADC counts
- * R*4  *          * RICEVENT * Rchtx(Rhits)             // X pos. of the channel
- * R*4  *          * RICEVENT * Rchty(Rhits)             // Y pos. of the channel
+ * I*4  *          * RICEVENT * Rchtch(Rhits)         // Channel
+ * I*4  *          * RICEVENT * Rchtadc(Rhits)        // ADC counts above the pedestal
+ * R*4  *          * RICEVENT * Rnpe(Rhits)           // ADC counts above the 
+                                                      // pedestal/gain of the channel 
+ * R*4  *          * RICEVENT * Rchtx(Rhits)          // X pos. of the channel
+ * R*4  *          * RICEVENT * Rchty(Rhits)          // Y pos. of the channel
  * I*4  *          * RICEVENT * Rhstatus(Rhits)       // Hit status *********) 
  * I*4  * [0,10]   * RING     * nrings                // Nb of rings created in rich rec
- * I*4  *          * RING     * rcritrkn(nrings)        // Pointer to track
- * I*4  *          * RING     * rcrihu(nrings)         // Nb. of RICH hits in a ring matching the track
- * I*4  *          * RING     * rcrimhu(nrings)       // Nb. of RICH mirrored hits in a ring matching the track
- * R*4  *          * RING     * rcribeta(nrings)         // Reconstructed beta
- * R*4  *          * RING     * rcriebeta(nrings)         // error beta
- * R*4  *          * RING     * rcrichi2(nrings)       // Chi2/ndof for the beta
-
+ * I*4  *          * RING     * rcritrkn(nrings)      // Pointer to track
+ * I*4  *          * RING     * rcrihu(nrings)        // Nb. of RICH hits in a ring 
+                                                      //matching the track
+ * I*4  *          * RING     * rcrimhu(nrings)       // Nb. of RICH mirrored hits in
+                                                      // a ring matching the track
+ * R*4  *          * RING     * rcribeta(nrings)      // Reconstructed beta
+ * R*4  *          * RING     * rcriebeta(nrings)     // error beta
+ * R*4  *          * RING     * rcrichi2(nrings)      // Chi2/ndof for the beta
+ * I*4  *          * RING     * rcristatus(nrings)    // Ring status  **********)
  * I*4  *          * TRDMCCL  * ntrdmccl              // no of trd clusters
  * U*4  *          * TRDMCCL  * trdlayermc(ntrdmccl)  //layer (up==0)
  * U*4  *          * TRDMCCL  * trdladdermc(ntrdmccl) //ladder (tbd)
@@ -540,9 +542,9 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
  * R*4  *          * TRDMCCL  * trdxglmc(3,ntrdmccl)  // hit global coo(cm)
  * R*4  *          * TRDMCCL  * trdstepmc(ntrdmccl)   // step size (cm)
  * I*4  *          * TRDRHT   * ntrdht                // nuber of trd raw hits
- * I*4  *[0,19]    * TRDRHT   * trdhtlayer(ntrdht)       // layer
- * I*4  *[0,17]    * TRDRHT   * trdhtladder(ntrdht)       // ladder
- * I*4  *[0,15]    * TRDRHT   * trdhttube(ntrdht)        // tube
+ * I*4  *[0,19]    * TRDRHT   * trdhtlayer(ntrdht)    // layer
+ * I*4  *[0,17]    * TRDRHT   * trdhtladder(ntrdht)   // ladder
+ * I*4  *[0,15]    * TRDRHT   * trdhttube(ntrdht)     // tube
  * R*4  *          * TRDRHT   * trdampht(ntrdht)      // amp-ped (adc ch)
  * I*4  *          * TRDCLU   * ntrdcl                // trd clusters no
  * I*4  *          * TRDCLU   * trdclstatus(ntrdcl)   // status
@@ -569,9 +571,9 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
  * R*4  *          * TRDTRK   * trdtrkphi(ntrdtrk)    // phi 
  * R*4  *          * TRDTRK   * trdtrktheta(ntrdtrk)  //theta
  * R*4  *          * TRDTRK   * trdtrkchi2(ntrdtrk)   //chi2
- * U*4  *[0,5]     * TRDTRK   * trdtrkns(ntrdtrk)    // number of segments in track
- * U*4  *[0,100]   * TRDTRK   * trdtrkpat(ntrdtrk)   // pattern no
- * I*4  *          * TRDTRK   * trdtrkps(5,ntrdtrk)    // pointer to segments
+ * U*4  *[0,5]     * TRDTRK   * trdtrkns(ntrdtrk)     // number of segments in track
+ * U*4  *[0,100]   * TRDTRK   * trdtrkpat(ntrdtrk)    // pattern no
+ * I*4  *          * TRDTRK   * trdtrkps(5,ntrdtrk)   // pointer to segments
 
 ---------------------------------------------------------------------------
 
@@ -676,7 +678,23 @@ NOTE: The information of the mother is only available if RICCONT=1 in
 .
 .
 .
-32- Unused
+30- Unused
+31- Gain mode chosen for the hit: 0=x1(low)  1=x5(high)
+32- Hit belongs to a PMT apparently crossed by a charged particle
+          
+
+
+
+**********) Ring status bits (counting from 1 to 32)
+1- Ring has been rebuild after cleaning PMTs apparently crossed by a charged particle.
+   If the rebuilding has been succesful it is stored in the next ring.  
+   To confirm that the next ring is a rebuilding of the current one check
+   if both rcritrkn are pointing to the same track number.   
+	    
+
+
+
+
 
 
 

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.173 2002/07/14 12:33:35 kscholbe Exp $
+//  $Id: commons.h,v 1.174 2002/07/17 10:48:40 delgadom Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -826,7 +826,7 @@ int Geant3CutsOn;
 COMMON_BLOCK_DEF(G4FFKEY_DEF,G4FFKEY);
 
 
-// RICH Geometry card
+// RICH Geometry card: currently unused
 
 class 
 RICGEOM_DEF{
@@ -857,6 +857,19 @@ integer setup;  // Allows to choose among several differen geometries
 #define RICCONTROL COMMON_BLOCK(RICCONTROL,riccontrol)
 COMMON_BLOCK_DEF(RICCONTROL_DEF,RICCONTROL);
 
+
+class RICFFKEY_DEF{
+ public:  
+  integer ReadFile;  
+  integer sec[2];        // calibration validation
+  integer min[2];
+  integer hour[2];
+  integer day[2];
+  integer mon[2];
+  integer year[2];
+};
+#define RICFFKEY COMMON_BLOCK(RICFFKEY,ricffkey)
+COMMON_BLOCK_DEF(RICFFKEY_DEF,RICFFKEY);
 
 
 

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.210 2002/07/14 12:33:59 kscholbe Exp $
+#  $Id: datacards.doc,v 1.211 2002/07/17 10:49:46 delgadom Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -80,19 +80,15 @@ I168 MaxFileSize(150000000)      // max ntuplefilesize (bytes)
     RICH simulation
 
 
-RICGEOM                         // Card currently disabled <<<<<<<<<<<<<<<<<<<
-R 1  top_radius(63.6)           // Top radius of rich
-R 2  bottom_radius(80)		// Bottom radius
-R 3  hole_radius(40)		// Central hole radius
-R 4  height(50)			// RICH height without PMTs and radiator
-R 5  inner_mirror_height(50)	// Inner mirror height. <0 means no mirror
-R 6  radiator_radius(63.6)	// Radiator radius
-R 7  radiator_height(2)		// Radiator height
-R 8  radiator_box_length(15)	// Aerogel box size. <0 means aerogel no tiled 
-R 9  light_guides_height(3)	// Light-guides height
-R 10 light_guides_length(3)	// PMT box size
-
-
+RICAL
+I 1  ReadFile(0)        // Read calibration file at initialization if 1
+                        // use nominal values for all the PMTs if 0
+I 2  sec[2](0,0)        // Validity time:              
+I 4  min[2](0,0)        //
+I 6  hour[2](0,0)       //
+I 8  day[2](1,1)        //
+I10  mon[2](0,0)        //
+I12  year[2](101,110)
 
 RICCONT
 I 1  iflgk_flag(0)              // Activate the use of the GCTRAK.iflgk=1 in the tracking
@@ -881,4 +877,5 @@ R 3 ecutge (0.001)  // e/g ener.cut for tracking in magnet materials(Gev)
 //------------------------------------------------------------------------------
 
 	   
+
 

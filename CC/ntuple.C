@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.108 2002/07/16 05:57:33 kscholbe Exp $
+//  $Id: ntuple.C,v 1.109 2002/07/17 10:46:54 delgadom Exp $
 //
 //  May 2002, A.Klimentov add Root related part
 //                        NB : Delete() should be used before Expand()
@@ -134,13 +134,13 @@ void AMSNtuple::init(){
 
   HBNAME(_lun,"RICEvent",&_richevent.Nhits,
     	 "Rhits[0,100]:I,Rchtch(Rhits):I,Rchtadc(Rhits):I,"
-  	 "Rchtx(Rhits),Rchty(Rhits),Rhstatus(Rhits):I");
+  	 "Rnpe(Rhits):R,Rchtx(Rhits),Rchty(Rhits),Rhstatus(Rhits):I");
 
   HBNAME(_lun,"Ring",&_ring.NRings,
   	 "nrings[0,10]:I,rctrkn(nrings):I,"
   	 "rcrihu(nrings):I,rcrimhu(nrings):I,"
 	 "rcribeta(nrings),rcriebeta(nrings),"
-	 "rcrichi2(nrings)");
+	 "rcrichi2(nrings),rcristatus(nrings):I");
 
 }
 void AMSNtuple::reset(int full){

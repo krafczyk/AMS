@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.186 2002/06/06 14:41:02 choutko Exp $
+//  $Id: commons.C,v 1.187 2002/07/17 10:46:31 delgadom Exp $
 
 
 #include <commons.h>
@@ -53,6 +53,7 @@ TRMFFKEY_DEF TRMFFKEY;
 //
 RICGEOM_DEF RICGEOM;
 RICCONTROL_DEF RICCONTROL;
+RICFFKEY_DEF RICFFKEY;
 PRODFFKEY_DEF PRODFFKEY;
 // Geant  commons
 

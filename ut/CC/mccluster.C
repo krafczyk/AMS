@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.53 2002/07/14 12:33:05 kscholbe Exp $
+//  $Id: mccluster.C,v 1.54 2002/07/17 10:46:52 delgadom Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -541,18 +541,6 @@ void AMSRichMCHit::sirichhits(integer id,
     return;
   }
 
-  //  geant x=position[0]-RICHDB::pmt_p[pmt][0]+RICcatolength/2;
-  //  geant y=position[1]-RICHDB::pmt_p[pmt][1]+RICcatolength/2;
-
-  /* // Moved to AMSRICHIdGeom
-     geant x=position[0]-AMSRICHIdGeom::pmt_pos(pmt,0)+RICcatolength/2;
-     geant y=position[1]-AMSRICHIdGeom::pmt_pos(pmt,1)+RICcatolength/2;
-     
-     x/=RICcatolength/sqrt(RICnwindows);
-     y/=RICcatolength/sqrt(RICnwindows);
-     
-  // The next conversion should be carried out in AMSRICHIdGeom
-  integer channel=RICnwindows*pmt+integer(sqrt(RICnwindows))*integer(y)+integer(x);*/
   
   AMSRICHIdGeom channel(pmt,position[0],position[1]);
 
@@ -587,41 +575,53 @@ void AMSRichMCHit::sirichhits(integer id,
 }
 
 
-void AMSRichMCHit::noisyhit(integer channel){
+void AMSRichMCHit::noisyhit(integer channel,int mode){
   AMSPoint r(0,0,0);
   AMSPoint u(0,0,0);
   AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
-			       new AMSRichMCHit(Noise,channel,AMSRichMCHit::noise(),r,u,Status_Noise));
+			       new AMSRichMCHit(Noise,channel,AMSRichMCHit::noise(channel,mode),r,u,Status_Noise));
 }
 
 
-geant AMSRichMCHit::adc_hit(integer n){ // ADC counts for a set of hits
+geant AMSRichMCHit::adc_hit(integer n,integer channel,int mode){ // ADC counts for a set of hits
   geant u1,u2,dummy,r;
- 
-  r=sqrt(-2.*log(1.-RNDM(dummy)));
-  u1=r*sin(RNDM(dummy)*6.28318595886);   // This constant (2pi)should be moved to a namespace
-  return u1*RICHDB::sigma_peak*sqrt(n)+n*RICHDB::peak;
+  AMSRICHIdSoft calibration(channel);
+
+  //  r=sqrt(-2.*log(1.-RNDM(dummy)));
+  //  u1=r*sin(RNDM(dummy)*6.28318595886);   // This constant (2pi)should be moved to a namespace
+
+  return rnormx()*calibration.getsgain(mode)*sqrt(n)+n*calibration.getsgain(mode);
 }
 
-geant AMSRichMCHit::adc_empty(){ // ADC count without a hit
+geant AMSRichMCHit::adc_empty(integer channel,integer mode){ // ADC count without a hit
   geant u1,u2,dummy,r;
- 
-  r=sqrt(-2.*log(1.-RNDM(dummy)));
-  u1=r*sin(RNDM(dummy)*6.28318595886);
-  return u1*RICHDB::sigma_ped+RICHDB::ped;
+  AMSRICHIdSoft calibration(channel);
+
+
+  //  r=sqrt(-2.*log(1.-RNDM(dummy)));
+  //  u1=r*sin(RNDM(dummy)*6.28318595886);
+
+  
+  return rnormx()*calibration.getsped(mode)+calibration.getped(mode);
 }
 
 
-geant AMSRichMCHit::noise(){ // ADC counts above the pedestal
+geant AMSRichMCHit::noise(int channel,integer mode){ // ADC counts above the pedestal
   geant u1,u2,dummy,r;
-  r=sqrt(RICHDB::c_ped*RICHDB::c_ped/RICHDB::sigma_ped/RICHDB::sigma_ped
-         -2.*log(1.-RNDM(dummy)));
- 
-  do{
-    u1=r*sin(RNDM(dummy)*6.28318595886);
-  }while(u1<RICHDB::c_ped/RICHDB::sigma_ped);
- 
-  return u1*RICHDB::sigma_ped+RICHDB::ped;
+
+  AMSRICHIdSoft current(channel);
+
+  //  r=sqrt(current.getthreshold(mode)*current.getthreshold(mode)-2.*log(1.-RNDM(dummy)));
+
+  //  do{
+  //    u1=r*sin(RNDM(dummy)*6.28318595886);
+  //  }while(u1<current.getthreshold(1));
+
+  do u1=current.getped(mode)+current.getsped(mode)*rnormx(); 
+  while(integer(u1)<=integer(current.getthreshold(1)*current.getsped(mode)+current.getped(mode)));
+  return u1;
+
+  //  return u1*current.getsped(mode)+current.getped(mode);
 }
 
 

@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.26 2002/07/03 10:31:42 delgadom Exp $
+//  $Id: richdbc.h,v 1.27 2002/07/17 10:48:50 delgadom Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -94,6 +94,20 @@ const integer Status_primary_tracker=-8;
 const integer Status_primary_tof=-8;
 const integer Status_primary_radb=-9;
 
+// Dword for the hits status 
+const uinteger gain_mode_bit=30;
+const uinteger crossed_pmt_bit=31;
+
+const uinteger gain_mode=uinteger(1)<<gain_mode_bit;
+const uinteger crossed_pmt=uinteger(1)<<crossed_pmt_bit;
+ 
+const geant npe_crossed_signature=6.;  // Minimum number of p.e. to consider  
+                                       // a pixel crossed by a charged particle
+
+// Dword for ring status
+const uinteger dirty_ring_bit=0;
+const uinteger dirty_ring=uinteger(1)<<dirty_ring_bit;
+
 
 }
 
@@ -154,6 +168,7 @@ public: // To be migrated in the future
 
   static geant c_ped;      // Detection treshold
   static geant prob_noisy; // Probability of noise for one channel
+  static geant prob_dark;  // Probability of dark current 
 
 
   //--------- PMT array parameters

@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.32 2002/07/14 12:33:35 kscholbe Exp $
+//  $Id: mccluster.h,v 1.33 2002/07/17 10:48:46 delgadom Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -151,10 +151,10 @@ public:
     return _channel < ((AMSRichMCHit*)(&o)) ->_channel;}
 
   static void sirichhits(integer id, integer pmt,geant position[],geant origin[],geant momentum[],integer status);
-  static void noisyhit(integer channel); // Add noise
-  static geant adc_hit(integer n);   // Compute the adc counts
-  static geant adc_empty();
-  static geant noise();
+  static void noisyhit(integer channel,integer mode=1); // Add noise
+  static geant adc_hit(integer n,integer channel=0,integer mode=1);   // Compute the adc counts
+  static geant adc_empty(integer channel=0,integer mode=1);
+  static geant noise(int channel,integer mode=1);
   integer getid() const {return _id;}
   integer getchannel() const {return _channel;}
   geant getcounts() const {return _counts;}

@@ -1,5 +1,6 @@
 #include"richid.h"
 #include"commons.h"
+#include "job.h"
 
 
 geant *AMSRICHIdGeom::_pmt_p[3]={0,0,0};
@@ -244,6 +245,150 @@ geant AMSRICHIdGeom::z(){
   geant z=RICradpos+*(_pmt_p[2]+_pmt)+RICHDB::pmtb_height()/2.;
 
   return z;
+}
+
+
+
+
+///////////////////////////////////////////////////////////
+
+
+uinteger AMSRICHIdSoft::_nchannels=0;
+geant * AMSRICHIdSoft::_ped=0;
+geant *AMSRICHIdSoft::_sig_ped=0;
+
+geant *AMSRICHIdSoft::_lambda=0;
+geant *AMSRICHIdSoft::_scale=0;
+geant *AMSRICHIdSoft::_transparency=0;
+geant *AMSRICHIdSoft::_lambda_dyn=0;
+geant *AMSRICHIdSoft::_scale_dyn=0;
+
+
+geant *AMSRICHIdSoft::_threshold=0;
+integer *AMSRICHIdSoft::_gain_mode_boundary=0;
+integer *AMSRICHIdSoft::_status=0;
+
+void AMSRICHIdSoft::Init(){
+  _nchannels=AMSRICHIdGeom::getpmtnb()*16;  // Assume 16 channels per PMT
+  _ped=new geant[2*_nchannels];
+  _sig_ped=new geant[2*_nchannels];
+
+  _lambda=new geant[2*_nchannels];
+  _scale=new geant[2*_nchannels];
+  _transparency=new geant[2*_nchannels];
+  _lambda_dyn=new geant[2*_nchannels];
+  _scale_dyn=new geant[2*_nchannels];
+
+  _threshold=new geant[2*_nchannels];
+  _gain_mode_boundary=new integer[_nchannels];
+  _status=new integer[_nchannels];
+
+
+  // Check
+
+  assert(_ped && _sig_ped && _lambda && _scale && _transparency && 
+         _lambda_dyn && _scale_dyn && _threshold && _gain_mode_boundary &&
+         _status);
+
+
+  // Here we should fill all the values
+
+  if(RICFFKEY.ReadFile){
+    char name[80];
+
+    strcpy(name,"richcal");
+
+    if(AMSJob::gethead()->isMCData()){ // McData 
+      strcat(name,"mc");
+    }else{  // Real data
+      strcat(name,"dt");
+    }
+
+
+    strcat(name,".001");  // Version
+
+
+    cout<<"AMSRICHIdSoft::Init: Loading default calibration ..."<<endl;
+    fstream calib(name,ios::in); // open  file for reading
+
+    if(calib){
+      cout<<"AMSRICHIdSoft::Init: Local "<<name<<" Opened"<<endl;
+    }else{
+      char newname[80];
+      strcpy(newname,AMSDATADIR.amsdatadir);
+      strcat(newname,name);
+      strcpy(name,newname);
+      calib.open(newname,ios::in);
+      if(calib){
+	cout<<"AMSRICHIdSoft::Init: "<<name<<" Opened"<<endl;
+      }else{
+	cerr <<"AMSRICHIdSoft::Init:: missing "<<name<<endl;
+	exit(1);
+      }
+
+    }
+
+
+    for(int i=0;i<_nchannels;i++){
+      for(int hl=0;hl<2;hl++){
+	calib >> _ped[2*i+hl];
+	calib >> _sig_ped[2*i+hl];
+	calib >> _threshold[2*i+hl];
+	calib >> _lambda[2*i+hl];
+	calib >> _scale[2*i+hl];
+	calib >> _transparency[2*i+hl];
+	calib >> _lambda_dyn[2*i+hl];
+	calib >> _scale_dyn[2*i+hl];
+      }
+      
+      calib >> _gain_mode_boundary[i];
+      calib >> _status[i];
+      
+    }
+    
+    calib.close();
+
+
+#ifdef __AMSDEBUG__
+    for(int i=0;i<_nchannels;i++){
+      for(int hl=0;hl<2;hl++){
+	
+	cout <<"Channel "<<i<<" mode "<<(hl==0?"low":"high")<<
+	  _ped[2*i+hl]<<" "<<_sig_ped[2*i+hl]<<" "<<_threshold[2*i+hl]<<" "<<
+	  _lambda[2*i+hl]<<" "<<_scale[2*i+hl]<<" "<<_transparency[2*i+hl]<<" "<<
+	  _lambda_dyn[2*i+hl]<<" "<<_scale_dyn[2*i+hl]<<endl;
+      }
+      cout <<"   --> "<< _gain_mode_boundary[i]<<" "<<_status[i]<<endl;
+
+    }
+#endif    
+
+
+    
+    
+  }else{
+
+    cout<<"AMSRICHIdSoft::Init: Using nominal calibration."<<endl;
+    for(int i=0;i<_nchannels;i++){
+      for(int hl=0;hl<2;hl++){
+        _ped[2*i+hl]=0.;
+        _sig_ped[2*i+hl]=4.;
+        _threshold[2*i+hl]=4.;
+        _lambda[2*i+hl]=1.23;
+        _scale[2*i+hl]=30./(5.-4.*hl);;
+        _transparency[2*i+hl]=0.;
+        _lambda_dyn[2*i+hl]=0.;
+        _scale_dyn[2*i+hl]=0.;
+      }
+      
+      _gain_mode_boundary[i]=3000;
+      _status[i]=1;
+      
+    }
+    
+
+
+  }
 }
 
 

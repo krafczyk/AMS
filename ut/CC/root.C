@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.23 2002/07/03 10:31:28 delgadom Exp $
+//  $Id: root.C,v 1.24 2002/07/17 10:47:13 delgadom Exp $
 #include <root.h>
 #include <ntuple.h>
 #include <antirec02.h>
@@ -559,6 +559,7 @@ RICEventRoot::RICEventRoot(AMSRichRawEvent *ptr, float x, float y)
    _channel = ptr->_channel;
    _counts  = ptr->_counts;
    _status  = ptr->_status;
+   _npe     = ptr->getnpe();
    _x      = x;
    _y      = y;
   } else {
@@ -575,7 +576,7 @@ RICRingRoot::RICRingRoot(AMSRichRing *ptr)
     beta  = ptr->_beta;
     errorbeta = ptr->_errorbeta;
     quality   = ptr->_quality;
-    Z         = ptr->_charge;
+    status    = ptr->_status;
   } else {
     cout<<"RICRingRoot -E- AMSRichRing ptr is NULL"<<endl;
   }

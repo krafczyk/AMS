@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.409 2002/07/16 05:43:04 kscholbe Exp $
+// $Id: job.C,v 1.410 2002/07/17 10:46:35 delgadom Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -222,7 +222,7 @@ _simag2data();
 //
 void AMSJob::_sirichdata(){
 
-// Geometry defaults
+// Geometry defaults: unused
   RICGEOM.top_radius=RICHDB::top_radius;
   RICGEOM.bottom_radius=RICHDB::bottom_radius;
   RICGEOM.hole_radius=RICHDB::hole_radius;
@@ -241,6 +241,25 @@ void AMSJob::_sirichdata(){
   RICCONTROL.setup=1;       // Choose the right setup from all of them
 //  FFKEY("RICGEOM",(float *)&RICGEOM,sizeof(RICGEOM_DEF)/sizeof(integer),"REAL");
   FFKEY("RICCONT",(float *)&RICCONTROL,sizeof(RICCONTROL_DEF)/sizeof(integer),"MIXED");
+
+
+  RICFFKEY.ReadFile=0;
+  RICFFKEY.sec[0]=0;
+  RICFFKEY.sec[1]=0;
+  RICFFKEY.min[0]=0;
+  RICFFKEY.min[1]=0;
+  RICFFKEY.hour[0]=0;
+  RICFFKEY.hour[1]=0;
+  RICFFKEY.day[0]=1;
+  RICFFKEY.day[1]=1;
+  RICFFKEY.mon[0]=0;
+  RICFFKEY.mon[1]=0;
+  RICFFKEY.year[0]=101;
+  RICFFKEY.year[1]=110;
+  FFKEY("RICAL",(float*)&RICFFKEY,sizeof(RICFFKEY_DEF)/sizeof(integer),"INTEGER");
+
+
+
 }
 
 //------------------------------------------------------
@@ -1339,6 +1358,7 @@ if(AMSFFKEY.Update){
        AMSTrIdSoft::init();
        AMSTRDIdSoft::init();
        AMSRICHIdGeom::Init();
+       AMSRICHIdSoft::Init();
        AMSTRDIdSoft::inittable();
     }
     else {
@@ -2291,6 +2311,90 @@ end.tm_year=TRDMCFFKEY.year[1];
 //
 }
 //---------------------------------------
+
+{ //RICH: TDV reservation for calibration parameters of all 
+  
+  tm begin;
+  tm end;
+  begin.tm_isdst=0;
+  end.tm_isdst=0;
+  
+  begin.tm_sec=RICFFKEY.sec[0];
+  begin.tm_min=RICFFKEY.min[0];
+  begin.tm_hour=RICFFKEY.hour[0];
+  begin.tm_mday=RICFFKEY.day[0];
+  begin.tm_mon=RICFFKEY.mon[0];
+  begin.tm_year=RICFFKEY.year[0];
+
+
+  end.tm_sec=RICFFKEY.sec[1];
+  end.tm_min=RICFFKEY.min[1];
+  end.tm_hour=RICFFKEY.hour[1];
+  end.tm_mday=RICFFKEY.day[1];
+  end.tm_mon=RICFFKEY.mon[1];
+  end.tm_year=RICFFKEY.year[1];
+
+  TID.add (new AMSTimeID(AMSID("RichPedCalib",isRealData()),
+                         begin,end,AMSRICHIdSoft::_nchannels*2
+			 *sizeof(AMSRICHIdSoft::_ped[0]),
+                         (void*)&AMSRICHIdSoft::_ped[0],server));
+
+  TID.add (new AMSTimeID(AMSID("RichSpedCalib",isRealData()),
+                         begin,end,AMSRICHIdSoft::_nchannels*2
+                         *sizeof(AMSRICHIdSoft::_sig_ped[0]),
+                         (void*)&AMSRICHIdSoft::_sig_ped[0],server));
+
+
+  TID.add (new AMSTimeID(AMSID("Richlambdacalib",isRealData()),
+			 begin,end,AMSRICHIdSoft::_nchannels*2
+			           *sizeof(AMSRICHIdSoft::_lambda[0]),
+			 (void*)&AMSRICHIdSoft::_lambda[0],server));
+
+
+  TID.add (new AMSTimeID(AMSID("RichScaleCalib",isRealData()),
+                         begin,end,AMSRICHIdSoft::_nchannels*2
+			 *sizeof(AMSRICHIdSoft::_scale[0]),
+                         (void*)&AMSRICHIdSoft::_scale[0],server));
+
+  TID.add (new AMSTimeID(AMSID("RichTransmCalib",isRealData()),
+                         begin,end,AMSRICHIdSoft::_nchannels*2
+			 *sizeof(AMSRICHIdSoft::_transparency[0]),
+                         (void*)&AMSRICHIdSoft::_transparency[0],server));
+
+  
+  TID.add (new AMSTimeID(AMSID("RichLDynCalib",isRealData()),
+                         begin,end,AMSRICHIdSoft::_nchannels*2
+                         *sizeof(AMSRICHIdSoft::_lambda_dyn[0]),
+                         (void*)&AMSRICHIdSoft::_lambda_dyn[0],server));
+  
+  TID.add (new AMSTimeID(AMSID("RichSDynCalib",isRealData()),
+                         begin,end,AMSRICHIdSoft::_nchannels*2
+                         *sizeof(AMSRICHIdSoft::_scale_dyn[0]),
+                         (void*)&AMSRICHIdSoft::_scale_dyn[0],server));
+
+  TID.add (new AMSTimeID(AMSID("RichThresholdCalib",isRealData()),
+                         begin,end,AMSRICHIdSoft::_nchannels*2
+                         *sizeof(AMSRICHIdSoft::_threshold[0]),
+                         (void*)&AMSRICHIdSoft::_threshold[0],server));
+
+  TID.add (new AMSTimeID(AMSID("RichModeBoundaryCalib",isRealData()),
+                         begin,end,AMSRICHIdSoft::_nchannels
+                         *sizeof(AMSRICHIdSoft::_gain_mode_boundary[0]),
+                         (void*)&AMSRICHIdSoft::_gain_mode_boundary[0],server));
+
+
+  TID.add (new AMSTimeID(AMSID("RichStatusCalib",isRealData()),
+                         begin,end,AMSRICHIdSoft::_nchannels
+                         *sizeof(AMSRICHIdSoft::_status[0]),
+                         (void*)&AMSRICHIdSoft::_status[0],server));
+
+
+}
+
+
+
+
+//------------------------------------------
 //
 //   ECAL : TDV-reservation for calibration parameters of all PM's:
 //

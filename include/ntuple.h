@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.56 2002/07/16 05:57:38 kscholbe Exp $
+//  $Id: ntuple.h,v 1.57 2002/07/17 10:48:48 delgadom Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -606,6 +606,7 @@ public:
   int Nhits;
   int channel[MAXRICHITS];
   int adc[MAXRICHITS];
+  float npe[MAXRICHITS];
   float x[MAXRICHITS];
   float y[MAXRICHITS];
   integer status[MAXRICHITS];
@@ -623,7 +624,7 @@ public:
   float beta[MAXRICHRIN];
   float errorbeta[MAXRICHRIN];
   float quality[MAXRICHRIN];
-  int Z[MAXRICHRIN];
+  int status[MAXRICHRIN];
 
 
 friend class AMSRichRing;

@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.29 2002/07/03 10:31:08 delgadom Exp $
+//  $Id: richdbc.C,v 1.30 2002/07/17 10:47:04 delgadom Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -143,7 +143,13 @@ geant RICHDB::sigma_ped=0.5335; // January 11 1999
 geant RICHDB::peak=23.04;
 geant RICHDB::sigma_peak=12.10;
 geant RICHDB::c_ped=2.;           // N od ADC counts for detection threshold
-geant RICHDB::prob_noisy=1-FREQ(RICHDB::c_ped/RICHDB::sigma_ped);
+//geant RICHDB::prob_noisy=1-FREQ(RICHDB::c_ped/RICHDB::sigma_ped);
+
+// Measure in the prototype
+geant RICHDB::prob_noisy=8.e-5;
+geant RICHDB::prob_dark=4.e-5;   
+
+
 
 
 // Some counters

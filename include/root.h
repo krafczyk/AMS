@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.64 2002/07/03 10:31:48 delgadom Exp $
+//  $Id: root.h,v 1.65 2002/07/17 10:49:04 delgadom Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -739,6 +739,7 @@ class RICEventRoot : public TObject {
 public:
   int   _channel;
   int   _counts;
+  float _npe;
   unsigned int _status;
   float _x;
   float _y;
@@ -756,7 +757,7 @@ public:
   float beta;
   float errorbeta;
   float quality;
-  int   Z;
+  unsigned int status;
   TRef  fTrack;
 
   RICRingRoot();

@@ -1,11 +1,10 @@
-//  $Id: richrec.h,v 1.13 2002/07/03 10:31:46 delgadom Exp $
+//  $Id: richrec.h,v 1.14 2002/07/17 10:49:01 delgadom Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
 #include <richdbc.h>
 #include <iostream>
-// Define Safe if you want to use safe arrays (under construction)
-//#define __SAFE__
+#include <richid.h>
 
 
 PROTOCCALLSFSUB6(SOLVE,solve,FLOAT,FLOAT,FLOAT,FLOAT,FLOATV,INT)
@@ -48,6 +47,7 @@ public:
 typedef safe_array<geant,3> geant_small_array;
 typedef safe_array<integer,3> integer_small_array;
 
+
 /////////////////////////////////////////////
 //         Container for hits              //
 /////////////////////////////////////////////
@@ -61,22 +61,22 @@ private:
 
 	 
 public:
-  AMSRichRawEvent(integer channel,integer counts):AMSlink(),
-    _channel(channel),_counts(counts),_status(0){};
+  AMSRichRawEvent(integer channel,integer counts,uinteger status=0):AMSlink(),
+    _channel(channel),_counts(counts),_status(status){};
   ~AMSRichRawEvent(){};
   AMSRichRawEvent * next(){return (AMSRichRawEvent*)_next;}
 
   integer getchannel() const {return _channel;}
   integer getcounts() {return _counts;}
+  geant getnpe(){ 
+    AMSRICHIdSoft calibration(_channel);
+    return _counts/calibration.getgain(_status&gain_mode?1:0);
+  }
 
   static void mc_build();
   void reconstruct(AMSPoint,AMSPoint,AMSDir,AMSDir,geant,
 		   geant,
-#ifdef __SAFE__
-                   geant_small_array &);
-#else
                    geant *);
-#endif
 
   integer reflexo(AMSPoint origin,AMSPoint *ref_point);
   geant inline dist(AMSPoint punto,AMSPoint plane){
@@ -91,7 +91,7 @@ public:
   }
 
   void inline setbit(int bit_number){_status|=1<<bit_number;}
-  void inline unsetbit(int bit_number){_status&=1<<bit_number;}
+  void inline unsetbit(int bit_number){_status&=~(1<<bit_number);}
 
   integer inline getbit(int bit_number){return (_status&(1<<bit_number))>>bit_number;}
 
@@ -126,10 +126,10 @@ private:
   AMSTrTrack* _ptrack;
   integer _used;
   integer _mused;
-  integer _charge;
+  uinteger _status;
   number  _beta;
   number  _errorbeta;
-  number  _quality; //probability per hit for the cluster
+  number  _quality;
 
 // A parametrisation
   static inline geant Sigma(geant beta,geant A,geant B){
@@ -137,11 +137,7 @@ private:
     }
 
   static inline integer closest(geant beta,
-#ifdef __SAFE__
-                                geant_small_array betas){
-#else
                                 geant *betas){
-#endif
 
     geant a=fabs(beta-betas[0]);
     geant b=fabs(beta-betas[1]);
@@ -156,16 +152,17 @@ protected:
   void _copyEl();
   void CalcBetaError();
 public:
-  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,int charge):AMSlink(),
-   _ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_charge(charge){CalcBetaError();};
+  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,uinteger status=0):AMSlink(),
+   _ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_status(status){CalcBetaError();};
   ~AMSRichRing(){};
   AMSRichRing * next(){return (AMSRichRing*)_next;}
 
   static void build();
+  static void build(AMSTrTrack *track,int cleanup=1);
   static void rebuild(AMSTrTrack *ptrack);
   AMSTrTrack* gettrack(){return _ptrack;}
   integer getused(){return _used;}
-  integer getcharge(){return _charge;}
+  integer getstatus(){return _status;}
   number getbeta(){return _beta;}
   number geterrorbeta(){return _errorbeta;}
   number getquality(){return _quality;}
@@ -176,6 +173,7 @@ friend class RICRingRoot;
 
 
 #endif
+
 
 
 
