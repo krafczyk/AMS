@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.17 2002/09/04 09:11:12 choumilo Exp $
+//  $Id: tofrec02.C,v 1.18 2002/11/19 17:15:29 alexei Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -1193,9 +1193,31 @@ void TOF2RawCluster::_printEl(ostream & stream){
 
 
 void AMSTOFCluster::_writeEl(){
+
+  // p2memb for Root
   if(AMSTOFCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
 #ifdef __WRITEROOTCLONES__
-    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+    int p2memb[3];
+    for (int i=0; i<3; i++) {p2memb[i] =0;}
+
+    if(TOF2RawCluster::Out(IOPA.WriteAll%10==1)){//WriteAll
+      for(int i=0;i<_nmemb;i++) {
+        p2memb[i]=_mptr[i]->getpos();
+      }
+    }
+    else{// Used
+      integer mpos;
+      TOF2RawCluster *ptr;
+      for(int i=0;i<_nmemb;i++) {
+        mpos=_mptr[i]->getpos();
+	ptr=(TOF2RawCluster*)AMSEvent::gethead()->getheadC("TOF2RawCluster",0);
+        for(int j=0;j<mpos;j++){
+          if(ptr && ptr->checkstatus(AMSDBc::USED)) p2memb[i]++;
+          ptr=ptr->next();
+        }
+      }
+    }
+    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this,p2memb);
 #endif
   TOFClusterNtuple* TN = AMSJob::gethead()->getntuple()->Get_tof();
 

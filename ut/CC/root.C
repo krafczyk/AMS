@@ -1,4 +1,8 @@
-//  $Id: root.C,v 1.27 2002/11/19 15:54:47 choutko Exp $
+//  $Id: root.C,v 1.28 2002/11/19 17:15:29 alexei Exp $
+//  Last Edit : Nov 19, 2002. A.Klimentov
+//              check Root classes
+//              ? TrGammaRoot02 - commented
+//
 #include <root.h>
 #include <ntuple.h>
 #include <antirec02.h>
@@ -14,6 +18,8 @@
 #include <trigger302.h>
 #include <trrawcluster.h>
 #include <trrec.h>
+//-- #include <gamma.h>
+
 #ifdef __WRITEROOT__
 
 ClassImp(AMSEventHeaderRoot)
@@ -37,7 +43,7 @@ ClassImp(TRDSegmentRoot)
 ClassImp(TRDTrackRoot)
 ClassImp(TrRecHitRoot02)
 ClassImp(TrTrackRoot02)
-//ClassImp(TrGammaRoot02)
+//-- ClassImp(TrGammaRoot02)
 ClassImp(MCTrackRoot)
 ClassImp(MCEventGRoot02)
 ClassImp(AntiClusterRoot)
@@ -162,7 +168,16 @@ EcalClusterRoot::EcalClusterRoot(Ecal1DCluster *ptr)
   fEcalHit = new TRefArray;
 }
 
-EcalShowerRoot::EcalShowerRoot() {};
+EcalShowerRoot::~EcalShowerRoot()
+{
+  if (fEcal2DCluster) {
+    delete fEcal2DCluster;
+  }
+  fEcal2DCluster=0;
+}
+EcalShowerRoot::EcalShowerRoot() {   
+fEcal2DCluster = new TRefArray;
+};
 EcalShowerRoot::EcalShowerRoot(EcalShower *ptr)
 {
   Status      = ptr->_status;
@@ -185,13 +200,18 @@ EcalShowerRoot::EcalShowerRoot(EcalShower *ptr)
   SideLeak    = ptr->_SideLeak;
   RearLeak    = ptr->_RearLeak;
   DeadLeak    = ptr->_DeadLeak;
+  AttLeak     = ptr->_AttLeak;
   OrpLeak     = ptr->_OrpLeak;
   Orp2DEnergy = ptr->_Orp2DEnergy;
   Chi2Profile = ptr->_ProfilePar[4+ptr->_Direction*5];
   for (int i=0; i<4; i++) ParProfile[i] = ptr->_ProfilePar[i+ptr->_Direction*5];
   Chi2Trans = ptr->_TransFitChi2;
   for (int i=0; i<3; i++) SphericityEV[i] = ptr->_SphericityEV[i];
-  for (int i=0; i<2; i++) p2DCl[i]      =   ptr->_pCl[i]->getpos();
+
+  N2dCl       = ptr->_N2dCl;
+
+  fEcal2DCluster = new TRefArray;
+
 }
 
 LVL1Root02::LVL1Root02(){};
@@ -319,18 +339,23 @@ ParticleRoot02::ParticleRoot02(AMSParticle *ptr, float phi, float phigl)
   for (int i=0; i<2; i++) {RichPath[i] = ptr->_RichPath[i];
                            RichPathBeta[i] = ptr->_RichPathBeta[i];}
   RichLength = ptr->_RichLength;
+
+  TRDLikelihood = ptr->_TRDLikelihood;
 }
 
 
 
 
 TOFClusterRoot::TOFClusterRoot() {};
-TOFClusterRoot::TOFClusterRoot(AMSTOFCluster *ptr)
+TOFClusterRoot::TOFClusterRoot(AMSTOFCluster *ptr, int p2memb[])
 {
   Status = ptr->_status;
   Layer  = ptr->_ntof;
   Bar    = ptr->_plane;
   Nmemb  = ptr->_nmemb;
+  for (int i=0; i<3; i++) {
+    P2memb[i] = p2memb[i];
+  }
   Edep   = ptr->_edep;
   Edepd  = ptr->_edepd;
   Time   = ptr->_time;
@@ -582,6 +607,10 @@ RICRingRoot::RICRingRoot(AMSRichRing *ptr)
     collected_npe= ptr->_collected_npe;
     npexp     = ptr->_npexp;
     probkl    = ptr->_probkl;
+   
+    npexpg    = ptr->_npexpg;
+    npexpr    = ptr->_npexpr;
+    npexpb    = ptr->_npexpb;
 
   } else {
     cout<<"RICRingRoot -E- AMSRichRing ptr is NULL"<<endl;
@@ -606,7 +635,18 @@ EcalHitRoot::EcalHitRoot(AMSEcalHit *ptr)
     Coo[1]= ptr->_cool;
   }
   Coo[2]  = ptr->_cooz;
-   AMSECIdSoft ic(ptr->getid());
+
+  AttCor  = ptr->_attcor;
+  AMSECIdSoft ic(ptr->getid());
+  ADC[0] = ptr->_adc[0];
+  ADC[1] = ptr->_adc[1]*ic.gethi2lowr();
+  ADC[2] = ptr->_adc[2]*ic.getan2dyr();
+
+  Ped[0] = ic.getped(0);
+  Ped[1] = ic.getped(1);
+  Ped[2] = ic.getpedd();
+  Gain   = ic.getgain();
+
 }
 
 
@@ -646,6 +686,52 @@ void AMSEventHeaderRoot::Set(AMSEvent *ptr, int rawwords)
 
   }
 }
+
+/*
+TrGammaRoot02::TrGammaRoot02() {
+  fTrTrack = new TRefArray;
+}
+TrGammaRoot02::~TrGammaRoot02() {
+ if (fTrTrack) delete fTrTrack;
+ fTrTrack=0;
+}
+
+TrGammaRoot02::TrGammaRoot02(AMSTrTrackGamma *ptr)
+{
+  Pgam     =  ptr->_PGAMM;
+  ErrPgam  =  ptr->_ErrPGAMM;
+  Massgam  =  ptr->_MGAM;
+  Thetagam =  ptr->_PhTheta;
+  Phigam   =  ptr->_PhPhi;
+
+  for(int i=0;i<3;i++) {
+     Vert[i]= ptr->_Vertex[i];
+  }
+  Distance    = ptr->_TrackDistance;
+  Charge      = ptr->_Charge;
+
+  GammaStatus = ptr->_status;
+
+
+  PtrLeft = -1;
+  if(ptr->_pntTrL->checkstatus(AMSDBc::NOTRACK)) {PtrLeft = -1;}
+  if(ptr->_pntTrL->checkstatus(AMSDBc::GAMMALEFT)) {
+    PtrLeft = ptr->_pntTrL->getpos();}
+  PtrRight = -1;
+  if(ptr->_pntTrR->checkstatus(AMSDBc::NOTRACK)) {PtrRight = -1;}
+  if(ptr->_pntTrR->checkstatus(AMSDBc::GAMMARIGHT))   {
+    PtrRight = ptr->_pntTrR->getpos();
+  }
+  Jthetal = (geant)ptr->_GThetaMSL;
+  Jphil   = (geant)ptr->_GPhiMSL;
+  Jthetar = (geant)ptr->_GThetaMSR;
+  Jphir   = (geant)ptr->_GPhiMSR;
+  for(int i=0;i<3;i++) {Jp0l[i] = (geant)ptr->_GP0MSL[i];}
+  for(int i=0;i<3;i++) {Jp0r[i] = (geant)ptr->_GP0MSR[i];}
+
+  fTrTrack = new TRefArray;
+}
+*/
 
 //------------- AddAMSObject 
 void EventRoot02::AddAMSObject(AMSAntiCluster *ptr)
@@ -848,12 +934,12 @@ void EventRoot02::AddAMSObject(TriggerLVL302 *ptr)
   }
 }
 
-void EventRoot02::AddAMSObject(AMSTOFCluster *ptr)
+void EventRoot02::AddAMSObject(AMSTOFCluster *ptr, int p2memb[])
 {
   if (ptr) {
     if (fTOFcluster) {
    TClonesArray &clones =  *fTOFcluster;
-   ptr->SetClonePointer(new (clones[fTOFcluster->GetLast()+1]) TOFClusterRoot(ptr));
+   ptr->SetClonePointer(new (clones[fTOFcluster->GetLast()+1]) TOFClusterRoot(ptr,p2memb));
     }
   }  else {
    cout<<"AddAMSObject -E- AMSTOFCluster ptr is NULL"<<endl;
@@ -994,6 +1080,20 @@ void EventRoot02::AddAMSObject(AMSTrRecHit *ptr)
    cout<<"AddAMSObject -E- AMSTrRecHit ptr is NULL"<<endl;
   }
 }
+
+/*
+void EventRoot02::AddAMSObject(AMSTrTrackGamma *ptr)
+{
+  if (ptr) {
+    if (fTrTrack) {
+   TClonesArray &clones =  *fTrTrack;
+   ptr->SetClonePointer(new (clones[fTRtrack->GetLast()+1]) TrGammaRoot02(ptr));
+    }
+  }  else {
+   cout<<"AddAMSObject -E- AMSTrTrackGamma ptr is NULL"<<endl;
+  }
+}
+*/
 
 void EventRoot02::AddAMSObject(AMSTrTrack *ptr)
 {

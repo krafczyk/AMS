@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.121 2002/11/19 13:55:42 choutko Exp $
+//  $Id: ntuple.C,v 1.122 2002/11/19 17:15:28 alexei Exp $
 //
 //  May 2002, A.Klimentov add Root related part
 //                        NB : Delete() should be used before Expand()
@@ -248,7 +248,7 @@ void AMSNtuple::clearClones()
     if (_evroot02.fTrMCCluster)    _evroot02.fTrMCCluster -> Clear();
     if (_evroot02.fTrRawCluster)   _evroot02.fTrRawCluster -> Clear();
     if (_evroot02.fTRrechit)       _evroot02.fTRrechit -> Clear();
-    if (_evroot02.fTrGamma)        _evroot02.fTrGamma -> Clear();
+    //--    if (_evroot02.fTrGamma)        _evroot02.fTrGamma -> Clear();
     if (_evroot02.fTRtrack)        _evroot02.fTRtrack -> Clear();
    }
 #endif
@@ -290,7 +290,7 @@ void AMSNtuple::deleteClones()
     if (_evroot02.fTrMCCluster)    _evroot02.fTrMCCluster   -> Delete();
     if (_evroot02.fTrRawCluster)   _evroot02.fTrRawCluster  -> Delete();
     if (_evroot02.fTRrechit)       _evroot02.fTRrechit      -> Delete();
-    if (_evroot02.fTrGamma)        _evroot02.fTrGamma       -> Delete();
+    //--    if (_evroot02.fTrGamma)        _evroot02.fTrGamma       -> Delete();
     if (_evroot02.fTRtrack)        _evroot02.fTRtrack       -> Delete();
    }
 #endif
@@ -344,7 +344,7 @@ void AMSNtuple::expandClones()
     if (_evroot02.fTRDtrack)       _evroot02.fTRDtrack         -> Expand(MAXTRDTRK);
     if (_evroot02.fTrMCCluster)    _evroot02.fTrMCCluster      -> Expand(MAXTRCLMC);
     if (_evroot02.fTRrechit)       _evroot02.fTRrechit         -> Expand(MAXTRRH02);
-    if (_evroot02.fTrGamma)        _evroot02.fTrGamma          -> Expand(MAXPAIR02);
+    //--    if (_evroot02.fTrGamma)        _evroot02.fTrGamma          -> Expand(MAXPAIR02);
     if (_evroot02.fTRtrack)        _evroot02.fTRtrack          -> Expand(MAXTRTR02);
     if (_evroot02.fTrRawCluster)   _evroot02.fTrRawCluster     -> Expand(MAXTRRAW);
     if (_evroot02.fTOFRawCluster)  _evroot02.fTOFRawCluster    -> Expand(MAXTOFRAW);
@@ -392,7 +392,7 @@ void AMSNtuple::createClones()
     if (!_evroot02.fTrCluster)      _evroot02.fTrCluster     = new TClonesArray("TrClusterRoot",MAXTRCL);
     if (!_evroot02.fTrMCCluster)    _evroot02.fTrMCCluster   = new TClonesArray("TrMCClusterRoot",MAXTRCLMC);
     if (!_evroot02.fTRrechit)       _evroot02.fTRrechit      = new TClonesArray("TrRecHitRoot02",MAXTRRH02);
-    if (!_evroot02.fTrGamma)        _evroot02.fTrGamma       = new TClonesArray("TrGammaRoot02",MAXPAIR02);
+    //--    if (!_evroot02.fTrGamma)        _evroot02.fTrGamma       = new TClonesArray("TrGammaRoot02",MAXPAIR02);
     if (!_evroot02.fTRtrack)        _evroot02.fTRtrack       = new TClonesArray("TrTrackRoot02",MAXTRTR02);
     if (!_evroot02.fTrRawCluster)   _evroot02.fTrRawCluster  = new TClonesArray("TrRawClusterRoot",MAXTRRAW);
   }

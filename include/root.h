@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.69 2002/11/19 15:54:56 choutko Exp $
+//  $Id: root.h,v 1.70 2002/11/19 17:15:36 alexei Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -119,7 +119,7 @@ public:
   TClonesArray *fTRDsegment;
   TClonesArray *fTRDtrack;
   TClonesArray *fTRrechit;
-  TClonesArray *fTrGamma;
+  //--  TClonesArray *fTrGamma;
   TClonesArray *fTRtrack;
   TClonesArray *fMCtrtrack;
   TClonesArray *fMCeventg;
@@ -133,6 +133,7 @@ public:
   TClonesArray *fRICMC;
   TClonesArray *fRICEvent;
   TClonesArray *fRICRing;
+  TClonesArray *fTrTrack; //gamma
 
 
 EventRoot02() {};
@@ -151,7 +152,7 @@ void         AddAMSObject(AMSParticle *ptr, float phi, float phigl);
 void         AddAMSObject(AMSRichMCHit *ptr, int numgen);
 void         AddAMSObject(AMSRichRing *ptr);
 void         AddAMSObject(AMSRichRawEvent *ptr, float x, float y);
-void         AddAMSObject(AMSTOFCluster *ptr);
+void         AddAMSObject(AMSTOFCluster *ptr, int p2memb[]);
 void         AddAMSObject(AMSTOFMCCluster *ptr);
 void         AddAMSObject(AMSTrRecHit *ptr);
 void         AddAMSObject(AMSTRDCluster *ptr);
@@ -250,6 +251,7 @@ public:
   float RichPathBeta[2];
   float RichLength;
   float Local[8];
+  float TRDLikelihood;
 
   TRef  fBeta;
   TRef  fCharge;
@@ -271,6 +273,7 @@ public:
   int Layer;
   int Bar;
   int Nmemb;
+  int P2memb[3];
   float Edep;
   float Edepd;
   float Time;
@@ -280,7 +283,7 @@ public:
 
   TOFClusterRoot();
   ~TOFClusterRoot(){};
-  TOFClusterRoot(AMSTOFCluster *ptr);
+  TOFClusterRoot(AMSTOFCluster *ptr, int p2mem[]);
 
 ClassDef(TOFClusterRoot,1)       //TOFClusterRoot
 };
@@ -303,6 +306,7 @@ public:
   float SideLeak;
   float RearLeak;
   float DeadLeak;
+  float AttLeak;
   float OrpLeak;
   float Orp2DEnergy;
   float Chi2Profile;
@@ -310,10 +314,12 @@ public:
   float Chi2Trans;
 //  float TransProfile[3];
   float SphericityEV[3];
-  int   p2DCl[2];
+  int   N2dCl;
+
+  TRefArray *fEcal2DCluster;
 
   EcalShowerRoot();
-  ~EcalShowerRoot(){};
+  ~EcalShowerRoot();
   EcalShowerRoot(EcalShower *ptr);
 
 ClassDef(EcalShowerRoot,1)       //EcalShowerRoot
@@ -352,7 +358,7 @@ public:
   float Edep;
   float Coo;
   float Tan;
- float Chi2;
+  float Chi2;
 
   TRefArray *fEcal1DCluster;
 
@@ -370,8 +376,11 @@ public:
   int   Plane;
   int   Cell;
   float Edep;
+  float AttCor;
   float Coo[3];
-
+  float ADC[3];
+  float Ped[3];
+  float Gain;
   EcalHitRoot();
   ~EcalHitRoot(){};
   EcalHitRoot(AMSEcalHit *ptr);
@@ -540,14 +549,17 @@ ClassDef(TrRecHitRoot02,1)       //TrRecHitRoot02
 /*
 class TrGammaRoot02 : public TObject {
 public:
-  int Ngam;
   float Pgam;
+  float ErrPgam;
   float Thetagam;
   float Phigam;
+  float Massgam;
   float Vert[3];
-  int GammaStatus;
-  int PtrLeft;
-  int PtrRight;
+  float Distance;
+  int   Charge;
+  int   GammaStatus;
+  int   PtrLeft;
+  int   PtrRight;
   float Jthetal;
   float Jphil;
   float Jthetar;
@@ -556,6 +568,7 @@ public:
   float Jp0r[3];
 
   TRefArray *fTrTrack;
+
   TrGammaRoot02();
   ~TrGammaRoot02();
   TrGammaRoot02(AMSTrTrackGamma *ptr);
@@ -782,6 +795,7 @@ ClassDef(RICEventRoot,1)       // RICEventRoot
 
 class RICRingRoot : public TObject {
 public:
+
   int   used;
   int   mused;
   float beta;
@@ -792,6 +806,11 @@ public:
   float probkl;
   float npexp;
   float collected_npe;
+
+  float npexpg;
+  float npexpr;
+  float npexpb;
+
   TRef  fTrack;
 
   RICRingRoot();
