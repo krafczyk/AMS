@@ -759,7 +759,7 @@ void AMSTrCluster::_writeEl(){
   // fill the ntuple 
 static integer init=0;
 static TrClusterNtuple TrN;
-if(AMSTrCluster::Out( IOPA.WriteAll ||  checkstatus(AMSTrRecHit::AwayTOF ))){
+if(AMSTrCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"TrCluste",TrN.getaddress(),
@@ -1007,7 +1007,6 @@ integer AMSTrRecHit::markAwayTOFHits(){
 // Mark AMSTrRecHits which are outside the TOF path
     AMSTrRecHit * ptrhit;
     AMSPoint hit;
-    AMSTrCluster* pclus;
     for (i=0;i<6;i++) {
       for (ptrhit=AMSTrRecHit::gethead(i); ptrhit!=NULL; ptrhit=ptrhit->next()){
         hit = ptrhit->getHit();
@@ -1016,10 +1015,6 @@ integer AMSTrRecHit::markAwayTOFHits(){
         if (    xres > TRFITFFKEY.SearchRegTOF
              || yres > TRFITFFKEY.SearchRegTOF    ) {
           ptrhit->setstatus(AMSTrRecHit::AwayTOF);
-          pclus = ptrhit->getClusterP(0);
-          if (pclus) pclus->setstatus(AMSTrRecHit::AwayTOF);
-          pclus = ptrhit->getClusterP(1);
-          if (pclus) pclus->setstatus(AMSTrRecHit::AwayTOF);
         }
       }
     }
@@ -1050,7 +1045,7 @@ void AMSTrRecHit::_writeEl(){
 static integer init=0;
 static TrRecHitNtuple THN;
 int i;
-if(AMSTrRecHit::Out( IOPA.WriteAll || checkstatus(AMSTrRecHit::AwayTOF)==0)){
+if(AMSTrRecHit::Out( IOPA.WriteAll || checkstatus(AMSDBc::USED ))){
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"TrRecHit",THN.getaddress(),
@@ -1063,7 +1058,7 @@ if(init++==0){
   THN.pY=_Ycl->getpos();
    int i,pat;
     pat=1;
-    if(AMSTrCluster::Out(IOPA.WriteAll)){
+    if(AMSTrCluster::Out(IOPA.WriteAll    )){
       // Writeall
       for(i=0;i<pat;i++){
         AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrCluster",i);
@@ -1074,10 +1069,10 @@ if(init++==0){
       }
     }                                                        
     else {
-    //Write Hits not Away from TOF Only
+    //WriteUsedOnly
       for(i=0;i<pat;i++){
         AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
-          while (ptr && ptr->checkstatus(AMSTrRecHit::AwayTOF)==0) {
+          while(ptr && ptr->checkstatus(AMSDBc::USED)){
             THN.pY++;
             ptr=ptr->next();
           }
