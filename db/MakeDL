@@ -137,6 +137,8 @@ INCLUDES = -I$(INC_DIR) -I$(INC_DDL) -I$(INC_AMS) -I$(INC_STL)
 LMS_OBJS		=   $(BIN_DB)deleteList.o \
                             $(BIN_DB)list.o \
                             $(BIN_DB)list_ddl.o \
+                            $(BIN_DB)dbcatalog.o \
+                            $(BIN_DB)dbcatalog_ddl.o \
                             $(BIN_DB)dbevent.o \
                             $(BIN_DB)dbevent_ddl.o \
                             $(BIN_DB)ooSession.o \

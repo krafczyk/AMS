@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include <daqevt.h>
 #include <event.h>
 #include <commons.h>
@@ -340,3 +342,68 @@ if(_pData){
 }
 return _pData != NULL ;
 }
+
+
+//+
+
+uint16  DAQEvent::sdetlength(uint16 sdetid) {
+  enum {block_offset = 3};
+  integer offset = block_offset;
+  uint16 id;
+  uint16 l;
+  for (;;) {
+   id = _pData[offset];
+   l  = _pData[offset - 1];
+   if (id == sdetid) return l;
+   offset = offset  + l + 1;
+   if (offset > eventlength()) break;
+  }
+  return -1;
+}  
+
+integer DAQEvent::sdet(uint16 sdetid) {
+  enum {block_offset = 3};
+  integer offset = block_offset;
+  uint16 id;
+  uint16 l;
+  for (;;) {
+   id = _pData[offset];
+   l  = _pData[offset-1];
+   if (id == sdetid) return offset;
+   offset = offset  + l + 1;
+   if (offset > eventlength()) break;
+  }
+  return -1;
+}  
+
+void DAQEvent::dump(uint16 sdetid) {
+// dump event
+// if sdetid == -1 dump whole event
+//
+  cout<<"run, event, length "<<runno()<<", "<<eventno()<<", "<<eventlength()
+      <<endl;
+  enum {block_offset = 3};
+  integer offset = block_offset;
+  uint16  id;
+  integer l;
+  for (;;) {
+   id = _pData[offset];
+   l  = _pData[offset - 1];
+   if (id == sdetid || sdetid == 0) {
+    printf("sub.detector id... %#x, length... %d\n ",id,l);
+    if (l > 0) {
+     for (int i = 1; i < l-1; i++) {
+      cout<<*((uint16*)(_pData + offset + i))<<" ";
+     }
+     cout<<endl;
+    } else {
+      cout<<"Error : invalid length. Quit"<<endl;
+      return;
+    }
+    offset = offset  + l + 1;
+    if (offset > eventlength()) break;
+   }
+  }
+}  
+//-  
+

@@ -48,6 +48,8 @@ void EventList::setlistname (char* listname)
     } else {
     _listName = listname;
     }
+  } else {
+    Warning("setlistname : invalid list name");
   }
 }
 
@@ -61,7 +63,10 @@ void EventList::setsetupname (char* setup)
     } else {
      _setupName = setup;
     }
+  } else {
+    Warning("setsetupname : invalid setup name");
   }
+
 }
 
 ooStatus EventList::CheckContainer(char* name, ooMode mode, 

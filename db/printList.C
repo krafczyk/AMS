@@ -131,8 +131,10 @@ int main(int argc, char** argv)
 
  // get TagDB pathname
  cptr = getenv("AMS_TagDB_Path");
- if ( cptr ) AMSdbs::pathNameTab[0] = strdup(cptr);
- cout<<"ClusteringInit: TagDB path name "<<AMSdbs::pathNameTab[0]<<endl;
+ if ( cptr ) 
+   cout<<"ClusteringInit: TagDB path name "<<cptr<<endl;
+ else
+  cout<<"ClusteringInit: TagDB path name "<<AMSdbs::pathNameTab[dbtag]<<endl;
 
  integer ntagdbs = dbTabH -> size(dbtag);
 

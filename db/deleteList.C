@@ -12,9 +12,11 @@
 #include <ooSession.h>
 #include <rd45.h>
 
+#include <dbcatalog_ref.h>
 #include <dbevent_ref.h>
 #include <list_ref.h>
 
+#include <dbcatalog.h>
 #include <dbevent.h>
 #include <list.h>
 
@@ -68,6 +70,8 @@ void LMS::Commit()
       Fatal("could not commit transaction");
 }
 
+implement (ooVArray, ooRef(ooDBObj))
+
 int main(int argc, char** argv)
 {
  char*                  dbase = "MCEvents";
@@ -80,14 +84,20 @@ int main(int argc, char** argv)
  LMS                    lms;
  ooHandle(ooFDObj)      fdbH;
  ooHandle(ooDBObj)      dbH;
+ ooHandle(ooDBObj)      catdbH;
  ooHandle(ooDBObj)      tagdbH;
  ooHandle(ooContObj)    contH;
  ooHandle(EventList)    listH;
-
+ ooHandle(AMSdbs)       dbTabH;
+ ooItr(AMSdbs)          dbTabItr;
+ 
+ char*                  contName = NULL;
+ char*                  tagName  = NULL;
  char*                  listName = NULL;
- char*                  dbaseName = NULL;
  char*                  yesno = NULL;
 
+ int                    i, j;
+ int                    ndbs;
 
  ooItr(EventList)       listItr;
  ooItr(dbEvent)         eventItr;
@@ -99,26 +109,35 @@ int main(int argc, char** argv)
  cout<<" "<<endl;
  listName = PromptForValue("Enter List Name: ");
  if(!listName) Fatal ("listName is NULL");
- dbaseName = PromptForValue("Enter database name ");
- if(!dbaseName) dbaseName = StrDup("EventTag"); 
 
- cout<<"DeleteList : delete will be done for list "<<listName<<" in dbase "
-     <<dbaseName<<endl;
+ cout<<"DeleteList : delete will be done for list "<<listName<<endl;
 
  lms.Init(oocRead, oocMROW);
  lms.StartRead(oocMROW);
  fdbH = lms.fd();
  if (fdbH == NULL)  Fatal ("Pointer to federated dbase is NULL");
- tagdbH = lms.db("EventTag");
- if (!tagdbH) Fatal ("Pointer to selected dbase is NULL");
- dbH = lms.db(dbaseName);
- int dmode = 0;
- if (strstr("EventTag",dbaseName)) dmode = -1;
- if (!dbH) Fatal ("Pointer to selected dbase is NULL");
 
- if (contH.exist(tagdbH, listName, oocRead)) goto deleteList;
+ //db's catalog
+ catdbH = lms.db("DbList");
+ if (!contH.exist(catdbH, "DbCatalog", oocRead))
+            Fatal("DbCatalog does not exist. Check DbList database");
+ dbTabItr.scan(contH, oocRead);
+   if (dbTabItr.next()) 
+     dbTabH = dbTabItr;
+   else 
+     Fatal("DbCatalog is empty. Check DbList database");
+
+  integer ntagdbs = dbTabH -> size(dbtag);
+  if (ntagdbs < 1) Fatal("There is no tag databases");
+
+  tagName = StrCat("Events_",listName);
+  for (i = 0; i<ntagdbs; i++) {
+   tagdbH = dbTabH -> getDB(dbtag,i);
+   if (!tagdbH) Fatal ("Pointer to selected dbase is NULL");
+   if (contH.exist(tagdbH, tagName, oocRead)) goto deleteList;
+  }
   cout<<"DeleteList : cannot find list "<<listName<<endl;
-  yesno = PromptForValue("Do you want to search by substring ");
+   yesno = PromptForValue("Do you want to search by substring ");
   if (yesno) { 
     if (strstr("No",yesno) || strstr("NO",yesno) || strstr("no", yesno)) {
      lms.Abort();
@@ -130,51 +149,38 @@ int main(int argc, char** argv)
   }
 
   if (yesno) delete [] yesno;
-  cout<<"DeleteList : search for "<<listName<<" substring"<<endl;
-  rstatus = listItr.scan(tagdbH, oocNoOpen);
-  if (rstatus != oocSuccess) Fatal("Scan failed");
-   while (listItr.next()) {
-    cout<<" "<<endl;
-    if (listItr -> CheckListSstring(listName)) {
-     listItr -> printListHeader();
-     yesno = PromptForValue("Do you want to delete this list ? ");
-     if (yesno) { 
-      if (strstr("No",yesno) || strstr("NO",yesno) || strstr("no", yesno)) {
-      } else {
-       listH = listItr;
-       if (listName) delete [] listName;
-       listName = StrDup(listItr -> ListName());
-       goto deleteList;
-      }
-     }
+  cout<<"search for "<<listName<<" substring"<<endl;
+  for (j = 0; j<ntagdbs; j++) {
+   tagdbH = dbTabH -> getDB(dbtag,j);
+    rstatus = listItr.scan(tagdbH, oocNoOpen);
+   if (rstatus != oocSuccess) Fatal("Scan failed");
+    while (listItr.next()) {
+     cout<<" "<<endl;
+     if (listItr -> CheckListSstring(listName)) listItr -> printListHeader();
     }
-   }
-  
+  }
    goto end;
 //
 deleteList:
-   char*  contName;
-   int    i;
 
    lms.Commit();
    lms.StartUpdate();
-   if (dmode == 0) {
-    rstatus = listItr.scan(dbH, oocUpdate);
-    if (rstatus != oocSuccess) Fatal("Scan failed");
-    while (listItr.next()) {
-     if (listItr -> CheckListSstring(listName)) {
-      listH = listItr;
-      ooDelete(listH);
-     }
-    }
-   } else {
-    if (dbH.exist(fdbH,"EventTag",oocUpdate)){
-     contName =  StrDup(listName);
-     if (contH.exist(dbH, contName, oocUpdate)) ooDelete(contH);
-     delete [] contName;
-    }
+   
+   if (contH.exist(tagdbH, tagName, oocUpdate)) ooDelete(contH);
+   delete [] tagName;
 
-     if (dbH.exist(fdbH,"MCEvents",oocUpdate)){
+mcdbase:
+  ndbs = dbTabH -> size(dbsim);
+  if (ndbs < 1) {
+    Message("There are no MC databases");
+    goto rawdbase;
+  }
+  for (i = 0; i<ndbs; i++) {
+   dbH = dbTabH -> getDB(dbsim,i);
+      contName =  StrCat("Events_",listName);
+      if (contH.exist(dbH, contName, oocUpdate)) ooDelete(contH);
+      if (contName) delete [] contName;
+
       contName =  StrCat("mceventg_",listName);
       if (contH.exist(dbH, contName, oocUpdate)) ooDelete(contH);
       if (contName) delete [] contName;
@@ -198,16 +204,35 @@ deleteList:
      contName =  StrDup(listName);
      if (contH.exist(dbH, contName, oocUpdate)) ooDelete(contH);
      delete [] contName;
+  }
 
-     }
-
-   if (dbH.exist(fdbH,"RawEvents",oocUpdate)){
-    contName =  StrDup(listName);
+rawdbase:
+  ndbs = dbTabH -> size(dbraw);
+  if (ndbs < 1) {
+    Message("There are no Raw databases");
+    goto recodbase;
+  }
+  contName =  StrCat("Events_",listName);
+  for (i = 0; i<ndbs; i++) {
+   dbH = dbTabH -> getDB(dbraw,i);
     if (contH.exist(dbH, contName, oocUpdate)) ooDelete(contH);
-    delete [] contName;
    }
+   delete [] contName;
+  
+recodbase:
+  ndbs = dbTabH -> size(dbrec);
+  if (ndbs < 1) {
+    Message("There are no Rec databases");
+    goto end;
+  }
 
-   if (dbH.exist(fdbH,"RecoEvents",oocUpdate)){
+  for (j = 0; j<ndbs; j++) {
+   dbH = dbTabH -> getDB(dbrec,j);
+
+   contName =  StrCat("Events_",listName);
+   if (contH.exist(dbH, contName, oocUpdate)) ooDelete(contH);
+   if (contName) delete [] contName;
+
     char       nameTrL[6][10] = {
      "TrLayer1_","TrLayer2_","TrLayer3_","TrLayer4_","TrLayer5_","TrLayer6_"};
     for (i=0; i<6; i++) {
@@ -254,9 +279,9 @@ deleteList:
      if (contH.exist(dbH, contName, oocUpdate)) ooDelete(contH);
      delete [] contName;
 
-    }
-   }   
-
+  }
+     
+  
 end:
    lms.Commit();
 
