@@ -1,4 +1,4 @@
-//  $Id: oracle.pc,v 1.7 2001/06/08 07:34:35 alexei Exp $
+//  $Id: oracle.pc,v 1.8 2001/06/14 09:23:04 alexei Exp $
 //
 // Subroutines to work with AMS ORACLE database
 //
@@ -18,8 +18,9 @@
 //                             the new version of ORACLE
 //              June  7, 2001. subroutine gettdvbody, use amsdatadir as a 
 //                             prefix to TDV file
+//              June 13, 2001  m_tdv, m_tdv_def
 //
-// Last Edit : June 7, 2001
+// Last Edit : June 14, 2001
 //
 
 #include <iostream.h>
@@ -217,7 +218,7 @@ EXEC SQL BEGIN DECLARE SECTION;
  } runsT[2000];
 
   char         filepath[1024];
-  char         tline[1024];
+  char         filename[255];
 
   long          mindatetime;
   long          maxdatetime;
@@ -660,7 +661,8 @@ int AMSoracle::findtdv(char *name, int datamc, long timef, long timel, int &ntdv
                   uend   >= :mindatetime AND
                   m_tdv.idx = m_tdv_names.idx AND
                   m_tdv_names.name = :tdvname AND 
-                  m_tdv_names.datamc = :tdatamc 
+                  m_tdv_names.datamc = :tdatamc AND
+                  m_tdv.prodstat = 1
             ORDER BY uinsert DESC;
 
      ntdvs  = sqlca.sqlerrd[2];
@@ -709,7 +711,8 @@ int AMSoracle::finddeftdv(char *name, int datamc, TDVutime *utime)
                     WHERE 
                           m_tdvdef.idx = m_tdv_names.idx AND
                           m_tdv_names.name = :tdvname    AND
-                          m_tdv_names.datamc = :tdatamc;
+                          m_tdv_names.datamc = :tdatamc  AND
+                          m_tdvdef.prodstat  = 1;
   
     ntdvs  = sqlca.sqlerrd[2];
     if (ntdvs == 1) {
@@ -724,7 +727,7 @@ int AMSoracle::finddeftdv(char *name, int datamc, TDVutime *utime)
    return rstatus;
 }    
 
-int  AMSoracle::gettdvbody(const char *amsdatadir, TDVrec *tdv, unsigned int *pdata)
+int  AMSoracle::gettdvbody(TDVrec *tdv, unsigned int *pdata)
 //  
 // get TDV body for the given i/b/e time
 //
@@ -738,14 +741,12 @@ int  AMSoracle::gettdvbody(const char *amsdatadir, TDVrec *tdv, unsigned int *pd
 
  if (tdv && tdv -> getname()  && tdv -> getfilepath()) {
  
-     strcpy(filepath, tdv -> getfilepath());
+     strcpy(filepath, tdv -> getdirpath());
      suppressBlanks(filepath);
      suppressCR(filepath);
-     if (strstr(filepath,"/DataBase")) {
-       strcpy(tline,amsdatadir);
-       strcat(tline,strstr(filepath,"/DataBase"));
-       strcpy(filepath,tline);
-     }
+     strcat(filepath, tdv -> getfilepath());
+     suppressBlanks(filepath);
+     suppressCR(filepath);
 
      tdvsize = tdv -> getsize();
      if (debug) cout<<"AMSoracle::gettdvbody -I- file "<<filepath
@@ -796,12 +797,15 @@ int AMSoracle::counttdv(char *name, int datamc, long timef, long timel)
    if (debug > 0) cout<<"countTDV -I- looking for TDVs "<<tdvname<<"."<<datamc
                       <<" from/to "<<mindatetime<<" / "<<maxdatetime<<endl;
 
-    EXEC SQL SELECT COUNT(m_tdv.uinsert) INTO :Ntdvs FROM m_tdv, m_tdv_names
-            WHERE ubegin <= :maxdatetime AND 
-                  uend   >= :mindatetime AND
-                  m_tdv_names.name = :tdvname 
-            AND   m_tdv_names.datamc = :tdatamc
-            AND   m_tdv_names.idx    = m_tdv.idx ;
+    EXEC SQL SELECT COUNT(m_tdv.uinsert) INTO :Ntdvs 
+             FROM m_tdv, m_tdv_names
+             WHERE 
+                   ubegin <= :maxdatetime 
+            AND    uend   >= :mindatetime 
+            AND    m_tdv_names.name = :tdvname 
+            AND    m_tdv_names.datamc = :tdatamc
+            AND    m_tdv_names.idx    = m_tdv.idx 
+            AND    m_tdv.prodstat = 1;
 
 
    if (debug > 0) cout<<"countTDV -I- tdvcount "<<Ntdvs<<" in m_tdv table"<<endl;
@@ -906,6 +910,8 @@ int AMSoracle::inserttdv(AMSoracle::TDVrec *tdv, int deftable)
 
    EXEC SQL WHENEVER SQLERROR DO sql_error("ORACLE error: AMSoracle::inserttdv");
 
+   tinsert = time((time_t)0);
+
    if (deftable == M_TDVDEF) {
     EXEC SQL INSERT INTO m_tdvdef
      VALUES (
@@ -916,6 +922,9 @@ int AMSoracle::inserttdv(AMSoracle::TDVrec *tdv, int deftable)
       :uinsert, 
       :ubegin, 
       :uend, 
+      1,
+      :tinsert,
+      :tdirpath,
       :filepath);
    } else {
     EXEC SQL INSERT INTO m_tdv
@@ -927,6 +936,9 @@ int AMSoracle::inserttdv(AMSoracle::TDVrec *tdv, int deftable)
       :uinsert, 
       :ubegin, 
       :uend, 
+      1,
+      :tinsert,
+      :tdirpath,
       :filepath);
      }
      rstatus = 1;
@@ -1003,23 +1015,25 @@ int AMSoracle::gettdv(TDVrec *tdv, int deftable)
 
    if (deftable == M_TDVDEF) {
 // only one default TDV should exist for the given name and datamc
-     EXEC SQL SELECT ubegin, uend, filepath
-            INTO    :ubegin, :uend, :filepath
+     EXEC SQL SELECT ubegin, uend, filename
+            INTO    :ubegin, :uend, :filename
             FROM  m_tdvdef, m_tdv_names 
             WHERE 
                   m_tdvdef.idx = m_tdv_names.idx AND
                   m_tdv_names.name = :tdvname AND 
-                  m_tdv_names.datamc = :tdatamc ;
+                  m_tdv_names.datamc = :tdatamc AND
+                  m_tdvdef.prodstat = 1;
    } else {
-     EXEC SQL SELECT  filepath
-            INTO    :filepath
+     EXEC SQL SELECT  filename
+            INTO    :filename
             FROM  m_tdv, m_tdv_names 
             WHERE ubegin  = :ubegin AND 
                   uend    = :uend   AND
                   uinsert = :uinsert   AND
                   m_tdv.idx = m_tdv_names.idx AND
                   m_tdv_names.name = :tdvname AND 
-                  m_tdv_names.datamc = :tdatamc ;
+                  m_tdv_names.datamc = :tdatamc AND 
+                  m_tdv.prodstat = 1;
    }
      int ntdvs  = sqlca.sqlerrd[2];
  
@@ -1032,6 +1046,10 @@ int AMSoracle::gettdv(TDVrec *tdv, int deftable)
 
        if(deftable == M_TDVDEF) tdv -> utime(1, ubegin, uend);
 
+        strcpy(filepath, tdv -> getdirpath());
+        suppressBlanks(filepath);
+        suppressCR(filepath);
+        strcat(filepath, filename);
         suppressBlanks(filepath);
         suppressCR(filepath);
  
@@ -1039,7 +1057,7 @@ int AMSoracle::gettdv(TDVrec *tdv, int deftable)
        cout<<"AMSoracle::gettdv -E- "<<filepath<<" cannot be stated."<<endl;
        rstatus = -1;
       } else {
-        tdv -> setfilepath(filepath);
+        tdv -> setfilepath(filename);
         tdv -> nbytes  = filesize;
         rstatus = 1;
       }
@@ -1115,7 +1133,8 @@ int AMSoracle::findtdv(char *name, int datamc, long timeb, long timee, int defta
             WHERE 
                   m_tdv.idx = m_tdv_names.idx AND
                   m_tdv_names.name = :tdvname AND 
-                  m_tdv_names.datamc = :tdatamc; 
+                  m_tdv_names.datamc = :tdatamc AND 
+                  m_tdvdef.prodstat = 1;
    } else {
      EXEC SQL SELECT  uinsert 
             INTO    uinsert
@@ -1124,7 +1143,8 @@ int AMSoracle::findtdv(char *name, int datamc, long timeb, long timee, int defta
                   uend   = :uend   AND
                   m_tdv.idx = m_tdv_names.idx AND
                   m_tdv_names.name = :tdvname AND 
-                  m_tdv_names.datamc = :tdatamc; 
+                  m_tdv_names.datamc = :tdatamc AND 
+                  m_tdv.prodstat = 1;
   }
      if (debug > 0) {
       cout<<"findtdv -I- found "<<sqlca.sqlerrd[2]<<" with name "

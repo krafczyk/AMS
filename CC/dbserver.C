@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.18 2001/06/11 14:01:24 choutko Exp $
+//  $Id: dbserver.C,v 1.19 2001/06/14 09:23:04 alexei Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
@@ -727,13 +727,20 @@ void  DBServer_impl::_init(){
   tdv = new AMSoracle::TDVrec;
   tdv -> setname(tdvname.Name, tdvname.DataMC);
   tdv -> utime(tdvname.Entry.Insert, tdvname.Entry.Begin, tdvname.Entry.End);
+  tdv -> setdirpath((const char *)amsdatadir);
   rstat = AMSoracle::gettdv(tdv, 1);
-  if (rstat != 1) rstat = AMSoracle::gettdv(tdv, 0);
+  if (rstat != 1) {
+      char dirpath[1024];
+      strcpy(dirpath,(const char *)amsdatadir);
+      strcat(dirpath,"/DataBase/");
+      tdv -> setdirpath(dirpath);
+      rstat = AMSoracle::gettdv(tdv, 0);
+  }
   if (rstat == 1) {
     int nbytes = tdv -> getsize();
     pdata = new unsigned int[nbytes/sizeof(unsigned int)-1];
     if (pdata) {
-      if (AMSoracle::gettdvbody((const char *)amsdatadir, tdv, pdata) == 1) {
+      if (AMSoracle::gettdvbody(tdv, pdata) == 1) {
         length = nbytes/sizeof(uinteger);
         //        AMSTimeID::_convert(pdata,length);
         cout<<"Insert "<<pdata[length-3]<<endl;
@@ -790,8 +797,15 @@ void  DBServer_impl::_init(){
   tdvname.Success=false;
   tdv = new AMSoracle::TDVrec;
   tdv -> setname(tdvname.Name, tdvname.DataMC);
+  tdv -> setdirpath((const char*)amsdatadir);
   if (tdvname.Entry.id != 0)     
      tdv -> utime(tdvname.Entry.Insert, tdvname.Entry.Begin, tdvname.Entry.End);
+  else {
+      char dirpath[1024];
+      strcpy(dirpath,(const char *)amsdatadir);
+      strcat(dirpath,"/DataBase/");
+      tdv -> setdirpath(dirpath);
+  }
   rstat = AMSoracle::gettdv(tdv, tdvname.Entry.id);
   if (rstat == 1) {
    if (tdvname.Entry.id == 0)     
@@ -800,7 +814,7 @@ void  DBServer_impl::_init(){
     length = nbytes/sizeof(uinteger);
     //    cout <<" length "<<length<<endl;;
     vbody->length(length);
-      if ( AMSoracle::gettdvbody((const char*)amsdatadir, tdv, vbody->get_buffer()) == 1) {
+      if ( AMSoracle::gettdvbody(tdv, vbody->get_buffer()) == 1) {
         //        AMSTimeID::_convert(pdata,length);
         length = length - 3; // i/b/e
         tdvname.Success=true;

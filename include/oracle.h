@@ -1,4 +1,4 @@
-//  $Id: oracle.h,v 1.8 2001/06/08 07:34:43 alexei Exp $
+//  $Id: oracle.h,v 1.9 2001/06/14 09:23:09 alexei Exp $
 //
 // ORACLE related subroutines 
 //
@@ -12,7 +12,7 @@
 //              Feb    , 2001. Active CLients, hosts.
 //              Jun   7, 2001. gettdvbody add amsdatadir
 //
-// Last Edit : June 7, 2001
+// Last Edit : June 14, 2001
 //
 
 
@@ -53,8 +53,9 @@ namespace AMSoracle {
       unsigned int    utimei;
       unsigned int    utimeb;
       unsigned int    utimee;
-      long    nbytes;               //  size in bytes
-      char    filepath[256];        // path to tdvfile
+      long    nbytes;                //  size in bytes
+      char    dirpath[1024];         // path to tdv dir
+      char    filepath[512];         // path to tdvfile
 
      TDVrec() {idx = -1;}
     ~TDVrec() { };
@@ -71,12 +72,18 @@ namespace AMSoracle {
      }
      
      const char *getfilepath() {return filepath;}
+     const char *getdirpath()  {return dirpath;}
      const char *getname() {return name;}
      long getsize() { return nbytes;}
      long setsize(long size) { nbytes = size;}
-     void setfilepath(char *fpath) {
+     void setfilepath(const char *fpath) {
        if (fpath && strlen(fpath) < MAXFILENAMELENGTH) {
          strcpy(filepath,fpath);
+       }
+     }
+     void setdirpath(const char *dpath) {
+       if (dpath && strlen(dpath) < MAXFILENAMELENGTH) {
+         strcpy(dirpath,dpath);
        }
      }
      void utime(long insert, long begin, long end) {
@@ -1030,7 +1037,7 @@ namespace AMSoracle {
   unsigned int  getHostId(unsigned int cid);
   void gettablename(char *tdvn);
   int  getTableSize(const char *table);
-  int  gettdvbody(const char *amsdatadir, TDVrec *tdv, unsigned int *pdata);
+  int  gettdvbody(TDVrec *tdv, unsigned int *pdata);
   int  gettdv(TDVrec *tdv, int deftable);
   int  decHostClientsActive(unsigned int clientId, unsigned int ctype);
   int  incHostClientsActive(unsigned int clientId, unsigned int ctype);
