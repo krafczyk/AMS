@@ -234,7 +234,7 @@ integer AMSTimeID::read(char * dir, integer reenter){
      else cerr<<"AMSTimeID::read-E-Failed to allocate memory "<<_Nbytes<<endl;
     }
     else {
-      cerr<<"AMSTimeID::read-E-CouldNot open file "<<fnam<<endl;
+      cerr<<"AMSTimeID::read-W-CouldNot open file "<<fnam<<endl;
     }
     return 0;
 
