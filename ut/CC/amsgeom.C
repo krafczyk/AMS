@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.148 2003/03/11 15:14:35 choutko Exp $
+//  $Id: amsgeom.C,v 1.149 2003/03/12 15:29:34 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2000,9 +2000,9 @@ uinteger rgid(0);
 uinteger status;
 integer nrot=TRDROTMATRIXNO; 
 AMSNode * cur;
-AMSNode * dau;
+AMSgvolume * dau;
 AMSgvolume * daug4;
-AMSNode * oct[maxo];
+AMSgvolume * oct[maxo];
  ostrstream ost(name,sizeof(name));
 
 int i;
@@ -2016,7 +2016,7 @@ for ( i=1;i<TRDDBc::PrimaryOctagonNo();i++){
 
 
  for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
-       oct[i]=mother.add(new AMSgvolume(TRDDBc::OctagonMedia(i),
+       oct[i]=(AMSgvolume*)mother.add(new AMSgvolume(TRDDBc::OctagonMedia(i),
        nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
 
 }
@@ -2041,7 +2041,7 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo();i++){
 
 
  for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
-       oct[i]=oct[po]->add(new AMSgvolume(TRDDBc::OctagonMedia(i),
+       oct[i]=(AMSgvolume*)oct[po]->add(new AMSgvolume(TRDDBc::OctagonMedia(i),
        nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
 }
 
@@ -2061,9 +2061,9 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    TRDDBc::GetBulkhead(b,i,status,coo,nrm,rgid);
    for(ip=0;ip<4;ip++)par[ip]=TRDDBc::BulkheadsDimensions(i,b,ip);
    int itrd=TRDDBc::NoTRDOctagons(i);
-   //         cout <<name<<" "<<j<<" "<<
-   //coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
-   //	   par[0]<<" "<<par[1]<<" "<<par[2]<<" "<<par[4]<<endl;
+//            cout <<name<<" "<<j<<" "<<
+//   coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
+//   	   par[0]<<" "<<par[1]<<" "<<par[2]<<" "<<par[4]<<endl;
 
 #ifdef __G4AMS__
      if(MISCFFKEY.G4On){
@@ -2073,7 +2073,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
      }
      else
 #endif
-      dau=oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
+      dau=(AMSgvolume*)oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
       nrot++,name,"TRD1",par,4,coo,nrm,"MANY",0,gid,1));
 
       // Add the cutout daughters here
@@ -2089,7 +2089,9 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 		  ost.seekp(0);  
 		  ost << "TRCO"<<ends;
 		  gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l+1;
-		  
+//                  if(gid==261){
+//                    cout <<"nunu"<<endl;
+//                  }		  
 		  TRDDBc::GetCutout(l,k,j,i,status,coo,nrm,rgid);  
 		  int ip;
 		  for(ip=0;ip<3;ip++)
@@ -2126,7 +2128,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    // coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
    //par[0]<<" "<<par[1]<<" "<<par[2]<<endl;
 
-   dau=oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
+   dau=(AMSgvolume*)oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
        nrot++,name,"BOX",par,3,coo,nrm, "ONLY",0,gid,1));
 #ifdef __G4AMS__
 //   ((AMSgvolume*) dau)->Smartless()=1;
@@ -2147,7 +2149,6 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
        TRDDBc::GetRadiator(k,j,i,status,coo,nrm,rgid);
        for(ip=0;ip<3;ip++)par[ip]=TRDDBc::RadiatorDimensions(i,j,k,ip);
        gid=i+mtrdo*j+mtrdo*maxlay*k+1;
-
        dau->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
 	0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
      }
