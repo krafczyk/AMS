@@ -76,7 +76,7 @@ void AMSTrackerHist::_Fill(){
 
 
 void AMSTrackerHist::_Fetch(){
- _m2fetched=4+4;
+ _m2fetched=4+4+4;
  _fetched2= new TH1*[_m2fetched];
  _fetched2[0]=(TH1*)gAMSDisplay->GetRootFile()->Get("h500001"); 
  _fetched2[1]=(TH1*)gAMSDisplay->GetRootFile()->Get("h500002"); 
@@ -99,6 +99,19 @@ void AMSTrackerHist::_Fetch(){
  }
  }
 
+_fetched2[8]= (TH1*)gAMSDisplay->GetRootFile()->Get("h700001"); 
+_fetched2[9]= (TH1*)gAMSDisplay->GetRootFile()->Get("h700002"); 
+_fetched2[10]= (TH1*)gAMSDisplay->GetRootFile()->Get("h700011"); 
+_fetched2[11]= (TH1*)gAMSDisplay->GetRootFile()->Get("h700012"); 
+
+ for(i=8;i<12;i++){
+ if(_fetched2[i]){
+  _fetched2[i]->SetXTitle("Va No");
+  _fetched2[i]->SetFillColor(27);              
+ }
+ }
+
+
 }
 
 
@@ -110,74 +123,88 @@ TVirtualPad * gPadSave = gPad;
 int i;
 switch(Set){
 case 0:
-gPad->Divide(2,2);
-for(i=0;i<4;i++){
- gPad->cd(i+1);
- gPad->SetLogx(gAMSDisplay->IsLogX());
- gPad->SetLogy(gAMSDisplay->IsLogY());
- gPad->SetLogz(gAMSDisplay->IsLogZ());
- _filled2[i]->Draw();
-gPadSave->cd();
-}
-break;
+  gPad->Divide(2,2);
+  for(i=0;i<4;i++){
+    gPad->cd(i+1);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled2[i]->Draw();
+    gPadSave->cd();
+  }
+  break;
 case 1:
-gPad->Divide(2,2);
-for(i=0;i<4;i++){
- gPad->cd(i+1);
- gPad->SetLogx(gAMSDisplay->IsLogX());
- gPad->SetLogy(gAMSDisplay->IsLogY());
- gPad->SetLogz(gAMSDisplay->IsLogZ());
- _filled2[4+i]->Draw();
-gPadSave->cd();
-}
-break;
+  gPad->Divide(2,2);
+  for(i=0;i<4;i++){
+    gPad->cd(i+1);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled2[4+i]->Draw();
+    gPadSave->cd();
+  }
+  break;
 case 2:
-gPad->Divide(2,1);
-for(i=0;i<2;i++){
- gPad->cd(i+1);
- gPad->SetLogx(gAMSDisplay->IsLogX());
- gPad->SetLogy(gAMSDisplay->IsLogY());
- gPad->SetLogz(gAMSDisplay->IsLogZ());
- _filled2[28+i]->Draw();
-gPadSave->cd();
-}
-break;
+  gPad->Divide(2,1);
+  for(i=0;i<2;i++){
+    gPad->cd(i+1);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled2[28+i]->Draw();
+    gPadSave->cd();
+  }
+  break;
 case 3:
-gPad->Divide(2,2);
-for(i=0;i<4;i++){
- gPad->cd(i+1);
- gPad->SetLogx(gAMSDisplay->IsLogX());
- gPad->SetLogy(gAMSDisplay->IsLogY());
- gPad->SetLogz(gAMSDisplay->IsLogZ());
- _filled2[8+i]->Draw();
-gPadSave->cd();
-}
-break;
+  gPad->Divide(2,2);
+  for(i=0;i<4;i++){
+    gPad->cd(i+1);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled2[8+i]->Draw();
+    gPadSave->cd();
+  }
+  break;
 case 4:
-gPad->Divide(2,2);
-for(i=0;i<4;i++){
- gPad->cd(i+1);
- gPad->SetLogx(gAMSDisplay->IsLogX());
- gPad->SetLogy(1);
- gPad->SetLogz(gAMSDisplay->IsLogZ());
- if(_fetched2[i]){
-  _fetched2[i]->Draw();
- }
-gPadSave->cd();
-}
-break;
+  gPad->Divide(2,2);
+  for(i=0;i<4;i++){
+    gPad->cd(i+1);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(1);
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    if(_fetched2[i]){
+      _fetched2[i]->Draw();
+    }
+    gPadSave->cd();
+  }
+  break;
 case 5:
-gPad->Divide(2,2);
-for(i=0;i<4;i++){
- gPad->cd(i+1);
- gPad->SetLogx(gAMSDisplay->IsLogX());
- gPad->SetLogy(gAMSDisplay->IsLogY());
- gPad->SetLogz(gAMSDisplay->IsLogZ());
- if(_fetched2[i+4]){
-  _fetched2[i+4]->Draw();
- }
-gPadSave->cd();
-}
+  gPad->Divide(2,2);
+  for(i=0;i<4;i++){
+    gPad->cd(i+1);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    if(_fetched2[i+4]){
+      _fetched2[i+4]->Draw();
+    }
+    gPadSave->cd();
+  }
+  break;
+case 6:
+  gPad->Divide(2,2);
+  for(i=0;i<4;i++){
+    gPad->cd(i+1);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    if(_fetched2[i+8]){
+      _fetched2[i+8]->Draw();
+    }
+    gPadSave->cd();
+  }
+  break;
 
 }
 

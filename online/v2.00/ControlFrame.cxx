@@ -189,8 +189,9 @@ AMSControlFrame::~AMSControlFrame(){
    fSubDetMenu[1]->AddEntry("PreClusters S/N",112);
    fSubDetMenu[1]->AddEntry("Clusters Distributions",113);
    fSubDetMenu[1]->AddSeparator();
-   fSubDetMenu[1]->AddEntry("Calibration Set 1",114);
-   fSubDetMenu[1]->AddEntry("Calibration Set 2",115);
+   fSubDetMenu[1]->AddEntry("Calibration: Sigmas",114);
+   fSubDetMenu[1]->AddEntry("Calibration: ClNumPerLadder",115);
+   fSubDetMenu[1]->AddEntry("Calibration: CmnNoise",116);
 
    fSubDetMenu[2]->AddEntry("Occupancies Distibutions",120);
    fSubDetMenu[2]->AddEntry("LVL1 vs TOF",121);

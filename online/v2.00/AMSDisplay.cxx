@@ -436,7 +436,7 @@ Int_t AMSOnDisplay::RDispatch(){
       if(tempset<0)tempset=_subdet[subdet]->getMSet()-1;
       retcode=_subdet[subdet]->DispatchHist(tempset);
       _cursubdet=subdet;
-      cout <<" subdet "<<subdet<<" "<<" "<<tempset<<endl;
+      //cout <<" subdet "<<subdet<<" "<<" "<<tempset<<endl;
       Draw();
       _cursubdet=temp;
    }   

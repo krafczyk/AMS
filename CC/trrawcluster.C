@@ -1575,7 +1575,7 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
    ptdv->UpdCRC();
    time_t begin,end,insert;
    time(&insert);
-   ptdv->SetTime(insert,AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()+86400);
+   ptdv->SetTime(AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()-1,AMSEvent::gethead()->gettime()+86400);
    cout <<" Tracker H/K  info has been read for "<<*ptdv;
    ptdv->gettime(insert,begin,end);
    cout <<" Time Insert "<<ctime(&insert);
@@ -1622,7 +1622,7 @@ nt is "<<len<<endl;
    ptdv->UpdCRC();
    time_t begin,end,insert;
    time(&insert);
-   ptdv->SetTime(insert,AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()+86400);
+   ptdv->SetTime(AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()-1,AMSEvent::gethead()->gettime()+86400);
    cout <<" Tracker H/K  info has been read for "<<*ptdv;
    ptdv->gettime(insert,begin,end);
    cout <<" Time Insert "<<ctime(&insert);
@@ -1730,7 +1730,7 @@ void AMSTrRawCluster::updsigSRaw(integer n, int16u* p){
    ptdv->UpdCRC();
    time_t begin,end,insert;
    time(&insert);
-   ptdv->SetTime(insert,AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()+86400);
+   ptdv->SetTime(AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()-1,AMSEvent::gethead()->gettime()+86400);
    ptdv->gettime(insert,begin,end);
    cout <<" Tracker H/K  info has been read for "<<*ptdv;
    cout <<" Time Insert "<<ctime(&insert);
@@ -1780,7 +1780,7 @@ nt is "<<len<<endl;
    ptdv->UpdCRC();
    time_t begin,end,insert;
    time(&insert);
-   ptdv->SetTime(insert,AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()+86400);
+   ptdv->SetTime(AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()-1,AMSEvent::gethead()->gettime()+86400);
    ptdv->gettime(insert,begin,end);
    cout <<" Tracker H/K  info has been read for "<<*ptdv;
    cout <<" Time Insert "<<ctime(&insert);
@@ -1831,7 +1831,7 @@ void AMSTrRawCluster::updstatusS(integer n, int16u* p){
    ptdv->UpdCRC();
    time_t begin,end,insert;
    time(&insert);
-   ptdv->SetTime(insert,AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()+86400);
+   ptdv->SetTime(AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()-1,AMSEvent::gethead()->gettime()+86400);
    cout <<" Tracker H/K  info has been read for "<<*ptdv;
    ptdv->gettime(insert,begin,end);
    cout <<" Time Insert "<<ctime(&insert);
@@ -1936,7 +1936,7 @@ void AMSTrRawCluster::updstatusSRaw(integer n, int16u* p){
    ptdv->UpdCRC();
    time_t begin,end,insert;
    time(&insert);
-   ptdv->SetTime(insert,AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()+86400);
+   ptdv->SetTime(AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()-1,AMSEvent::gethead()->gettime()+86400);
    cout <<" Tracker H/K  info has been read for "<<*ptdv;
    ptdv->gettime(insert,begin,end);
    cout <<" Time Insert "<<ctime(&insert);
@@ -1984,7 +1984,7 @@ void AMSTrRawCluster::updcmnSRaw(integer n, int16u* p){
          if(!idd.dead()){
           for(k=0;k<len;k++){
              idd.upd(k*64);
-             idd.setcmnnoise()=*(ptr+2+k+j*len);
+             idd.setcmnnoise()=*(ptr+2+k+j*len)/idd.getgain();
           }
          }
        }
@@ -2008,8 +2008,8 @@ void AMSTrRawCluster::updcmnSRaw(integer n, int16u* p){
           AMSTrIdSoft idd(ic,haddr);
          if(!idd.dead()){
           for(k=0;k<len;k++){
-             idd.upd(k*16);
-             idd.setcmnnoise()=*(ptr+2+k+j*len);
+             idd.upd(k*64);
+             idd.setcmnnoise()=*(ptr+2+k+j*len)/idd.getgain();
           }
          }
        }
@@ -2028,7 +2028,7 @@ void AMSTrRawCluster::updcmnSRaw(integer n, int16u* p){
    ptdv->UpdCRC();
    time_t begin,end,insert;
    time(&insert);
-   ptdv->SetTime(insert,AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()+86400);
+   ptdv->SetTime(AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()-1,AMSEvent::gethead()->gettime()+86400);
    cout <<" Tracker H/K  info has been read for "<<*ptdv;
    ptdv->gettime(insert,begin,end);
    cout <<" Time Insert "<<ctime(&insert);

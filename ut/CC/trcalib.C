@@ -408,6 +408,10 @@ HBOOK1(600000+1,"Number of Bad Channels Side K Crate 32",70,0.5,70.5,0.);
 HBOOK1(600000+2,"Number of Bad Channels Side S Crate 32",70,0.5,70.5,0.);
 HBOOK1(600000+10+1,"Number of Bad Channels Side K Crate 72",70,0.5,70.5,0.);
 HBOOK1(600000+10+2,"Number of Bad Channels Side S Crate 72",70,0.5,70.5,0.);
+HBOOK1(700000+1,"CmnNoise K Crate 32",396,-0.5,395.5,0.);
+HBOOK1(700000+2,"CmnNoise S Crate 32",660,-0.5,659.5,0.);
+HBOOK1(700000+10+1,"CmnNoise K Crate 72",396,-0.5,395.5,0.);
+HBOOK1(700000+10+2,"CmnNoise S Crate 72",660,-0.5,659.5,0.);
   geant badch[70];
   int i,j,k,l,m;
    for(l=0;l<2;l++){
@@ -421,6 +425,11 @@ HBOOK1(600000+10+2,"Number of Bad Channels Side S Crate 72",70,0.5,70.5,0.);
          cid.upd(m);
          if(cid.checkstatus(AMSDBc::BAD))badch[i*10+j+1]++;
          HF1(500000+l+1+10*k,cid.getsig(),1.);
+        }
+        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m+=64){
+         cid.upd(m);
+         //if(!l)cout <<i*11*(!l?6:10)+j*(!l?6:10)+(m/64)<<" "<<cid.getcmnnoise()<<endl;
+         HF1(700000+l+1+10*k,i*11*(!l?6:10)+j*(!l?6:10)+(m/64),cid.getcmnnoise());
         }
        }
      }
