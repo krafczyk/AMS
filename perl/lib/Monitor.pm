@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.35 2001/06/06 10:43:54 choutko Exp $
+# $Id: Monitor.pm,v 1.36 2001/06/07 14:08:33 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -519,6 +519,8 @@ sub getactivehosts{
      my $total_time=0;
      my $total_cpu=0;
      my $total_ev=0;
+     my $totcpu=0;
+     my $totproc=0;
     my $i;
     for $i (0 ... $#{$Monitor::Singleton->{ahlp}}){
      $#text=-1;
@@ -577,7 +579,17 @@ sub getactivehosts{
      my $proc=$hash->{ClientsRunning}==0?1:$hash->{ClientsRunning};
    my $cpuper=int ($cpu*1000/($evt+1)/$proc);
    
-    my $effic=$time==0?0:int ($cpu*100/$time); 
+     my $cpunumber=1;
+    for my $nhlcycle (0 ...$#{$Monitor::Singleton->{nhl}}){
+      my $hashnhl=$Monitor::Singleton->{nhl}[$nhlcycle];
+      if($host eq $hashnhl->{HostName}){
+          $cpunumber=$hashnhl->{CPUNumber};
+          last;
+      }
+  }
+    my $effic=$time==0?0:int ($cpu*100*$proc/$cpunumber/$time); 
+     $totproc+=$proc;
+     $totcpu+=$cpunumber;
   push @text, $cpuper/1000., $effic/100.;
      push @text, $hash->{Status};
     if( $hash->{Status} eq "LastClientFailed" or $hash->{Status} eq "InActive"){
@@ -603,7 +615,7 @@ sub getactivehosts{
     my $total_pr=$final_text[1]==0?1:$final_text[1];
    my $cpuper=int ($total_cpu*1000/($total_ev+1)/$total_pr);
    $final_text[10]= $cpuper/1000.;
-   $final_text[11]= int($total_cpu/($total_time+0.001)*100)/100.;
+   $final_text[11]= int($total_cpu/$totcpu*$totproc/($total_time+0.001)*100)/100.;
     
     push @output, [@final_text];
 
