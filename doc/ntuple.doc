@@ -99,10 +99,10 @@ Below there is a description of a  ntuple.
 * R*4  *              * PARTICLE * pcoo(3,npart)     // coo  -----------
 * I*4  *              * PARTICLE * atcnbcel(2,npart) // nb of acrossed cells
 * R*4  *              * PARTICLE * atcnbphe(2,npart) // nb of photoelectrons
-* I*4  *              * PARTICLE * atcidcel(2,npart) // cells id
-* I*4  *              * PARTICLE * atcdispm(2,npart) // PM minimal distance
-* I*4  *              * PARTICLE * atcdaero(2,npart) // Aerogel path length
-* I*4  *              * PARTICLE * atcstatu(2,npart) // Bad ATC cells
+* I*4  *              * PARTICLE * atcidcel(2,npart) // cells id              ****)  
+* I*4  *              * PARTICLE * atcdispm(2,npart) // PM minimal distance   ****)
+* I*4  *              * PARTICLE * atcdaero(2,npart) // Aerogel path length   ****)
+* I*4  *              * PARTICLE * atcstatu(2,npart) // Bad ATC cells         ****)
 * R*4  *              * PARTICLE * atcbeta(npart)    // velocity from ATC
 * R*4  *              * PARTICLE * cooctc(3,2,npart) // tracker extrapol in ctc
 * R*4  *              * PARTICLE * cootof(3,4,npart) // tracker extrapol in tof
@@ -378,8 +378,21 @@ GTOD
      GEOMz=-d, GEOMy=GEOMz x S  (d: dipole direction, S: geographic South)
 
 
+****) The ATC information can be decoded through the following scheme for the plane k (k=1,2)
 
+      cells ID:            mod(atcidcel(k)/10**(2*i-2),100)     (i=1,nb cells)                      
+      aerogel path:        mod(atcdaero(k)/10**(2*i-2),100)/10. (i=1,nb cells) 
+      PM impact parameter: mod(atcdispm(k)/10**(2*i-2),100)/10. (i=1,nb cells)                      
+      bad cells:           
+                 plane 1 - mod(atcstatu(1)/10**(2*i-1),100)     (i=1,mod(atcstatu(1),10))
+                 plane 2 - mod(atcstatu(2)/10**(2*i-1),100)+80  (i=1,mod(atcstatu(2),10))  
+                           
+                           Cells 166 and 168 are allways dead (dead channell) 
+                           Cell 175 means module L5
+
+=======
 Known bugs:
 
 
 
+                           
