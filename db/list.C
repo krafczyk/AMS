@@ -330,11 +330,11 @@ ooStatus AMSEventList::FindEvent
      rstatus = FindMap(listH -> _mapName.head(), mode, mapH);
      if (rstatus == oocSuccess) {
       rstatus = mapH -> lookup(ID, eventH, mode);
-      if (dbg_prtout) cerr 
+      if (dbg_prtout) cout 
             << "AMSEventList::FindEvent: cannot find the event with ID "
             << ID<<endl;
      } else {
-       cerr<<"AMSEventList::FindEvent-E- cannot find "<<_listName<<endl;
+       cout<<"AMSEventList::FindEvent-E- cannot find "<<_listName<<endl;
        return oocSuccess; // yes, to avoid adding event to unknown map
      }
      return rstatus;
@@ -350,11 +350,11 @@ ooStatus AMSEventList::FindEvent(char* ID, ooMode mode,
      rstatus = FindMap(listH -> _mapName.head(), mode, mapH);
      if (rstatus == oocSuccess) {
       rstatus = mapH -> lookup(ID, eventH, mode);
-      if (dbg_prtout) cerr 
+      if (dbg_prtout) cout
             << "AMSEventList::FindEvent: cannot find the event with ID "
             << ID<<endl;
      } else {
-       cerr<<"AMSEventList::FindEvent-E- cannot find "<<_listName<<endl;
+       cout<<"AMSEventList::FindEvent-E- cannot find "<<_listName<<endl;
        return oocSuccess; // yes, to avoid adding event to unknown map
      }
      return rstatus;
@@ -2112,7 +2112,7 @@ ooStatus AMSEventList::CheckContainer(char* name, ooMode mode,
       cout << "AMSEventList:: CheckContainer : container "<<name
            << ", mode "<<mode<<endl;
      if (!containerH.exist(databaseH,name,mode)) {
-       cerr <<"AMSEventList::CheckContainer : Warning - Cannot find or open"
+       cout <<"AMSEventList::CheckContainer : Warning - Cannot find or open"
             <<"  container "<<name<<" in mode "<<mode<<endl;
        return oocError;
       }

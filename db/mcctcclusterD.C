@@ -17,7 +17,7 @@
   _xcoo     = p -> _xcoo;
   //_xdir     = p -> xdir;
   _step     = p -> _step;
-  _edep     = p -> _edep;
+  _edep     = p -> _charge;
   _beta     = p -> _beta;
 }
 
@@ -27,7 +27,7 @@
   p -> _xcoo   = _xcoo;     
   //p -> xdir = _xdir;     
   p -> _step  = _step;     
-  p -> _edep  = _edep;     
+  p -> _charge  = _edep;     
   p -> _beta  = _beta;     
 }
  

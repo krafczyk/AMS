@@ -6879,9 +6879,10 @@ c      print *,'fit momentum ',1./csix(1,0)
       if (ifail.ne.0) then
 c        print *,' Fit failed ',ifail
       else
-       out(1)=csix(4,0)
-       out(2)=csix(5,0)
-       out(3)=csix(6,0)
+       do k=1,3
+        out(k)=csix(4,0)*planj(k,1,0)+csix(5,0)*planj(k,2,0)+
+     +        csix(6,0)*planj(k,3,0)
+       enddo
        dcs(1)=csix(2,0)
        dcs(2)=csix(3,0)
        dcs(3)=1

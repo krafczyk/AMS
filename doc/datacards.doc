@@ -119,16 +119,21 @@ R19 Thr3R[2](-1.,-1)    // reserved
 I21 ThrClNMin[2](1,2)   // Min Number of hits satisfied the above limits
 I23 ThrClNEl[2](5,5)    // total number hits in the cluster
 R25 ThrDSide(1)         // Upper threshold to (A_x-A_y)/(A_x+A_y)
-R26 ErrZ(30e-4)         // Assumed Error in Z dir
-R27 CorFunParA[2][6](400.e-4,65e-4)
+R26 ErrX(30e-4)         // Assumed Error in X dir
+R27 ErrY(10e-4)         // Assumed Error in Y dir
+R28 ErrZ(30e-4)         // Assumed Error in Z dir
+R29 CorFunParA[2][6](400.e-4,65e-4)
                         // 1st Parameter of correction fun for
                         // border clusters cofg calculation          
                         // 1st index side(x,y); 2nd - layer
-R39 CorFunParB[2][6](0.85,0.5)
+R41 CorFunParB[2][6](0.85,0.5)
                         // 2nd parameter
                         // corr function is of 
                         // 0 if s1/st < ParB;
                         // ParA*atan(s1/st-ParB) otherwise
+R53 ResFunX[3][6];      //  Parabolic parametrization of resolution
+R71 ResFunX[3][6];      //
+
 // Tracker pattern recognition
 TRFIT
 I 1 Pattern[19](5*1,14*0)

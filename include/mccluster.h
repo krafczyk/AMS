@@ -85,22 +85,22 @@ protected:
  AMSPoint _xcoo;    // Coordinates of input point
  AMSDir   _xdir;    // dir cos
  number   _step;    // step
- number   _edep;    // energy deposition
+ number   _charge;  // charge
  number   _beta;    // particle velocity
 
  void _writeEl();
  void _copyEl(){};
  void _printEl(ostream &stream){stream <<"AMSCTCMCCluster "<<_idsoft<<" "
- <<_edep<<" "<<_xcoo<<" "<<_step<<" "<<_beta<<endl;}
+ <<_charge<<" "<<_xcoo<<" "<<_step<<" "<<_beta<<endl;}
  static integer Out(integer);
 public:
  AMSCTCMCCluster(integer idsoft, AMSPoint xcoo, AMSDir xdir, 
-                 number edep, number step, number beta) :
- _idsoft(idsoft), _xcoo(xcoo), _xdir(xdir), _edep(edep),_step(step), 
+                 number charge, number step, number beta) :
+ _idsoft(idsoft), _xcoo(xcoo), _xdir(xdir), _charge(charge),_step(step), 
  _beta(beta){_next=0;};
  AMSCTCMCCluster(integer idsoft, AMSPoint xcoo, 
-                 number edep, number step, number beta) :
- _idsoft(idsoft), _xcoo(xcoo), _edep(edep),_step(step), 
+                 number charge, number step, number beta) :
+ _idsoft(idsoft), _xcoo(xcoo), _charge(charge),_step(step), 
  _beta(beta){_next=0;};
   AMSCTCMCCluster(){_next=0;};
  ~AMSCTCMCCluster(){};
@@ -109,12 +109,13 @@ public:
  inline integer getdetno() const{ return _idsoft/100;}
  inline number  getbeta() const { return _beta;}
  inline number  getstep() const { return _step;}
+ inline number  getcharge2() const { return _charge*_charge;}
  inline AMSPoint  getcoo() const { return _xcoo;}
  inline AMSDir  getdir() const { return _xdir;}
  integer operator < (AMSlink & o)const{
    return _idsoft < ((AMSCTCMCCluster*)(&o)) ->_idsoft ;
  }
- static void sictchits(integer idsoft , geant vect[],geant edep, geant step,
+ static void sictchits(integer idsoft , geant vect[],geant charge, geant step,
  geant getot);
   AMSCTCMCCluster *  next(){return (AMSCTCMCCluster*)_next;}
 //+

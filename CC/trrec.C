@@ -190,8 +190,8 @@ else return 0;
 void AMSTrCluster::_ErrorCalc(){
 #if 1  //Very Temporary
 integer side=_Id.getside();
-if(side==1)_ErrorMean =10.e-4;
-else  _ErrorMean =30.e-4;
+if(side==1)_ErrorMean =TRCLFFKEY.ErrY;
+else  _ErrorMean =TRCLFFKEY.ErrX;
 
 #else
 // Here is the right code
@@ -739,6 +739,17 @@ _HP0[1]=AMSPoint(out[0],out[1],out[2]);
 
 }
 else if(fit==3){
+#ifdef __AMSDEBUG__
+int i,j;
+for(i=0;i<npt;i++){
+  for(j=0;j<3;j++){
+    if(sigma[i][j]==0){
+      cerr<<"AMSTrTrack::Fit-F-Some Errors are zero "<<i<<" "<<j<<endl;
+      exit(1);
+    }
+  }
+}
+#endif     
 _GeaneFitDone=ipart;
 if(out[7] !=0)_GeaneFitDone=0;
 _GChi2=out[6];

@@ -135,7 +135,7 @@ void AMSCTCRawCluster::sictcdigi(){
          }
       }
       else Response=z;
-     value+=CTCMCFFKEY.Path2PhEl[det]*ptr->getstep()*Response;
+    value+=CTCMCFFKEY.Path2PhEl[det]*ptr->getstep()*Response*ptr->getcharge2();
      }
     if( ptr->testlast()){
 #ifdef __AMSDEBUG__

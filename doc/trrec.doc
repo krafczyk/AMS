@@ -200,6 +200,6 @@ number getgrid() const {return _GRidgidity;}
 void interpolate(AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1,
 number & theta, number & phi, number & length); // extrapolates track to 
                                                 // plane (pnt, dir)
-integer TOFOK();// checks if TOF cluster metches track   
+integer TOFOK();// checks if TOF cluster matches track   
 
 

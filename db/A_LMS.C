@@ -75,7 +75,9 @@ ooStatus LMS::Start(ooMode mode)   // start a transaction
   }  
         rstatus = _session -> StartTransaction(mode);
 	if (rstatus != oocSuccess) {
-	   cerr << "LMS::Start -Error - Cannot start a transaction." << endl;
+	 cerr << "LMS::Start - Error - Cannot start a transaction." << endl;
+	 cerr << "LMS::Start - Quit" << endl;
+         exit(1);
 	} else {
           //cout << "LMS::Start -I- start a transaction." << endl;
            _transStart++;
@@ -90,7 +92,9 @@ ooStatus LMS::Commit()            // commit a transaction
   if (_session -> getTransLevel() != 0) {
         rstatus = _session -> CommitTransaction();
 	if (rstatus != oocSuccess) {
-	   cerr << "LMS::Commit - Error- Cannot commit a transaction." << endl;
+	 cerr << "LMS::Commit - Error- Cannot commit a transaction." << endl;
+	 cerr << "LMS::Commit - Quit" << endl;
+         exit(1);
 	} else {
           //   cout << "LMS::Commit -I-  commit a transaction." << endl;
            _transCommit++;

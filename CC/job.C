@@ -27,7 +27,7 @@ void AMSJob::data(){
 #endif  
   SELECTFFKEY.Run=0;
   SELECTFFKEY.Event=0;
-  FFKEY("SELECT",(float*)(&SELECTFFKEY.Run),2,"MIXED");
+  FFKEY("SELECT",(float*)&SELECTFFKEY,sizeof(SELECTFFKEY_DEF)/sizeof(integer),"MIXED");
 
   AMSFFKEY.Simulation=0; // Simulation
   AMSFFKEY.Reconstruction=1; // Reconstruction
@@ -40,7 +40,7 @@ void AMSJob::data(){
   VBLANK(AMSFFKEY.Setupname,40);
   AMSFFKEY.ZeroSetupOk=0;
   // Set Defaults
-FFKEY("AMSJOB",(float*)(&AMSFFKEY.Jobtype),86,"MIXED");
+FFKEY("AMSJOB",(float*)&AMSFFKEY,sizeof(AMSFFKEY_DEF)/sizeof(integer),"MIXED");
 _siamsdata();
 _reamsdata();
 }
@@ -54,7 +54,7 @@ IOPA.WriteAll=0;
 VBLANK(IOPA.TriggerC,40);
 char amsp[12]="AMSParticle";
 UCTOH(amsp,IOPA.TriggerC,4,12);
-FFKEY("IOPA",(float*)(&IOPA.hlun),84,"MIXED");
+FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
 
 _sitkdata();
 _signdata();
@@ -82,7 +82,7 @@ TRMCFFKEY.neib[1]=2;
 TRMCFFKEY.cmn[0]=50;
 TRMCFFKEY.cmn[1]=50;
 
-FFKEY("TRMC",&TRMCFFKEY.alpha,17,"MIXED");
+FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
 void AMSJob::_signdata(){
@@ -106,7 +106,7 @@ CCFFKEY.albedocz=0.05;
 CCFFKEY.npat=1;
 CCFFKEY.run=100;
 CCFFKEY.low=0;
-FFKEY("MCGEN",CCFFKEY.coo,20,"MIXED");
+FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //==========================================================================
 void AMSJob::_sitofdata(){
@@ -150,7 +150,7 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.mcprtf=0;     // TOF MC-print flag (=0 -> no_printing)
   TOFMCFFKEY.trlogic[0]=0; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
   TOFMCFFKEY.trlogic[1]=0; // spare 
-FFKEY("TOFMC",&TOFMCFFKEY.TimeSigma,38,"MIXED");
+FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=======================================================================================
 
@@ -176,8 +176,8 @@ void AMSJob::_sictcdata(){
   CTCMCFFKEY.Path2PhEl[1]=28;
   CTCMCFFKEY.AbsLength[0]=4.9;     // Abs Length in cm
   CTCMCFFKEY.AbsLength[1]=100;
-FFKEY("CTCGEOM",&CTCGEOMFFKEY.wallth,15,"MIXED");
-FFKEY("CTCMC",CTCMCFFKEY.Refraction,6,"MIXED");
+FFKEY("CTCGEOM",(float*)&CTCGEOMFFKEY,sizeof(CTCGEOMFFKEY_DEF)/sizeof(integer),"MIXED");
+FFKEY("CTCMC",(float*)&CTCMCFFKEY,sizeof(CTCMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=============================================================================
 
@@ -227,7 +227,9 @@ TRCLFFKEY.Thr3R[0] =-1.;
 TRCLFFKEY.ThrClNMin[0]=1;
 TRCLFFKEY.ThrClNEl[0]=5;
 
-
+TRCLFFKEY.ErrX=30.e-4;
+TRCLFFKEY.ErrY=10.e-4;
+TRCLFFKEY.ErrZ=30.e-4;
 TRCLFFKEY.ThrDSide=1.;
 
 TRCLFFKEY.CorFunParA[0][0]=400e-4;
@@ -243,7 +245,14 @@ for ( k=0;k<6;k++){
  TRCLFFKEY.CorFunParB[1][k]=0.5;
 }
 
-FFKEY("TRCL",TRCLFFKEY.ThrClA,50,"MIXED");
+for(k=0;k<6;k++){
+  for(int l=0;l<3;l++){
+   TRCLFFKEY.ResFunX[l][k]=0;
+   TRCLFFKEY.ResFunY[l][k]=0;
+  }
+}
+
+FFKEY("TRCL",(float*)&TRCLFFKEY,sizeof(TRCLFFKEY_DEF)/sizeof(integer),"MIXED");
 
 // Fit Par
 TRFITFFKEY.pattern[0]=1;
@@ -276,20 +285,20 @@ TRFITFFKEY.SearchRegFastFit=1;
 TRFITFFKEY.SearchRegStrLine=0.5;
 TRFITFFKEY.SearchRegCircle=1;
 TRFITFFKEY.RidgidityMin=0.2;
-FFKEY("TRFIT",(float*)TRFITFFKEY.pattern,30,"MIXED");
+FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }
 
 void AMSJob::_retofdata(){
   TOFRECFFKEY.Thr1=0.5;
   TOFRECFFKEY.ThrS=1;
-  FFKEY("TOFREC",&TOFRECFFKEY.Thr1,2,"MIXED");
+  FFKEY("TOFREC",(float*)&TOFRECFFKEY,sizeof(TOFRECFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
 void AMSJob::_rectcdata(){
   CTCRECFFKEY.Thr1=1.5;
   CTCRECFFKEY.ThrS=3;
-  FFKEY("CTCREC",&CTCRECFFKEY.Thr1,2,"MIXED");
+  FFKEY("CTCREC",(float*)&CTCRECFFKEY,sizeof(CTCRECFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
 void AMSJob::_reaxdata(){
@@ -307,7 +316,7 @@ BETAFITFFKEY.Chi2=3;
 BETAFITFFKEY.SearchReg[0]=3.;
 BETAFITFFKEY.SearchReg[1]=3.;
 BETAFITFFKEY.SearchReg[2]=3.;
-FFKEY("BETAFIT",(float*)BETAFITFFKEY.pattern,13,"MIXED");
+FFKEY("BETAFIT",(float*)&BETAFITFFKEY,sizeof(BETAFITFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
 void AMSJob::_retrddata(){

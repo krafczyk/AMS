@@ -247,9 +247,13 @@ geant Thr3R[2];
 integer ThrClNMin[2];
 integer ThrClNEl[2];
 geant ThrDSide;
+geant ErrX;
+geant ErrY;
 geant ErrZ;
 geant CorFunParA[2][6];
 geant CorFunParB[2][6];
+geant ResFunX[3][6];
+geant ResFunY[3][6];
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)
 COMMON_BLOCK_DEF(TRCLFFKEY_DEF,TRCLFFKEY);

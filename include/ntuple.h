@@ -92,7 +92,7 @@ int Idsoft;
 float Coo[3];
 float Dir[3];
 float Step;
-float Edep;
+float Charge;
 float Beta;
 
 friend class AMSCTCMCCluster;
