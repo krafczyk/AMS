@@ -1,7 +1,7 @@
       character *128 fnam
       character *128 fnamo
-      common /pawc/hl(1000000)
-      call hlimit(1000000)
+      common /pawc/hl(10000000)
+      call hlimit(10000000)
       write(*,*)'old Ntuple file name '
       read(*,fmt='(a)')fnam
       write(*,*)'new Ntuple file name '
@@ -41,7 +41,7 @@
      + ,PErrMass,PMom,PErrMom,PCharge,PTheta,PPhi,PCoo,PAnti
      + ,SignalCTC,BetaCTC,ErrorBetaCTC,CooCTC,TOFEdep,TOFTime
      + ,TOFETime,TOFCoo,TOFErCoo,TOFMCXcoo,TOFMCtof,TOFMCedep
-     + ,Sum,Sigma,Mean,RMS,ErrorMean,SS,Xca,Xcb,Xgl,SumMC
+     + ,Sumt,Sigmat,Meant,RMSt,ErrorMeant,SS,Xca,Xcb,Xgl,SumMC
      + ,HitR,EhitR,SumR,DifoSum,Chi2StrLine,Chi2Circle
      + ,CircleRidgidity,Chi2FastFit,Ridgidity,ErrRidgidity,Theta,Phi
      + ,P0,GChi2,GRidgidity,GErrRidgidity,GTheta,GPhi,GP0,HChi2 
@@ -49,14 +49,15 @@
      + ,FChi2MS,GChi2MS,RidgidityMS,GRidgidityMS,Coo,Dir,Momentum
      + ,Mass,Charge,CTCCoo,CTCErCoo,CTCRawSignal,CTCSignal
      + ,CTCESignal,CTCMCXcoo,CTCMCXdir,CTCstep,CTCedep,CTCbeta
+     + ,Amplitude
       INTEGER EventNo,Run,RunType,Time ,BetaEvent,BetaPattern
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
      + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft
-     + ,Status,Nelem,TrMCCluster,IdsoftMC,Itra,Left ,Center 
+     + ,Status,NelemL,NelemR,TrMCCluster,IdsoftMC,Itra,Left ,Center 
      + ,Right ,TrRecHit,StatusR,Layer,TrTrack,TrStatus,Pattern,NHits
      + ,GeaneFitDone,AdvancedFitDone,EventNoMCEventG,Particle,CTCCluster
-     + ,CTCStatus,CTCMCEvent,CTCMCIdsoft,bar
+     + ,CTCStatus,CTCMCEvent,CTCMCIdsoft,bar,px,py
 *
 *
 *
@@ -109,9 +110,10 @@
      + TOFMCedep(maxtofmc)
       
       common /TrClusterC/ntrcl,
-     + Idsoft(5,maxtrcl),Statust(maxtrcl),Nelemt(maxtrcl),
-     + Sumt(maxtrcl),Sigmat(maxtrcl),
-     + Meant(maxtrcl),RMSt(maxtrcl),ErrorMeant(maxtrcl)
+     + Idsoft(maxtrcl),Statust(maxtrcl),NelemL(maxtrcl),
+     + NelemR(maxtrcl),Sumt(maxtrcl),Sigmat(maxtrcl),
+     + Meant(maxtrcl),RMSt(maxtrcl),ErrorMeant(maxtrcl),
+     + Amplitude(5,maxtrcl)
     
       common/TrMCClusterC/ntrclmc,
      + IdsoftMC(maxtrclmc),Itra(maxtrclmc),
@@ -121,7 +123,7 @@
      + xcb(3,maxtrclmc),
      + xgl(3,maxtrclmc),summc(maxtrclmc)
 
-      common/TrRecHitC/ntrrh,
+      common/TrRecHitC/ntrrh,px(maxtrrh),py(maxtrrh),
      + statusr(maxtrrh),Layer(maxtrrh),
      + hitr(3,maxtrrh),ehitr(3,maxtrrh),sumr(maxtrrh),difosum(maxtrrh)
 
@@ -155,9 +157,13 @@
       parameter (ndet=13)
       character *64 cblock(ndet)
       integer events(ndet),eof(ndet)
+      common /quest/iquest(100)
+      integer runold
+      logical newrun
 *
 *--   Enter user code here
 *
+c       iquest(10)=128000
        call HROPEN(4,'output',fnam,'N',1024,iostat)
        if(iostat.ne.0)then
         write(*,*)'Unable to open output file ',fnam
@@ -177,7 +183,7 @@
        cblock(12)='CTCCLUST'
        cblock(13)='CTCMCCLU'
        do idet=1,ndet
-        open(40+idet,file='/tmp/'//cblock(idet),status='old',
+        open(40+idet,file=cblock(idet),status='old',
      +  form='unformatted',err=998)
         eof(idet)=0
         events(idet)=0
@@ -217,10 +223,11 @@
      + 'TOFMCedep(ntofmc)')
       
       call hbname(1,cblock(7), ntrcl,
-     + 'ntrcl[0,50],Idsoft(5,ntrcl):I,Statust(ntrcl):I,'//
-     + 'Nelemt(ntrcl):I,'//
+     + 'ntrcl[0,50],Idsoft(ntrcl):I,Statust(ntrcl):I,'//
+     + 'NelemL(ntrcl):I,NelemR(ntrcl):I,'//
      + 'Sumt(ntrcl),Sigmat(ntrcl),'//
-     + 'Meant(ntrcl):R,RMSt(ntrcl),ErrorMeant(ntrcl)')
+     + 'Meant(ntrcl):R,RMSt(ntrcl),ErrorMeant(ntrcl),'//
+     + 'Amplitude(5,ntrcl):R')
      
       call hbname(1,cblock(8),ntrclmc,
      +'ntrclmc[0,200],IdsoftMC(ntrclmc),Itra(ntrclmc),'//
@@ -231,7 +238,8 @@
      + 'xgl(3,ntrclmc),summc(ntrclmc)')
 
       call hbname(1,cblock(9),ntrrh,
-     + 'ntrrh[0,200],statusr(ntrrh):I,Layer(ntrrh):I,'//
+     + 'ntrrh[0,200],px(ntrrh):I,py(ntrrh):I,'//
+     + 'statusr(ntrrh):I,Layer(ntrrh):I,'//
      + 'hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh)')
 
       call hbname(1,cblock(10),ntrtr,
@@ -263,17 +271,24 @@
      + 'CTCMCXdir(3,nctcclmc),CTCstep(nctcclmc),ctcedep(nctcclmc),'//
      + 'ctcbeta(nctcclmc)')
 
-        
+        runold=-1
+        do i=1,ndet
+          events(idet)=0
+        enddo
        do ll=1,100000000
         idet=1
         lun=40+idet
         read(lun,end=15)eventno,run,runtype,time
+        if(run.ne.runold)then
+          write(*,*)' New run # ',run
+          runold=run
+        endif
         goto 16
  15     eof(idet)=1
  16     continue
         events(idet)=eventno
         if(eof(1).ne.0)goto 999
-c        write(*,*)eventno
+c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
         idet=2
         lun=40+idet
         do nbeta=1,maxbeta
@@ -286,17 +301,22 @@ c        write(*,*)eventno
           if(eof(idet).ne.0)then
              events(idet)=0
           else
+            if(events(idet).gt.ne)then
+              newrun=.true.
+            endif
             events(idet)=ne
           endif              
-          if(eof(idet).ne.0 .or. events(idet).gt.events(1))then
+          if(eof(idet).ne.0 .or. 
+     +    events(idet).gt.events(1).or.newrun)then
            if(eof(idet).eq.0)backspace lun
+           newrun=.false.
            goto 10
           else if (events(idet).lt.events(1))then
            nbeta=nbeta-1
           endif
         enddo   
  10     continue
-           nbeta=nbeta-1
+        nbeta=nbeta-1
         idet=3
         lun=40+idet
         do ncharge=1,maxch
@@ -310,10 +330,12 @@ c        write(*,*)eventno
           if(eof(idet).ne.0)then
              events(idet)=0
            else
+            if(events(idet).gt.ne)newrun=.true.
             events(idet)=ne
            endif              
-         if(eof(idet).ne.0 .or. events(idet).gt.events(1))then
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           newrun=.false.
           goto 20
          else if (events(idet).lt.events(1))then
           ncharge=ncharge-1
@@ -339,10 +361,12 @@ c        write(*,*)eventno
           if(eof(idet).ne.0)then
              events(idet)=0
            else
+            if(events(idet).gt.ne)newrun=.true.
             events(idet)=ne
            endif              
-         if(eof(idet).ne.0 .or. events(idet).gt.events(1))then
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           newrun=.false.
           goto 30
           else if (events(idet).lt.events(1))then
            npart=npart-1
@@ -364,10 +388,12 @@ c        write(*,*)eventno
           if(eof(idet).ne.0)then
              events(idet)=0
            else
+            if(events(idet).gt.ne)newrun=.true.
             events(idet)=ne
            endif              
-         if(eof(idet).ne.0 .or. events(idet).gt.events(1))then
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           newrun=.false.
           goto 40
           else if (events(idet).lt.events(1))then
            ntof=ntof-1
@@ -389,10 +415,12 @@ c        write(*,*)eventno
           if(eof(idet).ne.0)then
              events(idet)=0
            else
+            if(events(idet).gt.ne)newrun=.true.
             events(idet)=ne
            endif              
-         if(eof(idet).ne.0 .or. events(idet).gt.events(1))then
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           newrun=.false.
           goto 50
           else if (events(idet).lt.events(1))then
             ntofmc=ntofmc-1
@@ -405,19 +433,22 @@ c        write(*,*)eventno
         do ntrcl=1,maxtrcl
            iostat=1
            if(eof(idet).eq.0)read(lun,end=75)
-     +    ne,(Idsoft(k,ntrcl),k=1,5),Statust(ntrcl),Nelemt(ntrcl),
-     +    Sumt(ntrcl),Sigmat(ntrcl),
-     +    Meant(ntrcl),RMSt(ntrcl),ErrorMeant(ntrcl)
+     +    ne,Idsoft(ntrcl),Statust(ntrcl),NelemL(ntrcl),
+     +    NelemR(ntrcl),Sumt(ntrcl),Sigmat(ntrcl),
+     +    Meant(ntrcl),RMSt(ntrcl),ErrorMeant(ntrcl),
+     +    (Amplitude(kk,ntrcl),kk=1,5)
           goto 76
  75       eof(idet)=1
  76       continue
           if(eof(idet).ne.0)then
              events(idet)=0
            else
+            if(events(idet).gt.ne)newrun=.true.
             events(idet)=ne
            endif              
-         if(eof(idet).ne.0 .or. events(idet).gt.events(1))then
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           newrun=.false.
           goto 60
           else if (events(idet).lt.events(1))then
            ntrcl=ntrcl-1
@@ -435,19 +466,21 @@ c        write(*,*)eventno
      +     (Center(k,ntrclmc),k=1,2),
      +     (Right(k,ntrclmc),k=1,2),
      +     ((ss(k,l,ntrclmc),k=1,5),l=1,2),
-     +     (xca(k,ntrclmc),k=1,2),
-     +     (xcb(k,ntrclmc),k=1,2),
-     +     (xgl(k,ntrclmc),k=1,2),summc(ntrclmc) 
+     +     (xca(k,ntrclmc),k=1,3),
+     +     (xcb(k,ntrclmc),k=1,3),
+     +     (xgl(k,ntrclmc),k=1,3),summc(ntrclmc) 
            goto 86
  85       eof(idet)=1
  86       continue
           if(eof(idet).ne.0)then
              events(idet)=0
            else
+            if(events(idet).gt.ne)newrun=.true.
             events(idet)=ne
            endif              
-         if(eof(idet).ne.0 .or. events(idet).gt.events(1))then
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           newrun=.false.
           goto 70
           else if (events(idet).lt.events(1))then
             ntrclmc=ntrclmc-1
@@ -460,7 +493,7 @@ c        write(*,*)eventno
         do ntrrh=1,maxtrrh
            iostat=1
            if(eof(idet).eq.0)read(lun,end=95)
-     +     ne,statusr(ntrrh),Layer(ntrrh),
+     +     ne,px(ntrrh),py(ntrrh),statusr(ntrrh),Layer(ntrrh),
      +     (hitr(k,ntrrh),k=1,3),
      +     (ehitr(k,ntrrh),k=1,3),sumr(ntrrh),difosum(ntrrh)
            goto 96
@@ -469,10 +502,12 @@ c        write(*,*)eventno
           if(eof(idet).ne.0)then
              events(idet)=0
            else
+            if(events(idet).gt.ne)newrun=.true.
             events(idet)=ne
            endif              
-         if(eof(idet).ne.0 .or. events(idet).gt.events(1))then
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           newrun=.false.
           goto 80
           else if (events(idet).lt.events(1))then
             ntrrh=ntrrh-1
@@ -505,10 +540,12 @@ c        write(*,*)eventno
           if(eof(idet).ne.0)then
              events(idet)=0
            else
+            if(events(idet).gt.ne)newrun=.true.
             events(idet)=ne
            endif              
-         if(eof(idet).ne.0 .or. events(idet).gt.events(1))then
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           newrun=.false.
           goto 90
           else if (events(idet).lt.events(1))then
            ntrtr=ntrtr-1
@@ -530,10 +567,12 @@ c        write(*,*)eventno
           if(eof(idet).ne.0)then
              events(idet)=0
            else
+            if(events(idet).gt.ne)newrun=.true.
             events(idet)=ne
            endif              
-         if(eof(idet).ne.0 .or. events(idet).gt.events(1))then
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           newrun=.false.
           goto 100
           else if (events(idet).lt.events(1))then
           nmcg=nmcg-1
@@ -555,10 +594,12 @@ c        write(*,*)eventno
           if(eof(idet).ne.0)then
              events(idet)=0
            else
+            if(events(idet).gt.ne)newrun=.true.
             events(idet)=ne
            endif              
-         if(eof(idet).ne.0 .or. events(idet).gt.events(1))then
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           newrun=.false.
           goto 110
           else if (events(idet).lt.events(1))then
               nctccl=nctccl-1
@@ -581,10 +622,12 @@ c        write(*,*)eventno
           if(eof(idet).ne.0)then
              events(idet)=0
            else
+            if(events(idet).gt.ne)newrun=.true.
             events(idet)=ne
            endif              
-         if(eof(idet).ne.0 .or. events(idet).gt.events(1))then
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           newrun=.false.
           goto 120
           else if (events(idet).lt.events(1))then
               nctcclmc=nctcclmc-1
@@ -592,11 +635,12 @@ c        write(*,*)eventno
         enddo   
  120     continue
           nctcclmc=nctcclmc-1
+c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
        call hfnt(1)
        enddo 
  999   continue
        do i=1,ndet
-        close(40+i)
+        close(40+i,status='delete')
        enddo
        ic=0
        call hrout(0,ic,' ')
@@ -606,7 +650,7 @@ c        write(*,*)eventno
  998   continue
        write(*,*)'Unable to open file ',cblock(idet)
        do i=1,idet-1
-        close(40+i)
+        close(40+i,status='delete')
        enddo
 *
       end
@@ -640,7 +684,8 @@ c        write(*,*)eventno
      + ,PErrMass,PMom,PErrMom,PCharge,PTheta,PPhi,PCoo(3),PAnti
      + ,SignalCTC,BetaCTC,ErrorBetaCTC,CooCTC(3),TOFEdep,TOFTime
      + ,TOFETime,TOFCoo(3),TOFErCoo(3),TOFMCXcoo(3),TOFMCtof,TOFMCedep
-     + ,Sum,Sigma,Mean,RMS,ErrorMean,SS(5,2),Xca(3),Xcb(3),Xgl(3),SumMC
+     + ,Sumt,Sigmat,Meant,RMSt,ErrorMeant,
+     +  SS(5,2),Xca(3),Xcb(3),Xgl(3),SumMC,Amplitude(5)
      + ,HitR(3),EhitR(3),SumR,DifoSum,Chi2StrLine,Chi2Circle
      + ,CircleRidgidity,Chi2FastFit,Ridgidity,ErrRidgidity,Theta,Phi
      + ,P0(3),GChi2,GRidgidity,GErrRidgidity,GTheta,GPhi,GP0(3),HChi2(2)
@@ -651,11 +696,11 @@ c        write(*,*)eventno
       INTEGER EventNo,Run,RunType,Time(2),BetaEvent,BetaPattern
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
-     + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft(5)
+     + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft
      + ,Status,Nelem,TrMCCluster,IdsoftMC,Itra,Left(2),Center(2)
      + ,Right(2),TrRecHit,StatusR,Layer,TrTrack,TrStatus,Pattern,NHits
      + ,GeaneFitDone,AdvancedFitDone,EventNoMCEventG,Particle,CTCCluster
-     + ,CTCStatus,CTCMCEvent,CTCMCIdsoft
+     + ,CTCStatus,CTCMCEvent,CTCMCIdsoft,px,py
 *
 
 *
@@ -700,8 +745,8 @@ c        write(*,*)eventno
 *
 *    idet=7
 *
-       common /trclusteC/TrCluster,Idsoft,Status,Nelem,Sum,Sigma,
-     + Mean,RMS,ErrorMean
+       common /trclusteC/TrCluster,Idsoft,Status,NelemL,NelemR,
+     + Sumt,Sigmat,Meant,RMSt,ErrorMeant,Amplitude
 *
 *    idet=8
 *
@@ -711,7 +756,8 @@ c        write(*,*)eventno
 *    idet=9
 *
 
-      common /trrechitC/TrRecHit,statusr,Layer,hitr,ehitr,sumr,difosum
+      common /trrechitC/TrRecHit,px,py,
+     +statusr,Layer,hitr,ehitr,sumr,difosum
 
 *
 *    idet=10
@@ -772,7 +818,7 @@ c        write(*,*)eventno
        cblock(12)='CTCCLUST'
        cblock(13)='CTCMCCLU'
        do idet=1,ndet
-        open(21,file='/tmp/'//cblock(idet),status='unknown',
+        open(21,file=cblock(idet),status='unknown',
      +  form='unformatted')
         nmax=1000000000
         ierr=0
@@ -806,7 +852,13 @@ c        write(*,*)eventno
         do i=1,nmax
          if(i.eq.1)write(*,*)cblock(idet)(1:8),' Started'
          call hgntb(1,cblock(idet),i,ierr)
-         if(ierr.ne.0)goto 999
+         if(ierr.ne.0)then
+          if( cblock(idet).eq.'EVENTH')then
+            write(*,*)' Last Run&Event # ',run,eventno
+          endif
+          write(*,*)cblock(idet)(1:8),' finished with ',i
+          goto 999
+         endif
                 if( cblock(idet).eq.'EVENTH')then
             write(21)eventno,run,runtype,time
            else if( cblock(idet).eq.'BETA')then
@@ -825,13 +877,14 @@ c        write(*,*)eventno
             write(21)TOFMCEvent,TOFMCIdsoft,TOFMCXcoo,TOFMCtof,
      +  TOFMCedep
            else if( cblock(idet).eq.'TRCLUSTE')then
-            write(21)TrCluster,Idsoft,Status,Nelem,Sum,Sigma,
-     + Mean,RMS,ErrorMean
+            write(21)TrCluster,Idsoft,Status,NelemL,NelemR,
+     +      Sumt,Sigmat,Meant,RMSt,ErrorMeant,Amplitude
            else if( cblock(idet).eq.'TRMCCLUS')then
             write(21)TrMCCluster,IdsoftMC,Itra,Left,Center,
      +  Right,ss,xca,xcb,xgl,summc
            else if( cblock(idet).eq.'TRRECHIT')then
-            write(21)TrRecHit,statusr,Layer,hitr,ehitr,sumr,difosum
+            write(21)TrRecHit,px,py,statusr,Layer,
+     +      hitr,ehitr,sumr,difosum
            else if( cblock(idet).eq.'TRTRACK')then
             write(21)trtrack,trstatus,pattern,nhits,GeaneFitDone,
      + AdvancedFitDone,Chi2StrLine,Chi2Circle,CircleRidgidity,

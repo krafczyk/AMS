@@ -342,11 +342,13 @@ else{
 }
 integer ntrig=0;
 integer nold=0;
+integer or=0;
 for (i=0;i<len;i++){
-  if(triggername[i]=='|' || triggername[i]=='\0'){
+  if(triggername[i]=='|' || triggername[i]=='\0' || triggername[i]=='&'){
     // new trigger found
+       if(triggername[i]=='|')or=1;
        triggername[i]='\0';
-       settrigger(triggername+nold,ntrig++,IOPA.TriggerI);
+       if(i-nold>0)settrigger(triggername+nold,ntrig++,IOPA.TriggerI,or);
        nold=i+1;
   }
 }
@@ -513,11 +515,12 @@ void AMSJob::setsetup(char *setup){
   else strcpy(_Setup,"AMSSHUTTLE STRPLANES CTCHor");   //defaults
   
 }
-void AMSJob::settrigger(char *setup, integer N, integer I){
+void AMSJob::settrigger(char *setup, integer N, integer I,integer or){
   assert(N < maxtrig);
   if(setup){
     strcpy(_TriggerC[N],setup);
   }
   _TriggerI=I;
+  _TriggerOr=or;
   _TriggerN=N+1;
 }

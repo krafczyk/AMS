@@ -62,6 +62,21 @@ number AMSTrIdGeom::getsize(integer side) const{
 if(side==0)return _swxy[_layer-1][0][_stripx];
 else return _swxy[_layer-1][1][_stripy];
 }
+
+number AMSTrIdGeom::getcofg(integer side,integer shift, integer & error) const{
+if(side !=0)side=1;
+integer strip = side==0?_stripx+shift:_stripy+shift;
+if(strip < 0 || strip >= getmaxstrips(side)){
+ error=1;
+ return 0;
+}
+else {
+ error=0;
+ return _swxyl[_layer-1][side][strip]+_swxy[_layer-1][side][strip]/2;
+}
+}
+
+
 number * AMSTrIdGeom::_swxyl[nl][2];
 number * AMSTrIdGeom::_swxy[nl][2];
 geant * AMSTrIdSoft::gains=0;

@@ -2,26 +2,29 @@
 #include <trid.h>
 integer AMSgSen::getsenstrip(AMSPoint & loc){
 
-  AMSPoint size=AMSPoint(_par[0]+2*AMSgvolume::dgeant,_par[1]+2*AMSgvolume::dgeant,
-                         _par[2]+2*AMSgvolume::dgeant);
+  AMSPoint size=AMSPoint(_par[0],_par[1],_par[2]);
   loc=gl2loc(loc);
   loc=loc+size;
-  integer il=AMSTrIdGeom(getid()).getlayer()-1;
-  if(loc[0]>size[0]*2 || loc[1]>size[1]*2 || loc[0]<0 || loc[1] < 0  
-                                       ){
-    //  || loc[2]<0 || loc[2]>size[2]*2){  // removed due to geant *4 prec
-  cerr << "AMSgSen::getsenstrip-S-Error loc " 
-   << loc << size << endl;
-  return 0;
+  if(loc[0]>2*size[0]+2*AMSgvolume::dgeant || 
+     loc[1]>2*size[1]+2*AMSgvolume::dgeant  ||
+     loc[0]<-2*AMSgvolume::dgeant ||
+     loc[1]<-2*AMSgvolume::dgeant   ){
+       cerr << "AMSgSen::getsenstrip-S-Error loc " 
+       << loc << size << endl;
+       return 0;
   }
+  if(loc[0]<0)loc[0]=0;
+  if(loc[1]<0)loc[1]=0;
+  if(loc[2]<0)loc[2]=0;
+  if(loc[0]>2*size[0])loc[0]=2*size[0];
+  if(loc[1]>2*size[1])loc[1]=2*size[1];
+  if(loc[2]>2*size[2])loc[2]=2*size[2];
   return 1;
 }
  
 AMSPoint AMSgSen::str2pnt(number cofgx,number cofgy){
-  AMSPoint size=AMSPoint(_par[0]+AMSgvolume::dgeant,_par[1]+AMSgvolume::dgeant,
-                         _par[2]+AMSgvolume::dgeant);
-  integer il=AMSTrIdGeom(getid()).getlayer()-1;
-    return loc2gl(AMSPoint(cofgx-size[0],cofgy-size[1],0.));
+  AMSPoint size=AMSPoint(_par[0],_par[1], _par[2]);
+  return loc2gl(AMSPoint(cofgx-size[0],cofgy-size[1],0.));
 }   
 AMSPoint AMSgSen::tkidfn(const AMSPoint &xv, const AMSPoint &yv, 
                          const AMSDir &nxv,const AMSDir &nyv){

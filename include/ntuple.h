@@ -154,20 +154,23 @@ friend class AMSTOFCluster;
 
 class TrClusterNtuple: public AMSNtuple{
 private:
-int Idsoft[5];
+int Idsoft;
 int Status;
-int Nelem;
+int NelemL;
+int NelemR;
 float Sum;
 float Sigma;
 float Mean;
 float RMS;
 float ErrorMean;
-
+float Amplitude[5];
 friend class AMSTrCluster;
 };
 
 class TrRecHitNtuple: public AMSNtuple{
 private:
+int pX;
+int pY;
 int Status;
 int Layer;
 float Hit[3];

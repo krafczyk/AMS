@@ -27,6 +27,7 @@ AMSTrIdGeom & operator = (const AMSTrIdGeom &o);
 AMSID crgid();
 integer operator == (const AMSTrIdGeom &o);
 number  getsize(integer side)const;
+number  getcofg(integer side, integer shift, integer & error)const;
 inline void upd(integer side,integer strip){
 #ifdef __AMSDEBUG__
        assert(side>=0 && side<2);

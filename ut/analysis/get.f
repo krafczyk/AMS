@@ -34,15 +34,16 @@
      + ,HRidgidity(2),HErrRidgidity(2),HTheta(2),HPhi(2),HP0(3,2)
      + ,FChi2MS,GChi2MS,RidgidityMS,GRidgidityMS,Coo(3),Dir(3),Momentum
      + ,Mass,Charge,CTCCoo(3),CTCErCoo(3),CTCRawSignal,CTCSignal
-     + ,CTCESignal,CTCMCXcoo(3),CTCMCXdir(3),CTCstep,CTCedep,CTCbeta
+     + ,CTCESignal,CTCMCXcoo(3),CTCMCXdir(3),CTCstep,CTCedep,CTCbeta,
+     + Amplitude(5)
       INTEGER EventNo,Run,RunType,Time(2),BetaEvent,BetaPattern
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
-     + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft(5)
-     + ,Status,Nelem,TrMCCluster,IdsoftMC,Itra,Left(2),Center(2)
+     + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft
+     + ,Status,NelemL,NelemR,TrMCCluster,IdsoftMC,Itra,Left(2),Center(2)
      + ,Right(2),TrRecHit,StatusR,Layer,TrTrack,TrStatus,Pattern,NHits
      + ,GeaneFitDone,AdvancedFitDone,EventNoMCEventG,Particle,CTCCluster
-     + ,CTCStatus,CTCMCEvent,CTCMCIdsoft
+     + ,CTCStatus,CTCMCEvent,CTCMCIdsoft,px,py
 *
 
 *
@@ -87,8 +88,8 @@
 *
 *    idet=7
 *
-       common /trclusteC/TrCluster,Idsoft,Status,Nelem,Sum,Sigma,
-     + Mean,RMS,ErrorMean
+       common /trclusteC/TrCluster,Idsoft,Status,NelemL,
+     + NelemR,Sum,Sigma,Mean,RMS,ErrorMean
 *
 *    idet=8
 *
@@ -98,7 +99,8 @@
 *    idet=9
 *
 
-      common /trrechitC/TrRecHit,statusr,Layer,hitr,ehitr,sumr,difosum
+      common /trrechitC/TrRecHit,px,py,
+     +statusr,Layer,hitr,ehitr,sumr,difosum
 
 *
 *    idet=10
@@ -221,8 +223,9 @@
          if(cblock(idet).eq.'TRCLUSTE')then
           r=sum
           call hf1(701,r,1.)
-          if(idsoft(1).eq.6)call hf1(702,float(idsoft(2)),1.)
-          call hf1(703,float(idsoft(1)),1.)
+          if(mod(idsoft,10).eq.6)call hf1(702,
+     +    float(mod(idsoft/10,100)),1.)
+          call hf1(703,float(mod(idsoft,10)),1.)
          endif 
        enddo 
  

@@ -30,21 +30,24 @@ class AMSTrCluster: public AMSlink {
 protected:
   void _ErrorCalc();
   void _printEl(ostream & stream)
-  { stream << _Id << " Nelem " << _Nelem << " Sum " << _Sum <<endl;}
+  { stream << _Id << " Nelem " << -_NelemL+_NelemR << " Sum " << _Sum <<endl;}
   void _copyEl();
   void _writeEl();
-AMSTrIdSoft _Id; // leftmost
+AMSTrIdSoft _Id; // center
 integer _Status;
-integer _Nelem;
+integer _NelemL; // to left
+integer _NelemR; // to right
 number _Sum;
 number _Sigma;
-number _Mean;    // with respect to left + TRCLFFKEY.ThrClNEl[side]/2 
+number _Mean;    // with respect to center
 number _Rms;
 number _ErrorMean; // Guessed Error
 
 number * _pValues;
 
-static void _addnext(const AMSTrIdSoft& id, integer status, integer nelem, number sum,  number ssum, number pos, number rms, number val[]);
+static void _addnext(const AMSTrIdSoft& id, integer status, integer nelemL,
+  integer nelemR, number sum,  number ssum, number pos, number rms, 
+  number val[]);
 
 public:
      static const integer WIDE;
@@ -60,42 +63,66 @@ number getecofg(){return _ErrorMean;}
    friend class AMSTrClusterD;
 #endif
 
-                   integer getnelem()      {return _Nelem;}
-                   number  getrms()        {return _Rms;}
-                   number  getsigma()      {return _Sigma;}
+     integer getnelem()      {return -_NelemL+_NelemR;}
+     number  getrms()        {return _Rms;}
+     number  getsigma()      {return _Sigma;}
 
 inline void setid(const AMSTrIdSoft& id) { _Id = id;}
 number getMean() { return _Mean;}
 void   getValues(number* values)
-       { if(_Nelem > 0) UCOPY (_pValues, values, sizeof(number)*_Nelem/4); }
+       { if(getnelem() > 0) 
+         UCOPY (_pValues, values, sizeof(number)*getnelem()/4); }
 void   setValues(number* values)
   {
-   if(_Nelem>0){
-    _pValues=(number*)UPool.insert(_Nelem*sizeof(number));
-    for(int i=0;i<_Nelem;i++) _pValues[i] = values[i];
+   if(getnelem()>0){
+    _pValues=(number*)UPool.insert(getnelem()*sizeof(number));
+    for(int i=0;i<getnelem();i++) _pValues[i] = values[i];
    }
   }
 //-
 
 AMSTrIdSoft getid()const {return _Id;}
-AMSTrCluster(const AMSTrIdSoft& id, integer status, integer nelem, number sum,
-             number ssum, number pos, number rms,  number val[]);
+AMSTrCluster(const AMSTrIdSoft& id, integer status, integer nelemL, 
+integer nelemR, number sum,number ssum, number pos, number rms,  number val[]);
 AMSTrCluster *  next(){return (AMSTrCluster*)_next;}
 
 static void build();
 static void print();
-AMSTrCluster():AMSlink(0){_Nelem=0;_pValues=0;};
+AMSTrCluster():AMSlink(0){_NelemL=0; _NelemR=0;_pValues=0;};
 ~AMSTrCluster(){if(_pValues)UPool.udelete(_pValues);}
 integer operator < (AMSlink & o) const {
 // No RTTI - take a "risk" here
   AMSTrCluster * p= (AMSTrCluster*)(&o);
-  return getid() < p->getid();
+//  return getid() < p->getid();
+// New operator < 15/11/96 for ntuple purpose
+ if (getstatus(AMSDBc::USED) && !(p->getstatus(AMSDBc::USED)))return 1;
+ else return 0;             
+
 } 
 };
 
 class AMSTrRecHit: public AMSlink{
+protected:
+AMSgSen * _pSen;
+AMSTrCluster *_Xcl;
+AMSTrCluster *_Ycl;
+integer _Status;
+integer _Layer;
+AMSPoint     _Hit;
+AMSPoint     _EHit;
+number _Sum;
+number _DifoSum;
+
+static AMSTrRecHit* _Head[6];
+static void _addnext(AMSgSen * p, integer ,integer ,AMSTrCluster *, 
+            AMSTrCluster *,  const AMSPoint &, const AMSPoint &);
+  void _printEl(ostream & stream){ stream << " Status " << _Status << " Layer " << 
+  _Layer <<" Coo " << _Hit<< endl;}
+  void _copyEl();
+  void _writeEl();
+
 public:
-static integer Out(integer);
+
 AMSTrRecHit *  next(){return (AMSTrRecHit*)_next;}
 
 static AMSTrRecHit * gethead(integer i=0){
@@ -117,6 +144,7 @@ AMSTrRecHit(AMSgSen *p, integer good,integer layer, AMSTrCluster * xcl, AMSTrClu
 AMSTrRecHit(): AMSlink(0),_pSen(0),_Xcl(0),_Ycl(0){};
 static void build();
 static void print();
+static integer Out(integer);
 number getsum()const{return _Sum;}
 AMSgSen * getpsen()const{return _pSen;}
 inline  AMSPoint  getHit(){return _Hit;}
@@ -141,23 +169,6 @@ void          setClusterP(AMSTrCluster* p,integer n) {
 //-
 inline void setstatus(integer status){_Status=_Status | status;}
 ~AMSTrRecHit(){int i;for( i=0;i<6;i++)_Head[i]=0;};
-protected:
-static AMSTrRecHit* _Head[6];
-static void _addnext(AMSgSen * p, integer ,integer ,AMSTrCluster *, 
-            AMSTrCluster *,  const AMSPoint &, const AMSPoint &);
-  void _printEl(ostream & stream){ stream << " Status " << _Status << " Layer " << 
-  _Layer <<" Coo " << _Hit<< endl;}
-  void _copyEl();
-  void _writeEl();
-AMSgSen * _pSen;
-AMSTrCluster *_Xcl;
-AMSTrCluster *_Ycl;
-integer _Status;
-integer _Layer;
-AMSPoint     _Hit;
-AMSPoint     _EHit;
-number _Sum;
-number _DifoSum;
 
 };
 
@@ -221,6 +232,12 @@ static integer patpoints[npat];
 static integer patconf[npat][6];
 
 public:
+integer operator < (AMSlink & o) const {
+  AMSTrTrack * p= (AMSTrTrack*)(&o);
+  if (getstatus(AMSDBc::USED) && !(p->getstatus(AMSDBc::USED)))return 1;
+  else return 0;
+}
+
 static integer Out(integer);
 inline void setstatus(integer status){_Status=_Status | status;}
 inline integer getstatus(integer checker) const{return _Status & checker;}

@@ -181,7 +181,7 @@ extern "C" void gustep_(){
   GCVOLU.names[1][0]== 'S' &&     GCVOLU.names[1][1]=='T' && 
   GCVOLU.names[1][2]=='K')
      AMSTrMCCluster::sitkhits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
-     GCTRAK.destep,GCTRAK.step,GCKINE.itra);   
+     GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
 
   // TOF
 
@@ -279,9 +279,10 @@ extern "C" void guout_(){
       if(AMSEvent::gethead()->getid()%GCFLAG.ITEST==0)
       AMSEvent::gethead()->printA(AMSEvent::debug);
 #endif
-     integer trig=0;
+     integer trig;
+     if(AMSJob::gethead()->gettriggerOr()){
+      trig=0;
      integer ntrig=AMSJob::gethead()->gettriggerN();
-
        for(int n=0;n<ntrig;n++){
         for(int i=0;i<AMSJob::gethead()->gettriggerI();i++){
          AMSContainer *p=AMSEvent::gethead()->
@@ -289,6 +290,21 @@ extern "C" void guout_(){
          if(p)trig+=p->getnelem();
         }
        }
+     }
+     else{
+      trig=1;
+     integer ntrig=AMSJob::gethead()->gettriggerN();
+       for(int n=0;n<ntrig;n++){
+        integer trigl=0;
+        for(int i=0;i<AMSJob::gethead()->gettriggerI();i++){
+         AMSContainer *p=AMSEvent::gethead()->
+         getC(AMSJob::gethead()->gettriggerC(n),i);
+         if(p)trigl+=p->getnelem();
+        }
+        if(trigl==0)trig=0;
+       }
+     }
+
    if(trig )AMSEvent::gethead()->write();
    AMSEvent::gethead()->copy();
 #ifdef __DB__

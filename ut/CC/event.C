@@ -197,6 +197,11 @@ void AMSEvent::_retkinitevent(){
 }
 
 void  AMSEvent::write(){
+  // Sort before by "Used" variable : AMSTrTrack & AMSTrCluster
+  AMSEvent::gethead()->getheadC("AMSTrCluster",0,1); 
+  AMSEvent::gethead()->getheadC("AMSTrCluster",1,1); 
+  AMSEvent::gethead()->getheadC("AMSTrTrack",0,1); 
+   
 if(IOPA.hlun){
 _writeEl();
 AMSNode * cur;

@@ -18,6 +18,7 @@ char _Setup[256];
 char _TriggerC[maxtrig][256];
 integer _TriggerI;
 integer _TriggerN;
+integer _TriggerOr;
 static AMSJob* _Head;
 void _init(){}
 void _siamsdata();
@@ -53,8 +54,10 @@ AMSJob(AMSID id=0,integer jobtype=0):AMSNode(id),_jobtype(jobtype)
 static AMSJob* gethead(){return _Head;}
 static AMSJob * & sethead(){return _Head;}
 void setsetup(char * setup);
-void settrigger(char * triggerC, integer triggerN, integer triggerI);
+void settrigger(char * triggerC, integer triggerN, integer triggerI,
+integer triggerOr);
 inline char * getsetup(){return _Setup;}
+inline integer gettriggerOr(){return _TriggerOr;}
 inline integer gettriggerI(){return _TriggerI;}
 inline integer gettriggerN(){return _TriggerN;}
 inline char * gettriggerC(integer n){return n>=0 && n<_TriggerN ? _TriggerC[n]:0;}

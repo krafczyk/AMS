@@ -53,9 +53,9 @@ void AMSTrCluster::build(){
      integer ilay=id.getlayer(); 
      integer side=id.getside();
      p->expand(adc+TRCLFFKEY.ThrClNEl[side]/2);
-     // Circle buffer for x;
+     // Circle buffer for x layers 1 && 6;
      // 
-     if(side==0){
+     if(side==0 && (ilay==1 || ilay==6)){
        for (int iloc=0;iloc<TRCLFFKEY.ThrClNEl[side]/2;iloc++){
         adc[iloc]=adc[id.getmaxstrips()-TRCLFFKEY.ThrClNEl[side]/2+iloc];
         adc[iloc+id.getmaxstrips()]=adc[iloc+TRCLFFKEY.ThrClNEl[side]/2];
@@ -67,7 +67,7 @@ void AMSTrCluster::build(){
      number ssum;
      number pos;
      number rms;
-     integer left,right,status,above;
+     integer left,right,status,above,center;
      for (int i=TRCLFFKEY.ThrClNEl[side]/2;
      i<id.getmaxstrips()+TRCLFFKEY.ThrClNEl[side]/2;i++){
      if(adc[i]<ref){
@@ -77,6 +77,7 @@ void AMSTrCluster::build(){
       status=AMSTrCluster::WIDE;
       left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
       i-TRCLFFKEY.ThrClNEl[side]/2);
+      center=i;
       right=min(i+TRCLFFKEY.ThrClNEl[side]/2,
             id.getmaxstrips()+(side==1?1:2)*(TRCLFFKEY.ThrClNEl[side]/2)-1);  
       } 
@@ -85,6 +86,7 @@ void AMSTrCluster::build(){
       status=AMSTrCluster::NEAR;
       left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
       i-1-TRCLFFKEY.ThrClNEl[side]/2);
+      center=i-1;
       right=min(i+TRCLFFKEY.ThrClNEl[side]/2-1,
       id.getmaxstrips()+(side==1?1:2)*(TRCLFFKEY.ThrClNEl[side]/2)-1);    
       }
@@ -92,6 +94,7 @@ void AMSTrCluster::build(){
        status=0;
        left=max(side==1?TRCLFFKEY.ThrClNEl[side]/2:0,
        i-1-TRCLFFKEY.ThrClNEl[side]/2);
+       center=i-1;
        right=min(i-1+TRCLFFKEY.ThrClNEl[side]/2,
        id.getmaxstrips()+(side==1?1:2)*(TRCLFFKEY.ThrClNEl[side]/2)-1);   
       }
@@ -102,7 +105,7 @@ void AMSTrCluster::build(){
       above=0;
       //
       // we don't know here the strip size (unfortunately...)
-      // so put one's here ...
+      // so put 1 instead ...
       // 
       for (int j=left;j<right+1;j++){
        id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
@@ -111,10 +114,8 @@ void AMSTrCluster::build(){
         if(j==right+1 && status==AMSTrCluster::NEAR)sum+=adc[j]/2;
         else sum+=adc[j];
         ssum=ssum+pow(id.getsig(),2.);
-        pos=pos+1*
-        (j-left-TRCLFFKEY.ThrClNEl[side]/2)*adc[j];
-        rms=rms+pow(1*
-        (j-left-TRCLFFKEY.ThrClNEl[side]/2),2)*adc[j];
+        pos=pos+1*(j-center)*adc[j];
+        rms=rms+pow(1*(j-center),2)*adc[j];
        }
       }
        if(sum !=0){
@@ -126,9 +127,9 @@ void AMSTrCluster::build(){
       if(above >= TRCLFFKEY.ThrClNMin[side] && 
          sum> TRCLFFKEY.ThrClA[side] && ssum > 0 && 
          ssum < TRCLFFKEY.ThrClS[side] && sum/ssum > TRCLFFKEY.ThrClR[side]){
-         id.upd(left-TRCLFFKEY.ThrClNEl[side]/2);
+         id.upd(center-TRCLFFKEY.ThrClNEl[side]/2);
          _addnext(
-         id,status,right-left+1,sum,ssum,pos,rms,adc+left);
+         id,status,left-center,right-center+1,sum,ssum,pos,rms,adc+left);
            for (int j=left;j<right+1;j++){
              if(j==right+1 && status==AMSTrCluster::NEAR)adc[j]=adc[j]/2;
              else adc[j]=0;
@@ -158,14 +159,10 @@ number AMSTrCluster::getcofg(integer side, AMSTrIdGeom * pid){
 #endif
 number cofg=0;
 number eval=0;
-number size=0;
-number path=0;
-integer i;
-for(i=0;i<_Nelem;i++){
- path+=size+pid->getsize(side)/2;
- size=pid->getsize(side)/2;
- cofg+=_pValues[i]*path;
- eval+=_pValues[i];
+integer i,error;
+for(i=_NelemL;i<_NelemR;i++){
+ cofg+=_pValues[i-_NelemL]*pid->getcofg(side,i,error);
+ if(error==0)eval+=_pValues[i-_NelemL];
 }
 if(eval > 0)cofg=cofg/eval;
 return cofg; 
@@ -184,23 +181,23 @@ else  _ErrorMean =30.e-4;
 
 
   void AMSTrCluster::_addnext(const AMSTrIdSoft & id, 
-                          integer status, integer nelem, 
+                          integer status, integer nelemL,integer nelemR, 
                          number sum, number ssum, number pos, number rms,
                          number val[]) {
     AMSEvent::gethead()->addnext(AMSID("AMSTrCluster",id.getside()),
-    new AMSTrCluster(id,status,nelem,sum,ssum,pos,rms,val));
+    new AMSTrCluster(id,status,nelemL,nelemR,sum,ssum,pos,rms,val));
 }
 
 AMSTrCluster::AMSTrCluster(const AMSTrIdSoft& id, integer status, 
-                           integer nelem, number sum,number ssum, number pos, 
-                           number rms,  number val[]):
-    AMSlink(0),_Id(id),_Status(status),_Nelem(nelem), _Sum(sum), 
+                           integer nelemL, integer nelemR, number sum,
+                           number ssum, number pos,number rms,  number val[]):
+    AMSlink(0),_Id(id),_Status(status),_NelemL(nelemL), _NelemR(nelemR),_Sum(sum), 
     _Sigma(ssum), _Mean(pos), _Rms(rms){
  _ErrorCalc();
- if(nelem>0){
-  _pValues=(number*)UPool.insert(nelem*sizeof(number));
+ if(getnelem()>0){
+  _pValues=(number*)UPool.insert(getnelem()*sizeof(number));
   int i;
-  for(i=0;i<nelem;i++)_pValues[i]=val[i];
+  for(i=0;i<getnelem();i++)_pValues[i]=val[i];
  }
 }
 
@@ -212,22 +209,20 @@ if(AMSTrCluster::Out( IOPA.WriteAll ||  getstatus(AMSDBc::USED ))){
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"TrCluste",TrN.getaddress(),
-  "TrCluster:I*4,Idsoft(5):I*4,Status:I*4,Nelem:I*4,Sum:R*4, Sigma:R*4, Mean:R*4, RMS:R*4, ErrorMean:R*4");
+  "TrCluster:I*4,Idsoft:I*4,Status:I*4,NelemL:I*4,NelemR:I*4,Sum:R*4, Sigma:R*4, Mean:R*4, RMS:R*4, ErrorMean:R*4,Amplitude(5):R*4");
 
 }
   TrN.Event()=AMSEvent::gethead()->getid();
-  TrN.Idsoft[0]=_Id.getlayer();
-  TrN.Idsoft[1]=_Id.getdrp();
-  TrN.Idsoft[2]=_Id.getside();
-  TrN.Idsoft[3]=_Id.gethalf();
-  TrN.Idsoft[4]=_Id.getstrip();
+  TrN.Idsoft=_Id.cmpt();
   TrN.Status=_Status;
-  TrN.Nelem=_Nelem;
+  TrN.NelemL=_NelemL;
+  TrN.NelemR=_NelemR;
   TrN.Sum=_Sum;
   TrN.Sigma=_Sigma;
   TrN.Mean=_Mean;
   TrN.RMS=_Rms;
   TrN.ErrorMean=_ErrorMean;
+  for(int i=0;i<min(5,getnelem());i++)TrN.Amplitude[i]=_pValues[i]; 
   HFNTB(IOPA.ntuple,"TrCluste");
 }
 }
@@ -249,9 +244,7 @@ void AMSTrRecHit::build(){
  AMSTrIdSoft idx;
  AMSTrIdSoft idy;
  integer ia,ib,ilay,nambig;
- y=(AMSTrCluster*)AMSEvent::gethead()->
-   getheadC("AMSTrCluster",1,0); // last 1 - just a test for sorted container
-                                 // changed back to 0
+ y=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0); 
  while (y){
    idy=y->getid();
    ilay=idy.getlayer();
@@ -276,8 +269,7 @@ void AMSTrRecHit::build(){
          }
          else{
           _addnext(p,0,ilay,x,y,
-          p->str2pnt(x->getcofg(0,pid+i)+(pid+i)->strip2size(0),
-          y->getcofg(1,pid+i)+(pid+i)->strip2size(1)),
+          p->str2pnt(x->getcofg(0,pid+i),y->getcofg(1,pid+i)),
           AMSPoint(x->getecofg(),y->getecofg(),(number)TRCLFFKEY.ErrZ));
          }
          } 
@@ -311,10 +303,17 @@ if(AMSTrRecHit::Out( IOPA.WriteAll || getstatus(AMSDBc::USED ))){
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"TrRecHit",THN.getaddress(),
-  "TrRecHit:I*4,StatusR:I*4,Layer:I*4,HitR(3):R*4, EhitR(3):R*4, SumR:R*4, DifoSum:R*4");
+  "TrRecHit:I*4,pX:I*4,pY:I*4,StatusR:I*4,Layer:I*4,HitR(3):R*4, EhitR(3):R*4, SumR:R*4, DifoSum:R*4");
 
 }
   THN.Event()=AMSEvent::gethead()->getid();
+  THN.pX=_Xcl->getpos();
+  THN.pY=_Ycl->getpos();
+  if(((_Xcl->getid()).getlayer() != _Layer) || 
+     ((_Ycl->getid()).getlayer() != _Layer)){
+    cerr << "AMSTrRecHit-S-Logic Error "<<(_Xcl->getid()).getlayer()<<" "<<
+      (_Ycl->getid()).getlayer()<<" "<<_Layer<<endl;
+  }
   THN.Status=_Status;
   THN.Layer=_Layer;
   for(i=0;i<3;i++)THN.Hit[i]=_Hit[i];
