@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.11 2002/03/12 11:18:34 choutko Exp $
+# $Id: RemoteClient.pm,v 1.12 2002/03/12 13:26:50 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -24,6 +24,7 @@ my %fields=(
         CiteT=>[],
         AMSSoftwareDir=>undef,
         AMSDataDir=>undef,
+        AMSProdDir=>undef,
         CERN_ROOT=>undef,
         UploadsDir=>undef,
         LocalClientsDir=>"prod.log/scripts/",
@@ -169,18 +170,53 @@ my %mv=(
      $self->{AMSDataDir}="/f2dat1/AMS01/AMSDataDir";
      $ENV{AMSDataDir}=$self->{AMSDataDir};
  }
-  $dir=$ENV{CERN_ROOT};
+#sqlserver
+    $self->{sqlserver}=new DBSQLServer();
+    $self->{sqlserver}->Connect();
+
+ $dir=$ENV{CERN_ROOT};
  if (defined $dir){
      $self->{CERN_ROOT}=$dir;
  }
  else{
-     $self->{CERN_ROOT}="/cern/2001";
+     my $sql="select myvalue from Environment where mykey='CERN_ROOT'";
+     my $ret=$self->{sqlserver}->Query($sql);
+     if( defined $ret->[0][0]){
+       $self->{CERN_ROOT}=$ret->[0][0];
+     }
+     else{
+      $self->{CERN_ROOT}="/cern/2001";
+  }
  }
-    $self->{UploadsDir}="/home/httpd/cgi-bin/AMS02MCUploads";
-    $self->{AMSSoftwareDir}="$self->{AMSDataDir}/DataManagement";
-#sqlserver
-    $self->{sqlserver}=new DBSQLServer();
-    $self->{sqlserver}->Connect();
+    my $key='UploadsDir';
+    my $sql="select myvalue from Environment where mykey='".$key."'";
+    my $ret=$self->{sqlserver}->Query($sql);
+    if( defined $ret->[0][0]){
+     $self->{$key}=$ret->[0][0];
+ }
+    else{    
+     $self->{$key}="/home/httpd/cgi-bin/AMS02MCUploads";
+    }
+     $key='AMSSoftwareDir';
+     $sql="select myvalue from Environment where mykey='".$key."'";
+     $ret=$self->{sqlserver}->Query($sql);
+    if( defined $ret->[0][0]){
+     $self->{$key}="$self->{AMSDataDir}/".$ret->[0][0];
+ }
+    else{    
+     $self->{$key}="$self->{AMSDataDir}/DataManagement";
+    }
+     $key='AMSProdDir';
+     $sql="select myvalue from Environment where mykey='".$key."'";
+     $ret=$self->{sqlserver}->Query($sql);
+    if( defined $ret->[0][0]){
+     $self->{$key}="$self->{AMSDataDir}/".$ret->[0][0];
+ }
+    else{    
+     $self->{$key}="$self->{AMSDataDir}/prod";
+    }
+    $ENV{$key}=$self->{$key};
+
 #datasets
 {
      $dir="$self->{AMSSoftwareDir}/DataSets";
@@ -333,7 +369,7 @@ foreach my $file (@allfiles){
     }
 
 #cites table
-    my $sql="select * from Cites";
+     $sql="select * from Cites";
     my ($values, $fields)=$self->{sqlserver}->QueryAll($sql);
     foreach my $row (@{$values})  {
      my $cite={};
@@ -362,7 +398,7 @@ foreach my $file (@allfiles){
 
 #try to get ior
     $sql="select dbfilename,lastupdate,IORS,IORP from Servers where status='Active'";
-    my $ret=$self->{sqlserver}->Query($sql);
+     $ret=$self->{sqlserver}->Query($sql);
     my $updlast=0;
     foreach my $upd (@{$ret}){
         if($upd->[1]> $updlast){
@@ -436,9 +472,22 @@ $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
 
          }
         }
-       }
+      }
      catch CORBA::SystemException with{
-               die "DBServer corba  SystemException Error "."\n";
+         $ref->sendmailerror("Unable To connect to Server"," ");
+#      try to restart server here
+       my $failed=1;
+       $ref->{dbfile}=undef;
+       if($ref->{CSR}){
+        $failed=$ref->RestartServer();
+       }
+
+       if($failed ne 0){
+           $ref->ErrorPlus("Unable To Connect to Server");
+       }
+         else{
+             $ref->ErrorPlus("Attempt to Restart Server Has Been Made.");
+         }
       };
 
 
@@ -492,6 +541,39 @@ if (not defined $ref->{IORP}){
 }
     return 1;
 }
+
+
+sub RestartServer{
+    my $self=shift;
+         my $sql="select myvalue from Environment where mykey='amsserver'";
+         my $ret=$self->{sqlserver}->Query($sql);
+         if(defined $ret->[0][0]){
+           my $submit=$ret->[0][0];
+           $sql="select dbfilename,lastupdate from Servers where status='Active'";
+           $ret=$self->{sqlserver}->Query($sql);
+           my $updlast=0;
+           foreach my $upd (@{$ret}){
+            $sql="update Servers set status='Dead' where dbfilename='$upd->[0]'";
+            $self->{sqlserver}->Update($sql);
+            if($upd->[1]> $updlast){
+             $updlast=$upd->[1];
+             $self->{dbfile}=$upd->[0];
+           }        
+          } 
+          if(defined $self->{dbfile}){
+              my $full="$self->{UploadsDir}/ServerRestart";
+           open(FILE,">".$full) or die "Unable to open file $full \n";
+              print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
+              print FILE "export AMSProdDir=$self->{AMSProdDir} \n";
+              print FILE "$submit -B$self->{dbfile} \n";
+           close FILE;
+#           my $i=system("$submit -B$self->{dbfile}" );
+              my $i=system("chmod +x $full");
+           return $i;
+          }
+         } 
+         return 1;
+     }
 
 sub Validate{
    my $self = shift;
@@ -1752,7 +1834,13 @@ print qq`
 #        prepare the tables
     
 # check tar ball exists
-        my $gbatch="exe/linux/gbatch-orbit.exe";
+        my $key='gbatch';
+        $sql="select myvalue from Environment where mykey='".$key."'";
+        my $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive gbatch name from db");
+        }
+         my $gbatch=$ret->[0][0];
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
         if($#stag<0){
               $self->ErrorPlus("Unable to find gbatch-orbit on the Server ");
@@ -1764,13 +1852,20 @@ print qq`
         my @sta = stat $filedb;
         if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9]){
         my $filen="$self->{UploadsDir}/ams02mcdb.tar.$run";
-        my $i=system "mkdir -p $self->{UploadsDir}/v3.00";
-        $i=system "ln -s $self->{AMSDataDir}/v3.00/*.dat $self->{UploadsDir}/v3.00";
-        $i=system "ln -s $self->{AMSDataDir}/v3.00/t* $self->{UploadsDir}/v3.00";
-        $i=system "ln -s $self->{AMSDataDir}/v3.00/T* $self->{UploadsDir}/v3.00";
-        $i=system "tar -C$self->{UploadsDir} -h -cf $filen v3.00";
+        $key='dbversion';
+        $sql="select myvalue from Environment where mykey='".$key."'";
+        my $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive db version from db");
+        }
+        my $dbversion=$ret->[0][0];
+        my $i=system "mkdir -p $self->{UploadsDir}/$dbversion";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.dat $self->{UploadsDir}/$dbversion";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/t* $self->{UploadsDir}/$dbversion";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/T* $self->{UploadsDir}/$dbversion";
+        $i=system "tar -C$self->{UploadsDir} -h -cf $filen $dbversion";
           if($i){
-              $self->ErrorPlus("Unable to tar v3.00 to $filen");
+              $self->ErrorPlus("Unable to tar $dbversion to $filen");
           }
          $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatch") ;
           if($i){
@@ -1989,7 +2084,7 @@ print qq`
          $self->{sqlserver}->Update($sql);              
          $self->sendmailerror($subject," ");
          $sql="SELECT mid FROM Cites WHERE cid=$self->{CCID}";
-         my $ret=$self->{sqlserver}->Query($sql);
+         $ret=$self->{sqlserver}->Query($sql);
          if(defined $ret->[0][0] && $ret->[0][0] != $self->{CEMID}){
            $sql="SELECT address FROM Mails WHERE mid=$ret->[0][0]";
            $ret=$self->{sqlserver}->Query($sql);
@@ -2204,6 +2299,7 @@ sub findemail(){
                 $self->{CEMID}=$chop->{mid};
                 $self->{CEMR}=$chop->{requests};
                 $self->{CCR}=$chop->{rsite};
+                $self->{CSR}=$chop->{rserver};
                 foreach my $cite (@{$self->{CiteT}}){
                     if($chop->{cid} eq $cite->{cid}){
                         $self->{CCA}=$cite->{name};
@@ -2221,6 +2317,7 @@ sub findemail(){
                 $self->{CEMID}=$chop->{mid};
                 $self->{CEMR}=$chop->{requests};
                 $self->{CCR}=$chop->{rsite};
+                $self->{CSR}=$chop->{rserver};
                 foreach my $cite (@{$self->{CiteT}}){
                     if($chop->{cid} eq $cite->{cid}){
                         $self->{CCA}=$cite->{name};

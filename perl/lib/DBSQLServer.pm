@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.5 2002/03/12 11:18:34 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.6 2002/03/12 13:26:50 choutko Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -80,11 +80,12 @@ sub Connect{
     if($self->{dbdriver} =~ m/Oracle/){
      set_oracle_env();
     }
-    $self->{dbhandler}=DBI->connect('DBI:'.$self->{dbdriver}.$self->{dbfile},$user,$pwd,{PrintError => 1, AutoCommit => 1}) or die "Cannot connect: ".$DBI::errstr;
     if($self->{dbinit}){
+    $self->{dbhandler}=DBI->connect('DBI:'.$self->{dbdriver}.$self->{dbfile},$user,$pwd,{PrintError => 0, AutoCommit => 1}) or die "Cannot connect: ".$DBI::errstr;
       $self->Create();
     }
     else{
+    $self->{dbhandler}=DBI->connect('DBI:'.$self->{dbdriver}.$self->{dbfile},$user,$pwd,{PrintError => 1, AutoCommit => 1}) or die "Cannot connect: ".$DBI::errstr;
         return 1;
     }
 }
@@ -145,8 +146,8 @@ sub Create{
        address VARCHAR(255),
        alias   VARCHAR(255),
        name    VARCHAR(64),
-       rSite   INT,
-       rServer INT,
+       rsite   INT,
+       rserver INT,
        cid     INT,
        status  VARCHAR(16),
        requests INT)",
@@ -194,8 +195,8 @@ sub Create{
          (did    INT NOT NULL,
           name   VARCHAR(255))",
         "CREATE TABLE Environment
-         (key    VARCHAR(255) NOT NULL,
-          value   VARCHAR(255))"
+         (mykey    VARCHAR(255),
+          myvalue   VARCHAR(255))"
          );
 # status ntuples:  OK, Unchecked, Errors
 #      
@@ -205,10 +206,12 @@ sub Create{
      if($self->{dbinit}<2){
        my $ok =$dbh->do("select * from $table");
       if(defined $ok){
-        die "Table $table already exist";
+        warn "Table $table already exist";
+        $i=$i+1;
+        next;
       }
      }
-     if($self->{dbdriver} =~ m/CSV/){
+    if($self->{dbdriver} =~ m/CSV/){
          system "mkdir -p $self->{dbfile}";
          system "rm -f $self->{dbfile}"."/"."$table";
      }
@@ -235,6 +238,9 @@ sub Create{
     $dbh->do("insert into Environment values('gbatch','exe/linux/gbatch-orbit.exe')") or die "cannot do: ".$dbh->errstr();     
     $dbh->do("insert into Environment values('filedb','ams02mcdb.tar')") or die "cannot do: ".$dbh->errstr();     
     $dbh->do("insert into Environment values('dbversion','v3.00')") or die "cannot do: ".$dbh->errstr();     
+    $dbh->do("insert into Environment values('AMSProdDir','prod')") or die "cannot do: ".$dbh->errstr();     
+    my $apd='$AMSProdDir/starttagmtb_db_mc';
+    $dbh->do("insert into Environment values('amsserver','$apd')") or die "cannot do: ".$dbh->errstr();     
     my $run=110;
   $dbh->do("insert into Cites values(1,'cern',0,
             'local',$run,0)")or die "cannot do: ".$dbh->errstr();    
@@ -269,7 +275,7 @@ sub Create{
 #find responsible
     my $sql="select cid from Cites";
     my $ret=$self->Query($sql);
-    $sql="select cid,mid from Mails where rSite=1";
+    $sql="select cid,mid from Mails where rsite=1";
     my $rem=$self->Query($sql);
     foreach my $cid (@{$ret}){ 
         foreach my $cmid (@{$rem}){
