@@ -70,30 +70,41 @@ VII.  Standalone version
       below are some hints:
 
               
-      a. copy /offline/vdev to somewhere on your computer
 
-      b. Case i:  You have an afs installed
+         Case i:  You have an afs installed
+           get an afs cern account
+           
+           ask vitali.choutko@cern.ch to get read access 
+           to /afs/cern.ch/exp/ams directory;
+            
+           
 
+           klog{.krb} -pr username -cell cern.ch (see man klog for the details,           you may need type pagsh{.krb} before in some cases)
            setenv Offline /afs/cern.ch/exp/ams/Offline
            source /offline/vdev/install/amsvar
+           
+ 
+         
 
          Case ii: You don't have afs installed
-          login in ams computer         
+          copy /offline/vdev to somewhere on your computer
+          login in ams.cern.ch computer         
           setenv Offline /offline
           source $Offline/vdev/install/amsvar
           cd $AMSDataDir
           tar -cvf ~/ams.tar v3.00/*.dat 
           tar -uvf ~/ams.tar v3.00/T*
-          tar -uvf ~/ams.tar DataBase/MagneticFieldMap/MagneticFieldMap.0.8*
+          tar -uvf ~/ams.tar v3.00/t*
+          tar -uvf ~/ams.tar DataBase/MagneticFieldMap/977*
           tar -uvf ~/ams.tar DataBase/Tracker*.2*
           tar -uvf ~/ams.tar DataBase/Tracker*2
-          tar -uvf ~/ams.tar DataBase/Tof*/*.0.*
+          tar -uvf ~/ams.tar DataBase/*of*/*.0.*
           tar -uvf ~/ams.tar DataBase/.*0
            tar -uvf ~/ams.tar DataBase/.TrA*1
           login in  your computer:
            mkdir mydir
            cd mydir
-           tar -xvf ams.tar
+           tar -xvf ../ams.tar
            setenv AMSDataDir mydir
              
       c.  Third party libraries you may want to install
