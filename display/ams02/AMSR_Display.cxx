@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.cxx,v 1.8 2001/08/18 17:01:53 kscholbe Exp $
+//  $Id: AMSR_Display.cxx,v 1.9 2001/08/19 10:04:10 kscholbe Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSR_Display                                                           //
@@ -266,10 +266,10 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo, int resx, int res
    // m_TrigPad->Range(0,0,dxtr,dytr);
    m_TrigPad->cd();
 
-   TSwitch * sw[11];
+   TSwitch * sw[13];
    AMSR_Maker * maker;
 
-   Float_t y = 1.0, dy = 0.090, height=0.090;
+   Float_t y = 1.0, dy = 0.080, height=0.080;
    maker = (AMSR_Maker *) gAMSR_Root->SiHitMaker();
    sw[0] = new TSwitch("Tracker Hits", &(maker->DrawFruits), 
 			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
@@ -291,36 +291,49 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo, int resx, int res
 			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
 
-   maker = (AMSR_Maker *) gAMSR_Root->TrackMaker();
-   sw[5] = new TSwitch("Tracks", &(maker->DrawFruits), 
+   maker = (AMSR_Maker *) gAMSR_Root->TrdClusterMaker();
+   sw[5] = new TSwitch("TRD Clusters", &(maker->DrawFruits), 
 			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
 
+
+   maker = (AMSR_Maker *) gAMSR_Root->TrackMaker();
+   sw[6] = new TSwitch("Tracks", &(maker->DrawFruits), 
+			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
+   y -= dy;
+
+
+   maker = (AMSR_Maker *) gAMSR_Root->TrdTrackMaker();
+   sw[7] = new TSwitch("TRD Tracks", &(maker->DrawFruits), 
+			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
+   y -= dy;
+
+
    maker = (AMSR_Maker *) gAMSR_Root->ParticleMaker();
-   sw[6] = new TSwitch("Particles", &(maker->DrawFruits), 
+   sw[8] = new TSwitch("Particles", &(maker->DrawFruits), 
 			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
     
    maker = (AMSR_Maker *) gAMSR_Root->MCParticleMaker();
-   sw[7] = new TSwitch("MC Info", &(maker->DrawFruits), 
+   sw[9] = new TSwitch("MC Info", &(maker->DrawFruits), 
 			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
     
-   sw[8] = new TSwitch("Geometry", &m_DrawGeometry, 
+   sw[10] = new TSwitch("Geometry", &m_DrawGeometry, 
 			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
     
-   sw[9] = new TSwitch("More Geometry", &m_DrawMoreGeometry, 
+   sw[11] = new TSwitch("More Geometry", &m_DrawMoreGeometry, 
 			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
 
-   sw[10] = new TSwitch("IdleTimer", &m_IdleOn,
+   sw[12] = new TSwitch("IdleTimer", &m_IdleOn,
                "gAMSR_Root->Display()->IdleSwitch()", 0.0, y-height, 1.0, y);
 
    //Save address of TRadioButton of "IdleTimer" for late use
-   m_IdleSwitch = sw[10]->GetButton();
+   m_IdleSwitch = sw[11]->GetButton();
 
-   debugger.Print("IdleTimer-button=%lx",sw[10]);
+   debugger.Print("IdleTimer-button=%lx",sw[11]);
 
   /*
    TText *t = new TText();
