@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.19 2003/04/04 20:23:35 kscholbe Exp $
+//  $Id: trddbc.h,v 1.20 2003/04/09 00:09:28 schol Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>
@@ -18,6 +18,7 @@ const uinteger maxseg=5;
 const uinteger maxhits=12;
 const uinteger maxlad=18;
 const uinteger maxco=2;
+const uinteger maxhole=3;
 const uinteger maxtube=16;
 const uinteger maxstrips=36;
 const uinteger TRDROTMATRIXNO=9001;
@@ -59,11 +60,13 @@ private:
     static  uinteger  _CutoutsNo[mtrdo][trdconst::maxlay][trdconst::maxlad];
     static  uinteger  _CutoutsBH[mtrdo][trdconst::maxlay][trdconst::maxco];
     static uinteger   _TubesNo[mtrdo][trdconst::maxlay][trdconst::maxlad];
+    static uinteger   _HolesNo[mtrdo][trdconst::maxlay][trdconst::maxlad];
     static float      _SpikesPar[trdconst::maxspikes][4][6];  //x,y,z,rmi,rma,z/2 (cm)
     static geant      _PipesPar[trdconst::maxpipes][4][7];  //x,y,z,rmi,rma,z/2,dist/2 between two pipes (cm)
     static number      _PipesNRM[trdconst::maxpipes][4][3][3];  //
     static uinteger   _NumberBulkheads;
     static uinteger   _NumberTubes;
+    static uinteger   _NumberHoles;
     static uinteger   _NumberLadders;
     static uinteger   _NumberCutouts;
     static const number  _WireDiameter;
@@ -101,7 +104,7 @@ private:
    static number    _TubesDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];    
    static number    _SpacerDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3][2];    
    static number    _TubesBoxDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][10];    
-   static number    _RadiatorHoleDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][4];
+   static number    _RadiatorHoleDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][trdconst::maxhole][11];
 
   // Positions & Orientations
   
@@ -204,6 +207,7 @@ public:
 
 
    //  getnumbers for elements   
+   static uinteger getnumHole(uinteger hole,uinteger ladder, uinteger layer, uinteger oct=1);
    static uinteger getnumTube(uinteger tube,uinteger ladder, uinteger layer, uinteger oct=1);
    static uinteger getnumBulkhead(uinteger bulkhead, uinteger oct=1);
    static uinteger getnumLadder(uinteger ladder, uinteger layer, uinteger oct=1);
@@ -242,9 +246,9 @@ public:
                           uinteger &gid);
 
 
- static void SetRadiatorHole(uinteger ladder, uinteger layer, uinteger oct,
+ static void SetRadiatorHole(uinteger hole,uinteger ladder, uinteger layer, uinteger oct,
              uinteger  status, geant coo[],number nrm[3][3],uinteger gid);
- static void GetRadiatorHole(uinteger ladder, uinteger layer, uinteger oct,
+ static void GetRadiatorHole(uinteger hole,uinteger ladder, uinteger layer, uinteger oct,
                           uinteger & status, geant coo[],number nrm[3][3],
                           uinteger &gid);
 
@@ -277,6 +281,7 @@ public:
    static  uinteger  CutoutsNo(uinteger toct, uinteger lay, uinteger lad){return lay<LayersNo(toct)?_CutoutsNo[toct][lay][lad]:0;}
    static  uinteger  CutoutsBH(uinteger toct, uinteger lay,uinteger bh){return lay<LayersNo(toct)?_CutoutsBH[toct][lay][bh]:0;}
    static uinteger   TubesNo(uinteger toct, uinteger lay, uinteger lad){return lad<LaddersNo(toct,lay)?_TubesNo[toct][lay][lad]:0;}
+   static uinteger   HolesNo(uinteger toct, uinteger lay, uinteger lad){return lad<LaddersNo(toct,lay)?_HolesNo[toct][lay][lad]:0;}
    
 
     static  number  WireDiameter(){return _WireDiameter;}
@@ -314,7 +319,7 @@ public:
    static number&    SpacerDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index, uinteger spacerpart);    
    static number    ITubesDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);    
    static number&    TubesBoxDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index); 
-   static number&    RadiatorHoleDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);
+   static number&    RadiatorHoleDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger hole, uinteger index);
 
  //Media
 

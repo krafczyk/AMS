@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.171 2003/04/07 08:48:33 choutko Exp $
+//  $Id: amsgeom.C,v 1.172 2003/04/09 00:08:26 schol Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1997,6 +1997,7 @@ using trdconst::maxco;
 using trdconst::maxbulk;
 using trdconst::maxlay;
 using trdconst::maxlad;
+using trdconst::maxhole;
 using trdconst::maxo;
 using trdconst::mtrdo;
 using trdconst::maxtube;
@@ -2161,7 +2162,6 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
   // assuming no rotations etc for octagons
   //
 
-   int radholeno=0;
    int itrd=TRDDBc::NoTRDOctagons(i);
  for(j=0;j<TRDDBc::LayersNo(i);j++){
   for(k=0;k<TRDDBc::LaddersNo(i,j);k++){
@@ -2190,25 +2190,35 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 #endif
 
 
-   // Radiator holes
-   // Bottom layer has no radiator below the higher tubes
+   // Radiator holes (daughters of octagon)
+   // Bottom layer has no radiator below the tubes
    // 90 deg ladders only for now
 
+   for (l=0;l<3;l++){
 
-   TRDDBc::GetRadiatorHole(k,j,i,status,coo,nrm,rgid);
-   for(ip=0;ip<4;ip++)par[ip]=TRDDBc::RadiatorHoleDimensions(i,j,k,ip);
-   gid=i+mtrdo*j+mtrdo*maxlay*k+1;
+     geant cool[3];	
+     TRDDBc::GetRadiatorHole(l,k,j,i,status,cool,nrm,rgid);
+     for(ip=0;ip<11;ip++)par[ip]=TRDDBc::RadiatorHoleDimensions(i,j,k,l,ip);
+     gid=i+mtrdo*j+mtrdo*maxlay*k+maxhole*l+1;
 
-   if (fabs(coo[1])>0){
-       
-       ost.seekp(0);  
-       ost << "TRR"<<radholeno<<ends;
-       radholeno++;
-       dau->add(new AMSgvolume(TRDDBc::RadiatorHoleMedia(),
-			       nrot++,name,"TRD1",par,4,coo,nrm,"MANY",0,gid,1));    
-     }
+    
+      if (fabs(cool[1])>0){
 
+         ost.seekp(0);
+         ost << "TRR0"<<ends;
 
+     //	Place wrt octagon (position in cool is wrt ladder)
+
+         coo[2]=cool[1]+dau->getcooA(2);
+         coo[1]=dau->getcooA(1);
+         coo[0]=cool[2]+dau->getcooA(0);
+         for(ip=0;ip<3;ip++)coo[ip]-=oct[itrd]->getcooA(ip);
+
+         oct[itrd]->add(new AMSgvolume(TRDDBc::RadiatorHoleMedia(),
+			       0,name,"TRAP",par,11,coo,nrm,"ONLY",i==0 && j==0 && k==4 && l==0?1:-1,gid,1));    
+        }
+
+      }
   
 
    // Wires (disabled for now)
