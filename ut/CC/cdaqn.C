@@ -38,6 +38,7 @@ int main(int argc, char* argv[]){
 
 
 void convert(int ibeg, int iend,char in[], char out[]){
+uinteger _Length;
 integer BigEndian=0;
 static ofstream fbout;
 static int16u Record[100000];
@@ -151,12 +152,12 @@ int16u pData[2][24][1536];
          Record[9]=time&65535;
          Record[10]=(time>>16)&65535;
          Record[11]=0;
-         Record[0]=Record[2]+1+1;
+         _Length=Record[2]+1+1;
          int frp=12;
          // first crate
          for(int icrt=0;icrt<2;icrt++){
-          Record[frp]=(31+icrt)*(640+1)+32*(384+1)+1;
-          Record[0]+=Record[frp]+1;
+          Record[frp]=(32)*(640+1)+32*(384+1)+1;
+          _Length+=Record[frp]+1;
           frp++;
           if(icrt==0)Record[frp]= 2<<6 | 11 <<9;    // 2 Crate 32; 5 for 72
           else Record[frp]= 5<<6 | 11 <<9; 
@@ -174,7 +175,7 @@ int16u pData[2][24][1536];
                else conn=3; 
              }
              tdrs=k/2;
-             if(icrt==0 && conn==2 && tdrs==7)continue;
+             //             if(icrt==0 && conn==2 && tdrs==7)continue;
              int16u addr=(conn<<10) | (tdrs <<12);
              Record[frp]=addr;
              frp++;
@@ -227,7 +228,10 @@ int16u pData[2][24][1536];
            }
          }
          }
-         int tl=Record[0]+1;
+         //make length
+          Record[0]=_Length%65536;
+          Record[1]=Record[1] | (_Length/65536);
+         int tl=_Length+1;
          //         cout <<" tl "<<tl<<endl;
               //  Dump every 1000 event
          //                           if(evt%1000 == 0){

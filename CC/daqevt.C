@@ -97,7 +97,7 @@ while(fpl){
 
 if(ntot)_Length=lover+ntot;
 #ifdef __AMSDEBUG__
-if(_Length > 65535){
+if(_Length > 65535*4){
   cerr<<"DAQEvent::buildDAQ-F-lengthToobig "<<_Length<<endl;
   exit(1);
 }
@@ -124,15 +124,15 @@ if(_create(btype) ){
 
 integer DAQEvent::_EventOK(){
   if(_Length >1 && _pData ){
-    if( _pData[1]<<3 ==0){
-      // env header
+    if( (_pData[1] & ~63)<<3 ==0){
+      // envelop header
      integer ntot=0;
      _pcur=_pData+2;
      for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL)
      ntot+=*(_pcur)+_OffsetL;
-     if(ntot != _pData[0]+_OffsetL-2){
+     if(ntot != _Length-2){
        cerr <<"DAQEvent::_Eventok-E-length mismatch: Header says length is "<<
-         _pData[0]+_OffsetL<<" Blocks say length is "<<ntot+2<<endl;
+         _Length<<" Blocks say length is "<<ntot+2<<endl;
        return 0;
      }
      else return 1;    
@@ -207,9 +207,13 @@ integer DAQEvent::read(){
      fbin.read((unsigned char*)(&l16),sizeof(_pData[0]));
      _convertl(l16);
      _Length=l16+_OffsetL;
+     // get more length (if any)
+     fbin.read((unsigned char*)(&l16),sizeof(_pData[0]));
+     _convertl(l16);
+     _Length= _Length | ((l16 & 63)<<16);
      if(fbin.good() && !fbin.eof()){
       if(_create()){
-       fbin.seekg(fbin.tellg()-sizeof(_pData[0]));
+       fbin.seekg(fbin.tellg()-2*sizeof(_pData[0]));
        fbin.read((unsigned char*)(_pData),sizeof(_pData[0])*(_Length));
        _convert();
       }
@@ -369,8 +373,8 @@ _BufferOwner=1;
 _BufferLock=1;
 }
 if(_pData){
- _pData[0]=_Length-_OffsetL;
- _pData[1]=btype<<13;  // Event ID
+ _pData[0]=(_Length-_OffsetL)%65536;
+ _pData[1]=(btype<<13) | (_Length-_OffsetL)/65536;  // Event ID
  _pcur=_pData+2;
 }
 return _pData != NULL ;
