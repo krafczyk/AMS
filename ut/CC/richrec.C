@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.53 2003/06/23 08:59:48 delgadom Exp $
+//  $Id: richrec.C,v 1.54 2003/07/07 14:57:47 delgadom Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -1308,6 +1308,9 @@ trig=(trig+1)%freq;
 	   (_index-1.)*(_index-1.))*
     _height/(RICHDB::rich_height+RICHDB::foil_height+
                                    RICradmirgap+RIClgdmirgap)*40./2.;
+
+  if(_kind_of_tile==naf_kind) // For NaF they are understimated
+    {A*=3.44;B*=3.44;}
 
   geant sigma=Sigma(_beta,A,B);
 
