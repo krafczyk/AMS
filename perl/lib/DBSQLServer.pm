@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.33 2003/03/28 15:17:09 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.34 2003/03/28 18:44:51 alexei Exp $
 
 #
 #
@@ -376,7 +376,7 @@ while ( $line = <FILEI>){
     (7,'pcamsp1','/p1dat1','/AMS02/MC/ntuples',98,84,9,20,'Active',0,$time)")
     or die "cannot do: ".$dbh->errstr();    
    $dbh->do("INSERT INTO Filesystems VALUES
-    (9,'pcamsf0','/f0dat1','/AMS02/MC/ntuples',246,228,6,240,'Active',0,$time)")
+    (9,'pcamsf0','/vicepb','/afs/ams.cern.ch/AMS02/MC',246,195,39,240,'Active',0,$time)")
     or die "cannot do: ".$dbh->errstr();    
    $dbh->do("INSERT INTO Filesystems VALUES
     (11,'pcamsf0','/f0dah1','/AMS02/MC/ntuples',220,158,51,60,'Active',0,$time)")
@@ -388,10 +388,13 @@ while ( $line = <FILEI>){
     (13,'pcamsf2','/f2dah1','/AMS02/MC/ntuples',807,635,163,20,'Active',1,$time)")
     or die "cannot do: ".$dbh->errstr();    
    $dbh->do("INSERT INTO Filesystems VALUES
-    (15,'pcamsf3','/f3dah1','/AMS02/MC/ntuples',221,201,9,120,'Active',1,$time)")
+    (14,'pcamsf3','/f3dah1','/AMS02/MC/ntuples',221,201,9,120,'Active',1,$time)")
     or die "cannot do: ".$dbh->errstr();    
    $dbh->do("INSERT INTO Filesystems VALUES
-    (16,'pcamsf4','/f4dat1','/AMS02/MC/ntuples',523,180,337,400,'Active',1,$time)")
+    (15,'pcamsf4','/vicepa','/afs/ams.cern.ch/AMS02/MC',346,275,53,246,'Active',1,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO Filesystems VALUES
+    (16,'pcamsf4','/vicepc','/afs/ams.cern.ch/AMS02/MC',523,52,466,480,'Active',1,$time)")
     or die "cannot do: ".$dbh->errstr();    
    $dbh->do("INSERT INTO Filesystems VALUES
     (17,'pcamsf5','/f5dah1','/AMS02/MC/ntuples',228,190,95,40,'Active',1,$time)")
