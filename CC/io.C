@@ -1,3 +1,5 @@
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <io.h>
 #include <commons.h>
 #include <amsdbc.h>
@@ -78,7 +80,7 @@ void AMSIO::init(integer mode,integer format){
             if(format==0)cerr <<"AMSIO::init-F-Failed to select Run = "<<SELECTFFKEY.Run<<
               " Event >= "<<SELECTFFKEY.Event<<endl;
           if(format==1){
-            fbin.seekg(fbin.tellg()-2*sizeof(io));
+            fbin.seekg(fbin.tellg()-sizeof(io));
             ok=io.read();
             theta=theta*AMSDBc::raddeg;
             phi=phi*AMSDBc::raddeg;
@@ -100,13 +102,21 @@ void AMSIO::init(integer mode,integer format){
 
 
         fbin.open(fnam,ios::in|binary|ios::ate);
+        uinteger fs=0; 
         if(fbin ){
+          // Check if fsize is o.k.
+          struct stat  buf;
+          stat(fnam,&buf);
+          fs=buf.st_size;       
+          if(fs%sizeof(AMSIO) !=0){
+            cerr <<"AMSIO-init-S-File size error "<<fs<<" "<<fs%sizeof(AMSIO)<<endl;
+          }
           // read one by one 
           AMSIO io;
           integer ok;
           number otheta;
              fbin.clear();
-             fbin.seekg(fbin.tellg()-2*sizeof(io));
+             fbin.seekg(fbin.tellg()-2*sizeof(AMSIO)-fs%sizeof(AMSIO));
              ok=io.read();
              otheta=io.getstheta()*AMSDBc::raddeg;
              ok=io.read();
@@ -147,7 +157,12 @@ void AMSIO::init(integer mode,integer format){
 
 
 
-     fbin.open(fnam,ios::out|binary|ios::app);
+     if(fs%sizeof(AMSIO) == 0)fbin.open(fnam,ios::out|binary|ios::app);
+             else {
+               fbin.open(fnam,ios::out|binary|ios::ate);
+               fbin.seekg(fbin.tellg()-fs%sizeof(AMSIO));
+               cerr <<"AMSIO-init-I-Recovering... "<<endl;
+             }
     }
     else fbin.open(fnam,ios::out|binary|ios::app);
     if(fbin==0){

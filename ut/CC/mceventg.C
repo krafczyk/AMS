@@ -280,7 +280,8 @@ integer AMSmceventg::accept(){
       if(_mom>=_momrange[0] && _mom <= _momrange[1]){
         geant d;
         if (_dir[2]<_albedocz || RNDM(d)< _albedorate){
-          if(CCFFKEY.low == 0  && CCFFKEY.earth == 1) return EarthModulation();
+          if(CCFFKEY.low == 0  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
+           return EarthModulation();
           else return 1;
         }
       }
