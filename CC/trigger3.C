@@ -613,7 +613,7 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
               float coo=0;
             float ss=0;
             float amp=0;
-            for(i=0;i<num;i++){
+            for(i=0;i<num+1;i++){
              integer s2;
              switch (strip+i) {
               case 0:
