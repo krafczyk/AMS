@@ -259,7 +259,6 @@ static MCEventGNtuple GN;
 int i;
 
 if(init++==0){
-  // get memory
   //book the ntuple block
   HBNAME(IOPA.ntuple,"MCEventG",GN.getaddress(),
   "EventNoMCEventG:I*4, Particle:I*4,  Coo(3):R*4, Dir(3):R*4, Momentum:R*4, Mass:R*4, Charge:R*4");
