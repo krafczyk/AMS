@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.415 2002/09/24 07:15:29 choutko Exp $
+// $Id: job.C,v 1.416 2002/09/25 17:18:11 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1808,6 +1808,11 @@ void AMSJob::_caecinitjob(){
    ECREUNcalib::init();// ECAL REUN-calibr.
    cout<<"ECREUNcalib-init done !!!"<<'\n';
  }
+ 
+ AMSECIdCalib::init();
+ AMSECIdCalib::clear();
+
+
 }
 //==========================================
 
@@ -1902,6 +1907,9 @@ void AMSJob::_reanti2initjob(){
 //============================================================================================
 void AMSJob::_reecalinitjob(){
 //
+
+if(isRealData() && !(isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]<=0)ECREFFKEY.year[1]=ECREFFKEY.year[0]-1;
+
 
 
   integer pr,pl,cell;
@@ -2914,6 +2922,12 @@ void AMSJob::_anti2endjob(){
 //-----------------------------------------------------------------------
 void AMSJob::_ecalendjob(){
 //
+
+  if((isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]<=0 ){
+    AMSECIdCalib::getaverage();
+    AMSECIdCalib::write();
+  }
+
        EcalJobStat::printstat(); // Print JOB-Ecal statistics
        if(isSimulation())EcalJobStat::outpmc();
        EcalJobStat::outp();
@@ -3004,8 +3018,15 @@ void AMSJob::_dbendjob(){
     //
      
 // ecal
+   if((isCalibration() & CEcal) && ECREFFKEY.relogic[1]==0){
+    DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSECIdCalib::buildSigmaPed);
+   }
+   else if((isCalibration() & CEcal) && ECREFFKEY.relogic[1]==-1){
+    DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSECIdCalib::buildPedDiff);
+   }
+   else{
     DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSEcalRawEvent::buildraw);
-
+   }
 
   {  // mc
     if(!isRealData()){

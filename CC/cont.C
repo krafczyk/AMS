@@ -1,4 +1,4 @@
-//  $Id: cont.C,v 1.6 2001/01/22 17:32:19 choutko Exp $
+//  $Id: cont.C,v 1.7 2002/09/25 17:18:10 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <cont.h>
@@ -68,6 +68,8 @@ void AMSContainer::exchangeEl(AMSlink *pr1, AMSlink *pr2){
 }
 
 void AMSContainer::removeEl( AMSlink *prev, integer restore){
+// remove next element !!!
+
 AMSlink * pel=prev != 0?prev->_next:_Head;
 #ifdef __AMSDEBUG__
 assert(pel != NULL);

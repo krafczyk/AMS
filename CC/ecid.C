@@ -21,6 +21,13 @@ _channels2h();
 if(_crate<0)_dead=1;
 }
 
+AMSECIdSoft::AMSECIdSoft(int sl, int pmt, int cha, int dummy):_dead(0),_sl(sl),_pmtno(pmt),_channel(cha){
+_crate=_GetHard[_sl][_pmtno][0];
+_haddr=_GetHard[_sl][_pmtno][1];
+_channels2h();
+if(_crate<0)_dead=1;
+}
+
 void AMSECIdSoft::_channelh2s(){
  if(_channelh==4){
    _channel=0;

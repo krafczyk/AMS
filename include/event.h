@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.65 2002/06/12 15:20:32 choutko Exp $
+//  $Id: event.h,v 1.66 2002/09/25 17:18:18 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -62,7 +62,7 @@ private:
     if(Run<o.Run)return 1;
     else if(o.Run<Run)return 0;
     else{
-     if(Event<o.Event)return 1;
+     if(Event<o.Event && Event!=0)return 1;
      else return 0;
     }
  }

@@ -1,4 +1,4 @@
-//  $Id: ecid.h,v 1.1 2002/09/24 07:15:51 choutko Exp $
+//  $Id: ecid.h,v 1.2 2002/09/25 17:18:18 choutko Exp $
 #ifndef __AMSECID__
 #define __AMSECID__
 #include <typedefs.h>
@@ -36,8 +36,12 @@ bool dead(){return _dead==1;}
 int16 getcrate(){return _crate;}
 int16 getchannel(){return _channel;}
 int16 getslay(){return _sl;}
+int16 getpmtno(){return _pmtno;}
+geant getped(int16u gain){return gain<2?ECPMPeds::pmpeds[getslay()][getpmtno()].ped(getchannel(),gain):0;}
+geant getsig(int16u gain){return gain<2?ECPMPeds::pmpeds[getslay()][getpmtno()].sig(getchannel(),gain):0;}
 AMSECIdSoft():_dead(1){};
 AMSECIdSoft(int16 crate, int16 haddr, int16 channelh);
+AMSECIdSoft(int sl, int pmt, int chan, int dummy);
 AMSECIdSoft(integer idsoft);
 static integer ncrates(){return 2;}
 static void inittable();

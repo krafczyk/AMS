@@ -2105,3 +2105,340 @@ void ECREUNcalib::mfite(){
 }
 
 
+
+
+
+
+
+#include <timeid.h>
+
+
+
+// peds
+
+integer  AMSECIdCalib::_Count[ECPMSMX][ECSLMX][4][3];
+integer  AMSECIdCalib::_BadCh[ECPMSMX][ECSLMX][4][3];
+number   AMSECIdCalib::_ADC[ECPMSMX][ECSLMX][4][3];
+number   AMSECIdCalib::_ADCMax[ECPMSMX][ECSLMX][4][3];
+number  AMSECIdCalib::_ADC2[ECPMSMX][ECSLMX][4][3];
+time_t AMSECIdCalib::_BeginTime;
+uinteger AMSECIdCalib::_CurRun=0;
+AMSECIdCalib::ECCalib_def  AMSECIdCalib::ECCALIB;
+
+
+void AMSECIdCalib::clear(){
+for(int i=0;i<ECPMSMX;i++){
+  for(int j=0;j<ECSLMX;j++){
+   for(int k=0;k<4;k++){
+    for(int l=0;l<3;l++){
+     _Count[i][j][k][l]=0;
+     _ADC[i][j][k][l]=0;
+     _ADCMax[i][j][k][l]=0;
+     _ADC2[i][j][k][l]=0;
+    }
+     ECcalib::ecpmcal[j][i].getstat(k)=0;
+   }
+  }
+}
+}
+
+
+void AMSECIdCalib::updADC(uinteger adc, uinteger gain){
+ if(!adc && gain<1)return;
+ if(gain<3){
+    (_Count[_pmtno][_sl][_channel][gain])++;
+    (_ADC[_pmtno][_sl][_channel][gain])+=adc;
+    (_ADC2[_pmtno][_sl][_channel][gain])+=adc*adc;
+    if(_ADCMax[_pmtno][_sl][_channel][gain]<adc)_ADCMax[_pmtno][_sl][_channel][gain]=adc;
+    HF1(-(gain+1)*10000-makeshortid(),adc-getped(gain),1.);
+ }
+ else{
+  cerr <<"AMSECIdCalib::updADC-S-WrongGain "<<gain<<endl;
+ }
+}
+
+void AMSECIdCalib::init(){
+
+// clear pedestals
+for(int i=0;i<ECPMSMX;i++){
+  for(int j=0;j<ECSLMX;j++){
+   for(int k=0;k<4;k++){
+    for(int l=0;l<2;l++){
+       ECPMPeds::pmpeds[j][i].ped(k,l)=4095;
+   }
+   }
+  }
+}
+    
+    char hfile[161];
+    UHTOC(IOPA.hfile,40,hfile,160);  
+    char filename[256];
+    strcpy(filename,hfile);
+    char tmp[80];
+    if(_CurRun<1000){
+     sprintf(tmp,".0%d",_CurRun);
+    }
+    else{
+     sprintf(tmp,".%d",_CurRun);
+    }
+//    strcat(filename,tmp);
+    integer iostat;
+    integer rsize=1024;
+    char event[80];  
+    HROPEN(IOPA.hlun+1,"ecpedsig",filename,"NP",rsize,iostat);
+    if(iostat){
+     cerr << "Error opening ecpedsig ntuple file "<<filename<<endl;
+     exit(1);
+    }
+    else cout <<"ecpedsig ntuple file "<<filename<<" opened."<<endl;
+   HBNT(IOPA.ntuple,"EcalPedSigmas"," ");
+     for(int i=0;i<ECSLMX;i++){
+       for(int j=0;j<8;j++){
+         for (int k=0;k<4;k++){
+           for( int g=0;g<3;g++){
+             AMSECIdSoft ids(i,j,k,g);
+             int id=ids.makeshortid(); 
+             HBOOK1(-(g+1)*10000-id,"peds",100,-100.,100.,0.);
+           }
+         }
+       }
+     }
+   HBNAME(IOPA.ntuple,"ECPedSig",(int*)(&ECCALIB),"Run:I,SLayer:I,PMTNo:I,Channel:I,Gain:I, Ped:R,ADCMax:R,Sigma:R,BadCh:I");
+}
+
+void AMSECIdCalib::getaverage(){
+
+
+
+     int acount=0;
+     int bad=0;
+     for(int i=0;i<ECSLMX;i++){
+       for(int j=0;j<ECPMSMX;j++){
+         for (int k=0;k<4;k++){
+           for( int g=0;g<3;g++){ 
+            if(g==2 && k)continue;
+            AMSECIdSoft cid(i,j,k,g);
+            AMSECIdCalib id(cid);
+            if(id.dead())continue;
+            if(id.getcount(g)>1){
+              acount++;
+              id.setADC(g)=(id.getADC(g)-id.getADCMax(g))/(id.getcount(g)-1);
+              id.setADC2(g)=(id.getADC2(g)-id.getADCMax(g)*id.getADCMax(g))/(id.getcount(g)-1);
+              id.setADC2(g)=sqrt(id.getADC2(g)-id.getADC(g)*id.getADC(g)); 
+              if(id.getADC2(g)>10){
+               cerr<<"AMSECIdCalib::getaverage-I-SigmaTooHigh "<<id.getADC2(g)<<" "<<g<<" "<<id.getADC(g)<<" "<<id.getADCMax(g)<<" "<<id.getcount(g)<<" "<<i<<" "<<j<<" "<<k<<endl;
+              }
+              if(g<2){
+                // update pedestals & sigmas here
+                ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].ped(id.getchannel(),g)=id.getADC(g);
+                ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].sig(id.getchannel(),g)=id.getADC2(g);
+                // update status
+                if(id.getADC(g)>4000){
+                 ECcalib::ecpmcal[id.getslay()][id.getpmtno()].getstat(id.getchannel())=-1;
+                 bad++;
+                }                
+              }
+             }
+             else if(id.getped(g)<0){
+                 ECcalib::ecpmcal[id.getslay()][id.getpmtno()].getstat(id.getchannel())=-1;
+                 bad++;
+             }
+            }
+           }
+          }
+      }
+
+
+    cout <<"  AMSECUdCalib::getaverage-I-"<<acount<< " Pedestals/Sigmas Calculated"<<endl;
+    cout <<"  AMSECUdCalib::getaverage-I-"<<bad<< " Bad Pedestals/Sigmas Found"<<endl;
+
+
+   //update db
+{
+    AMSTimeID *ptdv;
+     time_t begin,end,insert;
+      ptdv = 
+      AMSJob::gethead()->gettimestructure(AMSEcalRawEvent::getTDVped());
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time(&insert);
+      begin=_BeginTime;
+      end=_BeginTime+86400*30;
+      ptdv->SetTime(insert,begin,end);
+}
+{
+    AMSTimeID *ptdv;
+     time_t begin,end,insert;
+      ptdv = 
+      AMSJob::gethead()->gettimestructure(AMSEcalRawEvent::getTDVcalib());
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time(&insert);
+      begin=_BeginTime;
+      end=_BeginTime+86400*30;
+      ptdv->SetTime(insert,begin,end);
+}
+
+    if (AMSFFKEY.Update==2 ){
+     AMSTimeID * offspring = 
+     (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());
+     while(offspring){
+       if(offspring->UpdateMe())cout << " Starting to update "<<*offspring; 
+      if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
+      cerr <<"AMSJob::_dbendjob-S-ProblemtoUpdate "<<*offspring;
+      offspring=(AMSTimeID*)offspring->next();
+     }
+    }
+
+   // write ntuple
+
+
+     int count=0;
+     for(int i=0;i<ECSLMX;i++){
+       for(int j=0;j<ECPMSMX;j++){
+         for (int k=0;k<4;k++){
+           for( int g=0;g<3;g++){ 
+            if(g==2 && k)continue;
+            AMSECIdSoft cid(i,j,k,g);
+            AMSECIdCalib id(cid);
+            if(id.dead() || !id.getcount(g))continue;
+            count++;
+          ECCALIB.Run=_CurRun;
+          ECCALIB.SLayer=i+1;
+          ECCALIB.PmtNo=j+1;
+          ECCALIB.Channel=k+1;
+          ECCALIB.Gain=g+1;
+          ECCALIB.Ped=id.getADC(g);
+          ECCALIB.ADCMax=id.getADCMax(g);
+          ECCALIB.Sigma=id.getADC2(g);
+          ECCALIB.BadCh=ECcalib::ecpmcal[i][j].getstat(k)<0;
+          HFNT(IOPA.ntuple);
+         }
+        }
+       }
+     }
+    cout <<"  AMSECUdCalib::write-I-"<<count<< " Pedestals/Sigmas Written"<<endl;
+     }
+
+void AMSECIdCalib::write(){
+  char hpawc[256]="//PAWC";
+  HCDIR (hpawc, " ");
+  char houtput[]="//ecpedsig";
+  HCDIR (houtput, " ");
+  integer ICYCL=0;
+  HROUT (0, ICYCL, " ");
+  HREND ("ecpedsig");
+  CLOSEF(IOPA.hlun+1);
+
+
+  
+
+}
+
+
+
+void AMSECIdCalib::buildSigmaPed(integer n, int16u *p){
+
+
+  integer ic=AMSEcalRawEvent::checkdaqid(*p)-1;
+   
+  int leng=0;
+  int16u * ptr;
+  int count=0; 
+  int dynode=0;
+  int dead=0;
+// first pass :  get total amplitude
+
+  geant sum=0;
+  int pmtn;
+  int slay;
+  int chan;
+{
+  for(ptr=p+1;ptr<p+n;ptr++){  
+   int16u pmt=count%36;
+            int16u gain=((*ptr)>>14)&1;
+            int16u value=( (*ptr))&4095; 
+            int16u anode=(*ptr>>15)& 1;
+            int16u channel=((*ptr)>>12)&3;
+            if(!anode){
+               channel=4;
+               gain=2;
+            }
+            else gain=1-gain;
+  
+           AMSECIdSoft id(ic,pmt,channel);
+           if(!id.dead() && gain==0){
+             // high gain only
+              if(sum<value-id.getped(gain)){
+               chan=id.getchannel();
+               pmtn=id.getpmtno();
+               slay=id.getslay();
+               sum=value-id.getped(gain);
+             }
+           }
+   count++;
+  }
+//  cout << "sum "<<sum<<endl;
+}
+  number Threshold=100;
+  if(sum<Threshold ){
+  count=0;
+  for(ptr=p+1;ptr<p+n;ptr++){  
+   int16u pmt=count%36;
+            int16u anode=(*ptr>>15)& 1;
+            int16u channel=((*ptr)>>12)&3;
+            int16u gain=((*ptr)>>14)&1;
+            int16u value=( (*ptr))&4095; 
+            if(!anode){
+               channel=4;
+               gain=2;
+            }
+            else gain=1-gain;
+  
+           AMSECIdSoft id(ic,pmt,channel);
+           if(!id.dead()){
+             AMSECIdCalib idc(id);
+                         
+             idc.updADC(value,gain);
+            }
+ count++;
+           }
+
+}
+else{
+ cout <<"  sum "<<sum<<" "<<pmtn+1<<" "<<slay+1<<" "<<chan+1<<endl;
+}
+}
+
+
+void AMSECIdCalib::buildPedDiff(integer n, int16u *p){
+
+
+  integer ic=AMSEcalRawEvent::checkdaqid(*p)-1;
+   
+  int leng=0;
+  int16u * ptr;
+  int count=0; 
+  int dynode=0;
+  int dead=0;
+  for(ptr=p+1;ptr<p+n;ptr++){  
+   int16u pmt=count%36;
+            int16u anode=(*ptr>>15)& 1;
+            int16u channel=((*ptr)>>12)&3;
+            int16u gain=((*ptr)>>14)&1;
+            int16u value=( (*ptr))&4095; 
+            if(!anode){
+               channel=4;
+               gain=2;
+            }
+            else gain=1-gain;
+  
+           AMSECIdSoft id(ic,pmt,channel);
+           if(!id.dead()){
+             AMSECIdCalib idc(id);
+              idc.updADC((value-id.getped(gain))*8,gain);
+           }
+ count++;
+}
+
+}

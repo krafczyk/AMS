@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.50 2002/09/24 15:18:15 choutko Exp $
+//  $Id: ecalrec.C,v 1.51 2002/09/25 17:18:11 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -471,6 +471,7 @@ void AMSEcalHit::build(int &stat){
       subc=id%10-1;//SubCell(0-3)
       pmc=idd%100-1;//PMCell(0-...)
       ptr->getpadc(padc);
+      cout << "  found "<<padc[0]<<" "<<padc[1]<<endl;
       ECPMPeds::pmpeds[isl][pmc].getpedh(pedh);
       ECPMPeds::pmpeds[isl][pmc].getsigh(sigh);
       ECPMPeds::pmpeds[isl][pmc].getpedl(pedl);
@@ -2207,11 +2208,10 @@ void AMSEcalRawEvent::buildraw(integer n, int16u *p){
   integer ic=checkdaqid(*p)-1;
    
   int leng=0;
-  int16u * ptr;
   int count=0; 
   int dynode=0;
   int dead=0;
-  for(ptr=p+1;ptr<p+n;ptr++){  
+  for(int16u* ptr=p+1;ptr<p+n;ptr++){  
    int16u pmt=count%36;
             int16u anode=(*ptr>>15)& 1;
             int16u channel=((*ptr)>>12)&3;
@@ -2240,28 +2240,28 @@ void AMSEcalRawEvent::buildraw(integer n, int16u *p){
        }    
    count++;               
   }
-   cout <<" Total of "<<count <<" "<<dynode<<" "<<dead<<" for crate "<<ic<<endl;
+   //cout <<" Total of "<<count <<" "<<dynode<<" "<<dead<<" for crate "<<ic<<endl;
 //  add two adc together
        AMSEcalRawEvent *ptro=0;
       AMSContainer * pct=AMSEvent::gethead()->getC("AMSEcalRawEvent",ic);
-      for(AMSEcalRawEvent* ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
-                       getheadC("AMSEcalRawEvent",ic,1);ptr;ptr=ptr->next()){
-
-        
+      for(AMSEcalRawEvent* ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->getheadC("AMSEcalRawEvent",ic,1);ptr;ptr=ptr->next()){
         if(ptr->testlast()){
          if(ptro){
            if(ptr->getgain() <2 && ptro->getgain()<2 && ptr->getgain() !=ptro->getgain()){
-           ptr->setgain(2);
-           ptr->setadc(ptro->getadc(ptro->getgain()),ptro->getgain());
-           pct->removeEl(ptro,1);
-          }
+            ptr->setgain(2);
+            ptr->setadc(ptro->getadc(ptro->getgain()),ptro->getgain());
+            ptr->TestThreshold();
+            ptro->setstatus(AMSDBc::DELETED);
+           }
           else{
             cerr<<"AMSEcalRawEvent::buildraw-S-FormatError "<<ptro->getgain()<<" "<<ptr->getgain()<<" "<<ptr->getid()<<endl;
-         }        
-         ptro=0;         
-       } 
+            ptro->setstatus(AMSDBc::DELETED);
+         }       
+         ptro=0;
+       }         
        else{
             cerr<<"AMSEcalRawEvent::buildraw-E-No2ndGainFound "<<ptr->getid()<<endl;
+            ptr->setstatus(AMSDBc::DELETED);
        }
        }
        else{
@@ -2269,8 +2269,47 @@ void AMSEcalRawEvent::buildraw(integer n, int16u *p){
        }
       }
 
+      // Delete marked clusters
+     AMSlink *pcl =AMSEvent::gethead()->getheadC("AMSEcalRawEvent",ic);
+      while(pcl && pcl->checkstatus(AMSDBc::DELETED)){
+        pct->removeEl(0,0);
+        pcl=pct->gethead(); 
+      }     
+      while(pcl){
+        while(pcl->next() && (pcl->next())->checkstatus(AMSDBc::DELETED))
+        pct->removeEl(pcl,0);
+        pcl=pcl->next();
+      }
+      // Restore positions
+     AMSlink * ptmp=pct->gethead();
+     integer ip=1;
+     while(ptmp){
+      ptmp->setpos(ip++);
+      ptmp=ptmp->_next;
+     }
+
+// build lvl1 trigger
+       uinteger tofpatt[4]={0,0,0,0};
+       AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
+          new Trigger2LVL1(999,0,tofpatt,0,12,100000));
+
+
 }
 
+void AMSEcalRawEvent::TestThreshold(){
+ // hardwired here, should be via dcards
+ if(_gain!=2)return ;
+ geant HighThr=4.5;
+ geant LowThr=1;
+ geant LowAmp=10;
+ AMSECIdSoft id(_idsoft);
+ _padc[0]=_padc[0]-id.getped(0);
+ _padc[1]=_padc[1]-id.getped(1);
+ if((_padc[0]> id.getsig(0)*HighThr) ||  (_padc[0]> LowAmp && _padc[0]> id.getsig(0)*LowThr)){
+// ok
+}
+ else setstatus(AMSDBc::DELETED);;
+}
 AMSEcalRawEvent::AMSEcalRawEvent(AMSECIdSoft id, int16u dynode,int16u gain,int16u adc):AMSlink(),_gain(gain){
   for(int i=0;i<2;i++)_padc[i]=0;
   if(_gain<2)_padc[_gain]=adc;

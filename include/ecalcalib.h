@@ -1,5 +1,8 @@
+#ifndef __AMSECCALIB__
+#define __AMSECCALIB__
 #include <typedefs.h>
 #include <ecaldbc.h>
+
 //  
 // v1.0 E.Choumilov 08.12.2000
 // class to manipulate with REUN-calib data:
@@ -54,3 +57,61 @@ class ECREUNcalib {
     static void selecte();
     static void mfite();
 }; 
+
+#include <ecid.h>
+
+
+class AMSECIdCalib: public AMSECIdSoft{
+protected:
+
+static integer  _Count[ecalconst::ECPMSMX][ecalconst::ECSLMX][4][3];
+static integer  _BadCh[ecalconst::ECPMSMX][ecalconst::ECSLMX][4][3];
+static number   _ADC[ecalconst::ECPMSMX][ecalconst::ECSLMX][4][3];
+static number   _ADCMax[ecalconst::ECPMSMX][ecalconst::ECSLMX][4][3];
+static number  _ADC2[ecalconst::ECPMSMX][ecalconst::ECSLMX][4][3];
+static time_t _BeginTime;
+static uinteger _CurRun;
+
+class ECCalib_def {
+public:
+integer Run;
+integer SLayer;
+integer PmtNo;
+integer Channel;
+integer Gain;  //high low dynode
+geant   Ped;
+geant   ADCMax;
+geant   Sigma;
+integer BadCh;
+};
+
+static ECCalib_def ECCALIB;
+
+public:
+AMSECIdCalib():AMSECIdSoft(){};
+AMSECIdCalib(const AMSECIdSoft &o):AMSECIdSoft(o){};
+static void getaverage();
+static void write();
+static void clear();
+static void init();
+void updADC(uinteger adc,uinteger gain);
+static uinteger & Run(){return _CurRun;}
+static time_t & Time(){return _BeginTime;}
+static void buildSigmaPed(integer n, int16u *p);
+static void buildPedDiff(integer n, int16u *p);
+number getADC(uinteger gain) const{return gain<3?_ADC[_pmtno][_sl][_channel][gain]:0;}
+number getADCMax(uinteger gain) const{return gain<3?_ADCMax[_pmtno][_sl][_channel][gain]:0;}
+number getADC2(uinteger gain) const{return gain<3?_ADC2[_pmtno][_sl][_channel][gain]:0;}
+number & setADC(uinteger gain) {return _ADC[_pmtno][_sl][_channel][gain<3?gain:0];}
+number & setADC2(uinteger gain) {return _ADC2[_pmtno][_sl][_channel][gain<3?gain:0];}
+uinteger getcount(uinteger gain) const{return gain<3?_Count[_pmtno][_sl][_channel][gain]:0;}
+
+
+
+
+
+
+};
+
+
+#endif

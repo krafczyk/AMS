@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.288 2002/09/24 07:15:29 choutko Exp $
+//  $Id: event.C,v 1.289 2002/09/25 17:18:11 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1088,19 +1088,20 @@ void AMSEvent::event(){
       }
       else if(*_SelectedEvents < o){
        while(*_SelectedEvents<o && _SelectedEvents->Run){
-         cerr<<"AMSEvent::event-E-SelectedRunEventNotFound"<<_SelectedEvents->Run<<" "<<_SelectedEvents->Event<<endl;
+         if(_SelectedEvents->Event)cerr<<"AMSEvent::event-E-SelectedRunEventNotFound"<<_SelectedEvents->Run<<" "<<_SelectedEvents->Event<<endl;
          _SelectedEvents++;
        }
          if(_SelectedEvents->Run!=o.Run){
           return;
          }
        }
+      if(_SelectedEvents->Event){
        if(o!=*_SelectedEvents){
          AMSJob::gethead()->getstatustable()->geteventpos(_SelectedEvents->Run,_SelectedEvents->Event,o.Event);
          return;
        }
        _SelectedEvents++;
-       
+       }       
       }
     }
     AMSgObj::BookTimer.start("EventStatus");
@@ -1533,8 +1534,8 @@ void AMSEvent::_reecalevent(){
     ecalflg=ptr->getecflg();
   }
   if(ecalflg<=0){
-    AMSgObj::BookTimer.stop("REECALEVENT");
-    return;// "no ECAL in LVL1-trigger"   
+    //AMSgObj::BookTimer.stop("REECALEVENT");
+    //return;// "no ECAL in LVL1-trigger"   
   }
   EcalJobStat::addre(1);
   if(ECMCFFKEY.fastsim==0){//           ===> slow algorithm:
@@ -1729,6 +1730,14 @@ void AMSEvent::_reantiinitrun(){
 
 
 void AMSEvent::_reecalinitrun(){
+  if((AMSJob::gethead()->isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]<=0){
+    if(AMSECIdCalib::Run()!=0){
+     AMSECIdCalib::getaverage();
+     AMSECIdCalib::clear();
+   }
+   AMSECIdCalib::Run()=getrun();
+   AMSECIdCalib::Time()=gettime();   
+  }
 }
 void AMSEvent::_retrdinitrun(){
    for (int i=0;i<AMSTRDIdSoft::ncrates();i++){
@@ -2733,7 +2742,7 @@ void AMSEvent::setfile(char file[]){
       ifile >>o.Run >>o.Event;
       ifile.ignore(INT_MAX,'\n');        
       if(ifile.eof())break;
-      if(o.Run && o.Event)nline++;
+      if(o.Run )nline++;
      }    
      if(nline>0){ 
        int nar=nline+1;
@@ -2748,7 +2757,7 @@ void AMSEvent::setfile(char file[]){
                 ifile >>o.Run >> o.Event;
                 ifile.ignore(INT_MAX,'\n');        
                 if(ifile.eof())break;
-                if(o.Run && o.Event)_SelectedEvents[nline++]=o;
+                if(o.Run )_SelectedEvents[nline++]=o;
           }
           if(nar!=nline+1){
            cerr<<"AMSEvent::setfile-F-LogicError "<<nar<< " "<<nline+1<<endl;

@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.18 2002/09/24 07:15:51 choutko Exp $
+//  $Id: ecaldbc.h,v 1.19 2002/09/25 17:18:18 choutko Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -172,7 +172,7 @@ public:
       _hi2lowr[i]=h2lr[i];
     }
   };
-  integer getstat(int i){return _status[i];}
+  integer & getstat(int i){return _status[i];}
   geant pmrgain(){return _pmrgain;}
   geant pmscgain(int i){return _scgain[i];}
   geant hi2lowr(integer subc){return _hi2lowr[subc];}
@@ -253,6 +253,8 @@ public:
       _sigl[i]=sigl[i];
     }
   };
+  geant &ped(uinteger chan, uinteger gain)  {return gain==0?_pedh[chan<4?chan:0]:  _pedl[chan<4?chan:0];}  
+  geant & sig(uinteger chan, uinteger gain)  {return gain==0?_sigh[chan<4?chan:0]:  _sigl[chan<4?chan:0];}  
   void getpedh(geant pedh[4]){
     for(int i=0;i<4;i++)pedh[i]=_pedh[i];
   }

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.22 2002/09/24 07:15:51 choutko Exp $
+//  $Id: ecalrec.h,v 1.23 2002/09/25 17:18:18 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -21,7 +21,7 @@ private:
   static geant trsum;// Trigger sum(dynodes,gev)
   integer _gain; // 0: High, 1: Low, 2: Both
   integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
-  integer _padc[2];// Anode pulse hights (ADC-channels)[HighGain,LowGain]
+  geant _padc[2];// Anode pulse hights (ADC-channels)[HighGain,LowGain]
 public:
   AMSEcalRawEvent(integer idsoft, integer status,  
         integer padc[2]):AMSlink(status,0),_gain(2),_idsoft(idsoft)
@@ -33,7 +33,10 @@ public:
   AMSEcalRawEvent * next(){return (AMSEcalRawEvent*)_next;}
 //
   integer operator < (AMSlink & o)const{
-    return _idsoft<((AMSEcalRawEvent*)(&o))->_idsoft;
+   AMSEcalRawEvent *p =dynamic_cast<AMSEcalRawEvent*>(&o);
+   if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
+   else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0;
+   else return !p || _idsoft < p->_idsoft;
   }
 //
   integer getid() const {return _idsoft;}
@@ -41,6 +44,7 @@ public:
   void getpadc(integer padc[2]){for(int i=0;i<2;i++)padc[i]=_padc[i];}
   int16 getadc(int16u gain) const{return gain<2?_padc[gain]:-1;}
   void setgain(int16u gain){_gain=gain;}
+  void TestThreshold();
   void setadc(int16 adc, int16u gain){if(gain<2)_padc[gain]=adc;}
   integer lvl3format(int16 * ptr, integer rest);
   int16 getslay(){return _idsoft/1000-1;}
@@ -62,8 +66,8 @@ public:
 
 //  TDV
 
-static     AMSID    getTDVped() {return AMSID("Ecalpeds",AMSJob::gethead()->isRealData());}
-static    AMSID  getTDVsig(){return AMSID("Ecalsigmas",AMSJob::gethead()->isRealData());}
+static    AMSID    getTDVped() {return AMSID("Ecalpeds",AMSJob::gethead()->isRealData());}
+static    AMSID  getTDVstatus(){return AMSID("EcalStatus",AMSJob::gethead()->isRealData());}
 static    AMSID  getTDVcalib(){return AMSID("Ecalpmcalib",AMSJob::gethead()->isRealData());}
 static    AMSID  getTDVvpar(){return AMSID("Ecalvpar",AMSJob::gethead()->isRealData());}
 protected:
