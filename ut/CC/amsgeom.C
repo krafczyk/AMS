@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.163 2003/03/24 13:23:45 choumilo Exp $
+//  $Id: amsgeom.C,v 1.164 2003/03/30 22:48:11 kscholbe Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2234,30 +2234,68 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 #endif
      }
 
+   // Wires (disabled for now)
+
+   /*   for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
+   ost.seekp(0);
+// Need better name...
+   ost << "TRDw"<<ends;
+   TRDDBc::GetTube(l,k,j,i,status,coo,nrm,rgid);
+   for(ip=0;ip<3;ip++)par[ip]=TRDDBc::WiresDimensions(i,j,k,ip);
+
+   gid=maxtube*maxlad*maxlay*i+maxtube*maxlad*j+maxtube*k+l+1;
+   dau->add(new AMSgvolume(TRDDBc::WiresMedia(),
+      0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1)\
+);
+} */
+
+
      //strips
    ost.seekp(0);  
    ost << "TRDB"<<ends;
-   TRDDBc::GetTubeBox(k,j,i,status,coo,nrm,rgid);
+   // Get tube info for z positioning
+   TRDDBc::GetTube(0,k,j,i,status,coo,nrm,rgid);
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::StripsDim(ip)/2;
-   coo[0]=TRDDBc::StripsCoo(0);
+   coo[0]=0.;
+   coo[2]=TRDDBc::StripsCoo(0);
    number spacing=TRDDBc::StripsCoo(1);
-   for(l=0;fabs(coo[0])<TRDDBc::LaddersDimensions(i,j,k,0)-2;l+=4){
+
+   for(l=0;fabs(coo[2])<TRDDBc::LaddersDimensions(i,j,k,2)-2;l+=4){
     gid=maxstrips*maxlad*maxlay*i+maxstrips*maxlad*j+maxstrips*k+l+1;  //assume strips<maxtube here;
+
+    // Position on top of ladder
+
+   number strip_pos = TRDDBc::TubesDimensions(i,j,k,1)+ TRDDBc::StripsDim(1)/2;
+   coo[1]+= strip_pos;
+
    dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
         0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid++,1));    
-   coo[0]=-coo[0];
+
+   // Other side along ladder, top
+   coo[2]=-coo[2];
+
    dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
         0,name,"BOX",par,3,coo,nrm, "ONLY",-1,gid++,1));    
-    coo[1]-=TRDDBc::TubesBoxDimensions(i,j,k,3);
+
+   // Bottom of ladder, other side along ladder
+   coo[1]-=2.*strip_pos;
    dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
         0,name,"BOX",par,3,coo,nrm, "ONLY",-1,gid++,1));    
-    coo[0]=-coo[0];
+
+   // Bottom of ladder, back to original side
+
+    coo[2]=-coo[2];
+
    dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
         0,name,"BOX",par,3,coo,nrm, "ONLY",-1,gid,1));    
 
-    coo[0]+=spacing;
-    coo[1]+=TRDDBc::TubesBoxDimensions(i,j,k,3);
-  }
+   // Next strip along ladder
+    coo[2]+=spacing;
+
+    // Back to center of tubes
+    coo[1]+=strip_pos;
+   }
+
 /*
      //chamber 
    ost.seekp(0);  
@@ -2279,7 +2317,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::TubesDimensions(i,j,k,ip);
    AMSTRDIdGeom  tmp(j,k,l,i);
    gid=tmp.cmpt();
-   //   cout << "Tube "<<i<<" "<<j<<" "<<k<<" "<<l<<" gid "<<gid<<endl;
+   //   cout << "Tube "<<i<<" "<<j<<" "<<k<<" "<<l<<" "<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<endl;
    AMSNode *ptrd=dau->add(new AMSgvolume(TRDDBc::TubesMedia(),
       0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
 #ifdef __G4AMS__
@@ -2300,6 +2338,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    dau->add(new AMSgvolume(TRDDBc::ITubesMedia(),
       0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
    }
+
 
 // spacers
 

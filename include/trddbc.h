@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.16 2003/03/29 19:01:52 schol Exp $
+//  $Id: trddbc.h,v 1.17 2003/03/30 22:48:18 kscholbe Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>
@@ -19,7 +19,7 @@ const uinteger maxhits=12;
 const uinteger maxlad=18;
 const uinteger maxco=2;
 const uinteger maxtube=16;
-const uinteger maxstrips=32;
+const uinteger maxstrips=36;
 const uinteger TRDROTMATRIXNO=9001;
 }
 using trdconst::mtrdo;
@@ -39,6 +39,7 @@ private:
    static char* _XeRadSpikesMedia;
    static char* _PipesMedia;
    static char* _CutoutsMedia;
+   static char* _WiresMedia;
    static char* _TubesMedia;
    static char* _ITubesMedia;
    static char* _RadiatorMedia;
@@ -65,6 +66,7 @@ private:
     static uinteger   _NumberTubes;
     static uinteger   _NumberLadders;
     static uinteger   _NumberCutouts;
+    static const number  _WireDiameter;
     static const number  _TubeInnerDiameter;
     static const number  _TubeWallThickness;
     static const number  _TubeBoxThickness;
@@ -94,6 +96,7 @@ private:
    static number    _LaddersLength[trdconst::maxlay][trdconst::maxlad];
  static number       _LaddersLengthShort[trdconst::maxlay][trdconst::maxlad];
    static number    _CutoutsDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];
+   static number    _WiresDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];    
    static number    _TubesDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];    
    static number    _SpacerDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3][2];    
    static number    _TubesBoxDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][10];    
@@ -273,6 +276,7 @@ public:
    static uinteger   TubesNo(uinteger toct, uinteger lay, uinteger lad){return lad<LaddersNo(toct,lay)?_TubesNo[toct][lay][lad]:0;}
    
 
+    static  number  WireDiameter(){return _WireDiameter;}
     static  number  TubeInnerDiameter(){return _TubeInnerDiameter;}
     static  number  TubeWallThickness(){return _TubeWallThickness;}
     static  number  TubeBoxThickness(){return _TubeBoxThickness;}
@@ -302,6 +306,7 @@ public:
    static number&    BulkheadsDimensions(uinteger toct, uinteger bulk, uinteger index);
    static number&    LaddersDimensions(uinteger toct, uinteger lay, uinteger lad, uinteger index);
    static number&    CutoutsDimensions(uinteger toct, uinteger lay, uinteger lad, uinteger index);
+   static number&    WiresDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);    
    static number&    TubesDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);    
    static number&    SpacerDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index, uinteger spacerpart);    
    static number    ITubesDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);    
@@ -314,6 +319,7 @@ public:
    static char* BulkheadsMedia(){return _BulkheadsMedia;}
    static char* XeRadSpikesMedia(){return _XeRadSpikesMedia;}
    static char* PipesMedia(){return _PipesMedia;}
+   static char* WiresMedia(){return _WiresMedia;}
    static char* TubesMedia(){return _TubesMedia;}
    static char* ITubesMedia(){return _ITubesMedia;}
    static char* RadiatorMedia(){return _RadiatorMedia;}

@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.34 2003/03/29 19:01:28 schol Exp $
+//  $Id: trddbc.C,v 1.35 2003/03/30 22:48:11 kscholbe Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -14,6 +14,7 @@ char * TRDDBc::_PipesMedia="TRDALUMINIUM";
 char * TRDDBc::_CutoutsMedia="VACUUM";
 char * TRDDBc::_TubesMedia="TRDCapton";
 char * TRDDBc::_ITubesMedia="TRDGas";
+char * TRDDBc::_WiresMedia="TUNGSTEN";
 char * TRDDBc::_RadiatorMedia="VACUUM";  // Really hole in radiator
 char * TRDDBc::_TubesBoxMedia="TRDFoam";
 char * TRDDBc::_SpacerMedia="TRDCarbonFiber";
@@ -290,11 +291,12 @@ uinteger   TRDDBc::_NumberCutouts=0;
 uinteger   TRDDBc::_NumberBulkheads=0;
 
 
+const number  TRDDBc::_WireDiameter=0.03;
 const number  TRDDBc::_TubeWallThickness=72e-4;
 const number  TRDDBc::_TubeInnerDiameter=0.6;
 const number  TRDDBc::_TubeBoxThickness=(0.62-TRDDBc::_TubeInnerDiameter-2*TRDDBc::_TubeWallThickness)/2.;
 const number  TRDDBc::_ChamberThickness=0.04;
-const number  TRDDBc::_StripsDim[3]={0.6,9.2,0.03};
+const number  TRDDBc::_StripsDim[3]={9.2,0.03,0.6};
 const number  TRDDBc::_StripsCoo[2]={10.69,10.};
 const number  TRDDBc::_BulkheadWidth=0.3;
 const number  TRDDBc::_LadderThickness=2.9;
@@ -342,6 +344,7 @@ number TRDDBc::_LaddersLength[maxlay][maxlad]={
 116.78,135.29,157.18,175.69,197.58,201.20,202.40,201.20,202.40,201.20,202.40,201.20,202.40,195.89,177.38,155.49,136.98,115.09
 };
 number TRDDBc::_TubesDimensions[mtrdo][maxlay][maxlad][3];    
+number TRDDBc::_WiresDimensions[mtrdo][maxlay][maxlad][3];    
 number TRDDBc::_SpacerDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3][2];    
 number TRDDBc::_TubesBoxDimensions[mtrdo][maxlay][maxlad][10];    
 number TRDDBc::_RadiatorDimensions[mtrdo][maxlay][maxlad][3];
@@ -1053,7 +1056,8 @@ void TRDDBc::init(){
 
 //            coo[2]=_LaddersLength[j][k];
 
-	    for(int l=0;l<3;l++)LaddersDimensions(i,j,k,l)=coo[l]/2;          
+	    for(int l=0;l<3;l++)
+	      {LaddersDimensions(i,j,k,l)=coo[l]/2;}
 	  }  
 	}
 
@@ -1277,6 +1281,17 @@ void TRDDBc::init(){
           // length
 
           TubesDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2)-ManifoldLength();
+
+	  // Wires Dimensions
+
+	  // width
+          WiresDimensions(i,j,k,0)=0;          
+          // height
+          WiresDimensions(i,j,k,1)=WireDiameter()/2.;
+          // length
+
+          WiresDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2)-ManifoldLength();
+
 
 
 //       SpacerDimensions
@@ -2690,9 +2705,21 @@ case 2:
 return _TubesDimensions[toct][lay][lad][index];
 case 1:
 return _TubesDimensions[toct][lay][lad][0];
+// Use this if simulating wires
+//case 0:
+//return _WiresDimensions[toct][lay][lad][1];
 default:
 return 0;
 }
+}
+
+
+number & TRDDBc::WiresDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index){
+#ifdef __AMSDEBUG__
+_check(toct,lay,lad);
+assert(index<sizeof(_WiresDimensions)/sizeof(_WiresDimensions[0][0][0][0])/mtrdo/maxlay/maxlad);
+#endif
+return _WiresDimensions[toct][lay][lad][index];
 }
 
 number & TRDDBc::TubesDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index){
