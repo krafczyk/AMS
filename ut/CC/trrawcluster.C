@@ -1196,14 +1196,14 @@ else return 0x0;
 }
 
 int16u AMSTrRawCluster::getpedSRawid(int i){
-  if (i==0)return (3 | 2<<6 | 11 <<9 );
-  else if(i==1)return (3 | 5<<6 | 11 <<9 );
+  if (i==0)return (4 | 2<<6 | 11 <<9 );
+  else if(i==1)return (4 | 5<<6 | 11 <<9 );
 else return 0x0;
 }
 
 int16u AMSTrRawCluster::getsigSRawid(int i){
-  if (i==0)return (4 | 2<<6 | 11 <<9 );
-  else if(i==1)return (4 | 5<<6 | 11 <<9 );
+  if (i==0)return (3 | 2<<6 | 11 <<9 );
+  else if(i==1)return (3 | 5<<6 | 11 <<9 );
 else return 0x0;
 }
 
