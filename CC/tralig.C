@@ -392,8 +392,8 @@ void AMSTrAligFit::Fit(){
     integer n=_NoActivePar;
     integer iw=n+1;
     integer ifail=1;
-    integer maxcal=1000;
-    number tol=2.5e-2;
+    integer maxcal=2000;
+    number tol=2.99e-2;
     int i,j;
     for(i=0;i<mp;i++)x[i]=0;
     _flag=3;
@@ -447,8 +447,8 @@ void AMSTrAligFit::Fitgl(){
     integer n=_NoActivePar;
     integer iw=n+1;
     integer ifail=1;
-    integer maxcal=1000;
-    number tol=2.5e-2;
+    integer maxcal=2000;
+    number tol=2.99e-2;
     int i,j;
     for(i=0;i<mp;i++)x[i]=0;
     _flag=3;
