@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.132 2003/04/27 09:57:31 alexei Exp $
+# $Id: RemoteClient.pm,v 1.133 2003/04/27 12:40:24 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -17,7 +17,7 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout ValidateRuns);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout parseJournalFiles ValidateRuns);
 
 my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
 my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
@@ -5683,4 +5683,437 @@ sub Color {
     }
     return $colors[$color];
 }
+
+
+sub parseJournalFiles {
+
+ my $self = shift;
+
+ my $timenow = time();
+
+    if( not $self->Init()){
+        die "parseJournalFiles -F- Unable To Init";
+        
+    }
+    if (not $self->ServerConnect()){
+        die "parseJournalFiles -F- Unable To Connect To Server";
+    }
+
+
+ htmlTop();
+ htmlTable("Parse Journal Files");
+
+ my $sql = "SELECT dirpath,journals.timestamp,name 
+              FROM journals,cites WHERE journals.cid=cites.cid";
+
+ my $ret = $self->{sqlserver}->Query($sql);
+
+ if(defined $ret->[0][0]){
+  foreach my $jou (@{$ret}){
+   my $dir        = trimblanks($jou->[0]);
+   my $timestamp  = trimblanks($jou->[1]);
+   my $cite       = trimblanks($jou->[2]);
+   my $lastcheck  = EpochToDDMMYYHHMMSS($timestamp);
+   my $title  = "Cite : ".$cite.", Directory : ".$dir." Last Check ".$lastcheck;
+   htmlTable($title);
+   my $newfile   = "./";
+   my $lastfile  = "./";
+   my $writelast = 0;
+      my $joudir = $dir."/jou";
+      my $ntdir  = $dir."/nt";
+      opendir THISDIR ,$joudir or die "unable to open $joudir";
+      my @allfiles= readdir THISDIR;
+      closedir THISDIR;
+      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+      print "<td><b><font color=\"blue\">File </font></b></td>";
+      print "<td><b><font color=\"blue\" >Write Time</font></b></td>";
+      print "<td><b><font color=\"blue\" >Status</font></b></td>";
+      print "</tr>\n";
+      foreach my $file (@allfiles) {
+       if ($file =~/^\./){
+         next;
+       }
+       $newfile=$joudir."/".$file;
+       my $writetime = (stat($newfile)) [9];
+       if ($writetime > $writelast) {
+           $writelast = $writetime;
+           $lastfile = $newfile;
+       }
+       my $color   ="black";
+       my $fstatus ="ToBeChecked";
+       if ($writetime < $timestamp) { $color   = "magenta";
+                                      $fstatus = "AlreadyChecked"}
+       my $wtime = EpochToDDMMYYHHMMSS($writetime);
+       print "<td><b><font color=$color>$file </font></b></td>";
+       print "<td><b><font color=$color >$wtime</font></b></td>";
+       print "<td><b><font color=$color >$fstatus</font></b></td>";
+       print "</tr>\n";
+       if ($writetime > $timestamp) {
+         $self->parseJournalFile($newfile,$ntdir);
+       }
+   }
+   htmlTableEnd();
+   $sql = "UPDATE journals SET timestamp=$timenow, lastfile = '$lastfile'";
+   $self->{sqlserver}->Update($sql); 
+   htmlTableEnd();
+  }
+ } else {
+     print "Warning - table Journals is empty \n";
+ }
+
+   htmlTableEnd();
+ htmlBottom();
+}
+
+
+sub parseJournalFile {
+#
+# to do : check run with DBserver
+#         copy to final destination
+#
+
+    my $self      = shift;
+    my $inputfile = shift;
+    my $dirpath   = shift;
+
+my $sql       = undef;
+my $fevent    = -1;
+my $levent    = -1;
+
+my $patternsmatched  = 0; 
+
+my @startingjob;
+my @startingrun;
+my @opendst;
+my @closedst;
+my @runfinished;
+
+
+my $timestamp = 0;    # unix time 
+my $lastrun   = 0;
+my $lastjobid = 0;
+
+my $startingjobR = 0; # StartingJob record found and parsed
+my $startingrunR = 0; # StartingRun "     "       "       "
+my $opendstR     = 0; # OpenDST     "     "       "       "
+my $closedstR    = 0; # CloseDST    "     "       "       "
+my $runfinishedR = 0; # RunFinished "     "       "       "
+
+
+    open(FILE,"<",$inputfile) or die "Unable to open $inputfile";
+    my $buf;
+    read(FILE,$buf,16384);
+    close FILE;
+
+    my @blocks =  split "-I-TimeStamp",$buf;
+
+use POSIX  qw(strtod);             
+
+
+foreach my $block (@blocks) {
+    my @junk;
+    @junk = splitjunk($block,@junk);
+#    
+    my ($utime,@jj) = split " ",$block;
+    if (defined $utime) {
+#
+# find one of the following : StartingJob, StartingRun, OpenDST, CloseDST, RunFinished
+      if ($block =~/StartingJob/) {
+
+#
+# , JobStarted HostName gcie01 default , UID 805306385 , PID 3578 3573 , Type Producer , ExitStatus NOP , 
+#   StatusType OneRunOnly
+#              HostName pcamsvc  , UID 134217740 , PID 11894 11891 , Type Standalone , 
+# ExitStatus NOP ,StatusType OneRunOnly   
+#
+      $patternsmatched = 0;
+      my @StartingJobPatterns = ("StartingJob", "HostName","UID","PID","Type",
+                                  "ExitStatus","StatusType");
+      for (my $i=0; $i<$#junk+1; $i++) { 
+        my @jj = split " ",$junk[$i];
+        if ($#jj > 0) {
+         my $found = 0;
+         my $j     = 0;
+         while ($j<$#StartingJobPatterns+1 && $found == 0) { 
+          if ($jj[0]  eq $StartingJobPatterns[$j]) {
+              $startingjob[$j] = trimblanks($jj[1]);
+              $patternsmatched++;
+              $found = 1;
+          }
+          $j++;
+        }
+       }
+    }
+
+   if ($patternsmatched == $#StartingJobPatterns) { 
+    $startingjob[0] = "StartingJob";
+    $lastjobid = $startingjob[2];
+    $startingjobR   = 1;
+   } else  {
+      htmlWarning("parseJournalFile","StartingJob - cannot find all patterns"," ");
+   }
+    # end StartingJob cmd
+    #
+   } elsif (($block =~/JobStarted/)) {
+      $patternsmatched = 0;
+      my @StartingJobPatterns = ("JobStarted", "HostName","UID","PID","Type",
+                                  "ExitStatus","StatusType");
+      for (my $i=0; $i<$#junk+1; $i++) { 
+        my @jj = split " ",$junk[$i];
+        if ($#jj > 0) {
+         my $found = 0;
+         my $j     = 0;
+         while ($j<$#StartingJobPatterns+1 && $found == 0) { 
+          if ($jj[0]  eq $StartingJobPatterns[$j]) {
+              $startingjob[$j] = trimblanks($jj[1]);
+              $patternsmatched++;
+              $found = 1;
+          }
+          $j++;
+        }
+       }
+    }
+
+   if ($patternsmatched == $#StartingJobPatterns) { 
+    $startingjob[0] = "StartingJob";
+    $startingjobR   = 1;
+    $lastjobid = $startingjob[2];
+   } else  {
+      htmlWarning("parseJournalFiles","StartingJob - cannot find all patterns"," ");
+   }
+    # end JobStarted cmd
+    #
+   } elsif (($block =~/StartingRun/)) {
+#
+# StartingRun REI, ID 0 , Run 134217740 , FirstEvent 1 , LastEvent 21000 , Prio 0 , Path  , 
+# Status Allocated , History Foreign , ClientID 134217740 , SubmitTimeU 1049456649, 
+# SubmitTime Fri Apr  4 13:44:09 2003, Host pcamsvc , EventsProcessed 0 , 
+# LastEvent 0 , Errors 0 , CPU 0 , Elapsed 0 , CPU/Event 0 , Status Processing
+#
+      $patternsmatched = 0;
+      my @StartingRunPatterns = ("StartingRun","ID","Run","FirstEvent","LastEvent",
+                                 "Prio","Path","Status","History","ClientID",
+                                 "SubmitTime","SubmitTimeU","Host","EventsProcessed","LastEvent",
+                                 "Errors","CPU","Elapsed","CPU/Event","Status");
+       for (my $i=0; $i<$#junk+1; $i++) { 
+        my @jj = split " ",$junk[$i];
+        if ($#jj > 0) {
+         my $found = 0;
+         my $j     = 0;
+         while ($j<$#StartingRunPatterns+1 && $found == 0) { 
+          if ($jj[0] eq $StartingRunPatterns[$j]) {
+            $startingrun[$j] = trimblanks($jj[1]);
+            $patternsmatched++;
+            $found = 1;
+          }
+          $j++;
+      }
+     }
+    }
+   if ($patternsmatched == $#StartingRunPatterns) { #OpenDST has no pair
+       if ($lastrun != $startingrun[2]) {
+           $lastrun = $startingrun[2];
+       }
+    $startingrun[0] = "StartingRun";
+    $startingrunR   = 1;
+    $timestamp = time();
+    $sql = "SELECT run FROM runs WHERE run=$startingrun[2]";
+    my $ret = $self->{sqlserver}->Query($sql);
+    if(not defined $ret->[0][0]){
+     $sql = "INSERT INTO runs (run,jid,fevent,levent,fetime,letime,submit,status) 
+              VALUES($startingrun[2],$lastjobid,$startingrun[3],
+                     $startingrun[4],0,0,$startingrun[11],'$startingrun[7]')";
+#     $self->{sqlserver}->Update($sql);
+     $sql = "update jobs set 
+                               host='$startingrun[12]',
+                               events=$startingrun[13], errors=$startingrun[15],
+                               cputime=$startingrun[16], elapsed=$startingrun[17],
+                               timestamp=$timestamp 
+                   where jid=$lastjobid";
+#     $self->{sqlserver}->Update($sql);
+    } 
+   } else  {
+       htmlWarning("parseJournalFiles","StartingRun - cannot find all patterns"," ");
+   }
+   # end StartingRun 
+   #
+   } elsif ($block =~/OpenDST/) { 
+#
+# OpenDST  , Status InProgress , Type Ntuple , Name pcamsvc:/tmp/14/pl1/14/134217740.1.hbk , 
+# Version v4.00/build56/os2 , Size 0 , CRC 0 , Insert 1049456665 , Begin 1177173455 , End 0 , 
+# Run 134217740 , FirstEvent 1 , LastEvent 0 , EventNumber 0 , ErrorNumber 0
+#
+    $patternsmatched = 0;
+    my @OpenDSTPatterns = ("OpenDST","Status","Type","Name","Version",
+                           "Size","CRC","Insert","Begin","End",
+                          "Run","FirstEvent","LastEvent","EventNumber","ErrorNumber");
+     for (my $i=0; $i<$#junk+1; $i++) { 
+      my @jj = split " ",$junk[$i];
+      if ($#jj > 0) {
+       my $found = 0;
+       my $j     = 0;
+        while ($j<$#OpenDSTPatterns+1 && $found == 0) { 
+         if ($jj[0] eq $OpenDSTPatterns[$j]) {
+            $opendst[$j] = trimblanks($jj[1]);
+            $patternsmatched++;
+            $found = 1;
+         }
+         $j++;
+       }
+     }
+    }
+   if ($patternsmatched == $#OpenDSTPatterns) { #OpenDST has no pair
+    $opendst[0] = "OpenDST";
+    $opendstR   = 1;
+
+    my @jj = split '/',$opendst[3];
+    my $filename = $jj[$#jj];
+    my $sql = "SELECT run,path FROM ntuples where run=$opendst[10] AND path like '%$filename%'";
+    my $ret = $self->{sqlserver}->Query($sql);
+    if(not defined $ret->[0][0]){
+     $timestamp = time();
+     $sql = "insert into ntuples 
+                           (run,version,type,jid,fevent,levent,timestamp,status,path) 
+                     values($opendst[10],'$opendst[4]','$opendst[2]',$lastjobid,$opendst[11],
+                            $opendst[12],$timestamp,'$opendst[1]','$opendst[3]')"; 
+#     $self->{sqlserver}->Update($sql);
+   } 
+  } else  {
+     htmlWarning("parseJournalFiles","OpenDST - cannot find all patterns"," ");
+   }
+   # end OpenDST 
+   # 
+   } elsif ($block =~/CloseDST/) { 
+#
+# CloseDST  , Status Validated , Type Ntuple , Name pcamsvc:/tmp/14/pl1/14/134217740.1.hbk , 
+# Version v4.00/build56/os2 , Size 3 , CRC 2453001786 , 
+# Insert 1049457375 , Begin 1177173455 , End 1224534144 , 
+# Run 134217740 , FirstEvent 1 , LastEvent 21000 , EventNumber 312 , ErrorNumber 0
+#
+    $patternsmatched  = 0;
+    my @CloseDSTPatterns = ("CloseDST","Status","Type","Name","Version",
+                            "Size","CRC","Insert","Begin","End",
+                            "Run","FirstEvent","LastEvent","EventNumber","ErrorNumber");
+     for (my $i=0; $i<$#junk+1; $i++) { 
+      my @jj = split " ",$junk[$i];
+      if ($#jj > 0) {
+       my $found = 0;
+       my $j     = 0;
+       while ($j<$#CloseDSTPatterns+1 && $found == 0) { 
+        if ($jj[0] eq $CloseDSTPatterns[$j]) {
+          $closedst[$j] = trimblanks($jj[1]);
+          $patternsmatched++;
+          $found = 1;
+         }
+        $j++;
+       }
+     }
+   }
+   if ($patternsmatched == $#CloseDSTPatterns) { #CloseDST has no pair
+#
+# find ntuple
+#
+    my @junk = split "/",$closedst[3];
+    my $dstfile = trimblanks($junk[$#junk]);
+    $dstfile=$dirpath.$dstfile;
+    my $dstsize = -1;
+    $dstsize = (stat($dstfile)) [7] or $dstsize = -1;
+    if ($dstsize == -1) {
+     print "CloseDST block - Warning cannot stat $dstfile\n";
+     $dstsize = -1;
+    } else {
+     $dstsize = sprintf("%.1f",$dstsize/1000/1000);
+     $closedst[0] = "CloseDST";
+     $timestamp = time();
+     $sql = "update ntuples set status='$closedst[1]', crc=$closedst[6],
+                                       fevent=$closedst[11],levent=$closedst[12],
+                                       nevents=$closedst[13],neventserr=$closedst[14],
+                                       timestamp=$timestamp, sizemb=$dstsize, 
+                                       path='$dstfile' 
+                                   where path='$closedst[3]'";
+#     $self->{sqlserver}->Update($sql);
+     if ($closedstR ==0) {$fevent = $closedst[11]};
+     $levent = $closedst[6];
+     $closedstR   = 1;
+    }
+   } else  {
+     htmlWarning("parseJournalFiles","CloseDST - cannot find all patterns"," ");
+   }
+   # end CloseDST 
+   # 
+  } elsif ($block =~/RunFinished/) { 
+#
+# RunFinished CInfo  , Host pcamsvc , EventsProcessed 10796 , LastEvent 21000 , 
+# Errors 3 , CPU 712.62 , Elapsed 725.923 , CPU/Event 0.0660017 , Status Finished
+#
+    $patternsmatched  = 0;
+    my @RunFinishedPatterns = ("RunFinished","Host","EventsProcessed","LastEvent","Errors",
+                              "CPU","Elapsed","CPU/Event","Status");
+     for (my $i=0; $i<$#junk+1; $i++) {
+      my @jj = split " ",$junk[$i];
+      if ($#jj > 0) {
+        my $found = 0;
+        my $j     = 0;
+        while ($j<$#RunFinishedPatterns+1 && $found == 0) { 
+         if ($jj[0] eq $RunFinishedPatterns[$j]) {
+          $runfinished[$j] = trimblanks($jj[1]);
+          $patternsmatched++;
+          $found = 1;
+         }
+         $j++;
+       }
+     }
+   }
+   if ($patternsmatched == $#RunFinishedPatterns+1) { #RunFinsihed has a pair CInfo
+    $runfinished[0] = "RunFinished";
+    $runfinishedR   = 1;
+    my $sql = "SELECT run FROM runs WHERE run = $lastrun AND levent=$runfinished[3]";
+    my $ret = $self->{sqlserver}->Query($sql);
+    if (not defined $ret->[0][0]) {
+     my $cputime = floor($runfinished[5]);
+     my $elapsed = floor($runfinished[6]);
+     $sql = "update jobs set events=$runfinished[2], errors=$runfinished[4], 
+                                   cputime=$cputime, elapsed=$elapsed,
+                                   host='$runfinished[1]',timestamp = $timestamp 
+                               where jid = (select runs.jid from runs where runs.jid = $lastrun)";
+#     $self->{sqlserver}->Update($sql);
+    }
+   } else {
+       htmlWarning("parseJournalFile","RunFinished - cannot find all patterns"," ");
+   }
+   #
+   # end RunFinished
+   # 
+   }
+   my $status = undef;
+   if ($runfinishedR == 1) {
+       if ($closedstR == 1) {
+           $status = "Finished";
+       } else {
+           $status = "Unchecked";
+           $levent = 0;
+           $fevent = 0;
+       }
+   } else {
+       if ($startingrunR == 1) {
+        if ($closedstR == 1) {
+           $status = "Finished";
+        } else {
+           $status = "Failed";
+           $levent = 0;
+           $fevent = 0;
+       }
+    }
+   }
+   if ($startingrunR == 1 || $runfinishedR == 1) {
+    $sql = "update runs set status='$status', fevent=fevent, levent=$levent where run=$lastrun";
+#    $self->{sqlserver}->Update($sql);
+   }
+  } else {
+       htmlWarning("parseJournalFile","Block skipped . utime not defined"," ");
+      print "$block\n";      
+  }
+ }
+}
+
 
