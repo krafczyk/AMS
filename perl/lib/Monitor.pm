@@ -1,3 +1,5 @@
+# $Id: Monitor.pm,v 1.22 2001/01/22 17:25:46 choutko Exp $
+
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
