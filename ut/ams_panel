@@ -79,14 +79,15 @@ frame .top.t6 -borderwidth 10
 pack .top.t1 .top.t5 .top.t6 .top.t2 .top.t3 .top.t4 -side top
 
 # Buttons, horizontally from left to right
-button .top.t1.exit -background green -text Exit -font $XFONTS_BUTTONS -command exit
-pack .top.t1.exit -side left -padx 20 -fill x
+button .top.t1.exit -background green -text EXIT -font $XFONTS_BUTTONS -command exit
+set make [button .top.t1.make -background cyan -text "Create gbatch.exe" -font $XFONTS_BUTTONS -command AMSMake]
+pack .top.t1.exit .top.t1.make -side left -padx 100 -fill x
 
-set make [button .top.t5.make -background cyan -text "Create gbatch.exe" -font $XFONTS_BUTTONS -command AMSMake]
-button .top.t5.root -background cyan -text "Create Root Library" -font $XFONTS_BUTTONS -command AMSRoot
-button .top.t5.ruby -background cyan -text "Create Ruby Library" -font $XFONTS_BUTTONS -command AMSRuby
-button .top.t5.python -background cyan -text "Create Python Library" -font $XFONTS_BUTTONS -command AMSPython
-pack .top.t5.make .top.t5.root .top.t5.ruby .top.t5.python -side left -padx 10 -fill x
+button .top.t5.root -background lightyellow -text "Create AMSRoot Shared Lib" -font $XFONTS_BUTTONS -command AMSRoot
+button .top.t5.static -background lightyellow -text "Create AMSRoot Static Lib" -font $XFONTS_BUTTONS -command AMSStatic
+button .top.t5.ruby -background lightyellow -text "Create Ruby Lib" -font $XFONTS_BUTTONS -command AMSRuby
+button .top.t5.python -background lightyellow -text "Create Python Lib" -font $XFONTS_BUTTONS -command AMSPython
+pack .top.t5.root .top.t5.static .top.t5.ruby .top.t5.python -side left -padx 10 -fill x
 
 button .top.t6.update -background coral -text "CVS Update" -font $XFONTS_BUTTONS -command AMSUpdate
 button .top.t6.cleanlibs -background coral -text "Clean Libraries" -font $XFONTS_BUTTONS -command AMSCleanLibs
@@ -341,7 +342,7 @@ bind .top.t4.comm <Control-q> exit
 # Focus follows mouse
 bind all <Enter> {focus %W}
 
-# Command to be executed when the ".top.t1.make" button is pressed
+# Command to be executed when the ".top.t*.make" button is pressed
 # a) gmake -if Mopt ; output is shown in the log zone ".t.log"
 # b) During execution, the button becomes "Stop  gbatch.exe" (to kill/stop the command)
 proc AMSMake {} {
@@ -373,7 +374,7 @@ proc AMSMake {} {
   }
 }
 
-# Command to be executed when the ".top.t1.update" button is pressed
+# Command to be executed when the ".top.t*.update" button is pressed
 # a) cvs update -d ; output is shown in the log zone ".t.log"
 proc AMSUpdate {} {
   global UpdateInput log AMSDir
@@ -396,7 +397,7 @@ proc AMSUpdate {} {
   }
 }
 
-# Command to be executed when the ".top.t5.root" button is pressed
+# Command to be executed when the ".top.t*.root" button is pressed
 # a) gmake shared -f Mopt; output is shown in the log zone ".t.log"
 proc AMSRoot {} {
   global RootInput log AMSDir
@@ -419,7 +420,30 @@ proc AMSRoot {} {
   }
 }
 
-# Command to be executed when the ".top.t5.ruby" button is pressed
+# Command to be executed when the ".top.t*.static" button is pressed
+# a) gmake shared -f Mopt; output is shown in the log zone ".t.log"
+proc AMSStatic {} {
+  global StaticInput log AMSDir
+  set command "bash -c \"cd $AMSDir/install; gmake static\""
+  if {[catch {open "|$command |& cat"} StaticInput]} {
+        $log insert end $StaticInput\n
+  } else {
+      $log insert end "> Executing: $command ... \n"
+      fileevent $StaticInput readable {
+        if {[eof $StaticInput]} {
+          catch {close $StaticInput}
+          $log insert end "\n< [pwd] >"
+          $log see end
+        } else {
+                gets $StaticInput line
+                $log insert end \n$line
+                $log see end
+        }
+      }
+  }
+}
+
+# Command to be executed when the ".top.t*.ruby" button is pressed
 # a) gmake; output is shown in the log zone ".t.log"
 proc AMSRuby {} {
   global RubyInput log AMSDir
@@ -442,7 +466,7 @@ proc AMSRuby {} {
   }
 }
 
-# Command to be executed when the ".top.t5.python" button is pressed
+# Command to be executed when the ".top.t*.python" button is pressed
 # a) gmake; output is shown in the log zone ".t.log"
 proc AMSPython {} {
   global PythonInput log AMSDir
@@ -465,7 +489,7 @@ proc AMSPython {} {
   }
 }
 
-# Command to be executed when the ".top.t6.clean" button is pressed
+# Command to be executed when the ".top.t*.clean" button is pressed
 # a) gmake -if Mopt clean; output is shown in the log zone ".t.log"
 proc AMSClean {} {
   global CleanInput log AMSDir
@@ -487,7 +511,7 @@ proc AMSClean {} {
       }
   }
 }
-# Command to be executed when the ".top.t6.cleanlibs" button is pressed
+# Command to be executed when the ".top.t*.cleanlibs" button is pressed
 # Output is shown in the log zone ".t.log"
 proc AMSCleanLibs {} {
   global CleanLibsInput log AMSDir
