@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.21 2001/08/24 10:02:04 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.22 2002/07/03 20:32:58 schol Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -39,6 +39,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "AMSR_Ntuple.h"
+#include "AMSR_Root.h"
 /* #include "AMSR_Rootclasses.h" */
 #include "hbook.h"
 #include <TTree.h>
@@ -222,7 +223,7 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("TRDTracks", &m_BlkEventh->TRDTracks, "TRDTracks/i");
    m_Tree->Branch("Eventstatus", &m_BlkEventh->Eventstatus, "Eventstatus[2]/i");
 
-
+/*
    m_Tree->Branch("nbeta", &m_BlkBeta->nbeta, "nbeta/I");
    m_Tree->Branch("betastatus", m_BlkBeta->betastatus, "betastatus[nbeta]/I");
    m_Tree->Branch("betapattern", m_BlkBeta->betapattern, "betapattern[nbeta]/i");
@@ -413,7 +414,6 @@ void AMSR_Ntuple::CreateSampleTree()
 
    m_Tree->Branch("nlvl3", &m_BlkLvl3->nlvl3, "nlvl3/I");
    m_Tree->Branch("Lvl3toftr", m_BlkLvl3->Lvl3toftr, "Lvl3toftr[nlvl3]/i");
-   m_Tree->Branch("Lvl3antitr", m_BlkLvl3->Lvl3antitr, "Lvl3antitr[nlvl3]/i");
    m_Tree->Branch("Lvl3trackertr", m_BlkLvl3->Lvl3trackertr, "Lvl3trackertr[nlvl3]/I");
    m_Tree->Branch("Lvl3ntrhits", m_BlkLvl3->Lvl3ntrhits, "Lvl3ntrhits[nlvl3]/i");
    m_Tree->Branch("Lvl3npat", m_BlkLvl3->Lvl3npat, "Lvl3npat[nlvl3]/i");
@@ -454,6 +454,8 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("tofredd", m_BlkTofrawcl->tofredd, "tofredd[ntofraw]/F");
    m_Tree->Branch("tofrtm", m_BlkTofrawcl->tofrtm, "tofrtm[ntofraw]/F");
    m_Tree->Branch("tofrcoo", m_BlkTofrawcl->tofrcoo, "tofrcoo[ntofraw]/F");
+
+*/
 
 }
 
@@ -561,6 +563,8 @@ Int_t AMSR_Ntuple::OpenNtuple(char *ntpfile)
       offset = 1-m_NextID;
    }
 
+
+
    HROPEN(lun, top, ntpfile, "XP", reclen, istat);
    if (istat != 0) {
       Error("AMSR_Ntuple::OpenNtuple",
@@ -568,6 +572,7 @@ Int_t AMSR_Ntuple::OpenNtuple(char *ntpfile)
       CLOSE(lun);
       return 1;
    }
+
 
    if (top==top1) HCDIR(dir1, " ");
    else if (top==top2) HCDIR(dir2, " ");
@@ -589,6 +594,8 @@ Int_t AMSR_Ntuple::OpenNtuple(char *ntpfile)
       }
       return 2;
    }
+
+
 
    //
    //then close the old one after successful opening of new ntuple file
@@ -612,6 +619,7 @@ Int_t AMSR_Ntuple::OpenNtuple(char *ntpfile)
    HNOENT(m_MemID, m_Entries);
 
 //   printf("ntuple of %d(MemID) has %d events\n", m_MemID, m_Entries);
+
    
    //
    //Set block addresses for ntuple
@@ -639,7 +647,7 @@ Int_t AMSR_Ntuple::OpenNtuple(char *ntpfile)
    HBNAME(m_MemID, "LVL1", &(m_BlkLvl1->nlvl1), "$SET");
    HBNAME(m_MemID, "TRRAWCL", &(m_BlkTrrawcl->ntrraw), "$SET");
    HBNAME(m_MemID, "ANTIRAWC", &(m_BlkAntirawc->nantiraw), "$SET");
-   HBNAME(m_MemID, "TOFRAWCL", &(m_BlkTofrawcl->ntofraw), "$SET");
+   HBNAME(m_MemID, "TOFRAWCL", &(m_BlkTofrawcl->ntofraw), "$SET"); 
 
 
    //
@@ -647,8 +655,9 @@ Int_t AMSR_Ntuple::OpenNtuple(char *ntpfile)
    //
    HGNT(m_MemID, 1, ierr);
    m_SameRead   = kFALSE;
-
+ 
    SetTree(0);
+
    
    return 0;
 }
@@ -733,7 +742,12 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("lvl3", &lvl3);
    m_Tree->SetBranchAddress("lvl102", &lvl1); */
 
+// This not working yet.. Root structure different
+
+//   m_Tree->SetBranchAddress("evroot02.Header",&m_BlkEventh->eventno);
+
   
+/*
    m_Tree->SetBranchAddress("event02.Eventno", &m_BlkEventh->eventno);
    m_Tree->SetBranchAddress("event02.Run", &m_BlkEventh->run);
    m_Tree->SetBranchAddress("event02.RunType", &m_BlkEventh->runtype);
@@ -969,7 +983,6 @@ void AMSR_Ntuple::SetTreeAddress()
 
    m_Tree->SetBranchAddress("lvl3.Nlvl3", &m_BlkLvl3->nlvl3);
    m_Tree->SetBranchAddress("lvl3.TOFTr[2]", m_BlkLvl3->Lvl3toftr);
-   m_Tree->SetBranchAddress("lvl3.AntiTr[2]", m_BlkLvl3->Lvl3antitr);
    m_Tree->SetBranchAddress("lvl3.TrackerTr[2]", m_BlkLvl3->Lvl3trackertr);
    m_Tree->SetBranchAddress("lvl3.NTrHits[2]", m_BlkLvl3->Lvl3ntrhits);
    m_Tree->SetBranchAddress("lvl3.NPatFound[2]", m_BlkLvl3->Lvl3npat);
@@ -984,7 +997,7 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("lvl102.TOFPatt[2][4]", m_BlkLvl1->Lvl1tofpatt);
    m_Tree->SetBranchAddress("lvl102.TOFPatt1[2][4]", m_BlkLvl1->Lvl1tofpatt1);
    m_Tree->SetBranchAddress("lvl102.AntiPatt[2]", m_BlkLvl1->Lvl1antipatt);
-   m_Tree->SetBranchAddress("lvl102.ECALflag[2]", m_BlkLvl1->ecalflag);   
+   m_Tree->SetBranchAddress("lvl102.ECALflag[2]", m_BlkLvl1->ecalflag);   */
 
 
 /* These not written to Root file at the moment

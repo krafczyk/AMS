@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.8 2001/08/21 13:11:18 kscholbe Exp $
+#  $Id: Makefile,v 1.9 2002/07/03 20:33:02 schol Exp $
 # ------------------------------
 # Makefile for AMS Event Display
 # ------------------------------
@@ -21,7 +21,7 @@
 ROOTLIBS      = -L$(ROOTSYS)/lib  -lCore -lCint -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lTreePlayer -lProof 
 
 ROOTGLIBS     = -lRint -lGpad -lGui -lGX11 -lX3d
-CERNLIBS      = -L/cern/pro/lib -lmathlib -lpacklib -lkernlib
+CERNLIBS      = -L$(CERN)/pro/lib -lmathlib -lpacklib -lkernlib
 #OPT           = -g -DROOT10308
 OPT           = -g 
 #OPT           = -O 

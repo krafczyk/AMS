@@ -1,4 +1,4 @@
-//  $Id: AMSR_NtupleCommons.h,v 1.14 2001/08/21 13:11:17 kscholbe Exp $
+//  $Id: AMSR_NtupleCommons.h,v 1.15 2002/07/03 20:33:00 schol Exp $
 #ifndef AMSR_NtupleCommons_H
 #define AMSR_NtupleCommons_H
 
@@ -131,6 +131,9 @@ struct PARTICLE_DEF {
    float cooecal[NPART][3][3];
    float cootr[NPART][8][3];
    float cootrd[NPART][3];
+   float coorich[NPART][2][3];
+   float pathrich[NPART][2];
+  float lengthrich[NPART][2];
 };
 #define blkParticle COMMON_BLOCK(PARTICLE,particle)
 COMMON_BLOCK_DEF(PARTICLE_DEF,blkParticle);
@@ -325,7 +328,8 @@ struct ECALSHOWER_DEF {
   float Chi2Profile[NECSHOW];
   float ParProfile[NECSHOW][4];
   float Chi2Trans[NECSHOW];
-  float TransProfile[NECSHOW][3];
+  //  float TransProfile[NECSHOW][3];
+  float SphericityEV[NECSHOW][3];
   int   p2DCl[NECSHOW][2];
 };
 
@@ -374,14 +378,22 @@ static const int NLVL3 = 2;
 struct LVL3_DEF {
    int   nlvl3;
    int   Lvl3toftr[NLVL3];
-   int   Lvl3antitr[NLVL3];
+   int   Lvl3trdtr[NLVL3];
    int   Lvl3trackertr[NLVL3];
+   int   Lvl3maintr[NLVL3];
+   int   Lvl3direction[NLVL3];
    int   Lvl3ntrhits[NLVL3];
    int   Lvl3npat[NLVL3];
    int   Lvl3pattern[NLVL3][2];
    float Lvl3residual[NLVL3][2];
    float Lvl3time[NLVL3];
    float Lvl3eloss[NLVL3];
+   int   Lvl3trdhits[NLVL3];
+   int   Lvl3hmult[NLVL3];
+   float Lvl3trdpar[NLVL3][2];
+   int   Lvl3ecemag[NLVL3]; 
+   int   Lvl3ecmatc[NLVL3];
+   float Lvl3ectofcr[NLVL3][4];
 };
 #define blkLvl3 COMMON_BLOCK(LVL3,lvl3)
 COMMON_BLOCK_DEF(LVL3_DEF,blkLvl3);
@@ -395,6 +407,7 @@ struct LVL1_DEF {
    int   Lvl1tofpatt1[NLVL1][4];
    int   Lvl1antipatt[NLVL1];
    int   ecalflag[NLVL1];
+   float ecaltrsum[NLVL1];
 };
 #define blkLvl1 COMMON_BLOCK(LVL1,lvl1)
 COMMON_BLOCK_DEF(LVL1_DEF,blkLvl1);
@@ -421,7 +434,7 @@ struct ANTIRAWC_DEF {
 #define blkAntirawc COMMON_BLOCK(ANTIRAWC,antirawc)
 COMMON_BLOCK_DEF(ANTIRAWC_DEF,blkAntirawc);
 
-static const int NTOFRAW = 20;
+static const int NTOFRAW = 40;
 struct TOFRAWCL_DEF {
    int   ntofraw;
    int   tofrstatus[NTOFRAW];

@@ -1,4 +1,4 @@
-//  $Id: AMSR_VirtualDisplay.h,v 1.2 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_VirtualDisplay.h,v 1.3 2002/07/03 20:33:01 schol Exp $
 #ifndef AMSR_VirtualDisplay_H
 #define AMSR_VirtualDisplay_H
 
@@ -34,7 +34,7 @@ public:
 //   virtual Bool_t    DrawClusters()  = 0;
    virtual Bool_t    DrawParticles() = 0;
    virtual void      DrawCaption(Option_t *option="") = 0;
-   virtual void      DrawView(Float_t theta, Float_t phi, Int_t index) = 0;
+   virtual void      DrawView(Double_t theta, Double_t phi, Int_t index) = 0;
    virtual void      DrawViewGL() = 0;
    virtual void      DrawViewX3D() = 0;
    virtual void      ExecuteEvent(Int_t event, Int_t px, Int_t py) = 0;
@@ -45,7 +45,7 @@ public:
    virtual void      PaintParticles(Option_t *option="") = 0;
    virtual Float_t   PTcut() = 0;
    virtual Float_t   PTcutEGMUNU() = 0;
-   virtual void      SetView(Float_t theta, Float_t phi) = 0;
+   virtual void      SetView(Double_t theta, Double_t phi) = 0;
    virtual void      SetView(EAMSR_View newView=kFrontView) = 0;
    virtual void      IdleSwitch(Int_t flag=0)=0;
 //   virtual void      Select()=0;

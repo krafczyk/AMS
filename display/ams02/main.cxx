@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.6 2002/03/13 12:07:31 choutko Exp $
+//  $Id: main.cxx,v 1.7 2002/07/03 20:33:04 schol Exp $
 
 
 //--------------------------------------------------------------------------
@@ -36,11 +36,11 @@
 #include <stdlib.h>
 
 
-extern void InitGui(); // loads the device dependent graphics system
-VoidFuncPtr_t initfuncs[] = { InitGui, 0 };
-int Error; // needed by Motif
+//extern void InitGui(); // loads the device dependent graphics system
+//VoidFuncPtr_t initfuncs[] = { InitGui, 0 };
+//int Error; // needed by Motif
 
-TROOT troot("AMS", "AMS ROOT", initfuncs);
+//TROOT troot("AMS", "AMS ROOT", initfuncs);
 
 main(int argc, char *argv[])
 {
@@ -163,7 +163,7 @@ main(int argc, char *argv[])
       cerr << idleMacro <<" missing, please provide one" << endl;
       exit(1);
     }
-  }
+  } 
 
   //
   // Set ntupleID if necessary
@@ -212,12 +212,15 @@ main(int argc, char *argv[])
   } else {
     display.DrawEvent();
     display.GetCanvas()->Update();
+
   }
 
   //
   // Initialize "IdleHandle()"
   //
   if (idleSec>0) theApp->ProcessLine("IdleHandle(-1)");
+
+
 
   //
   // Enter event loop

@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.h,v 1.5 2001/08/18 17:01:53 kscholbe Exp $
+//  $Id: AMSR_Display.h,v 1.6 2002/07/03 20:32:57 schol Exp $
 #ifndef AMSR_Display_H
 #define AMSR_Display_H
 
@@ -57,8 +57,8 @@ class AMSR_GeometrySetter;
 class AMSR_Display : public AMSR_VirtualDisplay {
 
 private:
-   Float_t               fCooCur[2][3];
-   Float_t               fCooDef[2][3];
+   Double_t               fCooCur[2][3];
+   Double_t               fCooDef[2][3];
    
    EAMSR_View            m_View;		     //view
    Long_t              m_IdleTime;           //idle time in seconds
@@ -77,8 +77,8 @@ private:
 
    Float_t             m_PTcut;                //PT cut to display objects
    Float_t             m_PTcutEGMUNU;          //PT cut for Electrons, Gammas, MUons, Neutrinos
-   Float_t             m_Theta;                //Viewing angle theta
-   Float_t             m_Phi;                  //Viewing angle phi
+   Double_t             m_Theta;                //Viewing angle theta
+   Double_t             m_Phi;                  //Viewing angle phi
 // TCanvas            *m_Canvas;               //Pointer to the display canvas
    AMSR_Canvas          *m_Canvas;               //Pointer to the display canvas
    TPad               *m_UCPad;                //Pointer to the UC pad 
@@ -99,10 +99,10 @@ private:
 
       
 public:
-                       float & CooDefMin(int i){return fCooDef[0][i];}
-                       float & CooDefMax(int i){return fCooDef[0][i];}
-                       float & CooCurMin(int i){return fCooCur[0][i];}
-                       float & CooCurMax(int i){return fCooCur[0][i];}
+                       double & CooDefMin(int i){return fCooDef[0][i];}
+                       double & CooDefMax(int i){return fCooDef[0][i];}
+                       double & CooCurMin(int i){return fCooCur[0][i];}
+                       double & CooCurMax(int i){return fCooCur[0][i];}
                        void ResetCoo(){
                         for(int i=0;i<3;i++){
                           fCooCur[0][i]=fCooDef[0][i];
@@ -131,7 +131,7 @@ public:
            void        DrawCaption(Option_t *option="");
            void        DrawAxis(Int_t index=0, Option_t *option="");
 //         void        UpdateAxis(Int_t index=0, Option_t *option="");
-   virtual void        DrawView(Float_t theta=9999, Float_t phi=9999, Int_t index=0);
+   virtual void        DrawView(Double_t theta=9999, Double_t phi=9999, Int_t index=0);
    virtual void        DrawViewGL();
    virtual void        DrawViewX3D();
 //	   void        DoubleSize();
@@ -168,7 +168,7 @@ public:
    void                Print(){m_Canvas->PrintCB();}
    void                SavePS(){m_Canvas->SaveParticleCB();}
    void                SaveGIF(){m_Canvas->SaveParticleGIF();}
-   virtual void        SetView(Float_t theta, Float_t phi);
+   virtual void        SetView(Double_t theta, Double_t phi);
            void        SetView(EAMSR_View newView=kFrontView);
            void        SetNextView(EAMSR_View nextView) {m_View=nextView;}
    virtual void        ShowNextEvent(Int_t delta=1);

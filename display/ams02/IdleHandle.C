@@ -1,4 +1,4 @@
-//  $Id: IdleHandle.C,v 1.3 2001/08/18 17:01:55 kscholbe Exp $
+//  $Id: IdleHandle.C,v 1.4 2002/07/03 20:33:02 schol Exp $
 void IdleHandle(Int_t option)
 {
   static TTree *t = 0;
@@ -10,7 +10,7 @@ void IdleHandle(Int_t option)
   //
 //  static char *cut   
 //  static char *cut = "Chi2strline[0]<1 && Chi2circle[0]<1 && Chi2fastfit[0]<10 && beta[0]<0.";
-    static char *cut = "npart==1 && pcharge[0]==2 && pmom[0]>0 && ptrackp[0]==1 && gchi2[0]>0";
+//    static char *cut = "npart==1 && pcharge[0]==2 && pmom[0]>0 && ptrackp[0]==1 && gchi2[0]>0";
 //  static char *cut = "npart==1";
 
 
@@ -49,9 +49,9 @@ void IdleHandle(Int_t option)
          return;
       }
 
-      if (f_cut != 0) f_cut->SetTree(t);
-      else f_cut=new TTreeFormula("cut",cut,t);
-      printf("tree =%lx, formula =%lx\n", t, f_cut);
+//      if (f_cut != 0) f_cut->SetTree(t);
+//      else f_cut=new TTreeFormula("cut",cut,t);
+//      printf("tree =%lx, formula =%lx\n", t, f_cut);
 
     }
   }

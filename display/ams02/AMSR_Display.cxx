@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.cxx,v 1.11 2001/08/23 21:05:48 kscholbe Exp $
+//  $Id: AMSR_Display.cxx,v 1.12 2002/07/03 20:32:56 schol Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSR_Display                                                           //
@@ -78,6 +78,7 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo, int resx, int res
    // Constructor of AMSR_Display
    //
 
+
      fCooDef[0][0]=-70.;
      fCooDef[0][1]=-70.;
      fCooDef[0][2]=-100.;
@@ -139,10 +140,10 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo, int resx, int res
    Int_t logoY0 = m_Canvas->YtoAbsPixel(m_Canvas->GetY2()) + logoSizeY;
 		// notice the "+" sign.  In AbsPixel large y goes downward
    debugger.Print("logo x,y = %d,%d\n", logoX0,logoY0);
-   // Float_t xsep = m_Canvas->AbsPixeltoX(logoSizeX + 4);
-   Float_t ysep = m_Canvas->AbsPixeltoY(logoY0 + 4);
+   // Double_t xsep = m_Canvas->AbsPixeltoX(logoSizeX + 4);
+   Double_t ysep = m_Canvas->AbsPixeltoY(logoY0 + 4);
 
-   Float_t xsep = 0.2;
+   Double_t xsep = 0.2;
    m_Canvas->cd();
    //
    // Create title pad
@@ -269,7 +270,7 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo, int resx, int res
    TSwitch * sw[13];
    AMSR_Maker * maker;
 
-   Float_t y = 1.0, dy = 0.080, height=0.080;
+   Double_t y = 1.0, dy = 0.080, height=0.080;
    maker = (AMSR_Maker *) gAMSR_Root->SiHitMaker();
    sw[0] = new TSwitch("Tracker Hits", &(maker->DrawFruits), 
 			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
@@ -367,6 +368,8 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo, int resx, int res
    debugger.Print("++++ after m_Canvas->Update().\n");
 
    gAMSR_Display    = this;
+
+
 }
 
 
@@ -461,11 +464,11 @@ void AMSR_Display::DisplayButtons()
    m_ButtonPad->cd();
 
    Int_t butcolor = 33;
-   Float_t dbutton = 0.075;
-   Float_t y  = 0.99;
-   Float_t dy = 0.007;
-   Float_t x0 = 0.05;
-   Float_t x1 = 0.95;
+   Double_t dbutton = 0.075;
+   Double_t y  = 0.99;
+   Double_t dy = 0.007;
+   Double_t x0 = 0.05;
+   Double_t x1 = 0.95;
    TButton *button;
    char *but0 = "gAMSR_Root->Display()->GotoRunEvent()";
    button = new TButton("GotoRunEvent",but0,x0,y-dbutton,x1,y);
@@ -581,10 +584,10 @@ Int_t AMSR_Display::DistancetoPrimitive(Int_t px, Int_t py)
    const Int_t big = 9999;
    const Int_t inview = 0;
    Int_t dist = big;
-   Float_t xmin = gPad->GetX1();
-   Float_t xmax = gPad->GetX2();
-   Float_t dx   = 0.05*(xmax - xmin);
-   Float_t x    = gPad->AbsPixeltoX(px);
+   Double_t xmin = gPad->GetX1();
+   Double_t xmax = gPad->GetX2();
+   Double_t dx   = 0.05*(xmax - xmin);
+   Double_t x    = gPad->AbsPixeltoX(px);
    if (x < xmin+dx || x > xmax-dx) return dist;
 
     // scan list of particles
@@ -600,7 +603,7 @@ void AMSR_Display::Draw(Option_t *option)
 {
 //    Insert current event in graphics pad list
 
-   m_Canvas->SetEditable(kFALSE);
+//   m_Canvas->SetEditable(kFALSE);
 
    DrawTitle();
    AddParticleInfo();
@@ -890,12 +893,12 @@ void AMSR_Display::DrawCaption(Option_t *option)
 {
 //    Draw the event title
 
-   Float_t xmin = gPad->GetX1();
-   Float_t xmax = gPad->GetX2();
-   Float_t ymin = gPad->GetY1();
-   Float_t ymax = gPad->GetY2();
-   Float_t dx   = xmax-xmin;
-   Float_t dy   = ymax-ymin;
+   Double_t xmin = gPad->GetX1();
+   Double_t xmax = gPad->GetX2();
+   Double_t ymin = gPad->GetY1();
+   Double_t ymax = gPad->GetY2();
+   Double_t dx   = xmax-xmin;
+   Double_t dy   = ymax-ymin;
 
    if (strlen(option) == 0) {
 
@@ -917,8 +920,8 @@ void AMSR_Display::DrawAxis(Int_t index, Option_t * option)
    // This appends the axisPad to the current pad and then updates the axis
 
    TView *eventView = gPad->GetView();
-   Float_t longitude = eventView->GetLongitude();
-   Float_t latitude  = eventView->GetLatitude();
+   Double_t longitude = eventView->GetLongitude();
+   Double_t latitude  = eventView->GetLatitude();
 
    debugger.Print("eventView = %lx, long = %f, lati = %f\n",
                   eventView, longitude, latitude);
@@ -975,7 +978,7 @@ void AMSR_Display::DrawAxis(Int_t index, Option_t * option)
 }
 
 //_____________________________________________________________________________
-void AMSR_Display::DrawView(Float_t theta, Float_t phi, Int_t index)
+void AMSR_Display::DrawView(Double_t theta, Double_t phi, Int_t index)
 {
 //    Draw a view of AMS
 
@@ -1208,7 +1211,7 @@ void AMSR_Display::SetView(EAMSR_View newView)
 }
 
 //_____________________________________________________________________________
-void AMSR_Display::SetView(Float_t theta, Float_t phi)
+void AMSR_Display::SetView(Double_t theta, Double_t phi)
 {
 //  change viewing angles for current event
 

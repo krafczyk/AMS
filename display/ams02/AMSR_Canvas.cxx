@@ -1,4 +1,4 @@
-//  $Id: AMSR_Canvas.cxx,v 1.5 2001/08/23 21:05:47 kscholbe Exp $
+//  $Id: AMSR_Canvas.cxx,v 1.6 2002/07/03 20:32:55 schol Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -446,7 +446,7 @@ void AMSR_Canvas::OpenFileCB()
   //
   // Open a dialog window to select or input filename
   //
-  m_FileInfo->fFileTypes = (char **) gOpenTypes;
+  m_FileInfo->fFileTypes = (const char **) gOpenTypes;
   m_FileInfo->fFilename = 0;
   const TGWindow *main = gClient->GetRoot();
 //  TRootCanvas *own = (TRootCanvas*) GetCanvasImp();
@@ -464,6 +464,7 @@ void AMSR_Canvas::OpenFileCB()
     return;
   }
 
+  debugger.Print("Opening data file \n");
   Int_t status = gAMSR_Root->OpenDataFile(filename, type);
   if ( status == 1 ) { 
     printf("Can not open file %s\n", filename);

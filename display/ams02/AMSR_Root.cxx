@@ -1,4 +1,4 @@
-//  $Id: AMSR_Root.cxx,v 1.8 2001/08/21 13:11:18 kscholbe Exp $
+//  $Id: AMSR_Root.cxx,v 1.9 2002/07/03 20:33:00 schol Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -208,9 +208,6 @@ AMSR_Root *gAMSR_Root;
 ClassImp(AMSR_Root)
 
 
-
-
-
 //_____________________________________________________________________________
 void AMSR_Root::CommonConstruct()
 {
@@ -289,14 +286,13 @@ AMSR_Root::AMSR_Root(const char *name, const char *title)
 
    m_AntiClusterMaker  = new AMSR_AntiClusterReader("AntiClusterReader",
 			    "Read AMSR_Root Anti Counter Clusters");
+
    m_Makers->Add(m_AntiClusterMaker);
+
 
    m_TrMCClusterMaker  = new AMSR_TrMCClusterReader("TrMCClusterReader",
 			    "Read AMSR_Root TrMC Counter Clusters");
    m_Makers->Add(m_TrMCClusterMaker);
-
-
-
 
    m_ToFClusterMaker  = new AMSR_ToFClusterReader("ToFClusterReader",
 			    "Read AMSR_Root ToF clusters from ntuple root file");
@@ -417,6 +413,7 @@ Int_t AMSR_Root::OpenDataFile(char * filename, EDataFileType type)
     if (! tNew) {
       return 2;
     }
+
     //
     //  Now the new file are opened and read, close the old ones
     //
@@ -438,11 +435,13 @@ Int_t AMSR_Root::OpenDataFile(char * filename, EDataFileType type)
   } else if ( type == kObjectivityFile ) {
 
     Error("AMSR_Root::OpenDataFile",
-          "Sorry ! Data type of ObjectivityFile not yet implemented.\n");
+          "Sorry ! Data type of ObjectivityFile not implemented.\n");
     return 1;
 
   } else if ( type == kNtupleFile ) {
+
     int openStat = m_Ntuple->OpenNtuple(filename);
+
     if (openStat == 0) Init(0);
     else return openStat;
   }
@@ -600,7 +599,6 @@ void AMSR_Root::Init(TTree *h1)
    TObject *objfirst, *objlast;
    while (maker = (AMSR_Maker*)next()) {
      char const * name = maker->ClassName();
-     debugger.Print("initialize %s\n", name);
      // save last created histogram in current Root directory
       objlast = gDirectory->GetList()->Last();
 
