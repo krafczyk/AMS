@@ -11,14 +11,8 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <stdlib.h>
-class Myapp : public TApplication{
+#include "main.h"
 
-public:
- void HandleIdleTimer();
- Myapp(const char *appClassName,int *argc, char **argv):
- TApplication(appClassName,argc, argv){};
-
-};
 
 void Myapp::HandleIdleTimer(){
 SetReturnFromRun(1);
@@ -49,49 +43,90 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
 */
 
   debugger.Off();
-  
-  char * filename = "realtime.root";		// default file name
+  char *filename="realtime.root                                                                              ";
 
   if ( argc > 1 ) {		// now take the file name
     filename = *++argv;
   }
 
-  printf("opening file %s...\n", filename);
-   TFile f(filename);
+  char *gtv=getenv("AMSEDDataDir");
+  if(!gtv){
+    cerr <<"amsedc-F-AMSEDDataDir Not defined"<<endl;
+    exit(1);
+  }
+  char fnama[1024]="\0";
+  char fnam[1024]="\0";
+  char fnami[1024]="\0";
+  char fnamo[1024]="\0";
+  strcpy(fnama,gtv);
+  strcat(fnama,"newroot");
+  {  
+  ifstream iftxt(fnama,ios::in);
+  if(!iftxt){
+     cerr <<"amsedc::init-F-ErrorOpenFile "<<fnama<<endl;
+
+      if(argc<=1)exit(1);
+      fnam[0]=0;
+      strcpy(fnam,filename);
+  }
+  else {
+    fnam[0]=0;
+    strcpy(fnam,gtv);
+    iftxt >> fnami;
+
+    strcat(fnam,fnami);
+    iftxt.close();
+  }
+  }
+out:
+  {  
+   TFile f(fnam);
    TTree * t = (TTree *)f.Get("h1");
    if(!t){
     if(argc <=1)cout <<"Please type file name as first parameter"<<endl;
     return;
    }
+
    AMSRoot amsroot("AMS", "AMS Display");
-   cout <<""<<endl;
    amsroot.Init(t);
-   cout <<""<<endl;
    amsroot.MakeTree("AMSTree", "AMS Display Tree");
    TFile fgeo("ams_group.root");
-   cout <<""<<endl;
    TGeometry * geo = (TGeometry *)fgeo.Get("ams");
    AMSDisplay display("AMSRoot Event Display", geo);
-       display.SetView (kTwoView);
        display.SetApplication(theApp);
+       // display.SetView (kTwoView);
       for(int i=1;;i++){
        amsroot.Clear();
-       if(!amsroot.GetEvent(i))break;;
+       if(!amsroot.GetEvent(i)){
+        i=0;
+        continue;
+       }
           display.DrawEvent();
+          if(i==1)display.SetView (kTwoView);
           display.GetCanvas()->Update();	// force it to draw
-              theApp->Run();
-              //              system("sleep 5");       
-      }        
+          theApp->Run();
+                    {
+                      ifstream iftxt(fnama,ios::in);
+                      if(iftxt){
+                       fnamo[0]=0;
+                       strcpy(fnamo,gtv);
+                       iftxt >> fnami;
+                       strcat(fnamo,fnami);
+                       iftxt.close();
+                       if(strcmp(fnamo,fnam)){
+                        strcpy(fnam,fnamo);
+                        goto out;
+                       }
+                      }
+                    }
+      }
+
+  }
+              
       return ;
   
 
 
-// Enter event loop
-  theApp->Run();
-
-  delete theApp;
 }
-//---------------------------------------
-
 
 
