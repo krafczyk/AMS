@@ -1,19 +1,38 @@
-//---------
+//====================================================================
+//  class for RawEvent hits (all digital data for given id are groupped)
+//
+class AMSTOFRawEvent: public AMSlink{
+//
+private:
+int16u idsoft;        // LayBarBarSide: LBBS (as in Phel,Tovt MC-obj)
+int16u status;        // channel status (alive/dead/ ... --> 0/1/...)
+int16u nftdc;         // number of fast "tdc" hits
+int16u ftdc[SCTHMX2*2]; // fast "tdc" hits (2 edges, in TDC channels)
+int16u nstdc;         // number of slow "tdc" hits
+int16u stdc[SCTHMX3*4]; // slow "tdc" hits (4 edges,in TDC channels)
+int16u nadca;         // number anode "adc" hits
+int16u adca[SCTHMX4*2]; // adode "adc" hits (2 edges,in TDC channels)
+int16u nadcd;         // number dinode "adc" hits
+int16u adcd[SCTHMX4*2]; // dinode "adc" hits (2 edges,in TDC channels)
+geant charge;         // for MC : tot. anode charge (pC)
+geant edep;           // for MC : tot. edep in bar (mev)
+//
+//=========================================================================
 class AMSTOFRawCluster: public AMSlink{
 protected:
  integer _status;  // status
- integer _ntof;    // number of TOF-plane (1-top,...,4-bot)
- integer _plane;   //  number sc. bar in given plane
+ integer _ntof;    // number of TOF-plane(layer) (1-top,...,4-bot)
+ integer _plane;   //  number of sc. bar in given plane
  number _z;        // z coord of sc.bar
  number _tovta[2]; // anode time_over_thresh for 2 sides (ns)
  number _tovtd[2]; // dinode time_over_thresh for 2 sides (ns)
  number _edep;     // reconstructed via anode (no angle correction)
  number _edepd;    // reconstructed via dinode (..................)
- number _sdtm[2];  // noncorrected side times (ns) 
- number _time;     // A-corrected time=0.5*(t1+t2) (ns);
- number _timeD;    // Y-coord.(cm,loc.r.s.) got from time diff.=0.5(t1-t2)
-//---------
-
+ number _sdtm[2];  // A-noncorrected side times (ns, for TZSL-calibr) 
+ number _time;   // A-corrected time=0.5*(t1+t2) (ns);
+ number _timeD; // Y-coo(long)/(cm,loc.r.s,A-corrected) calc.from 0.5(t1-t2)
+ number _etimeD;// Y-coord.error(cm)
+//===========================================================================
 class AMSTOFCluster: public AMSlink{
 protected:
  static AMSTOFCluster *_Head[4];
@@ -25,36 +44,4 @@ protected:
  number _etime;  // error on cluster time (sec)
  AMSPoint _Coo;  // cluster center of gravity coordinates (cm)
  AMSPoint _ErrorCoo; // Error to coordinates
-public:
-
-//-----------
 //
-class TOFJobStat{
-//
-private:
-  static integer mccount[SCJSTA];// event passed MC-cut "i"
-//          i=0 -> entries
-  static integer recount[SCJSTA];// event passed RECO-cut "i"
-//          i=0 -> entries
-//          i=1 -> DAQ->RawEvent OK
-//          i=2 -> entries to TZSl-calibration 
-//           =3 -> TZSl:: multiplicity OK
-//           =4 -> TZSl:  beta OK
-//           =5 -> RawEvent->RawCluster OK
-//           =6 -> RawCluster->Cluster OK
-//------
-  static integer chcount[SCCHMX][SCCSTA];//channel statistics
-//                              [0] -> h/w-status="ON" frequency 
-//                              [1] -> "FTDC-ON"  (Nftdc>0)
-//                              [2] -> "STDC-ON"  (Nstdc>0)
-//                              [3] -> "ADCA-ON"  (Nadca>0)
-//                              [4] -> "ADCD-ON"  (Nadcd>0)
-//                              [5] -> "FTDC-1hit"  (Nftdc=1)
-//                              [6] -> "STDC-1hit"  (Nstdc=1)
-//                              [7] -> "ADCA-1hit"  (Nadca=1)
-//                              [8] -> "ADCD-1hit"  (Nadcd=1)
-//------
-  static integer brcount[SCBLMX][SCCSTA];// bar statistics
-//                               [0] -> h/w-status="ON" frequency
-//                               [1] -> "multipl-OK"
-//                               [2] -> "history-OK"

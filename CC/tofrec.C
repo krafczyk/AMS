@@ -19,6 +19,11 @@ extern TOFBrcal scbrcal[SCLRS][SCMXBR];// calibration data
 extern TOFVarp tofvpar;// TOF general parameters
 //
 //
+//-----------------------------------------------------------------------
+void AMSTOFRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
+  stat=0;//ok
+}
+//-----------------------------------------------------------------------
 void AMSTOFRawCluster::sitofdigi(){
   AMSTOFMCCluster * ptr=(AMSTOFMCCluster*)
   AMSEvent::gethead()->
@@ -99,22 +104,25 @@ void AMSTOFRawCluster::sitofdigi(){
 //------
 void AMSTOFRawCluster::build(int &status){
   int16u nftdc[2],nstdc[2],nadca[2],nadcd[2];
-  int16u  ftdc1[SCTHMX2],stdc1[SCTHMX3],adca1[SCTHMX4],adcd1[SCTHMX4];
-  int16u  ftdc2[SCTHMX2],stdc2[SCTHMX3],adca2[SCTHMX4],adcd2[SCTHMX4];
+  int16u  ftdc1[SCTHMX2*2],stdc1[SCTHMX3*4],adca1[SCTHMX4*2],adcd1[SCTHMX4*2];
+  int16u  ftdc2[SCTHMX2*2],stdc2[SCTHMX3*4],adca2[SCTHMX4*2],adcd2[SCTHMX4*2];
   integer ilay,last,ibar,isid,isds;
   integer i,j,chnum,brnum,am[2],tmi[2],itmf[2],sta,st;
+  static int16u pbitn(32768);
+  static int16u pbanti(0x7FFF);
   int16u id,idd,idN,stat[2];
   number zc,ama[2],amd[2],qtota,qtotd,tmf[2],time,coo,ecoo;//input to RawCluster Constr
   number tm[2],tf,dt,fstd;
   number amf[2],timeD,tamp;
   number charg[2];
+  number t1,t2,t3,t4;
   geant co,eco,point,brlm,pcorr,td2p,etd2p,clong[SCLRS],strr[2];
   AMSTOFRawEvent *ptr;
   AMSTOFRawEvent *ptrN;
   integer nbrl[SCLRS],brnl[SCLRS];
   int bad;
 // some variables for histogramming:
-  geant tch,pch1[SCLRS],pch2[SCLRS];
+  geant gdt,tch,pch1[SCLRS],pch2[SCLRS];
   geant edepa[SCLRS],edepd[SCLRS],tcorr[SCLRS],tdiff[SCLRS],td13,td24;
 //
   ptr=(AMSTOFRawEvent*)AMSEvent::gethead()
@@ -156,10 +164,10 @@ void AMSTOFRawCluster::build(int &status){
       if(nstdc[isid]>0)TOFJobStat::addch(chnum,2);
       if(nadca[isid]>0)TOFJobStat::addch(chnum,3);
       if(nadcd[isid]>0)TOFJobStat::addch(chnum,4);
-      if(nftdc[isid]==1)TOFJobStat::addch(chnum,5);
-      if(nstdc[isid]==1)TOFJobStat::addch(chnum,6);
-      if(nadca[isid]==1)TOFJobStat::addch(chnum,7);
-      if(nadcd[isid]==1)TOFJobStat::addch(chnum,8);
+      if(nftdc[isid]==2)TOFJobStat::addch(chnum,5);
+      if(nstdc[isid]==4)TOFJobStat::addch(chnum,6);
+      if(nadca[isid]==2)TOFJobStat::addch(chnum,7);
+      if(nadcd[isid]==2)TOFJobStat::addch(chnum,8);
     } 
 //
     ptrN=ptr->next();
@@ -169,119 +177,109 @@ void AMSTOFRawCluster::build(int &status){
     if(idN != id){ // both sides ready, next hit is OTHER_counter/last hit,
 //       so process CURRENT counter data : 
 //
-      if(isds==2){//bar(2sides) h/w status ok-start pattern recognition in it
+      if(isds==2){//bar(2sides) h/w status ok -> start pattern recognition in it
         isds=0;
         TOFJobStat::addbr(brnum,0);
-// --------> select bar with 1-multiplicity in stdc/adca :
-        if(nstdc[0]==1 && nstdc[1]==1
-          && nadca[0]==1 && nadca[1]==1
-          && nftdc[0] >0 && nftdc[1] >0){
+// --------> select bar with 1x4-multiplicity in stdc, 1x2 in ftdc/adc :
+        if(nstdc[0]==4 && nstdc[1]==4 // tempor.solution: require one "4-edge" sTDC-hit
+          && nadca[0]==2 && nadca[1]==2
+          && nftdc[0] >=2 && nftdc[1] >=2){
           TOFJobStat::addbr(brnum,1);
+//
 //   --------> identify "corresponding" hit in fast TDC :
           scbrcal[ilay][ibar].gtstrat(strr);
-          tm[0]=stdc1[0]*TOFDBc::tdcbin(1)/strr[0];
-          tm[1]=stdc2[0]*TOFDBc::tdcbin(1)/strr[1];
+//   calculate f-TDC "start"-edge each-side times tm[2] (wrt lev1):
+          tm[0]=(stdc1[3]&pbanti)*TOFDBc::tdcbin(1);
+          tm[1]=(stdc2[3]&pbanti)*TOFDBc::tdcbin(1);
+//
+          if(TOFRECFFKEY.reprtf[2]>0 && nftdc[0] ==2 && nftdc[1]==2){// histogr.
+            tf=(ftdc1[1]&pbanti)*TOFDBc::tdcbin(0);//2-nd hit is leading(up)-edge
+            dt=tf-tm[0];
+            HF1(1100,geant(dt),1.);//hist. the same hit f/s-TDC difference
+            tf=(ftdc2[1]&pbanti)*TOFDBc::tdcbin(0);
+            dt=tf-tm[1];
+            HF1(1100,geant(dt),1.);
+            dt=(int(ftdc1[1]&pbanti)-int(ftdc1[0]&pbanti))
+                                         *TOFDBc::tdcbin(0);//f-TDC inp.pulse width
+            HF1(1103,geant(dt),1.);
+          }
           tmf[0]=-1.;
           tmf[1]=-1.;
-          if(TOFRECFFKEY.reprtf[2]>0 && nftdc[0] ==1 && nftdc[1]==1){// histogr.
-            tf=ftdc1[0]*TOFDBc::tdcbin(0);
-            dt=tf-tm[0];
-            HF1(1100,dt,1.);
-            tf=ftdc2[0]*TOFDBc::tdcbin(0);
-            dt=tf-tm[1];
-            HF1(1100,dt,1.);
-          }
-          fstd=scbrcal[ilay][ibar].gtfstrd(); // diff. in f/s trig. delay
-          for(i=0;i<nftdc[0];i++){ // side-1
-            tf=ftdc1[i]*TOFDBc::tdcbin(0);
+          fstd=scbrcal[ilay][ibar].gtfstrd(); // diff. in f/s same-hit delay
+          for(i=0;i<nftdc[0];i+=2){ // side-1
+            tf=(ftdc1[i+1]&pbanti)*TOFDBc::tdcbin(0);//take up-edge(2-nd) of f-TDC
             if(fabs(tf-tm[0]-fstd) < tofvpar.fstdw()){
               tmf[0]=tf;
-              itmf[0]=i;
+              itmf[0]=i+1;
             }
           }                          
-          for(i=0;i<nftdc[1];i++){ // side-2
-            tf=ftdc2[i]*TOFDBc::tdcbin(0);
+          for(i=0;i<nftdc[1];i+=2){ // side-2
+            tf=(ftdc2[i+1]&pbanti)*TOFDBc::tdcbin(0);
             if(fabs(tf-tm[1]-fstd) < tofvpar.fstdw()){
               tmf[1]=tf;
-              itmf[1]=i;
+              itmf[1]=i+1;
             }
           }
 //  --------> check the presence of f-TDC history hits and                          
-//  --------> do "befor"/"after" cuts for both sides :
+//                         do "befor"/"after" cuts for both sides :
           int reject=0;
-          if(tmf[0]<0. || tmf[1]<0.)reject=1;
+          if(tmf[0]<0. || tmf[1]<0.)reject=1;// no ftdc/stdc match
 //
-          if(TOFRECFFKEY.reprtf[2]>0 && reject==0){ // histogr.
-            j=itmf[0]-1; // befor S-1
+          if(reject==0){
+            j=itmf[0]-2; // Side-1 "after"(real time)-check (LIFO-readout !)
             if(j >= 0){
-              tf=ftdc1[j]*TOFDBc::tdcbin(0);
-              HF1(1101,(tf-tmf[0]),1.);
-            }
-            j=itmf[1]-1; // befor S-2
-            if(j >= 0){
-              tf=ftdc2[j]*TOFDBc::tdcbin(0);
-              HF1(1101,(tf-tmf[1]),1.);
-            }
-            j=itmf[0]+1; // after S-1
-            if(j < nftdc[0]){
-              tf=ftdc1[j]*TOFDBc::tdcbin(0);
-              HF1(1102,(tmf[0]-tf),1.);
-            }
-            j=itmf[1]+1; // after S-2
-            if(j < nftdc[1]){
-              tf=ftdc2[j]*TOFDBc::tdcbin(0);
-              HF1(1102,(tmf[1]-tf),1.);
-            }
-          }
-//
-          if(reject==0){   // side-1, "befor" check
-            j=itmf[0]-1;
-            if(j >= 0){
-              tf=ftdc1[j]*TOFDBc::tdcbin(0);
-              if((tf-tmf[0]) < tofvpar.hiscutb())reject=1;
-//  ( check! later: in fTDC first hit is earliest and have highest value) 
-            }
-          }
-          if(reject==0){   // side-1, "after"
-            j=itmf[0]+1;
-            if(j < nftdc[0]){
-              tf=ftdc1[j]*TOFDBc::tdcbin(0);
+              tf=(ftdc1[j]&pbanti)*TOFDBc::tdcbin(0);
+              if(TOFRECFFKEY.reprtf[2]>0)HF1(1102,geant(tmf[0]-tf),1.);
               if((tmf[0]-tf) < tofvpar.hiscuta())reject=1;
-//  ( check! later: in fTDC first hit is earliest and have highest value) 
             }
-          }
-          if(reject==0){   // side-2, "befor"
-            j=itmf[1]-1;
+            j=itmf[1]-2; // Side-2 "after"-check 
             if(j >= 0){
-              tf=ftdc2[j]*TOFDBc::tdcbin(0);
-              if((tf-tmf[1]) < tofvpar.hiscutb())reject=1;
-//  ( check! later: in fTDC first hit is earliest and have highest value) 
-            }
-          }
-          if(reject==0){   // side-2, "after"
-            j=itmf[1]+1;
-            if(j < nftdc[1]){
-              tf=ftdc2[j]*TOFDBc::tdcbin(0);
+              tf=(ftdc2[j]&pbanti)*TOFDBc::tdcbin(0);
+              if(TOFRECFFKEY.reprtf[2]>0)HF1(1102,geant(tmf[1]-tf),1.);
               if((tmf[1]-tf) < tofvpar.hiscuta())reject=1;
-//  ( check! later: in fTDC first hit is earliest and have highest value) 
+            }
+            j=itmf[0]+2; // Side-1 "befor"-check
+            if(j < nftdc[0]){
+              tf=(ftdc1[j]&pbanti)*TOFDBc::tdcbin(0);
+              if(TOFRECFFKEY.reprtf[2]>0)HF1(1101,geant(tf-tmf[0]),1.);
+              if((tf-tmf[0]) < tofvpar.hiscutb())reject=1;
+            }
+            j=itmf[1]+2; // Side-2 "befor"-check
+            if(j < nftdc[1]){
+              tf=(ftdc2[j]&pbanti)*TOFDBc::tdcbin(0);
+              if(TOFRECFFKEY.reprtf[2]>0)HF1(1101,geant(tf-tmf[1]),1.);
+              if((tf-tmf[1]) < tofvpar.hiscutb())reject=1;
             }
           }
+//
 //----------->>> set status of sc.bar, proc. and store it :
           if(reject==1){
-            sta=1; // problem with history
+            sta=1; // problem with time-history
           }
           else{
-            sta=0;  // ok
+            sta=0;// ok
             TOFJobStat::addbr(brnum,2);
-            tmi[0]=stdc1[0];
-            tmi[1]=stdc2[0];
-            am[0]=adca1[0]; // raw values
-            am[1]=adca2[0];
+// -----> prepare fine resolution side-times(using stretcher info):
+//
+            t4=(stdc1[0]&pbanti)*TOFDBc::tdcbin(1);// 4-th edge of str-info
+            t2=(stdc1[2]&pbanti)*TOFDBc::tdcbin(1);// 2-nd edge of str-info
+            t1=(stdc1[3]&pbanti)*TOFDBc::tdcbin(1);// 1-st edge of str-info
+            tm[0]=0.5*((t1-t4)/(strr[0]+1.)+(t2-t4)/strr[0]);// s-1 time (A-noncorr)
+            t4=(stdc2[0]&pbanti)*TOFDBc::tdcbin(1);// 4-th edge of str-info
+            t2=(stdc2[2]&pbanti)*TOFDBc::tdcbin(1);// 2-nd edge of str-info
+            t1=(stdc2[3]&pbanti)*TOFDBc::tdcbin(1);// 1-st edge of str-info
+            tm[1]=0.5*((t1-t4)/(strr[1]+1.)+(t2-t4)/strr[1]);// s-2 time (A-noncorr)
+//
+            am[0]=integer(adca1[1]&pbanti)-integer(adca1[0]&pbanti); // TovT raw values
+            am[1]=integer(adca2[1]&pbanti)-integer(adca2[0]&pbanti);
+            ama[0]=am[0]*TOFDBc::tdcbin(2);//TDC_counts->ns 
+            ama[1]=am[1]*TOFDBc::tdcbin(2);
+            HF1(1104,geant(ama[0]),1.);
             zc=TOFDBc::getzsc(ilay,ibar);
-//------
-            if(TOFRECFFKEY.relogic[0]<=1){// ====> Normal and TZSL_calib reconstruction :
-//        Calc. longit. coord/err and position corr. to signal :
-              scbrcal[ilay][ibar].tmd2p(tmi,am,co,eco);// get A-corrected loc.coord/err
+            if(TOFRECFFKEY.relogic[0]<=1){// ====> Normal,TZSL/AMPL_calib reconstruction :
+//
+//--> Calc. longit. coord/err and position corr. to signal :
+              scbrcal[ilay][ibar].tmd2p(tm,ama,co,eco);// get A-corrected loc.coord/err
               brlm=0.5*TOFDBc::brlen(ilay,ibar)+3.*eco;//limit on max. coord
               if(fabs(co) > brlm){   //means "coord. is more than counter half length"
                 pcorr=scbrcal[ilay][ibar].poscor(0.);// take position corr. as for "0"
@@ -289,34 +287,28 @@ void AMSTOFRawCluster::build(int &status){
               else{
                 pcorr=scbrcal[ilay][ibar].poscor(co);
               }
-//        Find Eloss from anode :
-              am[0]=adca1[0]; // take again raw values
-              am[1]=adca2[0];
-              qtota=scbrcal[ilay][ibar].ama2mip(am)
+//--> Find Eloss from anode :
+              qtota=scbrcal[ilay][ibar].ama2mip(ama)
                                              /pcorr; //an-tot Edep(mev) with corrections
-              ama[0]=am[0]*TOFDBc::tdcbin(2);//TDC_counts->ns for later use in calib.prog.
-              ama[1]=am[1]*TOFDBc::tdcbin(2);
-//        Find counter time corrected by anode TovT :
-              time=scbrcal[ilay][ibar].tm2t(tmi,am); // time with corrections
-//        Find Eloss from dinode :
+//--> Find counter-time corrected for anode TovT :
+              time=scbrcal[ilay][ibar].tm2t(tm,ama); // time with corrections
+//--> Find Eloss from dinode :
               qtotd=0.;
               amd[0]=0.;
               amd[1]=0.;
-              if(nadcd[0]==1 && nadcd[1]==1){ 
-                am[0]=adcd1[0]; // take again raw values
-                am[1]=adcd2[0];
-                qtotd=scbrcal[ilay][ibar].amd2mip(am)
+              if(nadcd[0]==2 && nadcd[1]==2){ 
+                am[0]=integer(adcd1[1]&pbanti)-integer(adcd1[0]&pbanti); // TovT raw values
+                am[1]=integer(adcd2[1]&pbanti)-integer(adcd2[0]&pbanti);
+                amd[0]=am[0]*TOFDBc::tdcbin(3);//TDC_counts->ns
+                amd[1]=am[1]*TOFDBc::tdcbin(3);
+                qtotd=scbrcal[ilay][ibar].amd2mip(amd)
                                               /pcorr;//di-tot Edep(mev) with corrections
-                amd[0]=am[0]*TOFDBc::tdcbin(3);// raw amplitudes(ns), needed
-                amd[1]=am[1]*TOFDBc::tdcbin(3);//    for later calibration
               } 
-              tmf[0]=tmi[0]*TOFDBc::tdcbin(1);// raw times(ns), needed
-              tmf[1]=tmi[i]*TOFDBc::tdcbin(1);//                for later calibration
               nbrl[ilay]+=1;
               edepa[ilay]=qtota;// store some number for histogramming :
               edepd[ilay]=qtotd;
               tcorr[ilay]=time;
-              tdiff[ilay]=0.5*(tmf[0]/strr[0]-tmf[1]/strr[1]);// layer raw time-diff.(ns) 
+              tdiff[ilay]=0.5*(tm[0]-tm[1]);// layer A-non.cor. time-diff.(ns) 
               pch1[ilay]=charg[0];
               pch2[ilay]=charg[1];
               brnl[ilay]=ibar;
@@ -326,10 +318,9 @@ void AMSTOFRawCluster::build(int &status){
               ecoo=eco;
               st=AMSEvent::gethead()->addnext(AMSID("AMSTOFRawCluster",0)
               ,new AMSTOFRawCluster(sta,ilay+1,ibar+1,zc,ama,amd,
-                                  qtota,qtotd,tmf,time,coo,ecoo));//store values
-            }
-//------
-          } // end of history status check
+                                  qtota,qtotd,tm,time,coo,ecoo));//store values
+            } // ---> end of normal/TZSL/AMPL-reco check
+          }   // ---> end of history check
 //----------->>>
         } // ---> end of "measurement-multiplicity" check
       } // ---> end of "both sides h/w status OK" check

@@ -925,10 +925,11 @@ depend:
 ../bin/aix/timeid.o: /usr/lpp/xlC/include/generic.h ../include/amsgobj.h
 ../bin/aix/timeid.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/aix/timeid.o: /usr/include/sys/limits.h
+../bin/aix/io.o: /usr/include/sys/types.h /usr/include/sys/stat.h
+../bin/aix/io.o: /usr/include/standards.h /usr/include/sys/mode.h
 ../bin/aix/io.o: ../include/io.h ../include/point.h ../include/typedefs.h
 ../bin/aix/io.o: /usr/include/assert.h /usr/lpp/xlC/include/iostream.h
 ../bin/aix/io.o: /usr/include/memory.h /usr/include/string.h
-../bin/aix/io.o: /usr/include/standards.h /usr/include/sys/types.h
 ../bin/aix/io.o: /usr/include/math.h ../include/cern.h ../include/cfortran.h
 ../bin/aix/io.o: /usr/include/stdio.h /usr/include/malloc.h
 ../bin/aix/io.o: ../include/hbook.h ../include/geant321.h

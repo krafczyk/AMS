@@ -504,13 +504,15 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
   geant tm,a,am,amd,tmp,amp;
   integer _ntr1,_ntr2,_ntr3,_nftdc,_nstdc,_nadca,_nadcd;
   number _ttr1[SCTHMX1],_ttr2[SCTHMX1],_ttr3[SCTHMX1];
-  number  _tftdc[SCTHMX2],_tstdc[SCTHMX3],_tadca[SCTHMX4],_tadcd[SCTHMX4];
+  number _tftdc[SCTHMX2],_tftdcd[SCTHMX2];
+  number _tstdc[SCTHMX3];
+  number _tadca[SCTHMX4],_tadcad[SCTHMX4],_tadcd[SCTHMX4],_tadcdd[SCTHMX4];
   int upd1,upd2,upd3; // up/down flags for 3 fast discr. (z>=1;z>1;z>2)
   int upd11,upd12,upd13,upd21,upd31;
   int updsh;
   int imax,imin;
   geant tshd,tshup,charge;
-  geant td1b1,td1b2,td1b3;
+  geant td1b1,td1b2,td1b2d,td1b3;
   geant td2b1,td3b1;
   geant tmd1u,tmd1d,tbn,w,bo1,bo2,bn1,bn2,tmark;
   geant tshap1[SCSBMX+1]; // temporary shaper pulse array(anode)
@@ -566,7 +568,8 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
         upd2=0;
         upd3=0;
         td1b1=-9999.;
-        td1b2=-9999.;
+        td1b2=-9999.;//discr1_brabch2 (fast TDC) up-time
+        td1b2d=-9999.;// ......................down-time
         td1b3=-9999.;
         upd11=0;// up/down flag for z>=1 branch of discr.1
         upd12=0;// ............ fast TDC .................
@@ -594,7 +597,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
             }
           }
           else{
-            if(upd1!=0 && (tm-tmd1u)>daqp11){ // down time of discr.1
+            if(upd1!=0 && (tm-tmd1u)>daqp11){ // down time (+min.duration check)
               upd1=0;
               tmd1d=tm;
             }
@@ -622,17 +625,9 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
 //        
 // branch-2 "fast TDC logic" :        
             if(upd12==0){
-              if((tm-tmd1d)>daqp3){ //dbl-pulse res. check, f-TDC channel
-                upd12=1;  // set flag for branch f-TDC,if ready.
-                if(_nftdc<SCTHMX2){
-                  td1b2=tm;
-                  _tftdc[_nftdc]=tmark;
-                  _nftdc+=1;
-                }
-                 else{
-                   cerr<<"AMSTOFTovt::build-warning: f-TDC hits ovfl"<<'\n';
-                   upd12=2;//blockade on overflow
-                }
+              if((tm-td1b2d)>daqp3){ //dead-time(=f_TDC dbl.resol ?)-check, f-TDC channel
+                upd12=1;  // set flag for branch f-TDC
+                td1b2=tmark;//store up-time
               }
             } 
 //        
@@ -654,16 +649,30 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
           }//<-- end of discr-1 up-check
 //---------------------------
 // try reset all branches:
-//
+// "z>=1"
           if(upd11==1){// "z>=1 logic" reset
             if((tm-_ttr1[_ntr1-1])>daqp0){//pulse width check
               upd11=0;                            // self clear
               td1b1=tm;
             }
-          } 
-          if(upd12==1){ // "fast TDC" clear when discr.1 down
-            if(upd1 ==0)upd12=0;
           }
+// f-tdc 
+          if(upd12==1){ 
+            if(upd1 ==0){//"f-TDC" clear when discr.1 down(? may be some min.duration)
+              upd12=0;
+              td1b2d=tm;
+              if(_nftdc<SCTHMX2){
+                _tftdc[_nftdc]=td1b2;//write up-time
+                _tftdcd[_nftdc]=td1b2d;//write down-time
+                _nftdc+=1;
+              }
+              else{
+                cerr<<"AMSTOFTovt::build-warning: f-TDC hits ovfl"<<'\n';
+                upd12=2;//blockade on overflow
+              }
+            }
+          }
+// s-tdc
           if(upd13==1){ // "slow TDC" clear "buzy"
             if((tm-td1b3)>daqp4)upd13=0;
           }
@@ -733,7 +742,8 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
               updsh=0;
               tshd=tm;
               if(_nadca<SCTHMX4){
-                _tadca[_nadca]=tm-tshup;
+                _tadca[_nadca]=tshup;// up-time
+                _tadcad[_nadca]=tm;  // down-time
                 _nadca+=1;
               }
               else{
@@ -803,7 +813,8 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
               updsh=0;
               tshd=tm;
               if(_nadcd<SCTHMX4){
-                _tadcd[_nadcd]=tm-tshup;
+                _tadcd[_nadcd]=tshup;
+                _tadcdd[_nadcd]=tm;
                 _nadcd+=1;
               }
               else{
@@ -818,11 +829,12 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
                       AMSTOFTovt::displ_as(idd,2,tshap2);//print Shaper pulse
 //------------------------------
 // now create/fill AMSTOFTovt object (id=idd) with above digi-data:
-        _sta=0;// tempor (to be taken from DB later)    
+        _sta=0;// all channels are alive at this point ???    
         stat=0;
         stat=AMSEvent::gethead()->addnext(AMSID("AMSTOFTovt",ilay), new
              AMSTOFTovt(idd,_sta,charge,edepb,_ntr1,_ttr1,
-                _nftdc,_tftdc,_nstdc,_tstdc,_nadca,_tadca,_nadcd,_tadcd));
+             _nftdc,_tftdc,_tftdcd,_nstdc,_tstdc,
+             _nadca,_tadca,_tadcad,_nadcd,_tadcd,_tadcdd));
         return;
 //
 //
@@ -1098,20 +1110,25 @@ void AMSBitstr::display(char comment[]){
 //               (very preliminary !!!)
 void AMSTOFRawEvent::mc_build()
 {
-  integer i,j,ilay,last,ibar,id,idd,iddN,isd,_sta,stat(0);
+  integer i,j,jj,ilay,last,ibar,id,idd,iddN,isd,_sta,stat(0);
   integer nftdc,nstdc,nadca,nadcd;
-  int16u _nftdc,_nstdc,_nadca,_nadcd;
-  number  tftdc[SCTHMX2],tstdc[SCTHMX3],tadca[SCTHMX4],tadcd[SCTHMX4];
-  int16u  ftdc[SCTHMX2],stdc[SCTHMX3],adca[SCTHMX4],adcd[SCTHMX4];
-  number t,ttrig1,dt;
+  int16u _nftdc,_nstdc,_nadca,_nadcd,itt;
+  number  tftdc[SCTHMX2],tftdcd[SCTHMX2],tstdc[SCTHMX3];
+  number tadca[SCTHMX4],tadcad[SCTHMX4],tadcd[SCTHMX4],tadcdd[SCTHMX4];
+  int16u  ftdc[SCTHMX2*2],stdc[SCTHMX3*4],adca[SCTHMX4*2],adcd[SCTHMX4*2];
+  number t,t1,t2,t3,t4,tprev,ttrig1,dt,tlev1,tl1d;
   geant charge,edep;
   int trcode;
-  integer it;
+  integer it,it1,it2,it3,it4,it0;
+  static int16u phbit=32768;
+  static geant ftpw=TOFDBc::daqpwd(12);// FT-pulse width
   AMSTOFTovt *ptr;
   AMSTOFTovt *ptrN;
 //
   ttrig1=AMSTOFTovt::tr1time(trcode);//get abs. trig1("z>=1" accept) signal time
   if(trcode<0)return; // no trigger
+  tlev1=ttrig1+TOFDBc::ftdelf()+TOFDBc::accdel();// Lev-1 accept-signal abs.time
+  tl1d=tlev1-TOFDBc::fatdcd();// just to sumulate A-tdc-pulse delay wrt ftdc-pulse
 //  
   for(ilay=0;ilay<SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(AMSTOFTovt*)AMSEvent::gethead()->
@@ -1124,62 +1141,146 @@ void AMSTOFRawEvent::mc_build()
       charge=ptr->getcharg();
       edep=ptr->getedep();
 //
-      nftdc=ptr->getftdc(tftdc);// get number and times of fast-TDC hits
+      nftdc=ptr->getftdc(tftdc,tftdcd);// get number and times of fast-TDC hits
       _nftdc=0;
-      for(j=0;j<nftdc;j++){// <--- ftdc-hits loop ---
-        t=tftdc[j];
-        dt=ttrig1+TOFDBc::accdel(0)-t;//const.delay of lev-1 "accept" signal is added
-        if(dt<=TOFDBc::accdelmx(0)){ // check max. delay of lev-1 "accept" signal
-          it=integer(dt/TOFDBc::tdcbin(0)); // conv. to fast-TDC (history) t-binning
-          if(it>65535){
-            cout<<"TOFRawEvent_mc: warning : fast TDC out of range !!!"<<'\n';
-            it=65535;
-          }
-          ftdc[_nftdc]=int16u(it);
-          _nftdc+=1;
+      for(j=0;j<nftdc;j++){//        <--- ftdc-hits loop ---
+        jj=nftdc-j-1;// LIFO readout mode (last stored - first read)
+        t1=tftdc[jj];
+        t2=tftdcd[jj];
+        dt=tlev1-t2;// follow LIFO mode of readout : down-edge - first hit
+        it=integer(dt/TOFDBc::tdcbin(0)); // conv. to fast-TDC (history) t-binning
+        if(it>32767){
+          cout<<"TOFRawEvent_mc: warning : Hist-TDC down-time overflow !!!"<<'\n';
+          it=32767;
         }
+        itt=int16u(it);
+        if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+        ftdc[_nftdc]=itt;
+        _nftdc+=1;
+        dt=tlev1-t1;// follow LIFO mode of readout : leading(up) edge - second
+        it=integer(dt/TOFDBc::tdcbin(0)); // conv. to fast-TDC (history) t-binning
+        if(it>32767){
+          cout<<"TOFRawEvent_mc: warning : Hist-TDC up-time overflow !!!"<<'\n';
+          it=32767;
+        }
+        itt=int16u(it);
+        if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+        ftdc[_nftdc]=itt;
+        _nftdc+=1;
       }//--- end of ftdc-hits loop --->
-//
+//------------
       nstdc=ptr->getstdc(tstdc);// get number and times of slow-TDC hits
       _nstdc=0;
-      for(j=0;j<nstdc;j++){// <--- stdc-hits loop ---
-        t=tstdc[j];
-        dt=ttrig1+TOFDBc::accdel(1)-t;// const.delay is added
-        if(dt<=TOFDBc::accdelmx(1)){ // check max. delay of "accept" signal
-          it=integer((dt*TOFDBc::strrat()+rnormx()*TOFDBc::strflu())/
-                TOFDBc::tdcbin(1));//conv. to stratcher-TDC t-binning 
-          if(it>65535){
-            cout<<"TOFRawEvent_mc: warning : slow TDC out of range !!!"<<'\n';
-            it=65535;
+      for(j=0;j<nstdc;j++){//       <--- stdc-hits loop ---
+        jj=nstdc-j-1;// LIFO readout mode (last stored - first read)
+        t1=tstdc[jj]+rnormx()*TOFDBc::strjit1();//"start"-signal time + jitter
+        t2=ttrig1+rnormx()*TOFDBc::strjit2()+TOFDBc::ftdelf();//"stop"-signal + jitter
+        t3=t2+ftpw;//"dummy"-signal time (fixed delay = FT-pulse width)
+        t4=t2+(t2-t1)*TOFDBc::strrat()+rnormx()*TOFDBc::strflu();//"end-mark"-signal + fluct           
+        dt=ttrig1+TOFDBc::ftdelf()-t1;// total FT-delay wrt t1
+        if(dt<=TOFDBc::ftdelm()){ // check max. delay of "fast-trigger" signal
+          it0=integer((tlev1-TOFDBc::fstdcd())/TOFDBc::tdcbin(1));//sTDC is delayed wrt fTDC
+//follow LIFO mode of readout: stretcher "end-mark" edge - first hit; "start" - last:
+//  prepare 4-th component("end-mark") of "4-edge" TOF-hit:
+          it4=integer(t4/TOFDBc::tdcbin(1));
+          it=it0-it4;// time wrt lev-1 signal
+          if(it>32767){
+            cout<<"TOFRawEvent_mc: warning : 4-th edge TDC overflow !!!"<<'\n';
+            it=32767;
           }
-          stdc[_nstdc]=int16u(it);
+          itt=int16u(it);
+          if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit on down-edge,if necessary
+          stdc[_nstdc]=itt;
+          _nstdc+=1;
+//  prepare 3-d component("dummy"):
+          it3=integer(t3/TOFDBc::tdcbin(1));
+          it=it0-it3;// time wrt lev-1 signal
+          if(it>32767){
+            cout<<"TOFRawEvent_mc: warning : 3-rd edge TDC overflow !!!"<<'\n';
+            it=32767;
+          }
+          itt=int16u(it);
+          if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit on up-edge,if necessary
+          stdc[_nstdc]=itt;
+          _nstdc+=1;
+//  prepare 2-nd component("stop"):
+          it2=integer(t2/TOFDBc::tdcbin(1));
+          it=it0-it2;// time wrt lev-1 signal
+          if(it>32767){
+            cout<<"TOFRawEvent_mc: warning : 2-nd edge TDC overflow !!!"<<'\n';
+            it=32767;
+          }
+          itt=int16u(it);
+          if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit on down-edge,if necessary
+          stdc[_nstdc]=itt;
+          _nstdc+=1;
+//  prepare 1-st component("start") of "4-edge" TOF-hit:
+          it1=integer(t1/TOFDBc::tdcbin(1));
+          it=it0-it1;// time wrt lev-1 signal
+          if(it>32767){
+            cout<<"TOFRawEvent_mc: warning : 1-st edge TDC overflow !!!"<<'\n';
+            it=32767;
+          }
+          itt=int16u(it);
+          if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit on up-edge,if necessary
+          stdc[_nstdc]=itt;
           _nstdc+=1;
         }
       }//--- end of stdc-hits loop --->
-//
+//----------------
       _nadca=0;
-      nadca=ptr->getadca(tadca);// get number and times of anode-ADC hits
+      nadca=ptr->getadca(tadca,tadcad);// get number and up/down times of anode-ADC hits
       for(j=0;j<nadca;j++){// <--- adca-hits loop ---
-        t=tadca[j];
-        it=integer(t/TOFDBc::tdcbin(2));
-        if(it>65535){
-          cout<<"TOFRawEvent_mc: warning :  anode TovT out of range !!!"<<'\n';
-          it=65535;
+        jj=nadca-j-1;// LIFO readout mode (last stored - first read)
+        t1=tadca[jj];
+        t2=tadcad[jj];
+        dt=tl1d-t2;// follow LIFO mode of readout : down-edge - first hit
+        it=integer(dt/TOFDBc::tdcbin(2));
+        if(it>32767){
+          cout<<"TOFRawEvent_mc: warning :  anode down-time out of range !!!"<<'\n';
+          it=32767;
         }
-        adca[j]=int16u(it);
+        itt=int16u(it);
+        if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+        adca[_nadca]=itt;
+        _nadca+=1;
+        dt=tl1d-t1;// follow LIFO mode of readout : up-edge - second hit
+        it=integer(dt/TOFDBc::tdcbin(2));
+        if(it>32767){
+          cout<<"TOFRawEvent_mc: warning :  anode up-time out of range !!!"<<'\n';
+          it=32767;
+        }
+        itt=int16u(it);
+        if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+        adca[_nadca]=itt;
         _nadca+=1;
       }//--- end of adca-hits loop --->
-//
+//--------------------
       _nadcd=0;
-      nadcd=ptr->getadcd(tadcd);// get number and times of dinode-ADC hits
+      nadcd=ptr->getadcd(tadcd,tadcdd);// get number and up/down times of dinode-ADC hits
       for(j=0;j<nadcd;j++){// <--- adcd-hits loop ---
-        t=tadcd[j];
-        it=integer(t/TOFDBc::tdcbin(3));
-        if(it>65535){
-          cout<<"TOFRawEvent_mc: warning :  dinode TovT out of range !!!"<<'\n';
-          it=65535;
+        jj=nadcd-j-1;// LIFO readout mode (last stored - first read)
+        t1=tadcd[jj];
+        t2=tadcdd[jj];
+        dt=tl1d-t2;// follow LIFO mode of readout : down-edge - first hit
+        it=integer(dt/TOFDBc::tdcbin(3));
+        if(it>32767){
+          cout<<"TOFRawEvent_mc: warning :  dinode down-time out of range !!!"<<'\n';
+          it=32767;
         }
-        adcd[j]=int16u(it);
+        itt=int16u(it);
+        if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+        adcd[_nadcd]=itt;
+        _nadcd+=1;
+        dt=tl1d-t1;// follow LIFO mode of readout : up-edge - second hit
+        it=integer(dt/TOFDBc::tdcbin(3));
+        if(it>32767){
+          cout<<"TOFRawEvent_mc: warning :  dinode up-time out of range !!!"<<'\n';
+          it=32767;
+        }
+        itt=int16u(it);
+        if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+        adcd[_nadcd]=itt;
         _nadcd+=1;
       }//--- end of adcd-hits loop --->
 //

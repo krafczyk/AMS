@@ -140,8 +140,8 @@ M A I N  ->      gbatch.C
  |        |    |   |->_sitrdevent     Simulate TRD
  |        |    |   |->_sitofevent     Simulate TOF
  |        |    |   |       |
- |        |    |   |       |->AMSTOFTovt::build()           Geant_hits-->Tovt_hits
- |        |    |   |       |->AMSTOFRawEvent::mc_build()    Tovt_hits-->RawEvent_hits
+ |        |    |   |       |->AMSTOFTovt::build           Geant_hits-->Tovt_hits
+ |        |    |   |       |->AMSTOFRawEvent::mc_build    Tovt_hits-->RawEvent_hits
  |        |    |   |
  |        |    |   |->_sictcevent     Simulate CTC
  |        |    |   |     
@@ -151,8 +151,10 @@ M A I N  ->      gbatch.C
  |        |    |    |     
  |        |    |    |->_retofevent     Reconstruct TOF
  |        |    |    |     |
- |        |    |    |     |->AMSTOFRawCluster::build;   RawEvent-->RawCluster
- |        |    |    |     |->AMSTOFCluster::build;      RawCluster-->Cluster
+ |        |    |    |     |->AMSTOFRawEvent::re_build  DAQ-->RawEvent(ifRealData)
+ |        |    |    |     |->AMSTOFRawEvent::validate  RawEvent-->RawEvent
+ |        |    |    |     |->AMSTOFRawCluster::build   RawEvent-->RawCluster
+ |        |    |    |     |->AMSTOFCluster::build      RawCluster-->Cluster
  |        |    |    |
  |        |    |    |->_retkevent      reconstruct Tracker
  |        |    |    |     |

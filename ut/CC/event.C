@@ -442,9 +442,12 @@ int stat;
     if(AMSJob::gethead()->isRealData()){
       AMSgObj::BookTimer.start("TOF:DAQ->RwEv");
       AMSTOFRawEvent::re_build(stat);// DAQ-->RawEvent
-      AMSgObj::BookTimer.stop("TOF:DAQ->RwEv");
       if(stat!=0)return;
       TOFJobStat::addre(1);
+      AMSTOFRawEvent::validate(stat);// RawEvent-->RawEvent
+      if(stat!=0)return;
+      TOFJobStat::addre(2);
+      AMSgObj::BookTimer.stop("TOF:DAQ->RwEv");
     }
 //
     if(!AMSJob::gethead()->isRealData() && TOFMCFFKEY.fast==1){
@@ -453,23 +456,26 @@ int stat;
       AMSgObj::BookTimer.start("TOF:RwCl->Cl");
       AMSTOFCluster::build(stat);    // "RawCluster-->Cluster"
       if(stat!=0)return;
-      TOFJobStat::addre(6);
+      TOFJobStat::addre(4);
       AMSgObj::BookTimer.stop("TOF:RwCl->Cl");
     }
     else{
 //                   ===> reco of real events or simulated by slow MC:
 //
+      AMSTOFRawEvent::validate(stat);// RawEvent-->RawEvent
+      if(stat!=0)return;
+      TOFJobStat::addre(2);
       AMSgObj::BookTimer.start("TOF:RwEv->RwCl");
       AMSTOFRawCluster::build(stat); // RawEvent-->RawCluster
       AMSgObj::BookTimer.stop("TOF:RwEv->RwCl");
       if(stat!=0)return;
-      TOFJobStat::addre(5);
+      TOFJobStat::addre(3);
 //
       AMSgObj::BookTimer.start("TOF:RwCl->Cl");
       AMSTOFCluster::build(stat);    // RawCluster-->Cluster
       AMSgObj::BookTimer.stop("TOF:RwCl->Cl");
       if(stat!=0)return;
-      TOFJobStat::addre(6);
+      TOFJobStat::addre(4);
     }
 //
   #ifdef __AMSDEBUG__

@@ -217,7 +217,7 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.mcprtf[4]=0;     // spare
   TOFMCFFKEY.trlogic[0]=0; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
   TOFMCFFKEY.trlogic[1]=0; // spare 
-  TOFMCFFKEY.fast=1;
+  TOFMCFFKEY.fast=1;       // 0/1-> fast/slow simulation algorithm
   UCTOH(tfname,TOFMCFFKEY.tdfnam,4,12);
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -418,7 +418,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.Thr1=0.45;// Threshold (mev) on peak bar energy
   TOFRECFFKEY.ThrS=0.9; // Threshold (mev) on total cluster energy
 //
-  TOFRECFFKEY.reprtf[0]=0; // RECO print flag 
+  TOFRECFFKEY.reprtf[0]=0; // RECO print flag for statistics 
   TOFRECFFKEY.reprtf[1]=0; // RECO print flag 
   TOFRECFFKEY.reprtf[2]=0; // RECO print flag for histograms
   TOFRECFFKEY.reprtf[3]=0; // RECO print flag 
@@ -437,8 +437,8 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.daqthr[4]=3.5;//thresh(pC) for dinode Time_over_Thresh. discr.
 //
   TOFRECFFKEY.cuts[0]=5.;//t-window(ns) for "the same hit" search in f/s_tdc
-  TOFRECFFKEY.cuts[1]=50.;//"befor"-cut in time history (ns)
-  TOFRECFFKEY.cuts[2]=150.;//"after"-cut in time history (ns)
+  TOFRECFFKEY.cuts[1]=50.;//"befor"-cut in time history (ns)(max.PMT-pulse length?)
+  TOFRECFFKEY.cuts[2]=400.;//"after"-cut in time history (ns)(max. shaper integr.time?)
   TOFRECFFKEY.cuts[3]=0.;// spare
   TOFRECFFKEY.cuts[4]=0.;
   TOFRECFFKEY.cuts[5]=0.;
@@ -792,6 +792,8 @@ void AMSJob::_retofinitjob(){
       HBOOK1(1100,"The same hit (Tf-Ts),(ns)",80,-40.,40.,0.);
       HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,160.,0.);
       HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,160.,0.);
+      HBOOK1(1103,"Time_history:inp.pulse width(ns)",80,0.,80.,0.);
+      HBOOK1(1104,"Anode TovT:inp.pulse width(ns)",80,0.,320.,0.);
       HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
       HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
       HBOOK1(1530,"L=3,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
@@ -1123,8 +1125,7 @@ void AMSJob::_ctcendjob(){
 //-------------------------------------------------------------------
 void AMSJob::_tofendjob(){
 //--------> some TOF stuff :
-       TOFJobStat::print(); // Print JOB-TOF statistics
-       if(TOFMCFFKEY.mcprtf[2]!=0){ // tempor! print MC-hists
+       if(TOFMCFFKEY.mcprtf[2]!=0 && TOFMCFFKEY.fast==0){ // tempor! print MC-hists
          HPRINT(1050);
          HPRINT(1051);
          HPRINT(1052);
@@ -1138,9 +1139,12 @@ void AMSJob::_tofendjob(){
          HPRINT(1072);
        }
        if(TOFRECFFKEY.reprtf[2]!=0){ // tempor! print RECO-hists
+         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
          HPRINT(1100);
          HPRINT(1101);
          HPRINT(1102);
+         HPRINT(1103);
+         HPRINT(1104);
          HPRINT(1526);
          HPRINT(1527);
          HPRINT(1528);
@@ -1150,7 +1154,9 @@ void AMSJob::_tofendjob(){
          HPRINT(1532);
          HPRINT(1533);
          HPRINT(1543);
+         HPRINT(1544);
          HPRINT(1534);
+         }
          HPRINT(1535);
          HPRINT(1536);
          HPRINT(1537);
@@ -1159,8 +1165,8 @@ void AMSJob::_tofendjob(){
          HPRINT(1540);
          HPRINT(1541);
          HPRINT(1542);
-         HPRINT(1544);
-         if(TOFRECFFKEY.relogic[0]==1){// for calibr. runs
+         if(TOFRECFFKEY.relogic[0]==1){// for TZSL-calibr. runs
+           if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
            HPRINT(1500);
            HPRINT(1501);
            HPRINT(1502);
@@ -1187,8 +1193,10 @@ void AMSJob::_tofendjob(){
            HPRINT(1524);
            HPRINT(1525);
            TOFTZSLcalib::mfit();
+           }
          }
-         if(TOFRECFFKEY.relogic[0]==2){// for calibr. runs
+         if(TOFRECFFKEY.relogic[0]==2){// for AMPL-calibr. runs
+           if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
            HPRINT(1506);
            HPRINT(1500);
            HPRINT(1200);
@@ -1205,8 +1213,10 @@ void AMSJob::_tofendjob(){
            HPRINT(1250);
            HPRINT(1251);
            TOFAMPLcalib::fit();
+           }
          }
        }
+       TOFJobStat::print(); // Print JOB-TOF statistics
 }
 //-----------------------------------------------------------------------
 

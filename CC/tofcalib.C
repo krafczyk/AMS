@@ -317,7 +317,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   ptr=(AMSTOFRawCluster*)AMSEvent::gethead()->
                            getheadC("AMSTOFRawCluster",0);
 //----
-  TOFJobStat::addre(2);
+  TOFJobStat::addre(6);
   for(i=0;i<SCLRS;i++)nbrl[i]=0;
 //----
   while (ptr){ // <--- loop over AMSTOFRawCluster hits
@@ -329,8 +329,8 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     nbrl[ilay]+=1;
     brnl[ilay]=ibar;
     scbrcal[ilay][ibar].gtstrat(strr);
-    trp1[ilay]=tm[0]/strr[0];// conv. to real time
-    trp2[ilay]=tm[1]/strr[1];
+    trp1[ilay]=tm[0];
+    trp2[ilay]=tm[1];
     arp1[ilay]=ama[0];
     arp2[ilay]=ama[1];
     ptr=ptr->next();
@@ -340,7 +340,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   bad=0;
   for(i=0;i<SCLRS;i++)if(nbrl[i] != 1)bad=1;
   if(bad==1)return; // remove events with bars/layer != 1
-  TOFJobStat::addre(3);
+  TOFJobStat::addre(7);
 //------>
     number t1,t2,t3,t4,t13,t24;
        ilay=0; //        <-- some hist. for calibration run
@@ -435,7 +435,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     if(pmom<TOFCAFFKEY.pcut[0] || pmom>TOFCAFFKEY.pcut[1])return;//remove low/too_high mom events
     bet=pmom/sqrt(pmom*pmom+pmas*pmas);
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1501,bet,1.);
-    TOFJobStat::addre(4);
+    TOFJobStat::addre(8);
 //
     int il,ib,ix,iy;
     geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cosi;
@@ -616,7 +616,7 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
   ptr=(AMSTOFRawCluster*)AMSEvent::gethead()->
                            getheadC("AMSTOFRawCluster",0);
 //----
-  TOFJobStat::addre(8);
+  TOFJobStat::addre(10);
   for(i=0;i<SCLRS;i++)nbrl[i]=0;
 //
   while (ptr){ // <--- loop over AMSTOFRawCluster hits
@@ -624,7 +624,7 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
     ibar=(ptr->getplane())-1;
     nbrl[ilay]+=1;
     brnl[ilay]=ibar;
-    ptr->gettovta(ama);// get raw anode-ampl(but TovT in ns!!!)
+    ptr->gettovta(ama);// get raw anode-ampl(TovT in ns)
     scbrcal[ilay][ibar].ama2q(ama,am);// convert to charge
     am1[ilay]=am[0];
     am2[ilay]=am[1];
@@ -636,7 +636,7 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
   bad=0;
   for(i=0;i<SCLRS;i++)if(nbrl[i] != 1)bad=1;
   if(bad==1)return; // remove events with bars/layer != 1
-  TOFJobStat::addre(9);
+  TOFJobStat::addre(11);
 //
 //------> get parameters from tracker:
 //
@@ -667,7 +667,7 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
     if(pmom<TOFCAFFKEY.plhc[0] || pmom>TOFCAFFKEY.plhc[1]){
       if(TOFCAFFKEY.truse=1)return;//rem. low/high mom.
     }
-    TOFJobStat::addre(10);
+    TOFJobStat::addre(12);
 //
     if(TOFCAFFKEY.truse=1){// tracker: find crossing points/angles with counters
     C0[0]=0.;

@@ -94,6 +94,7 @@ geant gettm2(const geant rnd, const geant r, const int i1, const int i2)
 //=========================================================================== 
 //         <--- class to store time_over_threshold hits during digitization:
 //
+//
 class AMSTOFTovt: public AMSlink{
 //
 private:
@@ -102,15 +103,18 @@ integer status; // channel is alive/dead/ ... --> 0/1/...
 number charga;  // total anode charge (pC)
 number tedep;   // total Edep(mev)
 integer ntr1;
-number ttr1[SCTHMX1]; // store up-times of "z>=1" trigger signals 
+number ttr1[SCTHMX1];   // store up-times of "z>=1" trigger signals 
 integer nftdc;
-number tftdc[SCTHMX2];// store up-time of pulses going to fast(history) TDC
+number tftdc[SCTHMX2];  // up-time of pulses going to fast(history) TDC
+number tftdcd[SCTHMX2]; // down-time ..., TDC dbl. resol. already taken into account
 integer nstdc;
-number tstdc[SCTHMX3];// store up-times of pulses going to slow(stratch) TDC
+number tstdc[SCTHMX3];  // store up-times of pulses going to slow(stretcher) TDC
 integer nadca;
-number tadca[SCTHMX4]; // store Time_over_Threshold shaper hits from anode
+number tadca[SCTHMX4];  // store up-times of shaper hits from anode
+number tadcad[SCTHMX4]; // store down-times ......................
 integer nadcd;
-number tadcd[SCTHMX4]; // store Time_over_Threshold shaper hits from dinode
+number tadcd[SCTHMX4];  // store up-times of shaper hits from dinode
+number tadcdd[SCTHMX4]; // store down-times ........................
 //
 //=========================================================================== 
 //         <--- class for bitstream manipulations :
@@ -151,22 +155,3 @@ public:
   friend AMSBitstr operator & (const AMSBitstr &, const AMSBitstr &);
   friend AMSBitstr operator | (const AMSBitstr &, const AMSBitstr &);
 };
-//====================================================================
-//  class for RawEvent hits (all digital data for given id are groupped)
-//
-class AMSTOFRawEvent: public AMSlink{
-//
-private:
-int16u idsoft;        // LayBarBarSide: LBBS (as in Phel,Tovt MC-obj)
-int16u status;        // channel status (alive/dead/ ... --> 0/1/...)
-int16u nftdc;         // number of fast "tdc" hits
-int16u ftdc[SCTHMX2]; // fast "tdc" hits (in TDC channels)
-int16u nstdc;         // number of slow "tdc" hits
-int16u stdc[SCTHMX3]; // slow "tdc" hits (in TDC channels)
-int16u nadca;         // number anode "adc" hits
-int16u adca[SCTHMX4]; // adode "adc" hits (in TDC channels)
-int16u nadcd;         // number dinode "adc" hits
-int16u adcd[SCTHMX4]; // dinode "adc" hits (in TDC channels)
-geant charge;         // for MC : tot. anode charge (pC)
-geant edep;           // for MC : tot. edep in bar (mev)
-//

@@ -194,7 +194,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
     for(int i=0;i<3;i++)for(int j=0;j<3;j++)nrm[i][j]=nrm1[i][j];
   }
   if(TOFDBc::plrotm(ip)==1){
-    nrot=SCROTN+1;           // <-- for rotated planes
+    nrot=SCROTN+ip;           // <-- for rotated planes
     for(int i=0;i<3;i++)for(int j=0;j<3;j++)nrm[i][j]=nrm2[i][j];
   }
 //-----------

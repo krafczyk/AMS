@@ -66,14 +66,6 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::_shaptb=2.;      // MC shaper pulse time binning
   geant TOFDBc::_shrtim=0.5;     // MC shaper pulse rise time (ns)
   geant TOFDBc::_shftim=50.;     // MC shaper pulse fall time (ns)
-  geant TOFDBc::_accdel[2]={
-    50.,                       // "accept" fix-delay(ns) for fast(history) TDC
-    20.                        // "accept" fix-delay(ns) for slow TDC(stratcher)
-  };
-  geant TOFDBc::_accdelmx[2]={
-    1000.,                     //max. "accept" delay(ns) for fast(history) TDC
-    100.                       //max. "accept" delay(ns) for slow TDC(stratcher)
-  };
   geant TOFDBc::_strflu=0.;   // Stretcher "end-mark" time fluctuations (ns)
   geant TOFDBc::_tdcbin[4]={
     1.,                            // pipe/line TDC binning for fast-tdc meas.
@@ -82,25 +74,33 @@ geant TOFDBc::_plnstr[15]={
     2.                             // pipe/line TDC binning for adc-dinode meas.
   };
   geant TOFDBc::_daqpwd[15]={
-    50.,       // pulse width of "z>=1" trig. signal (ns)
-    50.,       // pulse width of "z>1" trig. signal
-    50.,       // pulse width of "z>2" trig. signal
+    30.,       // pulse width of "z>=1" trig. signal (ns)
+    30.,       // pulse width of "z>1" trig. signal
+    30.,       // pulse width of "z>2" trig. signal
     10.,       // double pulse resolution of fast(history) TDC (ns)
-    500.,      // min. double pulse resolution of slow TDC (ns)
+    2000.,     // min. double pulse resolution of slow TDC (ns)
     500.,      // dead time of anode TovT measurements (ns)
     500.,      // dead time of dinode TovT measurements (ns)
     2.,        // discr. dead time of "z>=1" trig. (ns)
     2.,        // discr. dead time of "z>1" trig. (ns)
     2.,        // discr. dead time of "z>2" trig. (ns)
     0.05,      // fast discr.(comparator) internal accuracy(ns) + (?) to have exp.resol
-    0.5,       // min. up-time (ns) of fast discr.(comparator)
-    0.,        // spare 
+    0.5,       // min. pulse duration (ns) of fast discr.(comparator)
+    20.,       // pulse width of FT-signal (ns) 
     0.,        // spare 
     0.         // spare 
   };
-  geant TOFDBc::_trigtb=0.5;// MC time-bin in logic(trig) pulse handling (ns)
+  geant TOFDBc::_trigtb=0.5;  // MC time-bin in logic(trig) pulse handling (ns)
   geant TOFDBc::_di2anr=0.1;  // dinode->anode signal ratio (default,mc-data)
   geant TOFDBc::_strrat=40.;  // stretcher ratio (default,mc-data)
+  geant TOFDBc::_strjit1=0.;  // "start"-pulse jitter at stretcher input
+  geant TOFDBc::_strjit2=0.;  // "stop"(FT)-pulse jitter at stretcher input
+  geant TOFDBc::_accdel=5000.;//Lev-1 signal delay with respect to FT (ns)
+  geant TOFDBc::_ftdelf=20.;  // FastTrigger (FT) fixed (by h/w) delay (ns)
+  geant TOFDBc::_ftdelm=100.; // FT max delay (allowed by stretcher logic) (ns)
+  geant TOFDBc::_fstdcd=5.;   // Same hit(up-edge) relative delay in fast-slow TDC
+  geant TOFDBc::_fatdcd=5.;   // Same hit(up-edge) relative delay in fast-A(D) TDC
+  integer TOFDBc::_pbonup=1;  // set phase-bit for leading(up) edge (yes/no->1/0) 
 //
 //  member functions :
 //
@@ -249,27 +249,22 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::shrtim(){return _shrtim;}
   geant TOFDBc::shftim(){return _shftim;}
 //
-  geant TOFDBc::accdel(int i){
-    #ifdef __AMSDEBUG__
-      if(TOFDBc::debug){
-        assert(i>=0 && i<2);
-      }
-    #endif
-    return _accdel[i];
-  }
-  geant TOFDBc::accdelmx(int i){
-    #ifdef __AMSDEBUG__
-      if(TOFDBc::debug){
-        assert(i>=0 && i<2);
-      }
-    #endif
-    return _accdelmx[i];}
-//
   geant TOFDBc::strrat(){return _strrat;}
 //
   geant TOFDBc::strflu(){return _strflu;}
 //
+  geant TOFDBc::strjit1(){return _strjit1;}
+//
+  geant TOFDBc::strjit2(){return _strjit2;}
+//
   geant TOFDBc::di2anr(){return _di2anr;}
+//
+  geant TOFDBc::accdel(){return _accdel;}
+  geant TOFDBc::ftdelf(){return _ftdelf;}
+  geant TOFDBc::ftdelm(){return _ftdelm;}
+  geant TOFDBc::fstdcd(){return _fstdcd;}
+  geant TOFDBc::fatdcd(){return _fatdcd;}
+  integer TOFDBc::pbonup(){return _pbonup;}
 //
   geant TOFDBc::tdcbin(int i){
     #ifdef __AMSDEBUG__
@@ -301,7 +296,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  integer i1,i2,sta[2];
  geant r,eff1,eff2;
  integer sid,brt;
- geant gna[2],gnd[2],qath,qdth,a2dr,tth,strat[2];
+ geant gna[2],gnd[2],qath,qdth,a2dr[2],tth,strat[2];
  geant slope,fstrd,tzer,mip2q;
  geant tzerf[SCLRS][SCMXBR],slpf,strf[SCBLMX][2]; 
  char fname[80];
@@ -416,8 +411,9 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     qdth=tofvpar.daqthr(4); // ...................        (dinode) ................
     mip2q=39.5;//(pC/mev), dE(mev)_at_counter_center->Q(pC)_at_PM_anode(2x3-sum)
     //                     (depends on bar-type)
-    a2dr=1./TOFDBc::di2anr();// anode_to_dinode signal ratio from MC
-    fstrd=TOFDBc::accdel(0)-TOFDBc::accdel(1);//(ns),fast-slow TDC trigger delay
+    a2dr[0]=1./TOFDBc::di2anr();// anode_to_dinode signal ratio from MC
+    a2dr[1]=1./TOFDBc::di2anr();// same for side-2
+    fstrd=TOFDBc::fstdcd();//(ns),same hit(up-edge) relat.delay in fast-slow TDC
     int mrfp;
     mrfp=SCANPNT/2+1;
     scmcscan[cnum].getefarr(ef1,ef2);//read eff1/2 from scmcscan-object
@@ -426,7 +422,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     }
   //
     sid=100*(ila+1)+(ibr+1);
-    strat[0]=strf[cnum][0];//from ext. file only for Real data
+    strat[0]=strf[cnum][0];
     strat[1]=strf[cnum][1];
     slope=slpf;//from ext. file
     tzer=tzerf[ila][ibr];//from ext. file
@@ -445,12 +441,10 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  }
 }
 //------
-geant TOFBrcal::ama2mip(integer am[2]){ // A-Tovt's(TDC ch.!!!) -> Mev 
+geant TOFBrcal::ama2mip(number amf[2]){ // A-Tovt's(ns) -> Mev 
   static int nmx=SCACRFP-1;
   int isd,i;
-  geant amf[2],qt,lnq;
-  amf[0]=am[0]*TOFDBc::tdcbin(2); // conv. to ns
-  amf[1]=am[1]*TOFDBc::tdcbin(2); // conv. to ns
+  number qt,lnq;
   qt=0.;
   for(isd=0;isd<2;isd++){
     if(amf[isd]>=tovta[nmx])lnq=logqin[nmx]+(logqin[nmx]-logqin[nmx-1])
@@ -466,16 +460,14 @@ geant TOFBrcal::ama2mip(integer am[2]){ // A-Tovt's(TDC ch.!!!) -> Mev
     qt=qt+exp(lnq)/gaina[isd];// LogQa->Qa_gain_corrected (pC)
   }
   qt=qt/mip2q; // Q(pC)->Mev
-  return qt;
+  return geant(qt);
 }
 //------
-void TOFBrcal::ama2q(number am[2], number qs[2]){// A-Tovt's(ns!) -> Q(pC)
+void TOFBrcal::ama2q(number amf[2], number qs[2]){// A-Tovt's(ns) -> Q(pC)
 //                                                 to use in calibr. program 
   static int nmx=SCACRFP-1;
   int isd,i;
-  number amf[2],lnq;
-  amf[0]=am[0];
-  amf[1]=am[1];
+  number lnq;
   for(isd=0;isd<2;isd++){
     if(amf[isd]>=tovta[nmx])lnq=logqin[nmx]+(logqin[nmx]-logqin[nmx-1])
                            *(amf[isd]-tovta[nmx])/(tovta[nmx]-tovta[nmx-1]);
@@ -491,12 +483,10 @@ void TOFBrcal::ama2q(number am[2], number qs[2]){// A-Tovt's(ns!) -> Q(pC)
   }
 }
 //-----
-geant TOFBrcal::amd2mip(integer am[2]){ // D-Tovt's -> Mev
+geant TOFBrcal::amd2mip(number amf[2]){ // D-Tovt's(ns) -> Mev
   static int nmx=SCACRFP-1;
   int isd,i;
-  geant amf[2],qt,lnq;
-  amf[0]=am[0]*TOFDBc::tdcbin(3); // conv. to ns
-  amf[1]=am[1]*TOFDBc::tdcbin(3); // conv. to ns
+  number qt,lnq;
   qt=0.;
   for(isd=0;isd<2;isd++){
     if(amf[isd]>=tovtd[nmx])lnq=logqin[nmx]+(logqin[nmx]-logqin[nmx-1])
@@ -509,10 +499,10 @@ geant TOFBrcal::amd2mip(integer am[2]){ // D-Tovt's -> Mev
            *(amf[isd]-tovtd[i])/(tovtd[i+1]-tovtd[i]);
     }
     lnq=lnq+log(qdthr);// add  Log(Qthresh) (dinode)
-    qt=qt+exp(lnq)*an2dir/gaind[isd];// LogQd->Qa->Qa_gain_corrected (pC)
+    qt=qt+exp(lnq)*an2dir[isd]/gaind[isd];// LogQd->Qa->Qa_gain_corrected (pC)
   }
   qt=qt/mip2q; // Q(pc)->Mev
-  return qt;
+  return geant(qt);
 }
 //-----
 geant TOFBrcal::poscor(geant point){
@@ -532,30 +522,25 @@ geant TOFBrcal::poscor(geant point){
   return corr;//you should devide signal by this value later
 }
 //------
-geant TOFBrcal::tm2t(integer tm[2], integer am[2]){ // (2-sides_times+Tovt)->Time (ns)
-  geant tmf[2],amf[2],time,shft;
+geant TOFBrcal::tm2t(number tmf[2], number amf[2]){//(2-sides_times/Tovt)->Time (ns)
+  geant shft;
+  number time;
   shft=TOFDBc::shftim();
-  amf[0]=am[0]*TOFDBc::tdcbin(3); // conv. to ns
-  amf[1]=am[1]*TOFDBc::tdcbin(3); // conv. to ns
-  tmf[0]=tm[0]*TOFDBc::tdcbin(1)/strat[0];// to real-time scale (ns) 
-  tmf[1]=tm[1]*TOFDBc::tdcbin(1)/strat[1];// to real-time scale (ns)
   time=0.5*(tmf[0]+tmf[1])+tzero
                      +slope*(exp(-amf[0]/shft)+exp(-amf[1]/shft));
-  return time; 
+  return geant(time); 
 }
 //-----
-void TOFBrcal::tmd2p(integer tm[2], integer am[2],
-                              geant &coo, geant &ecoo){//(time-diff)->loc.coord/err(cm)
-  geant tmf[2],amf[2],time,shft;
+void TOFBrcal::tmd2p(number tmf[2], number amf[2],
+                              geant &co, geant &eco){//(time-diff)->loc.coord/err(cm)
+  geant shft;
+  number time,coo;
   shft=TOFDBc::shftim();
-  amf[0]=am[0]*TOFDBc::tdcbin(3); // conv. to ns
-  amf[1]=am[1]*TOFDBc::tdcbin(3); // conv. to ns
-  tmf[0]=tm[0]*TOFDBc::tdcbin(1)/strat[0];// to real-time scale (ns) 
-  tmf[1]=tm[1]*TOFDBc::tdcbin(1)/strat[1];// to real-time scale (ns)
   coo=-0.5*(tmf[0]-tmf[1])*td2pos[0]   // tempor, suppose 2-ends delays are equal !!!
                      -slope*(exp(-amf[0]/shft)-exp(-amf[1]/shft));
-//  ("-" is due to the fact that Tmeas=Ttrig-Tabs and coo-loc is prop. to Tabs1-Tabs2)                     
-  ecoo=td2pos[1];
+//  ("-" is due to the fact that Tmeas=Ttrig-Tabs and coo-loc is prop. to Tabs1-Tabs2)
+  co=geant(coo);                     
+  eco=td2pos[1];
 }
 //==========================================================================
 //
@@ -577,19 +562,56 @@ void TOFJobStat::print(){
   printf(" MC-entries              : % 6d\n",mccount[0]);
   printf(" RECO-entries            : % 6d\n",recount[0]);
   printf(" DAQ->RawEvent OK        : % 6d\n",recount[1]);
-  printf(" Entries to TZSl-calibr. : % 6d\n",recount[2]);
-  printf(" TZSl: multiplicity OK   : % 6d\n",recount[3]);
-  printf(" TZSl: beta OK           : % 6d\n",recount[4]);
-  printf(" RawEvent->RawCluster OK : % 6d\n",recount[5]);
-  printf(" RawCluster->Cluster OK  : % 6d\n",recount[6]);
-  printf(" Entries to AMPL-calibr. : % 6d\n",recount[8]);
-  printf(" AMPL: multiplicity OK   : % 6d\n",recount[9]);
-  printf(" AMPL: matching OK       : % 6d\n",recount[10]);
+  printf(" RawEvent-validation OK  : % 6d\n",recount[2]);
+  printf(" RawEvent->RawCluster OK : % 6d\n",recount[3]);
+  printf(" RawCluster->Cluster OK  : % 6d\n",recount[4]);
+  printf(" Entries to TZSl-calibr. : % 6d\n",recount[6]);
+  printf(" TZSl: multiplicity OK   : % 6d\n",recount[7]);
+  printf(" TZSl: beta OK           : % 6d\n",recount[8]);
+  printf(" Entries to AMPL-calibr. : % 6d\n",recount[10]);
+  printf(" AMPL: multiplicity OK   : % 6d\n",recount[11]);
+  printf(" AMPL: matching OK       : % 6d\n",recount[12]);
   printf("\n\n");
-
-if(TOFMCFFKEY.mcprtf[3]==0)return;
 //
-  printf("=====> Channels status :\n\n");
+  if(!AMSJob::gethead()->isRealData() && TOFMCFFKEY.fast==1)return;
+//
+  printf("=====> Bars reconstruction report :\n\n");
+//
+  printf("Bar H/w-2-sides status OK :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR+ib;
+      printf(" % 6d",brcount[ic][0]);
+    }
+    printf("\n\n");
+  }
+//
+  printf("In-Bar mult. 'OK' :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR+ib;
+      rc=geant(brcount[ic][0]);
+      if(rc>0.)rc=geant(brcount[ic][1])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("In-Bar history 'OK' :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR+ib;
+      rc=geant(brcount[ic][0]);
+      if(rc>0.)rc=geant(brcount[ic][2])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n\n");
+  }
+//
+
+if(TOFRECFFKEY.reprtf[0]==0)return;
+//
+  printf("=====> Channels reconstruction report :\n\n");
 //
   printf("H/w-status OK :\n\n");
   for(il=0;il<SCLRS;il++){
@@ -757,7 +779,6 @@ if(TOFMCFFKEY.mcprtf[3]==0)return;
     printf("\n\n");
   }
 //
-
 }
 //==========================================================================
 
