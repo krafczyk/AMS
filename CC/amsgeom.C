@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.181 2005/01/04 16:47:59 choumilo Exp $
+//  $Id: amsgeom.C,v 1.182 2005/03/01 17:46:52 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1856,6 +1856,7 @@ ostrstream ost(name,sizeof(name));
        int k;
        AMSgvolume * lad[2];
        for(k=0;k<2;k++){
+         ost.clear();
          ost.seekp(0);
          ost << "L" << i+1<<(j+1)*2+k<<ends;
          if(k==0)par[0]=TKDBc::ssize_inactive(i,0)*TKDBc::nhalf(i+1,j+1)/2.;
@@ -1894,6 +1895,7 @@ ostrstream ost(name,sizeof(name));
         "NONACTIVE_SILICON",nrot++,name,"BOX",par,3,coo,nrm,"ONLY",1,gid,1));
         else lad[k]=0; 
         if(lad[k]){
+         ost.clear();
         ost.seekp(0);
         ost << (k==0?"ELL":"ELR") << i+1<<ends;
         par[0]=TKDBc::zelec(i,1)/2.;
@@ -1921,6 +1923,7 @@ ostrstream ost(name,sizeof(name));
        // Now Sensors
 
        for ( k=0;k<TKDBc::nhalf(i+1,j+1);k++){
+         ost.clear();
          ost.seekp(0);
          ost << "S" << i+1<<(j+1)*2<<ends;
          par[0]=TKDBc::ssize_active(i,0)/2;
@@ -1957,6 +1960,7 @@ ostrstream ost(name,sizeof(name));
        }
 
        for ( k=TKDBc::nhalf(i+1,j+1);k<TKDBc::nsen(i+1,j+1);k++){
+         ost.clear();
         ost.seekp(0);
         ost << "S" << i+1<<(j+1)*2+1<<ends;
         par[0]=TKDBc::ssize_active(i,0)/2;
@@ -1999,6 +2003,7 @@ ostrstream ost(name,sizeof(name));
       // Now Support foam
  
       for ( j=0;j<TKDBc::nlad(i+1);j++){
+         ost.clear();
        ost.seekp(0);
        ost << "FOA" << i+1<<ends;
        par[0]=TKDBc::ssize_inactive(i,0)*TKDBc::nsen(i+1,j+1)/2.;
@@ -2019,6 +2024,7 @@ ostrstream ost(name,sizeof(name));
 
       // Now Honecomb Planes
 
+         ost.clear();
        ost.seekp(0);
        ost << "PLA" << i+1<<ends;
        par[0]=0;
@@ -2075,6 +2081,7 @@ AMSgvolume * oct[maxo];
 
 int i;
 for ( i=0;i<TRDDBc::PrimaryOctagonNo();i++){
+ ost.clear();
  ost.seekp(0);  
  ost << "TRD"<<i<<ends;
  TRDDBc::GetOctagon(i,status,coo,nrm,rgid);
@@ -2103,6 +2110,7 @@ for ( i=0;i<TRDDBc::PrimaryOctagonNo();i++){
 
 
 for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo();i++){
+         ost.clear();
  ost.seekp(0);  
  if(i<10){
   ost << "TRD"<<i<<ends;
@@ -2148,6 +2156,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
    int ip;
    gid=i+1;
+         ost.clear();
    ost.seekp(0);  
    // Need to modify if TRDOctagonNo()>1
    ost << "TRB"<<b<<ends;
@@ -2180,6 +2189,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 	      bhno=TRDDBc::CutoutsBH(i,j,l);
 	      if (bhno == b)
 		{
+                  ost.clear();
 		  ost.seekp(0);  
 		  ost << "TRCO"<<ends;
 		  gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l+1;
@@ -2221,6 +2231,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
             TRDDBc::RadiatorSideHolePieceDimensions(i,h,l,ip);
       gid=maxsidehole*h+l+1;
 
+         ost.clear();
          ost.seekp(0);
          ost << "TRR1"<<ends;
 
@@ -2251,6 +2262,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
   for(k=0;k<TRDDBc::LaddersNo(i,j);k++){
    int ip;
    gid=i+mtrdo*j+mtrdo*maxlay*k+1;
+         ost.clear();
    ost.seekp(0);  
    ost << "TR"<<TRDDBc::CodeLad(gid-1)<<ends;
    TRDDBc::GetLadder(k,j,i,status,coo,nrm,rgid);
@@ -2288,6 +2300,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
     
       if (fabs(cool[1])>0){
 
+         ost.clear();
          ost.seekp(0);
          ost << "TRR0"<<ends;
 
@@ -2309,6 +2322,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    // Wires (disabled for now)
    /*
       for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
+         ost.clear();
    ost.seekp(0);
 
    ost << "TRDI"<<ends;
@@ -2322,6 +2336,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 } */
 
      //strips
+         ost.clear();
    ost.seekp(0);  
    ost << "TRDQ"<<ends;
    TRDDBc::GetTubeBox(k,j,i,status,coo,nrm,rgid);
@@ -2350,6 +2365,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
    int l;
    for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
+         ost.clear();
    ost.seekp(0);  
    ost << "TRDW"<<ends;
    TRDDBc::GetTube(l,k,j,i,status,coo,nrm,rgid);
@@ -2366,6 +2382,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    }
 
    for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
+         ost.clear();
    ost.seekp(0);  
    ost << "TRDT"<<ends;
    TRDDBc::GetTube(l,k,j,i,status,coo,nrm,rgid);
@@ -2383,6 +2400,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
    for(l=0;l< TRDDBc::TubesNo(i,j,k)-1;l++){
    if(TRDDBc::ThereIsSpacerAfterTube(l)){
+         ost.clear();
     ost.seekp(0);  
     ost << "TRDE"<<ends;
 
@@ -2515,7 +2533,7 @@ geant ddfi;
 geant degrad,raddeg;
 integer nscpad;
 AMSNode * pAmother;
-AMSNode * pSegm;
+AMSgvolume * pSegm;
 AMSNode * pGroov;
 AMSNode * p;
 AMSgvolume *dummy;
@@ -2881,6 +2899,7 @@ AMSNode * oct[maxo];
  ostrstream ost(name,sizeof(name));
 int i;
 for ( i=0;i<SRDDBc::VolumesNo();i++){
+         ost.clear();
  ost.seekp(0);  
  ost << "SRD"<<i<<ends;
  SRDDBc::GetVolume(i,status,coo,nrm,rgid);
@@ -2893,6 +2912,7 @@ for ( i=0;i<SRDDBc::VolumesNo();i++){
 
 for(i=0;i<SRDDBc::XtallColNo();i++){
  for(int j=0;j<SRDDBc::XtallRowNo();j++){
+         ost.clear();
    ost.seekp(0);  
    ost << "SRDX"<<ends;
    SRDDBc::GetXtall(i,j,status,coo,nrm,rgid);
@@ -2906,6 +2926,7 @@ for(i=0;i<SRDDBc::XtallColNo();i++){
 
 for(i=0;i<SRDDBc::PMTColNo();i++){
  for(int j=0;j<SRDDBc::PMTRowNo();j++){
+         ost.clear();
    ost.seekp(0);  
    ost << "SRDP"<<ends;
    SRDDBc::GetPMT(i,j,status,coo,nrm,rgid);

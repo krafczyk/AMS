@@ -1,4 +1,4 @@
-//  $Id: trid.C,v 1.35 2004/10/08 09:59:36 choutko Exp $
+//  $Id: trid.C,v 1.36 2005/03/01 17:46:53 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -17,6 +17,7 @@ using namespace trconst;
 AMSID AMSTrIdGeom::crgid() const{
          static char name[5];
          static ostrstream ost(name,sizeof(name));
+         ost.clear();
          ost.seekp(0);
          ost<<"S"<<getlayer()<<2*getladder()+gethalf()<<ends;
          return AMSID(name,cmpt());

@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.31 2004/12/18 17:34:53 choutko Exp $
+//  $Id: client.C,v 1.32 2005/03/01 17:46:53 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -56,7 +56,16 @@ else fnam=logdir;
    _fbin2.open(fnam2,ios::out|ios::app);
   }
   else{
-   _fbin2.open(fnam2,ios::out);
+   _fbin2.open(fnam2,ios::in);
+   if(!_fbin2){
+    _fbin2.clear();
+    _fbin2.open(fnam2,ios::out);
+   }
+   else{
+    AString a("AMSClient::_openLogFile-F-JournalFileAlreadyExists");
+     a+=fnam2; 
+    FMessage((char *) a,DPS::Client::CInAbort);
+   }
   }
  if(!_fbin2){
     AString a("AMSClient::_openLogFile-F-UnableOpenJournalFile ");
@@ -167,6 +176,7 @@ cout<<message<<endl;
 
 char * AMSClient::print(const DPS::Client::ActiveClient & a,const char * mes){
 
+_ost.clear();
 _ost.seekp(0);
 _ost<<mes <<" AC ";
 print(a.id,_ost);
@@ -181,6 +191,7 @@ return o<<" id "<<a.id<<" Insert "<<a.Insert<<" Begin "<<a.Begin<<" End "<<a.End
 
 char * AMSClient::print(const DPS::Client::NominalClient & a,const char * mes){
 
+_ost.clear();
 _ost.seekp(0);
 _ost<<mes <<" NC ";
 _ost<<a.uid<<" Type "<<CT2string(a.Type)<<" MaxCl "<<a.MaxClients<<ends;
@@ -190,6 +201,7 @@ return _streambuffer;
 
 
 char * AMSClient::print(const DPS::Producer::TDVTableEntry & a,const char * mes){
+_ost.clear();
 _ost.seekp(0);
 _ost<<mes <<" TDVTableEntry ";
 print(a,_ost);
@@ -198,6 +210,7 @@ _ost<<ends;
 
 char * AMSClient::print(const DPS::Producer::TDVName & a,const char * mes){
 
+_ost.clear();
 _ost.seekp(0);
 _ost<<mes <<" TDV ";
 _ost<<a.Name<<" Size "<<a.Size<<" CRC "<< a.CRC<< " DataMC " <<a.DataMC<<" Success "<<a.Success;
@@ -208,6 +221,7 @@ return _streambuffer;
 
 
 char * AMSClient::print(const DPS::Client::CID & a,const char * mes){
+_ost.clear();
 _ost.seekp(0);
 _ost<<mes<<" HostName ";
 print(a,_ost);
@@ -222,12 +236,14 @@ return o<<a.HostName<<" "<<a.Interface<<" , UID "<<a.uid<<" , PID "<<a.pid<<" "<
 
 
 char * AMSClient::print(const DPS::Client::ActiveHost & a,const char * mes){
+_ost.clear();
 _ost.seekp(0);
 _ost<<mes <<" AH "<<a.HostName<<" "<<a.Interface<<" Status  "<<HS2string(a.Status)<< " CRun "<<a.ClientsRunning<<" CAll "<<a.ClientsAllowed<<" CProcessed "<<a.ClientsProcessed<<" CFailed "<<a.ClientsFailed<<" CKilled "<<a.ClientsKilled<<" LastUpdate "<<ctime((const time_t *)&a.LastUpdate)<<" Clock "<<a.Clock<<ends;
 return _streambuffer;
 }
 
 char * AMSClient::print(const DPS::Client::NominalHost & a,const char * mes){
+_ost.clear();
 _ost.seekp(0);
 _ost<<mes <<" NH "<<a.HostName<<" "<<a.Interface<<"OS  "<<a.OS<< " CPU "<<a.CPUNumber<<" Memory "<<a.Memory<<" Clock "<<a.Clock<<ends;
 return _streambuffer;
@@ -235,12 +251,14 @@ return _streambuffer;
 
 
 char * AMSClient::print(const DPS::Server::CriticalOps & a,const char * mes){
+_ost.clear();
 _ost.seekp(0);
 _ost<<mes<< "COp Action "<<OPS2string(a.Action) << " ClientType "<<CT2string(a.Type)<<" ClientID "<<a.id<<" Time  "<<ctime((const time_t *)&a.TimeStamp)<<" TimeOut "<<a.TimeOut<<ends;
 return _streambuffer;
 }
 
 char * AMSClient::print(const DPS::Producer::RunEvInfo & a,const char * mes){
+_ost.clear();
 _ost.seekp(0);
 _ost<<mes<<" REI, ID "<<a.uid<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , Prio "<<a.Priority<<" , Path "<<a.FilePath<< " , Status "<<RS2string(a.Status)<<" , History "<<RS2string(a.History)<<" Failed "<<a.CounterFail<<" , ClientID "<<a.cuid<<" , SubmitTimeU "<<a.SubmitTime<<" , SubmitTime "<<ctime((const time_t *)&a.SubmitTime);
 print(a.cinfo,_ost);
@@ -249,6 +267,7 @@ return _streambuffer;
 }
 
 char * AMSClient::print(const DPS::Producer::DSTInfo & a,const char * mes){
+_ost.clear();
 _ost.seekp(0);
 _ost<<mes<<" "<<a.uid<<" Host "<<a.HostName<<" Mode "<<RunMode2string(a.Mode)<<" UpdateFreq "<<a.UpdateFreq<<" DSType "<<DSTT2string(a.type)<<" NtupleOutput "<<a.OutputDirPath<<" FreeKb "<<a.FreeSpace<<" TotalKb "<<a.TotalSpace<<ends;
 return _streambuffer;
@@ -256,6 +275,7 @@ return _streambuffer;
 
 
 char * AMSClient::print(const DPS::Producer::DST & a,const char * mes){
+_ost.clear();
 _ost.seekp(0);
 _ost<<mes<<" "<<" , Status "<<DSTS2string(a.Status)<<" , Type "<<DSTT2string(a.Type)<<" , Name "<<a.Name<<" , Version "<<a.Version<<" , Size "<<a.size<<" , crc "<<a.crc<<" , Insert "<<a.Insert<<" , Begin "<<a.Begin<<" , End "<<a.End<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , EventNumber "<<a.EventNumber<<" , ErrorNumber "<<a.ErrorNumber<<ends;
 return _streambuffer;
@@ -263,6 +283,7 @@ return _streambuffer;
 
 
 char * AMSClient::print(const DPS::Producer::CurrentInfo & a,const char * mes){
+_ost.clear();
 _ost.seekp(0);
 _ost<<mes<<" CInfo ";
 print(a,_ost);

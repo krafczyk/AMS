@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.85 2003/05/22 12:25:52 choutko Exp $
+//  $Id: gmat.C,v 1.86 2005/03/01 17:46:53 choutko Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -53,6 +53,7 @@ if(MISCFFKEY.G4On){
   ostrstream ost(namz,sizeof(namz));
   _pamsg4m= new G4Material(G4String(_name),_rho*g/cm3,_npar);
   for(int i=0;i<_npar;i++){
+   ost.clear();
    ost.seekp(0);
    ost<<_name<<int(_z[i])<<ends;
    G4String name(namz);
