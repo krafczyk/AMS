@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.131 2004/02/26 07:17:13 choutko Exp $
+//  $Id: mceventg.C,v 1.132 2004/04/07 17:20:40 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -458,7 +458,8 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       geant binw;
       if(mass < 0.938)binw=100;
       else  binw=100*mass/0.938;
-      geant al,bl;
+      geant al=binw/2;
+      geant bl=binw/2+nchan*binw;
       HBOOK1(_hid,"Spectrum",nchan,al,bl,0.);
       HBOOK1(_hid+1,"Spectrum",nchan,al,bl,0.);
       //
