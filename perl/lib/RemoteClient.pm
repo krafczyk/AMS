@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.243 2004/02/09 17:00:10 alexei Exp $
+# $Id: RemoteClient.pm,v 1.244 2004/02/16 09:47:29 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1250,12 +1250,14 @@ sub doCopy {
                  if ($rstatus == 1) {
                    return $outputpath,1;
                  } else {
+                  print "********* docopy - crc status : $rstatus \n";
                   htmlWarning("doCopy","$crccmd");
                   htmlWarning("doCopy","crc calculation failed for $outputpath");
                   htmlWarning("doCopy","crc calculation failed status $rstatus");
                   return $outputpath,0;
                  }
                }
+               print "********* docopy - cmd status : $cmdstatus \n";
                return $outputpath,0;
               } else {
                htmlWarning("doCopy","failed $cmd");
@@ -7443,6 +7445,7 @@ foreach my $block (@blocks) {
           if(defined $outputpath){
              push @mvntuples, $outputpath; 
            }
+          print FILE "doCopy return status : $rstatus \n";
           if ($rstatus == 1) {
            $self->insertNtuple(
                                $run,
@@ -7462,7 +7465,9 @@ foreach my $block (@blocks) {
 
            print FILE "insert ntuple : $run, $outputpath, $closedst[1]\n";
           push @cpntuples, $dstfile;
-         }
+       } else {
+           print FILE "***** Error in doCopy for : $dstpath \n";
+        }
        }
       }
      }
@@ -7553,9 +7558,9 @@ foreach my $block (@blocks) {
       $self->{sqlserver}->Update($sql);
      }
   }
- }
+}
   else{
-   print FILE "Validation/copy failed : Run =$run \n";
+   print FILE "Validation/copy failed = $copyfailed for  Run =$run \n";
    $status='Unchecked';
    foreach my $ntuple (@mvntuples) {
      $cmd = "rm  $ntuple";
