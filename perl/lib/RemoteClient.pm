@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.281 2004/10/11 10:10:55 alexei Exp $
+# $Id: RemoteClient.pm,v 1.282 2004/10/22 14:55:53 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -67,6 +67,7 @@
 # Sep  22, 2004   : AMS01 production, add $ProductionStartTime in quaries
 #                   no predefined $dbversion in Connect()
 #
+# Oct 15, 2004    : -dbonly mode for parseJournalFiles
 #
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
@@ -1048,6 +1049,9 @@ sub ValidateRuns {
        print "ValidateRuns -I- get list of runs from server \n";
     }
     if( not defined $self->{dbserver}->{rtb}){
+     if ($webmode ==0  and $verbose ==1) { 
+       print "ValidateRuns -I- call DBServer:InitDBFile \n";
+     }
       DBServer::InitDBFile($self->{dbserver});
     }
     if ($webmode ==0  and $verbose ==1) { print "ValidateRuns -I- set active production set \n";}
@@ -7296,14 +7300,16 @@ sub parseJournalFiles {
  my $cid          = undef;
  my $sql          = undef;
  my $ret          = undef;
+ my $dbonly       = 0;
 
  my $HelpTxt = "
      parseJournalFiles check journal file directory for all cites 
-     -c    - output will be produced as ASCII page (default)
-     -h    - print help
-     -i    - prompt before files removal 
-     -v    - verbose mode
-     -w    - output will be produced as HTML page
+     -c      - output will be produced as ASCII page (default)
+     -dbonly - do not connect to server
+     -h      - print help
+     -i      - prompt before files removal 
+     -v      - verbose mode
+     -w      - output will be produced as HTML page
      ./parseJournalFiles.o.cgi -c
 ";
 
@@ -7311,6 +7317,9 @@ sub parseJournalFiles {
   foreach my $chop  (@ARGV){
     if ($chop =~/^-c/) {
         $webmode = 0;
+    }
+    if ($chop =~/^-dbonly/) {
+        $dbonly = 1;
     }
     if ($chop =~/^-v/) {
         $verbose = 1;
@@ -7332,13 +7341,16 @@ sub parseJournalFiles {
     } else {
         if ($verbose == 1) {$self->amsprint("parseJournalFiles -I- Init done ",0);}
     }
-    if ($verbose == 1) {$self ->amsprint ("parseJournalFiles -I- connect to server",0);}
-    if (not $self->ServerConnect()){
+     if ($dbonly == 1) {
+      if ($verbose == 1) {$self ->amsprint ("parseJournalFiles -I- DB ONLY mode, no connect to server",0);}
+     } else {
+     if ($verbose == 1) {$self ->amsprint ("parseJournalFiles -I- connect to server",0);}
+     if (not $self->ServerConnect()){
         die "parseJournalFiles -F- Unable To Connect To Server";
-    } else {
+     } else {
         if ($verbose == 1) {$self->amsprint("parseJournalFiles -I- connected to server. done",0);}
+     }
     }
-
     my $whoami = getlogin();
     if ($whoami =~ 'ams') {
     } else {
@@ -9488,7 +9500,7 @@ sub getHostsList {
          my $cid = $cite->[0];
          $cnames[$cid] = $cite->[1];
 
-         $sql = "SELECT SUM(sizemb)  from jobs, ntuples where ntuples.jid=jobs.jid and cid=$cid";
+         $sql = "SELECT SUM(sizemb)  from jobs, ntuples where ntuples.jid=jobs.jid and cid=$cid and jobs.timestamp>$ProductionStartTime";
          my $r = $self->{sqlserver}->Query($sql);
          if (defined $r->[0][0]) {
              my $sizegb = $r->[0][0]/1000;
@@ -9500,7 +9512,9 @@ sub getHostsList {
          $totaljobs  = 0;
          $totalmips  = 0;
 
-         $sql  = "SELECT host, mips, cputime FROM Jobs WHERE host != 'host' and cid=$cid ORDER BY host";
+         $sql  = "SELECT host, mips, cputime FROM Jobs 
+                   WHERE host != 'host' and cid=$cid and jobs.timestamp>$ProductionStartTime 
+                    ORDER BY host";
          $hl=$self->{sqlserver}->Query($sql);
          if (defined $hl->[0][0]) {
           foreach my $host (@{$hl}){
@@ -9717,7 +9731,7 @@ sub getRunningDays {
     my $timenow   = time();
 # first job timestamp
       $sql="SELECT MIN(Jobs.time), MAX(Jobs.timestamp) FROM Jobs, Cites 
-                WHERE Jobs.cid=Cites.cid and Cites.name!='test'";
+                WHERE Jobs.cid=Cites.cid and Cites.name!='test' and Jobs.timestamp >= $ProductionStartTime";
       $ret=$self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
        $timestart = $ret->[0][0];

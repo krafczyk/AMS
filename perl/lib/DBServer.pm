@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.15 2004/10/13 08:29:34 choutko Exp $
+# $Id: DBServer.pm,v 1.16 2004/10/22 14:55:53 alexei Exp $
 
 package DBServer;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -556,6 +556,8 @@ sub InitDBFile{
 #        $amsprodlogdir=shift;
       }
     if (defined $ref->{dbfile}){
+#
+#        print "InitDBFile : ProdLogDir : $amsprodlogdir \n";
 # check if dbfile already includes full path
         if($ref->{dbfile} =~/\//){
         }
