@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.138 2002/05/21 09:03:43 alexei Exp $
+//  $Id: trrec.C,v 1.139 2002/06/03 14:53:34 alexei Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -786,10 +786,6 @@ AMSTrCluster::AMSTrCluster(const AMSTrIdSoft& id, integer status,
 }
 
 void AMSTrCluster::_writeEl(){
-TrClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trcl();
-
-  if (TrN->Ntrcl>=MAXTRCL) return;
-
 // Fill the ntuple : check on IOPA.WriteAll%10 
   integer flag =    (IOPA.WriteAll%10==1)
                  || (IOPA.WriteAll%10==0 && checkstatus(AMSDBc::USED))
@@ -798,20 +794,15 @@ TrClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trcl();
   if(AMSTrCluster::Out(flag) ){
     int i;
 #ifdef __WRITEROOTCLONES__
-    if(AMSJob::gethead()->getntuple()) {
-      int N = TrN->Ntrcl;
      float amplitude[5];
-     int idsoft = _Id.cmpt();
      for(i=0;i<min(5,getnelem());i++)amplitude[i]=_pValues[i]; 
      for(i=getnelem();i<5;i++) amplitude[i]=0;
-     EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-     TClonesArray &clones =  *(ev02.Get_ftrcluster());
-     new (clones[N]) TrClusterRoot(idsoft, _status, _NelemL, _NelemR, _Sum,
-                                   _Sigma, _Mean, _Rms, _ErrorMean, amplitude);
-     N++;
-     AMSJob::gethead()->getntuple()->Get_event02()->Set_fNtrcluster(N);
-    }
-#else
+     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this, amplitude);
+#endif
+    TrClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trcl();
+
+    if (TrN->Ntrcl>=MAXTRCL) return;
+
     TrN->Idsoft[TrN->Ntrcl]=_Id.cmpt();
     TrN->Status[TrN->Ntrcl]=_status;
     TrN->NelemL[TrN->Ntrcl]=_NelemL;
@@ -823,7 +814,6 @@ TrClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trcl();
     TrN->ErrorMean[TrN->Ntrcl]=_ErrorMean;
     for(i=0;i<min(5,getnelem());i++)TrN->Amplitude[TrN->Ntrcl][i]=_pValues[i]; 
     for(i=getnelem();i<5;i++)TrN->Amplitude[TrN->Ntrcl][i]=0;
-#endif
     TrN->Ntrcl++;
   }
 }
@@ -1146,71 +1136,19 @@ integer AMSTrRecHit::markAwayTOFHits(){
 
 
 void AMSTrRecHit::_writeEl(){
- TrRecHitNtuple02* THN = AMSJob::gethead()->getntuple()->Get_trrh02();
 
-  if (THN->Ntrrh>=root::MAXTRRH02) return;
-// added specifically to reduce ntuple size
-//  if (THN->Ntrrh>=root::MAXTRRH) return;
-
-// Fill the ntuple 
   integer flag =    (IOPA.WriteAll%10==1)
                  || (IOPA.WriteAll%10==0 && checkstatus(AMSDBc::USED))
                  || (IOPA.WriteAll%10==2 && !checkstatus(AMSDBc::AwayTOF));
 
   if(AMSTrRecHit::Out(flag) ){
 #ifdef __WRITEROOTCLONES__
-    if(AMSJob::gethead()->getntuple()) {
-     int N = THN->Ntrrh;
-     int px, py;
-     float hit[3];
-     float ehit[3];
-     if(_Xcl)px=_Xcl->getpos();
-     else px=-1;
-     py=_Ycl->getpos();
-     int pat;
-     pat=1;
-     if(AMSTrCluster::Out(IOPA.WriteAll%10==1)){
-      // Writeall
-      for(int i=0;i<pat;i++){
-          AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrCluster",i);
-           #ifdef __AMSDEBUG__
-            assert(pc != NULL);
-           #endif
-           py+=pc->getnelem();
-      }
-     }                                                        
-     else if (AMSTrCluster::Out(IOPA.WriteAll%10==0)){
-      //Write only USED hits
-      for(int i=0;i<pat;i++){
-        AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
-        while(ptr && ptr->checkstatus(AMSDBc::USED) ){
-         py++;
-          ptr=ptr->next();
-        }
-      }
-    }
-    else if (AMSTrCluster::Out(IOPA.WriteAll%10==2)){
-      //Write only hits consistent with TOF
-      for(int i=0;i<pat;i++){
-        AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
-        while(ptr && !(ptr->checkstatus(AMSDBc::AwayTOF)) ){
-          py++;
-          ptr=ptr->next();
-        }
-      }
-    }
-    else return;
-    for(int i=0;i<3;i++) hit[i]=_Hit[i];
-    for(int i=0;i<3;i++)ehit[i]=_EHit[i];
+    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
+// Fill the ntuple 
+ TrRecHitNtuple02* THN = AMSJob::gethead()->getntuple()->Get_trrh02();
+  if (THN->Ntrrh>=root::MAXTRRH02) return;
 
-    EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-    TClonesArray &clones =  *(ev02.Get_ftrrechit());
-    new (clones[N]) TrRecHitRoot02(px, py, _status, _Layer, hit, ehit,
-                                   _Sum, _DifoSum, _cofgx, _cofgy);
-    N++;
-    AMSJob::gethead()->getntuple()->Get_event02()->Set_fNtrrechit(N);
-    }
-#else
     if(_Xcl)THN->pX[THN->Ntrrh]=_Xcl->getpos();
     else THN->pX[THN->Ntrrh]=-1;
     THN->pY[THN->Ntrrh]=_Ycl->getpos();
@@ -1264,12 +1202,23 @@ void AMSTrRecHit::_writeEl(){
 //    cout <<" cofgx "<<_cofgx<<" "<<this<<" "<<_Layer<<" "<<_cofgy<<endl;
     THN->CofgX[THN->Ntrrh]=_cofgx;
     THN->CofgY[THN->Ntrrh]=_cofgy;
-#endif
     THN->Ntrrh++;
   }
 }
 
 void AMSTrRecHit::_copyEl(){
+#ifdef __WRITEROOTCLONES__
+  TrRecHitRoot02 *ptr = (TrRecHitRoot02*)_ptr;
+  if (ptr) {
+    // AMSTrCluster * _Xcl; AMSTrCluster * _Xcl;
+    if (_Xcl) ptr->fTrClusterX= _Xcl->GetClonePointer();
+    if (_Ycl) ptr->fTrClusterY= _Ycl->GetClonePointer();
+  } else {
+#ifdef __AMSDEBUG__
+    cout<<"AMSTrRecHit::_copyEl -I-  AMSTrRecHit::TrRecHitRoot02 *ptr is NULL "<<endl;
+#endif
+  }
+#endif
 }
 
 
@@ -2186,114 +2135,19 @@ for(int i=0;i<2;i++){
 }
 
 void AMSTrTrack::_writeEl(){
+  if(AMSTrTrack::Out(1)){
+    int i;
+#ifdef __WRITEROOTCLONES__
+    // Root related part in ../CC/root.C 
+    // TrTrackRoot02::TrTrackRoot02(AMSTrTrack *ptr)
+    // no check for _AdvancedFitDone && _GeaneFitDone
+    // in TrTrackRoot02 constructor
+    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
   TrTrackNtuple02* TrTN = AMSJob::gethead()->getntuple()->Get_trtr02();
   if (TrTN->Ntrtr>=MAXTRTR02) return;
 
 // Fill the ntuple 
-  if(AMSTrTrack::Out(1)){
-    int i;
-#ifdef __WRITEROOTCLONES__
-    if(AMSJob::gethead()->getntuple()) {
-     int N = TrTN->Ntrtr;
-     int k;
-     int phits[8]; 
-     for(k=_NHits;k<TKDBc::nlay();k++)phits[k]=0;
-     for(k=0;k<_NHits;k++){
-      phits[k]=_Pthit[k]->getpos();
-      int pat;
-      pat=_Pthit[k]->getLayer()-1;
-      if (AMSTrRecHit::Out(IOPA.WriteAll%10==1)){
-        // Writeall
-        for(i=0;i<pat;i++){
-          AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrRecHit",i);
-           #ifdef __AMSDEBUG__
-            assert(pc != NULL);
-           #endif
-           phits[k]+=pc->getnelem();
-        }
-      }                                                        
-      else if (AMSTrRecHit::Out(IOPA.WriteAll%10==0)){
-      //WriteUsedOnly
-        for(i=0;i<pat;i++){
-          AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
-          while(ptr && ptr->checkstatus(AMSDBc::USED)){
-            phits[k]++;
-            ptr=ptr->next();
-          }
-        }
-      }
-      else if (AMSTrRecHit::Out(IOPA.WriteAll%10==2)){
-      //WriteUsedOnly
-        for(i=0;i<pat;i++){
-          AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
-          while(ptr && !(ptr->checkstatus(AMSDBc::AwayTOF)) ){
-            phits[k]++;
-            ptr=ptr->next();
-          }
-        }
-      }
-      else return;
-    }
-
-
-     EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-     TClonesArray &clones =  *(ev02.Get_ftrtrack());
-     float p0[3];
-     for(i=0;i<3;i++)p0[i]=(geant)_P0[i];
-     float gchi2, gridgidity, gerrridgidity;
-     if(_GeaneFitDone){ 
-       gchi2=(geant)_GChi2;
-       gridgidity=(geant)_GRidgidity;
-       gerrridgidity=(geant)_GErrRidgidity;
-     }
-     else{
-      gchi2=-1;
-      gridgidity=0;
-      gerrridgidity=0;
-     } 
-     float HChi2[2];
-     float HRidgidity[2];
-     float HErrRidgidity[2];
-     float HTheta[2];
-     float HPhi[2];
-     float HP0[2][3];
-
-    if(_AdvancedFitDone){
-     for(i=0;i<2;i++)HChi2[i]=(geant) _HChi2[i];
-     for(i=0;i<2;i++)HRidgidity[i]=(geant)_HRidgidity[i];
-     for(i=0;i<2;i++)HErrRidgidity[i]=(geant)_HErrRidgidity[i];
-     for(i=0;i<2;i++)HTheta[i]=(geant)_HTheta[i];
-     for(i=0;i<2;i++)HPhi[i]=(geant)_HPhi[i];
-     for(i=0;i<3;i++)HP0[0][i]=(geant)_HP0[0][i];
-     for(i=0;i<3;i++)HP0[1][i]=(geant)_HP0[1][i];
-    }
-    else{
-     for(i=0;i<2;i++)HChi2[i]=-1;
-     for(i=0;i<2;i++)HRidgidity[i]=0;
-     for(i=0;i<2;i++)HErrRidgidity[i]=0;
-     for(i=0;i<2;i++)HTheta[i]=0;
-     for(i=0;i<2;i++)HPhi[i]=0;
-     for(i=0;i<3;i++)HP0[0][i]=0;
-     for(i=0;i<3;i++)HP0[1][i]=0;
-    }
-
-     new (clones[N]) TrTrackRoot02
-       (_status, _Pattern, _Address, _NHits, phits,
-        _Dbase[0], _GeaneFitDone, _AdvancedFitDone,
-        _Chi2StrLine, _Chi2Circle, _CircleRidgidity,
-        _Chi2FastFit, _Ridgidity, _ErrRidgidity,
-        _Theta, _Phi, p0, gchi2,
-        gridgidity, gerrridgidity,
-        HChi2, HRidgidity, HErrRidgidity,
-        HTheta, HPhi, HP0,
-        _Chi2MS, _GChi2MS, _RidgidityMS, _GRidgidityMS
-        );
-
-     N++;
-     AMSJob::gethead()->getntuple()->Get_event02()->Set_fNtrtrack(N);
-     //AMSJob::gethead()->getntuple()->Get_event02()->Inc_fNtrtrack();
-    }
-#else
     TrTN->Status[TrTN->Ntrtr]=_status;
     TrTN->Pattern[TrTN->Ntrtr]=_Pattern;
     TrTN->NHits[TrTN->Ntrtr]=_NHits;
@@ -2384,12 +2238,22 @@ void AMSTrTrack::_writeEl(){
     TrTN->PiErrRig[TrTN->Ntrtr]=(geant)_GChi2MS;
     TrTN->RidgidityMS[TrTN->Ntrtr]=(geant)_RidgidityMS;
     TrTN->PiRigidity[TrTN->Ntrtr]=(geant)_GRidgidityMS;
-#endif
     TrTN->Ntrtr++;
-
   }
 }
 void AMSTrTrack::_copyEl(){
+#ifdef __WRITEROOTCLONES__
+  TrTrackRoot02 *ptr = (TrTrackRoot02*)_ptr;
+  if (ptr) {
+    // AMSTrRecHit * _Pthit[trconst::maxlay];
+    for (int i=0; i<_NHits; i++) {
+    if (_Pthit[i]) ptr->fTrRecHit->Add(_Pthit[i]->GetClonePointer());
+    }
+} else {
+  cout<<"AMSTrTrack::_copyEl -I-  AMSTrTrack::TrTrackRoot02 *ptr is NULL "<<endl;
+}
+
+#endif
 }
 
 

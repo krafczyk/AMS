@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.51 2002/05/21 09:03:42 alexei Exp $
+//  $Id: mccluster.C,v 1.52 2002/06/03 14:53:34 alexei Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -41,30 +41,16 @@ void AMSTRDMCCluster::sitrdnoise(){
 
 
 void AMSTRDMCCluster::_writeEl(){
-  TRDMCClusterNtuple* TRDMCClusterN = AMSJob::gethead()->getntuple()->Get_trdclmc();
-  
-  if (TRDMCClusterN->Ntrdclmc>=MAXTRDCLMC) return;
-
   integer flag =    (IOPA.WriteAll%10==1)
                  || (IOPA.WriteAll%10==0 && checkstatus(AMSDBc::USED));
   if(AMSTRDMCCluster::Out(flag)){
 #ifdef __WRITEROOTCLONES__
-    if(AMSJob::gethead()->getntuple()) {
-     int Layer =_idsoft.getlayer();
-     int Ladder=_idsoft.getladder();
-     int Tube  =_idsoft.gettube();
-     float xgl[3];
-     for(int i=0;i<3;i++)xgl[i]=_xgl[i];
+    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
+  TRDMCClusterNtuple* TRDMCClusterN = AMSJob::gethead()->getntuple()->Get_trdclmc();
+  
+  if (TRDMCClusterN->Ntrdclmc>=MAXTRDCLMC) return;
 
-     EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-     TClonesArray &clones =  *(ev02.Get_ftrdmccluster());
-     int N = TRDMCClusterN->Ntrdclmc;
-     new (clones[N]) TRDMCClusterRoot(Layer, Ladder, Tube, _itra,
-                                      _edep, _ekin, xgl, _step);
-     N++;
-     AMSJob::gethead()->getntuple()->Get_event02()->Set_fNtrdmccluster(N);
-    }
-#else
     TRDMCClusterN->Layer[TRDMCClusterN->Ntrdclmc]=_idsoft.getlayer();
     TRDMCClusterN->Ladder[TRDMCClusterN->Ntrdclmc]=_idsoft.getladder();
     TRDMCClusterN->Tube[TRDMCClusterN->Ntrdclmc]=_idsoft.gettube();
@@ -73,7 +59,6 @@ void AMSTRDMCCluster::_writeEl(){
     TRDMCClusterN->TrackNo[TRDMCClusterN->Ntrdclmc]=_itra;
     for(int i=0;i<3;i++)TRDMCClusterN->Xgl[TRDMCClusterN->Ntrdclmc][i]=_xgl[i];
     TRDMCClusterN->Step[TRDMCClusterN->Ntrdclmc]=_step;
-#endif
     TRDMCClusterN->Ntrdclmc++;
   }   
 }
@@ -324,10 +309,6 @@ void AMSTrMCCluster::_copyEl(){
 
 void AMSTrMCCluster::_writeEl(){
 
-  TrMCClusterNtuple* TrMCClusterN = AMSJob::gethead()->getntuple()->Get_trclmc();
-  
-  if (TrMCClusterN->Ntrclmc>=MAXTRCLMC) return;
-
   integer flag =    (IOPA.WriteAll%10==1)
                  || (IOPA.WriteAll%10==0 && checkstatus(AMSDBc::USED))
                  || (IOPA.WriteAll%10==2 && !checkstatus(AMSDBc::AwayTOF));
@@ -336,23 +317,12 @@ void AMSTrMCCluster::_writeEl(){
   if(AMSTrMCCluster::Out(flag)){
     int i;
 #ifdef __WRITEROOTCLONES__
-    if(AMSJob::gethead()->getntuple()) {
-      float xca[3];
-      float xcb[3];
-      float xgl[3];
-      for(i=0;i<3;i++)xca[i]=_xca[i];
-      for(i=0;i<3;i++)xcb[i]=_xcb[i];
-      for(i=0;i<3;i++)xgl[i]=_xgl[i];
+    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
+  TrMCClusterNtuple* TrMCClusterN = AMSJob::gethead()->getntuple()->Get_trclmc();
+  
+  if (TrMCClusterN->Ntrclmc>=MAXTRCLMC) return;
 
-     EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-     TClonesArray &clones =  *(ev02.Get_ftrmccluster());
-     int N = TrMCClusterN->Ntrclmc;
-     new (clones[N]) TrMCClusterRoot(_idsoft, _itra, _left, _center, _right,
-                                    _ss, xca, xcb, xgl, _sum);
-     N++;
-     AMSJob::gethead()->getntuple()->Get_event02()->Set_fNtrmccluster(N);
-    }
-#else
 // Fill the ntuple
     TrMCClusterN->Idsoft[TrMCClusterN->Ntrclmc]=_idsoft;
     TrMCClusterN->TrackNo[TrMCClusterN->Ntrclmc]=_itra;
@@ -385,8 +355,6 @@ void AMSTrMCCluster::_writeEl(){
     for(i=0;i<3;i++)cout <<TrMCClusterN->Xgl[TrMCClusterN->Ntrclmc][i]<<" " <<_xgl[i]<<endl;
     cout <<TrMCClusterN->Sum[TrMCClusterN->Ntrclmc]<<" " <<_sum<<endl;
 */
-#endif
-
     TrMCClusterN->Ntrclmc++;
   }
 
@@ -664,27 +632,15 @@ void AMSRichMCHit::_writeEl(){
 
   if(cluster->NMC>=MAXRICMC) return; 
 
-  if(cluster->NMC==0)
-    cluster->numgen=RICHDB::nphgen;
   if(_status==Status_Fake) return; // Fake hit
 // Here we need a flag with the IOPA to write it or not
 #ifdef __WRITEROOTCLONES__
-    if(AMSJob::gethead()->getntuple()) {
-      int N=cluster->NMC;
-      EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-      TClonesArray &clones =  *(ev02.Get_fricmc());
-      int numgen = RICHDB::nphgen;
-      float origin[3];
-      float direction[3];
-      for (int i=0; i<3; i++) {
-        origin[i] = _origin[i];
-        direction[i] = _direction[i];
-      }
-      new (clones[N]) RICMCRoot(_id, origin, direction, _status, numgen, _hit);
-      N++;
-      AMSJob::gethead()->getntuple()->Get_event02()->Set_fNricmc(N);
-    }
-#else
+     int numgen = 0;
+     if(cluster->NMC==0) numgen = RICHDB::nphgen;
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this,numgen);
+#endif
+  if(cluster->NMC==0)
+    cluster->numgen=RICHDB::nphgen;
   cluster->id[cluster->NMC]=_id;
   cluster->origin[cluster->NMC][0]=_origin[0];
   cluster->origin[cluster->NMC][1]=_origin[1];
@@ -694,8 +650,6 @@ void AMSRichMCHit::_writeEl(){
   cluster->direction[cluster->NMC][2]=_direction[2];
   cluster->status[cluster->NMC]=_status;
   cluster->eventpointer[cluster->NMC]=_hit;
-#endif
-
 
   cluster->NMC++;
 
@@ -708,31 +662,19 @@ void AMSRichMCHit::_writeEl(){
 
 void AMSTOFMCCluster::_writeEl(){
 
+  if(AMSTOFMCCluster::Out( IOPA.WriteAll%10==1)){
+#ifdef __WRITEROOTCLONES__
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
   TOFMCClusterNtuple* TOFMCClusterN = AMSJob::gethead()->getntuple()->Get_tofmc();
 
   if (TOFMCClusterN->Ntofmc>=MAXTOFMC) return;
   
 // Fill the ntuple
-  if(AMSTOFMCCluster::Out( IOPA.WriteAll%10==1)){
-#ifdef __WRITEROOTCLONES__
-    if(AMSJob::gethead()->getntuple()) {
-      float coo[3];
-      int N=TOFMCClusterN->Ntofmc;
-      for(int i=0;i<3;i++)coo[i]=xcoo[i];
-      EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-      TClonesArray &clones =  *(ev02.Get_ftofmccluster());
-      new (clones[N]) TOFMCClusterRoot(idsoft, coo, tof, edep);
-      N++;
-      AMSJob::gethead()->getntuple()->Get_event02()->Set_fNtofmccluster(N);
-    } else {
-      cout<<"AMSTOFMCCluster::_writeEl -W- cannot add to clones array"<<endl;
-    }
-#else
     TOFMCClusterN->Idsoft[TOFMCClusterN->Ntofmc]=idsoft;
     for(int i=0;i<3;i++)TOFMCClusterN->Coo[TOFMCClusterN->Ntofmc][i]=xcoo[i];
     TOFMCClusterN->TOF[TOFMCClusterN->Ntofmc]=tof;
     TOFMCClusterN->Edep[TOFMCClusterN->Ntofmc]=edep;
-#endif
     TOFMCClusterN->Ntofmc++;
   }
 
@@ -740,29 +682,18 @@ void AMSTOFMCCluster::_writeEl(){
 
 void AMSAntiMCCluster::_writeEl(){
 
-  ANTIMCClusterNtuple* AntiMCClusterN = AMSJob::gethead()->getntuple()->Get_antimc();
 
-  if (AntiMCClusterN->Nantimc>=MAXANTIMC) return;
-  
-// fill the ntuple
   if(AMSAntiMCCluster::Out( IOPA.WriteAll%10==1)){
 #ifdef __WRITEROOTCLONES__
-    if(AMSJob::gethead()->getntuple()) {
-      float coo[3];
-      int N=AntiMCClusterN->Nantimc;
-      for(int i=0;i<3;i++)coo[i]=_xcoo[i];
-      EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-      TClonesArray &clones =  *(ev02.Get_fantimccluster());
-      new (clones[N]) ANTIMCClusterRoot(_idsoft, coo, _tof, _edep);
-      N++;
-      AMSJob::gethead()->getntuple()->Get_event02()->Set_fNantimccluster(N);
-    } 
-#else
+    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
+// fill the ntuple
+  ANTIMCClusterNtuple* AntiMCClusterN = AMSJob::gethead()->getntuple()->Get_antimc();
+    if (AntiMCClusterN->Nantimc>=MAXANTIMC) return;
     AntiMCClusterN->Idsoft[AntiMCClusterN->Nantimc]=_idsoft;
     for(int i=0;i<3;i++)AntiMCClusterN->Coo[AntiMCClusterN->Nantimc][i]=_xcoo[i];
     AntiMCClusterN->TOF[AntiMCClusterN->Nantimc]=_tof;
     AntiMCClusterN->Edep[AntiMCClusterN->Nantimc]=_edep;
-#endif
     AntiMCClusterN->Nantimc++;
   }
 }

@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.12 2001/10/02 12:57:24 choutko Exp $
+//  $Id: point.h,v 1.13 2002/06/03 14:53:43 alexei Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSPOINT__
@@ -56,6 +56,9 @@ number   operator[](integer i) const{
 friend ostream &operator << (ostream &o, const  AMSPoint &b )
    {return o<<" "<<b._x<<" "<<b._y<<" "<<b._z;}
  AMSPoint crossp(const AMSPoint & o);
+#ifdef __WRITEROOT__
+ friend class AMSPointRoot;
+#endif
 };
 class AMSDir :public AMSPoint{
 private:

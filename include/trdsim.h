@@ -1,4 +1,4 @@
-//  $Id: trdsim.h,v 1.3 2001/11/30 16:47:13 choutko Exp $
+//  $Id: trdsim.h,v 1.4 2002/06/03 14:53:43 alexei Exp $
 #ifndef __AMSTRDSIM__
 #define __AMSTRDSIM__
 
@@ -55,6 +55,9 @@ static void sitrdnoise();
 
 static void builddaq(int n, int16u* p);
 static void buildraw(int i, int n, int16u*p);
+#ifdef __WRITEROOT__
+ friend class TRDRawHitRoot;
+#endif
 };
 
 

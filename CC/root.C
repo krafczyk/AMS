@@ -1,9 +1,23 @@
-//  $Id: root.C,v 1.20 2002/05/22 09:01:38 alexei Exp $
+//  $Id: root.C,v 1.21 2002/06/03 14:53:34 alexei Exp $
 #include <root.h>
 #include <ntuple.h>
+#include <antirec02.h>
+#include <beta.h>
+#include <ecalrec.h>
+#include <mccluster.h>
+#include <mceventg.h>
+#include <particle.h>
+#include <richrec.h>
+#include <tofrec02.h>
+#include <trdrec.h>
+#include <trigger102.h>
+#include <trigger302.h>
+#include <trrawcluster.h>
+#include <trrec.h>
 #ifdef __WRITEROOT__
 
-ClassImp(EventNtuple02)
+ClassImp(AMSEventHeaderRoot)
+ClassImp(EventRoot02)
 
 ClassImp(BetaRoot02)
 ClassImp(ChargeRoot02)
@@ -36,606 +50,890 @@ ClassImp(RICMCRoot)
 ClassImp(RICEventRoot)
 ClassImp(RICRingRoot)
 
-EventNtuple02::EventNtuple02(){}
+//------------------- constructors -----------------------
 
-BetaRoot02::BetaRoot02(){}
-
-BetaRoot02::BetaRoot02(int status, int pattern, float beta, float betaC,
-                           float ErrBeta, float ErrBetaC, float chi2, float chi2S,
-                           int ntof, int ptof[], int ptr)
+AntiClusterRoot::AntiClusterRoot(){};
+AntiClusterRoot::AntiClusterRoot(AMSAntiCluster *ptr)
 {
-  Status   = status;
-  Pattern  = pattern;
-  Beta     = beta;
-  BetaC    = betaC;
-  Error    = ErrBeta;
-  ErrorC   = ErrBetaC;
-  Chi2     = chi2;
-  Chi2S    = chi2S;
-  NTOF     = ntof;
-  for (int i=0; i<4; i++) pTOF[i] = ptof[i];
-  pTr      = ptr;
+  Status = ptr->_status;
+  Sector = ptr->_sector;
+  Edep   = ptr->_edep;
+  for (int i=0; i<3; i++) Coo[i] = ptr->_coo[i];
+  for (int i=0; i<3; i++) ErrorCoo[i] = ptr->_ecoo[i];
 }
-ChargeRoot02::ChargeRoot02() {};
-ChargeRoot02::ChargeRoot02(int status, int betap, int chargetof, int chargetr, 
-              float probtof[],int chintof[], float probtr[], int chintr[],
-              float proballtr, float truntof, float truntofd, float truntr)
+
+ANTIMCClusterRoot::ANTIMCClusterRoot(){};
+ANTIMCClusterRoot::ANTIMCClusterRoot(AMSAntiMCCluster *ptr)
 {
-  Status = status;
-  BetaP  = betap;
-  ChargeTOF = chargetof;
-  ChargeTracker = chargetr;
+  Idsoft = ptr->_idsoft;
+  for (int i=0; i<3; i++) Coo[i]=ptr->_xcoo[i];
+  TOF    = ptr->_tof;
+  Edep   = ptr->_edep;
+}
+
+AntiRawClusterRoot::AntiRawClusterRoot(){};
+AntiRawClusterRoot::AntiRawClusterRoot(AMSAntiRawCluster *ptr)
+{
+
+  Status = ptr->_status;
+  Sector = ptr->_sector;
+  UpDown = ptr->_updown;
+  Signal = ptr->_signal;
+}
+
+BetaRoot02::BetaRoot02()
+{
+  fTrTrack    = 0;
+  fTOFCluster =  new TRefArray;
+}
+BetaRoot02::~BetaRoot02(){
+  delete fTOFCluster; fTOFCluster = 0;
+}
+BetaRoot02::BetaRoot02(AMSBeta *ptr)
+{
+  Status   = ptr->_status;
+  Pattern  = ptr->_Pattern;
+  Beta     = ptr->_Beta;
+  BetaC    = ptr->_BetaC;
+  Error    = ptr->_InvErrBeta;
+  ErrorC   = ptr->_InvErrBetaC;
+  Chi2     = ptr->_Chi2;
+  Chi2S    = ptr->_Chi2Space;
+  //
+  fTrTrack    = 0;
+  fTOFCluster =  new TRefArray;
+  //
+}
+
+ChargeRoot02::ChargeRoot02() { fBeta = 0;}
+ChargeRoot02::~ChargeRoot02() {};
+ChargeRoot02::ChargeRoot02(AMSCharge *ptr, float probtof[],int chintof[], 
+                           float probtr[], int chintr[], float proballtr)
+{
+  Status = ptr->_status;
+  BetaP  = ptr->_pbeta->getpos();
+  ChargeTOF     = ptr->_ChargeTOF;
+  ChargeTracker = ptr->_ChargeTracker;
   for (int i=0; i<4; i++) {
     ProbTOF[i] = probtof[i];
     ChInTOF[i] = chintof[i];
     ProbTracker[i] = probtr[i];
     ChInTracker[i] = chintr[i];
   }
-  ProbAllTracker=proballtr;
-  TrunTOF = truntof;
-  TrunTOFD= truntofd;
-  TrunTracker = truntr;
-}
-ParticleRoot02::ParticleRoot02(){};
-ParticleRoot02::ParticleRoot02(
-               int betap, int chargep, int trackp, int trdp, int richp, int ecalp,
-               int particle, int particlevice, float prob[], float fitmom,
-               float mass, float errmass, float momentum, float errmomentum,
-               float beta, float errbeta, float charge, float theta, float phi,
-               float thetagl, float phigl, float coo[], float cutoff,
-               float tofcoo[4][3], float anticoo[2][3], float ecalcoo[3][3],
-               float trcoo[8][3], float trdcoo[], float richcoo[2][3],
-               float richpath[], float richlength)
-{
-  BetaP    = betap;
-  ChargeP  = chargep;
-  TrackP   = trackp;
-  TRDP     = trdp;
-  RICHP    = richp;
-  EcalP    = ecalp;
-  Particle = particle;
-  ParticleVice = particlevice;
-  for (int i=0; i<2; i++) {Prob[i] = prob[i];}
-  FitMom   = fitmom;
-  Mass     = mass;
-  ErrMass  = errmass;
-  Momentum = momentum;
-  ErrMomentum = errmomentum;
-  Beta     = beta;
-  ErrBeta  = errbeta;
-  Charge   = charge;
-  Theta    = theta;
-  Phi      = phi;
-  ThetaGl  = thetagl;
-  PhiGl    = phigl;
-  for (int i=0; i<3; i++) {Coo[i] = coo[i];}
-  Cutoff   = cutoff;
-  for (int i=0; i<4; i++) {
-    for (int j=0; j<3; j++) {
-      TOFCoo[i][j] = tofcoo[i][j];
-    }
-  }
-  for (int i=0; i<2; i++) {
-    for (int j=0; j<3; j++) {
-      AntiCoo[i][j] = anticoo[i][j];
-    }
-  }
-  for (int i=0; i<3; i++) {
-    for (int j=0; j<3; j++) {
-      EcalCoo[i][j] = ecalcoo[i][j];
-    }
-  }
-  for (int i=0; i<8; i++) {
-    for (int j=0; j<3; j++) {
-      TrCoo[i][j] = trcoo[i][j];
-    }
-  }
-  for (int i=0; i<3; i++) {TRDCoo[i] = trdcoo[i];}
-  for (int i=0; i<2; i++) {
-    for (int j=0; j<3; j++) {
-      RichCoo[i][j] = richcoo[i][j];
-    }
-  }
-  for (int i=0; i<2; i++) {RichPath[i] = richpath[i];}
-  RichLength = richlength;
-}
-/*
-ParticleRoot02::ParticleRoot02(
-               int betap, int chargep, int trackp, int trdp, int richp, int ecalp,
-               int particle, int particlevice, float prob[], float fitmom,
-               float mass, float errmass, float momentum, float errmomentum,
-               float beta, float errbeta, float charge, float theta, float phi,
-               float thetagl, float phigl, AMSPoint coo, float cutoff,
-               float tofcoo[4][3], float anticoo[2][3], float ecalcoo[3][3],
-               float trcoo[8][3], float trdcoo[], float richcoo[2][3],
-               float richpath[], float richlength)
-{
-  BetaP    = betap;
-  ChargeP  = chargep;
-  TrackP   = trackp;
-  TRDP     = trdp;
-  RICHP    = richp;
-  EcalP    = ecalp;
-  Particle = particle;
-  ParticleVice = particlevice;
-  for (int i=0; i<2; i++) {Prob[i] = prob[i];}
-  FitMom   = fitmom;
-  Mass     = mass;
-  ErrMass  = errmass;
-  Momentum = momentum;
-  ErrMomentum = errmomentum;
-  Beta     = beta;
-  ErrBeta  = errbeta;
-  Charge   = charge;
-  Theta    = theta;
-  Phi      = phi;
-  ThetaGl  = thetagl;
-  PhiGl    = phigl;
-  for (int i=0; i<3; i++) Coo[i]      = coo[i];
-  Cutoff   = cutoff;
-  for (int i=0; i<4; i++) {
-    for (int j=0; j<3; j++) {
-      TOFCoo[i][j] = tofcoo[i][j];
-    }
-  }
-  for (int i=0; i<2; i++) {
-    for (int j=0; j<3; j++) {
-      AntiCoo[i][j] = anticoo[i][j];
-    }
-  }
-  for (int i=0; i<3; i++) {
-    for (int j=0; j<3; j++) {
-      EcalCoo[i][j] = ecalcoo[i][j];
-    }
-  }
-  for (int i=0; i<8; i++) {
-    for (int j=0; j<3; j++) {
-      TrCoo[i][j] = trcoo[i][j];
-    }
-  }
-  for (int i=0; i<3; i++) {TRDCoo[i] = trdcoo[i];}
-  for (int i=0; i<2; i++) {
-    for (int j=0; j<3; j++) {
-      RichCoo[i][j] = richcoo[i][j];
-    }
-  }
-  for (int i=0; i<2; i++) {RichPath[i] = richpath[i];}
-  RichLength = richlength;
-}
-*/
-TOFClusterRoot::TOFClusterRoot() {};
-TOFClusterRoot::TOFClusterRoot(
-                               int status, int layer, int bar, int nmemb, float edep, 
-                               float edepd, float time, float errtime, float coo[], 
-                               float errcoo[])
-{
-  Status = status;
-  Layer  = layer;
-  Bar    = bar;
-  Nmemb  = nmemb;
-  Edep   = edep;
-  Edepd  = edepd;
-  Time   = time;
-  ErrTime= errtime;
-  for (int i=0; i<3; i++) {
-    Coo[i] = coo[i];
-    ErrorCoo[i] = errcoo[i];
-  }
-}
-EcalShowerRoot::EcalShowerRoot() {};
-EcalShowerRoot::EcalShowerRoot(
-               int status, float dir[], float emdir[], float entry[],
-               float exit[], float cofg[], float ertheta, float chi2dir,
-               float firstlayeredep, float energyc, 
-               float energy3c, float energy5c, float energy9c,
-               float erenergyc, float difosum, float sideleak, float rearleak,
-               float deadleak, float orpleak, float orp2denergy,
-               float chi2profile, float  parprofile[], float chi2trans,
-               float sphericity[], int p2dcl[])
-{
-  Status      = status;
-  for (int i=0; i<3; i++) {
-   Dir[i]   = dir[i];
-   EMDir[i] = emdir[i];
-   Entry[i] = entry[i];
-   Exit[i]  = exit[i];
-   CofG[i]  = cofg[i];
-  }
-  ErTheta   = ertheta;
-  Chi2Dir   = chi2dir;
-  FirstLayerEdep = firstlayeredep;
-  EnergyC   = energyc;
-  Energy3C[0] = energy3c;
-  Energy3C[1] = energy5c;
-  Energy3C[2] = energy9c;
-  ErEnergyC = erenergyc;
-  DifoSum   = difosum;
-  SideLeak  = sideleak;
-  RearLeak  = rearleak;
-  DeadLeak  = deadleak;
-  OrpLeak   = orpleak;
-  Orp2DEnergy = orp2denergy;
-  Chi2Profile = chi2profile;
-  for (int i=0; i<4; i++) {ParProfile[i] = parprofile[i];}
-  Chi2Trans = chi2trans;
-  for (int i=0; i<3; i++) {SphericityEV[i] = sphericity[i];}
-  for (int i=0; i<2; i++) {p2dcl[i]      = p2dcl[i];}
-}
-EcalClusterRoot::EcalClusterRoot() {};
-EcalClusterRoot::EcalClusterRoot(
-                                 int status, int proj, int plane, int left, int center,
-                                 int right,
-                                 float edep, float sideleak, float deadleak, float coo[],
-                                 int pleft, int nhits)
-{
-  Status  = status;
-  Proj    = proj;
-  Plane   = plane;
-  Left    = left;
-  Center  = center;
-  Right   = right;
-  Edep    = edep;
-  SideLeak = sideleak;
-  DeadLeak = deadleak;
-  for (int i=0; i<3; i++) {Coo[i] = coo[i];}
-  pLeft = pleft;
-  NHits = nhits;
-}
-Ecal2DClusterRoot::Ecal2DClusterRoot(){};
-Ecal2DClusterRoot::Ecal2DClusterRoot
-                 (int status, int proj, int nmemb, float edep, float coo,
-                  float tan, float chi2, int pcl[])
-{
-  Status = status;
-  Proj   = proj;
-  Nmemb  = nmemb;
-  Edep   = edep;
-  Coo    = coo;
-  Tan    = tan;
-  Chi2   = chi2;
-  for (int i=0; i<18; i++) {pCl[i] = pcl[i];}
+  ProbAllTracker= proballtr;
+  TrunTOF       = ptr->_TrMeanTOF;
+  TrunTOFD      = ptr->_TrMeanTOFD;
+  TrunTracker   = ptr->_TrMeanTracker;
+  fBeta         = 0;
 }
 
-EcalHitRoot::EcalHitRoot(){};
-EcalHitRoot::EcalHitRoot(int status, int idsoft, int proj, int plane, int cell,
-                         float edep, float coo[])
+Ecal2DClusterRoot::Ecal2DClusterRoot(){ fEcal1DCluster = new TRefArray;}
+Ecal2DClusterRoot::~Ecal2DClusterRoot(){ delete fEcal1DCluster; fEcal1DCluster=0;}
+Ecal2DClusterRoot::Ecal2DClusterRoot(Ecal2DCluster *ptr) 
 {
-  Status = status;
-  Idsoft = idsoft;
-  Proj   = proj;
-  Plane  = plane;
-  Cell   = cell;
-  Edep   = edep;
-  for (int i=0; i<3; i++) {Coo[i] = coo[i];}
+  Status = ptr->getstatus();
+  Proj   = ptr->_proj;
+  Nmemb  = ptr->_NClust;
+  Edep   = ptr->_EnergyC;
+  Coo    = ptr->_Coo;
+  Tan    = ptr->_Tan;
+  Chi2   = ptr->_Chi2;
+
+  fEcal1DCluster = new TRefArray;
+}
+
+EcalClusterRoot::EcalClusterRoot()  {fEcalHit = new TRefArray;}
+EcalClusterRoot::~EcalClusterRoot() {delete fEcalHit; fEcalHit = 0;}
+EcalClusterRoot::EcalClusterRoot(Ecal1DCluster *ptr)
+{
+  Status  = ptr->_status;
+  Proj    = ptr->_proj;
+  Plane   = ptr->_plane;
+  Left    = ptr->_Left;
+  Center  = ptr->_MaxCell;
+  Right   = ptr->_Right;
+  Edep    = ptr->_EnergyC;
+  SideLeak = ptr->_SideLeak;
+  DeadLeak = ptr->_DeadLeak;
+  for (int i=0; i<3; i++) {Coo[i] = ptr->_Coo[i];}
+  NHits = ptr->_NHits;
+
+  fEcalHit = new TRefArray;
+}
+
+EcalShowerRoot::EcalShowerRoot() {};
+EcalShowerRoot::EcalShowerRoot(EcalShower *ptr)
+{
+  Status      = ptr->_status;
+  for (int i=0; i<3; i++) {
+   Dir[i]   = ptr->_Dir[i];
+   EMDir[i] = ptr->_EMDir[i];
+   Entry[i] = ptr->_EntryPoint[i];
+   Exit[i]  = ptr->_ExitPoint[i];
+   CofG[i]  = ptr->_CofG[i];
+  }
+  ErTheta   = ptr->_Angle3DError;
+  Chi2Dir   = ptr->_AngleTrue3DChi2;
+  FirstLayerEdep = ptr->_FrontEnergyDep;
+  EnergyC   =   ptr->_EnergyC;
+  Energy3C[0] = ptr->_Energy3C;
+  Energy3C[1] = ptr->_Energy5C;
+  Energy3C[2] = ptr->_Energy9C;
+  ErEnergyC   = ptr->_ErrEnergyC;
+  DifoSum     = ptr->_DifoSum;
+  SideLeak    = ptr->_SideLeak;
+  RearLeak    = ptr->_RearLeak;
+  DeadLeak    = ptr->_DeadLeak;
+  OrpLeak     = ptr->_OrpLeak;
+  Orp2DEnergy = ptr->_Orp2DEnergy;
+  Chi2Profile = ptr->_ProfilePar[4+ptr->_Direction*5];
+  for (int i=0; i<4; i++) ParProfile[i] = ptr->_ProfilePar[i+ptr->_Direction*5];
+  Chi2Trans = ptr->_TransFitChi2;
+  for (int i=0; i<3; i++) SphericityEV[i] = ptr->_SphericityEV[i];
+  for (int i=0; i<2; i++) p2DCl[i]      =   ptr->_pCl[i]->getpos();
+}
+
+LVL1Root02::LVL1Root02(){};
+LVL1Root02::LVL1Root02(Trigger2LVL1 *ptr)
+{
+  Mode   = ptr->_LifeTime;
+  TOFlag = ptr->_tofflag;
+  for (int i=0; i<4; i++) {
+    TOFPatt[i]  = ptr->_tofpatt[i];
+    TOFPatt1[i] = ptr->_tofpatt1[i];
+  }
+  AntiPatt = ptr->_antipatt;
+  ECALflag = ptr->_ecalflag;
+  ECALtrsum= ptr->_ectrsum;
+}
+
+LVL3Root02::LVL3Root02(){};
+LVL3Root02::LVL3Root02(TriggerLVL302 *ptr)
+{
+  TOFTr     = ptr->_TOFTrigger;
+  TRDTr     = ptr->_TRDTrigger;
+  TrackerTr = ptr->_TrackerTrigger;
+  MainTr    = ptr->_MainTrigger;
+  Direction = ptr->_TOFDirection;
+  NTrHits   = ptr->_NTrHits;
+  NPatFound = ptr->_NPatFound;
+  for (int i=0; i<2; i++) {Pattern[i] = ptr->_Pattern[i];}
+  for (int i=0; i<2; i++) {Residual[i]= ptr->_Residual[i];}
+  Time      = ptr->_Time;
+  ELoss     = ptr->_TrEnergyLoss;
+  TRDHits   = ptr->TRDAux._NHits[0]+ptr->TRDAux._NHits[1];;
+  HMult     = ptr->TRDAux._HMult;;
+  for (int i=0; i<2; i++) {TRDPar[i] = ptr->TRDAux._Par[i][0];}
+  ECemag    = ptr->_ECemag;
+  ECmatc    = ptr->_ECmatc;
+  for (int i=0; i<4; i++) {ECTOFcr[i] = ptr->_ECtofcr[i];}
+
+}
+
+MCEventGRoot02::MCEventGRoot02(){};
+MCEventGRoot02::MCEventGRoot02(AMSmceventg *ptr)
+{
+  Nskip    = ptr->_nskip;
+  Particle = ptr->_ipart;
+  for (int i=0; i<3; i++) Coo[i] = ptr->_coo[i];
+  for (int i=0; i<3; i++) Dir[i] = ptr->_dir[i];
+  Momentum = ptr->_mom;
+  Mass     = ptr->_mass;
+  Charge   = ptr->_charge;
+}           
+
+MCTrackRoot::MCTrackRoot(){};
+MCTrackRoot::MCTrackRoot(AMSmctrack *ptr)
+{
+  _radl = ptr->_radl;
+  _absl = ptr->_absl;
+  for (int i=0; i<3; i++) _pos[i]   = ptr->_pos[i];
+  for (int i=0; i<4; i++) _vname[i] = ptr->_vname[i];
+}
+
+ParticleRoot02::ParticleRoot02(){ 
+  fBeta   = 0;
+  fCharge = 0;
+  fTrack  = 0;
+  fTRD    = 0;
+  fRich   = 0;
+  fShower = 0;
+};
+
+ParticleRoot02::ParticleRoot02(AMSParticle *ptr, float phi, float phigl)
+{
+  Phi      = phi;
+  PhiGl    = phigl;
+
+  fBeta   = 0;
+  fCharge = 0;
+  fTrack  = 0;
+  fTRD    = 0;
+  fRich   = 0;
+  fShower = 0;
+
+  Particle     = ptr->_gpart[0];
+  ParticleVice = ptr->_gpart[1];
+  for (int i=0; i<2; i++) {Prob[i] = ptr->_prob[i];}
+  FitMom   = ptr->_fittedmom[0];
+  Mass     = ptr->_Mass;
+  ErrMass  = ptr->_ErrMass;
+  Momentum = ptr->_Momentum;
+  ErrMomentum = ptr->_ErrMomentum;
+  Beta     = ptr->_Beta;
+  ErrBeta  = ptr->_ErrBeta;
+  Charge   = ptr->_Charge;
+  Theta    = ptr->_Theta;
+  ThetaGl  = ptr->_ThetaGl;
+  for (int i=0; i<3; i++) {Coo[i] = ptr->_Coo[i];}
+  Cutoff   = ptr->_CutoffMomentum;
+  for (int i=0; i<4; i++) {
+    for (int j=0; j<3; j++) {
+      TOFCoo[i][j] = ptr->_TOFCoo[i][j];
+    }
+  }
+  for (int i=0; i<2; i++) {
+    for (int j=0; j<3; j++) {
+      AntiCoo[i][j] = ptr->_AntiCoo[i][j];
+    }
+  }
+  for (int i=0; i<3; i++) {
+    for (int j=0; j<3; j++) {
+      EcalCoo[i][j] = ptr->_EcalSCoo[i][j];
+    }
+  }
+  for (int i=0; i<8; i++) {
+    for (int j=0; j<3; j++) {
+      TrCoo[i][j] = ptr->_TrCoo[i][j];
+    }
+  }
+  for (int i=0; i<8; i++)  Local[i] = ptr->_Local[i];
+
+  for (int i=0; i<3; i++) {TRDCoo[i] = ptr->_TRDCoo[i];}
+  for (int i=0; i<2; i++) {
+    for (int j=0; j<3; j++) {
+      RichCoo[i][j] = ptr->_RichCoo[i][j];
+    }
+  }
+  for (int i=0; i<2; i++) {RichPath[i] = ptr->_RichPath[i];}
+  RichLength = ptr->_RichLength;
+}
+
+
+
+
+TOFClusterRoot::TOFClusterRoot() {};
+TOFClusterRoot::TOFClusterRoot(AMSTOFCluster *ptr)
+{
+  Status = ptr->_status;
+  Layer  = ptr->_ntof;
+  Bar    = ptr->_plane;
+  Nmemb  = ptr->_nmemb;
+  Edep   = ptr->_edep;
+  Edepd  = ptr->_edepd;
+  Time   = ptr->_time;
+  ErrTime= ptr->_etime;
+  for (int i=0; i<3; i++) {
+    Coo[i] = ptr->_Coo[i];
+    ErrorCoo[i] = ptr->_ErrorCoo[i];
+  }
 }
 
 TOFMCClusterRoot::TOFMCClusterRoot() {};
-TOFMCClusterRoot::TOFMCClusterRoot(int idsoft, float coo[], float tof, float edep)
+TOFMCClusterRoot::TOFMCClusterRoot(AMSTOFMCCluster *ptr)
 {
-  Idsoft = idsoft;
-  for (int i=0; i<3; i++) {Coo[i] = coo[i];}
-  TOF = tof;
-  Edep= edep;
+  Idsoft = ptr->idsoft;
+  for (int i=0; i<3; i++) {Coo[i] = ptr->xcoo[i];}
+  TOF = ptr->tof;
+  Edep= ptr->edep;
 }
-TrClusterRoot::TrClusterRoot(){};
-TrClusterRoot::TrClusterRoot(
-                             int idsoft, int status, int neleml, int nelemr, 
-                             float sum, float sigma, float mean, float rms, 
-                             float errmean, float amplitude[])
+
+TOFRawClusterRoot::TOFRawClusterRoot(){};
+TOFRawClusterRoot::TOFRawClusterRoot(TOF2RawCluster *ptr)
 {
-  Idsoft = idsoft;
-  Status = status;
-  NelemL = neleml;
-  NelemR = nelemr;
-  Sum    = sum;
-  Sigma  = sigma;
-  Mean   = mean;
-  RMS    = rms;
-  ErrorMean = errmean;
-  for (int i=0; i<5; i++) {Amplitude[i] = amplitude[i];}
+
+  Status = ptr->_status;
+  Layer  = ptr->_ntof;
+  Bar    = ptr->_plane;
+  for (int i=0; i<2; i++) tovta[i]=ptr->_adch[i];
+  for (int i=0; i<2; i++) tovtd[i]=ptr->_adcl[i];
+  for (int i=0; i<2; i++) sdtm[i] =ptr->_sdtm[i];
+  edepa  = ptr->_edeph;
+  edepd  = ptr->_edepl;
+  time   = ptr->_time;
+  cool   = ptr->_timeD;
 }
-TrMCClusterRoot::TrMCClusterRoot(){};
-TrMCClusterRoot::TrMCClusterRoot(
-                                 int idsoft, int trackno, 
-                                 int left[], int center[], int right[],
-                                 float ss[2][5], 
-                                 float xca[], float xcb[], float xgl[], float sum)
+
+TRDClusterRoot::TRDClusterRoot(){fTRDRawHit = 0;};
+TRDClusterRoot::TRDClusterRoot(AMSTRDCluster *ptr)
 {
-  Idsoft  = idsoft;
-  TrackNo = trackno;
-  for (int i=0; i<2; i++) {
-         Left[i]   = left[i];
-         Center[i] = center[i];
-         Right[i]  = right[i];
-  }
-  for (int i=0; i<3; i++) {
-    Xca[i] = xca[i];
-    Xcb[i] = xcb[i];
-    Xgl[i] = xgl[i];
-  }
-  Sum = sum;
-  for (int i=0; i<2; i++) {
-    for (int j=0; j<5; j++) {
-      SS[i][j] = ss[i][j];
-    }
-  }
+  Status = ptr->_status;
+  Layer  = ptr->_layer;
+  for (int i=0; i<3; i++) Coo[i]= ptr->_Coo[i];
+  for (int i=0; i<3; i++) CooDir[i]= ptr->_CooDir[i];
+  Multip = ptr->_Multiplicity;
+  HMultip= ptr->_HighMultiplicity;
+  EDep   = ptr->_Edep;
+  
+  fTRDRawHit = 0;
 }
+
 TRDMCClusterRoot::TRDMCClusterRoot(){};
-TRDMCClusterRoot::TRDMCClusterRoot(
-                                   int layer, int ladder, int tube, int trackno,
-                                   float edep, float ekin, float xgl[], float step)
+TRDMCClusterRoot::TRDMCClusterRoot(AMSTRDMCCluster *ptr)
 {
-  Layer  = layer;
-  Ladder = ladder;
-  Tube   = tube;
-  TrackNo= trackno;
-  Edep   = edep;
-  Ekin   = ekin;
-  for (int i=0; i<3; i++) {Xgl[i] = xgl[i];}
-  Step   = step;
+  Layer  = ptr->_idsoft.getlayer();
+  Ladder = ptr->_idsoft.getladder();
+  Tube   = ptr->_idsoft.gettube();
+  TrackNo= ptr->_itra;
+  Edep   = ptr->_edep;
+  Ekin   = ptr->_ekin;
+  for (int i=0; i<3; i++) {Xgl[i] = ptr->_xgl[i];}
+  Step   = ptr->_step;
 }
 
 TRDRawHitRoot::TRDRawHitRoot(){};
-TRDRawHitRoot::TRDRawHitRoot(int layer, int ladder, int tube, float amp)
+TRDRawHitRoot::TRDRawHitRoot(AMSTRDRawHit *ptr)
 {
-  Layer  = layer;
-  Ladder = ladder;
-  Tube   = tube;
-  Amp    = amp;
+  Layer  = ptr->_id.getlayer();
+  Ladder = ptr->_id.getladder();
+  Tube   = ptr->_id.gettube();
+  Amp    = ptr->Amp();
 }
 
-TRDClusterRoot::TRDClusterRoot(){};
-TRDClusterRoot::TRDClusterRoot(int status, float coo[], int layer, float coodir[], 
-                               int multip, int hmultip, float edep, int prawhit)
+TRDSegmentRoot::TRDSegmentRoot(){   fTRDCluster =  new TRefArray;}
+TRDSegmentRoot::~TRDSegmentRoot(){   delete fTRDCluster;  fTRDCluster = 0;}
+TRDSegmentRoot::TRDSegmentRoot(AMSTRDSegment *ptr)
 {
-  Status = status;
-  Layer  = layer;
-  for (int i=0; i<3; i++) Coo[i]=coo[i];
-  for (int i=0; i<3; i++) CooDir[i]=coodir[i];
-  Multip = multip;
-  HMultip= hmultip;
-  EDep   = edep;
-  pRawHit= prawhit;
+  Status        = ptr->_status;
+  Orientation   = ptr->_Orientation;
+  for (int i=0; i<2; i++) {FitPar[i] = ptr->_FitPar[i];}
+  Chi2          = ptr->_Chi2;
+  Pattern       = ptr->_Pattern;
+  Nhits         = ptr->_NHits;
+
+  fTRDCluster =  new TRefArray;
 }
 
-TRDSegmentRoot::TRDSegmentRoot(){};
-TRDSegmentRoot::TRDSegmentRoot(
-               int status, int orientation, float fitpar[], float chi2,
-               int pattern, int nhits, int pcl[])
+TRDTrackRoot::TRDTrackRoot(){fTRDSegment =  new TRefArray;};
+TRDTrackRoot::~TRDTrackRoot(){delete fTRDSegment; fTRDSegment = 0;};
+TRDTrackRoot::TRDTrackRoot(AMSTRDTrack *ptr)
 {
-  Status        = status;
-  Orientation   = orientation;
-  for (int i=0; i<2; i++) {FitPar[i] = fitpar[i];}
-  Chi2          = chi2;
-  Pattern       = pattern;
-  Nhits         = nhits;
-  for (int i=0; i<12; i++) {PCl[i] = pcl[i];}
-}
-TRDTrackRoot::TRDTrackRoot(){};
-TRDTrackRoot::TRDTrackRoot(int status, float coo[], float ercoo[], 
-                           float phi, float theta, float chi2, int nseg, 
-                           int pattern, int pseg[])
-{
-  Status = status;
+  Status = ptr->_status;
   for (int i=0; i<3; i++) {
-    Coo[i]   = coo[i];
-    ErCoo[i] = ercoo[i];
+    Coo[i]   = ptr->_StrLine._Coo[i];
+    ErCoo[i] = ptr->_StrLine._ErCoo[i];
   }
-  Phi   = phi;
-  Theta = theta;
-  Chi2  = chi2;
-  NSeg  = nseg;
-  Pattern = pattern;
-  for (int i=0; i<5; i++) {pSeg[i] = pseg[i];}
+  Phi   = ptr->_StrLine._Phi;
+  Theta = ptr->_StrLine._Theta;
+  Chi2  = ptr->_StrLine._Chi2;
+  NSeg  = ptr->_BaseS._NSeg;
+  Pattern = ptr->_BaseS._Pattern;
+
+  fTRDSegment =  new TRefArray;
 }
 
-TrRecHitRoot02::TrRecHitRoot02(){};
-TrRecHitRoot02::TrRecHitRoot02(int px, int py, int status, int layer, float hit[], 
-                               float ehit[], float sum, float difosum, 
-                               float cofgx, float cofgy)
+TrClusterRoot::TrClusterRoot(){};
+TrClusterRoot::TrClusterRoot(AMSTrCluster *ptr, float amplitude[])
 {
-  pX    = px;
-  pY    = py;
-  Status= status;
-  Layer = layer;
-  for (int i=0; i<3; i++) Hit[i]=hit[i];
-  for (int i=0; i<3; i++) EHit[i] = ehit[i];
-  Sum     = sum;
-  DifoSum = difosum;
-  CofgX   = cofgx;
-  CofgY   = cofgy;
+  Idsoft = ptr-> _Id.cmpt();
+  Status = ptr->_status;
+  NelemL = ptr->_NelemL;
+  NelemR = ptr->_NelemR;
+  Sum    = ptr->_Sum;
+  Sigma  = ptr->_Sigma;
+  Mean   = ptr->_Mean;
+  RMS    = ptr->_Rms;
+  ErrorMean = ptr->_ErrorMean;
+  for (int i=0; i<5; i++) {Amplitude[i] = amplitude[i];}
 }
-TrTrackRoot02::TrTrackRoot02(){};
-TrTrackRoot02::TrTrackRoot02
-               (int status, int pattern, int address, int nhits, int phits[],
-                float locdbaver, int geanefitdone, int advancedfitdone,
-                float chi2strline, float chi2circle, float circleridgidity,
-                float chi2fastfit, float ridgidity, float errridgidity,
-                float theta, float phi, float p0[], float gchi2,
-                float gridgidity, float gerrridgidity,
-                float hchi2[], float hridgidity[], float herrridgidity[],
-                float htheta[], float hphi[], float hp0[2][3],
-                float fchi2ms, float pierrrig, float ridgidityms, float pirigidity
-                )
+
+TrMCClusterRoot::TrMCClusterRoot(){};
+TrMCClusterRoot::TrMCClusterRoot(AMSTrMCCluster *ptr)
 {
-  Status    = status;
-  Pattern   = pattern;
-  Address   = address;
-  NHits     = nhits;
-  for (int i=0; i<8; i++)  pHits[i]=phits[i];
-  LocDBAver       = locdbaver;;
-  GeaneFitDone    = geanefitdone;
-  AdvancedFitDone = advancedfitdone;
-  Chi2StrLine     = chi2strline;
-  Chi2Circle      = chi2circle;
-  CircleRidgidity = circleridgidity;
-  Chi2FastFit     = chi2fastfit;
-  Ridgidity       = ridgidity;
-  ErrRidgidity    = errridgidity;
-  Theta           = theta;
-  Phi             = phi;
-  for (int i=0; i<3; i++) P0[i] = p0[i];
-  GChi2           = gchi2;
-  GRidgidity      = gridgidity;
-  GErrRidgidity   = gerrridgidity;
+  Idsoft  = ptr->_idsoft;
+  TrackNo = ptr->_itra;
   for (int i=0; i<2; i++) {
-        HChi2[i]        = hchi2[i];
-        HRidgidity[i]   = hridgidity[i];
-        HErrRidgidity[i]= herrridgidity[i];
-        HTheta[i]       = htheta[i];
-        HPhi[i]         = hphi[i];
-        for (int j=0; j<3; j++)  HP0[i][j] = hp0[i][j];
+         Left[i]   = ptr->_left[i];
+         Center[i] = ptr->_center[i];
+         Right[i]  = ptr->_right[i];
   }
-  FChi2MS = fchi2ms;
-  PiErrRig= pierrrig;
-  RidgidityMS = ridgidityms;
-  PiRigidity  = pirigidity;
-}
-MCTrackRoot::MCTrackRoot(){};
-MCTrackRoot::MCTrackRoot(float radl, float absl, float pos[], char vname[])
-{
-  _radl = radl;
-  _absl = absl;
-  for (int i=0; i<3; i++) _pos[i] = pos[i];
   for (int i=0; i<3; i++) {
-     if (vname[i]) _vname[i] = vname[i];
+    Xca[i] = ptr->_xca[i];
+    Xcb[i] = ptr->_xcb[i];
+    Xgl[i] = ptr->_xgl[i];
+  }
+  Sum = ptr->_sum;
+  for (int i=0; i<2; i++) {
+    for (int j=0; j<5; j++) {
+      SS[i][j] = ptr->_ss[i][j];
+    }
   }
 }
-MCEventGRoot02::MCEventGRoot02(){};
-MCEventGRoot02::MCEventGRoot02(int nskip, int particle, float coo[], float dir[],
-                               float momentum, float mass, float charge)
-{
-  Nskip = nskip;
-  Particle = particle;
-  for (int i=0; i<3; i++) Coo[i] = coo[i];
-  for (int i=0; i<3; i++) Dir[i] = dir[i];
-  Momentum = momentum;
-  Mass     = mass;
-  Charge   = charge;
-}           
-AntiClusterRoot::AntiClusterRoot(){};
-AntiClusterRoot::AntiClusterRoot(int status, int sector, float edep, 
-                             float coo[], float errorcoo[])
-{
-  Status = status;
-  Sector = sector;
-  Edep   = edep;
-  for (int i=0; i<3; i++) Coo[i] = coo[i];
-  for (int i=0; i<3; i++) ErrorCoo[i] = errorcoo[i];
-}
-ANTIMCClusterRoot::ANTIMCClusterRoot(){};
-ANTIMCClusterRoot::ANTIMCClusterRoot(int idsoft, float coo[], float tof, float edep)
-{
-  Idsoft = idsoft;
-  for (int i=0; i<3; i++) Coo[i]=coo[i];
-  TOF    = tof;
-  Edep   = edep;
-}
-LVL3Root02::LVL3Root02(){};
-LVL3Root02::LVL3Root02(int toftr, uint trdtr, uint trackertr, uint maintr,
-                       int direction, int ntrhits, int npatfound, int pattern[],
-                       double residual[], number ftime, number eloss, int trdhits,
-                       int hmult, float trdpar[], int ecemag, int ecematc, 
-                       float ectofc[])
-{
-  TOFTr     = toftr;
-  TRDTr     = trdtr;
-  TrackerTr = trackertr;
-  MainTr    = maintr;
-  Direction = direction;
-  NTrHits   = ntrhits;
-  NPatFound = npatfound;
-  for (int i=0; i<2; i++) {Pattern[i] = pattern[i];}
-  for (int i=0; i<2; i++) {Residual[i]= residual[i];}
-  Time      = ftime;
-  ELoss     = eloss;
-  TRDHits   = trdhits;
-  HMult     = hmult;
-  for (int i=0; i<2; i++) {TRDPar[i] = trdpar[i];}
-  ECemag    = ecemag;
-  ECmatc    = ecematc;
-  for (int i=0; i<4; i++) {ECTOFcr[i] = ectofc[i];}
 
-}
-LVL1Root02::LVL1Root02(){};
-LVL1Root02::LVL1Root02(uinteger mode, int toflag, uinteger tofpatt[], uinteger tofpatt1[],
-                       uinteger antipatt, uinteger ecalflag, geant ecaltrsum)
-{
-  Mode   = mode;
-  TOFlag = toflag;
-  for (int i=0; i<4; i++) {
-    TOFPatt[i]  = tofpatt[i];
-    TOFPatt1[i] = tofpatt1[i];
-  }
-  AntiPatt = antipatt;
-  ECALflag = ecalflag;
-  ECALtrsum= ecaltrsum;
-
-}
 TrRawClusterRoot::TrRawClusterRoot(){};
-TrRawClusterRoot::TrRawClusterRoot(int _address, int _nelem, float _s2n)
+TrRawClusterRoot::TrRawClusterRoot(AMSTrRawCluster *ptr, int addr)
 {
-  address = _address;
-  nelem   = _nelem;
-  s2n     = _s2n;
+  address = addr;
+  nelem   = ptr->_nelem;
+  s2n     = ptr->_s2n;
 }
-AntiRawClusterRoot::AntiRawClusterRoot(){};
-AntiRawClusterRoot::AntiRawClusterRoot(int status, int sector, int updown, 
-                                       float signal)
+
+TrRecHitRoot02::TrRecHitRoot02(){
+  fTrClusterX = 0;
+  fTrClusterY = 0;
+};
+TrRecHitRoot02::TrRecHitRoot02(AMSTrRecHit *ptr)
 {
-  Status = status;
-  Sector = sector;
-  UpDown = updown;
-  Signal = signal;
+  fTrClusterX = 0;
+  fTrClusterY = 0;
+
+  Status= ptr->_status;
+  Layer = ptr->_Layer;
+  for (int i=0; i<3; i++) Hit[i]  = ptr->_Hit[i];
+  for (int i=0; i<3; i++) EHit[i] = ptr->_EHit[i];
+  Sum     = ptr->_Sum;
+  DifoSum = ptr->_DifoSum;
+  CofgX   = ptr->_cofgx;
+  CofgY   = ptr->_cofgy;
 }
-TOFRawClusterRoot::TOFRawClusterRoot(){};
-TOFRawClusterRoot::TOFRawClusterRoot(int status, int layer, int bar, float _tovta[],
-                                     float _tovtd[], float _sdtm[], float _edepa,
-                                     float _edepd, float _time, float _cool)
+
+TrTrackRoot02::TrTrackRoot02(){ fTrRecHit = new TRefArray;};
+TrTrackRoot02::~TrTrackRoot02(){ delete fTrRecHit; fTrRecHit=0;}
+TrTrackRoot02::TrTrackRoot02(AMSTrTrack *ptr)
 {
-  Status = status;
-  Layer  = layer;
-  Bar    = bar;
-  for (int i=0; i<2; i++) tovta[i]=_tovta[i];
-  for (int i=0; i<2; i++) tovtd[i]=_tovtd[i];
-  for (int i=0; i<2; i++) sdtm[i]=_sdtm[i];
-  edepa  = _edepa;
-  edepd  = _edepd;
-  time   = _time;
-  cool   = _cool;
-}
-RICMCRoot::RICMCRoot(){};
-RICMCRoot::RICMCRoot(int _id, float _origin[], float _direction[], int _status, 
-                     int _numgen, int _eventpointer)
-{
-  id = _id;
-  for (int i=0; i<3; i++) {
-    origin[i] = _origin[i];
-    direction[i] = _direction[i];
+  Status    = ptr->_status;
+  Pattern   = ptr->_Pattern;
+  Address   = ptr->_Address;
+  NHits     = ptr->_NHits;
+
+  LocDBAver       = ptr->_Dbase[0];
+  GeaneFitDone    = ptr->_GeaneFitDone;
+  AdvancedFitDone = ptr->_AdvancedFitDone;
+  Chi2StrLine     = ptr->_Chi2StrLine;
+  Chi2Circle      = ptr->_Chi2Circle;
+  CircleRigidity  = ptr->_CircleRidgidity;
+  Chi2FastFit     = ptr->_Chi2FastFit;
+  Rigidity        = ptr->_Ridgidity;
+  ErrRigidity     = ptr->_ErrRidgidity;
+  Theta           = ptr->_Theta;
+  Phi             = ptr->_Phi;
+  for (int i=0; i<3; i++) P0[i] = ptr->_P0[i];
+  GChi2           = (float)ptr->_GChi2;
+  GRigidity       = (float)ptr->_GRidgidity;;
+  GErrRigidity    = (float)ptr->_GErrRidgidity;
+  for (int i=0; i<2; i++) {
+        HChi2[i]        = (float)ptr->_HChi2[i];
+        HRigidity[i]    = (float)ptr->_HRidgidity[i];
+        HErrRigidity[i] = (float)ptr->_HErrRidgidity[i];
+        HTheta[i]       = (float)ptr->_HTheta[i];
+        HPhi[i]         = (float)ptr->_HPhi[i];
+        for (int j=0; j<3; j++)  HP0[i][j] = (float)ptr->_HP0[i][j];
   }
-  status = _status;
-  numgen = _numgen;
-  eventpointer = _eventpointer;
+  FChi2MS         = ptr->_Chi2MS;
+  PiErrRig        = ptr->_GChi2MS;
+  RigidityMS      = ptr->_RidgidityMS;
+  PiRigidity      = ptr->_GRidgidityMS;
+
+  fTrRecHit = new TRefArray;
 }
+
+
+RICMCRoot::RICMCRoot(){};
+RICMCRoot::RICMCRoot(AMSRichMCHit *ptr, int _numgen)
+{
+  id        = ptr->_id;
+  for (int i=0; i<i; i++) {
+   origin[i]    = ptr->_origin[i];
+   direction[i] = ptr->_direction[i];
+  }
+  status       = ptr->_status;
+  eventpointer = ptr->_hit;
+  numgen       = _numgen;
+}
+
 RICEventRoot::RICEventRoot(){};
-RICEventRoot::RICEventRoot(int _channel, int _adc, float _x, float _y)
+RICEventRoot::RICEventRoot(AMSRichRawEvent *ptr, float x, float y)
 {
-  channel = _channel;
-  adc     = _adc;
-  x       = _x;
-  y       = _y;
+  if (ptr) {
+   _channel = ptr->_channel;
+   _counts  = ptr->_counts;
+   _x      = x;
+   _y      = y;
+  } else {
+    cout<<"RICEventRoot -E- AMSRichRawEvent ptr is NULL"<<endl;
+  }
 }
-RICRingRoot::RICRingRoot(){};
-RICRingRoot::RICRingRoot(int _track, int _used, int _mused, 
-                         float _beta, float _errbeta, float _quality, float _z)
+RICRingRoot::RICRingRoot(){ fTrack = 0;}
+RICRingRoot::RICRingRoot(AMSRichRing *ptr) 
 {
-  track = _track;
-  used  = _used;
-  mused = _mused;
-  beta  = _beta;
-  errorbeta = _errbeta;
-  quality   = _quality;
-  Z         = _z;
+  fTrack = 0;
+  if (ptr) {
+    used  = ptr->_used;
+    mused = ptr->_mused;
+    beta  = ptr->_beta;
+    errorbeta = ptr->_errorbeta;
+    quality   = ptr->_quality;
+    Z         = ptr->_charge;
+  } else {
+    cout<<"RICRingRoot -E- AMSRichRing ptr is NULL"<<endl;
+  }
+}
+
+EcalHitRoot::EcalHitRoot(){};
+EcalHitRoot::EcalHitRoot(AMSEcalHit *ptr) 
+{
+  Status = ptr->_status;
+  Idsoft = ptr->_idsoft;
+  Proj   = ptr->_proj;
+  Plane  = ptr->_plane;
+  Cell   = ptr->_cell;
+  Edep   = ptr->_edep;
+  if (Proj) {
+   Coo[0]= ptr->_cool;
+   Coo[1]= ptr->_coot;
+  }
+  else{     //<-- x-proj
+    Coo[0]= ptr->_coot;
+    Coo[1]= ptr->_cool;
+  }
+  Coo[2]  = ptr->_cooz;
+
+}
+
+
+void EventRoot02::Set(AMSEvent *ptr, int rawwords) 
+{
+  if (ptr) {
+   Header.Set(ptr, rawwords);
+  } else {
+    cout<<"EventRoot02 -W- AMSEvent *ptr is NULL"<<endl;
+  }
+}
+
+void AMSEventHeaderRoot::Set(AMSEvent *ptr, int rawwords)
+{
+  if (ptr) {
+
+    _Run           = ptr->_run;
+    _Time[0]       = ptr->_time;
+    _Time[1]       = AMSJob::gethead()->isRealData()?ptr->_usec:ptr->_usec/1000;
+    _RunType       = ptr->_runtype;
+    _Eventno       = ptr-> _id;
+    _EventStatus[0]= ptr->getstatus()[0];
+    _EventStatus[1]= ptr->getstatus()[1];
+    _RawWords      = rawwords;
+    
+    _StationRad   = ptr->_StationRad;    
+    _StationTheta = ptr->_StationTheta;
+    _StationPhi   = ptr->_StationPhi;
+    _NorthPolePhi = ptr->_NorthPolePhi;
+    _Yaw          = ptr->_Yaw;
+    _Pitch        = ptr->_Pitch;
+    _Roll         = ptr->_Roll;
+    _StationSpeed = ptr->_StationSpeed;
+    _SunRad       = ptr->_SunRad;
+    _VelTheta     = ptr->_VelTheta;
+    _VelPhi       = ptr->_VelPhi;
+
+  }
+}
+
+//------------- AddAMSObject 
+void EventRoot02::AddAMSObject(AMSAntiCluster *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fAntiCluster;
+   ptr->SetClonePointer(new (clones[fAntiCluster->GetLast()+1]) AntiClusterRoot(ptr));
+  }  else {
+    cout<<"AddAMSObject -E- AMSAntiCluster ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSAntiMCCluster *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fAntiMCCluster;
+   ptr->SetClonePointer(new (clones[fAntiMCCluster->GetLast()+1]) ANTIMCClusterRoot(ptr));
+  }  else {
+    cout<<"AddAMSObject -E- AMSAntiMCCluster ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSAntiRawCluster *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fAntiRawCluster;
+   ptr->SetClonePointer(new (clones[fAntiRawCluster->GetLast()+1]) AntiRawClusterRoot(ptr));
+  }  else {
+    cout<<"AddAMSObject -E- AMSAntiRawCluster ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSBeta *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fBeta;
+   ptr->SetClonePointer(new (clones[fBeta->GetLast()+1]) BetaRoot02(ptr));
+  }  else {
+    cout<<"AddAMSObject -E- AMSBeta ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[], 
+                               float probtr[], int chintr[], float proballtr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fCharge;
+   ptr->SetClonePointer(new (clones[fCharge->GetLast()+1]) 
+       ChargeRoot02(ptr, probtof, chintof, probtr, chintr, proballtr)); 
+  }  else {
+    cout<<"AddAMSObject -E- AMSCharge ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSEcalHit *ptr)
+{
+  TClonesArray &clones =  *fECALhit;
+  ptr->SetClonePointer(new (clones[fECALhit->GetLast()+1]) EcalHitRoot(ptr));
+  //new (fECALhit[fECALhit.GetLast()+1]) EcalHitRoot(ptr);
+  //cout<<"  fECALhit->GetLast()+1 "<<fECALhit->GetLast()+1<<endl;
+}
+
+void EventRoot02::AddAMSObject(AMSmceventg *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fMCeventg;
+   ptr->SetClonePointer(new (clones[fMCeventg->GetLast()+1]) MCEventGRoot02(ptr));
+  }  else {
+    cout<<"AddAMSObject -E- AMSmceventg ptr is NULL"<<endl;
+  }
+}
+
+
+void EventRoot02::AddAMSObject(AMSmctrack *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fMCtrtrack;
+   ptr->SetClonePointer(new (clones[fMCtrtrack->GetLast()+1]) MCTrackRoot(ptr));
+  }  else {
+    cout<<"AddAMSObject -E- AMSmctrack ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSParticle *ptr, float phi, float phigl)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fParticle;
+   ptr->SetClonePointer(new (clones[fParticle->GetLast()+1]) 
+       ParticleRoot02(ptr, phi, phigl));
+  }  else {
+   cout<<"AddAMSObject -E- AMSParticle ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSRichRawEvent *ptr, float x, float y)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fRICEvent;
+   ptr->SetClonePointer(new (clones[fRICEvent->GetLast()+1]) RICEventRoot(ptr, x, y));
+  }  else {
+    cout<<"AddAMSObject -E- AMSRichRawEvent ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSRichMCHit *ptr, int _numgen)
+{
+  TClonesArray &clones =  *fRICMC;
+  ptr->SetClonePointer(new (clones[fRICMC->GetLast()+1]) RICMCRoot(ptr, _numgen));
+}
+void EventRoot02::AddAMSObject(AMSRichRing *ptr)
+{
+  TClonesArray &clones =  *fRICRing;
+  ptr->SetClonePointer(new (clones[fRICRing->GetLast()+1]) RICRingRoot(ptr));
+}
+
+void EventRoot02::AddAMSObject(Ecal1DCluster *ptr) 
+{
+  if (ptr) {
+   TClonesArray &clones =  *fECALcluster;
+   ptr->SetClonePointer(new (clones[fECALcluster->GetLast()+1]) EcalClusterRoot(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- Ecal1DCluster ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(Ecal2DCluster *ptr) 
+{
+  if (ptr) {
+   TClonesArray &clones =  *fECAL2Dcluster;
+   ptr->SetClonePointer(new (clones[fECAL2Dcluster->GetLast()+1]) Ecal2DClusterRoot(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- (Ecal2DCluster ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(EcalShower *ptr) 
+{
+  if (ptr) {
+   TClonesArray &clones =  *fECALshower;
+   ptr->SetClonePointer(new (clones[fECALshower->GetLast()+1]) EcalShowerRoot(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- EcalShower ptr is NULL"<<endl;
+  }
+}
+
+
+void EventRoot02::AddAMSObject(Trigger2LVL1 *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fLVL1;
+   ptr->SetClonePointer(new (clones[fLVL1->GetLast()+1]) LVL1Root02(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- Trigger2LVL1 ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(TriggerLVL302 *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fLVL3;
+   ptr->SetClonePointer(new (clones[fLVL3->GetLast()+1]) LVL3Root02(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- TriggerLVL302 ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSTOFCluster *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fTOFcluster;
+   ptr->SetClonePointer(new (clones[fTOFcluster->GetLast()+1]) TOFClusterRoot(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- AMSTOFCluster ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSTOFMCCluster *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fTOFMCcluster;
+   ptr->SetClonePointer(new (clones[fTOFMCcluster->GetLast()+1]) TOFMCClusterRoot(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- AMSTOFMCCluster ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(TOF2RawCluster *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fTOFRawCluster;
+   ptr->SetClonePointer(new (clones[fTOFRawCluster->GetLast()+1]) TOFRawClusterRoot(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- AMSTOF2RawCluster ptr is NULL"<<endl;
+  }
+}
+
+
+void EventRoot02::AddAMSObject(AMSTrCluster *ptr, float ampl[])
+{
+  if (ptr) {
+   TClonesArray &clones =  *fTrCluster;
+   ptr->SetClonePointer(new (clones[fTrCluster->GetLast()+1]) TrClusterRoot(ptr, ampl));
+  }  else {
+   cout<<"AddAMSObject -E- AMSTrCluster ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSTrMCCluster *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fTrMCCluster;
+   ptr->SetClonePointer(new (clones[fTrMCCluster->GetLast()+1]) TrMCClusterRoot(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- AMSTrMCCluster ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSTrRawCluster *ptr, int addr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fTrRawCluster;
+   ptr->SetClonePointer(new (clones[fTrRawCluster->GetLast()+1]) TrRawClusterRoot(ptr,addr));
+  }  else {
+   cout<<"AddAMSObject -E- TrRawCluster ptr is NULL"<<endl;
+  }
+}
+
+
+void EventRoot02::AddAMSObject(AMSTRDMCCluster *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fTRDMCCluster;
+   ptr->SetClonePointer(new (clones[fTRDMCCluster->GetLast()+1]) TRDMCClusterRoot(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- AMSTRDMCCluster ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSTRDRawHit *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fTRDrawhit;
+   ptr->SetClonePointer(new (clones[fTRDrawhit->GetLast()+1]) TRDRawHitRoot(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- AMSTRDRawHit ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSTRDCluster *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fTRDcluster;
+   ptr->SetClonePointer(new (clones[fTRDcluster->GetLast()+1]) TRDClusterRoot(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- AMSTRDCluster ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSTRDSegment *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fTRDsegment;
+   ptr->SetClonePointer(new (clones[fTRDsegment->GetLast()+1]) TRDSegmentRoot(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- AMSTRDSegment ptr is NULL"<<endl;
+  }
+}
+
+
+void EventRoot02::AddAMSObject(AMSTRDTrack *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fTRDtrack;
+   ptr->SetClonePointer(new (clones[fTRDtrack->GetLast()+1]) TRDTrackRoot(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- AMSTRDTrack ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSTrRecHit *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fTRrechit;
+   ptr->SetClonePointer(new (clones[fTRrechit->GetLast()+1]) TrRecHitRoot02(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- AMSTrRecHit ptr is NULL"<<endl;
+  }
+}
+
+void EventRoot02::AddAMSObject(AMSTrTrack *ptr)
+{
+  if (ptr) {
+   TClonesArray &clones =  *fTRtrack;
+   ptr->SetClonePointer(new (clones[fTRtrack->GetLast()+1]) TrTrackRoot02(ptr));
+  }  else {
+   cout<<"AddAMSObject -E- AMSTrTrack ptr is NULL"<<endl;
+  }
 }
 #endif
 

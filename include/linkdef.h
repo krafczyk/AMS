@@ -1,10 +1,11 @@
-//  $Id: linkdef.h,v 1.16 2002/05/22 09:01:43 alexei Exp $
+//  $Id: linkdef.h,v 1.17 2002/06/03 14:53:43 alexei Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class EventNtuple02;
+#pragma link C++ class EventRoot02;
+#pragma link C++ class AMSEventHeaderRoot;
 
 #pragma link C++ class BetaRoot02;
 #pragma link C++ class ChargeRoot02;

@@ -1,4 +1,4 @@
-//  $Id: beta.h,v 1.11 2002/03/20 09:43:09 choumilo Exp $
+//  $Id: beta.h,v 1.12 2002/06/03 14:53:42 alexei Exp $
 // V. Choutko 5-june-96
 //
 // July 10, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -65,6 +65,9 @@ static void print();
  void setTOFClP (AMSTOFCluster* p, integer ntof)  
                                  { if (ntof>=0 && ntof<4) _pcluster[ntof]= p;}
 //-
+#ifdef __WRITEROOT__
+ friend class BetaRoot02;
+#endif
 };
 
 #endif

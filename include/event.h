@@ -1,10 +1,11 @@
-//  $Id: event.h,v 1.63 2002/03/20 09:43:10 choumilo Exp $
+//  $Id: event.h,v 1.64 2002/06/03 14:53:42 alexei Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
 // Oct   1, 1997. ak. add TDV related functions
+// May  23, 2002. ak. AMSEventHeaderRoot
 //
-// Last Edit : Oct 2, 1997. ak.
+// Last Edit : May 23, 2002. ak.
 //
 #ifndef __AMSEVENT__
 #define __AMSEVENT__
@@ -278,5 +279,10 @@ static void builddaqSh(integer i, integer length, int16u *p);
 static void buildTrackerHKdaq(integer i, integer length, int16u *p);
 static integer getselrun(integer i=0);
 friend class AMSJob;
+#ifdef __WRITEROOT__
+friend class AMSEventHeaderRoot;
+friend class AMSShuttleParRoot;
+friend class EventRoot02;
+#endif
 };
 #endif

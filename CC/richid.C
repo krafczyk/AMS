@@ -171,7 +171,7 @@ AMSRICHIdGeom::AMSRICHIdGeom(integer pmtnb,geant x,geant y){
 
 
 #ifdef __AMSDEBUG__
-  cout <<"nx and ny accorgding to old routine: "<<integer(x2)<<" "<<integer(y2)<<endl;
+  //  cout <<"nx and ny accorgding to old routine: "<<integer(x2)<<" "<<integer(y2)<<endl;
 #endif
 
   x-=AMSRICHIdGeom::pmt_pos(pmtnb,0);

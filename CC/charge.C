@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.58 2002/05/21 09:03:42 alexei Exp $
+//  $Id: charge.C,v 1.59 2002/06/03 14:53:34 alexei Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -210,9 +210,7 @@ integer AMSCharge::build(integer refit){
               nhitTracker++;
             }
             else{
-             cout<<"AMSCharge::build -E- phit -> getpsen == NULL "
-                 <<" for hit wit pos "<<phit ->getpos()<<", ContPos "
-                 <<phit -> getContPos()<<endl;
+             cout<<"AMSCharge::build -E- phit -> getpsen == NULL "<<" for hit wit pos "<<phit ->getpos();
             }
           }
         }
@@ -626,13 +624,8 @@ int AMSCharge::_sortlkhd(int sort){
 
 void AMSCharge::_writeEl(){
 
-  ChargeNtuple02* CN = AMSJob::gethead()->getntuple()->Get_charge02();
-
-  if (CN->Ncharge>=MAXCHARGE02) return;
    int i,j;
 #ifdef __WRITEROOTCLONES__
-  if(AMSJob::gethead()->getntuple()) {
-    int N = CN->Ncharge;
     float probtof[4];
     int   chintof[4];
     float probtr[4];
@@ -651,16 +644,12 @@ void AMSCharge::_writeEl(){
       }
     }
   }
-    EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-    TClonesArray &clones =  *(ev02.Get_fcharge());
-    new (clones[N]) ChargeRoot02(_status, _pbeta->getpos(), 
-                                 _ChargeTOF, _ChargeTracker, 
-                                 probtof, chintof, probtr, chintr, proballtr, 
-                                 _TrMeanTOF,_TrMeanTOFD, _TrMeanTracker); 
-    N++;
-    AMSJob::gethead()->getntuple()->Get_event02()->Set_fNcharge(N);
-  }
-#else
+  AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this,
+                        probtof, chintof, probtr, chintr, proballtr);
+#endif
+  ChargeNtuple02* CN = AMSJob::gethead()->getntuple()->Get_charge02();
+
+  if (CN->Ncharge>=MAXCHARGE02) return;
 // Fill the ntuple
   CN->Status[CN->Ncharge]=_status;
   CN->BetaP[CN->Ncharge]=_pbeta->getpos();
@@ -682,12 +671,21 @@ void AMSCharge::_writeEl(){
   CN->TrunTOF[CN->Ncharge]=_TrMeanTOF;
   CN->TrunTOFD[CN->Ncharge]=_TrMeanTOFD;
   CN->TrunTracker[CN->Ncharge]=_TrMeanTracker;
-#endif
   CN->Ncharge++;
 }
 
 
 void AMSCharge::_copyEl(){
+#ifdef __WRITEROOT__
+  ChargeRoot02 *cptr = (ChargeRoot02*)_ptr;
+  if (cptr) {
+    // AMSBeta* _pbeta;
+    if (_pbeta) cptr->fBeta=_pbeta->GetClonePointer();
+  } else {
+    cout<<"AMSCharge::_copyEl -I-  AMSCharg::ChargeRoot02 *ptr is NULL "<<endl;
+  }
+#endif
+
 }
 
 

@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.11 2001/10/22 14:31:39 mdelgado Exp $
+//  $Id: richrec.h,v 1.12 2002/06/03 14:53:43 alexei Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -94,6 +94,9 @@ protected:
   }
   void _writeEl();
   void _copyEl(){};
+#ifdef __WRITEROOT__
+friend class RICEventRoot;
+#endif
 };
 
 
@@ -137,7 +140,7 @@ private:
 protected:
   void _printEl(ostream &stream){stream<<" Beta "<<_beta<<" Error "<<_errorbeta<<endl;}
   void _writeEl();
-  void _copyEl(){};
+  void _copyEl();
   void CalcBetaError();
 public:
   AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,int charge):AMSlink(),
@@ -153,6 +156,9 @@ public:
   number getbeta(){return _beta;}
   number geterrorbeta(){return _errorbeta;}
   number getquality(){return _quality;}
+#ifdef __WRITEROOT__
+friend class RICRingRoot;
+#endif
 };
 
 

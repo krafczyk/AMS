@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.120 2002/05/21 10:36:11 choutko Exp $
+//  $Id: mceventg.C,v 1.121 2002/06/03 14:53:34 alexei Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -836,28 +836,17 @@ void AMSmceventg::_copyEl(){
 }
 
 void AMSmceventg::_writeEl(){
+if( Out(_ipart>0 || IOPA.WriteAll%10==1 )){
+#ifdef __WRITEROOTCLONES__
+  AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
   MCEventGNtuple02* GN = AMSJob::gethead()->getntuple()->Get_mcg02();
 
   if (GN->Nmcg>=MAXMCG02) return;
 // added specifically to reduce ntuple size
 
 // Fill the ntuple
-if( Out(_ipart>0 || IOPA.WriteAll%10==1 )){
   int i;
-#ifdef __WRITEROOTCLONES__
-  if(AMSJob::gethead()->getntuple()) {
-   int N = GN->Nmcg;
-   float coo[3];
-   float dir[3];
-   for(i=0;i<3;i++)coo[i]=_coo[i];
-   for(i=0;i<3;i++)dir[i]=_dir[i];
-   EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-   TClonesArray &clones =  *(ev02.Get_fmceventg());
-   new (clones[N]) MCEventGRoot02(_nskip, _ipart, coo, dir, _mom, _mass, _charge);
-   N++;
-   AMSJob::gethead()->getntuple()->Get_event02()->Set_fNmceventg(N);
-  }
-#else
   GN->Nskip[GN->Nmcg]=_nskip;
   GN->Particle[GN->Nmcg]=_ipart;
   for(i=0;i<3;i++)GN->Coo[GN->Nmcg][i]=_coo[i];
@@ -865,7 +854,6 @@ if( Out(_ipart>0 || IOPA.WriteAll%10==1 )){
   GN->Momentum[GN->Nmcg]=_mom;
   GN->Mass[GN->Nmcg]=_mass;
   GN->Charge[GN->Nmcg]=_charge;
-#endif
   GN->Nmcg++;
 }
 }
@@ -1215,27 +1203,17 @@ else{
 
 
 void AMSmctrack::_writeEl(){
+#ifdef __WRITEROOTCLONES__
+  AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
+// Fill the ntuple
   MCTrackNtuple* GN = AMSJob::gethead()->getntuple()->Get_mct();
 
   if (GN->Nmct>=MAXMCVOL) return;
-#ifdef __WRITEROOTCLONES__
-  if(AMSJob::gethead()->getntuple()) {
-   int N = GN->Nmct;
-   float pos[3];
-   for(int i=0;i<3;i++)pos[i]=_pos[i];
-   EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-   TClonesArray &clones =  *(ev02.Get_fmctrtrack());
-   new (clones[N])    MCTrackRoot(_radl, _absl, pos, _vname);
-   N++;
-   AMSJob::gethead()->getntuple()->Get_event02()->Set_fNmctrtrack(N);
-  }
-#else
-// Fill the ntuple
   GN->radl[GN->Nmct]=_radl;
   GN->absl[GN->Nmct]=_absl;
   for(int i=0;i<3;i++)GN->pos[GN->Nmct][i]=_pos[i];
   for(int i=0;i<4;i++)GN->vname[GN->Nmct][i]=_vname[i];
-#endif
   GN->Nmct++;
 }
 

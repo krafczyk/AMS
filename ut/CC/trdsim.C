@@ -86,30 +86,18 @@ void AMSTRDRawHit::buildraw(int i, int n, int16u*p){
 
 
 void AMSTRDRawHit::_writeEl(){
-  TRDRawHitNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trdht();
-  if (TrN->Ntrdht>=MAXTRDRHT) return;
   integer flag =    (IOPA.WriteAll%10==1)
                  || ( checkstatus(AMSDBc::USED));
   if(AMSTRDRawHit::Out( flag  )){
 #ifdef __WRITEROOTCLONES__
-    if(AMSJob::gethead()->getntuple()) {
-      int layer = _id.getlayer();
-      int ladder=_id.getladder();
-      int tube  =_id.gettube();
-      float amp = Amp();
-      int N=TrN->Ntrdht;
-      EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-      TClonesArray &clones =  *(ev02.Get_ftrdrawhit());
-      new (clones[N]) TRDRawHitRoot(layer, ladder, tube, amp);
-      N++;
-      AMSJob::gethead()->getntuple()->Get_event02()->Set_fNtrdrawhit(N);
-    }
-#else
+    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
+    TRDRawHitNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trdht();
+    if (TrN->Ntrdht>=MAXTRDRHT) return;
     TrN->Layer[TrN->Ntrdht]=_id.getlayer();
     TrN->Ladder[TrN->Ntrdht]=_id.getladder();
     TrN->Tube[TrN->Ntrdht]=_id.gettube();
     TrN->Amp[TrN->Ntrdht]=Amp();
-#endif
     TrN->Ntrdht++;
   }
 

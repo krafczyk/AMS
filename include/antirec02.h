@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.2 2001/01/22 17:32:42 choutko Exp $
+//  $Id: antirec02.h,v 1.3 2002/06/03 14:53:42 alexei Exp $
 //
 // May 29   1997. V. Choutko primitive version
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
@@ -120,6 +120,9 @@ public:
  static void build2(int &stat);// Anti2RawEvent->RawCluster
  static void siantinoise(number cc1[], number cc2[],integer max);
  static integer Out(integer);
+#ifdef __WRITEROOT__
+ friend class AntiRawClusterRoot;
+#endif
 };
 
 //===================================================================
@@ -153,6 +156,8 @@ return AMSID("ANTS",_sector);
 #ifdef __DB__
 friend class AMSAntiClusterD;
 #endif
-
+#ifdef __WRITEROOT__
+ friend class AntiClusterRoot;
+#endif
 };
 #endif

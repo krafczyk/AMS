@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.15 2002/05/21 09:03:43 alexei Exp $
+//  $Id: trigger102.C,v 1.16 2002/06/03 14:53:34 alexei Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -160,17 +160,8 @@ void Trigger2LVL1::_writeEl(){
 
 // Fill the ntuple
 #ifdef __WRITEROOTCLONES__
-  if(AMSJob::gethead()->getntuple()) {
-    int N=lvl1N->Nlvl1;
-    EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-    TClonesArray &clones =  *(ev02.Get_flvl1());
-
-    new (clones[N])  LVL1Root02(_LifeTime, _tofflag, _tofpatt, _tofpatt1,
-                                _antipatt, _ecalflag, _ectrsum);
-    N++;
-    AMSJob::gethead()->getntuple()->Get_event02()->Set_fNlvl1(N);
-  }
-#else
+  AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
   lvl1N->Mode[lvl1N->Nlvl1]=_LifeTime;
   lvl1N->TOFlag[lvl1N->Nlvl1]=_tofflag;
   int i;
@@ -179,7 +170,6 @@ void Trigger2LVL1::_writeEl(){
   lvl1N->AntiPatt[lvl1N->Nlvl1]=_antipatt;
   lvl1N->ECALflag[lvl1N->Nlvl1]=_ecalflag;
   lvl1N->ECALtrsum[lvl1N->Nlvl1]=_ectrsum;
-#endif
   lvl1N->Nlvl1++;
 }
 

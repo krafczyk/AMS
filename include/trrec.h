@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.58 2002/05/21 10:36:12 choutko Exp $
+//  $Id: trrec.h,v 1.59 2002/06/03 14:53:43 alexei Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -127,7 +127,9 @@ integer operator < (AMSlink & o) const {
  else return 0;
 
 }
-
+#ifdef __WRITEROOT__
+ friend class TrClusterRoot;
+#endif
 };
 
 class AMSTrRecHit: public AMSlink{
@@ -238,7 +240,9 @@ void          setSensorP(AMSgSen* p) { _pSen = p;}
 //-
 ~AMSTrRecHit(){int i;for( i=0;i<trconst::maxlay;i++)_Head[i]=0;};
    friend class AMSTrTrack;
-
+#ifdef __WRITEROOT__
+   friend class TrRecHitRoot02;
+#endif
 };
 
 class AMSTrTrackError{
@@ -417,6 +421,9 @@ number getrid() const {return _Ridgidity;}
 number gettheta() const {return _Theta;}
 number getphi() const {return _Phi;}
 friend class AMSTrCalibFit;
+#ifdef __WRITEROOT__
+ friend class TrTrackRoot02;
+#endif
 };
 
 #endif

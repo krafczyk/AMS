@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.6 2002/04/10 10:06:02 choumilo Exp $
+//  $Id: tofrec02.h,v 1.7 2002/06/03 14:53:43 alexei Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -82,6 +82,9 @@ public:
  static integer gettrfl(){return trflag;}
  static void sitofdigi(int &);// tempor. MCCluster->RawCluster
  static void build(int &);   // RawEvent->RawCluster
+#ifdef __WRITEROOT__
+ friend class TOFRawClusterRoot;
+#endif
 };
 //===================================================================
 class AMSTOFCluster: public AMSlink{
@@ -107,7 +110,6 @@ protected:
  static integer goodch[4][14];
  static geant   tcoef[4][14];
 #endif
-
 
 public:
 
@@ -185,6 +187,9 @@ public:
     return 0;
   }
  }
+#ifdef __WRITEROOT__
+ friend class TOFClusterRoot;
+#endif
 };
 //===================================================================
 class TOF2User {

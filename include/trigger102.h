@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.6 2002/04/17 12:42:28 choumilo Exp $
+//  $Id: trigger102.h,v 1.7 2002/06/03 14:53:43 alexei Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include <link.h>
@@ -80,7 +80,9 @@ public:
       static integer getmaxblocks(){return 1;}
       static void builddaq(integer i, integer n, int16u *p);
       static void buildraw(integer n, int16u *p);
-
+#ifdef __WRITEROOT__
+      friend class LVL1Root02;
+#endif
 };
 
 

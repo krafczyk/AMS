@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.20 2002/05/23 06:40:33 choumilo Exp $
+//  $Id: trigger302.C,v 1.21 2002/06/03 14:53:34 alexei Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -1397,7 +1397,6 @@ int TriggerLVL302::eccrosscheck(geant ect){
 //-------------------------------
 //
 //===> TRD
-  
     
     if(plvl3->UseTRD()){
         integer crate;
@@ -1598,25 +1597,10 @@ void TriggerLVL302::_writeEl(){
 
 // Fill the ntuple
 #ifdef __WRITEROOTCLONES__
-  if(AMSJob::gethead()->getntuple()) {
-    int N=lvl3N->Nlvl3;
-    EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
     int trdhits = TRDAux._NHits[0]+TRDAux._NHits[1];
     int hmult   = TRDAux._HMult;
-    float trdpar[2];
-    float ectofcr[4];
-    for (int i=0;i<2;i++)trdpar[i]=TRDAux._Par[i][0];
-    for(int i=0;i<4;i++) ectofcr[i]=_ECtofcr[i];
-    TClonesArray &clones =  *(ev02.Get_flvl3());
-    new (clones[N]) LVL3Root02(_TOFTrigger, _TRDTrigger, _TrackerTrigger, 
-                              _MainTrigger,
-                               _TOFDirection, _NTrHits, _NPatFound, _Pattern,
-                               _Residual, _Time, _TrEnergyLoss, trdhits,
-                               hmult, trdpar, _ECemag, _ECmatc, ectofcr);
-    N++;
-    AMSJob::gethead()->getntuple()->Get_event02()->Set_fNlvl3(N);
-  }
-#else
+    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
   lvl3N->TOFTr[lvl3N->Nlvl3]=_TOFTrigger;
   lvl3N->TRDTr[lvl3N->Nlvl3]=_TRDTrigger;
   lvl3N->TrackerTr[lvl3N->Nlvl3]=_TrackerTrigger;
@@ -1636,7 +1620,6 @@ void TriggerLVL302::_writeEl(){
   lvl3N->ECemag[lvl3N->Nlvl3]=_ECemag;
   lvl3N->ECmatc[lvl3N->Nlvl3]=_ECmatc;
   for(int i=0;i<4;i++)lvl3N->ECTOFcr[lvl3N->Nlvl3][i]=_ECtofcr[i];
-#endif
   lvl3N->Nlvl3++;
 }
 

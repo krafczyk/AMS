@@ -1,4 +1,4 @@
-//  $Id: charge.h,v 1.20 2002/03/20 09:43:09 choumilo Exp $
+//  $Id: charge.h,v 1.21 2002/06/03 14:53:42 alexei Exp $
 // V. Choutko 5-june-96
 //
 // July 12, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -87,6 +87,9 @@ _iTracker(0),_ProbAllTracker(0),_ChargeTracker(0){}
 void setBetaP (AMSBeta* p) { _pbeta = p;}
 //-
 friend class AMSJob;
+#ifdef __WRITEROOT__
+friend class ChargeRoot02;
+#endif
 };
 
 

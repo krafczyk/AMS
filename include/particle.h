@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.37 2002/04/23 16:47:38 delgadom Exp $
+//  $Id: particle.h,v 1.38 2002/06/03 14:53:43 alexei Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -94,6 +94,10 @@ static void alfun(integer & n, number xc[], number & fc, AMSParticle * ptr);
   static void _build(number rid, number err, number charge,number beta, number ebeta, 
   number &mass, number &emass, number &mom, number &emom);
 public:
+#ifdef __WRITEROOTCLONES__
+  friend class ParticleRoot02;
+#endif
+
   AMSParticle *  next(){return (AMSParticle*)_next;}
   AMSParticle():   _pbeta(0), _pcharge(0), _ptrack(0),_ptrd(0),_prich(0),_pShower(0)
  {

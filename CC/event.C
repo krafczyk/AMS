@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.284 2002/05/22 09:01:38 alexei Exp $
+//  $Id: event.C,v 1.285 2002/06/03 14:53:34 alexei Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -984,6 +984,9 @@ for(int il=0;il<2;il++){
       }
       else break;
     }
+// second pass Root Only
+   copy();
+//
     if(trig || PosInRun< (IOPA.WriteAll/1000)*1000){
 // if event has been selected write it straight away
     // oh nono check for errors first
@@ -2178,6 +2181,13 @@ void AMSEvent::_writeEl(){
    if(p) EN->RICHits+=p->getnelem();
    else break;
   }
+#ifdef __WRITEROOT__
+  int RawWords = -1;
+  RawWords=nws<(1<<18)?nws:((1<<18)-1);
+  RawWords+=(AMSCommonsI::getosno())<<18;
+  RawWords+=(AMSCommonsI::getbuildno())<<20;
+  AMSJob::gethead()->getntuple()->Get_evroot02()->Set(this, RawWords);
+#endif
   
 }
 //====================================================================

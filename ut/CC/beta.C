@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.44 2002/05/21 09:03:42 alexei Exp $
+//  $Id: beta.C,v 1.45 2002/06/03 14:53:34 alexei Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -647,28 +647,14 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
 
 
 void AMSBeta::_writeEl(){
-  BetaNtuple02* BN = AMSJob::gethead()->getntuple()->Get_beta02();
 
-  if (BN->Nbeta>=MAXBETA02) return;
-
+  int i, k, pat;
 #ifdef __WRITEROOTCLONES__
-  if(AMSJob::gethead()->getntuple()) {
-    int N=BN->Nbeta;
-    int ntof = BN->NTOF[BN->Nbeta];
-    int ptof[4];
-    for (int i=0; i<4; i++) {ptof[i] = BN->pTOF[BN->Nbeta][i];}
-    int pTr = BN->pTr[BN->Nbeta];
-    EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-    TClonesArray &clones =  *(ev02.Get_fbeta());
-     new (clones[N]) BetaRoot02(_status, _Pattern, _Beta, _BetaC,
-             _InvErrBeta, _InvErrBetaC, _Chi2, _Chi2Space,
-             ntof, ptof, pTr);
-    N++;
-    AMSJob::gethead()->getntuple()->Get_event02()->Set_fNbeta(N);
-   } else {
-      cout<<"AMSBeta::_writeEl -W- cannot add to clones array"<<endl;
-   }
-#else
+  // ntof _ptof _ptrack  moved to copyEl();
+    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
+  BetaNtuple02* BN = AMSJob::gethead()->getntuple()->Get_beta02();
+  if (BN->Nbeta>=MAXBETA02) return;
 // fill the ntuple 
   BN->Status[BN->Nbeta]=_status;
   BN->Pattern[BN->Nbeta]=_Pattern;  
@@ -681,11 +667,9 @@ void AMSBeta::_writeEl(){
   if(_Pattern ==0)BN->NTOF[BN->Nbeta]=4;
   else if(_Pattern < 5)BN->NTOF[BN->Nbeta]=3;
   else BN->NTOF[BN->Nbeta]=2;
-  int k;
   for(k=BN->NTOF[BN->Nbeta];k<4;k++)BN->pTOF[BN->Nbeta][k]=0;
   for(k=0;k<BN->NTOF[BN->Nbeta];k++){
     BN->pTOF[BN->Nbeta][k]=_pcluster[k]->getpos();
-    int i,pat;
     pat=_pcluster[k]->getntof()-1;
     if(AMSTOFCluster::Out(IOPA.WriteAll%10==1)){
       // Writeall
@@ -713,11 +697,27 @@ void AMSBeta::_writeEl(){
     else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))BN->pTr[BN->Nbeta]=-1;
     else BN->pTr[BN->Nbeta]=_ptrack->getpos();
   }
-#endif
   BN->Nbeta++;
 }
 
 void AMSBeta::_copyEl(){
+//
+//AMSBetaRoot02  _ptr 
+#ifdef __WRITEROOTCLONES__
+ BetaRoot02 *bptr = (BetaRoot02*)_ptr;
+ if (bptr) {
+  // AMSTrTrack * _ptrack;
+   //if (_ptrack) bptr->fTrTrack= (TrTrackRoot02*)_ptrack->GetClonePointer();
+   if (_ptrack) bptr->fTrTrack= _ptrack->GetClonePointer();
+  // AMSTOFCluster * _pcluster[4]
+  for (int i=0; i<4; i++) {
+    //if (_pcluster[i]) bptr->fTOFCluster->Add((TOFClusterRoot*)_pcluster[i]->GetClonePointer());
+   if (_pcluster[i]) bptr->fTOFCluster->Add(_pcluster[i]->GetClonePointer());
+  }
+ } else {
+  cout<<"AMSBeta::_copyEl -I-  AMSBeta::BetaRoot02 *ptr is NULL "<<endl;
+ }  
+#endif
 }
 
 

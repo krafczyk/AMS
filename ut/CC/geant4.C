@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.47 2002/04/22 13:24:05 delgadom Exp $
+//  $Id: geant4.C,v 1.48 2002/06/03 14:53:34 alexei Exp $
 #include <job.h>
 #include <event.h>
 #include <trrec.h>
@@ -389,9 +389,9 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
        }
      }
 // try to manipulate the conditions for writing....
-   if(trig ){ 
-     AMSEvent::gethead()->copy();
-   }
+//   if(trig ){ 
+//     AMSEvent::gethead()->copy();
+//   }
      AMSEvent::gethead()->write(trig);
 
      UPool.Release(0);

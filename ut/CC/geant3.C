@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.68 2002/04/22 13:23:54 delgadom Exp $
+//  $Id: geant3.C,v 1.69 2002/06/03 14:53:34 alexei Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -668,9 +668,9 @@ AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime());
         if(trigl==0)trig=0;
        }
      }
-   if(trig ){ 
-     AMSEvent::gethead()->copy();
-   }
+//   if(trig ){ 
+//     AMSEvent::gethead()->copy();
+//   }
      AMSEvent::gethead()->write(trig);
 }
      UPool.Release(0);

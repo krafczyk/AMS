@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.34 2002/05/23 17:27:04 mdelgado Exp $
+//  $Id: richrec.C,v 1.35 2002/06/03 14:53:34 alexei Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -93,32 +93,23 @@ void AMSRichRawEvent::mc_build(){
 
 void AMSRichRawEvent::_writeEl(){
   
+  AMSRICHIdGeom channel(_channel);
+
+#ifdef __WRITEROOTCLONES__
+    float x = channel.x();
+    float y = channel.y();
+    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this, x, y);
+#endif
   RICEventNtuple* cluster=AMSJob::gethead()->getntuple()->Get_richevent();
   
   if(cluster->Nhits>=MAXRICHITS) return;
 
-  AMSRICHIdGeom channel(_channel);
-
-#ifdef __WRITEROOTCLONES__
-  if(AMSJob::gethead()->getntuple()) {
-    int N=cluster->Nhits;
-    float _x = channel.x();
-    float _y = channel.y();
-    EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-    TClonesArray &clones =  *(ev02.Get_fricevent());
-    new (clones[N])   RICEventRoot(_channel, _counts,  _x,  _y);
-    N++;
-    AMSJob::gethead()->getntuple()->Get_event02()->Set_fNricevent(N);
-  }
-#else
   cluster->channel[cluster->Nhits]=_channel;
   cluster->adc[cluster->Nhits]=_counts;
 
   cluster->x[cluster->Nhits]=channel.x();
   cluster->y[cluster->Nhits]=channel.y();
-#endif
   cluster->Nhits++;
-
 }
 
 
@@ -913,26 +904,13 @@ void AMSRichRing::rebuild(AMSTrTrack *track){
 
 void AMSRichRing::_writeEl(){
   
+#ifdef __WRITEROOTCLONES__
+    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
   RICRing* cluster=AMSJob::gethead()->getntuple()->Get_ring();
   
   if(cluster->NRings>=MAXRICHRIN) return;
 
-#ifdef __WRITEROOTCLONES__
-  if(AMSJob::gethead()->getntuple()) {
-    int N=cluster->NRings;
-    int track;
-  if(_ptrack->checkstatus(AMSDBc::NOTRACK))track=-1;
-  else if(_ptrack->checkstatus(AMSDBc::TRDTRACK)) track=-1;
-  else if(_ptrack->checkstatus(AMSDBc::ECALTRACK))track=-1;
-  else track=_ptrack->getpos();
-    EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-    TClonesArray &clones =  *(ev02.Get_fricring());
-    new (clones[N])   RICRingRoot(track, _used, _mused,
-                                  _beta, _errorbeta, _quality, _charge);
-    N++;
-    AMSJob::gethead()->getntuple()->Get_event02()->Set_fNricring(N);
-  }
-#else
   if(_ptrack->checkstatus(AMSDBc::NOTRACK))cluster->track[cluster->NRings]=-1;
   else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))cluster->track[cluster->NRings]=-1;
   else if(_ptrack->checkstatus(AMSDBc::ECALTRACK))cluster->track[cluster->NRings]=-1;
@@ -943,11 +921,19 @@ void AMSRichRing::_writeEl(){
   cluster->errorbeta[cluster->NRings]=_errorbeta;
   cluster->quality[cluster->NRings]=_quality;
   cluster->Z[cluster->NRings]=_charge;
-#endif
   cluster->NRings++;
-
 }
+void AMSRichRing::_copyEl(){
+#ifdef __WRITEROOTCLONES__
+ RICRingRoot *ptr = (RICRingRoot*)_ptr;
+ if (ptr) {
+   if (_ptrack) ptr->fTrack= _ptrack->GetClonePointer();
+ } else {
+  cout<<"AMSRichRing::_copyEl -I-  AMSRichRing::RICRingRoot *ptr is NULL "<<endl;
+ }
 
+#endif
+}
 void AMSRichRing::CalcBetaError(){
   geant A=(-2.81+13.5*(RICHDB::rad_index-1.)-18.*
 	   (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*

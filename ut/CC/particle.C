@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.111 2002/05/22 09:01:38 alexei Exp $
+//  $Id: particle.C,v 1.112 2002/06/03 14:53:34 alexei Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -404,123 +404,19 @@ _prich=0;
 
 
 void AMSParticle::_writeEl(){
+  // Root related part ../CC/root.C 
+  // ParticleRoot02::ParticleRoot02(AMSParticle *ptr, float phi, float phigl)
 
-
-  ParticleNtuple02* PN = AMSJob::gethead()->getntuple()->Get_part02();
-  if (PN->Npart>=MAXPART02) return;
   if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 || LVL3FFKEY.Accept) && (_ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK)|| _ptrack->checkstatus(AMSDBc::ECALTRACK)))return;
 #ifdef __WRITEROOTCLONES__
-  if(AMSJob::gethead()->getntuple()) {
-    int N=PN->Npart;
-
 // Fill Root class
-    int chargep;
-    int trdp;
-    int richp;
-    int ecalp;
-    int betap;
-    int trackp;
-    int particle     = _gpart[0];
-    int particlevice = _gpart[1];
-
-  if(_pcharge)chargep=_pcharge->getpos();
-  else chargep=-1;
-  if(_ptrd)trdp=_ptrd->getpos();
-  else trdp=-1;
-
-  if(_prich)richp=_prich->getpos();
-  else richp=-1;
-  if(_pShower)ecalp=_pShower->getpos();
-  else ecalp=-1;
-
-
-  if(_pbeta){
-      betap=_pbeta->getpos();
-      integer pat=_pbeta->getpattern();
-      for(int i=0;i<pat;i++){
-      AMSContainer *pc=AMSEvent::gethead()->getC("AMSBeta",i);
-      #ifdef __AMSDEBUG__
-        assert(pc != NULL);
-      #endif
-      betap+=pc->getnelem();
-       }
-  }
-   else betap=-1;
- 
-  int pat=_ptrack->getpattern();
-  if(_ptrack->checkstatus(AMSDBc::NOTRACK))trackp=-1;
-  else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))trackp=-1;
-  else if(_ptrack->checkstatus(AMSDBc::ECALTRACK))trackp=-1;
-  else trackp=_ptrack->getpos();
-
   float phi  =fmod(_Phi+AMSDBc::twopi,AMSDBc::twopi);
   float phigl=fmod(_PhiGl+AMSDBc::twopi,AMSDBc::twopi);
 
-
-  float trcoo[8][3];
-  for(int i=0;i<TKDBc::nlay();i++){
-    for(int j=0;j<2;j++){
-      trcoo[i][j]=_TrCoo[i][j];
-    }
-      trcoo[i][2]=_Local[i];
-  }
-
-
-    float prob[2];
-    float coo[3];
-    float tofcoo[4][3]; 
-    float anticoo[2][3];
-    float ecalcoo[3][3];
-    float trdcoo[3]; 
-    float richcoo[2][3];
-    float richpath[2];
-
-  for(int i=0;i<3;i++)trdcoo[i]=_TRDCoo[i];
-  for(int i=0;i<3;i++)coo[i]=_Coo[i];
-  for(int i=0;i<4;i++){
-    for(int j=0;j<3;j++){
-      tofcoo[i][j]=_TOFCoo[i][j];
-    }
-  }
-
-    for(int i=0;i<2;i++){
-     for(int j=0;j<3;j++){
-      anticoo[i][j]=_AntiCoo[i][j];
-    }
-  }
-  for(int i=0;i<3;i++){ // ECAL-crossings
-    for(int j=0;j<3;j++){
-      ecalcoo[i][j]=_EcalSCoo[i][j];
-    }
-  }
-
-  for(int i=0;i<2;i++){
-    for(int j=0;j<3;j++){
-      richcoo[i][j]=_RichCoo[i][j];
-    }
-    richpath[i]=_RichPath[i];
-  }
-
-  float fitmom      = _fittedmom[0];
-  for (int i=0; i<2; i++) {prob[i] = _prob[i];}
-
-    EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
-    TClonesArray &clones =  *(ev02.Get_fparticle());
-    new (clones[N]) ParticleRoot02(
-                             betap, chargep, trackp, trdp, richp, ecalp,
-                             particle, particlevice, prob, fitmom, 
-                             _Mass, _ErrMass, _Momentum, _ErrMomentum,
-                             _Beta, _ErrBeta, _Charge, _Theta, phi,
-                             _ThetaGl, phigl,
-                             coo, _CutoffMomentum, 
-                             tofcoo, anticoo, ecalcoo, trcoo, trdcoo,
-                             richcoo, richpath,_RichLength);
-    N++;
-    AMSJob::gethead()->getntuple()->Get_event02()->Set_fNparticle(N);
-  } else {
-    cout<<"AMSBeta::_writeEl -W- cannot add to clones array"<<endl;
-  }
-#else
+  AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this, phi, phigl);
+#endif
+  ParticleNtuple02* PN = AMSJob::gethead()->getntuple()->Get_part02();
+  if (PN->Npart>=MAXPART02) return;
 // Fill the ntuple 
   if(_pcharge)PN->ChargeP[PN->Npart]=_pcharge->getpos();
   else PN->ChargeP[PN->Npart]=-1;
@@ -602,12 +498,24 @@ void AMSParticle::_writeEl(){
 
   PN->Cutoff[PN->Npart]=_CutoffMomentum;
   for(int i=0;i<3;i++)PN->TRDCoo[PN->Npart][i]=_TRDCoo[i];
-#endif
   PN->Npart++;
 }
 
 
 void AMSParticle::_copyEl(){
+#ifdef __WRITEROOT__
+  ParticleRoot02 *ptr = (ParticleRoot02*)_ptr;
+  if (ptr) {
+    if (_pbeta)   ptr->fBeta  =_pbeta  ->GetClonePointer();
+    if (_pcharge) ptr->fCharge=_pcharge->GetClonePointer();
+    if (_ptrack)  ptr->fTrack =_ptrack ->GetClonePointer();
+    if (_ptrd)    ptr->fTRD   =_ptrd   ->GetClonePointer();
+    if (_prich)   ptr->fRich  =_prich  ->GetClonePointer();
+    if (_pShower) ptr->fShower=_pShower->GetClonePointer();
+  } else {
+    cout<<"AMSParticle::_copyEl -I-  AMSParticle::ParticleRoot02 *ptr is NULL "<<endl;
+  }
+#endif
 }
 
 

@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.7 2002/01/08 13:43:42 choutko Exp $
+//  $Id: trdrec.h,v 1.8 2002/06/03 14:53:43 alexei Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include <trdid.h>
@@ -54,6 +54,9 @@ if(i>=0 && i <TRDDBc::nlay())_Head[i]=(AMSTRDCluster*)head;
 }
 ~AMSTRDCluster(){if(_pos==1)_Head[_layer]=0;};
 
+#ifdef __WRITEROOT__
+ friend class TRDClusterRoot;
+#endif
 };
 
 class AMSTRDSegment: public AMSlink{
@@ -111,6 +114,9 @@ inline integer Good() {
 }
 AMSTRDSegment *  next(){return (AMSTRDSegment*)_next;}
 
+#ifdef __WRITEROOT__
+ friend class TRDSegmentRoot;
+#endif
 };
 
 
@@ -227,6 +233,9 @@ number getphi(){return _StrLine._Phi;}
 number gettheta(){return _StrLine._Theta;}
 AMSPoint getcoo(){return _StrLine._Coo;}
 
+#ifdef __WRITEROOT__
+ friend class  TRDTrackRoot;
+#endif
 };
 
 #endif

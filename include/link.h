@@ -1,4 +1,4 @@
-//  $Id: link.h,v 1.9 2001/01/22 17:32:44 choutko Exp $
+//  $Id: link.h,v 1.10 2002/06/03 14:53:43 alexei Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 04, 1996. add _ContPos
@@ -12,11 +12,12 @@
 #include <upool.h>
 #include <apool.h>
 #include <id.h>
+class TObject;
 class AMSlink {
 protected:
  integer _status;
  integer _pos;
- integer _ContPos;
+ TObject *_ptr; 
   virtual void _erase();
   virtual void _print(ostream & stream);
   virtual void _write();
@@ -29,22 +30,19 @@ public:
  integer getstatus() const{return _status;}
  void setstatus(integer status){_status=_status | status;}
  void clearstatus(integer status){_status=_status & ~status;}    
- 
+ TObject *GetClonePointer(){ return _ptr;}
+ void SetClonePointer(TObject *ptr){ _ptr=ptr;}
  virtual void resethash(integer id, AMSlink *head){};
   virtual AMSID crgid(integer i=0){return AMSID();}
   virtual integer operator < ( AMSlink & o) const;
   AMSlink * _next;
   AMSlink(integer status,AMSlink * n=0): 
-  _next(n),_pos(0), _ContPos(0),_status(status){};
+  _next(n),_pos(0), _ptr(0),_status(status){};
   AMSlink(integer status=0): 
-  _next(0),_pos(0), _ContPos(0),_status(status){};
+  _next(0),_pos(0), _ptr(0),_status(status){};
   virtual ~AMSlink(){};
   integer getpos()const{return _pos;}
   void setpos(integer pos){_pos=pos;}
-//+
-  integer getContPos() {return _ContPos;}                           
-  void    setContPos(integer pos) {_ContPos = pos;}
-//-
 //  void * operator new(size_t t, void *p) {return p;}
 //  void  operator delete(size_t t, void *p) {p=0;}
   void * operator new(size_t t) {return UPool.insert(t);}

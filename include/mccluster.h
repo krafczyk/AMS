@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.30 2002/03/20 09:43:10 choumilo Exp $
+//  $Id: mccluster.h,v 1.31 2002/06/03 14:53:43 alexei Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -45,6 +45,9 @@ public:
 #ifdef __DB__
    friend class AMSTOFMCClusterD;
 #endif
+#ifdef __WRITEROOT__
+   friend class TOFMCClusterRoot;
+#endif
 };
 
 //=====================================================
@@ -78,6 +81,10 @@ public:
 #ifdef __DB__
    friend class AMSAntiMCClusterD;
 #endif
+#ifdef __WRITEROOT__
+   friend class ANTIMCClusterRoot;
+#endif
+
 };
 //=====================================================
 class AMSEcalMCHit: public AMSlink{
@@ -156,6 +163,9 @@ public:
   integer getstatus() const {return _status;}
   integer gethit() const {return _hit;}
   void puthit(integer n) {_hit=n;};
+#ifdef __WRITEROOT__
+  friend class RICMCRoot;
+#endif
 };
 
 
@@ -252,7 +262,9 @@ public:
  static void builddaq(integer i, integer n, int16u *p);
  static void buildraw(integer n, int16u *p);
 
-
+#ifdef __WRITEROOT__
+ friend class  TrMCClusterRoot;
+#endif
 
 
 };
@@ -314,7 +326,9 @@ _idsoft(idsoft),_ekin(energy),_edep(edep),_itra(itra),_step(step),_xgl(xgl){}
  static void buildraw(integer n, int16u *p);
 */
 
-
+#ifdef __WRITEROOT__
+ friend class TRDMCClusterRoot;
+#endif
 
 };
 
