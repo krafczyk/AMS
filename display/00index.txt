@@ -36,7 +36,7 @@ cd to AMS/display directory, then type
 
 followed by
 
-	gmake
+	gmake standalone
 
 and all .cxx files are compiled and linked into a shared library called
 libAMS.so.  Please note that this has only been tested on alpha workstations
@@ -51,18 +51,13 @@ To run it, please make sure you have the environment to run ROOT.
 Only 3 things needs to be set:
 
 1. Environment variable ROOTSYS  should point to the ROOT directory.
-   (On boronams $ROOTSYS should be set to /cern/root/v1.03/root.)
-2. $ROOTSYS/lib is added into Environment variables LD_LIBRARY_PATH.
+   (On boronams $ROOTSYS should be set to /pgm0/EventDisplay/root)
+2. .:$ROOTSYS/lib is added into Environment variables LD_LIBRARY_PATH.
 3. $ROOTSYS/bin is in your path.
 
-Then you are ready to go.  Type "root" at your unix prompt, and 
-" .x display.C " at the root prompt.  
-
-   The program display.C does the following tasks:
-	1.  loads in shared libraries libAMS.so which are compiled from 
-	    the sources,
-	2.  opens the root file "prmu-old.root" and shows the first event
-	    on the screen.
+Then you are ready to go.
+Type h2root your_converted_ntuple_file_name your_preferred_name
+Type amsed your_preferred_name.
 
 There are 4 defined views:  top view, side view, front view, two combined
 "all views" and "two view".  In each view you have the freedom to change 
