@@ -408,7 +408,7 @@ else {
  for(integer kk=0;kk<CTCDBc::getnlay();kk++){
   AMSCTCRawCluster *ptr=(AMSCTCRawCluster*)AMSEvent::gethead()->
   getheadC("AMSCTCRawCluster",0);
-  integer const maxpl=100;
+  integer const maxpl=200;
   static number xplane[maxpl];
   static integer xstatus[maxpl];
   VZERO(xplane,maxpl*sizeof(number)/4);
@@ -437,7 +437,7 @@ for (int i=0;i<maxpl;i++){
   imax=i;
  }
 }
-if(imax >0 && smax >0 && smax>=CTCRECFFKEY.Thr1){
+if(imax >=0 && smax >0 && smax>=CTCRECFFKEY.Thr1){
   number edep=0;
   AMSPoint cofg(0,0,0);
   number xsize=1000;
@@ -471,7 +471,7 @@ if(imax >0 && smax >0 && smax>=CTCRECFFKEY.Thr1){
           zsize=p0->getpar(2)*2;
   }
   AMSPoint ecoo(xsize,ysize,zsize);
-  if(edep>TOFRECFFKEY.ThrS){
+  if(edep>=TOFRECFFKEY.ThrS){
    AMSEvent::gethead()->addnext(AMSID("AMSCTCCluster",layer-1),
    new     AMSCTCCluster(status,layer,cofg,ecoo,edep,sqrt(edep)));
    for(i=-1;i<2;i++){ 
