@@ -24,8 +24,6 @@
 #include <timeid.h>
 #include <trcalib.h>
 //
-AMSTOFScan scmcscan[SCBTPN];// some "temporary" TOF solution
-TOFBrcal scbrcal[SCLRS][SCMXBR];// ...................
 //
 integer AMSEvent::debug=1;
 AMSEvent* AMSEvent::_Head=0;
