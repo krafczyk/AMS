@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.37 2001/01/22 17:32:44 choutko Exp $
+//  $Id: root.h,v 1.38 2001/02/28 19:21:13 kscholbe Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -948,6 +948,7 @@ ClassDef(RICEventNtuple,1)
 #endif
 };
 
+
 #ifdef __WRITEROOT__
 class RICRing : public TObject {
 #else
@@ -963,10 +964,11 @@ public:
 
 
 friend class AMSRichRing;
+friend class AMSNtuple;
 #ifdef __WRITEROOT__
 ClassDef(RICRing,1)
 #endif
-};
+}; 
 
 
 #endif
