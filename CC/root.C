@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.70 2004/02/11 17:46:51 alcaraz Exp $
+//  $Id: root.C,v 1.71 2004/02/12 14:58:46 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2278,13 +2278,9 @@ AMSEventR* AMSChain::GetEvent(){
         return _EVENT;
 };
 
-AMSEventR* AMSChain::GetEvent(Int_t ev){
-      for (int entry=0; entry<GetEntries(); entry++) {
-            if (GetEntry(entry)==0) return (AMSEventR*) NULL;
-            if (_EVENT->Event()!=ev) continue;
-            _ENTRY = entry;
-            break;
-      }
+AMSEventR* AMSChain::GetEvent(Int_t entry){
+      if (GetEntry(entry)==0) return (AMSEventR*) NULL;
+      _ENTRY = entry;
       return _EVENT;
 };
 
