@@ -1359,9 +1359,6 @@ integer AMSTrTrack::buildFalseX(integer patstart){
     AMSTrRecHit * phit[6]={0,0,0,0,0,0};
     if(1  || TRFITFFKEY.pattern[pat]){
       int fp=patpoints[pat]-1;    
-#ifdef __AMSDEBUG__
-     assert (fp==2);
-#endif 
       // Try to make StrLine Fit
       integer first=AMSTrTrack::patconf[pat][0]-1;
       integer second=AMSTrTrack::patconf[pat][fp]-1;

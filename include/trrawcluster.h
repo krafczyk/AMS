@@ -65,6 +65,7 @@ static void sitkdigi();
  static int16u getdaqidMixed(int i);
  static int16u getdaqidCompressed(int i);
  static integer checkdaqidRaw(int16u id);
+ static integer GetTrCrate(int16u id);
  static integer checkdaqidMixed(int16u id);
  static integer checkdaqidCompressed(int16u id);
  static integer calcdaqlengthRaw(integer i);
