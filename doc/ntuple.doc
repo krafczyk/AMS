@@ -302,28 +302,40 @@ Below there is a description of a converted ntuple.
 
 ---------------------------------------------------------------------------
 
-*) Status bits
+*) Status bits (counting from 1 to 32)
 
 All:
-16 - BAD
-32 - USED
-64 - Service bit
+5 - BAD (status&16!=0)
+6 - USED (status&32!=0)
+7 - Service bit (status&64!=0)
 
 Tracker clusters:
-1 - WIDE cluster
-2 - two clusters near each other
-4 - cluster was refitted
-8 - "weak" cluster
+1 - WIDE cluster (status&1!=0)
+2 - two clusters near each other (status&2!=0)
+3 - cluster was refitted (status&4!=0)
+4 - "weak" cluster (status&8!=0)
+5 - BAD (status&16!=0)
+6 - USED (status&32!=0)
+7 - Service bit (status&64!=0)
+
  TrRecHits:
-1 - FalseX
-2 - FalseTOFX
-4 - Ambiguous hit (i.e. several tracks are used it)
-8 - At least one "weak" cluster
+1 - FalseX (status&1!=0)
+2 - FalseTOFX (status&2!=0)
+3 - Ambiguous hit, i.e. several tracks are used it (status&4!=0)
+4 - "Weak" cluster on it (status&8!=0)
+5 - BAD (status&16!=0)
+6 - USED (status&32!=0)
+7 - Service bit (status&64!=0)
+8 - Hit NOT consistent with TOF info (status&128!=0)
 
 Tracks:
-1 - FalseX
-2 - FalseTOFX
-4 - Ambiguous track, i.e. several betas can used it
+1 - FalseX (status&1!=0)
+2 - FalseTOFX (status&2!=0)
+3 - Ambiguous track, i.e. several betas can used it (status&4!=0)
+4 - At least one "weak" cluster (status&8!=0)
+5 - BAD (status&16!=0)
+6 - USED (status&32!=0)
+7 - Service bit (status&64!=0)
 
 **) Pointers to beta, charge, track, trrechit, trclusters are OK now
 

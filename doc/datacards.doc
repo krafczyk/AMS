@@ -367,6 +367,8 @@ I59  FalseXTracking(0)      // Make(1) do not make(0) 4y + 3x tracking
 R60  Chi2FalseX(10.)        // Max Chi2 for 3point combinations
 R61  SearchRegTOF(6.)       // Max distance in cm for TOF search
 I62  FalseTOFXTracking(0)   // Make(1) do not make(0) 4y + TOF tracking
+I63  AwayTOFTracking(1)     // Filter out(1) or not(0) hits inconsistent with TOF
+                               // before tracking
 
 
 // Tracker fitting
