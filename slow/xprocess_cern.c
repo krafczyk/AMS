@@ -177,8 +177,8 @@ pid_t pid;
 	for (i=1; i<5; i++) 
 	  token=strtok(NULL, delimiter);
 	disk_space=atoi(token);
-	if (disk_space>=80) {
-	  if (disk_space>=90)
+	if (disk_space>=90) {
+	  if (disk_space>=95)
 	    count[1]=2;
 	  else 
 	    count[1]=1;
