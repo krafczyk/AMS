@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.97 2003/04/10 12:43:43 choutko Exp $
+# $Id: RemoteClient.pm,v 1.98 2003/04/10 13:00:49 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3022,13 +3022,14 @@ print qq`
            $self->{sendaddon}=2;
         my $filen="$self->{UploadsDir}/ams02mcdb.addon.tar.$run";
         my $i=system "mkdir -p $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/MagneticFieldMap/9* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/MagneticFieldMap $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*.2* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*2 $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tof* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/.*0 $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/.TrA*1 $self->{UploadsDir}/DataBase"; 
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Ecal* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TRD* $self->{UploadsDir}/DataBase";
         $i=system "tar -C$self->{UploadsDir} -h -cf $filen DataBase";
         if($i){
               $self->ErrorPlus("Unable to tar $self->{UploadsDir} DataBase to $filen");
