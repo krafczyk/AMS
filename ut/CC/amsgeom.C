@@ -2571,7 +2571,7 @@ void ecalgeom02(AMSgvolume & mother){
 	  coo[2]=0.;
 	  gid=(ifib+1)+(ifibl+1)*1000+(isupl+1)*100000;
           pECfib=pECfbl->add(new AMSgvolume(
-                 "EC_FIBER",nrot,"ECFB","TUBE",par,3,coo,nrm,"ONLY",1,gid,1));
+                 "EC_FIBER",nrot,"ECFB","TUBE",par,3,coo,nrm,"ONLY",isupl+ifibl?-1:1,gid,1));
 	} // ---> end of fiber loop
 //	GSNEXT(vname,0,3,vlist);
 //-----------
