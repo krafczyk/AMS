@@ -8,14 +8,19 @@
 #include <point.h>
 #include <particle.h>
 #include <trid.h>
+const integer nrho=64;
 class PSStr_def{
 public:
 integer Layer;
 integer Ladder;
 integer Half;
 integer Side;
+integer Strip;
 geant Ped;
 geant Sigma;
+geant BadCh;
+geant SigmaRaw;
+geant Rho[nrho];
 };
 class AMSTrCalibPar{
 protected:
@@ -120,13 +125,17 @@ AMSTrCalibPar * getparS(integer layer, integer ladder, integer sensor);
 
 };
 
-
 class AMSTrIdCalib : public AMSTrIdSoft{
 protected:
+
 static integer * _Count;
+static geant * _BadCh;
 static number  * _ADC;
 static number *_ADCMax;
 static number * _ADC2;
+static number * _ADCRho[nrho];
+static number * _ADC2Raw;
+static number * _ADCRaw;
 static integer  _CmnNoiseC[10][ms];
 static geant  _CmnNoise[10][ms];
 static void _calc();
@@ -135,18 +144,26 @@ static void _update();
 static void _clear();
 static time_t _BeginTime;
 static time_t _CurTime;
+static uinteger _CurRun;
+
 public:
+static uinteger getrun(){return _CurRun;}
 AMSTrIdCalib():AMSTrIdSoft(){};
 AMSTrIdCalib(const AMSTrIdSoft & o):AMSTrIdSoft(o){};
 static void initcalib();
 static void check(integer forcedw=0);
 static void buildSigmaPed(integer n, int16u* p);
+static void buildSigmaPedA(integer n, int16u* p);
 inline getcount() const {return _Count[getchannel()];}
 geant getcmnnoise() const {return _CmnNoise[_VANumber][_addr];}
 void updcmnnoise(geant cmn){(_CmnNoise[_VANumber][_addr])+=cmn;}
 void updcmnnoiseC(){(_CmnNoiseC[_VANumber][_addr])++;}
 void updADC(geant ped){(_ADC[getchannel()])+=ped;}
+void updBadCh(){_BadCh[getchannel()]++;}
 void updADC2(geant ped){(_ADC2[getchannel()])+=ped*ped;}
+void updADCRaw(geant ped){(_ADCRaw[getchannel()])+=ped;}
+void updADC2Raw(geant ped){(_ADC2Raw[getchannel()])+=ped*ped;}
+void updADCRho(geant ped1, geant ped2, integer k){(_ADCRho[k][getchannel()])+=ped1*ped2;}
 void updADCMax(geant ped){if(_ADCMax[getchannel()]<ped)
                            _ADCMax[getchannel()]=ped;}
 void updcounter(){(_Count[getchannel()])++;}

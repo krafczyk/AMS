@@ -88,9 +88,12 @@ geant * AMSTrIdSoft::gains=0;
 geant * AMSTrIdSoft::peds=0;
 integer * AMSTrIdSoft::status=0;
 geant * AMSTrIdSoft::sigmas=0;
+geant * AMSTrIdSoft::sigmaraws=0;
+uinteger * AMSTrIdSoft::rhomatrix=0;
 geant  AMSTrIdSoft:: cmnnoise[10][ms];
 geant * AMSTrIdSoft:: indnoise=0;
 integer AMSTrIdSoft::_numel=0;
+integer AMSTrIdSoft::_numell=0;
 integer AMSTrIdSoft::idsoft2linear[ms];
 const integer AMSTrIdSoft::_VAChannels=64;
 integer AMSTrIdSoft::getprob (geant r){
@@ -366,19 +369,25 @@ void AMSTrIdSoft::init(){
      for(k=0;k<2;k++){
       for ( i=0;i<AMSDBc::nlay();i++){
        for ( j=0;j<AMSDBc::nlad(i+1);j++){
-           idsoft=AMSTrIdSoft(i+1,j+1,k,0,0).getaddr();
+           AMSTrIdSoft id(i+1,j+1,k,0,0);
+           if(id.dead())continue;
+           idsoft=id.getaddr();
            idsoft2linear[idsoft]=num;
            num=num+AMSDBc::NStripsDrp(i+1,0);
            nc++;
        }
        for (j=0;j<AMSDBc::nlad(i+1);j++){
-           idsoft=AMSTrIdSoft(i+1,j+1,k,1,0).getaddr();
+           AMSTrIdSoft id=AMSTrIdSoft(i+1,j+1,k,1,0);
+           if(id.dead())continue;
+           idsoft=id.getaddr();
            idsoft2linear[idsoft]=num;
            num=num+AMSDBc::NStripsDrp(i+1,1);
            nc++;
        }
       }
+       if(k==0)_numell=num;
      }
+     _numel=num;
      cout <<
      "AMSTrIdSoft::init-I-Total of " <<num<< " channels  and "<<
      nc<<" drps found."<<endl;
@@ -387,19 +396,32 @@ void AMSTrIdSoft::init(){
      peds=new geant[num];
      gains=new geant[num];
      sigmas=new geant[num];
+     sigmaraws=new geant[num];
+     for(i=0;i<num;i++)sigmaraws[i]=1;
+     rhomatrix=new uinteger[2*num];
+     for(i=0;i<2*num;i++)rhomatrix[i]=~0;     
+
      for(i=0;i<10;i++){
       for( k=0;k<ms;k++)cmnnoise[i][k]=0;
      }     
      indnoise=new geant[num];
-     _numel=num;
-     assert(status && peds && gains && sigmas && indnoise);
+     assert(status && peds && gains && sigmas && sigmaraws && indnoise);
+
+     
+}
+
+
+void AMSTrIdSoft::inittable(){
+
+
 
      //     integer AMSTrIdSoft::_GetGeo[ncrt][ntdr][2][3];
      //     integer AMSTrIdSoft::_GetHard[nl][nld][2][3];     
+     int i,j,k;
      for(i=0;i<ncrt;i++){
        for( j=0;j<ntdr;j++){
         for(k=0;k<2;k++){
-         for(l=0;l<3;l++)_GetGeo[i][j][k][l]=-1;
+         for(int l=0;l<3;l++)_GetGeo[i][j][k][l]=-1;
         }
        }
      }
@@ -410,11 +432,7 @@ void AMSTrIdSoft::init(){
          }
        }
      }
-     
-}
 
-
-void AMSTrIdSoft::inittable(){
 
 
         //     integer AMSTrIdSoft::_GetHard[nl][nld][2][3];     
@@ -668,7 +686,7 @@ void AMSTrIdSoft::inittable(){
   _GetHard[5][9][1][0]=0 | 0<<3;     //side x
   _GetHard[5][9][1][1]=0 | 1<<2;     //side y
 
-  int i,j,k,l,i1,j1,k1,l1;
+  int l,i1,j1,k1,l1;
 #ifdef __AMSDEBUG__
   // perform duplicate check
   for(k=0;k<2;k++){
@@ -830,7 +848,7 @@ integer AMSTrIdGeom::size2strip(integer side, number size){
 
 AMSTrIdSoftI::AMSTrIdSoftI(){
   if(_Count++==0){
-       AMSTrIdSoft::init();
+    //       AMSTrIdSoft::init();
        AMSTrIdGeom::init();
        if(sizeof(int) <= sizeof(short int)){
          cerr<<"AMSTrIdSoftI-F-16 bit machine is not supported."<<endl;
@@ -860,3 +878,33 @@ AMSTrIdSoftI::AMSTrIdSoftI(){
 }
 integer AMSTrIdSoftI::_Count=0;
 
+
+
+
+integer  AMSTrIdSoft::getrhomatrix(integer bit){
+ integer word=bit/32;
+ bit=bit%32;
+ return ((rhomatrix[2*(idsoft2linear[_addr]+_strip)+word] & (1<<bit)) !=0)?1:0;
+ 
+}
+
+
+void AMSTrIdSoft::setrhomatrix(integer bit){
+
+
+integer word=bit/32;
+ bit=bit%32;
+ rhomatrix[2*(idsoft2linear[_addr]+_strip)+word]=rhomatrix[2*(idsoft2linear[_addr]+_strip)+word] | (1<<bit);
+
+}
+
+
+
+void AMSTrIdSoft::clearrhomatrix(integer bit){
+
+
+integer word=bit/32;
+ bit=bit%32;
+ rhomatrix[2*(idsoft2linear[_addr]+_strip)+word]=rhomatrix[2*(idsoft2linear[_addr]+_strip)+word] & ~(1<<bit);
+
+}

@@ -1,8 +1,10 @@
 #include <timeid.h>
 #include <job.h>
+#include <event.h>
 #include <astring.h>
 #include <fstream.h>
 #include <commons.h>
+#include <trcalib.h>
 uinteger * AMSTimeID::_Table=0;
 const uinteger AMSTimeID::CRC32=0x04c11db7;
 AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0, 
@@ -101,11 +103,10 @@ if (Time >= _Begin && Time <= _End){
   }
   return 0;
 }
-else if(reenter ==0){
+else if(reenter <2){
   // try to read it from file ....
-  if(read(AMSDATADIR.amsdatadir))
-  return validate(Time,1);
-  else return 0;
+  read(AMSDATADIR.amsdatadir,reenter);
+  return validate(Time,reenter+1);
 }
 else return 0;
 }
@@ -146,6 +147,12 @@ integer AMSTimeID::write(char * dir){
     AString fnam(dir);
     fnam+=getname();
     fnam+= getid()==0?".0":".1";
+    if(getid()!=0 && AMSTrIdCalib::getrun()>0){
+     char name[255];
+     ostrstream ost(name,sizeof(name));
+     ost << "."<<AMSTrIdCalib::getrun()<<ends;
+     fnam+=name;     
+    }
     fbin.open((const char *)fnam,ios::out|binary|ios::trunc);
     if(fbin){
      uinteger * pdata;
@@ -172,12 +179,18 @@ integer AMSTimeID::write(char * dir){
 }
 
 
-integer AMSTimeID::read(char * dir){
+integer AMSTimeID::read(char * dir, integer reenter){
   enum open_mode{binary=0x80};
     fstream fbin;
     AString fnam(dir);
     fnam+=getname();
     fnam+= getid()==0?".0":".1";
+    if(getid()!=0 && reenter==0){
+     char name[255];
+     ostrstream ost(name,sizeof(name));
+     ost << "."<<AMSEvent::gethead()->getrun()<<ends;
+     fnam+=name;     
+    }
     fbin.open((const char *)fnam,ios::in|binary);
 
     if(fbin){

@@ -165,7 +165,7 @@ void AMSJob::_sitrigdata(){
   LVL3FFKEY.UseTightTOF=1;
   LVL3FFKEY.TrTOFSearchReg=6;
   LVL3FFKEY.TrMinResidual=0.03;
-  LVL3FFKEY.TrMaxResidual[0]=0.9;
+  LVL3FFKEY.TrMaxResidual[0]=0.8;
   LVL3FFKEY.TrMaxResidual[1]=0.1;
   LVL3FFKEY.TrMaxResidual[2]=0.2;
   LVL3FFKEY.TrMaxHits=20;
@@ -186,7 +186,7 @@ FFKEY("TKGE",(float*)&TKGEOMFFKEY,sizeof(TKGEOMFFKEY_DEF)/sizeof(integer),
 
 
 TRMCFFKEY.alpha=220;
-TRMCFFKEY.beta=0.5;
+TRMCFFKEY.beta=0.4;
 TRMCFFKEY.gamma=0.08;
 TRMCFFKEY.fastswitch=5.e-5;  // inverse linear density of primary electrons
 TRMCFFKEY.dedx2nprel=0.33e6;
@@ -225,7 +225,7 @@ TRMCFFKEY.thr2R[1]=1;
 TRMCFFKEY.neib[0]=1;
 TRMCFFKEY.neib[1]=1;
 TRMCFFKEY.CalcCmnNoise[0]=1;
-TRMCFFKEY.CalcCmnNoise[1]=3;
+TRMCFFKEY.CalcCmnNoise[1]=1;
 {
 int i,j,k;
 for(i=0;i<2;i++){
@@ -242,6 +242,12 @@ TRCALIB.PedAccRequired[0]=0.12;
 TRCALIB.PedAccRequired[1]=0.09;
 TRCALIB.Validity[0]=1800;
 TRCALIB.Validity[1]=1800+3600;
+TRCALIB.RhoThrA=0.7;
+TRCALIB.RhoThrV=0.8;
+TRCALIB.BadChanThr[0]=3.3;
+TRCALIB.BadChanThr[1]=0.002;
+TRCALIB.Method=1;
+TRCALIB.Pass=1;
 TRCALIB.EventsPerIteration[0]=100;
 TRCALIB.EventsPerIteration[1]=100;
 TRCALIB.NumberOfIterations[0]=200;
@@ -455,15 +461,15 @@ void AMSJob::_retkdata(){
 
 number fac=AMSTrRawCluster::ADC2KeV();
 TRCLFFKEY.ThrClA[1]=45/fac;
-TRCLFFKEY.Thr1A[1] =25/fac;
-TRCLFFKEY.Thr2A[1] =7/fac;
+TRCLFFKEY.Thr1A[1] =30/fac;
+TRCLFFKEY.Thr2A[1] =10/fac;
 
-TRCLFFKEY.ThrClS[1]=10;
-TRCLFFKEY.Thr1S[1] =7;
-TRCLFFKEY.Thr2S[1] =7;
+TRCLFFKEY.ThrClS[1]=15;
+TRCLFFKEY.Thr1S[1] =10;
+TRCLFFKEY.Thr2S[1] =10;
 
-TRCLFFKEY.ThrClR[1]=8/fac;
-TRCLFFKEY.Thr1R[1] =5/fac;
+TRCLFFKEY.ThrClR[1]=10/fac;
+TRCLFFKEY.Thr1R[1] =8/fac;
 TRCLFFKEY.Thr2R[1] =1.;  // should be around 1 if ThrClNEl[1]=3;
 TRCLFFKEY.Thr3R[1] =-2.;
 
@@ -472,18 +478,18 @@ TRCLFFKEY.ThrClNEl[1]=3;
 
 TRCLFFKEY.ThrClA[0]=45/fac;
 TRCLFFKEY.Thr1A[0] =30/fac;
-TRCLFFKEY.Thr2A[0] =6/fac;
+TRCLFFKEY.Thr2A[0] =10/fac;
 
 
 
 
 
-TRCLFFKEY.ThrClS[0]=14;
-TRCLFFKEY.Thr1S[0] =10;
-TRCLFFKEY.Thr2S[0] =10;
+TRCLFFKEY.ThrClS[0]=30;
+TRCLFFKEY.Thr1S[0] =20;
+TRCLFFKEY.Thr2S[0] =20;
 
-TRCLFFKEY.ThrClR[0]=7/fac;
-TRCLFFKEY.Thr1R[0] =5/fac;
+TRCLFFKEY.ThrClR[0]=10/fac;
+TRCLFFKEY.Thr1R[0] =8/fac;
 TRCLFFKEY.Thr2R[0] =1.;
 TRCLFFKEY.Thr3R[0] =-2.;
 
@@ -491,7 +497,7 @@ TRCLFFKEY.ThrClNMin[0]=1;
 TRCLFFKEY.ThrClNEl[0]=3;
 
 TRCLFFKEY.ErrX=30.e-4;
-TRCLFFKEY.ErrY=10.e-4;
+TRCLFFKEY.ErrY=15.e-4;
 TRCLFFKEY.ErrZ=30.e-4;
 TRCLFFKEY.ThrDSide=1.;
 
@@ -879,6 +885,8 @@ if(AMSFFKEY.Update){
       cerr<<"AMSJob::_retkinitjob-E-NoAMSTrIdSoftTable exists for setup "<<
         getsetup()<< "yet "<<endl;
     }
+       AMSTrIdSoft::init();
+
 }
 
 
@@ -1389,29 +1397,47 @@ end.tm_year=TRMCFFKEY.year[1];
 
 
 TID.add (new AMSTimeID(AMSID("TrackerPedestals.l",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numel/2,
+   begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numell,
    (void*)AMSTrIdSoft::peds));
 TID.add (new AMSTimeID(AMSID("TrackerPedestals.r",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numel/2,
-   (void*)(AMSTrIdSoft::peds+AMSTrIdSoft::_numel/2)));
+   begin,end,sizeof(AMSTrIdSoft::peds[0])*
+   (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
+   (void*)(AMSTrIdSoft::peds+AMSTrIdSoft::_numell)));
+TID.add (new AMSTimeID(AMSID("TrackerRawSigmas.l",isRealData()),
+   begin,end,sizeof(AMSTrIdSoft::sigmaraws[0])*AMSTrIdSoft::_numell,
+   (void*)AMSTrIdSoft::sigmaraws));
+TID.add (new AMSTimeID(AMSID("TrackerRawSigmas.r",isRealData()),
+   begin,end,sizeof(AMSTrIdSoft::sigmaraws[0])*
+   (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
+   (void*)(AMSTrIdSoft::sigmaraws+AMSTrIdSoft::_numell)));
 TID.add (new AMSTimeID(AMSID("TrackerGains.l",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numel/2,
+   begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numell,
    (void*)AMSTrIdSoft::gains));
 TID.add (new AMSTimeID(AMSID("TrackerGains.r",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numel/2,
-   (void*)(AMSTrIdSoft::gains+AMSTrIdSoft::_numel/2)));
+   begin,end,sizeof(AMSTrIdSoft::gains[0])*
+   (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
+   (void*)(AMSTrIdSoft::gains+AMSTrIdSoft::_numell)));
 TID.add (new AMSTimeID(AMSID("TrackerSigmas.l",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numel/2,
+   begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numell,
    (void*)AMSTrIdSoft::sigmas));
 TID.add (new AMSTimeID(AMSID("TrackerSigmas.r",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numel/2,
-   (void*)(AMSTrIdSoft::sigmas+AMSTrIdSoft::_numel/2)));
+   begin,end,sizeof(AMSTrIdSoft::sigmas[0])*
+   (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
+   (void*)(AMSTrIdSoft::sigmas+AMSTrIdSoft::_numell)));
 TID.add (new AMSTimeID(AMSID("TrackerStatus.l",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numel/2,
+   begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numell,
    (void*)AMSTrIdSoft::status));
 TID.add (new AMSTimeID(AMSID("TrackerStatus.r",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numel/2,
-   (void*)(AMSTrIdSoft::status+AMSTrIdSoft::_numel/2)));
+   begin,end,sizeof(AMSTrIdSoft::status[0])*
+   (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
+   (void*)(AMSTrIdSoft::status+AMSTrIdSoft::_numell)));
+TID.add (new AMSTimeID(AMSID("TrackerRhoMatrix.l",isRealData()),
+   begin,end,sizeof(AMSTrIdSoft::rhomatrix[0])*AMSTrIdSoft::_numell*2,
+   (void*)AMSTrIdSoft::rhomatrix));
+TID.add (new AMSTimeID(AMSID("TrackerRhoMatrix.r",isRealData()),
+   begin,end,sizeof(AMSTrIdSoft::rhomatrix[0])*
+   (2*AMSTrIdSoft::_numel-2*AMSTrIdSoft::_numell),
+   (void*)(AMSTrIdSoft::rhomatrix+2*AMSTrIdSoft::_numell)));
 TID.add (new AMSTimeID(AMSID("TrackerCmnNoise",isRealData()),
    begin,end,sizeof(AMSTrIdSoft::cmnnoise),
    (void*)AMSTrIdSoft::cmnnoise));
@@ -1922,8 +1948,11 @@ if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProce
 {
 
 // special tracker ped/sigma calc
-
+    if(TRCALIB.Method == 1)
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrIdCalib::buildSigmaPed);
+    else
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,
+&AMSTrIdCalib::buildSigmaPedA);
 
 
 }
@@ -1944,7 +1973,11 @@ else {
 {
 //           tracker raw
 
+    if(TRCALIB.Method == 1)
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRaw);
+    else
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRawA);
+
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocksRaw,
     &AMSTrRawCluster::calcdaqlengthRaw,&AMSTrRawCluster::builddaqRaw);
 

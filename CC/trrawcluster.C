@@ -371,17 +371,21 @@ void AMSTrRawCluster::buildrawRaw(integer n, int16u *p){
      }
      // calc cmn noise
       integer vamin,vamax,l;
-      for (j=0;j<len;j+=vamax-vamin+1){
+      for (j=0;j<len;j+=maxva){
          idd.upd(j);
          vamin=j-idd.getstripa();
          vamax=j+maxva-idd.getstripa();
+         integer avsig=0;
          for (l=vamin;l<vamax;l++){
-           idlocal[l-vamin]=id[l];
+           idd.upd(l);
+           if(idd.getsignsigraw())idlocal[avsig++]=id[l];
          }
-         AMSsortNAGa(idlocal,maxva);
+         AMSsortNAGa(idlocal,avsig);
          geant cmn=0;
-         for(l=TRMCFFKEY.CalcCmnNoise[1];l<maxva-TRMCFFKEY.CalcCmnNoise[1];l++)cmn+=idlocal[l];
-         cmn=cmn/(maxva-2*TRMCFFKEY.CalcCmnNoise[1]);
+         if(avsig>2*TRMCFFKEY.CalcCmnNoise[1]+1){
+           for(l=TRMCFFKEY.CalcCmnNoise[1];l<avsig-TRMCFFKEY.CalcCmnNoise[1];l++)cmn+=idlocal[l];
+           cmn=cmn/(avsig-2*TRMCFFKEY.CalcCmnNoise[1]);
+         }
          for(l=vamin;l<vamax;l++)id[l]=id[l]-cmn;
       }
       // find "preclusters"  
@@ -432,6 +436,128 @@ void AMSTrRawCluster::buildrawRaw(integer n, int16u *p){
 
 
 }
+
+
+
+void AMSTrRawCluster::buildrawRawA(integer n, int16u *p){
+  integer const maxva=64;
+  integer const ms=640;
+  static geant id[ms];
+  static geant idlocal[maxva];
+  VZERO(id,ms*sizeof(id[0])/sizeof(integer));
+  int i,j,k,l;
+  integer ic=checkdaqidRaw(*p)-1;
+  int16u * ptr=p+1;
+  // Main loop
+  while (ptr<p+n){
+     AMSTrIdSoft idd(ic,int16u(*(ptr)));
+     //aux loop thanks to data format to calculate corr length
+     int16u * paux;
+     int len=0;
+     int16u bit15=1<<15;
+     for(paux=ptr+1;paux<p+n;paux++){
+      if( !(bit15 & *paux))break;
+      else len++;  
+     }    
+     if(len > ms ){
+      cerr <<" AMSTrRawClusterbuildrawRaw-S-LengthError Max is "<<ms <<" Current is "<<len<<endl;
+      len=ms;
+     }
+     if(!idd.dead()){
+     // copy to local buffer and subtract peds
+     for(j=0;j<len;j++){
+      idd.upd(j);
+      id[j]=float((*(ptr+1+j)) & 4095)-idd.getped(); 
+     }
+     // calc cmn noise
+      integer vamin,vamax,l;
+      for (j=0;j<len;j+=maxva){
+         idd.upd(j);
+         vamin=j-idd.getstripa();
+         vamax=j+maxva-idd.getstripa();
+         integer avsig=0;
+         for (l=vamin;l<vamax;l++){
+           idd.upd(l);
+           if(idd.getsignsigraw())idlocal[avsig++]=id[l];
+         }
+         //AMSsortNAGa(idlocal,avsig);
+         geant cmn=0;
+         if(avsig>2){
+           for(l=0;l<avsig;l++)cmn+=idlocal[l];
+           cmn=cmn/(avsig);
+         }
+         for(l=vamin;l<vamax;l++){
+
+           if(!idd.getsignsigraw() ){
+            geant cmn=0;
+            geant avsig=0;
+            for(int kk=0;kk<maxva;kk++){
+              if(idd.getrhomatrix(kk)){
+               idd.upd(kk+vamin);
+               cmn+=idlocal[kk]*fabs(idd.getsigraw());
+               avsig++;
+               idd.upd(l);
+              }
+            }
+            if(avsig>1 && idd.getsigraw()!=0){
+               cmn=cmn/avsig/fabs(idd.getsigraw());
+            }
+            id[l]+=-cmn;
+           }
+
+
+             id[l]=id[l]-cmn;
+         }
+      }
+      // find "preclusters"  
+         idd.upd(0);
+         integer ilay=idd.getlayer();
+         k=idd.getside();
+         AMSTrRawCluster *pcl;
+         pcl=0;
+         integer nlmin;
+         integer nleft=0;
+         integer nright=0;
+         for (j=0;j<AMSDBc::NStripsDrp(ilay,k);j++){
+         idd.upd(j);
+         if(id[j]> TRMCFFKEY.thr1R[k]*idd.getsig()){
+          nlmin = nright==0?0:nright+1; 
+          nleft=max(j-TRMCFFKEY.neib[k],nlmin);
+          idd.upd(nleft);
+          while(nleft >nlmin && id[nleft]> TRMCFFKEY.thr2R[k]*idd.getsig())idd.upd(--nleft);
+          nright=min(j+TRMCFFKEY.neib[k],AMSDBc::NStripsDrp(ilay,k)-1);
+          idd.upd(nright);
+          while(nright < AMSDBc::NStripsDrp(ilay,k)-1 && 
+          id[nright]> TRMCFFKEY.thr2R[k]*idd.getsig())idd.upd(++nright);
+          for (int k=nleft;k<=nright;k++){
+            id[k]=idd.getgain()*id[k];
+            if(id[k] > TRMCFFKEY.adcoverflow)id[k]=TRMCFFKEY.adcoverflow;
+            if(id[k] < -TRMCFFKEY.adcoverflow)id[k]=-TRMCFFKEY.adcoverflow;
+          }
+           pcl= new
+           AMSTrRawCluster(idd.getaddr(),nleft,nright,id+nleft);
+            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic),pcl);
+            j=nright+1;           
+         }
+         }
+
+     }
+     ptr=ptr+len+1;
+  }     
+
+
+
+
+#ifdef __AMSDEBUG__
+{
+  AMSContainer * ptrc =AMSEvent::gethead()->getC("AMSTrRawCluster",ic);
+  if(ptrc && AMSEvent::debug>1)ptrc->printC(cout);
+}
+#endif
+
+
+}
+
 
 // H/K Static
 
@@ -693,6 +819,25 @@ AMSID AMSTrRawCluster::getTDVsigma(int i){
     exit(1);
   }
 }
+
+AMSID AMSTrRawCluster::getTDVrawsigma(int i){
+  if(i ==0)return AMSID("TrackerRawSigmas.l",AMSJob::gethead()->isRealData());
+  else if(i ==1)return AMSID("TrackerRawSigmas.r",AMSJob::gethead()->isRealData());
+  else {
+    cerr <<"AMSTrRawCluster::getrawsigmaTDV-F-illegal crate "<<i<<endl;
+    exit(1);
+  }
+}
+AMSID AMSTrRawCluster::getTDVrhomatrix(int i){
+  if(i ==0)return AMSID("TrackerRhoMatrix.l",AMSJob::gethead()->isRealData());
+  else if(i ==1)return AMSID("TrackerRhoMatrix.r",AMSJob::gethead()->isRealData());
+  else {
+    cerr <<"AMSTrRawCluster::getrhomatrixTDV-F-illegal crate "<<i<<endl;
+    exit(1);
+  }
+}
+
+
 AMSID AMSTrRawCluster::getTDVped(int i){
   if(i ==0)return AMSID("TrackerPedestals.l",AMSJob::gethead()->isRealData());
   else if(i ==1)return AMSID("TrackerPedestals.r",AMSJob::gethead()->isRealData());

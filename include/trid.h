@@ -94,9 +94,12 @@ static integer *status;
 static geant *peds;
 static geant *gains;
 static geant *sigmas;
+static geant *sigmaraws;
 static geant cmnnoise[10][ms];
 static geant *indnoise;
+static uinteger * rhomatrix;
 static integer _numel;
+static integer _numell;
 const static integer _VAChannels;
 void _check();
 void _mkhaddr();
@@ -126,12 +129,18 @@ inline integer checkstatus(integer checker) const
 {return status[idsoft2linear[_addr]+_strip] & checker;}
 inline geant getped() const {return peds[idsoft2linear[_addr]+_strip];}
 inline geant getsig() const {return sigmas[idsoft2linear[_addr]+_strip];}
+inline geant getsigraw() const {return sigmaraws[idsoft2linear[_addr]+_strip];}
+inline geant getsignsigraw() const {return sigmaraws[idsoft2linear[_addr]+_strip]>0?1:0;}
 inline geant getgain() const {return gains[idsoft2linear[_addr]+_strip];}
 inline geant getindnoise() const{return indnoise[idsoft2linear[_addr]+_strip];}
 integer getprob(geant r);
 virtual  geant getcmnnoise() const {return cmnnoise[_VANumber][_addr];}
+void  setrhomatrix(integer bit);
+void  clearrhomatrix(integer bit);
+integer  getrhomatrix(integer bit);
 geant & setped()  {return peds[idsoft2linear[_addr]+_strip];}
 geant & setsig()  {return sigmas[idsoft2linear[_addr]+_strip];}
+geant & setsigraw()  {return sigmaraws[idsoft2linear[_addr]+_strip];}
 geant & setgain() {return gains[idsoft2linear[_addr]+_strip];}
 geant & setindnoise() {return indnoise[idsoft2linear[_addr]+_strip];}
 geant & setcmnnoise()  {return cmnnoise[_VANumber][_addr];}
@@ -146,7 +155,7 @@ AMSTrIdSoft(const AMSTrIdGeom &,integer side);
 AMSTrIdSoft():_pid(0),_dead(0){};
 AMSTrIdSoft( const AMSTrIdSoft& o):_layer(o._layer),_drp(o._drp),
 _half(o._half),_side(o._side),_strip(o._strip),_addr(o._addr),
-_VANumber(o._VANumber),_pid(0),_dead(0),_haddr(0),_crate(0){}
+_VANumber(o._VANumber),_pid(0),_dead(o._dead),_haddr(o._haddr),_crate(o._crate){}
 AMSTrIdSoft(integer idsoft);
 AMSTrIdSoft(integer layer,integer drp,integer half,integer side,integer strip);
 AMSTrIdSoft(int16u crate,int16u tdrs, int16u side, int16u strip);

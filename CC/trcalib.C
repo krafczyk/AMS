@@ -385,6 +385,10 @@ for(i=0;i<getnchan();i++){
  _Count[i]=0;
  _ADC[i]=0;
  _ADC2[i]=0;
+ _ADCRaw[i]=0;
+ _ADC2Raw[i]=0;
+ _BadCh[i]=0;
+ for(int j=0;j<nrho;j++)_ADCRho[j][i]=0;
  _ADCMax[i]=-FLT_MAX;
 }
 
@@ -419,7 +423,7 @@ void AMSTrIdCalib::_hist(){
   HBOOK1(400220+2,"Sigmas System",200,0.,20.,0.);
   HBOOK1(400200+3,"Ped Accuracy Estimated",200,0.,1.,0.);
   PSStr_def PS;
-  HBNAME(IOPA.ntuple,"PedsSigmas",(int*)(&PS),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, Ped:R,Sigma:R");
+  HBNAME(IOPA.ntuple,"PedsSigmas",(int*)(&PS),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, PSStrip:I,Ped:R,Sigma:R,BadCh:R,SigmaRaw:R,Rho(64):R");
   int i,j,k,l,m;
    for(l=0;l<2;l++){
     for(k=0;k<2;k++){
@@ -427,6 +431,7 @@ void AMSTrIdCalib::_hist(){
        for(j=0;j<AMSDBc::nlad(i+1);j++){
         AMSTrIdSoft id(i+1,j+1,k,l,0);
         AMSTrIdCalib cid(id);
+        if(cid.dead())continue;
         for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
          if(cid.getcount()>1){
@@ -435,19 +440,24 @@ void AMSTrIdCalib::_hist(){
           PS.Ladder=j+1;
           PS.Half=k;
           PS.Side=l;
+          PS.Strip=m;
           PS.Ped=_ADC[ch];
           PS.Sigma=_ADC2[ch];
+          PS.BadCh=_BadCh[ch];
+          PS.SigmaRaw=_ADC2Raw[ch];
+          PS.Rho[0]=sigmas[ch];
+          for(int kk=1;kk<nrho;kk++)PS.Rho[kk]=_ADCRho[kk][ch];
           HFNTB(IOPA.ntuple,"PedsSigmas");
-          HF1(400000+1,_ADC[ch]-cid.getped(),1.);
-          HF1(400010+1,_ADC[ch],1.);
+          HF1(400000+1,_ADCRaw[ch]-cid.getped(),1.);
+          HF1(400010+1,_ADCRaw[ch],1.);
           HF1(400020+1,cid.getped(),1.);
           HF1(400000+2,_ADC2[ch]-sigmas[ch],1.);
           HF1(400010+2,_ADC2[ch],1.);
           HF1(400020+2,sigmas[ch],1.);
           HF1(400000+3,_ADC2[ch]/sqrt(_Count[ch]),1.);
 
-          HF1(400000+(l+1)*100+1,_ADC[ch]-cid.getped(),1.);
-          HF1(400010+(l+1)*100+1,_ADC[ch],1.);
+          HF1(400000+(l+1)*100+1,_ADCRaw[ch]-cid.getped(),1.);
+          HF1(400010+(l+1)*100+1,_ADCRaw[ch],1.);
           HF1(400020+(l+1)*100+1,cid.getped(),1.);
           HF1(400000+(l+1)*100+2,_ADC2[ch]-sigmas[ch],1.);
           HF1(400010+(l+1)*100+2,_ADC2[ch],1.);
@@ -476,7 +486,12 @@ void AMSTrIdCalib::_hist(){
 void AMSTrIdCalib::_calc(){
 
  int i,j,k,l,m;
+ integer badp[2]={0,0};
+ integer bada[2]={0,0};
  integer bad[2]={0,0};
+ integer bad2[2]={0,0};
+ integer bad3[2]={0,0};
+ integer bad4[2]={0,0};
  for(i=0;i<10;i++){
    for(j=0;j<ms;j++){
      if(_CmnNoiseC[i][j]>0){
@@ -490,6 +505,7 @@ void AMSTrIdCalib::_calc(){
        for(j=0;j<AMSDBc::nlad(i+1);j++){
         AMSTrIdSoft id(i+1,j+1,k,l,0);
         AMSTrIdCalib cid(id);
+        if(cid.dead())continue;
         for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
          if(cid.getcount()>1){
@@ -497,19 +513,130 @@ void AMSTrIdCalib::_calc(){
           _ADC[ch]=(_ADC[ch]-_ADCMax[ch])/(_Count[ch]-1);
           _ADC2[ch]=(_ADC2[ch]-_ADCMax[ch]*_ADCMax[ch])/(_Count[ch]-1);
           _ADC2[ch]=sqrt(fabs(_ADC2[ch]-_ADC[ch]*_ADC[ch]));
-          if(_ADC2[ch]/sqrt(_Count[ch]-1)>4*TRCALIB.PedAccRequired[l]){
-           bad[l]++;
-           //  cid.setstatus(AMSDBc::BAD);
+          _ADCRaw[ch]=_ADCRaw[ch]/_Count[ch];
+          _ADC2Raw[ch]=_ADC2Raw[ch]/_Count[ch];
+          _BadCh[ch]=_BadCh[ch]/_Count[ch];
+          _ADC2Raw[ch]=sqrt(fabs(_ADC2Raw[ch]-_ADCRaw[ch]*_ADCRaw[ch]));
+          //          if(_ADC2[ch]/sqrt(_Count[ch]-1)>4*TRCALIB.PedAccRequired[l]){
+          if(cid.checkstatus(AMSDBc::BAD))badp[l]++;
+          if( TRCALIB.Pass >= 2){
+            geant thr=TRCALIB.BadChanThr[1]*_Count[ch];
+            if(thr<3)thr=3;
+            if(_BadCh[ch]*_Count[ch]>thr || cid.getsig()==0 ){ 
+              cid.setstatus(AMSDBc::BAD);
+              bad[l]++;
+            }
+            else cid.clearstatus(AMSDBc::BAD);
+            // special ladder#6 layer #3 side# 0
+               if(cid.getlayer() == 3  && cid.getdrp() == 6 && cid.getside() == 0
+                  && cid.gethalf()==0)cid.setstatus(AMSDBc::BAD);            
           }
+          if(cid.checkstatus(AMSDBc::BAD))bada[l]++;
+
+          
+         }
+        }
+
+
+        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+         cid.upd(m);
+         if(cid.getcount()>1){
+          int ch=cid.getchannel();
+          number s1=_ADCRho[cid.getstripa()][ch]/_Count[ch];
+          integer vamin=m-cid.getstripa();
+          for (int kk=cid.getstripa();kk<nrho;kk++){
+           _ADCRho[kk][ch]=_ADCRho[kk][ch]/_Count[ch];
+           cid.upd(vamin+kk);
+           int ch2=cid.getchannel();
+           if(TRMCFFKEY.GenerateConst) {
+             if(_ADC2Raw[ch] && _ADC2Raw[ch2])
+              _ADCRho[kk][ch]=(_ADCRho[kk][ch]-_ADCRaw[ch]*_ADCRaw[ch2])/
+                 _ADC2Raw[ch]/_ADC2Raw[ch2];
+             else _ADCRho[kk][ch]=0;
+           }
+           else {
+             number a1=(_ADC[ch]*(_Count[ch]-1)+_ADCMax[ch])/_Count[ch];
+             number a2=(_ADC[ch2]*(_Count[ch2]-1)+_ADCMax[ch2])/_Count[ch2];
+             number s2=ch2==ch?s1:_ADCRho[cid.getstripa()][ch2]/_Count[ch2];
+             number s1a=sqrt(fabs(s1-a1*a1));
+             number s2a=sqrt(fabs(s2-a2*a2));
+                          
+             if(s1a && s2a)_ADCRho[kk][ch]=(_ADCRho[kk][ch]-a1*a2)/s1a/s2a;
+             else _ADCRho[kk][ch]=0;
+           }
+          }
+         }
+        }
+
+        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+         cid.upd(m);
+         if(cid.getcount()>1){
+          int ch=cid.getchannel();
           _ADC[ch]=_ADC[ch]+cid.getcmnnoise();
+         }
+        }
+
+
+       }
+     }
+    }
+    if(bad[l])cout <<"AMSTrIdCalib::_calc-W-bad channels found for side "<<l<<" : "<<bad[l]<<endl;
+    if(badp[l])cout <<"AMSTrIdCalib::_calc-W-badp channels found for side "<<l<<" : "<<badp[l]<<endl;
+    if(bada[l])cout <<"AMSTrIdCalib::_calc-W-bada channels found for side "<<l<<" : "<<bada[l]<<endl;
+   }
+   if(TRMCFFKEY.GenerateConst){
+   for(l=0;l<2;l++){
+    for(k=0;k<2;k++){
+     for(i=0;i<AMSDBc::nlay();i++){
+       for(j=0;j<AMSDBc::nlad(i+1);j++){
+        AMSTrIdSoft id(i+1,j+1,k,l,0);
+        AMSTrIdCalib cid(id);
+        if(cid.dead())continue;
+        geant rhorho[nrho][nrho];
+        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+         integer mstr=(m+1)%nrho;
+         integer istr=m%nrho;
+         cid.upd(m);
+         if(cid.getcount()>1){
+         integer vamin=m-cid.getstripa();
+         int ch=cid.getchannel();
+         for(int kk=istr+1;kk<nrho;kk++)rhorho[kk][istr]=_ADCRho[kk][ch];
+         if(mstr==0){
+           for(kk=0;kk<nrho;kk++){
+            for(int kj=kk+1;kj<nrho;kj++)rhorho[kk][kj]=rhorho[kj][kk];
+           } 
+           integer xmc=0;
+           for(kk=0;kk<nrho;kk++){
+            geant xrho=0;
+            cid.upd(vamin+kk);
+            for(int kj=0;kj<nrho;kj++){
+            if(kj!=kk)xrho+=rhorho[kk][kj];
+             if(kj==kk || rhorho[kk][kj]< TRCALIB.RhoThrV)cid.clearrhomatrix(kj);
+             else cid.setrhomatrix(kj);
+            }
+            xrho=xrho/(nrho-1);
+            if(xrho < TRCALIB.RhoThrA ){
+             cid.upd(vamin+kk);
+             _ADC2Raw[cid.getchannel()]=-_ADC2Raw[cid.getchannel()];
+             bad2[l]++;
+            }
+            else xmc++;
+           }
+           if(xmc<2)bad3[l]++;
+         }         
          }
         }
        }
      }
     }
-    if(bad[l])cout <<"AMSTrIdCalib::_calc-W-bad channels found for side "<<l<<" : "<<bad[l]<<endl;
+    if(bad2[l])cout <<"AMSTrIdCalib::_calc-W-noise channels found for side "
+    <<l<<" : "<<bad2[l]<<endl;
+    if(bad2[l])cout <<"AMSTrIdCalib::_calc-W-bad VA found for side "
+    <<l<<" : "<<bad3[l]<<endl;
+   }
    }
 }
+
 
 void AMSTrIdCalib::_update(){
  int i,j,k,l,m;
@@ -520,24 +647,41 @@ void AMSTrIdCalib::_update(){
        for(j=0;j<AMSDBc::nlad(i+1);j++){
         AMSTrIdSoft id(i+1,j+1,k,l,0);
         AMSTrIdCalib cid(id);
+        if(cid.dead())continue;
         for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
          if(cid.getcount()){
           total++;
           int ch=cid.getchannel();
-          cid.setped()=_ADC[ch];
+          cid.setped()=_ADCRaw[ch];
           cid.setsig()=_ADC2[ch];
+          cid.setsigraw()=(_ADC2Raw[ch]==0?0:1./_ADC2Raw[ch]);
          }
         }
        }
      }
      }
+    if (AMSFFKEY.Update){
+    AMSTimeID *ptdv;
+     time_t begin,end,insert;
     if(total){
-     AMSTimeID * ptdv = 
-     AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVped(k));
+     if(TRMCFFKEY.GenerateConst){
+      ptdv = AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVrawsigma(k));
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time(&insert);
+      ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
+      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+
+
+
+     ptdv = AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVrhomatrix(k));
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
-     time_t begin,end,insert;
      time(&insert);
      ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
@@ -545,7 +689,24 @@ void AMSTrIdCalib::_update(){
      cout <<" Time Insert "<<ctime(&insert);
      cout <<" Time Begin "<<ctime(&begin);
      cout <<" Time End "<<ctime(&end);
- 
+
+
+
+     }
+     if(TRCALIB.Pass == 1 || TRMCFFKEY.GenerateConst ){  
+
+     ptdv = 
+     AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVped(k));
+     ptdv->UpdateMe()=1;
+     ptdv->UpdCRC();
+     time(&insert);
+     ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
+     cout <<" Tracker H/K  info has been updated for "<<*ptdv;
+     ptdv->gettime(insert,begin,end);
+     cout <<" Time Insert "<<ctime(&insert);
+     cout <<" Time Begin "<<ctime(&begin);
+     cout <<" Time End "<<ctime(&end);
+
      ptdv = AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVsigma(k));
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
@@ -556,6 +717,8 @@ void AMSTrIdCalib::_update(){
      cout <<" Time Insert "<<ctime(&insert);
      cout <<" Time Begin "<<ctime(&begin);
      cout <<" Time End "<<ctime(&end);
+     }
+     if(TRCALIB.Pass ==2){
 
      ptdv = AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVstatus(k));
      ptdv->UpdateMe()=1;
@@ -568,6 +731,9 @@ void AMSTrIdCalib::_update(){
      cout <<" Time Begin "<<ctime(&begin);
      cout <<" Time End "<<ctime(&end);
 
+     }
+
+
 
 
 
@@ -578,13 +744,13 @@ void AMSTrIdCalib::_update(){
 
 
 
-    if (AMSFFKEY.Update){
 
         // Here update dbase
 
      AMSTimeID * offspring = 
      (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());
      while(offspring){
+       if(offspring->UpdateMe())cout << " Starting to update "<<*offspring; 
       if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatadir))
       cerr <<"AMSJob::_timeinitjob-S-ProblemtoUpdate "<<*offspring;
       offspring=(AMSTimeID*)offspring->next();
@@ -599,8 +765,12 @@ void AMSTrIdCalib::_update(){
 
 
 integer * AMSTrIdCalib::_Count=0;
+geant * AMSTrIdCalib::_BadCh=0;
 number  *  AMSTrIdCalib::_ADC=0;
 number *  AMSTrIdCalib::_ADC2=0;
+number  *  AMSTrIdCalib::_ADCRaw=0;
+number *  AMSTrIdCalib::_ADC2Raw=0;
+number * AMSTrIdCalib::_ADCRho[nrho];
 number *  AMSTrIdCalib::_ADCMax=0;
 integer  AMSTrIdCalib::_CmnNoiseC[10][ms];
 geant  AMSTrIdCalib::_CmnNoise[10][ms];
@@ -608,11 +778,38 @@ geant  AMSTrIdCalib::_CmnNoise[10][ms];
 
 void AMSTrIdCalib::initcalib(){
 _Count= new integer[getnchan()];
+_BadCh= new geant[getnchan()];
 _ADC= new number[getnchan()];
 _ADC2= new number[getnchan()];
+_ADCRaw= new number[getnchan()];
+_ADC2Raw= new number[getnchan()];
+for(int i=0;i<nrho;i++)_ADCRho[i]=new number[getnchan()];
 _ADCMax= new number[getnchan()];
-assert (_Count && _ADC && _ADC2 && _ADCMax);
+
+assert (_Count && _ADC && _ADC2 && _ADCMax && _ADC2Raw && _ADCRaw && _BadCh);
 _clear();
+
+
+  {
+    for (int i=0;i<6;i++){
+     for(int j=1;j<11;j++){
+      HBOOK1(10000+i*10+j,"Noise",200,-10.,10.,0.);
+      HBOOK1(20000+i*10+j,"Noise",200,-10.,10.,0.);
+      HBOOK1(30000+i*10+j,"Noise",200,-10.,10.,0.);
+      HBOOK1(60000+i*10+j,"Noise",200,-10.,10.,0.);
+      HBOOK1(40000+i*10+j,"Noise",200,-10.,10.,0.);
+      HBOOK1(80000+i*10+j,"Noise",200,-10.,10.,0.);
+      HBOOK1(110000+i*10+j,"Noise",200,-10.,10.,0.);
+      HBOOK1(120000+i*10+j,"Noise",200,-10.,10.,0.);
+      HBOOK1(130000+i*10+j,"Noise",200,-10.,10.,0.);
+      HBOOK1(160000+i*10+j,"Noise",200,-10.,10.,0.);
+      HBOOK1(140000+i*10+j,"Noise",200,-10.,10.,0.);
+      HBOOK1(180000+i*10+j,"Noise",200,-10.,10.,0.);
+     }
+    }
+  }
+
+
 }
 
 
@@ -629,6 +826,7 @@ if(++counter%TRCALIB.EventsPerCheck == 0 || forcedw){
        for(j=0;j<AMSDBc::nlad(i+1);j++){
         AMSTrIdSoft id(i+1,j+1,k,l,0);
         AMSTrIdCalib cid(id);
+        if(cid.dead())continue;
         for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
          if(cid.getcount()){
@@ -672,6 +870,7 @@ if(++counter%TRCALIB.EventsPerCheck == 0 || forcedw){
 
 void AMSTrIdCalib::buildSigmaPed(integer n, int16u *p){
    _CurTime=AMSEvent::gethead()->gettime();
+   _CurRun=AMSEvent::gethead()->getrun();
   integer static first=0;
   if(first++ == 0){
     _BeginTime=AMSEvent::gethead()->gettime();
@@ -707,25 +906,54 @@ void AMSTrIdCalib::buildSigmaPed(integer n, int16u *p){
      }
      // calc cmn noise
       integer vamin,vamax,l;
-      for (j=0;j<len;j+=vamax-vamin+1){
+      for (j=0;j<len;j+=maxva){
          cid.upd(j);
          vamin=j-cid.getstripa();
          vamax=j+maxva-cid.getstripa();
-         for (l=vamin;l<vamax;l++){
-           idlocal[l-vamin]=id[l];
-         }
          geant cmn=0;
-         for(l=0;l<maxva;l++)cmn+=idlocal[l];
-         cmn=cmn/(maxva);
+         geant avsig=0;
+         for (l=vamin;l<vamax;l++){
+           cid.upd(l);
+           cmn+=(id[l]-cid.getped())*cid.getsignsigraw();
+           avsig+=cid.getsignsigraw();
+         }
+         if(avsig>1)cmn=cmn/avsig;
          cid.updcmnnoise(cmn);
          cid.updcmnnoiseC();
-         for(l=vamin;l<vamax;l++)id[l]+=-cmn;
+         for(l=vamin;l<vamax;l++){
+           cid.upd(l);
+           cid.updADCRaw(id[l]);         
+           cid.updADC2Raw(id[l]);         
+           if(TRMCFFKEY.GenerateConst){
+             integer vamin=l-cid.getstripa();
+             for(int kk=cid.getstripa();kk<nrho;kk++)
+             cid.updADCRho(id[l],id[vamin+kk],kk);
+           }
+           id[l]+=-cmn;
+         }         
       }
       for(j=0;j<len;j++){
        cid.upd(j);
+       integer ids=(cid.getlayer()-1)*10+cid.getdrp();
+       if(cid.getsig()!=0 && TRCALIB.Pass>1){
+          geant r=(id[j]-cid.getped())/cid.getsig();
+          if(r<-TRCALIB.BadChanThr[0])cid.updBadCh();
+          if(TRCALIB.Pass > 2){
+           HF1(100000*cid.gethalf()+(cid.getside()+1)*10000+ids,r,1.);
+           if(cid.checkstatus(AMSDBc::BAD)){
+              HF1(100000*cid.gethalf()+(cid.getside()+1)*40000+ids,r,1.);
+           }
+           else HF1(100000*cid.gethalf()+(cid.getside()+1)*30000+ids,r,1.);
+          }
+       }
        cid.updADC(id[j]);
        cid.updADC2(id[j]);
        cid.updADCMax(id[j]);
+       if(!TRMCFFKEY.GenerateConst && TRCALIB.Pass==1){
+           integer vamin=j-cid.getstripa();
+          for(int kk=cid.getstripa();kk<nrho;kk++)
+           cid.updADCRho(id[j],id[vamin+kk],kk);
+       }
        cid.updcounter();
       }
      }
@@ -735,5 +963,125 @@ void AMSTrIdCalib::buildSigmaPed(integer n, int16u *p){
 }
 
 
+
+void AMSTrIdCalib::buildSigmaPedA(integer n, int16u *p){
+   _CurTime=AMSEvent::gethead()->gettime();
+   _CurRun=AMSEvent::gethead()->getrun();
+  integer static first=0;
+  if(first++ == 0){
+    _BeginTime=AMSEvent::gethead()->gettime();
+  }
+  integer const maxva=64;
+  integer const mss=640;
+  static geant id[mss];
+  static geant idlocal[maxva];
+  VZERO(id,ms*sizeof(id[0])/sizeof(integer));
+  int i,j,k,l;
+  integer ic=AMSTrRawCluster::checkdaqidRaw(*p)-1;
+  int16u * ptr=p+1;
+  // Main loop
+  while (ptr<p+n){
+     AMSTrIdSoft idd(ic,int16u(*(ptr)));
+     AMSTrIdCalib cid(idd);
+     //aux loop thanks to data format to calculate corr length
+     int16u * paux;
+     int len=0;
+     int16u bit15=1<<15;
+     for(paux=ptr+1;paux<p+n;paux++){
+      if( !(bit15 & *paux))break;
+      else len++;
+     }
+     if(len > mss ){
+       cerr <<" AMSTrIdCalib::buildSigmaPedA-S-LengthError Max is "<<mss <<" Current is "<<len<<endl;
+      len=mss;
+     }
+     if(!idd.dead()){
+     for(j=0;j<len;j++){
+      cid.upd(j);
+      id[j]=float((*(ptr+1+j)) & 4095);
+     }
+     // calc cmn noise
+      integer vamin,vamax,l;
+      for (j=0;j<len;j+=maxva){
+         cid.upd(j);
+         vamin=j-cid.getstripa();
+         vamax=j+maxva-cid.getstripa();
+           geant cmn=0;
+           geant avsig=0;
+         for (l=vamin;l<vamax;l++){
+           cid.upd(l);
+           cmn+=(id[l]-cid.getped())*cid.getsignsigraw();
+           avsig+=cid.getsignsigraw();
+           idlocal[l-vamin]=id[l]-cid.getped();
+         }
+         if(avsig>1)cmn=cmn/avsig;
+
+
+
+         for (l=vamin;l<vamax;l++){
+           cid.upd(l);
+           cid.updADCRaw(id[l]);         
+           cid.updADC2Raw(id[l]);         
+           if(TRMCFFKEY.GenerateConst){
+             integer vamin=l-cid.getstripa();
+             for(int kk=cid.getstripa();kk<nrho;kk++)
+             cid.updADCRho(id[l],id[vamin+kk],kk);
+           }
+           if(!cid.getsignsigraw() ){
+            geant cmn=0;
+            geant avsig=0;
+           for(int kk=0;kk<maxva;kk++){
+            if(cid.getrhomatrix(kk)){
+             cid.upd(kk+vamin);
+                          cmn+=idlocal[kk]*fabs(cid.getsigraw());
+                          //             cmn+=idlocal[kk];
+             avsig++;
+             cid.upd(l);
+            }
+           }
+            if(avsig>1 && cid.getsigraw()!=0){
+                           cmn=cmn/avsig/fabs(cid.getsigraw());
+                           //             cmn=cmn/avsig;
+            }          
+            id[l]+=-cmn;
+           }
+           else id[l]+=-cmn;
+         }
+         for(l=vamin;l<vamax;l++){
+          cid.upd(l);
+       integer ids=(cid.getlayer()-1)*10+cid.getdrp();
+       if(cid.getsig()!=0 && TRCALIB.Pass>1){
+          geant r=(id[l]-cid.getped())/cid.getsig();
+          if(r<-TRCALIB.BadChanThr[0])cid.updBadCh();
+          if(TRCALIB.Pass > 2) {
+           HF1(100000*cid.gethalf()+(cid.getside()+1)*10000+ids,r,1.);
+           if(cid.checkstatus(AMSDBc::BAD)){
+               HF1(100000*cid.gethalf()+(cid.getside()+1)*40000+ids,r,1.);
+           }
+           else HF1(100000*cid.gethalf()+(cid.getside()+1)*30000+ids,r,1.);
+          }
+       }
+          cid.updADC(id[l]);
+          cid.updADC2(id[l]);
+          cid.updADCMax(id[l]);
+          if(!TRMCFFKEY.GenerateConst && TRCALIB.Pass ==1){
+            integer vamin=l-cid.getstripa();
+            for(int kk=cid.getstripa();kk<nrho;kk++)
+             cid.updADCRho(id[l],id[vamin+kk],kk);
+          }
+          cid.updcounter();
+
+        }
+       }
+       
+   }
+    ptr=ptr+len+1;
+
+   }
+ }
+
+
+
 time_t AMSTrIdCalib::_BeginTime=0;
 time_t AMSTrIdCalib::_CurTime=0;
+uinteger AMSTrIdCalib::_CurRun=-1;

@@ -70,6 +70,7 @@ static void sitkdigi();
  static void buildraw(integer n, int16u *p);
  static void builddaqRaw(integer i, integer n, int16u *p);
  static void buildrawRaw(integer n, int16u *p);
+ static void buildrawRawA(integer n, int16u *p);
  integer TestRawMode();
   // H/K data read
   static integer checkstatusSid(int16u id) ;
@@ -93,6 +94,8 @@ static void sitkdigi();
   static AMSID getTDVstatus(int i);
   static AMSID getTDVped(int i);
   static AMSID getTDVsigma(int i);
+  static AMSID getTDVrawsigma(int i);
+  static AMSID getTDVrhomatrix(int i);
 };
 
 #endif

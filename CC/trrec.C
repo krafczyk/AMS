@@ -147,7 +147,8 @@ integer AMSTrCluster::build(integer refit=0){
       // 
       for (int j=left;j<right+1;j++){
        id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
-       if(adc[j]/id.getsig()>TRCLFFKEY.Thr3R[side]){
+       if(!id.checkstatus(AMSDBc::BAD) && 
+          adc[j]/id.getsig()>TRCLFFKEY.Thr3R[side]){
         if(j-center<= -TRCLFFKEY.ThrClNEl[side]/2 && 
            adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]){
            left++;
@@ -204,9 +205,9 @@ integer AMSTrCluster::build(integer refit=0){
       if(adc[i] > TRCLFFKEY.Thr1A[side]){
        // susp bump found
        id.upd(i-TRCLFFKEY.ThrClNEl[side]/2);
-       if(id.getsig() < TRCLFFKEY.Thr1S[side] && 
-       adc[i]/id.getsig() > TRCLFFKEY.Thr1R[side] && 
-       id.checkstatus(AMSDBc::BAD)==0)ref=adc[i];
+       if(id.checkstatus(AMSDBc::BAD)==0 && 
+          id.getsig() < TRCLFFKEY.Thr1S[side] && 
+          adc[i]/id.getsig() > TRCLFFKEY.Thr1R[side] )ref=adc[i];
       }
      }
      } 

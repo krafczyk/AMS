@@ -1,8 +1,3 @@
-
-
-
-
-
 // Author V. Choutko 24-may-1996
 // modifications for TOF,ANTI by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -521,6 +516,11 @@ integer CalibProcedureNo;
 integer EventsPerCheck;
 geant PedAccRequired[2]; 
 integer Validity[2];
+geant RhoThrA; 
+geant RhoThrV; 
+integer Method;
+geant BadChanThr[2];
+integer Pass;
                                 // Proc # 2 starts here
 integer EventsPerIteration[2];
 integer NumberOfIterations[2];
