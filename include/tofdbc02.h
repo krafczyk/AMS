@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.10 2002/09/04 09:11:35 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.11 2002/10/15 12:44:26 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -505,6 +505,7 @@ public:
     for(int i=0;i<4;i++)_sigs[i]=sigs[i];
   };
   static void build();
+  static void mcbuild();
 };
 #endif
 

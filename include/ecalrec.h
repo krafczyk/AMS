@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.29 2002/10/14 10:49:06 choutko Exp $
+//  $Id: ecalrec.h,v 1.30 2002/10/15 12:44:26 choumilo Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -146,6 +146,7 @@ public:
   number getcoot(){return _coot;}
   number getcool(){return _cool;}
   number getcooz(){return _cooz;}
+  number attcor(number coo);
 //
   static void build(int &stat);
   static integer Out(integer);

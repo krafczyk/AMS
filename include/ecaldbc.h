@@ -1,9 +1,12 @@
-//  $Id: ecaldbc.h,v 1.25 2002/10/11 16:47:16 choutko Exp $
+//  $Id: ecaldbc.h,v 1.26 2002/10/15 12:44:26 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
 #ifndef __ECALDBC__
 #define __ECALDBC__
+#include <cern.h>
+#include <extC.h>
+#include <math.h>
 #include <amsdbc.h>
 //
 // ECAL global constants definition
@@ -184,6 +187,7 @@ public:
   geant alfast(){return _lfast;}
   geant alslow(){return _lslow;}
   geant fastfr(){return _fastf;}
+  geant attf(geant pmd){ return((1-_fastf)*exp(-pmd/_lslow)+_fastf*exp(-pmd/_lfast));}
   static void build();
   static integer BadCell(integer plane, integer cell);
 };

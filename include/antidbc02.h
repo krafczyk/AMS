@@ -1,4 +1,4 @@
-//  $Id: antidbc02.h,v 1.3 2001/09/11 12:57:05 choumilo Exp $
+//  $Id: antidbc02.h,v 1.4 2002/10/15 12:44:26 choumilo Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
@@ -19,6 +19,7 @@ namespace ANTI2C{
  const integer ANCHSF=16;// max. number of TDC-channels per SFEA (incl. FT-channel)
  const integer ANCHCH=4;// real number of Anti-channels per TDC-chip (impl. 2chip/SFEA)
  const integer ANSLOT=5; // SFEA card position in crate (sequential slot number(1-6))
+ const integer ANIPAR=3;// number of anti_integrator paremeters
 }
 //
 class ANTI2DBc {  
