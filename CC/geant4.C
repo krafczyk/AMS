@@ -20,6 +20,9 @@
 #include "G4ThreeVector.hh"
 #include "G4Event.hh"
 #include "G4PVPlacement.hh"
+#ifdef G4VIS_USE
+#include <g4visman.h>
+#endif
  extern "C" void getfield_(geant& a);
 
 void g4ams::G4INIT(){
@@ -52,20 +55,26 @@ G4RunManager * pmgr = new G4RunManager();
 //    pmgr->SetUserAction(new AMSG4RunAction);
 
 
-
+#ifdef G4VIS_USE
+   AMSG4VisManager::create();
+#endif
 
 }
 void g4ams::G4RUN(){
 // Initialize GEANT3
 
     TIMEL(GCTIME.TIMINT);
-
+#ifndef G4VIS_USE
  G4RunManager::GetRunManager()->BeamOn(GCFLAG.NEVENT);
+#endif
 }
 
 
 void g4ams::G4LAST(){
 delete  G4RunManager::GetRunManager();
+#ifdef G4VIS_USE
+AMSG4VisManager::kill();
+#endif
 }
 
 
@@ -719,3 +728,10 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 //   cout <<"leaving stepping "<<endl;
   }
 }
+
+
+
+
+
+
+

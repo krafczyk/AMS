@@ -1,16 +1,19 @@
 Mopt      // makefile to gmake geant batch 
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
-Mgxint    // makefile to gmake geant interactive  
+Mgxint    // makefile to gmake geant interactive  g3
 Moptg4    // makefile to gmake g4 batch
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
           // setenv AMSWD to some tmp dir is  recommended
+Moptg4i    // makefile to gmake geant interactive  g4
 
 
 To create standalone simulation/reconstruction program (without db) use:
 
  batch                   gmake -if Mopt (Moptg4)
- interactive(g3 only )   gmake -if  Mgxint  (batch program should be created first)
+ interactive(g3 )   gmake -if  Mgxint  (batch program should be created first)
+ interactive(g4 )   gmake -if  Moptg4i  
 
+nb OGLIX doesn't work on alpha
 
 
 

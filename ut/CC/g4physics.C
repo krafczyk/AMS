@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.8 1999/11/19 14:51:01 choutko Exp $
+// $Id: g4physics.C,v 1.9 1999/11/22 13:08:11 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -82,7 +82,7 @@ void AMSG4Physics::ConstructProcess()
   }
 
 
-  ConstructEM();
+  if(GCPHYS.ILOSS)ConstructEM();
   if(GCPHYS.IHADR)ConstructHad();
   ConstructGeneral();
 }

@@ -1,4 +1,4 @@
-# $Id: binmake.gmk,v 1.2 1999/11/10 13:37:22 choutko Exp $
+# $Id: binmake.gmk,v 1.3 1999/11/22 13:08:21 choutko Exp $
 # ----------------------------------------------------------
 # Script defining rules and paths for making binaries.
 #                          Gabriele Cosmo, 25/06/1998.
@@ -7,9 +7,11 @@
   include $(G4INSTALL)/config/architecture.gmk
 G4LIBDIR := $(G4LIB)/$(G4SYSTEM)
 
-#include $(G4INSTALL)/config/G4UI_USE.gmk
-#include $(G4INSTALL)/config/G4VIS_USE.gmk
-#include $(G4INSTALL)/config/interactivity.gmk
+ifdef G4VIS_USE
+include $(G4INSTALL)/config/G4UI_USE.gmk
+include $(G4INSTALL)/config/G4VIS_USE.gmk
+include $(G4INSTALL)/config/interactivity.gmk
+endif
 G4TMPDIR := ../exe/$(G4SYSTEM)
 G4BINDIR := ../bin/$(G4SYSTEM)
 
