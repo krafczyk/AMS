@@ -542,14 +542,15 @@ void  AMSEvent::write(int trig){
       AMSJob::gethead()->getntuple()->write();
     }
    }
-  }
     // check if one want to close ntuple 
     if(IOPA.MaxNtupleEntries){
+      //cout <<"qq "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<endl;
       if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries){
         AMSJob::gethead()->uhend();
         AMSJob::gethead()->uhinit(PosGlobal);
       }
     }        
+  }
 
 
 

@@ -100,5 +100,5 @@ void AMSNtuple::reset(){
 
 void AMSNtuple::write(integer addentry){
   HFNT(_lun);
-  if(addentry)_Nentries++;
+  _Nentries++;
 }
