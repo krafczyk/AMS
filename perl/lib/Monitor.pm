@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.66 2003/11/19 09:41:19 choutko Exp $
+# $Id: Monitor.pm,v 1.67 2003/11/20 15:04:06 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -867,7 +867,7 @@ sub getruns{
      push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Priority},$hash->{History},$hash->{Status};
      if ($hash->{Status} eq "Failed" and $hash->{History} eq "Failed"){
          push @text, 2;
-     }elsif($hash->{History} eq "Failed"){
+     }elsif($hash->{History} eq "Failed" and $hash->{Status} ne "Finished"){
          push @text, 1;
      }else{
          push @text, 0;
@@ -1000,7 +1000,7 @@ int($hash->{CPUNeeded}*10)/10,
      for my $j (0 ... $#{$Monitor::Singleton->{ahlp}}){
          my $ahl=$Monitor::Singleton->{ahlp}[$j];
          if( $ahl->{HostName} eq $hash->{HostName}){
-            push @text,$ahl->{Clock}*2; 
+            push @text,$ahl->{Clock}; 
             push @text,$ahl->{ClientsAllowed}; 
             push @text,$ahl->{ClientsFailed}; 
             push @text,$ahl->{Status}; 
