@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.7 2001/03/06 16:37:03 choumilo Exp $
+//  $Id: trigger102.C,v 1.8 2001/03/08 13:54:37 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -99,8 +99,7 @@ void Trigger2LVL1::build(){
     comtrok=tofok*antiok;
   }
 //
-//  if(tofok==1 && ectrigfl>0)comtrok=1;// tempor trig (for Ecal tests)
-//  else comtrok=0;
+  if(TGL1FFKEY.ecintrig)comtrok*=ectrigfl;
 //cout<<"comtr="<<comtrok<<"tof/anti/ec="<<tofok<<" "<<antiok<<" "<<ectrigfl<<endl;
 //
   if(comtrok>0 && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime)){

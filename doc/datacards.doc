@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.186 2001/03/06 16:37:04 choumilo Exp $
+#  $Id: datacards.doc,v 1.187 2001/03/08 13:54:38 choumilo Exp $
 Datacards
 
 // Protection from some myst bug
@@ -555,6 +555,7 @@ I66 LayersOnly(0)                     // ladder(0) or layer(1) based alig
 R67 GlobalGoodLimit(0.06)             // invoke local db if beyond
 I68 SingleLadderEntryLimit(10000)     
 R69 One(1.025)
+
 LVL1    // LVL1 Trigger 
 
 I 1 ntof(3)                           // min number of tof planes in trig
@@ -698,6 +699,16 @@ R1 time        // max time allowd for prog execution
             ********* AMS02 specific data-cards *************
 
 ----------------------------------------------------------------
+TGL1    // LVL1 Trigger 
+
+I 1 ntof(3)                           // min number of tof planes in trig
+I 2 nanti(2)                         // max number of anti counters in trig
+I 3 RebuildLVL1(0)                   // Rebuild or not lvl1 if reconstruction
+I 4 ecintrig(0)                      // ECAL in trigger if =1
+R 5 MaxScalersRate(20k)               // max acceptable av scalers rate
+R 6 MinLifeTime   (0.015)            // min acceptable lifetime
+
+//-------------------------------
       AMS02 TOF data-cards:
 //
 
@@ -819,8 +830,9 @@ I 2    reprtf[1](0)        // =1 to print profiles for first 5 events
 I 3    reprtf[2](0)        // =1 spare
 
 I 4    relogic[0](0)       // 1/0->write/not EcalHits into Ntuple
-I 5    relogic[1](0)       // 0/1/2...-> normal/REUN-calibr./...  run
-I 8................        //    spares
+I 5    relogic[1](0)       // 0/1/2...-> normal/RLGA_calib/RLGA+FIAT_calib/ANOR_calib  run
+I 6    relogic[2](0)       // 0/1/2->multipl/Ebackgr/Both_type cuts in ANOR_calib logic
+I 7,8................        //    spares
 
 R 9    thresh[0](2)        // HighGain-chan. readout threshold(ADCch)    
 R 10   thresh[1](120)      // Anode(high-ch,tot) "mip"-trig.thresh(mev tempor)     
@@ -897,7 +909,7 @@ R 37  scdismx[0] (1.) // max sc-track dist. to consider hit as backgroubd(pl-1)
 R 38  scdismx[1] (1.2)// max sc-track dist. to consider hit as backgroubd(pl-2) 
 R 39  scdismx[2] (2.) // max sc-track dist. to consider hit as backgroubd(pl-3)
 R 40  scdisrs (8.)    // as above for all other planes(not used really)
-R 41  b2scut[0] (0.1) // max backgr/signal energy(bound.from above) for pl-1 
+R 41  b2scut[0] (0.1) // max backgr/signal energy(boundaries from above) for pl-1 
 R 42  b2scut[1] (0.15)// max backgr/signal energy(bound.from above) for pl-2 
 R 43  Eb2scut[2] (0.2)// max backgr/signal energy(bound.from above) for pl-3 
 //--------------------------------------------------------------------------------

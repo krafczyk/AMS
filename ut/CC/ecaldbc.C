@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.18 2001/03/06 16:37:00 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.19 2001/03/08 13:54:37 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -542,13 +542,14 @@ void EcalJobStat::bookhist(){
         HBOOK1(ECHISTC+33,"ECCA: Tracker Y-layer backgr.",50,0.,10.,0.);
         HBOOK1(ECHISTC+34,"ECCA: Track X-layer ampl.",80,0.,400.,0.);
         HBOOK1(ECHISTC+35,"ECCA: Track Y-layer ampl.",80,0.,400.,0.);
-        HBOOK1(ECHISTC+36,"ECCA: Track rigidity (Gv,FastFit,clustOK)",100,0.,20.,0.);
+        HBOOK1(ECHISTC+36,"ECCA: Track rigidity (Gv,FastFit,BadClam)",100,2.,12.,0.);
         HBOOK1(ECHISTC+37,"ECCA: Track Xcross At ECTop",70,-35.,35.,0.);
         HBOOK1(ECHISTC+38,"ECCA: Track Ycross At ECTop",70,-35.,35.,0.);
 	HBOOK1(ECHISTC+39,"ECCA: ANTI sector energy",80,0.,40.,0.);
 	HBOOK1(ECHISTC+40,"ECCA: ANTI fired sectors",17,0.,17.,0.);
         HBOOK1(ECHISTC+41,"ECCA: Track rigidity (Gv,FastFit,TrackOK)",100,2.,12.,0.);
         HBOOK1(ECHISTC+42,"ECCA: Track Layer ampl.",80,0.,400.,0.);
+        HBOOK1(ECHISTC+43,"ECCA: Track rigidity (Gv,FastFit,BadEbkg)",100,2.,12.,0.);
         HBOOK1(ECHISTC+50,"ECCA: Dist. of Track and SC(pl1)",80,-8.,8.,0.);
         HBOOK1(ECHISTC+51,"ECCA: Dist. of Track and SC(pl2)",80,-8.,8.,0.);
         HBOOK1(ECHISTC+52,"ECCA: Dist. of Track and SC(pl3)",80,-8.,8.,0.);
@@ -653,6 +654,7 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTC+34);
       HPRINT(ECHISTC+35);
       HPRINT(ECHISTC+36);
+      HPRINT(ECHISTC+43);
       HPRINT(ECHISTC+42);
       HPRINT(ECHISTC+41);
       HPRINT(ECHISTC+37);

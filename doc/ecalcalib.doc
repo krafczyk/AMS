@@ -26,7 +26,8 @@
    Note: All above cuts on ECAL-signals are applied to EcalHits(converted 
    back to ADC counts). It means we use parameters from previous calibration 
    (EcalRawEvent-hits were converted to EcalHits using this calibration). 
-   This is done to improve preselection efficiency.
+   This is done to improve preselection efficiency(gains variations are 
+   already corrected in first approximation).
    
     The below analysis is applied to EcalRawEvent hits !!! (any kind of 
     calibration is not applied !!!)
@@ -68,18 +69,20 @@
    the straight line fit is performed to extract High-to-Low-gain ratio for 
    each channel (pixel).
    
-      The program create 2 files: ecalrlgaNNNmc.cof and ecalfiatNNNmc.cof(if 
+      The program creates 2 files: ecalrlgaNNNmc.cof and ecalfiatNNNmc.cof(if 
    was requested ECRE 5=2) where NNN is calibration(previous) version used
-   for above analysis.  
+   for above analysis. The files(if OK) have to copied to official directory
+   /offline/AMSDataDir/v3.00 with NNN=NNN+1 and extention .dat. 
       
         ************ ANOR(abs.normalization) part **************
 
  Algorithm:
  
       The absolute calibration of ECAL is done in separate procedure 
-   using information from above RLGA-calibration. This procedure must include
+   using information from above RLGA/FIAT-calibration(its *.cof files was copied 
+   to official directory as *.dat and NNN=NNN+1). This procedure must include
    real clustering algorith (used at the reconstruction stage) to include the
-   leakage effects (to be done).
+   possible leakage effects (to be done).
       The calibration is done with preselected electrons in momentum range
    3-15gev/c and calculate abs.norm.parameter requiring Mom/Ecal ratio to
    be 1.
@@ -89,19 +92,19 @@
    2.   Track preselection (good chi2, small half track rigidities assimetry,
       correct sign of curvature, track hits ECAL, ...);
       
-   3.   Hit pattern in SubCells(pixel) layers is analysed to suppress early 
-      showering events or event with abnormal(spikes or too high multiplicity)
-      activity in any plane;
+   3.   Hits pattern in SubCells(pixel) layers is analysed to suppress early 
+      showering events or event with abnormal activity (spikes or too high 
+      multiplicity)in any plane;
      
    4.   Suppression of events with big Side/Back energy leakage;
    
-   5.   "Electromagneticity" check by analising Efront/Epeak/Etail ratious;
+   5.   "Electromagneticity" check by analysing Efront/Epeak/Etail ratious;
    
    6.   Check Ebackground/Esignal ratio in first 3 planes (Esignal is total
       energy of SubCells around track crossing point(closer than some distance),
       Ebackgr - the energy of the rest in plane);
-        This check is not activated now but may be used as addition or replacement
-      to item 3 !!!
+        This check is not activated by default now but may be used as addition
+      or replacement to item 3 cut using flag ECRE 6=0/1/2(see datacards.doc); 
       
    7.   For plane 1,2 check that COG is close to track crossing point;
    
@@ -111,11 +114,12 @@
        
         Sistematic error of sach calibration is about 1% (dependence of ratio on
      energy in the range 3-15 gev/c). Result of abs. calibration is saved in
-     file ecalanorNNNmc.cof (ecalanorNNNrl.cof for real data).
+     file ecalanorNNNmc.cof (ecalanorNNNrl.cof for real data). This file in
+     official directory must have extention .dat.
      
      
-        All *.cof files contain self explaination at the end.
-	Related Data cards (ECCA) see in datacards.doc file.
+        All *.dat files contain self explaination at the end.
+	Related Data cards (ECCA) are explained in datacards.doc file.
    
      
    
