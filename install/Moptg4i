@@ -57,8 +57,8 @@ ifdef G4USE_OSPACE
 CP1F=-D__NAMESPACE__  -D__G4AMS__ -ieee -nostdnew -timplicit_local -DOS_OSF1_4 -DOS_NEW_CHECK -DOS_STL_ASSERT -DOS_NO_WSTRING -DOS_NO_ALLOCATORS -D__NO_EDG_EXCEPTION_CLASSES
 CP2F=-D__NAMESPACE__  -D__G4AMS__ -ieee -nostdnew -timplicit_local 
 else
-CP1F=-D__NAMESPACE__  -D__G4AMS__ -ieee -nostdnew -timplicit_local -D__USE_STD_IOSTREAM
-CP2F=-D__NAMESPACE__  -D__G4AMS__ -D__USE_STD_IOSTREAM -ieee -nostdnew -timplicit_local 
+CP1F=-D__NAMESPACE__  -D__G4AMS__ -ieee -timplicit_local -D__USE_STD_IOSTREAM
+CP2F=-D__NAMESPACE__  -D__G4AMS__ -D__USE_STD_IOSTREAM -ieee  -timplicit_local 
 endif
 endif
 XLDFLAGS=      -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm    -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
@@ -89,7 +89,7 @@ CFLAGSn=      -D__BATCH__  -O2    -I../include   -I../db
 FFLAGS=   -fno-automatic -O -I../include
 endif
 DFLAGS=    -g   -I/usr/local/include/g++  -I../include 
-XLDFLAGS=   -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -ln  -lnsl -L/usr/local/lib   -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
+XLDFLAGS=   -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib   -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
 CC=g++ -D__NAMESPACE__ -D__G4AMS__
 FF=g77
 LD=g++

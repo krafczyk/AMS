@@ -80,7 +80,7 @@ CFLAGS=      $(CFLAGSB) -O2
 FFLAGS=   -fno-automatic -O -I../include
 endif
 DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include
-LDFLAGS=   -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -ln -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
+LDFLAGS=   -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
 CC=g++ 
 FF=g77
 LD=g++
