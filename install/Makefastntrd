@@ -34,15 +34,26 @@ LIB=/lib/osf1
 TIMEL=
 endif
 ifeq  "$(shell uname)"  "Linux"
+# DEFAULTS 
 RH9add=
 ifdef RH9
  RH9add=-pthread  /usr/lib/ctype-info.o
 endif
+
+ifneq "$(shell uname -r )" "2.4.20-24.7.cernsmp"
+ RH9add=-pthread  /usr/lib/ctype-info.o
+endif
+
+ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
+ RH9add=
+endif
+#CFLAGS=     -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -g
 CFLAGS=     -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O2
 FFLAGS=   -fno-automatic -O -I../include
+#FFLAGS=   -fno-automatic -g -I../include
 DFLAGS=    -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
-LDFLAGS= -static -L$(ROOTSYS)/lib -lRoot -lcrypt -L/cern/pro/lib    -lpacklib -lmathlib -lkernlib  -lshift -lnsl -L/usr/local/lib    -lm   -lg2c -ldl -lfreetype $(RH9add)
+LDFLAGS= -static -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -L/cern/pro/lib    -lpacklib -lmathlib -lkernlib  -lshift -lnsl -L/usr/local/lib    -lm   -lg2c -ldl -lfreetype $(RH9add)
 CC=g++
 FF=g77
 LD=g++
