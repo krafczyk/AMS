@@ -736,7 +736,7 @@ void AMSTrRawCluster::buildrawMixed(integer n, int16u *p){
     integer ntdr = *(ptr+1) & 31;
     //cout <<"ntdr "<<subl<<" "<<ntdr<<endl;
     integer mode = ((*(ptr+1))>>11) & 31;
-    if (mode != (getdaqidMixed(*p) & 31)) {
+    if (mode != (getdaqidMixed(ic) & 31)) {
       cerr <<"AMSTrRawCluster::buildrawMixed-E-ModeWrong Expected "<< ((getdaqidMixed(ic))&31)<<" Get "<<mode<<endl;
     }
     if(mode == (getdaqidCompressed(ic) & 31)){

@@ -1873,7 +1873,7 @@ if(DAQCFFKEY.LCrateinDAQ){
 }   
 
 
-if(DAQCFFKEY.LCrateinDAQ && (DAQCFFKEY.TrFormatInDAQ & 2)){
+if(DAQCFFKEY.LCrateinDAQ ){
 //           tracker raw
 
   if(DAQCFFKEY.OldFormat || !isRealData()){
