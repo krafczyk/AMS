@@ -194,11 +194,11 @@ int16u pData[24][1536];
          }
          int tl=Record[0]+1;
               //  Dump every 1000 event
-                  if(evt%1000 == 0){
-                    for(int itl=0;itl<tl;itl++){
-                      cout <<itl <<" "<<Record[itl]<<endl;
-                    }
-                  }
+         //                  if(evt%1000 == 0){
+         //                    for(int itl=0;itl<tl;itl++){
+         //                      cout <<itl <<" "<<Record[itl]<<endl;
+         //                    }
+         //                  }
          _convert(Record,tl,BigEndian);
          fbout.write((unsigned char*)Record,tl*sizeof(Record[0]));         
        }

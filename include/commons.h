@@ -519,6 +519,7 @@ integer CalibProcedureNo;
                                 // Proc # 1 starts here
 integer EventsPerCheck;
 geant PedAccRequired[2]; 
+integer Validity[2];
                                 // Proc # 2 starts here
 integer EventsPerIteration[2];
 integer NumberOfIterations[2];

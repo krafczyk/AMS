@@ -530,7 +530,7 @@ void AMSTrIdCalib::_update(){
     ptdv->UpdCRC();
     time_t begin,end,insert;
     time(&insert);
-    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-3600,AMSEvent::gethead()->gettime()+3600*23);
+    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
     cout <<" Tracker H/K  info has been updated for "<<*ptdv;
     ptdv->gettime(insert,begin,end);
     cout <<" Time Insert "<<ctime(&insert);
@@ -541,7 +541,7 @@ void AMSTrIdCalib::_update(){
     ptdv->UpdateMe()=1;
     ptdv->UpdCRC();
     time(&insert);
-    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-3600,AMSEvent::gethead()->gettime()+3600*23);
+    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
     cout <<" Tracker H/K  info has been updated for "<<*ptdv;
     ptdv->gettime(insert,begin,end);
     cout <<" Time Insert "<<ctime(&insert);
@@ -552,7 +552,7 @@ void AMSTrIdCalib::_update(){
     ptdv->UpdateMe()=1;
     ptdv->UpdCRC();
     time(&insert);
-    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-3600,AMSEvent::gethead()->gettime()+3600*23);
+    ptdv->SetTime(insert,AMSEvent::gethead()->gettime()-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
     cout <<" Tracker H/K  info has been updated for "<<*ptdv;
     ptdv->gettime(insert,begin,end);
     cout <<" Time Insert "<<ctime(&insert);
@@ -606,6 +606,7 @@ _clear();
 
 void AMSTrIdCalib::check(integer forcedw){
 static integer counter=0;
+static integer hist=0;
 if(++counter%TRCALIB.EventsPerCheck == 0 || forcedw){
  int i,j,k,l,m;
     number acc[2]={0,0};
@@ -640,8 +641,9 @@ if(++counter%TRCALIB.EventsPerCheck == 0 || forcedw){
        _update();
        _clear();
        counter=0;
+       hist=1;
      }
-     else if(forcedw){
+     else if(forcedw && hist==0){
        cout << "AMSTrIdCalib::check-I-peds & sigmas succesfully calculated with accuracies "<<
          acc[0]/cnt[0]<<" "<<acc[1]/cnt[1]<<" ( "<<counter<<" ) events."<<endl;
        cout << "AMSTrIdCalib::check-I-peds & sigmas succesfully calculated for  "<< cnt[0]+cnt[1]<< " Channels"<<endl;
