@@ -211,21 +211,25 @@ void AMSTimeID::_InitTable(){
   }
 }
 
-integer AMSTimeID::write(char * dir){
+integer AMSTimeID::write(const char * dir, int slp){
 
 // add explicitely one second delay to prevent same insert time
-   sleep(1);
+   if(slp)sleep(1);
 #ifndef __DB__
   enum open_mode{binary=0x80};
     fstream fbin;
     AString fnam(dir);
     fnam+=getname();
     fnam+="/";
+    fnam+=_getsubdirname(_Begin);
+    AString mkdir("mkdir -p ");
+    mkdir+=fnam;
+    system((char*)mkdir);
     fnam+=getname();
     fnam+= getid()==0?".0":".1";
         char name[255];
         ostrstream ost(name,sizeof(name));
-        ost << "."<<_Begin<<ends;
+        ost << "."<<_Insert<<ends;
         fnam+=name;     
     //      }
     fbin.open((const char *)fnam,ios::out|binary|ios::trunc);
@@ -242,6 +246,13 @@ integer AMSTimeID::write(char * dir){
       fbin.write((char*)pdata,ns*sizeof(pdata[0]));
       fbin.close();
       delete [] pdata;
+//  touch the directory
+
+    AString buf("touch ");
+    buf+=dir;
+    buf+=getname();
+    system((char *)buf);     
+
       return fbin.good();
     }
      else cerr<<"AMSTimeID::write-E-Failed to allocate memory "<<_Nbytes<<endl;
@@ -274,6 +285,7 @@ integer AMSTimeID::read(char * dir, integer reenter){
     if(run>0 && !reenter){
      fnam+=getname();
      fnam+="/";
+     fnam+=_getsubdirname(asktime);
      fnam+=getname();
      fnam+= getid()==0?".0":".1";
      char name[255];
@@ -363,7 +375,8 @@ void AMSTimeID::_convert(uinteger *pdata, integer n){
 
 
 }
-integer AMSTimeID::_getDBRecord(uinteger time){
+integer AMSTimeID::_getDBRecord(time_t & atime){
+uinteger time(atime);
  integer index=AMSbiel(_pDataBaseEntries[3],time,_DataBaseSize);
  //cout <<getname()<<" "<<index<<" "<<time<<" "<<_pDataBaseEntries[3][index]<<" "<<_DataBaseSize<<endl;
   int rec=-1;
@@ -376,6 +389,7 @@ integer AMSTimeID::_getDBRecord(uinteger time){
  }
 
 #ifndef __DB__
+   if(rec>=0)atime=_pDataBaseEntries[2][rec];
    if(time<_Begin || time>_End )return rec<0?0:_pDataBaseEntries[0][rec];
    else if (rec>=0)return  _pDataBaseEntries[0][rec];
    else return -1;
@@ -417,6 +431,15 @@ dirent *entry){
 return strstr(entry->d_name,(char*)*_selectEntry)!=NULL;    
 }
 
+integer AMSTimeID::_selectsdir(
+#ifndef __ALPHA__
+const 
+#endif
+dirent *entry){
+return (entry->d_name)[0] != '.';   
+}
+
+
 void AMSTimeID::_fillDB(const char *dir){
 int i;
 for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
@@ -450,13 +473,37 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
     }
     else {
       cout <<"AMSTimeID::_fillDB-I-UpdatingDataBase"<<endl;
+//    Check if is in new mode
+      _checkcompatibility(dir);
       AString fnam(getname());
       fnam+= getid()==0?".0":".1";
       _selectEntry=&fnam;
+      dirent ** namelistsubdir;
+      int size=0;
+      int nptrdir=scandir((const char *)fdir,&namelistsubdir,_selectsdir,NULL);     
+      for(int is=0;is<nptrdir;is++){
+       AString fsdir(fdir);
+       fsdir+=namelistsubdir[is]->d_name;
+       fsdir+="/";     
       dirent ** namelist;
-      int nptr=scandir((const char *)fdir,&namelist,&_select,NULL);     
+      int nptr=scandir((const char *)fsdir,&namelist,&_select,NULL);     
       if(nptr>0){
-        for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[nptr];
+        if(_DataBaseSize && size<_DataBaseSize+nptr){
+          uinteger *tmp=new uinteger[_DataBaseSize];
+         for(int k=0;k<5;k++){
+          int l;
+          for ( l=0;l<_DataBaseSize;l++)tmp[l]=_pDataBaseEntries[k][l]; 
+          delete[] _pDataBaseEntries[k];
+          size=2*(_DataBaseSize+nptr);
+          _pDataBaseEntries[k]=new uinteger[size];
+          for ( l=0;l<_DataBaseSize;l++)_pDataBaseEntries[k][l]=tmp[l]; 
+         }
+         delete[] tmp;
+        } 
+        else if(!_DataBaseSize){
+         size=2*nptr;
+         for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[size];
+        }
         for(i=0;i<nptr;i++) {
           int valid=0;
           int kvalid=0;
@@ -467,7 +514,7 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
           if(valid==1 && isdigit(namelist[i]->d_name[kvalid+1])){
             sscanf((namelist[i]->d_name)+kvalid+1,"%d",
                    _pDataBaseEntries[0]+_DataBaseSize);
-            AString ffile(fdir);
+            AString ffile(fsdir);
             ffile+=namelist[i]->d_name;
             fbin.open((const char *)ffile,ios::in);
             uinteger temp[3];
@@ -488,6 +535,13 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
           }
           free(namelist[i]);
         }
+        free(namelist);
+        
+      }
+        free( namelistsubdir[is]);
+    }
+      if(nptrdir>0){
+        free (namelistsubdir);
         // sort
         //AMSsortNAGa(_pDataBaseEntries[0],_DataBaseSize);
         
@@ -514,9 +568,7 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
         }
         delete[] padd;
         delete[] tmp;
-        
-        free(namelist);
-      }
+    }
       // Rewrite map file;
       fbin.open(fmap,ios::out|ios::trunc);
       if(fbin){
@@ -610,4 +662,95 @@ integer AMSTimeID::readDB(integer reenter){
   return rec;
 }
 
+char* AMSTimeID::_getsubdirname(time_t begin){
+static char  _buf[32];
+tm * tmp=gmtime(&begin);
+tmp->tm_hour=0;
+tmp->tm_min=0;
+tmp->tm_sec=0;
+begin=mktime(tmp);
+sprintf(_buf,"%d/",mktime(tmp));
+return _buf;
+}
 
+void AMSTimeID::_checkcompatibility(const char *dir){
+   fstream fbin;
+   AString fdir(dir);
+    fdir+=getname();
+    fdir+="/";
+      AString fnam(getname());
+      fnam+= getid()==0?".0":".1";
+      _selectEntry=&fnam;
+      dirent ** namelist;
+      int nptr=scandir((const char *)fdir,&namelist,&_select,NULL);     
+      if(nptr>0){
+       cerr <<"AMSTimeID::_checkcompatibility-W-OldStructureFound"<<endl;
+       char y;
+//       cout <<" Do you want to   convert  "<<getname();
+//       cin >>y;
+          y='y';
+       if(y!='y' &&  y!='Y'){
+        cerr<<"AMSTimeID::_checkcompatibility-F-CanNotContinue,Aborting"<<endl;
+        abort();
+       }
+       int i; 
+       for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[nptr];
+        for(i=0;i<nptr;i++) {
+          int valid=0;
+          int kvalid=0;
+          for(int k=strlen((char*)fnam);k<strlen(namelist[i]->d_name);k++){
+            if((namelist[i]->d_name)[k]=='.' )valid++;
+            if((namelist[i]->d_name)[k]=='.')kvalid=k;
+          }
+          if(valid==1 && isdigit(namelist[i]->d_name[kvalid+1])){
+            sscanf((namelist[i]->d_name)+kvalid+1,"%d",
+                   _pDataBaseEntries[0]+_DataBaseSize);
+            AString ffile(fdir);
+            ffile+=namelist[i]->d_name;
+            fbin.open((const char *)ffile,ios::in);
+            if(fbin){
+              uinteger * pdata;
+              _Nbytes+=sizeof(integer);
+              integer ns=_Nbytes/sizeof(pdata[0])+3;
+              pdata =new uinteger[ns];
+              if(pdata){
+                fbin.read((char*)pdata,ns*sizeof(pdata[0]));
+                if(fbin.good()){
+                 _convert(pdata,ns);
+                 CopyIn(pdata);
+                 _Insert=time_t(pdata[_Nbytes/sizeof(pdata[0])]);
+                 _Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
+                 _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
+                 cout <<"AMSTimeID::read-I-Open file "<<ffile<<endl;
+#ifdef __AMSDEBUG__
+                 cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;
+                 cout <<"AMSTimeID::read-I-Begin "<<ctime(&_Begin)<<endl;
+                 cout <<"AMSTimeID::read-I-End "<<ctime(&_End)<<endl;
+#endif
+                 int ok=write(dir,0);
+                 fbin.close();
+                 delete [] pdata;
+                 AString rm("rm -f ");
+                 rm+=ffile;
+                 if(ok)system((char *)rm);
+                }
+                else {
+                  cout<<"AMSTimeID::read-W-Problems to Read File "<<
+                  fnam<<endl;//tempor
+                  fbin.close();
+                  delete [] pdata;
+                }
+              }
+              _Nbytes-=sizeof(integer);
+            }
+            
+          }
+          free(namelist[i]);
+        }
+        
+        free(namelist);
+        for(i=0;i<5;i++)delete[] _pDataBaseEntries[i];
+      }
+
+
+}
