@@ -82,7 +82,7 @@ int Coordinates(matr3 Coo_M1950, matr3 Vel_M1950, double q[4], time_t ytime, pol
 double Radius(matr3 Coo);
 
 /* ==== FOR RECORDS ========== */
-uint _CalcCRC(uint *pData, integer length);
+uint _CalcCRC(uint *pData, int length);
 uint record_n;
 time_t Umin,Umax;
 time_t utime;

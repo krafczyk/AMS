@@ -2,5 +2,5 @@
         DirTo=/data18/xv/choutko/Offline
         export DirFrom
         export  DirTo
-        /Offline/vdev/slow/backup 1>/Offline/logs/backup.log 2>/Offline/logs/backup.e.log&
+/Offline/vdev/slow/backup 60 1440 1>/Offline/logs/backup/backup.log 2>/Offline/logs/backup/backup.e.log&
 
