@@ -280,7 +280,7 @@
        endif
        idsofttr(5,i)=mod(idsoft(i)/10000,1000)
       enddo
-      if(pcharge(1).gt.1.5)then
+      if(npart.gt.0.and.pcharge(1).gt.1.5)then
       call hf1(2,float(npart),1.)
       if(npart.eq.1)then
 *

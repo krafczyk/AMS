@@ -210,8 +210,8 @@
          call hbook1(1964,'mom/g',200,-2.,0.,0.)
          call hbook1(1965,'charge',9,0.5,9.5,0.)
          call hbook1(1966,'beta',110,0.,1.1,0.)
-         call hbook1(1967,'mass',200,0.,5.,0.)
-         call hbook1(1973,'mass',200,0.,5.,0.)
+         call hbook1(1967,'mass',200,0.,3.,0.)
+         call hbook1(1973,'mass',200,0.,3.,0.)
          call hbook1(1968,'mass',200,0.6,5.,0.)
          call hbook1(1969,'anti',100,0.,10.,0.)
          call hbook1(1912,'TOFclusters',50,-0.5,49.5,0.)
@@ -280,7 +280,7 @@
        endif
        idsofttr(5,i)=mod(idsoft(i)/10000,1000)
       enddo
-      if(pcharge(1).eq.1)then
+      if(npart.gt.0.and.pcharge(1).eq.1)then
       call hf1(2,float(npart),1.)
       if(npart.eq.1)then
 *
@@ -337,6 +337,8 @@ c
                call hf1(456,gchi2ms(iptr),1.)
                if(htheta(2,iptr).lt.3.14159267/2)
      +         htheta(2,iptr)=3.14159267-htheta(2,iptr)
+c               write(*,*)iptr,geanefitdone(iptr),advancedfitdone(iptr)
+c               write(*,*)hchi2(1,iptr),hchi2(2,iptr)
                if(advancedfitdone(iptr).ne.0..and.
      +         hchi2(1,iptr).lt.1.e10.and.hchi2(2,iptr).lt.1.e10)then
                  call hf1(1461,htheta(2,iptr)-htheta(1,iptr),1.)
@@ -392,7 +394,7 @@ c                   cuts(8)=.true.
                       call hf1(972,xx,1.)
                     endif
                     call hf2(971,cooctc(1,1,1),cooctc(2,1,1),1.)
-                    cuts(9)=cuts(9).and.xx.lt.1.or.
+                    cuts(9)=cuts(9).and.xx.lt.1..or.
      +              abs(beta(pbetap(1))).lt.0.
                     if(cuts(9))then
                     do i=1,ntrclmc
@@ -427,8 +429,17 @@ c                   cuts(8)=.true.
                     call hf1(968,pmass(1),1.)
                     call hf1(969,panti,1.)
                     r=chi2fastfit(iptr)-hchi2(1,iptr)-hchi2(2,iptr)
-                    call hf1(1973,pmass(1),1.)
-                    if(pmass(1).gt.0.5.and.pmass(1).lt.3.)then
+                    if(pmass(1).gt.0)call hf1(1973,pmass(1),1.)
+                            cy=cos(yaws)
+                            sy=sin(yaws)
+                            cr=cos(rolls)
+                            sr=sin(rolls)
+                            cp=cos(pitchs)
+                            sp=sin(pitchs)
+                            cost=-sr*sy*sp+cr*cp
+
+                    if(pmass(1).gt.0.5.and.pmass(1).lt.3.
+     +               .and.cost.gt.0.7)then
                      rke=(pmom(1)**2+0.88)**0.5-0.938
                      if(ig.eq.2)call hf1(1014,rke,1.)
                      if(ig.eq.2)call hf1(1013,rke,1.)
@@ -463,6 +474,7 @@ c     +               betachi2(pbetap(1))
                       call hf1(1969,panti,1.)
                       call hf1(1912,float(tofclusters),1.)
                       call hf1(1970,betachi2(pbetap(1)),1.)
+                      write(*,*)run,eventno
                     do i=1,ntrclmc
                      call hf1(1702,float(itra(i)),1.)
 c                     write(*,*)itra(i) 

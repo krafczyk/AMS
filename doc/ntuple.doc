@@ -20,10 +20,10 @@ Below there is a description of a  ntuple.
 * R*4  *              * EVENTH   * RadS             // Shuutle Altitude (cm)
 * R*4  *              * EVENTH   * ThetaS           // Shuttle Theta (rad)
 * R*4  *              * EVENTH   * PhiS             // Shuttle phi (rad)
-* R*4  *              * EVENTH   * YawS             // Shuttle Euler angle psi (rad) 
-* R*4  *              * EVENTH   * PitchS           // ------------------  theta
-* R*4  *              * EVENTH   * RollS            // ------------------  phi
-* R*4  *              * EVENTH   * VelocityS        // Shuutle speed (rad/sec)
+* R*4  *              * EVENTH   * YawS             // Shuttle yaw (rad) 
+* R*4  *              * EVENTH   * PitchS           //         pitch
+* R*4  *              * EVENTH   * RollS            //         roll
+* R*4  *              * EVENTH   * VelocityS        // Shuttle speed (rad/sec)
 
 
 * I*4  *              * EVENTH   * Particles        // No of Particles

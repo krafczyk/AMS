@@ -108,6 +108,7 @@
 *
 *--   Enter user code here
 *
+        double precision a(3,3)
         logical cuts(10)
         data init/0/
         if(init.eq.0)then
@@ -123,6 +124,8 @@
         call hbook1(601,'bo mass',200,0.,16.,0.)
         call hbook1(701,'be mass',200,0.,20.,0.)
         call hbook1(801,'c mass',200,0.,24.,0.)
+        call hbook1(2801,'c mass',200,0.,36.,0.)
+        call hbook1(2802,'c mass',200,0.,36.,0.)
         call hbook1(1101,'aelectrons mass',200,0.,1.,0.)
         call hbook1(1201,'amuons mass',200,0.,1.,0.)
         call hbook1(1301,'aprotons mass',200,0.,2.,0.)
@@ -131,7 +134,7 @@
         call hbook1(1601,'abo mass',200,0.,16.,0.)
         call hbook1(1701,'abe mass',200,0.,20.,0.)
         call hbook1(1801,'ac mass',200,0.,24.,0.)
-         
+        call hbook1(77,'rr',200,-1.1,1.1,0.)         
         endif
         xx=0
         xx1=0
@@ -181,8 +184,43 @@
             if(id.ne.0)then
               call hf1(id+iad+1,pmass(1),1.)
             endif
+          endif
+          if(beta(ibeta).gt.0.and.beta(ibeta).lt.0.9)then
+           if(chargetracker(1).gt.2)then
+             rmom=pmom(1)/pcharge(1)*chargetracker(1)
+             gamma=sqrt(1-beta(ibeta)**2)
+             pms=rmom/beta(ibeta)*gamma
+             call hf1(2801,pms,1.)
+             if(pcharge(1).gt.4.5)call hf1(2802,pmass(1),1.)
+           endif
           endif  
         endif
+        cy=cos(yaws)
+        sy=sin(yaws)
+        cr=cos(rolls)
+        sr=sin(rolls)
+        cp=cos(pitchs)
+        sp=sin(pitchs)
+        a(1,1)=cy*cp
+        a(2,1)=-sy
+        a(3,1)=cy*sp
+        a(1,2)=cr*sy*cp-sr*sp
+        a(2,2)=cr*cy
+        a(3,2)=cr*sy*sp+sr*cp
+        a(1,3)=-sr*sy*cp-cr*sp
+        a(2,3)=-sr*cy
+        a(3,3)=-sr*sy*sp+cr*cp
+        cost=a(3,3)
+c        do i=1,3
+c          do j=1,3
+c            s=0
+c            do k=1,3
+c             s=s+a(k,i)*a(k,j)
+c            enddo
+c            write(*,*)i,j,s
+c          enddo
+c        enddo
+        call hf1(77,cost,1.)        
         every=0
 *
       END
