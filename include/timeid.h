@@ -24,7 +24,7 @@ void _convert(uinteger *pdata, integer nw);
 void _fillDB(const char * dir);
 void _fillfromDB();
 integer _getDBRecord(uinteger time);
-static integer _select(dirent * entry);
+static integer _select(dirent * entry=0);
 static AString *_selectEntry;
 public:
 AMSTimeID():AMSNode(),_Insert(0),_Begin(0),_End(0),_Nbytes(0),_pData(0),

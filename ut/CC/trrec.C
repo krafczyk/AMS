@@ -1036,6 +1036,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
         }
       }
     }
+      return 0;
 
 }
 

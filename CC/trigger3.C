@@ -523,7 +523,7 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
 
 
   void TriggerLVL3::build(){
-    if(LVL3FFKEY.RebuildLVL3){
+    if(LVL3FFKEY.RebuildLVL3==1){
       AMSEvent::gethead()->getC("TriggerLVL3",0)->eraseC();
     }
     if(!strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ){     
@@ -917,6 +917,8 @@ void TriggerLVL3::buildraw(integer n, int16u *p){
  npat=((*(p+5)))&15;
  ntr=((*(p+5))>>4)&255;
  eloss=int16(*(p+7));
+ //tmp fix
+ if(eloss==0 && n>8)eloss=int16(*(p+8));
  //  for(int k=0;k<8;k++){
  //    cout <<k<<" "<<*(p+k)<<endl;
  //   }

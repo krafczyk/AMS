@@ -1155,7 +1155,7 @@ void AMSTrRawCluster::buildrawParameters(integer n, int16u *p){
      
      ptr+=1;
      int rl=*ptr;
-      static char descr[40][]={
+      static char descr[40][128]={
         "Number of events to throw out before beginning calibration(128)",
         "Number of events for pedestal calculation(2048)",
         "Number of events for sigma raw calculation(512)",

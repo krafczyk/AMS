@@ -1005,7 +1005,8 @@ void AMSJob::_siamsinitjob(){
 
 void AMSJob::_sitriginitjob(){
   if(LVL1FFKEY.RebuildLVL1)cout <<"AMSJob::_sitriginitjob-W-TriggerLvl1 Will be rebuild from TOF data; Original Trigger info will be lost"<<endl;
-  if(LVL3FFKEY.RebuildLVL3)cout <<"AMSJob::_sitriginitjob-W-TriggerLvl3 will be rebuild from TOF data; Original Trigger info will be lost"<<endl;
+  if(LVL3FFKEY.RebuildLVL3==1)cout <<"AMSJob::_sitriginitjob-W-TriggerLvl3 will be rebuild from TOF/Tracker data; Original Trigger info will be lost"<<endl;
+  else if(LVL3FFKEY.RebuildLVL3)cout <<"AMSJob::_sitriginitjob-W-TriggerLvl3 will be rebuild from TOF/Trigger data Original Trigger info will be kept"<<endl;
      AMSgObj::BookTimer.book("LVL3");
      TriggerLVL3::init();  
 }

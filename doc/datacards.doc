@@ -488,7 +488,7 @@ I 8 TrMaxHits(20)                      // Max Number of hits in Tracker
 R 9 Splitting(0.04)                    // Min distance between hits
 I10 Nrep(1)                            // Aux no of rep to calc lvl3 time
 I11 Accept(0)                        // Min value of lvl3 trigger to accept
-I12 RebuildLVL3(0)                   // rebuild/not rebuild lvl3 in reconstruction
+I12 RebuildLVL3(0)                   // rebuild/not rebuild(0) lvl3 in reconstruction
 I13 NoK(1)                           // NotMatch(1) Match(0) S & K in lvl3
 R14 TrHeavyIonThr(200)               // Heavy Ion threshold (trunc mean)
 I15 SeedThr(32)                      // S/N *8 threshold for seed 
