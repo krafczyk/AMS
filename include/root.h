@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.47 2001/08/24 15:53:09 kscholbe Exp $
+//  $Id: root.h,v 1.48 2001/08/31 23:24:53 kscholbe Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -7,10 +7,12 @@
 #include <TTree.h>
 #include <TFile.h>
 #include <TROOT.h>
-#endif
+#else
 #include <tkdbc.h>
 #include <trddbc.h>
 #include <ecaldbc.h>
+#endif
+
 class AMSNtuple;
 namespace root{
 const int MAXBETA    =   150;
@@ -347,7 +349,11 @@ public:
   float TOFCoo[MAXPART02][4][3];
   float AntiCoo[MAXPART02][2][3];
   float EcalCoo[MAXPART02][3][3];
+#ifdef __WRITEROOT__
+  float TrCoo[MAXPART02][8][3];
+#else
   float TrCoo[MAXPART02][trconst::maxlay][3];
+#endif
   float TRDCoo[MAXPART02][3];
 #ifdef __WRITEROOT__
   ParticleNtuple02();
@@ -671,7 +677,11 @@ public:
   float Chi2[MAXTRDSEG];
   int Pattern[MAXTRDSEG];
   int Nhits[MAXTRDSEG];
+#ifdef __WRITEROOT__
+  int PCl[MAXTRDSEG][12];
+#else
   int PCl[MAXTRDSEG][trdconst::maxhits];
+#endif
  
 #ifdef __WRITEROOT__
   TRDSegmentNtuple();
@@ -699,7 +709,11 @@ public:
   float Chi2[MAXTRDTRK];
   int   NSeg[MAXTRDTRK];
   int   Pattern[MAXTRDTRK];
+#ifdef __WRITEROOT__
+  int   pSeg[MAXTRDTRK][5];
+#else
   int   pSeg[MAXTRDTRK][trdconst::maxseg];
+#endif
  
 #ifdef __WRITEROOT__
   TRDTrackNtuple();
@@ -827,7 +841,11 @@ public:
   int Pattern[MAXTRTR02];
   int Address[MAXTRTR02];
   int NHits[MAXTRTR02];
+#ifdef __WRITEROOT__
+  int pHits[MAXTRTR02][8];
+#else
   int pHits[MAXTRTR02][trconst::maxlay];
+#endif
   float LocDBAver[MAXTRTR02];
   int GeaneFitDone[MAXTRTR02];
   int AdvancedFitDone[MAXTRTR02];
