@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.39 2003/05/08 16:41:50 choutko Exp $
+//  $Id: root.C,v 1.40 2003/05/09 15:59:52 choutko Exp $
 //
 #include <root.h>
 #include <ntuple.h>
@@ -94,6 +94,7 @@ TBranch* AMSEventR::bMCEventg;
 
 
 AMSEventR* AMSEventR::_Head=0;
+int AMSEventR::_Count=0;
 int AMSEventR::_Entry=-1;
 char* AMSEventR::_Name="ev.";   //  root compatibility
 
@@ -508,6 +509,9 @@ void AMSEventR::SetCont(){
 }
 
 void AMSEventR::ReadHeader(int entry){
+    if(this!=_Head){
+       cerr<<" AMSEventR::ReadHeader-S-WrongHeadPointer"<<endl;
+     }
    _Entry=entry;
    bHeader->GetEntry(entry);
    clear();
@@ -516,8 +520,11 @@ void AMSEventR::ReadHeader(int entry){
 
 
 AMSEventR::AMSEventR():TObject(){
-if(_Head)cerr<<"AMSEventR::ctor-F-OnlyOneSingletonAllowed"<<endl;
-_Head=this;
+if(!_Count++){
+ if(_Head)cerr<<"AMSEventR::ctor-F-OnlyOneSingletonAllowed "<<this<<endl;
+ else cout<<"AMSEventR::ctor-I-SingletonInitialized "<<this<<endl;
+ _Head=this;
+
 
 
 fEcalHit.reserve(MAXECHITS);
@@ -558,7 +565,7 @@ fRichMCCluster.reserve(MAXRICMC);
 fMCTrack.reserve(MAXMCVOL);
 fMCEventg.reserve(MAXMCG02);
 }
-
+}
 
 void AMSEventR::clear(){
 fEcalHit.clear();
@@ -623,7 +630,7 @@ void AMSEventR::AddAMSObject(Ecal1DCluster *ptr)
   }
 }
 
-void AMSEventR::AddAMSObject(Ecal2DCluster *ptr) {
+void AMSEventR::AddAMSObject(AMSEcal2DCluster *ptr) {
   if (ptr) {
   fEcal2DCluster.push_back(Ecal2DClusterR(ptr));
   ptr->SetClonePointer(& fEcal2DCluster.back(),fEcal2DCluster.size()-1);
@@ -632,7 +639,7 @@ void AMSEventR::AddAMSObject(Ecal2DCluster *ptr) {
   }
 }
 
-void AMSEventR::AddAMSObject(EcalShower *ptr) 
+void AMSEventR::AddAMSObject(AMSEcalShower *ptr) 
 {
   if (ptr) {
   fEcalShower.push_back(EcalShowerR(ptr));
@@ -915,8 +922,8 @@ void AMSEventR::AddAMSObject(AMSmctrack *ptr)
 
 
 
-void HeaderR::Set(EventNtuple02* ptr){
 #ifndef __ROOTSHAREDLIBRARY__
+void HeaderR::Set(EventNtuple02* ptr){
 
     Run=       ptr->Run;
     RunType=   ptr->RunType;
@@ -939,8 +946,8 @@ void HeaderR::Set(EventNtuple02* ptr){
     ThetaM=    ptr->ThetaM;
 
     
-#endif
 }
+#endif
 
 
 
@@ -1014,7 +1021,7 @@ ChargeR::ChargeR(AMSCharge *ptr, float probtof[],int chintof[],
 }
 
 
-Ecal2DClusterR::Ecal2DClusterR(Ecal2DCluster *ptr) {
+Ecal2DClusterR::Ecal2DClusterR(AMSEcal2DCluster *ptr) {
 #ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->getstatus();
   Proj   = ptr->_proj;
@@ -1042,7 +1049,7 @@ EcalClusterR::EcalClusterR(Ecal1DCluster *ptr){
 #endif
 }
 
-EcalShowerR::EcalShowerR(EcalShower *ptr){
+EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status      = ptr->_status;
   for (int i=0; i<3; i++) {
@@ -1052,7 +1059,7 @@ EcalShowerR::EcalShowerR(EcalShower *ptr){
    Exit[i]  = ptr->_ExitPoint[i];
    CofG[i]  = ptr->_CofG[i];
   }
-  ErTheta   = ptr->_Angle3DError;
+  ErDir   = ptr->_Angle3DError;
   Chi2Dir   = ptr->_AngleTrue3DChi2;
   FirstLayerEdep = ptr->_FrontEnergyDep;
   EnergyC   =   ptr->_EnergyC;
@@ -1233,11 +1240,9 @@ TofRawClusterR::TofRawClusterR(TOF2RawCluster *ptr){
   Bar    = ptr->_plane;
   for (int i=0; i<2; i++) tovta[i]=ptr->_adca[i];
   for (int i=0; i<2; i++) tovtd[i]=ptr->_adcd[i];
-  for (int i=0; i<2; i++) tovtdl[i]=ptr->_adcdl[i];
   for (int i=0; i<2; i++) sdtm[i] =ptr->_sdtm[i];
   edepa  = ptr->_edepa;
   edepd  = ptr->_edepd;
-  edepdl  = ptr->_edepdl;
   time   = ptr->_time;
   cool   = ptr->_timeD;
 #endif
@@ -1421,12 +1426,12 @@ RichMCClusterR::RichMCClusterR(AMSRichMCHit *ptr, int _numgen){
 RichHitR::RichHitR(AMSRichRawEvent *ptr, float x, float y){
 #ifndef __ROOTSHAREDLIBRARY__
   if (ptr) {
-   _channel = ptr->_channel;
-   _counts  = ptr->_counts;
-   _status  = ptr->_status;
-   _npe     = ptr->getnpe();
-   _x      = x;
-   _y      = y;
+   Channel = ptr->_channel;
+   Counts  = ptr->_counts;
+   Status  = ptr->_status;
+   Npe     = ptr->getnpe();
+   X      = x;
+   Y      = y;
   } else {
     cout<<"RICEventR -E- AMSRichRawEvent ptr is NULL"<<endl;
   }
@@ -1437,20 +1442,16 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
 #ifndef __ROOTSHAREDLIBRARY__
   fTrTrack = -1;
   if (ptr) {
-    used  = ptr->_used;
-    mused = ptr->_mused;
-    beta  = ptr->_beta;
-    errorbeta = ptr->_errorbeta;
-    quality   = ptr->_quality;
-    status    = ptr->_status;
-    // betablind=ptr->_betablind;
-    collected_npe= ptr->_collected_npe;
-    npexp     = ptr->_npexp;
-    probkl    = ptr->_probkl;
+    Used  = ptr->_used;
+    UsedM = ptr->_mused;
+    Beta  = ptr->_beta;
+    ErrorBeta = ptr->_errorbeta;
+    Chi2   = ptr->_quality;
+    Status    = ptr->_status;
+    NpCol= ptr->_collected_npe;
+    NpExp     = ptr->_npexp;
+    Prob    = ptr->_probkl;
    
-    npexpg    = ptr->_npexpg;
-    npexpr    = ptr->_npexpr;
-    npexpb    = ptr->_npexpb;
 
   } else {
     cout<<"RICRingR -E- AMSRichRing ptr is NULL"<<endl;
@@ -1493,6 +1494,43 @@ EcalHitR::EcalHitR(AMSEcalHit *ptr) {
 
 
 
+// Pointer related functions advanced users only
+//
+
+
+   EcalHitR* EcalClusterR::pEcalHit(unsigned int i){
+     return (AMSEventR::Head() && i<fEcalHit.size())?AMSEventR::Head()->pEcalHit(fEcalHit[i]):0;
+   }
+
+
+
+   EcalClusterR* Ecal2DClusterR::pEcalCluster(unsigned int i){
+     return (AMSEventR::Head() && i<fEcalCluster.size())?AMSEventR::Head()->pEcalCluster(fEcalCluster[i]):0;
+   }
+
+   Ecal2DClusterR* EcalShowerR::pEcal2DCluster(unsigned int i){
+     return (AMSEventR::Head() && i<fEcal2DCluster.size())?AMSEventR::Head()->pEcal2DCluster(fEcal2DCluster[i]):0;
+   }
+
+
+   TrTrackR* RichRingR::pTrTrack(){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pTrTrack(fTrTrack):0;
+   }
+
+
+   TofRawClusterR* TofClusterR::pTofRawCluster(unsigned int i){
+     return (AMSEventR::Head() && i<fTofRawCluster.size())?AMSEventR::Head()->pTofRawCluster(fTofRawCluster[i]):0;
+   }
+
+
+   TrClusterR* TrRecHitR::pTrCluster(char xy){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pTrCluster(xy=='x'?fTrClusterX:fTrClusterY):0;
+   }
+
+
+   TrRecHitR* TrTrackR::pTrRecHit(unsigned int i){
+     return (AMSEventR::Head() && i<fTrRecHit.size())?AMSEventR::Head()->pTrRecHit(fTrRecHit[i]):0;
+   }
 
 
 #endif

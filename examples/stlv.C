@@ -1,23 +1,4 @@
 #define stlv_cxx
-// This class is derived from the ROOT class TSelector.
-// The following members functions are called by the TTree::Process() functions:
-//    Begin():       called everytime a loop on the tree starts,
-//                   a convenient place to create your histograms.
-//    Notify():      this function is called at the first entry of a new Tree
-//                   in a chain.
-//    ProcessCut():  called at the beginning of each entry to return a flag,
-//                   true if the entry must be analyzed.
-//    ProcessFill(): called in the entry loop for all entries accepted
-//                   by Select.
-//    Terminate():   called at the end of a loop on the tree,
-//                   a convenient place to draw/fit your histograms.
-//
-//   To use this file, try the following session on your Tree T
-//
-// Root > T->Process("stlv.C")
-// Root > T->Process("stlv.C","some options")
-// Root > T->Process("stlv.C+")
-//
 #include "stlv.h"
 #include "TF1.h"
 #include "TH2.h"
@@ -33,17 +14,23 @@
 #include <stdlib.h>
 #include "TStopwatch.h"
 static    TStopwatch  * _pw;
+/** \example stlv.C 
+ * This is an example of how to work with AMS Root Files. 
+ *  \sa stlv
+ */
+
+
+
 
 //create here pointers to histos and array of histos
-
     TH1F * acc[20]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; 
 
 
 
 void stlv::Begin(TTree *tree){
    // Function called before starting the event loop.
-   // Initialize the tree branches.
-
+   // Initialize the tree branches. 
+   // Book Histos
    Init(tree);
 
    TString option = GetOption();
@@ -101,7 +88,7 @@ void stlv::ProcessFill(Int_t entry)
     Float_t xm=0;
     if(ev.fHeader.MCEventgs>0){		
      MCEventgR mc_ev=ev.MCEventg(0);
-      Float_t xm = log(mc_ev.Momentum);
+      xm = log(mc_ev.Momentum);
       acc[0]->Fill(xm,1);
      if(ev.fHeader.Particles>0){
        
@@ -128,6 +115,11 @@ void stlv::ProcessFill(Int_t entry)
 		 
 		  ptrh=tr_tr.TrRecHit(tr_tr.NHits-1);			//pht2
    	           Layer2=ev.TrRecHit(ptrh).Layer;
+
+ // alt method
+
+                  TrRecHitR* pph=tr_tr.pTrRecHit(tr_tr.NHits-1);
+                  int l2=pph->Layer;
          
 }
 }

@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.82 2003/05/08 16:42:13 choutko Exp $
+//  $Id: ntuple.h,v 1.83 2003/05/09 16:00:15 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -226,7 +226,7 @@ public:
   float SphericityEV[MAXECSHOW][3];
   int   N2DCl[MAXECSHOW];
   int   p2DCl[MAXECSHOW][2];
-friend class EcalShower;
+friend class AMSEcalShower;
 friend class AMSNtuple;
 };
 
@@ -263,7 +263,7 @@ public:
   float Tan[MAXEC2DCLUST];
   float Chi2[MAXEC2DCLUST];
   int   pCl[MAXEC2DCLUST][18];
-friend class Ecal2DCluster;
+friend class AMSEcal2DCluster;
 friend class AMSNtuple;
 };
 
@@ -664,16 +664,16 @@ public:
   float errorbeta[MAXRICHRIN];
   float quality[MAXRICHRIN];
   unsigned int status[MAXRICHRIN];
-  //  float betablind[MAXRICHRIN];
   float probkl[MAXRICHRIN];
   float npexp[MAXRICHRIN];
   float collected_npe[MAXRICHRIN];
-
+/*
   float npexpg[MAXRICHRIN];
   float npexpr[MAXRICHRIN];
   float npexpb[MAXRICHRIN];
-
   int rad,bas;  /// CORTAR AQUI
+*/
+
 
 
 friend class AMSRichRing;

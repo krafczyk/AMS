@@ -2160,7 +2160,7 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
 //
 //g.chen
   if(ECCAFFKEY.ecshswit==1){ // add shower info here
-    EcalShower * ptsh;
+    AMSEcalShower * ptsh;
     number ecshen,ecshener,efront,chi2dir,difosum,ecshsleak,ecshrleak,ecshdleak,ecsholeak;
     number ecsherdir,profchi2,transchi2;
     AMSDir ecshdir(0.,0.,0.);
@@ -2170,7 +2170,7 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
     ecshen=0.;
     ecshener=0.;
     efront=0.;
-    ptsh=(EcalShower*)AMSEvent::gethead()->
+    ptsh=(AMSEcalShower*)AMSEvent::gethead()->
       getheadC("EcalShower",0);
     while(ptsh){ // <------- ecal shower
       ecshnum++;
@@ -2178,7 +2178,7 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
     }
     if(ecshnum!=1)return;          // only use event with one shower  
     
-    ptsh=(EcalShower*)AMSEvent::gethead()->
+    ptsh=(AMSEcalShower*)AMSEvent::gethead()->
       getheadC("EcalShower",0);
     //  while(ptsh){ // <------- ecal shower
     ecshen=ptsh->getEnergy();

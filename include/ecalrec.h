@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.36 2003/05/08 16:42:12 choutko Exp $
+//  $Id: ecalrec.h,v 1.37 2003/05/09 16:00:15 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -251,7 +251,7 @@ void _copyEl();
 
 
 
-class Ecal2DCluster: public AMSlink{ 
+class AMSEcal2DCluster: public AMSlink{ 
 private:
   integer _proj;   //projection (0->X, 1->Y)
   number  _Energy3C;  //Corrected Energy MeV (+-1)
@@ -269,7 +269,7 @@ private:
   integer _NClustKernel; // number of EcalCluster members (kernel)
   Ecal1DCluster * _pCluster[4*ecalconst::ECSLMX]; // pointers to 1d clusters 
 public:
-  Ecal2DCluster(integer proj, integer nhit, Ecal1DCluster * ptr[], number coo, number tan, number chi2): AMSlink(),_proj(proj),_Coo(coo),_Tan(tan),_Chi2(chi2){
+  AMSEcal2DCluster(integer proj, integer nhit, Ecal1DCluster * ptr[], number coo, number tan, number chi2): AMSlink(),_proj(proj),_Coo(coo),_Tan(tan),_Chi2(chi2){
 _NClust=0;
 for(int i=0;i<2*ecalconst::ECSLMX;i++){
   if(ptr[i]){
@@ -279,11 +279,11 @@ for(int i=0;i<2*ecalconst::ECSLMX;i++){
 _NClustKernel=_NClust;
 }
   bool Good(){return !(checkstatus(AMSDBc::BAD)  ||  checkstatus(AMSDBc::USED));}
-  ~Ecal2DCluster(){};
-  Ecal2DCluster * next(){return (Ecal2DCluster*)_next;}
+  ~AMSEcal2DCluster(){};
+  AMSEcal2DCluster * next(){return (AMSEcal2DCluster*)_next;}
    static bool StrLineFit(Ecal1DCluster *p1[],int maxr,int proj, bool reset,number *pcorrect,int & tot, number &chi2, number &t0, number &tantz);
   integer operator < (AMSlink & o)const{
-   Ecal2DCluster *p =dynamic_cast<Ecal2DCluster*>(&o);
+   AMSEcal2DCluster *p =dynamic_cast<AMSEcal2DCluster*>(&o);
    if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
    else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0;
    else return !p || _EnergyC > p->_EnergyC;
@@ -307,7 +307,7 @@ protected:
   void _Fit();
   void _printEl(ostream &stream){
     int i;
-    stream <<"Ecal2DCluster: Proj= "<<_proj<<endl;
+    stream <<"AMSEcal2DCluster: Proj= "<<_proj<<endl;
     stream <<"Status="<<hex<<_status<<"  Edep="<<dec<<_EnergyC<<endl; 
     stream <<"Coord="<<_Coo<<" "<<_Tan<<endl;
     stream <<dec<<endl<<endl;
@@ -316,7 +316,7 @@ protected:
 void _writeEl();
 void _copyEl();
 //
-friend class EcalShower;
+friend class AMSEcalShower;
 #ifdef __WRITEROOT__
  friend class Ecal2DClusterR;
 #endif
@@ -328,7 +328,7 @@ friend class EcalShower;
 
 
 
-class EcalShower: public AMSlink{
+class AMSEcalShower: public AMSlink{
 protected:
 
 AMSPoint _EntryPoint;
@@ -365,7 +365,7 @@ number  _Dz;
 number _Et;
 integer _ShowerMax;
 integer _N2dCl;
-Ecal2DCluster *_pCl[10];
+AMSEcal2DCluster *_pCl[10];
 number _TmpFit[20];
 number _SphericityEV[3];
 number _TransFitPar[3];
@@ -374,7 +374,7 @@ number _TransFitChi2;
 void _AttCorr();
 void _writeEl();
 void _printEl(ostream &stream){
-stream << "  EcalShower Energy "<<_EnergyC<<" Status "<<_status<<endl;
+stream << "  AMSEcalShower Energy "<<_EnergyC<<" Status "<<_status<<endl;
 }
 void _copyEl();
 void DirectionFit();
@@ -384,24 +384,24 @@ void EMagFit();
 void SphFit();
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
-static void gamfun(integer & n, number xc[], number & fc, EcalShower * ptr);
-static void expfun(integer & n, number xc[], number & fc, EcalShower * ptr);
-static void gamfunr(number& xc, number & fc, EcalShower * ptr);
+static void gamfun(integer & n, number xc[], number & fc, AMSEcalShower * ptr);
+static void expfun(integer & n, number xc[], number & fc, AMSEcalShower * ptr);
+static void gamfunr(number& xc, number & fc, AMSEcalShower * ptr);
 void _AngleRes();
 number _Chi2Corr();
 void _EnergyRes();
 void _EnergyCorr();
 public:
 
-EcalShower(Ecal2DCluster *px, Ecal2DCluster *py);
+AMSEcalShower(AMSEcal2DCluster *px, AMSEcal2DCluster *py);
 
   static integer build(int rerun=0);
   static integer Out(integer);
 
-  void AddOrphan(Ecal2DCluster *ptr);
-  EcalShower * next(){return (EcalShower*)_next;}
+  void AddOrphan(AMSEcal2DCluster *ptr);
+  AMSEcalShower * next(){return (AMSEcalShower*)_next;}
   integer operator < (AMSlink & o)const{
-   EcalShower *p =dynamic_cast<EcalShower*>(&o);
+   AMSEcalShower *p =dynamic_cast<AMSEcalShower*>(&o);
    if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
    else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0;
    else return !p || _EnergyC > p->_EnergyC;

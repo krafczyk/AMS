@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.127 2003/05/08 16:41:50 choutko Exp $
+//  $Id: particle.C,v 1.128 2003/05/09 15:59:52 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -112,7 +112,7 @@ out:
 
       if(!partfound){
 //      Make ECAL Particle if exists from the highest available ecals
-        EcalShower * pecal=(EcalShower*)AMSEvent::gethead()->getheadC("EcalShower",0,2);
+        AMSEcalShower * pecal=(AMSEcalShower*)AMSEvent::gethead()->getheadC("EcalShower",0,2);
         if(pecal){
           for (int i=-1;i<2;i+=2){
          // make false tracks (+-)
@@ -261,12 +261,12 @@ void AMSParticle::ecalfit(){
 // Fit to first & last ecal planes as well as to shower max ( or 1/2 if no sho)
 
   
- EcalShower *pbest=0;
+ AMSEcalShower *pbest=0;
  number dmin=FLT_MAX;
  AMSDir dir(0,0,1.);
  number theta, phi, sleng;
 {
- EcalShower *p=(EcalShower*)AMSEvent::gethead()->getheadC("EcalShower",0,1);
+ AMSEcalShower *p=(AMSEcalShower*)AMSEvent::gethead()->getheadC("EcalShower",0,1);
   while(p){
     _ptrack->interpolate(p->getEntryPoint(),dir,_EcalSCoo[0],theta,phi,sleng);
     number d=(p->getEntryPoint()-_EcalSCoo[0]).norm();

@@ -1,11 +1,7 @@
-//  $Id: ntuple.C,v 1.142 2003/05/08 16:41:50 choutko Exp $
+//  $Id: ntuple.C,v 1.143 2003/05/09 15:59:52 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
-//  May 2002, A.Klimentov add Root related part
-//                        NB : Delete() should be used before Expand()
-//                             for any class inheriting from TObject
-//                             and containing character string;
 //  
 #include <commons.h>
 #include <node.h>
@@ -169,12 +165,7 @@ void AMSNtuple::init(){
   	 "rcrihu(nrings):I,rcrimhu(nrings):I,"
 	 "rcribeta(nrings),rcriebeta(nrings),"
 	 "rcrichi2(nrings),rcristatus(nrings):I,"
-	 //"rcribcheck(nrings):R,"
-	 "rcriprob(nrings):R,rcrinpexp(nrings):R,"
-
-	 //	 "rcricnpe(nrings):R,rcrinpexpg(nrings):R,rcrinpexpr(nrings):R,rcrinpexpb(nrings):R,rad:I,bas:I");
-
-           "rcricnpe(nrings):R");
+	 "rcriprob(nrings):R,rcrinpexp(nrings):R,rcricnpe(nrings):R");
 
 
 }

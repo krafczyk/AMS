@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.48 2003/05/08 16:41:50 choutko Exp $
+//  $Id: richrec.C,v 1.49 2003/05/09 15:59:52 choutko Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -847,7 +847,7 @@ void AMSRichRing::_writeEl(){
   cluster->collected_npe[cluster->NRings]=_collected_npe;
   cluster->probkl[cluster->NRings]=_probkl;
 
-
+/*
   cluster->npexpg[cluster->NRings]=_npexpg;
   cluster->npexpr[cluster->NRings]=_npexpr;
   cluster->npexpb[cluster->NRings]=_npexpb;
@@ -855,7 +855,7 @@ void AMSRichRing::_writeEl(){
 
   cluster->rad=RICHDB::nphrad;
   cluster->bas=RICHDB::nphbas;
-
+*/
   cluster->NRings++;
 }
 void AMSRichRing::_copyEl(){

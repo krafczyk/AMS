@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.43 2003/05/08 16:41:49 choutko Exp $
+//  $Id: gamma.C,v 1.44 2003/05/09 15:59:52 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -6105,7 +6105,7 @@ void XZLine_TOF::makeEC_out(number& ecc, int& out){
   int sta;
   
 
-  EcalShower * psh=(EcalShower*)AMSEvent::gethead()->getheadC("EcalShower",0,2); 
+  AMSEcalShower * psh=(AMSEcalShower*)AMSEvent::gethead()->getheadC("EcalShower",0,2); 
   while(psh){
     xen=psh->getEntryPoint()[0];
     yen=psh->getEntryPoint()[1];
@@ -6155,7 +6155,7 @@ void XZLine_TOF::getEcalMul(int times,int nn[],number& ecc){
     }
   }
 
-  Ecal2DCluster * p2=(Ecal2DCluster*)AMSEvent::gethead()->getheadC("Ecal2DCluster",0,2);
+  AMSEcal2DCluster * p2=(AMSEcal2DCluster*)AMSEvent::gethead()->getheadC("Ecal2DCluster",0,2);
   while(p2){
     nn[1]++;
     if (times == 0){
@@ -6169,7 +6169,7 @@ void XZLine_TOF::getEcalMul(int times,int nn[],number& ecc){
   }
 
 
-  EcalShower * psh=(EcalShower*)AMSEvent::gethead()->getheadC("EcalShower",0,2); 
+  AMSEcalShower * psh=(AMSEcalShower*)AMSEvent::gethead()->getheadC("EcalShower",0,2); 
    while(psh){
     nn[2]++;			     
     psh=psh->next();

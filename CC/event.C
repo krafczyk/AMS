@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.311 2003/05/08 16:41:49 choutko Exp $
+//  $Id: event.C,v 1.312 2003/05/09 15:59:52 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -841,10 +841,10 @@ void AMSEvent::_reecalinitevent(){
       new AMSContainer(AMSID("AMSContainer:Ecal1DCluster",i),&Ecal1DCluster::build,0));
  }
     AMSEvent::gethead()->add (
-      new AMSContainer(AMSID("AMSContainer:Ecal2DCluster",0),&Ecal2DCluster::build,0));
+      new AMSContainer(AMSID("AMSContainer:Ecal2DCluster",0),&AMSEcal2DCluster::build,0));
 
   AMSEvent::gethead()->add (
-      new AMSContainer(AMSID("AMSContainer:EcalShower",0),&EcalShower::build,0));
+      new AMSContainer(AMSID("AMSContainer:EcalShower",0),&AMSEcalShower::build,0));
 }
 void AMSEvent::_retrdinitevent(){
 

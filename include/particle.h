@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.44 2003/05/08 16:42:13 choutko Exp $
+//  $Id: particle.h,v 1.45 2003/05/09 16:00:16 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -30,7 +30,7 @@ public:
  AntiMatter(integer pid=0):_pid(pid){}
 };
 
-class EcalShower;
+class AMSEcalShower;
 class AMSParticle: public AMSlink{
 protected:
 
@@ -40,7 +40,7 @@ protected:
   AMSTRDTrack * _ptrd;       // pointer to trd track 
   AMSTrTrackGamma * _pvert;       // pointer to trd track 
   AMSRichRing * _prich;      // pointer to rich ring
-  EcalShower  *_pShower;     // pointer to shower;
+  AMSEcalShower  *_pShower;     // pointer to shower;
   integer _GPart;        // Geant particle ID
 
   number  _Mass;
