@@ -976,7 +976,7 @@ return 0;
 
 
 
-   void Server_impl::sendAC(const DPS::Client::CID &  cid,  DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
+   void Server_impl::sendAC(const DPS::Client::CID &  cid, const  DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==cid.Type){
       ACLI li=find_if(pcur->getacl().begin(),pcur->getacl().end(),Eqs(ac));
@@ -1050,7 +1050,7 @@ return 0;
     }
 }
 }
-   void Server_impl::sendAH(const DPS::Client::CID &  cid,  DPS::Client::ActiveHost & ah, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
+   void Server_impl::sendAH(const DPS::Client::CID &  cid,  const DPS::Client::ActiveHost & ah, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==cid.Type){
       AHLI li=find_if(pcur->getahl().begin(),pcur->getahl().end(),Eqs_h(ah));
@@ -1086,7 +1086,7 @@ return 0;
 }
 
 
-   void Server_impl::sendNH(const DPS::Client::CID &  cid,  DPS::Client::NominalHost & ah, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
+   void Server_impl::sendNH(const DPS::Client::CID &  cid, const DPS::Client::NominalHost & ah, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==cid.Type){
       NHLI li=find_if(pcur->getnhl().begin(),pcur->getnhl().end(),Eqs_nh(ah));

@@ -220,7 +220,7 @@ module DPS{
     boolean TypeExists(in DPS::Client::ClientType type);
 
     long getACS(in CID id, out ACS acl, inout unsigned long maxc);
-    void sendAC(in CID id, inout ActiveClient ac,in RecordChange rc);
+    void sendAC(in CID id, in ActiveClient ac,in RecordChange rc);
 
     long getNC(in CID id, out NCS acl);
     void sendNC(in CID id, in NominalClient nc,in RecordChange rc);
@@ -228,11 +228,11 @@ module DPS{
     void sendNK(in CID id, in NominalClient nc,in RecordChange rc);
 
     long getNHS(in CID id, out NHS nhs);
-    void sendNH(in CID id, inout NominalHost ah,in RecordChange rc);
+    void sendNH(in CID id, in NominalHost ah,in RecordChange rc);
     
 
     long getAHS(in CID id, out AHS ahl);
-    void sendAH(in CID id, inout ActiveHost ah,in RecordChange rc);
+    void sendAH(in CID id, in ActiveHost ah,in RecordChange rc);
     struct DB{
      string fs;
      float dbfree;

@@ -1157,11 +1157,9 @@ sub ares{
         if (defined      $scr->{clist}->{row}){
            my $name= $scr->{name};
             my @data=();
-            if($name eq   "ServerClient"){
                 for my $i( 0...$scr->{columns}){
                     push @data,$scr->{clist}->get_text($scr->{clist}->{row},$i);
                 }
-            }
           Monitor::sendback($name,$action,$scr->{clist}->{row},@data);
         }
     }

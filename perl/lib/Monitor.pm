@@ -320,8 +320,10 @@ sub getior{
         return undef;
     }
     open(FILE,"<".$file) or return undef;
+    my $ii=0;
     while (<FILE>){
-        if ($_ =~/^\d/){
+        if (  $_ =~/^\d/){
+            if($ii>0){
             my @args=split ' ';
             $i=system "bpeek $args[0] >$fileo";
             if($i){
@@ -335,6 +337,8 @@ sub getior{
                 }
             }
             close(FILEO);
+        }
+        $ii++;
         }
     }
 
@@ -808,7 +812,7 @@ sub sendback{
         $nc{Mode}=shift @data;
         $nc{UpdateFreq}=shift @data;
         my $arsref;
-        foreach $arsref (@{$ref->{arsref}}){
+        foreach $arsref (@{$ref->{arpref}}){
             try{
                 $arsref->sendDSTInfo(\%nc,$action);
             }
@@ -828,7 +832,7 @@ sub sendback{
         $nc{Status}=shift @data;
         $nc{History}=shift @data;
         my $arsref;
-        foreach $arsref (@{$ref->{arsref}}){
+        foreach $arsref (@{$ref->{arpref}}){
             try{
                 $arsref->sendRunEvInfo(\%nc,$action);
             }
@@ -845,12 +849,12 @@ sub sendback{
         $nc{CPUNumber}=shift @data;
         $nc{Memory}=shift @data;
         $nc{Clock}=shift @data;
-        $nc{CPUNumber}=shift @data;
 #find ahl
-      for my $j (0 ... $#{$Monitor::Singleton->{ahlp}}){
+my %ac;
+      for my $j (0 ... $#{$Monitor::Singleton->{ahls}}){
          my $ahl=$Monitor::Singleton->{ahls}[$j];
          if( $ahl->{HostName} eq $nc{HostName}){
-           my %ac=%{${$ref->{ahls}}[$j]};
+          %ac=%{${$ref->{ahls}}[$j]};
           $ac{ClientsAllowed}=shift @data;
           $ac{Status}=shift @data;
           $ac{Clock}=$nc{Clock};
@@ -858,7 +862,7 @@ sub sendback{
           goto FOUND2;
          }
       }
-          my %ac=%{${$ref->{ahls}}[0]};
+           %ac=%{${$ref->{ahls}}[0]};
           $ac{ClientsAllowed}=shift @data;
           $ac{Status}=shift @data;
           $ac{Hostname}=$nc{HostName};
@@ -890,20 +894,20 @@ FOUND2:
         $nc{CPUNumber}=shift @data;
         $nc{Memory}=shift @data;
         $nc{Clock}=shift @data;
-        $nc{CPUNumber}=shift @data;
 #find ahl
+my %ac;
       for my $j (0 ... $#{$Monitor::Singleton->{ahlp}}){
          my $ahl=$Monitor::Singleton->{ahlp}[$j];
          if( $ahl->{HostName} eq $nc{HostName}){
-           my %ac=%{${$ref->{ahls}}[$j]};
+          %ac=%{${$ref->{ahlp}}[$j]};
           $ac{ClientsAllowed}=shift @data;
           $ac{Status}=shift @data;
           $ac{Clock}=$nc{Clock};
           $ac{Interface}=$nc{Interface};
-          goto FOUND2;
+          goto FOUND3;
          }
       }
-          my %ac=%{${$ref->{ahlp}}[0]};
+           %ac=%{${$ref->{ahlp}}[0]};
           $ac{ClientsAllowed}=shift @data;
           $ac{Status}=shift @data;
           $ac{Hostname}=$nc{HostName};
@@ -913,7 +917,7 @@ FOUND2:
           $ac{ClientsKilled}=0;
           $ac{Clock}=$nc{Clock};
           $ac{Interface}=$nc{Interface};
-FOUND2:
+FOUND3:
         my $arsref;
         foreach $arsref (@{$ref->{arsref}}){
             try{
