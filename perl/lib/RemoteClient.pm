@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.96 2003/04/10 11:13:15 alexei Exp $
+# $Id: RemoteClient.pm,v 1.97 2003/04/10 12:43:43 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -441,7 +441,9 @@ my %mv=(
             my $desc=$sbuf[0];
             substr($desc,0,1)=" ";
             $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
-           push @tmpa, $template; 
+           if($template->{TOTALEVENTS}>100){
+             push @tmpa, $template; 
+         }
            }        
        }        
     }
@@ -2707,7 +2709,8 @@ print qq`
                         $corr=$self->{cputypes}->{$q->param("QCPUType")};
                     }
                     $evno=$q->param("QCPUTime")*$q->param("QCPU")/1000./$tmp->{CPUPEREVENTPERGHZ}*$corr;
-                    $evno=int($evno/1000)*1000*$q->param("QRun");                                     if($evno>$tmp->{TOTALEVENTS}){
+                    $evno=int($evno/1000)*1000*$q->param("QRun");     
+                    if($evno>$tmp->{TOTALEVENTS}){
                         $evno=$tmp->{TOTALEVENTS};
                     }
                     $q->param("QEv",$evno);
