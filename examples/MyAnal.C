@@ -1,6 +1,6 @@
 ///   \example MyAnal.C
 ///
-#include "../include/root.h"
+#include <root.h>
 #include "TFile.h"
 #include "TH1.h"
 
