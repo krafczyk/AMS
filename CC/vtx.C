@@ -81,7 +81,7 @@ integer AMSVtx::set_all(){
        _Ptrack[i]->setstatus(AMSDBc::USED);
 	 number rig =  _Ptrack[i]->getpirid();
 	 number en =  fabs(rig);
-	 number erig =  _Ptrack[i]->getepirid();
+	 number erig =  _Ptrack[i]->getepirid()*en*en;
 	 _Momentum += en;
 	 _Charge += (rig>=0.0)? 1:-1;
 	 _ErrMomentum += erig*erig;
@@ -93,7 +93,7 @@ integer AMSVtx::set_all(){
        mom[1] += en*u[1]; 
        mom[2] += en*u[2];
      }
-     _ErrMomentum = sqrt(_ErrMomentum);
+     _ErrMomentum = sqrt(_ErrMomentum)/_Momentum/_Momentum;
      _Mass = _Momentum*_Momentum - mom[0]*mom[0] - mom[1]*mom[1] - mom[2]*mom[2];
      if (_Mass>0.0) _Mass = sqrt(_Mass); else _Mass = 0.0; 
      AMSDir U = AMSDir(mom);

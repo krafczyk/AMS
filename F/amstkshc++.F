@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.75 2003/11/12 08:46:33 alcaraz Exp $
+*  $Id: amstkshc++.F,v 1.76 2003/11/12 08:57:39 alcaraz Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -6071,7 +6071,7 @@ c               call tkhmd(2,n,x,f,tol,2,ifail1,er1)
               phi=atan2(out(4),out(3))
               z0=xhits(3,1)
               rig=1/out(5)
-              erig=out(6)*rig*rig
+              erig=out(6)
               out(3)=z0
               out(4)=theta
               out(5)=phi
@@ -9138,9 +9138,13 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.75 2003/11/12 08:46:33 alcaraz Exp $
+* $Id: amstkshc++.F,v 1.76 2003/11/12 08:57:39 alcaraz Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.76  2003/11/12 08:57:39  alcaraz
+*        Reverting to previous state. It was a feature, not a bug. Changing
+*      then AMSVtx -> ErrMomentum is now the error on 1/Momentum sum.
+*
 * Revision 1.75  2003/11/12 08:46:33  alcaraz
 *       Bug correction: error on PIrigidity was wrongly extracted
 *       (it was the error on 1/PIrigidity in older versions)

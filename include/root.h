@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.116 2003/11/07 17:35:22 alcaraz Exp $
+//  $Id: root.h,v 1.117 2003/11/12 08:57:44 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -1291,7 +1291,7 @@ public:
   unsigned int   Status;      ///< Status
   float Mass;        ///< Rec mass at vertex (GeV)
   float Momentum;    ///< Momentum sum (GeV)
-  float ErrMomentum; ///< Error in Momentum Sum (GeV)
+  float ErrMomentum; ///< Error in 1 / Momentum Sum (1/GeV)
   float Theta;       ///< Theta (rad)
   float Phi;         ///< Phi  (rad)
   float Vertex[3];   ///< reconstructed vertex (cm)
