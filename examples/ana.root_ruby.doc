@@ -37,8 +37,13 @@
  *            - ROOT::gROOT.Reset
  *            - ROOT::gStyle.SetOptLogy(1)
  *
- *    - Constants in Ruby begin with a capital letter. This means that you must 
- *      use "KFalse, KTrue, KBlue, ...", and not "kFalse, kTrue, kBlue, ...". 
+ *    - Constants in Ruby begin with a capital letter. This means that you must
+ *      use "KRed, KBlue, ...", and not "kRed, kBlue, ...". "kFALSE" and 
+ *      "kTRUE" are not constants. They are wrapped as global methods, so they 
+ *      should be accessed as "ROOT::kFALSE" and "ROOT::kTRUE", respectively. 
+ *      You can also use Ruby "false" and "true", but watch carefully the 
+ *      cases in which ROOT expects and integer, and not a boolean value 
+ *      ("0" is "true" in Ruby).
  *
  *    - When a method returns a TObject object, you must convert its type into 
  *      a useful one with the "to_<class>" method. A typical case involves 
