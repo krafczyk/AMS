@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.4 2001/01/23 19:02:53 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.5 2001/06/25 20:15:55 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -409,7 +409,7 @@ void AMSR_Ntuple::GetEvent(Int_t event)
       int ierr;
       if (m_SameRead) HGNTF(m_MemID, event, ierr);
       else {
-         if (m_Tree->GetListOfActiveBranches() == 0)
+         if (m_Tree->GetListOfBranches() == 0)
             HGNT(m_MemID, event, ierr);
          else {
             SetVarNames();
@@ -818,27 +818,27 @@ void AMSR_Ntuple::SetVarNames()
    //Get variable names selected to read, which is used in HGNTV
    //
 
-   TList *list = m_Tree->GetListOfActiveBranches();
-   if (list == 0) return;
+   TObjArray *objarray = m_Tree->GetListOfBranches();
+   if (objarray == 0) return;
 
    int cols = sizeof(m_VarNames[0]);
    int rows = sizeof(m_VarNames)/cols;
 
    TBranch *branch;
-   TObjLink *lnk = list->FirstLink();
+   TObject *obj = objarray->First();
    m_NVar = 0;
 
-   while (lnk) {
+   while (obj) {
       if (m_NVar >= rows) {
 	 Error("AMSR_Ntuple","index %d out of boud [%d]\n",m_NVar+1,rows);
 	 break;
       }
-      branch = (TBranch*)lnk->GetObject();
+      branch = (TBranch*)obj;
       const char *name = branch->GetName();
       if (strlen(name) > cols) 
          Error("AMSR_Ntuple::SetVarNames","too long(>%d) name %s",cols,name);
       else strncpy(m_VarNames[m_NVar++], name, cols-1);
-      lnk = lnk->Next();
+ 	*obj++;
    }
 
 }
