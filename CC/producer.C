@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.28 2001/02/02 16:22:47 choutko Exp $
+//  $Id: producer.C,v 1.29 2001/02/07 14:16:55 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -424,7 +424,7 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
 try{
 if(!CORBA::is_nil(*li)){
      DPS::Client::ARS * pars;
-     int length=(*li)->getARS(_pid,pars,DPS::Client::Any,0);
+     int length=(*li)->getARS(_pid,pars,DPS::Client::Any,0,true);
      DPS::Client::ARS_var ars=pars;
      if(length==0){
       FMessage("getARS-S-UnableToGetARS ",DPS::Client::CInAbort);

@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.13 2001/02/06 10:54:42 choutko Exp $
+//  $Id: client.C,v 1.14 2001/02/07 14:16:55 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -255,6 +255,8 @@ case DPS::Client::Monitor:
 return "Monitor";
 case DPS::Client::DBServer:
 return "DBServer";
+case DPS::Client::ODBServer:
+return "ODBServer";
 case DPS::Client::Killer:
 return "Killer";
 }

@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.3 2001/02/06 10:54:44 choutko Exp $
+# $Id: DBServer.pm,v 1.4 2001/02/07 14:17:01 choutko Exp $
 
 package DBServer;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -241,7 +241,7 @@ sub UpdateARS{
      try{
          my %cid=%{$ref->{cid}};
          $cid{Type}="Server";
-      my ($length,$pars)=$arsref->getARS(\%cid,"Any",0);
+      my ($length,$pars)=$arsref->getARS(\%cid,"Any",0,1);
          if($length==0 ){
             carp "updars returns zero \n";
             return 0;
@@ -272,7 +272,7 @@ sub UpdateARS{
 
          }   
          $cid{Type}="Producer";
-         ($length,$pars)=$arsref->getARS(\%cid,"Any",0);
+         ($length,$pars)=$arsref->getARS(\%cid,"Any",0,1);
 
          if($length==0 ){
             carp "updars returns zero \n";

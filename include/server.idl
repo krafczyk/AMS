@@ -6,7 +6,7 @@ module DPS{
    enum RecordChange{Delete,Update,Create};
    enum ErrorType{Info,Warning,Error,Severe};
    enum ClientStatus{Lost,Unknown,Submitted,Registered,Active,TimeOut,Killed};
-   enum ClientType{Generic,Server,Consumer,Producer,Monitor,Killer,DBServer};
+   enum ClientType{Generic,Server,Consumer,Producer,Monitor,Killer,DBServer,ODBServer};
    enum ClientExiting{NOP,CInExit,SInExit,CInAbort,SInAbort,SInKill};
    enum HostStatus{NoResponse,InActive,LastClientFailed,OK};
 
@@ -46,7 +46,7 @@ module DPS{
     }; 
 
     typedef sequence<ActiveRef> ARS;
-    long getARS(in CID cid, out ARS ars, in DPS::Client::AccessType type,in unsigned long id);
+    long getARS(in CID cid, out ARS ars, in DPS::Client::AccessType type,in unsigned long id,in long selffirst);
 
     struct ActiveClient{
      CID id;

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.38 2001/02/06 10:54:43 choutko Exp $
+//  $Id: server.C,v 1.39 2001/02/07 14:16:56 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <amsdbc.h>
 #include <signal.h>         
+#include <dbserver.h>
 AMSServer* AMSServer::_Head=0;
 void (handler)(int);   
 void (handler)(int sig){    
@@ -103,7 +104,9 @@ AMSServer::AMSServer(int argc, char* argv[]):_GlobalError(false){
  for (char *pchar=0; argc>1 &&(pchar=argv[1],*pchar=='-'); (argv++,argc--)){
     pchar++;
     switch (*pchar){
-    case 'D':    //debuf
+    case 'O':    // Oracle
+      _Oracle=true;
+    case 'D':    //debug
      _debug=atoi(++pchar);
      break;
     case 'A':   //AMSDataDir
@@ -233,11 +236,16 @@ else{
 
  if(ior==0){      //  Primary
   _pser= new Server_impl(_orbmap,_pid,this,nserver,nhost,nkiller);
-  _pser->add(new Client_impl(DPS::Client::DBServer,"DBServer",this));
+   if(_Oracle){
+    _pser->add(new DBServer_impl(_orbmap,_pid,this));
+   } 
+   else{
+    _pser->add(new Client_impl(DPS::Client::DBServer,"DBServerPerl",this));
+   }
   if(rfile){  
    _pser->add(new Producer_impl(_orbmap,_pid,this,nproducer,rfile,ntuplestring,eventtagstring));
   }  
-  _pser->add(new Client_impl(DPS::Client::Monitor,"Monitor",this));
+   _pser->add(new Client_impl(DPS::Client::Monitor,"Monitor",this));
   _pser->_init();
   Server_impl * pser=dynamic_cast<Server_impl*>(_pser);
   pser->setInterface(niface);
@@ -261,8 +269,12 @@ else{
               _pser->add(new Producer_impl(_orbmap,_svar,_pid,this));
           }
            _pser->add(new Client_impl(DPS::Client::Monitor,"Monitor",_svar,_pid,this));
-           _pser->add(new Client_impl(DPS::Client::DBServer,"DBServer",_svar,_pid,this));
-
+   if(_Oracle){
+           _pser->add(new DBServer_impl(_orbmap,_svar,_pid,this));
+   }
+   else{
+           _pser->add(new Client_impl(DPS::Client::DBServer,"DBServerPerl",_svar,_pid,this));
+   }
   Server_impl * pser=dynamic_cast<Server_impl*>(_pser);
   pser->setInterface(niface);
   pser->StartSelf(_pid,DPS::Client::Update);
@@ -1010,7 +1022,7 @@ bool Server_impl::ARSaux(DPS::Client::AccessType type,uint id, uint compare){
 }
 
 
-int Server_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out  arf,DPS::Client::AccessType type,uinteger maxcid)throw (CORBA::SystemException){
+int Server_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out  arf,DPS::Client::AccessType type,uinteger maxcid, int selffirst)throw (CORBA::SystemException){
 DPS::Client::ARS_var arv=new ARS();
 int length=0;
 AMSServerI * _pser=getServer();
@@ -1026,6 +1038,7 @@ else{
 }
 }
 if(!pser)pser=_pser;
+   pser->getacl().sort(Less(cid,selffirst));
 for (ACLI li=pser->getacl().begin();li!=pser->getacl().end();++li){
     bool pred=ARSaux(type,maxcid,(*li)->id.uid);
   if(pred){
@@ -1965,14 +1978,14 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
 }
 
 
-int Producer_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out arf, DPS::Client::AccessType type, uinteger id)throw (CORBA::SystemException){
+int Producer_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out arf, DPS::Client::AccessType type, uinteger id, int selffirst)throw (CORBA::SystemException){
 
 _UpdateACT(cid,DPS::Client::Active);
 
 
  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 
-return _pser->getARS(cid, arf,type,id);
+return _pser->getARS(cid, arf,type,id,selffirst);
 
 }
 
@@ -2021,33 +2034,95 @@ for( ACLI li=_acl.begin();li!=_acl.end();++li){
 
 int Producer_impl::getTDV(const DPS::Client::CID & cid,  TDVName & tdvname, TDVbody_out body)throw (CORBA::SystemException){
 _UpdateACT(cid,DPS::Client::Active);
-int length=0;
-TIDI li=_findTDV(tdvname);
-tdvname.Success=false;
-if(li!=_tid.end()){
- time_t b=tdvname.Entry.Begin;
- tdvname.Success=li->second->read((const char*)AMSDBc::amsdatabase,tdvname.Entry.id,b);
-}
-time_t i,b,e;
-li->second->gettime(i,b,e);
- tdvname.Entry.Insert=i;
- tdvname.Entry.Begin=b;
- tdvname.Entry.End=e;
- TDVbody_var vbody=new TDVbody();
- if(tdvname.Success){
-  length=li->second->GetNbytes()/sizeof(uinteger);
-  vbody->length(length);
-  li->second->CopyOut(vbody->get_buffer());
+
+ if(_parent->IsOracle()){
+     Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+     DPS::Client::CID pid=_parent->getcid();
+     pid.Type=DPS::Client::DBServer;
+     pid.Interface= (const char *) " ";
+     DPS::Client::ARS * pars;
+     int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
+     DPS::Client::ARS_var arf=pars;
+     for(int i=0;i<length;i++){
+      try{
+       CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+       DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
+          return _pvar->getTDV(cid,tdvname,body);
+       }
+       catch (CORBA::SystemException &ex){
+        // Have to Kill Servers Here
+       }
+     }
+     TDVbody_var vbody=new TDVbody();
+     tdvname.Success=false;
+     vbody->length(1);
+     body=vbody._retn();
+     return 0;
+
+
  }
  else{
-  vbody->length(1);
+ int length=0;
+ TIDI li=_findTDV(tdvname);
+ tdvname.Success=false;
+ if(li!=_tid.end()){
+  time_t b=tdvname.Entry.Begin;
+  tdvname.Success=li->second->read((const char*)AMSDBc::amsdatabase,tdvname.Entry.id,b);
  }
- body=vbody._retn();
- return length;
+ time_t i,b,e;
+ li->second->gettime(i,b,e);
+  tdvname.Entry.Insert=i;
+  tdvname.Entry.Begin=b;
+  tdvname.Entry.End=e;
+  TDVbody_var vbody=new TDVbody();
+  if(tdvname.Success){
+   length=li->second->GetNbytes()/sizeof(uinteger);
+   vbody->length(length);
+   li->second->CopyOut(vbody->get_buffer());
+  }
+  else{
+   vbody->length(1);
+  }
+  body=vbody._retn();
+  return length;
+ }
 }
 
 int Producer_impl::getSplitTDV(const DPS::Client::CID & cid,  unsigned int & pos,TDVName & tdvname, TDVbody_out body, TransferStatus & st)throw (CORBA::SystemException){
 _UpdateACT(cid,DPS::Client::Active);
+
+
+ if(_parent->IsOracle()){
+     Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+     DPS::Client::CID pid=_parent->getcid();
+     pid.Type=DPS::Client::DBServer;
+     pid.Interface= (const char *) " ";
+     DPS::Client::ARS * pars;
+     int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
+     DPS::Client::ARS_var arf=pars;
+     for(int i=0;i<length;i++){
+      try{
+       CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+       DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
+          return _pvar->getSplitTDV(cid,pos,tdvname,body,st);
+       }
+       catch (CORBA::SystemException &ex){
+        // Have to Kill Servers Here
+       }
+     }
+     TDVbody_var vbody=new TDVbody();
+     tdvname.Success=false;
+     vbody->length(1);
+     body=vbody._retn();
+     return 0;
+
+
+ }
+ else{
+
+
+
+
 st=Continue;
 int length=0;
 TIDI li=_findTDV(tdvname);
@@ -2084,10 +2159,40 @@ li->second->gettime(i,b,e);
  body=vbody._retn();
  return length;
 }
+}
 
 
 void Producer_impl::sendTDV(const DPS::Client::CID & cid, const TDVbody & tdv, TDVName & tdvname )throw (CORBA::SystemException){
 _UpdateACT(cid,DPS::Client::Active);
+
+
+
+ if(_parent->IsOracle()){
+     Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+     DPS::Client::CID pid=_parent->getcid();
+     pid.Type=DPS::Client::DBServer;
+     pid.Interface= (const char *) " ";
+     DPS::Client::ARS * pars;
+     int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
+     DPS::Client::ARS_var arf=pars;
+     for(int i=0;i<length;i++){
+      try{
+       CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+       DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
+         _pvar->sendTDV(cid,tdv,tdvname);
+         return;
+       }
+       catch (CORBA::SystemException &ex){
+        // Have to Kill Servers Here
+       }
+     }
+
+
+ }
+ else{
+
+
+
 TIDI li=_findTDV(tdvname);
 tdvname.Success=false;
 if(li!=_tid.end()){
@@ -2104,7 +2209,7 @@ li->second->CopyIn(tdv.get_buffer());
   pid.Type=getType();
   pid.Interface= (const char *) " ";
     DPS::Client::ARS * pars;
-    int length=_pser->getARS(pid,pars);
+    int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
     DPS::Client::ARS_var arf=pars;
   for(int i=0;i<length;i++){
   try{
@@ -2119,6 +2224,7 @@ li->second->CopyIn(tdv.get_buffer());
 
 
 
+}
 }
 }
 
@@ -3117,13 +3223,13 @@ CORBA::Boolean Server_impl::getDBSpace(const DPS::Client::CID &cid, const char *
 
 
 
-int Client_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out arf, DPS::Client::AccessType type, uinteger id)throw (CORBA::SystemException){
+int Client_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out arf, DPS::Client::AccessType type, uinteger id, int selffirst)throw (CORBA::SystemException){
 
 
 
  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 
-return _pser->getARS(cid, arf,type,id);
+return _pser->getARS(cid, arf,type,id,selffirst);
 
 }
   CORBA::Boolean Client_impl::sendId(DPS::Client::CID& cid, uinteger timeout) throw (CORBA::SystemException){
@@ -3613,7 +3719,13 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       CORBA::String_var filepath=dvar->getDBFilePath(_parent->getcid());
       _parent->setdbfile(filepath);
       RES * pres;
-      int length=dvar->getRunEvInfoSPerl(_parent->getcid(), pres,_RunID,_RunID);
+      int length;
+      if(strstr(pcur->getname(),"Perl")){
+       length=dvar->getRunEvInfoSPerl(_parent->getcid(), pres,_RunID,_RunID);
+      }
+      else{
+       length=dvar->getRunEvInfoS(_parent->getcid(), pres,_RunID);
+      }
       RES_var res=pres; 
       if(length){
        _rl.clear();
@@ -3766,7 +3878,12 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
       DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
       DPS::Client::CID acid=ac.id;
-      dvar->sendACPerl(acid,ac,rc);
+      if(strstr(pcur->getname(),"Perl")){
+       dvar->sendACPerl(acid,ac,rc);
+      }
+      else{
+       dvar->sendAC(acid,ac,rc);
+      }
       if(rc == DPS::Client::Delete){
 //      Here find the corr Ahost and update it
         for(AMSServerI * curp=getServer(); curp; curp=(curp->down())?curp->down():curp->next()){

@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.26 2001/02/06 10:54:45 choutko Exp $
+# $Id: Monitor.pm,v 1.27 2001/02/07 14:17:01 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -272,7 +272,7 @@ sub UpdateARS{
      try{
          my %cid=%{$ref->{cid}};
          $cid{Type}="Server";
-      my ($length,$pars)=$arsref->getARS(\%cid,"Any",0);
+      my ($length,$pars)=$arsref->getARS(\%cid,"Any",0,1);
          if($length==0 ){
             carp "updars returns zero \n";
             return 0;
@@ -303,7 +303,7 @@ sub UpdateARS{
 
          }   
          $cid{Type}="Producer";
-         ($length,$pars)=$arsref->getARS(\%cid,"Any",0);
+         ($length,$pars)=$arsref->getARS(\%cid,"Any",0,1);
 
          if($length==0 ){
             carp "updars returns zero \n";
@@ -337,7 +337,7 @@ sub UpdateARS{
          }   
 
          $cid{Type}="DBServer";
-         ($length,$pars)=$arsref->getARS(\%cid,"Any",0);
+         ($length,$pars)=$arsref->getARS(\%cid,"Any",0,1);
 
          if($length==0 ){
             carp "updars returns zero \n";
