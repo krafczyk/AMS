@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.34 2003/03/28 18:44:51 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.35 2003/03/30 08:51:44 alexei Exp $
 
 #
 #
@@ -17,7 +17,8 @@
 #          Oracle (from pcamsf0)
 #           ./dbsqlserver.perl -Iforce -DOracle -F:amsdb
 #
-# Aug 7, 2002 a.k. Tables names are case sensitive in MySQL
+# Aug  7, 2002 a.k. Tables names are case sensitive in MySQL
+# Mar 30, 2003 a.k. '/vicepa,b,c' directory paths
 #
 package DBSQLServer;
 use Error qw(:try);
@@ -376,7 +377,7 @@ while ( $line = <FILEI>){
     (7,'pcamsp1','/p1dat1','/AMS02/MC/ntuples',98,84,9,20,'Active',0,$time)")
     or die "cannot do: ".$dbh->errstr();    
    $dbh->do("INSERT INTO Filesystems VALUES
-    (9,'pcamsf0','/vicepb','/afs/ams.cern.ch/AMS02/MC',246,195,39,240,'Active',0,$time)")
+    (9,'pcamsf0','/vicepb','/afs/ams.cern.ch/data/data1/AMS02/MC',246,195,39,240,'Active',0,$time)")
     or die "cannot do: ".$dbh->errstr();    
    $dbh->do("INSERT INTO Filesystems VALUES
     (11,'pcamsf0','/f0dah1','/AMS02/MC/ntuples',220,158,51,60,'Active',0,$time)")
@@ -391,10 +392,10 @@ while ( $line = <FILEI>){
     (14,'pcamsf3','/f3dah1','/AMS02/MC/ntuples',221,201,9,120,'Active',1,$time)")
     or die "cannot do: ".$dbh->errstr();    
    $dbh->do("INSERT INTO Filesystems VALUES
-    (15,'pcamsf4','/vicepa','/afs/ams.cern.ch/AMS02/MC',346,275,53,246,'Active',1,$time)")
+    (15,'pcamsf4','/vicepa','/afs/ams.cern.ch/data/data2/AMS02/MC',346,275,53,246,'Active',1,$time)")
     or die "cannot do: ".$dbh->errstr();    
    $dbh->do("INSERT INTO Filesystems VALUES
-    (16,'pcamsf4','/vicepc','/afs/ams.cern.ch/AMS02/MC',523,52,466,480,'Active',1,$time)")
+    (16,'pcamsf4','/vicepc','/afs/ams.cern.ch/data/data3',523,52,466,480,'Active',1,$time)")
     or die "cannot do: ".$dbh->errstr();    
    $dbh->do("INSERT INTO Filesystems VALUES
     (17,'pcamsf5','/f5dah1','/AMS02/MC/ntuples',228,190,95,40,'Active',1,$time)")
