@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.149 2003/05/05 12:28:59 alexei Exp $
+# $Id: RemoteClient.pm,v 1.150 2003/05/06 18:11:17 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -66,8 +66,10 @@ my %fields=(
         UploadsDir=>undef,
         UploadsHREF=>undef,
         FileDB=>undef,
+        FileCRC=>undef,
         FileBBFTP=>undef,
         FileAttDB=>undef,
+        FileCRCTimestamp=>undef,
         FileBBFTPTimestamp=>undef,
         FileDBTimestamp=>undef,
         FileAttDBTimestamp=>undef,
@@ -315,6 +317,16 @@ my %mv=(
     }
     else{    
      $self->{$key}="ams02bbftp.tar.gz";
+    }
+
+    $key='FileCRC';
+    $sql="select myvalue from Environment where mykey='".$key."'";
+    $ret=$self->{sqlserver}->Query($sql);
+    if( defined $ret->[0][0]){
+     $self->{$key}=$ret->[0][0];
+    }
+    else{    
+     $self->{$key}="ams02crc.tar.gz";
     }
 
 
@@ -758,6 +770,13 @@ sub ValidateRuns {
    my $bad      =0; 
    my $unchecked=0; 
 #
+   my $warn= undef;
+   my $sql = undef;
+   my $ret = undef;
+   my $vdir= undef;
+   my $vlog= undef;
+   my $timenow = time();
+#
     if( not $self->Init()){
         die "ValidateRuns -F- Unable To Init";
         
@@ -766,10 +785,21 @@ sub ValidateRuns {
         die "ValidateRuns -F- Unable To Connect To Server";
     }
 #
+    $sql="SELECT myvalue FROM Environment WHERE mykey='ValidationDirPath'";
+    $ret = $self->{sqlserver}->Query($sql);
+    if (not defined $ret->[0][0]) {
+       die " failed - $sql \n";
+    } else {
+        $vdir = $ret->[0][0];
+    }
+    $vlog = $vdir."/validateRuns.log.".$timenow;   
+    open(FILE,">".$vlog) or die "Unable to open file $vlog\n";
+
+    
     $self->htmlTop();
 
 # get list of runs from DataBase
-    my $sql="SELECT run,submit FROM Runs";
+    $sql="SELECT run,submit FROM Runs";
     my $ret=$self->{sqlserver}->Query($sql);
 # get list of runs from Server
     if( not defined $self->{dbserver}->{rtb}){
@@ -792,15 +822,25 @@ sub ValidateRuns {
       print "<td><b><font color=\"blue\" >SubmitTime </font></b></td>";
       print "<td><b><font color=\"blue\" >Status</font></b></td>";
       print "</tr>\n";
-       $sql = "INSERT INTO runs VALUES($run->{Run},
-                                       $run->{Run},
-                                       $run->{FirstEvent},
-                                       $run->{LastEvent},
-                                       $run->{TFEvent},
-                                       $run->{TLEvent},
-                                       $run->{SubmitTime},
-                                       '$run->{Status}')";
-       $self->{sqlserver}->Update($sql);
+      print FILE "INSERT $run->{Run}, 
+                         $run->{Run},
+                         $run->{Run},
+                         $run->{FirstEvent},
+                         $run->{LastEvent},
+                         $run->{TFEvent},
+                         $run->{TLEvent},
+                         $run->{SubmitTime},
+                         $run->{Status} \n";
+      $self->insertRun(
+                       $run->{Run},
+                       $run->{Run},
+                       $run->{FirstEvent},
+                       $run->{LastEvent},
+                       $run->{TFEvent},
+                       $run->{TLEvent},
+                       $run->{SubmitTime},
+                       $run->{Status});
+
        $sql   = "SELECT run, status FROM runs WHERE run=$run->{Run}";
        $r0 = $self->{sqlserver}->Query($sql);
        print "<td><b><font color=\"black\">$run->{Run} </font></b></td>";
@@ -823,8 +863,9 @@ sub ValidateRuns {
          if (not defined $r1->[0][0]) { 
           $sql = "UPDATE runs SET status='Failed' WHERE run=$run->{Run}"; 
           $self->{sqlserver}->Update($sql);
-                 htmlWarning("ValidateRuns",
-                             "cannot find status, content in Jobs for JID=$run->{Run}");
+          $warn = "cannot find status, content in Jobs for JID=$run->{Run} \n";
+          htmlWarning("ValidateRuns",$warn);
+          print FILE $warn;
          } else {
           my $jobstatus  = $r1->[0][0];
           my $jobcontent = $r1->[0][1];
@@ -846,6 +887,7 @@ sub ValidateRuns {
                                      HOST='$host' 
                             WHERE JID = $run->{Run}";
           $self->{sqlserver}->Update($sql);
+          print FILE $sql;
 # validate ntuples
 # Find corresponding ntuples from server
               foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
@@ -922,11 +964,12 @@ sub ValidateRuns {
                                                               '$outputpath',
                                                               $ntuple->{crc})";
                             $self->{sqlserver}->Update($sql);
+                            print $sql;
                             $copied++;
                             push @cpntuples, $fpath;
                             $runupdate = "UPDATE runs SET FEVENT = $fevent, LEVENT=$levent, ";
                          } else {
-                             print "validateRuns - failed to copy $fpath\n";
+                             print FILE "failed to copy $fpath\n";
                              $copyfailed = 1;
                              last;
                          }
@@ -938,21 +981,29 @@ sub ValidateRuns {
          } #loop for ntuples
          my $status='Failed';
          if ($copyfailed == 0) {
-          htmlText("Validation done : send Delete to DBServer, Run =",$run->{Run});
+          $warn = "Validation done : send Delete to DBServer, Run =$run->{Run} \n";
+          print FILE $warn;
+          htmlText($warn," ");
           DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
           foreach my $ntuple (@cpntuples) {
            my $cmd="rm -i $ntuple";
            system($cmd);
-           htmlText("Validation done : system command rm -i ",$ntuple);
+           $warn = "Validation done : system command rm -i $ntuple \n";
+           print FILE $warn;
+           htmlText($warn," ");
          }
           if ($#cpntuples >= 0) { $status = 'Completed';}
       }
            else{
-               htmlText("Validation/copy failed : Run =",$run->{Run});
+               $warn="Validation/copy failed : Run =$run->{Run} \n";
+               print FILE $warn;
+               htmlText($warn," ");
                $status='Unchecked';
                foreach my $ntuple (@mvntuples) {
                 my $cmd = "rm -i $ntuple";
-                htmlText("Validation failed : system command rm -i ",$ntuple);
+                $warn="Validation failed : system command rm -i $ntuple\n";
+                print FILE $warn;
+                htmlText($warn," ");
                 system($cmd);
                 $failedcp++;
                 $copied--;
@@ -963,21 +1014,25 @@ sub ValidateRuns {
            }
           $sql = $runupdate." STATUS='$status' WHERE run=$run->{Run}";
           $self->{sqlserver}->Update($sql);
-          htmlText("Update Runs : ",$sql);
+          $warn = "Update Runs : $sql\n";
+          print FILE $warn;
+          htmlText($warn," ");
      } # remote job
     }  # job found
    }   # run->{Status} == 'Finished' || 'Failed'
   }    # loop for runs
 
   $self->htmlBottom();
-
-   $self->InfoPlus("$validated Ntuple(s) Successfully Validated.
+  $warn = "$validated Ntuple(s) Successfully Validated.
                    \n $copied Ntuple(s) Copied.
                    \n $failedcp Ntuple(s) Not Copied.
                    \n. $bad Ntuple(s) Turned Bad.
                    \n $unchecked Ntuples(s) Could Not Be Validated.
-                   \n $thrusted Ntuples Could Not be Validated But Assumed  OK.");
-
+                   \n $thrusted Ntuples Could Not be Validated But Assumed  OK.
+                   \n";
+ print FILE $warn;
+ close FILE;
+ $self->InfoPlus($warn);
  $self->{ok}=1;
 
 }
@@ -1082,6 +1137,7 @@ sub doCopy {
 
 sub Validate{
    my $self = shift;
+   my $status = undef;
 
     if($self->{q}->param("Control")){
         my $pass=$self->{q}->param("password");
@@ -1132,10 +1188,19 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                  last;
              }
          }
+         $status = $run->{Status};
          if(not $found){
-             my $status=$run->{Status};
-             $sql="insert into Runs values($run->{Run},$run->{Run},$run->{FirstEvent},$run->{LastEvent},$run->{TFEvent},$run->{TLEvent},$run->{SubmitTime},'$status')";
-             $self->{sqlserver}->Update($sql);
+       
+             $self->insertRun(
+                    $run->{Run},
+                    $run->{Run},
+                    $run->{FirstEvent},
+                    $run->{LastEvent},
+                    $run->{TFEvent},
+                    $run->{TLEvent},
+                    $run->{SubmitTime},
+                    $status);
+         }
 # Find corresponding ntuples
           foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
               if($ntuple->{Type} eq "Ntuple" and ($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and $ntuple->{Run}== $run->{Run}){
@@ -1245,9 +1310,8 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
              }
          }
      }
-  }
    $self->InfoPlus("$validated Ntuple(s) Successfully Validated.\n $bad Ntuple(s) Turned Bad.\n $unchecked Ntuples(s) Could Not Be Validated.\n $thrusted Ntuples Could Not be Validated But Assumed  OK.");
-        $self->{ok}=1;
+   $self->{ok}=1;
 }
 
 sub ConnectDB{
@@ -3916,14 +3980,6 @@ print qq`
         }
 
           $self->DownloadTime();
-#
-#        $filedb="$self->{UploadsDir}/$self->{FileDB}";
-#        $self->{FileDBTimestamp}=(stat($filedb))[9];
-#        $filedb="$self->{UploadsDir}/$self->{FileAttDB}";
-#        $self->{FileAttDBTimestamp}=(stat($filedb))[9];
-#        $filedb="$self->{UploadsDir}/$self->{FileBBFTP}";
-#        $self->{FileBBFTPTimestamp}=(stat($filedb))[9];
-#
 
         $self->{FileDBLastLoad}=$uplt0;
         $self->{FileAttDBLastLoad}=$uplt1;
@@ -5519,6 +5575,8 @@ sub DownloadTime {
         $filedb="$self->{UploadsDir}/$self->{FileBBFTP}";
         $self->{FileBBFTPTimestamp}=(stat($filedb))[9];
 
+        $filedb="$self->{UploadsDir}/$self->{FileCRC}";
+        $self->{FileCRCTimestamp}=(stat($filedb))[9];
 
     }
 
@@ -5568,6 +5626,7 @@ sub DownloadSA {
     $self->{FileDB}     ="ams02mcdb.tar.gz";
     $self->{FileAttDB}  ="ams02mcdb.addon.tar.gz";
     $self->{FileBBFTP}  ="ams02bbftp.tar.gz";
+    $self->{FileCRC}    ="ams02crc.tar.gz";
     $self->{dwldaddon}  = 1;
     $self->DownloadTime();
     print "Content-type: text/html\n\n";
@@ -5651,8 +5710,16 @@ sub PrintDownloadTable {
            </font>";
      my $dtime=EpochToDDMMYYHHMMSS($self->{FileBBFTPTimestamp});
      print "<font size=\"3\" color=\"green\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
+     print "<br><br>";   
+#crc tar
+     my $file= $self->{FileCRC};
+     print "<br><font size=\"4\">
+           <a href=load.cgi?$self->{UploadsHREF}/$file>  CRC Linux exec (tar.gz) - <i> optional </i></a>
+           </font>";
+     my $dtime=EpochToDDMMYYHHMMSS($self->{FileCRCTimestamp});
+     print "<font size=\"3\" color=\"green\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
      print "<br><br>";
-    }
+ }
     print "</TD></TR>\n";
     print "</TABLE>\n";
     print "</td></tr>\n";
@@ -6129,7 +6196,7 @@ foreach my $block (@blocks) {
     $lastjobid = $startingjob[2];
     $startingjobR   = 1;
    } else  {
-      print FILE "parseJournalFile -W- StartingJob - cannot find all patterns";
+      print FILE "parseJournalFile -W- StartingJob - cannot find all patterns \n";
    }
     # end StartingJob cmd
     #
@@ -6158,7 +6225,7 @@ foreach my $block (@blocks) {
     $startingjobR   = 1;
     $lastjobid = $startingjob[2];
    } else  {
-    print FILE "parseJournalFiles -W- StartingJob - cannot find all patterns";
+    print FILE "parseJournalFiles -W- StartingJob - cannot find all patterns \n";
    }
     # end JobStarted cmd
     #
@@ -6169,12 +6236,13 @@ foreach my $block (@blocks) {
 # SubmitTime Fri Apr  4 13:44:09 2003, Host pcamsvc , Run 0, EventsProcessed 0 , 
 # LastEvent 0 , Errors 0 , CPU 0 , Elapsed 0 , CPU/Event 0 , Status Processing
 #
+   
       $patternsmatched = 0;
       my @StartingRunPatterns = ("StartingRun","ID","Run","FirstEvent","LastEvent",
                                  "Prio","Path","Status","History","ClientID",
                                  "SubmitTime","SubmitTimeU","Host","EventsProcessed","LastEvent",
                                  "Errors","CPU","Elapsed","CPU/Event","Status");
-
+  
       my $j = 0;
       foreach my $pat (@StartingRunPatterns) {
         foreach my $xyz (@junk) {
@@ -6197,25 +6265,26 @@ foreach my $block (@blocks) {
     $startingrun[0] = "StartingRun";
     $startingrunR   = 1;
     $timestamp = time();
-    $sql = "SELECT run FROM runs WHERE run=$startingrun[2]";
-    my $ret = $self->{sqlserver}->Query($sql);
-    if(not defined $ret->[0][0]){
-     $sql = "INSERT INTO runs (run,jid,fevent,levent,fetime,letime,submit,status) 
-              VALUES($startingrun[2],$lastjobid,$startingrun[3],
-                     $startingrun[4],0,0,$startingrun[11],'$startingrun[7]')";
+    $self->insertRun(
+             $startingrun[2],
+             $lastjobid,
+             $startingrun[3],
+             $startingrun[4],
+             0,
+             0,
+             $startingrun[11],
+             $startingrun[7]);
+
+     $sql = "UPDATE Jobs SET 
+                 host='$startingrun[12]',
+                 events=$startingrun[13], errors=$startingrun[15],
+                 cputime=$startingrun[16], elapsed=$startingrun[17],
+                 timestamp=$timestamp 
+                where jid=$lastjobid";
      print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
-     $sql = "update jobs set 
-                               host='$startingrun[12]',
-                               events=$startingrun[13], errors=$startingrun[15],
-                               cputime=$startingrun[16], elapsed=$startingrun[17],
-                               timestamp=$timestamp 
-                   where jid=$lastjobid";
-     print FILE "$sql \n";
-     $self->{sqlserver}->Update($sql);
-    } 
    } else  {
-       print FILE "parseJournalFiles -W- StartingRun - cannot find all patterns $patternsmatched/$#StartingRunPatterns";
+       print FILE "StartingRun - cannot find all patterns $patternsmatched/$#StartingRunPatterns \n";
    }
    # end StartingRun 
    #
@@ -6247,7 +6316,7 @@ foreach my $block (@blocks) {
    if ($patternsmatched == $#OpenDSTPatterns) { #OpenDST has no pair
     $opendst[0] = "OpenDST";
    } else  {
-     print FILE "parseJournalFiles -W- OpenDST - cannot find all patterns";
+     print FILE "OpenDST - cannot find all patterns \n";
    }
    # end OpenDST 
    # 
@@ -6411,7 +6480,8 @@ foreach my $block (@blocks) {
        }
      }
    }
-   if ($patternsmatched == $#RunFinishedPatterns+1) { #RunFinsihed has a pair CInfo
+   if ($patternsmatched == $#RunFinishedPatterns+1 ||
+       $patternsmatched == $#RunFinishedPatterns) { #RunFinsihed has a pair CInfo
     $runfinished[0] = "RunFinished";
     $runfinishedR   = 1;
     my $sql = "SELECT run FROM runs WHERE run = $run AND levent=$runfinished[3]";
@@ -6724,6 +6794,14 @@ sub deleteTimeOutJobs {
             $sql = "DELETE Jobs WHERE jid=$jid";
             $self->{sqlserver}->Update($sql);
 
+            foreach my $runinfo (@{$self->{dbserver}->{rtb}}){
+             if($runinfo->{Run}=$jid) {
+              DBServer::sendRunEvInfo($self->{dbserver},$runinfo,"Delete"); 
+              last;
+             }
+         }
+
+
         print "<td><b><font color=\"black\">$cite </font></b></td>";
         print "<td><b><font color=\"black\">$jid </font></b></td>";
         print "<td><b><font color=\"black\">$tsubmit </font></b></td>";
@@ -6739,4 +6817,56 @@ sub deleteTimeOutJobs {
 
     htmlTableEnd();
     $self->htmlBottom();
+}
+
+sub insertRun {
+
+    my $self   = shift;
+    my $run    = shift;
+    my $jid    = shift;
+    my $fevent = shift;
+    my $levent = shift;
+    my $fetime = shift;
+    my $letime = shift;
+    my $submit = shift;
+    my $status = shift;
+
+    my $doinsert = 0;
+    my $sql      = undef;
+
+    $sql="SELECT run, jid, fevent, levent, status 
+          FROM Runs WHERE run=$run";
+    my $ret = $self->{sqlserver}->Query($sql);
+    if (defined $ret->[0][0]) {
+     my $dbrun = $ret->[0][0];
+     my $dbjid = $ret->[0][1];
+     my $dbfevent = $ret->[0][2];
+     my $dblevent = $ret->[0][3];
+     my $dbstatus = $ret->[0][4];
+     if ($dbjid == $run &&
+          $dbfevent == $fevent &&
+          $dblevent == $levent &&
+          $dbstatus eq $status) {
+            print "InsertRun -W- Run $run already exists do nothing \n";
+           } else {
+            $sql="DELETE runs WHERE run=$run";
+            $self->{sqlserver}->Update($sql);
+            $doinsert = 1;
+            }
+      } else {
+        $doinsert = 1;
+      }
+      if ($doinsert == 1) {
+       $sql="INSERT INTO Runs VALUES(
+                    $run,
+                    $jid,
+                    $fevent,
+                    $levent,
+                    $fetime,
+                    $letime,
+                    $submit,
+                    '$status')";
+        $self->{sqlserver}->Update($sql);
+        print "$sql \n";
+   }
 }
