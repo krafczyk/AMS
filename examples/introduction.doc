@@ -1,5 +1,7 @@
-/// \example introduction.doc
-/// You can find an introduction to AMS Root analysis in
-/// http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/documentation_new.html
-/// 
+/*! \example introduction.doc
+ *  \htmlinclude documentation_new.html
+ */ 
 
+/*! \mainpage 
+ *  \htmlinclude documentation_new.html
+ */
