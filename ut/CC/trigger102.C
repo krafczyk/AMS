@@ -38,7 +38,7 @@ void Trigger2LVL1::build(){
 /*
 //----
   else if(TGL1FFKEY.RebuildLVL1){ // <---------- Real
-    (AMSEvent::gethead()->getC("Trigger2LVL1",0))->eraseC();
+    (AMSEvent::gethead()->getC("TriggerLVL1",0))->eraseC();
     tofflag=1;
     TOF2RawCluster *pcl=(TOF2RawCluster*)AMSEvent::gethead()->getheadC("TOF2RawCluster",0);
     while(pcl){
@@ -78,7 +78,7 @@ void Trigger2LVL1::build(){
   integer tm=floor(TOF2Varp::tofvpar.getmeantoftemp(0));   
      if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData() )AMSEvent::gethead()->seterror();
   if(tofflag>0 && ntof >=TGL1FFKEY.ntof && nanti <= TGL1FFKEY.nanti && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime)){
-       AMSEvent::gethead()->addnext(AMSID("Trigger2LVL1",0),
+       AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
                        new Trigger2LVL1(lifetime*1000+tm*10000,tofflag,tofpatt,antipatt,ectrigfl));
   }
   else if(AMSJob::gethead()->isRealData() && sumsc>=TGL1FFKEY.MaxScalersRate && lifetime<=TGL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
@@ -126,7 +126,7 @@ void Trigger2LVL1::_writeEl(){
 
 void Trigger2LVL1::builddaq(integer i, integer n, int16u *p){
   Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->
-  getheadC("Trigger2LVL1",i);
+  getheadC("TriggerLVL1",i);
   *p=getdaqid();
   //  if(ptr){
     //   *(p+1)=int16u(ptr->_tofpatt[0]);
@@ -218,7 +218,7 @@ void Trigger2LVL1::builddaq(integer i, integer n, int16u *p){
 
 void Trigger2LVL1::buildraw(integer n, int16u *p){
   {
-   AMSContainer *ptr=AMSEvent::gethead()->getC("Trigger2LVL1",0);
+   AMSContainer *ptr=AMSEvent::gethead()->getC("TriggerLVL1",0);
    if(ptr)ptr->eraseC();
    else cerr <<"Trigger2LVL1::buildraw-S-NoContainer"<<endl;
 
@@ -321,7 +321,7 @@ void Trigger2LVL1::buildraw(integer n, int16u *p){
   integer tm=floor(TOF2Varp::tofvpar.getmeantoftemp(0));   
   // mark default as error here
      if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData())AMSEvent::gethead()->seterror();
-  if(z>0 && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime))AMSEvent::gethead()->addnext(AMSID("Trigger2LVL1",0), new
+  if(z>0 && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime))AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
   Trigger2LVL1(lifetime*1000+tm*10000,z,tofp,tofp1,antip,ecflg));
   else if(AMSJob::gethead()->isRealData() && sumsc>=TGL1FFKEY.MaxScalersRate && lifetime<=TGL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
   // ---> TOF Online histograms

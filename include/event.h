@@ -155,7 +155,6 @@ void _sirichevent();
 void _sidaqevent();
 void _redaqevent();
 void _retkevent(integer refit=0);
-void _retk2event(integer refit=0);
 void _retofevent();
 void _retof2event();
 void _reantievent();

@@ -682,7 +682,7 @@ geant TriggerLVL3::Discriminator(integer nht){
      AMSgObj::BookTimer.start("LVL3");
      Trigger2LVL1 * plvl1= 
        (Trigger2LVL1*)AMSEvent::gethead()->
-       getheadC("Trigger2LVL1",0);
+       getheadC("TriggerLVL1",0);
      if(plvl1){
        int16 * ptr;
        number tt1,tt2;

@@ -692,7 +692,7 @@ void AMSEvent::_retriginitevent(){
 
  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
    AMSEvent::gethead()->add (
-     new AMSContainer(AMSID("AMSContainer:Trigger2LVL1",0),0));
+     new AMSContainer(AMSID("AMSContainer:TriggerLVL1",0),0));
    AMSEvent::gethead()->add (
      new AMSContainer(AMSID("AMSContainer:TriggerLVL3",0),0));
  }
@@ -1222,7 +1222,7 @@ void AMSEvent::_reamsevent(){
   }
   if(AMSJob::gethead()->isReconstruction() )_retrigevent();
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-    _retk2event(); 
+    _retkevent(); 
     _rerichevent();
     _reecalevent();
     _retrdevent();
@@ -1315,7 +1315,7 @@ void AMSEvent::_catofevent(){
   Trigger2LVL1 *ptr2;
 //
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-    ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("Trigger2LVL1",0);
+    ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr2)trflag=ptr2->gettoflg();
     if(trflag <= 0)return;// use only H/W-triggered event tempor
     if(TFREFFKEY.relogic[0]==2)
@@ -1350,7 +1350,7 @@ void AMSEvent::_retkevent(integer refit){
 // do not reconstruct events without lvl3 if  LVL3FFKEY.Accept
  
     TriggerLVL3 *ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
-    TriggerLVL1 *ptr1=(TriggerLVL1*)getheadC("TriggerLVL1",0);
+    AMSlink *ptr1=getheadC("TriggerLVL1",0);
 
 if(ptr1 && (!LVL3FFKEY.Accept || (ptr1 && ptr && ptr->LVL3OK()))){
 AMSgObj::BookTimer.start("RETKEVENT");
@@ -1414,75 +1414,6 @@ AMSgObj::BookTimer.start("RETKEVENT");
  else throw AMSLVL3Error("LVL3NotCreated");  
 }
 //----------------------------------------
-void AMSEvent::_retk2event(integer refit){
-
-// do not reconstruct events without lvl3 if  LVL3FFKEY.Accept
- 
-    TriggerLVL3 *ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
-    Trigger2LVL1 *ptr1=(Trigger2LVL1*)getheadC("Trigger2LVL1",0);
-
-if(ptr1 && (!LVL3FFKEY.Accept || (ptr1 && ptr && ptr->LVL3OK()))){
-AMSgObj::BookTimer.start("RETKEVENT");
-  AMSgObj::BookTimer.start("TrCluster");
-  buildC("AMSTrCluster",refit);
-  AMSgObj::BookTimer.stop("TrCluster");
-#ifdef __AMSDEBUG__
-  if(AMSEvent::debug)AMSTrCluster::print();
-#endif
-  AMSgObj::BookTimer.start("TrRecHit");
-  buildC("AMSTrRecHit",refit);
-  AMSgObj::BookTimer.stop("TrRecHit");
-#ifdef __AMSDEBUG__
-  if(AMSEvent::debug)AMSTrRecHit::print();
-#endif
-  
-  AMSgObj::BookTimer.start("TrTrack");
-  
-  integer itrk=1;
-  
-  // Default reconstruction: 4S + 4K or more
-  if(TRFITFFKEY.FalseXTracking && !TRFITFFKEY.FastTracking)
-    itrk = buildC("AMSTrTrackFalseX",TKDBc::nlay());
-  if(itrk>0)itrk=buildC("AMSTrTrack",refit);
-  // Reconstruction with looser cuts on the K side
-  if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.WeakTracking ){
-    buildC("AMSTrClusterWeak",refit);
-    buildC("AMSTrRecHitWeak",refit);
-    itrk = buildC("AMSTrTrackWeak",refit);
-  }
-
-  if(TRFITFFKEY.FastTracking){
-    // Reconstruction of 4S + 3K
-    if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseXTracking ){
-      itrk=buildC("AMSTrTrackFalseX",TKDBc::nlay()-3);
-      if(itrk>0) itrk=buildC("AMSTrTrack",refit);
-#ifdef __AMSDEBUG__
-      if(itrk>0)cout << "FalseX - Track found "<<itrk<<endl; 
-#endif
-    }
-  }
-  // Reconstruction of 4S + TOF
-  int flag =    (itrk<=0 && TRFITFFKEY.FalseTOFXTracking)
-             || (TRFITFFKEY.FullReco && TRFITFFKEY.FalseTOFXTracking)
-             || TRFITFFKEY.ForceFalseTOFX;
-  if ( flag) {
-    itrk=buildC("AMSTrTrackFalseTOFX",refit);
-#ifdef __AMSDEBUG__
-    if (itrk>0) cout << "FalseTOFX - Track found "<< itrk << endl;
-#endif
-  }
-  
-  AMSgObj::BookTimer.stop("TrTrack");
-#ifdef __AMSDEBUG__
-  if(AMSEvent::debug)AMSTrTrack::print();
-#endif
-  
-  //if(refit==0 && AMSTrTrack::RefitIsNeeded())_retkevent(1);
-  AMSgObj::BookTimer.stop("RETKEVENT");
-}
- else throw AMSLVL3Error("LVL3NotCreated");  
-}
-//===========================================================================
 void AMSEvent::_reantievent(){
   integer trflag(0);
   int stat;
@@ -1536,7 +1467,7 @@ void AMSEvent::_reanti2event(){
 //
 //
 //
-    Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("Trigger2LVL1",0);
+    Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr)trflag=ptr->gettoflg();
     if(trflag<=0){
       AMSgObj::BookTimer.stop("REANTIEVENT");
@@ -1627,7 +1558,7 @@ int stat;
 //
   AMSgObj::BookTimer.start("RETOFEVENT");
     TOF2JobStat::addre(0);
-    Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("Trigger2LVL1",0);
+    Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr)trflag=ptr->gettoflg();
     if(trflag<=0){
       AMSgObj::BookTimer.stop("RETOFEVENT");
@@ -1722,7 +1653,7 @@ void AMSEvent::_reecalevent(){
   AMSgObj::BookTimer.start("REECALEVENT");
 //
   EcalJobStat::addre(0);
-  ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("Trigger2LVL1",0);
+  ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptr)trflag=ptr->gettoflg();
   if(trflag<=0){
     AMSgObj::BookTimer.stop("REECALEVENT");
