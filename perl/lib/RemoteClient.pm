@@ -1,9 +1,12 @@
-# $Id: RemoteClient.pm,v 1.155 2003/05/07 18:30:42 alexei Exp $
+# $Id: RemoteClient.pm,v 1.156 2003/05/08 08:38:01 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
 # to add - standalone/client type,
 #          CPU, elapsed time, cite and host info into Job table
+#
+# Apr-May, 2003 : ValidateRuns, checkJobsTimeout, deleteTimeOutJobs,
+#                 parseJournalFiles
 #
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -850,7 +853,7 @@ sub ValidateRuns {
       htmlTableEnd();
   }
      if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") && 
-         (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked"))
+         (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked" && $r0->[0][1] ne "TimeOut"))
         ){
         my $fevent =  1;
         my $levent =  0;
@@ -1017,10 +1020,15 @@ sub ValidateRuns {
           $warn = "Update Runs : $sql\n";
           print FILE $warn;
           htmlText($warn," ");
+          if ($status eq "Completed") {
+           $self->updateRunCatalog($run->{Run});
+           $warn = "Update RunCatalog table : $run->{Run}\n";
+           print FILE $warn;
+          }
      } # remote job
     }  # job found
    }   # run->{Status} == 'Finished' || 'Failed'
-  }    # loop for runs
+  }    # loop for runs from 'server'
 
   $self->htmlBottom();
   $warn = "$validated Ntuple(s) Successfully Validated.
@@ -5071,7 +5079,6 @@ sub listStat {
     my $r5 = $self->{sqlserver}->Query($sql);
     if (defined $r5->[0][0]) {
          $jobstimeout = $r5->[0][0];
-         $jobsreq     += $jobstimeout;
      }
 
                $sql="SELECT MAX(Jobs.timestamp) FROM Jobs, Cites 
@@ -7108,6 +7115,10 @@ sub insertRun {
                     '$status')";
         $self->{sqlserver}->Update($sql);
         print "$sql \n";
+        if ($status eq "Completed") {
+          $self->updateRunCatalog($run);
+          print "Update RunCatalog table : $run->{Run}\n";
+       }
    }
 }
 
