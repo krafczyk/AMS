@@ -50,10 +50,10 @@ AMSR_Axis::AMSR_Axis(Float_t end[3], char * title)
 {
    Float_t p[6];
 
-   p[1] = p[2] = p[3] = 0.0;
-   p[4] = end[0]; 
-   p[5] = end[1];
-   p[6] = end[2];
+   p[0] = p[1] = p[2] = 0.0;
+   p[3] = end[0]; 
+   p[4] = end[1];
+   p[5] = end[2];
 
    SetPolyLine(2,p);
 

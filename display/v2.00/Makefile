@@ -1,4 +1,3 @@
-
 # ------------------------------
 # Makefile for AMS Event Display
 # ------------------------------
@@ -9,7 +8,7 @@
 #****************************************************************
 
 #--gcc used to produce dependencies
-GCC  = gcc
+ GCC  = gcc 
 
 #################
 # Common MACRO  #
@@ -20,7 +19,7 @@ ROOTLIBS      = -L$(ROOTSYS)/lib -lNew -lBase -lCint -lClib -lCont -lFunc \
 ROOTGLIBS     = -lRint -lGpad -lGui -lGX11 -lX3d
 CERNLIBS      = -L/cern/pro/lib -lmathlib -lpacklib -lkernlib
 #OPT           = -g -DROOT10308
-OPT           = -g
+OPT           = -g 
 NOOPT         =
 ARLD          = ar vr
 
@@ -71,9 +70,10 @@ endif
 #  =======   #
 ##############
 ifeq  "$(OS)"  "OSF1"
+ GCC  = cxx 
  CXX           = cxx
  INCLUDES      = -I$(ROOTSYS)/include -I/usr/include -I/usr/include/cxx
- CXXFLAGS      = -D__osf__ -D__alpha -D_ALPHA_ $(INCLUDES)
+ CXXFLAGS      = -D__osf__  -D__alpha -D_ALPHA_ $(INCLUDES)
  FF            = f77
  FFLAGS        = -g
  LD            = cxx

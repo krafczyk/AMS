@@ -845,7 +845,7 @@ void AMSR_Display::DrawEventInfo(Option_t *option)
    text->SetTextSize(0.28);
    text->Draw();
    sprintf(atext,"%s",gAMSR_Root->GetTime());
-    for ( i=strlen(atext);i<kTMAX-1;i++) atext[i] = ' ';
+    for ( int i=strlen(atext);i<kTMAX-1;i++) atext[i] = ' ';
       atext[kTMAX-1] = 0;
    
       if (! text1) {

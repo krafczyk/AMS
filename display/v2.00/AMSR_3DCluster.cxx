@@ -93,8 +93,8 @@ AMSR_3DCluster::AMSR_3DCluster(Float_t * xyz, Float_t * dxyz, Float_t * cos,
 //______________________________________________________________________________
  const Float_t * AMSR_3DCluster::GetPosition()
 {
-//*-*-*-*-*-*-*-*-*-*-*set position (x, y, z)*-*-*-*-*-*-*-*-*-*-*
-//*-*                  ======================
+////-*-*-*-*-*-*-*-*-*-*set position (x, y, z)*-*-*-*-*-*-*-*-*-*-*
+////-*                  ======================
    static Float_t xyz[3];
 
    xyz[0]  = fX;
@@ -107,8 +107,8 @@ AMSR_3DCluster::AMSR_3DCluster(Float_t * xyz, Float_t * dxyz, Float_t * cos,
 //______________________________________________________________________________
  const Float_t * AMSR_3DCluster::GetSize()
 {
-//*-*-*-*-*-*-*-*-*-*-*set position (x, y, z)*-*-*-*-*-*-*-*-*-*-*
-//*-*                  ======================
+////-*-*-*-*-*-*-*-*-*-*set position (x, y, z)*-*-*-*-*-*-*-*-*-*-*
+////-*                  ======================
    static Float_t xyz[3];
 
    xyz[0]  = fDx;
@@ -121,8 +121,8 @@ AMSR_3DCluster::AMSR_3DCluster(Float_t * xyz, Float_t * dxyz, Float_t * cos,
 //______________________________________________________________________________
 void AMSR_3DCluster::SetPosition(Float_t x, Float_t y, Float_t z)
 {
-//*-*-*-*-*-*-*-*-*-*-*set position (x, y, z)*-*-*-*-*-*-*-*-*-*-*
-//*-*                  ======================
+////-*-*-*-*-*-*-*-*-*-*set position (x, y, z)*-*-*-*-*-*-*-*-*-*-*
+////-*                  ======================
    TMarker3DBox::SetPosition(x,y,z);
    fX = x;	fY = y;		fZ = z;		// synchronize
 }
@@ -130,8 +130,8 @@ void AMSR_3DCluster::SetPosition(Float_t x, Float_t y, Float_t z)
 //______________________________________________________________________________
 void AMSR_3DCluster::SetDirection(Float_t theta, Float_t phi)
 {
-//*-*-*-*-*-*-*-*-*-*-*set direction (theta, phi)*-*-*-*-*-*-*-*-*-*-*
-//*-*                  ==========================
+////-*-*-*-*-*-*-*-*-*-*set direction (theta, phi)*-*-*-*-*-*-*-*-*-*-*
+////-*                  ==========================
 
    TMarker3DBox::SetDirection(theta,phi);
 
@@ -140,8 +140,8 @@ void AMSR_3DCluster::SetDirection(Float_t theta, Float_t phi)
 //______________________________________________________________________________
 char * AMSR_3DCluster::GetObjectInfo(Int_t px, Int_t py)
 {
-//*-*-*-*-*-*-*-*-*-*-*store object info in a string*-*-*-*-*-*-*-*-*-*-*
-//*-*                  ============================
+////-*-*-*-*-*-*-*-*-*-*store object info in a string*-*-*-*-*-*-*-*-*-*-*
+////-*                  ============================
   static char info[80];
 
   sprintf(info, 
@@ -153,8 +153,8 @@ char * AMSR_3DCluster::GetObjectInfo(Int_t px, Int_t py)
 //______________________________________________________________________________
 void AMSR_3DCluster::SetPoints(Float_t *buff)
 {
-//*-*-*-*-*-*-*-*-*-*-*save 8 vertex points in buff*-*-*-*-*-*-*-*-*-*-*
-//*-*                  ============================
+////-*-*-*-*-*-*-*-*-*-*save 8 vertex points in buff*-*-*-*-*-*-*-*-*-*-*
+////-*                  ============================
 
     if (buff) {
         buff[ 0] = -fDx;    buff[ 1] = -fDy;    buff[ 2] = -fDz;
@@ -212,13 +212,13 @@ void AMSR_3DCluster::SetPoints(Float_t *buff)
 //______________________________________________________________________________
 Int_t AMSR_3DCluster::DistancetoPrimitive(Int_t px, Int_t py)
 {
-//*-*-*-*-*-*-*-*Compute distance from point px,py to a AMSR_3DCluster*-*-*-*-*
-//*-*            ===================================================
-//*-*
-//*-*  Compute if (px,py) is inside the drawn 3D box.  If not, compute the 
-//*-*  closest distance of approach from point px,py to each corner point of 
-//*-*  the AMSR_3DCluster.
-//*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+////-*-*-*-*-*-*-*Compute distance from point px,py to a AMSR_3DCluster*-*-*-*-*
+////-*            ===================================================
+////-*
+////-*  Compute if (px,py) is inside the drawn 3D box.  If not, compute the 
+////-*  closest distance of approach from point px,py to each corner point of 
+////-*  the AMSR_3DCluster.
+////-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
    Int_t dist=9999;			// return value
 
    const Int_t numPoints = 8;
@@ -381,12 +381,12 @@ Int_t AMSR_3DCluster::DistancetoPrimitive(Int_t px, Int_t py)
 //______________________________________________________________________________
 Int_t AMSR_3DCluster::DistancetoPrimitive(Int_t px, Int_t py)
 {
-//*-*-*-*-*-*-*-*Compute distance from point px,py to a AMSR_3DCluster*-*-*-*-*
-//*-*            ===================================================
-//*-*
-//*-*  Compute the closest distance of approach from point px,py to each corner
-//*-*  point of the AMSR_3DCluster.
-//*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+////-*-*-*-*-*-*-*Compute distance from point px,py to a AMSR_3DCluster*-*-*-*-*
+////-*            ===================================================
+////-*
+////-*  Compute the closest distance of approach from point px,py to each corner
+////-*  point of the AMSR_3DCluster.
+////-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
    const Int_t numPoints = 8;
    Int_t dist = 9999;
@@ -427,13 +427,13 @@ Int_t AMSR_3DCluster::DistancetoPrimitive(Int_t px, Int_t py)
 //______________________________________________________________________________
  void AMSR_3DCluster::Paint(Option_t *option)
 {
-//*-*-*-*-*-*-*-*Paint this 3-D box marker with its current attributes*-*-*-*
-//*-*            =====================================================
+////-*-*-*-*-*-*-*Paint this 3-D box marker with its current attributes*-*-*-*
+////-*            =====================================================
 
    char *matname = "NONE";
    const Int_t numpoints = 8;
 
-//*-* Allocate memory for points *-*
+////-* Allocate memory for points *-*
 
    Float_t *points = new Float_t[3*numpoints];
    if (!points) return;
@@ -457,7 +457,7 @@ Int_t AMSR_3DCluster::DistancetoPrimitive(Int_t px, Int_t py)
    Int_t c = ((GetLineColor() % 8) - 1) * 4;  // Basic colors: 0, 1, ... 7
    if (c < 0) c = 0;
 
-//*-* Allocate memory for segments *-*
+////-* Allocate memory for segments *-*
 
     X3DBuffer *buff = new X3DBuffer;
     if (buff) {
@@ -466,7 +466,7 @@ Int_t AMSR_3DCluster::DistancetoPrimitive(Int_t px, Int_t py)
         buff->numPolys  = 6;
     }
 
-//*-* Allocate memory for points *-*
+////-* Allocate memory for points *-*
 
     buff->points = points;
     buff->segs = new Int_t[buff->numSegs*3];
@@ -485,7 +485,7 @@ Int_t AMSR_3DCluster::DistancetoPrimitive(Int_t px, Int_t py)
         buff->segs[33] = c+3;  buff->segs[34] = 3;    buff->segs[35] = 7;
     }
 
-//*-* Allocate memory for polygons *-*
+////-* Allocate memory for polygons *-*
 
     buff->polys = new Int_t[buff->numPolys*6];
     if (buff->polys) {
@@ -503,7 +503,7 @@ Int_t AMSR_3DCluster::DistancetoPrimitive(Int_t px, Int_t py)
         buff->polys[33] = 5;   buff->polys[34] = 6;  buff->polys[35] = 7;
     }
 
-    //*-* Paint in the pad
+    ////-* Paint in the pad
     PaintShape(buff);
 
     if (strstr(option, "x3d")) {
@@ -527,10 +527,10 @@ Int_t AMSR_3DCluster::DistancetoPrimitive(Int_t px, Int_t py)
 //______________________________________________________________________________
  void AMSR_3DCluster::PaintShape(X3DBuffer *buff)
 {
-//*-*-*-*-*Paint 3-D marker in current pad with its current attributes*-*-*-*-*
-//*-*      ==========================================================
+////-*-*-*-*Paint 3-D marker in current pad with its current attributes*-*-*-*-*
+////-*      ==========================================================
 
-    //*-* Paint in the pad
+    ////-* Paint in the pad
 
     Float_t points[6];
     int i0;
