@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.24 2002/03/15 15:36:26 mdelgado Exp $
+//  $Id: richdbc.C,v 1.25 2002/04/18 14:56:07 delgadom Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -34,15 +34,35 @@ geant RICHDB::index[RICmaxentries]={1.136,   1.13602, 1.13605, 1.13608, 1.13612,
 
 
 
-geant RICHDB::abs_length[RICmaxentries]={1372.78,1346.82,1321.23,1296.00,1258.84,
-					 1222.49,1175.25,1118.14,1084.89,1041.71,
-					 1010.19,959.240,919.900,872.430,826.820,
-					 783.020,735.330,685.020,639.620,596.520,
-					 542.480,492.200,445.490,402.200,347.910,
-					 329.600,267.310,234.460,201.600,186.540,
-					 158.840,134.550,117.140,97.8200,85.8000,
-					 76.0500,69.1900,65.1100,61.2100,57.8700,
-  	 				 55.1100,53.1600,51.6800,50.5700};
+// Values according to matsushita n=1.01
+//
+//geant RICHDB::abs_length[RICmaxentries]={1372.78,1346.82,1321.23,1296.00,1258.84,
+//					 1222.49,1175.25,1118.14,1084.89,1041.71,
+//					 1010.19,959.240,919.900,872.430,826.820,
+//					 783.020,735.330,685.020,639.620,596.520,
+//					 542.480,492.200,445.490,402.200,347.910,
+//					 329.600,267.310,234.460,201.600,186.540,
+//					 158.840,134.550,117.140,97.8200,85.8000,
+//					 76.0500,69.1900,65.1100,61.2100,57.8700,
+//  	 				 55.1100,53.1600,51.6800,50.5700};
+
+
+
+
+// Best fit to current measures 
+geant RICHDB::abs_length[RICmaxentries]={36.,36.,36.,36.,36.,
+					 36.,36.,36.,36.,36.,
+					 36.,36.,36.,36.,36.,
+					 36.,36.,36.,36.,36.,
+					 36.,36.,36.,36.,36.,
+					 36.,36.,36.,36.,36.,
+					 36.,36.,36.,36.,36.,
+					 36.,36.,36.,36.,36.,
+					 36.,36.,36.,36.};
+
+
+
+
 
 // PMT quantum eff. from Hamamatsu
 
@@ -423,6 +443,7 @@ geant RICHDB::mean_height(){
   const integer steps=100;    // Number of steps for the approximation
   geant lambda,qeff,n,dl,l_scat=0,l_abs_rad,l_abs_lg;
   geant sum=0,densum=0;
+  geant sum_index=0;
 
   for(integer i=0;i<RICmaxentries-1;i++){ // Integration in wave length
     lambda=(RICHDB::wave_length[i]+RICHDB::wave_length[i+1])/2.;
@@ -444,12 +465,21 @@ geant RICHDB::mean_height(){
 	exp(lg_height/l_abs_lg);
       sum+=dl*g*x;
       densum+=dl*g;
+      sum_index+=dl*g*n;
     }
   }
   if(!densum){
     cout<<"RICHDB::mean_height : Error"<<endl;
   }else{
     value=rad_height-sum/densum;
+
+    RICHDB::rad_index=sum_index/densum;
+
+#ifdef __AMSDEBUG__
+    cout <<"Sum and densum "<<sum<<" "<<densum<<endl;
+    cout <<"Effective index "<<RICHDB::rad_index<<endl;
+#endif
+
     return value;
   }
   return -1;  // Codigo de error
