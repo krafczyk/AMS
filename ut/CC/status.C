@@ -56,23 +56,27 @@ uinteger AMSStatus::getstatus(uinteger evt){
   AMSgObj::BookTimer.start("EventStatus");
   int out= AMSbins(_Status[0],evt,_Nelem);
   static int repeat=0;
- if(repeat<10 && out<=0 ){
+ if (out>0){
+   repeat=0;
+   AMSgObj::BookTimer.stop("EventStatus");
+   return _Status[1][out-1]  ;
+ }
+ else if(repeat<10  ){
    cerr<<"AMSStatus::getstatus-E-NoMatchFound "<<out<<" "<<evt<<" "<<_Nelem<<endl;
    repeat++;
    AMSgObj::BookTimer.stop("EventStatus");
    return (1<<32);
  }
- else if(repeat==10 && out<=0){
+ else if(repeat==10 ){
    cerr<<"AMSStatus::getstatus-E-NoMatchFoundLastMessage"<<out<<" "<<evt<<endl;
    repeat++;
    AMSgObj::BookTimer.stop("EventStatus");
    return (1<<32);
  }
- else if(out>0){
-   repeat=0;
+ else {
    AMSgObj::BookTimer.stop("EventStatus");
-   return _Status[1][out-1]  ;
- }
+   return (1<<32);
+}
 }
 
 void AMSStatus::init(){
