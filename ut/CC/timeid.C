@@ -114,9 +114,9 @@ if (Time >= _Begin && Time <= _End){
   }
   return 0;
 }
-else if(!reenter){
+else if(reenter<2){
   // try to read it from file ....
-  read(AMSDATADIR.amsdatabase);
+  read(AMSDATADIR.amsdatabase,reenter);
   return validate(Time,reenter+1);
 }
 else return 0;
@@ -194,7 +194,7 @@ integer AMSTimeID::write(char * dir){
 }
 
 
-integer AMSTimeID::read(char * dir){
+integer AMSTimeID::read(char * dir, integer reenter){
 
   // first get a run no from dbase
   uinteger run=_getRun(AMSEvent::gethead()->getrun());
@@ -204,7 +204,7 @@ integer AMSTimeID::read(char * dir){
     AString fnam(dir);
     fnam+=getname();
     fnam+= getid()==0?".0":".1";
-    if(run){
+    if(run && !reenter){
      char name[255];
      ostrstream ost(name,sizeof(name));
      ost << "."<<run<<ends;
