@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.58 2002/10/01 15:53:39 choumilo Exp $
+//  $Id: ecalrec.C,v 1.59 2002/10/03 08:10:36 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -83,8 +83,8 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
 	}
         ovfl[0]=0;
         ovfl[1]=0;
-        if(radc[0]>0.)if((ECADCMX-(radc[0]+ph))<=3.*sh)ovfl[0]=1;// mark as ADC-Overflow
-        if(radc[1]>0.)if((ECADCMX-(radc[1]+pl))<=3.*sl)ovfl[1]=1;// mark as ADC-Overflow
+        if(radc[0]>0.)if((ECADCMX[0]-(radc[0]+ph))<=0)ovfl[0]=1;// mark as ADC-Overflow
+        if(radc[1]>0.)if((ECADCMX[1]-(radc[1]+pl))<=0)ovfl[1]=1;// mark as ADC-Overflow
         if(radc[0]>0. && ovfl[0]==0 && radc[1]>0)ECREUNcalib::fill_2(isl,pmc,subc,radc);//<--- fill 
         ptr=ptr->next();  
       } // ---> end of RawEvent-hits loop in superlayer
@@ -104,7 +104,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
   number sum[ECPMSMX][4],pmtmap[ECSLMX][ECPMSMX],pmlprof[ECSLMX];
   integer zhitmap[ECSLMX];
   integer adch,adcm,adcl,adcd;
-  geant radc,a2dr,h2lr,mev2adc,mev2adcd,pmrgn,scgn,ares,phel;
+  geant radc,a2dr,h2lr,mev2adc,mev2adcd,ares,phel;
   geant lfs,lsl,ffr;
   geant pedh[4],pedl[4],sigh[4],sigl[4],pedd,sigd;
   AMSEcalMCHit * ptr;
@@ -201,7 +201,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       mev2adc=ECMCFFKEY.mev2adc;// MC Emeas->ADCchannel to have MIP-m.p. in 5th channel
 //                (only mev2mev*mev2adc has real meaning providing Geant_dE/dX->ADCchannel)
       mev2adcd=ECMCFFKEY.mev2adcd;// same for dynode
-      pmrgn=ECcalib::ecpmcal[il][i].pmrgain();// PM gain(wrt ref. one)
+      geant pmrgn=ECcalib::ecpmcal[il][i].pmrgain();// PM gain(wrt ref. one)
       ECPMPeds::pmpeds[il][i].getpedh(pedh);
       ECPMPeds::pmpeds[il][i].getsigh(sigh);
       ECPMPeds::pmpeds[il][i].getpedl(pedl);
@@ -219,7 +219,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       
         EcalJobStat::zprmc2[il]+=sum[i][k];//geant SL(PM-assigned)-profile
         h2lr=ECcalib::ecpmcal[il][i].hi2lowr(k);//PM subcell high/low ratio from DB
-	scgn=ECcalib::ecpmcal[il][i].pmscgain(k);//SubCell gain
+	geant scgn=ECcalib::ecpmcal[il][i].pmscgain(k);//SubCell gain
 	ares=0.;
 	phel=sum[i][k]*ECMCFFKEY.mev2pes;//numb.of photoelectrons
 	if(phel>=1){
@@ -234,18 +234,18 @@ void AMSEcalRawEvent::mc_build(int &stat){
 // ---------> digitization+DAQ-scaling:
 // High-gain channel:
         if(ECMCFFKEY.silogic[0]==0){
-	  radc=edepr*pmrgn*scgn*mev2adc+pedh[k]+sigh[k]*rnormx();//Em(mev)->Em(adc)+ped+noise
+	  radc=edepr*scgn*mev2adc+pedh[k]+sigh[k]*rnormx();//Em(mev)->Em(adc)+ped+noise
 	}
 	else if(ECMCFFKEY.silogic[0]==1){
-	  radc=edepr*pmrgn*scgn*mev2adc+pedh[k];//Em(mev)->Em(adc)+ped
+	  radc=edepr*scgn*mev2adc+pedh[k];//Em(mev)->Em(adc)+ped
 	}
 	else if(ECMCFFKEY.silogic[0]==2){
-	  radc=edepr*pmrgn*scgn*mev2adc;//Em(mev)->Em(adc)
+	  radc=edepr*scgn*mev2adc;//Em(mev)->Em(adc)
 	}
 	else{
 	}
 	adch=floor(radc);//"digitization"
-	if(adch>=ECADCMX)adch=ECADCMX;//"ADC-saturation (12 bit)"
+	if(adch>=ECADCMX[0])adch=ECADCMX[0];//"ADC-saturation (12 bit)"
 	if(ECMCFFKEY.silogic[0]<2)radc=number(adch)-pedh[k];// ped-subtraction
 	else radc=number(adch);//no ped-subtr.
         if(radc>=sigh[k]*ECALVarp::ecalvpar.daqthr(0)){// use only hits above DAQ-readout threshold
@@ -254,18 +254,18 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	else{ adch=0;}
 // Low-gain channel:
         if(ECMCFFKEY.silogic[0]==0){
-	  radc=edepr*pmrgn*scgn*mev2adc/h2lr+pedl[k]+sigl[k]*rnormx();//Em(mev)->Em/h2lr(adc)+ped+noise
+	  radc=edepr*scgn*mev2adc/h2lr+pedl[k]+sigl[k]*rnormx();//Em(mev)->Em/h2lr(adc)+ped+noise
 	}
 	else if(ECMCFFKEY.silogic[0]==1){
-	  radc=edepr*pmrgn*scgn*mev2adc/h2lr+pedl[k];//Em(mev)->Em/h2lr(adc)+ped
+	  radc=edepr*scgn*mev2adc/h2lr+pedl[k];//Em(mev)->Em/h2lr(adc)+ped
 	}
 	else if(ECMCFFKEY.silogic[0]==2){
-	  radc=edepr*pmrgn*scgn*mev2adc/h2lr;//Em(mev)->Em/h2lr(adc)
+	  radc=edepr*scgn*mev2adc/h2lr;//Em(mev)->Em/h2lr(adc)
 	}
 	else{
 	}
-	adcl=floor(radc);//"digitization"
-	if(adcl>=ECADCMX)adcl=ECADCMX;//"ADC-saturation (12 bit)"
+	adcl=floor(radc);//"digitization")
+	if(adcl>=ECADCMX[1])adcl=ECADCMX[1];//"ADC-saturation (12 bit)"
 	if(ECMCFFKEY.silogic[0]<2)radc=number(adcl)-pedl[k];// ped-subtraction
 	else radc=number(adcl);//no ped-subtr.
         if(radc>=sigl[k]*ECALVarp::ecalvpar.daqthr(4)){// use only hits above DAQ-readout threshold
@@ -302,7 +302,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	else{
 	}
 	adcd=floor(radc);//"digitization")
-	if(adcd>=ECADCMX)adcd=ECADCMX;//"ADC-saturation (12 bit)"
+	if(adcd>=ECADCMX[2])adcd=ECADCMX[2];//"ADC-saturation (12 bit)"
 	if(ECMCFFKEY.silogic[0]<2)radc=number(adcd)-pedd;// ped-subtraction
 	else radc=number(adcd);//no ped-subtr.
         if(radc>=ECALVarp::ecalvpar.daqthr(4)){// use only hits above DAQ-readout threshold
@@ -499,55 +499,53 @@ void AMSEcalHit::build(int &stat){
       }
       ovfl[0]=0;
       ovfl[1]=0;
-      float adcmax=ECADCMX;
-      if(radc[0]>0.)if((adcmax-(radc[0]+ph))<=3.*sh)ovfl[0]=1;// mark as ADC-Overflow
-      if(radc[1]>0.)if((adcmax-(radc[1]+pl))<=3.*sl)ovfl[1]=1;// mark as ADC-Overflow
+      if(radc[0]+ph>=ECADCMX[0])ovfl[0]=1;// mark as ADC-Overflow
+      if(radc[1]+pl>=ECADCMX[1])ovfl[1]=1;// mark as ADC-Overflow
 // take decision which chain to use for energy calc.(Hi or Low):
       sta=0;
       fadc=0.;
-      if(radc[0]>0. && ovfl[0]==0){
+      if(ovfl[0]==0 && !ids.HCHisBad()){
         fadc=radc[0];//use highCh.
       }
-      else if(radc[1]>0. && ovfl[1]==0){//Hch=Miss/Ovfl -> use Lch
+      else if(radc[1]>0 && ovfl[1]==0 && !ids.LCHisBad()){//Hch=Miss/Ovfl -> use Lch
         fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
+	    sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
 //
         if(AMSJob::gethead()->isRealData()){// tempor RealData corr.
 //      assume tri-angular  h/l correction;
 
-          number ped=ph;
-          number a=1.2;
-          number b=1.2e-4;
-          number x1=1666;
-          number x2=3766;
-          number x3=x2+x2-x1;
-          number al=b;
-          number be=b*ph-a;
-          if(fadc<(x2-ph)*(a-b*x2)){
-           number mfadc=(-be-sqrt(be*be-4*fadc*al))/2/al;
-//           cout <<" case 1 "<<fadc<<" "<<mfadc<<endl;
-           fadc=mfadc;
-          }
-          else if(fadc<x3){
-           a=1-b*x3;
-           al=-b;
-           be=-b*ph-a;
-           number mfadc=(-be-sqrt(be*be-4*fadc*al))/2/al;
-//           cout <<" case 2 "<<fadc<<" "<<mfadc<<endl;
-           fadc=mfadc;
-          }
-        }//--> endof RealData corr.
-      }
-      else{ // accept double overflow case, the rest is junk
-        if(ovfl[0]==1){
-	  if(ovfl[1]==1){
+        number ped=ph;
+        number a=1.2;
+        number b=1.2e-4;
+        number x1=1666;
+        number x2=3766;
+        number x3=x2+x2-x1;
+        number al=b;
+        number be=b*ph-a;
+        if(fadc<(x2-ph)*(a-b*x2)){
+         number mfadc=(-be-sqrt(be*be-4*fadc*al))/2/al;
+//         cout <<" case 1 "<<fadc<<" "<<mfadc<<endl;
+         fadc=mfadc;
+        }
+        else if(fadc<x3){
+         a=1-b*x3;
+         al=-b;
+         be=-b*ph-a;
+         number mfadc=(-be-sqrt(be*be-4*fadc*al))/2/al;
+//         cout <<" case 2 "<<fadc<<" "<<mfadc<<endl;
+         fadc=mfadc;
+        }
+       }
+ }
+      else if(ovfl[1]==1 && !ids.LCHisBad()){
             fadc=radc[1]*h2lr;//use low ch.,rescale LowG-chain to HighG
 	    sta|=AMSDBc::AOVERFLOW;// set overflow status bit
 	    sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
-	  }
-	}
       }
-      edep=fadc/ECcalib::ecpmcal[isl][pmc].pmrgain()
-                                    /ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//gain*eff corr.
+      else {
+	    sta|=AMSDBc::AMSDBc::BAD;// bad or 0 amplitude channel
+      }
+      edep=fadc*ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//gain corr.
       if(ECREFFKEY.reprtf[0]>0){
         HF1(ECHISTR+16,geant(edep),1.);
         HF1(ECHISTR+17,geant(edep),1.);
@@ -556,9 +554,6 @@ void AMSEcalHit::build(int &stat){
       edep=edep*ECcalib::ecpmcal[isl][pmc].adc2mev();// ADCch->Emeasured(MeV)
       emeast+=edep;//tot.Mev
       if(fadc>0.){// store hit
-        if(ids.HCHisBad()&&(sta&AMSDBc::LOWGCHUSED==0))sta|=AMSDBc::BAD;//used Hch-hit is bad(DB)
-        if(ids.LCHisBad()&&(sta&AMSDBc::LOWGCHUSED==1))sta|=AMSDBc::BAD;//used Lch-hit is bad(DB)
-	if(ids.LCHisBad()&&(sta&AMSDBc::AOVERFLOW==1))sta|=AMSDBc::BAD;//used Lch-hit is bad(DB)
         nhits+=1;
         ECALDBc::getscinfoa(isl,pmc,subc,proj,plane,cell,coot,cool,cooz);// get SubCell info
 	icont=plane;//container number for storing of EcalHits(= plane number)
@@ -581,6 +576,7 @@ void AMSEcalHit::build(int &stat){
   }
   if(nhits>0)stat=0;
 }
+
 //---------------------------------------------------
 integer Ecal1DCluster::Out(integer status){
 static integer init=0;

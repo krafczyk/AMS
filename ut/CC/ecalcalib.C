@@ -478,7 +478,7 @@ void ECREUNcalib::select(){
             ovfl[0]=0;
             ovfl[1]=0;
             if(radc[0]>0.)
-	               if((ECADCMX-(radc[0]+ph))<=4.*sh)ovfl[0]=1;// mark as ADC-Overflow
+	               if((ECADCMX[0]-(radc[0]+ph))<=4.*sh)ovfl[0]=1;// mark as ADC-Overflow
             if(radc[0]>ECCAFFKEY.adcmin && ovfl[0]==0){//<=== fired pixel(hi-channel)
 	      sta=0;
 	      acorr=1.;
@@ -2180,7 +2180,34 @@ for(int i=0;i<ECPMSMX;i++){
     }
   }
 }
-    
+
+
+geant gains[18][14];
+ifstream fbin;
+fbin.open("gains.0807-1118");
+for (int i=0;i<18;i++){
+   for(int j=0;j<14;j++)fbin >> gains[i][j];
+   for(int j=0;j<14;j++)gains[i][j]=1;
+}
+for (int i=0;i<18;i++){
+   for(int j=0;j<14;j++)cout<< gains[i][j]<<" ";
+cout <<endl;
+}
+   
+   for(int i=0;i<ECSLMX;i++){
+       for(int j=0;j<8;j++){
+              ECcalib::ecpmcal[i][j].pmrgain()=1;
+         for (int k=0;k<4;k++){
+             AMSECIdSoft ids(i,j,k,0);
+              ECcalib::ecpmcal[i][j].pmscgain(k)=gains[ids.getlayer()][ids.getpos()];
+              
+              
+         }
+       }
+      } 
+
+
+
     char hfile[161];
     UHTOC(IOPA.hfile,40,hfile,160);  
     char filename[256];

@@ -1,4 +1,4 @@
-//  $Id: ecid.h,v 1.7 2002/10/01 15:53:54 choumilo Exp $
+//  $Id: ecid.h,v 1.8 2002/10/03 08:10:25 choutko Exp $
 #ifndef __AMSECID__
 #define __AMSECID__
 #include <typedefs.h>
@@ -47,6 +47,8 @@ bool LCHisBad(){return ECPMPeds::pmpeds[getslay()][getpmtno()].LCHisBad(getchann
 int16 getcrate(){return _crate;}
 int16 getchannel(){return _channel;}
 int16 getslay(){return _sl;}
+int16 getlayer(){return _sl*2+_channel/2;}
+int16 getpos(){return _pmtno*2+_channel%2;}
 int16 getpmtno(){return _pmtno;}
 geant getped(int16u gain){return gain<2?ECPMPeds::pmpeds[getslay()][getpmtno()].ped(getchannel(),gain):0;}
 geant getsig(int16u gain){return gain<2?ECPMPeds::pmpeds[getslay()][getpmtno()].sig(getchannel(),gain):0;}
@@ -56,6 +58,8 @@ geant getsigd(){return ECPMPeds::pmpeds[getslay()][getpmtno()].sig();}
 geant gethi2lowr(){return ECcalib::ecpmcal[getslay()][getpmtno()].hi2lowr(getchannel());}
 geant getan2dyr(){return ECcalib::ecpmcal[getslay()][getpmtno()].an2dyr();}
 geant getadc2mev(){return ECcalib::ecpmcal[getslay()][getpmtno()].adc2mev();}
+geant getgain(){return ECcalib::ecpmcal[getslay()][getpmtno()].pmscgain(getchannel())*
+             ECcalib::ecpmcal[getslay()][getpmtno()].pmrgain();}
 AMSECIdSoft():_dead(1){};
 AMSECIdSoft(int16 crate, int16 haddr, int16 channelh);
 AMSECIdSoft(int sl, int pmt, int chan, int dummy);

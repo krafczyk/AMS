@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.22 2002/10/01 15:53:54 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.23 2002/10/03 08:10:25 choutko Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -16,7 +16,7 @@ const integer ECSLMX=9; // max. S(uper)-layers
 const integer ECPMSMX=36; // max. PMCell(PM's) per S-layer
 const integer ECPMSL=ECSLMX*ECPMSMX;// Max. total PM's in all S-layers
 const integer ECFBLMX=500;// max. fibers per layer
-const integer ECADCMX=3550;//max capacity of ADC(12bits)
+const integer ECADCMX[3]={3550,4095,4095};//max capacity of ADC(12bits)
 const integer ECROTN=10000; // geant numbering of ECAL rot. matr.(starting from...)
 const integer ECJSTA=10; // max size of counter-array for job statistics
 const integer ECHIST=2000;// MCEcal histogram number(starting from...) 
@@ -174,10 +174,10 @@ public:
     }
   };
   integer & getstat(int i){return _status[i];}
+  geant &pmrgain(){return _pmrgain;}
+  geant &pmscgain(int i){return _scgain[i];}
   bool HCHisBad(int i){ return (_status[i]%100)/10>=9;}
   bool LCHisBad(int i){ return _status[i]%10>=9;}
-  geant pmrgain(){return _pmrgain;}
-  geant pmscgain(int i){return _scgain[i];}
   geant &hi2lowr(integer subc){return _hi2lowr[subc];}
   geant & adc2mev(){return _adc2mev;}
   geant &an2dyr(){return _an2dyr;}

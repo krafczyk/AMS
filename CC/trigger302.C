@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.24 2002/10/01 15:53:40 choumilo Exp $
+//  $Id: trigger302.C,v 1.25 2002/10/03 08:10:36 choutko Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -1139,7 +1139,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
 	al=number(*(ptr+2))/ECALDBc::scalef();//DAQ-format-->ADC(don't need for real algor)
 	amp=0;
 	if(ah>0){//(some readout thresh. is assumed to be done on prev. stages of readout)
-	  if(ah<(number(ECADCMX)-3*_ECpedsig))amp=ah;// no ovfl
+	  if(ah<(number(ECADCMX[0])-0*_ECpedsig))amp=ah;// no ovfl
 	  else{
 	    if(al>0)amp=al*_ECh2lrat;
 	  }
