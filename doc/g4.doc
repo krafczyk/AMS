@@ -1,17 +1,16 @@
-#  $Id: g4.doc,v 1.35 2003/03/04 13:09:24 choutko Exp $
+#  $Id: g4.doc,v 1.36 2003/03/05 10:51:55 choutko Exp $
 -------
 Platform:
-linux-gcc2.95.3 ($G4SYSTEM=Linux-g++)
+linux-gcc.3.2.x ($G4SYSTEM=Linux-g++) 
+linux-gcc2.95.3 
 
-linux-gcc.3.2.x  seems to be ok (?)
 
 -------
 Installer:
 
 
-source AMS/install/g4i.old (v4.4.1, Linux-g++) 
-source AMS/install/g4i      (v4.5.0, Linux-g++)
-source AMS/install/g4i.new  (v4.5.0, Linux-g++, gcc.3.2.2)
+source AMS/install/g4i.old      (v4.5.0, Linux-g++)
+source AMS/install/g4i          (v4.5.0, Linux-g++, gcc.3.2.2)
 
 see $G4INSTALL/ReleaseNotes.VC for ams specifics
 
