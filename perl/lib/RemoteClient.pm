@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.37 2002/03/28 14:33:44 choutko Exp $
+# $Id: RemoteClient.pm,v 1.38 2002/04/01 12:03:13 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -11,7 +11,7 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll queryDB);
 
 my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
 my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
@@ -20,6 +20,7 @@ my     $silverbullet = 'http://ams.cern.ch/AMS/icons/bullet_silver.gif';
 my     $purplebullet = 'http://ams.cern.ch/AMS/icons/bullet_purple.gif';
 
 my     $srvtimeout = 30; # server timeout 30 seconds
+my     @colors=("red","green","blue","magenta","orange","cyan","tomato");
 
 sub new{
     my $type=shift;
@@ -60,6 +61,7 @@ my %fields=(
     my $self={
       %fields,
     };
+
 
 foreach my $chop  (@ARGV){
     if($chop =~/^-d/){
@@ -801,6 +803,509 @@ sub Connect{
 
         $self->{read}=0;
     my $q=$self->{q};
+    my $sql=>undef;
+# db query
+    if ($self->{q}->param("queryDB")) {
+     $self->{read}=1;
+     if ($self->{q}->param("queryDB") eq "Submit") {
+        $sql="SELECT run, particle FROM runscat WHERE ";
+        htmlTop();
+        my $cutoff=>undef;
+        my $dataset=>undef;
+        my $file=>undef;
+        my $focus=>undef;
+        my $qcos=>undef;
+        my $qmomi=>undef;
+        my $qmoma=>undef;
+        my $qplanes=>undef;
+        my $qxl=>undef;
+        my $qyl=>undef;
+        my $qzl=>undef;
+        my $qxu=>undef;
+        my $qyu=>undef;
+        my $qzu=>undef;
+        my $particle=>undef;
+        my $setup=>undef;
+        my $spectrum=>undef;
+        my $trtype=>undef;
+        my $color="green";
+        $self->htmlTemplateTable("Selected Query Keys :");
+        my $qtempany = 0;
+        if (not defined $q->param("QTemp") or $q->param("QTemp") eq "Any") {
+         $qtempany = 1;
+        }
+        if (defined $q->param("QTempDataset") and $q->param("QTempDataset") ne "Any") { $qtempany = 0;}
+
+        if (defined $q->param("QTemp") and $q->param("QTemp") ne "Any") {
+         $file = $q->param("QTemp");
+         print "<tr><td><font size=\"3\"><b>Job Template File :</b></td><td><b> $file</b></td></tr>\n";
+        }
+        if (not defined $file) {
+         if (defined $q->param("QTempDataset") and $q->param("QTempDataset") ne "Any") {
+          $dataset = $q->param("QTempDataset");
+          $color="blue";
+          print "<tr><td><font size=\"3\" color=$color><b>Job Template Dataset :</b></td><td><b> $dataset</b></td></tr>\n";
+         }
+        }
+        if (defined $q->param("QPart") and $q->param("QPart") ne "Any") {
+         $particle = $q->param("QPart");
+         print "<tr><td><font size=\"3\" color=$color><b>Particle : </b></td><td><b> $particle</b></td></tr>\n";
+         my $particleid=$self->{tsyntax}->{particles}->{$particle};
+         $sql=$sql."PARTICLE=".$particleid." AND ";
+      }
+        if (defined $q->param("QMomI")) {
+         $qmomi = $q->param("QMomI");
+         print "<tr><td><font size=\"3\" color=$color><b>Momentum min [Gev/c] </b></td><td><b> >= $qmomi</b></td></tr>\n";
+         $sql=$sql." ENERGYMIN >= $qmomi AND ";
+      }
+        if (defined $q->param("QMomA")) {
+         my $qmoma = $q->param("QMomA");
+         print "<tr><td><font size=\"3\" color=$color><b>Momentum max [Gev/c] </b></td><td><b> =< $qmoma</b></td></tr>\n";
+         $sql=$sql." ENERGYMAX <= $qmoma AND ";
+     }
+      if (defined $dataset or $qtempany == 1) {
+# advanced query options
+        if (defined $q->param("QSetup")) {
+         $setup = $q->param("QSetup");
+         print "<tr><td><font size=\"3\" color=$color><b>Setup : </b></td><td><b> $setup</b></td></tr>\n";
+         $sql=$sql." SETUP = '$setup'  AND ";
+     }
+        if (defined $q->param("QTrType")) {
+         $trtype = $q->param("QTrType");
+         print "<tr><td><font size=\"3\" color=$color><b>Trigger Type : </b></td><td><b> $trtype</b></td></tr>\n";
+         $sql=$sql." TRTYPE= '$trtype' AND ";
+      }
+        if (defined $q->param("QSpec") and $q->param("QSpec") ne "Any" ) {
+         $spectrum = $q->param("QSpec");
+         print "<tr><td><font size=\"3\" color=$color><b>Spectrum : </b></td><td><b> $spectrum</b></td></tr>\n";
+         $sql=$sql." SPECTRUM='$spectrum' AND ";
+      }
+        if (defined $q->param("QFocus") and $q->param("QFocus") ne "Any") {
+         $focus = $q->param("QFocus");
+         print "<tr><td><font size=\"3\" color=$color><b>Focusing : </b></td><td><b> $focus</b></td></tr>\n";
+      }
+        if (defined $q->param("GCF")) {
+         my $cut = "No";
+         $cutoff = $q->param("GCF");
+         if ($cutoff == 1) {
+           $cut = "Yes"; 
+           $sql = $sql." CUTOFF=1 AND ";
+        } else {
+           $sql = $sql." CUTOFF=0 AND ";
+        }
+         print "<tr><td><font size=\"3\" color=$color><b>Geomagnetic cutoff : </b></td><td><b> $cut</b></td></tr>\n";
+     }
+       if (defined $q->param("QTempDataset") and $q->param("QTempDataset") ne "Any") {
+        if (defined $q->param("QXL") and defined $q->param("QYL") and defined $q->param("QZL")) {
+         if (defined $q->param("QXU") and defined $q->param("QYU") and defined $q->param("QZU")) {
+             $qxl=$q->param("QXL");
+             $qyl=$q->param("QYL");
+             $qzl=$q->param("QZL");
+             $qxu=$q->param("QXU");
+             $qyu=$q->param("QYU");
+             $qzu=$q->param("QZU");
+             $sql=$sql." XL=$qxl AND YL=$qyl AND ZL=$qzl AND XU=$qxu AND YU=$qyu AND ZU=$qzu AND ";
+            print "<tr><td><b><font color=$color size=3>Cube Coordinates</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td width=\"30%\"><font size=\"2\">\n";
+             print "<b> Min : X =$qxl </td><td width=\"30%\"><font size=\"2\"><b> Y =$qyl</td>\n";  
+             print "<td width=\"30%\"><font size=\"2\"><b> Z =$qzl (cm)</td>\n";  
+             print "</b></font></tr>\n";
+             print "<tr><td width=\"30%\"><font size=\"2\">\n";
+             print "<b> Max : X =$qxu </td><td width=\"30%\"><font size=\"2\"><b> Y =$qyu</td>\n";  
+             print "<td width=\"30%\"><font size=\"2\"><b> Z =$qzu (cm)</td>\n";  
+             print "</b></font></tr>\n";
+            htmlTableEnd();
+        }
+     }
+        if (defined $q->param("QCos")) {
+         $qcos = $q->param("QCos");
+         print "<tr><td><font size=\"3\" color=$color><b>Cos Theta Max : </b></td><td><b> $qcos</b></td></tr>\n";
+         $sql=$sql."COSTHETA=$qcos AND ";
+      }
+     }
+        if (defined $q->param("QPlanes") and $q->param("QPlanes") ne "Any") {
+         $qplanes = $q->param("QPlanes");
+         print "<tr><td><font size=\"3\" color=$color><b>Cube Surface Generation : </b></td><td><b> $qplanes</b></td></tr>\n";
+         $sql=$sql."SURFACE=$qplanes AND ";
+     }
+
+    }
+        if (defined $q->param("NTOUT")) {
+         my $outform=>undef;
+         my $ntchain="NTchain";
+         my $ntout=$q->param("NTOUT");
+         if ($q->param("NTOUT") eq "ALL") {
+          $outform = "List ALL NTuples matching to query";
+         } elsif ($q->param("NTOUT") eq "RUNS") { 
+          $outform = "List Runs matching to query";
+         } elsif ($q->param("NTOUT") eq "NTCHAIN") {
+          if ( defined $q->param("NTCHAIN")) {
+           $ntchain=$q->param("NTCHAIN");
+          }
+          $outform = "List  NTuples names for chain '$ntchain'";
+         } else {
+             $outform = "Print summary for NTuples matching query";
+         }
+         print "<tr><td><font size=\"3\" color=\"green\"><b>Output Format : </b></td><td><b> $outform</b></td></tr>\n";
+      print "<INPUT TYPE=\"hidden\" NAME=\"NTOUT\" VALUE=\"$ntout\">\n"; 
+      print "<INPUT TYPE=\"hidden\" NAME=\"NTCHAIN\" VALUE=\"$ntchain\">\n"; 
+
+     }
+        $sql=$sql." TIMESTAMP != 0 ORDER BY particle, run ";
+      htmlTableEnd();
+#                  RUN          NUMBER       NOT NULL
+#  $particle       PARTICLE     NUMBER(10)
+#  $qmomi          energymin    NUMBER(24)
+#  $qmoma          energymax    NUMBER(24)
+#  $trtype         TRTYPE       VARCHAR(255)
+#  $spectrum       SPECTRUM     VARCHAR(255)
+#  $setup          SETUP        VARCHAR(255)
+#  $cutoff         CUTOFF       NUMBER(3)
+#  $focus          FOCUS        VARCHAR(255)
+#  $qplanes        SURFACE      VARCHAR(255)
+#  $qcos           COSTHETA     NUMBER(10)
+#  $qxl            XL           NUMBER(24)
+#  $qyl            YL           NUMBER(24)
+#  $qzl            ZL           NUMBER(24)
+#  $qxu            XU           NUMBER(24)
+#  $qyu            YU           NUMBER(24)
+#  $qzu            XU           NUMBER(24)
+#                  timestamp    NUMBER(24)
+#
+#        print "$sql \n";
+     print "<INPUT TYPE=\"hidden\" NAME=\"SQLQUERY\" VALUE=\"$sql\">\n"; 
+     print "<input type=\"submit\" name=\"queryDB\" value=\"DoQuery\">        ";
+     htmlReturnToQuery();
+    htmlBottom();
+  } elsif ($self->{q}->param("queryDB") eq "DoQuery") {
+      htmlTop();
+      my $sql=>undef;
+      my $ntout="ALL";
+      my $totalev=0;
+      my $totalnt=0;
+      my $mintm  = time();
+      my $maxtm  = 0;
+      my $totaljobs= 0;
+      my $plist=" ";
+      my $pold=>undef;
+      if (defined $q->param("SQLQUERY")) {
+        $sql = $q->param("SQLQUERY");
+        if (defined $q->param("NTOUT")) {
+            $ntout=$q->param("NTOUT");
+        }
+       my $ret=$self->{sqlserver}->Query($sql);
+       if (defined $ret->[0][0]) {
+         my $newchain = 0;
+         foreach my $r (@{$ret}){
+             $totaljobs++;
+             my $run=$r->[0];
+             my $particleid=$r->[1];
+             my $part=>undef;
+             $sql="SELECT jobname, runs.submit FROM Jobs, Runs WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run";
+             my $r3=$self->{sqlserver}->Query($sql);
+             if (defined $r3->[0][0]) {
+              my $ts=$self->{tsyntax};
+              my %hash=%{$ts->{particles}};
+              my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$ts->{particles}};
+              foreach my $particle (@keysa){
+                if ($particleid eq $self->{tsyntax}->{particles}->{$particle}) {
+                    $part=$particle;
+                    goto PART;
+              }
+            }
+PART:       
+              my $color = Color($particleid);
+              my $jobname=>undef;
+              my $submittime=>undef;
+             
+              foreach my $job (@{$r3}) {
+                  $jobname   = $job->[0];
+                  my $submit = $job->[1];
+                  $submittime= localtime($submit);
+              }
+              if ($ntout eq "ALL" or $ntout eq "RUNS") {
+               print "<tr><td><b><font size=\"4\" color=$color> Job : $jobname , Run : $run, Particle : <i> $part </i>,  Submitted : $submittime </font></b></td></tr>\n";
+           }
+       if ($ntout eq "SUMM") {
+           if ($pold ne $part) {
+            $plist=$plist." ".$part;
+            $pold=$part;
+           }
+           $sql="SELECT COUNT(NEVENTS) From Ntuples WHERE RUN=$run";
+           my $rsum=$self->{sqlserver}->Query($sql);
+           if (defined $rsum->[0][0]) {
+            $totalnt=$totalnt+$rsum->[0][0];
+            $sql="SELECT SUM(NEVENTS) FROM Ntuples WHERE RUN=$run";
+            my $rev=$self->{sqlserver}->Query($sql);
+            if (defined $rsum->[0][0]) {
+             $totalev=$totalev+$rev->[0][0];
+            }
+            $sql="SELECT MIN(timestamp) FROM Ntuples WHERE RUN=$run";
+            my $rtm=$self->{sqlserver}->Query($sql);
+            if (defined $rtm->[0][0]) {
+                if ($mintm > $rtm->[0][0]) {
+                    $mintm=$rtm->[0][0];
+                }
+            }
+            $sql="SELECT MAX(timestamp) FROM Ntuples WHERE RUN=$run";
+            $rtm=$self->{sqlserver}->Query($sql);
+            if (defined $rtm->[0][0]) {
+                if ($maxtm < $rtm->[0][0]) {
+                    $maxtm=$rtm->[0][0];
+                }
+            }
+        }
+       }
+      if ($ntout eq "NTCHAIN") {
+        my $ntchainname=$q->param("NTCHAIN");
+        print "<TABLE BORDER=\"0\" WIDTH=\"100%\">";
+        if ($newchain == 0) {
+         print("<TR><TD width=\"10%\" align=\"Left\"><B> Chain   </B> </TD>
+                   <TD width=\"20%\" align=\"Center\"><B> Name </B></TD>
+                   <TD width=\"40%\" align=\"Center\"><B> FilePath </B></TD></TR>\n");
+         $newchain = 1;
+        }
+        $sql="SELECT PATH FROM Ntuples WHERE RUN=$run ";
+        my $r4=$self->{sqlserver}->Query($sql);
+        if (defined $r4->[0][0]) {
+            foreach my $nt (@{$r4}) {
+             my $filepath=$nt->[0];
+             print("<TR><TD width = \"10\%\" align=\"Left\"> nt/chain </TD>
+                       <TD width = \"20\%\" align=\"Center\"> $ntchainname </TD>
+                       <TD width = \"40\%\" align=\"Left\">   $filepath    </TD></TR>");
+          }
+        }
+     htmlTableEnd();
+    }
+       if ($ntout eq "ALL") {
+        print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+              print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+              print "<tr><td width=10% align=left><b><font color=\"blue\" > NTuple </font></b></td>";
+              print "<td width=10%><b><font color=\"blue\"> Events </font></b></td>";
+              print "<td width=15%><b><font color=\"blue\" > Errors </font></b></td>";
+              print "<td width=15%><b><font color=\"blue\" > Size[MB] </font></b></td>";
+              print "<td td align=middle><b><font color=\"blue\" > Produced </font></b></td>";
+              print "<td width=10%><b><font color=\"blue\" > Status </font></b></td>";
+             print "</tr>\n";
+   
+               my $jobname=$r3->[0][0];
+               $sql="SELECT PATH, NEVENTS, NEVENTSERR, TIMESTAMP, STATUS, SIZEMB FROM Ntuples WHERE RUN=$run ";
+               my $r4=$self->{sqlserver}->Query($sql);
+               if (defined $r4->[0][0]) {
+                 foreach my $nt (@{$r4}){
+                  my $time =localtime($nt->[3]);
+                  my ($wday,$mon,$day,$time,$year) = split " ",$time;
+                  my $status=$nt->[4];
+                  my $color=statusColor($status);
+                  print "<td><b> $nt->[0] </td></b><td><b> $nt->[1] </td>
+                         <td><b> $nt->[2] </b></td>
+                         <td><b> $nt->[5] </b></td>
+                         <td><b> $mon $day, $time, $year </b></td> 
+                         <td align=middle><b><font color=$color> $status </font></b></td> \n";
+                  print "</font></tr>\n";
+              }
+             }
+            htmlTableEnd();
+      }   
+         print "<BR><BR>\n";
+           }
+         }
+     }
+   } else {
+           $self->ErrorPlus("Unrecognized SQL request.");
+          }
+
+   if ($ntout eq "SUMM") {
+       my $from=localtime($mintm);
+       my $to  =localtime($maxtm);
+    print "<tr><td><b><font size=\"4\" color=\"red\"><ul>  For Particles : <i> $plist </i></b></font></td></tr>\n";
+    print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  Jobs Submitted : $totaljobs </b></font></td></tr>\n";
+    print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  $from / $to </b></font></td></tr>\n";
+    print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   NTuples : $totalnt  </b></font></td></tr>\n";
+    print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   Events : $totalev  </b></font></td></tr>\n";
+   }      
+       htmlReturnToQuery();
+      htmlBottom();
+  } else {
+   htmlTop();
+   print "<basefont face=\"verdana,arial,helvetica,sans-serif\">\n";
+   print "<table border=0   cellpadding=5 cellspacing=0 width=\"100%\">\n";
+   print "<tr bgcolor=\"#ffdc99\">\n";
+   print "<td align=left> <font size=\"-1\"><b>\n";
+   print "<a href=\"/AMS/ams_homepage.html\">AMS</a>\n";
+   print "&nbsp; <a href=\"/AMS/Computing/computing.html\">Computing</a>\n";
+   print "</b></td>\n";
+   print "<td align=right> <font size=\"-1\"> &nbsp;  <!-- top right corner  --> </font></td>\n";
+   print "</tr>\n";
+   print "<tr bgcolor=\"#ffdc9f\"><td align=center colspan=2><font size=\"+2\" color=\"#3366ff\"> <b>\n";
+   print "AMS02 MC  Database Query Form";
+   print "</b></font></td></tr>\n";
+   print "<tr bgcolor=\"#ffdc9f\">\n";
+   print "<td align=left> <font size=\"-1\"><!-- lower left text --> &nbsp;</td>\n";
+   print "<td align=right> <font size=\"-1\"> &nbsp; </font></td></tr>\n";
+   print "<tr><td colspan=2 align=right> <font size=\"-1\">\n";
+   print " </font></td></tr>\n";
+   print "</table>\n";
+   print "<p>\n";
+   print "<ul>\n";
+   print "<font size=\"3\"><TR><TD><b>\n";
+   print " This is an interface to the AMS MC02 Remote/Client Database </TD></TR> \n";
+   print "<TR><TD> \n";
+   print "All comments (to <font color=\"green\"> alexei.klimentov\@cern.ch, vitali.choutko\@cern.ch </font>) appreciated (items in <font color=\"tomato\"> tomato </font> are not implemented yet). </TD></TR>\n";
+   print "</ul>\n";
+   print "<font size=\"2\" color=\"black\">\n";
+   print "<li> Catalogues are updated nightly.\n";
+   print "<li> To browse AMS01 data and AMS02 NTuples produced before March 2002 click <a href=\"http://ams.cern.ch/AMS/Computing/dbqueryR.html\"> here </a>\n";
+   print "<p>\n";
+    print "<TR><B><font color=green size= 4> Select by key(s) (you can select multiple keys) </font>";
+    print "<p>\n";
+    print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
+    print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+# print templates files and datasets
+             my @tempnam=();
+             my $hash={};
+             foreach my $cite (@{$self->{TempT}}){
+              if(not ($cite->{filename} =~/^\./)){
+               push @tempnam, $cite->{filename};
+               $hash->{$cite->{filename}}=$cite->{filedesc};
+             }
+          }
+          print "<tr><td><b><font color=\"red\" size=2>Job Template</font></b>\n";
+          print "</td><td>\n";
+          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+          print "<tr valign=middle><td align=left><b><font color=\"tomato\" size=\"-1\"> File : </b></td> <td colspan=1>\n";
+          print "<select name=\"QTemp\" >\n";
+          print "<option value=\"Any\">  </option>\n";
+          foreach my $template (@tempnam) {
+            print "<option value=\"$template\">$template </option>\n";
+          }
+          print "</select>\n";
+          print "</b></td></tr>\n";
+           my $found=0;
+           @tempnam=();
+           $hash={};
+           my @desc=();
+           my $cite={};
+           foreach my $dataset (@{$self->{DataSetsT}}){
+                 foreach $cite (@{$dataset->{jobs}}){
+                 if(not ($cite->{filename} =~/^\./)){
+                  push @tempnam, $cite->{filename};
+                  $hash->{$cite->{filename}}=$cite->{filedesc};
+                  push @desc, $hash -> {$cite->{filename}}=$cite->{filedesc};
+                 }
+             }
+            }
+            print "<tr valign=middle><td align=left><b><font color=\"tomato\" size=\"-1\"> Dataset :</b></td><td colspan=1>\n";
+            print "<select name=\"QTempDataset\" >\n";
+            print "<option value=\"Any\">  </option>\n";
+            my $i=0;
+            foreach my $template (@tempnam) {
+             print "<option value=\"$template\">$desc[$i] </option>\n";
+             $i++;
+            }
+            print "</select>\n";
+            print "</b></td></tr>\n";
+        htmlTableEnd();
+# Run Parameters
+          print "<tr><td><b><font color=\"blue\" size=2>Run Parameters</font></b>\n";
+          print "</td><td>\n";
+          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+          print "<tr valign=middle><td align=left><b><font size=\"-1\"> Particle : </b></td> <td colspan=1>\n";
+          print "<select name=\"QPart\" >\n";
+              my $ts=$self->{tsyntax};
+              my %hash=%{$ts->{particles}};
+              my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$ts->{particles}};
+              print "<option value=\"Any\">  </option>\n";
+              foreach my $particle (@keysa) {
+                print "<option value=\"$particle\">$particle </option>\n";
+              }
+          print "</select>\n";
+          print "</b></td></tr>\n";
+            htmlTextField("Momentum min","number",7,1.,"QMomI","[GeV/c]");  
+            htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
+            htmlTextField("Setup","text",20,"AMS02","QSetup"," ");
+            htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
+           htmlTableEnd();
+# spectrum and focusing
+            print "<tr><td><b><font color=\"green\" size=2>Spectrum and Focusing</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            $ts=$self->{tsyntax};
+            @keysa=sort keys %{$ts->{spectra}};
+              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Input Spectrum : </b></td> <td colspan=1>\n";
+              print "<select name=\"QSpec\" >\n";
+              print "<option value=\"Any\">  </option>\n";
+              foreach my $spectrum (@keysa) {
+                print "<option value=\"$spectrum\">$spectrum </option>\n";
+              }
+              print "</select>\n";
+              print "</b></td></tr>\n";
+           @keysa=sort keys %{$ts->{focus}};
+              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Focusing : </b></td> <td colspan=1>\n";
+              print "<select name=\"QFocus\" >\n";
+              print "<option value=\"Any\">  </option>\n";
+              foreach my $focus (@keysa) {
+                print "<option value=\"$focus\">$focus </option>\n";
+              }
+              print "</select>\n";
+              print "</b></td></tr>\n";
+           htmlTableEnd();
+# geo magnetic cutoff
+            print "<tr><td><b><font color=\"magenta\" size=2>GeoMagnetic Cutoff</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"GCF\" VALUE=\"1\" CHECKED><b> Yes </b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"GCF\" VALUE=\"0\" ><b> No </b><BR>\n";
+             print "</b></font></td></tr>\n";
+           htmlTableEnd();
+# cube coordinates
+            print "<tr><td><b><font color=\"blue\" size=2>Cube Coordinates</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Min : X : <input type=\"number\" size=5 value=-195 name=\"QXL\"></td>\n";  
+            print "<td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYL\"></td>\n";  
+            print "<td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZL\"> (cm)</td>\n";  
+            print "</b></font></tr>\n";
+            print "<tr><td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Max : X : <input type=\"number\" size=5 value=-195 name=\"QXU\"></td>\n";  
+            print "<td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYU\"></td>\n";  
+            print "<td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZU\"> (cm)</td>\n";  
+            print "</b></font></tr>\n";
+            htmlTextField("Cos Theta Max ","number",5,0.25,"QCos"," ");
+            @keysa=sort keys %{$ts->{planes}};
+              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Cube Surface Generation : </b></td> <td colspan=1>\n";
+              print "<select name=\"QPlanes\" >\n";
+              print "<option value=\"Any\">  </option>\n";
+              foreach my $surface (@keysa) {
+                print "<option value=\"$surface\">$surface </option>\n";
+              }
+              print "</select>\n";
+              print "</b></td></tr>\n";
+           htmlTableEnd();
+      htmlTableEnd();
+   print "<p><br>\n";
+   print "<b> Print <INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ALL\" CHECKED> Full Listing\n";
+   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"RUNS\"> Only run numbers (or file names);\n";
+   print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"SUMM\"> Summary \n";
+   print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"NTCHAIN\"> NTchain <INPUT TYPE=\"text\" name=\"NTCHAIN\">";
+   print "</b><p><br>\n";
+     print "<p><br>\n";
+     print "<input type=\"submit\" name=\"queryDB\" value=\"Submit\">        ";
+     print "<input type=\"reset\" name=\"queryDB\" value=\"Reset\"></br><br>        ";
+     print "</form>\n";
+  htmlBottom();
+  }
+ }
+
+
 
 #Initial Request (just e-mail)
 
@@ -853,14 +1358,12 @@ sub Connect{
             print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=\"Advanced\" >Advanced<BR>\n";
             print "</b></font></td></tr>\n";
             print "</TABLE>\n";
-#-            if ($resp == 1) {
              print "<tr><td><b><font color=\"blue\" size=\"3\">Datasets</font></b>\n";
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
              foreach my $dataset (@{$self->{DataSetsT}}){
               print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=$dataset->{name} >$dataset->{name}<BR>\n";
-#-            }
              print "</b></font></td></tr>\n";
              print "</TABLE>\n";
           }
@@ -878,7 +1381,6 @@ sub Connect{
             $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid.");
         }
  }
-
 
     if ($self->{q}->param("Registration")){
         $self->{read}=1;
@@ -1413,7 +1915,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
             htmlTextField("Cos Theta Max ","number",5,0.25,"QCos"," ");
             @keysa=sort keys %{$ts->{planes}};
               print "<tr valign=middle><td align=left><b><font size=\"-1\"> Cube Surface Generation : </b></td> <td colspan=1>\n";
-              print "<select name=\"QFocus\" >\n";
+              print "<select name=\"QPlanes\" >\n";
               foreach my $surface (@keysa) {
                 print "<option value=\"$surface\">$surface </option>\n";
               }
@@ -1675,22 +2177,9 @@ print qq`
          <INPUT TYPE="hidden" NAME="CEM" VALUE=$cem> 
          <INPUT TYPE="hidden" NAME="DID" VALUE=0> 
 `;
-#         print "<BR>Basic Templates";
-#         my @tempnam=();
-#             my $hash={};
-#         foreach my $cite (@{$self->{TempT}}){
-#             push @tempnam, $cite->{filename};
-#             $hash->{$cite->{filename}}=$cite->{filedesc};
-#         }
-#         print $q->popup_menu(
-#          -name=>"QTemp",
-#          -values=>\@tempnam,
-#          -default=>$tempnam[0]);
-##          -labels=>$hash);
          my $ts=$self->{tsyntax};
          my %hash=%{$ts->{particles}};
          my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$ts->{particles}};
-#         my @keysa=sort keys %{$ts->{particles}};
          print "Particle";
          print $q->popup_menu(
           -name=>"QPart",
@@ -2904,6 +3393,12 @@ sub htmlReturnToMain {
             print "</i></td></tr>\n";
         }
 
+sub htmlReturnToQuery {
+            print "<p><tr><td><i>\n";
+            print "Return to <a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/rc.o.cgi?queryDB=Form\"> MC02 Query Form</a>\n";
+            print "</i></td></tr>\n";
+        }
+
 sub trimblanks {
     my @inp_string = @_;
     for (@inp_string) {
@@ -2933,6 +3428,189 @@ sub listAll {
             $self -> listDisks();
     }
     htmlBottom();
+}
+
+sub queryDB {
+    my $self = shift;
+    my $q=$self->{q};
+    if ($self->{q}->param("queryDB")) {
+        htmlTop();
+        if (defined $q->param("QTemp")) {
+            print "File : $q->param(\"QTemp\")\n";
+        }
+         htmlReturnToQuery();
+        htmlBottom();
+  } else {
+  htmlTop();
+  print "<basefont face=\"verdana,arial,helvetica,sans-serif\">\n";
+   print "<table border=0   cellpadding=5 cellspacing=0 width=\"100%\">\n";
+    print "<tr bgcolor=\"#ffdc99\">\n";
+  print "<td align=left> <font size=\"-1\"><b>\n";
+  print "<a href=\"/AMS/ams_homepage.html\">AMS</a>\n";
+  print "&nbsp; <a href=\"/AMS/Computing/computing.html\">Computing</a>\n";
+  print "</b></td>\n";
+  print "<td align=right> <font size=\"-1\"> &nbsp;  <!-- top right corner  --> </font></td>\n";
+  print "</tr>\n";
+  print "<tr bgcolor=\"#ffdc9f\"><td align=center colspan=2><font size=\"+2\" color=\"#3366ff\"> <b>\n";
+  print "AMS02 MC  Database Query Form";
+  print "</b></font></td></tr>\n";
+  print "<tr bgcolor=\"#ffdc9f\">\n";
+  print "<td align=left> <font size=\"-1\"><!-- lower left text --> &nbsp;</td>\n";
+  print "<td align=right> <font size=\"-1\"> &nbsp; </font></td></tr>\n";
+  print "<tr><td colspan=2 align=right> <font size=\"-1\">\n";
+  print " </font></td></tr>\n";
+  print "</table>\n";
+  print "<p>\n";
+  print "<ul>\n";
+  print "<font size=\"3\"><TR><TD><b>\n";
+  print " This is an interface to the AMS MC02 Remote/Client Database </TD></TR> \n";
+  print "<TR><TD> \n";
+  print "All comments (to <font color=\"green\"> alexei.klimentov\@cern.ch, vitali.choutko\@cern.ch </font>) appreciated. </TD></TR>\n";
+  print "</ul>\n";
+  print "<font size=\"2\">\n";
+  print "<li> Catalogues are updated nightly.\n";
+  print "<li> To browse AMS01 data and AMS02 NTuples produced before March 2002 click <a href=\"http://ams.cern.ch/AMS/Computing/dbqueryR.html\"> here </a>\n";
+  print "<p>\n";
+   print "<TR><B><font color=green size= 4> Select by key(s) (you can select multiple keys) </font>";
+   print "<p>\n";
+   print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+# print templates files and datasets
+             my @tempnam=();
+             my $hash={};
+             foreach my $cite (@{$self->{TempT}}){
+              if(not ($cite->{filename} =~/^\./)){
+               push @tempnam, $cite->{filename};
+               $hash->{$cite->{filename}}=$cite->{filedesc};
+             }
+          }
+          print "<tr><td><b><font color=\"red\" size=2>Job Template</font></b>\n";
+          print "</td><td>\n";
+          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+          print "<tr valign=middle><td align=left><b><font size=\"-1\"> File : </b></td> <td colspan=1>\n";
+          print "<select name=\"QTemp\" >\n";
+          print "<option value=\"Any\">  </option>\n";
+          foreach my $template (@tempnam) {
+            print "<option value=\"$template\">$template </option>\n";
+          }
+          print "</select>\n";
+          print "</b></td></tr>\n";
+           my $found=0;
+           @tempnam=();
+           $hash={};
+           my @desc=();
+           my $cite={};
+           foreach my $dataset (@{$self->{DataSetsT}}){
+                 foreach $cite (@{$dataset->{jobs}}){
+                 if(not ($cite->{filename} =~/^\./)){
+                  push @tempnam, $cite->{filename};
+                  $hash->{$cite->{filename}}=$cite->{filedesc};
+                  push @desc, $hash -> {$cite->{filename}}=$cite->{filedesc};
+                 }
+             }
+            }
+            print "<tr valign=middle><td align=left><b><font size=\"-1\"> Dataset :</b></td><td colspan=1>\n";
+            print "<select name=\"QTemp\" >\n";
+            print "<option value=\"Any\">  </option>\n";
+            my $i=0;
+            foreach my $template (@tempnam) {
+             print "<option value=\"$template\">$desc[$i] </option>\n";
+             $i++;
+            }
+            print "</select>\n";
+            print "</b></td></tr>\n";
+        htmlTableEnd();
+# Run Parameters
+          print "<tr><td><b><font color=\"blue\" size=2>Run Parameters</font></b>\n";
+          print "</td><td>\n";
+          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+          print "<tr valign=middle><td align=left><b><font size=\"-1\"> Particle : </b></td> <td colspan=1>\n";
+          print "<select name=\"QPart\" >\n";
+              my $ts=$self->{tsyntax};
+              my %hash=%{$ts->{particles}};
+              my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$ts->{particles}};
+              print "<option value=\"Any\">  </option>\n";
+              foreach my $particle (@keysa) {
+                print "<option value=\"$particle\">$particle </option>\n";
+              }
+          print "</select>\n";
+          print "</b></td></tr>\n";
+            htmlTextField("Momentum min","number",7,1.,"QMomI","[GeV/c]");  
+            htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
+            htmlTextField("Setup","text",20,"AMS02","QSetup"," ");
+            htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
+           htmlTableEnd();
+# spectrum and focusing
+            print "<tr><td><b><font color=\"green\" size=2>Spectrum and Focusing</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            $ts=$self->{tsyntax};
+            @keysa=sort keys %{$ts->{spectra}};
+              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Input Spectrum : </b></td> <td colspan=1>\n";
+              print "<select name=\"QSpec\" >\n";
+              print "<option value=\"Any\">  </option>\n";
+              foreach my $spectrum (@keysa) {
+                print "<option value=\"$spectrum\">$spectrum </option>\n";
+              }
+              print "</select>\n";
+              print "</b></td></tr>\n";
+           @keysa=sort keys %{$ts->{focus}};
+              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Focusing : </b></td> <td colspan=1>\n";
+              print "<select name=\"QFocus\" >\n";
+              print "<option value=\"Any\">  </option>\n";
+              foreach my $focus (@keysa) {
+                print "<option value=\"$focus\">$focus </option>\n";
+              }
+              print "</select>\n";
+              print "</b></td></tr>\n";
+           htmlTableEnd();
+# geo magnetic cutoff
+            print "<tr><td><b><font color=\"magenta\" size=2>GeoMagnetic Cutoff</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"GCF\" VALUE=\"1\" CHECKED><b> Yes </b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"GCF\" VALUE=\"0\" ><b> No </b><BR>\n";
+             print "</b></font></td></tr>\n";
+           htmlTableEnd();
+# cube coordinates
+            print "<tr><td><b><font color=\"blue\" size=2>Cube Coordinates</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Min : X : <input type=\"number\" size=5 value=-195 name=\"QXL\"></td>\n";  
+            print "<td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYL\"></td>\n";  
+            print "<td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZL\"> (cm)</td>\n";  
+            print "</b></font></tr>\n";
+            print "<tr><td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Max : X : <input type=\"number\" size=5 value=-195 name=\"QXU\"></td>\n";  
+            print "<td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYU\"></td>\n";  
+            print "<td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZU\"> (cm)</td>\n";  
+            print "</b></font></tr>\n";
+            htmlTextField("Cos Theta Max ","number",5,0.25,"QCos"," ");
+            @keysa=sort keys %{$ts->{planes}};
+              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Cube Surface Generation : </b></td> <td colspan=1>\n";
+              print "<select name=\"QFocus\" >\n";
+              print "<option value=\"Any\">  </option>\n";
+              foreach my $surface (@keysa) {
+                print "<option value=\"$surface\">$surface </option>\n";
+              }
+              print "</select>\n";
+              print "</b></td></tr>\n";
+           htmlTableEnd();
+    
+      htmlTableEnd();
+     print "<p><br>\n";
+#     print "<FORM METHOD=\"GET\" action=\"http://pcamsf0.cern.ch/cgi-bin/mon/rc.query.cgi\">\n";
+     print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
+     print "<input type=\"submit\" name=\"queryDB\" value=\"Submit\">        ";
+     print "<input type=\"reset\" name=\"queryDB\" value=\"Reset\"></br><br>        ";
+     print "</form>\n";
+  htmlBottom();
+ }
 }
     
 sub listCites {
@@ -3443,4 +4121,12 @@ sub statusColor {
                $color = "red";
            }
     return $color;
+}
+
+sub Color {
+    my $color  = shift;
+    while ($color > $#colors) {
+        $color = $color/$#colors+1;
+    }
+    return $colors[$color];
 }

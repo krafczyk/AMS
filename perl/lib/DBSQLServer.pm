@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.18 2002/03/28 15:34:40 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.19 2002/04/01 12:03:13 alexei Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -104,17 +104,6 @@ sub Create{
 
 
     my @tables=("filesystems", "Cites","Mails" ,"Jobs", "Servers", "Runs","Ntuples","DataSets", "Environment");
-#    (fid         CHAR(4) NOT NULL,   # file system ID
-#     host    VARCHAR(40),            # Host name
-#     disk    VARCHAR(20),            # disk mount point
-#     path    VARCHAR(255),           # DST directory path
-#     totalsize    INT,               # disk size GB
-#     occupied     INT,               #           GB
-#     available    INT,               #           GB
-#     allowed      INT,               #           GB
-#     status   CHAR(40),              # Active, Dead, Full, -NFS, WaterMark
-#     priority     INT,               # use first disks with highest priority
-#     timestamp    INT)",             # last updated
     my @createtables=("    CREATE TABLE filesystems
     (fid         CHAR(4) NOT NULL,   
      host    VARCHAR(40),            
@@ -291,6 +280,80 @@ sub Create{
   } else {
     warn "Table Cites has $cnt entries. Not initialized";
  }
+
+    $cnt = 0;
+   if($self->{dbdriver} =~ m/Oracle/){
+    $sql="SELECT COUNT(fid) FROM filesystems";
+    $cntr=$self->Query($sql);
+    foreach my $ret (@{$cntr}) {
+        $cnt = $ret->[0];
+    }
+}
+  if ($cnt == 0) {
+   my $time=time();
+   $dbh->do("INSERT INTO filesystems VALUES
+    (1,'pcamsa0','/a0dah1','/AMS02/MC/ntuples',87,87,0,30,0,'Full',0,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (2,'pcamsa0','/a0dat1','/AMS02/MC/ntuples',53,43,10,20,0,'Active',0,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (3,'pcamsa0','/a0dat2','/AMS02/MC/ntuples',53,48,5,20,0,'Active',0,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (4,'pcamsp0','/p0dah1','/AMS02/MC/ntuples',97,87,5,20,0,'Active',0,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (5,'pcamsp0','/p0dat1','/AMS02/MC/ntuples',105,86,13,20,0,'Active',0,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (6,'pcamsp1','/p1dah1','/AMS02/MC/ntuples',65,60,1,20,0,'Full',0,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (7,'pcamsp1','/p1dat1','/AMS02/MC/ntuples',98,84,9,20,0,'Active',0,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (8,'pcamsf0','/f0dat0','/AMS02/MC/ntuples',33,25,6,20,0,'Active',0,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (9,'pcamsf0','/f0dat1','/AMS02/MC/ntuples',246,218,16,240,0,'Active',0,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (10,'pcamsf0','/f0dah0','/AMS02/MC/ntuples',147,128,17,70,0,'Active',0,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (11,'pcamsf0','/f0dah1','/AMS02/MC/ntuples',123,108,9,60,0,'Active',0,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (12,'pcamsf2','/f2dat0','/AMS02/MC/ntuples',30,1,28,20,0,'Active',1,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (13,'pcamsf2','/f2dat1','/AMS02/MC/ntuples',1040,816,1,600,0,'Active',1,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (14,'pcamsf3','/f3dah0','/AMS02/MC/ntuples',70,18,48,50,0,'Active',1,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (15,'pcamsf3','/f3dah1','/AMS02/MC/ntuples',269,128,126,120,0,'Active',1,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (16,'pcamsf4','/f4dat1','/AMS02/MC/ntuples',523,113,404,400,0,'Active',1,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (17,'pcamsf5','/f5dah1','/AMS02/MC/ntuples',190,161,18,40,0,'Active',1,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+    (18,'pcamsf5','/f5dah2','/AMS02/MC/ntuples',76,69,4,40,0,'Active',0,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+     (19,'pcamst0','/t0dah0','/AMS02/MC/ntuples',102,96,1,30,0,'Full',1,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("INSERT INTO filesystems VALUES
+     (20,'pcamst0','/t0dah1','/AMS02/MC/ntuples',73,70,1,20,0,'Full',0,$time)")
+    or die "cannot do: ".$dbh->errstr();    
+  } else {
+    warn "Table Filesystems has $cnt entries. Not initialized";
+  }
  
     $cnt = 0;
      if($self->{dbdriver} =~ m/Oracle/){
