@@ -253,7 +253,7 @@ Below there is a description of a  ntuple.
 * R*4  *              * ANTIMCCL * AntiMCedep(nantimc)   // energy dep (GeV)
 
 
- * I*4  * [0,1]       * LVL3     * nlvl3                 // lvl3trigger number 
+ * I*4  * [0,2]       * LVL3     * nlvl3                 // lvl3trigger number 
  * I*4  *             * LVL3     * LVL3TOFTr(nlvl3)      // TOF Trigger
  * I*4  *             * LVL3     * LVL3AntiTr(nlvl3)     // Anti Trigger
  * I*4  *             * LVL3     * LVL3TrackerTr(nlvl3)  // TrackerTrigger
