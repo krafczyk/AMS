@@ -48,7 +48,7 @@ Below there is a description of a  ntuple.
 * I*4  *              * EVENTH   * AntiClusters     // No of Anti clusters
 * I*4  *              * EVENTH   * EcalClusters     // No of ECAL Clusters
 * I*4  *              * EVENTH   * EcalHits         // No of ECAL Hits
-* I*4  *              * EVENTH   * EventStatus      // EventStatus (see status.doc)
+* I*4  *              * EVENTH   * EventStatus(2)   // EventStatus (see status.doc)
 
 
 * I*4  * [0,10]       * BETA     * nbeta              // betas number

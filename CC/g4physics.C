@@ -5,13 +5,14 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.14 2000/09/01 14:24:00 choutko Exp $
+// $Id: g4physics.C,v 1.15 2000/09/05 13:40:55 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
 
 
 #include <g4physics.h>
+#include <g4xray.h>
 #include <cern.h>
 #include <commons.h>
 #include <amsstl.h>
@@ -84,13 +85,20 @@ void AMSG4Physics::ConstructProcess()
 
   if(GCPHYS.ILOSS)ConstructEM();
   if(GCPHYS.IHADR)ConstructHad();
+  if(TRDMCFFKEY.mode>=0)ConstructXRay();
   if(GCTLIT.ITCKOV)ConstructOp();
   ConstructGeneral();
 }
 
+
 #include "G4ComptonScattering.hh"
 #include "G4GammaConversion.hh"
 #include "G4PhotoElectricEffect.hh"
+
+#include "G4LowEnergyCompton.hh"
+#include "G4LowEnergyGammaConversion.hh"
+#include "G4LowEnergyPhotoElectric.hh"
+#include "G4LowEnergyRayleigh.hh"
 
 #include "G4MultipleScattering.hh"
 
@@ -125,8 +133,8 @@ void AMSG4Physics::ConstructEM()
       pmanager->AddDiscreteProcess(new G4LowEnergyRayleigh());
       pmanager->AddDiscreteProcess(new G4LowEnergyGammaConversion());
 */
-
-    } else if (particleName == "e-") {
+    }
+    else if (particleName == "e-") {
     //electron
       // Construct processes for electron
       G4VProcess* theeminusMultipleScattering = new G4MultipleScattering();
@@ -703,6 +711,30 @@ void AMSG4Physics::ConstructOp()
   }
 }
 
+void AMSG4Physics::ConstructXRay()
+{
+  G4cout << " Construction TR Processes "<<endl;
+  G4XRayTRDP*   pd = new G4XRayTRDP("XRayDiscrete");
+  G4XRayTRCP*   pc = new G4XRayTRCP("XRayCont");
+
+  theParticleIterator->reset();
+  while( (*theParticleIterator)() ){
+    G4ParticleDefinition* particle = theParticleIterator->value();
+    G4ProcessManager* pmanager = particle->GetProcessManager();
+    G4String particleName = particle->GetParticleName();
+    if (pd->IsApplicable(*particle))pmanager->AddDiscreteProcess(pd);
+    if (pc->IsApplicable(*particle))pmanager->AddContinuousProcess(pc);
+      if (particleName == "xrayphoton") {
+      cout <<" Add Discrete Procs to xrayphoton "<<endl; 
+      pmanager->AddDiscreteProcess(new G4LowEnergyPhotoElectric() );
+      pmanager->AddDiscreteProcess(new G4LowEnergyCompton());
+      pmanager->AddDiscreteProcess(new G4LowEnergyRayleigh());
+      pmanager->AddDiscreteProcess(new G4LowEnergyGammaConversion());
+
+    } 
+  }
+}
+
 
 
 #include "G4Decay.hh"
@@ -735,6 +767,7 @@ void AMSG4Physics::SetCuts()
   // set cut values for gamma at first and for e- second and next for e+,
   // because some processes for e+/e- need cut values for gamma
   SetCutValue(cut, "gamma");
+  SetCutValue(cut/10., "xrayphoton");
   SetCutValue(cut/10., "e-");
   SetCutValue(cut/10., "e+");
 
@@ -763,6 +796,7 @@ void AMSG4Physics::ConstructAllBosons()
   // Construct all bosons
   G4BosonConstructor pConstructor;
   pConstructor.ConstructParticle();
+  G4XRay::XRayDefinition;
 }
 
 void AMSG4Physics::ConstructAllLeptons()
@@ -897,9 +931,12 @@ for(ipart=0;ipart<1000;ipart++){
         else if(g3pid[ipart]==48){
           g3tog4p[ipart]=ppart->FindParticle("geantino");
         }
-        else{
+        else if(g3pid[ipart]==50){
           g3tog4p[ipart]=ppart->FindParticle("opticalphoton");
         }
+        else{
+          g3tog4p[ipart]=ppart->FindParticle("xrayphoton");
+        } 
 //       cout <<" b "<<g3pid[ipart]<<" "<<g3tog4p[ipart]->GetParticleName()<<endl;
      }
      else{

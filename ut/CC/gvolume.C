@@ -403,8 +403,16 @@ integer AMSgvolume::_Norp=0;
      }
      _pg4l= new G4LogicalVolume(psolid,_pgtmed->getpgmat()->getpamsg4m(),G4String(_name));    
      if(_pgtmed->IsSensitive()){
-      _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD()); 
       _pg4l->SetUserLimits(new AMSUserLimits());
+      if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==1){
+       _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(1));  // Radiator
+      }
+      else if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==3){
+       _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(2));  //Gas
+      }
+      else{
+      _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD()); 
+      }
      }
 // Add user limits 
      else {

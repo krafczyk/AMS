@@ -1720,6 +1720,8 @@ C.
      +UBUF,0)
       CALL GSPART(49,'HE3C        ',itrt,2.80923 ,+2.,1.000000E+15,
      +UBUF,0)
+      CALL GSPART( 51,'XRAY$      ',1,0.      , 0.,1.E+15,UBUF,0)
+
       CALL GAPIONS(ITRT)
 *
       END
@@ -9091,9 +9093,12 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.57 2000/09/01 14:24:03 choutko Exp $
+* $Id: amstkshc++.F,v 1.58 2000/09/05 13:41:00 choutko Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.58  2000/09/05 13:41:00  choutko
+* TR radiation g4
+*
 * Revision 1.57  2000/09/01 14:24:03  choutko
 * rndm
 *

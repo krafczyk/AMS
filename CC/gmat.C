@@ -89,15 +89,15 @@ void AMSgtmed::_init(){
     CUTGAM(1.01e-6);
 //   GSTPAR(_itmed,"CUTGAM",1.01e-6);
   }
-  if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd && _uwbuf[1]>0){
-   if(IsSensitive()){
+  if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd && _uwbuf[1]>0 && _uwbuf[2]==3){
+   if(IsSensitive() ){
      CUTELE(20.01e-6);
 //    GSTPAR(_itmed,"CUTELE",20.01e-6);
     GSTPAR(_itmed,"DCUTE",1.8e-6);
     GSTPAR(_itmed,"STRA",1);
    }
   }
-  else if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd ){
+  else if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd  && _uwbuf[2]==3){
    if(IsSensitive()){
     CUTELE(35.01e-6);
 //    GSTPAR(_itmed,"CUTELE",35.01e-6);
@@ -382,7 +382,7 @@ tmed.add (new AMSgtmed("MAGNET","MAGNET",0));
  integer nwbuf=5;
 #ifdef __G4AMS__
 if (MISCFFKEY.G4On){
-uwbuf[0]=0;
+ uwbuf[0]=0;
 }
 else{
 #endif
@@ -564,7 +564,8 @@ geant uwbuf[5];
 integer nwbuf=5;
 #ifdef __G4AMS__
 if (MISCFFKEY.G4On){
-uwbuf[0]=0;
+ uwbuf[0]=0;
+ uwbuf[0]=TRDMCFFKEY.g3trd;
 }
 else{
 #endif
@@ -609,7 +610,7 @@ else{
  uwbuf[3]=TRDMCFFKEY.alpha;
  uwbuf[4]=TRDMCFFKEY.beta;
 }
-AMSgtmed * prad=new AMSgtmed("TRDRadiator","TRDRadiator",0);
+AMSgtmed * prad=new AMSgtmed("TRDRadiator","TRDRadiator",1);
 prad->setubuf(nwbuf,uwbuf);
 tmed.add (prad);
 

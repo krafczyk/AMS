@@ -24,6 +24,7 @@
 #include "G4Exception.hh"
 #include "G4StateManager.hh"
 #include "G4ApplicationState.hh"
+#include <g4xray.h>
 #ifdef G4VIS_USE
 #include <g4visman.h>
 #endif
@@ -515,19 +516,23 @@ void AMSG4RotationMatrix::Test(){
 }
 
 
-AMSG4DummySD* AMSG4DummySD::_pSD=0;
+AMSG4DummySD** AMSG4DummySD::_pSD=0;
 integer AMSG4DummySDI::_Count=0;
 
 AMSG4DummySDI::AMSG4DummySDI(){
 if(!_Count++){
+ AMSG4DummySD::_pSD=new AMSG4DummySD*[3];
  AMSG4DummySD::pSD()=new AMSG4DummySD();
+ AMSG4DummySD::pSD(1)=new AMSG4DummySD("AMSG4TRDRadiator");
+ AMSG4DummySD::pSD(2)=new AMSG4DummySD("AMSG4TRDGas");
 }
 }
 
 AMSG4DummySDI::~AMSG4DummySDI(){
  if(--_Count==0){
-  delete AMSG4DummySD::pSD();
- }
+  for(int i=0;i<3;i++)delete AMSG4DummySD::pSD(i);
+  delete[] AMSG4DummySD::_pSD;
+}
 }
 #include "G4SteppingManager.hh"
 #include "G4Track.hh"
@@ -563,6 +568,10 @@ void AddTotalEnergyDeposit(G4double value)
 void ResetTotalEnergyDeposit()
 G4SteppingControl GetControlFlag() const
 void SetControlFlag(G4SteppingControl StepControlFlag)
+
+//
+// TR Radiation Here
+// 
 
 */
 //       cout <<" stepping in"<<endl;
@@ -606,6 +615,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      GCTRAK.vect[6]=GCTRAK.getot*PostPoint->GetBeta();
      GCTRAK.tofg=PostPoint->GetGlobalTime()/second;
      G4Track * Track = Step->GetTrack();
+
+
 
 /* 
      Some stuff about track
@@ -685,6 +696,17 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
   // Now one has decide based on the names of volumes (or their parents)
      G4VPhysicalVolume * Mother=PrePV->GetMother();
      G4VPhysicalVolume * GrandMother= Mother?Mother->GetMother():0;
+//---------
+// TRD
+     if(GCTRAK.destep && PrePV->GetName()[0]=='T' && PrePV->GetName()[1]=='R' 
+     &&  PrePV->GetName()[2]=='D' && PrePV->GetName()[3]=='T'){
+//       cout <<" trd "<<endl;
+        AMSTRDMCCluster::sitrdhits(PrePV->GetCopyNo(),GCTRAK.vect,
+        GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart);   
+     }
+
+
+
 //-----------------------      
 //  Tracker
      if(GCTRAK.destep && GrandMother && GrandMother->GetName()[0]=='S' 

@@ -121,6 +121,7 @@ class AMSgtmed : public AMSNode
    else     for(int i=0;i<3;i++)_birks[i]=0;
   }
   void setubuf(int nwbuf, geant uwbuf[]);
+  float  getubuf(uinteger i){return i<_nwbuf?_uwbuf[i]:0;}
   AMSgtmed * next(){return (AMSgtmed *)AMSNode::next();}
   AMSgtmed * prev(){return (AMSgtmed *)AMSNode::prev();}
   AMSgtmed * up(){return   (AMSgtmed *)AMSNode::up();}

@@ -55,6 +55,7 @@ include/geant4.h,geantnamespace.h     <<  gukine,guout,gustep etc
 CC/g4physics.C   <<- physics
 
 include,CC/g4util.h,C << utilities (rndm etc)  
+include,CC/g4xray.h,C << transition radiaton (g3 based)
 -----------
 Modified files
 
@@ -135,10 +136,17 @@ via <g4util> ::book & ::hrndm1  ones
 
 random sequence doesn' work yet on geant4 (geant4 bugs)
 
+Transition Radiation
+----------------------
+
+Based on geant3 transition radiation generator + geant4 low energy
+photon propagation & absorbtion. Need to be tested
+
+
 To be done
 -----------------
 
-Transition Radiation
+
 
 
 

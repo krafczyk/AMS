@@ -93,15 +93,16 @@ class G4Step;
 class AMSG4DummySD : public G4VSensitiveDetector
 {
 protected:
-static AMSG4DummySD* _pSD;
+static AMSG4DummySD** _pSD;
 public:
-  AMSG4DummySD():G4VSensitiveDetector("AMSG4dummySD"){};
+  AMSG4DummySD(char * name=0):G4VSensitiveDetector(name==0?"AMSG4dummySD":name){};
   ~AMSG4DummySD() {};
 
   void Initialize(G4HCofThisEvent*HCE) {};
   G4bool ProcessHits(G4Step*aStep,G4TouchableHistory*ROhist) {return false;}
   void EndOfEvent(G4HCofThisEvent*HCE) {};
-  static AMSG4DummySD* & pSD(){return _pSD;}
+  static AMSG4DummySD* & pSD(uinteger i=0){return _pSD[i];}
+friend class AMSG4DummySDI;
 };
 
 class AMSG4DummySDI{

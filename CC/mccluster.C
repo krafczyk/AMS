@@ -58,9 +58,11 @@ stream <<"AMSTRDMCCluster "<<_idsoft<<" "
 }
 
 void AMSTRDMCCluster::init(){
-#ifdef __G4AMS__
-if(MISCFFKEY.G3On){
-#endif
+// at the momenent : homemade trd also for g4
+
+//#ifdef __G4AMS__
+//if(MISCFFKEY.G3On){
+//#endif
 if(TRDMCFFKEY.mode<3 && TRDMCFFKEY.mode>=0){
 indetra_();
 cout<< "AMSJob::_sitrdinitjob-I-TRDOption "<<TRDMCFFKEY.mode<<" Initialized"<<endl;
@@ -69,9 +71,9 @@ else if(TRDMCFFKEY.mode==3){
 cerr<< "AMSJob::_sitrdinitjob-F-Option "<<TRDMCFFKEY.mode<<" NotYetImplemented"<<endl;
 exit(1);
 }
-#ifdef __G4AMS__
-}
-#endif
+//#ifdef __G4AMS__
+//}
+//#endif
 }
 
 
