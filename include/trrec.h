@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.54 2001/07/13 17:07:01 choutko Exp $
+//  $Id: trrec.h,v 1.55 2001/08/10 12:59:47 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -363,7 +363,7 @@ AMSTrTrack *  next(){return (AMSTrTrack*)_next;}
 AMSTrTrack (integer pattern, integer nhits, AMSTrRecHit * phit[]): 
 AMSlink(0,0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0)
   {init(  phit);}
-AMSTrTrack(AMSDir dir, AMSPoint point);
+AMSTrTrack(AMSDir dir, AMSPoint point,number rig=10000000,number errig=10000000);
 AMSTrTrack(number theta, number phi, AMSPoint point);
 void init( AMSTrRecHit * phit[]);
 static integer build(integer refit=0);

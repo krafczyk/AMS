@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.131 2001/08/09 15:16:32 choutko Exp $
+//  $Id: trrec.C,v 1.132 2001/08/10 12:59:39 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -3039,9 +3039,9 @@ uinteger AMSTrTrack::encodeaddress(integer ladder[2][trconst::maxlay]){
    return address;
 }
 
-AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point):AMSlink(0,0),
+AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point, number rig, number errig):AMSlink(0,0),
 _Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),
-_Ridgidity(10000000),_ErrRidgidity(10000000),_Chi2FastFit(1000000){
+_Ridgidity(rig),_ErrRidgidity(errig),_Chi2FastFit(1000000){
  for(int i=0;i<trconst::maxlay;i++){
   _Pthit[i]=0;
  }

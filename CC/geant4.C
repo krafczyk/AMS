@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.39 2001/01/22 17:32:20 choutko Exp $
+//  $Id: geant4.C,v 1.40 2001/08/10 12:59:39 choutko Exp $
 #include <job.h>
 #include <event.h>
 #include <trrec.h>
@@ -154,7 +154,7 @@ AMSJob::gethead()->getg4generator()->Reset();
 // create new event & initialize it
   if(AMSJob::gethead()->isSimulation()){
     AMSgObj::BookTimer.start("GEANTTRACKING");
-   if(IOPA.mode !=1 ){
+   if(IOPA.mode%10 !=1 ){
     AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
     new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0)));
     for(integer i=0;i<CCFFKEY.npat;i++){
@@ -172,7 +172,7 @@ AMSJob::gethead()->getg4generator()->Reset();
    }
    else {
     AMSIO io;
-    if(io.read()){
+    if(IOPA.mode/10?io.readA():io.read()){
      AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
      new AMSEvent(AMSID("Event",io.getevent()),io.getrun(),0,io.gettime(),io.getnsec(),
      io.getpolephi(),io.getstheta(),io.getsphi(),io.getveltheta(),

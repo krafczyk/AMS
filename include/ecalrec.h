@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.12 2001/08/07 15:21:24 choutko Exp $
+//  $Id: ecalrec.h,v 1.13 2001/08/10 12:59:46 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -333,6 +333,9 @@ AMSPoint getEntryPoint()const {return _EntryPoint;}
 AMSPoint getExitPoint()const {return _ExitPoint;}
 AMSPoint getCofG()const {return _CofG;}
 AMSDir getDir()const {return _Dir;}
+number getEnergy()const {return _EnergyC;}
+number getEnergyErr()const{return _ErrEnergyC;}
+integer getDirection() const{return _Direction==0?1:-1;}
 };
 
 #endif

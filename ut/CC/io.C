@@ -1,4 +1,4 @@
-//  $Id: io.C,v 1.23 2001/01/22 17:32:20 choutko Exp $
+//  $Id: io.C,v 1.24 2001/08/10 12:59:39 choutko Exp $
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <io.h>
@@ -38,8 +38,8 @@ void AMSIO::init(integer mode,integer format){
   enum open_mode{binary=0x80};
 
   if(fnam){
-    if(mode ==1 ) {
-        fbin.open(fnam,ios::in|binary);
+    if(mode%10 ==1 ) {
+        fbin.open(fnam,ios::in);
         if(fbin && SELECTFFKEY.Run){
           // read one by one 
           AMSIO io;
@@ -52,7 +52,7 @@ void AMSIO::init(integer mode,integer format){
           number theta,phi,pole;
           time_t time;
           while(ok){
-           ok=io.read();
+           ok=mode/10?io.readA():io.read();
            if(ok){
              seed0=io.getseed(0);
              seed1=io.getseed(1);
@@ -220,6 +220,20 @@ void AMSIO::write(){
 #endif
 #endif
 }
+integer AMSIO::readA(){
+   if(fbin.good() && !fbin.eof()){
+
+fbin >>_run >> _event >> _time >> _ipart ;
+fbin >>_seed[0]>>_seed[1];
+fbin >>_coo[0]>>_coo[1]>>_coo[2];
+fbin >>_dir[0]>>_dir[1]>>_dir[2];
+fbin >>_mom>>_polephi>>_stationtheta>>_stationphi;
+fbin>>_nskip>>_rflight>>_velphi>>_veltheta>>_yaw>>_pitch>>_roll;
+fbin>>_angvel>>_nsec;
+}
+   return fbin.good() && !fbin.eof();
+}
+
 integer AMSIO::read(){
    if(fbin.good() && !fbin.eof()){
      fbin.read((char*)this,sizeof(AMSIO)-CCFFKEY.oldformat*8*sizeof(geant));

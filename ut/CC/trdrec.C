@@ -859,3 +859,20 @@ geant AMSTRDTrack::_TimeLimit=0;
 bool AMSTRDTrack::_NoMoreTime(){
 return _TimeLimit>0? _CheckTime()>_TimeLimit: _CheckTime()>AMSFFKEY.CpuLimit;
 }
+
+
+
+bool AMSTRDTrack::IsEcalCandidate(){
+
+// very stupid function;
+// should be replaced by smth more reasonable
+   int hmul=0;
+   int mul=0;
+   for(int i=0;i<_Base._NHits;i++){
+    mul+=_Base._PCluster[i]->getmult();
+    hmul+=_Base._PCluster[i]->gethmult();
+   }
+   if(hmul>trdconst::maxlay/5 && hmul<trdconst::maxlay*4/5+1)return true;
+   else return false;   
+
+}

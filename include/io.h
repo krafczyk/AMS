@@ -1,4 +1,4 @@
-//  $Id: io.h,v 1.12 2001/01/22 17:32:44 choutko Exp $
+//  $Id: io.h,v 1.13 2001/08/10 12:59:46 choutko Exp $
 // Author V. Choutko 2-feb-1997
 //
 // Feb  10, 1997.  ak.  implement friend class
@@ -66,6 +66,7 @@ geant getroll() const{return _roll;}
 geant getpitch() const{return _pitch;}
 geant getangvel() const{return _angvel;}
 integer read();
+integer readA();
 void close(){ fbin.close();}
 integer getseed(integer i){return i>=0 && i<2 ? _seed[i] : 0;} 
 static void setfile(char *f);

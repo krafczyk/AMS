@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.198 2001/08/03 17:28:08 choutko Exp $
+#  $Id: datacards.doc,v 1.199 2001/08/10 12:59:46 choutko Exp $
 Datacards
 
 // Protection from some myst bug
@@ -67,6 +67,7 @@ I45    TriggerC('AMSParticle')   // Container names, separated by
                                  // the ntuple and/or db
 I85    mode(0)                   // 4th vectors i/0 mode switch
                                  // 0 - nothing 1 -read 2 - write 3 - append
+                                 // 10+ -> ascii file
 I86   ffile(' ')                 // 4th vectors file name
 I126  MaxNtupleEntries(100000)   // max entries for ntuples( 0==inf)
 I127  WriteRoot(0)               // write (!0) or nott write(0) root file

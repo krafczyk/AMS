@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.55 2001/08/03 09:14:04 choutko Exp $
+//  $Id: geant3.C,v 1.56 2001/08/10 12:59:38 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -644,7 +644,7 @@ try{
 // create new event & initialize it
   if(AMSJob::gethead()->isSimulation()){
     AMSgObj::BookTimer.start("GEANTTRACKING");
-   if(IOPA.mode !=1 ){
+   if(IOPA.mode%10 !=1 ){
     AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
     new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0)));
     for(integer i=0;i<CCFFKEY.npat;i++){
@@ -660,7 +660,7 @@ try{
    }
    else {
     AMSIO io;
-    if(io.read()){
+    if(IOPA.mode/10?io.readA():io.read()){
      AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
      new AMSEvent(AMSID("Event",io.getevent()),io.getrun(),0,io.gettime(),io.getnsec(),
      io.getpolephi(),io.getstheta(),io.getsphi(),io.getveltheta(),

@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.4 2001/08/01 13:28:51 choutko Exp $
+//  $Id: trdrec.h,v 1.5 2001/08/10 12:59:47 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include <trdid.h>
@@ -45,6 +45,9 @@ inline integer Good() {
   return ((TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0)
              && checkstatus(AMSDBc::GOOD));
 }
+uinteger getmult()const{return _Multiplicity;}
+uinteger gethmult()const {return _HighMultiplicity;}
+
 AMSTRDCluster *  next(){return (AMSTRDCluster*)_next;}
 void resethash(integer i, AMSlink *head){
 if(i>=0 && i <TRDDBc::nlay())_Head[i]=(AMSTRDCluster*)head;
@@ -203,6 +206,7 @@ static integer Out(integer status);
 AMSPoint getCooStr()const {return _StrLine._Coo;}
 AMSDir getCooDirStr()const {return AMSDir(_StrLine._Theta,_StrLine._Phi);}
 AMSPoint getECooStr()const {return _StrLine._ErCoo;}
+bool IsEcalCandidate();
 AMSTRDTrack *  next(){return (AMSTRDTrack*)_next;}
 integer operator < (AMSlink & o) const {
  
