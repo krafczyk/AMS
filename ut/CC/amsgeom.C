@@ -98,6 +98,7 @@ if(!G4FFKEY.UniformMagField){
  trdgeom02(mother);
  srdgeom02(mother);
  ecalgeom02(mother);
+ // richgeom02(mother);
 }
 #else
  trdgeom02(mother);
@@ -3296,7 +3297,7 @@ void richgeom02(AMSgvolume & mother)
 	    par[1]=RICotherthk/2; // Thickness: 1mm
 	    par[2]=3.5+RICGEOM.light_guides_height/2;
 	    coo[0]=0;
-	    coo[1]=RICGEOM.light_guides_length/2-RICotherthk;
+	    coo[1]=RICGEOM.light_guides_length/2-RICotherthk/2;
 	    coo[2]=0;
 	    
 	    dummy=p->add(new AMSgvolume("RICH SHIELD",
@@ -3474,6 +3475,281 @@ void richgeom02(AMSgvolume & mother)
 	    // the "MANY" flag... I hope to change this in the future
 
 
+	    //	    AMSNode *lg;
+
+#ifdef __G4AMS__
+
+	    AMSgvolume *lg;
+
+	    par[0]=RICGEOM.light_guides_length/2-RICotherthk;
+	    par[1]=RICGEOM.light_guides_length/2-RICotherthk;
+	    par[2]=RICGEOM.light_guides_height/2;
+
+	    coo[0]=0;
+	    coo[1]=0;
+	    coo[2]=3.5;
+
+	    lg=dynamic_cast<AMSgvolume*>
+	      (p->add(new AMSgvolume("VACUUM",
+				     0,
+				     "LGBO",
+				     "BOX",
+				     par,
+				     3,
+				     coo,
+				     nrm,
+				     "BOOL",
+				     posp,
+				     1,
+				     rel)));
+	    
+	    
+	    
+	    geant a1=atan2(RICGEOM.light_guides_length/2-RICotherthk-.875,
+			 RICGEOM.light_guides_height)*180/3.1415926;
+
+	    geant a2=atan2((RICGEOM.light_guides_length/2-RICotherthk-.875)/2,
+			   RICGEOM.light_guides_height)*180/3.1415926;
+
+	    geant d1=.875-RIClgthk/2+RICGEOM.light_guides_height/2*tan(a1*3.1415926/180);
+	    
+	    geant d2=(.875-RIClgthk/2)/2+RICGEOM.light_guides_height/2*tan(a2*3.1415926/180);
+
+	    par[0]=RICGEOM.light_guides_height/2;
+	    par[1]=a1;
+	    par[2]=90;
+	    par[3]=RIClgthk/2;
+	    par[4]=0.875;
+	    par[5]=0.875;
+	    par[6]=0;
+	    par[7]=RIClgthk/2;
+	    par[8]=RICGEOM.light_guides_length/2-RICotherthk;
+	    par[9]=RICGEOM.light_guides_length/2-RICotherthk;
+	    par[10]=0;
+
+	    coo[0]=0;
+	    coo[1]=d1;
+	    coo[2]=0;
+
+	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
+					  0,
+					  "MIRA",
+					  "TRAP",
+					  par,
+					  11,
+					  coo,
+					  nrm,
+					  "BOO+",
+					  posp,
+					  1,
+					  rel));
+	    coo[0]=-d1;
+	    coo[1]=0;
+
+	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
+					  RICnrot,
+					  "MIRA",
+					  "TRAP",
+					  par,
+					  11,
+					  coo,
+					  nrma,
+					  "BOO+",
+					  posp,
+					  2,
+					  rel));
+
+	    
+	    
+	    par[0]=RICGEOM.light_guides_height/2;
+	    par[1]=a2;
+	    par[2]=90;
+	    par[3]=RIClgthk/2;
+	    par[4]=0.875;
+	    par[5]=0.875;
+	    par[6]=0;
+	    par[7]=RIClgthk/2;
+	    par[8]=RICGEOM.light_guides_length/2-RICotherthk;
+	    par[9]=RICGEOM.light_guides_length/2-RICotherthk;
+	    par[10]=0;
+
+	    coo[0]=0;
+	    coo[1]=d2;
+	    coo[2]=0;
+
+
+
+	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
+					  0,
+					  "MIRB",
+					  "TRAP",
+					  par,
+					  11,
+					  coo,
+					  nrm,  // Rotated 90 degrees
+					  "BOO+",
+					  posp,
+					  1,
+					  rel));
+	    coo[0]=-d2;
+	    coo[1]=0;
+
+	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
+					  RICnrot,
+					  "MIRB",
+					  "TRAP",
+					  par,
+					  11,
+					  coo,
+					  nrma,  // Rotated 90 degrees
+					  "BOO+",
+					  posp,
+					  2,
+					  rel));
+
+
+	    par[0]=RICGEOM.light_guides_height/2;;
+	    par[1]=0;
+	    par[2]=90;
+	    par[3]=RIClgthk/2;
+	    par[4]=0.875;
+	    par[5]=0.875;
+	    par[6]=0;
+	    par[7]=RIClgthk/2;
+ 	    par[8]=RICGEOM.light_guides_length/2-RICotherthk;
+	    par[9]=RICGEOM.light_guides_length/2-RICotherthk;
+	    par[10]=0;
+
+	    coo[0]=0;
+	    coo[1]=0;
+	    coo[2]=0;
+
+
+	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
+					  0,
+					  "MIRC",
+					  "TRAP",
+					  par,
+					  11,
+					  coo,
+					  nrm,  // Rotated 90 degrees
+					  "BOO+",
+					  posp,
+					  1,
+					  rel));
+
+	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
+					  RICnrot,
+					  "MIRC",
+					  "TRAP",
+					  par,
+					  11,
+					  coo,
+					  nrm,  // Rotated 90 degrees
+					  "BOO+",
+					  posp,
+					  2,
+					  rel));
+
+
+	    par[0]=RICGEOM.light_guides_height/2;
+	    par[1]=a1;
+	    par[2]=270;
+	    par[3]=RIClgthk/2;
+	    par[4]=0.875;
+	    par[5]=0.875;
+	    par[6]=0;
+	    par[7]=RIClgthk/2;
+	    par[8]=RICGEOM.light_guides_length/2-RICotherthk;
+	    par[9]=RICGEOM.light_guides_length/2-RICotherthk;
+	    par[10]=0;
+
+	    coo[0]=0;
+	    coo[1]=-d1;
+	    coo[2]=0;
+
+	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
+					  0,
+					  "MIRD",
+					  "TRAP",
+					  par,
+					  11,
+					  coo,
+					  nrm,
+					  "BOO+",
+					  posp,
+					  1,
+					  rel));
+
+	    coo[0]=d1;
+	    coo[1]=0;
+
+
+	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
+					  RICnrot,
+					  "MIRD",
+					  "TRAP",
+					  par,
+					  11,
+					  coo,
+					  nrma,
+					  "BOO+",
+					  posp,
+					  2,
+					  rel));
+	    
+	    
+	    
+	    par[0]=RICGEOM.light_guides_height/2;;
+	    par[1]=a2;
+	    par[2]=270;
+	    par[3]=RIClgthk/2;
+	    par[4]=0.875;
+	    par[5]=0.875;
+	    par[6]=0;
+	    par[7]=RIClgthk/2;
+	    par[8]=RICGEOM.light_guides_length/2-RICotherthk;
+	    par[9]=RICGEOM.light_guides_length/2-RICotherthk;
+	    par[10]=0;
+
+	    coo[0]=0;
+	    coo[1]=-d2;
+	    coo[2]=0;
+
+
+
+	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
+					  0,
+					  "MIRE",
+					  "TRAP",
+					  par,
+					  11,
+					  coo,
+					  nrm,  // Rotated 90 degrees
+					 "BOO+",
+					  posp,
+					  1,
+					  rel));
+	    coo[0]=d2;
+	    coo[1]=0;
+
+	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
+					  RICnrot,
+					  "MIRE",
+					  "TRAP",
+					  par,
+					  11,
+					  coo,
+					  nrm,  // Rotated 90 degrees
+					 "BOO+",
+					  posp,
+					  2,
+					  rel));
+	    
+
+	    
+#else
+
 	    AMSNode *lg;
 
 	    par[0]=RICGEOM.light_guides_length/2-RICotherthk;
@@ -3508,9 +3784,9 @@ void richgeom02(AMSgvolume & mother)
 	    geant a2=atan2((RICGEOM.light_guides_length/2-RICotherthk-.875)/2,
 			   RICGEOM.light_guides_height)*180/3.1415926;
 
-	    geant d1=.875-RIClgthk+RICGEOM.light_guides_height/2*tan(a1*3.1415926/180);
+	    geant d1=.875-RIClgthk/2+RICGEOM.light_guides_height/2*tan(a1*3.1415926/180);
 	    
-	    geant d2=(.875-RIClgthk)/2+RICGEOM.light_guides_height/2*tan(a2*3.1415926/180);
+	    geant d2=(.875-RIClgthk/2)/2+RICGEOM.light_guides_height/2*tan(a2*3.1415926/180);
 
 	    par[0]=RICGEOM.light_guides_height/2;
 	    par[1]=a1;
@@ -3541,6 +3817,23 @@ void richgeom02(AMSgvolume & mother)
 					 1,
 					 rel));
 	    
+	    coo[0]=-d1;
+	    coo[1]=0;
+
+	    dummy=lg->add(new AMSgvolume("RICH MIRRORS",
+					 RICnrot,
+					 "MIRA",
+					 "TRAP",
+					 par,
+					 11,
+					 coo,
+					 nrma,
+					 "MANY",
+					 posp,
+					 2,
+					 rel));
+
+
 	    
 //	    cout << "RICH: LG1 finished" <<endl;
 	    
@@ -3576,7 +3869,24 @@ void richgeom02(AMSgvolume & mother)
 					 posp,
 					 1,
 					 rel));
+	    coo[0]=-d2;
+	    coo[1]=0;
+
+	    dummy=lg->add(new AMSgvolume("RICH MIRRORS",
+					 RICnrot,
+					 "MIRB",
+					 "TRAP",
+					 par,
+					 11,
+					 coo,
+					 nrma,  // Rotated 90 degrees
+					 "MANY",
+					 posp,
+					 2,
+					 rel));
 	    
+	    
+
 //	    cout << "RICH: LG2 finished" <<endl;  
 	    
 
@@ -3610,6 +3920,19 @@ void richgeom02(AMSgvolume & mother)
 					 posp,
 					 1,
 					 rel));
+
+	    dummy=lg->add(new AMSgvolume("RICH MIRRORS",
+					 RICnrot,
+					 "MIRC",
+					 "TRAP",
+					 par,
+					 11,
+					 coo,
+					 nrma,  // Rotated 90 degrees
+					 "MANY",
+					 posp,
+					 2,
+					 rel));
 	    
 //	    cout << "RICH: LG3 finished" <<endl;
 
@@ -3642,6 +3965,23 @@ void richgeom02(AMSgvolume & mother)
 					 posp,
 					 1,
 					 rel));
+
+
+	    coo[0]=d1;
+	    coo[1]=0;
+	    dummy=lg->add(new AMSgvolume("RICH MIRRORS",
+					 RICnrot,
+					 "MIRD",
+					 "TRAP",
+					 par,
+					 11,
+					 coo,
+					 nrma,
+					 "MANY",
+					 posp,
+					 2,
+					 rel));
+	    
 	    
 
 //	    cout << "RICH: LG4 finished" <<endl;
@@ -3679,39 +4019,26 @@ void richgeom02(AMSgvolume & mother)
 					 1,
 					 rel));
 	    
-//	    cout << "RICH: LG5 finished" <<endl;
-	    
-
-
-	    // And now put the other 5 copies
-
-	   
-	    par[0]=RICGEOM.light_guides_length/2-RICotherthk;
-	    par[1]=RICGEOM.light_guides_length/2-RICotherthk;
-	    par[2]=RICGEOM.light_guides_height/2;
-
-	    coo[0]=0;
+	    coo[0]=d2;
 	    coo[1]=0;
-	    coo[2]=3.5;
-
-	    dummy=p->add(new AMSgvolume("VACUUM",
-					RICnrot,
-					"LGBO",
-					"BOX",
-					par,
-					3,
-					coo,
-					nrma,
-					"ONLY",
-					posp,
-					2,
-					rel)); 
 
 
-
-//	    cout<< "RICH: LG finished" << endl;
-
+	    dummy=lg->add(new AMSgvolume("RICH MIRRORS",
+					 RICnrot,
+					 "MIRE",
+					 "TRAP",
+					 par,
+					 11,
+					 coo,
+					 nrma,  // Rotated 90 degrees
+					 "MANY",
+					 posp,
+					 2,
+					 rel));
 	    
+
+
+#endif	    
 	  }
       
 	// Here we add the other 3 parts
