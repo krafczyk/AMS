@@ -70,7 +70,7 @@ public:
   integer getchargeTOF()const{return _ChargeTOF;}
   integer getchargeTracker()const{return _ChargeTracker;}
   AMSBeta * getpbeta()const{return _pbeta;}
-  static void addnext(AMSBeta* pbeta, integer nhitTOF, integer nhitTracker, AMSTOFCluster *pTOFc[], number EdepTOF[TOFTypes][], AMSTrCluster *pTrackerc[TrackerTypes-1][], number EdepTracker[TrackerTypes-1][], number trtr, number trtof, number trtofd);
+  static void addnext(AMSBeta* pbeta, integer nhitTOF, integer nhitTracker, AMSTOFCluster *pTOFc[], number EdepTOF[TOFTypes][TOFMaxHits], AMSTrCluster *pTrackerc[TrackerTypes-1][TrackerMaxHits], number EdepTracker[TrackerTypes-1][TrackerMaxHits], number trtr, number trtof, number trtofd);
   int FitTOF(int toffit, number beta, int bstatus, int nhitTOF, AMSTOFCluster *pTOFc[], number etof[TOFTypes][TOFMaxHits]);
   int FitTracker(int trkfit, number beta, int bstatus, int nhitTracker, AMSTrCluster *pTrackerc[TrackerTypes-1][TrackerMaxHits], number etrk[TrackerTypes-1][TrackerMaxHits]);
   static number resmax(number x[],int ntot,int refit,number rescut,int &imax,number &mean,number &trres,number &trmax);
