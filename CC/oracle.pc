@@ -1,4 +1,4 @@
-//  $Id: oracle.pc,v 1.11 2001/07/17 11:22:46 alexei Exp $
+//  $Id: oracle.pc,v 1.12 2001/07/18 09:33:09 alexei Exp $
 //
 // Subroutines to work with AMS ORACLE database
 //
@@ -23,8 +23,9 @@
 //              July  3, 2001  warm start subroutines
 //                             lastfailed row in m_active_host
 //                             m_hosts_duty
+//              July 17, 2001  clean start/submit
 //
-// Last Edit : July 17, 2001
+// Last Edit : July 18, 2001
 //
 
 #include <iostream.h>

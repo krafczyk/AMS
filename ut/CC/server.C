@@ -1,4 +1,5 @@
-//  $Id: server.C,v 1.72 2001/07/17 11:22:47 alexei Exp $
+//  $Id: server.C,v 1.73 2001/07/18 09:33:09 alexei Exp $
+//
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>

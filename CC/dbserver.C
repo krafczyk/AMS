@@ -1,11 +1,11 @@
-//  $Id: dbserver.C,v 1.22 2001/07/17 11:22:46 alexei Exp $
+//  $Id: dbserver.C,v 1.23 2001/07/18 09:33:08 alexei Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
 //  Mar,    2001. a.k. debugging   
 //  Jun,    2001. a.k. use amsdatadir as TDV file prefix                  
 //
-//  Last Edit : Jul 16, 2001. ak
+//  Last Edit : Jul 18, 2001. ak
 //
 
 #include <stdlib.h>
@@ -238,7 +238,7 @@ void  DBServer_impl::_init(){
    if (nclients < 1) { 
      acv -> length(1);
      nclients = 0;
-     cout<<"DBServer_impl::getNC -W- cannot get NominalProcess information"
+     cout<<"DBServer_impl::getNC -W- cannot get NominalProcess information "
          <<"client type = "<<_parent -> CT2string(cid.Type)<<endl;
    }
    nc = acv._retn();
@@ -309,7 +309,12 @@ void  DBServer_impl::_init(){
              acv[i].ars[j].Type = unsi2CT(reftype);
              acv[i].ars[j].uid  = uid;
           }
-          // cout<<"DBServer_impl::getACS -I- acv[i].id.Hostname "<<(const char *)acv[i].id.HostName<<endl;
+          // cout<<"DBServer_impl::getACS -I- acv[i].id.Hostname "
+          //     <<(const char *)acv[i].id.HostName<<endl;
+          //_parent->IMessage(AMSClient::print(acv[i]," getACS: client : "));
+          //cout<<"acv[i].LastUpdate, acv[i].Start "<<acv[i].LastUpdate
+          //    <<" "<<acv[i].Start<<endl;
+
        }
      }
     }
@@ -1420,7 +1425,6 @@ void  DBServer_impl::_init(){
                     ahl   -> ClientsKilled,
                     ahl   -> LastUpdate,
                     ahl   -> Clock);
-        cout<<"DBServer_impl::getFreeHost -I- next host "<<hostname<<endl;
         ahl -> HostName = (const char*)hostname;
         ahl -> Interface= (const char*)interface;
         ahl -> Status = unsi2HS(status);
@@ -1430,7 +1434,8 @@ void  DBServer_impl::_init(){
           int nactiveclients = AMSoracle::getActiveClientN(ci.Type);
           if (nactiveclients >= nruns) rstatus = 0;
         }
-        cout<<"DBServer_impl::getFreeHost -I- next host "<<(const char*)ahl -> HostName<<endl;
+        //cout<<"DBServer_impl::getFreeHost -I- next host "
+        //    <<(const char*)ahl -> HostName<<endl;
     } else {
       // cout<<"DBServer_impl::getFreeHost -I- do not start client with id, type = "
       //   <<ci.uid<<", "<<ci.Type<<endl;

@@ -1,4 +1,4 @@
-//  $Id: oracle.h,v 1.12 2001/07/17 11:22:54 alexei Exp $
+//  $Id: oracle.h,v 1.13 2001/07/18 09:33:13 alexei Exp $
 //
 // ORACLE related subroutines 
 //
@@ -13,7 +13,7 @@
 //              Jun   7, 2001. gettdvbody add amsdatadir
 //              Jul   3, 2001. Warm start subroutines
 //
-// Last Edit : July 17, 2001
+// Last Edit : July 18, 2001
 //
 
 
