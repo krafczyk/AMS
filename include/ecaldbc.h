@@ -16,7 +16,7 @@
 //
 // ECAL global constants definition
 //
-const integer ECROTN=10; // geant numbering of ECAL rot. matr.(starting from...)
+const integer ECROTN=10000; // geant numbering of ECAL rot. matr.(starting from...)
 const integer ECJSTA=10; // max size of caunter-array for job statistics
 const integer ECHIST=2000;// Ecal histogram number(starting from...) 
 //

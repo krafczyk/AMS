@@ -94,12 +94,12 @@ else{
  cerr <<" AMSGeom-F-Unknown setup selected. "<<AMSJob::gethead()->getsetup()<<endl;
  exit(1);
 }
+cout <<" AMSGeom-I-TotalOf "<<GlobalRotMatrixNo()<<" rotation matrixes  created"<<endl;
 GGCLOS();
 AMSgObj::GVolMap.map(mother);
 #ifdef __AMSDEBUG__
 // if(AMSgvolume::debug)AMSgObj::GVolMap.print();
 #endif
-
 }
 
 void magnetgeom(AMSgvolume & mother){
@@ -3111,7 +3111,7 @@ void richgeom02(AMSgvolume & mother)
 					 rel));
 	    
 	    
-	    cout << "RICH: LG1 finished" <<endl;
+//	    cout << "RICH: LG1 finished" <<endl;
 	    
 
 	    
@@ -3146,7 +3146,7 @@ void richgeom02(AMSgvolume & mother)
 					 1,
 					 rel));
 	    
-	    cout << "RICH: LG2 finished" <<endl;  
+//	    cout << "RICH: LG2 finished" <<endl;  
 	    
 
 	    par[0]=1.5;
@@ -3180,7 +3180,7 @@ void richgeom02(AMSgvolume & mother)
 					 1,
 					 rel));
 	    
-	    cout << "RICH: LG3 finished" <<endl;
+//	    cout << "RICH: LG3 finished" <<endl;
 
 
 	    par[0]=1.5;
@@ -3213,7 +3213,7 @@ void richgeom02(AMSgvolume & mother)
 					 rel));
 	    
 
-	    cout << "RICH: LG4 finished" <<endl;
+//	    cout << "RICH: LG4 finished" <<endl;
 
 
 	    
@@ -3248,7 +3248,7 @@ void richgeom02(AMSgvolume & mother)
 					 1,
 					 rel));
 	    
-	    cout << "RICH: LG5 finished" <<endl;
+//	    cout << "RICH: LG5 finished" <<endl;
 	    
 
 
@@ -3278,7 +3278,7 @@ void richgeom02(AMSgvolume & mother)
 
 
 
-	    cout<< "RICH: LG finished" << endl;
+//	    cout<< "RICH: LG finished" << endl;
 
 	    
 	  }
@@ -3365,5 +3365,7 @@ void richgeom02(AMSgvolume & mother)
   cout<< "RICH geometry finished" << endl;
 
 }  
+
+
 
 

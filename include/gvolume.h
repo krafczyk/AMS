@@ -16,6 +16,8 @@
 class AMSgvolume : public AMSNode {
  protected:
     amsg4pv * _pg4v;
+   static uinteger _GlobalRotMatrixNo;
+   static integer _LastRotMatrixOutOfOrder;
    void _init();
    AMSgvolume (const AMSgvolume&);   // do not want cc
    AMSgvolume &operator=(const AMSgvolume&); // do not want ass
@@ -41,6 +43,7 @@ class AMSgvolume : public AMSNode {
 
  public:
   static void amsgeom();
+  static uinteger & GlobalRotMatrixNo(){return _GlobalRotMatrixNo;}
   AMSgvolume (): AMSNode(0),_pg4v(0){};
   amsg4pv * getg4pv() const {return _pg4v;}
 

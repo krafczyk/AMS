@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.1 1999/10/15 08:08:29 choutko Exp $
+// $Id: g4physics.C,v 1.2 1999/10/29 11:49:44 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -773,7 +773,7 @@ for(ipart=0;ipart<1000;ipart++){
      theParticleIterator->reset();
      while( (*theParticleIterator)() ){
       G4ParticleDefinition* particle = theParticleIterator->value();
-      if(g3charge[ipart] == particle->GetPDGCharge()){
+      if(g3charge[ipart] == particle->GetPDGCharge() && particle->GetParticleName()!=G4String("GenericIon")){
         if(fabs(g3mass[ipart]*GeV-particle->GetPDGMass())<fdelta){
           fdelta=fabs(g3mass[ipart]*GeV-particle->GetPDGMass());
           cand=particle;
@@ -782,19 +782,21 @@ for(ipart=0;ipart<1000;ipart++){
      }
      if(fdelta<0.01*g3mass[ipart]*GeV){
       g3tog4p[ipart]=cand;
+//       cout <<" a "<<g3pid[ipart]<<" "<<g3tog4p[ipart]->GetParticleName()<<endl;
      }
-      else if (fdelta==0){
-        if(ipart==1){
+     else if (fdelta==0){
+        if(g3pid[ipart]==1){
           g3tog4p[ipart]=ppart->FindParticle("gamma");
         }
-        else if(ipart==48){
+        else if(g3pid[ipart]==48){
           g3tog4p[ipart]=ppart->FindParticle("geantino");
         }
         else{
           g3tog4p[ipart]=ppart->FindParticle("opticalphoton");
         }
-      }
-      else{
+//       cout <<" b "<<g3pid[ipart]<<" "<<g3tog4p[ipart]->GetParticleName()<<endl;
+     }
+     else{
        pIonT->GetIon(abs(g3charge[ipart]),g3mass[ipart]/.93,0,g3charge[ipart]);       
        double fdelta=1000000;
        G4ParticleDefinition* cand=0;
@@ -810,6 +812,7 @@ for(ipart=0;ipart<1000;ipart++){
        }
        if(fdelta<0.01*g3mass[ipart]*GeV){
         g3tog4p[ipart]=cand;
+//       cout <<" c "<<g3pid[ipart]<<" "<<g3tog4p[ipart]->GetParticleName()<<endl;
        }
        else{
         cerr <<"AMSG4Physics-WG4IonNotFound "<<g3pid[ipart]<<" "<<fdelta<<" "<<g3mass[ipart]*GeV<<endl;
@@ -841,7 +844,10 @@ for(ipart=0;ipart<1000;ipart++){
      delete[] g3tog4p;
      AMSsortNAGa(_pg3tog4, _Ng3tog4);
      AMSsortNAGa(_pg4tog3, _Ng3tog4);
-
+#ifdef __AMSDEBUG__
+  cout << "G3toG4 Conversion Table:"<<endl;
+  for(int ipt=0;ipt<_Ng3tog4;ipt++)cout<<_pg3tog4[ipt];
+#endif
 
 
 }

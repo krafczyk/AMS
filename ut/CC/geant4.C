@@ -62,7 +62,7 @@ cerr <<"g4ams::G4INIT()-W-DummyDetectorWillBeCreated "<<endl;
 
   G4LogicalVolume* dummyl
     = new G4LogicalVolume(new G4Box(" ",10.*m,10.*m,10.*m),
-      new G4Material("Vacuuum",1,g/mole,0)," ",0,0,0);
+      new G4Material("Vacuuum",1,g/mole,universe_mean_density,kStateGas,0.1*kelvin,1.e-19*pascal)," ",0,0,0);
   G4VPhysicalVolume* pgv=
   new G4PVPlacement(0,G4ThreeVector(),"Dummy",
                         dummyl,0,false,0);
@@ -104,6 +104,14 @@ geant _v[3],_b[3];
 for(i=0;i<2;i++)_v[i]=x[i]/cm;
 GUFLD(_v,_b);
 for(i=0;i<2;i++)B[i]=_b[i]*kilogauss;
+if(B[0]*B[0]+B[1]*B[1]+B[1]*B[1] > 0){
+ B[0]=1;
+ B[1]=2;
+ B[2]=3;
+}
+cout <<"S "<<x[0]<<" "<<x[1]<<" "<<x[2]<<endl;
+cout <<B[0]<<" "<<B[1]<<" "<<B[2]<<endl;
+
 }
 
 

@@ -4,55 +4,13 @@
 #include <gmat.h>
 integer AMSgvolume::debug=0;
 geant AMSgvolume::dgeant=1.e-4;
-
-/*
-AMSgvolume::AMSgvolume (integer matter,integer rotmno,const char name[], 
-           const char shape[] ,   geant par[] , integer npar, 
-            geant coo[] ,  number nrm[][3] , const char gonly[] , 
-           integer posp,integer gid,integer rel) :
-    _matter(matter),_rotmno(rotmno), _npar(npar), _posp(posp),
-     _gid(gid),_cooA(coo[0],coo[1],coo[2]),_rel(rel),AMSNode(0){
-   setname(name);
-   _pg4v=0;
-   _coo=_cooA;
-   if(shape)strcpy(_shape,shape);
-   if(gonly)strcpy(_gonly,gonly);
-   UCOPY(par,_par,10*sizeof(par[0])/4);
-   UCOPY(nrm,_nrm,3*3*sizeof(nrm[0][0])/4);
-   UCOPY(nrm,_nrmA,3*3*sizeof(nrm[0][0])/4);
-   amsprotected::transpose(_nrmA,_inrmA);
-//  Check rotmno=0 here
-
-    if(!_rotmno){
-     if(_nrm[0][0]!=1 || _nrm[1][1]!=1 || _nrm[2][2]!=1){
-      cerr<<"AMSgvolume::AMSgvolume-E-RotationMatrixZeroButNrmNotUnit "<<_nrm[0][0]<<" "<<_nrm[1][1]<<" "<<_nrm[2][2]<<endl;
-      for(int i=0;i<2;i++){
-       for(int k=0;k<2;k++)_nrm[i][k]= k==i?1:0;
-      }
-      UCOPY(_nrm,_nrmA,3*3*sizeof(nrm[0][0])/sizeof(int));
-     }
-    }
-
-
-//
-//  Part of geant initialization here
-//
-      int ivol;
-      if (gid > 0 && !posp){
-       GSVOLU(_name,_shape,matter,_par,npar,ivol);
-      }      
-       setid(gid);
-   
-      
-}
-
-*/
-
+uinteger AMSgvolume::_GlobalRotMatrixNo=0;
+integer AMSgvolume::_LastRotMatrixOutOfOrder=0;
 AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
            integer posp,integer gid, integer rel) :
-    _rotmno(rotmno), _npar(npar), _posp(posp),
+    _npar(npar), _posp(posp),
      _gid(gid),_cooA(coo[0],coo[1],coo[2]),_rel(rel),AMSNode(0){
       AMSgtmed *p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(AMSID(0,matter));
       if(p)_matter=p->getmedia();
@@ -69,9 +27,33 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
    UCOPY(nrm,_nrm,3*3*sizeof(nrm[0][0])/4);
    UCOPY(nrm,_nrmA,3*3*sizeof(nrm[0][0])/4);
    amsprotected::transpose(_nrmA,_inrmA);
+   if(rotmno==0){
+     _rotmno=0;
+   }
+   else {
+    // warning
+    if(_LastRotMatrixOutOfOrder!=rotmno){
+      if(rotmno<_GlobalRotMatrixNo)cerr<<"AMSgvolume::ctor-W-RotationMatrixNoOutOfOrder "<<rotmno<<" "<<_GlobalRotMatrixNo<<" "<<getname()<<" "<<getid()<<endl;
+     _LastRotMatrixOutOfOrder=rotmno;
+     _rotmno=++_GlobalRotMatrixNo;
+    }
+    else _rotmno=_GlobalRotMatrixNo;
+   }
+ 
 //
 //  Part of geant initialization here
 //
+//  Check rotmno=0 here
+
+    if(!_rotmno){
+     if(_nrm[0][0]!=1 || _nrm[1][1]!=1 || _nrm[2][2]!=1){
+      cerr<<"AMSgvolume::AMSgvolume-E-RotationMatrixZeroButNrmNotUnit "<<_nrm[0][0]<<" "<<_nrm[1][1]<<" "<<_nrm[2][2]<<" "<<getname()<<" "<<getid()<<" "<<_GlobalRotMatrixNo<<" "<<_rotmno<<" "<<rotmno<<endl;
+      for(int i=0;i<2;i++){
+       for(int k=0;k<2;k++)_nrm[i][k]= k==i?1:0;
+      }
+      UCOPY(_nrm,_nrmA,3*3*sizeof(nrm[0][0])/sizeof(int));
+     }
+    }
       int ivol;
       if (gid > 0 && !posp){
        GSVOLU(_name,_shape,_matter,_par,npar,ivol);
@@ -86,7 +68,7 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
            geant coo[] ,  number nrm1[3] , number nrm2[3], number nrm3[3],
            const char gonly[] , 
            integer posp,integer gid, integer rel) :
-    _rotmno(rotmno), _npar(npar), _posp(posp),
+     _npar(npar), _posp(posp),
      _gid(gid),_cooA(coo[0],coo[1],coo[2]),_rel(rel),AMSNode(0){
       AMSgtmed *p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(AMSID(0,matter));
       if(p)_matter=p->getmedia();
@@ -111,6 +93,29 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
      _nrmA[j][2]=nrm3[j];
    }
      amsprotected::transpose(_nrmA,_inrmA);
+   if(rotmno==0){
+     _rotmno=0;
+   }
+   else {
+    // warning
+    if(_LastRotMatrixOutOfOrder!=rotmno){
+      if(rotmno<_GlobalRotMatrixNo)cerr<<"AMSgvolume::ctor-W-RotationMatrixNoOutOfOrder "<<rotmno<<" "<<_GlobalRotMatrixNo<<" "<<getname()<<" "<<getid()<<endl;
+     _LastRotMatrixOutOfOrder=rotmno;
+     _rotmno=++_GlobalRotMatrixNo;
+    }
+    else _rotmno=_GlobalRotMatrixNo;
+   }
+//  Check rotmno=0 here
+
+    if(!_rotmno){
+     if(_nrm[0][0]!=1 || _nrm[1][1]!=1 || _nrm[2][2]!=1){
+      cerr<<"AMSgvolume::AMSgvolume-E-RotationMatrixZeroButNrmNotUnit "<<_nrm[0][0]<<" "<<_nrm[1][1]<<" "<<_nrm[2][2]<<" "<<getname()<<" "<<getid()<<" "<<_GlobalRotMatrixNo<<" "<<_rotmno<<" "<<rotmno<<endl;
+      for(int i=0;i<2;i++){
+       for(int k=0;k<2;k++)_nrm[i][k]= k==i?1:0;
+      }
+      UCOPY(_nrm,_nrmA,3*3*sizeof(_nrm[0][0])/sizeof(int));
+     }
+    }
 //
 //  Part of geant initialization here
 //
