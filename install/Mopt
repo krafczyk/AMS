@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.194 2001/04/27 21:50:33 choutko Exp $
+#  $Id: Mopt,v 1.195 2001/04/28 14:18:44 kscholbe Exp $
 #
 SHELL=/bin/sh
 #
@@ -194,7 +194,7 @@ OBJECTSC= $(BIN)gbatch_c.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)nod
 standalone: $(EXE)/gbatch.exe
 
 $(EXE)/gbatch.exe:	$(OBJECTS)
-	$(LD) -v -o $(EXE)/gbatch.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
+	$(LD) -v -o $(EXE)/gbatch.exe $(BIN)trd.o $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
  
 $(BIN)gbatch.o:         $(SCC)gbatch.C
