@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.67 2004/06/02 09:16:32 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.68 2004/11/23 12:33:00 alexei Exp $
 
 #
 #
@@ -31,6 +31,7 @@
 #  Jan 31, 2004. ak. Table  : Ntuples add CRCtime, CRCflag, CASTORtime
 #  Feb 23, 2004. ak. Table  : FilesProcessing
 #  May 19, 2004. ak. Table  : MC_RemoteDSTPath,  MC_DSTCopy
+#  Mov 23, 2004. ak. Table  : DatasetDesc, filled from $AMSSoftwareDir/Datasets
 #
 package DBSQLServer;
 use Error qw(:try);
@@ -146,7 +147,7 @@ sub Create{
     my $dbh=$self->{dbhandler};
 
 
-    my @tables=("Filesystems", "Cites","LocalHosts","Journals","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment","ProductionSet","FilesProcessing","RemoteCopy");
+    my @tables=("Filesystems", "Cites","LocalHosts","Journals","Mails" ,"Jobs", "DatasetDesc", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment","ProductionSet","FilesProcessing","RemoteCopy");
     my @createtables=("    CREATE TABLE Filesystems
      (fid         CHAR(4) NOT NULL,   
      host    VARCHAR(40),            
@@ -221,6 +222,17 @@ sub Create{
         elapsed   int,
         jobtype   VARCHAR(20),
         mips      number)",
+
+      "CREATE TABLE  DataSetsDesc 
+       (did        int not null,
+        dataset    varchar(16),
+        dirpath    varchar(128),
+        jobname    varchar(32),
+        jobdesc    varchar(128),
+        jobdata    varchar(4000),
+        timeread   int,
+        timeupdate int)",
+
 
       "CREATE TABLE RNDM
       (rid     INT NOT NULL primary key,
