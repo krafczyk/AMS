@@ -50,10 +50,12 @@ void AMSCharge::build(){
        for ( i=0;i<4;i++){
          AMSTOFCluster * pcluster= pbeta->getpcluster(i);
          if(pcluster){
-#if 1   // change to 0 when eugeni writes the proper code
+#if 1  
+    // change to 0 when eugeni writes the proper code
          AMSDir ScDir(0,0,1);
          AMSPoint SCPnt=pcluster->getcoo(); 
-#else   // Eugeni code
+#else  
+    // Eugeni code
 #endif 
            ptrack->interpolate(SCPnt, ScDir, P1, theta, phi, sleng);
            AMSDir DTr(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));

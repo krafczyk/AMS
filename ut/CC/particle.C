@@ -79,7 +79,8 @@ void AMSParticle::build(){
            pow(ebeta/beta,2));
            if(beta<0)momentum=-momentum;
           }
-#if 1  // change to 0 when Eugeni writes a proper code
+#if 1  
+         // change to 0 when Eugeni writes a proper code
            pcl=(AMSAntiMCCluster*)AMSEvent::gethead()->
            getheadC("AMSAntiMCCluster",0);
           sumanti=0;
@@ -87,7 +88,8 @@ void AMSParticle::build(){
            sumanti+=pcl->edep*1000;
            pcl=pcl->next();
           } 
-#else  // Eugeni code here
+#else  
+       // Eugeni code here
 #endif
           ppart=new AMSParticle(pbeta, pcharge, ptrack,
           mass,emass,momentum,emomentum,charge,theta,phi,coo,sumanti);

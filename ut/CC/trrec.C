@@ -306,7 +306,8 @@ else if(strip== pid->getmaxstrips(side)-1){
 else return 0;
 }
 void AMSTrCluster::_ErrorCalc(){
-#if 1  //Very Temporary
+#if 1
+  // Temporary
 integer side=_Id.getside();
 if(side==1)_ErrorMean =TRCLFFKEY.ErrY;
 else  _ErrorMean =TRCLFFKEY.ErrX;
@@ -724,7 +725,7 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
 integer ifit=0;
 integer npt=_NHits;
 const integer maxhits=10;
-assert(npt < maxhits);
+assert(npt < maxhits && npt > 2);
 geant x[maxhits];
 geant y[maxhits];
 geant wxy[maxhits];
@@ -764,12 +765,17 @@ if(TRFITFFKEY.FastTracking){
   // Fill fastfit here
   _Ridgidity=_CircleRidgidity; 
   _ErrRidgidity=exmom;
-  _P0[0]=p0[0];
-  _P0[1]=p0[1];
-  _P0[2]=p0[2];
+  //  _P0[0]=p0[0];
+  //  _P0[1]=p0[1];
+  //  _P0[2]=p0[2];
+  _P0[0]=_Pthit[1]->getHit()[0];
+  _P0[1]=_Pthit[1]->getHit()[1];
+  _P0[2]=_Pthit[1]->getHit()[2];
 
   _Theta=dip;
-  _Phi=phis;
+  //  _Phi=phis;
+  _Phi=atan2(_Pthit[2]->getHit()[1]-_Pthit[0]->getHit()[1],
+             _Pthit[2]->getHit()[0]-_Pthit[0]->getHit()[0]);
 
 }
 }

@@ -32,6 +32,19 @@ BIN=/bin/hpux
 EXE=/exe/hpux
 TIMEL=
 endif
+ifeq  "$(shell uname)"  "IRIX"
+CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g   -fhandle-exceptions  -I../include -I../include/stl
+FFLAGS=   -static -backslash -g -noisam -mips2 -I../include
+DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
+LDFLAGS=  -g  -L/cern/95a/lib  -lgeant321  -lpacklib -lmathlib -lkernlib   -L/afs/cern.ch/asis/packages/licensed/nag-mark16/sgi_52/nagfl16df -lnag -L/usr/local/lib -lfpe -lF77 -lI77 -lU77 -lisam -lm  -lcl
+CC=g++
+FF=f77
+LD=g++
+BIN=/bin/irix
+EXE=/exe/irix
+TIMEL=
+endif
+
 #
 OBJECTS= ..$(BIN)/gxint.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geanti.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o  ..$(BIN)/tofrec.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o  ..$(BIN)/gi.o ..$(BIN)/gi2.o ..$(BIN)/tofdbc.o ..$(BIN)/apool.o ..$(BIN)/ctcrec.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofsim.o ..$(BIN)/tofcalib.o ..$(BIN)/timeid.o ..$(BIN)/io.o
 

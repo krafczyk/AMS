@@ -66,7 +66,7 @@ CDECK  ID>, SPECTRA.
       integer amsdlength
       character *64 amsdatadir
       DIMENSION AREAD1(28),AREAD2(28)
-      CHARACTER*100 FILE1,FILE2
+      CHARACTER*24 FILE1,FILE2
       DATA FILE1
      &/'AMS_SS_2002_AC_GEO.LIN'/
       DATA FILE2

@@ -63,7 +63,8 @@ void AMSTOFRawCluster::sitofdigi(){
     if(xplane[kk][i]>TOFMCFFKEY.Thr){
      xtime[kk][i]=xtime[kk][i]/xplane[kk][i];
      xtimed[kk][i]=xtimed[kk][i]/xplane[kk][i];
-#if 1  // change to zero when Eugeni  writes a proper code
+#if 1 
+     // change to zero when Eugeni  writes a proper code
      geant dummy;
      number ts;
      if(RNDM(dummy)< TOFMCFFKEY.TimeProbability2)ts=TOFMCFFKEY.TimeSigma2*rnormx();
@@ -605,7 +606,8 @@ for (int i=0;i<maxpl;i++){
  time=ptr->gettime();
  if(edep>TOFRECFFKEY.ThrS){
    number etime, etimed;
-#if 1  // change to zero when Eugeni  writes a proper code
+#if 1 
+      // change to zero when Eugeni  writes a proper code
      etime=TOFMCFFKEY.TimeSigma;
      etimed=TOFMCFFKEY.TimeSigma*sqrt(2.);
 #else

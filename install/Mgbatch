@@ -37,6 +37,18 @@ BIN=/bin/hpux
 EXE=/exe/hpux
 TIMEL=
 endif
+ifeq  "$(shell uname)"  "IRIX" 
+CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g   -fhandle-exceptions  -I../include -I../include/stl  
+FFLAGS=   -static -backslash -g -noisam -mips2 -I../include  
+DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
+LDFLAGS=  -g  -L/cern/95a/lib  -lgeant321  -lpacklib -lmathlib -lkernlib   -L/afs/cern.ch/asis/packages/licensed/nag-mark16/sgi_52/nagfl16df -lnag -L/usr/local/lib -lfpe -lF77 -lI77 -lU77 -lisam -lm  -lcl     
+CC=g++
+FF=f77
+LD=g++
+BIN=/bin/irix
+EXE=/exe/irix
+TIMEL=
+endif
 #
 #
 #
@@ -107,6 +119,11 @@ gbatch.exe:	$(OBJECTS)
 	$(FF) -c $(FFLAGS)     ../F/amstkshc++.F -o ..$(BIN)/amstkshc++.o
 
 ifeq  "$(shell uname)"  "HP-UX" 
+
+..$(BIN)/mtx.o:                   ../F/mtx77.F
+	f77 -c $(FFLAGS)      ../F/mtx77.F -o ..$(BIN)/mtx.o
+endif
+ifeq  "$(shell uname)"  "IRIX" 
 
 ..$(BIN)/mtx.o:                   ../F/mtx77.F
 	f77 -c $(FFLAGS)      ../F/mtx77.F -o ..$(BIN)/mtx.o

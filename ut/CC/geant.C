@@ -532,6 +532,7 @@ extern "C" void uglast_(){
         integer ICYCL=0;
         HROUT (0, ICYCL, " ");
         HREND ("output");
+        CLOSEF(IOPA.hlun);
        }
 #ifndef __DB__
        if(AMSJob::debug){
