@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.50 2003/06/04 08:42:47 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.51 2003/06/06 10:12:20 alexei Exp $
 
 #
 #
@@ -140,7 +140,7 @@ sub Create{
     my $dbh=$self->{dbhandler};
 
 
-    my @tables=("Filesystems", "Cites","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment", "Journals","ProductionSet");
+    my @tables=("Filesystems", "Cites","Journals","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment", "Journals","ProductionSet");
     my @createtables=("    CREATE TABLE Filesystems
      (fid         CHAR(4) NOT NULL,   
      host    VARCHAR(40),            
@@ -184,24 +184,23 @@ sub Create{
        timeu1    INT,
        timeu2    INT)",
       "CREATE TABLE Jobs 
-      (jid     INT NOT NULL primary key,
-       jobname   VARCHAR(255),
-       mid       INT,
-       cid       INT,
-       did       INT,
-       time      INT,
-       triggers  INT,
-       timeout   INT,
-       content   TEXT,
-       timestamp INT,
-       nickname VARCHAR(80),
+      (jid        INT NOT NULL primary key,
+       jobname    VARCHAR(255),
+       mid        INT,
+       cid        INT,
+       did        INT,
+       time       INT,
+       triggers   INT,
+       timeout    INT,
+       content    TEXT,
+       timestamp  INT,
+       nickname   VARCHAR(80),
         cite      VARCHAR(20),
-        host      VARCHAR(20),
         events    INT,
         errors    int,
         cputime   int,
         elapsed   int,
-       jobtype   VARCHAR(20))",
+       jobtype    VARCHAR(20))",
 
       "CREATE TABLE RNDM
       (rid     INT NOT NULL primary key,
@@ -211,7 +210,7 @@ sub Create{
        (dbfilename VARCHAR(255) NOT NULL,
         IORS   TEXT NOT NULL,
         IORP   TEXT NOT NULL,
-        IORD   TEXT,
+        IORD   TEXT NOT NULL,
         status VARCHAR(64),
         createtime INT,
         lastupdate INT)",
@@ -247,7 +246,8 @@ sub Create{
           name       VARCHAR(20),
           begin      int,
           end        int,
-          status     char(10))",
+          status     char(10),
+          description VARCHAR(255))",
         "CREATE TABLE DataSetFiles 
          (did        INT NOT NULL,
           name       VARCHAR(255),
@@ -284,7 +284,7 @@ sub Create{
      }        
     $dbh->do("drop table ".$tables[$i]);
     my $sth=$dbh->prepare($createtables[$i]) or die "cannot prepare: ".$dbh->errstr();
-#     print " $createtables[$i] \n";
+    print " $createtables[$i] \n";
     $sth->execute() or die "cannot execute: ".$dbh->errstr();
     $sth->finish();    
      if ($tables[$i] eq "Servers" and $self->{dbdriver} =~ m/Oracle/) {
@@ -378,7 +378,19 @@ my $sql;
       }
     } 
     if ($cnt == 0) {
-     $dbh->do("insert into ProductionSet values(1,'2003Trial',1049891834,0,'Active')") 
+     $dbh->do("insert into ProductionSet values(1,
+                                                '2003Trial',
+                                                1049891834,
+                                                1054891834,
+                                                'Finished',
+                                                '1st try of distributed MC production')") 
+           or die    "cannot do: ".$dbh->errstr();    
+     $dbh->do("insert into ProductionSet values(2,
+                                                '2003TrialA',
+                                                1055135834,
+                                                0,
+                                                'Active',
+                                                'MC production stress test')") 
            or die    "cannot do: ".$dbh->errstr();    
  }
 #
@@ -636,13 +648,13 @@ my $sql;
 # end INSERT INTO datasets
 #
     $cnt = 0;
-     if($self->{dbdriver} =~ m/Oracle/){
-    $sql="SELECT COUNT(mid) FROM Mails";
-    $cntr=$self->Query($sql);
-    foreach my $ret (@{$cntr}) {
+    if($self->{dbdriver} =~ m/Oracle/){
+     $sql="SELECT COUNT(mid) FROM Mails";
+     $cntr=$self->Query($sql);
+     foreach my $ret (@{$cntr}) {
         $cnt = $ret->[0];
+     }
     }
-}
    if ($cnt == 0) {
     my $mid  = 1;
     my $time = time();    
