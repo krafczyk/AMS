@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.463 2003/12/18 16:12:33 mdelgado Exp $
+// $Id: job.C,v 1.464 2004/02/11 13:24:32 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2982,7 +2982,14 @@ void AMSJob::urinit(integer run, integer eventno, time_t tt)
 throw (amsglobalerror){
   if(_pntuple)_pntuple->endR();
   if(IOPA.WriteRoot){
-    strcpy(_rootfilename,(const char*)_rextname);
+//   trail leading blancs if any
+//  
+    int offset=-1; 
+    for(int i=0;i<strlen((const char*)_rextname);i++){
+     if(*((const char*)_rextname+i)!=' ')break;
+     else offset=i;
+    } 
+    strcpy(_rootfilename,(const char*)_rextname+offset+1);
      AString mdir("mkdir -p ");
      mdir+=_rootfilename;
     integer iostat;
