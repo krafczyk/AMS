@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.1 2002/02/20 18:00:25 choutko Exp $
+# $Id: RemoteClient.pm,v 1.2 2002/02/21 12:02:43 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -71,7 +71,7 @@ sub Init{
     my $tsyntax={};
     $self->{tsyntax}=$tsyntax;
     my %particles=(
-     'photon'=>1,
+     'gamma'=>1,
      'positron'=>2,
      'electron'=>3,
      'muon+'=>5,
@@ -490,6 +490,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                      my $suc=open(FILE,"<".$fpath);
                      my ($events,$badevents);
                      if(not $suc){
+                         $unchecked++;
                      }  
                      else{
                       close FILE;
@@ -694,7 +695,8 @@ print qq`
           -default=>$tempnam[0]);
 #          -labels=>$hash);
          my $ts=$self->{tsyntax};
-         my @keysa=sort keys %{$ts->{particles}};
+         my %hash=%{$ts->{particles}};
+         my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$ts->{particles}};
          print "Particle";
          print $q->popup_menu(
           -name=>"QPart",
@@ -704,7 +706,7 @@ print qq`
           print "Min Momentum (GeV/c)";
           print $q->textfield(-name=>"QMomI",-default=>0.2);
                 print "Max Momentum (GeV/c)";
-          print $q->textfield(-name=>"QMomA",-default=>2000.);
+          print $q->textfield(-name=>"QMomA",-default=>200.);
           print "<BR>";
                 print "Remote Computer Clock (MhZ)";
           print $q->textfield(-name=>"QCPU",-default=>1000);
@@ -767,7 +769,7 @@ print qq`
           print "Min Momentum (GeV/c)";
           print $q->textfield(-name=>"QMomI",-default=>1);
                 print "Max Momentum (GeV/c)";
-          print $q->textfield(-name=>"QMomA",-default=>2000.);
+          print $q->textfield(-name=>"QMomA",-default=>200.);
           print "<BR>";
                 print "Remote Computer Clock (MhZ)";
           print $q->textfield(-name=>"QCPU",-default=>1000);
@@ -1075,10 +1077,14 @@ print qq`
 #        prepare the tables
     
 # check tar ball exists
- 
+        my $gbatch="exe/linux/gbatch-orbit.exe";
+        my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
+        if($#stag<0){
+              $self->ErrorPlus("Unable to find gbatch-orbit on the Server ");
+        }
         my $filedb="$self->{UploadsDir}/ams02mcdb.tar.gz";
         my @sta = stat $filedb;
-        if($#sta<0 or $sta[9]-time() >86400*7){
+        if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9]){
         my $filen="$self->{UploadsDir}/ams02mcdb.tar.$run";
         my $i=system "mkdir -p $self->{UploadsDir}/v3.00";
         $i=system "ln -s $self->{AMSDataDir}/v3.00/*.dat $self->{UploadsDir}/v3.00";
@@ -1088,7 +1094,7 @@ print qq`
           if($i){
               $self->ErrorPlus("Unable to tar v3.00 to $filen");
           }
-         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen exe/linux/gbatch-orbit.exe") ;
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatch") ;
           if($i){
               $self->ErrorPlus("Unable to tar gbatch-orbit to $filen ");
           }

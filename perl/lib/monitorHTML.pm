@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.16 2002/02/20 18:00:25 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.17 2002/02/21 12:02:43 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -18,6 +18,7 @@ my %fields=(
             Ntuples=>undef,
             CAC=>undef,
             DB=>undef,
+            rc=>0,
             Control=>undef,
             Name=>"/cgi-bin/mon/monitor.cgi",
             );
@@ -31,6 +32,7 @@ foreach my $chop  (@ARGV){
         $self->{Name}="/cgi-bin/mon/monmc.cgi";
      if ($Monitor::Singleton->{updatesviadb}){
         $self->{Name}="/cgi-bin/mon/monmcdb.cgi";
+        $self->{rc}=1;
      }
     }
 }
@@ -114,6 +116,320 @@ sub Update{
      }
  }
     my $q=$monitorHTML::Singleton->{q};
+    if($ref->{rc}){
+
+    print $q->header( "text/html" ),
+    $q->start_html( "Connected To Servers Succesfully" );
+
+    print $q->h1( "Connected To Servers Succesfully" );
+    if($ref->{read}==0){
+        print $q->start_form(-method=>"GET", 
+          -action=>$monitorHTML::Singleton->{Name});
+        print $q->p ("Monitor:");
+   print qq`
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="PAH" >Local Producer Active Hosts<BR>
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="PAC" CHECKED>Producer Active Clients<BR>
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="Runs" CHECKED>Runs Table<BR>
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="Ntuples" CHECKED>Ntuples Table<BR>
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="CAC" CHECKED>Server Active Clients<BR>
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="DBAC" CHECKED>DBServer Active Clients<BR>
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="DB" CHECKED>Disk Space<BR>
+`;
+        print $q->submit(-value=>"SubmitRequest", -name=>"Monitor");
+        print $q->end_form();
+        print $q->start_form(-method=>"GET", 
+          -action=>$monitorHTML::Singleton->{Name});
+        print $q->end_form();
+          
+    }elsif($ref->{read} == 1){
+
+    my @titles;
+    $#titles=-1;
+            @titles = (
+	    "HostName",
+	    "Running Pr",
+	    "Allowed Pr",
+	    "Failed Pr",
+	    " Ntuples",
+            "EventTags ",
+	    " Events ",
+	    "  % of Total",
+	    " Warnings  ",
+	    " Errors  ",
+	    " CPU/Event ",
+	    " Efficiency",
+	    "Status ",
+	);
+
+    if($ref->{PAH}){
+     my @output=Monitor::getactivehosts();
+     my $buffer="Producer_ActiveHosts";
+
+     print_table($q,$buffer,$#titles,@titles,@output);
+    
+    }
+
+
+     $#titles=-1;
+                        @titles = (
+            "ID",
+            "HostName",
+            "Process ID",
+            "Start Time",
+            "LastUpdate Time",
+            "TimeOut",
+            "Run",
+            "Name",
+            "Status",
+                                   );
+
+    if($ref->{PAC}){
+     my $buffer="Producer_ActiveClients";
+     my @output=Monitor::getactiveclients("Producer");
+     print_table($q,$buffer,$#titles,@titles,@output);
+    }
+
+      
+
+
+
+
+     $#titles=-1;
+                        @titles = (
+            "Run",
+            "Time",
+            "First Event",
+            "Last Event",
+	    "Name",
+            "Size(MB)",
+            "Status ",
+                                   );
+
+    if($ref->{Ntuples}){
+     my $buffer="Producer_Ntuples";
+     my @output=Monitor::getntuples();
+     print_table($q,$buffer,$#titles,@titles,@output);
+ }
+
+     $#titles=-1;
+                        @titles = (
+            "ID",
+            "HostName",
+            "Process ID",
+            "Start Time",
+            "LastUpdate Time",
+            "TimeOut",
+            "Status",
+                                   );
+ 
+    if($ref->{CAC}){
+
+     my $buffer="Server_ActiveClients";
+
+    my @output=Monitor::getactiveclients("Server");
+     print_table($q,$buffer,$#titles,@titles,@output);
+ }
+     $#titles=-1;
+                        @titles = (
+            "ID",
+            "HostName",
+            "Process ID",
+            "Start Time",
+            "LastUpdate Time",
+            "TimeOut",
+            "Status",
+                                   );
+ 
+    if($ref->{DBAC}){
+
+     my $buffer="DBServer_ActiveClients";
+
+    my @output=Monitor::getactiveclients("DBServer");
+     print_table($q,$buffer,$#titles,@titles,@output);
+ }
+        @titles = (
+            "FileSystem",
+            "Total (Mbytes)",
+            "Free (Mbytes)",
+            "% Free",
+#            "OK",
+                   );
+    if($ref->{DB}){
+     my @output=Monitor::getdbok();
+     my $buffer="DiskUsage";
+     print_table($q,$buffer,$#titles,@titles,@output);
+ }
+
+
+     $#titles=-1;
+                        @titles = (
+            "Run",
+            "SubmitTime",
+            "First Event",
+            "Last Event",
+            "Priority ",
+            "History ",
+            "Status ",
+                                   );
+
+    if($ref->{Runs}){
+     my $buffer="Producer_Runs";
+     my @output=Monitor::getruns();
+     print_table($q,$buffer,$#titles,@titles,@output);
+   }
+
+}elsif($ref->{read}==2){
+
+    my $name=$ref->{Control};
+    my @output=Monitor::getcontrolthings($name);
+    my @titles;    
+    if( $name eq "ServerClient"){
+        $#titles=-1;
+        @titles=(
+          "Uid",
+          "Type",
+          "MaxClients",
+          "CPU",
+           "Memory",
+             "ScriptPath",
+            "LogPath",
+            "Submit",
+            "HostName",
+           "LogInTheEnd",
+                 );
+    }elsif( $name eq "ProducerClient"){
+        $#titles=-1;
+        @titles=(
+          "Uid",
+          "Type",
+          "MaxClients",
+          "CPU",
+           "Memory",
+             "ScriptPath",
+            "LogPath",
+            "Submit",
+            "HostName",
+           "LogInTheEnd",
+                 );
+    }elsif( $name eq "ProducerActiveClient"){
+        $#titles=-1;
+        @titles=(
+          "Uid",
+          "HostName",
+          "pid",
+          "Status",
+          "Type",
+          "TimeOut",
+                 );
+    }elsif( $name eq "ServerHost"){
+        $#titles=-1;
+        @titles=(
+"HostName",
+"Interface",
+"OS",
+"CPUNumber",
+"Memory",
+"Clock",
+"Clients Allowed",
+"Status",
+                 );
+    }elsif( $name eq "ProducerHost"){
+        $#titles=-1;
+        @titles=(
+"HostName",
+"Interface",
+"OS",
+"CPUNumber",
+"Memory",
+"Clock",
+"Clients Allowed",
+"Status",
+                 );
+}elsif( $name eq "PNtuple"){
+    $#titles=-1;
+        @titles=(
+         "Run",
+        "Time",
+        "FirstEvent",
+        "LastEvent",
+        "Name",
+        "Size",
+        "Status",
+        "Type",
+                 );
+}elsif( $name eq "Ntuple"){
+    $#titles=-1;
+        @titles=(
+         "Uid",
+        "HostName",
+        "OutputDirPath",
+        "RunMode",
+        "UpdateFreq",
+        "DSTType",
+                 );
+}elsif( $name eq "Run"){
+    $#titles=-1;
+        @titles=(
+"Uid",
+"Run",
+"FirstEvent",
+"LastEvent",
+"Priority",
+"FilePath",
+"Status",
+"History",
+                 );
+}elsif( $name eq "Killer"){
+    $#titles=-1;
+        @titles=(
+          "Uid",
+          "Type",
+          "MaxClients",
+          "CPU",
+           "Memory",
+             "ScriptPath",
+            "LogPath",
+            "Submit",
+            "HostName",
+           "LogInTheEnd",
+                 );
+}elsif( $name eq "setEnv"){
+    $#titles=-1;
+        @titles=(
+          "Environment Var",
+          "Path",
+                 );
+}
+    for my $i (0 ... $#output){
+        print $q->start_form(-method=>"GET", 
+          -action=>$monitorHTML::Singleton->{Name});
+        my @text=@{$output[$i]};
+        my $string="";
+     for my $j (0...$#titles){
+
+         print $titles[$j];
+         print $q->textfield(-name=>"noname",-default=>"$text[$j]");
+         print "<BR>";
+         
+     }
+        print $q->submit(-name=>"MyControl$i", -value=>"Create");
+        print $q->submit(-name=>"MyControl$i", -value=>"Update");
+        print $q->submit(-name=>"MyControl$i", -value=>"Delete");
+        print qq`
+        <INPUT TYPE="hidden" NAME="TOTAL" VALUE=$#output>
+        <INPUT TYPE="hidden" NAME="NAME" VALUE=$name>
+        `;        
+         print $q->end_form;
+    }
+
+}
+
+      print $q->end_html;
+
+
+
+    }
+    else{
     print $q->header( "text/html" ),
     $q->start_html( "Connected To Servers Succesfully" );
 
@@ -436,7 +752,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
 }
 
       print $q->end_html;
-
+}
 }
 
 sub print_table{
