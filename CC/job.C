@@ -1224,6 +1224,9 @@ void AMSJob::_caaxinitjob(){
 
 void AMSJob::_remfinitjob(){
 READMFIELD();
+if(MISCFFKEY.BTempCorrection){
+cout <<"AMSJob::_remfinitjob-I-Magnetic Field Temp Corrections will be used"<<endl; 
+}
 }
 
 
