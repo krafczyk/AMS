@@ -1,4 +1,4 @@
-//  $Id: client.h,v 1.17 2001/06/11 14:01:47 choutko Exp $
+//  $Id: client.h,v 1.18 2001/07/17 11:22:54 alexei Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
 #include <typedefs.h>
@@ -27,6 +27,7 @@ bool _GlobalError;
  bool _Oracle;
  bool _MT;
  bool _OracleW;
+ bool _OracleWarm;
 uinteger _LastServiceTime;
  char * _DBFileName;
  int _MaxDBProcesses;
@@ -39,7 +40,7 @@ uinteger _LastServiceTime;
  static char _streambuffer[1024]; 
  static ostrstream _ost;
 public:
-AMSClient(int debug=0):_debug(debug),_Oracle(false),_MT(false),_OracleW(false),_DBFileName(0),_MaxDBProcesses(0),_error(" "),_ExitInProgress(false),_GlobalError(false),_LastServiceTime(0)
+AMSClient(int debug=0):_debug(debug),_Oracle(false),_MT(false),_OracleW(false),_OracleWarm(false),_DBFileName(0),_MaxDBProcesses(0),_error(" "),_ExitInProgress(false),_GlobalError(false),_LastServiceTime(0)
 {_pid.Status=DPS::Client::NOP;}
 virtual ~AMSClient(){};
 const char * getdbfile() const {return _DBFileName;}
@@ -50,7 +51,8 @@ bool IsOracle() const {return _Oracle;}
 bool MT() const { return _MT;} 
 bool & GlobalError(){return _GlobalError;}
 uinteger & LastServiceTime(){return _LastServiceTime;}
-bool InitOracle() const {return _OracleW;}
+bool InitOracle()     const {return _OracleW;}
+bool WarmOracleInit() const {return _OracleWarm;}
 bool DBServerExists() const{return _MaxDBProcesses!=0 || _Oracle;}
 AMSClientError & Error(){return _error;}
 int  Debug() const{return _debug;}

@@ -1,4 +1,4 @@
-//  $Id: oracle.h,v 1.11 2001/07/02 18:25:08 alexei Exp $
+//  $Id: oracle.h,v 1.12 2001/07/17 11:22:54 alexei Exp $
 //
 // ORACLE related subroutines 
 //
@@ -11,8 +11,9 @@
 //              Jan    , 2001. Hosts, Clients, Runs
 //              Feb    , 2001. Active CLients, hosts.
 //              Jun   7, 2001. gettdvbody add amsdatadir
+//              Jul   3, 2001. Warm start subroutines
 //
-// Last Edit : June 20, 2001
+// Last Edit : July 17, 2001
 //
 
 
@@ -40,6 +41,9 @@ const int TBdeleted       = -2;    // TDV is marked to be deleted
 const int TBbad           = -1;    // TDV is marked as bad
 const int TBprod          =  1;    //               as production
 
+const int ProductionDone        = 0;
+const int ProductionInProgress  = 1;
+const int ProductionInSuspended = 2;
 
 namespace AMSoracle {
 
@@ -941,6 +945,8 @@ namespace AMSoracle {
   int  addtdvname(const char *tdvnameS, int datamc, int &id);
   int  checktdvname(char *name, char *tablename);
   int  cleanRunTable(const unsigned int runstatus);
+  int  resetProdDSTTable();
+  int  resetRunTable();
   void commit();
   int  counttdv(const char *name, int datamc, long timef, long timel); 
   int  counttdvlob(const char *name, int datamc, long timef, long timel); 
@@ -1043,6 +1049,7 @@ namespace AMSoracle {
   int  getNominalHostN();
   int  getNominalHostList(NominalHost *lhost);
   int  getProdRunStat(unsigned int crun, ProdRun *runs);
+  int  getProductionFlag();
   int  getprodruns(unsigned int run, ProdRun *runs);
   int  getprodrunN(unsigned int run);
   int  getRun(const char *host, RunTable *rtable);
@@ -1062,9 +1069,13 @@ namespace AMSoracle {
   int  incHostClientsProcessed(unsigned int clientId, unsigned int ctype);
 
   int  initActiveHostTable(const unsigned int status);
+  int  initActiveHostTables();
+  int  resetActiveHostTables();
   int  initNominalClientTables();
-  int  initActiveTables();
+  int  initActiveClientTables();
   int  initProdInfoTable();
+  int  resetProdInfoTable();
+  int  initProductionJob();
 
   int  insertActiveClient(const unsigned int id,
                           const unsigned int type,
@@ -1112,6 +1123,7 @@ namespace AMSoracle {
                         unsigned int clprocessed,
                         unsigned int clfailed,
                         unsigned int clkilled,
+                        unsigned int lastfailed,
                         unsigned int lastupd);
 
   int   insertDataCards(const char *scriptpath);

@@ -1,4 +1,4 @@
-//  $Id: oracle.pc,v 1.10 2001/07/02 18:25:04 alexei Exp $
+//  $Id: oracle.pc,v 1.11 2001/07/17 11:22:46 alexei Exp $
 //
 // Subroutines to work with AMS ORACLE database
 //
@@ -20,8 +20,11 @@
 //                             prefix to TDV file
 //              June 13, 2001  m_tdv, m_tdv_def
 //              July  2, 2001  m_tdv_blob
+//              July  3, 2001  warm start subroutines
+//                             lastfailed row in m_active_host
+//                             m_hosts_duty
 //
-// Last Edit : July 2, 2001
+// Last Edit : July 17, 2001
 //
 
 #include <iostream.h>
@@ -92,6 +95,12 @@ unsigned int offset = 1;    // offset read from TDV BLOB
    int      tprodstat;
 
    long     tinsert;              // Unix time
+   long     tlastfailed;          // time of last client, host failure
+   long     tatime;               // host active time in sec
+   long     tdtime;               // host down time in sec
+   long     tdtimestamp;          // last !'OK' status time
+   long     tatimestamp;          // last 'OK' status time
+
    unsigned int    uinsert;              
    unsigned int    ubegin;
    unsigned int    uend;
@@ -101,7 +110,7 @@ unsigned int offset = 1;    // offset read from TDV BLOB
    char    ctimeb[32];            // begin of validity time
    char    ctimee[32];            // end of validity time
 
-
+   int          tflag;            // production flag
    unsigned int trun;
    unsigned int tidx;
    unsigned int tids[100];
@@ -155,7 +164,8 @@ unsigned int offset = 1;    // offset read from TDV BLOB
    unsigned int tcuid;
             int tpriority;
    unsigned int tsubmit;
-
+   unsigned int statusok;
+   unsigned int statuslf;
 
    unsigned int tid;
    unsigned int tuid;
@@ -1727,7 +1737,17 @@ int AMSoracle::deleteProdRun(unsigned int  crun, unsigned int fevent,
  return rstatus;
 }
 
+int AMSoracle::getProductionFlag()
+{
+ int flag = 0;
 
+ EXEC SQL SELECT flag INTO :tflag 
+          FROM   m_production 
+          WHERE  flag > 0;
+  if(sqlca.sqlerrd[2])  flag = tflag;
+
+ return flag;
+}
 
 int AMSoracle::insertProdRun(AMSoracle::ProdRun *prun)
 {
@@ -2293,6 +2313,27 @@ int AMSoracle::cleanRunTable(const unsigned int runstatus)
   return 1;
 }
 
+int AMSoracle::resetRunTable()
+{
+
+  int rstatus = 0;
+
+  EXEC SQL CONTEXT USE :ams_context;
+
+  EXEC SQL WHENEVER SQLERROR DO sql_nothing("AMSoracle::resetRunTable");
+
+  EXEC SQL UPDATE m_runtable 
+           SET m_runtable.status = (SELECT n FROM m_runstatus WHERE
+           status LIKE '%ToBeRerun%') 
+           WHERE 
+             m_runtable.status != (SELECT n FROM m_runstatus WHERE 
+             status LIKE '%Finished%') 
+          AND 
+             m_runtable.status != (SELECT n FROM m_runstatus WHERE 
+             status LIKE '%Failed%');
+  return rstatus;
+} 
+
 
 int AMSoracle::getRunTable(int &nruns, unsigned int &maxid, RunTable *rtable)
 {
@@ -2712,22 +2753,23 @@ int AMSoracle::deleteDST(const char *name, const unsigned int type)
 
 int AMSoracle::findDST(const char *name, const unsigned int type)
 {
+  int rstatus = 0;
+
   EXEC SQL CONTEXT USE :ams_context;
 
   EXEC SQL WHENEVER SQLERROR DO 
                     sql_error("ORACLE error:AMSoracle::findDST");
  if (name) {
   ttype = type;
+  suppressBlanks(tdirpath);
   strcpy(tdirpath,name);
- EXEC SQL SELECT tinsert INTO :tinsert FROM m_dst
+  EXEC SQL SELECT COUNT(tinsert) INTO :Nrows FROM m_dst
            WHERE  
                  type = :ttype AND
                  name = :tdirpath;
-    if (sqlca.sqlerrd[2] != 1) {
-     tinsert = 0;
-    }
+    if (Nrows == 1) rstatus = 1;
   } 
- return tinsert;
+ return rstatus;
 }
 
 int AMSoracle::findDSTInfo(const unsigned int uid)
@@ -3240,7 +3282,52 @@ int AMSoracle::getNominalHostId(const char *host)
   return thostid;
 }
 
-int AMSoracle::initActiveTables() 
+int AMSoracle::initActiveHostTables() 
+{
+
+   EXEC SQL CONTEXT USE :ams_context;
+
+   EXEC SQL WHENEVER SQLERROR DO 
+               sql_error("ORACLE error:AMSoracle::initActiveTables");
+
+
+   EXEC SQL DELETE m_active_hosts;
+
+   EXEC SQL DELETE m_hosts_duty;
+
+   Fmessage("AMSoracle::initActiveHostTables","Tables initialized","I");
+
+   return 1;
+}
+
+int AMSoracle::initProductionJob() 
+{
+
+   EXEC SQL CONTEXT USE :ams_context;
+
+   EXEC SQL WHENEVER SQLERROR DO 
+               sql_nothing("ORACLE warning:AMSoracle::initProductionJob");
+
+   tid = 0;
+   EXEC SQL SELECT COUNT(idx) INTO :tid FROM m_production;
+
+   if (tid < 1) 
+       tid = 1; 
+    else 
+       tid++;
+
+   tinsert = time((time_t)0);
+
+   
+   EXEC SQL INSERT INTO m_production
+             VALUES(1, :tid, :tinsert, 0, -1, -1, 'AMS01 Production test at CERN');
+
+
+
+   return 1;
+}
+
+int AMSoracle::resetActiveHostTables() 
 {
 
     EXEC SQL CONTEXT USE :ams_context;
@@ -3249,13 +3336,63 @@ int AMSoracle::initActiveTables()
 
    EXEC SQL CONTEXT USE :ams_context;
 
-   EXEC SQL DELETE m_active_hosts;
+   tinsert = time((time_t)0);
+
+   EXEC SQL UPDATE m_active_hosts SET active = 0, timestamp = :tinsert;
+
+   EXEC SQL UPDATE m_active_hosts SET STATUS = (SELECT n FROM 
+                   m_hoststatus WHERE status LIKE '%OK%');
+
+
+   EXEC SQL UPDATE m_hosts_duty SET atimestamp = :tinsert,
+                                    dtimestamp = 0,
+                                    timestamp  = :tinsert,
+                                    status     = (SELECT n FROM 
+                   m_hoststatus WHERE status LIKE '%OK%');
+
+         
+   Fmessage("AMSoracle::initActiveHostTables","Tables initialized","I");
+
+   return 1;
+}
+
+int AMSoracle::resetProdDSTTable() 
+{
+
+    EXEC SQL CONTEXT USE :ams_context;
+   EXEC SQL WHENEVER SQLERROR DO 
+               sql_error("ORACLE error:AMSoracle::initProdDSTTable");
+
+   EXEC SQL CONTEXT USE :ams_context;
+
+   EXEC SQL DELETE m_dst WHERE status != (SELECT n FROM 
+                   m_dststatus WHERE status LIKE '%Success%');
+
+   EXEC SQL UPDATE m_active_hosts SET STATUS = (SELECT n FROM 
+                   m_hoststatus WHERE status LIKE '%OK%');
+
+   Fmessage("AMSoracle::initActiveHostTables","Tables initialized","I");
+
+   return 1;
+}
+
+
+int AMSoracle::initActiveClientTables() 
+{
+
+    EXEC SQL CONTEXT USE :ams_context;
+   EXEC SQL WHENEVER SQLERROR DO 
+               sql_error("ORACLE error:AMSoracle::initActiveTables");
+
+   EXEC SQL CONTEXT USE :ams_context;
+
+//   EXEC SQL DELETE m_active_hosts;
 
    EXEC SQL DELETE m_active_clients;
    EXEC SQL DELETE m_active_clients_id;
    EXEC SQL DELETE m_active_clients_ref;
 
-   Fmessage("AMSoracle::initActiveTables","Tables initialiezed","I");
+   Fmessage("AMSoracle::initActiveClientTables","Tables initialized","I");
 
    return 1;
 }
@@ -3276,12 +3413,31 @@ int AMSoracle::initNominalClientTables()
 
 int AMSoracle::initProdInfoTable() 
 {
-
+//
+// delete all information from m_prodinfo
+//
    EXEC SQL CONTEXT USE :ams_context;
    EXEC SQL WHENEVER SQLERROR DO 
                sql_error("ORACLE error:AMSoracle::initProdInfoTable");
 
    EXEC SQL DELETE m_prodinfo;
+
+   return 1;
+}
+
+int AMSoracle::resetProdInfoTable() 
+{
+//
+// leave information only about finished runs
+//
+   EXEC SQL CONTEXT USE :ams_context;
+   EXEC SQL WHENEVER SQLERROR DO 
+               sql_error("ORACLE error:AMSoracle::initProdInfoTable");
+
+   EXEC SQL DELETE m_prodinfo 
+            WHERE 
+                  status != 
+                  (SELECT n FROM m_runstatus WHERE status like '%Finished%');
 
    return 1;
 }
@@ -3352,7 +3508,26 @@ int AMSoracle::initActiveHostTable(const unsigned int hoststatus)
                              :tinsert,
                              :nominalhost[i].clock,
                              TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
+                             0,
                              :tinsert);
+       EXEC SQL SELECT id INTO :tid FROM m_hosts_duty WHERE 
+                       id = :nominalhost[i].id;
+       if (sqlca.sqlerrd[2] != 1) {
+        tdtimestamp = 0;
+        if (tstatus != statusok) {
+         EXEC SQL SELECT n INTO :statusok FROM m_hoststatus 
+                            WHERE status LIKE '%OK%';
+         tdtimestamp = tinsert+1;
+        }
+        EXEC SQL INSERT INTO m_hosts_duty 
+                       VALUES(:nominalhost[i].id,
+                              :tstatus,
+                              0,
+                              0,
+                              :tinsert,
+                              :tdtimestamp,
+                              :tinsert);
+      }
      }
     }
    }
@@ -3422,6 +3597,7 @@ int AMSoracle::updateActiveHost(unsigned int type,
                                 unsigned int clprocessed,
                                 unsigned int clfailed,
                                 unsigned int clkilled,
+                                unsigned int lastfailed,
                                 unsigned int lastupd)
 
 {
@@ -3445,6 +3621,7 @@ int AMSoracle::updateActiveHost(unsigned int type,
     tclfailed    = clfailed;
     tclkilled    = clkilled;
     tlastupdate  = lastupd;
+    tlastfailed  = lastfailed;
     time_to_oracle(lastupd,ctimei);
     if (tclallowed < tclactive) {
      cout<<"---update------------ "<<tclallowed<<" "<<tclactive<<endl; 
@@ -3460,8 +3637,49 @@ int AMSoracle::updateActiveHost(unsigned int type,
                 killed    =   :tclkilled,
                 lastuptime  = TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
                 lastupdate =  :tlastupdate,
+                lastfailed =  :tlastfailed,
                 timestamp  =  :tinsert
                 WHERE id   = :thostid AND type = :ttype; 
+
+     EXEC SQL SELECT status, acttime, downtime, atimestamp, dtimestamp
+               INTO :tstatus, :tatime, :tdtime, :tatimestamp, :tdtimestamp 
+                            FROM m_hosts_duty 
+                            WHERE id = :thostid;
+     EXEC SQL SELECT n INTO :statusok FROM m_hoststatus 
+                            WHERE status LIKE '%OK%';
+     EXEC SQL SELECT n INTO :statuslf FROM m_hoststatus 
+                            WHERE status LIKE '%LastClientFailed%';
+
+// tstatus - host status from m_hosts_duty
+// status  - new status
+     if (tstatus == status || status == statuslf) { 
+// set timestamp , nothing changed
+       EXEC SQL UPDATE m_hosts_duty SET timestamp = :tinsert;
+     } else {
+       cout<<"Host "<<host<<endl;
+       cout<<"Host status changed "<<tstatus<<" to "<<status<<endl;
+// check is new status 'OK', 'LastClientFailed' or something else
+       if (status == statusok) {
+// new status 'OK'
+         if (tdtimestamp != 0) {
+          tdtime = tdtime + tinsert - tdtimestamp;
+         }
+         tatimestamp = tinsert;
+// new status !'OK'
+        } else {
+          if (tatimestamp != 0) {
+           tatime = tatime + tinsert - tatimestamp;
+          }
+         tdtimestamp = tinsert;
+       }
+      EXEC SQL UPDATE m_hosts_duty SET status = :tstatus,
+                                       acttime = :tatime,
+                                       downtime = :tdtime,
+                                       atimestamp = :tatimestamp,
+                                       dtimestamp = :tdtimestamp,
+                                       timestamp  = :tinsert
+                                   WHERE id = :thostid;
+    }
     rstatus = 1;
    
   }
@@ -3511,6 +3729,7 @@ int AMSoracle::insertActiveHost(unsigned int type,
      cout<<"----insert----------- "<<tclallowed<<" "<<tclactive<<endl; 
      cout<<"-------for host/type- "<<thostid<<" "<<ttype<<endl; 
     }
+      cout<<"AMSoracle::insertActiveHost -I- add host "<<thostname<<endl;
       EXEC SQL INSERT INTO m_active_hosts 
                       VALUES(:ttype, 
                              :tid,
@@ -3524,7 +3743,29 @@ int AMSoracle::insertActiveHost(unsigned int type,
                              :tlastupdate,
                              :tclock,
                              TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
+                             0,
                              :tinsert);
+
+   EXEC SQL WHENEVER SQLERROR DO 
+                    sql_nothing("ORACLE warning:AMSoracle::insertActiveHost");
+       EXEC SQL SELECT id INTO :tid FROM m_hosts_duty WHERE 
+                       id = :tid;
+       if (sqlca.sqlerrd[2] != 1) {
+        tdtimestamp = 0;
+        if (tstatus != statusok) {
+         EXEC SQL SELECT n INTO :statusok FROM m_hoststatus 
+                            WHERE status LIKE '%OK%';
+         tdtimestamp = tinsert+1;
+        }
+        EXEC SQL INSERT INTO m_hosts_duty 
+                       VALUES(:tid,
+                              :tstatus,
+                              0,
+                              0,
+                              :tinsert,
+                              :tdtimestamp,
+                              :tinsert);
+      }
 
     rstatus = 1;
    
@@ -3980,25 +4221,40 @@ int AMSoracle::getHost(unsigned int type, ActiveHost *hostl)
    if (tactiveclients < tmaxclients) {         
     EXEC SQL SELECT m_active_hosts.id
             INTO :tids
-                  FROM m_active_hosts, m_hoststatus
+                  FROM m_active_hosts 
                   WHERE
-                     (m_active_hosts.status !=  m_hoststatus.n AND
-                      m_hoststatus.status != 'NoResponse' OR
-                      m_hoststatus.status != 'InActive' )
+                     m_active_hosts.status =
+                      (SELECT n from m_hoststatus WHERE STATUS LIKE 'OK')
                     AND
                      m_active_hosts.active < m_active_hosts.allowed
                     AND
                      m_active_hosts.type = :ttype 
                     ORDER BY 
-                     m_active_hosts.clock DESC, 
-                     m_active_hosts.active DESC;
-
+                     m_active_hosts.active,
+                     m_active_hosts.lastfailed,
+                     m_active_hosts.clock DESC; 
+     if (sqlca.sqlerrd[2] < 1) {
+     EXEC SQL SELECT m_active_hosts.id
+            INTO :tids
+            FROM m_active_hosts 
+            WHERE
+                m_active_hosts.status =
+            (SELECT n from m_hoststatus WHERE STATUS LIKE 'LastClientFailed')
+               AND
+                m_active_hosts.active < m_active_hosts.allowed
+               AND
+                m_active_hosts.type = :ttype 
+               ORDER BY 
+                 m_active_hosts.active,
+                 m_active_hosts.lastfailed,
+                 m_active_hosts.clock DESC; 
+     }
      if (sqlca.sqlerrd[2] > 0) {
        unsigned int hostid = tids[0];
        rstatus = getActiveHostList(type, hostid, hostl);
-    } else {
-      rstatus = 0;
-    }
+      } else {
+       rstatus = 0;
+      }
    } else {
     rstatus = 0;
     if (debug > 1) 
@@ -4035,6 +4291,7 @@ int AMSoracle::setActiveHostStatus(const unsigned int status,
                 status = :tstatus, 
                 timestamp = :tinsert
            WHERE type = :ttype and id = :thostid;
+
   EXEC SQL COMMIT;
   rstatus = 1;
  }
@@ -4233,7 +4490,8 @@ int AMSoracle::incHostClientsFailed(unsigned int id, unsigned int type)
   time_to_oracle(tinsert, ctimei);
   EXEC SQL UPDATE m_active_hosts 
            SET failed = failed + 1,
-               timestamp = :tinsert
+               lastfailed = :tinsert,
+               timestamp  = :tinsert
            WHERE id = :thostid AND type = :ttype;
   rstatus = 1;
  } else {
@@ -4893,6 +5151,7 @@ int AMSoracle::insertNominalClient(
                         0,
                         0);
       thostid = findHost(hostname);
+      cout<<"AMSoracle::insertNominalClient -I- add host "<<hostname<<endl;
     } 
       tid   = id;
       ttype = type;
@@ -5306,3 +5565,4 @@ int AMSoracle::UnixFilestat(const char *path, long *id, long *size,
  }
  return 1;
 }
+

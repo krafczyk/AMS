@@ -10,6 +10,6 @@ AMSServerJob=$AMSProdDir/exe/linux/amsprodserver.exe.oracle
 export AMSServerJob
 AMSProducerJob=$AMSProdDir/datacards/StandardNtupleTagO.job
 export AMSProducerJob
-AMSDBDir=/amsdat0/oracle/data
+AMSDBDir=/oracle0
 export AMSDBDir
 bsub -q linux_server -m pcamsp1 -o /dat0/local/logs/Server.1.log starttagO

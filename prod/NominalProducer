@@ -6,9 +6,6 @@
    pcamsfx 1
   "1>&"/dat0/local/logs/
    rsh
-  pcamst0 1
-  "1>&"/dat0/local/logs/
-   rsh
 
  
 

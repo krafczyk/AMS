@@ -1,11 +1,11 @@
-//  $Id: dbserver.C,v 1.21 2001/07/02 18:25:04 alexei Exp $
+//  $Id: dbserver.C,v 1.22 2001/07/17 11:22:46 alexei Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
 //  Mar,    2001. a.k. debugging   
 //  Jun,    2001. a.k. use amsdatadir as TDV file prefix                  
 //
-//  Last Edit : Jun 20, 2001. ak
+//  Last Edit : Jul 16, 2001. ak
 //
 
 #include <stdlib.h>
@@ -151,19 +151,36 @@ for(MOI i=mo.begin();i!=mo.end();++i){
 void  DBServer_impl::_init(){
 // connect to ORACLE amsdb 
   AMSoracle::oracle_connect();
+// Cold or Warm Init
   if (_parent -> InitOracle()) {
-   AMSoracle::initActiveTables();
+   _parent -> IMessage("OracleColdInit. Init Tables");
+   AMSoracle::initActiveHostTables();
+   AMSoracle::initActiveClientTables();
    AMSoracle::initProdInfoTable();
+   AMSoracle::initProductionJob();
+   AMSoracle::commit();  
+  }
+  if (_parent -> WarmOracleInit()) {
+   _parent -> IMessage("OracleWarmInit. Clean Tables");
+   AMSoracle::resetActiveHostTables();
+   AMSoracle::initActiveClientTables();
+   AMSoracle::resetProdInfoTable();
+   AMSoracle::resetRunTable();
+   AMSoracle::resetProdDSTTable();
    AMSoracle::commit();  
   }
 }
 
   void  DBServer_impl::UpdateDB(bool force=false)
 {
-  if(!AMSoracle::RunsToBeRerun() && !AMSoracle::RunsProcessing()) {
-   AMSoracle::cleanRunTable(DPS::Producer::Failed);
-   AMSoracle::commit();
-  }
+   if(!AMSoracle::RunsToBeRerun() && !AMSoracle::RunsProcessing()) {
+    if (_parent -> InitOracle()) {
+     AMSoracle::cleanRunTable(DPS::Producer::Failed);
+     AMSoracle::commit();
+    } else {
+        _parent -> IMessage("OracleWarmInit. RunTable not initialized");
+    }
+   }
 }
 
   int  DBServer_impl::getNK(const DPS::Client::CID &cid, DPS::Client::NCS_out nc)
@@ -292,7 +309,8 @@ void  DBServer_impl::_init(){
              acv[i].ars[j].Type = unsi2CT(reftype);
              acv[i].ars[j].uid  = uid;
           }
-      }
+          // cout<<"DBServer_impl::getACS -I- acv[i].id.Hostname "<<(const char *)acv[i].id.HostName<<endl;
+       }
      }
     }
    if (nclients < 1) {
@@ -316,11 +334,16 @@ void  DBServer_impl::_init(){
               DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc)
 {
      int rstat = 0; 
+     //     cout<<"DBServer_impl::sendAC-I- rc "<<rc<<endl;
+     //     cout<<"***sendAC : "<<cid.uid<<" "<<cid.Type<<endl;
+
      bool succ = AMSoracle::findActiveClient(cid.uid, cid.Type);
        switch (rc) 
        {
         case DPS::Client::Create:
           if (!succ ) {
+           cout<<"DBServer_impl::sendAC -I- Create Active Client. uid, type "
+               <<cid.uid<<" "<<cid.Type<<endl;
            rstat = AMSoracle::insertActiveClient(cid.uid,
                                                  cid.Type,
                                                  ac.LastUpdate,
@@ -350,7 +373,8 @@ void  DBServer_impl::_init(){
            }
            if (rstat == 1) AMSoracle::commit();
           } else {
-            _parent -> EMessage(AMSClient::print(ac,"DBServer_impl::sendAC -client exists. not recreated"));
+            _parent -> EMessage(AMSClient::print
+                       (ac,"DBServer_impl::sendAC -client exists. not recreated"));
           }       
          break;
         case DPS::Client::Update:
@@ -361,6 +385,17 @@ void  DBServer_impl::_init(){
                                             ac.Start,
                                             ac.Status);
            if (rstat == 1) {
+             rstat= AMSoracle::deleteActiveClientRef(cid.uid, ac.id.Type);
+             int reflng = ac.ars.length();
+              for (int i=0; i<reflng; i++) {
+               rstat = AMSoracle::insertActiveClientRef(
+                                              cid.uid, 
+                                              cid.Type,
+                                              (const char *)ac.ars[i].IOR,
+                                              (const char *)ac.ars[i].Interface,
+                                              ac.ars[i].Type,
+                                              ac.ars[i].uid);
+              }
              rstat= AMSoracle::deleteActiveClientId(cid.uid, ac.id.Type);
              rstat= AMSoracle::insertActiveClientId(
                                              cid.uid,
@@ -373,7 +408,8 @@ void  DBServer_impl::_init(){
            }
            if (rstat == 1) AMSoracle::commit();
          } else {
-            _parent -> EMessage(AMSClient::print(ac,"DBServer_impl::sendAC -client not exists. no update"));
+            _parent -> EMessage(AMSClient::print
+                       (ac,"DBServer_impl::sendAC -client not exists. no update"));
          }
          break;
         case DPS::Client::Delete:
@@ -381,10 +417,12 @@ void  DBServer_impl::_init(){
            if (AMSoracle::deleteActiveClient(cid.uid, ac.id.Type) == 1) {
             AMSoracle::commit();
           } else {
-            _parent -> EMessage(AMSClient::print(ac,"DBServer_impl::sendAC -delete failed"));
+            _parent -> EMessage(
+               AMSClient::print(ac,"DBServer_impl::sendAC -delete failed"));
            }
          } else {
-            _parent -> EMessage(AMSClient::print(ac,"DBServer_impl::sendAC - unknown cid"));
+            _parent -> EMessage(
+              AMSClient::print(ac,"DBServer_impl::sendAC - unknown cid"));
          }
         break;
        }
@@ -395,28 +433,28 @@ void  DBServer_impl::_init(){
 
   bool hexist = AMSoracle::findActiveHost((const char*)ah.HostName, cid.Type); 
 
-  //  cout<<"***sendAH : rc "<<rc<<endl;
-  //  cout<<"***sendAH : "<<(const char*)ah.HostName<<" "
-  //    <<_parent -> CT2string(cid.Type)<<endl;
-  //  cout<<"***sendAH : running/allowed/processed/failed/killed "<<
-  //
-  //    ah.ClientsRunning << " "<<
-  //    ah.ClientsAllowed <<" "<<
-  //    ah.ClientsProcessed<<" "<<
-  //    ah.ClientsFailed<<" "<<
-  //    ah.ClientsKilled<<endl;
-  //if(ah.ClientsAllowed < ah.ClientsRunning) cout<<"***********************"<<endl;
+      cout<<"***sendAH : rc "<<rc<<endl;
+      cout<<"***sendAH : "<<(const char*)ah.HostName<<" "
+           <<_parent -> CT2string(cid.Type)<<endl;
+      cout<<"***sendAH : running/allowed/processed/failed/killed "<<
+        ah.ClientsRunning << " "<<
+        ah.ClientsAllowed <<" "<<
+        ah.ClientsProcessed<<" "<<
+        ah.ClientsFailed<<" "<<
+        ah.ClientsKilled<<endl;
+  if(ah.ClientsAllowed < ah.ClientsRunning) cout<<"***********************"<<endl;
 
   switch (rc) {
-  case DPS::Client::Delete:
-    if (hexist) {
-     AMSoracle::deleteActiveHost(cid.Type, (const char*)ah.HostName); 
-     AMSoracle::deleteHostActiveClients(cid.Type, (const char*)ah.HostName);
-     AMSoracle::commit();
-    } else {
-     _parent -> EMessage(AMSClient::print(ah,"DBServer_impl::sendAH - unknown host. not delete"));
-    }
+   case DPS::Client::Delete:
+     if (hexist) {
+      AMSoracle::deleteActiveHost(cid.Type, (const char*)ah.HostName); 
+      AMSoracle::deleteHostActiveClients(cid.Type, (const char*)ah.HostName);
+      AMSoracle::commit();
+     } else {
+      _parent -> EMessage(AMSClient::print(ah,"DBServer_impl::sendAH - unknown host. not delete"));
+     }
     break;
+  
   case DPS::Client::Create:
     if (hexist) {
      _parent -> EMessage(AMSClient::print(ah,"DBServer_impl::sendAH - host exists. not create"));
@@ -443,6 +481,7 @@ void  DBServer_impl::_init(){
                           ah.ClientsProcessed,
                           ah.ClientsFailed,
                           ah.ClientsKilled,
+                          ah.LastFailed, 
                           ah.LastUpdate) == 1) AMSoracle::commit();
     break;
   }
@@ -463,6 +502,8 @@ void  DBServer_impl::_init(){
        if (hexist) {
          _parent -> EMessage(AMSClient::print(ah,"nominal host exists, not create"));
        } else {
+         cout<<"sendNH -I- create nominal host "<<(const char*)ah.HostName<<" "
+             <<(const char*)ah.Interface<<endl;
         if (AMSoracle::insertNominalHost((const char*)ah.HostName,
                                          (const char*)ah.Interface,
                                          (const char*)ah.OS,
@@ -474,6 +515,8 @@ void  DBServer_impl::_init(){
      case DPS::Client::Update:
        if (hexist) {
         AMSoracle::deleteNominalHost((const char*)ah.HostName);
+        cout<<"sendNH -I- update nominal host "<<(const char*)ah.HostName<<" "
+            <<(const char*)ah.Interface<<endl;
         if (
             AMSoracle::insertNominalHost((const char*)ah.HostName,
                                          (const char*)ah.Interface,
@@ -1167,34 +1210,37 @@ void  DBServer_impl::_init(){
 
   RES_var acv = new RES();
 
-  nruns =  AMSoracle::getRunsN();
-  if (nruns > 0) {
-   rtable = new AMSoracle::RunTable[nruns];
-   if (AMSoracle::getRunTable(nruns, maxrun, rtable) == 1) {
-    acv -> length(nruns);
-     ptable = new AMSoracle::ProdRun;
-     for (int i=0; i<nruns; i++) {
-       rtable[i].get(acv[i].uid,
-                    acv[i].Run,
-                    acv[i].FirstEvent,
-                    acv[i].LastEvent,
-                    acv[i].TFEvent,
-                    acv[i].TLEvent,
-                    acv[i].Priority,
-                    filepath,
-                    status,
-                    history,
-                    acv[i].SubmitTime,
-                    acv[i].cuid);
-       //
-       //acv[i].LastEvent = acv[i].LastEvent/1000;
-       //if(acv[i].LastEvent < 100) acv[i].LastEvent = 150;
-       //
-      acv[i].FilePath = (const char*)filepath;
-      acv[i].Status  = unsi2RS(status);
-      acv[i].History = unsi2RS(history);
-      if(AMSoracle::getProdRunStat(acv[i].Run, ptable) == 1) {
-       ptable -> getInfo(acv[i].cinfo.Run,
+  // check stop production flag
+  int flag = AMSoracle::getProductionFlag();
+  if (flag == ProductionInProgress) {
+   nruns =  AMSoracle::getRunsN();
+   if (nruns > 0) {
+    rtable = new AMSoracle::RunTable[nruns];
+    if (AMSoracle::getRunTable(nruns, maxrun, rtable) == 1) {
+     acv -> length(nruns);
+      ptable = new AMSoracle::ProdRun;
+      for (int i=0; i<nruns; i++) {
+        rtable[i].get(acv[i].uid,
+                     acv[i].Run,
+                     acv[i].FirstEvent,
+                     acv[i].LastEvent,
+                     acv[i].TFEvent,
+                     acv[i].TLEvent,
+                     acv[i].Priority,
+                     filepath,
+                     status,
+                     history,
+                     acv[i].SubmitTime,
+                     acv[i].cuid);
+        //
+        //acv[i].LastEvent = acv[i].LastEvent/1000;
+        //if(acv[i].LastEvent < 100) acv[i].LastEvent = 150;
+        //
+       acv[i].FilePath = (const char*)filepath;
+       acv[i].Status  = unsi2RS(status);
+       acv[i].History = unsi2RS(history);
+       if(AMSoracle::getProdRunStat(acv[i].Run, ptable) == 1) {
+        ptable -> getInfo(acv[i].cinfo.Run,
                          uid,
                          acv[i].cinfo.EventsProcessed,
                          acv[i].cinfo.LastEventProcessed,
@@ -1204,10 +1250,10 @@ void  DBServer_impl::_init(){
                          acv[i].cinfo.TimeSpent,
                          status,
                          hostname);
-       acv[i].cinfo.Status = unsi2RS(status);
-       acv[i].cinfo.HostName = (const char*)hostname;
+        acv[i].cinfo.Status = unsi2RS(status);
+        acv[i].cinfo.HostName = (const char*)hostname;
+       }
       }
-     }
    } else {
     acv -> length(1);
     nruns = 1;
@@ -1216,8 +1262,10 @@ void  DBServer_impl::_init(){
     acv -> length(1);
     nruns = 1;
   }
-
-
+  } else {
+    acv -> length(1);
+    nruns = 1;
+  }
  if(rtable) delete [] rtable;
  if(ptable) delete ptable;
 
@@ -1372,14 +1420,17 @@ void  DBServer_impl::_init(){
                     ahl   -> ClientsKilled,
                     ahl   -> LastUpdate,
                     ahl   -> Clock);
+        cout<<"DBServer_impl::getFreeHost -I- next host "<<hostname<<endl;
         ahl -> HostName = (const char*)hostname;
         ahl -> Interface= (const char*)interface;
         ahl -> Status = unsi2HS(status);
+        rstatus = 1;
         if (ci.Type == DPS::Client::Producer) {
           int nruns = AMSoracle::RunsToBeRerun();
           int nactiveclients = AMSoracle::getActiveClientN(ci.Type);
           if (nactiveclients >= nruns) rstatus = 0;
         }
+        cout<<"DBServer_impl::getFreeHost -I- next host "<<(const char*)ahl -> HostName<<endl;
     } else {
       // cout<<"DBServer_impl::getFreeHost -I- do not start client with id, type = "
       //   <<ci.uid<<", "<<ci.Type<<endl;

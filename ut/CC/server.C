@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.71 2001/07/16 16:11:43 choutko Exp $
+//  $Id: server.C,v 1.72 2001/07/17 11:22:47 alexei Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -110,6 +110,7 @@ AMSServer::AMSServer(int argc, char* argv[]){
     case 'O':    // Oracle
       _Oracle=true;
       if(pchar+1 && *(pchar+1) =='I')_OracleW=true;
+      if(pchar+1 && *(pchar+1) =='W')_OracleWarm=true;
       break;
     case 'D':    //debug
      _debug=atoi(++pchar);
@@ -4176,7 +4177,10 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
 //      Here find the corr Ahost and update it
         for(AMSServerI * curp=getServer(); curp; curp=(curp->down())?curp->down():curp->next()){
           if(curp->getType()==ac.id.Type){
+            cout<<"ac.id.HostName "<<(const char *)((ac.id).HostName)<<endl;
+            cout<<"getahl() loop"<<endl;
              for(AHLI i=curp->getahl().begin();i!=curp->getahl().end();++i){
+               cout<<(const char *)(*i)->HostName<<endl;
                if(!strcmp((const char *)(*i)->HostName, (const char *)((ac.id).HostName))){
                DPS::Client::ActiveHost_var ahlv= *i;
                (ahlv->ClientsRunning)--;
