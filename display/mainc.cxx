@@ -121,13 +121,14 @@ out:
                        if(strcmp(fnamo,fnam)){
                         strcpy(fnam,fnamo);
                         goto out;
+                        goto end;
                        }
                       }
                     }
       }
 
   }
-              
+end:              
       return ;
   
 
