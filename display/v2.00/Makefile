@@ -19,7 +19,7 @@ ROOTLIBS      = -L$(ROOTSYS)/lib -lNew -lBase -lCint -lClib -lCont -lFunc \
 ROOTGLIBS     = -lRint -lGpad -lGui -lGX11 -lX3d
 CERNLIBS      = -L/cern/pro/lib -lmathlib -lpacklib -lkernlib
 #OPT           = -g -DROOT10308
-OPT           = -g 
+OPT           = -O 
 NOOPT         =
 ARLD          = ar vr
 
@@ -135,13 +135,13 @@ ifeq "$(OS)"  "Linux"
  SOFLAGS       = -shared
  SOGFLAGS      = $(SOFLAGS)
 
- FORLIBS       = $(CERNLIBS) -lf2c
-# FORLIBS       = $(CERNLIBS) -lf2c -lF77 -lI77 -lc
+ FORLIBS       = $(CERNLIBS) -lm -lg2c
+# FORLIBS       = $(CERNLIBS) -lg2c -lF77 -lI77 -lc
 # FORLIBS       = $(CERNLIBS) -L/usr/local/lib -lf2c /usr/lib/libstdc++.so
  ADDLIBS       = $(FORLIBS)
- LIBS          = $(ROOTLIBS) -lg++ -lm -ldl -rdynamic
+ LIBS          = $(ROOTLIBS)  -lm -ldl -rdynamic
  GLIBS         = $(ROOTLIBS) $(ROOTGLIBS) -L/usr/X11R6/lib \
-                 -lXpm -lX11 -lg++ -lm -ldl -rdynamic
+                 -lXpm -lX11  -lm -lcrypt -ldl -rdynamic
  SHLD          = $(LD) $(SOFLAGS) $(LDFLAGS)
 endif
 

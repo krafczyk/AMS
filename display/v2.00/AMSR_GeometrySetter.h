@@ -68,7 +68,7 @@ protected:
 public:
                 AMSR_GeometrySetter();
                 AMSR_GeometrySetter(TGeometry * geo);
-               ~AMSR_GeometrySetter() {}
+   virtual            ~AMSR_GeometrySetter() {}
 
    void		TurnOn(char * name);
    void		TurnOnWithSons(char * name);
