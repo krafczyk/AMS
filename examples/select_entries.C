@@ -5,7 +5,8 @@
       
 // Input AMS ROOT Chain
       AMSChain *ams = new AMSChain;              
-      ams->Add("/f2users/choutko/g3v1g3.root");
+      //ams->Add("/f2users/choutko/g3v1g3.root");
+      ams->Add("$HOME/private/vitaly.root");
 
       // BEGIN of block: How to read just few branches ->
       ams->SetBranchStatus("*",0); // this disables all branches by default
@@ -17,15 +18,22 @@
 
 // Initialize selection list
       AMSEventList list;
+// Alternative if you have already a list
+      //AMSEventList other_list("amstest.list");
 
 // Loop to analyze entries
       int ndata = ams->GetEntries();
       for (int entry=0; entry<ndata; entry++) {
             AMSEventR* pev = ams->GetEvent();
             if (pev==NULL) break;
+
+// Examples of use, mainly for previously created lists
+            //if (other_list.Contains(pev)) continue;
+            //if (pev->nBeta()>1) { other_list.Remove(pev);}
+
+// Typical example: add to list if it satisfies your requirements
             if (pev->nBeta()==1) {
                BetaR beta = pev->Beta(0);
-// Add to list if it satifsfy your requirements
                if (fabs(beta.Beta-1.)>2*beta.Error) list.Add(pev);
             }
       }
@@ -38,7 +46,7 @@
       // END of block
 
 // Write selected events from chain to a new AMS ROOT file
-      list.Write(ams,"amstest.root"); //Write selected events from chain to a new ROOT file
+      list.Write(ams,"amstest.root"); 
 
 //Write "run event" list to standard output
       //list.Write();
