@@ -187,15 +187,15 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.AlphaTanThetaMax=tan(MIR/AMSDBc::raddeg);
   UpdateOrbit(Orbit.ThetaI,Orbit.PhiI,CCFFKEY.sdir);
   Orbit.AlphaSpeed=AMSDBc::twopi/90.8/60.;
-  Orbit.AlphaAltitude=(6373+380)*1.e5;
   Orbit.EarthSpeed=AMSDBc::twopi/24/3600;
   Orbit.PolePhi=CCFFKEY.polephi/AMSDBc::raddeg;
-  Orbit.EarthR=637300000;
-  Orbit.DipoleR=52700000;
-  Orbit.DipoleTheta=  0.37472219;
-  Orbit.DipolePhi=2.5267136;
-  Orbit.PoleTheta=-1.313;
-  Orbit.PolePhiStatic=2.0746;
+  Orbit.EarthR=6371.2e5;                      
+  Orbit.AlphaAltitude=Orbit.EarthR+380.e5;  
+  Orbit.DipoleR=534.259e5;                       // Dipole Shift Distance  (cm)
+  Orbit.DipoleTheta=21.687/AMSDBc::raddeg;       //              Latitude  (rad)
+  Orbit.DipolePhi=144.280/AMSDBc::raddeg;        //              Longitude (rad)
+  Orbit.PoleTheta=-79.397/AMSDBc::raddeg;        // Dipole Direction Lat   (rad)
+  Orbit.PolePhiStatic=108.392/AMSDBc::raddeg;    //                  Lon   (rad)
   Orbit.Nskip=0;
   Orbit.Ntot=AMSIO::getntot();
   if(ipart==0){
@@ -404,57 +404,42 @@ integer AMSmceventg::EarthModulation(){
   geant roll=AMSEvent::gethead()->getroll();
   geant yaw=AMSEvent::gethead()->getyaw();
   //
-  // direction to magnetic field
+  // Dipole direction
   //
-//  number um=sin(AMSDBc::pi/2-Orbit.PoleTheta)*cos(polephi);
-//  number vm=sin(AMSDBc::pi/2-Orbit.PoleTheta)*sin(polephi);
-//  number wm=cos(AMSDBc::pi/2-Orbit.PoleTheta);
-     number dphi=Orbit.DipolePhi+polephi-Orbit.PolePhiStatic;
-    number xc=Orbit.EarthR*sin(AMSDBc::pi/2-Orbit.PoleTheta)*cos(polephi)-
-    Orbit.DipoleR*sin(AMSDBc::pi/2-Orbit.DipoleTheta)*cos(dphi);
-    number yc=Orbit.EarthR*sin(AMSDBc::pi/2-Orbit.PoleTheta)*sin(polephi)-
-    Orbit.DipoleR*sin(AMSDBc::pi/2-Orbit.DipoleTheta)*sin(dphi);
-    number zc=Orbit.EarthR*cos(AMSDBc::pi/2-Orbit.PoleTheta)-
-    Orbit.DipoleR*cos(AMSDBc::pi/2-Orbit.DipoleTheta);
-    number rl=sqrt(xc*xc+zc*zc+yc*yc);
-    number  um=xc/rl;
-    number  vm=yc/rl;
-    number  wm=zc/rl;
-
+  number um=sin(AMSDBc::pi/2-Orbit.PoleTheta)*cos(polephi);
+  number vm=sin(AMSDBc::pi/2-Orbit.PoleTheta)*sin(polephi);
+  number wm=cos(AMSDBc::pi/2-Orbit.PoleTheta);
 
   //
-  // direction to station position
+  // Direction Dipole to Station 
   //
-   xc=Orbit.AlphaAltitude*sin(AMSDBc::pi/2-theta)*cos(phi)-
-    Orbit.DipoleR*sin(AMSDBc::pi/2-Orbit.DipoleTheta)*cos(dphi);
-   yc=Orbit.AlphaAltitude*sin(AMSDBc::pi/2-theta)*sin(phi)-
-    Orbit.DipoleR*sin(AMSDBc::pi/2-Orbit.DipoleTheta)*sin(dphi);
-   zc=Orbit.AlphaAltitude*cos(AMSDBc::pi/2-theta)-
-    Orbit.DipoleR*cos(AMSDBc::pi/2-Orbit.DipoleTheta);
-   rl=sqrt(xc*xc+zc*zc+yc*yc);
-    number  up=xc/rl;
-    number  vp=yc/rl;
-    number  wp=zc/rl;
+  number dphi=Orbit.DipolePhi+polephi-Orbit.PolePhiStatic;
+  number xc=Orbit.AlphaAltitude*sin(AMSDBc::pi/2-theta)*cos(phi)-
+   Orbit.DipoleR*sin(AMSDBc::pi/2-Orbit.DipoleTheta)*cos(dphi);
+  number yc=Orbit.AlphaAltitude*sin(AMSDBc::pi/2-theta)*sin(phi)-
+   Orbit.DipoleR*sin(AMSDBc::pi/2-Orbit.DipoleTheta)*sin(dphi);
+  number zc=Orbit.AlphaAltitude*cos(AMSDBc::pi/2-theta)-
+   Orbit.DipoleR*cos(AMSDBc::pi/2-Orbit.DipoleTheta);
+  number rl=sqrt(xc*xc+zc*zc+yc*yc);
+  number  up=xc/rl;
+  number  vp=yc/rl;
+  number  wp=zc/rl;
 
   number cts=um*up+vm*vp+wm*wp;
   number xl=acos(cts);
   number cl=fabs(sin(xl));
-   xc=Orbit.AlphaAltitude*sin(AMSDBc::pi/2-fabs(theta))*cos(phi)-
-    Orbit.DipoleR*sin(AMSDBc::pi/2-Orbit.DipoleTheta)*cos(dphi);
-   yc=Orbit.AlphaAltitude*sin(AMSDBc::pi/2-fabs(theta))*sin(phi)-
-    Orbit.DipoleR*sin(AMSDBc::pi/2-Orbit.DipoleTheta)*sin(dphi);
-   zc=Orbit.AlphaAltitude*cos(AMSDBc::pi/2-fabs(theta))-
-    Orbit.DipoleR*cos(AMSDBc::pi/2-Orbit.DipoleTheta);
-   rl=sqrt(xc*xc+zc*zc+yc*yc);
-    number  uz=xc/rl;
-    number  vz=yc/rl;
-    number  wz=zc/rl;
+  number rgm=rl;
 
+  // Magnetic East
+  xc=vm*wp-wm*vp;
+  yc=wm*up-um*wp;
+  zc=um*vp-vm*up;
+  rl=sqrt(xc*xc+yc*yc+zc*zc);
 
+  number  uv=xc/rl;
+  number  vv=yc/rl;
+  number  wv=zc/rl;
 
-  number uv=vm*wz-wm*vz;
-  number vv=wm*uz-um*wz;
-  number wv=um*vz-vm*uz;
   //
   // particle dir in global system
   // AMS x along the shuttle/station flight
@@ -500,8 +485,9 @@ integer AMSmceventg::EarthModulation(){
   number we=_dir[0]*amsx[2]+_dir[1]*amsy[2]+_dir[2]*amsz[2];
   
   number cth=ue*uv+ve*vv+we*wv;
-  number xfac=59.2*Orbit.EarthR/Orbit.AlphaAltitude*Orbit.EarthR/Orbit.AlphaAltitude;
-  number mom=xfac*pow(cl,4)/pow(sqrt(1.-cth*pow(cl,3))+1,2)*fabs(_charge);
+  number xfac=57.576*Orbit.EarthR/rgm*Orbit.EarthR/rgm;
+  number chsgn=_charge/fabs(_charge);
+  number mom=xfac*pow(cl,4)/pow(sqrt(1.-chsgn*cth*pow(cl,3))+1,2)*fabs(_charge);
   if (_mom > mom)return 1;
   else {
     ++Orbit.Nskip;   
