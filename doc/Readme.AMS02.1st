@@ -129,8 +129,8 @@ c. SoftWare/DataAccess
 
 IX  Misc
 
-    you may need to override some default shell limits to run offline program
-    recommending settings are (in c-shell)
+    you may need to override some default shell limits to run offline program;
+    recommended settings are (in c-shell)
     limit stack 8191
     limit data 256000
 
