@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.61 2001/05/29 13:29:59 choutko Exp $
+//  $Id: server.C,v 1.62 2001/05/30 07:38:59 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -2094,8 +2094,8 @@ if(li!=_acl.end()){
    (*li)->id.Status=DPS::Client::SInKill;
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
+   _pser->Kill((*li),SIGHUP,true);
    PropagateAC(acv,DPS::Client::Update);
-    _pser->Kill((*li),SIGHUP,true);
   }
   else{
     _UpdateACT((*li)->id,DPS::Client::Active);
