@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.65 2001/06/08 15:05:39 amsp Exp $
+//  $Id: server.C,v 1.66 2001/06/11 14:01:24 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -84,7 +84,7 @@ int main(int argc, char * argv[]){
 
 
 
-AMSServer::AMSServer(int argc, char* argv[]):_GlobalError(false){
+AMSServer::AMSServer(int argc, char* argv[]){
  char *dbfilename=0;
  char *iface=0;
  char *niface=0;
@@ -385,9 +385,9 @@ for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()
  Listening();
  if(!_GlobalError)pcur->StartClients(_pid);
  Listening();
- pcur->CheckClients(_pid);
+ if(!_GlobalError)pcur->CheckClients(_pid);
  Listening();
- pcur->KillClients(_pid);
+ if(!_GlobalError)pcur->KillClients(_pid);
 }
      
 
@@ -421,6 +421,11 @@ typedef map<AString, AMSServer::OrbitVars>::iterator MOI;
 }
 
 void AMSServerI::_UpdateACT(const DPS::Client::CID & cid, DPS::Client::ClientStatus st){
+{
+    time_t tt;
+    time(&tt);
+    _parent->LastServiceTime()=tt;
+}
      for(ACLI j=_acl.begin();j!=_acl.end();++j){
      if((*j)->id.uid==cid.uid){
        time_t tt;
@@ -688,6 +693,12 @@ for(MOI i=mo.begin();i!=mo.end();++i){
 
 
 void Server_impl::StartClients(const DPS::Client::CID & pid){
+{
+    time_t tt;
+    time(&tt);
+    _parent->LastServiceTime()=tt;
+}
+
 if(!Master() || _parent->MT())return;
 RegisteredClientExists();
 for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
@@ -843,6 +854,11 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
 
 #include <signal.h>
 void Server_impl::KillClients(const DPS::Client::CID & pid){
+{
+    time_t tt;
+    time(&tt);
+    _parent->LastServiceTime()=tt;
+}
 if(!Master())return;
 Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 if(!_pser->Lock(pid,DPS::Server::KillClient,getType(),_KillTimeOut))return;
@@ -884,7 +900,7 @@ if(li!=_acl.end()){
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
    PropagateAC(acv,DPS::Client::Update);
-    //_pser->Kill((*li),SIGTERM,true);
+//    _pser->Kill((*li),SIGTERM,true);
   }
   else{
     _UpdateACT((*li)->id,DPS::Client::Active);
@@ -898,6 +914,11 @@ _pser->Lock(pid,DPS::Server::ClearKillClient,getType(),_KillTimeOut);
 }
 
 void Server_impl::CheckClients(const DPS::Client::CID & cid){
+{
+    time_t tt;
+    time(&tt);
+    _parent->LastServiceTime()=tt;
+}
 if(!Master())return;
 Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 if(!_pser->Lock(cid,DPS::Server::CheckClient,getType(),_KillTimeOut))return;
@@ -1529,8 +1550,22 @@ return length;
 }
 
 
+  CORBA::Boolean Server_impl::AdvancedPing()throw (CORBA::SystemException){
+    time_t tt;
+    time(&tt);
+    if(  tt-_parent->LastServiceTime()>_KillTimeOut+2 && Master(false)){
+     _parent->EMessage("Server_impl::AdvancedPing-MasterProblems-StickInListening");
+    _parent->GlobalError()=true;
+    return false;
+    }
+    else {
+    _parent->GlobalError()=false;
+     return true;
+    }
+  }
+
   void Server_impl::ping()throw (CORBA::SystemException){
-}
+  }
 
 
    void Server_impl::sendCriticalOps(const DPS::Client::CID & cid, const CriticalOps & op)throw (CORBA::SystemException){
@@ -2917,7 +2952,7 @@ _parent->IMessage(AMSClient::print((li->second),"DST "));
 
 }
 
-bool Server_impl::Master(){
+bool Server_impl::Master(bool advanced){
 
 DPS::Client::CID cid;
 cid.Interface=(const char *)" ";
@@ -2932,8 +2967,15 @@ DPS::Client::ARS_var arf=pars;
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Server_var _pvar=DPS::Server::_narrow(obj);
     if(!CORBA::is_nil(_pvar)){
-    _pvar->ping();
-     return false;
+     if(advanced){
+      if(_pvar->AdvancedPing()){
+       return false;
+      }
+     }
+     else{
+       _pvar->ping();
+       return false;
+     }
    }
   }
     catch (CORBA::SystemException &ex){
@@ -2944,10 +2986,10 @@ return true;
 }
 
 
-bool Producer_impl::Master(){
+bool Producer_impl::Master(bool advanced){
  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 
-return _pser->Master();
+return _pser->Master(advanced);
 }
 
 
@@ -3087,8 +3129,7 @@ bool Server_impl::PingServer(const DPS::Client::ActiveClient & ac){
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Server_var _pvar=DPS::Server::_narrow(obj);
      if(!CORBA::is_nil(_pvar)){
-     _pvar->ping();
-     return true;
+     return _pvar->AdvancedPing();
      }
    }
    catch (CORBA::TRANSIENT &tr){
@@ -3762,10 +3803,10 @@ bool Client_impl::PingClient(const DPS::Client::ActiveClient & ac){
 
 
 
-bool Client_impl::Master(){
+bool Client_impl::Master(bool advanced){
  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 
-return _pser->Master();
+return _pser->Master(advanced);
 }
 
 void Server_impl::setEnv(const CID & cid, const char * env, const char *path)throw (CORBA::SystemException){

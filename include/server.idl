@@ -231,6 +231,7 @@ module DPS{
     void setEnv(in CID id, in string env, in string path);
     void sendCriticalOps(in CID id, in CriticalOps op);
     void ping();
+    boolean AdvancedPing();
     boolean TypeExists(in DPS::Client::ClientType type);
 
     /*

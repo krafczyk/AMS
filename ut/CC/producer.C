@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.37 2001/06/08 15:05:39 amsp Exp $
+//  $Id: producer.C,v 1.38 2001/06/11 14:01:24 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -70,8 +70,8 @@ else{
        FMessage("Server Requested Termination after sendID ",DPS::Client::SInAbort);
       }
      }
-     IMessage(AMSClient::print(_pid,"sendID-I-Success"));
      _Head=this;
+     IMessage(AMSClient::print(_pid,"sendID-I-Success"));
       return;       
      }
     }
@@ -670,7 +670,8 @@ if(!suc){
  }
  else{
   oncemore=true;
-  sleep(2);
+  sleep(5);
+   UpdateARS();
   goto again;
  }
 }

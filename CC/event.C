@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.265 2001/05/29 13:29:59 choutko Exp $
+//  $Id: event.C,v 1.266 2001/06/11 14:01:24 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1195,10 +1195,11 @@ void AMSEvent::event(){
 }
    }
    catch (AMSLVL3Error e){
+    _collectstatus();
      // No LVL3
-   if(AMSStatus::isDBWriteR() || AMSStatus::isDBUpdateR()){
-    setstatus((AMSJob::gethead()->getstatustable()->getstatus(getid(),getrun())).getp());
-   }
+//   if(AMSStatus::isDBWriteR() || AMSStatus::isDBUpdateR()){
+//    setstatus((AMSJob::gethead()->getstatustable()->getstatus(getid(),getrun())).getp());
+//   }
   }
     if(AMSStatus::isDBWriteR()){
       AMSJob::gethead()->getstatustable()->adds(getrun(),getid(),getstatus(),gettime());

@@ -1,4 +1,4 @@
-//  $Id: dbserver.h,v 1.5 2001/02/28 09:17:08 alexei Exp $
+//  $Id: dbserver.h,v 1.6 2001/06/11 14:01:48 choutko Exp $
 #ifndef __AMSDBSERVER__
 #define __AMSDBSERVER__
 #include <server.h>
@@ -10,7 +10,7 @@ protected:
 public:
   DBServer_impl(const map<AString, AMSServer::OrbitVars> & mo,  const DPS::Client::CID & cid,AMSClient * parent);
   DBServer_impl(const map<AString, AMSServer::OrbitVars> & mo, DPS::Server_ptr _cvar,DPS::Client::CID  cid, AMSClient * parent);
- bool Master();
+ bool Master(bool advanced=true);
  AMSServerI * getServer(){return up();}
  virtual void UpdateDB(bool force=false);
  virtual void StartClients(const DPS::Client::CID &cid);
@@ -36,6 +36,7 @@ public:
    int getEnv(const DPS::Client::CID &cid, SS_out ss);
    void setEnv(const DPS::Client::CID &cid,const char * env, const char *path);
    void ping()throw (CORBA::SystemException);
+   CORBA::Boolean AdvancedPing()throw (CORBA::SystemException){};
    void sendCriticalOps(const DPS::Client::CID &cid, const CriticalOps & op){};
   CORBA::Boolean TypeExists(DPS::Client::ClientType type);
 

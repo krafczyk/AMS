@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.17 2001/06/08 07:34:35 alexei Exp $
+//  $Id: dbserver.C,v 1.18 2001/06/11 14:01:24 choutko Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
@@ -1599,11 +1599,11 @@ tmend    = e;
 // Dummy functions provided dbservershares same proc with server
 
 
- bool  DBServer_impl::Master(){
+ bool  DBServer_impl::Master(bool advanced){
 
     Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 
-    return _pser->Master();
+    return _pser->Master(advanced);
 
 
  }
@@ -1947,11 +1947,11 @@ void DBServer_impl::clearRunEvInfo( RunStatus status){
 // Dummy functions provided dbservershares same proc with server
 
 
-bool  DBServer_impl::Master(){
+bool  DBServer_impl::Master(bool advanced){
 
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer());
 
-  return _pser->Master();
+  return _pser->Master(advanced);
 
 
 }

@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.36 2001/06/07 14:08:33 choutko Exp $
+# $Id: Monitor.pm,v 1.37 2001/06/11 14:02:00 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -555,14 +555,16 @@ sub getactivehosts{
      my $cpu=0;
      my $time=0;
      my $total=0;
+     my $tevt=0;
      for my $j (0 ... $#{$Monitor::Singleton->{rtb}}){
        my $rdst=$Monitor::Singleton->{rtb}[$j];
        $total+=$rdst->{LastEvent}+1-$rdst->{FirstEvent};
        my $rdstc=$rdst->{cinfo};
        if( $rdst->{Status} eq "Finished" or   $rdst->{Status} eq "Processing"){
+           $lastevt+=$rdstc->{LastEventProcessed}+1-$rdst->{FirstEvent};
+           $tevt+=$rdstc->{EventsProcessed};
            if( $rdstc->{HostName} eq $host){
                $evt+=$rdstc->{EventsProcessed};
-               $lastevt+=$rdstc->{LastEventProcessed}+1-$rdst->{FirstEvent};
                $cerr+=$rdstc->{CriticalErrorsFound};
                $err+=$rdstc->{ErrorsFound};
                $cpu+=$rdstc->{CPUTimeSpent};
@@ -570,8 +572,9 @@ sub getactivehosts{
            }
        }
    }
+#     print "$total $host $lastevt \n";
    push @text, $evt; 
-   push @text, int(1000*$lastevt/$total)/10.; 
+   push @text, int(1000*$lastevt/$total*$evt/($tevt+1))/10.; 
    push @text, $err,$cerr; 
      $total_cpu+=$cpu;
      $total_time+=$time;
@@ -582,7 +585,7 @@ sub getactivehosts{
      my $cpunumber=1;
     for my $nhlcycle (0 ...$#{$Monitor::Singleton->{nhl}}){
       my $hashnhl=$Monitor::Singleton->{nhl}[$nhlcycle];
-      if($host eq $hashnhl->{HostName}){
+      if($hash->{HostName} eq $hashnhl->{HostName}){
           $cpunumber=$hashnhl->{CPUNumber};
           last;
       }

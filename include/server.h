@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.36 2001/03/13 11:25:21 choutko Exp $
+//  $Id: server.h,v 1.37 2001/06/11 14:01:48 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -159,7 +159,6 @@ PortableServer::POA_ptr _poa;
 PortableServer::POAManager_ptr _mgr;
 };
 protected:
-bool _GlobalError;
 static AMSServer * _Head;
 typedef map<AString, AMSServer::OrbitVars> MO;  
 MO _orbmap; 
@@ -190,7 +189,7 @@ public:
   void CheckClients(const DPS::Client::CID &cid);
   void KillClients(const DPS::Client::CID &cid);
   bool PingClient(const DPS::Client::ActiveClient & ac);
-  bool Master();
+  bool Master(bool advanced=true);
   CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException);
   void getId(DPS::Client::CID_out cid) throw (CORBA::SystemException);
    int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars, DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0, int selffirst=0)throw (CORBA::SystemException);
@@ -212,7 +211,7 @@ public:
   Server_impl(const map<AString, AMSServer::OrbitVars> & mo,  const DPS::Client::CID & cid,AMSClient * parent, char * NS=0, char* NH=0, char *NK=0);
   Server_impl(const map<AString, AMSServer::OrbitVars> & mo, DPS::Server_ptr _cvar, const DPS::Client::CID & cid, AMSClient * parent);
   ~Server_impl(){if(_down)_down->remove();}
- bool Master();
+ bool Master(bool advanced=true);
  integer Kill(const DPS::Client::ActiveClient & ac, int signal, bool self);
  bool PingServer(const DPS::Client::ActiveClient & ac);
  bool Lock(const DPS::Client::CID & cid, OpType op, DPS::Client::ClientType type, int Time);
@@ -245,6 +244,7 @@ void _PurgeQueue();
    int getAHS(const DPS::Client::CID &cid,AHS_out ahl)throw (CORBA::SystemException);
    int getEnv(const DPS::Client::CID &cid, SS_out ss)throw (CORBA::SystemException);
    void setEnv(const DPS::Client::CID &cid,const char * env, const char *path)throw (CORBA::SystemException);
+   CORBA::Boolean AdvancedPing()throw (CORBA::SystemException);
    void ping()throw (CORBA::SystemException);
    void sendCriticalOps(const DPS::Client::CID &cid, const CriticalOps & op)throw (CORBA::SystemException);
   bool pingHost(const char * host);
@@ -315,7 +315,7 @@ DSTAL _dstqueue;
 public:
  bool getRunEvInfoSDB(const DPS::Client::CID & cid, RunEvInfo_var & rv, DSTInfo_var &dv);
  bool NotAllServersAlive();
- bool Master();
+ bool Master(bool advanced=true);
  AMSServerI * getServer(){return up();}
 
   Producer_impl(const map<AString, AMSServer::OrbitVars> & mo,  const DPS::Client::CID & cid,AMSClient * parent,char * NC=0, char* RF=0, char* NS=0, char * TS=0);

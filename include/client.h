@@ -1,4 +1,4 @@
-//  $Id: client.h,v 1.16 2001/03/16 10:39:53 choutko Exp $
+//  $Id: client.h,v 1.17 2001/06/11 14:01:47 choutko Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
 #include <typedefs.h>
@@ -21,11 +21,13 @@ _message(message),_exit(exit){};
 class AMSClient{
 protected:
  bool _ExitInProgress;
+bool _GlobalError;
  AMSClientError  _error;
  int _debug;
  bool _Oracle;
  bool _MT;
  bool _OracleW;
+uinteger _LastServiceTime;
  char * _DBFileName;
  int _MaxDBProcesses;
  CORBA::ORB_var _orb;
@@ -37,7 +39,7 @@ protected:
  static char _streambuffer[1024]; 
  static ostrstream _ost;
 public:
-AMSClient(int debug=0):_debug(debug),_Oracle(false),_MT(false),_OracleW(false),_DBFileName(0),_MaxDBProcesses(0),_error(" "),_ExitInProgress(false)
+AMSClient(int debug=0):_debug(debug),_Oracle(false),_MT(false),_OracleW(false),_DBFileName(0),_MaxDBProcesses(0),_error(" "),_ExitInProgress(false),_GlobalError(false),_LastServiceTime(0)
 {_pid.Status=DPS::Client::NOP;}
 virtual ~AMSClient(){};
 const char * getdbfile() const {return _DBFileName;}
@@ -46,6 +48,8 @@ void resetdbfile();
 int getmaxdb()const{return _MaxDBProcesses;}
 bool IsOracle() const {return _Oracle;}
 bool MT() const { return _MT;} 
+bool & GlobalError(){return _GlobalError;}
+uinteger & LastServiceTime(){return _LastServiceTime;}
 bool InitOracle() const {return _OracleW;}
 bool DBServerExists() const{return _MaxDBProcesses!=0 || _Oracle;}
 AMSClientError & Error(){return _error;}
