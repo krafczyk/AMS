@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.166 2003/05/13 13:26:50 alexei Exp $
+# $Id: RemoteClient.pm,v 1.167 2003/05/13 14:04:22 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3176,7 +3176,7 @@ print qq`
           print "<BR>";
    print qq`
 <INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 2=" CHECKED>Ntuple
-<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 127=1 128=" >RootFile<BR>
+<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 127=2 128=" >RootFile<BR>
 `;
                 print "Root/Ntuple Write Mode ";
           print "<BR>";
@@ -3864,6 +3864,9 @@ print qq`
           $tmpb=~ s/TIME 3=/TIME 1=$cpusf TIME 3=/; 
          }
          $buf=~ s/PART=/CPUTIME=$cpus \nPART=/; 
+         $rootntuple=$q->param("RootNtuple");
+         $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
+         $tmpb=~ s/ROOTNTUPLE=/C ROOTNTUPLE/;
          my $cputype=$q->param("QCPUType");
          $buf=~ s/PART=/CPUTYPE=\"$cputype\" \nPART=/; 
          $buf=~ s/PART=/CLOCK=$clock \nPART=/;         
@@ -7271,7 +7274,7 @@ sub printJobParamFormatDST {
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 2=\"><b> NTUPLE </b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 127=1 128=\" CHECKED><b> ROOT </b><BR>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 127=2 128=\" CHECKED><b> ROOT </b><BR>\n";
             print "</b></font></td></tr>\n";
            htmlTableEnd();
 }
