@@ -92,7 +92,7 @@ void AMSEvent::_init(){
     }
     SRun=_run;
 #ifndef __DB__
-   _validate();
+   _validate(1);
 #endif
   }
 
@@ -1270,7 +1270,7 @@ integer AMSEvent::replace(AMSID id, AMSlink *p, AMSlink *prev){
    }
 }
 
-void AMSEvent::_validate(){
+void AMSEvent::_validate(int print){
 
 AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
 AMSTimeID * offspring=(AMSTimeID*)ptid->down();
@@ -1285,7 +1285,7 @@ while(offspring){
 #endif
   if(offspring->validate(_time)){
 #ifdef __AMSDEBUG__
-    cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<" "<<offspring->getid()<<
+    if(print)cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<" "<<offspring->getid()<<
       " validated. ("<<nb-sizeof(uinteger)<<" bytes ) CRC = "<<
       offspring->getCRC()<<endl;                                              
 #endif

@@ -1443,7 +1443,7 @@ integer AMSTrTrack::buildFalseX(integer patstart){
                 // 3 point combination found
             int f= AMSTrTrack::_addnextFalseX(pat,3,phit);
                 if(f){
-                  if(f)NTrackFound++;
+                  if(f>0)NTrackFound++;
                   goto out;
                 }                
 
@@ -1592,6 +1592,12 @@ AMSgObj::BookTimer.start("TrFalseX");
              AMSgvolume* p= AMSJob::gethead()->getgeomvolume(id.crgid());
             if(p){
               AMSPoint  P1;
+                { 
+                  AMSDir pntdir(0,0,1.);
+                  AMSPoint pntplane(p->getcooA(0),p->getcooA(1),p->getcooA(2));
+                  number theta,phi,length;
+                  ptrack->interpolate(pntplane,pntdir,P1,theta,phi,length); 
+                }
               
               AMSTrCluster * py=
                 (AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0); 
@@ -1605,13 +1611,6 @@ AMSgObj::BookTimer.start("TrFalseX");
               }
               
               if(yfound){
-                
-                { 
-                  AMSDir pntdir(0,0,1.);
-                  AMSPoint pntplane(p->getcooA(0),p->getcooA(1),p->getcooA(2));
-                  number theta,phi,length;
-                  ptrack->interpolate(pntplane,pntdir,P1,theta,phi,length); 
-                }
                 // Now 2nd pass : find corresponding ladder & sensor
                 AMSgSen * pls=0;
                 AMSPoint PS(p->getpar(0),p->getpar(1),p->getpar(2));
