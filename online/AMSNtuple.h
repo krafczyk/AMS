@@ -15,6 +15,11 @@
 #include "AMSLVL3Hist.h"
 #include <time.h>
 const Int_t maxpart=20;
+const Int_t maxantiraw=32;
+const Int_t maxanti=16;
+const Int_t maxtof=200;
+const Int_t maxtrraw=500;
+const Int_t maxctc=50;
 class AMSNtuple : public TNamed {
 protected:
   class Event{
@@ -45,18 +50,52 @@ protected:
    Float_t         errorbetactc[maxpart][2];
    Float_t         cooctc[maxpart][2][3];
    Float_t         cootof[maxpart][4][3];
+   Int_t           nbeta;
+   Float_t         beta[maxpart];
   };
   class TOF{
    public:
+  Int_t           NToF;
+  Int_t           Status[maxtof];
+  Int_t           Plane[maxtof];
+  Int_t           Bar[maxtof];
+  Float_t         Edep[maxtof];
+  Float_t         Time[maxtof];
+  Float_t         ErTime[maxtof];
+  Float_t         Coo[maxtof][3];
+  Float_t         ErCoo[maxtof][3];
+
   };   
   class ANTI{
    public:
+   Int_t           nanti;
+   Int_t           AntiStatus[maxanti];
+   Int_t           AntiSector[maxanti];
+   Float_t         AntiCoo[maxanti][3];
+   Float_t         AntiErCoo[maxanti][3];
+   Float_t         AntiSignal[maxanti];
+   Int_t           nantiraw;
+   Int_t           AntirawStatus[maxantiraw];
+   Int_t           AntirawSector[maxantiraw];
+   Int_t         Antirawupdown[maxantiraw];
+   Float_t         AntirawSignal[maxantiraw];
+
   };   
   class CTC{
    public:
+   Int_t        nhit;
+   Int_t        layer[maxctc];
+   Int_t        x[maxctc];
+   Int_t        y[maxctc];
+   Float_t      signal[maxctc];
   };   
   class Tracker{
    public:
+        //Raw
+        Int_t ntrraw;
+        Int_t rawaddress[maxtrraw];
+        Int_t rawlength[maxtrraw];
+        
   };   
   class LVL1{
    public:
@@ -66,6 +105,15 @@ protected:
   };   
   class LVL3{
    public:
+    Int_t nlvl3;
+    Int_t TOFTr;
+    Int_t AntiTr;
+    Int_t TrackerTr;
+    Int_t NtrHits;
+    Int_t NPat;
+    Int_t Pattern[2];
+    Float_t Residual[2]; 
+    Float_t ELoss; 
   };   
  TTree * _h1;
  AxAMS _AxAMS; 

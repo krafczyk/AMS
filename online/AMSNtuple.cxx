@@ -17,7 +17,7 @@ ClassImp(AMSNtuple)
         _h1->SetBranchAddress("Lvl1antipatt",&_LVL1.Anti);
  
     //AxAMS
-        _h1->SetBranchAddress("npart",        &_AxAMS.npart);
+         _h1->SetBranchAddress("npart",        &_AxAMS.npart);
          _h1->SetBranchAddress("pctcp",         _AxAMS.pctcp);
          _h1->SetBranchAddress("pbetap",        _AxAMS.pbetap);
          _h1->SetBranchAddress("pchargep",      _AxAMS.pchargep);
@@ -34,9 +34,59 @@ ClassImp(AMSNtuple)
          _h1->SetBranchAddress("signalctc",     _AxAMS.signalctc);
          _h1->SetBranchAddress("betactc",       _AxAMS.betactc);
          _h1->SetBranchAddress("errorbetactc",  _AxAMS.errorbetactc);
+         _h1->SetBranchAddress("nbeta", &_AxAMS.nbeta);
+         _h1->SetBranchAddress("beta", _AxAMS.beta);
+         //Anti
+
+              _h1->SetBranchAddress("nanti",&_ANTI.nanti);
+              _h1->SetBranchAddress("Antistatus",_ANTI.AntiStatus);
+              _h1->SetBranchAddress("Antisector",_ANTI.AntiSector);
+              _h1->SetBranchAddress("Anticoo",_ANTI.AntiCoo);
+              _h1->SetBranchAddress("Antiercoo",_ANTI.AntiErCoo);
+              _h1->SetBranchAddress("Antiedep",_ANTI.AntiSignal);
+              _h1->SetBranchAddress("nantiraw",&_ANTI.nantiraw);
+              _h1->SetBranchAddress("antirawstatus",_ANTI.AntirawStatus);
+              _h1->SetBranchAddress("antirawsector",_ANTI.AntirawSector);
+              _h1->SetBranchAddress("antirawupdown",_ANTI.Antirawupdown);
+              _h1->SetBranchAddress("antirawsignal",_ANTI.AntirawSignal);
+
+     //TOF
+           _h1->SetBranchAddress("ntof",     &_TOF.NToF);
+          _h1->SetBranchAddress("Tofstatus", _TOF.Status);
+          _h1->SetBranchAddress("plane",     _TOF.Plane);
+          _h1->SetBranchAddress("bar",       _TOF.Bar);
+          _h1->SetBranchAddress("Tofedep",   _TOF.Edep);
+          _h1->SetBranchAddress("Toftime",   _TOF.Time);
+          _h1->SetBranchAddress("Tofetime",  _TOF.ErTime);
+          _h1->SetBranchAddress("Tofcoo",    _TOF.Coo);
+          _h1->SetBranchAddress("Tofercoo",  _TOF.ErCoo);
+
+         //Tracker
+           _h1->SetBranchAddress("ntrraw",&_Tracker.ntrraw);
+           _h1->SetBranchAddress("rawaddress",&_Tracker.rawaddress);
+           _h1->SetBranchAddress("rawlength",&_Tracker.rawlength);
+
+        //LVL3
+              _h1->SetBranchAddress("nlvl3",&_LVL3.nlvl3);
+              _h1->SetBranchAddress("Lvl3toftr",&_LVL3.TOFTr);
+              _h1->SetBranchAddress("Lvl3antitr",&_LVL3.AntiTr);
+              _h1->SetBranchAddress("Lvl3trackertr",&_LVL3.TrackerTr);
+              _h1->SetBranchAddress("Lvl3ntrhits",&_LVL3.NtrHits);
+              _h1->SetBranchAddress("Lvl3npat",&_LVL3.NPat);
+              _h1->SetBranchAddress("Lvl3pattern",_LVL3.Pattern);
+              _h1->SetBranchAddress("Lvl3residual",_LVL3.Residual);
+              _h1->SetBranchAddress("Lvl3eloss",&_LVL3.ELoss);
+
+              //CTC
+              _h1->SetBranchAddress("nctcht",&_CTC.nhit);
+              _h1->SetBranchAddress("Ctchitlayer",_CTC.layer);
+              _h1->SetBranchAddress("ctchitcolumn",_CTC.x);
+              _h1->SetBranchAddress("ctchitrow",_CTC.y);
+              _h1->SetBranchAddress("ctchitsignal",_CTC.signal);
+
          ReadOneEvent(0);
 
-
+     
 
     }
     else{

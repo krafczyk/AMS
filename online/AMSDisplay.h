@@ -12,7 +12,7 @@
 #include <TApplication.h>
 #include "AMSCanvas.h"
 #include "AMSHist.h"
-#include "AMSNtuple.h"
+class AMSNtuple;
 class TCanvas;
 class TPad;
 class TArc;

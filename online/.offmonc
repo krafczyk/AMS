@@ -1,0 +1,6 @@
+AMSEDDataDir=/offruns/scripts/log/root/
+export  AMSEDDataDir
+while offmonc
+do
+echo offmonc terminated
+done

@@ -21,7 +21,6 @@
 #pragma link C++ class TRadioButton;
 #pragma link C++ class TSwitch;
 
-#pragma link C++ class MySelectionDialog;
 
 #pragma link C++ class Debugger;
 

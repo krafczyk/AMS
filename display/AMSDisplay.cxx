@@ -621,7 +621,7 @@ void AMSDisplay::DrawTitle(Option_t *option)
    TPad * pad = disp->GetTitlePad();
 
    static TText * text=0;
-   static char * atext = "Alpha Magnetic Spectrometer";
+   static char * atext = "Alpha Magnetic Spectrometer Event Display";
 
    AMSMaker * p = (AMSMaker *) gAMSRoot->ParticleMaker();
    
@@ -732,7 +732,7 @@ void AMSDisplay::DrawEventInfo(Option_t *option)
 
    //   text->SetTextFont(7);
    text->SetTextAlign(12);
-   text->SetTextSize(0.3);
+   text->SetTextSize(0.28);
    text->Draw();
    sprintf(atext,"%s",gAMSRoot->GetTime());
     for ( i=strlen(atext);i<kTMAX-1;i++) atext[i] = ' ';

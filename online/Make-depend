@@ -24,8 +24,14 @@ AMSDisplay.o: /pgm0/EventDisplay/root/include/TNamed.h
 AMSDisplay.o: /pgm0/EventDisplay/root/include/TH2.h
 AMSDisplay.o: /pgm0/EventDisplay/root/include/TH1.h
 AMSDisplay.o: /pgm0/EventDisplay/root/include/TFile.h
-AMSDisplay.o: /pgm0/EventDisplay/root/include/TPad.h TSwitch.h TRadioButton.h
-AMSDisplay.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TPad.h AMSNtuple.h
+AMSDisplay.o: AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h AMSCTCHist.h
+AMSDisplay.o: AMSAxAMSHist.h AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
+AMSDisplay.o: /usr/include/standards.h /usr/include/machine/machtime.h
+AMSDisplay.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
+AMSDisplay.o: /usr/include/sys/select.h /usr/include/sys/timers.h
+AMSDisplay.o: /usr/include/sys/sysmisc.h TSwitch.h TRadioButton.h Debugger.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TObject.h
 AMSCanvas.o: /usr/include/unistd.h /usr/include/standards.h
 AMSCanvas.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
 AMSCanvas.o: /usr/include/sys/select.h /usr/include/sys/access.h
@@ -69,7 +75,11 @@ AMSCanvas.o: /pgm0/EventDisplay/root/include/TH2.h
 AMSCanvas.o: /pgm0/EventDisplay/root/include/TH1.h
 AMSCanvas.o: /pgm0/EventDisplay/root/include/TFile.h
 AMSCanvas.o: /pgm0/EventDisplay/root/include/TPad.h
-AMSCanvas.o: /pgm0/EventDisplay/root/include/TPaveLabel.h Debugger.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSNtuple.h
+AMSCanvas.o: AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h AMSCTCHist.h
+AMSCanvas.o: AMSAxAMSHist.h AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
+AMSCanvas.o: /usr/include/machine/machtime.h /usr/include/sys/timers.h
+AMSCanvas.o: /usr/include/sys/sysmisc.h Debugger.h
 AMSCanvas.o: /pgm0/EventDisplay/root/include/TObject.h
 AMSHist.o: AMSHist.h /pgm0/EventDisplay/root/include/TTree.h
 AMSHist.o: /pgm0/EventDisplay/root/include/TNamed.h
@@ -87,6 +97,12 @@ AMSAntiHist.o: /pgm0/EventDisplay/root/include/TFile.h
 AMSAntiHist.o: /pgm0/EventDisplay/root/include/TPad.h
 AMSAntiHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
 AMSAntiHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSAntiHist.o: AMSNtuple.h AMSTrackerHist.h AMSTOFHist.h AMSCTCHist.h
+AMSAntiHist.o: AMSAxAMSHist.h AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
+AMSAntiHist.o: /usr/include/standards.h /usr/include/machine/machtime.h
+AMSAntiHist.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
+AMSAntiHist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
+AMSAntiHist.o: /usr/include/sys/sysmisc.h
 AMSTrackerHist.o: AMSTrackerHist.h AMSHist.h
 AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TTree.h
 AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TNamed.h
@@ -96,6 +112,13 @@ AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TFile.h
 AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TPad.h
 AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
 AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSTrackerHist.o: AMSNtuple.h AMSTOFHist.h AMSAntiHist.h AMSCTCHist.h
+AMSTrackerHist.o: AMSAxAMSHist.h AMSLVL1Hist.h AMSLVL3Hist.h
+AMSTrackerHist.o: /usr/include/time.h /usr/include/standards.h
+AMSTrackerHist.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
+AMSTrackerHist.o: /usr/include/mach/machine/vm_types.h
+AMSTrackerHist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
+AMSTrackerHist.o: /usr/include/sys/sysmisc.h
 AMSCTCHist.o: AMSCTCHist.h AMSHist.h /pgm0/EventDisplay/root/include/TTree.h
 AMSCTCHist.o: /pgm0/EventDisplay/root/include/TNamed.h
 AMSCTCHist.o: /pgm0/EventDisplay/root/include/TH2.h
@@ -104,6 +127,12 @@ AMSCTCHist.o: /pgm0/EventDisplay/root/include/TFile.h
 AMSCTCHist.o: /pgm0/EventDisplay/root/include/TPad.h
 AMSCTCHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
 AMSCTCHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSCTCHist.o: AMSNtuple.h AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h
+AMSCTCHist.o: AMSAxAMSHist.h AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
+AMSCTCHist.o: /usr/include/standards.h /usr/include/machine/machtime.h
+AMSCTCHist.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
+AMSCTCHist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
+AMSCTCHist.o: /usr/include/sys/sysmisc.h
 AMSTOFHist.o: AMSTOFHist.h AMSHist.h /pgm0/EventDisplay/root/include/TTree.h
 AMSTOFHist.o: /pgm0/EventDisplay/root/include/TNamed.h
 AMSTOFHist.o: /pgm0/EventDisplay/root/include/TH2.h
@@ -112,6 +141,12 @@ AMSTOFHist.o: /pgm0/EventDisplay/root/include/TFile.h
 AMSTOFHist.o: /pgm0/EventDisplay/root/include/TPad.h
 AMSTOFHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
 AMSTOFHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSTOFHist.o: AMSNtuple.h AMSTrackerHist.h AMSAntiHist.h AMSCTCHist.h
+AMSTOFHist.o: AMSAxAMSHist.h AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
+AMSTOFHist.o: /usr/include/standards.h /usr/include/machine/machtime.h
+AMSTOFHist.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
+AMSTOFHist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
+AMSTOFHist.o: /usr/include/sys/sysmisc.h
 AMSLVL1Hist.o: AMSLVL1Hist.h AMSHist.h
 AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TTree.h
 AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TNamed.h
@@ -121,6 +156,12 @@ AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TFile.h
 AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TPad.h
 AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
 AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSLVL1Hist.o: AMSNtuple.h AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h
+AMSLVL1Hist.o: AMSCTCHist.h AMSAxAMSHist.h AMSLVL3Hist.h /usr/include/time.h
+AMSLVL1Hist.o: /usr/include/standards.h /usr/include/machine/machtime.h
+AMSLVL1Hist.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
+AMSLVL1Hist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
+AMSLVL1Hist.o: /usr/include/sys/sysmisc.h
 AMSLVL3Hist.o: AMSLVL3Hist.h AMSHist.h
 AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TTree.h
 AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TNamed.h
@@ -130,6 +171,12 @@ AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TFile.h
 AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TPad.h
 AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
 AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSLVL3Hist.o: AMSNtuple.h AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h
+AMSLVL3Hist.o: AMSCTCHist.h AMSAxAMSHist.h AMSLVL1Hist.h /usr/include/time.h
+AMSLVL3Hist.o: /usr/include/standards.h /usr/include/machine/machtime.h
+AMSLVL3Hist.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
+AMSLVL3Hist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
+AMSLVL3Hist.o: /usr/include/sys/sysmisc.h
 AMSAxAMSHist.o: AMSAxAMSHist.h AMSHist.h
 AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TTree.h
 AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TNamed.h
@@ -139,6 +186,25 @@ AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TFile.h
 AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TPad.h
 AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
 AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSAxAMSHist.o: AMSNtuple.h AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h
+AMSAxAMSHist.o: AMSCTCHist.h AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
+AMSAxAMSHist.o: /usr/include/standards.h /usr/include/machine/machtime.h
+AMSAxAMSHist.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
+AMSAxAMSHist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
+AMSAxAMSHist.o: /usr/include/sys/sysmisc.h
+AMSNtuple.o: AMSNtuple.h /pgm0/EventDisplay/root/include/TTree.h
+AMSNtuple.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSNtuple.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSNtuple.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSNtuple.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSNtuple.o: /pgm0/EventDisplay/root/include/TPad.h AMSTrackerHist.h
+AMSNtuple.o: AMSHist.h /pgm0/EventDisplay/root/include/TPaveLabel.h
+AMSNtuple.o: AMSTOFHist.h AMSAntiHist.h AMSCTCHist.h AMSAxAMSHist.h
+AMSNtuple.o: AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
+AMSNtuple.o: /usr/include/standards.h /usr/include/machine/machtime.h
+AMSNtuple.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
+AMSNtuple.o: /usr/include/sys/select.h /usr/include/sys/timers.h
+AMSNtuple.o: /usr/include/sys/sysmisc.h
 TRadioButton.o: /pgm0/EventDisplay/root/include/TCanvas.h
 TRadioButton.o: /pgm0/EventDisplay/root/include/TInterpreter.h TRadioButton.h
 TRadioButton.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
@@ -150,7 +216,7 @@ Debugger.o: /usr/include/sys/seek.h /usr/include/va_list.h
 Debugger.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
 Debugger.o: /usr/include/sys/select.h /usr/include/getopt.h
 Debugger.o: /usr/include/sys/limits.h /usr/include/sys/machine/machlimits.h
-Debugger.o: /usr/include/sys/syslimits.h /usr/include/sys/machine/machtime.h
+Debugger.o: /usr/include/sys/syslimits.h /usr/include/machine/machtime.h
 Debugger.o: /usr/include/sys/rt_limits.h /usr/include/stdarg.h Debugger.h
 Debugger.o: /pgm0/EventDisplay/root/include/TObject.h
 main.o: /pgm0/EventDisplay/root/include/TROOT.h
@@ -162,19 +228,21 @@ main.o: AMSHist.h /pgm0/EventDisplay/root/include/TNamed.h
 main.o: /pgm0/EventDisplay/root/include/TH2.h
 main.o: /pgm0/EventDisplay/root/include/TH1.h
 main.o: /pgm0/EventDisplay/root/include/TPad.h
-main.o: /pgm0/EventDisplay/root/include/TPaveLabel.h Debugger.h
+main.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSNtuple.h
+main.o: AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h AMSCTCHist.h
+main.o: AMSAxAMSHist.h AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
+main.o: /usr/include/standards.h /usr/include/machine/machtime.h
+main.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
+main.o: /usr/include/sys/select.h /usr/include/sys/timers.h
+main.o: /usr/include/sys/sysmisc.h Debugger.h
 main.o: /pgm0/EventDisplay/root/include/TObject.h /usr/include/sys/stat.h
-main.o: /usr/include/standards.h /usr/include/sys/types.h
-main.o: /usr/include/mach/machine/vm_types.h /usr/include/sys/select.h
 main.o: /usr/include/sys/mode.h /usr/include/sys/file.h
 main.o: /usr/include/sys/param.h /usr/include/sys/limits.h
 main.o: /usr/include/sys/machine/machlimits.h /usr/include/sys/syslimits.h
-main.o: /usr/include/sys/machine/machtime.h /usr/include/sys/rt_limits.h
-main.o: /usr/include/sys/machine/machparam.h /usr/include/machine/endian.h
-main.o: /usr/include/sys/signal.h /usr/include/sys/siginfo.h
-main.o: /usr/include/sys/sysmisc.h /usr/include/sys/machine/signal.h
+main.o: /usr/include/sys/rt_limits.h /usr/include/sys/machine/machparam.h
+main.o: /usr/include/machine/endian.h /usr/include/sys/signal.h
+main.o: /usr/include/sys/siginfo.h /usr/include/sys/machine/signal.h
 main.o: /usr/include/machine/context.h /usr/include/sys/procset.h
 main.o: /usr/include/sys/access.h /usr/include/sys/fcntl.h
 main.o: /usr/include/sys/seek.h /usr/include/stdlib.h /usr/include/getopt.h
-main.o: main.h AMSAntiHist.h AMSTrackerHist.h AMSTOFHist.h AMSLVL1Hist.h
-main.o: AMSLVL3Hist.h AMSCTCHist.h AMSAxAMSHist.h
+main.o: main.h

@@ -62,16 +62,25 @@ public:
    static   void      PrintCB(Widget, XtPointer, XtPointer);
 
    // Anti
+   static void        AntiSet0CB(Widget, XtPointer, XtPointer);
    static void        AntiSet1CB(Widget, XtPointer, XtPointer);
    static void        AntiSet2CB(Widget, XtPointer, XtPointer);
    static void        AntiSet3CB(Widget, XtPointer, XtPointer);
    static void        AntiSet4CB(Widget, XtPointer, XtPointer);
    // Tracker
    // Level1
+   static void        LVL1Set0CB(Widget, XtPointer, XtPointer);
+   static void        LVL1Set1CB(Widget, XtPointer, XtPointer);
    // Level3
+   static void        LVL3Set0CB(Widget, XtPointer, XtPointer);
+   static void        LVL3Set1CB(Widget, XtPointer, XtPointer);
    // TOF
    // CTC
+   static void        CTCSet0CB(Widget, XtPointer, XtPointer);
+   static void        CTCSet1CB(Widget, XtPointer, XtPointer);
    // AxAMS
+   static void        AxAMSSet0CB(Widget, XtPointer, XtPointer);
+   static void        AxAMSSet1CB(Widget, XtPointer, XtPointer);
 
    ClassDef(AMSCanvas, 0)   //AMS canvas control class
 };

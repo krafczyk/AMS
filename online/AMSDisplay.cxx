@@ -26,7 +26,7 @@
 #include "AMSDisplay.h"
 #include "TSwitch.h"
 #include "Debugger.h"
-
+#include "AMSNtuple.h"
 AMSOnDisplay * gAMSDisplay;
 
 ClassImp(AMSOnDisplay)
@@ -347,17 +347,23 @@ void AMSOnDisplay::AddSubDet(  AMSHist & subdet){
 
 
 Int_t AMSOnDisplay::Dispatch(Int_t subdet, Int_t set){
-   
    TVirtualPad * gPadSave = gPad;
    m_Pad->cd();
    Int_t retcode;
    if(subdet>=0 && subdet<_msubdet ){
+      int temp=_cursubdet;
+      int tempset=_subdet[subdet]->getCSet();
       retcode=_subdet[subdet]->DispatchHist(set);
       _cursubdet=subdet;
+      //      cout <<" subdet "<<subdet<<" "<<set<<" "<<tempset<<endl;
+      if(set>=0)_subdet[_cursubdet]->getCSet()=set; 
+      else _subdet[_cursubdet]->getCSet()=tempset; 
       Draw();
+      _subdet[subdet]->getCSet()=retcode;
+      _cursubdet=temp;
    }   
    gPadSave->cd();
-   m_Canvas->Update();
+      m_Canvas->Update();
    return retcode;
 }
 
@@ -394,3 +400,5 @@ void AMSOnDisplay::Fill(Int_t Begin, Int_t Sample){
      }
   }
 }
+
+

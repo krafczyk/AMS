@@ -40,28 +40,28 @@ Method I : Pick up the //hpl3itp1.cern.ch:8081/ams.tar.gz file
           gzip -d then tar -xvf it. You will get an AMS directory tree.
           (see VII. for standalone environment)          
 
-Method II(Recommended): Get an account on some eth-z computers  
+Method II(Recommended): Get an account on some AMS computers  
                         (ask Alexei.Klimentov@cern.ch to do that).
                         The last released version of the AMS software is in
-                        /pgm0/Offline/tag directory on boron
+                        /Offline/tag directory on boron
                         /Offprod/tag directory on helium
                         
                         current (20-dec-1998) tag == v2.13
                                     
                         Development version is in 
-                        /pgm0/Offline/vdev   directory    (boron)                
+                        /Offline/vdev   directory    (boron)                
                         /Offprod/vdev   directory (helium)                   
 
 b) As a developper :
 
-  i)You should have an  account on eth-z computers (see above how to get it)
+  i)You should have an  account on AMS computers (see above how to get it)
   ii)You should be a member of "simu" group on eth-z computers
   (ask Vitaly.Choutko@cern.ch about it)                                                
   iiii) define following variables in your shell:
-                  setenv CVSROOT /pgm0/Offline/CVS (/Offprod/CVS)
+                  setenv CVSROOT /Offline/CVS (/Offprod/CVS)
                   setenv EDITOR {put your fav editor here}
                   setenv CVSEDITOR {put your fav editor here}
-                  setenv AMSDataDir /pgm0/Offline/AMSDataDir (/Offprod/AMSDataDir)
+                  setenv AMSDataDir /Offline/AMSDataDir (/Offprod/AMSDataDir)
 
    iv) cvs checkout AMS   // creates a local copy of AMS files (latest revision)
                           // You will be able to update/commit 

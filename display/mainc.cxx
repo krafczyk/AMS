@@ -43,7 +43,7 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
 */
 
   debugger.Off();
-  char *filename="realtime.root                                                                              ";
+  char *filename="test.root";
 
   if ( argc > 1 ) {		// now take the file name
     filename = *++argv;

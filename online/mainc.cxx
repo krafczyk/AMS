@@ -3,7 +3,6 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TGeometry.h>
-#include "AMSRoot.h"
 #include "AMSDisplay.h"
 #include "Debugger.h"
 #include <iostream.h>
@@ -12,7 +11,13 @@
 #include <sys/file.h>
 #include <stdlib.h>
 #include "main.h"
-
+#include "AMSAntiHist.h"
+#include "AMSTrackerHist.h"
+#include "AMSTOFHist.h"
+#include "AMSLVL1Hist.h"
+#include "AMSLVL3Hist.h"
+#include "AMSCTCHist.h"
+#include "AMSAxAMSHist.h"
 
 void Myapp::HandleIdleTimer(){
 SetReturnFromRun(1);
@@ -30,24 +35,11 @@ int main(int argc, char *argv[])
 // by TRint (which inherits from TApplication) you will be able
 // to execute CINT commands once in the eventloop (via Run()).
 Myapp *theApp = new Myapp("App", &argc, argv);
-theApp->SetIdleTimer(4,"");
-/*
-// Do drawing and all everything else you want
-TCanvas *c = new TCanvas("Picture", "The Alignment Geometry", 1024, 768);
-c->Show();
-
-TLine *l = new TLine(0.1,0.2,0.5,0.9);
-l->Draw();
-
-c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
-*/
+theApp->SetIdleTimer(15,"");
 
   debugger.Off();
-  char *filename="realtime.root                                                                              ";
-
-  if ( argc > 1 ) {		// now take the file name
-    filename = *++argv;
-  }
+  
+  char * filename = "test.root";		// default file name
 
   char *gtv=getenv("AMSEDDataDir");
   if(!gtv){
@@ -76,42 +68,36 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
   }
   }
 out:
-  {  
+    
    TFile f(fnam);
-   TTree * t = (TTree *)f.Get("h1");
 
-   if(!t){
-     //if(argc <=1)cout <<"Please type file name as first parameter"<<endl;
-    return 1;
-   }
 
-   cout <<" "<<endl;
-   AMSRoot amsroot("AMS", "AMS Display");
-   cout <<" "<<endl;
-   amsroot.Init(t);
-   cout <<" "<<endl;
-   cout <<"Open file "<<fnam<<endl;
-   amsroot.MakeTree("AMSTree", "AMS Display Tree");
-   TFile fgeo("ams_group.root");
-   TGeometry * geo = (TGeometry *)fgeo.Get("ams");
-   AMSDisplay display("AMSRoot Event Display", geo);
-       display.SetApplication(theApp);
-       display.SetView (kTwoView);
-       // display.SetView (kTwoView);
-      for(int i=0;;i++){
-       amsroot.Clear();
-       if(!amsroot.GetEvent(i)){
-        if(i){
-          i=0;
-          theApp->SetIdleTimer(30,"");
-          continue;
-        }
-        else break;
-       }
-       if(!amsroot.IsGolden() && rand()%10 != 3)continue;
-          display.DrawEvent();
-          display.GetCanvas()->Update();	// force it to draw
-          theApp->Run();
+   printf("opening file %s...\n", fnam);
+  AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Online Display",&f);
+  AMSAntiHist  antih("ANTI","Anti counter Hists",1,1);
+  amd->AddSubDet(antih);
+  AMSTrackerHist  trackerh("Tracker","Tracker  Hists",2,0);
+  amd->AddSubDet(trackerh);
+  AMSLVL1Hist  LVL1h("LVL1","LVL1  Hists",2,1);
+  amd->AddSubDet(LVL1h);
+  AMSLVL3Hist  LVL3h("LVL3","LVL3  Hists",2,1);
+  amd->AddSubDet(LVL3h);
+  AMSTOFHist  TOFh("TOF","TOF  Hists",2,0);
+  amd->AddSubDet(TOFh);
+  AMSCTCHist  CTCh("CTC","CTC  Hists",2,1);
+  amd->AddSubDet(CTCh);
+  AMSAxAMSHist  AxAMSh("AxAMS","AxAMS  Hists",2,1);
+  amd->AddSubDet(AxAMSh);
+  amd->Init();
+  amd->SetApplication(theApp);
+  int Begin=0;
+  int Sample=1000;
+      for(;;){
+        amd->Fill(Begin,Sample);
+        Begin+=Sample;
+        amd->DispatchProcesses();  
+        theApp->Run();
+
                     {
                       ifstream iftxt(fnama,ios::in);
                       if(iftxt){
@@ -127,14 +113,13 @@ out:
                        }
                       }
                     }
-      }
 
-  }
-end:              
+
+        
+      }        
+  end:
       return 0;
   
 
 
 }
-
-

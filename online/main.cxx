@@ -39,7 +39,7 @@ theApp->SetIdleTimer(5,"");
 
   debugger.Off();
   
-  char * filename = "realtime.root";		// default file name
+  char * filename = "test.root";		// default file name
 
   if ( argc > 1 ) {		// now take the file name
     filename = *++argv;
@@ -49,19 +49,19 @@ theApp->SetIdleTimer(5,"");
    printf("opening file %s...\n", filename);
    TFile f(filename);
   AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Online Display",&f);
-  AMSAntiHist  antih("ANTI","Anti counter Hists",4,1);
+  AMSAntiHist  antih("ANTI","Anti counter Hists",1,1);
   amd->AddSubDet(antih);
   AMSTrackerHist  trackerh("Tracker","Tracker  Hists",2,0);
   amd->AddSubDet(trackerh);
-  AMSLVL1Hist  LVL1h("LVL1","LVL1  Hists",1,1);
+  AMSLVL1Hist  LVL1h("LVL1","LVL1  Hists",2,1);
   amd->AddSubDet(LVL1h);
-  AMSLVL3Hist  LVL3h("LVL3","LVL3  Hists",2,0);
+  AMSLVL3Hist  LVL3h("LVL3","LVL3  Hists",2,1);
   amd->AddSubDet(LVL3h);
   AMSTOFHist  TOFh("TOF","TOF  Hists",2,0);
   amd->AddSubDet(TOFh);
-  AMSCTCHist  CTCh("CTC","CTC  Hists",2,0);
+  AMSCTCHist  CTCh("CTC","CTC  Hists",2,1);
   amd->AddSubDet(CTCh);
-  AMSAxAMSHist  AxAMSh("AxAMS","AxAMS  Hists",2,0);
+  AMSAxAMSHist  AxAMSh("AxAMS","AxAMS  Hists",2,1);
   amd->AddSubDet(AxAMSh);
   amd->Init();
   amd->SetApplication(theApp);
