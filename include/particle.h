@@ -93,13 +93,13 @@ public:
 AMSBeta*       getpbeta()       { return _pbeta;}
 AMSCharge*     getpcharge()     { return _pcharge;}
 AMSTrTrack*    getptrack()      { return _ptrack;}
-AMSCTCCluster* getpctc(int n)   { if (n < 2) return _pctc[n];}
+AMSCTCCluster* getpctc(int n)   {  return n>=0 && n<2 ? _pctc[n]:0;}
 
 number getcharge() const {return _Charge;}
 void       setpbeta(AMSBeta* p)     {_pbeta   = p;}
 void       setpcharge(AMSCharge* p) {_pcharge = p;}
 void       setptrack(AMSTrTrack* p) {_ptrack  = p;}
-void       setpctc(AMSCTCCluster* p, int n)   { if (n < 2) _pctc[n] = p;}
+void       setpctc(AMSCTCCluster* p, int n)   { if (n>=0 && n < 2) _pctc[n] = p;}
 
 integer    getgpart()               {return _GPart;}
 void       setgpart(integer gpart)  {_GPart = gpart;}
