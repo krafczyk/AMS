@@ -1,9 +1,8 @@
-//  $Id: beta.C,v 1.42 2001/10/02 12:57:23 choutko Exp $
+//  $Id: beta.C,v 1.43 2002/03/20 09:41:15 choumilo Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
 #include <tofdbc02.h>
-#include <tofdbc.h>
 #include <tofrec02.h>
 #include <beta.h>
 #include <commons.h>
@@ -13,7 +12,7 @@
 #include <extC.h>
 #include <upool.h>
 #include <ntuple.h>
-#include <trigger3.h>
+#include <trigger302.h>
 #include <event.h>
 #include <trdrec.h>
 extern "C" void rzerowrapper_(number & z0, number & zb, number & x0, number & zmin,int & ierr);
@@ -257,7 +256,7 @@ nexttrack2:
 
 
 // Loop on TOF patterns
-TriggerLVL3 *ptr=(TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+TriggerLVL302 *ptr=(TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
  AMSTrTrack * ptrackF=0;
  if(ptr && ptr->TOFOK() && LVL3FFKEY.Accept==0){
    for ( int pat=0; pat<npatb; pat++){
@@ -402,92 +401,73 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 //----> recover 1-sided TOFRawCluster/TOFClusters using track info 
     int nh;
     integer status;
-    TriggerLVL3 *plvl3=(TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0); 
+    TriggerLVL302 *plvl3=(TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0); 
     if(!ptrack->checkstatus(AMSDBc::FalseTOFX) &&  !ptrack->checkstatus(AMSDBc::WEAK) && ( (!ptrack->checkstatus(AMSDBc::FalseX) ) || (!plvl3 || plvl3->LVL3HeavyIon() ))){ 
      for(nh=0;nh<nhit;nh++){
       status=pthit[nh]->getstatus();
       if((status&TOFGC::SCBADB2)!=0 && (status&TOFGC::SCBADB5)!=0){//tempor  use now only TOF-recovered
         pbeta->setstatus(AMSDBc::RECOVERED);
-        if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))pthit[nh]->recovers2(ptrack);
-	else pthit[nh]->recovers(ptrack);
+        pthit[nh]->recovers2(ptrack);
       }
      }
     }
 //---->
 //
-    int il,ilma(0),ilmd(0),neda(0),nedd(0);
-    number edepa[TOFGC::MAXPLN]={0.,0.,0.,0.};
-    number edepd[TOFGC::MAXPLN]={0.,0.,0.,0.};
-    number edamx(0.),eddmx(0.),avera(0.),averd(0.),za,zd,sig,sigo;
+//    int il,ilma(0),ilmd(0),neda(0),nedd(0);
+//    number edepa[TOF2GC::SCLRS]={0.,0.,0.,0.};
+//    number edepd[TOF2GC::SCLRS]={0.,0.,0.,0.};
+//    number edamx(0.),eddmx(0.),avera(0.),averd(0.),za,zd,sig,sigo;
 //
-    if(!ptrack->checkstatus(AMSDBc::FalseTOFX)){
+//    if(!ptrack->checkstatus(AMSDBc::FalseTOFX)){
 // 
-    for(nh=0;nh<nhit;nh++){ // <-- calc. trunc.eloss 
-      status=pthit[nh]->getstatus();
-      if((status&TOFGC::SCBADB2)==0 || ((status&TOFGC::SCBADB2)!=0 && (status&TOFGC::SCBADB5)!=0)){
-        il=pthit[nh]->getntof()-1;
-        edepa[il]=pthit[nh]->getedep();
-        if(edepa[il]>0.)neda+=1;
-        if(edepa[il]>edamx){
-          edamx=edepa[il];
-          ilma=il;
-        }
-        edepd[il]=pthit[nh]->getedepd();
-        if(edepd[il]>0.)nedd+=1;
-        if(edepd[il]>eddmx){
-          eddmx=edepd[il];
-          ilmd=il;
-        }
-      } 
-    }
-    if(edamx>0. && neda>1){
-      for(il=0;il<AMSTOFCluster::planes();il++)if(il!=ilma)avera+=edepa[il];
-      avera/=(neda-1);
-    }
-    if(eddmx>0. && nedd>1){
-      for(il=0;il<AMSTOFCluster::planes();il++)if(il!=ilmd)averd+=edepd[il];
-      averd/=(nedd-1);
-    }
-    za=sqrt(fabs(cos(theta))*avera/1.8);
-    zd=sqrt(fabs(cos(theta))*averd/1.7);
-    sig=0.;
+//    for(nh=0;nh<nhit;nh++){ // <-- calc. trunc.eloss 
+//      status=pthit[nh]->getstatus();
+//      if((status&TOFGC::SCBADB2)==0 || ((status&TOFGC::SCBADB2)!=0 && (status&TOFGC::SCBADB5)!=0)){
+//        il=pthit[nh]->getntof()-1;
+//        edepa[il]=pthit[nh]->getedep();
+//        if(edepa[il]>0.)neda+=1;
+//        if(edepa[il]>edamx){
+//          edamx=edepa[il];
+//          ilma=il;
+//        }
+//        edepd[il]=pthit[nh]->getedepd();
+//        if(edepd[il]>0.)nedd+=1;
+//        if(edepd[il]>eddmx){
+//          eddmx=edepd[il];
+//          ilmd=il;
+//        }
+//      } 
+//    }
+//    if(edamx>0. && neda>1){
+//      for(il=0;il<AMSTOFCluster::planes();il++)if(il!=ilma)avera+=edepa[il];
+//      avera/=(neda-1);
+//    }
+//    if(eddmx>0. && nedd>1){
+//      for(il=0;il<AMSTOFCluster::planes();il++)if(il!=ilmd)averd+=edepd[il];
+//      averd/=(nedd-1);
+//    }
+//    za=sqrt(fabs(cos(theta))*avera/1.8);
+//    zd=sqrt(fabs(cos(theta))*averd/1.7);
+//    sig=0.;
 //
-    if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){// tempor for AMS02 as for AMS01) !!!
-      if(za>0. && za<5.)sig=sqrt(7400.+11977./avera);
-      if(za>=4.5){
-        if(zd>3.5)sig=sqrt(7400.+11977./averd);
-        else sig=sqrt(7400.+11977.*0.022);// level of Z=5 resol.(ps)
-      }
-      if(sig>0. && sig<80.)sig=80.;// min.limit on sigma
+// correct time err.for highZ (tempor for AMS02 as for AMS01) !!!
+//      if(za>0. && za<5.)sig=sqrt(7400.+11977./avera);
+//      if(za>=4.5){
+//        if(zd>3.5)sig=sqrt(7400.+11977./averd);
+//        else sig=sqrt(7400.+11977.*0.022);// level of Z=5 resol.(ps)
+//      }
+//      if(sig>0. && sig<80.)sig=80.;// min.limit on sigma
 //
-      for(nh=0;nh<nhit;nh++){ // <-- replace time errors
-        status=pthit[nh]->getstatus();
-        if((status&TOFGC::SCBADB2)==0){// update resol. only for true 2-sided counters
-          il=pthit[nh]->getntof()-1;
-          sigo=(1.e+12)*(pthit[nh]->getetime());
-          if(sig>0.)pthit[nh]->setetime(sig*1.e-12);
-        }
-      }
-    }
-    else{ // <-- AMS01
-      if(za>0. && za<5.)sig=sqrt(7400.+11977./avera);
-      if(za>=4.5){
-        if(zd>3.5)sig=sqrt(7400.+11977./averd);
-        else sig=sqrt(7400.+11977.*0.022);// level of Z=5 resol.(ps)
-      }
-      if(sig>0. && sig<80.)sig=80.;// min.limit on sigma
+//      for(nh=0;nh<nhit;nh++){ // <-- replace time errors
+//        status=pthit[nh]->getstatus();
+//        if((status&TOFGC::SCBADB2)==0){// update resol. only for true 2-sided counters
+//          il=pthit[nh]->getntof()-1;
+//          sigo=(1.e+12)*(pthit[nh]->getetime());
+//          if(sig>0.)pthit[nh]->setetime(sig*1.e-12);
+//        }
+//      }
 //
-      for(nh=0;nh<nhit;nh++){ // <-- replace time errors
-        status=pthit[nh]->getstatus();
-        if((status&TOFGC::SCBADB2)==0){// update resol. only for true 2-sided counters
-          il=pthit[nh]->getntof()-1;
-          sigo=(1.e+12)*(pthit[nh]->getetime());
-          if(sig>0.)pthit[nh]->setetime(sig*1.e-12);
-        }
-      }
-    }
-//
-    }
+//    }
 //---->
     pbeta->SimpleFit(nhit, sleng);
     if(pbeta->getchi2()< BETAFITFFKEY.Chi2 ){
@@ -668,66 +648,6 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
 
 void AMSBeta::_writeEl(){
 
-if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-
-  BetaNtuple* BN = AMSJob::gethead()->getntuple()->Get_beta();
-
-  if (BN->Nbeta>=MAXBETA) return;
-
-// fill the ntuple 
-  BN->Status[BN->Nbeta]=_status;
-  BN->Pattern[BN->Nbeta]=_Pattern;  
-  BN->Beta[BN->Nbeta]=_Beta;
-  BN->BetaC[BN->Nbeta]=_BetaC;
-  BN->Error[BN->Nbeta]=_InvErrBeta;
-  BN->ErrorC[BN->Nbeta]=_InvErrBetaC;
-  BN->Chi2[BN->Nbeta]=_Chi2;
-  BN->Chi2S[BN->Nbeta]=_Chi2Space;
-  if(_Pattern ==0)BN->NTOF[BN->Nbeta]=4;
-  else if(_Pattern < 5)BN->NTOF[BN->Nbeta]=3;
-  else BN->NTOF[BN->Nbeta]=2;
-  int k;
-  for(k=BN->NTOF[BN->Nbeta];k<4;k++)BN->pTOF[BN->Nbeta][k]=0;
-  for(k=0;k<BN->NTOF[BN->Nbeta];k++){
-    BN->pTOF[BN->Nbeta][k]=_pcluster[k]->getpos();
-    int i,pat;
-    pat=_pcluster[k]->getntof()-1;
-    if(AMSTOFCluster::Out(IOPA.WriteAll%10==1)){
-      // Writeall
-      for(i=0;i<pat;i++){
-        AMSContainer *pc=AMSEvent::gethead()->getC("AMSTOFCluster",i);
-         #ifdef __AMSDEBUG__
-          assert(pc != NULL);
-         #endif
-         BN->pTOF[BN->Nbeta][k]+=pc->getnelem();
-      }
-    }                                                        
-    else {
-    //WriteUsedOnly
-      for(i=0;i<pat;i++){
-        AMSTOFCluster *ptr=(AMSTOFCluster*)AMSEvent::gethead()->getheadC("AMSTOFCluster",i);
-          while(ptr && ptr->checkstatus(AMSDBc::USED)){
-            BN->pTOF[BN->Nbeta][k]++;
-            ptr=ptr->next();
-          }
-      }
-    }
-
-
-
-    pat=_ptrack->getpattern();
-    if(_ptrack->checkstatus(AMSDBc::NOTRACK))BN->pTr[BN->Nbeta]=-1;
-    else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))BN->pTr[BN->Nbeta]=-1;
-    else BN->pTr[BN->Nbeta]=_ptrack->getpos();
-
-
-  }
-
-  BN->Nbeta++;
-
-}
-else{
-
   BetaNtuple02* BN = AMSJob::gethead()->getntuple()->Get_beta02();
 
   if (BN->Nbeta>=MAXBETA02) return;
@@ -771,21 +691,12 @@ else{
       }
     }
 
-
-
     pat=_ptrack->getpattern();
     if(_ptrack->checkstatus(AMSDBc::NOTRACK))BN->pTr[BN->Nbeta]=-1;
     else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))BN->pTr[BN->Nbeta]=-1;
     else BN->pTr[BN->Nbeta]=_ptrack->getpos();
-
-
   }
-
   BN->Nbeta++;
-
-
-}
-
 }
 
 void AMSBeta::_copyEl(){

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.278 2002/02/26 13:28:09 choutko Exp $
+//  $Id: event.C,v 1.279 2002/03/20 09:41:17 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -12,7 +12,6 @@
 #include <trrawcluster.h>
 #include <typedefs.h> 
 #include <tofdbc02.h> 
-#include <tofdbc.h> 
 #include <event.h>
 #include <cont.h>
 #include <commons.h>
@@ -20,34 +19,23 @@
 #include <trrec.h>
 #include <mccluster.h>
 #include <tofrec02.h>
-#include <tofrec.h>
 #include <beta.h>
 #include <charge.h>
 #include <particle.h>
-#include <ctcrec.h>
 #include <iostream.h>
 #include <fstream.h>
 #include <tofsim02.h>
-#include <tofsim.h>
 #include <stdlib.h>
 #include <tofcalib02.h>
-#include <tofcalib.h>
 #include <daqs2block.h>
-#include <daqblock.h>
-#include <ctccalib.h>
 #include <ntuple.h>
-#include <ctcdbc.h>
 #include <timeid.h>
 #include <trcalib.h>
 #include <tralig.h>
 #include <trigger102.h>
-#include <trigger1.h>
-#include <trigger3.h>
 #include <trigger302.h>
 #include <bcorr.h>
 #include <antirec02.h>
-#include <antirec.h>
-#include <ctcsim.h>
 #include <user.h>
 #include <signal.h>
 #include <ecaldbc.h>
@@ -377,14 +365,9 @@ void AMSEvent::_siamsinitrun(){
 _sitkinitrun();
 _sitofinitrun();
 _siantiinitrun();
-if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 _siecalinitrun();
 _sitrdinitrun();
 _sirichinitrun();
-}
-else {
-_sictcinitrun();
-}
 }
 
 
@@ -413,14 +396,9 @@ if(AMSJob::gethead()->isProduction() && AMSJob::gethead()->isRealData()){
 _retkinitrun();
 _retofinitrun();
 _reantiinitrun();
-if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 _reecalinitrun();
 _retrdinitrun();
 _rerichinitrun();
-}
-else{
-_rectcinitrun();
-}
 _reaxinitrun();
 AMSUser::InitRun();
 }
@@ -429,14 +407,9 @@ AMSUser::InitRun();
 void AMSEvent::_siamsinitevent(){
  _sitofinitevent();
  _siantiinitevent();
- if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-  _siecalinitevent();
-  _sitrdinitevent();
-  _sirichinitevent();
- }
- else{
-  _sictcinitevent();
- }
+ _siecalinitevent();
+ _sitrdinitevent();
+ _sirichinitevent();
 }
 
 void AMSEvent::_reamsinitevent(){
@@ -451,17 +424,11 @@ void AMSEvent::_reamsinitevent(){
  _redaqinitevent();
  _retkinitevent();
  _retriginitevent();
- if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_retof2initevent();
- else _retofinitevent();
+ _retof2initevent();
  _reantiinitevent();
- if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-  _reecalinitevent();
-  _retrdinitevent();
-  _rerichinitevent();
- }
-else{
- _rectcinitevent();
-}
+ _reecalinitevent();
+ _retrdinitevent();
+ _rerichinitevent();
  _reaxinitevent();
 }
 
@@ -737,18 +704,10 @@ void AMSEvent::_sitkinitevent(){
 
 void AMSEvent::_retriginitevent(){
 
- if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
    AMSEvent::gethead()->add (
      new AMSContainer(AMSID("AMSContainer:TriggerLVL1",0),0));
    AMSEvent::gethead()->add (
      new AMSContainer(AMSID("AMSContainer:TriggerLVL3",0),0));
- }
- else{
-   AMSEvent::gethead()->add (
-     new AMSContainer(AMSID("AMSContainer:TriggerLVL1",0),0));
-   AMSEvent::gethead()->add (
-     new AMSContainer(AMSID("AMSContainer:TriggerLVL3",0),0));
- }
 }
 
 void AMSEvent::_siantiinitevent(){
@@ -799,27 +758,12 @@ void AMSEvent::_sitofinitevent(){
 //
 //    container for time_over_threshold hits (digi step):
 //
- if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
   for(il=0;il<TOF2GC::SCLRS;il++){
     ptr=AMSEvent::gethead()->add(
         new AMSContainer(AMSID("AMSContainer:TOF2Tovt",il),0));
   }
   TOF2RawEvent::settrfl(0);// reset  TOF-trigger flag
   TOF2RawEvent::setpatt(trpatt);// reset TOF-trigger pattern
- }
- else{
-  for(il=0;il<TOF1GC::SCLRS;il++){
-    ptr=AMSEvent::gethead()->add(
-        new AMSContainer(AMSID("AMSContainer:AMSTOFTovt",il),0));
-  }
- }
-}
-//--------------
-void AMSEvent::_sictcinitevent(){
-  for(int i=0;i<CTCDBc::getnlay();i++){
-   AMSEvent::gethead()->add (
-   new AMSContainer(AMSID("AMSContainer:AMSCTCMCCluster",i),0));
-  }
 }
 
 
@@ -829,14 +773,8 @@ void AMSEvent::_sictcinitevent(){
 
 void AMSEvent::_reantiinitevent(){
 
-    if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
       AMSEvent::gethead()->add(
       new AMSContainer(AMSID("AMSContainer:Anti2RawEvent",0),0));
-    }
-    else{
-      AMSEvent::gethead()->add(
-      new AMSContainer(AMSID("AMSContainer:AMSAntiRawEvent",0),0));
-    }  
       AMSEvent::gethead()->add(
       new AMSContainer(AMSID("AMSContainer:AMSAntiRawCluster",0),0));
 
@@ -867,49 +805,7 @@ void AMSEvent::_retof2initevent(){
    for( i=0;i<TOF2GC::SCLRS;i++)  ptr = AMSEvent::gethead()->add (
        new AMSContainer(AMSID("AMSContainer:AMSTOFCluster",i),0));
 //
-  DAQSBlock::clrtbll();//clear sc.data length
-}
-//-----------------------------------
-void AMSEvent::_retofinitevent(){
-  integer i;
-  AMSNode *ptr;
-//---
-// container for RawEvent hits(same structure for MC/REAL events) : 
-//
-   ptr=AMSEvent::gethead()->add(
-       new AMSContainer(AMSID("AMSContainer:AMSTOFRawEvent",0),0));
-//---
-//  container for RawCluster hits :
-//
-   ptr=  AMSEvent::gethead()->add (
-      new AMSContainer(AMSID("AMSContainer:AMSTOFRawCluster",0),0));
-//---
-// container for Cluster hits :
-//
-   for( i=0;i<TOF1GC::SCLRS;i++)  ptr = AMSEvent::gethead()->add (
-       new AMSContainer(AMSID("AMSContainer:AMSTOFCluster",i),0));
-//
-  DAQSBlock::clrtbll();//clear sc.data length
-}
-//=====================================================================
-void AMSEvent::_rectcinitevent(){
-   integer i;
- 
-   AMSEvent::gethead()->add(
-   new AMSContainer(AMSID("AMSContainer:AMSCTCRawEvent",0),0));
-       
-   for(i=0;i<CTCDBc::getnlay();i++){
- 
-    AMSEvent::gethead()->add (
-    new AMSContainer(AMSID("AMSContainer:AMSCTCRawCluster",i),0));
- 
-    AMSEvent::gethead()->add (
-    new AMSContainer(AMSID("AMSContainer:AMSCTCRawHit",i),0));
- 
- 
-    AMSEvent::gethead()->add (
-     new AMSContainer(AMSID("AMSContainer:AMSCTCCluster",i),0));
-   }
+//  DAQS2Block::clrtbll();//clear sc.data length
 }
 //=====================================================================
 void AMSEvent::_reecalinitevent(){
@@ -1036,9 +932,7 @@ void  AMSEvent::write(int trig){
     AMSgObj::BookTimer.start("WriteEvent");
   
 // Sort before by "Used" variable : 
-// AMSTrTrack & AMSTrCluster & AMSCTCCl
-  AMSEvent::gethead()->getheadC("AMSCTCCluster",0,2); 
-  AMSEvent::gethead()->getheadC("AMSCTCCluster",1,2); 
+// AMSTrTrack & AMSTrCluster
 
   AMSEvent::gethead()->getheadC("AMSTrCluster",0,2); 
   AMSEvent::gethead()->getheadC("AMSTrCluster",1,2); 
@@ -1253,24 +1147,13 @@ void AMSEvent::event(){
 
      }
     }
-    if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-      _siecalevent(); 
-      _sitrdevent(); 
-      _sirichevent();
-      }
-     else{
-      _sictcevent(); 
-     }
-    if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-      _sitof2event();//important to call after siecalevent to have FT from EC
-      _sianti2event();//                           in case of absence FT from TOF
-    }
-    else{
-      _sitofevent();
-      _siantievent();
-    } 
+    _siecalevent(); 
+    _sitrdevent(); 
+    _sirichevent();
+    _sitof2event();//important to call after siecalevent to have FT from EC
+    _sianti2event();//                           in case of absence FT from TOF
     _sitkevent(); 
-    _sitrigevent();//create lev1/lev3 trig.object 
+    _sitrigevent();//create lev1/lev3 trig.object
     _sidaqevent(); //DAQ-simulation 
   AMSgObj::BookTimer.stop("SIAMSEVENT");
   }
@@ -1310,27 +1193,15 @@ void AMSEvent::_reamsevent(){
     AMSgObj::BookTimer.stop("REAMSEVENT");  
     return;
   }
-  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-    _retof2event();
-    _reanti2event();
-  }
-  else{
-    _retofevent();
-    _reantievent();
-  }
+  _retof2event();
+  _reanti2event();
   if(AMSJob::gethead()->isReconstruction() )_retrigevent();
-  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-   if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){
+  if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){
     _retrdevent();
     _retkevent(); 
     _rerichevent();
     _reecalevent();
-   }
   }
-  else {
-    _retkevent(); 
-    _rectcevent(); 
-  } 
   _reaxevent();
    AMSUser::Event();
    AMSgObj::BookTimer.stop("REAMSEVENT");  
@@ -1340,7 +1211,6 @@ void AMSEvent::_caamsinitevent(){
  if(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)_catkinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF)_catofinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CAnti)_cantinitevent();
- if(AMSJob::gethead()->isCalibration() & AMSJob::CCerenkov)_cactcinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CAMS)_caaxinitevent();
 }
 
@@ -1363,14 +1233,11 @@ void AMSEvent::_cantinitevent(){
 void AMSEvent::_caaxinitevent(){
 }
 
-void AMSEvent::_cactcinitevent(){
-}
 
 void AMSEvent::_caamsevent(){
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF)_catofevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CAnti)_cantievent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CEcal)_caecevent();
-  if(AMSJob::gethead()->isCalibration() & AMSJob::CCerenkov)_cactcevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)_catkevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CAMS)_caaxevent();
 }
@@ -1405,16 +1272,11 @@ for(i=0;i<nalg;i++){
 
 }
 
-void AMSEvent::_cactcevent(){
-//  CTCGAINcalib::select();// event selection for CTC GAIN-calibration
-}
 //---------------------------------------------------------------------------
 void AMSEvent::_catofevent(){
   integer trflag(0);
-  TriggerLVL1 *ptr;
   Trigger2LVL1 *ptr2;
 //
-  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
     ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr2)trflag=ptr2->gettoflg();
     if(trflag <= 0)return;// use only H/W-triggered event tempor
@@ -1424,18 +1286,6 @@ void AMSEvent::_catofevent(){
              TOF2TZSLcalib::select();// event selection for TOF TZSL-calibration
     if(TFREFFKEY.relogic[0]==4)
              TOF2AMPLcalib::select();// event selection for TOF AMPL-calibration
-  }
-  else{
-    ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-    if(ptr)trflag=ptr->gettoflg();
-    if(trflag <= 0)return;
-    if(TOFRECFFKEY.relogic[0]==2)
-             TOFTDIFcalib::select();
-    if(TOFRECFFKEY.relogic[0]==3)
-             TOFTZSLcalib::select();
-    if(TOFRECFFKEY.relogic[0]==4)
-             TOFAMPLcalib::select();
-  }
 }
 //---------------------------------------------------------------------------
 
@@ -1446,7 +1296,6 @@ void AMSEvent::_caecevent(){
   integer toflag(0),ecflag(0);
   Trigger2LVL1 *ptr;
 //
-  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
     ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr){
       toflag=ptr->gettoflg();
@@ -1457,7 +1306,6 @@ void AMSEvent::_caecevent(){
       if(ECREFFKEY.relogic[1]<=2)ECREUNcalib::select();// RLGA/FIAT part of REUN-calibration
       if(ECREFFKEY.relogic[1]==3)ECREUNcalib::selecte();// ANOR part of REUN-calibration
     }
-  }
 }
 //--------------------------------------------------------------------------
 void AMSEvent::_caaxevent(){
@@ -1471,10 +1319,9 @@ void AMSEvent::_retkevent(integer refit){
     AMSlink *ptr=getheadC("TriggerLVL3",0);
     AMSlink *ptr1=getheadC("TriggerLVL1",0);
 
-    TriggerLVL3 *ptr3=dynamic_cast<TriggerLVL3*>(ptr);
     TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
      
-if(ptr1 && (!LVL3FFKEY.Accept || (ptr1 && ptr && ((ptr3 && ptr3->LVL3OK()) || (ptr3-2 && ptr302->LVL3OK()))))){
+if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))){//tempor
 AMSgObj::BookTimer.start("RETKEVENT");
   AMSgObj::BookTimer.start("TrCluster");
   buildC("AMSTrCluster",refit);
@@ -1554,49 +1401,6 @@ AMSgObj::BookTimer.start("RETKEVENT");
  else throw AMSLVL3Error("LVL3NotCreated");  
 }
 //----------------------------------------
-void AMSEvent::_reantievent(){
-  integer trflag(0);
-  int stat;
-//
-  AMSgObj::BookTimer.start("REANTIEVENT");
-//
-  ANTIJobStat::addre(0);
-//
-//
-//
-    TriggerLVL1 *ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-    if(ptr)trflag=ptr->gettoflg();
-    if(trflag<=0){
-      AMSgObj::BookTimer.stop("REANTIEVENT");
-      return;// "no LVL1-trigger"  tempor commented
-    }
-    ANTIJobStat::addre(1);
-//
-    AMSAntiRawEvent::validate(stat);// RawEvent-->RawEvent
-    if(stat!=0){
-      AMSgObj::BookTimer.stop("REANTIEVENT");
-      return;
-    }
-    ANTIJobStat::addre(2);
-//
-    AMSAntiRawCluster::build(stat);// RawEvent->RawCluster
-    if(stat!=0){
-      AMSgObj::BookTimer.stop("REANTIEVENT");
-      return;
-    }
-    ANTIJobStat::addre(3);
-//
-//
-  AMSAntiCluster::build();// RawCluster->Cluster
-  ANTIJobStat::addre(4);
-// 
-  #ifdef __AMSDEBUG__
-   if(AMSEvent::debug)AMSAntiCluster::print();
-  #endif
-//
-  AMSgObj::BookTimer.stop("REANTIEVENT");
-}
-//-------------------------------------
 void AMSEvent::_reanti2event(){
   integer toftrigfl(0);
   uinteger ectrigfl(0);
@@ -1646,58 +1450,6 @@ void AMSEvent::_reanti2event(){
   AMSgObj::BookTimer.stop("REANTIEVENT");
 }
 //===============================================================================
-void AMSEvent::_retofevent(){
-integer trflag(0);
-int stat;
-//
-  AMSgObj::BookTimer.start("RETOFEVENT");
-    TOFJobStat::addre(0);
-    TriggerLVL1 *ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-    if(ptr)trflag=ptr->gettoflg();
-    if(trflag<=0){
-      AMSgObj::BookTimer.stop("RETOFEVENT");
-      return;// "no TOF in LVL1-trigger"   
-    }
-    TOFJobStat::addre(1);
-//
-//                   ===> reco of real or MC events :
-//
-//
-      AMSgObj::BookTimer.start("TOF:validation");
-      AMSTOFRawEvent::validate(stat);
-      AMSgObj::BookTimer.stop("TOF:validation");
-      if(stat!=0){
-        AMSgObj::BookTimer.stop("RETOFEVENT");
-        return;
-      }
-      TOFJobStat::addre(2);
-//
-      AMSgObj::BookTimer.start("TOF:RwEv->RwCl");
-      AMSTOFRawCluster::build(stat);
-      AMSgObj::BookTimer.stop("TOF:RwEv->RwCl");
-      if(stat!=0){
-        AMSgObj::BookTimer.stop("RETOFEVENT");
-        return;
-      }
-      TOFJobStat::addre(3);
-//
-      AMSgObj::BookTimer.start("TOF:RwCl->Cl");
-      AMSTOFCluster::build(stat);    
-      AMSgObj::BookTimer.stop("TOF:RwCl->Cl");
-      if(stat!=0){
-        AMSgObj::BookTimer.stop("RETOFEVENT");
-        return;
-      }
-      TOFJobStat::addre(4);
-//
-  #ifdef __AMSDEBUG__
-  if(AMSEvent::debug){
-    AMSTOFCluster::print();
-  }
-  #endif
-  AMSgObj::BookTimer.stop("RETOFEVENT");
-}
-//----------------------------------------
 void AMSEvent::_retof2event(){
 integer toftrigfl(0),ectrigfl(0);
 int stat;
@@ -1753,47 +1505,6 @@ int stat;
   }
   #endif
   AMSgObj::BookTimer.stop("RETOFEVENT");
-}
-//========================================================================
-void AMSEvent::_rectcevent(){
-  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-  integer trflag(0);
-  int stat;
-  TriggerLVL1 *ptr;
-  AMSgObj::BookTimer.start("RECTCEVENT");
-//
-  CTCJobStat::addre(0);
-//
-  ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-  if(ptr)trflag=ptr->gettoflg();
-  if(trflag<=0){
-    AMSgObj::BookTimer.stop("RECTCEVENT");
-    return;// "no LVL1-trigger"          // tempor commented
-  }
-//
-  CTCJobStat::addre(1);
-  AMSCTCRawEvent::validate(stat);// RawEvent-->RawEvent
-  if(stat!=0){
-    AMSgObj::BookTimer.stop("RECTCEVENT");
-    return;
-  }
-  CTCJobStat::addre(2);
-//
-  AMSCTCRawHit::build(stat);// RawEvent-->RawHit
-  if(stat!=0){
-    AMSgObj::BookTimer.stop("RECTCEVENT");
-    return;
-  }
-  CTCJobStat::addre(3);
-//
-  AMSCTCCluster::build();// RawHit-->Cluster
-  CTCJobStat::addre(4);
-//
-  #ifdef __AMSDEBUG__
-  if(AMSEvent::debug)AMSCTCCluster::print();
-  #endif
-  AMSgObj::BookTimer.stop("RECTCEVENT");
-}
 }
 //========================================================================
 void AMSEvent::_reecalevent(){
@@ -1976,8 +1687,6 @@ void AMSEvent::_sitofinitrun(){
 void AMSEvent::_siantiinitrun(){
 }
 
-void AMSEvent::_sictcinitrun(){
-}
 
 void AMSEvent::_siecalinitrun(){
 }
@@ -2008,8 +1717,6 @@ void AMSEvent::_retofinitrun(){
 void AMSEvent::_reantiinitrun(){
 }
 
-void AMSEvent::_rectcinitrun(){
-}
 
 void AMSEvent::_reecalinitrun(){
 }
@@ -2026,7 +1733,7 @@ void AMSEvent::_reaxinitrun(){
 }
 
 void AMSEvent:: _sitkevent(){
-bool hastrigger= strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")?AMSTOFRawEvent::gettrfl():TOF2RawEvent::gettrfl();
+bool hastrigger= TOF2RawEvent::gettrfl();
   if(TRMCFFKEY.NoiseOn &&hastrigger )AMSTrMCCluster::sitknoise();
   AMSTrMCCluster::sitkcrosstalk();
 #ifdef __AMSDEBUG__
@@ -2043,28 +1750,6 @@ bool hastrigger= strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")?AMSTOFRawEve
 #endif
 }
 
-//----------------------------------------------------------------
-void AMSEvent:: _siantievent(){
-  int stat;
-  AMSgObj::BookTimer.start("SIANTIEVENT");
-  ANTIJobStat::addmc(0);
-//
-//
-    AMSAntiRawEvent::mc_build(stat);// Geant_hit->RawEvent
-    if(stat!=0){
-      AMSgObj::BookTimer.stop("SIANTIEVENT");
-      return;// no FTrigger from TOF - skip the rest
-    }
-    ANTIJobStat::addmc(1);
-//
-//
-#ifdef __AMSDEBUG__
-  AMSContainer *p;
-  p=getC("AMSAntiMCCluster",0);
-  if(p && AMSEvent::debug>1)p->printC(cout);
-#endif
-  AMSgObj::BookTimer.stop("SIANTIEVENT");
-}
 //----------------------------------------------------------------
 void AMSEvent:: _sianti2event(){
   int stat;
@@ -2140,64 +1825,23 @@ void AMSEvent::_sirichevent(){
   AMSgObj::BookTimer.stop("SIRICH");
 }
 
-
+//---------------------------------------------------------------
 void AMSEvent:: _sitrigevent(){
-  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
     Trigger2LVL1::build();
     TriggerLVL302::build();
-  }
-  else{
-    TriggerLVL1::build();
-    TriggerLVL3::build();
-  }
 
 }
 
-
+//---------------------------------------------------------------
 void AMSEvent:: _retrigevent(){
   // Backup solution to "simulate" trigger 1 & 3 for rec data
   
-  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 //   if(TGL1FFKEY.RebuildLVL1)Trigger2LVL1::build();
 //   if(LVL3FFKEY.RebuildLVL3)TriggerLVL302::build();
-  }
-  else{
-//   if(LVL1FFKEY.RebuildLVL1)TriggerLVL1::build();
-//   if(LVL3FFKEY.RebuildLVL3)TriggerLVL3::build();
-  }
 }
 
 
 //===============================================================
-void AMSEvent:: _sitofevent(){
-  AMSContainer *p;
-  int stat;
-//
-  AMSgObj::BookTimer.start("SITOFDIGI");
-   AMSgObj::BookTimer.start("TOF:Ghit->Tovt");
-   TOFJobStat::addmc(0);
-//
-   AMSTOFTovt::build();
-   AMSgObj::BookTimer.stop("TOF:Ghit->Tovt");
-//
-   AMSgObj::BookTimer.start("TOF:Tovt->RwEv");
-   AMSTOFRawEvent::mc_build(stat);
-   AMSgObj::BookTimer.stop("TOF:Tovt->RwEv");
-   if(stat!=0){
-     AMSgObj::BookTimer.stop("SITOFDIGI");
-     return; // no FTrigger from TOF
-   }
-   TOFJobStat::addmc(1);
-  AMSgObj::BookTimer.stop("SITOFDIGI");
-//
-#ifdef __AMSDEBUG__
-  p=getC("AMSTOFMCCluster",0);
-  if(p && AMSEvent::debug>1)p->printC(cout);
-  p =getC("AMSTOFRawCluster",0);
-  if(p && AMSEvent::debug>1)p->printC(cout);
-#endif
-}
-//-----------------------------------
 void AMSEvent:: _sitof2event(){
   AMSContainer *p;
   int stat;
@@ -2228,33 +1872,6 @@ void AMSEvent:: _sitof2event(){
   p =getC("TOF2RawCluster",0);
   if(p && AMSEvent::debug>1)p->printC(cout);
 #endif
-}
-//=============================================================
-void AMSEvent:: _sictcevent(){
-  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-  int stat(0);
-//
-//  if((AMSEvent::gethead()->getid())==56)CTCRECFFKEY.reprtf[1]=2;//tempor
-//  else CTCRECFFKEY.reprtf[1]=0;
-//
-  AMSgObj::BookTimer.start("SICTCEVENT");
-  CTCJobStat::addmc(0);
-  AMSCTCRawHit::sictcdigi();// Ghits-->RawHit
-  CTCJobStat::addmc(1);
-//
-  AMSCTCRawEvent::mc_build(stat);// RawHit-->RawEvent
-  if(stat!=0){// no FTrigger from TOF - skip the rest
-    AMSgObj::BookTimer.stop("SICTCEVENT");
-    return; // no MC-TOFtrigger
-  }
-  CTCJobStat::addmc(2);
-//
-#ifdef __AMSDEBUG__
-  AMSContainer *p =getC("AMSCTCRawCluster",0);
-  if(p && AMSEvent::debug>1)p->printC(cout);
-#endif
-  AMSgObj::BookTimer.stop("SICTCEVENT");
-}
 }
 //=============================================================
 
@@ -2383,158 +2000,12 @@ void AMSEvent::_printEl(ostream & stream){
  stream << "Run "<<_run<<" "<<getname()<<" "<< getid()<<" Time "<< 
    ctime(&_time)<<"."<<_usec<<" R "<<_StationRad<<" Theta "<<_StationTheta*AMSDBc::raddeg<<" Phi "<<_StationPhi*AMSDBc::raddeg<<" Speed "<<_StationSpeed<<
    " Pole "<<_NorthPolePhi*AMSDBc::raddeg<<endl;
- if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
    stream <<" TOF2Temperature : No structure yet !!! ";
    stream <<" Average Scaler Rate & LifeTime "<<Trigger2LVL1::getscalersp()->getsum(gettime())<<"  "<<Trigger2LVL1::getscalersp()->getlifetime(gettime())<<endl;
    stream <<" Average Magnet Temperature "<<MagnetVarp::getmeanmagnetmtemp()<<endl;
- }
- else{
-   stream <<" TOFTemperature (dC) crates 01,31,41,71,03,33,43,73 ";
-   stream <<TOFVarp::tofvpar.getmeantoftemp(01)<<" ";
-   stream <<TOFVarp::tofvpar.getmeantoftemp(31)<<" ";
-   stream <<TOFVarp::tofvpar.getmeantoftemp(41)<<" ";
-   stream <<TOFVarp::tofvpar.getmeantoftemp(71)<<" ";
-   stream <<TOFVarp::tofvpar.getmeantoftemp(03)<<" ";
-   stream <<TOFVarp::tofvpar.getmeantoftemp(33)<<" ";
-   stream <<TOFVarp::tofvpar.getmeantoftemp(43)<<" ";
-   stream <<TOFVarp::tofvpar.getmeantoftemp(73)<<endl;
-   stream <<" Average Scaler Rate & LifeTime "<<TriggerLVL1::getscalersp()->getsum(gettime())<<" "<<TriggerLVL1::getscalersp()->getlifetime(gettime())<<endl;
-   stream <<" Average Magnet Temperature "<<MagnetVarp::getmeanmagnetmtemp()<<endl;
- }
 }
-
+//=====================================================================
 void AMSEvent::_writeEl(){
-
-if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-
-
-// Get event length
-  DAQEvent *myp=(DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0);
-  int nws=myp?myp->getlength():0;
-// Fill the ntuple
-  EventNtuple* EN = AMSJob::gethead()->getntuple()->Get_event();
-  EN->EventStatus=getstatus()[0];
-  EN->Eventno=_id;
-  EN->RawWords=nws<(1<<18)?nws:((1<<18)-1);
-  EN->RawWords+=(AMSCommonsI::getosno())<<18;
-  EN->RawWords+=(AMSCommonsI::getbuildno())<<20;
-  EN->Run=_run;
-  EN->RunType=_runtype;
-   EN->Time[0]=_time;
-   EN->Time[1]=AMSJob::gethead()->isRealData()?_usec:_usec/1000;
-  //EN->GrMedPhi=_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic;;
-  EN->ThetaS=_StationTheta;
-  EN->PhiS=fmod(_StationPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
-  EN->RadS=_StationRad;
-  EN->Yaw=_Yaw;
-  EN->Pitch=_Pitch;
-  EN->Roll=_Roll;
-  EN->VelocityS=_StationSpeed;
-  EN->VelTheta=_VelTheta;
-  EN->VelPhi=fmod(_VelPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
-  integer  i,nc;
-  AMSContainer *p;
-  EN->Particles=0;
-  EN->Tracks=0;
-  EN->Betas=0;
-  EN->Charges=0;
-  EN->TrRecHits=0;
-  EN->TrClusters=0;
-  EN->TrRawClusters=0;
-  EN->TrMCClusters=0;
-  EN->TOFClusters=0;
-  EN->TOFMCClusters=0;
-  EN->CTCClusters=0;
-  EN->CTCMCClusters=0;
-  EN->AntiClusters=0;
-  EN->AntiMCClusters=0;
-  getmag(EN->ThetaM,EN->PhiM);
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSParticle",i);
-   if(p) EN->Particles+=p->getnelem();
-   else break;
-  }  
-
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTrTrack",i);
-   if(p) EN->Tracks+=p->getnelem();
-   else break;
-  }
-
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSBeta",i);
-   if(p) EN->Betas+=p->getnelem();
-   else break;
-  }
-
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSCharge",i);
-   if(p) EN->Charges+=p->getnelem();
-   else break;
-  }
-
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTrRecHit",i);
-   if(p) EN->TrRecHits+=p->getnelem();
-   else break;
-  }
-
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTrCluster",i);
-   if(p) EN->TrClusters+=p->getnelem();
-   else break;
-  }
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTrRawCluster",i);
-   if(p) EN->TrRawClusters+=p->getnelem();
-   else break;
-  }
-
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTrMCCluster",i);
-   if(p) EN->TrMCClusters+=p->getnelem();
-   else break;
-  }
- 
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTOFCluster",i);
-   if(p) EN->TOFClusters+=p->getnelem();
-   else break;
-  }
-
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSTOFMCCluster",i);
-   if(p) EN->TOFMCClusters+=p->getnelem();
-   else break;
-  }
-
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSCTCCluster",i);
-   if(p) EN->CTCClusters+=p->getnelem();
-   else break;
-  }
-  
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSCTCMCCluster",i);
-   if(p) EN->CTCMCClusters+=p->getnelem();
-   else break;
-  }
-
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSAntiCluster",i);
-   if(p) EN->AntiClusters+=p->getnelem();
-   else break;
-  }
-  
-  for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSAntiMCCluster",i);
-   if(p) EN->AntiMCClusters+=p->getnelem();
-   else break;
-  }
- 
-
-}
-else{ // <------------------ AMS02
 // Get event length
   DAQEvent *myp=(DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0);
   int nws=myp?myp->getlength():0;
@@ -2703,8 +2174,7 @@ else{ // <------------------ AMS02
   }
   
 }
-}
-
+//====================================================================
 
 AMSlink * AMSEvent::addnext(AMSID id, AMSlink *p){
  AMSContainer * ptr= AMSEvent::gethead()->getC(id);
@@ -3118,103 +2588,94 @@ void AMSEvent::_collectstatus(){
 
 
 
-  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-      uinteger __status=0;
-
-  {
-    TriggerLVL3 *ptr=dynamic_cast<TriggerLVL3*>(getheadC("TriggerLVL3",0));
-    if(ptr){
-      integer lvl3o=ptr->TrackerTrigger();
-      integer prescale = lvl3o>=32?1:0;
-      lvl3o=lvl3o%32;
-      __status=__status | lvl3o | (prescale<<4);
+//  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
+//      uinteger __status=0;
+//
+//  {
+//    TriggerLVL3 *ptr=dynamic_cast<TriggerLVL3*>(getheadC("TriggerLVL3",0));
+//    if(ptr){
+//      integer lvl3o=ptr->TrackerTrigger();
+//      integer prescale = lvl3o>=32?1:0;
+//      lvl3o=lvl3o%32;
+//      __status=__status | lvl3o | (prescale<<4);
       
-    }
-   }
-  {
-    AMSParticle *ptr=(AMSParticle*)getheadC("AMSParticle",0);
-    AMSParticle *ptr1=(AMSParticle*)getheadC("AMSParticle",1);
-    int npart=0;
-    AMSContainer *ptrc;
-    if(ptr){
-      ptrc=getC("AMSParticle",0);
-    }
-    else if(ptr1){
-      ptr=ptr1;     
-      ptrc=getC("AMSParticle",1);
-    }
-    if(ptr){
-      npart=ptrc->getnelem();
-      if(npart>3)npart=3;
-      __status= __status | (npart<<21);
-      integer charge=ptr->getcharge()-1;
-      if(charge>7)charge=7;
-      __status=__status | (charge<<5);
-      number pmom=ptr->getmomentum();
-      integer sign=pmom<0?0:1;
-      __status=__status | (sign<<8);
-      sign=(ptr->getpbeta())->getbeta()<0?0:1;
-      __status=__status | (sign<<9);
-      integer pat=(ptr->getptrack())->getpattern();
-      if(pat>31)pat=31;
-      if(pat<0)pat=31;
-      __status=__status | (pat<<10);
-       pat=(ptr->getpbeta())->getpattern();
-      uinteger spat=TKDBc::nlay()-TKDBc::patpoints((ptr->getptrack())->getpattern());
-      if(spat>3)spat=3;
-      __status=__status | (spat<<15);       
-      number rig=fabs(pmom)/(charge+1);
-      uinteger srig;
-      if(rig<2)srig=0;
-      else if(rig<8)srig=1;
-      else if(rig<20)srig=2;
-      else srig=3;
-      __status=__status | (srig<<23);
-      uinteger trquality;
-      if((ptr->getptrack())->checkstatus(AMSDBc::FalseTOFX))trquality=3;
-      else if( (ptr->getptrack())->checkstatus(AMSDBc::FalseX))trquality=2;
-      else if((ptr->getptrack())->checkstatus(AMSDBc::WEAK) )trquality=1;
-      else trquality=0;   
-      __status=__status | (trquality<<25);
-       uinteger localdb=0;
-       if((ptr->getptrack())->checkstatus(AMSDBc::LocalDB))localdb=1;
-      __status=__status | (localdb<<29);
-   }
-  }
-  {
-    integer ctcl[2]={0,0};
-    for(int  i=0;i<2;i++){
-      AMSContainer *ptr=getC("AMSCTCCluster",i);
-      if(ptr)ctcl[i]=ptr->getnelem()>0?1:0;
-    }
-    integer ictc=ctcl[0]+ctcl[1];
-    __status=__status | (ictc<<17);
-  }
-  {
-      AMSContainer *ptr=getC("AMSAntiCluster",0);
-      integer ncl=ptr->getnelem();
-      if(ncl>3)ncl=3;
-      __status=__status | (ncl<<19);
-  }
+//    }
+//   }
+//  {
+//    AMSParticle *ptr=(AMSParticle*)getheadC("AMSParticle",0);
+//    AMSParticle *ptr1=(AMSParticle*)getheadC("AMSParticle",1);
+//    int npart=0;
+//    AMSContainer *ptrc;
+//    if(ptr){
+//      ptrc=getC("AMSParticle",0);
+//    }
+//    else if(ptr1){
+//      ptr=ptr1;     
+//      ptrc=getC("AMSParticle",1);
+//    }
+//    if(ptr){
+//      npart=ptrc->getnelem();
+//      if(npart>3)npart=3;
+//      __status= __status | (npart<<21);
+//      integer charge=ptr->getcharge()-1;
+//      if(charge>7)charge=7;
+//      __status=__status | (charge<<5);
+//      number pmom=ptr->getmomentum();
+//      integer sign=pmom<0?0:1;
+//      __status=__status | (sign<<8);
+//      sign=(ptr->getpbeta())->getbeta()<0?0:1;
+//      __status=__status | (sign<<9);
+//      integer pat=(ptr->getptrack())->getpattern();
+//      if(pat>31)pat=31;
+//      if(pat<0)pat=31;
+//      __status=__status | (pat<<10);
+//       pat=(ptr->getpbeta())->getpattern();
+//      uinteger spat=TKDBc::nlay()-TKDBc::patpoints((ptr->getptrack())->getpattern());
+//      if(spat>3)spat=3;
+//      __status=__status | (spat<<15);       
+//      number rig=fabs(pmom)/(charge+1);
+//      uinteger srig;
+//      if(rig<2)srig=0;
+//      else if(rig<8)srig=1;
+//      else if(rig<20)srig=2;
+//      else srig=3;
+//      __status=__status | (srig<<23);
+//      uinteger trquality;
+//      if((ptr->getptrack())->checkstatus(AMSDBc::FalseTOFX))trquality=3;
+//      else if( (ptr->getptrack())->checkstatus(AMSDBc::FalseX))trquality=2;
+//      else if((ptr->getptrack())->checkstatus(AMSDBc::WEAK) )trquality=1;
+//      else trquality=0;   
+//      __status=__status | (trquality<<25);
+//       uinteger localdb=0;
+//       if((ptr->getptrack())->checkstatus(AMSDBc::LocalDB))localdb=1;
+//      __status=__status | (localdb<<29);
+//   }
+//  }
+//  {
+//      AMSContainer *ptr=getC("AMSAntiCluster",0);
+//      integer ncl=ptr->getnelem();
+//      if(ncl>3)ncl=3;
+//      __status=__status | (ncl<<19);
+//  }
      
   // Now collect geomag latitude 
-     geant thetam,phim;
-     getmag(thetam,phim);
-     number cosgm=fabs(sin(thetam));
-     integer icos;
-     if(cosgm<0.1736)icos=0;
-     else if(cosgm<0.5)icos=1;
-     else if(cosgm<0.766)icos=2;
-     else icos=3;
-      __status=__status | (icos<<27);
+//     geant thetam,phim;
+//     getmag(thetam,phim);
+//     number cosgm=fabs(sin(thetam));
+//     integer icos;
+//     if(cosgm<0.1736)icos=0;
+//     else if(cosgm<0.5)icos=1;
+//     else if(cosgm<0.766)icos=2;
+//     else icos=3;
+//      __status=__status | (icos<<27);
   // Now Set Event Error
-     if(_Error==1){
-      __status=__status | (1<<30);
-     }
-      _status[0]=__status;
-      _status[1]=0;
-}
-else{
+//     if(_Error==1){
+//      __status=__status | (1<<30);
+//     }
+//      _status[0]=__status;
+//      _status[1]=0;
+//}
+//else{
  uinteger __status=0;
  uinteger __status1=0;
   // Now Set Event Error
@@ -3226,7 +2687,7 @@ else{
       _status[0]=__status;
       _status[1]=__status1;
 
-}
+//}
 }
 
 

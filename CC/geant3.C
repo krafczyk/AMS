@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.64 2002/03/15 10:07:24 mdelgado Exp $
+//  $Id: geant3.C,v 1.65 2002/03/20 09:41:17 choumilo Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -10,7 +10,7 @@
 #include <new.h>
 #include <limits.h>
 #include <extC.h>
-#include <trigger3.h>
+//#include <trigger3.h>
 #include <job.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -201,7 +201,7 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
             vect[2]=zpr+dz*(i-0.5);
             tof=tpr+dt*(i-0.5);
             dee=GCTRAK.destep;
-            if(TOFMCFFKEY.birks)GBIRK(dee);
+            if(TFMCFFKEY.birks)GBIRK(dee);
             AMSTOFMCCluster::sitofhits(numv,vect,dee,tof);
           }
         }
@@ -211,7 +211,7 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
           vect[2]=zpr+0.5*dz;
           tof=tpr+0.5*dt;
           dee=GCTRAK.destep;
-          if(TOFMCFFKEY.birks)GBIRK(dee);
+          if(TFMCFFKEY.birks)GBIRK(dee);
           AMSTOFMCCluster::sitofhits(numv,vect,dee,tof);
         }// end of "big step" test
 //
@@ -231,21 +231,6 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
   }
 #endif
 
-  // CTC
-
-
-  if(lvl >2 && GCKINE.charge != 0  && GCTRAK.destep != 0 
-      &&   GCTMED.isvol != 0 ){ 
-    if((GCVOLU.names[lvl][0]== 'A' && GCVOLU.names[lvl][1]=='G' && 
-        GCVOLU.names[lvl][2]=='L') || (GCVOLU.names[lvl][0]== 'P' && GCVOLU.names[lvl][1]=='T' && 
-           GCVOLU.names[lvl][2]=='F' ) || (GCVOLU.names[lvl][0]== 'P' && GCVOLU.names[lvl][1]=='M' && 
-          GCVOLU.names[lvl][2]=='T' )){
-      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
-      AMSCTCMCCluster::sictchits(GCVOLU.number[lvl],GCTRAK.vect,
-      GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep,GCTRAK.tofg);
-      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
-     }
-  }
 
   // =======>  ANTI,  mod. by E.C.
 //---> read some GEANT standard values(for debugging): 
@@ -270,7 +255,7 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
   if(GCTRAK.destep != 0  && GCTMED.isvol != 0 && manti==1){
       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
      dee=GCTRAK.destep; 
-     if(TOFMCFFKEY.birks)GBIRK(dee);
+     if(TFMCFFKEY.birks)GBIRK(dee);
      AMSAntiMCCluster::siantihits(GCVOLU.number[lvl],GCTRAK.vect,dee,GCTRAK.tofg);
 //     HF1(1510,geant(iprt),1.);
       if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
@@ -304,7 +289,7 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
 //       cout<<"vol(lev-1)="<<numvp<<" name="<<name<<endl;
         if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
         dee=GCTRAK.destep; 
-        if(TOFMCFFKEY.birks)GBIRK(dee);
+        if(TFMCFFKEY.birks)GBIRK(dee);
         AMSEcalMCHit::siecalhits(GCVOLU.number[lvl-1],GCTRAK.vect,dee,GCTRAK.tofg);
         if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
       }

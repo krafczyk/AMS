@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.117 2002/02/26 13:28:09 choutko Exp $
+//  $Id: mceventg.C,v 1.118 2002/03/20 09:41:20 choumilo Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -60,12 +60,7 @@ void AMSmceventg::gener(){
     geant mom,themu,phimu,chmu,xmu,ymu,zmu;
     while(1){
       CMGENE(mom,themu,phimu,chmu,xmu,ymu,zmu);
-      if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-        if(TFMCFFKEY.fast==0)break;
-      }
-      else{
-        if(TOFMCFFKEY.fast==0)break;
-      }
+      if(TFMCFFKEY.fast==0)break;
       if(fastcheck(xmu,ymu,zmu,themu,phimu))break;
     }
     _mom=mom;
@@ -168,7 +163,7 @@ else {   // <--- random dir
  case 1:
 //
 // <-- try(if asked) to increas "from top" gener. effic.(Not for accept. calc.!!!)
-    if(TOFMCFFKEY.fast>0 || TFMCFFKEY.fast>0){
+    if(TFMCFFKEY.fast>0){
       while(1){
         xin=xa+lx*RNDM(d);
         yin=ya+ly*RNDM(d);
@@ -840,30 +835,10 @@ void AMSmceventg::_copyEl(){
 }
 
 void AMSmceventg::_writeEl(){
-if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-  MCEventGNtuple* GN = AMSJob::gethead()->getntuple()->Get_mcg();
-
-  if (GN->Nmcg>=MAXMCG) return;
-
-// Fill the ntuple
-if( Out(_ipart>0 || IOPA.WriteAll%10==1 )){
-  GN->Nskip[GN->Nmcg]=_nskip;
-  GN->Particle[GN->Nmcg]=_ipart;
-  int i;
-  for(i=0;i<3;i++)GN->Coo[GN->Nmcg][i]=_coo[i];
-  for(i=0;i<3;i++)GN->Dir[GN->Nmcg][i]=_dir[i];
-  GN->Momentum[GN->Nmcg]=_mom;
-  GN->Mass[GN->Nmcg]=_mass;
-  GN->Charge[GN->Nmcg]=_charge;
-  GN->Nmcg++;
-}
-}
-else{
   MCEventGNtuple02* GN = AMSJob::gethead()->getntuple()->Get_mcg02();
 
   if (GN->Nmcg>=MAXMCG02) return;
 // added specifically to reduce ntuple size
-  if (GN->Nmcg>=MAXMCG*2.5) return;
 
 // Fill the ntuple
 if( Out(_ipart>0 || IOPA.WriteAll%10==1 )){
@@ -876,7 +851,6 @@ if( Out(_ipart>0 || IOPA.WriteAll%10==1 )){
   GN->Mass[GN->Nmcg]=_mass;
   GN->Charge[GN->Nmcg]=_charge;
   GN->Nmcg++;
-}
 }
 }
 
@@ -1145,14 +1119,8 @@ integer AMSmceventg::fastcheck(geant xin, geant yin, geant zb, geant theta, gean
   geant calhs=ECALDBc::gendim(1)/2.+ECMCFFKEY.safext;//cal.half-size(+ extention)
   geant dxy,xcr,ycr;
 //
-     if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-       zanti=ATGEFFKEY.scleng/2.;
-       ranti=ATGEFFKEY.scradi;
-     }
-     else{
-       zanti=ANTIGEOMFFKEY.scleng/2.;
-       ranti=ANTIGEOMFFKEY.scradi;
-     }
+     zanti=ATGEFFKEY.scleng/2.;
+     ranti=ATGEFFKEY.scradi;
      if(first){
        first=0;
        cout<<"AMSmceventg::fastcheck:z/r-anti="<<zanti<<" "<<ranti<<" zcal="<<zcal<<endl;
@@ -1165,7 +1133,7 @@ integer AMSmceventg::fastcheck(geant xin, geant yin, geant zb, geant theta, gean
      xcr=xin+dxy*cos(phi);
      ycr=yin+dxy*sin(phi);
      if((xcr*xcr+ycr*ycr)>(ranti*ranti))return 0;
-     if(TOFMCFFKEY.fast==2 || TFMCFFKEY.fast==2){//<-- check ECAL sens.volume if needed
+     if(TFMCFFKEY.fast==2){//<-- check ECAL sens.volume if needed
        dxy=(zb-zcal)*sin(theta); // cr.with calor-top
        xcr=xin+dxy*cos(phi);
        ycr=yin+dxy*sin(phi);

@@ -2,7 +2,7 @@
 #include <event.h>
 #include <ntuple.h>
 #include <extC.h>
-#include<trigger3.h>
+#include<trigger302.h>
 AMSTRDCluster * AMSTRDCluster::_Head[trdconst::maxlay]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 integer AMSTRDCluster::build(int rerun){
     number Thr1A=TRDCLFFKEY.Thr1A/TRDCLFFKEY.ADC2KeV;
@@ -455,8 +455,8 @@ _Start();
     }
     if(nrh>=TRDFITFFKEY.MaxSegAllowed){
       cout <<" Too many segments "<<nrh<<endl;
-     TriggerLVL3 *plvl3;
-     plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+     TriggerLVL302 *plvl3;
+     plvl3 = (TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
       if(!plvl3 || plvl3->skip()){
        AMSEvent::gethead()->seterror();
        return 0;

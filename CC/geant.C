@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.105 2002/02/20 17:59:26 choutko Exp $
+//  $Id: geant.C,v 1.106 2002/03/20 09:41:17 choumilo Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -45,7 +45,7 @@
 #include <new.h>
 #include <limits.h>
 #include <extC.h>
-#include <trigger3.h>
+//#include <trigger3.h>
 #include <job.h>
 #include <sys/types.h>
 #include <sys/time.h>

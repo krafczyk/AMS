@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.47 2002/02/27 16:19:55 mdelgado Exp $
+//  $Id: mccluster.C,v 1.48 2002/03/20 09:41:18 choumilo Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -480,7 +480,7 @@ void  AMSTrMCCluster::sitkcrosstalk(){
 }
 
 
-
+//------------- TOF -------------
 
 
 void AMSTOFMCCluster::sitofhits(integer idsoft , geant vect[],geant edep, 
@@ -491,6 +491,8 @@ geant tofg){
    new AMSTOFMCCluster(idsoft,pnt,edep,tofg));
 }
 
+//------------- ANTI -------------
+
 void AMSAntiMCCluster::siantihits(integer idsoft , geant vect[],geant edep, 
 geant tofg){
   //        Very Temporary
@@ -499,6 +501,7 @@ geant tofg){
    new AMSAntiMCCluster(idsoft,pnt,edep,tofg));
 }
 
+//------------- ECAL --------------
 
 void AMSEcalMCHit::siecalhits(integer idsoft , geant vect[],geant edep, 
                                                            geant tofg){
@@ -664,54 +667,6 @@ void AMSAntiMCCluster::_writeEl(){
 
 
 
-integer AMSCTCMCCluster::getdetno(){
-   integer dt=(_idsoft/10)%10;
-   switch(dt){
-   case 1:
-     // PTF
-     return 1;
-   case 2:
-     //AGL
-     return 0;
-   default:
-     //PMT
-     return 2;
-   }
-}
-
-void AMSCTCMCCluster::sictchits(integer idsoft , geant vect[],geant charge, 
-geant stepc, geant getot, geant edep, geant time){
-   AMSPoint pnt(vect[0],vect[1],vect[2]);
-   AMSDir dir(vect[3],vect[4],vect[5]);
-   number beta=getot != 0 ? vect[6]/getot : 0;
-   if(beta>0){
-    AMSCTCMCCluster *p=
-    new AMSCTCMCCluster(idsoft,pnt,dir,charge,stepc,beta,edep, time);
-    AMSEvent::gethead()->addnext(AMSID("AMSCTCMCCluster",p->getlayno()-1),p);
-   }
-
-}
-
-void AMSCTCMCCluster::_writeEl(){
-
-  CTCMCClusterNtuple* CTCMCClusterN = AMSJob::gethead()->getntuple()->Get_ctcclmc();
-
-  if (CTCMCClusterN->Nctcclmc>=MAXCTCCLMC) return;
-  
-// Fill ntuple
-  if(AMSCTCMCCluster::Out( IOPA.WriteAll%10==1)){
-    CTCMCClusterN->Idsoft[CTCMCClusterN->Nctcclmc]=_idsoft;
-    int i;
-    for(i=0;i<3;i++)CTCMCClusterN->Coo[CTCMCClusterN->Nctcclmc][i]=_xcoo[i];
-    for(i=0;i<3;i++)CTCMCClusterN->Dir[CTCMCClusterN->Nctcclmc][i]=_xdir[i];
-    CTCMCClusterN->Step[CTCMCClusterN->Nctcclmc]=_step;
-    CTCMCClusterN->Charge[CTCMCClusterN->Nctcclmc]=_charge;
-    CTCMCClusterN->Beta[CTCMCClusterN->Nctcclmc]=_beta;
-    CTCMCClusterN->Edep[CTCMCClusterN->Nctcclmc]=_edep;
-    CTCMCClusterN->Nctcclmc++;
-  }
-
-}
 
 
 integer AMSTrMCCluster::Out(integer status){
@@ -746,21 +701,6 @@ if(init == 0){
 return (WriteAll || status);
 }
 
-integer AMSCTCMCCluster::Out(integer status){
-static integer init=0;
-static integer WriteAll=0;
-if(init == 0){
- init=1;
- integer ntrig=AMSJob::gethead()->gettriggerN();
- for(int n=0;n<ntrig;n++){
-   if(strcmp("AMSCTCMCCluster",AMSJob::gethead()->gettriggerC(n))==0){
-     WriteAll=1;
-     break;
-   }
- }
-}
-return (WriteAll || status);
-}
 
 
 

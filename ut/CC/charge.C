@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.56 2001/12/07 11:32:17 choutko Exp $
+//  $Id: charge.C,v 1.57 2002/03/20 09:41:15 choumilo Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -626,39 +626,6 @@ int AMSCharge::_sortlkhd(int sort){
 
 void AMSCharge::_writeEl(){
 
-if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-
-
-  ChargeNtuple* CN = AMSJob::gethead()->getntuple()->Get_charge();
-
-  if (CN->Ncharge>=MAXCHARGE) return;
-
-// Fill the ntuple
-  CN->Status[CN->Ncharge]=_status;
-  CN->BetaP[CN->Ncharge]=_pbeta->getpos();
-  CN->ChargeTOF[CN->Ncharge]=_ChargeTOF;
-  CN->ChargeTracker[CN->Ncharge]=_ChargeTracker;
-  int i,j;
-  for(i=0; i<4; i++){
-    for(j=0; j<ncharge; j++){
-      if(_IndxTOF[j]==i){
-        CN->ProbTOF[CN->Ncharge][i]=_ProbTOF[j];
-        CN->ChInTOF[CN->Ncharge][i]=j+1;
-      }
-      if(_IndxTracker[j]==i){
-        CN->ProbTracker[CN->Ncharge][i]=_ProbTracker[j];
-        CN->ChInTracker[CN->Ncharge][i]=j+1;
-        if(!i) CN->ProbAllTracker[CN->Ncharge]=_ProbAllTracker;
-      }
-    }
-  }
-  CN->TrunTOF[CN->Ncharge]=_TrMeanTOF;
-  CN->TrunTOFD[CN->Ncharge]=_TrMeanTOFD;
-  CN->TrunTracker[CN->Ncharge]=_TrMeanTracker;
-  CN->Ncharge++;
-
-}
-else{
   ChargeNtuple02* CN = AMSJob::gethead()->getntuple()->Get_charge02();
 
   if (CN->Ncharge>=MAXCHARGE02) return;
@@ -687,7 +654,6 @@ else{
   CN->TrunTracker[CN->Ncharge]=_TrMeanTracker;
   CN->Ncharge++;
 
-}
 }
 
 

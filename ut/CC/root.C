@@ -1,14 +1,10 @@
-//  $Id: root.C,v 1.17 2002/01/05 20:39:16 kscholbe Exp $
+//  $Id: root.C,v 1.18 2002/03/20 09:41:21 choumilo Exp $
 #include <root.h>
 #include <ntuple.h>
 #ifdef __WRITEROOT__
-EventNtuple::EventNtuple(){}
 EventNtuple02::EventNtuple02(){}
-BetaNtuple::BetaNtuple(){}
 BetaNtuple02::BetaNtuple02(){}
-ChargeNtuple::ChargeNtuple(){}
 ChargeNtuple02::ChargeNtuple02(){}
-ParticleNtuple::ParticleNtuple(){}
 ParticleNtuple02::ParticleNtuple02(){}
 TOFClusterNtuple::TOFClusterNtuple(){}
 TOFMCClusterNtuple::TOFMCClusterNtuple(){}
@@ -19,22 +15,14 @@ TRDRawHitNtuple::TRDRawHitNtuple(){}
 TRDClusterNtuple::TRDClusterNtuple(){}
 TRDSegmentNtuple::TRDSegmentNtuple(){}
 TRDTrackNtuple::TRDTrackNtuple(){}
-TrRecHitNtuple::TrRecHitNtuple(){}
 TrRecHitNtuple02::TrRecHitNtuple02(){}
-TrTrackNtuple::TrTrackNtuple(){}
 TrTrackNtuple02::TrTrackNtuple02(){}
-MCEventGNtuple::MCEventGNtuple(){}
 MCEventGNtuple02::MCEventGNtuple02(){}
 MCTrackNtuple::MCTrackNtuple(){}
-CTCClusterNtuple::CTCClusterNtuple(){}
-CTCMCClusterNtuple::CTCMCClusterNtuple(){}
 AntiClusterNtuple::AntiClusterNtuple(){}
 ANTIMCClusterNtuple::ANTIMCClusterNtuple(){}
-LVL3Ntuple::LVL3Ntuple(){}
-LVL1Ntuple::LVL1Ntuple(){}
 LVL1Ntuple02::LVL1Ntuple02(){}
 LVL3Ntuple02::LVL3Ntuple02(){}
-CTCHitNtuple::CTCHitNtuple(){}
 TrRawClusterNtuple::TrRawClusterNtuple(){}
 AntiRawClusterNtuple::AntiRawClusterNtuple(){}
 TOFRawClusterNtuple::TOFRawClusterNtuple(){}
@@ -46,13 +34,9 @@ RICMCNtuple::RICMCNtuple(){}
 RICEventNtuple::RICEventNtuple(){}
 RICRing::RICRing(){}
 //ClassImp(AMSNtuple)
-ClassImp(EventNtuple)
 ClassImp(EventNtuple02)
-ClassImp(BetaNtuple)
 ClassImp(BetaNtuple02)
-ClassImp(ChargeNtuple)
 ClassImp(ChargeNtuple02)
-ClassImp(ParticleNtuple)
 ClassImp(ParticleNtuple02)
 ClassImp(TOFClusterNtuple)
 ClassImp(TOFMCClusterNtuple)
@@ -63,22 +47,14 @@ ClassImp(TRDRawHitNtuple)
 ClassImp(TRDClusterNtuple)
 ClassImp(TRDSegmentNtuple)
 ClassImp(TRDTrackNtuple)
-ClassImp(TrRecHitNtuple)
 ClassImp(TrRecHitNtuple02)
-ClassImp(TrTrackNtuple)
 ClassImp(TrTrackNtuple02)
-ClassImp(MCEventGNtuple)
 ClassImp(MCEventGNtuple02)
 ClassImp(MCTrackNtuple)
-ClassImp(CTCClusterNtuple)
-ClassImp(CTCMCClusterNtuple)
 ClassImp(AntiClusterNtuple)
 ClassImp(ANTIMCClusterNtuple)
-ClassImp(LVL3Ntuple)
-ClassImp(LVL1Ntuple)
 ClassImp(LVL1Ntuple02)
 ClassImp(LVL3Ntuple02)
-ClassImp(CTCHitNtuple)
 ClassImp(TrRawClusterNtuple)
 ClassImp(AntiRawClusterNtuple)
 ClassImp(TOFRawClusterNtuple)

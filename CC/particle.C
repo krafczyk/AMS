@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.106 2001/12/07 11:32:18 choutko Exp $
+//  $Id: particle.C,v 1.107 2002/03/20 09:41:21 choumilo Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -16,18 +16,13 @@
 #include <mccluster.h>
 #include <amsstl.h>
 #include <tofrec02.h>
-#include <tofrec.h>
-#include <ctcdbc.h>
 #include <ntuple.h>
 #include <antirec02.h>
-#include <antirec.h>
 #include <ecaldbc.h>
 #include <ecalrec.h>
 #include <mceventg.h>
 #include <ecalrec.h>
 
-extern "C" void atcrec_(const integer & run, integer & nctcht, geant cooctc[1][2][3], int la[], int co[], int ro[], geant sig[],
-                   int atcnbcel[], geant atcnbphe[], int atcidcel[], int atcdispm[], int atcdaero[], int atcstatu[], float & atcbeta);
 
 
 PROTOCCALLSFFUN2(FLOAT,PROB,prob,FLOAT,INT)
@@ -109,30 +104,21 @@ out:
            for (int id=0;id<2;id++){
            AMSParticle *ppart=(AMSParticle*)AMSEvent::gethead()->getheadC("AMSParticle",id);
            while(ppart){
-           if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-            AMSgObj::BookTimer.start("ReCTCRefit");  
-            ppart->ctcfit();
-             AMSgObj::BookTimer.stop("ReCTCRefit");  
-           }
-           else{
             AMSgObj::BookTimer.start("ReRICHRefit"); 
             ppart->richfit();
              AMSgObj::BookTimer.stop("ReRICHRefit"); 
-           }
            ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
           if(!(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
            AMSgObj::BookTimer.start("ReTOFRefit"); 
            ppart->toffit();
            ppart->antifit();
              AMSgObj::BookTimer.stop("ReTOFRefit"); 
-           if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
            AMSgObj::BookTimer.start("ReECRefit"); 
             ppart->ecalfit();
              AMSgObj::BookTimer.stop("ReECRefit"); 
              AMSgObj::BookTimer.start("ReTRDRefit"); 
             ppart->trdfit();
             AMSgObj::BookTimer.stop("ReTRDRefit"); 
-           }
           }
            ppart=ppart->next();
          }
@@ -168,79 +154,6 @@ void  AMSParticle::_build(number rid,number err,number charge,number beta, numbe
           if(beta<0)momentum=-momentum;
 }
 
-void AMSParticle::ctcfit(){
-if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-  AMSPoint SearchReg(BETAFITFFKEY.SearchReg[0],BETAFITFFKEY.SearchReg[1],
-  BETAFITFFKEY.SearchReg[2]);
-AMSDir dir(0,0,1.);
-AMSPoint outp(0,0,0);
-number theta, phi, sleng;
-number signal,beta,ebeta;
-  // Find CTC hits 
-integer kk;
-for(kk=0;kk<CTCDBc::getnlay();kk++){  
-  AMSCTCCluster *pctc=(AMSCTCCluster*)AMSEvent::gethead()->
-  getheadC("AMSCTCCluster",kk);
-  while(pctc){
-    if(pctc->checkstatus(AMSDBc::USED)==0 ){
-        AMSPoint coo=pctc->getcoo();
-        _ptrack->interpolate(coo,dir,outp,theta,phi,sleng);
-        if(((outp-coo)/pctc->getecoo()).abs() < SearchReg)break;
-    }
-    pctc=pctc->next();
-  }
-
- if(pctc){
-      pctc->setstatus(AMSDBc::USED);
-      pctc->correct(cos(theta));
-      signal=pctc->getsignal()/_Charge/_Charge;
- number error=pctc->geterror()/_Charge/_Charge;
- number A1=CTCMCFFKEY.Path2PhEl[0];
- number A2=CTCMCFFKEY.Path2PhEl[1];
- number N1=CTCMCFFKEY.Refraction[0];
- number N2=CTCMCFFKEY.Refraction[1];
- number L1=CTCDBc::getagsize(2);
- number L2=CTCDBc::getgeom()? 0 : CTCDBc::getwlsth(); 
-// no wls in vertical readout
- number b2=(A1*L1/N1/N1+A2*L2/N2/N2)/(A1*L1+A2*L2-signal);
-   if(b2 < 0){
-    beta=0;
-    ebeta=1;
-   }
-   else{
-    beta=sqrt(b2);
-    b2=(A1*L1/N1/N1+A2*L2/N2/N2)/(A1*L1+A2*L2-signal+error);
-    ebeta=beta-sqrt(b2);
-   }
- }
- else{
-   // No hits, but still TrackExtrapolation needed
-   signal=0;
-   beta=0;
-   ebeta=1;
-
-   AMSCTCRawHit d(1,kk+1,1);
-   AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(2));
-   if(p)
-   _ptrack->interpolate(p->loc2gl(AMSPoint(0,0,0)),dir,outp,theta,phi,sleng);
-   else {
-   cerr << " ctcfit-S- No layer no " << kk+1<<endl ;
-   outp=AMSPoint(0,0,0);
-   }
-}
-    _Value[kk]=CTC(signal,beta,ebeta, outp);
-    _pctc[kk]=pctc;
-}
-
-}
-else{
-     AMSPoint outp(0,0,0);
-    _Value[0]=CTC(0,0,0,outp);
-    _Value[1]=CTC(0,0,0,outp);
-    _pctc[0]=0;
-    _pctc[1]=0;
-}
-}
 
 
 
@@ -471,142 +384,6 @@ _prich=0;
 void AMSParticle::_writeEl(){
 
 
-if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-
-  ParticleNtuple* PN = AMSJob::gethead()->getntuple()->Get_part();
-  if (PN->Npart>=MAXPART) return;
-  if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 ) && (_ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK)))return;
-// Fill the ntuple 
-  PN->ChargeP[PN->Npart]=_pcharge->getpos();
-  PN->BetaP[PN->Npart]=_pbeta->getpos();
-  integer pat=_pbeta->getpattern();
-  int i;
-  for(i=0;i<pat;i++){
-    AMSContainer *pc=AMSEvent::gethead()->getC("AMSBeta",i);
-    #ifdef __AMSDEBUG__
-      assert(pc != NULL);
-    #endif
-    PN->BetaP[PN->Npart]+=pc->getnelem();
-  }
- 
-  pat=_ptrack->getpattern();
-  if(_ptrack->checkstatus(AMSDBc::NOTRACK))PN->TrackP[PN->Npart]=-1;
-  else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))PN->TrackP[PN->Npart]=-1;
-  else PN->TrackP[PN->Npart]=_ptrack->getpos();
-  PN->Particle[PN->Npart]=_gpart[0];
-  PN->ParticleVice[PN->Npart]=_gpart[1];
-  PN->FitMom[PN->Npart]=_fittedmom[0];
- for(i=0;i<2;i++){
-  PN->Prob[PN->Npart][i]=_prob[i];
- }
-  PN->Mass[PN->Npart]=_Mass;
-  PN->ErrMass[PN->Npart]=_ErrMass;
-  PN->Momentum[PN->Npart]=_Momentum;
-  PN->ErrMomentum[PN->Npart]=_ErrMomentum;
-  PN->Charge[PN->Npart]=_Charge;
-  PN->Theta[PN->Npart]=_Theta;
-  PN->Phi[PN->Npart]=fmod(_Phi+AMSDBc::twopi,AMSDBc::twopi);
-  PN->ThetaGl[PN->Npart]=_ThetaGl;
-  PN->PhiGl[PN->Npart]=fmod(_PhiGl+AMSDBc::twopi,AMSDBc::twopi);
-  for(i=0;i<3;i++)PN->Coo[PN->Npart][i]=_Coo[i];
-  for(i=0;i<CTCDBc::getnlay();i++){
-    PN->CooCTC[PN->Npart][i][0]=_Value[i].getcoo()[0];
-    PN->CooCTC[PN->Npart][i][1]=_Value[i].getcoo()[1];
-    PN->CooCTC[PN->Npart][i][2]=_Value[i].getcoo()[2];
-  }
-  for(i=0;i<4;i++){
-    for(int j=0;j<3;j++){
-      PN->TOFCoo[PN->Npart][i][j]=_TOFCoo[i][j];
-    }
-  }
-  for(i=0;i<2;i++){
-    for(int j=0;j<3;j++){
-      PN->AntiCoo[PN->Npart][i][j]=_AntiCoo[i][j];
-//      cout <<i<<" "<<j<<" "<<_AntiCoo[i][j]<<endl;
-    }
-  }
-  for(i=0;i<TKDBc::nlay();i++){
-    for(int j=0;j<2;j++){
-      PN->TrCoo[PN->Npart][i][j]=_TrCoo[i][j];
-    }
-      PN->TrCoo[PN->Npart][i][2]=_Local[i];
-  }
-
-  PN->Cutoff[PN->Npart]=_CutoffMomentum;
-
-
-// New ATC association
-  const integer maxh=100;
-  integer ctchitstatus[maxh];
-  integer ctchitlayer[maxh];
-  integer ctchitcolumn[maxh];
-  integer ctchitrow[maxh];
-  geant ctchitsignal[maxh]; 
-  integer nhits=0;
- for(integer kk=0;kk<CTCDBc::getnlay();kk++){
-  AMSCTCRawHit *ptr=(AMSCTCRawHit*)AMSEvent::gethead()->
-  getheadC("AMSCTCRawHit",kk);
-  while (ptr){
-   ctchitsignal[nhits]=ptr->getsignal();
-   ctchitstatus[nhits]=ptr->getstatus();
-   ctchitlayer[nhits]=ptr->getlayno();
-   ctchitrow[nhits]=ptr->getrowno();
-   ctchitcolumn[nhits]=ptr->getcolno();
-   if(nhits<maxh)nhits++;
-   ptr=ptr->next();
-  }
- }
-/*
-
-
-********************************************************************
-      SUBROUTINE atcrec(run,nctcht,cooctc,ctchitlayer,ctchitcolumn,ctchitrow,c
-     +                  tchitsignal,
-     +                  atcnbcel,atcnbphe,atcidcel,atcdispm,
-     +                  atcdaero,atcstatu,atcbeta)
-********************************************************************
-*   F. Barao (30/Nov/98)
-*
-*   AIMS: get ATC detailed information per event
-*     IN:
-*    OUT: atcnbcel(1:2) = nb cells acrossed
-*         atcnbphe(1:2) =
-*         atcidcel(1:2) =
-*         atcdispm(1:2) =
-*         atcdaero(1:2) =
-*         atcstatu(1:2) =
-*         atcbeta       =
-********************************************************************
-      real cooctc(3,2,1)
-      real ctchitsignal(1)
-      integer ctchitcolumn(1),ctchitrow(1),ctchitlayer(1),run,nctcht
-
-
-
-*/
-
-/*
-  int   ATCnbcel[MAXPART][2];
-  float ATCnbphe[MAXPART][2];
-  int   ATCidcel[MAXPART][2];
-  int   ATCdispm[MAXPART][2];
-  int   ATCdaero[MAXPART][2];
-  int   ATCstatu[MAXPART][2];
-  float ATCbeta[MAXPART];
-*/ 
-
- float atcbeta;
- atcrec_(AMSEvent::gethead()->getrun(), nhits, PN->CooCTC, ctchitlayer, ctchitcolumn, ctchitrow, ctchitsignal,  
-         PN->ATCnbcel[PN->Npart], PN->ATCnbphe[PN->Npart],   PN->ATCidcel[PN->Npart],  PN->ATCdispm[PN->Npart], 
-         PN->ATCdaero[PN->Npart], PN->ATCstatu[PN->Npart], atcbeta); 
- 
- // cout << "ATC debug" << PN->ATCnbcel[PN->Npart][1] << PN->ATCnbcel[PN->Npart][1] << endl;
- 
- //next
-
-  PN->Npart++;
-}
-else{
   ParticleNtuple02* PN = AMSJob::gethead()->getntuple()->Get_part02();
   if (PN->Npart>=MAXPART02) return;
   if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 || LVL3FFKEY.Accept) && (_ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK)|| _ptrack->checkstatus(AMSDBc::ECALTRACK)))return;
@@ -688,7 +465,6 @@ else{
 
   PN->Npart++;
 
-}
 }
 
 

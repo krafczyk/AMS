@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.32 2002/02/12 08:43:46 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.33 2002/03/20 09:41:16 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -85,19 +85,14 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
     char vers1[3]="01";
     char vers2[4]="001";
     char vers3[3]="02";
-    if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE"))
-    {
-          cout <<" ECALGeom-I-Shuttle setup selected."<<endl;
-          strcat(name,vers1);
-    }
-    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+    if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
           cout <<" ECALGeom-I-AMS02 setup selected."<<endl;
           strcat(name,vers3);
     }
     else
     {
-          cout <<" ECALGeom-I-AMS001 setup selected."<<endl;
-          strcat(name,vers2);
+          cout <<" ECALGeom-Err-unknown setup !??"<<endl;
+          exit(1);
     }
     strcat(name,".dat");
 //    if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);

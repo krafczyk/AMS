@@ -19,7 +19,7 @@
 #include <ecalrec.h>
 #include <ecalcalib.h>
 #include <trigger102.h>
-#include <trigger3.h>
+#include <trigger302.h>
 #include <particle.h>
 #include <iostream.h>
 #include <fstream.h>
@@ -1983,7 +1983,7 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
     EcalJobStat::addca(10);
     HF1(ECHISTC+112,ecshen,1.);
     //
-  }
+  }//---> end of "g.chen" check
 //
   if(ECREFFKEY.reprtf[0]!=0){
     HF1(ECHISTC+16,geant(0.001*edept/fabs(rid)),1.);

@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.30 2002/03/15 10:07:24 mdelgado Exp $
+//  $Id: richrec.C,v 1.31 2002/03/20 09:41:21 choumilo Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -897,7 +897,7 @@ void AMSRichRing::_writeEl(){
   
   RICRing* cluster=AMSJob::gethead()->getntuple()->Get_ring();
   
-  if(cluster->NRings>=MAXTRTR02) return;
+  if(cluster->NRings>=MAXRICHRIN) return;
 
   if(_ptrack->checkstatus(AMSDBc::NOTRACK))cluster->track[cluster->NRings]=-1;
   else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))cluster->track[cluster->NRings]=-1;

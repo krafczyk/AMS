@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.44 2002/03/15 10:07:24 mdelgado Exp $
+//  $Id: geant4.C,v 1.45 2002/03/20 09:41:17 choumilo Exp $
 #include <job.h>
 #include <event.h>
 #include <trrec.h>
@@ -881,11 +881,13 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 //  ECAL :
 //
      if(PrePV->GetName()(0)== 'E' && PrePV->GetName()(1)=='C' &&
-       PrePV->GetName()(2)=='F' && PrePV->GetName()(3)=='C' && GCTRAK.destep>0.){
-//cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<endl;
+       PrePV->GetName()(2)=='F' && PrePV->GetName()(3)=='C'){
+       if(GCTRAK.destep>0.){
        dee=GCTRAK.destep;
+//cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<" "<<dee<<endl;
 //       GBIRK(dee);
-       AMSEcalMCHit::siecalhits(PrePV->GetCopyNo(),GCTRAK.vect,dee,GCTRAK.tofg);
+       AMSEcalMCHit::siecalhits(PrePV->GetMother()->GetCopyNo(),GCTRAK.vect,dee,GCTRAK.tofg);
+       }
      }
 //------------------------------------------------------------------
 // CJM : RICH (preliminary and slow version)

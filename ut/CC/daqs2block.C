@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.2 2001/01/22 17:32:19 choutko Exp $
+//  $Id: daqs2block.C,v 1.3 2002/03/20 09:41:16 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
 #include <typedefs.h>
@@ -119,7 +119,7 @@ void DAQS2Block::buildraw(integer len, int16u *p){
   if(dtyp==1 && len>5)TOF2JobStat::addaq2(naddr,dtyp);// reduced
   totbll+=len;//summing to have event(scint) data length
 #ifdef __AMSDEBUG__
-  if(TOFRECFFKEY.reprtf[1]>=1 || ANTIRECFFKEY.reprtf[1]>=1 || CTCRECFFKEY.reprtf[1]>=1){
+  if(TFREFFKEY.reprtf[1]>=1 || ATREFFKEY.reprtf[1]>=1){
     cout<<"-----------------------------------------------------------"<<endl;
     cout<<"   DAQS2Block:decoding: block_id="<<hex<<blid<<dec<<endl; 
     cout<<"          block_type="<<btyp<<" node_type="<<ntyp<<endl;
@@ -151,7 +151,7 @@ void DAQS2Block::buildraw(integer len, int16u *p){
     lent+=dlen;
   }
 //---> Print TOF Crate temperatures:
-  if(TOFRECFFKEY.reprtf[1]>=1){
+  if(TFREFFKEY.reprtf[1]>=1){
     im=TOF2GC::DAQSTSC*TOF2GC::DAQSTCS;
     cout<<"TOF_Crate Temperatures :"<<endl; 
     for(i=0;i<TOF2GC::DAQSTSC;i++){//loop over temp. SFETs in crate (1)
@@ -181,7 +181,7 @@ void DAQS2Block::buildraw(integer len, int16u *p){
 #ifdef __AMSDEBUG__
   if(lent != len){
     TOF2JobStat::addaq3(naddr,dtyp);
-    if(TOFRECFFKEY.reprtf[1]>=1 || ANTIRECFFKEY.reprtf[1]>=1 || CTCRECFFKEY.reprtf[1]>=1){
+    if(TFREFFKEY.reprtf[1]>=1 || ANTIRECFFKEY.reprtf[1]>=1 || CTCRECFFKEY.reprtf[1]>=1){
       cout<<"DAQS2Block::buildraw: length mismatch !!! for crate "<<naddr<<endl;
       cout<<"Length from bloc_header "<<len<<" but was read "<<lent<<endl;
     }
@@ -193,7 +193,7 @@ integer DAQS2Block::calcblocklength(integer ibl){
   integer tofl(0),antil(0),ctcl(0),fmt,lent;
   int16u blid,msk;
 //
-  fmt=TOFMCFFKEY.daqfmt;
+  fmt=TFMCFFKEY.daqfmt;
   format=fmt;// class variable is redefined by data card 
   blid=sblids[format][ibl];// valid block_id
   msk=subdmsk[ibl];// subdetectors in crate (mask)

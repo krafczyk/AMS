@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.15 2002/02/12 08:43:47 choumilo Exp $
+//  $Id: tofsim02.C,v 1.16 2002/03/20 09:41:24 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 #include <tofdbc02.h>
 #include <iostream.h>
@@ -14,7 +14,7 @@
 #include <commons.h>
 #include <tofsim02.h>
 #include <mccluster.h>
-#include <trigger3.h>
+#include <trigger302.h>
 #include <mceventg.h>
 #include <ecalrec.h>
 //
@@ -329,7 +329,7 @@ void TOF2Tovt::build()
       am2+=am0*am0;
       HF1(1099,am0,1.);
     }
-    HPRINT(1099);
+    if(TFMCFFKEY.mcprtf[2]!=0)HPRINT(1099);
     am/=5000.;
     am2/=5000.;
     sesave=am;
@@ -413,7 +413,7 @@ void TOF2Tovt::build()
       if(ii<TOFGC::AMSDISL)warr[ii]+=1;
     }
     i0=integer(floor(qtime));// 1st bin pos. in abs. scale (for tslice1)
-    if((qtime-geant(i0))>0.5)i0+=1;// to compensate partially binning influence
+    if((qtime-geant(i0))>0.5)i0+=1;// to compensate(partially) binning influence
 //    <-------- Loop over distr.bins ---<<<
     for(i=0;i<TOFGC::AMSDISL;i++){
       nelec=warr[i];
@@ -450,7 +450,7 @@ void TOF2Tovt::build()
       if(ii<TOFGC::AMSDISL)warr[ii]+=1;
     }
     i0=integer(floor(qtime));// 1st bin pos. in abs. scale (for tslice2)
-    if((qtime-geant(i0))>0.5)i0+=1;// to compensate partially binning influence
+    if((qtime-geant(i0))>0.5)i0+=1;// to compensate(partially) binning influence
 //    <-------- Loop over distr.bins ---<<<
     for(i=0;i<TOFGC::AMSDISL;i++){
       nelec=warr[i];
@@ -1167,7 +1167,7 @@ number TOF2Tovt::tr1time(int &trcode, integer toftrp[]){
         else
                                   trbc=trbs[0] | trbs[1];// 2-sides OR
 //
-        intrig=TriggerLVL3::TOFInFastTrigger(uinteger(ibar),uinteger(ilay));
+        intrig=TriggerLVL302::TOFInFastTrigger(uinteger(ibar),uinteger(ilay));
         if(intrig<1)trbc.bitclr(1,0); // counter not in trigger !!!                                  
         trbl[ilay]=trbl[ilay] | trbc; // summing OR within the layer
         trbc.testbit(i1,i2);// check bit-pattern of the counter:
@@ -1343,7 +1343,7 @@ number TOF2Tovt::tr3time(int &trcode, integer toftrp[]){
         else
                                   trbc=trbs[0] | trbs[1];// 2-sides OR
 //                                  
-        intrig=TriggerLVL3::TOFInFastTrigger(uinteger(ibar),uinteger(ilay));
+        intrig=TriggerLVL302::TOFInFastTrigger(uinteger(ibar),uinteger(ilay));
         if(intrig<1)trbc.bitclr(1,0); // counter not in trigger !!!                                  
         trbl[ilay]=trbl[ilay] | trbc; // summing OR within the layer
         trbc.testbit(i1,i2);// check bit-pattern of the counter:

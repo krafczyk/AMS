@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.12 2002/02/12 08:43:47 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.13 2002/03/20 09:41:22 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -28,7 +28,7 @@ integer TOF2DBc::_brtype[TOF2GC::SCBLMX]={
   0,0,0,0,0,0,0,0,0,0,0,0,
   0,0,0,0,0,0,0,0,0,0,0,0,
   0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0
+  0,0,0,0,0,0,0,0,0,0,0,0,
 };
 //
 // Initialize TOF geometry (defaults, REAL VALUES are read FROM geomconfig-file)

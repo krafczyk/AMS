@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.136 2002/01/11 16:09:35 choutko Exp $
+//  $Id: trrec.C,v 1.137 2002/03/20 09:41:25 choumilo Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -16,11 +16,10 @@
 #include <upool.h>
 #include <string.h>
 #include <tofrec02.h>
-#include <tofrec.h>
 #include <ntuple.h>
 #include <cont.h>
 #include <tkdbc.h>
-#include <trigger3.h>
+//#include <trigger3.h>
 #include <trigger302.h>
 #include <tralig.h>
 #include <mccluster.h>
@@ -953,8 +952,8 @@ integer AMSTrRecHit::markAwayTOFHits(){
 
     int i;
 
-      TriggerLVL3 *plvl3;
-      plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+      TriggerLVL302 *plvl3;
+      plvl3 = (TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
 // LVL3 required if existing
       if (plvl3==NULL) {
 // #ifdef __AMSDEBUG__
@@ -1048,8 +1047,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
     AMSTrRecHit * ptrhit;
     AMSPoint hit;
     geant searchregtof;
-    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
-    else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
+    searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
     for (i=0;i<TKDBc::nlay();i++) {
       for (ptrhit=AMSTrRecHit::gethead(i); ptrhit!=NULL; ptrhit=ptrhit->next()){
         hit = ptrhit->getHit();
@@ -1075,8 +1073,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
     (AMSTrMCCluster*)AMSEvent::gethead()->getheadC("AMSTrMCCluster",0);    
     AMSPoint hit;
     geant searchregtof;
-    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
-    else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
+    searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
       while(ptrhit){
         hit = ptrhit->getHit();
         number xres = fabs(hit[0]-intercept_x - slope_x*hit[2]);
@@ -1133,75 +1130,6 @@ integer AMSTrRecHit::markAwayTOFHits(){
 
 
 void AMSTrRecHit::_writeEl(){
-if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
- TrRecHitNtuple* THN = AMSJob::gethead()->getntuple()->Get_trrh();
-
-  if (THN->Ntrrh>=root::MAXTRRH) return;
-
-// Fill the ntuple 
-  integer flag =    (IOPA.WriteAll%10==1)
-                 || (IOPA.WriteAll%10==0 && checkstatus(AMSDBc::USED))
-                 || (IOPA.WriteAll%10==2 && !checkstatus(AMSDBc::AwayTOF));
-
-  if(AMSTrRecHit::Out(flag) ){
-    if(_Xcl)THN->pX[THN->Ntrrh]=_Xcl->getpos();
-    else THN->pX[THN->Ntrrh]=-1;
-    THN->pY[THN->Ntrrh]=_Ycl->getpos();
-    int pat;
-    pat=1;
-    if(AMSTrCluster::Out(IOPA.WriteAll%10==1)){
-      // Writeall
-      for(int i=0;i<pat;i++){
-          AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrCluster",i);
-           #ifdef __AMSDEBUG__
-            assert(pc != NULL);
-           #endif
-           THN->pY[THN->Ntrrh]+=pc->getnelem();
-      }
-    }                                                        
-    else if (AMSTrCluster::Out(IOPA.WriteAll%10==0)){
-      //Write only USED hits
-      for(int i=0;i<pat;i++){
-        AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
-        while(ptr && ptr->checkstatus(AMSDBc::USED) ){
-          THN->pY[THN->Ntrrh]++;
-          ptr=ptr->next();
-        }
-      }
-    }
-    else if (AMSTrCluster::Out(IOPA.WriteAll%10==2)){
-      //Write only hits consistent with TOF
-      for(int i=0;i<pat;i++){
-        AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
-        while(ptr && !(ptr->checkstatus(AMSDBc::AwayTOF)) ){
-          THN->pY[THN->Ntrrh]++;
-          ptr=ptr->next();
-        }
-      }
-    }
-    else return;
-  
-    if(!checkstatus(AMSDBc::FalseX) && !checkstatus(AMSDBc::FalseTOFX) &&
-        ((_Xcl->getid()).getlayer() != _Layer) || 
-       ((_Ycl->getid()).getlayer() != _Layer) ){
-      cerr << "AMSTrRecHit-S-Logic Error "<<(_Xcl->getid()).getlayer()<<" "<<
-        (_Ycl->getid()).getlayer()<<" "<<_Layer<<endl;
-    }
-    THN->Status[THN->Ntrrh]=_status;
-    THN->Layer[THN->Ntrrh]=_Layer;
-    int i;
-    for(i=0;i<3;i++)THN->Hit[THN->Ntrrh][i]=_Hit[i];
-    for(i=0;i<3;i++)THN->EHit[THN->Ntrrh][i]=_EHit[i];
-    THN->Sum[THN->Ntrrh]=_Sum;
-    THN->DifoSum[THN->Ntrrh]=_DifoSum;
-//    cout <<" cofgx "<<_cofgx<<" "<<this<<" "<<_Layer<<" "<<_cofgy<<endl;
-    THN->CofgX[THN->Ntrrh]=_cofgx;
-    THN->CofgY[THN->Ntrrh]=_cofgy;
-
-    THN->Ntrrh++;
-  }
-}
-else{
  TrRecHitNtuple02* THN = AMSJob::gethead()->getntuple()->Get_trrh02();
 
   if (THN->Ntrrh>=root::MAXTRRH02) return;
@@ -1271,7 +1199,6 @@ else{
     THN->Ntrrh++;
   }
 }
-}
 
 void AMSTrRecHit::_copyEl(){
 }
@@ -1297,13 +1224,13 @@ integer AMSTrTrack::build(integer refit){
     }
     if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
     AMSlink *ptr=AMSEvent::gethead()->getheadC("TriggerLVL3",0);
-    TriggerLVL3 *ptr3=dynamic_cast<TriggerLVL3*>(ptr);
     TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
 //      cout <<" nrh "<<nrh<<" "<<ptr302->skip()<<" "<<ptr302->MainTrigger()<<endl;
-      if((!ptr3 || ptr3->skip()) && (!ptr302 || ptr302->skip())){
+//      if((!ptr3 || ptr3->skip()) && (!ptr302 || ptr302->skip())){
+      if(!ptr302 || ptr302->skip()){ //tempor
        AMSEvent::gethead()->seterror();
        return 0;
-     }
+      }
     }
   }
 
@@ -1388,12 +1315,11 @@ integer AMSTrTrack::buildWeak(integer refit){
     }
     if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
     AMSlink *ptr=AMSEvent::gethead()->getheadC("TriggerLVL3",0);
-    TriggerLVL3 *ptr3=dynamic_cast<TriggerLVL3*>(ptr);
     TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
-      if((!ptr3 || ptr3->skip()) && (!ptr302 || ptr302->skip())){
+      if(!ptr302 || ptr302->skip()){
        AMSEvent::gethead()->seterror();
        return 0;
-     }
+      }
     }
   }
 
@@ -1460,12 +1386,11 @@ integer AMSTrTrack::buildFalseX(integer nptmin){
     }
     if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
     AMSlink *ptr=AMSEvent::gethead()->getheadC("TriggerLVL3",0);
-    TriggerLVL3 *ptr3=dynamic_cast<TriggerLVL3*>(ptr);
     TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
-      if((!ptr3 || ptr3->skip()) && (!ptr302 || ptr302->skip())){
+      if(!ptr302 || ptr302->skip()){
        AMSEvent::gethead()->seterror();
        return 0;
-     }
+      }
     }
   }
 
@@ -2192,114 +2117,6 @@ for(int i=0;i<2;i++){
 }
 
 void AMSTrTrack::_writeEl(){
-if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-  TrTrackNtuple* TrTN = AMSJob::gethead()->getntuple()->Get_trtr();
-  if (TrTN->Ntrtr>=MAXTRTR) return;
-
-// Fill the ntuple 
-  if(AMSTrTrack::Out(1)){
-    int i;
-    TrTN->Status[TrTN->Ntrtr]=_status;
-    TrTN->Pattern[TrTN->Ntrtr]=_Pattern;
-    TrTN->NHits[TrTN->Ntrtr]=_NHits;
-    TrTN->Address[TrTN->Ntrtr]=_Address;
-//    for(i=0;i<2;i++)TrTN->Dbase[TrTN->Ntrtr][i]=_Dbase[i];
-    
-    int k;
-    for(k=_NHits;k<TKDBc::nlay();k++)TrTN->pHits[TrTN->Ntrtr][k]=0;
-    for(k=0;k<_NHits;k++){
-     TrTN->pHits[TrTN->Ntrtr][k]=_Pthit[k]->getpos();
-      int pat;
-      pat=_Pthit[k]->getLayer()-1;
-      if (AMSTrRecHit::Out(IOPA.WriteAll%10==1)){
-        // Writeall
-        for(i=0;i<pat;i++){
-          AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrRecHit",i);
-           #ifdef __AMSDEBUG__
-            assert(pc != NULL);
-           #endif
-           TrTN->pHits[TrTN->Ntrtr][k]+=pc->getnelem();
-        }
-      }                                                        
-      else if (AMSTrRecHit::Out(IOPA.WriteAll%10==0)){
-      //WriteUsedOnly
-        for(i=0;i<pat;i++){
-          AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
-          while(ptr && ptr->checkstatus(AMSDBc::USED)){
-            TrTN->pHits[TrTN->Ntrtr][k]++;
-            ptr=ptr->next();
-          }
-        }
-      }
-      else if (AMSTrRecHit::Out(IOPA.WriteAll%10==2)){
-      //WriteUsedOnly
-        for(i=0;i<pat;i++){
-          AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
-          while(ptr && !(ptr->checkstatus(AMSDBc::AwayTOF)) ){
-            TrTN->pHits[TrTN->Ntrtr][k]++;
-            ptr=ptr->next();
-          }
-        }
-      }
-      else return;
-    }
-  
-  
-    TrTN->LocDBAver[TrTN->Ntrtr]=_Dbase[0];
-    TrTN->GeaneFitDone[TrTN->Ntrtr]=_GeaneFitDone;
-    TrTN->AdvancedFitDone[TrTN->Ntrtr]=_AdvancedFitDone;
-    TrTN->Chi2StrLine[TrTN->Ntrtr]=geant(_Chi2StrLine);
-    TrTN->Chi2Circle[TrTN->Ntrtr]=geant(_Chi2Circle);
-    TrTN->CircleRidgidity[TrTN->Ntrtr]=(geant)_CircleRidgidity;
-    TrTN->Chi2FastFit[TrTN->Ntrtr]=(geant)_Chi2FastFit;
-    TrTN->Ridgidity[TrTN->Ntrtr]=(geant)_Ridgidity;
-    TrTN->ErrRidgidity[TrTN->Ntrtr]=(geant)_ErrRidgidity;
-    TrTN->Theta[TrTN->Ntrtr]=(geant)_Theta;
-    TrTN->Phi[TrTN->Ntrtr]=(geant)_Phi;
-    for(i=0;i<3;i++)TrTN->P0[TrTN->Ntrtr][i]=(geant)_P0[i];
-    if(_GeaneFitDone){ 
-     TrTN->GChi2[TrTN->Ntrtr]=(geant)_GChi2;
-     TrTN->GRidgidity[TrTN->Ntrtr]=(geant)_GRidgidity;
-     TrTN->GErrRidgidity[TrTN->Ntrtr]=(geant)_GErrRidgidity;
-     TrTN->GTheta[TrTN->Ntrtr]=(geant)_GTheta;
-     TrTN->GPhi[TrTN->Ntrtr]=(geant)_GPhi;
-     for(i=0;i<3;i++)TrTN->GP0[TrTN->Ntrtr][i]=(geant)_GP0[i];
-    }
-    else{
-     TrTN->GChi2[TrTN->Ntrtr]=-1;
-     TrTN->GRidgidity[TrTN->Ntrtr]=0;
-     TrTN->GErrRidgidity[TrTN->Ntrtr]=0;
-     TrTN->GTheta[TrTN->Ntrtr]=0;
-     TrTN->GPhi[TrTN->Ntrtr]=0;
-     for(i=0;i<3;i++)TrTN->GP0[TrTN->Ntrtr][i]=0;
-    } 
-    if(_AdvancedFitDone){
-     for(i=0;i<2;i++)TrTN->HChi2[TrTN->Ntrtr][i]=(geant) _HChi2[i];
-     for(i=0;i<2;i++)TrTN->HRidgidity[TrTN->Ntrtr][i]=(geant)_HRidgidity[i];
-     for(i=0;i<2;i++)TrTN->HErrRidgidity[TrTN->Ntrtr][i]=(geant)_HErrRidgidity[i];
-     for(i=0;i<2;i++)TrTN->HTheta[TrTN->Ntrtr][i]=(geant)_HTheta[i];
-     for(i=0;i<2;i++)TrTN->HPhi[TrTN->Ntrtr][i]=(geant)_HPhi[i];
-     for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][0][i]=(geant)_HP0[0][i];
-     for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][1][i]=(geant)_HP0[1][i];
-    }
-    else{
-     for(i=0;i<2;i++)TrTN->HChi2[TrTN->Ntrtr][i]=-1;
-     for(i=0;i<2;i++)TrTN->HRidgidity[TrTN->Ntrtr][i]=0;
-     for(i=0;i<2;i++)TrTN->HErrRidgidity[TrTN->Ntrtr][i]=0;
-     for(i=0;i<2;i++)TrTN->HTheta[TrTN->Ntrtr][i]=0;
-     for(i=0;i<2;i++)TrTN->HPhi[TrTN->Ntrtr][i]=0;
-     for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][0][i]=0;
-     for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][1][i]=0;
-    }
-    TrTN->FChi2MS[TrTN->Ntrtr]=(geant)_Chi2MS;
-    TrTN->GChi2MS[TrTN->Ntrtr]=(geant)_GChi2MS;
-    TrTN->RidgidityMS[TrTN->Ntrtr]=(geant)_RidgidityMS;
-    TrTN->GRidgidityMS[TrTN->Ntrtr]=(geant)_GRidgidityMS;
-    TrTN->Ntrtr++;
-
-  }
-}
-else{
   TrTrackNtuple02* TrTN = AMSJob::gethead()->getntuple()->Get_trtr02();
   if (TrTN->Ntrtr>=MAXTRTR02) return;
 
@@ -2399,7 +2216,6 @@ else{
     TrTN->Ntrtr++;
 
   }
-}
 }
 void AMSTrTrack::_copyEl(){
 }
@@ -2606,8 +2422,8 @@ integer AMSTrTrack::makeFalseTOFXHits(){
 
     int i;
 
-    TriggerLVL3 *plvl3;
-    plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+    TriggerLVL302 *plvl3;
+    plvl3 = (TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
 // LVL3 required if existing
     if ( plvl3==NULL) {
 // #ifdef __AMSDEBUG__
@@ -2664,8 +2480,7 @@ integer AMSTrTrack::makeFalseTOFXHits(){
 // 1 or 4, respectively (info from planes 1,4 is TOF-calibration dependent)
     number sw=0, sz=0, sx=0, sxz=0, szz=0;
     geant searchregtof;
-    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
-    else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
+    searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
     for (i=0; i<4; i++){
       if (phit[i]==NULL) continue;
       if (i==0 && phit[1]!=NULL && resmax2>searchregtof) continue;
@@ -2717,8 +2532,7 @@ integer AMSTrTrack::makeFalseTOFXHits(){
       glopos[0] = intercept_x + slope_x*glopos[2];
 // Do not use if it is far away from TOF prediction
       geant searchregtof;
-      if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
-      else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
+      searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
       if (fabs(glopos[1] - intercept_y - slope_y*glopos[2])
                > searchregtof) continue; // 1/2 SC bar
 // Find now the right sensor number on the ladder
@@ -2765,12 +2579,11 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
     }
     if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
     AMSlink *ptr=AMSEvent::gethead()->getheadC("TriggerLVL3",0);
-    TriggerLVL3 *ptr3=dynamic_cast<TriggerLVL3*>(ptr);
     TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
-      if((!ptr3 || ptr3->skip()) && (!ptr302 || ptr302->skip())){
+      if(!ptr302 || ptr302->skip()){
        AMSEvent::gethead()->seterror();
        return 0;
-     }
+      }
     }
   }
 
@@ -2864,8 +2677,7 @@ trig=(trig+1)%freq;
            }
 */
    geant searchregtof;
-   if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
-   else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
+   searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
    
    return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0])
             > searchregtof*par[0][2] ||

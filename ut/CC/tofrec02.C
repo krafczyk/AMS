@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.11 2002/02/12 08:43:47 choumilo Exp $
+//  $Id: tofrec02.C,v 1.12 2002/03/20 09:41:23 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -6,7 +6,6 @@
 //              26.06.97   E.Choumilov - DAQ decoding/encoding added
 //
 #include <tofdbc02.h>
-#include <tofdbc.h>
 #include <point.h>
 #include <event.h>
 #include <amsgobj.h>
@@ -33,7 +32,7 @@ uinteger TOF2RawEvent::StartRun(0);
 time_t TOF2RawEvent::StartTime(0);
 AMSTOFCluster * AMSTOFCluster::_Head[4]={0,0,0,0};
 integer AMSTOFCluster::_planes=0;
-integer AMSTOFCluster::_padspl[TOFGC::MAXPLN]={0,0,0,0};
+integer AMSTOFCluster::_padspl[TOF2GC::SCLRS]={0,0,0,0};
 //
 //
 //-----------------------------------------------------------------------
@@ -1237,16 +1236,8 @@ AMSContainer *p =AMSEvent::gethead()->getC("AMSTOFCluster",i);
 //===========================================================================
 //
 void AMSTOFCluster::init(){
-  int i;
-  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-    _planes=TOF2DBc::getnplns();
-    for(i=0;i<_planes;i++)_padspl[i]=TOF2DBc::getbppl(i);
-  }
-  else{
-    _planes=TOF1GC::SCLRS;
-    for(i=0;i<_planes;i++)_padspl[i]=TOF1GC::SCBRS[i];
-  }
-
+  _planes=TOF2DBc::getnplns();
+  for(int i=0;i<_planes;i++)_padspl[i]=TOF2DBc::getbppl(i);
 }
 //---------------------------------------------------------------------------
 void AMSTOFCluster::build2(int &stat){

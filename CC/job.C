@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.398 2002/02/27 16:19:54 mdelgado Exp $
+// $Id: job.C,v 1.399 2002/03/20 09:41:17 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -10,7 +10,6 @@
 // Last Edit : Dec 27, 1997. ak. 
 //
 #include <tofdbc02.h>
-#include <tofdbc.h>
 #include <ecaldbc.h>
 #include <ecalcalib.h>
 #include <amsgobj.h>
@@ -31,24 +30,17 @@
 #include <mceventg.h>
 #include <trcalib.h>
 #include <antidbc02.h>
-#include <antidbc.h>
-#include <ctcdbc.h>
 #include <tofsim02.h>
-#include <tofsim.h>
 #include <tofrec02.h>
-#include <tofrec.h>
 #include <tofcalib02.h>
-#include <tofcalib.h>
 #include <trigger102.h>
-#include <trigger1.h>
-#include <trigger3.h>
+//#include <trigger3.h>
 #include <trigger302.h>
 #include <bcorr.h>
 #include <trid.h>
 #include <trrawcluster.h>
 #include <daqevt.h>
 #include <daqs2block.h>
-#include <daqblock.h>
 #include <ntuple.h>
 #include <user.h>
 #include <tralig.h>
@@ -130,7 +122,6 @@ const uinteger AMSJob::Monitoring=(AMSJob::MTracker)+
                                   (AMSJob::MAxAMS)+
                                   (AMSJob::MAll);
 //
-extern CTCCCcal ctcfcal[CTCCCMX];//  CTC calibr. objects
 
 
 //
@@ -173,6 +164,8 @@ void AMSJob::data(){
   AMSFFKEY.Update=0;
   VBLANK(AMSFFKEY.Jobname,40);
   VBLANK(AMSFFKEY.Setupname,40);
+  char amsetup[16]="AMS02 TOF:8PAD ";
+  UCTOH(amsetup,AMSFFKEY.Setupname,4,16);
   AMSFFKEY.ZeroSetupOk=0;
   // Set Defaults
 FFKEY("AMSJOB",(float*)&AMSFFKEY+2,sizeof(AMSFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -211,16 +204,9 @@ FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 _sitkdata();
 _signdata();
 
-_sitofdata();
-  _sitof2data();
-  
-_siantidata();
-  _sianti2data();
-  
-_sictcdata();
-
-_sitrigdata();
-  _sitrig2data();
+_sitof2data();
+_sianti2data();
+_sitrig2data();
   
 _sirichdata();
 _siecaldata();
@@ -255,17 +241,20 @@ void AMSJob::_sirichdata(){
   FFKEY("RICCONT",(float *)&RICCONTROL,sizeof(RICCONTROL_DEF)/sizeof(integer),"MIXED");
 }
 
-void AMSJob::_sitrigdata(){
+//------------------------------------------------------
+void AMSJob::_sitrig2data(){
+  TGL1FFKEY.trtype=0; //trigger type (0/1/2/3/4/5/6/7/8)
 // TOF :
 // these are additional requir. to "hardware"-defined TOFMCFFKEY.trlogic[]
-  LVL1FFKEY.ntof=3;// min. fired TOF-planes
+  TGL1FFKEY.ntof=3;// min. fired TOF-planes
 // ANTI :
-  LVL1FFKEY.nanti=20;// max. fired ANTI-paddles 
+  TGL1FFKEY.nanti=20;// max. fired ANTI-paddles 
 //
-  LVL1FFKEY.RebuildLVL1=0;
-  LVL1FFKEY.MaxScalersRate=20000;
-  LVL1FFKEY.MinLifeTime=0.015;
-  FFKEY("LVL1",(float*)&LVL1FFKEY,sizeof(LVL1FFKEY_DEF)/sizeof(integer),"MIXED");
+  TGL1FFKEY.RebuildLVL1=0;
+// 
+  TGL1FFKEY.MaxScalersRate=20000;
+  TGL1FFKEY.MinLifeTime=0.015;
+  FFKEY("TGL1",(float*)&TGL1FFKEY,sizeof(TGL1FFKEY_DEF)/sizeof(integer),"MIXED");
 
 
   LVL3SIMFFKEY.NoiseProb[1]=2.e-10;
@@ -285,9 +274,8 @@ void AMSJob::_sitrigdata(){
 
   FFKEY("L3EXP",(float*)&LVL3EXPFFKEY,sizeof(LVL3EXPFFKEY_DEF)/sizeof(integer),"MIXED");
 
-
   LVL3FFKEY.MinTOFPlanesFired=3;
-  LVL3FFKEY.UseTightTOF=1;
+  LVL3FFKEY.UseTightTOF=0;
   LVL3FFKEY.TrTOFSearchReg=6.;
   LVL3FFKEY.TrMinResidual=0.03;
   LVL3FFKEY.TrMaxResidual[0]=-1.2;
@@ -303,58 +291,7 @@ void AMSJob::_sitrigdata(){
   LVL3FFKEY.SeedThr=-32;
   LVL3FFKEY.Stat=0;
   FFKEY("L3REC",(float*)&LVL3FFKEY,sizeof(LVL3FFKEY_DEF)/sizeof(integer),"MIXED");
-}
-//----------
-//
-void AMSJob::_sitrig2data(){
-  TGL1FFKEY.trtype=0; //trigger type (0/1/2/3/4/5/6/7/8)
-// TOF :
-// these are additional requir. to "hardware"-defined TOFMCFFKEY.trlogic[]
-  TGL1FFKEY.ntof=3;// min. fired TOF-planes
-// ANTI :
-  TGL1FFKEY.nanti=20;// max. fired ANTI-paddles 
-//
-  TGL1FFKEY.RebuildLVL1=0;
-// 
-  TGL1FFKEY.MaxScalersRate=20000;
-  TGL1FFKEY.MinLifeTime=0.015;
-  FFKEY("TGL1",(float*)&TGL1FFKEY,sizeof(TGL1FFKEY_DEF)/sizeof(integer),"MIXED");
 
-
-//  LVL3SIMFFKEY.NoiseProb[1]=2.e-10;
-//  LVL3SIMFFKEY.NoiseProb[0]=LVL3SIMFFKEY.NoiseProb[1]*1.65;
-//  FFKEY("L3SIM",(float*)&LVL3SIMFFKEY,sizeof(LVL3SIMFFKEY_DEF)/sizeof(integer),"MIXED");
-
-
-//  LVL3EXPFFKEY.NEvents=2048;
-//  LVL3EXPFFKEY.ToBad=10;
-//  LVL3EXPFFKEY.TryAgain=10;
-//  LVL3EXPFFKEY.Range[0][0]=2.5;
-//  LVL3EXPFFKEY.Range[0][1]=2.;
-//  LVL3EXPFFKEY.Range[1][0]=1000000;
-//  LVL3EXPFFKEY.Range[1][1]=3;
-//  LVL3EXPFFKEY.Range[2][0]=2.;
-//  LVL3EXPFFKEY.Range[2][1]=2.5;
-
-//  FFKEY("L3EXP",(float*)&LVL3EXPFFKEY,sizeof(LVL3EXPFFKEY_DEF)/sizeof(integer),"MIXED");
-
-
-//  LVL3FFKEY.MinTOFPlanesFired=3;
-//  LVL3FFKEY.UseTightTOF=1;
-//  LVL3FFKEY.TrTOFSearchReg=9.;
-//  LVL3FFKEY.TrMinResidual=0.03;
-//  LVL3FFKEY.TrMaxResidual[0]=1.2;
-//  LVL3FFKEY.TrMaxResidual[1]=0.2;
-//  LVL3FFKEY.TrMaxResidual[2]=0.3;
-//  LVL3FFKEY.TrMaxHits=20;
-//  LVL3FFKEY.Splitting=0.04;
-//  LVL3FFKEY.NRep=1;
-//  LVL3FFKEY.Accept=0;
-//  LVL3FFKEY.RebuildLVL3=2;
-//  LVL3FFKEY.NoK=1;
-//  LVL3FFKEY.TrHeavyIonThr=200;
-//  LVL3FFKEY.SeedThr=-32;
-//  FFKEY("L3REC",(float*)&LVL3FFKEY,sizeof(LVL3FFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //
 //===============================================================================
@@ -401,8 +338,8 @@ TRMCFFKEY.day[0]=1;
 TRMCFFKEY.day[1]=1;
 TRMCFFKEY.mon[0]=0;
 TRMCFFKEY.mon[1]=0;
-TRMCFFKEY.year[0]=96;
-TRMCFFKEY.year[1]=101;
+TRMCFFKEY.year[0]=101;
+TRMCFFKEY.year[1]=110;
 TRMCFFKEY.GenerateConst=0;
 TRMCFFKEY.WriteHK=0;
 TRMCFFKEY.thr1R[0]=-2.75;
@@ -566,8 +503,8 @@ CCFFKEY.earth=1;
 CCFFKEY.theta=51.;
 CCFFKEY.phi=290.;
 CCFFKEY.polephi=108.392;
-CCFFKEY.begindate=2061998;
-CCFFKEY.enddate=12061998;
+CCFFKEY.begindate=2062004;
+CCFFKEY.enddate=12062008;
 CCFFKEY.begintime=170000;
 CCFFKEY.endtime=220000;
 CCFFKEY.oldformat=0;
@@ -580,30 +517,6 @@ CCFFKEY.curtime=0;
 FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=================================================================================
-void AMSJob::_sitofdata(){
-  TOFMCFFKEY.TimeSigma=1.71e-10; //(1) side time resolution(sec,/1.41=121ps) 
-  TOFMCFFKEY.TimeSigma2=4.5e-10;//(2)
-  TOFMCFFKEY.TimeProbability2=0.035;//(3)
-  TOFMCFFKEY.padl=10.5;        //(4) sc. bar transv. step ........................
-  TOFMCFFKEY.Thr=0.1;          //(5) Sc.bar Elos-thresh.(Mev) to participate in Simul.   
-//
-  TOFMCFFKEY.mcprtf[0]=0;     //(6) TOF MC print flag for init arrays
-  TOFMCFFKEY.mcprtf[1]=0;     //(7) TOF MC print flag for MC pulses
-  TOFMCFFKEY.mcprtf[2]=0;     //(8) ...................... histograms
-  TOFMCFFKEY.mcprtf[3]=0;     //(9) spare
-  TOFMCFFKEY.mcprtf[4]=0;     //(10) spare
-  TOFMCFFKEY.trlogic[0]=1; //(11) MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
-  TOFMCFFKEY.trlogic[1]=0; //(12)..............(=0/1-> ANY3/ALL4 layer coincidence) 
-  TOFMCFFKEY.fast=0;       //(13) 0/1->off/on fast generation in mceventg.C
-  TOFMCFFKEY.daqfmt=0;     //(14) 0/1-> raw/reduced TDC format for DAQ simulation
-  TOFMCFFKEY.birks=1;      //(15) 0/1->  not apply/apply birks corrections
-  TOFMCFFKEY.adsimpl=0;    //(16)0/1->precise/simplified sim. of A/D-TovT
-  TOFMCFFKEY.blshift=0.;   //(17) base line shift at fast discr.input (mv)
-  TOFMCFFKEY.hfnoise=7.;   //(18) high freq. noise .......   
-FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
-}
-//
-//-----------
 //
 void AMSJob::_sitof2data(){
   TFMCFFKEY.TimeSigma=1.71e-10; //(1) side time resolution(sec,/1.41=121ps) 
@@ -789,109 +702,6 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 FFKEY("ECCA",(float*)&ECCAFFKEY,sizeof(ECCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
-
-
-void AMSJob::_sictcdata(){
-
-
-  CTCGEOMFFKEY.wallth=0.03;    // reflecting wall and separators thickness(cm)
-  CTCGEOMFFKEY.agap=0.02;      // typical "air" gaps for aerogel
-  CTCGEOMFFKEY.wgap=0.01;      // typical "air" gaps for WLS's
-  CTCGEOMFFKEY.agsize[0]=120.; // max aerogel x-size
-  CTCGEOMFFKEY.agsize[1]=90.;  // max aerogel y-size
-  CTCGEOMFFKEY.agsize[2]=10.;  // max aerogel z-size
-  //  CTCGEOMFFKEY.wlsth=0.3;      // WLS thickness
-  //  CTCGEOMFFKEY.hcsize[0]=165.; // supp. honeycomb plate X-size
-  //  CTCGEOMFFKEY.hcsize[1]=165.; // supp. honeycomb plate Y-size
-  //  CTCGEOMFFKEY.hcsize[2]=5.;   // supp. honeycomb plate Z-size
-  //  CTCGEOMFFKEY.supzc=-84.;     // supp. honeycomb plate front face Z-pos
-  //  CTCGEOMFFKEY.aegden=0.24;    // aerogel density
-  //  CTCGEOMFFKEY.wlsden=1.03;    // WLS density
-  //  CTCGEOMFFKEY.nblk=12;        // number of aer. blocks (X-div.)(=1 for solid)
-  //  CTCGEOMFFKEY.nwls=12;        // number of wls blocks
-  CTCGEOMFFKEY.wlsth=0.3;       // WLS thickness
-  CTCGEOMFFKEY.hcsize[0]=165.;  // supp. honeycomb plate X-size
-  CTCGEOMFFKEY.hcsize[1]=165.;  // supp. honeycomb plate Y-size
-  CTCGEOMFFKEY.hcsize[2]=5.;    // supp. honeycomb plate Z-size
-  CTCGEOMFFKEY.supzc=-91.2-9.4-1.9625+6.5125+0.4;     // supp. honeycomb plate (center) Z-pos
-  CTCGEOMFFKEY.aegden=0.125;    // aerogel density
-  CTCGEOMFFKEY.wlsden=1.03;     // WLS density
-  CTCGEOMFFKEY.nblk=1;          // number of aer. blocks (X-div.)(=1 for solid)
-  CTCGEOMFFKEY.nwls=1;          // number of wls blocks
-  CTCGEOMFFKEY.ptfx=0.0125;      // PTFE thickness in cm
-  CTCGEOMFFKEY.thcsize[0]=150.; //
-  CTCGEOMFFKEY.thcsize[1]=110.; // Support structure dimensions (cm)
-  CTCGEOMFFKEY.thcsize[2]=6.;   //
-  CTCGEOMFFKEY.upper[0]=120.5;  //
-  CTCGEOMFFKEY.upper[1]=96.;   // Upper/Lower layer dimensions (cm)
-  CTCGEOMFFKEY.upper[2]=15.50+3.9;  //
-  CTCGEOMFFKEY.wall[0]=0.12;     //
-  CTCGEOMFFKEY.wall[1]=96.;    // Wall dimensions (cm)
-  CTCGEOMFFKEY.wall[2]=7.175+1+0.8;   //
-  CTCGEOMFFKEY.cell[0]=23.4+0.6;    //
-  CTCGEOMFFKEY.cell[1]=23.4+0.6;    // Super cell dimensions (cm)
-  CTCGEOMFFKEY.cell[2]=15.50+2;   //
-  CTCGEOMFFKEY.ygap[0]=23.4+0.6;    // 
-  CTCGEOMFFKEY.ygap[1]=0.0;     // Gap dimensions (cm)
-  CTCGEOMFFKEY.ygap[2]=15.50+2;   //
-  CTCGEOMFFKEY.agel[0]=11.60;   //
-  CTCGEOMFFKEY.agel[1]=11.60;   // AeroGEL dimensions (cm)
-  CTCGEOMFFKEY.agel[2]=7.025+1;   //
-  CTCGEOMFFKEY.pmt[0]=3.0;      //
-  CTCGEOMFFKEY.pmt[1]=3.0;      // Phototube dimensions (including housing
-  CTCGEOMFFKEY.pmt[2]=7.5;      //          (and shielding)
-  CTCGEOMFFKEY.ptfe[0]=11.75+0.25;   //
-  CTCGEOMFFKEY.ptfe[1]=11.75+0.25;   // PTFE box dimensions (cm)
-  CTCGEOMFFKEY.ptfe[2]=7.175+1+0.8;   //
-  CTCGEOMFFKEY.xdiv=5;
-  CTCGEOMFFKEY.ydiv=4;
-//
-  CTCMCFFKEY.Refraction[0]=1.036;   // Refraction indexes
-  CTCMCFFKEY.Refraction[1]=1.4;     //ptfe
-  CTCMCFFKEY.Refraction[2]=1.458;    // pmt
-
-  CTCMCFFKEY.Path2PhEl[0]=6.;   // Path to photoelectrons conv fact ( ~ 3.3 p.e.)
-  CTCMCFFKEY.Path2PhEl[1]=50;
-  CTCMCFFKEY.Path2PhEl[2]=100;
-  CTCMCFFKEY.AbsLength[0]=15;   // Abs Length in cm  
-  CTCMCFFKEY.AbsLength[1]=100;
-  CTCMCFFKEY.AbsLength[2]=100;
-  CTCMCFFKEY.Edep2Phel[0]=0;      // Agel is not a scint
-  CTCMCFFKEY.Edep2Phel[1]=0; 
-  CTCMCFFKEY.Edep2Phel[2]=0;     
-  CTCMCFFKEY.mcprtf=0;//print MC-hist if !=0
-
-FFKEY("CTCGEOM",(float*)&CTCGEOMFFKEY,sizeof(CTCGEOMFFKEY_DEF)/sizeof(integer),"MIXED");
-FFKEY("CTCMC",(float*)&CTCMCFFKEY,sizeof(CTCMCFFKEY_DEF)/sizeof(integer),"MIXED");
-}
-//================================================================================
-void AMSJob::_siantidata(){
-  ANTIGEOMFFKEY.scradi=54.4;   // internal radious of ANTI sc. cylinder (cm)
-  ANTIGEOMFFKEY.scinth=1.;     // thickness of scintillator (cm)
-  ANTIGEOMFFKEY.scleng=83.;    //(ams01) scintillator paddle length (glob. Z-dim)
-  ANTIGEOMFFKEY.wrapth=0.04;   // wrapper thickness (cm)
-  ANTIGEOMFFKEY.groovr=0.45;   // groove radious (bump_rad = groove_rad-pdlgap)
-  ANTIGEOMFFKEY.pdlgap=0.1;   // inter paddle gap (cm)(2*wrapth+extra)
-  ANTIGEOMFFKEY.stradi=54.235; // inner radious of supp. tube
-  ANTIGEOMFFKEY.stleng=83.;    // (ams01)length of supp. tube
-  ANTIGEOMFFKEY.stthic=0.12;   // thickness of supp. tube
-  
-//---
-  ANTIMCFFKEY.mcprtf=0;     // print_hist flag (0/1->no/yes)
-  ANTIMCFFKEY.SigmaPed=1;   // ped.distribution width (p.e)
-  ANTIMCFFKEY.MeV2PhEl=20.; // Mev->Ph.el. MC conv.nfactor (pe/Mev)(= 2side_signal(pe)/Eloss(mev)
-//                                                                  measured at center)
-  ANTIMCFFKEY.LZero=120;    // attenuation length for one-side signal (cm)
-  ANTIMCFFKEY.PMulZPos=41.5;  // PM-position(=Ltot/2)
-  ANTIMCFFKEY.LSpeed=17.;   // Eff. light speed in anti-paddle (cm/ns)
-//---
-  FFKEY("ANGE",(float*)&ANTIGEOMFFKEY,sizeof(ANTIGEOMFFKEY_DEF)/sizeof(integer),
-  "MIXED");
-  FFKEY("ANMC",(float*)&ANTIMCFFKEY,sizeof(ANTIMCFFKEY_DEF)/sizeof(integer),
-  "MIXED");
-}
-//
-//--------------
 //
 void AMSJob::_sianti2data(){
   ATGEFFKEY.scradi=54.4;   // internal radious of ANTI sc. cylinder (cm)
@@ -986,16 +796,12 @@ void AMSJob:: _reamsdata(){
 _remfdata();
 _retkdata();
 
-_retofdata();
-  _retof2data();
-  
-_reantidata();
-  _reanti2data();
+_retof2data();
+_reanti2data();
   
 _reecaldata();
 _retrddata();
 _resrddata();
-_rectcdata();
 _reaxdata();
 _redaqdata();
 }
@@ -1135,98 +941,6 @@ FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED"
 TKFINI();
 }
 //=================================================================================
-void AMSJob::_retofdata(){
-// 
-  TOFRECFFKEY.Thr1=0.45;//(1) Threshold (mev) on peak bar energy
-  TOFRECFFKEY.ThrS=0.45; //(2) Threshold (mev) on total cluster energy
-//
-  TOFRECFFKEY.reprtf[0]=0; //(3) RECO print flag for statistics 
-  TOFRECFFKEY.reprtf[1]=0; //(4) print flag for DAQ (1/2-> print for decoding/dec+encoding)
-  TOFRECFFKEY.reprtf[2]=0; //(5) print flag for histograms
-  TOFRECFFKEY.reprtf[3]=0; //(6) print flag for TDC-hit multiplicity histograms 
-  TOFRECFFKEY.reprtf[4]=0; //(7) if non-zero (LBBS) print stretcher T1/T2 for LBBS
-//
-  TOFRECFFKEY.relogic[0]=0;//(8) 0/1/2/3/4 ->normal/STRR+AVSD-/TDIF-/TZSL-/AMPL-calibr. run. 
-  TOFRECFFKEY.relogic[1]=0;//(9) 0/1/2-> full_fTDC_use/no_time_matching/not_use 
-  TOFRECFFKEY.relogic[2]=0;//(10) 0/1-> force L4S2 suppression(useful for MC processing)
-  TOFRECFFKEY.relogic[3]=0;//(11) 0/1-> use new/old parametrization for TOF integrators 
-  TOFRECFFKEY.relogic[4]=0;//(12) spare RECO logic flag
-//
-  TOFRECFFKEY.daqthr[0]=35.;//(13)Fast discr. thresh(mV) for fast/slow_TDC 
-  TOFRECFFKEY.daqthr[1]=150.;//(14)Fast discr. thresh(mV) for FT-trigger (z>=1)  
-  TOFRECFFKEY.daqthr[2]=150.;//(15)thresh(mV) for discr. of "z>1"-trig  
-  TOFRECFFKEY.daqthr[3]=0.;//(16)spare  
-  TOFRECFFKEY.daqthr[4]=0.;//(17)spare
-//
-  TOFRECFFKEY.cuts[0]=40.;//(18)t-window(ns) for "the same hit" search in f/s_tdc
-  TOFRECFFKEY.cuts[1]=15.;//(19)"befor"-cut in time history (ns)(max.PMT-pulse length?)
-  TOFRECFFKEY.cuts[2]=400.;//(20)"after"-cut in time history (ns)(max. shaper integr.time?)
-  TOFRECFFKEY.cuts[3]=2.;//(21) error in longitudinal coordinate (single TOF bar)
-  TOFRECFFKEY.cuts[4]=65.;//(22) FT const. delay
-  TOFRECFFKEY.cuts[5]=40.;//(23) sTDC-delay wrt fTDC
-  TOFRECFFKEY.cuts[6]=35.;//(24) sTDC-delay wrt aTDC
-  TOFRECFFKEY.cuts[7]=0.;// (25) sTDC-delay wrt dTDC 
-  TOFRECFFKEY.cuts[8]=40.;//(26) gate for a/s-TDC
-  TOFRECFFKEY.cuts[9]=40.;//(27) gate for d/s-TDC
-//
-  TOFRECFFKEY.ReadConstFiles=0;//(28)read const. from DB/myFiles (0/1)
-//  
-  TOFRECFFKEY.sec[0]=0;//(29) 
-  TOFRECFFKEY.sec[1]=0;
-  TOFRECFFKEY.min[0]=0;
-  TOFRECFFKEY.min[1]=0;
-  TOFRECFFKEY.hour[0]=0;
-  TOFRECFFKEY.hour[1]=0;
-  TOFRECFFKEY.day[0]=1;
-  TOFRECFFKEY.day[1]=1;
-  TOFRECFFKEY.mon[0]=0;
-  TOFRECFFKEY.mon[1]=0;
-  TOFRECFFKEY.year[0]=96;
-  TOFRECFFKEY.year[1]=101;
-  FFKEY("TOFREC",(float*)&TOFRECFFKEY,sizeof(TOFRECFFKEY_DEF)/sizeof(integer),
-  "MIXED");
-
-//    defaults for calibration:
-// TZSL-calibration:
-  TOFCAFFKEY.pcut[0]=8.;// (1)track mom. low limit (gev/c) (prot, put 0.75 for mu)
-  TOFCAFFKEY.pcut[1]=50.;// (2)track mom. high limit
-  TOFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in the above range
-  TOFCAFFKEY.tzref[0]=0.;// (4)T0 for ref. counters
-  TOFCAFFKEY.tzref[1]=0.;// (5)T0 for ref. counters
-  TOFCAFFKEY.fixsl=8.02;// (6)def. slope
-  TOFCAFFKEY.bmeanmu=0.997;// (7)mean muon velocity in the above range
-  TOFCAFFKEY.idref[0]=108;//(8)LBB for first ref. counter 
-  TOFCAFFKEY.idref[1]=0;//(9)LBB for second ref. counter (if nonzero)
-  TOFCAFFKEY.ifsl=1;//(10) 0/1 to fix/release slope param.
-//
-  TOFCAFFKEY.caltyp=0;// (11) 0/1->space/earth calibration
-//
-// AMPL-calibration:
-  TOFCAFFKEY.truse=1; // (12) 1/-1-> to use/not tracker
-  TOFCAFFKEY.plhc[0]=0.;// (13) track mom. low limit(gev/c) for space calibr
-  TOFCAFFKEY.plhc[1]=500.;// (14) track mom. high limit(gev/c) ..............
-  TOFCAFFKEY.minev=50;// (15)min.events needed for measurement in channel or bin
-  TOFCAFFKEY.trcut=0.75;// (16) cut to use for "truncated average" calculation
-  TOFCAFFKEY.spares[0]=0;//(17) spares
-  TOFCAFFKEY.spares[1]=0; 
-  TOFCAFFKEY.spares[2]=0; 
-  TOFCAFFKEY.spares[3]=0; 
-  TOFCAFFKEY.spares[4]=0;//(21)
-  TOFCAFFKEY.plhec[0]=0.8;//(22)plow-cut for earth calibration
-  TOFCAFFKEY.plhec[1]=20.;  //(23)phigh-cut ...................
-  TOFCAFFKEY.bgcut[0]=2.; //(24) beta*gamma low-cut to be in mip-region(abs.calib)
-  TOFCAFFKEY.bgcut[1]=50.;//(25) beta*gamma high-cut ...
-//
-  TOFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
-  TOFCAFFKEY.dynflg=1; // (27) 0/1-> use stand/special(Contin's) dynode-calibration
-  TOFCAFFKEY.cfvers=1; // (28) 1-99 -> vers.number for tofverlistNN.dat file
-  TOFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
-  TOFCAFFKEY.mcainc=0;// (30) 0/1-> off/on A-integr. calibration in MC
-  TOFCAFFKEY.tofbetac=0.6;// (31) if nonzero->low beta cut (own TOF measurements !!!)
-  FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
-}
-//
-//-------------
 //
 void AMSJob::_retof2data(){
 // 
@@ -1319,36 +1033,6 @@ void AMSJob::_retof2data(){
   FFKEY("TFCA",(float*)&TFCAFFKEY,sizeof(TFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //======================================================================
-void AMSJob::_reantidata(){
-  ANTIRECFFKEY.reprtf[0]=0;//(1) Reco print_hist flag (0/1->no/yes)
-  ANTIRECFFKEY.reprtf[1]=0;//(2) DAQ-print (1/2->print for decoding/decoding+encoding)
-  ANTIRECFFKEY.reprtf[2]=0;//(3)spare
-  ANTIRECFFKEY.ThrS=6;//(4) threshold to create Cluster object (p.e.)
-  ANTIRECFFKEY.PhEl2MeV=0.05;//(5) reco conv. Phel->Mev(Mev/pe)( =Elos/2sides_signal measured at center)
-  ANTIRECFFKEY.dtthr=3.; //(6) trig.discr.theshold (same for all sides now) (p.e.'s for now)
-  ANTIRECFFKEY.dathr=6.; //(7) Amplitude(charge) discr.threshold(...) (p.e.)
-  ANTIRECFFKEY.ftwin=100.;//(8) t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT) 
-//
-  ANTIRECFFKEY.ReadConstFiles=0;//(9)read const. from DB/myFiles (0/1)
-//  
-  ANTIRECFFKEY.sec[0]=0;//(10) 
-  ANTIRECFFKEY.sec[1]=0;//(11)
-  ANTIRECFFKEY.min[0]=0;//(12)
-  ANTIRECFFKEY.min[1]=0;//(13)
-  ANTIRECFFKEY.hour[0]=0;//(14)
-  ANTIRECFFKEY.hour[1]=0;//(15)
-  ANTIRECFFKEY.day[0]=1;
-  ANTIRECFFKEY.day[1]=1;
-  ANTIRECFFKEY.mon[0]=0;
-  ANTIRECFFKEY.mon[1]=0;
-  ANTIRECFFKEY.year[0]=96;
-  ANTIRECFFKEY.year[1]=101;
-  FFKEY("ANRE",(float*)&ANTIRECFFKEY,sizeof(ANTIRECFFKEY_DEF)/sizeof(integer),"MIXED");
-// defaults for calibration:
-  ANTICAFFKEY.cfvers=2; // (01-99) vers.number NN for antiverlistNN.dat file
-  FFKEY("ANCA",(float*)&ANTICAFFKEY,sizeof(ANTICAFFKEY_DEF)/sizeof(integer),"MIXED");
-}
-//----------------------------
 void AMSJob::_reanti2data(){
   ATREFFKEY.reprtf[0]=0;//(1) Reco print_hist flag (0/1->no/yes)
   ATREFFKEY.reprtf[1]=0;//(2) DAQ-print (1/2->print for decoding/decoding+encoding)
@@ -1377,36 +1061,6 @@ void AMSJob::_reanti2data(){
 // defaults for calibration:
   ATCAFFKEY.cfvers=2; // (01-99) vers.number NN for antiverlistNN.dat file
   FFKEY("ATCA",(float*)&ATCAFFKEY,sizeof(ATCAFFKEY_DEF)/sizeof(integer),"MIXED");
-}
-//========================================================================
-void AMSJob::_rectcdata(){
-  CTCRECFFKEY.Thr1=0.25/2; //(1)
-  CTCRECFFKEY.ThrS=0.5/2;  //(2)
-  CTCRECFFKEY.reprtf[0]=0;//(3) Reco print_hist flag (0/1->no/yes)
-  CTCRECFFKEY.reprtf[1]=0;//(4) DAQ-print (1/2->print for decoding/decoding+encoding)
-  CTCRECFFKEY.reprtf[2]=0;//(5) spare
-  CTCRECFFKEY.ftwin=100.;//(6) t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT)
-  CTCRECFFKEY.q2pe=0.327;  //(7)
-  CTCRECFFKEY.ft2edg=1;  //(8) 0/1-> 1/2 edges readout for FT signal
-//
-  CTCRECFFKEY.ReadConstFiles=0;//(9)read const. from DB/myFiles (0/1)
-//  
-  CTCRECFFKEY.sec[0]=0; //(10)
-  CTCRECFFKEY.sec[1]=0; //(11)
-  CTCRECFFKEY.min[0]=0; //(12)
-  CTCRECFFKEY.min[1]=0; //(13)
-  CTCRECFFKEY.hour[0]=0; //(14)
-  CTCRECFFKEY.hour[1]=0; //(15)
-  CTCRECFFKEY.day[0]=1;
-  CTCRECFFKEY.day[1]=1;
-  CTCRECFFKEY.mon[0]=0;
-  CTCRECFFKEY.mon[1]=0;
-  CTCRECFFKEY.year[0]=96;
-  CTCRECFFKEY.year[1]=105;
-  FFKEY("CTCREC",(float*)&CTCRECFFKEY,sizeof(CTCRECFFKEY_DEF)/sizeof(integer),"MIXED");
-// defaults for calibration:
-  CTCCAFFKEY.cfvers=2; // (01-99) vers.number NN for ctcverlistNN.dat file
-  FFKEY("CTCCA",(float*)&CTCCAFFKEY,sizeof(CTCCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //========================================================================
 void AMSJob::_redaqdata(){
@@ -1595,20 +1249,11 @@ else{
   exit(1);
 }
   if(DAQCFFKEY.SCrateinDAQ<0){
-   if(strstr(getsetup(),"AMS02"))DAQCFFKEY.SCrateinDAQ=0;
-   else DAQCFFKEY.SCrateinDAQ=1; 
-  }
-  if(strstr(getsetup(),"AMS02")){
-   if(CCFFKEY.enddate%10000 < 2000){
-     CCFFKEY.enddate+=10;
-     CCFFKEY.begindate+=6;
-     TRMCFFKEY.year[0]+=5;
-     TRMCFFKEY.year[1]+=9;
-   }
+   DAQCFFKEY.SCrateinDAQ=0;
   }
 
   TKDBc::init();
-   if(strstr(getsetup(),"AMS02"))TRDDBc::init();
+  TRDDBc::init();
 {
 int len=cl-1;
 
@@ -1686,16 +1331,12 @@ if(AMSFFKEY.Update){
  }
 }
     AMSTrIdGeom::init();
-    if(strstr(getsetup(),"AMSSHUTTLE") ){    
-       AMSTrIdSoft::inittable(1);
-       AMSTrIdSoft::init();
-    }
-    else if(strstr(getsetup(),"AMS02") ){    
+    if(strstr(getsetup(),"AMS02") ){    
        AMSTrIdSoft::inittable(2);
        AMSTrIdSoft::init();
        AMSTRDIdSoft::init();
        AMSRICHIdGeom::Init();
-        AMSTRDIdSoft::inittable();
+       AMSTRDIdSoft::inittable();
     }
     else {
       cerr<<"AMSJob::udate-E-NoAMSTrIdSoftTable exists for setup "<<
@@ -1731,37 +1372,22 @@ if(TRDMCFFKEY.mode==-1){
  }
 }
 if(TRFITFFKEY.FastTracking==-1){
- if(strstr(getsetup(),"AMSSHUTTLE")){
-    TRFITFFKEY.FastTracking=0;
- }
- else TRFITFFKEY.FastTracking=1;
+ TRFITFFKEY.FastTracking=1;
 }
 
 // check delta etc
 if(TRMCFFKEY.gammaA[0]<0){
- if(strstr(getsetup(),"AMSSHUTTLE")){
-  TRMCFFKEY.gammaA[0]=-TRMCFFKEY.gammaA[0];
- }
- else TRMCFFKEY.gammaA[0]=0.2;
+ TRMCFFKEY.gammaA[0]=0.2;
 }
 if(TRMCFFKEY.delta[0]<0){
- if(strstr(getsetup(),"AMSSHUTTLE")){
-  TRMCFFKEY.delta[0]=-TRMCFFKEY.delta[0];
- }
- else TRMCFFKEY.delta[0]=0.9;
+ TRMCFFKEY.delta[0]=0.9;
 }
 if(TRMCFFKEY.thr1R[0]<0){
- if(strstr(getsetup(),"AMSSHUTTLE")){
-  TRMCFFKEY.thr1R[0]=-TRMCFFKEY.thr1R[0];
- }
- else TRMCFFKEY.thr1R[0]=3;
+ TRMCFFKEY.thr1R[0]=3;
 }
 
 if(TRCLFFKEY.Thr1R[0]<0){
- if(strstr(getsetup(),"AMSSHUTTLE")){
-  TRCLFFKEY.Thr1R[0]=-TRCLFFKEY.Thr1R[0];
- }
- else TRCLFFKEY.Thr1R[0]=3;
+ TRCLFFKEY.Thr1R[0]=3;
 }
 
     char hfile[161];
@@ -1774,12 +1400,7 @@ if(TRCLFFKEY.Thr1R[0]<0){
 
 // check lvl3
 if(LVL3FFKEY.TrMaxResidual[0]<0){
- if(strstr(getsetup(),"AMSSHUTTLE")){
-   for (int i=0;i<3;i++)LVL3FFKEY.TrMaxResidual[i]=fabs(LVL3FFKEY.TrMaxResidual[i]);
- }
- else{
    for (int i=0;i<3;i++)LVL3FFKEY.TrMaxResidual[i]=6*fabs(LVL3FFKEY.TrMaxResidual[i]);
- }
 }
 
 }
@@ -1808,7 +1429,6 @@ void AMSJob::_siamsinitjob(){
 AMSgObj::BookTimer.book("SIAMSEVENT");
   _sitkinitjob();
   _signinitjob();
-  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
     _sitof2initjob();
     _sianti2initjob();
     _siecalinitjob();
@@ -1816,13 +1436,6 @@ AMSgObj::BookTimer.book("SIAMSEVENT");
     _sitrdinitjob();
     _sisrdinitjob();
     _sitrig2initjob();
-  }
-  else{ 
-   _sitofinitjob();
-   _siantiinitjob();
-   _sictcinitjob();
-   _sitriginitjob();
-  }
   
 }
 
@@ -1833,14 +1446,6 @@ void AMSJob::_dbinitjob(){
 }
 
 //-------------------------------------------------------------------------------------------
-void AMSJob::_sitriginitjob(){
-  if(LVL1FFKEY.RebuildLVL1)cout <<"AMSJob::_sitriginitjob-W-TriggerLvl1 Will be rebuild from TOF data; Original Trigger info will be lost"<<endl;
-  if(LVL3FFKEY.RebuildLVL3==1)cout <<"AMSJob::_sitriginitjob-W-TriggerLvl3 will be rebuild from TOF/Tracker data; Original Trigger info will be lost"<<endl;
-  else if(LVL3FFKEY.RebuildLVL3)cout <<"AMSJob::_sitriginitjob-W-TriggerLvl3 will be rebuild from TOF/Trigger data Original Trigger info will be kept"<<endl;
-  AMSgObj::BookTimer.book("LVL3");
-  TriggerLVL3::init();  
-}
-//-----------
 void AMSJob::_sitrig2initjob(){
   if(TGL1FFKEY.RebuildLVL1)cout <<"AMSJob::_sitrig2initjob-W-TriggerLvl1 Will be rebuild from TOF data; Original Trigger info will be lost"<<endl;
   if(LVL3FFKEY.RebuildLVL3==1)cout <<"AMSJob::_sitrig2initjob-W-TriggerLvl3 will be rebuild from TOF/Tracker data; Original Trigger info will be lost"<<endl;
@@ -1982,31 +1587,6 @@ void AMSJob::_signinitjob(){
   
 }
 //----------------------------------------------------------------------------------------
-void AMSJob::_sitofinitjob(){
-  cout <<"_sitofinit-I-Slow(Accurate) simulation algorithm selected."<<endl;
-//
-  if(TOFMCFFKEY.daqfmt==0)cout<<"_sitofinit-I-Raw TDC_Format selected"<<endl;
-  else if(TOFMCFFKEY.daqfmt==1)cout<<"_sitofinit-I-Reduced TDC_Format selected"<<endl;
-  else {
-    cout<<"_sitofinit-I- Unknown TDC_Format was requested !!!"<<endl;
-    exit(1);
-  }
-//
-    AMSgObj::BookTimer.book("SITOFDIGI");
-    AMSgObj::BookTimer.book("TOF:Ghit->Tovt");
-    AMSgObj::BookTimer.book("TOF:Tovt->RwEv");
-    AMSgObj::BookTimer.book("TovtPM1loop");
-    AMSgObj::BookTimer.book("TovtPM2loop");
-    AMSgObj::BookTimer.book("TovtPM2sloopscpmesp");
-    AMSgObj::BookTimer.book("TovtPM2sloopscmcscan");
-    AMSgObj::BookTimer.book("TovtPM2sloopsum");
-    AMSgObj::BookTimer.book("TovtOther");
-//
-// ===> Book histograms for MC :
-//
-   TOFJobStat::bookhistmc();
-}
-//--------------
 void AMSJob::_sitof2initjob(){
   cout <<"_sitof2init-I-Slow(Accurate) simulation algorithm selected."<<endl;
 //
@@ -2055,13 +1635,6 @@ void AMSJob::_rerichinitjob(){
 }
 
 //-----------------------------------------------------------------------
-void AMSJob::_siantiinitjob(){
-  AMSgObj::BookTimer.book("SIANTIEVENT");
-  if(ANTIMCFFKEY.mcprtf){
-    HBOOK1(2000,"ANTI_counters total energy (geant,Mev)",60,0.,30.,0.); 
-  }
-}
-//-------------
 void AMSJob::_sianti2initjob(){
   AMSgObj::BookTimer.book("SIANTIEVENT");
   if(ATMCFFKEY.mcprtf){
@@ -2069,13 +1642,6 @@ void AMSJob::_sianti2initjob(){
   }
 }
 //-----------------------------------------------------------------------
-void AMSJob::_sictcinitjob(){
-     AMSgObj::BookTimer.book("SICTCEVENT");
-     if(CTCMCFFKEY.mcprtf>0){
-       HBOOK1(3500,"CTC total MC raw signal(p.e.)",80,0.,40.,0.);
-     }
-}
-
 void AMSJob::_sitrdinitjob(){
 
   if(TRDMCFFKEY.GenerateConst){
@@ -2119,52 +1685,35 @@ void AMSJob::_sisrdinitjob(){
 
 
 void AMSJob::_reamsinitjob(){
-AMSgObj::BookTimer.book("WriteEvent");
-AMSgObj::BookTimer.book("REAMSEVENT"); 
+ AMSgObj::BookTimer.book("WriteEvent");
+ AMSgObj::BookTimer.book("REAMSEVENT"); 
 
-_remfinitjob();
+ _remfinitjob();
 
-if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE"))_redaqinitjob();
-else if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_redaq2initjob();
-else {
-      cerr <<"AMSJob::_redaqinitjob-E-NoYetDAQFormat for "<<
-      AMSJob::gethead()->getsetup()<<endl;
-}
-
-_retkinitjob();
-if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-  _retof2initjob();
-  _reanti2initjob();
-  _reecalinitjob();
-  _retrdinitjob();
-  _rerichinitjob();
-  _resrdinitjob();
-}
-else{
-  _retofinitjob();
-  _reantiinitjob();
-  _rectcinitjob();
-}
-_reaxinitjob();
-
-AMSUser::InitJob();
+ _redaq2initjob();
+ 
+ _retkinitjob();
+ _retof2initjob();
+ _reanti2initjob();
+ _reecalinitjob();
+ _retrdinitjob();
+ _rerichinitjob();
+ _resrdinitjob();
+ _reaxinitjob();
+ 
+ AMSUser::InitJob();
 }
 //-----------------------------------------------------
 void AMSJob::_caamsinitjob(){
 if(isCalibration() & CTracker)_catkinitjob();
-if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
   if(isCalibration() & CTOF)_catof2initjob();
   if(isCalibration() & CAnti)_cant2initjob();
   if(isCalibration() & CEcal)_caecinitjob();
   if(isCalibration() & CTRD)_catrdinitjob();
   if(isCalibration() & CSRD)_casrdinitjob();
-}
-else{
-  if(isCalibration() & CTOF)_catofinitjob();
-  if(isCalibration() & CAnti)_cantinitjob();
-}
+
 if(isCalibration() & CAMS)_caaxinitjob();
-if(isCalibration() & CCerenkov)_cactcinitjob();
+//if(isCalibration() & CCerenkov)_cactcinitjob();
 }
 //-----------------------------------------------------
 void AMSJob::_catkinitjob(){
@@ -2189,27 +1738,6 @@ for(i=0;i<nalg;i++){
 }
 }
 //============================================================================
-void AMSJob::_catofinitjob(){
- if(TOFRECFFKEY.relogic[0]==1){
-   TOFSTRRcalib::init();// TOF STRR-calibr.
-   cout<<"TOFSTRRcalib-init done !!!"<<'\n';
- }
- if(TOFRECFFKEY.relogic[0]==2){
-   TOFTDIFcalib::init();// TOF TDIF-calibr.
-   cout<<"TOFTDIFcalib-init done !!!"<<'\n';
- }
- if(TOFRECFFKEY.relogic[0]==3){
-   TOFTZSLcalib::init();// TOF TzSl-calibr.
-   cout<<"TOFTZSLcalib-init done !!!"<<'\n';
- }
- if(TOFRECFFKEY.relogic[0]==4){
-   TOFAMPLcalib::init();// TOF AMPL-calibr.
-   cout<<"TOFAMPLcalib-init done !!!"<<'\n';
-   TOFAVSDcalib::init();// TOF AVSD-calibr.
-   cout<<"TOFAVSDcalib-init done !!!"<<'\n';
- }
-}
-//------------------------------------------------
 void AMSJob::_catof2initjob(){
  if(TFREFFKEY.relogic[0]==1){
    TOF2STRRcalib::init();// TOF STRR-calibr.
@@ -2237,11 +1765,7 @@ void AMSJob::_catrdinitjob(){
 void AMSJob::_casrdinitjob(){
 }
 
-void AMSJob::_cactcinitjob(){
-}
 //==========================================
-void AMSJob::_cantinitjob(){
-}
 void AMSJob::_cant2initjob(){
 }
 //==========================================
@@ -2274,52 +1798,6 @@ AMSgObj::BookTimer.book("TrFalseX");
 }
 //===================================================================================
 //
-void AMSJob::_retofinitjob(){
-//
-    AMSgObj::BookTimer.book("RETOFEVENT");
-    AMSgObj::BookTimer.book("TOF:DAQ->RwEv");
-    AMSgObj::BookTimer.book("TOF:validation");
-    AMSgObj::BookTimer.book("TOF:RwEv->RwCl");
-    AMSgObj::BookTimer.book("TOF:RwCl->Cl");
-
-      if(isMonitoring() & (AMSJob::MTOF | AMSJob::MAll)){ // TOF Online histograms
-        _retofonlineinitjob();      // (see tofonline.C)
-      }
-//
-// ===> Clear JOB-statistics counters for SIM/REC :
-//
-    TOFJobStat::clear();
-//
-// ===> Book histograms for REC :
-//
-    TOFJobStat::bookhist();
-// 
-  if(TOFRECFFKEY.ReadConstFiles){// Constants will be taken from ext.files
-//
-//-----------
-// ===> create common parameters (tofvpar structure) fr.data-cards :
-//
-    TOFVarp::tofvpar.init(TOFRECFFKEY.daqthr, TOFRECFFKEY.cuts);//daqthr/cuts reading
-//
-//-----------
-//     ===> create indiv. sc.bar scmcscan-objects (MC t/eff-distributions) 
-//
-    AMSTOFScan::build();
-//
-//-------------------------
-// ===> create indiv. sc.bar parameters (sc.bar scbrcal-objects) fr.ext.files:
-//
-    TOFBrcal::build();
-  }
-//-------------------------
-  else{ // Constants will be taken from DB (TDV)
-    TOFRECFFKEY.year[1]=TOFRECFFKEY.year[0]-1;    
-  }
-// 
-//-----------
-  AMSTOFCluster::init();
-}
-//-------------------------------------------------------------------------
 void AMSJob::_retof2initjob(){
 //
     AMSgObj::BookTimer.book("RETOFEVENT");
@@ -2370,24 +1848,6 @@ void AMSJob::_retof2initjob(){
   AMSTOFCluster::init();
 }
 //=============================================================================================
-void AMSJob::_reantiinitjob(){
-//
-    AMSgObj::BookTimer.book("REANTIEVENT");
-    if(ANTIRECFFKEY.reprtf[0]>0){
-      HBOOK1(2500,"ANTI_counters total  energy(reco,Mev)",80,0.,16.,0.);
-      HBOOK1(2501,"ANTI_bar: T_tdca-T_tdct(reco,ns)",80,-20.,220.,0.);
-    }
-//
-    ANTIJobStat::clear();// Clear JOB-statistics counters for SIM/REC
-//-----------
-  if(ANTIRECFFKEY.ReadConstFiles){// Constants will be taken from ext.files
-     ANTIPcal::build();//create calibr.objects(antisccal-objects for each sector)
-  }
-  else{ // Constants will be taken from DB (TDV)
-    ANTIRECFFKEY.year[1]=ANTIRECFFKEY.year[0]-1;    
-  } 
-}
-//--------------------------------------------------------------------
 void AMSJob::_reanti2initjob(){
 //
     AMSgObj::BookTimer.book("REANTIEVENT");
@@ -2444,26 +1904,6 @@ void AMSJob::_reecalinitjob(){
   } 
 }
 //===================================================================
-void AMSJob::_rectcinitjob(){
-AMSgObj::BookTimer.book("RECTCEVENT");
-// AMSCTCRawHit::init();
-  if(CTCRECFFKEY.reprtf[0]>0){
-    HBOOK1(3000,"CTC total RECO raw signal(p.e.)",80,0.,40.,0.);
-    HBOOK1(3001,"CTC_channel: T_tdca-Ttdct (reco,ns)",80,-20.,220.,0.);
-  }
-// ===> Clear JOB-statistics counters for SIM/REC :
-//
-    CTCJobStat::clear();
-//
-// ===> create ctcfcal-objects(TDV) for each CTC cells group (combination) :
-//
-  if(CTCRECFFKEY.ReadConstFiles){// Constants will be taken from ext.files
-    CTCCCcal::build();
-  }
-  else{ // Constants will be taken from DB (TDV)
-    CTCRECFFKEY.year[1]=CTCRECFFKEY.year[0]-1;    
-  } 
-}
 
 void AMSJob::_reaxinitjob(){
   AMSgObj::BookTimer.book("REAXEVENT");
@@ -2473,7 +1913,6 @@ AMSgObj::BookTimer.book("ReTKRefit");
 AMSgObj::BookTimer.book("ReGeaneRefit"); 
 AMSgObj::BookTimer.book("ReECRefit"); 
 AMSgObj::BookTimer.book("ReRICHRefit"); 
-AMSgObj::BookTimer.book("ReCTCRefit"); 
 AMSgObj::BookTimer.book("ReTOFRefit"); 
   AMSgObj::BookTimer.book("ReAxPid");
   AMSgObj::BookTimer.book("part::loc2gl");
@@ -2732,7 +2171,6 @@ end.tm_year=TRMCFFKEY.year[1];
 // Pedestals, Gains,  Sigmas & commons noise for trd
 //      
 
-    if(!strstr(getsetup(),"AMSSHUTTLE") ){    
 {
 tm begin;
 tm end;
@@ -2766,7 +2204,6 @@ end.tm_year=TRDMCFFKEY.year[1];
 }
 
 
-}
 
 
 
@@ -2780,7 +2217,6 @@ end.tm_year=TRDMCFFKEY.year[1];
  begin.tm_isdst=0;
  end.tm_isdst=0;
 
- if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 
   begin.tm_sec=TFREFFKEY.sec[0];
   begin.tm_min=TFREFFKEY.min[0];
@@ -2811,36 +2247,7 @@ end.tm_year=TRDMCFFKEY.year[1];
   TID.add (new AMSTimeID(AMSID("Tofpeds",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOFBPeds::scbrped[0][0]),
     (void*)&TOFBPeds::scbrped[0][0],server));
- }
 //
- else{   
-
-  begin.tm_sec=TOFRECFFKEY.sec[0];
-  begin.tm_min=TOFRECFFKEY.min[0];
-  begin.tm_hour=TOFRECFFKEY.hour[0];
-  begin.tm_mday=TOFRECFFKEY.day[0];
-  begin.tm_mon=TOFRECFFKEY.mon[0];
-  begin.tm_year=TOFRECFFKEY.year[0];
-
-  end.tm_sec=TOFRECFFKEY.sec[1];
-  end.tm_min=TOFRECFFKEY.min[1];
-  end.tm_hour=TOFRECFFKEY.hour[1];
-  end.tm_mday=TOFRECFFKEY.day[1];
-  end.tm_mon=TOFRECFFKEY.mon[1];
-  end.tm_year=TOFRECFFKEY.year[1];
-
-  TID.add (new AMSTimeID(AMSID("Tofbarcal1",isRealData()),
-    begin,end,TOF1GC::SCBLMX*sizeof(TOFBrcal::scbrcal[0][0]),
-    (void*)&TOFBrcal::scbrcal[0][0],server));
-   
-  TID.add (new AMSTimeID(AMSID("Tofvpar",isRealData()),
-    begin,end,sizeof(TOFVarp::tofvpar),
-    (void*)&TOFVarp::tofvpar,server));
-   
-  TID.add (new AMSTimeID(AMSID("Tofmcscans",isRealData()),
-    begin,end,TOF1GC::SCBLMX*sizeof(AMSTOFScan::scmcscan[0]),
-    (void*)&AMSTOFScan::scmcscan[0],server));
- }
    
 }
 //---------------------------------------
@@ -2852,7 +2259,6 @@ end.tm_year=TRDMCFFKEY.year[1];
  tm end;
  begin.tm_isdst=0;
  end.tm_isdst=0;
- if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  
   begin.tm_sec=ATREFFKEY.sec[0];
   begin.tm_min=ATREFFKEY.min[0];
@@ -2875,39 +2281,13 @@ end.tm_year=TRDMCFFKEY.year[1];
 // TID.add (new AMSTimeID(AMSID("Antivpar2",isRealData()),
 //    begin,end,sizeof(ANTI2Varp::antivpar),
 //    (void*)&ANTI2Varp::antivpar,server));
- }
 //
- else{   
- 
-  begin.tm_sec=ANTIRECFFKEY.sec[0];
-  begin.tm_min=ANTIRECFFKEY.min[0];
-  begin.tm_hour=ANTIRECFFKEY.hour[0];
-  begin.tm_mday=ANTIRECFFKEY.day[0];
-  begin.tm_mon=ANTIRECFFKEY.mon[0];
-  begin.tm_year=ANTIRECFFKEY.year[0];
-
-  end.tm_sec=ANTIRECFFKEY.sec[1];
-  end.tm_min=ANTIRECFFKEY.min[1];
-  end.tm_hour=ANTIRECFFKEY.hour[1];
-  end.tm_mday=ANTIRECFFKEY.day[1];
-  end.tm_mon=ANTIRECFFKEY.mon[1];
-  end.tm_year=ANTIRECFFKEY.year[1];
-
-  TID.add (new AMSTimeID(AMSID("Antisccal",isRealData()),
-     begin,end,MAXANTI*sizeof(ANTIPcal::antisccal[0]),
-                                  (void*)&ANTIPcal::antisccal[0],server));
-//
-// TID.add (new AMSTimeID(AMSID("Antivpar",isRealData()),
-//    begin,end,sizeof(ANTIVarp::antivpar),
-//    (void*)&ANTIVarp::antivpar,server));
- }   
 }
 //---------------------------------------
 //
 //   ECAL : TDV-reservation for calibration parameters of all PM's:
 //
 {
- if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
   tm begin;
   tm end;
   begin.tm_isdst=0;
@@ -2938,39 +2318,8 @@ end.tm_year=TRDMCFFKEY.year[1];
 //  TID.add (new AMSTimeID(AMSID("Ecalpeds",isRealData()),
 //    begin,end,ecalconst::ECPMSL*sizeof(ECPMPeds::pmpeds[0][0]),
 //    (void*)&ECPMPeds::pmpeds[0][0],server));
- }
 }
 //
-    if(strstr(getsetup(),"AMSSHUTTLE") ){    
-//-----------------------------------------
-//
-//   CTC : calibration parameters for all combinations
-//
-{
-tm begin;
-tm end;
-begin.tm_isdst=0;
-end.tm_isdst=0;
-begin.tm_sec=CTCRECFFKEY.sec[0];
-begin.tm_min=CTCRECFFKEY.min[0];
-begin.tm_hour=CTCRECFFKEY.hour[0];
-begin.tm_mday=CTCRECFFKEY.day[0];
-begin.tm_mon=CTCRECFFKEY.mon[0];
-begin.tm_year=CTCRECFFKEY.year[0];
-
-end.tm_sec=CTCRECFFKEY.sec[1];
-end.tm_min=CTCRECFFKEY.min[1];
-end.tm_hour=CTCRECFFKEY.hour[1];
-end.tm_mday=CTCRECFFKEY.day[1];
-end.tm_mon=CTCRECFFKEY.mon[1];
-end.tm_year=CTCRECFFKEY.year[1];
-
-   
-TID.add (new AMSTimeID(AMSID("CTCccal",isRealData()),
-   begin,end,CTCCCMX*sizeof(ctcfcal[0]),
-   (void*)&ctcfcal[0],server));
-}
-}
 //---------------------------------------
 //
 // Data to fit particle charge magnitude
@@ -3035,18 +2384,10 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd10",isRealData()),
 
    tm begin=AMSmceventg::Orbit.End;
    tm end=AMSmceventg::Orbit.Begin;
-   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
    
      TID.add (new AMSTimeID(AMSID("TOF2Temperature",isRealData()),
                          begin,end,
                          TOF2Varp::tofvpar.gettoftsize(),(void*)TOF2Varp::tofvpar.gettoftp(),server));
-   }
-   else{
-   
-     TID.add (new AMSTimeID(AMSID("TOFTemperature",isRealData()),
-                         begin,end,
-                         TOFVarp::tofvpar.gettoftsize(),(void*)TOFVarp::tofvpar.gettoftp(),server));
-   }   
 }
 //-----------------------------
 {
@@ -3065,16 +2406,9 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd10",isRealData()),
 
    tm begin=AMSmceventg::Orbit.End;
    tm end=AMSmceventg::Orbit.Begin;
-   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
      TID.add (new AMSTimeID(AMSID("ScalerN",isRealData()),
                          begin,end,
                          Trigger2LVL1::getscalerssize(),(void*)Trigger2LVL1::getscalersp(),server));
-   }
-   else{
-     TID.add (new AMSTimeID(AMSID("ScalerN",isRealData()),
-                         begin,end,
-                         TriggerLVL1::getscalerssize(),(void*)TriggerLVL1::getscalersp(),server));
-   }
    
 }
 //-----------------------------
@@ -3236,7 +2570,6 @@ AMSJob::~AMSJob(){
   cout <<"uhend finished"<<endl;
   _tkendjob();
   cout <<"tkendjob finished"<<endl;
-  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
     _tof2endjob();
     cout <<"tof2endjob finished"<<endl;
     _anti2endjob();
@@ -3247,15 +2580,6 @@ AMSJob::~AMSJob(){
     cout <<"trdendjob finished"<<endl;
     _srdendjob();
     cout <<"srdendjob finished"<<endl;
-}
-else{
-  _tofendjob();
-  cout <<"tofendjob finished"<<endl;
-  _antiendjob();
-  cout <<"antiendjob finished"<<endl;
-  _ctcendjob();
-  cout <<"ctcendjob finished"<<endl;
-}
 
 _dbendjob();
   cout <<"dbendjob finished"<<endl;
@@ -3446,46 +2770,14 @@ void AMSJob::_signendjob(){
 AMSmceventg::endjob();
 }
 
-//------------------------------------------------------------------
-void AMSJob::_ctcendjob(){
-  if(isSimulation() && CTCRECFFKEY.reprtf[0]>0){
-    HPRINT(3500);
-  }
-  if(CTCRECFFKEY.reprtf[0]>0){
-    HPRINT(3000);
-    HPRINT(3001);
-  }
-//
-
-  if(CTCRECFFKEY.reprtf[0]>0)CTCJobStat::print(); // Print CTC JOB-statistics
-}
 //
 //-------------------------------------------------------------------
-void AMSJob::_tofendjob(){
-       if(isSimulation())TOFJobStat::outpmc();
-       TOFJobStat::outp();
-       TOFJobStat::printstat(); // Print JOB-TOF statistics
-}
-//-----------------
 void AMSJob::_tof2endjob(){
        if(isSimulation())TOF2JobStat::outpmc();
        TOF2JobStat::outp();
        TOF2JobStat::printstat(); // Print JOB-TOF statistics
 }
 //-----------------------------------------------------------------------
-void AMSJob::_antiendjob(){
-  if(ANTIRECFFKEY.reprtf[0]>0){
-    ANTIJobStat::print(); // Print JOB-ANTI statistics
-  }
-  if(isSimulation() && ANTIMCFFKEY.mcprtf>0){
-    HPRINT(2000);
-  }
-  if(ANTIRECFFKEY.reprtf[0]>0){
-    HPRINT(2500);
-    HPRINT(2501);
-  }
-}
-//---------------------------
 void AMSJob::_anti2endjob(){
   if(ATREFFKEY.reprtf[0]>0){
     ANTI2JobStat::print();
@@ -3583,157 +2875,6 @@ void AMSJob::_dbendjob(){
 
 
 //=================================================================================================
-  void AMSJob::_redaqinitjob(){
-     AMSgObj::BookTimer.book("SIDAQ");
-     AMSgObj::BookTimer.book("REDAQ");
-     if(IOPA.Portion<1. && isMonitoring())cout <<"AMSJob::_redaqinitjob()-W-Only about "<<IOPA.Portion*100<<"% events will be processed."<<endl; 
-    // Add subdetectors to daq
-    //
-
-  {  // mc
-    if(!isRealData()){
-    DAQEvent::addsubdetector(&AMSmceventg::checkdaqid,&AMSmceventg::buildraw);
-    DAQEvent::addblocktype(&AMSmceventg::getmaxblocks,&AMSmceventg::calcdaqlength,
-    &AMSmceventg::builddaq);
-
-    DAQEvent::addsubdetector(&AMSEvent::checkdaqidSh,&AMSEvent::buildrawSh);
-    DAQEvent::addblocktype(&AMSEvent::getmaxblocksSh,
-    &AMSEvent::calcdaqlengthSh,&AMSEvent::builddaqSh);
-    }
-
-  }
-
-
-  {
-    // lvl1
-
-      DAQEvent::addsubdetector(&TriggerLVL1::checkdaqid,&TriggerLVL1::buildraw);
-      DAQEvent::addblocktype(&TriggerLVL1::getmaxblocks,&TriggerLVL1::calcdaqlength,
-      &TriggerLVL1::builddaq);
-
-}
-
-{
-//           Header
-    DAQEvent::addblocktype(&AMSEvent::getmaxblocks,&AMSEvent::calcdaqlength,
-    &AMSEvent::builddaq);
-//           Header Tracker HK
-    DAQEvent::addblocktype(&AMSEvent::getmaxblocks,&AMSEvent::calcTrackerHKl,
-    &AMSEvent::buildTrackerHKdaq,4);
-}
-
-
-{
-//           lvl3
-      DAQEvent::addsubdetector(&TriggerLVL3::checkdaqid,&TriggerLVL3::buildraw);
-      DAQEvent::addblocktype(&TriggerLVL3::getmaxblocks,&TriggerLVL3::calcdaqlength,
-      &TriggerLVL3::builddaq);
-
-}    
-if(DAQCFFKEY.SCrateinDAQ){
-//         tof+anti+ctc
-    DAQEvent::addsubdetector(&DAQSBlock::checkblockid,&DAQSBlock::buildraw);
-    DAQEvent::addblocktype(&DAQSBlock::getmaxblocks,&DAQSBlock::calcblocklength,
-                           &DAQSBlock::buildblock);
-}    
-
-if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){
-{
-
-  if(DAQCFFKEY.OldFormat || !isRealData()){
-// special tracker ped/sigma calc
-    if(TRCALIB.Method == 1)
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrIdCalib::buildSigmaPed);
-    else
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,
-&AMSTrIdCalib::buildSigmaPedA);
-  }
-  else{
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrIdCalib::buildSigmaPedB);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidMixed,&AMSTrIdCalib::buildSigmaPedB);
- 
-    if(TRMCFFKEY.GenerateConst){
-    //Tracker ped/sigma etc ( "Event" mode)
-
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkcmnSRawid,&AMSTrRawCluster::updcmnSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checksigSRawid,&AMSTrRawCluster::updsigSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSRawid,&AMSTrRawCluster::updstatusSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidParameters,&AMSTrRawCluster::buildrawParameters);
-
-
-    }
-  }
-
-}
-}
-else {
-
-if(DAQCFFKEY.LCrateinDAQ){
-//           tracker reduced
-
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidMixed,&AMSTrRawCluster::buildrawMixed);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkcmnSRawid,&AMSTrRawCluster::updcmnSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidCompressed,&AMSTrRawCluster::buildrawCompressed);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
-    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,
-    &AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
-
-
-
-    //Tracker ped/sigma etc ( "Event" mode)
-
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checksigSRawid,&AMSTrRawCluster::updsigSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSRawid,&AMSTrRawCluster::updstatusSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidParameters,&AMSTrRawCluster::buildrawParameters);
-
-
-}   
-
-
-if(DAQCFFKEY.LCrateinDAQ ){
-//           tracker raw
-
-  if(DAQCFFKEY.OldFormat || !isRealData()){
-    if(TRCALIB.Method == 1)
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRaw);
-    else
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRawA);
-  }
-  else{
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRawB);
-  }
-
-    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocksRaw,
-    &AMSTrRawCluster::calcdaqlengthRaw,&AMSTrRawCluster::builddaqRaw);
-
-
-
-}    
-
-
-{
-//           tracker H/K Static
-
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSid,&AMSTrRawCluster::updstatusS,4);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSid,&AMSTrRawCluster::updpedS,4);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checksigmaSid,&AMSTrRawCluster::updsigmaS,4);
-    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblockS,
-    &AMSTrRawCluster::calcstatusSl,&AMSTrRawCluster::writestatusS,4);
-    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblockS,
-    &AMSTrRawCluster::calcpedSl,&AMSTrRawCluster::writepedS,4);
-    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblockS,
-    &AMSTrRawCluster::calcsigmaSl,&AMSTrRawCluster::writesigmaS,4);
-
-
-}    
-
-}
-
-
-}
-//------------------------------------------------------------------
   void AMSJob::_redaq2initjob(){
      AMSgObj::BookTimer.book("SIDAQ");
      AMSgObj::BookTimer.book("REDAQ");

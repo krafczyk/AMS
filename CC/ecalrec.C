@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.39 2002/01/17 14:33:43 choutko Exp $
+//  $Id: ecalrec.C,v 1.40 2002/03/20 09:41:16 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -19,7 +19,7 @@
 #include <ecalcalib.h>
 #include <mccluster.h>
 #include <trigger102.h>
-#include <trigger3.h>
+#include <trigger302.h>
 using namespace std;
 using namespace ecalconst;
 //

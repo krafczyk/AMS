@@ -1,7 +1,7 @@
 #include <trdsim.h>
 #include <event.h>
 #include <extC.h>
-#include <tofsim.h>
+#include <tofsim02.h>
 #include <ntuple.h>
 
 void AMSTRDRawHit::lvl3CompatibilityAddress(int16u ptr,uinteger& udr, uinteger & ufe,uinteger& ute,uinteger& chan){

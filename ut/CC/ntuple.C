@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.92 2002/02/08 13:48:03 choutko Exp $
+//  $Id: ntuple.C,v 1.93 2002/03/20 09:41:21 choumilo Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -36,76 +36,8 @@ void AMSNtuple::init(){
   strcpy(a,getname());
   HBNT(_lun, a," ");
   delete []a;
-  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-  HBNAME(_lun,"EventH",&_event.Eventno,
- 
-"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,32766]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,CTCClusters[0,100]:I,CTCMCClusters[0,100000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,100]:I,EventStatus:I");
-  HBNAME(_lun,"Beta",&_beta.Nbeta,
-      "nbeta[0,150],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betac(nbeta),betaerror(nbeta),betaerrorc(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
-
-  HBNAME(_lun,"Charge",&_charge.Ncharge,
-    "ncharge[0,150],chargestatus(ncharge):I,chargebetap(ncharge)[-1000,1000]:I,chargetof(ncharge)[0,100]:I,chargetracker(ncharge)[0,100]:I,probtof(4,ncharge),chintof(4,ncharge)[0,100]:I,probtracker(4,ncharge),chintracker(4,ncharge)[0,100]:I,proballtracker(ncharge),truntof(ncharge),truntofd(ncharge),truntracker(ncharge)");
-
-  HBNAME(_lun,"Particle",&_part.Npart,
-  "npart[0,100],pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),atcnbcel(2,npart):I,atcnbphe(2,npart),atcidcel(2,npart):I,atcdispm(2,npart):I,atcdaero(2,npart):I,atcstatu(2,npart):I,cutoff(npart),cooctc(3,2,npart),cootof(3,4,npart),cooanti(3,2,npart),cootr(3,6,npart)");
-//
-  HBNAME(_lun,"TOFClust",&_tof.Ntof,
-  "ntof[0,20],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,15]:I,nmemb(ntof)[0,15]:I,TOFEdep(ntof),TOFEdepd(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");
-//
-  HBNAME(_lun,"TOFMCClu",&_tofmc.Ntofmc,
-  "ntofmc[0,200],TOFMCIdsoft(ntofmc):I,TOFMCXcoo(3,ntofmc),TOFMCtof(ntofmc),TOFMCedep(ntofmc)");
-
-  HBNAME(_lun,"TrCluste",&_trcl.Ntrcl, 
-  "Ntrcl[0,200],Idsoft(ntrcl):I,Statust(ntrcl):I,NelemL(ntrcl)[-100,100]:I,NelemR(ntrcl)[0,100]:I,Sumt(ntrcl),Sigmat(ntrcl),Meant(ntrcl):R,RMSt(ntrcl),ErrorMeant(ntrcl),Amplitude(5,ntrcl):R");
-
-  HBNAME(_lun,"TrMCClus",&_trclmc.Ntrclmc,
-  "ntrclmc[0,200],IdsoftMC(ntrclmc),Itra(ntrclmc),Left(2,ntrclmc):I,Center(2,ntrclmc):I,Right(2,ntrclmc):I,ss(5,2,ntrclmc),xca(3,ntrclmc),xcb(3,ntrclmc),xgl(3,ntrclmc),summc(ntrclmc)");
-
-  HBNAME(_lun,"TrRecHit",&_trrh.Ntrrh,
-  "ntrrh[0,500],px(ntrrh)[-1,30000]:I,py(ntrrh)[-1,30000]:I,statusr(ntrrh):I,Layer(ntrrh)[0,10]:I,hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh),cofgx(ntrrh),cofgy(ntrrh)");
-
-  HBNAME(_lun,"TrTrack",&_trtr.Ntrtr,
-  "ntrtr[0,200],trstatus(ntrtr):I,pattern(ntrtr)[0,100]:I,address(ntrtr):I,nhits(ntrtr)[0,6],phits(6,ntrtr)[-1,30000]:I,LocDBAver(ntrtr):R,GeaneFitDone(ntrtr)[0,1000]:I,AdvancedFitDone(ntrtr)[0,1000]:I,Chi2StrLine(ntrtr),Chi2Circle(ntrtr),CircleRidgidity(ntrtr),Chi2FastFit(ntrtr),Ridgidity(ntrtr),ErrRidgidity(ntrtr),Theta(ntrtr),phi(ntrtr),p0(3,ntrtr),gchi2(ntrtr),gridgidity(ntrtr),gerrridgidity(ntrtr),gtheta(ntrtr),gphi(ntrtr),gp0(3,ntrtr),hchi2(2,ntrtr),HRidgidity(2,ntrtr),HErrRidgidity(2,ntrtr),htheta(2,ntrtr),hphi(2,ntrtr),hp0(3,2,ntrtr),fchi2ms(ntrtr),pirigerr(ntrtr),ridgidityms(ntrtr),pirigidity(ntrtr)");
-
-  HBNAME(_lun,"MCEventG",&_mcg.Nmcg,
-  "nmcg[0,20],nskip(nmcg):I,Particle(nmcg)[-200,500]:I,coo(3,nmcg),dir(3,nmcg),momentum(nmcg):R,mass(nmcg):R,charge(nmcg):R");
-
-  HBNAME(_lun,"MCTrack",&_mct.Nmct,
-  "nmct[0,150],radl(nmct),absl(nmct),pos(3,nmct),vname(nmct):I");
-
-
-  HBNAME(_lun,"CTCClust",&_ctccl.Nctccl,
-  "nctccl[0,20],CTCStatus(nctccl):I,CTCLayer(nctccl)[0,10]:I,ctccoo(3,nctccl),ctcercoo(3,nctccl),ctcrawsignal(nctccl),ctcsignal(nctccl),ctcesignal(nctccl)");
-
-  HBNAME(_lun,"CTCMCClu",&_ctcclmc.Nctcclmc,
-  "nctcclmc[0,200],CTCMCIdsoft(nctcclmc):I,CTCMCXcoo(3,nctcclmc),CTCMCXdir(3,nctcclmc),CTCstep(nctcclmc),ctccharge(nctcclmc),ctcbeta(nctcclmc),ctcedep(nctcclmc)");
-
-  HBNAME(_lun,"AntiClus",&_anti.Nanti,
-  "nanti[0,16],AntiStatus(nanti):I,AntiSector(nanti)[0,100]:I,AntiEdep(nanti),AntiCoo(3,nanti),AntiErCoo(3,nanti)");
-
-  HBNAME(_lun,"AntiMCCl",&_antimc.Nantimc,
-  "nantimc[0,200],AntiMCIdsoft(nantimc):I,AntiMCXcoo(3,nantimc),AntiMCtof(nantimc),AntiMCedep(nantimc)");
-
-  HBNAME(_lun,"LVL3",&_lvl3.Nlvl3,
-  "nlvl3[0,2],LVL3TOFTr(nlvl3)[-1,10],LVL3AntiTr(nlvl3)[0,10],LVL3TrackerTr(nlvl3),LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pattern(2,nlvl3)[-1,250],LVL3Residual(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R");
-
-  HBNAME(_lun,"LVL1",&_lvl1.Nlvl1,
-  "nlvl1[0,2],LVL1LifeTime(nlvl1),LVL1Flag(nlvl1)[-10,20],LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1)");
-
-  HBNAME(_lun,"CTCHit",&_ctcht.Nctcht,
-  "nctcht[0,50],CTChitStatus(nctcht):I,CTChitLayer(nctcht)[0,10]:I,ctchitcolumn(nctcht)[0,100]:I,ctchitrow(nctcht)[0,100]:I,ctchitsignal(nctcht)");
-
-  HBNAME(_lun,"TrRawCl",&_trraw.Ntrraw,
-  "ntrraw[0,300],rawaddress(ntrraw):I,rawlength(ntrraw)[-1,30000]:I,s2n(ntrraw):R");
-
-  HBNAME(_lun,"AntiRawC",&_antiraw.Nantiraw,
-  "nantiraw[0,32],antirawstatus(nantiraw):I,antirawsector(nantiraw)[0,100]:I,antirawupdown(nantiraw)[0,7]:I,antirawsignal(nantiraw)");
-
-  HBNAME(_lun,"TOFRawCl",&_tofraw.Ntofraw,
-  "ntofraw[0,20],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,7]:I,tofrbar(ntofraw)[0,31]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
-  }
-else{
 // -----> Station :
+//
   HBNAME(_lun,"EventH",&_event02.Eventno,
  
 "eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,TrTracks[0,1000]:I,TrRecHits[0,32766]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiClusters[0,100]:I,EcalClusters[0,500]:I,EcalHits[0,5000]:I,"
@@ -176,7 +108,7 @@ else{
   "nantimc[0,200],AntiMCIdsoft(nantimc):I,AntiMCXcoo(3,nantimc),AntiMCtof(nantimc),AntiMCedep(nantimc)");
 
   HBNAME(_lun,"LVL3",&_lvl302.Nlvl3,
-  "nlvl3[0,2],LVL3TOF(nlvl3)[-1,254],LVL3TRD(nlvl3)[0,15],LVL3Tr(nlvl3)[0,15],LVL3Main(nlvl3),LVL3Dir(nlvl3)[-1,1],LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pat(2,nlvl3)[-1,250],LVL3Res(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R,LVL3TRDHits(nlvl3)[0,63],LVL3HMult(nlvl3)[0,31],LVL3TRDPar(2,nlvl3):R");
+  "nlvl3[0,2],LVL3TOF(nlvl3)[-1,255],LVL3TRD(nlvl3)[0,15],LVL3Tr(nlvl3)[0,15],LVL3Main(nlvl3),LVL3Dir(nlvl3)[-1,1],LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pat(2,nlvl3)[-1,250],LVL3Res(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R,LVL3TRDHits(nlvl3)[0,63],LVL3HMult(nlvl3)[0,31],LVL3TRDPar(2,nlvl3):R");
 
   HBNAME(_lun,"LVL1",&_lvl102.Nlvl1,
  "nlvl1[0,2],mode(nlvl1),LVL1Flag(nlvl1)[-10,20],LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1),LVL1ECALflag(nlvl1)");
@@ -204,7 +136,6 @@ else{
 	 "rcrichi2(nrings)");
 
 }
-}
 void AMSNtuple::reset(int full){
 #ifdef __WRITEROOT__
 int sto=sizeof(TObject);
@@ -212,11 +143,9 @@ int sto=sizeof(TObject);
 int sto=0;
 #endif
   if( full){
-    VZERO(&_beta.Nbeta,(sizeof(_beta)-sto)/sizeof(integer));
     VZERO(&_beta02.Nbeta,(sizeof(_beta02)-sto)/sizeof(integer));
     VZERO(&_charge02.Ncharge,(sizeof(_charge02)-sto)/sizeof(integer));
-    VZERO(&_part.Npart,(sizeof(_part)-sto)/sizeof(integer));
-    VZERO(&_part02.Npart,(sizeof(_part)-sto)/sizeof(integer));
+    VZERO(&_part02.Npart,(sizeof(_part02)-sto)/sizeof(integer));
     VZERO(&_tof.Ntof,(sizeof(_tof)-sto)/sizeof(integer));
     VZERO(&_ecclust.Neccl,(sizeof(_ecclust)-sto)/sizeof(integer));
     VZERO(&_ec2dclust.Nec2dcl,(sizeof(_ec2dclust)-sto)/sizeof(integer));
@@ -230,22 +159,14 @@ int sto=0;
     VZERO(&_trdht.Ntrdht,(sizeof(_trdht)-sto)/sizeof(integer));
     VZERO(&_trdtrk.Ntrdtrk,(sizeof(_trdtrk)-sto)/sizeof(integer));
     VZERO(&_trdseg.Ntrdseg,(sizeof(_trdseg)-sto)/sizeof(integer));
-    VZERO(&_trrh.Ntrrh,(sizeof(_trrh)-sto)/sizeof(integer));
     VZERO(&_trrh02.Ntrrh,(sizeof(_trrh02)-sto)/sizeof(integer));
-    VZERO(&_trtr.Ntrtr,(sizeof(_trtr)-sto)/sizeof(integer));
     VZERO(&_trtr02.Ntrtr,(sizeof(_trtr02)-sto)/sizeof(integer));
-    VZERO(&_mcg.Nmcg,(sizeof(_mcg)-sto)/sizeof(integer));
     VZERO(&_mct.Nmct,(sizeof(_mct)-sto)/sizeof(integer));
     VZERO(&_mcg02.Nmcg,(sizeof(_mcg02)-sto)/sizeof(integer));
-    VZERO(&_ctccl.Nctccl,(sizeof(_ctccl)-sto)/sizeof(integer));
-    VZERO(&_ctcclmc.Nctcclmc,(sizeof(_ctcclmc)-sto)/sizeof(integer));
     VZERO(&_anti.Nanti,(sizeof(_anti)-sto)/sizeof(integer));
     VZERO(&_antimc.Nantimc,(sizeof(_antimc)-sto)/sizeof(integer));
-    VZERO(&_lvl3.Nlvl3,(sizeof(_lvl3)-sto)/sizeof(integer));
     VZERO(&_lvl302.Nlvl3,(sizeof(_lvl302)-sto)/sizeof(integer));
-    VZERO(&_lvl1.Nlvl1,(sizeof(_lvl1)-sto)/sizeof(integer));
     VZERO(&_lvl102.Nlvl1,(sizeof(_lvl102)-sto)/sizeof(integer));
-    VZERO(&_ctcht.Nctcht,(sizeof(_ctcht)-sto)/sizeof(integer));
     VZERO(&_trraw.Ntrraw,(sizeof(_trraw)-sto)/sizeof(integer));
     VZERO(&_antiraw.Nantiraw,(sizeof(_antiraw)-sto)/sizeof(integer));
     VZERO(&_tofraw.Ntofraw,(sizeof(_tofraw)-sto)/sizeof(integer));
@@ -254,11 +175,8 @@ int sto=0;
     VZERO(&_ring.NRings,(sizeof(_ring)-sto)/sizeof(integer));
   }
   else{
-   _beta.Nbeta= 0;
-   _charge.Ncharge = 0;
    _beta02.Nbeta= 0;
    _charge02.Ncharge = 0;
-   _part.Npart = 0;
    _part02.Npart = 0;
    _tof.Ntof = 0;
    _ecclust.Neccl = 0;
@@ -273,20 +191,14 @@ int sto=0;
    _trdtrk.Ntrdtrk=0;
    _trdseg.Ntrdseg=0;
     VZERO(&_trclmc.Ntrclmc,(sizeof(_trclmc)-sto)/sizeof(integer));
-   _trrh.Ntrrh = 0;
    _trrh02.Ntrrh = 0;
-   _trtr.Ntrtr = 0;
    _trtr02.Ntrtr = 0;
-   //_mcg.Nmcg = 0;
-   _ctccl.Nctccl = 0;
-   _ctcclmc.Nctcclmc = 0;
+   _mcg02.Nmcg = 0;
+   _mct.Nmct = 0;   
    _anti.Nanti = 0;
    _antimc.Nantimc = 0;
-   _lvl3.Nlvl3 = 0;
    _lvl302.Nlvl3 = 0;
-   _lvl1.Nlvl1 = 0;
    _lvl102.Nlvl1 = 0;
-   _ctcht.Nctcht = 0;
    _trraw.Ntrraw = 0;
    _antiraw.Nantiraw = 0;
    _tofraw.Ntofraw = 0;
@@ -327,53 +239,6 @@ void AMSNtuple::initR(char* fname){
    if(!_rfile)throw amsglobalerror("UnableToOpenRootFile",3);
    _rfile->SetCompressionLevel(IOPA.WriteRoot);
    _tree= new TTree("AMSRoot","AMS Ntuple Root");
-  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-   static void *pev1=(void*)&_event;
-   TBranch *b1=_tree->Branch("event", "EventNtuple",  &(pev1), 64000,1); 
-   static void *pev3=(void*)&_beta; 
-   TBranch *b3=_tree->Branch("beta", "BetaNtuple",  &(pev3), 64000,1); 
-   static void *pev5=(void*)&_charge;
-   TBranch *b5=_tree->Branch("charge", "ChargeNtuple",  &pev5, 64000,1);
-   static void *pev7=(void*)&_part;
-   TBranch *b7=_tree->Branch("part", "ParticleNtuple",  &pev7, 64000,1);
-   static void *pev8=(void*)&_tof;
-   TBranch *b8=_tree->Branch("tofcl", "TOFClusterNtuple",  &pev8, 64000,1);
-   static void *pev9=(void*)&_tofmc;
-   TBranch *b9=_tree->Branch("tofmccl", "TOFMCClusterNtuple",  &pev9, 64000,1);
-   static void *pev0=(void*)&_trcl;
-   TBranch *b0=_tree->Branch("trcl", "TrClusterNtuple",  &pev0, 64000,1);
-   static void *peva=(void*)&_trclmc;
-   TBranch *ba=_tree->Branch("trclmc", "TrMCClusterNtuple",  &peva, 64000,1);
-   static  void *pevc=(void*)&_trrh;
-   TBranch *bc=_tree->Branch("trrh", "TrRecHitNtuple",  &pevc, 64000,1);
-   static void *peve=(void*)&_trtr;
-   TBranch *be=_tree->Branch("trtr", "TrTrackNtuple",  &peve, 64000,1);
-   static void *pevg=(void*)&_mcg;
-   TBranch *bg=_tree->Branch("mcg", "MCEventGNtuple",  &pevg, 64000,1);
-   static void *pevt1=(void*)&_mct;
-   TBranch *bg1=_tree->Branch("mct", "MCTrackNtuple",  &pevt1, 64000,1);
-   static void *pevh=(void*)&_ctccl;
-   TBranch *bh=_tree->Branch("ctccl", "CTCClusterNtuple",  &pevh, 64000,1);
-   static void *pevi=(void*)&_ctcclmc;
-   TBranch *bi=_tree->Branch("ctcclmc", "CTCMCClusterNtuple",  &pevi, 64000,1);
-   static void *pevj=(void*)&_anti;
-   TBranch *bj=_tree->Branch("anti", "AntiClusterNtuple",  &pevj, 64000,1);
-   static void *pevk=(void*)&_antimc;
-   TBranch *bk=_tree->Branch("antimc", "ANTIMCClusterNtuple",  &pevk, 64000,1);
-   static void *pevl=(void*)&_lvl3;
-   TBranch *bl=_tree->Branch("lvl3", "LVL3Ntuple",  &pevl, 64000,1);
-   static void *pevm=(void*)&_lvl1;
-   TBranch *bm=_tree->Branch("lvl1", "LVL1Ntuple",  &pevm, 64000,1);
-   static void *pevo=(void*)&_ctcht;
-   TBranch *bo=_tree->Branch("ctcht", "CTCHitNtuple",  &pevo, 64000,1);
-   static void *pevp=(void*)&_trraw;
-   TBranch *bp=_tree->Branch("trraw", "TrRawClusterNtuple",  &pevp, 64000,1);
-   static void *pevq=(void*)&_antiraw;
-   TBranch *bq=_tree->Branch("antiraw", "AntiRawClusterNtuple",  &pevq, 64000,1);
-   static void *pevr=(void*)&_tofraw;
-   TBranch *br=_tree->Branch("tofraw", "TOFRawClusterNtuple",  &pevr, 64000,1);
-  }
-  else{
     static void *pev2=(void*)&_event02;
    TBranch *b2=_tree->Branch("event02.", "EventNtuple02",  &pev2, 64000,1); 
    static void *pev4=(void*)&_beta02;
@@ -433,7 +298,15 @@ void AMSNtuple::initR(char* fname){
    TBranch *bk=_tree->Branch("antimc.", "ANTIMCClusterNtuple",  &pevk, 64000,1);
    static void *pevl=(void*)&_lvl302;
    TBranch *bl=_tree->Branch("lvl302.", "LVL3Ntuple02",  &pevl, 64000,1);
-  }
+   
+   static void *pevx1=(void*)&_trraw;
+   TBranch *bx1=_tree->Branch("trraw.", "TrRawClusterNtuple",  &pevx1, 64000,1);
+   
+   static void *pevx2=(void*)&_antiraw;
+   TBranch *bx2=_tree->Branch("antiraw.", "AntiRawClusterNtuple",  &pevx2, 64000,1);
+   
+   static void *pevx3=(void*)&_tofraw;
+   TBranch *bx3=_tree->Branch("tofraw.", "TofRawClusterNtuple",  &pevx3, 64000,1);
    cout <<"AMSNtuple::initR-I-OpenRootFile "<<fname<<" "<<_rfile<<" "<<endl;
 #else
 cerr <<" RootFileOutput is Not supported in this version "<<endl;
@@ -452,10 +325,5 @@ void AMSNtuple::writeR(){
 
 
 uinteger AMSNtuple::getrun(){
-  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-    return _event.Run;
-  }
-  else{
     return _event02.Run;
-  }
 }
