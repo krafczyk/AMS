@@ -10,6 +10,7 @@ public:
   void _Fill();
   void Fill(AMSNtuple *ntuple);
   void _Fetch();
+  static void ShowChan(Int_t ilay,Int_t ibar,Int_t isid); // D.Casadei May 9 1998
 private:
   Int_t _norm;
 };

@@ -131,7 +131,7 @@ depend:
 
 dist:
 		rm -f $(AMSPRG).tar.gz ; \
-		tar cvf $(AMSPRG).tar $(ALLSRCS) *.C Make* \
+		tar cvf $(AMSPRG).tar $(ALLSRCS)  Make* ;\
 		gzip $(AMSPRG).tar
 
 clean:

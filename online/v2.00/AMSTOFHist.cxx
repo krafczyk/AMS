@@ -9,6 +9,7 @@
 #include <TPaveText.h>
 #include <TAttAxis.h>
 #include <TStyle.h>
+#include <TCanvas.h>
 
 ClassImp(AMSTOFHist)
 
@@ -21,47 +22,43 @@ AMSTOFHist::AMSTOFHist(Text_t * name, Text_t * title, Int_t maxset, Int_t active
 void AMSTOFHist::_Fill(){ // V. Choutko 25 Feb 1998
   _m2filled=8+4+2;
   _filled2= new TH1*[_m2filled];
-for(int mf=0;mf<_m2filled;mf++)_filled2[mf]=0;
-  int i=0;
-  _filled2[i]=new TH1F("ToF-1OR1"," TOF OR/AND Pattern Plane=1",14,0.5,14.5);
-  _filled2[i]->SetXTitle(" Paddle No");
-  _filled2[i++]->SetFillColor(2);
-  _filled2[i]=new TH1F("ToF-1OR2"," TOF OR/AND Pattern Plane=2",14,0.5,14.5);
-  _filled2[i]->SetXTitle(" Paddle No");
-  _filled2[i++]->SetFillColor(2);
-  _filled2[i]=new TH1F("ToF-1OR3"," TOF OR/AND Pattern Plane=3",14,0.5,14.5);
-  _filled2[i]->SetXTitle(" Paddle No");
-  _filled2[i++]->SetFillColor(2);
-  _filled2[i]=new TH1F("ToF-1OR4"," TOF Or/AND Pattern Plane=4",14,0.5,14.5);
-  _filled2[i]->SetXTitle(" Paddle No");
-  _filled2[i++]->SetFillColor(2);
-  _filled2[i]=new TH1F("ToF-1AND1","TOF AND  Pattern Plane=1",14,0.5,14.5);
-  _filled2[i++]->SetFillColor(8);
-  _filled2[i]=new TH1F("ToF-1AND2","TOF AND  Pattern Plane=2",14,0.5,14.5);
-  _filled2[i++]->SetFillColor(8);
-  _filled2[i]=new TH1F("ToF-1AND3","TOF AND  Pattern Plane=3",14,0.5,14.5);
-  _filled2[i++]->SetFillColor(8);
-  _filled2[i]=new TH1F("ToF-1AND4","TOF AND  Pattern Plane=4",14,0.5,14.5);
-  _filled2[i++]->SetFillColor(8);
+  for(int mf=0;mf<_m2filled;mf++)_filled2[mf]=0;
 
-  char name[80];
-  char title[80];
+  for(int i=0;i<4;i++){
+    char str[12];
+    sprintf(str,"ToF-1OR%d",i);
+    _filled2[i]=new TH1F(str,"",14,0.5,14.5); // TOF OR/AND Pattern
+    ((TH1*)_filled2[i])->SetXTitle("Counter Number");
+    _filled2[i]->SetLabelFont(40,"X");
+    _filled2[i]->SetLabelFont(40,"Y");
+    _filled2[i]->SetFillColor(3);
+    sprintf(str,"ToF-1AND%d",i);
+    _filled2[i+4]=new TH1F(str,"",14,0.5,14.5); // TOF AND Pattern
+    _filled2[i+4]->SetFillColor(4);
+  }
+
+  char name[16];
   
   for(i=8;i<12;i++){
     sprintf(name,"MeanTOF%d",i-7);
-    sprintf(title,"TOF%d Mean Energy Loss",i-7);
-    _filled2[i]=new TProfile(name,title,14,0.5,14.5,0.,80.);
-    _filled2[i]->SetXTitle("Paddle no");
+    _filled2[i]=new TProfile(name,"",14,0.5,14.5,0.,80.); // Mean Energy Loss
+    _filled2[i]->SetXTitle("Counter Number");
     _filled2[i]->SetYTitle("Mean Amplitude (Mev)");
     _filled2[i]->SetMarkerStyle(24);
     _filled2[i]->SetMarkerSize(0.7);
-  }
-  _filled2[i]=new TH1D("NToF","Number Of TOF Clusters",16,-0.5,15.5);
-  _filled2[i]->SetXTitle(" Number of TOF clusters");
-  _filled2[i++]->SetFillColor(28);
-  _filled2[i]=new TH1D("Ampl","TOF Energy Loss Distribution",100,0.,20.);
-  _filled2[i]->SetXTitle(" TOF Energy Loss (MeV)");
-  _filled2[i++]->SetFillColor(29);
+    _filled2[i]->SetFillColor(42);
+    _filled2[i]->SetLineColor(4);
+    _filled2[i]->SetLabelFont(40,"X");
+    _filled2[i]->SetLabelFont(40,"Y");
+  } // now i==12
+  _filled2[i]=new TH1D("NToF","",16,-0.5,15.5); // Number Of TOF Clusters
+  _filled2[i]->SetXTitle("Number of TOF clusters");
+  _filled2[i]->SetLineColor(4);
+  _filled2[i++]->SetFillColor(42);
+  _filled2[i]=new TH1D("Ampl","",100,0.,20.); // TOF Energy Loss Distribution
+  _filled2[i]->SetXTitle("TOF Energy Loss (MeV)");
+  _filled2[i]->SetLineColor(4);
+  _filled2[i++]->SetFillColor(42);
   
 }
 
@@ -88,9 +85,8 @@ void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
     _fetched2[30+diego]->SetLabelFont(40,"Y");
     _fetched2[30+diego]->SetLabelSize(0.08,"X");
     _fetched2[30+diego]->SetLabelSize(0.08,"Y");
+    _fetched2[30+diego]->SetMarkerStyle(24);
     _fetched2[30+diego]->SetLineColor(4);
-    _fetched2[30+diego]->SetMarkerStyle(8);
-    _fetched2[30+diego]->SetMarkerColor(4);
     //
     if(diego%2==0){
       sprintf(name,"Dynode %1d-P",(diego/2+1));
@@ -106,9 +102,8 @@ void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
     _fetched2[38+diego]->SetLabelFont(40,"Y");
     _fetched2[38+diego]->SetLabelSize(0.08,"X");
     _fetched2[38+diego]->SetLabelSize(0.08,"Y");
+    _fetched2[38+diego]->SetMarkerStyle(24);
     _fetched2[38+diego]->SetLineColor(4);
-    _fetched2[38+diego]->SetMarkerStyle(8);
-    _fetched2[38+diego]->SetMarkerColor(4);
     //
     if(diego%2==0){
       sprintf(name,"Stretch %1d-P",(diego/2+1));
@@ -124,9 +119,8 @@ void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
     _fetched2[46+diego]->SetLabelFont(40,"Y");
     _fetched2[46+diego]->SetLabelSize(0.08,"X");
     _fetched2[46+diego]->SetLabelSize(0.08,"Y");
+    _fetched2[46+diego]->SetMarkerStyle(24);
     _fetched2[46+diego]->SetLineColor(4);
-    _fetched2[46+diego]->SetMarkerStyle(8);
-    _fetched2[46+diego]->SetMarkerColor(4);
   }
 
   // Choumilov added:
@@ -136,9 +130,19 @@ void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
   _fetched2[3]=(TH1*)gAMSDisplay->GetRootFile()->Get("h1107"); // little crates size
   _fetched2[4]=(TH1*)gAMSDisplay->GetRootFile()->Get("h1111"); // layers multipl.
   _fetched2[5]=(TH1*)gAMSDisplay->GetRootFile()->Get("h1114"); // "configuration"
-                                                        // (ask Choumilov...)
-  for(int kk=0;kk<6;kk++)
-    if(!_fetched2[kk])cerr<<"AMSTOFHist::_Fetch-E-NoHisFound -- kk="<<kk<<endl;
+  for(int kk=0;kk<6;kk++){
+    if(!_fetched2[kk])
+      cerr<<"AMSTOFHist::_Fetch-E-NoHisFound -- kk="<<kk<<endl;
+    else{
+      _fetched2[kk]->SetTitle();
+      _fetched2[kk]->SetFillColor(42);
+      _fetched2[kk]->SetLabelFont(40,"X");
+      _fetched2[kk]->SetLabelFont(40,"Y");
+      _fetched2[kk]->SetLabelSize(0.08,"X");
+      _fetched2[kk]->SetLabelSize(0.08,"Y");
+      _fetched2[kk]->SetLineColor(4);
+    }
+  }
 
   int ind=6;
 
@@ -146,6 +150,16 @@ void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
     sprintf(text,"h%d",i);
     _fetched2[ind]=(TH1*)gAMSDisplay->GetRootFile()->Get(text);
     if(_fetched2[ind]){
+      if(i<5008){ // ind = 14..17
+	_fetched2[ind]->SetLabelSize(0.08,"X"); // JL1 
+	_fetched2[ind]->SetLabelSize(0.08,"Y"); // JL1 
+	_fetched2[ind]->SetTitle();
+      }
+      _fetched2[ind]->SetXTitle("Counter Number");
+      _fetched2[ind]->SetLineColor(8); // green
+      _fetched2[ind]->SetLabelFont(40,"X");
+      _fetched2[ind]->SetLabelFont(40,"Y");
+      ((TH1*)_fetched2[ind])->SetTitle();
     }
     else{
       cerr<<"AMSTOFHist::_Fetch-E-NoHisFound "<<text<<endl;
@@ -156,6 +170,7 @@ void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
     sprintf(text,"h%d",i);
     _fetched2[ind]=(TH1*)gAMSDisplay->GetRootFile()->Get(text);
     if(_fetched2[ind]){
+	_fetched2[ind]->SetLineColor(4); // blue
     }
     else{
       cerr<<"AMSTOFHist::_Fetch-E-NoHisFound "<<text<<endl;
@@ -347,9 +362,9 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
   gPad->Clear();
   char text[80];
 
-  Float_t cpos[14]={1.,2.,3.,4.,5.,6.,7.,8.,9.,10.,11.,12.,13.,14.};
-  Float_t epos[14]={.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01};
-  Double_t weight[14]={1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.};
+//   Float_t cpos[14]={1.,2.,3.,4.,5.,6.,7.,8.,9.,10.,11.,12.,13.,14.};
+//   Float_t epos[14]={.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01};
+//   Double_t weight[14]={1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.};
 
   Int_t stat;
   stat=gStyle->GetOptStat();
@@ -363,28 +378,17 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<8;i++){
       gPad->cd(i+1);
+      gPad->SetLogx(gAMSDisplay->IsLogX());
+      gPad->SetLogy(gAMSDisplay->IsLogY());
+      gPad->SetLogz(gAMSDisplay->IsLogZ());
       if(((i%2)==0)&&_fetched2[6+i/2]&&_fetched2[18+i/2]){
 	sprintf(text,"Plane %1d Side P hits",(i/2+1));
-	_fetched2[6+i/2]->SetLabelSize(0.08,"X"); // JL1 
-	_fetched2[6+i/2]->SetLabelSize(0.08,"Y"); // JL1 
-	_fetched2[6+i/2]->SetLineColor(8); // green
-	_fetched2[6+i/2]->SetLabelFont(40,"X");
-	_fetched2[6+i/2]->SetLabelFont(40,"Y");
 	_fetched2[6+i/2]->Draw(); // JL1 
-	((TH1*)_fetched2[6+i/2])->SetTitle();
-	_fetched2[18+i/2]->SetLineColor(4); // blue
 	_fetched2[18+i/2]->Draw("same"); // data
       }
       else if(_fetched2[10+i/2]&&_fetched2[22+i/2]){
 	sprintf(text,"Plane %1d Side N hits",(i/2+1));
-	_fetched2[10+i/2]->SetLabelSize(0.08,"X"); // JL1 
-	_fetched2[10+i/2]->SetLabelSize(0.08,"Y"); // JL1 
-	_fetched2[10+i/2]->SetLabelFont(40,"X");
-	_fetched2[10+i/2]->SetLabelFont(40,"Y");
 	_fetched2[10+i/2]->Draw(); // JL1 
-	_fetched2[10+i/2]->SetLineColor(8); // JL1 
-	((TH1*)_fetched2[10+i/2])->SetTitle("");
-	_fetched2[22+i/2]->SetLineColor(4); // data
 	_fetched2[22+i/2]->Draw("same"); // data
       }
       TPaveText* box1 = new TPaveText(.43,.14,.57,.44,"NDC");
@@ -407,15 +411,12 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<4;i++){
       gPad->cd(i+1);
+      gPad->SetLogx(gAMSDisplay->IsLogX());
+      gPad->SetLogy(gAMSDisplay->IsLogY());
+      gPad->SetLogz(gAMSDisplay->IsLogZ());
       if(_fetched2[14+i]){
-	sprintf(text,"Plane %1d. AND of sides",(i+1));
-	((TH1*)_fetched2[14+i])->SetTitle();
-	((TH1*)_fetched2[14+i])->SetXTitle("Counter Number");
-	_fetched2[14+i]->SetLineColor(8);
-	_fetched2[14+i]->SetLabelFont(40,"X");
-	_fetched2[14+i]->SetLabelFont(40,"Y");
+	sprintf(text,"Plane %1d: AND of sides",(i+1));
 	_fetched2[14+i]->Draw(); // JL1 
-	_fetched2[26+i]->SetLineColor(4); // data
 	_fetched2[26+i]->Draw("same");
 	TPaveText* box1 = new TPaveText(.42,.14,.58,.3,"NDC");
 	TText *tJL1, *tTOF;
@@ -438,17 +439,11 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<4;i++){
       gPad->cd(i+1);
+      gPad->SetLogx(gAMSDisplay->IsLogX());
+      gPad->SetLogy(gAMSDisplay->IsLogY());
+      gPad->SetLogz(gAMSDisplay->IsLogZ());
       if(_filled2[i]){
-	gPad->SetLogx(gAMSDisplay->IsLogX());
-	gPad->SetLogy(gAMSDisplay->IsLogY());
-	gPad->SetLogz(gAMSDisplay->IsLogZ());
-	((TH1*)_filled2[i])->SetTitle();
-	((TH1*)_filled2[i])->SetXTitle("Counter Number");
-	_filled2[i]->SetLabelFont(40,"X");
-	_filled2[i]->SetLabelFont(40,"Y");
-	_filled2[i]->SetFillColor(3);
 	_filled2[i]->Draw();
-	_filled2[i+4]->SetFillColor(4);
 	_filled2[i+4]->Draw("SAME");
 	TPaveText* box = new TPaveText(.43,.14,.57,.3,"NDC");
 	TText *tOR, *tAND;
@@ -473,6 +468,9 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     Float_t x1, x2;
     for(i=0;i<6;i++){
       gPad->cd(i+1);
+      gPad->SetLogx(gAMSDisplay->IsLogX());
+      gPad->SetLogy(gAMSDisplay->IsLogY());
+      gPad->SetLogz(gAMSDisplay->IsLogZ());
       if(_fetched2[i]){
 	if(i==0){
 	  sprintf(text,"TOF(1,3) - TOF(2,4) [ns]");
@@ -506,13 +504,6 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
 	  x1=.35;
 	  x2=.65;	  
 	}
-	((TH1*)_fetched2[i])->SetTitle();
-	((TH1*)_fetched2[i])->SetFillColor(42);
-	((TH1*)_fetched2[i])->SetLabelFont(40,"X");
-	((TH1*)_fetched2[i])->SetLabelFont(40,"Y");
-	((TH1*)_fetched2[i])->SetLabelSize(0.08,"X");
-	((TH1*)_fetched2[i])->SetLabelSize(0.08,"Y");
-	((TH1*)_fetched2[i])->SetLineColor(4);
 	_fetched2[i]->Draw(); 
 	TPaveText* box = new TPaveText(x1,.9,x2,1.,"NDC");
 	box->AddText(text);
@@ -527,15 +518,10 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<2;i++){
       gPad->cd(i+1);
+      gPad->SetLogx(gAMSDisplay->IsLogX());
+      gPad->SetLogy(gAMSDisplay->IsLogY());
+      gPad->SetLogz(gAMSDisplay->IsLogZ());
       if(_filled2[12+i]){
-	gPad->SetLogx(gAMSDisplay->IsLogX());
-	gPad->SetLogy(1);
-	gPad->SetLogz(gAMSDisplay->IsLogZ());
-	((TH1*)_filled2[12+i])->SetTitle();
-	((TH1*)_filled2[12+i])->SetFillColor(42);
-	((TH1*)_filled2[12+i])->SetLineColor(4);
-	_filled2[12+i]->SetLabelFont(40,"X");
-	_filled2[12+i]->SetLabelFont(40,"Y");
 	_filled2[12+i]->Draw();
 	TPaveText* title = new TPaveText(.375,.93,.625,1.,"NDC");
 	if(i==0)
@@ -554,15 +540,10 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<4;i++){
       gPad->cd(i+1);
+      gPad->SetLogx(gAMSDisplay->IsLogX());
+      gPad->SetLogy(gAMSDisplay->IsLogY());
+      gPad->SetLogz(gAMSDisplay->IsLogZ());
       if(_filled2[8+i]){
-	gPad->SetLogx(gAMSDisplay->IsLogX());
-	gPad->SetLogy(gAMSDisplay->IsLogY());
-	gPad->SetLogz(gAMSDisplay->IsLogZ());
-	((TH1*)_filled2[8+i])->SetTitle();
-	((TH1*)_filled2[8+i])->SetXTitle("Counter Number");
-	((TH1*)_filled2[8+i])->SetLineColor(4);
-	_filled2[8+i]->SetLabelFont(40,"X");
-	_filled2[8+i]->SetLabelFont(40,"Y");
 	_filled2[8+i]->Draw();
 	TPaveText* title = new TPaveText(.25,.93,.75,1.,"NDC");
 	sprintf(text,"Plane %1d Energy Loss",(i+1));
@@ -579,6 +560,9 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<8;i++){
       gPad->cd(i+1);
+      gPad->SetLogx(gAMSDisplay->IsLogX());
+      gPad->SetLogy(gAMSDisplay->IsLogY());
+      gPad->SetLogz(gAMSDisplay->IsLogZ());
       if(_fetched2[30+i]){
 	if((i%2)==0)
 	  sprintf(text,"Anode charge %1d-P (pC)",(i/2+1));
@@ -599,6 +583,9 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<8;i++){
       gPad->cd(i+1);
+      gPad->SetLogx(gAMSDisplay->IsLogX());
+      gPad->SetLogy(gAMSDisplay->IsLogY());
+      gPad->SetLogz(gAMSDisplay->IsLogZ());
       if(_fetched2[38+i]){
 	if((i%2)==0)
 	  sprintf(text,"Dynode charge %1d-P (pC)",(i/2+1));
@@ -620,6 +607,9 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<8;i++){
       gPad->cd(i+1);
+      gPad->SetLogx(gAMSDisplay->IsLogX());
+      gPad->SetLogy(gAMSDisplay->IsLogY());
+      gPad->SetLogz(gAMSDisplay->IsLogZ());
       if(_fetched2[46+i]){
 	if((i%2)==0)
 	  sprintf(text,"Time Expansion Factor: %1d-P",(i/2+1));
@@ -654,3 +644,143 @@ void AMSTOFHist::Fill(AMSNtuple *ntuple){ // V. Choutko 25 Feb 1998
   _filled2[12]->Fill(ntuple->_TOF.NToF,1.);
 }
 
+//------------------------------------------------------------------------------
+
+void AMSTOFHist::ShowChan(Int_t ilay,Int_t ibar,Int_t isid){ // D. Casadei 9 May 1998
+
+  char string[16], text[32], side;
+  TH1** histvec = new TH1*[6];  // HIS,TDC,ANO & DYN edges, ANO & DYN spectra
+  Int_t startvec[6] = {5030, 5150, 5270, 5490, 5700, 5830};
+  Bool_t ok=0;
+
+    if(isid==0)
+      side='P';
+    else
+      side='N';
+
+  // Fetching histograms
+  for(int i=0;i<6;i++){ 
+    sprintf(string,"h%d",startvec[i]+30*(ilay-1)+ibar-1+14*isid);
+    histvec[i]=(TH1*)gAMSDisplay->GetRootFile()->Get(string);
+    if(histvec[i]){
+      ok=1;
+      histvec[i]->SetTitle();
+      histvec[i]->SetFillColor(42);
+      histvec[i]->SetLabelFont(40,"X");
+      histvec[i]->SetLabelFont(40,"Y");
+      histvec[i]->SetLabelSize(0.08,"X");
+      histvec[i]->SetLabelSize(0.08,"Y");
+      histvec[i]->SetLineColor(4);
+    }
+  }
+
+  if(!ok)return;
+
+  // Displaying histograms
+  TVirtualPad *padsav = gPad->GetCanvas();
+  char title[16];
+  sprintf(title,"TOF %d.%02d%c",ilay,ibar,side);
+  TCanvas *can=new TCanvas(title,"Single TOF channel",800,600);
+  /* For having only one additional canvas displayed, comment
+     the 3 preceeding lines and uncomment the following one */
+//  TCanvas *can=new TCanvas("TOFchan","Single TOF channel",1000,750);
+
+  gPad->Clear();
+  Int_t stat;
+  stat=gStyle->GetOptStat();
+  gStyle->SetOptStat(0);
+
+  //  gPad->Divide(2,4,0.001,0.001,10);
+  gPad->Divide(2,3,0.001,0.001,10);
+  TVirtualPad * gPadSave = gPad;
+  
+  gPad->cd(1);
+  if(histvec[0]){
+    if(histvec[0]->GetMean() != 0) gPad->SetLogy();
+    sprintf(text,"Ch. %1d.%02d%c - HIS edges",ilay,ibar,side);
+    TPaveText* title = new TPaveText(.3,.9,.7,1.,"NDC");
+    title->AddText(text);
+    histvec[0]->SetTitle();
+    histvec[0]->Draw();
+    title->Draw();
+  }
+  gPad->Update();
+  gPadSave->cd();
+
+  gPad->cd(2);
+  if(histvec[1]){
+    if(histvec[1]->GetMean() != 0)gPad->SetLogy();
+    sprintf(text,"Ch. %1d.%02d%c - TDC edges",ilay,ibar,side);
+    TPaveText* title = new TPaveText(.3,.9,.7,1.,"NDC");
+    title->AddText(text);
+    histvec[1]->SetTitle();
+    histvec[1]->Draw();
+    title->Draw();
+  }
+  gPad->Update();
+  gPadSave->cd();
+
+
+  gPad->cd(3);
+  if(histvec[2]){
+    if(histvec[2]->GetMean() != 0)gPad->SetLogy();
+    sprintf(text,"Ch. %1d.%02d%c - ANO edges",ilay,ibar,side);
+    TPaveText* title = new TPaveText(.3,.9,.7,1.,"NDC");
+    title->AddText(text);
+    histvec[2]->SetTitle();
+    histvec[2]->Draw();
+    title->Draw();
+  }
+  gPad->Update();
+  gPadSave->cd();
+
+  gPad->cd(4);
+  if(histvec[3]){
+    if(histvec[3]->GetMean() != 0) gPad->SetLogy();
+    sprintf(text,"Ch. %1d.%02d%c - DYN edges",ilay,ibar,side);
+    TPaveText* title = new TPaveText(.3,.9,.7,1.,"NDC");
+    title->AddText(text);
+    histvec[3]->SetTitle();
+    histvec[3]->Draw();
+    title->Draw();
+  }
+  gPad->Update();
+  gPadSave->cd();
+
+  gPad->cd(5);
+  if(histvec[4]){
+    sprintf(text,"Ch. %1d.%02d%c - ANODE (pC)",ilay,ibar,side);
+    TPaveText* title = new TPaveText(.3,.9,.7,1.,"NDC");
+    title->AddText(text);
+    histvec[4]->SetTitle();
+    histvec[4]->Draw();
+    title->Draw();
+  }
+  gPad->Update();
+  gPadSave->cd();
+
+  gPad->cd(6);
+  if(histvec[5]){
+    sprintf(text,"Ch. %1d.%02d%c - DYNODE (pC)",ilay,ibar,side);
+    TPaveText* title = new TPaveText(.3,.9,.7,1.,"NDC");
+    title->AddText(text);
+    histvec[5]->SetTitle();
+    histvec[5]->Draw();
+    title->Draw();
+  }
+  gPad->Update();
+  gPadSave->cd();
+
+//   gPad->cd(7);
+//   gPadSave->cd();
+//   // LOAD TIME EXP 2D HISTO  -  NOW this information is ABSENT !!!
+//   // stretched time VS. signal width
+
+//   gPad->cd(8);
+//   gPadSave->cd();
+//   // LOAD ANODE HITS HISTO  -  NOW this information is ABSENT !!!
+//   // first anode hit in ns -> time distribuion over the anode TDC scale (16.5us)
+
+  gPadSave->cd();
+  gStyle->SetOptStat(stat);
+}

@@ -16,7 +16,7 @@ The program sources can be obtained by doing
 
 	cvs checkout AMS/online
 
-This will create AMS/pnline directory and put all source files
+This will create AMS/online directory and put all source files
 of AMS offline monitor into it.
 
 
@@ -25,7 +25,7 @@ of AMS offline monitor into it.
 ---------------------
 
 This program is based on Rene Brun's ROOT and ATLFast program.  To build it,
-cd to AMS/pnline directory, then type 
+cd to AMS/online directory, then type 
 
 	gmake depend
 
@@ -55,10 +55,15 @@ Type h2root your_converted_ntuple_file_name your_preferred_name
 Type offmon your_preferred_name.
 
 
+-------------------------------------------------------------------------
+4. Tutorial
+----------------------
+
+There is a short tutorial for this program.  You can find the postscript
+version in the AMS/doc directory.
 
 
-
-4. Relevant files
+5. Relevant files
 
 TCanvasImp          //aux
 TMotifCanvas        //aux
