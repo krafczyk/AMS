@@ -3203,7 +3203,7 @@ void richgeom02(AMSgvolume & mother)
 	    coo[1]=1.5-0.05;
 	    coo[2]=0;
 	    
-	    dummy=p->add(new AMSgvolume("TOF_PMT_BOX",
+	    dummy=p->add(new AMSgvolume("RICH SHIELD",
 				       0,
 				       "SHI1",
 				       "BOX",
@@ -3218,7 +3218,7 @@ void richgeom02(AMSgvolume & mother)
 	    
 	    coo[1]*=-1;
 	    
-	    dummy=p->add(new AMSgvolume("TOF_PMT_BOX",
+	    dummy=p->add(new AMSgvolume("RICH SHIELD",
 				       0,
 				       "SHI1",
 				       "BOX",
@@ -3236,7 +3236,7 @@ void richgeom02(AMSgvolume & mother)
 	    coo[0]=1.5-.05;
 	    coo[1]=0;
 	    
-	    dummy=p->add(new AMSgvolume("TOF_PMT_BOX",
+	    dummy=p->add(new AMSgvolume("RICH SHIELD",
 				       0,
 				       "SHI2",
 				       "BOX",
@@ -3251,7 +3251,7 @@ void richgeom02(AMSgvolume & mother)
 	    
 	    coo[0]*=-1;
 
-	    dummy=p->add(new AMSgvolume("TOF_PMT_BOX",
+	    dummy=p->add(new AMSgvolume("RICH SHIELD",
 				       0,
 				       "SHI2",
 				       "BOX",
@@ -3299,7 +3299,7 @@ void richgeom02(AMSgvolume & mother)
 	    coo[1]=0;
 	    coo[2]=5-3-.1-par[2];
 
-	    dummy=p->add(new AMSgvolume("RICH WALLS",
+	    dummy=p->add(new AMSgvolume("RICH GLUE",
 					0,
 					"GLUE",
 					"BOX",
