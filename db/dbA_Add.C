@@ -169,8 +169,6 @@ ooStatus LMS::AddEvent(uinteger run, uinteger eventNumber, time_t time,
     }
 
     if(!isTagKeyValid(run,eventNumber)) return rstatus;
-    ooHandle(AMSEventList) listH = recoCont();
-    if (listH == NULL) Fatal("AddEvent : pointer to the container is NULL");
     if (_tagcontH == NULL) 
                        Fatal("AddEvent : pointer to tag container is NULL");
 
@@ -182,8 +180,15 @@ ooStatus LMS::AddEvent(uinteger run, uinteger eventNumber, time_t time,
     }
 
     //get pointer to the database
-    ooHandle(ooDBObj)  dbH = recodb();
-    if (dbH == NULL) Fatal("AddEvent : pointer to event database is NULL");
+    ooHandle(ooDBObj)      dbH;
+    ooHandle(AMSEventList) listH;
+    if (recoevents()) {
+     dbH = recodb();
+     if (dbH == NULL) Fatal("AddEvent : pointer to event database is NULL");
+     listH = recoCont();
+     if (listH == NULL) Fatal("AddEvent : pointer to the container is NULL");
+    }  
+
     ooHandle(AMSEventTag)  tageventH;
     ooHandle(AMSeventD)    eventH;
     ooItr(AMSeventD)       eventItr;             
