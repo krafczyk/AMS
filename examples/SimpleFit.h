@@ -2,18 +2,16 @@
  *  Usage:
  * 
  *        - Add this file to the list of "includes":  
- *              - #include <file:///afs/ams.cern.ch/Offline/vdev/examples/SimpleFit.h>
+ *              - #include <SimpleFit.h>
  * 
- *        - Constructors:
+ *        - Constructor:
  *              - SimpleTrack new_track;
- *              - SimpleTrack new_track = SimpleTrack(int nhits);
- *              - SimpleTrack new_track = SimpleTrack(int nhits, TrRecHitR* phit[]);
  * 
  *        - Available methods:
- *              - new_track.addHit(phit);
- *              - new_track.delHit(phit);
- *              - new_track.addHit(i);
- *              - new_track.delHit(i);
+ *              - new_track.add_hit(TrRecHit *phit);
+ *              - new_track.del_hit(TrRecHit *phit);
+ *              - new_track.reset();
+ *              - new_track.use_hits_from(TrTrack *ptrack);
  *              - istat = new_track.SimpleFit(); 
  *                    - istat=0 ==> OK
  *                    - istat<0 ==> not succesful
@@ -56,59 +54,60 @@ public:
   float Phi;
   float P0[3];
 
-  SimpleTrack(int nhits=0, TrRecHitR* phit[]=NULL):NHits(nhits){
-        for(int i=0;i<nhits;i++) pHit[i]=phit[i];
-  };
-
-  void addHit(TrRecHitR* phit);
-  void delHit(TrRecHitR* phit);
-  void addHit(unsigned int ihit);
-  void delHit(unsigned int ihit);
+  SimpleTrack():NHits(0){};
+  void add_hit(TrRecHitR* phit);
+  void del_hit(TrRecHitR* phit);
+  void reset();
+  void use_hits_from(TrTrackR* ptrack);
   int SimpleFit();
 
 };
 
-void SimpleTrack::addHit(TrRecHitR* phit) {
-        if (NHits<MAXLAY) { 
-                pHit[NHits] = phit; 
-                NHits++;
-        } else { 
-                cout << "SimpleTrack WARNING: Can not add more than ";
-                cout << MAXLAY << " hits; new hit ignored"; 
-                cout << endl;
-        }
-};
-
-void SimpleTrack::delHit(TrRecHitR* phit) {
-        for(int i=0;i<NHits;i++) {
-            if (pHit[i]==phit) {
-                 for(int j=i+1;j<NHits;j++) pHit[j-1] = pHit[j];
-                 NHits--;
-                 return;
+void SimpleTrack::add_hit(TrRecHitR* phit) {
+        if (NHits>=MAXLAY) { 
+            cout << "SimpleTrack WARNING: Can not add more than ";
+            cout << MAXLAY << " hits; new hit ignored" << endl;
+            return;
+        } else if (NHits==0 || (phit->Layer > pHit[NHits-1]->Layer)) {
+            pHit[NHits] = phit;
+            NHits++;
+            return;
+        } else {
+            for(int i=0;i<NHits;i++) {
+                  if (phit->Layer < pHit[i]->Layer) {
+                        for(int j=NHits; j>i; j++) pHit[j] = pHit[j-1];
+                        pHit[i] = phit;
+                        NHits++;
+                        return;
+                  } else if (phit->Layer==pHit[i]->Layer) {
+                        cout << "SimpleTrack WARNING: Can not use two hits on the same layer;";
+                        cout << " new hit ignored" << endl;
+                        return;
+                  }
             }
         }
 }
 
-void SimpleTrack::addHit(unsigned int ihit) {
-        if (NHits<MAXLAY) { 
-                TrRecHitR* phit = AMSEventR::Head()->pTrRecHit(ihit);
-                pHit[NHits] = phit; 
-                NHits++;
-        } else { 
-                cout << "SimpleTrack WARNING: Can not add more than ";
-                cout << MAXLAY << " hits; new hit ignored"; 
-                cout << endl;
-        }
-};
-
-void SimpleTrack::delHit(unsigned int ihit) {
+void SimpleTrack::del_hit(TrRecHitR* phit) {
         for(int i=0;i<NHits;i++) {
-            TrRecHitR* phit = AMSEventR::Head()->pTrRecHit(ihit);
             if (pHit[i]==phit) {
                  for(int j=i+1;j<NHits;j++) pHit[j-1] = pHit[j];
                  NHits--;
                  return;
             }
+        }
+        cout << "SimpleTrack WARNING: Hits not found on track;" << endl;
+        cout << "                     delete operation ignored" << endl;
+}
+
+void SimpleTrack::reset() {
+        NHits = 0;
+}
+
+void SimpleTrack::use_hits_from(TrTrackR* ptrack) {
+        NHits = 0;
+        for(int i=0;i<ptrack->NTrRecHit();i++) {
+                add_hit(ptrack->pTrRecHit(i));
         }
 }
 
