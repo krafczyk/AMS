@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.37 2003/04/08 09:22:14 choutko Exp $
+//  $Id: gamma.C,v 1.38 2003/04/11 08:58:46 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -2571,8 +2571,10 @@ integer AMSTrTrackGamma::build(integer refit){
    uinteger evn=AMSEvent::gethead()->getEvent();
    uinteger Run=AMSEvent::gethead()->getrun();
    
-   //   AMSmceventg::PrintSeeds(cout);
-   
+
+   //  cout << "  #####   #####  #####  Run "<<Run<< " "<< "Event " <<evn <<endl;
+   //   AMSmceventg::PrintSeeds(cout);   
+
    for(int i=0;i<TKDBc::nlay();i++){
      AMSTrRecHit::_markDouble(H[i],i);
      FLPAT[i]=H[i].size(); 
@@ -2875,6 +2877,8 @@ AMSTrRecHit * parrayR[trconst::maxlay];
        }
        nleft=nleft+1;
        nright=nright+1;
+
+
        //
        if (nleft < 3 || nright < 3) return 0;
        if (nleft ==3 && nright ==3) return 0;
@@ -2886,10 +2890,13 @@ AMSTrRecHit * parrayR[trconst::maxlay];
        int counting=0;
        int plusminus=0;
        if (nleft >=3 && nright >= 3){
+
 	 pntLR->Fit(5,2);
 	 counting=0;
 	 plusminus=0;
 	 pntLR->PAIR2GAMMA(counting,plusminus);
+
+
        }
        
        
@@ -2908,13 +2915,16 @@ AMSTrRecHit * parrayR[trconst::maxlay];
        if (nright >= 3){
 	 NGammaFound++;
        }
+
+
        if (nleft >=3 && nright >= 3){
 	 pntLR->Fit(0,2);
 	 pntLR->Fit(3,2);
 	 pntLR->Fit(4,2);
        }
        else return 0;
-       
+
+
        
        AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),pntLR);
        int done=0;
@@ -2934,7 +2944,7 @@ AMSTrRecHit * parrayR[trconst::maxlay];
 	 AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),p);
        }
        
-       
+
   }// (init_R!=0 && init_L!=0)
      
    } // xsRL
@@ -2971,23 +2981,24 @@ AMSTrRecHit * parrayR[trconst::maxlay];
    if(AMSTrTrackGamma::Out(1)){
      int i;
 #ifdef __WRITEROOTCLONES__
-     //    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+     //       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
      TrGamma* TrTN = AMSJob::gethead()->getntuple()->Get_tpai02();
      if (TrTN->Ngam>=MAXPAIR02 ) return; //const int MAXPAIR02    =   2; see ntuple.h
-     if(_PGAMM!=_PGAMM){
-       cerr<<" AMSTrTrackGamma::_writeEl-S-_PGAMMisNAN, please fix me "<<endl;
+
+          if(_PGAMM!=_PGAMM){
+     //   cerr<<" AMSTrTrackGamma::_writeEl-S-_PGAMMisNAN, please fix me "<<endl;
        setstatus(AMSDBc::BAD);
        return;
-     }
-     if(_GThetaMSL!=_GThetaMSL){
-       cerr<<" AMSTrTrackGamma::_writeEl-S-_GThetaMSLisNAN, please fix me "<<endl;
-        _GThetaMSL=0;
       }
-     if(_GThetaMSR!=_GThetaMSR){
-        _GThetaMSR=0;
-        cerr<<" AMSTrTrackGamma::_writeEl-S-_GThetaMSRisNAN, please fix me "<<endl;
-     }
+	  //if(_GThetaMSL!=_GThetaMSL){
+	  // cerr<<" AMSTrTrackGamma::_writeEl-S-_GThetaMSLisNAN, please fix me "<<endl;
+	  // _GThetaMSL=0;
+	  // }
+	  //if(_GThetaMSR!=_GThetaMSR){
+	  //_GThetaMSR=0;
+	  //cerr<<" AMSTrTrackGamma::_writeEl-S-_GThetaMSRisNAN, please fix me "<<endl;
+	  //}
      // Fill the ntuple
      
      
@@ -3011,6 +3022,10 @@ AMSTrRecHit * parrayR[trconst::maxlay];
      TrTN->Jphil[TrTN->Ngam]=(geant)_GPhiMSL;
      TrTN->Jthetar[TrTN->Ngam]=(geant)_GThetaMSR;
      TrTN->Jphir[TrTN->Ngam]=(geant)_GPhiMSR;
+     //
+     //     TrTN->JChi2r[TrTN->Ngam]=(geant)_GChi2MSR;
+     //     TrTN->JChi2l[TrTN->Ngam]=(geant)_GChi2MSL;
+     //
      for(i=0;i<3;i++)TrTN->Jp0l[TrTN->Ngam][i]=(geant)_GP0MSL[i];
      for(i=0;i<3;i++)TrTN->Jp0r[TrTN->Ngam][i]=(geant)_GP0MSR[i];
      
@@ -5014,7 +5029,7 @@ void AMSTrTrackGamma::PAIR2GAMMA(int & counting, int & plusminus){
     _Charge=2;
     plusminus=2;
     pmeno=_GRidgidityMSR;
-     ppiu= _GRidgidityMSL;
+     ppiu=_GRidgidityMSL;
    }
   
 
@@ -5029,6 +5044,8 @@ void AMSTrTrackGamma::PAIR2GAMMA(int & counting, int & plusminus){
  p3g[0]=(fabs(_GRidgidityMSR)*((sin(_GThetaMSR)*cos(_GPhiMSR)))) + (fabs(_GRidgidityMSL)*((sin(_GThetaMSL)*cos(_GPhiMSL))));       // =p1x+p2x
  p3g[1]=(fabs(_GRidgidityMSR)*((sin(_GThetaMSR)*sin(_GPhiMSR)))) + (fabs(_GRidgidityMSL)*((sin(_GThetaMSL)*sin(_GPhiMSL))));       // =p1y+p2y
  p3g[2]=fabs(_GRidgidityMSR)*n_R[2] + fabs(_GRidgidityMSL)*n_L[2]; // =p1z+p2z
+
+
 _PGAMM=sqrt(pow(p3g[0],2) + pow(p3g[1],2) + pow(p3g[2],2));
 _PhTheta=acos(p3g[2]/_PGAMM);
 if(_PhTheta<AMSDBc::pi/2)_PhTheta=AMSDBc::pi-_PhTheta;
@@ -5075,6 +5092,8 @@ _MyVertex(n_L,n_R);
 
  if (_VE1[2] >= _VE2[2]) _Vertex=_VE1;
  else _Vertex=_VE2;
+
+ if (_GRidgidityMSR ==  FLT_MAX || _GRidgidityMSL ==  FLT_MAX ) _PGAMM=0;
 
 }
 
@@ -5332,14 +5351,25 @@ _GRidgidityMSR=outR[5];
 _GThetaMSR=outR[3];
 _GPhiMSR=outR[4];
 _GP0MSR=AMSPoint(outR[0],outR[1],outR[2]);
+ if(_GChi2MSR == FLT_MAX){
+_GRidgidityMSR=FLT_MAX;
+_GThetaMSR=0;
+_GPhiMSR=0;
+ }
 //...
-_GChi2MSR=outR[6];  
-if(outR[7]!=0)_GChi2MSR=FLT_MAX;
+_GChi2MSL=outL[6];  
+if(outL[7]!=0)_GChi2MSL=FLT_MAX;
 _GRidgidityMSL=outL[5];
 // me
 _GThetaMSL=outL[3];
 _GPhiMSL=outL[4];
 _GP0MSL=AMSPoint(outL[0],outL[1],outL[2]);
+
+ if(_GChi2MSL == FLT_MAX){
+_GRidgidityMSL=FLT_MAX;
+_GThetaMSL=0;
+_GPhiMSL=0;
+ }
 }
 
  if (_Chi2FastFitL == FLT_MAX || _Chi2FastFitR == FLT_MAX){
