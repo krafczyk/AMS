@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.230 2003/09/26 13:52:06 isevilla Exp $
+#  $Id: datacards.doc,v 1.231 2003/10/29 15:25:01 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -266,7 +266,7 @@ R67  ThrClR[2](0,0)         // mark trreccl good if ampl/s > ThrClR
 I69  MaxTrRecHitsPerLayer(50) // to try pattern rec
 I70  UseTRD(1)                    // Use(>=1 == Min No TOF clusters matched)/
 I71  LowMargin(0)          //  use/not use any 5 planes patterns for track reconstruction
-
+I72 UseGeaneFitting(1)   //   Use Geane(1) or Yale (0) fitting method
 // Tracker fitting
 
 TKFIT
