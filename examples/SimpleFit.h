@@ -151,7 +151,7 @@ int SimpleTrack::SimpleFit(){
       for (int j=0;j<3;j++){
           hits[i][j] = pHit[i]->Hit[j];
           b[i][j] = pHit[i]->Bfield[j];
-          sigma[i][j] = pHit[i]->EHit[j];
+          sigma[i][j] = 1.e4 * pHit[i]->EHit[j];
       }
       // cout << " i, hits, sigma: " << i << ",";
       // for (int j=0;j<3;j++){ cout << " " << hits[i][j];}
