@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.14 2002/02/27 16:19:55 mdelgado Exp $
+//  $Id: richgeom.C,v 1.15 2002/05/21 16:35:07 delgadom Exp $
 #include <typedefs.h>
 #include <node.h>
 #include <snode.h>
@@ -55,8 +55,8 @@ void amsgeom::Put_rad(AMSgvolume * mother,integer copia)
   number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.}; // {vx, vy, vz} 
   const integer rel=1;
 
-  par[0]=RICHDB::rad_length/2.-RICaethk;
-  par[1]=RICHDB::rad_length/2.-RICaethk;
+  par[0]=RICHDB::rad_length/2.-RICaethk/2.;
+  par[1]=RICHDB::rad_length/2.-RICaethk/2.;
   par[2]=RICHDB::rad_height/2;
   coo[0]=0;
   coo[1]=0;
@@ -501,6 +501,15 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 
   cout <<"RICH geometry version dated:"<<VERSION<<endl;
 
+#ifdef __AMSDEBUG__
+
+  RICHDB::dump();
+
+#endif
+
+
+
+
   // This is not so provisional
 
 
@@ -620,6 +629,15 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 
   //// Radiator
 
+#ifdef __AMSDEBUG__
+  //  cout<<" RADIATOR bottom at "<<RICHDB::total_height()/2-RICHDB::rad_pos()-RICHDB::rad_height/2
+  //      <<endl;
+  //  cout << "LG top at "<<RICHDB::total_height()/2+AMSRICHIdGeom::pmt_pos(1,2)-
+  //    RICHDB::lg_pos()-RICHDB::lg_height/2.<<endl;
+  //
+  //  cout << "LG center at"<<RICHDB::total_height()/2+AMSRICHIdGeom::pmt_pos(1,2) 
+  //       <<endl;
+#endif
 
   geant xedge=RICHDB::rad_length/2.,yedge=RICHDB::rad_length/2., 
     lg,

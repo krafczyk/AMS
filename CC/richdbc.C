@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.26 2002/04/23 16:47:23 delgadom Exp $
+//  $Id: richdbc.C,v 1.27 2002/05/21 16:35:06 delgadom Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -125,11 +125,13 @@ geant RICHDB::rad_radius=60.0;         // Radiator radius
 geant RICHDB::rad_height=3;            // Radiator thickness
 geant RICHDB::rad_length=11.3+0.1;        // Radiator tile side length
 geant RICHDB::lg_height=3.0;           // Light guide height withou the fixing foil
-geant RICHDB::lg_length=3.1;        // Side length of light guide top (Called lg_length in the standalone version)
+geant RICHDB::lg_length=3.4;        // Side length of light guide top (Called lg_length in the standalone version)  CHANGED TO CURRENT VALUE!!!!
 geant RICHDB::lg_bottom_length=1.77;
 geant RICHDB::inner_pixel=0.38;
 geant RICHDB::foil_height=0.1;
 geant RICHDB::foil_index=1.49;
+
+
 geant RICHDB::rad_supthk=0.1;
 
 
@@ -667,7 +669,57 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 
 
 
+void RICHDB::dump(){
+  // DUMP constant values
+  cout <<"Dimensions:"<<endl<<
+    "  RICradpos:  "<<RICradpos<<endl<<
+    "  RICaethk:  "<<RICaethk<<endl<<      
+    "  RIClgthk:  "<<RIClgthk<<endl<<
+    "  RIClgthk_top:  "<<RIClgthk_top<<endl<<
+    "  RIClgthk_bot:  "<< RIClgthk_bot<<endl<< 
+    "  RICmithk:  "<<RICmithk<<endl<<      
+    "  RICradmirgap:  "<<RICradmirgap<<endl<<   
+    "  RIClgdmirgap:  "<<RIClgdmirgap<<endl<<
+    "  RICotherthk:  "<<RICotherthk<<endl;
 
+  // Dump not constant 
+  cout<<
+    "  rad_clarity:  "<<rad_clarity<<endl<<
+    "  rad_radius:  "<<rad_radius<<endl<<
+    "  rad_height:  "<<rad_height<<endl<<
+    "  rad_length:  "<<rad_length<<endl<<
+    "  rad_index:  "<<rad_index<<endl<<
+    "  foil_height:  "<<foil_height<<endl<<
+    "  foil_index:  "<<foil_index<<endl<<
+    "  rad_supthk:  "<<rad_supthk<<endl<<
+    "  lg_height:  "<<lg_height<<endl<<
+    "  lg_length:  "<<lg_length<<endl<<
+    "  lg_bottom_length:  "<<lg_bottom_length<<endl<<
+    "  inner_pixel:  "<<inner_pixel<<endl;
+
+
+  // Dump functions
+  cout <<
+    "  total_height:  "<<total_height()<<endl<<
+    "  pmtb_height:  "<<pmtb_height()<<endl<<
+    "  mirror_pos:  "<<mirror_pos()<<endl<<
+    "  rad_pos:  "<<rad_pos()<<endl<<
+    "  pmt_pos:  "<<pmt_pos()<<endl<<
+    "  elec_pos:  "<<elec_pos()<<endl<<
+    "  cato_pos:  "<<cato_pos()<<endl<<
+    "  lg_pos:  "<<lg_pos()<<endl<<
+    "  shield_pos:  "<<shield_pos()<<endl;
+
+ 
+  // Other stuff
+  cout <<
+    " LG top at "<<RICHDB::total_height()/2+AMSRICHIdGeom::pmt_pos(1,2)
+    +RICHDB::lg_height/2.+RICpmtfoil-lg_pos()<<endl<<
+    " Radiator bottom at "<<RICHDB::total_height()/2-RICHDB::rad_pos()-
+    RICHDB::rad_height/2<<endl;
+
+
+}
 
 
 

@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.23 2002/04/23 16:47:40 delgadom Exp $
+//  $Id: richdbc.h,v 1.24 2002/05/21 16:35:13 delgadom Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -194,6 +194,7 @@ public:
   static integer & Nph(){return _Nph;}  
   static geant ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 			     geant &length);
+  static void dump();
   
 };
 
