@@ -1,3 +1,5 @@
+AMSEDDataDir=/offruns/scripts/log/root/
+export  AMSEDDataDir
 while amsedc
 do
 echo amsedc terminated

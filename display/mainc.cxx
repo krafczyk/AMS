@@ -96,15 +96,18 @@ out:
    TGeometry * geo = (TGeometry *)fgeo.Get("ams");
    AMSDisplay display("AMSRoot Event Display", geo);
        display.SetApplication(theApp);
+       display.SetView (kTwoView);
        // display.SetView (kTwoView);
       for(int i=0;;i++){
        amsroot.Clear();
        if(!amsroot.GetEvent(i)){
-        i=0;
-        continue;
+        if(i){
+          i=0;
+          continue;
+        }
+        else break;
        }
           display.DrawEvent();
-          if(i==1)display.SetView (kTwoView);
           display.GetCanvas()->Update();	// force it to draw
           theApp->Run();
                     {
