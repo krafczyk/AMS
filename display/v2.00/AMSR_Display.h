@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.h,v 1.4 2001/01/22 17:32:38 choutko Exp $
+//  $Id: AMSR_Display.h,v 1.5 2001/06/08 07:42:31 amsp Exp $
 #ifndef AMSR_Display_H
 #define AMSR_Display_H
 
@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#include <TGXW.h>
+//#include <TGXW.h>
 #include <TGClient.h>
 #include <TGFrame.h>
 #include <TGIcon.h>

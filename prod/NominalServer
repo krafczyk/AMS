@@ -1,5 +1,5 @@
 # Max CPU Mem  Job    {// Host LoginInEnd // Log     //   Submit }   
- 1   1.9  50 /f0dah0/users/alexei/AMS/exe/linux/amsprodserver.exe.oracle
+ 5   1.9  50 AMSServerJob
  defaulthost 0
  -o /dat0/local/logs/
  /usr/local/lsf/bin/bsub -q linux_server -m

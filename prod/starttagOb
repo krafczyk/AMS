@@ -1,0 +1,15 @@
+AMSProdDir=/f0dat0/local/vdev
+export AMSProdDir
+AMSDataDir=/f0dat0/local/AMSDataDir
+export AMSDataDir
+AMSProdOutputDir=/f0dat1/local/amsdatantuple/rn
+export AMSProdOutputDir
+AMSProdPerl=$AMSProdDir/perl
+export AMSProdPerl
+AMSServerJob=$AMSProdDir/exe/linux/amsprodserver.exe.oracle
+export AMSServerJob
+AMSProducerJob=$AMSProdDir/datacards/StandardNtupleTagO.job
+export AMSProducerJob
+AMSDBDir=/amsdat0/oracle/data
+export AMSDBDir
+bsub -q linux_server -m pcamsp1 -o /dat0/local/logs/Server.1.log starttagO

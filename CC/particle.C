@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.96 2001/06/06 16:12:13 choutko Exp $
+//  $Id: particle.C,v 1.97 2001/06/08 07:42:30 amsp Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -615,7 +615,7 @@ void AMSParticle::pid(){
      number b1=1./_prich->getbeta();
      number b2=_prich->geterrorbeta()*b1*b1;
      b2=b2*b2;
-     if(fabs(b1-_beta)<2*sqrt(b2+_ebeta) || _beta<RICHDB::rad_index){
+     if(fabs(b1-_beta)<3*sqrt(b2+_ebeta) || _beta<RICHDB::rad_index){
       _beta=(_beta/_ebeta+b1/b2)/(1/_ebeta+1/b2);
       _ebeta=1./(1/_ebeta+1/b2);
       _Beta=_pbeta->getbeta()<0?-1/_beta:1/_beta;
