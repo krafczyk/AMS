@@ -1,5 +1,6 @@
-//  $Id: antidbc02.C,v 1.6 2003/03/18 09:04:06 choumilo Exp $
+//  $Id: antidbc02.C,v 1.7 2003/03/18 13:20:35 choumilo Exp $
 // Author E.Choumilov 2.06.97
+//    18.03.03 changed to be compatible with AMS02 design.
 //
 #include <typedefs.h>
 #include <commons.h>

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.74 2003/03/18 09:04:18 choumilo Exp $
+//  $Id: root.h,v 1.75 2003/03/18 13:20:47 choumilo Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -10,6 +10,7 @@
 #include "TClonesArray.h"
 #include "TRefArray.h"
 #include "TRef.h"
+#include <antidbc02.h>
 #endif
 
 const int NClassAMS = 50;
@@ -748,9 +749,11 @@ public:
   int   Bar;
   float tovta[2];
   float tovtd[2];
+  float tovtdl[2];
   float sdtm[2];
   float edepa;
   float edepd;
+  float edepdl;
   float time;
   float cool;
 

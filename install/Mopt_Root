@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.39 2003/03/10 13:28:25 choutko Exp $
+#  $Id: Mopt_Root,v 1.40 2003/03/18 13:20:47 choumilo Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -202,7 +202,7 @@ else
 SOFLAGS = -Wl,-shared,--allow-shlib-undefined
 SHLDFLAGS=    -lshift  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib  -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux $(ROOTLIBS) -lamsut  -lg2c -ldl -lshift
 LDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux $(ROOTLIBS) -lamsut  -lg2c -ldl -lshift
-LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -lamsut  -lg2c -ldl -lshift
+LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -lamsut  -lg2c -ldl -lshift -lfreetype
 endif
 TIMEL=
 INCS= $(wildcard $(SRC)*.*h)

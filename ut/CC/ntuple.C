@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.133 2003/03/18 09:04:07 choumilo Exp $
+//  $Id: ntuple.C,v 1.134 2003/03/18 13:20:36 choumilo Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -248,7 +248,6 @@ void AMSNtuple::clearClones()
   if ((void*)&_evroot02) {
     if (_evroot02.fAntiCluster)    _evroot02.fAntiCluster -> Clear();
     if (_evroot02.fAntiMCCluster)  _evroot02.fAntiMCCluster -> Clear();
-    if (_evroot02.fAntiRawCluster) _evroot02.fAntiRawCluster -> Clear();
     if (_evroot02.fBeta)           _evroot02.fBeta -> Clear();
     if (_evroot02.fCharge)         _evroot02.fCharge -> Clear();
     if (_evroot02.fECALcluster)    _evroot02.fECALcluster -> Clear();
@@ -298,9 +297,6 @@ void AMSNtuple::deleteClones()
     if (_evroot02.fAntiMCCluster)  {
       _evroot02.fAntiMCCluster -> Delete();
     }
-    if (_evroot02.fAntiRawCluster) { 
-      _evroot02.fAntiRawCluster -> Delete();
-    }
     if (_evroot02.fBeta)           _evroot02.fBeta -> Delete();
     if (_evroot02.fCharge)         _evroot02.fCharge -> Delete();
     if (_evroot02.fECALcluster)    _evroot02.fECALcluster -> Delete();
@@ -345,7 +341,6 @@ void AMSNtuple::expandClones()
 #endif
     if (_evroot02.fAntiCluster)    _evroot02.fAntiCluster      -> Expand(MAXANTICL);
     if (_evroot02.fAntiMCCluster)  _evroot02.fAntiMCCluster    -> Expand(MAXANTIMC);
-    if (_evroot02.fAntiRawCluster) _evroot02.fAntiRawCluster   -> Expand(MAXANTIRAW);
     if (_evroot02.fBeta)           _evroot02.fBeta             -> Expand(MAXBETA02);
     if (_evroot02.fCharge)         _evroot02.fCharge           -> Expand(MAXCHARGE02);
 
@@ -403,7 +398,6 @@ void AMSNtuple::createClones()
 
     if (!_evroot02.fAntiCluster)    _evroot02.fAntiCluster   = new TClonesArray("AntiClusterRoot",MAXANTICL);
     if (!_evroot02.fAntiMCCluster)  _evroot02.fAntiMCCluster = new TClonesArray("ANTIMCClusterRoot",MAXANTIMC);
-    if (!_evroot02.fAntiRawCluster) _evroot02.fAntiRawCluster = new TClonesArray("AntiRawClusterRoot",MAXANTIRAW);
     if (!_evroot02.fBeta)           _evroot02.fBeta          = new TClonesArray("BetaRoot02",MAXBETA02);
     if (!_evroot02.fCharge)         _evroot02.fCharge        = new TClonesArray("ChargeRoot02",MAXCHARGE02);
     if (!_evroot02.fECALcluster)    _evroot02.fECALcluster   = new TClonesArray("EcalClusterRoot",MAXECCLUST);

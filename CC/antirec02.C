@@ -1,9 +1,12 @@
-//  $Id: antirec02.C,v 1.7 2003/03/18 09:04:06 choumilo Exp $
+//  $Id: antirec02.C,v 1.8 2003/03/18 13:20:35 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
 //                           (RawEvent + validate + RawCluster) + trpattern;
-//                           complete DAQ-section added; Cluster modified 
+//                           complete DAQ-section added; Cluster modified
+//
+//    18.03.03 E.Choumilov Simu/Reco-logic completely changed according to 
+//                                         AMS02 design. 
 //
 #include <typedefs.h>
 #include <point.h>

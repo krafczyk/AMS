@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.32 2003/01/07 18:39:06 jorgec Exp $
+//  $Id: root.C,v 1.33 2003/03/18 13:20:36 choumilo Exp $
 //  Last Edit : Nov 19, 2002. A.Klimentov
 //              check Root classes
 //              ? TrGammaRoot02 - commented
@@ -13,6 +13,7 @@
 #include <particle.h>
 #include <richrec.h>
 #include <tofrec02.h>
+#include <antirec02.h>
 #include <trdrec.h>
 #include <trigger102.h>
 #include <trigger302.h>
@@ -51,7 +52,6 @@ ClassImp(ANTIMCClusterRoot)
 ClassImp(LVL3Root02)
 ClassImp(LVL1Root02)
 ClassImp(TrRawClusterRoot)
-ClassImp(AntiRawClusterRoot)
 ClassImp(TOFRawClusterRoot)
 ClassImp(RICMCRoot)
 ClassImp(RICEventRoot)
@@ -64,6 +64,10 @@ AntiClusterRoot::AntiClusterRoot(AMSAntiCluster *ptr)
 {
   Status = ptr->_status;
   Sector = ptr->_sector;
+  Ntimes = ptr->_ntimes;
+  Npairs = ptr->_npairs;
+  for(int i=0;i<Ntimes;i++)Times[i] = ptr->_times[i];
+  for(int i=0;i<Ntimes;i++)Timese[i] = ptr->_etimes[i];
   Edep   = ptr->_edep;
   for (int i=0; i<3; i++) Coo[i] = ptr->_coo[i];
   for (int i=0; i<3; i++) ErrorCoo[i] = ptr->_ecoo[i];
@@ -78,15 +82,6 @@ ANTIMCClusterRoot::ANTIMCClusterRoot(AMSAntiMCCluster *ptr)
   Edep   = ptr->_edep;
 }
 
-AntiRawClusterRoot::AntiRawClusterRoot(){};
-AntiRawClusterRoot::AntiRawClusterRoot(AMSAntiRawCluster *ptr)
-{
-
-  Status = ptr->_status;
-  Sector = ptr->_sector;
-  UpDown = ptr->_updown;
-  Signal = ptr->_signal;
-}
 
 BetaRoot02::BetaRoot02()
 {
@@ -389,9 +384,11 @@ TOFRawClusterRoot::TOFRawClusterRoot(TOF2RawCluster *ptr)
   Bar    = ptr->_plane;
   for (int i=0; i<2; i++) tovta[i]=ptr->_adca[i];
   for (int i=0; i<2; i++) tovtd[i]=ptr->_adcd[i];
+  for (int i=0; i<2; i++) tovtdl[i]=ptr->_adcdl[i];
   for (int i=0; i<2; i++) sdtm[i] =ptr->_sdtm[i];
   edepa  = ptr->_edepa;
   edepd  = ptr->_edepd;
+  edepdl  = ptr->_edepdl;
   time   = ptr->_time;
   cool   = ptr->_timeD;
 }
@@ -764,17 +761,6 @@ void EventRoot02::AddAMSObject(AMSAntiMCCluster *ptr)
   }
 }
 
-void EventRoot02::AddAMSObject(AMSAntiRawCluster *ptr)
-{
-  if (ptr) {
-    if (fAntiRawCluster) {
-   TClonesArray &clones =  *fAntiRawCluster;
-   ptr->SetClonePointer(new (clones[fAntiRawCluster->GetLast()+1]) AntiRawClusterRoot(ptr));
-    }
-  }  else {
-    cout<<"AddAMSObject -E- AMSAntiRawCluster ptr is NULL"<<endl;
-  }
-}
 
 void EventRoot02::AddAMSObject(AMSBeta *ptr)
 {
