@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.45 2002/05/21 11:08:09 alexei Exp $
+# $Id: RemoteClient.pm,v 1.46 2002/05/21 14:56:24 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -32,6 +32,7 @@ my %fields=(
         MailT=>[],
         CiteT=>[],
         FilesystemT=>[],
+        NickT=>[],
         AMSSoftwareDir=>undef,
         AMSDataDir=>undef,
         AMSProdDir=>undef,
@@ -808,8 +809,9 @@ sub Connect{
     if ($self->{q}->param("queryDB")) {
      $self->{read}=1;
      if ($self->{q}->param("queryDB") eq "Submit") {
-        $sql="SELECT run, particle FROM runscat WHERE ";
+        $sql="SELECT run, particle FROM runscat, jobs WHERE ";
         htmlTop();
+        my $nickname=>undef;
         my $cutoff=>undef;
         my $dataset=>undef;
         my $file=>undef;
@@ -848,6 +850,11 @@ sub Connect{
           $color="blue";
           print "<tr><td><font size=\"3\" color=$color><b>Job Template Dataset :</b></td><td><b> $dataset</b></td></tr>\n";
          }
+        }
+        if (defined $q->param("QNick") and $q->param("QNick") ne "Any") {
+         $nickname = $q->param("QNick");
+         print "<tr><td><font size=\"3\" color=$color><b>Job Nickname </b></td><td><b>  $nickname</b></td></tr>\n";
+         $sql = $sql." jobs.NICKNAME = '$nickname' AND ";
         }
         if (defined $q->param("QPart") and $q->param("QPart") ne "Any") {
          $particle = $q->param("QPart");
@@ -1214,6 +1221,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
              $i++;
             }
             print "</select>\n";
+            htmlTextField("Job nickname","text",80,'Any',"QNick"," ");  
             print "</b></td></tr>\n";
         htmlTableEnd();
 # Run Parameters
@@ -2929,12 +2937,12 @@ print qq`
          $tmpb =~ s/'/''/g;
     }
          my $ctime=time();
-         my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb',$ctime)";
+         my $nickname = $q->param("QNick");
+         my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb',$ctime,'$nickname')";
          $self->{sqlserver}->Update($sql);
 #
-         my $nickname = $q->param("QNick");
-         $sql="insert into JobsNick values($run,'$nickname')";
-         $self->{sqlserver}->Update($sql);
+#         $sql="insert into JobsNick values($run,'$nickname')";
+#         $self->{sqlserver}->Update($sql);
 #
 #creat corresponding runevinfo
          my $ri={};
