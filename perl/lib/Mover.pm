@@ -176,6 +176,8 @@ sub doCopy {
     $ref->readServer();
     $ref->getValidatedNTuples();
 # do copy || file by file if it matches to the DB list
+# hostname
+#
   my $time = time();
   my $logfile = "/tmp/cp.$time.log";
   my $cmd = "cp -pi -d -v -r $input $output > $logfile";
@@ -184,6 +186,7 @@ sub doCopy {
    die "Copy failed :  $cmd"
   }
   if ($self -> doValidate()) {
+# sendDSTEnd($action="Create","Delete")
    if ($self -> updateDB()) {
      $self -> commitDB();
      $self -> doRemove();
@@ -217,6 +220,10 @@ sub readDB {
 sub readServer {
 #
     my $ref=shift;
+    my $ok=$ref->UpdateARS();
+    if(not $ok) {
+       return 0;
+   }
     my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
             my $length;
@@ -245,20 +252,22 @@ sub getValidatedNTuples {
     my @output=();
     my @text=();
     my @final_text=();
-    my $sort="Validated";
+    my @sort=("Validated", "Success");
+        foreach my $sort (@sort) {    
         for my $i (0 ... $#{$Mover::Singleton->{dsts}}){
             $#text=-1;
             my $hash=$Mover::Singleton->{dsts}[$i];
             if($hash->{Type} eq "Ntuple"){
                 if($hash->{Status} eq $sort){
-                    print "$sort : $hash -> {Run}\n";
+                    print "$sort : $hash->{Name}\n";
                 }
             }
         }
+    }
 }
 
 sub doValidate {
-# validate output
+# validate output RC L645-693
     return 1;
 }
 
@@ -472,3 +481,121 @@ sub getior2{
     close(FILE);
     return undef;
 }
+
+sub UpdateARS{
+ my $ref=shift;
+ my $arsref;
+ if(not $ref->{ok}){
+     return 0;
+ }
+ foreach $arsref (@{$ref->{arsref}}){
+     try{
+         my %cid=%{$ref->{cid}};
+         $cid{Type}="Server";
+      my ($length,$pars)=$arsref->getARS(\%cid,"Any",0,1);
+         if($length==0 ){
+            carp "updars returns zero \n";
+            return 0;
+        }
+        for(;;){
+             my $old=shift @{$ref->{arsref}};
+          if(ref($old)){
+            undef $old;
+          }
+          else{
+            last;
+          }
+         }
+         my $ior;
+         foreach $ior (@$pars){
+             try{
+              my $newref=$ref->{orb}->string_to_object($ior->{IOR});
+              if(rand >0.5){
+                  unshift @{$ref->{arsref}}, $newref;
+              }
+              else{
+                  push @{$ref->{arsref}}, $newref;
+              }
+             }
+             catch CORBA::SystemException with{
+               carp "getars 2 oops SystemException Error "."\n";
+             };
+
+         }   
+         $cid{Type}="Producer";
+         ($length,$pars)=$arsref->getARS(\%cid,"Any",0,1);
+
+         if($length==0 ){
+            carp "updars returns zero \n";
+            return 0;
+        }
+        for(;;){
+             my $old=shift @{$ref->{arpref}};
+          if(ref($old)){
+            undef $old;
+          }
+          else{
+            last;
+          }
+         }
+         foreach $ior (@$pars){
+             try{
+              my $newref=$ref->{orb}->string_to_object($ior->{IOR});
+              if(rand >0.5){
+#                  warn "unshift"; 
+                  unshift @{$ref->{arpref}}, $newref;
+              }
+              else{
+#                  warn "push"; 
+                  push @{$ref->{arpref}}, $newref;
+              }
+             }
+             catch CORBA::SystemException with{
+               carp "getars 3 oops SystemException Error "."\n";
+             };
+
+         }   
+
+         $cid{Type}="DBServer";
+         ($length,$pars)=$arsref->getARS(\%cid,"Any",0,1);
+
+         if($length==0 ){
+#            carp "updars returns zero \n";
+            return 1;
+        }
+        for(;;){
+             my $old=shift @{$ref->{ardref}};
+          if(ref($old)){
+            undef $old;
+          }
+          else{
+            last;
+          }
+         }
+         foreach $ior (@$pars){
+             try{
+              my $newref=$ref->{orb}->string_to_object($ior->{IOR});
+              if(rand >0.5){
+#                  warn "unshift"; 
+                  unshift @{$ref->{ardref}}, $newref;
+              }
+              else{
+#                  warn "push"; 
+                  push @{$ref->{ardref}}, $newref;
+              }
+          }
+             catch CORBA::SystemException with{
+               carp "getars 3 oops SystemException Error "."\n";
+             };
+
+         }   
+
+         last;
+     }
+    catch CORBA::SystemException with{
+     carp "getars oops SystemException Error "."\n";
+ };
+ }
+ return 1;
+}
+
