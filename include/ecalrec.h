@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.8 2001/01/22 17:32:42 choutko Exp $
+//  $Id: ecalrec.h,v 1.9 2001/07/13 16:25:34 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -129,6 +129,7 @@ public:
   static void build(int &stat);
   static integer Out(integer);
   static void init();
+
 //
 protected:
   void _printEl(ostream &stream){
@@ -145,4 +146,46 @@ void _copyEl();
 };
 //-----------------------------------
 
+
+
+
+class EcalShower: public AMSlink{
+protected:
+
+AMSPoint _CofG;
+number   _Theta;
+number   _Phi;
+number   _ErTheta;
+number   _ErPhi;
+number  _TotalEnergy;
+number  _TotalCorrectedEnergy;
+number  _TotalCorrectedEnergyError;
+number  _RearLeak;
+number  _SideLeak;
+number  _ShowerMaximum;
+
+void _writeEl();
+void _printEl(ostream &stream){
+stream << "  EcalShower Energy "<<_TotalCorrectedEnergy<<" Status "<<_status<<endl;
+}
+void _copyEl(){};
+
+public:
+
+EcalShower(AMSPoint cofg, number totalenergy, number showermaximum):AMSlink(),_CofG(cofg),_TotalEnergy(totalenergy),_Theta(0),_Phi(0),_ErTheta(0),_ErPhi(0),_TotalCorrectedEnergy(totalenergy),_TotalCorrectedEnergyError(0),_RearLeak(0),_SideLeak(0),_ShowerMaximum(showermaximum){};
+
+void DirectionFit();
+void EnergyFit();
+void ProfileFit();
+void EMagFit();
+
+  static integer build(int rerun=0);
+  static integer Out(integer);
+
+
+};
+
 #endif
+
+
+

@@ -1,4 +1,4 @@
-//  $Id: amsdbc.C,v 1.35 2001/01/22 17:32:18 choutko Exp $
+//  $Id: amsdbc.C,v 1.36 2001/07/13 16:25:26 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <math.h>
@@ -30,6 +30,7 @@ const integer AMSDBc::GOOD      =16384*2*2*2*2*2;
 const integer AMSDBc::BADINTERPOL =16384*2*2*2*2*2*2;
 const integer AMSDBc::NOTRACK     =16384*2*2*2*2*2*2*2;
 const integer AMSDBc::AOVERFLOW    =16384*2*2*2*2*2*2*2*2;
+const integer AMSDBc::TRDTRACK     =16384*2*2*2*2*2*2*2*2*2;
 
 integer AMSDBc::debug=1;
 integer AMSDBc::BigEndian=0;

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.22 2001/05/17 12:10:12 choumilo Exp $
+//  $Id: ecalrec.C,v 1.23 2001/07/13 16:25:26 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -684,3 +684,106 @@ if(init == 0){
 return (WriteAll || status);
 }
 //---------------------------------------------------
+
+integer EcalShower::build(int rerun){
+
+// At the moment just a skeleton 
+
+AMSPoint cofg(0,0,0);
+number _ECalTot=0;
+number _ECalShowerMax=0;
+number ecalmax=0;
+for(int ipl=0;ipl<2*ECALDBc::slstruc(3);ipl++){ //loop over containers(planes)
+ AMSEcalCluster* ptr=(AMSEcalCluster*)AMSEvent::gethead()->getheadC("AMSEcalCluster",ipl,0);
+  number ecal=0;
+  while(ptr){
+   ecal+=ptr->getedep();
+   if(ecal>ecalmax){
+     ecalmax=ecal;
+     _ECalShowerMax=ptr->getcoo()[2];
+   }
+   _ECalTot+=ptr->getedep();
+   cofg=cofg+ptr->getcoo()*ptr->getedep();
+   ptr=ptr->next();
+  }
+}
+  integer pr,pl,ce;
+  number cl,ct;
+  number EcalFirstPlaneZ;
+  ECALDBc::getscinfoa(0,0,0,pr,pl,ce,ct,cl,EcalFirstPlaneZ);
+
+  if(_ECalTot>0){
+    cofg=cofg/_ECalTot;
+    AMSEvent::gethead()->addnext(AMSID("EcalShower",0),new EcalShower(cofg,_ECalTot/1000.,EcalFirstPlaneZ-_ECalShowerMax)); 
+  }
+
+
+
+
+
+}
+
+
+
+void EcalShower::_writeEl(){
+
+  EcalShowerNtuple* TN = AMSJob::gethead()->getntuple()->Get_ecshow();
+
+  if (TN->Necsh>=MAXECSHOW) return;
+
+// Fill the ntuple
+  if(EcalShower::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+    TN->Status[TN->Necsh]=_status;
+    TN->Theta[TN->Necsh]=_Theta;
+    TN->ErTheta[TN->Necsh]=_ErTheta;
+    TN->Phi[TN->Necsh]=_Phi;
+    TN->ErPhi[TN->Necsh]=_ErPhi;
+    TN->Energy[TN->Necsh]=_TotalEnergy;
+    TN->EnergyC[TN->Necsh]=_TotalCorrectedEnergy;
+    TN->ErEnergyC[TN->Necsh]=_TotalCorrectedEnergyError;
+    TN->SideLeak[TN->Necsh]=_RearLeak;
+    TN->RearLeak[TN->Necsh]=_SideLeak;
+    TN->ShowerMax[TN->Necsh]=_ShowerMaximum;
+    for(int i=0;i<3;i++)TN->CofG[TN->Necsh][i]=_CofG[i];
+    TN->Necsh++;
+  }
+
+}
+
+void EcalShower::DirectionFit(){
+
+
+}
+
+void EcalShower::EnergyFit(){
+
+
+}
+
+void EcalShower::ProfileFit(){
+
+
+}
+
+void EcalShower::EMagFit(){
+
+
+}
+
+
+
+integer EcalShower::Out(integer status){
+static integer init=0;
+static integer WriteAll=1;
+if(init == 0){
+ init=1;
+ integer ntrig=AMSJob::gethead()->gettriggerN();
+ for(int n=0;n<ntrig;n++){
+   if(strcmp("EcalShower",AMSJob::gethead()->gettriggerC(n))==0){
+     WriteAll=1;
+     break;
+   }
+ }
+}
+return (WriteAll || status);
+}

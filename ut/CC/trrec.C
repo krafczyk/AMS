@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.127 2001/04/27 21:49:59 choutko Exp $
+//  $Id: trrec.C,v 1.128 2001/07/13 16:25:27 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -29,7 +29,7 @@
 
 
 integer AMSTrTrack::_RefitIsNeeded=0;
-
+integer AMSTrTrack::_MarginPatternsNeeded=0;
 
 
 integer AMSTrCluster::build(integer refit){
@@ -1325,11 +1325,10 @@ integer AMSTrTrack::build(integer refit){
   }
     if(xs>3)AMSEvent::gethead()->addnext(AMSID("Test",0),new Test());
   }
-          integer       ThreePointNotWanted=0;
 
   for (pat=0;pat<TKDBc::npat();pat++){
-    if(TKDBc::patpoints(pat)==3 && ThreePointNotWanted)continue;
-    if(TKDBc::patallow(pat)){
+    if(!TKDBc::patallow(pat) && !_MarginPatternsNeeded)continue;
+    if(TKDBc::patallowFalseX(pat)){
       int fp=TKDBc::patpoints(pat)-1;    
       // Try to make StrLine Fit
       integer first=TKDBc::patconf(pat,0)-1;
@@ -1351,9 +1350,9 @@ integer AMSTrTrack::build(integer refit){
         integer npfound=_TrSearcher(1);
         if(npfound){
            NTrackFound++;
-         if(npfound>4){
+         if(TKDBc::patallow(pat)){
             // we don't want three points any more
-            ThreePointNotWanted=1;
+            _MarginPatternsNeeded=0;
          }
          goto out;
         }
@@ -1760,7 +1759,9 @@ integer AMSTrTrack::TOFOK(){
     if(pc){
       AMSTRDTrack * ptrd = (AMSTRDTrack*)pc->gethead();
       AMSPoint SearchReg(5,5,5);
+      integer trdf=0;
       while(ptrd){
+       trdf++;
        AMSPoint Res;
        number theta,phi,sleng;
        interpolate(ptrd->getCooStr() ,AMSPoint(0,0,1), Res, theta, phi, sleng);
@@ -1769,6 +1770,7 @@ integer AMSTrTrack::TOFOK(){
        }
        ptrd=ptrd->next();
       }
+      if(trdf)return 0;
     }
     }
     if (TRFITFFKEY.UseTOF && (TKDBc::ambig(_Pattern) || 
@@ -3042,6 +3044,17 @@ _Ridgidity(10000000),_ErrRidgidity(10000000),_Chi2FastFit(1000000){
  }
  _Theta=dir.gettheta();
  _Phi=dir.getphi();
+ _P0=point;
+}
+
+AMSTrTrack::AMSTrTrack(number theta, number phi, AMSPoint point):AMSlink(0,0),
+_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),
+_Ridgidity(10000000),_ErrRidgidity(10000000),_Chi2FastFit(1000000){
+ for(int i=0;i<trconst::maxlay;i++){
+  _Pthit[i]=0;
+ }
+ _Theta=theta;
+ _Phi=phi;
  _P0=point;
 }
 

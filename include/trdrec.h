@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.2 2001/05/09 08:34:19 choutko Exp $
+//  $Id: trdrec.h,v 1.3 2001/07/13 16:25:35 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include <trdid.h>
@@ -216,6 +216,10 @@ static geant _CheckTime(){return HighResTime()-_Time;}
 static bool _NoMoreTime();
 static geant _Time;
 static geant _TimeLimit;
+
+number getphi(){return _StrLine._Phi;}
+number gettheta(){return _StrLine._Theta;}
+AMSPoint getcoo(){return _StrLine._Coo;}
 
 };
 

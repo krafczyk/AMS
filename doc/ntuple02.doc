@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.16 2001/07/12 16:19:28 choutko Exp $
+#  $Id: ntuple02.doc,v 1.17 2001/07/13 16:25:34 choutko Exp $
 This is AMS02 Ntuple Description
 
  *****************************************
@@ -305,6 +305,25 @@ This is AMS02 Ntuple Description
 * I*4  *           * ECALHITS * EchtCell(necht)    // ECAL Cell number (0,...)
 * R*4  *           * ECALHITS * EchtEdep(necht)    // ECAL measured energy (MeV)
 * R*4  *           * ECALHITS * EchtCoo(3,necht)   // ECAL Coo (cm)
+
+
+
+
+ * I*4  * [0,5]    * ECALSHOW  * necsh            // number of showers
+ * I*4  *          * ECALSHOW  * EcshStatus(necsh) // Status (1:mip,2:emag,4:had;8:unknown)
+ * R*4  *          * ECALSHOW  * EcshCofG(3,necsh)  // shower center of gravitity (abs coo, cm)
+ * R*4  *          * ECALSHOW  * EcshTheta(necsh)  // theta angle  (rad)
+ * R*4  *          * ECALSHOW  * EcshPhi(necsh)    // phi angle
+ * R*4  *          * ECALSHOW  * EcshErTheta(necsh) //error in theta
+ * R*4  *          * ECALSHOW  * EcshErPhi(necsh)    // error in phi
+ * R*4  *          * ECALSHOW  * EcshEnergy(necsh)  // energy (raw) (gev)
+ * R*4  *          * ECALSHOW  * EcshEnergyC(necsh) // energy (corrected)
+ * R*4  *          * ECALSHOW  * EcshErEnergyC(necsh) //error in energy
+ * R*4  *          * ECALSHOW  * EcshRearLeak(necsh) // leaked energy raw
+ * R*4  *          * ECALSHOW  * EcshSideLeak(necsh) // leaked energy side
+ * R*4  *          * ECALSHOW  * ecshmax(necsh)      // shower max (rel coo ,cm)
+
+
 
 
  * I*4  * [0,2]    * LVL3     * nlvl3              // lvl3trigger number 

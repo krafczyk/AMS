@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.4 2001/01/22 17:32:45 choutko Exp $
+//  $Id: trigger102.h,v 1.5 2001/07/13 16:25:35 choutko Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include <link.h>
@@ -54,6 +54,8 @@ public:
    for(i=0;i<TOF2GC::SCLRS;i++)_tofpatt[i]=tofpatt[i];
    for( i=0;i<TOF2GC::SCLRS;i++)_tofpatt1[i]=tofpatt1[i];
  }
+ bool IsECHighEnergy()const {return _ecalflag/10>0;}
+ bool IsECEMagEnergy()const {return _ecalflag%10==2;}
   static Scalers * getscalersp(){return &_scaler;}
   static integer getscalerssize(){return sizeof(_scaler);}
   uinteger getlifetime () const {return _LifeTime;}

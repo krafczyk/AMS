@@ -1,11 +1,12 @@
-//  $Id: iotest.C,v 1.4 2001/06/11 14:02:09 choutko Exp $
+//  $Id: iotest.C,v 1.5 2001/07/13 16:25:35 choutko Exp $
 #include <iostream>
 #include <fstream.h>
 #include <stdlib.h>
 #include <streambuf.h>
 #include <vector>
 void main(){
-double arr[10];
+float a=10;
+double arr[10]={a,a,a,a,a,a,a,a,a,a};
 char fnam[128]="datafile";
   ifstream iftxt(fnam,ios::in);
    if(!iftxt){

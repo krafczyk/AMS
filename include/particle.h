@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.31 2001/07/12 16:19:28 choutko Exp $
+//  $Id: particle.h,v 1.32 2001/07/13 16:25:35 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -61,9 +61,6 @@ protected:
   AMSPoint _AntiCoo[2];  
   AMSPoint _EcalCoo[2*ECSLMX];  
   AMSPoint _EcalSCoo[3];
-  number   _ECalTot;  
-  number   _ECalTotC;  
-  number   _ECalShowerMax;  
   AMSPoint _TrCoo[trconst::maxlay];  
   AMSPoint _TRDCoo;  
   number   _Local[trconst::maxlay];
@@ -109,9 +106,6 @@ public:
     for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2*ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
-    _ECalTot=0;
-    _ECalTotC=0;
-    _ECalShowerMax=0;
     for(i=0;i<6;i++){
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;
@@ -135,9 +129,6 @@ public:
     for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2*ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
-    _ECalTot=0;
-    _ECalTotC=0;
-    _ECalShowerMax=0;
     for(i=0;i<6;i++){
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;
@@ -187,7 +178,7 @@ void       setpctc(AMSCTCCluster* p, int n)   { if (n>=0 && n < 2) _pctc[n] = p;
 
 integer    getgpart()               {return _GPart;}
 void       setgpart(integer gpart)  {_GPart = gpart;}
-uinteger contnumber() const {return _ptrack->checkstatus(AMSDBc::NOTRACK)?1:0;}
+uinteger contnumber() const {return (_ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK))?1:0;}
 //-
 ~AMSParticle(){
 if(_ptrack && _ptrack->getpattern()<0){

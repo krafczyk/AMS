@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.40 2001/01/22 17:32:18 choutko Exp $
+//  $Id: beta.C,v 1.41 2001/07/13 16:25:26 choutko Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -15,6 +15,7 @@
 #include <ntuple.h>
 #include <trigger3.h>
 #include <event.h>
+#include <trdrec.h>
 extern "C" void rzerowrapper_(number & z0, number & zb, number & x0, number & zmin,int & ierr);
 
 integer AMSBeta::patconf[npatb][4]={  1,2,3,4,        // 1234  0
@@ -36,6 +37,7 @@ integer AMSBeta::build(integer refit){
  AMSPoint SearchReg(BETAFITFFKEY.SearchReg[0],BETAFITFFKEY.SearchReg[1],
  BETAFITFFKEY.SearchReg[2]);
 
+    int bfound=0;
 // Loop first on tracks with K-hits, second on FalseTOFX
    for( int Sonly=0; Sonly<2; Sonly++){
 
@@ -84,8 +86,10 @@ integer AMSBeta::build(integer refit){
            chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 // 2-point combination found
            if(AMSBeta::patpoints[patb]==2){
-             if(AMSBeta::_addnext(patb,2,sleng,phit,ptrack,td,chi2space))
+             if(AMSBeta::_addnext(patb,2,sleng,phit,ptrack,td,chi2space)){
+               bfound++;
                goto nexttrack;
+             }
              continue;
            }
 
@@ -102,8 +106,10 @@ integer AMSBeta::build(integer refit){
              chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 // 3-point combination found
              if(AMSBeta::patpoints[patb]==3){
-               if(AMSBeta::_addnext(patb,3,sleng,phit,ptrack,td,chi2space))
+               if(AMSBeta::_addnext(patb,3,sleng,phit,ptrack,td,chi2space)){
+                bfound++;
                  goto nexttrack;
+               }
                continue;
              }
 
@@ -119,8 +125,10 @@ integer AMSBeta::build(integer refit){
                if(dst>=SearchReg) continue;
                chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
 // 4-point combination found
-               if(AMSBeta::_addnext(patb,4,sleng,phit,ptrack,td,chi2space))
+               if(AMSBeta::_addnext(patb,4,sleng,phit,ptrack,td,chi2space)){
+                 bfound++;
                  goto nexttrack;
+               }
                continue;
              }
            }
@@ -133,7 +141,116 @@ nexttrack:
  }
 
 
+{
 
+// get beta from TRD info (eventually if TriggerLVL302 is ok)
+
+if(   !bfound    ){
+// Loop on TOF patterns
+ for ( int patb=0; patb<npatb; patb++){
+   if(!BETAFITFFKEY.pattern[patb]) continue;
+   number td;
+
+
+// Loop on track patterns
+
+// Loop on tracks
+     AMSTRDTrack *ptrackT=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,1);
+     for ( ; ptrackT ; ptrackT=ptrackT->next()) {
+
+       if(!BETAFITFFKEY.FullReco && ptrackT->checkstatus(AMSDBc::USED)) continue;
+       AMSTOFCluster * phit[4]={0,0,0,0};
+       number sleng[4];
+// Make False Track       
+       AMSTrTrack *ptrack = new AMSTrTrack(ptrackT->gettheta(),ptrackT->getphi(), ptrackT->getcoo());
+        ptrack->setstatus(AMSDBc::TRDTRACK); 
+  
+
+// Loop on first TOF plane
+       phit[0]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][0]-1);
+       for ( ; phit[0]; phit[0]=phit[0]->next()) {
+         number chi2space=0;
+         if(phit[0]->checkstatus(AMSDBc::BAD)) continue;
+         if (!BETAFITFFKEY.FullReco ) {
+           if (phit[0]->checkstatus(AMSDBc::USED)) continue;
+         }
+         AMSPoint dst=AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
+         ptrack,sleng[0],td);
+         if (dst>=SearchReg) continue;
+         chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
+
+// Loop on second TOF plane
+         phit[1]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][1]-1);
+         for ( ; phit[1]; phit[1]=phit[1]->next()) {
+           if(phit[1]->checkstatus(AMSDBc::BAD)) continue;
+           if (!BETAFITFFKEY.FullReco) {
+             if (phit[1]->checkstatus(AMSDBc::USED)) continue;
+           }
+           AMSPoint dst=AMSBeta::Distance(phit[1]->getcoo(),phit[1]->getecoo(),
+           ptrack,sleng[1],td);
+           if (dst>=SearchReg) continue;
+           chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
+// 2-point combination found
+           if(AMSBeta::patpoints[patb]==2){
+             if(AMSBeta::_addnext(patb,2,sleng,phit,ptrack,chi2space)){
+               ptrackT->setstatus(AMSDBc::USED);
+               ptrack->setstatus(AMSDBc::USED);
+               
+               goto nexttrack2;
+             }
+             continue;
+           }
+
+// Loop on third TOF plane
+           phit[2]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][2]-1);
+           for ( ; phit[2]; phit[2]=phit[2]->next()) {
+             if(phit[2]->checkstatus(AMSDBc::BAD)) continue;
+             if (!BETAFITFFKEY.FullReco ) {
+             if (phit[2]->checkstatus(AMSDBc::USED)) continue;
+               }
+             AMSPoint dst=AMSBeta::Distance(phit[2]->getcoo(),phit[2]->
+             getecoo(),ptrack,sleng[2],td);
+             if(dst>=SearchReg) continue;
+             chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
+// 3-point combination found
+             if(AMSBeta::patpoints[patb]==3){
+               if(AMSBeta::_addnext(patb,3,sleng,phit,ptrack,chi2space)){
+                 ptrackT->setstatus(AMSDBc::USED);
+                 ptrack->setstatus(AMSDBc::USED);
+                 goto nexttrack2;
+               }
+               continue;
+             }
+
+// Loop on fourth TOF plane
+             phit[3]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][3]-1);
+             for ( ; phit[3]; phit[3]=phit[3]->next()) {
+               if(phit[3]->checkstatus(AMSDBc::BAD)) continue;
+               if (!BETAFITFFKEY.FullReco ){
+                 if (phit[3]->checkstatus(AMSDBc::USED)) continue;
+               }
+               AMSPoint dst=AMSBeta::Distance(phit[3]->getcoo(),phit[3]->
+               getecoo(),ptrack,sleng[3],td);
+               if(dst>=SearchReg) continue;
+               chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
+// 4-point combination found
+               if(AMSBeta::_addnext(patb,4,sleng,phit,ptrack,chi2space)){
+                 ptrackT->setstatus(AMSDBc::USED);
+                 ptrack->setstatus(AMSDBc::USED);
+                 goto nexttrack2;
+               }
+               continue;
+             }
+           }
+         }
+       }
+       delete ptrack;
+nexttrack2: 
+       continue;
+     }
+   }
+ }
+}
 
 
 // Now get Beta without track if and only if lvl3 is ok
@@ -447,7 +564,19 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 
     pbeta->SimpleFit(nhit, sleng);
     if(pbeta->getchi2()< BETAFITFFKEY.Chi2 ){
-       pbeta->setstatus(AMSDBc::NOTRACK);
+       if(ptrack->checkstatus(AMSDBc::NOTRACK)){
+         pbeta->setstatus(AMSDBc::NOTRACK);
+       }
+       if(ptrack->checkstatus(AMSDBc::TRDTRACK)){
+         pbeta->setstatus(AMSDBc::TRDTRACK);
+
+         for( int i=0;i<nhit;i++){
+           pthit[i]->setstatus(AMSDBc::USED);
+         }
+
+
+
+       }
          // permanently add;
 #ifdef __UPOOL__
           pbeta=new AMSBeta(beta);
@@ -584,6 +713,7 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
 
     pat=_ptrack->getpattern();
     if(_ptrack->checkstatus(AMSDBc::NOTRACK))BN->pTr[BN->Nbeta]=-1;
+    else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))BN->pTr[BN->Nbeta]=-1;
     else BN->pTr[BN->Nbeta]=_ptrack->getpos();
 
 
@@ -641,6 +771,7 @@ else{
 
     pat=_ptrack->getpattern();
     if(_ptrack->checkstatus(AMSDBc::NOTRACK))BN->pTr[BN->Nbeta]=-1;
+    else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))BN->pTr[BN->Nbeta]=-1;
     else BN->pTr[BN->Nbeta]=_ptrack->getpos();
 
 

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.78 2001/07/12 16:19:18 choutko Exp $
+//  $Id: ntuple.C,v 1.79 2001/07/13 16:25:27 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -134,13 +134,15 @@ else{
 
   HBNAME(_lun,"Particle",&_part02.Npart,
  
-"npart[0,20],pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,ptrdp(npart)[-1,254]:I,prichp(npart)[-1,254]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pbeta(npart),perrbeta(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,3,npart),ecaltot(npart),ecaltotc(npart),ecalshowermax(npart),cootr(3,8,npart),cootrd(3,npart)");
+"npart[0,20],pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,ptrdp(npart)[-1,254]:I,prichp(npart)[-1,254]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pbeta(npart),perrbeta(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,3,npart),cootr(3,8,npart),cootrd(3,npart)");
 //
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
   "ntof[0,20],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,15]:I,nmemb(ntof)[0,15]:I,TOFEdep(ntof),TOFEdepd(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");
 //
   HBNAME(_lun,"EcalClus",&_ecclust.Neccl,
  "neccl[0,50],EcclStatus(neccl):I,EcclProj(neccl)[0,1]:I,EcclPlane(neccl)[0,20]:I,EcclNmemb(neccl)[0,72]:I,EcclEdep(neccl),EcclCoo(3,neccl),EcclErrCoo(3,neccl)");
+  HBNAME(_lun,"EcalShow",&_ecshow.Necsh,
+ "necsh[0,5],EcshStatus(necsh):I,EcshCofG(3,necsh),EcshTheta(necsh),EcshPhi(necsh),EcshErTheta(necsh),EcshErPhi(necsh),EcshEnergy(necsh),EcshEnergyC(necsh),EcshErEnergyC(necsh),EcshRearLeak(necsh),EcshSideLeak(necsh),ecshmax(necsh)");
 //
   HBNAME(_lun,"EcalHits",&_ecalhit.Necht,
   "necht[0,500],EchtStatus(necht):I,EchtIdsoft(necht):I,EchtProj(necht)[0,1]:I,EchtPlane(necht)[0,20]:I,EchtCell(necht)[0,80]:I,EchtEdep(necht),EchtCoo(3,necht)");
@@ -210,6 +212,7 @@ int sto=0;
     VZERO(&_part02.Npart,(sizeof(_part)-sto)/sizeof(integer));
     VZERO(&_tof.Ntof,(sizeof(_tof)-sto)/sizeof(integer));
     VZERO(&_ecclust.Neccl,(sizeof(_ecclust)-sto)/sizeof(integer));
+    VZERO(&_ecshow.Necsh,(sizeof(_ecshow)-sto)/sizeof(integer));
     VZERO(&_ecalhit.Necht,(sizeof(_ecalhit)-sto)/sizeof(integer));
     VZERO(&_tofmc.Ntofmc,(sizeof(_tofmc)-sto)/sizeof(integer));
     VZERO(&_trcl.Ntrcl,(sizeof(_trcl)-sto)/sizeof(integer));
@@ -250,6 +253,7 @@ int sto=0;
    _part02.Npart = 0;
    _tof.Ntof = 0;
    _ecclust.Neccl = 0;
+   _ecshow.Necsh = 0;
    _ecalhit.Necht = 0;
    _tofmc.Ntofmc = 0;
    _trcl.Ntrcl = 0;
@@ -396,6 +400,8 @@ void AMSNtuple::initR(char* fname){
    TBranch *bgg=_tree->Branch("mcg02", "MCEventGNtuple02",  &pevgg, 64000,1);
    static void *pevs=(void*)&_ecclust;
    TBranch *bs=_tree->Branch("ecalcl", "EcalClusterNtuple",  &pevs, 64000,1);
+   static void *pevsh=(void*)&_ecsh;
+   TBranch *bsh=_tree->Branch("ecalsh", "EcalShowerNtuple",  &pevsh, 64000,1);
    static void *pevt=(void*)&_ecalhit;
    TBranch *bt=_tree->Branch("ecalht", "EcalHitNtuple",  &pevt, 64000,1);
    static void *pevu=(void*)&_richmc;

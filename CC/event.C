@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.267 2001/07/05 17:15:44 choutko Exp $
+//  $Id: event.C,v 1.268 2001/07/13 16:25:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -915,6 +915,10 @@ void AMSEvent::_reecalinitevent(){
     ptr=AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalCluster",i),0));
   }
+
+
+  AMSEvent::gethead()->add (
+      new AMSContainer(AMSID("AMSContainer:EcalShower",0),&EcalShower::build,0));
 }
 void AMSEvent::_retrdinitevent(){
 
@@ -1264,7 +1268,8 @@ void AMSEvent::_reamsevent(){
 #ifndef __AMSDEBUG__  
   if(AMSJob::gethead()->isReconstruction() )_redaqevent();
 #else
-  _redaqevent();
+ // temporary : no daq for ams02 yet
+  if(AMSJob::gethead()->isReconstruction() || !strstr(AMSJob::gethead()->getsetup(),"AMS02")) _redaqevent();
 #endif
   // Skip EveryThing 
   if(DAQCFFKEY.NoRecAtAll){
@@ -1426,10 +1431,12 @@ void AMSEvent::_caaxevent(){
 //============================================================================
 void AMSEvent::_retkevent(integer refit){
 
+
 // do not reconstruct events without lvl3 if  LVL3FFKEY.Accept
  
     TriggerLVL3 *ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
     AMSlink *ptr1=getheadC("TriggerLVL1",0);
+
 
 if(ptr1 && (!LVL3FFKEY.Accept || (ptr1 && ptr && ptr->LVL3OK()))){
 AMSgObj::BookTimer.start("RETKEVENT");
@@ -1448,6 +1455,15 @@ AMSgObj::BookTimer.start("RETKEVENT");
   
   AMSgObj::BookTimer.start("TrTrack");
   
+
+  
+  Trigger2LVL1 * ptr12= dynamic_cast<Trigger2LVL1*>(ptr1);
+  if(ptr12 && (ptr12->IsECHighEnergy() || ptr12->IsECEMagEnergy())){
+    AMSTrTrack::setMargin(1);
+  }
+  else{
+   AMSTrTrack::setMargin(0);
+  }
   integer itrk=1;
   
   // Default reconstruction: 4S + 4K or more
@@ -1769,6 +1785,13 @@ void AMSEvent::_reecalevent(){
       return;
     }
     EcalJobStat::addre(4);
+
+
+      AMSgObj::BookTimer.start("ReEcalShowerFit");
+      buildC("EcalShower",0);
+      AMSgObj::BookTimer.stop("ReEcalShowerFit");
+
+
 //
 //
   }

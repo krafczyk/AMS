@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.374 2001/06/26 15:07:13 choutko Exp $
+// $Id: job.C,v 1.375 2001/07/13 16:25:27 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2283,6 +2283,7 @@ void AMSJob::_reecalinitjob(){
   number w[4]={0.,0.,0.,0.};
 //
     AMSgObj::BookTimer.book("REECALEVENT");
+    AMSgObj::BookTimer.book("ReEcalShowerFit");
 //
     ECALDBc::getscinfoa(0,0,0,pr,pl,cell,ct,cl,cz);// <--- init. PMCell-readout tables
 //

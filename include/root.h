@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.43 2001/07/12 16:19:29 choutko Exp $
+//  $Id: root.h,v 1.44 2001/07/13 16:25:35 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -37,6 +37,7 @@ const int MAXMCG02     =    100;
 const int MAXCTCCL   =    20;
 const int MAXCTCHT   =    50;
 const int MAXCTCCLMC =   200;
+const int MAXECSHOW =    5;
 const int MAXECCLUST =    50;
 const int MAXECHITS  =   500;
 const int MAXLVL3    =     2;
@@ -330,9 +331,6 @@ public:
   float TOFCoo[MAXPART02][4][3];
   float AntiCoo[MAXPART02][2][3];
   float EcalCoo[MAXPART02][3][3];
-  float EcalTot[MAXPART02];
-  float EcalTotC[MAXPART02];
-  float EcalShowerMax[MAXPART02];
   float TrCoo[MAXPART02][trconst::maxlay][3];
   float TRDCoo[MAXPART02][3];
 friend class AMSParticle;
@@ -368,6 +366,36 @@ ClassDef(TOFClusterNtuple,1)       //TOFClusterNtuple
 #endif
 };
 //--------------------------
+
+
+#ifdef __WRITEROOT__
+class EcalShowerNtuple : public TObject {
+#else
+class EcalShowerNtuple {
+#endif
+public:
+  int Necsh;
+  int Status[MAXECSHOW];
+  float CofG[MAXECSHOW][3];
+  float Theta[MAXECSHOW];
+  float Phi[MAXECSHOW];
+  float ErTheta[MAXECSHOW];
+  float ErPhi[MAXECSHOW];
+  float Energy[MAXECSHOW];
+  float EnergyC[MAXECSHOW];
+  float ErEnergyC[MAXECSHOW];
+  float RearLeak[MAXECSHOW];
+  float SideLeak[MAXECSHOW];
+  float ShowerMax[MAXECSHOW];
+friend class EcalShower;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(EcalShowerNtuple,1)       //EcalShowerNtuple
+#endif
+};
+
+
+
 #ifdef __WRITEROOT__
 class EcalClusterNtuple : public TObject {
 #else

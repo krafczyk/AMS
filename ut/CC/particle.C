@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.99 2001/07/12 16:19:18 choutko Exp $
+//  $Id: particle.C,v 1.100 2001/07/13 16:25:27 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -279,19 +279,10 @@ void AMSParticle::ecalfit(){
 // Fit to first & last ecal planes as well as to shower max ( or 1/2 if no sho)
 
 AMSPoint cofg(0,0,0);
-_ECalTot=0;
-_ECalTotC=0;
-_ECalShowerMax=0;
-number ecalmax=0;
+number _ECalTot=0;
 for(int ipl=0;ipl<2*ECALDBc::slstruc(3);ipl++){ //loop over containers(planes)
  AMSEcalCluster* ptr=(AMSEcalCluster*)AMSEvent::gethead()->getheadC("AMSEcalCluster",ipl,0);
-  number ecal=0;
   while(ptr){
-   ecal+=ptr->getedep();
-   if(ecal>ecalmax){
-     ecalmax=ecal;
-     _ECalShowerMax=ipl;
-   }
    _ECalTot+=ptr->getedep();
    cofg=cofg+ptr->getcoo()*ptr->getedep();
    ptr=ptr->next();
@@ -428,7 +419,7 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
 
   ParticleNtuple* PN = AMSJob::gethead()->getntuple()->Get_part();
   if (PN->Npart>=MAXPART) return;
-  if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 ) && _ptrack->checkstatus(AMSDBc::NOTRACK))return;
+  if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 ) && (_ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK)))return;
 // Fill the ntuple 
   PN->ChargeP[PN->Npart]=_pcharge->getpos();
   PN->BetaP[PN->Npart]=_pbeta->getpos();
@@ -444,6 +435,7 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
  
   pat=_ptrack->getpattern();
   if(_ptrack->checkstatus(AMSDBc::NOTRACK))PN->TrackP[PN->Npart]=-1;
+  else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))PN->TrackP[PN->Npart]=-1;
   else PN->TrackP[PN->Npart]=_ptrack->getpos();
   PN->Particle[PN->Npart]=_gpart[0];
   PN->ParticleVice[PN->Npart]=_gpart[1];
@@ -561,7 +553,7 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
 else{
   ParticleNtuple02* PN = AMSJob::gethead()->getntuple()->Get_part02();
   if (PN->Npart>=MAXPART02) return;
-  if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 || LVL3FFKEY.Accept) && _ptrack->checkstatus(AMSDBc::NOTRACK))return;
+  if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 || LVL3FFKEY.Accept) && (_ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK)))return;
 // Fill the ntuple 
   PN->ChargeP[PN->Npart]=_pcharge->getpos();
 
@@ -586,6 +578,7 @@ else{
  
   pat=_ptrack->getpattern();
   if(_ptrack->checkstatus(AMSDBc::NOTRACK))PN->TrackP[PN->Npart]=-1;
+  else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))PN->TrackP[PN->Npart]=-1;
   else PN->TrackP[PN->Npart]=_ptrack->getpos();
   PN->Particle[PN->Npart]=_gpart[0];
   PN->ParticleVice[PN->Npart]=_gpart[1];
@@ -619,9 +612,6 @@ else{
       PN->EcalCoo[PN->Npart][i][j]=_EcalSCoo[i][j];
     }
   }
-  PN->EcalTot[PN->Npart]=_ECalTot/1000;
-  PN->EcalTotC[PN->Npart]=_ECalTotC/1000;
-  PN->EcalShowerMax[PN->Npart]=_ECalShowerMax;
   for(i=0;i<TKDBc::nlay();i++){
     for(int j=0;j<2;j++){
       PN->TrCoo[PN->Npart][i][j]=_TrCoo[i][j];
@@ -732,7 +722,7 @@ void AMSParticle::pid(){
     // CheckNotAproton
     for(i=0;i<maxp;i++){
       if(_partP[i]==14){
-        if(prob[i]<0.1 && !_ptrack->checkstatus(AMSDBc::NOTRACK)){
+        if(prob[i]<0.1 && !_ptrack->checkstatus(AMSDBc::NOTRACK) && !_ptrack->checkstatus(AMSDBc::TRDTRACK)){
           AMSEvent::gethead()->addnext(AMSID("NotAProton",0),new AntiMatter(_GPart));
           break;
         }
@@ -752,7 +742,7 @@ void AMSParticle::pid(){
       ptrack=ptrack->next();
     }
   }
-  if((antimatter || _Momentum <0) && !_ptrack->checkstatus(AMSDBc::NOTRACK)){
+  if((antimatter || _Momentum <0) && !_ptrack->checkstatus(AMSDBc::NOTRACK) && !_ptrack->checkstatus(AMSDBc::TRDTRACK)){
    
    AMSEvent::gethead()->addnext(AMSID("AntiMatter",0),new AntiMatter(_GPart));
    
@@ -788,7 +778,7 @@ AMSgObj::BookTimer.start("ReTKRefit");
           }
       }
     }
-    if(fast || _ptrack->checkstatus(AMSDBc::NOTRACK)){
+    if(fast || _ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK)){
       _loc2gl();
        AMSgObj::BookTimer.stop("ReTKRefit");  
       return;
