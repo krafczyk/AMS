@@ -3,3 +3,7 @@
       call timex(ss1)
       ss=ss0-ss1
       end
+      subroutine NPQ
+      common /quest/iquest(100)
+      iquest(10)=64000
+      end

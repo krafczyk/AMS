@@ -1132,7 +1132,7 @@ void AMSEvent::_retkevent(integer refit){
 TriggerLVL3 *ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
 TriggerLVL3 *ptr1=(TriggerLVL3*)getheadC("TriggerLVL1",0);
 
-if(!LVL3FFKEY.Accept || (ptr1 && ptr && ptr->LVL3OK())){
+if(ptr1 && (!LVL3FFKEY.Accept || (ptr1 && ptr && ptr->LVL3OK()))){
 AMSgObj::BookTimer.start("RETKEVENT");
   AMSgObj::BookTimer.start("TrCluster");
   buildC("AMSTrCluster",refit);

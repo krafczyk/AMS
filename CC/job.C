@@ -63,6 +63,7 @@ AMSNtuple* AMSJob::_pntuple=0;
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
 integer AMSJob::debug=1;
+extern "C" void npq_();
 const uinteger AMSJob::Reconstruction=1;
 const uinteger AMSJob::RealData=2;
 const uinteger AMSJob::CTracker=4;
@@ -2162,6 +2163,7 @@ void AMSJob::uhinit(integer run, integer eventno){
      }
     
     cout <<"Trying to open histo file "<<filename<<endl;
+    npq_(); 
     HROPEN(IOPA.hlun,"output",filename,"NPQ",rsize,iostat);
     if(iostat){
      cerr << "Error opening Histo file "<<filename<<endl;
