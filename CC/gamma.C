@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.45 2003/05/12 13:11:17 choutko Exp $
+//  $Id: gamma.C,v 1.46 2003/05/12 17:55:05 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -2961,6 +2961,7 @@ AMSTrRecHit * parrayR[trconst::maxlay];
  
  
  void AMSTrTrackGamma::_copyEl(){
+#ifdef __WRITEROOT__
    VertexR *ptr = (VertexR*)_ptr;
   if (ptr) {
     if (_pntTrL)  ptr->fTrTrackL =_pntTrL ->GetClonePointer();
@@ -2968,17 +2969,20 @@ AMSTrRecHit * parrayR[trconst::maxlay];
     if (_pntTrR)  ptr->fTrTrackR =_pntTrR ->GetClonePointer();
     else ptr->fTrTrackR=-1;
  }
+#endif
 }
  
  void AMSTrTrackGamma::_writeEl(){
    if(AMSTrTrackGamma::Out(1)){
      int i;
+#ifdef __WRITEROOT__
      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+#endif
      TrGamma* TrTN = AMSJob::gethead()->getntuple()->Get_tpai02();
      if (TrTN->Ngam>=MAXPAIR02 ) return; //const int MAXPAIR02    =   2; see ntuple.h
 
           if(_PGAMM!=_PGAMM){
-     //   cerr<<" AMSTrTrackGamma::_writeEl-S-_PGAMMisNAN, please fix me "<<endl;
+            cerr<<" AMSTrTrackGamma::_writeEl-S-_PGAMMisNAN, please fix me "<<endl;
        setstatus(AMSDBc::BAD);
        return;
       }

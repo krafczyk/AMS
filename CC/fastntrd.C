@@ -26,17 +26,26 @@
    char fname[256];
 //
    bool verbose=false;
+   bool root=false; 
    int iver=0;
    iflg=0;
    if(argc>2){
      strcpy(fname,argv[1]);
      int nevents=atoi(argv[2]);
-     if(argc>3){
+      if(argv>3){
+       int iot=atoi(argv[3]);
+        if(iot)root=.true.
+     if(argc>4){
       verbose=true;
       iver=1;
      }
 //     cout<<"Requested file: "<<fname<<" imply "<<nevents<<" events"<<endl;
-     iflg=IFNTREAD(fname,nevents,iver);
+      if(root){
+       iflg=rootread(fname,nevents,iver);
+      }
+     else {
+       iflg=IFNTREAD(fname,nevents,iver);
+     }
      if(iflg>=0){
 //       float proc;
 //       proc=float(iflg%128);

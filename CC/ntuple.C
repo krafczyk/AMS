@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.143 2003/05/09 15:59:52 choutko Exp $
+//  $Id: ntuple.C,v 1.144 2003/05/12 17:55:05 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -244,7 +244,11 @@ void AMSNtuple::initR(char* fname){
     cout<<"AMSNtuple::initR -I- create branches"<<endl;
    _tree= new TTree("AMSRoot","AMS Ntuple Root");
     static void *pev1=(void*)&_evroot02;
-   TBranch *b1=_tree->Branch(AMSEventR::_Name,"AMSEventR",&pev1,64000,branchSplit); 
+   TBranch *b1=_tree->Branch(AMSEventR::_Name,"AMSEventR",&pev1,64000,branchSplit);
+    AString  bhead=AMSEventR::_Name;
+    bhead+="Header";
+//     static void *pev2=(void*)&_evroot02.fHeader;
+//   TBranch *b2=_tree->Branch((const char*)bhead,"AMSEventHeaderR",&pev2,64000,1); 
 #endif
 #ifndef __WRITEROOT__
 cerr <<" RootFileOutput is Not supported in this version "<<endl;
