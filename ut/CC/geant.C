@@ -124,30 +124,9 @@ void gams::UGINIT(){
    AMSJob::gethead()->udata();
   // Geant initialization
 
-#ifdef __G4AMS__
-  if(MISCFFKEY.G3On){
-#endif
   GZINIT();
   GPART();
   GPIONS(4);
-/*
-{
- for(int ipart=0;ipart<1000;ipart++){
-    char chp[22]="";
-    integer itrtyp=0;
-    geant mass=0;
-    geant charge=0;
-    geant tlife=0;
-    geant ub[1];
-    integer nwb=0;
-    GFPART(ipart,chp,itrtyp,mass,charge,tlife,ub,nwb);
-    cout <<ipart <<" "<<itrtyp<<endl;  
- }
-}
-*/
-#ifdef __G4AMS__
-}
-#endif
 
 #ifdef __DB__
    initDB();
