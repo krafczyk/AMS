@@ -84,9 +84,11 @@ C
         b(2) = FINT(3,avv(1),NA(1),xyz(1),By(1,1,1))
         b(3) = FINT(3,avv(1),NA(1),xyz(1),Bz(1,1,1))
 
-        b(2) = b(2)*sx*sy
-        b(3) = b(3)*sx*sz
-        
+        CALL BTEMPCOR (factor)
+        b(1) = b(1) * factor
+        b(2) = b(2)*sx*sy * factor
+        b(3) = b(3)*sx*sz * factor
+
  999    END
 
 
@@ -115,12 +117,14 @@ C
           hxy(2,2) = FINT(3,aXx(1),NA(1),xyz(1),Bdy(1,1,1,2))
           hxy(3,2) = FINT(3,aXx(1),NA(1),xyz(1),Bdz(1,1,1,2))
 
-          hxy(1,1) = hxy(1,1) * sx
-          hxy(2,1) = hxy(2,1) * sy
-          hxy(3,1) = hxy(3,1) * sz
-          hxy(1,2) = hxy(1,2) * sy
-          hxy(2,2) = hxy(2,2) * sx
-          hxy(3,2) = hxy(3,2) * sx*sy*sz
+          CALL BTEMPCOR (factor)
+
+          hxy(1,1) = hxy(1,1) * sx * factor
+          hxy(2,1) = hxy(2,1) * sy * factor
+          hxy(3,1) = hxy(3,1) * sz * factor
+          hxy(1,2) = hxy(1,2) * sy * factor
+          hxy(2,2) = hxy(2,2) * sx * factor
+          hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
 
 999       end
 

@@ -51,3 +51,6 @@ extern "C" void cmend_();
 #define CMEND cmend_
 #define CMGENE cmgene_
 #define CMINIT cminit_
+
+extern "C" void btempcor();
+#define BTEMPCOR btempcor_
