@@ -15,5 +15,5 @@ setenv AMSGeoDir         $Offline/vdev/display/v2.00
 setenv amsed             $Offline/vdev/display/v2.00/$OS/bin/amsed
 limit core 0
 limit data 256000
-limit stack 8192
+limit stack 32000
 

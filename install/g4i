@@ -10,7 +10,8 @@ setenv G4SYSTEM "DEC-cxx"
 setenv G4USE_OSPACE 1
 unsetenv G4USE_STL
 setenv OSPACE_BASE_DIR /afs/cern.ch/sw/lhcxx/specific/dec/ObjectSpace/2.1/ToolKit
-setenv CLHEP_BASE_DIR  /afs/cern.ch/sw/lhcxx/specific/$OS/CLHEP/pro
+#setenv CLHEP_BASE_DIR  /afs/cern.ch/sw/lhcxx/specific/$OS/CLHEP/pro
+setenv CLHEP_BASE_DIR  /afs/cern.ch/exp/ams/Offline/CLHEP/DEC-cxx 
 setenv OGLHOME /usr/local
 endif
 
