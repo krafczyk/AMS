@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.278 2004/09/23 09:10:03 alexei Exp $
+# $Id: RemoteClient.pm,v 1.279 2004/09/23 11:31:10 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -65,6 +65,8 @@
 # July  2, 2004  : prepareCastorCopyScript, updateDSTPath subr
 #
 # Sep  22, 2004   : AMS01 production, add $ProductionStartTime in quaries
+#                   no predefined $dbversion in Connect()
+#
 #
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
@@ -126,6 +128,8 @@ my     $rmprompt        = 1; # prompt before files removal
 #-
  my $ActiveProductionSet   = undef;
  my $ProductionStartTime   = 0;
+ my $defROOT    = "CHECKED";
+ my $defNTUPLE  = " ";
 
   my $UNKNOWN               = 'unknown';
 
@@ -787,6 +791,8 @@ foreach my $file (@allfiles){
     }
   }
 }
+    $self->setActiveProductionSet();
+
     if(defined $ior ){
       if ($webmode ==0) {print "Init -I- IOR got it \n";}
       chomp $ior;
@@ -1760,6 +1766,7 @@ sub ConnectDB{
     else{
         $self->{ok}=1;
     }
+    $self->setActiveProductionSet();
 } 
 
 sub Connect{
@@ -1775,6 +1782,7 @@ sub Connect{
 
 #
  my    $insertjobsql = undef;
+ my $dbversion       = undef;
 #
 #understand parameters
 
@@ -3784,8 +3792,8 @@ print qq`
                 print "Output file Type ";
           print "<BR>";
    print qq`
-<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 168=120000000 2=" CHECKED>Ntuple
-<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=500000000 127=2 128=" >RootFile<BR>
+<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 168=120000000 2=" $defNTUPLE>Ntuple
+<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=500000000 127=2 128=" $defROOT>RootFile<BR>
 `;
                 print "Root/Ntuple Write Mode ";
           print "<BR>";
@@ -4309,8 +4317,10 @@ print qq`
         if( not defined $ret->[0][0]){
             $self->ErrorPlus("unable to retreive db version from db");
         }
-        my $dbversion=$ret->[0][0];
-           $dbversion="v3.00";
+#
+        $dbversion=$ret->[0][0];
+#-           $dbversion="v3.00";
+#
         my $i=system "mkdir -p $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.dat $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/t* $self->{UploadsDir}/$dbversion";
@@ -4369,7 +4379,7 @@ print qq`
         my $filen="$self->{UploadsDir}/ams02mcdb.addon.tar.$run";
         my $i=system "mkdir -p $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/MagneticFieldMap $self->{UploadsDir}/DataBase";
-           my $dbversion="v3.00";
+#-           my $dbversion="v3.00";
            if($dbversion =~/v4/){
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*.2* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*2 $self->{UploadsDir}/DataBase";
@@ -8697,14 +8707,6 @@ sub printMC02GammaTest {
 sub printJobParamFormatDST {
 
     my $self=shift;
-# check AMS01 / AMS02 production and set default output format accordingly
-    my $defROOT    = "CHECKED";
-    my $defNTUPLE  = " ";
-    if ($ActiveProductionSet =~ m/AMS01/) {
-        $defNTUPLE = "CHECKED";
-        $defROOT   = " ";
-    }
-
 
 # DST output format
             print "<tr><td><b><font color=\"green\">DST output format</font></b>\n";
@@ -9617,6 +9619,12 @@ sub setActiveProductionSet {
       if (defined $ret->[0][0]) {
        $ActiveProductionSet=trimblanks($ret->[0][0]);
        $ProductionStartTime = $ret->[0][1];
+# check AMS01 / AMS02 production and set default output format accordingly
+       if ($ActiveProductionSet =~ /AMS01/) {
+        $defNTUPLE = "CHECKED";
+        $defROOT   = " ";
+       }
+
       } else {
         $ActiveProductionSet = $UNKNOWN;
         $ProductionStartTime = 0;
