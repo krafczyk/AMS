@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.35 2003/03/30 08:51:44 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.36 2003/04/01 12:02:57 alexei Exp $
 
 #
 #
@@ -19,6 +19,7 @@
 #
 # Aug  7, 2002 a.k. Tables names are case sensitive in MySQL
 # Mar 30, 2003 a.k. '/vicepa,b,c' directory paths
+# Apr  1, 2003 a.k. create indecies for RNDM table (it takes a while)
 #
 package DBSQLServer;
 use Error qw(:try);
@@ -279,6 +280,8 @@ while ( $line = <FILEI>){
     
 }
     close(FILEI);
+# create indecies, it takes a while.
+    $dbh->do("create index rid_ind on rndm (rid)") or die "cannot do: ".$dbh->errstr(); 
 
     my $cntr = 0;
     my $cnt  = 0;
