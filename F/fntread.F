@@ -1,4 +1,4 @@
-      INTEGER FUNCTION ifntread(fname,nev)
+      INTEGER FUNCTION ifntread(fname,nev,iver)
 c---------------------------------------------------------
 c
       parameter (nwpawc=10000000)
@@ -36,8 +36,10 @@ c
       call hcdir('//PAWC',' ')
       call Hropen(20,'INPNTP',fname,'PQ',lrec,ista)
       if(ista.ne.0)then
-ccc        write(*,*)'problem to open file ',fname
-ccc	write(*,*)'ista=',ista
+        if(iver.gt.0)then
+          write(*,*)'problem to open file ',fname
+          write(*,*)'ista=',ista
+        endif
 	ifntread=-1
 	return
       endif
@@ -46,7 +48,7 @@ ccc	write(*,*)'ista=',ista
       call Hbname(1,' ',0,'$CLEAR')
       call Hbname(1,'EVENTH',eventno,'$SET')
       call Hnoent(1,nevents)
-ccc      write(*,*)'Events in Ntuple: ',nevents
+      if(iver.gt.0)write(*,*)'Events in Ntuple: ',nevents
       if(nevents.le.0)then
         ifntread=-2 
         goto 10
@@ -59,7 +61,7 @@ c---
 	  call Hgntf(1,i,ierr)
 	endif
 	if(ierr.ne.0)then
-ccc	  write(*,*)'Error reading event ',i
+	  if(iver.gt.0)write(*,*)'Error reading event ',i
 	  ifntread=-2 
 	  goto 10
 	endif

@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.215 2002/04/16 10:01:44 choutko Exp $
+#  $Id: Mopt,v 1.216 2002/04/23 14:11:20 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -79,7 +79,7 @@ LIB=../lib/osf1g++/
 LDFLAGSIDL=   -lorbitcpp 
 LDFLAGSIDLMT=   -lorbitcpp -lORBit-mt -lIIOP-mt -lORBitutil-mt -lgthread -lglib -lpthread -lpopt 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit -lglib -lIIOP -lORBitutil -lglib -lnsl  
-LDFLAGSSTATICIDLMT= -static $(LDFLAGSIDLMT) 
+LDFLAGSSTATICIDLMT= -L/usr/local/lib -lc -static $(LDFLAGSIDLMT) 
 IDL=orbit-idl
 IDLMT=orbit-idl-mt
 IDLCPP=orbit-idl -l c++
@@ -186,7 +186,7 @@ LIB=../lib/linux/
 LDFLAGSIDL=   -lorbitcpp 
 LDFLAGSIDLMT=   -lorbitcpp -lORBit-mt -lIIOP-mt -lORBitutil-mt -lgthread -lglib -lpthread -lpopt 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit -lglib -lIIOP -lORBitutil -lglib -lnsl  
-LDFLAGSSTATICIDLMT= -static $(LDFLAGSIDLMT) 
+LDFLAGSSTATICIDLMT= -L/usr/local/lib -lc -static $(LDFLAGSIDLMT) 
 IDL=orbit-idl
 IDLMT=orbit-idl-mt
 IDLCPP=orbit-idl -l c++
@@ -233,6 +233,7 @@ OBJECTCL= $(BIN)server-cpp-stubs.o $(BIN)server-cpp-common.o
 OBJECTCLMT= $(BINMT)server-cpp-stubs.o $(BINMT)server-cpp-common.o
 OBJECTSEAUX=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver.o
 OBJECTSEAUXMT=$(BIN)id_mt.o $(BIN)node_mt.o $(BIN)astring_mt.o $(BIN)client_mt.o  $(BIN)amsdbc_mt.o $(BIN)timeid_mt.o  $(BIN)apool_mt.o $(BIN)snode_mt.o $(BIN)dbserver_mt.o
+OBJECTSEAUXMT=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client_mt.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver_mt.o
 OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL) 
 OBJECTSEMT=  $(BINMT)server-cpp-skels.o   $(OBJECTCLMT) 
 endif

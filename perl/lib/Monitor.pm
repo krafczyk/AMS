@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.52 2002/04/10 10:36:17 choutko Exp $
+# $Id: Monitor.pm,v 1.53 2002/04/23 14:11:42 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -227,7 +227,9 @@ sub UpdateEverything{
      try{
          my %cid=%{$ref->{cid}};
          $cid{Type}="Server";
-       ($length,$ahl)=$arsref->getAHS(\%cid);
+#       ($length,$ahl)=$arsref->getAHS(\%cid);
+         my @qq;
+       $length=$arsref->getAHS(\%cid,$ahl);
          if($length==0){
              $ref->{ahls}=undef;
          }
