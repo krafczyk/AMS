@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.295 2005/02/14 14:47:28 alexei Exp $
+# $Id: RemoteClient.pm,v 1.296 2005/02/15 13:20:10 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -633,13 +633,17 @@ my %mv=(
      $dataset->{name}=$file;
      $dataset->{jobs}=[];
      $dataset->{eventstodo} = 0;
-
+     $dataset->{version}="v5";
      my @tmpa;
      opendir THISDIR, $newfile or die "unable to open $newfile";
      my @jobs=readdir THISDIR;
      closedir THISDIR;
      push @{$self->{DataSetsT}}, $dataset;
      foreach my $job (@jobs){
+         if($job=~/^version=/){
+             my @vrs= split '=',$job;
+             $dataset->{version}=$vrs[1];
+         }
       if($job =~ /\.job$/){
        if($job =~ /^\./){
             next;
@@ -4411,10 +4415,10 @@ print qq`
         if( not defined $ret->[0][0]){
             $self->ErrorPlus("unable to retreive gbatch name from db");
         }
-        my $gbatch=$ret->[0][0];
+        my $gbatch=$ret->[0][0].".$dataset->{version}";
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
         if($#stag<0){
-              $self->ErrorPlus("Unable to find gbatch-orbit on the Server ");
+              $self->ErrorPlus("Unable to find $self->{AMSSoftwareDir}/$gbatch on the Server ");
         }
         $key='getior';
         $sql="select myvalue from Environment where mykey='".$key."'";
@@ -4442,7 +4446,7 @@ print qq`
         my $filedb;
         my $filedb_att;
         if($self->{CCT} eq "remote"){
-        $filedb="$self->{UploadsDir}/$self->{FileDB}";
+        $filedb="$dataset->{version}.$self->{UploadsDir}/$self->{FileDB}";
         my @sta = stat $filedb;
         if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9] or $stag1[9] > $sta[9] or $stag2[9] > $sta[9]){
            $self->{senddb}=2;
@@ -4454,8 +4458,8 @@ print qq`
             $self->ErrorPlus("unable to retreive db version from db");
         }
 #
-        my $dbversion=$ret->[0][0];
-        
+#        my $dbversion=$ret->[0][0];
+         my $dbversion=$dataset->{version};       
         my $i=system "mkdir -p $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.dat $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/t* $self->{UploadsDir}/$dbversion";
@@ -4501,7 +4505,7 @@ print qq`
         elsif($sta[9]>$self->{TU1}){
             $self->{senddb}=2;
         }
-        $filedb_att="$self->{UploadsDir}/$self->{FileAttDB}";
+        $filedb_att="dataset->{version}.$self->{UploadsDir}/$self->{FileAttDB}";
         @sta = stat $filedb_att;
           
          my @stag3=stat "$self->{AMSDataDir}/DataBase";
@@ -4520,7 +4524,8 @@ print qq`
             $self->ErrorPlus("unable to retreive db version from db");
         }
 #
-        my $dbversion=$ret->[0][0];
+#        my $dbversion=$ret->[0][0];
+         my $dbversion=$dataset->{version};       
            if($dbversion =~/v4/){
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*.2* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*2 $self->{UploadsDir}/DataBase";
@@ -4715,7 +4720,7 @@ print qq`
            $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;         
          }       
          else{
-          $buf=~ s/gbatch-orbit.exe/gbatch-orbit.exe -$self->{IORP} -U$run -M -D1 -G$aft -S$stalone/;
+          $buf=~ s/gbatch-orbit.exe/$gbatch -$self->{IORP} -U$run -M -D1 -G$aft -S$stalone/;
       }
          my $script="$self->{CCA}.$run.$template";
          my $root=$self->{CCT} eq "remote"?"$self->{UploadsDir}/$script":
