@@ -121,6 +121,7 @@ void AMSEvent::_init(){
       offspring=(AMSTimeID*)offspring->next();
      }
     }
+    if(SRun  && TRCALIB.CalibProcedureNo == 3)AMSTrIdCalib::ntuple(SRun);
     SRun=_run;
     PosInRun=0;
 #ifndef __DB__

@@ -713,5 +713,15 @@ int DAQEvent::parser(char a[], char **& fname){
 
 
 integer DAQEvent::_select(dirent *entry){
-return isdigit((entry->d_name)[0]);    
+for(int i=0;i<strlen(entry->d_name);i++){
+ if(!isdigit((entry->d_name)[i]))return 0;
 }
+
+ int e1;
+ sscanf(entry->d_name,"%d",&e1);
+ if(e1<SELECTFFKEY.Run)return 0;
+ else return 1;
+
+}
+
+

@@ -441,6 +441,63 @@ HBOOK1(700000+10+2,"CmnNoise S Crate 72",660,-0.5,659.5,0.);
 
 }
 
+void AMSTrIdCalib::ntuple(integer s){
+  if(1){
+    char hfile[161];
+    UHTOC(IOPA.hfile,40,hfile,160);  
+    char filename[256];
+    strcpy(filename,hfile);
+    integer iostat;
+    integer rsize=1024;
+    char event[80];  
+    sprintf(event,"%d",s);
+    strcat(filename,event);
+    HROPEN(IOPA.hlun+1,"trcalibration",filename,"N",rsize,iostat);
+    if(iostat){
+     cerr << "Error opening trcalib ntuple file "<<filename<<endl;
+     exit(1);
+    }
+    else cout <<"trcalib ntuple file "<<filename<<" opened."<<endl;
+
+   TrCalib_def TRCALIB;
+   HBNT(IOPA.ntuple,"Tracker Calibaration"," ");
+   HBNAME(IOPA.ntuple,"TrCalib",(int*)(&TRCALIB),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, PSStrip:I,Ped:R,Sigma:R,BadCh:R,CmnNoise:R");
+   int i,j,k,l,m;
+    for(l=0;l<2;l++){
+    for(k=0;k<2;k++){
+     for(i=0;i<AMSDBc::nlay();i++){
+       for(j=0;j<AMSDBc::nlad(i+1);j++){
+        AMSTrIdSoft id(i+1,j+1,k,l,0);
+        if(id.dead())continue;
+        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+          id.upd(m);
+          TRCALIB.Layer=i+1;
+          TRCALIB.Ladder=j+1;
+          TRCALIB.Half=k;
+          TRCALIB.Side=l;
+          TRCALIB.Strip=m;
+          TRCALIB.Ped=id.getped();
+          TRCALIB.Sigma=id.getsig();
+          TRCALIB.BadCh=id.checkstatus(AMSDBc::BAD);
+          TRCALIB.CmnNoise=id.getcmnnoise();
+          HFNT(IOPA.ntuple);
+         }
+        }
+       }
+     }
+    }
+  char hpawc[256]="//PAWC";
+  HCDIR (hpawc, " ");
+  char houtput[]="//trcalibration";
+  HCDIR (houtput, " ");
+  integer ICYCL=0;
+  HROUT (1, ICYCL, " ");
+  HREND ("trcalibration");
+  CLOSEF(IOPA.hlun+1);
+
+}
+}
+  
 
 void AMSTrIdCalib::_hist(){
   // write down the difference

@@ -530,7 +530,9 @@ I 1 mode(0)                         // 0 do nothing
                                     // (mode/10)%10 = 1 write daq (noreplace)
                                     // (mode/10)%10 = 2 write daq (append)
                                     // mode/100 = 1  compress tracker on fly
-I 2 ifile[40]("")                   // input file name
+I 2 ifile[40]("")                   // input file name 
+                                    // if last char is "/" 
+                                    // all directory will be read
 I42 ofile[40]("")                   // output file name
 I82 OldFormat(0)                    // old(1) new(0) format
 I83 LCrateinDAQ(1)                  // in(1) out(0) of DAQ
@@ -561,5 +563,5 @@ I 1  status[32](32*0)    //
                              [8] ctclayerfired
                              [9] antisectorfired
                              [10] npartfound
-                             [11] rigidity range                                                   
-        
+                             [11] rigidity range                                                            [12] shuttle geomag latitude
+                                     

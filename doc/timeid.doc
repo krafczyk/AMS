@@ -1,4 +1,4 @@
-
+this is $AMSOffline/vdev/doc/timeid.C
 
 class AMSTimeID: public AMSNode {               
 ...
@@ -8,6 +8,11 @@ class AMSTimeID: public AMSNode {
 
 Invented to manipualte time or "run" dependent variables : calibration const,
 pedestals etc etc etc.
+
+
+Initialization
+----------------
+
 
 For each set of such variables (e.g. array or class instance) 
 the following instance of timeid class should be set up in 
@@ -44,9 +49,9 @@ int tm_year   //  year from 1900 (96 for 1996)
 }
 
 
-------------
 
 The following methods exist to exchange dbase<->timeid
+------------
 
 access :
 
@@ -59,8 +64,12 @@ while(offspring){
 }
 
 
-public methods:
 
+
+
+
+public methods:
+------------------
 integer UpdateMe()      // update(!=0) or not update dbase
 integer GetNbytes()     // get number of bytes
 integer CopyOut(void *pdataNew) // copy timeid-> pdatanew
@@ -68,3 +77,37 @@ integer CopyIn(void *pdataNew)  // copy pdatanew->timeid
 void gettime(time_t & insert, time_t & begin, time_t & end) // get times
 void SetTime (time_t insert, time_t begin, time_t end) // set times
 methods from AMSNode & AMSID class (getname, getid etc)
+
+
+
+
+DataBase Engine
+-----------------
+
+Provides search the relevant record by event time key, i.e.
+
+Max(Insert){Begin < Time < End}
+
+
+
+Implementation I 
+-----------------
+
+Every record correspond the file with name  getname().{0,1}.uid
+     0 - MC
+     1 - Data
+     uid- unique integer identifier
+   
+File content:
+uinteger array[GetNbytes] | CRC | InsertTime | BeginTime | EndTime
+
+CRC is calculated by _CalcCRC() function
+
+
+
+
+
+
+
+ 
+

@@ -22,6 +22,18 @@ geant BadCh;
 geant SigmaRaw;
 geant Rho[nrho];
 };
+class TrCalib_def{
+public:
+integer Layer;
+integer Ladder;
+integer Half;
+integer Side;
+integer Strip;
+geant Ped;
+geant Sigma;
+geant BadCh;
+geant CmnNoise;
+};
 class AMSTrCalibPar{
 protected:
 AMSPoint _Coo;
@@ -155,6 +167,7 @@ AMSTrIdCalib():AMSTrIdSoft(){};
 AMSTrIdCalib(const AMSTrIdSoft & o):AMSTrIdSoft(o){};
 static void initcalib();
 static void check(integer forcedw=0);
+static void ntuple(integer s);
  static void buildpreclusters( AMSTrIdSoft & idd, integer len, geant id[]);
 static void buildSigmaPed(integer n, int16u* p);
 static void buildSigmaPedA(integer n, int16u* p);

@@ -1833,7 +1833,9 @@ void AMSJob::_tkendjob(){
 
   if((isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){
     AMSTrIdCalib::check(1);
-   
+  }
+  if(TRCALIB.CalibProcedureNo == 3){
+    AMSTrIdCalib::ntuple(AMSEvent::getSRun());
   }
   AMSTrIdCalib::printbadchanlist();
   if(isMonitoring() & (AMSJob::MTracker | AMSJob::MAll))
