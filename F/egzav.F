@@ -1,4 +1,4 @@
-*  $Id: egzav.F,v 1.8 2002/07/10 14:54:12 alexei Exp $
+*  $Id: egzav.F,v 1.9 2002/09/03 11:17:15 choutko Exp $
       SUBROUTINE CMINIT
 *     =================================================================
 *
@@ -2124,6 +2124,8 @@ C     DATA RT/615./,ZT/585./
        ifail=-1
 #ifndef __ICC__
        call f02eaf('N',n,xma,lda,wr,wi,z,ldz,work,lwork,ifail)
+#else 
+       stop ' not supported for this compiler' 
 #endif
        if(ifail.eq.0)then       
        do i=1,3
