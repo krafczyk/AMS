@@ -1,0 +1,6 @@
+        CASDataDir=/SRDL/srdl
+        CooDbDir=/Offline/AMSDataDir/DataBase
+        export CASDataDir
+        export  CooDbDir
+        /Offline/vdev/slow/Coo_file
+
