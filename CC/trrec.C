@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.170 2004/07/05 14:35:43 alcaraz Exp $
+//  $Id: trrec.C,v 1.171 2004/07/14 13:50:40 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1375,7 +1375,16 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
   static AMSTrRecHit * phit[trconst::maxlay];
   number gers=0.03;
   AMSPoint hit_err = AMSPoint(gers,gers,gers);
-      
+
+  // Reset S ambiguity flags
+  for (int ily=0; ily<trconst::maxlay; ily++) {
+      AMSTrRecHit* paux = AMSTrRecHit::gethead(ily);
+      while (paux) {
+            paux->clearstatus(AMSDBc::S_AMBIG);
+            paux = paux->next();
+      }
+  }
+ 
   while (1) {
 
       if (NTrackFound>=Vtxconst::maxtr) break;
@@ -1407,7 +1416,6 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
 
                   if (_NoMoreTime()) { 
                         remove_track(ptrack); 
-                        ptrack = NULL;
 #ifdef __AMSDEBUG__
                         cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -1448,7 +1456,6 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
                         // Stop when done
                         if (_NoMoreTime()) { 
                               remove_track(ptrack); 
-                              ptrack = NULL;
 #ifdef __AMSDEBUG__
                               cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -1476,22 +1483,22 @@ next_pattern:
 
       // Best track hopefully found; _addnextR ptrack if succesful
       if (ptrack){ 
-            // Get pattern and hits
-            int pat = ptrack->getpattern();
-            int nhits = ptrack->getnhits();
-            for (int i=0;i<nhits;i++){
+          // Get pattern and hits
+          int pat = ptrack->getpattern();
+          int nhits = ptrack->getnhits();
+          for (int i=0;i<nhits;i++){
                   phit[i] = ptrack->getphit(i);
-            }
-            // Fit track; add it to the container list
-            ptrack->Fit(0);
-            ptrack->Fit(5,2);
-            AMSTrTrack::_addnextR(ptrack, pat, nhits, phit);
-            NTrackFound++;
-            if(AMSEvent::debug){
-            cout << " AMSTrTrack tracking>>>>>> " << endl;
+          }
+          // Fit track; add it to the container list
+          ptrack->Fit(0);
+          AMSTrTrack::_addnextR(ptrack, pat, nhits, phit);
+          NTrackFound++;
+          if(AMSEvent::debug){
+            cout << " AMSTrTrack::buildPathIntegral track>>>>>> " << endl;
             cout << "### Run " << AMSEvent::gethead()->getrun();
             cout << " Event " << AMSEvent::gethead()->getEvent() << endl;
             cout << "# hits " << nhits;
+            cout << " Rigidity: " << ptrack->getrid() << endl;
             cout << " chi2/ndof: " << ptrack->getchi2withoutMS() << endl;
             for (int i=0;i<ptrack->getnhits();i++){
                   cout << "        " << ptrack->getphit(i)->getHit()[0];
@@ -1504,7 +1511,6 @@ next_pattern:
 
             // Get out if nothing has been found
             remove_track(ptrack); 
-            ptrack = NULL;
             return NTrackFound;
 
       }
@@ -1617,6 +1623,15 @@ integer AMSTrTrack::buildWeakPathIntegral(integer refit){
   number gers=0.03;
   AMSPoint hit_err = AMSPoint(gers,gers,gers);
       
+  // Reset S ambiguity flags
+  for (int ily=0; ily<trconst::maxlay; ily++) {
+      AMSTrRecHit* paux = AMSTrRecHit::gethead(ily);
+      while (paux) {
+            paux->clearstatus(AMSDBc::S_AMBIG);
+            paux = paux->next();
+      }
+  }
+ 
   while (1) {
 
       if (NTrackFound>=Vtxconst::maxtr) break;
@@ -1648,7 +1663,6 @@ integer AMSTrTrack::buildWeakPathIntegral(integer refit){
 
                   if (_NoMoreTime()) { 
                         remove_track(ptrack); 
-                        ptrack = NULL;
 #ifdef __AMSDEBUG__
                         cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -1689,7 +1703,6 @@ integer AMSTrTrack::buildWeakPathIntegral(integer refit){
                         // Stop when done
                         if (_NoMoreTime()) { 
                               remove_track(ptrack); 
-                              ptrack = NULL;
 #ifdef __AMSDEBUG__
                               cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -1720,14 +1733,14 @@ next_pattern:
                }
                // Fit track; add it to the container list
                ptrack->Fit(0);
-               ptrack->Fit(5,2);
                if (_addnext(pat, nhits, phit)) {
-                     NTrackFound++;
-            if(AMSEvent::debug){
-                     cout << " AMSTrTrack tracking>>>>>> " << endl;
+                 NTrackFound++;
+                 if (AMSEvent::debug){
+                     cout << " AMSTrTrack::buildWeakPathIntegral track>>>>>> " << endl;
                      cout << "### Run " << AMSEvent::gethead()->getrun();
                      cout << " Event " << AMSEvent::gethead()->getEvent() << endl;
                      cout << "# hits " << nhits;
+                     cout << " Rigidity: " << ptrack->getrid() << endl;
                      cout << " chi2/ndof: " << ptrack->getchi2withoutMS() << endl;
                      for (int i=0;i<ptrack->getnhits();i++){
                            cout << "        " << ptrack->getphit(i)->getHit()[0];
@@ -1735,11 +1748,9 @@ next_pattern:
                            cout << ", " << ptrack->getphit(i)->getHit()[2];
                            cout << endl;
                      }
-}
-               } else {
-                     remove_track(ptrack); 
-                     ptrack = NULL;
+                 }
                }
+               remove_track(ptrack); 
    
             } else {
 
@@ -1906,6 +1917,15 @@ integer AMSTrTrack::buildFalseXPathIntegral(integer nptmin){
   number gers=0.03;
   AMSPoint hit_err = AMSPoint(gers,gers,gers);
       
+  // Reset S ambiguity flags
+  for (int ily=0; ily<trconst::maxlay; ily++) {
+      AMSTrRecHit* paux = AMSTrRecHit::gethead(ily);
+      while (paux) {
+            paux->clearstatus(AMSDBc::S_AMBIG);
+            paux = paux->next();
+      }
+  }
+ 
   while (1) {
 
       if (NTrackFound>=Vtxconst::maxtr) break;
@@ -1938,7 +1958,6 @@ integer AMSTrTrack::buildFalseXPathIntegral(integer nptmin){
                   if (_NoMoreTime()) { 
                         printf("Hola 1 %x\n",ptrack);
                         remove_track(ptrack); 
-                        ptrack = NULL;
 #ifdef __AMSDEBUG__
                         cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -1979,7 +1998,6 @@ integer AMSTrTrack::buildFalseXPathIntegral(integer nptmin){
                         // Stop when done
                         if (_NoMoreTime()) { 
                               remove_track(ptrack); 
-                              ptrack = NULL;
 #ifdef __AMSDEBUG__
                               cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -2010,14 +2028,14 @@ next_pattern:
                }
                // Fit track; add it to the container list
                ptrack->Fit(0);
-               ptrack->Fit(5,2);
                if (_addnextFalseX(pat, nhits, phit)) {
-                     NTrackFound++;
-            if(AMSEvent::debug){
-                     cout << " AMSTrTrack tracking>>>>>> " << endl;
+                 NTrackFound++;
+                 if (AMSEvent::debug){
+                     cout << " AMSTrTrack::buildFalseXPathIntegral track>>>>>> " << endl;
                      cout << "### Run " << AMSEvent::gethead()->getrun();
                      cout << " Event " << AMSEvent::gethead()->getEvent() << endl;
                      cout << "# hits " << nhits;
+                     cout << " Rigidity: " << ptrack->getrid() << endl;
                      cout << " chi2/ndof: " << ptrack->getchi2withoutMS() << endl;
                      for (int i=0;i<ptrack->getnhits();i++){
                            cout << "        " << ptrack->getphit(i)->getHit()[0];
@@ -2025,11 +2043,9 @@ next_pattern:
                            cout << ", " << ptrack->getphit(i)->getHit()[2];
                            cout << endl;
                      }
-}
-               } else {
-                     remove_track(ptrack); 
-                     ptrack = NULL;
-               }
+                 }
+               } 
+               remove_track(ptrack); 
    
             } else {
 
@@ -2141,6 +2157,8 @@ void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrR
              }
            }
           }
+         // Make sure that the path integral fit is always tried
+         ptrack->Fit(5,2);
          // permanently add;
           AMSEvent::gethead()->addnext(AMSID("AMSTrTrack",0),ptrack);
 }
@@ -3526,6 +3544,15 @@ integer AMSTrTrack::buildFalseTOFXPathIntegral(integer refit){
       
   integer ThreePointNotWanted=0;
 
+  // Reset S ambiguity flags
+  for (int ily=0; ily<trconst::maxlay; ily++) {
+      AMSTrRecHit* paux = AMSTrRecHit::gethead(ily);
+      while (paux) {
+            paux->clearstatus(AMSDBc::S_AMBIG);
+            paux = paux->next();
+      }
+  }
+ 
   while (1) {
 
       if (NTrackFound>=Vtxconst::maxtr) break;
@@ -3557,7 +3584,6 @@ integer AMSTrTrack::buildFalseTOFXPathIntegral(integer refit){
 
                   if (_NoMoreTime()) { 
                         remove_track(ptrack); 
-                        ptrack = NULL;
 #ifdef __AMSDEBUG__
                         cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -3598,7 +3624,6 @@ integer AMSTrTrack::buildFalseTOFXPathIntegral(integer refit){
                         // Stop when done
                         if (_NoMoreTime()) { 
                               remove_track(ptrack); 
-                              ptrack = NULL;
 #ifdef __AMSDEBUG__
                               cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -3629,15 +3654,15 @@ next_pattern:
                }
                // Fit track; add it to the container list
                ptrack->Fit(0);
-               ptrack->Fit(5,2);
                if (_addnext(pat, nhits, phit)) {
-                     if(nhits>4) ThreePointNotWanted=1;
-                     NTrackFound++;
-            if(AMSEvent::debug){
-                     cout << " AMSTrTrack tracking>>>>>> " << endl;
+                 if(nhits>4) ThreePointNotWanted=1;
+                 NTrackFound++;
+                 if(AMSEvent::debug){
+                     cout << " AMSTrTrack::buildFalseTOFXPathIntegral track>>>>>> " << endl;
                      cout << "### Run " << AMSEvent::gethead()->getrun();
                      cout << " Event " << AMSEvent::gethead()->getEvent() << endl;
                      cout << "# hits " << nhits;
+                     cout << " Rigidity: " << ptrack->getrid() << endl;
                      cout << " chi2/ndof: " << ptrack->getchi2withoutMS() << endl;
                      for (int i=0;i<ptrack->getnhits();i++){
                            cout << "        " << ptrack->getphit(i)->getHit()[0];
@@ -3645,11 +3670,9 @@ next_pattern:
                            cout << ", " << ptrack->getphit(i)->getHit()[2];
                            cout << endl;
                      }
-}
-               } else {
-                     remove_track(ptrack); 
-                     ptrack = NULL;
+                 }
                }
+               remove_track(ptrack); 
    
             } else {
 
@@ -4034,7 +4057,7 @@ AMSTrTrack* AMSTrTrack::CloneIt(){
 }
 
 ///////////////////////////////////////////////////////////
-AMSTrTrack* AMSTrTrack::remove_track(AMSTrTrack* ptrack){
+void AMSTrTrack::remove_track(AMSTrTrack* &ptrack){
   if (ptrack) {
     for(int i=0;;i++){
       AMSContainer *pctr=AMSEvent::gethead()->getC("AMSTrTrack",i);
@@ -4047,14 +4070,10 @@ AMSTrTrack* AMSTrTrack::remove_track(AMSTrTrack* ptrack){
         }
       }
     }
-  }
 
-  if (ptrack) {
-      delete ptrack;  
-      ptrack = NULL;
+    delete ptrack;  
+    ptrack = NULL;
   }
-
-  return ptrack;
 
 }
 

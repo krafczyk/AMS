@@ -51,6 +51,7 @@ protected:
                      " Vtx >>> #tracks " << _Ntracks << 
                      " Momentum " << _Momentum << 
                      " ErrMomentum " << _ErrMomentum << 
+                     " Charge " << _Charge << 
                      " Theta " << _Theta <<
                      " Phi " << _Phi <<
                      " Chi2 " << _Chi2 <<

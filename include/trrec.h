@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.77 2003/12/19 10:55:04 choutko Exp $
+//  $Id: trrec.h,v 1.78 2004/07/14 13:51:01 alcaraz Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -462,7 +462,7 @@ number getchi2StrLine() const {return _Chi2StrLine;}
 number getchi2withoutMS() const {return _Chi2WithoutMS;}
 AMSPoint getpiP0() const {return _PIP0;}
 AMSTrTrack* CloneIt();
-static AMSTrTrack* remove_track(AMSTrTrack* ptrack);
+static void remove_track(AMSTrTrack* &ptrack);
 integer next_combination(int index_min, int index_max, number par[2][3]);
 integer next_combination_FalseX(int index_min, int index_max, number par[2][3]);
 integer next_combination_WEAK(int index_min, int index_max, number par[2][3]);
