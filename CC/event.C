@@ -459,7 +459,7 @@ void AMSEvent::SetTimeCoo(integer rec){
       //interpolation needed
       number xsec=_time-Array[hint].Time;
       number dt=Array[hint+1].Time-Array[hint].Time;
-      if(dt){
+      if(dt<xsec){
         _Yaw=Array[hint].StationYaw+xsec/dt*(Array[hint+1].StationYaw-Array[hint].StationYaw);
         _Roll=Array[hint].StationRoll+xsec/dt*(Array[hint+1].StationRoll-Array[hint].StationRoll);
         _Pitch=Array[hint].StationPitch+xsec/dt*(Array[hint+1].StationPitch-Array[hint].StationPitch);
@@ -509,6 +509,13 @@ void AMSEvent::SetTimeCoo(integer rec){
       _StationTheta=atan(AMSmceventg::Orbit.AlphaTanThetaMax*sin(phi));
       _StationPhi=fmod(phi+PhiZero,AMSDBc::twopi);
       _StationSpeed*=idir;
+      // Recalculate VelTheta,VelPhi
+{
+        AMSDir ax1(AMSDBc::pi/2-_StationTheta,_StationPhi);
+        AMSDir ax2= AMSmceventg::Orbit.Axis.cross(ax1);
+        _VelPhi=ax2.getphi();
+        _VelTheta= AMSDBc::pi/2-ax2.gettheta();
+}
 
      
     }
