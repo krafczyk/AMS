@@ -71,7 +71,8 @@ void gener();
 integer accept();
 integer EarthModulation();
 static void setcuts( geant [],geant[],geant[],integer,geant,geant);
-static void setspectra(integer begin, integer end, integer ipart, integer low);
+static void setspectra(integer begind, integer begint, integer endd, 
+integer endt, integer ipart, integer low);
 static integer _hid;
 AMSmceventg *  next(){return (AMSmceventg*)_next;}
 //+
