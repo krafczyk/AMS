@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.48 2002/03/20 09:41:18 choumilo Exp $
+//  $Id: mccluster.C,v 1.49 2002/04/19 16:12:54 delgadom Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -528,7 +528,9 @@ void AMSRichMCHit::sirichhits(integer id,
   geant adc;
 
   adc=0;
-  if(pmt>RICHDB::total || pmt<0){
+ 
+
+ if(pmt>RICHDB::total || pmt<0){
     cerr<<"AMSRichMCHit::sirichhits-ErrorNoPMT " << pmt<<endl;
     return;
   }
@@ -557,7 +559,7 @@ void AMSRichMCHit::sirichhits(integer id,
        <<"Asigned pixel "<<channel.getpixel()<<endl
        <<"Asigned position "<<channel.x()<<","<<channel.y()<<endl;
 #endif
-  if(channel.getchannel()>0)
+  if(channel.getchannel()>=0)
   AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
 			       new AMSRichMCHit(id,channel.getchannel(),adc,
 						r,u,status));
