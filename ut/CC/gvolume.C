@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.50 2001/08/03 17:28:03 choutko Exp $
+//  $Id: gvolume.C,v 1.51 2002/09/06 15:40:56 choutko Exp $
 #include <gvolume.h>
 #include <math.h>
 #include <amsgobj.h>
@@ -353,6 +353,7 @@ integer AMSgvolume::_Norp=0;
        delete[] rmax;
      }
      else if(shape=="TRAP"){
+//       for(int i=0;i<11;i++)cout <<"par "<<i<<" "<<_par[i]<<endl;
        psolid=new G4Trap(G4String(_name),_par[0]*cm,_par[1]*degree,_par[2]*degree,_par[3]*cm,_par[4]*cm,_par[5]*cm,_par[6]*degree,_par[7]*cm,_par[8]*cm,_par[9]*cm,_par[10]*degree);
       maxstep=_par[0];
      }

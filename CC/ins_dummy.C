@@ -1,4 +1,4 @@
-//  $Id: ins_dummy.C,v 1.8 2002/09/03 11:43:49 choutko Exp $
+//  $Id: ins_dummy.C,v 1.9 2002/09/06 15:40:56 choutko Exp $
 #include <stdlib.h>
 #ifdef  __IBMAIX__    
 extern "C" void setkey(const char* a);
@@ -157,6 +157,6 @@ extern "C" int alphasort(const void* d1, const void* d2)
 #endif
 
 #ifdef _GCCIFC_
-extern "C" void __gxx_personality_v0(){
-}
+//extern "C" void __gxx_personality_v0(){
+//}
 #endif

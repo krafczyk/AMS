@@ -1,4 +1,4 @@
-*  $Id: egzav.F,v 1.9 2002/09/03 11:17:15 choutko Exp $
+*  $Id: egzav.F,v 1.10 2002/09/06 15:40:56 choutko Exp $
       SUBROUTINE CMINIT
 *     =================================================================
 *
@@ -2117,15 +2117,33 @@ C     DATA RT/615./,ZT/585./
        integer ifail,n,i,j,lda,lwork,ldz
        parameter (lda=3)
        parameter (lwork=3*64)
-       real *8 wi(lda),wr(lda),z(lda,lda)
+       real *8 wi(lda),wr(lda),z(lda,lda),xmb(lda,lda)
        real *8 work(lwork)
+       real *8 eps
+       logical matv
+       real *8 ima(lda,lda),rdb(lda,lda),idb(lda,lda),beta(lda),
+     + vr(lda,lda),vi(lda,lda)
+       integer iter(lda)
+       eps=0
        n=3
        ldz=3
+       do i=1,lda
+        do j=1,lda
+         ima(i,j)=0
+         rdb(i,j)=0
+         idb(i,j)=0
+       enddo
+      enddo
+      do i=1,3
+       rdb(i,i)=1
+      enddo
        ifail=-1
+       matv=.false.
 #ifndef __ICC__
        call f02eaf('N',n,xma,lda,wr,wi,z,ldz,work,lwork,ifail)
 #else 
-       stop ' not supported for this compiler' 
+       call f02gjf(n,xma,n,ima,n,rdb,n,idb,n,eps,wr,wi,beta,
+     +  matv,vr,n,vi,n,iter,ifail)
 #endif
        if(ifail.eq.0)then       
        do i=1,3
