@@ -36,7 +36,7 @@ void TriggerAuxLVL3::fill(){
     va=side >0 ? strip/64 : strip/64+10;
     strip=strip%64;
     if(maxtr-_ltr > 3){
-     _ptr[_ltr]=3;
+     _ptr[_ltr]=0;
      _ptr[_ltr+1]=AMSTrRawCluster::mkaddress(strip,va,half,drp);
      _ptr[_ltr+2]=1000;
      _ltr+=3;
@@ -45,14 +45,14 @@ void TriggerAuxLVL3::fill(){
    }  
   }
 
-
-  AMSTrRawCluster *ptr=(AMSTrRawCluster*)AMSEvent::gethead()->
-  getheadC("AMSTrRawCluster",0);
-  while (ptr){
-   _ltr+=ptr->lvl3format(_ptr+_ltr,maxtr-_ltr);
-   ptr=ptr->next();
+  for(int icl=0;icl<2;icl++){ 
+   AMSTrRawCluster *ptr=(AMSTrRawCluster*)AMSEvent::gethead()->
+   getheadC("AMSTrRawCluster",icl);
+   while (ptr){
+    _ltr+=ptr->lvl3format(_ptr+_ltr,maxtr-_ltr);
+    ptr=ptr->next();
+   }
   }
-
 
 }
 }
@@ -67,7 +67,7 @@ _ptr[0]=0;
 
 int16 *  TriggerAuxLVL3::readtracker(integer begin){
 if(begin)_ctr=0;
-else if (_ctr < _ltr)_ctr=_ctr+((_ptr[_ctr])&255);
+else if (_ctr < _ltr)_ctr=_ctr+(((_ptr[_ctr])&255)+3);
 return _ctr < _ltr ? _ptr+_ctr : 0;
 }
 
@@ -626,19 +626,21 @@ integer TriggerLVL3::_UpdateOK(geant s, integer pat){
 
 
 
-void TriggerLVL3::builddaq(integer n, uinteger *p){
+void TriggerLVL3::builddaq(integer i, integer n, int16u *p){
   TriggerLVL3 *ptr=(TriggerLVL3*)AMSEvent::gethead()->
-  getheadC("TriggerLVL3",0);
+  getheadC("TriggerLVL3",i);
+  *p=getdaqid();
   if(ptr){
-    *p=uinteger((ptr->_TrackerTrigger) | 
-    (ptr->_TOFTrigger)<<16 | (ptr->_AntiTrigger)<<24);
+    *(p+1)=int16u(ptr->_TrackerTrigger);
+    *(p+2)=(ptr->_TOFTrigger) | (ptr->_AntiTrigger)<<8;
     int16 res=int16(ptr->_Residual[0]*1000);
-    *(p+1)=uinteger(int16u(res) | (ptr->_Pattern[0])<<16 | (ptr->_NPatFound)<<22 | (ptr->_NTrHits)<<24);
+    *(p+3)=int16u(res);
+    *(p+4)= ptr->_Pattern[0] | (ptr->_NPatFound)<<6 | (ptr->_NTrHits)<<8;
   }
-  else for(int i=0;i<n;i++)*(p+i)=0;
+  else for(int i=1;i<n;i++)*(p+i)=0;
 }
 
-void TriggerLVL3::buildraw(integer n, uinteger *p){
+void TriggerLVL3::buildraw(integer n, int16u *p){
 
   {
     AMSContainer *ptr=AMSEvent::gethead()->getC("TriggerLVL3",0);
@@ -651,14 +653,13 @@ void TriggerLVL3::buildraw(integer n, uinteger *p){
  time=0;
  res[1]=0;
  pat[1]=-1;
- tra=(*p)&65535;
- tof=((*p)>>16)&255;
- anti=((*p)>>24)&255;
- int16u res16=int16u((*(p+1))&65535); 
- res[0]=int16(res16)/1000.;
- pat[0]=((*(p+1))>>16)&63;
- npat=((*(p+1))>>22)&3;
- ntr=((*(p+1))>>24)&255;
+ tra=*(p+1);
+ tof=(*(p+2))&255;
+ anti=((*(p+2))>>8)&255;
+ res[0]=int16(*(p+3))/1000.;
+ pat[0]=((*(p+4)))&63;
+ npat=((*(p+4))>>6)&3;
+ ntr=((*(p+4))>>8)&255;
 if(tra >= LVL3FFKEY.Accept)
   AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",0), new
  TriggerLVL3( tra,  tof,  anti, ntr,  npat,

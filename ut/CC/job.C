@@ -1444,17 +1444,24 @@ void AMSJob::_setorbit(){
     // Add subdetectors to daq
     //
 {
+    // Header
+    DAQEvent::addblocktype(&AMSEvent::getmaxblocks,&AMSEvent::calcdaqlength,
+    &AMSEvent::builddaq);
+}
+  {
     // lvl1
 
-    DAQEvent::addsubdetector(&TriggerLVL1::getdaqid,&TriggerLVL1::builddaq,
-    &TriggerLVL1::buildraw,&TriggerLVL1::calcdaqlength);
+    DAQEvent::addsubdetector(&TriggerLVL1::checkdaqid,&TriggerLVL1::buildraw);
+    DAQEvent::addblocktype(&TriggerLVL1::getmaxblocks,&TriggerLVL1::calcdaqlength,
+    &TriggerLVL1::builddaq);
 
 
 }
 {
     //lvl3
-    DAQEvent::addsubdetector(&TriggerLVL3::getdaqid,&TriggerLVL3::builddaq,
-    &TriggerLVL3::buildraw,&TriggerLVL3::calcdaqlength);
+    DAQEvent::addsubdetector(&TriggerLVL3::checkdaqid,&TriggerLVL3::buildraw);
+    DAQEvent::addblocktype(&TriggerLVL3::getmaxblocks,&TriggerLVL3::calcdaqlength,
+    &TriggerLVL3::builddaq);
 
 }    
 {
@@ -1466,16 +1473,17 @@ void AMSJob::_setorbit(){
 
 {
     //ctc
-    DAQEvent::addsubdetector(&AMSCTCRawCluster::getdaqid,&AMSCTCRawCluster::builddaq,
-    &AMSCTCRawCluster::buildraw,&AMSCTCRawCluster::calcdaqlength);
 }    
 
 
 {
   //tracker
 
-    DAQEvent::addsubdetector(&AMSTrRawCluster::getdaqid,&AMSTrRawCluster::builddaq,
-    &AMSTrRawCluster::buildraw,&AMSTrRawCluster::calcdaqlength);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,
+    &AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
+
+
 }    
 
 }

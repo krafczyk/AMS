@@ -43,7 +43,7 @@ C
 C
         nparxy=3
        IFLAG    = 0
-       BTFIEL=0.15
+       BTFIEL=0.15*0.9
 C
 C--       FIRST FIT IN XY PROJECTION
 C

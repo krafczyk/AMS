@@ -233,8 +233,8 @@ void   AdvancedFit();
 static void _Start(){TIMEX(_Time);}
 static geant _CheckTime(){geant time;TIMEX(time);return time-_Time;}
 static geant _Time;
-  void _printEl(ostream & stream){ stream << " Pattern " << _Pattern << " Ridgidity (Circ)" << 
-  _CircleRidgidity <<" Ridgidity (Fast) "<<_Ridgidity <<" Chi2Fast " << 
+  void _printEl(ostream & stream){ stream << " Pattern " << _Pattern << " Rigidity (Circ)" << 
+  _CircleRidgidity <<" Rigidity (Fast) "<<_Ridgidity <<" Chi2Fast " << 
   _Chi2FastFit << " ThetaFast "<<_Theta<<" PhiFast "<<_Phi<<endl;}
   void _copyEl();
   void _writeEl();

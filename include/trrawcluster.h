@@ -28,12 +28,12 @@ void _writeEl();
 public:
 
 static int16 mkaddress(int16 strip, int16 va, int16 half, int16 icmpt)
-{return icmpt | half<<5 | va<<6 | strip<<10;}
+{return strip | va<<6 | icmpt << 10 | half<<15;}
 
 static void getaddress(int16u address, 
 integer & strip, integer & va, integer & side, integer & half, integer &drp){
-  drp=address&31;half=(address>>5) & 1;va=(address>>6)&15;
-  strip=((address>>10)&63)+(va%10)*64; side=va>9 ? 0 : 1;
+  drp=(address>>10)&31;half=(address>>15) & 1;va=(address>>6)&15;
+  strip=((address)&63)+(va%10)*64; side=va>9 ? 0 : 1;
 }
 
 integer getid()const {return _address;}
@@ -57,10 +57,14 @@ static void sitkdigi();
 
 
  // Interface with DAQ
-      static AMSID getdaqid(){return AMSID("Tracker",30);}
-      static integer calcdaqlength();
-      static void builddaq(integer n, uinteger *p);
-      static void buildraw(integer n, uinteger *p);
+
+ static int16u getdaqid(int i);
+ static integer checkdaqid(int16u id);
+ static integer calcdaqlength(integer i);
+ static integer getmaxblocks(){return 2;}
+ static void builddaq(integer i, integer n, int16u *p);
+ static void buildraw(integer n, int16u *p);
+
 
 
 

@@ -7,6 +7,7 @@ typedef double number;
 typedef int integer;
 typedef float float_r;
 typedef double float_d;
+typedef unsigned char uchar;
 typedef unsigned short int int16u;
 typedef  short int int16;
 typedef long int_L;

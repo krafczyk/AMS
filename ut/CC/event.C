@@ -274,8 +274,9 @@ void AMSEvent::_reaxinitevent(){
 
 void AMSEvent::_retkinitevent(){
   integer i;
-  AMSNode *ptr=  AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSTrRawCluster",0),0));
+  AMSNode *ptr;
+  for(i=0;i<2;i++) AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTrRawCluster",i),0));
 
   for( i=0;i<2;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrCluster",i),0));
@@ -383,7 +384,7 @@ _sidaqevent();
 
 void AMSEvent::_reamsevent(){
 #ifndef __AMSDEBUG__
-    if(AMSJob::gethead()->isReconstruction())
+  if(AMSJob::gethead()->isReconstruction())
 #endif
   _redaqevent();
   _retofevent();
@@ -633,6 +634,8 @@ void AMSEvent:: _sitkevent(){
     AMSTrRawCluster::sitkdigi();
 #ifdef __AMSDEBUG__
   p =getC("AMSTrRawCluster",0);
+  if(p && AMSEvent::debug>1)p->printC(cout);
+  p =getC("AMSTrRawCluster",1);
   if(p && AMSEvent::debug>1)p->printC(cout);
 #endif
 }
@@ -1032,4 +1035,35 @@ AMSEvent::gethead()->addnext(AMSID("DAQEvent",0), pdaq);
 pdaq->buildDAQ();
   AMSgObj::BookTimer.stop("SIDAQ");
 
+}
+
+
+
+
+
+void AMSEvent::buildraw(
+              integer length, int16u *p, uinteger & run, uinteger &id, 
+              uinteger &runtype, time_t & time){
+  run=(*(p+1)) |  (*(p+2))<<16;
+  runtype=(*(p+3)) |  (*(p+4))<<16;
+  id=(*(p+5)) |  (*(p+6))<<16;
+  time=(*(p+7)) |  (*(p+8))<<16;
+
+}
+
+
+void AMSEvent::builddaq(integer i, integer length, int16u *p){
+
+*p= getdaqid();
+*(p+1)=int16u(_Head->_run&65535);
+*(p+2)=int16u((_Head->_run>>16)&65535);
+*(p+3)=int16u(_Head->_runtype&65535);
+*(p+4)=int16u((_Head->_runtype>>16)&65535);
+uinteger _event=uinteger(_Head->_id);
+*(p+5)=int16u(_event&65535);
+*(p+6)=int16u((_event>>16)&65535);
+*(p+7)=int16u(_Head->_time&65535);
+*(p+8)=int16u((_Head->_time>>16)&65535);
+*(p+9)=0;
+*(p+10)=0;
 }

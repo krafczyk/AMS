@@ -74,15 +74,15 @@ void AMSTrCluster::build(integer refit=0){
     }
   }
  
-
   integer size=(AMSDBc::maxstrips()+1+
   2*max(TRCLFFKEY.ThrClNEl[0],TRCLFFKEY.ThrClNEl[1]))*sizeof(number);
   number *  adc  = (number*)UPool.insert(size); 
   AMSTrIdSoft id;
-  AMSTrRawCluster *p=(AMSTrRawCluster*)AMSEvent::gethead()->
-  getheadC("AMSTrRawCluster",0,1);
-  VZERO(adc,size/4);
-  while(p){
+  for(int icll=0;icll<2;icll++){
+   AMSTrRawCluster *p=(AMSTrRawCluster*)AMSEvent::gethead()->
+   getheadC("AMSTrRawCluster",icll,1);
+   VZERO(adc,size/4);
+   while(p){
     // Unpack cluster into tmp space
     // find clusters
      id=AMSTrIdSoft(p->getid());
@@ -214,6 +214,7 @@ void AMSTrCluster::build(integer refit=0){
      VZERO(adc,size/4);
     }  
      p=p->next();           
+  }
   }
   UPool.udelete(adc);
 
@@ -749,17 +750,17 @@ geant xmom,dip,phis,exmom;
 integer iflag=0;
 geant p0[3];
 for (int i=0;i<npt;i++){
- z[npt-i-1]=_Pthit[i]->getHit()[0];
- x[npt-i-1]=_Pthit[i]->getHit()[1];
- y[npt-i-1]=_Pthit[i]->getHit()[2];
- wxy[npt-i-1]=(ehit[0]*ehit[0]+ehit[1]*ehit[1]);
- if(wxy[npt-i-1]==0)wxy[npt-i-1]=
+ z[i]=_Pthit[i]->getHit()[0];
+ x[i]=_Pthit[i]->getHit()[1];
+ y[i]=_Pthit[i]->getHit()[2];
+ wxy[i]=(ehit[0]*ehit[0]+ehit[1]*ehit[1]);
+ if(wxy[i]==0)wxy[i]=
  (_Pthit[i]->getEHit()[1] * _Pthit[i]->getEHit()[1]+
   _Pthit[i]->getEHit()[2] * _Pthit[i]->getEHit()[2]);
-  wxy[npt-i-1]=1/wxy[npt-i-1];
- ssz[npt-1-i]=ehit[0];
- if(ssz[npt-1-i]==0)ssz[npt-1-i]=_Pthit[i]->getEHit()[0];
- ssz[npt-1-i]=1/ssz[npt-1-i]; 
+  wxy[i]=1/wxy[i];
+ ssz[i]=ehit[0];
+ if(ssz[i]==0)ssz[i]=_Pthit[i]->getEHit()[0];
+ ssz[i]=1/ssz[i]; 
 }
 
 TRAFIT(ifit,x,y,wxy,z,ssz,npt,resxy,ressz,iflag,spcor,work,chixy,chiz,xmom,

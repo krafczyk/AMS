@@ -17,8 +17,8 @@
 #include <daqevt.h>
 class AMSEvent: public AMSNode{
 private:
-integer _run;
-integer _runtype;
+uinteger _run;
+uinteger _runtype;
 number _NorthPolePhi;
 number _StationTheta;
 number _StationPhi;
@@ -90,6 +90,7 @@ void _catrdevent();
 void _cactcevent();
 void _caaxevent();
 void _validate();
+static const int16u _HDID;
 AMSlink * _getheadC( AMSID id, integer sorted=0);
 AMSlink * _getlastC( AMSID id);
 integer _setheadC( AMSID id, AMSlink * p);
@@ -130,14 +131,14 @@ void copy();
 void printA(integer debugl=0);
 void event();
 //+
-integer getEvent() {return _id;}
+uinteger getEvent() {return uinteger(_id);}
 //-
 integer addnext(AMSID id, AMSlink * p);
 integer replace(AMSID id, AMSlink * p, AMSlink *prev);
-integer getrun() const{return _run;}
-integer& setrun() {return _run;}
-integer getruntype() const{return _runtype;}
-integer& setruntype() {return _runtype;}
+uinteger getrun() const{return _run;}
+uinteger& setrun() {return _run;}
+uinteger getruntype() const{return _runtype;}
+uinteger& setruntype() {return _runtype;}
 time_t gettime(){return _time;}
 time_t& settime(){return _time;}
 void * operator new(size_t t, void *p) {return p;}
@@ -151,5 +152,16 @@ inline AMSNode * getp(const AMSID & id, char hint=0) const{
 inline void printH(){
   AMSEvent::EventMap.print();
 }
+
+// Interface with DAQ
+static int16u  getdaqid(){return 0x101;}
+static integer checkdaqid(int16u id){return id==getdaqid();}
+static void buildraw(integer length, int16u *p, uinteger &run, uinteger &event,
+uinteger & runtype, time_t & time); 
+static integer getmaxblocks(){return 1;}
+static integer calcdaqlength(integer i){return 1+2+2+2+4;}
+static void builddaq(integer i, integer length, int16u *p);
+
+
 };
 #endif

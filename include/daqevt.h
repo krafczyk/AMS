@@ -8,25 +8,40 @@
 #include <link.h>
 #include <fstream.h>
 #include <time.h>
-typedef AMSID (*pid)();
-typedef void  (*pgetput)(integer n, uinteger* data);
-typedef integer (*pgetl)();
+typedef integer (*pid)(int16u id);
+typedef void  (*pputdata)(integer n, int16u* data);
+
+typedef integer (*pgetmaxblocks)();
+typedef integer (*pgetl)(integer i);
+typedef void  (*pgetdata)(integer i, integer n, int16u* data);
 
 class DAQSubDet  {
 protected:
-integer _sdid;
-integer _length;
 pid _pgetid;
-pgetput _pgetdata;
-pgetput _pputdata;
-pgetl   _pgetlength;
+pputdata _pputdata;
 DAQSubDet * _next;
 public:
-DAQSubDet():_next(0),_pgetdata(0),_pgetid(0),_pputdata(0),
-_pgetlength(0),_sdid(-1),_length(0){}
-DAQSubDet(pid pgetid, pgetput pget, pgetput pput, pgetl pgl):
-  _next(0),_pgetlength(pgl),_pgetid(pgetid),_pgetdata(pget), _pputdata(pput),
-_sdid(-1),_length(0){}
+DAQSubDet():_next(0),_pgetid(0),_pputdata(0){}
+DAQSubDet(pid pgetid,  pputdata pput):
+  _next(0),_pgetid(pgetid), _pputdata(pput){}
+
+friend class DAQEvent;
+};
+
+class DAQBlockType  {
+protected:
+integer _maxbl;
+integer *  _plength;
+pgetmaxblocks _pgmb;
+pgetdata _pgetdata;
+pgetl   _pgetlength;
+DAQBlockType * _next;
+public:
+DAQBlockType():_next(0),_pgetdata(0),
+_pgetlength(0),_pgmb(0),_maxbl(0),_plength(0){}
+DAQBlockType(pgetmaxblocks pgmb, pgetl pgl, pgetdata pget):
+  _next(0),_pgetlength(pgl),_pgetdata(pget), _pgmb(pgmb),
+_maxbl(0),_plength(0){}
 
 friend class DAQEvent;
 };
@@ -34,23 +49,33 @@ friend class DAQEvent;
 
 class DAQEvent : public AMSlink{
 protected:
-integer _Length;
-uinteger *  _pcur;
-uinteger * _pData;
-static DAQSubDet * _pFirst;
-integer _CRCok();
-uinteger _makeCRC();
-integer  _findid(AMSID id);
+integer _Checked;
+uinteger _Length;
+uinteger _Event;
+uinteger _Run;
+uinteger _RunType;
+time_t _Time;
+int16u *  _pcur;
+int16u * _pData;
+static DAQSubDet * _pSD;
+static DAQBlockType * _pBT;
+static const integer _OffsetL;
+integer _EventOK();
+integer _HeaderOK();
 void _convert();
-void _convertl();
+void _convertl(int16u & l16);
 integer _create();
 void _copyEl();
 void _writeEl(){}
 void _printEl(ostream& o){}
 public:
 ~DAQEvent();
-DAQEvent(): AMSlink(),_Length(0),_pcur(0),_pData(0){}
-integer *  getsdid(AMSID id);
+DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0),
+_Time(0),_RunType(0){}
+uinteger & eventno(){return _Event;}
+uinteger & runno(){return _Run;}
+time_t   & time(){return _Time;}
+uinteger & runtype(){return _RunType;}
 void buildDAQ();
 void buildRawStructures();
 void write();
@@ -64,19 +89,11 @@ static char * ofnam;
 static fstream fbout;
 
 static void init(integer mode, integer format=0);
-static void addsubdetector(pid pgetid, pgetput pget, pgetput pput,
-                            pgetl pgl);
+static void addsubdetector(pid pgetid, pputdata pput);
+static void addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget);
 
-integer & eventno() {return *((integer*)(_pData+5));}
-integer & runno() {return *((integer*)(_pData+4));}
-integer & runtype() {return *((integer*)(_pData+6));}
-time_t  & time() {return *((time_t*)(_pData+7));}
-uinteger & crc() { return *(_pData+3);}
 
 static void setfiles(char *ifile, char *ofile);
-static void _InitTable();
-static uinteger * _Table;
-static const uinteger CRC32;
 };
 
 class DAQEventI{

@@ -24,7 +24,7 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax){
   id.upd(_strip);
   int16 va=(int16)id.getva();
   int16 strip=(int16)id.getstripa();
-  if (nmax-pos < 2+_nelem || 2+_nelem > 255) return pos;
+  if (nmax-pos < 2+_nelem || _nelem > 255 || _nelem==0) return pos;
   adc[pos+1]=mkaddress(strip,va,half,icmpt);
   integer imax=0;
   geant rmax=-1000000;
@@ -32,11 +32,11 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax){
    id.upd(_strip+i);
    if(_array[i] > rmax){
      rmax=_array[i];
-     imax=i-1;
+     imax=i;
    }
    adc[pos+i+2]=int16(_array[i]);
   }
-    adc[pos]=(_nelem+2) | (imax<<8); 
+    adc[pos]=(_nelem-1) | (imax<<8); 
     pos+=2+_nelem;
  return pos; 
 }
@@ -139,6 +139,7 @@ for ( i=0;i<ms;i++){
   if(ida[i]){
      AMSTrIdSoft idd(i);
      integer ilay=idd.getlayer();
+     integer half=idd.gethalf();
      AMSTrRawCluster *pcl;
      k=idd.getside();
       pcl=0;
@@ -165,7 +166,7 @@ for ( i=0;i<ms;i++){
           }
            pcl= new
            AMSTrRawCluster(i,nleft,nright,ida[i]+nleft);
-            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",0),pcl);
+            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",half),pcl);
             j=nright+1;           
         }
       }
@@ -190,94 +191,73 @@ void AMSTrRawCluster::_printEl(ostream & stream){
 }
 
 
+int16u AMSTrRawCluster::getdaqid(int i){
+if (i==0)return 0x580;
+else if(i==1)return 0x5f0;
+else return 0x0;
+}
+
+integer AMSTrRawCluster::checkdaqid(int16u id){
+if(id==getdaqid(0))return 1;
+else if(id==getdaqid(1))return 2 ;
+else return 0;
+}
 
 
-void AMSTrRawCluster::builddaq(integer n, uinteger *p){
+void AMSTrRawCluster::builddaq(integer i, integer n, int16u *p){
 
   AMSTrRawCluster *ptr=(AMSTrRawCluster*)AMSEvent::gethead()->
-  getheadC("AMSTrRawCluster",0);
+  getheadC("AMSTrRawCluster",i);
   integer ltr=0;
-  int16 *p16= (int16*)p;
+  *p=getdaqid(i);
+  int16 * p16=(int16*)p;
   while (ptr){
-   ltr+=ptr->lvl3format(p16+ltr,2*n-ltr);
+   ltr+=ptr->lvl3format(p16+1+ltr,n-1-ltr);
    ptr=ptr->next();
-  }
-  if(ltr%2 )*(p16+ltr)=0;
-#ifdef __AMSDEBUG__
-    assert(ltr <=2*n);
-#endif
-  if(AMSDBc::BigEndian){
-   // convert to little endian if big endian
-   int16u *p16u= (int16u*)p;
-   for (int i=0;i<n;i++){
-    int16u  tmp1=*(p16u+2*i);
-    int16u  tmp2=*(p16u+2*i+1);
-    *(p+i)=tmp1+(tmp2<<16);
-   }
   }
 
 
 }
 
 
-integer AMSTrRawCluster::calcdaqlength(){
+integer AMSTrRawCluster::calcdaqlength(integer i){
   AMSTrRawCluster *ptr=(AMSTrRawCluster*)AMSEvent::gethead()->
-  getheadC("AMSTrRawCluster",0);
-  integer l=0;
+  getheadC("AMSTrRawCluster",i);
+  integer l=1;
   while (ptr){
    l+=ptr->_nelem+2;
    ptr=ptr->next();
   }
-  return (l+1)/2;
+  return l;
 }
 
 
-void AMSTrRawCluster::buildraw(integer n, uinteger *p){
+void AMSTrRawCluster::buildraw(integer n, int16u *p){
+  integer ic=checkdaqid(*p)-1;
 {
-  AMSContainer *ptr=AMSEvent::gethead()->getC("AMSTrRawCluster",0);
-  ptr->eraseC();
+  AMSContainer *ptr=AMSEvent::gethead()->getC("AMSTrRawCluster",ic);
+  if(ptr)ptr->eraseC();
+  else cerr << "AMSTrRawCluster::buildraw-S-No container "<<ic;
 }
-  int16u* ptru= (int16u*)p;
-  if(AMSDBc::BigEndian){
-  // convert back to big endian
-   for (int i=0;i<n;i++){
-    int16u  tmp1=int16u(*(p+i)&65535);
-    int16u  tmp2=int16u(*(p+i)>>16);
-     *(ptru+2*i)=tmp1;
-    *(ptru+2*i+1)=tmp2;
-   }
-  }
-  int16* ptr;
   int leng=0;
-  for(ptr=(int16*)p;ptr<((int16*)p)+2*n;ptr+=leng){
+  int16u * ptr;
+  for(ptr=p+1;ptr<p+n;ptr+=leng+3){
      leng=(*ptr)&255;
-     if(leng==0)break;
-     else if(leng<3){
-       cerr <<"AMSTrRawCluster::buildraw-S-invalidLength "<<*(ptr)<<endl;
-     }
      integer va,strip,half,drp,lay,lad,side;
      getaddress(int16u(*(ptr+1)),strip,va,side,half,drp);
      AMSDBc::expandshuttle(drp,lay,lad);
+     half=ic;
      AMSTrIdSoft id(lay,lad,half,side);
      
-     AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",0), new
-     AMSTrRawCluster(id.cmpt(),strip,strip+leng-3,ptr+2));
+     AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
+     AMSTrRawCluster(id.cmpt(),strip,strip+leng,(int16*)ptr+2));
   }
   
 
-  if(AMSDBc::BigEndian){
-   // convert to little endian if big endian
-   ptru= (int16u*)p;
-   for (int i=0;i<n;i++){
-    int16u  tmp1=*(ptru+2*i);
-    int16u  tmp2=*(ptru+2*i+1);
-    *(p+i)=tmp1+(tmp2<<16);
-   }
-  }
 
 #ifdef __AMSDEBUG__
 {
-  AMSContainer * ptrc =AMSEvent::gethead()->getC("AMSTrRawCluster",0);
+  AMSContainer * ptrc =AMSEvent::gethead()->getC("AMSTrRawCluster",ic);
   if(ptrc && AMSEvent::debug>1)ptrc->printC(cout);
 }
 #endif

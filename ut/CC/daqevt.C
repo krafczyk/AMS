@@ -1,10 +1,8 @@
 #include <daqevt.h>
 #include <event.h>
 #include <commons.h>
-uinteger * DAQEvent::_Table=0;
-const uinteger DAQEvent::CRC32=0x04c11db7;
 
-const integer lsub=2;
+const integer lover=2;
 DAQEvent::~DAQEvent(){
 UPool.udelete(_pData);
 }
@@ -14,22 +12,44 @@ UPool.udelete(_pData);
 _pData=0;
 _Length=0;
 _pcur=0;
+_Event=0;
+_Run=0;
+_RunType=0;
+_Time=0;
+_Checked=0;
 }
 
-void DAQEvent::addsubdetector(pid pgetid, pgetput pget, pgetput pput,
-                            pgetl pgl){
-  DAQSubDet * p= new DAQSubDet(pgetid, pget, pput,  pgl);
-  if(_pFirst){
-    DAQSubDet *paux=_pFirst;
+DAQSubDet * DAQEvent::_pSD=0;
+DAQBlockType * DAQEvent::_pBT=0;
+
+void DAQEvent::addsubdetector(pid pgetid, pputdata pput){
+  DAQSubDet * p= new DAQSubDet(pgetid, pput);
+  if(_pSD){
+    DAQSubDet *paux=_pSD;
     while(paux->_next)paux=paux->_next;
     paux->_next=p; 
   }
-  else _pFirst=p;
+  else _pSD=p;
+}
+void DAQEvent::addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget){
+  DAQBlockType * p= new DAQBlockType(pgmb,pgl,pget);
+  if(_pBT){
+    DAQBlockType *paux=_pBT;
+    while(paux->_next)paux=paux->_next;
+    paux->_next=p; 
+  }
+  else _pBT=p;
+  p->_maxbl=(p->_pgmb)();
+  p->_plength=new integer[p->_maxbl];
+  if(p->_plength == NULL){
+    cerr<<"DAQEvent::addblock-F-Memory exhausted "<<p->_maxbl<<endl;  
+    p->_maxbl=0;
+    exit(1);
+  }
 }
 
-DAQSubDet * DAQEvent::_pFirst=0;
 
-
+const integer DAQEvent::_OffsetL=1;
 char * DAQEvent::ifnam=0;
 char * DAQEvent::ofnam=0;
 fstream DAQEvent::fbin;
@@ -49,121 +69,86 @@ void DAQEvent::setfiles(char *ifile, char *ofile){
 
 
 void DAQEvent::buildDAQ(){
-DAQSubDet *fpl=_pFirst;
-if(_pFirst == NULL){
-  cerr << "DAQEvent::build-S-NoSubdetecors in DAQ"<<endl;
+DAQBlockType *fpl=_pBT;
+if(fpl == NULL){
+  cerr << "DAQEvent::build-S-NoSubdetectors in DAQ"<<endl;
   return;
 }
 integer ntot=0;
 while(fpl){
-fpl->_sdid=_findid((fpl->_pgetid)());
-if( fpl->_sdid < 0)
-  cerr << "DAQEvent::build-S-Invalid Subdetector Id"<<(fpl->_pgetid)()<<endl;
-else fpl->_length=(fpl->_pgetlength)();
-ntot+=fpl->_length+lsub;
-fpl=fpl->_next;
+ for(int i=0;i<fpl->_maxbl;i++){
+   *(fpl->_plength+i)=(fpl->_pgetlength)(i)+1;
+   ntot+=*(fpl->_plength+i);
+ }
+ fpl=fpl->_next;
 }
 
 
 // Make array
 
 
-
-const integer lheader=1+1+1+1+1+1+1;
-_Length=1+lheader+ntot;
+_Length=lover+ntot;
 
 #ifdef __AMSDEBUG__
 assert(sizeof(time_t) == sizeof(integer));
 #endif
 
 if(_create() ){
- *(_pData+1)=lheader;
- *(_pData+2)=0;    // Header ID = 0
- eventno()=AMSEvent::gethead()->getid();
- runno()=AMSEvent::gethead()->getrun();
- runtype()=AMSEvent::gethead()->getruntype();
- time()=AMSEvent::gethead()->gettime();
- crc()=0;
- _pcur=_pData+1+lheader;
- fpl=_pFirst;
-while(fpl){
- if(fpl->_sdid >=0 ){
- *_pcur=fpl->_length+lsub;
- *(_pcur+1)=fpl->_sdid;
- uinteger* psafe=_pcur+lsub;
- fpl->_pgetdata(fpl->_length,psafe);
- _pcur=_pcur+*_pcur;
-}
-fpl=fpl->_next;
-}
-crc()=_makeCRC(); 
+ fpl=_pBT;
+ while(fpl){
+ for(int i=0;i<fpl->_maxbl;i++){
+   *_pcur=*(fpl->_plength+i)-_OffsetL;
+   int16u *psafe=_pcur+1;
+   fpl->_pgetdata(i,*(fpl->_plength+i)-1,psafe);
+   _pcur=_pcur+*_pcur+_OffsetL;
+ }
+ fpl=fpl->_next;
+ }
 }
 }
 
  
-uinteger DAQEvent::_makeCRC(){
 
- _InitTable();
-  int i,j,k;
-  if(_pData){
-   integer n=integer(_pData[0]);
-   uinteger crc;
-   if( n < 1) return 0;
-     crc=~_pData[0];
-     for(i=1;i<n;i++){
-       for(j=0;j<3;j++)crc=_Table[crc>>24]^(crc<<8);
-      crc=crc^_pData[i];
-     }
-   return ~crc;
+integer DAQEvent::_EventOK(){
+  if(_Length >1 && _pData &&  _pData[1]==0x0){
+    integer ntot=0;
+    _pcur=_pData+2;
+    for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL)
+    ntot+=*(_pcur)+_OffsetL;
+    if(ntot != _pData[0]+_OffsetL-2){
+      cerr <<"DAQEvent::_Eventok-E-length mismatch: Header says length is "<<
+        _pData[0]+_OffsetL<<" Blocks say length is "<<ntot+2<<endl;
+      return 0;
+    }
+    else return 1;    
   }
   else return 0;
-
 }
 
-integer DAQEvent::_CRCok(){
-  if(_pData){
-   uinteger oldcrc=crc();
-   crc()=0;
-   if(_makeCRC() != oldcrc){
-#ifdef __AMSDEBUG__
-     cerr <<
-    "DAQEvent::testCRC-S-CRCFailed Was "<<oldcrc<<" Now "<<_makeCRC()<<endl;
-#endif
-     return 0;
-   }
-   else {
-     crc()=oldcrc;
-     return 1;    
-   }
+integer DAQEvent::_HeaderOK(){
+  for(_pcur=_pData+lover;_pcur < _pData+_Length;_pcur=_pcur+*_pcur+_OffsetL){
+    if(AMSEvent::checkdaqid(*(_pcur+1))){
+      AMSEvent::buildraw(*(_pcur)+_OffsetL-1,_pcur+1, _Run,_Event,_RunType,_Time);
+      _Checked=1;
+      return 1;
+    }
   }
-  else return 0;
+  cerr<<"DAQEvent::_HeaderOK-E-NoHeaderinEvent"<<endl;
+ return 0;
 }
 
 
   
-integer DAQEvent::_findid(AMSID id){
-if(strcmp(id.getname(),"LVL1") ==0)return 1;
-else if(strcmp(id.getname(),"LVL3") ==0)return 3;
-else if(strcmp(id.getname(),"TOF") ==0)return 10;
-else if(strcmp(id.getname(),"Anti") ==0)return 20;
-else if(strcmp(id.getname(),"Tracker") ==0)return 30;
-else if(strcmp(id.getname(),"CTC") ==0)return 40;
-else return -1;
-
-
-}
 
 
 void DAQEvent::buildRawStructures(){
-  if(_CRCok()){
-   DAQSubDet * fpl=_pFirst;
+  if(_Checked ||(_EventOK() && _HeaderOK())){
+   DAQSubDet * fpl=_pSD;
    while(fpl){
-   fpl->_sdid=_findid((fpl->_pgetid)());
-   for(_pcur=_pData+1;_pcur < _pData+*(_pData);_pcur=_pcur+*_pcur){
-    if(*(_pcur+1) == fpl->_sdid){
-     uinteger *psafe=_pcur+lsub;
-     fpl->_pputdata(*_pcur-lsub,psafe);
-     break;
+   for(_pcur=_pData+lover;_pcur < _pData+_Length;_pcur=_pcur+*_pcur+_OffsetL){
+    if(fpl->_pgetid(*(_pcur+1))){
+     int16u *psafe=_pcur+1;
+     fpl->_pputdata(*_pcur+_OffsetL-1,psafe);
     }
    }
    fpl=fpl->_next; 
@@ -176,6 +161,7 @@ void DAQEvent::write(){
 
    _convert();
    fbout.write((unsigned char*)_pData,sizeof(_pData[0])*_Length);
+
    // Unfortunately we shoulf flush output for each event
    //
    fbout.flush();
@@ -185,10 +171,16 @@ void DAQEvent::write(){
 
 
 integer DAQEvent::read(){
+  do{
     if(fbin.good() && !fbin.eof()){
-     fbin.read((unsigned char*)(&_Length),sizeof(_Length));
+     int16u l16;
+#ifdef __AMSDEBUG__
+     assert(sizeof(_pData[0]) == sizeof(l16));
+#endif
+     fbin.read((unsigned char*)(&l16),sizeof(_pData[0]));
+     _convertl(l16);
+     _Length=l16+_OffsetL;
      if(fbin.good() && !fbin.eof()){
-      _convertl();
       if(_create()){
        fbin.seekg(fbin.tellg()-sizeof(_pData[0]));
        fbin.read((unsigned char*)(_pData),sizeof(_pData[0])*(_Length));
@@ -196,10 +188,14 @@ integer DAQEvent::read(){
       }
       else{
        fbin.seekg(fbin.tellg()+sizeof(_pData[0])*(_Length-1));
+       _Length=0;
       }
      }
-    }   
-   return fbin.good() && !fbin.eof() ;
+     else break;
+    }
+    else break;  
+  }while(_EventOK()==0 || _HeaderOK()==0);
+   return fbin.good() && !fbin.eof();
 }
 
 
@@ -290,12 +286,9 @@ void DAQEvent::_convert(){
    int i;
    for(i=0;i<_Length;i++){
      tmp=*pc;
-     *pc=*(pc+3);
-     *(pc+3)=tmp;
-     tmp=*(pc+1);
-     *(pc+1)=*(pc+2);
-     *(pc+2)=tmp;
-     pc=pc+sizeof(uinteger);
+     *pc=*(pc+1);
+     *(pc+1)=tmp;
+     pc=pc+sizeof(int16u);
    }
   }
 }
@@ -303,16 +296,13 @@ void DAQEvent::_convert(){
 
 
 
-void DAQEvent::_convertl(){
+void DAQEvent::_convertl(int16u & l16){
   if(AMSDBc::BigEndian){
    unsigned char tmp;
-   unsigned char *pc = (unsigned char*)(&_Length);
+   unsigned char *pc = (unsigned char*)(&l16);
      tmp=*pc;
-     *pc=*(pc+3);
-     *(pc+3)=tmp;
-     tmp=*(pc+1);
-     *(pc+1)=*(pc+2);
-     *(pc+2)=tmp;
+     *pc=*(pc+1);
+     *(pc+1)=tmp;
   }
 }
 
@@ -323,21 +313,6 @@ void DAQEvent::_copyEl(){
 
 }
 
-
-void DAQEvent::_InitTable(){
-  if(!_Table){
-    _Table=new uinteger[256];
-    assert(_Table!=NULL);
-    integer i,j;
-    uinteger crc;
-    for(i=0;i<256;i++){
-      crc=i<<24;
-      for(j=0;j<8;j++)crc=crc&0x80000000 ? (crc<<1)^CRC32 : crc<<1;
-      _Table[i]=crc;
-      //cout << i<<" "<<_Table[i]<<endl;
-    }
-  }
-}
 
 
 
@@ -356,7 +331,12 @@ integer DAQEvent::_create(){
 #ifdef __AMSDEBUG__
 assert (_Length >0);
 #endif
-_pData= (uinteger*)UPool.insert(sizeof(_pData[0])*_Length);
-if(_pData)_pData[0]=_Length;
+if(_pData)shrink();
+_pData= (int16u*)UPool.insert(sizeof(_pData[0])*_Length);
+if(_pData){
+ _pData[0]=_Length-_OffsetL;
+ _pData[1]=0x0;
+ _pcur=_pData+2;
+}
 return _pData != NULL ;
 }

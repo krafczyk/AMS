@@ -1,40 +1,53 @@
 I. Proposed Daq Event format 
 
-All 32 bit integers. Means e.g. two 16bit integers should be packed
-   as i32=i16_1 + (i16_2<<16),that is converted to little endian, so no conversion is
-   needed for alpha. 
+All 16 bit unsigned integers. 32 & more bits are in little endian,i.e.
+ unsigned short int ui16[2];
+ integer r;
+ ui16[0[=((unsigned integer)r)&65535;
+ ui16[1]=(((unsigned integer)r)>>16)&65535;
+
+ 
+
    
 -----------------------------------------------------------------------------
-| LT  | LH |IDH |CRC | Run | Evt | RType | Time|...|LSubdet| ID Subdet|..data subdet.|
+|EL|EID|HL|HID|Run(2)|AuxR(2)|Event(2)|Time(4)|LSubDBl|IDSubDBl|..dataSubDBl.|
 -----------------------------------------------------------------------------
 
 Legend:
 
-LT      - total length in 32 bit words
-LH      - header length
-IDH     - header id (0?)
-CRC     - crc32
-Run     - run number
-Evt     - event number
-RType   - run type 
-Time    - time (unix format)
-LSubdet - length of subdet (LVL1,LVL3,TOF,Anti,Tracker,CTC)
-IDSubdet - Proposed          1    3   10  20    30      40
+EL      - total length in 16 bit words   - 1    (mike idea)
+EID     - Event ID = 0x0
+HL      - header ==general run length - 1
+HID     - header id = 0x0101;
+Run     - run number 32bit
+AuxR    - run type   32bit
+Evt     - event number 32bit
+Time    - time 32bit unix format + 32bit tbd
+LSubDBl - length of subdet block (LVL1,LVL3,TOF,Anti,Tracker,CTC)-1
+IDSubDBl- id sub det block see below
+
+(!) Header is not necessary follow the EID and should be find by id only.
 
 
 II. Subdet event formats
 
 a.Trig1 Event format
 
-Word1   tof1 pattern + tof2pattern<<16
-Word2   tof3 pattern + tof4pattern<<16
-word3   antipattern  + z<<16
+ID=0x0300; (?)
+Word1   tof1 pattern 
+Word2   tof2 pattern 
+Word3   tof3 pattern 
+Word4   tof4 pattern 
+Word5   antipattern  
+word6   z
 
 b.Trig3 Event Format 
 
-Word1
-16 bit tracker  output + 8 bit tof output  +8 bit anti output
-Word2 16 bit(signed) residual in mkm + 8 bit pattern + 8 bit nhits
+ID=0x0700;  (?)
+Word1 tracker  output 
+Word2  8 bit tof output  +8 bit anti output
+Word3 16 bit(signed) residual in mkm 
+Word4  8 bit pattern + 8 bit nhits
 
 c.TOF Event Format
 
@@ -51,12 +64,10 @@ To be defined
 
 e.Tracker Event Format
 
-16bit word1
-8bit cluster length
-8bit max hit offset
-16bit word 2
-leftmost hit address
-16 bit word 3-length
+ID=0x0580 (x<0) & 0x05F0 (x>0)
+word1 8bit cluster length - 3 | 8bit max hit offset
+word2 leftmost hit address
+word 3 to length+3
 amplitudes*8
 .............
 
@@ -67,31 +78,42 @@ f.CTC(Aerogel) Event Format
 
 To be defined
 
-Now Used :
-
-columnn | row <<5 | layer<<10 | status <<11 | (signal in adc==phel)<<16
 
 
 
 
 III. Interface with DAQEvent class
 
-Each subdetector raw class (or trigger class) 
-should have four functions of the following format (names are not relevant)
+a. Daq->Raw conversion
 
-      static AMSID getdaqid(){return AMSID("Name-of-SubDet",0);}   // Identify itself
-                                                                   //The following names are proposed
-                                                                   //LVL1
-                                                                   //LVL3
-                                                                   //TOF
-                                                                   //Anti
-                                                                   //Tracker
-                                                                   //CTC
-      static integer calcdaqlength();                              // return data length in 32 bit words
+Each subdetector or trigger class
+should have at least two  functions 
+(one pair for one specifiq daq format)
+of the following form (names are not relevant)
 
-      static void builddaq(integer length, uinteger *p);          // builds daq from raw into p
+ static integer checkdaqid(int16u id){return 1 if id is relevant else 0 }
+  
 
-      static void buildraw(integer length, uinteger *p);          // builds raw from daq from p
+
+ static void buildraw(integer length, int16u *p);  // builds raw from daq from p
+                                                   //  p points to idsubdbl    
+                                                   // length==LSubDBl      
+
+
+b. Raw->Daq conversion
+
+Each block type (block type = header, trig-1,3, tracker, scrate etc)
+should have 3 functions
+ 
+ static integer getmaxblocks();      // returns maxblocks
+ static integer calcdaqlength(int i);    // i =0 to max blocks-1
+                                     // return data length ==LSubDBl
+
+ static void builddaq(integer i, integer length, int16u *p);
+                                                 // builds daq from raw into p,
+                                                 // i =0 to max blocks-1  
+                                                 // p points to idsubdbl
+                                                 // length==LSubDBl
 
 
 
@@ -101,8 +123,14 @@ as in example:
 
  //tracker
 
-    DAQEvent::addsubdetector(&AMSTrRawCluster::getdaqid,&AMSTrRawCluster::builddaq,
-    &AMSTrRawCluster::buildraw,&AMSTrRawCluster::calcdaqlength);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,
+                             &AMSTrRawCluster::buildraw);
+
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,
+                           &AMSTrRawCluster::calcdaqlength,
+                           &AMSTrRawCluster::builddaq);
+
+
 
 
 
@@ -123,13 +151,17 @@ IV. Relevant datacards
 
 
 
-V. Comments
 
-   Current program flow  for simulation chain creates daq structure in _sidaqevent
-   then recreates the rawstructures in _redaqevent only if isReconstruction() is true.
-   For test purposes however it recreates them always if __AMSDEBUG__ is defined.
-   So one should delete the corresponding container by eraseC in corresponding buildraw 
-   function  if __AMSDEBUG__ defined in compile time.
     
 
 
+
+V. Built in access to event header
+
+
+runno()
+eventno()
+runtype()
+time()
+
+(Active only after _HeaderOK())
