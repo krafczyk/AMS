@@ -79,7 +79,7 @@ VII.  Standalone version
 
            klog{.krb} -pr username -cell cern.ch (see man klog for the details,           you may need type pagsh{.krb} before in some cases)
            setenv Offline /afs/cern.ch/exp/ams/Offline
-           source /offline/vdev/install/amsvar
+           source $Offline/vdev/install/amsvar
            
  
          
@@ -98,7 +98,7 @@ VII.  Standalone version
           tar -uvf ~/ams.tar DataBase/Tracker*2
           tar -uvf ~/ams.tar DataBase/*of*/*.0.*
           tar -uvf ~/ams.tar DataBase/.*0
-           tar -uvf ~/ams.tar DataBase/.TrA*1
+          tar -uvf ~/ams.tar DataBase/.TrA*1
           login in  your computer:
            mkdir mydir
            cd mydir

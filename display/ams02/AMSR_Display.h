@@ -57,7 +57,9 @@ class AMSR_GeometrySetter;
 class AMSR_Display : public AMSR_VirtualDisplay {
 
 private:
-
+   Float_t               fCooCur[2][3];
+   Float_t               fCooDef[2][3];
+   
    EAMSR_View            m_View;		     //view
    Long_t              m_IdleTime;           //idle time in seconds
    Text_t             *m_IdleCommand;        //command after each idle time
@@ -97,7 +99,17 @@ private:
 
       
 public:
-
+                       float & CooDefMin(int i){return fCooDef[0][i];}
+                       float & CooDefMax(int i){return fCooDef[0][i];}
+                       float & CooCurMin(int i){return fCooCur[0][i];}
+                       float & CooCurMax(int i){return fCooCur[0][i];}
+                       void ResetCoo(){
+                        for(int i=0;i<3;i++){
+                          fCooCur[0][i]=fCooDef[0][i];
+                          fCooCur[1][i]=fCooDef[1][i];
+                        }
+                       }
+            
                        AMSR_Display();
                        AMSR_Display(const char *title, TGeometry * geo=0, int resx=1024, int resy=768);
    virtual            ~AMSR_Display();
@@ -128,6 +140,7 @@ public:
    virtual void        ExecuteEvent(Int_t event, Int_t px, Int_t py);
 //   virtual Bool_t      GetEvent(Int_t event); //*MENU*
    virtual Bool_t      GotoRunEvent(); //*MENU*
+   Bool_t              Zoom();            
 // AMSR_KeyNode         *GetKeyNode() const { return m_KeyNode; }
    TPad               *Pad() {return m_Pad;}
    virtual AMSR_Canvas  *GetCanvas() { return m_Canvas; }

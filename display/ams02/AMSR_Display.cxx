@@ -1,4 +1,3 @@
-
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSR_Display                                                           //
@@ -50,6 +49,13 @@ AMSR_Display::AMSR_Display() : AMSR_VirtualDisplay()
    //
 
 //   m_Particle  = 0;
+     fCooDef[0][0]=-70.;
+     fCooDef[0][1]=-70.;
+     fCooDef[0][2]=-100.;
+     fCooDef[1][0]=70.;
+     fCooDef[1][1]=70.;
+     fCooDef[1][2]=120.;
+     ResetCoo();
 
 //   m_theapp=0;
    m_View = kFrontView;
@@ -71,6 +77,13 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo, int resx, int res
    // Constructor of AMSR_Display
    //
 
+     fCooDef[0][0]=-70.;
+     fCooDef[0][1]=-70.;
+     fCooDef[0][2]=-100.;
+     fCooDef[1][0]=70.;
+     fCooDef[1][1]=70.;
+     fCooDef[1][2]=120.;
+     ResetCoo();
    m_Geometry     = 0;
    m_IdleTime     = 0;
    m_IdleCommand  = 0;
@@ -995,7 +1008,7 @@ void AMSR_Display::DrawView(Float_t theta, Float_t phi, Int_t index)
 //     view->SetRange(-100.0, -100.0, -120.0, 100.0, 100.0, 120.0);
 //   }
 
-    view->SetRange(-70.0, -70.0, -100.0, 70.0, 70.0, 120.0);
+    view->SetRange(fCooCur[0][0], fCooCur[0][1],fCooCur[0][2],fCooCur[1][0],fCooCur[1][1],fCooCur[1][2]);
 
    //Loop on all makers to add their products to the pad
    TIter next(gAMSR_Root->Makers());
@@ -1209,6 +1222,63 @@ void AMSR_Display::SetView(Float_t theta, Float_t phi)
 
 //_____________________________________________________________________________
 Bool_t AMSR_Display::GotoRunEvent()
+{
+   //
+   //Prompt a dialog for user to input run/event number and goto
+   //
+   Int_t run=0, event=0;
+
+   //
+   //Store the status of m_IdleOn before suspending
+   //Then suspend the Idle handling
+   //
+   Bool_t idle = m_IdleOn;
+   IdleSwitch(-1);
+
+   //
+   //create a dialog to input run/event
+   //
+   const TGWindow *main = gClient->GetRoot();
+   TRootCanvas *own = (TRootCanvas*)m_Canvas->GetCanvasImp();
+   new TGRunEventDialog(main, own, &run, &event);
+
+   debugger.Print("You input run/event =%d/%d\n", run, event);
+
+   //
+   //Resuem the status of Idle Handling
+   //
+   if (idle) IdleSwitch(1);
+
+   if (run==0 && event<=0) return kFALSE;
+
+   //
+   //run=-9, then event is the number for the tree, not for the run
+   //
+   if (run==-9) {
+      if (gAMSR_Root->GetEvent(event)) {
+         debugger.Print("Changed to event %d\n",gAMSR_Root->Event());
+         m_Pad->cd();
+         Draw();
+         return kTRUE;
+       } else return kFALSE;
+    }
+ 
+   //
+   //run=0, then take m_RunNum as run
+   //goto to the event of run/event
+   //
+   if (run==0) run = gAMSR_Root->RunNum();
+   if (gAMSR_Root->GetEvent(run, event)) {
+      debugger.Print("Found run/event =%d/%d\n", gAMSR_Root->RunNum(),
+                                               gAMSR_Root->EventNum());
+      m_Pad->cd();
+      Draw();
+      return kTRUE;
+   } else return kFALSE;
+
+}
+
+Bool_t AMSR_Display::Zoom()
 {
    //
    //Prompt a dialog for user to input run/event number and goto
