@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.91 2003/05/14 17:00:25 choutko Exp $
+//  $Id: server.C,v 1.92 2003/06/20 14:48:00 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -2465,7 +2465,7 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
          //  run not found, aborting client
         _parent->EMessage(AMSClient::print(cid,"Producer_impl::sendId-E-RegClientNotFoundAndForeignClientTestFailed "));
          cid.uid=0;
-         if(dstinfo->DieHard==1)cid.Interface=(const char*)"AnotherInstanceOfMCProducerActiveWaitForTimeOutIfCrashed";
+         if(dstinfo->DieHard==1)cid.Interface=(const char*)"RunNotFoundOrAnotherInstanceOfMCProducerActiveWaitForTimeOutIfCrashed";
          else cid.Interface=(const char*)"DBProblemFound";
          return false;
         }
@@ -4292,6 +4292,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
      }
      catch (CORBA::SystemException &ex){
       cerr<<" oops corba error during getfreehost" <<endl;
+      return 0;
      }
     }
     if(!retry)return 0;
@@ -4351,6 +4352,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
      }
      catch (CORBA::SystemException &ex){
       cerr<<" oops corba error during getrunevinfo" <<endl;
+      return 0;
      }
     }
     if(!retry)return 0;
@@ -4390,6 +4392,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
      }
      catch (CORBA::SystemException &ex){
       cerr<<" oops corba error during sendrunevinfo" <<endl;
+      return 0; 
      }
     }
     if(!retry)return 0;

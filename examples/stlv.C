@@ -69,7 +69,7 @@ vector<TH1F*>   stlv::h1A;
 
 
 void stlv::UBegin(){
-    cout << " Begin called "<<endl;
+    cout << " Begin calling"<<endl;
 
    //here create histograms
 
@@ -96,6 +96,7 @@ void stlv::UBegin(){
     char *name="Layers";
    if(h1)delete h1;
    h1=new TH1F(name,name,10,-0.5,9.5);
+    cout << " Begin called now"<<endl;
     
    
 
@@ -108,7 +109,7 @@ void stlv::ProcessFill(Int_t entry)
    // Entry is the entry number in the current tree.
    // Fills histograms.
    
-    
+    cout <<"  entry "<<entry<<endl;
     Float_t xm=0;
     if(nMCEventg()>0){		
      MCEventgR mc_ev=MCEventg(0);

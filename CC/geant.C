@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.110 2003/05/20 09:06:23 choutko Exp $
+//  $Id: geant.C,v 1.111 2003/06/20 14:47:59 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -222,7 +222,7 @@ GLAST();
 }
 catch (AMSClientError & ab){
   cerr<<ab.getMessage()<< endl;
-    return 1;
+    return ;
 }
 #endif
 

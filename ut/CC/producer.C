@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.71 2003/05/14 21:42:51 choutko Exp $
+//  $Id: producer.C,v 1.72 2003/06/20 14:47:59 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -431,7 +431,7 @@ if(destdir && strcmp(destdir,getenv("NtupleDir"))){
  AString fmake;
  AString fcopy;
  if(means && means[0]=='r' && means[1]=='f'){
-  fmake="rfmkdir -p ";
+  fmake="rfmkdir -p -m 775 ";
   fcopy=means;
   fcopy+=" ";
  }

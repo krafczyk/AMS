@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.94 2003/06/19 15:25:00 isevilla Exp $
+//  $Id: root.h,v 1.95 2003/06/20 14:48:12 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -128,14 +128,6 @@ class HeaderR{
    float RadS;    ///<iss orbit altitude cm  (I2000 coo sys)
    float ThetaS;  ///<theta (GTOD rad)  
    float PhiS;    ///<phi   (GTOD rad)
-   float Ra; //(ISN) ISS pointing direction (equat. right ascension)
-   float Dec; //(ISN) ISS pointing direction (equat. declination)
-   float GLat; //(ISN) ISS pointing direction (gal. latitude)
-   float GLong; //(ISN) ISS pointing direction (gal. longitude)   
-   float AMSRa; //(ISN) AMS pointing direction (equat. right ascension)
-   float AMSDec; //(ISN) AMS pointing direction (equat. declination)
-   float AMSGLat; //(ISN) AMS pointing direction (gal. latitude)
-   float AMSGLong; //(ISN) AMS pointing direction (gal. longitude) 
    float Yaw;     ///<ISS yaw (LVLH rad) 
    float Pitch;   ///<ISS pitch (LVLH rad) 
    float Roll;   ///<ISS roll (LVLH rad)  
@@ -144,6 +136,15 @@ class HeaderR{
    float VelPhi;       ///< ISS speed phi (GTOD rad)  
    float ThetaM;        ///< magnetic (calculated for an eccentric dipole coo system) theta  rad
    float PhiM;          ///< magnetic (calculated for an eccentric dipole coo system)phi  rad
+
+   float ISSEqAsc; ///<(ISN) ISS pointing direction (equat. right ascension)
+   float ISSEqDec; ///<(ISN) ISS pointing direction (equat. declination)
+   float ISSGalLat; ///<(ISN) ISS pointing direction (gal. latitude)
+   float ISSGalLong; ///<(ISN) ISS pointing direction (gal. longitude)   
+   float AMSEqAsc; ///<(ISN) AMS pointing direction (equat. right ascension)
+   float AMSEqDec; ///<(ISN) AMS pointing direction (equat. declination)
+   float AMSGalLat; ///<(ISN) AMS pointing direction (gal. latitude)
+   float AMSGalLong; ///<(ISN) AMS pointing direction (gal. longitude) 
 
    //
 
