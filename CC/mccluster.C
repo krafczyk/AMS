@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.45 2001/12/07 11:32:18 choutko Exp $
+//  $Id: mccluster.C,v 1.46 2001/12/10 15:25:10 mdelgado Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -11,6 +11,7 @@
 #include <amsstl.h>
 #include <cont.h>
 #include <ntuple.h>
+#include <richid.h>
 #include <richdbc.h>
 #ifdef __G4AMS__
 #include <g4util.h>
@@ -529,14 +530,33 @@ void AMSRichMCHit::sirichhits(integer id,
     return;
   }
 
-  geant x=position[0]-RICHDB::pmt_p[pmt][0]+RICcatolength/2;
-  geant y=position[1]-RICHDB::pmt_p[pmt][1]+RICcatolength/2;
-  x/=RICcatolength/sqrt(RICnwindows);
-  y/=RICcatolength/sqrt(RICnwindows);
-  integer channel=RICnwindows*pmt+integer(sqrt(RICnwindows))*integer(y)+integer(x);
+  //  geant x=position[0]-RICHDB::pmt_p[pmt][0]+RICcatolength/2;
+  //  geant y=position[1]-RICHDB::pmt_p[pmt][1]+RICcatolength/2;
 
+  /* // Moved to AMSRICHIdGeom
+     geant x=position[0]-AMSRICHIdGeom::pmt_pos(pmt,0)+RICcatolength/2;
+     geant y=position[1]-AMSRICHIdGeom::pmt_pos(pmt,1)+RICcatolength/2;
+     
+     x/=RICcatolength/sqrt(RICnwindows);
+     y/=RICcatolength/sqrt(RICnwindows);
+     
+  // The next conversion should be carried out in AMSRICHIdGeom
+  integer channel=RICnwindows*pmt+integer(sqrt(RICnwindows))*integer(y)+integer(x);*/
+  
+  AMSRICHIdGeom channel(pmt,position[0],position[1]);
+
+#ifdef __AMSDEBUG__
+  cout <<"Hit position "<<position[0]<<","<<position[1]<<endl
+       <<"PMT number "<<pmt<<endl
+       <<"RICHDB position "<<RICHDB::pmt_p[pmt][0]<<" "<<RICHDB::pmt_p[pmt][1]<<endl
+       <<"RICHIdGeom pos "<<AMSRICHIdGeom::pmt_pos(pmt,0)<<" "<<AMSRICHIdGeom::pmt_pos(pmt,1)<<endl
+       <<"Asigned channel "<<channel.getchannel()<<endl
+       <<"Asigned pixel "<<channel.getpixel()<<endl
+       <<"Asigned position "<<channel.x()<<","<<channel.y()<<endl;
+#endif
+  
   AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
-			       new AMSRichMCHit(id,channel,adc,
+			       new AMSRichMCHit(id,channel.getchannel(),adc,
 						r,u,status));
 }
 
@@ -553,7 +573,7 @@ geant AMSRichMCHit::adc_hit(integer n){ // ADC counts for a set of hits
   geant u1,u2,dummy,r;
  
   r=sqrt(-2.*log(1.-RNDM(dummy)));
-  u1=r*sin(RNDM(dummy)*6.28318595886);   // This constant should be moved
+  u1=r*sin(RNDM(dummy)*6.28318595886);   // This constant (2pi)should be moved to a namespace
   return u1*RICHDB::sigma_peak*sqrt(n)+n*RICHDB::peak;
 }
 

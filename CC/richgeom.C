@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.11 2001/04/04 13:24:09 mdelgado Exp $
+//  $Id: richgeom.C,v 1.12 2001/12/10 15:25:10 mdelgado Exp $
 #include <typedefs.h>
 #include <node.h>
 #include <snode.h>
@@ -10,6 +10,7 @@
 #include <job.h>
 #include <commons.h>
 #include <richdbc.h>
+#include <richid.h>
 
 #define SQR(x) ((x)*(x))
 
@@ -1437,346 +1438,42 @@ geant xpos,ypos;
 
   ///// Positioning PMTs
 
+  AMSRICHIdGeom pmts;
 
-  copia=1;
-  
-  // The PMt array is made of two kind of blocks.
-  // Put the first one
+  par[0]=RICGEOM.light_guides_length/2;
+  par[1]=RICGEOM.light_guides_length/2;
+  par[2]=RICHDB::pmtb_height()/2;
 
-  xedge=RICGEOM.hole_radius+RICGEOM.light_guides_length/2+RICpmtsupport;
-  yedge=RICGEOM.hole_radius+
-      (1-2*RICHDB::n_rows[0])*RICGEOM.light_guides_length/2;//NEW!
+  for(int copia=0;copia<pmts.getpmtnb();copia++){
+    coo[0]=AMSRICHIdGeom::pmt_pos(copia,0);
+    coo[1]=AMSRICHIdGeom::pmt_pos(copia,1);
+    coo[2]=AMSRICHIdGeom::pmt_pos(copia,2);
 
-  for(int i=0;i<RICHDB::n_rows[0];i++)
-    for(int j=0;j<RICHDB::n_pmts[i][0];j++){
-
-      coo[2]=RICHDB::pmt_pos();
-      
-      par[0]=RICGEOM.light_guides_length/2;
-      par[1]=RICGEOM.light_guides_length/2;
-      par[2]=RICHDB::pmtb_height()/2; //NEW!
-
-      coo[0]=xedge+(j+RICHDB::offset[i][0])*RICGEOM.light_guides_length;
-      coo[1]=yedge+i*RICGEOM.light_guides_length;
-      
-
-      RICHDB::pmt_p[copia-1][0]=coo[0];
-      RICHDB::pmt_p[copia-1][1]=coo[1];
-
-      lig=rich->add(new AMSgvolume("VACUUM",
-				   0,
-				   "PMTB",
-				   "BOX",
-				   par,
-				   3,
-				   coo,
-				   nrm,
-				   "ONLY",
-				   0,
-				   copia++,
-				   rel));
-#ifdef __G4AMS__
-      if(MISCFFKEY.G4On)
-	Put_pmt((AMSgvolume *)lig,copia-1);
-#endif
-      
-      coo[0]*=-1;
-
-      RICHDB::pmt_p[copia-1][0]=coo[0];
-      RICHDB::pmt_p[copia-1][1]=coo[1];
-
-      lig=rich->add(new AMSgvolume("VACUUM",
-				   0,
-				   "PMTB",
-				   "BOX",
-				   par,
-				   3,
-				   coo,
-				   nrm,
-				   "ONLY",
-				   0,
-				   copia++,
-				   rel));
-
-      
-#ifdef __G4AMS__
-      if(MISCFFKEY.G4On)
-	Put_pmt((AMSgvolume *)lig,copia-1);
-#endif
-
-      coo[1]*=-1;
-
-      RICHDB::pmt_p[copia-1][0]=coo[0];
-      RICHDB::pmt_p[copia-1][1]=coo[1];
-
-      lig=rich->add(new AMSgvolume("VACUUM",
-				   0,
-				   "PMTB",
-				   "BOX",
-				   par,
-				   3,
-				   coo,
-				   nrm,
-				   "ONLY",
-				   0,
-				   copia++,
-				   rel));
-
+    lig=rich->add(new AMSgvolume("VACUUM",
+				 0,
+				 "PMTB",
+				 "BOX",
+				 par,
+				 3,
+				 coo,
+				 nrm,
+				 "ONLY",
+				 0,
+				 copia+1,
+				 rel));
 
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On)
-	Put_pmt((AMSgvolume *)lig,copia-1);
+	Put_pmt((AMSgvolume *)lig,copia+1);
 #endif
 
-
-      coo[0]*=-1;
-
-      RICHDB::pmt_p[copia-1][0]=coo[0];
-      RICHDB::pmt_p[copia-1][1]=coo[1];
-
-      lig=rich->add(new AMSgvolume("VACUUM",
-				   0,
-				   "PMTB",
-				   "BOX",
-				   par,
-				   3,
-				   coo,
-				   nrm,
-				   "ONLY",
-				   0,
-				   copia++,
-				   rel));
+  }
 
 
-#ifdef __G4AMS__
-      if(MISCFFKEY.G4On)
-	Put_pmt((AMSgvolume *)lig,copia-1);
-#endif
-
-
-
-      coo[0]=yedge+i*RICGEOM.light_guides_length;
-      coo[1]=xedge+(j+RICHDB::offset[i][0])*RICGEOM.light_guides_length;
-
-      RICHDB::pmt_p[copia-1][0]=coo[0];
-      RICHDB::pmt_p[copia-1][1]=coo[1];
-
-      lig=rich->add(new AMSgvolume("VACUUM",
-				   0,
-				   "PMTB",
-				   "BOX",
-				   par,
-				   3,
-				   coo,
-				   nrm,
-				   "ONLY",
-				   0,
-				   copia++,
-				   rel));
-
-
-#ifdef __G4AMS__
-      if(MISCFFKEY.G4On)
-	Put_pmt((AMSgvolume *)lig,copia-1);
-#endif
-      
-      coo[0]*=-1;
-
-      RICHDB::pmt_p[copia-1][0]=coo[0];
-      RICHDB::pmt_p[copia-1][1]=coo[1];
-
-      lig=rich->add(new AMSgvolume("VACUUM",
-				   0,
-				   "PMTB",
-				   "BOX",
-				   par,
-				   3,
-				   coo,
-				   nrm,
-				   "ONLY",
-				   0,
-				   copia++,
-				   rel));
-
-
-#ifdef __G4AMS__
-      if(MISCFFKEY.G4On)
-	Put_pmt((AMSgvolume *)lig,copia-1);
-#endif
-
-      coo[1]*=-1;
-
-      RICHDB::pmt_p[copia-1][0]=coo[0];
-      RICHDB::pmt_p[copia-1][1]=coo[1];
-
-      lig=rich->add(new AMSgvolume("VACUUM",
-				   0,
-				   "PMTB",
-				   "BOX",
-				   par,
-				   3,
-				   coo,
-				   nrm,
-				   "ONLY",
-				   0,
-				   copia++,
-				   rel));
-
-
-#ifdef __G4AMS__
-      if(MISCFFKEY.G4On)
-	Put_pmt((AMSgvolume *)lig,copia-1);
-#endif
-
-
-      coo[0]*=-1;
-
-      RICHDB::pmt_p[copia-1][0]=coo[0];
-      RICHDB::pmt_p[copia-1][1]=coo[1];
-      
-      lig=rich->add(new AMSgvolume("VACUUM",
-				   0,
-				   "PMTB",
-				   "BOX",
-				   par,
-				   3,
-				   coo,
-				   nrm,
-				   "ONLY",
-				   0,
-				   copia++,
-				   rel));
-
-
-
-#ifdef __G4AMS__
-      if(MISCFFKEY.G4On)
-	Put_pmt((AMSgvolume *)lig,copia-1);
-#endif
-
-    }
-
-
-
-  //  Put the other block
-
-//NEW!
-  xedge=RICGEOM.hole_radius+RICGEOM.light_guides_length/2+RICpmtsupport;
-  yedge=RICGEOM.hole_radius+RICGEOM.light_guides_length/2+RICpmtsupport;
-
-  for(int i=0;i<RICHDB::n_rows[1];i++)
-    for(int j=0;j<RICHDB::n_pmts[i][1];j++){
-      
-      coo[0]=xedge+(j+RICHDB::offset[i][1])*RICGEOM.light_guides_length;
-      coo[1]=yedge+i*RICGEOM.light_guides_length;
-
-      RICHDB::pmt_p[copia-1][0]=coo[0];
-      RICHDB::pmt_p[copia-1][1]=coo[1];
-
-      lig=rich->add(new AMSgvolume("VACUUM",
-				   0,
-				   "PMTB",
-				   "BOX",
-				   par,
-				   3,
-				   coo,
-				   nrm,
-				   "ONLY",
-				   0,
-				   copia++,
-				   rel));
-
-
-
-#ifdef __G4AMS__
-      if(MISCFFKEY.G4On)
-	Put_pmt((AMSgvolume *)lig,copia-1);
-#endif
-      
-      coo[0]*=-1;
-
-      RICHDB::pmt_p[copia-1][0]=coo[0];
-      RICHDB::pmt_p[copia-1][1]=coo[1];
-
-      lig=rich->add(new AMSgvolume("VACUUM",
-				   0,
-				   "PMTB",
-				   "BOX",
-				   par,
-				   3,
-				   coo,
-				   nrm,
-				   "ONLY",
-				   0,
-				   copia++,
-				   rel));
-
-
-#ifdef __G4AMS__
-      if(MISCFFKEY.G4On)
-	Put_pmt((AMSgvolume *)lig,copia-1);
-#endif
-
-      coo[1]*=-1;
-
-      RICHDB::pmt_p[copia-1][0]=coo[0];
-      RICHDB::pmt_p[copia-1][1]=coo[1];
-
-      lig=rich->add(new AMSgvolume("VACUUM",
-				   0,
-				   "PMTB",
-				   "BOX",
-				   par,
-				   3,
-				   coo,
-				   nrm,
-				   "ONLY",
-				   0,
-				   copia++,
-				   rel));
-
-
-#ifdef __G4AMS__
-      if(MISCFFKEY.G4On)
-	Put_pmt((AMSgvolume *)lig,copia-1);
-#endif
-
-
-      coo[0]*=-1;
-
-      RICHDB::pmt_p[copia-1][0]=coo[0];
-      RICHDB::pmt_p[copia-1][1]=coo[1];
-
-      lig=rich->add(new AMSgvolume("VACUUM",
-				   0,
-				   "PMTB",
-				   "BOX",
-				   par,
-				   3,
-				   coo,
-				   nrm,
-				   "ONLY",
-				   0,
-				   copia++,
-				   rel));
-
-
-#ifdef __G4AMS__
-      if(MISCFFKEY.G4On)
-	Put_pmt((AMSgvolume *)lig,copia-1);
-#endif
-    }
-
-  
- 
 #ifdef __G4AMS__
   if(MISCFFKEY.G3On)
 #endif
     Put_pmt((AMSgvolume *)lig,1);
-
-  RICHDB::total=copia-1;
-
-  cout<< "amsgeom::RICH geometry finished-> " << RICHDB::total << " PMTs found." << endl;
 
 }
 

@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.27 2001/12/07 11:32:18 choutko Exp $
+//  $Id: richrec.C,v 1.28 2001/12/10 15:25:10 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -15,10 +15,18 @@
 #include <iostream>
 #include <trrec.h>
 #include <root.h> 
+#include <richid.h>
 //#include <vector>
 //#include <valarray>
 
 void AMSRichRawEvent::mc_build(){
+
+  // TO DO LIST:
+  //  Get all the information about pedestals and so from AMSRICHIdSoft
+  //  Simulate the two gains
+  //  Store charge instead of gains
+
+
 
   // Add noise...
   geant mean_noisy=RICnwindows*RICHDB::total*RICHDB::prob_noisy;
@@ -44,9 +52,8 @@ void AMSRichRawEvent::mc_build(){
    geant signal=0;
 
    for(AMSRichMCHit* hits=(AMSRichMCHit *)AMSEvent::gethead()->getheadC("AMSRichMCHit",0,1);hits;hits=hits->next()){ // loop on signals
-   
-      uinteger channel=hits->getchannel();
-
+     //Cambio uinteger en integer
+      integer channel=hits->getchannel();
 
       if(channel>=RICnwindows*RICHDB::total){
          cerr<< "AMSRichRawEvent::mc_build-ChannelNoError "<<channel<<endl;
@@ -90,8 +97,23 @@ void AMSRichRawEvent::_writeEl(){
 
   cluster->channel[cluster->Nhits]=_channel;
   cluster->adc[cluster->Nhits]=_counts;
-  cluster->x[cluster->Nhits]=RICHDB::x(_channel);
-  cluster->y[cluster->Nhits]=RICHDB::y(_channel);
+
+  AMSRICHIdGeom channel(_channel);
+  //  cluster->x[cluster->Nhits]=RICHDB::x(_channel); // TODO:Get from AMSRICHIdGeom
+  //  cluster->y[cluster->Nhits]=RICHDB::y(_channel); // TODO:Get from AMSRICHIdGeom
+
+  cluster->x[cluster->Nhits]=channel.x();
+  cluster->y[cluster->Nhits]=channel.y();
+
+#ifdef __AMSDEBUG__
+  cout<<"Channel "<<_channel<<"/"<<channel.getchannel()<<endl;
+  if(cluster->x[cluster->Nhits]!=RICHDB::x(_channel) ||
+     cluster->y[cluster->Nhits]!=RICHDB::y(_channel))
+    cout<<">>>>>>>>>>> Error in channel"<<channel.getchannel()<<" position "<<
+      cluster->x[cluster->Nhits]<<" should be "<<RICHDB::x(_channel) << endl<<
+      cluster->y[cluster->Nhits]<<" should be "<<RICHDB::y(_channel) << endl;
+#endif
+
   cluster->Nhits++;
 
 }
@@ -108,9 +130,12 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
 #endif
   // Reconstruct the beta values for this hit. Assumes direction as unitary
   static const geant z=RICradpos-RICHDB::rad_height-RICHDB::height;
-  
-  geant x=RICHDB::x(_channel);
-  geant y=RICHDB::y(_channel);
+  AMSRICHIdGeom channel(_channel);
+  //  geant x=RICHDB::x(_channel);  // TODO:Get them from AMSRICHIdGeom
+  //  geant y=RICHDB::y(_channel);  // TODO:Get them from AMSRICHIdGeom
+
+  geant x=channel.x();
+  geant y=channel.y();
 
   betas[0]=0;
   betas[1]=0;
@@ -215,8 +240,12 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
   geant c=sqrt(c2);
   geant alp=1/sqrt(1+zk);
   
-  geant xf=RICHDB::x(_channel);
-  geant yf=RICHDB::y(_channel);
+  AMSRICHIdGeom channel(_channel);
+  geant xf=channel.x();
+  geant yf=channel.y();
+
+  //  geant xf=RICHDB::x(_channel);  //TODO: Get them from AMSRICHIdGeom
+  //  geant yf=RICHDB::y(_channel);  //TODO: Get them from AMSRICHIdGeom
   geant zf=-false_height;
   //  geant zf=RICradpos-RICHDB::rad_height-false_height;
   geant x=origin[0],y=origin[1],
@@ -366,7 +395,7 @@ void AMSRichRing::build(){
 	// Parametrisation optimised in absence of magnetic field,
 	// mirror top radius 58.6 cm, and aerogel according (including 
 	// rayleigh scattering).
-	// TODO: Parametrise it using the AMS simulation
+	// This parametrisation should not be use
 	//============================================================
 	
 	const geant fd=exp(.78-1.23*RICHDB::rad_height+
