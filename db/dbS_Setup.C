@@ -108,6 +108,28 @@ ooItr(AMScommonsD)     commonsItr;              // commons
 ooItr(CTCDBcD)         ctcdbcItr;               // ctcdbc
 ooItr(TKDBcV)          tkdbcItr;                // tkdbc
 
+void CopyByPos(ooHandle(AMSgvolumeD)& ptr, ooMode mode)
+{
+  ooHandle(AMSgvolumeD) cur;
+  ooHandle(AMSgvolumeD) tmp;
+  //static integer nnn = 0;
+
+  //if (ptr != NULL ) cout <<"ptr -> Pos "<< ptr -> getContPos()<<endl;
+  //cout <<"in "<<++nnn<<endl;
+  cur = ptr;
+  while(cur != NULL) {
+    geometryHT[NN] = cur;
+    geometryP[NN]  = cur -> getContPos();
+    NN++;
+    //cout <<"NN... "<<NN<<" contPos "<<cur -> getContPos();
+    //cout<<"down "<<cur-> _Down<<", next "<<cur-> _Next<<endl;
+    tmp = cur -> _Down;
+    if (tmp != NULL) CopyByPos(tmp, mode);
+    cur = cur -> _Next;
+  }   
+  // cout <<"exit "<<nnn--<<endl;
+}
+
 
 ooStatus LMS::WriteGeometry()
 {
@@ -381,28 +403,6 @@ ooStatus LMS::CopyGeometry()
   if(setup)    delete [] setup;  
 
   return oocSuccess;
-}
-
-void LMS::CopyByPos(ooHandle(AMSgvolumeD)& ptr, ooMode mode)
-{
-  ooHandle(AMSgvolumeD) cur;
-  ooHandle(AMSgvolumeD) tmp;
-  //static integer nnn = 0;
-
-  //if (ptr != NULL ) cout <<"ptr -> Pos "<< ptr -> getContPos()<<endl;
-  //cout <<"in "<<++nnn<<endl;
-  cur = ptr;
-  while(cur != NULL) {
-    geometryHT[NN] = cur;
-    geometryP[NN]  = cur -> getContPos();
-    NN++;
-    //cout <<"NN... "<<NN<<" contPos "<<cur -> getContPos();
-    //cout<<"down "<<cur-> _Down<<", next "<<cur-> _Next<<endl;
-    tmp = cur -> _Down;
-    if (tmp != NULL) CopyByPos(tmp, mode);
-    cur = cur -> _Next;
-  }   
-  // cout <<"exit "<<nnn--<<endl;
 }
 
 

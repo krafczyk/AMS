@@ -39,10 +39,10 @@ C RNDM 197683093 1356123257
 C TOFMC 13=1
 RNDM  1310381404  1978925784
 C      Simul Debug    CpuLim  Read Write Jobname
-AMSJOB 1=0   2=0      3=50.   4=0  5=1 6='v203a' 
+AMSJOB 1=1   2=0      3=50.   4=1  5=0 6='v203a' 
 C Special HP-UX
 TIME 3=10000000
 TERM 1=1234567890
-CDAQC 1=1 2='/dath1/Offdata/daq/mc/muons_lvl1.dat'
+DAQC 1=1 2='/dath1/Offdata/daq/mc/muons_lvl1.dat'
 END 
 !

@@ -109,6 +109,7 @@ static char    *tdvnames[] = {
 class tdv_time {
 
   public :
+   integer _id;
    time_t  _insert;
    time_t  _begin;
    time_t  _end;
@@ -286,6 +287,7 @@ int main(int argc, char** argv)
      tdv[jj]._begin  = begin;
      tdv[jj]._end    = end;
      tdv[jj]._size   = tdvItr -> getsize();
+     tdv[jj]._id     = tdvItr -> getid();
      jj++;
      ptr_end[i] = jj;
     }
@@ -297,16 +299,11 @@ int main(int argc, char** argv)
  for (i=0; i< ntdv; i++) {
    cout<<tdvnames[i]<<", found "<<ptr_end[i]-ptr_start[i]<<" objects"<<endl;
    for (int j=ptr_start[i];j<ptr_end[i];j++) {
+     cout<<"id... "<<tdv[j]._id<<endl;
      cout<<"i/b/e "<<asctime(localtime(&tdv[j]._insert))
          <<"      "<<asctime(localtime(&tdv[j]._begin))
          <<"      "<<asctime(localtime(&tdv[j]._end))<<endl;
    }
  }
- // integer size;
- // for (i=0; i<ntdv; i++) {
- //  char name[80];
- //  strcpy(name,tdvnames[i]);
- //  FindTheBestTDV(name,900140000,size,insert,begin,end);
- // }
 }
 

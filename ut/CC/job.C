@@ -4,7 +4,7 @@
 // Sep 17, 1997. ak. don't write timeid to files in dbase version
 // Oct  1, 1997. ak. add FindTheBestTDV, FillTDVTable functions
 //                       
-// Last Edit : Oct 14, 1997. ak. 
+// Last Edit : Nov 19, 1997. ak. 
 //
 #include <amsgobj.h>
 #include <cern.h>
@@ -37,6 +37,7 @@
 //+
  integer        ntdvNames;                       // number of TDV's types
  char           *tdvNameTab[maxtdv];             // TDV's nomenclature
+ int             tdvIdTab[maxtdv];
 //
 integer*   AMSJob::_ptr_start;
 integer*   AMSJob::_ptr_end;
@@ -1965,6 +1966,11 @@ else {
 integer AMSJob::FindTheBestTDV(char* name, time_t timeV, integer &S, 
                                time_t &I, time_t &B, time_t &E)
 //
+//  (1) find TDV by name in tdvNameTab
+//  (2) find timeB =< timeV =< timeE
+//  for all TDV's which satisfies (2) choose one with the latest 
+//  insert time
+//
 // name   - TDV's name
 // time   - TDV's time
 // S      - TDV size
@@ -1973,7 +1979,8 @@ integer AMSJob::FindTheBestTDV(char* name, time_t timeV, integer &S,
 {
   integer rstatus = -1;
 #ifdef __DB__
-
+  //geant t1, t2;
+  //TIMEX(t1);
   for (int i=0; i<ntdvNames; i++) {
     if(strcmp(name,tdvNameTab[i]) == 0) {
      if(_ptr_start[i] > -1 && _ptr_end[i] > -1) {
@@ -1983,16 +1990,16 @@ integer AMSJob::FindTheBestTDV(char* name, time_t timeV, integer &S,
          if (timeV >= _tdv[j]._begin && timeV <= _tdv[j]._end) {
            if (_ptr_end[i] - _ptr_start[i] - 1 != 0) {
              if (insert == 0) {
-          insert = _tdv[j]._insert;
-          ptr    = j;
+               insert = _tdv[j]._insert;
+               ptr    = j;
              } else {
-               if (insert < _tdv[i]._insert) {
-           insert = _tdv[i]._insert;
-           ptr    = j;
+               if (insert < _tdv[j]._insert) {
+                insert = _tdv[j]._insert;
+                ptr    = j;
                }
              }
            } else {
-         ptr = j;
+            ptr = j;
            }
          }
        }
@@ -2002,10 +2009,13 @@ integer AMSJob::FindTheBestTDV(char* name, time_t timeV, integer &S,
         E = _tdv[ptr]._end;
         S = _tdv[ptr]._size;
 #ifdef __AMSDEBUG__
-         //cout <<"found TDV for "<<tdvNameTab[i]<<", size "<<S<<endl;
-         //cout <<"i/b/e "<<asctime(localtime(&_tdv[ptr]._insert))
-         //     <<"      "<<asctime(localtime(&_tdv[ptr]._begin))
-         //     <<"      "<<asctime(localtime(&_tdv[ptr]._end))<<endl;
+        //TIMEX(t2);
+        //cout <<t2-t1<<" sec."<<endl;
+        //cout <<"found TDV for "<<tdvNameTab[i]<<", size "<<S<<endl;
+        //cout <<"Time of Event "<<asctime(localtime(&timeV))<<endl;
+        //cout <<"i/b/e "<<asctime(localtime(&_tdv[ptr]._insert))
+        //<<"      "<<asctime(localtime(&_tdv[ptr]._begin))
+        //<<"      "<<asctime(localtime(&_tdv[ptr]._end))<<endl;
 #endif
        rstatus = 1;
        } else {
@@ -2065,6 +2075,7 @@ AMSTimeID * offspring=(AMSTimeID*)ptid->down();
 integer nobj = 0;
 while(offspring){
   tdvNameTab[nobj] = offspring -> getname();
+  tdvIdTab[nobj]   = offspring -> getid();
   nobj++;
   offspring=(AMSTimeID*)offspring->next();
 }

@@ -46,7 +46,8 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
     char                      *cptr;
     char                      *dbpathname;
 
-    if( !setup()      &&   !!slow()       )  return oocSuccess;
+    
+    if( !setup(mode) && !slow(mode) )  return oocSuccess;
 
     cptr = getenv("OO_FD_BOOT");
     if (!cptr) Fatal("ClusteringInit: environment OO_FD_BOOT in undefined");
@@ -63,11 +64,10 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
 
     _catdbH = db("DbList");
     ContainersC(_catdbH, dbTabH);
-    if (dbTabH == NULL) 
-                      Fatal("ClusteringInit: catalog of databases not found");
+    if (dbTabH == NULL) Fatal("ClusteringInit: catalog of databases not found");
     _dbTabH = dbTabH;
     
-    if (setup()) {
+    if (setup(mode)) {
      // get db path name
      integer nsetupdbs = dbTabH -> size(dbsetup);
      cout<<"ClusteringInit :: setup database(s) found "<<nsetupdbs<<endl;
@@ -79,8 +79,7 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
        dbpathname =StrDup(cptr);
       else 
        dbpathname =StrDup(AMSdbs::pathNameTab[dbsetup]);
-      cout<<"ClusteringInit: SetupDB path "<<AMSdbs::pathNameTab[dbsetup]
-                                                                       <<endl;
+      cout<<"ClusteringInit: SetupDB path "<<AMSdbs::pathNameTab[dbsetup]<<endl;
       dbH = db("Setup-0",dbpathname);
       if (dbH == NULL) Fatal ("ClusteringINit:: _setupdbH is NULL");
       dbTabH -> newDB(dbsetup, dbH);
@@ -129,7 +128,10 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
      integer createContainer = 1;
      cout<<"ClusteringInit :: tdv database(s) found "<<ntdvdbs<<endl;
 
-     contName = StrDup("Time_Dep_Var");
+     if (simulation() ) 
+        contName = StrDup("Time_Dep_Var_S");
+     else 
+        contName = StrDup("Time_Dep_Var");
      if (ntdvdbs < 1) {  // no TDV databases found
        cptr = getenv("AMS_TDVDB_Path");
        if ( cptr ) 
@@ -172,7 +174,7 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
      _tdvdbH = dbH;
     }
 
-    if (slow()) {
+    if (slow(mode)) {
      _slowdbH  = db("Slow");        // house keeping and slow control
     }
 
@@ -182,8 +184,9 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
   }    
 
 
-integer LMS::Container(ooHandle(ooDBObj) & dbH, const char* name, 
-                                 ooHandle(ooContObj) & contH)
+integer LMS::Container
+             (ooHandle(ooDBObj) & dbH, const char* name, ooHandle(ooContObj) & contH)
+//
 // Open/Create container 
 //
 // dbH    - pointer to dbase
@@ -219,7 +222,7 @@ integer LMS::Container(ooHandle(ooDBObj) & dbH, const char* name,
 
 void LMS::ContainersC(ooHandle(ooDBObj) & dbH, ooHandle(AMSdbs) & dbTabH)
 //
-// create all containers for MC database
+// create DbCatalog container
 //
 {	
   integer              rstatus = 1;

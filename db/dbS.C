@@ -83,6 +83,12 @@ void LMS::StartUpdate(const char *tag)
     _transStart++;
 }
 
+void LMS::printTransStatistics()
+{
+  cout<<"TransS/C/A "<<_transStart<<", "<<_transCommit<<", "
+      <<_transAbort<<endl;
+}
+
 void LMS::StartRead(ooMode mode, const char *tag)
 {
     if ((TransStart(mode,tag) != oocSuccess) || (setRead() != oocSuccess))
@@ -104,17 +110,17 @@ void LMS::Abort()
     _transAbort++;
 }
 
-  integer LMS::setup()      
+  integer LMS::setup(ooMode mode)      
 {
- if (Mode() == oocUpdate)
+ if (mode == oocUpdate)
   return (_applicationTypeW/DBWriteGeom)%2;
  else
   return (_applicationTypeR/DBWriteGeom)%2;
 }
 
-  integer LMS::slow()       
+  integer LMS::slow(ooMode mode)       
 {
-  if (Mode() == oocUpdate)
+  if (mode == oocUpdate)
    return (_applicationTypeW/DBWriteSlow)%2;
   else
    return (_applicationTypeR/DBWriteSlow)%2;

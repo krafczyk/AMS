@@ -18,15 +18,15 @@ TKDBcV::TKDBcV()
 // sensors
   int nsen = TKDBc::_NumberSen;
   if (nsen) {
-   _Head.resize(nsen);
+   _HeadSensor.resize(nsen);
    for (i=0; i<nsen; i++) {
-    tkdbc._status = TKDBc::_Head[i]._status;
-    tkdbc._gid    = TKDBc::_Head[i]._gid;
+    tkdbc._status = TKDBc::_HeadSensor[i]._status;
+    tkdbc._gid    = TKDBc::_HeadSensor[i]._gid;
     for (j=0; j<3; j++) {
-     tkdbc._coo[j] = TKDBc::_Head[i]._coo[j];
-     for (k=0; k<3; k++) tkdbc._nrm[j][k] = TKDBc::_Head[i]._nrm[j][k];
+     tkdbc._coo[j] = TKDBc::_HeadSensor[i]._coo[j];
+     for (k=0; k<3; k++) tkdbc._nrm[j][k] = TKDBc::_HeadSensor[i]._nrm[j][k];
     }
-   _Head.set(i,tkdbc);
+   _HeadSensor.set(i,tkdbc);
   }
  }
 
@@ -72,37 +72,37 @@ ooStatus TKDBcV::CmpConstants()
   int       i, j, k, ii;
   TKDBcD    tkdbc;
 
-  integer nsen    = _Head.size();
+  integer nsen    = _HeadSensor.size();
   integer nlayer  = _HeadLayer.size();
   integer nladder = _HeadLadder0.size();
 
   if (nsen == TKDBc::_NumberSen) {
    cout<<"TKDBcV::CmpConstants -I- sensors"<<endl;
    for (i=0; i<nsen; i++) {
-    tkdbc = _Head[i];
+    tkdbc = _HeadSensor[i];
     if(tkdbc._status) {
-     if ( tkdbc._status != TKDBc::_Head[i]._status) {
+     if ( tkdbc._status != TKDBc::_HeadSensor[i]._status) {
       cerr<<"TKDBcV::CmpConstants -E- status "<<tkdbc._status
-          <<", "<<TKDBc::_Head[i]._status<<endl;
+          <<", "<<TKDBc::_HeadSensor[i]._status<<endl;
       return rstatus;
      }
-     if (tkdbc._gid    != TKDBc::_Head[i]._gid) {
+     if (tkdbc._gid    != TKDBc::_HeadSensor[i]._gid) {
       cerr<<"TKDBcV::CmpConstants -E- gid "<<tkdbc._gid
-          <<", "<<TKDBc::_Head[i]._gid<<endl;
+          <<", "<<TKDBc::_HeadSensor[i]._gid<<endl;
       return rstatus;
      }
      for (j=0; j<3; j++) {
-      if( tkdbc._coo[j] != TKDBc::_Head[i]._coo[j]) {
+      if( tkdbc._coo[j] != TKDBc::_HeadSensor[i]._coo[j]) {
        cerr<<"TKDBcV::CmpConstants -E- coo "<<tkdbc._coo[j]
-           <<", "<<TKDBc::_Head[i]._coo[j]<<endl;
+           <<", "<<TKDBc::_HeadSensor[i]._coo[j]<<endl;
        return rstatus;
       }
      }
     for (j=0; j<3; j++) {
      for (k=0; k<3; k++) {
-      if (tkdbc._nrm[j][k] != TKDBc::_Head[i]._nrm[j][k]) {
+      if (tkdbc._nrm[j][k] != TKDBc::_HeadSensor[i]._nrm[j][k]) {
        cerr<<"TKDBcV::CmpConstants -E- _nrm "<<tkdbc._nrm[j][k]
-           <<", "<<TKDBc::_Head[i]._nrm[j][k]<<endl;
+           <<", "<<TKDBc::_HeadSensor[i]._nrm[j][k]<<endl;
        return rstatus;
       }
      }
@@ -206,19 +206,19 @@ ooStatus TKDBcV::ReadTKDBc()
   int       i, j, k, ii;
   TKDBcD    tkdbc;
 
-  integer nsen    = _Head.size();
+  integer nsen    = _HeadSensor.size();
   integer nlayer  = _HeadLayer.size();
   integer nladder = _HeadLadder0.size();
 
   if (nsen == TKDBc::_NumberSen) {
    cout<<"TKDBcV::ReadTKDBc -I- sensors"<<endl;
    for (i=0; i<nsen; i++) {
-    tkdbc = _Head[i];
-    TKDBc::_Head[i]._status = tkdbc._status;
-    TKDBc::_Head[i]._gid   = tkdbc._gid;    
+    tkdbc = _HeadSensor[i];
+    TKDBc::_HeadSensor[i]._status = tkdbc._status;
+    TKDBc::_HeadSensor[i]._gid   = tkdbc._gid;    
     for (j=0; j<3; j++) {
-     TKDBc::_Head[i]._coo[j] = tkdbc._coo[j];
-     for (k=0; k<3; k++) TKDBc::_Head[i]._nrm[j][k] = tkdbc._nrm[j][k];
+     TKDBc::_HeadSensor[i]._coo[j] = tkdbc._coo[j];
+     for (k=0; k<3; k++) TKDBc::_HeadSensor[i]._nrm[j][k] = tkdbc._nrm[j][k];
     }
    }
   } else {

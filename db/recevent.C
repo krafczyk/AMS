@@ -1,7 +1,7 @@
 // method source file for the object AMSEvent
 // May 06, 1996. ak. First try with Objectivity 
 //
-// last edit Apr 29, 1997. ak.
+// last edit Nov 14, 1997. ak.
 
 #include <iostream.h>
 #include <string.h>
@@ -23,20 +23,8 @@ AMSeventD::AMSeventD (integer run, uinteger eventNumber, time_t time)
   setrun(run);
   setevent(eventNumber);
   settime(time);
-  clearCounts();
 }
 
-void AMSeventD::clearCounts() 
-{
-  _nTrHits      = 0;
-  _nTrClusters  = 0;      
-  _nTOFClusters = 0;     
-  _nCTCClusters = 0;     
-  _nTracks      = 0;          
-  _nBetas       = 0;           
-  _nCharges     = 0;         
-  _nParticles   = 0;       
-}
 
 void AMSeventD::readEvent(uinteger& run, uinteger& event, time_t& time)
 {

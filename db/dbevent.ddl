@@ -1,7 +1,7 @@
 // Author A. Klimentov  10-Apr-1997
 //
 //
-// Last Edit: Apr 29, 1997 ak.
+// Last Edit: Nov 14, 1997 ak.
 //
 #include <typedefs.h>
 #include <cern.h>
@@ -11,9 +11,9 @@ class dbEvent : public ooObj {
 
 private:
 
-uinteger _run;           // run number set by offline
-uinteger _eventNumber;   // event number
-time_t   _time;          // level-1 trigger time
+uinteger _run;           
+uinteger _eventNumber;   
+time_t   _time;          
 
 
 public:
@@ -35,7 +35,8 @@ void    setrun(uinteger run)      {_run = run;}
 void    setevent(uinteger event)  {_eventNumber = event;}
 void    settime(time_t time)      {_time = time;}
 
-void print() { cout<<"run, event... "<<_run<<", "<<_eventNumber<<endl;}
+void print() { cout<<"run, event,time... "<<_run<<", "<<_eventNumber
+                   <<", "<<time<<endl;}
 
 };
 

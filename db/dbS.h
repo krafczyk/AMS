@@ -17,7 +17,7 @@
 //                  'short' version (setups only)
 //                  add tdv dbase
 //
-// Last Edit Nov 6, 1997. ak.
+// Last Edit Nov 19, 1997. ak.
 //
 #ifndef LMSSESSION_H
 #define LMSSESSION_H
@@ -25,20 +25,7 @@
 
 #include <typedefs.h>
 #include <ooSession.h>
-#include <gmatD_ref.h>
-#include <gtmedD_ref.h>
-#include <gvolumeD_ref.h>
-#include <amsdbcD_ref.h>
-#include <ctcdbcD_ref.h>
-#include <tofdbcD_ref.h>
 #include <dbcatalog_ref.h>
-#include <daqevt.h>
-#include <gmatD.h>
-#include <gtmedD.h>
-#include <gvolumeD.h>
-#include <amsdbcD.h>
-#include <ctcdbcD.h>
-#include <tofdbcD.h>
 #include <dbcatalog.h>
 
 #include <rd45.h>
@@ -51,6 +38,7 @@ private:
        char              *_applicationName;
        char              *_prefix;
        char              *_setup;
+       integer           _jobtype;
        integer           _applicationTypeR; // see db_comm.h for details
        integer           _applicationTypeW; // see db_comm.h for details
 
@@ -86,10 +74,8 @@ public:
 	ooStatus	AddAllTDV();
 	ooStatus	FillTDV(integer ntdv);
 
-
 	ooStatus	ReadGeometry();
         ooStatus        CopyGeometry();
-        void CopyByPos(ooHandle(AMSgvolumeD)& ptr, ooMode mode);
 	ooStatus	ReadMaterial();
 	ooStatus	ReadTMedia();
 	ooStatus	ReadTDV(char* name, time_t I, time_t B, time_t E, 
@@ -97,6 +83,7 @@ public:
         ooStatus        ReadTKDBc();
 
 	ooStatus	DeleteSetup(char* setup);
+        ooStatus        DeleteTDVContainer();
 
         void            dbend();
 
@@ -111,6 +98,7 @@ public:
   void     setprefix(const char *prefix) { 
                                            if (_prefix) delete [] _prefix;
                                            _prefix = StrDup(prefix);}
+  void     setjobtype(int jobtype)       { _jobtype = jobtype;}
   void     setsetup(const char *setup)   {
                                           if (_setup) delete [] _setup;
                                           _setup  = StrDup(setup);}
@@ -119,8 +107,8 @@ public:
   integer  applicationtypeR()             {return _applicationTypeR;}
   integer  applicationtypeW()             {return _applicationTypeW;}
 
-  integer setup();
-  integer slow();
+  integer setup(ooMode mode);
+  integer slow(ooMode mode);
 
   inline ooMode                 mrowMode() { return _mrowmode;}
   inline void setmrowMode(ooMode mrowmode) { _mrowmode = mrowmode;}
@@ -137,12 +125,12 @@ public:
         integer         nTransStart()  { return _transStart;}
         integer         nTransCommit() { return _transCommit;}
         integer         nTransAbort()  { return _transAbort;}
+        void            printTransStatistics();
 
   ooStatus ClusteringInit(ooMode mode, ooMode mrowmode = oocNoMROW);
   integer  Container(ooHandle(ooDBObj) & dbH, const char* contName, 
                      ooHandle(ooContObj) & contH);
   void     ContainersC(ooHandle(ooDBObj) & dbH, ooHandle(AMSdbs) & dbTabH);
-
 
 // Transactions
   void StartUpdate(const char *tag=NULL);
@@ -154,10 +142,11 @@ public:
 // Get
   char*  getApplicationName() {return _applicationName;}
   char*  getsetup()           {return _setup;}
+  int    jobtype()            {return _jobtype;}
 
-
-  // checking methods
+// Others
  void Refresh();
- 
+ int  simulation() {if (_jobtype == 0) return 1;
+                    if (_jobtype != 0) return 0;} 
 };
 #endif

@@ -152,9 +152,13 @@ M A I N  ->      gbatch.C
  |    |   |    |    |->_rectcinitevent
  |    |   |    |    |->_reaxinitevent
  |    |   |    |
- |    |   |    |->_validate        Validate time dep constants
- |    |   |    |->_validateDB      Compare time dep constants in memory
- |    |   |                        with ones in dbase
+ |    |   |    |->_validate             Validate time dep constants
+ |    |   |    |->_validateDB           Compare one by one TDV's in memory
+ |    |   |          |                  with ones in dbase
+ |    |   |          |                  
+ |    |   |          +-->FindTheBestTDV check i/b/e time 
+ |    |   |
+ |    |   |
  |    |   |->AMSmceventg->run      Create MC Gen  structure
  |    |
  |    |

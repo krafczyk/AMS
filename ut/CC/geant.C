@@ -30,7 +30,7 @@
 //           Oct    , 1997 ak.  TDV dbase version implementation
 //           Nov    , 1997 ak.  TKDBc dbase version implementation
 //
-//  Last Edit: Nov 6, 1997. ak
+//  Last Edit: Nov 20, 1997. ak
 //
 
 #include <typedefs.h>
@@ -77,7 +77,8 @@ PROTOCCALLSFSUB0(UGLAST,uglast)
 #define UGLAST() CCALLSFSUB0(UGLAST,uglast)
 
 #ifdef __DB__
-class AMSEventList;
+  //class AMSEventList;
+  //class AMSEventTagList;
 
 #include <dbS.h>
 
@@ -93,12 +94,25 @@ class AMSEventList;
 #include <tkdbcV_ref.h>
 #include <tkdbcV.h>
 
+
+#include <gmatD_ref.h>     
+#include <gmatD.h>
+
+
+  //#include <list_ref.h>
+  //#include <list.h>
+  //
+  //#include <listTag_ref.h>
+  //#include <listTag.h>
+
 // -
 implement (ooVArray, uint16)
 implement (ooVArray, geant)   
 implement (ooVArray, integer) 
 implement (ooVArray, ooRef(ooDBObj)) 
 implement (ooVArray, TKDBcD) 
+  //implement (ooVArray, ooRef(ooAMSEventList)) 
+  //implement (ooVArray, ooRef(ooAMSEventTagList)) 
 
 LMS	               dbout;
 LMS*                   lms;
@@ -566,7 +580,7 @@ extern "C" void writeSetup(){
       char* setup = AMSJob::gethead() -> getsetup();
       cout <<"uglast -I- geometry and setup will be written to database"<<endl;
       cout <<"           for the job "<<jobname<<endl;
-      cout <<"            with setup "<<setup<<endl;
+      cout <<"           with setup  "<<setup<<endl;
       dbout.AddMaterial();
       dbout.AddTMedia();
       dbout.AddGeometry();
@@ -609,17 +623,20 @@ extern "C" void initDB()
    eventR = AMSFFKEY.Read;
    eventW = AMSFFKEY.Write;
    if (eventW > 0) mode = oocUpdate;
-   if (eventW < DBWriteGeom) {
+   if (eventW < 1) {
      mode = oocRead;
      mrowmode = oocMROW;
    }
    char* jobname = AMSJob::gethead()-> getname();
    char* setup     = AMSJob::gethead() -> getsetup();
-   cout <<"_uginit -I- LMS init for job "<<jobname<<endl;
-   cout <<"                       setup "<<setup<<endl;
+   int   jobtype   = AMSJob::gethead() -> AMSJob::jobtype();
+   cout <<"_uginit -I- LMS init for job     "<<jobname<<endl;
+   cout <<"                         setup   "<<setup<<endl;
+   cout <<"                         jobtype "<<jobtype<<endl;
    dbout.setapplicationName(jobname);
    dbout.setprefix(jobname);
    dbout.setsetup(setup);
+   dbout.setjobtype(jobtype);
    dbout.settypeR(eventR);
    dbout.settypeW(eventW);
    dbout.ClusteringInit(mode,mrowmode);

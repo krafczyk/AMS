@@ -60,19 +60,23 @@ void AMSEvent::_init(){
   _reamsinitevent();
   if(AMSJob::gethead()->isCalibration())_caamsinitevent();
 
-  if(_run != SRun){
-    SRun=_run;
-   _validate();
-  }
 #ifdef __DB__
   if (_checkUpdate() == 1) {
    cout <<"AMSEvent:: -I- UpdateMe is set. Update database and tables. "<<endl;
    int rstatus = lms -> AddAllTDV();
    int n       = AMSJob::gethead()->FillTDVTable();
    lms -> FillTDV(n);
+  } else {
+    // cout <<"AMSEvent:: -I- UpdateMe != 1. NO UPDATE"<<endl;
   }
   _validateDB();
 #endif
+
+  if(_run != SRun){
+    SRun=_run;
+   _validate();
+  }
+
 }
 
 void AMSEvent::_siamsinitrun(){
@@ -1176,6 +1180,7 @@ while(offspring){
          cerr<<"End    "<<ctime(&e);
          cerr<<"       "<<ctime(&E)<<endl;
          uinteger* buff = new uinteger[S];
+         cout<<"EventTime "<<ctime(&_time)<<endl;
          int rstatus = lms -> ReadTDV(name, I, B, E, buff);
          if (rstatus == oocSuccess) {
            offspring -> CopyIn((uinteger*)buff);

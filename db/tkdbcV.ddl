@@ -26,7 +26,7 @@ class TKDBcV: public ooObj {
 //
 protected:
 
-ooVArray(TKDBcD) _Head;   
+ooVArray(TKDBcD) _HeadSensor;   
 ooVArray(TKDBcD) _HeadLayer;   
 ooVArray(TKDBcD) _HeadLadder0;   
 ooVArray(TKDBcD) _HeadLadder1;   

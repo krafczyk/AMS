@@ -47,7 +47,7 @@ make files  *) :
               
   Makesr  - to create AMS+DB+ROOT version
 
-  MakeSDB - to create 'Setup' Database (no event's classes)
+  MakeSDB - to create 'Setup' and 'TDV' Database (no event's classes)
 
 *) goto ~/AMS/db directory first.
 
@@ -65,6 +65,7 @@ RecEcents database - containes reconstructed data
 RawEvents database - containes raw data
 Setup     database - containes geometry, constants and materials description of
                      miscellaneous setups
+TDV       database - time dependent variables (for example, pedestals)
 
  In database data are organized by containers.
 
@@ -103,8 +104,8 @@ Update and the size of file 'i' is bigger than 1GB.
 
 How to start ?
 
- - do you have an account on afl3u0 ? 
-    (send mail to me to get it)
+ - do you have an account on AMS Alpha's  ? 
+    (send mail to klimentov@cern.ch to get it)
  - do you have an access to the CVS repositary of AMS s/w ?
     (ask V.Choutko to give you an access, vitaly.choutko@cern.ch)
  - create your own copy of AMS s/w
