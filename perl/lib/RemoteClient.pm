@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.84 2003/04/06 10:05:02 choutko Exp $
+# $Id: RemoteClient.pm,v 1.85 2003/04/07 10:50:23 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -311,6 +311,18 @@ my %mv=(
      closedir THISDIR;    
     foreach my $file (@allfiles){
         my $newfile="$dir/$file";
+       if($file =~/^\.Trial/){
+
+           open(FILE,"<".$newfile) or die "Unable to open dataset control file $newfile \n";
+           my $buf;
+           read(FILE,$buf,16384);
+           close FILE;
+           $self->{TrialRun}=$buf;          
+           last;
+       }
+    }
+    foreach my $file (@allfiles){
+        my $newfile="$dir/$file";
         if(readlink $newfile or  $file =~/^\./){
          next;
         }
@@ -346,7 +358,10 @@ my %mv=(
                    last;
                }
             }         
-           }
+        }
+        if(defined $self->{TrialRun}){
+            $template->{TOTALEVENTS}*=$self->{TrialRun};
+        }
            $template->{initok}=1;
            foreach my $ent (@farray){
              if(not defined $template->{$ent}){
@@ -438,6 +453,7 @@ foreach my $file (@allfiles){
            push @{$self->{TempT}}, $temp; 
         }        
     }
+    
     if ($file =~/^\./){
         if($file =~/^\.Header/ ){
         my $full=$dir."/$file";
