@@ -465,6 +465,15 @@ _sitrigevent();
 }
 
 void AMSEvent::_reamsevent(){
+
+  geant d;
+  if(AMSJob::gethead()->isMonitoring() && RNDM(d)>IOPA.Portion){
+    // skip event
+     return;    
+  }
+
+
+
 #ifndef __AMSDEBUG__  
   if(AMSJob::gethead()->isReconstruction() )_redaqevent();
 #else
@@ -1412,11 +1421,6 @@ void AMSEvent::_redaqinitevent(){
 }
 
 void AMSEvent::_redaqevent(){
-  geant d;
-  if(AMSJob::gethead()->isMonitoring() && RNDM(d)>IOPA.Portion){
-    // skip event
-     return;    
-  }
   //  Add Dummy for Copying ....
   addnext(AMSID("Dummy",0),new Test());
 

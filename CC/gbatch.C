@@ -54,18 +54,22 @@ main(){
 return 0;
 }
 void (handler)(int sig){
-  if(sig==SIGFPE)cerr <<" FPE intercepted"<<endl;
-  else if (sig==SIGTERM || sig==SIGINT){
+  switch(sig){
+  case SIGFPE:
+   cerr <<" FPE intercepted"<<endl;
+   break;
+  case SIGTERM: case SIGINT:
     cerr <<" SIGTERM intercepted"<<endl;
     GCFLAG.IEORUN=1;
     GCFLAG.IEOTRI=1;
-  }
-  else if(sig==SIGQUIT){
-      cerr <<" Process suspended"<<endl;
-     pause();
-  }
-  else if(sig==SIGCONT){
+    break;
+  case SIGQUIT:
+    cerr <<" Process suspended"<<endl;
+    pause();
+    break;
+  case SIGCONT:
       cerr <<" Process resumed"<<endl;
+      break;
   }
 }
 

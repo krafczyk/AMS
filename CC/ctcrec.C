@@ -358,7 +358,7 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
 //------------------------------------------------------------
 void AMSCTCCluster::_writeEl(){
 
-  CTCClusterNtuple* CTCCLN = AMSJob::gethead()->getntuple()->Get_ctccl();
+  CTCClusterNtuple* CTCCLN = (AMSJob::gethead()->getntuple())->Get_ctccl();
 
   if (CTCCLN->Nctccl>=MAXCTCCL) return;
   
@@ -369,9 +369,9 @@ void AMSCTCCluster::_writeEl(){
     int i;
     for(i=0;i<3;i++)CTCCLN->Coo[CTCCLN->Nctccl][i]=_Coo[i];
     for(i=0;i<3;i++)CTCCLN->ErrCoo[CTCCLN->Nctccl][i]=_ErrorCoo[i];
-    CTCCLN->RawSignal[CTCCLN->Nctccl]=_Signal;
-    CTCCLN->Signal[CTCCLN->Nctccl]=_CorrectedSignal;
-    CTCCLN->ErrorSignal[CTCCLN->Nctccl]=_ErrorSignal;
+    CTCCLN->RawSignal[CTCCLN->Nctccl]=float(_Signal);
+    CTCCLN->Signal[CTCCLN->Nctccl]=float(_CorrectedSignal);
+    CTCCLN->ErrorSignal[CTCCLN->Nctccl]=float(_ErrorSignal);
     CTCCLN->Nctccl++;
   }
 

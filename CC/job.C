@@ -827,6 +827,7 @@ void AMSJob::udata(){
   //#ifdef __MASSP__
   if(TRMFFKEY .OKAY!= 1234567890){
     cerr << "Datacards not terminated properly "<<endl;
+    cerr << "Please add TERM=1234567890 in your datacards "<<endl;
     exit(1);  
    }
   //#endif
