@@ -465,8 +465,8 @@ void AMSEvent::SetTimeCoo(integer rec){
         _StationSpeed=Array[hint].StationSpeed+xsec/dt*(Array[hint+1].StationSpeed-Array[hint].StationSpeed);
         _StationRad=Array[hint].StationR+((Array[hint].StationR>=0)?xsec/dt*(Array[hint+1].StationR-Array[hint].StationR):0);
         _SunRad=Array[hint].SunR+xsec/dt*(Array[hint+1].SunR-Array[hint].SunR);
-        _VelTheta=Array[hint].VelTheta+xsec/dt*(Array[hint+1].VelTheta-Array[hint].VelTheta);
-        _VelPhi=Array[hint].VelPhi+xsec/dt*(Array[hint+1].VelPhi-Array[hint].VelPhi);
+        _VelTheta=Array[hint].VelTheta;
+        _VelPhi=Array[hint].VelPhi;
       }
       else {
         _Yaw=Array[hint].StationYaw;
