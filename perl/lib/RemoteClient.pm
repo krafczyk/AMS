@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.118 2003/04/23 12:47:11 choutko Exp $
+# $Id: RemoteClient.pm,v 1.119 2003/04/24 11:22:59 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -17,7 +17,7 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout ValidateRuns);
 
 my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
 my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
@@ -734,6 +734,171 @@ sub RestartServer{
          return 1;
      }
 
+sub ValidateRuns {
+
+   my $self = shift;
+   my $validated=0;
+   my $thrusted=0;
+   my $bad=0; 
+   my $unchecked=0; 
+    if( not $self->Init()){
+        die "ValidateRuns -F- Unable To Init";
+        
+    }
+    if (not $self->ServerConnect()){
+        die "ValidateRuns -F- Unable To Connect To Server";
+    }
+
+# get list of runs from DataBase
+    my $sql="SELECT run,submit FROM Runs";
+    my $ret=$self->{sqlserver}->Query($sql);
+# get list of runs from Server
+    if( not defined $self->{dbserver}->{rtb}){
+      DBServer::InitDBFile($self->{dbserver});
+    }
+    foreach my $run (@{$self->{dbserver}->{rtb}}){
+     if($run->{Status} eq "Finished"){
+# check if corresponding job exist
+         $sql   = "SELECT status, content FROM jobs WHERE jid=$run";
+         my $r1 = $self->{sqlserver}->Query($sql);
+         if (defined $r1->[0][0]) {
+             my $jobstatus  = $r1->[0][0];
+             my $jobcontent = $r1->[0][1];
+             if ($jobcontent =~ m/-JR/) {
+# remote job
+#            update jobinfo first
+             my $events  = $run->{CurrentInfo}->{EventsProcessed};
+             my $errors  = $run->{CurrentInfo}->{CriticalErrorsFound};
+             my $cputime = $run->{CurrentInfo}->{CPUTimeSpent};
+             my $elapsed = $run->{CurrentInfo}->{TimeSpent};
+             my $host    = $run->{CurrentInfo}->{HostName};
+
+             $sql = "UPDATE jobs SET STATUS='Finished', 
+                                     EVENTS=$events,
+                                     ERRORS=$errors,
+                                     CPUTIME=$cputime,
+                                     ELAPSED=$elapsed,
+                                     HOST='$host' 
+                            WHERE JID = $run";
+             print "$sql \n";
+# validate ntuples
+# Find corresponding ntuples from server
+             foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
+             if($ntuple->{Type} eq "Ntuple" and ($ntuple->{Status} eq "Success" or 
+               $ntuple->{Status} eq "Validated") and $ntuple->{Run}== $run->{Run}){
+# suppress double //
+                  $ntuple->{Name}=~s/\/\//\//;                  
+                  my @fpatha=split ':', $ntuple->{Name};
+                  my $fpath=$fpatha[$#fpatha];
+                  my $suc=open(FILE,"<".$fpath);
+                  my $badevents=$ntuple->{ErrorNumber};
+                  my $events=$ntuple->{EventNumber};
+                  my $status="OK";                     
+                  if(not $suc){
+                      if($ntuple->{Status} ne "Validated"){
+                         $status="Unchecked";                     
+                         $events=$ntuple->{EventNumber};
+                         $badevents="NULL";
+                         $unchecked++;
+                      }
+                      else{
+                        $thrusted++;
+                      }
+                  }  
+                  else{
+                   close FILE;
+                   my $i=system("$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber}");
+                      if( ($i == 0xff00) or ($i & 0xff)){
+                      if($ntuple->{Status} ne "Validated"){
+                       $status="Unchecked";                     
+                       $events=$ntuple->{EventNumber};
+                       $badevents="NULL";
+                       $unchecked++;
+                      }
+                      else{
+                        $thrusted++;
+                      }
+                  }
+                      else{
+                          $i=($i>>8);
+                          if(int($i/128)){
+                            $events=0;
+                            $badevents="NULL";
+                            $status="Bad".($i-128);  
+                            $bad++;                   
+                          }
+                          else{
+                           $status="OK";
+                           $events=$ntuple->{EventNumber};
+                           $badevents=int($i*$ntuple->{EventNumber}/100);
+                           $validated++;
+                          }
+                      }
+               }
+               $sql="insert into Ntuples values($run->{Run},'$ntuple->{Version}','$ntuple->{Type}',$run->{Run},$ntuple->{FirstEvent},$ntuple->{LastEvent},$events,$badevents,$ntuple->{Insert},$ntuple->{size},'$status','$ntuple->{Name}',$ntuple->{crc})";
+                  print "$sql \n";
+#                  $self->{sqlserver}->Update($sql);
+              }
+          }
+         }
+         else{
+#        find all the unchecked ntuples
+             $sql="select path from Ntuples where status='Unchecked' and run=$run->{Run}";
+             my $rts=$self->{sqlserver}->Query($sql);
+             if(defined $rts->[0][0]){
+                 foreach my $uc (@{$rts}){
+                     my $path=$uc->[0];
+                     foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
+                     if($ntuple->{Type} eq "Ntuple" and $ntuple->{Status} eq "Success" and $ntuple->{Run}== $run->{Run} ){
+                     $ntuple->{Name}=~s/\/\//\//;                  
+                     if($path eq $ntuple->{Name}){
+                     my @fpatha=split ':', $ntuple->{Name};
+                     my $fpath=$fpatha[$#fpatha];
+                     my $suc=open(FILE,"<".$fpath);
+                     my ($events,$badevents);
+                     if(not $suc){
+                         $unchecked++;
+                     }  
+                     else{
+                      close FILE;
+                      my $i=system("$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber}");
+                      if( ($i == 0xff00) or ($i & 0xff)){
+                      }
+                      else{
+                          my $status;
+                          $i=($i>>8);
+                          if(int($i/128)){
+                            $events=0;
+                            $badevents="NULL";
+                            $status="Bad".($i-128);  
+                            $bad++;                   
+                          }
+                          else{
+                           $status="OK";
+                           $events=$ntuple->{EventNumber};
+                           $badevents=int($i*$ntuple->{EventNumber}/100);
+                           $validated++;
+                          }
+                          $sql="update Ntuples set status='$status', NEventsErr=$badevents where path='$path' and run=$ntuple->{Run}";
+                  print "$sql \n";
+#                          $self->{sqlserver}->Update($sql);
+                      }
+                     }
+                   }    
+                 } # if it is NTUPLE and Status
+               }
+             }
+            }
+          }
+         } else {
+          print "ValidateRuns -W- cannot find status, content in Jobs for JID=$run \n";
+         }
+     } # if run status == 'Finished'
+ }
+   $self->InfoPlus("$validated Ntuple(s) Successfully Validated.\n $bad Ntuple(s) Turned Bad.\n $unchecked Ntuples(s) Could Not Be Validated.\n $thrusted Ntuples Could Not be Validated But Assumed  OK.");
+        $self->{ok}=1;
+}
+
 sub Validate{
    my $self = shift;
 
@@ -902,7 +1067,6 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
   }
    $self->InfoPlus("$validated Ntuple(s) Successfully Validated.\n $bad Ntuple(s) Turned Bad.\n $unchecked Ntuples(s) Could Not Be Validated.\n $thrusted Ntuples Could Not be Validated But Assumed  OK.");
         $self->{ok}=1;
-    
 }
 
 sub ConnectDB{
@@ -4066,12 +4230,17 @@ sub checkJobsTimeout {
           $sql="SELECT address FROM mails WHERE mid = $mid";
           my $r2=$self->{sqlserver}->Query($sql);
           if (defined $r2->[0][0]) {
-              my $address = $r2->[0][0];
+              my $address = $r2->[0][0]."alexei.klimentov\@cern.ch";
+              my $sujet = "Job : $jid - expired";
               my $submittime = localtime($timestamp);
               my $timeouttime= localtime($timestamp+$timeout);
+              my $timenow    = time();
+              if ($timenow > $timestamp+$timeout) {
+                  $timeouttime = localtime($timenow+60*60);
+              } 
               my $message    = "Job $jid, Submitted : $submittime, Timeout : $timeout sec. \n Job will be removed from database : $timeouttime. MC Production Team \n";
-#              $self->sendmailmessage($address,$subject,$message);
-              print "$message\n";
+              $self->sendmailmessage($address,$sujet,$message);
+#              print "$address : $sujet : $message ";
           }
       }
      }
@@ -4371,12 +4540,31 @@ sub listStat {
                print "<td align=center><b><font color=\"blue\" >          </font></b></td>";
               print "</tr>\n";
            my $color="black";
+           my $reqevents=>undef;
+           if ($trigreq < 1000) {
+	       $reqevents = $trigreq;
+           } elsif ($trigreq => 1000 && $trigreq <= 1000000) {
+               $reqevents = sprintf("%.2fK",$trigreq/1000.);
+	   } else {
+               $reqevents = sprintf("%.2fM",$trigreq/1000000.);
+	   }
+
+           my $donevents=>undef;
+           if ($trigdone< 1000) {
+	       $donevents = $trigdone;
+           } elsif ($trigdone=> 1000 && $trigdone<= 1000000) {
+               $donevents = sprintf("%.2fK",$trigdone/1000.);
+ 	   } else {
+               $donevents = sprintf("%.2fM",$trigdone/1000000.);
+	   }
+
+ 
            print "
                   <td align=center><b><font color=$color> $jobsreq </font></td></b>
                   <td align=center><b><font color=$color> $jobsdone </font></b></td>
                   <td align=center><b><font color=$color> $jobsfailed </font></td></b>
-                  <td align=center><b><font color=$color> $trigreq </font></b></td>
-                  <td align=center><b><font color=$color> $trigdone </font></b></td>
+                  <td align=center><b><font color=$color> $reqevents </font></td></b>
+                  <td align=center><b><font color=$color> $donevents </font></b></td>
                   <td align=center><b><font color=$color> $nntuples </font></b></td>
                   <td align=center><b><font color=$color> $nsizegb </font></b></td>
                   <td align=center><b><font color=$color> $lastupd </font></b></td>\n";
