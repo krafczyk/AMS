@@ -34,7 +34,6 @@ class TBrowser;
 class AMSR_ToFClusterReader;
 class AMSR_TrackReader;
 class AMSR_SiHitReader;
-class AMSR_CTCClusterReader;
 class AMSR_AntiClusterReader;
 class AMSR_TrMCClusterReader;
 class AMSR_ParticleReader;
@@ -66,7 +65,6 @@ private:
    AMSR_ToFClusterReader *m_ToFClusterMaker;   //Pointer to ToFClusterMaker
    AMSR_TrackReader      *m_TrackMaker;        //Pointer to TrackMaker
    AMSR_SiHitReader      *m_SiHitMaker;        //Pointer to SiHitMaker
-   AMSR_CTCClusterReader *m_CTCClusterMaker;   //Pointer to ToFClusterMaker
    AMSR_AntiClusterReader *m_AntiClusterMaker;   //Pointer to AntiClusterMaker
    AMSR_TrMCClusterReader *m_TrMCClusterMaker;   //Pointer to AntiClusterMaker
    AMSR_ParticleReader   *m_ParticleMaker;     //Pointer to ParticleMaker
@@ -74,7 +72,6 @@ private:
 
 // AMSR_MCMaker          *m_MCMaker;           //Pointer to MCMaker
 // AMSR_SiClusterMaker   *m_SiClusterMaker;    //Pointer to SiClusterMaker
-// AMSR_CTCClusterMaker  *m_CTCClusterMaker;   //Pointer to CTCClusterMaker
 // AMSR_ACCClusterMaker  *m_ACCClusterMaker;   //Pointer to ACCClusterMaker
 // ATLFElectronMaker   *m_ElectronMaker;     //Pointer to ElectronMaker
 // ATLFMuonMaker       *m_MuonMaker;         //Pointer to MuonMaker
@@ -132,12 +129,10 @@ public:
    AMSR_SiHitReader      *SiHitMaker()      {return m_SiHitMaker;}
    AMSR_AntiClusterReader *AntiClusterMaker() {return m_AntiClusterMaker;}
    AMSR_TrMCClusterReader *TrMCClusterMaker() {return m_TrMCClusterMaker;}
-   AMSR_CTCClusterReader *CTCClusterMaker() {return m_CTCClusterMaker;}
    AMSR_ParticleReader   *ParticleMaker()   {return m_ParticleMaker;}
    AMSR_MCParticleReader   *MCParticleMaker()   {return m_MCParticleMaker;}
 // AMSR_MCMaker         *MCMaker()         {return m_MCMaker;}
 // AMSR_SiClusterMaker  *SiClusterMaker()  {return m_SiClusterMaker;}
-// AMSR_CTCClusterMaker *CTCClusterMaker() {return m_CTCClusterMaker;}
 // AMSR_ACCClusterMaker *ACCClusterMaker() {return m_ACCClusterMaker;}
 //   AMSR_TrackMaker     *TrackMaker()    {return m_TrackMaker;}
 //   AMSR_TriggerMaker   *TriggerMaker()  {return m_TriggerMaker;}

@@ -284,10 +284,6 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo, int resx, int res
 			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
 
-   maker = (AMSR_Maker *) gAMSR_Root->CTCClusterMaker();
-   sw[3] = new TSwitch("ATC Clusters", &(maker->DrawFruits), 
-			"gAMSR_Root->Display()->Draw()", 0.0, y-height, 1.0, y);
-   y -= dy;
 
    maker = (AMSR_Maker *) gAMSR_Root->AntiClusterMaker();
    sw[4] = new TSwitch("Anti Clusters", &(maker->DrawFruits), 

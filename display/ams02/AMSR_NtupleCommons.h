@@ -48,8 +48,6 @@ struct EVENTH_DEF {
    int   Trmcclusters;
    int   Tofclusters;
    int   Tofmcclusters;
-   int   Ctcclusters;
-   int   Ctcmcclusters;
    int   Antimcclusters;
    int   Anticlusters;
    int   Eventstatus;
@@ -121,7 +119,6 @@ struct PARTICLE_DEF {
    int   atcdaero[NPART][2];
    int   atcstatu[NPART][2];
    float atcbeta[NPART];
-   float cooctc[NPART][2][3];
    float cootof[NPART][4][3];
    float cooanti[NPART][2][3];
    float cootr[NPART][6][3];
@@ -262,33 +259,6 @@ struct MCEVENTG_DEF {
 #define blkMceventg COMMON_BLOCK(MCEVENTG,mceventg)
 COMMON_BLOCK_DEF(MCEVENTG_DEF,blkMceventg);
 
-static const int NCTCCL = 20;
-struct CTCCLUST_DEF {
-   int   nctccl;
-   int   Ctcstatus[NCTCCL];
-   int   Ctclayer[NCTCCL];
-   float ctccoo[NCTCCL][3];
-   float ctcercoo[NCTCCL][3];
-   float ctcrawsignal[NCTCCL];
-   float ctcsignal[NCTCCL];
-   float ctcesignal[NCTCCL];
-};
-#define blkCtcclust COMMON_BLOCK(CTCCLUST,ctcclust)
-COMMON_BLOCK_DEF(CTCCLUST_DEF,blkCtcclust);
-
-static const int NCTCCLMC = 200;
-struct CTCMCCLU_DEF {
-   int   nctcclmc;
-   int   Ctcmcidsoft[NCTCCLMC];
-   float Ctcmcxcoo[NCTCCLMC][3];
-   float Ctcmcxdir[NCTCCLMC][3];
-   float Ctcstep[NCTCCLMC];
-   float ctccharge[NCTCCLMC];
-   float ctcbeta[NCTCCLMC];
-   float ctcedep[NCTCCLMC];
-};
-#define blkCtcmcclu COMMON_BLOCK(CTCMCCLU,ctcmcclu)
-COMMON_BLOCK_DEF(CTCMCCLU_DEF,blkCtcmcclu);
 
 static const int NANTI = 16;
 struct ANTICLUS_DEF {
@@ -341,17 +311,6 @@ struct LVL1_DEF {
 #define blkLvl1 COMMON_BLOCK(LVL1,lvl1)
 COMMON_BLOCK_DEF(LVL1_DEF,blkLvl1);
 
-static const int NCTCHT = 50;
-struct CTCHIT_DEF {
-   int   nctcht;
-   int   Ctchitstatus[NCTCHT];
-   int   Ctchitlayer[NCTCHT];
-   int   ctchitcolumn[NCTCHT];
-   int   ctchitrow[NCTCHT];
-   float ctchitsignal[NCTCHT];
-};
-#define blkCtchit COMMON_BLOCK(CTCHIT,ctchit)
-COMMON_BLOCK_DEF(CTCHIT_DEF,blkCtchit);
 
 static const int NTRRAW = 300;
 struct TRRAWCL_DEF {

@@ -81,13 +81,10 @@ class AMSR_Ntuple : public TNamed {
    TRRECHIT_DEF *m_BlkTrrechit;
    TRTRACK_DEF  *m_BlkTrtrack;
    MCEVENTG_DEF *m_BlkMceventg;
-   CTCCLUST_DEF *m_BlkCtcclust;
-   CTCMCCLU_DEF *m_BlkCtcmcclu;
    ANTICLUS_DEF *m_BlkAnticlus;
    ANTIMCCL_DEF *m_BlkAntimccl;
    LVL3_DEF     *m_BlkLvl3;
    LVL1_DEF     *m_BlkLvl1;
-   CTCHIT_DEF   *m_BlkCtchit;
    TRRAWCL_DEF  *m_BlkTrrawcl;
    ANTIRAWC_DEF *m_BlkAntirawc;
    TOFRAWCL_DEF *m_BlkTofrawcl;
@@ -121,7 +118,6 @@ class AMSR_Ntuple : public TNamed {
    void          SetTree(TTree *t=0);
 
    friend   class    AMSR_AntiClusterReader;
-   friend   class    AMSR_CTCClusterReader;
    friend   class    AMSR_MCParticleReader;
    friend   class    AMSR_ParticleReader;
    friend   class    AMSR_SiHitReader;

@@ -26,7 +26,6 @@
 //    MCMaker             NO                  NO                        //
 //    ToFClusterMaker     NO                  NO                        //
 //    SiClusterMaker      NO                  NO                        //
-//    CTCClusterMaker     NO                  NO                        //
 //    ACCClusterMaker     NO                  NO                        //
 //    ElectronMaker       NO                  NO                        //
 //    MuonMaker           NO                  NO                        //
@@ -181,7 +180,6 @@
 #include "AMSToFClusterReader.h"
 #include "AMSTrackReader.h"
 #include "AMSSiHitReader.h"
-#include "AMSCTCClusterReader.h"
 #include "AMSAntiClusterReader.h"
 #include "AMSTrMCClusterReader.h"
 #include "AMSParticleReader.h"
@@ -241,7 +239,6 @@ AMSRoot::AMSRoot() : TNamed("AMSRoot","The AMS Display with Root")
    m_Makers          = 0;
    m_ToFClusterMaker = 0;
    m_SiHitMaker      = 0;
-   m_CTCClusterMaker = 0;
    m_AntiClusterMaker = 0;
    m_TrMCClusterMaker = 0;
    m_TrackMaker      = 0;
@@ -250,7 +247,6 @@ AMSRoot::AMSRoot() : TNamed("AMSRoot","The AMS Display with Root")
 
 //   m_MCMaker       = 0;
 //   m_SiClusterMaker  = 0;
-//   m_CTCClusterMaker = 0;
 //   m_ACCClusterMaker = 0;
 
 //   m_ElectronMaker = 0;
@@ -291,9 +287,6 @@ AMSRoot::AMSRoot(const char *name, const char *title)
 
 
 
-   m_CTCClusterMaker  = new AMSCTCClusterReader("CTCClusterReader",
-			    "Read AMSRoot Cerenkov Threshold Counter Clusters");
-   m_Makers->Add(m_CTCClusterMaker);
 
    m_ToFClusterMaker  = new AMSToFClusterReader("ToFClusterReader",
 			    "Read AMSRoot ToF clusters from ntuple root file");
@@ -314,7 +307,6 @@ AMSRoot::AMSRoot(const char *name, const char *title)
 
 //   m_MCMaker       = new AMSMCMaker("MCMaker","Make MC events");
 //   m_SiClusterMaker  = new AMSSiClusterMaker("SiClusterMaker","Make AMSRoot Si Tracker clusters");
-//   m_CTCClusterMaker  = new AMSCTCClusterMaker("CTCClusterMaker","Make AMSRoot Cerenkov Threshold Counter clusters");
 //   m_ACCClusterMaker  = new AMSACCClusterMaker("ACCClusterMaker","Make AMSRoot Anti Coincidence Counter clusters");
 //   m_MuonMaker     = new ATLFMuonMaker("MuonMaker","Make AMSRoot muons");
 //   m_ElectronMaker = new ATLFElectronMaker("ElectronMaker","Make AMSRoot electrons");
@@ -705,7 +697,6 @@ void AMSRoot::Streamer(TBuffer &R__b)
 //      R__b >> m_MCMaker;
       R__b >> m_ToFClusterMaker;
 //      R__b >> m_SiClusterMaker;
-//      R__b >> m_CTCClusterMaker;
 //      R__b >> m_ACCClusterMaker;
 
 //      R__b >> m_ElectronMaker;
@@ -732,7 +723,6 @@ void AMSRoot::Streamer(TBuffer &R__b)
 //      R__b << m_MCMaker;
       R__b << m_ToFClusterMaker;
 //      R__b << m_SiClusterMaker;
-//      R__b << m_CTCClusterMaker;
 //      R__b << m_ACCClusterMaker;
 
 //      R__b << m_ElectronMaker;

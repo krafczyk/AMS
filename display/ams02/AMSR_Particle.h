@@ -33,10 +33,6 @@ private:
    Float_t	m_Theta;		//Track Theta (on entry)
    Float_t	m_Phi;			//Track Phi (on entry)
    Float_t	m_Position[3];		//Track Position (on entry)
-   Float_t	m_SignalCTC[2];		//Signal in Cerenkov
-   Float_t	m_BetaCTC[2];		//Beta from Cerenkov
-   Float_t	m_ErrBetaCTC[2];	//Error of the above
-   Float_t	m_PositionCTC[2][3];	//Track extrapolated into Cerenkov
    Float_t      m_beta;
    Float_t      m_errbeta;
    Int_t        m_betapattern;

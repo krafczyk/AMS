@@ -31,7 +31,6 @@ class TBrowser;
 class AMSToFClusterReader;
 class AMSTrackReader;
 class AMSSiHitReader;
-class AMSCTCClusterReader;
 class AMSAntiClusterReader;
 class AMSTrMCClusterReader;
 class AMSParticleReader;
@@ -62,7 +61,6 @@ private:
    AMSToFClusterReader *m_ToFClusterMaker;   //Pointer to ToFClusterMaker
    AMSTrackReader      *m_TrackMaker;        //Pointer to TrackMaker
    AMSSiHitReader      *m_SiHitMaker;        //Pointer to SiHitMaker
-   AMSCTCClusterReader *m_CTCClusterMaker;   //Pointer to ToFClusterMaker
    AMSAntiClusterReader *m_AntiClusterMaker;   //Pointer to AntiClusterMaker
    AMSTrMCClusterReader *m_TrMCClusterMaker;   //Pointer to AntiClusterMaker
    AMSParticleReader   *m_ParticleMaker;     //Pointer to ParticleMaker
@@ -70,7 +68,6 @@ private:
 
 // AMSMCMaker          *m_MCMaker;           //Pointer to MCMaker
 // AMSSiClusterMaker   *m_SiClusterMaker;    //Pointer to SiClusterMaker
-// AMSCTCClusterMaker  *m_CTCClusterMaker;   //Pointer to CTCClusterMaker
 // AMSACCClusterMaker  *m_ACCClusterMaker;   //Pointer to ACCClusterMaker
 // ATLFElectronMaker   *m_ElectronMaker;     //Pointer to ElectronMaker
 // ATLFMuonMaker       *m_MuonMaker;         //Pointer to MuonMaker
@@ -124,12 +121,10 @@ public:
    AMSSiHitReader      *SiHitMaker()      {return m_SiHitMaker;}
    AMSAntiClusterReader *AntiClusterMaker() {return m_AntiClusterMaker;}
    AMSTrMCClusterReader *TrMCClusterMaker() {return m_TrMCClusterMaker;}
-   AMSCTCClusterReader *CTCClusterMaker() {return m_CTCClusterMaker;}
    AMSParticleReader   *ParticleMaker()   {return m_ParticleMaker;}
    AMSMCParticleReader   *MCParticleMaker()   {return m_MCParticleMaker;}
 // AMSMCMaker         *MCMaker()         {return m_MCMaker;}
 // AMSSiClusterMaker  *SiClusterMaker()  {return m_SiClusterMaker;}
-// AMSCTCClusterMaker *CTCClusterMaker() {return m_CTCClusterMaker;}
 // AMSACCClusterMaker *ACCClusterMaker() {return m_ACCClusterMaker;}
 // ATLFElectronMaker *ElectronMaker() {return m_ElectronMaker;}
 // ATLFMuonMaker     *MuonMaker()     {return m_MuonMaker;}

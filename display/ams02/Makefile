@@ -19,7 +19,8 @@ ROOTLIBS      = -L$(ROOTSYS)/lib -lNew -lBase -lCint -lClib -lCont -lFunc \
 ROOTGLIBS     = -lRint -lGpad -lGui -lGX11 -lX3d
 CERNLIBS      = -L/cern/pro/lib -lmathlib -lpacklib -lkernlib
 #OPT           = -g -DROOT10308
-OPT           = -O 
+OPT           = -g 
+#OPT           = -O 
 NOOPT         =
 ARLD          = ar vr
 
@@ -123,9 +124,9 @@ endif
 #  ========  #
 ##############
 ifeq "$(OS)"  "Linux"
- CXX           = g++
+ CXX           = /usr/bin/g++ 
  INCLUDES      = -I$(ROOTSYS)/include
- CXXFLAGS      = -O -Wall -fPIC $(INCLUDES)
+ CXXFLAGS      =  -Wall -fPIC $(INCLUDES)
  FF            = g77
  FFLAGS        =
  LD            = g++
@@ -135,7 +136,7 @@ ifeq "$(OS)"  "Linux"
  SOFLAGS       = -shared
  SOGFLAGS      = $(SOFLAGS)
 
- FORLIBS       = $(CERNLIBS) -lm -lg2c
+ FORLIBS       = $(CERNLIBS) -lm -lnsl -lg2c
 # FORLIBS       = $(CERNLIBS) -lg2c -lF77 -lI77 -lc
 # FORLIBS       = $(CERNLIBS) -L/usr/local/lib -lf2c /usr/lib/libstdc++.so
  ADDLIBS       = $(FORLIBS)

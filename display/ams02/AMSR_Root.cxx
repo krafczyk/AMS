@@ -182,7 +182,6 @@
 #include "AMSR_ToFClusterReader.h"
 #include "AMSR_TrackReader.h"
 #include "AMSR_SiHitReader.h"
-#include "AMSR_CTCClusterReader.h"
 #include "AMSR_AntiClusterReader.h"
 #include "AMSR_TrMCClusterReader.h"
 #include "AMSR_ParticleReader.h"
@@ -245,7 +244,6 @@ AMSR_Root::AMSR_Root() : TNamed("AMSR_Root","The AMS Display with Root")
    m_Makers          = 0;
    m_ToFClusterMaker = 0;
    m_SiHitMaker      = 0;
-   m_CTCClusterMaker = 0;
    m_AntiClusterMaker = 0;
    m_TrMCClusterMaker = 0;
    m_TrackMaker      = 0;
@@ -254,7 +252,6 @@ AMSR_Root::AMSR_Root() : TNamed("AMSR_Root","The AMS Display with Root")
 
 //   m_MCMaker       = 0;
 //   m_SiClusterMaker  = 0;
-//   m_CTCClusterMaker = 0;
 //   m_ACCClusterMaker = 0;
 
 //   m_TriggerMaker  = 0;
@@ -293,9 +290,6 @@ AMSR_Root::AMSR_Root(const char *name, const char *title)
 
 
 
-   m_CTCClusterMaker  = new AMSR_CTCClusterReader("CTCClusterReader",
-			    "Read AMSR_Root Cerenkov Threshold Counter Clusters");
-   m_Makers->Add(m_CTCClusterMaker);
 
    m_ToFClusterMaker  = new AMSR_ToFClusterReader("ToFClusterReader",
 			    "Read AMSR_Root ToF clusters from ntuple root file");
@@ -316,7 +310,6 @@ AMSR_Root::AMSR_Root(const char *name, const char *title)
 
 //   m_MCMaker       = new AMSR_MCMaker("MCMaker","Make MC events");
 //   m_SiClusterMaker  = new AMSR_SiClusterMaker("SiClusterMaker","Make AMSR_Root Si Tracker clusters");
-//   m_CTCClusterMaker  = new AMSR_CTCClusterMaker("CTCClusterMaker","Make AMSR_Root Cerenkov Threshold Counter clusters");
 //   m_ACCClusterMaker  = new AMSR_ACCClusterMaker("ACCClusterMaker","Make AMSR_Root Anti Coincidence Counter clusters");
 //   m_MiscMaker     = new AMSR_MiscMaker("MiscMaker","Make AMSR_Root miscelaneous");
 //   m_TriggerMaker  = new AMSR_TriggerMaker("TriggerMaker","Make AMSR_Root trigger");
@@ -827,7 +820,6 @@ void AMSR_Root::Streamer(TBuffer &R__b)
 //      R__b >> m_MCMaker;
       R__b >> m_ToFClusterMaker;
 //      R__b >> m_SiClusterMaker;
-//      R__b >> m_CTCClusterMaker;
 //      R__b >> m_ACCClusterMaker;
 
 //      R__b >> m_TriggerMaker;

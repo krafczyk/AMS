@@ -21,8 +21,6 @@
 #pragma link C++ class AMSR_TrackReader;
 #pragma link C++ class AMSR_SiHit;
 #pragma link C++ class AMSR_SiHitReader;
-#pragma link C++ class AMSR_CTCCluster;
-#pragma link C++ class AMSR_CTCClusterReader;
 #pragma link C++ class AMSR_AntiCluster;
 #pragma link C++ class AMSR_AntiClusterReader;
 #pragma link C++ class AMSR_Particle;

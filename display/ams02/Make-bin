@@ -11,7 +11,6 @@ SRCS          = AMSR_Root.cxx AMSR_Maker.cxx \
 		AMSR_TrMCCluster.cxx AMSR_TrMCClusterReader.cxx \
 		AMSR_Track.cxx AMSR_TrackReader.cxx \
 		AMSR_SiHit.cxx AMSR_SiHitReader.cxx \
-		AMSR_CTCCluster.cxx AMSR_CTCClusterReader.cxx \
 		AMSR_Particle.cxx AMSR_ParticleReader.cxx \
 		AMSR_MCParticle.cxx AMSR_MCParticleReader.cxx \
                 AMSR_Ntuple.cxx \
@@ -35,7 +34,6 @@ HDRS          = TRadioButton.h TSwitch.h \
 		AMSR_TrMCCluster.h AMSR_TrMCClusterReader.h \
 		AMSR_Track.h AMSR_TrackReader.h \
 		AMSR_SiHit.h AMSR_SiHitReader.h \
-		AMSR_CTCCluster.h AMSR_CTCClusterReader.h \
 		AMSR_Particle.h AMSR_ParticleReader.h \
 		AMSR_MCParticle.h AMSR_MCParticleReader.h \
                 AMSR_Ntuple.h  \
