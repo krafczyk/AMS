@@ -1,6 +1,5 @@
 
 //
-
 class skyposition{
  public:
 void RotatePos(integer axis,geant w,geant vec_in[], geant vec_out[]); // rotation around axis, w degrees

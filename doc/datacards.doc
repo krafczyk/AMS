@@ -1,7 +1,8 @@
-#  $Id: datacards.doc,v 1.226 2003/06/03 10:13:25 choumilo Exp $
+#  $Id: datacards.doc,v 1.227 2003/06/19 15:03:07 isevilla Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
+
 
 TERM 
 I 1  TRM(1234567890)     // Ok if == 1234567890 stop otherwise
@@ -167,6 +168,17 @@ I34 SpecialCut(0)                 // special acceptance cut
                                   // 1: focus on ecal
                                   // 2: focus on outer trd hc
                                   // 3: focus on solarpanel/ams (AMS02BIG setup required)
+
+GMSRC   // to specify a point (gamma) source 
+I1 GammaSource(0)              // !=0 activate point source generation    
+                          // 1:user defined source (average spectrum)
+                             // 2:Crab 3:Galactic Center 4:Vela 
+R2 SourceCoo(1.46,0.384)      // if(GammaSource==1) specify coo
+R4 SourceVisib(0.873)         // when source not in acos(dir(3))<SourceVisib
+                             //count the gamma but don't propagate
+I5 GammaBg(0)             // ==1 activate background generation around source 
+R6 BgAngle(0.087)         // amplitude (in radians) of bg around source
+
 KINE 
 1 IPART        // Geant particle id
 

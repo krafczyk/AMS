@@ -1,6 +1,8 @@
-#  $Id: 00index.txt,v 1.9 2001/01/22 17:00:54 vitali Exp $
+#  $Id: 00index.txt,v 1.10 2003/06/19 15:03:07 isevilla Exp $
+
 amsc++.ps.gz        // Introduction
 arr.doc             // Fortran like array 
+astro.doc           // sky position determination
 beta.doc            // velocity reconstruction
 backup.doc          // standalone backup program
 cfortran.doc        // B.Burow cfortran 

@@ -1,4 +1,5 @@
-#  $Id: ntuple02.doc,v 1.62 2003/06/03 10:13:25 choumilo Exp $
+#  $Id: ntuple02.doc,v 1.63 2003/06/19 15:03:07 isevilla Exp $
+
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -36,6 +37,14 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 * R*4  *           * EVENTH   * VelPhi           // speed phi (GTOD rad) 
 * R*4  *           * EVENTH   * ThetaM           // Magnetic Latitude ***)
 * R*4  *           * EVENTH   * PhiM             // Magnetic Longitude ***)
+* R*4  *           * EVENTH   * Ra            // ISS Right Ascension (deg)
+* R*4  *           * EVENTH   * Dec           // ISS Declination (deg)
+* R*4  *           * EVENTH   * GLong         // ISS Galactic Latitude (deg)
+* R*4  *           * EVENTH   * GLat          // ISSGalactic Longitude (deg)
+* R*4  *           * EVENTH   * AMSRa         // AMS Right Ascension (deg)
+* R*4  *           * EVENTH   * AMSDec        // AMS Declination (deg)
+* R*4  *           * EVENTH   * AMSGLong      // AMS Galactic Longitude (deg)
+* R*4  *           * EVENTH   * AMSGLat       // AMSGalactic Latitude (deg)
 * I*4  *           * EVENTH   * Tracks           // No of Tracks
 * I*4  *           * EVENTH   * TrRecHits        // No of 3 dim trackerpoints
 * I*4  *           * EVENTH   * TrClusters       // No of Tr Clusters
