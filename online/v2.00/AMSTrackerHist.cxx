@@ -66,10 +66,10 @@ void AMSTrackerHist::_Fill(){
 
    float bin=8./64.;
   _filled2[28]=new TH1F("s2nK", "Max signal/noise K side",64,-bin/2,8.-bin/2);
-  _filled2[28]->SetXTitle("S/N");
+  _filled2[28]->SetXTitle("Max S/N K");
   _filled2[28]->SetFillColor(23);
   _filled2[29]=new TH1F("s2nS", "Maxsignal/noise S side",64,-bin/2,8.-bin/2);
-  _filled2[29]->SetXTitle("S/N");
+  _filled2[29]->SetXTitle("Max S/N S");
   _filled2[29]->SetFillColor(23);
 }
 
