@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.60 2001/03/30 08:37:51 choutko Exp $
+//  $Id: gbatch.C,v 1.61 2001/05/17 22:13:52 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -13,7 +13,7 @@ const int NWPAW=1000000;
 struct PAWC_DEF{
 float q[NWPAW];
 };
-const int NWGEAN=4000000;
+const int NWGEAN=10000000;
 struct GCBANK_DEF{
 float q[NWGEAN];
 };

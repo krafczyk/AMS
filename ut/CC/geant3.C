@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.51 2001/03/06 16:37:02 choumilo Exp $
+//  $Id: geant3.C,v 1.52 2001/05/17 22:13:52 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -422,8 +422,12 @@ extern "C" void gustep_(){
   GSKING(0);
   GCTRAK.upwght=1; //cerenkov tracked first  
   for(integer i=0;i<GCKIN2.ngphot;i++){
-    if(RICHDB::detcer(GCKIN2.xphot[i][6]))
+    if(RICHDB::detcer(GCKIN2.xphot[i][6])){
+       if(GCNUMX.NALIVE>2000)throw AMSTrTrackError("SecondaryStackOverflows");
+
        GSKPHO(i+1);
+       //cout << " NALIVE " <<GCNUMX.NALIVE<<endl;
+    }
   }
   GCTRAK.upwght=0;  
 //  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("SYSGUSTEP");
@@ -460,7 +464,7 @@ GDCXYZ();
 }
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
-   
+  RICHDB::Nph()=0;
    try{
    if(AMSJob::gethead()->isSimulation()){
       number tt=AMSgObj::BookTimer.stop("GEANTTRACKING");

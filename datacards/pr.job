@@ -38,7 +38,7 @@ IOPA 1=3 2='pr.hbk' 43=2
 45='TriggerLVL1||AMSmceventg '
 RNDM 191473093 131623257
 C      Simul Debug    CpuLim  Read Write Jobname
-AMSJOB 1=0   2=0      3=10.   4=0  5=0   46='AMSSHUTTLE' 
+AMSJOB 1=0   2=0      3=20.   4=0  5=0   46='AMSSHUTTLE' 
 L3REC 11=0
 TIME 3=10000000
 TERM 1=1234567890

@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.18 2001/04/24 17:21:07 mdelgado Exp $
+//  $Id: richdbc.h,v 1.19 2001/05/17 22:13:54 choutko Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -149,6 +149,8 @@ public:
   static integer detcer(geant);
   static geant max_step();
   static geant mean_height();
+  static integer _Nph;
+  static integer & Nph(){return _Nph;}  
 };
 
 #endif

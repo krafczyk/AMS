@@ -1,4 +1,4 @@
-//  $Id: geant321g.h,v 1.11 2001/01/22 17:32:43 choutko Exp $
+//  $Id: geant321g.h,v 1.12 2001/05/17 22:13:54 choutko Exp $
  /*------------------------------------------------------------------
 fortran filename   : gudcay.f
 ------------------------------------------------------------------*/
@@ -844,4 +844,12 @@ int  LMXSAV[15];
 
 #define GCSTAK COMMON_BLOCK(GCSTAK,gcstak)
 COMMON_BLOCK_DEF(GCSTAK_DEF,GCSTAK);
+
+//     COMMON /GCNUMX/ NALIVE,NTMSTO     
+    struct GCNUMX_DEF{
+        int NALIVE;
+        int NTMSTO;
+   };
+#define GCNUMX COMMON_BLOCK(GCNUMX,gcnumx)
+COMMON_BLOCK_DEF(GCNUMX_DEF,GCNUMX);
 

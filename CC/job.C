@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.370 2001/05/17 12:10:13 choumilo Exp $
+// $Id: job.C,v 1.371 2001/05/17 22:13:53 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2332,6 +2332,12 @@ AMSgObj::BookTimer.book("RECTCEVENT");
 void AMSJob::_reaxinitjob(){
   AMSgObj::BookTimer.book("REAXEVENT");
   AMSgObj::BookTimer.book("ReAxRefit");
+AMSgObj::BookTimer.book("ReTRDRefit"); 
+AMSgObj::BookTimer.book("ReTKRefit"); 
+AMSgObj::BookTimer.book("ReGeaneRefit"); 
+AMSgObj::BookTimer.book("ReECRefit"); 
+AMSgObj::BookTimer.book("ReRICHRefit"); 
+AMSgObj::BookTimer.book("ReTOFRefit"); 
   AMSgObj::BookTimer.book("ReAxPid");
   AMSgObj::BookTimer.book("part::loc2gl");
   if(AMSFFKEY.Update){

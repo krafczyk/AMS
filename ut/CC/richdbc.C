@@ -1,10 +1,11 @@
-//  $Id: richdbc.C,v 1.20 2001/04/24 17:20:54 mdelgado Exp $
+//  $Id: richdbc.C,v 1.21 2001/05/17 22:13:53 choutko Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
 #include<mceventg.h>
 #include<iostream.h>
 
+integer RICHDB::_Nph=0;
 // defaults
 
 geant RICHDB::wave_length[RICmaxentries]={608.696, 605.797, 602.899, 600.000, 595.652, 591.304,

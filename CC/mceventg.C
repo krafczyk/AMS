@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.107 2001/05/17 12:10:13 choumilo Exp $
+//  $Id: mceventg.C,v 1.108 2001/05/17 22:13:53 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -354,9 +354,8 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
         number xkm=xkin+z*modul[year];
         number xt=xkm/1000+mass;
         number beta=sqrt(1.-mass*mass/xt/xt);
-        number xrig(0.);
         geant y;
-	if(z>0.)xrig=beta*xt/z;
+	number xrig=z!=0?beta*xt/z:0;
         if(ipart ==1){
           // EGDB gamma-ray photon energy spec.(EGRET) per (m^2-sr-s-GeV)
           y= 0.0137/pow(xt,2.10);

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.93 2001/05/09 15:16:37 choutko Exp $
+//  $Id: particle.C,v 1.94 2001/05/17 22:13:53 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -70,7 +70,9 @@ integer AMSParticle::build(integer refit){
           beta,ebeta,mass,emass,momentum,emomentum,charge,theta,phi,coo);
           ptrack->setstatus(AMSDBc::USED);
            if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+            AMSgObj::BookTimer.start("ReRICHRefit"); 
             ppart->richfit();
+             AMSgObj::BookTimer.stop("ReRICHRefit"); 
            }
           AMSgObj::BookTimer.start("ReAxPid");
           ppart->pid();
@@ -80,13 +82,21 @@ integer AMSParticle::build(integer refit){
            ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
           if(!(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
            if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
+            AMSgObj::BookTimer.start("ReRICHRefit");  
             ppart->ctcfit();
+             AMSgObj::BookTimer.stop("ReRICHRefit");  
            }
+           AMSgObj::BookTimer.start("ReTOFRefit"); 
            ppart->toffit();
            ppart->antifit();
+             AMSgObj::BookTimer.stop("ReTOFRefit"); 
            if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+           AMSgObj::BookTimer.start("ReECRefit"); 
             ppart->ecalfit();
+             AMSgObj::BookTimer.stop("ReECRefit"); 
+             AMSgObj::BookTimer.start("ReTRDRefit"); 
             ppart->trdfit();
+            AMSgObj::BookTimer.stop("ReTRDRefit"); 
            }
           }
           AMSgObj::BookTimer.stop("ReAxRefit");
@@ -694,6 +704,7 @@ void AMSParticle::pid(){
 
 }
 void AMSParticle::refit(int fast){
+AMSgObj::BookTimer.start("ReTKRefit");  
     for(int layer=0;layer<TKDBc::nlay();layer++){
        number theta,phi;
       if(_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1)
@@ -722,6 +733,7 @@ void AMSParticle::refit(int fast){
     }
     if(fast || _ptrack->checkstatus(AMSDBc::NOTRACK)){
       _loc2gl();
+       AMSgObj::BookTimer.stop("ReTKRefit");  
       return;
     }
       geant dummy;
@@ -733,8 +745,13 @@ void AMSParticle::refit(int fast){
           _ptrack->AdvancedFit();
         }
      if(_GPart!=14)_ptrack->Fit(0,_GPart);
+    AMSgObj::BookTimer.stop("ReTKRefit");    
 // Changed - never use geanerigidity to build mom
-     if(TRFITFFKEY.ForceAdvancedFit==1 && MISCFFKEY.G3On)_ptrack->Fit(_pbeta->getbeta()>0?3:-3,_GPart);
+     if(TRFITFFKEY.ForceAdvancedFit==1 && MISCFFKEY.G3On){
+        AMSgObj::BookTimer.start("ReGeaneRefit");
+            _ptrack->Fit(_pbeta->getbeta()>0?3:-3,_GPart);
+        AMSgObj::BookTimer.stop("ReGeaneRefit"); 
+     }
      if(0 && _ptrack->GeaneFitDone() && fabs(_ptrack->getgrid())>TRFITFFKEY.RidgidityMin/2 ){
       _build(_pbeta->getbeta()>0?_ptrack->getgrid():-_ptrack->getgrid(),
        _ptrack->getegrid(),_Charge,_Beta,_ErrBeta,_Mass,_ErrMass,_Momentum,_ErrMomentum);

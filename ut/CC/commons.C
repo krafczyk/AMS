@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.158 2001/05/16 15:24:16 choutko Exp $
+//  $Id: commons.C,v 1.159 2001/05/17 22:13:52 choutko Exp $
 
 
 #include <commons.h>
@@ -84,7 +84,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v3.00";
-uinteger AMSCommonsI::_build=981;
+uinteger AMSCommonsI::_build=983;
 uinteger AMSCommonsI::_os=0;
 AMSCommonsI::AMSCommonsI(){
   init();
@@ -93,12 +93,12 @@ void AMSCommonsI::init(){
   if(_Count++==0){
    char* gtvb=getenv("BINTYPE");
    char* gtvh=getenv("HOSTTYPE");
-   if(gtvb && gtvh){
-     if((strstr(gtvh,"alpha") || strstr(gtvh,"Digital")) && strstr(gtvb,"OSF")){
+   if( gtvh){
+     if((strstr(gtvh,"alpha") || strstr(gtvh,"Digital")) && gtvb && strstr(gtvb,"OSF")){
       cout <<"AMSCommonsI-I-HardwareIdentifiedAs alpha-OSF"<<endl;
       _os=1;
      }
-     else if((strstr(gtvh,"i386") || strstr(gtvh,"LINUX")) && strstr(gtvb,"Linux")){
+     else if((strstr(gtvh,"i386") || strstr(gtvh,"LINUX")) && ((gtvb && strstr(gtvb,"Linux"))|| strstr(gtvh,"linux")) ){
       cout <<"AMSCommonsI-I-HardwareIdentifiedAs i386-linux"<<endl;
       _os=2;
      }
