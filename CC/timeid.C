@@ -1,6 +1,8 @@
 #include <timeid.h>
-AMSTimeID::AMSTimeID(AMSID  id, tm & begin, tm &end, 
-                     integer nbytes=0, void *pdata=0):AMSNode(id),_pData(pdata){
+#include <job.h>
+AMSTimeID::AMSTimeID(AMSID  id, tm & begin, tm &end, integer nbytes=0, 
+                     void *pdata=0):
+           AMSNode(id),_pData(pdata),_UpdateMe(0){
       _Nbytes=nbytes;
 #ifdef __AMSDEBUG__
       if(_Nbytes%sizeof(integer)!=0){
@@ -8,11 +10,30 @@ AMSTimeID::AMSTimeID(AMSID  id, tm & begin, tm &end,
         exit(1);
       }
 #endif
-      time(&_Insert);
       _Begin=mktime(&begin); 
       _End=mktime(&end); 
+      _Insert=_Begin;
       _Nbytes+=sizeof(integer);
       _CRC=_CalcCRC();
+      int i;
+      for(i=0;i<AMSJob::gethead()->gettdvn();i++){
+        if( (
+           strcmp(AMSJob::gethead()->gettdvc(i),getname())==0 ||
+           strcmp(AMSJob::gethead()->gettdvc(i),"UpdateAllTDV")==0) ){
+         _UpdateMe=1;
+         time(&_Insert);
+         cout <<"AMSTimeID-ctor-I-Update for "<<getname()<<" "<<getid()<<
+           " requested. "<<endl;
+         break;
+        }
+      }
+#ifdef __AMSDEBUG__
+        if(getid() != AMSJob::gethead()->getjobtype()){
+          cerr << "AMSTimeID-ctor-F-numerical id mismatch "<<
+          getid()<<AMSJob::gethead()->getjobtype()<<endl;
+          exit(1);
+        }
+#endif
 }
 
 void AMSTimeID::gettime(time_t & insert, time_t & begin, time_t & end) const{

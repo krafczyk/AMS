@@ -57,6 +57,7 @@ IOPA.ntuple=1;
 IOPA.TriggerI=1;
 IOPA.WriteAll=0;
 VBLANK(IOPA.TriggerC,40);
+VBLANK(AMSFFKEY.TDVC,400);
 char amsp[12]="AMSParticle";
 UCTOH(amsp,IOPA.TriggerC,4,12);
 IOPA.mode=0;
@@ -343,6 +344,7 @@ void AMSJob::udata(){
 char jobname[160];
 char setupname[160];
 char triggername[160];
+char tdvname[1600];
 char ffile[160];
 UHTOC(AMSFFKEY.Jobname,40,jobname,160);
 UHTOC(AMSFFKEY.Setupname,40,setupname,160);
@@ -371,19 +373,20 @@ if(IOPA.mode){
  AMSIO::init(IOPA.mode);
 }
 //-
-int len;
+setsetup(setupname);
+if(getsetup())setname(strcat(jobname,getsetup()));
+else{
+  cerr<<"AMSJOB::udata-F-NULLSETUP- Setup not defined"<<endl;
+  exit(1);
+}
+{
+int len=160;
 for(i=158;i>=0;i--){
    if(triggername[i]==' '){
     triggername[i]='\0';
     len=i+1;
    }
    else break;
-}
-setsetup(setupname);
-if(getsetup())setname(strcat(jobname,getsetup()));
-else{
-  cerr<<"AMSJOB::udata-F-NULLSETUP- Setup not defined"<<endl;
-  exit(1);
 }
 integer ntrig=0;
 integer nold=0;
@@ -397,11 +400,39 @@ for (i=0;i<len;i++){
        nold=i+1;
   }
 }
+}
 _jobtype=AMSFFKEY.Jobtype;
 //
 // Read/Write Synchronization
 if(AMSFFKEY.Read > 10 && AMSFFKEY.Read%2==0)AMSFFKEY.Read++;
 if(AMSFFKEY.Write > 0 && AMSFFKEY.Write%2==0)AMSFFKEY.Write++;
+
+// TDV
+if(AMSFFKEY.Update){
+ UHTOC(AMSFFKEY.TDVC,400,tdvname,1600);
+ tdvname[1599]='\0';
+ {
+ int len=1600;
+ for(i=1598;i>=0;i--){
+    if(tdvname[i]==' '){
+     tdvname[i]='\0';
+     len=i+1;
+    }
+    else break;
+ }
+ integer ntdv=0;
+ integer nold=0;
+ integer or=0;
+ for (i=0;i<len;i++){
+   if(tdvname[i]=='|' || tdvname[i]=='\0'){
+     // new tdv found
+        tdvname[i]='\0';
+        if(i-nold>0)settdv(tdvname+nold,ntdv++);
+        nold=i+1;
+   }
+ }
+ }
+}
 }
 
 
@@ -615,6 +646,15 @@ void AMSJob::settrigger(char *setup, integer N, integer I,integer or){
   _TriggerOr=or;
   _TriggerN=N+1;
 }
+void AMSJob::settdv(char *setup, integer N){
+  assert(N < maxtdv);
+  if(setup){
+   if(strlen(setup)<maxtdvsize)strcpy(_TDVC[N],setup);
+   else cerr << "AMSJOB::settdv-E-length of "<<setup<< " "<<strlen(setup)<<
+         ", exceeds "<<maxtdvsize<<". Card ignored"<<endl;
+  }
+  _TDVN=N+1;
+}
 
 void AMSJob::_timeinitjob(){
 static AMSTimeID TID(AMSID("TDV:",0));
@@ -637,7 +677,7 @@ end.tm_hour=TKFIELD.ihour[1];
 end.tm_mday=TKFIELD.iday[1];
 end.tm_mon=TKFIELD.imon[1];
 end.tm_year=TKFIELD.iyear[1];
-TID.add (new AMSTimeID(AMSID("MagneticFieldMap",0),
+TID.add (new AMSTimeID(AMSID("MagneticFieldMap",getjobtype()),
    begin,end,sizeof(TKFIELD_DEF),(void*)&TKFIELD));
 }
 //
@@ -662,24 +702,24 @@ end.tm_mon=TRMCFFKEY.mon[1];
 end.tm_year=TRMCFFKEY.year[1];
 
 
-TID.add (new AMSTimeID(AMSID("TrackerPedestals",0),
+TID.add (new AMSTimeID(AMSID("TrackerPedestals",getjobtype()),
    begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::peds));
-TID.add (new AMSTimeID(AMSID("TrackerGains",0),
+TID.add (new AMSTimeID(AMSID("TrackerGains",getjobtype()),
    begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::gains));
-TID.add (new AMSTimeID(AMSID("TrackerSigmas",0),
+TID.add (new AMSTimeID(AMSID("TrackerSigmas",getjobtype()),
    begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::sigmas));
 // change deliberately one sigma;
 // AMSTrIdSoft::sigmas[1]=3.44;
-TID.add (new AMSTimeID(AMSID("TrackerStatus",0),
+TID.add (new AMSTimeID(AMSID("TrackerStatus",getjobtype()),
    begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::status));
-TID.add (new AMSTimeID(AMSID("TrackerIndNoise",0),
+TID.add (new AMSTimeID(AMSID("TrackerIndNoise",getjobtype()),
    begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::indnoise));
-TID.add (new AMSTimeID(AMSID("TrackerCommonNoise",0),
+TID.add (new AMSTimeID(AMSID("TrackerCommonNoise",getjobtype()),
    begin,end,sizeof(AMSTrIdSoft::cmnnoise[0])*ms,
    (void*)AMSTrIdSoft::cmnnoise));
 }
@@ -706,22 +746,22 @@ end.tm_year=AMSCharge::_year[1];
 
 
 
-TID.add (new AMSTimeID(AMSID("ChargeLkhd1",0),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd1",getjobtype()),
    begin,end,100*ncharge*sizeof(AMSCharge::_lkhdTracker[0][0]),
    (void*)AMSCharge::_lkhdTracker[0]));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd2",0),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd2",getjobtype()),
    begin,end,100*ncharge*sizeof(AMSCharge::_lkhdTOF[0][0]),
    (void*)AMSCharge::_lkhdTOF[0]));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd3",0),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd3",getjobtype()),
    begin,end,ncharge*sizeof(AMSCharge::_lkhdStepTOF[0]),
    (void*)AMSCharge::_lkhdStepTOF));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd4",0),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd4",getjobtype()),
    begin,end,ncharge*sizeof(AMSCharge::_lkhdStepTracker[0]),
    (void*)AMSCharge::_lkhdStepTracker));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd5",0),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd5",getjobtype()),
    begin,end,ncharge*sizeof(AMSCharge::_chargeTOF[0]),
    (void*)AMSCharge::_chargeTOF));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd6",0),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd6",getjobtype()),
    begin,end,ncharge*sizeof(AMSCharge::_chargeTracker[0]),
    (void*)AMSCharge::_chargeTracker));
 

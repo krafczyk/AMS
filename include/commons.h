@@ -41,6 +41,7 @@ integer Jobname[40];
 integer Setupname[40];
 integer ZeroSetupOk;
 integer Update;
+integer TDVC[400];
 };
 #define AMSFFKEY COMMON_BLOCK(AMSFFKEY,amsffkey)
 COMMON_BLOCK_DEF(AMSFFKEY_DEF,AMSFFKEY);

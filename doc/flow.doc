@@ -71,7 +71,6 @@ M A I N  ->      gbatch.C
  |    |   |
  |    |   |->AMSEvent::sethead()   Create new event structure 
  |    |   |    |
- |    |   |    |->_validate        Validate time dep constants
  |    |   |    | 
  |    |   |    |->_siamsinitrun    Initialize if run no changed
  |    |   |    |    |
@@ -81,13 +80,15 @@ M A I N  ->      gbatch.C
  |    |   |    |    |->_sictcinitrun
  |    |   |    |    |->_signinitrun
  |    |   |    |    |
- |    |   |    |->_reamsinitrun
+ |    |   |    |->_reamsinitrun      ----------------------------
  |    |   |    |    |
  |    |   |    |    |->_retkinitrun
  |    |   |    |    |->_retofinitrun
  |    |   |    |    |->_retrdinitrun
  |    |   |    |    |->_rectcinitrun
  |    |   |    |    |->_reaxinitrun
+ |    |   |    |                      
+ |    |   |    |->_validate        Validate time dep constants
  |    |   |    |
  |    |   |    |->_siamsinitevent    Initialize event
  |    |   |    |    |

@@ -9,16 +9,18 @@ R 3  CpuLimit(10.)   // CpuLimit in native sec per event
 I 4  Read(0)         // 0 - Off   ; 1 - setup 10 -Mceventg 100 -mc banks
                      // 1000 - Rec banks
 I 5  Write(0)        // Same as for read  
-I 6  Jobname(' ')    // Jobname == list in db (<160 bytes)
-I46  Setupname(' ')  // Setupname == Setup Name (<160 bytes)
+I 6  Jobname(160*' ')// Jobname == list in db (<160 bytes)
+I46  Setupname(160*' ')  // Setupname == Setup Name (<160 bytes)
                      // see setup.doc for details
 I86  ZeroSetupOK(0)  // Internal
-I87  Update(0)       // DB related
+I87  Update(0)       // Update(1) or not(0) TDV in DBase
+I88  TDVC(1600*' ')  // TDV Names, separated by |, which will be updated
+                     // if Update(see above) ==1
 //IO
 
 IOPA 
 I 1    hlun(0)                   // 0 - Noutput ; >0 - Lun
-I 2    hfile(' ')                // Output file name
+I 2    hfile(160*' ')            // Output file name
 I42    ntupleId(1)               // Ntuple Id
 I43    WriteAll(0)               // Flag to write all or  "used only" objects
 I44    TriggerI(1)               // Not used in v204++

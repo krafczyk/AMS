@@ -11,6 +11,8 @@
 #include <amsgobj.h>
 #include <timeid.h>
 const integer maxtrig=20;
+const integer maxtdv=255;
+const integer maxtdvsize=256;
 class AMSJob : public AMSNode{
 private:
 integer _jobtype;  // 0 == simulation
@@ -20,6 +22,8 @@ char _TriggerC[maxtrig][256];
 integer _TriggerI;
 integer _TriggerN;
 integer _TriggerOr;
+char _TDVC[maxtdv][maxtdvsize];
+integer _TDVN;
 static AMSJob* _Head;
 void _init(){}
 void _siamsdata();
@@ -51,18 +55,22 @@ void _timeinitjob();
 static AMSNodeMap JobMap;
 public:
 AMSJob(AMSID id=0,integer jobtype=0):AMSNode(id),_jobtype(jobtype)
-{_Setup[0]='\0';_TriggerC[0][0]='\0';_TriggerI=1;_TriggerN=0;cout <<
+{_Setup[0]='\0';_TriggerC[0][0]='\0';_TriggerI=1;_TriggerN=0;
+_TDVC[0][0]='\0',_TDVN=0;cout <<
 "AMS Software version "<<setw(4)<<AMSID::getversion()<<endl;}
 static AMSJob* gethead(){return _Head;}
 static AMSJob * & sethead(){return _Head;}
 void setsetup(char * setup);
 void settrigger(char * triggerC, integer triggerN, integer triggerI,
 integer triggerOr);
+void settdv(char * TDVC, integer TDVN);
 inline char * getsetup(){return _Setup;}
 inline integer gettriggerOr(){return _TriggerOr;}
 inline integer gettriggerI(){return _TriggerI;}
 inline integer gettriggerN(){return _TriggerN;}
 inline char * gettriggerC(integer n){return n>=0 && n<_TriggerN ? _TriggerC[n]:0;}
+char * gettdvc(integer n){return n>=0 && n<_TDVN ? _TDVC[n]:0;}
+integer gettdvn() const {return _TDVN;}
 integer getjobtype() const{return _jobtype;}
 integer&  setjobtype() {return _jobtype;}
 AMSNode * getnodep(AMSID  id) const{return JobMap.getp(id);}
