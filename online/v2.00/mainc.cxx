@@ -10,6 +10,8 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
 #include "main.h"
 #include "AMSAntiHist.h"
 #include "AMSTrackerHist.h"
@@ -23,6 +25,7 @@ void Myapp::HandleIdleTimer(){
 SetReturnFromRun(1);
 Terminate();
 }
+void (handler)(int);
 extern void InitGui(); // loads the device dependent graphics system
 VoidFuncPtr_t initfuncs[] = { InitGui, 0 };
 int Error; // needed by Motif
@@ -31,6 +34,13 @@ TROOT root("AMS", "AMS ROOT", initfuncs);
 
 int main(int argc, char *argv[])
 {
+     *signal(SIGFPE, handler);
+     *signal(SIGCONT, handler);
+     *signal(SIGTERM, handler);
+     *signal(SIGINT, handler);
+     *signal(SIGQUIT, handler);
+
+
 // First create application environment. If you replace TApplication
 // by TRint (which inherits from TApplication) you will be able
 // to execute CINT commands once in the eventloop (via Run()).
@@ -121,4 +131,20 @@ out:
   
 
 
+}
+
+
+void (handler)(int sig){
+  if(sig==SIGFPE)cerr <<" FPE intercepted"<<endl;
+  else if (sig==SIGTERM || sig==SIGINT){
+    cerr <<" SIGTERM intercepted"<<endl;
+    exit(1);
+  }
+  else if(sig==SIGQUIT){
+      cerr <<" Process suspended"<<endl;
+     pause();
+  }
+  else if(sig==SIGCONT){
+      cerr <<" Process resumed"<<endl;
+  }
 }

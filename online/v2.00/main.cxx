@@ -7,9 +7,11 @@
 #include "Debugger.h"
 #include <iostream.h>
 #include <fstream.h>
+#include <unistd.h> 
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <stdlib.h>
+#include <signal.h>
 #include "main.h"
 #include "AMSAntiHist.h"
 #include "AMSTrackerHist.h"
@@ -28,12 +30,18 @@ VoidFuncPtr_t initfuncs[] = { InitGui, 0 };
 int Error; // needed by Motif
 
 TROOT root("AMS", "AMS ROOT", initfuncs);
-
+void (handler)(int);
 void main(int argc, char *argv[])
 {
 // First create application environment. If you replace TApplication
 // by TRint (which inherits from TApplication) you will be able
 // to execute CINT commands once in the eventloop (via Run()).
+     *signal(SIGFPE, handler);
+     *signal(SIGCONT, handler);
+     *signal(SIGTERM, handler);
+     *signal(SIGINT, handler);
+     *signal(SIGQUIT, handler);
+
   Myapp *theApp = new Myapp("App", &argc, argv);
   theApp->SetIdleTimer(15,"");
 
@@ -45,6 +53,7 @@ void main(int argc, char *argv[])
     filename = *++argv;
   }
 
+  
   printf("opening file %s...\n", filename);
   TFile f(filename);
   AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Online Display",&f);
@@ -82,3 +91,26 @@ void main(int argc, char *argv[])
 
 
 
+
+void (handler)(int sig){
+  switch(sig){
+  case  SIGFPE:
+   cerr <<" FPE intercepted"<<endl;
+   break;
+  case  SIGTERM:
+   cerr <<" SIGTERM intercepted"<<endl;
+   exit(1);
+   break;
+  case  SIGINT:
+   cerr <<" SIGTERM intercepted"<<endl;
+   exit(1);
+   break;
+  case  SIGQUIT:
+   cerr <<" Process suspended"<<endl;
+   pause();
+   break;
+  case  SIGCONT:
+   cerr <<" Process resumed"<<endl;
+   break;
+  }
+}
