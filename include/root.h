@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.54 2002/03/27 18:43:19 choutko Exp $
+//  $Id: root.h,v 1.55 2002/04/17 12:42:28 choumilo Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -791,6 +791,7 @@ public:
   int TOFPatt1[MAXLVL1][4];
   int AntiPatt[MAXLVL1];
   int ECALflag[MAXLVL1];
+  float ECALtrsum[MAXLVL1];
 
 #ifdef __WRITEROOT__
   LVL1Ntuple02();

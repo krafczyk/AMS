@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.11 2002/04/10 10:06:02 choumilo Exp $
+//  $Id: trigger302.h,v 1.12 2002/04/17 12:42:28 choumilo Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include <link.h>
@@ -110,7 +110,7 @@ protected:
 //
 // ECAL electromagneticity/track_matching Part
 //
- integer _ECemag;//(0->unknown;1->mip)
+ integer _ECemag;//(-1->NonEmag; 0->unknown; 1->Emag;)
  integer _ECtrmat;//(0->unknown;-1->NoMatch;1->Match)
 
 
@@ -214,6 +214,12 @@ static geant _CooMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst:
  static geant _ECadc2mev;
  static geant _ECh2lrat;
  static geant _ECpedsig;
+ static geant _EC1pmdx;
+ static geant _EC1pmx0;
+ static geant _EC1pmy0;
+ static int   _ECpmpsl;
+ static geant _ECpmdz; 
+ static geant _EC1pmz;
 
 
 
@@ -264,8 +270,9 @@ public:
 
 // ECAL
  bool UseECinfo(){return (_TriggerInputs&trigger302const::ECIN) ==0;}
- void setecemag(int d);
- void setectrmat(int d);
+ void setecemag(integer d);
+ void setectrmat(integer d);
+ integer getecemag(){return _ECemag;}
 
 
  // Interface with DAQ

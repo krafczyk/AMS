@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.5 2001/07/13 16:25:35 choutko Exp $
+//  $Id: trigger102.h,v 1.6 2002/04/17 12:42:28 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include <link.h>
@@ -36,20 +36,23 @@ protected:
  uinteger _tofpatt[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern
  uinteger _tofpatt1[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern for z>1
  uinteger _antipatt; //ANTI: triggered sectors pattern
- uinteger _ecalflag; //EC trig-flag(0->Empty,1->MIP,2->EMobject,+10->HiEnergy) 
+ uinteger _ecalflag; //EC trig-flag(0->Empty,1->MIP,2->EMobject,+10->HiEnergy)
+ geant   _ectrsum;//"EC tot.energy"(total sum of all dynode channels used for trigger,gev) 
  void _copyEl(){}
  void _printEl(ostream & stream){ stream << " LifeTime " << float(_LifeTime)/1000.<<endl;}
  void _writeEl();
 public:
  Trigger2LVL1(integer lifetime, integer tofflag, uinteger tofpatt[], uinteger antipatt,
-             uinteger ecflg):_LifeTime(lifetime),_tofflag(tofflag), _ecalflag(ecflg){
+             uinteger ecflg, geant ectrsum):
+	     _LifeTime(lifetime),_tofflag(tofflag), _ecalflag(ecflg), _ectrsum(ectrsum){
    for(int i=0;i<TOF2GC::SCLRS;i++)_tofpatt[i]=tofpatt[i];
    _antipatt=antipatt;
 
  }
  Trigger2LVL1(integer TriggerMode, integer tofflag, uinteger tofpatt[],
-                uinteger tofpatt1[], uinteger antipatt, uinteger ecflg):
-     _LifeTime(TriggerMode),_tofflag(tofflag),_antipatt(antipatt),_ecalflag(ecflg){
+                uinteger tofpatt1[], uinteger antipatt, uinteger ecflg, geant ectrsum):
+  _LifeTime(TriggerMode),_tofflag(tofflag),_antipatt(antipatt),_ecalflag(ecflg),
+                                                                    _ectrsum(ectrsum){
    int i;
    for(i=0;i<TOF2GC::SCLRS;i++)_tofpatt[i]=tofpatt[i];
    for( i=0;i<TOF2GC::SCLRS;i++)_tofpatt1[i]=tofpatt1[i];
@@ -61,6 +64,7 @@ public:
   uinteger getlifetime () const {return _LifeTime;}
  integer gettoflg() {return _tofflag;}
  uinteger getecflg() {return _ecalflag;}
+ geant getectrsum(){return _ectrsum;}
  integer checktofpattor(integer tofc, integer paddle);
  integer checktofpattand(integer tofc, integer paddle);
  integer checkantipatt(integer counter){return _antipatt & (1<<counter);}

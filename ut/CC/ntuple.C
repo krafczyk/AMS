@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.95 2002/03/28 14:33:42 choutko Exp $
+//  $Id: ntuple.C,v 1.96 2002/04/17 12:42:14 choumilo Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -111,7 +111,8 @@ void AMSNtuple::init(){
   "nlvl3[0,2],LVL3TOF(nlvl3)[-1,255],LVL3TRD(nlvl3)[0,15],LVL3Tr(nlvl3)[0,15],LVL3Main(nlvl3),LVL3Dir(nlvl3)[-1,1],LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pat(2,nlvl3)[-1,250],LVL3Res(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R,LVL3TRDHits(nlvl3)[0,63],LVL3HMult(nlvl3)[0,31],LVL3TRDPar(2,nlvl3):R");
 
   HBNAME(_lun,"LVL1",&_lvl102.Nlvl1,
- "nlvl1[0,2],mode(nlvl1),LVL1Flag(nlvl1)[-10,20],LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1),LVL1ECALflag(nlvl1)");
+  "nlvl1[0,2],mode(nlvl1),LVL1Flag(nlvl1)[-10,20],LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1),LVL1ECALflag(nlvl1),LVL1ECtrsum(nlvl1):R");
+
   HBNAME(_lun,"TrRawCl",&_trraw.Ntrraw,
   "ntrraw[0,300],rawaddress(ntrraw):I,rawlength(ntrraw)[-1,30000]:I,s2n(ntrraw):R");
 

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.43 2002/04/10 10:05:47 choumilo Exp $
+//  $Id: ecalrec.C,v 1.44 2002/04/17 12:42:13 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -25,6 +25,7 @@ using namespace ecalconst;
 //
 uinteger AMSEcalRawEvent::trigfl=0;// just memory reservation/initialization for static
 number AMSEcalRawEvent::trigtm=0.;// just memory reservation/initialization for static
+geant AMSEcalRawEvent::trsum=0.;// just memory reservation/initialization for static
 //----------------------------------------------------
 void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   int i,j,k;
@@ -114,6 +115,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
   npmmx=ECALDBc::slstruc(4);
   stat=1;//bad
   trigfl=0;//reset trigger-flag
+  trsum=0;//reset tot.energy(trig.sum)
   edept=0.;
   edeprt=0.;
   emeast=0.;
@@ -416,6 +418,7 @@ nonEM:
   if(trigfl>0){
     trigtm=timet/edept;// FT abs.time(ns) (stored in AMSEcalRawEvent object)
     trigtm+=TOF2Varp::tofvpar.ftdelf();// add the same fixed delay as for TOF-FT
+    trsum=geant(an4respt/1000.);//tempor 4xAnodes (later dynode signal)
   }
 //---
   if(ECMCFFKEY.mcprtf==1){

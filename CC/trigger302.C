@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.15 2002/04/10 10:05:48 choumilo Exp $
+//  $Id: trigger302.C,v 1.16 2002/04/17 12:42:14 choumilo Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -183,6 +183,12 @@ integer TriggerLVL302::_TrackerOtherTDR[NTRHDRP][trid::ncrt];
   geant TriggerLVL302::_ECadc2mev;
   geant TriggerLVL302::_ECh2lrat;
   geant TriggerLVL302::_ECpedsig;
+  geant TriggerLVL302::_EC1pmdx;
+  geant TriggerLVL302::_EC1pmx0;
+  geant TriggerLVL302::_EC1pmy0;
+  int   TriggerLVL302::_ECpmpsl;
+  geant TriggerLVL302::_ECpmdz; 
+  geant TriggerLVL302::_EC1pmz;
 
 
 
@@ -366,7 +372,13 @@ void TriggerLVL302::init(){
  }
  _ECadc2mev=2.35;
  _ECh2lrat=16;
- _ECpedsig=2;//max. Ped's sigma 
+ _ECpedsig=2;//max. Ped's sigma
+ _EC1pmdx=ECALDBc::rdcell(7);//transv.pitch(1.8cm)
+ _EC1pmx0=0;//EC-center X-shift
+ _EC1pmy0=0;//EC-center Y-shift
+ _ECpmpsl=ECALDBc::slstruc(4);//pms/sl(36)
+ _ECpmdz=ECALDBc::gendim(9)+2*ECALDBc::gendim(10);//PM-dz(1.85cm) 
+ _EC1pmz=ECALDBc::gendim(7)-_ECpmdz/2;//1st PM z-pos
 //-----------------   
   
    
@@ -723,11 +735,11 @@ void TriggerLVL302::settofdir(int dir){
   _TOFDirection=dir;
 }
 //----------------------------------------------------------------
-void TriggerLVL302::setecemag(int val){
+void TriggerLVL302::setecemag(integer val){
   _ECemag=val;
 }
 //----
-void TriggerLVL302::setectrmat(int val){
+void TriggerLVL302::setectrmat(integer val){
   _ECtrmat=val;
 }
 //----------------------------------------------------------------
@@ -1018,10 +1030,12 @@ geant TriggerLVL302::Discriminator(integer nht){
 //===> ECAL: create Edep-pattern, check EM, Tracker-matching:
 //
     int pmc,pm,sl,proj,ip;
-    number ah,al,amp,etot,efrnt,efr,ebase,epeak;
+    number ah,al,amp,etot,efrnt,ebase,epeak;
     number EClprof[ECSLMX];
     number ECtprofx[5][ECPMSMX];
     number ECtprofy[5][ECPMSMX];
+    geant ecolx,ecoly;
+    int ncolx,ncoly;
     plvl3->setecemag(0);//reset EC-emag flag
     plvl3->setectrmat(0);//reset EC-trmat flag
     etot=0;
@@ -1066,40 +1080,66 @@ geant TriggerLVL302::Discriminator(integer nht){
       }//---> endof raw hit loop
 //
       efrnt=EClprof[0]+EClprof[1]+EClprof[2];
-      efr=0.5*(EClprof[0]+EClprof[1]+EClprof[ECSLMX-2]+EClprof[ECSLMX-1]);
       ebase=EClprof[0]+EClprof[ECSLMX-1];
       epeak=EClprof[1]+EClprof[2]+EClprof[3];
       geant etcut(120);
       geant efrcut(400);
       geant p2bcut(3.2);
-      geant p2fcut(0);
-      geant esep1(10000);
+      geant esep1(15000);
+      geant esep2(20000);
+      geant ewthr(18);
+      int wxcut(10);
+      int wycut(14);
       geant p2brat,p2frat;
       if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+31,geant(etot),1.);
-      if(etot>=etcut){
+      if(etot>=etcut){// >= Mip
         if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+32,geant(efrnt),1.);
 	if(efrnt<efrcut){
 	  plvl3->setecemag(-1);//nonEC
-	  goto ecfin;
+	  goto ecfin1;
 	}
         if(ebase>0)p2brat=epeak/ebase;
         else p2brat=39.5;
         if(p2brat>39.5)p2brat=39.5;
-	if(efr>0)p2frat=epeak/efr;
-	else p2frat=39.5;
-        if(p2frat>39.5)p2frat=39.5;
 	if(etot<esep1){
             if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+33,p2brat,1.);
-            if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+34,p2frat,1.);
+//            if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+34,p2frat,1.);
 	    if(p2brat<p2bcut){
 	      plvl3->setecemag(-1);//nonEC
-	      goto ecfin;
+	      goto ecfin1;
 	    }
 	}
+	if(etot<esep2){//shower width check
+	  ncolx=0;
+	  ncoly=0;
+          for(int j=0;j<ECPMSMX;j++){
+	    ecolx=0;
+	    ecoly=0;
+            for(int i=0;i<5;i++){
+              ecolx+=ECtprofx[i][j];
+              ecoly+=ECtprofy[i][j];
+            }
+	    if(ECREFFKEY.reprtf[0]!=0){
+	      if(ecolx>0)HF1(ECHISTR+37,ecolx,1.);
+	      if(ecoly>0)HF1(ECHISTR+38,0.86*ecoly,1.);//0.86 due to 5 SL's (in X-proj 4)
+	    }
+	    if(ecolx>ewthr)ncolx+=1;
+	    if((0.86*ecoly)>ewthr)ncoly+=1;//0.86 due to 5 SL's (in X-proj 4)
+          }
+          if(ECREFFKEY.reprtf[0]!=0){
+	    HF1(ECHISTR+35,geant(ncolx),1.);
+            HF1(ECHISTR+36,geant(ncoly),1.);
+	  }
+	  if(ncolx>=wxcut || ncoly>=wycut){
+	    plvl3->setecemag(-1);//nonEC
+	    goto ecfin1;
+	  }
+	}
         plvl3->setecemag(1);//EC
-      }
+      }//---> endof >=Mip check
+ ecfin1:
+      if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+39,geant(plvl3->getecemag()),1.);
     }//---> endof UseECinfo check 
- ecfin:
 //---------
 //
 //===> TRD

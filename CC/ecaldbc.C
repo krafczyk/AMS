@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.34 2002/04/10 10:05:46 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.35 2002/04/17 12:42:13 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -523,6 +523,11 @@ void EcalJobStat::bookhist(){
       HBOOK1(ECHISTR+32,"ECLVL3: Efront",80,0.,1600.,0.);
       HBOOK1(ECHISTR+33,"ECLVL3: Epeak/Ebase",80,0.,40.,0.);
       HBOOK1(ECHISTR+34,"ECLVL3: Epeak/Efront",80,0.,40.,0.);
+      HBOOK1(ECHISTR+35,"ECLVL3: X-width",80,0.,80.,0.);
+      HBOOK1(ECHISTR+36,"ECLVL3: Y-width",80,0.,80.,0.);
+      HBOOK1(ECHISTR+37,"ECLVL3: PM-colx signals(mev)",80,0.,160.,0.);
+      HBOOK1(ECHISTR+38,"ECLVL3: PM-coly signals(mev)",80,0.,160.,0.);
+      HBOOK1(ECHISTR+39,"ECLVL3: EM-flag",3,-1.,2.,0.);
 //
       if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){// RLGA/FIAT part of REUN-calibration
         HBOOK1(ECHISTC,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
@@ -705,7 +710,7 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+6,"ECMC: 4xA-hit/D-hit ratio",50,0.,50.,0.);
       HBOOK1(ECHIST+7,"ECMC: EmcHits SL-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
       HBOOK1(ECHIST+8,"ECMC: EmcHits SL(PM-assigned)-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
-      HBOOK1(ECHIST+9,"ECMC: Etot(trig.sum,mev)",100,0.,5000.,0.);
+      HBOOK1(ECHIST+9,"ECMC: Etot(trig.sum,mev)",100,0.,20000.,0.);
       HBOOK1(ECHIST+10,"ECMC: 1ST 3SL signal(mev)",80,0.,1600.,0.);
       HBOOK1(ECHIST+11,"ECMC: Epk/Ebase Ratio(F,LE)",80,0.,40.,0.);
       HBOOK1(ECHIST+12,"ECMC: Ebase",80,0.,800.,0.);
@@ -743,6 +748,11 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTR+32);
       HPRINT(ECHISTR+33);
       HPRINT(ECHISTR+34);
+      HPRINT(ECHISTR+35);
+      HPRINT(ECHISTR+36);
+      HPRINT(ECHISTR+37);
+      HPRINT(ECHISTR+38);
+      HPRINT(ECHISTR+39);
     }
     if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){ // print RLGA/FIAT-hists
       HPRINT(ECHISTC);
