@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.229 2003/07/08 16:30:35 choutko Exp $
+#  $Id: datacards.doc,v 1.230 2003/09/26 13:52:06 isevilla Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -171,6 +171,7 @@ I34 SpecialCut(0)                 // special acceptance cut
 
 GMSRC   // to specify a point (gamma) source 
 I1 GammaSource(0)              // !=0 activate point source generation    
+                           // MCGEN 3 and 7-12 not used with sources       
                           // 1:user defined source (average spectrum)
                              // 2:Crab 3:Galactic Center 4:Vela 
 R2 SourceCoo(1.46,0.384)      // if(GammaSource==1) specify coo
