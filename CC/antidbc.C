@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <iostream.h>
 #include <fstream.h>
+#include <tofdbc.h>
 #include <antidbc.h>
 //
 ANTIPcal antisccal[MAXANTI];// create empty array of antipaddles calibr. objects
@@ -24,6 +25,10 @@ ANTIPcal antisccal[MAXANTI];// create empty array of antipaddles calibr. objects
   geant ANTIDBc::_stleng=0.;
   geant ANTIDBc::_stthic=0.;
 //
+  geant ANTIDBc::_tdcabw=1.;  // bin width in TovT TDC (ns)
+  geant ANTIDBc::_shprdt=50.; // shaper(integrator) decay time (ns)
+  geant ANTIDBc::_ftpulw=30.; // FTrigger pulse width (ns)
+//
 //  ANTIDBc class member functions :
 //
   geant ANTIDBc::scradi(){return _scradi;}
@@ -35,6 +40,9 @@ ANTIPcal antisccal[MAXANTI];// create empty array of antipaddles calibr. objects
   geant ANTIDBc::stradi(){return _stradi;}
   geant ANTIDBc::stleng(){return _stleng;}
   geant ANTIDBc::stthic(){return _stthic;}
+  geant ANTIDBc::tdcabw(){return _tdcabw;}
+  geant ANTIDBc::shprdt(){return _shprdt;}
+  geant ANTIDBc::ftpulw(){return _ftpulw;}
 //
   void ANTIDBc::setgeom(){ //get parameters from data cards (for now)
     _scradi=ANTIGEOMFFKEY.scradi;
@@ -52,16 +60,205 @@ ANTIPcal antisccal[MAXANTI];// create empty array of antipaddles calibr. objects
 //
 void ANTIPcal::build(){ // fill array of objects with data
   integer i,j;
-  integer sta[2]={0,0}; // all  are alive
-  geant thr; // MC trigger threshold for one side.(p.e. for now)
+  integer sta[2]={0,0}; // all  are alive for now
+  geant tthr[2]; // trigger threshold for one side.(p.e. for now)
+  geant athr[2]; // TovT threshold for one side.(p.e.)
+  geant slop[2];
+  geant mip2q;   // conv.factor for Mev->pe (Pe/Mev)
+  geant gain[2];
+  geant ftdl[2];// TDCT(FTrig)_hit delay wrt TDCA_hit delay (ns)
   if(AMSJob::gethead()->isMCData()){ //            =====> For MC data:
     for(i=0;i<MAXANTI;i++){
-      thr=ANTIMCFFKEY.trithr; // take trig.threshold from data card for now
-      antisccal[i]=ANTIPcal(i,sta,thr);
+      tthr[0]=ANTIRECFFKEY.dtthr; // take trig. threshold from data card for now
+      tthr[1]=ANTIRECFFKEY.dtthr; // take trig. threshold from data card for now
+      athr[0]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
+      athr[1]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
+      slop[0]=1.; // if TovT is in shaper_decay_time units
+      slop[1]=1.; 
+      mip2q=ANTIMCFFKEY.MeV2PhEl; // 
+      gain[0]=1.; // tempor
+      gain[1]=1.;
+      ftdl[0]=TOFDBc::ftdelf();// tempor (as for TOF)
+      ftdl[1]=TOFDBc::ftdelf();// tempor
+      antisccal[i]=ANTIPcal(i,sta,tthr,athr,slop,mip2q,gain,ftdl);// create ANTIPcal object
     }
   }
 //---------------------------------------------------------------------
   else{ //                                         =====> For Real Data :
+      mip2q=1./ANTIRECFFKEY.PhEl2MeV; // 
   }
 }
 //=====================================================================  
+//
+//   ANTIJobStat static variables definition (memory reservation):
+//
+integer ANTIJobStat::mccount[ANJSTA];
+integer ANTIJobStat::recount[ANJSTA];
+integer ANTIJobStat::chcount[ANCHMX][ANCSTA];
+integer ANTIJobStat::brcount[MAXANTI][ANCSTA];
+//
+// function to print Job-statistics at the end of JOB(RUN):
+//
+void ANTIJobStat::print(){
+  int il,ib,ic;
+  geant rc;
+  printf("\n");
+  printf("    ============ JOB ANTI-statistics =============\n");
+  printf("\n");
+  printf(" MC: entries             : % 6d\n",mccount[0]);
+  printf(" MC: Ghits->RawEvent OK  : % 6d\n",mccount[1]);
+  printf(" RECO-entries            : % 6d\n",recount[0]);
+  printf(" RawEvent-validation OK  : % 6d\n",recount[1]);
+  printf(" RawEvent->RawCluster OK : % 6d\n",recount[2]);
+  printf(" RawCluster->Cluster OK  : % 6d\n",recount[3]);
+  printf("\n\n");
+//
+  printf("==========> Bars reconstruction report :\n\n");
+//
+  printf("Have signal on any side :\n\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      printf(" % 6d",brcount[ib][0]);
+    }
+    printf("\n\n");
+//
+  printf("Have signal > threshold :\n\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      rc=geant(brcount[ib][0]);
+      if(rc>0.)rc=geant(brcount[ib][1])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n\n");
+//
+  printf("===========> Channels validation report :\n\n");
+//
+  printf("H/w-status OK (validation) :\n\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2;
+      printf(" % 6d",chcount[ic][5]);
+    }
+    printf("\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2+1;
+      printf(" % 6d",chcount[ic][5]);
+    }
+    printf("\n\n");
+//
+  printf("Anode-TovT TDC wrong up/down sequence (percentage) :\n");
+  printf("\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2;
+      rc=geant(chcount[ic][5]);
+      if(rc>0.)rc=100.*geant(chcount[ic][6])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2+1;
+      rc=geant(chcount[ic][5]);
+      if(rc>0.)rc=100.*geant(chcount[ic][6])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+//
+  printf("FTrigger TDC wrong up/down sequence (percentage) :\n");
+  printf("\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2;
+      rc=geant(chcount[ic][5]);
+      if(rc>0.)rc=100.*geant(chcount[ic][7])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2+1;
+      rc=geant(chcount[ic][5]);
+      if(rc>0.)rc=100.*geant(chcount[ic][7])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+//
+  printf("============> Channels reconstruction report :\n\n");
+//
+  printf("H/w-status OK :\n\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2;
+      printf(" % 6d",chcount[ic][0]);
+    }
+    printf("\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2+1;
+      printf(" % 6d",chcount[ic][0]);
+    }
+    printf("\n\n");
+//
+  printf("TDCA 'ON' (wrt total):\n");
+  printf("\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][1])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2+1;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][1])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n\n");
+//
+  printf("TDCA '1 hit' (wrt total):\n");
+  printf("\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][2])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2+1;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][2])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n\n");
+//
+  printf("TDCT 'ON' (wrt total):\n");
+  printf("\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][3])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2+1;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][3])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n\n");
+//
+//
+  printf("TDCT '1 hit' (wrt total):\n");
+  printf("\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][4])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<MAXANTI;ib++){
+      ic=ib*2+1;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][4])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n\n");
+//
+}
+//======================================================================

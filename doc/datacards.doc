@@ -42,20 +42,33 @@ I85    mode(0)                   // simple i/0 mode switch
                                  // 0 - nothing 1 -read 2 - write 3 - append
 I86   ffile(' ')                 // file name
 
+//---------------------------------------------------------------------
+
 //Anti Simulation
 
-ANTIMC
-R 1   SigmaPed(1.)        // Noise sigma in p.e.
-R 2   GeV2PhEl(20e3)      // conversion gev ->p.e. 
-R 3   LZero(120.)         // saturation length in cm
+ANMC
+I 1   mcprtf(0)           // MC-hist print flag
+R 2   SigmaPed(1.)        // Noise sigma in p.e.
+R 3   MeV2PhEl(20)        // conversion mev ->p.e. 
+R 4   LZero(120.)         // light attenuation length in scint.(cm)
+R 5   PMulZPos(0)         // redefined later (PMT-position wrt counter center)
+R 6   Lspeed(17)          // eff. speed of the light in anti paddle (cm/ns)
 
 //Anti Reconstruction
 
 
-ANTIREC
-R 1 ThrS(5)               // Threshold in p.e. on up+down hits
-R 2 PhEl2MeV(0.05)        // Conversion p.e. -> mev
+ANRE
+I 1 reprtf[0] (0)         // RECO-hist print flag
+I 2       [1] (0)         // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding
+I 3       [2] (0)         // spare
+R 4 ThrS(5)               // Threshold in p.e. on Cluster creation
+R 5 PhEl2MeV(0.05)        // Conversion p.e. -> mev
+R 6 dtthr(3)              // discr.threshold(pe) to create trigger signal
+R 7 dathr(6)              // ..................... TovT measurement (ADCA)
+R 8 ftwin(100)            // time-window for "true" ADCA-hit search (ns)
+I 9-20                    // sec,min,hour,day,mon,year fro DB update
 
+//------------------------------------------------------------------------------
 
 // TOF  Simulation
 
@@ -83,7 +96,7 @@ TOFREC
 R 1   Thresh(0.45)        // Thresh(mev) on "peak" bar Elos in clustering procedure
 R 2   Thresh(0.9)         // Thresh(mev) on total cluster energy ...................
 I 3   Print-flag(0)       // spare
-I 4   Print-flag(0)       // spare
+I 4   Print-flag(0)       // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding 
 I 5   Print-flag(0)       // print RECO-histograms (if=1)
 I 6   Print-flag(0)       // spare
 I 7   Print-flag(0)       // spare

@@ -30,13 +30,13 @@ void TriggerLVL1::build(){
 // ANTI :
   integer antipatt(0);
   integer cbt,nanti(0),lsbit(1);
-  antipatt=AMSAntiRawCluster::getpatt();
+  antipatt=AMSAntiRawEvent::getpatt();
   for(i=0;i<MAXANTI;i++){
     cbt=lsbit<<i;
     if((antipatt&cbt)>0)nanti+=1;//counts paddles
   }
 //
-//cerr<<"LVL1:Tr_flag= "<<tofflag<<" tofpatt: "<<tofpatt[0]<<" "<<tofpatt[1]<<
+//cout<<"LVL1:Tr_flag= "<<tofflag<<" tofpatt: "<<tofpatt[0]<<" "<<tofpatt[1]<<
 //                               " "<<tofpatt[2]<<" "<<tofpatt[3]<<endl;
   if(ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti)
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),

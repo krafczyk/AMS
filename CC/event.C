@@ -211,6 +211,10 @@ void AMSEvent::_retrdinitevent(){
 
 
 void AMSEvent::_reantiinitevent(){
+
+      AMSEvent::gethead()->add(
+      new AMSContainer(AMSID("AMSContainer:AMSAntiRawEvent",0),0));
+      
       AMSEvent::gethead()->add(
       new AMSContainer(AMSID("AMSContainer:AMSAntiRawCluster",0),0));
 
@@ -495,12 +499,32 @@ if(refit==0 && AMSTrTrack::RefitIsNeeded())_retkevent(1);
 
 void AMSEvent::_retrdevent(){
 }
-
+//---------------------------------------------------------------------
 void AMSEvent::_reantievent(){
-  AMSAntiCluster::build();
+  integer trflag(0);
+  TriggerLVL1 *ptr;
+  int stat;
+//
+  AMSgObj::BookTimer.start("REANTIEVENT");
+//
+  ANTIJobStat::addre(0);
+//
+  AMSAntiRawEvent::validate(stat);// RawEvent-->RawEvent
+  if(stat!=0)return;
+  ANTIJobStat::addre(1);
+//
+  AMSAntiRawCluster::build(stat);// RawEvent->RawCluster
+  if(stat!=0)return;
+  ANTIJobStat::addre(2);
+//
+  AMSAntiCluster::build();// RawCluster->Cluster
+  ANTIJobStat::addre(3);
+// 
   #ifdef __AMSDEBUG__
    if(AMSEvent::debug)AMSAntiCluster::print();
   #endif
+//
+  AMSgObj::BookTimer.stop("REANTIEVENT");
 }
 //---------------------------------------------------------------------
 void AMSEvent::_retofevent(){
@@ -644,12 +668,19 @@ void AMSEvent:: _sitrdevent(){
 }
 
 void AMSEvent:: _siantievent(){
-  AMSAntiRawCluster::siantidigi();//Geant_hit->RawCluster
+  int stat;
+  AMSgObj::BookTimer.start("SIANTIEVENT");
+  ANTIJobStat::addmc(0);
+//  AMSAntiRawCluster::siantidigi();//Geant_hit->RawCluster
+  AMSAntiRawEvent::mc_build(stat);// Geant_hit->RawEvent
+  if(stat!=0)return;// no FTrigger from TOF - skip the rest
+  ANTIJobStat::addmc(1);
 #ifdef __AMSDEBUG__
   AMSContainer *p;
   p=getC("AMSAntiMCCluster",0);
   if(p && AMSEvent::debug>1)p->printC(cout);
 #endif
+  AMSgObj::BookTimer.stop("SIANTIEVENT");
 }
 
 

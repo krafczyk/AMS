@@ -71,6 +71,7 @@ public:
 
  integer getid() const {return _idsoft;}
  number getedep() const {return _edep;}
+ number gettime() const {return _tof;}
  number getcoo(integer i) {return i>=0 && i<3 ? _xcoo[i]:0;}
  static integer Out(integer);
 

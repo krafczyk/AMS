@@ -100,6 +100,7 @@ void _tkendjob();
 void _trdendjob();
 void _ctcendjob();
 void _tofendjob();
+void _antiendjob();
 void _axendjob();
 void _timeinitjob();
 static AMSNodeMap JobMap;

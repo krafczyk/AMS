@@ -152,9 +152,9 @@ M A I N  ->      gbatch.C
  |    |
  |    |->GUSTEP
  |    |   |
- |    |   |->AMSTrMCCluster::sitkhits  Tracker Simulation Hits
- |    |   |->AMSTOFMCCluster::sitofhits TOF simulation Hits
- |    |   |->AMSAntiMCCluster::siantihits Anti counter simulation hits
+ |    |   |->AMSTrMCCluster::sitkhits      Tracker Simulation Hits
+ |    |   |->AMSTOFMCCluster::sitofhits    TOF simulation Hits
+ |    |   |->AMSAntiMCCluster::siantihits  Anti counter simulation hits
  |    |   
  |    |->GUOUT
  |        |
@@ -169,16 +169,16 @@ M A I N  ->      gbatch.C
  |        |    |   |     |->AMSTrRawCluster::sitkdigi        Digitization
  |        |    |   |                          
  |        |    |   |->_sitrdevent     Simulate TRD
- |        |    |   |->_siantievent     Simulate Anti
- |        |    |   |       |
- |        |    |   |       |->AMSAntiRawCluster::siantidigi
- |        |    |   |                    |->siantinoise      
  |        |    |   |       
  |        |    |   |->_sitofevent     Simulate TOF
  |        |    |   |       |
  |        |    |   |       |->AMSTOFTovt::build           Geant_hits-->Tovt_hits
  |        |    |   |       |->AMSTOFRawEvent::mc_build    Tovt_hits-->RawEvent_hits
  |        |    |   |
+ |        |    |   |->_siantievent     Simulate Anti
+ |        |    |   |       |
+ |        |    |   |       |->AMSAntiRawEvent::mc_build    Geant_hits-->RawEvent_objects
+ |        |    |   |                                               (digitization)
  |        |    |   |->_sictcevent     Simulate CTC
  |        |    |   |     
  |        |    |   |->_sitrigevent    Simulate Trigger     
@@ -193,15 +193,18 @@ M A I N  ->      gbatch.C
  |        |    |    |     
  |        |    |    |->_redaqevent     (Re)Create raw data structures     
  |        |    |    |     
- |        |    |    |->_reantievent     Reconstruct Anti
- |        |    |    |     |
- |        |    |    |     |->AMSAntiCluster::build;
  |        |    |    |     
  |        |    |    |->_retofevent     Reconstruct TOF
  |        |    |    |     |
  |        |    |    |     |->AMSTOFRawEvent::validate  RawEvent-->RawEvent
  |        |    |    |     |->AMSTOFRawCluster::build   RawEvent-->RawCluster
  |        |    |    |     |->AMSTOFCluster::build      RawCluster-->Cluster
+ |        |    |    |
+ |        |    |    |->_reantievent     Reconstruct Anti
+ |        |    |    |     |
+ |        |    |    |     |->AMSAntiRawEvent::validate  RawEvent-->RawEvent
+ |        |    |    |     |->AMSAntiRawCluster::build   RawEvent-->RawCluster
+ |        |    |    |     |->AMSAntiCluster::build      RawCluster-->Cluster
  |        |    |    |
  |        |    |    |->_retkevent      reconstruct Tracker
  |        |    |    |     |

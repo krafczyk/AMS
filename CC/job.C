@@ -1,7 +1,7 @@
-//
+//an
 // Author V. Choutko 24-may-1996
-// CTC codes added 29-sep-1996 by E.Choumilov 
-//
+// TOF,CTC codes added 29-sep-1996 by E.Choumilov 
+// ANTI codec added 5.08.97 E.Choumilov
  
 #include <amsgobj.h>
 #include <cern.h>
@@ -359,19 +359,21 @@ void AMSJob::_siantidata(){
   ANTIGEOMFFKEY.scinth=1.;     // thickness of scintillator (cm)
   ANTIGEOMFFKEY.scleng=83.;    // scintillator paddle length (glob. Z-dim)
   ANTIGEOMFFKEY.wrapth=0.04;   // wrapper thickness (cm)
-  ANTIGEOMFFKEY.groovr=0.4;    // groove radious (bump_rad = groove_rad-pdlgap)
-  ANTIGEOMFFKEY.pdlgap=0.08;   // inter paddle gap (cm)
+  ANTIGEOMFFKEY.groovr=0.45;   // groove radious (bump_rad = groove_rad-pdlgap)
+  ANTIGEOMFFKEY.pdlgap=0.1;   // inter paddle gap (cm)(2*wrapth+extra)
   ANTIGEOMFFKEY.stradi=54.235; // inner radious of supp. tube
   ANTIGEOMFFKEY.stleng=83.;    // length of supp. tube
   ANTIGEOMFFKEY.stthic=0.12;   // thickness of supp. tube
   
-//
-  ANTIMCFFKEY.SigmaPed=1;     // ped.distribution width (p.e)
-  ANTIMCFFKEY.GeV2PhEl=20e3;  // Gev->Ph.el. conversion factor
-  ANTIMCFFKEY.LZero=120;      // attenuation length for one-side signal (cm)
-  ANTIMCFFKEY.PMulZPos=0.;      // Updated later in siantiinitjob/ PM longit.(Z)-position
-  ANTIMCFFKEY.trithr=6;
-//
+//---
+  ANTIMCFFKEY.mcprtf=0;     // print_hist flag (0/1->no/yes)
+  ANTIMCFFKEY.SigmaPed=1;   // ped.distribution width (p.e)
+  ANTIMCFFKEY.MeV2PhEl=20.; // Mev->Ph.el. MC conv.factor (pe/Mev)(= 2side_signal(pe)/Eloss(mev)
+//                                                                  measured at center)
+  ANTIMCFFKEY.LZero=120;    // attenuation length for one-side signal (cm)
+  ANTIMCFFKEY.PMulZPos=0.;  // PM-position(=Ltot/2)-is taken later from geometry in siantiinitjob
+  ANTIMCFFKEY.LSpeed=17.;   // Eff. light speed in anti-paddle (cm/ns)
+//---
   FFKEY("ANGE",(float*)&ANTIGEOMFFKEY,sizeof(ANTIGEOMFFKEY_DEF)/sizeof(integer),
   "MIXED");
   FFKEY("ANMC",(float*)&ANTIMCFFKEY,sizeof(ANTIMCFFKEY_DEF)/sizeof(integer),
@@ -526,10 +528,10 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.ThrS=0.9; // Threshold (mev) on total cluster energy
 //
   TOFRECFFKEY.reprtf[0]=0; // RECO print flag for statistics 
-  TOFRECFFKEY.reprtf[1]=0; // RECO print flag 
-  TOFRECFFKEY.reprtf[2]=0; // RECO print flag for histograms
-  TOFRECFFKEY.reprtf[3]=0; // RECO print flag 
-  TOFRECFFKEY.reprtf[4]=0; // RECO print flag
+  TOFRECFFKEY.reprtf[1]=0; // print flag for DAQ (1/2-> print for decoding/dec+encoding)
+  TOFRECFFKEY.reprtf[2]=0; // print flag for histograms
+  TOFRECFFKEY.reprtf[3]=0; // print flag (spare) 
+  TOFRECFFKEY.reprtf[4]=0; // print flag (spare)
 //
   TOFRECFFKEY.relogic[0]=0;// 0/1/2/3 ->normal/TZSL-/AMPL-/Stretcher-calibr. run. 
   TOFRECFFKEY.relogic[1]=0;// RECO logic flag 
@@ -601,8 +603,26 @@ void AMSJob::_retofdata(){
 }
 //======================================================================
 void AMSJob::_reantidata(){
-  ANTIRECFFKEY.ThrS=6;
-  ANTIRECFFKEY.PhEl2MeV=0.05;
+  ANTIRECFFKEY.reprtf[0]=0;// Reco print_hist flag (0/1->no/yes)
+  ANTIRECFFKEY.reprtf[1]=0;// DAQ-print (1/2->print for decoding/decoding+encoding)
+  ANTIRECFFKEY.reprtf[2]=0;//spare
+  ANTIRECFFKEY.ThrS=6;// threshold to create Cluster object (p.e.)
+  ANTIRECFFKEY.PhEl2MeV=0.05;// reco conv. Phel->Mev(Mev/pe)( =Elos/2sides_signal measured at center)
+  ANTIRECFFKEY.dtthr=3.; // trig.discr.theshold (same for all sides now) (p.e.'s for now)
+  ANTIRECFFKEY.dathr=6.; // Amplitude(charge) discr.threshold(...) (p.e.)
+  ANTIRECFFKEY.ftwin=100.;// t-window for true ADCA-hit search (ns)
+  ANTIRECFFKEY.sec[0]=0; 
+  ANTIRECFFKEY.sec[1]=0;
+  ANTIRECFFKEY.min[0]=0;
+  ANTIRECFFKEY.min[1]=0;
+  ANTIRECFFKEY.hour[0]=0;
+  ANTIRECFFKEY.hour[1]=0;
+  ANTIRECFFKEY.day[0]=1;
+  ANTIRECFFKEY.day[1]=1;
+  ANTIRECFFKEY.mon[0]=0;
+  ANTIRECFFKEY.mon[1]=0;
+  ANTIRECFFKEY.year[0]=96;
+  ANTIRECFFKEY.year[1]=99;
   FFKEY("ANRE",(float*)&ANTIRECFFKEY,sizeof(ANTIRECFFKEY_DEF)/
   sizeof(integer),"MIXED");
 }
@@ -898,14 +918,18 @@ void AMSJob::_sitofinitjob(){
 }
 
 void AMSJob::_siantiinitjob(){
-
+  AMSgObj::BookTimer.book("SIANTIEVENT");
+  if(ANTIMCFFKEY.mcprtf){
+    HBOOK1(2000,"ANTI_counters total energy (geant,Mev)",60,0.,30.,0.); 
+  }
+//
   AMSgvolume *pg=AMSJob::gethead()->getgeomvolume(AMSID("ANTS",1));
       #ifdef __AMSDEBUG__
        assert (pg != NULL);
       #endif
      number par[5];
      for(int i=0;i<5;i++)par[i]=pg->getpar(i);
-     ANTIMCFFKEY.PMulZPos=par[2];
+     ANTIMCFFKEY.PMulZPos=par[2];// half-length (in Z)
 
 }
 
@@ -1083,11 +1107,18 @@ void AMSJob::_retofinitjob(){
 }
 //===================================================================
 void AMSJob::_reantiinitjob(){
-      number c0=exp(-ANTIMCFFKEY.PMulZPos/ANTIMCFFKEY.LZero);
-      ANTIRECFFKEY.PhEl2MeV=ANTIRECFFKEY.PhEl2MeV/c0;
-      ANTIPcal::build();// fill calibr.objects (antisccal[]) 
+//
+    AMSgObj::BookTimer.book("REANTIEVENT");
+    if(ANTIRECFFKEY.reprtf[0]>0){
+      HBOOK1(2500,"ANTI_counters total  energy(reco,Mev)",60,0.,30.,0.);
+      HBOOK1(2501,"ANTI_bar: T_tdca-T_tdct(reco,ns)",80,-20.,220.,0.);
+    }
+//
+    ANTIJobStat::clear();// Clear JOB-statistics counters for SIM/REC
+//-----------
+    ANTIPcal::build();//create calibr.objects(antisccal-objects for each sector) 
 }
-
+//===================================================================
 void AMSJob::_rectcinitjob(){
 AMSgObj::BookTimer.book("RECTCEVENT");
 }
@@ -1240,6 +1271,37 @@ TID.add (new AMSTimeID(AMSID("Tofmcscans",isRealData()),
 }
 //---------------------------------------
 //
+//   ANTI : calibration parameters for all sc.sectors
+//
+{
+tm begin;
+tm end;
+begin.tm_sec=ANTIRECFFKEY.sec[0];
+begin.tm_min=ANTIRECFFKEY.min[0];
+begin.tm_hour=ANTIRECFFKEY.hour[0];
+begin.tm_mday=ANTIRECFFKEY.day[0];
+begin.tm_mon=ANTIRECFFKEY.mon[0];
+begin.tm_year=ANTIRECFFKEY.year[0];
+
+end.tm_sec=ANTIRECFFKEY.sec[1];
+end.tm_min=ANTIRECFFKEY.min[1];
+end.tm_hour=ANTIRECFFKEY.hour[1];
+end.tm_mday=ANTIRECFFKEY.day[1];
+end.tm_mon=ANTIRECFFKEY.mon[1];
+end.tm_year=ANTIRECFFKEY.year[1];
+
+   
+TID.add (new AMSTimeID(AMSID("Antisccal",isRealData()),
+   begin,end,MAXANTI*sizeof(antisccal[0]),
+   (void*)&antisccal[0]));
+   
+//TID.add (new AMSTimeID(AMSID("Antivpar",isRealData()),
+//   begin,end,sizeof(ANTIVarp),
+//   (void*)&antivpar));
+   
+}
+//---------------------------------------
+//
 // Data to fit particle charge magnitude
 //
 {
@@ -1313,6 +1375,7 @@ AMSJob::~AMSJob(){
 _tkendjob();
 _ctcendjob();
 _tofendjob();
+_antiendjob();
 _trdendjob();
 _dbendjob();
 _axendjob();
@@ -1444,7 +1507,18 @@ void AMSJob::_tofendjob(){
        }
 }
 //-----------------------------------------------------------------------
-
+void AMSJob::_antiendjob(){
+//
+  ANTIJobStat::print(); // Print JOB-ANTI statistics
+  if(ANTIMCFFKEY.mcprtf){
+    HPRINT(2000);
+  }
+  if(ANTIRECFFKEY.reprtf[0]){
+    HPRINT(2500);
+    HPRINT(2501);
+  }
+}
+//-----------------------------------------------------------------------
 void AMSJob::_trdendjob(){
 
 }
@@ -1523,36 +1597,28 @@ void AMSJob::_setorbit(){
 }
 
 {
-    // Header
+//           Header
     DAQEvent::addblocktype(&AMSEvent::getmaxblocks,&AMSEvent::calcdaqlength,
     &AMSEvent::builddaq);
 }
 
 
 {
-    //lvl3
+//           lvl3
     DAQEvent::addsubdetector(&TriggerLVL3::checkdaqid,&TriggerLVL3::buildraw);
     DAQEvent::addblocktype(&TriggerLVL3::getmaxblocks,&TriggerLVL3::calcdaqlength,
     &TriggerLVL3::builddaq);
 
 }    
 {
-    //tof
+//         tof+anti+ctc
     DAQEvent::addsubdetector(&DAQSBlock::checkblockid,&DAQSBlock::buildraw);
     DAQEvent::addblocktype(&DAQSBlock::getmaxblocks,&DAQSBlock::calcblocklength,
                            &DAQSBlock::buildblock);
 }    
-{
-    //anti
-}    
 
 {
-    //ctc
-}    
-
-
-{
-  //tracker
+//           tracker
 
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,

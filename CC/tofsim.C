@@ -20,6 +20,7 @@ AMSTOFScan scmcscan[SCBLMX];
 //
 integer AMSTOFRawEvent::trpatt[SCLRS]={0,0,0,0};
 integer AMSTOFRawEvent::trflag=0;
+number AMSTOFRawEvent::trtime=0.;
 //------------------------------------------------------------------------------
 geant AMSDistr::getrand(const geant &rnd)
 {
@@ -1275,7 +1276,7 @@ void AMSTOFRawEvent::mc_build(int &status)
   number  tftdc[SCTHMX2],tftdcd[SCTHMX2],tstdc[SCTHMX3];
   number tadca[SCTHMX4],tadcad[SCTHMX4],tadcd[SCTHMX4],tadcdd[SCTHMX4];
   int16u  ftdc[SCTHMX2*2],stdc[SCTHMX3*4],adca[SCTHMX4*2],adcd[SCTHMX4*2];
-  number t,t1,t2,t3,t4,tprev,ttrig1,ttrig3,dt,tlev1,tl1d;
+  number t,t1,t2,t3,t4,tprev,ttrig1,ttrig3,dt,tlev1,tl1d,ftrig;
   geant charge,edep;
   int trcode,trcode3;
   integer trflag(0),trpatt[SCLRS],trpatt3[SCLRS];
@@ -1289,11 +1290,11 @@ void AMSTOFRawEvent::mc_build(int &status)
   maxv=phbit-1;//max possible TDC value (16383)
 //
   trflag=0;
-  ttrig1=AMSTOFTovt::tr1time(trcode,trpatt);//get abs.trig1("z>=1") signal time/patt
+  ttrig1=AMSTOFTovt::tr1time(trcode,trpatt);//get abs.trig1(FT"z>=1") signal time/patt
   if(trcode<0){
     AMSTOFRawEvent::settrfl(trflag);// set trig_flag to 0 ("no trigger")
-    //    return;
-    goto safe;
+    AMSTOFRawEvent::setpatt(trpatt);//set 0 trigger pattern 
+    return;
   } 
   status=0;
   trflag=1;// ok: h/w trigger(z>=1) present -> do digitization:
@@ -1308,9 +1309,12 @@ void AMSTOFRawEvent::mc_build(int &status)
   }
 // 
   AMSTOFRawEvent::settrfl(trflag);// set final trigger flag
+  AMSTOFRawEvent::setpatt(trpatt);// set trigger pattern
+  ftrig=ttrig1+TOFDBc::ftdelf();// FTrigger abs time
+  AMSTOFRawEvent::settrtime(ftrig);// set final FTrigger time
 //
-  tlev1=ttrig1+TOFDBc::ftdelf()+TOFDBc::accdel();// Lev-1 accept-signal abs.time
-  tl1d=tlev1-TOFDBc::fatdcd();// just to sumulate A-tdc-pulse delay wrt ftdc-pulse
+  tlev1=ftrig+TOFDBc::accdel();// Lev-1 accept-signal abs.time
+  tl1d=tlev1-TOFDBc::fatdcd();// just to simulate A-tdc-pulse delay wrt ftdc-pulse
 //
   for(ilay=0;ilay<SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(AMSTOFTovt*)AMSEvent::gethead()->
@@ -1356,10 +1360,10 @@ void AMSTOFRawEvent::mc_build(int &status)
       for(j=0;j<nstdc;j++){//       <--- stdc-hits loop ---
         jj=nstdc-j-1;// LIFO readout mode (last stored - first read)
         t1=tstdc[jj]+rnormx()*TOFDBc::strjit1();//"start"-signal time + jitter
-        t2=ttrig1+rnormx()*TOFDBc::strjit2()+TOFDBc::ftdelf();//"stop"-signal + jitter
+        t2=ftrig+rnormx()*TOFDBc::strjit2();//"stop"-signal = ftrig + jitter
         t3=t2+ftpw;//"dummy"-signal time (fixed delay = FT-pulse width)
         t4=t2+(t2-t1)*TOFDBc::strrat()+rnormx()*TOFDBc::strflu();//"end-mark"-signal + fluct 
-        dt=ttrig1+TOFDBc::ftdelf()-t1;// total FT-delay wrt t1
+        dt=ftrig-t1;// total FT-delay wrt t1
         if(dt<=TOFDBc::ftdelm()){ // check max. delay of "fast-trigger" signal
           it0=integer((tlev1-TOFDBc::fstdcd())/TOFDBc::tdcbin(1));//sTDC is delayed wrt fTDC
 //follow LIFO mode of readout: stretcher "end-mark" edge - first hit; "start" - last:
@@ -1477,7 +1481,5 @@ void AMSTOFRawEvent::mc_build(int &status)
     }//         --- end of Tovt-hits loop in layer --->
 //
   } //                               --- end of layer loop --->
-safe:
-  AMSTOFRawEvent::setpatt(trpatt);//add trigger pattern
 }
 //================================================================

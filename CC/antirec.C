@@ -1,8 +1,10 @@
 //
-// May 27, 1997 Primitive anti Rec by V.Choutko
-// June 9, 1997 Modifications to have trigger pattern 
-//                                       for TOF/ANTI (E.Choumilov)
+// May 27, 1997 "zero" version by V.Choutko
+// June 9, 1997 E.Choumilov: 'siantidigi' replaced by
+//                           (RawEvent + validate + RawCluster) + trpattern;
+//                           complete DAQ-section added; Cluster modified 
 //
+#include <typedefs.h>
 #include <point.h>
 #include <event.h>
 #include <amsgobj.h>
@@ -11,19 +13,338 @@
 #include <mccluster.h>
 #include <math.h>
 #include <extC.h>
-#include <antirec.h>
+#include <tofdbc.h>
+#include <tofsim.h>
 #include <antidbc.h>
+#include <daqblock.h>
+#include <antirec.h>
 #include <ntuple.h>
 //
 extern ANTIPcal antisccal[MAXANTI];
 //
+ integer AMSAntiRawEvent::trpatt=0;
  integer AMSAntiRawCluster::_trpatt=0;
- integer sta[2];
- geant thresh;
+//----------------------------------------------------
+void AMSAntiRawEvent::validate(int &status){ //Check/correct RawEvent-structure
+  int16u ntdca[2],tdca1[ANAHMX*2],tdca2[ANAHMX*2];
+  int16u ntdct[2],tdct1[ANAHMX*2],tdct2[ANAHMX*2];
+  int16u pbitn;
+  int16u pbanti;
+  int16u pbup,pbdn,pbup1,pbdn1;
+  int16u id,idN,stat[2];
+  integer sector,isid,isds;
+  integer i,j,im,nhit,chnum,am[2],sta,st;
+  int bad(0);
+  AMSAntiRawEvent *ptr;
+  AMSAntiRawEvent *ptrN;
 //
+  pbitn=SCPHBP;// as for TOF
+  pbanti=pbitn-1;
+  status=1;//bad
+//
+// =============> check/correct logical "up/down" sequence :
+//
+  ptr=(AMSAntiRawEvent*)AMSEvent::gethead()
+                        ->getheadC("AMSAntiRawEvent",0,1);//last 1 to sort
+  isds=0;
+  if(ptr>0){
+//
+#ifdef __AMSDEBUG__
+  if(ANTIRECFFKEY.reprtf[1]>=1)
+  cout<<endl<<"=======> Anti::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
+#endif
+//                             <---- loop over TOF RawEvent hits -----
+  bad=1;
+  while(ptr){
+#ifdef __AMSDEBUG__
+    if(ANTIRECFFKEY.reprtf[1]>=1)ptr->_printEl(cout);
+#endif
+    id=ptr->getid();// BBS
+    sector=id/10-1;//0-15
+    isid=id%10-1;//0-1 (top/bot)
+    chnum=sector*2+isid;//channels numbering
+    stat[isid]=ptr->getstat();
+    if(stat[isid] == 0){ // still no sense(?) ( =0 upto now by definition)
+//       fill working arrays for given side:
+      isds+=1;
+      ANTIJobStat::addch(chnum,5);
+//---> check A-TDC :
+      ntdca[isid]=ptr->gettdca(tdca1);
+      nhit=0;
+      im=ntdca[isid];
+      for(i=0;i<im;i++)tdca2[i]=0;
+      for(i=0;i<im-1;i++){// find all correct pairs of up/down bits settings
+        pbdn=(tdca1[i]&pbitn);//check p-bit of down-edge (come first)
+        pbup=(tdca1[i+1]&pbitn);//check p-bit of up-edge (come second)
+        if(TOFDBc::pbonup()==1){
+          if(pbup==0 || pbdn!=0)continue;//wrong sequence, take next pair
+        }
+        else{
+          if(pbup!=0 || pbdn==0)continue;//wrong  sequence, take next pair
+        }
+        tdca2[nhit]=tdca1[i];
+        nhit+=1;
+        tdca2[nhit]=tdca1[i+1];
+        nhit+=1;
+      }
+      if(nhit<im){//something was wrong (bad sequence)
+        ptr->puttdca(int16u(nhit),tdca2);// refill object with corrected data
+        ANTIJobStat::addch(chnum,6);
+      }
+      if(nhit>0)bad=0;//at least one good sequence
+//---> check FT-TDC :
+      ntdct[isid]=ptr->gettdct(tdct1);
+      nhit=0;
+      im=ntdct[isid];
+      for(i=0;i<im;i++)tdct2[i]=0;
+      for(i=0;i<im-1;i++){// find all correct pairs of up/down bits settings
+        pbdn=(tdct1[i]&pbitn);//check p-bit of down-edge (come first)
+        pbup=(tdct1[i+1]&pbitn);//check p-bit of up-edge (come second)
+        if(TOFDBc::pbonup()==1){
+          if(pbup==0 || pbdn!=0)continue;//wrong sequence, take next pair
+        }
+        else{
+          if(pbup!=0 || pbdn==0)continue;//wrong  sequence, take next pair
+        }
+        tdct2[nhit]=tdct1[i];
+        nhit+=1;
+        tdct2[nhit]=tdct1[i+1];
+        nhit+=1;
+      }
+      if(nhit<im){//something was wrong (bad sequence)
+        ptr->puttdct(int16u(nhit),tdct2);// refill object with corrected data
+        ANTIJobStat::addch(chnum,7);
+      }
+//-----      
+    } 
+//
+//---------------
+    ptr=ptr->next();// take next RawEvent hit
+  }//  ---- end of RawEvent hits loop ------->
+//
+  }// end of ptr>0 check
+//
+  if(bad==0)status=0;//good anti-event
+}
+//----------------------------------------------------
+void AMSAntiRawEvent::mc_build(int &stat){
+  geant up(0),down(0),slope[2],athr[2],tovt,tau;
+  geant eup(0),edown(0),tup(0),tdown(0);
+  geant thresh[2];
+  integer i,j,nup,ndown,sector,ierr,trflag(0),it,sta[2];
+  integer sbt,trpatt(0),lsbit(1);
+  int16u phbit,maxv,id,chsta,ntdca,tdca[ANAHMX],ntdct,tdct[ANAHMX],itt;
+  number edep,ede,edept(0),time,z,c0,c1,tlev1,ftrig,t1,t2,dt;
+  static number esignal[2][MAXANTI];
+  static number tsignal[2][MAXANTI];
+  VZERO(esignal,2*MAXANTI*sizeof(esignal[0][0])/sizeof(geant));
+  VZERO(tsignal,2*MAXANTI*sizeof(tsignal[0][0])/sizeof(geant));
+  AMSAntiMCCluster * ptr;
+//
+  stat=1;//bad
+  trflag=AMSTOFRawEvent::gettrfl();
+  AMSAntiRawEvent::setpatt(trpatt);// reset trigger-pattern in AMSAntiRawEvent::
+  if(trflag<=0)return;// because needs FTrigger abs. time
+  stat=0;// ok
+  ftrig=AMSTOFRawEvent::gettrtime();// FTrigger abs.time (ns)(incl. fixed delay)
+  tlev1=ftrig+TOFDBc::accdel();// Lev-1 accept-signal abs.time
+  c0=exp(-ANTIMCFFKEY.PMulZPos/ANTIMCFFKEY.LZero);
+  c1=0.5*ANTIDBc::scleng();
+  phbit=SCPHBP;// phase bit position as for TOF !!!
+  maxv=phbit-1;// max. number
+  ptr=(AMSAntiMCCluster*)AMSEvent::gethead()->
+               getheadC("AMSAntiMCCluster",0,1); // last 1  to test sorted container
+//
+  edept=0.;
+  while(ptr){ // <--- geant-hits loop:
+    sector=ptr->getid();
+    ede=ptr->getedep()*1000;
+    edept+=ede;
+    edep=ede*antisccal[sector].getmip();// Edep Mev -> p.e.
+    z=ptr->getcoo(2);
+    time=(1.e+9)*(ptr->gettime());// geant-hit time in ns
+    eup=0.5*edep*exp(z/ANTIMCFFKEY.LZero);// one side signal(pe)
+    edown=0.5*edep*exp(-z/ANTIMCFFKEY.LZero);
+    up+=eup;
+    down+=edown;
+    tup+=(time+(c1-z)/ANTIMCFFKEY.LSpeed)*eup;
+    tdown+=(time+(c1+z)/ANTIMCFFKEY.LSpeed)*edown;
+// 
+    if(ptr->testlast()){// next or last id (sector)
+      POISSN(up,nup,ierr); 
+      POISSN(down,ndown,ierr); 
+#ifdef __AMSDEBUG__
+      assert(sector >0 && sector <= MAXANTI);
+#endif
+      esignal[0][sector-1]=nup; // save number of p.e.'s in buffer
+      esignal[1][sector-1]=ndown;
+      if(up>0)tsignal[0][sector-1]=tup/up; // averaged up_side time (ns)
+      if(down>0)tsignal[1][sector-1]=tdown/down; // averaged down_side time (ns)
+      up=0;
+      down=0;
+      tup=0.;
+      tdown=0.;
+    } 
+   ptr=ptr->next();  
+  } // ---> end of geant-hits loop
+//
+  if(ANTIMCFFKEY.mcprtf)HF1(2000,edept,1.);
+//-----------------
+// create trigger pattern:
+//
+  for(i=0;i<MAXANTI;i++){
+    up=esignal[0][i];
+    down=esignal[1][i];
+    antisccal[i].getstat(sta);
+    antisccal[i].gettthr(thresh);
+    if((up>thresh[1] || sta[0]>0) && (down>thresh[0] || sta[1]>0)){// require AND of both ends
+      sbt=lsbit<<i;
+      trpatt|=sbt;
+    }
+  }
+  AMSAntiRawEvent::setpatt(trpatt);// add trigger-pattern to AMSAntiRawEvent::
+//----------------
+// convert p.e.->TovT(ns)->TovT(TDCchan):
+//
+  tau=ANTIDBc::shprdt();
+  for (i=0;i<2;i++){ // <--- top/bot loop
+    antisccal[i].gettthr(athr);// threshold in TovT(p.e.!!!)
+    antisccal[i].getslope(slope);// slope in Ln(Q(p.e.))_vs_TovT(ns/tau) calibration
+    for (j=0;j<MAXANTI;j++){ // <--- sector loop
+      edep=esignal[i][j]; // p.e.
+      time=tsignal[i][j]; // ns
+      tovt=0;
+      if(edep>athr[i]){ // above TovT-measurement threshold
+        tovt=tau*log(edep/athr[i])/slope[i];// TovT-time in ns
+        t1=time;// TovT-pulse up-edge (ns) abs.time
+        t2=time+tovt;// TovT-pulse down-edge (ns) abs.time
+//
+        dt=tlev1-t2;// first take second(down)-edge of pulse(LIFO mode of readout !!!)
+        it=integer(dt/ANTIDBc::tdcabw());
+        if(it>maxv){
+          cout<<"ANTIRawEvent_mc: warning : down-time out of range"<<endl;
+          it=maxv;
+        }
+        itt=int16u(it);
+        if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+        tdca[0]=itt;
+//
+        dt=tlev1-t1;// now take first(up)-edge 
+        it=integer(dt/ANTIDBc::tdcabw());
+        if(it>maxv){
+          cout<<"ANTIRawEvent_mc: warning : up-time out of range"<<endl;
+          it=maxv;
+        }
+        itt=int16u(it);
+        if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+        tdca[1]=itt;
+//--------
+        tovt=ANTIDBc::ftpulw();// FTrigger pulse width in ns
+        t1=ftrig;// FT-pulse up-edge (ns) abs.time
+        t2=t1+tovt;// FT-pulse down-edge (ns) abs.time
+//
+        dt=tlev1-t2;// first take second(down)-edge of pulse(LIFO mode of readout !!!)
+        it=integer(dt/ANTIDBc::tdcabw());
+        if(it>maxv){
+          cout<<"ANTIRawEvent_mc: warning : FT-down-time out of range"<<endl;
+          it=maxv;
+        }
+        itt=int16u(it);
+        if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+        tdct[0]=itt;
+//
+        dt=tlev1-t1;// now take first(up)-edge 
+        it=integer(dt/ANTIDBc::tdcabw());
+        if(it>maxv){
+          cout<<"ANTIRawEvent_mc: warning : FT-up-time out of range"<<endl;
+          it=maxv;
+        }
+        itt=int16u(it);
+        if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+        tdct[1]=itt;
+//--------
+        ntdca=2;
+        ntdct=2;
+        id=int16u(10*(j+1)+i+1);//BBS (Bar/Side)
+        chsta=0;// good
+        AMSEvent::gethead()->addnext(AMSID("AMSAntiRawEvent",0),
+                     new AMSAntiRawEvent(id,chsta,ntdca,tdca,ntdct,tdct));
+      }// ---> end of edep check
+    }// ---> end of sector loop
+  }// ---> end of top/bot loop
+}
+//---------------------------------------------------
+void AMSAntiRawCluster::build(int &status){
+  int16u ntdca,tdca[ANAHMX*2],ntdct,tdct[ANAHMX*2];
+  int16u id,idN,sta;
+  int statdb[2];
+  int16u pbitn;
+  int16u pbanti;
+  integer i,j,jmax,sector,isid,isds,stat,chnum;
+  number fttm,atm,dt,signal;
+  geant ftdel[2],athr[2],slope[2],twin,tau;
+  AMSAntiRawEvent *ptr;
+//
+  ptr=(AMSAntiRawEvent*)AMSEvent::gethead()
+                                    ->getheadC("AMSAntiRawEvent",0);
+  pbitn=SCPHBP;//phase bit position as for TOF
+  pbanti=pbitn-1;// mask to avoid it.
+  status=0;// good
+  twin=ANTIRECFFKEY.ftwin;
+  tau=ANTIDBc::shprdt();
+  isds=0;
+  ntdca=0;
+  ntdct=0;
+  while(ptr){ // <--- RawEvent hits loop
+    id=ptr->getid();
+    sector=id/10-1;
+    isid=id%10-1;
+    sta=ptr->getstat();
+    chnum=sector*2+isid;//channels numbering
+    antisccal[sector].getstat(statdb); // "alive" status from DB
+    antisccal[sector].getftd(ftdel); // FTrig delay wrt ADCA-hit
+    antisccal[sector].gettthr(athr);// threshold in TovT(p.e.!!!)
+    antisccal[sector].getslope(slope);// slope in Ln(Q(p.e.))_vs_TovT(ns/tau) calibration
+    if(statdb[isid] == 0){  // channel alive
+//channel statistics :
+      ANTIJobStat::addch(chnum,0); 
+      ntdca=ptr->gettdca(tdca);
+      if(ntdca>0)ANTIJobStat::addch(chnum,1);
+      if(ntdca==2)ANTIJobStat::addch(chnum,2);
+//
+      ntdct=ptr->gettdct(tdct);
+      if(ntdct>0)ANTIJobStat::addch(chnum,3);
+      if(ntdct==2)ANTIJobStat::addch(chnum,4);
+//--------
+      signal=0.;
+//<--- Use first (last on TDC input) FT-double_hit(2edges) as true hit 
+      fttm=(pbanti&tdct[1])*ANTIDBc::tdcabw();//FT-up_egde(ns)(from 1st dbl-hit))
+      jmax=ntdca/2;// dbl_hits
+      for(j=0;j<jmax;j++){ // <--- TDCA-dbl_hit loop
+        atm=(pbanti&tdca[2*j+1])*ANTIDBc::tdcabw();//TDCA-up_egde(ns)(2nd in readout)
+        dt=atm-fttm;//should be >0 due to "common stop" mode
+        if(ANTIRECFFKEY.reprtf[0])HF1(2501,geant(dt),1.);
+        if(fabs(dt-ftdel[isid])<twin){//correlated FT and ADCA hits -> sum energy(p.e.)
+          dt=((pbanti&tdca[2*j+1])-(pbanti&tdca[2*j]))*ANTIDBc::tdcabw();// TovT in ns
+          signal+=(athr[isid]*exp(slope[isid]*dt/tau));// Edep in p.e.
+        }
+      }// ---> end of TDCA-hit loop
+// create AntiRawCluster object :
+      stat=integer(sta); 
+      if(signal>0)AMSEvent::gethead()->addnext(AMSID("AMSAntiRawCluster",isid),
+                                new AMSAntiRawCluster(stat,sector+1,isid,signal));
+//    
+    }
+//
+    ptr=ptr->next();// take next RawEvent hit
+  }// ---> end of RawEvent hits loop
+}
+//---------------------------------------------------
 void AMSAntiRawCluster::siantidigi(){
   integer sbt,trpatt(0),lsbit(1);
   number upam,downam;
+  integer sta[2];
+  geant thresh[2];
   static number counter[2][MAXANTI];
   VZERO(counter,2*MAXANTI*sizeof(counter[0][0])/sizeof(geant));
   AMSAntiMCCluster * ptr;
@@ -35,7 +356,7 @@ void AMSAntiRawCluster::siantidigi(){
    number c0=exp(-ANTIMCFFKEY.PMulZPos/ANTIMCFFKEY.LZero);
   while(ptr){
    integer sector=ptr->getid();
-   number edep=ptr->getedep()*ANTIMCFFKEY.GeV2PhEl;
+   number edep=ptr->getedep()*1000.*antisccal[sector].getmip();// Edep Mev -> p.e.
    number z=ptr->getcoo(2);
    up+=edep*c0*exp(z/ANTIMCFFKEY.LZero);
    down+=edep*exp(-z/ANTIMCFFKEY.LZero)*c0;
@@ -70,8 +391,8 @@ void AMSAntiRawCluster::siantidigi(){
     upam=counter[0][i];
     downam=counter[1][i];
     antisccal[i].getstat(sta);
-    thresh=antisccal[i].gettrt();
-    if((upam>thresh || sta[0]>0) && (downam>thresh || sta[1]>0)){// require AND of both ends
+    antisccal[i].gettthr(thresh);
+    if((upam>thresh[1] || sta[0]>0) && (downam>thresh[0] || sta[1]>0)){// require AND of both ends
       sbt=lsbit<<i;
       trpatt|=sbt;
     }
@@ -149,8 +470,8 @@ AMSContainer *p =AMSEvent::gethead()->getC("AMSAntiCluster",0);
 
 
 void AMSAntiCluster::build(){
-    const integer MAXANTI=16;
     static number counter[2][MAXANTI];
+    number edept(0);
     VZERO(counter,2*MAXANTI*sizeof(counter[0][0])/sizeof(geant));
     int i,j;
     for(i=0;i<2;i++){ 
@@ -168,7 +489,10 @@ void AMSAntiCluster::build(){
     for (j=0;j<MAXANTI;j++){
      number sup=counter[0][j];
      number sdown=counter[1][j];
+     if(sup>0 || sdown>0)ANTIJobStat::addbr(j,0);// have signal on any side
+//
      if(sup+sdown > ANTIRECFFKEY.ThrS){
+      ANTIJobStat::addbr(j,1);// total signal above the threshold
       AMSgvolume *pg=AMSJob::gethead()->getgeomvolume(AMSID("ANTS",j+1));
       #ifdef __AMSDEBUG__
        assert (pg != NULL);
@@ -188,8 +512,9 @@ void AMSAntiCluster::build(){
       if(delta > -1. && delta < 1.)z=ANTIMCFFKEY.LZero/2*log((1.+delta)/(1.-delta));
       else if (delta >=1)z=par[2];
       else z=-par[2];
-      number edep=(sup+sdown)*ANTIRECFFKEY.PhEl2MeV/
-      (exp(z/ANTIMCFFKEY.LZero)+exp(-z/ANTIMCFFKEY.LZero));
+      number edep=(sup+sdown)/antisccal[j].getmip()  // p.e.->Mev
+      *2/(exp(z/ANTIMCFFKEY.LZero)+exp(-z/ANTIMCFFKEY.LZero));// useless(low z-accur)
+      edept+=edep;
       number ddelta=1/sqrt(sup+sdown);
       number z1,z2;
       number d1=delta+ddelta;
@@ -211,6 +536,7 @@ void AMSAntiCluster::build(){
       
      }
     }
+    if(ANTIRECFFKEY.reprtf[0])HF1(2500,geant(edept),1.);
 }
 
 
@@ -218,17 +544,490 @@ void AMSAntiCluster::build(){
 
 
 integer AMSAntiCluster::Out(integer status){
-static integer init=0;
-static integer WriteAll=1;
-if(init == 0){
- init=1;
- integer ntrig=AMSJob::gethead()->gettriggerN();
- for(int n=0;n<ntrig;n++){
-   if(strcmp("AMSAntiCluster",AMSJob::gethead()->gettriggerC(n))==0){
-     WriteAll=1;
-     break;
-   }
- }
+  static integer init=0;
+  static integer WriteAll=1;
+  if(init == 0){
+    init=1;
+    integer ntrig=AMSJob::gethead()->gettriggerN();
+    for(int n=0;n<ntrig;n++){
+      if(strcmp("AMSAntiCluster",AMSJob::gethead()->gettriggerC(n))==0){
+        WriteAll=1;
+        break;
+      }
+    }
+  }
+  return (WriteAll || status);
 }
-return (WriteAll || status);
+//===================================================================================
+//  DAQ-interface functions :
+//
+// function returns number of Anti_data-words ( incl. FT-hits)
+// for given block/format (one(max) SFEA card/crate is implied !!!)
+//
+integer AMSAntiRawEvent::calcdaqlength(int16u blid){
+  AMSAntiRawEvent *ptr;
+  int16u id,ibar,isid;
+  int16u crate,rcrat,antic,hwid,fmt;
+  integer len(0),nhits(0),nzchn(0),cntw;
+  ptr=(AMSAntiRawEvent*)AMSEvent::gethead()
+                        ->getheadC("AMSAntiRawEvent",0);
+//
+  rcrat=(blid>>6)&7;// requested crate #
+  fmt=blid&63;// 0-raw, 1-reduced
+//
+  if((2&(DAQSBlock::getdmsk(rcrat))) > 0){ // AntiSubdet. is in this crate 
+  while(ptr){
+    id=ptr->getid();// BBS
+    ibar=id/10-1;
+    isid=id%10-1;
+    hwid=AMSAntiRawEvent::sw2hwid(ibar,isid);// CAA, always >0 here
+    antic=hwid%100-1;
+    crate=hwid/100-1;
+    if(crate==rcrat){
+      nhits+=ptr->getntdca();// counts hits (edges) of TDCA
+      nzchn+=ptr->getnzchn();// counts nonzero TDC-channels (only TDCA)
+    } 
+//
+    ptr=ptr->next();
+  }
+//
+  if(fmt==1){ // =====> Reduced format :
+    len+=1; // hit_bitmask
+    if(nhits>0){// nonempty SFEA
+      nzchn+=2;// add 2 TDCT(=FT) channels
+      nhits+=(2*2);// add 2x2 TDCT-hits(for MC each FT-channel contains 2 hits(edges))
+      cntw=nzchn/4;
+      if(nzchn%4 > 0)cntw+=1;// hit-counter words
+      len+=(cntw+nhits);
+    } 
+  }
+//
+  else{ // =====> Raw format :
+    if(nhits>0){
+      nhits+=(2*2);// add 2x2 TDCT-hits(for MC each FT-channel contains 2 hits(edges))
+      len=2*nhits;// each hit(edge) require 2 words (header+TDCvalue)
+    }
+  }// end of format check
+//
+  }// end of SFEA-presence test
+//
+  return len;
+//
+}
+//-------------------------------------------------------------------------
+void AMSAntiRawEvent::builddaq(int16u blid, integer &len, int16u *p){
+//
+// on input: *p=pointer_to_beginning_of_ANTI_data
+// on output: len=ANTI_data_length; 
+//
+  integer i,j,stat,ic,icc,ichm,ichc,nzch,nanti;
+  int16u ibar,isid,id;
+  int16u phbit,maxv,ntdc,tdc[ANAHMX*2],ntdct,tdct[ANAHMX*2];
+  int16u mtyp,hwid,hwch,swid,swch,htmsk,mskb,fmt,shft,hitc;
+  int16u slad,tdcw,adrw,adr,chipc;
+  int16u phbtp;  
+  int16u crate,rcrat,tdcc,chip,tdccm;
+  AMSAntiRawEvent *ptr;
+  AMSAntiRawEvent *ptlist[ANCHSF];
+//
+  phbit=SCPHBP;//take uniq phase-bit position used in Reduced format and TOFRawEvent
+  maxv=phbit-1;// max TDC value
+  phbtp=SCPHBPA;//take uniq phase-bit position used in Raw format for address-word
+//
+  rcrat=(blid>>6)&7;// requested crate #
+  fmt=blid&63;// 0-raw, 1-reduced
+  len=0;
+  if(2&DAQSBlock::getdmsk(rcrat) == 0)return;//no AntiSubdet. in this crate (len=0)
+//
+#ifdef __AMSDEBUG__
+  if(ANTIRECFFKEY.reprtf[1]==2)cout<<"Anti::encoding: crate/format="<<rcrat<<" "<<fmt<<endl;
+#endif
+//
+// ---> prepare ptlist[tdc_channel] - list of AntiRawEvent pointers :
+//
+  ptr=(AMSAntiRawEvent*)AMSEvent::gethead()
+                        ->getheadC("AMSAntiRawEvent",0);
+  for(tdcc=0;tdcc<ANCHSF;tdcc++)ptlist[tdcc]=0;// clear pointer array
+  nanti=0;
+  while(ptr){
+    id=ptr->getid();// BBS
+    ibar=id/10-1;
+    isid=id%10-1;
+    hwid=AMSAntiRawEvent::sw2hwid(ibar,isid);// CAA, always >0 here (if valid ibar/isid) 
+    tdcc=hwid%100-1;
+    crate=hwid/100-1;
+    if(crate==rcrat){
+      if(ptr->getnzchn())nanti+=1;
+      ptlist[tdcc]=ptr;// store pointer
+      ntdct=ptr->gettdct(tdct);// get FT-tdc (in MC these values are the same for all objects)
+#ifdef __AMSDEBUG__
+      if(ANTIRECFFKEY.reprtf[1]==2)ptr->_printEl(cout);
+#endif
+    }
+//
+    ptr=ptr->next();
+  }
+//
+  if(fmt==1){ // =====> Reduced format :
+//
+// ---> encoding of tdc-data :
+//
+    ic=0;
+    htmsk=0;// tdc bitmask word
+    ichm=ic;// bias to bitmask word (where nonzero tdc-channels bits are set)
+    ic+=1;
+    if(nanti>0){ // nonempty SFEA
+      nzch=0;//counts all nonzero TDC-channels (incl. FT)
+      nanti=0;// counts only Anti TDC-channels
+      for(tdcc=0;tdcc<ANCHSF;tdcc++){// <--- TDC-channels loop (16) (some of them are FT)
+        mskb=1<<tdcc;
+        ntdc=0;// hits(edges) in given tdcc
+        mtyp=1; // measurement type (1-> TDCA)
+        if(tdcc==7 || tdcc==15){  //these TDC-channels contain FT-hits
+          mtyp=2;// means FT measurements
+          ntdc=ntdct;// =2 in MC
+          for(i=0;i<ntdct;i++)tdc[i]=tdct[i];// FT measurement
+        }
+        ptr=ptlist[tdcc];// =0 for FT (sw2hwid-function should provide that)
+        if(ptr>0)ntdc=ptr->gettdca(tdc);// TDCA measurement
+        if(ntdc>0){
+          htmsk|=mskb;
+          shft=nzch%4;// hit-counter position in the hit-counters word (0-3)
+          if(shft==0){
+            hitc=0;
+            ichc=ic;// bias for hit-counter
+            ic+=1;
+          }
+          for(i=0;i<ntdc;i++)*(p+ic++)=tdc[i];//fill TDC-hit words
+          hitc|=(ntdc-1)<<(shft*4);
+          if(shft==3){// it was last hit-counter in current hit-counters word
+            *(p+ichc)=hitc;// add hit-counters word
+            ichc=ic;// bias for next hit-counters word
+          }
+          nzch+=1;
+          if(mtyp=1)nanti+=1;//counts only ANTI-edges (not FT)
+        }
+      } // end of TDC-channels loop
+      if((shft<3) && (nzch>0))*(p+ichc)=hitc;// add uncompleted hit-counters word
+    }// ---> end of nonempty SFEA check
+//
+    *(p+ichm)=htmsk;// add SFEA-channels bitmask word
+//
+//
+  } // ---> end of "Reduced" format
+//---------------
+  else{ // =====> Raw format :
+//
+//
+// ---> encoding of tdc-data :
+//
+    ic=0;
+    if(nanti>0){ // nonempty SFEA check
+      for(tdcc=0;tdcc<ANCHSF;tdcc++){// <--- TDC-channels loop (16)
+        chip=tdcc/8;//0-1
+        chipc=tdcc%8;//chann.inside chip (0-7)
+        ntdc=0;
+        slad=DAQSBlock::sladdr(int16u(ANSLOT-1));// slot-address (h/w address of SFEA in crate)
+        adrw=slad;// put slot-addr in address word
+        adrw|=(chipc<<8);// add channel number(inside of TDC-chip)
+        mtyp=1;// measur.type (1->TDCA)
+        if(chipc==7){  //this TDC-channel contain FT-hits
+          mtyp=2;// means FT measurements
+          ntdc=ntdct;// =2 in MC
+          for(i=0;i<ntdct;i++)tdc[i]=tdct[i];// FT measurement to write-buffer
+        }
+        ptr=ptlist[tdcc];
+        if(ptr>0)ntdc=ptr->gettdca(tdc);// ANTI-meas. to write-buffer
+        if(ntdc>0){
+          for(i=0;i<ntdc;i++){
+            adr=adrw;
+            if((tdc[i]&phbit)>0)adr|=phbtp;// add phase bit to address-word
+            tdcw=tdc[i]&maxv;// put hit-value to tdc-word
+            tdcw|=(chip<<15);// add chip number 
+            *(p+ic++)=tdcw; // write hit-value
+            *(p+ic++)=adr; // write hit-address
+          }
+        }
+      } // end of TDC-channels loop in SFEA
+//
+    }// ---> end of nonempty SFEA check
+//
+  } // ---> end of "Raw" format
+//
+  len=ic;
+//
+#ifdef __AMSDEBUG__
+  if(ANTIRECFFKEY.reprtf[1]==2){
+    cout<<"AntiDAQBuild::encoding: written "<<len<<" words, hex dump follows:"<<endl;
+    for(i=0;i<len;i++)cout<<hex<<(*(p+i))<<endl;
+    cout<<dec<<endl<<endl;
+  }
+#endif
+}
+//------------------------------------------------------------------------------
+// function to build Raw: 
+//  
+void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
+//
+// on input:  *p=pointer_to_beginning_of_block (to block-id word)
+//            len=bias_to_first_Anti_data_word
+// on output: len=Anti_data_length.
+//
+  integer i,j,ic,ibar,isid,lentot,bias;
+  integer val;
+  int16u btyp,ntyp,naddr,dtyp,crate,sfet,tdcc,hwch,hmsk,slad,chip,chipc;
+  int16u swid[ANCHCH],mtyp,hcnt,shft,nhit,nzch,nzcch,sbit;
+  int16u phbit,maxv,phbt,phbtp; 
+  int16u ids,stat,chan;
+  int16u ntdca[ANCHCH],tdca[ANCHCH][ANAHMX*2],ntdct,tdct[ANAHMX*2],dummy;
+//
+  phbit=SCPHBP;//take uniq phase-bit position used in Reduced format and TOFRawEvent
+  maxv=phbit-1;// max TDC value
+  phbtp=SCPHBPA;//take uniq phase-bit position used in Raw format for address-word
+  lentot=*(p-1);// total length of the block(incl. block_id)
+  lentot-=1;// total length of the block(excl. block_id)
+  bias=len;
+//
+// decoding of block-id :
+//
+  crate=(blid>>6)&7;// node_address (0-7 -> DAQ crate #)
+  dtyp=blid&63;// data_type ("0"->RawTDC; "1"->ReducedTDC)
+#ifdef __AMSDEBUG__
+  if(ANTIRECFFKEY.reprtf[1]>=1){
+    cout<<"Anti::decoding: crate/format="<<crate<<" "<<dtyp<<"  bias="<<bias<<endl;
+  }
+#endif
+//
+  if(dtyp==1){ // =====> reduced TDC data decoding :
+      ic=bias;//jamp to first data word (bias=1+previous_detectors_data_length) 
+//
+      hmsk=*(p+ic++);// SFEA nonzero-channels bit mask
+      nzch=0;//nonzero TDCchannels in SFEA (upto 15)
+      if(hmsk>0){
+        for(chip=0;chip<2;chip++){ // <--- TDC-chip loop (0-1)
+          nzcch=0;// nonzero anti-channels in chip
+          for(tdcc=0;tdcc<8;tdcc++){ // <-- TDC-chan. in chip loop (0-7)
+            hwch=8*chip+tdcc;// TDC-ch numbering inside SFEA (0-15)
+            mtyp=0;
+            if(tdcc<ANCHCH)mtyp=1;// measurement_type (1-TDCA)
+            if(tdcc==7){  //this TDC-channels contain FT-hits
+              mtyp=2;// means FT measurements
+            }
+//
+            if( (hmsk & (1<<hwch)) > 0){// nonzero SFEA-channel processing:
+              shft=nzch%4;
+              if(shft==0){// take new counters_word
+                hcnt=*(p+ic++);
+              }
+              nhit=((hcnt>>(4*shft))&15)+1;// numb.of hits for current mtyp
+              for(i=0;i<nhit;i++){//    <-- Hit loop
+                if(mtyp==0)dummy=*(p+ic++);// ignore nonAnti/nonFT hits (if any)
+                if(mtyp==1)tdca[nzcch][i]=*(p+ic++);
+                if(mtyp==2)tdct[i]=*(p+ic++);
+              } //                      --> end of hit loop
+              if(mtyp==1)ntdca[nzcch]=nhit;
+              if(mtyp==2)ntdct=nhit;
+              nzch+=1;//count !=0 TDC-ch inside of one SFEA
+              if(mtyp==1){
+                swid[nzcch]=AMSAntiRawEvent::hw2swid(crate,hwch);// BBS or 0
+                nzcch+=1;//count !=0 Anti-TDC-ch inside of one TDC-chip
+              }
+            }
+//
+          }// ---> end of TDCchip channels loop
+//
+          if(nzcch>0){// <--- create AMSAntiRawEvent objects for nonempty TDC-chip
+            for(i=0;i<nzcch;i++){// <--- loop over non-empty anti-channels
+              ids=swid[i];//BBS
+              if(ids>0){
+                stat=0; // tempor 
+                AMSEvent::gethead()->addnext(AMSID("AMSAntiRawEvent",0),
+                new AMSAntiRawEvent(ids,stat,ntdca[i],tdca[i],ntdct,tdct));
+              }
+              else{
+           cerr<<"AntiDAQ:read_error: smth wrong in softw_id<->crate/chan map !"<<endl;
+              }
+            }// ---> end of object creation loop
+          }// ---> end of nonempty chip
+//
+        }//---> end of TDC-chip loop
+      }//---> end of !=0 mask check
+//
+      len=ic-len;//return pure Anti_data_length
+  }// end of reduced data decoding
+//
+//---------------
+//
+  else if(dtyp==0){ // =====> raw TDC data decoding :
+//
+    integer lent(0);
+    int16u hits[ANCHSF][16];// array to store hit-values(upto 16) for each h/w channel
+    integer nhits[ANCHSF];// number of hits in given h/w channel
+    int16u tdcw,adrw,hitv;
+//
+    for(i=0;i<ANCHSF;i++){// clear buffer
+      nhits[i]=0;
+      for(j=0;j<16;j++)hits[i][j]=0;
+    }
+//
+    ic=1;// for Raw format start from the beginning of block + 1
+    while(ic<lentot){ // <---  words loop
+      tdcw=*(p+ic++);// chip# + tdc_value
+      chip=tdcw>>15;// TDC-chip number(0-1)
+      adrw=*(p+ic++);// phbit + chipc + slotaddr.
+      slad=adrw&15;// get SFEx h/w address ((1,2,3,6)-TOF, (8)-C, (7)-A)
+      sfet=DAQSBlock::slnumb(slad);// sequential slot number (0-5, or =DAQSSLT if slad invalid)) 
+      if(sfet==DAQSSLT)continue; //---> invalid slad: try to take next pair
+      if(DAQSBlock::isSFEA(slad)){ // SFEA data : write to buffer
+        lent+=2;
+        chipc=(adrw>>8)&7;// channel inside TDC-chip (0-7)
+        if((adrw & phbtp)>0)
+                            phbt=1; // check/set phase-bit flag
+        else
+                            phbt=0;
+        tdcc=8*chip+chipc; // channel inside SFEA(0-15)
+        hitv=(tdcw & maxv)|(phbt*phbit);// tdc-value with phase bit set as for RawEvent
+        if(nhits[tdcc]<16){
+          hits[tdcc][nhits[tdcc]]=hitv;
+          nhits[tdcc]+=1;
+        }
+        else{
+          cout<<"ANTI:RawFmt:read_error: more 16 hits in h/w channel "<<tdcc<<endl;
+        }
+      }
+//
+      else{
+        continue;// nonSFEA data, take next pair
+      }// ---> end of SFEA data check
+//
+    }// ---> end of words loop
+//-----------------------------
+// Now extract ANTI+FT data from buffer:
+//
+    for(chip=0;chip<2;chip++){ // <--- TDC-chip loop (0-1)
+      nzcch=0;// nonzero anti-channels in chip
+      for(tdcc=0;tdcc<8;tdcc++){ // <-- TDC-chan. in chip loop (0-7)
+        hwch=8*chip+tdcc; // channel inside SFEA(0-15)
+        mtyp=0;
+        if(tdcc<ANCHCH)mtyp=1;// measurement_type (1-TDCA)
+        if(tdcc==7)mtyp=2; //this TDC-channels contain FT-hits (mtyp=2)
+        nhit=nhits[hwch];
+        if(nhit>0){
+          for(i=0;i<nhit;i++){//    <-- Hit loop
+            if(mtyp==0)dummy=hits[hwch][i];// ignore nonAnti/nonFT hits (if any)
+            if(mtyp==1)tdca[nzcch][i]=hits[hwch][i];
+            if(mtyp==2)tdct[i]=hits[hwch][i];
+          } //                      --> end of hit loop
+          if(mtyp==1)ntdca[nzcch]=nhit;
+          if(mtyp==2)ntdct=nhit;
+          if(mtyp==1){
+            swid[nzcch]=AMSAntiRawEvent::hw2swid(crate,hwch);// store BBS (or 0)
+            nzcch+=1;//count !=0 Anti-TDC-ch inside of one TDC-chip
+          }
+        }
+      }// ---> end of TDCchip channels loop
+//
+      if(nzcch){// <--- create AMSAntiRawEvent objects for nonempty TDC-chip
+        for(i=0;i<nzcch;i++){// <--- loop over non-empty anti-channels
+            ids=swid[i];//BBS
+            if(ids>0){
+              ids=swid[i];// BBS
+              stat=0; // tempor 
+              AMSEvent::gethead()->addnext(AMSID("AMSAntiRawEvent",0),
+              new AMSAntiRawEvent(ids,stat,ntdca[i],tdca[i],ntdct,tdct));
+            }
+            else{
+           cerr<<"AntiDAQ:read_error: smth wrong in softw_id<->crate/chan map !"<<endl;
+            }
+        }// ---> end of object creation loop
+      }// ---> end of nonempty chip test
+//
+    }//---> end of TDC-chip loop
+//
+  len=lent;
+  }// ---> end of Raw format decoding
+//-------------------------
+  else{
+    cout<<"AntiDaqRead: Unknown data type "<<dtyp<<endl;
+    return;
+  }
+//
+#ifdef __AMSDEBUG__
+  if(ANTIRECFFKEY.reprtf[1]>=1){
+    cout<<"AntiRawEventBuild::decoding: read "<<len<<" words, hex dump follows:"<<endl;
+    for(i=0;i<len;i++)cout<<hex<<(*(p+i+bias))<<endl;
+    cout<<dec<<endl<<endl;
+  }
+#endif
+}
+//------------------------------------------------------------------------------
+//  function to get sofrware-id (BBS) for given hardware-channel (crate,antich):
+//  (imply only one (max) SFEA card per crate)                    0-7   0-15
+//
+int16u AMSAntiRawEvent::hw2swid(int16u a1, int16u a2){
+  int16u swid,hwch;
+//
+  static int16u sidlst[SCCRAT*ANCHSF]={// 14 BBS's + 2 FT's  per CRATE (per SFEA):
+// crate-1 = (1 SFEA)x(2x(4 ANTICs +FT)) :
+   11, 21, 31, 41,  0,  0,  0,  0, 51, 61, 71, 81,  0,  0,  0,  0,
+// crate-2 = (1 SFEA)x(2x(4 ANTICs +FT)) :
+   91,101,111,121,  0,  0,  0,  0,131,141,151,161,  0,  0,  0,  0,
+// crate-3 = (no SFEA card) :
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+// crate-4 = (no SFEA card) :
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+// crate-5 = (1 SFEA)x(2x(4 ANTICs +FT)) :
+   12, 22, 32, 42,  0,  0,  0,  0, 52, 62, 72, 82,  0,  0,  0,  0,
+// crate-6 = (1 SFEA)x(2x(4 ANTICs +FT)) :
+   92,102,112,122,  0,  0,  0,  0,132,142,152,162,  0,  0,  0,  0,
+// crate-7 = (no SFEA card) :
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+// crate-8 = (no SFEA card) :
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
+//
+#ifdef __AMSDEBUG__
+  assert(a1>=0 && a1<SCCRAT);//crate(0-7)
+  assert(a2>=0 && a2<ANCHSF);//antich(0-15)
+#endif
+  hwch=int16u(ANCHSF*a1+a2);// hardware-channel
+  swid=sidlst[hwch]; // software-id BBS
+//  cout<<"hwch->swid: "<<hwch<<" "<<swid<<endl;//tempor
+  return swid;
+}
+//-----------------------------------------------------------------------
+//  function to get hardware-id (CAA) for given software-chan (bar, side)
+//                                                             0-15  0-1
+//
+int16u AMSAntiRawEvent::sw2hwid(int16u a1, int16u a2){
+  static int16u first(0);
+  integer i;
+  int16u ibar,isid,swch,swid,hwid,crate,antic;
+  static int16u hidlst[MAXANTI*2]; // hardw.id list
+//
+#ifdef __AMSDEBUG__
+  assert(a1>=0 && a1<MAXANTI);// bar(0-15)
+  assert(a2>=0 && a2<2); // side(0-1)
+#endif
+//
+  if(first==0){ // create hardw.id list:
+    first=1;
+    for(i=0;i<MAXANTI*2;i++)hidlst[i]=0;
+    for(crate=0;crate<SCCRAT;crate++){
+      for(antic=0;antic<ANCHSF;antic++){
+        hwid=100*(crate+1)+antic+1;// CrateAntich (CAA)
+        swid=AMSAntiRawEvent::hw2swid(crate,antic);// BBS
+        if(swid>0 && swid<=162){// legal swid (FT's are =0 here)
+          ibar=swid/10-1;
+          isid=swid%10-1;
+          swch=2*ibar+isid;
+          hidlst[swch]=hwid;
+        }
+      }// end of antich-loop
+    }// end of crate-loop
+  }// end of first
+// 
+  swch=2*a1+a2;
+  hwid=hidlst[swch];// hardware-id CST
+//  cout<<"swch->hwid: "<<swch<<" "<<hwid<<endl;//tempor
+  return hwid;
 }

@@ -154,11 +154,12 @@ COMMON_BLOCK_DEF(ANTIGEOMFFKEY_DEF,ANTIGEOMFFKEY);
 //==============================================================
 class ANTIMCFFKEY_DEF {
 public:
+integer mcprtf;// hist. print flag
 geant SigmaPed;
-geant GeV2PhEl;
+geant MeV2PhEl;
 geant LZero;
 geant PMulZPos;
-geant trithr;
+geant LSpeed;
 };
 #define ANTIMCFFKEY COMMON_BLOCK(ANTIMCFFKEY,antimcffkey)
 COMMON_BLOCK_DEF(ANTIMCFFKEY_DEF,ANTIMCFFKEY);
@@ -166,8 +167,18 @@ COMMON_BLOCK_DEF(ANTIMCFFKEY_DEF,ANTIMCFFKEY);
 
 class ANTIRECFFKEY_DEF {
 public:
-geant ThrS;
-geant PhEl2MeV;
+  integer reprtf[3];//  print flag
+  geant ThrS; // threshold (p.e) to create Cluster-object
+  geant PhEl2MeV;
+  geant dtthr; // trig.discr.theshold (same for all sides now) (p.e.'s for now)
+  geant dathr; // Amplitude(charge) discr.threshold(...) (p.e.)
+  geant ftwin; // time_window in true TDCA-hits search (ns) 
+  integer sec[2];
+  integer min[2];
+  integer hour[2];
+  integer day[2];
+  integer mon[2];
+  integer year[2];
 };
 #define ANTIRECFFKEY COMMON_BLOCK(ANTIRECFFKEY,antirecffkey)
 COMMON_BLOCK_DEF(ANTIRECFFKEY_DEF,ANTIRECFFKEY);
