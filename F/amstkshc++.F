@@ -231,7 +231,21 @@ CDECK  ID>, ABCR2.
        common /abcrossC/sigma_t(inmat),sigma_el(3,inmat),
      +  sigma_q(5,inmat),abinx(inmat),abelx(inmat),abqex(inmat)
         common /abcr2C/qexnor,anxnor,elxnor,sine,sela,sqel,fsig
+*
+**** G.L. 2/2/00 *********
+ 
+       common /hvsec/ihvse(2)
+*
        real *4 st,se(3),sq(5)
+*
+       REAL *4 TRIPA_T
+       integer IFLAG_T
+
+        TRIPA_T=0.0
+        IFLAG_T=0
+*
+*************************
+
         if(i.gt.inmat)then
          write(*,*)'ABCR2 - too many media'
            i=inmat
@@ -253,6 +267,20 @@ CDECK  ID>, ABCR2.
          enddo
          endif
         enddo
+**** G.L. 2/2/00 *********
+*         
+          if (ihvse(1).eq.2) then       
+
+            CALL TRIPA(P_P,Z_P,A_P,Z_T,A_T,TRIPA_T,IFLAG_T)
+
+            IF (IFLAG_T.EQ.1) THEN  
+             sigma_q(1,i)=0
+             sigma_t(i)=TRIPA_T
+            ENDIF
+
+          endif ! ihvse(1).eq.2
+*
+****************************
         summ=sigma_q(1,i)+sigma_el(1,i)
         if(summ.gt.sigma_t(i))then
 c         write(*,*)'ABCR2 - E - wrong sigma_tot',i,sigma_t(i),
@@ -260,6 +288,221 @@ c     +  sigma_q(1,i),sigma_el(1,i)
          sigma_q(1,i)=0
         endif
         end
+
+CDECK  ID>, TRIPA. 
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c                                                   2/2/2000
+c Deuteron total cross section
+c                                               by G.LAMANNA  
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      SUBROUTINE TRIPA(P_P,Z_P,A_P,Z_T,A_T,SIGMA_T,IFLAG)
+c
+        integer A_P,A_T,IFLAG
+        real M_P,P_P,M_T,Z_T,Z_P,r_t,r_p
+        real E_lab,E_cm,T1,D,C_E,S,dE,R,B,X1,S_L,X_m
+        real R_C        
+        real *4 sigma_t
+        DATA PI / 3.1415927 /
+        DATA r0 / 1.1 /
+*        DATA M_P / 1876. /  
+        real P_PM
+*
+*    Input:
+*     a_p,a_t,z_p,z_t,p_p [atom number projectile & target,Z p & t
+*      and momentom of projectile [MeV/c]]
+*     Is mandatory to transform p form GeV to Mev
+*
+*    Output:
+*     sigma_T=total inelastic cr_sec [mbarn]
+
+
+        sigma_T=0.
+
+        IFLAG=0
+        IF (Z_T.LE.0.0) GOTO 66
+
+        IF (Z_P.NE.1.0) GOTO 66
+
+        IF (A_P.NE.2) GOTO 66
+*       
+        IFLAG=1 
+*
+*       ASSUMING TARGET MASS M_T=A_T * 938.0 MeV/c2 (PROTON MASS)
+
+        M_T=A_T*938.0 
+        M_P=A_P*938.0
+
+*
+*    P_P  is    DEUTERON'S momentum in                           "MeV/c"           
+       P_PM=P_P*1000.
+*
+* 
+*    E_k  is    DEUTERON'S KINETIC ENERGY 
+*               per NUMBER OF NUCLEONS (dividing by 2=A_P) in    "MeV/A"    
+*
+
+      E_k=((sqrt((P_PM**2)+(M_P**2))-M_P)/2.)  
+*
+
+* ***************     Parameter T1  and R_C  for D+X ....
+
+      T1=23.
+      R_C=1.
+* ***************     Parameter D for D+X ....
+
+      D=1.65+(0.1/(1.+(exp((500.-E_k)/200.))))
+
+
+
+       if (A_T.eq.1.and.Z_T.eq.1.0) THEN  ! d+p becomes p+d
+         A_T=2
+         A_P=1
+         M_P=938.
+         M_T=1876.
+         T1=18.
+         R_C=13.5
+         D=1.85+(0.16/(1.+(exp((500.-E_k)/200.))))
+       endif
+
+*************************************
+* Center of mass energy : E_cm
+*
+      E_lab=(E_k*A_P)+M_P
+*
+      
+      E_cm=sqrt((M_P**2)+(M_T**2)+(2.*M_T*E_lab))
+*
+*
+***
+*
+
+* ************        Parameter C_E      for D+X systems:
+
+      C_E=(D*(1-exp(-E_k/T1)))-((0.292*exp(-E_k/792.))*
+     +       cos(0.229*(E_k**0.453)))
+
+*
+*
+* ************        Parameter S        for D+X systems:
+
+        S=((A_P**(1./3.))*(A_T**(1./3.)))/
+     +     ((A_P**(1./3.))+(A_T**(1./3.)))  
+
+*
+*
+* ************        Parameter dE       for D+X systems:
+
+        dE=(1.85*S)+(0.16*(S/(E_cm**(1./3.))))-C_E+(0.91*
+     +   ((A_T-2*Z_T)*Z_P/(A_T*A_P)))  
+
+*
+*
+* ************ radii r_p and r_t         for D+X systems:
+
+              r_p=RADIUS(A_P)
+              r_t=RADIUS(A_T)
+
+*
+*
+* ************         Parameter R       for D+X systems:
+        
+        R=r_p+r_t+(1.2*((A_P**(1./3.)) +
+     +      (A_T**(1./3.)))/(E_cm**(1./3.)))
+
+*
+*
+* ***********         Parameter B       for D+X systems:
+
+        B=(1.44*Z_P*Z_T)/R
+
+*
+* 
+************    Optical model multiplier for D+X systems:
+
+        X1=2.83-(3.1*A_T/100.)+(1.7*(A_T**2)/10000.)
+
+        S_L=1.2+1.6*(1-exp(-E_k/15.))
+*
+*
+************************* Parameter X_m :
+*
+        X_m=1-(X1*(exp(-E_k/(X1*S_L)))) 
+*
+*
+* ***********
+
+       if (A_T.eq.2.and.Z_T.eq.1.) THEN     ! d+d 
+        R_C=13.5
+       endif
+
+       if (A_T.eq.4.and.Z_T.eq.2.) THEN     ! d+He4 
+        R_C=13.5
+       endif
+
+       if (A_T.eq.12.and.Z_T.eq.6.) THEN     ! d+C 
+        R_C=6.0
+       endif
+
+
+
+*
+*
+* ****** FINALLY THE TOTAL CROSS SECTION sigma_T in  "mbarn" : 
+
+
+         sigma_T=10.*PI*(r0**2)*(((A_P**(1./3.))+(A_T**(1./3.)
+     +               )+dE)**2)*(1-(R_C*B/E_cm))*X_m
+
+          if (sigma_T.lt.0.) sigma_T=0.
+          if (sigma_T.eq.0.) IFLAG=0
+
+
+ 66       CONTINUE
+          RETURN
+          END
+********************************
+*** density of a nucleus in the hard sphere model: rho_av=(rho_Ap + rho_At)/2 
+*   where the density of nucleus projectile rho_Ap and nucleus target rho_At 
+*   are : 
+*
+*    rho_Ai=Ai/((4*PI/3)*r_i**3)
+*
+*   where the radius of the nucleus r_i is
+*
+*    r_i=1.29*(r_i)_rms
+*
+*   It is provided by FUNCTION RADIUS
+*
+*
+******************************************************************
+*
+        FUNCTION RADIUS(A)
+        integer A
+        DIMENSION NA(23),RMS(23)
+        DATA NA/1,2,3,4,6,7,9,10,11,12,13,14,15,16,17,18,
+     +         19,20,22,23,24,25,26/
+        DATA RMS/0.85,2.095,1.976,1.671,2.57,2.41,2.519,
+     +          2.45,2.42,
+     +          2.471,2.440,2.58,2.611,2.730,2.662,
+     +          2.727,2.900,
+     +          3.040,2.969,2.94,3.075,3.11,3.06/
+        FACT=SQRT(5./3.)
+        IA=A+0.4
+        RADIUS=FACT*(0.84*A**(1./3.)+0.55)
+        DO 1 I=1,23
+        IF (IA.EQ.NA(I)) GO TO 2
+        GO TO 1
+ 2      RADIUS=FACT*RMS(I)
+ 1      CONTINUE
+        RETURN
+        END
+
+
+
+
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
 CDECK  ID>, ABCROSS.
        subroutine abcross(icas,a_p,a_t,z_pb,z_t,p_p,
      +  sigma_t,sigma_el,sigma_q)
