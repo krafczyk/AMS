@@ -3,7 +3,7 @@
  defaulthost 0
  -o /dat0/local/logs/
  /usr/local/lsf/bin/bsub -q linux_server -m
- pcamsf0 1
+ pcamsfx 1
   "1>&"/dat0/local/logs/
    rsh
 

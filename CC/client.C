@@ -116,9 +116,21 @@ print(a.id,_ost);
 _ost<<" ARSLength "<<a.ars.length()<<" LastUpdate "<<ctime((const time_t *)&a.LastUpdate)<<" Start "<<ctime((const time_t *)&a.Start)<< "  Status " <<CS2string(a.Status)<<ends;
 return _streambuffer;
 }
+
 ostream & AMSClient::print(const DPS::Producer::TDVTableEntry & a, ostream & o){
 return o<<" id "<<a.id<<" Insert "<<a.Insert<<" Begin "<<a.Begin<<" End "<<a.End;
 }
+
+
+char * AMSClient::print(const DPS::Client::NominalClient & a,const char * mes){
+
+_ost.seekp(0);
+_ost<<mes <<" NC ";
+_ost<<a.uid<<" Type "<<CT2string(a.Type)<<" MaxCl "<<a.MaxClients<<ends;
+return _streambuffer;
+}
+
+
 
 char * AMSClient::print(const DPS::Producer::TDVTableEntry & a,const char * mes){
 _ost.seekp(0);
@@ -180,7 +192,7 @@ return _streambuffer;
 
 char * AMSClient::print(const DPS::Producer::DSTInfo & a,const char * mes){
 _ost.seekp(0);
-_ost<<mes<<" host "<<a.HostName<<" Mode "<<RunMode2string(a.Mode)<<" UpdateFreq "<<a.UpdateFreq<<"NtupleOutput "<<a.OutputDirPath<<ends;
+_ost<<mes<<" "<<a.uid<<" Host "<<a.HostName<<" Mode "<<RunMode2string(a.Mode)<<" UpdateFreq "<<a.UpdateFreq<<"NtupleOutput "<<a.OutputDirPath<<" FreeKb "<<a.FreeSpace<<" TotalKb "<<a.TotalSpace<<ends;
 return _streambuffer;
 }
 
@@ -231,6 +243,8 @@ case DPS::Client::Producer:
 return "Producer";
 case DPS::Client::Monitor:
 return "Monitor";
+case DPS::Client::Killer:
+return "Killer";
 }
 return " ";
 }

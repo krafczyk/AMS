@@ -44,6 +44,7 @@ virtual void Exiting(const char * message=0)=0;
 static char * print(const DPS::Producer::TDVTableEntry & a, const char *m=" ");
 static char * print(const DPS::Producer::TDVName & a, const char *m=" ");
 static char * print(const DPS::Client::ActiveClient & a, const char *m=" ");
+static char * print(const DPS::Client::NominalClient & a, const char *m=" ");
 static char * print(const DPS::Client::CID & a, const char *m=" ");
 static ostream &  print(const DPS::Client::CID & a, ostream & o);
 static char * print(const DPS::Client::ActiveHost & a, const char *m=" ");

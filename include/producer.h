@@ -29,6 +29,7 @@ void getRunEventInfo();
 void sendCurrentRunInfo();
 void getASL();
 void sendSelfId();
+void sendDSTInfo();
 void sendNtupleStart(const char * name,int run, int first,time_t begin);
 void sendNtupleEnd(int entries, int last, time_t end, bool suc);
 void sendRunEnd(DAQEvent::InitResult res);

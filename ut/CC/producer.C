@@ -8,6 +8,7 @@
 #include <event.h>
 #include <job.h>
 #include<algorithm>
+#include <sys/statfs.h>
 AMSProducer * AMSProducer::_Head=0;
 AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)){
 DPS::Producer_var pnill=DPS::Producer::_nil();
@@ -85,6 +86,7 @@ UpdateARS();
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
     (*li)->getRunEvInfo(_pid,_reinfo,_dstinfo);
+         
     if(_dstinfo->DieHard)FMessage("AMSProducer::getRunEventinfo-I-ServerRequestedExit",DPS::Client::SInExit);
     _cinfo.Run=_reinfo->Run;
     _cinfo.HostName=_pid.HostName; 
@@ -96,6 +98,10 @@ UpdateARS();
     _cinfo.ErrorsFound=0;
     _cinfo.Status=DPS::Producer::Processing;
     _cinfo.CPUTimeSpent=0;
+
+
+
+
     if(_dstinfo->Mode==DPS::Producer::RILO || _dstinfo->Mode==DPS::Producer::RIRO){ 
      DAQEvent::setfile((const char *)(_reinfo->FilePath));
 }
@@ -166,7 +172,6 @@ int failure=0;
   try{
    if(!CORBA::is_nil(*li)){
     (*li)->sendCurrentInfo(_pid,_cinfo);
-     break;
    }
   }
   catch  (CORBA::SystemException & a){
@@ -194,6 +199,9 @@ time(&tt);
 _ntend.Insert=tt;
 cout << " nt end " <<_ntend.Insert<<" "<<_ntend.Begin<<" "<<_ntend.End<<endl;
 UpdateARS();
+sendDSTInfo();
+
+
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
@@ -227,6 +235,10 @@ _ntend.EventNumber=0;
 _ntend.Status=DPS::Producer::InProgress;
 _ntend.Type=DPS::Producer::Ntuple;
 UpdateARS();
+
+
+sendDSTInfo();
+
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
@@ -555,6 +567,32 @@ UpdateARS();
   }
 }
 FMessage("AMSProducer::sendRunEnd-F-UnableToSendEventTagBeginInfo ",DPS::Client::CInAbort);
+
+
+
+}
+
+
+
+void AMSProducer::sendDSTInfo(){
+
+     struct statfs buffer;
+     int fail=statfs((const char *)_dstinfo->OutputDirPath, &buffer);
+    if(fail){
+      _dstinfo->FreeSpace=-1;
+      _dstinfo->TotalSpace=-1;
+    }
+    else{
+     _dstinfo->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
+     _dstinfo->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
+    }
+    for( list<DPS::Producer_var>::iterator ni = _plist.begin();ni!=_plist.end();++ni){
+      try{
+       (*ni)->sendDSTInfo(_dstinfo,DPS::Client::Update);
+      }
+      catch  (CORBA::SystemException & a){
+      }
+    }
 
 
 

@@ -220,7 +220,6 @@ else{
   
  }
  else{
-
  try{
    CORBA::Object_var obj=(_orbmap.find((const char *)_pid.Interface)->second)._orb->string_to_object(ior);
     if(!CORBA::is_nil(obj)){
@@ -419,6 +418,7 @@ if(NS){
  ifstream fbin;
  fbin.open(NS);
  if(fbin){
+   unsigned int uid=0;
    DPS::Client::NominalClient_var ncl= new DPS::Client::NominalClient();
    if(fbin.get()=='#')fbin.ignore(1024,'\n');
    else fbin.seekg(fbin.tellg()-sizeof(char));
@@ -426,6 +426,7 @@ if(NS){
     char tmpbuf[1024];
     fbin>>tmpbuf;
     ncl->WholeScriptPath=(const char*)tmpbuf;
+    ncl->Type=DPS::Client::Server;
    fbin.ignore(1024,'\n');
   while(!fbin.eof() && fbin.good()){ 
    fbin>>tmpbuf;
@@ -436,6 +437,7 @@ if(NS){
    ncl->LogPath= (const char*)tmpbuf;
    fbin.getline(tmpbuf,1024);
     ncl->SubmitCommand=(const char*)tmpbuf;
+    ncl->uid=++uid;
     if(fbin.good())_ncl.push_back(ncl);
  }
  }
@@ -449,12 +451,14 @@ if(NK){
  ifstream fbin;
  fbin.open(NK);
  if(fbin){
+   unsigned int uid=0;
    DPS::Client::NominalClient_var ncl= new DPS::Client::NominalClient();
    if(fbin.get()=='#')fbin.ignore(1024,'\n');
    else fbin.seekg(fbin.tellg()-sizeof(char));
    fbin>>ncl->MaxClients>>ncl->CPUNeeded>>ncl->MemoryNeeded;
     char tmpbuf[1024];
     fbin>>tmpbuf;
+    ncl->Type=DPS::Client::Killer;
     ncl->WholeScriptPath=(const char*)tmpbuf;
    fbin.ignore(1024,'\n');
   while(!fbin.eof() && fbin.good()){ 
@@ -466,6 +470,7 @@ if(NK){
    ncl->LogPath= (const char*)tmpbuf;
    fbin.getline(tmpbuf,1024);
     ncl->SubmitCommand=(const char*)tmpbuf;
+    ncl->uid=++uid;
     if(fbin.good())_nki.push_back(ncl);
   }
  }
@@ -524,7 +529,6 @@ for(MOI i=mo.begin();i!=mo.end();++i){
     _defaultorb=(i->second)._orb;
    }
 }
-
 //Get NominalServer
 {
 DPS::Client::NCS * pncs;
@@ -766,6 +770,7 @@ if(_ahl.size())return;
    else ah.Status=DPS::Client::NoResponse; 
    ah.ClientsProcessed=0;
    ah.ClientsFailed=0;
+   ah.ClientsKilled=0;
    ah.ClientsRunning=0;
    ah.Clock=(*i)->Clock;  
    ah.ClientsAllowed=min((*i)->CPUNumber/(*_ncl.begin())->CPUNeeded,(*i)->Memory/float((*_ncl.begin())->MemoryNeeded));
@@ -1235,6 +1240,7 @@ for(MOI i=mo.begin();i!=mo.end();++i){
 if(NC){
  ifstream fbin;
  fbin.open(NC);
+ unsigned int uid=0;
  if(fbin){
    DPS::Client::NominalClient_var ncl= new DPS::Client::NominalClient();
    if(fbin.get()=='#')fbin.ignore(1024,'\n');
@@ -1243,6 +1249,7 @@ if(NC){
     char tmpbuf[1024];
     fbin>>tmpbuf;
     ncl->WholeScriptPath=(const char*)tmpbuf;
+    ncl->Type=DPS::Client::Producer;
    fbin.ignore(1024,'\n');
   while(!fbin.eof() && fbin.good()){ 
    fbin>>tmpbuf;
@@ -1253,6 +1260,7 @@ if(NC){
    ncl->LogPath= (const char*)tmpbuf;
    fbin.getline(tmpbuf,1024);
     ncl->SubmitCommand=(const char*)tmpbuf;
+    ncl->uid=++uid;
     if(fbin.good())_ncl.push_back(ncl);
   }
  }
@@ -1268,6 +1276,7 @@ if(NS){
  ifstream fbin;
  fbin.open(NS);
  if(fbin){
+   unsigned int uid=0;
    DSTInfo_var ncl= new DSTInfo();
    if(fbin.get()=='#')fbin.ignore(1024,'\n');
    else fbin.seekg(fbin.tellg()-sizeof(char));
@@ -1275,6 +1284,9 @@ if(NS){
   while(!fbin.eof() && fbin.good()){ 
    fbin>>tmpbuf;
    ncl->HostName=(const char*)tmpbuf;
+   ncl->uid=++uid;
+   ncl->FreeSpace=-1;
+   ncl->TotalSpace=-1;
    int imode;
    fbin>>imode;
    switch (imode){
@@ -1995,9 +2007,6 @@ else if( find_if(_rl.begin(),_rl.end(),REInfo_EqsClient(cid))!=_rl.end()){
 }
 else {
  rv=*li;
- if(rv->Priority==3){
-    cout <<"found "<<rv->Run<<endl;
- }
  rv->Status=Processing;
  rv->cuid=cid.uid;
   if(_parent->Debug()){
@@ -2023,6 +2032,7 @@ _UpdateACT(cid,DPS::Client::Active);
 
 
 
+
 void Producer_impl::sendRunEvInfo(const  RunEvInfo & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 
  RLI li=find_if(_rl.begin(),_rl.end(),REInfo_Eqs(ne));
@@ -2044,6 +2054,17 @@ void Producer_impl::sendRunEvInfo(const  RunEvInfo & ne, DPS::Client::RecordChan
    RunEvInfo_var rv=new RunEvInfo(ne);
   _rl.push_back(rv); 
   }
+  break;
+}
+}
+
+void Producer_impl::sendDSTInfo(const  DSTInfo & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
+
+ DSTILI li=find_if(_dstinfo.begin(),_dstinfo.end(),DSTInfo_Eqs(ne));
+ switch (rc){
+ case DPS::Client::Update:
+  if(li==_dstinfo.end())_parent->EMessage(AMSClient::print(ne,"DSTInfo not found for editing"));
+  else *li=new DSTInfo(ne);
   break;
 }
 }
@@ -2131,6 +2152,8 @@ if(_parent->Debug()){
       return;
     default:
     _parent->EMessage(AMSClient::print(vne,"Update:DST Already Exists "));
+     (li->second)=vne;
+      if(ci.Type==DPS::Client::Producer)PropagateDST(ne,DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);
     return;
    }
    break;
@@ -2193,10 +2216,24 @@ void Server_impl::UpdateDB(bool force){
 void Producer_impl::UpdateDB(bool force){
 //just to do something
 
+
+
+
 static bool resultdone=false;
 if(!resultdone){
  if(force || !count_if(_rl.begin(),_rl.end(),REInfo_process())){
   if(!force)resultdone=true;
+
+  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+  float dbfree,dbtotal;
+  _pser->getDBSpace(_parent->getcid(),dbfree,dbtotal);
+  cout <<" DBSpace Free "<<dbfree <<" Kb out of Total "<<dbtotal<<endl;
+{
+  for(DSTILI li= _dstinfo.begin();li!=_dstinfo.end();++li){
+    _parent->IMessage(AMSClient::print((*li),"DiskSpace Info"));
+  }
+}
+
   for(RLI li= _rl.begin();li!=_rl.end();++li){
     if((*li)->Status==Finished)_parent->IMessage(AMSClient::print((*li),"Finished :"));
   }
@@ -2515,4 +2552,56 @@ vrun->length(last);
  run=vrun._retn();
  _UpdateACT(cid,DPS::Client::Active);
  return last;
+}
+
+
+
+void Server_impl::sendNC(const DPS::Client::CID &  cid, const  DPS::Client::NominalClient & nc, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
+
+
+  for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+    if(pcur->getType()==cid.Type){
+      NCLI li=find_if(pcur->getncl().begin(),pcur->getncl().end(),Eqs(nc));
+      switch (rc){
+       case DPS::Client::Update:
+       if(li==pcur->getncl().end())_parent->EMessage(AMSClient::print(nc,"Client not found for editing"));
+       else{
+        DPS::Client::NominalClient_var vac= new DPS::Client::NominalClient(nc);
+        replace_if(li,pcur->getncl().end(),Eqs(nc),vac);
+       }
+       break;
+     }
+
+   }
+ }
+}
+
+#include <sys/statfs.h>
+CORBA::Boolean Server_impl::getDBSpace(const DPS::Client::CID &cid, float & Free, float &Total)throw (CORBA::SystemException){
+
+
+   AString amsdatadir; 
+   char* gtv=getenv("AMSDataDir");
+   if(gtv && strlen(gtv)>0){
+     amsdatadir=gtv;
+   }
+   else{
+   Free=-1;
+   Total=-1;
+   return false;
+  }
+    
+    amsdatadir+="/DataBase/";
+  struct statfs buffer;
+  int fail=statfs((const char*)amsdatadir,&buffer); 
+  if(fail){
+   Free=-1;
+   Total=-1;
+   return false;
+  }
+  else{
+   Free= (buffer.f_bavail*(buffer.f_bsize/1024.));
+   Total= (buffer.f_blocks*(buffer.f_bsize/1024.));
+  }
+  return true;
 }

@@ -1,3 +1,4 @@
+
 #pragma prefix "ams.cern.ch"
 module DPS{
    typedef unsigned long time;
@@ -5,7 +6,7 @@ module DPS{
    enum AccessType{Any,LessThan,Self,AnyButSelf,GreaterThan};
    enum RecordChange{Delete,Update,Create};
    enum ClientStatus{Lost,Unknown,Submitted,Registered,Active,TimeOut,Killed};
-   enum ClientType{Generic,Server,Consumer,Producer,Monitor};
+   enum ClientType{Generic,Server,Consumer,Producer,Monitor,Killer};
    enum ClientExiting{NOP,CInExit,SInExit,CInAbort,SInAbort,SInKill};
    enum HostStatus{NoResponse,InActive,LastClientFailed,OK};
 
@@ -23,6 +24,8 @@ module DPS{
     void getId(out CID id);
 
    struct NominalClient{
+    unsigned long uid;
+    ClientType Type;
     short MaxClients;
     float CPUNeeded; 
     short MemoryNeeded;
@@ -135,11 +138,14 @@ module DPS{
     void sendCurrentInfo(in CID id,in CurrentInfo ci); 
 
     struct DSTInfo{
+     unsigned long uid;
      string HostName;
      string OutputDirPath;
      RunMode Mode;
      long UpdateFreq;
      long DieHard;
+     long FreeSpace;
+     long TotalSpace;
     };
 
      
@@ -160,7 +166,7 @@ module DPS{
     };
     typedef sequence<DSTInfo> DSTIS;
     long getDSTInfoS(in CID id, out DSTIS dsti);
-
+    void sendDSTInfo(in DSTInfo info, in RecordChange rc);
     typedef sequence<RunEvInfo> RES;
     long getRunEvInfoS(in CID id, out RES res, inout unsigned long maxr); 
     void getRunEvInfo(in CID id, out RunEvInfo rv, out DSTInfo dv);
@@ -214,17 +220,20 @@ module DPS{
     long getACS(in CID id, out ACS acl, inout unsigned long maxc);
     void sendAC(in CID id, inout ActiveClient ac,in RecordChange rc);
 
-
     long getNC(in CID id, out NCS acl);
+    void sendNC(in CID id, in NominalClient nc,in RecordChange rc);
     long getNK(in CID id, out NCS acl);
 
     long getNHS(in CID id, out NHS nhs);
+    
 
     long getAHS(in CID id, out AHS ahl);
     void sendAH(in CID id, inout ActiveHost ah,in RecordChange rc);
-
+    boolean getDBSpace(in CID id, inout float Free, inout float Total);   
    };
   interface Monitor: Client{
+    void HostStatusChanged(in CID id, in ActiveHost ah);
+   
   };
   
 };
