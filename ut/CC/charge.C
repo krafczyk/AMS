@@ -329,10 +329,10 @@ strcat(fnam,_fnam);
 
 
   for(i=1;i<4;i++){
-   UCOPY(_lkhdTOF[2],_lkhdTOF[2+i],100*sizeof(number)/4);
-   UCOPY(_lkhdTracker[2],_lkhdTracker[2+i],100*sizeof(number)/4);
-   UCOPY(_lkhdTOF[6],_lkhdTOF[6+i],100*sizeof(number)/4);
-   UCOPY(_lkhdTracker[6],_lkhdTracker[6+i],100*sizeof(number)/4);
+   UCOPY(_lkhdTOF[2],_lkhdTOF[2+i],100*sizeof(_lkhdTOF[0][0])/4);
+   UCOPY(_lkhdTracker[2],_lkhdTracker[2+i],100*sizeof(_lkhdTracker[0][0])/4);
+   UCOPY(_lkhdTOF[6],_lkhdTOF[6+i],100*sizeof(_lkhdTOF[0][0])/4);
+   UCOPY(_lkhdTracker[6],_lkhdTracker[6+i],100*sizeof(_lkhdTracker[0][0])/4);
   }
 #ifdef __AMSDEBUG__
   cout << "AMSCharge::init()-I-Completed"<<endl;

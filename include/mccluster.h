@@ -110,8 +110,8 @@ public:
         ((_idsoft/10)%10)%2+1;}
  inline integer getlayno() const{ return CTCDBc::getgeom()<2?(_idsoft/1000)%10:
  _idsoft/1000000;}
- inline integer getrowno() const{return (_idsoft/2)%2+1+2*((_idsoft/1000)%10-1);}
- inline integer getcolno() const{return (_idsoft-1)%2+1+2*((_idsoft/100)%10-1);}
+ integer getrowno() const{return (_idsoft/2)%2+1+2*((_idsoft/1000)%10-1);}
+ integer getcolno() const{return (_idsoft-1)%2+1+2*((_idsoft/100)%10-1);}
  inline number  getbeta() const { return _beta;}
  inline number  getstep() const { return _step;}
  inline number  getedep() const { return _edep;}

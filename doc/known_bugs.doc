@@ -3,7 +3,7 @@ Compile Time
 -------------
 
 1. mceventg.C should be compiled with -g option on aix&hpux
-
+2. makedepend does not work on sgi
 
 
 Run Time

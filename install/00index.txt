@@ -14,8 +14,8 @@ config.*  // configuration files for Objectivity. Moved to ../db
 
 To create standalone simulation program (without db) use:
 
-hpux  || ibm      batch         clmake Mgbatch
-dec               batch         clmake Mcxxfix
+hpux  || ibm      batch         clmake Mgbatch or Mopt
+dec               batch         clmake Mcxxfix or Mopt
 hpux,ibm,dec      interactive   clmake Mgxint  (batch program should be created first)
 
 
