@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.78 2004/02/17 14:32:21 alcaraz Exp $
+//  $Id: root.C,v 1.79 2004/02/19 17:28:55 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2261,7 +2261,7 @@ void AMSEventR::Terminate()
 
 Int_t AMSEventR::Fill()
 {
-        if (_ClonedTree==NULL) _ClonedTree = _Tree->CloneTree(0);
+        if (_ClonedTree==NULL) _ClonedTree = _Tree->GetTree()->CloneTree(0);
         return _ClonedTree->Fill();
 }
 

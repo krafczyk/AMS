@@ -25,10 +25,10 @@ public :
 
 void MyAnal::UBegin(){
 
-      if(fService._pOut) {
+      if(OutputFile()) {
             // This means that you have processed the file with something like:
             //  Process("MyAnal.C+","select.root");
-            outfile = fService._pOut;
+            outfile = OutputFile();
       } else { 
             // This case means that you prefer to define the output file here
             outfile = new TFile ("select.root", "RECREATE"); 
@@ -102,16 +102,16 @@ void MyAnal::UTerminate()
 
       // Write all selected events into a new root file 
       // TFile* another_file = new TFile("anotherfile.root","RECREATE");
-      // select_list->Write(_Tree, another_file);
+      // select_list->Write(Tree(), another_file);
       
       // Write only Header and Particle branches of selected events
       // (added to the default output file in this example)
-      //_Tree->SetBranchStatus("*",0);
-      //_Tree->SetBranchStatus("ev.fHeader",1);
-      //_Tree->SetBranchStatus("ev.fParticle",1);
-      //select_list->Write(_Tree, outfile);
+      //Tree()->SetBranchStatus("*",0);
+      //Tree()->SetBranchStatus("ev.fHeader",1);
+      //Tree()->SetBranchStatus("ev.fParticle",1);
+      //select_list->Write(Tree(), outfile);
 
-      printf("\n>>> We have processed %d events\n\n", (int)_Tree->GetEntries());
+      printf("\n>>> We have processed %d events\n\n", (int)Tree()->GetEntries());
       printf("\n>>> Histograms saved in '%s'\n\n", outfile->GetName());
 }
 
