@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.74 2003/04/03 13:14:49 choutko Exp $
+# $Id: RemoteClient.pm,v 1.75 2003/04/03 14:00:54 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4446,7 +4446,7 @@ sub PrintDownloadTable {
     print "<br><br>\n";
 #   print "<br><font size=\"4\"><a href=$self->{UploadsHREF}/$self->{FileDB}>  filedb files (tar.gz)</a></font>";
     my $file= $self->{FileDB};
-    $file=~ s/gz/Z /;
+#    $file=~ s/gz/Z /;
     print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$file>  filedb files (tar.gz)</a>
            </font>";
@@ -4454,7 +4454,7 @@ sub PrintDownloadTable {
     print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
     print "<br><br>";
     $file= $self->{FileAttDB};
-    $file=~ s/gz/Z /;
+#    $file=~ s/gz/Z /;
 #           <a href=$self->{UploadsHREF}/$self->{FileAttDB}>   filedb att.files (tar.gz)</a>
     print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$file>   filedb att.files (tar.gz)</a>
