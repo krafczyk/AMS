@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.141 2003/05/01 09:37:15 choutko Exp $
+# $Id: RemoteClient.pm,v 1.142 2003/05/01 10:02:31 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2420,7 +2420,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             htmlTextField("Total Events","number",9,1000000.,"QEv"," ");  
             htmlTextField("Total Runs","number",7,3.,"QRun"," ");  
 
-            my ($rid,$rndm1,$rndm2) = $self->getRID();
+            my ($rid,$rndm1,$rndm2) = $self->getrndm();
             htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");  
             htmlHiddenTextField("rndm1","hidden",12,$rndm1,"QRNDM1"," ");  
             htmlHiddenTextField("rndm2","hidden",12,$rndm2,"QRNDM2"," ");  
@@ -2551,7 +2551,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
               htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
               htmlTextField("Total Events","number",12,1000000.,"QEv"," ");  
               htmlTextField("Total Runs","number",12,3.,"QRun"," ");  
-              my ($rid,$rndm1,$rndm2) = $self->getRID();
+              my ($rid,$rndm1,$rndm2) = $self->getrndm();
 
               htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");  
               htmlHiddenTextField("rndm1","hidden",12,$rndm1,"QRNDM1"," ");  
@@ -2775,7 +2775,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
               htmlTextField("CPU Time Limit Per Job","number",9,80000,"QCPUTime"," seconds (Native)");  
               htmlTextField("Total Jobs Requested","number",7,5.,"QRun"," ");  
               htmlTextField("Total  Real Time Required","number",3,10,"QTimeOut"," (days)");  
-              my ($rid,$rndm1,$rndm2) = $self->getRID();
+              my ($rid) = $self->getRID();
               htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");  
               htmlText("<i>rndm sequence number </i>",abs($rid));
             htmlTableEnd();
@@ -3197,7 +3197,7 @@ print qq`
          foreach my $tmp (@{$dataset->{jobs}}) {
             if($template eq $tmp->{filename}){
                 $templatebuffer=$tmp->{filebody};
-                my ($rid,$rndm1,$rndm2) = $self->getrndm();
+                my ($rid,$rndm1,$rndm2) = $self->getrndm($dataset);
                 if(not defined $q->param("QRNDM1")){
                     $q->param("QRNDM1",$rndm1);
                 }
@@ -3644,8 +3644,8 @@ print qq`
            }
        }
          if($i > 1){
-            my $rid; 
-            ($rid,$rndm1,$rndm2) = $self->getrndm();
+            my $rid=1; 
+            ($rid,$rndm1,$rndm2) = $self->getrndm($dataset);
          }
           $buf=~ s/RNDM1=/RNDM1=$rndm1/;         
           $buf=~ s/RNDM2=/RNDM2=$rndm2/;         
@@ -4293,18 +4293,23 @@ sub getRID() {
           my $rndm2=int (rand $big);
           my $rid  = 0;
           Warning::error($self->{q},"unable to read rndm table $maxrun");
-          return ($rid,$rndm1,$rndm2);
+          return $rid;
       }
       my $rid  =$res->[0][0];
-      my $rndm1=$res->[0][1];
-      my $rndm2=$res->[0][2];
 
-      return ($rid,$rndm1,$rndm2);
+      return $rid;
 
 }  
 
 sub getrndm(){
     my $self=shift;
+     if(not defined shift){
+          my $big=2147483647;
+          my $rndm1=int (rand $big);
+          my $rndm2=int (rand $big);
+           my $rid=0;
+          return ($rid,$rndm1,$rndm2);
+     }
         my $sql="select rid from RNDM WHERE rid<0";
         my $res=$self->{sqlserver}->Query($sql);
         my $maxrun;
