@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.142 2003/05/01 10:02:31 choutko Exp $
+# $Id: RemoteClient.pm,v 1.143 2003/05/01 10:06:55 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -824,8 +824,7 @@ sub ValidateRuns {
           $sql = "UPDATE runs SET status='Failed' WHERE run=$run->{Run}"; 
           $self->{sqlserver}->Update($sql);
                  htmlWarning("ValidateRuns",
-                             "cannot find status, content in Jobs for JID=",
-                             $run->{Run});
+                             "cannot find status, content in Jobs for JID=$run->{Run}");
          } else {
           my $jobstatus  = $r1->[0][0];
           my $jobcontent = $r1->[0][1];
@@ -1053,29 +1052,29 @@ sub doCopy {
                  if ($rstatus == 1) {
                    return $outputpath,1;
                  } else {
-                  htmlWarning("doCopy","crc calculation failed for ",$outputpath);
-                  htmlWarning("doCopy","crc calculation failed status ",$rstatus);
+                  htmlWarning("doCopy","crc calculation failed for $outputpath");
+                  htmlWarning("doCopy","crc calculation failed status $rstatus");
                   return $outputpath,0;
                  }
                }
                return $outputpath,0;
               } else {
-               htmlWarning("doCopy","failed",$cmd);
+               htmlWarning("doCopy","failed $cmd");
              }
             } else {
-             htmlWarning("doCopy","cannot find dataset for JID=",$jid);
+             htmlWarning("doCopy","cannot find dataset for JID=$jid");
             }
            } else {
-            htmlWarning("doCopy","cannot get info for JID=",$jid);
+            htmlWarning("doCopy","cannot get info for JID=$jid");
            }
         } else {
-         htmlWarning("doCopy","cannot stat disk from ","Filesystems");
+         htmlWarning("doCopy","cannot stat disk from Filesystems");
         } 
       } else {
-       htmlWarning("doCopy","cannot get ProductionSet",", status=Active");
+       htmlWarning("doCopy","cannot get ProductionSet status=Active");
      }
   } else {
-    htmlWarning("doCopy","cannot stat ",$inputfile);
+    htmlWarning("doCopy","cannot stat $inputfile");
   } 
   return undef,0;
  }
@@ -1428,7 +1427,7 @@ sub Connect{
     if ($self->{q}->param("queryDB")) {
      $self->{read}=1;
      if ($self->{q}->param("queryDB") eq "Submit") {
-        $sql="SELECT run, particle FROM runscat, Jobs WHERE ";
+        $sql="SELECT RUN, PART FROM runcatalog WHERE ";
         htmlTop();
         my $nickname=>undef;
         my $cutoff=>undef;
@@ -1450,116 +1449,56 @@ sub Connect{
         my $spectrum=>undef;
         my $trtype=>undef;
         my $color="green";
-        $self->htmlTemplateTable("Selected Query Keys :");
-        my $qtempany = 0;
-        if (not defined $q->param("QTemp") or $q->param("QTemp") eq "Any") {
-         $qtempany = 1;
-        }
-        if (defined $q->param("QTempDataset") and $q->param("QTempDataset") ne "Any") { $qtempany = 0;}
 
-        if (defined $q->param("QTemp") and $q->param("QTemp") ne "Any") {
-         $file = $q->param("QTemp");
-         $qtempany = 0;
-         $sql = "SELECT run, particle FROM runscat, Jobs WHERE jid=runscat.run AND jobname LIKE '%.$file' AND ";
-         print "<tr><td><font size=\"3\" color=\"red\"><b>Job Template File :</b></td><td><b> $file</b></td></tr>\n";
-        }
-        if (not defined $file) {
-         if (defined $q->param("QTempDataset") and $q->param("QTempDataset") ne "Any") {
-          $dataset = $q->param("QTempDataset");
-          $color="blue";
-          print "<tr><td><font size=\"3\" color=$color><b>Job Template Dataset :</b></td><td><b> $dataset</b></td></tr>\n";
-         }
-        }
-        if (defined $q->param("QNick") and $q->param("QNick") ne "Any") {
-         $nickname = $q->param("QNick");
-         print "<tr><td><font size=\"3\" color=$color><b>Job Nickname </b></td><td><b>  $nickname</b></td></tr>\n";
-         $sql = $sql." Jobs.NICKNAME = '$nickname' AND ";
+
+        my @tempnam=();
+        my $hash={};
+        my @desc=();
+        my $cite={};
+
+        foreach my $subdataset (@{$self->{DataSetsT}}){
+           foreach my $cite (@{$subdataset->{jobs}}){
+            if(not ($cite->{filename} =~/^\./)){
+               push @tempnam, $cite->{filename};
+                $hash->{$cite->{filename}}=$cite->{filedesc};
+                my @description = split /Total/,$hash -> {$cite->{filename}}=$cite->{filedesc};
+                push @desc, $description[0];
+                 }
+             }
+       }
+
+        $self->htmlTemplateTable("Selected Query Keys :");
+
+
+        if (defined $q->param("QTempDataset") and $q->param("QTempDataset") ne "Any") {
+         $dataset = $desc[$q->param("QTempDataset")];
+         $dataset = trimblanks($dataset);
+         my $sdataset = $dataset;
+         my $sdataset =~ s/ /\%/g;
+         $sql = $sql." jobname like '%$sdataset%' AND ";
+         print "<tr><td><font size=\"3\" color=\"red\"><b>Job Dataset :</b></td><td><b> $dataset</b></td></tr>\n";
         }
         if (defined $q->param("QPart") and $q->param("QPart") ne "Any") {
          $particle = $q->param("QPart");
          print "<tr><td><font size=\"3\" color=$color><b>Particle : </b></td><td><b> $particle</b></td></tr>\n";
          my $particleid=$self->{tsyntax}->{particles}->{$particle};
-         $sql=$sql."PARTICLE=".$particleid." AND ";
+         $sql=$sql."PART=".$particleid." AND ";
       }
         if (defined $q->param("QMomI")) {
          $qmomi = $q->param("QMomI");
          print "<tr><td><font size=\"3\" color=$color><b>Momentum min [Gev/c] </b></td><td><b> >= $qmomi</b></td></tr>\n";
-         $sql=$sql." ENERGYMIN >= $qmomi AND ";
+         $sql=$sql." PMIN >= $qmomi AND ";
       }
         if (defined $q->param("QMomA")) {
          my $qmoma = $q->param("QMomA");
          print "<tr><td><font size=\"3\" color=$color><b>Momentum max [Gev/c] </b></td><td><b> =< $qmoma</b></td></tr>\n";
-         $sql=$sql." ENERGYMAX <= $qmoma AND ";
-     }
-      if (defined $dataset or $qtempany == 1) {
-# advanced query options
-        if (defined $q->param("QSetup")) {
-         $setup = $q->param("QSetup");
-         print "<tr><td><font size=\"3\" color=$color><b>Setup : </b></td><td><b> $setup</b></td></tr>\n";
-         $sql=$sql." SETUP = '$setup'  AND ";
+         $sql=$sql." PMAX <= $qmoma AND ";
      }
         if (defined $q->param("QTrType")) {
          $trtype = $q->param("QTrType");
          print "<tr><td><font size=\"3\" color=$color><b>Trigger Type : </b></td><td><b> $trtype</b></td></tr>\n";
          $sql=$sql." TRTYPE= '$trtype' AND ";
       }
-        if (defined $q->param("QSpec") and $q->param("QSpec") ne "Any" ) {
-         $spectrum = $q->param("QSpec");
-         print "<tr><td><font size=\"3\" color=$color><b>Spectrum : </b></td><td><b> $spectrum</b></td></tr>\n";
-         $sql=$sql." SPECTRUM='$spectrum' AND ";
-      }
-        if (defined $q->param("QFocus") and $q->param("QFocus") ne "Any") {
-         $focus = $q->param("QFocus");
-         print "<tr><td><font size=\"3\" color=$color><b>Focusing : </b></td><td><b> $focus</b></td></tr>\n";
-      }
-        if (defined $q->param("GCF")) {
-         my $cut = "No";
-         $cutoff = $q->param("GCF");
-         if ($cutoff == 1) {
-           $cut = "Yes"; 
-           $sql = $sql." CUTOFF=1 AND ";
-        } else {
-           $sql = $sql." CUTOFF=0 AND ";
-        }
-         print "<tr><td><font size=\"3\" color=$color><b>Geomagnetic cutoff : </b></td><td><b> $cut</b></td></tr>\n";
-     }
-       if (defined $q->param("QTempDataset") and $q->param("QTempDataset") ne "Any") {
-        if (defined $q->param("QXL") and defined $q->param("QYL") and defined $q->param("QZL")) {
-         if (defined $q->param("QXU") and defined $q->param("QYU") and defined $q->param("QZU")) {
-             $qxl=$q->param("QXL");
-             $qyl=$q->param("QYL");
-             $qzl=$q->param("QZL");
-             $qxu=$q->param("QXU");
-             $qyu=$q->param("QYU");
-             $qzu=$q->param("QZU");
-             $sql=$sql." XL=$qxl AND YL=$qyl AND ZL=$qzl AND XU=$qxu AND YU=$qyu AND ZU=$qzu AND ";
-            print "<tr><td><b><font color=$color size=3>Cube Coordinates</font></b>\n";
-            print "</td><td>\n";
-            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-             print "<tr><td width=\"30%\"><font size=\"2\">\n";
-             print "<b> Min : X =$qxl </td><td width=\"30%\"><font size=\"2\"><b> Y =$qyl</td>\n";  
-             print "<td width=\"30%\"><font size=\"2\"><b> Z =$qzl (cm)</td>\n";  
-             print "</b></font></tr>\n";
-             print "<tr><td width=\"30%\"><font size=\"2\">\n";
-             print "<b> Max : X =$qxu </td><td width=\"30%\"><font size=\"2\"><b> Y =$qyu</td>\n";  
-             print "<td width=\"30%\"><font size=\"2\"><b> Z =$qzu (cm)</td>\n";  
-             print "</b></font></tr>\n";
-            htmlTableEnd();
-        }
-     }
-        if (defined $q->param("QCos")) {
-         $qcos = $q->param("QCos");
-         print "<tr><td><font size=\"3\" color=$color><b>Cos Theta Max : </b></td><td><b> $qcos</b></td></tr>\n";
-         $sql=$sql."COSTHETA=$qcos AND ";
-      }
-     }
-        if (defined $q->param("QPlanes") and $q->param("QPlanes") ne "Any") {
-         $qplanes = $q->param("QPlanes");
-         print "<tr><td><font size=\"3\" color=$color><b>Cube Surface Generation : </b></td><td><b> $qplanes</b></td></tr>\n";
-         $sql=$sql."SURFACE=$qplanes AND ";
-     }
-
-    }
         if (defined $q->param("NTOUT")) {
          my $outform=>undef;
          my $ntchain="NTchain";
@@ -1581,12 +1520,12 @@ sub Connect{
       print "<INPUT TYPE=\"hidden\" NAME=\"NTCHAIN\" VALUE=\"$ntchain\">\n"; 
 
      }
-        $sql=$sql." runscat.TIMESTAMP != 0 ORDER BY particle, run ";
+        $sql=$sql." runcatalog.TIMESTAMP != 0 ORDER BY PART, RUN ";
       htmlTableEnd();
 #                  RUN          NUMBER       NOT NULL
-#  $particle       PARTICLE     NUMBER(10)
-#  $qmomi          energymin    NUMBER(24)
-#  $qmoma          energymax    NUMBER(24)
+#  $particle       PART         NUMBER(10)
+#  $qmomi          PMIN         NUMBER(24)
+#  $qmoma          PMAX         NUMBER(24)
 #  $trtype         TRTYPE       VARCHAR(255)
 #  $spectrum       SPECTRUM     VARCHAR(255)
 #  $setup          SETUP        VARCHAR(255)
@@ -1623,6 +1562,15 @@ sub Connect{
         if (defined $q->param("NTOUT")) {
             $ntout=$q->param("NTOUT");
         }
+             if ($ntout eq "RUNS") {
+               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+               print "<td><b><font color=\"blue\" >Particle </font></b></td>";
+               print "<td><b><font color=\"blue\">Job </font></b></td>";
+               print "<td><b><font color=\"blue\" >Run </font></b></td>";
+               print "<td><b><font color=\"blue\" >Job Submit Time </font></b></td>\n";
+              print "</tr>\n";
+           }
+
        my $ret=$self->{sqlserver}->Query($sql);
        if (defined $ret->[0][0]) {
          my $newchain = 0;
@@ -1631,7 +1579,8 @@ sub Connect{
              my $run=$r->[0];
              my $particleid=$r->[1];
              my $part=>undef;
-             $sql="SELECT jobname, runs.submit FROM Jobs, Runs WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run";
+             $sql="SELECT jobname, runs.submit FROM Jobs, Runs 
+                     WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run ORDER BY Runs.run";
              my $r3=$self->{sqlserver}->Query($sql);
              if (defined $r3->[0][0]) {
               my $ts=$self->{tsyntax};
@@ -1640,10 +1589,9 @@ sub Connect{
               foreach my $particle (@keysa){
                 if ($particleid eq $self->{tsyntax}->{particles}->{$particle}) {
                     $part=$particle;
-                    goto PART;
+                    last;
               }
             }
-PART:       
               my $color = Color($particleid);
               my $jobname=>undef;
               my $submittime=>undef;
@@ -1653,9 +1601,19 @@ PART:
                   my $submit = $job->[1];
                   $submittime= localtime($submit);
               }
-              if ($ntout eq "ALL" or $ntout eq "RUNS") {
+              if ($ntout eq "ALL") {
                print "<tr><td><b><font size=\"4\" color=$color> Job : <i>$jobname </i>, Run : <i>$run </i>, Particle : <i> $part </i>,  Submitted : <i> $submittime </i></font></b></td></tr>\n";
            }
+            if ($ntout eq "RUNS") {
+               my $color="black";
+               print "
+                  <td><b><font color=$color> $part </font></td></b>
+                  <td><b><font color=$color> $jobname </font></td></b>
+                  <td><b><font color=$color> $run </font></b></td>
+                  <td><b><font color=$color> $submittime </font></b></td>\n";
+               print "</font></tr>\n";
+           }
+
 # oracle specific SUM, COUNT, MIN, MAX
        if ($ntout eq "SUMM") {
            if ($pold ne $part) {
@@ -1702,12 +1660,13 @@ PART:
             foreach my $nt (@{$r4}) {
              my $filepath=$nt->[0];
              my ($disk,$file) = split(/:/,$filepath);
+             if (not defined $file) { $file=$filepath;}
              print("<TR><TD width = \"10\%\" align=\"Left\"> nt/chain </TD>
                        <TD width = \"20\%\" align=\"Center\"> $ntchainname </TD>
                        <TD width = \"40\%\" align=\"Left\">   $file    </TD></TR>");
           }
         }
-     htmlTableEnd();
+      htmlTableEnd();
     }
        if ($ntout eq "ALL") {
         print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
@@ -1738,11 +1697,11 @@ PART:
               }
              }
             htmlTableEnd();
-      }   
          print "<BR><BR>\n";
-           }
-         }
-     } else {
+      }   
+     }
+    }
+   } else {
          print "<TR><TD><font color=\"magenta\"><B> Nothing Found for SQL request : </B></font></TD></TR>\n";
          print "<TR><TD><i>$sql</i></td></tr>\n";
        }
@@ -1754,12 +1713,17 @@ PART:
        my $from=localtime($mintm);
        my $to  =localtime($maxtm);
     print "<tr><td><b><font size=\"4\" color=\"red\"><ul>  For Particles : <i> $plist </i></b></font></td></tr>\n";
-    print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  Jobs Submitted : $totaljobs </b></font></td></tr>\n";
+    print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  Jobs Completed : $totaljobs </b></font></td></tr>\n";
     print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  $from / $to </b></font></td></tr>\n";
     print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   NTuples : $totalnt  </b></font></td></tr>\n";
+    
     print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   Events : $totalev  </b></font></td></tr>\n";
    }      
-       htmlReturnToQuery();
+   if ($ntout eq "RUNS") {
+       htmlTableEnd();
+    }
+ 
+      htmlReturnToQuery();
       htmlBottom();
   } else {
    htmlTop();
@@ -1829,7 +1793,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
                  if(not ($cite->{filename} =~/^\./)){
                   push @tempnam, $cite->{filename};
                   $hash->{$cite->{filename}}=$cite->{filedesc};
-                  push @desc, $hash -> {$cite->{filename}}=$cite->{filedesc};
+                  my @description = split /Total/,$hash -> {$cite->{filename}}=$cite->{filedesc};
+                  push @desc, $description[0];
                  }
              }
             }
@@ -1838,7 +1803,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             print "<option value=\"Any\">  </option>\n";
             my $i=0;
             foreach my $template (@tempnam) {
-             print "<option value=\"$template\">$desc[$i] </option>\n";
+             my $subdataset = $i;
+             print "<option value=\"$subdataset\">$desc[$i] </option>\n";
              $i++;
             }
 #            print "</select>\n";
@@ -1861,7 +1827,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
           print "</select>\n";
           print "</b></td></tr>\n";
             htmlTextField("Momentum min >=","number",7,1.,"QMomI","[GeV/c]");  
-            htmlTextField("Momentum max =<","number",7,200.,"QMomA","[GeV/c]");  
+            htmlTextField("Momentum max =<","number",7,2000.,"QMomA","[GeV/c]");  
             htmlTextField("Setup","text",20,"AMS02","QSetup"," ");
             htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
            htmlTableEnd();
@@ -4425,9 +4391,9 @@ sub htmlTableEnd {
 }
 
 sub htmlWarning {
-    my ($subr,$text,$value) = @_;
+    my ($subr,$text) = @_;
     print "<p><tr><td><font size=\"2\">\n";
-    print "<b><i> $subr -W- </i> $text </td><td>$value\n";
+    print "<b><i> $subr -W- </i> $text \n";
     print "</b></font></td></tr>\n";
 }
 
@@ -5591,21 +5557,56 @@ sub PrintDownloadTable {
     print "<TD><font color=#8b1a1a size=\"6\"><b>The following files are avaialable for download</b></font>:\n";
     print "<br><br>\n";
 #   print "<br><font size=\"4\"><a href=$self->{UploadsHREF}/$self->{FileDB}>  filedb files (tar.gz)</a></font>";
-    my $file= $self->{FileDB};
-    print "<br><font size=\"4\">
+#ams02mcdb tar
+    my $download = 1;
+    if (defined $self->{FileDBLastLoad}) {
+        if ($self->{FileDBLastLoad} > $self->{FileDBTimestamp}) {
+            $download = 0;
+        }
+    }
+     my $file= $self->{FileDB};
+    my $dtime = undef;
+    if ($download == 1) {
+     print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$file>  filedb files (tar.gz)</a>
            </font>";
-    my $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
-    print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
-    print "<br><br>";
-    $file= $self->{FileAttDB};
-    if ($self->{dwldaddon} == 1) {
+     $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
+     print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
+     print "<br><br>";
+    } else {
      print "<br><font size=\"4\">
+           $file  filedb files (tar.gz)</a>
+           </font>";
+     my $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
+     print "<font size=\"3\" color=\"green\"><i><b>       ( Up to date : $dtime)</b></i></font>\n";
+     print "<br><br>";
+   }
+   $download = 1;
+#ams02mcdbaddon tar
+    if (defined $self->{FileAttDBLastLoad}) {
+        if ($self->{FileAttDBLastLoad} > $self->{FileAttDBTimestamp}) {
+            $download = 0;
+        }
+    }
+    $file= $self->{FileAttDB};
+    
+    if ($self->{dwldaddon} == 1) {
+     if ($download == 1) {
+      print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$file>   filedb att.files (tar.gz)</a>
            </font>\n";
-     $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp});
-     print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
-     print "<br><br>\n";
+      $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp});
+      print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
+      print "<br><br>\n";
+     } else {
+      print "<br><font size=\"4\">
+           $file   filedb att.files (tar.gz)</a>
+           </font>\n";
+      $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp});
+      print "<font size=\"3\" color=\"green\"><i><b>       ( Up to date : $dtime)</b></i></font>\n";
+      print "<br><br>\n";
+      }
+#bbftp tar
      my $file= $self->{FileBBFTP};
      print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$file>  bbftp files (tar.gz) - <i> optional </i></a>
@@ -5849,6 +5850,7 @@ sub parseJournalFiles {
    my $newfile   = "./";
    my $lastfile  = "./";
    my $writelast = 0;
+      my $logdir = $dir."/log";
       my $joudir = $dir."/jou";
       my $ntdir  = $dir."/nt";
       opendir THISDIR ,$joudir or die "unable to open $joudir";
@@ -5879,7 +5881,7 @@ sub parseJournalFiles {
        print "<td><b><font color=$color >$fstatus</font></b></td>";
        print "</tr>\n";
        if ($writetime > $timestamp) {
-         $self->parseJournalFile($newfile,$ntdir);
+         $self->parseJournalFile($logdir,$newfile,$ntdir);
        }
    }
    htmlTableEnd();
@@ -5903,6 +5905,7 @@ sub parseJournalFile {
 #
 
  my $self      = shift;
+ my $logdir    = shift;
  my $inputfile = shift;
  my $dirpath   = shift;
 
@@ -5961,8 +5964,8 @@ use POSIX  qw(strtod);
  my @jj      = split '/', $inputfile;
 
  my $joufile  = $jj[$#jj];
-                
- my $copylog = "/tmp/copyValidateCRC.".$joufile.".".$timenow.".log";
+
+ my $copylog = $logdir."/copyValidateCRC.".$joufile.".log";
 
  open(FILE,">".$copylog) or die "Unable to open file $copylog\n";
 
@@ -6436,7 +6439,6 @@ sub updateAllRunCatalog {
     if(defined $r0->[0][0]){
       foreach my $job (@{$r0}) {
           $self->updateRunCatalog($job->[0]);
-          last;
       }
   }
 }
@@ -6525,16 +6527,16 @@ sub updateRunCatalog {
             $sql=$sql0.$sql1;
             $self->{sqlserver}->Update($sql);
            } else {
-            $self->InfoPlus("updateRunCatalog -Warning - Cannot find content for Job=$jid");
+            htmlWarning("updateRunCatalog","Cannot find content for Job=$jid");
            }
           } else {
-           $self->InfoPlus("updateRunCatalog -Info - Run = $jid exists in RunCatalog. No Update");
+           htmlWarning("updateRunCatalog","Run = $jid exists in RunCatalog. No Update");
           }
       } else {
-        $self->InfoPlus("updateRunCatalog -Info - Run = $jid, Status = $runstatus. No Update");
+        htmlWarning("updateRunCatalog","Run = $jid, Status = $runstatus. No Update");
       }     
     } else {
-        $self->InfoPlus("updateRunCatalog -Warning - Cannot Find Run with JID = $jid");
+       htmlWarning("updateRunCatalog","Cannot Find Run with JID = $jid");
     }
 }
 
