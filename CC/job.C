@@ -175,7 +175,7 @@ UCTOH(amsp,IOPA.TriggerC,4,12);
 IOPA.mode=0;
 VBLANK(IOPA.ffile,40);
 IOPA.MaxNtupleEntries=100000;
-IOPA.MaxFileSize=150000000;
+IOPA.MaxFileSize=180000000;
 IOPA.WriteRoot=0;
 VBLANK(IOPA.rfile,40);
 FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
@@ -1311,8 +1311,8 @@ AMSgObj::BookTimer.book("SIAMSEVENT");
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
     _siecalinitjob();
     _sirichinitjob();
-  _sitrdinitjob();
-  _sisrdinitjob();
+    _sitrdinitjob();
+    _sisrdinitjob();
   }
   else{ 
    _sictcinitjob();
@@ -1374,7 +1374,9 @@ else TRMCFFKEY.year[1]=TRMCFFKEY.year[0]-1;
 
      AMSgObj::BookTimer.book("GEANTTRACKING");
      AMSgObj::BookTimer.book("GUSTEP",10);
-     AMSgObj::BookTimer.book("TOFGUSTEP",10);
+     AMSgObj::BookTimer.book("AMSGUSTEP",10);
+     AMSgObj::BookTimer.book("SYSGUSTEP",10);
+     AMSgObj::BookTimer.book("TrdRadiationGen",10);
      AMSgObj::BookTimer.book("SITKHITS");
      AMSgObj::BookTimer.book("SITKNOISE");
      AMSgObj::BookTimer.book("SITKDIGIa");
@@ -1469,7 +1471,6 @@ void AMSJob::_sictcinitjob(){
 
 void AMSJob::_sitrdinitjob(){
 
-  AMSgObj::BookTimer.book("TrdRadiationGen");
  AMSTRDMCCluster::init();
 }
 void AMSJob::_sisrdinitjob(){

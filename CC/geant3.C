@@ -62,7 +62,7 @@ extern "C" void gustep_(){
 //
 // TRD here
 //
-// AMSgObj::BookTimer.start("TrdRadiationGen");
+//  if(trig==0 && freq>1)AMSgObj::BookTimer.start("TrdRadiationGen");
   if(TRDMCFFKEY.mode <3 && TRDMCFFKEY.mode >=0) {
     //saveliev
     simtrd_(TRDMCFFKEY.g3trd);
@@ -78,7 +78,7 @@ extern "C" void gustep_(){
     cerr<<" b " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
   }
 #endif
-// AMSgObj::BookTimer.stop("TrdRadiationGen");
+//  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("TrdRadiationGen");
 
 
   try{
@@ -86,10 +86,12 @@ extern "C" void gustep_(){
    // TRD
  int lvl=GCVOLU.nlevel-1;
  if(GCTRAK.destep != 0 && GCTMED.isvol != 0 && GCVOLU.names[lvl][0]=='T' && GCVOLU.names[lvl][1]=='R'  && GCVOLU.names[lvl][2]=='D' && GCVOLU.names[lvl][3]=='T'){
+      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
 
      AMSTRDMCCluster::sitrdhits(GCVOLU.number[lvl],GCTRAK.vect,
         GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart);   
 
+      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
 } 
 }
 #ifdef __AMSDEBUG__
@@ -103,20 +105,23 @@ extern "C" void gustep_(){
 
   if(GCVOLU.nlevel>2 && GCTRAK.destep != 0 && GCTMED.isvol != 0 && 
   GCVOLU.names[2][0]== 'S' &&     GCVOLU.names[2][1]=='T' && 
-  GCVOLU.names[2][2]=='K')
+  GCVOLU.names[2][2]=='K'){
+      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
      AMSTrMCCluster::sitkhits(GCVOLU.number[lvl],GCTRAK.vect,
      GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
+      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
 
 #ifdef __AMSDEBUG__
   if( globalbadthinghappened){
     cerr<<" d " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
   }
 #endif
+  }
   // TOF
 
   if(lvl >1 && GCVOLU.names[lvl][0]== 'T' && GCVOLU.names[lvl][1]=='O' &&
   GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]=='S'){// in "TOFS"
-  if(trig==0 && freq>1)AMSgObj::BookTimer.start("TOFGUSTEP");
+  if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
   geant t,x,y,z;
   geant de,dee,dtr2,div,tof;
   static geant xpr(0.),ypr(0.),zpr(0.),tpr(0.);
@@ -181,7 +186,7 @@ extern "C" void gustep_(){
         tpr=t;
       }// end of "same part/vol, de>0"
     }// end of new volume test
-  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("TOFGUSTEP");
+  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
   }// end of "in TOFS"
 //-------------------------------------
 
@@ -197,20 +202,14 @@ extern "C" void gustep_(){
   if(lvl >2 && GCKINE.charge != 0  && GCTRAK.destep != 0 
       &&   GCTMED.isvol != 0 ){ 
     if((GCVOLU.names[lvl][0]== 'A' && GCVOLU.names[lvl][1]=='G' && 
-        GCVOLU.names[lvl][2]=='L'))
+        GCVOLU.names[lvl][2]=='L') || (GCVOLU.names[lvl][0]== 'P' && GCVOLU.names[lvl][1]=='T' && 
+           GCVOLU.names[lvl][2]=='F' ) || (GCVOLU.names[lvl][0]== 'P' && GCVOLU.names[lvl][1]=='M' && 
+          GCVOLU.names[lvl][2]=='T' )){
+      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
       AMSCTCMCCluster::sictchits(GCVOLU.number[lvl],GCTRAK.vect,
       GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep,GCTRAK.tofg);
-
-       if((GCVOLU.names[lvl][0]== 'P' && GCVOLU.names[lvl][1]=='T' && 
-           GCVOLU.names[lvl][2]=='F' )){
-         AMSCTCMCCluster::sictchits(GCVOLU.number[lvl],GCTRAK.vect,
-         GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep,GCTRAK.tofg);
-       }
-
-      if((GCVOLU.names[lvl][0]== 'P' && GCVOLU.names[lvl][1]=='M' && 
-          GCVOLU.names[lvl][2]=='T' ))
-        AMSCTCMCCluster::sictchits(GCVOLU.number[lvl],GCTRAK.vect,
-        GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep,GCTRAK.tofg);
+      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
+     }
   }
 
   // ANTI,  mod. by E.C.
@@ -231,10 +230,12 @@ extern "C" void gustep_(){
   if(lvl==3 && GCVOLU.names[lvl][0]== 'A' && GCVOLU.names[lvl][1]=='N'
                                        && GCVOLU.names[lvl][2]=='T')manti=1;
   if(GCTRAK.destep != 0  && GCTMED.isvol != 0 && manti==1){
+      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
      geant dee=GCTRAK.destep; 
      if(TOFMCFFKEY.birks)GBIRK(dee);
      AMSAntiMCCluster::siantihits(GCVOLU.number[lvl],GCTRAK.vect,dee,GCTRAK.tofg);
 //     HF1(1510,geant(iprt),1.);
+      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
   }
 //
 #ifdef __AMSDEBUG__
@@ -253,9 +254,11 @@ extern "C" void gustep_(){
 //       cout<<"lev/vol="<<numl<<" "<<numv<<" name="<<name<<" x/y="<<x<<" "<<y<<" z="<<z<<" de="<<de<<endl;
 //       for(i=0;i<4;i++)name[i]=GCVOLU.names[numl-2][i];
 //       cout<<"vol(lev-1)="<<numvp<<" name="<<name<<endl;
+    if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
      geant dee=GCTRAK.destep; 
      if(TOFMCFFKEY.birks)GBIRK(dee);
        AMSEcalMCHit::siecalhits(GCVOLU.number[lvl-1],GCTRAK.vect,dee,GCTRAK.tofg);
+      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
       }
     }
 //
@@ -273,6 +276,7 @@ extern "C" void gustep_(){
      GCVOLU.names[lvl][2]=='T' && GCVOLU.names[lvl][3]=='O' && 
      GCTRAK.inwvol==1)
     {
+      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
       switch(GCKINE.ipart)
 	{
         case 50: // Cerenkov photons
@@ -318,6 +322,7 @@ extern "C" void gustep_(){
 				   
 	  break;
    	}
+      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
     }
    
 #ifdef __AMSDEBUG__
@@ -326,9 +331,11 @@ extern "C" void gustep_(){
   }
 #endif
 
+//  if(trig==0 && freq>1)AMSgObj::BookTimer.start("SYSGUSTEP");
   AMSmceventg::FillMCInfo();
   GSKING(0);
   GSKPHO(0);
+//  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("SYSGUSTEP");
 #ifdef __AMSDEBUG__
   if( globalbadthinghappened){
     cerr<<" i " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
