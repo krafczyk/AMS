@@ -79,6 +79,8 @@ static void monit(number & a, number & b,number sim[], int & n, int & s, int & n
 static void alfun(integer & n, number xc[], number & fc, AMSParticle * ptr);
  void _writeEl();
  static integer _partP[38];
+  static void _build(number rid, number err, number charge,AMSBeta *p, 
+  number &mass, number &emass, number &mom, number &emom);
 public:
   AMSParticle *  next(){return (AMSParticle*)_next;}
   AMSParticle():   _pbeta(0), _pcharge(0), _ptrack(0)

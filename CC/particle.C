@@ -52,26 +52,10 @@ integer AMSParticle::build(integer refit){
           number chi2(0),rid(0),err(0);
           ptrack->getParFastFit( chi2, rid, err, theta,  phi,  coo);
           // Add new element
+          
           int index;
           charge=pcharge->getvotedcharge(index);
-          momentum=rid*charge;
-          emomentum=err*rid*rid*charge;
-          number beta=pbeta->getbeta();
-          number ebeta=pbeta->getebeta()*beta*beta;
-          if(fabs(beta)<=1.e-10 ){
-           cerr<< " beta too low " <<beta<<endl;
-           mass=FLT_MAX;
-           emass=FLT_MAX;
-          }
-          else{ 
-           number one=1;
-           number gamma2=one/(one-beta*beta); 
-           number mass2=momentum*momentum/gamma2/beta/beta;
-           mass=mass2>0? sqrt(mass2) : -sqrt(-mass2);
-           emass=fabs(mass)*sqrt((emomentum/momentum)*(emomentum/momentum)+
-           (gamma2*ebeta/beta)*(gamma2*ebeta/beta));
-          }
-          if(beta<0)momentum=-momentum;
+          _build(rid,err,charge,pbeta,mass,emass,momentum,emomentum);
           ppart=new AMSParticle(pbeta, pcharge, ptrack,
           mass,emass,momentum,emomentum,charge,theta,phi,coo);
           ptrack->setstatus(AMSDBc::USED);
@@ -94,6 +78,27 @@ out:
        pcharge=pcharge->next();
       }
       return 1;
+}
+
+void  AMSParticle::_build(number rid,number err,number charge,AMSBeta * pbeta,number & mass,number & emass,number & momentum,number & emomentum){
+          number beta=pbeta->getbeta();
+          number ebeta=pbeta->getebeta()*beta*beta;
+          momentum=rid*charge;
+          emomentum=err*rid*rid*charge;
+          if(fabs(beta)<=1.e-10 ){
+           cerr<< " beta too low " <<beta<<endl;
+           mass=FLT_MAX;
+           emass=FLT_MAX;
+          }
+          else{ 
+           number one=1;
+           number gamma2=one/(one-beta*beta); 
+           number mass2=momentum*momentum/gamma2/beta/beta;
+           mass=mass2>0? sqrt(mass2) : -sqrt(-mass2);
+           emass=fabs(mass)*sqrt((emomentum/momentum)*(emomentum/momentum)+
+           (gamma2*ebeta/beta)*(gamma2*ebeta/beta));
+          }
+          if(beta<0)momentum=-momentum;
 }
 
 void AMSParticle::ctcfit(){
@@ -523,21 +528,13 @@ void AMSParticle::refit(int fast){
      _ptrack->Fit(0,_GPart);
      _ptrack->Fit(_pbeta->getbeta()>0?3:-3,_GPart);
      if(_ptrack->GeaneFitDone() && fabs(_ptrack->getgrid())>TRFITFFKEY.RidgidityMin/2){
-      number fac=_ptrack->getgrid()*_Charge/_Momentum;
-      integer itr;
-      geant xmass,chrg,tlt7,uwb[1];
-      integer nwb=0;
-      char chdum[21]="";
-      GFPART(_GPart,chdum,itr,xmass,chrg,tlt7,uwb,nwb);
-      _Mass=_Mass*fabs(fac);
-      _ErrMass=_ErrMass*fabs(fac);
-      _Momentum=_Momentum*fac;
-      _ErrMomentum=_ErrMomentum*fabs(fac);
-      if(_Mass>FLT_MAX)_Mass=FLT_MAX;
-      if(_ErrMass>FLT_MAX)_ErrMass=FLT_MAX;
-      if(_Momentum>FLT_MAX)_Momentum=FLT_MAX;
-      if(_Momentum<-FLT_MAX)_Momentum=-FLT_MAX;
-      if(_ErrMomentum>FLT_MAX)_ErrMomentum=FLT_MAX;
+      _build(_pbeta->getbeta()>0?_ptrack->getgrid():-_ptrack->getgrid(),
+       _ptrack->getegrid(),_Charge,_pbeta,_Mass,_ErrMass,_Momentum,_ErrMomentum);
+       }
+     else{
+      _build(_ptrack->getrid(),_ptrack->geterid(),_Charge,
+       _pbeta,_Mass,_ErrMass,_Momentum,_ErrMomentum);
+     }
       integer oldpart=_GPart;
       pid();
 #ifdef __AMSDEBUG__
@@ -548,8 +545,8 @@ void AMSParticle::refit(int fast){
       }
 #endif
      }
-  }   
-}  
+  }
+   
 integer AMSParticle::_partP[38]={2,3,5,6,8,9,11,12,14,15,45,145,
                                  46,146,49,149,47,147,61,161,62,162,
                                  63,163,64,164,65,165,66,166,67,167,68,

@@ -391,6 +391,8 @@ void   setHitP(AMSTrRecHit* p, integer n) {if (n< 6)  _Pthit[n] = p;}
 integer TOFOK();
 integer getnhits() const {return _NHits;}
 number getgrid() const {return _GRidgidity;}
+number getegrid() const {return _GErrRidgidity;}
+number geterid() const {return _ErrRidgidity;}
 number getrid() const {return _Ridgidity;}
 number gettheta() const {return _Theta;}
 number getphi() const {return _Phi;}

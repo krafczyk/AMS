@@ -15,7 +15,7 @@ C      CALL HBOOK1(12,  'NTRTR', 12, -1, 5, 0.)
 C      CALL HBOOK1(13,  'NBETA', 12, -1, 5, 0.)
 C      CALL HBOOK1(103, '[b](v/c)', 120, -1.2, 1.2, 0.)
 * 
-       call HROPEN(44,'output','posn.hbk','NP',1024,iostat)      
+       call HROPEN(44,'output','pr.hbk','NP',1024,iostat)      
       x=aprf(0,1)
       RETURN
       END
@@ -84,7 +84,7 @@ C     &  'NBETA','BETA', 'NPART', 'NTRTR', 'NHITS', 217*' '/
 *
 *-- Comment the following in case you do not want to write selectd events
 *--  into new ntuples
-      icut=aprf(1,-1)
+      icut=aprf(1,1)
       USRCUT =icut
       if(usrcut.ne.0)then
         notzero=notzero+1
@@ -244,7 +244,7 @@ c      call hf1(2,float(npart),1.)
         call hf1(26,cos(thetagl(1)),1.)
         if(geanefitdone(ptrackp(1)).eq.0.or.
 c     +    (r.gt.0.4.and.r.lt.2.5))then
-     +    (r.gt.0.4.and.r.lt.2.5e4))then
+     +    (r.gt.0..and.r.lt.2.5e4))then
           if(xsign(pmom(1)).eq.isig.and.
      +       betapattern(pbetap(1)).lt.5.and.
      +       advancedfitdone(ptrackp(1)).ne.0)then
@@ -289,18 +289,18 @@ c             if(r1.gt.0.4.and.r1.lt.1.6.and.r2.gt.0.4.and.r2.lt.1.6)then
      +              cooctc(2,1,1).gt.yll.and.
      +              cooctc(2,1,1).lt.ylr
                     call hf2(66,cooctc(1,1,1),cooctc(2,1,1),1.)
-                    if(abs(pmom(1)).lt.5)then
+                    if(abs(pmom(1)).lt.20.and.cut)then
                        call hf1(1021,pmom(1),1.)
                     zg=(abs(1/beta(pbetap(1)))-1.)
      +              /betaerror(pbetap(1))
                        call hf1(1077,zg,1.)
                       if(abs(1/beta(pbetap(1)))
-     +                 .lt.1+1.*betaerror(pbetap(1)))then
+     +                 .lt.1+100.*betaerror(pbetap(1)))then
                        call hf1(621,pmom(1),1.)
                        call hf1(1078,atcnbphe(1,1)+atcnbphe(2,1),1.)
-                     if(atcnbphe(1,1)+atcnbphe(2,1).gt.1.5)then
+                     if(atcnbphe(1,1)+atcnbphe(2,1).gt.-1.5)then
                        call hf1(2021,pmom(1),1.)
-                     if(abs(pmass(1)).lt.2.)then
+                     if(abs(pmass(1)).lt.200.)then
                       summis=0
                       
                       goto 777
@@ -330,13 +330,13 @@ c             if(r1.gt.0.4.and.r1.lt.1.6.and.r2.gt.0.4.and.r2.lt.1.6)then
                       call hf1(95,summis,1.)
  777                  continue
                        call hf1(92,pmass(1),1.)
-                     if(pmass(1).lt.0.35)then
+                     if(pmass(1).lt.0.35e3)then
                        call hf1(93,pmass(1),1.)
-                       if(isig.gt.0)then
+                       if(isig.lt.0)then
                         aprf=1
                         write(86,*)run,eventno,pmass(1),pmom(1),
      +                  address(ptrackp(1))
-                       else if(rndm(d).lt.1.1)then
+                       else if(rndm(d).lt.0.0025)then
                         aprf=1
                         write(87,*)run,eventno,pmass(1),pmom(1),
      +                  address(ptrackp(1))
