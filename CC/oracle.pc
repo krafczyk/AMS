@@ -1,4 +1,4 @@
-//  $Id: oracle.pc,v 1.4 2001/03/30 18:48:56 alexei Exp $
+//  $Id: oracle.pc,v 1.5 2001/06/06 15:02:03 alexei Exp $
 //
 // Subroutines to work with AMS ORACLE database
 //
@@ -12,8 +12,12 @@
 //              Feb  15, 2001. nominal/active clients and hosts tables
 //              Mar  15, 2001. NHosts_Cursor, NClients_Cursor, ACLients_Cursor
 //              Mar  29, 2001. add ASCII time to ORACLE tables
+//              Apr   3, 2001. replace VARCHAR by DATE in m_active_hosts,
+//                             m_active_clients, m_dst, m_runtable
+//              June  1, 2001. unsigned int/int clashes in functions call for 
+//                             the new version of ORACLE
 //
-// Last Edit : Mar. 30, 2001
+// Last Edit : June 1, 2001
 //
 
 #include <iostream.h>
@@ -80,8 +84,8 @@ EXEC SQL BEGIN DECLARE SECTION;
 
 
    unsigned int trun;
-            int tidx;
-            int tids[100];
+   unsigned int tidx;
+   unsigned int tids[100];
    unsigned int tevent;
    unsigned int tpos;
    unsigned int ttag1;
@@ -104,7 +108,7 @@ EXEC SQL BEGIN DECLARE SECTION;
 
 // Tags
    unsigned int runnu[2000];
-            int idxnu[2000];
+   unsigned int idxnu[2000];
    unsigned int eventnu[2000];
    unsigned int posnu[2000];
    unsigned int tag1nu[2000];
@@ -129,7 +133,7 @@ EXEC SQL BEGIN DECLARE SECTION;
 
    unsigned int tstatus;
    unsigned int thistory;
-            int tcuid;
+   unsigned int tcuid;
             int tpriority;
    unsigned int tsubmit;
 
@@ -935,7 +939,8 @@ namenotfound:
    cout<<"AMSoracle::addTDVname -I- TDV "<<name<<"."<<datamc<<", idx "<<tidx
        <<" is found"<<endl;
   }  
-   rstatus = tidx;
+//   rstatus = tidx;
+   rstatus = 1;
  }
 
 
@@ -1022,13 +1027,13 @@ int AMSoracle::gettdv(TDVrec *tdv, int deftable)
 
 
 
-int AMSoracle::findtdvname(char *name, int datamc)
+unsigned int AMSoracle::findtdvname(char *name, int datamc)
 {
 // find TDV with name and datamc
 //
 // return  id 
 // 
- int rstatus = -1;
+ int rstatus = 0;
   EXEC SQL WHENEVER SQLERROR CONTINUE;;
  if (name && strlen(name) <MAXTDVNAMELENGTH) {  
   strcpy(tdvname,name);
@@ -1666,8 +1671,8 @@ int AMSoracle::setRunSubmitTime(unsigned int id, unsigned int submittime)
              SET
                 submittime      = :tsubmit,
                 timestamp       = :tinsert,
-                stimea          = :ctimei
-                    WHERE id = :tid;
+                stimea          = TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS')
+              WHERE id = :tid;
   return 1;
 }
 
@@ -1695,13 +1700,13 @@ int AMSoracle::updateRunTable(RunTable *rtable)
                 levent = :tlast,
                 utimef = :ubegin,
                 utimel = :uend,
-                priority = :tpriority,
-                status   = :tstatus,
-                history  = :thistory,
+                priority =   :tpriority,
+                status   =   :tstatus,
+                history  =   :thistory,
                 submittime = :tsubmit,
                 cuid       = :tcuid,
-                timef      = :ctimeb,
-                stimea     = :ctimei,
+                timef      = TO_DATE(:ctimeb,'DD-MON-YYYY HH24:MI:SS'),
+                stimea     = TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
                 timestamp  = :tinsert
                     WHERE id = :tid;
     rstatus = 1;
@@ -1744,8 +1749,8 @@ int AMSoracle::insertRunTable(RunTable *rtable, int nruns)
            :thistory,
            :tsubmit,
            :tcuid,
-           :ctimeb,
-           :ctimei,
+           TO_DATE(:ctimeb,'DD-MON-YYYY HH24:MI:SS'),
+           TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
            :tinsert);
     }
     rstatus = 1;
@@ -2540,7 +2545,7 @@ int AMSoracle::insertDSTInfo(
                     :ttype,
                     :tsize,
                     :tdirpath,
-                    :ctimei,
+                    TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
                     :tinsert);
      rstatus = 1;
    }
@@ -2588,7 +2593,7 @@ int AMSoracle::insertDSTInfo(
                 events     =     :tevents,
                 status     =     :tstatus,
                 filesize   =     :tsize,
-                lastuptime =     :ctimei,
+                lastuptime =     TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
                 timestamp  =     :tinsert
               WHERE 
                 NAME = :tdirpath;
@@ -2600,9 +2605,9 @@ int AMSoracle::insertDSTInfo(
 
 //
 
-int AMSoracle::findInterface(const char *name)
+unsigned int AMSoracle::findInterface(const char *name)
 {
- tid = -1;
+ tid = 0;
  EXEC SQL WHENEVER SQLERROR DO sql_error("ORACLE error: AMSoracle::findInterface");
  if (name) {
   strcpy(tinterface, name);
@@ -2618,7 +2623,7 @@ int AMSoracle::findInterface(const char *name)
  return tid;
 }
 
-int AMSoracle::findPlatform(const char *name)
+unsigned int AMSoracle::findPlatform(const char *name)
 {
  tid = 0;
  EXEC SQL WHENEVER SQLERROR DO sql_error("ORACLE error: AMSoracle::findPlatform");
@@ -2639,7 +2644,7 @@ int AMSoracle::findPlatform(const char *name)
 //
 // Host table  subroutines
 //
-int AMSoracle::findHost(const char *host)
+unsigned int AMSoracle::findHost(const char *host)
 {
   int nhosts = 0;
   int hostid = 0;
@@ -2795,7 +2800,7 @@ int AMSoracle::initActiveHostTable(const unsigned int hoststatus)
                              0,
                              :tinsert,
                              :nominalhost[i].clock,
-                             :ctimei,
+                             TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
                              :tinsert);
      }
     }
@@ -2874,6 +2879,7 @@ int AMSoracle::updateActiveHost(unsigned int type,
                     sql_error("ORACLE error:AMSoracle::updateActiveHost");
 
  if (host) {
+  tinsert = time((time_t)0);
   thostid = AMSoracle::findActiveHost(host, type);
   if (thostid > 0) {
     ttype        = type;
@@ -2897,8 +2903,9 @@ int AMSoracle::updateActiveHost(unsigned int type,
                 processed =   :tclprocessed,
                 failed    =   :tclfailed,
                 killed    =   :tclkilled,
-                lastuptime  =   :ctimei,
-                lastupdate =  :tlastupdate
+                lastuptime  = TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
+                lastupdate =  :tlastupdate,
+                timestamp  =  :tinsert
                 WHERE id   = :thostid AND type = :ttype; 
     rstatus = 1;
    
@@ -2959,7 +2966,7 @@ int AMSoracle::insertActiveHost(unsigned int type,
                              :tclkilled,
                              :tlastupdate,
                              :tclock,
-                             :ctimei,
+                             TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
                              :tinsert);
 
     rstatus = 1;
@@ -3156,8 +3163,8 @@ int AMSoracle::insertNominalHost(
                     sql_error("ORACLE error: AMSoracle::insertNominalHost");
 
  if (name) {
-   int interfaceType       = findInterface(interface);
-   int platformType        = findPlatform(platform);
+   unsigned int interfaceType       = findInterface(interface);
+   unsigned int platformType        = findPlatform(platform);
    strcpy(thostname, name);
    strtok(thostname,".");
    unsigned int hid  = AMSoracle::findHost(thostname);
@@ -3429,7 +3436,12 @@ int AMSoracle::setActiveHostStatus(const unsigned int status,
  ttype   = type;
  thostid = AMSoracle::findHost(hostname);
  if (thostid) {
-  EXEC SQL UPDATE m_active_hosts SET status = :tstatus 
+  tinsert = time((time_t)0);
+  time_to_oracle(tinsert, ctimei);
+  EXEC SQL UPDATE m_active_hosts 
+           SET 
+                status = :tstatus, 
+                timestamp = :tinsert
            WHERE type = :ttype and id = :thostid;
   EXEC SQL COMMIT;
   rstatus = 1;
@@ -3530,8 +3542,8 @@ int AMSoracle::updateActiveClient(const unsigned int id,
                      lastupdate = :tlastupdate,
                      starttime  = :tstarttime,
                      status     = :tstatus,
-                     starttimea = :ctimeb,
-                     lasttime   = :ctimei,
+                     starttimea = TO_DATE(:ctimeb,'DD-MON-YYYY HH24:MI:SS'),
+                     lasttime   = TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
                      timestamp  = :tinsert
            WHERE id = :tid AND type = :ttype;
 
@@ -3570,8 +3582,8 @@ int AMSoracle::insertActiveClient(const unsigned int id,
                      :tlastupdate,
                      :tstarttime,
                      :tstatus,
-                     :ctimeb,
-                     :ctimei,
+                     TO_DATE(:ctimeb,'DD-MON-YYYY HH24:MI:SS'),
+                     TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
                      :tinsert);
      rstatus = 1;
 
@@ -3586,7 +3598,12 @@ int AMSoracle::incHostClientsProcessed(unsigned int id, unsigned int type)
  thostid = getHostId(id);
  if (thostid > 0) {
   ttype = type;
-  EXEC SQL UPDATE m_active_hosts SET processed = processed + 1
+  tinsert = time((time_t)0);
+  time_to_oracle(tinsert, ctimei);
+  EXEC SQL UPDATE m_active_hosts 
+           SET 
+                processed = processed + 1,
+                timestamp = :tinsert
            WHERE id = :thostid AND type = :ttype;
   rstatus = 1;
  } else {
@@ -3602,7 +3619,11 @@ int AMSoracle::incHostClientsFailed(unsigned int id, unsigned int type)
  thostid = getHostId(id);
  if (thostid > 0) {
   ttype = type;
-  EXEC SQL UPDATE m_active_hosts SET failed = failed + 1
+  tinsert = time((time_t)0);
+  time_to_oracle(tinsert, ctimei);
+  EXEC SQL UPDATE m_active_hosts 
+           SET failed = failed + 1,
+               timestamp = :tinsert
            WHERE id = :thostid AND type = :ttype;
   rstatus = 1;
  } else {
@@ -3618,7 +3639,11 @@ int AMSoracle::incHostClientsKilled(unsigned int id, unsigned int type)
  thostid = getHostId(id);
  if (thostid > 0) {
   ttype = type;
-  EXEC SQL UPDATE m_active_hosts SET killed = killed + 1
+  tinsert = time((time_t)0);
+  time_to_oracle(tinsert, ctimei);
+  EXEC SQL UPDATE m_active_hosts 
+           SET killed = killed + 1,
+               timestamp = :tinsert
            WHERE id = :thostid AND type = :ttype;
   rstatus = 1;
  } else {
@@ -3634,7 +3659,11 @@ int AMSoracle::incHostClientsActive(unsigned int id, unsigned int type)
  thostid = getHostId(id);
  if (thostid > 0) {
   ttype = type;
-  EXEC SQL UPDATE m_active_hosts SET active = active + 1
+  tinsert = time((time_t)0);
+  time_to_oracle(tinsert, ctimei);
+  EXEC SQL UPDATE m_active_hosts 
+           SET active = active + 1,
+               timestamp = :tinsert 
            WHERE id = :thostid AND type = :ttype;
   rstatus = 1;
  } else {
@@ -3652,12 +3681,16 @@ int AMSoracle::decHostClientsActive(unsigned int id, unsigned int type)
  thostid = getHostId(id);
  if (thostid > 0) {
   ttype = type;
+  tinsert = time((time_t)0);
+  time_to_oracle(tinsert, ctimei);
   EXEC SQL SELECT active INTO :tint 
            FROM m_active_hosts 
            WHERE id = :thostid AND type = :ttype;
   if (tint > 0) {
    tint--;
-   EXEC SQL UPDATE m_active_hosts SET active = :tint
+   EXEC SQL UPDATE m_active_hosts 
+            SET active = :tint,
+                timestamp = :tinsert
            WHERE id = :thostid AND type = :ttype;
   }
   rstatus = 1;
@@ -3673,8 +3706,12 @@ int AMSoracle::setClientStatus(unsigned int id, unsigned int status)
  
  thostid = getHostId(id);
  if (thostid > 0) {
+  tinsert = time((time_t)0);
+  time_to_oracle(tinsert, ctimei);
   tstatus - status;
-  EXEC SQL UPDATE m_active_hosts SET status = :tstatus
+  EXEC SQL UPDATE m_active_hosts 
+           SET status = :tstatus,
+               timestamp = :tinsert
            WHERE id = :thostid;
   rstatus = 1;
  } else {
@@ -3701,7 +3738,7 @@ int AMSoracle::insertActiveClientRef(const unsigned int id,
 
    if (ior && interface) {
       tidx = findInterface(interface);  
-      if (tidx > -1) {
+      if (tidx > 0) {
        tid = id;
        tuid = uid;
        ttype = cltype;
@@ -3711,7 +3748,7 @@ int AMSoracle::insertActiveClientRef(const unsigned int id,
                 VALUES(:tid, :tior, :ttype, :treftype, :tidx, :tuid);
        rstatus = 1;
       } else {
-    cout<<
+       cout<<
         "AMSoracle::insertActiveClientRef -E- unknown interface '"
         <<interface<<"'"<<endl;
       }    
@@ -3738,10 +3775,8 @@ int AMSoracle::updateActiveClientId(const unsigned int id,
       ttype = cltype;
       tstatus     = status;  
       tinsert     = time((time_t)0);
-      time_to_oracle(tinsert, ctimei);
       EXEC SQL UPDATE m_active_clients_id 
                SET exitingstatus    = :tstatus,
-                   lasttime         = :ctimei,
                    lastupdate       = :tinsert,  
                    timestamp        = :tinsert 
               WHERE id = :tid AND type = :ttype;
@@ -4275,11 +4310,13 @@ int AMSoracle::insertDataCards(const char *scriptpath)
      return rstatus;
     }
     int j = 0;
+    int i;
     int l = strlen(filename);
-    for (int i=l-1; filename[i]!='/'; i--) {
+    for (i=l-1; filename[i]!='/'; i--) {
      j++;
     }
-    for (int i=0; i<j; i++) {
+
+    for (i=0; i<j; i++) {
      jobname[i] = filename[l-j+i];
     }
     jobname[i] = '\0';
@@ -4384,7 +4421,12 @@ void AMSoracle::time_to_oracle(const time_t mtime, char* date)
  strcat(date,"-");
  strcat(date,ptr[YEAR]);
  strcat(date," ");
+ suppressCR(date);
+ suppressBlanks(date);
+ strcat(date," ");
  strcat(date,ptr[TIME]);
+ suppressCR(date);
+ suppressBlanks(date);
 }
 
 

@@ -1,4 +1,4 @@
-//  $Id: oracle.h,v 1.4 2001/03/30 18:49:01 alexei Exp $
+//  $Id: oracle.h,v 1.5 2001/06/06 15:02:07 alexei Exp $
 //
 // ORACLE related subroutines 
 //
@@ -11,7 +11,7 @@
 //              Jan    , 2001. Hosts, Clients, Runs
 //              Feb    , 2001. Active CLients, hosts.
 //
-// Last Edit : Mar. 29, 2001
+// Last Edit : June 1, 2001
 //
 
 
@@ -182,6 +182,24 @@ namespace AMSoracle {
 
     void getInfo(unsigned int &trun, 
                  unsigned int &tid,
+                 unsigned int &teventsp,
+                 unsigned int &tleventp,
+                 int &tcerrors, int &terrors, float &tcputime,
+                 float &teltime, unsigned int &tstatus, char *thostname)
+      {
+        trun = run;
+        tid  = idx;
+        teventsp  = eventsp;
+        tleventp  = lpevent;
+        terrors   = errors;
+        tcerrors   = cerrors;
+        tcputime   = cputime;
+        teltime    = eltime;
+        tstatus    = status;
+        if (thostname) strcpy(thostname,hostname);
+      }
+    void getInfo(unsigned int &trun, 
+                 unsigned int &tid,
                  int &teventsp,
                  int &tleventp,
                  int &tcerrors, int &terrors, float &tcputime,
@@ -321,6 +339,27 @@ namespace AMSoracle {
           if (path && filepath) strcpy(path,filepath);
         }
       void get(unsigned int &tid, unsigned int &trun, 
+               unsigned int &ef, unsigned int &el, 
+               unsigned int &tf, unsigned int &tl,
+               int &tpriority, char *path,
+               unsigned int &tstatus, unsigned int &thistory, 
+               unsigned int &tsubmit, unsigned int &tcuid)
+        {
+          tid  = idx;
+          trun = run;
+          tf = timef;
+          tl = timel;
+          ef = eventf;
+          el = eventl;
+          tpriority = priority;
+          if (path && filepath) strcpy(path,filepath);
+          tstatus  = status;
+          thistory = history;
+          tsubmit  = submittime;
+          tcuid    = cuid;
+        }
+
+      void get(unsigned int &tid, unsigned int &trun, 
                int &ef, int &el, 
                unsigned int &tf, unsigned int &tl,
                int &tpriority, char *path,
@@ -340,6 +379,7 @@ namespace AMSoracle {
           tsubmit  = submittime;
           tcuid    = cuid;
         }
+
 
       void set(unsigned int trun, 
                unsigned int ef, unsigned int el,
@@ -924,7 +964,7 @@ namespace AMSoracle {
   int  findNominalClient(const unsigned int id, unsigned int type); 
 
   int  finddeftdv(char *tablename, int datamc, TDVutime *utime);
-  int  findHost(const char *host);
+  unsigned int  findHost(const char *host);
 
   int  findActiveHost(const char *host);
   int  findActiveHost(const char *host, unsigned int clienttype);
@@ -933,8 +973,8 @@ namespace AMSoracle {
 
   int  findInRunTable(unsigned int run, unsigned int fevent,
                       unsigned int levent, RunTable *rtable);
-  int findInterface(const char *name);
-  int findPlatform(const char *name);
+  unsigned int findInterface(const char *name);
+  unsigned int findPlatform(const char *name);
   unsigned int findmaxprodidx();
   int findProdRun(const unsigned int  crun, unsigned int &idx, 
                         unsigned int &tstamp, 
@@ -945,7 +985,7 @@ namespace AMSoracle {
   int  findtdv(char *name, int datamc, long utimef, long utimel, int &ntdvs, TDVutime *utime); 
   int  findtag(EventTag *tag); 
   int  findtdv(char *name, int datamc, long timeb, long timee, int deftable, long &timei);
-  int  findtdvname(char *tdvnameS, int datamc);
+  unsigned int  findtdvname(char *tdvnameS, int datamc);
   unsigned int getActiveClientNextId(const unsigned int ctype);
   unsigned int getNominalClientNextId(const unsigned int ctype);
   int getNominalHostId(const char *hostname);

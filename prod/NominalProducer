@@ -1,9 +1,9 @@
 # Max CPU Mem  Job    {// Host LogInEnd// Log     //   Submit}
-  30 0.6 100 AMSProducerJob
+  9 0.9 100 /f0dah0/users/alexei/AMS/datacards/StandardNtuple.job
   defaulthost 0
   -o /dat0/local/logs/
   /usr/local/lsf/bin/bsub -q linux_client -m
-   pcamsf1 1
+   pcamsfx 1
   "1>&"/dat0/local/logs/
    rsh
  
