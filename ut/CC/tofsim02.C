@@ -142,15 +142,15 @@ void TOF2Scan::build(){
   char name[80];
   char in[2]="0";
   char inum[11];
-  char tdisfn[20]="tdisfmap";
+  char tdisfn[20]="tof2smap";
 //
   strcpy(inum,"0123456789");
 //
-// ---> read version number of "tdisfmap"-file from verslist-file:
+// ---> read version number of "tof2smap"-file from verslist-file:
 //
   integer cfvn;
   cfvn=TFCAFFKEY.cfvers%1000;
-  strcpy(name,"tofverslist");// basic name for tofverslistNNN.dat file
+  strcpy(name,"tof2cvlist");// basic name of file for cal-files list
   dig=cfvn/100;
   in[0]=inum[dig]; 
   strcat(name,in);
@@ -175,7 +175,7 @@ void TOF2Scan::build(){
   vlfile >> ivers;// first number in first line (vers.# for tdisfmap-file)
   vlfile.close();
   ivers=(ivers%1000);
-  cout<<"TOF2Scan::build(): use tdisfmap-file version="<<ivers<<'\n';
+  cout<<"TOF2Scan::build(): use MC timescan map-file version="<<ivers<<'\n';
 //  
 //                                  <-- first read t-distr. map-file
   strcpy(name,tdisfn);
@@ -195,7 +195,7 @@ void TOF2Scan::build(){
   cout<<"Open file : "<<fname<<'\n';
   ifstream tcfile(fname,ios::in); // open needed tdisfmap-file for reading
   if(!tcfile){
-    cerr <<"TOF2Scan::build(): missing tdisfmap-file "<<fname<<endl;
+    cerr <<"TOF2Scan::build(): missing tof2smap-file "<<fname<<endl;
     exit(1);
   }
   for(ic=0;ic<TOF2GC::SCBLMX;ic++) tcfile >> brfnam[ic];
@@ -220,7 +220,7 @@ void TOF2Scan::build(){
     cnum=ila*TOF2GC::SCMXBR+ibr; // sequential counter numbering(0-55)
     dnum=brfnam[cnum];// 4-digits t-distr. file name (VLBB)
     mult=1000;
-    strcpy(name,"c");
+    strcpy(name,"tof2c");
     for(i=3;i>=0;i--){//create 4-letters file name
       j=dnum/mult;
       in[0]=inum[j];
@@ -228,14 +228,14 @@ void TOF2Scan::build(){
       dnum=dnum%mult;
       mult=mult/10;
     }
-    strcat(name,".out");
+    strcat(name,".tsf");
     if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
     if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
     strcat(fname,name);
     cout<<"Open file : "<<fname<<'\n';
     ifstream tcfile(fname,ios::in); // open needed t-calib. file for reading
     if(!tcfile){
-      cerr <<"AMSTOFScan::build(): missing MC-t_distr. file "<<fname<<endl;
+      cerr <<"AMSTOFScan::build(): missing MC-t_scan file "<<fname<<endl;
       exit(1);
     }
 // <-- fill errays scp,ef1,ef2,rg1,rg2 from file

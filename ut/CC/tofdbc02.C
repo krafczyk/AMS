@@ -106,13 +106,11 @@ geant TOF2DBc::_plnstr[15]={
   void TOF2DBc::readgconf(){
     int i;
     char fname[80];
-    char name[80]="geomconf";
-    char vers1[3]="01";
-    char vers2[4]="001";
-    char vers3[3]="02";
+    char name[80]="tof2geomv";
+    char vers1[3]="1";
     if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
           cout <<" TOFGeom-I-AMS02 setup selected."<<endl;
-          strcat(name,vers3);
+          strcat(name,vers1);
     }
     else
     {
@@ -381,7 +379,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //
   integer cfvn;
   cfvn=TFCAFFKEY.cfvers%1000;
-  strcpy(name,"tofverslist");// basic name for tofverslistNNN.dat file
+  strcpy(name,"tof2cvlist");// basic name for file of cal-files list 
   dig=cfvn/100;
   in[0]=inum[dig]; 
   strcat(name,in);
@@ -414,7 +412,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //   --->  Read lspeed/tdiffs calibration file :
 //
  ctyp=3;
- strcpy(name,"tdvcalib");
+ strcpy(name,"tof2tdcf");
  mcvn=mcvern[ctyp-1]%1000;
  rlvn=rlvern[ctyp-1]%1000;
  if(AMSJob::gethead()->isMCData()) //      for MC-event
@@ -479,7 +477,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //   --->  Read slewing_slope/tzeros calibration file :
 //
  ctyp=4;
- strcpy(name,"tzscalib");
+ strcpy(name,"tof2tzcf");
  mcvn=mcvern[ctyp-1]%1000;
  rlvn=rlvern[ctyp-1]%1000;
  if(AMSJob::gethead()->isMCData()) //      for MC-event
@@ -536,7 +534,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //   --->  Read stretcher_ratio/status file :
 //
  ctyp=2;
- strcpy(name,"srscalib");
+ strcpy(name,"tof2srcf");
  mcvn=mcvern[ctyp-1]%1000;
  rlvn=rlvern[ctyp-1]%1000;
  if(AMSJob::gethead()->isMCData())           // for MC-event
@@ -596,7 +594,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //   --->  Read hi/low-ratios, gains, mip2q and A-profile param. calib.file :
 //
  ctyp=5;
- strcpy(name,"anacalib");
+ strcpy(name,"tof2chcf");
  mcvn=mcvern[ctyp-1]%1000;
  rlvn=rlvern[ctyp-1]%1000;
  if(AMSJob::gethead()->isMCData())           // for MC-event
@@ -861,7 +859,7 @@ void TOFBPeds::build(){// create scbrcal-objects for each sc.bar
 //
 //   --->  Read high/low pedestals file :
 //
-  strcpy(name,"tofpeds");
+  strcpy(name,"tof2peds");
   if(AMSJob::gethead()->isMCData())           // for MC-event
   {
     cout <<" TOFBPeds_build: peds-calib. for MC-events selected."<<endl;
