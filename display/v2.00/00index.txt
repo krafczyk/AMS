@@ -40,7 +40,8 @@ followed by
 
 and all .cxx files are compiled and linked into a shared library called
 libAMS.so.  Please note that this has only been tested on alpha workstations
-running DEC/UNIX.
+running DEC/UNIX (Also IBM/AIX, but different Makefile should be used, all
+specifications below are for DEC/UNIX.)
 
 
 -------------------------------------------------------------------------
@@ -56,8 +57,9 @@ Only 3 things needs to be set:
 3. $ROOTSYS/bin is in your path.
 
 Then you are ready to go.
-Type h2root your_converted_ntuple_file_name your_preferred_name
-Type amsed your_preferred_name.
+Type "h2root your_converted_ntuple_file_name your_preferred_name"
+Type "amsed your_preferred_name".
+For help on usage of "amsed", type "amsed -h".
 
 There are 4 defined views:  top view, side view, front view, two combined
 "all views" and "two view".  In each view you have the freedom to change 
@@ -70,33 +72,41 @@ Zooming in/out is not implemented yet.
 track, particle,...etc) by pointing the mouse pointer at it unless you
 turn off [Options / Event Status].
 
+   Click on "GotoRunEvent", can go to specific event in the opened file. And
+other data file can be opened by clicking on "OpenDataFile".
+
+   A useful function when clicking "IdleTimer" on(Red and sunken) enable you
+to impose cuts to select only interesting events to display after every Idle
+timer which is provided in the command line "amsed -t" or by default 5 seconds.
+The cuts you impose are defined in IdleHandle.C. There is already a sample of
+the file.
 
 -------------------------------------------------------------------------
 4. Structure of the program
 ---------------------------
 
    All classes are derived directly or indirectly from ROOT base class
-TObject.   The highest level class is  AMSRoot  which should have only
-one instance.  A global pointer gAMSRoot is set to this instance when
-AMSRoot constructor is called.
+TObject.   The highest level class is  AMSR_Root  which should have only
+one instance.  A global pointer gAMSR_Root is set to this instance when
+AMSR_Root constructor is called.
 
    There are several classes that represent parts of AMS data:
-AMSToFCluster, AMSSiHit, AMSCTCCluster, AMSTrack, and AMSParticle.  
+AMSR_ToFCluster, AMSR_SiHit, AMSR_CTCCluster, AMSR_Track, and AMSR_Particle.  
 A list of such objects are created and maintained by "makers".  
 In this program since everything is read from input file instead 
-of being reconstructed, I call them "readers":  AMSToFClusterReader, 
-AMSSiHitReader, ... etc.
+of being reconstructed, I call them "readers":  AMSR_ToFClusterReader, 
+AMSR_SiHitReader, ... etc.
 
    There are 4 classes related to displaying:  
-	AMSVirtualDisplay -- the interface class for displaying
-	AMSDisplay        -- the implementation of display
-	AMSFruit	  -- Responsible for drawing 3D-box-like objects
+	AMSR_VirtualDisplay -- the interface class for displaying
+	AMSR_Display        -- the implementation of display
+	AMSR_Fruit	  -- Responsible for drawing 3D-box-like objects
 	THelix		  -- Responsible for drawing helixes
 THelix class is a general helix.  Since it is not implemented in ROOT
 system yet, I wrote it by myself.  I've communicated with Rene Brun and
 it is possible to put it into ROOT releases in the future.
 
-   gAMSRoot holds a list of makers (or readers).  When an event is
+   gAMSR_Root holds a list of makers (or readers).  When an event is
 read in, it loops over all makers to draw their products.
 
 

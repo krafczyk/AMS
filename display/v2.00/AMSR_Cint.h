@@ -54,9 +54,9 @@ extern void G__set_cpp_environmentAMSR_Cint();
 #include "AMSR_VirtualDisplay.h"
 #include "Debugger.h"
 #include "AMSR_Canvas.h"
+#include "AMSR_GeometrySetter.h"
 #include "AMSR_Display.h"
 #include "TGRunEventDialog.h"
-#include "AMSR_GeometrySetter.h"
 
 #ifndef G__MEMFUNCBODY
 #endif
