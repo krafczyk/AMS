@@ -1,7 +1,17 @@
-#  $Id: Makefile,v 1.9 2004/01/19 22:38:06 choutko Exp $
+#  $Id: Makefile,v 1.10 2004/01/22 17:55:39 choutko Exp $
 
 PLATFORM      =  Linux
 
+ifdef AMSICC
+CXX           =  icc
+CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -tpp6 -mp1 -xi 
+OPT           = -O2
+OPTC          = -O2
+NOOPT         = -g
+NOOPTC         = -g
+LD            = icc
+LDFLAGS       = 
+else
 CXX           =  g++ -Wno-deprecated
 CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 OPT           = -O2
@@ -9,7 +19,7 @@ OPTC          = -O0
 NOOPT         = -g
 LD            = g++
 LDFLAGS       = -g 
-
+endif
 ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 
 
 LIBS          =  $(ROOTLIBS) -lm -ldl
@@ -117,6 +127,9 @@ endif
 		cat  $(PREFIX)Make-depend | sed -e 'sx/../CC/x/x1' > $(PREFIX)Make-depend.new
 		rm -f $(PREFIX)Make-depend
 		mv $(PREFIX)Make-depend.new $(PREFIX)Make-depend
+
+../include/root_methods.h:      ../perl/root.perl
+	perl ../perl/root.perl
 
 AMSEverything.cxx:      ../perl/online.perl ../include/root_methods.h
 	perl ../perl/online.perl
