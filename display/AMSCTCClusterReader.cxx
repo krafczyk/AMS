@@ -27,8 +27,8 @@ static struct {
    Int_t           nctccl;
    Int_t           Ctcstatus[20];
    Int_t           Ctclayer[20];
-   Float_t         ctccoo[6][3];
-   Float_t         ctcercoo[6][3];
+   Float_t         ctccoo[20][3];
+   Float_t         ctcercoo[20][3];
    Float_t         ctcrawsignal[20];
    Float_t         ctcsignal[20];
    Float_t         ctcesignal[20];

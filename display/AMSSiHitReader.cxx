@@ -23,7 +23,7 @@ ClassImp(AMSSiHitReader)
 //
 // struct to read data from tree converted from ntuple
 //
-static const Int_t MaxSiHits = 400;
+static const Int_t MaxSiHits = 500;
 
 static struct {
    Int_t           ntrrh;
