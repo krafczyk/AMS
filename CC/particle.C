@@ -71,7 +71,7 @@ integer AMSParticle::build(integer refit){
            ppart->antifit();
           }
           AMSgObj::BookTimer.stop("ReAxRefit");
-          AMSEvent::gethead()->addnext(AMSID("AMSParticle",0),ppart);
+          AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
           }
         }
 out:
@@ -239,7 +239,7 @@ void AMSParticle::_writeEl(){
   ParticleNtuple* PN = AMSJob::gethead()->getntuple()->Get_part();
 
   if (PN->Npart>=MAXPART) return;
-  if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>1 || LVL3FFKEY.Accept) && _ptrack->checkstatus(AMSDBc::NOTRACK))return;
+  if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 || LVL3FFKEY.Accept) && _ptrack->checkstatus(AMSDBc::NOTRACK))return;
 // Fill the ntuple 
   PN->ChargeP[PN->Npart]=_pcharge->getpos();
   PN->BetaP[PN->Npart]=_pbeta->getpos();
@@ -467,7 +467,7 @@ void AMSParticle::pid(){
     // CheckNotAproton
     for(i=0;i<maxp;i++){
       if(_partP[i]==14){
-        if(prob[i]<0.1){
+        if(prob[i]<0.1 && !_ptrack->checkstatus(AMSDBc::NOTRACK)){
           AMSEvent::gethead()->addnext(AMSID("NotAProton",0),new AntiMatter(_GPart));
           break;
         }
@@ -487,7 +487,7 @@ void AMSParticle::pid(){
       ptrack=ptrack->next();
     }
   }
-  if(antimatter || _Momentum <0){
+  if((antimatter || _Momentum <0) && !_ptrack->checkstatus(AMSDBc::NOTRACK)){
    
    AMSEvent::gethead()->addnext(AMSID("AntiMatter",0),new AntiMatter(_GPart));
    

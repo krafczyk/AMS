@@ -756,6 +756,8 @@ void AMSEvent::_reaxinitevent(){
 
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSParticle",0),&AMSParticle::build,0));
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSParticle",1),&AMSParticle::build,0));
 
 
   AMSEvent::gethead()->add (
@@ -2267,6 +2269,7 @@ void AMSEvent::_collectstatus(){
       _status=_status | (sign<<9);
       integer pat=(ptr->getptrack())->getpattern();
       if(pat>31)pat=31;
+      if(pat<0)pat=31;
       _status=_status | (pat<<10);
        pat=(ptr->getpbeta())->getpattern();
       integer spat=0;
