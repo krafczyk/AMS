@@ -2133,7 +2133,7 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd10",isRealData()),
 
    tm begin=AMSmceventg::Orbit.End;
    tm end=AMSmceventg::Orbit.Begin;
-   TID.add (new AMSTimeID(AMSID("Scaler",isRealData()),
+   TID.add (new AMSTimeID(AMSID("ScalerN",isRealData()),
                          begin,end,
                          TriggerLVL1::getscalerssize(),(void*)TriggerLVL1::getscalersp()));
    

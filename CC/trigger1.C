@@ -74,15 +74,16 @@ void TriggerLVL1::build(){
   for(i=0;i<4;i++){
     tofpatt[i]=tofpatt[i] | (tofpatt[i]<<16);
   }
-  geant sumsc=_scaler.getsum()/96;
+  geant sumsc=_scaler.getsum(AMSEvent::gethead()->gettime());
+  geant lifetime=_scaler.getlifetime(AMSEvent::gethead()->gettime());
   // mark default as error here
   integer tm=floor(TOFVarp::getmeantoftemp(0));   
-     if(_scaler.lifetime/1000.>1. && !MISCFFKEY.BeamTest)AMSEvent::gethead()->seterror();
-  if(tofflag>0 && ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti && (sumsc<LVL1FFKEY.MaxScalersRate || _scaler.lifetime/1000.>LVL1FFKEY.MinLifeTime)){
+     if(lifetime>1. && !MISCFFKEY.BeamTest)AMSEvent::gethead()->seterror();
+  if(tofflag>0 && ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti && (sumsc<LVL1FFKEY.MaxScalersRate || lifetime>LVL1FFKEY.MinLifeTime)){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-                       new TriggerLVL1(_scaler.lifetime+tm*10000,tofflag,tofpatt,antipatt));
+                       new TriggerLVL1(lifetime*1000+tm*10000,tofflag,tofpatt,antipatt));
   }
-  else if(sumsc>=LVL1FFKEY.MaxScalersRate && _scaler.lifetime/1000.<=LVL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
+  else if(sumsc>=LVL1FFKEY.MaxScalersRate && lifetime<=LVL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
   
 
 
@@ -314,13 +315,14 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   uinteger a2=(*(p+1)>>8) ;
   antip = xpos +xneg ;
   antip = antip | (a2<<16);
-  geant sumsc=_scaler.getsum()/96;
+  geant sumsc=_scaler.getsum(AMSEvent::gethead()->gettime());
+  geant lifetime=_scaler.getlifetime(AMSEvent::gethead()->gettime());
   integer tm=floor(TOFVarp::getmeantoftemp(0));   
   // mark default as error here
-     if(_scaler.lifetime/1000.>1. && !MISCFFKEY.BeamTest)AMSEvent::gethead()->seterror();
-  if(z>0 && (sumsc<LVL1FFKEY.MaxScalersRate || _scaler.lifetime/1000.>LVL1FFKEY.MinLifeTime))AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
-  TriggerLVL1(_scaler.lifetime+tm*10000,z,tofp,tofp1,antip));
-  else if(sumsc>=LVL1FFKEY.MaxScalersRate && _scaler.lifetime/1000.<=LVL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
+     if(lifetime>1. && !MISCFFKEY.BeamTest)AMSEvent::gethead()->seterror();
+  if(z>0 && (sumsc<LVL1FFKEY.MaxScalersRate || lifetime>LVL1FFKEY.MinLifeTime))AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
+  TriggerLVL1(lifetime*1000+tm*10000,z,tofp,tofp1,antip));
+  else if(sumsc>=LVL1FFKEY.MaxScalersRate && lifetime<=LVL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
   // ---> TOF Online histograms
   if(AMSJob::gethead()->isMonitoring() & 
      (AMSJob::MTOF | AMSJob::MAll)){
@@ -357,7 +359,7 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
  
 }
 
- 
+/* 
 geant TriggerLVL1::Scalers::getsum() const{
 int i;
 geant sum=0;
@@ -372,9 +374,28 @@ for(i=0;i<10;i++)sum+=l4n[i];
 return sum;
 }
 
+*/
 
+uinteger TriggerLVL1::Scalers::_GetIndex(time_t time ){
+static integer k=0;
+// first check k; then either k+1 or run binary search
 
-
+  if(time>=_Tls[0][k] && time < (k<_Nentries-1?_Tls[0][k+1]:time+1)){
+   return k;
+  }
+  else if(k++<_Nentries-1 ){
+   if(time>=_Tls[0][k] && time < (k<_Nentries-1?_Tls[0][k+1]:time+1)){
+   return k;
+   }
+  }
+  k=abs(AMSbins(_Tls[0], uinteger(time), _Nentries))-1;   
+  if(k<0){
+   cerr<<" TriggerLVL1::Scalers::_GetIndex-S-IndexLessZero "<<k<<" "<<time<<endl;
+   k=0;
+   AMSEvent::gethead()->seterror();   
+  }   
+return k;
+}
 
 
 

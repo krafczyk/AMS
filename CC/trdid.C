@@ -35,7 +35,6 @@ _octagon=(idsoft-1)%mtrdo;
 _layer=((idsoft-1)/mtrdo)%maxlay;
 _ladder=((idsoft-1)/mtrdo/maxlay)%maxlad;
 _tube=((idsoft-1)/mtrdo/maxlay/maxlad)%maxtube;
-
 #ifdef __AMSDEBUG__
 _check();
 #endif

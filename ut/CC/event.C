@@ -1983,7 +1983,7 @@ void AMSEvent::_printEl(ostream & stream){
  stream <<TOFVarp::getmeantoftemp(33)<<" ";
  stream <<TOFVarp::getmeantoftemp(43)<<" ";
  stream <<TOFVarp::getmeantoftemp(73)<<endl;
- stream <<" Average Scaler Rate & LifeTime "<<TriggerLVL1::getscalersp()->getsum()/96<<" "<<TriggerLVL1::getscalersp()->lifetime/1000.<<endl;
+ stream <<" Average Scaler Rate & LifeTime "<<TriggerLVL1::getscalersp()->getsum(gettime())<<" "<<TriggerLVL1::getscalersp()->getlifetime(gettime())<<endl;
  stream <<" Average Magnet Temperature "<<MagnetVarp::getmeanmagnetmtemp()<<endl;
  
 }
