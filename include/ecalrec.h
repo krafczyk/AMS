@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.24 2002/09/26 06:52:58 choutko Exp $
+//  $Id: ecalrec.h,v 1.25 2002/09/26 08:04:17 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -23,10 +23,13 @@ private:
   integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
   geant _padc[2];// Anode pulse hights (ADC-channels)[HighGain,LowGain]
 public:
+
   AMSEcalRawEvent(integer idsoft, integer status,  
-        integer padc[2]):AMSlink(status,0),_gain(2),_idsoft(idsoft)
-  {for(int i=0;i<2;i++)_padc[i]=padc[i];};
-  AMSEcalRawEvent(AMSECIdSoft id,int16u dynode,int16u gain,int16u adc);
+        int padc[2]):AMSlink(status,0),_gain(2),_idsoft(idsoft)
+  {for(int i=0;i<2;i++)_padc[i]=padc[i];}
+
+
+  AMSEcalRawEvent(const AMSECIdSoft & id,int16u dynode,int16u gain,int16u adc);
 
 //
   ~AMSEcalRawEvent(){};
@@ -41,11 +44,11 @@ public:
 //
   integer getid() const {return _idsoft;}
   uint16 getgain() const {return _gain;}
-  void getpadc(integer padc[2]){for(int i=0;i<2;i++)padc[i]=_padc[i];}
-  int16 getadc(int16u gain) const{return gain<2?_padc[gain]:-1;}
+  void getpadc(float padc[2]){for(int i=0;i<2;i++)padc[i]=_padc[i];}
+  float getadc(int16u gain) const{return gain<2?_padc[gain]:-1;}
   void setgain(int16u gain){_gain=gain;}
   void TestThreshold();
-  void setadc(int16 adc, int16u gain){if(gain<2)_padc[gain]=adc;}
+  void setadc(float adc, int16u gain){if(gain<2)_padc[gain]=adc;}
   integer lvl3format(int16 * ptr, integer rest);
   int16 getslay(){return _idsoft/1000-1;}
 //
@@ -77,7 +80,7 @@ protected:
     stream <<" Status="<<hex<<_status<<" Adc="<<_padc[0]<<" "<<_padc[1]<<endl;
     stream <<dec<<endl<<endl;
   }
-void _writeEl();
+void _writeEl(){};
 void _copyEl(){};
 //
 };
@@ -86,7 +89,7 @@ class AMSEcalHit: public AMSlink{
 private:
 //integer _status; // status (0/1/... -> alive/dead/...) (It is really in AMSlink !!!)
   integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
-  integer _adc[2]; //raw adc's for later calibration (ovfl-suppressed, in DAQ-scale !)
+  geant _adc[2]; //raw adc's for later calibration (ovfl-suppressed, in DAQ-scale !)
   integer _proj;   //projection (0->X, 1->Y)
   integer _plane;  //continious numbering of planes through 2 projections(0,...)
   integer _cell;   // numbering in plane(0,...)
@@ -98,7 +101,7 @@ public:
 #ifdef __WRITEROOTCLONES__
   friend class EcalHitRoot;
 #endif
-  AMSEcalHit(integer status, integer id, integer adc[2], integer proj, integer plane, integer cell,
+  AMSEcalHit(integer status, integer id, geant adc[2], integer proj, integer plane, integer cell,
          number edep, number coot, number cool, number cooz):AMSlink(status,0),_idsoft(id),
 	 _proj(proj), _plane(plane),_cell(cell),_edep(edep),_coot(coot),_cool(cool),_cooz(cooz)
 	 {for(int i=0;i<2;i++)_adc[i]=adc[i];};
@@ -116,7 +119,7 @@ public:
   }
   integer getproj(){return _proj;}
   integer getid(){return _idsoft;}
-  void getadc(integer adc[]){for(int i=0;i<2;i++)adc[i]=_adc[i];}
+  void getadc(float adc[]){for(int i=0;i<2;i++)adc[i]=_adc[i];}
   integer getplane(){return _plane;}
   integer getcell(){return _cell;}
   number getedep(){return _edep;}

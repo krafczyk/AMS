@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.58 2002/09/04 09:11:34 choumilo Exp $
+//  $Id: ntuple.h,v 1.59 2002/09/26 08:04:17 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -265,7 +265,7 @@ public:
   int Cell[MAXECHITS];
   float Edep[MAXECHITS];
   float Coo[MAXECHITS][3];
-
+  float ADC[MAXECHITS][2];
 friend class AMSEcalHit;
 friend class AMSNtuple;
 };

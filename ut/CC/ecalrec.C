@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.52 2002/09/26 06:52:45 choutko Exp $
+//  $Id: ecalrec.C,v 1.53 2002/09/26 08:04:16 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -30,7 +30,8 @@ geant AMSEcalRawEvent::trsum=0.;// just memory reservation/initialization for st
 //----------------------------------------------------
 void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   int i,j,k;
-  integer sta,status,dbstat,padc[2],id,idd,isl,pmc,subc;
+  integer sta,status,dbstat,id,idd,isl,pmc,subc;
+  geant padc[2];
   number radc[2]; 
   geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl;
   integer ovfl[2];
@@ -98,6 +99,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
 }
 //----------------------------------------------------
 void AMSEcalRawEvent::mc_build(int &stat){
+
   int i,j,k;
   integer fid,cid,cidar[4],nhits,nraw,nrawd,il,pm,sc,proj,rdir,nslhits;
   number x,y,z,coo,hflen,pmdis,edep,edepr,edept,edeprt,emeast,time,timet(0.);
@@ -431,6 +433,7 @@ TrExit1:
   if(trigfl>0)stat=0;
   return;
 }
+
 //---------------------------------------------------
 integer AMSEcalRawEvent::lvl3format(int16 *ptr, integer rest){
 //(to fill aux-part of lvl3 data block with EC raw info)
@@ -447,7 +450,8 @@ integer AMSEcalRawEvent::lvl3format(int16 *ptr, integer rest){
 //---------------------------------------------------
 void AMSEcalHit::build(int &stat){
   int i,j,k;
-  integer sta,status,dbstat,padc[2],id,idd,isl,pmc,subc,nraw,nhits;
+  integer sta,status,dbstat,id,idd,isl,pmc,subc,nraw,nhits;
+  geant padc[2];
   integer proj,plane,cell,icont;
   number radc[2],edep,adct,fadc,emeast,coot,cool,cooz; 
   geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl;
@@ -2312,8 +2316,11 @@ void AMSEcalRawEvent::TestThreshold(){
 }
  else setstatus(AMSDBc::DELETED);;
 }
-AMSEcalRawEvent::AMSEcalRawEvent(AMSECIdSoft id, int16u dynode,int16u gain,int16u adc):AMSlink(),_gain(gain){
-  for(int i=0;i<2;i++)_padc[i]=0;
+
+
+AMSEcalRawEvent::AMSEcalRawEvent(const AMSECIdSoft & id, int16u dynode,int16u gain,int16u adc):AMSlink(),_gain(gain){
+ for(int i=0;i<2;i++)_padc[i]=0;
   if(_gain<2)_padc[_gain]=adc;
   _idsoft=id.makeshortid();
 }
+

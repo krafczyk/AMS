@@ -1,4 +1,4 @@
-//  $Id: ecid.h,v 1.3 2002/09/26 06:52:58 choutko Exp $
+//  $Id: ecid.h,v 1.4 2002/09/26 08:04:17 choutko Exp $
 #ifndef __AMSECID__
 #define __AMSECID__
 #include <typedefs.h>
@@ -31,7 +31,7 @@ void _channels2h(); // and vs
  static integer _GetGeo[ecalconst::ECRT][ecalconst::ECPMSL][2];   // slayer,pmtno
  static integer _GetHard[ecalconst::ECSLMX][ecalconst::ECPMSMX][2];     // crate, hchan
 public:
-uinteger makeshortid(){return (_sl+1)*1000+(_pmtno+1)*10+_channel+1;}
+uinteger makeshortid()const {return (_sl+1)*1000+(_pmtno+1)*10+_channel+1;}
 bool dead(){return _dead==1;}
 int16 getcrate(){return _crate;}
 int16 getchannel(){return _channel;}

@@ -96,7 +96,8 @@ void ECREUNcalib::init(){
 //-----------------------------
 void ECREUNcalib::select(){
   int i,j,k;
-  integer sta,status,dbstat,padc[2],id,idd,isl,pmt,sbc,pmsl,rdir;
+  integer sta,status,dbstat,id,idd,isl,pmt,sbc,pmsl,rdir;
+  geant padc[2];
   integer npmx,nslmx,maxpl,maxcl,nraw,ovfl[2],proj,plane,cell,lbin;
   number radc[2],binw,trc[3],pmb[3],rrr,sbl,sbr,crl,crr;
   number ct1,ct2,cl1,cl2,dct,z1,z2,hflen,ctcr,ctpm,clcr,clsh,clpm,acorr;
