@@ -1,4 +1,4 @@
-//  $Id: AMSR_MCParticle.cxx,v 1.3 2001/01/24 09:33:16 choutko Exp $
+//  $Id: AMSR_MCParticle.cxx,v 1.4 2001/08/10 16:18:50 choutko Exp $
 #include <iostream.h>
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -36,14 +36,15 @@ void AMSR_MCParticle::SetHelix(){
    Double_t Bfield = -0.9;
    Double_t P[3];
    Double_t V[3];
-   Double_t Range[2]={-120.,120.};
+   Double_t Range[2]={-100.,100.};
    Double_t Axis[3]={-1,0,0};
    P[0]=m_Position[0];
    P[1]=m_Position[1];
    P[2]=m_Position[2];
-   V[0]=m_Charge*m_Momentum *m_Dir[0];
-   V[1]=m_Charge*m_Momentum *m_Dir[1];
-   V[2]=m_Charge*m_Momentum *m_Dir[2];
+   float rig=m_Charge!=0?m_Momentum/m_Charge:1000000;
+   V[0]=rig *m_Dir[0];
+   V[1]=rig *m_Dir[1];
+   V[2]=rig*m_Dir[2];
      THelix::SetHelix(P,V,0.3*Bfield/100,Range,kHelixX,Axis);
    
 

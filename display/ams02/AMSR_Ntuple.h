@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.h,v 1.5 2001/08/05 22:43:55 kscholbe Exp $
+//  $Id: AMSR_Ntuple.h,v 1.6 2001/08/10 16:18:50 choutko Exp $
 #ifndef AMSR_Ntuple_H
 #define AMSR_Ntuple_H
 
@@ -91,6 +91,7 @@ class AMSR_Ntuple : public TNamed {
    TRRAWCL_DEF  *m_BlkTrrawcl;
    ANTIRAWC_DEF *m_BlkAntirawc;
    TOFRAWCL_DEF *m_BlkTofrawcl;
+   ECALSHOWER_DEF  *m_Blkecsh;
 #endif
    
  protected:
@@ -128,6 +129,7 @@ class AMSR_Ntuple : public TNamed {
    friend   class    AMSR_TrdClusterReader;
    friend   class    AMSR_TrMCClusterReader;
    friend   class    AMSR_TrackReader;
+   friend   class    AMSR_EcalShowerReader;
 
    ClassDef(AMSR_Ntuple, 0)   //AMSR_Ntuple ntuple handling class
 };

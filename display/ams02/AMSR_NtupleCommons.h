@@ -1,4 +1,4 @@
-//  $Id: AMSR_NtupleCommons.h,v 1.10 2001/08/07 01:40:17 kscholbe Exp $
+//  $Id: AMSR_NtupleCommons.h,v 1.11 2001/08/10 16:18:50 choutko Exp $
 #ifndef AMSR_NtupleCommons_H
 #define AMSR_NtupleCommons_H
 
@@ -282,6 +282,37 @@ struct TRTRACK_DEF {
 };
 #define blkTrtrack COMMON_BLOCK(TRTRACK,trtrack)
 COMMON_BLOCK_DEF(TRTRACK_DEF,blkTrtrack);
+
+
+static const int MAXECSHOW =    5;
+struct ECALSHOWER_DEF {
+  int Necsh;
+  int   Status[MAXECSHOW];
+  float Dir[MAXECSHOW][3];
+  float EMDir[MAXECSHOW][3];
+  float Entry[MAXECSHOW][3];
+  float Exit[MAXECSHOW][3];
+  float CofG[MAXECSHOW][3];
+  float ErTheta[MAXECSHOW];
+  float Chi2Dir[MAXECSHOW];
+  float FirstLayerEdep[MAXECSHOW];
+  float EnergyC[MAXECSHOW];
+  float Energy3C[MAXECSHOW][3];
+  float ErEnergyC[MAXECSHOW];
+  float DifoSum[MAXECSHOW];
+  float SideLeak[MAXECSHOW];
+  float RearLeak[MAXECSHOW];
+  float DeadLeak[MAXECSHOW];
+  float OrpLeak[MAXECSHOW];
+  float Chi2Profile[MAXECSHOW];
+  float ParProfile[MAXECSHOW][4];
+  float Chi2Trans[MAXECSHOW];
+  float TransProfile[MAXECSHOW][3];
+  int   p2DCl[MAXECSHOW][2];
+};
+
+#define blkecsh COMMON_BLOCK(ECALSHOWER,ecalshower)
+COMMON_BLOCK_DEF(ECALSHOWER_DEF,blkecsh);
 
 static const int NMCG = 100;
 struct MCEVENTG_DEF {

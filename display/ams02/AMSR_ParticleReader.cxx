@@ -1,4 +1,4 @@
-//  $Id: AMSR_ParticleReader.cxx,v 1.4 2001/08/04 21:25:12 kscholbe Exp $
+//  $Id: AMSR_ParticleReader.cxx,v 1.5 2001/08/10 16:18:50 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -114,11 +114,11 @@ void AMSR_ParticleReader::Make()
       t->m_Charge           = _ntuple->pcharge[k];
       t->m_Theta            = _ntuple->ptheta[k];
       t->m_Phi              = _ntuple->pphi[k];
-      t->m_beta             = beta_ntp->beta[t->m_PBeta-1];
-      t->m_errbeta          = beta_ntp->betaerror[t->m_PBeta-1];
-      t->m_betapattern      = beta_ntp->betapattern[t->m_PBeta-1];
-      t->m_pattern          = track_ntp->pattern[t->m_PTrack-1];
-      t->m_trstatus         = track_ntp->trstatus[t->m_PTrack-1];
+      t->m_beta             = _ntuple->pbeta[k];
+      t->m_errbeta          = _ntuple->perrbeta[k];
+     t->m_betapattern      = t->m_PBeta>0?beta_ntp->betapattern[t->m_PBeta-1]:-1;
+      t->m_pattern          = t->m_PTrack>0?track_ntp->pattern[t->m_PTrack-1]:-1;
+      t->m_trstatus         = t->m_PTrack>0?track_ntp->trstatus[t->m_PTrack-1]:-1;
       for (i=0; i<3; i++)
 	{
           t->m_Position[i]  = _ntuple->pcoo[k][i];

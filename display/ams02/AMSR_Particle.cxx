@@ -1,4 +1,4 @@
-//  $Id: AMSR_Particle.cxx,v 1.4 2001/08/04 21:25:12 kscholbe Exp $
+//  $Id: AMSR_Particle.cxx,v 1.5 2001/08/10 16:18:50 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -36,7 +36,7 @@ void AMSR_Particle::SetHelix(){
    Double_t Bfield = -0.9;	// in minus-x direction of AMS
    Double_t P[3];
    Double_t V[3];
-   Double_t Range[2]={-120.,120.};
+   Double_t Range[2]={-130.,130.};
    Double_t Axis[3]={-1,0,0};
    P[0]=m_Position[0];
    P[1]=m_Position[1];

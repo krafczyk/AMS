@@ -1,4 +1,4 @@
-//  $Id: LinkDef.h,v 1.5 2001/08/05 22:43:56 kscholbe Exp $
+//  $Id: LinkDef.h,v 1.6 2001/08/10 16:18:50 choutko Exp $
 #ifdef __CINT__
 
 #pragma link off all globals;
@@ -22,6 +22,8 @@
 #pragma link C++ class AMSR_TrMCClusterReader;
 #pragma link C++ class AMSR_Track;
 #pragma link C++ class AMSR_TrackReader;
+#pragma link C++ class AMSR_EcalShower;
+#pragma link C++ class AMSR_EcalShowerReader;
 #pragma link C++ class AMSR_SiHit;
 #pragma link C++ class AMSR_SiHitReader;
 //#pragma link C++ class AMSR_AntiCluster;

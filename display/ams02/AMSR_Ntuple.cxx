@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.13 2001/08/07 01:40:16 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.14 2001/08/10 16:18:50 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -61,6 +61,7 @@ TRRECHIT_DEF blkTrrechit;
 TRDCLMC_DEF blkTrdclmc;
 TRDCL_DEF blkTrdcl;
 TRTRACK_DEF blkTrtrack;
+ECALSHOWER_DEF blkecsh;
 MCEVENTG_DEF blkMceventg;
 ANTICLUS_DEF blkAnticlus;
 ANTIMCCL_DEF blkAntimccl;
@@ -111,6 +112,7 @@ AMSR_Ntuple::AMSR_Ntuple(const char *name, const char *title)
    m_BlkTrdclmc  = &blkTrdclmc;
    m_BlkTrdcl    = &blkTrdcl;
    m_BlkTrtrack  = &blkTrtrack;
+   m_Blkecsh  =    &blkecsh;
    m_BlkMceventg = &blkMceventg;
    m_BlkAnticlus = &blkAnticlus;
    m_BlkAntimccl = &blkAntimccl;
@@ -459,6 +461,8 @@ void AMSR_Ntuple::GetEvent(Int_t event)
 	}
 
       else {
+            HGNT(m_MemID, event, ierr);
+/*
          if (m_Tree->GetListOfBranches() == 0)
 	{
             HGNT(m_MemID, event, ierr);
@@ -469,6 +473,7 @@ void AMSR_Ntuple::GetEvent(Int_t event)
 	    for (int i=0; i<m_NVar; i++) 
 	      printf("m_VarNames[%d]=%s\n",i,m_VarNames[i]);
          }
+*/
       }
       m_SameRead = kTRUE;
 
@@ -579,6 +584,7 @@ Int_t AMSR_Ntuple::OpenNtuple(char *ntpfile)
    HBNAME(m_MemID, "TRMCCLUS", &(m_BlkTrmcclus->ntrclmc), "$SET");
    HBNAME(m_MemID, "TRRECHIT", &(m_BlkTrrechit->ntrrh), "$SET");
    HBNAME(m_MemID, "TRTRACK", &(m_BlkTrtrack->ntrtr), "$SET");
+   HBNAME(m_MemID, "ECALSHOW", &(m_Blkecsh->Necsh), "$SET");
    HBNAME(m_MemID, "MCEVENTG", &(m_BlkMceventg->nmcg), "$SET");
    HBNAME(m_MemID, "ANTICLUS", &(m_BlkAnticlus->nanti), "$SET");
    HBNAME(m_MemID, "ANTIMCCL", &(m_BlkAntimccl->nantimc), "$SET");
