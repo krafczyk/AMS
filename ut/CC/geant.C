@@ -483,6 +483,7 @@ extern "C" void uglast_(){
          HPRINT(1531);
          HPRINT(1532);
          HPRINT(1533);
+         HPRINT(1543);
          HPRINT(1534);
          HPRINT(1535);
          HPRINT(1536);

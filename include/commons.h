@@ -83,9 +83,12 @@ geant ThrS;  // limit on sum
 //
   integer reprtf[5]; //RECO print flag 
   integer relogic[5];//RECO logic flag
-  integer config[3];// geometry-configuration file name (max 11 letters)
   geant daqthr[5];// daq thresholds
   geant cuts[10];// cuts 
+  integer config[3];// geometry-configuration generic file-name (max 11 letters)
+  integer tzerca[3];// T0,slope,str-ratio calib.parameters gen. file-name
+  integer spare1[3];// spare f.n
+  integer spare2[3];// spare f.n
   integer sec[2];
   integer min[2];
   integer hour[2];

@@ -53,27 +53,27 @@ geant TOFDBc::_plnstr[15]={
 };
 //---> Initialize TOF MC/RECO "time-stable" parameters :
 //
-  const geant TOFDBc::_edep2ph={8000.};// edep(Mev)-to-Photons convertion
-  const geant TOFDBc::_fladctb=0.05;   // MC flash-ADC time binning (ns)
-  const geant TOFDBc::_shaptb=2.;      // MC shaper pulse time binning
-  const geant TOFDBc::_shrtim=0.5;     // MC shaper pulse rise time (ns)
-  const geant TOFDBc::_shftim=50.;     // MC shaper pulse fall time (ns)
-  const geant TOFDBc::_accdel[2]={
+  geant TOFDBc::_edep2ph={8000.};// edep(Mev)-to-Photons convertion
+  geant TOFDBc::_fladctb=0.05;   // MC flash-ADC time binning (ns)
+  geant TOFDBc::_shaptb=2.;      // MC shaper pulse time binning
+  geant TOFDBc::_shrtim=0.5;     // MC shaper pulse rise time (ns)
+  geant TOFDBc::_shftim=50.;     // MC shaper pulse fall time (ns)
+  geant TOFDBc::_accdel[2]={
     50.,                       // "accept" fix-delay(ns) for fast(history) TDC
     20.                        // "accept" fix-delay(ns) for slow TDC(stratcher)
   };
-  const geant TOFDBc::_accdelmx[2]={
+  geant TOFDBc::_accdelmx[2]={
     1000.,                     //max. "accept" delay(ns) for fast(history) TDC
     100.                       //max. "accept" delay(ns) for slow TDC(stratcher)
   };
-  const geant TOFDBc::_strflu=0.;   // Stretcher "end-mark" time fluctuations (ns)
-  const geant TOFDBc::_tdcbin[4]={
+  geant TOFDBc::_strflu=0.;   // Stretcher "end-mark" time fluctuations (ns)
+  geant TOFDBc::_tdcbin[4]={
     1.,                            // pipe/line TDC binning for fast-tdc meas.
     1.,                            // pipe/line TDC binning for slow-tdc meas.
     2.,                            // pipe/line TDC binning for adc-anode meas.
     2.                             // pipe/line TDC binning for adc-dinode meas.
   };
-  const geant TOFDBc::_daqpwd[10]={
+  geant TOFDBc::_daqpwd[10]={
     50.,           // pulse width of "z>=1" trig. signal (ns)
     50.,           // pulse width of "z>1" trig. signal
     50.,           // pulse width of "z>2" trig. signal
@@ -85,9 +85,195 @@ geant TOFDBc::_plnstr[15]={
     2.,            // discr. dead time of "z>1" trig. (ns)
     2.             // discr. dead time of "z>2" trig. (ns)
   };
-  const geant TOFDBc::_trigtb=0.5;// MC t-bin in logic(trig) pulse handling (ns)
-  const geant TOFDBc::_di2anr=0.1;  // dinode->anode signal ratio (default,mc)
-  const geant TOFDBc::_strrat=40.;  // stretcher ratio (default,mc)
+  geant TOFDBc::_trigtb=0.5;// MC t-bin in logic(trig) pulse handling (ns)
+  geant TOFDBc::_di2anr=0.1;  // dinode->anode signal ratio (default,mc)
+  geant TOFDBc::_strrat=40.;  // stretcher ratio (default,mc)
+//
+//  member functions :
+//
+// ---> function to read geomconfig-files ( fn[3] - hollerith file name) :
+  void TOFDBc::readgconf(integer fn[3]){
+    int i;
+    char fname[80];
+    char name[12];
+    char vers1[3]="01";
+    char vers2[3]="02";
+    UHTOC(fn,4,name,12);
+    if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION")==0)
+    {
+          cout <<" TOFGeom-I-Shuttle setup selected."<<endl;
+          strcat(name,vers1);
+    }
+    else
+    {
+          cout <<" TOFGeom-I-Station setup selected."<<endl;
+          strcat(name,vers2);
+    }
+    strcat(name,".dat");
+//    strcpy(fname,AMSDATADIR.amsdatadir);    
+    strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");
+    strcat(fname,name);
+    cout<<"Open file : "<<fname<<'\n';
+    ifstream tcfile(fname,ios::in); // open needed config-file for reading
+    if(!tcfile){
+      cerr <<"TOFgeom-read: Error open geomconfig-file "<<fname<<endl;
+      exit(1);
+    }
+    for(int ic=0;ic<SCBLMX;ic++) tcfile >> _brtype[ic];
+    for(i=0;i<SCLRS;i++) tcfile >> _plrotm[i];
+    for(i=0;i<SCBTPN;i++) tcfile >> _brlen[i];
+    for(i=0;i<10;i++) tcfile >> _supstr[i];
+    for(i=0;i<15;i++) tcfile >> _plnstr[i];
+  }
+//---
+  integer TOFDBc::brtype(integer ilay, integer ibar){
+    #ifdef __AMSDEBUG__
+      if(TOFDBc::debug){
+        assert(ilay>=0 && ilay < SCLRS);
+        assert(ibar>=0 && ibar < SCBRS[ilay]);
+      }
+    #endif
+    int cnum;
+    cnum=SCMXBR*ilay+ibar;
+    return _brtype[cnum];
+  }
+//
+  geant TOFDBc::brlen(integer ilay, integer ibar){
+    int cnum;
+    cnum=SCMXBR*ilay+ibar;
+    int btyp=_brtype[cnum];
+    #ifdef __AMSDEBUG__
+      if(TOFDBc::debug){
+        assert(btyp>0 && btyp <= SCBTPN);
+      }
+    #endif
+    return _brlen[btyp-1];
+  }
+//
+  integer TOFDBc::plrotm(integer ilay){
+    #ifdef __AMSDEBUG__
+      if(TOFDBc::debug){
+        assert(ilay>=0 && ilay < SCLRS);
+      }
+    #endif
+    return _plrotm[ilay];
+  }
+//
+  geant TOFDBc::supstr(integer i){
+    #ifdef __AMSDEBUG__
+      if(TOFDBc::debug){
+        assert(i>0 && i <= 10);
+      }
+    #endif
+    return _supstr[i-1];
+  }
+//
+  geant TOFDBc::plnstr(integer i){
+    #ifdef __AMSDEBUG__
+      if(TOFDBc::debug){
+        assert(i>0 && i <= 15);
+      }
+    #endif
+    return _plnstr[i-1];
+  }
+//   function to get Z-position of scint. bar=ib in layer=il
+  geant TOFDBc::getzsc(integer il, integer ib){
+    #ifdef __AMSDEBUG__
+      if(TOFDBc::debug){
+        assert(il>=0 && il < SCLRS);
+        assert(ib>=0 && ib < SCBRS[il]);
+      }
+    #endif
+  static geant dz;
+  geant zc;
+  dz=_plnstr[5]+2.*_plnstr[6];// counter thickness
+  if(il==0)
+    zc=_supstr[0]+_supstr[6]+_plnstr[0]+dz/2.;
+  if(il==1)
+    zc=_supstr[0]-_plnstr[1]-dz/2.;
+  if(il==2)
+    zc=_supstr[1]+_plnstr[1]+dz/2.;
+  if(il==3)
+    zc=_supstr[1]-_supstr[6]-_plnstr[0]-dz/2.;
+  if(il==0||il==2)zc=zc+(ib%2)*_plnstr[2];
+  if(il==1||il==3)zc=zc-(ib%2)*_plnstr[2];
+  return(zc);
+  }  
+// function to get transv. position of scint. bar=ib in layer=il
+  geant TOFDBc::gettsc(integer il, integer ib){
+    #ifdef __AMSDEBUG__
+      if(TOFDBc::debug){
+        assert(il>=0 && il < SCLRS);
+        assert(ib>=0 && ib < SCBRS[il]);
+      }
+    #endif
+  static geant dx;
+  geant x,co[2],dxt;
+  dx=_plnstr[4]+2.*_plnstr[6];//width of sc.counter(bar+cover)
+  dxt=(SCBRS[il]-1)*(dx-_plnstr[3]);//first-last sc.count. bars distance
+  if(il<2){
+    co[0]=_supstr[2];// <--top TOF-subsystem X-shift
+    co[1]=_supstr[3];// <--top TOF-subsystem Y-shift
+  }
+  if(il>1){
+    co[0]=_supstr[4];// <--bot TOF-subsystem X-shift
+    co[1]=_supstr[5];// <--bot TOF-subsystem Y-shift
+  }
+  if(_plrotm[il]==0){  // <-- unrotated planes
+    x=co[0]-dxt/2.+ib*(dx-_plnstr[3]);
+  }
+  if(_plrotm[il]==1){  // <-- rotated planes
+    x=co[1]-dxt/2.+ib*(dx-_plnstr[3]);
+  }
+  return(x);
+  }
+// functions to get MC/RECO parameters:
+//
+  geant TOFDBc::edep2ph(){return _edep2ph;}
+  geant TOFDBc::fladctb(){return _fladctb;}
+  geant TOFDBc::shaptb(){return _shaptb;}
+  geant TOFDBc::shrtim(){return _shrtim;}
+  geant TOFDBc::shftim(){return _shftim;}
+//
+  geant TOFDBc::accdel(int i){
+    #ifdef __AMSDEBUG__
+      if(TOFDBc::debug){
+        assert(i>=0 && i<2);
+      }
+    #endif
+    return _accdel[i];
+  }
+  geant TOFDBc::accdelmx(int i){
+    #ifdef __AMSDEBUG__
+      if(TOFDBc::debug){
+        assert(i>=0 && i<2);
+      }
+    #endif
+    return _accdelmx[i];}
+//
+  geant TOFDBc::strrat(){return _strrat;}
+//
+  geant TOFDBc::strflu(){return _strflu;}
+//
+  geant TOFDBc::di2anr(){return _di2anr;}
+//
+  geant TOFDBc::tdcbin(int i){
+    #ifdef __AMSDEBUG__
+      if(TOFDBc::debug){
+        assert(i>=0 && i<4);
+      }
+    #endif
+    return _tdcbin[i];}
+//
+  geant TOFDBc::daqpwd(int i){
+    #ifdef __AMSDEBUG__
+      if(TOFDBc::debug){
+        assert(i>=0 && i<10);
+      }
+    #endif
+    return _daqpwd[i];}
+//
+  geant TOFDBc::trigtb(){return _trigtb;}
 //===============================================================================
 //  TOFBrcal class functions :
 //
@@ -166,6 +352,19 @@ geant TOFBrcal::tm2t(integer tm[2], integer am[2]){ // (2-sides_times+Tovt)->Tim
   time=0.5*(tmf[0]+tmf[1])+tzero
                      +slope*(exp(-amf[0]/shft)+exp(-amf[1]/shft));
   return time; 
+}
+//---
+void TOFBrcal::tmd2p(integer tm[2], integer am[2],
+                              geant &coo, geant &ecoo){ // (time-diff)->coord/err(cm)
+  geant tmf[2],amf[2],time,shft;
+  shft=TOFDBc::shftim();
+  amf[0]=am[0]*TOFDBc::tdcbin(3); // conv. to ns
+  amf[1]=am[1]*TOFDBc::tdcbin(3); // conv. to ns
+  tmf[0]=tm[0]*TOFDBc::tdcbin(1)/strat;// to real-time scale (ns) 
+  tmf[1]=tm[1]*TOFDBc::tdcbin(1)/strat;// to real-time scale (ns)
+  coo=-0.5*(tmf[0]-tmf[1])*td2pos[0]   // tempor, suppose 2-ends delays are equal !!!
+                     -slope*(exp(-amf[0]/shft)-exp(-amf[1]/shft));
+  ecoo=td2pos[1];
 }
 //==========================================================================
 //

@@ -24,34 +24,34 @@ void AMSTOFRawCluster::sitofdigi(){
   AMSTOFMCCluster * ptr=(AMSTOFMCCluster*)
   AMSEvent::gethead()->
    getheadC("AMSTOFMCCluster",0,1); // last 1  to test sorted container
-  integer const maxpl=20;
-  static number xplane[4][maxpl];
-  static number xtime[4][maxpl];
-  static number xtimed[4][maxpl];
-  static number xz[4][maxpl];
-  number ama[2],amd[2],stm[2],edepd;
-  VZERO(xtime,maxpl*sizeof(number));
-  VZERO(xtimed,maxpl*sizeof(number));
-  VZERO(xplane,maxpl*sizeof(number));
-  VZERO(xz,maxpl*sizeof(number));
+  integer plrot;
+  static number xplane[4][SCMXBR];
+  static number xtime[4][SCMXBR];
+  static number xtimed[4][SCMXBR];
+  static number xz[4][SCMXBR];
+  number ama[2],amd[2],stm[2],edepd,etd;
+  VZERO(xtime,SCMXBR*sizeof(number));
+  VZERO(xtimed,SCMXBR*sizeof(number));
+  VZERO(xplane,SCMXBR*sizeof(number));
+  VZERO(xz,SCMXBR*sizeof(number));
 
   while(ptr){
    integer ntof,plane,status;
-   ntof=(ptr->idsoft)/100-1;
-   plane=(ptr->idsoft)%100-1;
+   ntof=(ptr->idsoft)/100-1;//ilay
+   plane=(ptr->idsoft)%100-1;//ibar
 #ifdef __AMSDEBUG__
-   assert(plane>=0 && plane< maxpl);
+   assert(plane>=0 && plane< SCMXBR);
    assert (ntof>=0 && ntof<4);
 #endif
+   plrot=TOFDBc::plrotm(ntof);     // =0/1-unrotated/rotated TOF-plane
    xplane[ntof][plane]+=ptr->edep*1000;
-   xtime[ntof][plane]+=ptr->tof*(ptr->edep)*1000;
-   const number c=2.99792e10;
+   xtime[ntof][plane]+=ptr->tof*(ptr->edep)*1000;//tof*edep
    integer ixy;
-   if(ntof==0)ixy=1;
-   else if (ntof==1)ixy=0;
-   else if (ntof==2)ixy=0;
-   else             ixy=1;
-   xtimed[ntof][plane]+=2*ptr->xcoo[ixy]*(ptr->edep)*1000/c;
+   if(plrot==0)
+               ixy=1;
+   else
+       ixy=0;
+   xtimed[ntof][plane]+=ptr->xcoo[ixy]*(ptr->edep)*1000;//long_coo*edep
    xz[ntof][plane]=ptr->xcoo[2];
    status=0;
    integer last;
@@ -59,33 +59,31 @@ void AMSTOFRawCluster::sitofdigi(){
    ptr=ptr->next();  
    
   }
-  for(integer kk=0;kk<4;kk++){
-  for(integer i=0;i<maxpl;i++){
+//
+  etd=1.5;// err. on long. coord.(cm)
+//
+  for(integer kk=0;kk<SCLRS;kk++){
+  for(integer i=0;i<SCMXBR;i++){
     if(xplane[kk][i]>TOFMCFFKEY.Thr){
      xtime[kk][i]=xtime[kk][i]/xplane[kk][i];
      xtimed[kk][i]=xtimed[kk][i]/xplane[kk][i];
-#if 1 
-     // change to zero when Eugeni  writes a proper code
-     geant dummy;
+     geant dummy(-1);
      number ts;
      if(RNDM(dummy)< TOFMCFFKEY.TimeProbability2)ts=TOFMCFFKEY.TimeSigma2*rnormx();
      else ts=TOFMCFFKEY.TimeSigma*rnormx();
-     xtime[kk][i]+=ts;
-     xtimed[kk][i]+=TOFMCFFKEY.TimeSigma*rnormx()*sqrt(2.);
+     xtime[kk][i]+=ts;//add error
+     xtimed[kk][i]+=rnormx()*etd;//add error
 
-#else
-      // Eugeni code here
-#endif
-    ama[0]=0.;
-    ama[1]=0.;
-    amd[0]=0.;
-    amd[1]=0.;
-    stm[0]=0.;
-    stm[1]=0.;
-    edepd=0.;
-    AMSEvent::gethead()->addnext(AMSID("AMSTOFRawCluster",0),
-    new AMSTOFRawCluster(0,kk+1,i+1,xz[kk][i],ama,amd,xplane[kk][i],
-    edepd,stm,xtime[kk][i],xtimed[kk][i]));
+     ama[0]=0.;
+     ama[1]=0.;
+     amd[0]=0.;
+     amd[1]=0.;
+     stm[0]=0.;
+     stm[1]=0.;
+     edepd=0.;
+     AMSEvent::gethead()->addnext(AMSID("AMSTOFRawCluster",0),
+     new AMSTOFRawCluster(0,kk+1,i+1,xz[kk][i],ama,amd,xplane[kk][i],
+         edepd,stm,xtime[kk][i],xtimed[kk][i],etd));
     }
 
   }
@@ -100,11 +98,11 @@ void AMSTOFRawCluster::build(int &status){
   integer ilay,last,ibar,isid,isds;
   integer i,j,chnum,brnum,am[2],tmi[2],itmf[2],sta,st;
   int16u id,idd,idN,stat[2];
-  number zc,ama[2],amd[2],qtota,qtotd,tmf[2],time,point;//input to RawCluster Constr
+  number zc,ama[2],amd[2],qtota,qtotd,tmf[2],time,coo,ecoo;//input to RawCluster Constr
   number tm[2],tf,dt,fstd;
   number amf[2],timeD,strr,tamp;
-  number brlm,pcorr,charg[2];
-  geant td2p,etd2p;
+  number charg[2];
+  geant co,eco,point,brlm,pcorr,td2p,etd2p,clong[SCLRS];
   AMSTOFRawEvent *ptr;
   AMSTOFRawEvent *ptrN;
   integer nbrl[SCLRS],brnl[SCLRS];
@@ -270,30 +268,28 @@ void AMSTOFRawCluster::build(int &status){
             TOFJobStat::addbr(brnum,2);
             tmi[0]=stdc1[0];
             tmi[1]=stdc2[0];
+            am[0]=adca1[0]; // raw values
+            am[1]=adca2[0];
             zc=TOFDBc::getzsc(ilay,ibar);
 //------
             if(TOFRECFFKEY.relogic[0]<=1){// ====> Normal and TZSL_calib reconstruction :
-//        Find position corr. to signal :
-              timeD=0.5*(tmi[0]-tmi[1])*TOFDBc::tdcbin(1)
-                   /scbrcal[ilay][ibar].gtstrat();// (t1-t2)/2 (ns)
-              scbrcal[ilay][ibar].getd2p(td2p,etd2p);// get timeD->coord factor and error
-              point=-timeD*td2p;//now Y-coord. in bar loc.r.s.
-              brlm=0.5*TOFDBc::brlen(ilay,ibar)+3.*etd2p;// limit on abs(point)
-              if(fabs(point)>brlm){
-                point=1000000.;//means "coord. is out of limit"
+//        Calc. longit. coord/err and position corr. to signal :
+              scbrcal[ilay][ibar].tmd2p(tmi,am,co,eco);// get corrected coord/err
+              brlm=0.5*TOFDBc::brlen(ilay,ibar)+3.*eco;//limit on max. coord
+              if(fabs(co) > brlm){   //means "coord. is more than counter half length"
                 pcorr=scbrcal[ilay][ibar].poscor(0.);// take position corr. as for "0"
               }
               else{
-                pcorr=scbrcal[ilay][ibar].poscor(point);
+                pcorr=scbrcal[ilay][ibar].poscor(co);
               }
 //        Find Eloss from anode :
               am[0]=adca1[0]; // take again raw values
               am[1]=adca2[0];
               qtota=scbrcal[ilay][ibar].ama2mip(am)
-                                             /pcorr; //a-tot Edep(mev) with corrections
+                                             /pcorr; //an-tot Edep(mev) with corrections
               ama[0]=am[0]*TOFDBc::tdcbin(2);// just TDC_counts->ns
               ama[1]=am[1]*TOFDBc::tdcbin(2);
-//        Find corrected(by anode TovT) time :
+//        Find counter time corrected by anode TovT :
               time=scbrcal[ilay][ibar].tm2t(tmi,am); // time with corrections
 //        Find Eloss from dinode :
               qtotd=0.;
@@ -303,7 +299,7 @@ void AMSTOFRawCluster::build(int &status){
                 am[0]=adcd1[0]; // take again raw values
                 am[1]=adcd2[0];
                 qtotd=scbrcal[ilay][ibar].amd2mip(am)
-                                              /pcorr;//d-tot Edep(mev) with corrections
+                                              /pcorr;//di-tot Edep(mev) with corrections
                 amd[0]=am[0]*TOFDBc::tdcbin(3);// raw amplitudes(ns) needed
                 amd[1]=am[1]*TOFDBc::tdcbin(3);// for later calibration
               } 
@@ -313,14 +309,17 @@ void AMSTOFRawCluster::build(int &status){
               edepa[ilay]=qtota;// store some number for histogramming
               edepd[ilay]=qtotd;
               tcorr[ilay]=time;
-              tdiff[ilay]=timeD;
+              tdiff[ilay]=0.5*(tmf[0]-tmf[1])/scbrcal[ilay][ibar].gtstrat();// raw time-diff.(ns)
               pch1[ilay]=charg[0];
               pch2[ilay]=charg[1];
               brnl[ilay]=ibar;
+              clong[ilay]=co;
               st=0;
+              coo=co;
+              ecoo=eco;
               st=AMSEvent::gethead()->addnext(AMSID("AMSTOFRawCluster",0)
               ,new AMSTOFRawCluster(sta,ilay+1,ibar+1,zc,ama,amd,
-                                  qtota,qtotd,tmf,time,point));//store values
+                                  qtota,qtotd,tmf,time,coo,ecoo));//store values
             }
 //------
           } // end of history status check
@@ -352,6 +351,7 @@ void AMSTOFRawCluster::build(int &status){
       HF1(1532,(tcorr[0]-tcorr[2]),1.);//ToF for L0->L2
       HF1(1534,(tcorr[1]-tcorr[3]),1.);//ToF for L1->L3
       HF1(1533,tdiff[0],1.);//layer=0
+      HF1(1543,clong[0],1.);
       if(AMSJob::gethead()->isSimulation()){
         geant tch;
         charg[0]=pch1[0];
@@ -436,7 +436,7 @@ void AMSTOFCluster::build(int &stat){
   static number eplane[SCMXBR+2];
   geant dummy,edep,edepl,edepa,edepd,asatl,time,etime;
   integer ntof,barn,status,plrot;
-  geant barl,barw,bars,cofg,cofgl,yloc,eyloc,c0,ct,cl;
+  geant barl,barw,bars,cofg,cofgl,yloc,eyloc,ylocm,c0,ct,cl;
   geant ed;
   AMSPoint coo,ecoo;
   int i,j,il,ib,ilay,ibar;
@@ -487,9 +487,10 @@ void AMSTOFCluster::build(int &stat){
       bars=TOFDBc::plnstr(5)-TOFDBc::plnstr(4)
                             +2.*TOFDBc::plnstr(7);//sc.bar transv. step
       TOFMCFFKEY.padl=bars;//redef. datacard's sc.bar transv.step
-      yloc=ptr->gettimeD();
-      scbrcal[ilay][ibar].getd2p(dummy,eyloc);// get timeD->coord factor and error
-      if(yloc == 1000000.){//out of bar size
+      yloc=ptr->gettimeD();// get yloc/err for "peak" bar
+      eyloc=ptr->getetimeD();
+      ylocm=0.5*barl+3.*eyloc;// limit on max. coord.
+      if(abs(yloc) > ylocm){//out of bar size
         eyloc=barl/sqrt(12.);
         yloc=0.;//at bar center
       }
@@ -503,7 +504,7 @@ void AMSTOFCluster::build(int &stat){
        cofg+=eplane[j]*(j-i);//relative to "peak" bar
        ptrr=xptr[j];   
        yloc=ptrr->gettimeD();
-       if(yloc!=1000000.){
+       if(abs(yloc) < ylocm){
         edepl+=eplane[j];
         cofgl+=eplane[j]*yloc;
        }

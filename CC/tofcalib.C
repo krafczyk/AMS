@@ -260,15 +260,13 @@ void TOFTZSLcalib::mfun(int &np, number grad[], number &f, number x[]
       exit(8);
     }
     cout<<"Open file for TzSl-calibration output, fname:"<<fname<<'\n';
-    cout<<"Strrat,slope and individual T-thr,Qathr,T0 will be written !"<<'\n';
+    cout<<"Strrat,slope and individual T-thr,Qa-thr,T0 will be written !"<<'\n';
     strrat=geant(1./x[1]);
     slope=geant(x[0]);
     tcfile << strrat;
     tcfile << slope;
     for(il=0;il<SCLRS;il++){
       for(ib=0;ib<SCMXBR;ib++){
-        tcfile << scbrcal[il][ib].gettthr();
-        tcfile << scbrcal[il][ib].getqathr();
         tzero[il][ib]=geant(x[2+il*SCMXBR+ib]);
         tcfile << tzero[il][ib];
       }

@@ -355,7 +355,11 @@ TKFINI();
 //========================================================================
 void AMSJob::_retofdata(){
   char cfname[12]="geomconf";//generic geomconfig-file name (max 11 letters)
-  TOFRECFFKEY.Thr1=0.45;// Threshold (mev) on peak bar energy 
+//                          (version #01/02-> shuttle/Alpha will be added autom.)
+  char tzslsr[12]="tzcalib01";//generic t0,slope,str-ratio file-name(max.11 lett)
+//                           (mc/rl->MC/Real will be added automatically)
+// 
+  TOFRECFFKEY.Thr1=0.45;// Threshold (mev) on peak bar energy
   TOFRECFFKEY.ThrS=0.9; // Threshold (mev) on total cluster energy
 //
   TOFRECFFKEY.reprtf[0]=0; // RECO print flag 
@@ -369,8 +373,6 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.relogic[2]=0;// RECO logic flag 
   TOFRECFFKEY.relogic[3]=0;// RECO logic flag 
   TOFRECFFKEY.relogic[4]=0;// RECO logic flag
-//
-  UCTOH(cfname,TOFRECFFKEY.config,4,12);
 //
   TOFRECFFKEY.daqthr[0]=40.;//thresh(mV) for discr. of "z>=1"-trig (fast/slow_TDC) 
   TOFRECFFKEY.daqthr[1]=100.;//thresh(mV) for discr. of "z>1"-trig  
@@ -388,6 +390,10 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.cuts[7]=0.;
   TOFRECFFKEY.cuts[8]=0.;
   TOFRECFFKEY.cuts[9]=0.;
+//
+  UCTOH(cfname,TOFRECFFKEY.config,4,12);
+//
+  UCTOH(tzslsr,TOFRECFFKEY.tzerca,4,12);
 //  
   TOFRECFFKEY.sec[0]=0; 
   TOFRECFFKEY.sec[1]=0;
@@ -621,7 +627,7 @@ void AMSJob::_sitofinitjob(){
     }
 //------------------------------------------------
 // ===> create scmcscan structure :
-//                                  <-- first read tdfmap-file
+//                                  <-- first read t-distr.map-file
     int i,ic;
     int brfnam[SCBLMX];
     char fname[80];
@@ -784,6 +790,7 @@ void AMSJob::_retofinitjob(){
       HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,240.,0.);
       HBOOK1(1532,"(T1-T3)(ns),corr,ideal evnt",50,3.,6.,0.);
       HBOOK1(1533,"L=1,side1/2 Tdiff(ns),ideal evnt",100,-4.,0.,0.);
+      HBOOK1(1543,"L=1,longit.coordinate,ideal evnt",100,-50.,50.,0.);
       HBOOK1(1534,"(T2-T4)(ns),corr,ideal evnt",50,3.,6.,0.);
       HBOOK1(1535,"L=1,TOF Eclust(mev)",80,0.,24.,0.);
       HBOOK1(1536,"L=3,TOF Eclust(mev)",80,0.,24.,0.);
@@ -830,7 +837,7 @@ void AMSJob::_retofinitjob(){
 //
  tofvpar.init(TOFRECFFKEY.daqthr, TOFRECFFKEY.cuts);//daqthr/cuts reading
 //-------------------------
-// ===> create scbrcal structures :
+//                ===> create scbrcal structures :
 // 
  integer i,j,ila,ibr,ibrm,isp,nsp,ibt,cnum,dnum,mult;
 //
@@ -842,18 +849,53 @@ void AMSJob::_retofinitjob(){
  geant r,eff1,eff2;
  integer sid,brt;
  geant gna[2],gnd[2],qath,qdth,a2dr,tth,strat;
- geant fstrd,tzer,mip2q;
- geant tzero[SCBTPN]={4.20,5.02,5.57,5.89,6.03};// tempor T0's by bar types
+ geant slope,fstrd,tzer,mip2q;
+ geant tzerf[SCLRS][SCMXBR],slpf,strf; 
+ char fname[80];
+ char name[80];
+ geant asatl=20.;//(mev,~10MIPs),if E-dinode(1-end) higher - use it instead
+//                                 of anode measurements
+ geant td2p[2]={16.9,1.8};// tempor timeD->coord conv.factor(cm/ns) and error(cm)
+//  
 //
-//----  
-// 
- if(isMCData()){ // For MC :
+//   ---> Read tzero/slope/str_ratio calib.file :
+//
+ char vers1[3]="mc";
+ char vers2[3]="rl";
+ UHTOC(TOFRECFFKEY.tzerca,4,name,12);
+ if(isMCData()) // MC-event
+ {
+       cout <<" TOFTzSlSr-I t0-calibr. for MC-events selected."<<endl;
+       strcat(name,vers1);
+ }
+ else                                                      // Real events
+ {
+       cout <<" TOFTzSlSr-I t0-calibr. for Real-events selected."<<endl;
+       strcat(name,vers2);
+ }
+ strcat(name,".dat");
+ strcpy(fname,AMSDATADIR.amsdatadir);    
+// strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");
+ strcat(fname,name);
+ cout<<"Open file : "<<fname<<'\n';
+ ifstream tcfile(fname,ios::in); // open Tzero/Sl/Str_Ratio file for reading
+ if(!tcfile){
+   cerr <<"TOFTzSlStr-read: Error open Tzero/Slope/Str_Ratio-file "<<fname<<endl;
+   exit(1);
+ }
+ tcfile >> strf;
+ tcfile >> slpf;
+ for(ila=0;ila<SCLRS;ila++){   // <-------- loop over layers
+ for(ibr=0;ibr<SCMXBR;ibr++){  // <-------- loop over bar in layer
+   tcfile >> tzerf[ila][ibr];
+ } // --- end of bar loop --->
+ } // --- end of layer loop --->
+//
+//------------- 
+ if(isMCData()){ //                                          For MC data:
 //
 //---> TOFBrcal bank variables init :
 //
-  geant slope=3.18;// tempor
-//---
-  geant td2p[2]={16.9,1.8};// tempor timeD->coord conv.factor(cm/ns) and error(cm)
 //---
   geant logqin[SCACRFP]={ //  Log(inp_charge(mV*ns)) ref.points
      0.,0.98,1.94,2.9,3.86};               // (Log(Q_thresh) is subtracted)
@@ -864,8 +906,6 @@ void AMSJob::_retofinitjob(){
   geant tovtd[SCACRFP]={ // measured(Tovt) amplitude points
      0.,50.,100.,150.,200.};      //  ("dinode" chain, ns)
 //---
-  geant asatl=20.;//(mev,~10MIPs),if E-dinode(1-end) higher - use it instead
-//                                 of anode measurements
 //
 //---------------------------------------------
 //   ===> fill TOFBrcal bank :
@@ -881,14 +921,13 @@ void AMSJob::_retofinitjob(){
     gna[1]=1.;
     gnd[0]=1.;
     gnd[1]=1.;
+    tth=tofvpar.daqthr(0); // (mV), time-discr. threshold
     qath=tofvpar.daqthr(3); // (pC) thresh. at shaper inp.(anode) (may be diff.
 //              from tofvpar.daqthr(3) in reality !!!, but proportional to him)
     qdth=tofvpar.daqthr(4); // ...................        (dinode) ................
     mip2q=117.;//(pC/mev), dE(mev)_at_counter_center->Q(pC)_at_PM_anode(2x3-sum)
     //                     (depends on bar-type)
     a2dr=1./TOFDBc::di2anr();// anode_to_dinode signal ratio from MC
-    tth=tofvpar.daqthr(0); // (mV), time-discr. threshold
-    strat=TOFDBc::strrat(); // tempor stratcher ratio from MC
     fstrd=TOFDBc::accdel(0)-TOFDBc::accdel(1);//(ns),fast-slow TDC trigger delay
     int mrfp;
     mrfp=SCANPNT/2+1;
@@ -898,7 +937,9 @@ void AMSJob::_retofinitjob(){
     }
   //
     sid=100*(ila+1)+(ibr+1);
-    tzer=tzero[brt-1];// tempor (later should be red from DB)
+    strat=strf;//from ext. file
+    slope=slpf;//from ext. file
+    tzer=tzerf[ila][ibr];//from ext. file
     sta[0]=0;//status ok, really should be taken from slow-control data or manually
     sta[1]=0;
     scbrcal[ila][ibr]=TOFBrcal(sid,sta,gna,gnd,qath,qdth,a2dr,asatl,tth,
