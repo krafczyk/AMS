@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.94 2003/07/29 17:17:17 choutko Exp $
+//  $Id: server.C,v 1.95 2003/09/18 09:04:30 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -2168,12 +2168,14 @@ if(pcur->InactiveClientExists(getType()))return;
      ((ac.ars)[0]).uid=0;
     if(_parent->IsMC()){
       // find run from very beginning, as whole script path depend on it
-        ac.id.StatusType=DPS::Client::OneRunOnly;
         RunEvInfo_var   reinfo;
         DSTInfo_var   dstinfo;
-        getRunEvInfo(ac.id,reinfo,dstinfo);      
+        getRunEvInfo(ac.id,reinfo,dstinfo);     
+        ac.id.StatusType=DPS::Client::OneRunOnly;  
         if(dstinfo->DieHard){
-         //  run not found, aborting client
+           cout << " failed "<<dstinfo->DieHard<<endl;
+ 
+              //  run not found, aborting client
          HostClientFailed(ahlv); 
          _parent->EMessage(AMSClient::print(ac,"Server_impl::RunNotfounfFor "));
           _pser->Lock(pid,DPS::Server::ClearStartClient,getType(),_StartTimeOut);  
@@ -2907,8 +2909,9 @@ void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out ro,D
      }
     }
   if(dv->DieHard==0){
-
+   cout << " dbserver ? " <<endl;
  if(_parent->DBServerExists()){
+   cout << " dbserver !!! "<<endl;
   DPS::Client::CID tcid(cid);
    if(!permanent)tcid.StatusType=DPS::Client::OneRunOnly;
   bool succ=getRunEvInfoSDB(tcid,rv,dv);
@@ -2917,13 +2920,14 @@ void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out ro,D
    dv->DieHard=2;
    ro=rv._retn();
    dso=dv._retn();
+   cout <<" die hard !!!!!1 "<<endl;
    return;
  }
  
 }
 else{
 
-
+  cout << "  No DNb server !!!"<<endl;
 {
  DSTILI li=find_if(_dstinfo.begin(),_dstinfo.end(),DSTInfo_find(cid));
  if(li==_dstinfo.end())li=_dstinfo.begin();
