@@ -1,3 +1,6 @@
+package Mover;
+
+
 # Program copies files from 'source' directory to 'target'
 # does validation and updates database.
 # All files matching to 'source' are copying, only files 
@@ -8,9 +11,8 @@
 # -ior  - path to file with IOR (optional)
 # -D    - database handler      (f.e. Oracle:) (optional)
 # -F    - database file         (f.e. amsdb)   (optional)
+# -v    - verbose                              (optional)
 #
-#
-package Mover;
 
 
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -23,12 +25,11 @@ use lib::POAMonitor;
 
 use lib::DBServer;
 use Time::Local;
-use lib::DBSQLServer;
 
-@Mover::EXPORT= qw(new Connect readDB doCopy doRemove doValidate updateDB);
+@Mover::EXPORT= qw(new Connect doCopy);
 
-my @srcfiles;
-my $nfiles = 0;
+my @data=();
+my $nrows = 0;
 
 my %fields=(
     cid=>undef,
@@ -37,10 +38,11 @@ my %fields=(
     mypoamonitor=>undef,
     myref=>undef,
     myior=>undef,
-
+    AMSDataDir=>undef,
+    AMSSoftwareDir=>undef,
      arsref=>[],
      arpref=>[],
-
+    verbose=>undef,
     ac=>undef,
     start=>undef,
     source=>undef,
@@ -50,7 +52,6 @@ my %fields=(
     sourcefile=>undef,
     ok=>undef,
     registered=>0,
-    sqlserver=>undef,
     DataMC=>1,
     IOR=>undef,
             );
@@ -73,6 +74,7 @@ my $time;
               %fields,
           };
     $self->{start}=time();
+    $self->{verbose} = 0;
 
 
 # check sintaksis
@@ -83,6 +85,10 @@ foreach my $chop  (@ARGV){
     }
     if($chop =~/^-T/){
         $output=unpack("x2 A*",$chop);
+    }
+
+    if($chop =~/^-v/){
+        $self->{verbose} = 1;
     }
 }
 
@@ -147,6 +153,18 @@ else{
     $self->{AMSDataDir}="/f2dat1/AMS01/AMSDataDir";
     $ENV{AMSDataDir}=$self->{AMSDataDir};
 }
+   $dir=$ENV{AMSSoftwareDir};
+if (defined $dir){
+    $self->{AMSSoftwareDir}=$dir;
+}
+else{
+    $self->{AMSSoftwareDir}="/offline/vdev";
+    $ENV{AMSSoftwareDir}=$self->{AMSSoftwareDir};
+}
+if ($self->{verbose}) {
+    print "Environment settings AMSDataDir : $self->{AMSDataDir}\n";
+    print "Environment settings AMSSoftwareDir : $self->{AMSSoftwareDir}\n";
+}
 #
 my $mybless=bless $self,$type;
 if(ref($Mover::Singleton)){
@@ -161,61 +179,73 @@ return $mybless;
 
 
 sub doCopy {
+    my $status=>undef;
+    my @cpntuples=();
     my $self = shift;
     my $input  = $self->{source};
-    my $output = $self->{target};
+    my $output = $self->{targetdir};
 
-#sqlserver
-    $self->{sqlserver}=new DBSQLServer();
-    $self->{sqlserver}->Connect();
-    $self->readDB($input);
-    if ($nfiles < 1) {
-     print "doCopy -W- no files matching to path : $input found in DB\n";
-    }
     my $ref = $Mover::Singleton;
     $ref->readServer();
-    $ref->getValidatedNTuples();
-# do copy || file by file if it matches to the DB list
-# hostname
+    my $nn = $ref->getNTuples($input);
+    if ($nrows > 0) {
+     if ($self->{verbose}) {
+        print "doCopy -I- $nrows files will be copied\n";
+     }
+#
+# do copy file by file if it matches to the DB list,
+# validate output if copy or validation fail then exit
 #
   my $time = time();
   my $logfile = "/tmp/cp.$time.log";
-  my $cmd = "cp -pi -d -v -r $input $output > $logfile";
-  my $status = system($cmd);
-  if ($status != 0) {
-   die "Copy failed :  $cmd"
-  }
-  if ($self -> doValidate()) {
-# sendDSTEnd($action="Create","Delete")
-   if ($self -> updateDB()) {
-     $self -> commitDB();
-     $self -> doRemove();
-    } else {
-      warn "updateDB failed for $output no commit";
-      $self -> ErrorPlus("Copy finished abnormally");
-
+  my $cmd = "touch $logfile";
+     $status = system($cmd);
+  my $nleft=6;
+   for  my $i (0...$nrows) {
+     my $row = $data[$i];
+     my ($host,$ntuple,$events,$run,$insert,$fevent,$levent,$size,$type) = split(/:/,$row);
+     $ntuple=~s/\/\//\//;
+     my ($dir,$file) = parseArgs($ntuple);
+     my $tpath = $output.$file;
+     push @cpntuples,$tpath;
+     $cmd = "cp -pi -d -v -r $ntuple  $tpath >> $logfile";
+     $status = system($cmd);
+     if ($status == 0) {
+       my $vstatus=$self->doValidate($tpath,$events);
+       if ($vstatus ne "OK") {
+           print "doCopy -W- validation failed for $tpath \n";
+           print "doCopy -I- delete all previuosly copied NTuples and exit\n";
+           $status = -1;
+       }
+     }
+     if ($status != 0) {
+      print "doCopy -E- Copy failed :  $cmd \n";
+      print "doCopy -I- Remove all copied NTuples \n";
+      foreach my $rmntuple (@cpntuples) {
+       $cmd = "rm -f  $output.$rmntuple >> $logfile";
+       $status = system($cmd);
+       goto LAST;
+    }
    }
-  } else {
-      warn "Validation failed for $output";
-      $self -> ErrorPlus("Copy finished abnormally");
   }
+ if ($self->{verbose}) {
+   print "doCopy -I- $#cpntuples are copied to $output\n";
+ }
+#
+# Update NTuples paths
+# sendDSTEnd($action="Create","Delete")
+#
+    updateNTuples("Create",$output);
+    updateNTuples("Delete",$output);
+    $self -> doRemove();
+ } else {
+   print "doCopy -I- Nothing to copy\n";
+   print "doCopy -I- No Validated NTuples or/and NT's paths don't match to $input\n";
+ }  
+LAST : 
+    return $status;
 }
 
-sub readDB {
-# check files in database
-    my $self = shift;
-    my $input = shift;
-# check for '*' and replace it by '%'
-    $input =~ s/\*/\%/;
-    my $sql = "SELECT path FROM ntuples WHERE path LIKE '$input'";
-    my $r3=$self->{sqlserver}->Query($sql);
-    if(defined $r3->[0][0]){
-     foreach my $path (@{$r3}){
-         $srcfiles[$nfiles] = $path;
-         $nfiles++;
-         }
-  }
-}
 
 sub readServer {
 #
@@ -247,38 +277,129 @@ LAST :
     return 1;
 }
 
-sub getValidatedNTuples {
 
-    my @output=();
-    my @text=();
-    my @final_text=();
+sub getNTuples {
+
+#
+# get from Server NTuples with status "Validated" and "Success" 
+# NT's with status "Success" must be validated
+#
+    my $self = shift;
+    my $path = shift;
+
     my @sort=("Validated", "Success");
         foreach my $sort (@sort) {    
         for my $i (0 ... $#{$Mover::Singleton->{dsts}}){
-            $#text=-1;
             my $hash=$Mover::Singleton->{dsts}[$i];
             if($hash->{Type} eq "Ntuple"){
                 if($hash->{Status} eq $sort){
-                    print "$sort : $hash->{Name}\n";
+# suppress double //
+                    my $ntuple    = $hash->{Name};
+                    my $events    = $hash->{EventNumber};
+                    $ntuple=~s/\/\//\//;
+                    my @fpatha=split ':', $ntuple;
+                    my $fpath=$fpatha[$#fpatha];
+                    my ($dir,$file) = parseArgs($fpath);
+                    print "$sort $dir $file \n";
+                    if ($dir eq $self->{sourcedir}) {
+# check filename here
+                     if ($sort ne "Validated") {
+                       my $status = $self->doValidate($ntuple,$events);
+                       if ($status ne "OK") {
+                           print "getNTuples -W- $ntuple not validated\n";
+                           print "getNTuples -W- returned status : $status\n";
+                           print "getNtuples -W- skip it\n";
+                       } else {
+                           $sort = "Validated";
+                       }
+                   }
+                   if ($sort eq "Validated") {
+                    push @data,$ntuple,":",$events,":",$hash->{Run},":",$hash->{Insert},":",
+                         $hash->{FirstEvent},":",$hash->{LastEvent},":",
+                         $hash->{size},":",$hash->{Type};
+                    $nrows++;
+                  }
+                 }
+                  
                 }
             }
         }
     }
+    return $nrows;
 }
 
+sub updateNTuples {
+
+#
+# get from Server NTuples with status "Validated" and "Success" 
+# NT's with status "Success" must be validated
+#
+   my ($action,$path) = @_;
+   my $ref=$Mover::Singleton;
+   for my $i (0 ... $nrows){
+    my $row = $data[$i];
+    my ($host,$ntuple,$events,$run,$insert,$fevent,$levent,$size,$type)=split(/:/,$row);
+    my ($dir,$file) = parseArgs($ntuple);
+    my %nc=%{${$ref->{dsts}}[$i]};  
+    $nc{Name}       = $path.$file;
+    $nc{Run}       = $run;
+    $nc{Insert}    = $insert;
+    $nc{FirstEvent}= $fevent;
+    $nc{LastEvent} = $levent;
+    $nc{size}      = $size;
+    $nc{Status}    = "Validated";
+    $nc{Type}      = $type;
+
+   my $arsref;
+   my %cid=%{$ref->{cid}};
+
+   foreach $arsref (@{$ref->{arpref}}){
+       try{
+           $arsref->sendDSTEnd(\%cid,\%nc,$action);
+       }
+       catch CORBA::SystemException with{
+           warn "sendback corba exc";
+       };
+   }
+  }
+}
 sub doValidate {
-# validate output RC L645-693
-    return 1;
+#
+# validate output from RemoteClient.pm  L645-693
+#
+    my $self   = shift;
+    my $ntuple = shift;
+    my $events = shift;
+    my $vexe   = $self->{AMSSoftwareDir}."/exe/linux/fastntrd.exe";
+    my @fpatha=split ':', $ntuple;
+    my $fpath=$fpatha[$#fpatha];
+    if ($self->{verbose}) {
+        print "doValidate -I- by $vexe $fpath $events\n";
+    }
+    my $suc=open(FILE,"<".$fpath);
+    my $status="OK";
+    if(not $suc){
+      $status="Unchecked";
+    }
+    else{
+     close FILE;
+     my $i=system("$vexe $fpath $events");
+     if( ($i == 0xff00) or ($i & 0xff)){
+                $status="Unchecked";
+            }
+        else{
+            $i=($i>>8);
+            if(int($i/128)){
+                $status="Bad".($i-128);
+            }
+            else{
+                $status="OK";
+            }
+        }
+    }
+    return $status;
 }
 
-sub updateDB {
-# update db
-    return 1;
-}
-
-sub commitDB {
-# commit db
-}
 
 sub doRemove {
 # delete input files
@@ -589,7 +710,6 @@ sub UpdateARS{
              };
 
          }   
-
          last;
      }
     catch CORBA::SystemException with{
