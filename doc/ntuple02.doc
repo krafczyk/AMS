@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.12 2001/05/09 15:16:41 choutko Exp $
+#  $Id: ntuple02.doc,v 1.13 2001/05/16 15:24:17 choutko Exp $
 This is AMS02 Ntuple Description
 
  *****************************************
@@ -393,6 +393,8 @@ This is AMS02 Ntuple Description
  * I*4  *          * RING     * trackn(nrings)        // Pointer to track
  * I*4  *          * RING     * hused(nrings)         // Nb. of RICH hits in a ring matching the track
  * R*4  *          * RING     * rbeta(nrings)         // Reconstructed beta
+ * R*4  *          * RING     * rbeta(nrings)         // Reconstructed beta
+ * R*4  *          * RING     * erichbeta(nrings)         // error beta
  * R*4  *          * RING     * quality(nrings)       // Chi2/ndof for the beta
 
  * I*4  *          * TRDMCCL  * ntrdmccl              // no of trd clusters

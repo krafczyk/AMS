@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.7 2001/04/28 14:18:52 kscholbe Exp $
+#  $Id: Mopt_Root,v 1.8 2001/05/16 15:24:17 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -28,8 +28,10 @@ EXE=../exe/aix/
 LIB=../lib/aix/
 TIMEL=
 endif
-ROOTLIBS      = -L$(ROOTSYS)/lib -lCore -lCint -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics 
+#ROOTLIBS      = -L$(ROOTSYS)/lib  -lCore -lCint -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics 
+ROOTLIBS      = -L$(ROOTSYS)/lib  -lBase -lCint -lClib -lCont -lFunc -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMeta -lMinuit -lNet -lPhysics -lPostscript -lProof -lTree -lRint -lTree -lUnix -lZip  
 #ROOTLIBS      = $(shell root-config --libs)
+
 ifeq  "$(shell uname)"  "OSF1" 
 SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
 ifdef AMSDEBUG
@@ -179,12 +181,15 @@ OBJECTSC= $(BIN)gbatch_c.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)nod
 
 standalone: $(EXE)/gbatch_r.exe
 
+shared:	$(OBJECTS)
+	$(LD) -O -Wl,-expect_unresolved -shared $(OBJECTS) $(LDFLAGS) -o $(LIB)amsmc.sl
+
 $(EXE)/gbatch_r.exe:	$(OBJECTS)
 	$(LD) -v -o $(EXE)/gbatch_r.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
 $(BIN)rootdict.C:         ../include/root_R.h ../include/root.h
 	@echo "Generating dictionary"
-	@rootcint   -f $(BIN)rootdict.C -c ../include/root_R.h ../include/linkdef.h
+	$(ROOTSYS)/bin/rootcint   -f $(BIN)rootdict.C -c ../include/root_R.h ../include/linkdef.h
 	@echo "OK"
 
 $(BIN)rootdict.o:         $(BIN)rootdict.C

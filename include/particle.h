@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.29 2001/05/09 15:16:41 choutko Exp $
+//  $Id: particle.h,v 1.30 2001/05/16 15:24:17 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -114,7 +114,7 @@ public:
   number beta, number ebeta,number mass, number errmass, number momentum, number errmomentum,
   number charge, number theta, number phi, AMSPoint coo): 
   _pbeta(pbeta), _pcharge(pcharge), _ptrack(ptrack), 
-  _Mass(mass),_Beta(beta),_ErrBeta(ebeta),
+  _Mass(mass),_Beta(beta),_ErrBeta(ebeta),_ptrd(0),_prich(0),
   _ErrMass(errmass), _Momentum(momentum), _ErrMomentum(errmomentum),
   _Charge(charge), _Theta(theta), _Phi(phi), _Coo(coo)
  {
