@@ -102,7 +102,7 @@ int backup(char * dir1, char * dir2, int erase){
       cout <<"Backup-F-CanNotScanDir "<<dir1<<endl;
       exit(1);
     }
-    ar1= new char*[l1];
+    if(l1>0)ar1= new char*[l1];
     for(i=0;i< l1;i++)ar1[i]=namelist1[i]->d_name;
     int l2 = scandir(dir2, &namelist2,&_select,&_sort);
     if (l2<0) {
@@ -116,7 +116,7 @@ int backup(char * dir1, char * dir2, int erase){
         exit(1);
       }
     }
-    ar2= new char*[l2];
+    if(l2>0)ar2= new char*[l2];
     for(i=0;i< l2;i++)ar2[i]=namelist2[i]->d_name;
     // first scand dir2 and remove unnecessary files
     for(i=0;i<l2;i++){
@@ -235,6 +235,7 @@ int il=1;
 int ir=1;
 int ib=i-1;
 int j=0;
+if(i<1)return 0;
 while(ia<ib-1 || il*ir){
   int k=(ia+ib)/2;
   int i=strcmp(obj,a[k]);
