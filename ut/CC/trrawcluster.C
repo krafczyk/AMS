@@ -828,6 +828,19 @@ void AMSTrRawCluster::buildrawMixed(integer n, int16u *p){
       int leng=0;
       for(p2=ptr+2;p2<ptr+rl-1;p2+=leng+3){
         leng=(*p2)&63;
+
+        // change here TSRA
+        if(tdrn<16){
+          //S
+          *(p2+1)= (*(p2+1)) & (~(15<<11));
+          *(p2+1)= (*(p2+1)) | (tdrn<<11);
+        }
+        else {
+          // K;
+                    *(p2+1)= (*(p2+1)) & (~(7<<12));
+                    *(p2+1)= (*(p2+1)) | ((tdrn-16)<<12);
+        }
+
         AMSTrIdSoft id(ic,int16u(*(p2+1)));
         if(!id.dead() ){
           if(id.teststrip(id.getstrip()+leng)){

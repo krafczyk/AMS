@@ -1067,6 +1067,11 @@ void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
   if(ic<0){
       ic=AMSTrRawCluster::checkdaqidMixed(*p)-1;
       mixed=2;
+      static int mess=1;
+      if(mess){
+        cout <<"AMSTrIdCalib::buildSigmaPedB-I-MixedModeFound"<<endl;
+        mess=0;
+      }
   }
   int16u * ptr=p+1;
   // Main loop
@@ -1076,8 +1081,7 @@ void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
     integer subl=*ptr;
     integer ntdr = *(ptr+1) & 31;
     int16u *ptro=ptr;
-    
-    if(subl != 3084){
+    if(subl != 3084 || mixed){
       // Probably new format
       oldformat=0; 
     }
