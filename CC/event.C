@@ -1712,7 +1712,8 @@ void AMSEvent::_writeEl(){
   EventNtuple* EN = AMSJob::gethead()->getntuple()->Get_event();
   EN->EventStatus=getstatus();
   EN->Eventno=_id;
-  EN->RawWords=nws;
+  EN->RawWords=nws<(1<<20)?nws:((1<<20)-1);
+  EN->RawWords+=(AMSCommonsI::getbuildno())<<20;
   EN->Run=_run;
   EN->RunType=_runtype;
   EN->Time[0]=_time;

@@ -16,7 +16,7 @@ Below there is a description of a  ntuple.
 * I*4  *              * EVENTH   * time(2)          // Event time
                                                     // (1) Unix time (sec)
                                                     // (2) usec time
-* I*4  *              * EVENTH   * rawwords         // Event Lenght in bytes
+* I*4  *              * EVENTH   * rawwords         // Event Lenght in bytes (20 low bits, program version (12 high bits) 
 * R*4  *              * EVENTH   * RadS             // Shuttle Altitude ( I2000 cm)
 * R*4  *              * EVENTH   * ThetaS           // Shuttle Lattitude (GTOD rad)
 * R*4  *              * EVENTH   * PhiS             // Shuttle phi (GTOD rad)
@@ -42,12 +42,11 @@ Below there is a description of a  ntuple.
 * I*4  *              * EVENTH   * CTCClusters      // No of Cerenkov clusters
 * I*4  *              * EVENTH   * CTCMCClusters    // No of Cerenkov MC hits
 * I*4  *              * EVENTH   * AntiMCClusters   // No of Anti MC Hits
-* I*4  *              * EVENTH   * AntiClusters     // No of Amti clusters
+* I*4  *              * EVENTH   * AntiClusters     // No of Anti clusters
 * I*4  *              * EVENTH   * EventStatus      // EventStatus (see status.doc)
 
 * I*4  * [0,10]       * BETA     * nbeta             // betas number
 * I*4  *              * BETA     * betastatus        // 4 - ambig
-                                                        ******)
 * I*4  *              * BETA     * betapattern(nbeta) // beta pattern(beta.doc) 
 * R*4  *              * BETA     * beta(nbeta)       // velocity
 * R*4  *              * BETA     * betac(nbeta)       // corrected velocity

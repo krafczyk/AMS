@@ -165,10 +165,10 @@ TriggerLVL3 *ptr=(TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
           //track found, go out
           goto found;
          }
-         else phit[fp]=phit[fp]->next(); 
+         phit[fp]=phit[fp]->next(); 
         }
        }
-       else phit[0]=phit[0]->next(); 
+       phit[0]=phit[0]->next(); 
       }
      }
     }
@@ -429,12 +429,12 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 #ifdef __UPOOL__
           pbeta=new AMSBeta(beta);
 #endif
-           for(int i=0;i<npatb;i++){
-             if((AMSEvent::gethead()->getC("AMSBeta",i))->getnelem()){
-              pbeta->setstatus(AMSDBc::AMBIG);
-              break;
-             } 
-           }
+//           for(int i=0;i<npatb;i++){
+//             if((AMSEvent::gethead()->getC("AMSBeta",i))->getnelem()){
+//              pbeta->setstatus(AMSDBc::AMBIG);
+//              break;
+//             } 
+//           }
  
           AMSEvent::gethead()->addnext(AMSID("AMSBeta",pat),pbeta);
           return 1;
