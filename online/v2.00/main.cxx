@@ -72,7 +72,7 @@ void main(int argc, char *argv[])
   amd->AddSubDet(CTCh);
   AMSAxAMSHist  AxAMSh("AxAMS","AxAMS  Hists",2,1);
   amd->AddSubDet(AxAMSh);
-  AMSGenHist  Genh("Gen","Gen  Hists",4,1);
+  AMSGenHist  Genh("Gen","Gen  Hists",5,1);
   amd->AddSubDet(Genh);
 
   amd->Init();

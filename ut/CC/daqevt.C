@@ -7,6 +7,8 @@
 integer DAQEvent::_Buffer[50000];
 integer DAQEvent::_BufferLock=0;
 const integer lover=2;
+time_t        Time_1;
+
 DAQEvent::~DAQEvent(){
 shrink();
 }
@@ -196,9 +198,16 @@ integer DAQEvent::_HeaderOK(){
     if(AMSEvent::checkdaqid(*(_pcur+1))){
       AMSEvent::buildraw(*(_pcur)+_OffsetL-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
       _Checked=1;
+    if (AMSJob::gethead()->isMonitoring()) {
+     if (Time_1 != 0 && _Time > Time_1) {
+      geant d = (_Time - Time_1)/1000.;
+      HF1(300003,d,1.);
+     }
+     Time_1 = _Time;
+    }      
 #ifdef __AMSDEBUG__
-      //      cout << "Run "<<_Run<<" Event "<<_Event<<" RunType "<<_RunType<<endl;
-      //      cout <<ctime(&_Time)<<" usec "<<_usec<<endl;
+      //cout << "Run "<<_Run<<" Event "<<_Event<<" RunType "<<_RunType<<endl;
+      //cout <<ctime(&_Time)<<" usec "<<_usec<<endl;
 #endif
       // fix against event 0
       if(_Event==0)return 0;
@@ -343,6 +352,7 @@ void DAQEvent::init(integer mode, integer format){
          if (daq.runno() != run){
           cout <<" DAQEvent::init-I-New Run "<<daq.runno()<<endl;
           run=daq.runno();
+          Time_1 = 0;
         } 
          if(SELECTFFKEY.Event >=0 && daq.runno() == SELECTFFKEY.Run &&
          daq.eventno() >= SELECTFFKEY.Event)break;

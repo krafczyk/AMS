@@ -6,7 +6,8 @@
 #include <TPaveText.h>
 ClassImp(AMSGenHist)
 
-const   int nids = 19;
+const   int nids    =     20;
+const   int tdiffId = 300003;
 
 unsigned int hids[nids] =
   { 0, 1, 2, 0x200,
@@ -14,6 +15,7 @@ unsigned int hids[nids] =
     0x1680, 0x1740,                                           //  TRK Reduced
     0x1681, 0x1741,                                           //  TRK Raw
     0x168C, 0x174C,                                           //  TRK Mixed
+    3,                                                        //  time diff
     0x0440                                                    //  Level-3
   };
 
@@ -41,16 +43,26 @@ void AMSGenHist::_Fetch(){
       if(_fetched2[i]){
         _fetched2[i]->SetXTitle("Bytes*2");
         _fetched2[i]->SetFillColor(41);
+        if (ii == tdiffId) {
+          TF1 f1
+          ("vcg","[0]*exp(-x*[1])+[2]*exp(-(x-[3])/[4]*(x-[3])/[4]/2)",0,20);
+          f1.SetParameter(0,1.);
+          f1.SetParameter(1,0.7);
+          f1.SetParameter(2,10.);
+          f1.SetParameter(3,6.);
+          f1.SetParameter(4,1.5);
+          _fetched2[i]->Fit("vcg","Q");
+        }
       }
     }
 }
 
 void AMSGenHist::ShowSet(Int_t Set){
-  const int sets = 4;
+  const int sets = 5;
   gPad->Clear();
-  int init[sets+1]    = {0, 4, 12, 14, 18};
-  int divideU[sets] = {2 , 4, 1, 2};
-  int divideL[sets] = {2 , 2, 2, 2};
+  int init[sets+1]    = {0, 4, 12, 14, 18, 19};
+  int divideU[sets] = {2 , 4, 1, 2, 1};
+  int divideL[sets] = {2 , 2, 2, 2, 1};
   TVirtualPad * gPadSave;
 
     int ii   = init[Set];
