@@ -2058,10 +2058,8 @@ AMSTrRecHit *phit=_Pthit[0];
  AMSPoint SenPnt=phit->getHit();
  number sleng;
  interpolate(SenPnt, SenDir, _HP0[1], _HTheta[1], _HPhi[1], sleng);
- 
-
-
-
+ if(_HTheta[1]<AMSDBc::pi/2)_HTheta[1]=AMSDBc::pi-_HTheta[1];
+  
 }
 else if(fit==3){
 #ifdef __AMSDEBUG__

@@ -820,8 +820,7 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 // decoding of block-id :
 //
   crate=(blid>>6)&7;// node_address (0-7 -> DAQ crate #)
-//  dtyp=1-(blid&63);// data_type ("0"->RawTDC; "1"->ReducedTDC)
-  dtyp=(blid&63);// data_type ("0"->RawTDC; "1"->ReducedTDC)
+  dtyp=1-(blid&63);// data_type ("0"->RawTDC; "1"->ReducedTDC)
 #ifdef __AMSDEBUG__
   if(ANTIRECFFKEY.reprtf[1]>=1){
     cout<<"Anti::decoding: crate/format="<<crate<<" "<<dtyp<<"  bias="<<bias<<endl;
