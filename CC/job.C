@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.360 2001/03/05 10:51:18 choutko Exp $
+// $Id: job.C,v 1.361 2001/03/06 16:37:02 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -12,6 +12,7 @@
 #include <tofdbc02.h>
 #include <tofdbc.h>
 #include <ecaldbc.h>
+#include <ecalcalib.h>
 #include <amsgobj.h>
 #include <astring.h>
 #include <cern.h>
@@ -95,14 +96,17 @@ const uinteger AMSJob::CRICH=128;
 const uinteger AMSJob::CTRD=256;
 const uinteger AMSJob::CSRD=32;       // Same as cerenkov 
 const uinteger AMSJob::CAMS=512;
-const uinteger AMSJob::MTracker=1024;
-const uinteger AMSJob::MTOF=2048;
-const uinteger AMSJob::MAnti=4096;
-const uinteger AMSJob::MCerenkov=4096*2;
-const uinteger AMSJob::MLVL1=4096*4;
-const uinteger AMSJob::MLVL3=4096*8;
-const uinteger AMSJob::MAxAMS=4096*16;
-const uinteger AMSJob::MAll=4096*32;
+const uinteger AMSJob::CEcal=1024;
+const uinteger AMSJob::MTracker=2048;
+const uinteger AMSJob::MTOF=4096;
+const uinteger AMSJob::MAnti=4096*2;
+const uinteger AMSJob::MCerenkov=4096*4;
+const uinteger AMSJob::MLVL1=4096*8;
+const uinteger AMSJob::MLVL3=4096*16;
+const uinteger AMSJob::MAxAMS=4096*32;
+const uinteger AMSJob::MAll=4096*64;
+const uinteger AMSJob::MEcal=4096*128;
+const uinteger AMSJob::Production=4096*256;
 const uinteger AMSJob::Calibration=AMSJob::CTracker+
                                    AMSJob::CTOF+
                                    AMSJob::CAnti+
@@ -110,17 +114,18 @@ const uinteger AMSJob::Calibration=AMSJob::CTracker+
                                    AMSJob::CMagnet+
                                    AMSJob::CRICH+
                                    AMSJob::CTRD+
+                                   AMSJob::CEcal+
                                    AMSJob::CAMS;
 
 const uinteger AMSJob::Monitoring=(AMSJob::MTracker)+
                                   (AMSJob::MTOF)+
                                   (AMSJob::MAnti)+
+                                  (AMSJob::MEcal)+
                                   (AMSJob::MCerenkov)+
                                   (AMSJob::MLVL1)+
                                   (AMSJob::MLVL3)+
                                   (AMSJob::MAxAMS)+
                                   (AMSJob::MAll);
-const uinteger AMSJob::Production=4096*64;
 //
 extern CTCCCcal ctcfcal[CTCCCMX];//  CTC calibr. objects
 
@@ -614,7 +619,7 @@ FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 void AMSJob::_simag2data(){
   MAGSFFKEY.magstat=1;    //(1) -1/0/1->warm/cold_OFF/cold_ON 
   MAGSFFKEY.fscale=1.;    //(2) rescale factor (wrt nominal field) (if any) 
-  MAGSFFKEY.ecutge=0.002; //(3) e/g ener.cut for tracking in magnet materials(Gev) 
+  MAGSFFKEY.ecutge=0.001; //(3) e/g ener.cut for tracking in magnet materials(Gev) 
 FFKEY("MAGS",(float*)&MAGSFFKEY,sizeof(MAGSFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
@@ -626,16 +631,17 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.silogic[1]=0;   //(5) spare
   ECMCFFKEY.mev2mev=34.33;  //(6) Geant dE/dX(MeV)->Emeas(MeV) conv.factor
   ECMCFFKEY.mev2adc=0.3788; //(7) Emeas(MeV)->ADCch conv.factor(to put MIP-m.p. in 5th channel)
+  ECMCFFKEY.safext=10.;     //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
 FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //---------------------------
 void AMSJob::_reecaldata(){
   ECREFFKEY.reprtf[0]=0;     // (1) print_hist flag (0/1->no/yes)
-  ECREFFKEY.reprtf[1]=0;     // (2) print_prof flag (0/1->no/yes)
+  ECREFFKEY.reprtf[1]=0;     // (2) print_profile flag (0/1->no/yes)
   ECREFFKEY.reprtf[2]=0;     // (3) spare
 //
   ECREFFKEY.relogic[0]=0;    // (4) 1/0->write/not EcalHits into Ntuple
-  ECREFFKEY.relogic[1]=0;    // (5) spare
+  ECREFFKEY.relogic[1]=0;    // (5) 0/1/2/3->normal/RLGA_calib/RLGA+FIAT_calib/ANOR_calib run
   ECREFFKEY.relogic[2]=0;    // (6) spare
   ECREFFKEY.relogic[3]=0;    // (7) spare
   ECREFFKEY.relogic[4]=0;    // (8) spare
@@ -647,7 +653,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.thresh[3]=400.;   // (12) Anode(high,tot) min.Et-cut to be "HighEn-em"(mev tempor)
   ECREFFKEY.thresh[4]=2.;     // (13) Low-chan. readout thershold(ADCch)
   ECREFFKEY.thresh[5]=10000.; // (14) energy upp.limit for action of cut below (mev tempor)  
-  ECREFFKEY.thresh[6]=0.15;   // (15) cut on Etail/Epeak (add. to #11,16 for "electromagneticity")
+  ECREFFKEY.thresh[6]=0.2;    // (15) cut on Etail/Epeak (add. to #11,16 for "electromagneticity")
   ECREFFKEY.thresh[7]=400.;   // (16) Anode(high,tot) min.Et-cut to be "em"(mev tempor)
   ECREFFKEY.thresh[8]=0.;     // (17) 
   ECREFFKEY.thresh[9]=0.;     // (18) 
@@ -674,10 +680,52 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.year[1]=108;//(36)
 FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 //
-// Calibration parameter defaults:
-//
-  ECCAFFKEY.cfvers=1; // (1) 1-999 -> vers.number for ecalcvlistNNN.dat file
-  ECCAFFKEY.cafdir=0; // (2) 0/1-> use official/private directory for calibr.files
+// REUN-Calibration  parameters:
+// RLGA/FIAT part:
+  ECCAFFKEY.cfvers=1;     // (1) 1-999 -> vers.number for ecalcvlistNNN.dat file
+  ECCAFFKEY.cafdir=0;     // (2) 0/1-> use official/private directory for calibr.files
+  ECCAFFKEY.truse=1;      // (3) 1/0-> use/not tracker info for calibration
+  ECCAFFKEY.refpid=118;   // (4) ref.pm ID (SPP-> S=SupLayer, PP=PM number) 
+  ECCAFFKEY.trmin=4.;     // (5) presel-cut on min. rigidity of the track(gv) 
+  ECCAFFKEY.adcmin=3.;    // (6) min ADC cut for indiv. SubCell (to remove noise)
+  ECCAFFKEY.adcpmx=1000.; // (7) max ADC cut for indiv SC to consider Plane as bad(non PunchThrough)
+  ECCAFFKEY.ntruncl=1;    // (8) remove this number of scPlanes with highest Edep
+  ECCAFFKEY.trxac=0.022;  // (9) TRK->EC extrapolation accuracy in X-proj(cm)
+  ECCAFFKEY.tryac=0.019;  //(10) TRK->EC extrapolation accuracy in Y-proj............
+  ECCAFFKEY.mscatp=1.;    //(11) EC mult.scatt. fine tuning parameter
+  ECCAFFKEY.nortyp=0;     //(12) normaliz.type 0/1-> by crossed/fired counters
+  ECCAFFKEY.badplmx=0;   // (13) Accept max. bad sc-planes(>2 fired sc, high sc Ed, separated sc)
+  ECCAFFKEY.etrunmn=70.;  //(14) Min ECenergy (Etrunc in mev) to select particle(p or He ...)
+  ECCAFFKEY.etrunmx=180.; //(15) Max ECenergy (Etrunc in mev) ...............................
+  ECCAFFKEY.nsigtrk=1.5;  //(16) Safety gap param. for crossing check(-> ~2 sigma of TRK accur.)
+// ANOR part:
+  ECCAFFKEY.pmin=3.;       // (17) presel-cut on min. mom. of the track(gev/c) 
+  ECCAFFKEY.pmax=15.;      // (18) presel-cut on max. mom. of the track 
+  ECCAFFKEY.scmin=3.;      // (19) min ADC for indiv. SubCell (to remove ped,noise)
+  ECCAFFKEY.scmax=1500.;   // (20) max ADC .................. (to remove sparks,ovfl,...)
+  ECCAFFKEY.spikmx=0;      // (21) max SC's(spikes) with ADC>max  (to remove sparks,ovfl,...)
+  ECCAFFKEY.nhtlmx[0]=3;   // (22) max hits in 1st sc-plane (to remove early showering)
+  ECCAFFKEY.nhtlmx[1]=4;   // (23) max hits in 2nd sc-plane (to remove early showering)
+  ECCAFFKEY.nhtlmx[2]=5;   // (24) max hits in 3rd sc-plane (to remove early showering)
+  ECCAFFKEY.lmulmx=20;     // (25) max hits/sc-plane (to remove events with abn.multiplicity)
+  ECCAFFKEY.nholmx[0]=1;   // (26) max holes(betw.fired cells) in 1st sc-plane(early show.prot)
+  ECCAFFKEY.nholmx[1]=2;   // (27) max holes(betw.fired cells) in 2nd sc-plane(early show.prot)
+  ECCAFFKEY.nholmx[2]=3;   // (28) max holes(betw.fired cells) in 3rd sc-plane(early show.prot)
+  ECCAFFKEY.nbplmx=0;      // (29) max bad sc-planes (with spikes or high multiplicity)
+  ECCAFFKEY.edtmin=800.;   // (30) min Etot(mev) to remove MIP
+  ECCAFFKEY.esleakmx=0.01; // (31) max Eleak(side)/Etot to remove energy side leak
+  ECCAFFKEY.ebleakmx=0.02; // (32) max Eleak(back)/Etot
+  ECCAFFKEY.edfrmn=300.;   // (33) min Efront(mev)
+  ECCAFFKEY.edt2pmx=0.2;   // (34) max Etail/Epeak
+  ECCAFFKEY.ed2momc=0.4;   // (35) Edep(EC)/Mom(TRK)-1 cut
+  ECCAFFKEY.cog1cut=1.0;   // (36) Track-SCPlaneCOG mismatch cut(cm) for the 1st two SC-planes.
+  ECCAFFKEY.scdismx[0]=1.; // (37) max sc-track dist. to consider hit as backgroubd(pl-1) 
+  ECCAFFKEY.scdismx[1]=1.2;// (38) max sc-track dist. to consider hit as backgroubd(pl-2) 
+  ECCAFFKEY.scdismx[2]=2.; // (49) max sc-track dist. to consider hit as backgroubd(pl-3)
+  ECCAFFKEY.scdisrs=8.;    // (40) as above for all other planes(not used really)
+  ECCAFFKEY.b2scut[0]=0.1; // (41) max backgr/signal energy(bound.from above) for pl-1 
+  ECCAFFKEY.b2scut[1]=0.15;// (42) max backgr/signal energy(bound.from above) for pl-2 
+  ECCAFFKEY.b2scut[2]=0.2; // (43) max backgr/signal energy(bound.from above) for pl-3 
 FFKEY("ECCA",(float*)&ECCAFFKEY,sizeof(ECCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
@@ -1473,12 +1521,12 @@ for (i=0;i<len;i++){
 }
 setjobtype(AMSFFKEY.Jobtype%10 != 0);
 setjobtype(((AMSFFKEY.Jobtype/10)%10 != 0)<<(RealData-1));
-uinteger ical=(AMSFFKEY.Jobtype/100)%10;
+uinteger ical=(AMSFFKEY.Jobtype/100)%10;//1-9
 uinteger ucal=1;
 if(ical)setjobtype(ucal<<(ical+1));
-uinteger imon=(AMSFFKEY.Jobtype/1000)%10;
+uinteger imon=(AMSFFKEY.Jobtype/1000)%10;//1-9
 uinteger umon=1;
-if(imon)setjobtype(umon<<(imon+1+8));
+if(imon)setjobtype(umon<<(imon+1+9));
 uinteger iprod=(AMSFFKEY.Jobtype/10000)%10;
 if(iprod)setjobtype(Production);
 
@@ -1867,15 +1915,16 @@ if(isCalibration() & CTracker)_catkinitjob();
 if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
   if(isCalibration() & CTOF)_catof2initjob();
   if(isCalibration() & CAnti)_cant2initjob();
+  if(isCalibration() & CEcal)_caecinitjob();
+  if(isCalibration() & CTRD)_catrdinitjob();
+  if(isCalibration() & CSRD)_casrdinitjob();
 }
 else{
   if(isCalibration() & CTOF)_catofinitjob();
   if(isCalibration() & CAnti)_cantinitjob();
 }
-if(isCalibration() & CTRD)_catrdinitjob();
-if(isCalibration() & CSRD)_casrdinitjob();
-if(isCalibration() & CCerenkov)_cactcinitjob();
 if(isCalibration() & CAMS)_caaxinitjob();
+if(isCalibration() & CCerenkov)_cactcinitjob();
 }
 //-----------------------------------------------------
 void AMSJob::_catkinitjob(){
@@ -1954,6 +2003,13 @@ void AMSJob::_cactcinitjob(){
 void AMSJob::_cantinitjob(){
 }
 void AMSJob::_cant2initjob(){
+}
+//==========================================
+void AMSJob::_caecinitjob(){
+ if(ECREFFKEY.relogic[1]>0){
+   ECREUNcalib::init();// ECAL REUN-calibr.
+   cout<<"ECREUNcalib-init done !!!"<<'\n';
+ }
 }
 //==========================================
 

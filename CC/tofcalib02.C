@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.3 2001/01/22 17:32:22 choutko Exp $
+//  $Id: tofcalib02.C,v 1.4 2001/03/06 16:37:03 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <typedefs.h>
@@ -2248,6 +2248,7 @@ void TOF2AMPLcalib::fit(){
       HF1(1254+ibt,profp[ibt][ibn],btamp[bchan]);
     }//---> end of loop for longit.bins
   }//---> end of loop for bar-types
+//
 //---> fit Impact-point profiles for ref. bars:
   int ier;  
   int ifit[TOF2GC::SCPROFP];

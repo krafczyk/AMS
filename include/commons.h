@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.149 2001/01/22 17:32:42 choutko Exp $
+//  $Id: commons.h,v 1.150 2001/03/06 16:37:04 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -213,6 +213,7 @@ geant cutge;// cutgam=cutele cut in EC_radiator
 integer silogic[2];// SIMU logic flags
 geant mev2mev;
 geant mev2adc;
+geant safext;     // Extention(cm) of EC transv.size when TFMC 13=2 is used
 };
 #define ECMCFFKEY COMMON_BLOCK(ECMCFFKEY,ecmcffkey)
 COMMON_BLOCK_DEF(ECMCFFKEY_DEF,ECMCFFKEY);
@@ -238,7 +239,42 @@ COMMON_BLOCK_DEF(ECREFFKEY_DEF,ECREFFKEY);
 class ECCAFFKEY_DEF {
 public:
   integer cfvers;// 1-999 -> vers.number for ecalcvlistNNN.dat file
-  integer cafdir;// 0/1->use officical/private directory for calib.files
+  integer cafdir;// 0/1-> use officical/private directory for calib.files
+  integer truse; // 1/0-> use/not tracker info
+  integer refpid;// ref.pm id
+//   RLGA+FIAT part
+  geant trmin;// presel.cut on min. rigidity of the track
+  geant adcmin;//cut on min ADC-value of indiv.sub-cell
+  geant adcpmx;//cut on max ADC-value of indiv.PM
+  integer ntruncl;// remove this number of highest layers
+  geant trxac;// TRK->EC extrapolation accuracy in X-proj
+  geant tryac;// TRK->EC extrapolation accuracy in Y-proj
+  geant mscatp;// EC.mult.scat.param.
+  integer nortyp;// normalization type
+  integer badplmx;// max. accept. bad sc-planes 
+  geant etrunmn;  // Min ECenergy (Etrunc in mev) to select particle(p or He ...)
+  geant etrunmx;  // Max ECenergy (Etrunc in mev) ...............................
+  geant nsigtrk;  // safety gap in TRK-accur. units for crossing check procedure
+//   ANOR part
+  geant pmin;       // presel-cut on min. mom. of the track(gev/c) 
+  geant pmax;       // presel-cut on max. mom. of the track 
+  geant scmin;      // min ADC for indiv. SubCell (to remove ped,noise)
+  geant scmax;      // max ADC .................. (to remove sparks,ovfl,...)
+  integer spikmx;   // max SC's(spikes) with ADC>above max
+  integer nhtlmx[3];   // max hits in sc-plane 1,2,3(to remove early showering)
+  integer lmulmx;      // max hits/sc-plane (to remove events with abn.multiplicity)
+  integer nholmx[3];   // max holes(betw.fired cells) in sc-plane 1,2,3(early show.prot)
+  integer nbplmx;      // max bad sc-planes (with spikes or high(abn) multiplicity)
+  geant edtmin;        // min Etot(mev) to remove MIP
+  geant esleakmx;      // max Eleak(side)/Etot to remove energy side leak
+  geant ebleakmx;      // max Eleak(back)/Etot
+  geant edfrmn;        // min Efront(mev)
+  geant edt2pmx;       // max Etail/Epeak
+  geant ed2momc;       // Edep(EC)/Mom(TRK)-1 cut
+  geant cog1cut;       // Track-ScPlaneCOG mismatch cut(cm) for the 1st two SC-planes.
+  geant scdismx[3];    // max sc-track dist. to consider hit as backgroubd(pl-1,2,3) 
+  geant scdisrs;       // as above for all other planes(not used really)
+  geant b2scut[3];     // max backgr/signal energy(bound.from above) for pl-1,2,3 
 };
 #define ECCAFFKEY COMMON_BLOCK(ECCAFFKEY,eccaffkey)
 COMMON_BLOCK_DEF(ECCAFFKEY_DEF,ECCAFFKEY);

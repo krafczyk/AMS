@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.257 2001/03/05 10:51:17 choutko Exp $
+//  $Id: event.C,v 1.258 2001/03/06 16:37:01 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -51,6 +51,7 @@
 #include <signal.h>
 #include <ecaldbc.h>
 #include <ecalrec.h>
+#include <ecalcalib.h>
 #include <richrec.h>
 #include <richdbc.h>
 #include <geantnamespace.h>
@@ -428,14 +429,14 @@ void AMSEvent::_siamsinitevent(){
  _sitofinitevent();
  _siantiinitevent();
  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-_siecalinitevent();
-_sitrdinitevent();
-_sisrdinitevent();
-_sirichinitevent();
-}
-else{
- _sictcinitevent();
-}
+  _siecalinitevent();
+  _sitrdinitevent();
+  _sisrdinitevent();
+  _sirichinitevent();
+ }
+ else{
+  _sictcinitevent();
+ }
 }
 
 void AMSEvent::_reamsinitevent(){
@@ -1203,6 +1204,7 @@ void AMSEvent::event(){
     } 
     _sitkevent(); 
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+//cout<<"Bef.siecalevent"<<endl;
       _siecalevent(); 
       _sitrdevent(); 
       _sisrdevent();
@@ -1211,6 +1213,7 @@ void AMSEvent::event(){
      else{
       _sictcevent(); 
      }
+//cout<<"Bef.sitrigevent"<<endl;
     _sitrigevent(); 
     _sidaqevent(); //DAQ-simulation 
   AMSgObj::BookTimer.stop("SIAMSEVENT");
@@ -1260,9 +1263,13 @@ void AMSEvent::_reamsevent(){
   }
   if(AMSJob::gethead()->isReconstruction() )_retrigevent();
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+//cout<<"Bef.retkevent"<<endl;
     _retkevent(); 
+//cout<<"Aft.retkevent"<<endl;
     _rerichevent();
+//cout<<"Bef.reecalevent"<<endl;
     _reecalevent();
+//cout<<"Aft.reecalevent"<<endl;
     _retrdevent();
     _resrdevent();
   }
@@ -1270,8 +1277,11 @@ void AMSEvent::_reamsevent(){
     _retkevent(); 
     _rectcevent(); 
   } 
+//cout<<"Bef.reaxevent"<<endl;
   _reaxevent();
+//cout<<"Bef.reaxevent"<<endl;
    AMSUser::Event();
+//cout<<"Aft.amsuser"<<endl;
    AMSgObj::BookTimer.stop("REAMSEVENT");  
 }
 
@@ -1308,6 +1318,7 @@ void AMSEvent::_cactcinitevent(){
 void AMSEvent::_caamsevent(){
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF)_catofevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CAnti)_cantievent();
+  if(AMSJob::gethead()->isCalibration() & AMSJob::CEcal)_caecevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CCerenkov)_cactcevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)_catkevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CAMS)_caaxevent();
@@ -1379,7 +1390,25 @@ void AMSEvent::_catofevent(){
 
 void AMSEvent::_cantievent(){
 }
-
+//--------------------------------------------------------------------------
+void AMSEvent::_caecevent(){
+  integer toflag(0),ecflag(0);
+  Trigger2LVL1 *ptr;
+//
+  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+    ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+    if(ptr){
+      toflag=ptr->gettoflg();
+      ecflag=ptr->getecflg();
+    }
+    if(toflag <= 0 || ecflag<=0)return;// use only TOF+ECAL-triggered event tempor
+    if(ECREFFKEY.relogic[1]>0){
+      if(ECREFFKEY.relogic[1]<=2)ECREUNcalib::select();// RLGA/FIAT part of REUN-calibration
+      if(ECREFFKEY.relogic[1]==3)ECREUNcalib::selecte();// ANOR part of REUN-calibration
+    }
+  }
+}
+//--------------------------------------------------------------------------
 void AMSEvent::_caaxevent(){
 }
 //============================================================================

@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.105 2001/03/05 10:25:16 ren Exp $
+//  $Id: mceventg.C,v 1.106 2001/03/06 16:37:02 choumilo Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -523,7 +523,6 @@ integer AMSmceventg::EarthModulation(){
   number xl=acos(cts);
   number cl=fabs(sin(xl));
   number rgm=rl;
-
   // Magnetic East
   xc=vm*wp-wm*vp;
   yc=wm*up-um*wp;
@@ -978,7 +977,7 @@ integer AMSmceventg::fastcheck(geant xin, geant yin, geant zb, geant theta, gean
   geant zanti;
   geant ranti;
   geant zcal=ECALDBc::gendim(7);
-  geant calhs=ECALDBc::gendim(1)/2.-15.;//cal.half-size(-15cm from edge)
+  geant calhs=ECALDBc::gendim(1)/2.+ECMCFFKEY.safext;//cal.half-size(+ extention)
   geant dxy,xcr,ycr;
 //
      if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){

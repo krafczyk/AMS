@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.11 2001/03/02 10:40:56 choutko Exp $
+//  $Id: ecaldbc.h,v 1.12 2001/03/06 16:37:05 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -17,7 +17,8 @@ const integer ECADCMX=4095;//max capacity of ADC(12bits)
 const integer ECROTN=10000; // geant numbering of ECAL rot. matr.(starting from...)
 const integer ECJSTA=10; // max size of counter-array for job statistics
 const integer ECHIST=2000;// MCEcal histogram number(starting from...) 
-const integer ECHISTR=2100;// REEcal histogram number(starting from...) 
+const integer ECHISTR=2100;// REEcal histogram number(starting from...)
+const integer ECHISTC=2200;// CAEcal histogram number(starting from...)
 //
 //geometry :
 //
@@ -39,7 +40,8 @@ private:
 //                          1-4->fiber att.length,%,diam; 5->size(dx=dz) of "1/4" of PM-cathode;
 //                          6->abs(x(z)-position) of "1/4" in PMT coord.syst.(not used);
 //                          7/8->X(Y)-pitch of PM's; fiber glue thickness(in radious)
-//                          9/10-> spare
+//                          9-> lead thickness of 1 SL
+//                          10-> Al-plate thickness
 //
   static integer _scalef;  // MC/Data: scale factor used for digitization in DAQ-system
 // 
@@ -48,8 +50,6 @@ private:
 //                             2->num. of fib.layers per super-layer; 3->num.of super-layers (X+Y);
 //                             4->num. of PM's per super-layer;
 //                             5-6->readout dir. in X/Y-proj (=1/-1->+/-) for the 1st PM-cell. 
-  static integer _fibcgr[ECFLSMX][ECFBCMX];// fiber grouping in readout PMcell:
-  static integer _nfibpcl[ECFLSMX];// real fibers per layer in PMcell
 //
 public:  
 //
@@ -65,12 +65,7 @@ public:
   static integer scalef(){return _scalef;}
   static integer nfibpl(integer i);
   static integer slstruc(integer i);
-  static integer fibcgr(integer i, integer j);
-  static integer nfibpcl(integer i);
-  static void fid2cidd(integer fid, integer cid[4], number w[4]);
   static void fid2cida(integer fid, integer cid[4], number w[4]);
-  static void getscinfod(integer i, integer j, integer k,
-         integer &pr, integer &pl, integer &ce, number &ct, number &cl, number &cz);
   static void getscinfoa(integer i, integer j, integer k,
          integer &pr, integer &pl, integer &ce, number &ct, number &cl, number &cz);
   static number segarea(number r, number ds);
@@ -93,8 +88,16 @@ private:
   static integer recount[ECJSTA];// event passed RECO-cut "i"
 //          i=0 -> entries
 //          i=1 -> 
+  static integer cacount[ECJSTA];// event passed CALIB-cut "i"
+//          i=0 -> entries
+//          i=1 -> 
 public:
-  static geant zprofa[2*ECSLMX];// average profile
+  static geant zprmc1[ECSLMX];// mc-hit average Z-profile(SL-layers) 
+  static geant zprmc2[ECSLMX];// mc-hit(+att) average Z-profile(SL(PM-assigned)-layers) 
+  static geant zprofa[2*ECSLMX];//  SubCellPlanes  profile
+  static geant zprofapm[ECSLMX];// SL profile
+  static geant zprofac[ECSLMX];// SuperLayers Edep profile for calib.events(punch-through)
+  static geant nprofac[ECSLMX];// SuperLayers profile for calib.events(punch-through)
   static void clear();
   static void addmc(int i){
     #ifdef __AMSDEBUG__
@@ -107,6 +110,18 @@ public:
       assert(i>=0 && i< ECJSTA);
     #endif
     recount[i]+=1;
+  }
+  static void addca(int i){
+    #ifdef __AMSDEBUG__
+      assert(i>=0 && i< ECJSTA);
+    #endif
+    cacount[i]+=1;
+  }
+  static integer getca(int i){
+    #ifdef __AMSDEBUG__
+      assert(i>=0 && i< ECJSTA);
+    #endif
+    return cacount[i];
   }
   static void printstat();
   static void bookhist();
@@ -128,11 +143,15 @@ private:
   geant _hi2lowr[4]; // ratio of gains of high- and low-chains (for each of 4 SubCells)
   geant _an2dyr;    // 4xAnode_pixel/dynode signal ratio
   geant _adc2mev;   // Global(hope) Signal(ADCchannel)->Emeas(MeV) conv. factor (MeV/ADCch)
+  geant _lfast;// att.length(short comp.)
+  geant _lslow;// att.length(long comp.)
+  geant _fastf;// percentage of short comp.
 public:
   static ECcalib ecpmcal[ECSLMX][ECPMSMX];
   ECcalib(){};
   ECcalib(integer sid, integer sta[4], geant pmg, geant scg[4], geant h2lr[4], geant a2dr,
-       geant conv):_softid(sid),_pmrgain(pmg),_an2dyr(a2dr),_adc2mev(conv){
+       geant lfs, geant lsl, geant fsf, geant conv):
+       _softid(sid),_pmrgain(pmg),_an2dyr(a2dr),_lfast(lfs),_lslow(lsl),_fastf(fsf),_adc2mev(conv){
     for(int i=0;i<4;i++){
       _status[i]=sta[i];
       _scgain[i]=scg[i];
@@ -145,6 +164,9 @@ public:
   geant hi2lowr(integer subc){return _hi2lowr[subc];}
   geant adc2mev(){return _adc2mev;}
   geant an2dyr(){return _an2dyr;}
+  geant alfast(){return _lfast;}
+  geant alslow(){return _lslow;}
+  geant fastfr(){return _fastf;}
   static void build();
 };
 //

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.185 2001/01/22 17:00:55 vitali Exp $
+#  $Id: datacards.doc,v 1.186 2001/03/06 16:37:04 choumilo Exp $
 Datacards
 
 // Protection from some myst bug
@@ -15,12 +15,12 @@ I 1  Jobtype(0)      // 1 - Reconstruction ( 0 Simulation)
                      // 100 - Tracker Calibration 
                      // 200 - TOF Calibration 
                      // 300 - Anti Calibration 
-                     // 400 - Cerenkov Calibration 
+                     // 400 - Cerenkov/SRD Calibration 
                      // 500 - Magnet Calibration 
                      // 600 - RICH Calibration 
                      // 700 - TRD Calibration 
                      // 800 - AMS Calibration 
-                     // 900 - Reserved
+                     // 900 - ECAL Calibration
                      //1000 - Tracker Monitoring
                      //2000 - TOF Monitoring 
                      //3000 - Anti Monitoring 
@@ -28,7 +28,8 @@ I 1  Jobtype(0)      // 1 - Reconstruction ( 0 Simulation)
                      //5000 - LVL1 Monitoring 
                      //6000 - LVL3 Monitoring 
                      //7000 - AxAMS Monitoring 
-                     //8000 - Everything Monitoring 
+                     //8000 - Everything Monitoring
+		     //9000 - ECAL Monitoring 
                      //10000- Production
                      // 
 I 2  Debug(1)        // 0 - Off   ; 1 - On
@@ -818,6 +819,7 @@ I 2    reprtf[1](0)        // =1 to print profiles for first 5 events
 I 3    reprtf[2](0)        // =1 spare
 
 I 4    relogic[0](0)       // 1/0->write/not EcalHits into Ntuple
+I 5    relogic[1](0)       // 0/1/2...-> normal/REUN-calibr./...  run
 I 8................        //    spares
 
 R 9    thresh[0](2)        // HighGain-chan. readout threshold(ADCch)    
@@ -850,8 +852,54 @@ R 36 year[1](108)             //
    ECAL calibration:
 
 ECCA
-I 1  cfvers(1)               //  1-999 -> vers.number for ecalcvlistNNN.dat file
-I 2  cafdir(0)               //  0/1-> use official/private directory for calibr.files
+(REUN-Calibration  parameters)
+//
+(RLGA/FIAT part:)
+I  1  cfvers(1)          // 1-999 -> vers.number for ecalcvlistNNN.dat file
+I  2  cafdir(0)          // 0/1-> use official/private directory for calibr.files
+I  3  truse(1)           // 1/0-> use/not tracker info for calibration
+I  4  refpid(118)        // ref.PM ID (SPP-> S=SupLayer, PP=PM number) 
+R  5  trmin(4.)          // presel-cut on min. Rigidity of the track 
+R  6  adcmin(3.)         // min ADC cut for indiv. SubCell (to remove noise)
+R  7  adcpmx(1000.)      // max ADC cut for indiv SC to consider Plane as bad(non PunchThrough)
+I  8  ntruncl(1)         // remove this number of scPlanes with highest Edep
+R  9  trxac(0.022)        // TRK->EC extrapolation accuracy in X-proj("3sigma",cm)
+R 10  tryac(0.019)        // TRK->EC extrapolation accuracy in Y-proj............
+R 11  mscatp(1.)         // EC multiple scattering fine tuning parameter
+R 12  nortyp(0)          // normaliz.type 0/1-> by crossed/fired counters
+I 13  badplmx(0)         // Accept max. bad sc-planes(>2 fired sc, high sc Ed, separated sc)
+R 14  etrunmn(70.)       // Cuts on EC Edep_truncated (min/max) to select (He) or P or ...
+R 15  etrunmx(180.)      // 
+R 16  nsigtrk(1.5)       // Safety gap param. for crossing check(-> ~2 sigma of TRK accur.)
+//
+(ANOR part:)
+R 17  pmin (3.)       // presel-cut on min. mom. of the track(gev/c) 
+R 18  pmax (15.)      // presel-cut on max. mom. of the track 
+R 19  scmin (3.)      // min ADC for indiv. SubCell (to remove ped,noise)
+R 20  scmax (1500.)   // max ADC .................. (to remove sparks,ovfl,...)
+I 21  spikmx (0)      // max SC's(spikes) with ADC>max  (to remove sparks,ovfl,...)
+I 22  nhtlmx[0] (3)   // max hits in 1st sc-plane (to remove early showering)
+I 23  nhtlmx[1] (4)   // max hits in 2nd sc-plane (to remove early showering)
+I 24  nhtlmx[2] (5)   // max hits in 3rd sc-plane (to remove early showering)
+I 25  lmulmx (20)     // max hits/sc-plane (to remove events with abn.multiplicity)
+I 26  nholmx[0] (1)   // max holes(betw.fired cells) in 1st sc-plane(early show.prot)
+I 27  nholmx[1] (2)   // max holes(betw.fired cells) in 2nd sc-plane(early show.prot)
+I 28  nholmx[2] (3)   // max holes(betw.fired cells) in 3rd sc-plane(early show.prot)
+I 29  nbplmx (0)      // max bad sc-planes (with spikes or high multiplicity)
+R 30  edtmin (800.)   // min Etot(mev) to remove MIP
+R 31  esleakmx (0.01) // max Eleak(side)/Etot to remove energy side leak
+R 32  ebleakmx (0.02) // max Eleak(back)/Etot
+R 33  edfrmn (300.)   // min Efront(mev)
+R 34  edt2pmx (0.2)   // max Etail/Epeak
+R 35  ed2momc (0.4)   // Edep(EC)/Mom(TRK)-1 cut
+R 36  cog1cut (1.0)   // Track-SCPlaneCOG mismatch cut(cm) for the 1st two SC-planes.
+R 37  scdismx[0] (1.) // max sc-track dist. to consider hit as backgroubd(pl-1) 
+R 38  scdismx[1] (1.2)// max sc-track dist. to consider hit as backgroubd(pl-2) 
+R 39  scdismx[2] (2.) // max sc-track dist. to consider hit as backgroubd(pl-3)
+R 40  scdisrs (8.)    // as above for all other planes(not used really)
+R 41  b2scut[0] (0.1) // max backgr/signal energy(bound.from above) for pl-1 
+R 42  b2scut[1] (0.15)// max backgr/signal energy(bound.from above) for pl-2 
+R 43  Eb2scut[2] (0.2)// max backgr/signal energy(bound.from above) for pl-3 
 //--------------------------------------------------------------------------------
       AMS02 ANTIcounter data-cards:
 //
@@ -919,7 +967,7 @@ I 1 cfvers(2)             // version number(01-99) for antiverlistNN.dat file
 MAGS
 I 1 magstat (1)     // -1/0/1->warm/cold_OFF/cold_ON
 R 2 fscale  (1.)    // rescale factor (wrt nominal field) (if any)
-R 3 ecutge (0.002)  // e/g ener.cut for tracking in magnet materials(Gev) 
+R 3 ecutge (0.001)  // e/g ener.cut for tracking in magnet materials(Gev) 
 //------------------------------------------------------------------------------
 
 	   

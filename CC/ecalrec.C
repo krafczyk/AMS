@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.17 2001/01/22 17:32:19 choutko Exp $
+//  $Id: ecalrec.C,v 1.18 2001/03/06 16:37:01 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -13,8 +13,10 @@
 #include <amsstl.h>
 #include <commons.h>
 #include <ntuple.h>
+#include <tofsim02.h>
 #include <ecaldbc.h>
 #include <ecalrec.h>
+#include <ecalcalib.h>
 #include <mccluster.h>
 #include <trigger102.h>
 #include <trigger3.h>
@@ -22,29 +24,83 @@
 uinteger AMSEcalRawEvent::trigfl=0;// just memory reservation/initialization for static
 //----------------------------------------------------
 void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
+  int i,j,k;
+  integer sta,status,dbstat,padc[2],id,idd,isl,pmc,subc;
+  number radc[2]; 
+  geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl;
+  integer ovfl[2];
+  AMSEcalRawEvent * ptr;
   uinteger ecalflg;
   integer tofflg;
-  Trigger2LVL1 *ptr;
+  Trigger2LVL1 *ptrt;
 //
-  ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-  if(ptr){
-    tofflg=ptr->gettoflg();
-    ecalflg=ptr->getecflg();
+  ptrt=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  if(ptrt){
+    tofflg=ptrt->gettoflg();
+    ecalflg=ptrt->getecflg();
     HF1(ECHIST+30,geant(ecalflg),1.);
   }
+//
+//
+//----> fill arrays for Hi2Low-ratio calc.(in REUN-calibration):
+//
+  if(ECREFFKEY.relogic[1]<=2){// if REUN-calibration
+    for(isl=0;isl<ECALDBc::slstruc(3);isl++){ // <-------------- super-layer loop
+      ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
+                       getheadC("AMSEcalRawEvent",isl,0);
+      while(ptr){ // <--- RawEvent-hits loop in superlayer:
+        id=ptr->getid();//SSPPC
+        idd=id/10;
+        subc=id%10-1;//SubCell(0-3)
+        pmc=idd%100-1;//PMCell(0-...)
+        ptr->getpadc(padc);
+        ECPMPeds::pmpeds[isl][pmc].getpedh(pedh);
+        ECPMPeds::pmpeds[isl][pmc].getsigh(sigh);
+        ECPMPeds::pmpeds[isl][pmc].getpedl(pedl);
+        ECPMPeds::pmpeds[isl][pmc].getsigl(sigl);
+        radc[0]=number(padc[0])/ECALDBc::scalef();//DAQ-format-->ADC-high-chain
+        radc[1]=number(padc[1])/ECALDBc::scalef();//DAQ-format-->ADC-low-chain
+        ph=pedh[subc];
+        sh=sigh[subc];
+        pl=pedl[subc];
+        sl=sigl[subc];
+	if(AMSJob::gethead()->isSimulation()){
+          if(ECMCFFKEY.silogic[0]==1){
+            sh=0.;
+            sl=0.;
+          }
+          if(ECMCFFKEY.silogic[0]==2){
+            ph=0.;
+	    pl=0.;
+          }
+	}
+        ovfl[0]=0;
+        ovfl[1]=0;
+        if(radc[0]>0.)if((ECADCMX-(radc[0]+ph))<=4.*sh)ovfl[0]=1;// mark as ADC-Overflow
+        if(radc[1]>0.)if((ECADCMX-(radc[1]+pl))<=4.*sl)ovfl[1]=1;// mark as ADC-Overflow
+        dbstat=ECcalib::ecpmcal[isl][pmc].getstat(subc);//DB status(<0->bad,0->ok,>0->limited)
+//        if(dbstat>=0){// use only good(according DB) channels
+          if(radc[0]>0. && ovfl[0]==0 && radc[1]>0)ECREUNcalib::fill_2(isl,pmc,subc,radc);//<--- fill 
+//        }
+        ptr=ptr->next();  
+      } // ---> end of RawEvent-hits loop in superlayer
+//
+    } // ---> end of super-layer loop
+  } // ---> endif of REUN-calib
 //
   stat=0;
 }
 //----------------------------------------------------
 void AMSEcalRawEvent::mc_build(int &stat){
   int i,j,k;
-  integer fid,cid,cidar[4],nhits,nraw,il,pm,sc,proj,rdir;
+  integer fid,cid,cidar[4],nhits,nraw,il,pm,sc,proj,rdir,nslhits;
   number x,y,z,coo,hflen,pmdis,edep,edepr,edept,edeprt,emeast,time,timet(0.);
   number attf,ww[4],anen,dyen;
   number sum[ECPMSMX][4],pmtmap[ECSLMX][ECPMSMX],pmlprof[ECSLMX];
   integer zhitmap[ECSLMX];
   integer adch,adcm,adcl;
   geant radc,a2dr,h2lr,mev2adc,pmrgn,scgn;
+  geant lfs,lsl,ffr;
   geant pedh[4],pedl[4],sigh[4],sigl[4];
   AMSEcalMCHit * ptr;
   integer id,sta,adc[2];
@@ -72,11 +128,15 @@ void AMSEcalRawEvent::mc_build(int &stat){
                getheadC("AMSEcalMCHit",il,0);
     for(i=0;i<ECALDBc::slstruc(4);i++)
                                      for(k=0;k<4;k++)sum[i][k]=0.;
+    nslhits=0;
     while(ptr){ // <------------------- geant-hits loop in superlayer:
       nhits+=1;
+      nslhits+=1;
       fid=ptr->getid();//SSLLFFF
       edep=ptr->getedep()*1000;// MeV(dE/dX)
+//      if(il==0 && (fid%100000)/1000>=1 && (fid%100000)/1000<=5 && (fid%1000)==30)edep=0.;//tempor
       edept+=edep;
+      EcalJobStat::zprmc1[il]+=edep;//geant SL-profile
       time=(1.e+9)*(ptr->gettime());// geant-hit time in ns
       timet+=edep*time;
       x=ptr->getcoo(0);// global coord.
@@ -110,8 +170,10 @@ void AMSEcalRawEvent::mc_build(int &stat){
 //
           pmdis=coo+hflen;//to count from "-" edge of fiber (0-2*hflen)
           if(rdir<0)pmdis=2.*hflen-pmdis;
-          attf=(1.-ECALDBc::rdcell(3))*exp(-pmdis/ECALDBc::rdcell(1))
-            +ECALDBc::rdcell(3)*exp(-pmdis/ECALDBc::rdcell(2));//fiber attenuation factor
+	  lfs=ECcalib::ecpmcal[il][pm].alfast();//att_len(fast comp) from DB
+	  lsl=ECcalib::ecpmcal[il][pm].alslow();//att_len(slow comp) from DB
+	  ffr=ECcalib::ecpmcal[il][pm].fastfr();//fast comp. fraction from DB
+          attf=(1.-ffr)*exp(-pmdis/lsl)+ffr*exp(-pmdis/lfs);//fiber attenuation factor
           edepr=edep*attf*ww[j];
           sum[pm][sc]+=edepr;
           edeprt+=edepr;
@@ -120,6 +182,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
 //
         ptr=ptr->next(); 
     } // ---------------> end of geant-hit-loop in superlayer
+//
+//    if(nslhits==0)continue;//low noise(no noise hits will be added later in this empty sl)
 //
     for(i=0;i<ECALDBc::slstruc(4);i++){ // <------- loop over PM's in this(il) S-layer
       a2dr=ECcalib::ecpmcal[il][i].an2dyr();//take some param.from DB
@@ -136,8 +200,9 @@ void AMSEcalRawEvent::mc_build(int &stat){
       anen=0.;
       dyen=0.;
       for(k=0;k<4;k++){//<--- loop over 4-subcells in PM
+        EcalJobStat::zprmc2[il]+=sum[i][k];//geant SL(PM-assigned)-profile
         h2lr=ECcalib::ecpmcal[il][i].hi2lowr(k);//PM subcell high/low ratio from DB
-	scgn=ECcalib::ecpmcal[il][i].pmscgain(k);//PM SubCell relative(to average) gain from DB
+	scgn=ECcalib::ecpmcal[il][i].pmscgain(k);//PM SubCell relative(partial) gain from DB
         edepr=sum[i][k]*ECMCFFKEY.mev2mev;//Geant_dE/dX(Mev)->Emeas(Mev)
 	emeast+=edepr;
 	anen+=edepr;
@@ -158,6 +223,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	adch=floor(radc);//"digitization"
 	if(adch>=ECADCMX)adch=ECADCMX;//"ADC-saturation (12 bit)"
 	if(ECMCFFKEY.silogic[0]<2)radc=number(adch)-pedh[k];// ped-subtraction
+	else radc=number(adch);//no ped-subtr.
         if(radc>=ECALVarp::ecalvpar.daqthr(0)){// use only hits above DAQ-readout threshold
 	  adch=floor(radc*ECALDBc::scalef());//DAQ scaling
 	}
@@ -177,6 +243,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	adcl=floor(radc);//"digitization")
 	if(adcl>=ECADCMX)adcl=ECADCMX;//"ADC-saturation (12 bit)"
 	if(ECMCFFKEY.silogic[0]<2)radc=number(adcl)-pedl[k];// ped-subtraction
+	else radc=number(adcl);//no ped-subtr.
         if(radc>=ECALVarp::ecalvpar.daqthr(4)){// use only hits above DAQ-readout threshold
 	  adcl=floor(radc*ECALDBc::scalef());//DAQ scaling
 	}
@@ -212,7 +279,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 //                          <--- some variables for "electromagneticity" calc.
   geant e4x0,epeaka,etaila,rrr;
   e4x0=pmlprof[0]+pmlprof[1];//energy in 1st 4X0's(sl1+sl2) of Z-profile
-  epeaka=(pmlprof[1]+pmlprof[2])/2.;//aver.energy in peak(sl2+sl3) of Z-profile
+  epeaka=(pmlprof[2]+pmlprof[3])/2.;//aver.energy in peak(sl3+sl4) of Z-profile
   etaila=pmlprof[ECALDBc::slstruc(3)-1];//aver.energy in tail(sl9 now) ...
   rrr=0.;
   if(epeaka>0.)rrr=etaila/epeaka;
@@ -242,7 +309,12 @@ void AMSEcalRawEvent::mc_build(int &stat){
   stat=0;
 //
 //---
-  if(ECMCFFKEY.mcprtf==1)HF1(ECHIST+9,geant(trigfl),1.);
+  integer tofflag(0);
+  tofflag=TOF2RawEvent::gettrfl();
+  if(ECMCFFKEY.mcprtf==1){
+    HF1(ECHIST+9,geant(trigfl),1.);
+    if(tofflag>0)HF1(ECHIST+10,geant(trigfl),1.);
+  }
   return;
 }
 //---------------------------------------------------
@@ -282,13 +354,15 @@ void AMSEcalHit::build(int &stat){
       sh=sigh[subc];
       pl=pedl[subc];
       sl=sigl[subc];
-      if(ECMCFFKEY.silogic[0]==1){
-	sh=0.;
-        sl=0.;
-      }
-      if(ECMCFFKEY.silogic[0]==2){
-	ph=0.;
-	pl=0.;
+      if(AMSJob::gethead()->isSimulation()){
+        if(ECMCFFKEY.silogic[0]==1){
+          sh=0.;
+          sl=0.;
+        }
+        if(ECMCFFKEY.silogic[0]==2){
+          ph=0.;
+	  pl=0.;
+        }
       }
       ovfl[0]=0;
       ovfl[1]=0;
@@ -311,14 +385,14 @@ void AMSEcalHit::build(int &stat){
       }
       edep=fadc/ECcalib::ecpmcal[isl][pmc].pmrgain()
                                     /ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//gain corr.
-      if(ECREFFKEY.reprtf[0]==1){
+      if(ECREFFKEY.reprtf[0]>0){
         HF1(ECHISTR+16,geant(edep),1.);
         HF1(ECHISTR+17,geant(edep),1.);
       }
       adct+=edep;//tot.adc
       edep=edep*ECcalib::ecpmcal[isl][pmc].adc2mev();// ADCch->Emeasured(MeV)
       emeast+=edep;//tot.Mev
-      dbstat=ECcalib::ecpmcal[isl][pmc].getstat(subc);//status from DB (0=ok)
+      dbstat=ECcalib::ecpmcal[isl][pmc].getstat(subc);//status from DB (<0->bad,0->ok,>0->limited)
       if(dbstat>=0 && fadc>0.){// use only good(according DB) channels
         nhits+=1;
         ECALDBc::getscinfoa(isl,pmc,subc,proj,plane,cell,coot,cool,cooz);// get SubCell info
@@ -331,7 +405,7 @@ void AMSEcalHit::build(int &stat){
 //
   } // ---> end of super-layer loop
 //
-  if(ECREFFKEY.reprtf[0]==1){
+  if(ECREFFKEY.reprtf[0]>0){
     HF1(ECHISTR+10,geant(nraw),1.);
     HF1(ECHISTR+11,geant(adct),1.);
     HF1(ECHISTR+12,geant(adct),1.);
@@ -388,6 +462,8 @@ void AMSEcalCluster::build(int &stat){
       tprof[cell]+=edep;//Gev-profile
       zprof[ipl]+=edep;
       EcalJobStat::zprofa[ipl]+=edep;
+      isl=ipl/2;
+      EcalJobStat::zprofapm[isl]+=edep;
       if(edep>edepthr){ //<-- for primitive cluster
         cogt+=coot*edep;
 	ecogt+=coot*coot*edep;
@@ -457,7 +533,7 @@ void AMSEcalCluster::build(int &stat){
     }
   }
 //  
-  if(ECREFFKEY.reprtf[0]==1){
+  if(ECREFFKEY.reprtf[0]>0){
     HF1(ECHISTR+18,geant(nclus),1.);
     HF1(ECHISTR+22,geant(eclust),1.);
     HF1(ECHISTR+23,geant(eclust),1.);

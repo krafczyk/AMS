@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.27 2001/01/22 17:32:44 choutko Exp $
+//  $Id: mccluster.h,v 1.28 2001/03/06 16:37:05 choumilo Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -106,6 +106,7 @@ public:
  number getedep() const {return _edep;}
  number gettime() const {return _tof;}
  number getcoo(integer i) {return i>=0 && i<3 ? _xcoo[i]:0;}
+ static number impoint[2];
 // static integer Out(integer);
 
 //#ifdef __DB__

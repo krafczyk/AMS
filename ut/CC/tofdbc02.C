@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.7 2001/01/22 17:32:22 choutko Exp $
+//  $Id: tofdbc02.C,v 1.8 2001/03/06 16:37:03 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -967,7 +967,7 @@ void TOF2JobStat::printstat(){
   printf(" RawEvent-validation OK  : % 6d\n",recount[2]);
   printf(" RawEvent->RawCluster OK : % 6d\n",recount[3]);
   printf(" RawCluster->Cluster OK  : % 6d\n",recount[4]);
-  if(AMSJob::gethead()->isCalibration()){
+  if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF){
     printf(" Entries to TZSl-calibr. : % 6d\n",recount[6]);
     printf(" TZSl: multiplicity OK   : % 6d\n",recount[7]);
     printf(" TZSl: no Anti,Albd,Spks : % 6d\n",recount[8]);

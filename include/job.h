@@ -1,4 +1,4 @@
-//  $Id: job.h,v 1.52 2001/03/02 10:40:56 choutko Exp $
+//  $Id: job.h,v 1.53 2001/03/06 16:37:05 choumilo Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 24, 1997. ak. add _eventRtype 
@@ -163,6 +163,7 @@ void _catofinitjob();
 void _catof2initjob();
 void _cantinitjob();
 void _cant2initjob();
+void _caecinitjob();
 void _caaxinitjob();
 void _dbinitjob();
 void _dbendjob();
@@ -220,6 +221,7 @@ const static uinteger RealData;
 const static uinteger CTracker;
 const static uinteger CTOF;
 const static uinteger CAnti;
+const static uinteger CEcal;
 const static uinteger CCerenkov;
 const static uinteger CMagnet;
 const static uinteger CRICH;
@@ -230,6 +232,7 @@ const static uinteger Calibration;
 const static uinteger MTracker;
 const static uinteger MTOF;
 const static uinteger MAnti;
+const static uinteger MEcal;
 const static uinteger MCerenkov;
 const static uinteger MLVL1;
 const static uinteger MLVL3;

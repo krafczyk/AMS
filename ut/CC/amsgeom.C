@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.115 2001/01/22 17:32:18 choutko Exp $
+//  $Id: amsgeom.C,v 1.116 2001/03/06 16:36:59 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -90,8 +90,8 @@ AMSJob::gethead()->addup( &false_mother);
 false_mother.add(&mother);
 if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
  magnetgeom(mother);
- tofgeom(mother);
-// tofgeom01(mother);
+// tofgeom(mother);//old
+ tofgeom01(mother);
  antigeom01(mother);
  pshgeom(mother);
  tkgeom(mother);
@@ -220,7 +220,7 @@ AMSgtmed *p;
     
 }
 //-------------------------------------------------------------------
-// ANS01 setup (G4-incompatible !!!)
+// AMS01 setup (G4-incompatible !!!)
 //
 void amsgeom::tofgeom(AMSgvolume & mother){ 
 number pr[3]={0.,0.,0.};
@@ -3286,7 +3286,7 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
   number nrm2[3][3]={0.,0.,1.,0.,1.,0., -1.,0.,0.}; // for Y-proj fibers
   geant coo[3]={0.,0.,0.};
   geant dx1,dy1,dx2,dy2,dz,dzh,xpos,ypos,zpos,cleft,fpitx,fpitz,fpitzz,zfl1;
-  geant flen,zposfl,dxe;
+  geant dzrad1,zmrad1,alpth,flen,zposfl,dxe;
   integer nrot,gid(0),nsupl,nflpsl,nfpl[2],nf;
   integer isupl,ifibl,ifib,iproj,ip;
   int i,j,k;
@@ -3305,19 +3305,22 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
   dx1=ECALDBc::gendim(1);// x-size of EC-radiator
   dxe=ECALDBc::gendim(4);// dx(dy)-thickness of (PMT+electronics)-volume 
   dy1=ECALDBc::gendim(2);// y-size of EC-rad
-  dz=ECALDBc::gendim(3);// Z-size of EC-rad
+  dzrad1=ECALDBc::gendim(9);// z-size of one SL-radiator(lead only)
+  alpth=ECALDBc::gendim(10);// Al plate  thickness
+  nsupl=ECALDBc::slstruc(3);// numb.of super-layers
+  nflpsl=ECALDBc::slstruc(2);// numb.of fiber-layers per super-layer
+  nfpl[0]=ECALDBc::nfibpl(1);// fibers/(1st layer) 
+  nfpl[1]=ECALDBc::nfibpl(2);// fibers/(2nd layer)
+  dz=(dzrad1+2.*alpth)*nsupl;//EC rad. total thickness(incl. Al-plates, excl. Honeyc)
+  cout<<"EcalGeom: EC total radiator(incl.Al-plates) thickness "<<dz<<" cm"<<endl;
   dzh=ECALDBc::gendim(8);// Z-thickness of honeycomb
   xpos=ECALDBc::gendim(5);// x-pos EC-radiator center
   ypos=ECALDBc::gendim(6);// y-pos
   zpos=ECALDBc::gendim(7)-dz/2.;// z-pos of ECAL-center
-  nsupl=ECALDBc::slstruc(3);// numb.of super-layers
-  nflpsl=ECALDBc::slstruc(2);// numb.of fiber-layers per super-layerr
-  nfpl[0]=ECALDBc::nfibpl(1);// fiber/(1st layer) 
-  nfpl[1]=ECALDBc::nfibpl(2);// fiber/(2nd layer)
   fpitx=ECALDBc::fpitch(1);
   fpitz=ECALDBc::fpitch(2);
-  fpitzz=ECALDBc::fpitch(3);
-  zfl1=(nsupl*(nflpsl-1)*fpitz+(nsupl-1)*fpitzz)/2.;//1st f-layer zpos in ECAL-radiator(Mother) r.s.
+  fpitzz=dzrad1-(nflpsl-1)*fpitz+2.*alpth;
+  cout<<"EcalGeom: fpitchZZ "<<fpitzz<<" cm"<<endl;
 //------------------------------------
   par[0]=dx1/2.+dxe;
   par[1]=dy1/2.+dxe;
@@ -3327,7 +3330,7 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
   coo[2]=zpos;
   gid=1;
   ECmother=mother.add(new AMSgvolume(
-       "VACUUM",0,"ECMO","BOX",par,3,coo,nrm0,"ONLY",0,gid,1));// create ECAL mother volume
+       "EC_AL_PLATE",0,"ECMO","BOX",par,3,coo,nrm0,"ONLY",0,gid,1));// create ECAL mother volume
 //------------------------------------
 //  create top/bot honeycomb plate in ECAL-mother:
 //
@@ -3374,36 +3377,8 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
   p=ECmother->add(new AMSgvolume(
        "EC_ELBOX",0,"ECEB","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));//+Y box
 //------------------------------------
-  if(ECMCFFKEY.fastsim==1){ // <--- simplified (fast) geometry
 //
-// create Ecal EFFECTIVE Radiator volume as box:
-//
-    par[0]=dx1/2.;
-    par[1]=dy1/2.;
-    par[2]=dz/2.;
-    coo[0]=0.;
-    coo[1]=0.;
-    coo[2]=0.;
-    gid=100;
-    pECrad=ECmother->add(new AMSgvolume(
-       "EC_EFFRAD",0,"ECER","BOX",par,3,coo,nrm0,"ONLY",0,gid,1));
-  }
-//----------------------------------------------------------
-  else{                     // <--- accurate (slow) geometry
-//---> create/put Radiator
-    par[0]=dx1/2.;
-    par[1]=dy1/2.;
-    par[2]=dz/2.;
-    coo[0]=0.;
-    coo[1]=0.;
-    coo[2]=0.;
-    gid=100;
-    pECrad=ECmother->add(new AMSgvolume(
-       "EC_RADIATOR",0,"ECRD","BOX",par,3,coo,nrm0,"ONLY",0,gid,1));//cr. EC_rad in ECmother
-//
-//---> create/put fiber-layer(s) and individual fibers in EC_rad:
-//
-    zposfl=zfl1;// init  pos. of 1st fiber-layer
+    zmrad1=dz/2.-alpth-dzrad1/2.;// zmid of EC-rad in 1st SL(in ECMO r.s)
 //
     for(isupl=0;isupl<nsupl;isupl++){ // <--- super-layers loop
       ip=isupl%2;
@@ -3412,30 +3387,52 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
       if(iproj==0){ // in X-proj fiber goes along Y-axis
         flen=dy1/2.;
         for(i=0;i<3;i++)for(j=0;j<3;j++)nrm[i][j]=nrm1[i][j];
+        par[0]=dx1/2.;
+        par[1]=dzrad1/2.;
+        par[2]=dy1/2.;
       }
       else{         // in Y-proj fiber goes along X-axis
         flen=dx1/2.;
         for(i=0;i<3;i++)for(j=0;j<3;j++)nrm[i][j]=nrm2[i][j];
+        par[0]=dzrad1/2.;
+        par[1]=dy1/2.;
+        par[2]=dx1/2.;
       }
-//------
+//------> create/put SL-Radiator:
+//
+      nrot=ECROTN+isupl;
+      strcpy(vname,"ECR");
+      k=isupl+1;//numbering 1-9 of superlayers(1-digit)
+      in[0]=inum[k];
+      strcat(vname,in);
+      coo[0]=0.;
+      coo[1]=0.;
+      coo[2]=zmrad1-isupl*(dzrad1+2.*alpth);
+      gid=isupl+1;
+      pECrad=ECmother->add(new AMSgvolume(
+         "EC_RADIATOR",nrot,vname,"BOX",par,3,coo,nrm,"ONLY",0,gid,1));//cr. EC_rad in ECmother
+//
+//------> create/put fiber-layer(s) and individual fibers in EC_rad:
+//
       for(ifibl=0;ifibl<nflpsl;ifibl++){ // <--- fiber-layers loop in s-layer
-        nrot=ECROTN+isupl*nflpsl+ifibl;
         ip=ifibl%2;//even(1)/odd(0) f-layer
 	nf=nfpl[ip];// total fibers in layer
 	cleft=-(nf-1)*fpitx/2.;// tempor imply nfpl[1]=nfpl[0]+-1 sceme !!!
 	if(iproj==0){ // X
           par[0]=dx1/2.;
-          par[1]=ECALDBc::rdcell(4)/2.+ECALDBc::rdcell(8);// fiber+glue radious
+          par[1]=ECALDBc::rdcell(4)/2.+ECALDBc::rdcell(8)+0.001;// fiber+glue+safety radious
           par[2]=dy1/2.;
+	  coo[0]=0.;
+	  coo[1]=-(nflpsl-1)*fpitz/2.+ifibl*fpitz;//f-layer pos along the local Y
 	}
 	else{ // Y
-          par[0]=ECALDBc::rdcell(4)/2.+ECALDBc::rdcell(8);// fiber+glue radious
+          par[0]=ECALDBc::rdcell(4)/2.+ECALDBc::rdcell(8)+0.001;// fiber+glue+safety radious
           par[1]=dy1/2.;
           par[2]=dx1/2.;
+	  coo[0]=-(nflpsl-1)*fpitz/2.+ifibl*fpitz;//f-layer pos along the local X
+	  coo[1]=0.;
 	} 
-	coo[0]=0.;
-	coo[1]=0.;
-	coo[2]=zposfl;
+	coo[2]=0.;
 	gid=(ifibl+1)+(isupl+1)*100;
         strcpy(vname,"FL");
 	k=isupl*nflpsl+ifibl+1;//solid numbering of f-layers(2-digits)
@@ -3446,7 +3443,7 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
 	in[0]=inum[i];
 	strcat(vname,in);
         pECfbl=pECrad->add(new AMSgvolume(
-               "EC_RADIATOR",nrot,vname,"BOX",par,3,coo,nrm,"ONLY",0,gid,1));//cr. f-layer in ECrad
+               "EC_RADIATOR",0,vname,"BOX",par,3,coo,nrm0,"ONLY",0,gid,1));//cr. f-layer in ECrad
 //-----------
         for(ifib=0;ifib<nf;ifib++){ // <--- fiber loop in layer
           par[0]=0.;
@@ -3474,7 +3471,7 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
             par[1]=ECALDBc::rdcell(4)/2.;// fiber-core radious
 	    coo[0]=0.;
 	    coo[1]=0.;
-//	    gid=1;
+	    gid=1;
             pECfsen=pECfib->add(new AMSgvolume(
             "EC_FCORE",0,"ECFC","TUBE",par,3,coo,nrm0,"ONLY",0,gid,1));
 #ifdef __G4AMS__
@@ -3483,15 +3480,11 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
 	  }	 
 	} // ---> end of fiber loop
 //-----------
-        zposfl-=fpitz;// f-layer z-shifts inside of super-layer 
-      } // ---> end of layer loop
+      } // ---> end of f-layer loop
 //------
-      zposfl+=fpitz;// remove extra z-shift
-      zposfl-=fpitzz;// add zz-shifts
     } // ---> end of superlayer loop
-  }
 //
-  cout<<"AMSGEOM: ECAL-geometry done!"<<endl;
+  cout<<"AMSGEOM: ECAL-NewGeometry done!"<<endl;
 }
 //------------------------------------------------------------
 #include <srddbc.h>

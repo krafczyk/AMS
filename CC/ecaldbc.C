@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.17 2001/01/22 17:32:19 choutko Exp $
+//  $Id: ecaldbc.C,v 1.18 2001/03/06 16:37:00 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <iostream.h>
 #include <fstream.h>
+#include <ecalcalib.h>
 //
 ECcalib ECcalib::ecpmcal[ECSLMX][ECPMSMX];// mem.reserv.for ECAL indiv.PMcell calib. param.
 ECPMPeds ECPMPeds::pmpeds[ECSLMX][ECPMSMX];// ..........for ECAL peds,sigmas
@@ -23,26 +24,27 @@ integer ECALDBc::debug=1;
 //---> default structural. data:
 //
 geant ECALDBc::_gendim[10]={
-   64.8,64.8,18., // i=1-3  x,y,z-dimentions of EC-radiator
+   65.8,65.8,0., // i=1-2  x,y-dimentions of EC-radiator; 3->spare
    11.4,          //  =4    dx(dy) thickn.of (PMT+electronics)-volume
    0.,0.,       //  =5,6    center shift in x,y   
-  -142.3,       //  =7      Radiator(!!!) front face Z-pozition
+  -142.3,       //  =7      Radiator(incl.Al-plate !!!) front face Z-pozition
    5.,          //  =8      top(bot) honeycomb thickness
-   0.,0.       //  =9-10   spare
+   1.75,        //  =9      lead thickness of 1 superlayer
+   0.05        //  =10      Thickness of Al-plate on top(bot) of superlayer 
 };
 //
 geant ECALDBc::_fpitch[3]={
    0.135,      // i=1   fiber pitch in X(Y) projection
-   0.18,0.2   // i=2,3 fiber pitch in Z (inside super-layer / between neigbour super-layers)
+   0.173,0.   // i=2 fiber pitch in Z (inside super-layer); =3->spare
 };
 //
 geant ECALDBc::_rdcell[10]={
-   368.,32.5,0.15, // i=1,3  fiber att. length 1st(slow)/2nd(fast), % of 2nd;
+   368.,32.5,0.15,//i=1,3  MC-def fib.att.length slow)/fast/fast_fract(real values from DB !!)
    0.094,        // i=4    fiber diameter(0.1-2x0.003cm)
    0.9,          // i=5    size(dx=dz) of "1/4" of PMT-cathod (pixel)
    0.45,         // i=6    abs(x(z)-position) of "1/4" in PMT coord.syst.
    1.8,          // i=7    X(Y)-pitch of PMT's;
-   0.008,        // i=8    fiber wall+glue thickness(0.003+0.005cm)
+   0.008,        // i=8    fiber wall(cladd)+glue thickn(.003+.005cm) to have hole diam.=0.11
    0.,0.         // i=9,10 spare
 };
 //
@@ -55,25 +57,7 @@ integer ECALDBc::_slstruc[6]={
 };
 //
 integer ECALDBc::_nfibpl[2]={
-   480,479       // i=1,2 numb. of fibers per 1st/2nd fiber-layer in S-layer
-};
-//
-integer ECALDBc::_fibcgr[ECFLSMX][ECFBCMX]={ // fiber groupping in PMcell
-   1,1,1,1,1,1, 2,2,2,2,2,2,      // ( SubCell number) 1PM=2x2=4SubCells: 
-   1,1,1,1,1,1, 2,2,2,2,2,2,      //  -----
-   1,1,1,1,1,1, 2,2,2,2,2,2,      //  |1|2|
-   1,1,1,1,1,1, 2,2,2,2,2,2,      //  ----- view along the fibers in +X(Y) direction
-   1,1,1,1,1,1, 2,2,2,2,2,2,      //  |3|4|
-//                                    -----
-   3,3,3,3,3,3, 4,4,4,4,4,4,
-   3,3,3,3,3,3, 4,4,4,4,4,4,
-   3,3,3,3,3,3, 4,4,4,4,4,4,
-   3,3,3,3,3,3, 4,4,4,4,4,4,
-   3,3,3,3,3,3, 4,4,4,4,4,4
-};
-//
-integer ECALDBc::_nfibpcl[ECFLSMX]={ // real fibers per layer in PMcell
-   12,12,12,12,12,12,12,12,12,12
+   486,485       // i=1,2 numb. of fibers per 1st/2nd fiber-layer in S-layer
 };
 //
 int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion.
@@ -162,42 +146,6 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
     return _nfibpl[i-1];
   }
 //
-  integer ECALDBc::fibcgr(integer i, integer j){
-    #ifdef __AMSDEBUG__
-      if(ECALDBc::debug){
-        assert(i>0 && i <= ECFLSMX);
-        assert(j>0 && j <= ECFBCMX);
-      }
-    #endif
-    return _fibcgr[i-1][j-1];
-  }
-//
-  integer ECALDBc::nfibpcl(integer i){
-    #ifdef __AMSDEBUG__
-      if(ECALDBc::debug){
-        assert(i>0 && i <= ECFLSMX);
-      }
-    #endif
-    return _nfibpcl[i-1];
-  }
-//
-//---
-// fiberID(SSLLFFF) to cellID(SSPPC) conversion
-// ("digital" design - no fiber_edep division between neigb.pixels/pmts)
-//
-  void ECALDBc::fid2cidd(integer fid, integer cid[4], number w[4]){
-    integer fidd,fff,ss,ll,nn,pp,rc,fnc;
-    fidd=fid/1000;
-    fff=fid%1000-1;
-    ll=fidd%100-1;
-    ss=fidd/100;
-    nn=_nfibpcl[ll];
-    pp=fff/nn; // readout PMcell 
-    fnc=fff%nn;// fiber number inside the cell
-    rc=_fibcgr[ll][fnc];// readout sub-cell(pixel) inside PMcell
-    cid[0]=rc+10*(pp+1)+1000*ss;
-    w[0]=1.;
-  }
 //---
   number ECALDBc::segarea(number r, number ds){//small_segment area fraction (wrt full disk)
 //                                    r-radious, ds-horde_distance(from center)
@@ -309,128 +257,6 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
     }
   }
 //
-//---
-// <--- function to get info about SubCell("digital" design) :
-//input: isl->S-layer(0-...);pmc->PMCell(0-...);sc->SubCell(0-3)
-//output:pr->Proj(0-X,1-Y);pl->Plane(0-..);cell->0-...;ct/l/z-coord. in AMS.r.s
-//
-  void ECALDBc::getscinfod(integer isl, integer pmc, integer sc,
-         integer &pr, integer &pl, integer &cell, number &ct, number &cl, number &cz){
-//
-  int i,ip,sl,fl,fb,fi,pm,ce,nf[4];
-  number z,z11,t,t1,t2,tt[ECFLSMX];
-  static int first=0;
-  static number cool[2];
-  static number coot[ECPMSMX][4];
-  static number cooz[ECSLMX][4];
-//
-  int nsl=_slstruc[2];// numb.of super-layers
-  int nfl=_slstruc[1];// numb.of fiber-layers per super-layerr
-  int npm=_slstruc[3];// numb.of PM's per super-layer
-  int nfb;
-  geant pit=_fpitch[0];
-  geant piz=_fpitch[1];
-  geant pizz=_fpitch[2];
-//
-  #ifdef __AMSDEBUG__
-    if(ECALDBc::debug){
-      assert(isl>=0 && isl<nsl);
-      assert(pmc>=0 && isl<npm);
-      assert(sc>=0 && sc<4);
-    }
-  #endif
-//
-    z11=(nsl*(nfl-1)*piz+(nsl-1)*pizz)/2.;//zpos(ECAL r.s.) of 1st f-layer of 1st S-layer
-    if(first==0){// <--- first call actions(prepare some static tables):
-      first=1;
-      z=z11+(_gendim[6]-_gendim[2]/2.);//zpos(AMS r.s.) of 1st f-layer of 1st S-layer
-      for(sl=0;sl<nsl;sl++){// <--- S-layer loop for Z-calc.
-        for(i=0;i<4;i++){
-	  nf[i]=0;
-	  cooz[sl][i]=0.;
-	}
-        for(fl=0;fl<nfl;fl++){// <--- F-layer loop
-	  nfb=_nfibpcl[fl];
-	  for(fb=0;fb<nfb;fb++){// <--- Fiber loop in F-layer of PMCell
-	    fi=_fibcgr[fl][fb];
-	    if(fi>0){
-	      nf[fi-1]+=1;
-	      cooz[sl][fi-1]+=z;
-	    }
-	  }
-	  z-=piz;
-	}
-	z+=piz;//remove extra piz-shift
-	z-=pizz;//add pizz-shift while going from one s-layer to the next one
-	for(i=0;i<4;i++)cooz[sl][i]/=geant(nf[i]);// z-COG's (AMS r.s.)
-      }
-// <--- now calc. tranv. COG's for all SubCells of ONE S-layer:
-//
-      t1=-(_nfibpl[0]-1)*pit/2.;// odd-f-layer 1st fiber t(ransv.) position (ECAL r.s.)
-      t2=-(_nfibpl[1]-1)*pit/2.;//even-f-layer ..... (imply nfpl[1]=nfpl[0]+-1 sceme !!!)
-//
-      for(fl=0;fl<nfl;fl++){// init.1st fiber pos. for all f-layers in 1st PMCell
-        ip=fl%2;//even(1)/odd(0) f-layer
-	tt[fl]=(1-ip)*t1+ip*t2;// 1st fiber t-pos. of f-layer fl
-      }
-//
-      for(pm=0;pm<npm;pm++){// <--- PMCell loop for t-coo. calc.
-        for(i=0;i<4;i++){
-	  nf[i]=0;
-	  coot[pm][i]=0.;
-	}
-        for(fl=0;fl<nfl;fl++){// <--- F-layer loop
-          ip=fl%2;//even(1)/odd(0) f-layer
-	  nfb=_nfibpcl[fl];
-	  t=0.;
-	  for(fb=0;fb<nfb;fb++){// <--- Fiber loop in F-layer of PMCell
-	    fi=_fibcgr[fl][fb];
-	    if(fi>0){
-	      nf[fi-1]+=1;
-	      coot[pm][fi-1]+=(tt[fl]+t);// transversal COG's
-	      t+=pit;
-	    }
-	  }
-	  tt[fl]+=t;
-	}
-	for(i=0;i<4;i++)coot[pm][i]/=geant(nf[i]);// t-COG's (ECAL r.s.)
-      }
-#ifdef __AMSDEBUG__
-// print some control numbers:
-      cout<<"ECALDBc::getscinfo-test:"<<endl;
-      cout<<"     1st fiber t-coo for 1st/2nd f-layer(t1/t2)="<<t1<<" "<<t2<<endl;
-      cout<<"    last fiber t-coo(tt[f-layer]):"<<endl;
-      for(fl=0;fl<nfl;fl++){
-        tt[fl]-=pit;// remove extra t-shift
-        cout<<"                 "<<tt[fl]<<endl;
-      }
-      cout<<"1st SubCell in 1st plane coot(EC r.s.)/cooz="<<coot[0][0]<<" "<<cooz[0][0]<<endl;      
-      cout<<"last SubCell in 1st plane coot(EC r.s.)/cooz="<<coot[npm-1][1]<<" "<<cooz[0][1]<<endl;      
-      cout<<"1st SubCell in last plane coot(EC r.s.)/cooz="<<coot[0][2]<<" "<<cooz[nsl-1][2]<<endl;      
-      cout<<"last SubCell in last plane coot(EC r.s.)/cooz="<<coot[npm-1][3]<<" "<<cooz[nsl-1][3]<<endl;      
-#endif
-//
-    }
-//----------- each call actions :
-    else{
-      ip=isl%2;
-      if(ip==0)pr=_slstruc[0];// proj (0/1->X/Y)
-      else pr=1-_slstruc[0];
-      pl=isl*2+(sc/2);// plane (continious numbering of SubCell-planes over 2 proj)
-      cell=pmc*2+(sc%2);// Cell in SubCell-plane
-      cz=cooz[isl][sc];// z-coo (AMS r.s.)
-      ct=coot[pmc][sc];// transv.coo (ECAL r.s.)
-      if(pr==0){
-        ct+=_gendim[4];//t-coo for X-proj (AMS r.s.)
-	cl=_gendim[5];// l-coo .....
-      }
-      else{
-        ct+=_gendim[5];//t-coo for Y-proj (AMS r.s.)
-	cl=_gendim[4];// l-coo .....
-      }
-    }
-// 
-}
 //---------
 // <--- function to get info about SubCell("analog" design) :
 //
@@ -451,10 +277,12 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
   int nfl=_slstruc[1];// numb.of fiber-layers per super-layer
   int npm=_slstruc[3];// numb.of PM's per super-layer
   int nfb;
+  geant dzrad1=_gendim[8];// z-size of 1SL EC radiator(lead)
+  geant alpth=_gendim[9];// Al-plate(on rad. top/bot) thickness
   geant pmpit=_rdcell[6];//PM-pitch(transv)
   geant pxsiz=_rdcell[4];// SubCell(pixel) size
   geant piz=_fpitch[1];
-  geant pizz=_fpitch[2];
+  geant pizz,dz;
 //
   #ifdef __AMSDEBUG__
     if(ECALDBc::debug){
@@ -464,14 +292,17 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
     }
   #endif
 //
-    z11=(nsl*(nfl-1)*piz+(nsl-1)*pizz)/2.;//zpos(ECAL r.s.) of 1st f-layer of 1st S-layer
     if(first==0){// <--- first call actions(prepare some static tables):
       if(nfl%2 != 0){// imply even number (no fiber sharing between top/bot pixels)
         cerr<<"ECALDBc::getscinfoa: wrong number of fiber layers per super layer, nfl="<<nfl<<endl;
 	exit(1);
       }
       first=1;
-      z=z11+(_gendim[6]-_gendim[2]/2.);//zpos(AMS r.s.) of 1st f-layer of 1st S-layer
+      pizz=dzrad1-(nfl-1)*piz+2.*alpth;// fib-layer dist. in two adjacent super-layers
+      dz=(dzrad1+2.*alpth)*nsl;//EC rad. total thickness(incl. Al-plates, excl. Honeyc)
+      z11=(nsl*(nfl-1)*piz+(nsl-1)*pizz)/2.;//zpos(ECAL r.s.) of 1st f-layer of 1st S-layer
+      z=z11+(_gendim[6]-dz/2.);//zpos(AMS r.s.) of 1st f-layer of 1st S-layer
+      cout<<"ECALDBc::getscinfoa: 1st fiber-layer Zpos="<<z<<endl;
       for(sl=0;sl<nsl;sl++){// <--- S-layer loop for Z-calc.
         for(i=0;i<4;i++){
 	  nf[i]=0;
@@ -537,14 +368,26 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
 //
 integer EcalJobStat::mccount[ECJSTA];
 integer EcalJobStat::recount[ECJSTA];
-geant EcalJobStat::zprofa[2*ECSLMX];// average Z-profile
+integer EcalJobStat::cacount[ECJSTA];
+geant EcalJobStat::zprmc1[ECSLMX];// mc-hit average Z-profile(SL-layers) 
+geant EcalJobStat::zprmc2[ECSLMX];// mc-hit(+att) average Z-profile(SL(PM-assigned)-layers) 
+geant EcalJobStat::zprofa[2*ECSLMX];// average Z-profile(scPlanes) 
+geant EcalJobStat::zprofapm[ECSLMX];// average Z-profile(pm-layers) 
+geant EcalJobStat::zprofac[ECSLMX];// SL Edep profile (punch-through events)
+geant EcalJobStat::nprofac[ECSLMX];// SL profile (punch-through events)
 //
 //------------------------------------------
 void EcalJobStat::clear(){
   int i,j;
   for(i=0;i<ECJSTA;i++)mccount[i]=0;
   for(i=0;i<ECJSTA;i++)recount[i]=0;
+  for(i=0;i<ECJSTA;i++)cacount[i]=0;
+  for(i=0;i<ECSLMX;i++)zprmc1[i]=0;
+  for(i=0;i<ECSLMX;i++)zprmc2[i]=0;
   for(i=0;i<2*ECSLMX;i++)zprofa[i]=0;
+  for(i=0;i<ECSLMX;i++)zprofapm[i]=0;
+  for(i=0;i<ECSLMX;i++)zprofac[i]=0;
+  for(i=0;i<ECSLMX;i++)nprofac[i]=0;
 }
 //------------------------------------------
 // function to print Job-statistics at the end of JOB(RUN):
@@ -554,44 +397,165 @@ void EcalJobStat::printstat(){
   printf("    ====================== ECAL JOB-statistics ======================\n");
   printf("\n");
   printf(" MC: entries                       : % 6d\n",mccount[0]);
-  printf(" MC: MCHits->RawEvent(Trigfl>0) OK : % 6d\n",mccount[1]);
+  printf(" MC: MCHit->RawEven(ECTrigfl>0) OK : % 6d\n",mccount[1]);
   printf(" RECO-entries                      : % 6d\n",recount[0]);
-  printf(" ECAL trigger(trigfl>0) OK         : % 6d\n",recount[1]);
+  printf(" ECAL trigger(ECTrigfl>0) OK       : % 6d\n",recount[1]);
   printf(" Validation OK                     : % 6d\n",recount[2]);
   printf(" RawEvent->EcalHit OK              : % 6d\n",recount[3]);
   printf(" EcalHit->EcalCluster OK           : % 6d\n",recount[4]);
   printf("\n\n");
+  if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){
+    printf("    ============== RLGA/FIAT part of REUN_Clibration-statistics ===============\n");
+    printf("\n");
+    printf(" REUN: entries(tof/ec_trigflag OK) : % 6d\n",cacount[0]);
+    printf(" REUN: Track OK and hits EC        : % 6d\n",cacount[1]);
+    printf(" REUN: Recognized as PunchTrough   : % 6d\n",cacount[2]);
+    printf(" REUN: Etruncated in limits        : % 6d\n",cacount[3]);
+    printf(" REUN: At least one PM matched     : % 6d\n",cacount[4]);
+    printf("\n\n");
+  }
+  if(ECREFFKEY.relogic[1]==3){
+    printf("    ============== ANOR part of REUN_Clibration-statistics ===============\n");
+    printf("\n");
+    printf(" REUN: entries(tof/ec_trigflag OK) : % 6d\n",cacount[0]);
+    printf(" REUN: ANTI OK                     : % 6d\n",cacount[1]);
+    printf(" REUN: Track found                 : % 6d\n",cacount[2]);
+    printf(" REUN: Track OK                    : % 6d\n",cacount[3]);
+    printf(" REUN: Track hits ECAL             : % 6d\n",cacount[4]);
+    printf(" REUN: FiredSubCells pattern OK    : % 6d\n",cacount[5]);
+    printf(" REUN: Efront/Epeak/Etail/Etot OK  : % 6d\n",cacount[6]);
+    printf(" REUN: Plane1/2 COG matching OK    : % 6d\n",cacount[7]);
+    printf(" REUN: Plane1/3 Ebcg/Esig OK       : % 6d\n",cacount[8]);
+    printf("\n\n");
+  }
 //
 }
 //------------------------------------------
 void EcalJobStat::bookhist(){
-  int i,j,k,ich,maxcl,maxpl;
+  int i,j,k,ich,maxcl,maxpl,maxsl;
   char htit1[60];
   char inum[11];
   char in[2]="0";
 //
   maxpl=2*ECSLMX;//MAX planes
   maxcl=2*ECPMSMX;//MAX SubCells per plane
+  maxsl=ECSLMX;
   strcpy(inum,"0123456789");
     if(ECREFFKEY.reprtf[0]!=0){ // Book reco-hist
-      HBOOK1(ECHISTR+10,"ECAL: RawEvent-hits number",80,0.,400.,0.);
-      HBOOK1(ECHISTR+11,"ECAL: RawEvent-hits value(tot,adc,gain-corr)",200,0.,100000.,0.);
-      HBOOK1(ECHISTR+12,"ECAL: RawEvent-hits value(tot,adc,gain-corr)",100,0.,500.,0.);
-      HBOOK1(ECHISTR+13,"EcalHit-hits number",80,0.,160.,0.);
-      HBOOK1(ECHISTR+14,"EcalHit-hits value(tot,Mev)",200,0.,100000,0.);
-      HBOOK1(ECHISTR+15,"EcalHit-hits value(tot,Mev)",100,0.,1000,0.);
-      HBOOK1(ECHISTR+16,"ECAL: RawEvent-hits value(adc,gain-corr)",200,0.,10000.,0.);
-      HBOOK1(ECHISTR+17,"ECAL: RawEvent-hits value(adc,gain-corr)",100,0.,100.,0.);
-      HBOOK1(ECHISTR+18,"EcalClusters per event",60,0.,120.,0.);
+      HBOOK1(ECHISTR+10,"ECRE: RawEvent-hits number",80,0.,400.,0.);
+      HBOOK1(ECHISTR+11,"ECRE: RawEvent-hits value(tot,adc,gain-corr)",200,0.,100000.,0.);
+      HBOOK1(ECHISTR+12,"ECRE: RawEvent-hits value(tot,adc,gain-corr)",100,0.,500.,0.);
+      HBOOK1(ECHISTR+13,"ECRE: EcalHit-hits number",80,0.,160.,0.);
+      HBOOK1(ECHISTR+14,"ECRE: EcalHit-hits value(tot,Mev)",200,0.,100000,0.);
+      HBOOK1(ECHISTR+15,"ECRE: EcalHit-hits value(tot,Mev)",100,0.,1000,0.);
+      HBOOK1(ECHISTR+16,"ECRE: RawEvent-hits value(adc,gain-corr)",200,0.,10000.,0.);
+      HBOOK1(ECHISTR+17,"ECRE: RawEvent-hits value(adc,gain-corr)",100,0.,100.,0.);
+      HBOOK1(ECHISTR+18,"ECRE: EcalClust per event",60,0.,120.,0.);
       if(ECREFFKEY.reprtf[1]==1){//<--- to store t-profiles, z-prof
-        HBOOK1(ECHISTR+19,"T-prof in plane 8(X)",maxcl,1.,geant(maxcl+1),0.);
-        HBOOK1(ECHISTR+20,"T-prof in plane 9(Y)",maxcl,1.,geant(maxcl+1),0.);
-        HBOOK1(ECHISTR+21,"Z-profile",maxpl,1.,geant(maxpl+1),0.);
+        HBOOK1(ECHISTR+19,"ECRE: T-prof in plane 8(X)",maxcl,1.,geant(maxcl+1),0.);
+        HBOOK1(ECHISTR+20,"ECRE: T-prof in plane 9(Y)",maxcl,1.,geant(maxcl+1),0.);
+        HBOOK1(ECHISTR+21,"ECRE: Z-profile",maxpl,1.,geant(maxpl+1),0.);
       }
-      HBOOK1(ECHISTR+22,"EcalCluster value(tot,Mev)",200,0.,1000000,0.);
-      HBOOK1(ECHISTR+23,"EcalCluster value(tot,Mev)",100,0.,50000,0.);
-      HBOOK1(ECHISTR+24,"Z-profile(average)",maxpl,1.,geant(maxpl+1),0.);
-      HBOOK1(ECHISTR+30,"ECAL: Trigger flag(validate)",10,0.,10.,0.);
+      HBOOK1(ECHISTR+22,"ECRE: EcalClust value(tot,Mev)",200,0.,1000000,0.);
+      HBOOK1(ECHISTR+23,"ECRE: EcalClust value(tot,Mev)",100,0.,50000,0.);
+      HBOOK1(ECHISTR+24,"ECRE: SubCelLayer En-profile(ECHits)",maxpl,1.,geant(maxpl+1),0.);
+      HBOOK1(ECHISTR+25,"ECRE: SuperLayer En-profile(ECHits)",maxsl,1.,geant(maxsl+1),0.);
+      HBOOK1(ECHISTR+30,"ECRE: Trigger flag(validate)",10,0.,10.,0.);
+//
+      if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){// RLGA/FIAT part of REUN-calibration
+        HBOOK1(ECHISTC,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
+        HBOOK1(ECHISTC+1,"ECCA: Track Imp.point X, SL1",70,-70.,70.,0.);
+        HBOOK1(ECHISTC+2,"ECCA: Track Imp.point Y, SL1",70,-70.,70.,0.);
+        HBOOK1(ECHISTC+3,"ECCA: PM-Track Transv-dist,SL1",50,-5.,5.,0.);
+        HBOOK1(ECHISTC+4,"ECCA: PM-Track Transv-dist,SL2",50,-5.,5.,0.);
+        HBOOK1(ECHISTC+5,"ECCA: PM-Track Longit-dist,SL1,PM18 ",70,0.,70.,0.);
+        HBOOK1(ECHISTC+6,"ECCA: Track-fit Chi2 ",80,0.,20.,0.);
+//    hist # +7 is booked inside mfit !!!
+        HBOOK1(ECHISTC+8,"ECCA: SubCell Efficiency",50,0.2,1.2,0.);
+        HBOOK1(ECHISTC+9,"ECCA: SubCell RelativeGain",50,0.5,1.5,0.);
+        HBOOK1(ECHISTC+10,"ECCA: RefPmResp. uniformity",ECCLBMX,1.,geant(ECCLBMX+1),0.);
+        HBOOK1(ECHISTC+11,"ECCA: PM relat.gains",100,0.5,1.5,0.);
+        HBOOK1(ECHISTC+12,"ECCA: Rigidity (gv)",100,0.,100.,0.);
+        HBOOK1(ECHISTC+13,"ECCA: PM-RelGain L-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
+	HMINIM(ECHISTC+13,0.9);
+	HMAXIM(ECHISTC+13,1.1);
+        HBOOK1(ECHISTC+14,"ECCA: SubCell Efficiency L-profile",maxpl,1.,geant(maxpl+1),0.);
+	HMINIM(ECHISTC+14,0.8);
+	HMAXIM(ECHISTC+14,1.);
+        HBOOK1(ECHISTC+15,"ECCA: PM Eff vs SL(full fib.length)",maxsl,1.,geant(maxsl+1),0.);
+	HMINIM(ECHISTC+15,0.85);
+	HMAXIM(ECHISTC+15,1.05);
+        HBOOK1(ECHISTC+16,"ECCA: Edep/SLayer(PunchThrough,mev)",100,0.,200.,0.);
+        HBOOK1(ECHISTC+17,"ECCA: Bad(non PunchThrough) scLayers",maxpl+1,0.,geant(maxpl+1),0.);
+        HBOOK1(ECHISTC+18,"ECCA: SLayerEdep prof(punch-through)",maxsl,1.,geant(maxsl+1),0.);
+	HBOOK2(ECHISTC+19,"ECCA: RefPmSc Alow vs Ahigh",80,20.,260.,30,0.,30.,0.);
+        HBOOK1(ECHISTC+20,"ECCA: Slop(h2lcalib,all chan)",80,8.,24.,0.);
+        HBOOK1(ECHISTC+21,"ECCA: Offs(h2lcalib,all chan)",80,-40.,40.,0.);
+        HBOOK1(ECHISTC+22,"ECCA: Chi2(h2lcalib,all chan)",80,0.,8.,0.);
+        HBOOK1(ECHISTC+23,"ECCA: LowChBinRMS/Aver(h2lcalib,all chan)",80,0.,1.,0.);
+        HBOOK1(ECHISTC+24,"ECCA: EcalHit Energy(in adc-units)",100,0.,100.,0.);
+        HBOOK1(ECHISTC+25,"ECCA: Fired(above thr) SubCells/Layer",80,0.,80.,0.);
+        HBOOK1(ECHISTC+26,"ECCA: SubCell eff(even SL) ",80,0.5,1.3,0.);
+        HBOOK1(ECHISTC+27,"ECCA: SubCell eff( odd SL) ",80,0.5,1.3,0.);
+        HBOOK1(ECHISTC+28,"ECCA: SL number(punch-through)",maxsl,1.,geant(maxsl+1),0.);
+        HBOOK1(ECHISTC+29,"ECCA: PM spectrum(trk-matched,X-pr)",100,0.,100.,0.);
+        HBOOK1(ECHISTC+30,"ECCA: PM spectrum(trk-matched,Y-pr)",100,0.,100.,0.);
+        HBOOK1(ECHISTC+31,"ECCA: PM eff(even SL) ",80,0.5,1.3,0.);
+        HBOOK1(ECHISTC+32,"ECCA: PM eff( odd SL) ",80,0.5,1.3,0.);
+// test	HBOOK1(ECHISTC+33,"ECCA: TRK imppoint X-accur",60,-0.3,0.3,0.); 
+// test	HBOOK1(ECHISTC+34,"ECCA: TRK imppoint Y-accur",60,-0.3,0.3,0.); 
+      }
+      if(ECREFFKEY.relogic[1]==3){// ANOR part of REUN-calibration
+        HBOOK1(ECHISTC,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
+        HBOOK1(ECHISTC+1,"ECCA: Track Chi2(FastFit) ",80,0.,40.,0.);
+        HBOOK1(ECHISTC+2,"ECCA: Track rigidity (Gv,FastFit)",100,2.,12.,0.);
+        HBOOK1(ECHISTC+3,"ECCA: Track dR/R(FastFit)",100,0.,0.05,0.);
+        HBOOK1(ECHISTC+4,"ECCA: Track half-rig. assimetry(AdvFit)",80,-0.4,0.4,0.);
+        HBOOK1(ECHISTC+5,"ECCA: EcalHit Energy(in adc-units)",100,0.,100.,0.);
+        HBOOK1(ECHISTC+6,"ECCA: Fired(above thr) SubCells/Layer",80,0.,80.,0.);
+        HBOOK1(ECHISTC+7,"ECCA: Fired(above thr) SubCells/Layer1/2/3",80,0.,80.,0.);
+        HBOOK1(ECHISTC+8,"ECCA: Bad SC-Layers(spikes,high multipl.",maxpl+1,0.,geant(maxpl+1),0.);
+        HBOOK1(ECHISTC+9,"ECCA: Edep total(mev)",200,0.,20000.,0.);
+        HBOOK1(ECHISTC+10,"ECCA: Side Eleak/Etot",100,0.,0.5,0.);
+        HBOOK1(ECHISTC+11,"ECCA: Edep in 1st 4X0(mev)",100,0.,1000.,0.);
+        HBOOK1(ECHISTC+12,"ECCA: Etail/Epeak",100,0.,1.,0.);
+        HBOOK1(ECHISTC+13,"ECCA: Edep/Mom-1(Efr,Epeak/Etail cuts)",100,-1.,1.,0.);
+        HBOOK1(ECHISTC+14,"ECCA: Max. dist of Track and SC",100,0.,50.,0.);
+        HBOOK1(ECHISTC+15,"ECCA: Track-COG(any plane) dist",100,-10.,10.,0.);
+        HBOOK1(ECHISTC+16,"ECCA: Edep/Mom(all cuts)",100,0.,2.,0.);
+        HBOOK1(ECHISTC+17,"ECCA: Back Eleak/Etot",100,0.,0.5,0.);
+        HBOOK1(ECHISTC+18,"ECCA: Mom/Edep(all cuts)",100,0.,2.,0.);
+        HBOOK1(ECHISTC+19,"ECCA: Max.value of SubCell ADC",100,0.,5000.,0.);
+        HBOOK1(ECHISTC+20,"ECCA: SCplane1/2/3 holes",80,0.,80.,0.);
+        HBOOK1(ECHISTC+21,"ECCA: Max. dist of Track and SC(pl 1)",100,0.,50.,0.);
+        HBOOK1(ECHISTC+22,"ECCA: Track-COG(plane 1,2) dist",100,-10.,10.,0.);
+        HBOOK2(ECHISTC+23,"ECCA: PL1 holes vs maxdist",50,0.,25.,20,0.,20.,0.);
+        HBOOK1(ECHISTC+24,"ECCA: Spikes/plane",80,0.,80.,0.);
+        HBOOK1(ECHISTC+25,"ECCA: Dist. of Track and SC",80,-8.,8.,0.);
+        HBOOK1(ECHISTC+26,"ECCA: Edep(all cuts,attf corr,mev)",100,0.,20000.,0.);
+        HBOOK1(ECHISTC+27,"ECCA: Edep(all cuts,no attf.corr,mev)",100,0.,20000.,0.);
+        HBOOK1(ECHISTC+28,"ECCA: Rigidity(all cuts,mev)",100,2000.,12000.,0.);
+        HBOOK1(ECHISTC+29,"ECCA: Z-profile(all cuts)",maxpl,0.,geant(maxpl),0.);
+        HBOOK1(ECHISTC+30,"ECCA: Tracker backgr. Ycl/layer",50,0.,50.,0.);
+        HBOOK1(ECHISTC+31,"ECCA: Tracker backgr. Xcl/layer",50,0.,50.,0.);
+        HBOOK1(ECHISTC+32,"ECCA: Tracker X-layer backgr.",50,0.,10.,0.);
+        HBOOK1(ECHISTC+33,"ECCA: Tracker Y-layer backgr.",50,0.,10.,0.);
+        HBOOK1(ECHISTC+34,"ECCA: Track X-layer ampl.",80,0.,400.,0.);
+        HBOOK1(ECHISTC+35,"ECCA: Track Y-layer ampl.",80,0.,400.,0.);
+        HBOOK1(ECHISTC+36,"ECCA: Track rigidity (Gv,FastFit,clustOK)",100,0.,20.,0.);
+        HBOOK1(ECHISTC+37,"ECCA: Track Xcross At ECTop",70,-35.,35.,0.);
+        HBOOK1(ECHISTC+38,"ECCA: Track Ycross At ECTop",70,-35.,35.,0.);
+	HBOOK1(ECHISTC+39,"ECCA: ANTI sector energy",80,0.,40.,0.);
+	HBOOK1(ECHISTC+40,"ECCA: ANTI fired sectors",17,0.,17.,0.);
+        HBOOK1(ECHISTC+41,"ECCA: Track rigidity (Gv,FastFit,TrackOK)",100,2.,12.,0.);
+        HBOOK1(ECHISTC+42,"ECCA: Track Layer ampl.",80,0.,400.,0.);
+        HBOOK1(ECHISTC+50,"ECCA: Dist. of Track and SC(pl1)",80,-8.,8.,0.);
+        HBOOK1(ECHISTC+51,"ECCA: Dist. of Track and SC(pl2)",80,-8.,8.,0.);
+        HBOOK1(ECHISTC+52,"ECCA: Dist. of Track and SC(pl3)",80,-8.,8.,0.);
+	HBOOK1(ECHISTC+55,"ECCA: Emism/Ematch(pl1)",80,0.,4.,0.);
+	HBOOK1(ECHISTC+56,"ECCA: Emism/Ematch(pl2)",80,0.,4.,0.);
+	HBOOK1(ECHISTC+57,"ECCA: Emism/Ematch(pl3)",80,0.,4.,0.);
+      }
     }
 //
 }
@@ -599,14 +563,17 @@ void EcalJobStat::bookhist(){
 void EcalJobStat::bookhistmc(){
     if(ECMCFFKEY.mcprtf!=0){ // Book mc-hist
       HBOOK1(ECHIST+1,"Geant-hits number",100,0.,5000.,0.);
-      HBOOK1(ECHIST+2,"ECAL-MC: GeantdE/dX-hits value(tot,MeV)",100,0.,500,0.);
-      HBOOK1(ECHIST+3,"ECAL-MC: GeantdE/dX-hits value(+att,tot,MeV)",100,0.,500.,0.);
-      HBOOK1(ECHIST+4,"ECAL-MC: GeantEmeas(prim.electron)(AnodeTot,MeV)",400,0.,20000.,0.);
-      HBOOK1(ECHIST+5,"ECAL-MC: Dyn.hit value(tempor 4xAnodE/a2dr,i.e.in mev",100,0.,100.,0.);
-      HBOOK1(ECHIST+6,"ECAL-MC: 4xA-hit/D-hit ratio",50,0.,50.,0.);
-      HBOOK1(ECHIST+7,"ECAL-MC: 1ST 4X0 signal(mev)",100,0.,2000.,0.);
-      HBOOK1(ECHIST+8,"ECAL-MC: Tail2Peak Ratio",50,0.,1.,0.);
-      HBOOK1(ECHIST+9,"ECAL-MC: Trigger flag(mctrigger)",30,0.,30.,0.);
+      HBOOK1(ECHIST+2,"ECMC: GeantdE/dX-hits value(tot,MeV)",100,0.,500,0.);
+      HBOOK1(ECHIST+3,"ECMC: GeantdE/dX-hits value(+att,tot,MeV)",100,0.,500.,0.);
+      HBOOK1(ECHIST+4,"ECMC: GeantEmeas(prim.electron)(AnodeTot,MeV)",400,0.,20000.,0.);
+      HBOOK1(ECHIST+5,"ECMC: Dyn.hit value(tempor 4xAnodE/a2dr,i.e.in mev",100,0.,100.,0.);
+      HBOOK1(ECHIST+6,"ECMC: 4xA-hit/D-hit ratio",50,0.,50.,0.);
+      HBOOK1(ECHIST+7,"ECMC: 1ST 4X0 signal(mev)",100,0.,2000.,0.);
+      HBOOK1(ECHIST+8,"ECMC: Tail2Peak Ratio",50,0.,1.,0.);
+      HBOOK1(ECHIST+9,"ECMC: ECTriggerFlag",30,0.,30.,0.);
+      HBOOK1(ECHIST+10,"ECMC: ECTriggerFlag(when TOFTrFlag)",30,0.,30.,0.);
+      HBOOK1(ECHIST+11,"ECMC: EmcHits SL-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
+      HBOOK1(ECHIST+12,"ECMC: EmcHits SL(PM-assigned)-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
       
     }
 }
@@ -625,9 +592,103 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTR+22);
       HPRINT(ECHISTR+23);
       if(recount[2]>0)for(int i=0;i<2*ECSLMX;i++)zprofa[i]/=geant(recount[2]);
+      if(recount[2]>0)for(int i=0;i<ECSLMX;i++)zprofapm[i]/=geant(recount[2]);
       HPAK(ECHISTR+24,zprofa);
+      HPAK(ECHISTR+25,zprofapm);
       HPRINT(ECHISTR+24);
+      HPRINT(ECHISTR+25);
       HPRINT(ECHISTR+30);
+    }
+    if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){ // print RLGA/FIAT-hists
+      HPRINT(ECHISTC);
+      HPRINT(ECHISTC+6);
+      HPRINT(ECHISTC+1);
+      HPRINT(ECHISTC+2);
+      HPRINT(ECHISTC+3);
+      HPRINT(ECHISTC+4);
+      HPRINT(ECHISTC+5);
+      ECREUNcalib::mfit();
+      HPRINT(ECHISTC+8);
+      HPRINT(ECHISTC+9);
+//      HPRINT(ECHISTC+10);//already printed inside mfit
+      HPRINT(ECHISTC+11);
+      HPRINT(ECHISTC+12);
+      HPRINT(ECHISTC+13);
+      HPRINT(ECHISTC+14);
+      HPRINT(ECHISTC+15);
+      HPRINT(ECHISTC+16);
+      HPRINT(ECHISTC+17);
+      for(int i=0;i<ECSLMX;i++)if(nprofac[i]>0)zprofac[i]/=nprofac[i];
+      HPAK(ECHISTC+18,zprofac);
+      HPRINT(ECHISTC+18);
+      HPRINT(ECHISTC+28);
+      HPRINT(ECHISTC+19);
+      HPRINT(ECHISTC+20);
+      HPRINT(ECHISTC+21);
+      HPRINT(ECHISTC+22);
+      HPRINT(ECHISTC+23);
+      HPRINT(ECHISTC+24);
+      HPRINT(ECHISTC+25);
+      HPRINT(ECHISTC+26);
+      HPRINT(ECHISTC+27);
+      HPRINT(ECHISTC+29);
+      HPRINT(ECHISTC+30);
+      HPRINT(ECHISTC+31);
+      HPRINT(ECHISTC+32);
+// test      HPRINT(ECHISTC+33);
+// test      HPRINT(ECHISTC+34);
+    }
+    if(ECREFFKEY.relogic[1]==3){ // print ANOR-hists
+      HPRINT(ECHISTC+39);
+      HPRINT(ECHISTC+40);
+      HPRINT(ECHISTC);
+      HPRINT(ECHISTC+1);
+      HPRINT(ECHISTC+2);
+      HPRINT(ECHISTC+3);
+      HPRINT(ECHISTC+4);
+      HPRINT(ECHISTC+30);
+      HPRINT(ECHISTC+31);
+      HPRINT(ECHISTC+32);
+      HPRINT(ECHISTC+33);
+      HPRINT(ECHISTC+34);
+      HPRINT(ECHISTC+35);
+      HPRINT(ECHISTC+36);
+      HPRINT(ECHISTC+42);
+      HPRINT(ECHISTC+41);
+      HPRINT(ECHISTC+37);
+      HPRINT(ECHISTC+38);
+      HPRINT(ECHISTC+5);
+      HPRINT(ECHISTC+6);
+      HPRINT(ECHISTC+7);
+      HPRINT(ECHISTC+8);
+      HPRINT(ECHISTC+9);
+      HPRINT(ECHISTC+10);
+      HPRINT(ECHISTC+17);
+      HPRINT(ECHISTC+11);
+      HPRINT(ECHISTC+12);
+      HPRINT(ECHISTC+13);
+      HPRINT(ECHISTC+14);
+      HPRINT(ECHISTC+15);
+      HPRINT(ECHISTC+16);
+      HPRINT(ECHISTC+18);
+      HPRINT(ECHISTC+19);
+      HPRINT(ECHISTC+20);
+      HPRINT(ECHISTC+21);
+      HPRINT(ECHISTC+22);
+      HPRINT(ECHISTC+23);
+      HPRINT(ECHISTC+24);
+      HPRINT(ECHISTC+25);
+      HPRINT(ECHISTC+50);
+      HPRINT(ECHISTC+51);
+      HPRINT(ECHISTC+52);
+      HPRINT(ECHISTC+55);
+      HPRINT(ECHISTC+56);
+      HPRINT(ECHISTC+57);
+      HPRINT(ECHISTC+26);
+      HPRINT(ECHISTC+27);
+      HPRINT(ECHISTC+28);
+      HPRINT(ECHISTC+29);
+      ECREUNcalib::mfite();
     }
 }
 //----------------------------
@@ -642,6 +703,17 @@ void EcalJobStat::outpmc(){
       HPRINT(ECHIST+7);
       HPRINT(ECHIST+8);
       HPRINT(ECHIST+9);
+      HPRINT(ECHIST+10);
+      if(mccount[1]>0){
+        for(int i=0;i<ECSLMX;i++){
+          zprmc1[i]/=geant(mccount[1]);
+          zprmc2[i]/=geant(mccount[1]);
+	}
+      }
+      HPAK(ECHIST+11,zprmc1);
+      HPAK(ECHIST+12,zprmc2);
+      HPRINT(ECHIST+11);
+      HPRINT(ECHIST+12);
     }
 }
 //==========================================================================
@@ -650,7 +722,7 @@ void EcalJobStat::outpmc(){
 void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
   int i,isl,ipm,isc,cnum;
   integer sid,sta[4],endflab;
-  geant pmrg,scrg[4],h2lr[4],a2m,a2dr;
+  geant pmrg,scrg[4],h2lr[4],a2m,a2dr,lfs,lsl,ffr;
   integer slmx,pmmx;
   integer scmx=4;// max.SubCells(pixels) in PM
   slmx=ECSLMX;//max.S-layers
@@ -668,6 +740,7 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
 //
   integer status[ECPMSL][4];
   geant pmrgn[ECPMSL],pmscgn[ECPMSL][4],sch2lr[ECPMSL][4],an2dyr[ECPMSL],adc2mev;
+  geant lfast[ECPMSL],lslow[ECPMSL],fastf[ECPMSL];
 //
   strcpy(inum,"0123456789");
 //
@@ -705,15 +778,15 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
 //
 //------------------------------
 //
-//   --->  Read status/energy-calibration file :
+//   --->  Read status/rel.gains calib. file :
 //
   ctyp=1;//1st type of calibration (really may be single)
-  strcpy(name,"ecalencf");
+  strcpy(name,"ecalrlga");
   mcvn=mcvern[ctyp-1]%1000;
   rlvn=rlvern[ctyp-1]%1000;
   if(AMSJob::gethead()->isMCData()) //      for MC-event
   {
-       cout <<" ECcalib_build: MC:energy-calibration is used"<<endl;
+       cout <<" ECcalib_build: MC: RLGA-calib file have to be read"<<endl;
        dig=mcvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -727,7 +800,7 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
   }
   else                              //      for Real events
   {
-       cout <<" TOF2Brcal_build: REAL:energy-calibration is used"<<endl;
+       cout <<" ECcalib_build: REAL: RLGA-calib file have to be read"<<endl;
        dig=rlvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -745,9 +818,9 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
   if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
   cout<<"ECcalib::build: Open file : "<<fname<<'\n';
-  ifstream encfile(fname,ios::in); // open  file for reading
-  if(!encfile){
-    cerr <<"ECcalib_build: missing status/energy-calibration file "<<fname<<endl;
+  ifstream rlgfile(fname,ios::in); // open  file for reading
+  if(!rlgfile){
+    cerr <<"ECcalib_build: missing status/rel.gains file "<<fname<<endl;
     exit(1);
   }
 //
@@ -757,7 +830,7 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
     for(isc=0;isc<4;isc++){   
       for(ipm=0;ipm<pmmx;ipm++){  
         cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
-        encfile >> status[cnum][isc];
+        rlgfile >> status[cnum][isc];
       }
     }
   } 
@@ -767,7 +840,7 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
   for(isl=0;isl<slmx;isl++){   
     for(ipm=0;ipm<pmmx;ipm++){  
       cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
-      encfile >> pmrgn[cnum];
+      rlgfile >> pmrgn[cnum];
     }
   }
 //
@@ -777,7 +850,7 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
     for(isc=0;isc<4;isc++){   
       for(ipm=0;ipm<pmmx;ipm++){  
         cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
-        encfile >> pmscgn[cnum][isc];
+        rlgfile >> pmscgn[cnum][isc];
       }
     }
   }
@@ -788,7 +861,7 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
     for(isc=0;isc<4;isc++){   
       for(ipm=0;ipm<pmmx;ipm++){  
         cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
-        encfile >> sch2lr[cnum][isc];
+        rlgfile >> sch2lr[cnum][isc];
       }
     }
   }
@@ -798,23 +871,162 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
   for(isl=0;isl<slmx;isl++){   
     for(ipm=0;ipm<pmmx;ipm++){  
       cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
-      encfile >> an2dyr[cnum];
+      rlgfile >> an2dyr[cnum];
     }
-  } 
-//
-// ---> read common(hope) adc2mev convertion factor:
-//
-  encfile >> adc2mev;
-//
+  }
 // ---> read endfile-label:
 //
-  encfile >> endflab;
+  rlgfile >> endflab;
 //
-  encfile.close();
+  rlgfile.close();
+  if(endflab==12345){
+    cout<<"ECcalib::build: RLGA-calibration file is successfully read !"<<endl;
+  }
+  else{cout<<"ECcalib::build: ERROR(problems while reading RLGA-calib.file)"<<endl;
+    exit(1);
+  }
+//==================================================================
+//
+//   --->  Read fiber-attenuation calib. file :
+//
+  ctyp=2;//2nd type of calibration 
+  strcpy(name,"ecalfiat");
+  mcvn=mcvern[ctyp-1]%1000;
+  rlvn=rlvern[ctyp-1]%1000;
+  if(AMSJob::gethead()->isMCData()) //      for MC-event
+  {
+       cout <<" ECcalib_build: MC: FIAT-calib file have to be read"<<endl;
+       dig=mcvn/100;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=(mcvn%100)/10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=mcvn%10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       strcat(name,vers1);
+  }
+  else                              //      for Real events
+  {
+       cout <<" ECcalib_build: REAL: FIAT-calib file have to be read"<<endl;
+       dig=rlvn/100;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=(rlvn%100)/10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=rlvn%10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       strcat(name,vers2);
+  }
+//
+  strcat(name,".dat");
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"ECcalib::build: Open file : "<<fname<<'\n';
+  ifstream fatfile(fname,ios::in); // open  file for reading
+  if(!fatfile){
+    cerr <<"ECcalib_build: missing fiber_att.param. file "<<fname<<endl;
+    exit(1);
+  }
+//
+// ---> read PM-fibers att.parameters(Latt_fast/Latt_slow/Fast_fraction): 
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(ipm=0;ipm<pmmx;ipm++){  
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      fatfile >> lfast[cnum];
+    }
+  }
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(ipm=0;ipm<pmmx;ipm++){  
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      fatfile >> lslow[cnum];
+    }
+  }
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(ipm=0;ipm<pmmx;ipm++){  
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      fatfile >> fastf[cnum];
+    }
+  }
+// ---> read endfile-label:
+//
+  fatfile >> endflab;
+//
+  fatfile.close();
   if(endflab==12345){
     cout<<"ECcalib::build: calibration file is successfully read !"<<endl;
   }
-  else{cout<<"ECcalib::build: exit on ERROR(problems while reading of calib.file)"<<endl;
+  else{cout<<"ECcalib::build: ERROR(problems while reading FIAT-calib.file)"<<endl;
+    exit(1);
+  }
+//================================================================== 
+//
+//   --->  Read abs.norm. calib. file :
+//
+  ctyp=3;//3rd type of calibration 
+  strcpy(name,"ecalanor");
+  mcvn=mcvern[ctyp-1]%1000;
+  rlvn=rlvern[ctyp-1]%1000;
+  if(AMSJob::gethead()->isMCData()) //      for MC-event
+  {
+       cout <<" ECcalib_build: MC: ANOR-calib file have to be read"<<endl;
+       dig=mcvn/100;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=(mcvn%100)/10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=mcvn%10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       strcat(name,vers1);
+  }
+  else                              //      for Real events
+  {
+       cout <<" ECcalib_build: REAL: ANOR-calib file have to be read"<<endl;
+       dig=rlvn/100;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=(rlvn%100)/10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=rlvn%10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       strcat(name,vers2);
+  }
+//
+  strcat(name,".dat");
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"ECcalib::build: Open file : "<<fname<<'\n';
+  ifstream anrfile(fname,ios::in); // open  file for reading
+  if(!anrfile){
+    cerr <<"ECcalib_build: missing abs.norm. file "<<fname<<endl;
+    exit(1);
+  }
+//
+// ---> read common(hope) adc2mev convertion factor(abs.norm):
+//
+  anrfile >> adc2mev;
+//
+// ---> read endfile-label:
+//
+  anrfile >> endflab;
+//
+  anrfile.close();
+  if(endflab==12345){
+    cout<<"ECcalib::build: calibration file is successfully read !"<<endl;
+  }
+  else{cout<<"ECcalib::build: ERROR(problems while reading ANOR-calib.file)"<<endl;
     exit(1);
   }
     
@@ -831,8 +1043,11 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
       for(isc=0;isc<4;isc++)scrg[isc]=pmscgn[cnum][isc];
       for(isc=0;isc<4;isc++)h2lr[isc]=sch2lr[cnum][isc];
       a2dr=an2dyr[cnum];
+      lfs=lfast[cnum];
+      lsl=lslow[cnum];
+      ffr=fastf[cnum];
       a2m=adc2mev;
-      ecpmcal[isl][ipm]=ECcalib(sid,sta,pmrg,scrg,h2lr,a2dr,a2m);
+      ecpmcal[isl][ipm]=ECcalib(sid,sta,pmrg,scrg,h2lr,a2dr,lfs,lsl,ffr,a2m);
     }
   }
 }  

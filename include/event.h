@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.60 2001/01/22 17:32:43 choutko Exp $
+//  $Id: event.h,v 1.61 2001/03/06 16:37:05 choumilo Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -179,6 +179,7 @@ void _caamsevent();
 void _catkevent();
 void _catofevent();
 void _cantievent();
+void _caecevent();
 void _cactcevent();
 void _catrdevent();
 void _casrdevent();

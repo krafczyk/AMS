@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.61 2001/01/22 17:32:20 choutko Exp $
+//  $Id: gmat.C,v 1.62 2001/03/06 16:37:02 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -295,6 +295,8 @@ mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));
 
 }
 //-------------------------------------------
+// ---> materials for ECAL:
+//
 // Light lead for ECAL test :
 {
 mat.add (new AMSgmat("LIGHTLEAD",207.19,82., 6.36 ,1.,32.5));
@@ -306,8 +308,12 @@ mat.add (new AMSgmat("ECSCINT",a,z,w,2,1.032));
 //-------------------
 // effective material for ECAL PMT-boxes (low dens.(1:10) iron):
 mat.add (new AMSgmat("LOW_DENS_Fe_2",55.85,26.,0.787,17.6,168.));//tempor as for TOF
-         // AL honeycomb structure for TOF :
+//
+         // AL honeycomb structure for ECAL :
 mat.add (new AMSgmat( "EC-AL-HONEYC",26.98, 13., 0.04, 600., 2660.));//tempor as for TOF
+//
+//        Al-plate for ECAL
+mat.add (new AMSgmat("ECALPALUM",26.98, 13., 1.35, 17.8, 74.4));
 //------------------
 { // Fiber wall(cladding+glue, ~ plexiglass):  
   geant a[]={12.01,1.01,16.0};
@@ -613,33 +619,30 @@ pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR","RICH_MIRROR",0));
 {
 geant birks[]={1.,0.013,9.6e-6};
 tmed.add (new AMSgtmed("EC_EFFRAD","LIGHTLEAD",0));// eff.radiator for fast sim(not sens !!!)
-//tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0)); // 
+//
 AMSgtmed * pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0,'N',birks,2,20.,10.,1000.,
                                     -1.,0.001,-1.)); // simplif.tracking in magn.f
-
-//GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_RADIATOR
-pgtmed->CUTGAM(ECMCFFKEY.cutge);
-//GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_RADIATOR
 pgtmed->CUTELE(ECMCFFKEY.cutge);
-pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_FCORE","ECSCINT",1,'Y',birks));//
-//GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_FIBER-core
-pgtmed->CUTGAM(ECMCFFKEY.cutge);
-//GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+//
+pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_FCORE","ECSCINT",1,'Y',birks));
+pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_FIBER-core
 pgtmed->CUTELE(ECMCFFKEY.cutge);
-pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_FWALL","ECFPLEX",0));// 
-//GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_FIBER-wall
-pgtmed->CUTGAM(ECMCFFKEY.cutge);
-//GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+//
+pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_FWALL","ECFPLEX",0)); 
+pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_FIBER-cladd+glue
 pgtmed->CUTELE(ECMCFFKEY.cutge);
+//
 pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_ELBOX","LOW_DENS_Fe_2",0));
-//GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_ELBOX
-pgtmed->CUTGAM(ECMCFFKEY.cutge);
-//GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_ELBOX
 pgtmed->CUTELE(ECMCFFKEY.cutge);
+//
 pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_HONEYC","EC-AL-HONEYC",0));
-//GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_HONEYC
-pgtmed->CUTGAM(ECMCFFKEY.cutge);
-//GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_HONEYC
+pgtmed->CUTELE(ECMCFFKEY.cutge);
+//
+pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_AL_PLATE","ECALPALUM",0));
+pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_AL_PLATE
 pgtmed->CUTELE(ECMCFFKEY.cutge);
 } 
 //----------------

@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.42 2001/01/22 17:32:21 choutko Exp $
+//  $Id: mccluster.C,v 1.43 2001/03/06 16:37:02 choumilo Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -16,6 +16,8 @@
 #include <g4util.h>
 #endif
 extern "C" void indetra_();
+
+number AMSEcalMCHit::impoint[2];
 
 integer AMSTRDMCCluster::_NoiseMarker(555);
 
@@ -479,7 +481,7 @@ void AMSEcalMCHit::siecalhits(integer idsoft , geant vect[],geant edep,
   AMSPoint pnt(vect[0],vect[1],vect[2]);
   int isl;
 //
-  isl=idsoft/100000;//s-layer(1-8)  
+  isl=idsoft/100000;//s-layer(1-9)  
   AMSEvent::gethead()->addnext(AMSID("AMSEcalMCHit",isl-1),
                       new AMSEcalMCHit(idsoft,pnt,edep,tofg));
 }

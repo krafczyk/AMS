@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.50 2001/03/02 11:09:11 choutko Exp $
+//  $Id: geant3.C,v 1.51 2001/03/06 16:37:02 choumilo Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -136,9 +136,8 @@ extern "C" void gustep_(){
   }
   // TOF
 
-  if(lvl >1 && GCVOLU.names[lvl][0]== 'T' && GCVOLU.names[lvl][1]=='O' &&
-  GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]=='S'){// in "TOFS"
-  if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
+  char name[4];
+  char media[20];
   geant t,x,y,z;
   geant de,dee,dtr2,div,tof;
   static geant xpr(0.),ypr(0.),zpr(0.),tpr(0.);
@@ -146,6 +145,10 @@ extern "C" void gustep_(){
   geant vect[3],dx,dy,dz,dt; 
   int i,nd,numv,iprt,numl,numvp;
   static int numvo(-999),iprto(-999);
+//
+  if(lvl >1 && GCVOLU.names[lvl][0]== 'T' && GCVOLU.names[lvl][1]=='O' &&
+  GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]=='S'){// in "TOFS"
+  if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
     iprt=GCKINE.ipart;
     numv=GCVOLU.number[lvl];
     x=GCTRAK.vect[0];
@@ -230,9 +233,11 @@ extern "C" void gustep_(){
      }
   }
 
-  // ANTI,  mod. by E.C.
+  // =======>  ANTI,  mod. by E.C.
+//---> read some GEANT standard values(for debugging): 
 //  numl=GCVOLU.nlevel;
 //  numv=GCVOLU.number[numl-1];
+//  numvp=GCVOLU.number[numl-2];
 //  for(i=0;i<4;i++)name[i]=GCVOLU.names[numl-1][i];
 //  cout<<"Volume "<<name<<" number="<<numv<<" level="<<numl<<" sens="<<GCTMED.isvol<<endl;
 //  iprt=GCKINE.ipart;
@@ -244,12 +249,13 @@ extern "C" void gustep_(){
 //  cout<<"Part="<<iprt<<" x/y/z="<<x<<" "<<y<<" "<<z<<" de="<<de<<endl;
 //  UHTOC(GCTMED.natmed,4,media,20);
 //  cout<<" Media "<<media<<endl;
+//--->
   int manti(0);
   if(lvl==3 && GCVOLU.names[lvl][0]== 'A' && GCVOLU.names[lvl][1]=='N'
                                        && GCVOLU.names[lvl][2]=='T')manti=1;
   if(GCTRAK.destep != 0  && GCTMED.isvol != 0 && manti==1){
       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
-     geant dee=GCTRAK.destep; 
+     dee=GCTRAK.destep; 
      if(TOFMCFFKEY.birks)GBIRK(dee);
      AMSAntiMCCluster::siantihits(GCVOLU.number[lvl],GCTRAK.vect,dee,GCTRAK.tofg);
 //     HF1(1510,geant(iprt),1.);
@@ -261,22 +267,32 @@ extern "C" void gustep_(){
     cerr<<" f " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
   }
 #endif
-
-// -----> ECAL 1.0-version by E.C.
+//
+// ---------------> ECAL 1.0-version by E.C.
+//
+// lines below are for check of TRK imp.point accuracy:
+//    if(GCTRAK.inwvol==1
+//     && GCVOLU.names[lvl][0]=='F' && GCVOLU.names[lvl][1]=='L'
+//     && GCVOLU.names[lvl][2]=='0'&& GCVOLU.names[lvl][3]=='5'
+//    ){
+//      if(GCKINE.ipart==47){//"47" if He-calibration
+//        AMSEcalMCHit::impoint[0]=GCTRAK.vect[0];
+//        AMSEcalMCHit::impoint[1]=GCTRAK.vect[1];
+//      }
+//    }
     if(GCTRAK.destep != 0.){
       if(lvl==6 && GCVOLU.names[lvl][0]== 'E' && GCVOLU.names[lvl][1]=='C'
                ){
 //               && GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]=='C'){
 //       
-//       numvp=GCVOLU.number[numl-2];
 //       cout<<"lev/vol="<<numl<<" "<<numv<<" name="<<name<<" x/y="<<x<<" "<<y<<" z="<<z<<" de="<<de<<endl;
 //       for(i=0;i<4;i++)name[i]=GCVOLU.names[numl-2][i];
 //       cout<<"vol(lev-1)="<<numvp<<" name="<<name<<endl;
-    if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
-     geant dee=GCTRAK.destep; 
-     if(TOFMCFFKEY.birks)GBIRK(dee);
-       AMSEcalMCHit::siecalhits(GCVOLU.number[lvl-1],GCTRAK.vect,dee,GCTRAK.tofg);
-      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
+        if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
+        dee=GCTRAK.destep; 
+        if(TOFMCFFKEY.birks)GBIRK(dee);
+        AMSEcalMCHit::siecalhits(GCVOLU.number[lvl-1],GCTRAK.vect,dee,GCTRAK.tofg);
+        if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
       }
     }
 //
