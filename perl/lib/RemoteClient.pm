@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.48 2002/07/15 14:30:05 choutko Exp $
+# $Id: RemoteClient.pm,v 1.49 2002/07/15 15:21:32 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -11,7 +11,7 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll queryDB);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll queryDB Download);
 
 my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
 my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
@@ -3067,7 +3067,8 @@ print qq`
                        unlink $file;
                      }
                   }                      
-                  $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
+                  $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";                     print "<TR><B><font color=green size= 5><a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/download.o.cgi\"><b><font color=green> download </font></a><font size=3><i> (Click <b><i>download </i></b> to obtain exe and data files)</font></i></font></B></TR>";
+             
     }
 
 
@@ -3989,6 +3990,36 @@ sub listNtuples {
      print "<p></p>\n";
 }
 
+sub Download{
+    print "Content-type: text/html\n\n";
+    print "<HTML>\n";
+    print "<body bgcolor=cornsilk text=black link=#007746 vlink=navy alink=tomato>\n";
+    print "<head>";
+    print "<TITLE>AMS Offline Software</TITLE></HEAD>";
+    print "<TABLE border=0 cellspacing=0 cellpadding=0>";
+    print "<tr>";
+    print "<td width=600>";
+    print "<table border=\"0\" cellspacing=\"5\" cellpadding=\"5\">";
+    print "<P>";
+    print "<p><tr><td bgcolor=\"#ffefd5\" width=600 valign=top colspan=2>";
+    print "<font face=\"myriad,arial,geneva,helvetica\">";
+    print "<TABLE BORDER=2 cellpadding=3 cellspacing=3 BGCOLOR=#eed8ae align=center width=100%>";
+    print "<TR><br>";
+    print "<TD><font color=#8b1a1a><b>The following files are avaialable for download</b></font>:";
+    print "<br><br>";
+    print "<br><a href=AMSUploads/ams02mcdb.tar.gz>  data files (tar.gz)</a>";
+    print "<br><br>";
+    print "<br><a href=AMSUploads/ams02mcdb.addon.tar.gz>   exe files (tar.gz)</a>";
+    print "<br><br>";
+    print "</TD></TR>";
+    print "</TABLE>";
+    print "</td></tr>";
+    print "</table>";
+    print "</td></tr>";
+    print "</TABLE>";
+    print "</BODY>";
+    print "</HTML>";
+}
 sub ht_init{
   my $self = shift;
 
