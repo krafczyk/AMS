@@ -611,7 +611,9 @@ void AMSParticle::_loc2gl(){
 
 
 void AMSParticle::alfun(integer & n , number xc[], number &fc, AMSParticle *p){
+ number zbeta=p->_beta;
+ if(zbeta<1)zbeta=2-zbeta;
  fc=(fabs(xc[0])-p->_mom)/p->_emom*(fabs(xc[0])-p->_mom)+
-   (sqrt(1+xc[0]*xc[0]*p->_mass)-p->_beta)/p->_ebeta*
-   (sqrt(1+xc[0]*xc[0]*p->_mass)-p->_beta);
+   (sqrt(1+xc[0]*xc[0]*p->_mass)-zbeta)/p->_ebeta*
+   (sqrt(1+xc[0]*xc[0]*p->_mass)-zbeta);
 }

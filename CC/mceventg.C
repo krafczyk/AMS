@@ -205,6 +205,14 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.PoleTheta=78.6/AMSDBc::raddeg;
   Orbit.Nskip=0;
   Orbit.Ntot=AMSIO::getntot();
+  if(ipart==0){
+    if(IOPA.mode!=1){
+      cerr << "AMSmceventg::setspectra-F-PARTNotDefined"<<endl;
+      exit(1);
+    }
+    return;
+  }
+
   if(AMSJob::gethead()->isSimulation()){
     if(low ==2)ipart=5;
     char chp[22]="";

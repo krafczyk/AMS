@@ -234,6 +234,7 @@ c      call hf1(2,float(npart),1.)
       if(mod(eventstatus/1048576,4).gt.0.and.
      +  mod(eventstatus/32,8).eq.0)then
         r=gridgidity(ptrackp(1))/ridgidity(ptrackp(1))
+        if(beta(pbetap(1)).lt.0)r=-r
         call hf1(15,r,1.)        
         call hf1(21,pmom(1)/pcharge(1),1.)        
         call hf1(22,pcharge(1),1.)
@@ -241,17 +242,8 @@ c      call hf1(2,float(npart),1.)
         call hf1(24,float(betapattern(pbetap(1))),1.)
         call hf1(25,float(pattern(ptrackp(1))),1.)
         call hf1(26,cos(thetagl(1)),1.)
-        if(geanefitdone(ptrackp(1)).ne.0.and.abs(r).lt.0.2.and.
-     +   beta(pbetap(1)).lt.0)then
-         pmom(1)=pmom(1)*ridgidity(ptrackp(1))/gridgidity(ptrackp(1))
-         pmass(1)=pmass(1)*
-     +   abs(ridgidity(ptrackp(1))/gridgidity(ptrackp(1)))
-         pass=1 
-        else 
-         pass=0
-        endif 
         if(geanefitdone(ptrackp(1)).eq.0.or.
-     +    (r.gt.0.4.and.r.lt.2.5).or.pass.eq.1)then
+     +    (r.gt.0.4.and.r.lt.2.5))then
           if(xsign(pmom(1)).eq.isig.and.
      +       betapattern(pbetap(1)).lt.5.and.
      +       advancedfitdone(ptrackp(1)).ne.0)then
@@ -329,9 +321,9 @@ c      call hf1(2,float(npart),1.)
                         aprf=1
                         write(46,*)run,eventno,pmass(1),pmom(1),
      +                  address(ptrackp(1))
-                       else if(rndm(d).lt.0.015)then
+                       else if(rndm(d).lt.0.004)then
                         aprf=1
-                        write(47,*)run,eventno,pmass(1),pmom(1),
+                        write(48,*)run,eventno,pmass(1),pmom(1),
      +                  address(ptrackp(1))
                        endif
                        istat=trstatus(ptrackp(1))
