@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.56 2002/10/13 10:55:57 mdelgado Exp $
+//  $Id: mccluster.C,v 1.57 2002/11/14 13:18:27 glamanna Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -545,6 +545,7 @@ void AMSRichMCHit::sirichhits(integer id,
   AMSRICHIdGeom channel(pmt,position[0],position[1]);
 
 #ifdef __AMSDEBUG__
+/*
   cout <<"Hit position "<<position[0]<<","<<position[1]<<endl
        <<"PMT number "<<pmt<<endl
        <<"RICHDB position "<<RICHDB::pmt_p[pmt][0]<<" "<<RICHDB::pmt_p[pmt][1]<<endl
@@ -552,6 +553,7 @@ void AMSRichMCHit::sirichhits(integer id,
        <<"Asigned channel "<<channel.getchannel()<<endl
        <<"Asigned pixel "<<channel.getpixel()<<endl
        <<"Asigned position "<<channel.x()<<","<<channel.y()<<endl;
+*/
 #endif
 
   // The primary history does not has good channel info so we do it by hand

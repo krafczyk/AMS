@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.116 2002/10/30 14:57:09 mdelgado Exp $
+//  $Id: ntuple.C,v 1.117 2002/11/14 13:18:27 glamanna Exp $
 //
 //  May 2002, A.Klimentov add Root related part
 //                        NB : Delete() should be used before Expand()
@@ -99,6 +99,11 @@ void AMSNtuple::init(){
   "ntrclmc[0,200],IdsoftMC(ntrclmc),Itra(ntrclmc),Left(2,ntrclmc):I,Center(2,ntrclmc):I,Right(2,ntrclmc):I,ss(5,2,ntrclmc),xca(3,ntrclmc),xcb(3,ntrclmc),xgl(3,ntrclmc),summc(ntrclmc)");
   HBNAME(_lun,"TrRecHit",&_trrh02.Ntrrh,
   "ntrrh[0,666],px(ntrrh)[-1,30000]:I,py(ntrrh)[-1,30000]:I,statusr(ntrrh):I,Layer(ntrrh)[0,10]:I,hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh),cofgx(ntrrh),cofgy(ntrrh)");
+
+
+   HBNAME(_lun,"TrGamma",&_tpai02.Ngam,
+   "ngam[0,2],Pgam(ngam):R,Thetagam(ngam):R,Phigam(ngam):R,Vert(3,ngam):R,GammaStatus(ngam):I,ptrLeft(ngam)[-1,254]:I,ptrRight(ngam)[-1,254]:I,Jthetal(ngam):R,Jphil(ngam):R,Jthetar(ngam):R,Jphir(ngam):R,Jp0l(3,ngam):R,Jp0r(3,ngam):R");
+
   HBNAME(_lun,"TrTrack",&_trtr02.Ntrtr,
   "ntrtr[0,100],trstatus(ntrtr):I,pattern(ntrtr)[0,100]:I,address(ntrtr):I,nhits(ntrtr)[0,8],phits(8,ntrtr)[-1,30000]:I,LocDBAver(ntrtr):R,GeaneFitDone(ntrtr)[0,1000]:I,AdvFitDone(ntrtr)[0,1000]:I,Chi2StrLine(ntrtr),Chi2Circle(ntrtr),CircleRig(ntrtr),Chi2FastFit(ntrtr),Rigidity(ntrtr),ErrRig(ntrtr),Theta(ntrtr),phi(ntrtr),p0(3,ntrtr),gchi2(ntrtr),grig(ntrtr),gerrrig(ntrtr),hchi2(2,ntrtr),HRigidity(2,ntrtr),HErrRigidity(2,ntrtr),htheta(2,ntrtr),hphi(2,ntrtr),hp0(3,2,ntrtr),fchi2ms(ntrtr),pirigerr(ntrtr),rigms(ntrtr),pirig(ntrtr)");
 
@@ -186,6 +191,7 @@ void AMSNtuple::reset(int full){
    _richmc.NMC=0;
    _richevent.Nhits=0;
    _ring.NRings=0;
+   _tpai02.Ngam=0;   
 }
 
 void AMSNtuple::write(integer addentry){
@@ -242,6 +248,7 @@ void AMSNtuple::clearClones()
     if (_evroot02.fTrMCCluster)    _evroot02.fTrMCCluster -> Clear();
     if (_evroot02.fTrRawCluster)   _evroot02.fTrRawCluster -> Clear();
     if (_evroot02.fTRrechit)       _evroot02.fTRrechit -> Clear();
+    if (_evroot02.fTrGamma)        _evroot02.fTrGamma -> Clear();
     if (_evroot02.fTRtrack)        _evroot02.fTRtrack -> Clear();
    }
 #endif
@@ -283,6 +290,7 @@ void AMSNtuple::deleteClones()
     if (_evroot02.fTrMCCluster)    _evroot02.fTrMCCluster   -> Delete();
     if (_evroot02.fTrRawCluster)   _evroot02.fTrRawCluster  -> Delete();
     if (_evroot02.fTRrechit)       _evroot02.fTRrechit      -> Delete();
+    if (_evroot02.fTrGamma)        _evroot02.fTrGamma       -> Delete();
     if (_evroot02.fTRtrack)        _evroot02.fTRtrack       -> Delete();
    }
 #endif
@@ -336,6 +344,7 @@ void AMSNtuple::expandClones()
     if (_evroot02.fTRDtrack)       _evroot02.fTRDtrack         -> Expand(MAXTRDTRK);
     if (_evroot02.fTrMCCluster)    _evroot02.fTrMCCluster      -> Expand(MAXTRCLMC);
     if (_evroot02.fTRrechit)       _evroot02.fTRrechit         -> Expand(MAXTRRH02);
+    if (_evroot02.fTrGamma)        _evroot02.fTrGamma          -> Expand(MAXPAIR02);
     if (_evroot02.fTRtrack)        _evroot02.fTRtrack          -> Expand(MAXTRTR02);
     if (_evroot02.fTrRawCluster)   _evroot02.fTrRawCluster     -> Expand(MAXTRRAW);
     if (_evroot02.fTOFRawCluster)  _evroot02.fTOFRawCluster    -> Expand(MAXTOFRAW);
@@ -383,6 +392,7 @@ void AMSNtuple::createClones()
     if (!_evroot02.fTrCluster)      _evroot02.fTrCluster     = new TClonesArray("TrClusterRoot",MAXTRCL);
     if (!_evroot02.fTrMCCluster)    _evroot02.fTrMCCluster   = new TClonesArray("TrMCClusterRoot",MAXTRCLMC);
     if (!_evroot02.fTRrechit)       _evroot02.fTRrechit      = new TClonesArray("TrRecHitRoot02",MAXTRRH02);
+    if (!_evroot02.fTrGamma)        _evroot02.fTrGamma       = new TClonesArray("TrGammaRoot02",MAXPAIR02);
     if (!_evroot02.fTRtrack)        _evroot02.fTRtrack       = new TClonesArray("TrTrackRoot02",MAXTRTR02);
     if (!_evroot02.fTrRawCluster)   _evroot02.fTrRawCluster  = new TClonesArray("TrRawClusterRoot",MAXTRRAW);
   }

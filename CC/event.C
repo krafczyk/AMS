@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.295 2002/10/30 14:57:09 mdelgado Exp $
+//  $Id: event.C,v 1.296 2002/11/14 13:18:26 glamanna Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -50,6 +50,7 @@
 #include <status.h>
 #include <trdsim.h>
 #include <trdrec.h>
+#include <gamma.h>
 #ifdef __G4AMS__
 #include <g4util.h>
 #endif
@@ -939,6 +940,9 @@ void AMSEvent::_retkinitevent(){
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseX",i),&AMSTrTrack::buildFalseX,0));
   for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseTOFX",i),&AMSTrTrack::buildFalseTOFX,0));
+  // G.Lamanna
+  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTrTrackGamma",i),&AMSTrTrackGamma::build,0));
 }
 
 void  AMSEvent::write(int trig){
@@ -1641,7 +1645,14 @@ void AMSEvent::_rerichevent(){
 void AMSEvent::_reaxevent(){
 AMSgObj::BookTimer.start("REAXEVENT");
 //
+AMSgObj::BookTimer.start("TrTrackGamma");
+buildC("AMSTrTrackGamma");
+AMSgObj::BookTimer.stop("TrTrackGamma");
 
+#ifdef __AMSDEBUG__
+//if(AMSEvent::debug)AMSTrTrackGamma::print();
+#endif
+//
 buildC("AMSBeta");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSBeta::print();

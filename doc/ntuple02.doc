@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.50 2002/11/08 15:43:21 choutko Exp $
+#  $Id: ntuple02.doc,v 1.51 2002/11/14 13:18:58 glamanna Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -237,6 +237,24 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 * R*4  *           * TRRECHIT * cofgx          // local cfg x
 * R*4  *           * TRRECHIT * cofgy          // local cfg y
 
+
+* I*4  * [0,2]     * TRGAMMA  * ngam               // number of gammas :1 or 0
+* R*4  *           * TRGAMMA  * Pgam(ngam)         // Gamma P according to Fit 5
+                                                   //  sometimes junk with <=1 GeV is kept for
+                                                   //  offline check purpose
+* R*4  *           * TRGAMMA  * Thetagam(ngam)     // Gamma Theta     "          "        
+* R*4  *           * TRGAMMA  * Phigam(ngam)       // Gamma Phi       "          "  
+* R*4  *           * TRGAMMA  * Vert(3,ngam)       // Vertex 
+                                                   // (affected by energy and spatial resol.) 
+* I*4  *           * TRGAMMA  * GammaStatus(ngam)  // number of refitting losses
+* I*4  * [-1,254]  * TRGAMMA  * ptrLeft(ngam)      // pointers to trtrack for left bending (YZ proj.) particle 
+* I*4  * [-1,254]  * TRGAMMA  * ptrRight(ngam)     // pointers to trtrack for right bending (YZ proj.) particle
+* R*4  *           * TRGAMMA  * Jthetal(ngam)      // Left particle Theta according to Fit 5        
+* R*4  *           * TRGAMMA  * Jphil(ngam)        // Left particle Phi according to Fit 5   
+* R*4  *           * TRGAMMA  * Jthetar(ngam)      // Right particle Theta according to Fit 5 
+* R*4  *           * TRGAMMA  * Jphir(ngam)        // Right particle Phi according to Fit 5   
+* R*4  *           * TRGAMMA  * Jp0l(3,ngam)       // Left entrance coord
+* R*4  *           * TRGAMMA  * Jp0r(3,ngam)       // Right entrance coord
 
 * I*4  * [0,20]    * TRTRACK  * ntrtr           // tracks number
 * I*4  *           * TRTRACK  * trstatus(ntrtr) // Status *)

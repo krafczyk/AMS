@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.140 2002/08/05 11:12:14 choutko Exp $
+//  $Id: trrec.C,v 1.141 2002/11/14 13:18:28 glamanna Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -24,6 +24,8 @@
 #include <tralig.h>
 #include <mccluster.h>
 #include <trdrec.h>
+//
+
 using namespace std;
 
 
@@ -3054,3 +3056,32 @@ bool AMSTrTrack::_NoMoreTime(){
 return _TimeLimit>0? _CheckTime()>_TimeLimit: _CheckTime()>AMSFFKEY.CpuLimit;
 }
 
+
+AMSTrTrack::AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD, 
+                       number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, 
+                       number chi2G, number rigG, number erigG, 
+                       number chi2MS, number jchi2MS, number rigFMS, number grigms):
+_NHits(nht),_FastFitDone(FFD),_GeaneFitDone(GFD),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(rigG),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_GChi2MS(jchi2MS),_RidgidityMS(rigFMS),_GRidgidityMS(grigms),_Address(0),_Pattern(-1),_AdvancedFitDone(0){
+ 
+
+
+  for(int i=0;i<2;i++)_Dbase[i]=0;
+  _Chi2StrLine=0;
+_Chi2Circle=0;
+_CircleRidgidity=0;
+
+for(int i=0;i<2;i++) _HChi2[i]=0;
+for(int i=0;i<2;i++) _HRidgidity[i]=0;
+for(int i=0;i<2;i++) _HErrRidgidity[i]=0;
+for(int i=0;i<2;i++) _HTheta[i]=0;
+for(int i=0;i<2;i++) _HPhi[i]=0;
+for(int i=0;i<3;i++) _HP0[0][i]=0;
+for(int i=0;i<3;i++) _HP0[1][i]=0;
+
+
+
+
+for(int i=0;i<_NHits;i++)_Pthit[i]=pht[i];
+
+}
+         
