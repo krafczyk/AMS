@@ -1,4 +1,4 @@
-# $Id: binmake.gmk,v 1.4 2000/07/13 11:29:37 choutko Exp $
+# $Id: binmake.gmk,v 1.5 2000/07/14 10:19:13 choutko Exp $
 # ----------------------------------------------------------
 # Script defining rules and paths for making binaries.
 #                          Gabriele Cosmo, 25/06/1998.
@@ -170,7 +170,7 @@ else
              -lG4ions \
              -lG4mesons \
              -lG4leptons \
-             -lG4barions \
+             -lG4baryons \
              -lG4hits \
              -lG4bosons \
              -lG4transportation \
