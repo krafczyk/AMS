@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.23 2003/07/11 07:37:06 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.24 2003/07/11 13:43:54 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -500,7 +500,7 @@ void AMSDisplay::SetView(EAMSR_View newView){
    switch (m_View) {
      case kFrontView:  DrawView(90,0,0);   break;
      case kSideView:   DrawView(90,-90,0); break;
-     case kTopView:    DrawView(0,0,0); break;
+     case kTopView:    DrawView(0,-90,0); break;
      case kAllView:    DrawAllViews();  break;
      case kTwoView:    DrawFrontAndSideViews();  break;
      default:          DrawView(90,0,0);   break;

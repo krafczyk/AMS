@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.8 2003/07/10 13:56:57 choutko Exp $
+#  $Id: Makefile,v 1.9 2003/07/11 13:43:54 choutko Exp $
 
 PLATFORM      =  Linux
 
@@ -114,7 +114,7 @@ clean:
 ##### RULES #####
 
 $(ALLOBJS): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
+	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(OBJSC): $(PREFIX)%.o : %.cxx 
 	$(CXX) $(OPTC) $(CXXFLAGS) -c $(<)  -o $(@)

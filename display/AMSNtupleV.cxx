@@ -427,66 +427,114 @@ for(int i=0;i<ev->nParticle();i++){
            double tc=(r1-r2)/2/dz;
            zc+=rich->GetZ();
            double  z2=zc-dz;
-           
-  const int npoint=360/5;
-  float array[3*npoint];
+//           cout <<" tc "<<tc<<" "<<z2<<endl;           
+  const int npointm=360/5+1;
+  int npoint=npointm;
+  float array[3*npointm];
+  double rad_thick;
+  const double rad_length=-3;
   const double n_aero=1.02998;
-//  const double n_naf=1.68;
   const double n_naf=1.336;
   double refi;
    double rad_posz;
   if(fabs(ev->pParticle(i)->RichCoo[0][0])<11.3*3/2 && fabs(ev->pParticle(i)->RichCoo[0][1])<11.3*3/2){
     refi=n_naf;
-    rad_posz=-2.75;
+    rad_posz=-2.5;
+    rad_thick=-0.5;
   }
   else {
    refi=n_aero;
-   rad_posz=-1.5;
+   rad_posz=0;
+   rad_thick=-3;
   }
   double    cc=1./ev->pRichRing(ref)->Beta/refi;
-   //cout <<" refi "<<refi<<" "<<cc<<" "<<ev->pParticle(i)->RichCoo[0][0]<<" "<<ev->pParticle(i)->RichCoo[0][1]<<" "<<ev->pParticle(i)->RichCoo[0][2]<<" "<<ev->pParticle(i)->RichCoo[1][2]<<" "<<ev->pRichRing(ref)->UsedM<<endl;
+  // cout <<" refi "<<refi<<" "<<cc<<" "<<ev->pParticle(i)->RichCoo[0][0]<<" "<<ev->pParticle(i)->RichCoo[0][1]<<" "<<ev->pParticle(i)->RichCoo[0][2]<<" "<<ev->pParticle(i)->RichCoo[1][2]<<" "<<ev->pRichRing(ref)->UsedM<<endl;
   if(cc<1){
    double theta=acos(cc);
     TVector3 z(ev->pParticle(i)->RichCoo[1][0]-ev->pParticle(i)->RichCoo[0][0],ev->pParticle(i)->RichCoo[1][1]-ev->pParticle(i)->RichCoo[0][1],ev->pParticle(i)->RichCoo[1][2]-ev->pParticle(i)->RichCoo[0][2]);
     double rcoo[3];
-    rcoo[0]=ev->pParticle(i)->RichCoo[0][0]+z.X()/z.Z()*rad_posz;
-    rcoo[1]=ev->pParticle(i)->RichCoo[0][1]+z.Y()/z.Z()*rad_posz;
-    rcoo[2]=ev->pParticle(i)->RichCoo[0][2]+rad_posz;
-//    cout << rcoo[2]<<endl;
     TRotation r;
     r.SetZAxis(z);
+   double dphi=2*3.1415926/(npoint-1);
+   double phi=-dphi;
    for( int k=0;k<npoint;k++){
-    double phi=k*2*3.1415926/npoint;
+   double posz=rad_posz+rad_thick*float(rand())/RAND_MAX;
+   double thick=rad_length-rad_posz;  
+    rcoo[0]=ev->pParticle(i)->RichCoo[0][0]+z.X()/z.Z()*posz;
+    rcoo[1]=ev->pParticle(i)->RichCoo[0][1]+z.Y()/z.Z()*posz;
+    rcoo[2]=ev->pParticle(i)->RichCoo[0][2]+posz;
+    phi+=dphi;
     double u=sin(theta)*cos(phi);
     double v=sin(theta)*sin(phi);
     double w=cos(theta);
     TVector3 ray(u,v,w);
     ray.Transform(r);
-    array[k*3+0]=rcoo[0]+ray.X()/ray.Z()*(ev->pParticle(i)->RichCoo[1][2]-rcoo[2]+3.2);
-    array[k*3+1]=rcoo[1]+ray.Y()/ray.Z()*(ev->pParticle(i)->RichCoo[1][2]-rcoo[2]+3.2);
+
+    rcoo[0]+=ray.X()/ray.Z()*thick;
+    rcoo[1]+=ray.Y()/ray.Z()*thick;
+    rcoo[2]+=ray.Z()/ray.Z()*thick;
+//  Now refraction
+    double st=refi*sin(ray.Theta());
+    if(st>=1){
+      cerr<< "full refl "<<st<<endl;
+      k=k-1;
+      npoint--;
+      continue;
+    }
+     
+    double u1=st*cos(ray.Phi());
+    double v1=st*sin(ray.Phi());
+    double w1=-sqrt(1-st*st);
+     ray=TVector3(u1,v1,w1);
+     double zl=ev->pParticle(i)->RichCoo[1][2]-rcoo[2]+3.2;
+//    cout <<" after "<<ray.X()<<" "<<ray.Y()<<" "<<ray.Z()<<" "<<ray.Phi()<<" "<<ray.Theta()<<endl;
+    array[k*3+0]=rcoo[0]+ray.X()/ray.Z()*zl;
+    array[k*3+1]=rcoo[1]+ray.Y()/ray.Z()*zl;
     array[k*3+2]=ev->pParticle(i)->RichCoo[1][2]+3.2;
     double rp=sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1]);
     double rc=sqrt(xc*xc+yc*yc)+r2+(array[k*3+2]-z2)*tc;
-    if(rp>rc){
-      //cout <<"  mirror found "<<k<<" "<<rp<<" "<<rc<<" "<<array[k*3+2]<<" "<<ev->pRichRing(ref)->UsedM<<endl;
-      double R1=sqrt(rcoo[0]*rcoo[0]+rcoo[1]*rcoo[1]);
-      double zi=(R1-rcoo[2]*tan(ray.Theta())-r2+z2*tc)/(tc-tan(ray.Theta()));
-      //cout <<" zi "<<zi<<endl;
+    while(rp>rc && ray.Z()<0){
+      zl=ev->pParticle(i)->RichCoo[1][2]-rcoo[2]+3.2;
+//      cout <<"  mirror found "<<k<<" "<<rp<<" "<<rc<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<zl<<endl;
+      // take iterations
+       double rp2=rp;
+       double rc2=rc;
+       double eps=1.e-2;
+       while(fabs(rp2-rc2)>eps && fabs(zl)>eps){       
+        zl=zl/2;
+        rcoo[0]+=ray.X()/ray.Z()*zl;
+        rcoo[1]+=ray.Y()/ray.Z()*zl;
+        rcoo[2]+=zl;
+        rp2=sqrt(rcoo[0]*rcoo[0]+rcoo[1]*rcoo[1]);
+        rc2=sqrt(xc*xc+yc*yc)+r2+(rcoo[2]-z2)*tc;
+        if(rp2>rc2 && zl<0)zl=-zl;
+        else if(rp2<rc2 && zl>0)zl=-zl;
+      }           
+//      cout <<"  got iteration "<<rcoo[0]<< " "<<rcoo[1]<<" "<<rcoo[2]<< " "<<rp2 <<" "<<rc2<<endl;
      // get norm vector to cone
-     double cw=sin(atan(tc));
-     double phin=atan2(rcoo[1]+ray.Y()/ray.Z()*(zi-rcoo[2]),rcoo[0]+ray.X()/ray.Z()*(zi-rcoo[2]));
-     double cu=cos(atan(tc))*cos(phin);
-     double cv=cos(atan(tc))*sin(phin);
+     double cw=sin(atan(-tc));
+     double phin=atan2(rcoo[1],rcoo[0]);
+     double cu=cos(atan(-tc))*cos(phin);
+     double cv=cos(atan(-tc))*sin(phin);
+//     cout <<"  normal to cone "<<cu<<" "<<cv<<" "<<cw<<endl;
      //  reflect
      double cc=ray.X()*cu+ray.Y()*cv+ray.Z()*cw;
      double ru=ray.X()-2*cc*cu;
      double rv=ray.Y()-2*cc*cv;
      double rw=ray.Z()-2*cc*cw;
-    array[k*3+0]=rcoo[0]+ray.X()/ray.Z()*(zi-rcoo[2])+ru/rw*(ev->pParticle(i)->RichCoo[1][2]+3.2-zi);
-    array[k*3+1]=rcoo[1]+ray.Y()/ray.Z()*(zi-rcoo[2])+rv/rw*(ev->pParticle(i)->RichCoo[1][2]+3.2-zi);
-
-    //cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
+     ray=TVector3(ru,rv,rw);
+     array[k*3+0]=rcoo[0]+ru/rw*(ev->pParticle(i)->RichCoo[1][2]+3.2-rcoo[2]);
+     array[k*3+1]=rcoo[1]+rv/rw*(ev->pParticle(i)->RichCoo[1][2]+3.2-rcoo[2]);
+     rp=sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1]);
     }
+     if(ray.Z()>0){
+      k--;
+      npoint--;
+//      cout <<"removing point point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
+      continue;
+     }
+//    cout <<" ray "<<ray.X()<<" "<<ray.Y()<<" "<<ray.Z()<<endl;
+//    cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
    }   
    SetPolyLine(npoint,array);
    SetLineColor(6);
