@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.44 2003/01/22 11:32:00 choutko Exp $
+//  $Id: richrec.C,v 1.45 2003/01/23 11:08:30 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -462,8 +462,14 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
   AMSPoint pnt(0.,0.,RICradpos);
   AMSDir dir(0.,0.,-1.);
 
-  int bit=(AMSEvent::gethead()->getC("AMSRichRing",0))->
-getnelem();
+  int bit=(AMSEvent::gethead()->getC("AMSRichRing",0))->getnelem();
+
+  if(bit==crossed_pmt_bit){
+    cout<<" AMSRichRing::build-too-many-tracks "<<endl;
+    return;
+  }
+
+
   track->interpolate(pnt,dir,point,theta,phi,length);
       
   //============================================================
@@ -1659,21 +1665,33 @@ float AMSRichRing::generated(geant length,
   lr=int((floor)(NRAD*(length-rmn)/(rmx-rmn)+.5));
 
   if(lr>NRAD-1){
-    printf("AMSRichRing::generated WARNING: length too big %f\n",length);
+    static char guard=0;
+    if(!guard){
+      printf("AMSRichRing::generated WARNING: length too big %f\nMore warning messages suppressed\n",length);
+      guard=1;
+    }
     lr=NRAD-1;}
   else if(lr<0)lr=0;
 
   lf=RICHDB::foil_height>0?int((floor)(NFOIL*(lfoil-fmn)/(fmx-fmn)+.5)):0;
 
   if(lf>NFOIL-1){
-    printf("AMSRichRing::generated WARNING: lfoil  too big %f\n",lfoil);
+    static char guard=0;
+    if(!guard){
+      printf("AMSRichRing::generated WARNING: lfoil  too big %f\nMore warning messages suppressed\n",lfoil);
+      guard=1;
+    }
     lf=NFOIL-1;}
   else if(lf<0)lf=0;
   lg=int((floor)(NGUIDE*(lguide-gmn)/(gmx-gmn)+.5));
 
 
   if(lg>NGUIDE-1){
-    printf("AMSRichRing::generated WARNING: lguide too big %f\n",lguide);
+    static char guard=0;
+    if(!guard){
+      printf("AMSRichRing::generated WARNING: lguide too big %f\nMore warning messages suppressed\n",lguide);
+      guard=1;
+    }
     lg=NGUIDE-1;}
   else if(lg<0)lg=0;
 
