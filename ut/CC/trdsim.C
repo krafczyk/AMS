@@ -147,9 +147,7 @@ void AMSTRDRawHit::_writeEl(){
   integer flag =    (IOPA.WriteAll%10==1)
                  || ( checkstatus(AMSDBc::USED));
   if(AMSTRDRawHit::Out( flag  )){
-#ifdef __WRITEROOTCLONES__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
-#endif
     TRDRawHitNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trdht();
     if (TrN->Ntrdht>=MAXTRDRHT) return;
     TrN->Layer[TrN->Ntrdht]=_id.getlayer();

@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.33 2002/07/17 10:48:46 delgadom Exp $
+//  $Id: mccluster.h,v 1.34 2003/05/08 16:42:13 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -42,11 +42,8 @@ public:
  }
  static void sitofhits(integer idsoft , geant vect[],geant edep, geant tofg);
   AMSTOFMCCluster *  next(){return (AMSTOFMCCluster*)_next;}
-#ifdef __DB__
-   friend class AMSTOFMCClusterD;
-#endif
 #ifdef __WRITEROOT__
-   friend class TOFMCClusterRoot;
+   friend class TofMCClusterR;
 #endif
 };
 
@@ -78,11 +75,8 @@ public:
  number getcoo(integer i) {return i>=0 && i<3 ? _xcoo[i]:0;}
  static integer Out(integer);
 
-#ifdef __DB__
-   friend class AMSAntiMCClusterD;
-#endif
 #ifdef __WRITEROOT__
-   friend class ANTIMCClusterRoot;
+   friend class AntiMCClusterR;
 #endif
 
 };
@@ -115,9 +109,6 @@ public:
  static number impoint[2];
 // static integer Out(integer);
 
-//#ifdef __DB__
-//   friend class AMSEcalMCHitD;
-//#endif
 };
 
 //------------------------------------------------------
@@ -164,7 +155,7 @@ public:
   integer gethit() const {return _hit;}
   void puthit(integer n) {_hit=n;};
 #ifdef __WRITEROOT__
-  friend class RICMCRoot;
+  friend class RichMCClusterR;
 #endif
 };
 
@@ -245,11 +236,6 @@ public:
  static number sitknoiseprob(const AMSTrIdSoft & id, number threshold);
  static number sitknoiseprobU(number threshold, number step);
  static void sitknoisespectrum(const AMSTrIdSoft & id, number ss[], number prob);
-//+
-#ifdef __DB__
-   friend class AMSTrMCClusterD;
-#endif
-//-
 
 
  // Interface with DAQ
@@ -263,7 +249,7 @@ public:
  static void buildraw(integer n, int16u *p);
 
 #ifdef __WRITEROOT__
- friend class  TrMCClusterRoot;
+ friend class  TrMCClusterR;
 #endif
 
 
@@ -329,7 +315,7 @@ _idsoft(idsoft),_ekin(energy),_edep(edep),_ipart(ipart),_itra(itra),_step(step),
 */
 
 #ifdef __WRITEROOT__
- friend class TRDMCClusterRoot;
+ friend class TrdMCClusterR;
 #endif
 
 };

@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.43 2003/05/03 08:44:50 choutko Exp $
+//  $Id: particle.h,v 1.44 2003/05/08 16:42:13 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -99,7 +99,7 @@ static void alfun(integer & n, number xc[], number & fc, AMSParticle * ptr);
   number &mass, number &emass, number &mom, number &emom);
 public:
 #ifdef __WRITEROOT__
-  friend class ParticleRoot02;
+  friend class ParticleR;
 #endif
 
   static number trdespect[30];
@@ -162,14 +162,6 @@ public:
    AMSPoint getcoo() {return _Coo;}
    AMSPoint gettofcoo(integer i) {return _TOFCoo[i];}
    AMSPoint getecalcoo(integer i) {return _EcalCoo[i];}
-#ifdef __DB__
-   friend class AMSParticleD;
-
-   number  geterrmass() {return _ErrMass;}
-   number  geterrmomentum() {return _ErrMomentum;}
-
-
-#endif
 AMSBeta*       getpbeta()    const   { return _pbeta;}
 AMSCharge*     getpcharge()  const   { return _pcharge;}
 AMSTrTrack*    getptrack()   const   { return _ptrack;}

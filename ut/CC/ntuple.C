@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.141 2003/05/05 16:58:49 choutko Exp $
+//  $Id: ntuple.C,v 1.142 2003/05/08 16:41:50 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -180,12 +180,7 @@ void AMSNtuple::init(){
 }
 void AMSNtuple::reset(int full){
 #ifdef __WRITEROOT__
-#ifdef __WRITEROOTCLONES__
-    deleteClones();
-    expandClones();
-#else
    _evroot02.clear();
-#endif
 #endif
    _beta02.Nbeta= 0;
    _charge02.Ncharge = 0;
@@ -237,200 +232,6 @@ void AMSNtuple::endR(){
 #endif
 }
 
-void AMSNtuple::clearClones() 
-{
-  // clear clones arrays
-  // (used Delete() in expandClones() if class containing char)
-  //
-#ifdef __AMSDEBUG__
-    cout<<"clearClones -I- clear clone arrays"<<endl;
-#endif
-
-#ifdef __WRITEROOTCLONES__
-  if ((void*)&_evroot02) {
-    if (_evroot02.fAntiCluster)    _evroot02.fAntiCluster -> Clear();
-    if (_evroot02.fAntiMCCluster)  _evroot02.fAntiMCCluster -> Clear();
-    if (_evroot02.fBeta)           _evroot02.fBeta -> Clear();
-    if (_evroot02.fCharge)         _evroot02.fCharge -> Clear();
-    if (_evroot02.fECALcluster)    _evroot02.fECALcluster -> Clear();
-    if (_evroot02.fECAL2Dcluster)  _evroot02.fECAL2Dcluster -> Clear();
-    if (_evroot02.fECALhit)        _evroot02.fECALhit -> Clear();
-    if (_evroot02.fECALshower)     _evroot02.fECALshower -> Clear();
-    if (_evroot02.fLVL1)           _evroot02.fLVL1 -> Clear();
-    if (_evroot02.fLVL3)           _evroot02.fLVL3 -> Clear();
-    if (_evroot02.fMCtrtrack)      _evroot02.fMCtrtrack -> Clear();
-    if (_evroot02.fMCeventg)       _evroot02.fMCeventg -> Clear();
-    if (_evroot02.fParticle)       _evroot02.fParticle -> Clear();
-    if (_evroot02.fRICEvent)       _evroot02.fRICEvent -> Clear();
-    if (_evroot02.fRICMC)          _evroot02.fRICMC -> Clear();
-    if (_evroot02.fRICRing)        _evroot02.fRICRing-> Clear();
-    if (_evroot02.fTOFcluster)     _evroot02.fTOFcluster -> Clear();
-    if (_evroot02.fTOFMCcluster)   _evroot02.fTOFMCcluster -> Clear();
-    if (_evroot02.fTOFRawCluster)  _evroot02.fTOFRawCluster -> Clear();
-    if (_evroot02.fTRDMCCluster)   _evroot02.fTRDMCCluster -> Clear();
-    if (_evroot02.fTRDrawhit)      _evroot02.fTRDrawhit -> Clear();
-    if (_evroot02.fTRDcluster)     _evroot02.fTRDcluster -> Clear();
-    if (_evroot02.fTRDsegment)     _evroot02.fTRDsegment -> Clear();
-    if (_evroot02.fTRDtrack)       _evroot02.fTRDtrack -> Clear();
-    if (_evroot02.fTrCluster)      _evroot02.fTrCluster -> Clear();
-    if (_evroot02.fTrMCCluster)    _evroot02.fTrMCCluster -> Clear();
-    if (_evroot02.fTrRawCluster)   _evroot02.fTrRawCluster -> Clear();
-    if (_evroot02.fTRrechit)       _evroot02.fTRrechit -> Clear();
-    //--    if (_evroot02.fTrGamma)        _evroot02.fTrGamma -> Clear();
-    if (_evroot02.fTRtrack)        _evroot02.fTRtrack -> Clear();
-   }
-#endif
-}
-
-void AMSNtuple::deleteClones() 
-{
-  // clear clones arrays
-  // (used Delete() in expandClones() if class containing char)
-  //
-#ifdef __AMSDEBUG__
-    cout<<"deleteClones -I- delete clone arrays"<<endl;
-#endif
-
-#ifdef __WRITEROOTCLONES__
-  if ((void*)&_evroot02) {
-    if (_evroot02.fAntiCluster)   {
-     _evroot02.fAntiCluster -> Delete();
-    }  
-    if (_evroot02.fAntiMCCluster)  {
-      _evroot02.fAntiMCCluster -> Delete();
-    }
-    if (_evroot02.fBeta)           _evroot02.fBeta -> Delete();
-    if (_evroot02.fCharge)         _evroot02.fCharge -> Delete();
-    if (_evroot02.fECALcluster)    _evroot02.fECALcluster -> Delete();
-    if (_evroot02.fECAL2Dcluster)  _evroot02.fECAL2Dcluster -> Delete();
-    if (_evroot02.fECALhit)        _evroot02.fECALhit -> Delete();
-    if (_evroot02.fECALshower)     _evroot02.fECALshower -> Delete();
-    if (_evroot02.fLVL1)           _evroot02.fLVL1 -> Delete();
-    if (_evroot02.fLVL3)           _evroot02.fLVL3 -> Delete();
-    if (_evroot02.fMCtrtrack)      _evroot02.fMCtrtrack -> Delete();
-    if (_evroot02.fMCeventg)       _evroot02.fMCeventg  -> Delete();
-    if (_evroot02.fParticle)       _evroot02.fParticle  -> Delete();
-    if (_evroot02.fRICEvent)       _evroot02.fRICEvent  -> Delete();
-    if (_evroot02.fRICMC)          _evroot02.fRICMC     -> Delete();
-    if (_evroot02.fRICRing)        _evroot02.fRICRing      -> Delete();
-    if (_evroot02.fTOFcluster)     _evroot02.fTOFcluster   -> Delete();
-    if (_evroot02.fTOFMCcluster)   _evroot02.fTOFMCcluster -> Delete();
-    if (_evroot02.fTOFRawCluster)  _evroot02.fTOFRawCluster -> Delete();
-    if (_evroot02.fTRDMCCluster)   _evroot02.fTRDMCCluster  -> Delete();
-    if (_evroot02.fTRDrawhit)      _evroot02.fTRDrawhit     -> Delete();
-    if (_evroot02.fTRDcluster)     _evroot02.fTRDcluster    -> Delete();
-    if (_evroot02.fTRDsegment)     _evroot02.fTRDsegment    -> Delete();
-    if (_evroot02.fTRDtrack)       _evroot02.fTRDtrack      -> Delete();
-    if (_evroot02.fTrCluster)      _evroot02.fTrCluster     -> Delete();
-    if (_evroot02.fTrMCCluster)    _evroot02.fTrMCCluster   -> Delete();
-    if (_evroot02.fTrRawCluster)   _evroot02.fTrRawCluster  -> Delete();
-    if (_evroot02.fTRrechit)       _evroot02.fTRrechit      -> Delete();
-    //--    if (_evroot02.fTrGamma)        _evroot02.fTrGamma       -> Delete();
-    if (_evroot02.fTRtrack)        _evroot02.fTRtrack       -> Delete();
-   }
-#endif
-}
-
-void AMSNtuple::expandClones() 
-  //
-  // set (shrink or extend) clones arrays size to nominal values
-  //
-{
-#ifdef __WRITEROOTCLONES__
-  if ((void*)&_evroot02) {
-#ifdef __AMSDEBUG__
-    cout<<"expandClones -I- expand clone arrays to nominal values"<<endl;
-#endif
-    if (_evroot02.fAntiCluster)    _evroot02.fAntiCluster      -> Expand(MAXANTICL);
-    if (_evroot02.fAntiMCCluster)  _evroot02.fAntiMCCluster    -> Expand(MAXANTIMC);
-    if (_evroot02.fBeta)           _evroot02.fBeta             -> Expand(MAXBETA02);
-    if (_evroot02.fCharge)         _evroot02.fCharge           -> Expand(MAXCHARGE02);
-
-    if (_evroot02.fECALshower)     _evroot02.fECALshower       -> Expand(MAXECSHOW);
-    if (_evroot02.fECALcluster)    _evroot02.fECALcluster      -> Expand(MAXECCLUST);
-    if (_evroot02.fECAL2Dcluster)  _evroot02.fECAL2Dcluster    -> Expand(MAXEC2DCLUST);
-    if (_evroot02.fECALhit)        _evroot02.fECALhit          -> Expand(MAXECHITS);
-
-    if (_evroot02.fLVL1)           _evroot02.fLVL1             -> Expand(MAXLVL1);
-    if (_evroot02.fLVL3)           _evroot02.fLVL3             -> Expand(MAXLVL3);
-    if (_evroot02.fMCtrtrack)      _evroot02.fMCtrtrack        -> Expand(MAXMCVOL);
-    if (_evroot02.fMCeventg)       {
-#ifdef __AMSDEBUG__
-         cout<<"_evroot02.fMCeventg->GetLast()+1 "<<_evroot02.fMCeventg->GetLast()+1<<endl;
-         cout<<"_evroot02.fMCeventg->GetSize() "<<_evroot02.fMCeventg->GetSize()<<endl;
-#endif
-        _evroot02.fMCeventg         -> Delete();
-        _evroot02.fMCeventg         -> Expand(MAXMCG02);
-    }
-
-    if (_evroot02.fParticle)       _evroot02.fParticle         -> Expand(MAXPART02);
-    if (_evroot02.fRICEvent)       _evroot02.fRICEvent         -> Expand(MAXRICHITS);
-    if (_evroot02.fRICMC)          _evroot02.fRICMC            -> Expand(MAXRICMC);
-    if (_evroot02.fRICRing)        _evroot02.fRICRing          -> Expand(MAXRICHRIN);
-    if (_evroot02.fTOFcluster)     _evroot02.fTOFcluster       -> Expand(MAXTOF);
-    if (_evroot02.fTOFMCcluster)   _evroot02.fTOFMCcluster     -> Expand(MAXTOFMC);
-    if (_evroot02.fTrCluster)      _evroot02.fTrCluster        -> Expand(MAXTRCL);
-    if (_evroot02.fTRDMCCluster)   _evroot02.fTRDMCCluster     -> Expand(MAXTRDCLMC);
-    if (_evroot02.fTRDrawhit)      _evroot02.fTRDrawhit        -> Expand(MAXTRDRHT);
-    if (_evroot02.fTRDcluster)     _evroot02.fTRDcluster       -> Expand(MAXTRDCL);
-    if (_evroot02.fTRDsegment)     _evroot02.fTRDsegment       -> Expand(MAXTRDSEG);
-    if (_evroot02.fTRDtrack)       _evroot02.fTRDtrack         -> Expand(MAXTRDTRK);
-    if (_evroot02.fTrMCCluster)    _evroot02.fTrMCCluster      -> Expand(MAXTRCLMC);
-    if (_evroot02.fTRrechit)       _evroot02.fTRrechit         -> Expand(MAXTRRH02);
-    //--    if (_evroot02.fTrGamma)        _evroot02.fTrGamma          -> Expand(MAXPAIR02);
-    if (_evroot02.fTRtrack)        _evroot02.fTRtrack          -> Expand(MAXTRTR02);
-    if (_evroot02.fTrRawCluster)   _evroot02.fTrRawCluster     -> Expand(MAXTRRAW);
-    if (_evroot02.fTOFRawCluster)  _evroot02.fTOFRawCluster    -> Expand(MAXTOFRAW);
-
-   }
-#endif
-}
-
-void AMSNtuple::createClones()
-{
-  //
-  // create clones arrays
-  //
-#ifdef __WRITEROOTCLONES__
-
-  if ((void*)&_evroot02) {
-
-    //- Jan 21.03. clearClones();
-    deleteClones();
-
-    if (!_evroot02.fAntiCluster)    _evroot02.fAntiCluster   = new TClonesArray("AntiClusterRoot",MAXANTICL);
-    if (!_evroot02.fAntiMCCluster)  _evroot02.fAntiMCCluster = new TClonesArray("ANTIMCClusterRoot",MAXANTIMC);
-    if (!_evroot02.fBeta)           _evroot02.fBeta          = new TClonesArray("BetaRoot02",MAXBETA02);
-    if (!_evroot02.fCharge)         _evroot02.fCharge        = new TClonesArray("ChargeRoot02",MAXCHARGE02);
-    if (!_evroot02.fECALcluster)    _evroot02.fECALcluster   = new TClonesArray("EcalClusterRoot",MAXECCLUST);
-    if (!_evroot02.fECAL2Dcluster)  _evroot02.fECAL2Dcluster = new TClonesArray("Ecal2DClusterRoot",MAXEC2DCLUST);
-    if (!_evroot02.fECALhit)        _evroot02.fECALhit       = new TClonesArray("EcalHitRoot",MAXECHITS);
-    if (!_evroot02.fECALshower)     _evroot02.fECALshower    = new TClonesArray("EcalShowerRoot",MAXECSHOW);
-    if (!_evroot02.fLVL1)           _evroot02.fLVL1          = new TClonesArray("LVL1Root02",MAXLVL1);
-    if (!_evroot02.fLVL3)           _evroot02.fLVL3          = new TClonesArray("LVL3Root02",MAXLVL3);
-    if (!_evroot02.fMCeventg)       _evroot02.fMCeventg      = new TClonesArray("MCEventGRoot02",MAXMCG02);
-    if (!_evroot02.fMCtrtrack)      _evroot02.fMCtrtrack     = new TClonesArray("MCTrackRoot",MAXMCVOL);
-    if (!_evroot02.fParticle)       _evroot02.fParticle      = new TClonesArray("ParticleRoot02",MAXPART02);
-    if (!_evroot02.fRICMC)          _evroot02.fRICMC         = new TClonesArray("RICMCRoot",MAXRICMC);
-    if (!_evroot02.fRICEvent)       _evroot02.fRICEvent      = new TClonesArray("RICEventRoot",MAXRICHITS);
-    if (!_evroot02.fRICRing)        _evroot02.fRICRing       = new TClonesArray("RICRingRoot",MAXRICHRIN);
-    if (!_evroot02.fTOFcluster)     _evroot02.fTOFcluster    = new TClonesArray("TOFClusterRoot",MAXTOF);
-    if (!_evroot02.fTOFMCcluster)   _evroot02.fTOFMCcluster  = new TClonesArray("TOFMCClusterRoot",MAXTOFMC);
-    if (!_evroot02.fTOFRawCluster)  _evroot02.fTOFRawCluster = new TClonesArray("TOFRawClusterRoot",MAXTOFRAW);
-    if (!_evroot02.fTRDMCCluster)   _evroot02.fTRDMCCluster  = new TClonesArray("TRDMCClusterRoot",MAXTRDCLMC);
-    if (!_evroot02.fTRDrawhit)      _evroot02.fTRDrawhit     = new TClonesArray("TRDRawHitRoot",MAXTRDRHT);
-    if (!_evroot02.fTRDcluster)     _evroot02.fTRDcluster    = new TClonesArray("TRDClusterRoot",MAXTRDCL);
-    if (!_evroot02.fTRDsegment)     _evroot02.fTRDsegment    = new TClonesArray("TRDSegmentRoot",MAXTRDSEG);
-    if (!_evroot02.fTRDtrack)       _evroot02.fTRDtrack      = new TClonesArray("TRDTrackRoot",MAXTRDTRK);
-    if (!_evroot02.fTrCluster)      _evroot02.fTrCluster     = new TClonesArray("TrClusterRoot",MAXTRCL);
-    if (!_evroot02.fTrMCCluster)    _evroot02.fTrMCCluster   = new TClonesArray("TrMCClusterRoot",MAXTRCLMC);
-    if (!_evroot02.fTRrechit)       _evroot02.fTRrechit      = new TClonesArray("TrRecHitRoot02",MAXTRRH02);
-    //--    if (!_evroot02.fTrGamma)        _evroot02.fTrGamma       = new TClonesArray("TrGammaRoot02",MAXPAIR02);
-    if (!_evroot02.fTRtrack)        _evroot02.fTRtrack       = new TClonesArray("TrTrackRoot02",MAXTRTR02);
-    if (!_evroot02.fTrRawCluster)   _evroot02.fTrRawCluster  = new TClonesArray("TrRawClusterRoot",MAXTRRAW);
-  }
-#endif
-}
 
 
 void AMSNtuple::initR(char* fname){
@@ -449,11 +250,10 @@ void AMSNtuple::initR(char* fname){
    cout<<"Set Split Level ..."<<branchSplit<<endl;
 
    _rfile->SetCompressionLevel(IOPA.WriteRoot-1);
-    createClones();
     cout<<"AMSNtuple::initR -I- create branches"<<endl;
    _tree= new TTree("AMSRoot","AMS Ntuple Root");
     static void *pev1=(void*)&_evroot02;
-   TBranch *b1=_tree->Branch("evroot02.","EventRoot02",&pev1,64000,branchSplit); 
+   TBranch *b1=_tree->Branch(AMSEventR::_Name,"AMSEventR",&pev1,64000,branchSplit); 
 #endif
 #ifndef __WRITEROOT__
 cerr <<" RootFileOutput is Not supported in this version "<<endl;
@@ -467,12 +267,11 @@ exit(1);
 }
 void AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
+    _evroot02.SetCont();
     if(_tree){
     if(!_lun )_Nentries++;
      _tree->Fill();
     }
-    //    deleteClones();
-    //    createClones();
 #endif
 #ifdef __MEMMONITOR__
     int NEVENTS = GCFLAG.NEVENT;

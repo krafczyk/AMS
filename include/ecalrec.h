@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.35 2003/05/03 08:44:49 choutko Exp $
+//  $Id: ecalrec.h,v 1.36 2003/05/08 16:42:12 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -118,7 +118,7 @@ private:
   number _attcor; //att length correction
 public:
 #ifdef __WRITEROOT__
-  friend class EcalHitRoot;
+  friend class EcalHitR;
 #endif
   AMSEcalHit(integer status, integer id, integer adc[3], integer proj, integer plane, integer cell,
          number edep, number ecorr, number coot, number cool, number cooz):AMSlink(status,0),_idsoft(id),
@@ -243,7 +243,7 @@ void _writeEl();
 void _copyEl();
 //
 #ifdef __WRITEROOT__
- friend class EcalClusterRoot;
+ friend class EcalClusterR;
 #endif
 };
 
@@ -318,7 +318,7 @@ void _copyEl();
 //
 friend class EcalShower;
 #ifdef __WRITEROOT__
- friend class Ecal2DClusterRoot;
+ friend class Ecal2DClusterR;
 #endif
 };
 //-----------------------------------
@@ -427,7 +427,7 @@ integer getDirection() const{return _Direction==0?1:-1;}
  number getProfChi2() const {return _ProfilePar[4+_Direction*5];}
  number getTransChi2() const {return _TransFitChi2;}
 #ifdef __WRITEROOT__
- friend class EcalShowerRoot;
+ friend class EcalShowerR;
 #endif
 };
 

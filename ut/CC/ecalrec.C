@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.79 2003/05/03 08:43:54 choutko Exp $
+//  $Id: ecalrec.C,v 1.80 2003/05/08 16:41:49 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -889,8 +889,6 @@ return (WriteAll || status);
 //---------------------------------------------------
 void Ecal1DCluster::_writeEl(){
  //
- // Root related part moved to 
- // ../CC/root.C:EcalClusterRoot::EcalClusterRoot
  //
   int i;
   if(Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
@@ -949,17 +947,13 @@ void Ecal1DCluster::_writeEl(){
 }
 void Ecal1DCluster::_copyEl(){
 #ifdef __WRITEROOT__  
- EcalClusterRoot *ptr = (EcalClusterRoot*)_ptr;
+ EcalClusterR *ptr = (EcalClusterR*)_ptr;
   if (ptr) {
     for (int i=0; i<_NHits; i++) {
-     #ifdef __WRITEROOTCLONES__
-    if (_pHit[i]) ptr->fEcalHit->Add(_pHit[i]->GetClonePointer());
-      #else
-       if(_pHit[i])ptr->fEcalHit.push_back(_pHit[i]->GetClonePointer());
-      #endif
+       if(_pHit[i])ptr->fEcalHitR.push_back(_pHit[i]->GetClonePointer());
   }
 } else {
-  cout<<"Ecal1DCluster::_copyEl -I-  Ecal1DCluster::EcalClusterRoot *ptr is NULL "<<endl;
+  cout<<"Ecal1DCluster::_copyEl -I-  Ecal1DCluster::EcalClusterR *ptr is NULL "<<endl;
 }
 #endif
 }
@@ -1326,18 +1320,13 @@ void Ecal2DCluster::_writeEl(){
 
 void Ecal2DCluster::_copyEl(){
 #ifdef __WRITEROOT__
-  Ecal2DClusterRoot *ptr = (Ecal2DClusterRoot*)_ptr;
+  Ecal2DClusterR *ptr = (Ecal2DClusterR*)_ptr;
   if (ptr) {
-    // Ecal1DCluster * _pCluster[4*ecalconst::ECSLMX];
     for (int i=0; i<_NClust; i++) {
-      #ifdef __WRITEROOTCLONES__
-      if(_pCluster[i])ptr->fEcal1DCluster->Add(_pCluster[i]->GetClonePointer());
-      #else
-      if(_pCluster[i])ptr->fEcal1DCluster.push_back(_pCluster[i]->GetClonePointer());
-      #endif
+      if(_pCluster[i])ptr->fEcalClusterR.push_back(_pCluster[i]->GetClonePointer());
     }
   } else {
-   cout<<"Ecal2DCluster::_copyEl -I- Ecal2DCluster::EcalClusterRoot *ptr is NULL "<<endl;
+   cout<<"Ecal2DCluster::_copyEl -I- Ecal2DCluster::EcalClusterR *ptr is NULL "<<endl;
   }
 #endif
 }
@@ -2713,14 +2702,10 @@ void EcalShower::_AttCorr(){
 
 void EcalShower::_copyEl(){
 #ifdef __WRITEROOT__
- EcalShowerRoot *ptr = (EcalShowerRoot*)_ptr;
+ EcalShowerR *ptr = (EcalShowerR*)_ptr;
   if (ptr) {
     for (int i=0; i<_N2dCl; i++) {
-     #ifdef __WRITEROOTCLONES__
-       ptr->fEcal2DCluster->Add(_pCl[i]->GetClonePointer());
-      #else
-       ptr->fEcal2DCluster.push_back(_pCl[i]->GetClonePointer());
-      #endif
+       ptr->fEcal2DClusterR.push_back(_pCl[i]->GetClonePointer());
    }
   } 
 #endif

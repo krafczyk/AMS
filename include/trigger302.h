@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.15 2002/06/03 14:53:43 alexei Exp $
+//  $Id: trigger302.h,v 1.16 2003/05/08 16:42:14 choutko Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include <link.h>
@@ -310,7 +310,7 @@ public:
    else return 0;
  }
 #ifdef __WRITEROOT__
- friend class LVL3Root02;
+ friend class Level3R;
 #endif
 };
 

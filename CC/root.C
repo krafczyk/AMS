@@ -1,7 +1,4 @@
-//  $Id: root.C,v 1.38 2003/05/05 16:58:49 choutko Exp $
-//  Last Edit : Nov 19, 2002. A.Klimentov
-//              check Root classes
-//              ? TrGammaRoot02 - commented
+//  $Id: root.C,v 1.39 2003/05/08 16:41:50 choutko Exp $
 //
 #include <root.h>
 #include <ntuple.h>
@@ -20,49 +17,936 @@
 #include <trigger302.h>
 #include <trrawcluster.h>
 #include <trrec.h>
-//-- #include <gamma.h>
 #endif
 using namespace root;
 #ifdef __WRITEROOT__
 
-ClassImp(AMSEventHeaderRoot)
-ClassImp(EventRoot02)
 
-ClassImp(BetaRoot02)
-ClassImp(ChargeRoot02)
-ClassImp(ParticleRoot02)
-ClassImp(TOFClusterRoot)
-ClassImp(EcalShowerRoot)
-ClassImp(EcalClusterRoot)
-ClassImp(Ecal2DClusterRoot)
-ClassImp(EcalHitRoot)
-ClassImp(TOFMCClusterRoot)
-ClassImp(TrClusterRoot)
-ClassImp(TrMCClusterRoot)
-ClassImp(TRDMCClusterRoot)
-ClassImp(TRDRawHitRoot)
-ClassImp(TRDClusterRoot)
-ClassImp(TRDSegmentRoot)
-ClassImp(TRDTrackRoot)
-ClassImp(TrRecHitRoot02)
-ClassImp(TrTrackRoot02)
-//ClassImp(TrGammaRoot02)
-ClassImp(MCTrackRoot)
-ClassImp(MCEventGRoot02)
-ClassImp(AntiClusterRoot)
-ClassImp(ANTIMCClusterRoot)
-ClassImp(LVL3Root02)
-ClassImp(LVL1Root02)
-ClassImp(TrRawClusterRoot)
-ClassImp(TOFRawClusterRoot)
-ClassImp(RICMCRoot)
-ClassImp(RICEventRoot)
-ClassImp(RICRingRoot)
+  ClassImp(HeaderR)
+  ClassImp(EcalHitR)
+  ClassImp(EcalClusterR)
+  ClassImp(Ecal2DClusterR)
+  ClassImp(EcalShowerR)
+  ClassImp(RichHitR)
+  ClassImp(RichRingR)
+  ClassImp(TofRawClusterR)
+  ClassImp(TofClusterR)
+  ClassImp(AntiClusterR)
+  ClassImp(TrRawClusterR)
+  ClassImp(TrClusterR)
+  ClassImp(TrRecHitR)
+  ClassImp(TrTrackR)
+  ClassImp(TrdRawHitR)
+  ClassImp(TrdClusterR)
+  ClassImp(TrdSegmentR)
+  ClassImp(TrdTrackR)
+  ClassImp(Level1R)
+  ClassImp(Level3R)
+  ClassImp(BetaR)
+  ClassImp(ChargeR)
+  ClassImp(ParticleR)
+  ClassImp(AntiMCClusterR)
+  ClassImp(TrMCClusterR)
+  ClassImp(TofMCClusterR)
+  ClassImp(TrdMCClusterR)
+  ClassImp(RichMCClusterR)
+  ClassImp(MCTrackR)
+  ClassImp(MCEventgR)
+
+
 
 //------------------- constructors -----------------------
 
-AntiClusterRoot::AntiClusterRoot(){};
-AntiClusterRoot::AntiClusterRoot(AMSAntiCluster *ptr)
+
+
+TBranch* AMSEventR::bHeader;
+TBranch* AMSEventR::bEcalHit;
+TBranch* AMSEventR::bEcalCluster;
+TBranch* AMSEventR::bEcal2DCluster;
+TBranch* AMSEventR::bEcalShower;
+TBranch* AMSEventR::bRichHit;
+TBranch* AMSEventR::bRichRing;
+TBranch* AMSEventR::bTofRawCluster;
+TBranch* AMSEventR::bTofCluster;
+TBranch* AMSEventR::bAntiCluster;
+TBranch* AMSEventR::bTrRawCluster;
+TBranch* AMSEventR::bTrCluster;
+TBranch* AMSEventR::bTrRecHit;
+TBranch* AMSEventR::bTrTrack;
+TBranch* AMSEventR::bTrdRawHit;
+TBranch* AMSEventR::bTrdCluster;
+TBranch* AMSEventR::bTrdSegment;
+TBranch* AMSEventR::bTrdTrack;
+TBranch* AMSEventR::bLevel1;
+TBranch* AMSEventR::bLevel3;
+TBranch* AMSEventR::bBeta;
+TBranch* AMSEventR::bVertex;
+TBranch* AMSEventR::bCharge;
+TBranch* AMSEventR::bParticle;
+TBranch* AMSEventR::bAntiMCCluster;
+TBranch* AMSEventR::bTrMCCluster;
+TBranch* AMSEventR::bTofMCCluster;
+TBranch* AMSEventR::bTrdMCCluster;
+TBranch* AMSEventR::bRichMCCluster;
+TBranch* AMSEventR::bMCTrack;
+TBranch* AMSEventR::bMCEventg;
+
+
+
+AMSEventR* AMSEventR::_Head=0;
+int AMSEventR::_Entry=-1;
+char* AMSEventR::_Name="ev.";   //  root compatibility
+
+void AMSEventR::SetBranchA(TTree *fChain){
+     char tmp[255];
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fHeader");
+     fChain->SetBranchAddress(tmp,&fHeader);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcalHit");
+     fChain->SetBranchAddress(tmp,&fEcalHit);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcalCluster");
+     fChain->SetBranchAddress(tmp,&fEcalCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcal2DCluster");
+     fChain->SetBranchAddress(tmp,&fEcal2DCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcalShower");
+     fChain->SetBranchAddress(tmp,&fEcalShower);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fRichHit");
+     fChain->SetBranchAddress(tmp,&fRichHit);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fRichRing");
+     fChain->SetBranchAddress(tmp,&fRichRing);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTofRawCluster");
+     fChain->SetBranchAddress(tmp,&fTofRawCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTofCluster");
+     fChain->SetBranchAddress(tmp,&fTofCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fAntiCluster");
+     fChain->SetBranchAddress(tmp,&fAntiCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrRawCluster");
+     fChain->SetBranchAddress(tmp,&fTrRawCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrCluster");
+     fChain->SetBranchAddress(tmp,&fTrCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrRecHit");
+     fChain->SetBranchAddress(tmp,&fTrRecHit);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrTrack");
+     fChain->SetBranchAddress(tmp,&fTrTrack);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdRawHit");
+     fChain->SetBranchAddress(tmp,&fTrdRawHit);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdCluster");
+     fChain->SetBranchAddress(tmp,&fTrdCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdSegment");
+     fChain->SetBranchAddress(tmp,&fTrdSegment);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdTrack");
+     fChain->SetBranchAddress(tmp,&fTrdTrack);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fLevel1");
+     fChain->SetBranchAddress(tmp,&fLevel1);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fLevel3");
+     fChain->SetBranchAddress(tmp,&fLevel3);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fBeta");
+     fChain->SetBranchAddress(tmp,&fBeta);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fCharge");
+     fChain->SetBranchAddress(tmp,&fCharge);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fParticle");
+     fChain->SetBranchAddress(tmp,&fParticle);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fAntiMCCluster");
+     fChain->SetBranchAddress(tmp,&fAntiMCCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrMCCluster");
+     fChain->SetBranchAddress(tmp,&fTrMCCluster);
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTofMCCluster");
+     fChain->SetBranchAddress(tmp,&fTofMCCluster);
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdMCCluster");
+     fChain->SetBranchAddress(tmp,&fTrdMCCluster);
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fRichMCCluster");
+     fChain->SetBranchAddress(tmp,&fRichMCCluster);
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fMCTrack");
+     fChain->SetBranchAddress(tmp,&fMCTrack);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fMCEventg");
+     fChain->SetBranchAddress(tmp,&fMCEventg);
+    }
+
+}
+
+void AMSEventR::GetBranchA(TTree *fChain){
+     char tmp[255];
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fHeader");
+     bHeader = fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcalHit");
+     bEcalHit=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcalCluster");
+     bEcalCluster=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcal2DCluster");
+     bEcal2DCluster=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcalShower");
+     bEcalShower=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fRichHit");
+     bRichHit=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fRichRing");
+     bRichRing=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTofRawCluster");
+     bTofRawCluster=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTofCluster");
+     bTofCluster=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fAntiCluster");
+     bAntiCluster=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrRawCluster");
+     bTrRawCluster=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrCluster");
+     bTrCluster=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrRecHit");
+     bTrRecHit=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrTrack");
+     bTrTrack=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdRawHit");
+     bTrdRawHit=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdCluster");
+     bTrdCluster=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdSegment");
+     bTrdSegment=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdTrack");
+     bTrdTrack=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fLevel1");
+     bLevel1=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fLevel3");
+     bLevel3=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fBeta");
+     bBeta=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fCharge");
+     bCharge=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fParticle");
+     bParticle=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fAntiMCCluster");
+     bAntiMCCluster=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrMCCluster");
+     bTrMCCluster=fChain->GetBranch(tmp);
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTofMCCluster");
+     bTofMCCluster=fChain->GetBranch(tmp);
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdMCCluster");
+     bTrdMCCluster=fChain->GetBranch(tmp);
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fRichMCCluster");
+     bRichMCCluster=fChain->GetBranch(tmp);
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fMCTrack");
+     bMCTrack=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fMCEventg");
+     bMCEventg=fChain->GetBranch(tmp);
+    }
+}
+
+void AMSEventR::SetCont(){
+// Set container sizes;
+ fHeader.EcalHits=fEcalHit.size();
+ fHeader.EcalClusters=fEcalCluster.size();
+ fHeader.Ecal2DClusters=fEcal2DCluster.size();
+ fHeader.EcalShowers=fEcalShower.size();
+ fHeader.RichHits=fRichHit.size();
+ fHeader.RichRings=fRichRing.size();
+ fHeader.TofRawClusters=fTofRawCluster.size();
+ fHeader.TofClusters=fTofCluster.size();
+ fHeader.AntiClusters=fAntiCluster.size();
+ fHeader.TrClusters=fTrCluster.size();
+ fHeader.TrRecHits=fTrRecHit.size();
+ fHeader.TrTracks=fTrTrack.size();
+ fHeader.TrdRawHits=fTrdRawHit.size();
+ fHeader.TrdClusters=fTrdCluster.size();
+ fHeader.TrdSegments=fTrdSegment.size();
+ fHeader.TrdTracks=fTrdTrack.size();
+ fHeader.Level1s=fLevel1.size();
+ fHeader.Level3s=fLevel3.size();
+ fHeader.Betas=fBeta.size();
+ fHeader.Charges=fCharge.size();
+ fHeader.Particles=fParticle.size();
+ fHeader.AntiMCClusters=fAntiMCCluster.size();
+ fHeader.TrMCClusters=fTrMCCluster.size();
+ fHeader.TofMCClusters=fTofMCCluster.size();
+ fHeader.TrdMCClusters=fTrdMCCluster.size();
+ fHeader.RichMCClusters=fRichMCCluster.size();
+ fHeader.MCTracks=fMCTrack.size();
+ fHeader.MCEventgs=fMCEventg.size();
+// cout <<" fHeader.TrRecHits "<<fHeader.TrRecHits<<endl;
+}
+
+void AMSEventR::ReadHeader(int entry){
+   _Entry=entry;
+   bHeader->GetEntry(entry);
+   clear();
+}
+
+
+
+AMSEventR::AMSEventR():TObject(){
+if(_Head)cerr<<"AMSEventR::ctor-F-OnlyOneSingletonAllowed"<<endl;
+_Head=this;
+
+
+fEcalHit.reserve(MAXECHITS);
+fEcalCluster.reserve(MAXECCLUST);
+fEcal2DCluster.reserve(MAXEC2DCLUST);
+fEcalShower.reserve(MAXECSHOW);
+
+fRichHit.reserve(MAXRICHRIN);
+fRichRing.reserve(MAXRICHITS);
+
+fTofRawCluster.reserve(MAXTOFRAW);
+fTofCluster.reserve(MAXTOF);
+fAntiCluster.reserve(MAXANTICL);
+
+fTrRawCluster.reserve(MAXTRRAW);
+fTrCluster.reserve(MAXTRCL);
+fTrRecHit.reserve(MAXTRRH02);
+fTrTrack.reserve(MAXTRTR02);
+
+fTrdRawHit.reserve(MAXTRDRHT );
+fTrdCluster.reserve(MAXTRDCL );
+fTrdSegment.reserve(MAXTRDSEG);
+fTrdTrack.reserve(MAXTRDTRK);
+
+fLevel1.reserve(MAXLVL1);
+fLevel3.reserve(MAXLVL3);
+
+fBeta.reserve(MAXBETA02);
+fCharge.reserve(MAXCHARGE02);
+fParticle.reserve(MAXPART02);
+
+fAntiMCCluster.reserve(MAXANTIMC);
+fTofMCCluster.reserve(MAXTOFMC);
+fTrMCCluster.reserve(MAXTRCLMC);
+fTrdMCCluster.reserve(MAXTRDCLMC);
+fRichMCCluster.reserve(MAXRICMC);
+
+fMCTrack.reserve(MAXMCVOL);
+fMCEventg.reserve(MAXMCG02);
+}
+
+
+void AMSEventR::clear(){
+fEcalHit.clear();
+fEcalCluster.clear();
+fEcal2DCluster.clear();
+fEcalShower.clear();
+
+fRichHit.clear();
+fRichRing.clear();
+
+fTofRawCluster.clear();
+fTofCluster.clear();
+fAntiCluster.clear();
+
+fTrRawCluster.clear();
+fTrCluster.clear();
+fTrRecHit.clear();
+fTrTrack.clear();
+
+fTrdRawHit.clear();
+fTrdCluster.clear();
+fTrdSegment.clear();
+fTrdTrack.clear();
+
+fLevel1.clear();
+fLevel3.clear();
+
+fBeta.clear();
+fCharge.clear();
+fParticle.clear();
+
+fAntiMCCluster.clear();
+fTofMCCluster.clear();
+fTrMCCluster.clear();
+fTrdMCCluster.clear();
+fRichMCCluster.clear();
+
+fMCTrack.clear();
+fMCEventg.clear();
+}
+
+
+
+//------------- AddAMSObject 
+#ifndef __ROOTSHAREDLIBRARY__
+
+
+
+void AMSEventR::AddAMSObject(AMSEcalHit *ptr)
+{
+  fEcalHit.push_back(EcalHitR(ptr));
+  ptr->SetClonePointer(& fEcalHit.back(),fEcalHit.size()-1);
+}
+
+void AMSEventR::AddAMSObject(Ecal1DCluster *ptr) 
+{
+  if (ptr) {
+  fEcalCluster.push_back(EcalClusterR(ptr));
+  ptr->SetClonePointer(& fEcalCluster.back(), fEcalCluster.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- Ecal1DCluster ptr is NULL"<<endl;
+  }
+}
+
+void AMSEventR::AddAMSObject(Ecal2DCluster *ptr) {
+  if (ptr) {
+  fEcal2DCluster.push_back(Ecal2DClusterR(ptr));
+  ptr->SetClonePointer(& fEcal2DCluster.back(),fEcal2DCluster.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- (Ecal2DCluster ptr is NULL"<<endl;
+  }
+}
+
+void AMSEventR::AddAMSObject(EcalShower *ptr) 
+{
+  if (ptr) {
+  fEcalShower.push_back(EcalShowerR(ptr));
+  ptr->SetClonePointer(& fEcalShower.back(),fEcalShower.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- EcalShower ptr is NULL"<<endl;
+  }
+}
+
+void AMSEventR::AddAMSObject(AMSRichRawEvent *ptr, float x, float y)
+{
+  if (ptr) {
+  fRichHit.push_back(RichHitR(ptr,x,y));
+  ptr->SetClonePointer(& fRichHit.back(),fRichHit.size()-1);
+  }  else {
+    cout<<"AddAMSObject -E- AMSRichRawEvent ptr is NULL"<<endl;
+  }
+}
+
+void AMSEventR::AddAMSObject(AMSRichRing *ptr)
+{
+  fRichRing.push_back(RichRingR(ptr));
+  ptr->SetClonePointer(& fRichRing.back(),fRichRing.size()-1);
+}
+
+void AMSEventR::AddAMSObject(AMSTOFCluster *ptr){
+  if (ptr) {
+  fTofCluster.push_back(TofClusterR(ptr));
+  ptr->SetClonePointer(& fTofCluster.back(),fTofCluster.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- AMSTofCluster ptr is NULL"<<endl;
+  }
+}
+
+void AMSEventR::AddAMSObject(TOF2RawCluster *ptr)
+{
+  if (ptr) {
+  fTofRawCluster.push_back(TofRawClusterR(ptr));
+  ptr->SetClonePointer(& fTofRawCluster.back(),fTofRawCluster.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- AMSTOF2RawCluster ptr is NULL"<<endl;
+  }
+}
+
+
+void AMSEventR::AddAMSObject(AMSAntiCluster *ptr)
+{
+  if (ptr) {
+  fAntiCluster.push_back(AntiClusterR(ptr));
+  ptr->SetClonePointer(&fAntiCluster.back(),fAntiCluster.size()-1);  
+  }  else {
+    cout<<"AddAMSObject -E- AMSAntiCluster ptr is NULL"<<endl;
+  }
+}
+
+
+void AMSEventR::AddAMSObject(AMSTrRawCluster *ptr)
+{
+  if (ptr) {
+  fTrRawCluster.push_back(TrRawClusterR(ptr));
+  ptr->SetClonePointer(& fTrRawCluster.back(), fTrRawCluster.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- TrRawCluster ptr is NULL"<<endl;
+  }
+}
+
+
+void AMSEventR::AddAMSObject(AMSTrCluster *ptr){
+  if (ptr) {
+  fTrCluster.push_back(TrClusterR(ptr));
+  ptr->SetClonePointer(& fTrCluster.back(),fTrCluster.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- AMSTrCluster ptr is NULL"<<endl;
+  }
+}
+
+void AMSEventR::AddAMSObject(AMSTrRecHit *ptr)
+{
+  if (ptr) {
+  fTrRecHit.push_back(TrRecHitR(ptr));
+  ptr->SetClonePointer(& fTrRecHit.back(),fTrRecHit.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- AMSTrRecHit ptr is NULL"<<endl;
+  }
+}
+
+
+void AMSEventR::AddAMSObject(AMSTrTrack *ptr)
+{
+  if (ptr) {
+  fTrTrack.push_back(TrTrackR(ptr));
+  ptr->SetClonePointer(&fTrTrack.back(), fTrTrack.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- AMSTrTrack ptr is NULL"<<endl;
+  }
+}
+
+
+void AMSEventR::AddAMSObject(AMSTRDRawHit *ptr)
+{
+  if (ptr) {
+  fTrdRawHit.push_back(TrdRawHitR(ptr));
+  ptr->SetClonePointer(& fTrdRawHit.back(), fTrdRawHit.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- AMSTRDRawHit ptr is NULL"<<endl;
+  }
+}
+
+void AMSEventR::AddAMSObject(AMSTRDCluster *ptr)
+{
+  if (ptr) {
+  fTrdCluster.push_back(TrdClusterR(ptr));
+  ptr->SetClonePointer(& fTrdCluster.back(), fTrdCluster.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- AMSTRDCluster ptr is NULL"<<endl;
+  }
+}
+
+void AMSEventR::AddAMSObject(AMSTRDSegment *ptr)
+{
+  if (ptr) {
+  fTrdSegment.push_back(TrdSegmentR(ptr));
+  ptr->SetClonePointer(& fTrdSegment.back(),fTrdSegment.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- AMSTRDSegment ptr is NULL"<<endl;
+  }
+}
+
+
+void AMSEventR::AddAMSObject(AMSTRDTrack *ptr)
+{
+  if (ptr) {
+  fTrdTrack.push_back(TrdTrackR(ptr));
+  ptr->SetClonePointer(& fTrdTrack.back(),fTrdTrack.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- AMSTRDTrack ptr is NULL"<<endl;
+  }
+}
+
+
+void AMSEventR::AddAMSObject(Trigger2LVL1 *ptr)
+{
+  if (ptr) {
+  fLevel1.push_back(Level1R(ptr));
+  ptr->SetClonePointer(& fLevel1.back(),fLevel1.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- Trigger2LVL1 ptr is NULL"<<endl;
+  }
+}
+
+void AMSEventR::AddAMSObject(TriggerLVL302 *ptr)
+{
+  if (ptr) {
+  fLevel3.push_back(Level3R(ptr));
+  ptr->SetClonePointer(& fLevel3.back(),fLevel3.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- TriggerLVL302 ptr is NULL"<<endl;
+  }
+}
+
+void AMSEventR::AddAMSObject(AMSBeta *ptr)
+{
+  if (ptr) {
+   fBeta.push_back(BetaR(ptr));
+   ptr->SetClonePointer(&fBeta.back(),fBeta.size()-1);
+   }  else {
+     cout<<"AddAMSObject -E- AMSBeta ptr is NULL"<<endl;
+  }
+}
+
+void AMSEventR::AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[], 
+                               float probtr[], int chintr[], float probrc[], 
+                               int chinrc[], float proballtr)
+{
+  if (ptr) {
+   fCharge.push_back(ChargeR(ptr, probtof, chintof, probtr, chintr, probrc, chinrc, proballtr));
+   ptr->SetClonePointer(&fCharge.back(),fCharge.size()-1);
+  }  else {
+    cout<<"AddAMSObject -E- AMSCharge ptr is NULL"<<endl;
+  }
+}
+
+
+void AMSEventR::AddAMSObject(AMSParticle *ptr, float phi, float phigl)
+{
+  if (ptr) {
+  fParticle.push_back(ParticleR(ptr, phi, phigl));
+  ptr->SetClonePointer(& fParticle.back(),fParticle.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- AMSParticle ptr is NULL"<<endl;
+  }
+}
+
+
+void AMSEventR::AddAMSObject(AMSAntiMCCluster *ptr)
+{
+  if (ptr) {
+  fAntiMCCluster.push_back(AntiMCClusterR(ptr));
+  ptr->SetClonePointer(&fAntiMCCluster.back(),fAntiMCCluster.size()-1);  
+  }  else {
+    cout<<"AddAMSObject -E- AMSAntiMCCluster ptr is NULL"<<endl;
+  }
+}
+
+
+
+
+
+
+void AMSEventR::AddAMSObject(AMSRichMCHit *ptr, int _numgen)
+{
+  fRichMCCluster.push_back(RichMCClusterR(ptr,_numgen));
+  ptr->SetClonePointer(& fRichMCCluster.back(),fRichMCCluster.size()-1);
+}
+
+
+
+
+
+void AMSEventR::AddAMSObject(AMSTOFMCCluster *ptr)
+{
+  if (ptr) {
+  fTofMCCluster.push_back(TofMCClusterR(ptr));
+  ptr->SetClonePointer(& fTofMCCluster.back(),fTofMCCluster.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- AMSTofMCCluster ptr is NULL"<<endl;
+  }
+}
+
+
+
+
+void AMSEventR::AddAMSObject(AMSTrMCCluster *ptr)
+{
+  if (ptr) {
+  fTrMCCluster.push_back(TrMCClusterR(ptr));
+  ptr->SetClonePointer(& fTrMCCluster.back(), fTrMCCluster.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- AMSTrMCCluster ptr is NULL"<<endl;
+  }
+}
+
+
+void AMSEventR::AddAMSObject(AMSTRDMCCluster *ptr)
+{
+  if (ptr) {
+  fTrdMCCluster.push_back(TrdMCClusterR(ptr));
+  ptr->SetClonePointer(& fTrdMCCluster.back(),fTrdMCCluster.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- AMSTRDMCCluster ptr is NULL"<<endl;
+  }
+}
+
+
+
+void AMSEventR::AddAMSObject(AMSmceventg *ptr)
+{
+  if (ptr) {
+  fMCEventg.push_back(MCEventgR(ptr));
+  ptr->SetClonePointer(& fMCEventg.back(), fMCEventg.size()-1);
+  }  else {
+    cout<<"AddAMSObject -E- AMSmceventg ptr is NULL"<<endl;
+  }
+}
+
+
+void AMSEventR::AddAMSObject(AMSmctrack *ptr)
+{
+  if (ptr) {
+  fMCTrack.push_back(MCTrackR(ptr));
+  ptr->SetClonePointer(& fMCTrack.back(),fMCTrack.size()-1);
+  }  else {
+    cout<<"AddAMSObject -E- AMSmctrack ptr is NULL"<<endl;
+  }
+}
+
+
+#endif
+
+
+
+
+void HeaderR::Set(EventNtuple02* ptr){
+#ifndef __ROOTSHAREDLIBRARY__
+
+    Run=       ptr->Run;
+    RunType=   ptr->RunType;
+    Event=     ptr->Eventno;
+    Status[0]= ptr->EventStatus[0];
+    Status[1]= ptr->EventStatus[1];
+    Raw=       ptr->RawWords%(1<<18);
+    Version=   (ptr->RawWords)>>18;
+    Time[0]=   ptr->Time[0];
+    Time[1]=   ptr->Time[1];
+    RadS=      ptr->RadS;
+    ThetaS=    ptr->ThetaS;
+    PhiS=      ptr->PhiS;
+    Yaw=       ptr->Yaw;
+    Pitch=     ptr->Pitch;
+    Roll=      ptr->Roll;
+    VelocityS= ptr->VelocityS;
+    VelTheta=  ptr->VelTheta;
+    VelPhi=    ptr->VelPhi;
+    ThetaM=    ptr->ThetaM;
+
+    
+#endif
+}
+
+
+
+
+
+AntiClusterR::AntiClusterR(AMSAntiCluster *ptr)
 {
 #ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
@@ -77,8 +961,7 @@ AntiClusterRoot::AntiClusterRoot(AMSAntiCluster *ptr)
 #endif
 }
 
-ANTIMCClusterRoot::ANTIMCClusterRoot(){};
-ANTIMCClusterRoot::ANTIMCClusterRoot(AMSAntiMCCluster *ptr)
+AntiMCClusterR::AntiMCClusterR(AMSAntiMCCluster *ptr)
 {
 #ifndef __ROOTSHAREDLIBRARY__
   Idsoft = ptr->_idsoft;
@@ -89,23 +972,8 @@ ANTIMCClusterRoot::ANTIMCClusterRoot(AMSAntiMCCluster *ptr)
 }
 
 
-BetaRoot02::BetaRoot02()
-{
-#ifndef __ROOTPOINTERS__
-  fTOFCluster =  new TRefArray;
-   fTrTrack    = 0;
-#else
-   fTrTrack=-1;
-#endif
-  
-}
-BetaRoot02::~BetaRoot02(){
-#ifndef __ROOTPOINTERS__
-  delete fTOFCluster; fTOFCluster = 0;
-#endif
-}
-BetaRoot02::BetaRoot02(AMSBeta *ptr)
-{
+
+BetaR::BetaR(AMSBeta *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status   = ptr->_status;
   Pattern  = ptr->_Pattern;
@@ -115,32 +983,14 @@ BetaRoot02::BetaRoot02(AMSBeta *ptr)
   ErrorC   = ptr->_InvErrBetaC;
   Chi2     = ptr->_Chi2;
   Chi2S    = ptr->_Chi2Space;
-  //
-#ifndef __ROOTPOINTERS__
-  fTOFCluster =  new TRefArray;
-  fTrTrack    = 0; 
-#else
  fTrTrack    = -1;
 #endif
-  //
-#endif
 }
 
-ChargeRoot02::ChargeRoot02() { 
-#ifndef __ROOTPOINTERS__
-fBeta = 0;
-fRich = 0;
-#else
-fBeta=-1;
-fRich=-1;
-#endif
-}
 
-ChargeRoot02::~ChargeRoot02() {};
-ChargeRoot02::ChargeRoot02(AMSCharge *ptr, float probtof[],int chintof[], 
+ChargeR::ChargeR(AMSCharge *ptr, float probtof[],int chintof[], 
                            float probtr[], int chintr[], float probrc[],
-                           int chinrc[], float proballtr)
-{
+                           int chinrc[], float proballtr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
   ChargeTOF     = ptr->_ChargeTOF;
@@ -158,28 +1008,13 @@ ChargeRoot02::ChargeRoot02(AMSCharge *ptr, float probtof[],int chintof[],
   TrunTOF       = ptr->_TrMeanTOF;
   TrunTOFD      = ptr->_TrMeanTOFD;
   TrunTracker   = ptr->_TrMeanTracker;
-#ifndef __ROOTPOINTERS__
-  fBeta         = 0;
-  fRich         =0;
-#else
  fBeta=-1;
  fRich=-1;
 #endif
-#endif
 }
 
-Ecal2DClusterRoot::Ecal2DClusterRoot(){ 
-#ifndef __ROOTPOINTERS__
- fEcal1DCluster = new TRefArray;
-#endif
-}
-Ecal2DClusterRoot::~Ecal2DClusterRoot(){ 
-#ifndef __ROOTPOINTERS__
-delete fEcal1DCluster; fEcal1DCluster=0;
-#endif
-}
-Ecal2DClusterRoot::Ecal2DClusterRoot(Ecal2DCluster *ptr) 
-{
+
+Ecal2DClusterR::Ecal2DClusterR(Ecal2DCluster *ptr) {
 #ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->getstatus();
   Proj   = ptr->_proj;
@@ -188,25 +1023,10 @@ Ecal2DClusterRoot::Ecal2DClusterRoot(Ecal2DCluster *ptr)
   Coo    = ptr->_Coo;
   Tan    = ptr->_Tan;
   Chi2   = ptr->_Chi2;
-
-#ifndef __ROOTPOINTERS__
-  fEcal1DCluster = new TRefArray;
-#endif
 #endif
 }
 
-EcalClusterRoot::EcalClusterRoot()  {
-#ifndef __ROOTPOINTERS__
-fEcalHit = new TRefArray;
-#endif
-}
-EcalClusterRoot::~EcalClusterRoot() {
-#ifndef __ROOTPOINTERS__
-delete fEcalHit; fEcalHit = 0;
-#endif
-}
-EcalClusterRoot::EcalClusterRoot(Ecal1DCluster *ptr)
-{
+EcalClusterR::EcalClusterR(Ecal1DCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status  = ptr->_status;
   Proj    = ptr->_proj;
@@ -219,29 +1039,10 @@ EcalClusterRoot::EcalClusterRoot(Ecal1DCluster *ptr)
   DeadLeak = ptr->_DeadLeak;
   for (int i=0; i<3; i++) {Coo[i] = ptr->_Coo[i];}
   NHits = ptr->_NHits;
-
-#ifndef __ROOTPOINTERS__
-  fEcalHit = new TRefArray;
-#endif
 #endif
 }
 
-EcalShowerRoot::~EcalShowerRoot()
-{
-#ifndef __ROOTPOINTERS__
-  if (fEcal2DCluster) {
-    delete fEcal2DCluster;
-     fEcal2DCluster=0;
-  }
-#endif
-}
-EcalShowerRoot::EcalShowerRoot() {   
-#ifndef __ROOTPOINTERS__
-fEcal2DCluster = new TRefArray;
-#endif
-};
-EcalShowerRoot::EcalShowerRoot(EcalShower *ptr)
-{
+EcalShowerR::EcalShowerR(EcalShower *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status      = ptr->_status;
   for (int i=0; i<3; i++) {
@@ -270,18 +1071,11 @@ EcalShowerRoot::EcalShowerRoot(EcalShower *ptr)
   for (int i=0; i<4; i++) ParProfile[i] = ptr->_ProfilePar[i+ptr->_Direction*5];
   Chi2Trans = ptr->_TransFitChi2;
   for (int i=0; i<3; i++) SphericityEV[i] = ptr->_SphericityEV[i];
-
   N2dCl       = ptr->_N2dCl;
-
-#ifndef __ROOTPOINTERS__
-  fEcal2DCluster = new TRefArray;
-#endif
 #endif
 }
 
-LVL1Root02::LVL1Root02(){};
-LVL1Root02::LVL1Root02(Trigger2LVL1 *ptr)
-{
+Level1R::Level1R(Trigger2LVL1 *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Mode   = ptr->_LifeTime;
   TOFlag = ptr->_tofflag;
@@ -295,9 +1089,7 @@ LVL1Root02::LVL1Root02(Trigger2LVL1 *ptr)
 #endif
 }
 
-LVL3Root02::LVL3Root02(){};
-LVL3Root02::LVL3Root02(TriggerLVL302 *ptr)
-{
+Level3R::Level3R(TriggerLVL302 *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   TOFTr     = ptr->_TOFTrigger;
   TRDTr     = ptr->_TRDTrigger;
@@ -320,9 +1112,7 @@ LVL3Root02::LVL3Root02(TriggerLVL302 *ptr)
 #endif
 }
 
-MCEventGRoot02::MCEventGRoot02(){};
-MCEventGRoot02::MCEventGRoot02(AMSmceventg *ptr)
-{
+MCEventgR::MCEventgR(AMSmceventg *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Nskip    = ptr->_nskip;
   Particle = ptr->_ipart;
@@ -334,9 +1124,7 @@ MCEventGRoot02::MCEventGRoot02(AMSmceventg *ptr)
 #endif
 }           
 
-MCTrackRoot::MCTrackRoot(){};
-MCTrackRoot::MCTrackRoot(AMSmctrack *ptr)
-{
+MCTrackR::MCTrackR(AMSmctrack *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   _radl = ptr->_radl;
   _absl = ptr->_absl;
@@ -345,45 +1133,18 @@ MCTrackRoot::MCTrackRoot(AMSmctrack *ptr)
 #endif
 }
 
-ParticleRoot02::ParticleRoot02(){ 
-#ifndef __ROOTPOINTERS__
-  fBeta   = 0;
-  fCharge = 0;
-  fTrack  = 0;
-  fTRD    = 0;
-  fRich   = 0;
-  fShower = 0;
-#else
-  fBeta   = -1;
-  fCharge = -1;
-  fTrack  = -1;
-  fTRD    = -1;
-  fRich   = -1;
-  fShower = -1;
-#endif
-};
 
-ParticleRoot02::ParticleRoot02(AMSParticle *ptr, float phi, float phigl)
+ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
 {
 #ifndef __ROOTSHAREDLIBRARY__
   Phi      = phi;
   PhiGl    = phigl;
-
-#ifndef __ROOTPOINTERS__
-  fBeta   = 0;
-  fCharge = 0;
-  fTrack  = 0;
-  fTRD    = 0;
-  fRich   = 0;
-  fShower = 0;
-#else
   fBeta   = -1;
   fCharge = -1;
   fTrack  = -1;
-  fTRD    = -1;
+  fTrd    = -1;
   fRich   = -1;
   fShower = -1;
-#endif
   Particle     = ptr->_gpart[0];
   ParticleVice = ptr->_gpart[1];
   for (int i=0; i<2; i++) {Prob[i] = ptr->_prob[i];}
@@ -438,17 +1199,12 @@ ParticleRoot02::ParticleRoot02(AMSParticle *ptr, float phi, float phigl)
 
 
 
-TOFClusterRoot::TOFClusterRoot() {};
-TOFClusterRoot::TOFClusterRoot(AMSTOFCluster *ptr, int p2memb[])
-{
+TofClusterR::TofClusterR(AMSTOFCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
   Layer  = ptr->_ntof;
   Bar    = ptr->_plane;
   Nmemb  = ptr->_nmemb;
-  for (int i=0; i<3; i++) {
-    P2memb[i] = p2memb[i];
-  }
   Edep   = ptr->_edep;
   Edepd  = ptr->_edepd;
   Time   = ptr->_time;
@@ -460,9 +1216,7 @@ TOFClusterRoot::TOFClusterRoot(AMSTOFCluster *ptr, int p2memb[])
 #endif
 }
 
-TOFMCClusterRoot::TOFMCClusterRoot() {};
-TOFMCClusterRoot::TOFMCClusterRoot(AMSTOFMCCluster *ptr)
-{
+TofMCClusterR::TofMCClusterR(AMSTOFMCCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Idsoft = ptr->idsoft;
   for (int i=0; i<3; i++) {Coo[i] = ptr->xcoo[i];}
@@ -471,9 +1225,7 @@ TOFMCClusterRoot::TOFMCClusterRoot(AMSTOFMCCluster *ptr)
 #endif
 }
 
-TOFRawClusterRoot::TOFRawClusterRoot(){};
-TOFRawClusterRoot::TOFRawClusterRoot(TOF2RawCluster *ptr)
-{
+TofRawClusterR::TofRawClusterR(TOF2RawCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
 
   Status = ptr->_status;
@@ -491,11 +1243,7 @@ TOFRawClusterRoot::TOFRawClusterRoot(TOF2RawCluster *ptr)
 #endif
 }
 
-TRDClusterRoot::TRDClusterRoot(){
-fTRDRawHit = 0;
-}
-TRDClusterRoot::TRDClusterRoot(AMSTRDCluster *ptr)
-{
+TrdClusterR::TrdClusterR(AMSTRDCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
   Layer  = ptr->_layer;
@@ -504,17 +1252,11 @@ TRDClusterRoot::TRDClusterRoot(AMSTRDCluster *ptr)
   Multip = ptr->_Multiplicity;
   HMultip= ptr->_HighMultiplicity;
   EDep   = ptr->_Edep;
-  #ifndef __ROOTPOINTERS__ 
-  fTRDRawHit = 0;
-  #else
-  fTRDRawHit =-1;
-  #endif
+  fTrdRawHit =-1;
 #endif
 }
 
-TRDMCClusterRoot::TRDMCClusterRoot(){};
-TRDMCClusterRoot::TRDMCClusterRoot(AMSTRDMCCluster *ptr)
-{
+TrdMCClusterR::TrdMCClusterR(AMSTRDMCCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Layer  = ptr->_idsoft.getlayer();
   Ladder = ptr->_idsoft.getladder();
@@ -528,9 +1270,7 @@ TRDMCClusterRoot::TRDMCClusterRoot(AMSTRDMCCluster *ptr)
 #endif
 }
 
-TRDRawHitRoot::TRDRawHitRoot(){};
-TRDRawHitRoot::TRDRawHitRoot(AMSTRDRawHit *ptr)
-{
+TrdRawHitR::TrdRawHitR(AMSTRDRawHit *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Layer  = ptr->_id.getlayer();
   Ladder = ptr->_id.getladder();
@@ -539,18 +1279,7 @@ TRDRawHitRoot::TRDRawHitRoot(AMSTRDRawHit *ptr)
 #endif
 }
 
-TRDSegmentRoot::TRDSegmentRoot(){   
-#ifndef __ROOTPOINTERS__
-fTRDCluster =  new TRefArray;
-#endif
-}
-TRDSegmentRoot::~TRDSegmentRoot(){   
-#ifndef __ROOTPOINTERS__
-delete fTRDCluster;  fTRDCluster = 0;
-#endif
-}
-TRDSegmentRoot::TRDSegmentRoot(AMSTRDSegment *ptr)
-{
+TrdSegmentR::TrdSegmentR(AMSTRDSegment *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status        = ptr->_status;
   Orientation   = ptr->_Orientation;
@@ -558,25 +1287,10 @@ TRDSegmentRoot::TRDSegmentRoot(AMSTRDSegment *ptr)
   Chi2          = ptr->_Chi2;
   Pattern       = ptr->_Pattern;
   Nhits         = ptr->_NHits;
-
-#ifndef __ROOTPOINTERS__
-  fTRDCluster =  new TRefArray;
-#endif
 #endif
 }
 
-TRDTrackRoot::TRDTrackRoot(){
-#ifndef __ROOTPOINTERS__
- fTRDSegment =  new TRefArray;
-#endif
-}
-TRDTrackRoot::~TRDTrackRoot(){
-#ifndef __ROOTPOINTERS__
-delete fTRDSegment; fTRDSegment = 0;
-#endif
-}
-TRDTrackRoot::TRDTrackRoot(AMSTRDTrack *ptr)
-{
+TrdTrackR::TrdTrackR(AMSTRDTrack *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
   for (int i=0; i<3; i++) {
@@ -588,16 +1302,10 @@ TRDTrackRoot::TRDTrackRoot(AMSTRDTrack *ptr)
   Chi2  = ptr->_StrLine._Chi2;
   NSeg  = ptr->_BaseS._NSeg;
   Pattern = ptr->_BaseS._Pattern;
-
-#ifndef __ROOTPOINTERS__
-  fTRDSegment =  new TRefArray;
-#endif
 #endif
 }
 
-TrClusterRoot::TrClusterRoot(){};
-TrClusterRoot::TrClusterRoot(AMSTrCluster *ptr, float amplitude[])
-{
+TrClusterR::TrClusterR(AMSTrCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Idsoft = ptr-> _Id.cmpt();
   Status = ptr->_status;
@@ -608,13 +1316,11 @@ TrClusterRoot::TrClusterRoot(AMSTrCluster *ptr, float amplitude[])
   Mean   = ptr->_Mean;
   RMS    = ptr->_Rms;
   ErrorMean = ptr->_ErrorMean;
-  for (int i=0; i<5; i++) {Amplitude[i] = amplitude[i];}
+  for (int i=0; i<ptr->getnelem(); i++)Amplitude.push_back(ptr->_pValues[i]);
 #endif
 }
 
-TrMCClusterRoot::TrMCClusterRoot(){};
-TrMCClusterRoot::TrMCClusterRoot(AMSTrMCCluster *ptr)
-{
+TrMCClusterR::TrMCClusterR(AMSTrMCCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Idsoft  = ptr->_idsoft;
   TrackNo = ptr->_itra;
@@ -637,36 +1343,18 @@ TrMCClusterRoot::TrMCClusterRoot(AMSTrMCCluster *ptr)
 #endif
 }
 
-TrRawClusterRoot::TrRawClusterRoot(){};
-TrRawClusterRoot::TrRawClusterRoot(AMSTrRawCluster *ptr, int addr)
-{
+TrRawClusterR::TrRawClusterR(AMSTrRawCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
-  address = addr;
+  address = ptr->_address+ptr->_strip*10000;
   nelem   = ptr->_nelem;
   s2n     = ptr->_s2n;
 #endif
 }
 
-TrRecHitRoot02::TrRecHitRoot02(){
-#ifndef __ROOTPOINTERS__
-  fTrClusterX = 0;
-  fTrClusterY = 0;
-#else
-  fTrClusterX = -1;
-  fTrClusterY = -1;
-#endif
-};
-TrRecHitRoot02::TrRecHitRoot02(AMSTrRecHit *ptr)
-{
+TrRecHitR::TrRecHitR(AMSTrRecHit *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
-#ifndef __ROOTPOINTERS__
-  fTrClusterX = 0;
-  fTrClusterY = 0;
-#else
   fTrClusterX = -1;
   fTrClusterY = -1;
-#endif
-
   Status= ptr->_status;
   Layer = ptr->_Layer;
   for (int i=0; i<3; i++) Hit[i]  = ptr->_Hit[i];
@@ -678,18 +1366,7 @@ TrRecHitRoot02::TrRecHitRoot02(AMSTrRecHit *ptr)
 #endif
 }
 
-TrTrackRoot02::TrTrackRoot02(){ 
-#ifndef __ROOTPOINTERS__
- fTrRecHit = new TRefArray;
-#endif
-}
-TrTrackRoot02::~TrTrackRoot02(){ 
-#ifndef __ROOTPOINTERS__
-delete fTrRecHit; fTrRecHit=0;
-#endif
-}
-TrTrackRoot02::TrTrackRoot02(AMSTrTrack *ptr)
-{
+TrTrackR::TrTrackR(AMSTrTrack *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Status    = ptr->_status;
   Pattern   = ptr->_Pattern;
@@ -724,16 +1401,11 @@ TrTrackRoot02::TrTrackRoot02(AMSTrTrack *ptr)
   RigidityMS      = ptr->_RidgidityMS;
   PiRigidity      = ptr->_PIRigidity;
 
-#ifndef __ROOTPOINTERS__
-  fTrRecHit = new TRefArray;
-#endif
 #endif
 }
 
 
-RICMCRoot::RICMCRoot(){};
-RICMCRoot::RICMCRoot(AMSRichMCHit *ptr, int _numgen)
-{
+RichMCClusterR::RichMCClusterR(AMSRichMCHit *ptr, int _numgen){
 #ifndef __ROOTSHAREDLIBRARY__
   id        = ptr->_id;
   for (int i=0; i<i; i++) {
@@ -746,9 +1418,7 @@ RICMCRoot::RICMCRoot(AMSRichMCHit *ptr, int _numgen)
 #endif
 }
 
-RICEventRoot::RICEventRoot(){};
-RICEventRoot::RICEventRoot(AMSRichRawEvent *ptr, float x, float y)
-{
+RichHitR::RichHitR(AMSRichRawEvent *ptr, float x, float y){
 #ifndef __ROOTSHAREDLIBRARY__
   if (ptr) {
    _channel = ptr->_channel;
@@ -758,19 +1428,14 @@ RICEventRoot::RICEventRoot(AMSRichRawEvent *ptr, float x, float y)
    _x      = x;
    _y      = y;
   } else {
-    cout<<"RICEventRoot -E- AMSRichRawEvent ptr is NULL"<<endl;
+    cout<<"RICEventR -E- AMSRichRawEvent ptr is NULL"<<endl;
   }
 #endif
 }
-RICRingRoot::RICRingRoot(){ fTrack = 0;}
-RICRingRoot::RICRingRoot(AMSRichRing *ptr) 
-{
+
+RichRingR::RichRingR(AMSRichRing *ptr) {
 #ifndef __ROOTSHAREDLIBRARY__
-#ifndef __ROOTPOINTERS__
- fTrack=0;
-#else
- fTrack = -1;
-#endif
+  fTrTrack = -1;
   if (ptr) {
     used  = ptr->_used;
     mused = ptr->_mused;
@@ -788,14 +1453,12 @@ RICRingRoot::RICRingRoot(AMSRichRing *ptr)
     npexpb    = ptr->_npexpb;
 
   } else {
-    cout<<"RICRingRoot -E- AMSRichRing ptr is NULL"<<endl;
+    cout<<"RICRingR -E- AMSRichRing ptr is NULL"<<endl;
   }
 #endif
 }
 
-EcalHitRoot::EcalHitRoot(){};
-EcalHitRoot::EcalHitRoot(AMSEcalHit *ptr) 
-{
+EcalHitR::EcalHitR(AMSEcalHit *ptr) {
 #ifndef __ROOTSHAREDLIBRARY__
   Status = ptr->_status;
   Idsoft = ptr->_idsoft;
@@ -829,687 +1492,7 @@ EcalHitRoot::EcalHitRoot(AMSEcalHit *ptr)
 }
 
 
-void EventRoot02::Set(AMSEvent *ptr, int rawwords) 
-{
-#ifndef __ROOTSHAREDLIBRARY__
-  if (ptr) {
-   Header.Set(ptr, rawwords);
-  } else {
-    cout<<"EventRoot02 -W- AMSEvent *ptr is NULL"<<endl;
-  }
-#endif
-}
-
-void AMSEventHeaderRoot::Set(AMSEvent *ptr, int rawwords)
-{
-#ifndef __ROOTSHAREDLIBRARY__
-  if (ptr) {
-
-    _Run           = ptr->_run;
-    _Time[0]       = ptr->_time;
-    _Time[1]       = AMSJob::gethead()->isRealData()?ptr->_usec:ptr->_usec/1000;
-    _RunType       = ptr->_runtype;
-    _Eventno       = ptr-> _id;
-    _EventStatus[0]= ptr->getstatus()[0];
-    _EventStatus[1]= ptr->getstatus()[1];
-    _RawWords      = rawwords;
-    
-    _StationRad   = ptr->_StationRad;    
-    _StationTheta = ptr->_StationTheta;
-    _StationPhi   = ptr->_StationPhi;
-    _NorthPolePhi = ptr->_NorthPolePhi;
-    _Yaw          = ptr->_Yaw;
-    _Pitch        = ptr->_Pitch;
-    _Roll         = ptr->_Roll;
-    _StationSpeed = ptr->_StationSpeed;
-    _SunRad       = ptr->_SunRad;
-    _VelTheta     = ptr->_VelTheta;
-    _VelPhi       = ptr->_VelPhi;
-
-  }
-#endif
-}
-
-/*
-TrGammaRoot02::TrGammaRoot02() {
-#ifndef __ROOTPOINTERS__
-  fTrTrack = new TRefArray;
-#endif
-}
-TrGammaRoot02::~TrGammaRoot02() {
-#ifndef __ROOTPOINTERS__
- if (fTrTrack) delete fTrTrack;
- fTrTrack=0;
-#endif
-}
-
-TrGammaRoot02::TrGammaRoot02(AMSTrTrackGamma *ptr)
-{
-#ifndef __ROOTSHAREDLIBRARY__
-  Pgam     =  ptr->_PGAMM;
-  ErrPgam  =  ptr->_ErrPGAMM;
-  Massgam  =  ptr->_MGAM;
-  Thetagam =  ptr->_PhTheta;
-  Phigam   =  ptr->_PhPhi;
-
-  for(int i=0;i<3;i++) {
-     Vert[i]= ptr->_Vertex[i];
-  }
-  Distance    = ptr->_TrackDistance;
-  Charge      = ptr->_Charge;
-
-  GammaStatus = ptr->_status;
 
 
-  PtrLeft = -1;
-  if(ptr->_pntTrL->checkstatus(AMSDBc::NOTRACK)) {PtrLeft = -1;}
-  if(ptr->_pntTrL->checkstatus(AMSDBc::GAMMALEFT)) {
-    PtrLeft = ptr->_pntTrL->getpos();}
-  PtrRight = -1;
-  if(ptr->_pntTrR->checkstatus(AMSDBc::NOTRACK)) {PtrRight = -1;}
-  if(ptr->_pntTrR->checkstatus(AMSDBc::GAMMARIGHT))   {
-    PtrRight = ptr->_pntTrR->getpos();
-  }
-  Jthetal = (geant)ptr->_GThetaMSL;
-  Jphil   = (geant)ptr->_GPhiMSL;
-  Jthetar = (geant)ptr->_GThetaMSR;
-  Jphir   = (geant)ptr->_GPhiMSR;
-  JChi2l  = (geant)ptr->_GChi2MSL;
-  JChi2r  = (geant)ptr->_GChi2MSR;
-  for(int i=0;i<3;i++) {Jp0l[i] = (geant)ptr->_GP0MSL[i];}
-  for(int i=0;i<3;i++) {Jp0r[i] = (geant)ptr->_GP0MSR[i];}
-
-#ifndef __ROOTPOINTERS__
-  fTrTrack = new TRefArray;
-#endif
-#endif
-}
-
-*/
-
-//------------- AddAMSObject 
-#ifndef __ROOTSHAREDLIBRARY__
-void EventRoot02::AddAMSObject(AMSAntiCluster *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-  if (fAntiCluster) {
-   TClonesArray &clones =  *fAntiCluster;
-   ptr->SetClonePointer(new (clones[fAntiCluster->GetLast()+1]) AntiClusterRoot(ptr));
-   }
-#else
-  fAntiCluster.push_back(AntiClusterRoot(ptr));
-  ptr->SetClonePointer(&fAntiCluster.back(),fAntiCluster.size()-1);  
-#endif
-  }  else {
-    cout<<"AddAMSObject -E- AMSAntiCluster ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(AMSAntiMCCluster *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fAntiMCCluster) {
-   TClonesArray &clones =  *fAntiMCCluster;
-   ptr->SetClonePointer(new (clones[fAntiMCCluster->GetLast()+1]) ANTIMCClusterRoot(ptr));
-    }
-#else
-  fAntiMCCluster.push_back(ANTIMCClusterRoot(ptr));
-  ptr->SetClonePointer(&fAntiMCCluster.back(),fAntiMCCluster.size()-1);  
-#endif
-  }  else {
-    cout<<"AddAMSObject -E- AMSAntiMCCluster ptr is NULL"<<endl;
-  }
-}
-
-
-void EventRoot02::AddAMSObject(AMSBeta *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fBeta) {
-    TClonesArray &clones =  *fBeta;
-     ptr->SetClonePointer(new (clones[fBeta->GetLast()+1]) BetaRoot02(ptr));
-    } else {
-      //     cout<<"AddAMSObject -W- *fBeta is NULL"<<endl;
-    }
-#else
-   fBeta.push_back(BetaRoot02(ptr));
-   ptr->SetClonePointer(&fBeta.back(),fBeta.size()-1);
-#endif
-   }  else {
-     cout<<"AddAMSObject -E- AMSBeta ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[], 
-                               float probtr[], int chintr[], float probrc[], 
-                               int chinrc[], float proballtr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fCharge) {
-   TClonesArray &clones =  *fCharge;
-   ptr->SetClonePointer(new (clones[fCharge->GetLast()+1]) 
-       ChargeRoot02(ptr, probtof, chintof, probtr, chintr, probrc, chinrc, proballtr)); 
-    }
-#else
-   fCharge.push_back(ChargeRoot02(ptr, probtof, chintof, probtr, chintr, probrc, chinrc, proballtr));
-   ptr->SetClonePointer(&fCharge.back(),fCharge.size()-1);
-#endif
-  }  else {
-    cout<<"AddAMSObject -E- AMSCharge ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(AMSEcalHit *ptr)
-{
-#ifdef __WRITEROOTCLONES__
-  if (fECALhit) {
-  TClonesArray &clones =  *fECALhit;
-  ptr->SetClonePointer(new (clones[fECALhit->GetLast()+1]) EcalHitRoot(ptr));
-  }
-#else
-  fECALhit.push_back(EcalHitRoot(ptr));
-  ptr->SetClonePointer(& fECALhit.back(),fECALhit.size()-1);
-#endif
-}
-
-void EventRoot02::AddAMSObject(AMSmceventg *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fMCeventg) {
-   TClonesArray &clones =  *fMCeventg;
-   ptr->SetClonePointer(new (clones[fMCeventg->GetLast()+1]) MCEventGRoot02(ptr));
-    }
-#else
-  fMCeventg.push_back(MCEventGRoot02(ptr));
-  ptr->SetClonePointer(& fMCeventg.back(), fMCeventg.size()-1);
-#endif
-  }  else {
-    cout<<"AddAMSObject -E- AMSmceventg ptr is NULL"<<endl;
-  }
-}
-
-
-void EventRoot02::AddAMSObject(AMSmctrack *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fMCtrtrack) {
-   TClonesArray &clones =  *fMCtrtrack;
-   ptr->SetClonePointer(new (clones[fMCtrtrack->GetLast()+1]) MCTrackRoot(ptr));
-    }
-#else
-  fMCtrtrack.push_back(MCTrackRoot(ptr));
-  ptr->SetClonePointer(& fMCtrtrack.back(),fMCtrtrack.size()-1);
-#endif
-  }  else {
-    cout<<"AddAMSObject -E- AMSmctrack ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(AMSParticle *ptr, float phi, float phigl)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fParticle) {
-   TClonesArray &clones =  *fParticle;
-   ptr->SetClonePointer(new (clones[fParticle->GetLast()+1]) 
-       ParticleRoot02(ptr, phi, phigl));
-    }
-#else
-  fParticle.push_back(ParticleRoot02(ptr, phi, phigl));
-  ptr->SetClonePointer(& fParticle.back(),fParticle.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- AMSParticle ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(AMSRichRawEvent *ptr, float x, float y)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fRICEvent) {
-   TClonesArray &clones =  *fRICEvent;
-   ptr->SetClonePointer(new (clones[fRICEvent->GetLast()+1]) RICEventRoot(ptr, x, y));
-    }
-#else
-  fRICEvent.push_back(RICEventRoot(ptr,x,y));
-  ptr->SetClonePointer(& fRICEvent.back(),fRICEvent.size()-1);
-#endif
-  }  else {
-    cout<<"AddAMSObject -E- AMSRichRawEvent ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(AMSRichMCHit *ptr, int _numgen)
-{
-#ifdef __WRITEROOTCLONES__
-  if (fRICMC) {
-  TClonesArray &clones =  *fRICMC;
-  ptr->SetClonePointer(new (clones[fRICMC->GetLast()+1]) RICMCRoot(ptr, _numgen));
-  }
-#else
-  fRICMC.push_back(RICMCRoot(ptr,_numgen));
-  ptr->SetClonePointer(& fRICMC.back(),fRICMC.size()-1);
-#endif
-}
-void EventRoot02::AddAMSObject(AMSRichRing *ptr)
-{
-#ifdef __WRITEROOTCLONES__
-  if (fRICRing) {
-  TClonesArray &clones =  *fRICRing;
-  ptr->SetClonePointer(new (clones[fRICRing->GetLast()+1]) RICRingRoot(ptr));
-  }
-#else
-  fRICRing.push_back(RICRingRoot(ptr));
-  ptr->SetClonePointer(& fRICRing.back(),fRICRing.size()-1);
-#endif
-}
-
-void EventRoot02::AddAMSObject(Ecal1DCluster *ptr) 
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fECALcluster) {
-   TClonesArray &clones =  *fECALcluster;
-   ptr->SetClonePointer(new (clones[fECALcluster->GetLast()+1]) EcalClusterRoot(ptr));
-    }
-#else
-  fECALcluster.push_back(EcalClusterRoot(ptr));
-  ptr->SetClonePointer(& fECALcluster.back(), fECALcluster.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- Ecal1DCluster ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(Ecal2DCluster *ptr) 
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fECAL2Dcluster) {
-   TClonesArray &clones =  *fECAL2Dcluster;
-   ptr->SetClonePointer(new (clones[fECAL2Dcluster->GetLast()+1]) Ecal2DClusterRoot(ptr));
-    }
-#else
-  fECAL2Dcluster.push_back(Ecal2DClusterRoot(ptr));
-  ptr->SetClonePointer(& fECAL2Dcluster.back(),fECAL2Dcluster.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- (Ecal2DCluster ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(EcalShower *ptr) 
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fECALshower) {
-   TClonesArray &clones =  *fECALshower;
-   ptr->SetClonePointer(new (clones[fECALshower->GetLast()+1]) EcalShowerRoot(ptr));
-    }
-#else
-  fECALshower.push_back(EcalShowerRoot(ptr));
-  ptr->SetClonePointer(& fECALshower.back(),fECALshower.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- EcalShower ptr is NULL"<<endl;
-  }
-}
-
-
-void EventRoot02::AddAMSObject(Trigger2LVL1 *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fLVL1) {
-   TClonesArray &clones =  *fLVL1;
-   ptr->SetClonePointer(new (clones[fLVL1->GetLast()+1]) LVL1Root02(ptr));
-    }
-#else
-  fLVL1.push_back(LVL1Root02(ptr));
-  ptr->SetClonePointer(& fLVL1.back(),fLVL1.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- Trigger2LVL1 ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(TriggerLVL302 *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fLVL3) {
-     TClonesArray &clones =  *fLVL3;
-     ptr->SetClonePointer(new (clones[fLVL3->GetLast()+1]) LVL3Root02(ptr));
-    }
-#else
-  fLVL3.push_back(LVL3Root02(ptr));
-  ptr->SetClonePointer(& fLVL3.back(),fLVL3.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- TriggerLVL302 ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(AMSTOFCluster *ptr, int p2memb[])
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fTOFcluster) {
-   TClonesArray &clones =  *fTOFcluster;
-   ptr->SetClonePointer(new (clones[fTOFcluster->GetLast()+1]) TOFClusterRoot(ptr,p2memb));
-    }
-#else
-  fTOFcluster.push_back(TOFClusterRoot(ptr,p2memb));
-  ptr->SetClonePointer(& fTOFcluster.back(),fTOFcluster.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- AMSTOFCluster ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(AMSTOFMCCluster *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fTOFMCcluster) {
-   TClonesArray &clones =  *fTOFMCcluster;
-   ptr->SetClonePointer(new (clones[fTOFMCcluster->GetLast()+1]) TOFMCClusterRoot(ptr));
-    }
-#else
-  fTOFMCcluster.push_back(TOFMCClusterRoot(ptr));
-  ptr->SetClonePointer(& fTOFMCcluster.back(),fTOFMCcluster.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- AMSTOFMCCluster ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(TOF2RawCluster *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fTOFRawCluster) {
-   TClonesArray &clones =  *fTOFRawCluster;
-   ptr->SetClonePointer(new (clones[fTOFRawCluster->GetLast()+1]) TOFRawClusterRoot(ptr));
-    }
-#else
-  fTOFRawCluster.push_back(TOFRawClusterRoot(ptr));
-  ptr->SetClonePointer(& fTOFRawCluster.back(),fTOFRawCluster.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- AMSTOF2RawCluster ptr is NULL"<<endl;
-  }
-}
-
-
-void EventRoot02::AddAMSObject(AMSTrCluster *ptr, float ampl[])
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fTrCluster) {
-   TClonesArray &clones =  *fTrCluster;
-   ptr->SetClonePointer(new (clones[fTrCluster->GetLast()+1]) TrClusterRoot(ptr, ampl));
-    }
-#else
-  fTrCluster.push_back(TrClusterRoot(ptr,ampl));
-  ptr->SetClonePointer(& fTrCluster.back(),fTrCluster.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- AMSTrCluster ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(AMSTrMCCluster *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fTrMCCluster) {
-   TClonesArray &clones =  *fTrMCCluster;
-   ptr->SetClonePointer(new (clones[fTrMCCluster->GetLast()+1]) TrMCClusterRoot(ptr));
-    }
-#else
-  fTrMCCluster.push_back(TrMCClusterRoot(ptr));
-  ptr->SetClonePointer(& fTrMCCluster.back(), fTrMCCluster.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- AMSTrMCCluster ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(AMSTrRawCluster *ptr, int addr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fTrRawCluster) {
-   TClonesArray &clones =  *fTrRawCluster;
-   ptr->SetClonePointer(new (clones[fTrRawCluster->GetLast()+1]) TrRawClusterRoot(ptr,addr));
-    }
-#else
-  fTrRawCluster.push_back(TrRawClusterRoot(ptr,addr));
-  ptr->SetClonePointer(& fTrRawCluster.back(), fTrRawCluster.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- TrRawCluster ptr is NULL"<<endl;
-  }
-}
-
-
-void EventRoot02::AddAMSObject(AMSTRDMCCluster *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fTRDMCCluster) {
-   TClonesArray &clones =  *fTRDMCCluster;
-   ptr->SetClonePointer(new (clones[fTRDMCCluster->GetLast()+1]) TRDMCClusterRoot(ptr));
-    }
-#else
-  fTRDMCCluster.push_back(TRDMCClusterRoot(ptr));
-  ptr->SetClonePointer(& fTRDMCCluster.back(),fTRDMCCluster.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- AMSTRDMCCluster ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(AMSTRDRawHit *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fTRDrawhit) {
-   TClonesArray &clones =  *fTRDrawhit;
-   ptr->SetClonePointer(new (clones[fTRDrawhit->GetLast()+1]) TRDRawHitRoot(ptr));
-    }
-#else
-  fTRDrawhit.push_back(TRDRawHitRoot(ptr));
-  ptr->SetClonePointer(& fTRDrawhit.back(), fTRDrawhit.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- AMSTRDRawHit ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(AMSTRDCluster *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fTRDcluster) {
-   TClonesArray &clones =  *fTRDcluster;
-   ptr->SetClonePointer(new (clones[fTRDcluster->GetLast()+1]) TRDClusterRoot(ptr));
-    }
-#else
-  fTRDcluster.push_back(TRDClusterRoot(ptr));
-  ptr->SetClonePointer(& fTRDcluster.back(), fTRDcluster.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- AMSTRDCluster ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(AMSTRDSegment *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fTRDsegment) {
-   TClonesArray &clones =  *fTRDsegment;
-   ptr->SetClonePointer(new (clones[fTRDsegment->GetLast()+1]) TRDSegmentRoot(ptr));
-    }
-#else
-  fTRDsegment.push_back(TRDSegmentRoot(ptr));
-  ptr->SetClonePointer(& fTRDsegment.back(),fTRDsegment.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- AMSTRDSegment ptr is NULL"<<endl;
-  }
-}
-
-
-void EventRoot02::AddAMSObject(AMSTRDTrack *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fTRDtrack) {
-   TClonesArray &clones =  *fTRDtrack;
-   ptr->SetClonePointer(new (clones[fTRDtrack->GetLast()+1]) TRDTrackRoot(ptr));
-    }
-#else
-  fTRDtrack.push_back(TRDTrackRoot(ptr));
-  ptr->SetClonePointer(& fTRDtrack.back(),fTRDtrack.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- AMSTRDTrack ptr is NULL"<<endl;
-  }
-}
-
-void EventRoot02::AddAMSObject(AMSTrRecHit *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fTRrechit) {
-   TClonesArray &clones =  *fTRrechit;
-   ptr->SetClonePointer(new (clones[fTRrechit->GetLast()+1]) TrRecHitRoot02(ptr));
-    }
-#else
-  fTRrechit.push_back(TrRecHitRoot02(ptr));
-  ptr->SetClonePointer(& fTRrechit.back(),fTRrechit.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- AMSTrRecHit ptr is NULL"<<endl;
-  }
-}
-
-/*
-void EventRoot02::AddAMSObject(AMSTrTrackGamma *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fTrGamma) {
-   TClonesArray &clones =  *fTrTrack;
-   ptr->SetClonePointer(new (clones[fTRtrack->GetLast()+1]) TrGammaRoot02(ptr));
-    }
-#else
-  fTrGamma.push_back(TrGammaRoot02(ptr));
-  ptr->SetClonePointer(& fTrGamma.back(),fTrGamma.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- AMSTrTrackGamma ptr is NULL"<<endl;
-  }
-}
-*/
-
-void EventRoot02::AddAMSObject(AMSTrTrack *ptr)
-{
-  if (ptr) {
-#ifdef __WRITEROOTCLONES__
-    if (fTRtrack) {
-   TClonesArray &clones =  *fTRtrack;
-   ptr->SetClonePointer(new (clones[fTRtrack->GetLast()+1]) TrTrackRoot02(ptr));
-    }
-#else
-  fTRtrack.push_back(TrTrackRoot02(ptr));
-  ptr->SetClonePointer(& fTRtrack.back(), fTRtrack.size()-1);
-#endif
-  }  else {
-   cout<<"AddAMSObject -E- AMSTrTrack ptr is NULL"<<endl;
-  }
-}
-#endif
-
-EventRoot02::EventRoot02(){
-#ifndef __WRITEROOTCLONES__
-fBeta.reserve(MAXBETA02);
-fCharge.reserve(MAXCHARGE02);
-fParticle.reserve(MAXPART02);
-fTOFcluster.reserve(MAXTOF);
-fECALshower.reserve(MAXECSHOW);
-fECALcluster.reserve(MAXECCLUST);
-fECAL2Dcluster.reserve(MAXEC2DCLUST);
-fECALhit.reserve(MAXECHITS);
-fTOFMCcluster.reserve(MAXTOFMC);
-fTrCluster.reserve(MAXTRCL);
-fTrMCCluster.reserve(MAXTRCLMC);
-fTRDMCCluster.reserve(MAXTRDCLMC);
-fTRDrawhit.reserve(MAXTRDRHT );
-fTRDcluster.reserve(MAXTRDCL );
-fTRDsegment.reserve(MAXTRDSEG);
-fTRDtrack.reserve(MAXTRDTRK);
-fTRrechit.reserve(MAXTRRH02);
-fTRtrack.reserve(MAXTRTR02);
-fMCtrtrack.reserve(MAXMCVOL);
-fMCeventg.reserve(MAXMCG02);
-fAntiCluster.reserve(MAXANTICL);
-fAntiMCCluster.reserve(MAXANTIMC);
-fLVL3.reserve(MAXLVL3);
-fLVL1.reserve(MAXLVL1);
-fTrRawCluster.reserve(MAXTRRAW);
-fTOFRawCluster.reserve(MAXTOFRAW);
-fRICMC.reserve(MAXRICMC);
-fRICEvent.reserve(MAXRICHRIN);
-fRICRing.reserve(MAXRICHITS);
-//fTrGamma.reserve(MAXPAIR02);
-#endif
-}
-
-void EventRoot02::clear(){
-#ifndef __WRITEROOTCLONES__
-//    cout <<"  ftrrh size "<<fTRrechit.size()<<endl;
-    fAntiCluster.clear();
-     fAntiMCCluster.clear();
-    fBeta.clear();
-     fCharge.clear();
-    fECALcluster.clear();
-    fECAL2Dcluster.clear();
-    fECALhit.clear();
-    fECALshower.clear();
-    fLVL1.clear();
-    fLVL3.clear();
-    fMCtrtrack.clear();
-    fMCeventg.clear();
-    fParticle.clear();
-    fRICEvent.clear();
-    fRICMC.clear();
-    fRICRing.clear();
-    fTOFcluster.clear();
-    fTOFMCcluster.clear();
-    fTOFRawCluster.clear();
-    fTRDMCCluster.clear();
-    fTRDrawhit.clear();
-    fTRDcluster.clear();
-    fTRDsegment.clear();
-    fTRDtrack.clear();
-    fTrCluster.clear();
-    fTrMCCluster.clear();
-    fTrRawCluster.clear();
-    fTRrechit.clear();
-//    fTrGamma.clear();
-    fTRtrack.clear();
-#endif
-}
 
 #endif

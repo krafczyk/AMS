@@ -1,0 +1,147 @@
+#define stlv_cxx
+// This class is derived from the ROOT class TSelector.
+// The following members functions are called by the TTree::Process() functions:
+//    Begin():       called everytime a loop on the tree starts,
+//                   a convenient place to create your histograms.
+//    Notify():      this function is called at the first entry of a new Tree
+//                   in a chain.
+//    ProcessCut():  called at the beginning of each entry to return a flag,
+//                   true if the entry must be analyzed.
+//    ProcessFill(): called in the entry loop for all entries accepted
+//                   by Select.
+//    Terminate():   called at the end of a loop on the tree,
+//                   a convenient place to draw/fit your histograms.
+//
+//   To use this file, try the following session on your Tree T
+//
+// Root > T->Process("stlv.C")
+// Root > T->Process("stlv.C","some options")
+// Root > T->Process("stlv.C+")
+//
+#include "stlv.h"
+#include "TF1.h"
+#include "TH2.h"
+#include "TStyle.h"
+#include "TCanvas.h"
+#include "TLine.h"
+#include "TEventList.h"
+#include "TSelector.h"
+#include "TChain.h"
+#include <TROOT.h>
+#include <TTree.h>
+#include <iostream.h>
+#include <stdlib.h>
+#include "TStopwatch.h"
+static    TStopwatch  * _pw;
+
+//create here pointers to histos and array of histos
+
+    TH1F * acc[20]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; 
+
+
+
+void stlv::Begin(TTree *tree){
+   // Function called before starting the event loop.
+   // Initialize the tree branches.
+
+   Init(tree);
+
+   TString option = GetOption();
+
+   //here create histograms
+
+   Float_t al1=log(0.5);
+   Float_t al2=log(200.);
+   Int_t nch=12;
+   Float_t step=(al2-al1)/nch; 
+   
+    for (Int_t j = 0; j < 20; j++) {
+      char AccName[80];
+      sprintf(AccName,"acc%d",(j+1));
+      if(acc[j])delete acc[j];
+      acc[j] = new TH1F(AccName,"acceptance",nch,al1,al2);
+   
+   } 
+   
+     
+   
+          _pw =new TStopwatch();
+        _pw->Start(); 
+   
+   
+   
+   
+
+}
+
+Bool_t stlv::ProcessCut(Int_t entry)
+{
+   // Selection function.
+   // Entry is the entry number in the current tree.
+   // Read only the necessary branches to select entries.
+   // Return kFALSE as soon as a bad entry is detected.
+   // To read complete event, call fChain->GetTree()->GetEntry(entry).
+
+   ev.ReadHeader(entry);
+
+   return kTRUE;
+}
+
+void stlv::ProcessFill(Int_t entry)
+{
+   // Function called for selected entries only.
+   // Entry is the entry number in the current tree.
+   // Read branches not processed in ProcessCut() and fill histograms.
+   // To read complete event, call fChain->GetTree()->GetEntry(entry).
+   
+
+    
+       
+    
+    Float_t xm=0;
+    if(ev.fHeader.MCEventgs>0){		
+     MCEventgR mc_ev=ev.MCEventg(0);
+      Float_t xm = log(mc_ev.Momentum);
+      acc[0]->Fill(xm,1);
+     if(ev.fHeader.Particles>0){
+       
+       int ptrack = ev.Particle(0).fTrack;
+       int ptrd = ev.Particle(0).fTrd;
+       
+       
+       if(ev.NParticle()== 1 && ptrack>=0 && ptrd>=0){ //final if
+         acc[1]->Fill(xm,1);
+     
+        int pbeta = ev.Particle(0).fBeta;
+       
+        if(pbeta>=0){			//check beta
+	  BetaR Beta=ev.Beta(pbeta);
+          if(fabs(Beta.Beta) < 2 && Beta.Chi2S < 5 && Beta.Pattern < 4){
+	    if(ev.fHeader.TrdTracks<2){
+	    Int_t Layer1 =0;
+            Int_t Layer2 =0;  
+	    
+             TrTrackR tr_tr=ev.TrTrack(ptrack);
+		 int  ptrh=tr_tr.TrRecHit(0);			//pht1
+   	          Layer1=ev.TrRecHit(ptrh).Layer;
+		    
+		 
+		  ptrh=tr_tr.TrRecHit(tr_tr.NHits-1);			//pht2
+   	           Layer2=ev.TrRecHit(ptrh).Layer;
+         
+}
+}
+}
+}
+}
+}
+}
+
+void stlv::Terminate()
+{
+   // Function called at the end of the event loop.
+
+  _pw->Stop();
+   cout <<_pw->CpuTime()<<endl;
+
+}

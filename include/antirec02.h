@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.4 2003/03/18 09:04:18 choumilo Exp $
+//  $Id: antirec02.h,v 1.5 2003/05/08 16:42:12 choutko Exp $
 //
 // May 29   1997. V. Choutko primitive version
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
@@ -146,11 +146,8 @@ public:
 //
  static void build2(); 
  static void print();
-#ifdef __DB__
-friend class AMSAntiClusterD;
-#endif
 #ifdef __WRITEROOT__
- friend class AntiClusterRoot;
+ friend class AntiClusterR;
 #endif
 };
 #endif

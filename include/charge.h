@@ -1,4 +1,4 @@
-//  $Id: charge.h,v 1.22 2003/01/07 18:37:02 jorgec Exp $
+//  $Id: charge.h,v 1.23 2003/05/08 16:42:12 choutko Exp $
 // V. Choutko 5-june-96
 //
 // July 12, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -92,15 +92,9 @@ _iTracker(0),_ProbAllTracker(0),_ChargeTracker(0){}
   static void init();
   static integer build(integer refit=0);
   static void print();
-//+
-#ifdef __DB__
-   friend class AMSChargeD;
-#endif
-void setBetaP (AMSBeta* p) { _pbeta = p;}
-//-
 friend class AMSJob;
 #ifdef __WRITEROOT__
-friend class ChargeRoot02;
+friend class ChargeR;
 #endif
 };
 

@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.21 2003/05/03 08:43:55 choutko Exp $
+//  $Id: tofrec02.C,v 1.22 2003/05/08 16:41:51 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -1115,27 +1115,7 @@ void AMSTOFCluster::_writeEl(){
   // p2memb for Root
   if(AMSTOFCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
 #ifdef __WRITEROOT__
-    int p2memb[3];
-    for (int i=0; i<3; i++) {p2memb[i] =0;}
-
-    if(TOF2RawCluster::Out(IOPA.WriteAll%10==1)){//WriteAll
-      for(int i=0;i<_nmemb;i++) {
-        p2memb[i]=_mptr[i]->getpos();
-      }
-    }
-    else{// Used
-      integer mpos;
-      TOF2RawCluster *ptr;
-      for(int i=0;i<_nmemb;i++) {
-        mpos=_mptr[i]->getpos();
-	ptr=(TOF2RawCluster*)AMSEvent::gethead()->getheadC("TOF2RawCluster",0);
-        for(int j=0;j<mpos;j++){
-          if(ptr && ptr->checkstatus(AMSDBc::USED)) p2memb[i]++;
-          ptr=ptr->next();
-        }
-      }
-    }
-    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this,p2memb);
+    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
   TOFClusterNtuple* TN = AMSJob::gethead()->getntuple()->Get_tof();
 
@@ -1153,11 +1133,10 @@ void AMSTOFCluster::_writeEl(){
     int i;
     for(i=0;i<3;i++)TN->Coo[TN->Ntof][i]=_Coo[i];
     for(i=0;i<3;i++)TN->ErrorCoo[TN->Ntof][i]=_ErrorCoo[i];
-    for(int i=0;i<3;i++)TN->P2memb[TN->Ntof][i]=0;
     if(TOF2RawCluster::Out(IOPA.WriteAll%10==1)){//WriteAll
+     for(int i=0;i<3;i++)TN->P2memb[TN->Ntof][i]=0;
       for(int i=0;i<_nmemb;i++) {
         TN->P2memb[TN->Ntof][i]=_mptr[i]->getpos();
-//      cout<<"MembPlane/Padl="<<dynamic_cast<TOF2RawCluster*>(_mptr[i])->getntof()<<" "<<dynamic_cast<TOF2RawCluster*>(_mptr[i])->getplane()<<" status="<<dynamic_cast<TOF2RawCluster*>(_mptr[i])->getstatus()<<endl;
       }
     }
     else{// Used
@@ -1179,6 +1158,12 @@ void AMSTOFCluster::_writeEl(){
 
 
 void AMSTOFCluster::_copyEl(){
+#ifdef __WRITEROOT__
+ TofClusterR *ptr = (TofClusterR *)_ptr;
+  if (ptr) {
+      for(int i=0;i<_nmemb;i++)(ptr->fTofRawCluster).push_back(_mptr[i]->GetClonePointer());
+  }
+#endif
 }
 
 

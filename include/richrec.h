@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.20 2003/01/22 11:32:12 choutko Exp $
+//  $Id: richrec.h,v 1.21 2003/05/08 16:42:13 choutko Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -124,7 +124,7 @@ protected:
   void _writeEl();
   void _copyEl(){};
 #ifdef __WRITEROOT__
-friend class RICEventRoot;
+friend class RichHitR;
 #endif
 };
 
@@ -246,7 +246,7 @@ public:
   number getnpexp(){return _npexp;}
   number getcollnpe(){return _collected_npe;}
 #ifdef __WRITEROOT__
-friend class RICRingRoot;
+friend class RichRingR;
 #endif
 };
 

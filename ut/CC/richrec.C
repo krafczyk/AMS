@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.47 2003/05/03 08:43:54 choutko Exp $
+//  $Id: richrec.C,v 1.48 2003/05/08 16:41:50 choutko Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -860,9 +860,10 @@ void AMSRichRing::_writeEl(){
 }
 void AMSRichRing::_copyEl(){
 #ifdef __WRITEROOT__
- RICRingRoot *ptr = (RICRingRoot*)_ptr;
+ RichRingR *ptr = (RichRingR*)_ptr;
  if (ptr) {
-   if (_ptrack) ptr->fTrack= _ptrack->GetClonePointer();
+   if (_ptrack) ptr->fTrTrack= _ptrack->GetClonePointer();
+   else ptr->fTrTrack=-1;
  } else { 
   cout<<"AMSRichRing::_copyEl -I-  AMSRichRing::RICRingRoot *ptr is NULL "<<endl;
  }

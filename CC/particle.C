@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.126 2003/05/03 08:43:54 choutko Exp $
+//  $Id: particle.C,v 1.127 2003/05/08 16:41:50 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -492,8 +492,6 @@ break;
 }
 }
 #endif
-  // Root related part ../CC/root.C 
-  // ParticleRoot02::ParticleRoot02(AMSParticle *ptr, float phi, float phigl)
 
   if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 || LVL3FFKEY.Accept) && (_ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK)|| _ptrack->checkstatus(AMSDBc::ECALTRACK)))return;
 #ifdef __WRITEROOT__
@@ -598,14 +596,20 @@ break;
 
 void AMSParticle::_copyEl(){
 #ifdef __WRITEROOT__
-  ParticleRoot02 *ptr = (ParticleRoot02*)_ptr;
+  ParticleR *ptr = (ParticleR*)_ptr;
   if (ptr) {
     if (_pbeta)   ptr->fBeta  =_pbeta  ->GetClonePointer();
+    else ptr->fBeta=-1;
     if (_pcharge) ptr->fCharge=_pcharge->GetClonePointer();
+    else ptr->fCharge=-1;
     if (_ptrack)  ptr->fTrack =_ptrack ->GetClonePointer();
-    if (_ptrd)    ptr->fTRD   =_ptrd   ->GetClonePointer();
+    else ptr->fTrack=-1;
+    if (_ptrd)    ptr->fTrd   =_ptrd   ->GetClonePointer();
+    else ptr->fTrd=-1;
     if (_prich)   ptr->fRich  =_prich  ->GetClonePointer();
+    else ptr->fRich=-1;
     if (_pShower) ptr->fShower=_pShower->GetClonePointer();
+    else ptr->fShower=-1;
   } else {
     cout<<"AMSParticle::_copyEl -I-  AMSParticle::ParticleRoot02 *ptr is NULL "<<endl;
   }

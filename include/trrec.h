@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.65 2003/01/22 11:32:12 choutko Exp $
+//  $Id: trrec.h,v 1.66 2003/05/08 16:42:14 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -89,9 +89,6 @@ number cfgCorFun(number s, AMSTrIdGeom * id);
 number getecofg(){return _ErrorMean;}
 number geteta(){return _Eta;}
 //+
-#ifdef __DB__
-   friend class AMSTrClusterD;
-#endif
 
      integer getnelem()      {return -_NelemL+_NelemR;}
      number  getrms()        {return _Rms;}
@@ -136,7 +133,7 @@ integer operator < (AMSlink & o) const {
 
 }
 #ifdef __WRITEROOT__
- friend class TrClusterRoot;
+ friend class TrClusterR;
 #endif
 };
 
@@ -236,9 +233,6 @@ AMSTrCluster* getClusterP(integer n) const {
                                               else if(n==1)return _Ycl;
                                               else return 0;}
 //+
-#ifdef __DB__
-   friend class AMSTrRecHitD;
-#endif
 inline  number        getSum()               { return _Sum;}
 inline  number        getDSum()              { return _DifoSum;}
 void          setClusterP(AMSTrCluster* p,integer n) {
@@ -251,7 +245,7 @@ void          setSensorP(AMSgSen* p) { _pSen = p;}
 ~AMSTrRecHit(){int i;for( i=0;i<trconst::maxlay;i++)_Head[i]=0;};
    friend class AMSTrTrack;
 #ifdef __WRITEROOT__
-   friend class TrRecHitRoot02;
+   friend class TrRecHitR;
 #endif
 };
 
@@ -406,10 +400,6 @@ number&  GTheta, number&  GPhi, AMSPoint&  GP0,
 number HChi2[2], number HRid[2], number HErr[2], number HTheta[2], 
 number HPhi[2], AMSPoint  HP0[2] ) const;
 
-//+
-#ifdef __DB__
-   friend class AMSTrTrackD;
-#endif
 AMSTrTrack() {_Pattern = -1; 
               _NHits   = -1; 
               for (int i=0; i<trconst::maxlay; i++) _Pthit[i] = NULL; }
@@ -428,7 +418,7 @@ number gettheta(int icase=0) const {return (icase==0?_Theta:(icase==1?_GTheta:_P
 number getphi(int icase=0) const {return (icase==0?_Phi:(icase==1?_GPhi:_PIPhi));}
 friend class AMSTrCalibFit;
 #ifdef __WRITEROOT__
- friend class TrTrackRoot02;
+ friend class TrTrackR;
 #endif
 };
 

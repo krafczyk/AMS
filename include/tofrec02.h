@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.8 2002/12/06 14:43:40 choumilo Exp $
+//  $Id: tofrec02.h,v 1.9 2003/05/08 16:42:14 choutko Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -92,7 +92,7 @@ public:
  static integer gettrfl(){return trflag;}
  static void build(int &);   // RawEvent->RawCluster
 #ifdef __WRITEROOT__
- friend class TOFRawClusterRoot;
+ friend class TofRawClusterR;
 #endif
 };
 //===================================================================
@@ -149,11 +149,6 @@ public:
  }
  void recovers(AMSTrTrack * ptr);
  void recovers2(AMSTrTrack * ptr);
-//+
-#ifdef __DB__
-   friend class AMSTOFClusterD;
-#endif
-//-
  AMSPoint getcoo()const {return _Coo;}
  AMSPoint getecoo()const {return _ErrorCoo;}
 //+
@@ -197,7 +192,7 @@ public:
   }
  }
 #ifdef __WRITEROOT__
- friend class TOFClusterRoot;
+ friend class TofClusterR;
 #endif
 };
 //===================================================================

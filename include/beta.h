@@ -1,4 +1,4 @@
-//  $Id: beta.h,v 1.12 2002/06/03 14:53:42 alexei Exp $
+//  $Id: beta.h,v 1.13 2003/05/08 16:42:12 choutko Exp $
 // V. Choutko 5-june-96
 //
 // July 10, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -57,16 +57,8 @@ static AMSPoint Distance(AMSPoint coo, AMSPoint ecoo, AMSTrTrack *ptr,
                        number & sleng, number & theta);
 static integer build(integer refit=0);
 static void print();
-//+
-#ifdef __DB__
-   friend class AMSBetaD;
-#endif
- void setTrackP (AMSTrTrack* p)  { _ptrack = p;}
- void setTOFClP (AMSTOFCluster* p, integer ntof)  
-                                 { if (ntof>=0 && ntof<4) _pcluster[ntof]= p;}
-//-
 #ifdef __WRITEROOT__
- friend class BetaRoot02;
+ friend class BetaR;
 #endif
 };
 

@@ -1,42 +1,41 @@
-//  $Id: linkdef.h,v 1.22 2003/03/18 13:20:46 choumilo Exp $
+//  $Id: linkdef.h,v 1.23 2003/05/08 16:42:12 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class EventRoot02+;
-#pragma link C++ class AMSEventHeaderRoot+;
+#pragma link C++ class AMSEventR+;
+#pragma link C++ class HeaderR+;
 
-#pragma link C++ class BetaRoot02+;
-#pragma link C++ class ChargeRoot02+;
-#pragma link C++ class ParticleRoot02+;
-#pragma link C++ class TOFClusterRoot+;
-#pragma link C++ class EcalShowerRoot+;
-#pragma link C++ class EcalClusterRoot+;
-#pragma link C++ class Ecal2DClusterRoot+;
-#pragma link C++ class EcalHitRoot+;
-#pragma link C++ class TOFMCClusterRoot+;
-#pragma link C++ class TrClusterRoot+;
-#pragma link C++ class TrMCClusterRoot+;
-#pragma link C++ class TRDMCClusterRoot+;
-#pragma link C++ class TRDRawHitRoot+;
-#pragma link C++ class TRDClusterRoot+;
-#pragma link C++ class TRDSegmentRoot+;
-#pragma link C++ class TRDTrackRoot+;
-#pragma link C++ class TrRecHitRoot02+;
-//-- #pragma link C++ class TrGammaRoot02;
-#pragma link C++ class TrTrackRoot02+;
-#pragma link C++ class MCTrackRoot+;
-#pragma link C++ class MCEventGRoot02+;
-#pragma link C++ class AntiClusterRoot+;
-#pragma link C++ class ANTIMCClusterRoot+;
-#pragma link C++ class LVL3Root02+;
-#pragma link C++ class LVL1Root02+;
-#pragma link C++ class TrRawClusterRoot+;
-#pragma link C++ class TOFRawClusterRoot+;
-#pragma link C++ class RICMCRoot+;
-#pragma link C++ class RICEventRoot+;
-#pragma link C++ class RICRingRoot+;
+#pragma link C++ class BetaR+;
+#pragma link C++ class ChargeR+;
+#pragma link C++ class ParticleR+;
+#pragma link C++ class TofClusterR+;
+#pragma link C++ class EcalShowerR+;
+#pragma link C++ class EcalClusterR+;
+#pragma link C++ class Ecal2DClusterR+;
+#pragma link C++ class EcalHitR+;
+#pragma link C++ class TofMCClusterR+;
+#pragma link C++ class TrClusterR+;
+#pragma link C++ class TrMCClusterR+;
+#pragma link C++ class TrdMCClusterR+;
+#pragma link C++ class TrdRawHitR+;
+#pragma link C++ class TrdClusterR+;
+#pragma link C++ class TrdSegmentR+;
+#pragma link C++ class TrdTrackR+;
+#pragma link C++ class TrRecHitR+;
+#pragma link C++ class TrTrackR+;
+#pragma link C++ class MCTrackR+;
+#pragma link C++ class MCEventgR+;
+#pragma link C++ class AntiClusterR+;
+#pragma link C++ class AntiMCClusterR+;
+#pragma link C++ class Level3R+;
+#pragma link C++ class Level1R+;
+#pragma link C++ class TrRawClusterR+;
+#pragma link C++ class TofRawClusterR+;
+#pragma link C++ class RichMCClusterR+;
+#pragma link C++ class RichHitR+;
+#pragma link C++ class RichRingR+;
 #endif
 
 

@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.h,v 1.26 2002/06/03 14:53:43 alexei Exp $
+//  $Id: trrawcluster.h,v 1.27 2003/05/08 16:42:14 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSTRRAWCLUSTER__
@@ -125,7 +125,7 @@ static void sitkdigi();
   static AMSID getTDVrawsigma(int i);
   static AMSID getTDVrhomatrix(int i);
 #ifdef __WRITEROOT__
-  friend class TrRawClusterRoot;
+  friend class TrRawClusterR;
 #endif
 };
 

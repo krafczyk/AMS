@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.63 2003/05/03 08:43:53 choutko Exp $
+//  $Id: charge.C,v 1.64 2003/05/08 16:41:48 choutko Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -750,11 +750,13 @@ void AMSCharge::_writeEl(){
 
 void AMSCharge::_copyEl(){
 #ifdef __WRITEROOT__
-  ChargeRoot02 *cptr = (ChargeRoot02*)_ptr;
+  ChargeR *cptr = (ChargeR*)_ptr;
   if (cptr) {
     // AMSBeta* _pbeta;
     if (_pbeta) cptr->fBeta=_pbeta->GetClonePointer();
+    else cptr->fBeta=-1;
     if (_pring) cptr->fRich=_pring->GetClonePointer();
+    else cptr->fRich=-1;
   } else {
     cout<<"AMSCharge::_copyEl -I-  AMSCharg::ChargeRoot02 *ptr is NULL "<<endl;
   }

@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.62 2003/05/03 08:43:55 choutko Exp $
+//  $Id: trrawcluster.C,v 1.63 2003/05/08 16:41:51 choutko Exp $
 #include <trid.h>
 #include <trrawcluster.h>
 #include <extC.h>
@@ -256,8 +256,7 @@ void AMSTrRawCluster::_writeEl(){
 
   if(AMSTrRawCluster::Out( IOPA.WriteAll%10==1  )){
 #ifdef __WRITEROOT__
-      int addr = _address+_strip*10000;
-      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this,addr);
+      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
 // Fill the ntuple 
     TrN->address[TrN->Ntrraw]=_address+_strip*10000;

@@ -1,10 +1,9 @@
-//  $Id: ntuple.h,v 1.81 2003/05/05 16:58:58 choutko Exp $
+//  $Id: ntuple.h,v 1.82 2003/05/08 16:42:13 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
 
 const int NBRANCHES = 1;    // number of branches
-const int NCLONES   = 1;    // number of clones array
 
 namespace root{
 const int MAXBETA02    = 20;
@@ -96,7 +95,7 @@ public:
   int AntiMCClusters;
   int TRDMCClusters;
   int AntiClusters;
-  int EcalClusters;
+   int EcalClusters;
   int EcalHits;
   int RICMCClusters;//CJM
   int RICHits;//CJM
@@ -717,7 +716,7 @@ protected:
   RICEventNtuple _richevent;
   RICRing _ring;
 #ifdef __WRITEROOT__
-  EventRoot02   _evroot02;
+  AMSEventR   _evroot02;
   static TTree* _tree;  
   static TFile* _rfile;
 #endif
@@ -771,13 +770,8 @@ public:
   void MemMonitor(const int n, int N);
 
 #ifdef __WRITEROOT__
-  EventRoot02* Get_evroot02() {return &_evroot02;}
+  AMSEventR* Get_evroot02() {return &_evroot02;}
 #endif
-  void clearClones();
-  void createClones();
-  void deleteClones();
-  void expandClones();
-  void initRootfN();
 
 };
 

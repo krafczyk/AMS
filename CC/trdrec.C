@@ -172,9 +172,10 @@ void AMSTRDCluster::_writeEl(){
 
 void AMSTRDCluster::_copyEl(){
 #ifdef __WRITEROOT__
-  TRDClusterRoot *ptr = (TRDClusterRoot*)_ptr;
+  TrdClusterR *ptr = (TrdClusterR*)_ptr;
   if (ptr) {
-    if (_pmaxhit) ptr->fTRDRawHit= _pmaxhit->GetClonePointer();
+    if (_pmaxhit) ptr->fTrdRawHit= _pmaxhit->GetClonePointer();
+    else ptr->fTrdRawHit=-1;
   } 
 #endif
 }
@@ -406,14 +407,10 @@ void AMSTRDSegment::_writeEl(){
 
 void AMSTRDSegment::_copyEl(){
 #ifdef __WRITEROOT__
-  TRDSegmentRoot *ptr = (TRDSegmentRoot*)_ptr;
+  TrdSegmentR *ptr = (TrdSegmentR*)_ptr;
   if (ptr) {
     for (int i=0; i<_NHits; i++) {
-      #ifdef __WRITEROOTCLONES__
-      if (_pCl[i]) ptr->fTRDCluster->Add(_pCl[i]->GetClonePointer());
-      #else
-      if (_pCl[i]) ptr->fTRDCluster.push_back(_pCl[i]->GetClonePointer());
-      #endif
+      if (_pCl[i]) ptr->fTrdCluster.push_back(_pCl[i]->GetClonePointer());
     }
   } else {
     cout<<"AMSTRDSegment::_copyEl -I-  AMSTRDSegment::TRDSegmentRoot *ptr is NULL "<<endl;
@@ -576,14 +573,10 @@ void AMSTRDTrack::_writeEl(){
 
 void AMSTRDTrack::_copyEl(){
 #ifdef __WRITEROOT__
-  TRDTrackRoot *ptr = (TRDTrackRoot*)_ptr;
+  TrdTrackR *ptr = (TrdTrackR*)_ptr;
   if (ptr) {
     for (int i=0; i<_BaseS._NSeg; i++) {
-     #ifdef __WRITEROOTCLONES__
-      if(_BaseS._PSeg[i])ptr->fTRDSegment->Add(_BaseS._PSeg[i]->GetClonePointer());
-     #else
-       if(_BaseS._PSeg[i])ptr->fTRDSegment.push_back(_BaseS._PSeg[i]->GetClonePointer()); 
-      #endif
+       if(_BaseS._PSeg[i])ptr->fTrdSegment.push_back(_BaseS._PSeg[i]->GetClonePointer()); 
     }
   } else {
     cout<<"AMSTRDTrack::_copyEl -I-  AMSTRDTrack::TRDTrackRoot *ptr is NULL "<<endl;

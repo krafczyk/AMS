@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.80 2003/05/05 16:58:59 choutko Exp $
+//  $Id: root.h,v 1.81 2003/05/08 16:42:13 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -7,11 +7,10 @@
 #include <TTree.h>
 #include <TFile.h>
 #include <TROOT.h>
-#include "TClonesArray.h"
-#include "TRefArray.h"
-#include "TRef.h"
+#include <TBranch.h>
 #include <list>
 #include <vector>
+#include <iostream>
 using namespace std;
 #ifndef __ROOTSHAREDLIBRARY__
 class AMSAntiCluster;
@@ -46,6 +45,7 @@ class EcalShower;
 class TOF2RawCluster;
 class Trigger2LVL1;
 class TriggerLVL302;
+class EventNtuple02;
 #else
 class AMSAntiCluster{};
 class AMSAntiMCCluster{};
@@ -79,187 +79,135 @@ class EcalShower{};
 class TOF2RawCluster{};
 class Trigger2LVL1{};
 class TriggerLVL302{};
+class EventNtuple02{};
 #endif
-class AMSEventHeaderRoot: public TObject {
+class HeaderR: public TObject {
  public:
+
 // general info
-  int _Run;
-  int _RunType;
-  int _Eventno;
-  int _Time[2];
-  int _EventStatus[2];
-  int _RawWords;
+
+  unsigned int Run;
+  unsigned int RunType;
+  unsigned int Event;
+  unsigned int Status[2];  //event status
+  int Raw;            //raw event length
+  int Version;        //program build number
+  int Time[2];        // unix time + usec time
+
 // shuttle parameters
-   float _StationRad;    //cm
-   float _StationTheta;
-   float _StationPhi;
-   float _NorthPolePhi;
-   float _Yaw;
-   float _Pitch;
-   float _Roll;
-   float _StationSpeed;
-   float _SunRad;
-   float _VelTheta;
-   float _VelPhi;
+
+   float RadS;    // iss orbit altitude cm
+   float ThetaS;  
+   float PhiS;
+   float NorthPolePhi;
+   float Yaw;
+   float Pitch;
+   float Roll;
+   float VelocityS;     // velocity 
+   float VelTheta;
+   float VelPhi;
+   float ThetaM;        // magnetic theta
+   float PhiM;
+
 // counters
-  int Tracks;
-  int TrRecHits;
-  int TrClusters;
-  int TrRawClusters;
-  int TrMCClusters;
-  int TOFClusters;
-  int TOFMCClusters;
-  int AntiMCClusters;
-  int TRDMCClusters;
-  int AntiClusters;
-  int EcalClusters;
-  int EcalHits;
-  int RICMCClusters;//CJM
-  int RICHits;//CJM
-  int TRDRawHits;
-  int TRDClusters;
-  int TRDSegments;
-  int TRDTracks;
 
-AMSEventHeaderRoot(){};
-void   Set(AMSEvent *ptr, int rawwords);
-~AMSEventHeaderRoot(){};
-ClassDef(AMSEventHeaderRoot,1)       //AMSEventHeaderRoot
+int   EcalHits;
+int   EcalClusters;
+int   Ecal2DClusters;
+int   EcalShowers;
+int   RichHits;
+int   RichRings;
+int   TofRawClusters;
+int   TofClusters;  
+int   AntiClusters;
+int   TrRawClusters;
+int   TrClusters;
+int   TrRecHits;
+int   TrTracks;
+int   TrdRawHits;
+int   TrdClusters;
+int   TrdSegments;
+int   TrdTracks;
+int   Level1s;
+int   Level3s;
+int   Betas; 
+int   Vertexs; 
+int   Charges;  
+int   Particles;  
+int   AntiMCClusters;
+int   TrMCClusters;
+int   TofMCClusters;
+int   TrdMCClusters;
+int   RichMCClusters;
+int   MCTracks;
+int   MCEventgs;
+
+
+  HeaderR(){};
+  void   Set(EventNtuple02 *ptr);
+  ClassDef(HeaderR,1)       //HeaderR
 };
 
 
 
-class BetaRoot02 : public TObject {
- public:
-  int       Status;
-  int       Pattern;
-  float     Beta;
-  float     BetaC;
-  float     Error;
-  float     ErrorC;
-  float     Chi2;
-  float     Chi2S;
-#ifndef __ROOTPOINTERS__
-  TRef      fTrTrack;
-  TRefArray *fTOFCluster;
-#else
-  int   fTrTrack;
-  vector<int> fTOFCluster;
-#endif
-  ~BetaRoot02();
-   BetaRoot02();
-   BetaRoot02(AMSBeta *ptr);
-
-   ClassDef(BetaRoot02,1)       
-};
-
-class ChargeRoot02 : public TObject {
+class EcalHitR : public TObject {
 public:
-  int Status;
-  int ChargeTOF;
-  int ChargeTracker;
-  int ChargeRich;
-  float ProbTOF[4];
-  int ChInTOF[4];
-  float ProbTracker[4];
-  int ChInTracker[4];
-  float ProbRich[4];
-  int ChInRich[4];
-  float ProbAllTracker;
-  float TrunTOF;
-  float TrunTOFD;
-  float TrunTracker;
-#ifndef __ROOTPOINTERS__
-  TRef  fBeta;
-  TRef  fRich;
-#else
-  int  fBeta;
-  int  fRich;
-#endif
-  ChargeRoot02();
-  ~ChargeRoot02();
-  ChargeRoot02(AMSCharge *ptr, float probtof[],int chintof[],
-               float probtr[], int chintr[], 
-               float probrc[], int chinrc[], float proballtr);
-ClassDef(ChargeRoot02,1)       //ChargeRoot
-
-};
-
-class ParticleRoot02 : public TObject {
-public:
-  int   Particle;
-  int   ParticleVice;
-  float Prob[2];
-  float FitMom;
-  float Mass;
-  float ErrMass;
-  float Momentum;
-  float ErrMomentum;
-  float Beta;
-  float ErrBeta;
-  float Charge;
-  float Theta;
-  float Phi;
-  float ThetaGl;
-  float PhiGl;
-  float Coo[3];
-  float Cutoff;
-  float TOFCoo[4][3];
-  float AntiCoo[2][3];
-  float EcalCoo[3][3];
-  float TrCoo[8][3];
-  float TRDCoo[3];
-  float RichCoo[2][3];
-  float RichPath[2];
-  float RichPathBeta[2];
-  float RichLength;
-  float Local[8];
-  float TRDLikelihood;
-
-#ifndef __ROOTPOINTERS__
-  TRef  fBeta;
-  TRef  fCharge;
-  TRef  fTrack;      // pointer to track;
-  TRef  fTRD;        // pointer to trd track
-  TRef  fRich;       // pointer to rich ring
-  TRef  fShower;     // pointer to shower;
-#else
-  int  fBeta;
-  int  fCharge;
-  int  fTrack;      // pointer to track;
-  int  fTRD;        // pointer to trd track
-  int  fRich;       // pointer to rich ring
-  int  fShower;     // pointer to shower;
-#endif
-
-  ParticleRoot02();
-  ~ParticleRoot02(){};
-  ParticleRoot02(AMSParticle *ptr, float phi, float phigl);
-  ClassDef(ParticleRoot02,1)       //ParticleRoot02
-};
-
-class TOFClusterRoot : public TObject {
-public:
-  int Status;
-  int Layer;
-  int Bar;
-  int Nmemb;
-  int P2memb[3];
+  int   Status;
+  int   Idsoft;
+  int   Proj;
+  int   Plane;
+  int   Cell;
   float Edep;
-  float Edepd;
-  float Time;
-  float ErrTime;
+  float EdCorr;
+  float AttCor;
   float Coo[3];
-  float ErrorCoo[3];
-
-  TOFClusterRoot();
-  ~TOFClusterRoot(){};
-  TOFClusterRoot(AMSTOFCluster *ptr, int p2mem[]);
-
-ClassDef(TOFClusterRoot,1)       //TOFClusterRoot
+  float ADC[3];
+  float Ped[3];
+  float Gain;
+  EcalHitR(AMSEcalHit *ptr);
+  EcalHitR(){};
+ClassDef(EcalHitR,1)       //EcalHitR
 };
 
-class EcalShowerRoot : public TObject {
+
+class EcalClusterR : public TObject {
+public:
+  int Status;
+  int Proj;
+  int Plane;
+  int Left;
+  int Center;
+  int Right;
+  float Edep;
+  float SideLeak;
+  float DeadLeak;
+  float Coo[3];
+  int NHits;
+  vector <int> fEcalHitR;
+  EcalClusterR(){};
+  EcalClusterR(Ecal1DCluster *ptr);
+
+ClassDef(EcalClusterR,1)       //EcalClusterR
+};
+
+
+class Ecal2DClusterR: public TObject {
+public:
+  int Status;
+  int Proj;
+  int Nmemb;
+  float Edep;
+  float Coo;
+  float Tan;
+  float Chi2;
+
+  vector <int> fEcalClusterR;
+  Ecal2DClusterR(){};
+  Ecal2DClusterR(Ecal2DCluster *ptr);
+ClassDef(Ecal2DClusterR,1)       //Ecal2DClusterR
+};
+
+class EcalShowerR : public TObject {
 public:
   int   Status;
   float Dir[3];
@@ -284,105 +232,132 @@ public:
   float Chi2Profile;
   float ParProfile[4];
   float Chi2Trans;
-//  float TransProfile[3];
   float SphericityEV[3];
   int   N2dCl;
 
-#ifndef __ROOTPOINTERS__
-  TRefArray *fEcal2DCluster;
-#else
-  vector <int> fEcal2DCluster;
-#endif
-  EcalShowerRoot();
-  ~EcalShowerRoot();
-  EcalShowerRoot(EcalShower *ptr);
+  vector <int> fEcal2DClusterR;
+  EcalShowerR(){};
+  EcalShowerR(EcalShower *ptr);
 
-ClassDef(EcalShowerRoot,1)       //EcalShowerRoot
+ClassDef(EcalShowerR,1)       //EcalShowerR
 
 };
 
-class EcalClusterRoot : public TObject {
+
+
+
+class RichHitR : public TObject {
 public:
-  int Status;
-  int Proj;
-  int Plane;
-  int Left;
-  int Center;
-  int Right;
-  float Edep;
-//  float RMS;
-  float SideLeak;
-  float DeadLeak;
-  float Coo[3];
-  int NHits;
+  int   _channel;
+  int   _counts;
+  float _npe;
+  unsigned int _status;
+  float _x;
+  float _y;
 
-#ifndef __ROOTPOINTERS__
-  TRefArray  *fEcalHit;
-#else
-  vector <int> fEcalHit;
-#endif
-  EcalClusterRoot();
-  ~EcalClusterRoot();
-  EcalClusterRoot(Ecal1DCluster *ptr);
-
-ClassDef(EcalClusterRoot,1)       //EcalClusterRoot
+  RichHitR(){};
+  RichHitR(AMSRichRawEvent *ptr, float x, float y);
+ClassDef(RichHitR,1)       // RichHitR
 };
 
-class Ecal2DClusterRoot : public TObject {
+class RichRingR : public TObject {
 public:
-  int Status;
-  int Proj;
-  int Nmemb;
-  float Edep;
-  float Coo;
-  float Tan;
-  float Chi2;
 
-#ifndef __ROOTPOINTERS__
-  TRefArray *fEcal1DCluster;
-#else
-  vector <int> fEcal1DCluster;
-#endif
-  Ecal2DClusterRoot();
-  ~Ecal2DClusterRoot();
-  Ecal2DClusterRoot(Ecal2DCluster *ptr);
-ClassDef(Ecal2DClusterRoot,1)       //Ecal2DClusterRoot
-};
+  int   used;
+  int   mused;
+  float beta;
+  float errorbeta;
+  float quality;
+  unsigned int status;
+  float probkl;
+  float npexp;
+  float collected_npe;
 
-class EcalHitRoot : public TObject {
+  float npexpg;
+  float npexpr;
+  float npexpb;
+
+  int fTrTrack;   //pionter to TrTrack
+  RichRingR(){};
+  RichRingR(AMSRichRing *ptr);
+  ClassDef(RichRingR,1)           // RichRingR
+}; 
+
+
+
+class TofRawClusterR : public TObject {
 public:
   int   Status;
-  int   Idsoft;
-  int   Proj;
-  int   Plane;
-  int   Cell;
-  float Edep;
-  float EdCorr;
-  float AttCor;
-  float Coo[3];
-  float ADC[3];
-  float Ped[3];
-  float Gain;
-  EcalHitRoot();
-  ~EcalHitRoot(){};
-  EcalHitRoot(AMSEcalHit *ptr);
-ClassDef(EcalHitRoot,1)       //EcalHitRoot
+  int   Layer;
+  int   Bar;
+  float tovta[2];
+  float tovtd[2];
+  float tovtdl[2];
+  float sdtm[2];
+  float edepa;
+  float edepd;
+  float edepdl;
+  float time;
+  float cool;
+  TofRawClusterR(){};
+  TofRawClusterR(TOF2RawCluster *ptr);
+
+  ClassDef(TofRawClusterR ,1)       //TofRawClusterR
 };
 
-class TOFMCClusterRoot : public TObject {
+
+class TofClusterR : public TObject {
 public:
-  int   Idsoft;
-  float Coo[3];
-  float TOF;
+  int Status;
+  int Layer;
+  int Bar;
+  int Nmemb;
   float Edep;
+  float Edepd;
+  float Time;
+  float ErrTime;
+  float Coo[3];
+  float ErrorCoo[3];
+  vector<int> fTofRawCluster;
+  TofClusterR(){};
+  TofClusterR(AMSTOFCluster *ptr );
 
-  TOFMCClusterRoot();
-  ~TOFMCClusterRoot(){};
-  TOFMCClusterRoot(AMSTOFMCCluster *ptr);
-ClassDef(TOFMCClusterRoot,1)       //TOFMCClusterRoot
+ClassDef(TofClusterR,1)       //TofClusterR
 };
 
-class TrClusterRoot : public TObject {
+
+class AntiClusterR : public TObject {
+public:
+  int   Status;
+  int   Sector;
+  int   Ntimes;
+  int   Npairs;
+  float Times[16];
+  float Timese[16];
+  float Edep;
+  float Coo[3];   // R, phi, Z
+  float ErrorCoo[3];
+
+  AntiClusterR(){};
+  AntiClusterR(AMSAntiCluster *ptr);
+ClassDef(AntiClusterR,1)       //AntiClusterR
+};
+
+
+class TrRawClusterR : public TObject {
+public:
+  int address;
+  int nelem;
+  float s2n;
+
+  TrRawClusterR(){};
+  TrRawClusterR(AMSTrRawCluster *ptr);
+
+ClassDef(TrRawClusterR,1)       //TrRawClusterR
+};
+
+
+class TrClusterR : public TObject {
 public:
   int Idsoft;
   int Status;
@@ -393,133 +368,16 @@ public:
   float Mean;
   float RMS;
   float ErrorMean;
-  float Amplitude[5];
+  vector<float> Amplitude;   // NelemR-NelemL
 
-  ~TrClusterRoot(){};
-  TrClusterRoot();
-  TrClusterRoot(AMSTrCluster *ptr, float ampl[]);
-ClassDef(TrClusterRoot,1)       //TrClusterRoot
-};
-
-class TrMCClusterRoot : public TObject {
-public:
-  int Idsoft;
-  int TrackNo;
-  int Left[2];
-  int Center[2];
-  int Right[2];
-  float SS[2][5];
-  float Xca[3];
-  float Xcb[3];
-  float Xgl[3];
-  float Sum;
-
-  TrMCClusterRoot();
-  ~TrMCClusterRoot(){};
-  TrMCClusterRoot(AMSTrMCCluster *ptr);
-ClassDef(TrMCClusterRoot,1)       //TrMCClusterRoot
-};
-
-class TRDMCClusterRoot : public TObject {
-public:
-  int   Layer;
-  int   Ladder;
-  int   Tube;
-  int   ParticleNo;
-  //  int   TrackNo;
-  float Edep;
-  float Ekin;
-  float Xgl[3];
-  float Step;
- 
-  TRDMCClusterRoot();
-  ~TRDMCClusterRoot(){};
-  TRDMCClusterRoot(AMSTRDMCCluster *ptr);
-ClassDef(TRDMCClusterRoot,1)       //TRDMCClusterRoot
-};
-
-class TRDRawHitRoot : public TObject {
-public:
-  int Layer;
-  int Ladder;
-  int Tube;
-  float Amp;
-
-  TRDRawHitRoot();
-  ~TRDRawHitRoot(){};
-  TRDRawHitRoot(AMSTRDRawHit *ptr);
-
-ClassDef(TRDRawHitRoot,1)       //TRDRawHitRoot
-};
-
-class TRDClusterRoot : public TObject {
-public:
-  int   Status;
-  float Coo[3];
-  int   Layer;
-  float CooDir[3];
-  int   Multip;
-  int   HMultip;
-  float EDep;
-
-#ifndef __ROOTPOINTERS__
-  TRef  fTRDRawHit;
-#else
-  int fTRDRawHit;
-#endif 
-  TRDClusterRoot();
-  ~TRDClusterRoot(){};
-  TRDClusterRoot(AMSTRDCluster *ptr);
-ClassDef(TRDClusterRoot,1)       //TRDClusterRoot
-};
-
-class TRDSegmentRoot : public TObject {
-public:
-  int   Status;
-  int   Orientation;
-  float FitPar[2];
-  float Chi2;
-  int   Pattern;
-  int   Nhits;
- 
-#ifndef __ROOTPOINTERS__
-  TRefArray *fTRDCluster;
-#else 
-  vector<int> fTRDCluster;
-#endif
-  TRDSegmentRoot();
-  ~TRDSegmentRoot();
-  TRDSegmentRoot(AMSTRDSegment *ptr);
-
-ClassDef(TRDSegmentRoot,1)       //TRDSegmentRoot
+  TrClusterR(){};
+  TrClusterR(AMSTrCluster *ptr);
+ClassDef(TrClusterR,1)       //TrClusterR
 };
 
 
-class TRDTrackRoot : public TObject {
-public:
-  int   Status;
-  float Coo[3];
-  float ErCoo[3];
-  float Phi;
-  float Theta;
-  float Chi2;
-  int   NSeg;
-  int   Pattern;
 
-#ifndef __ROOTPOINTERS__
-  TRefArray *fTRDSegment;
-#else
-  vector<int> fTRDSegment;
-#endif 
-  TRDTrackRoot();
-  ~TRDTrackRoot();
-  TRDTrackRoot(AMSTRDTrack *ptr);
-
-ClassDef(TRDTrackRoot,1)       //TRDTrackRoot
-};
-
-
-class TrRecHitRoot02 : public TObject {
+class TrRecHitR : public TObject {
 public:
   int   Status;
   int   Layer;
@@ -530,54 +388,17 @@ public:
   float CofgX;
   float CofgY;
 
-#ifndef __ROOTPOINTERS__
-  TRef  fTrClusterX;
-  TRef  fTrClusterY;
-#else
-  int  fTrClusterX;
-  int  fTrClusterY;
-#endif
-  TrRecHitRoot02();
-  TrRecHitRoot02(AMSTrRecHit *ptr);
-ClassDef(TrRecHitRoot02,1)       //TrRecHitRoot02
+  int  fTrClusterX;   //x proj pointer
+  int  fTrClusterY;   //y proj pointer
+
+  TrRecHitR(){};
+  TrRecHitR(AMSTrRecHit *ptr);
+ClassDef(TrRecHitR,1)       //TrRecHitR
 };
 
-/*
-class TrGammaRoot02 : public TObject {
-public:
-  float Pgam;
-  float ErrPgam;
-  float Thetagam;
-  float Phigam;
-  float Massgam;
-  float Vert[3];
-  float Distance;
-  int   Charge;
-  int   GammaStatus;
-  int   PtrLeft;
-  int   PtrRight;
-  float Jthetal;
-  float Jphil;
-  float Jthetar;
-  float Jphir;
-  float Jp0l[3];
-  float Jp0r[3];
-  float JChi2l;
-  float JChi2r;
 
-#ifndef __ROOTPOINTERS__
-  TRefArray *fTrTrack;
-#else
-  vector<int> fTrTrack;
-#endif
-  TrGammaRoot02();
-  ~TrGammaRoot02();
-  TrGammaRoot02(AMSTrTrackGamma *ptr);
 
-ClassDef(TrGammaRoot02,1)       //TrGammaRoot02
-};
-*/
-class TrTrackRoot02 : public TObject {
+class TrTrackR : public TObject {
 public:
   int Status;
   int Pattern;
@@ -608,83 +429,96 @@ public:
   float PiErrRig;
   float RigidityMS;
   float PiRigidity;
-
-
-#ifndef __ROOTPOINTERS__
-  TRefArray *fTrRecHit;
-#else
+  TrTrackR(){};
+  TrTrackR(AMSTrTrack *ptr);
+protected:
   vector<int> fTrRecHit;
-#endif
-  TrTrackRoot02();
-  ~TrTrackRoot02();
-  TrTrackRoot02(AMSTrTrack *ptr);
-
-ClassDef(TrTrackRoot02,1)       //TrTrackRoot02
-};
-
-class MCTrackRoot : public TObject {
 public:
-float _radl;
-float _absl;
-float _pos[3];
-char  _vname[4];
-
- MCTrackRoot();
- ~MCTrackRoot(){};
- MCTrackRoot(AMSmctrack *ptr);
-ClassDef(MCTrackRoot,1)       //MCTrackRoot
+  int TrRecHit(unsigned int i){return i<fTrRecHit.size()?fTrRecHit[i]:-1;}
+ClassDef(TrTrackR,1)       //TrTrackR
 };
 
-
-class MCEventGRoot02 : public TObject {
+class TrdRawHitR : public TObject {
 public:
-  int Nskip;
-  int Particle;
-  float Coo[3];
-  float Dir[3];
-  float Momentum;
-  float Mass;
-  float Charge;
+  int Layer;
+  int Ladder;
+  int Tube;
+  float Amp;
 
-  MCEventGRoot02();
-  ~MCEventGRoot02(){};
-  MCEventGRoot02(AMSmceventg *ptr);
-ClassDef(MCEventGRoot02,1)       //MCEventGRoot02
+  TrdRawHitR(){};
+  TrdRawHitR(AMSTRDRawHit *ptr);
+
+ClassDef(TrdRawHitR,1)       //TrdRawHitR
 };
 
-
-class AntiClusterRoot : public TObject {
+class TrdClusterR : public TObject {
 public:
   int   Status;
-  int   Sector;
-  int   Ntimes;
-  int   Npairs;
-  float Times[16];
-  float Timese[16];
-  float Edep;
-  float Coo[3];   // R, phi, Z
-  float ErrorCoo[3];
-
-  AntiClusterRoot();
-  ~AntiClusterRoot(){};
-  AntiClusterRoot(AMSAntiCluster *ptr);
-ClassDef(AntiClusterRoot,1)       //AntiClusterRoot
-};
-
-class ANTIMCClusterRoot : public TObject {
-public:
-  int   Idsoft;
   float Coo[3];
-  float TOF;
-  float Edep;
+  int   Layer;
+  float CooDir[3];
+  int   Multip;
+  int   HMultip;
+  float EDep;
 
-  ANTIMCClusterRoot();
-  ~ANTIMCClusterRoot(){};
-  ANTIMCClusterRoot(AMSAntiMCCluster *ptr);
-ClassDef(ANTIMCClusterRoot,1)       //ANTIMCClusterRoot
+  int fTrdRawHit;
+
+  TrdClusterR(){};
+  TrdClusterR(AMSTRDCluster *ptr);
+ClassDef(TrdClusterR,1)       //TrdClusterR
 };
 
-class LVL3Root02 : public TObject {
+class TrdSegmentR : public TObject {
+public:
+  int   Status;
+  int   Orientation;
+  float FitPar[2];
+  float Chi2;
+  int   Pattern;
+  int   Nhits;
+ 
+  vector<int> fTrdCluster;
+  TrdSegmentR(){};
+  TrdSegmentR(AMSTRDSegment *ptr);
+
+ClassDef(TrdSegmentR,1)       //TrdSegmentR
+};
+
+
+class TrdTrackR : public TObject {
+public:
+  int   Status;
+  float Coo[3];
+  float ErCoo[3];
+  float Phi;
+  float Theta;
+  float Chi2;
+  int   NSeg;
+  int   Pattern;
+  vector<int> fTrdSegment;
+  TrdTrackR(AMSTRDTrack *ptr);
+  TrdTrackR(){};
+ClassDef(TrdTrackR,1)       //TrdTrackR
+};
+
+
+class Level1R : public TObject {
+public:
+  int   Mode;
+  int   TOFlag;
+  int   TOFPatt[4];
+  int   TOFPatt1[4];
+  int   AntiPatt;
+  int   ECALflag;
+  float ECALtrsum;
+
+  Level1R(){};
+  Level1R(Trigger2LVL1 *ptr);
+ClassDef(Level1R,1)       //Level1R
+};
+
+
+class Level3R : public TObject {
 public:
   int   TOFTr;
   int   TRDTr;
@@ -704,65 +538,168 @@ public:
   int   ECmatc;
   float ECTOFcr[4];
 
-  LVL3Root02();
-  LVL3Root02(TriggerLVL302 *ptr);
- ~LVL3Root02(){};
-ClassDef(LVL3Root02,1)       //LVL3Root02
-};
-
-class LVL1Root02 : public TObject {
-public:
-  int   Mode;
-  int   TOFlag;
-  int   TOFPatt[4];
-  int   TOFPatt1[4];
-  int   AntiPatt;
-  int   ECALflag;
-  float ECALtrsum;
-
-  LVL1Root02();
-  ~LVL1Root02(){};
-  LVL1Root02(Trigger2LVL1 *ptr);
-ClassDef(LVL1Root02,1)       //LVL1Root02
-};
-
-class TrRawClusterRoot : public TObject {
-public:
-  int address;
-  int nelem;
-  float s2n;
-
-  TrRawClusterRoot();
-  ~TrRawClusterRoot(){};
-  TrRawClusterRoot(AMSTrRawCluster *ptr, int addr);
-
-ClassDef(TrRawClusterRoot,1)       //TrRawClusterRoot
+  Level3R(){};
+  Level3R(TriggerLVL302 *ptr);
+ClassDef(Level3R,1)       //Level3R
 };
 
 
-class TOFRawClusterRoot : public TObject {
+
+
+
+
+
+class BetaR : public TObject {
+ public:
+  int       Status;
+  int       Pattern;
+  float     Beta;
+  float     BetaC;
+  float     Error;
+  float     ErrorC;
+  float     Chi2;
+  float     Chi2S;
+  int   fTrTrack;
+  vector<int> fTofCluster;
+   BetaR(){};
+   BetaR(AMSBeta *ptr);
+   ClassDef(BetaR,1)         //BetaR
+};
+
+
+
+class ChargeR : public TObject {
 public:
-  int   Status;
+  int Status;
+  int ChargeTOF;
+  int ChargeTracker;
+  int ChargeRich;
+  float ProbTOF[4];
+  int ChInTOF[4];
+  float ProbTracker[4];
+  int ChInTracker[4];
+  float ProbRich[4];
+  int ChInRich[4];
+  float ProbAllTracker;
+  float TrunTOF;
+  float TrunTOFD;
+  float TrunTracker;
+  int  fBeta;
+  int  fRich;
+  ChargeR(){};
+  ChargeR(AMSCharge *ptr, float probtof[],int chintof[],
+               float probtr[], int chintr[], 
+               float probrc[], int chinrc[], float proballtr);
+ClassDef(ChargeR,1)       //ChargeR
+
+};
+
+class ParticleR : public TObject {
+public:
+  int Status;
+  int   Particle;
+  int   ParticleVice;
+  float Prob[2];
+  float FitMom;
+  float Mass;
+  float ErrMass;
+  float Momentum;
+  float ErrMomentum;
+  float Beta;
+  float ErrBeta;
+  float Charge;
+  float Theta;
+  float Phi;
+  float ThetaGl;
+  float PhiGl;
+  float Coo[3];
+  float Cutoff;
+  float TOFCoo[4][3];
+  float AntiCoo[2][3];
+  float EcalCoo[3][3];
+  float TrCoo[8][3];
+  float TRDCoo[3];
+  float RichCoo[2][3];
+  float RichPath[2];
+  float RichPathBeta[2];
+  float RichLength;
+  float Local[8];
+  float TRDLikelihood;
+
+  int  fBeta;
+  int  fCharge;
+  int  fTrack;      // pointer to track;
+  int  fTrd;        // pointer to trd track
+  int  fRich;       // pointer to rich ring
+  int  fShower;     // pointer to shower;
+
+  ParticleR(){};
+  ParticleR(AMSParticle *ptr, float phi, float phigl);
+  ClassDef(ParticleR,1)       //ParticleR
+};
+
+
+class AntiMCClusterR : public TObject {
+public:
+  int   Idsoft;
+  float Coo[3];
+  float TOF;
+  float Edep;
+
+  AntiMCClusterR(){};
+  AntiMCClusterR(AMSAntiMCCluster *ptr);
+ClassDef(AntiMCClusterR,1)       //AntiMCClusterR
+};
+
+class TrMCClusterR : public TObject {
+public:
+  int Idsoft;
+  int TrackNo;
+  int Left[2];
+  int Center[2];
+  int Right[2];
+  float SS[2][5];
+  float Xca[3];
+  float Xcb[3];
+  float Xgl[3];
+  float Sum;
+
+  TrMCClusterR(){};
+  TrMCClusterR(AMSTrMCCluster *ptr);
+ClassDef(TrMCClusterR,1)       //TrMCClusterR
+};
+
+
+class TofMCClusterR : public TObject {
+public:
+  int   Idsoft;
+  float Coo[3];
+  float TOF;
+  float Edep;
+  TofMCClusterR(){};
+  TofMCClusterR(AMSTOFMCCluster *ptr);
+ClassDef(TofMCClusterR,1)       //TOFMCClusterRoot
+};
+
+
+class TrdMCClusterR : public TObject {
+public:
   int   Layer;
-  int   Bar;
-  float tovta[2];
-  float tovtd[2];
-  float tovtdl[2];
-  float sdtm[2];
-  float edepa;
-  float edepd;
-  float edepdl;
-  float time;
-  float cool;
-
-  TOFRawClusterRoot();
-  ~TOFRawClusterRoot(){};
-  TOFRawClusterRoot(TOF2RawCluster *ptr);
-
-ClassDef(TOFRawClusterRoot ,1)       //TOFRawClusterRoot 
+  int   Ladder;
+  int   Tube;
+  int   ParticleNo;
+  float Edep;
+  float Ekin;
+  float Xgl[3];
+  float Step;
+ 
+  TrdMCClusterR(){};
+  TrdMCClusterR(AMSTRDMCCluster *ptr);
+ClassDef(TrdMCClusterR,1)       //TrdMCClusterR
 };
 
-class RICMCRoot : public TObject {
+
+class RichMCClusterR : public TObject {
 public:
   int   id;            // Particle id.
   float origin[3];     // Particle origin
@@ -771,129 +708,328 @@ public:
   int   numgen;        // Number of generated photons
   int   eventpointer;  // Pointer to detected hit
 
-  RICMCRoot();
-  ~RICMCRoot(){};
-  RICMCRoot(AMSRichMCHit *ptr, int _numgen);
-ClassDef(RICMCRoot,1)       // RICMCRoot
+  RichMCClusterR(){};
+  RichMCClusterR(AMSRichMCHit *ptr, int _numgen);
+  ClassDef(RichMCClusterR,1)       // RichMCClusterR
 };
 
-class RICEventRoot : public TObject {
-public:
-  int   _channel;
-  int   _counts;
-  float _npe;
-  unsigned int _status;
-  float _x;
-  float _y;
 
-  RICEventRoot();
-  ~RICEventRoot(){};
-  RICEventRoot(AMSRichRawEvent *ptr, float x, float y);
-ClassDef(RICEventRoot,1)       // RICEventRoot
+
+class MCTrackR : public TObject {
+public:
+float _radl;
+float _absl;
+float _pos[3];
+char  _vname[4];
+
+ MCTrackR(){};
+ MCTrackR(AMSmctrack *ptr);
+ClassDef(MCTrackR,1)       //MCTrackR
 };
 
-class RICRingRoot : public TObject {
+
+class MCEventgR : public TObject {
+public:
+  int Nskip;
+  int Particle;
+  float Coo[3];
+  float Dir[3];
+  float Momentum;
+  float Mass;
+  float Charge;
+  MCEventgR(){};
+  MCEventgR(AMSmceventg *ptr);
+ClassDef(MCEventgR,1)       //MCEventgR
+};
+
+
+
+class AMSEventR: public  TObject {
+
+protected:
+
+static TBranch*  bHeader;
+static TBranch*  bEcalHit;
+static TBranch*  bEcalCluster;
+static TBranch*  bEcal2DCluster;
+static TBranch*  bEcalShower;
+static TBranch*  bRichHit;
+static TBranch*  bRichRing;
+static TBranch*  bTofRawCluster;
+static TBranch*  bTofCluster;
+static TBranch*  bAntiCluster;
+static TBranch*  bTrRawCluster;
+static TBranch*  bTrCluster;
+static TBranch*  bTrRecHit;
+static TBranch*  bTrTrack;
+static TBranch*  bTrdRawHit;
+static TBranch*  bTrdCluster;
+static TBranch*  bTrdSegment;
+static TBranch*  bTrdTrack;
+static TBranch*  bLevel1;
+static TBranch*  bLevel3;
+static TBranch*  bBeta;
+static TBranch*  bVertex;
+static TBranch*  bCharge;
+static TBranch*  bParticle;
+static TBranch*  bAntiMCCluster;
+static TBranch*  bTrMCCluster;
+static TBranch*  bTofMCCluster;
+static TBranch*  bTrdMCCluster;
+static TBranch*  bRichMCCluster;
+static TBranch*  bMCTrack;
+static TBranch*  bMCEventg;
+static AMSEventR * _Head;
+static int         _Entry;
 public:
 
-  int   used;
-  int   mused;
-  float beta;
-  float errorbeta;
-  float quality;
-  unsigned int status;
-  // float betablind;
-  float probkl;
-  float npexp;
-  float collected_npe;
-
-  float npexpg;
-  float npexpr;
-  float npexpb;
-
-#ifndef __ROOTPOINTERS__
-  TRef  fTrack;
-#else
-  int fTrack;
-#endif
-  RICRingRoot();
-  ~RICRingRoot(){};
-  RICRingRoot(AMSRichRing *ptr);
-ClassDef(RICRingRoot,1)           // RICRingRoot
-}; 
-
-
-class EventRoot02: public TObject {
+ static char      * _Name;
+ void SetBranchA(TTree *tree);
+ void GetBranchA(TTree *tree);
+ void SetCont(); 
+ int & Entry(){return _Entry;}
 public:
-  AMSEventHeaderRoot  Header;
 
-#ifdef __WRITEROOTCLONES__
-  TClonesArray *fBeta; 
-  TClonesArray *fCharge;  
-  TClonesArray *fParticle;  
-  TClonesArray *fTOFcluster;  
-  TClonesArray *fECALshower;
-  TClonesArray *fECALcluster;
-  TClonesArray *fECAL2Dcluster;
-  TClonesArray *fECALhit;
-  TClonesArray *fTOFMCcluster;
-  TClonesArray *fTrCluster;
-  TClonesArray *fTrMCCluster;
-  TClonesArray *fTRDMCCluster;
-  TClonesArray *fTRDrawhit;
-  TClonesArray *fTRDcluster;
-  TClonesArray *fTRDsegment;
-  TClonesArray *fTRDtrack;
-  TClonesArray *fTRrechit;
-  TClonesArray *fTRtrack;
-  TClonesArray *fMCtrtrack;
-  TClonesArray *fMCeventg;
-  TClonesArray *fAntiCluster;
-  TClonesArray *fAntiMCCluster;
-  TClonesArray *fLVL3;
-  TClonesArray *fLVL1;
-  TClonesArray *fTrRawCluster;
-  TClonesArray *fTOFRawCluster;
-  TClonesArray *fRICMC;
-  TClonesArray *fRICEvent;
-  TClonesArray *fRICRing;
-//  TClonesArray *fTrGamma; 
-#else
-  vector<BetaRoot02> fBeta; 
-  vector<ChargeRoot02> fCharge;  
-  vector<ParticleRoot02> fParticle;  
-  vector<TOFClusterRoot> fTOFcluster;  
-  vector<EcalShowerRoot> fECALshower;
-  vector<EcalClusterRoot> fECALcluster;
-  vector<Ecal2DClusterRoot> fECAL2Dcluster;
-  vector<EcalHitRoot> fECALhit;
-  vector<TOFMCClusterRoot> fTOFMCcluster;
-  vector<TrClusterRoot> fTrCluster;
-  vector<TrMCClusterRoot> fTrMCCluster;
-  vector<TRDMCClusterRoot> fTRDMCCluster;
-  vector<TRDRawHitRoot> fTRDrawhit;
-  vector<TRDClusterRoot> fTRDcluster;
-  vector<TRDSegmentRoot> fTRDsegment;
-  vector<TRDTrackRoot> fTRDtrack;
-  vector<TrRecHitRoot02> fTRrechit;
-  vector<TrTrackRoot02> fTRtrack;
-  vector<MCTrackRoot> fMCtrtrack;
-  vector<MCEventGRoot02> fMCeventg;
-  vector<AntiClusterRoot> fAntiCluster;
-  vector<ANTIMCClusterRoot> fAntiMCCluster;
-  vector<LVL3Root02> fLVL3;
-  vector<LVL1Root02> fLVL1;
-  vector<TrRawClusterRoot> fTrRawCluster;
-  vector<TOFRawClusterRoot> fTOFRawCluster;
-  vector<RICMCRoot> fRICMC;
-  vector<RICEventRoot> fRICEvent;
-  vector<RICRingRoot> fRICRing;
-//  vector<TrGammaRoot02> fTrGamma; 
-  vector<int>         fAux;
-#endif
 
-EventRoot02();
-void Set(AMSEvent *ptr, int rawwords);
-~EventRoot02(){};
+ 
+  HeaderR  fHeader;
+  void ReadHeader(int Entry);
+  protected:
+  
+  //ECAL 
+
+  vector<EcalHitR> fEcalHit;
+  vector<EcalClusterR> fEcalCluster;
+  vector<Ecal2DClusterR> fEcal2DCluster;
+  vector<EcalShowerR> fEcalShower;
+
+
+  //RICH
+  vector<RichHitR> fRichHit;
+  vector<RichRingR> fRichRing;
+
+
+
+  //TOF
+  vector<TofRawClusterR> fTofRawCluster;
+  vector<TofClusterR> fTofCluster;  
+
+
+  //Anti
+
+  vector<AntiClusterR> fAntiCluster;
+
+  void _RAntiCluster();
+
+  //Tracker
+
+  vector<TrRawClusterR> fTrRawCluster;
+  vector<TrClusterR> fTrCluster;
+  vector<TrRecHitR> fTrRecHit;
+  vector<TrTrackR> fTrTrack;
+
+  //TRD
+
+  vector<TrdRawHitR> fTrdRawHit;
+  vector<TrdClusterR> fTrdCluster;
+  vector<TrdSegmentR> fTrdSegment;
+  vector<TrdTrackR> fTrdTrack;
+
+
+  //Triggers
+
+  vector<Level1R> fLevel1;
+  vector<Level3R> fLevel3;
+
+
+  //AxAMS
+  vector<BetaR> fBeta; 
+  vector<ChargeR> fCharge;  
+  vector<ParticleR> fParticle;  
+
+
+
+  //MC SubDet
+  vector<AntiMCClusterR> fAntiMCCluster;
+  vector<TrMCClusterR>   fTrMCCluster;
+  vector<TofMCClusterR>  fTofMCCluster;
+  vector<TrdMCClusterR>  fTrdMCCluster;
+  vector<RichMCClusterR> fRichMCCluster;
+
+
+  //MC General
+
+  vector<MCTrackR>       fMCTrack;
+  vector<MCEventgR>      fMCEventg;
+
+
+  //Aux
+
+   vector<float>         fAux;
+
+   public:
+
+
+      unsigned int   NEcalHit()  {
+        if(fHeader.EcalHits && fEcalHit.size()==0)bEcalHit->GetEntry(_Entry);
+        return fEcalHit.size();
+      }
+      vector<EcalHitR> & EcalHit()  {
+        if(fHeader.EcalHits && fEcalHit.size()==0)bEcalHit->GetEntry(_Entry);
+         return  fEcalHit;
+       }
+
+       EcalHitR &   EcalHit(unsigned int l) {
+        if(fHeader.EcalHits && fEcalHit.size()==0)bEcalHit->GetEntry(_Entry);
+         return fEcalHit.at(l);
+      }
+
+      EcalHitR *   pEcalHit(unsigned int l) {
+        if(fHeader.EcalHits && fEcalHit.size()==0)bEcalHit->GetEntry(_Entry);
+        return l<fEcalHit.size()?&(fEcalHit[l]):0;
+      }
+
+
+
+      unsigned int   NTrRecHit()  {
+        if(fHeader.TrRecHits && fTrRecHit.size()==0)bTrRecHit->GetEntry(_Entry);
+        return fTrRecHit.size();
+      }
+      vector<TrRecHitR> & TrRecHit()  {
+        if(fHeader.TrRecHits && fTrRecHit.size()==0)bTrRecHit->GetEntry(_Entry);
+         return  fTrRecHit;
+       }
+
+       TrRecHitR &   TrRecHit(unsigned int l) {
+        if(fHeader.TrRecHits && fTrRecHit.size()==0)bTrRecHit->GetEntry(_Entry);
+         return fTrRecHit.at(l);
+      }
+
+      TrRecHitR *   pTrRecHit(unsigned int l) {
+        if(fHeader.TrRecHits && fTrRecHit.size()==0)bTrRecHit->GetEntry(_Entry);
+        return l<fTrRecHit.size()?&(fTrRecHit[l]):0;
+      }
+
+
+      unsigned int   NTrTrack()  {
+        if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
+        return fTrTrack.size();
+      }
+      vector<TrTrackR> & TrTrack()  {
+        if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
+         return  fTrTrack;
+       }
+
+       TrTrackR &   TrTrack(unsigned int l) {
+        if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
+         return fTrTrack.at(l);
+      }
+
+      TrTrackR *   pTrTrack(unsigned int l) {
+        if(fHeader.TrTracks && fTrTrack.size()==0)bTrTrack->GetEntry(_Entry);
+        return l<fTrTrack.size()?&(fTrTrack[l]):0;
+      }
+
+
+      unsigned int   NTrdTrack()  {
+        if(fHeader.TrdTracks && fTrdTrack.size()==0)bTrdTrack->GetEntry(_Entry);
+        return fTrdTrack.size();
+      }
+      vector<TrdTrackR> & TrdTrack()  {
+        if(fHeader.TrdTracks && fTrdTrack.size()==0)bTrdTrack->GetEntry(_Entry);
+         return  fTrdTrack;
+       }
+
+       TrdTrackR &   TrdTrack(unsigned int l) {
+        if(fHeader.TrdTracks && fTrdTrack.size()==0)bTrdTrack->GetEntry(_Entry);
+         return fTrdTrack.at(l);
+      }
+
+      TrdTrackR *   pTrdTrack(unsigned int l) {
+        if(fHeader.TrdTracks && fTrdTrack.size()==0)bTrdTrack->GetEntry(_Entry);
+        return l<fTrdTrack.size()?&(fTrdTrack[l]):0;
+      }
+
+
+
+      unsigned int   NBeta()  {
+        if(fHeader.Betas && fBeta.size()==0)bBeta->GetEntry(_Entry);
+        return fBeta.size();
+      }
+      vector<BetaR> & Beta()  {
+        if(fHeader.Betas && fBeta.size()==0)bBeta->GetEntry(_Entry);
+         return  fBeta;
+       }
+
+       BetaR &   Beta(unsigned int l) {
+        if(fHeader.Betas && fBeta.size()==0)bBeta->GetEntry(_Entry);
+         return fBeta.at(l);
+      }
+
+      BetaR *   pBeta(unsigned int l) {
+        if(fHeader.Betas && fBeta.size()==0)bBeta->GetEntry(_Entry);
+        return l<fBeta.size()?&(fBeta[l]):0;
+      }
+
+
+
+      unsigned int   NParticle()  {
+        if(fHeader.Particles && fParticle.size()==0)bParticle->GetEntry(_Entry);
+        return fParticle.size();
+      }
+      vector<ParticleR> & Particle()  {
+        if(fHeader.Particles && fParticle.size()==0)bParticle->GetEntry(_Entry);
+         return  fParticle;
+       }
+
+       ParticleR &   Particle(unsigned int l) {
+        if(fHeader.Particles && fParticle.size()==0)bParticle->GetEntry(_Entry);
+         return fParticle.at(l);
+      }
+
+      ParticleR *   pParticle(unsigned int l) {
+        if(fHeader.Particles && fParticle.size()==0)bParticle->GetEntry(_Entry);
+        return l<fParticle.size()?&(fParticle[l]):0;
+      }
+
+
+
+
+      unsigned int   NMCEventg()  {
+        if(fHeader.MCEventgs && fMCEventg.size()==0)bMCEventg->GetEntry(_Entry);
+        return fMCEventg.size();
+      }
+      vector<MCEventgR> & MCEventg()  {
+        if(fHeader.MCEventgs && fMCEventg.size()==0)bMCEventg->GetEntry(_Entry);
+         return  fMCEventg;
+       }
+
+       MCEventgR &   MCEventg(unsigned int l) {
+        if(fHeader.MCEventgs && fMCEventg.size()==0)bMCEventg->GetEntry(_Entry);
+         return fMCEventg.at(l);
+      }
+
+      MCEventgR *   pMCEventg(unsigned int l) {
+        if(fHeader.MCEventgs && fMCEventg.size()==0)bMCEventg->GetEntry(_Entry);
+        return l<fMCEventg.size()?&(fMCEventg[l]):0;
+      }
+
+
+
+
+
+
+
+
+
+
+
+AMSEventR();
+
+virtual ~AMSEventR(){_Head=0;};
+
+void clear();
+
 #ifndef __ROOTSHAREDLIBRARY__
 void         AddAMSObject(AMSAntiCluster *ptr);
 void         AddAMSObject(AMSAntiMCCluster *ptr);
@@ -908,7 +1044,7 @@ void         AddAMSObject(AMSParticle *ptr, float phi, float phigl);
 void         AddAMSObject(AMSRichMCHit *ptr, int numgen);
 void         AddAMSObject(AMSRichRing *ptr);
 void         AddAMSObject(AMSRichRawEvent *ptr, float x, float y);
-void         AddAMSObject(AMSTOFCluster *ptr, int p2memb[]);
+void         AddAMSObject(AMSTOFCluster *ptr);
 void         AddAMSObject(AMSTOFMCCluster *ptr);
 void         AddAMSObject(AMSTrRecHit *ptr);
 void         AddAMSObject(AMSTRDCluster *ptr);
@@ -916,11 +1052,10 @@ void         AddAMSObject(AMSTRDMCCluster *ptr);
 void         AddAMSObject(AMSTRDRawHit *ptr);
 void         AddAMSObject(AMSTRDSegment *ptr);
 void         AddAMSObject(AMSTRDTrack *ptr);
-void         AddAMSObject(AMSTrCluster *ptr, float ampl[]);
+void         AddAMSObject(AMSTrCluster *ptr);
 void         AddAMSObject(AMSTrMCCluster *ptr);
-void         AddAMSObject(AMSTrRawCluster *ptr, int addr);
+void         AddAMSObject(AMSTrRawCluster *ptr);
 void         AddAMSObject(AMSTrTrack *ptr);
-//void         AddAMSObject(AMSTrTrackGamma *ptr);
 void         AddAMSObject(Ecal1DCluster *ptr);
 void         AddAMSObject(Ecal2DCluster  *ptr);
 void         AddAMSObject(EcalShower  *ptr);
@@ -928,11 +1063,28 @@ void         AddAMSObject(TOF2RawCluster *ptr);
 void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
-void clear();
 
-ClassDef(EventRoot02,4)       //EventRoot02
+ClassDef(AMSEventR,1)       //AMSEventR
 };
 
-#endif
+
+
+
+
 
 #endif
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+

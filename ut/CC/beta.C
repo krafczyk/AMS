@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.47 2003/05/03 08:43:53 choutko Exp $
+//  $Id: beta.C,v 1.48 2003/05/08 16:41:48 choutko Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -724,18 +724,13 @@ void AMSBeta::_writeEl(){
 
 void AMSBeta::_copyEl(){
 #ifdef __WRITEROOT__
- BetaRoot02 *bptr = (BetaRoot02*)_ptr;
+ BetaR *bptr = (BetaR*)_ptr;
  if (bptr) {
    if (_ptrack) bptr->fTrTrack= _ptrack->GetClonePointer();
-#ifndef __ROOTPOINTERS__
-  for (int i=0; i<4; i++) {
-   if (_pcluster[i]) bptr->fTOFCluster->Add(_pcluster[i]->GetClonePointer());
-  }
-#else
+   else bptr->fTrTrack=-1;
 for (int i=0; i<4; i++) {
-if(_pcluster[i])bptr->fTOFCluster.push_back(_pcluster[i]->GetClonePointer());
+if(_pcluster[i])bptr->fTofCluster.push_back(_pcluster[i]->GetClonePointer());
 }
-#endif
  } else {
   cout<<"AMSBeta::_copyEl -I-  AMSBeta::BetaRoot02 *ptr is NULL "<<endl;
  }  

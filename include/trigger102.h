@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.7 2002/06/03 14:53:43 alexei Exp $
+//  $Id: trigger102.h,v 1.8 2003/05/08 16:42:14 choutko Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include <link.h>
@@ -69,9 +69,6 @@ public:
  integer checktofpattand(integer tofc, integer paddle);
  integer checkantipatt(integer counter){return _antipatt & (1<<counter);}
  static void build();
-#ifdef __DB__
-   friend class Triggerlvl1D;
-#endif
 
  // Interface with DAQ
       static int16u getdaqid(){return ( 2<<9 | 1<<6 );}      
@@ -81,7 +78,7 @@ public:
       static void builddaq(integer i, integer n, int16u *p);
       static void buildraw(integer n, int16u *p);
 #ifdef __WRITEROOT__
-      friend class LVL1Root02;
+      friend class Level1R;
 #endif
 };
 

@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.38 2002/07/14 12:33:35 kscholbe Exp $
+//  $Id: mceventg.h,v 1.39 2003/05/08 16:42:13 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -63,7 +63,7 @@ AMSmctrack(number radl,number absl, float pos[3], char name[]):AMSlink(),_radl(r
  for (int i=0;i<4;i++)_vname[i]=name[i];
 }
 #ifdef __WRITEROOT__
- friend class MCTrackRoot;
+ friend class MCTrackR;
 #endif
 };
 
@@ -152,11 +152,8 @@ AMSmceventg *  next(){return (AMSmceventg*)_next;}
  static void builddaq(integer i, integer n, int16u *p);
  static void buildraw(integer n, int16u *p);
 AMSmceventg(){_next=0;}
-#ifdef __DB__
-   friend class AMSmceventgD;
-#endif
 #ifdef __WRITEROOT__
-   friend class MCEventGRoot02;
+   friend class MCEventgR;
 #endif
 };
 #endif

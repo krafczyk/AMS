@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.42 2003/04/30 13:51:47 glamanna Exp $
+//  $Id: gamma.C,v 1.43 2003/05/08 16:41:49 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -2962,7 +2962,6 @@ AMSTrRecHit * parrayR[trconst::maxlay];
  
  void AMSTrTrackGamma::_copyEl(){
 /*
-#ifdef __WRITEROOTCLONES__
    TrGammaRoot02 *ptr = (TrGammaRoot02*)_ptr;
 //   if (ptr) {
      // //    if (_ptrack)  ptr->fTrack =_ptrack ->GetClonePointer();
@@ -2973,16 +2972,13 @@ AMSTrRecHit * parrayR[trconst::maxlay];
 //   } else {
      cout<<"AMSTrTrack::_copyEl -I-  AMSTrTrackGamma::TrGammaRoot02 *ptr is NULL "<<endl;
    }
-#endif
 */
  }
  
  void AMSTrTrackGamma::_writeEl(){
    if(AMSTrTrackGamma::Out(1)){
      int i;
-#ifdef __WRITEROOTCLONES__
      //       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
-#endif
      TrGamma* TrTN = AMSJob::gethead()->getntuple()->Get_tpai02();
      if (TrTN->Ngam>=MAXPAIR02 ) return; //const int MAXPAIR02    =   2; see ntuple.h
 

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.310 2003/04/09 14:05:06 choumilo Exp $
+//  $Id: event.C,v 1.311 2003/05/08 16:41:49 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -181,11 +181,6 @@ void AMSEvent::_init(){
   SetTimeCoo(1);
   PosInRun++;
   PosGlobal++;
-#ifdef __WRITEROOTCLONES__
-  // AMSJob::gethead()->getntuple()->createClones();
-  // AMSJob::gethead()->getntuple()->clearClones();
-  AMSJob::gethead()->getntuple()->deleteClones();
-#endif
 }
 
 
@@ -2276,11 +2271,7 @@ void AMSEvent::_writeEl(){
    else break;
   }
 #ifdef __WRITEROOT__
-  int RawWords = -1;
-  RawWords=nws<(1<<18)?nws:((1<<18)-1);
-  RawWords+=(AMSCommonsI::getosno())<<18;
-  RawWords+=(AMSCommonsI::getbuildno())<<20;
-  AMSJob::gethead()->getntuple()->Get_evroot02()->Set(this, RawWords);
+  AMSJob::gethead()->getntuple()->Get_evroot02()->fHeader.Set(EN);
 #endif
   
 }
