@@ -498,7 +498,7 @@ void AMSTOFRawCluster::build(int &ostatus){
   AMSTOFRawEvent *ptr;
   AMSTOFRawEvent *ptrN;
   integer nbrl[SCLRS],brnl[SCLRS];
-  int bad,tsfl(0);
+  int bad,tsfl(0),rml4s2;
 // some variables for histogramming:
   geant gdt,tch,pch1[SCLRS],pch2[SCLRS];
   geant edepa[SCLRS],edepd[SCLRS],tcorr[SCLRS],elosn;
@@ -512,6 +512,10 @@ void AMSTOFRawCluster::build(int &ostatus){
   ostatus=1;// event output status(init. as bad)
   isds=0;
   for(i=0;i<SCLRS;i++)nbrl[i]=0;
+//
+  rml4s2=0;
+  if(TOFRECFFKEY.relogic[2]!=0)rml4s2=1;
+  if(AMSJob::gethead()->isRealData()!=0 && Runum>896888674)rml4s2=1;
 //
 //    cout<<"TOF_Crate Temperatures :"<<endl;
 //    for(k=0;k<8;k++){ 
@@ -619,8 +623,8 @@ void AMSTOFRawCluster::build(int &ostatus){
 	  }
 	}
 //----------------------
-//----> force suppression of L4S2 for Run>896888674
-        if(Runum>896888674){
+//----> force suppression of L4S2 for Real data Run>896888674 or by flag
+        if(rml4s2){
           if((ilay==3) && (ibar>1) && (ibar<12))smty[1]=0;
         }
 //---->
@@ -1069,20 +1073,22 @@ void AMSTOFRawCluster::build(int &ostatus){
   number stin[2],stout[2],timin,timout,edin,edout,clin,clout;//tempor for test
   integer isdb(1),isdg;// bad/good side
   number ddt;
-  while(ptrc){ // loop over counters(raw clusters)
-    il=ptrc->getntof()-1;
-    ib=ptrc->getplane()-1;
-    status=ptrc->getstatus();
-    if((il==3) && (ib>1) && (ib<12) && (status&SCBADB2)>0){ // tempor recov. only for L=4
+  if(rml4s2){// do recovering
+    while(ptrc){ // loop over counters(raw clusters)
+      il=ptrc->getntof()-1;
+      ib=ptrc->getplane()-1;
+      status=ptrc->getstatus();
+      if((il==3) && (ib>1) && (ib<12) && (status&SCBADB2)>0){ // tempor recov. only for L=4
 //    if((status&SCBADB2)>0){ // 1-sided counter found in any layer/counter
-      ptrc->recovers(cry[il]);// recovering
-      status=ptrc->getstatus();//new status
-      if((status & SCBADB5)>0){
-        isdsl[il]+=1;//add recovered side
-        tcorr[il]=ptrc->gettime();
+        ptrc->recovers(cry[il]);// recovering
+        status=ptrc->getstatus();//new status
+        if((status & SCBADB5)>0){
+          isdsl[il]+=1;//add recovered side
+          tcorr[il]=ptrc->gettime();
+        }
       }
+      ptrc=ptrc->next();
     }
-    ptrc=ptrc->next();
   }
 //--------------
 // 

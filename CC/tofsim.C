@@ -229,7 +229,7 @@ void AMSTOFTovt::build()
   integer nhitl[SCLRS];
   geant edepl[SCLRS],edepb;
   geant dummy(-1);
-  geant time,x,y,z,am,am2,r,rnd,eff,de,tm,eps(0.002);
+  geant time,x,y,z,am,am0,am2,r,rnd,eff,de,tm,eps(0.002);
   geant vl,vh;
   geant nel0,nel,nphot;
   AMSPoint cloc(999.,999.,999.);
@@ -359,8 +359,9 @@ void AMSTOFTovt::build()
         if(edepb>TOFMCFFKEY.Thr){// process only bar with Edep>Ethr
 // PM-1 loop to apply pulse shape :
         if(status[0]>=0){// alive side
+          am0=fabs(TOFMCFFKEY.blshift*rnormx());//base line shift simulation
           idd=id*10+1;//LBBS
-          for(i=0;i<SCTBMX+1;i++)tslice[i]=0.;
+          for(i=0;i<SCTBMX+1;i++)tslice[i]=am0;
           for(i=0;i<SCTBMX;i++){
             am=tslice1[i];
             if(am>0){
@@ -377,8 +378,9 @@ void AMSTOFTovt::build()
 //        
 // PM-2 loop to apply pulse shape :
         if(status[1]>=0){// alive side
+          am0=fabs(TOFMCFFKEY.blshift*rnormx());//base line shift simulation
           idd=id*10+2;
-          for(i=0;i<SCTBMX+1;i++)tslice[i]=0.;
+          for(i=0;i<SCTBMX+1;i++)tslice[i]=am0;
           for(i=0;i<SCTBMX;i++){
             am=tslice2[i];
             if(am>0){
@@ -596,7 +598,7 @@ void AMSTOFTovt::displ_as(const int id, const int mf, const geant arr[]){
 void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
 {
   integer i,j,ij,ilay,ibar,isid,id,_sta,stat(0);
-  geant tm,a,am,amd,tmp,amp,amx,amxq;
+  geant tm,a,am,am0,amd,tmp,amp,amx,amxq;
   geant iq0,it0,itau;
   integer _ntr1,_ntr2,_ntr3,_nftdc,_nstdc,_nadca,_nadcd;
   number _ttr1[SCTHMX1],_ttr2[SCTHMX1],_ttr3[SCTHMX1];
@@ -618,7 +620,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
   static integer first=0;
   static integer nshbn,mxcon,mxshc,mxshcg;
   static geant fladcb,shapb,cconv;
-  geant daqt0,daqt1,daqt2,daqt3,daqt4;
+  geant daqt0,daqt1,daqt2,daqt3,daqt4,fdaqt0;
   static geant daqp0,daqp2,daqp3,daqp4,daqp5,daqp6,daqp7,daqp8,daqp9,daqp10;
   static geant daqp11,daqp12;
   static geant shplsh[600];  // Shaper standard pulse shape array
@@ -634,7 +636,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
     fladcb=TOFDBc::fladctb();          // and other time-stable parameters
     shapb=TOFDBc::shaptb();
     cconv=fladcb/50.; // for mV->pC (50 Ohm load)
-    daqp0=TOFDBc::daqpwd(0);//max(=min now) duration of FT(Z>=1) trig.pulse 
+    daqp0=TOFDBc::daqpwd(0);//max(=min now) duration of FT(Z>=1) trig.pulse
     daqp2=TOFDBc::daqpwd(2);//max(=min now) duration of Z>2 trig.pulse 
     daqp3=TOFDBc::daqpwd(3);//dead time for fast-TDC signal (dbl-pulse resol)
     daqp4=TOFDBc::daqpwd(4);
@@ -653,6 +655,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
   }
 // time-dependent parameters !!! :
   daqt0=tofvpar.daqthr(0); // fast discr. thresh. for slow/fast TDC branch
+  fdaqt0=0.2*daqt0;// tempor for base line shift simulation
   daqt1=tofvpar.daqthr(1); // fast discr. thresh. for z>=1 (FT) branch
   scbrcal[ilay][ibar].geta2dr(a2dr);//get anode_to_dinode ratio
   daqt2=tofvpar.daqthr(2)*a2dr[isid];//dinode discr.("Z>2") thresh., multipl. by a2d ratio
@@ -666,16 +669,19 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
 //
 // -----> create/fill summary Tovt-object for idsoft=idd :
 //
-        if(tslice[SCTBMX]>0){
+        if(tslice[SCTBMX]>daqt0){
           cerr<<"SITOFTovt-warning: MC_flash-ADC overflow, id="<<idd<<
              "  A-last= "<<tslice[SCTBMX]<<'\n';
 //          if(TOFMCFFKEY.mcprtf[2])AMSTOFTovt::displ_a(idd,125,tslice);//print PMT pulse
         }
         for(i=SCTBMX-1;i>0;i--)
-            if(tslice[i]!=0. && tslice[i-1]!=0. && tslice[i-2]!=0.)break;//find high limit
+            if(tslice[i]>fdaqt0 && tslice[i-1]>fdaqt0)break;//find high limit
         imax=i+1;
-        for(i=0;i<SCTBMX;i++)if(tslice[i]>0.)break;//find low limit
+        for(i=0;i<SCTBMX;i++)if(tslice[i]>fdaqt0)break;//find low limit
         imin=i;
+        if(((imax-imin)*fladcb) > TOFDBc::shctim())
+                              imax=imin+int(TOFDBc::shctim()/fladcb);// protection against
+//                                              too long pulses (max=max.integration_time)
 //
         charge=0.;
         _ntr1=0;
@@ -713,7 +719,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
           tm+=fladcb;
           am=tslice[i];
           if(am>amx)amx=am;// tempor
-          am=am+6.*rnormx();//tempor to test noncorr. noise 6mv(rms)
+          am=am+TOFMCFFKEY.hfnoise*rnormx();//tempor high freq. noise
           charge+=am;
 //--------------------------          
 // discr-1(anode,fast comparator for TDC/z>=1 ) up/down setting with LOW thr.:

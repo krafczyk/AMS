@@ -369,7 +369,7 @@ FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=================================================================================
 void AMSJob::_sitofdata(){
-  TOFMCFFKEY.TimeSigma=1.71e-10; //(1) side time resolution(sec) 
+  TOFMCFFKEY.TimeSigma=1.71e-10; //(1) side time resolution(sec,/1.41=121ps) 
   TOFMCFFKEY.TimeSigma2=4.5e-10;//(2)
   TOFMCFFKEY.TimeProbability2=0.035;//(3)
   TOFMCFFKEY.padl=10.5;        //(4) sc. bar transv. step ........................
@@ -386,6 +386,8 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.daqfmt=0;     //(14) 0/1-> raw/reduced TDC format for DAQ simulation
   TOFMCFFKEY.birks=1;      //(15) 0/1->  not apply/apply birks corrections
   TOFMCFFKEY.adsimpl=0;    //(16)0/1->precise/simplified sim. of A/D-TovT
+  TOFMCFFKEY.blshift=0.;   //(17) base line shift at fast discr.input (mv)
+  TOFMCFFKEY.hfnoise=7.;   //(18) high freq. noise .......   
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
@@ -660,7 +662,7 @@ void AMSJob::_retofdata(){
 //
   TOFRECFFKEY.relogic[0]=0;//(8) 0/1/2/3/4 ->normal/STRR+AVSD-/TDIF-/TZSL-/AMPL-calibr. run. 
   TOFRECFFKEY.relogic[1]=0;//(9) 0/1/2-> full_fTDC_use/no_time_matching/not_use 
-  TOFRECFFKEY.relogic[2]=0;//(10) spare 
+  TOFRECFFKEY.relogic[2]=0;//(10) 0/1-> force L4S2 suppression(useful for MC processing)
   TOFRECFFKEY.relogic[3]=0;//(11) spare RECO logic flag 
   TOFRECFFKEY.relogic[4]=0;//(12) spare RECO logic flag
 //

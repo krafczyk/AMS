@@ -72,7 +72,7 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::_shrtim=1.0;     // MC shaper pulse rise time (ns)(exp)
   geant TOFDBc::_shctim=600.;    // MC shaper pulse cut-time(gate width)(ns)
   geant TOFDBc::_shftim=63.;     // MC shaper pulse fall time (ns)(exp). MC only !!!
-  geant TOFDBc::_strflu=2.;    // Stretcher "end-mark" time fluctuations (ns)
+  geant TOFDBc::_strflu=2.5;     // Stretcher "end-mark" time fluctuations (ns)
   geant TOFDBc::_tdcbin[4]={
     1.,                            // pipe/line TDC binning for fast-tdc meas.
     1.,                            // pipe/line TDC binning for slow-tdc meas.
@@ -90,7 +90,7 @@ geant TOFDBc::_plnstr[15]={
     2.,     // (7)dead time for making of "z>=1(FT)" trig. signal (ns)
     2.,     // (8)dead time for making of "z>1" trig. (ns)
     2.,     // (9)dead time for making of "z>2" trig. signal (ns)
-    0.05,   // (10)fast discr.(comparator) internal accuracy(ns) + (?) to have exp.resol
+    0.07,   // (10)fast discr.(comparator) internal accuracy(ns) + (?) to have exp.resol
     2.,     // (11)min. pulse duration (ns) of fast discr.(comparator) (for dinode also)
     18.,    // (12)(as dummy gap in s-TDC pulse)
     10.36,  // (13)thresh.(pC) in A-integrator(TovT conversion) 
@@ -99,8 +99,8 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::_trigtb=0.25;  // MC time-bin in logic(trig) pulse handling (ns)
   geant TOFDBc::_di2anr=0.2;  // dinode->anode signal ratio (def,mc-data) not used now !
   geant TOFDBc::_strrat=40.;  // stretcher ratio (default,mc-data) not used now !
-  geant TOFDBc::_strjit1=0.035;  // "start"-pulse jitter at stretcher input
-  geant TOFDBc::_strjit2=0.035;  // "stop"(FT)-pulse jitter at stretcher input
+  geant TOFDBc::_strjit1=0.03;  // "start"-pulse jitter at stretcher input
+  geant TOFDBc::_strjit2=0.050;  // "stop"(FT)-pulse jitter at stretcher input
   geant TOFDBc::_accdel=5000.;//Lev-1 signal delay with respect to FT (ns)
   geant TOFDBc::_ftdelf=65.;  // FastTrigger (FT) fixed (by h/w) delay (ns)
   geant TOFDBc::_ftdelm=200.; // FT max delay (allowed by stretcher logic) (ns)
@@ -717,6 +717,13 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
       for(isp=0;isp<SCANPNT;isp++){ // fill 2-ends rel. l.output at scan-points
         rlo[isp]=(ef1[isp]+ef2[isp])/(ef1[mrfp]+ef2[mrfp]);
       }
+      if(ila==0 && (ibr==0 || ibr==1 || ibr==2 || ibr==3 || ibr==4)){
+        cout<<"MC: brt="<<brt<<endl;
+        for(isp=0;isp<SCANPNT;isp++){
+          cout<<rlo[isp]<<" "<<scp[isp]<<endl;;
+        }
+        cout<<endl;
+      }
     }
     else{// pos.correction for Real
       for(i=0;i<5;i++)apr[i]=aprofp[brt-1][i];
@@ -731,6 +738,13 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
         nom=p1*(exp(-(hblen+scp[isp])/p4)+p3*exp(-(hblen+scp[isp])/p5))
            +p2*(exp(-(hblen-scp[isp])/p4)+p3*exp(-(hblen-scp[isp])/p5));
         rlo[isp]=nom/denom;
+      }
+      if(ila==0 && (ibr==0 || ibr==1 || ibr==2 || ibr==3 || ibr==4)){
+        cout<<"REAL: brt="<<brt<<endl;
+        for(isp=0;isp<SCANPNT;isp++){
+          cout<<rlo[isp]<<" ";
+        }
+        cout<<endl;
       }
     }
 //
@@ -1583,7 +1597,7 @@ void TOFJobStat::bookhistmc(){
       HBOOK1(1061,"Geant-Edep(mev) in layer-1",80,0.,240.,0.);
       HBOOK1(1062,"Geant-Edep(mev) in layer-3",80,0.,24.,0.);
       HBOOK1(1063,"Geant-Edep(mev) in layer-3",80,0.,240.,0.);
-      HBOOK2(1070,"Log(Qa) vs TovT,all channels",70,0.,280.,70,0.,8.4,0.);
+      HBOOK2(1070,"Log(Qa) vs TovT,all channels",80,0.,320.,70,0.,8.4,0.);
       HBOOK1(1071,"Total bar pulse-charge(pC),L-1",80,0.,1600.,0.);
       HBOOK1(1072,"Total bar pulse-charge(pC),L-1",80,0.,16000.,0.);
       HBOOK1(1073,"PMT-pulse amplitude(mV,id=108,s1)",80,0.,1000.,0.);

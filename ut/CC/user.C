@@ -20,12 +20,12 @@ void AMSUser::InitEvent(){
 }
 
 void AMSUser::Event(){
-  TOFUser::Event();
+  if(!AMSJob::gethead()->isCalibration())TOFUser::Event();
 }
 
 
 void AMSUser::EndJob(){
-  TOFUser::EndJob();
+  if(!AMSJob::gethead()->isCalibration())TOFUser::EndJob();
 }
 
 

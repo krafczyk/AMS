@@ -154,6 +154,8 @@ integer fast;    // 1/0 fast/slow algo;
 integer daqfmt;  // 0/1 raw/reduced TDC format for DAQ
 integer birks;     // 0/1  not apply/apply birks corrections
 integer adsimpl;   // 0/1->precise/simplified sim. of A/D-TovT
+geant blshift;     // base line shift
+geant hfnoise;     // high freq. noise
 };
 #define TOFMCFFKEY COMMON_BLOCK(TOFMCFFKEY,tofmcffkey)
 COMMON_BLOCK_DEF(TOFMCFFKEY_DEF,TOFMCFFKEY);

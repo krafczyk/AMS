@@ -935,7 +935,7 @@ else{// <------- use Tracker to find track crossing points:
     else rid=0;
     pmom=fabs(rid);
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
-    if(pmom<=0.2 || pmom>=50.)return;//remove events with suspicious mom.
+    if(pmom<=2. || pmom>=50.)return;//remove events with suspicious mom.
     TOFJobStat::addre(19);
     C0[0]=0.;
     C0[1]=0.;
