@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.217 2002/06/06 14:41:05 choutko Exp $
+#  $Id: Mopt,v 1.218 2002/07/10 14:54:37 alexei Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -177,6 +177,17 @@ TIMEL=
 endif
 endif
 ifeq  "$(shell uname)"  "Linux"
+ifdef AMSICC
+CERNDIR = /f2dat1/CERN/2002/icc
+NAGDIR  = /f2dat1/NagLib
+CC=/opt/intel/compiler60/ia32/bin/icc
+FF=/opt/intel/compiler60/ia32/bin/ifc
+LD=/opt/intel/compiler60/ia32/bin/icc
+BINMT=../bin/linux/icc/mt/
+BIN=../bin/linux/icc/
+EXE=../exe/linux/icc/
+LIB=../lib/linux/icc/
+else
 #CERN_LEVEL=2000
 #CERNDIR = /afs/cern.ch/asis/i386_redhat61/cern/$(CERN_LEVEL)
 #CERNSRCDIR = /afs/cern.ch/asis/share/cern/$(CERN_LEVEL)
@@ -193,6 +204,7 @@ BIN=$(AMSWD)/bin/linux/
 BINR=$(AMSWD)/bin/linuxr/
 EXE=$(AMSWD)/exe/linux/
 LIB=$(AMSWD)/lib/linux/
+endif
 LDFLAGSIDL=   -lorbitcpp 
 LDFLAGSIDLMT=   -lorbitcpp -lORBit-mt -lIIOP-mt -lORBitutil-mt -lgthread -lglib -lpthread -lpopt 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit -lglib -lIIOP -lORBitutil -lglib -lnsl  
@@ -211,16 +223,42 @@ PFLAGS=
 ifdef AMSPROFILE
 PFLAGS+=-pg
 endif
+
 ifdef AMSDEBUG
 CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include   -I../db  $(PFLAGS) -D_WRITEROOTCLONES__ -I$(ROOTSYS)/include
+CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db   $(PFLAGS)
+else
+CFLAGSB=      -D__BATCH__      -I../include   -I../db   $(PFLAGS)
+endif
+
+ifdef AMSICC
+CFLAGSB+=  -D__ICC__
+CFLAGS+=  -D__ICC__
+PFLAGS+=  -D__ICC__
+ifdef AMSDEBUG
+CFLAGSTOFSIM= $(CFLAGS)
+CFLAGSn=      $(CFLAGS)
+CFLAGSDAQ=    $(CFLAGS)
+FFLAGS=     -mp1 -fp_port -save -g -I../include   $(PFLAGS)
+FFLAGSn=   -mp1 -fp_port -save  -g -I../include   $(PFLAGS)
+else
+CFLAGSTOFSIM= $(CFLAGSB)     -O2  
+CFLAGSDAQ=    $(CFLAGSB) -O2
+CFLAGSn=      $(CFLAGSB) -O2
+CFLAGS=      $(CFLAGSB) -O2
+FFLAGS=   -mp1 -fp_port -save -O -I../include  $(PFLAGS)
+FFLAGSn=  -mp1 -fp_port -save -O   -I../include  $(PFLAGS)
+endif
+
+else
+
+ifdef AMSDEBUG
 CFLAGSTOFSIM= $(CFLAGS)
 CFLAGSn=      $(CFLAGS)
 CFLAGSDAQ=    $(CFLAGS)
 FFLAGS=   -fno-automatic -g -I../include   $(PFLAGS)
 FFLAGSn=   -fno-automatic -g -I../include   $(PFLAGS)
-CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db   $(PFLAGS)
 else
-CFLAGSB=      -D__BATCH__      -I../include   -I../db   $(PFLAGS)
 CFLAGSTOFSIM= $(CFLAGSB)     -O1   
 CFLAGSDAQ=    $(CFLAGSB) -O2
 CFLAGSn=      $(CFLAGSB) -O2
@@ -228,8 +266,14 @@ CFLAGS=      $(CFLAGSB) -O3
 FFLAGS=   -fno-automatic -O3 -I../include  $(PFLAGS)
 FFLAGSn=   -fno-automatic  -I../include  $(PFLAGS)
 endif
+endif
+
 DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include  -I$(SRC)
+ifdef AMSICC
+LDFLAGS=  -static   -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/lib -L/usr/local/lib -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lamsut 
+else
 LDFLAGS=  -static   -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut  -lg2c  $(PFLAGS)
+endif
 TIMEL=
 INCS= $(wildcard $(SRC)*.*h)    
 INCSCPP= $(SRC)server-cpp-stubs.hh $(SRC)server-cpp-skels.hh $(SRC)server-cpp-common.hh 
@@ -448,7 +492,7 @@ endif
 ifeq  "$(shell uname)"  "Linux" 
 
 $(BIN)mtx.o:                   ../F/mtx77.F
-	g77 -c $(FFLAGS)      ../F/mtx77.F -o $(BIN)mtx.o
+	$(FF) -c $(FFLAGS)      ../F/mtx77.F -o $(BIN)mtx.o
 endif
 ifeq  "$(shell uname)"  "AIX" 
 
@@ -789,5 +833,3 @@ endif
 ifneq ($(MAKECMDGOALS),touch_depend)
  include $(BIN)Make-depend
 endif
-
-
