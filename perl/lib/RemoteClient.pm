@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.296 2005/02/15 13:20:10 choutko Exp $
+# $Id: RemoteClient.pm,v 1.297 2005/02/15 13:45:46 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4446,7 +4446,8 @@ print qq`
         my $filedb;
         my $filedb_att;
         if($self->{CCT} eq "remote"){
-        $filedb="$dataset->{version}.$self->{UploadsDir}/$self->{FileDB}";
+        $filedb="$self->{UploadsDir}/$self->{FileDB}";
+        $filedb=~s/ams02/$dataset->{version}/;
         my @sta = stat $filedb;
         if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9] or $stag1[9] > $sta[9] or $stag2[9] > $sta[9]){
            $self->{senddb}=2;
@@ -4505,7 +4506,8 @@ print qq`
         elsif($sta[9]>$self->{TU1}){
             $self->{senddb}=2;
         }
-        $filedb_att="dataset->{version}.$self->{UploadsDir}/$self->{FileAttDB}";
+        $filedb_att="$self->{UploadsDir}/$self->{FileAttDB}";
+        $filedb_att=~s/ams02/$dataset->{version}/;
         @sta = stat $filedb_att;
           
          my @stag3=stat "$self->{AMSDataDir}/DataBase";
@@ -4720,7 +4722,9 @@ print qq`
            $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;         
          }       
          else{
-          $buf=~ s/gbatch-orbit.exe/$gbatch -$self->{IORP} -U$run -M -D1 -G$aft -S$stalone/;
+             my @gbc=split "\/", $gbatch;
+             
+          $buf=~ s/gbatch-orbit.exe/$gbc[$#gbc] -$self->{IORP} -U$run -M -D1 -G$aft -S$stalone/;
       }
          my $script="$self->{CCA}.$run.$template";
          my $root=$self->{CCT} eq "remote"?"$self->{UploadsDir}/$script":
