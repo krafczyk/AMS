@@ -618,7 +618,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.cuts[8]=0.;
   TOFRECFFKEY.cuts[9]=0.;
 //
-  TOFRECFFKEY.ReadConstFiles=1;//read const. from DB/Files (0/1)
+  TOFRECFFKEY.ReadConstFiles=0;//read const. from DB/Files (0/1)
 //  
   TOFRECFFKEY.sec[0]=0; 
   TOFRECFFKEY.sec[1]=0;
