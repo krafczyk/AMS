@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.61 2001/05/17 22:13:52 choutko Exp $
+//  $Id: gbatch.C,v 1.62 2001/06/06 10:43:53 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -112,7 +112,11 @@ using namespace glconst;
   case SIGHUP:
 #ifdef __CORBA__
    cout <<"got sighup "<<endl;
-if(AMSProducer::gethead() && AMSProducer::gethead()->Progressing())AMSProducer::gethead()->sendCurrentRunInfo(true);
+if(AMSProducer::gethead() && AMSProducer::gethead()->Progressing()){
+   cout <<" sending ... "<<endl;
+   AMSProducer::gethead()->sendCurrentRunInfo(true);
+}
+cout << " sighup sended "<<endl;
 #endif
       break;
   case SIGUSR1:

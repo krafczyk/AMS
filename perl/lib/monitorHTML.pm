@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.11 2001/03/02 10:41:01 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.12 2001/06/06 10:43:54 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -59,7 +59,7 @@ my %fields=(
                  my $action=$self->{q}->param($string);
                  if(defined $action){
                      my @data;
-                     foreach my $value ($self->{q}->param("TextField")){
+                     foreach my $value ($self->{q}->param("noname")){
                          push @data,$value;
                      }
                      my ($monitor, $ok)=Monitor::Update();

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.35 2001/03/16 10:39:48 choutko Exp $
+//  $Id: producer.C,v 1.36 2001/06/06 10:43:54 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -651,6 +651,8 @@ name.Entry.Begin=b;
 name.Entry.End=e;
  int length=0;
  int suc=0;
+ bool oncemore=false;
+again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   
   try{
@@ -662,8 +664,15 @@ name.Entry.End=e;
   }
  }
 if(!suc){
- FMessage("AMSProducer::getTDV-F-UnableTogetTDV",DPS::Client::CInAbort);
- return false;
+ if(oncemore){
+  FMessage("AMSProducer::getTDV-F-UnableTogetTDV",DPS::Client::CInAbort);
+  return false;
+ }
+ else{
+  oncemore=true;
+  sleep(2);
+  goto again;
+ }
 }
 DPS::Producer::TDVbody_var vbody=pbody;
 if(name.Success){

@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.34 2001/03/02 10:41:01 choutko Exp $
+# $Id: Monitor.pm,v 1.35 2001/06/06 10:43:54 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -527,7 +527,7 @@ sub getactivehosts{
     push @text, $string;
     push @text, int $hash->{ClientsRunning};           
     push @text, int $hash->{ClientsAllowed};           
-    push @text, int $hash->{ClientsFailed}+$hash->{ClientsKilled};           
+    push @text, int $hash->{ClientsFailed};           
      my $ntp=0;
      my $evtag=0;
      my @dummy=split '\.', $string;

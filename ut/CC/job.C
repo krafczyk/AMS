@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.371 2001/05/17 22:13:53 choutko Exp $
+// $Id: job.C,v 1.372 2001/06/06 10:43:53 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1560,7 +1560,7 @@ else{
   }
 
   TKDBc::init();
-  TRDDBc::init();
+   if(strstr(getsetup(),"AMS02"))TRDDBc::init();
 {
 int len=cl-1;
 
@@ -1641,18 +1641,18 @@ if(AMSFFKEY.Update){
     AMSTrIdGeom::init();
     if(strstr(getsetup(),"AMSSHUTTLE") ){    
        AMSTrIdSoft::inittable(1);
+       AMSTrIdSoft::init();
     }
     else if(strstr(getsetup(),"AMS02") ){    
        AMSTrIdSoft::inittable(2);
+       AMSTrIdSoft::init();
+       AMSTRDIdSoft::init();
     }
     else {
       cerr<<"AMSJob::udate-E-NoAMSTrIdSoftTable exists for setup "<<
         getsetup()<< "yet "<<endl;
         exit(1);
     }
-       AMSTrIdSoft::init();
-
-       AMSTRDIdSoft::init();
 
 
       // TraligGlobalFit
