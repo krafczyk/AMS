@@ -60,7 +60,6 @@ $cutmax = TkVariable.new("!=0")
 
 def AMSPLOT(v,fil)
    varfinal = "$AMSDir/ut/amsplot '" + $cutmin.to_s + v + $cutmax.to_s + "' " + fil + " 2> /dev/null"
-   puts varfinal
    fork{`#{varfinal}`}
 end
 
