@@ -372,16 +372,17 @@ R52  SearchRegCircle(1)     // ---------- circle fit
 R53  RidgidityMin(0.2)      // Minimal ridgidity in GV     
 I54  FullReco(0)            // Use(1) or not use(0) "used "clusters to build 
                             // tracks
-R55  MinRefitCos(0.7,0.5)      // min cos(tr angle) to refit track with wider
+R55  MinRefitCos(0.7,0.5)   // min cos(tr angle) to refit track with wider
                             // clusters
 I57  FastTracking(1)        // Make(0) do not make(1) nonlinear fitting
 I58  WeakTracking(0)        // Make(1) do not make(0) weak clusters fitting
 I59  FalseXTracking(0)      // Make(1) do not make(0) 4y + 3x tracking
 R60  Chi2FalseX(10.)        // Max Chi2 for 3point combinations
-R61  SearchRegTOF(6.)       // Max distance in cm for TOF search
-I62  FalseTOFXTracking(0)   // Make(1) do not make(0) 4y + TOF tracking
-I63  AwayTOFTracking(1)     // Filter out(1) or not(0) hits inconsistent with TOF
-                               // before tracking
+I61  ForceFalseTOFX(0)      // Force additional FalseTOFX track in each event
+I62  FalseTOFXTracking(0)   // Try(1) or do not try(0) 4y + TOF tracking
+                            // if anything else fails
+I63  TOFTracking(1)         // Filter out(1) or not(0) hits inconsistent with TOF
+                            // before tracking
 
 
 // Tracker fitting

@@ -610,7 +610,10 @@ if(!AMSJob::gethead()->isMonitoring() || (ptr && ptr->LVL3OK())){
     }
   }
   // Reconstruction of 4S + TOF
-  if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseTOFXTracking ){
+  int flag =    (itrk<=0 && TRFITFFKEY.FalseTOFXTracking)
+             || (TRFITFFKEY.FullReco && TRFITFFKEY.FalseTOFXTracking)
+             || TRFITFFKEY.ForceFalseTOFX;
+  if ( flag) {
     itrk=buildC("AMSTrTrackFalseTOFX",refit);
 #ifdef __AMSDEBUG__
     if (itrk>0) cout << "FalseTOFX - Track found "<< itrk << endl;

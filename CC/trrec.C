@@ -850,7 +850,7 @@ integer AMSTrRecHit::build(integer refit){
  }  
 
 // Mark hits away from TOF predictions
- if (TRFITFFKEY.AwayTOFTracking!=0) markAwayTOFHits();
+ if (TRFITFFKEY.TOFTracking!=0) markAwayTOFHits();
 
  return 1;
 
@@ -909,7 +909,7 @@ integer AMSTrRecHit::buildWeak(integer refit){
  }  
 
 // Mark hits away from TOF predictions
- if (TRFITFFKEY.AwayTOFTracking!=0) markAwayTOFHits();
+ if (TRFITFFKEY.TOFTracking!=0) markAwayTOFHits();
 
  return 1;
 
@@ -1018,13 +1018,14 @@ integer AMSTrRecHit::markAwayTOFHits(){
 // Mark AMSTrRecHits which are outside the TOF path
     AMSTrRecHit * ptrhit;
     AMSPoint hit;
+    geant searchregtof = TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
     for (i=0;i<6;i++) {
       for (ptrhit=AMSTrRecHit::gethead(i); ptrhit!=NULL; ptrhit=ptrhit->next()){
         hit = ptrhit->getHit();
         number xres = fabs(hit[0]-intercept_x - slope_x*hit[2]);
         number yres = fabs(hit[1]-intercept_y - slope_y*hit[2]);
-        if (    xres > TRFITFFKEY.SearchRegTOF
-             || yres > TRFITFFKEY.SearchRegTOF    ) {
+        if (    xres > searchregtof
+             || yres > searchregtof    ) {
           ptrhit->setstatus(AMSTrRecHit::AwayTOF);
         }
         else {
@@ -2432,10 +2433,11 @@ integer AMSTrTrack::makeFalseTOFXHits(){
 // Use only Pad information -planes 2 or 3- if not consistent with planes 
 // 1 or 4, respectively (info from planes 1,4 is TOF-calibration dependent)
     number sw=0, sz=0, sx=0, sxz=0, szz=0;
+    geant searchregtof = TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
     for (i=0; i<4; i++){
       if (phit[i]==NULL) continue;
-      if (i==0 && phit[1]!=NULL && resmax2>TOFDBc::plnstr(5)) continue;
-      if (i==3 && phit[2]!=NULL && resmax3>TOFDBc::plnstr(5)) continue;
+      if (i==0 && phit[1]!=NULL && resmax2>searchregtof) continue;
+      if (i==3 && phit[2]!=NULL && resmax3>searchregtof) continue;
       number w = phit[i]->getecoo()[0]; if (w<=0.) continue; w = 1./w/w;
       number x = phit[i]->getcoo()[0];
       number z = phit[i]->getcoo()[2];
@@ -2482,8 +2484,9 @@ integer AMSTrTrack::makeFalseTOFXHits(){
 // Impose the X global coordinate from TOF
       glopos[0] = intercept_x + slope_x*glopos[2];
 // Do not use if it is far away from TOF prediction
+      geant searchregtof = TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
       if (fabs(glopos[1] - intercept_y - slope_y*glopos[2])
-                             > TRFITFFKEY.SearchRegTOF) continue;
+               > searchregtof) continue; // 1/2 SC bar
 // Find now the right sensor number on the ladder
 // And do not use it if TOF prediction is far away from the ladder
       AMSPoint sensor_size(   psensor->getpar(0)
@@ -2539,7 +2542,7 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
     for (int kk=0;kk<6;kk++){
       AMSTrRecHit * phit;
       for (phit=AMSTrRecHit::gethead(kk); phit!=NULL; phit=phit->next()){
-        if (phit->getstatus()==AMSTrRecHit::FalseTOFX) {
+        if (phit->Good() && phit->getstatus()==AMSTrRecHit::FalseTOFX) {
           xs++; 
           break;
         }
@@ -2657,8 +2660,10 @@ trig=(trig+1)%freq;
             throw AMSTrTrackError(" Cpulimit Exceeded ");
            }
 
+   geant searchregtof = TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
+   
    return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0])/
-            sqrt(1+par[0][0]*par[0][0]) > TRFITFFKEY.SearchRegTOF ||
+            sqrt(1+par[0][0]*par[0][0]) > searchregtof ||
           fabs(par[1][1]+par[1][0]*ptr->getHit()[2]-ptr->getHit()[1])/
             sqrt(1+par[1][0]*par[1][0]) > TRFITFFKEY.SearchRegCircle;
 }

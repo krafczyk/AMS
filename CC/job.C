@@ -619,9 +619,9 @@ TRFITFFKEY.FastTracking=1;
 TRFITFFKEY.WeakTracking=0;
 TRFITFFKEY.FalseXTracking=0;
 TRFITFFKEY.Chi2FalseX=3.;
-TRFITFFKEY.SearchRegTOF=6.;
+TRFITFFKEY.ForceFalseTOFX=0;
 TRFITFFKEY.FalseTOFXTracking=0;
-TRFITFFKEY.AwayTOFTracking=1;
+TRFITFFKEY.TOFTracking=1;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }

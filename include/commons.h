@@ -448,9 +448,9 @@ public:
   integer WeakTracking;
   integer FalseXTracking;
   geant Chi2FalseX;
-  geant SearchRegTOF;
+  integer ForceFalseTOFX;
   integer FalseTOFXTracking;
-  integer AwayTOFTracking;
+  integer TOFTracking;
 };
 //
 
