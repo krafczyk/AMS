@@ -207,6 +207,8 @@ void AMSTimeID::_InitTable(){
 
 integer AMSTimeID::write(char * dir){
 
+// add explicitely one second delay to prevent same insert time
+   sleep(1);
 #ifndef __DB__
   enum open_mode{binary=0x80};
     fstream fbin;
@@ -434,7 +436,7 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
       _selectEntry=&fnam;
       dirent ** namelist;
       int nptr=scandir((const char *)fdir,&namelist,&_select,NULL);     
-      if(nptr){
+      if(nptr>0){
         for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[nptr];
         for(i=0;i<nptr;i++) {
           int valid=0;

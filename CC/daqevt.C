@@ -98,9 +98,12 @@ fstream DAQEvent::fbout;
 void DAQEvent::setfiles(char *ifile, char *ofile){
   if(ifile){
    InputFiles=parser(ifile,ifnam);
-   cout <<"DAQEvent::setfiles-I-"<<InputFiles<<" input files parsed"<<endl;
-   //   ifnam=new char[strlen(ifile)+1];
-   //   strcpy(ifnam,ifile);
+   if(InputFiles)
+    cout <<"DAQEvent::setfiles-I-"<<InputFiles<<" input files parsed"<<endl;
+   else{
+    cerr <<"DAQEvent::setfiles-F-No input files parsed"<<endl; 
+    exit(1);   
+   }
   }
   if(ofile){
    ofnam=new char[strlen(ofile)+1];
@@ -615,7 +618,7 @@ int DAQEvent::parser(char a[], char **& fname){
       AString fdir(a);
       
       ntot=scandir((const char *)fdir,&namelist,&_select,NULL);     
-      if(ntot){
+      if(ntot>0){
           fname =new char*[ntot];
           for(int i=0;i<ntot;i++){
             fname[i]=new char[strlen(a)+strlen(namelist[i]->d_name)+1];
@@ -625,7 +628,7 @@ int DAQEvent::parser(char a[], char **& fname){
           }
           free(namelist);
       }
-      return ntot;      
+      return ntot>0?ntot:0;      
   }
 
 

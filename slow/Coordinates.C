@@ -281,8 +281,6 @@ uint Table_init=0;
 
 void _InitTable(){
   if(!Table_init){
-//    _Table=uint[256];
-//    assert(_Table!=NULL);
     int i,j;
     uint crc;
     for(i=0;i<256;i++){
@@ -295,18 +293,13 @@ void _InitTable(){
   }
 }
 
-uint _CalcCRC(uint *pData){
+uint _CalcCRC(uint *pData, int nsize){
   int i,j;
   uint crc, *pu= (uint *)pData;
-
  _InitTable();
-  
-  //uint n=_Nbytes/sizeof(uinteger)-1;
- 
-  if( Record_nbytes < 1) return 0;
-//  pu=(uint *)pData; 
+  if( nsize < 1) return 0;
   crc=~pu[0];
-    for(i=1;i<(Record_nbytes/4);i++){
+    for(i=1;i<(nsize/4);i++){
       for(j=0;j<3;j++)
 	crc=_Table[crc>>24]^(crc<<8);
      crc=crc^pu[i];  
