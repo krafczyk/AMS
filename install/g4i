@@ -17,7 +17,8 @@ setenv G4_NO_VERBOSE 1
 setenv  G4WORKDIR /amsdat1/scratch/choutko/tmp
 #setenv G4VIS_BUILD_OPENGLXM_DRIVER     1  # Uses OpenGL and Motif
 #setenv G4VIS_USE_OPENGLXM     1
+setenv G4VIS_BUILD_RAYX_DRIVER         1
+setenv G4VIS_USE_RAYX         1
 setenv G4LEVELGAMMADATA $G4INSTALL/data/PhotonEvaporation
 setenv G4LEDATA $G4INSTALL/data/G4EMLOW0.2
 setenv NeutronHPCrossSections $G4INSTALL/data/G4NDL0.1
-setenv AMSDEBUG 
