@@ -205,8 +205,8 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.DipoleR=52700000;
   Orbit.DipoleTheta=  0.37472219;
   Orbit.DipolePhi=2.5267136;
-  Orbit.PoleTheta=-1.38404609;
-  Orbit.PolePhiStatic=1.89525303;
+  Orbit.PoleTheta=-1.313;
+  Orbit.PolePhiStatic=2.0746;
   Orbit.Nskip=0;
   Orbit.Ntot=AMSIO::getntot();
   if(ipart==0){
