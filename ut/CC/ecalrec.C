@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.29 2001/08/03 13:26:37 choutko Exp $
+//  $Id: ecalrec.C,v 1.30 2001/08/07 07:29:59 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -691,7 +691,7 @@ integer Ecal1DCluster::build(int rerun){
         }
        }
        else if(!bl){
-        adc[i]=(adc[i-1]+adc[i+2])/2;
+        adc[i]=(adc[i-1])/2;
         if(adc[i]){
          statusa[i]|=AMSDBc::LEAK;
          int st=statusa[i] | AMSDBc::RECOVERED;
@@ -702,7 +702,7 @@ integer Ecal1DCluster::build(int rerun){
         }
        }
        else if(!br){
-        adc[i]=(adc[i-2]+adc[i+1])/2;
+        adc[i]=(adc[i+1])/2;
         if(adc[i]){
          statusa[i]|=AMSDBc::LEAK;
          int st=statusa[i] | AMSDBc::RECOVERED;
@@ -1861,7 +1861,7 @@ return (WriteAll || status);
 void EcalShower::_AngleRes(){
 _Angle3DError=0;
 if(_EnergyC>0){
- _Angle3DError= 1.4*3.1415926/180./pow(_EnergyC/10.,0.25);
+ _Angle3DError= 1.4*3.1415926/180.*sqrt(0.33*0.33+4.8*4.8/_EnergyC);
 }
 }
 

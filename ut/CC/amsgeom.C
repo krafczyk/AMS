@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.130 2001/08/03 17:28:03 choutko Exp $
+//  $Id: amsgeom.C,v 1.131 2001/08/07 07:29:58 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -78,7 +78,26 @@ integer gid=1;
 number amss[3];
 if (strstr(AMSJob::gethead()->getsetup(),"BIG")){
  cout<<"AMSGeom-I-BIGSetupSelected"<<endl;
+
  for(int i=0;i<3;i++)amss[i]=AMSDBc::ams_size[i]*10;
+
+/*
+// should not rotate ams due to ecal bug
+//but rotate the solar panel instead
+
+ number angle=-10./180*AMSDBc::pi;
+ AMSDBc::ams_nrm[0][0]=cos(angle);
+ AMSDBc::ams_nrm[1][0]=0;
+ AMSDBc::ams_nrm[2][0]=-sin(angle);
+ AMSDBc::ams_nrm[0][1]=0;
+ AMSDBc::ams_nrm[1][1]=1;
+ AMSDBc::ams_nrm[2][1]=0;
+ AMSDBc::ams_nrm[0][2]=sin(angle);
+ AMSDBc::ams_nrm[1][2]=0;
+ AMSDBc::ams_nrm[2][2]=cos(angle);
+*/
+
+
 }
 else{
  for(int i=0;i<3;i++)amss[i]=AMSDBc::ams_size[i]*sqrt(2.);
@@ -97,15 +116,38 @@ AMSJob::gethead()->addup( &false_mother);
 false_mother.add(&mother);
 
 if (strstr(AMSJob::gethead()->getsetup(),"BIG")){
+
+number nrm1[3][3];
+ number angle=10./180*AMSDBc::pi;
+ nrm1[0][0]=cos(angle);
+ nrm1[1][0]=0;
+ nrm1[2][0]=-sin(angle);
+ nrm1[0][1]=0;
+ nrm1[1][1]=1;
+ nrm1[2][1]=0;
+ nrm1[0][2]=sin(angle);
+ nrm1[1][2]=0;
+ nrm1[2][2]=cos(angle);
+
+
+
+
 // Add Solar Panel  // alpha=beta=90 
-   geant coos[3]={500.,0.,100.};
-   geant pars[3]={0.5,200.,800.};
+
+   int inrm=1;
+   geant coosp[3]={500.,0.,0.};
+   geant parsp[3]={0.5,300.,1700.};
+   AMSgvolume *span = new AMSgvolume("VACUUM",inrm,"SPAN","BOX ",parsp,3,coosp,nrm1,"ONLY",0,1,1);
+    false_mother.add(span);
+
+   geant coos[3]={0.,0.,100.};
+   geant pars[3]={0.5,300.,800.};
    coos[2]+=pars[2];
    AMSgvolume *solar1 = new AMSgvolume("1/2ALUM",0,"SPA1","BOX ",pars,3,coos,nrm,"ONLY",0,1,1);
    coos[2]*=-1;
    AMSgvolume *solar2 = new AMSgvolume("1/2ALUM",0,"SPA2","BOX ",pars,3,coos,nrm,"ONLY",0,1,1);
-false_mother.add(solar1);
-false_mother.add(solar2);
+span->add(solar1);
+span->add(solar2);
 
 // update amsg
  for(int i=0;i<3;i++)AMSDBc::ams_size[i]*=10;

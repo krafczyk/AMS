@@ -1,4 +1,4 @@
-//  $Id: amsdbc.C,v 1.39 2001/08/03 17:28:02 choutko Exp $
+//  $Id: amsdbc.C,v 1.40 2001/08/07 07:29:58 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <math.h>
@@ -49,9 +49,6 @@ number AMSDBc::ams_nrm[3][3];
 
 void AMSDBc::init(){
  number angle=0;
- if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-  angle=-10./180*pi;
- }
  ams_nrm[0][0]=cos(angle);
  ams_nrm[1][0]=0;
  ams_nrm[2][0]=-sin(angle);
