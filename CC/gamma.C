@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.47 2003/05/12 21:17:46 choutko Exp $
+//  $Id: gamma.C,v 1.48 2003/05/12 21:40:31 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -2962,6 +2962,7 @@ AMSTrRecHit * parrayR[trconst::maxlay];
  
  void AMSTrTrackGamma::_copyEl(){
 #ifdef __WRITEROOT__
+ if(PointerNotSet())return;
    VertexR ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->Vertex(_vpos);
     if (_pntTrL)  ptr.fTrTrackL =_pntTrL ->GetClonePointer();
     else ptr.fTrTrackL=-1;

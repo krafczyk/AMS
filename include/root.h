@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.83 2003/05/12 13:11:25 choutko Exp $
+//  $Id: root.h,v 1.84 2003/05/12 21:40:40 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 //#define __WRITEROOT__
@@ -636,12 +636,11 @@ protected:
   int  fTrClusterY;   ///<y proj TrClusteR pointer
 public:
   /// access function to TrClusterR object used
-  /// \sa AMSEventR  TrClusterR
-  /// \param char xy = 'x' for x projection, any other for y projection
+  /// \param  xy = 'x' for x projection, any other for y projection
   /// \return index of TrClusterR object in TrClusterR collection or -1
   int TrCluster(char xy)const {return xy=='x'?fTrClusterX:fTrClusterY;}
   /// access function to TrClusterR object used
-  /// \param char xy = 'x' for x projection, any other for y projection
+  /// \param  xy = 'x' for x projection, any other for y projection
   /// \return pointer to TrClusterR TrClusterR object in TrClusterR collection or 0
   TrClusterR * pTrCluster(char xy);
 
@@ -840,6 +839,7 @@ public:
   int   Mode;   ///< reserved
   int   TofFlag;   ///< =0/1/3->NoTofTrig/z>=1/z>2 +10, if TofTrig with all 4counters
   int   TofPatt[4]; ///< tof pattern 
+
                     /*!<
                                                        0-13 bit  or  \n
                                                        16-29    and  \n
@@ -848,7 +848,8 @@ public:
   int   TofPatt1[4]; ///< same tof pattern for Z>1 trigger
   int   AntiPatt;   ///< Antipattern 16-23 bits -> OR of paddle ends  
   int   EcalFlag;   ///< =MN, where 
-                    /*!< M=0/1/2/3->Etot<Mip / Etot>Mip / Etot>LowThr / Etot>HighThr; \n
+                    /*!< 
+                          M=0/1/2/3->Etot<Mip / Etot>Mip / Etot>LowThr / Etot>HighThr; \n
                          N=2/1/0->ShowerWidthTest=OK/Bad/Unknown
                     */
   float EcalTrSum; ///< EC-energy trig.sum(Gev)                    
@@ -1067,10 +1068,7 @@ public:
   /// \return index of TrTrackR object in collection or -1
   int TrTrack(unsigned int ptr)const {return ptr==0?fTrTrackL:fTrTrackR;}
   /// access function to  TrTrackR objects used
-  /// \return pointer to  TrTrackR objects or 0
-  /// access function to  TrTrackR objects used
-  /// \return index of TrTrackR object in collection or -1
-  /// access function to  TrTrackR objects used
+  /// \param ptr 0 -> Left Track, 1++ -> RightTrack
   /// \return pointer to  TrTrackR object or 0
   TrTrackR * pTrTrack(unsigned int ptr);
    VertexR(){};

@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.66 2003/05/12 21:17:45 choutko Exp $
+//  $Id: charge.C,v 1.67 2003/05/12 21:40:30 choutko Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -750,6 +750,7 @@ void AMSCharge::_writeEl(){
 
 void AMSCharge::_copyEl(){
 #ifdef __WRITEROOT__
+ if(PointerNotSet())return;
   ChargeR ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->Charge(_vpos);
     if (_pbeta) ptr.fBeta=_pbeta->GetClonePointer();
     else ptr.fBeta=-1;

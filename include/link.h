@@ -1,4 +1,4 @@
-//  $Id: link.h,v 1.15 2003/05/08 16:42:12 choutko Exp $
+//  $Id: link.h,v 1.16 2003/05/12 21:40:40 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 04, 1996. add _ContPos
@@ -17,7 +17,6 @@ class AMSlink {
 protected:
  uinteger _status;
  integer _pos; 
- TObject *_ptr;
  int _vpos;
   virtual void _copyEl()=0;
   virtual void _printEl(ostream &stream)=0;
@@ -29,19 +28,19 @@ public:
  void clearstatus(uinteger status){_status=_status & ~status;}
  int      GetClonePointer(){return _vpos;}
  void SetClonePointer(TObject *ptr, int vpos=-1){
- _ptr=ptr;
  _vpos=vpos;
 }
+ bool PointerNotSet()const {return _vpos<0;}
  virtual void resethash(integer id, AMSlink *head){};
   virtual AMSID crgid(integer i=0){return AMSID();}
   virtual integer operator < ( AMSlink & o) const;
   AMSlink * _next;
   AMSlink(uinteger status,AMSlink * n=0): 
-  _next(n),_pos(0), _ptr(0),_status(status){
+  _next(n),_pos(0), _status(status){
   _vpos=-1;
 };
   AMSlink(integer status=0): 
-  _next(0),_pos(0), _ptr(0),_status(status){};
+  _next(0),_pos(0), _status(status),_vpos(-1){};
   virtual ~AMSlink(){};
   integer getpos()const{return _pos;}
   void setpos(integer pos){_pos=pos;}

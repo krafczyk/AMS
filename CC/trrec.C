@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.147 2003/05/12 21:17:46 choutko Exp $
+//  $Id: trrec.C,v 1.148 2003/05/12 21:40:32 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1207,6 +1207,7 @@ void AMSTrRecHit::_writeEl(){
 
 void AMSTrRecHit::_copyEl(){
 #ifdef __WRITEROOT__
+    if(PointerNotSet())return;
     TrRecHitR trr=AMSJob::gethead()->getntuple()->Get_evroot02()->TrRecHit(_vpos);
     if (_Xcl) trr.fTrClusterX= _Xcl->GetClonePointer();
     else trr.fTrClusterX=-1;
@@ -2264,6 +2265,7 @@ void AMSTrTrack::_writeEl(){
 }
 void AMSTrTrack::_copyEl(){
 #ifdef __WRITEROOT__
+ if(PointerNotSet())return;
 TrTrackR trr=AMSJob::gethead()->getntuple()->Get_evroot02()->TrTrack(_vpos);
     for (int i=0; i<_NHits; i++) {
       if(_Pthit[i])trr.fTrRecHit.push_back(_Pthit[i]->GetClonePointer());

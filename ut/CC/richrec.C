@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.50 2003/05/12 21:17:46 choutko Exp $
+//  $Id: richrec.C,v 1.51 2003/05/12 21:40:31 choutko Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -860,6 +860,7 @@ void AMSRichRing::_writeEl(){
 }
 void AMSRichRing::_copyEl(){
 #ifdef __WRITEROOT__
+ if(PointerNotSet())return;
  RichRingR ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->RichRing(_vpos);
    if (_ptrack) ptr.fTrTrack= _ptrack->GetClonePointer();
    else ptr.fTrTrack=-1;
