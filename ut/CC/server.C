@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.57 2001/03/13 11:25:20 choutko Exp $
+//  $Id: server.C,v 1.58 2001/03/16 10:39:48 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -104,9 +104,13 @@ AMSServer::AMSServer(int argc, char* argv[]):_GlobalError(false){
  for (char *pchar=0; argc>1 &&(pchar=argv[1],*pchar=='-'); (argv++,argc--)){
     pchar++;
     switch (*pchar){
+    case 'M':    // Multithread
+     _MT=true;
+     break;
     case 'O':    // Oracle
       _Oracle=true;
       if(pchar+1 && *(pchar+1) =='I')_OracleW=true;
+      break;
     case 'D':    //debug
      _debug=atoi(++pchar);
      break;
@@ -196,6 +200,13 @@ if(niface){
      
   try{
    OrbitVars e;
+
+
+
+   if(_MT){
+      e._orb=CORBA::ORB_init(argc,argv,"orbit-local-mt-orb");
+   }
+   else{
    if(strstr(tmpbuf,"default"))e._orb=CORBA::ORB_init(argc,argv);
    else {
     AString a=(const char*)_pid.HostName;
@@ -209,8 +220,12 @@ if(niface){
     a+=tmpbuf;
        e._orb=CORBA::ORB_init(argc,argv,(const char *)a);
    }
+
+  }
+
    CORBA::Object_var obj=e._orb->resolve_initial_references("RootPOA");
    e._poa=PortableServer::POA::_narrow(obj);
+
 /*
    // orbit doesnot support policies in cpp yet -> mod the sources, so root poa now has multiple_id policy
    PortableServer::IdUniquenessPolicy_var lf=e._poa->create_iduniqueness_policy(PortableServer::MULTIPLE_ID);
@@ -336,10 +351,22 @@ else{
 
 
 void AMSServer::Listening(int sleeptime){
+/*
+static int init=0;
+if(!init){
+ init=1;
+ int pid=fork();
+ if(pid==0){
+typedef map<AString, AMSServer::OrbitVars>::iterator MOI; 
+      MOI i=_orbmap.begin();
+      ((*i).second)._orb->run();
+ }
+} 
+*/
 typedef map<AString, AMSServer::OrbitVars>::iterator MOI; 
       for(MOI i=_orbmap.begin();i!=_orbmap.end();++i){
        if(sleeptime>0)sleep(sleeptime);
-       ((*i).second)._orb->perform_work();
+       if(!_MT )((*i).second)._orb->perform_work();
       }
 }
 
@@ -380,6 +407,10 @@ _ExitInProgress=true;
 
     DPS::Server_var _pvar=DPS::Server::_narrow(obj);
     _pvar->Exiting(_pid,(message?message:AMSClient::_error.getMessage()),AMSClient::_error.ExitReason());
+typedef map<AString, AMSServer::OrbitVars>::iterator MOI; 
+      for(MOI i=_orbmap.begin();i!=_orbmap.end();++i){
+       ((*i).second)._orb->shutdown(false);
+      }
      break;
    }
    catch (CORBA::SystemException &ex){
@@ -518,12 +549,17 @@ for(MOI i=mo.begin();i!=mo.end();++i){
    if(!pcur)pcur=this;
 //   else add(pcur = new Server_impl());
   PortableServer::ObjectId_var oid=(i->second)._poa->activate_object(pcur);
-  DPS::Server_var _ref = reinterpret_cast<DPS::Server_ptr>((i->second)._poa->id_to_reference(oid));
+   DPS::Server_ptr _ref = reinterpret_cast<DPS::Server_ptr>((i->second)._poa->id_to_reference(oid));
    _refmap[i->first]=(i->second)._orb->object_to_string(_ref);
    if(!strcmp((const char *)(i->first),(const char*)cid.Interface)){
     _defaultorb=(i->second)._orb;
+    
    }
 }
+
+
+
+
 if(NS){
  ifstream fbin;
  fbin.open(NS);
@@ -623,6 +659,9 @@ if(NH){
 }
 else _parent->FMessage("Server_impl::Server_impl-F-NoNHFile",DPS::Client::CInAbort);
 
+
+
+
 }
 
 
@@ -635,7 +674,7 @@ for(MOI i=mo.begin();i!=mo.end();++i){
    if(!pcur)pcur=this;
 //   else add(pcur = new Server_impl());
   PortableServer::ObjectId_var oid=(i->second)._poa->activate_object(pcur);
-  DPS::Server_var _ref = reinterpret_cast<DPS::Server_ptr>((i->second)._poa->id_to_reference(oid));
+  DPS::Server_ptr _ref = reinterpret_cast<DPS::Server_ptr>((i->second)._poa->id_to_reference(oid));
    _refmap[i->first]=(i->second)._orb->object_to_string(_ref);
    if(!strcmp((const char *)(i->first),(const char*)cid.Interface)){
     _defaultorb=(i->second)._orb;
@@ -649,7 +688,7 @@ for(MOI i=mo.begin();i!=mo.end();++i){
 
 
 void Server_impl::StartClients(const DPS::Client::CID & pid){
-if(!Master())return;
+if(!Master() || _parent->MT())return;
 RegisteredClientExists();
 for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
 if(pcur->InactiveClientExists(getType()))return;
@@ -702,7 +741,7 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
     }
      char* gtv=getenv((const char*)((*cli)->WholeScriptPath));
      if(!gtv){
-        AString a("CouldNot getenv for ");
+        AString a("-E-CouldNot getenv for ");
         a+=(const char*)((*cli)->WholeScriptPath);
         a+=" ContinueWithFingersCrossing";
        _parent->EMessage((const char *)a);
@@ -719,6 +758,7 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
     submit+=(const char*)(ahlv)->Interface;
     if(_parent->IsOracle())submit+=" -O";
     if(_parent->Debug())submit+=" -D1";
+    if(_parent->MT())submit+=" -M";
     UpdateDBFileName(); 
     if(_parent->getdbfile()){
      submit+=" -B";
@@ -882,6 +922,7 @@ _pser->Lock(cid,DPS::Server::ClearCheckClient,getType(),_KillTimeOut);
 
 
 void Server_impl::_init(){
+
 // here active host list
 if(_ahl.size())return;
 
@@ -942,7 +983,7 @@ if(cid.Type==DPS::Client::Server){
        time(&tt);
        (*j)->LastUpdate=tt;
        DPS::Client::ActiveClient_var acv=*j;
-       PropagateAC(acv,DPS::Client::Update);
+         PropagateAC(acv,DPS::Client::Update );
 #ifdef __AMSDEBUG__
         _parent->IMessage(AMSClient::print(cid,"Server_impl::sendId-I-RegClient") );
 #endif 
@@ -1566,9 +1607,13 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
       ((as.ars)[0]).uid=0;
      }
    DPS::Client::ActiveClient_var acv=new DPS::Client::ActiveClient(as);
+//   cout << "  pac 0  "<<endl;
    PropagateAC(acv,rc);
+//   cout << "  pac 1  "<<endl;
    DPS::Client::CID asid=as.id;
    sendAC(asid,as,rc);
+//   cout << "  pac 2  "<<endl;
+
    if(rc ==DPS::Client::Create){
          for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
             if(!strcmp((const char *)(*i)->HostName, (const char *)(as.id).HostName)){
@@ -1591,7 +1636,7 @@ for(MOI i=mo.begin();i!=mo.end();++i){
    if(!pcur)pcur=this;
 //   else add(pcur = new Producer_impl());
  PortableServer::ObjectId_var oid=(i->second)._poa->activate_object(pcur);
-  DPS::Producer_var _ref = reinterpret_cast<DPS::Producer_ptr>((i->second)._poa->id_to_reference(oid));
+  DPS::Producer_ptr _ref = reinterpret_cast<DPS::Producer_ptr>((i->second)._poa->id_to_reference(oid));
    _refmap[i->first]=((i->second)._orb)->object_to_string(_ref);
    if(!strcmp((const char *)(i->first),(const char*)cid.Interface)){
     _defaultorb=(i->second)._orb;
@@ -1756,7 +1801,7 @@ for(MOI i=mo.begin();i!=mo.end();++i){
    if(!pcur)pcur=this;
 //   else add(pcur = new Producer_impl());
  PortableServer::ObjectId_var oid=(i->second)._poa->activate_object(pcur);
-  DPS::Producer_var _ref = reinterpret_cast<DPS::Producer_ptr>((i->second)._poa->id_to_reference(oid));
+  DPS::Producer_ptr _ref = reinterpret_cast<DPS::Producer_ptr>((i->second)._poa->id_to_reference(oid));
    _refmap[i->first]=((i->second)._orb)->object_to_string(_ref);
    if(!strcmp((const char *)(i->first),(const char*)cid.Interface)){
     _defaultorb=(i->second)._orb;
@@ -1937,6 +1982,7 @@ if(pcur->InactiveClientExists(getType()))return;
     submit+=(const char*) _refstring;
     submit+=" -U";
     submit+=tmp;
+    if(_parent->MT())submit+=" -M";
     if(_parent->Debug())submit+=" -D1";
     submit+=" -A";
      submit+=getenv("AMSDataDir");
@@ -2110,7 +2156,7 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
        _parent->IMessage(AMSClient::print(cid,"Producer_impl::sendId-I-RegClient "));
 #endif 
        DPS::Client::ActiveClient_var acv=*j;
-       PropagateAC(acv,DPS::Client::Update);
+       PropagateAC(acv, DPS::Client::Update);
 //       return false;
        return true;
       }

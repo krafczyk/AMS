@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.188 2001/03/09 16:41:06 choutko Exp $
+#  $Id: Mopt,v 1.189 2001/03/16 10:39:53 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -72,16 +72,22 @@ ifeq  "$(shell uname)"  "Linux"
 CC=g++ 
 FF=g77
 LD=g++
+BINMT=../bin/linux/mt/
 BIN=../bin/linux/
 EXE=../exe/linux/
 LIB=../lib/linux/
-LDFLAGSIDL=   -lorbitcpp -lorbitcppCosNaming -lORBitCosNaming
+LDFLAGSIDL=   -lorbitcpp 
+LDFLAGSIDLMT=   -lorbitcpp -lORBit-mt -lIIOP-mt -lORBitutil-mt -lgthread -lglib -lpthread -lpopt 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit -lglib -lIIOP -lORBitutil -lglib -lnsl  
+LDFLAGSSTATICIDLMT= -static $(LDFLAGSIDLMT) 
 IDL=orbit-idl
+IDLMT=orbit-idl-mt
 IDLCPP=orbit-idl -l c++
 CPP=g++ 
 CCC=gcc
+CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT -I/usr/include/ORBit-mt
 SRC=$(BIN)
+SRCMT=$(BINMT)
 INCLUDE=../include/
 IFLAGS= -I/usr/include -I$(SRC)
 ifdef AMSDEBUG
@@ -106,11 +112,16 @@ LDFLAGS=  -static   -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib 
 TIMEL=
 INCS= $(wildcard $(SRC)*.*h)    
 SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c 
+SRCSMT= $(SRCMT)server-stubs.c $(SRCMT)server-skels.c $(SRCMT)server-common.c 
 SRCSCPP= $(SRC)server-cpp-stubs.cc $(SRC)server-cpp-skels.cc $(SRC)server-cpp-common.cc 
-OBJECTCO=$(BIN)server-stubs.o $(BIN)server-skels.o $(BIN)server-common.o $(BIN)server-cpp-common.o 
-OBJECTCL= $(BIN)server-cpp-stubs.o 
+SRCSCPPMT= $(SRCMT)server-cpp-stubs.cc $(SRCMT)server-cpp-skels.cc $(SRCMT)server-cpp-common.cc 
+OBJECTCO=$(BIN)server-stubs.o $(BIN)server-skels.o $(BIN)server-common.o  
+OBJECTCOMT=$(BINMT)server-stubs.o $(BINMT)server-skels.o $(BINMT)server-common.o 
+OBJECTCL= $(BIN)server-cpp-stubs.o $(BIN)server-cpp-common.o
+OBJECTCLMT= $(BINMT)server-cpp-stubs.o $(BINMT)server-cpp-common.o
 OBJECTSEAUX=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver.o
 OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL) 
+OBJECTSEMT=  $(BINMT)server-cpp-skels.o   $(OBJECTCLMT) 
 endif
 
 ifeq  "$(shell uname)"  "AIX"
@@ -514,6 +525,13 @@ server:	$(SERVER)
 $(SERVER):          $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX) $(BIN)server.o
 	$(LD) -v -o $(SERVER) $(BIN)server.o  $(OBJECTSE) $(OBJECTSEAUX) $(OBJECTCO)  $(LDFLAGSSTATICIDL) 
 
+SERVERMT=$(EXE)amsprodservermt.exe
+
+servermt:	$(SERVERMT)
+
+$(SERVERMT):          $(OBJECTCOMT) $(OBJECTSEMT) $(OBJECTSEAUX) $(BIN)server_mt.o $(BIN)mys.o
+	$(LD) -v -o $(SERVERMT) $(BIN)server_mt.o $(BIN)mys.o $(OBJECTSEMT) $(OBJECTSEAUX) $(OBJECTCOMT)  $(LDFLAGSSTATICIDLMT) 
+
 CLIENT=$(EXE)gbatch-orbit.exe
 
 producer:	$(CLIENT)
@@ -525,9 +543,17 @@ $(OBJECTSE):         $(SRCSCPP)
 	$(CPP)  -fpermissive  -c $(CFLAGS) $(SRCSCPP) 
 	mv *.o $(BIN)
 
+$(OBJECTSEMT):         $(SRCSCPPMT)
+	$(CPP)  -fpermissive  -c $(CFLAGS) $(SRCSCPPMT) 
+	mv *.o $(BINMT)
+
 $(OBJECTCO):         $(SRCS)
 	$(CCC) -c $(CFLAGS) $(SRCS) 
 	mv *.o $(BIN)
+
+$(OBJECTCOMT):         $(SRCSMT)
+	$(CCCMT) -c $(CFLAGS) $(SRCSMT) 
+	mv *.o $(BINMT)
 
 
 $(SRCS):    	 $(INCLUDE)server.idl
@@ -537,10 +563,20 @@ $(SRCS):    	 $(INCLUDE)server.idl
 
 
 
+$(SRCSMT):    	 $(INCLUDE)server.idl
+	$(IDLMT) $(INCLUDE)server.idl
+	mv *.h $(SRCMT)
+	mv *.c $(SRCMT)
+
 $(SRCSCPP):   $(SRCS) 	 $(INCLUDE)server.idl
 	$(IDLCPP) $(INCLUDE)server.idl
 	mv *.hh $(SRC)
 	mv *.cc $(SRC)
+
+$(SRCSCPPMT):   $(SRCSMT) 	 $(INCLUDE)server.idl
+	$(IDLCPP) $(INCLUDE)server.idl
+	mv *.hh $(SRCMT)
+	mv *.cc $(SRCMT)
 
 
 $(BIN)gbatch_c.o:         $(SCC)gbatch.C
@@ -569,6 +605,12 @@ $(BIN)client.o: 	 $(SCC)client.C
 
 $(BIN)server.o: 	 $(SCC)server.C
 	$(CC)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
+
+$(BIN)server_mt.o: 	 $(SCC)server.C
+	$(CC)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server_mt.o
+
+$(BIN)mys.o: 	 $(SCC)mys.c
+	$(CCCMT) -c  $(CFLAGS) $(IDLFLAGS) $(SCC)mys.c -o $(BIN)mys.o
 
 $(BIN)dbserver.o: 	 $(SCC)dbserver.C
 	$(CC)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o

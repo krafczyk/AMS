@@ -1,4 +1,4 @@
-//  $Id: client.h,v 1.15 2001/02/21 12:45:35 choutko Exp $
+//  $Id: client.h,v 1.16 2001/03/16 10:39:53 choutko Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
 #include <typedefs.h>
@@ -24,6 +24,7 @@ protected:
  AMSClientError  _error;
  int _debug;
  bool _Oracle;
+ bool _MT;
  bool _OracleW;
  char * _DBFileName;
  int _MaxDBProcesses;
@@ -36,7 +37,7 @@ protected:
  static char _streambuffer[1024]; 
  static ostrstream _ost;
 public:
-AMSClient(int debug=0):_debug(debug),_Oracle(false),_OracleW(false),_DBFileName(0),_MaxDBProcesses(0),_error(" "),_ExitInProgress(false)
+AMSClient(int debug=0):_debug(debug),_Oracle(false),_MT(false),_OracleW(false),_DBFileName(0),_MaxDBProcesses(0),_error(" "),_ExitInProgress(false)
 {_pid.Status=DPS::Client::NOP;}
 virtual ~AMSClient(){};
 const char * getdbfile() const {return _DBFileName;}
@@ -44,6 +45,7 @@ void setdbfile(const char * db);
 void resetdbfile();
 int getmaxdb()const{return _MaxDBProcesses;}
 bool IsOracle() const {return _Oracle;}
+bool MT() const { return _MT;} 
 bool InitOracle() const {return _OracleW;}
 bool DBServerExists() const{return _MaxDBProcesses!=0 || _Oracle;}
 AMSClientError & Error(){return _error;}

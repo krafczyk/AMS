@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.34 2001/03/02 10:40:53 choutko Exp $
+//  $Id: producer.C,v 1.35 2001/03/16 10:39:48 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -31,6 +31,9 @@ else{
      break;
     case 'D':   //debug
      _debug=atoi(++pchar);
+     break;
+    case 'M':   //debug
+     _MT=true;
      break;
     case 'U':   //uid
      uid=atoi(++pchar);
@@ -462,6 +465,19 @@ if(!CORBA::is_nil(*li)){
      if(length==0){
       FMessage("getARS-S-UnableToGetARS ",DPS::Client::CInAbort);
      }   
+     if(_MT){
+     for(int i=0;i<length;i++){
+        CORBA::Object_var obj=_orb->string_to_object((ars[i]).IOR);
+        if(!CORBA::is_nil(obj)){
+        DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
+        if(!CORBA::is_nil(_pvar)){
+         if(i==0)_plist.clear();
+         _plist.push_back(_pvar);
+        }
+        }
+       }
+     }
+     else{
       bool LocalHostFound=false;
      for(int i=0;i<length;i++){
         CORBA::Object_var obj=_orb->string_to_object((ars[i]).IOR);
@@ -493,6 +509,7 @@ if(!CORBA::is_nil(*li)){
         }
         }
        }
+     }
       break;
 }
 }

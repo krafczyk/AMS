@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.13 2001/03/02 17:45:24 alexei Exp $
+//  $Id: dbserver.C,v 1.14 2001/03/16 10:39:47 choutko Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
@@ -20,7 +20,7 @@ for(MOI i=mo.begin();i!=mo.end();++i){
    if(!pcur)pcur=this;
 //   else add(pcur = new DBServer_impl());
  PortableServer::ObjectId_var oid=(i->second)._poa->activate_object(pcur);
-  DPS::DBServer_var _ref = reinterpret_cast<DPS::DBServer_ptr>((i->second)._poa->id_to_reference(oid));
+  DPS::DBServer_ptr _ref = reinterpret_cast<DPS::DBServer_ptr>((i->second)._poa->id_to_reference(oid));
    _refmap[i->first]=((i->second)._orb)->object_to_string(_ref);
    if(!strcmp((const char *)(i->first),(const char*)cid.Interface)){
     _defaultorb=(i->second)._orb;
@@ -68,7 +68,7 @@ for(MOI i=mo.begin();i!=mo.end();++i){
    if(!pcur)pcur=this;
 //   else add(pcur = new DBServer_impl());
  PortableServer::ObjectId_var oid=(i->second)._poa->activate_object(pcur);
-  DPS::DBServer_var _ref = reinterpret_cast<DPS::DBServer_ptr>((i->second)._poa->id_to_reference(oid));
+  DPS::DBServer_ptr _ref = reinterpret_cast<DPS::DBServer_ptr>((i->second)._poa->id_to_reference(oid));
    _refmap[i->first]=((i->second)._orb)->object_to_string(_ref);
    if(!strcmp((const char *)(i->first),(const char*)cid.Interface)){
     _defaultorb=(i->second)._orb;
