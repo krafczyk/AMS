@@ -494,6 +494,19 @@ int iflgk[100];
 #define GCKING COMMON_BLOCK(GCKING,gcking)
 COMMON_BLOCK_DEF(GCKING_DEF,GCKING);
 
+// structure for CKOV photons
+
+struct GCKIN2_DEF{
+int ngphot;
+float xphot[800][11];
+};
+
+#define GCKIN2 COMMON_BLOCK(GCKIN2,gckin2)
+COMMON_BLOCK_DEF(GCKIN2_DEF,GCKIN2);
+
+//
+
+
 struct GCKIN3_DEF{
 float GPOS[100][3];
 };

@@ -220,16 +220,16 @@ integer RICHDB::detcer(geant photen)
 
 // New function to apply q.eff a priori in photons produced in RICH
 
-extern "C" integer prod_cer_(geant *energy){
-  integer lvl=GCVOLU.nlevel-1;
-
-  if(
-    (GCVOLU.names[lvl][0]=='R' && GCVOLU.names[lvl][1]=='A' &&
-     GCVOLU.names[lvl][2]=='D' && GCVOLU.names[lvl][3]==' ') ||
-    (GCVOLU.names[lvl][0]=='C' && GCVOLU.names[lvl][1]=='A' &&
-     GCVOLU.names[lvl][2]=='T' && GCVOLU.names[lvl][3]=='O')){
-    if(RICHDB::detcer(*energy)) return 0;
-  }
-  return 1;
-}
+//extern "C" integer prod_cer_(geant *energy){
+//  integer lvl=GCVOLU.nlevel-1;
+//
+//  if(
+//    (GCVOLU.names[lvl][0]=='R' && GCVOLU.names[lvl][1]=='A' &&
+//     GCVOLU.names[lvl][2]=='D' && GCVOLU.names[lvl][3]==' ') ||
+//    (GCVOLU.names[lvl][0]=='C' && GCVOLU.names[lvl][1]=='A' &&
+//     GCVOLU.names[lvl][2]=='T' && GCVOLU.names[lvl][3]=='O')){
+//    if(RICHDB::detcer(*energy)) return 0;
+//  }
+//  return 1;
+//}
 

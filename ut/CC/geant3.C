@@ -378,14 +378,17 @@ extern "C" void gustep_(){
 
   if(RICCONTROL.iflgk_flag){
    for(int i=0;i<GCKING.ngkine;i++){
-//     if(GCKING.iflgk[i]==0) GCKING.iflgk[i]=1;
-     GCKING.iflgk[i]=1;
+     if(GCKING.iflgk[i]==0) GCKING.iflgk[i]=1;
+//     GCKING.iflgk[i]=1;
    }
   }
   GCTRAK.upwght=0; 
   GSKING(0);
   GCTRAK.upwght=1; //cerenkov tracked first  
-  GSKPHO(0);
+  for(integer i=0;i<GCKIN2.ngphot;i++){
+    if(RICHDB::detcer(GCKIN2.xphot[i][6]))
+       GSKPHO(i+1);
+  }
   GCTRAK.upwght=0;  
 //  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("SYSGUSTEP");
 #ifdef __AMSDEBUG__
