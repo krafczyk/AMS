@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.196 2003/06/25 07:58:22 choutko Exp $
+# $Id: RemoteClient.pm,v 1.197 2003/07/24 09:58:21 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -25,11 +25,11 @@ use POSIX  qw(strtod);
 
 @RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout deleteTimeOutJobs parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
 
-my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
-my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
-my     $bluebullet   = 'http://ams.cern.ch/AMS/icons/bullet_blue.gif';
-my     $silverbullet = 'http://ams.cern.ch/AMS/icons/bullet_silver.gif';
-my     $purplebullet = 'http://ams.cern.ch/AMS/icons/bullet_purple.gif';
+my     $bluebar      = 'http://pcamsf0.cern.ch/AMS/icons/bar_blue.gif';
+my     $maroonbullet = 'http://pcamsf0.cern.ch/AMS/icons/bullet_maroon.gif';
+my     $bluebullet   = 'http://pcamsf0.cern.ch/AMS/icons/bullet_blue.gif';
+my     $silverbullet = 'http://pcamsf0.cern.ch/AMS/icons/bullet_silver.gif';
+my     $purplebullet = 'http://pcamsf0.cern.ch/AMS/icons/bullet_purple.gif';
 
 my     $srvtimeout = 30; # server timeout 30 seconds
 my     @colors=("red","green","blue","magenta","orange","cyan","tomato");
@@ -1830,6 +1830,8 @@ sub Connect{
           $outform = "List ALL DSTs matching to query";
          } elsif ($q->param("NTOUT") eq "RUNS") { 
           $outform = "List Runs matching to query";
+         } elsif ($q->param("NTOUT") eq "FILES") { 
+          $outform = "List Files matching to query";
          } elsif ($q->param("NTOUT") eq "NTCHAIN") {
           if ( defined $q->param("NTCHAIN")) {
            $ntchain=$q->param("NTCHAIN");
@@ -1959,6 +1961,12 @@ sub Connect{
                print "<td><b><font color=\"blue\" >Job Submit Time </font></b></td>\n";
                print "</tr>\n";
            }
+             if ($ntout eq "FILES") {
+               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+               print "<td><b><font color=\"blue\" >File Path </font></b></td>";
+               print "</tr>\n";
+           }
+
 
        my $ret=$self->{sqlserver}->Query($sql);
        if (defined $ret->[0][0]) {
@@ -1969,11 +1977,12 @@ sub Connect{
              my $particleid=$r->[1];
              my $part=>undef;
 
-             $sql="SELECT jobname, runs.submit FROM Jobs, Runs, NTuples  
+             $sql="SELECT jobname, runs.submit FROM Jobs, Runs   
                      WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run";
              if (defined $dstformat) {
               if ($dstformat eq "NTUPLE") {
-               $sql="SELECT jobname, runs.submit FROM Jobs, Runs, NTuples 
+               $sql="SELECT jobname, runs.submit  
+                      FROM Jobs, Runs, NTuples 
                       WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run AND 
                             NTuples.jid = Jobs.jid AND NTuples.type='Ntuple' ";
                } elsif ($dstformat eq "ROOT") {
@@ -2020,6 +2029,16 @@ sub Connect{
                   <td><b><font color=$color> $run </font></b></td>
                   <td><b><font color=$color> $submittime </font></b></td>\n";
                print "</font></tr>\n";
+           }
+            if ($ntout eq "FILES") {
+               my $sql = "SELECT path From Ntuples WHERE Run=$run";
+               my $r4=$self->{sqlserver}->Query($sql);
+               my $color="black";
+               my $i = 0;
+               foreach my $path (@{$r4}) {
+                print "<td><b><font color=$color> $path->[$i] </font></td></b></font></tr>\n";
+                $i++;
+               }
            }
 
 # oracle specific SUM, COUNT, MIN, MAX
@@ -2331,7 +2350,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
       htmlTableEnd();
    print "<p><br>\n";
    print "<b><font color=green> Print :  </font><INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ALL\" CHECKED> Full Listing\n";
-   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"RUNS\"> Only run numbers (or file names);\n";
+   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"RUNS\"> Only run numbers;\n";
+   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"FILES\"> Only file names;\n";
    print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"SUMM\"> Summary \n";
    print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"NTCHAIN\"> NTchain <INPUT TYPE=\"text\" name=\"NTCHAIN\">";
    print "<TR></TR>\n";
