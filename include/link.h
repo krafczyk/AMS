@@ -10,6 +10,7 @@
 #include <typedefs.h>
 #include <upool.h>
 #include <apool.h>
+#include <id.h>
 class AMSlink {
 protected:
   virtual void _erase();

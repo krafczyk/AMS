@@ -3,7 +3,6 @@
 #ifndef __AMSCOMMONS__
 #define __AMSCOMMONS__
 #include <cern.h>
-#include <mceventg.h>
 
 const int NWPAW=300000;
 struct PAWC_DEF{
@@ -54,6 +53,8 @@ integer ntuple;
 integer WriteAll;
 integer TriggerI;
 integer TriggerC[40];
+integer mode;
+integer ffile[40];
 };
 #define IOPA COMMON_BLOCK(IOPA,iopa)
 COMMON_BLOCK_DEF(IOPA_DEF,IOPA);

@@ -11,6 +11,7 @@
 #include <point.h>
 #include <cern.h>
 #include <link.h>
+#include <io.h>
 class AMSmceventg: public AMSlink {
 private:
 
@@ -42,6 +43,7 @@ integer getseed(integer i)const{return (i>=0 && i<2) ? _seed[i]: 0;}
 void setseed(integer seed[2]){_seed[0]=seed[0];_seed[1]=seed[1];}
 static integer debug;
 AMSmceventg(integer seed[2]){_next=0;setseed(seed);}
+AMSmceventg( const AMSIO & io);
 ~AMSmceventg(){}
 void init(integer);
 void run(integer ipart);
@@ -56,6 +58,5 @@ AMSmceventg(){_next=0;}
 #ifdef __DB__
    friend class AMSmceventgD;
 #endif
-//-
 };
 #endif

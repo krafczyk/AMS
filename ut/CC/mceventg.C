@@ -6,6 +6,7 @@
 #include <event.h>
 #include <commons.h>
 #include <ntuple.h>
+#include <io.h>
 
 extern "C" void spectra_();
 AMSPoint AMSmceventg::_coorange[2];
@@ -18,6 +19,19 @@ integer  AMSmceventg::_fixedmom;
 number   AMSmceventg::_albedorate;
 number   AMSmceventg::_albedocz; 
 number   AMSmceventg::_planesw[6];
+
+AMSmceventg::AMSmceventg(const AMSIO & io){
+_seed[0]=io._seed[0];
+_seed[1]=io._seed[1];
+init(io._ipart);
+_mom=io._mom;
+int i;
+for(i=0;i<3;i++){
+ _coo[i]=io._coo[i];
+ _dir[i]=io._dir[i];
+}
+InitSeed();
+}
 
 void AMSmceventg::gener(){
 static integer ini=0;
@@ -261,7 +275,12 @@ stream <<" Random numbers "<<_seed[0]<<" "<<_seed[1]<<endl;
 }
 
 void AMSmceventg::_copyEl(){
-
+  // write elem  for simple i/o
+   integer run,event;
+   run=AMSEvent::gethead()->getrun();
+   event=AMSEvent::gethead()->getEvent();
+   AMSIO io(run,event,AMSEvent::gethead()->gettime(),_ipart,_seed,_coo,_dir,_mom);
+   io.write();
 }
 
 void AMSmceventg::_writeEl(){

@@ -345,8 +345,10 @@ extern "C" void guout_(){
        }
      }
 
-   if(trig )AMSEvent::gethead()->write();
-   AMSEvent::gethead()->copy();
+   if(trig ){ 
+     AMSEvent::gethead()->write();
+     AMSEvent::gethead()->copy();
+   }
 #ifdef __DB__
 //+
    if(trig) {
@@ -388,15 +390,33 @@ time_t         Time;
   }
 #endif
 // create new event & initialize it
+  if(IOPA.mode !=1){
   AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
   new AMSEvent(AMSID("Event",++event),CCFFKEY.run,0,Time)));
-
-  for(integer i=0;i<CCFFKEY.npat;i++){
-   AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
-   if(genp){
-    AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
-    genp->run(GCKINE.ikine);
+   for(integer i=0;i<CCFFKEY.npat;i++){
+    AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
+    if(genp){
+     AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
+     genp->run(GCKINE.ikine);
+    }
    }
+  }
+  else {
+   AMSIO io;
+   if(io.read()){
+    AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
+    new AMSEvent(AMSID("Event",io.getevent()),io.getrun(),0,io.gettime())));
+    AMSmceventg* genp=new AMSmceventg(io);
+    if(genp){
+     AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
+     genp->run();
+   }
+   }
+   else{
+    GCFLAG.IEORUN=1;
+    GCFLAG.IEOTRI=1;
+    return;
+   }   
   }
 #ifdef __AMSDEBUG__
    AMSContainer *p = AMSEvent::gethead()->getC("AMSmceventg",0);

@@ -7,6 +7,7 @@
 #include <iostream.h>
 #include <amsstl.h>
 #include <commons.h>
+#include <link.h>
 class AMSTrIdGeom{
 integer _layer;    // from 1 to 6
 integer _ladder;   // from 1 to AMSDBc::nlad(_layer)

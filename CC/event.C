@@ -261,6 +261,7 @@ for (int i=0;;){
 }
 
 void AMSEvent::copy(){
+if(IOPA.mode ==2){
 _copyEl();
 AMSNode * cur;
 for (int i=0;;){
@@ -272,8 +273,9 @@ for (int i=0;;){
  else break;
 }
 
-}
 
+}
+}
 
 void AMSEvent::event(){
    if(AMSJob::gethead()->getjobtype() == AMSFFKEY.Simulation)_siamsevent();
@@ -431,7 +433,8 @@ void AMSEvent::_sitofinitrun(){
     ifstream tcfile(fname,ios::in); // open needed t-calib. file for reading
     if(!tcfile){
       cerr <<"Sitofinitrun(Event.c): Error open file "<<fname<<endl;
-      exit(1);
+      //exit(1);
+      return;
     }
 // <-- fill errays scp, bl1,bl2,ef1,ef2 from file
 //

@@ -17,6 +17,7 @@
 #include <charge.h>
 #include <ctcdbc.h>
 #include <timeid.h>
+#include <mceventg.h>
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
 integer AMSJob::debug=1;
@@ -58,6 +59,8 @@ IOPA.WriteAll=0;
 VBLANK(IOPA.TriggerC,40);
 char amsp[12]="AMSParticle";
 UCTOH(amsp,IOPA.TriggerC,4,12);
+IOPA.mode=0;
+VBLANK(IOPA.ffile,40);
 FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
 
 _sitkdata();
@@ -340,12 +343,15 @@ void AMSJob::udata(){
 char jobname[160];
 char setupname[160];
 char triggername[160];
+char ffile[160];
 UHTOC(AMSFFKEY.Jobname,40,jobname,160);
 UHTOC(AMSFFKEY.Setupname,40,setupname,160);
+UHTOC(IOPA.ffile,40,ffile,160);
 UHTOC(IOPA.TriggerC,40,triggername,160);
 jobname[159]='\0';
 setupname[159]='\0';
 triggername[159]='\0';
+ffile[159]='\0';
 int i;
 //+
 for (i=158; i>0; i--) {        // should be at least 1 char
@@ -356,7 +362,14 @@ for (i=158; i>=0; i--) {
  if(setupname[i] == ' ') setupname[i]='\0';
  else break;
 }
-
+for (i=158; i>=0; i--) {
+ if(ffile[i] == ' ') ffile[i]='\0';
+ else break;
+}
+if(IOPA.mode){
+ AMSIO::setfile(ffile);
+ AMSIO::init(IOPA.mode);
+}
 //-
 int len;
 for(i=158;i>=0;i--){

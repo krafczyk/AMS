@@ -25,6 +25,9 @@ I44    TriggerI(1)               // Not used in v204++
 I45    TriggerC('AMSParticle')   // Container names, separated by
                                  // & or | to trigger write 
                                  // the ntuple and/or db
+I85    mode(0)                   // simple i/0 mode switch
+                                 // 0 - nothing 1 -read 2 - write
+I86   ffile(' ')                 // file name
 //-----------------------------------------------------------------------------
 // TOF  Simulation
 
