@@ -33,6 +33,7 @@ const integer AMSTrCluster::REFITTED=4;
 const integer AMSTrCluster::WEAK=8;
 const integer AMSTrRecHit::FalseX=1;
 const integer AMSTrRecHit::FalseTOFX=2;
+const integer AMSTrRecHit::AwayTOF=3;
 
 integer AMSTrTrack::patconf[npat][6]={1,2,3,4,5,6,   // 123456  0
                                       1,2,3,4,6,0,   // 12346   1
@@ -846,6 +847,10 @@ integer AMSTrRecHit::build(integer refit){
    y=y->next();
  }  
  return 1;
+
+// Mark hits away from TOF predictions
+ markAwayTOFHits();
+
 }
 
 
@@ -900,7 +905,122 @@ integer AMSTrRecHit::buildWeak(integer refit){
    y=y->next();
  }  
  return 1;
+
+// Mark hits away from TOF predictions
+ markAwayTOFHits();
+
 }
+
+
+/* This function checks if AMSTrRecHits are consistent with TOF information */
+/* and marks them if it is not the case                                     */
+integer AMSTrRecHit::markAwayTOFHits(){
+
+    int i;
+
+    TriggerLVL3 *plvl3;
+    plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+// LVL3 required if existing
+    if (plvl3==NULL) {
+#ifdef __AMSDEBUG__
+      cout << "makeFalseTOFXHits: No Level3 Trigger existing" << endl;
+#endif
+      return 1;
+    }
+    if ( plvl3->skip() ) return 1;
+
+    AMSTOFCluster *phit[4], *ploop;
+
+// There should be one and only one AMSTOFCluster on planes 1, 4
+// according to LVL3 trigger
+    phit[0] = AMSTOFCluster::gethead(0);
+    if ( (phit[0] == NULL) || (phit[0]->next()) ) return 1;
+    phit[3] = AMSTOFCluster::gethead(3);
+    if ( (phit[3] == NULL) || (phit[3]->next()) ) return 1;
+
+// Initial straight line from planes 1 and 4 for ZX projection
+    number slope_x= (phit[3]->getcoo()[0] - phit[0]->getcoo()[0]) /
+               (phit[3]->getcoo()[2] - phit[0]->getcoo()[2]);
+    number intercept_x= phit[0]->getcoo()[0] - slope_x*phit[0]->getcoo()[2];
+
+// Look for the best AMSTOFCluster on plane 2 within errors
+// to improve the X prediction on the tracker
+    number resmax2=999.;
+    phit[1]=NULL;
+    for (ploop = AMSTOFCluster::gethead(1); ploop ; ploop=ploop->next() ){
+      number resx2 = fabs(ploop->getcoo()[0] 
+                          - slope_x*ploop->getcoo()[2] - intercept_x);
+      if (resx2<resmax2) {
+        resmax2 = resx2;
+        phit[1] = ploop;
+      }
+    }
+
+// Look for the best AMSTOFCluster on plane 3 within errors
+// to improve the X prediction
+    number resmax3=999.;
+    phit[2]=NULL;
+    for (ploop = AMSTOFCluster::gethead(2); ploop ; ploop=ploop->next() ){
+      number resx3 = fabs(ploop->getcoo()[0] 
+                          - slope_x*ploop->getcoo()[2] - intercept_x);
+      if (resx3<resmax3) {
+        resmax3 = resx3;
+        phit[2] = ploop;
+      }
+    }
+
+// We require at least 3 AMSTOFClusters
+    if ( (phit[1]==NULL) && (phit[2]==NULL) ) return 1;
+
+// Straight line parameters for the ZX plane 
+// 4 TOF planes: use only Pad information (planes2+3: TOF calib. independent)
+// 3 TOF planes: use all 3 planes (TOF calib. dependent)
+    number sw=0, sz=0, sx=0, sxz=0, szz=0;
+    for (i=0; i<4; i++){
+      if (phit[i]==NULL) continue;
+      if (i==0 || i==4) {
+        if (phit[1]!=NULL && phit[2]!=NULL) continue;
+      }
+      number w = phit[i]->getecoo()[0]; if (w<=0.) continue; w = 1./w/w;
+      number x = phit[i]->getcoo()[0];
+      number z = phit[i]->getcoo()[2];
+      sw += w;
+      sx += x*w;
+      sz += z*w;
+      sxz += x*z*w;
+      szz += z*z*w;
+    }
+    number determinant = szz*sw-sz*sz;
+    slope_x = (sxz*sw-sx*sz)/determinant;
+    intercept_x = (szz*sx-sz*sxz)/determinant;
+    number covss = sw/determinant;
+    number covsi = -sz/determinant;
+    number covii = szz/determinant;
+
+// Straight line parameters for the ZY plane 
+// (Only planes 1,4 => TOFCalib independent, but robust and enough)
+    number slope_y= (phit[3]->getcoo()[1] - phit[0]->getcoo()[1]) /
+               (phit[3]->getcoo()[2] - phit[0]->getcoo()[2]);
+    number intercept_y= phit[0]->getcoo()[1] - slope_y*phit[0]->getcoo()[2];
+
+// Mark AMSTrRecHits which are outside the TOF path
+    AMSTrRecHit * ptrhit;
+    AMSPoint hit;
+    for (i=0;i<6;i++) {
+      for (ptrhit=AMSTrRecHit::gethead(i); ptrhit!=NULL; ptrhit=ptrhit->next()){
+        hit = ptrhit->getHit();
+        number xres = fabs(hit[0]-intercept_x - slope_x*hit[2]);
+        number yres = fabs(hit[1]-intercept_y - slope_y*hit[2]);
+        if (    xres > TRFITFFKEY.SearchRegTOF
+             || yres > TRFITFFKEY.SearchRegTOF    ) {
+          ptrhit->setstatus(AMSTrRecHit::AwayTOF);
+        }
+      }
+    }
+
+}
+
+
 
 
 
@@ -1024,10 +1144,10 @@ integer AMSTrTrack::build(integer refit){
       phit[0]=AMSTrRecHit::gethead(first);
       number par[2][2];
       while( phit[0]){
-       if(TRFITFFKEY.FullReco || phit[0]->checkstatus(AMSDBc::USED)==0){
+       if(phit[0]->Good()){
        phit[fp]=AMSTrRecHit::gethead(second);
        while( phit[fp]){
-        if(TRFITFFKEY.FullReco || phit[fp]->checkstatus(AMSDBc::USED)==0){
+        if(phit[fp]->Good()){
         par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
         par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
@@ -1038,7 +1158,7 @@ integer AMSTrTrack::build(integer refit){
         // Search for others
         phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
         while(phit[1]){
-         if(TRFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0){
+         if(phit[1]->Good()){
           // Check if the point lies near the str line
            if(AMSTrTrack::Distance(par,phit[1]))
            {phit[1]=phit[1]->next();continue;}
@@ -1046,19 +1166,19 @@ integer AMSTrTrack::build(integer refit){
          phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
          while(phit[2]){
           // Check if the point lies near the str line
-          if(TRFITFFKEY.FullReco || phit[2]->checkstatus(AMSDBc::USED)==0){
+          if(phit[2]->Good()){
           if(AMSTrTrack::Distance(par,phit[2]))
           {phit[2]=phit[2]->next();continue;}
           if(AMSTrTrack::patpoints[pat] >4){         
           phit[3]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][3]-1);
           while(phit[3]){
-           if(TRFITFFKEY.FullReco || phit[3]->checkstatus(AMSDBc::USED)==0){
+           if(phit[3]->Good()){
            if(AMSTrTrack::Distance(par,phit[3]))
            {phit[3]=phit[3]->next();continue;}
            if(AMSTrTrack::patpoints[pat]>5){
            phit[4]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][4]-1);
            while(phit[4]){
-             if(TRFITFFKEY.FullReco || phit[4]->checkstatus(AMSDBc::USED)==0){
+             if(phit[4]->Good()){
               if(AMSTrTrack::Distance(par,phit[4]))
               {phit[4]=phit[4]->next();continue;}
                 // 6 point combination found
@@ -1156,12 +1276,10 @@ integer AMSTrTrack::buildWeak(integer refit){
       phit[0]=AMSTrRecHit::gethead(first);
       number par[2][2];
       while( phit[0]){
-       if((TRFITFFKEY.FullReco || phit[0]->checkstatus(AMSDBc::USED)==0) &&
-          (phit[0]->checkstatus(AMSTrCluster::WEAK)==0)){
+       if(phit[0]->Good() && phit[0]->checkstatus(AMSTrCluster::WEAK)==0){
        phit[fp]=AMSTrRecHit::gethead(second);
        while( phit[fp]){
-        if(TRFITFFKEY.FullReco || phit[fp]->checkstatus(AMSDBc::USED)==0 &&
-          (phit[fp]->checkstatus(AMSTrCluster::WEAK)==0)){
+        if(phit[fp]->Good() && phit[fp]->checkstatus(AMSTrCluster::WEAK)==0){
         par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
         par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
@@ -1172,14 +1290,14 @@ integer AMSTrTrack::buildWeak(integer refit){
         if(NTrackFound<0)NTrackFound=0;
         phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
         while(phit[1]){
-         if(TRFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0){
+         if(phit[1]->Good()){
           // Check if the point lies near the str line
            if(AMSTrTrack::Distance(par,phit[1]))
            {phit[1]=phit[1]->next();continue;}
          phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
          while(phit[2]){
           // Check if the point lies near the str line
-          if(TRFITFFKEY.FullReco || phit[2]->checkstatus(AMSDBc::USED)==0){
+          if(phit[2]->Good()){
           if(AMSTrTrack::Distance(par,phit[2]))
           {phit[2]=phit[2]->next();continue;}
                 // 4 point combination found
@@ -1246,12 +1364,10 @@ integer AMSTrTrack::buildFalseX(integer refit){
       phit[0]=AMSTrRecHit::gethead(first);
       number par[2][2];
       while( phit[0]){
-       if((TRFITFFKEY.FullReco || phit[0]->checkstatus(AMSDBc::USED)==0) &&
-          (phit[0]->checkstatus(AMSTrCluster::WEAK)==0)){
+       if(phit[0]->Good() && phit[0]->checkstatus(AMSTrCluster::WEAK)==0){
        phit[fp]=AMSTrRecHit::gethead(second);
        while( phit[fp]){
-        if(TRFITFFKEY.FullReco || phit[fp]->checkstatus(AMSDBc::USED)==0 &&
-          (phit[fp]->checkstatus(AMSTrCluster::WEAK)==0)){
+        if(phit[fp]->Good() && phit[fp]->checkstatus(AMSTrCluster::WEAK)==0){
         par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
         par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
@@ -1262,7 +1378,7 @@ integer AMSTrTrack::buildFalseX(integer refit){
         if(NTrackFound<0)NTrackFound=0;
         phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
         while(phit[1]){
-         if(TRFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0){
+         if(phit[1]->Good()){
           // Check if the point lies near the str line
            if(AMSTrTrack::Distance(par,phit[1]))
            {phit[1]=phit[1]->next();continue;}
@@ -1338,6 +1454,8 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
            else pthit[i]->setstatus(AMSDBc::USED);
            if(pthit[i]->checkstatus(AMSTrRecHit::FalseX))
             ptrack->setstatus(AMSTrRecHit::FalseX);
+           if(pthit[i]->checkstatus(AMSTrCluster::WEAK))
+            ptrack->setstatus(AMSTrCluster::WEAK);
            if(pthit[i]->checkstatus(AMSTrRecHit::FalseTOFX))
             ptrack->setstatus(AMSTrRecHit::FalseTOFX);
          }
@@ -1614,6 +1732,55 @@ _CircleRidgidity=xmom;
 //             _Pthit[2]->getHit()[0]-_Pthit[0]->getHit()[0]);
 //
 //}
+}
+
+void AMSTrTrack::TOFFit(integer ntof, AMSPoint tofhit, AMSPoint etofhit){
+
+integer ifit=0;
+integer npt=_NHits+ntof;
+const integer maxhits=14;
+assert (npt<maxhits && _NHits>2 && ntof>2);
+geant x[maxhits];
+geant y[maxhits];
+geant wxy[maxhits];
+geant z[maxhits];
+geant ssz[maxhits];
+geant ressz[maxhits];
+geant resxy[2*maxhits];
+geant spcor[maxhits];
+number work[maxhits];
+geant chixy;
+geant chiz;
+geant xmom,dip,phis,exmom;
+integer iflag=0;
+geant p0[3];
+for (int i=0;i<_NHits;i++){
+ z[i]=_Pthit[i]->getHit()[0];
+ x[i]=_Pthit[i]->getHit()[1];
+ y[i]=_Pthit[i]->getHit()[2];
+ wxy[i]= (_Pthit[i]->getEHit()[1] * _Pthit[i]->getEHit()[1]+
+          _Pthit[i]->getEHit()[2] * _Pthit[i]->getEHit()[2]);
+ wxy[i]= 1/wxy[i];
+ ssz[i]= _Pthit[i]->getEHit()[0];
+ ssz[i]= 1/ssz[i]; 
+}
+for (i=0;i<ntof;i++){
+ z[_NHits+i] = tofhit[0];
+ x[_NHits+i] = tofhit[1];
+ y[_NHits+i] = tofhit[2];
+ wxy[_NHits+i] = (etofhit[1]*etofhit[1] + etofhit[2]*etofhit[2]);
+ wxy[_NHits+i] = 1/wxy[_NHits+i];
+ ssz[_NHits+i] = etofhit[0];
+ ssz[_NHits+i] = 1/ssz[_NHits+i]; 
+}
+
+TRAFIT(ifit,x,y,wxy,z,ssz,npt,resxy,ressz,iflag,spcor,work,chixy,chiz,xmom,
+       exmom,p0,dip,phis);
+if(iflag/1000 == 0)_Chi2Circle=chixy;
+else _Chi2Circle=FLT_MAX;
+if(iflag%1000 ==0)_Chi2StrLine=chiz;
+else _Chi2StrLine=FLT_MAX;
+_CircleRidgidity=xmom;
 }
 
 
@@ -2179,7 +2346,7 @@ integer AMSTrTrack::makeFalseTOFXHits(){
     AMSTrCluster *py;
     for (py=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0);
          py != NULL ; py=py->next()) {
-// Do nothing for cad clusters
+// Do nothing for bad clusters
       if (py->checkstatus(AMSDBc::BAD) != 0) continue;
 // SoftId, approximate IdGeom and approximate gSensor
       AMSTrIdSoft idsoft = py->getid();
@@ -2276,18 +2443,10 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
       phit[0]=AMSTrRecHit::gethead(first);
       number par[2][2];
       while( phit[0]){
-       if (phit[0]->getstatus()!=AMSTrRecHit::FalseTOFX){
-         phit[0] = phit[0]->next();
-         continue;
-       }
-       if(TRFITFFKEY.FullReco || phit[0]->checkstatus(AMSDBc::USED)==0){
+       if(phit[0]->Good() && phit[0]->checkstatus(AMSTrRecHit::FalseTOFX)!=0){
        phit[fp]=AMSTrRecHit::gethead(second);
        while( phit[fp]){
-         if (phit[fp]->getstatus()!=AMSTrRecHit::FalseTOFX){
-           phit[fp] = phit[fp]->next();
-           continue;
-         }
-        if(TRFITFFKEY.FullReco || phit[fp]->checkstatus(AMSDBc::USED)==0){
+        if(phit[fp]->Good() && phit[fp]->checkstatus(AMSTrRecHit::FalseTOFX)!=0){
         par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
         par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
@@ -2298,43 +2457,27 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
         // Search for others
         phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
         while(phit[1]){
-         if (phit[1]->getstatus()!=AMSTrRecHit::FalseTOFX){
-           phit[1] = phit[1]->next();
-           continue;
-         }
-         if(TRFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0){
+         if(phit[1]->Good() && phit[1]->checkstatus(AMSTrRecHit::FalseTOFX)!=0){
           // Check if the point lies near the str line
            if(AMSTrTrack::DistanceTOF(par,phit[1]))
            {phit[1]=phit[1]->next();continue;}
           if(AMSTrTrack::patpoints[pat] >3){         
          phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
          while(phit[2]){
-          if (phit[2]->getstatus()!=AMSTrRecHit::FalseTOFX){
-            phit[2] = phit[2]->next();
-            continue;
-          }
           // Check if the point lies near the str line
-          if(TRFITFFKEY.FullReco || phit[2]->checkstatus(AMSDBc::USED)==0){
+          if(phit[2]->Good() && phit[2]->checkstatus(AMSTrRecHit::FalseTOFX)!=0){
           if(AMSTrTrack::DistanceTOF(par,phit[2]))
           {phit[2]=phit[2]->next();continue;}
           if(AMSTrTrack::patpoints[pat] >4){         
           phit[3]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][3]-1);
           while(phit[3]){
-           if (phit[3]->getstatus()!=AMSTrRecHit::FalseTOFX){
-             phit[3] = phit[3]->next();
-             continue;
-           }
-           if(TRFITFFKEY.FullReco || phit[3]->checkstatus(AMSDBc::USED)==0){
+           if(phit[3]->Good() && phit[3]->checkstatus(AMSTrRecHit::FalseTOFX)!=0){
            if(AMSTrTrack::DistanceTOF(par,phit[3]))
            {phit[3]=phit[3]->next();continue;}
            if(AMSTrTrack::patpoints[pat]>5){
            phit[4]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][4]-1);
            while(phit[4]){
-             if (phit[4]->getstatus()!=AMSTrRecHit::FalseTOFX){
-               phit[4] = phit[4]->next();
-               continue;
-             }
-             if(TRFITFFKEY.FullReco || phit[4]->checkstatus(AMSDBc::USED)==0){
+             if(phit[4]->Good() && phit[4]->checkstatus(AMSTrRecHit::FalseTOFX)!=0){
               if(AMSTrTrack::DistanceTOF(par,phit[4]))
               {phit[4]=phit[4]->next();continue;}
                 // 6 point combination found

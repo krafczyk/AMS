@@ -131,6 +131,7 @@ class AMSTrRecHit: public AMSlink{
 public:
      static const integer FalseX;
      static const integer FalseTOFX;
+     static const integer AwayTOF;
 protected:
 AMSgSen * _pSen;
 AMSTrCluster *_Xcl;
@@ -157,6 +158,12 @@ integer operator < (AMSlink & o) const {
  else return 0;             
 
 } 
+
+inline integer Good() { 
+  return (TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0) 
+            && checkstatus(AMSTrRecHit::AwayTOF)==0;
+}
+static integer markAwayTOFHits();
 
 AMSTrRecHit *  next(){return (AMSTrRecHit*)_next;}
 
@@ -263,6 +270,7 @@ number _GChi2MS;
 number _RidgidityMS;
 number _GRidgidityMS;
 void SimpleFit(AMSPoint err=0);
+void TOFFit(integer ntof, AMSPoint tofhit, AMSPoint etofhit);
 void   AdvancedFit();
 static void _Start(){_Time=HighResTime();}
 static geant _CheckTime(){return HighResTime()-_Time;}
