@@ -18,6 +18,9 @@ const integer RICmaxentries=44;
 const integer RICmaxrows=100;
 
 const integer RICentries=44;   // no. of entries in wave_length,eff...   
+const integer RICmaxpmts=2000; // max no. of pmts
+const integer RICnwindows=16;  // Number of windows for pmt
+
 
 
 class RICHDB { 
@@ -66,7 +69,8 @@ public: // To be migrated in the future
   static integer n_rows;
   static integer total; // Total number of pmts in the actual setup
   static integer n_pmts[RICmaxrows];
-
+  
+  static integer c_ped;
 
 
 public:

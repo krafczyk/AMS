@@ -142,7 +142,7 @@ public:
   integer getid() const {return _idsoft;}
   number getenergy() const {return _energy;}
   integer getkind() const {return _kind;}
-
+  geant getcoo(integer i){return i>=0 && i<3 ? _xcoo[i]:0;} // Just for debug
 };
 
 

@@ -1,6 +1,7 @@
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
+#include<iostream.h>
 
 // defaults
 
@@ -75,34 +76,40 @@ geant RICHDB::ped=-0.2888;      // Values extracted from A. Contin talk
 geant RICHDB::sigma_ped=0.5335; // January 11 1999
 geant RICHDB::peak=22.75;
 geant RICHDB::sigma_peak=12.10;
+integer RICHDB::c_ped=integer(-.2888+3*0.5335); 
+
+
+// These function still are under test
 
 
 geant RICHDB::x(integer pmt,integer window){
   integer w=(window-1)%4;
   geant offset=(lg_tile_size-2*RICotherthk)/4;  
 
+
   switch(w){
   case 0:
-    offset*=-3/2;
+    offset*=-1.5;
     break;
   case 1:
-    offset*=-1/2;
+    offset*=-0.5;
     break;
   case 2:
-    offset*=1/2;
+    offset*=0.5;
     break;
   case 3:
-    offset*=3/2;
+    offset*=1.5;
     break;
   }
 
+
   w=(pmt-1)%4;
-  geant sx=1;
+  geant sx=1.;
 
   switch(w){
   case 1:
   case 3: 
-    sx=-1;
+    sx=-1.;
     break;
   }
 
@@ -122,34 +129,35 @@ geant RICHDB::y(integer pmt,integer window){
 
   switch(w){
   case 0:
-    offset*=3/2;
+    offset*=1.5;
     break;
   case 1:
-    offset+=1/2;
+    offset*=0.5;
     break;
   case 2:
-    offset*=-1/2;
+    offset*=-0.5;
     break;
   case 3:
-    offset*=-3/2;
+    offset*=-1.5;
     break;
   }
 
   w=(pmt-1)%4;
-  geant sx=1;
+  geant sx=1.;
   
   switch(w){
   case 2:
   case 3: 
-    sx=-1;
+    sx=-1.;
     break;
   }
+
+  pmt=(pmt-1)/4;
 
   integer nr=0;
   
   while(pmt>n_pmts[nr]){pmt-=n_pmts[nr];nr++;};
-  
-  return (lg_tile_size/2+pmt*lg_tile_size)*sx+offset;
+  return (lg_tile_size/2+nr*lg_tile_size)*sx+offset;
 }
 
 void RICHDB::add_row(geant x){
@@ -160,7 +168,7 @@ void RICHDB::add_row(geant x){
 
 
 void RICHDB::add_pmt(){
-  n_pmts[n_rows]++;
+  n_pmts[n_rows-1]++;
 }
 
 

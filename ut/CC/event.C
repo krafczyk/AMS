@@ -43,6 +43,7 @@
 #include <signal.h>
 #include <ecaldbc.h>
 #include <ecalrec.h>
+#include <richrec.h>
 #include <geantnamespace.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -1699,6 +1700,7 @@ void AMSEvent:: _siecalevent(){
 
 
 void AMSEvent::_sirichevent(){
+  AMSRichRawEvent::mc_build();
 }
 
 
