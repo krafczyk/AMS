@@ -3,10 +3,12 @@ ClassImp(AMSHist)
 Int_t AMSHist::DispatchHist(Int_t cset){
   if(cset>=0){
     ShowSet(cset);
+    _cSetl=cset;
     return 0;
   }
   else{
     ShowSet(_cSet);
+    _cSetl=_cSet;
     _cSet=(_cSet+1)%_mSet;
     if(_mSet==1)_cSet=0;
     return _cSet;

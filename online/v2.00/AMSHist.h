@@ -11,6 +11,7 @@ class AMSNtuple;
 class AMSHist : public TNamed {
 protected:
  Int_t _cSet;
+ Int_t _cSetl;
  Int_t _mSet;
  Bool_t _active; 
  TH1 ** _fetched2;  
@@ -22,11 +23,12 @@ protected:
 
 public:
  Int_t & getCSet() {return _cSet;}
+ Int_t & getCSetl() {return _cSetl;}
  Int_t  getMSet() {return _mSet;}
  void Reset(); 
  virtual void Fill(AMSNtuple * ntuple);
  AMSHist(Text_t * name, Text_t * title, Int_t maxset=0, Int_t active=1):
- TNamed(name,title),_cSet(0),_mSet(maxset),_active(active),_m2fetched(0),_m2filled(0),_fetched2(0),_filled2(0){}
+ TNamed(name,title),_cSet(0),_cSetl(0),_mSet(maxset),_active(active),_m2fetched(0),_m2filled(0),_fetched2(0),_filled2(0){}
  Int_t DispatchHist(Int_t cset=-1);
  virtual void ShowSet(Int_t cset)=0;
  virtual ~AMSHist();
