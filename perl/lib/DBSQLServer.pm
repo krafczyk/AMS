@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.69 2005/02/15 16:46:18 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.70 2005/03/02 18:46:35 alexei Exp $
 
 #
 #
@@ -865,7 +865,7 @@ sub DESTROY{
     if(defined $self->{dbhandler}){
         $self->{dbhandler}->disconnect();
     }
-    warn "DESTROYING $self";
+#    warn "DESTROYING $self";
 }
 
 sub trimblanks {

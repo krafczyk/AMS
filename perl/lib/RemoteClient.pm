@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.300 2005/02/16 14:29:51 alexei Exp $
+# $Id: RemoteClient.pm,v 1.301 2005/03/02 18:46:35 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -74,7 +74,8 @@
 #
 # Feb  4, 2005    : AMS02/2005A correct minor bugs
 #
-# Feb 15, 2005    : allow more than 1 "Active" Production Sets
+# Feb 17, 2005    : allow more than 1 "Active" Production Sets
+#                   new subs, remove $ActiveProductionSet use @productionPeriods
 #
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
@@ -161,8 +162,7 @@ my     $rmprompt        = 1; # prompt before files removal
  my $copyTime     = 0;
  my $copyCalls    = 0;
 #-
- my $ActiveProductionSet   = undef;
- my $ProductionStartTime   = 0;
+
  my $defROOT    = "CHECKED";
  my $defNTUPLE  = " ";
 
@@ -233,6 +233,11 @@ my %fields=(
         HTTPcgi   =>'http://pcamss0.cern.ch/cgi-bin/mon',
         UploadsDir=>undef,
         UploadsHREF=>undef,
+
+        ProductionSetName=>[],
+        ProductionSetStatus=>[],
+        ProductionSetBegin=>[],
+        
         FileDB   =>[],
         FileAttDB=>[],
         FileCRC=>undef,
@@ -451,8 +456,6 @@ my %mv=(
         $validatecgi = $validatecgiMySQL;
     } 
 #
-    $self->setActiveProductionSet();
-#
  $dir=$ENV{CERN_ROOT};
  if (defined $dir){
      $self->{CERN_ROOT}=$dir;
@@ -602,6 +605,7 @@ my %mv=(
   my  $datasetsDB  = undef;
   my  $jobsDB      = undef;
 
+  my ($period, $periodStartTime) = $self->getActiveProductionPeriod();
 # get list of datasets (names and dids)
   my  $sql="select count(did) from DataSets";
   my $ret=$self->{sqlserver}->Query($sql);
@@ -610,12 +614,13 @@ my %mv=(
    $sql="select did, name from DataSets";
    $datasetsDB =$self->{sqlserver}->Query($sql);
 
-   $sql="select count(jid) from Jobs where timestamp > $ProductionStartTime";
+
+   $sql="select count(jid) from Jobs where timestamp > $periodStartTime";
    $ret=$self->{sqlserver}->Query($sql);
    if (defined $ret->[0][0]) {
     $njobsDB = $ret->[0][0];
     $sql="select jid,time,triggers,timeout, did, jobname from Jobs 
-         where timestamp > $ProductionStartTime";
+         where timestamp > $periodStartTime";
     $jobsDB= $self->{sqlserver}->Query($sql);
    }
   }
@@ -726,7 +731,7 @@ my %mv=(
                      for my $n (3..$#junk) {
                          $jobname = $jobname.".".$junk[$n];
                      }
-                         if ($jobname eq %$template->{filename}) {
+                         if ($jobname eq $template->{filename}) {
                             if ($jobsTimeDB - time() > $jobsTimeOutDB) {
                               $sql="select FEvent,LEvent from Runs where jid=$jobsJidDB and status='Finished'";
                               $ret=$self->{sqlserver}->Query($sql);
@@ -777,7 +782,7 @@ my %mv=(
           }
       }
      } # end jobs of jobs
-
+ 
     sub prio { $b->{TOTALEVENTS}*$b->{CPUPEREVENTPERGHZ}  <=> $a->{TOTALEVENTS}*$a->{CPUPEREVENTPERGHZ};}
     my @tmpb=sort prio @tmpa;
     foreach my $tmp (@tmpb){
@@ -902,7 +907,6 @@ foreach my $file (@allfiles){
     }
   }
 }
-    $self->setActiveProductionSet();
 
     if(defined $ior ){
       if ($webmode ==0) {print "Init -I- IOR got it \n";}
@@ -1175,8 +1179,8 @@ sub ValidateRuns {
       DBServer::InitDBFile($self->{dbserver});
     }
     if ($webmode ==0  and $verbose ==1) { print "ValidateRuns -I- set active production set \n";}
-    $self->setActiveProductionSet();
-    if (not defined $ActiveProductionSet || $ActiveProductionSet eq $UNKNOWN) {
+    my ($period,$ptime) = $self->getActiveProductionPeriod();
+    if (not defined $period || $period eq $UNKNOWN || $ptime==0) {
       $self->amsprint("parseJournalFiles -ERROR- cannot get active production set",0);
       die "bye";
    }
@@ -1394,7 +1398,7 @@ sub ValidateRuns {
                            $badevents=int($i*$ntuple->{EventNumber}/100);
                            $validated++;
                            my $jobid = $run->{Run};
-                           my ($outputpath,$rstatus) = $self->doCopy($jobid,$fpath,$ntuple->{crc});
+                           my ($outputpath,$rstatus) = $self->doCopy($jobid,$fpath,$ntuple->{crc},$ntuple->{Version});
                            if(defined $outputpath){
                               push @mvntuples, $outputpath; 
                           }
@@ -1543,6 +1547,7 @@ sub doCopy {
      my $jid  = shift;
      my $inputfile = shift;
      my $crc       = shift;
+     my $version   = shift;
 # 
      my $sql   = undef;
      my $cmd   = undef;
@@ -1550,6 +1555,13 @@ sub doCopy {
 #
      my $time0  = time();
      my $time00 = 0;      # begin CRC calc
+
+     my ($dbv, $gbv, $osv)       = $self->getDSTVersion($version);
+     my ($period,$prodStartTime) = $self->getActiveProductionPeriodByVersion($dbv);
+     if (not defined $period || $period == $UNKNOWN || $prodStartTime == 0) {
+         die "Cannnot find Active Production Period for DB version $dbv \n";
+     }
+
 
      $doCopyCalls++;
 
@@ -1566,7 +1578,7 @@ sub doCopy {
      my $filesize    = (stat($inputfile))[7];
      if ($filesize > 0) {
 # get output disk
-      my ($outputpath, $gb) = $self->getOutputPath();
+      my ($outputpath, $gb) = $self->getOutputPath($period);
          if ($outputpath =~ 'xyz' || $gb == 0) {
              if ($webmode == 0) {
               print "doCopy -E- Cannot find any disk to store DSTs. Exit";
@@ -1634,7 +1646,7 @@ sub doCopy {
   } 
 
   return undef,0;
-}
+ }
 
 
 sub Validate{
@@ -1878,7 +1890,6 @@ sub ConnectOnlyDB{
          }
      }
 
-    $self->setActiveProductionSet();
 }
 
 sub ConnectDB{
@@ -1890,8 +1901,7 @@ sub ConnectDB{
     else{
         $self->{ok}=1;
     }
-    $self->setActiveProductionSet();
-} 
+}
 
 sub Connect{
 
@@ -1907,6 +1917,8 @@ sub Connect{
  ; 
     my $ti = time();
 
+    $self->getProductionPeriods(0);
+    my $ProductionPeriod = 'tmp';
 #
  my    $insertjobsql = undef;
 #
@@ -2969,7 +2981,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             }
             print "<p>\n";
 # User's and cite info 
-           $self->  getProductionPeriods();
+           $self->  getProductionPeriods(0);
            print "<FORM METHOD=\"POST\" action=\"$self->{Name}\">\n";
             print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
             print "<tr><td>\n";
@@ -3490,12 +3502,14 @@ else {
                foreach my $fs (@{$self->{FilesystemT}}){
                  if ($fs->{available} > $maxavail) {
                    $maxavail = $fs->{available};
-                   $ntdir = $fs->{disk}.$fs->{path}."/".$ActiveProductionSet;
+#---???                   $ntdir = $fs->{disk}.$fs->{path}."/".$ActiveProductionSet;
+                   $ntdir = $fs->{disk}.$fs->{path}."/tmp/Basic";
                    if ($fs->{disk} =~ /vice/) {
-                    $ntdir = $fs->{path}."/".$ActiveProductionSet;
+#---???                    $ntdir = $fs->{path}."/".$ActiveProductionSet;
+                    $ntdir = $fs->{path}."/tmp/Basic";;
                    }
                  }
-               }
+              }
 DDTAB:         $self->htmlTemplateTable(" ");
                print "<tr><td>\n";
                print "<b><font color=\"green\">Ntuples Output Path</font></b><BR>\n";
@@ -3516,6 +3530,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
           htmlReturnToMain();
           htmlFormEnd();
          htmlBottom();
+# end of basic
          } elsif($self->{q}->param("CTT") eq "Advanced"){
              htmlTop();
              $self->htmlTemplateTable("Select Parameters for Advanced Request");
@@ -3670,9 +3685,11 @@ DDTAB:         $self->htmlTemplateTable(" ");
                foreach my $fs (@{$self->{FilesystemT}}){
                  if ($fs->{available} > $maxavail) {
                    $maxavail = $fs->{available};
-                   $ntdir = $fs->{disk}.$fs->{path}."/".$ActiveProductionSet;
+#---???                   $ntdir = $fs->{disk}.$fs->{path}."/".$ActiveProductionSet;
+                   $ntdir = $fs->{disk}.$fs->{path}."/tmp/Advanced";
                    if ($fs->{disk} =~ /vice/) {
-                    $ntdir = $fs->{path}."/".$ActiveProductionSet;
+#---???                    $ntdir = $fs->{path}."/".$ActiveProductionSet;
+                    $ntdir = $fs->{path}."/tmp/Advanced";
                    }
                  }
               }
@@ -3733,7 +3750,20 @@ DDTAB:          $self->htmlTemplateTable(" ");
             }
             print "</select>\n";
             print "</b></td></tr>\n";
-            htmlTextField("Nick Name","text",24,$ActiveProductionSet,"QNick"," ");  
+
+             print "<tr valign=middle><td align=left><b><font size=\"-1\"> Nick Name : </b></td> <td colspan=1>\n";
+             print "<select name=\"QNick\" >\n";
+             foreach my $p (@productionPeriods) {
+              if ($p->{status} =~ 'Active') {
+                if ($p->{vdb} =~ $dataset->{version}) {
+                 print "<option value=\"$p->{name}\">$p->{name} </option>\n";
+                 $ProductionPeriod = $p->{name};
+                }
+              }
+            }
+            print "</select>\n";
+            print "</b></td></tr>\n";
+             
             print "</TABLE>\n";
 # Cite Parameters
               print "<tr><td><b><font color=\"blue\">Cite HW Parameters</font></b>\n";
@@ -3809,9 +3839,9 @@ DDTAB:          $self->htmlTemplateTable(" ");
                foreach my $fs (@{$self->{FilesystemT}}){
                 if ($fs->{available} > $maxavail) {
                    $maxavail = $fs->{available};
-                   $ntdir = $fs->{disk}.$fs->{path}."/".$ActiveProductionSet;
+                   $ntdir = $fs->{disk}.$fs->{path}."/".$ProductionPeriod;
                    if ($fs->{disk} =~ /vice/) {
-                    $ntdir = $fs->{path}."/".$ActiveProductionSet;
+                    $ntdir = $fs->{path}."/".$ProductionPeriod;
                    }
                  }
                }
@@ -4491,7 +4521,7 @@ print qq`
 
         if($self->{CCT} eq "remote"){
 #+
-         $self->  getProductionPeriods();
+         $self->  getProductionPeriods(0);
          foreach my $mc (@productionPeriods) {
           if ($mc->{status} =~ 'Active') {
            my $vdb = $mc->{vdb};
@@ -5776,8 +5806,8 @@ sub checkJobsTimeout {
    }
 
 
-   $self->setActiveProductionSet();
 
+   my ($period, $periodStartTime) = $self -> getActiveProductionPeriod();
    if ($webmode == 1) {
     $self->htmlTop();
 #
@@ -5797,7 +5827,7 @@ sub checkJobsTimeout {
 # at least one DST is copied to final destination 
 #
 # get production set path
-    if (not defined $ActiveProductionSet || $ActiveProductionSet eq $UNKNOWN) {
+    if (not defined $period || $period eq $UNKNOWN || $periodStartTime == 0) {
     } else {
      $sql = "SELECT runs.run 
               FROM runs 
@@ -5809,7 +5839,7 @@ sub checkJobsTimeout {
       if( defined $r1->[0][0]){
        foreach my $r (@{$r1}){
         my $run= $r -> [0];
-        $sql="SELECT run FROM ntuples WHERE path LIKE '%$ActiveProductionSet%' AND run=$run";
+        $sql="SELECT run FROM ntuples WHERE run=$run";
         my $r2=$self->{sqlserver}->Query($sql);
         if( defined $r2->[0][0]){
            $sql="UPDATE runs SET runs.status='Completed' WHERE run=$run";
@@ -6144,8 +6174,7 @@ sub listAll {
      $self -> colorLegend();
     }
     
-    $self->  getProductionPeriods();
-    $self->  setActiveProductionSet();
+    $self->  getProductionPeriods(0);
     $self -> listProductionSetPeriods();
     $self -> listStat();
      $self -> listCites();
@@ -6164,8 +6193,7 @@ sub listMCStatus {
     htmlTop();
     $self->ht_init();
     
-    $self->  getProductionPeriods();
-    $self->  setActiveProductionSet();
+    $self->  getProductionPeriods(0);
     $self -> listProductionSetPeriods();
     $self -> listStat();
 
@@ -6194,8 +6222,7 @@ sub listShort {
      $self -> colorLegend();
     }
     
-    $self->  getProductionPeriods();
-    $self->  setActiveProductionSet();
+    $self->  getProductionPeriods(0);
     $self -> listProductionSetPeriods();
     $self -> listStat();
      $self -> listCites();
@@ -6496,7 +6523,7 @@ sub listStat {
                 $csizegb = sprintf("%.1f",$ret->[0][1]/1000);
                }
 #
-               my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays();
+               my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($datasetStartTime);
                
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
                print "<td align=center><b><font color=\"blue\">Jobs </font></b></td>";
@@ -6524,18 +6551,16 @@ sub listStat {
                print "<td align=center><b><font color=\"green\" > $totaldays days</font></b></td>";
               print "</tr>\n";
            my $color="black";
-           my $reqevents = $trigreq;
-           if ($trigreq => 1000 && $trigreq <= 1000000) {
-               $reqevents = sprintf("%.2fK",$trigreq/1000.);
+           if ($trigreq <= 1000000) {
+             $trigreq = sprintf("%.2fK",$trigreq/1000);
 	   } else {
-               $reqevents = sprintf("%.2fM",$trigreq/1000000.);
+             $trigreq = sprintf("%.2fM",$trigreq/1000000);
 	   }
 
-           my $donevents = $trigdone;
-           if ($trigdone=> 1000 && $trigdone<= 1000000) {
-               $donevents = sprintf("%.2fK",$trigdone/1000.);
+           if ($trigdone<= 1000000) {
+               $trigdone = sprintf("%.2fK",$trigdone/1000);
  	   } else {
-               $donevents = sprintf("%.2fM",$trigdone/1000000.);
+               $trigdone = sprintf("%.2fM",$trigdone/1000000);
 	   }
 
  
@@ -6544,8 +6569,8 @@ sub listStat {
                   <td align=center><b><font color=$color> $jobsdone </font></b></td>
                   <td align=center><b><font color=$color> $jobsfailed </font></td></b>
                   <td align=center><b><font color=$color> $jobstimeout </font></td></b>
-                  <td align=center><b><font color=$color> $reqevents </font></td></b>
-                  <td align=center><b><font color=$color> $donevents </font></b></td>
+                  <td align=center><b><font color=$color> $trigreq </font></td></b>
+                  <td align=center><b><font color=$color> $trigdone </font></b></td>
                   <td align=center><b><font color=$color> $nntuples </font></b></td>
                   <td align=center><b><font color=$color> $nsizegb </font></b></td>
                   <td align=center><b><font color=$color> $cntuples </font></b></td>
@@ -6641,6 +6666,9 @@ sub listStat {
     
 sub listCites {
     my $self = shift;
+
+    my ($period, $periodStartTime) = $self->getActiveProductionPeriod();
+
     print "<b><h2><A Name = \"cites\"> </a></h2></b> \n";
      htmlTable("Cites ");
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -6677,7 +6705,7 @@ sub listCites {
 
           my $laststarttime = 0;
           my $starttime     = "---";
-          $sql = "SELECT MAX(TIME) FROM Jobs WHERE cid=$cid AND Jobs.timestamp> $ProductionStartTime";
+          $sql = "SELECT MAX(TIME) FROM Jobs WHERE cid=$cid AND Jobs.timestamp> $periodStartTime";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {
             $laststarttime = $r4->[0][0];
@@ -6691,7 +6719,7 @@ sub listCites {
                      (Runs.Status = 'Finished'  OR 
                       Runs.Status = 'Completed' OR
                       Runs.Status = 'Failed'    OR
-                      Runs.Status = 'Unchecked') AND Jobs.timestamp> $ProductionStartTime";
+                      Runs.Status = 'Unchecked') AND Jobs.timestamp> $periodStartTime";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {
            $lastendtime = $r4->[0][0];
@@ -6699,19 +6727,19 @@ sub listCites {
           };
 
           my $jobs = 0;   # total jobs
-          $sql = "SELECT COUNT(jid) FROM Jobs WHERE cid=$cid AND Jobs.timestamp> $ProductionStartTime";
+          $sql = "SELECT COUNT(jid) FROM Jobs WHERE cid=$cid AND Jobs.timestamp> $periodStartTime";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobs = $r4->[0][0]};
 
           my $jobsa = 0;  # processing jobs
           $sql = "SELECT COUNT(jobs.jid)  FROM Jobs, Runs 
-                   where (jobs.jid=runs.jid and cid=$cid) AND Jobs.timestamp> $ProductionStartTime";
+                   where (jobs.jid=runs.jid and cid=$cid) AND Jobs.timestamp> $periodStartTime";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobsa = $jobs - $r4->[0][0]};
           $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs WHERE 
                      Jobs.jid=Runs.jid AND cid=$cid AND 
                      (Runs.Status = 'Foreign' OR 
-                      Runs.Status = 'Processing') AND Jobs.timestamp> $ProductionStartTime";
+                      Runs.Status = 'Processing') AND Jobs.timestamp> $periodStartTime";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobsa += $r4->[0][0]};
 
@@ -6719,7 +6747,7 @@ sub listCites {
           $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs WHERE 
                      Jobs.jid=Runs.jid AND cid=$cid AND 
                      (Runs.Status = 'Finished' OR 
-                      Runs.Status = 'Completed') AND Jobs.timestamp> $ProductionStartTime";
+                      Runs.Status = 'Completed') AND Jobs.timestamp> $periodStartTime";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobsc = $r4->[0][0]};
 
@@ -6729,7 +6757,7 @@ sub listCites {
                      Jobs.jid=Runs.jid AND cid=$cid AND 
                      (Runs.Status = 'Failed' OR 
                       Runs.Status = 'TimeOut' OR 
-                      Runs.Status = 'Unchecked') AND Jobs.timestamp> $ProductionStartTime";
+                      Runs.Status = 'Unchecked') AND Jobs.timestamp> $periodStartTime";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobsf = $r4->[0][0]};
 
@@ -6763,9 +6791,8 @@ sub listDisks {
     my $usedGBMC = 0;
     my $totalGBMC= 0;
 
-     $self->setActiveProductionSet();
-    
 
+    $self->getProductionPeriods(0);
     $sql="SELECT MAX(timestamp) FROM Filesystems";
     my $r0=$self->{sqlserver}->Query($sql);
     if( defined $r0->[0][0]){
@@ -6796,32 +6823,35 @@ sub listDisks {
            $dpath  = $dd->[2];
           }
           $fs    = $dd->[0].":".$dpath;
-          if (not defined $ActiveProductionSet || $ActiveProductionSet eq $UNKNOWN) {
-          } else {
-           $dpath = $dpath."/".$ActiveProductionSet;
-          } 
-          $sql = "SELECT SUM(sizemb) FROM ntuples WHERE PATH like '$dpath%'";
-          my $r4=$self->{sqlserver}->Query($sql);
-          if (defined $r4->[0][0]) {
-              $usedGBMC = sprintf("%6.1f",$r4->[0][0]/1000);
-              $totalGBMC = $totalGBMC + $r4->[0][0];
-          }
-
-
-          my $size   = $dd->[3];
-          my $used   = $dd->[4];
-          my $avail  = $dd->[5];
+          my $size   = 0;
+          my $used   = 0;
+          my $avail  = 0;
           my $status   = trimblanks($dd->[6]);
-          print "<tr><font size=\"2\">\n";
-          my $color=statusColor($status);
-          print "<td><b> $fs </b></td>
+          foreach my $p (@productionPeriods) {
+           if ($p->{status} =~ 'Active') {
+            $dpath = $dpath."/".$p->{name};
+            $sql = "SELECT SUM(sizemb) FROM ntuples WHERE PATH like '$dpath%'";
+            my $r4=$self->{sqlserver}->Query($sql);
+            if (defined $r4->[0][0]) {
+             $totalGBMC = $totalGBMC + $r4->[0][0];
+             $size   = $size + $dd->[3];
+             $used   = $used + $dd->[4];
+             $avail  = $avail+ $dd->[5];
+             $status   = trimblanks($dd->[6]);
+            }    
+           }
+         }
+            $usedGBMC = sprintf("%6.1f",$used/1000);
+            print "<tr><font size=\"2\">\n";
+            my $color=statusColor($status);
+            print "<td><b> $fs </b></td>
                  <td align=middle><b> $size </td>
                  <td align=middle><b> $usedGBMC </td>
                  <td align=middle><b> $avail </b></td>
                  <td><font color=$color><b> $status </font></b></td>\n";
-          print "</font></tr>\n";
+            print "</font></tr>\n";
       }
-  }
+    }
     $sql="SELECT SUM(totalsize), SUM(occupied), SUM(available) FROM Filesystems";
     my $r4=$self->{sqlserver}->Query($sql);
     if(defined $r4->[0][0]){
@@ -6948,6 +6978,8 @@ sub listJobs {
     my @runId     = ();
     my @runStatus = ();
 
+    my ($period, $periodStartTime) = $self->getActiveProductionPeriod();
+
     print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
     htmlTable("MC02 Jobs (25 latest jobs per cite submitted earlier than 30 days ago)");
     print_bar($bluebar,3);
@@ -6967,6 +6999,7 @@ sub listJobs {
      print "</TR></TABLE> \n";
     }
 
+
     $sql="SELECT 
                  Jobs.jid, Jobs.jobname,
                  Jobs.time, Jobs.timeout, 
@@ -6977,7 +7010,7 @@ sub listJobs {
             WHERE  Jobs.cid=Cites.cid AND 
                      Jobs.mid=Mails.mid AND
                       Jobs.timestamp > $timelate AND
-                       Jobs.timestamp > $ProductionStartTime 
+                       Jobs.timestamp > $periodStartTime 
              ORDER  BY Cites.name, Jobs.jid DESC";
 
      my $r3=$self->{sqlserver}->Query($sql);
@@ -7023,7 +7056,7 @@ sub listJobs {
                @runStatus = ();
                $sql="SELECT Runs.jid, Runs.status from Runs, Jobs 
                      WHERE (Jobs.cid=$cid AND Runs.jid=Jobs.jid) AND 
-                           Jobs.timestamp > $ProductionStartTime";
+                           Jobs.timestamp > $periodStartTime";
                $r3=$self->{sqlserver}->Query($sql);
                if (defined $r3->[0][0]) {
                 foreach my $r (@{$r3}){
@@ -7083,6 +7116,7 @@ sub listJobs {
 sub listRuns {
     my $self = shift;
     my $rr   = 0;
+    my ($period, $periodStartTime) = $self->getActiveProductionPeriod();
 
      print "<b><h2><A Name = \"runs\"> </a></h2></b> \n";
      htmlTable("MC02 Runs");
@@ -7093,7 +7127,7 @@ sub listRuns {
 
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT Runs.run, Runs.jid, Runs.submit, Runs.status 
-              FROM   Runs WHERE Runs.submit > $ProductionStartTime 
+              FROM   Runs WHERE Runs.submit > $periodStartTime 
               ORDER  BY Runs.submit DESC, Runs.jid";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td><b><font color=\"blue\" >JobId </font></b></td>";
@@ -7697,13 +7731,19 @@ sub parseJournalFiles {
 # check flag
      ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
      if ($rflag == 1) {
-         $self->amsprint("Processing flag = $rflag, $procstarttime. Stop parseJournalFiles.",0);
-         return 1;
+         my $timenow = time();
+         if ($timenow - $procstarttime < 60*60*2) { 
+          $self->amsprint("Processing flag = $rflag, $procstarttime. Stop parseJournalFiles.",0);
+          return 1;
+         } else {
+          $self->amsprint("Processing flag = $rflag, $procstarttime (now $timenow). Reset flag and continue.",0);
+          $self->resetFilesProcessingFlag();
+         }
      }
      $self->initFilesProcessingFlag();
 #
-   $self->setActiveProductionSet();
-   if (not defined $ActiveProductionSet || $ActiveProductionSet eq $UNKNOWN) {
+   my ($period, $periodStartTime) = $self->getActiveProductionPeriod();
+   if (not defined $period || $period eq $UNKNOWN || $periodStartTime == 0) {
       $self->amsprint("parseJournalFiles -ERROR- cannot get active production set",0);
       die "bye";
   }
@@ -7712,7 +7752,8 @@ sub parseJournalFiles {
 #
     $self->set_root_env();
 
-    $self->getProductionVersion();
+    $self->getProductionPeriods(0);
+#--    $self->getProductionVersion();
 
  $sql = "SELECT begin FROM productionset WHERE STATUS='Active'";
  $ret = $self->{sqlserver}->Query($sql);
@@ -8093,13 +8134,15 @@ foreach my $block (@blocks) {
        }
     }
 
-   $jobid = $startingjob[2];
-   if ($self->findJob($jobid) != $jobid) {
-       print FILE "Fatal - cannot find JobInfo for $jobid \n";
+   if (defined $startingjob[2]) {
+    $jobid = $startingjob[2];
+    if ($self->findJob($jobid) != $jobid) {
+    }
+  } else {
+       print FILE "Fatal - cannot find JobInfo in file $inputfile\n";
        system("mv $inputfile $inputfile.0"); 
        return;
    }
-
    if ($self->getRunStatus($jobid,0) eq 'Completed') {
        print FILE "Job : $jobid Status : Completed. Return \n";
        return;
@@ -8143,11 +8186,17 @@ foreach my $block (@blocks) {
        }
     }
 
-   $jobid = $startingjob[2];
-   if ($self->findJob($jobid) != $jobid) {
+   if (defined $startingjob[2]) {
+    $jobid = $startingjob[2];
+    if ($self->findJob($jobid) != $jobid) {
        print FILE "Fatal - cannot find JobInfo for $jobid \n";
        system("mv $inputfile $inputfile.0"); 
        $BadRuns[$nCheckedCite]++;
+       return;
+    }
+   } else {
+       print FILE "Fatal - cannot find JobInfo in file $inputfile\n";
+       system("mv $inputfile $inputfile.0"); 
        return;
    }
    if ($patternsmatched == $#StartingJobPatterns || $patternsmatched == $#StartingJobPatterns-1) { 
@@ -8390,7 +8439,7 @@ foreach my $block (@blocks) {
             $terrors += $badevents;
             $validated++;
             $ntstatus = "Validated";
-            my ($outputpath,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc);
+            my ($outputpath,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc,$version);
             if(defined $outputpath){
               push @mvntuples, $outputpath; 
             }
@@ -9160,25 +9209,47 @@ sub checkDSTVersion  {
 
     my $rstatus = 1; 
 
-    if (defined $self->{ProductionVersion} && 
-        $self->{Version} >=0 &&
-        $self->{Build}  >=0  &&
-        $self->{OS}     >=0) {
+    my @junk = split '/',$dstv;
+    $junk[0]    =~ s/v//;
+    $junk[1] =~ s/build//;      
+    my $version=strtod($junk[0]);
+    my $build  =strtod($junk[1]);
 
-      my @junk = split '/',$dstv;
-      $junk[0] =~ s/v//;
-      $junk[1] =~ s/build//;      
-      $junk[2] =~ s/os//;
-      my $version=strtod($junk[0]);
-      my $build  =strtod($junk[1]);
-      my $os     =strtod($junk[2]);
-
-      if ($version < $self->{Version} ||
-          $build   < $self->{Build}) {
-          $rstatus = 0;
+    foreach my $p (@productionPeriods) {
+      if ($p->{name} =~ 'Active') {
+       my $vdb = $p->{vdb};
+       $vdb    =~ s/v//;
+       my $vvv  = strtod($vdb);
+       if ($vvv == $version) {
+           my $pbuild = $p->{vgbatch};
+           $pbuild =~ s/build//;      
+           my $bbb =  strtod($pbuild);
+           if ($build   < $self->{Build}) {
+             $rstatus = 0;
+             last;
+         }
       }      
+   }
   }
     return $rstatus;
+}
+
+
+sub getDSTVersion  {
+#
+# split DST version to : db / build/ os versions 
+#
+    my $self = shift;
+    my $vvv = shift;
+
+
+    my @junk = split '/',$vvv;
+
+    my $version  =trimblanks($junk[0]);
+    my $build    =trimblanks($junk[1]);
+    my $os       =trimblanks($junk[2]);
+
+    return $version, $build, $os;
 }
 
 sub writetofile {
@@ -9721,6 +9792,8 @@ sub getOutputPath {
 # select disk to be used to store ntuples
 #
     my $self       = shift;
+    my $period     = shift;
+
     my $sql        = undef;
     my $ret        = undef;
     my $outputdisk = undef;
@@ -9737,9 +9810,9 @@ sub getOutputPath {
       $outputdisk = trimblanks($disk->[0]);
       $outputpath = trimblanks($disk->[1]);
       if ($outputdisk =~ /vice/) {
-       $outputpath = $outputpath."/".$ActiveProductionSet;
+       $outputpath = $outputpath."/".$period;
       } else {
-       $outputpath = $outputdisk.$outputpath."/".$ActiveProductionSet;
+       $outputpath = $outputdisk.$outputpath."/".$period;
       }
       $mtime = (stat $outputpath)[9];
  #     print "$outputpath, mtime ... $mtime \n";
@@ -9819,7 +9892,8 @@ sub getHostsList {
     }
    }
 
-    my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays();
+    my ($period, $periodStartTime) = $self->getActiveProductionPeriod();
+    my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($periodStartTime);
     my $lt = localtime($prodstart);
     my $lu = localtime($prodlastupd);
     my $ld = sprintf("%3.1f",$totaldays);
@@ -9838,7 +9912,8 @@ sub getHostsList {
          my $cid = $cite->[0];
          $cnames[$cid] = $cite->[1];
 
-         $sql = "SELECT SUM(sizemb)  from jobs, ntuples where ntuples.jid=jobs.jid and cid=$cid and jobs.timestamp>$ProductionStartTime";
+         $sql = "SELECT SUM(sizemb)  FROM jobs, ntuples 
+                  WHERE ntuples.jid=jobs.jid AND cid=$cid AND jobs.timestamp > $periodStartTime";
          my $r = $self->{sqlserver}->Query($sql);
          if (defined $r->[0][0]) {
              my $sizegb = $r->[0][0]/1000;
@@ -9851,7 +9926,7 @@ sub getHostsList {
          $totalmips  = 0;
 
          $sql  = "SELECT host, mips, cputime FROM Jobs 
-                   WHERE host != 'host' and cid=$cid and jobs.timestamp>$ProductionStartTime 
+                   WHERE host != 'host' and cid=$cid and jobs.timestamp>$periodStartTime 
                     ORDER BY host";
          $hl=$self->{sqlserver}->Query($sql);
          if (defined $hl->[0][0]) {
@@ -9967,29 +10042,42 @@ sub getHostsList {
 }
 
 
-sub setActiveProductionSet {
+sub getActiveProductionPeriod {
      my $self = shift;
      
 
      my $sql  = undef;
      my $ret  = undef;
 
+     my $period = $UNKNOWN;
+     my $begin  = 0;
       $sql = "SELECT NAME, BEGIN  FROM ProductionSet WHERE STATUS='Active'";
       $ret = $self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
-       $ActiveProductionSet=trimblanks($ret->[0][0]);
-       $ProductionStartTime = $ret->[0][1];
-# check AMS01 / AMS02 production and set default output format accordingly
-       if ($ActiveProductionSet =~ /AMS01/) {
-        $defNTUPLE = "CHECKED";
-        $defROOT   = " ";
-       }
-
-      } else {
-        $ActiveProductionSet = $UNKNOWN;
-        $ProductionStartTime = 0;
+       $period=trimblanks($ret->[0][0]);
+       $begin = $ret->[0][1];
       }
+  return $period, $begin; 
  }
+
+sub getActiveProductionPeriodByVersion {
+     my $self = shift;
+     my $vvv  = shift;
+
+     my $sql  = undef;
+     my $ret  = undef;
+
+     my $period = $UNKNOWN;
+     my $begin  = 0;
+      $sql = "SELECT NAME, BEGIN  FROM ProductionSet WHERE STATUS='Active' and vdb='$vvv'";
+      $ret = $self->{sqlserver}->Query($sql);
+      if (defined $ret->[0][0]) {
+       $period=trimblanks($ret->[0][0]);
+       $begin = $ret->[0][1];
+      }
+  return $period, $begin; 
+ }
+
 
 
 sub getProductionPeriods {
@@ -10095,7 +10183,8 @@ sub gethostname {
 sub getRunningDays {
 
     my $self = shift;
-    
+    my $periodStartTime = shift;
+
     my $sql;
     my $ret;
     my $timestart = 0;
@@ -10104,7 +10193,7 @@ sub getRunningDays {
     my $timenow   = time();
 # first job timestamp
       $sql="SELECT MIN(Jobs.time), MAX(Jobs.timestamp) FROM Jobs, Cites 
-                WHERE Jobs.cid=Cites.cid and Cites.name!='test' and Jobs.timestamp >= $ProductionStartTime";
+                WHERE Jobs.cid=Cites.cid and Cites.name!='test' and Jobs.timestamp >= $periodStartTime";
       $ret=$self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
        $timestart = $ret->[0][0];
@@ -11855,6 +11944,7 @@ sub readDataSets() {
   my  $datasetsDB  = undef;
   my  $jobsDB      = undef;
 
+    my ($period,$periodStartTime) = $self->getActiveProductionPeriod();
 # get list of datasets (names and dids)
   my  $sql="select count(did) from DataSets";
   my $ret=$self->{sqlserver}->Query($sql);
@@ -11863,12 +11953,12 @@ sub readDataSets() {
    $sql="select did, name from DataSets";
    $datasetsDB =$self->{sqlserver}->Query($sql);
 
-   $sql="select count(jid) from Jobs where timestamp > $ProductionStartTime";
+   $sql="select count(jid) from Jobs where timestamp > $periodStartTime";
    $ret=$self->{sqlserver}->Query($sql);
    if (defined $ret->[0][0]) {
     $njobsDB = $ret->[0][0];
     $sql="select jid,time,triggers,timeout, did, jobname from Jobs 
-         where timestamp > $ProductionStartTime";
+         where timestamp > $periodStartTime";
     $jobsDB= $self->{sqlserver}->Query($sql);
    }
   }
@@ -11976,7 +12066,7 @@ sub readDataSets() {
                      for my $n (3..$#junk) {
                          $jobname = $jobname.".".$junk[$n];
                      }
-                         if ($jobname eq %$template->{filename}) {
+                         if ($jobname eq $template->{filename}) {
                             if ($jobsTimeDB - time() > $jobsTimeOutDB) {
                               $sql="select FEvent,LEvent from Runs where jid=$jobsJidDB and status='Finished'";
                               $ret=$self->{sqlserver}->Query($sql);
@@ -12043,173 +12133,4 @@ sub readDataSets() {
  print "Total time : $td0, $tdInit, $elapsed (sec) \n";
 }
 
-sub readDataSetsOld() {
 
-    my $self    = shift;
-    my $dir     ='/afs/ams.cern.ch/AMSDataDir/DataManagement/DataSets';
-
-    my $totJobs = 0;
-    my $totTime = 0;
-
-
-#datasets
-
-    $td0 = time();;
-        my $totalcpu=0;
-        my $restcpu=0;
-     $dir="$self->{AMSSoftwareDir}/DataSets";
-     opendir THISDIR ,$dir or die "unable to open $dir";
-     my @allfiles= readdir THISDIR;
-     closedir THISDIR;    
-    $td1 = new Benchmark;
-    foreach my $file (@allfiles){
-       my $newfile="$dir/$file";
-       if($file =~/^\.Trial/){
-
-           open(FILE,"<".$newfile) or die "Unable to open dataset control file $newfile \n";
-           my $buf;
-           read(FILE,$buf,16384);
-           close FILE;
-           $self->{TrialRun}=$buf;          
-           last;
-       }
-   }
-    $td2 = new Benchmark;
-
-
-    foreach my $file (@allfiles){
-        my $newfile="$dir/$file";
-        if(readlink $newfile or  $file =~/^\./){
-         next;
-        }
-      my @sta = stat $newfile;
-      if($sta[2]<32000){
-          my $dataset={};
-          $dataset->{name}=$file;
-          $dataset->{jobs}=[];
-
-          $dataset->{eventstodo} = 0;
-
-       my @tmpa;
-       opendir THISDIR, $newfile or die "unable to open $newfile";
-       my @jobs=readdir THISDIR;
-       closedir THISDIR;
-       push @{$self->{DataSetsT}}, $dataset;
-       foreach my $job (@jobs){
-        if($job =~ /\.job$/){
-        if($job =~ /^\./){
-            next;
-        }
-          $totJobs++;
-           my $template={};
-           my $full="$newfile/$job";
-           my $buf;
-           open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
-           read(FILE,$buf,1638400) or next;
-           close FILE;
-           $template->{filename}=$job;
-           my @sbuf=split "\n",$buf;
-           my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ");
-           foreach my $ent (@farray){
-            foreach my $line (@sbuf){
-               if($line =~/$ent=/){
-                   my @junk=split "$ent=",$line;                 
-                   $template->{$ent}=$junk[$#junk];
-                   $buf=~ s/$ent=/C $ent=/;
-                   last;
-               }
-            }         
-        }
-        if(defined $self->{TrialRun}){
-            $template->{TOTALEVENTS}*=$self->{TrialRun};
-        }
-        $totalcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
-           $template->{initok}=1;
-           foreach my $ent (@farray){
-             if(not defined $template->{$ent}){
-               $template->{initok}=undef;
-             }
-         }
-
-#
-# get no of events
-#
-              my $sql="select did from DataSets where name='$dataset->{name}'";
-              my $ret=$self->{sqlserver}->Query($sql);
-              if( defined $ret->[0][0]){
-                 $dataset->{did}=$ret->[0][0];    
-                 $sql="select jid,time,triggers,timeout from Jobs 
-                       where 
-                        timestamp > $ProductionStartTime and 
-                         did=$ret->[0][0] and 
-                          jobname like '%$template->{filename}'";
-                 my $r2= $self->{sqlserver}->Query($sql);
-                 if(defined $r2->[0][0]){
-                     foreach my $job (@{$r2}){
-                         if ($job->[1]-time()>$job->[3]){
-                             $sql="select FEvent,LEvent from Runs where jid=$job->[0] and status='Finished'";
-                             my $r3=$self->{sqlserver}->Query($sql);
-                             if(defined $r3->[0][0]){
-                              foreach my $run (@{$r3}){
-                               $template->{TOTALEVENTS}-=$run->[0];
-                              } 
-                             }
-                         }
-                         else {
-#
-# subtract allocated events
-                             $template->{TOTALEVENTS}-=$job->[2];
-
-                         }
-                     }
-                 }
-             }
-           else{
-               $sql="select did from DataSets";
-               $ret=$self->{sqlserver}->Query($sql);
-               my $did=0;
-               if(defined $ret->[0][0]){
-                   foreach my $ds (@{$ret}){
-                       if($ds->[0]>$did){
-                           $did=$ds->[0];
-                       }
-                   }
-               }
-               $did++;
-               $dataset->{did}=$did;
-               my $timestamp = time();
-             $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
-               print "Skip : $sql \n";
-#             $self->{sqlserver}->Update($sql); 
-           }
-        $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
-          
-           if($sbuf[0] =~/^#/ && defined $template->{initok}){
-
-            $buf=~ s/#/C /;
-            $template->{filebody}=$buf;
-            my $desc=$sbuf[0];
-            substr($desc,0,1)=" ";
-            $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
-            $dataset->{eventstodo} += $template->{TOTALEVENTS};
-           if($template->{TOTALEVENTS}>100){
-             push @tmpa, $template; 
-             print "$template->{filedesc} \n"; 
-        }
-           }        
-       }        
-     
-    } # end jobs of jobs
-    $td3 = new Benchmark;
-
-    my @tmpb=sort prio @tmpa;
-    foreach my $tmp (@tmpb){
-     push @{$dataset->{jobs}},$tmp;     
-    }
-      }
-    } # end files of allfiles
- $tdInit = time();
- my $elapsed = $tdInit - $td0;
- print "Total time : $td0, $tdInit, $elapsed (sec) \n";
-
-}
