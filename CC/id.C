@@ -2,7 +2,7 @@
  
 #include <id.h>
 #include <string.h>
-float AMSID::_version=2.04;
+float AMSID::_version=2.05;
 // Static initialization
  char * AMSID::_error=0;
  char AMSID::_pull[256]="";
