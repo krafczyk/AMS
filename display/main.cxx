@@ -44,7 +44,7 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
 
   debugger.Off();
   
-  char * filename = "realtime.root";		// default file name
+  char * filename = "test.root";		// default file name
 
   if ( argc > 1 ) {		// now take the file name
     filename = *++argv;
@@ -67,7 +67,7 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
    TGeometry * geo = (TGeometry *)fgeo.Get("ams");
    AMSDisplay display("AMSRoot Event Display", geo);
        display.SetApplication(theApp);
-          display.SetView (kTwoView);
+       //          display.SetView (kTwoView);
       for(int i=1;;i++){
        amsroot.Clear();
        if(!amsroot.GetEvent(i))break;;

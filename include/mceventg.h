@@ -54,9 +54,9 @@ static integer _fixedmom;
 static number _albedorate;
 static number _albedocz;
 static number _planesw[6];
-void _printEl(ostream & stream);
 void _copyEl();
 void _writeEl();
+void _printEl(ostream & stream);
 public:
 static orbit Orbit;
 integer getseed(integer i)const{return (i>=0 && i<2) ? _seed[i]: 0;}

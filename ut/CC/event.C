@@ -546,59 +546,70 @@ void AMSEvent::_caaxevent(){
 
 void AMSEvent::_retkevent(integer refit){
 
+
+
 AMSgObj::BookTimer.start("RETKEVENT");
-AMSgObj::BookTimer.start("TrCluster");
-buildC("AMSTrCluster",refit);
-AMSgObj::BookTimer.stop("TrCluster");
-#ifdef __AMSDEBUG__
-if(AMSEvent::debug)AMSTrCluster::print();
-#endif
-AMSgObj::BookTimer.start("TrRecHit");
-buildC("AMSTrRecHit",refit);
-AMSgObj::BookTimer.stop("TrRecHit");
-#ifdef __AMSDEBUG__
-if(AMSEvent::debug)AMSTrRecHit::print();
-#endif
 
-AMSgObj::BookTimer.start("TrTrack");
+// do not reconstruct events without lvl3 if 
+// fast tracking or monitoring
+TriggerLVL3 *ptr=0;
+if(AMSJob::gethead()->isMonitoring() || TRFITFFKEY.FastTracking){
+ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
 
-integer itrk=0;
-
-// Default reconstruction: 4S + 4K or more
-itrk = buildC("AMSTrTrack",refit);
-
-// Reconstruction with looser cuts on the K side
-if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.WeakTracking ){
-  buildC("AMSTrClusterWeak",refit);
-  buildC("AMSTrRecHitWeak",refit);
-  itrk = buildC("AMSTrTrackWeak",refit);
 }
-
-// Reconstruction of 4S + 3K
-if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseXTracking ){
-  itrk=buildC("AMSTrTrackFalseX",refit);
-  if(itrk>0) itrk=buildC("AMSTrTrack",refit);
+if(ptr && ptr->LVL3OK()){
+  AMSgObj::BookTimer.start("TrCluster");
+  buildC("AMSTrCluster",refit);
+  AMSgObj::BookTimer.stop("TrCluster");
 #ifdef __AMSDEBUG__
-  if(itrk>0)cout << "FalseX - Track found "<<itrk<<endl; 
+  if(AMSEvent::debug)AMSTrCluster::print();
 #endif
-}
-
-// Reconstruction of 4S + TOF
-if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseTOFXTracking ){
-  itrk=buildC("AMSTrTrackFalseTOFX",refit);
+  AMSgObj::BookTimer.start("TrRecHit");
+  buildC("AMSTrRecHit",refit);
+  AMSgObj::BookTimer.stop("TrRecHit");
 #ifdef __AMSDEBUG__
-  if (itrk>0) cout << "FalseTOFX - Track found "<< itrk << endl;
+  if(AMSEvent::debug)AMSTrRecHit::print();
 #endif
-}
- 
-AMSgObj::BookTimer.stop("TrTrack");
+  
+  AMSgObj::BookTimer.start("TrTrack");
+  
+  integer itrk=0;
+  
+  // Default reconstruction: 4S + 4K or more
+  itrk = buildC("AMSTrTrack",refit);
+  
+  // Reconstruction with looser cuts on the K side
+  if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.WeakTracking ){
+    buildC("AMSTrClusterWeak",refit);
+    buildC("AMSTrRecHitWeak",refit);
+    itrk = buildC("AMSTrTrackWeak",refit);
+  }
+  
+  // Reconstruction of 4S + 3K
+  if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseXTracking ){
+    itrk=buildC("AMSTrTrackFalseX",refit);
+    if(itrk>0) itrk=buildC("AMSTrTrack",refit);
 #ifdef __AMSDEBUG__
-if(AMSEvent::debug)AMSTrTrack::print();
+    if(itrk>0)cout << "FalseX - Track found "<<itrk<<endl; 
 #endif
-AMSgObj::BookTimer.stop("RETKEVENT");
-
-//if(refit==0 && AMSTrTrack::RefitIsNeeded())_retkevent(1);
-
+  }
+  
+  // Reconstruction of 4S + TOF
+  if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseTOFXTracking ){
+    itrk=buildC("AMSTrTrackFalseTOFX",refit);
+#ifdef __AMSDEBUG__
+    if (itrk>0) cout << "FalseTOFX - Track found "<< itrk << endl;
+#endif
+  }
+  
+  AMSgObj::BookTimer.stop("TrTrack");
+#ifdef __AMSDEBUG__
+  if(AMSEvent::debug)AMSTrTrack::print();
+#endif
+  
+  //if(refit==0 && AMSTrTrack::RefitIsNeeded())_retkevent(1);
+}  
+  AMSgObj::BookTimer.stop("RETKEVENT");
 }
 
 void AMSEvent::_reantievent(){

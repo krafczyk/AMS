@@ -483,6 +483,7 @@ geant phi=atan2(_dir[1],_dir[0]);
 geant theta=acos(_dir[2]);
 stream <<" Particle " << _ipart <<" Theta "<<theta<<" Phi "<<phi<<
        " Ridgidity " << _mom/_charge <<endl;
+stream <<" Coo "<<_coo[0]<<" "<<_coo[1]<<" "<<_coo[2]<<endl;
 stream <<" Random numbers "<<_seed[0]<<" "<<_seed[1]<<endl;
 }
 

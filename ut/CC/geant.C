@@ -445,6 +445,7 @@ time(&tm);// tempor
     if(genp){
      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
      genp->run(GCKINE.ikine);
+     //genp->_printEl(cout);
     }
     }
    }
@@ -458,6 +459,7 @@ time(&tm);// tempor
      if(genp){
       AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
       genp->run();
+      //genp->_printEl(cout);
      }
     }
     else{
