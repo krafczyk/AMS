@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.19 2004/10/12 07:10:37 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.20 2005/01/04 16:48:11 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -80,7 +80,7 @@ const integer SCTHMX3=4;//max slow TDC (stretcher) hits
 const integer SCTHMX4=1;//max adca(anode)/adcd/adcdl hits  
 const integer SCJSTA=35;   //size of Job-statistics array
 const integer SCCSTA=25;   //size of Channel-statistics array
-const integer SCPROFP=4;//max. parameters/side in A-profile(Apm<->Yloc) fit
+const integer SCPROFP=6;//max. parameters/side in A-profile(Apm<->Yloc) fit
 //
 //      Calibration:
 // TDIF

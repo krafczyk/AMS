@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.5 2004/09/27 15:00:59 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.6 2005/01/04 16:48:11 choumilo Exp $
 #include <typedefs.h>
 #include <tofdbc02.h>  
 //  Some classes for calibrations. E.Choumilov
@@ -124,6 +124,7 @@ private:
   static number aprofp[TOF2GC::SCBTPN][2*TOF2GC::SCPROFP];// A-profile parameters(ref.bars)
   static number clent;//bar-length (to exchange with FCN)
   static integer cbtyp;//bar-type  (....................)
+  static integer fitflg;//flag     (....................)
 //
   static geant binsta[50];// bin-statistics arrays for dE/dX fit
   static geant bincoo[50];// bin-coordinate ...
