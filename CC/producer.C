@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.75 2003/07/29 17:17:17 choutko Exp $
+//  $Id: producer.C,v 1.76 2003/09/26 11:06:15 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -311,28 +311,24 @@ else{
 
    LMessage(AMSClient::print(_reinfo,"StartingRun"));
 
+      if(IOPA.WriteRoot)_dstinfo->type = DPS::Producer::RootFile;
+      else _dstinfo->type = DPS::Producer::Ntuple;
    if(IsLocal() && !writeable){
+    cout <<"AMSProducer-getRunEvInfo-S-NtupleDir "<<getenv("NtupleDir")<<" IsNotWriteable"<<endl; 
     AString ntpath=(const char *)_dstinfo->OutputDirPath;
     ntpath+="/";
     char tmp[80];
     sprintf(tmp,"%d",_reinfo->Run);
     ntpath+=tmp;
     ntpath+="/";
-     IOPA.hlun=0;
-     IOPA.WriteRoot=0;
     if(_dstinfo->type == DPS::Producer::RootFile){
-      IOPA.hlun=0;
       AMSJob::gethead()->SetRootPath((const char *)ntpath);
     }
     else{
-       IOPA.hlun=1;
-       IOPA.WriteRoot=0;
        AMSJob::gethead()->SetNtuplePath((const char *)ntpath);
     }
     }
     else{
-      if(IOPA.WriteRoot)_dstinfo->type = DPS::Producer::RootFile;
-      else _dstinfo->type = DPS::Producer::Ntuple;
      if(_dstinfo->type == DPS::Producer::RootFile)
      _dstinfo->OutputDirPath=AMSJob::gethead()->GetRootPath();
      else
