@@ -46,8 +46,10 @@ if(charge>_chargeTracker[ncharge-1]){
  int index;
  int voted=getvotedcharge(index);
  int i=charge;
- if(voted<=CHARGEFITFFKEY.TrackerOnly)return _ProbTOF[i]*_ProbTracker[i]/_ProbTOF[index]/_ProbTracker[index];
- else return _ProbTracker[i]/_ProbTracker[index];
+ if(voted<=CHARGEFITFFKEY.TrackerOnly && voted<=CHARGEFITFFKEY.TrackerProbOnly) {
+   return _ProbTOF[i]*_ProbTracker[i]/_ProbTOF[index]/_ProbTracker[index];
+ }
+ else return _ProbTracker[i]/_ProbTracker[_iTracker];
 }
 
 integer AMSCharge::getvotedcharge(int & index){
