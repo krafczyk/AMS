@@ -409,7 +409,7 @@ I62  FalseTOFXTracking(1)   // Try(1) or do not try(0) 4y + TOF tracking
 I63  TOFTracking(1)         // Filter out(1) or not(0) hits inconsistent with TOF
                             // before tracking
 
-I64  ForceAdvencedFit(1)    // Force(1) or not advanced fit for all particles
+I64  ForceAdvencedFit(0)    // Force(1) or not advanced fit for all particles
 
 // Tracker fitting
 

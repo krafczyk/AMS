@@ -57,7 +57,7 @@ void sethead(AMSlink *head){
 }
 
 integer getnelem() const{return _nelem;}
-void sort();
+void sort(int forced);
 integer& setnelem() {return _nelem;}
 ~AMSContainer(){eraseC();}
 };
