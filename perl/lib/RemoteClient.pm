@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.86 2003/04/07 11:16:22 choutko Exp $
+# $Id: RemoteClient.pm,v 1.87 2003/04/07 11:36:54 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -426,7 +426,7 @@ my %mv=(
            }        
        }        
     }
-    sub prio { $b->{TOTALEVENTS}  <=> $a->{TOTALEVENTS};}
+    sub prio { $b->{TOTALEVENTS}*$b->{CPUPEREVENTPERGHZ}  <=> $a->{TOTALEVENTS}*$a->{CPUPEREVENTPERGHZ};}
     my @tmpb=sort prio @tmpa;
     foreach my $tmp (@tmpb){
      push @{$dataset->{jobs}},$tmp;     
