@@ -41,7 +41,7 @@ void AMSR_Particle::SetHelix(){
    P[1]=m_Position[1];
    P[2]=m_Position[2];
    Double_t bend = m_Momentum/m_Charge;
-   if (m_beta<0) bend = -bend;
+//   if (m_beta<0) bend = -bend;  //included in m_Theta and m_Phi already
    V[0] = bend * TMath::Sin(m_Theta) * TMath::Cos(m_Phi);
    V[1] = bend * TMath::Sin(m_Theta) * TMath::Sin(m_Phi);
    V[2] = bend * TMath::Cos(m_Theta);

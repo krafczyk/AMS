@@ -1,6 +1,14 @@
+1998.10.06      Shuwei YE
+  - Fix a bug concerning SiHit position.
+  - Set correct bending direction of Particle in case beta<0 since its
+    theta/phi are set correctly now.
+  - Change to use sqrt(dEdx) for the height of TMarker3DBox, i.e. SiHit and
+    ToFCluster.
+  - Enable ntuple filename with Uppercase letter. Add chopt of "P" in HROPEN
+    to preserve the case of ntuple filename.
 
 1998.09.22      Shuwei YE
-  - Fixed a bug in AMSR_Display::DrawView. "m_Geometry->Draw()" will create
+  - Fix a bug in AMSR_Display::DrawView. "m_Geometry->Draw()" will create
     a new TView instead on the existing one which is not expected.
   - Add some protections in main program
   - Add platform checking in Makefile

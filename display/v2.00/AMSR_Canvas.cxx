@@ -441,7 +441,7 @@ void AMSR_Canvas::OpenFileCB()
   //Then suspend the Idle handling
   //
   Bool_t idle = disp->IsIdleOn();
-  disp->IdleSwitch(-1);
+  if (idle) disp->IdleSwitch(-1);
 
   //
   // Open a dialog window to select or input filename

@@ -154,8 +154,9 @@ static int G__TRadioButton_wATRadioButton_4_1(G__value *result7,char *funcname,s
        delete[] (TRadioButton *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (TRadioButton *)((G__getstructoffset())+sizeof(TRadioButton)*i);
-   else  delete (TRadioButton *)(G__getstructoffset());
+         ((TRadioButton *)((G__getstructoffset())+sizeof(TRadioButton)*i))->~TRadioButton();
+   else if(G__PVOID==G__getgvp()) delete (TRadioButton *)(G__getstructoffset());
+   else ((TRadioButton *)(G__getstructoffset()))->~TRadioButton();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -269,8 +270,9 @@ static int G__TSwitch_wATSwitch_5_1(G__value *result7,char *funcname,struct G__p
        delete[] (TSwitch *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (TSwitch *)((G__getstructoffset())+sizeof(TSwitch)*i);
-   else  delete (TSwitch *)(G__getstructoffset());
+         ((TSwitch *)((G__getstructoffset())+sizeof(TSwitch)*i))->~TSwitch();
+   else if(G__PVOID==G__getgvp()) delete (TSwitch *)(G__getstructoffset());
+   else ((TSwitch *)(G__getstructoffset()))->~TSwitch();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -401,8 +403,9 @@ static int G__AMSR_Axis_wAAMSR_Axis_7_1(G__value *result7,char *funcname,struct 
        delete[] (AMSR_Axis *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_Axis *)((G__getstructoffset())+sizeof(AMSR_Axis)*i);
-   else  delete (AMSR_Axis *)(G__getstructoffset());
+         ((AMSR_Axis *)((G__getstructoffset())+sizeof(AMSR_Axis)*i))->~AMSR_Axis();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_Axis *)(G__getstructoffset());
+   else ((AMSR_Axis *)(G__getstructoffset()))->~AMSR_Axis();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -947,8 +950,9 @@ static int G__AMSR_Display_wAAMSR_Display_6_6(G__value *result7,char *funcname,s
        delete[] (AMSR_Display *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_Display *)((G__getstructoffset())+sizeof(AMSR_Display)*i);
-   else  delete (AMSR_Display *)(G__getstructoffset());
+         ((AMSR_Display *)((G__getstructoffset())+sizeof(AMSR_Display)*i))->~AMSR_Display();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_Display *)(G__getstructoffset());
+   else ((AMSR_Display *)(G__getstructoffset()))->~AMSR_Display();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -1144,8 +1148,9 @@ static int G__AMSR_3DCluster_wAAMSR_3DCluster_4_2(G__value *result7,char *funcna
        delete[] (AMSR_3DCluster *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_3DCluster *)((G__getstructoffset())+sizeof(AMSR_3DCluster)*i);
-   else  delete (AMSR_3DCluster *)(G__getstructoffset());
+         ((AMSR_3DCluster *)((G__getstructoffset())+sizeof(AMSR_3DCluster)*i))->~AMSR_3DCluster();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_3DCluster *)(G__getstructoffset());
+   else ((AMSR_3DCluster *)(G__getstructoffset()))->~AMSR_3DCluster();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -1303,8 +1308,9 @@ static int G__AMSR_Maker_wAAMSR_Maker_5_2(G__value *result7,char *funcname,struc
        delete[] (AMSR_Maker *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_Maker *)((G__getstructoffset())+sizeof(AMSR_Maker)*i);
-   else  delete (AMSR_Maker *)(G__getstructoffset());
+         ((AMSR_Maker *)((G__getstructoffset())+sizeof(AMSR_Maker)*i))->~AMSR_Maker();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_Maker *)(G__getstructoffset());
+   else ((AMSR_Maker *)(G__getstructoffset()))->~AMSR_Maker();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -1405,8 +1411,9 @@ static int G__AMSR_HistBrowser_wAAMSR_HistBrowser_5_1(G__value *result7,char *fu
        delete[] (AMSR_HistBrowser *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_HistBrowser *)((G__getstructoffset())+sizeof(AMSR_HistBrowser)*i);
-   else  delete (AMSR_HistBrowser *)(G__getstructoffset());
+         ((AMSR_HistBrowser *)((G__getstructoffset())+sizeof(AMSR_HistBrowser)*i))->~AMSR_HistBrowser();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_HistBrowser *)(G__getstructoffset());
+   else ((AMSR_HistBrowser *)(G__getstructoffset()))->~AMSR_HistBrowser();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -1596,8 +1603,9 @@ static int G__AMSR_ToFClusterReader_wAAMSR_ToFClusterReader_0_2(G__value *result
        delete[] (AMSR_ToFClusterReader *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_ToFClusterReader *)((G__getstructoffset())+sizeof(AMSR_ToFClusterReader)*i);
-   else  delete (AMSR_ToFClusterReader *)(G__getstructoffset());
+         ((AMSR_ToFClusterReader *)((G__getstructoffset())+sizeof(AMSR_ToFClusterReader)*i))->~AMSR_ToFClusterReader();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_ToFClusterReader *)(G__getstructoffset());
+   else ((AMSR_ToFClusterReader *)(G__getstructoffset()))->~AMSR_ToFClusterReader();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -1739,8 +1747,9 @@ static int G__AMSR_TrackReader_wAAMSR_TrackReader_0_2(G__value *result7,char *fu
        delete[] (AMSR_TrackReader *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_TrackReader *)((G__getstructoffset())+sizeof(AMSR_TrackReader)*i);
-   else  delete (AMSR_TrackReader *)(G__getstructoffset());
+         ((AMSR_TrackReader *)((G__getstructoffset())+sizeof(AMSR_TrackReader)*i))->~AMSR_TrackReader();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_TrackReader *)(G__getstructoffset());
+   else ((AMSR_TrackReader *)(G__getstructoffset()))->~AMSR_TrackReader();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -1906,8 +1915,9 @@ static int G__AMSR_SiHitReader_wAAMSR_SiHitReader_1_2(G__value *result7,char *fu
        delete[] (AMSR_SiHitReader *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_SiHitReader *)((G__getstructoffset())+sizeof(AMSR_SiHitReader)*i);
-   else  delete (AMSR_SiHitReader *)(G__getstructoffset());
+         ((AMSR_SiHitReader *)((G__getstructoffset())+sizeof(AMSR_SiHitReader)*i))->~AMSR_SiHitReader();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_SiHitReader *)(G__getstructoffset());
+   else ((AMSR_SiHitReader *)(G__getstructoffset()))->~AMSR_SiHitReader();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -2076,8 +2086,9 @@ static int G__AMSR_CTCClusterReader_wAAMSR_CTCClusterReader_0_2(G__value *result
        delete[] (AMSR_CTCClusterReader *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_CTCClusterReader *)((G__getstructoffset())+sizeof(AMSR_CTCClusterReader)*i);
-   else  delete (AMSR_CTCClusterReader *)(G__getstructoffset());
+         ((AMSR_CTCClusterReader *)((G__getstructoffset())+sizeof(AMSR_CTCClusterReader)*i))->~AMSR_CTCClusterReader();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_CTCClusterReader *)(G__getstructoffset());
+   else ((AMSR_CTCClusterReader *)(G__getstructoffset()))->~AMSR_CTCClusterReader();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -2241,8 +2252,9 @@ static int G__AMSR_AntiClusterReader_wAAMSR_AntiClusterReader_0_2(G__value *resu
        delete[] (AMSR_AntiClusterReader *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_AntiClusterReader *)((G__getstructoffset())+sizeof(AMSR_AntiClusterReader)*i);
-   else  delete (AMSR_AntiClusterReader *)(G__getstructoffset());
+         ((AMSR_AntiClusterReader *)((G__getstructoffset())+sizeof(AMSR_AntiClusterReader)*i))->~AMSR_AntiClusterReader();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_AntiClusterReader *)(G__getstructoffset());
+   else ((AMSR_AntiClusterReader *)(G__getstructoffset()))->~AMSR_AntiClusterReader();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -2403,8 +2415,9 @@ static int G__AMSR_TrMCClusterReader_wAAMSR_TrMCClusterReader_0_2(G__value *resu
        delete[] (AMSR_TrMCClusterReader *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_TrMCClusterReader *)((G__getstructoffset())+sizeof(AMSR_TrMCClusterReader)*i);
-   else  delete (AMSR_TrMCClusterReader *)(G__getstructoffset());
+         ((AMSR_TrMCClusterReader *)((G__getstructoffset())+sizeof(AMSR_TrMCClusterReader)*i))->~AMSR_TrMCClusterReader();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_TrMCClusterReader *)(G__getstructoffset());
+   else ((AMSR_TrMCClusterReader *)(G__getstructoffset()))->~AMSR_TrMCClusterReader();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -2546,8 +2559,9 @@ static int G__AMSR_ParticleReader_wAAMSR_ParticleReader_0_2(G__value *result7,ch
        delete[] (AMSR_ParticleReader *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_ParticleReader *)((G__getstructoffset())+sizeof(AMSR_ParticleReader)*i);
-   else  delete (AMSR_ParticleReader *)(G__getstructoffset());
+         ((AMSR_ParticleReader *)((G__getstructoffset())+sizeof(AMSR_ParticleReader)*i))->~AMSR_ParticleReader();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_ParticleReader *)(G__getstructoffset());
+   else ((AMSR_ParticleReader *)(G__getstructoffset()))->~AMSR_ParticleReader();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -2684,8 +2698,9 @@ static int G__AMSR_MCParticleReader_wAAMSR_MCParticleReader_9_1(G__value *result
        delete[] (AMSR_MCParticleReader *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_MCParticleReader *)((G__getstructoffset())+sizeof(AMSR_MCParticleReader)*i);
-   else  delete (AMSR_MCParticleReader *)(G__getstructoffset());
+         ((AMSR_MCParticleReader *)((G__getstructoffset())+sizeof(AMSR_MCParticleReader)*i))->~AMSR_MCParticleReader();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_MCParticleReader *)(G__getstructoffset());
+   else ((AMSR_MCParticleReader *)(G__getstructoffset()))->~AMSR_MCParticleReader();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -2879,8 +2894,9 @@ static int G__AMSR_Ntuple_wAAMSR_Ntuple_2_3(G__value *result7,char *funcname,str
        delete[] (AMSR_Ntuple *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_Ntuple *)((G__getstructoffset())+sizeof(AMSR_Ntuple)*i);
-   else  delete (AMSR_Ntuple *)(G__getstructoffset());
+         ((AMSR_Ntuple *)((G__getstructoffset())+sizeof(AMSR_Ntuple)*i))->~AMSR_Ntuple();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_Ntuple *)(G__getstructoffset());
+   else ((AMSR_Ntuple *)(G__getstructoffset()))->~AMSR_Ntuple();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -3162,8 +3178,9 @@ static int G__AMSR_VirtualDisplay_wAAMSR_VirtualDisplay_8_3(G__value *result7,ch
        delete[] (AMSR_VirtualDisplay *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_VirtualDisplay *)((G__getstructoffset())+sizeof(AMSR_VirtualDisplay)*i);
-   else  delete (AMSR_VirtualDisplay *)(G__getstructoffset());
+         ((AMSR_VirtualDisplay *)((G__getstructoffset())+sizeof(AMSR_VirtualDisplay)*i))->~AMSR_VirtualDisplay();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_VirtualDisplay *)(G__getstructoffset());
+   else ((AMSR_VirtualDisplay *)(G__getstructoffset()))->~AMSR_VirtualDisplay();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -3585,8 +3602,9 @@ static int G__AMSR_Root_wAAMSR_Root_8_5(G__value *result7,char *funcname,struct 
        delete[] (AMSR_Root *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_Root *)((G__getstructoffset())+sizeof(AMSR_Root)*i);
-   else  delete (AMSR_Root *)(G__getstructoffset());
+         ((AMSR_Root *)((G__getstructoffset())+sizeof(AMSR_Root)*i))->~AMSR_Root();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_Root *)(G__getstructoffset());
+   else ((AMSR_Root *)(G__getstructoffset()))->~AMSR_Root();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -3787,8 +3805,9 @@ static int G__AMSR_ToFCluster_wAAMSR_ToFCluster_9_2(G__value *result7,char *func
        delete[] (AMSR_ToFCluster *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_ToFCluster *)((G__getstructoffset())+sizeof(AMSR_ToFCluster)*i);
-   else  delete (AMSR_ToFCluster *)(G__getstructoffset());
+         ((AMSR_ToFCluster *)((G__getstructoffset())+sizeof(AMSR_ToFCluster)*i))->~AMSR_ToFCluster();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_ToFCluster *)(G__getstructoffset());
+   else ((AMSR_ToFCluster *)(G__getstructoffset()))->~AMSR_ToFCluster();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -3950,8 +3969,9 @@ static int G__AMSR_AntiCluster_wAAMSR_AntiCluster_2_2(G__value *result7,char *fu
        delete[] (AMSR_AntiCluster *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_AntiCluster *)((G__getstructoffset())+sizeof(AMSR_AntiCluster)*i);
-   else  delete (AMSR_AntiCluster *)(G__getstructoffset());
+         ((AMSR_AntiCluster *)((G__getstructoffset())+sizeof(AMSR_AntiCluster)*i))->~AMSR_AntiCluster();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_AntiCluster *)(G__getstructoffset());
+   else ((AMSR_AntiCluster *)(G__getstructoffset()))->~AMSR_AntiCluster();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -4107,8 +4127,9 @@ static int G__AMSR_TrMCCluster_wAAMSR_TrMCCluster_1_2(G__value *result7,char *fu
        delete[] (AMSR_TrMCCluster *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_TrMCCluster *)((G__getstructoffset())+sizeof(AMSR_TrMCCluster)*i);
-   else  delete (AMSR_TrMCCluster *)(G__getstructoffset());
+         ((AMSR_TrMCCluster *)((G__getstructoffset())+sizeof(AMSR_TrMCCluster)*i))->~AMSR_TrMCCluster();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_TrMCCluster *)(G__getstructoffset());
+   else ((AMSR_TrMCCluster *)(G__getstructoffset()))->~AMSR_TrMCCluster();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -4233,8 +4254,9 @@ static int G__AMSR_Track_wAAMSR_Track_7_1(G__value *result7,char *funcname,struc
        delete[] (AMSR_Track *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_Track *)((G__getstructoffset())+sizeof(AMSR_Track)*i);
-   else  delete (AMSR_Track *)(G__getstructoffset());
+         ((AMSR_Track *)((G__getstructoffset())+sizeof(AMSR_Track)*i))->~AMSR_Track();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_Track *)(G__getstructoffset());
+   else ((AMSR_Track *)(G__getstructoffset()))->~AMSR_Track();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -4412,8 +4434,9 @@ static int G__AMSR_SiHit_wAAMSR_SiHit_5_2(G__value *result7,char *funcname,struc
        delete[] (AMSR_SiHit *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_SiHit *)((G__getstructoffset())+sizeof(AMSR_SiHit)*i);
-   else  delete (AMSR_SiHit *)(G__getstructoffset());
+         ((AMSR_SiHit *)((G__getstructoffset())+sizeof(AMSR_SiHit)*i))->~AMSR_SiHit();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_SiHit *)(G__getstructoffset());
+   else ((AMSR_SiHit *)(G__getstructoffset()))->~AMSR_SiHit();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -4586,8 +4609,9 @@ static int G__AMSR_CTCCluster_wAAMSR_CTCCluster_4_2(G__value *result7,char *func
        delete[] (AMSR_CTCCluster *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_CTCCluster *)((G__getstructoffset())+sizeof(AMSR_CTCCluster)*i);
-   else  delete (AMSR_CTCCluster *)(G__getstructoffset());
+         ((AMSR_CTCCluster *)((G__getstructoffset())+sizeof(AMSR_CTCCluster)*i))->~AMSR_CTCCluster();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_CTCCluster *)(G__getstructoffset());
+   else ((AMSR_CTCCluster *)(G__getstructoffset()))->~AMSR_CTCCluster();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -4702,8 +4726,9 @@ static int G__AMSR_Particle_wAAMSR_Particle_6_1(G__value *result7,char *funcname
        delete[] (AMSR_Particle *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_Particle *)((G__getstructoffset())+sizeof(AMSR_Particle)*i);
-   else  delete (AMSR_Particle *)(G__getstructoffset());
+         ((AMSR_Particle *)((G__getstructoffset())+sizeof(AMSR_Particle)*i))->~AMSR_Particle();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_Particle *)(G__getstructoffset());
+   else ((AMSR_Particle *)(G__getstructoffset()))->~AMSR_Particle();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -4818,8 +4843,9 @@ static int G__AMSR_MCParticle_wAAMSR_MCParticle_6_1(G__value *result7,char *func
        delete[] (AMSR_MCParticle *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_MCParticle *)((G__getstructoffset())+sizeof(AMSR_MCParticle)*i);
-   else  delete (AMSR_MCParticle *)(G__getstructoffset());
+         ((AMSR_MCParticle *)((G__getstructoffset())+sizeof(AMSR_MCParticle)*i))->~AMSR_MCParticle();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_MCParticle *)(G__getstructoffset());
+   else ((AMSR_MCParticle *)(G__getstructoffset()))->~AMSR_MCParticle();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -4972,8 +4998,9 @@ static int G__AMSR_Canvas_wAAMSR_Canvas_2_2(G__value *result7,char *funcname,str
        delete[] (AMSR_Canvas *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_Canvas *)((G__getstructoffset())+sizeof(AMSR_Canvas)*i);
-   else  delete (AMSR_Canvas *)(G__getstructoffset());
+         ((AMSR_Canvas *)((G__getstructoffset())+sizeof(AMSR_Canvas)*i))->~AMSR_Canvas();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_Canvas *)(G__getstructoffset());
+   else ((AMSR_Canvas *)(G__getstructoffset()))->~AMSR_Canvas();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -5081,8 +5108,9 @@ static int G__Debugger_wADebugger_6_1(G__value *result7,char *funcname,struct G_
        delete[] (Debugger *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (Debugger *)((G__getstructoffset())+sizeof(Debugger)*i);
-   else  delete (Debugger *)(G__getstructoffset());
+         ((Debugger *)((G__getstructoffset())+sizeof(Debugger)*i))->~Debugger();
+   else if(G__PVOID==G__getgvp()) delete (Debugger *)(G__getstructoffset());
+   else ((Debugger *)(G__getstructoffset()))->~Debugger();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -5218,8 +5246,9 @@ static int G__AMSR_GeometrySetter_wAAMSR_GeometrySetter_0_2(G__value *result7,ch
        delete[] (AMSR_GeometrySetter *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (AMSR_GeometrySetter *)((G__getstructoffset())+sizeof(AMSR_GeometrySetter)*i);
-   else  delete (AMSR_GeometrySetter *)(G__getstructoffset());
+         ((AMSR_GeometrySetter *)((G__getstructoffset())+sizeof(AMSR_GeometrySetter)*i))->~AMSR_GeometrySetter();
+   else if(G__PVOID==G__getgvp()) delete (AMSR_GeometrySetter *)(G__getstructoffset());
+   else ((AMSR_GeometrySetter *)(G__getstructoffset()))->~AMSR_GeometrySetter();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -5322,8 +5351,9 @@ static int G__TGRunEventDialog_wATGRunEventDialog_5_1(G__value *result7,char *fu
        delete[] (TGRunEventDialog *)(G__getstructoffset());
      else
        for(int i=G__getaryconstruct()-1;i>=0;i--)
-         delete (TGRunEventDialog *)((G__getstructoffset())+sizeof(TGRunEventDialog)*i);
-   else  delete (TGRunEventDialog *)(G__getstructoffset());
+         ((TGRunEventDialog *)((G__getstructoffset())+sizeof(TGRunEventDialog)*i))->~TGRunEventDialog();
+   else if(G__PVOID==G__getgvp()) delete (TGRunEventDialog *)(G__getstructoffset());
+   else ((TGRunEventDialog *)(G__getstructoffset()))->~TGRunEventDialog();
    return(1 || funcname || hash || result7 || libp) ;
 }
 
@@ -6243,9 +6273,6 @@ static void G__setup_memvarAMSR_Display(void) {
 static void G__setup_memvarAMSR_3DCluster(void) {
    G__tag_memvar_setup(G__get_linked_tagnum(&G__AMSR_CintLN_AMSR_3DCluster));
    { AMSR_3DCluster *p; p=(AMSR_3DCluster*)0x1000; if (p) { }
-   G__memvar_setup((void*)NULL,102,0,0,-1,G__defined_typename("Float_t"),-1,2,"fX=",0,"X0 (interface for versions before v1.03/08)");
-   G__memvar_setup((void*)NULL,102,0,0,-1,G__defined_typename("Float_t"),-1,2,"fY=",0,"Y0 (interface for versions before v1.03/08)");
-   G__memvar_setup((void*)NULL,102,0,0,-1,G__defined_typename("Float_t"),-1,2,"fZ=",0,"Z0 (interface for versions before v1.03/08)");
    G__memvar_setup((void*)NULL,105,0,0,-1,G__defined_typename("Int_t"),-1,2,"fRange=",0,"Range that considered close on view pad");
    G__memvar_setup((void*)NULL,85,0,0,G__get_linked_tagnum(&G__AMSR_CintLN_TClass),-1,-2,4,"fgIsA=",0,(char*)NULL);
    }
@@ -7960,7 +7987,7 @@ class G__cpp_setup_initAMSR_Cint {
 G__cpp_setup_initAMSR_Cint G__cpp_setup_initializerAMSR_Cint;
 
 //
-// File generated by rootcint at Tue Sep  1 17:28:58 1998.
+// File generated by rootcint at Tue Oct  6 18:08:59 1998.
 // Do NOT change. Changes will be lost next time file is generated
 //
 
@@ -8136,9 +8163,6 @@ void AMSR_3DCluster::ShowMembers(TMemberInspector &R__insp, char *R__parent)
    TClass *R__cl  = AMSR_3DCluster::IsA();
    Int_t   R__ncp = strlen(R__parent);
    if (R__ncp || R__cl || R__insp.IsA()) { }
-   R__insp.Inspect(R__cl, R__parent, "fX", &fX);
-   R__insp.Inspect(R__cl, R__parent, "fY", &fY);
-   R__insp.Inspect(R__cl, R__parent, "fZ", &fZ);
    R__insp.Inspect(R__cl, R__parent, "fRange", &fRange);
    TMarker3DBox::ShowMembers(R__insp, R__parent);
 }

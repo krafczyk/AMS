@@ -130,7 +130,8 @@ void  AMSR_ToFClusterReader::AddCluster(Int_t status, Int_t plane, Int_t bar,
    cooA[2]=coo[2];
    ercooA[0]=ercoo[0];
    ercooA[1]=ercoo[1];
-   ercooA[2]=energy/2;
+//   ercooA[2]=energy/2;
+   ercooA[2]=sqrt(energy/2);
 
    TClonesArray &clusters = *(TClonesArray*)m_Fruits;
    new(clusters[m_Nclusters++]) AMSR_ToFCluster(status, plane, bar, 

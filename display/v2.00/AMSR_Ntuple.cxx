@@ -469,7 +469,7 @@ Int_t AMSR_Ntuple::OpenNtuple(char *ntpfile)
       offset = 1-m_NextID;
    }
 
-   HROPEN(lun, top, ntpfile, "X", reclen, istat);
+   HROPEN(lun, top, ntpfile, "XP", reclen, istat);
    if (istat != 0) {
       Error("AMSR_Ntuple::OpenNtuple",
             "Failure in opening ntuple file %s\n",ntpfile);

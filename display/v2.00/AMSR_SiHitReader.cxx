@@ -109,10 +109,12 @@ Float_t errhitA[3];
 Float_t hitA[3];
 errhitA[0]=errhit[0];
 errhitA[1]=errhit[1];
-errhitA[2]=ampl/10000;
+//errhitA[2]=ampl/10000;
+errhitA[2]=sqrt(ampl)/1000;
 hitA[0]=hit[0];
 hitA[1]=hit[1];
-hitA[2]=hit[2]+ampl/30;
+//hitA[2]=hit[2]+ampl/30;
+hitA[2]=hit[2];
 //            Add a new cluster to the list of clusters
 
  //Note the use of the "new with placement" to create a new cluster object.

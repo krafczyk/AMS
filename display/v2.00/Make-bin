@@ -176,6 +176,8 @@ touch_depend:
 		touch $(OBJDIR)/Make-depend
 
 $(OBJDIR)/Make-depend:    $(SRCS) $(SRCSG) $(MAIN) $(MAINRINT)
+		@test -e $(OS) || mkdir $(OS)
+		@test -e $(OBJDIR) || mkdir $(OBJDIR)
 		$(GCC) -E -MM $(INCLUDES) $^ > $@.DELETE
 		@cat $@.DELETE | $(AddPrefix) > $@; rm -f $@.DELETE
 
