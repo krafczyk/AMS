@@ -853,8 +853,7 @@ void AMSmceventg::FillMCInfo(){
        AMSmceventg* genp=new AMSmceventg(-GCKING.gkin[i][4],mom,
        AMSPoint(GCKIN3.GPOS[i][0],GCKIN3.GPOS[i][1],GCKIN3.GPOS[i][2]),
        AMSDir(GCKING.gkin[i][0],GCKING.gkin[i][1],GCKING.gkin[i][2]));
-       if(genp->getcharge())AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
-       else delete genp;
+       AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
      }
 
 }

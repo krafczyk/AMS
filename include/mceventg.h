@@ -69,6 +69,9 @@ static integer _fixedmom;
 static number _albedorate;
 static number _albedocz;
 static number _planesw[6];
+integer operator < (AMSlink & o) const {
+ return dynamic_cast<AMSmceventg*>(&o) ? _mom> ((AMSmceventg*)(&o))->_mom:0;
+}
 void _copyEl();
 void _writeEl();
 void _printEl(ostream & stream);
