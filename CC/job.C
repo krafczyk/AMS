@@ -2973,9 +2973,11 @@ throw (amsglobalerror){
     integer iostat;
     integer rsize=8000;
     if(eventno){
-      system((const char*)mdir);
       char event[80];  
-      strcat(_ntuplefilename,"/");
+      if(isProduction()){
+       system((const char*)mdir);
+       strcat(_ntuplefilename,"/");
+      }
       sprintf(event,"%d",run);
       strcat(_ntuplefilename,event);
       sprintf(event,".%d",eventno);
