@@ -1,4 +1,4 @@
-//  $Id: amsdbc.h,v 1.34 2004/02/24 19:25:14 alcaraz Exp $
+//  $Id: amsdbc.h,v 1.35 2005/03/11 11:16:28 choumilo Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSDBC__
 #define __AMSDBC__
@@ -15,7 +15,9 @@ uinteger getlevel(){return _level;}
 amsglobalerror(char* a,uinteger level=1):_a(a),_level(level){};
 amsglobalerror(const char* a=0,uinteger level=1):_a(a),_level(level){};
 };
-
+namespace AMSChargConst{
+  const int MaxZTypes=10;
+} 
 class AMSDBc {
 //
 // Geometrical and other constants etc 
@@ -30,6 +32,7 @@ static char * amsdatabase;
    static const number raddeg;
    static const number pi;
    static const number twopi;
+   static const integer MaxZTypes;
 // AMS parameters
      static  geant ams_size[3];
      static number ams_nrm[3][3];

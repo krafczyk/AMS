@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.11 2004/09/27 15:01:00 choumilo Exp $
+//  $Id: tofrec02.h,v 1.12 2005/03/11 11:16:28 choumilo Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -123,7 +123,7 @@ protected:
  number _etime;  // error on cluster time (sec)
  AMSPoint _Coo;  // cluster center of gravity coordinates (cm)
  AMSPoint _ErrorCoo; // Error to coordinates
- integer _nmemb; // number of TOFRawCluster members(1-3)
+ integer _nmemb; // number of TOFRawCluster members(really 1-2, max.3=nonphysical)
  AMSlink * _mptr[3]; // list of pointers to members(raw clust)
  static integer _planes; // real number of planes
  static integer _padspl[TOF2GC::SCLRS]; // real number of paddles/plane

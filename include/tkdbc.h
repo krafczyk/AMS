@@ -1,15 +1,18 @@
-//  $Id: tkdbc.h,v 1.12 2001/04/27 21:50:33 choutko Exp $
+//  $Id: tkdbc.h,v 1.13 2005/03/11 11:16:28 choumilo Exp $
+//      Add Eloss PDF's handling class, 31.01.2005, E.Choumilov
 #ifndef __TKDBC__
 #define __TKDBC__
 #include <typedefs.h>
 
 #include <iostream.h>
 #include <fstream.h>
-
+#include <amsdbc.h>
 
 namespace trconst{
-const integer maxlay=8;
-const integer maxlad=17;
+ const integer maxlay=8;
+ const integer maxlad=17;
+ const integer TrkTypes=3;//for charge algorithm(
+ const integer TrkPdfBins=100;//max bins in Elos PDF's
 }
 
 class AMSPoint;
@@ -235,7 +238,31 @@ friend class AMSTrTrack;
 #endif
 
 };
-
+//------------------------------------------------------------
+// class to store Eloss PDF's (vs Z) made from Eloss-distr. files 
+class TrkElosPDF{
+//TRK-eloss prob.density function for particular charge 
+private:
+  int ichar;//0,1,...index of particle(e,p,he,..)
+  int charge;//charge(1,1,2,...)
+  int nbins[trconst::TrkTypes];//distribution_length
+  number stpx[trconst::TrkTypes];//bin width(MeV)
+  number xmin[trconst::TrkTypes];//1st bin low edge(MeV)
+  number slope[trconst::TrkTypes];//exp.slope to calc. pdf in ovfl-region
+  number norm[trconst::TrkTypes];//norm.factor=dx*Ntot/Npeak 
+  number elpdf[trconst::TrkTypes][trconst::TrkPdfBins];//PDF-array 
+public:
+  static TrkElosPDF TrkEPDFs[AMSChargConst::MaxZTypes];
+  TrkElosPDF(){};
+  TrkElosPDF(int ich, int charge, int nb[], geant stp[],
+                     geant norm[], geant slop[], geant distr[trconst::TrkTypes][trconst::TrkPdfBins]);
+  int getnbins(int itp){return nbins[itp];}
+  int getcharge(){return charge;}
+  number getstep(int itp){return stpx[itp];}
+  number getlkhd(int nhits, int htype[], number ehit[], number beta);
+  static void build();  
+}; 
+//------------------------------------------------------------
 
 class TKDBcI{
 public:

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.201 2004/11/23 17:30:12 choutko Exp $
+//  $Id: commons.h,v 1.202 2005/03/11 11:16:28 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -590,6 +590,15 @@ public:
   integer TrackerForceSK;
   geant TrackerKSRatio;
   integer TrackerProbOnly;
+  integer TrkPDFileMCVers;
+  integer TrkPDFileRDVers;
+  integer TrkPDFileRead;
+  integer sec[2];
+  integer min[2];
+  integer hour[2];
+  integer day[2];
+  integer mon[2];
+  integer year[2];
 };
 //
 

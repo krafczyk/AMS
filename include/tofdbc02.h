@@ -1,8 +1,9 @@
-//  $Id: tofdbc02.h,v 1.20 2005/01/04 16:48:11 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.21 2005/03/11 11:16:28 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
 // Last edit : june 27, 1997 EC, add some DAQ-constants
+// Add TOF-charge classes, E.Choumilov 19.01.2005
 //
 #ifndef __TOF2DBC__
 #define __TOF2DBC__
@@ -17,6 +18,7 @@
 #include <fstream.h>
 #include <job.h>
 // #include <daqblock.h>
+//
 //
 //some general(tof version-independent) constants
 namespace TOFGC{
@@ -81,6 +83,7 @@ const integer SCTHMX4=1;//max adca(anode)/adcd/adcdl hits
 const integer SCJSTA=35;   //size of Job-statistics array
 const integer SCCSTA=25;   //size of Channel-statistics array
 const integer SCPROFP=6;//max. parameters/side in A-profile(Apm<->Yloc) fit
+const integer SCPDFBM=100;//max bins in TOF-eloss Prob Density Functions(need additional 2 for ovfls)
 //
 //      Calibration:
 // TDIF
@@ -760,5 +763,27 @@ public:
   static void build();
   static void mcbuild();
 };
+//-------------------------------------------------
+class TofElosPDF{
+//TOF-eloss prob.density function for particular charge 
+private:
+  int ichar;//0,1,...index of particle(e,p,he,..)
+  int charge;//charge(1,1,2,...)
+  int nbins;//distribution_length(without 2ovfl)
+  number stpx;//bin width(MeV)
+  number xmin;//1st bin low edge(MeV)
+  number slope;//exp.slope to calc. pdf in ovfl-region
+  number unpdf;//const.level of pdf in undf-region 
+  number elpdf[TOF2GC::SCPDFBM];//PDF-array 
+public:
+  static TofElosPDF TofEPDFs[AMSChargConst::MaxZTypes];
+  TofElosPDF(){};
+  TofElosPDF(int ich, int ch, int nb, geant stp, geant bnl, geant undf, geant ovfl, geant distr[]);
+  int getnbins(){return nbins;}
+  int getcharge(){return charge;}
+  number getstep(){return stpx;}
+  number getlkhd(int nhits, int hstat[], number ehit[], number beta);
+  static void build();  
+}; 
 #endif
 
