@@ -9,8 +9,10 @@ extern void magnetgeom(AMSgvolume &);
 extern void magnetgeom02(AMSgvolume &);
 extern void magnetgeom02Test(AMSgvolume &);
 extern void tofgeom(AMSgvolume &);
+extern void tofgeom01(AMSgvolume &);
 extern void tofgeom02(AMSgvolume &);
 extern void antigeom(AMSgvolume &);
+extern void antigeom01(AMSgvolume &);
 extern void antigeom02(AMSgvolume &);
 extern void antigeom002(AMSgvolume &);
 #ifdef __G4AMS__

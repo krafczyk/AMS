@@ -84,12 +84,13 @@ void Trigger2LVL1::build(){
   int tofok(0),antiok(0),comtrok(0);
   if(tofflag>0 && ntof >=TGL1FFKEY.ntof)tofok=1;
   if(nanti <= TGL1FFKEY.nanti)antiok=1;
-  if(ectrigfl%10>1){// <--- "e-m" energy in ECAL
+  if(ectrigfl>11){// <--- "High EM-energy" in ECAL
     comtrok=tofok;
   }
   else{//           <--- "MIP" 
     comtrok=tofok*antiok;
   }
+//
 //  if(tofok==1 && ectrigfl>0)comtrok=1;// tempor(for tests)
 //  else comtrok=0;
 //cout<<"comtr="<<comtrok<<"tof/anti/ec="<<tofok<<" "<<antiok<<" "<<ectrigfl<<endl;

@@ -283,7 +283,23 @@ Below there is a description of a  ntuple.
 * R*4  *              * ANTIMCCL * AntiMCedep(nantimc)   // energy dep (GeV)
 
 
+* I*4  * [0,50]       * ECALCLUS * neccl               // ECAL clusters number
+* I*4  *              * ECALCLUS * EcclStatus(neccl)   // Status: 
+* I*4  *              * ECALCLUS * EcclProj(neccl)     // projection (0-x,1-y)
+* I*4  *              * ECALCLUS * EcclPlane(neccl)    // ECAL plane number (0,...)
+* R*4  *              * ECALCLUS * EcclEdep(neccl)     // ECAL measured energy (MeV)
+* R*4  *              * ECALCLUS * EcclCoo(3,neccl)    // ECAL Coo (cm)
+* R*4  *              * ECALCLUS * EcclErrCoo(3,neccl) // ECAL Error Coo
+* I*4  * [0,10]       * ECALCLUS * EcclNmemb(neccl)    // Number of hits in cluster
 
+
+* I*4  * [0,500]      * ECALHITS * necht               // ECAL hits number
+* I*4  *              * ECALHITS * EchtStatus(necht)   // Status: 
+* I*4  *              * ECALHITS * EchtProj(necht)     // projection (0-x,1-y)
+* I*4  *              * ECALHITS * EchtPlane(necht)    // ECAL plane number (0,...)
+* I*4  *              * ECALHITS * EchtCell(necht)     // ECAL Cell number (0,...)
+* R*4  *              * ECALHITS * EchtEdep(necht)     // ECAL measured energy (MeV)
+* R*4  *              * ECALHITS * EchtCoo(3,necht)    // ECAL Coo (cm)
 
  * I*4  * [0,2]       * LVL3     * nlvl3                 // lvl3trigger number 
  * I*4  *             * LVL3     * LVL3TOFTr(nlvl3)      // TOF Trigger
@@ -324,6 +340,7 @@ Below there is a description of a  ntuple.
  * I*4  *             * LVL1     * LVL1AntiPatt(nlvl1)   // antipattern
                                                          // 16-23 bits  
                                                          // as in daqevt.doc 
+ * I*4  *             * LVL1     * LVL1ECALflag(nlvl1)   // ECAL trigger flag
 
 
  * I*4  * [0,50]      * CTCHIT   * nctcht                // CTC Hits number
@@ -361,8 +378,6 @@ Below there is a description of a  ntuple.
  * R*4  *             * TOFRAWCL * tofredd(ntofraw)       // Edep-D (mev)
  * R*4  *             * TOFRAWCL * tofrtm(ntofraw)        // Time (ns)
  * R*4  *             * TOFRAWCL * tofrcoo(ntofraw)       // Long.coord.(cm)
-
-
 
 
 

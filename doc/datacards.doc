@@ -142,9 +142,9 @@ I 10  RECO logic-flag(0)  // if ==1 -> switch off side 2 in counters of layer 4.
 I 11  RECO logic-flag(0)  // 0/1-> use new/old parametrization for TOF integrators.
                              old mode can't use DB (use only raw calib.files(28=1) !) 
 I 12  RECO logic-flag(0)  // spare
-R 13  DAQ-thresh-1 (40)     // thresh.(mv) for fast t-discriminator (z>=1 trig)
-R 14  DAQ-thresh-2 (100)    // thresh.(mv) for z>1-trig. discr.
-R 15  DAQ-thresh-3 (200)    // thresh.(mv) for z>2-trig. discr.
+R 13  DAQ-thresh-1 (35)     // thresh.(mv) for fast t-discriminator (z>=1 trig)
+R 14  DAQ-thresh-2 (150)    // thresh.(mv) for z>1-trig. discr.
+R 15  DAQ-thresh-3 (150)    // thresh.(mv) for z>2-trig. discr.
 R 16  DAQ-thresh-4 (10)     // thresh.(pC) for anode Time_over_Threshold discr.
 R 17  DAQ-thresh-5 (10)     // thresh.(pC) for dinode Time_over_Threshold discr.
 //
@@ -228,18 +228,6 @@ R  7   AbsLengt(15, 100,100)         // Abs length in cm
 R 10   Edep2Phel(0,0,0)       //  Edep to phelectrons conv factor
 I 13   mcprtf(0)                // print MC-hist. if !=0
 //-------------------------------------------------------------------------------
-    ECAL simulation:
-    
-ECMC
-I 1    fastsim(0)                // =1 for fast(non-accurate) simulation(missing now)
-I 1    mcprtf(0)                 // =1 to print MC-histograms
-R 1    cutge(0.001)              // Geant(cutele=cutgam(Gev)) cut for EC-volumes
-
-    ECAL reconstruction:
-
-ECRE
-I 1    reprtf[0](0)              // =1 to print Reco-histograms    
-//--------------------------------------------------------------------------------
 
     RICH simulation
 
@@ -703,3 +691,222 @@ TIME (See geant3 manual)
 R1 time        // max time allowd for prog execution 
                // NB NOT included : initialization & termination
 
+======================================================================
+
+            ********* AMS02 specific data-cards *************
+
+----------------------------------------------------------------
+      AMS02 TOF data-cards:
+//
+
+// AMS02 TOF  Simulation
+
+TFMC      
+R  1   TimeSigma(110e-12)  // Time resolution(sec) for simplified(fast) algorithm 
+R  2   TimeSigma2(450e-12)  // 2nd Time res(sec) for simplified algorithm 
+R  3   TimeProbability2(0.035)  // 2nd Time Probability
+R  4   padl(10.5)          // Sc. bars transv. step (cm) ..................
+R  5   Thr(0.1)            // Sc.bar Elos-thresh(mev) to participate in Reco 
+I  6   Print-flag(0)       // to print init arrays if=1        
+I  7   Print-flag(0)       // to print PMT pulses if=1        
+I  8   Print-flag(0)       // to print MC-histograms if=1        
+I  9   Print-flag(0)       // spare        
+I 10   Print-flag(0)       // spare
+I 11   Trig.logic-flag(0)  //  use AND/OR(if=0/1) for two side logic signals   
+I 12   Trig.logic-flag(0)  //  use ANY3/ALL4(if=0/1) coinc. for 4 TOF-layers         
+I 13   fast(0)             //  0/1->off/on fast gener. in mceventg.(Don't use for Accept.calc !)
+I 14   daqfmt(1)           // Raw/Reduced(0/1) TDC format for DAQ simulation
+I 15   birks(1)            // apply or not birks correction
+
+
+// AMS02 TOF Reconstruction
+
+TFRE
+R 1   Thresh(0.45)        // Thresh(mev) on "peak" bar Elos in clustering procedure
+R 2   Thresh(0.45)         // Thresh(mev) on total cluster energy ...................
+I 3   Print-flag(0)       // 0/1->not/print_ALL_job_statistics_tables
+I 4   Print-flag(0)       // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding 
+I 5   Print-flag(0)       // print RECO-histograms (if=1)
+I 6   Print-flag(0)       // separate flag for TDC-hit multiplicity histograms(112 hist)
+I 7   Print-flag(0)       // if nonzero(=LBBS) permits fill stretcher w1/w3 histogr. for LBBS
+I 8   RECO logic-flag(0)  // Normal/STRR+AVSD/TDIF/TZSL/AMPL-calibr_run(if=0/1/2/3/4)
+I 9   RECO logic-flag(0)  // full_fTDC_usage/presence(noMatching)/do_not_use (if =0/1/2)
+I 10  RECO logic-flag(0)  // if ==1 -> switch off side 2 in counters of layer 4.
+I 11  RECO logic-flag(0)  // 0/1-> use new/old parametrization for TOF integrators.
+                             old mode can't use DB (use only raw calib.files(28=1) !) 
+I 12  RECO logic-flag(0)  // spare
+R 13  DAQ-thresh-1 (40)     // thresh.(mv) for fast t-discriminator (z>=1 trig)
+R 14  DAQ-thresh-2 (100)    // thresh.(mv) for z>1-trig. discr.
+R 15  DAQ-thresh-3 (200)    // thresh.(mv) for z>2-trig. discr.
+R 16  DAQ-thresh-4 (10)     // thresh.(pC) for anode Time_over_Threshold discr.
+R 17  DAQ-thresh-5 (10)     // thresh.(pC) for dinode Time_over_Threshold discr.
+//
+R 18  cuts[0] (26)      // cut on time diff. of the same hit in fast/slow TDC
+R 19  cuts[1] (15)      // cut on min. distance of "befor"-hit in time history TDC
+R 20  cuts[2] (400)     // ........................"after"-hit in time history TDC
+R 21  cuts[3] (2)       // error in longitudinal coordinate (cm, single TOF bar)
+R 22  cuts[4] (65)      // FT delay constant term (ns)
+R 23  cuts[5] (40)      // sTDC-delay wrt fTDC (ns)
+R 24  cuts[6] (35)      // sTDC-delay wrt aTDC
+R 25  cuts[7] (0)       // sTDC-delay wrt dTDC
+R 26  cuts[8] (26)      // gate for a/s-TDC time difference(ns)
+R 27  cuts[9] (40)      // gate for d/s-TDC time difference(ns)
+//
+I 28  ReadConstFiles(1)   // read constants(calibr) from DB/Ext_Files(0/1)
+//
+I 29   sec[2](0,0)        // Validity time:
+I 31   min[2](0,0)        //
+I 33   hour[2](0,0)       // 
+I 35   day[2](1,1)        //
+I 37   mon[2](0,0)        //
+I 39   year[2](101,108)   //
+
+// AMS02 TOF calibration
+
+TFCA
+  TZSL-calibration
+R  1 plow(8.);  // track mom. low limit (gev/c)
+R  2 phigh(50.);// track mom. high limit
+R  3 meanbeta(0.996);// mean proton velocity in this range 
+R  4 T0-ref1(6.);   // T0 for ref. counters
+R  5 T0-ref2(6.);   // T0 for ref. counters
+R  6 slope(3.2);    // def. slope
+R  7 meanbeta(.997); // mean muon velocity (for earth calibr.)
+I  8 id-ref1(108);  // LBB for first ref. counter (if non zero)
+I  9 id-ref2(0);    // LBB for second ref. counter (if nonzero)
+I 10 fix-slope(1); // =0/1 to fix/release slope param.
+I 11 calibr.type(0);// =0/1 space/earth calibration
+I 12 truse(0);     // =-1/0/1 to no/soft/hard usage of tracker info
+I 26 tofcoo(0)     // =0/1 -> use trancv/longit.coordinates from TOF 
+  AMPL-calibration:
+I 12 truse(0);     // =1/-1 to use/not tracker info
+R 13 plhc[0](2)  // low cut on tracker momentum (Gev/c) for space calibr.
+R 14 plhc[1](100)  // high cut on tracker momentum (Gev/c) ....
+I 15 minev(100)     // min.events needed for measurement in channel or bin
+R 16 trcut(0.90)   // cut to use for "truncated average" calculation
+I 17 refbid[0]     // ref.bar id's list (LBB) for btype=1->5
+   ...             // ......................................
+I 21 refbid[4]     // ......................................
+R 22 plhec[0] (0.1) // mom. low-cut for earth calibr.
+R 23 plhec[0] (10)   // mom. high-cut for earth calibr.
+R 24 bgcut[0] (2)   // beta*gamma low-cut for mip in abs.calibr.
+R 25 bgcut[1] (10)  // beta*gamma high-cut for mip in abs.calibr.
+I 26 tofcoo    (0)  // 0/1-> use transv/longit coord. from TOF 
+I 27 dynflg    (1)  // 0/1-> use stand/special(Contin's) dynode-calibration
+  General :
+I 28 cfvers    (1)  // 01-99 vers.number NN for tofverlist(mc/rl)NN.dat file
+I 29 cafdir    (0)  // use official/private directory for calibr.files
+I 30 mcainc    (0)  // 0/1-> off/on A-integrator calibration in MC
+//---------------------------------------------------------------------------------
+    ECAL simulation:
+    
+ECMC
+I 1    fastsim(0)                // =1 for fast(non-accurate) simulation(missing now)
+I 1    mcprtf(0)                 // =1 to print MC-histograms
+R 1    cutge(0.001)              // Geant(cutele=cutgam(Gev)) cut for EC-volumes
+
+    ECAL reconstruction:
+
+ECRE
+I 1    reprtf[0](0)        // =1 to print Reco-histograms    
+I 2    reprtf[1](0)        // =1 to print profiles for first 5 events    
+I 3    reprtf[2](0)        // =1 spare
+
+I 4    relogic[0](0)       // 1/0->write/not EcalHits into Ntuple
+I 8................        //    spares
+
+R 9    thresh[0](2)        // HighGain-chan. readout threshold(ADCch)    
+R 10   thresh[1](120)      // Anode(high-ch,tot) "mip"-trig.thresh(mev tempor)     
+R 11   thresh[2](300)      // ............ ,1st 4X0) "elec"-trig.thresh(mev tempor)    
+R 12   thresh[3](8000)     // Anode(high-ch,tot) "HighEnergy"-trig.thresh(mev tempor)     
+R 13   thresh[4](2)        // LowGain-chan. readout thershold(ADCch)    
+R 14   thresh[5](8000)     // energy upp.limit for action of cut below (mev tempor)   
+R 15   thresh[6](0.15)     // cut on Etail/Epeak (add. to #11 for "electromagneticity")
+R 18.................      // spares
+
+R 19   cuts[0](5)          // mev/cell threshold for cluster search(~2adc)
+R 23.................      // spares
+
+I 24   ReadConstFiles(1)   // read const. from DB/RawFiles (0/1)
+
+R 25 sec[0](0)               // cards below are used as validity time when need to write
+R 26 sec[1](0)                // to DB new calibration/status parameters
+R 27 min[0](0)                //
+R 28 min[1](0)                //
+R 29 hour[0](0)               //
+R 30 hour[1](0)               //
+R 31 day[0](1)                //
+R 32 day[1](1)                //
+R 33 mon[0](0)                //
+R 34 mon[1](0)                //
+R 35 year[0](101)             //
+R 36 year[1](108)             //
+
+   ECAL calibration:
+
+ECCA
+I 1  cfvers(1)               //  1-999 -> vers.number for ecalcvlistNNN.dat file
+I 2  cafdir(0)               //  0/1-> use official/private directory for calibr.files
+//--------------------------------------------------------------------------------
+      AMS02 ANTIcounter data-cards:
+//
+ AMS02 Anti Geometry
+ 
+ATGE
+R 1 scradi(54.4)   // internal radious of ANTI sc. cylinder (cm)
+R 2 scinth(1.)     // thickness of scintillator (cm)
+R 3 scleng(86.)    //(ams02) scintillator paddle length (glob. Z-dim)
+R 4 wrapth(0.04)   // wrapper thickness (cm)
+R 5 groovr(0.45)   // groove radious (bump_rad = groove_rad-pdlgap)
+R 6 pdlgap(0.1)    // inter paddle gap (cm)(2*wrapth+extra)
+R 7 stradi(54.235) // inner radious of supp. tube
+R 8 stleng(86.)    // (ams02)length of supp. tube
+R 9 stthic(0.12)   // thickness of supp. tube
+
+
+ AMS02 Anti Simulation
+
+ATMC
+I 1   mcprtf(0)           // MC-hist print flag
+R 2   SigmaPed(1.)        // Noise sigma in p.e.
+R 3   MeV2PhEl(20)        // conversion mev ->p.e. 
+R 4   LZero(120.)         // light attenuation length in scint.(cm)
+R 5   PMulZPos(0)         // redefined later (PMT-position wrt counter center)
+R 6   Lspeed(17)          // eff. speed of the light in anti paddle (cm/ns)
+
+ AMS02 Anti Reconstruction
+
+
+ATRE
+I 1 reprtf[0] (0)         // RECO-hist print flag
+I 2       [1] (0)         // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding
+I 3       [2] (0)         // spare
+R 4 ThrS(5)               // Threshold in p.e. on Cluster creation
+R 5 PhEl2MeV(0.05)        // Conversion p.e. -> mev
+R 6 dtthr(3)              // discr.threshold(pe) to create trigger signal
+R 7 dathr(6)              // ..................... TovT measurement (ADCA)
+R 8 ftwin(100)            // time-window for "true" ADCA-hit search (ns)
+//
+I 9 ReadConstFiles(1)     // read const. from DB/myFiles (0/1)
+//  
+I 10 sec[0](0)             // cards below are used as validity time when need to write
+I 11 sec[1](0)             // to DB new calibration/status parameters
+I 12 min[0](0)             //
+I 13 min[1](0)             //
+I 14 hour[0](0)            //
+I 15 hour[1](0)            //
+I 16 day[0](1)             //
+I 17 day[1](1)             //
+I 18 mon[0](0)             //
+I 19 mon[1](0)             //
+I 20 year[0](101)          //
+I 21 year[1](108)          //
+
+ AMS02 Anti Calibration
+
+ATCA
+I 1 cfvers(2)             // version number(01-99) for antiverlistNN.dat file
+
+//------------------------------------------------------------------------------
+
+	   

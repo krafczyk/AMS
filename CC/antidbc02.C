@@ -245,7 +245,6 @@ void ANTI2Pcal::build(){ // fill array of objects with data
       athr[1]=ATREFFKEY.dathr; // take TovT threshold from data card for now
       for(ip=0;ip<TOF2GC::SCIPAR;ip++)aip[0][ip]=ipara[2*i][ip];// int.param.from file
       for(ip=0;ip<TOF2GC::SCIPAR;ip++)aip[1][ip]=ipara[2*i+1][ip];
-//      mip2q=ATMCFFKEY.MeV2PhEl; // (pe/mev)
       gain[0]=gains[i][0];// gain from file
       gain[1]=gains[i][1];
       sta[0]=status[i][0];// alive status from file
@@ -265,7 +264,6 @@ void ANTI2Pcal::build(){ // fill array of objects with data
       athr[1]=ATREFFKEY.dathr; // take TovT threshold from data card for now
       for(ip=0;ip<TOF2GC::SCIPAR;ip++)aip[0][ip]=ipara[2*i][ip];// int.param.from file
       for(ip=0;ip<TOF2GC::SCIPAR;ip++)aip[1][ip]=ipara[2*i+1][ip];
-//      mip2q=1./ATREFFKEY.PhEl2MeV; // (pe/mev)
       gain[0]=gains[i][0];// gain from file
       gain[1]=gains[i][1];
       sta[0]=status[i][0];// alive status from file

@@ -3007,7 +3007,6 @@ void AMSEvent::_collectstatus(){
      if(_Error==1){
       __status=__status | (1<<30);
     } 
-
  _status[0]=__status;
  _status[1]=0;
 }

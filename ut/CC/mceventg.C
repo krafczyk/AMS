@@ -972,7 +972,7 @@ integer AMSmceventg::fastcheck(geant xin, geant yin, geant zb, geant theta, gean
   geant zanti;
   geant ranti;
   geant zcal=ECALDBc::gendim(7);
-  geant calhs=ECALDBc::gendim(1)/2.-20.;//cal.half-size(-3cm from edge)
+  geant calhs=ECALDBc::gendim(1)/2.-15.;//cal.half-size(-15cm from edge)
   geant dxy,xcr,ycr;
 //
      if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){

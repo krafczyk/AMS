@@ -35,7 +35,7 @@ protected:
  uinteger _tofpatt[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern
  uinteger _tofpatt1[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern for z>1
  uinteger _antipatt; //ANTI: triggered sectors pattern
- uinteger _ecalflag; //EC trig-flag(0->Empty,1->MIP,2->LowEnergyEMobject,+10->HighEdep in EC) 
+ uinteger _ecalflag; //EC trig-flag(0->Empty,1->MIP,2->EMobject,+10->HiEnergy) 
  void _copyEl(){}
  void _printEl(ostream & stream){ stream << " LifeTime " << float(_LifeTime)/1000.<<endl;}
  void _writeEl();

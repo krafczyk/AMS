@@ -114,6 +114,7 @@ LMS*                   lms;
 
 #endif
 
+extern "C" void npq_();
 extern "C" void timest_(float & t);
 
 void gams::UGINIT(){
@@ -140,6 +141,11 @@ void gams::UGINIT(){
    AMSgmat::amsmat();
    AMSgtmed::amstmed();
    AMSgvolume::amsgeom();
+   
+// GRFILE(1,"geomstr.dat","Q");
+// GROUT("VOLU",1," ");
+// GREND(1);
+ 
 #endif
  //GRFILE(1,"geomstr.dat","N");
  //GROUT("VOLU",1," ");

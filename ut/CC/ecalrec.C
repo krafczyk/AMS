@@ -211,9 +211,10 @@ void AMSEcalRawEvent::mc_build(int &stat){
     if(e4x0>ECALVarp::ecalvpar.daqthr(2)){
       trigfl=2;// EM-object !
       if(an4respt<ECALVarp::ecalvpar.daqthr(5) &&
-                       rrr>ECALVarp::ecalvpar.daqthr(6))trigfl=1;//non EM-object !
+                       rrr>ECALVarp::ecalvpar.daqthr(6))trigfl=1;//cut on Etail/Epeak !
+      if(an4respt<ECALVarp::ecalvpar.daqthr(7))trigfl=1;//cut on Etot !
+      if(an4respt>ECALVarp::ecalvpar.daqthr(3))trigfl+=10;// High-En in ECAL
     }
-    if(an4respt>ECALVarp::ecalvpar.daqthr(3))trigfl+=10;// High-energy in EC
   }
   if(trigfl==0)return;//No signal in ECAL
   stat=0;

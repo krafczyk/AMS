@@ -604,9 +604,9 @@ FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
 void AMSJob::_siecaldata(){
-  ECMCFFKEY.fastsim=0.; // 1/0-> fast/slow simulation algorithm
+  ECMCFFKEY.fastsim=0.; // 1/0-> fast/slow simulation algorithm(missing fast TBD)
   ECMCFFKEY.mcprtf=0;     // print_hist flag (0/1->no/yes)
-  ECMCFFKEY.cutge=0.001; // cutgam=cutele cut for EC_radiator
+  ECMCFFKEY.cutge=0.001; // cutgam=cutele cut for EC_volumes
 FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //---------------------------
@@ -624,12 +624,12 @@ void AMSJob::_reecaldata(){
 // Run-time DAQ-thresholds(time dependent):
   ECREFFKEY.thresh[0]=2.;     // (9)  Anode(High-chan) readout threshold(ADCch)
   ECREFFKEY.thresh[1]=120.;   // (10) Anode(high,tot) "mip"-trig.thresh(mev tempor)
-  ECREFFKEY.thresh[2]=300.;   // (11) ... 1st 4X0) "elec"-trig.thresh(mev tempor)
-  ECREFFKEY.thresh[3]=8000.;  // (12) Anode(high)-sum "el-high-en"-trig.thresh(mev tempor)
+  ECREFFKEY.thresh[2]=300.;   // (11) ... 1st 4X0 "em"-trig.thresh(mev tempor)
+  ECREFFKEY.thresh[3]=400.;   // (12) Anode(high,tot) min.Et-cut to be "HighEn-em"(mev tempor)
   ECREFFKEY.thresh[4]=2.;     // (13) Low-chan. readout thershold(ADCch)
-  ECREFFKEY.thresh[5]=8000.;  // (14) energy upp.limit for action of cut below (mev tempor)  
-  ECREFFKEY.thresh[6]=0.15;   // (15) cut on Etail/Epeak (add. to #11 for "electromagneticity")
-  ECREFFKEY.thresh[7]=0.;     // (16) 
+  ECREFFKEY.thresh[5]=10000.; // (14) energy upp.limit for action of cut below (mev tempor)  
+  ECREFFKEY.thresh[6]=0.15;   // (15) cut on Etail/Epeak (add. to #11,16 for "electromagneticity")
+  ECREFFKEY.thresh[7]=400.;   // (16) Anode(high,tot) min.Et-cut to be "em"(mev tempor)
   ECREFFKEY.thresh[8]=0.;     // (17) 
   ECREFFKEY.thresh[9]=0.;     // (18) 
 // Run-time RECO-thresholds(time dependent):
