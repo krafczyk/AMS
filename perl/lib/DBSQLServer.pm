@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.32 2003/03/25 15:04:15 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.33 2003/03/28 15:17:09 alexei Exp $
 
 #
 #
@@ -12,7 +12,10 @@
 #                                (can also include host name)
 #                                for mysql : AMSMC02:pcamsf0
 # example :
+#          mySQL
 #           ./dbsqlserver.perl -Iforce -Dmysql -F:AMSMC02:pcamsf0
+#          Oracle (from pcamsf0)
+#           ./dbsqlserver.perl -Iforce -DOracle -F:amsdb
 #
 # Aug 7, 2002 a.k. Tables names are case sensitive in MySQL
 #

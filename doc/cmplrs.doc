@@ -1,7 +1,7 @@
                                                             July 10, 2002
 
  The default compilers are gcc and g77. Non-commercial, not-supported version of 
-Intel native Fortran and C++ (icc and ifc) compilers V6.0 are installed on pcamsf2.
+Intel native Fortran and C++ (icc and ifc) compilers V6.0/V7.0 are installed on pcamsf2 and pcamsf1.
 
 
 1.  Intel(R) C++ Compiler for 32-bit applications, Version 6.0 Build 020312Z
@@ -12,15 +12,18 @@ Intel native Fortran and C++ (icc and ifc) compilers V6.0 are installed on pcams
 2.  Linux Application Debugger for 32-bit applications, Version 6.0, Build 20020325
 
 Path to man pages :
-/opt/intel/compiler60/man"
+/opt/intel/compiler'NN'/man"
 Path to libraries :
-/opt/intel/compiler60/ia32/lib
+/opt/intel/compiler'NN'/ia32/lib
+
 
 Path to Compilers :
 
 C/C++   : /opt/intel/compiler60/ia32/bin/icc
 Fortran : /opt/intel/compiler60/ia32/bin/ifc
 
+
+where 'NN' is a version like '60' or '70'.
 CERN Libraries :
 
 /f2dat1/CERN/2002/icc
