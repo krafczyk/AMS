@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.28 2002/11/19 17:15:29 alexei Exp $
+//  $Id: root.C,v 1.29 2002/12/05 03:05:10 schol Exp $
 //  Last Edit : Nov 19, 2002. A.Klimentov
 //              check Root classes
 //              ? TrGammaRoot02 - commented
@@ -557,9 +557,9 @@ TrTrackRoot02::TrTrackRoot02(AMSTrTrack *ptr)
         for (int j=0; j<3; j++)  HP0[i][j] = (float)ptr->_HP0[i][j];
   }
   FChi2MS         = ptr->_Chi2MS;
-  PiErrRig        = ptr->_GChi2MS;
+  PiErrRig        = ptr->_PIErrRigidity;
   RigidityMS      = ptr->_RidgidityMS;
-  PiRigidity      = ptr->_GRidgidityMS;
+  PiRigidity      = ptr->_PIRigidity;
 
   fTrRecHit = new TRefArray;
 }
