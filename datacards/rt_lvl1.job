@@ -43,10 +43,9 @@ C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=8011   2=0      3=3.   4=1  5=0 6='v203a'  87=0
 C Special HP-UX
 TIME 3=10000000
-TRCL 1=10. 6=4. 7=8. 11=3.0 12=4.0  17=1.0 22=1
+TRCL  22=1
 TRMC 30=2.75 31=3.5
 DAQC 1=1 2='$DataDir/$RUN'
-TRFIT 43=2 54=0 58=1 59=1 62=1
 TRCALIB 9=2 13=1
 TERM 1=1234567890
 SELECT $RUN $EVENT

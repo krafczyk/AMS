@@ -482,7 +482,7 @@ void AMSTrIdCalib::_hist(){
           PS.SigmaRaw=_ADC2Raw[ch];
           PS.Rho[0]=sigmas[ch];
           for(int kk=1;kk<nrho;kk++)PS.Rho[kk]=_ADCRho[kk][ch];
-          HFNTB(IOPA.ntuple,"PedsSigmas");
+          HFNT(IOPA.ntuple);
           HF1(400000+1,_ADCRaw[ch]-cid.getped(),1.);
           HF1(400010+1,_ADCRaw[ch],1.);
           HF1(400020+1,cid.getped(),1.);
@@ -1050,7 +1050,7 @@ if(++counter%TRCALIB.EventsPerCheck == 0 || forcedw){
 
 void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
    _CurTime=AMSEvent::gethead()->gettime();
-   if(_CurRun > 0 && _CurRun != AMSEvent::gethead()->getrun())check(1);
+   //if(_CurRun > 0 && _CurRun != AMSEvent::gethead()->getrun())check(1);
    _CurRun=AMSEvent::gethead()->getrun();
   integer static first=0;
   if(first++ == 0){
