@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.68 2002/08/07 08:49:55 choutko Exp $
+//  $Id: gbatch.C,v 1.69 2002/09/03 11:43:49 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -80,7 +80,7 @@ catch (amsglobalerror & a){
     return 1;
 }
 catch (std::bad_alloc aba){
- std::cerr <<"catch-F-NoMemoryAvailable "<<endl;
+ cerr <<"catch-F-NoMemoryAvailable "<<endl;
     UGLAST("catch-F-NoMemoryAvailable ");
     return 1;
 }

@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.228 2002/08/08 07:47:58 choutko Exp $
+#  $Id: Mopt,v 1.229 2002/09/03 11:41:19 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -251,6 +251,7 @@ CFLAGS=      $(CFLAGSB)
 CFLAGSTOFSIM= $(CFLAGS)
 CFLAGSn=      $(CFLAGS)
 CFLAGSDAQ=    $(CFLAGS)
+CFLAGSn+= -D_GCCIFC_
 FFLAGS=     -fp_port  -g -I../include   $(PFLAGS)
 FFLAGSn=    -fp_port   -g -I../include   $(PFLAGS)
 FFLAGS=     -D__ICC__ -tpp6 -mp1 -xi -fp_port  -g -I../include   $(PFLAGS)
@@ -260,6 +261,7 @@ CFLAGSTOFSIM= $(CFLAGSB)     -O1
 CFLAGSDAQ=    $(CFLAGSB) -O2
 CFLAGSn=      $(CFLAGSB) -O2
 CFLAGS=      $(CFLAGSB) -O3
+CFLAGSn+= -D_GCCIFC_
 FFLAGS=    -fp_port  -O3 -I../include  $(PFLAGS)
 FFLAGSn=   -fp_port  -O   -I../include  $(PFLAGS)
 FFLAGS=    -D__ICC__ -tpp6 -mp1 -xi -fp_port  -O3 -I../include  $(PFLAGS)
