@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.453 2003/06/26 14:05:18 choumilo Exp $
+// $Id: job.C,v 1.454 2003/06/27 12:48:03 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -653,7 +653,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.thresh[6]=3.5;    // (15) min Epeak/Ebase (add. to #11 for "electromagneticity")
   ECREFFKEY.thresh[7]=1.;     // (16) min Epeak/Efron .....................................
   ECREFFKEY.thresh[8]=25.;    // (17) PM-dynode threshold for width calc.(mev tempor) 
-  ECREFFKEY.thresh[9]=15.;    // (18) trig. width cut(columns, bending plane)
+  ECREFFKEY.thresh[9]=13.;    // (18) trig. width cut(columns, bending plane)
   ECREFFKEY.thresh[10]=0.;    // (19) Trig. PMDynThr sl1(y)
   ECREFFKEY.thresh[11]=80.;   // (20) Trig. PMDynThr sl2(x)
   ECREFFKEY.thresh[12]=180.;  // (21) Trig. PMDynThr sl3(y)

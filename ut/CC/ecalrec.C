@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.86 2003/06/26 14:05:18 choumilo Exp $
+//  $Id: ecalrec.C,v 1.87 2003/06/27 12:48:03 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -394,6 +394,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 // trflwd(width trig.flag)=0/1/2->unknown/nonEM/EM
 //
 // width calculationfor logic-1/2(not fixed yet):
+  wdthr=ECALVarp::ecalvpar.daqthr(8);//Ecolumn threshold
   trwid1=0.;
   for(pm=0;pm<npmmx;pm++){ // get summed over depth transv.profile(proj=1)
     etrsum1[pm]=0.;
@@ -415,7 +416,6 @@ if(TGL1FFKEY.ectrlog==1){//<===== logic-type-1:my old
   esep2=15000;//Etot 1st up-limit for width-cut action(mev, tempor)
   p2bcut=ECALVarp::ecalvpar.daqthr(6);
   p2fcut=ECALVarp::ecalvpar.daqthr(7);
-  wdthr=ECALVarp::ecalvpar.daqthr(8);//Ecolumn threshold
   wdcut1=ECALVarp::ecalvpar.daqthr(9);//L=1,7,2(bend.proj)
   wdcut2=ECALVarp::ecalvpar.daqthr(9)-2;//L=2,8,2(nonbend)
   ethrmip=ECALVarp::ecalvpar.daqthr(1);//Etot mip-thr
@@ -481,10 +481,10 @@ else if(TGL1FFKEY.ectrlog==2){//<===== logic-type-2:new my_simple+ansi
   ethrmip=ECALVarp::ecalvpar.daqthr(1);//Etot mip-thr
   ethrsoft=ECALVarp::ecalvpar.daqthr(3);//Etot soft-thr
   ethrhard=ECALVarp::ecalvpar.daqthr(5);//Etot hard-thr
-  esep1=10000.;//Etot 1st up-limit for width-cut action(mev, tempor) 
+  esep1=8000.;//Etot 1st up-limit for width-cut action(mev, tempor) 
   esep2=30000;//Etot 2nd up-limit for width-cut action(mev, tempor)
   wdcut1=ECALVarp::ecalvpar.daqthr(9);//L=1,7,2(bend.proj)
-  wdcut2=ECALVarp::ecalvpar.daqthr(9)-2;//L=2,8,2(nonbend)
+  wdcut2=ECALVarp::ecalvpar.daqthr(9)-3;//L=2,8,2(nonbend)
   trigfl=0;
   if(dyrespt>ethrmip)trflen=1;//at least MIP
   if(dyrespt>ethrsoft)trflen=2;//at least EtotSoft
@@ -500,10 +500,18 @@ else if(TGL1FFKEY.ectrlog==2){//<===== logic-type-2:new my_simple+ansi
       else trflwd=1;//nonEM
     }
     else if(dyrespt>esep1 && dyresp<=esep2){//width-cut 2nd energy range
+      if(ECMCFFKEY.mcprtf>0){
+        HF1(ECHIST+26,trwid1,1.);
+        HF1(ECHIST+27,trwid2,1.);
+      }
       if(trwid1<1.2*wdcut1 && trwid2<1.2*wdcut2)trflwd=2;//width EM
       else trflwd=1;//nonEM
     }
     else{
+      if(ECMCFFKEY.mcprtf>0){
+        HF1(ECHIST+28,trwid1,1.);
+        HF1(ECHIST+29,trwid2,1.);
+      }
       if(trwid1<1.4*wdcut1 && trwid2<1.4*wdcut2)trflwd=2;//width EM
       else trflwd=1;//nonEM
     }

@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.48 2003/06/26 13:13:08 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.49 2003/06/27 12:48:03 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <cern.h>
@@ -746,9 +746,9 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+12,"ECMC: Ebase",80,0.,800.,0.);
       HBOOK1(ECHIST+13,"ECMC: Epk/Efr Ratio(F+P2B,HE)",50,0.,10.,0.);
       HBOOK1(ECHIST+14,"ECMC: Pm-signals(sl1,7,2;L-cuts)",100,0.,300.,0.);
-      HBOOK1(ECHIST+15,"ECMC: Transv.Width(proj1,L-cuts,LE)",80,0.,80.,0.);
+      HBOOK1(ECHIST+15,"ECMC: Transv.Width(proj1,LE)",80,0.,80.,0.);
       HBOOK1(ECHIST+16,"ECMC: Pm-signals(sl2,8,2;L-cuts)",100,0.,300.,0.);
-      HBOOK1(ECHIST+17,"ECMC: Transv.Width(proj2,L-cuts,LE)",80,0.,80.,0.);
+      HBOOK1(ECHIST+17,"ECMC: Transv.Width(proj2,LE)",80,0.,80.,0.);
       HBOOK1(ECHIST+18,"ECMC: Etot(trig.sum,L-cuts,mev)",100,0.,20000.,0.);
       HBOOK1(ECHIST+19,"ECMC: ECTriggerFlag",40,0.,40.,0.);
       HBOOK1(ECHIST+20,"ECMC: Tot.Anode charge(4subc.sum, pC)",100,0.,20.,0.);
@@ -756,6 +756,10 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+22,"ECMC: Max ADC-H(incl.ped, No ovfl.limit)",100,0.,4100.,0.);
       HBOOK1(ECHIST+23,"ECMC: Max ADC-L(incl.ped, No ovfl.limit)",100,0.,4100.,0.);
       HBOOK1(ECHIST+24,"ECMC: Max ADC-D(incl.ped, No ovfl.limit)",100,0.,4100.,0.);
+      HBOOK1(ECHIST+26,"ECMC: Transv.Width(proj1,ME)",80,0.,80.,0.);
+      HBOOK1(ECHIST+27,"ECMC: Transv.Width(proj2,ME)",80,0.,80.,0.);
+      HBOOK1(ECHIST+28,"ECMC: Transv.Width(proj1,HE)",80,0.,80.,0.);
+      HBOOK1(ECHIST+29,"ECMC: Transv.Width(proj2,HE)",80,0.,80.,0.);
     }
     HBOOK1(ECHIST+25,"LVL1: TrigType(entr,unb1-4,z1,z2,elec,phot,",10,0.,10.,0.);
 }
@@ -1015,9 +1019,13 @@ void EcalJobStat::outpmc(){
       HPRINT(ECHIST+12);
       HPRINT(ECHIST+13);
       HPRINT(ECHIST+14);
-      HPRINT(ECHIST+15);
       HPRINT(ECHIST+16);
+      HPRINT(ECHIST+15);
       HPRINT(ECHIST+17);
+      HPRINT(ECHIST+26);
+      HPRINT(ECHIST+27);
+      HPRINT(ECHIST+28);
+      HPRINT(ECHIST+29);
       HPRINT(ECHIST+18);
       HPRINT(ECHIST+19);
     }
