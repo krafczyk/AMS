@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.255 2003/12/09 14:31:26 choutko Exp $
+//  $Id: commons.C,v 1.256 2003/12/10 15:54:40 choutko Exp $
 
 
 
@@ -73,7 +73,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=105;
+uinteger AMSCommonsI::_build=106;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];

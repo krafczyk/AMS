@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.88 2003/07/08 16:30:26 choutko Exp $
+//  $Id: ecalrec.C,v 1.89 2003/12/10 15:54:41 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -1393,7 +1393,7 @@ integer AMSEcal2DCluster::build(int rerun){
 
   const integer Maxrow=ecalconst::ECSLMX*2;
      
-   for (int proj=0;proj<ECALDBc::GetLayersNo();proj++){
+   for (int proj=0;proj<2;proj++){
     Ecal1DCluster *pshmax=0;
     do{
     pshmax=0;

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.38 2003/07/08 16:28:18 choutko Exp $
+//  $Id: ecalrec.h,v 1.39 2003/12/10 15:54:51 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -233,7 +233,7 @@ for(int i=_Left;i<=_Right;i++){
   bool Good(){return !(checkstatus(AMSDBc::BAD) || checkstatus(AMSDBc::DELETED) || checkstatus(AMSDBc::JUNK) ||  checkstatus(AMSDBc::USED));}
   number Distance(Ecal1DCluster *p);
   Ecal1DCluster* EnergyMatch(Ecal1DCluster *pmatch, Ecal1DCluster *pbest){
-   return (pbest && fabs(_EnergyC-pmatch->_EnergyC)>fabs(_EnergyC-pbest->_EnergyC))?pbest:this;
+   return (pbest && fabs(_EnergyC-pmatch->_EnergyC)>fabs(pmatch->_EnergyC-pbest->_EnergyC))?pbest:this;
   }
 //
 protected:

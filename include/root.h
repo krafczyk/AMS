@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.118 2003/12/04 10:42:20 alcaraz Exp $
+//  $Id: root.h,v 1.119 2003/12/10 15:54:51 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -818,7 +818,7 @@ public:
   /// \param number index in container
   /// \return human readable info about TrTrackR
   char * Info(int number=-1){
-    sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g Points=%d Patttern=%d HalfRig=(%7.3g,%7.3g) Status=%d",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,Theta,Phi,Chi2FastFit,NTrRecHit(),Pattern,HRigidity[0],HRigidity[1],Status);
+    sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g Points=%d Patttern=%d HalfRig=(%7.3g,%7.3g) Status=%o",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,Theta,Phi,Chi2FastFit,NTrRecHit(),Pattern,HRigidity[0],HRigidity[1],Status);
   return _Info;
   } 
 ClassDef(TrTrackR,5)       //TrTrackR

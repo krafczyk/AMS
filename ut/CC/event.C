@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.326 2003/12/10 15:06:45 alcaraz Exp $
+//  $Id: event.C,v 1.327 2003/12/10 15:54:41 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1409,7 +1409,7 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
      break;
     }
   }
-//   cout <<" ptrd "<<hmul<<endl;
+//   cout <<" ptrd "<<hmul<<"  "<<veto<<endl;
   Trigger2LVL1 * ptr12= dynamic_cast<Trigger2LVL1*>(ptr1);
   if(ptr12 && (ptr12->IsECHighEnergy() || ptr12->IsECEMagEnergy() || TRFITFFKEY.LowMargin || hmul  || veto)){
     AMSTrTrack::setMargin(1);
@@ -1420,9 +1420,10 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
   integer itrk=1;
 
 
-   if(TRFITFFKEY.OldTracking && !veto){
+//   if(TRFITFFKEY.OldTracking && !veto){
+   if(TRFITFFKEY.OldTracking ){
      //  Old Stuff
-  
+//     cout <<" old stuff "<<TRFITFFKEY.OldTracking<<endl; 
   // Default reconstruction: 4S + 4K or more
   if(TRFITFFKEY.FalseXTracking && !TRFITFFKEY.FastTracking)
     itrk = buildC("AMSTrTrackFalseX",TKDBc::nlay());
@@ -1459,6 +1460,7 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
   //
   // New (JA) Stuff
   //
+//     cout <<" new stuff "<<TRFITFFKEY.OldTracking<<endl; 
     // Default reconstruction: 4S + 4K or more
   if(TRFITFFKEY.FalseXTracking && !TRFITFFKEY.FastTracking)
     itrk = buildC("AMSTrTrackFalseX_PathIntegral",TKDBc::nlay());
