@@ -95,7 +95,47 @@ UpdateARS();
     _cinfo.ErrorsFound=0;
     _cinfo.Status=DPS::Producer::Processing;
     _cinfo.CPUTimeSpent=0;
-    DAQEvent::setfile((const char *)(_reinfo->FilePath));
+    if(_dstinfo->Mode==DPS::Producer::RILO || _dstinfo->Mode==DPS::Producer::RIRO){ 
+     DAQEvent::setfile((const char *)(_reinfo->FilePath));
+}
+else{
+     AString fpath=(const char *)_dstinfo->OutputDirPath;
+     fpath+="/run.";
+     char tmp[80];
+     sprintf(tmp,"%d",_reinfo->Run);
+     fpath+=tmp;
+     fpath+=".";
+     sprintf(tmp,"%d",_pid.uid);
+     fpath+=tmp;
+     DAQEvent::setfile((const char *)(fpath));
+     ofstream fbin;
+     fbin.open((const char*)fpath);
+     if(!fbin){
+       cerr <<fpath<<endl;
+       FMessage("Unable to open tmp run file ", DPS::Client::CInAbort); 
+     }
+     DPS::Producer::RunTransferStatus st=DPS::Producer::Begin;
+     DPS::Producer::RUN * prun;
+     DPS::Producer::FPath fp;
+     fp.fname=(const char*)_reinfo->FilePath;
+     fp.pos=0;   
+     while(st!=DPS::Producer::End){
+     try{
+      int length=(*li)->getRun(_pid,fp,prun,st);
+      DPS::Producer::RUN_var  vrun=prun;
+      if(length)fbin.write((char*)vrun->get_buffer(),length);      
+      fp.pos+=length;
+     }
+     catch (DPS::Producer::FailedOp & a){
+      FMessage((const char *)a.message,DPS::Client::SInAbort);
+     }
+    }
+    if(!fbin.good()){
+       cerr <<fpath<<endl;
+       FMessage("Unable to write tmp run file ", DPS::Client::CInAbort); 
+    }
+    fbin.close();
+}
     AString ntpath=(const char *)_dstinfo->OutputDirPath;
     ntpath+="/";
     char tmp[80];
@@ -263,6 +303,11 @@ catch  (CORBA::SystemException & a){}
 
 
 void AMSProducer::sendRunEnd(DAQEvent::InitResult res){
+if(_dstinfo->Mode ==DPS::Producer::LILO || _dstinfo->Mode==DPS::Producer::LIRO){
+AString command="rm -f ";
+command+=DAQEvent::getfile();
+system(command);
+}
 _cinfo.Status= (res==DAQEvent::OK)?DPS::Producer::Finished: DPS::Producer::Failed;
 TIMEX(_cinfo.CPUTimeSpent);
 _cinfo.CPUTimeSpent+=-_T0;

@@ -98,7 +98,7 @@ public:
   MS & getrefmap(){return _refmap;}
   DPS::Client::ClientType getType()const {return _Type;}
 
- virtual void UpdateDB()=0;
+ virtual void UpdateDB(bool force)=0;
  virtual void StartClients(const DPS::Client::CID &cid)=0;
  virtual void CheckClients(const DPS::Client::CID &cid)=0; 
  virtual void KillClients(const DPS::Client::CID &cid)=0;
@@ -137,7 +137,7 @@ void StopEverything();
 void DumpIOR();
 static AMSServer* & Singleton(){return _Head;};
 void Listening(int sleeptime=0);
-void UpdateDB();
+void UpdateDB(bool force=false);
 void SystemCheck();
 void Exiting(const char * message=0);
 ~AMSServer(){Exiting();if(_pser)delete _pser;}
@@ -165,7 +165,7 @@ public:
  bool Lock(const DPS::Client::CID & cid, OpType op, DPS::Client::ClientType type, int Time);
  void setInterface(const char * iface){_iface=iface;}
  AMSServerI * getServer(){return this;}
- virtual void UpdateDB();
+ virtual void UpdateDB(bool force=false);
  virtual void StartClients(const DPS::Client::CID &cid);
  virtual void CheckClients(const DPS::Client::CID &cid); 
  virtual void KillClients(const DPS::Client::CID &cid);
@@ -259,7 +259,7 @@ public:
   Producer_impl(const map<AString, AMSServer::OrbitVars> & mo, DPS::Server_ptr _cvar,DPS::Client::CID  cid, AMSClient * parent);
   void _PurgeQueue();
   void _init();
- virtual void UpdateDB();
+ virtual void UpdateDB(bool force=false);
  virtual void StartClients(const DPS::Client::CID &cid);
  virtual void CheckClients(const DPS::Client::CID &cid); 
  virtual void KillClients(const DPS::Client::CID &cid);
@@ -278,6 +278,7 @@ public:
 
   int getDSTInfoS(const DPS::Client::CID &cid, DSTIS_out res)throw (CORBA::SystemException);
   void getId(DPS::Client::CID_out cid) throw (CORBA::SystemException);
+  int getRun(const DPS::Client::CID &cid, const FPath & fpath, RUN_out run,RunTransferStatus & st)throw (CORBA::SystemException,DPS::Producer::FailedOp);
   int getRunEvInfoS(const DPS::Client::CID &cid, RES_out res, unsigned int & maxrun)throw (CORBA::SystemException);
    void getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out rv, DSTInfo_out dv)throw (CORBA::SystemException);
 

@@ -101,6 +101,10 @@ InputFiles=1;
 KIFiles=0;
 }
 
+const char * DAQEvent::getfile(){
+return ifnam[0];
+}
+
 void DAQEvent::setfiles(char *ifile, char *ofile){
   if(ifile){
    InputFiles=parser(ifile,ifnam);

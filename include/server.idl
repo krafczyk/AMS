@@ -90,7 +90,7 @@ module DPS{
   };
  
   interface Producer: Client{
-
+    enum RunTransferStatus{Begin,Continue,End};
     enum RunStatus{ToBeRerun, Failed,Processing, Finished};
     enum DSTStatus{Success,InProgress,Failure};
     enum RunMode{RILO,LILO,RIRO,LIRO};
@@ -182,7 +182,15 @@ module DPS{
     typedef sequence<DST> DSTS;
     long getDSTS(in CID id, out DSTS dsts);     
 
-    
+    typedef sequence<octet> RUN;
+    exception FailedOp{
+     string message;
+    };
+    struct FPath{
+     string fname;
+     unsigned long pos;
+    };  
+    long getRun(in CID id, in FPath fpath ,out RUN run,  inout RunTransferStatus st) raises(FailedOp);      
     
   };
 

@@ -30,10 +30,7 @@ case SIGUSR2:
 AMSServer::Singleton()->DumpIOR();
 break;
 case SIGHUP:
-// artificial loop
-cout <<"Artificial loop " <<endl;
-for(;;){
-}
+AMSServer::Singleton()->UpdateDB(true);
 break;
 }
 }
@@ -265,10 +262,10 @@ typedef map<AString, AMSServer::OrbitVars>::iterator MOI;
 }
 
 
-void AMSServer::UpdateDB(){
+void AMSServer::UpdateDB(bool force){
 // Her don't know yet
 for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
-pcur->UpdateDB();
+pcur->UpdateDB(force);
 }
 }
 
@@ -298,6 +295,7 @@ _ExitInProgress=true;
   for(int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=(_orbmap.find((const char*)(arf[i].Interface))->second)._orb->string_to_object(arf[i].IOR);
+
     DPS::Server_var _pvar=DPS::Server::_narrow(obj);
     _pvar->Exiting(_pid,(message?message:AMSClient::_error.getMessage()),AMSClient::_error.ExitReason());
      break;
@@ -677,6 +675,11 @@ if(li!=_acl.end()){
 if(li!=_acl.end()){
  
  if(!_pser->pingHost((const char*)((*li)->id.HostName))){
+    for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
+      if(!strcmp((const char *)(*i)->HostName, (const char *)((*li)->id).HostName)){
+       (*i)->Status=NoResponse;
+    }
+}  
    (*li)->id.Status=DPS::Client::SInKill;
    DPS::Client::ActiveClient_var acv=*li;
    PropagateAC(acv,DPS::Client::Delete);
@@ -700,7 +703,7 @@ if(!Master())return;
 Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 if(!_pser->Lock(cid,DPS::Server::CheckClient,getType(),_KillTimeOut))return;
 for(AHLI li=_ahl.begin();li!=_ahl.end();++li){
- if((*li)->Status==NoResponse)if(_pser->pingHost((const char*)((*li)->HostName)))(*li)->Status=DPS::Client::OK;
+ if((*li)->Status==NoResponse && double(rand())/RAND_MAX>0.98)if(_pser->pingHost((const char*)((*li)->HostName)))(*li)->Status=DPS::Client::OK;
 }
 time_t tt;
 time(&tt);
@@ -1005,7 +1008,7 @@ for( ACLI li=_acl.begin();li!=_acl.end();++li){
  if (cid.uid==((*li)->id).uid){
    (*li)->id.Status=status;
    DPS::Client::ActiveClient_var acv=*li;
-   PropagateAC(acv,DPS::Client::Delete);
+   PropagateAC(acv,DPS::Client::Delete,DPS::Client::AnyButSelf,cid.uid);
    return;
  }
 
@@ -1567,6 +1570,12 @@ if(li!=_acl.end()){
 if(li!=_acl.end()){
  
  if(!_pser->pingHost((const char*)((*li)->id.HostName))){
+    for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
+      if(!strcmp((const char *)(*i)->HostName, (const char *)((*li)->id).HostName)){
+       (*i)->Status=NoResponse;
+    }
+}  
+
    (*li)->id.Status=DPS::Client::SInKill;
    DPS::Client::ActiveClient_var acv=*li;
    PropagateAC(acv,DPS::Client::Delete);
@@ -1592,7 +1601,7 @@ if(!Master())return;
 Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 if(!_pser->Lock(cid,DPS::Server::CheckClient,getType(),_KillTimeOut))return;
 for(AHLI li=_ahl.begin();li!=_ahl.end();++li){
- if((*li)->Status==NoResponse)if(_pser->pingHost((const char*)((*li)->HostName)))(*li)->Status=DPS::Client::OK;
+ if((*li)->Status==NoResponse && double(rand())/RAND_MAX>0.98)if(_pser->pingHost((const char*)((*li)->HostName)))(*li)->Status=DPS::Client::OK;
 }
 time_t tt;
 time(&tt);
@@ -2003,10 +2012,12 @@ if(li !=_rl.end()){
    rv->cinfo=ci;
    rv->Status=ci.Status;
     if(ci.Status ==Finished || ci.Status==Failed){
+/*
       if(_parent->Debug()){
        _parent->IMessage(AMSClient::print(cid,"sendCurrentInfo from "));
        _parent->IMessage(AMSClient::print(ci));
       }
+*/
       rv->cuid=0;
       rv->cinfo.HostName=cid.HostName;
       if(rv->Status==Failed && rv->History !=Failed){
@@ -2111,21 +2122,24 @@ void Producer_impl::PropagateDST(const DST & ri, DPS::Client::RecordChange rc, D
 }
 
 
-void Server_impl::UpdateDB(){
+void Server_impl::UpdateDB(bool force){
 }
 
-void Producer_impl::UpdateDB(){
+void Producer_impl::UpdateDB(bool force){
 //just to do something
 
 static bool resultdone=false;
 if(!resultdone){
- if(!count_if(_rl.begin(),_rl.end(),REInfo_process())){
-  resultdone=true;
+ if(force || !count_if(_rl.begin(),_rl.end(),REInfo_process())){
+  if(!force)resultdone=true;
   for(RLI li= _rl.begin();li!=_rl.end();++li){
     if((*li)->Status==Finished)_parent->IMessage(AMSClient::print((*li),"Finished :"));
   }
   for(RLI li= _rl.begin();li!=_rl.end();++li){
    if((*li)->Status==Failed)_parent->IMessage(AMSClient::print((*li),"Failed :"));
+  }
+  for(RLI li= _rl.begin();li!=_rl.end();++li){
+   if((*li)->Status==Processing)_parent->IMessage(AMSClient::print((*li),"Processing :"));
   }
 cout << "Host Status **********"<<endl;
 for (AHLI li=_ahl.begin();li!=_ahl.end();++li){
@@ -2179,6 +2193,7 @@ DPS::Client::ARS_var arf=pars;
    }
   }
     catch (CORBA::SystemException &ex){
+     cerr<<" Master oops corba exc for "<<i<<" "<<length<<endl;
    }
  }
 return true;
@@ -2243,11 +2258,11 @@ case StartClient: KillClient: CheckClient:
     for ( list<DPS::Server::CriticalOps>::iterator li=pcur->getcol().begin();li!=pcur->getcol().end();++li){
       if (li->Action == _clear(optype)){
         if(tt<(*li).TimeStamp+(*li).TimeOut){
+          if(_parent->Debug())_parent->IMessage(AMSClient::print(*li,"Lock found"));
           return false;
       }
       else{
        _col.erase(li);        
-       break;
       }
      }
    }
@@ -2406,4 +2421,33 @@ uinteger Producer_impl::getSmartFirst(uinteger run){
   if(veryfirst>first[i])veryfirst=first[i];
  }
  return veryfirst;
+}
+
+#include <sys/stat.h>
+#include <sys/file.h>
+
+int Producer_impl::getRun(const DPS::Client::CID &cid, const FPath & fpath ,RUN_out run,RunTransferStatus & st)throw (CORBA::SystemException,FailedOp){
+const int maxs=16000000;
+ ifstream fbin;
+ struct stat statbuf;
+ st==Continue;
+ stat((const char*)fpath.fname, &statbuf);
+ fbin.open((const char*)fpath.fname);
+ if(!fbin){
+  throw FailedOp("Server-F-Unable to open file");
+ }
+ int last=statbuf.st_size-fpath.pos;
+ if(last>maxs)last=maxs;
+ else st=End;
+RUN_var vrun=new RUN();
+vrun->length(last);
+ fbin.seekg(fpath.pos);
+ fbin.read(( char*)vrun->get_buffer(),last);
+ if(!fbin.good()){
+   throw FailedOp((const char*)"Server-F-Unable to read file");
+ }
+ fbin.close();
+ run=vrun._retn();
+ _UpdateACT(cid,DPS::Client::Active);
+ return last;
 }

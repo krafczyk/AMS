@@ -127,6 +127,7 @@ void    dump(uint16 sdetid);
 //-  
 static void setfiles(char *ifile, char *ofile);
 static void setfile(const char *ifile);
+static const char * getfile();
 static integer parser(char *ifile, char ** & ifnam); 
 };
 
