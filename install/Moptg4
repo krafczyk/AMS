@@ -137,7 +137,7 @@ $(BIN)gbatch.o:         $(SCC)gbatch.C
 	$(CC) -c   $(CP2F) $(CFLAGS) -D__USE_STD_IOSTREAM $(SCC)gbatch.C -o $(BIN)gbatch.o
 
 $(BIN)job.o:    	 $(SCC)job.C
-	$(CC) -c $(CP2F) $(CFLAGS4) $(SCC)job.C -o $(BIN)job.o
+	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)job.C -o $(BIN)job.o
 
 $(BIN)daqblock.o:    	 $(SCC)daqblock.C
 	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)daqblock.C -o $(BIN)daqblock.o

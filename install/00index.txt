@@ -12,7 +12,7 @@ To create standalone simulation/reconstruction program (without db) use:
 
  batch                   gmake -if Mopt (Moptg4)
  interactive(g3 )   gmake -if  Mgxint  (batch program should be created first)
- interactive(g4 )   gmake -if  Moptg4i  
+ interactive(g4 )   gmake -if  Moptg4i  (batch program should be created first)
 
 
 To create production server:

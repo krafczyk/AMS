@@ -1,387 +1,393 @@
 This is AMS02 Ntuple Description
 
- ********************************************
-* Type *    Range     *  Block   *  Name    *
- ********************************************               
-* I*4  *              * EVENTH   * eventno          // Event no
-* I*4  *              * EVENTH   * run              // run no
-* I*4  *              * EVENTH   * runtype          //
-* I*4  *              * EVENTH   * time(2)          // Event time
-                                                    // (1) Unix time (sec)
-                                                    // (2) usec time
-* I*4  *              * EVENTH   * rawwords         // Event Lenght in bytes 
-                                                    // (18 low bits)
-                                                    // OS specifics ********)
-                                                    // (2 int bit)
-                                                    // program version 
-                                                    // (12 high bits)
-* R*4  *              * EVENTH   * RadS             // ISS Altitude (I2000 cm)
-* R*4  *              * EVENTH   * ThetaS           // ISS Lattitude (GTOD rad)
-* R*4  *              * EVENTH   * PhiS             // ISS phi (GTOD rad)
-* R*4  *              * EVENTH   * YawS             // ISS yaw (LVLH rad) 
-* R*4  *              * EVENTH   * PitchS           //         pitch
-* R*4  *              * EVENTH   * RollS            //         roll
-* R*4  *              * EVENTH   * VelocityS        // ISS speed (rad/sec)
-* R*4  *              * EVENTH   * VelTheta         // speed theta (GTOD rad) 
-* R*4  *              * EVENTH   * VelPhi           // speed phi (GTOD rad) 
-* R*4  *              * EVENTH   * ThetaM           // Magnetic Latitude ***)
-* R*4  *              * EVENTH   * PhiM             // Magnetic Longitude ***)
-
-* I*4  *              * EVENTH   * Particles        // No of Particles
-* I*4  *              * EVENTH   * Tracks           // No of Tracks
-* I*4  *              * EVENTH   * Betas            // No of Betas
-* I*4  *              * EVENTH   * Charges          // No of Charges
-* I*4  *              * EVENTH   * TrRecHits        // No of 3 dim trackerpoints
-* I*4  *              * EVENTH   * TrClusters       // No of Tr Clusters
-* I*4  *              * EVENTH   * TrRawClusters    // No of Tr Raw Clusters
-* I*4  *              * EVENTH   * TrMCClusters     // No of Tr MC hits
-* I*4  *              * EVENTH   * TOFClusters      // No of TOF Clusters
-* I*4  *              * EVENTH   * TOFMCClusters    // No of TOF MC Hits
-* I*4  *              * EVENTH   * RICHits          // No of RICH Hits
-* I*4  *              * EVENTH   * RICMCClusters    // No of RICH MC clusters
-* I*4  *              * EVENTH   * AntiMCClusters   // No of Anti MC Hits
-* I*4  *              * EVENTH   * AntiClusters     // No of Anti clusters
-* I*4  *              * EVENTH   * EcalClusters     // No of ECAL Clusters
-* I*4  *              * EVENTH   * EcalHits         // No of ECAL Hits
-* I*4  *              * EVENTH   * EventStatus(2)   // EventStatus (see status.doc)
-
-
-* I*4  * [0,10]       * BETA     * nbeta              // betas number
-* I*4  *              * BETA     * betastatus         // 4 - ambig
-* I*4  *              * BETA     * betapattern(nbeta) // beta pattern(beta.doc) 
-* R*4  *              * BETA     * beta(nbeta)        // velocity
-* R*4  *              * BETA     * betac(nbeta)       // corrected velocity
-* R*4  *              * BETA     * betaerror(nbeta)   // est error 1/velocity 
-* R*4  *              * BETA     * betaerrorc(nbeta)  // est error 1/corrected velocity 
-* R*4  *              * BETA     * betachi2(nbeta)    // chi2 of beta fit(time)
-* R*4  *              * BETA     * betachi2s(nbeta)   // chi2 of beta fit(space)
-* I*4  *              * BETA     * betantof(nbeta)    // number of tof planes
-* I*4  *              * BETA     * betaptof(4,nbeta)  // pointers to tof planes
-* I*4  *              * BETA     * betaptr(nbeta)     // pointer to track
+ *****************************************
+* Type *   Range   *  Block   *  Name    *
+ *****************************************               
+* I*4  *           * EVENTH   * eventno          // Event no
+* I*4  *           * EVENTH   * run              // run no
+* I*4  *           * EVENTH   * runtype          //
+* I*4  *           * EVENTH   * time(2)          // Event time
+                                                 // (1) Unix time (sec)
+                                                 // (2) usec time
+* I*4  *           * EVENTH   * rawwords         // Event Lenght in bytes 
+                                                 // (18 low bits)
+                                                 // OS specifics ********)
+                                                 // (2 int bit)
+                                                 // program version 
+                                                 // (12 high bits)
+* R*4  *           * EVENTH   * RadS             // ISS Altitude (I2000 cm)
+* R*4  *           * EVENTH   * ThetaS           // ISS Lattitude (GTOD rad)
+* R*4  *	   * EVENTH   * PhiS             // ISS phi (GTOD rad)
+* R*4  *           * EVENTH   * YawS             // ISS yaw (LVLH rad) 
+* R*4  *           * EVENTH   * PitchS           //         pitch
+* R*4  *           * EVENTH   * RollS            //         roll
+* R*4  *           * EVENTH   * VelocityS        // ISS speed (rad/sec)
+* R*4  *           * EVENTH   * VelTheta         // speed theta (GTOD rad) 
+* R*4  *           * EVENTH   * VelPhi           // speed phi (GTOD rad) 
+* R*4  *           * EVENTH   * ThetaM           // Magnetic Latitude ***)
+* R*4  *           * EVENTH   * PhiM             // Magnetic Longitude ***)
+* I*4  *           * EVENTH   * Particles        // No of Particles
+* I*4  *           * EVENTH   * Tracks           // No of Tracks
+* I*4  *           * EVENTH   * Betas            // No of Betas
+* I*4  *           * EVENTH   * Charges          // No of Charges
+* I*4  *           * EVENTH   * TrRecHits        // No of 3 dim trackerpoints
+* I*4  *           * EVENTH   * TrClusters       // No of Tr Clusters
+* I*4  *           * EVENTH   * TrRawClusters    // No of Tr Raw Clusters
+* I*4  *           * EVENTH   * TrMCClusters     // No of Tr MC hits
+* I*4  *           * EVENTH   * TOFClusters      // No of TOF Clusters
+* I*4  *           * EVENTH   * TOFMCClusters    // No of TOF MC Hits
+* I*4  *           * EVENTH   * RICHits          // No of RICH Hits
+* I*4  *           * EVENTH   * RICMCClusters    // No of RICH MC clusters
+* I*4  *           * EVENTH   * AntiMCClusters   // No of Anti MC Hits
+* I*4  *           * EVENTH   * AntiClusters     // No of Anti clusters
+* I*4  *           * EVENTH   * EcalClusters     // No of ECAL Clusters
+* I*4  *           * EVENTH   * EcalHits         // No of ECAL Hits
+* I*4  *           * EVENTH   * EventStatus(2)   // EventStatus 
+						 // (see status.doc)
 
 
-* I*4  * [0,10]       * CHARGE   * ncharge                // charges number
-* I*4  *              * CHARGE   * chargestatus           // 1 - refitted
-* R*4  *              * CHARGE   * chargebetap(ncharge)   //pointer to velocity
-* I*4  *              * CHARGE   * chargetof(ncharge)     // TOF charge
-* I*4  *              * CHARGE   * chargetracker(ncharge) // Tracker Charge
-* R*4  *              * CHARGE   * probtof(4,ncharge)     // TOF highest Probs
-* I*4  *              * CHARGE   * chintof(4,ncharge)     // charge indices for 
-                                                          // highest Probs (see
-                                                          // charge.doc)
-* R*4  *              * CHARGE   * probtracker(4,ncharge) // Tracker highest Probs
-* I*4  *              * CHARGE   * chintracker(4,ncharge) // charge indices for
-                                                          // highest Probs (see
-                                                          // charge.doc)
-* R*4  *              * CHARGE   * proballtracker(ncharge)// Tracker highest Prob
-                                                          // (all hits)
-* R*4  *              * CHARGE   * truntof(ncharge)     // Trun (-1) mean (Anodes)
-* R*4  *              * CHARGE   * truntofd(ncharge)    // Trun (-1) mean (Dynodes)
-* R*4  *              * CHARGE   * truntracker(ncharge) // Trun (-1) mean
+* I*4  * [0,10]    * BETA     * nbeta              // betas number
+* I*4  *           * BETA     * betastatus         // 4 - ambig
+* I*4  *           * BETA     * betapattern(nbeta) // beta pattern
+						   // (see beta.doc) 
+* R*4  *           * BETA     * beta(nbeta)        // velocity
+* R*4  *           * BETA     * betac(nbeta)       // corrected velocity
+* R*4  *           * BETA     * betaerror(nbeta)   // est. error 1/beta 
+* R*4  *           * BETA     * betaerrorc(nbeta)  // est. err. 1/corr. beta 
+* R*4  *           * BETA     * betachi2(nbeta)    // chi2 of beta fit(time)
+* R*4  *           * BETA     * betachi2s(nbeta)   // chi2 of beta fit(space)
+* I*4  *           * BETA     * betantof(nbeta)    // number of tof planes
+* I*4  *           * BETA     * betaptof(4,nbeta)  // pointers to tof planes
+* I*4  *           * BETA     * betaptr(nbeta)     // pointer to track
 
 
-* I*4  * [0,10]       * PARTICLE * npart             // particles number
-* I*4  *              * PARTICLE * pbetap(npart)     // pointer to beta
-* I*4  *              * PARTICLE * pchargep(npart)   // pointer to charge
-* I*4  *              * PARTICLE * ptrackp(npart)    // pointer to track,
-                                                     // or -1 if particle doesn't
-                                                     // contain a track
-* I*4  *              * PARTICLE * pid(npart)        // Geant Particle Id
-* I*4  *              * PARTICLE * pidvice(npart)    // Geant vice-Particle Id
-* R*4  *              * PARTICLE * probpid(2,npart)  // probabilities 
-* R*4  *              * PARTICLE * fitmom(npart)     // fitted mom for pid
-* R*4  *              * PARTICLE * pmass(npart)      // particle mass 
-* R*4  *              * PARTICLE * perrmass(npart)   // error in particle mass
-* R*4  *              * PARTICLE * pmom(npart)       // particle momentum
-                                                     //  (signed)
-* R*4  *              * PARTICLE * perrmom(npart)    // error in momentum
-* R*4  *              * PARTICLE * pcharge(npart)    // charge
-* R*4  *              * PARTICLE * ptheta(npart)     // theta (1st(last) tracker plane)
-* R*4  *              * PARTICLE * pphi(npart)       // phi  -----------
-* R*4  *              * PARTICLE * thetagl(npart)    // theta global **)
-* R*4  *              * PARTICLE * phigl(npart)      // phi global
-* R*4  *              * PARTICLE * pcoo(3,npart)     // coo  -----------
-* I*4  *              * PARTICLE * atcnbcel(2,npart) // nb of acrossed cells
-* R*4  *              * PARTICLE * atcnbphe(2,npart) // nb of photoelectrons
-* I*4  *              * PARTICLE * atcidcel(2,npart) // cells id              ****)
-* I*4  *              * PARTICLE * atcdispm(2,npart) // PM minimal distance   ****)
-* I*4  *              * PARTICLE * atcdaero(2,npart) // Aerogel path length   ****)
-* I*4  *              * PARTICLE * atcstatu(2,npart) // Bad ATC cells         ****)
-* R*4  *              * PARTICLE * cutoff(npart)     // geomag cutoff in GeV/c
-* R*4  *              * PARTICLE * cooctc(3,2,npart) // tracker extrapol in ctc
-* R*4  *              * PARTICLE * cootof(3,4,npart) // tracker extrapol in tof
-* R*4  *              * PARTICLE * cooanti(3,2,npart)// tracker extrapol in anti
-* R*4  *              * PARTICLE * cootr(3,6,npart)  // tracker extrapol in tr *****)                                                      
-* R*4  *              * PARTICLE * cooecal(3,18,npart)// tracker extrapol in each of
-                                                         18 ECAL planes, cooecal(3,ipl,npart)=0
-							 if no cluster found in plane ipl)                                                      
+* I*4  * [0,10]    * CHARGE   * ncharge                // charges number
+* I*4  *           * CHARGE   * chargestatus           // 1 - refitted
+* R*4  *           * CHARGE   * chargebetap(ncharge)   //pointer to velocity
+* I*4  *           * CHARGE   * chargetof(ncharge)     // TOF charge
+* I*4  *           * CHARGE   * chargetracker(ncharge) // Tracker Charge
+* R*4  *           * CHARGE   * probtof(4,ncharge)     // TOF highest Probs
+* I*4  *           * CHARGE   * chintof(4,ncharge)     // charge indices for 
+                                                       // highest Probs (see
+                                                       // charge.doc)
+* R*4  *           * CHARGE   * probtracker(4,ncharge) // Tra. highest Probs
+* I*4  *           * CHARGE   * chintracker(4,ncharge) // charge indices for
+                                                       // highest Probs (see
+                                                       // charge.doc)
+* R*4  *           * CHARGE   * proballtracker(ncharge)// Tracker highest
+                                                       // Prob (all hits)
+* R*4  *           * CHARGE   * truntof(ncharge)  // Trun (-1) mean (Anodes)
+* R*4  *           * CHARGE   * truntofd(ncharge) // Trun (-1) mean (Dynodes)
+* R*4  *           * CHARGE   * truntracker(ncharge) // Trun (-1) mean
 
 
-* I*4  * [0,20]       * TOFCLUST * ntof             // TOF clusters number
-* I*4  *              * TOFCLUST * TOFStatus(ntof)  // Status: 
-                                                    // bit 4 - ambig
-                                                    // bit 128 -> problems with history
-                                                    // bit 256 -> "1-sided" counter
-                                                    // bit 512 -> bad t-measurement
-                                                    //            on one of the sides
-                                                    // bit 2048 -> recovered from 
-                                                    // 1-sided  (bit256 also set)
-* I*4  *              * TOFCLUST * plane(ntof)        // Tof layer no
-                                                      //1..4 up..down
-* I*4  *              * TOFCLUST * bar(ntof)          //  TOF bar no
-* R*4  *              * TOFCLUST * TOFEdep(ntof)      // TOF energy loss (MeV)
-                                                      // from Anode
-* R*4  *              * TOFCLUST * TOFEdepd(ntof)     // TOF energy loss (MeV)
-                                                      // from Dynode
-* R*4  *              * TOFCLUST * TOFTime(ntof)      // TOF time (sec)
-* R*4  *              * TOFCLUST * TOFETime(ntof)     // Error in TOF time
-* R*4  *              * TOFCLUST * TOFCoo(3,ntof)     // TOF Coo (cm)
-* R*4  *              * TOFCLUST * TOFErCoo(3,ntof)   //
-* I*4  *              * TOFCLUST * nmemb(ntof)        // Number of bars in cluster 
+* I*4  * [0,10]    * PARTICLE * npart             // particles number
+* I*4  *           * PARTICLE * pbetap(npart)     // pointer to beta
+* I*4  *           * PARTICLE * pchargep(npart)   // pointer to charge
+* I*4  *           * PARTICLE * ptrackp(npart)    // pointer to track, or
+                                                  // -1 if particle doesn't
+                                                  // contain a track
+* I*4  *           * PARTICLE * pid(npart)        // Geant Particle Id
+* I*4  *           * PARTICLE * pidvice(npart)    // Geant vice-Particle Id
+* R*4  *           * PARTICLE * probpid(2,npart)  // probabilities 
+* R*4  *           * PARTICLE * fitmom(npart)     // fitted mom for pid
+* R*4  *           * PARTICLE * pmass(npart)      // particle mass 
+* R*4  *           * PARTICLE * perrmass(npart)   // error in particle mass
+* R*4  *           * PARTICLE * pmom(npart)       // particle momentum
+                                                  // (signed)
+* R*4  *           * PARTICLE * perrmom(npart)    // error in momentum
+* R*4  *           * PARTICLE * pcharge(npart)    // charge
+* R*4  *           * PARTICLE * ptheta(npart)     // theta (1st[last] 
+						  // tracker plane)
+* R*4  *           * PARTICLE * pphi(npart)       // phi (1st[last] tr. pl.)
+* R*4  *           * PARTICLE * thetagl(npart)    // theta global **)
+* R*4  *           * PARTICLE * phigl(npart)      // phi global
+* R*4  *           * PARTICLE * pcoo(3,npart)     // coo  -----------
+* I*4  *           * PARTICLE * atcnbcel(2,npart) // nb of acrossed cells
+* R*4  *           * PARTICLE * atcnbphe(2,npart) // nb of photoelectrons
+* I*4  *           * PARTICLE * atcidcel(2,npart) // cells id           ****)
+* I*4  *           * PARTICLE * atcdispm(2,npart) // PM min. distance   ****)
+* I*4  *           * PARTICLE * atcdaero(2,npart) // Aerogel path length****)
+* I*4  *           * PARTICLE * atcstatu(2,npart) // Bad ATC cells      ****)
+* R*4  *           * PARTICLE * cutoff(npart)     // geomag cutoff in GeV/c
+* R*4  *           * PARTICLE * cooctc(3,2,npart) // tracker extrapol in ctc
+* R*4  *           * PARTICLE * cootof(3,4,npart) // tracker extrapol in tof
+* R*4  *           * PARTICLE * cooanti(3,2,npart)// tracker extrapol in anti
+* R*4  *           * PARTICLE * cootr(3,6,npart)  // tracker extrapol in
+						  // tracker *****)
+* R*4  *           * PARTICLE * cooecal(3,18,npart)// tracker extrapol in 
+						   // each of 18 ECAL planes,
+						   // cooecal(3,ipl,npart)=0
+						   // if no cluster found in
+						   // plane ipl)
 
 
-* I*4  * [0,200]      * TOFMCCLU * ntofmc            // TOF MC hits number
-* I*4  *              * TOFMCCLU * TOFMCIdsoft(ntofmc)    // Idsoft
-                                                       // Ask E. Choumilov
-                                                       // if needed
-                                                       //
-* R*4  *              * TOFMCCLU * TOFMCXcoo(3,ntofmc)// coo
-* R*4  *              * TOFMCCLU * TOFMCtof(ntofmc)   // time
-* R*4  *              * TOFMCCLU * TOFMCedep(ntofmc)  // energy(meV)
+* I*4  * [0,20]    * TOFCLUST * ntof             // TOF clusters number
+* I*4  *           * TOFCLUST * TOFStatus(ntof)  // Status: 
+                                                 // bit 4 - ambig
+                                                 // bit 128 -> problems with
+						 //	    history
+                                                 // bit 256 -> "1-sided" counter
+                                                 // bit 512 -> bad t-measurement
+                                                 //         on one of the sides
+                                                 // bit 2048 -> recovered from 
+                                                 // 1-sided (bit256 also set)
+* I*4  *           * TOFCLUST * plane(ntof)        // Tof layer no
+                                                   // 1..4 up..down
+* I*4  *           * TOFCLUST * bar(ntof)          // TOF bar no
+* R*4  *           * TOFCLUST * TOFEdep(ntof)      // TOF energy loss (MeV)
+                                                   // from Anode
+* R*4  *           * TOFCLUST * TOFEdepd(ntof)     // TOF energy loss (MeV)
+                                                   // from Dynode
+* R*4  *           * TOFCLUST * TOFTime(ntof)      // TOF time (sec)
+* R*4  *           * TOFCLUST * TOFETime(ntof)     // Error in TOF time
+* R*4  *           * TOFCLUST * TOFCoo(3,ntof)     // TOF Coo (cm)
+* R*4  *           * TOFCLUST * TOFErCoo(3,ntof)   //
+* I*4  *           * TOFCLUST * nmemb(ntof)        // Number of bars in cluster 
+
+
+* I*4  * [0,200]   * TOFMCCLU * ntofmc              // TOF MC hits number
+* I*4  *           * TOFMCCLU * TOFMCIdsoft(ntofmc) // Idsoft
+                                                    // Ask E. Choumilov
+                                                    // if needed
+                                                    //
+* R*4  *           * TOFMCCLU * TOFMCXcoo(3,ntofmc)// coo
+* R*4  *           * TOFMCCLU * TOFMCtof(ntofmc)   // time
+* R*4  *           * TOFMCCLU * TOFMCedep(ntofmc)  // energy(meV)
  
 
-* I*4  * [0,50]       * TRCLUSTE * ntrcl              // Tracker clusters number
-* I*4  *              * TRCLUSTE * Idsoft(ntrcl)      // Idsoft
-                                                      // mod(id,10) layer 
-                                                      // mod(id/10,100) ladder    
-                                                      // i=mod(id/1000,10)
-                                                      // i==0 x 1st half
-                                                      // i==1 x 2nd half
-                                                      // i==2 y 1st half
-                                                      // i==3 y 2nd half
-                                                      // id/10000 strip
-* I*4  *              * TRCLUSTE * Statust(ntrcl)     // Status *)
-* I*4  *              * TRCLUSTE * NelemL(ntrcl)      // -Number of strips left to max
-* I*4  *              * TRCLUSTE * NelemR(ntrcl)      // Number of strips right to max 
-* R*4  *              * TRCLUSTE * Sumt(ntrcl)        // Amplitude total
-* R*4  *              * TRCLUSTE * Sigmat(ntrcl)      // Sigma total
-* R*4  *              * TRCLUSTE * Meant(ntrcl)       // CofG (local)
-* R*4  *              * TRCLUSTE * RMSt(ntrcl)        // RMS cluster
-* R*4  *              * TRCLUSTE * ErrorMeant(ntrcl)  // error in CofG
-* R*4  *              * TRCLUSTE * Amplitude(5,ntrcl) // strips ampl
+* I*4  * [0,50]    * TRCLUSTE * ntrcl              // Tracker clusters number
+* I*4  *           * TRCLUSTE * Idsoft(ntrcl)      // Idsoft
+                                                   // mod(id,10) layer 
+                                                   // mod(id/10,100) ladder
+                                                   // i=mod(id/1000,10)
+                                                   // i==0 x 1st half
+                                                   // i==1 x 2nd half
+                                                   // i==2 y 1st half
+                                                   // i==3 y 2nd half
+                                                   // id/10000 strip
+* I*4  *           * TRCLUSTE * Statust(ntrcl)     // Status *)
+* I*4  *           * TRCLUSTE * NelemL(ntrcl)   // -Number of strips left to max
+* I*4  *           * TRCLUSTE * NelemR(ntrcl)   // Number of strips right to max
+* R*4  *           * TRCLUSTE * Sumt(ntrcl)        // Amplitude total
+* R*4  *           * TRCLUSTE * Sigmat(ntrcl)      // Sigma total
+* R*4  *           * TRCLUSTE * Meant(ntrcl)       // CofG (local)
+* R*4  *           * TRCLUSTE * RMSt(ntrcl)        // RMS cluster
+* R*4  *           * TRCLUSTE * ErrorMeant(ntrcl)  // error in CofG
+* R*4  *           * TRCLUSTE * Amplitude(5,ntrcl) // strips ampl
 
 
-* I*4  * [0,200]      * TRMCCLUS * ntrclmc           // Tracker MC hits number
-* I*4  *              * TRMCCLUS * IdsoftMC(ntrclmc) // Idsoft
-                                                     // mod(id,10) layer
-                                                     // mod(id/10,100) ladder
-                                                     // id/1000 sensor
-* I*4  *              * TRMCCLUS * Itra(ntrclmc)     // Particle Id (or 555 if noise)
-* I*4  *              * TRMCCLUS * Left(2,ntrclmc)   // left strip no 
-* I*4  *              * TRMCCLUS * Center(2,ntrclmc) // center strip no
-* I*4  *              * TRMCCLUS * Right(2,ntrclmc)  // right stip no
-* R*4  *              * TRMCCLUS * ss(5,2,ntrclmc)   // Strip amplitudes
-* R*4  *              * TRMCCLUS * xca(3,ntrclmc)    // local input coo
-* R*4  *              * TRMCCLUS * xcb(3,ntrclmc)    // local output coo
-* R*4  *              * TRMCCLUS * xgl(3,ntrclmc)    // global coo
-* R*4  *              * TRMCCLUS * summc(ntrclmc)    // total amplitude
+* I*4  * [0,200]   * TRMCCLUS * ntrclmc           // Tracker MC hits number
+* I*4  *           * TRMCCLUS * IdsoftMC(ntrclmc) // Idsoft
+                                                  // mod(id,10) layer
+                                                  // mod(id/10,100) ladder
+                                                  // id/1000 sensor
+* I*4  *           * TRMCCLUS * Itra(ntrclmc)     // Particle Id (or 555 if noise)
+* I*4  *           * TRMCCLUS * Left(2,ntrclmc)   // left strip no 
+* I*4  *           * TRMCCLUS * Center(2,ntrclmc) // center strip no
+* I*4  *           * TRMCCLUS * Right(2,ntrclmc)  // right stip no
+* R*4  *           * TRMCCLUS * ss(5,2,ntrclmc)   // Strip amplitudes
+* R*4  *           * TRMCCLUS * xca(3,ntrclmc)    // local input coo
+* R*4  *           * TRMCCLUS * xcb(3,ntrclmc)    // local output coo
+* R*4  *           * TRMCCLUS * xgl(3,ntrclmc)    // global coo
+* R*4  *           * TRMCCLUS * summc(ntrclmc)    // total amplitude
 
 
-* I*4  * [0,200]      * TRRECHIT * ntrrh          // tracker 3dim points number
-* I*4  *              * TRRECHIT * px(ntrrh)      // pointer to x track clster
-* I*4  *              * TRRECHIT * py(ntrrh)      //  --------  y --------
-* I*4  *              * TRRECHIT * statusr(ntrrh) // Status *)
-* I*4  *              * TRRECHIT * Layer(ntrrh)   // Layer no 1-6 up-down
-* R*4  *              * TRRECHIT * hitr(3,ntrrh)  // gl 3dim coordinates
-* R*4  *              * TRRECHIT * ehitr(3,ntrrh) // error to above
-* R*4  *              * TRRECHIT * sumr(ntrrh)    // Amplitude
-* R*4  *              * TRRECHIT * difosum(ntrrh) // (A_x-A_y)/(A_x+A_y)
-* R*4  *              * TRRECHIT * cofgx          //local cfg x
-* R*4  *              * TRRECHIT * cofgy          //local cfg y
+* I*4  * [0,200]   * TRRECHIT * ntrrh          // tracker 3dim points number
+* I*4  *           * TRRECHIT * px(ntrrh)      // pointer to x track clster
+* I*4  *           * TRRECHIT * py(ntrrh)      //  --------  y --------
+* I*4  *           * TRRECHIT * statusr(ntrrh) // Status *)
+* I*4  *           * TRRECHIT * Layer(ntrrh)   // Layer no 1-6 up-down
+* R*4  *           * TRRECHIT * hitr(3,ntrrh)  // gl 3dim coordinates
+* R*4  *           * TRRECHIT * ehitr(3,ntrrh) // error to above
+* R*4  *           * TRRECHIT * sumr(ntrrh)    // Amplitude
+* R*4  *           * TRRECHIT * difosum(ntrrh) // (A_x-A_y)/(A_x+A_y)
+* R*4  *           * TRRECHIT * cofgx          // local cfg x
+* R*4  *           * TRRECHIT * cofgy          // local cfg y
 
 
-* I*4  * [0,20]       * TRTRACK  * ntrtr           // tracks number
-* I*4  *              * TRTRACK  * trstatus(ntrtr) // Status *)
-* I*4  *              * TRTRACK  * pattern(ntrtr)  // Pattern (datacards.doc)
-* I*4  *              * TRTRACK  * address(ntrtr)  // address (trrec.C buildaddress)
-* I*4  *              * TRTRACK  * nhits(ntrtr)    // number of hits 
-* I*4  *              * TRTRACK  * phits(6,ntrtr)  // pointers to trrechit
-* R*4  *              * TRTRACK  * LocDbAver(ntrtr) // rel mom from testbeam
-* I*4  *              * TRTRACK  * GeaneFitDone(ntrtr) // != 0 if done
-* I*4  *              * TRTRACK  * AdvancedFitDone(ntrtr) --------------
-* R*4  *              * TRTRACK  * Chi2StrLine(ntrtr) // chi2 sz fit
-* R*4  *              * TRTRACK  * Chi2Circle(ntrtr) // chi2 circular fit
-* R*4  *              * TRTRACK  * CircleRidgidity(ntrtr) // circular rigidity
-* R*4  *              * TRTRACK  * Chi2FastFit(ntrtr) // chi2 fast nonl fit
-* R*4  *              * TRTRACK  * Ridgidity(ntrtr) // fast nonl rigidity
-* R*4  *              * TRTRACK  * ErrRidgidity(ntrtr) // err to 1/above
-* R*4  *              * TRTRACK  * Theta(ntrtr) // theta (from fast)
-* R*4  *              * TRTRACK  * phi(ntrtr)   // phi ---------
-* R*4  *              * TRTRACK  * p0(3,ntrtr)  // coords ----------
-* R*4  *              * TRTRACK  * gchi2(ntrtr) // geane chi2
-* R*4  *              * TRTRACK  * gridgidity(ntrtr)// ------ rigidity
-* R*4  *              * TRTRACK  * gerrridgidity(ntrtr) //error to 1/above
-* R*4  *              * TRTRACK  * gtheta(ntrtr)// -------- theta
-* R*4  *              * TRTRACK  * gphi(ntrtr)  // -------- phi
-* R*4  *              * TRTRACK  * gp0(3,ntrtr) // ------ coords
-* R*4  *              * TRTRACK  * hchi2(2,ntrtr) // two halves chi2s
-* R*4  *              * TRTRACK  * HRidgidity(2,ntrtr) //-------- rigities
-* R*4  *              * TRTRACK  * HErrRidgidity(2,ntrtr) // errors to 1/above
-* R*4  *              * TRTRACK  * htheta(2,ntrtr) // ------- thetas
-* R*4  *              * TRTRACK  * hphi(2,ntrtr) // ------ phis
-* R*4  *              * TRTRACK  * hp0(3,2,ntrtr) // ------- coords
-* R*4  *              * TRTRACK  * fchi2ms(ntrtr) // fast chi2 mscat off
-* R*4  *              * TRTRACK  * pirigerr(ntrtr) // PathInt err(1/rig)
-                                                // (<0 means fit wan not succesful)
-* R*4  *              * TRTRACK  * ridgidityms(ntrtr) // fast rigidity mscat off
-* R*4  *              * TRTRACK  * pirigidity(ntrtr) // PathInt rigidity
+* I*4  * [0,20]    * TRTRACK  * ntrtr           // tracks number
+* I*4  *           * TRTRACK  * trstatus(ntrtr) // Status *)
+* I*4  *           * TRTRACK  * pattern(ntrtr) // Pattern (datacards.doc)
+* I*4  *           * TRTRACK  * address(ntrtr) // address (trrec.C buildaddress)
+* I*4  *           * TRTRACK  * nhits(ntrtr)         // number of hits 
+* I*4  *           * TRTRACK  * phits(6,ntrtr)	     // pointers to trrechit
+* R*4  *           * TRTRACK  * LocDbAver(ntrtr)     // rel mom from testbeam
+* I*4  *           * TRTRACK  * GeaneFitDone(ntrtr)  // != 0 if done
+* I*4  *           * TRTRACK  * AdvancedFitDone(ntrtr) --------------
+* R*4  *           * TRTRACK  * Chi2StrLine(ntrtr)   // chi2 sz fit
+* R*4  *           * TRTRACK  * Chi2Circle(ntrtr)    // chi2 circular fit
+* R*4  *           * TRTRACK  * CircleRidgidity(ntrtr) // circular rigidity
+* R*4  *           * TRTRACK  * Chi2FastFit(ntrtr)   // chi2 fast nonl fit
+* R*4  *           * TRTRACK  * Ridgidity(ntrtr)     // fast nonl rigidity
+* R*4  *           * TRTRACK  * ErrRidgidity(ntrtr)  // err to 1/above
+* R*4  *           * TRTRACK  * Theta(ntrtr)	     // theta (from fast)
+* R*4  *           * TRTRACK  * phi(ntrtr)	     // phi ---------
+* R*4  *           * TRTRACK  * p0(3,ntrtr)	     // coords ----------
+* R*4  *           * TRTRACK  * gchi2(ntrtr)	     // geane chi2
+* R*4  *           * TRTRACK  * gridgidity(ntrtr)    // ------ rigidity
+* R*4  *           * TRTRACK  * gerrridgidity(ntrtr) // error to 1/above
+* R*4  *           * TRTRACK  * gtheta(ntrtr)	     // -------- theta
+* R*4  *           * TRTRACK  * gphi(ntrtr)	     // -------- phi
+* R*4  *           * TRTRACK  * gp0(3,ntrtr)	     // ------ coords
+* R*4  *           * TRTRACK  * hchi2(2,ntrtr)	     // two halves chi2s
+* R*4  *           * TRTRACK  * HRidgidity(2,ntrtr)  // -------- rigities
+* R*4  *           * TRTRACK  * HErrRidgidity(2,ntrtr) // errors to 1/above
+* R*4  *           * TRTRACK  * htheta(2,ntrtr)	     // ------- thetas
+* R*4  *           * TRTRACK  * hphi(2,ntrtr)	     // ------ phis
+* R*4  *           * TRTRACK  * hp0(3,2,ntrtr)	     // ------- coords
+* R*4  *           * TRTRACK  * fchi2ms(ntrtr)	     // fast chi2 mscat off
+* R*4  *           * TRTRACK  * pirigerr(ntrtr)	     // PathInt err(1/rig)
+                                             // (<0 means fit wan not succesful)
+* R*4  *           * TRTRACK  * ridgidityms(ntrtr) // fast rigidity mscat off
+* R*4  *           * TRTRACK  * pirigidity(ntrtr)  // PathInt rigidity
 
 
-* I*4  * [0,20]       * MCEVENTG * nmcg // Number of input particles in MC gen  ******)
-* I*4  *              * MCEVENTG * nskip  //Pos no for test beam data or MC spec
-* I*4  *              * MCEVENTG * Particle(nmcg) // Geant particle id
-* R*4  *              * MCEVENTG * coo(3,nmcg)  // geant particle coos
-* R*4  *              * MCEVENTG * dir(3,nmcg)  // ------- dir cos
-* R*4  *              * MCEVENTG * momentum(nmcg) // momentum
-* R*4  *              * MCEVENTG * mass(nmcg)   // mass
-* R*4  *              * MCEVENTG * charge(nmcg) // charge
+* I*4  * [0,20]    * MCEVENTG * nmcg // Number of input particles in MC gen ******)
+* I*4  *           * MCEVENTG * nskip  //Pos no for test beam data or MC spec
+* I*4  *           * MCEVENTG * Particle(nmcg)   // Geant particle id
+* R*4  *           * MCEVENTG * coo(3,nmcg)	 // geant particle coos
+* R*4  *           * MCEVENTG * dir(3,nmcg)	 // ------- dir cos
+* R*4  *           * MCEVENTG * momentum(nmcg)	 // momentum
+* R*4  *           * MCEVENTG * mass(nmcg)	 // mass
+* R*4  *           * MCEVENTG * charge(nmcg)	 // charge
 
 
-* I*4  * [0,16]       * ANTICLUS * nanti                 // Anti clusters number
-* I*4  *              * ANTICLUS * AntiStatus(nanti)     // Status
-* I*4  *              * ANTICLUS * AntiSector(nanti)     // Sector no(1-16)
-* R*4  *              * ANTICLUS * AntiEdep(nanti)       // Energy dep (MeV)   
-* R*4  *              * ANTICLUS * AntiCoo(3,nanti)      // Coo (cm)
-* R*4  *              * ANTICLUS * AntiErCoo(3,nanti)    // Err to Coo
-* I*4  * [0,200]      * ANTIMCCL * nantimc               // MC Anti hits number
-* I*4  *              * ANTIMCCL * AntiMCIdsoft(nantimc) // idsoft 
-* R*4  *              * ANTIMCCL * AntiMCXcoo(3,nantimc) // coo
-* R*4  *              * ANTIMCCL * AntiMCtof(nantimc)    // Tof
-* R*4  *              * ANTIMCCL * AntiMCedep(nantimc)   // energy dep (GeV)
+* I*4  * [0,16]    * ANTICLUS * nanti                 // Anti clusters number
+* I*4  *           * ANTICLUS * AntiStatus(nanti)     // Status
+* I*4  *           * ANTICLUS * AntiSector(nanti)     // Sector no(1-16)
+* R*4  *           * ANTICLUS * AntiEdep(nanti)       // Energy dep (MeV)   
+* R*4  *           * ANTICLUS * AntiCoo(3,nanti)      // Coo (cm)
+* R*4  *           * ANTICLUS * AntiErCoo(3,nanti)    // Err to Coo
 
 
-* I*4  * [0,50]       * ECALCLUS * neccl               // ECAL clusters number
-* I*4  *              * ECALCLUS * EcclStatus(neccl)   // Status: 
-* I*4  *              * ECALCLUS * EcclProj(neccl)     // projection (0-x,1-y)
-* I*4  *              * ECALCLUS * EcclPlane(neccl)    // ECAL plane number (0,...)
-* R*4  *              * ECALCLUS * EcclEdep(neccl)     // ECAL measured energy (MeV)
-* R*4  *              * ECALCLUS * EcclCoo(3,neccl)    // ECAL Coo (cm)
-* R*4  *              * ECALCLUS * EcclErrCoo(3,neccl) // ECAL Error Coo
-* I*4  * [0,10]       * ECALCLUS * EcclNmemb(neccl)    // Number of hits in cluster
+* I*4  * [0,200]   * ANTIMCCL * nantimc               // MC Anti hits number
+* I*4  *           * ANTIMCCL * AntiMCIdsoft(nantimc) // idsoft 
+* R*4  *           * ANTIMCCL * AntiMCXcoo(3,nantimc) // coo
+* R*4  *           * ANTIMCCL * AntiMCtof(nantimc)    // Tof
+* R*4  *           * ANTIMCCL * AntiMCedep(nantimc)   // energy dep (GeV)
 
 
-* I*4  * [0,500]      * ECALHITS * necht               // ECAL hits number
-* I*4  *              * ECALHITS * EchtStatus(necht)   // Status: 
-* I*4  *              * ECALHITS * EchtIdsoft(necht)   // SSPPC(SupLayer/PM/subCell)
-* I*4  *              * ECALHITS * EchtProj(necht)     // projection (0-x,1-y)
-* I*4  *              * ECALHITS * EchtPlane(necht)    // ECAL plane number (0,...)
-* I*4  *              * ECALHITS * EchtCell(necht)     // ECAL Cell number (0,...)
-* R*4  *              * ECALHITS * EchtEdep(necht)     // ECAL measured energy (MeV)
-* R*4  *              * ECALHITS * EchtCoo(3,necht)    // ECAL Coo (cm)
+* I*4  * [0,50]    * ECALCLUS * neccl              // ECAL clusters number
+* I*4  *           * ECALCLUS * EcclStatus(neccl)  // Status: 
+* I*4  *           * ECALCLUS * EcclProj(neccl)    // projection (0-x,1-y)
+* I*4  *           * ECALCLUS * EcclPlane(neccl)   // ECAL plane number (0,...)
+* R*4  *           * ECALCLUS * EcclEdep(neccl)    // ECAL measured energy (MeV)
+* R*4  *           * ECALCLUS * EcclCoo(3,neccl)   // ECAL Coo (cm)
+* R*4  *           * ECALCLUS * EcclErrCoo(3,neccl) // ECAL Error Coo
+* I*4  * [0,10]    * ECALCLUS * EcclNmemb(neccl)   // Number of hits in cluster
 
 
- * I*4  * [0,2]       * LVL3     * nlvl3                 // lvl3trigger number 
- * I*4  *             * LVL3     * LVL3TOFTr(nlvl3)      // TOF Trigger
-                                           // -1 if rejected by matrix trigger,
-                                           // 0 if rejected by adj hits, 1 otherwise
- * I*4  *             * LVL3     * LVL3AntiTr(nlvl3)  // Anti Trigger  not used now
- * I*4  *             * LVL3     * LVL3TrackerTr(nlvl3)  // TrackerTrigger
-                                                         // 0  - initial state
-                                                         // 1  - reject (p)
-                                                         // 2  - Too many hits 
-                                                         // 3  - No comb found
-                                                         // 4  - >=2 comb found
-                                                         // 5  - Reserved
-                                                         // 6  - Reserved
-                                                         // 7  - Accept (ap)
-                                                         //+8  - Heavy Ion 
-                                                         //+32 - Prescaled evts
- * I*4  *             * LVL3     * LVL3NTrHits(nlvl3)    // Number Tr Hits
- * I*4  *             * LVL3     * LVL3NPat(nlvl3)       // Number "Tracks" found
- * I*4  *             * LVL3     * LVL3Pattern(2,nlvl3)  // Pattern no
- * R*4  *             * LVL3     * LVL3Residual(2,nlvl3) // Aver Residual (cm)
- * R*4  *             * LVL3     * LVL3Time(nlvl3)       // Alg Time (sec)
- * R*4  *             * LVL3     * LVL3ELoss(nlvl3)      // Aver energy loss
+* I*4  * [0,500]   * ECALHITS * necht              // ECAL hits number
+* I*4  *           * ECALHITS * EchtStatus(necht)  // Status: 
+* I*4  *           * ECALHITS * EchtIdsoft(necht)  // SSPPC(SupLayer/PM/subCell)
+* I*4  *           * ECALHITS * EchtProj(necht)    // projection (0-x,1-y)
+* I*4  *           * ECALHITS * EchtPlane(necht)   // ECAL plane number (0,...)
+* I*4  *           * ECALHITS * EchtCell(necht)    // ECAL Cell number (0,...)
+* R*4  *           * ECALHITS * EchtEdep(necht)    // ECAL measured energy (MeV)
+* R*4  *           * ECALHITS * EchtCoo(3,necht)   // ECAL Coo (cm)
 
 
- * I*4  * [0,1]       * LVL1     * nlvl1                 // lvl1trigger number
- * I*4  *             * LVL1     * LVL1LifeTime(nlvl1)   // DAQLifeTime *1000
-                                                         // + 10000* (sum tof
-                                                         // temperatutes (8 crates)
- * I*4  *             * LVL1     * LVL1Flag(nlvl1)       // z from trigger +4/4?10:0
- * I*4  *             * LVL1     * LVL1TOFPatt(4,nlvl1)  // tof pattern
-                                                         // 0-13 bit  or
-                                                         // 16-29    and
-                                                         // 31       plane not
-                                                         // in trigger (MC)
- * I*4  *             * LVL1     * LVL1TOFPatt1(4,nlvl1) // Tof pattern z>1
-                                                         // -------------
- * I*4  *             * LVL1     * LVL1AntiPatt(nlvl1)   // antipattern
-                                                         // 16-23 bits  
-                                                         // as in daqevt.doc 
- * I*4  *             * LVL1     * LVL1ECALflag(nlvl1)   // ecalflag (1->MIP,
-                                                         // 2->EM-obj, +10->HiEnergy
-                                                         // object
+ * I*4  * [0,2]    * LVL3     * nlvl3              // lvl3trigger number 
+ * I*4  *          * LVL3     * LVL3TOFTr(nlvl3)   // TOF Trigger
+                                      // -1 if rejected by matrix trigger,
+                                      // 0 if rejected by adj hits, 1 otherwise
+ * I*4  *          * LVL3     * LVL3AntiTr(nlvl3)  // Anti Trigger  not used now
+ * I*4  *          * LVL3     * LVL3TrackerTr(nlvl3)  // TrackerTrigger
+                                                      // 0  - initial state
+                                                      // 1  - reject (p)
+                                                      // 2  - Too many hits 
+                                                      // 3  - No comb found
+                                                      // 4  - >=2 comb found
+                                                      // 5  - Reserved
+                                                      // 6  - Reserved
+                                                      // 7  - Accept (ap)
+                                                      //+8  - Heavy Ion 
+                                                      //+32 - Prescaled evts
+ * I*4  *          * LVL3     * LVL3NTrHits(nlvl3)    // Number Tr Hits
+ * I*4  *          * LVL3     * LVL3NPat(nlvl3)       // Number "Tracks" found
+ * I*4  *          * LVL3     * LVL3Pattern(2,nlvl3)  // Pattern no
+ * R*4  *          * LVL3     * LVL3Residual(2,nlvl3) // Aver Residual (cm)
+ * R*4  *          * LVL3     * LVL3Time(nlvl3)       // Alg Time (sec)
+ * R*4  *          * LVL3     * LVL3ELoss(nlvl3)      // Aver energy loss
 
 
+ * I*4  * [0,1]    * LVL1     * nlvl1                 // lvl1trigger number
+ * I*4  *          * LVL1     * LVL1LifeTime(nlvl1)   // DAQLifeTime *1000
+                                                      // + 10000* (sum tof
+                                                      // temperatutes (8 crates)
+ * I*4  *          * LVL1     * LVL1Flag(nlvl1)       // z from trigger +4/4?10:0
+ * I*4  *          * LVL1     * LVL1TOFPatt(4,nlvl1)  // tof pattern
+                                                      // 0-13 bit  or
+                                                      // 16-29    and
+                                                      // 31       plane not
+                                                      // in trigger (MC)
+ * I*4  *          * LVL1     * LVL1TOFPatt1(4,nlvl1) // Tof pattern z>1
+                                                      // -------------
+ * I*4  *          * LVL1     * LVL1AntiPatt(nlvl1)   // antipattern
+                                                      // 16-23 bits  
+                                                      // as in daqevt.doc 
+ * I*4  *          * LVL1     * LVL1ECALflag(nlvl1)   // ecalflag (1->MIP,
+                                                      // 2->EM-obj, 
+						      // +10->HiEnergy object
 
 
- * I*4  * [0,500]     * TRRAWCL  * ntrraw                // trrawcl num
- * I*4  *             * TRRAWCL  * rawaddress(ntrraw)    // see TRCLUSTE Idsoft
- * I*4  *             * TRRAWCL  * rawlength(ntrraw)     //  rawcl length
- * R*4  *             * TRRAWCL  * s2n(ntrraw)           // s/n for seed
+ * I*4  * [0,500]  * TRRAWCL  * ntrraw                // trrawcl num
+ * I*4  *          * TRRAWCL  * rawaddress(ntrraw)    // see TRCLUSTE Idsoft
+ * I*4  *          * TRRAWCL  * rawlength(ntrraw)     // rawcl length
+ * R*4  *          * TRRAWCL  * s2n(ntrraw)           // s/n for seed
 
 
- * I*4  * [0,32]      * ANTIRAWC * nantiraw                  // antirawcl num
- * I*4  *             * ANTIRAWC * antirawstatus(nantiraw)   // status
- * I*4  *             * ANTIRAWC * antirawsector(nantiraw)   //sector 1-16
- * I*4  *             * ANTIRAWC * antirawupdown(nantiraw)   //0 - up 1 -down
- * R*4  *             * ANTIRAWC * antirawsignal(nantiraw)   // (mev)
+ * I*4  * [0,32]   * ANTIRAWC * nantiraw                  // antirawcl num
+ * I*4  *          * ANTIRAWC * antirawstatus(nantiraw)   // status
+ * I*4  *          * ANTIRAWC * antirawsector(nantiraw)   //sector 1-16
+ * I*4  *          * ANTIRAWC * antirawupdown(nantiraw)   //0 - up 1 -down
+ * R*4  *          * ANTIRAWC * antirawsignal(nantiraw)   // (mev)
 
 
- * I*4  * [0,20]      * TOFRAWCL * ntofraw                   // tofrawclnum (used)
- * I*4  *             * TOFRAWCL * tofrstatus(ntofraw)       // status
- * I*4  *             * TOFRAWCL * tofrplane(ntofraw)        // tof plane1-4
- * I*4  *             * TOFRAWCL * tofrbar(ntofraw)          // tof bar 1-14
- * R*4  *             * TOFRAWCL * tofrtovta(2,ntofraw)      // anode time 
-                                                             //over_thresh (ns)
- * R*4  *             * TOFRAWCL * tofrtovtd(2,ntofraw)      // dinode time
-                                                             //over_thresh (ns)
- * R*4  *             * TOFRAWCL * tofrsdtm(2,ntofraw)       // A-noncorrected
-                                                             //  side times
- * R*4  *             * TOFRAWCL * tofreda(ntofraw)       // Edep-A (mev)
- * R*4  *             * TOFRAWCL * tofredd(ntofraw)       // Edep-D (mev)
- * R*4  *             * TOFRAWCL * tofrtm(ntofraw)        // Time (ns)
- * R*4  *             * TOFRAWCL * tofrcoo(ntofraw)       // Long.coord.(cm)
+ * I*4  * [0,20]   * TOFRAWCL * ntofraw                 // tofrawclnum (used)
+ * I*4  *          * TOFRAWCL * tofrstatus(ntofraw)     // status
+ * I*4  *          * TOFRAWCL * tofrplane(ntofraw)      // tof plane1-4
+ * I*4  *          * TOFRAWCL * tofrbar(ntofraw)        // tof bar 1-14
+ * R*4  *          * TOFRAWCL * tofrtovta(2,ntofraw)    // anode time 
+                                                        //over_thresh (ns)
+ * R*4  *          * TOFRAWCL * tofrtovtd(2,ntofraw)    // dinode time
+                                                        //over_thresh (ns)
+ * R*4  *          * TOFRAWCL * tofrsdtm(2,ntofraw)     // A-noncorrected
+                                                        //  side times
+ * R*4  *          * TOFRAWCL * tofreda(ntofraw)        // Edep-A (mev)
+ * R*4  *          * TOFRAWCL * tofredd(ntofraw)        // Edep-D (mev)
+ * R*4  *          * TOFRAWCL * tofrtm(ntofraw)         // Time (ns)
+ * R*4  *          * TOFRAWCL * tofrcoo(ntofraw)        // Long.coord.(cm)
 
 
- * I*4  * [0,100]     * RICMCCL  * nsignals           // Number of signals in
-                                                      // the PMTs including noise
- * I*4  *             * RICMCCL  * sid(nsignals)      // Geant3 code of the particle
-                                                      // producing the signal
-                                                      // (-666 if it's noise)
- * R*4  *             * RICMCCL  * origin(3,nsignals)    // Generation point of the 
-                                                         // particle producing 
-                                                         // the signal (geant3 only)
- * R*4  *             * RICMCCL  * direction(3,nsignals) // Original direction of 
-                                                         // the particle producing 
-                                                         // the signal (geant3 only)
- * I*4  *             * RICMCCL  * RICstatus(nsignals)   // Signal status *******)
- * I*4  *             * RICMCCL  * nphgen                // Number of cerenkov
-                                                         // photons generated
-                                                         // in radiator
- * I*4  *             * RICMCCL  * phit(nsignals)        // Pointer to the
-                                                         // hit if sid=50 or -666
- * I*4  * [0,100]     * RICEVENT * Rhits                 // Number of hits
- * I*4  *             * RICEVENT * Rchannel(Rhits)       // Channel
- * I*4  *             * RICEVENT * Radc(Rhits)           // ADC counts
- * R*4  *             * RICEVENT * Rx(Rhits)             // X pos. of the channel
- * R*4  *             * RICEVENT * Ry(Rhits)             // Y pos. of the channel
-
-
+ * I*4  * [0,100]  * RICMCCL  * nsignals         // Number of signals in
+                                                 // the PMTs including noise
+ * I*4  *          * RICMCCL  * sid(nsignals)    // Geant3 code of the particle
+                                                 // producing the signal
+                                                 // (-666 if it's noise)
+ * R*4  *          * RICMCCL  * origin(3,nsignals) // Generation point of the 
+                                                   // particle producing 
+                                                   // the signal (geant3 only)
+ * R*4  *          * RICMCCL  * direction(3,nsignals) // Original direction of 
+                                                     // the particle producing 
+                                                     // the signal (geant3 only)
+ * I*4  *          * RICMCCL  * RICstatus(nsignals)   // Signal status *******)
+ * I*4  *          * RICMCCL  * nphgen                // Number of cerenkov
+                                                      // photons generated
+                                                      // in radiator
+ * I*4  *          * RICMCCL  * phit(nsignals)        // Pointer to the
+                                                      // hit if sid=50 or -666
+ * I*4  * [0,100]  * RICEVENT * Rhits                 // Number of hits
+ * I*4  *          * RICEVENT * Rchannel(Rhits)       // Channel
+ * I*4  *          * RICEVENT * Radc(Rhits)           // ADC counts
+ * R*4  *          * RICEVENT * Rx(Rhits)             // X pos. of the channel
+ * R*4  *          * RICEVENT * Ry(Rhits)             // Y pos. of the channel
 
 
 ---------------------------------------------------------------------------
+
+NOTES:
 
 *) Status bits (counting from 1 to 32)
 
@@ -408,32 +414,27 @@ This is AMS02 Ntuple Description
 21 - Track->Trladder interpol was done on plane level    (status&(65536*16)!=0)
 22 - Track was created using TOF only                    (status&(65536*32)!=0)
 23 - Object Overflow                                     (status&(65536*64)!=0)
-**) AMS global system definition :        
-GTOD
+
+
+**) AMS global system definition: GTOD
 
 
 ***) ISS coordinates in an eccentric dipole coordinate system where
-     GEOMz=-d, GEOMy=GEOMz x S  (d: dipole direction, S: geographic South)
-
-
-
-
+     GEOMz=-d, GEOMy=GEOMz x S (d: dipole direction, S: geographic South)
 
 
 *****) Changed from build=101
 
-cootr(3,1:nlay(),npart) now contains the minimal distance to sensor edge 
-in sensor length units;
+cootr(3,1:nlay(),npart) now contains the minimal distance to sensor
+			edge in sensor length units;
 
 
+******) geant3 only particle=pid+256 means heavy ion nonelstic
+        scattering occured in for pid with dir & momentum at coo;
+        particle=-pid means secondary particle produced with
+        dir&momentum at coo
 
-******) geant3 only  particle=pid+256 means heavy ion nonelstic scattering occured
-        in for pid with dir & momentum at coo; particle=-pid means secondary 
-        particle produced with dir&momentum at coo
-
-
-
-                           
+   
 *******) For geant4 this value is 0. For geant 3it has several meanings:
 
 Cerenkov photon generated in radiator:
@@ -446,7 +447,6 @@ PMT noise:
 
     ricstatus = -1
 
-
 Cerenkov photon generated in PMT window:
 
     ricstatus = -(2+100*(mother of Cerenkov if secondary?1:0))
@@ -455,12 +455,13 @@ No Cerenkov photon:
 
     ricstatus = -(3+100*(mother of Cerenkov if secondary?1:0))
 
-NOTE: The information of the mother is only available if RICCONT=1 in the datacards
+NOTE: The information of the mother is only available if RICCONT=1 in
+      the datacards
 
 ********)
 
 0      Unknown
 1      alpha-osf 
 2      i386-linux
-3      reserved for futire candidate
+3      reserved for future candidate
 

@@ -17,7 +17,7 @@ LDFLAGS=  -lUfor -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321  -lpawlib -
 CC=cxx -D__NAMESPACE__
 ifeq "$(shell cxx -V | grep -c 6.)" "1"
 #CC=cxx -D__NAMESPACE__  -oldcxx
-CC=cxx -D__NAMESPACE__  -nostdnew
+CC=cxx -D__NAMESPACE__ 
 endif
 FF=f77
 LD=cxx

@@ -17,7 +17,7 @@ mkdir $AMSWD/bin
 mkdir $AMSWD/exe
 
 gmake -if install/Moptg4   (batch)
-gmake -if install/Moptg4i  (interactive)
+gmake -if install/Moptg4i  (interactive{ batch first})
 
 n.b
 setenv AMSDEBUG 1 switch on debug mode (compiler's one)
@@ -34,9 +34,9 @@ MISCFFKEY.G4On=1
 Running conditions:
 
 need to set
-limit data 512000
+limit data 700000
 for dec-cxx
-limit data 384000
+limit data 512000
 for linux-g++
 
 ---------
@@ -80,7 +80,7 @@ CC/gmat.C    << new geant4  constructors
 
 
 
-Status (geant4.2.0):
+Status (geant4.3.0):
 
 
 Tracking is ok for dec/cxx, memory leak for linux/gcc2.95.2,

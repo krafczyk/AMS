@@ -59,7 +59,7 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes,
 
 if(_Type!=Client){
 #ifndef __DB__
-      _fillDB(AMSDBc::amsdatabase,0);
+      _fillDB((const char*)AMSDBc::amsdatabase,0);
 #else
       _fillfromDB();
 #endif
@@ -194,7 +194,7 @@ bool AMSTimeID::write(const char * dir, int slp){
 if(_Type!=Client){
   enum open_mode{binary=0x80};
     fstream fbin;
-    AString fnam(dir);
+    AString fnam=dir;
     fnam+=getname();
     fnam+="/";
     fnam+=_getsubdirname(_Begin);
@@ -456,7 +456,9 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
          for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[_DataBaseSize];
          for(i=0;i<5;i++){
            for(int k=0;k<_DataBaseSize;k++){
-             fbin>>_pDataBaseEntries[i][k];
+             uinteger tmp;
+             fbin>>tmp;
+             _pDataBaseEntries[i][k]=tmp;      
            }
          }
          fbin.close();

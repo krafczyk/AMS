@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.17 2000/12/14 15:09:25 choutko Exp $
+// $Id: g4physics.C,v 1.18 2001/01/11 11:25:42 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -111,7 +111,7 @@ void AMSG4Physics::ConstructProcess()
 #include "G4MuPairProduction.hh"
 
 #include "G4hIonisation.hh"
-#include "G4ionIonisation.hh"
+//#include "G4ionIonisation.hh"
 
 void AMSG4Physics::ConstructEM()
 {
@@ -209,7 +209,8 @@ void AMSG4Physics::ConstructEM()
      pmanager->SetProcessOrdering(aPairProduction, idxPostStep, 4);
      
     } else if( particleName == "GenericIon" ) {
-     G4VProcess* aionIonization = new G4ionIonisation;
+//     G4VProcess* aionIonization = new G4ionIonisation;
+     G4VProcess* aionIonization = new G4hIonisation;
      G4VProcess* aMultipleScattering = new G4MultipleScattering();
      pmanager->AddProcess(aionIonization);
      pmanager->AddProcess(aMultipleScattering);

@@ -41,7 +41,12 @@ void AMSNodeMap::unmap(){
    if(_numo>0){
    if(_numo>_hsize){
      if(_hash)delete[] _hash;
+try{
      _hash=new AMSNode*[_numo];
+}
+catch(bad_alloc aba){
+   _hash=0;
+}
     if(!_hash){
       if(AMSNodeMap::debug)cerr <<"AMSNodeMap::remap-F-Can not allocate " <<_numo
       <<" words"<<endl;
@@ -79,7 +84,12 @@ void AMSNodeMap::unmap(){
        AMSNode ** tmp;
        do {
         _hsize=_numo+size;
+try{
          tmp=new AMSNode*[_hsize];
+}
+catch(bad_alloc aba){
+   tmp=0;
+}
         size=(size/2>1)?size/2:1;
        }while (!tmp && size>1);
         if(!tmp){

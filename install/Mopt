@@ -53,7 +53,7 @@ DFLAGS=     -I/usr/include  -I../include
 LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
 CC=cxx 
 ifeq "$(shell cxx -V | grep -c 6.)" "1"
-CC=cxx   -nostdnew
+CC=cxx  
 #CC=cxx  -nostdnew 
 #CC=cxx  -oldcxx
 endif
