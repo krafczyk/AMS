@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.67 2002/04/19 15:23:49 delgadom Exp $
+//  $Id: geant3.C,v 1.68 2002/04/22 13:23:54 delgadom Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -440,6 +440,8 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
    
     // More RICH information added for MC
 
+    if(RICCONTROL.iflgk_flag){  // This to be checked
+
     if(GCKINE.itra==1 &&GCVOLU.names[lvl][0]=='R' && 
        GCVOLU.names[lvl][1]=='A' &&GCVOLU.names[lvl][2]=='D' && 
        GCVOLU.names[lvl][3]==' ' && GCKINE.ipart!=50 &&
@@ -483,7 +485,7 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
                                GCTRAK.vect+3,
                                Status_primary_tof); 
 
-
+    }
 
 
 
