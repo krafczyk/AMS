@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.134 2003/04/28 11:58:52 alexei Exp $
+# $Id: RemoteClient.pm,v 1.135 2003/04/28 12:39:21 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2450,6 +2450,16 @@ else {
              print "</b></font></td></tr>\n";
            htmlTableEnd();
          }
+# Script Custom/Generic
+             print "<tr><td><b><font color=\"green\">Script  </font></b>\n";
+             print "</td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"R\" ><b> Custom </b><i> (specific for for cite <font color=\"green\"> $self->{CCA} </font>)</i><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"L\" CHECKED><b> Generic </b><i> (AMS generic)</i><BR>\n";
+             print "</b></font></td></tr>\n";
+            htmlTableEnd();
+
 
           htmlTableEnd();
              if ($self->{CCT} ne "remote") {
@@ -2590,6 +2600,15 @@ DDTAB:         $self->htmlTemplateTable(" ");
             }
             print "</b></font></td></tr>\n";
            htmlTableEnd();
+# Script Custom/Generic
+             print "<tr><td><b><font color=\"green\">Script  </font></b>\n";
+             print "</td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"R\" ><b> Custom </b><i> (specific for for cite <font color=\"green\"> $self->{CCA} </font>)</i><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"L\" CHECKED><b> Generic </b><i> (AMS generic)</i><BR>\n";
+             print "</b></font></td></tr>\n";
+            htmlTableEnd();
             print "<tr><td><b><font color=\"red\">Spectrum and Focusing</font></b>\n";
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -2774,6 +2793,15 @@ DDTAB:         $self->htmlTemplateTable(" ");
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Automatic </b><BR>\n";
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> Manual </b><BR>\n";
 #            }
+             print "</b></font></td></tr>\n";
+            htmlTableEnd();
+# Script Custom/Generic
+             print "<tr><td><b><font color=\"green\">Script  </font></b>\n";
+             print "</td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"R\" ><b> Custom </b><i> (specific for for cite <font color=\"green\"> $self->{CCA} </font>)</i><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"L\" CHECKED><b> Generic </b><i> (AMS generic)</i><BR>\n";
              print "</b></font></td></tr>\n";
             htmlTableEnd();
            htmlTableEnd();
@@ -3137,6 +3165,9 @@ print qq`
         } else {
           $self->{dwldaddon}=0;
         }
+#
+        my $jst=$q->param("JST");
+#
         my $aft=$q->param("AFT");
         my $templatebuffer=undef;
         my $template=undef;
