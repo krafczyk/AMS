@@ -93,13 +93,13 @@ void AMSCharge::Fit(number rid, integer nhitTOF, integer nhitTracker,
    _ProbTracker[i]=0;
    int j;
    for ( j=0;j<nhitTOF;j++){
-    integer ia=floor(EdepTOF[j]/_lkhdStepTOF[i]);
+    integer ia=(integer)floor(EdepTOF[j]/_lkhdStepTOF[i]);
     if(ia<0)ia=0;
     if(ia>=100)ia=99;
     _ProbTOF[i]+=-log(_lkhdTOF[i][ia]);
    }
    for ( j=0;j<nhitTracker;j++){
-    integer ia=floor(EdepTracker[j]/_lkhdStepTracker[i]);
+    integer ia=(integer)floor(EdepTracker[j]/_lkhdStepTracker[i]);
     if(ia<0)ia=0;
     if(ia>=100)ia=99;
     _ProbTracker[i]+=-log(_lkhdTracker[i][ia]);

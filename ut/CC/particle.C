@@ -285,7 +285,7 @@ void AMSParticle::refit(){
       integer nwb=0;
       char chdum[21];
       GFPART(_GPart,chdum,itr,xmass,chrg,tlt7,uwb,nwb);
-      fac=fac*abs(chrg);
+      fac=fac*fabs(chrg);
       _Mass=_Mass*fac;
       _ErrMass=_ErrMass*fac;
       _Momentum=_Momentum*fac;
