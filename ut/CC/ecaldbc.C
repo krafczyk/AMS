@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.29 2001/09/19 08:56:55 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.30 2001/11/19 13:28:27 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -30,8 +30,8 @@ geant ECALDBc::_gendim[10]={
    0.,0.,        //  =5,6    center shift in x,y   
   -142.3,        //  =7      Radiator(incl.glue) front face Z-pozition
    4.18,         //  =8      top(bot) honeycomb thickness
-   1.83,         //  =9      lead thickness of 1 superlayer
-   0.01          //  =10      Thickness of glue on top(bot) of superlayer 
+   1.83,         //  =9      lead thickness of 1 SuperLayer
+   0.01          //  =10     Thickness of glue on top(bot) side of SL 
 };
 //
 geant ECALDBc::_fpitch[3]={
@@ -41,11 +41,11 @@ geant ECALDBc::_fpitch[3]={
 //
 geant ECALDBc::_rdcell[10]={
    368.,32.5,0.15,//i=1,3  MC-def fib.att.length slow)/fast/fast_fract(real values from DB !!)
-   0.094,        // i=4    fiber diameter(0.1-2x0.003cm)
+   0.094,        // i=4    fiber_core diameter(0.1-2x0.003cm)
    0.9,          // i=5    size(dx=dz) of "1/4" of PMT-cathod (pixel)
    0.45,         // i=6    abs(x(z)-position) of "1/4" in PMT coord.syst.
    1.8,          // i=7    X(Y)-pitch of PMT's;
-   0.008,        // i=8    fiber wall(cladd)+glue thickn(.003+.005cm) to have hole diam.=0.11
+   0.00857,      // i=8    fiber_cladd+glue thickn(.003+.00557cm) to have hole diam.=0.11114
    0.,0.         // i=9,10 spare
 };
 //
@@ -58,7 +58,7 @@ integer ECALDBc::_slstruc[6]={
 };
 //
 integer ECALDBc::_nfibpl[2]={
-   486,485       // i=1,2 numb. of fibers per 1st/2nd fiber-layer in S-layer
+   486,487       // i=1,2 numb. of fibers per 1st/2nd fiber-layer in S-layer
 };
 //
 int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion.
@@ -634,11 +634,11 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+2,"ECMC: GeantdE/dX-hits value(tot,MeV)",100,0.,500,0.);
       HBOOK1(ECHIST+3,"ECMC: GeantdE/dX-hits value(+att,tot,MeV)",100,0.,500.,0.);
       HBOOK1(ECHIST+4,"ECMC: GeantEmeas(prim.electron)(AnodeTot,MeV)",400,0.,20000.,0.);
-      HBOOK1(ECHIST+5,"ECMC: Dyn.hit value(tempor 4xAnodE/a2dr,i.e.in mev",100,0.,100.,0.);
+      HBOOK1(ECHIST+5,"ECMC: Dyn.hit value(mev)",100,0.,10.,0.);
       HBOOK1(ECHIST+6,"ECMC: 4xA-hit/D-hit ratio",50,0.,50.,0.);
       HBOOK1(ECHIST+7,"ECMC: EmcHits SL-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
       HBOOK1(ECHIST+8,"ECMC: EmcHits SL(PM-assigned)-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
-      HBOOK1(ECHIST+9,"ECMC: Etot(temp.trig.sum,mev)",100,0.,20000.,0.);
+      HBOOK1(ECHIST+9,"ECMC: Etot(trig.sum,mev)",100,0.,20000.,0.);
       HBOOK1(ECHIST+10,"ECMC: 1ST 3SL signal(mev)",80,0.,1600.,0.);
       HBOOK1(ECHIST+11,"ECMC: Epk/Ebase Ratio(F,LE)",80,0.,40.,0.);
       HBOOK1(ECHIST+12,"ECMC: Ebase",80,0.,800.,0.);

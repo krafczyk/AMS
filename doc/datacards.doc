@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.202 2001/09/25 08:06:51 choutko Exp $
+#  $Id: datacards.doc,v 1.203 2001/11/19 13:28:44 choumilo Exp $
 Datacards
 
 // Protection from some myst bug
@@ -891,7 +891,11 @@ I 5    silogic[1]                // spare
 R 6    mev2mev                   // Geant_de/dx->Emeasured(input) convertion
 R 7    mev2adc                   // (acd/mev) Emeasured->ADCchannel convertion
 R 8    safext                    // extention(>0)/reduction(<0) of EC transv. size
-                                    (is used when TFMC 13=2)    
+                                    (is used when TFMC 13=2)
+R 9    mev2pes(55)               // Geant dE/dE(mev) to PM photoelectrons conversion.
+R 10   pmseres(0.8)              // PM single-elecrton ampl.resolution
+R 11   mev2adcd(1.576)           // Dynode Emeas(MeV)->ADCch factor(MIP-m.p. -> 2nd channel)
+R 12   an2dyr(10)                // Anode/dynode ratio
 
     ECAL reconstruction:
 

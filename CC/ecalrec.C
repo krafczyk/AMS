@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.34 2001/10/08 14:38:13 choutko Exp $
+//  $Id: ecalrec.C,v 1.35 2001/11/19 13:28:28 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -95,15 +95,15 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
 //----------------------------------------------------
 void AMSEcalRawEvent::mc_build(int &stat){
   int i,j,k;
-  integer fid,cid,cidar[4],nhits,nraw,il,pm,sc,proj,rdir,nslhits;
+  integer fid,cid,cidar[4],nhits,nraw,nrawd,il,pm,sc,proj,rdir,nslhits;
   number x,y,z,coo,hflen,pmdis,edep,edepr,edept,edeprt,emeast,time,timet(0.);
   number attf,ww[4],anen,dyen;
   number sum[ECPMSMX][4],pmtmap[ECSLMX][ECPMSMX],pmlprof[ECSLMX];
   integer zhitmap[ECSLMX];
-  integer adch,adcm,adcl;
-  geant radc,a2dr,h2lr,mev2adc,pmrgn,scgn;
+  integer adch,adcm,adcl,adcd;
+  geant radc,a2dr,h2lr,mev2adc,mev2adcd,pmrgn,scgn,ares,phel;
   geant lfs,lsl,ffr;
-  geant pedh[4],pedl[4],sigh[4],sigl[4];
+  geant pedh[4],pedl[4],sigh[4],sigl[4],pedd,sigd;
   AMSEcalMCHit * ptr;
   integer id,sta,adc[2],scsta,nslmx,npmmx;
   number dyresp,dyrespt,toftrtm;// dynode resp. in mev(~mV) (for trigger)
@@ -118,6 +118,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
   emeast=0.;
   nhits=0;
   nraw=0;
+  nrawd=0;
   an4respt=0;
   dyrespt=0;
   timet=0.;
@@ -191,15 +192,20 @@ void AMSEcalRawEvent::mc_build(int &stat){
 //    if(nslhits==0)continue;//low noise(no noise hits will be added later in this empty sl)
 //
     for(i=0;i<npmmx;i++){ // <------- loop over PM's in this(il) S-layer
-      a2dr=ECcalib::ecpmcal[il][i].an2dyr();//take some param.from DB
+      a2dr=ECMCFFKEY.an2dyr;// MC anode/dynode gains ratio
       mev2adc=ECMCFFKEY.mev2adc;// MC Emeas->ADCchannel to have MIP-m.p. in 5th channel
 //                (only mev2mev*mev2adc has real meaning providing Geant_dE/dX->ADCchannel)
+      mev2adcd=ECMCFFKEY.mev2adcd;// same for dynode
       pmrgn=1.;//MC: variations of PM/SC gains(electronics,HV's) are not included;
 //          variations due to different number of fibers per pixel are automatically included
       ECPMPeds::pmpeds[il][i].getpedh(pedh);
       ECPMPeds::pmpeds[il][i].getsigh(sigh);
       ECPMPeds::pmpeds[il][i].getpedl(pedl);
       ECPMPeds::pmpeds[il][i].getsigl(sigl);
+//      ECPMPeds::pmpeds[il][i].getpedd(pedd);//tempor
+//      ECPMPeds::pmpeds[il][i].getsigd(sigd);
+      pedd=2;//tempor
+      sigd=0.2;//tempor
 //
       an4resp=0;//PM Anode-resp(4cells,tempor in mev)
       dyresp=0;//PM Dynode-resp(tempor in mev)
@@ -211,9 +217,16 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	scgn=1.;//PM SubCell gain
 	scsta=ECcalib::ecpmcal[il][i].getstat(k);//PM SubCell status from DB
 	if(scsta<0)scgn=0.;//dead SubCells
-        edepr=sum[i][k]*ECMCFFKEY.mev2mev;//Geant_dE/dX(Mev)->Emeas(Mev)
+	ares=0.;
+	phel=sum[i][k]*ECMCFFKEY.mev2pes;//numb.of photoelectrons
+	if(phel>=1){
+	  ares=ECMCFFKEY.pmseres/sqrt(phel);//ampl.resol.
+          edepr=sum[i][k]*(1.+ares*rnormx())*ECMCFFKEY.mev2mev;//dE/dX(Mev)->Emeas(Mev)(incl.amp.fluct)
+	}
+	else edepr=0;
+	if(edepr<0)edepr=0;
 	emeast+=edepr;
-	anen+=edepr+sigh[k]*rnormx()/mev2adc;//add noise in 4xSubc. signal(for trig.study)
+	anen+=edepr+sigh[k]*rnormx()/mev2adc;//tempor add noise in 4xSubc. signal(for trig.study)
 	dyen+=edepr;
 // ---------> digitization+DAQ-scaling:
 // High-gain channel:
@@ -268,8 +281,37 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	}
       }//<---- end of PMSubcell-loop
 //
-      an4resp=anen;//tempor! anode resp(true mev ~ mV !!!)(later to add some factor to conv. to mV)
-      dyresp=dyen/a2dr;//tempor! dynode resp(false mev ~ real mV !!!)
+// Dynode channel:
+        if(ECMCFFKEY.silogic[0]==0){
+	  radc=dyen*pmrgn*mev2adcd/a2dr+pedd+sigd*rnormx();//Em(mev)->Em/a2dr(adc)+ped+noise
+	}
+	else if(ECMCFFKEY.silogic[0]==1){
+	  radc=dyen*pmrgn*mev2adcd/a2dr+pedd;//Em(mev)->Em/a2dr(adc)+ped
+	}
+	else if(ECMCFFKEY.silogic[0]==2){
+	  radc=edepr*pmrgn*mev2adcd/a2dr;//Em(mev)->Em/a2dr(adc)
+	}
+	else{
+	}
+	adcd=floor(radc);//"digitization")
+	if(adcd>=ECADCMX)adcd=ECADCMX;//"ADC-saturation (12 bit)"
+	if(ECMCFFKEY.silogic[0]<2)radc=number(adcd)-pedd;// ped-subtraction
+	else radc=number(adcd);//no ped-subtr.
+        if(radc>=ECALVarp::ecalvpar.daqthr(4)){// use only hits above DAQ-readout threshold
+	  adcd=floor(radc*ECALDBc::scalef());//DAQ scaling
+	}
+	else{ adcd=0;}
+//
+	if(adcd>0){
+	  nrawd+=1;
+	  id=(i+1)+100*(il+1);// SSPP
+	  sta=0;
+//          AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEventD",il), new
+//                                             AMSEcalRawEventD(id,sta,adcd));//tempor
+	}
+//
+      an4resp=anen;//PM 4anode-sum resp(true mev ~ mV !!!)(later to add some factor to conv. to mV)
+      dyresp=dyen/a2dr+sigd*rnormx()/mev2adc;//dynode+noise (currently in mev ~ real mV !!!)
       an4respt+=an4resp;
       dyrespt+=dyresp;
       if(ECMCFFKEY.mcprtf==1){
@@ -278,7 +320,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       }
 //            arrays for trigger study:
       pmtmap[il][i]=an4resp;//tempor 4xAnode-resp(later dynode-resp)
-      pmlprof[il]+=an4resp;// 
+      pmlprof[il]+=an4resp;//tempor 
 //
     }//-------> end of PM-loop in superlayer
 //

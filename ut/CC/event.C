@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.274 2001/11/13 11:29:51 choutko Exp $
+//  $Id: event.C,v 1.275 2001/11/19 13:28:28 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1698,11 +1698,11 @@ int stat;
     if(ptr){
       toftrigfl=ptr->gettoflg();
       ectrigfl=ptr->getecflg();
-      if(toftrigfl<=0 && ectrigfl<=0){
-        AMSgObj::BookTimer.stop("RETOFEVENT");
-        return;// "no TOF/EC in LVL1-trigger"
-      }   
     }
+    if(toftrigfl<=0 && ectrigfl<=0){
+      AMSgObj::BookTimer.stop("RETOFEVENT");
+      return;// "no TOF/EC in LVL1-trigger"
+    }   
     TOF2JobStat::addre(1);
     if(toftrigfl>0)TOF2JobStat::addre(33);
     if(toftrigfl<=0 && ectrigfl>0)TOF2JobStat::addre(34);

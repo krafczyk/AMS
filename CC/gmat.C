@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.68 2001/09/19 08:56:55 choumilo Exp $
+//  $Id: gmat.C,v 1.69 2001/11/19 13:28:28 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -300,6 +300,7 @@ mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));
 // Light lead for ECAL test :
 {
 mat.add (new AMSgmat("LIGHTLEAD",207.19,82., 6.36 ,1.,32.5));
+//
 a[0]=12.;a[1]=1.;
 z[0]=6.; z[1]=1.;
 w[0]=8.; w[1]=8.;
@@ -315,11 +316,15 @@ mat.add (new AMSgmat("ECSCINT",a,z,w,2,1.032));
   relden=0.266/2.7;//relat(to true AL) density 
   mat.add (new AMSgmat("EC-AL-HONEYC",26.98,13.,2.7*relden,8.9/relden,39.4/relden));
 //
-//---> Al-plates for ECAL superlayer structure:
+//---> Al-plates(NOW glue !) for ECAL superlayer structure:
 //  relden=0.5;//relat(to true AL) density 
 //  mat.add (new AMSgmat("ECALPALUM",26.98,13.,2.7*relden,8.9/relden,39.4/relden));
-  mat.add (new AMSgmat("ECALPALUM",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));// now this
-//should be glue, but for simplicity/speed reasons i use vacuum, because thickness is small
+  mat.add (new AMSgmat("ECALPALUM",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));// this
+//should be glue, but for simplicity/speed reasons i use vacuum, because NOW thickness is small
+//
+//---> Eff.lead for ECAL(to compensate extra weight puzzle):
+  relden=0.938;//relat(to true Pb) density 
+  mat.add (new AMSgmat("ECLEAD",207.19,82., 11.35*relden ,0.56/relden,18.5/relden));
 }
 //--------
 { // Fiber wall(cladding+glue, ~ plexiglass):  
@@ -419,17 +424,17 @@ mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
   mat.add (new AMSgmat("CRATEMAT1",a,z,w,3,craden));
 }
 {
-  geant rraden=0.3;//relat(to norm.AL) density of bar-1 type of USS
+  geant rraden=0.49;//(final)relat(to norm.AL) density of bar-1 type of USS
   mat.add (new AMSgmat("US1BALUMIN",26.98, 13., 2.7*rraden,
                                    8.9/rraden, 39.4/rraden));// low dens.AL 
 }
 {
-  geant rraden=0.3;//relat(to norm.AL) density of bar-2 type of USS
+  geant rraden=0.38;//(final)relat(to norm.AL) density of bar-2 type of USS
   mat.add (new AMSgmat("US2BALUMIN",26.98, 13., 2.7*rraden,
                                    8.9/rraden, 39.4/rraden));// low dens.AL 
 }
 {
-  geant rraden=0.3;//relat(to norm.AL) density of bar-3 type of USS
+  geant rraden=0.64;//(final)relat(to norm.AL) density of bar-3 type of USS
   mat.add (new AMSgmat("US3BALUMIN",26.98, 13., 2.7*rraden,
                                    8.9/rraden, 39.4/rraden));// low dens.AL 
 }
@@ -688,7 +693,7 @@ pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR","RICH_MIRROR",0));
 geant birks[]={1.,0.013,9.6e-6};
 tmed.add (new AMSgtmed("EC_EFFRAD","LIGHTLEAD",0));// eff.radiator for fast sim(not sens !!!)
 //
-AMSgtmed * pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0,'N',birks,2,20.,10.,1000.,
+AMSgtmed * pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("EC_RADIATOR","ECLEAD",0,'N',birks,2,20.,10.,1000.,
                                     -1.,0.001,-1.)); // simplif.tracking in magn.f
 pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_RADIATOR
 pgtmed->CUTELE(ECMCFFKEY.cutge);
@@ -710,7 +715,7 @@ pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_HONEYC
 pgtmed->CUTELE(ECMCFFKEY.cutge);
 //
 pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_AL_PLATE","ECALPALUM",0));
-pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_AL_PLATE(now glue)
+pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_AL_PLATE(now glue !)
 pgtmed->CUTELE(ECMCFFKEY.cutge);
 } 
 //----------------

@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.133 2001/09/19 08:56:54 choumilo Exp $
+//  $Id: amsgeom.C,v 1.134 2001/11/19 13:28:27 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -4047,7 +4047,7 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
   dxe=ECALDBc::gendim(4);// dx(dy)-thickness of (PMT+electronics)-volume 
   dy1=ECALDBc::gendim(2);// y-size of EC-rad
   dzrad1=ECALDBc::gendim(9);// z-size of one SL-radiator(lead only)
-  alpth=ECALDBc::gendim(10);// Al(or glue) layer  thickness
+  alpth=ECALDBc::gendim(10);// Al(or glue) layer  thickness on top(bot) side of SL
   nsupl=ECALDBc::slstruc(3);// numb.of super-layers
   nflpsl=ECALDBc::slstruc(2);// numb.of fiber-layers per super-layer
   nfpl[0]=ECALDBc::nfibpl(1);// fibers/(1st layer) 
@@ -4119,7 +4119,7 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
        "EC_ELBOX",0,"ECEB","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));//+Y box
 //------------------------------------
 //
-    zmrad1=dz/2.-alpth-dzrad1/2.;// zmid of EC-rad in 1st SL(in ECMO r.s)
+    zmrad1=dz/2.-alpth-dzrad1/2.;// zmid of  1st SL radiator(in ECMO r.s)
 //
     for(isupl=0;isupl<nsupl;isupl++){ // <--- super-layers loop
       ip=isupl%2;

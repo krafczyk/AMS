@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.384 2001/11/13 11:29:51 choutko Exp $
+// $Id: job.C,v 1.385 2001/11/19 13:28:28 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -636,9 +636,13 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.cutge=0.001;    //(3) cutgam=cutele cut for EC_volumes
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) spare
-  ECMCFFKEY.mev2mev=35.00;  //(6) Geant dE/dX(MeV)->Emeas(MeV) conv.factor
-  ECMCFFKEY.mev2adc=0.394; //(7) Emeas(MeV)->ADCch factor(MIP-m.p. -> 5th channel)
-  ECMCFFKEY.safext=0.;     //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
+  ECMCFFKEY.mev2mev=32.5;   //(6) Geant dE/dX(MeV)->Emeas(MeV) conv.factor
+  ECMCFFKEY.mev2adc=0.44;   //(7) Emeas(MeV)->ADCch factor(MIP-m.p. -> 5th channel)
+  ECMCFFKEY.safext=0.;      //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
+  ECMCFFKEY.mev2pes=55.;    //(9) PM ph.electrons/Mev(dE/dX)
+  ECMCFFKEY.pmseres=0.8;    //(10)PM single-electron spectrum resolution
+  ECMCFFKEY.mev2adcd=1.576; //(11)Dynode Emeas(MeV)->ADCch factor(MIP-m.p. -> 2nd channel)
+  ECMCFFKEY.an2dyr=10.;     //(12) Anode/dynode ratio
 FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //---------------------------
@@ -706,7 +710,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 //
 // REUN-Calibration  parameters:
 // RLGA/FIAT part:
-  ECCAFFKEY.cfvers=1;     // (1) 1-999 -> vers.number for ecalcvlistNNN.dat file
+  ECCAFFKEY.cfvers=2;     // (1) 1-999 -> vers.number for ecalcvlistNNN.dat file
   ECCAFFKEY.cafdir=0;     // (2) 0/1-> use official/private directory for calibr.files
   ECCAFFKEY.truse=1;      // (3) (1)/0-> use He4/proton tracks for calibration
   ECCAFFKEY.refpid=118;   // (4) ref.pm ID (SPP-> S=SupLayer, PP=PM number) 

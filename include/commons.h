@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.161 2001/10/02 12:57:24 choutko Exp $
+//  $Id: commons.h,v 1.162 2001/11/19 13:28:45 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -266,6 +266,10 @@ integer silogic[2];// SIMU logic flags
 geant mev2mev;
 geant mev2adc;
 geant safext;     // Extention(cm) of EC transv.size when TFMC 13=2 is used
+geant mev2pes;
+geant pmseres;
+geant mev2adcd;
+geant an2dyr;     
 };
 #define ECMCFFKEY COMMON_BLOCK(ECMCFFKEY,ecmcffkey)
 COMMON_BLOCK_DEF(ECMCFFKEY_DEF,ECMCFFKEY);
