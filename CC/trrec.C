@@ -1178,8 +1178,10 @@ integer AMSTrTrack::build(integer refit){
   }
     if(xs>3)AMSEvent::gethead()->addnext(AMSID("Test",0),new Test());
   }
+          integer       ThreePointNotWanted=0;
 
   for (int pat=0;pat<npat;pat++){
+    if(patpoints[pat]==3 && ThreePointNotWanted)continue;
     AMSTrRecHit * phit[6]={0,0,0,0,0,0};
     if(TRFITFFKEY.pattern[pat]){
       int fp=patpoints[pat]-1;    
@@ -1229,7 +1231,10 @@ integer AMSTrTrack::build(integer refit){
                 // 6 point combination found
               if(AMSTrTrack::_addnext(pat,6,phit)){
                   NTrackFound++;
+                 // we don't want three points any more
+                 ThreePointNotWanted=1;
                   goto out;
+
               }                
                 
              }

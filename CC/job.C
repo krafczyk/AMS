@@ -163,7 +163,7 @@ VBLANK(IOPA.rfile,40);
 FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
 TRMFFKEY.OKAY=0;
 FFKEY("TERM",(float*)&TRMFFKEY,sizeof(TRMFFKEY_DEF)/sizeof(integer),"MIXED");
-MISCFFKEY.BTempCorrection=0;
+MISCFFKEY.BTempCorrection=1;
 MISCFFKEY.BeamTest=0;
 FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 

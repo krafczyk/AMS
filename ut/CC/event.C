@@ -578,7 +578,7 @@ void AMSEvent::_regnevent(){
         seterror();
         cerr<<"Event & BeamPar disagree event says runtype = "<<hex<<
         AMSEvent::gethead()->getruntype()%32768<<" BeamPar says "<<hex<<
-        ArrayB[chint].RunTag<<endl;
+        ArrayB[chint].RunTag<<" "<<dec<<chint<<" "<< ArrayB[chint].Time<< endl;
      }
       
       geant mom(ArrayB[chint].Mom);
