@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.214 2002/04/11 14:17:53 choutko Exp $
+#  $Id: Mopt,v 1.215 2002/04/16 10:01:44 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -109,7 +109,7 @@ FFLAGSn=   -fno-automatic  -I../include
 endif
 DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include  -I$(SRC)
 LDFLAGS=  -static  -lUfor   -lfor -lFutil -lots -lm   -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da/  -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm  -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/osf1g++ -lamsut  -lg2c
-#LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
+#LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
 TIMEL=
 INCS= $(wildcard $(SRC)*.*h)    
 INCSCPP= $(SRC)server-cpp-stubs.hh $(SRC)server-cpp-skels.hh $(SRC)server-cpp-common.hh 
@@ -151,7 +151,7 @@ CFLAGSDAQ= $(CFLAGS)
 FFLAGS=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian 
 FFLAGSn=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian 
 DFLAGS=     -I/usr/include  -I../include 
-LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da/  -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
+LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da/  -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
 CC=cxx 
 ifeq "$(shell cxx -V | grep -c 6.)" "1"
 CC=cxx  
