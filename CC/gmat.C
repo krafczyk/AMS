@@ -122,6 +122,13 @@ z[0]=14.; z[1]=8.;  z[2]=6.; z[3]=1.;
 w[0]=1.;  w[1]=2.;  w[2]=3.; w[3]=9.;
 mat.add (new AMSgmat( 33,"MEWAEROGEL",a,z,w,4, 0.125));
 
+// Si-aerogel(SiO2(CH3)3) for CTC-MEW :
+{
+  geant a[]={209.,72.61,16.};
+  geant z[]={83.,32.,8.};
+  geant w[]={4.,3.,12.};
+   mat.add (new AMSgmat( 34,"BGO",a,z,w,3, 7.1));
+}
 
 
 
@@ -173,6 +180,11 @@ tmed.add (new AMSgtmed(24,"ANTI_WRAP",17,0));//  tempor. mylar
 tmed.add (new AMSgtmed(25,"ANTI_SUPTB",26,0));//  tempor. carb.fiber
 //
 tmed.add (new AMSgtmed(26,"TUNGSTEN",12,0));
+//
+{
+geant birks[]={1.,0.013,9.6e-6};
+tmed.add (new AMSgtmed(27,"BGO",34,1,'Y',birks));
+}
 AMSgObj::GTrMedMap.map(tmed);
 #ifdef __AMSDEBUG__
 if(AMSgtmed::debug)AMSgObj::GTrMedMap.print();
