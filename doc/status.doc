@@ -31,7 +31,7 @@ status word definition
 27   geomagnetic latitude
 28   geomagnetic latitude
 29   sin (track,plane of geommeridian) 
-30   free
+30   event has errors
 31   status not found
 
 
@@ -115,6 +115,9 @@ correspondance between bits & status datacards words:
 values 0123...etc --> 1 10 100 1000 
                       0 in datacards means select everything
 
+
+error bit
+1 error
 
 
 N.B.

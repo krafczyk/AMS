@@ -140,7 +140,7 @@ integer AMSStatus::statusok(uinteger event, uinteger run){
 
 integer AMSStatus::_statusok(uinteger status){
     if(!(status & (1<<31))){    // Status exists
-      const int nsta=14;
+      const int nsta=15;
       uinteger Status[nsta];
       Status[0]=((status & ((1<<4)-1)))+1;
       Status[1]=((status>>4) & ((1<<1)-1))+1;
@@ -156,6 +156,7 @@ integer AMSStatus::_statusok(uinteger status){
       Status[11]=((status>>25) & ((1<<2)-1))+1;
       Status[12]=((status>>27) & ((1<<2)-1))+1;
       Status[13]=((status>>29) & ((1<<1)-1))+1;
+      Status[14]=((status>>30) & ((1<<1)-1))+1;
 
         uinteger local=0;
       for(int i=0;i<nsta;i++){

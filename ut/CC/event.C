@@ -933,8 +933,9 @@ AMSgObj::BookTimer.start("RETKEVENT");
 // do not reconstruct events without lvl3 if 
 // LVL3FFKEY.Accept 
 TriggerLVL3 *ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
+TriggerLVL3 *ptr1=(TriggerLVL3*)getheadC("TriggerLVL1",0);
 
-if(!LVL3FFKEY.Accept || (ptr && ptr->LVL3OK())){
+if(!LVL3FFKEY.Accept || (ptr1 && ptr && ptr->LVL3OK())){
   AMSgObj::BookTimer.start("TrCluster");
   buildC("AMSTrCluster",refit);
   AMSgObj::BookTimer.stop("TrCluster");
@@ -1491,6 +1492,8 @@ void AMSEvent::_printEl(ostream & stream){
  stream <<TOFVarp::getmeantoftemp(33)<<" ";
  stream <<TOFVarp::getmeantoftemp(43)<<" ";
  stream <<TOFVarp::getmeantoftemp(73)<<endl;
+ stream <<" Average Scaler Rate & LifeTime "<<TriggerLVL1::getscalersp()->getsum()/96<<" "<<TriggerLVL1::getscalersp()->lifetime/1000.<<endl;
+ 
 }
 
 void AMSEvent::_writeEl(){
@@ -2025,6 +2028,9 @@ void AMSEvent::_collectstatus(){
      else if(cosgm<0.766)icos=2;
      else icos=3;
       _status=_status | (icos<<27);
+   
+  // Now Set Event Error
+     if(_Error==1)_status=_status | (1<<30);
      
 }
 

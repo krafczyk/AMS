@@ -38,6 +38,7 @@ private:
 uinteger _status;
 uinteger _run;
 uinteger _runtype;
+uinteger _Error;
 geant _StationRad;    //cm 
 geant _StationTheta; 
 geant _StationPhi;   
@@ -132,9 +133,9 @@ AMSContainer * _getC(AMSID id);
 public:
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
 uinteger usec,geant pole, geant stationT, geant stationP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0,geant SunT=0, geant SunP=0):AMSNode(id),_run(run),_status(0),
-_time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_VelTheta(SunT),_VelPhi(SunP){_Head=this;}
+_time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_VelTheta(SunT),_VelPhi(SunP),_Error(0){_Head=this;}
 AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMSNode(id),_run(run),
-   _runtype(runtype), _time(time), _usec(usec),_status(0){
+   _runtype(runtype), _time(time), _usec(usec),_status(0),_Error(0){
    _Head=this;
 }
 ~AMSEvent(){_Head=0;}
@@ -169,6 +170,7 @@ void write(int trig);
 void copy();
 void printA(integer debugl=0);
 void event();
+void seterror(){_Error=1;}
 //+
 uinteger getEvent() {return uinteger(_id);}
 static integer _checkUpdate();

@@ -349,6 +349,8 @@ public:
 integer ntof;
 integer nanti;
 integer RebuildLVL1;
+geant MaxScalersRate;
+geant MinLifeTime;
 };
 #define LVL1FFKEY COMMON_BLOCK(LVL1FFKEY,lvl1ffkey)
 COMMON_BLOCK_DEF(LVL1FFKEY_DEF,LVL1FFKEY);

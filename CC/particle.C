@@ -488,6 +488,7 @@ void AMSParticle::_loc2gl(){
   if(fabs(prod)>0.01){
    cerr<<"AMSParticle::_loc2gl-E-AMSGlobalCoosystemIllDefined "<<prod<<endl;
    AMSEvent::gethead()->_printEl(cerr);
+   AMSEvent::gethead()->seterror();
   }
   number cp=cos(pitch);
   number sp=sin(pitch);

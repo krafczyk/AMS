@@ -484,7 +484,8 @@ LVL1    // LVL1 Trigger
 I 1 ntof(3)                           // min number of tof planes in trig
 I 2 nanti(2)                         // max number of anti counters in trig
 I 3 RebuildLVL1(0)                   // Rebuild or not lvl1 if reconstruction
-
+R 4 MaxScalersRate(20k)               // max acceptable av scalers rate
+R 5 MinLifeTime   (0.015)            // min acceptable lifetime
 
 L3SIM
 
@@ -571,7 +572,7 @@ I 1  status[32](32*0)    //
                              [11] track quality
                              [12] shuttle geomag latitude
                              [13] sin (part_dir, geomag_meridian)
-                                     
+                             [14] error bit        
 
 MISC   // misc
 
