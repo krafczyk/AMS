@@ -218,10 +218,20 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   //  z=(*(p+6))&255;
   //  mode=((*(p+6))>>8)&255;
   mode=*(p+2);
+  //bit 2 & 11 swapped
   tofp[0]=*(p+6) | *(p+10);
+  int16u bit2_67= (*(p+6) | *(p+7) ) & (1<<2);
+  int16u bit11_67= (*(p+6) | *(p+7) ) & (1<<11);
+  tofp[0]= tofp[0] & (~(1<<2)) & (~(1<<11));
+  tofp[0]=tofp[0] |   bit2_67 | bit11_67;
+
   tofp[1]=*(p+5) | *(p+9);
   tofp[2]=*(p+4) | *(p+8);
   tofp[3]=*(p+3) | *(p+7);
+  int16u bit2_310= (*(p+3) | *(p+10) ) & (1<<2);
+  int16u bit11_310= (*(p+3) | *(p+10) ) & (1<<11);
+  tofp[3]= tofp[3] & (~(1<<2)) & (~(1<<11));
+  tofp[3]=tofp[3] |   bit2_310 | bit11_310;
   for(int k=0;k<4;k++){
    for(int i=0;i<16;i++){
      tofp[k]=tofp[k] | (((tofp[k]>>i) & 1) <<(29-i));
@@ -230,9 +240,17 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
 
   }
   tofp[0]=*(p+6) & *(p+10);
+  bit2_67= (*(p+6) & *(p+7) ) & (1<<2);
+  bit11_67= (*(p+6) & *(p+7) ) & (1<<11);
+  tofp[0]= tofp[0] & (~(1<<2)) & (~(1<<11));
+  tofp[0]=tofp[0] |   bit2_67 | bit11_67;
   tofp[1]=*(p+5) & *(p+9);
   tofp[2]=*(p+4) & *(p+8);
   tofp[3]=*(p+3) & *(p+7);
+  bit2_310= (*(p+3) & *(p+10) ) & (1<<2);
+  bit11_310= (*(p+3) & *(p+10) ) & (1<<11);
+  tofp[3]= tofp[3] & (~(1<<2)) & (~(1<<11));
+  tofp[3]=tofp[3] |   bit2_310 | bit11_310;
   for( k=0;k<4;k++){
    for(int i=0;i<16;i++){
      tofp[k]=tofp[k] | (((tofp[k]>>i) & 1) <<(29-i));

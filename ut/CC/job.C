@@ -332,7 +332,7 @@ FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=================================================================================
 void AMSJob::_sitofdata(){
-  TOFMCFFKEY.TimeSigma=1.1e-10; // time resolution(sec) for simplified algorithm
+  TOFMCFFKEY.TimeSigma=1.6e-10; // time resolution(sec) for simplified algorithm
   TOFMCFFKEY.TimeSigma2=4.5e-10;
   TOFMCFFKEY.TimeProbability2=0.035;
   TOFMCFFKEY.padl=10.5;        // sc. bar transv. step ........................
@@ -575,7 +575,7 @@ TRFITFFKEY.pattern[21]=1;
 {
   for( int k=22;k<42;k++)TRFITFFKEY.pattern[k]=0;
 }
-TRFITFFKEY.UseTOF=1;
+TRFITFFKEY.UseTOF=2;
 TRFITFFKEY.Chi2FastFit=2000;
 TRFITFFKEY.Chi2StrLine=20;
 TRFITFFKEY.Chi2Circle=20;
