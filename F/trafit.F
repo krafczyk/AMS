@@ -1,4 +1,4 @@
-*  $Id: trafit.F,v 1.10 2001/01/22 17:32:25 choutko Exp $
+*  $Id: trafit.F,v 1.11 2001/10/03 15:12:16 choutko Exp $
       SUBROUTINE TRAFIT
      $      (IFIT,X,Y,WXY,Z,SSZ,NPT,RESXY,RESSZ,IFLAG,SPCOR,WORK,
      +       SCHIXY,SCHIZ,xmom,exmom,p0,theta,phit)
@@ -127,8 +127,15 @@ C
        endif
       if(pinv.ne.0) then
        xmom=1./pinv/charge
-       SCHIXY=CHIXY/pinv
-       SCHIZ=CHIZ/pinv
+       erxy=sqrt(1/wxy(1))
+       ertot=sqrt(0.001**2+(erxy*pinv)**2)
+       xfacxy=erxy/ertot
+       SCHIXY=CHIXY*xfacxy
+       erz=1/ssz(1)
+       ertot=sqrt(0.0025**2+(erz*pinv)**2)
+       xfacz=erz/ertot
+       SCHIZ=CHIZ*xfacz
+c       write(*,*)erz,erxy,xfacxy,xfacz,xmom
       else
        xmom=1000000.
        schixy=1000000.
