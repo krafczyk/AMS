@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.9 1999/11/22 13:08:11 choutko Exp $
+// $Id: g4physics.C,v 1.10 1999/11/24 13:15:27 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -84,6 +84,7 @@ void AMSG4Physics::ConstructProcess()
 
   if(GCPHYS.ILOSS)ConstructEM();
   if(GCPHYS.IHADR)ConstructHad();
+  if(GCTLIT.ITCKOV)ConstructOp();
   ConstructGeneral();
 }
 
@@ -637,6 +638,53 @@ void AMSG4Physics::ConstructHad()
       }
    }
 }
+
+#include "G4Cerenkov.hh"
+#include "G4OpAbsorption.hh"
+#include "G4OpRayleigh.hh"
+#include "G4OpBoundaryProcess.hh"
+
+void AMSG4Physics::ConstructOp()
+{
+  G4Cerenkov*   theCerenkovProcess = new G4Cerenkov("Cerenkov");
+  G4OpAbsorption* theAbsorptionProcess = new G4OpAbsorption();
+  G4OpRayleigh*   theRayleighScatteringProcess = new G4OpRayleigh();
+  G4OpBoundaryProcess* theBoundaryProcess = new G4OpBoundaryProcess();
+
+//  theCerenkovProcess->DumpPhysicsTable();
+//  theAbsorptionProcess->DumpPhysicsTable();
+//  theRayleighScatteringProcess->DumpPhysicsTable();
+
+  theCerenkovProcess->SetVerboseLevel(1);
+  theAbsorptionProcess->SetVerboseLevel(1);
+  theRayleighScatteringProcess->SetVerboseLevel(1);
+  theBoundaryProcess->SetVerboseLevel(1);
+
+  G4int MaxNumPhotons = 300;
+
+  theCerenkovProcess->SetTrackSecondariesFirst(true);
+  theCerenkovProcess->SetMaxNumPhotonsPerStep(MaxNumPhotons);
+
+  G4OpticalSurfaceModel themodel = unified;
+  theBoundaryProcess->SetModel(themodel);
+
+  theParticleIterator->reset();
+  while( (*theParticleIterator)() ){
+    G4ParticleDefinition* particle = theParticleIterator->value();
+    G4ProcessManager* pmanager = particle->GetProcessManager();
+    G4String particleName = particle->GetParticleName();
+    if (theCerenkovProcess->IsApplicable(*particle)) {
+      pmanager->AddContinuousProcess(theCerenkovProcess);
+    }
+    if (particleName == "opticalphoton") {
+      G4cout << " AddDiscreteProcess to OpticalPhoton " << endl;
+      pmanager->AddDiscreteProcess(theAbsorptionProcess);
+      pmanager->AddDiscreteProcess(theRayleighScatteringProcess);
+      pmanager->AddDiscreteProcess(theBoundaryProcess);
+    }
+  }
+}
+
 
 
 #include "G4Decay.hh"

@@ -27,6 +27,6 @@ setenv G4VIS_USE_RAYX         1
 #setenv G4VIS_USE_OPACS         1
 setenv G4DAWNFILE_VIEWER david
 setenv OGLHOME /usr/local
-#setenv G4LEVELGAMMADATA $G4INSTALL/data/PhotonEvaporation
-#setenv G4LEDATA $G4INSTALL/data/G4EMLOW0.2
-#setenv NeutronHPCrossSections $G4INSTALL/data/G4NDL0.1
+setenv G4LEVELGAMMADATA $G4INSTALL/data/PhotonEvaporation
+setenv G4LEDATA $G4INSTALL/data/G4EMLOW0.2
+setenv NeutronHPCrossSections $G4INSTALL/data/G4NDL0.1

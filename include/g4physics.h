@@ -30,7 +30,7 @@ protected:
   virtual void ConstructGeneral();
   virtual void ConstructEM();
   virtual void ConstructHad();
-
+  virtual void ConstructOp();
   // these methods Construct all particles in each category
   virtual void ConstructAllBosons();
   virtual void ConstructAllLeptons();
