@@ -16,7 +16,7 @@ public :
 
       AMSMyTrack* my_track;
 
-      TFile* hfile;
+      TFile* outfile;
       TH1F* h_ang;
       TH1F* h_ang2;
 
@@ -24,7 +24,16 @@ public :
 };
 
 void MyAnal::UBegin(){
-      hfile = new TFile ("amstest.root", "RECREATE"); 
+
+      if(fService._pOut) {
+            // This means that you have processed the file with something like:
+            //  Process("MyAnal.C+","select.root");
+            outfile = fService._pOut;
+      } else { 
+            // This case means that you prefer to define the output file here
+            outfile = new TFile ("select.root", "RECREATE"); 
+      }
+
       h_ang = new TH1F("h_ang","Angular difference (rad)",100,0.0,0.05);
       h_ang2 = new TH1F("h_ang2","Angular difference 2 (rad)",100,0.0,0.05);
 
@@ -82,20 +91,23 @@ void MyAnal::UProcessFill() {
 void MyAnal::UTerminate()
 {
       // Write histograms into a ROOT file
-      hfile->Write();
+      outfile->Write();
 
-      // Write list of selected events
+      // Write the list of selected events
       select_list->Write("select.list");
 
-      // Write Header and Particle Information of selected events in a root file
+      // Write selected events into a root file (added to 
+      //    the same output file in this example)
+      // select_list->Write(_Tree, outfile);
+      
+      // Write only Header and Particle branches of selected events
       _Tree->SetBranchStatus("*",0);
-      _Tree->SetBranchStatus("ev.",1);
       _Tree->SetBranchStatus("ev.fHeader",1);
       _Tree->SetBranchStatus("ev.fParticle",1);
-      select_list->Write((TChain*)_Tree, "select.root");
+      select_list->Write(_Tree, outfile);
 
       printf("\n>>> We have processed %d events\n\n", (int)_Tree->GetEntries());
-      printf("\n>>> Histograms saved in '%s'\n\n", hfile->GetName());
+      printf("\n>>> Histograms saved in '%s'\n\n", outfile->GetName());
 }
 
 bool MyAnal::Trigger_Flag() {

@@ -30,6 +30,8 @@
       chain.Process("stlv.C+");
 // Write created histograms in file "outputfilename");
       //chain.Process("stlv.C+","outputfilename");
+// Force recompilation of library at any time
+      //chain.Process("stlv.C++");
 
 // Open Root browser (optional; interactive use only)
       // new TBrowser;

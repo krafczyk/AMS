@@ -31,13 +31,13 @@
 
       // BEGIN of block: How to write just few branches ->
       ams->SetBranchStatus("*",0); // this disables all branches by default
-      ams->SetBranchStatus("ev.",1); // mother branch
       ams->SetBranchStatus("ev.fHeader",1); // HeaderR class information IN
       ams->SetBranchStatus("ev.fParticle",1); // ParticleR class information IN
       // END of block
 
 // Write selected events from chain to a new AMS ROOT file
-      list.Write(ams,"amstest.root"); 
+      TFile* out_file = new TFile("amstest.root","RECREATE");
+      list.Write(ams,out_file); 
 
 //Write "run event" list to standard output
       //list.Write();
