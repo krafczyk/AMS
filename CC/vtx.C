@@ -48,9 +48,7 @@ integer AMSVtx::build(integer refit){
      AMSVtx *p= new AMSVtx(nfound, ptrack);
      if (p->set_all()) { 
          AMSEvent::gethead()->addnext(AMSID("AMSVtx",0),p); 
-#ifdef __AMSDEBUG__
-	   p->print();
-#endif
+         if (AMSEvent::debug) p->print();
      }
 
    }
