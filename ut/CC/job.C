@@ -2186,6 +2186,8 @@ integer AMSJob::FindTheBestTDV(char* name, integer id, time_t timeV, integer &S,
 // S      - object size
 // I,B,E  - insert, begin, end time the most satisfies to 'time'
 //
+// rstatus = -1  not found
+// rstatus =  1  found
 {
   integer rstatus = -1;
 #ifdef __DB__
@@ -2237,6 +2239,7 @@ integer AMSJob::FindTheBestTDV(char* name, integer id, time_t timeV, integer &S,
     break;
      } else {
        cout<<"AMSJob::FindTheBestTDV -W- no TDV for "<<name<<endl;
+       rstatus = -1;
      }
     }
   }

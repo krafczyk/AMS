@@ -128,9 +128,9 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
      cout<<"ClusteringInit :: tdv database(s) found "<<ntdvdbs<<endl;
 
      if (simulation() ) 
-        contName = StrCat("Time_Dep_Var_S_",_version);
+        contName = StrCat("Time_Dep_Var_S",_version);
      else 
-        contName = StrCat("Time_Dep_Var_",_version);
+        contName = StrCat("Time_Dep_Var",_version);
      if (ntdvdbs < 1) {  // no TDV databases found
        cptr = getenv("AMS_TDVDB_Path");
        if ( cptr ) 

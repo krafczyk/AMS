@@ -1277,12 +1277,9 @@ while(offspring){
      time_t i, b, e;
      integer S;
      int rstat = AMSJob::FindTheBestTDV(name, id, _time, S, I, B, E); 
-     if (rstat) {
+     if (rstat == 1) {
        offspring -> gettime(i,b,e);
        if (i==I && b==B && e==E) {
-#ifdef __AMSDEBUG__
-         //cout<<"AMSEvent::_validate-I- i,b,e are up to date"<<endl;
-#endif
        } else {
          cerr<<"AMSEvent::_validate-W- i,b,e need to be updated "<<endl;
          cerr<<"Insert "<<ctime(&i);

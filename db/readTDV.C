@@ -4,7 +4,7 @@
 //
 // Use original code from V.Choutko to read TDV
 //
-// Last Edit : Feb 15, 1998. ak
+// Last Edit : Feb 21, 1998. ak
 //
 #include <iostream.h>
 #include <fstream.h>
@@ -232,10 +232,10 @@ int main(int argc, char* argv[])
    if (argc < 2) {             
      cout <<"Error - no argument, expects readTDV file.name"<<endl;
      exit(1);
-     //strcpy(filepath,"/Offline/AMSDataDir/v2.14/TrackerCmnNoise.1.993556");
+     //strcpy(filepath,"/Offline/AMSDataDir/v2.14/Tofbarcal1.1");
    } 
 
-   for (int nl=1; nl<argc -1; nl++) {
+   for (int nl=1; nl<argc; nl++) {
    strcpy(filepath,argv[nl]);
    status = strrchr(filepath,slash[0]);
    if(!status) {
@@ -299,10 +299,9 @@ int main(int argc, char* argv[])
      }
     if (prelastdot > 0) break;
    }
-   for (i=0; i<prelastdot; i++) objname[i] = filename[i];
-   objname[i++] = '\0';
-
-   for (i=l; i>-1; i--) {
+   if (prelastdot > 0) {
+    for (i=0; i<prelastdot; i++) objname[i] = filename[i];
+    for (i=l; i>-1; i--) {
      if (filename[i] == dot[0]) {
       int ii = i-1;
       for (j=0; j<l; j++) {
@@ -311,8 +310,20 @@ int main(int argc, char* argv[])
       }
       break;
      }
-   }
-   id[j+1] = '\0';
+    }
+    objname[i++] = '\0';
+    id[j+1] = '\0';
+  } else {
+    for (i=0; i<lastdot; i++) objname[i] = filename[i];
+    objname[i++] = '\0';
+    j = 0;
+    for (i=lastdot+1; i<l; i++) {
+     id[j] = filename[i];
+     j++;
+    }
+   id[j] = '\0';
+  }
+   
 
    // parse done
    cout<<"Info - open file for TDV with name "<<objname<<", id "<<id<<endl;
@@ -352,6 +363,7 @@ int main(int argc, char* argv[])
   // database part starts here
 
   integer iid = atoi(id);
+  iid++;
   cout<<"Info - write to the database "<<objname<<" with id... "<<iid
       <<", version "<<version<<endl;
   cout<<"i,b,e "<<ctime(&Insert)<<"      "<<ctime(&Begin)
@@ -400,8 +412,8 @@ int main(int argc, char* argv[])
  integer ntdvdbs = dbTabH -> size(dbtdv);
  integer found = 0;
 
- if (iid == 1) strcpy(contName,contname);
- if (iid == 2) strcpy(contName,contnameS);
+ if (iid == 2) strcpy(contName,contname);
+ if (iid == 1) strcpy(contName,contnameS);
  strcat(contName,version); 
 
   char pred[200];
@@ -450,6 +462,7 @@ int main(int argc, char* argv[])
     tdvH = new(contH) AMSTimeIDD(objname, iid, Begin, Insert, End);
     tdvH -> CopyIn(Nbytes, pdata);
     lms.Commit();
+    Message("Write TDV's to the database and Commit");
    } else {
     lms.Abort();
     exit(1);
