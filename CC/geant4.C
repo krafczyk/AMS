@@ -519,7 +519,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
     G4StepPoint * PostPoint = Step->GetPostStepPoint();
     G4VPhysicalVolume * PostPV = PostPoint->GetPhysicalVolume();
     if(PostPV){
-      cout << "Stepping  "<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<endl;
+//      cout << "Stepping  "<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<endl;
     GCTMED.isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0;
     GCTRAK.destep=Step->GetTotalEnergyDeposit()*GeV;
     if(GCTMED.isvol){
@@ -640,6 +640,6 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
       return;
    }
    }
-   cout <<"leaving stepping "<<endl;
+//   cout <<"leaving stepping "<<endl;
   }
 }

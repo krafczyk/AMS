@@ -210,7 +210,7 @@ integer AMSgvolume::_Norp=0;
        psolid=new G4Tubs(G4String(_name),_par[0]*cm,_par[1]*cm,_par[2]*cm,_par[3]*degree,_par[4]*degree-_par[3]*degree);
      }
      else if (shape =="CONE"){
-       psolid=new G4Cons(G4String(_name),_par[1]*cm,_par[2]*cm,_par[3]*cm,_par[4]*cm,_par[0]*cm,0*degree,360*degree);
+       psolid=new G4Cons(G4String(_name),_par[1]*cm,_par[2]*cm,_par[3]*cm,_par[4]*cm,_par[0]*cm,0*degree,360.*degree);
        for(int par=0;par<_npar;par++){
          if(maxstep>_par[par] && _par[par]>0)maxstep=_par[par];
        }
@@ -291,7 +291,7 @@ integer AMSgvolume::_Norp=0;
      cerr<<"AMSgvolume::_MakeG4Volumes-F-MANYIsNotAllowedInG4 "<<_name<<" "<<_gid<<endl;
      exit(1);
     }    
-    _pg4v=new G4PVPlacement(_pg4rm,G4ThreeVector(_coo[0],_coo[1],_coo[2]),G4String(_name),_pg4l,up()?up()->_pg4v:0,false,_gid);
+    _pg4v=new G4PVPlacement(_pg4rm,G4ThreeVector(_coo[0]*cm,_coo[1]*cm,_coo[2]*cm),G4String(_name),_pg4l,up()?up()->_pg4v:0,false,_gid);
     
     if(!up() && _Norp){
        // fatal logic error
