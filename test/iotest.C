@@ -1,10 +1,11 @@
-#include <iostream.h>
+#include <iostream>
 #include <fstream.h>
 #include <stdlib.h>
+#include <vector>
 void main(){
 double arr[10];
 char fnam[128]="datafile";
-  ifstream iftxt(fnam,ios::in);
+  std::ifstream iftxt(fnam,ios::in);
    if(!iftxt){
      cerr <<"Error open"<<endl;
      exit(1);
@@ -12,7 +13,7 @@ char fnam[128]="datafile";
    for(int i=0;i<10;i++){
     iftxt >> arr[i];
     if(iftxt.eof() && i<9){
-      cerr<< "Unexpected eof"<<endl;
+      std::cerr<< "Unexpected eof"<<endl;
       exit(1);
     }
       }
