@@ -1,19 +1,24 @@
 package Mover;
-
-
-# Program copies files from 'source' directory to 'target'
-# does validation and updates database.
-# All files matching to 'source' are copying, only files 
-# listed in database are validated.
+#
+#
+my $help = "
+# Program copies files from 'source' directory to 'target'.
+# Program requests list of NTuples from server, 
+# finds NTuples with status Success or Validated and directory 
+# path matches to 'source' directory, validates NTuples if 
+# its status is Success, copies NTuples to Target directory 
+# validates them, sends new NTuple path to server and 
+# remove copied NTuples from 'source' directory
+# 
 # arguments :
 # -S    - source files path
 # -T    - target directory path
-# -ior  - path to file with IOR (optional)
-# -D    - database handler      (f.e. Oracle:) (optional)
-# -F    - database file         (f.e. amsdb)   (optional)
+# -h    - help
+# -ior  - path to file with IOR                (optional)
 # -v    - verbose                              (optional)
 #
-
+# March 22, 2002. A.Klimentov
+";
 
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -22,14 +27,13 @@ use strict;
 use lib::CID;
 use lib::ActiveClient;
 use lib::POAMonitor;
+use Sys::Hostname;
 
-use lib::DBServer;
+#use lib::DBServer;
 use Time::Local;
 
 @Mover::EXPORT= qw(new Connect doCopy);
 
-my @data=();
-my $nrows = 0;
 
 my %fields=(
     cid=>undef,
@@ -38,25 +42,28 @@ my %fields=(
     mypoamonitor=>undef,
     myref=>undef,
     myior=>undef,
+    arsref=>[],
+    arpref=>[],
     AMSDataDir=>undef,
     AMSSoftwareDir=>undef,
-     arsref=>[],
-     arpref=>[],
     verbose=>undef,
     ac=>undef,
     start=>undef,
+    hostname=>undef,
     source=>undef,
     target=>undef,
     sourcedir=>undef,
     targetdir=>undef,
     sourcefile=>undef,
+    sourcestr1=>undef,
+    sourcestr2=>undef,
+    sourcestr3=>undef,
     ok=>undef,
     registered=>0,
     DataMC=>1,
     IOR=>undef,
             );
 
-my $slash = "/";
 
 sub new {
 #
@@ -90,6 +97,11 @@ foreach my $chop  (@ARGV){
     if($chop =~/^-v/){
         $self->{verbose} = 1;
     }
+
+    if($chop =~/^-h/){
+        print $help;
+        die "...";
+    }
 }
 
 
@@ -97,6 +109,17 @@ if (not defined $input or not defined $output) {
     die "move -E- Invalid sintaksis.   move -S/inputDir/files -T/outputDir/";
  }
 
+# get hostname
+  my $hostname = hostname();
+  my @host = split '.',$hostname;
+  if (defined $host[0]) {
+   $self->{hostname}=$host[0];
+  } else {
+   $self->{hostname}=$hostname;
+  } 
+ if ($self->{verbose}) {
+     print "Hostname : $self->{hostname} \n";
+ }
 # check dirpath
 
 if (substr($input, 0, 1) ne '/' or substr($output, 0, 1) ne '/' ) {
@@ -105,7 +128,16 @@ if (substr($input, 0, 1) ne '/' or substr($output, 0, 1) ne '/' ) {
 }
     $self->{source} = $input;
     $self->{target} = $output;
-
+#
+my ($f1,$f2,$f3) = split(/\*/,$input);
+if (defined $f1) {
+    $self->{sourcestr1} = $f1;
+}
+if (defined $f2) {
+    if (length($input) < length($f1)+1) {
+     $self->{sourcestr2} = $f2;
+    } 
+}
 # input directory, file
   ($idir,$ifile) = parseArgs($input); 
   if (not defined $idir or not defined $ifile) {
@@ -128,6 +160,7 @@ if (substr($input, 0, 1) ne '/' or substr($output, 0, 1) ne '/' ) {
       print "$output - space left $osize\n";
       die "not enough space on $output";
   }
+
 
 # Corba part a la new in Monitor.pm
 $self->{start}=time();
@@ -181,36 +214,38 @@ return $mybless;
 sub doCopy {
     my $status=>undef;
     my @cpntuples=();
+    my @mvntuples=();
     my $self = shift;
     my $input  = $self->{source};
     my $output = $self->{targetdir};
 
     my $ref = $Mover::Singleton;
-    $ref->readServer();
-    my $nn = $ref->getNTuples($input);
-    if ($nrows > 0) {
+    my $stat= $ref->readServer();
+    if ( not $stat) { 
+     die "Quit due to previous error";
+    }
+    my @data = $ref->getNTuples($input);
+    my $nnt = $#data/15;
+    if ($nnt > 0) {
      if ($self->{verbose}) {
-        print "doCopy -I- $nrows files will be copied\n";
+        print "doCopy -I- $nnt files will be copied\n";
      }
-#
-# do copy file by file if it matches to the DB list,
-# validate output if copy or validation fail then exit
-#
-  my $time = time();
-  my $logfile = "/tmp/cp.$time.log";
-  my $cmd = "touch $logfile";
+     my $i = 0;
+     my $time = time();
+     my $logfile = "/tmp/cp.$time.log";
+     my $cmd = "touch $logfile";
      $status = system($cmd);
-  my $nleft=6;
-   for  my $i (0...$nrows) {
-     my $row = $data[$i];
-     my ($host,$ntuple,$events,$run,$insert,$fevent,$levent,$size,$type) = split(/:/,$row);
-     $ntuple=~s/\/\//\//;
-     my ($dir,$file) = parseArgs($ntuple);
-     my $tpath = $output.$file;
-     push @cpntuples,$tpath;
-     $cmd = "cp -pi -d -v -r $ntuple  $tpath >> $logfile";
-     $status = system($cmd);
-     if ($status == 0) {
+     while ($i < $#data) {
+      my ($host,$ntuple) = split(/:/,$data[$i+1]);
+      my $events         = $data[$i+2];
+      $ntuple=~s/\/\//\//;
+      my ($dir,$file) = parseArgs($ntuple);
+      my $tpath = $output.$file;
+      push @cpntuples,$tpath;
+      push @mvntuples,$ntuple;
+      $cmd = "cp -pi -d -v -r $ntuple  $tpath >> $logfile";
+      $status = system($cmd);
+      if ($status == 0) {
        my $vstatus=$self->doValidate($tpath,$events);
        if ($vstatus ne "OK") {
            print "doCopy -W- validation failed for $tpath \n";
@@ -220,28 +255,30 @@ sub doCopy {
      }
      if ($status != 0) {
       print "doCopy -E- Copy failed :  $cmd \n";
-      print "doCopy -I- Remove all copied NTuples \n";
-      foreach my $rmntuple (@cpntuples) {
-       $cmd = "rm -f  $output.$rmntuple >> $logfile";
-       $status = system($cmd);
-       goto LAST;
-    }
-   }
+      $self->doRemove(@cpntuples);
+      goto LAST;
+     }
+     $i=$i+16;
   }
- if ($self->{verbose}) {
-   print "doCopy -I- $#cpntuples are copied to $output\n";
- }
-#
-# Update NTuples paths
-# sendDSTEnd($action="Create","Delete")
-#
-    updateNTuples("Create",$output);
-    updateNTuples("Delete",$output);
-    $self -> doRemove();
+  my $cpnt = $#cpntuples+1;
+  if ($self->{verbose}) {
+   print "doCopy -I- $cpnt files are copied to $output\n";
+  }
  } else {
    print "doCopy -I- Nothing to copy\n";
    print "doCopy -I- No Validated NTuples or/and NT's paths don't match to $input\n";
  }  
+ if ($nnt > 0) {
+#
+# Update NTuples path
+# sendDSTEnd($action="Create","Delete")
+#
+    my $host = $self->{hostname};
+    updateNTuples("Create",$host,$output,@data);
+    updateNTuples("Delete",$host,$output,@data);
+    doRemove(@mvntuples);
+    $status = 1;
+ }
 LAST : 
     return $status;
 }
@@ -262,17 +299,20 @@ sub readServer {
                 my %cid=%{$ref->{cid}};
                 $cid{Type}="Producer";
                 ($length,$ahl)=$arsref->getDSTS(\%cid);
+#                ($length,$ahl)=$arsref->getDSTInfoS(\%cid);
                 if($length==0){
                     $ref->{dsts}=undef;
                 }
                 else {
                     $ref->{dsts}=$ahl;
                 }
-
                 goto LAST;
             }
-        }
+            catch CORBA::SystemException with{
+            };
 
+        }
+    return 0;
 LAST :
     return 1;
 }
@@ -286,7 +326,10 @@ sub getNTuples {
 #
     my $self = shift;
     my $path = shift;
-
+    my @data = ();
+    my $events;
+    my $ntuple;
+#
     my @sort=("Validated", "Success");
         foreach my $sort (@sort) {    
         for my $i (0 ... $#{$Mover::Singleton->{dsts}}){
@@ -294,8 +337,8 @@ sub getNTuples {
             if($hash->{Type} eq "Ntuple"){
                 if($hash->{Status} eq $sort){
 # suppress double //
-                    my $ntuple    = $hash->{Name};
-                    my $events    = $hash->{EventNumber};
+                    $ntuple    = $hash->{Name};
+                    $events    = $hash->{EventNumber};
                     $ntuple=~s/\/\//\//;
                     my @fpatha=split ':', $ntuple;
                     my $fpath=$fpatha[$#fpatha];
@@ -303,6 +346,23 @@ sub getNTuples {
                     print "$sort $dir $file \n";
                     if ($dir eq $self->{sourcedir}) {
 # check filename here
+                     my $sstr1;
+                     my $sstr2;
+                     my $sstr;
+                     if (defined $self->{sourcestr1}) {
+                         $sstr1 = $self->{sourcestr1};
+                         $sstr    = substr($fpath,0,length($sstr1));
+                         if ($sstr ne $sstr1) {
+                             goto NEXTNT;
+                         }
+                     }
+                     if (defined $self->{sourcestr2}) {
+                         $sstr2 = $self->{sourcestr2};
+                         $sstr  = substr($fpath,length($sstr1)+1,length($fpath));
+                         if ($sstr ne $sstr2) {
+                             goto NEXTNT;
+                         }
+                     }
                      if ($sort ne "Validated") {
                        my $status = $self->doValidate($ntuple,$events);
                        if ($status ne "OK") {
@@ -314,18 +374,21 @@ sub getNTuples {
                        }
                    }
                    if ($sort eq "Validated") {
-                    push @data,$ntuple,":",$events,":",$hash->{Run},":",$hash->{Insert},":",
-                         $hash->{FirstEvent},":",$hash->{LastEvent},":",
-                         $hash->{size},":",$hash->{Type};
-                    $nrows++;
+                    push @data,$i,$ntuple,$events,
+                                    $hash->{Insert},$hash->{Begin},$hash->{End},
+                                    $hash->{Run},$hash->{FirstEvent},$hash->{LastEvent},
+                                    $hash->{EventNumber},$hash->{ErrorNumber},
+                                    $hash->{Status},$hash->{Type},$hash->{size},
+                                    $hash->{Name},$hash->{Version};
                   }
                  }
                   
                 }
             }
+NEXTNT :
         }
     }
-    return $nrows;
+    return @data;
 }
 
 sub updateNTuples {
@@ -334,35 +397,65 @@ sub updateNTuples {
 # get from Server NTuples with status "Validated" and "Success" 
 # NT's with status "Success" must be validated
 #
-   my ($action,$path) = @_;
+   my %ntnc=(
+         Insert=>undef,
+         Begin=>undef,
+         End=>undef,
+         Run=>undef,
+         FirstEvent=>undef,
+         LastEvent=>undef,
+         EventNumber=>undef,
+         ErrorNumber=>undef,
+         Status=>undef,
+         Type=>undef,
+         size=>undef,
+         Name=>undef,
+         Version=>undef,
+           );
+
+   my ($action,$host,$path,@data) = @_;
    my $ref=$Mover::Singleton;
-   for my $i (0 ... $nrows){
+   my $i = 0;
+#   my $j = 0;
+#   my %nc=%{${$ref->{dsts}}[0]};  
+   while ($i < $#data){
     my $row = $data[$i];
-    my ($host,$ntuple,$events,$run,$insert,$fevent,$levent,$size,$type)=split(/:/,$row);
-    my ($dir,$file) = parseArgs($ntuple);
-    my %nc=%{${$ref->{dsts}}[$i]};  
-    $nc{Name}       = $path.$file;
-    $nc{Run}       = $run;
-    $nc{Insert}    = $insert;
-    $nc{FirstEvent}= $fevent;
-    $nc{LastEvent} = $levent;
-    $nc{size}      = $size;
-    $nc{Status}    = "Validated";
-    $nc{Type}      = $type;
+    $ntnc{Insert}      = $data[$i+3];
+    $ntnc{Begin}       = $data[$i+4];
+    $ntnc{End}         = $data[$i+5];
+    $ntnc{Run}         = $data[$i+6];
+    $ntnc{FirstEvent}  = $data[$i+7];
+    $ntnc{LastEvent}   = $data[$i+8];
+    $ntnc{EventNumber} = $data[$i+9];
+    $ntnc{ErrorNumber} = $data[$i+10];
+    $ntnc{Status}      = "Validated";
+    $ntnc{Type}        = $data[$i+12];
+    $ntnc{size}        = $data[$i+13];
+    if ($action eq 'Create') {
+      my ($h,$ntuple)=split(/:/,$data[$i+1]);
+      my ($dir,$file) = parseArgs($ntuple);
+      $ntnc{Name}        = $host.":".$path.$file;
+    }
+    if ($action eq 'Delete') {
+      $ntnc{Name}        = $data[$i+14];
+    }
+    $ntnc{Version}     = $data[$i+15];
+    $i=$i+16;
+                       
+    my $arsref;
+    my %cid=%{$ref->{cid}};
 
-   my $arsref;
-   my %cid=%{$ref->{cid}};
-
-   foreach $arsref (@{$ref->{arpref}}){
+    foreach $arsref (@{$ref->{arpref}}){
        try{
-           $arsref->sendDSTEnd(\%cid,\%nc,$action);
+        $arsref->sendDSTEnd(\%cid,\%ntnc,$action);
        }
        catch CORBA::SystemException with{
            warn "sendback corba exc";
        };
    }
-  }
+ }
 }
+
 sub doValidate {
 #
 # validate output from RemoteClient.pm  L645-693
@@ -403,17 +496,19 @@ sub doValidate {
 
 sub doRemove {
 # delete input files
-    my $self = shift;
     my $time = time();
-    my $input= $self->{source};
-  my $logfile = "/tmp/aarm.$time.log";
-  my $cmd = "rm -r -f -v $input > $logfile";
-#
+    my (@ntuples) = @_;
+    print "doRemove -I- Remove all copied NTuples \n";
+    my $logfile = "/tmp/aarm.$time.log";
+    foreach my $rmntuple (@ntuples) {
+     my $cmd = "rm -i  $rmntuple >> $logfile";
+     my $status = system($cmd);
+    }
 }
-
 sub parseArgs {
   
   my $string = shift;
+  my $slash = "/";
   my @chars = split(//,$string);
   my $dir;
   my $file;
@@ -443,6 +538,7 @@ sub parseArgs {
 
 sub addslash {
   my $string = shift;
+  my $slash = "/";
   my @chars = split(//,$string);
   my $i = 0;
   foreach my $char (@chars) {
@@ -511,7 +607,6 @@ sub Connect{
 # check -IOR first and only then getior
     foreach my $chop  (@ARGV){
         if($chop =~/^-ior/){
-#            $ior=unpack("x2 A*",$chop);
              my $iorfile = unpack("x4 A*",$chop);
              my $buf;
              open(FILE,"<".$iorfile) or die "Unable to open file [$iorfile] \n";
@@ -639,7 +734,7 @@ sub UpdateARS{
               }
              }
              catch CORBA::SystemException with{
-               carp "getars 2 oops SystemException Error "."\n";
+               carp "getARS 2 oops SystemException Error "."\n";
              };
 
          }   

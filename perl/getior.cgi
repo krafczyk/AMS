@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: getior.cgi,v 1.1 2002/03/20 16:26:44 alexei Exp $
+#  $Id: getior.cgi,v 1.2 2002/03/22 09:06:41 alexei Exp $
 use Gtk;
 use strict;
 use DBI;
@@ -56,8 +56,8 @@ sub connect_to_oracle {
 }
 
 sub getior {
-    my $ior = "- not found -";
-    my $sql="SELECT iors FROM Servers Order by createtime DESC";
+    my $ior = "- no 'Active' servers found -";
+    my $sql="SELECT iors FROM Servers WHERE status='Active' Order by createtime DESC";
     my $sth=$dbh->prepare($sql)  or die "Cannot prepare $sql ".$dbh->errstr();
     $sth->execute or die "Cannot execute $sql ".$dbh->errstr();
     my $ret=$sth->fetchall_arrayref();

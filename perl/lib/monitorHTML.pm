@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.18 2002/03/14 14:13:32 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.19 2002/03/22 09:06:48 alexei Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -107,6 +107,11 @@ sub Warning{
 
     Warning::error($monitorHTML::Singleton->{q},"Unable To Connect The Servers");
 
+}
+
+sub UpdateForce{
+    my $ref=$monitorHTML::Singleton;
+    my ($monitor, $ok)=Monitor::UpdateForce();
 }
 
 sub Update{

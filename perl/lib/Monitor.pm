@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.49 2002/03/14 14:13:32 choutko Exp $
+# $Id: Monitor.pm,v 1.50 2002/03/22 09:06:48 alexei Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -126,14 +126,25 @@ sub Connect{
  if(defined $ref->{IOR}){
      return 1;
  }
- my $ior=getior();
+ my $ior=>undef;
  if(not defined $ior){ 
-
-foreach my $chop  (@ARGV){
+  foreach my $chop  (@ARGV){
     if($chop =~/^-I/){
         $ior=unpack("x1 A*",$chop);
     }
+    if($chop =~/^-ior/){
+            my $iorfile = unpack("x4 A*",$chop);
+            my $buf;
+            open(FILE,"<".$iorfile) or die "Unable to open file [$iorfile] \n";
+            read(FILE,$buf,1638400);
+            close FILE;
+            $ior=$buf;
+#            print "Monitor::Connect -I- IOR read from $iorfile \n";
+    }
+ }
 }
+ if(not defined $ior) { 
+  $ior=getior();
 }
  if( not defined $ior){
   return $ref->{ok};
@@ -365,44 +376,17 @@ sub DESTROY{
     warn "DESTROYING $self";
 }
 
-sub UpdateARS{
- my $ref=shift;
- my $arsref;
- if(not $ref->{ok}){
-     return 0;
- }
- foreach $arsref (@{$ref->{arsref}}){
-     try{
-         my %cid=%{$ref->{cid}};
-         $cid{Type}="Server";
-      my ($length,$pars)=$arsref->getARS(\%cid,"Any",0,1);
-         if($length==0 ){
-            carp "updars returns zero \n";
-            return 0;
-        }
-        for(;;){
-             my $old=shift @{$ref->{arsref}};
-          if(ref($old)){
-            undef $old;
-          }
-          else{
-            last;
-          }
-         }
-         my $ior;
-         foreach $ior (@$pars){
-             try{
-              my $newref=$ref->{orb}->string_to_object($ior->{IOR});
-              if(rand >0.5){
-                  unshift @{$ref->{arsref}}, $newref;
-              }
-              else{
-                  push @{$ref->{arsref}}, $newref;
-              }
-             }
-             catch CORBA::SystemException with{
-               carp "getars 2 oops SystemException Error "."\n";
-             };
+sub UpdateARS{ my $ref=shift; my $arsref; if(not $ref->{ok}){ return
+ 0; } foreach $arsref (@{$ref->{arsref}}){ try{ my
+ %cid=%{$ref->{cid}}; $cid{Type}="Server"; my
+ ($length,$pars)=$arsref->getARS(\%cid,"Any",0,1); if($length==0 ){
+ carp "updars returns zero \n"; return 0; } for(;;){ my $old=shift
+ @{$ref->{arsref}}; if(ref($old)){ undef $old; } else{ last; } } my
+ $ior; foreach $ior (@$pars){ try{ my
+ $newref=$ref->{orb}->string_to_object($ior->{IOR}); if(rand >0.5){
+ unshift @{$ref->{arsref}}, $newref; } else{ push @{$ref->{arsref}},
+ $newref; } } catch CORBA::SystemException with{ carp "getars 2 oops
+ SystemException Error "."\n"; };
 
          }   
          $cid{Type}="Producer";
@@ -496,6 +480,13 @@ sub Update{
      }
      $ok=$ref->UpdateEverything();
     }
+    return ($ref,$ok);
+}
+
+sub UpdateForce{
+    my  $ref=$Monitor::Singleton;
+    my $ok=$ref->UpdateARS();
+    $ok=$ref->UpdateEverything();
     return ($ref,$ok);
 }
 
