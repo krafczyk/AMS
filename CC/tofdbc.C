@@ -1794,7 +1794,7 @@ return float(tftt.tofav[7])/10.;
 break;
 default:
 cerr <<"TOFVarp::getmeantoftemp-E-NoCrateFound "<<crate<<endl;
-return 0;
+return 0.;
 }
 
 }

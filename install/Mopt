@@ -955,8 +955,9 @@ depend:
 ../bin/osf1/job.o: ../include/uzstat.h ../include/cern.h
 ../bin/osf1/job.o: ../include/cfortran.h ../include/hbook.h
 ../bin/osf1/job.o: ../include/geant321.h ../include/geant321g.h
-../bin/osf1/job.o: /usr/include/math.h ../include/amsdbc.h
-../bin/osf1/job.o: ../include/commons.h /usr/include/cxx/fstream.h
+../bin/osf1/job.o: ../include/astring.h /usr/include/math.h
+../bin/osf1/job.o: ../include/amsdbc.h ../include/commons.h
+../bin/osf1/job.o: /usr/include/cxx/fstream.h
 ../bin/osf1/job.o: /usr/include/cxx/fstream.hxx ../include/trid.h
 ../bin/osf1/job.o: ../include/amsstl.h ../include/link.h
 ../bin/osf1/job.o: ../include/apool.h ../include/job.h
@@ -966,13 +967,13 @@ depend:
 ../bin/osf1/job.o: /usr/include/cxx/generic.hxx
 ../bin/osf1/job.o: /usr/include/cxx/mutex.hxx ../include/timeid.h
 ../bin/osf1/job.o: /usr/include/time.h /usr/include/sys/timers.h
-../bin/osf1/job.o: /usr/include/sys/sysmisc.h ../include/astring.h
-../bin/osf1/job.o: ../include/ntuple.h ../include/status.h
-../bin/osf1/job.o: ../include/mccluster.h ../include/gsen.h
-../bin/osf1/job.o: ../include/ctcdbc.h ../include/tofdbc.h
-../bin/osf1/job.o: ../include/extC.h ../include/event.h
-../bin/osf1/job.o: ../include/cont.h /usr/include/sys/time.h
-../bin/osf1/job.o: /usr/include/sys/signal.h /usr/include/sys/siginfo.h
+../bin/osf1/job.o: /usr/include/sys/sysmisc.h ../include/ntuple.h
+../bin/osf1/job.o: ../include/status.h ../include/mccluster.h
+../bin/osf1/job.o: ../include/gsen.h ../include/ctcdbc.h
+../bin/osf1/job.o: ../include/tofdbc.h ../include/extC.h
+../bin/osf1/job.o: ../include/event.h ../include/cont.h
+../bin/osf1/job.o: /usr/include/sys/time.h /usr/include/sys/signal.h
+../bin/osf1/job.o: /usr/include/sys/siginfo.h
 ../bin/osf1/job.o: /usr/include/machine/signal.h
 ../bin/osf1/job.o: /usr/include/machine/context.h
 ../bin/osf1/job.o: /usr/include/sys/procset.h ../include/mceventg.h
@@ -2300,6 +2301,16 @@ depend:
 ../bin/osf1/daqevt.o: /usr/include/machine/context.h
 ../bin/osf1/daqevt.o: /usr/include/sys/procset.h ../include/mceventg.h
 ../bin/osf1/daqevt.o: ../include/io.h /usr/include/sys/times.h
+../bin/osf1/daqevt.o: /usr/include/sys/stat.h /usr/include/sys/mode.h
+../bin/osf1/daqevt.o: /usr/include/sys/file.h /usr/include/sys/param.h
+../bin/osf1/daqevt.o: /usr/include/sys/machine/machparam.h
+../bin/osf1/daqevt.o: /usr/include/machine/endian.h
+../bin/osf1/daqevt.o: /usr/include/sys/access.h
+../bin/osf1/daqevt.o: /usr/include/sys/fcntl.h /usr/include/ctype.h
+../bin/osf1/daqevt.o: /usr/include/sys/localedef.h
+../bin/osf1/daqevt.o: /usr/include/sys/lc_core.h /usr/include/locale.h
+../bin/osf1/daqevt.o: /usr/include/nl_types.h /usr/include/mesg.h
+../bin/osf1/daqevt.o: /usr/include/dirent.h
 ../bin/osf1/astring.o: ../include/astring.h /usr/include/cxx/iostream.h
 ../bin/osf1/astring.o: /usr/include/cxx/iostream.hxx
 ../bin/osf1/astring.o: /usr/include/cxx/cxxl.hxx
