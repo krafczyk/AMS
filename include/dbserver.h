@@ -1,4 +1,4 @@
-//  $Id: dbserver.h,v 1.11 2003/10/26 14:21:26 choutko Exp $
+//  $Id: dbserver.h,v 1.12 2003/11/12 15:22:31 choutko Exp $
 #ifndef __AMSDBSERVER__
 #define __AMSDBSERVER__
 #include <server.h>
@@ -70,6 +70,7 @@ public:
   void sendCurrentInfo(const DPS::Client::CID & ci, const  DPS::Producer::CurrentInfo &cii, int propagate)throw (CORBA::SystemException);
   void sendDSTEnd(const DPS::Client::CID & ci, const  DPS::Producer::DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException);
    int  getFreeHost(const DPS::Client::CID & ci, DPS::Client::ActiveHost_out host)throw (CORBA::SystemException);
+   int  getFreeHostN(const DPS::Client::CID & ci)throw (CORBA::SystemException);
     void clearACS( DPS::Client::ClientType type)throw (CORBA::SystemException);
     void clearNCS( DPS::Client::ClientType type)throw (CORBA::SystemException);
     void clearAHS( DPS::Client::ClientType type)throw (CORBA::SystemException);

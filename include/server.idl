@@ -7,7 +7,7 @@ module DPS{
     };
   interface Client{
    enum AccessType{Any,LessThan,Self,AnyButSelf,GreaterThan};
-   enum RecordChange{Delete,Update,Create};
+   enum RecordChange{Delete,Update,Create,ClearCreate};
    enum ErrorType{Info,Warning,Error,Severe};
    enum ClientStatus{Lost,Unknown,Submitted,Registered,Active,TimeOut,Killed};
    enum ClientStatusType{Permanent,OneRunOnly};
@@ -294,6 +294,7 @@ module DPS{
     long getRunEvInfoSPerl(in CID id, out RES res, in unsigned long maxr,out unsigned long maxro)raises(DBProblem); 
     void sendACPerl(in CID id, in ActiveClient ac,in RecordChange rc)raises(DBProblem);
     long getFreeHost(in CID id, out ActiveHost host)raises(DBProblem);
+    long getFreeHostN(in CID id)raises(DBProblem);
     void clearACS(in ClientType type)raises(DBProblem);
     void clearNCS(in ClientType type)raises(DBProblem);
     void clearAHS(in ClientType type)raises(DBProblem);
