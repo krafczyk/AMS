@@ -134,6 +134,7 @@ static void _hist();
 static void _update();
 static void _clear();
 static time_t _BeginTime;
+static time_t _CurTime;
 public:
 AMSTrIdCalib():AMSTrIdSoft(){};
 AMSTrIdCalib(const AMSTrIdSoft & o):AMSTrIdSoft(o){};

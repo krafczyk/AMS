@@ -86,6 +86,7 @@ int16u pData[24][1536];
   }
     
     FILE * fbin=fopen(in,"r");
+    static int gevt=0;
     int tevt=0;
     int evt;
     char name[80];
@@ -197,7 +198,13 @@ int16u pData[24][1536];
                conn+= 4;
              }
              tdrk=(k-16)/2;
+             //swap 3.2 <-> 3.0
+             if(tdrk == 2){
+              if(conn == 0)conn=3;
+              else if (conn==3)conn=0;  
+             }
              int16u addr=(10<<6) |( conn<<10) | (tdrk <<13);
+               
              Record[frp]=addr;
              frp++;
              for(int l=0;l<384;l++){
@@ -209,7 +216,6 @@ int16u pData[24][1536];
            }
          }
          int tl=Record[0]+1;
-         tevt++;
               //  Dump every 1000 event
          //                  if(evt%1000 == 0){
          //                    for(int itl=0;itl<tl;itl++){
@@ -217,14 +223,16 @@ int16u pData[24][1536];
          //                    }
          //                  }
          _convert(Record,tl,BigEndian);
-         fbout.write((unsigned char*)Record,tl*sizeof(Record[0]));         
+         if(tevt!=0)fbout.write((unsigned char*)Record,tl*sizeof(Record[0]));  
+         tevt++;
        }
       }while (ie!=EOF);
       
   fclose(fbin);
+  gevt+=tevt-1;
   if(iend==0){
       fbout.close();
-      cout <<" Total of "<<tevt<<" events  converted"<<endl;
+      cout <<" Total of "<<gevt<<" events  converted"<<endl;
   }
 }
 

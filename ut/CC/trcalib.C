@@ -539,7 +539,7 @@ void AMSTrIdCalib::_update(){
      ptdv->UpdCRC();
      time_t begin,end,insert;
      time(&insert);
-     ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
+     ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
      ptdv->gettime(insert,begin,end);
      cout <<" Time Insert "<<ctime(&insert);
@@ -550,7 +550,7 @@ void AMSTrIdCalib::_update(){
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
      time(&insert);
-     ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
+     ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
      ptdv->gettime(insert,begin,end);
      cout <<" Time Insert "<<ctime(&insert);
@@ -561,7 +561,7 @@ void AMSTrIdCalib::_update(){
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
      time(&insert);
-     ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
+     ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
      ptdv->gettime(insert,begin,end);
      cout <<" Time Insert "<<ctime(&insert);
@@ -593,7 +593,7 @@ void AMSTrIdCalib::_update(){
 
 
 
-    _BeginTime=AMSEvent::gethead()->gettime();
+    _BeginTime=_CurTime;
 
    }
 
@@ -661,6 +661,7 @@ if(++counter%TRCALIB.EventsPerCheck == 0 || forcedw){
        cout << "AMSTrIdCalib::check-I-peds & sigmas succesfully calculated for  "<< cnt[0]+cnt[1]<< " Channels"<<endl;
        _calc();
        _hist();
+       _update();
        _clear();
        counter=0;
      }
@@ -670,6 +671,7 @@ if(++counter%TRCALIB.EventsPerCheck == 0 || forcedw){
 
 
 void AMSTrIdCalib::buildSigmaPed(integer n, int16u *p){
+   _CurTime=AMSEvent::gethead()->gettime();
   integer static first=0;
   if(first++ == 0){
     _BeginTime=AMSEvent::gethead()->gettime();
@@ -734,3 +736,4 @@ void AMSTrIdCalib::buildSigmaPed(integer n, int16u *p){
 
 
 time_t AMSTrIdCalib::_BeginTime=0;
+time_t AMSTrIdCalib::_CurTime=0;
