@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.32 2003/07/29 17:17:37 choutko Exp $
+#  $Id: monitorUI.pm,v 1.33 2003/12/12 10:07:10 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -585,6 +585,7 @@ sub notebook_create_pages {
 	    "Last Event",
 	    "Priority ",
 	    "History ",
+	    "Fails ",
 	    "Status ",
 	);
 
@@ -1324,6 +1325,7 @@ sub show_sample{
 "FilePath",
 "Status",
 "History",
+"Fails",
                  );
     }elsif( $name eq "Killer"){
         $#titles=-1;

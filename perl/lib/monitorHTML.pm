@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.20 2003/11/19 09:41:19 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.21 2003/12/12 10:07:10 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -280,6 +280,7 @@ sub Update{
             "Last Event",
             "Priority ",
             "History ",
+            "Fails ",
             "Status ",
                                    );
 
@@ -389,6 +390,7 @@ sub Update{
 "FilePath",
 "Status",
 "History",
+"Fails",
                  );
 }elsif( $name eq "Killer"){
     $#titles=-1;
