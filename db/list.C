@@ -36,7 +36,7 @@
 // Nov    1996. ak.  modifications of Addamsdbc
 //                   AMScommonsD is modified
 //
-// last edit Nov 26, 1996, ak.
+// last edit Nov 27, 1996, ak.
 //
 //
 #include <iostream.h>
@@ -3139,10 +3139,11 @@ ooStatus AMSEventList::Addamsdbc()
        amsdbcH  = new(contH) AMSDBcD();
       }
 
+      integer Write = 1;
       commonsItr.scan(contH, mode);
       if (commonsItr.next()) {
        cout <<"AMSEventList::Addamsdbc -I- check commons"<<endl;
-       rstatus = commonsItr -> CmpConstants();
+       rstatus = commonsItr -> CmpConstants(Write);
        if (rstatus != oocSuccess) {
         cout <<"AMSEventList:: -E- Quit. commons are different"<<endl;
         cout <<"AMSEventList:: -I- please, write new setup."<<endl;
@@ -3275,8 +3276,8 @@ ooStatus AMSEventList::PrintListStatistics()
      ooItr(AMSEventD)       eventItr;                 
      ooHandle(AMSEventList) listH = ooThis();
 
-     cout<<"List: "<<_listName<<" of type : "<<_listType<<" with setup : "
-         <<_Setup  <<" has "<<_nEvents<<" events"<<endl;
+     cout<<"List... "<<_listName<<" of type "<<_listType<<endl;
+     cout<<"with setup... "<<_Setup <<" has "<<_nEvents<<" events"<<endl;
 
      if (!listH.isUpdated()) {
       rstatus = eventItr.scan(listH,oocRead);

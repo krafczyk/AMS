@@ -177,10 +177,11 @@ void LMS::CheckConstants()
        rstatus = amsdbcItr -> CmpConstants();
       } 
       
+      integer Read = 0;
       commonsItr.scan(contH, mode);
       if (commonsItr.next()) {
        cout <<"AMSEventList::CheckConstants -I- check commons"<<endl;
-       rstatus = commonsItr -> CmpConstants();
+       rstatus = commonsItr -> CmpConstants(Read);
        if (rstatus != oocSuccess) {
         cout <<"AMSEventList::CheckConstants -E- Quit"<<endl;
         rstatus = oocError;

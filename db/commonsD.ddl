@@ -2,7 +2,7 @@
 // Objectivity version Oct 08, 1996 ak
 // Nov 12, 1996. ak. remove amsffkey and iopa from class definition
 //
-// Last Edit : Nov 26, 1996. ak.
+// Last Edit : Nov 27, 1996. ak.
 //
 
 #include <typedefs.h>
@@ -32,6 +32,6 @@ public:
 
 AMScommonsD();
 //
-ooStatus CmpConstants();
+ooStatus CmpConstants(integer RW);
 void     CopyConstants();
 };

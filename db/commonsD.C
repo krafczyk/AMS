@@ -97,10 +97,10 @@ AMScommonsD::AMScommonsD() {
 
 }
 
-ooStatus AMScommonsD::CmpConstants() {
+ooStatus AMScommonsD::CmpConstants(integer Write) {
 
 //
-// this function is awful, but how can I compare structures, not classes
+// Write == AMSFFKEY.Write
 //
  ooStatus rstatus = oocSuccess;
  integer  i;
@@ -173,8 +173,7 @@ ctcgeomffkey:
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -E- CTCGEOMFFKEY and ctcgeomffkeyD size"
         <<"  are not the same"<<endl;
-   rstatus = oocError;
-   goto cmpend;
+   return oocError;
   }
 
    buff = new integer[lm/4];
@@ -188,9 +187,15 @@ ctcgeomffkey:
    }
    delete [] buff;
 
+   if (Write != 0) {
+    cout<<"AMScommonsD::CmpConstants -E- please write new CTCGEOM"<<endl;
+    set_geom = 0;
+    return oocError;
+   }
+     
    if(set_geom != 0) {
     set_geom = 0;
-    cout<<"AMScommonsD::CmpConstants -E- CTCGEOMFFKEY  are different "
+    cout<<"AMScommonsD::CmpConstants -W- CTCGEOMFFKEY  are different "
         <<" and will be set to DBASE values"<<endl;
     buff = new integer[ld];
     for (i=0; i< ld; i++) {buff[i] = ctcgeomffkeyD[i]; }
