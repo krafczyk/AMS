@@ -149,15 +149,18 @@ integer DAQEvent::_EventOK(){
       if (AMSJob::gethead() -> isMonitoring()) {
         int l   = *(_pcur) + _OffsetL;
         int bid = *(_pcur+1);
-        int hid    = 300000 + bid; 
-        if (bid == 0x200 ||  bid == 0x0440) HF1(hid,l,1.);
-        if (bid >= tofidL && bid<=tofidR) {
+        int aid = bid;
+        int tofid = bid & 0x1400;
+        if (tofid == 0x1400) aid = aid &~60;
+        int hid    = 300000 + aid; 
+        if (aid == 0x200 ||  aid == 0x0440) HF1(hid,l,1.);
+        if (aid >= tofidL && aid<=tofidR) {
          HF1(hid,l,1.);
          tofL = tofL + l;
         }
-        if (bid == 0x1680 || bid == 0x1740 ||
-            bid == 0x1681 || bid == 0x1741 ||
-            bid == 0x168C || bid == 0x174C) {
+        if (aid == 0x1680 || aid == 0x1740 ||
+            aid == 0x1681 || aid == 0x1741 ||
+            aid == 0x168C || aid == 0x174C) {
               trkL = trkL + l;
               HF1(hid,l,1.);
          }
