@@ -2747,6 +2747,9 @@ cout <<"amsgeom::srdgeom02-I-SRDGeometryDone"<<endl;
 }
 
 
+#define NO_REPLICATE
+#define SQR(x) ((x)*(x))
+
 void richgeom02(AMSgvolume & mother)
 {
   // New Rich Geometry by Carlos Delgado (CIEMAT)
@@ -2758,11 +2761,36 @@ void richgeom02(AMSgvolume & mother)
   number nrma[3][3]={0,-1,0,1,0,0,0,0,1}; // Rotated 90 degrees
   integer gid=1,  
           rel=1, 
-          posp=0,
-          nrot=30001; // Number of the 90 degrees rotation matrix
+          posp=0;
+
+
+  // Some values that are cosidered constant.
+
+  const integer nrot=30001;    // Number of the 90 degrees rotation matrix
+  const geant mithk=0.5;       // Thickness of almost everything
+  const geant lgthk=0.05;      // (l)ight (g)uide thickness
+  const geant otherthk=0.1;    // Shielding and others
 
   
-  // Define the RICH volume
+
+  // Write the selected geometry
+
+  cout << "************** RICH GEOMETRY ***************" << endl;
+  cout << "Top radius:" << RICGEOM.top_radius << endl;
+  cout << "Bottom radius:" << RICGEOM.bottom_radius << endl;
+  cout << "Hole radius:" << RICGEOM.hole_radius << endl;
+  cout << "Height:" << RICGEOM.height << endl;
+  cout << "Inner mirror height:" << RICGEOM.inner_mirror_height << endl;
+  cout << "Radiator radius:" << RICGEOM.radiator_radius << endl;
+  cout << "Radiator height:" << RICGEOM.radiator_height << endl;
+  cout << "Radiator tile size:" << RICGEOM.radiator_box_length << endl;
+  cout << "Light guides height:" << RICGEOM.light_guides_height << endl;
+  cout << "Light guides tile size:" << RICGEOM.light_guides_length <<endl;
+  cout << "******************************************" << endl;
+
+
+
+  // Define the RICH volume: fixed
 
 
   par[0]=0;
@@ -2787,35 +2815,245 @@ void richgeom02(AMSgvolume & mother)
 				
   // Inside RICH put all the elements
 
-  // Radiator
+  // Radiator: to be modifyed
 
-  par[0]=0;
-  par[1]=RICGEOM.radiator_radius;
-  par[2]=RICGEOM.radiator_height/2;
+  if(RICGEOM.radiator_box_length<=0){
+    par[0]=0;
+    par[1]=RICGEOM.radiator_radius;
+    par[2]=RICGEOM.radiator_height/2;
+    
+    coo[2]=31-par[2];  
+    
+    dummy=rich->add(new AMSgvolume("RICH RAD", // Material: Aerogel in the future
+				   0,          // No rotation
+				   "RAD ",     // Name 
+				   "TUBE",     // Shape
+				   par,        // Geant parameters
+				   3,          // # of parameters
+				   coo,        // coordinates 
+				   nrm,        // Matrix of normals
+				   "ONLY",    
+				   posp,
+				   gid,
+				   rel));
+  } else{
+    geant xedge=RICGEOM.radiator_box_length/2,
+      yedge=RICGEOM.radiator_box_length/2,
+      lg,
+      cl;
+    integer copia=1;
+    posp=1;
+    AMSNode *p;
 
-  coo[2]=31-par[2];  
-  
-  dummy=rich->add(new AMSgvolume("RICH RAD", // Material: Aerogel in the future
-				0,          // No rotation
-				"RAD ",     // Name 
-				"TUBE",     // Shape
-				par,        // Geant parameters
-				3,          // # of parameters
-				coo,        // coordinates 
-				nrm,        // Matrix of normals
-				"ONLY",    
-				posp,
-				gid,
-				rel));
-  
+    do{
+      lg=SQR(xedge+RICGEOM.radiator_box_length/2)+SQR(yedge+RICGEOM.radiator_box_length/2);
+      cl=SQR(xedge-RICGEOM.radiator_box_length/2)+SQR(yedge-RICGEOM.radiator_box_length/2);
+      
+      if(cl<SQR(RICGEOM.radiator_radius)){ // Put a block here
+	coo[0]=xedge;
+	coo[1]=yedge;
+	coo[2]=31-RICGEOM.radiator_height/2;
+	par[0]=RICGEOM.radiator_box_length/2;
+	par[1]=RICGEOM.radiator_box_length/2;
+	par[2]=RICGEOM.radiator_height/2; 
+
+	p=rich->add(new AMSgvolume("VACUUM",
+				  0,
+				  "RADB",   // Defined and filled above
+				  "BOX",
+				  par,
+				  3,
+				  coo,
+				  nrm,      
+				  "ONLY",    
+				  posp,
+				  copia++,
+				  rel));
+
+#ifdef NO_REPLICATE
+	if(copia==2){
+#endif
+
+	  // Walls
+
+	  par[0]=RICGEOM.radiator_box_length/2;
+	  par[1]=mithk/4;
+	  par[2]=RICGEOM.radiator_height/2;
+	  coo[0]=0;
+	  coo[1]=RICGEOM.radiator_box_length/2-mithk/2;
+	  coo[2]=0;
+
+	  dummy=p->add(new AMSgvolume("TOF_PMT_BOX", // This should be carbon fiber
+				       0,
+				       "RWX ",
+				       "BOX",
+				       par,
+				       3,
+				       coo,
+				       nrm,
+				       "ONLY",
+				       posp,
+				       1,
+				       rel));
+	  coo[1]*=-1;
+
+	  dummy=p->add(new AMSgvolume("TOF_PMT_BOX", // This should be carbon fiber
+				       0,
+				       "RWX ",
+				       "BOX",
+				       par,
+				       3,
+				       coo,
+				       nrm,
+				       "ONLY",
+				       posp,
+				       2,
+				       rel));
+
+	  par[0]=mithk/4;
+	  par[1]=RICGEOM.radiator_box_length/2-mithk/2;
+	  par[2]=RICGEOM.radiator_height/2;
+	  coo[0]=RICGEOM.radiator_box_length/2-mithk/4;
+	  coo[1]=0;
+	  coo[2]=0;
+
+	  dummy=p->add(new AMSgvolume("TOF_PMT_BOX", // This should be carbon fiber
+				       0,
+				       "RWY ",
+				       "BOX",
+				       par,
+				       3,
+				       coo,
+				       nrm,
+				       "ONLY",
+				       posp,
+				       1,
+				       rel));
+
+	  coo[0]*=-1;
+
+	  dummy=p->add(new AMSgvolume("TOF_PMT_BOX", // This should be carbon fiber
+				       0,
+				       "RWY ",
+				       "BOX",
+				       par,
+				       3,
+				       coo,
+				       nrm,
+				       "ONLY",
+				       posp,
+				       2,
+				       rel));
+
+	  // Fill with aerogel
+
+	  par[0]=RICGEOM.radiator_box_length/2-mithk/2;
+	  par[1]=RICGEOM.radiator_box_length/2-mithk/2;
+	  par[2]=RICGEOM.radiator_height/2;
+	  coo[0]=0;
+	  coo[1]=0;
+	  coo[2]=0;
+	  dummy=p->add(new AMSgvolume("TOF_PMT_BOX", // This should be carbon fiber
+				      0,
+				      "RAD ",
+				      "BOX",
+				      par,
+				      3,
+				      coo,
+				      nrm,
+				      "ONLY",
+				      posp,
+				      1,
+				      rel));
+	  
+	}
+
+	// Put the other copies
+
+	coo[0]=-xedge;
+	coo[1]=yedge;
+	coo[2]=31-RICGEOM.radiator_height/2;
+	par[0]=RICGEOM.radiator_box_length/2;
+	par[1]=RICGEOM.radiator_box_length/2;
+	par[2]=RICGEOM.radiator_height/2; 
+
+	p=rich->add(new AMSgvolume("VACUUM",
+				  0,
+				  "RADB",   // Defined and filled above
+				  "BOX",
+				  par,
+				  3,
+				  coo,
+				  nrm,      
+				  "ONLY",    
+				  posp,
+				  copia++,
+				  rel));
+
+	
+	
+	coo[0]=xedge;
+	coo[1]=-yedge;
+	coo[2]=31-RICGEOM.radiator_height/2;
+	par[0]=RICGEOM.radiator_box_length/2;
+	par[1]=RICGEOM.radiator_box_length/2;
+	par[2]=RICGEOM.radiator_height/2; 
+
+	p=rich->add(new AMSgvolume("VACUUM",
+				  0,
+				  "RADB",   // Defined and filled above
+				  "BOX",
+				  par,
+				  3,
+				  coo,
+				  nrm,      
+				  "ONLY",    
+				  posp,
+				  copia++,
+				  rel));
+
+	coo[0]=-xedge;
+	coo[1]=-yedge;
+	coo[2]=31-RICGEOM.radiator_height/2;
+	par[0]=RICGEOM.radiator_box_length/2;
+	par[1]=RICGEOM.radiator_box_length/2;
+	par[2]=RICGEOM.radiator_height/2; 
+
+	p=rich->add(new AMSgvolume("VACUUM",
+				  0,
+				  "RADB",   // Defined and filled above
+				  "BOX",
+				  par,
+				  3,
+				  coo,
+				  nrm,      
+				  "ONLY",    
+				  posp,
+				  copia++,
+				  rel));
+
+      }
+	xedge+=RICGEOM.radiator_box_length;
+	
+	if(xedge>RICGEOM.radiator_radius) {
+	  xedge=RICGEOM.radiator_box_length/2;
+	  yedge+=RICGEOM.radiator_box_length;}
+	
+    }while(yedge<RICGEOM.radiator_radius);
+  } 
+    
+  coo[0]=0;
+  coo[1]=0;
+  posp=0;
   // Lateral walls
 
   par[0]=RICGEOM.height/2;
   par[1]=RICGEOM.bottom_radius;
-  par[2]=par[1]+.5;
+  par[2]=par[1]+mithk;
   par[3]=RICGEOM.top_radius; 
-  par[4]=par[3]+.5;
+  par[4]=par[3]+mithk;
 
+  
   coo[2]=31-par[0]-RICGEOM.radiator_height;
 
   dummy=rich->add(new AMSgvolume("RICH MIRRORS",  // Material
@@ -2833,13 +3071,12 @@ void richgeom02(AMSgvolume & mother)
   
   // Inner mirror... maybe it won't exist in the future
   
-  
-  if(RICGEOM.inner_mirror_flag){
+  if(RICGEOM.inner_mirror_height>0){
 
     par[0]=RICGEOM.inner_mirror_height/2;  
     par[3]=0;   
-    par[4]=0.5;     
-    par[1]=RICGEOM.hole_radius-.5;
+    par[4]=mithk;     
+    par[1]=RICGEOM.hole_radius-mithk;
     par[2]=RICGEOM.hole_radius;   
     
     coo[2]=31-RICGEOM.radiator_height-RICGEOM.height+par[0];
@@ -2871,26 +3108,27 @@ void richgeom02(AMSgvolume & mother)
   // to group the PMTs in 2x4 arrays.
 
 
-  geant xedge=1.5,yedge=1.5,lg,cl;
-  integer copia=1,paredes=1,espejosh=1,espejosv=1;
+  geant xedge=RICGEOM.light_guides_length/2,
+    yedge=RICGEOM.light_guides_length/2,
+    lg,
+    cl;
+  integer copia=1;
   posp=1;
   AMSNode *p;
 
-#define SQR(x) ((x)*(x))
-
 
   do{
-    lg=SQR(xedge+1.5)+SQR(yedge+1.5);
-    cl=SQR(xedge-1.5)+SQR(yedge-1.5);
+    lg=SQR(xedge+RICGEOM.light_guides_length/2)+SQR(yedge+RICGEOM.light_guides_length/2);
+    cl=SQR(xedge-RICGEOM.light_guides_length/2)+SQR(yedge-RICGEOM.light_guides_length/2);
 
     if(lg>SQR(RICGEOM.hole_radius) && cl<SQR(RICGEOM.bottom_radius)) // Put a PMT here
       {
 	coo[0]=xedge;
 	coo[1]=yedge;
-	coo[2]=31-RICGEOM.radiator_height-RICGEOM.height-5;
-	par[0]=1.5;
-	par[1]=1.5;
-	par[2]=5;
+	coo[2]=31-RICGEOM.radiator_height-RICGEOM.height-3.5-RICGEOM.light_guides_height/2;
+	par[0]=RICGEOM.light_guides_length/2;
+	par[1]=RICGEOM.light_guides_length/2;
+	par[2]=3.5+RICGEOM.light_guides_height/2;  // The total height is fixed to 10
 	
 	// Put the box
 
@@ -2908,18 +3146,20 @@ void richgeom02(AMSgvolume & mother)
 				  rel));
 	// Fill the box:
 
+#ifdef NO_REPLICATE
 	if(copia==2) // Only once.
+#endif
 	  {
 	    
 	    // SHIELDING: We use the TOF_PMT_BOX material... to be changed in
 	    // the future
 
 	    
-	    par[0]=1.5;
-	    par[1]=0.05;
-	    par[2]=5;
+	    par[0]=RICGEOM.light_guides_length/2;
+	    par[1]=otherthk/2; // Thickness: 1mm
+	    par[2]=3.5+RICGEOM.light_guides_height/2;
 	    coo[0]=0;
-	    coo[1]=1.5-0.05;
+	    coo[1]=RICGEOM.light_guides_length/2-otherthk;
 	    coo[2]=0;
 	    
 	    dummy=p->add(new AMSgvolume("TOF_PMT_BOX",
@@ -2950,9 +3190,9 @@ void richgeom02(AMSgvolume & mother)
 				       2,
 				       rel));
 	    
-	    par[0]=.05;
-	    par[1]=1.5-.1;
-	    coo[0]=1.5-.05;
+	    par[0]=otherthk/2;
+	    par[1]=RICGEOM.light_guides_length/2-otherthk;
+	    coo[0]=RICGEOM.light_guides_length/2-otherthk/2;
 	    coo[1]=0;
 	    
 	    dummy=p->add(new AMSgvolume("TOF_PMT_BOX",
@@ -2986,13 +3226,13 @@ void richgeom02(AMSgvolume & mother)
 			 
 	    // Photocatode: 
 
-	    par[0]=0.875;
+	    par[0]=0.875; // The HAMAMATSU R5900 cathode length
 	    par[1]=0.875;
-	    par[2]=0.05;
+	    par[2]=otherthk/2; // Thickness: 1mm
 
 	    coo[0]=0;
 	    coo[1]=0;
-	    coo[2]=5-3-.05;
+	    coo[2]=3.5-RICGEOM.light_guides_height/2-otherthk/2;
 	    
 	    dummy=p->add(new AMSgvolume("RICH PMTS",
 					0,
@@ -3008,15 +3248,15 @@ void richgeom02(AMSgvolume & mother)
 					rel));
 	    
 
-	    // Glue
+	    // Glue: Should be a polymer but this is good enough by now
 
-	    par[0]=1.5-.1;
-	    par[1]=1.5-.1;
-	    par[2]=(4.5-.1)/2;
+	    par[0]=RICGEOM.light_guides_length/2-otherthk;
+	    par[1]=RICGEOM.light_guides_length/2-otherthk;
+	    par[2]=(4.5-otherthk)/2;
 
 	    coo[0]=0;
 	    coo[1]=0;
-	    coo[2]=5-3-.1-par[2];
+	    coo[2]=3.5-RICGEOM.light_guides_height/2-otherthk-par[2];
 
 	    dummy=p->add(new AMSgvolume("RICH WALLS",
 					0,
@@ -3036,20 +3276,22 @@ void richgeom02(AMSgvolume & mother)
 
 	    // ELECTRONICS: to be added in the future
 
+	    // VOID
+
 
 	    // Light guides: It is quite complicated, so it uses 
-	    // the "MANY" flag... I will change this in the future
+	    // the "MANY" flag... I hope to change this in the future
 
 
 	    AMSNode *lg;
 
-	    par[0]=1.5-.1;
-	    par[1]=1.5-.1;
-	    par[2]=1.5;
+	    par[0]=RICGEOM.light_guides_length/2-otherthk;
+	    par[1]=RICGEOM.light_guides_length/2-otherthk;
+	    par[2]=RICGEOM.light_guides_height/2;
 
 	    coo[0]=0;
 	    coo[1]=0;
-	    coo[2]=5-1.5;
+	    coo[2]=3.5;
 
 	    lg=p->add(new AMSgvolume("VACUUM",
 				     0,
@@ -3069,20 +3311,30 @@ void richgeom02(AMSgvolume & mother)
 
 	    // 5 mirrors
 
-	    par[0]=1.5;
-	    par[1]=9.926245;
+	    geant a1=atan2(RICGEOM.light_guides_length/2-otherthk-.875,
+			 RICGEOM.light_guides_height)*180/3.1415926;
+
+	    geant a2=atan2((RICGEOM.light_guides_length/2-otherthk-.875)/2,
+			   RICGEOM.light_guides_height)*180/3.1415926;
+
+	    geant d1=.875-lgthk+RICGEOM.light_guides_height/2*tan(a1*3.1415926/180);
+	    
+	    geant d2=(.875-lgthk)/2+RICGEOM.light_guides_height/2*tan(a2*3.1415926/180);
+
+	    par[0]=RICGEOM.light_guides_height/2;
+	    par[1]=a1;
 	    par[2]=90;
-	    par[3]=0.025;
+	    par[3]=lgthk/2;
 	    par[4]=0.875;
 	    par[5]=0.875;
 	    par[6]=0;
-	    par[7]=0.025;
-	    par[8]=1.5-0.1;
-	    par[9]=1.5-0.1;
+	    par[7]=lgthk/2;
+	    par[8]=RICGEOM.light_guides_length/2-otherthk;
+	    par[9]=RICGEOM.light_guides_length/2-otherthk;
 	    par[10]=0;
 
 	    coo[0]=0;
-	    coo[1]=1.1125;
+	    coo[1]=d1;
 	    coo[2]=0;
 
 	    dummy=lg->add(new AMSgvolume("RICH MIRRORS",
@@ -3103,20 +3355,20 @@ void richgeom02(AMSgvolume & mother)
 	    
 
 	    
-	    par[0]=1.5;
-	    par[1]=5.000645;
+	    par[0]=RICGEOM.light_guides_height/2;
+	    par[1]=a2;
 	    par[2]=90;
-	    par[3]=0.025;
+	    par[3]=lgthk/2;
 	    par[4]=0.875;
 	    par[5]=0.875;
 	    par[6]=0;
-	    par[7]=0.025;
-	    par[8]=1.5-0.1;
-	    par[9]=1.5-0.1;
+	    par[7]=lgthk/2;
+	    par[8]=RICGEOM.light_guides_length/2-otherthk;
+	    par[9]=RICGEOM.light_guides_length/2-otherthk;
 	    par[10]=0;
 
 	    coo[0]=0;
-	    coo[1]=.54375;
+	    coo[1]=d2;
 	    coo[2]=0;
 
 
@@ -3137,16 +3389,16 @@ void richgeom02(AMSgvolume & mother)
 //	    cout << "RICH: LG2 finished" <<endl;  
 	    
 
-	    par[0]=1.5;
+	    par[0]=RICGEOM.light_guides_height/2;;
 	    par[1]=0;
 	    par[2]=90;
-	    par[3]=0.025;
+	    par[3]=lgthk/2;
 	    par[4]=0.875;
 	    par[5]=0.875;
 	    par[6]=0;
-	    par[7]=0.025;
- 	    par[8]=1.5-0.1;
-	    par[9]=1.5-0.1;
+	    par[7]=lgthk/2;
+ 	    par[8]=RICGEOM.light_guides_length/2-otherthk;
+	    par[9]=RICGEOM.light_guides_length/2-otherthk;
 	    par[10]=0;
 
 	    coo[0]=0;
@@ -3171,20 +3423,20 @@ void richgeom02(AMSgvolume & mother)
 //	    cout << "RICH: LG3 finished" <<endl;
 
 
-	    par[0]=1.5;
-	    par[1]=9.926245;
+	    par[0]=RICGEOM.light_guides_height/2;
+	    par[1]=a1;
 	    par[2]=270;
-	    par[3]=0.025;
+	    par[3]=lgthk/2;
 	    par[4]=0.875;
 	    par[5]=0.875;
 	    par[6]=0;
-	    par[7]=0.025;
-	    par[8]=1.5-0.1;
-	    par[9]=1.5-0.1;
+	    par[7]=lgthk/2;
+	    par[8]=RICGEOM.light_guides_length/2-otherthk;
+	    par[9]=RICGEOM.light_guides_length/2-otherthk;
 	    par[10]=0;
 
 	    coo[0]=0;
-	    coo[1]=-1.1125;
+	    coo[1]=-d1;
 	    coo[2]=0;
 
 	    dummy=lg->add(new AMSgvolume("RICH MIRRORS",
@@ -3205,20 +3457,20 @@ void richgeom02(AMSgvolume & mother)
 
 
 	    
-	    par[0]=1.5;
-	    par[1]=5.000645;
+	    par[0]=RICGEOM.light_guides_height/2;;
+	    par[1]=a2;
 	    par[2]=270;
-	    par[3]=0.025;
+	    par[3]=lgthk/2;
 	    par[4]=0.875;
 	    par[5]=0.875;
 	    par[6]=0;
-	    par[7]=0.025;
-	    par[8]=1.5-0.1;
-	    par[9]=1.5-0.1;
+	    par[7]=lgthk/2;
+	    par[8]=RICGEOM.light_guides_length/2-otherthk;
+	    par[9]=RICGEOM.light_guides_length/2-otherthk;
 	    par[10]=0;
 
 	    coo[0]=0;
-	    coo[1]=-.54375;
+	    coo[1]=-d2;
 	    coo[2]=0;
 
 
@@ -3243,13 +3495,13 @@ void richgeom02(AMSgvolume & mother)
 	    // And now put the other 5 copies
 
 	   
-	    par[0]=1.5-.1;
-	    par[1]=1.5-.1;
-	    par[2]=1.5;
+	    par[0]=RICGEOM.light_guides_length/2-otherthk;
+	    par[1]=RICGEOM.light_guides_length/2-otherthk;
+	    par[2]=RICGEOM.light_guides_height/2;
 
 	    coo[0]=0;
 	    coo[1]=0;
-	    coo[2]=5-1.5;
+	    coo[2]=3.5;
 
 	    dummy=p->add(new AMSgvolume("VACUUM",
 					nrot,
@@ -3273,12 +3525,15 @@ void richgeom02(AMSgvolume & mother)
       
 	// Here we add the other 3 parts
 	
+
 	coo[0]=-xedge;
 	coo[1]=yedge;
-	coo[2]=31-RICGEOM.radiator_height-RICGEOM.height-5;
-	par[0]=1.5;
-	par[1]=1.5;
-	par[2]=5;
+	coo[2]=31-RICGEOM.radiator_height-RICGEOM.height-3.5-RICGEOM.light_guides_height/2;
+	par[0]=RICGEOM.light_guides_length/2;
+	par[1]=RICGEOM.light_guides_length/2;
+	par[2]=3.5+RICGEOM.light_guides_height/2;
+
+
 	
 	// Put the box
 	
@@ -3299,10 +3554,7 @@ void richgeom02(AMSgvolume & mother)
 	
 	coo[0]=xedge;
 	coo[1]=-yedge;
-	coo[2]=31-RICGEOM.radiator_height-RICGEOM.height-5;
-	par[0]=1.5;
-	par[1]=1.5;
-	par[2]=5;
+
 	
 	// Put the box
 
@@ -3321,10 +3573,7 @@ void richgeom02(AMSgvolume & mother)
 	    
 	coo[0]=-xedge;
 	coo[1]=-yedge;
-	coo[2]=31-RICGEOM.radiator_height-RICGEOM.height-5;
-	par[0]=1.5;
-	par[1]=1.5;
-	par[2]=5;
+
 	
 	// Put the box
 
@@ -3344,16 +3593,17 @@ void richgeom02(AMSgvolume & mother)
 
       }
     
-    xedge+=3.;
+    xedge+=RICGEOM.light_guides_length;
     
-    if(xedge>RICGEOM.bottom_radius) {xedge=1.5;yedge+=3;}
+    if(xedge>RICGEOM.bottom_radius) {
+      xedge=RICGEOM.light_guides_length/2;
+      yedge+=RICGEOM.light_guides_length;}
     
   }while(yedge<RICGEOM.bottom_radius);
 
   cout<< "RICH geometry finished" << endl;
 
 }  
-
 
 
 
