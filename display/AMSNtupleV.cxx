@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.8 2003/07/17 16:38:53 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.9 2003/07/18 13:48:51 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -10,12 +10,12 @@ info=0;
  int cand=-1;
  for(int i=0;i<fTofClusterV.size();i++){
    int current=fTofClusterV[i].DistancetoPrimitive(px,py);
-  if(current<dist){
+  if(abs(current)<abs(dist)){
    dist=current;
    cand=i;
   }
  }
- if(dist<7 && cand>=0)info=fTofClusterV[cand].GetObjectInfo(px,py);
+  if(dist<7 && cand>=0)info=fTofClusterV[cand].GetObjectInfo(px,py);
 }
 
 
@@ -23,7 +23,7 @@ info=0;
  int cand=-1;
  for(int i=0;i<fTrRecHitV.size();i++){
    int current=fTrRecHitV[i].DistancetoPrimitive(px,py);
-  if(current<dist){
+  if(abs(current)<abs(dist)){
    dist=current;
    cand=i;
   }
@@ -35,7 +35,7 @@ info=0;
  int cand=-1;
  for(int i=0;i<fAntiClusterV.size();i++){
    int current=fAntiClusterV[i].DistancetoPrimitive(px,py);
-  if(current<dist){
+  if(abs(current)<abs(dist)){
    dist=current;
    cand=i;
   }
@@ -49,7 +49,7 @@ info=0;
  int cand=-1;
  for(int i=0;i<fTrMCClusterV.size();i++){
    int current=fTrMCClusterV[i].DistancetoPrimitive(px,py);
-  if(current<dist){
+  if(abs(current)<abs(dist)){
    dist=current;
    cand=i;
   }
@@ -62,7 +62,7 @@ info=0;
  int cand=-1;
  for(int i=0;i<fTrdClusterV.size();i++){
    int current=fTrdClusterV[i].DistancetoPrimitive(px,py);
-  if(current<dist){
+  if(abs(current)<abs(dist)){
    dist=current;
    cand=i;
   }
@@ -76,7 +76,7 @@ info=0;
  int cand=-1;
  for(int i=0;i<fEcalClusterV.size();i++){
    int current=fEcalClusterV[i].DistancetoPrimitive(px,py);
-  if(current<dist){
+  if(abs(current)<abs(dist)){
    dist=current;
    cand=i;
   }
@@ -89,7 +89,7 @@ info=0;
  int cand=-1;
  for(int i=0;i<fRichHitV.size();i++){
    int current=fRichHitV[i].DistancetoPrimitive(px,py);
-  if(current<dist){
+  if(abs(current)<abs(dist)){
    dist=current;
    cand=i;
   }
@@ -102,7 +102,7 @@ info=0;
  int cand=-1;
  for(int i=0;i<fEcalShowerV.size();i++){
    int current=fEcalShowerV[i].DistancetoPrimitive(px,py);
-  if(current<dist){
+  if(abs(current)<abs(dist)){
    dist=current;
    cand=i;
   }
@@ -123,7 +123,7 @@ if(info)return info;
  int cand=-1;
  for(int i=0;i<fTrTrackV.size();i++){
    int current=fTrTrackV[i].DistancetoPrimitive(px,py);
-  if(current<dist){
+  if(abs(current)<abs(dist)){
    dist=current;
    cand=i;
   }
@@ -137,7 +137,7 @@ if(info)return info;
  int cand=-1;
  for(int i=0;i<fTrdTrackV.size();i++){
    int current=fTrdTrackV[i].DistancetoPrimitive(px,py);
-  if(current<dist){
+  if(abs(current)<abs(dist)){
    dist=current;
    cand=i;
   }
@@ -150,7 +150,7 @@ if(info)return info;
  int cand=-1;
  for(int i=0;i<fRichRingV.size();i++){
    int current=fRichRingV[i].DistancetoPrimitive(px,py);
-  if(current<dist){
+  if(abs(current)<abs(dist)){
    dist=current;
    cand=i;
   }
@@ -161,7 +161,7 @@ if(info)return info;
  int cand=-1;
  for(int i=0;i<fMCEventgV.size();i++){
    int current=fMCEventgV[i].DistancetoPrimitive(px,py);
-  if(current<dist){
+  if(abs(current)<abs(dist)){
    dist=current;
    cand=i;
   }
@@ -173,7 +173,7 @@ if(info)return info;
  int cand=-1;
  for(int i=0;i<fParticleV.size();i++){
    int current=fParticleV[i].DistancetoPrimitive(px,py);
-  if(current<dist){
+  if(abs(current)<abs(dist)){
    dist=current;
    cand=i;
   }

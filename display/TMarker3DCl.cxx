@@ -1,4 +1,4 @@
-//  $Id: TMarker3DCl.cxx,v 1.3 2003/07/18 11:54:39 choutko Exp $
+//  $Id: TMarker3DCl.cxx,v 1.4 2003/07/18 13:48:51 choutko Exp $
 
 #include "Riostream.h"
 #include "TROOT.h"
@@ -125,9 +125,15 @@ Int_t TMarker3DCl::DistancetoPrimitive(Int_t px, Int_t py){
 
    TView *view = gPad->GetView();
    if (!view) return dist;
+   Bool_t shprx=fShowProfileX;
+   Bool_t shpry=fShowProfileY;
    fNx=1;
    fNy=1;
+   fShowProfileX=false;
+   fShowProfileY=false;
    SetPoints(points);
+   fShowProfileX=shprx;
+   fShowProfileY=shpry;
    if(fShowProfileX)fNx=fProfileX.size();
    if(fShowProfileY)fNy=fProfileY.size();
    double  sum[3]={0,0,0};
@@ -140,6 +146,76 @@ Int_t TMarker3DCl::DistancetoPrimitive(Int_t px, Int_t py){
    double x=gPad->XtoAbsPixel(sum[0]);        
    double y=gPad->YtoAbsPixel(sum[1]);        
    dist=sqrt((x-px)*(x-px)+(y-py)*(y-py));
+//check if inside return -dist in this case
+//
+
+   const Int_t end1[12] = {0,1,2,3,4,5,6,7,0,1,2,3};
+   const Int_t end2[12] = {1,2,3,0,5,6,7,4,4,5,6,7};
+
+
+   Int_t i, j, i1, i2, dsegment;
+   Float_t x1,y1,x2,y2;
+
+   Float_t xn[3*numPoints];	// normalized device coordinate of 8 vertices
+   Int_t   xd[numPoints],	// device coordinate
+           yd[numPoints];
+
+   for (i = 0; i < numPoints; i++) {
+      view->WCtoNDC(&points[3*i], &xn[3*i]);
+      xd[i] = gPad->XtoAbsPixel(xn[3*i]);
+      yd[i] = gPad->YtoAbsPixel(xn[3*i+1]);
+   }
+
+   //
+   // each segment can be described as a 2D line y = y0 + slope * ( x - x0 )
+   //
+   // segment 0, 2, 4, 6 are parallel to each other, i.e., have the same slope
+   //         1, 3, 5, 7
+   //         8, 9, 10, 11
+   //
+   Int_t   segs[4*3] = { 0,2,4,6,   1,3,5,7,  8,9,10,11 };
+   Float_t slope, intercept[4];
+   Float_t ymax, ymin, xmax, xmin;
+   Bool_t  inside = kTRUE;
+   //
+   // loop over 3 sets of parallel segments
+   //
+   Double_t theta, dmin, dmax, d;
+   Int_t dn;
+   for ( i = 0; i < 3;  i++ ) {
+     Int_t segno = segs[4*i];
+     //
+     // Calculate theta
+     // 
+     theta = atan2( Double_t(xd[end2[segno]] - xd[end1[segno]]),
+                  - Double_t(yd[end2[segno]] - yd[end1[segno]]) );
+     //
+     // Calculate dmin and dmax
+     //
+     dmin = 9999;	dmax = -9999;
+     for ( j = 0; j < 4; j++ ) {
+       segno = segs[4*i+j];
+       d = TMath::Cos(theta) * xd[end1[segno]] +
+	   TMath::Sin(theta) * yd[end1[segno]];
+       if ( d > dmax )  dmax = d;
+       if ( d < dmin )  dmin = d;
+     }
+     //
+     // Include the range
+     //
+     //
+     // Calculate d value of (px,py)
+     //
+     d = TMath::Cos(theta) * px + TMath::Sin(theta) * py;
+     //
+     // Compare with dmin and dmax: being outside of one set means outside 
+     // of the whole box.
+     //
+     if ( d > dmax  ||  d < dmin ) {
+       inside = kFALSE;
+     }
+   }
+   if(inside)dist=-dist;
    if (dist < 5) {
       gPad->SetCursor(kCross);
    }

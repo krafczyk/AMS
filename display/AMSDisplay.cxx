@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.27 2003/07/18 08:50:59 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.28 2003/07/18 13:48:51 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -419,7 +419,9 @@ void AMSDisplay::DrawView(Double_t theta, Double_t phi, Int_t index){
    }
    }
    else {
+    gPad->GetListOfPrimitives()->Remove(this);
     m_ntuple->Draw();
+    AppendPad();
    }
      Int_t iret;
      if ( theta != 9999 && phi != 9999 ) view->SetView(phi, theta, 0, iret);

@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.12 2003/07/17 16:38:54 choutko Exp $
+#  $Id: Makefile,v 1.13 2003/07/18 13:48:51 choutko Exp $
 
 PLATFORM      =  Linux
 
@@ -23,10 +23,10 @@ ROOTH         = TTree.h TFile.h TH1.h
 SRCS          = TGRunEventDialog.cxx \
                 ControlFrame.cxx \
                 AMSNtupleV.cxx \
-                TMarker3DCl.cxx 
 
 SRCSN          = AMSR_GeometrySetter.cxx \
                  AMSDisplay.cxx \
+                TMarker3DCl.cxx \
                 AMSR_Axis.cxx  
 
 HDRS          =  ../include/root_RVS.h\

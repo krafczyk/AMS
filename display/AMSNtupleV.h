@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.8 2003/07/18 08:50:59 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.9 2003/07/18 13:48:51 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -144,11 +144,11 @@ char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pTrdCluster(fRef)->I
 
 
 
-class AntiClusterV: public AMS3DMarker, public AMSDrawI{
+class AntiClusterV: public TMarker3DCl, public AMSDrawI{
 protected:
 public:
-AntiClusterV():AMSDrawI(NULL,-1),AMS3DMarker(){};
-AntiClusterV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),AMS3DMarker(){
+AntiClusterV():AMSDrawI(NULL,-1),TMarker3DCl(){};
+AntiClusterV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
  AntiClusterR *pcl=ev->pAntiCluster(ref);
 if(pcl){
   SetPosition(pcl->Coo[0],pcl->Coo[1],pcl->Coo[2]);
@@ -159,7 +159,7 @@ if(pcl){
    SetLineWidth(3);
    SetLineColor(30);             // purple
    SetFillColor(30);
-   SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
+   SetFillStyle(0);          // solid filling (not working now....)
 
 }
 char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pAntiCluster(fRef)->Info(fRef):0;}
@@ -224,11 +224,11 @@ char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pEcalCluster(fRef)->
 
 
 
-class TrMCClusterV: public AMS3DMarker, public AMSDrawI{
+class TrMCClusterV: public TMarker3DCl, public AMSDrawI{
 protected:
 public:
-TrMCClusterV():AMSDrawI(NULL,-1),AMS3DMarker(){};
-TrMCClusterV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),AMS3DMarker(){
+TrMCClusterV():AMSDrawI(NULL,-1),TMarker3DCl(){};
+TrMCClusterV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
  TrMCClusterR *pcl=ev->pTrMCCluster(ref);
 if(pcl){
   SetPosition(pcl->Xgl[0],pcl->Xgl[1],pcl->Xgl[2]);
@@ -238,7 +238,7 @@ if(pcl){
    SetLineWidth(1);
    SetLineColor(5);   // yellow
    SetFillColor(5);
-   SetFillStyle(1001);          // solid filling (not working now....)
+   SetFillStyle(0);          // solid filling (not working now....)
 
 }
 char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pTrMCCluster(fRef)->Info(fRef):0;}
