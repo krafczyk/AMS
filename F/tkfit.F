@@ -45,9 +45,10 @@
       PARAMETER (NHITS=10, NITER=5)
       DIMENSION AXX(3,NHITS), AV(3,NHITS), XM(3,NHITS), XP(2,NHITS), 
      + AL(NHITS),exm(3,nhits),iplanez(nhits)
-      DIMENSION D(2*NHITS,5), DX(5), DD(5,5), IDAUX(2*NHITS)
+      DIMENSION D(2*NHITS,5), DX(5),  IDAUX(4*NHITS)
       DIMENSION OUTPAR(6)
-      DIMENSION ABSUZ(NHITS), ER2(2*NHITS,2*NHITS)
+      DIMENSION ABSUZ(NHITS) 
+      real *8 ER2(2*NHITS,2*NHITS),DD(5,5)
  
       DATA WLAD /0.03/, RLEN /9.36/
 
@@ -132,7 +133,7 @@ c     >                    ,(XM(2,J)-XP(2,J))*1.E4
 c        print*,' AL= ', AL
 
         CALL VZERO (D, 2*NHITS*5)
-        CALL VZERO (ER2, 2*NHITS*2*NHITS)
+        CALL VZERO (ER2, 2*NHITS*2*NHITS*2)
         DO J = 1, NPOINTS
           jx = j
           jy = j+NPOINTS
@@ -202,7 +203,7 @@ c          PRINT*,'JJ, ER2Y= ', JJ
 c     >       , (ER2(JJ+NPOINTS,KK+NPOINTS),KK=1,NPOINTS)
 c        END DO
 
-        CALL RINV (2*NPOINTS, ER2, 2*NHITS, IDAUX, IFAIL)
+        CALL DINV (2*NPOINTS, ER2, 2*NHITS, IDAUX, IFAIL)
         IF (IFAIL.LT.0) THEN
 c          PRINT*,'**************************************'
           PRINT*,' ER2 Covariance Matrix is Singular !!!'
@@ -232,7 +233,7 @@ c          PRINT*,'**************************************'
 c          PRINT*,' J, DD= ', J, (DD(J,i),i=1,5)
         END DO
         
-        CALL RINV (5, DD, 5, IDAUX, IFAIL)
+        CALL DINV (5, DD, 5, IDAUX, IFAIL)
         IF (IFAIL.LT.0) THEN
 c          PRINT*,'**************************************'
           PRINT*,' DD Covariance Matrix is Singular !!!'
