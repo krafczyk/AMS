@@ -817,12 +817,12 @@ depend:
 ../bin/osf1/geant.o: /usr/include/cxx/generic.hxx
 ../bin/osf1/geant.o: /usr/include/cxx/mutex.hxx ../include/timeid.h
 ../bin/osf1/geant.o: ../include/astring.h ../include/status.h
-../bin/osf1/geant.o: ../include/extC.h /usr/include/unistd.h
+../bin/osf1/geant.o: ../include/extC.h ../include/trigger3.h
+../bin/osf1/geant.o: ../include/tofdbc.h /usr/include/unistd.h
 ../bin/osf1/geant.o: /usr/include/sys/access.h ../include/mccluster.h
 ../bin/osf1/geant.o: ../include/gsen.h ../include/ctcdbc.h
-../bin/osf1/geant.o: ../include/tofdbc.h ../include/event.h
-../bin/osf1/geant.o: ../include/cont.h ../include/daqevt.h
-../bin/osf1/geant.o: ../include/trrec.h
+../bin/osf1/geant.o: ../include/event.h ../include/cont.h
+../bin/osf1/geant.o: ../include/daqevt.h ../include/trrec.h
 ../bin/osf1/mceventg.o: ../include/mceventg.h ../include/point.h
 ../bin/osf1/mceventg.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/mceventg.o: /usr/include/standards.h
