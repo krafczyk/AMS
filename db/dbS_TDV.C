@@ -16,7 +16,7 @@
 // May  05, 1997. ak. separate file for setup
 // Oct    , 1997. ak. 
 //
-// last edit Oct 10, 1997, ak.
+// last edit Oct 11, 1997, ak.
 //
 
 #include <stdio.h>
@@ -76,71 +76,63 @@ ooStatus   LMS::AddAllTDV()
   
   // check container
   int status = Container(dbH, contName, conttdvH);
-  if (status == 0)
-    {
-      cout << "AddTDV -I- Found container "<<contName<< endl;
-      p = AMSJob::gethead()->getnodep(AMSID("TDV:",0));
-      if (p == NULL) {
-       if (contName) delete [] contName;
-       Fatal("AddTDV : cannot find the virtual top of timeid");
-      }
+  if (status == -1) Fatal("AddTDV: Cannot open/create container");
 
-      if (p -> down() == NULL) {
-       if (contName) delete [] contName;
-       Fatal("AddTDV -E- AMSTDV == NULL");
-      }
+   cout << "AddTDV -I- Found container "<<contName<< endl;
+   p = AMSJob::gethead()->getnodep(AMSID("TDV:",0));
+   if (p == NULL) {
+    if (contName) delete [] contName;
+    Fatal("AddTDV : cannot find the virtual top of timeid");
+   }
 
-        integer nobj = 0;
-        timedvItr.scan(conttdvH, Mode());
-        if (timedvItr.next()) { nobj++; }
-        if (nobj == 0) {
-         Message("AddTDV : container is empty. Write new TDV objects ");
-         goto newsetup;
-        }
+   if (p -> down() == NULL) {
+    if (contName) delete [] contName;
+    Fatal("AddTDV -E- AMSTDV == NULL");
+   }
 
-      Message("AddTDV : compare TDV ");
-      time_t     insertd, begind, endd;
-      time_t     insert, begin, end;
-      integer    found = 0;
-      p = p -> down();
-      while (p != NULL ) {
-       pp = (AMSTimeID*)p;
-       if (pp -> UpdateMe()) {
-        id = p -> getid();
-        name = p -> getname();
-        pp -> gettime(insert, begin, end);
-        char pred[100];
-        (void) sprintf(pred,"_id=%d && _name=~%c%s%c",id,'"',name,'"');
-        cout<<"AddTDV : search for "<<pred<<endl;
-        timedvItr.scan(conttdvH, Mode(), oocAll, pred);
-        while (timedvItr.next() ) {
-         timedvItr -> GetTime(insertd, begind, endd);
-         if (begin == begind && end == endd) {
-          found = 1;
-          uinteger crcd = timedvItr -> getCRC();
-          uinteger crc  = pp -> getCRC();
-          if (crc != crcd) {
-           timedvItr -> update(pp);
-           cout <<"AddTDV -I- CRC is different, update done"<<endl;
-          } else {
-           if (insert != insertd ) cout <<"AddTDV -I- "<<
+   integer nobj = 0;
+   timedvItr.scan(conttdvH, Mode());
+   if (timedvItr.next()) { nobj++; }
+   if (nobj != 0) {                       // container isn't empty compare TDV 
+     Message("AddTDV : compare TDV ");    // in memory and dbase 
+     time_t     insertd, begind, endd;
+     time_t     insert, begin, end;
+     integer    found = 0;
+     p = p -> down();
+     while (p != NULL ) {
+      pp = (AMSTimeID*)p;
+      if (pp -> UpdateMe()) {             // write TDV ONLY with UpdateMe == 1
+      id = p -> getid();
+      name = p -> getname();
+      pp -> gettime(insert, begin, end);
+      char pred[100];
+      (void) sprintf(pred,"_id=%d && _name=~%c%s%c",id,'"',name,'"');
+      cout<<"AddTDV : search for "<<pred<<endl;
+      timedvItr.scan(conttdvH, Mode(), oocAll, pred);
+      while (timedvItr.next() ) {
+        timedvItr -> GetTime(insertd, begind, endd);
+        if (begin == begind && end == endd) {
+         found = 1;
+         uinteger crcd = timedvItr -> getCRC();
+         uinteger crc  = pp -> getCRC();
+         if (crc != crcd) {
+          timedvItr -> update(pp);
+          cout <<"AddTDV -I- CRC is different, do update"<<endl;
+         } else {
+          if (insert != insertd ) cout <<"AddTDV -I- "<<
            "Insert time is different, but CRC is the same. Do nothing"<<endl;
-          }
          }
-         if (found == 1) break;
         }
-         if (found == 0) timedvH = new(conttdvH) AMSTimeIDD(name, id, pp);
-         found = 0;
-       }
-        p = p -> next();
+         if (found == 1) break;
       }
-      rstatus = oocSuccess;
-      goto end;
-    } else {
-      if (status == -1) Fatal("AddTDV: Cannot open/create container");
-    }
-
-newsetup:
+       if (found == 0) timedvH = new(conttdvH) AMSTimeIDD(name, id, pp);
+       found = 0;
+      }
+       p = p -> next();
+     }
+     rstatus = oocSuccess;
+   } else {                // no Objects in the container, Write all of them
+    Message("AddTDV : container is empty. Write new TDV objects ");
   // get pointer to the top
   p = AMSJob::gethead()->getnodep(AMSID("TDV:",0));
   if (p == NULL)   Fatal("AddTDV cannot find the virtual top of TDV");
@@ -157,7 +149,7 @@ newsetup:
      p = p -> next();
    }
    rstatus = oocSuccess;
-
+   }
 end:
     if (contName) delete [] contName;
     if (rstatus == oocSuccess) {
@@ -288,6 +280,7 @@ ooStatus   LMS::FillTDV(integer ntdv)
    rstatus = tdvItr.scan(contH, oocRead);
    while (tdvItr.next()) nobj++;
    cout <<"FillTDV -I- found "<<nobj<<" TDV objects"<<endl;
+   if (nobj < 1) Fatal("FillTDV : TDV container is empty");
    tdv_time *tdv = new tdv_time[nobj];
    integer  *ptr_start = new integer[ntdv];
    integer  *ptr_end   = new integer[ntdv];
@@ -318,6 +311,9 @@ ooStatus   LMS::FillTDV(integer ntdv)
    AMSJob::FillJobTDV(nobj, tdv);
    AMSJob::SetTDVPtrs(ptr_start, ptr_end);
    rstatus = oocSuccess;
+  } else {
+   rstatus = oocError;
+   Fatal("FillTDV : container with TDV's doesn't exist");
   }
   Commit();
 

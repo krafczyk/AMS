@@ -4,7 +4,7 @@
 //                   Add _id and _name. 
 // May 12, 1997. ak. CRC and data are uinteger instead on integer;
 //
-// Last Edit : Sep 17, 1997. ak.
+// Last Edit : Oct 11, 1997. ak.
 // 
 
 #include <typedefs.h>
@@ -23,7 +23,7 @@ time_t   _Insert;    // insert time
 time_t   _Begin;     // validity starts
 time_t   _End;       // validity ends
 uinteger _CRC;       // Control Sum
-integer  _UpdateMe;
+//integer  _UpdateMe;
  
 ooVArray(uinteger) _pData; // data
 

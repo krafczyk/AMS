@@ -1,6 +1,6 @@
 // Feb 13, 1997. ak. First try with Objectivity. Method file for AMSTimeIDD
 //                  
-// Last Edit : Mar 6,1997. ak.
+// Last Edit : Oct 11, 1997. ak.
 // 
 
 
@@ -36,7 +36,7 @@ AMSTimeIDD::AMSTimeIDD(char* name, integer id, AMSTimeID* p) {
  _Begin    = begin;
  _End      = end;
  _CRC      = p -> getCRC();
- _UpdateMe = p -> UpdateMe();
+ // _UpdateMe = p -> UpdateMe();
 }
 
 AMSTimeIDD::AMSTimeIDD
@@ -86,7 +86,7 @@ void AMSTimeIDD::update(AMSTimeID* p) {
  _Begin  = begin;
  _End    = end;
  _CRC    = p -> getCRC();
- _UpdateMe = p -> UpdateMe();
+ //_UpdateMe = p -> UpdateMe();
 }
 
 void AMSTimeIDD::copy(uinteger* tmp) {

@@ -83,10 +83,15 @@ void LMS::ContainersC(ooHandle(ooDBObj) & dbH, ooHandle(AMSdbs) & dbTabH)
 
 static char    *tdvnames[] = {
    "MagneticFieldMap",
-   "TrackerPedestals",
-   "TrackerGains",
-   "TrackerSigmas",
-   "TrackerStatus",
+   "TrackerPedestals.l",
+   "TrackerPedestals.r",
+   "TrackerGains.l",
+   "TrackerGains.r",
+   "TrackerSigmas.l",
+   "TrackerSigmas.r",
+   "TrackerStatus.l",
+   "TrackerStatus.r",
+   "TrackerCmnNoise",
    "TrackerIndNoise",
    "Tofbarcal1",
    "Tofvpar",
@@ -117,7 +122,7 @@ class tdv_time {
   }
 };
 
-const int ntdv = 16;
+const int ntdv = 21;
 
 static tdv_time*              tdv;
 static integer                ptr_start[ntdv];

@@ -146,7 +146,8 @@ extern "C" void uginit_(){
   AMSJob::map(1);
 #ifdef __DB__
   int n = AMSJob::gethead()->FillTDVTable();
-  dbout.FillTDV(n);
+  ooStatus rstatus = dbout.FillTDV(n);
+  if (rstatus != oocSuccess) cerr<<"uginit_ -W- FillTDV"<<endl;
   AMSJob::gethead() -> seteventRtype(eventR);
 #endif
 #ifndef __BATCH__
