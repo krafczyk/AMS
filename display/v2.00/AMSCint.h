@@ -49,6 +49,8 @@ extern void G__set_cpp_environmentAMSCint();
 #include "AMSCTCClusterReader.h"
 #include "AMSParticle.h"
 #include "AMSParticleReader.h"
+#include "AMSMCParticle.h"
+#include "AMSMCParticleReader.h"
 #include "AMSVirtualDisplay.h"
 #include "Debugger.h"
 #include "AMSCanvas.h"
@@ -97,6 +99,7 @@ extern G__linked_taginfo G__AMSCintLN_AMSCTCClusterReader;
 extern G__linked_taginfo G__AMSCintLN_AMSAntiClusterReader;
 extern G__linked_taginfo G__AMSCintLN_AMSTrMCClusterReader;
 extern G__linked_taginfo G__AMSCintLN_AMSParticleReader;
+extern G__linked_taginfo G__AMSCintLN_AMSMCParticleReader;
 extern G__linked_taginfo G__AMSCintLN_AMSVirtualDisplay;
 extern G__linked_taginfo G__AMSCintLN_AMSRoot;
 extern G__linked_taginfo G__AMSCintLN_AMSToFCluster;
@@ -107,6 +110,7 @@ extern G__linked_taginfo G__AMSCintLN_AMSTrack;
 extern G__linked_taginfo G__AMSCintLN_AMSSiHit;
 extern G__linked_taginfo G__AMSCintLN_AMSCTCCluster;
 extern G__linked_taginfo G__AMSCintLN_AMSParticle;
+extern G__linked_taginfo G__AMSCintLN_AMSMCParticle;
 extern G__linked_taginfo G__AMSCintLN_EAMSView;
 extern G__linked_taginfo G__AMSCintLN_Debugger;
 extern G__linked_taginfo G__AMSCintLN_TRootCanvas;

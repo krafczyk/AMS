@@ -240,7 +240,7 @@ integer DAQEvent::read(){
         break;
        }    
        else{
-        cerr<<"DAQEvent::read-F-cannot open file "<<ifnam[KIFiles++]<<endl;
+        cerr<<"DAQEvent::read-F-cannot open file "<<ifnam[KIFiles]<<endl;
         if(KIFiles>=InputFiles-1)return 0;
        }
      }
@@ -272,7 +272,7 @@ integer DAQEvent::read(){
 
      }    
      else{
-        cerr<<"DAQEvent::read-F-cannot open file "<<ifnam[KIFiles++]<<endl;
+        cerr<<"DAQEvent::read-F-cannot open file "<<ifnam[KIFiles]<<endl;
         if(KIFiles>=InputFiles-1)return 0;
      }
      }

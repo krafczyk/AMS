@@ -13,6 +13,7 @@ SRCS          = AMSRoot.cxx AMSMaker.cxx \
 		AMSSiHit.cxx AMSSiHitReader.cxx \
 		AMSCTCCluster.cxx AMSCTCClusterReader.cxx \
 		AMSParticle.cxx AMSParticleReader.cxx \
+		AMSMCParticle.cxx AMSMCParticleReader.cxx \
 		AMSVirtualDisplay.cxx \
 		AMSHistBrowser.cxx \
 		AMSCanvas.cxx \
@@ -33,6 +34,7 @@ HDRS          = TRadioButton.h TSwitch.h \
 		AMSSiHit.h AMSSiHitReader.h \
 		AMSCTCCluster.h AMSCTCClusterReader.h \
 		AMSParticle.h AMSParticleReader.h \
+		AMSMCParticle.h AMSMCParticleReader.h \
 		AMSVirtualDisplay.h \
 		Debugger.h \
 		AMSCanvas.h \

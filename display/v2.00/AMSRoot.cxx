@@ -185,6 +185,7 @@
 #include "AMSAntiClusterReader.h"
 #include "AMSTrMCClusterReader.h"
 #include "AMSParticleReader.h"
+#include "AMSMCParticleReader.h"
 
 //#include "AMSMCMaker.h"
 // #include "ATLFElectronMaker.h"
@@ -245,6 +246,7 @@ AMSRoot::AMSRoot() : TNamed("AMSRoot","The AMS Display with Root")
    m_TrMCClusterMaker = 0;
    m_TrackMaker      = 0;
    m_ParticleMaker   = 0;
+   m_MCParticleMaker   = 0;
 
 //   m_MCMaker       = 0;
 //   m_SiClusterMaker  = 0;
@@ -305,7 +307,10 @@ AMSRoot::AMSRoot(const char *name, const char *title)
 
    m_ParticleMaker    = new AMSParticleReader("ParticleReader",
 			    "Read AMSRoot particles");
+   m_MCParticleMaker    = new AMSMCParticleReader("MCParticleReader",
+			    "Read AMSRoot MC particles");
    m_Makers->Add(m_ParticleMaker);
+   m_Makers->Add(m_MCParticleMaker);
 
 //   m_MCMaker       = new AMSMCMaker("MCMaker","Make MC events");
 //   m_SiClusterMaker  = new AMSSiClusterMaker("SiClusterMaker","Make AMSRoot Si Tracker clusters");

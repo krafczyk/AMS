@@ -5587,7 +5587,7 @@ CDECK  ID>, TKFITG.
              dt=aycos(cx)
              if(dt.ne.0)then
              pinit=-(xhits(3,npt)-xhits(3,1))*chrg*1.5*2.99e-4/dt
-              pinit=abs(pinit)
+c              pinit=abs(pinit)
              else
              pinit=1000
              endif
@@ -5757,7 +5757,7 @@ C
              dt=aycos(cx)
              if(dt.ne.0)then
              pinit=-(xhits(3,npt)-xhits(3,1))*abs(chrg)*1.5*2.99e-4/dt
-             pinit=abs(pinit)
+c             pinit=abs(pinit)
              else
              pinit=1000
              endif

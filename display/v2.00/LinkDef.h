@@ -41,7 +41,9 @@
 //#pragma link C++ class AMSMiscMaker;
 //#pragma link C++ class AMSMisc;
 #pragma link C++ class AMSParticle;
+#pragma link C++ class AMSMCParticle;
 #pragma link C++ class AMSParticleReader;
+#pragma link C++ class AMSMCParticleReader;
 #pragma link C++ class AMSHistBrowser;
 #pragma link C++ class AMSVirtualDisplay;
 #pragma link C++ class AMSDisplay;

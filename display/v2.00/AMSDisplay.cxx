@@ -259,10 +259,10 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
    // m_TrigPad->Range(0,0,dxtr,dytr);
    m_TrigPad->cd();
 
-   TSwitch * sw[8];
+   TSwitch * sw[10];
    AMSMaker * maker;
 
-   Float_t y = 1.0, dy = 0.10, height=0.10;
+   Float_t y = 1.0, dy = 0.095, height=0.095;
    maker = (AMSMaker *) gAMSRoot->SiHitMaker();
    sw[0] = new TSwitch("Tracker Hits", &(maker->DrawFruits), 
 			"gAMSRoot->Display()->Draw()", 0.0, y-height, 1.0, y);
@@ -298,11 +298,16 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
 			"gAMSRoot->Display()->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
     
-   sw[7] = new TSwitch("Geometry", &m_DrawGeometry, 
+   maker = (AMSMaker *) gAMSRoot->MCParticleMaker();
+   sw[7] = new TSwitch("MC Info", &(maker->DrawFruits), 
 			"gAMSRoot->Display()->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
     
-   sw[7] = new TSwitch("More Geometry", &m_DrawMoreGeometry, 
+   sw[8] = new TSwitch("Geometry", &m_DrawGeometry, 
+			"gAMSRoot->Display()->Draw()", 0.0, y-height, 1.0, y);
+   y -= dy;
+    
+   sw[9] = new TSwitch("More Geometry", &m_DrawMoreGeometry, 
 			"gAMSRoot->Display()->Draw()", 0.0, y-height, 1.0, y);
 
 

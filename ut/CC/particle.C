@@ -350,6 +350,7 @@ void AMSParticle::pid(){
    AMSEvent::gethead()->addnext(AMSID("AntiMatter",0),new AntiMatter(_GPart));
    
   }
+  if(_Charge>1)AMSEvent::gethead()->addnext(AMSID("HeavyIon",0),new AntiMatter(_GPart));
 
 }
 void AMSParticle::refit(){
