@@ -2,7 +2,7 @@
 
 # The following line is not necessary if the AMS library is
 # already installed as a general Ruby library 
-$LOAD_PATH << ENV['AMSWD'] + "/ruby"
+$LOAD_PATH << ENV['AMSWD'] + "/ruby/linux"
 
 require 'AMS'
 include AMS

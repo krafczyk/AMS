@@ -1,8 +1,12 @@
 #!/usr/bin/env ruby
-#   TK GUI to plot AMS variables
+#   Ruby/Tk GUI to plot AMS variables
 #   Juan Alcaraz, Jan-2004
 
 require "tk"
+
+if FileTest.exists?("/afs/ams.cern.ch/Offline/vdev")
+      ENV["AMSDir"] = "/afs/ams.cern.ch/Offline/vdev"
+end
 
 if !ENV["AMSDir"]
       puts "\tPlease set the $AMSDir environment variable before using the script."

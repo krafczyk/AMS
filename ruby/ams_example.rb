@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-$LOAD_PATH << ENV['AMSWD'] + "/ruby"
+$LOAD_PATH << ENV['AMSWD'] + "/ruby/linux"
 
 require 'AMS'
 include AMS

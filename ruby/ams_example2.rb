@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # Try to run this interactively with "irb -r ams_example2.rb"
 
-$LOAD_PATH << ENV['AMSWD'] + "/ruby"
+$LOAD_PATH << ENV['AMSWD'] + "/ruby/linux"
 
 require 'AMS'
 include AMS
