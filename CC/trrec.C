@@ -775,7 +775,7 @@ AMSTrCluster::AMSTrCluster(const AMSTrIdSoft& id, integer status,
 }
 
 void AMSTrCluster::_writeEl(){
-  TrClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trcl();
+TrClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trcl();
 
   if (TrN->Ntrcl>=MAXTRCL) return;
 
@@ -1077,7 +1077,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
 
 
 void AMSTrRecHit::_writeEl(){
-  TrRecHitNtuple* THN = AMSJob::gethead()->getntuple()->Get_trrh();
+ TrRecHitNtuple* THN = AMSJob::gethead()->getntuple()->Get_trrh();
 
   if (THN->Ntrrh>=MAXTRRH) return;
 
