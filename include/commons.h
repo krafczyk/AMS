@@ -902,6 +902,27 @@ COMMON_BLOCK_DEF(RICCONTROL_DEF,RICCONTROL);
 
 
 
+
+class
+RICGTKOV_DEF{
+public:
+geant usrcla;
+};
+
+#define RICGTKOV COMMON_BLOCK(RICGTKOV,gtckovext)
+COMMON_BLOCK_DEF(RICGTKOV_DEF,RICGTKOV);
+
+class
+PRODFFKEY_DEF{
+public:
+integer Debug;
+};
+
+#define PRODFFKEY COMMON_BLOCK(PRODFFKEY,prodffkey)
+COMMON_BLOCK_DEF(PRODFFKEY_DEF,PRODFFKEY);
+
+
+
 class AMSCommonsI{
 private:
  static integer _Count;
@@ -916,18 +937,6 @@ public:
  static integer getosno()  {return _os;}
 };
 static AMSCommonsI cmnI;
-
-
-class
-RICGTKOV_DEF{
-public:
-geant usrcla;
-};
-
-#define RICGTKOV COMMON_BLOCK(RICGTKOV,gtckovext)
-COMMON_BLOCK_DEF(RICGTKOV_DEF,RICGTKOV);
-
-
 
 
 

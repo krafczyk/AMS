@@ -47,7 +47,7 @@ void (handler)(int);
     HLIMIT(-NWPAW);
 try{
      
-    UGINIT(argv[argc-1]);
+    UGINIT(argc,argv);
 #ifdef __G4AMS__
     if(MISCFFKEY.G4On)g4ams::G4RUN();
     else if(MISCFFKEY.G3On)GRUN();

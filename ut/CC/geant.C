@@ -119,18 +119,28 @@ extern "C" void timest_(float & t);
 #ifdef __CORBA__
 #include <producer.h>
 #endif 
-void gams::UGINIT(const char * ior){
+void gams::UGINIT(int argc,  char * argv[]){
   float zero=0;
   timest_(zero);
   cout.sync_with_stdio();   
   GINIT();
   new AMSJob();
-#ifdef __CORBA__
-  AMSjob::gethead()->add(new AMSProducer(ior);
-#endif
   AMSJob::gethead()->data();
   GFFGO();
    AMSJob::gethead()->udata();
+
+#ifdef __CORBA__
+try{
+  new AMSProducer(argc,argv,PRODFFKEY.Debug);
+  
+}
+catch (AMSProducer::Error & a){
+ cerr<<a.getMessage()<<endl;
+ if(a.getSeverity()>1)abort();
+}
+#endif
+
+
   // Geant initialization
 
   GZINIT();

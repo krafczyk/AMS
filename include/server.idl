@@ -1,8 +1,7 @@
 #pragma prefix "ams.cern.ch"
 module DPS{
-
-  interface Client{
    typedef unsigned long time;
+  interface Client{
 
    struct NominalClient{
     string HostName;
@@ -19,13 +18,16 @@ module DPS{
 
     struct CID{
     string HostName;
+    unsigned long uid;
     unsigned long pid;
+    unsigned long ppid;
     };
 
     struct ActiveClient{
      CID id;
      string IOR;
-     unsigned long LastComm;
+     time LastUpdate;
+     time Start;
      ClientStatus Status;
      ClientType   Type;
    };
@@ -36,7 +38,7 @@ module DPS{
     typedef sequence<NominalClient> NCL;
     void  getNCL(out NCL ncl);
       
-      
+    void sendId(in CID id, in long Propagate, in long Error);      
    
 
   };
@@ -49,6 +51,7 @@ module DPS{
      unsigned long Run;
      long FirstEvent;
      long LastEvent;
+     long Priority;
     };
      struct RunEvInfo{
      RunEv rv;
@@ -79,12 +82,13 @@ module DPS{
     }; 
     void sendCurrentInfo(in CurrentInfo ci, in long Propagate, in long Error); 
  
-    struct TDVTable{
+    struct TDVTableEntry{
      unsigned long CRC;
      time Insert;
      time Begin;
      time End;
     };
+    typedef sequence<TDVTableEntry> TDVTable; 
     TDVTable getTDVTable(in string Name, in RunEv rv,in long Propagate, in long Error);     
     
     enum DSTStatus{Success,Failure};
@@ -144,8 +148,25 @@ module DPS{
     void sendACL(in ACL acl, in long Propagate,in long Error);
     void sendNCL(in NCL ncl, in long Propagate,in long Error);
     void ping();
-  };
-
+   struct NominalHost{
+    string HostName;
+    string OS;
+    long   Clock;
+   };
+   
+   enum HostStatus{Unknown,NoResponse,LastClientFailed,OK};
+   struct ActiveHost{
+      string HostName;
+      HostStatus Status;
+      long ClientsProcessed;
+      long ClientsFailed;
+      string UpTime;
+      time LastUpdate;
+   };
+    typedef sequence<ActiveHost> AHL;
+    void getAHL(out AHL ahl);
+    void sendAHL(in AHL ahl, in long Propagate,in long Error);
+   };
   interface Monitor: Client{
   };
   

@@ -62,7 +62,7 @@ TRMFFKEY_DEF TRMFFKEY;
 //
 RICGEOM_DEF RICGEOM;
 RICCONTROL_DEF RICCONTROL;
-
+PRODFFKEY_DEF PRODFFKEY;
 // Geant  commons
 
 GCFLAG_DEF GCFLAG;
@@ -77,7 +77,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v3.00";
-uinteger AMSCommonsI::_build=952;
+uinteger AMSCommonsI::_build=953;
 uinteger AMSCommonsI::_os=0;
 AMSCommonsI::AMSCommonsI(){
   init();

@@ -517,6 +517,9 @@ G4FFKEY.UniformMagField=0;
 G4FFKEY.Geant3CutsOn=1;
 FFKEY("G4FF",(float*)&G4FFKEY,sizeof(G4FFKEY_DEF)/sizeof(integer),"MIXED");
 
+PRODFFKEY.Debug=0;
+FFKEY("PROD",(float*)&PRODFFKEY,sizeof(PRODFFKEY_DEF)/sizeof(integer),"MIXED");
+
 
 }
 

@@ -10,7 +10,7 @@ namespace g4ams{
 
 #endif
 namespace gams{
-  void UGINIT(const char * ior);
+  void UGINIT(int argc, char **argv );
   void UGLAST();
 }
 
