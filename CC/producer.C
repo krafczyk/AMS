@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.64 2003/04/25 16:38:05 choutko Exp $
+//  $Id: producer.C,v 1.65 2003/05/07 15:21:45 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -397,7 +397,7 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
     
 
 ntend->Insert=statbuf.st_ctime;
-ntend->size=statbuf.st_size/1024./1024.+0.5;
+ntend->size=statbuf.st_size;
 ntend->ErrorNumber=0;
 
 //add crc
@@ -405,6 +405,7 @@ ntend->ErrorNumber=0;
      AMSTimeID::_InitTable;
    }
    ifstream fbin;
+   sleep(1);
    fbin.open((const char*)a(bstart));
    uinteger crc=0;
    if(fbin){
