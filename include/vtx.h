@@ -74,9 +74,9 @@ protected:
   }
 
 // AMSVtx Protected Parameters
-  static number AMSVtx::chi2cut;
-  static integer AMSVtx::minimum_number_of_layers;
-  static integer AMSVtx::min_layers_with_different_hits;
+  static number chi2cut;
+  static integer minimum_number_of_layers;
+  static integer min_layers_with_different_hits;
   static float _TimeInit;
   static bool InTofPath;
 

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.53 2003/07/25 16:46:51 alcaraz Exp $
+//  $Id: root.C,v 1.54 2003/07/25 17:30:47 choutko Exp $
 //
 
 #include <root.h>
@@ -2155,7 +2155,7 @@ EcalHitR::EcalHitR(AMSEcalHit *ptr) {
    }
 
    TrTrackR* VertexR::pTrTrack(unsigned int i){
-     return (AMSEventR::Head() )?AMSEventR::Head()->pTrTrack((i>=0 and i<fTrTrack.size())?fTrTrack[i]:0):0;
+     return (AMSEventR::Head() && i<fTrTrack.size())?AMSEventR::Head()->pTrTrack(fTrTrack[i]):0;
    }
 
    TrTrackR* ParticleR::pTrTrack(){
