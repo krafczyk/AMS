@@ -532,13 +532,6 @@ void  AMSEvent::write(int trig){
     }
     if(trig || PosInRun< (IOPA.WriteAll/1000)*1000){
 // if event has been selected write it straight away
-    // check if one want to close ntuple first
-    if(IOPA.MaxNtupleEntries){
-      if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries){
-        AMSJob::gethead()->uhend();
-        AMSJob::gethead()->uhinit(PosGlobal);
-      }
-    }        
             AMSJob::gethead()->getntuple()->write(1);
     }
     else {
@@ -550,6 +543,16 @@ void  AMSEvent::write(int trig){
     }
    }
   }
+    // check if one want to close ntuple 
+    if(IOPA.MaxNtupleEntries){
+      if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries){
+        AMSJob::gethead()->uhend();
+        AMSJob::gethead()->uhinit(PosGlobal);
+      }
+    }        
+
+
+
 }
 void  AMSEvent::printA(integer debugl){
 if(debugl < 2){
@@ -1021,7 +1024,7 @@ void AMSEvent::_retkinitrun(){
   // Warning if TRFITFFKEY.FastTracking is on...
   if(TRFITFFKEY.FastTracking){
     cout <<" "<<endl<<
-    "AMSEvent::Retkinitrun-W-TRFITFFKEY.FastTracking selected."<<endl;
+    "AMSEvent::Retkinitrun-W-TRFITFFKEY.FastTracking selected. "<<TRFITFFKEY.FastTracking<<endl;
   }
   for (int half=0;half<2;half++){
     for(int side=0;side<2;side++){

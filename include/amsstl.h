@@ -96,7 +96,7 @@ if(j>0)return ib+1;
 }
 else if(il){
 j=cmpT(obj,a[ia]);
-if(j<0)return ia;
+if(j<=0)return ia;
 }
 return ib;
 }
@@ -132,7 +132,7 @@ if(j>0)return ib+1;
 }
 else if(il){
 j=cmpT(obj,*a[ia]);
-if(j<0)return ia;
+if(j<=0)return ia;
 }
 return ib;
 }
