@@ -616,7 +616,9 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      GCTRAK.vect[6]=GCTRAK.getot*PostPoint->GetBeta();
      GCTRAK.tofg=PostPoint->GetGlobalTime()/second;
      G4Track * Track = Step->GetTrack();
-
+     { int i;
+       for(i=0;i<3;i++)GCKINE.vert[i]=Track->GetVertexPosition()[i]/cm; 
+       for(i=0;i<3;i++)GCKINE.pvert[i]=Track->GetVertexMomentumDirection()[i]; 
 
 
 /* 
@@ -820,42 +822,82 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      }
 //------------------------------------------------------------------
 // CJM : RICH (preliminary and slow version)
-// No rayleigh simulation yet. Some counters not updated
 //
+
+   GCTRAK.nstep=Track->GetCurrentStepNumber()-1;
+   GCKINE.itra=Track->GetTrackID();
+//   cout << " track id "<<GCKINE.itra<<" "<<GCTRAK.nstep<<endl;
+   if(PrePV->GetName()[0]=='R' && PrePV->GetName()[1]=='I' &&
+      PrePV->GetName()[2]=='C' && PrePV->GetName()[3]=='H' &&
+      GCKINE.ipart==Cerenkov_photon){
+        if(PostPoint->GetProcessDefinedStep()->GetProcessName() == "Boundary")RICHDB::numrefm++;
+   }
+
+
    if(PrePV->GetName()[0]=='R' && PrePV->GetName()[1]=='A' &&
       PrePV->GetName()[2]=='D' && PrePV->GetName()[3]==' '){
-     if(GCKINE.ipart==Cerenkov_photon && GCTRAK.inwvol==1 &&
-        GCTRAK.vect[5]<0){ //Provisional
-         if(!RICHDB::detcer(GCTRAK.vect[6])) GCTRAK.istop=1;
-        RICHDB::nphgen++;
+     if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep){
+        if(PostPoint->GetProcessDefinedStep()->GetProcessName() == "Rayleigh Scattering")RICHDB::numrayl++;
      }
    }
     
-   if(PrePV->GetName()[0]=='C' && PrePV->GetName()[1]=='A' &&
-      PrePV->GetName()[2]=='T' && PrePV->GetName()[3]=='O'){
+      if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep==0){
+	RICHDB::numrayl=0;
+	RICHDB::numrefm=0;
+      }
 
-     if(GCKINE.ipart==Cerenkov_photon){ //Noisy Cerenkov not handled
-        geant dummy[3]={0.,0.,0.};
-        GCTRAK.istop=2;
+
+    if(PrePV->GetName()[0]=='C' && PrePV->GetName()[1]=='A' &&
+       PrePV->GetName()[2]=='T' && PrePV->GetName()[3]=='O' && 
+       GCTRAK.inwvol==1){
+
+
+      if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep==0){
+        GCTRAK.istop=1;
+        if(RICHDB::detcer(GCTRAK.vect[6])) {
+          GCTRAK.istop=2;
+          AMSRichMCHit::sirichhits(GCKINE.ipart,
+                                   Mother->GetCopyNo()-1,
+                                   GCTRAK.vect,
+                                   GCKINE.vert,
+                                   GCKINE.pvert,
+                                   Status_Window-
+                                   (GCKINE.itra!=1?100:0));
+        }
+      }
+
+
+
+      if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep!=0){
+        GCTRAK.istop=2; // Absorb it
         AMSRichMCHit::sirichhits(GCKINE.ipart,
-                                 PrePV->GetCopyNo()-1,
-                                 GCTRAK.vect,
-                                 dummy,
-                                 dummy,
-                                 0);
-     } else {
-        geant dummy[3]={0.,0.,0.};
+                		 Mother->GetCopyNo()-1,
+				 GCTRAK.vect,
+			       	 GCKINE.vert,
+				 GCKINE.pvert,
+                                 (GCKINE.itra!=1?100:0)+
+                                 RICHDB::numrefm*10+
+                                 (RICHDB::numrayl>0?Status_Rayleigh:0));
+      }
+      else if(GCTRAK.nstep!=0){	 
         AMSRichMCHit::sirichhits(GCKINE.ipart,
-                                 PrePV->GetCopyNo()-1,
-                                 GCTRAK.vect,
-                                 dummy,       
-                                 dummy,       
-                                 0);
+				 Mother->GetCopyNo()-1,
+				 GCTRAK.vect,
+				 GCKINE.vert,
+				 GCKINE.pvert,
+                                 Status_No_Cerenkov-
+                                 (GCKINE.itra!=1?100:0));
+      }				   
     }
-   }            
+
+
 
 // end of RICH
 //----------------------------------------------------------------
+
+    if(GCTRAK.istop){
+      Track->SetTrackStatus(fStopAndKill);
+    }
 
   } // <--- end of "try" ---
 //
@@ -876,7 +918,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
   }
 }
 
-
+}
 
 
 

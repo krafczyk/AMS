@@ -143,10 +143,16 @@ Based on geant3 transition radiation generator + geant4 low energy
 photon propagation & absorbtion. Need to be tested
 
 
-To be done
------------------
+Cerenkov Photons
+---------------------
+
+AMSgtmed::AGSCKOV routine handles cerenkov media parameters,
+last one is rayleigh "opacity", others as in g3 GSCKOV routine
+
+NB: g4 optical process were modified, standard ones will not work.   
 
 
+---------------------
 
 
 

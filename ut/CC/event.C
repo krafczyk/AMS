@@ -3000,12 +3000,12 @@ void AMSEvent::_collectstatus(){
      else if(cosgm<0.766)icos=2;
      else icos=3;
       __status=__status | (icos<<27);
-   
+}   
   // Now Set Event Error
      if(_Error==1){
       __status=__status | (1<<30);
     } 
-}
+
  _status[0]=__status;
  _status[1]=0;
 }

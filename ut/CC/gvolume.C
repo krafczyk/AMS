@@ -3,6 +3,11 @@
 #include <amsgobj.h>
 #include <gmat.h>
 #ifdef __G4AMS__
+#include "G4MaterialPropertyVector.hh"
+#include "G4Material.hh"
+#include "G4MaterialTable.hh"
+#include "G4LogicalSkinSurface.hh"
+#include "G4LogicalBorderSurface.hh"
 #include <new.h>
 #include <commons.h>
 #include <astring.h>
@@ -29,6 +34,7 @@
 #include "G4PVReplica.hh"
 #include "G4Assembly.hh"
 #include "G4AssemblyCreator.hh"
+#include "G4OpBoundaryProcess.hh"
 #endif
 integer AMSgvolume::debug=0;
 AMSgvolume::_amsrm AMSgvolume::_UnitRM;
@@ -402,6 +408,22 @@ integer AMSgvolume::_Norp=0;
        abort();
      }
      _pg4l= new G4LogicalVolume(psolid,_pgtmed->getpgmat()->getpamsg4m(),G4String(_name));    
+//     cerenkov photons
+     G4MaterialPropertiesTable* apt=_pgtmed->getpgmat()->getpamsg4m()->GetMaterialPropertiesTable();
+     if(apt){
+      G4MaterialPropertyVector* ppv= apt->GetProperty("REFLECTIVITY");
+      if(ppv){
+//       cout << " Metal found "<<_pgtmed->getpgmat()->getpamsg4m()->GetName()<<endl;
+       G4OpticalSurface * pop=new G4OpticalSurface(_pgtmed->getpgmat()->getpamsg4m()->GetName());
+       pop->SetType(dielectric_metal);
+       pop->SetFinish(polished);
+       pop->SetModel(glisur);
+       pop->SetMaterialPropertiesTable(apt);
+       G4LogicalSkinSurface * pskin= new G4LogicalSkinSurface(_pgtmed->getpgmat()->getpamsg4m()->GetName(),_pg4l,pop);
+       pskin->SetInOnly();
+      }
+     }
+
      if(_pgtmed->IsSensitive()){
       _pg4l->SetUserLimits(new AMSUserLimits());
       if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==1){

@@ -146,6 +146,7 @@ class AMSgtmed : public AMSNode
   geant & CUTMUO(){ return _G4EMu;}
   geant & CUTRANGE(){ return _G4Range;}
   geant & TOFMAX(){ return _G4TofMax;}
+  void AGSCKOV(integer nument, geant pmom[], geant absl[], geant eff[], geant rindex[], geant rayleigh);
   void     CUTGAM(geant cut){_G4EPh=cut;GSTPAR(_itmed,"CUTGAM",cut);}
   void     CUTHAD(geant cut){_G4EHad=cut;GSTPAR(_itmed,"CUTHAD",cut);}
   void     CUTNEU(geant cut){_G4EHNeu=cut;GSTPAR(_itmed,"CUTNEU",cut);}

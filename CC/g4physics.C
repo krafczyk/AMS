@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.15 2000/09/05 13:40:55 choutko Exp $
+// $Id: g4physics.C,v 1.16 2000/09/06 16:09:35 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -680,12 +680,12 @@ void AMSG4Physics::ConstructOp()
 //  theCerenkovProcess->DumpPhysicsTable();
 //  theAbsorptionProcess->DumpPhysicsTable();
 //  theRayleighScatteringProcess->DumpPhysicsTable();
-
-  theCerenkovProcess->SetVerboseLevel(1);
-  theAbsorptionProcess->SetVerboseLevel(1);
-  theRayleighScatteringProcess->SetVerboseLevel(1);
-  theBoundaryProcess->SetVerboseLevel(1);
-
+#ifdef __AMSDEBUG__
+  theCerenkovProcess->SetVerboseLevel(AMSFFKEY.Debug);
+  theAbsorptionProcess->SetVerboseLevel(AMSFFKEY.Debug);
+  theRayleighScatteringProcess->SetVerboseLevel(AMSFFKEY.Debug);
+  theBoundaryProcess->SetVerboseLevel(AMSFFKEY.Debug);
+#endif
   G4int MaxNumPhotons = 300;
 
   theCerenkovProcess->SetTrackSecondariesFirst(true);

@@ -383,7 +383,7 @@ AMSJob::gethead()->addup(&tmed);
 
 tmed.add (new AMSgtmed("AIR","AIR",0));
 tmed.add (new AMSgtmed("MAGNET","MAGNET",0));
-
+AMSgtmed * pvac;
 {
 // vacuum has to be trd aware
  geant uwbuf[5];
@@ -407,13 +407,12 @@ else{
   uwbuf[3]=TRDMCFFKEY.alpha;
   uwbuf[4]=TRDMCFFKEY.beta;
  }
- AMSgtmed * pvac=new AMSgtmed("VACUUM","VACUUMTRD",0);
+ pvac=new AMSgtmed("VACUUM","VACUUMTRD",0);
  uwbuf[2]=6;
  pvac->setubuf(nwbuf,uwbuf);
  tmed.add (pvac );
 }
 
-int vac_med=GetLastMedNo();
 
 tmed.add (new AMSgtmed("1/2ALUM","ALUMINIUM",0));
 tmed.add (new AMSgtmed("ACTIVE_SILICON","SILICON",1));
@@ -491,18 +490,18 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
 
 // Radiator
   
-  tmed.add (new AMSgtmed("RICH RAD","RICH_AEROGEL",0));   //32
-  GSCKOV(GetLastMedNo(),RICHDB::entries,p,RICHDB::abs_length,dummy,RICHDB::index);
+  AMSgtmed * pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH RAD","RICH_AEROGEL",0));   //32
+  pgtmed->AGSCKOV(RICHDB::entries,p,RICHDB::abs_length,dummy,RICHDB::index,RICHDB::rad_clarity);
   
 // PMT window
   
-  tmed.add (new AMSgtmed("RICH PMTS","PMT_WINDOW",1));   //35  
+pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH PMTS","PMT_WINDOW",1));   //35  
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       abs_l[iw]=1e5;
       index[iw]=1.458;
     }
-  GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index);
+  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 
 
   geant xustep=200.;
@@ -514,43 +513,43 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
 
 // LG mirrors
 
-  tmed.add (new AMSgtmed("RICH MIRRORS","RICH_MIRRORS",0));//33
+  pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH MIRRORS","RICH_MIRRORS",0));//33
   for(iw=0;iw<RICHDB::entries;iw++)
     abs_l[iw]=1.-0.92; // Reflectivity=92%
   index[0]=0;          // This behaves like metal
-  GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index);
+  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
   
 // Outer mirror
 
-  tmed.add (new AMSgtmed("RICH MIRROR","RICH_MIRROR",0));
+pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR","RICH_MIRROR",0));
   for(iw=0;iw<RICHDB::entries;iw++)
     abs_l[iw]=1.-0.90; // Reflectivity=90%   
   index[0]=0;          // The mirror is a metal
-  GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index);
+  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 
 
 // Aerogel support structure
 
-  tmed.add (new AMSgtmed("RICH CARBON","RICH_CARBONF",0));
+  pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH CARBON","RICH_CARBONF",0));
   for(iw=0;iw<RICHDB::entries;iw++){
       abs_l[iw]=1.; 
       index[iw]=0.;}
-  GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index);
+  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 
 // Absorber
 
-  tmed.add (new AMSgtmed("RICH WALLS","RICH_WALLS",0));
-  GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index);
+  pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH WALLS","RICH_WALLS",0));
+  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 
 // B shields
 
-  tmed.add (new AMSgtmed("RICH SHIELD","RICH_BSHIELD",0));
-  GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index); 
+   pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH SHIELD","RICH_BSHIELD",0));
+  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0); 
 
 // Electronics
 
-  tmed.add (new AMSgtmed("RICH GLUE","RICH_WALLS",1));
-  GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index);
+   pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH GLUE","RICH_WALLS",1));
+  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 
 // transparent vaccum
 
@@ -559,7 +558,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
       abs_l[iw]=1e5;
       index[iw]=1;
     }
-  GSCKOV(vac_med,RICHDB::entries,p,abs_l,dummy,index);  
+  pvac->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);  
 
 }
 //---------------
@@ -680,7 +679,57 @@ cout <<"AMSgmat::amstmed-I-TotalOf "<<GetLastMedNo()<<" media defined"<<endl;
 }
 
 
+void AMSgtmed::AGSCKOV(integer nument, geant pmom[], geant absl[], geant eff[], geant rindex[], geant rayleigh){
 
+#ifdef __G4AMS__
+if(MISCFFKEY.G4On){
+ if(nument>0){
+    number *  _pmom=new number[nument];
+    number *  _absl=new number[nument];
+    number *  _refl=new number[nument];
+    number *  _eff=new number[nument];
+    number *  _rindex=new number[nument];
+    number *  _rayl=new number[nument];
+    int i;
+    for (i=0;i<nument;i++){
+     _pmom[i]=pmom[i]*GeV;
+     _rindex[i]=rindex[i];
+     if(rindex[0]>0)_absl[i]=absl[i]*cm;
+     else {
+       _refl[i]=1-absl[i];   //reflectivity
+       _absl[i]=DBL_MAX;
+     }
+     _eff[i]=eff[i];
+     if(rayleigh>0){
+      _rayl[i]=1/rayleigh* pow(1.2398E-9/pmom[i],4.)*cm;
+     }
+     else _rayl[i]=DBL_MAX;
+    }
+  G4MaterialPropertiesTable *pr = new G4MaterialPropertiesTable();
+   pr->AddProperty("ABSLENGTH",_pmom,_absl,nument);
+   pr->AddProperty("EFFICIENCY",_pmom,_eff,nument);
+  if(rindex[0]>0){
+   // Case dielectric
+   pr->AddProperty("RINDEX",_pmom,_rindex,nument);
+   pr->AddProperty("RAYLEIGH",_pmom,_rayl,nument);
+  }
+  else{
+   // Case Metal
+   pr->AddProperty("REFLECTIVITY",_pmom,_refl,nument);
+  }
+   _pgmat->getpamsg4m()->SetMaterialPropertiesTable(pr);
+   delete[] _pmom;
+   delete[] _absl;
+   delete[] _eff;
+   delete[] _rindex;
+   delete[] _rayl;
+   delete[] _refl;
+ }
+}
+else
+#endif
+GSCKOV(_itmed,nument,pmom,absl,eff,rindex);
+}
 
 
 
