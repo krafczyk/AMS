@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.57 2003/09/22 08:44:26 choutko Exp $
+//  $Id: root.C,v 1.58 2003/10/11 11:46:37 choutko Exp $
 //
 
 #include <root.h>
@@ -1941,7 +1941,7 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
   Status    = ptr->_status;
   Pattern   = ptr->_Pattern;
   Address   = ptr->_Address;
-
+  fTrClone=-1;
   LocDBAver       = ptr->_Dbase[0];
   GeaneFitDone    = ptr->_GeaneFitDone;
   AdvancedFitDone = ptr->_AdvancedFitDone;
@@ -2113,6 +2113,9 @@ EcalHitR::EcalHitR(AMSEcalHit *ptr) {
 
    TrRecHitR* TrTrackR::pTrRecHit(unsigned int i){
      return (AMSEventR::Head() && i<fTrRecHit.size())?AMSEventR::Head()->pTrRecHit(fTrRecHit[i]):0;
+   }
+   TrTrackR * TrTrackR::pTrClone(){
+     return fTrClone>=0?AMSEventR::Head()->pTrTrack(fTrClone):0;
    }
 
 

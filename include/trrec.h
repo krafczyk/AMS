@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.68 2003/10/10 16:04:12 alcaraz Exp $
+//  $Id: trrec.h,v 1.69 2003/10/11 11:47:45 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -370,7 +370,7 @@ void SetPar(number rig, number theta, number phi, AMSPoint P0,integer icase=0){
 ~AMSTrTrack(){};
 AMSTrTrack *  next(){return (AMSTrTrack*)_next;}
 AMSTrTrack (integer pattern, integer nhits, AMSTrRecHit * phit[]): 
-AMSlink(0,0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0)
+AMSlink(0,0),_PtAmbiguous(0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0)
   {init(  phit);}
 AMSTrTrack(AMSDir dir, AMSPoint point,number rig=10000000,number errig=10000000);
 AMSTrTrack(number theta, number phi, AMSPoint point);
@@ -403,7 +403,7 @@ number&  GTheta, number&  GPhi, AMSPoint&  GP0,
 number HChi2[2], number HRid[2], number HErr[2], number HTheta[2], 
 number HPhi[2], AMSPoint  HP0[2] ) const;
 
-AMSTrTrack() {_Pattern = -1; 
+AMSTrTrack():_PtAmbiguous(0) {_Pattern = -1; 
               _NHits   = -1; 
               for (int i=0; i<trconst::maxlay; i++) _Pthit[i] = NULL; }
 void   setHitP(AMSTrRecHit* p, integer n) {if (n< trconst::maxlay)  _Pthit[n] = p;}

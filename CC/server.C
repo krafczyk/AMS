@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.95 2003/09/18 09:04:30 choutko Exp $
+//  $Id: server.C,v 1.96 2003/10/11 11:46:37 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -2447,6 +2447,7 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
      cid.Interface=(const char*)"default";
      ac.id.Interface=CORBA::string_dup(cid.Interface);
      (ac.id).uid=cid.uid;
+     ac.id.Mips=cid.Mips;
      ac.id.pid=cid.pid;
      ac.id.ppid=cid.ppid;
      cid.Type=DPS::Client::Producer;
@@ -2466,6 +2467,15 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
      ((ac.ars)[0]).IOR=(const char *)(" ");
      ((ac.ars)[0]).Type=DPS::Client::Generic;
      ((ac.ars)[0]).uid=0;
+
+         for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
+            if(!strcmp((const char *)(*i)->HostName, (const char *)(ac.id).HostName)){
+            (*i)->Clock=ac.id.Mips;
+             PropagateAH(cid,(*i),DPS::Client::Update);
+            break;
+     }
+     }
+
         RunEvInfo_var   reinfo;
         DSTInfo_var   dstinfo;
         getRunEvInfo(ac.id,reinfo,dstinfo);      

@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.150 2003/07/25 16:46:52 alcaraz Exp $
+//  $Id: trrec.C,v 1.151 2003/10/11 11:46:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2271,6 +2271,8 @@ TrTrackR & trr=AMSJob::gethead()->getntuple()->Get_evroot02()->TrTrack(_vpos);
     for (int i=0; i<_NHits; i++) {
       if(_Pthit[i])trr.fTrRecHit.push_back(_Pthit[i]->GetClonePointer());
     }
+    if(_PtAmbiguous)trr.fTrClone=_PtAmbiguous->GetClonePointer();
+    else trr.fTrClone=-1;
 #endif
 }
 
@@ -2948,7 +2950,7 @@ uinteger AMSTrTrack::encodeaddress(integer ladder[2][trconst::maxlay]){
 }
 
 AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point, number rig, number errig):AMSlink(0,0),
-_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),
+_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),_PtAmbiguous(0),
 _Ridgidity(rig),_ErrRidgidity(errig),_Chi2FastFit(1000000){
  for(int i=0;i<trconst::maxlay;i++){
   _Pthit[i]=0;
@@ -2959,7 +2961,7 @@ _Ridgidity(rig),_ErrRidgidity(errig),_Chi2FastFit(1000000){
 }
 
 AMSTrTrack::AMSTrTrack(number theta, number phi, AMSPoint point):AMSlink(0,0),
-_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),
+_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),_PtAmbiguous(0),
 _Ridgidity(10000000),_ErrRidgidity(10000000),_Chi2FastFit(1000000){
  for(int i=0;i<trconst::maxlay;i++){
   _Pthit[i]=0;
@@ -3083,7 +3085,7 @@ AMSTrTrack::AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD,
                        number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, 
                        number chi2G, number rigG, number erigG, number thetag, number phig, AMSPoint p0g, 
                        number chi2MS, number jchi2MS, number rigFMS, number grigms):
-_NHits(nht),_FastFitDone(FFD),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Address(0),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g){
+_NHits(nht),_PtAmbiguous(0),_FastFitDone(FFD),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Address(0),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g){
  
 
 

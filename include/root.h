@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.110 2003/09/26 11:07:01 choutko Exp $
+//  $Id: root.h,v 1.111 2003/10/11 11:47:45 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -219,7 +219,7 @@ public:
 */
 class EcalHitR {
 public:
-  int   Status;   ///< Statusword
+  unsigned int   Status;   ///< Statusword
   int   Idsoft;   ///< 4digits number SPPC=SuperLayer/PM/subCell  0:8/0:35/0:3  
                /*!<
 Idsoft SubCells(pixels) numbering(looking in +Y/+X direction):\n
@@ -251,7 +251,7 @@ ClassDef(EcalHitR,1)       //EcalHitR
 class EcalClusterR {
 static char _Info[255];
 public:
-  int Status;    ///<  Statusword
+  unsigned int Status;    ///<  Statusword
                  /*!< valid values are:\n
                                                      WIDE=2   \n
                                                      BAD =16  \n
@@ -308,7 +308,7 @@ ClassDef(EcalClusterR,1)       //EcalClusterR
 
 class Ecal2DClusterR{
 public:
-  int Status;   ///< statusword
+  unsigned int Status;   ///< statusword
   int Proj;     ///< projection 0-x 1-y
   float Edep;   ///< energy (mev)
   float Coo;    ///< str line fit coo (cm)
@@ -349,7 +349,7 @@ friend class AMSEcal2DCluster;
 class EcalShowerR {
 static char _Info[255];
 public:
-  int   Status;    ///< status word \sa EcalHitR status
+  unsigned int   Status;    ///< status word \sa EcalHitR status
   float Dir[3];    ///< direction cos array 
   float EMDir[3];  ///< direction cos array for emag type shower
   float Entry[3];  ///< entry point (cm)
@@ -416,7 +416,7 @@ ClassDef(EcalShowerR,1)       //EcalShowerR
 class RichHitR {
 static char _Info[255];
 public:
-  unsigned int Status;   ///< statusword
+   unsigned int Status;   ///< statusword
                          /*!<
 
 *********) Status bits (counting from 1 to 32)
@@ -467,7 +467,7 @@ class RichRingR {
 static char _Info[255];
 public:
 
-  unsigned int Status;     ///< status word
+ unsigned int Status;     ///< status word
                            /*!<
 
 **********) Ring status bits (counting from 1 to 32)
@@ -531,7 +531,7 @@ public:
 
 class TofRawClusterR {
 public:
-  int   Status;  ///< statusword (Ask E.Choumilov)
+  unsigned int   Status;  ///< statusword (Ask E.Choumilov)
   int   Layer;   ///< Tof plane 1(top)...4
   int   Bar;     ///< Tof Bar number 1...14
   float tovta[2]; ///<anode time over_thres (ns)
@@ -558,7 +558,7 @@ class TofClusterR {
 protected:
 static char _Info[255];
 public:
-  int Status;   ///< Statusword
+  unsigned int Status;   ///< Statusword
                 /*!<
                                                  // bit 4 - ambig
                                                  // bit 128 -> problems with history
@@ -612,7 +612,7 @@ ClassDef(TofClusterR,1)       //TofClusterR
 class AntiClusterR {
 static char _Info[255];
 public:
-  int   Status;   ///< Statusword Bit"256"->1sideSector;"1024"->s2 missing if set  s1 missing if not
+  unsigned int   Status;   ///< Statusword Bit"256"->1sideSector;"1024"->s2 missing if set  s1 missing if not
   int   Sector;   ///< //Sector number(1-8)
   int   Ntimes;  ///<Number of time-hits(1st come paired ones)
   int   Npairs;   ///<Numb.of time-hits, made of 2 side-times(paired)
@@ -670,7 +670,7 @@ public:
                                                    \n i==3 y 2nd half
                                                    \n id/10000 strip
             */
-  int Status;  ///< statusword 
+  unsigned int Status;  ///< statusword 
                /*!<
  1 - REFITTED object                                     (status&1     !=0) \n
  2 - WIDE in shape (Tracker)                             (status&2     !=0) \n
@@ -722,7 +722,7 @@ ClassDef(TrClusterR,1)       //TrClusterR
 class TrRecHitR {
 static char _Info[255];
 public:
-  int   Status;   ///< statusword \sa TrClusterR Status
+  unsigned int   Status;   ///< statusword \sa TrClusterR Status
   int   Layer;    ///<Layer no 1-6 up-down
   float Hit[3];   ///< cluster coordinates
   float EHit[3];  ///< error to above
@@ -767,7 +767,7 @@ ClassDef(TrRecHitR,1)       //TrRecHitR
 class TrTrackR {
 static char _Info[255];
 public:
-  int Status;   ///< statusword \sa TrClusterR
+  unsigned int Status;   ///< statusword \sa TrClusterR
   int Pattern;  ///< see datacards.doc
   int Address;  ///< ladders combination code (see trrec.C buildaddress)
   float LocDBAver;   ///< mean ratio of true momentum to measured one from testbeam
@@ -795,12 +795,25 @@ public:
   float PiErrRig;    ///< PathInt err(1/rig) (<0 means fit was not succesful)
   float RigidityMS;  ///< fast rigidity mscat off
   float PiRigidity;  ///<  PathInt rigidity
-  TrTrackR(){};
   TrTrackR(AMSTrTrack *ptr);
   protected:
   vector<int> fTrRecHit;
+  int fTrClone;
   public:
-  /// select good tracks (i.e. tracks having x & y hits from tracker)
+  TrTrackR():fTrClone(-1){};
+  /// Check if Track is a Clone of Another track
+   /// \ return true if so
+  bool IsTrClone(){return Status & 4;}
+   /// Check if Track Has Clone(s)
+   /// \return true if so
+  bool HasTrClones(){return fTrClone!=-1;}
+  /// access function to TrTrack Clone object
+/// \return Clone position in TrTrackR container
+  int iTrClone() const{return fTrClone;}
+ /// access function to TrTrack Clone object
+  /// \ return pointer to clone track or 0
+  TrTrackR *pTrClone();
+ /// select good tracks (i.e. tracks having x & y hits from tracker)
   /// \return true if good false otherwise
    bool IsGood()const {return !(Status & 16384) && AdvancedFitDone!=0;}
   /// access function to TrRecHitR objects used
@@ -820,7 +833,7 @@ public:
     sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g Points=%d Patttern=%d HalfRig=(%7.3g,%7.3g) Status=%d",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,Theta,Phi,Chi2FastFit,NTrRecHit(),Pattern,HRigidity[0],HRigidity[1],Status);
   return _Info;
   } 
-ClassDef(TrTrackR,1)       //TrTrackR
+ClassDef(TrTrackR,2)       //TrTrackR
 friend class AMSTrTrack;
 };
 
@@ -852,7 +865,7 @@ ClassDef(TrdRawHitR,1)       //TrdRawHitR
 class TrdClusterR {
 static char _Info[255];
 public:
-  int   Status;    ///< statusword
+  unsigned int   Status;    ///< statusword
   float Coo[3];    ///<cluster coo (cm)
   int   Layer;     ///<Layer 0(bottom)...19(top) 
   int   Direction; ///<  0 == along x  1 == along y
@@ -892,7 +905,7 @@ ClassDef(TrdClusterR,2)       //TrdClusterR
 
 class TrdSegmentR {
 public:
-  int   Status;            ///< status word
+  unsigned int   Status;            ///< status word
   int   Orientation;       ///< segment orientation (0-x 1-y)
   float FitPar[2];         ///< str line fit pars
   float Chi2;              ///< str line chi2
@@ -929,7 +942,7 @@ ClassDef(TrdSegmentR,1)       //TrdSegmentR
 class TrdTrackR {
 static char _Info[255];
 public:
-  int   Status;  ///< statusword
+  unsigned int   Status;  ///< statusword
   float Coo[3];  ///< trac coo (cm)
   float ErCoo[3];  ///< err to coo
   float Phi;     ///<  phi (rads)
@@ -1188,7 +1201,7 @@ ClassDef(Level3R,1)       //Level3R
 
 class BetaR {
  public:
-  int       Status;   ///< status word  4 - ambig
+  unsigned int       Status;   ///< status word  4 - ambig
   int       Pattern;   ///< beta pattern \sa beta.doc
   float     Beta;     ///< velocity
   float     BetaC;    ///< corrected velocity (taking into account true velocity < 1)
@@ -1239,7 +1252,7 @@ class ChargeR {
 */
 
 public:
-  int Status;     ///<  Status (1-refitted)
+  unsigned int Status;     ///<  Status (1-refitted)
   int ChargeTOF;  ///<TOF Charge
   int ChargeTracker;  ///< Tracker Charge
   int ChargeRich;      ///<Rich Charge 
@@ -1288,7 +1301,7 @@ ClassDef(ChargeR,1)       //ChargeR
 */
 class VertexR {
 public:
-  int   Status;      ///< Status
+  unsigned int   Status;      ///< Status
   float Mass;        ///< Rec mass at vertex (GeV)
   float Momentum;    ///< Momentum sum (GeV)
   float ErrMomentum; ///< Error in Momentum Sum (GeV)
@@ -1358,7 +1371,7 @@ class ParticleR {
 private:
 static char _Info[255];
 public:
-  int Status;   ///< status word (not really used at the moment)
+  unsigned int Status;   ///< status word (not really used at the moment)
   int   Particle;     ///< voted particle id a-la geant3 (not really reliable)
   int   ParticleVice; ///< nect-to voted particle id a-la geant3 (not really reliable)
   float Prob[2];      ///< Probability to be a particle Particle [0] or ParticleVice [1]
@@ -1587,7 +1600,7 @@ public:
   int   Id;            ///< Particle id, -666 if noise
   float Origin[3];     ///< Particle origin coo
   float Direction[3];  ///< Particle direction cos
-  int   Status;        ///< Status=10*number of reflections+(have it rayleigh?1:0)
+  unsigned int   Status;        ///< Status=10*number of reflections+(have it rayleigh?1:0)
                        /*!<
 *******) For geant4 this value is 0. For geant 3it has several meanings:
 

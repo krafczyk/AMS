@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.62 2003/07/29 17:17:37 choutko Exp $
+# $Id: Monitor.pm,v 1.63 2003/10/11 11:47:48 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -994,18 +994,20 @@ int($hash->{CPUNeeded}*10)/10,
          my $hash=$Monitor::Singleton->{nhl}[$i];
          
          push @text,  $hash->{HostName},$hash->{Interface},$hash->{OS}, 
-         $hash->{CPUNumber}, $hash->{Memory}, $hash->{Clock};
+         $hash->{CPUNumber}, $hash->{Memory};
 #        find status;
                 
      for my $j (0 ... $#{$Monitor::Singleton->{ahlp}}){
          my $ahl=$Monitor::Singleton->{ahlp}[$j];
          if( $ahl->{HostName} eq $hash->{HostName}){
+            push @text,$ahl->{Clock}*2; 
             push @text,$ahl->{ClientsAllowed}; 
             push @text,$ahl->{ClientsFailed}; 
             push @text,$ahl->{Status}; 
             goto FOUND;
          }
      }
+         push @text, $hash->{Clock};
          push @text,0;
          push @text,0;
          push @text,"NotFound";
