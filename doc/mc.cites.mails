@@ -15,7 +15,7 @@ jwshin@hep.knu.ac.k                : Jungwook Shin           : 1 :  6 : 0 : :
 alexei@mail.cern.ch                : Alexei Klimentov        : 0 :  2 : 0 : :
 jorge.casaus@cern.ch               : Jorge Casaus            : 1 :  7 : 0 : :
 michele.bourgeat@gamum2.in2p3.fr   : Michele Bourgeat        : 0 :  8 : 0 : :
-zhukov@ekp.physik.uni-karlsruhe.de : Valery Zhukov           : 1 :  9 : 0 : :
+zhukov@ekp.physik.uni-karlsruhe.de : Valery Zhukov           : 0 :  9 : 0 : :
 barao@lip.pt                       : Fernando Barao          : 1 : 10 : 0 : :
 schol@mit.edu                      : Kate Scholberg          : 1 : 11 : 0 : :
 paolo.zuccon@pg.infn.it            : Paolo Zuccon            : 1 : 12 : 0 : :
@@ -29,6 +29,7 @@ alexandre.eline@cern.ch            : Alexandre Eline         : 0 :  1 : 0 : :
 alexandre.malinine@cern.ch         : Alexandre Malinine      : 1 : 16 : 0 : :
 chikanian@hepmail.physics.yale.edu : Alexei Chikanian        : 1 : 17 : 0 : : 
 rochelle.lauer@yale.edu            : Rochelle Lauer          : 0 : 17 : 0 : :
+amssoft@ekp.physik.uni-karlsruhe.de: ams ekp                 : 1 :  9 : 0 : :
 #----------------------------------------------------------------------------
 #                                                                         Last Edit : Apr 23, 2003
 # CITES
@@ -39,7 +40,7 @@ CERN                                   : cern     :  1  :  0   : local  : /f2use
 Test                                   : test     :  2  :  0   : remote : /f2users/scratch/MC : 12 :
 INFN Bologna                           : bolo     :  3  :  0   : remote : /f2users/scratch/MC :  6 :
 ETH Zurich                             : ethz     :  4  :  0   : remote : /f2users/scratch/MC : 20 :
-INFN Milano                            : mila     :  5  :  0   : remote : /f2users/scratch/MC : 35 :
+INFN Milano                            : milano   :  5  :  0   : remote : /f2users/scratch/MC : 35 :
 Kyungpook Nat. Univ.                   : knu      :  6  :  0   : remote : /f2users/scratch/MC :  6 :
 CIEMAT Madrid                          : ciemat   :  7  :  0   : remote : /f2users/scratch/MC : 27 :
 Groupe d Astroparticules de Montpellier : gam     :  8  :  0   : remote : /f2users/scratch/MC : 33 :
