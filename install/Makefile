@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.1 2003/11/10 09:39:53 choutko Exp $
+#  $Id: Makefile,v 1.2 2003/12/11 16:14:36 choutko Exp $
 
 #rl october 2003
 
@@ -227,7 +227,7 @@ $(BIN)rootdict.C:    ../include/linkdef.h  ../include/root_RV.h ../include/root.
 	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c ../include/root_RV.h ../include/linkdef.h
 	@echo "OK"
 
-$(BIN)rootdict_s.C:    ../include/linkdef.h  ../include/root_RVS.h ../include/root.h
+$(BIN)rootdict_s.C:    ../include/linkdef.h  ../include/root_RVS.h ../include/root.h ../include/root_methods.h
 	@echo "Generating dictionary"
 	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c ../include/root_RVS.h ../include/linkdef.h
 	@echo "OK"
@@ -285,6 +285,9 @@ endif
 
 ../F/flinit.F:      $(CERNSRCDIR)/src/geant321/fiface/flinit.F
 	sed  "s?OPEN(UNIT=LUNERR,FILE='flukaerr.dat'?OPEN(UNIT=LUNERR,FILE='/dev/null'?g"  $(CERNSRCDIR)/src/geant321/fiface/flinit.F > ../F/flinit.F
+
+../include/root_methods.h:      ../perl/root.perl
+	perl ../perl/root.perl
 
 ../F/grfile.F:      $(CERNSRCDIR)/src/geant321/giopa/grfile.F
 	sed  "s/NQUOT=1000/NQUOT=32000/g"  /$(CERNSRCDIR)/src/geant321/giopa/grfile.F > ../F/grfile.F

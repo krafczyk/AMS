@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.119 2003/12/10 15:54:51 choutko Exp $
+//  $Id: root.h,v 1.120 2003/12/11 16:14:28 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -1879,6 +1879,13 @@ public:
 public:
  
   HeaderR  fHeader;  ///<  Event Header \sa HeaderR
+
+// Some functions for inter root
+//
+#ifdef __ROOTSHAREDLIBRARY__
+#include <root_methods.h>
+#endif
+
 
 
 int Version() const {return fHeader.Version/4;} ///< \return producer version number
