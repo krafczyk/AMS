@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.230 2002/09/06 15:40:57 choutko Exp $
+#  $Id: Mopt,v 1.231 2002/09/09 09:44:31 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -251,7 +251,6 @@ CFLAGS=      $(CFLAGSB)
 CFLAGSTOFSIM= $(CFLAGS)
 CFLAGSn=      $(CFLAGS)
 CFLAGSDAQ=    $(CFLAGS)
-CFLAGSn+= -D_GCCIFC_
 FFLAGS=     -fp_port  -g -I../include   $(PFLAGS)
 FFLAGSn=    -fp_port   -g -I../include   $(PFLAGS)
 FFLAGS=     -D__ICC__ -tpp6 -mp1 -xi -fp_port  -g -I../include   $(PFLAGS)
@@ -261,11 +260,13 @@ CFLAGSTOFSIM= $(CFLAGSB)     -O1
 CFLAGSDAQ=    $(CFLAGSB) -O2
 CFLAGSn=      $(CFLAGSB) -O2
 CFLAGS=      $(CFLAGSB) -O3
-CFLAGSn+= -D_GCCIFC_
 FFLAGS=    -fp_port  -O3 -I../include  $(PFLAGS)
 FFLAGSn=   -fp_port  -O   -I../include  $(PFLAGS)
 FFLAGS=    -D__ICC__ -tpp6 -mp1 -xi -fp_port  -O3 -I../include  $(PFLAGS)
 FFLAGSn=   -D__ICC__ -tpp6 -mp1 -xi -fp_port  -O   -I../include  $(PFLAGS)
+endif
+ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
+CFLAGSn+= -D_GCCIFC_
 endif
 
 else
