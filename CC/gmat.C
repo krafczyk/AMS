@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.62 2001/03/06 16:37:02 choumilo Exp $
+//  $Id: gmat.C,v 1.63 2001/05/24 08:31:38 kscholbe Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -328,12 +328,18 @@ mat.add (new AMSgmat("ECALPALUM",26.98, 13., 1.35, 17.8, 74.4));
 {
  // TRD Materials by V. Choutko - probably wrong ones
 
-  // HC 3% X0
+  // Honeycomb for top and bottom plates
+
 geant rho=0.032;
 mat.add (new AMSgmat( "TRDHC",26.98, 13., rho, 24./rho, 106/rho));
 
+  // Honeycomb for side walls
+rho=0.050;
+mat.add (new AMSgmat( "TRDHCWall",26.98, 13., rho, 24./rho, 106/rho));
+
+
  // CF  (2.25 % X0)
-rho=1.6;
+rho=1.65;
 mat.add (new AMSgmat("TRDCarbonFiber", 12.01, 6., rho , 42.7/rho, 86.3/rho));
 
 // Gas (Xe/CO2) (80/20) 1.1% X0
@@ -665,6 +671,7 @@ uwbuf[1]=TRDMCFFKEY.mode;
 uwbuf[3]=0;
 uwbuf[4]=0;
 tmed.add (new AMSgtmed("TRDHC","TRDHC",0));
+tmed.add (new AMSgtmed("TRDHCWall","TRDHCWall",0));
 tmed.add (new AMSgtmed("TRDCarbonFiber","TRDCarbonFiber",0));
 
 

@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.18 2001/05/05 19:48:54 kscholbe Exp $
+//  $Id: trddbc.C,v 1.19 2001/05/24 08:31:39 kscholbe Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -6,7 +6,7 @@
 using namespace trdconst;
 char * TRDDBc::_OctagonMedia[maxo]={"TRDCarbonFiber", "TRDCarbonFiber",
 "TRDCarbonFiber","TRDCarbonFiber","TRDCarbonFiber","TRDHC","TRDHC",
-"TRDHC","TRDRadiator"};
+"TRDHCWall","TRDRadiator"};
 char * TRDDBc::_BulkheadsMedia="TRDCarbonFiber";
 char * TRDDBc::_CutoutsMedia="VACUUM";
 char * TRDDBc::_TubesMedia="TRDCapton";
