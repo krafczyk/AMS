@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.3 2002/09/04 09:11:34 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.4 2003/02/21 16:23:37 choumilo Exp $
 #include <typedefs.h>
 #include <tofdbc02.h>  
 //  Some classes for calibrations. E.Choumilov
@@ -9,16 +9,11 @@ private:
   static geant slope;
   static geant tzero[TOF2GC::SCLRS][TOF2GC::SCMXBR];
   static number s1;
-  static number s2;
   static number s3[TOF2GC::SCLRS][TOF2GC::SCMXBR];
   static number s4;
-  static number s5;
   static number s6[TOF2GC::SCLRS-1][TOF2GC::SCMXBR];
   static number s7[TOF2GC::SCMXBR];
   static number s8;
-  static number s9[TOF2GC::SCLRS-1][TOF2GC::SCMXBR];
-  static number s10[TOF2GC::SCMXBR];
-  static number s11;
   static number s12[TOF2GC::SCMXBR][TOF2GC::SCMXBR];
   static number s13[TOF2GC::SCMXBR][TOF2GC::SCMXBR];
   static number s14[TOF2GC::SCMXBR][TOF2GC::SCMXBR];
@@ -31,11 +26,8 @@ public:
     int i,j,il,ib;
     slope=0.;
     s1=0.;
-    s2=0.;
     s4=0.;
-    s5=0.;
     s8=0.;
-    s11=0.;
     events=0.;
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       for(il=0;il<TOF2GC::SCLRS;il++){
@@ -44,11 +36,9 @@ public:
       }
       for(i=0;i<(TOF2GC::SCLRS-1);i++){
         s6[i][ib]=0.;
-        s9[i][ib]=0.;
         s15[i][ib]=0.;
       }
       s7[ib]=0.;
-      s10[ib]=0.;
       s16[ib]=0.;
       for(j=0;j<TOF2GC::SCMXBR;j++){
         s12[ib][j]=0.;
@@ -57,7 +47,7 @@ public:
       }
     }
   };
-  static void fill(number beta,int ib[4],number tld[3],number tdi[3],number dum[3]);
+  static void fill(int ib[4],number tdi[3],number dum[3]);
   static void mfun(int &np, number grad[],number &f,number x[],int &flg,int &dum);
   static void mfit();
   static void select();

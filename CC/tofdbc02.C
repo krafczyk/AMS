@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.17 2002/12/06 14:43:20 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.18 2003/02/21 16:23:26 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -1732,7 +1732,7 @@ void TOF2JobStat::printstat(){
     printf(" TZSl: Anti,Bet,Spks,Qtr OK: % 6d\n",recount[8]);
     printf(" TZSl: Tracker mom. OK     : % 6d\n",recount[9]);
     printf(" TZSl: TOF-Tr.match. OK    : % 6d\n",recount[10]);
-    printf(" TZSl: TOF-self.match. OK  : % 6d\n",recount[20]);
+    printf(" TZSl: TOF-track quality OK: % 6d\n",recount[20]);
     printf(" Entries to AMPL-calibr.   : % 6d\n",recount[11]);
     printf(" AMPL: multiplicity OK     : % 6d\n",recount[12]);
     printf(" AMPL: noANTI,no albedo    : % 6d\n",recount[13]);
