@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.43 2001/02/15 10:59:30 choutko Exp $
+//  $Id: server.C,v 1.44 2001/02/18 15:06:43 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -3029,7 +3029,7 @@ void Producer_impl::RunFailed(const DPS::Client::ActiveClient & acv){
     }
 
 for(DSTLI ni=_dst.begin();ni!=_dst.end();++ni){
- if( ((*ni).second)->Run==Run){
+ if( ((*ni).second)->Run==Run && ((*ni).second)->Status!=Success){
   ((*ni).second)->Status=Failure;
    
   PropagateDST((*ni).second,DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.32 2001/02/12 10:32:37 choutko Exp $
+//  $Id: producer.C,v 1.33 2001/02/18 15:06:43 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -413,9 +413,11 @@ _ExitInProgress=true;
 _pid.Status=AMSClient::_error.ExitReason();
 for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
 try{
-if(!CORBA::is_nil(*li))
+if(!CORBA::is_nil(*li)){
 (*li)->Exiting(_pid,(message?message:AMSClient::_error.getMessage()),AMSClient::_error.ExitReason());
+cout <<" exiting ok"<<endl;
 break;
+}
 }
 catch  (CORBA::SystemException & a){}
 }

@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.15 2001/02/08 09:31:21 choutko Exp $
+//  $Id: client.C,v 1.16 2001/02/18 15:06:42 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -377,3 +377,8 @@ void AMSClient::resetdbfile(){
   if(_DBFileName)delete [] _DBFileName;
   _DBFileName= 0;
 }
+
+
+
+
+
