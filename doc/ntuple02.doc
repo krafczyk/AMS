@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.5 2001/01/22 17:00:57 vitali Exp $
+#  $Id: ntuple02.doc,v 1.6 2001/02/19 22:16:17 kscholbe Exp $
 This is AMS02 Ntuple Description
 
  *****************************************
@@ -37,18 +37,19 @@ This is AMS02 Ntuple Description
 * I*4  *           * EVENTH   * TrMCClusters     // No of Tr MC hits
 * I*4  *           * EVENTH   * TOFClusters      // No of TOF Clusters
 * I*4  *           * EVENTH   * TOFMCClusters    // No of TOF MC Hits
-* I*4  *           * EVENTH   * RICHits          // No of RICH Hits
-* I*4  *           * EVENTH   * RICMCClusters    // No of RICH MC clusters
 * I*4  *           * EVENTH   * AntiMCClusters   // No of Anti MC Hits
+* I*4  *           * EVENTH   * TrdMCClusters    // No of TRD MC Clusters
 * I*4  *           * EVENTH   * AntiClusters     // No of Anti clusters
 * I*4  *           * EVENTH   * EcalClusters     // No of ECAL Clusters
 * I*4  *           * EVENTH   * EcalHits         // No of ECAL Hits
+* I*4  *           * EVENTH   * RICMCClusters    // No of RICH MC clusters
+* I*4  *           * EVENTH   * RICHits          // No of RICH Hits
 * I*4  *           * EVENTH   * EventStatus(2)   // EventStatus 
 						 // (see status.doc)
 
 
 * I*4  * [0,10]    * BETA     * nbeta              // betas number
-* I*4  *           * BETA     * betastatus         // 4 - ambig
+* I*4  *           * BETA     * betastatus(nbeta)  // 4 - ambig
 * I*4  *           * BETA     * betapattern(nbeta) // beta pattern
 						   // (see beta.doc) 
 * R*4  *           * BETA     * beta(nbeta)        // velocity
@@ -63,7 +64,7 @@ This is AMS02 Ntuple Description
 
 
 * I*4  * [0,10]    * CHARGE   * ncharge                // charges number
-* I*4  *           * CHARGE   * chargestatus           // 1 - refitted
+* I*4  *           * CHARGE   * chargestatus(ncharge)  // 1 - refitted
 * R*4  *           * CHARGE   * chargebetap(ncharge)   //pointer to velocity
 * I*4  *           * CHARGE   * chargetof(ncharge)     // TOF charge
 * I*4  *           * CHARGE   * chargetracker(ncharge) // Tracker Charge
@@ -104,23 +105,16 @@ This is AMS02 Ntuple Description
 * R*4  *           * PARTICLE * thetagl(npart)    // theta global **)
 * R*4  *           * PARTICLE * phigl(npart)      // phi global
 * R*4  *           * PARTICLE * pcoo(3,npart)     // coo  -----------
-* I*4  *           * PARTICLE * atcnbcel(2,npart) // nb of acrossed cells
-* R*4  *           * PARTICLE * atcnbphe(2,npart) // nb of photoelectrons
-* I*4  *           * PARTICLE * atcidcel(2,npart) // cells id           ****)
-* I*4  *           * PARTICLE * atcdispm(2,npart) // PM min. distance   ****)
-* I*4  *           * PARTICLE * atcdaero(2,npart) // Aerogel path length****)
-* I*4  *           * PARTICLE * atcstatu(2,npart) // Bad ATC cells      ****)
 * R*4  *           * PARTICLE * cutoff(npart)     // geomag cutoff in GeV/c
-* R*4  *           * PARTICLE * cooctc(3,2,npart) // tracker extrapol in ctc
 * R*4  *           * PARTICLE * cootof(3,4,npart) // tracker extrapol in tof
 * R*4  *           * PARTICLE * cooanti(3,2,npart)// tracker extrapol in anti
-* R*4  *           * PARTICLE * cootr(3,6,npart)  // tracker extrapol in
-						  // tracker *****)
 * R*4  *           * PARTICLE * cooecal(3,18,npart)// tracker extrapol in 
 						   // each of 18 ECAL planes,
 						   // cooecal(3,ipl,npart)=0
 						   // if no cluster found in
 						   // plane ipl)
+* R*4  *           * PARTICLE * cootr(3,8,npart)  // tracker extrapol in
+						  // tracker *****)
 
 
 * I*4  * [0,20]    * TOFCLUST * ntof             // TOF clusters number
@@ -136,6 +130,7 @@ This is AMS02 Ntuple Description
 * I*4  *           * TOFCLUST * plane(ntof)        // Tof layer no
                                                    // 1..4 up..down
 * I*4  *           * TOFCLUST * bar(ntof)          // TOF bar no
+* I*4  *           * TOFCLUST * nmemb(ntof)        // Number of bars in cluster 
 * R*4  *           * TOFCLUST * TOFEdep(ntof)      // TOF energy loss (MeV)
                                                    // from Anode
 * R*4  *           * TOFCLUST * TOFEdepd(ntof)     // TOF energy loss (MeV)
@@ -144,7 +139,6 @@ This is AMS02 Ntuple Description
 * R*4  *           * TOFCLUST * TOFETime(ntof)     // Error in TOF time
 * R*4  *           * TOFCLUST * TOFCoo(3,ntof)     // TOF Coo (cm)
 * R*4  *           * TOFCLUST * TOFErCoo(3,ntof)   //
-* I*4  *           * TOFCLUST * nmemb(ntof)        // Number of bars in cluster 
 
 
 * I*4  * [0,200]   * TOFMCCLU * ntofmc              // TOF MC hits number
@@ -314,9 +308,8 @@ This is AMS02 Ntuple Description
 
 
  * I*4  * [0,1]    * LVL1     * nlvl1                 // lvl1trigger number
- * I*4  *          * LVL1     * LVL1LifeTime(nlvl1)   // DAQLifeTime *1000
-                                                      // + 10000* (sum tof
-                                                      // temperatutes (8 crates)
+
+ * I*4  *          * LVL1     * mode(nlvl1)           // 
  * I*4  *          * LVL1     * LVL1Flag(nlvl1)       // z from trigger +4/4?10:0
  * I*4  *          * LVL1     * LVL1TOFPatt(4,nlvl1)  // tof pattern
                                                       // 0-13 bit  or
