@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.43 2002/01/08 13:43:51 choutko Exp $
+# $Id: Monitor.pm,v 1.44 2002/02/08 13:48:54 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -48,6 +48,7 @@ my %fields=(
      ok=>0,
      registered=>0,
      updatesviadb=>0,
+     DataMC=>1,
             );
 
 sub new{
@@ -66,6 +67,15 @@ $self->{myref}=$self->{root_poa}->id_to_reference ($id);
 $self->{myior} = $self->{orb}->object_to_string ($self->{myref});
 $self->{ac}= new ActiveClient($self->{myior},$self->{start},$self->{cid});
 
+foreach my $chop  (@ARGV){
+    if($chop =~/^-m/){
+        $self->{DataMC}=0;
+    }
+}
+
+
+
+
     my $mybless=bless $self,$type;
     if(ref($Monitor::Singleton)){
         croak "Only Single Monitor Allowed\n";
@@ -80,9 +90,12 @@ sub Connect{
  my $ior=getior();
  if(not defined $ior){ 
 
-  $ior= shift @ARGV;
-  unshift @ARGV, $ior;
- }
+foreach my $chop  (@ARGV){
+    if($chop =~/^-I/){
+        $ior=unpack("x1 A*",$chop);
+    }
+}
+}
  if( not defined $ior){
   return $ref->{ok};
  } 
@@ -92,7 +105,7 @@ sub Connect{
   $tm = $ref->{orb}->string_to_object($ior);
   $ref->{arsref}=[$tm];
      $ref->{ok}=1;
- }
+}
  catch CORBA::MARSHAL with{
      carp "MARSHAL Error "."\n";
  }
@@ -104,7 +117,7 @@ sub Connect{
  };
  return $ref->{ok};
 
- }
+}
 
 sub ResetFailedRuns{
  my $ref=shift;
@@ -475,8 +488,15 @@ sub getior{
                 next;
             }
             open(FILEO,"<".$fileo) or next;
+            my $datamc=0;
             while (<FILEO>){
-                if (/^IOR:/){
+                if (/^DumpIOR/){
+                    my $tag=substr($_,8,1);
+                    if($tag eq $Monitor::Singleton->{DataMC}){
+                        $datamc=1;
+                    }
+                }  
+                if ($datamc and /^IOR:/){
                     close (FILEO);
                     unlink $file,$fileo;
                     return $_;
@@ -491,7 +511,7 @@ sub getior{
     return getior2();      
 }
 sub getior2{
-    my $file ="/tmp/DumpIOR";
+    my $file ="/tmp/DumpIOR".".$Monitor::Singleton->{MC}";
     open(FILE,"<".$file) or return undef;
             while (<FILE>){
                 if (/^IOR:/){
@@ -776,7 +796,7 @@ sub getruns{
     my @final_text=();
      my $total_cpu=0;
      my $total_ev=0;
-    my @sort=( "Failed","Processing", "Finished","ToBeRerun");
+    my @sort=( "Failed","Processing", "Finished","Allocated", "Foreign","ToBeRerun");
     for my $j (0 ... $#sort){
     for my $i (0 ... $#{$Monitor::Singleton->{rtb}}){
      $#text=-1;
@@ -997,6 +1017,10 @@ int($hash->{CPUNeeded}*10)/10,
 
 sub sendback{
     my ($name, $action, $row,@data) =@_;
+                my $safeact="Update";
+                if($action eq "Delete"){
+                  $safeact=$action;
+              }
     if($name eq "ServerClient"){
         my $ref=$Monitor::Singleton;
         my %nc=%{${$ref->{nsl}}[$row]};
@@ -1080,7 +1104,7 @@ sub sendback{
             try{
                 my $hash_ac=\%ac;
                 my %cid=%{$ac{id}};
-                $arsref->sendAC(\%cid,\$hash_ac,"Update");
+                $arsref->sendAC(\%cid,\$hash_ac,$safeact);
             }
             catch CORBA::SystemException with{
                 warn "sendback corba exc";
@@ -1092,13 +1116,15 @@ sub sendback{
                 my $hash=\%cid;
                 my $hash_ac=\%ac;
             try{
-                $arsref->sendAC($hash,\$hash_ac,"Update");
+                $arsref->sendACPerl($hash,$hash_ac,$safeact);
+#                $arsref->sendAC($hash,\$hash_ac,$safeact);
             }  catch DPS::DBProblem   with{
                 my $e=shift;
                 warn "DBProblem: $e->{message}\n";
             }
             catch CORBA::SystemException with{
-                 $arsref->sendACPerl($hash,$hash_ac,"Update");
+                 $arsref->sendAC($hash,\$hash_ac,$safeact);
+#                 $arsref->sendACPerl($hash,$hash_ac,$safeact);
             };
                 last;
             }
@@ -1432,3 +1458,5 @@ sub SendId{
             };
         }
 }
+
+

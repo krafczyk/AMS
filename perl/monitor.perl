@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: monitor.perl,v 1.6 2001/01/22 10:34:42 vitali Exp $
+#  $Id: monitor.perl,v 1.7 2002/02/08 13:48:46 choutko Exp $
 
 use Error qw(:try);
 use Gtk;
@@ -12,8 +12,6 @@ package main;
 use Error qw(:try);
 use lib::Monitor;
 use lib::monitorUI;
-
-
 
 
 # activate poa and get self ior

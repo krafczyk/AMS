@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.5 2001/02/09 13:08:49 choutko Exp $
+# $Id: DBServer.pm,v 1.6 2002/02/08 13:48:54 choutko Exp $
 
 package DBServer;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -86,6 +86,8 @@ return $mybless;
 sub UpdateEverything{
  my $ref=shift;
  my $arsref;
+ my $sendback=shift;
+ 
  foreach $arsref (@{$ref->{arsref}}){
      my $length;
      my $ahl;
@@ -100,15 +102,19 @@ sub UpdateEverything{
              $ref->{ahls}=$ahl;
          }
          my $maxc=0;
-      ($length,$ahl,$maxc)=$arsref->getACS(\%cid);
-         if($length==0){
+          ($length,$ahl,$maxc)=$arsref->getACS(\%cid);
+          if($length==0){
              $ref->{asl}=undef;
-              
-         }
-         else {
+          }
+          else {
              $ref->{asl}=$ahl;
              $ref->{asl_maxc}=$maxc;
+          }
+         if(defined $sendback and defined $ref->{nhl} and $#{$ref->{nhl}}>=0){
+           my @acl=@{$ref->{nhl}};
+          $arsref->sendNHS(\%cid,\@acl);
          }
+         else{
       ($length,$ahl)=$arsref->getNHS(\%cid);
          if($length==0){
              $ref->{nhl}=undef;
@@ -116,6 +122,12 @@ sub UpdateEverything{
          else {
              $ref->{nhl}=$ahl;
          }
+  }
+         if(defined $sendback and defined $ref->{nsl} and $#{$ref->{nsl}}>=0){
+           my @acl=@{$ref->{nsl}};
+          $arsref->sendNCS(\%cid,\@acl);
+         }
+         else{
         ($length,$ahl)=$arsref->getNC(\%cid);
          if($length==0){
              $ref->{nsl}=undef;
@@ -123,6 +135,12 @@ sub UpdateEverything{
          else {
              $ref->{nsl}=$ahl;
          }
+    }
+         if(defined $sendback and defined $ref->{nkl} and $#{$ref->{nkl}}>=0){
+           my @acl=@{$ref->{nkl}};
+          $arsref->sendNKS(\%cid,\@acl);
+         }
+         else{
         ($length,$ahl)=$arsref->getNK(\%cid);
          if($length==0){
              $ref->{nkl}=undef;
@@ -130,6 +148,15 @@ sub UpdateEverything{
          else {
              $ref->{nkl}=$ahl;
          }
+       }
+         if(defined $sendback and defined $ref->{env} and $#{$ref->{env}}>=0){
+             for my $i (0...$#{$ref->{env}}){
+               my $env=${$ref->{env}}[$i];
+               my @dum=split '=', $env;
+               $arsref->setEnv(\%cid, $dum[0],$dum[1]);               
+             }
+         }
+         else{
         ($length,$ahl)=$arsref->getEnv(\%cid);
          if($length==0){
              $ref->{env}=undef;
@@ -137,6 +164,8 @@ sub UpdateEverything{
          else {
              $ref->{env}=$ahl;
          }
+        }
+            
          my $path="AMSDataDir";
          my $addpath="/DataBase/";
          my ($ok, $dhl)=$arsref->getDBSpace(\%cid,$path,$addpath);
@@ -146,6 +175,32 @@ sub UpdateEverything{
           ($ok, $dhl)=$arsref->getDBSpace(\%cid,$path,$addpath);
          $ref->{rn}=$dhl;
          $cid{Type}="Producer";
+
+
+         if(defined $sendback and defined $ref->{ahlp} and $#{$ref->{ahlp}}>=0){
+
+                 my @acl=@{$ref->{ahlp}};
+          $arsref->sendAHS(\%cid,\@acl);
+         }
+         else{
+       ($length,$ahl)=$arsref->getAHS(\%cid);
+         if($length==0){
+             $ref->{ahlp}=undef;
+         }
+         else {
+             $ref->{ahlp}=$ahl;
+         }
+   }
+
+
+         if(defined $sendback and defined $ref->{acl} and $#{$ref->{acl}}>=0){
+           foreach my $acl (@{$ref->{acl}}){
+               my %ac=%{$acl};
+                my $hash_ac=\%ac;
+                $arsref->sendAC(\%cid,\$hash_ac,"Create");
+           }   
+         }
+         else{
       ($length,$ahl,$maxc)=$arsref->getACS(\%cid);
          if($length==0){
              $ref->{acl}=undef;
@@ -154,13 +209,13 @@ sub UpdateEverything{
              $ref->{acl}=$ahl;
              $ref->{acl_maxc}=$maxc;
          }
-       ($length,$ahl)=$arsref->getAHS(\%cid);
-         if($length==0){
-             $ref->{ahlp}=undef;
+  }
+     warn "in nominal here \n";
+         if(defined $sendback and defined $ref->{ncl} and $#{$ref->{ncl}}>=0){
+                 my @acl=@{$ref->{ncl}};
+          $arsref->sendNCS(\%cid,\@acl);
          }
-         else {
-             $ref->{ahlp}=$ahl;
-         }
+         else{
         ($length,$ahl)=$arsref->getNC(\%cid);
          if($length==0){
              $ref->{ncl}=undef;
@@ -168,6 +223,7 @@ sub UpdateEverything{
          else {
              $ref->{ncl}=$ahl;
          }
+    }
          $cid{Type}="DBServer";
       ($length,$ahl,$maxc)=$arsref->getACS(\%cid);
          if($length==0){
@@ -188,12 +244,13 @@ sub UpdateEverything{
              $ref->{aml_maxc}=$maxc;
          }
          goto NEXT;
-     }
+ }
      catch CORBA::SystemException with{
      };
  }
        return 0;
 NEXT:
+     warn "in rtb here \n";
  foreach $arsref (@{$ref->{arpref}}){
      my $length;
      my $ahl;
@@ -202,6 +259,13 @@ NEXT:
          $cid{Type}="Producer";
 
          my $maxr=0;
+         if(defined $sendback and defined $ref->{rtb} and $#{$ref->{rtb}}>=0){
+             my @rtb=@{$ref->{rtb}};
+       warn " rtb start here \n";
+          $arsref->sendRunEvInfoS(\%cid,\@rtb,$ref->{rtb_maxr});
+       warn " rtb ok here \n";
+         }
+         else{
         ($length,$ahl)=$arsref->getRunEvInfoS(\%cid, \$maxr);
          if($length==0){
              $ref->{rtb}=undef;
@@ -210,7 +274,14 @@ NEXT:
              $ref->{rtb}=$ahl;
              $ref->{rtb_maxr}=$maxr;
          }
-
+    }
+         if(defined $sendback and defined $ref->{dsti} and $#{$ref->{dsti}}>=0){
+             my @dst=@{$ref->{dsti}};
+       warn " in dsti here \n";
+          $arsref->sendDSTInfoS(\%cid,\@dst);
+       warn "  dsti ok here \n";
+         }
+         else{
 
         ($length,$ahl)=$arsref->getDSTInfoS(\%cid);
          if($length==0){
@@ -219,7 +290,14 @@ NEXT:
          else {
              $ref->{dsti}=$ahl;
          }
-         
+    }
+         if(defined $sendback and defined $ref->{dsts} and $#{$ref->{dsts}}>=0){
+             my @dst=@{$ref->{dsts}};
+       warn " in dsts here \n";
+            $arsref->sendDSTS(\%cid,\@dst);
+       warn "  dst ok here \n";
+         }
+         else{
         ($length,$ahl)=$arsref->getDSTS(\%cid);
          if($length==0){
              $ref->{dsts}=undef;
@@ -227,8 +305,8 @@ NEXT:
          else {
              $ref->{dsts}=$ahl;
          }
-
-         goto LAST;
+    }
+          goto LAST;
      }
      catch CORBA::SystemException with{
      };
@@ -408,11 +486,14 @@ foreach my $chop  (@ARGV){
 
 
  my $ref=shift;
+ my $standalone=shift;
  $ref->{cid}->{uid}=$uid;
  $ref->{ok}=0;
- if(not defined $ior){ 
+ if((not defined $standalone) and (not defined $ior)){ 
+     warn "NoIor, Exiting";
      return 0;
  }
+if( defined $ior){
  chomp $ior;
  my $tm={};
  try{
@@ -432,18 +513,23 @@ foreach my $chop  (@ARGV){
  if(not $ref->{ok}){
    return 0;
  }
- if(not $ref->UpdateARS()){
+ if((not defined $standalone) and (not $ref->UpdateARS())){
      $ref->Exiting(" Unable to get ARS From Server ","CInAbort");
      return 0;
  }
+}
    $ref->{dbfile}=$amsprodlogfile;
   if(not $ref->InitDBFile($amsprodlogdir)){
       my $dbfile=$ref->{dbfile};
      $ref->Exiting(" Unable to open  DB File $dbfile","CInAbort");
      return 0;
   }
+if(defined $ior){
   return $ref->SendId();
-
+}
+else{
+    return 1;
+}
 }
 sub InitDBFile{
     my %hash;
@@ -459,6 +545,13 @@ sub InitDBFile{
          $ref=shift;
       }
     if (defined $ref->{dbfile}){
+# check if dbfile already includes full path
+        if($ref->{dbfile} =~/\//){
+        }
+        else{
+         $ref->{dbfile}=$amsprodlogdir."/".$ref->{dbfile};
+     }
+        warn "trying to open dbfile $ref->{dbfile}\n";
       $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
     }
     else{
@@ -536,6 +629,11 @@ sub InitDBFile{
         $ref->{rn}=$hash{rn};
         $ref->{rtb}=$hash{rtb};
         $ref->{rtb_maxr}=$hash{rtb_maxr};
+        warn "db file read\n";
+        if(defined $amsprodlogdir and not $ref->UpdateEverything(1)){
+          $ref->Exiting("Unable to send Tables To Server","CInAbort");
+          return 0;
+        }       
     }
     untie %hash;
     return 1;

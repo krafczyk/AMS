@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.7 2002/01/08 13:43:51 choutko Exp $
+#  $Id: POADBServer.pm,v 1.8 2002/02/08 13:48:54 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -138,9 +138,20 @@ OUT:
            my @sortedrtb=sort prio @{$ref->{rtb}};
             foreach my $rtb (@sortedrtb){
                 $i=$i+1;
-             if ($rtb->{Status} eq "ToBeRerun" ){
-                if($rtb->{History} eq "ToBeRerun"){
-                    $sortedrtb[$i]->{Status}="Processing";
+             if ($rtb->{Status} eq "ToBeRerun" or $cid->{StatusType} eq "OneRunOnly" ){
+                if($rtb->{History} ne "Failed" and ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $rtb->{Run} and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
+   if(($rtb->{Status} eq "Allocated" || $cid->{uid} ne 0) and $rtb->{Status} ne "Foreign"){
+   $sortedrtb[$i]->{Status}="Processing";
+}
+else {
+ $sortedrtb[$i]->{Status}="Allocated";
+}
+  if($cid->{uid} ne 0){
+   $sortedrtb[$i]->{cuid}=$cid->{uid};
+  }
+  else{
+    $sortedrtb[$i]->{cuid}=$rtb->{Run};
+  }
                     $hash{rtb}=\@sortedrtb;
                     untie %hash;
                     return ($rtb,$dv);
@@ -150,9 +161,20 @@ OUT:
             $i=-1;
             foreach my $rtb (@sortedrtb){
                 $i=$i+1;
-             if ($rtb->{Status} eq "ToBeReRun" ){
-                if($rtb->{History} eq "Failed" && $host ne $rtb->{cinfo}->{HostName}){
-                    $sortedrtb[$i]->{Status}="Processing";
+             if ($rtb->{Status} eq "ToBeRerun" or $cid->{StatusType} eq "OneRunOnly"){
+                if($rtb->{History} eq "Failed" && $host ne $rtb->{cinfo}->{HostName} and ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $rtb->{Run} and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
+   if(($rtb->{Status} eq "Allocated" || $cid->{uid} ne 0) and $rtb->{Status} ne "Foreign"){
+   $sortedrtb[$i]->{Status}="Processing";
+}
+else {
+ $sortedrtb[$i]->{Status}="Allocated";
+}
+  if($cid->{uid} ne 0){
+   $sortedrtb[$i]->{cuid}=$cid->{uid};
+  }
+  else{
+    $sortedrtb[$i]->{cuid}=$rtb->{Run};
+  }
                     $hash{rtb}=\@sortedrtb;
                     untie %hash;
                     return ($rtb,$dv);
