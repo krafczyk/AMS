@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.32 2002/03/20 09:43:07 choumilo Exp $          
+#  $Id: Readme.AMS02.1st,v 1.33 2002/03/28 15:22:14 choutko Exp $          
 
 
 0. In the current version only AMS02-setup is supported.
@@ -45,7 +45,9 @@ VI. Access to AMS software
 
    source $Offline/vdev/install/amsvar
 
-
+ NB:  from out of cern cite  computer with afs
+       setenv  Offline /afs/cern.ch/exp/ams/Offline
+       source /afs/cern.ch/exp/ams/lsf/install/amsvar
 
 a) As a user:
 
