@@ -11,7 +11,7 @@
 #include <charge.h> 
 
 class AMSCharge;
-const integer nchargeD=7; // e,p,He...C
+const integer nchargeD=10; // e,p,He...C
 
 class AMSeventD;
 #pragma ooclassref AMSeventD <recevent_ref.h>
