@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.10 2001/12/05 16:48:08 choutko Exp $
+//  $Id: trigger302.C,v 1.11 2001/12/07 11:32:19 choutko Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -14,6 +14,7 @@
 #include <trrawcluster.h>
 #include <trdsim.h>
 #include <ntuple.h>
+using namespace std;
 using namespace trconst;
 using namespace trigger302const;
 void TriggerAuxLVL302::addnoisetk(integer crate){
@@ -1498,18 +1499,20 @@ void TriggerLVL302::TRDAux::build(){
      }
      }
     }
-   if(_NHits[i] &&  z2>z*z){
+   if(_NHits[i]){
     z/=_NHits[i];
     t/=_NHits[i];
     z2/=_NHits[i];
     tz/=_NHits[i];
-    _SegmentFound[i]=true;
-    _Par[i][0]=(tz-t*z)/(z2-z*z);
-    _Par[i][1]=t;
-    _Par[i][2]=z;
-    _Par[i][3]=0.5*TRDDBc::TubeInnerDiameter()/sqrt((z2-z*z)*_NHits[i]);
-    _Par[i][4]=tz;
-    _Par[i][5]=z2;
+    if(z2>z*z){
+     _SegmentFound[i]=true;
+     _Par[i][0]=(tz-t*z)/(z2-z*z);
+     _Par[i][1]=t;
+     _Par[i][2]=z;
+     _Par[i][3]=0.5*TRDDBc::TubeInnerDiameter()/sqrt((z2-z*z)*_NHits[i]);
+     _Par[i][4]=tz;
+     _Par[i][5]=z2;
+    }
   }
    }
    }

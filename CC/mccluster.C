@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.44 2001/04/27 21:49:59 choutko Exp $
+//  $Id: mccluster.C,v 1.45 2001/12/07 11:32:18 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -15,6 +15,7 @@
 #ifdef __G4AMS__
 #include <g4util.h>
 #endif
+using namespace std;
 extern "C" void indetra_();
 
 number AMSEcalMCHit::impoint[2];

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.66 2001/01/22 17:32:19 choutko Exp $
+//  $Id: daqevt.C,v 1.67 2001/12/07 11:32:18 choutko Exp $
 #include <stdio.h>
 #include <daqevt.h>
 #include <event.h>
@@ -335,7 +335,7 @@ integer DAQEvent::read(){
       char * fnam=_getNextFile(Run, Event);
      if(fnam){
       for(;;){
-       fbin.open(fnam,ios::in|binary);
+       fbin.open(fnam,ios::in);
        if(fbin){ 
         cout <<"DAQEvent::read-I-opened file "<<fnam<<endl;
         break;
@@ -363,7 +363,7 @@ integer DAQEvent::read(){
      if(fnam){
      fbin.close();
      for(;;){
-      fbin.open(fnam,ios::in|binary);
+      fbin.open(fnam,ios::in);
       if(fbin){ 
        cout <<"DAQEvent::read-I-opened file "<<fnam<<endl;
        fbin.read(( char*)(l16),sizeof(l16));
@@ -477,16 +477,16 @@ void DAQEvent::initO(integer run){
      // else ost << ofnam<<ends;
      if(fbout)fbout.close();
      if(ofnam[strlen(ofnam)-1]!='/')ost << ofnam<<ends;
-#ifndef __USE_STD_IOSTREAM
-    if((mode/10)%10 ==1)fbout.open(name,ios::out|binary|ios::noreplace);
+#if !defined(__USE_STD_IOSTREAM) && !defined(__STDC_HOSTED__)
+    if((mode/10)%10 ==1)fbout.open(name,ios::out|ios::noreplace);
 #else
-    if((mode/10)%10 ==1)fbout.open(name,ios::out|binary);
+    if((mode/10)%10 ==1)fbout.open(name,ios::out);
 #endif
-    if((mode/10)%10 ==2)fbout.open(name,ios::out|binary|ios::app);
+    if((mode/10)%10 ==2)fbout.open(name,ios::out|ios::app);
      if(fbout){ 
       static char buffer[2048+1];
       // Associate buffer
-#ifdef __USE_STD_IOSTREAM
+#if defined(__USE_STD_IOSTREAM) || defined(__STDC_HOSTED__)
       (fbout.rdbuf())->pubsetbuf(buffer,2048);
 #else
       (fbout.rdbuf())->setbuf(buffer,2048);

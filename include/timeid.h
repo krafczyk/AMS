@@ -1,10 +1,11 @@
-//  $Id: timeid.h,v 1.26 2001/06/14 08:48:21 choutko Exp $
+//  $Id: timeid.h,v 1.27 2001/12/07 11:32:25 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 #include <time.h>
 #include <node.h>
 #include <astring.h>
 #include <list>
+using namespace std;
 struct dirent;
 class AMSTimeID: public AMSNode {
 private:

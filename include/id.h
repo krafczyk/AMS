@@ -1,4 +1,4 @@
-//  $Id: id.h,v 1.6 2001/01/22 17:32:44 choutko Exp $
+//  $Id: id.h,v 1.7 2001/12/07 11:32:25 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSID__
@@ -7,6 +7,7 @@
 #include <strstream.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 class AMSID
 {
  protected:

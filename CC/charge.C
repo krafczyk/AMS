@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.55 2001/01/22 17:32:18 choutko Exp $
+//  $Id: charge.C,v 1.56 2001/12/07 11:32:17 choutko Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -20,6 +20,7 @@
 #include <cern.h>
 #include <trrawcluster.h>
 #include <job.h>
+using namespace std;
 integer AMSCharge::_sec[2]={0,0};
 integer AMSCharge::_min[2]={0,0};
 integer AMSCharge::_hour[2]={0,0};

@@ -1,4 +1,4 @@
-//  $Id: trcalib.C,v 1.51 2001/01/22 17:32:23 choutko Exp $
+//  $Id: trcalib.C,v 1.52 2001/12/07 11:32:19 choutko Exp $
 #include <trcalib.h>
 #include <event.h>
 #include <math.h>
@@ -357,14 +357,14 @@ void AMSTrCalibFit::Fit(){
     int i,j;
     for(i=0;i<mp;i++)x[i]=0;
     _flag=3;
-    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
+    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
     cout << "AMSTrCalibFit::Fit finished "<<ifail<<" "<<f<<endl;
     if(ifail ==0 || ifail==2){
      _flag=2;
      ifail=1;
      number fd;
      integer one(1);
-     e04ccf_(n,x,fd,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,one,ifail,this);
+     e04ccf_(n,x,fd,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,one,ifail,this);
      AMSPoint outc[6];
      AMSPoint outa[6];
      for(i=0;i<6;i++){

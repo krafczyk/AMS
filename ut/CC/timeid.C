@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.72 2001/06/14 08:48:11 choutko Exp $
+//  $Id: timeid.C,v 1.73 2001/12/07 11:32:19 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -210,7 +210,7 @@ if(_Type!=Client){
         ost << "."<<_Insert<<ends;
         fnam+=name;     
     //      }
-    fbin.open((const char *)fnam,ios::out|binary|ios::trunc);
+    fbin.open((const char *)fnam,ios::out|ios::trunc);
     if(fbin){
      uinteger * pdata;
      integer ns=_Nbytes/sizeof(pdata[0])+3;
@@ -293,7 +293,7 @@ if(_Type!=Client){
       fnam+= getid()==0?".0":".1";
       cout <<"AMSTimeID::read-W-Default value for TDV "<<getname()<<" will be used."<<endl;
     }
-    fbin.open((const char *)fnam,ios::in|binary);
+    fbin.open((const char *)fnam,ios::in);
     if(fbin){
      uinteger * pdata;
      integer ns=_Nbytes/sizeof(pdata[0])+3;

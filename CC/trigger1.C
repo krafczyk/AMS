@@ -1,4 +1,4 @@
-//  $Id: trigger1.C,v 1.43 2001/02/14 09:20:42 choutko Exp $
+//  $Id: trigger1.C,v 1.44 2001/12/07 11:32:19 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -13,6 +13,7 @@
 #include <antirec.h>
 #include <ntuple.h>
 #include <mceventg.h>
+using namespace std;
 //
 TriggerLVL1::Scalers TriggerLVL1::_scaler;
 void TriggerLVL1::build(){                        // !!!MC ONLY!!!

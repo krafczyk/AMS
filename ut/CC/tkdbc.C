@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.30 2001/04/27 21:49:59 choutko Exp $
+//  $Id: tkdbc.C,v 1.31 2001/12/07 11:32:19 choutko Exp $
 #include <tkdbc.h>
 #include <amsdbc.h>
 #include <astring.h>
@@ -2105,7 +2105,7 @@ else if (update==3)fnam+=".3";
 else if (update==4)fnam+=".4";
 ofstream iftxt;
 if(update)iftxt.open((const char *)fnam,ios::out|ios::trunc);
-#ifdef __USE_STD_IOSTREAM
+#if defined(__USE_STD_IOSTREAM) || defined(__STDC_HOSTED__)
 else iftxt.open((const char *)fnam,ios::out);
 #else
 else iftxt.open((const char *)fnam,ios::out|ios::noreplace);

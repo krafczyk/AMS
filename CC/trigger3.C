@@ -1,4 +1,4 @@
-//  $Id: trigger3.C,v 1.53 2001/11/13 11:29:52 choutko Exp $
+//  $Id: trigger3.C,v 1.54 2001/12/07 11:32:19 choutko Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofdbc.h>
@@ -12,6 +12,7 @@
 //#include <antirec.h>
 #include <trrawcluster.h>
 #include <ntuple.h>
+using namespace std;
 using namespace trconst;
 void TriggerAuxLVL3::fill(integer crate){
 

@@ -1,4 +1,4 @@
-//  $Id: antirec.C,v 1.31 2001/01/22 17:32:18 choutko Exp $
+//  $Id: antirec.C,v 1.32 2001/12/07 11:32:17 choutko Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -22,6 +22,7 @@
 #include <antirec02.h>
 #include <antirec.h>
 #include <ntuple.h>
+using namespace std;
 //
 //
  integer AMSAntiRawEvent::trpatt=0;

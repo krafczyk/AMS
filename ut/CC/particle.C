@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.105 2001/10/16 09:12:35 choutko Exp $
+//  $Id: particle.C,v 1.106 2001/12/07 11:32:18 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -751,7 +751,7 @@ void AMSParticle::pid(){
     _mom=1/(_Momentum/_Charge*chrg);
     _emom=_ErrMomentum/_Momentum/_Momentum*_Charge/chrg;
     _emom=_emom*_emom;
-    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
+    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
     geant chi2=f;
     prob[i]=PROB(chi2,1);
     prob[i]*=_pcharge->getprobcharge(chrg);

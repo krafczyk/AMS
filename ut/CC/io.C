@@ -1,4 +1,4 @@
-//  $Id: io.C,v 1.24 2001/08/10 12:59:39 choutko Exp $
+//  $Id: io.C,v 1.25 2001/12/07 11:32:18 choutko Exp $
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <io.h>
@@ -114,7 +114,7 @@ void AMSIO::init(integer mode,integer format){
     else if (mode ==3){
 
 
-        fbin.open(fnam,ios::in|binary|ios::ate);
+        fbin.open(fnam,ios::in|ios::ate);
         uinteger fs=0; 
         if(fbin ){
           // Check if fsize is o.k.
@@ -178,21 +178,21 @@ void AMSIO::init(integer mode,integer format){
 
 
 
-     if(fs%sizeof(AMSIO) == 0)fbin.open(fnam,ios::out|binary|ios::app);
+     if(fs%sizeof(AMSIO) == 0)fbin.open(fnam,ios::out|ios::app);
              else {
-               fbin.open(fnam,ios::out|binary|ios::ate);
+               fbin.open(fnam,ios::out|ios::ate);
                fbin.seekg(integer(fbin.tellg())-fs%sizeof(AMSIO));
                cerr <<"AMSIO-init-I-Recovering... "<<endl;
              }
     }
-    else fbin.open(fnam,ios::out|binary|ios::app);
+    else fbin.open(fnam,ios::out|ios::app);
     if(fbin==0){
       cerr<<"AMSIO::init-F-cannot open file "<<fnam<<" in mode "<<mode<<endl;
       exit(1);
     }
     static char buffer[32*sizeof(AMSIO)+1];
     // Associate buffer
-#ifdef __USE_STD_IOSTREAM
+#if defined(__USE_STD_IOSTREAM) || defined(__STDC_HOSTED__)
     (fbin.rdbuf())->pubsetbuf(buffer,32*sizeof(AMSIO));
 #else
     (fbin.rdbuf())->setbuf(buffer,32*sizeof(AMSIO));

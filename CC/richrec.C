@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.26 2001/10/22 14:31:38 mdelgado Exp $
+//  $Id: richrec.C,v 1.27 2001/12/07 11:32:18 choutko Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -822,7 +822,7 @@ void AMSRichRing::rebuild(AMSTrTrack *track){
                                                      mirrored_used,
 						     beta_track,
 						     chi2/geant(beta_used),
-						     1.  //Unused by now
+						     1  //Unused by now
 						     ));
 	
       } else {
@@ -832,7 +832,7 @@ void AMSRichRing::rebuild(AMSTrTrack *track){
 //						     0,
 //						     0.,
 //						     0.,
-//						     0. // Unused by now
+//						     0 // Unused by now
 //						     ));
       }
   

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.389 2001/12/04 15:13:08 choutko Exp $
+// $Id: job.C,v 1.390 2001/12/07 11:32:18 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -382,8 +382,8 @@ TRMCFFKEY.gammaA[0]=-0.3;
 TRMCFFKEY.gammaA[1]=0.1;
 TRMCFFKEY.NonGaussianPart[0]=0;
 TRMCFFKEY.NonGaussianPart[1]=0.1;
-TRMCFFKEY.BadCh[0]=0.02;
-TRMCFFKEY.BadCh[1]=0.02;
+TRMCFFKEY.BadCh[0]=0.01;
+TRMCFFKEY.BadCh[1]=0.01;
 
 TRMCFFKEY.cmn[0]=10;
 TRMCFFKEY.cmn[1]= 6;
@@ -1603,13 +1603,13 @@ for(i=cl-2;i>=0;i--){
 }
 integer ntrig=0;
 integer nold=0;
-integer or=0;
+integer orr=0;
 for (i=0;i<len;i++){
   if(triggername[i]=='|' || triggername[i]=='\0' || triggername[i]=='&'){
     // new trigger found
-       if(triggername[i]=='|')or=1;
+       if(triggername[i]=='|')orr=1;
        triggername[i]='\0';
-       if(i-nold>0)settrigger(triggername+nold,ntrig++,or);
+       if(i-nold>0)settrigger(triggername+nold,ntrig++,orr);
        nold=i+1;
   }
 }
@@ -1657,7 +1657,6 @@ if(AMSFFKEY.Update){
  }
  integer ntdv=0;
  integer nold=0;
- integer or=0;
  for (i=0;i<len;i++){
    if(tdvname[i]=='|' || tdvname[i]=='\0'){
      // new tdv found
@@ -1863,13 +1862,28 @@ void AMSJob::_sitkinitjob(){
              id.clearstatus(~0);
              if(RNDM(d)<TRMCFFKEY.BadCh[l]){
               id.setstatus(AMSDBc::BAD);
-              id.setsig()=HRNDM1(201+l);
+              id.setsig()=0.85*HRNDM1(201+l);
              }
              else{
-              id.setsig()=HRNDM1(101+l);
+              id.setsig()=(l==0?0.76:0.84)*HRNDM1(101+l);
               if(id.getsig()<1){
                id.setstatus(AMSDBc::BAD);
               }
+              else if(id.getsig()>20){
+               id.setsig()=HRNDM1(101+l);
+               if(id.getsig()<1){
+                id.setstatus(AMSDBc::BAD);
+               }
+              }
+              else if(id.getsig()>10){
+               if(RNDM(d)<0.1*(id.getsig()-10)){
+                id.setsig()=HRNDM1(101+l);
+                 if(id.getsig()<1){
+                  id.setstatus(AMSDBc::BAD);
+                 }
+               }
+              }
+               
              } 
              if(TRMCFFKEY.GenerateConst>1)id.setsig()=TRMCFFKEY.sigma[l]*(0.9+0.2*RNDM(d));
              id.setgain()=TRMCFFKEY.gain[l];
@@ -1890,7 +1904,33 @@ void AMSJob::_sitkinitjob(){
   HDELET(102);
   HDELET(201);
   HDELET(202);
+      HBOOK1(101,"sigx",800,0.,200.,0.);
+      HBOOK1(102,"sigy",800,0.,200.,0.);
+      HBOOK1(201,"sigx",800,0.,200.,0.);
+      HBOOK1(202,"sigy",800,0.,200.,0.);
+     for(int l=0;l<2;l++){
+       for (int i=0;i<TKDBc::nlay();i++){
+         for (int j=0;j<TKDBc::nlad(i+1);j++){
+           for (int s=0;s<2;s++){
+            AMSTrIdSoft id(i+1,j+1,s,l,0);
+            if(id.dead())continue;
+            for(int k=0;k<TKDBc::NStripsDrp(i+1,l);k++){
+             id.upd(k);
+             float sig=id.getsig();
+             if(id.checkstatus(AMSDBc::BAD)){
+               HF1(201+l,sig,1.);
+             }
+             else {
+               HF1(101+l,sig,1.);
+             }
+            }
+           }
+         }
+       }
+     }
+
   }
+
 else TRMCFFKEY.year[1]=TRMCFFKEY.year[0]-1;
 
    for(int l=0;l<2;l++){
@@ -2531,13 +2571,13 @@ void AMSJob::setsetup(char *setup){
   else strcpy(_Setup,"AMSSHUTTLE");   //defaults
   
 }
-void AMSJob::settrigger(char *setup, integer N,integer or){
+void AMSJob::settrigger(char *setup, integer N,integer orr){
   assert(N < maxtrig);
   if(setup){
     strcpy(_TriggerC[N],setup);
   }
   _TriggerI=1;
-  _TriggerOr=or;
+  _TriggerOr=orr;
   _TriggerN=N+1;
 }
 void AMSJob::settdv(char *setup, integer N){

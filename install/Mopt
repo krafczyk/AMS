@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.201 2001/11/13 11:30:02 choutko Exp $
+#  $Id: Mopt,v 1.202 2001/12/07 11:32:25 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -407,7 +407,7 @@ $(BIN)amsdbc.o:         $(SCC)amsdbc.C
 	$(CC) -c $(CFLAGS) $(SCC)amsdbc.C -o $(BIN)amsdbc.o
 
 $(BIN)tkdbc.o:         $(SCC)tkdbc.C
-	$(CC) -c $(CFLAGS) $(SCC)tkdbc.C -o $(BIN)tkdbc.o
+	$(CC) -c $(CFLAGS)  $(SCC)tkdbc.C -o $(BIN)tkdbc.o
 
 $(BIN)trddbc.o:         $(SCC)trddbc.C
 	$(CC) -c $(CFLAGS) $(SCC)trddbc.C -o $(BIN)trddbc.o
@@ -549,10 +549,10 @@ $(BIN)uzstat.o: 	 $(SCC)uzstat.C
 	$(CC) -c $(CFLAGS) $(SCC)uzstat.C -o $(BIN)uzstat.o
 
 $(BIN)io.o: 	 $(SCC)io.C
-	$(CC) -c $(CFLAGS) $(SCC)io.C -o $(BIN)io.o
+	$(CC) -c $(CFLAGS)  $(SCC)io.C -o $(BIN)io.o
 
 $(BIN)daqevt.o: 	 $(SCC)daqevt.C
-	$(CC) -c $(CFLAGSDAQ) $(SCC)daqevt.C -o $(BIN)daqevt.o
+	$(CC) -c $(CFLAGSDAQ)   $(SCC)daqevt.C -o $(BIN)daqevt.o
 
 $(BIN)commons.o: 	 $(SCC)commons.C
 	$(CC) -c $(CFLAGS) $(SCC)commons.C -o $(BIN)commons.o

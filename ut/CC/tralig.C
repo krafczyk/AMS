@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.27 2001/01/22 17:32:23 choutko Exp $
+//  $Id: tralig.C,v 1.28 2001/12/07 11:32:19 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -405,7 +405,7 @@ if(forced==0){
      integer found=0;
       while(pal){
         nnodes++;
-        if(pal->AddressOK(ptrack->getaddress(),TRALIG.Cuts[9][0])){
+        if(pal->AddressOK(ptrack->getaddress(),int(TRALIG.Cuts[9][0]))){
            if(pal->_PositionData<pal->_NData)(pal->_pData[(pal->_PositionData)++]).Init(ptr,ptrg);
            if(pal->AddressOK(ptrack->getaddress(),1))found=1;
            else if(found==0)found=-1;
@@ -591,7 +591,7 @@ void AMSTrAligFit::Fit(){
     int i,j;
     for(i=0;i<mp;i++)x[i]=0;
     _flag=3;
-    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
+    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
     for(i=0;i<mp;i++)x[i]=0;
      _pfitbefore=_tmppav;
      ifail=0;
@@ -599,14 +599,14 @@ void AMSTrAligFit::Fit(){
       ifail=1;
       maxcal=2000;
       _flag=0;
-      e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
+      e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
       cout << "AMSTrAligFit::Fit finished "<<ifail<<" "<<f<<endl;
       if(ifail ==0 ){
        _flag=2;
        ifail=1;
        number fd;
        integer one(1);
-       e04ccf_(n,x,fd,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,one,ifail,this);
+       e04ccf_(n,x,fd,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,one,ifail,this);
        ifail=0;    
       }
      }
@@ -663,14 +663,14 @@ void AMSTrAligFit::Fitgl(){
     int i,j;
     for(i=0;i<mp;i++)x[i]=0;
     _flag=3;
-    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
+    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
     cout << "AMSTrAligFit::Fit finished "<<ifail<<" "<<f<<endl;
     if(ifail ==0 || ifail==2){
      _flag=2;
      ifail=1;
      number fd;
      integer one(1);
-     e04ccf_(n,x,fd,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,one,ifail,this);
+     e04ccf_(n,x,fd,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,one,ifail,this);
      AMSPoint outc[maxlad][2][6];
      AMSPoint outa[maxlad][2][6];
      for(i=0;i<maxlad;i++){ 

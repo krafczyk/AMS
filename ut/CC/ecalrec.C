@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.37 2001/12/04 10:36:17 choumilo Exp $
+//  $Id: ecalrec.C,v 1.38 2001/12/07 11:32:18 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -20,6 +20,7 @@
 #include <mccluster.h>
 #include <trigger102.h>
 #include <trigger3.h>
+using namespace std;
 using namespace ecalconst;
 //
 uinteger AMSEcalRawEvent::trigfl=0;// just memory reservation/initialization for static
@@ -1629,7 +1630,7 @@ void EcalShower::EnergyFit(){
     x[1]=_Dz*_ShowerMax;
     x[2]=1;
      _Direction=0;
-    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
+    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
      if(ifail==0){
      _ProfilePar[0]=x[0];    
      _ProfilePar[1]=x[1];    
@@ -1639,7 +1640,7 @@ void EcalShower::EnergyFit(){
     integer one=1;
     _iflag=3;
     ifail=1;
-    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,one,ifail,this);
+    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,one,ifail,this);
 
 // Leak Estimation
     const integer lwc=1000;
@@ -1658,7 +1659,7 @@ void EcalShower::EnergyFit(){
     inf=1;
     int liw=liwc;
     int lw=lwc;
-    d01amf_(psalfun, bound, inf, epsa, epsr,result,abserr,ww,lw,iww,liw,ifail,this);
+    d01amf_((void*)psalfun, bound, inf, epsa, epsr,result,abserr,ww,lw,iww,liw,ifail,this);
     if(ifail==0){
      _ProfilePar[3]=result;
     }
@@ -1685,7 +1686,7 @@ void EcalShower::EnergyFit(){
     x[1]=_Dz*(Maxrow-_ShowerMax);
     x[2]=1;
     ifail=1;
-    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
+    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
 //    cout << "ecalshower::profilefit finished "<<ifail<<" "<<f<<endl;
     if(ifail==0){
      _ProfilePar[5]=x[0];    
@@ -1709,7 +1710,7 @@ void EcalShower::EnergyFit(){
       }
     }
      ifail=1;
-     d01amf_(psalfun, bound, inf, epsa, epsr,result,abserr,ww,lw,iww,liw,ifail,this);
+     d01amf_((void*)psalfun, bound, inf, epsa, epsr,result,abserr,ww,lw,iww,liw,ifail,this);
      if(ifail==0){
       _ProfilePar[8]=result;
      }
@@ -1725,7 +1726,7 @@ void EcalShower::EnergyFit(){
      _iflag=3;
      ifail=1;
      integer one=1;
-     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,one,ifail,this);
+     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,one,ifail,this);
      _Direction=1;
     }        
 }
@@ -1870,7 +1871,7 @@ for(int i=0;i<3;i++)_TransFitPar[i]=0;
     x[1]=3;
     x[2]=0.1;
     x[3]=0.5;
-    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
+    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
     _TransFitPar[0]=x[1]!=0?1/x[1]:FLT_MAX;
     _TransFitPar[1]=x[3]!=0?1/x[3]:FLT_MAX;
     _TransFitPar[2]=x[2];
