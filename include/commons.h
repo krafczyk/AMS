@@ -440,6 +440,7 @@ public:
   geant ProbMin;
   integer TrackerOnly;
   integer ChrgMaxAnode;
+  integer BetaPowAnode;
   integer TrackerForceSK;
   geant TrackerKSRatio;
 };

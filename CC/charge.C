@@ -96,6 +96,7 @@ integer AMSCharge::build(integer refit){
     CHARGEFITFFKEY.ResCut[1]=-1.;     // no incompatible Tracker clus exclusion
     CHARGEFITFFKEY.TrMeanRes=0;       // calculate truncated mean
     CHARGEFITFFKEY.ChrgMaxAnode=10;   // no use of dynodes for TOF charge 
+    CHARGEFITFFKEY.BetaPowAnode=0;    // no corr. on anode beta dependence for z>1
     CHARGEFITFFKEY.TrackerForceSK=1;  // force tracker hit energies to be x+y
     CHARGEFITFFKEY.TrackerKSRatio=1.; // average x/y tracker energy ratio
     static first=1;
@@ -106,6 +107,7 @@ integer AMSCharge::build(integer refit){
           <<" ResCut[1]: "<<CHARGEFITFFKEY.ResCut[1]<<endl
           <<" TrMeanRes: "<<CHARGEFITFFKEY.TrMeanRes<<endl
           <<" ChrgMaxAnode: "<<CHARGEFITFFKEY.ChrgMaxAnode<<endl
+          <<" BetaPowAnode: "<<CHARGEFITFFKEY.BetaPowAnode<<endl
           <<" TrackerForceSK: "<<CHARGEFITFFKEY.TrackerForceSK<<endl
           <<" TrackerKSRatio: "<<CHARGEFITFFKEY.TrackerKSRatio<<endl;
     }
@@ -446,7 +448,8 @@ void AMSCharge::lkhcalc(int mode, number beta, int nhit, number ehit[], int type
         step=mode?_lkhdStepTracker[type][i]:_lkhdStepTOF[type][i];
         slop=mode?_lkhdSlopTracker[type][i]:_lkhdSlopTOF[type][i];
         norm=mode?_lkhdNormTracker[type][i]:_lkhdNormTOF[type][i];
-        betapow=(!mode && !type && chg>1)?7./6:5./3;
+        betapow=(!mode && !type && chg>1 && CHARGEFITFFKEY.BetaPowAnode)?7./6:5./3;
+        betapow=5./3;
         betacor=i?pow(min(fabs(beta/betamax),1.),betapow):1;
         int ia=(int)floor(ehit[j]*betacor/step);
         if(ia<0) ia=0;

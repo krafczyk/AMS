@@ -473,9 +473,10 @@ R14 ProbMin(0.01)        // minimum value for TOF and trk charge probs to be com
                             into particle charge
 I15 TrackerOnly(8)       // use only tracker charge if TOF charge is above this value
 I16 ChrgMaxAnode(3)      // use dynodes for TOF charge above this value
-I17 TrackerForceSK(0)    // if<>0 force tracker hit energies to be x+y (overwrites
+I17 BetaPowAnode(1)      // correction on anode beta dependence for z>1
+I18 TrackerForceSK(0)    // if<>0 force tracker hit energies to be x+y (overwrites
                             Tracker datacard defined above)
-R18 TrackerKSRatio(0.67) // average x/y tracker energy ratio (used if TrackerForceSK<>0)
+R19 TrackerKSRatio(0.67) // average x/y tracker energy ratio (used if TrackerForceSK<>0)
 
 *) most incompatible cluster is excluded if Ec-<E>_rest>ResCut*sigma(E_rest)
 
