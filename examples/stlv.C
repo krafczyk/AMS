@@ -102,16 +102,15 @@ void stlv::ProcessFill(Int_t entry)
      if(ev.nParticle()>0){
        int ptrack = ev.Particle(0).TrTrack();
        int ptrd = ev.Particle(0).TrdTrack();
-//        cout <<"qq"<<ptrack<<ev.nParticle()<<ev.NParticle()<<" "<<ev.Particle(0).Momentum<<" "<<endl;
        if(ev.NParticle()== 1 && ptrack>=0 && ptrd>=0){ //final if
          acc[1]->Fill(xm,1);
          h1A[1]-> Fill(xm,1);
      
         int pbeta = ev.Particle(0).iBeta();   // here iBeta, not Beta
-       
+        BetaR *pb =  ev.Particle(0).pBeta();   // another way 
         if(pbeta>=0){			//check beta
 	  BetaR Beta=ev.Beta(pbeta);
-          if(fabs(Beta.Beta) < 2 && Beta.Chi2S < 5 && Beta.Pattern < 4){
+          if(fabs(Beta.Beta) < 2 && pb->Chi2S < 5 && Beta.Pattern < 4){
 	    if(ev.nTrdTrack()<2){
 	    Int_t Layer1 =0;
             Int_t Layer2 =0;  

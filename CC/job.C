@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.445 2003/04/09 14:05:07 choumilo Exp $
+// $Id: job.C,v 1.446 2003/05/14 21:42:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2905,7 +2905,8 @@ if(IOPA.hlun && _NtupleActive){
 else AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::Ntuple,ntuple_entries,e,t,true);
 #endif
 }
-else if(IOPA.WriteRoot){
+else if(IOPA.WriteRoot  && _NtupleActive){
+_NtupleActive=false;
 if(_pntuple)_pntuple->endR();
 #ifdef __CORBA__
 int root_entries=_pntuple->getentries();

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.70 2003/05/14 17:00:24 choutko Exp $
+//  $Id: producer.C,v 1.71 2003/05/14 21:42:51 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -117,7 +117,13 @@ again:
      cout <<"   TimeOut sending "<<cput<<endl;
   try{
      if(!((*li)->sendId(_pid,cput))){
-       sleep(10);
+       if(_pid.uid)sleep(10);
+       else{
+        // dieHard
+        AString pc="Server Requested Termination after sendID Because Of ";
+        pc+=(const char*)_pid.Interface;
+        FMessage((const char*)pc,DPS::Client::SInAbort);
+       }
       if(!((*li)->sendId(_pid,cput))){
        // dieHard
        AString pc="Server Requested Termination after sendID Because Of ";
@@ -947,6 +953,7 @@ else FMessage("AMSProducer::sendRunEnd-F-UnableToSendRunEndInfo ",DPS::Client::C
 
 }
 void AMSProducer::sendRunEndMC(){
+if (!_Head)return;
 double error=5./sqrt(double(GCFLAG.IDEVT+1));
 if (error<0.01)error=0.01;
 if(error>0.5)error=0.5;
@@ -954,7 +961,6 @@ if(GCFLAG.NEVENT*(1-error) > GCFLAG.IEVENT+1 || GCFLAG.NEVENT==0){
 _cinfo.Status= DPS::Producer::Failed;
 }
 else _cinfo.Status= DPS::Producer::Finished;
-
     struct timeb  ft;
     ftime(&ft);
     double st=ft.time+ft.millitm/1000.;

@@ -35,6 +35,7 @@ int rootread(char * fname, int nev, int iver){
    if((pev->fHeader.Status[0]/1073741824)%2)nbadev++;
    nevread++;
   }
+  rfile->Close();
   if(nevread!=nev)return -2;
   float rrr=100*float(nbadev)/float(nevread);
   return int(rrr); 
