@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.49 2002/02/26 13:28:09 choutko Exp $
+//  $Id: producer.C,v 1.50 2002/03/14 14:13:19 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -293,8 +293,44 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
 
 ntend->Insert=statbuf.st_ctime;
 ntend->size=statbuf.st_size/1024./1024.+0.5;
+ntend->ErrorNumber=0;
 
+
+// add validation
+const char *exedir=getenv("ExeDir");
+const char *nve=getenv("NtupleValidatorExec");
+if(exedir && nve && AMSCommonsI::getosname()){
+ AString systemc(exedir);
+  systemc+="/";
+  systemc+=AMSCommonsI::getosname();
+  systemc+="/";
+  systemc+=nve;
+  systemc+=" ";
+  systemc+=a(bstart);
+  systemc+=" ";
+  char tmp[80];
+  sprintf(tmp,"%d",ntend->EventNumber);
+  systemc+=tmp;
+  int i=system(systemc);
+  if( (i == 0xff00) || (i & 0xff)){
+// Unable To Check
+  }
+  else{
+    i=(i>>8);
+    if(i/128){
+     ntend->Status=DPS::Producer::Failure;
+    }
+    else{
+     ntend->Status=DPS::Producer::Validated;
+     ntend->ErrorNumber=int(i*ntend->EventNumber/100);
+    }
+  }
+ }
 }
+
+
+
+
 cout << " nt end " <<ntend->Insert<<" "<<ntend->Begin<<" "<<ntend->End<<endl;
 UpdateARS();
 sendDSTInfo();
@@ -374,6 +410,7 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
        a+=":";
      a+=(const char*)fpath.fname;
      ntend->Name=(const char *)a;
+     if(ntend->Status !=DPS::Producer::Failure)ntend->Status=DPS::Producer::Success;
      for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
       try{
        if(!CORBA::is_nil(*li)){
@@ -449,6 +486,7 @@ ntend->Insert=tt;
 ntend->End=0;
 ntend->LastEvent=0;
 ntend->EventNumber=0;
+ntend->ErrorNumber=0;
 ntend->Status=DPS::Producer::InProgress;
 ntend->Type=type;
 ntend->size=0;

@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.21 2002/02/20 17:59:26 choutko Exp $
+//  $Id: client.C,v 1.22 2002/03/14 14:13:19 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -363,6 +363,8 @@ case DPS::Producer::InProgress:
 return "InProgress";
 case DPS::Producer::Failure:
 return "Failure";
+case DPS::Producer::Validated:
+return "Validated";
 }
 return " ";
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: monmcdb.cgi,v 1.1 2002/02/20 17:59:57 choutko Exp $
+#  $Id: monmcdb.cgi,v 1.2 2002/03/14 14:13:32 choutko Exp $
 use Gtk;
 use strict;
 
@@ -12,6 +12,7 @@ unshift @ARGV, $mc;
 my $db="-d ";
 unshift @ARGV, $db;
 
+unshift @ARGV, "-N/cgi-bin/mon/monmcdb.cgi";
 
 
 # activate poa and get self ior

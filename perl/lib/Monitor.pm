@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.48 2002/02/21 12:02:43 choutko Exp $
+# $Id: Monitor.pm,v 1.49 2002/03/14 14:13:32 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -680,7 +680,7 @@ sub getactivehosts{
    }
 #     print "$total $host $lastevt \n";
    push @text, $evt; 
-   push @text, int(1000*$lastevt/$total*$evt/($tevt+1))/10.; 
+   push @text, int(1000*$lastevt/($total+1)*$evt/($tevt+1))/10.; 
    push @text, $err,$cerr; 
      $total_cpu+=$cpu;
      $total_time+=$time;
@@ -877,7 +877,7 @@ sub getntuples{
     my @final_text=();
      my $total_cpu=0;
      my $total_ev=0;
-    my @sort=("Failure","InProgress","Success");
+    my @sort=("Failure","InProgress","Success","Validated");
     for my $j (0 ... $#sort){
     for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
      $#text=-1;

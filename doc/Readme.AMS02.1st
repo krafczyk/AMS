@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.30 2002/03/13 12:05:51 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.31 2002/03/14 14:13:32 choutko Exp $          
 
 
 
@@ -60,7 +60,7 @@ b) As a developper :
       log in ams.cern.ch
       cat ~ams/cvsams/.cvsams
 
-   iv) Either see http://pcamsf0/cgi-bin/viewcvs.cgi/ 
+   iv) Either see http://pcamsf0.cern.ch/cgi-bin/viewcvs.cgi/ 
       with username amscvs and "access from web" password in iii)  or do
       cvs login    (with "interactive access" password)
       cvs checkout AMS  

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.18 2002/03/14 09:22:56 alexei Exp $
+# $Id: RemoteClient.pm,v 1.19 2002/03/14 14:13:32 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -609,6 +609,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
         print $self->{q}->end_form();
    return;
      }
+   my $thrusted=0;
    my $validated=0;
    my $bad=0; 
    my $unchecked=0; 
@@ -640,27 +641,39 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
              $self->{sqlserver}->Update($sql);
 # Find corresponding ntuples
           foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
-              if($ntuple->{Type} eq "Ntuple" and $ntuple->{Status} eq "Success"and $ntuple->{Run}== $run->{Run}){
+              if($ntuple->{Type} eq "Ntuple" and ($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and $ntuple->{Run}== $run->{Run}){
 # suppress double //
                   $ntuple->{Name}=~s/\/\//\//;                  
                   my @fpatha=split ':', $ntuple->{Name};
                   my $fpath=$fpatha[$#fpatha];
                   my $suc=open(FILE,"<".$fpath);
-                  my ($events,$badevents);
+                  my $badevents=$ntuple->{ErrorNumber};
+                  my $events=$ntuple->{EventNumber};
+                  $status="OK";                     
                   if(not $suc){
-                    $status="Unchecked";                     
-                    $events=$ntuple->{EventNumber};
-                    $badevents="NULL";
-                    $unchecked++;
+                      if($ntuple->{Status} ne "Validated"){
+                        $status="Unchecked";                     
+                        $events=$ntuple->{EventNumber};
+                        $badevents="NULL";
+                        $unchecked++;
+                      }
+                      else{
+                        $thrusted++;
+                      }
                   }  
                   else{
                       close FILE;
                       my $i=system("$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber}");
                       if( ($i == 0xff00) or ($i & 0xff)){
+                      if($ntuple->{Status} ne "Validated"){
                        $status="Unchecked";                     
                        $events=$ntuple->{EventNumber};
                        $badevents="NULL";
                        $unchecked++;
+                      }
+                      else{
+                        $thrusted++;
+                      }
                       }
                       else{
                           $i=($i>>8);
@@ -736,7 +749,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
          }
      }
   }
-   $self->InfoPlus("$validated Ntuple(s) Successfully Validated.\n $bad Ntuple(s) Turned Bad.\n $unchecked Ntuples(s) Could Not Be Validated.");
+   $self->InfoPlus("$validated Ntuple(s) Successfully Validated.\n $bad Ntuple(s) Turned Bad.\n $unchecked Ntuples(s) Could Not Be Validated.\n $thrusted Ntuples Could Not be Validated But Assumed  OK.");
         $self->{ok}=1;
     
 }
@@ -1960,12 +1973,23 @@ print qq`
         if($#stag<0){
               $self->ErrorPlus("Unable to find gbatch-orbit on the Server ");
         }
+        $key='ntuplevalidator';
+        $sql="select myvalue from Environment where mykey='".$key."'";
+        $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive ntuplevalidator name from db");
+        }
+         my $nv=$ret->[0][0];
+         my @stag1=stat "$self->{AMSSoftwareDir}/$nv";
+        if($#stag1<0){
+              $self->ErrorPlus("Unable to find $nv on the Server ");
+        }
         my $file2tar;
         my $filedb;
         if($self->{CCT} eq "remote"){
         $filedb="$self->{UploadsDir}/ams02mcdb.tar.gz";
         my @sta = stat $filedb;
-        if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9]){
+        if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9] or $stag1[9] > $sta[9]){
         my $filen="$self->{UploadsDir}/ams02mcdb.tar.$run";
         $key='dbversion';
         $sql="select myvalue from Environment where mykey='".$key."'";
@@ -1985,6 +2009,10 @@ print qq`
          $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatch") ;
           if($i){
               $self->ErrorPlus("Unable to tar gbatch-orbit to $filen ");
+          }
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar $nv to $filen ");
           }
          $i=system("tar -C$self->{CERN_ROOT} -uf $filen lib/flukaaf.dat") ;
           if($i){
@@ -2936,7 +2964,7 @@ sub ht_init{
    $time = localtime;
    print "<tr><td width=100% align=\"right\"><b>Page Update :  $time </b></td><tr>\n";
    my $dbtime = $self->lastDBUpdate();
-   my $time= EpochToDDMMYYHHMMSS($dbtime); 
+   $time= EpochToDDMMYYHHMMSS($dbtime); 
    print "<tr><td width=100% align=\"right\"><b>Last DB Update : $time </b></td><tr>\n";
    print "</table><p></p>\n";
 #

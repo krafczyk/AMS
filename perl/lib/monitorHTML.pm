@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.17 2002/02/21 12:02:43 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.18 2002/03/14 14:13:32 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -28,10 +28,13 @@ my %fields=(
     };
 
 foreach my $chop  (@ARGV){
+    if($chop =~/^-N/){
+       $self->{Name}= unpack("x2 A*",$chop);
+    }
     if($chop =~/^-m/){
-        $self->{Name}="/cgi-bin/mon/monmc.cgi";
+#        $self->{Name}="/cgi-bin/mon/monmc.cgi";
      if ($Monitor::Singleton->{updatesviadb}){
-        $self->{Name}="/cgi-bin/mon/monmcdb.cgi";
+#        $self->{Name}="/cgi-bin/mon/monmcdb.cgi";
         $self->{rc}=1;
      }
     }

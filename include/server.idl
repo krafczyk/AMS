@@ -112,7 +112,7 @@ module DPS{
   interface Producer: Client{
     enum TransferStatus{Begin,Continue,End};
     enum RunStatus{ToBeRerun, Failed,Processing, Finished, Unknown, Allocated,Foreign};
-    enum DSTStatus{Success,InProgress,Failure};
+    enum DSTStatus{Success,InProgress,Failure,Validated};
     enum RunMode{RILO,LILO,RIRO,LIRO};
     enum DSTType{Ntuple,EventTag,RootFile};
     struct TDVTableEntry{
@@ -202,6 +202,7 @@ module DPS{
      long   FirstEvent;
      long   LastEvent;
      long   EventNumber;
+     long   ErrorNumber;
      DSTStatus Status;
      DSTType Type;
      long   size;

@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.42 2002/02/27 16:19:54 mdelgado Exp $
+//  $Id: geant4.C,v 1.43 2002/03/14 14:13:19 choutko Exp $
 #include <job.h>
 #include <event.h>
 #include <trrec.h>
@@ -405,7 +405,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
     GCFLAG.IEOTRI=1;
     GCFLAG.IEORUN=1;
    }
-   if(GCFLAG.IEOTRI)G4RunManager::GetRunManager()->AbortRun();
+   if(GCFLAG.IEOTRI || GCFLAG.IEORUN)G4RunManager::GetRunManager()->AbortRun();
 }
 
 

@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.10 2002/03/14 09:22:56 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.11 2002/03/14 14:13:32 choutko Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -128,7 +128,7 @@ sub Create{
 
     my @tables=("filesystems", "Cites","Mails" ,"Jobs", "Servers", "Runs","Ntuples","DataSets", "Environment");
     my @createtables=("    CREATE TABLE filesystems
-    (fid         CHAR(4) NOT NULL PRIMARY KEY,
+    (fid         CHAR(4) NOT NULL,
      path    CHAR(255),
      totalsize    INT,
      occupied     INT,
@@ -136,7 +136,7 @@ sub Create{
      allowed      INT,
      modetype    CHAR(2))",
      "CREATE TABLE Cites
-     (cid      INT NOT NULL PRIMARY KEY,
+     (cid      INT NOT NULL ,
       name     VARCHAR(64),
       mid      INT,
       status   VARCHAR(255),
@@ -145,7 +145,7 @@ sub Create{
       descr    VARCHAR(255),
       timestamp INT)",
       "CREATE TABLE Mails
-      (mid INT NOT NULL PRIMARY KEY,
+      (mid INT NOT NULL ,
        address VARCHAR(255),
        alias   VARCHAR(255),
        name    VARCHAR(64),
@@ -164,12 +164,12 @@ sub Create{
        time    INT,
        triggers INT,
        timeout  INT,
-       content TEXT(4000) )",
+       content TEXT )",
       "CREATE TABLE Servers
        (dbfilename VARCHAR(255) NOT NULL,
-        IORS   TEXT(4000),
-        IORP   TEXT(4000),
-        IORD   TEXT(4000),
+        IORS   TEXT,
+        IORP   TEXT,
+        IORD   TEXT,
         status VARCHAR(64),
         createtime INT,
         lastupdate INT)",
@@ -220,7 +220,7 @@ sub Create{
          system "rm -f $self->{dbfile}"."/"."$table";
      }
      elsif($self->{dbdriver}=~ m/Oracle/){
-         $createtables[$i] =~ s/TEXT/VARCHAR2/g;
+         $createtables[$i] =~ s/TEXT/VARCHAR2(4000)/g;
      }        
     $dbh->do("drop table ".$tables[$i]);
     my $sth=$dbh->prepare($createtables[$i]) or die "cannot prepare: ".$dbh->errstr();
@@ -238,11 +238,13 @@ sub Create{
     my $cnt  = 0;
     my $sql;
 # initialize 
+     if($self->{dbdriver} =~ m/Oracle/){
     $sql="SELECT COUNT(mykey) FROM Environment";
     $cntr=$self->Query($sql);
     foreach my $ret (@{$cntr}) {
         $cnt = $ret->[0];
     }
+}
     if ($cnt == 0) {
      $dbh->do("insert into Environment values('AMSDataDir','/f2dat1/AMS01/AMSDataDir')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('CERN_ROOT','/cern/2001')") or die "cannot do: ".$dbh->errstr();     
@@ -250,6 +252,7 @@ sub Create{
      $dbh->do("insert into Environment values('AMSSoftwareDir','DataManagement')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('DataSets','DataSets')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('gbatch','exe/linux/gbatch-orbit.exe')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('ntuplevalidator','exe/linux/fastntrd.exe')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('filedb','ams02mcdb.tar')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('dbversion','v3.00')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('AMSProdDir','prod')") or die "cannot do: ".$dbh->errstr();     
@@ -259,11 +262,13 @@ sub Create{
     warn "Table Environment has $cnt entries. Not initialized";
  }
     $cnt = 0;
+   if($self->{dbdriver} =~ m/Oracle/){
     $sql="SELECT COUNT(cid) FROM Cites";
     $cntr=$self->Query($sql);
     foreach my $ret (@{$cntr}) {
         $cnt = $ret->[0];
     }
+}
   if ($cnt == 0) {
    my $time=time();
    my $run=110;
@@ -283,11 +288,13 @@ sub Create{
  }
  
     $cnt = 0;
+     if($self->{dbdriver} =~ m/Oracle/){
     $sql="SELECT COUNT(mid) FROM Mails";
     $cntr=$self->Query($sql);
     foreach my $ret (@{$cntr}) {
         $cnt = $ret->[0];
     }
+}
    if ($cnt == 0) {
     my $address='v.choutko@cern.ch';           
     my $alias='vitali.choutko@cern.ch';

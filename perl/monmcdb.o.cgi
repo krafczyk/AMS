@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: monmc.cgi,v 1.2 2002/03/14 14:13:32 choutko Exp $
+#  $Id: monmcdb.o.cgi,v 1.1 2002/03/14 14:13:32 choutko Exp $
 use Gtk;
 use strict;
 
@@ -7,13 +7,20 @@ use strict;
 use lib::Monitor;
 use lib::monitorHTML;
 
-my $mc="-m";
+my $mc="-m ";
 unshift @ARGV, $mc;
-unshift @ARGV, "-N/cgi-bin/mon/monmc.cgi";
+my $db="-d ";
+unshift @ARGV, $db;
+unshift @ARGV, "-DOracle:";
+unshift @ARGV, "-Famsdb";
+unshift @ARGV, "-N/cgi-bin/mon/monmcdb.o.cgi";
+
+
 
 # activate poa and get self ior
 
 my $monitor=new Monitor();
+
 
 
 #activate CGI

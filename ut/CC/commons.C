@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.178 2002/02/26 13:28:09 choutko Exp $
+//  $Id: commons.C,v 1.179 2002/03/14 14:13:19 choutko Exp $
 
 
 #include <commons.h>
@@ -86,35 +86,38 @@ GCKINE_DEF GCKINE;
 char AMSCommonsI::_version[]="v3.00";
 uinteger AMSCommonsI::_build=1006;
 uinteger AMSCommonsI::_os=0;
+char AMSCommonsI::_osname[255];
 AMSCommonsI::AMSCommonsI(){
   init();
 }
+#include <sys/utsname.h>
 void AMSCommonsI::init(){ 
   if(_Count++==0){
-   char* gtvb=getenv("BINTYPE");
-   if(!gtvb){
-    gtvb=getenv("OSTYPE");
-   }
-   char* gtvh=getenv("HOSTTYPE");
-   if( gtvh){
-     if((strstr(gtvh,"alpha") || strstr(gtvh,"Digital")) && gtvb && strstr(gtvb,"OSF")){
-      cout <<"AMSCommonsI-I-HardwareIdentifiedAs alpha-OSF"<<endl;
+   struct utsname u;
+   uname(&u);
+     if(strstr(u.sysname,"OSF1")){
+      strcpy(_osname,"osf1");
       _os=1;
      }
-     else if((strstr(gtvh,"i386") || strstr(gtvh,"LINUX")) && ((gtvb && strstr(gtvb,"inux"))|| strstr(gtvh,"linux")) ){
-      cout <<"AMSCommonsI-I-HardwareIdentifiedAs i386-linux"<<endl;
+     else if(strstr(u.sysname,"Linux")){
+      strcpy(_osname,"linux");
       _os=2;
+     }
+     else if(strstr(u.sysname,"SunOS")){
+      strcpy(_osname,"sunos");
+      _os=3;
      }
      else {
       _os=0;
-      cerr<<"AMSCommonsI-E-CouldNotMap "<<gtvh <<" "<<gtvb <<endl;
-      cerr<<"Production Job Would Be Aborted"<<endl;
+      _osname[0]='\0';
      }
-   }
-   else{
-    cerr<<"AMSCommonsI-F-either $BINTYPE or $HOSTTYPE not defined "<<endl;
-    abort();
-   }
+     if(_os){
+      cout <<"AMSCommonsI-I-HardwareIdentifiedAs "<< u.sysname<<" "<<u.machine<<endl;
+     }
+     else{
+      cerr<<"AMSCommonsI-E-CouldNotMap "<<u.sysname<<" "<<u.machine<<endl;
+      cerr<<"Production Job Will Be Aborted"<<endl;
+     }
    char dt[128]="/afs/cern.ch/exp/ams/Offline/AMSDataDir";
    char* gtv=getenv("AMSDataDir");
    if(gtv && strlen(gtv)>0){
