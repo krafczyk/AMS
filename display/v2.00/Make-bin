@@ -127,7 +127,7 @@ $(AMSR_SHAREDLIB):  $(OBJS)
 
 $(AMSR_LIB):  $(OBJS)
 	rm -f $@
-	-$(ARLD) -o $@ $^ 
+	-$(ARLD)  $@ $^ 
 	chmod 555 $@
 	@echo "$@ done with $^ linked in"
 

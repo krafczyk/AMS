@@ -1,4 +1,7 @@
-#include <iostream.h>
+#include <libio.h>
+#include <stdiostream.h>
+#include <stdio.h>
+
 #include <stdlib.h>
 class A{
 int _i;
@@ -20,7 +23,7 @@ void A::exc(int i)  {
      A* pa=new A(i);
   }
 catch (int i){
-  cout <<" This version of g++ is OK"<<endl;
+  cerr <<" This version of g++ is OK"<<endl;
 }
 }
 

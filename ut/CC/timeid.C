@@ -443,7 +443,7 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
         for(i=0;i<nptr;i++) {
           int valid=0;
           int kvalid=0;
-          for(int k=strlen((char*)fnam);k<namelist[i]->d_namlen-1;k++){
+          for(int k=strlen((char*)fnam);k<strlen(namelist[i]->d_name);k++){
             if((namelist[i]->d_name)[k]=='.' )valid++;
             if((namelist[i]->d_name)[k]=='.')kvalid=k;
           }

@@ -33,7 +33,7 @@
             endif
            end
            double precision function sitkfint_s(a,b)
-            double precision fdiff,a,b
+            real *8 fdiff,a,b
             if(a.ge.0.and. b.ge.0)then
              sitkfint_s=fdiff(a,0)-fdiff(b,0)
             else if(a.le.0.and.b.le.0)then

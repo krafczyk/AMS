@@ -21,7 +21,7 @@ C
       INTEGER       IKINE,ITRA,ISTAK,IVERT,IPART,ITRTYP,NAPART,IPAOLD
       REAL          PKINE,AMASS,CHARGE,TLIFE,VERT,PVERT
 C
-       common /seed$/seed
+       common /seedC/seed
        integer seed
 
 *-- Random number seed
@@ -228,9 +228,9 @@ c
 CDECK  ID>, ABCR2.  
         subroutine abcr2(i,a_p,z_p,a_t,z_t,p_p)
        parameter (inmat=1000)
-       common /abcross$/sigma_t(inmat),sigma_el(3,inmat),
+       common /abcrossC/sigma_t(inmat),sigma_el(3,inmat),
      +  sigma_q(5,inmat),abinx(inmat),abelx(inmat),abqex(inmat)
-        common /abcr2$/qexnor,anxnor,elxnor,sine,sela,sqel,fsig
+        common /abcr2C/qexnor,anxnor,elxnor,sine,sela,sqel,fsig
        real *4 st,se(3),sq(5)
         if(i.gt.inmat)then
          write(*,*)'ABCR2 - too many media'
@@ -496,9 +496,9 @@ CDECK  ID>, ABSIEL.
 * To generate elastic scattering
 *
        parameter (inmat=1000)
-       common /abcross$/sigma_t(inmat),sigma_el(3,inmat),
+       common /abcrossC/sigma_t(inmat),sigma_el(3,inmat),
      +  sigma_q(5,inmat),abinx(inmat),abelx(inmat),abqex(inmat)
-        common /abcr2$/qexnor,anxnor,elxnor,sine,sela,sqel,fsig
+        common /abcr2C/qexnor,anxnor,elxnor,sine,sela,sqel,fsig
        real *4 pmom_p(5),u(3),pmom_t(6)
        xp=pmom_p(4)
        phi=2*3.14159*rndm(d)
@@ -550,9 +550,9 @@ CDECK  ID>, ABSIQE.
 * Here quasi elastic cross
 *
        parameter (inmat=1000)
-       common /abcross$/sigma_t(inmat),sigma_el(3,inmat),
+       common /abcrossC/sigma_t(inmat),sigma_el(3,inmat),
      +  sigma_q(5,inmat),abinx(inmat),abelx(inmat),abqex(inmat)
-        common /abcr2$/qexnor,anxnor,elxnor,sine,sela,sqel,fsig
+        common /abcr2C/qexnor,anxnor,elxnor,sine,sela,sqel,fsig
        real *4 pmom_p(5),u(3),pmom_t(6)
 *
 *     choose between two exponents.
@@ -837,9 +837,9 @@ C
      +                   ,JTASHO
 C
        parameter (inmat=1000)
-       common /abcross$/sigma_t(inmat),sigma_el(3,inmat),
+       common /abcrossC/sigma_t(inmat),sigma_el(3,inmat),
      +  sigma_q(5,inmat),abinx(inmat),abelx(inmat),abqex(inmat)
-        common /abcr2$/qexnor,anxnor,elxnor,sine,sela,sqel,fsig
+        common /abcr2C/qexnor,anxnor,elxnor,sine,sela,sqel,fsig
       parameter (avogad=6.022e23)
       parameter   (avogmb=1.e27/avogad)
       parameter (xm_proton=0.938)
@@ -1090,11 +1090,11 @@ C
       CHARACTER*132 CHMAIL
 C
        parameter (inmat=1000)
-       common /abcross$/sigma_t(inmat),sigma_el(3,inmat),
+       common /abcrossC/sigma_t(inmat),sigma_el(3,inmat),
      +  sigma_q(5,inmat),abinx(inmat),abelx(inmat),abqex(inmat)
-        common /abcr2$/qexnor,anxnor,elxnor,sine,sela,sqel,fsig
+        common /abcr2C/qexnor,anxnor,elxnor,sine,sela,sqel,fsig
        parameter (maxs=200)
-       common /about$/iseco,e_r(maxs),a_r(maxs)
+       common /aboutC/iseco,e_r(maxs),a_r(maxs)
 CDE, FCONS.
 
       parameter (xm_proton=0.938)
@@ -1333,13 +1333,13 @@ C.
       CALL GSPART(110,'HG202',itrt, 188.13451, 80., 1000., UBUF,0)
       CALL GSPART(111,'PB208',itrt, 193.72907, 82., 1000., UBUF,0)
       CALL GSPART(112,'U238 ',itrt, 221.74295, 92., 1000., UBUF,0)
-      CALL GSPART(45,'DEUTERON$   ',itrt,1.875613,+1.,1.000000E+15,
+      CALL GSPART(45,'DEUTERONC   ',itrt,1.875613,+1.,1.000000E+15,
      +UBUF,0)
-      CALL GSPART(46,'TRITON$     ',itrt,2.80925 ,+1.,1.000000E+15,
+      CALL GSPART(46,'TRITONC     ',itrt,2.80925 ,+1.,1.000000E+15,
      +UBUF,0)
-      CALL GSPART(47,'ALPHA$      ',itrt,3.727417,+2.,1.000000E+15,
+      CALL GSPART(47,'ALPHAC      ',itrt,3.727417,+2.,1.000000E+15,
      +UBUF,0)
-      CALL GSPART(49,'HE3$        ',itrt,2.80923 ,+2.,1.000000E+15,
+      CALL GSPART(49,'HE3C        ',itrt,2.80923 ,+2.,1.000000E+15,
      +UBUF,0)
       CALL GAPIONS(ITRT)
 *
@@ -1412,13 +1412,13 @@ C.
       CALL GSPART(210,'AHG202',ITRT, 188.13451, -80., 1000., UBUF,0)
       CALL GSPART(211,'APB208',ITRT, 193.72907, -82., 1000., UBUF,0)
       CALL GSPART(212,'AU238 ',ITRT, 221.74295, -92., 1000., UBUF,0)
-      CALL GSPART(145,'ADEUTERON$   ',itrt,1.875613,-1.,1.000000E+15,
+      CALL GSPART(145,'ADEUTERONC   ',itrt,1.875613,-1.,1.000000E+15,
      +UBUF,0)
-      CALL GSPART(146,'ATRITON$     ',itrt,2.80925 ,-1.,1.000000E+15,
+      CALL GSPART(146,'ATRITONC     ',itrt,2.80925 ,-1.,1.000000E+15,
      +UBUF,0)
-      CALL GSPART(147,'AALPHA$      ',itrt,3.727417,-2.,1.000000E+15,
+      CALL GSPART(147,'AALPHAC      ',itrt,3.727417,-2.,1.000000E+15,
      +UBUF,0)
-      CALL GSPART(149,'AHE3$        ',itrt,2.80923 ,-2.,1.000000E+15,
+      CALL GSPART(149,'AHE3C        ',itrt,2.80923 ,-2.,1.000000E+15,
      +UBUF,0)
 *
       END
@@ -1464,9 +1464,9 @@ CDE, FCONS.
 CDE, XCSIZE.
 CDE, XCMATM.
        parameter (inmat=1000)
-       common /abcross$/sigma_t(inmat),sigma_el(3,inmat),
+       common /abcrossC/sigma_t(inmat),sigma_el(3,inmat),
      +  sigma_q(5,inmat),abinx(inmat),abelx(inmat),abqex(inmat)
-        common /abcr2$/qexnor,anxnor,elxnor,sine,sela,sqel,fsig
+        common /abcr2C/qexnor,anxnor,elxnor,sine,sela,sqel,fsig
 C.
 C.    ******************************************************************
 C.    *                                                                *
@@ -5408,10 +5408,10 @@ C
 *   2 - average number of falses
 *   3 - distance(cm) from true points
       parameter (nitagm=200)
-      common /zero$/izero,rt
-      common /muon_id$/muon_id
-      common /iopt$/iopt,iopt2
-      common /myfit$/ikal,epsmy,nitermy,iextmy,iprmy,ilh
+      common /zeroC/izero,rt
+      common /muon_idC/muon_id
+      common /ioptC/iopt,iopt2
+      common /myfitC/ikal,epsmy,nitermy,iextmy,iprmy,ilh
       COMMON/CDHSC/xmuen,as1,as2,as3,
      +     rden,ccosr,car,dmax,srk,car2,
      +     a_el,b_el,c_el,i_el,i_wi,a_d,b_d,chi_th,span,
@@ -5434,8 +5434,8 @@ C
 * 315 -eta ; 315 -phi
 
       REAL ISLICE,KB
-      common /xmuon2$/xmuon(10,2),imuon,NIMUON,ixini
-      common /xmuon$/xxmuon(7),vvect(7)
+      common /xmuon2C/xmuon(10,2),imuon,NIMUON,ixini
+      common /xmuonC/xxmuon(7),vvect(7)
         real xxmuon,vvect
         integer icomb(11,5)
 
@@ -5468,13 +5468,13 @@ C
 CDECK  ID>, TKFINI. 
           subroutine tkfini
 
-              common /tkgdef$/tmaxf,smax,fieldmm,cconv,
+              common /tkgdefC/tmaxf,smax,fieldmm,cconv,
      +        maxcal,nitm,xtol,iver,ialg,steps,npars,ims,
      +        bound,scale,cfld,sms,pii
               real *4 tmaxf,smax,fieldmm,bound(2,6),cfld,pii,cconv,
      +        scale(6)
-              common/tftime$/timer(100,2),xtime
-              common /tkcorr$/
+              common/tftimeC/timer(100,2),xtime
+              common /tkcorrC/
      +        xxn(2),vpar2(2,2),vpar(2,2),vxy(2)
               real *8 xxn,vpar2,vpar,vxy
            data ini /0/
@@ -5538,17 +5538,17 @@ CDECK  ID>, TKFITG.
 * by datacard TKFIT 12=0
 *
 
-              common /tkgdef$/tmaxf,smax,fieldmm,cconv,
+              common /tkgdefC/tmaxf,smax,fieldmm,cconv,
      +        maxcal,nitm,xtol,iver,ialg,steps,npars,ims,
      +        bound,scale,cfld,sms,pii
               real *4 tmaxf,smax,fieldmm,bound(2,6),cfld,pii,cconv,
      +        scale(6)
-              common/tftime$/timer(100,2),xtime
-              common /tkcorr$/
+              common/tftimeC/timer(100,2),xtime
+              common /tkcorrC/
      +        xxn(2),vpar2(2,2),vpar(2,2),vxy(2)
               real *8 xxn,vpar2,vpar,vxy
               parameter (maxpl=10)
-              common /tkfrun$/npoint,xp(3,maxpl),ys(3,maxpl),
+              common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
      +        yn(3,maxpl),xmass,chrg
          integer npt
          real xhits(3,*),ysigma(3,*),ynormal(3,*),pinit
@@ -5649,7 +5649,7 @@ CDECK  ID>, TKFITGE.
 *          iprt
 * Output   out(9) ! x0,y0,z0,theta,phi,p,chi2,ier, err(1/p)
 *
-              common/tftime$/timer(100,2),xtime
+              common/tftimeC/timer(100,2),xtime
       COMMON/GCFLAG/IDEBUG,IDEMIN,IDEMAX,ITEST,IDRUN,IDEVT,IEORUN
      +        ,IEOTRI,IEVENT,ISWIT(10),IFINIT(20),NEVENT,NRNDM(2)
       COMMON/GCFLAX/BATCH, NOLOG
@@ -5899,20 +5899,20 @@ c        print *,' Fit failed ',ifail
        out(9)=sqrt(ss(1,1,0))*abs(chrg)
 999         end
           subroutine tkhmd(icase,n,xc,fc,tol,mxcal,ifail,er)
-          common /tkclear$/clear
+          common /tkclearC/clear
           integer clear
 
-              common /tkgdef$/tmaxf,smax,fieldmm,cconv,
+              common /tkgdefC/tmaxf,smax,fieldmm,cconv,
      +        maxcal,nitm,xtol,iver,ialg,steps,npars,ims,
      +        bound,scale,cfld,sms,pii
               real *4 tmaxf,smax,fieldmm,bound(2,6),cfld,pii,cconv,
      +        scale(6)
-              common/tftime$/timer(100,2),xtime
-              common /tkcorr$/
+              common/tftimeC/timer(100,2),xtime
+              common /tkcorrC/
      +        xxn(2),vpar2(2,2),vpar(2,2),vxy(2)
               real *8 xxn,vpar2,vpar,vxy
               parameter (maxpl=10)
-              common /tkfrun$/npoint,xp(3,maxpl),ys(3,maxpl),
+              common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
      +        yn(3,maxpl),xmass,chrg
           real *8 xc(n),fc,tol,dlt
           real *4 point(6)
@@ -6085,13 +6085,13 @@ CDECK  ID>, TKFITPAR.
          real *4 init(7),point(6),out(7)
          real *4 vin(7),der(10)
 
-              common /tkgdef$/tmaxf,smax,fieldmm,cconv,
+              common /tkgdefC/tmaxf,smax,fieldmm,cconv,
      +        maxcal,nitm,xtol,iver,ialg,steps,npars,ims,
      +        bound,scale,cfld,sms,pii
               real *4 tmaxf,smax,fieldmm,bound(2,6),cfld,pii,cconv,
      +        scale(6)
-              common/tftime$/timer(100,2),xtime
-              common /tkcorr$/
+              common/tftimeC/timer(100,2),xtime
+              common /tkcorrC/
      +        xxn(2),vpar2(2,2),vpar(2,2),vxy(2)
               real *8 xxn,vpar2,vpar,vxy
           stept=0
@@ -6236,13 +6236,13 @@ CDECK  ID>, TKFITPARCYL.
          real *4 init(7),point(7),out(7)
          real *4 vin(7),der(10)
 
-              common /tkgdef$/tmaxf,smax,fieldmm,cconv,
+              common /tkgdefC/tmaxf,smax,fieldmm,cconv,
      +        maxcal,nitm,xtol,iver,ialg,steps,npars,ims,
      +        bound,scale,cfld,sms,pii
               real *4 tmaxf,smax,fieldmm,bound(2,6),cfld,pii,cconv,
      +        scale(6)
-              common/tftime$/timer(100,2),xtime
-              common /tkcorr$/
+              common/tftimeC/timer(100,2),xtime
+              common /tkcorrC/
      +        xxn(2),vpar2(2,2),vpar(2,2),vxy(2)
               real *8 xxn,vpar2,vpar,vxy
           stept=0
@@ -6380,7 +6380,7 @@ c          call dmm55(beg(1,1),m55,dum)
 
 CDECK  ID>, TKFUNXY.
           subroutine tkfunxy(in,out,derl)
-          common /tkclear$/clear
+          common /tkclearC/clear
           integer clear
           data clear/1/
           real der(10,2),derl(*)
@@ -6428,7 +6428,7 @@ CDECK  ID>, TKFUNXY.
                end
 CDECK  ID>, TKFLDC. 
           subroutine tkfldc(xx,hxy)
-          common /tkigufld$/i,j,xxy(3)
+          common /tkigufldC/i,j,xxy(3)
           real xx(3),hxy(3,3)
           real *8 xval,hbase,der(14),erest(14),tkigufld
           external tkigufld
@@ -6446,7 +6446,7 @@ CDECK  ID>, TKFLDC.
           enddo
           end
           real *8 function tkigufld(x)
-          common /tkigufld$/i,j,xx(3)
+          common /tkigufldC/i,j,xx(3)
           real h(3)
           real *8 x
           xx(i)=x
@@ -7262,7 +7262,7 @@ c        ENDIF
 CDECK  ID>, TKERMT. 
              function tkermt(pred,meas,sig,ims,xms,cc,aa,bb)
               parameter (maxpl=10)
-              common /tkfrun$/npoint,xp(3,maxpl),ys(3,maxpl),
+              common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
      +        yn(3,maxpl),xmass,chrg
 
              real *4 pred(*),meas(*),sig(*)
@@ -7377,13 +7377,13 @@ C
       COMMON /TRCOM3/ A(5,5), B(5,5), S(15),
      +                TN(3), T(5), COSL, SINL, COSP, SINP, COSL1, NEW
 
-              common /tkgdef$/tmaxf,smax,fieldmm,cconv,
+              common /tkgdefC/tmaxf,smax,fieldmm,cconv,
      +        maxcal,nitm,xtol,iver,ialg,steps,npars,ims,
      +        bound,scale,cfld,sms,pii
               real *4 tmaxf,smax,fieldmm,bound(2,6),cfld,pii,cconv,
      +        scale(6)
-              common/tftime$/timer(100,2),xtime
-              common /tkcorr$/
+              common/tftimeC/timer(100,2),xtime
+              common /tkcorrC/
      +        xxn(2),vpar2(2,2),vpar(2,2),vxy(2)
               real *8 xxn,vpar2,vpar,vxy
 *

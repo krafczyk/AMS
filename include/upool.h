@@ -51,7 +51,7 @@ class AMSuPool {
  integer _length;
  dlink * _prev;
  dlink * _next;
- void * _address;
+ char * _address;
  dlink():_prev(0),_next(0),_length(0),_address(0){}
  ~dlink(){delete[] _address;_address=0;}
  void _erase(integer &nbl )

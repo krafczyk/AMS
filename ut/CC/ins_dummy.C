@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#ifdef  __IBMAIX__    
 extern "C" void setkey(const char* a);
 extern "C" void encrypt(char* a, int n);
 extern "C" char* crypt(const char* a, const char* b);
@@ -14,4 +15,6 @@ extern "C" char* __crypt(const char* a, const char* b){
 extern "C" void __encrypt(char* a, int n){
             encrypt(a,n);
 }
+
+#endif
 

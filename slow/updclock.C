@@ -8,19 +8,22 @@
 #include <math.h>
 #include <fstream.h>
 main(int argc, char* argv[]){
+time_t Time;
         switch (argc) {
         case 1:
          cerr <<"updclock-F-Please give  time diff in sec"<<endl;
-         return 1;
+//         return 1;
+         Time=100;
+           break;
         default:
+         sscanf(argv[1],"%d",&Time);
          break;
         }
-time_t Time;
-        sscanf(argv[1],"%d",&Time);
-ofstream fbin;
-fbin.open("/Offline/vdev/slow/clock");
+ifstream fbin;
+fbin.open("clock");
 if(fbin){
-  fbin << Time<<endl;;
+  fbin >> Time;
+   cout <<"q "<<Time<<endl;
   
 }
 else{

@@ -10,6 +10,8 @@ elif [ "$UNAME" = "HP-UX" ] ; then
     MACHINE="hpux"
 elif [ "$UNAME" = "IRIX" ] ; then
     MACHINE="irix"
+elif [ "$UNAME" = "Linux" ] ; then
+    MACHINE="linux"
 else
 echo $UNAME is not supported yet
 

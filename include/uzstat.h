@@ -14,6 +14,7 @@
 #include <cern.h>
 #include <typedefs.h>
 #include <limits.h>
+#include <math.h>
 #include <node.h>
 #include <snode.h>
 
