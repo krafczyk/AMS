@@ -187,10 +187,10 @@ do{
     u1=2*RNDM(dummy)-1;
     u2=2*RNDM(dummy)-1;
     
-    r=sqrt(u1*u1+u2*u2);
+    r=(u1*u1+u2*u2);
   }while(r>1);
 
-  u2=u1*sqrt(-2*log(r*r)/r/r)*sqrt(sigma_ped*sigma_ped+
+  u2=u1*sqrt(-2*log(r)/r)*sqrt(sigma_ped*sigma_ped+
 				       n_photons*sigma_peak*sigma_peak)+
     n_photons*peak+ped;  
 }while(u2<-2);
