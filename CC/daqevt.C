@@ -454,7 +454,7 @@ void DAQEvent::initO(integer run){
    if(ofnam){
      char name[255];
      ostrstream ost(name,sizeof(name));
-     ost << ofnam<<"."<<run<<ends;
+     ost << ofnam<<run<<ends;
     if(fbout)fbout.close();
     if((mode/10)%10 ==1)fbout.open(name,ios::out|binary|ios::noreplace);
     if((mode/10)%10 ==2)fbout.open(name,ios::out|binary|ios::app);
