@@ -1,4 +1,3 @@
-
       subroutine prodcorr
       LOGICAL         CHAIN
       CHARACTER*128   CFILE
@@ -421,13 +420,16 @@ c     +   betantof(ipb),betapattern(ipb),betachi2(ipb),betachi2s(ipb)
 *
 * Update mass 
 *
+          pbb=0
+          sg=1
           if(abs(pbeta(1)).gt.1)then
             pbb=pbeta(1)
+            sg=-1
           else if(abs(pbeta(1)).gt.0)then
             pbb=1/pbeta(1)
           endif
-          pmass(1)=abs(pmom(1))*sqrt(pbb**2-1)
-
+          pmass(1)=sg*abs(pmom(1))*sqrt(pbb**2-1)
+          
          else
          write(*,*)' bad beta ',xchi2,ifound
          xchi2max=0
@@ -480,14 +482,15 @@ c     +   betantof(ipb),betapattern(ipb),betachi2(ipb),betachi2s(ipb)
           perrbeta(1)=pbeta(1)**2*betaerror(pbetap(1))
          endif
 *  rebuiold mass
+          pbb=0
+          sg=1
           if(abs(pbeta(1)).gt.1)then
             pbb=pbeta(1)
+            sg=-1
           else if(abs(pbeta(1)).gt.0)then
             pbb=1/pbeta(1)
           endif
-          pmass(1)=abs(pmom(1))*sqrt(pbb**2-1)
+          pmass(1)=sg*abs(pmom(1))*sqrt(pbb**2-1)
       endif
       return
       end
-
-

@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.64 2002/12/16 10:34:00 choutko Exp $
+#  $Id: Moptg4,v 1.65 2003/02/04 15:44:57 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -132,11 +132,11 @@ endif
 DFLAGS=    -g   -I/usr/local/include/g++  -I../include 
 XLDFLAGS=   -static  -L/cern/pro/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
 ifdef LinuxBUG
-CC=/usr/bin/g++  -D__NAMESPACE__ -D__G4AMS__
+CC=/usr/bin/g++  -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
 FF=/usr/bin/g77
 LD=/usr/bin/g++
 else
-CC=g++  -D__NAMESPACE__ -D__G4AMS__
+CC=g++  -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
 FF=g77
 LD=g++
 endif

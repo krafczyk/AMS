@@ -9,6 +9,8 @@ elif [ "$UNAME" = "OSF1" ] ; then
     MACHINE="DEC-cxx"
 elif [ "$UNAME" = "Linux" ] ; then
     MACHINE="linux"
+elif [ "$UNAME" = "SunOS" ] ; then
+    MACHINE="sunos"
 else
 echo $UNAME is not supported yet
 
