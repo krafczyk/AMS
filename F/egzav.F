@@ -1,4 +1,4 @@
-*  $Id: egzav.F,v 1.6 2001/01/22 17:32:24 choutko Exp $
+*  $Id: egzav.F,v 1.7 2002/03/27 18:43:17 choutko Exp $
       SUBROUTINE CMINIT
 *     =================================================================
 *
@@ -2109,4 +2109,32 @@ C     DATA RT/615./,ZT/585./
       ALT = AMIN1(AL2,ALZ)
       RETURN
 *
+
       END
+      subroutine f02eafw(xma,xwr)
+       implicit none
+       real *8 xma(3,3),xwr(3),tmp
+       integer ifail,n,i,j,lda,lwork,ldz
+       parameter (lda=3)
+       parameter (lwork=3*64)
+       real *8 wi(lda),wr(lda),z(lda,lda)
+       real *8 work(lwork)
+       n=3
+       ldz=3
+       ifail=-1
+       call f02eaf('N',n,xma,lda,wr,wi,z,ldz,work,lwork,ifail)
+       if(ifail.eq.0)then       
+       do i=1,3
+        xwr(i)=sqrt(wr(i)**2+wi(i)**2)
+       enddo
+       do i=1,3
+        do j=i,3
+         if(xwr(i).lt.xwr(j))then
+           tmp=xwr(i)
+           xwr(i)=xwr(j)
+           xwr(j)=tmp
+         endif
+        enddo
+       enddo
+       endif
+       end

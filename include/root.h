@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.53 2002/03/20 09:43:10 choumilo Exp $
+//  $Id: root.h,v 1.54 2002/03/27 18:43:19 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -265,10 +265,12 @@ public:
   float RearLeak[MAXECSHOW];
   float DeadLeak[MAXECSHOW];
   float OrpLeak[MAXECSHOW];
+  float Orp2DEnergy[MAXECSHOW];
   float Chi2Profile[MAXECSHOW];
   float ParProfile[MAXECSHOW][4];
   float Chi2Trans[MAXECSHOW];
-  float TransProfile[MAXECSHOW][3];
+//  float TransProfile[MAXECSHOW][3];
+  float SphericityEV[MAXECSHOW][3];
   int   p2DCl[MAXECSHOW][2];
 #ifdef __WRITEROOT__
   EcalShowerNtuple();

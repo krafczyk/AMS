@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.40 2002/03/20 09:41:16 choumilo Exp $
+//  $Id: ecalrec.C,v 1.41 2002/03/27 18:43:04 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -1258,23 +1258,50 @@ integer EcalShower::build(int rerun){
 
 
 
+//  2nd pass needed in case there are orphaned 2d clusters
 
+      Ecal2DCluster *p2di=(Ecal2DCluster*)AMSEvent::gethead()->
+                       getheadC("Ecal2DCluster",0);
 
-
-
+      for( Ecal2DCluster * p2d=p2di;p2d;p2d=p2d->next()){
+        if(!p2d->checkstatus(AMSDBc::USED)){
+          number difosumMin=1.e20;
+          EcalShower* peca=0;
+          EcalShower *pesi=(EcalShower*)AMSEvent::gethead()->
+                       getheadC("EcalShower",0);
+          for(EcalShower *pes=pesi;pes;pes=pes->next()){
+           number enx=pes->getEnergyXY(0);
+           number eny=pes->getEnergyXY(1);
+           number adden=p2d->getproj()==0?p2d->getEnergy():-p2d->getEnergy();
+           number difosum=fabs(enx-eny+adden)/(enx+eny+fabs(adden));
+            if(difosum<difosumMin){
+             peca=pes;
+             difosum=difosumMin;
+            }
+          }
+          if(peca){
+           peca->AddOrphan(p2d);
+          }
+        }
+      }
+          EcalShower* peca=0;
+          EcalShower *pesi=(EcalShower*)AMSEvent::gethead()->
+                       getheadC("EcalShower",0);
+          for(EcalShower *pes=pesi;pes;pes=pes->next()){
+            pes->EnergyFit();
+            pes->DirectionFit();
+            pes->EMagFit();
+            pes->SphFit();
+          } 
 return 1;
 }
 
 
 EcalShower::EcalShower(Ecal2DCluster *px, Ecal2DCluster *py):AMSlink(),_Et(0){
+_Orp2DEnergy=0;
 _pCl[0]=px;
 _pCl[1]=py;
-for(int i=0;i<sizeof(_Zcorr)/sizeof(_Zcorr[0]);i++)_Zcorr[i]=0; 
-for(int i=0;i<sizeof(_Edep)/sizeof(_Edep[0]);i++)_Edep[i]=0; 
-EnergyFit();
-DirectionFit();
-EMagFit();
-
+_N2dCl=2;
 
 
 
@@ -1347,10 +1374,11 @@ void EcalShower::_writeEl(){
     TN->RearLeak[TN->Necsh]=_RearLeak;
     TN->DeadLeak[TN->Necsh]=_DeadLeak;
     TN->OrpLeak[TN->Necsh]=_OrpLeak;
+    TN->Orp2DEnergy[TN->Necsh]=_Orp2DEnergy;
      TN->Chi2Profile[TN->Necsh]=_ProfilePar[4+_Direction*5];
      for(int i=0;i<4;i++)TN->ParProfile[TN->Necsh][i]=_ProfilePar[i+_Direction*5];       
      TN->Chi2Trans[TN->Necsh]=_TransFitChi2;
-     for(int i=0;i<3;i++)TN->TransProfile[TN->Necsh][i]=_TransFitPar[i];       
+     for(int i=0;i<3;i++)TN->SphericityEV[TN->Necsh][i]=_SphericityEV[i];       
      for(int i=0;i<2;i++)TN->p2DCl[TN->Necsh][i]=_pCl[i]->getpos();
 
 
@@ -1495,7 +1523,7 @@ void EcalShower::EnergyFit(){
  _DeadLeak=0;
  _RearLeak=0;
  _OrpLeak=0;
-  for (int proj=0;proj<2;proj++){
+  for (int proj=0;proj<_N2dCl;proj++){
     energy+=_pCl[proj]->_Energy;   
    _EnergyC+=_pCl[proj]->_EnergyC;   
    _Energy3C+=_pCl[proj]->_Energy3C;   
@@ -1521,21 +1549,22 @@ void EcalShower::EnergyFit(){
   _ShowerMax=-1;
   number xmax=-1;
   AMSPoint ep(0,0,0);
+  for(int i=0;i<sizeof(_Zcorr)/sizeof(_Zcorr[0]);i++)_Zcorr[i]=0; 
   VZERO(_Edep,sizeof(_Edep)/sizeof(integer));
   VZERO(_Ez,sizeof(_Ez)/sizeof(integer));
-  for (int proj=0;proj<2;proj++){
+  for (int proj=0;proj<_N2dCl;proj++){
    for (int i=0;i<_pCl[proj]->getNClust();i++){
     Ecal1DCluster *p=_pCl[proj]->getpClust(i);
     if(p->checkstatus(AMSDBc::CATLEAK)){
      setstatus(AMSDBc::CATLEAK);
     }
     int plane=p->getplane();
-    _CofG[proj]+=p->getEnergy()*p->getcoo()[proj];
+    _CofG[_pCl[proj]->getproj()]+=p->getEnergy()*p->getcoo()[_pCl[proj]->getproj()];
     _CofG[2]+=p->getEnergy()*p->getcoo()[2];
     _Ez[plane]+=-p->getEnergy()*p->getcoo()[2];
     _Edep[plane]+=p->getEnergy();
 
-    ep[proj]+=p->getEnergy();
+    ep[_pCl[proj]->getproj()]+=p->getEnergy();
     ep[2]+=p->getEnergy();
     ec+=p->getEnergy();
    }
@@ -1839,7 +1868,7 @@ for(int i=0;i<3;i++)_TransFitPar[i]=0;
   VZERO(_TmpFit,sizeof(_TmpFit)/sizeof(integer));
   const int MaxSize=sizeof(_TmpFit)/sizeof(_TmpFit[0]);
   number step=ECREFFKEY.TransShowerSize2D/MaxSize;
-  for(int proj=0;proj<2;proj++){
+  for(int proj=0;proj<_N2dCl;proj++){
    for (int i=0;i<_pCl[proj]->getNClust();i++){
      Ecal1DCluster *ptr=_pCl[proj]->getpClust(i);
      number intercep=_pCl[proj]->getcoo()+ptr->getcoo()[2]*_pCl[proj]->gettan();
@@ -1990,4 +2019,87 @@ for(int i=0;i<2;i++){
 }
 if(xfc>2)return fc/(xfc-2);
 else return -1;
+}
+
+/*
+PROTOCCALLSFSUB11(F02EAF,f02eaf,STRING,INT,DOUBLEVV,INT,DOUBLEV,DOUBLEV,DOUBLEVV,INT,DOUBLEV,INT,INT)
+#define F02EAF(A1,A2,A3,A4,A5,A6,A7,A8,A9,AA,AB)  CCALLSFSUB11(F02EAF,f02eaf,STRING,INT,DOUBLEVV,INT,DOUBLEV,DOUBLEV,DOUBLEVV,INT,DOUBLEV,INT,INT,A1,A2,A3,A4,A5,A6,A7,A8,A9,AA,AB)
+PROTOCCALLSFSUB2(F02EAFW,f02eafw,DOUBLEVV,DOUBLEV)
+#define F02EAFW(A1,A2)  CCALLSFSUB2(F02EAFW,f02eafw,DOUBLEVV,DOUBLEV,A1,A2)
+*/
+extern "C" void f02eafw_(number matrix[3][3], number ev[3]);
+void EcalShower::SphFit(){
+ for(int i=0;i<3;i++)_SphericityEV[i]=-1;
+
+// calc sphericity only for two first 2dclusters
+   number sab[3][3];
+   for(int i=0;i<3;i++){
+    for(int j=0;j<3;j++)sab[i][j]=0;
+   }
+   number snorm=0;
+   for (int j=0;j<2;j++){
+     number th=atan2(_EMDir[_pCl[j]->getproj()],_Dir[2]);
+     number cth=cos(th);
+     number sth=sin(th);
+     int over=_pCl[j]->getproj()==0?1:0;
+   for (int i=0;i<_pCl[j]->getNClust();i++){
+    Ecal1DCluster *p=_pCl[j]->getpClust(i);
+    AMSPoint coo=p->getcoo();
+    coo[over]=_EntryPoint[over];
+    AMSDir e=coo-_EntryPoint;
+    AMSPoint newdirp;
+     newdirp[p->getproj()]=cth*e[p->getproj()]-sth*e[2];
+     newdirp[over]=0;
+     newdirp[2]=sth*e[p->getproj()]+cth*e[2];
+     AMSDir newdir(newdirp);
+    AMSPoint v=newdir*p->getEnergy();
+    for(int m=0;m<3;m++){
+     for(int n=0;n<3;n++){
+       sab[m][n]+=v[m]*v[n];
+     }
+    }
+    snorm+=v.prod(v);
+   }
+   }
+     for(int m=0;m<3;m++){
+       for(int n=0;n<3;n++)sab[m][n]/=snorm;
+     }
+/*    
+     int N=3;
+     const int lda=3;
+     int LDA=lda;
+     number WI[lda];
+     number WR[lda];
+     int LDZ=3;
+     number Z[3][3];
+     int LWORK=64*lda;
+     number WORK[64*lda];
+     int IFAIL=-1;
+     F02EAF("N",N,sab,LDA,_SphericityEV,WI,Z,LDZ,WORK,LWORK,IFAIL);
+*/
+     f02eafw_(sab,_SphericityEV); 
+//     cout <<_SphericityEV[0]<<endl;
+}
+
+
+void EcalShower::AddOrphan(Ecal2DCluster *ptr){
+ ptr->setstatus(AMSDBc::USED);
+ _Orp2DEnergy+=ptr->_EnergyC/1000;
+
+ if(_N2dCl<sizeof(_pCl)/sizeof(_pCl[0])){
+  _pCl[_N2dCl++]=ptr;
+  }
+ else{
+  cerr<<"EcalShower::AddOrphan-E-UnableToAdd "<<_Orp2DEnergy<<" GeV";
+  setstatus(AMSDBc::BAD);
+ }
+}
+
+
+number EcalShower::getEnergyXY(int proj) const{
+ number enr=0;
+ for(int i=0;i<_N2dCl;i++){
+  if(_pCl[i]->getproj()==proj)enr+=_pCl[i]->getEnergy();
+ }
+ return enr;
 }

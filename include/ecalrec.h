@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.17 2002/02/12 08:44:09 choumilo Exp $
+//  $Id: ecalrec.h,v 1.18 2002/03/27 18:43:19 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -283,7 +283,7 @@ number  _RearLeak;
 number  _SideLeak;
 number  _DeadLeak;
 number  _ErrEnergyC;
-
+number  _Orp2DEnergy;
 AMSPoint _CofG;
 number  _ProfilePar[10];
 number  _Edep[2*ecalconst::ECSLMX];
@@ -294,9 +294,10 @@ integer _iflag;
 number  _Dz;
 number _Et;
 integer _ShowerMax;
-Ecal2DCluster *_pCl[2];
+integer _N2dCl;
+Ecal2DCluster *_pCl[10];
 number _TmpFit[20];
-
+number _SphericityEV[3];
 number _TransFitPar[3];
 number _TransFitChi2;
 
@@ -308,6 +309,7 @@ void _copyEl(){};
 void DirectionFit();
 void EnergyFit();
 void EMagFit();
+void SphFit();
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
 static void gamfun(integer & n, number xc[], number & fc, EcalShower * ptr);
@@ -324,6 +326,7 @@ EcalShower(Ecal2DCluster *px, Ecal2DCluster *py);
   static integer build(int rerun=0);
   static integer Out(integer);
 
+  void AddOrphan(Ecal2DCluster *ptr);
   EcalShower * next(){return (EcalShower*)_next;}
   integer operator < (AMSlink & o)const{
    EcalShower *p =dynamic_cast<EcalShower*>(&o);
@@ -337,6 +340,7 @@ AMSPoint getExitPoint()const {return _ExitPoint;}
 AMSPoint getCofG()const {return _CofG;}
 AMSDir getDir()const {return _Dir;}
 number getEnergy()const {return _EnergyC;}
+number getEnergyXY(int proj)const;
 number getEnergyErr()const{return _ErrEnergyC;}
 integer getDirection() const{return _Direction==0?1:-1;}
 //gchen

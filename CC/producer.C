@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.53 2002/03/27 10:41:59 choutko Exp $
+//  $Id: producer.C,v 1.54 2002/03/27 18:43:05 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -236,6 +236,10 @@ else{
        if(_dstinfo->Mode==DPS::Producer::LILO)_dstinfo->Mode=DPS::Producer::LIRO;
        if(_dstinfo->Mode==DPS::Producer::RILO)_dstinfo->Mode=DPS::Producer::RIRO;
     }
+    else{
+       if(_dstinfo->Mode==DPS::Producer::LIRO)_dstinfo->Mode=DPS::Producer::LILO;
+       if(_dstinfo->Mode==DPS::Producer::RIRO)_dstinfo->Mode=DPS::Producer::RILO;
+    }
     }
     struct timeb  ft;
     ftime(&ft);
@@ -336,6 +340,7 @@ if(exedir && nve && AMSCommonsI::getosname()){
   int i=system(systemc);
   if( (i == 0xff00) || (i & 0xff)){
 // Unable To Check
+   cerr<<"AMSProducer::sendNtupleEnd-E-UnableToValideNtupleBy "<<systemc<<endl;
   }
   else{
     i=(i>>8);

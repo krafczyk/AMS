@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.29 2001/12/04 15:13:25 choutko Exp $
+#  $Id: ntuple02.doc,v 1.30 2002/03/27 18:43:19 choutko Exp $
 This is AMS02 Ntuple Description (to open:  paw; nt/chain ChainName FileName)
 
 
@@ -349,11 +349,11 @@ This is AMS02 Ntuple Description (to open:  paw; nt/chain ChainName FileName)
 * R*4  *           * ECALSHOW * EcshrLeak(necsh)   // rel rear leak
 * R*4  *           * ECALSHOW * EcshdLeak(necsh)   // rel dead cells leak
 * R*4  *           * ECALSHOW * EcshoLeak(necsh)   // out of core leak
+* R*4  *           * ECALSHOW * Ecsho2de(necsh)   //  orphaned 2d cluster energy (if any) (geV)
 * R*4  *           * ECALSHOW * ecshchi2P(necsh)   // chi2 profile fit (gamma f)
 * R*4  *           * ECALSHOW * ecshparP(4,necsh)  // normalization, shower max (cm), rad length, rel rear leak ) for profile fit
 * R*4  *           * ECALSHOW * ecshchi2T(necsh) // chi2 transverse fit (sum two exp) 
-* R*4  *           * ECALSHOW * ecshparT(3,necsh) // first exponent lenght (cm),
-                                                      2nd exp/1st exp area ratio,2nd exp length (cm)
+* R*4  *           * ECALSHOW * ecshspev(3,necsh) // sphericity tensor eigen values
 * I*4  *           * ECALSHOW * ecshpcl(2,necsh)  pointers to 2d clusters
 
 
