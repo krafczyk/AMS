@@ -36,11 +36,15 @@ void AMSIO::init(integer mode,integer format){
           integer pidold=0;
           integer ok=1;
           integer seed0,seed1;
+          number theta,phi,pole;
           while(ok){
            ok=io.read();
            if(ok){
              seed0=io.getseed(0);
              seed1=io.getseed(1);
+             theta=io.getstheta()*180./3.1415926;
+             phi=(io.getsphi()-io.getpolephi())*180./3.1415926+290.;
+             phi=fmod(phi,360.);
            }
            if(format==1 && (io.getrun()!=runold || ok==0)){
              if(iposr>0)cout <<"AMSIO::init-I-Run "<<runold<<" has "<<iposr<<
@@ -72,6 +76,7 @@ void AMSIO::init(integer mode,integer format){
              cout<<"AMSIO::init-I-Total of "<<ipos-1
              <<" events have been read."<<endl;
              cout << " Last Random Number "<<seed0<<" "<<seed1    <<endl;
+             cout << " Theta "<< theta<< " Phi "<<phi<<endl;
              fbin.close();
           }
           else  exit(1);

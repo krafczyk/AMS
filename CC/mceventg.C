@@ -118,11 +118,13 @@ else {
   cerr <<" AMSmceventg-F-plane problem "<<curp<<endl;
   exit(1);
  }
+if(_fixedplane == 0)_coo=_coo/2;
 }
 }
 
-void AMSmceventg::setspectra(integer begin, integer end, integer ipart,
-                             integer low){
+void AMSmceventg::setspectra(integer begindate, integer begintime, 
+                             integer enddate, integer endtime, 
+                              integer ipart,  integer low){
 
  char chp[21];
  integer itrtyp;
@@ -134,20 +136,20 @@ void AMSmceventg::setspectra(integer begin, integer end, integer ipart,
  GFPART(ipart,chp,itrtyp,mass,charge,tlife,ub,nwb);
  charge=fabs(charge);
 
-  Orbit.Begin.tm_year  =  begin%10000-1900;
-  Orbit.Begin.tm_mon = (begin/10000)%100-1;
-  Orbit.Begin.tm_mday   = (begin/1000000)%100;
-  Orbit.Begin.tm_hour  = (begin/100000000)%100;
-  Orbit.Begin.tm_min=0;
-  Orbit.Begin.tm_sec=0;
+  Orbit.Begin.tm_year  =  begindate%10000-1900;
+  Orbit.Begin.tm_mon = (begindate/10000)%100-1;
+  Orbit.Begin.tm_mday   = (begindate/1000000)%100;
+  Orbit.Begin.tm_hour  = (begintime/10000)%100-1;
+  Orbit.Begin.tm_min= (begintime/100)%100;
+  Orbit.Begin.tm_sec=(begintime)%100;
   Orbit.Begin.tm_isdst = 0;
 
-  Orbit.End.tm_year  =  end%10000-1900;
-  Orbit.End.tm_mon = (end/10000)%100-1;
-  Orbit.End.tm_mday   = (end/1000000)%100;
-  Orbit.End.tm_hour  = (end/100000000)%100;
-  Orbit.End.tm_min=0;
-  Orbit.End.tm_sec=0;
+  Orbit.End.tm_year  =  enddate%10000-1900;
+  Orbit.End.tm_mon = (enddate/10000)%100-1;
+  Orbit.End.tm_mday   = (enddate/1000000)%100;
+  Orbit.End.tm_hour  = (endtime/10000)%100-1;
+  Orbit.End.tm_min=(endtime/100)%100;
+  Orbit.End.tm_sec=(endtime)%100;
   Orbit.End.tm_isdst = 0;
   Orbit.FlightTime=difftime(mktime(&Orbit.End),mktime(&Orbit.Begin));
   
@@ -186,7 +188,7 @@ else {
 // find a modulation
 //
  geant modul[8]={400.,350.,550.,650.,950.,1300.,1200.,1000.};
- integer year=(begin%10000+end%10000)/2-1997; 
+ integer year=(begindate%10000+enddate%10000)/2-1997; 
  if(year <=0 || year > 7){
   cerr<<"AMSmceventg::setspectra-F-year not supported yet: "<<year<<endl;
   exit(1);
@@ -299,7 +301,7 @@ integer AMSmceventg::EarthModulation(){
   number ve=_dir[1];
   number we=_dir[2];
   number cth=ue*uv+ve*vv+we*wv;
-  number mom=60.*pow(cl,4)/pow(sqrt(1.-cth*pow(cl,3))+1,2)*fabs(_charge);
+  number mom=52.5*pow(cl,4)/pow(sqrt(1.-cth*pow(cl,3))+1,2)*fabs(_charge);
   if (_mom > mom)return 1;
   else {
    _nskip=++Orbit.Nskip;

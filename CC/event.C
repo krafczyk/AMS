@@ -97,9 +97,11 @@ void AMSEvent::SetTimeCoo(){
   static number theta=AMSmceventg::Orbit.ThetaI;
   static number phi=AMSmceventg::Orbit.PhiI;
   static number pole=AMSmceventg::Orbit.PolePhi;
-  curtime+=sec;
-  pole=fmod(pole+AMSmceventg::Orbit.EarthSpeed*sec,AMSDBc::twopi);
-  phi=fmod(phi+AMSmceventg::Orbit.AlphaSpeed*sec,AMSDBc::twopi);
+  geant dd; 
+  number xsec=-sec*log(RNDM(dd));
+  curtime+=xsec;
+  pole=fmod(pole+AMSmceventg::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
+  phi=fmod(phi+AMSmceventg::Orbit.AlphaSpeed*xsec,AMSDBc::twopi);
   theta=asin(AMSmceventg::Orbit.AlphaSinThetaMax*
         cos(phi-AMSmceventg::Orbit.PhiZero));
   _time=mktime(&AMSmceventg::Orbit.Begin)+curtime+0.5;
@@ -665,7 +667,8 @@ void AMSEvent::_copyEl(){
 
 void AMSEvent::_printEl(ostream & stream){
  stream << "Run "<<_run<<" "<<getname()<<" "<< getid()<<" Time "<< 
-   ctime(&_time)<<" Theta "<<_StationTheta<<" Phi "<<_StationPhi<<endl;
+   ctime(&_time)<<" Theta "<<_StationTheta<<" Phi "<<_StationPhi<<
+   " Pole "<<_NorthPolePhi<<endl;
 }
 
 void AMSEvent::_writeEl(){

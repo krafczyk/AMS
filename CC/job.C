@@ -186,8 +186,10 @@ CCFFKEY.low=0;
 CCFFKEY.earth=1;
 CCFFKEY.theta=51.65;
 CCFFKEY.phi=290.;
-CCFFKEY.begin=802041998;
-CCFFKEY.end=1204041998;
+CCFFKEY.begindate=2041998;
+CCFFKEY.enddate=  6041998;
+CCFFKEY.begintime=80000;
+CCFFKEY.endtime=120000;
 CCFFKEY.oldformat=0;
 FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -657,7 +659,8 @@ void AMSJob::_signinitjob(){
   AMSmceventg::setcuts(CCFFKEY.coo,CCFFKEY.dir,CCFFKEY.momr,
   CCFFKEY.fixp,CCFFKEY.albedor,CCFFKEY.albedocz);
   //
-  AMSmceventg::setspectra(CCFFKEY.begin,CCFFKEY.end,GCKINE.ikine,CCFFKEY.low);
+  AMSmceventg::setspectra(CCFFKEY.begindate,CCFFKEY.begintime,
+  CCFFKEY.enddate, CCFFKEY.endtime, GCKINE.ikine,CCFFKEY.low);
 
 }
 void AMSJob::_sitofinitjob(){
