@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.23 2002/03/15 18:05:13 alexei Exp $
+# $Id: RemoteClient.pm,v 1.24 2002/03/22 17:57:09 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -2716,7 +2716,7 @@ sub listCites {
               print "<tr><td><b><font color=\"blue\">Cite </font></b></td>";
               print "<td><b><font color=\"blue\" >ID </font></b></td>";
               print "<td><b><font color=\"blue\" >Type </font></b></td>";
-              print "<td><b><font color=\"blue\" >Jobs Done</font></b></td>";
+              print "<td><b><font color=\"blue\" >Jobs Ends</font></b></td>";
               print "<td><b><font color=\"blue\" >Jobs Reqs</font></b></td>";
      print_bar($bluebar,3);
      if(defined $r3->[0][0]){
@@ -2729,7 +2729,8 @@ sub listCites {
           my $run=(($cid-1)<<27)+1;
           $sql="SELECT jobs.jid, runs.jid, jobs.cid  
                 FROM Runs, Jobs  
-                WHERE jobs.jid=runs.jid AND cid=$cid";
+                WHERE jobs.jid=runs.jid AND cid=$cid 
+                      AND (runs.status='Finished' OR runs.status='Failed')";
           my $r4=$self->{sqlserver}->Query($sql);
           my $jobs = 0;
           foreach my $cnt (@{$r4}){
@@ -3134,9 +3135,22 @@ sub statusColor {
     my $status = shift;
     my $color  = "magenta";
 
-              if ($status eq "Finished" or $status eq "OK") {
+    if ($status eq "Finished" or $status eq "OK" or $status eq "Validated") {
                $color  = "green";
-           } else {
+    }
+    elsif ($status eq "Success") {
+        $color  = "green";
+    }
+    elsif ($status eq "Foreign") {
+               $color = "black";
+    }
+    elsif ($status eq "Processing") {
+               $color = "blue";
+    } 
+    elsif ($status eq "Active") {
+               $color = "blue";
+    } 
+    else {
                $color = "red";
            }
     return $color;
