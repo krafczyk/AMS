@@ -48,6 +48,8 @@ public:
   static inline integer getfirstincrate(int n){return (n<_ncrates && n>-1)?_crate_pmt[n]:0;}
 
   static void Init(); // Init tables according to geometry
+
+  static integer get_channel_from_top(geant,geant);
   
 
 };
@@ -108,7 +110,7 @@ public:
 			  (_lambda[(id<=0?0:1)+2*_address]+1);}
   inline geant getsped(int id){return _sig_ped[(id<=0?0:1)+2*_address];} 
   inline geant getsgain(int id){return _scale[(id<=0?0:1)+2*_address]*
-			   _lambda[(id<=0?0:1)+2*_address];}
+			   sqrt(_lambda[(id<=0?0:1)+2*_address]);}
   inline geant getthreshold(int id){return _threshold[(id<=0?0:1)+2*_address];}
   inline integer getboundary() {return _gain_mode_boundary[_address];}
   inline integer getstatus(){return _status[_address];}
