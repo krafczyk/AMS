@@ -150,6 +150,9 @@ void TriggerLVL3::init(){
     for(i=0;i<SCLRS;i++){
       for(j=0;j<SCMXBR;j++)iftxt>>_TOFOr[i][j];
     }
+    for(i=0;i<SCLRS;i++){
+      for(j=0;j<SCMXBR;j++)iftxt>>_TOFStatus[i][j];
+    }
     if(iftxt.eof() ){
       cerr<< "TriggerLVL3::init-F-Unexpected EOF"<<endl;
       exit(1);

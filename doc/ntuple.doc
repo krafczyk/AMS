@@ -295,15 +295,17 @@ Below there is a description of a  ntuple.
                                                          // + 10000* (sum tof temperatutes (8 crates)
  * I*4  *             * LVL1     * LVL1TOFFlag(nlvl1)    // z from trigger +4/4?10:0
  * I*4  *             * LVL1     * LVL1TOFPatt(4,nlvl1)  // tof pattern
-                                                         // low  16 bit  or
-                                                         // high 16 bit and
+                                                         // 0-13 bit  or
+                                                         // 16-29    and
+                                                         // 31       plane not
+                                                              in trigger (MC)
  * I*4  *             * LVL1     * LVL1TOFPatt1(4,nlvl1) // Tof pattern z>1
                                                          // -------------
 
  * I*4  *             * LVL1     * LVL1AntiPatt          // antipattern
-
-
-
+                                                         16-23 bits  
+                                                         as in daqevt.doc 
+                                                      
  * I*4  * [0,50]      * CTCHIT   * nctcht                // CTC Hits number
  * I*4  *             * CTCHIT   * CTChitStatus(nctcht)  //  ----  status
  * I*4  *             * CTCHIT   * CTChitLayer(nctcht)   //        layer  
