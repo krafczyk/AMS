@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.55 2002/07/18 13:45:46 choutko Exp $
+//  $Id: mccluster.C,v 1.56 2002/10/13 10:55:57 mdelgado Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -590,7 +590,8 @@ geant AMSRichMCHit::adc_hit(integer n,integer channel,int mode){ // ADC counts f
   //  r=sqrt(-2.*log(1.-RNDM(dummy)));
   //  u1=r*sin(RNDM(dummy)*6.28318595886);   // This constant (2pi)should be moved to a namespace
 
-  return rnormx()*calibration.getsgain(mode)*sqrt(double(n))+n*calibration.getsgain(mode);
+
+  return rnormx()*calibration.getsgain(mode)*sqrt(double(n))+n*calibration.getgain(mode);
 }
 
 geant AMSRichMCHit::adc_empty(integer channel,integer mode){ // ADC count without a hit
