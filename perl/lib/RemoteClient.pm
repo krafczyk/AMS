@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.102 2003/04/17 10:45:50 alexei Exp $
+# $Id: RemoteClient.pm,v 1.103 2003/04/17 10:47:58 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3214,9 +3214,9 @@ print qq`
          $buf=~ s/CPULIM=/CPULIM=$cputf/;         
          $buf=~ s/PMIN=/PMIN=$pminf/;         
          $buf=~ s/PMAX=/PMAX=$pmaxf/;         
-         $buf= $buf."CLOCK=$clock \n";
          my $cputype=$q->param("QCPUType");
-         $buf= $buf."CPUTYPE=$cputype\n";
+         $buf=~ s/PART=/CLOCK=$clock \nPART=/;         
+         $buf=~ s/PART=/CPUTYPE=$cputype\nPART=/;         
          if($self->{CCT} eq "local"){
            $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;         
          }       
