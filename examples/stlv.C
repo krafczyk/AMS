@@ -12,8 +12,6 @@
 #include "TChain.h"
 #include <TROOT.h>
 #include <TTree.h>
-#include <iostream.h>
-#include <stdlib.h>
 /** 
  * This is an example of how to work with AMS Root Files. 
  *  \sa stlv
@@ -95,7 +93,7 @@ void stlv::UBegin(){
         h1A.clear();
 
  
-    for (int j = 0; j < sizeof(acc)/sizeof(acc[0]); j++) {
+    for (unsigned int j = 0; j < sizeof(acc)/sizeof(acc[0]); j++) {
       char AccName[255];
       sprintf(AccName,"acc%03d",j);
       if(acc[j])delete acc[j];
@@ -161,8 +159,6 @@ void stlv::UProcessFill()
 
  // alt method
 
-                  TrRecHitR* pph=tr_tr.pTrRecHit(tr_tr.NTrRecHit()-1);
-                  int l2=pph->Layer;
                   for (int k=0;k<tr_tr.NTrRecHit();k++){
                      h1->Fill(tr_tr.pTrRecHit(k)->Layer,1);
                    }
