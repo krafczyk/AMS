@@ -151,11 +151,11 @@ else
 # not AMSICC case
 
 # Need ROOTLIBS
-  LDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  $(CERNLIBS) -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB) $(ROOTLIBS) -lamsut  -lkernlib -lg2c -ldl $(SHIFTLIB) -lcrypt
+  LDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  $(CERNLIBS) -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB) $(ROOTLIBS) -lamsut  -lkernlib -lg2c -ldl $(SHIFTLIB) -lcrypt $(PFLAGS)
 
   #LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -lamsut  -lkernlib -lg2c -ldl $(SHIFTLIB) -lfreetype
 
-  LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -lcrypt -L$(CERNDIR)/lib   -lgeant321  $(CERNLIBS) -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -lamsut  -lkernlib -lg2c -ldl -lfreetype
+  LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -lcrypt -L$(CERNDIR)/lib   -lgeant321  $(CERNLIBS) -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -lamsut  -lkernlib -lg2c -ldl -lfreetype $(PFLAGS)
 
 endif
 
