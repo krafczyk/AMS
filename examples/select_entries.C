@@ -1,32 +1,51 @@
 {     
+// Resetting and loading AMS library
       gROOT->Reset();
       gSystem->Load("$AMSDir/lib/linux/icc/ntuple.so");   
       
+// Input AMS ROOT Chain
       AMSChain *ams = new AMSChain;              
       ams->Add("/f2users/choutko/g3v1g3.root");
 
-      // BEGIN of block: How to select only some branches ->
+      // BEGIN of block: How to read just few branches ->
+      ams->SetBranchStatus("*",0); // this disables all branches by default
+      ams->SetBranchStatus("ev.",1); // mother branch
+      ams->SetBranchStatus("ev.fHeader",1); // HeaderR class information IN 
+                                            // (mandatory for AMSEventList)
+      ams->SetBranchStatus("ev.fBeta",1); // BetaR class information IN
+      // END of block
+
+// Initialize selection list
+      AMSEventList list;
+
+// Loop to analyze entries
+      int ndata = ams->GetEntries();
+      for (int entry=0; entry<ndata; entry++) {
+            AMSEventR* pev = ams->GetEvent();
+            if (pev==NULL) break;
+            if (pev->nBeta()==1) {
+               BetaR beta = pev->Beta(0);
+// Add to list if it satifsfy your requirements
+               if (fabs(beta.Beta-1.)>2*beta.Error) list.Add(pev);
+            }
+      }
+
+      // BEGIN of block: How to write just few branches ->
       ams->SetBranchStatus("*",0); // this disables all branches by default
       ams->SetBranchStatus("ev.",1); // mother branch
       ams->SetBranchStatus("ev.fHeader",1); // HeaderR class information IN
       ams->SetBranchStatus("ev.fParticle",1); // ParticleR class information IN
       // END of block
 
-      TFile* hfile = new TFile ("amstest.root", "RECREATE"); 
-      TTree *amsnew = ams->CloneTree(0);
+// Write selected events from chain to a new AMS ROOT file
+      list.Write(ams,"amstest.root"); //Write selected events from chain to a new ROOT file
 
-      int ndata = ams->GetEntries();
-      int nnew = 0;
-      for (int entry=0; entry<ndata; entry++) {
-            AMSEventR* pev = ams->GetEvent();
-            if (pev==NULL) break;
-            if (pev->nParticle()==1) {
-               amsnew->Fill();
-               nnew++;
-            }
-      }
-      
-      hfile->Write();
+//Write "run event" list to standard output
+      //list.Write();
+
+//Write "run event" list to ASCII file
+      //list.Write("amstest.list");
+
       cout << "Events in the old tree: " << ndata << endl;
-      cout << "Events in the new tree: " << nnew << endl;
+      cout << "Events in the new tree: " << list->GetEntries() << endl;
 }

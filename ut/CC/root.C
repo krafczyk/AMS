@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.67 2004/02/05 14:47:46 alcaraz Exp $
+//  $Id: root.C,v 1.68 2004/02/06 15:55:50 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2296,6 +2296,65 @@ AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
             break;
       }
       return _EVENT;
+};
+
+void AMSEventList::Add(int run, int event){
+        _RUNs.push_back(run);
+        _EVENTs.push_back(event);
+};
+
+void AMSEventList::Add(AMSEventR* pev){
+        _RUNs.push_back(pev->Run());
+        _EVENTs.push_back(pev->Event());
+};
+
+void AMSEventList::Reset(){
+        _RUNs.clear();
+        _EVENTs.clear();
+};
+
+void AMSEventList::Write(){
+        cout << "AMSEventList::Dumping a list with ";
+        cout << this->GetEntries(); 
+        cout << " selected events..." << endl;
+        for (int j=0; j<_RUNs.size(); j++) {
+            cout << _RUNs[j] << "\t" << _EVENTs[j] << endl;
+        }
+};
+
+void AMSEventList::Write(const char* filename){
+        cout << "AMSEventList::Writing ASCII file \"";
+        cout << filename << "\" with " << this->GetEntries(); 
+        cout << " selected events" << endl;
+        FILE* listfile = fopen(filename,"w");
+        for (int j=0; j<_RUNs.size(); j++) {
+            fprintf(listfile,"%0d\t%0d\n",_RUNs[j],_EVENTs[j]);
+        }
+        fclose(listfile);
+};
+
+void AMSEventList::Write(TChain* chain, const char* filename){
+        AMSEventR* amsevent = new AMSEventR;
+        chain->SetBranchAddress("ev.",&amsevent);
+        TFile* newfile = new TFile(filename,"RECREATE");
+        TTree *amsnew = chain->CloneTree(0);
+        for (int i=0; i<chain->GetEntries(); i++) {
+                if (!chain->GetEntry(i)) break;
+                bool found = false;
+                for (int j=0; j<_RUNs.size(); j++) {
+                  if (amsevent->Run()==_RUNs[j] && amsevent->Event()==_EVENTs[j]) {
+                        found=true;
+                        break;
+                  }
+                }
+                if (!found) continue;
+                amsnew->Fill();
+        }
+        cout << "AMSEventList::Writing AMS ROOT file \"";
+        cout << filename << "\" with " << this->GetEntries(); 
+        cout << " selected events" << endl;
+        newfile->Write();
+        newfile->Close();
 };
 
 #endif

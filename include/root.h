@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.132 2004/02/05 17:29:11 alcaraz Exp $
+//  $Id: root.h,v 1.133 2004/02/06 15:55:55 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -3066,18 +3066,41 @@ public:
       ClassDef(AMSChain,2)       //AMSChain
 };
 
+//!  AMSEventList class
+/*!
+  Contains:
+
+  Utility class, to select a set of events and then having the possibility to write
+  them into a new files, possibly with just a set of selected branches
+
+  \author juan.alcaraz@cern.ch
+
+*/
+
+class AMSEventList {
+private:
+      vector<int> _RUNs;
+      vector<int> _EVENTs;
+
+public:
+      AMSEventList(){
+            _RUNs.reserve(10000);
+            _EVENTs.reserve(10000);
+      };
+      ~AMSEventList(){};
+
+      void Add(int run, int event); ///<Add a (run,event) number to the list
+      void Add(AMSEventR* pev); ///<Add the (run,event) number of this AMSEvent object to the list
+      void Reset(); ///<Reset the array
+      void Write(); ///<Write "run event" list to standard output
+      void Write(const char* filename); ///<Write "run event" list to ASCII file
+      void Write(TChain* chain, const char* filename); ///<Write selected events from a chain to a new ROOT file
+
+      int GetEntries(){return _RUNs.size();}; ///<Number of events in the list
+      int GetRun(int i){return _RUNs[i];}; ///<Retrieve run number for entry i
+      int GetEvent(int i){return _EVENTs[i];}; ///<Retrieve event number for entry i
+
+      ClassDef(AMSEventList,1)       //AMSEventList
+};
+
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
