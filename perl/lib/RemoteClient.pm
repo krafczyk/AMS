@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.62 2002/08/16 09:48:06 alexei Exp $
+# $Id: RemoteClient.pm,v 1.63 2002/08/21 08:07:20 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -11,7 +11,7 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks queryDB DownloadSA);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA);
 
 my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
 my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
@@ -1214,6 +1214,8 @@ PART:
    print "<td align=left> <font size=\"-1\"><b>\n";
    print "<a href=\"/AMS/ams_homepage.html\">AMS</a>\n";
    print "&nbsp; <a href=\"/AMS/Computing/computing.html\">Computing</a>\n";
+   print "</b>\n";
+   print "&nbsp;<b><a href=\"http://pcamsf0.cern.ch/mm.html\">MC production</a>\n";
    print "</b></td>\n";
    print "<td align=right> <font size=\"-1\"> &nbsp;  <!-- top right corner  --> </font></td>\n";
    print "</tr>\n";
@@ -3619,13 +3621,26 @@ sub listAll {
     
     $self -> listCites();
     $self -> listMails();
-    if ($show eq 'all') {
       $self -> listServers();
        $self -> listJobs();
         $self -> listRuns();
           $self -> listNtuples();
             $self -> listDisks();
+    htmlBottom();
+}
+
+sub listMin {
+    my $self = shift;
+    my $show = shift;
+    htmlTop();
+    $self->ht_init();
+    if ($show eq 'all') {
+     $self -> colorLegend();
     }
+    
+    $self -> listCites();
+    $self -> listMails();
+
     htmlBottom();
 }
 
@@ -3658,7 +3673,9 @@ sub queryDB {
   print "<td align=left> <font size=\"-1\"><b>\n";
   print "<a href=\"/AMS/ams_homepage.html\">AMS</a>\n";
   print "&nbsp; <a href=\"/AMS/Computing/computing.html\">Computing</a>\n";
-  print "</b></td>\n";
+  print "</b>\n";
+   print "&nbsp;<b><a href=\"http://pcamsf0.cern.ch/mm.html\">MC production</a>\n";
+   print "</b></td>\n";
   print "<td align=right> <font size=\"-1\"> &nbsp;  <!-- top right corner  --> </font></td>\n";
   print "</tr>\n";
   print "<tr bgcolor=\"#ffdc9f\"><td align=center colspan=2><font size=\"+2\" color=\"#3366ff\"> <b>\n";
@@ -3910,6 +3927,25 @@ sub listDisksAMS {
           print "</font></tr>\n";
       }
   }
+    $sql="SELECT SUM(capacity), SUM(occupied), SUM(available) 
+          FROM m_nominal_disks WHERE checkflag=1";
+    my $r4=$self->{sqlserver}->Query($sql);
+    if(defined $r4->[0][0]){
+      foreach my $tt (@{$r4}){
+          my $total = $tt->[0];
+          my $occup = $tt->[1];
+          my $free  = $tt->[2];
+          my $color="green";
+          my $status="ok";
+          if ($free < $total*0.1) {
+            $color="magenta";
+            $status=" no space";}
+          print "<tr><font size=\"2\">\n";
+          print "<td><font color=$color><b> Total </b></td><td align=middle><b> $total </td><td align=middle><b> $occup </td><td align=middle><b> $free </b></td>
+                 <td><font color=$color><b> $status </font></b></td>\n";
+          print "</font></tr>\n";
+      }
+     }
        htmlTableEnd();
       htmlTableEnd();
      print_bar($bluebar,3);
@@ -4001,8 +4037,8 @@ sub listDisks {
               print "<td><b><font color=\"blue\" >Free [GB] </font></b></td>";
               print "<td><b><font color=\"blue\" >Status </font></b></td>";
      print_bar($bluebar,3);
-     $sql="SELECT host, disk, path, totalsize, occupied, available, status, timestamp 
-              FROM Filesystems ORDER BY available DESC";
+     $sql="SELECT host, disk, path, totalsize, occupied, available, status, 
+           timestamp FROM Filesystems ORDER BY available DESC";
      my $r3=$self->{sqlserver}->Query($sql);
      if(defined $r3->[0][0]){
       foreach my $dd (@{$r3}){
@@ -4018,6 +4054,25 @@ sub listDisks {
           print "</font></tr>\n";
       }
   }
+    $sql="SELECT SUM(totalsize), SUM(occupied), SUM(available) FROM Filesystems";
+    my $r4=$self->{sqlserver}->Query($sql);
+    if(defined $r4->[0][0]){
+      foreach my $tt (@{$r4}){
+          my $total = $tt->[0];
+          my $occup = $tt->[1];
+          my $free  = $tt->[2];
+          my $color="green";
+          my $status="ok";
+          if ($free < $total*0.1) {
+            $color="magenta";
+            $status=" no space";}
+          print "<tr><font size=\"2\">\n";
+          print "<td><font color=$color><b> Total </b></td><td align=middle><b> $total </td><td align=middle><b> $occup </td><td align=middle><b> $free </b></td>
+                 <td><font color=$color><b> $status </font></b></td>\n";
+          print "</font></tr>\n";
+      }
+     }
+
        htmlTableEnd();
       htmlTableEnd();
      print_bar($bluebar,3);
@@ -4365,7 +4420,9 @@ sub ht_init{
     print "<td align=left> <font size=\"-1\"><b>";
      print  "<a href=\"/AMS/ams_homepage.html\">AMS</a>\n";
      print "&nbsp; <a href=\"/AMS/Computing/computing.html\">Computing</a>\n";
-    print "</b></font></td>\n";
+     print "</b></font>\n";
+      print "&nbsp;<b><a href=\"http://pcamsf0.cern.ch/mm.html\">MC production</a>\n";
+    print "</b></td>\n";
     print "<td align=right> <font size=\"-1\">\n";
     print "&nbsp;</font></td></tr>\n";
     print "<tr bgcolor=\"#ffdc9f\"><td align=center colspan=2><font size=\"+2\" color=\"#3366ff\">";
