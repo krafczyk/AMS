@@ -1,8 +1,11 @@
-#  $Id: 00index.txt,v 1.3 2001/01/22 17:32:53 choutko Exp $
-Monitor.pm   // corba monitor engine
-MonitorUI.pm  // gtk user interface
-MonitorHTML.pm // alt html interface
-CID.pm        // see ../include/server.idl
+#  $Id: 00index.txt,v 1.4 2002/11/28 14:20:06 alexei Exp $
+#
 ActiveClient.pm //  ibid
+CastorCopy.pm   // package to copy and check Castor and local disks
+CID.pm          // see ../include/server.idl
+DBSQLServer.pm  // perl SQL server library
+Monitor.pm      // corba monitor engine
+MonitorUI.pm    // gtk user interface
+MonitorHTML.pm  // alt html interface
 POAMonitor.pm   // perl-corba Monitor implementation
 Warning.pm      // cgi error redirection
