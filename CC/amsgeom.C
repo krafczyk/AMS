@@ -2880,7 +2880,7 @@ void richgeom02(AMSgvolume & mother)
 	  par[1]=mithk/4;
 	  par[2]=RICGEOM.radiator_height/2;
 	  coo[0]=0;
-	  coo[1]=RICGEOM.radiator_box_length/2-mithk/2;
+	  coo[1]=RICGEOM.radiator_box_length/2-mithk/4;
 	  coo[2]=0;
 
 	  dummy=p->add(new AMSgvolume("TOF_PMT_BOX", // This should be carbon fiber
