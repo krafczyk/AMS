@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.51 2003/05/21 13:52:57 choutko Exp $
+#  $Id: Mopt_Root,v 1.52 2003/06/17 08:09:40 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -128,8 +128,8 @@ endif
 
 ifeq  "$(shell uname)"  "Linux"
 ifdef AMSICC
-  CERNDIR = /f2dat1/CERN/2002/icc
-  NAGDIR  = /f2dat1/NagLib
+  CERNDIR = /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
+  NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
 #CC=/opt/intel/compiler60/ia32/bin/icc
 #FF=/opt/intel/compiler60/ia32/bin/ifc
 #LD=/opt/intel/compiler60/ia32/bin/icc

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.9 2003/06/17 07:39:53 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.10 2003/06/17 08:11:18 choutko Exp $
 #ifndef AMSOnDisplay_H
 #define AMSOnDisplay_H
 
@@ -10,7 +10,6 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 #include <TApplication.h>
-#include "AMSCanvas.h"
 #include "AMSHist.h"
 #include "ControlFrame.h"
 class AMSNtupleR;

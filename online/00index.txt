@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.7 2003/06/17 07:59:29 choutko Exp $
+#  $Id: 00index.txt,v 1.8 2003/06/17 08:11:18 choutko Exp $
 
 =========================================================================
 
@@ -28,6 +28,7 @@ of AMS offline monitor into it.
    Required:  Linux rh7.2++, gcc3.2.2++, root 3.05.05++
 
         setenv AMSWD  {your scratch dir}
+        mkdir $AMSWD/online
 	gmake standalone  (static version of the program called offmon)
 	gmake osdepend    (using dynamic (shared) libraries called offmonc)
 

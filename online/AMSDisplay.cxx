@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.11 2003/06/17 07:39:53 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.12 2003/06/17 08:11:18 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -11,6 +11,7 @@
 #include <TROOT.h>
 #include <TButton.h>
 #include <TCanvas.h>
+#include <TRootCanvas.h>
 #include <TView.h>
 #include <TArc.h>
 #include <TText.h>
@@ -25,8 +26,6 @@
 #include <X3DBuffer.h>
 
 #include "AMSDisplay.h"
-#include "TSwitch.h"
-#include "Debugger.h"
 #include "AMSNtuple.h"
 #include "ControlFrame.h"
 #include <dlfcn.h>
