@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.187 2003/06/09 10:34:26 alexei Exp $
+# $Id: RemoteClient.pm,v 1.188 2003/06/10 15:46:54 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5441,16 +5441,20 @@ sub listCites {
      my $sql="SELECT cid,descr, name, status, maxrun FROM Cites ORDER by name";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<td><b><font color=\"blue\">Cite </font></b></td>";
-              print "<td><b><font color=\"blue\" >Type </font></b></td>";
+              print "<td><b><font color=\"blue\" >Cite</font></b></td>";
               print "<td><b><font color=\"blue\" >Jobs</font></b></td>";
               print "<td><b><font color=\"blue\" >Jobs</font></b></td>";
               print "<td><b><font color=\"blue\" >Jobs</font></b></td>";
+              print "<td><b><font color=\"blue\" >Last Job</font></b></td>";
+              print "<td><b><font color=\"blue\" >Last Job</font></b></td>";
               print "<tr>\n";
               print "<td><b><font color=\"blue\">   </font></b></td>";
-              print "<td><b><font color=\"blue\" >  </font></b></td>";
+              print "<td><b><font color=\"blue\" >Type  </font></b></td>";
               print "<td><b><font color=\"blue\" >Act.</font></b></td>";
               print "<td><b><font color=\"blue\" >Ends</font></b></td>";
               print "<td><b><font color=\"blue\" >Failed</font></b></td>";
+              print "<td><b><font color=\"blue\" >Start Time</font></b></td>";
+              print "<td><b><font color=\"blue\" >End Time</font></b></td>";
               print "<tr>\n";
      print_bar($bluebar,3);
      if(defined $r3->[0][0]){
@@ -5461,10 +5465,35 @@ sub listCites {
           my $status = $cite->[3];
           my $maxrun = $cite->[4];
           my $run=(($cid-1)<<27)+1;
+      
+          my $r4 = undef;
+
+          my $laststarttime = 0;
+          my $starttime     = "---";
+          $sql = "SELECT MAX(TIME) FROM Jobs WHERE cid=$cid";
+          $r4=$self->{sqlserver}->Query($sql);
+          if (defined $r4->[0][0]) {
+            $laststarttime = $r4->[0][0];
+            $starttime = EpochToDDMMYYHHMMSS($laststarttime);
+          };
+          my $lastendtime = 0;
+          my $endtime       = "---";
+          $sql = "SELECT MAX(jobs.time) FROM Jobs, Runs WHERE 
+                     jobs.cid = $cid AND
+                     jobs.jid = runs.jid AND           
+                     (Runs.Status = 'Finished'  OR 
+                      Runs.Status = 'Completed' OR
+                      Runs.Status = 'Failed'    OR
+                      Runs.Status = 'Unchecked')";
+          $r4=$self->{sqlserver}->Query($sql);
+          if (defined $r4->[0][0]) {
+           $lastendtime = $r4->[0][0];
+           $endtime = EpochToDDMMYYHHMMSS($lastendtime);
+          };
 
           my $jobs = 0;   # total jobs
           $sql = "SELECT COUNT(jid) FROM Jobs WHERE cid=$cid";
-          my $r4=$self->{sqlserver}->Query($sql);
+          $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobs = $r4->[0][0]};
 
           my $jobsa = 0;  # processing jobs
@@ -5501,7 +5530,10 @@ sub listCites {
                  <td><b> $status </td>
                  <td><b> $jobsa </td></b>
                  <td><b> $jobsc </b></td>
-                 <td><b> $jobsf </b></td>\n";
+                 <td><b> $jobsf </b></td>
+                 <td><b> $starttime </b></td>
+                 <td><b> $endtime </b></td>
+                 \n";
           print "</font></tr><p></p>\n";
       }
   }
@@ -6461,9 +6493,15 @@ sub parseJournalFiles {
    htmlTableEnd();
    htmlTableEnd();
    if (defined $cid) {
-    $sql = "UPDATE journals 
-             SET timestamp=$timenow, timelast=$writelast, lastfile = '$lastfile' 
+    if ($writelast > 0) {
+     $sql = "UPDATE journals 
+             SET timestamp=$timenow, 
+                 timelast=$writelast, 
+                 lastfile = '$lastfile' 
               WHERE cid=$cid";
+     } else {
+      $sql = "UPDATE journals SET timestamp=$timenow WHERE cid=$cid";
+     }
     $self->{sqlserver}->Update($sql); 
    }
   }
