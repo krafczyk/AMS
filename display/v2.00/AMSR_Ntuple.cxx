@@ -45,7 +45,7 @@
 #include <stdio.h>
 
 PAWC_DEF PAWC;
-
+#include <iostream.h>
 EVENTH_DEF blkEventh;
 BETA_DEF blkBeta;
 CHARGE_DEF blkCharge;
@@ -317,7 +317,17 @@ void AMSR_Ntuple::SetSampleTree()
    //
    //Get a sample of ROOT-TTree
    //
-   if (m_SampleTree == 0 ) m_SampleTree = TFile::Open("NtupleSample.root");
+   if (m_SampleTree == 0 ) {
+     char * Geo_dir=getenv("AMSGeoDir");
+     if(!Geo_dir){
+       cerr <<"AMSR_Display-F-AMSGeoDir Not Defined. Exit(1)"<<endl;
+       exit(1);
+     }
+     char fname[256];
+     strcpy(fname,Geo_dir);
+     strcat(fname,"/NtupleSample.root");
+     m_SampleTree = TFile::Open(fname);
+   }
    m_Tree = (TTree*)m_SampleTree->Get("h1");
 
    //
