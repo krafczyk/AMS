@@ -1432,7 +1432,7 @@ void AMSTOFCluster::build(int &stat){
 //
         if((status & SCBADB3)!=0)status|=AMSDBc::BAD; 
 //          bad=(peak bar has severe problem with t-measurement)
-//        if((status & SCBADB2)!=0 && (status & SCBADB5)==0)status|=AMSDBc::BAD;
+        if((status & SCBADB2)!=0 && (status & SCBADB5)==0)status|=AMSDBc::BAD;
 //          bad=(peak bar is 1-sided and not recovered -> bad for t-measur)
         if(nmemb>0)edep/=nmemb;// take average for multi-bar clusters
 //

@@ -247,7 +247,7 @@ if(!_Cumulus){
  _Cumulus = new uinteger[nlay()];
  _Cumulus[0]=1;
   for(int i=1;i<nlay();i++){
-   _Cumulus[i]=_Cumulus[i-1]*(1+2*nlad(layer));
+   _Cumulus[i]=_Cumulus[i-1]*(1+2*nlad(i));
   }
 }
 return _Cumulus[layer-1];

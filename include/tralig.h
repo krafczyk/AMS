@@ -55,6 +55,7 @@ void setpar(const AMSPoint & coo, const AMSPoint & angle);
 AMSDir   getmtx(integer i){assert(i>=0 && i<3);return _Dir[i];}
 AMSDir &  setmtx(integer i){assert(i>=0 && i<3);return _Dir[i];}
 void updmtx(){_a2m();}
+static AMSID getTDVDB();
 AMSTrAligPar  operator +(const AMSTrAligPar &o){
 return AMSTrAligPar(_Coo+o._Coo,_Angles+o._Angles);
 }         

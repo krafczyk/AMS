@@ -303,6 +303,8 @@ void _crHit();
 inline  AMSPoint  getHit(int i){return _Hit[i];}
 inline  AMSPoint  getEHit(int i){return _EHit[i];}
 void _buildaddress();
+void decodeaddress();
+
 public:
   integer intercept(AMSPoint &P1, integer layer, number &theta, number &phi);
 static integer & RefitIsNeeded(){return _RefitIsNeeded;}

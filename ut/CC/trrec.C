@@ -2858,9 +2858,10 @@ void AMSTrTrack::_crHit(){
  // build address
 
  _buildaddress();
+ //decodeaddress();
  integer found=0;
  AMSTrAligPar * par(0);
- if(!TRALIG.UpdateDB)AMSTrAligPar::SearchDB(_Address, found);
+ if(!TRALIG.UpdateDB)par=AMSTrAligPar::SearchDB(_Address, found);
   if(found){
    for(int i=0;i<_NHits;i++){
     int plane=patconf[_Pattern][i]-1;
@@ -2890,8 +2891,19 @@ void AMSTrTrack::_buildaddress(){
     int layer=id.getlayer();
     int ladder=id.getdrp();
     int half=id.gethalf();
-    _Address+=AMSDBc::Cumulus(layer)*(ladder+half*(AMSDBc::nlad(layer)));
+    _Address+=AMSDBc::Cumulus(layer)*(ladder+half*(AMSDBc::nlad(layer)+1));
   } 
-  
 
+}
+
+void AMSTrTrack::decodeaddress(){
+   integer ladder[2][6];
+   cout <<" Address "<<_Address<<endl;
+   for(int i=0;i<6;i++){
+    uinteger lad=(_Address/AMSDBc::Cumulus(i+1))%(2*AMSDBc::nlad(i+1)+1);
+    ladder[0][i]=lad%(AMSDBc::nlad(i+1)+1);
+    ladder[1][i]=lad/(AMSDBc::nlad(i+1)+1);
+    cout <<i+1<< " "<<ladder[0][i]<<" "<<ladder[1][i]<<endl; 
+   }
+  
 }

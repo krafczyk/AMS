@@ -94,20 +94,23 @@ integer AMSTrAligPar::UpdateDB(uinteger address,  AMSTrAligPar  o[]){
     AMSTrAligPar::AMSTrAligDBEntry e(address,o);
     int out=AMSbins(getdbtopp(),e, getdbentries());
     if(out>0 && TRALIG.ReWriteDB==0){
-     cerr<<"AMSTrAligPar::UpdateDB-E-ObjectAlreadyExists "<<address<<endl;
+     cerr<<"AMSTrAligPar::UpdateDB-E-ObjectAlreadyExists "<<address<<" "<<getdbentries()<<endl;
      return 0;
     }
     else if(out<=0){
      *(getdbtopp()+getdbentries())=e;
      incdbentries();
      AMSsortNAGa(getdbtopp(),getdbentries());
-     cout<<"AMSTrAligPar::UpdateDB-I-NewEntryAdded "<<address<<endl;
+     cout<<"AMSTrAligPar::UpdateDB-I-NewEntryAdded "<<address<<" "<<getdbentries()<<endl;
+     
     }
     else{
      *(getdbtopp()+out-1)=e;
-     cout<<"AMSTrAligPar::UpdateDB-I-EntryReplaced"<<address<<endl;
+     cout<<"AMSTrAligPar::UpdateDB-I-EntryReplaced"<<address<<" "<<getdbentries()<<endl;
     }
    }
+   AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVDB());
+   ptdv->UpdateMe()=1;
    return 1;
 }
 
@@ -175,12 +178,18 @@ if(forced==0){
         pal=pal->next(); 
      }
       if(nnodes<TRALIG.MaxPatternsPerJob){
-           pal=new AMSTrAligFit(ptrack->getaddress(),
-           ptrack->getpattern(), TRALIG.MaxEventsPerFit, TRALIG.Algorithm, nnodes+1);
-           if(pal->_PositionData<pal->_NData)(pal->_pData[(pal->_PositionData)++]).Init(ptr,ptrg);
-           pnode->add(pal);       
-           cout <<"AMSTrAligFit::Test-I-NewPatternAdded " <<ptrack->getaddress()<<endl;
+           integer found=0;
+           AMSTrAligPar::SearchDB(ptrack->getaddress(),found);
+           if(TRALIG.ReWriteDB  || !found){
+            pal=new AMSTrAligFit(ptrack->getaddress(),
+            ptrack->getpattern(), TRALIG.MaxEventsPerFit, TRALIG.Algorithm, nnodes+1);
+            if(pal->_PositionData<pal->_NData)(pal->_pData[(pal->_PositionData)++]).Init(ptr,ptrg);
+            pnode->add(pal);       
+            cout <<"AMSTrAligFit::Test-I-NewPatternAdded " <<ptrack->getaddress()<<endl;
+           }
+      else cerr<<"AMSTrAligFit::Test-E-CouldNotAddPatternAlrdyExists " <<ptrack->getaddress()<<endl;
       }
+      else cerr<<"AMSTrAligFit::Test-E-CouldNotAddPatternMaxReached " <<ptrack->getaddress()<<endl;
   }
 }
 
@@ -211,13 +220,13 @@ else {
      AMSTimeID * offspring =
      (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());
      while(offspring){
-           for(int i=0;i<AMSJob::gethead()->gettdvn();i++){
-             if(strcmp(AMSJob::gethead()->gettdvc(i),offspring->getname())==0)offspring->UpdateMe()=1;
-            }
-       if(offspring->UpdateMe())cout << " Starting to update "<<*offspring;
-      if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
-      cerr <<"AMSJob::_dbendjob-S-ProblemtoUpdate "<<*offspring;
-      offspring=(AMSTimeID*)offspring->next();
+       if(offspring->UpdateMe()){
+            cout << " Starting to update "<<*offspring;
+            offspring->UpdCRC();
+            if( !offspring->write(AMSDATADIR.amsdatabase))
+             cerr <<"AMSJob::_dbendjob-S-ProblemtoUpdate "<<*offspring;
+       }
+             offspring=(AMSTimeID*)offspring->next();
      }
     }
 
@@ -531,4 +540,9 @@ void AMSTrAligData::Init(AMSParticle *ppart, AMSmceventg *pmcg){
   }
 
   return ;
+}
+
+AMSID AMSTrAligPar::getTDVDB(){
+return AMSID("TrAligDB",AMSJob::gethead()->isRealData());
+
 }
