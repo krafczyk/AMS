@@ -102,7 +102,15 @@ main(int argc, char *argv[])
   //
   //AMSR_Display
   //----------
-  TFile fgeo("ams_group.root");
+  char * Geo_dir=getenv("AMSGeoDir");
+  if(!Geo_dir){
+   cerr <<"AMSR_Display-F-AMSGeoDir Not Defined. Exit(1)"<<endl;
+   exit(1);
+  }
+  char fname[256];
+  strcpy(fname,Geo_dir);
+  strcat(fname,"/ams_group.root");
+  TFile fgeo(fname);
   TGeometry * geo = (TGeometry *)fgeo.Get("ams");
   AMSR_Display display("AMSR_Root Event Display", geo,1024,768);
 
@@ -111,7 +119,11 @@ main(int argc, char *argv[])
   //
   // Load "IdleHandle()"
   //
-  theApp->ProcessLine(".L IdleHandle.C");
+  char idleh[256];
+  strcpy(idleh,".L ");
+  strcat(idleh,Geo_dir);
+  strcat(idleh,"/IdleHandle.C");
+  theApp->ProcessLine(idleh);
 
   //
   // Set ntupleID if necessary
@@ -145,8 +157,8 @@ main(int argc, char *argv[])
       char *dot = strrchr(slash, '.');
       if ( !dot ) type = ObjectivityFile;
       else if ( strstr(dot+1, "root") == dot+1 ) type = RootFile;
-      else if ( strstr(dot+1, "ntp") == dot+1) type = NtupleFile;
-      else type = ObjectivityFile;
+      else if ( (strstr(dot+1, "ntp") == dot+1) ) type = NtupleFile;
+      else type = NtupleFile;
     } else {
       ctype = *++argv;
       if ( strcmp(ctype,"0")==0 || strcmp(ctype,"root")==0) type = RootFile;

@@ -36,7 +36,7 @@ ifeq  "$(OS)"  "AIX"
  OPT           = -g -DROOT10308
  NOOPT         =
  LD            = xlC
- LDFLAGS       = -g
+ LDFLAGS       = 
  SOFLAGS       = -b
  SOGFLAGS      = -b
  FORLIBS       = -lxlf90 -lxlf -L/cern/pro/lib -lmathlib -lpacklib -lkernlib
@@ -46,6 +46,7 @@ ifeq  "$(OS)"  "AIX"
  LIBS          = $(ROOTLIBS) -lm -lcurses $(FORLIBS)
  GLIBS         = $(ROOTLIBS) -lXm -lXt -lX11 -lm -lPW -lld -lcurses $(FORLIBS)
  SHLD          = /usr/lpp/xlC/bin/makeC++SharedLib $(LIBS) -p 0
+ ARLD          = ar vr
 endif
 
 ##############
@@ -81,6 +82,7 @@ ifeq  "$(OS)"  "OSF1"
  SHLD          = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx \
                  -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o \
                  /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
+ ARLD          = ar vr
 endif
 
 

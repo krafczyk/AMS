@@ -85,13 +85,15 @@ ALLOBJS       = $(OBJS) $(OBJSG) $(MAINO)
 
 
 AMSR_NOLIB      = $(OBJDIR)/amsed_nolib
-#AMSR_LIB       = $(OBJDIR)/libAMS.a
+AMSR_LIB       = $(OBJDIR)/libams.a
+AMSR_SLIB       =  -L$(OBJDIR) -lams
 
 AMSR_SHAREDLIB  = $(OBJDIR)/libAMS.so
 
 #AMSR_GLIB      = $(OBJDIR)/libAMSg.so
 
 AMSR_PRG        = $(OBJDIR)/amsed
+AMSR_PRGA        = $(OBJDIR)/amseda
 AMSR_PRGC       = $(OBJDIR)/amsedc
 AMSR_PRGV       = $(OBJDIR)/amsedv
 
@@ -104,6 +106,8 @@ AMSR_PRGV       = $(OBJDIR)/amsedv
 interprete:  $(AMSR_SHAREDLIB)
 
 standalone:  $(AMSR_PRG)
+
+standalonea:  $(AMSR_PRGA)
 
 realtime:  $(AMSR_PRGC)
 
@@ -121,8 +125,17 @@ $(AMSR_SHAREDLIB):  $(OBJS)
 	chmod 555 $@
 	@echo "$@ done with $^ linked in"
 
+$(AMSR_LIB):  $(OBJS)
+	rm -f $@
+	-$(ARLD) -o $@ $^ 
+	chmod 555 $@
+	@echo "$@ done with $^ linked in"
+
 $(AMSR_PRG):	$(AMSR_SHAREDLIB) $(MAINO)
 		-$(LD) $(LDFLAGS) $(GLIBS) $^ -o $@
+
+$(AMSR_PRGA):	$(AMSR_LIB) $(MAINO)
+		-$(LD) $(LDFLAGS) $(MAINO) $(AMSR_SLIB) $(GLIBS)  -o $@
 
 $(AMSR_PRGC):	$(AMSR_SHAREDLIB) $(MAINOC)
 		-$(LD) $(LDFLAGS) $(GLIBS) $^ -o $@

@@ -9,5 +9,7 @@ setenv RunsDir $Offline/RunsDir
 setenv AMSDataNtuplesDir $Offline/AMSDataNtuplesDir
 setenv AMSMCNtuplesDir   $Offline/AMSMCNtuplesDir
 setenv SlowRateDataDir   $Offline/SlowRateDataDir
+setenv AMSGeoDir         $Offline/vdev/display/v2.00
+setenv amsed             $Offline/vdev/display/v2.00/$OS/bin/amseda
 limit core 0
 
