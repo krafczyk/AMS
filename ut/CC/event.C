@@ -51,7 +51,7 @@ AMSNodeMap AMSEvent::EventMap;
 integer AMSEvent::SRun=0;
 void AMSEvent::_init(){
   // check old run & 
-   _validate();
+   if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
   if(_run != SRun){
    cout <<" AMS-I-New Run "<<_run<<endl;
    DAQEvent::initO(_run);
