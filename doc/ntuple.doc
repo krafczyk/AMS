@@ -315,6 +315,7 @@ Tracker clusters:
 5 - BAD (status&16!=0)
 6 - USED (status&32!=0)
 7 - Service bit (status&64!=0)
+8 - Cluster NOT consistent with TOF info (status&128!=0)
 
  TrRecHits:
 1 - FalseX (status&1!=0)

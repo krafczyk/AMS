@@ -21,6 +21,7 @@
 #include <amsgobj.h>
 #include <timeid.h>
 #include <commons.h>
+#include <ntuple.h>
 #ifdef __DB__
 #include <db_comm.h>
 #endif
@@ -233,6 +234,7 @@ AMSgvolume * getgeom(AMSID id=0);
 AMSgvolume * getgeomvolume(AMSID id){return   (AMSgvolume*)JobMap.getp(id);}
 AMSgmat * getmat(AMSID id=0);
 AMSgtmed * getmed(AMSID id=0);
+AMSNtuple * getntuple(AMSID id=0);
 void data();
 void udata();
 void init();

@@ -196,32 +196,29 @@ void AMSTrMCCluster::_copyEl(){
 
 void AMSTrMCCluster::_writeEl(){
 
-static integer init=0;
-static TrMCClusterNtuple TrMCClusterN;
-int i;
-if(AMSTrMCCluster::Out( IOPA.WriteAll)){
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"TrMCClus",TrMCClusterN.getaddress(),
-  "TrMCCluster:I*4,IdsoftMC:I*4, Itra:I*4,Left(2):I*4, Center(2):I*4, Right(2):I*4, SS(5,2):R*4, Xca(3):R*4, Xcb(3):R*4, Xgl(3):R*4, SumMC:R*4");
-}
-  TrMCClusterN.Event()=AMSEvent::gethead()->getid();
-  TrMCClusterN.Idsoft=_idsoft;
-  TrMCClusterN.TrackNo=_itra;
-  for(i=0;i<2;i++)TrMCClusterN.Left[i]=_left[i];
-  for(i=0;i<2;i++)TrMCClusterN.Center[i]=_center[i];
-  for(i=0;i<2;i++)TrMCClusterN.Right[i]=_right[i];
-  for(i=0;i<2;i++)TrMCClusterN.SS[i][0]=_ss[i][0];
-  for(i=0;i<2;i++)TrMCClusterN.SS[i][1]=_ss[i][1];
-  for(i=0;i<2;i++)TrMCClusterN.SS[i][2]=_ss[i][2];
-  for(i=0;i<2;i++)TrMCClusterN.SS[i][3]=_ss[i][3];
-  for(i=0;i<2;i++)TrMCClusterN.SS[i][4]=_ss[i][4];
-  for(i=0;i<3;i++)TrMCClusterN.Xca[i]=_xca[i];
-  for(i=0;i<3;i++)TrMCClusterN.Xcb[i]=_xcb[i];
-  for(i=0;i<3;i++)TrMCClusterN.Xgl[i]=_xgl[i];
-  TrMCClusterN.Sum=_sum;
-  HFNTB(IOPA.ntuple,"TrMCClus");
-}
+  TrMCClusterNtuple* TrMCClusterN = AMSJob::gethead()->getntuple()->Get_trclmc();
+  
+  if (TrMCClusterN->Ntrclmc>=MAXTRCLMC) return;
+  
+// Fill the ntuple
+  if(AMSTrMCCluster::Out( IOPA.WriteAll)){
+    TrMCClusterN->Idsoft[TrMCClusterN->Ntrclmc]=_idsoft;
+    TrMCClusterN->TrackNo[TrMCClusterN->Ntrclmc]=_itra;
+    int i;
+    for(i=0;i<2;i++)TrMCClusterN->Left[TrMCClusterN->Ntrclmc][i]=_left[i];
+    for(i=0;i<2;i++)TrMCClusterN->Center[TrMCClusterN->Ntrclmc][i]=_center[i];
+    for(i=0;i<2;i++)TrMCClusterN->Right[TrMCClusterN->Ntrclmc][i]=_right[i];
+    for(i=0;i<2;i++)TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][0]=_ss[i][0];
+    for(i=0;i<2;i++)TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][1]=_ss[i][1];
+    for(i=0;i<2;i++)TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][2]=_ss[i][2];
+    for(i=0;i<2;i++)TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][3]=_ss[i][3];
+    for(i=0;i<2;i++)TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][4]=_ss[i][4];
+    for(i=0;i<3;i++)TrMCClusterN->Xca[TrMCClusterN->Ntrclmc][i]=_xca[i];
+    for(i=0;i<3;i++)TrMCClusterN->Xcb[TrMCClusterN->Ntrclmc][i]=_xcb[i];
+    for(i=0;i<3;i++)TrMCClusterN->Xgl[TrMCClusterN->Ntrclmc][i]=_xgl[i];
+    TrMCClusterN->Sum[TrMCClusterN->Ntrclmc]=_sum;
+    TrMCClusterN->Ntrclmc++;
+  }
 
 }
 
@@ -377,43 +374,35 @@ geant tofg){
 
 void AMSTOFMCCluster::_writeEl(){
 
-if(AMSTOFMCCluster::Out( IOPA.WriteAll)){
-static integer init=0;
-static TOFMCClusterNtuple TOFMCClusterN;
-int i;
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"TOFMCClu",TOFMCClusterN.getaddress(),
-  "TOFMCEvent:I*4,TOFMCIdsoft:I*4, TOFMCXcoo(3):R*4, TOFMCtof:R*4, TOFMCedep:R*4");
-}
-  TOFMCClusterN.Event()=AMSEvent::gethead()->getid();
-  TOFMCClusterN.Idsoft=idsoft;
-  for(i=0;i<3;i++)TOFMCClusterN.Coo[i]=xcoo[i];
-  TOFMCClusterN.TOF=tof;
-  TOFMCClusterN.Edep=edep;
-  HFNTB(IOPA.ntuple,"TOFMCClu");
-}
+  TOFMCClusterNtuple* TOFMCClusterN = AMSJob::gethead()->getntuple()->Get_tofmc();
+
+  if (TOFMCClusterN->Ntofmc>=MAXTOFMC) return;
+  
+// Fill the ntuple
+  if(AMSTOFMCCluster::Out( IOPA.WriteAll)){
+    TOFMCClusterN->Idsoft[TOFMCClusterN->Ntofmc]=idsoft;
+    for(int i=0;i<3;i++)TOFMCClusterN->Coo[TOFMCClusterN->Ntofmc][i]=xcoo[i];
+    TOFMCClusterN->TOF[TOFMCClusterN->Ntofmc]=tof;
+    TOFMCClusterN->Edep[TOFMCClusterN->Ntofmc]=edep;
+    TOFMCClusterN->Ntofmc++;
+  }
 
 }
 
 void AMSAntiMCCluster::_writeEl(){
 
-if(AMSAntiMCCluster::Out( IOPA.WriteAll)){
-static integer init=0;
-static TOFMCClusterNtuple AntiMCClusterN;
-int i;
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"AntiMCCl",AntiMCClusterN.getaddress(),
-  "AntiMCEvent:I*4,AntiMCIdsoft:I*4, AntiMCXcoo(3):R*4, AntiMCtof:R*4, AntiMCedep:R*4");
-}
-  AntiMCClusterN.Event()=AMSEvent::gethead()->getid();
-  AntiMCClusterN.Idsoft=_idsoft;
-  for(i=0;i<3;i++)AntiMCClusterN.Coo[i]=_xcoo[i];
-  AntiMCClusterN.TOF=_tof;
-  AntiMCClusterN.Edep=_edep;
-  HFNTB(IOPA.ntuple,"AntiMCCl");
-}
+  ANTIMCClusterNtuple* AntiMCClusterN = AMSJob::gethead()->getntuple()->Get_antimc();
+
+  if (AntiMCClusterN->Nantimc>=MAXANTIMC) return;
+  
+// fill the ntuple
+  if(AMSAntiMCCluster::Out( IOPA.WriteAll)){
+    AntiMCClusterN->Idsoft[AntiMCClusterN->Nantimc]=_idsoft;
+    for(int i=0;i<3;i++)AntiMCClusterN->Coo[AntiMCClusterN->Nantimc][i]=_xcoo[i];
+    AntiMCClusterN->TOF[AntiMCClusterN->Nantimc]=_tof;
+    AntiMCClusterN->Edep[AntiMCClusterN->Nantimc]=_edep;
+    AntiMCClusterN->Nantimc++;
+  }
 
 }
 
@@ -447,25 +436,22 @@ geant stepc, geant getot, geant edep, geant time){
 
 void AMSCTCMCCluster::_writeEl(){
 
-if(AMSCTCMCCluster::Out( IOPA.WriteAll)){
-static integer init=0;
-static CTCMCClusterNtuple CTCMCClusterN;
-int i;
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"CTCMCClu",CTCMCClusterN.getaddress(),
-  "CTCMCEvent:I*4,CTCMCIdsoft:I*4, CTCMCXcoo(3):R*4,CTCMCXdir(3):R*4,CTCstep:R*4, CTCCharge:R*4, CTCbeta:R*4, CTCEdep:R*4");
-}
-  CTCMCClusterN.Event()=AMSEvent::gethead()->getid();
-  CTCMCClusterN.Idsoft=_idsoft;
-  for(i=0;i<3;i++)CTCMCClusterN.Coo[i]=_xcoo[i];
-  for(i=0;i<3;i++)CTCMCClusterN.Dir[i]=_xdir[i];
-  CTCMCClusterN.Step=_step;
-  CTCMCClusterN.Charge=_charge;
-  CTCMCClusterN.Beta=_beta;
-  CTCMCClusterN.Edep=_edep;
-  HFNTB(IOPA.ntuple,"CTCMCClu");
-}
+  CTCMCClusterNtuple* CTCMCClusterN = AMSJob::gethead()->getntuple()->Get_ctcclmc();
+
+  if (CTCMCClusterN->Nctcclmc>=MAXCTCCLMC) return;
+  
+// Fill ntuple
+  if(AMSCTCMCCluster::Out( IOPA.WriteAll)){
+    CTCMCClusterN->Idsoft[CTCMCClusterN->Nctcclmc]=_idsoft;
+    int i;
+    for(i=0;i<3;i++)CTCMCClusterN->Coo[CTCMCClusterN->Nctcclmc][i]=_xcoo[i];
+    for(i=0;i<3;i++)CTCMCClusterN->Dir[CTCMCClusterN->Nctcclmc][i]=_xdir[i];
+    CTCMCClusterN->Step[CTCMCClusterN->Nctcclmc]=_step;
+    CTCMCClusterN->Charge[CTCMCClusterN->Nctcclmc]=_charge;
+    CTCMCClusterN->Beta[CTCMCClusterN->Nctcclmc]=_beta;
+    CTCMCClusterN->Edep[CTCMCClusterN->Nctcclmc]=_edep;
+    CTCMCClusterN->Nctcclmc++;
+  }
 
 }
 

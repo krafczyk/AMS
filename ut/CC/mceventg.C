@@ -502,27 +502,20 @@ void AMSmceventg::_copyEl(){
 }
 
 void AMSmceventg::_writeEl(){
-  // fill the ntuple
-static integer init=0;
-static MCEventGNtuple GN;
-int i;
+  MCEventGNtuple* GN = AMSJob::gethead()->getntuple()->Get_mcg();
 
-if(init++==0){
-  // get memory
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"MCEventG",GN.getaddress(),
-  "EventNoMCEventG:I*4, Nskip:I, Particle:I*4,  Coo(3):R*4, Dir(3):R*4, Momentum:R*4, Mass:R*4, Charge:R*4");
+  if (GN->Nmcg>=MAXMCG) return;
 
-}
-  GN.Event()=AMSEvent::gethead()->getid();
-  GN.Nskip=_nskip;
-  GN.Particle=_ipart;
-  for(i=0;i<3;i++)GN.Coo[i]=_coo[i];
-  for(i=0;i<3;i++)GN.Dir[i]=_dir[i];
-  GN.Momentum=_mom;
-  GN.Mass=_mass;
-  GN.Charge=_charge;
-  HFNTB(IOPA.ntuple,"MCEventG");
+// Fill the ntuple
+  GN->Nskip[GN->Nmcg]=_nskip;
+  GN->Particle[GN->Nmcg]=_ipart;
+  int i;
+  for(i=0;i<3;i++)GN->Coo[GN->Nmcg][i]=_coo[i];
+  for(i=0;i<3;i++)GN->Dir[GN->Nmcg][i]=_dir[i];
+  GN->Momentum[GN->Nmcg]=_mom;
+  GN->Mass[GN->Nmcg]=_mass;
+  GN->Charge[GN->Nmcg]=_charge;
+  GN->Nmcg++;
 
 }
 

@@ -120,7 +120,7 @@ integer operator < (AMSlink & o) const {
   AMSTrCluster * p= (AMSTrCluster*)(&o);
 //  return getid() < p->getid();
 // New operator < 15/11/96 for ntuple purpose
-                                        if (checkstatus(AMSDBc::USED) && !(p->checkstatus(AMSDBc::USED)))return 1;
+  if (checkstatus(AMSDBc::USED) && !(p->checkstatus(AMSDBc::USED)))return 1;
  else return 0;
 
 }
@@ -154,7 +154,7 @@ public:
   _Layer <<" Coo " << _Hit<< endl;}
 integer operator < (AMSlink & o) const {
   AMSTrRecHit * p= (AMSTrRecHit*)(&o);
- if (checkstatus(AMSDBc::USED) && !(p->checkstatus(AMSDBc::USED)))return 1;
+  if (checkstatus(AMSDBc::USED) && !(p->checkstatus(AMSDBc::USED)))return 1;
  else return 0;             
 
 } 

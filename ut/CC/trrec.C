@@ -756,29 +756,24 @@ AMSTrCluster::AMSTrCluster(const AMSTrIdSoft& id, integer status,
 }
 
 void AMSTrCluster::_writeEl(){
-  // fill the ntuple 
-static integer init=0;
-static TrClusterNtuple TrN;
-if(AMSTrCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"TrCluste",TrN.getaddress(),
-  "TrCluster:I*4,Idsoft:I*4,Status:I*4,NelemL:I*4,NelemR:I*4,Sum:R*4, Sigma:R*4, Mean:R*4, RMS:R*4, ErrorMean:R*4,Amplitude(5):R*4");
+  TrClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trcl();
 
-}
-  TrN.Event()=AMSEvent::gethead()->getid();
-  TrN.Idsoft=_Id.cmpt();
-  TrN.Status=_status;
-  TrN.NelemL=_NelemL;
-  TrN.NelemR=_NelemR;
-  TrN.Sum=_Sum;
-  TrN.Sigma=_Sigma;
-  TrN.Mean=_Mean;
-  TrN.RMS=_Rms;
-  TrN.ErrorMean=_ErrorMean;
-  for(int i=0;i<min(5,getnelem());i++)TrN.Amplitude[i]=_pValues[i]; 
-  HFNTB(IOPA.ntuple,"TrCluste");
-}
+  if (TrN->Ntrcl>=MAXTRCL) return;
+
+// Fill the ntuple 
+  if(AMSTrCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
+    TrN->Idsoft[TrN->Ntrcl]=_Id.cmpt();
+    TrN->Status[TrN->Ntrcl]=_status;
+    TrN->NelemL[TrN->Ntrcl]=_NelemL;
+    TrN->NelemR[TrN->Ntrcl]=_NelemR;
+    TrN->Sum[TrN->Ntrcl]=_Sum;
+    TrN->Sigma[TrN->Ntrcl]=_Sigma;
+    TrN->Mean[TrN->Ntrcl]=_Mean;
+    TrN->RMS[TrN->Ntrcl]=_Rms;
+    TrN->ErrorMean[TrN->Ntrcl]=_ErrorMean;
+    for(int i=0;i<min(5,getnelem());i++)TrN->Amplitude[TrN->Ntrcl][i]=_pValues[i]; 
+    TrN->Ntrcl++;
+  }
 }
 
 void AMSTrCluster::_copyEl(){
@@ -1007,6 +1002,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
 // Mark AMSTrRecHits which are outside the TOF path
     AMSTrRecHit * ptrhit;
     AMSPoint hit;
+    AMSTrCluster* pclus;
     for (i=0;i<6;i++) {
       for (ptrhit=AMSTrRecHit::gethead(i); ptrhit!=NULL; ptrhit=ptrhit->next()){
         hit = ptrhit->getHit();
@@ -1015,6 +1011,10 @@ integer AMSTrRecHit::markAwayTOFHits(){
         if (    xres > TRFITFFKEY.SearchRegTOF
              || yres > TRFITFFKEY.SearchRegTOF    ) {
           ptrhit->setstatus(AMSTrRecHit::AwayTOF);
+          pclus = ptrhit->getClusterP(0);
+          if (pclus) pclus->setstatus(AMSTrRecHit::AwayTOF);
+          pclus = ptrhit->getClusterP(1);
+          if (pclus) pclus->setstatus(AMSTrRecHit::AwayTOF);
         }
       }
     }
@@ -1041,59 +1041,52 @@ integer AMSTrRecHit::markAwayTOFHits(){
 
 
 void AMSTrRecHit::_writeEl(){
-  // fill the ntuple 
-static integer init=0;
-static TrRecHitNtuple THN;
-int i;
-if(AMSTrRecHit::Out( IOPA.WriteAll || checkstatus(AMSDBc::USED ))){
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"TrRecHit",THN.getaddress(),
-  "TrRecHit:I*4,pX:I*4,pY:I*4,StatusR:I*4,Layer:I*4,HitR(3):R*4, EhitR(3):R*4, SumR:R*4, DifoSum:R*4");
+  TrRecHitNtuple* THN = AMSJob::gethead()->getntuple()->Get_trrh();
 
-}
-  THN.Event()=AMSEvent::gethead()->getid();
-  if(_Xcl)THN.pX=_Xcl->getpos();
-  else THN.pX=-1;
-  THN.pY=_Ycl->getpos();
-   int i,pat;
-    pat=1;
-    if(AMSTrCluster::Out(IOPA.WriteAll    )){
-      // Writeall
-      for(i=0;i<pat;i++){
-        AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrCluster",i);
-         #ifdef __AMSDEBUG__
-          assert(pc != NULL);
-         #endif
-         THN.pY+=pc->getnelem();
-      }
-    }                                                        
-    else {
-    //WriteUsedOnly
-      for(i=0;i<pat;i++){
-        AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
+  if (THN->Ntrrh>=MAXTRRH) return;
+
+// Fill the ntuple 
+  if(AMSTrRecHit::Out( IOPA.WriteAll || checkstatus(AMSDBc::USED ))){
+    if(_Xcl)THN->pX[THN->Ntrrh]=_Xcl->getpos();
+    else THN->pX[THN->Ntrrh]=-1;
+    THN->pY[THN->Ntrrh]=_Ycl->getpos();
+      int pat;
+      pat=1;
+      if(AMSTrCluster::Out(IOPA.WriteAll    )){
+        // Writeall
+      for(int i=0;i<pat;i++){
+          AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrCluster",i);
+           #ifdef __AMSDEBUG__
+            assert(pc != NULL);
+           #endif
+           THN->pY[THN->Ntrrh]+=pc->getnelem();
+        }
+      }                                                        
+      else {
+      //WriteUsedOnly
+        for(int i=0;i<pat;i++){
+          AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
           while(ptr && ptr->checkstatus(AMSDBc::USED)){
-            THN.pY++;
+            THN->pY[THN->Ntrrh]++;
             ptr=ptr->next();
           }
+        }
       }
+  
+    if(!checkstatus(AMSTrRecHit::FalseX) && !checkstatus(AMSTrRecHit::FalseTOFX) &&
+        ((_Xcl->getid()).getlayer() != _Layer) || 
+       ((_Ycl->getid()).getlayer() != _Layer) ){
+      cerr << "AMSTrRecHit-S-Logic Error "<<(_Xcl->getid()).getlayer()<<" "<<
+        (_Ycl->getid()).getlayer()<<" "<<_Layer<<endl;
     }
-
-
-  if(!checkstatus(AMSTrRecHit::FalseX) && !checkstatus(AMSTrRecHit::FalseTOFX) &&
-      ((_Xcl->getid()).getlayer() != _Layer) || 
-     ((_Ycl->getid()).getlayer() != _Layer) ){
-    cerr << "AMSTrRecHit-S-Logic Error "<<(_Xcl->getid()).getlayer()<<" "<<
-      (_Ycl->getid()).getlayer()<<" "<<_Layer<<endl;
+    THN->Status[THN->Ntrrh]=_status;
+    THN->Layer[THN->Ntrrh]=_Layer;
+    for(int i=0;i<3;i++)THN->Hit[THN->Ntrrh][i]=_Hit[i];
+    for(i=0;i<3;i++)THN->EHit[THN->Ntrrh][i]=_EHit[i];
+    THN->Sum[THN->Ntrrh]=_Sum;
+    THN->DifoSum[THN->Ntrrh]=_DifoSum;
+    THN->Ntrrh++;
   }
-  THN.Status=_status;
-  THN.Layer=_Layer;
-  for(i=0;i<3;i++)THN.Hit[i]=_Hit[i];
-  for(i=0;i<3;i++)THN.EHit[i]=_EHit[i];
-  THN.Sum=_Sum;
-  THN.DifoSum=_DifoSum;
-  HFNTB(IOPA.ntuple,"TrRecHit");
-}
 }
 
 void AMSTrRecHit::_copyEl(){
@@ -2026,100 +2019,95 @@ for(int i=0;i<2;i++){
 }
 
 void AMSTrTrack::_writeEl(){
-  // fill the ntuple 
-static integer init=0;
-static TrTrackNtuple TrTN;
-int i;
-if(AMSTrTrack::Out(1 )){
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"TrTrack",TrTN.getaddress(),
-  "TrTrack:I*4,TrStatus:I*4,Pattern:I*4,  NHits:I*4 , pHits(6):I*4 , FastFitdone:I*4,GeaneFitDone:I*4,AdvancedFitDone:I*4,Chi2StrLine:R*4,Chi2Circle:R*4,CircleRidgidity:R*4,Chi2FastFit:R*4,Ridgidity:R*4,ErrRidgidity:R*4,Theta:R*4,Phi:R*4,P0(3):R*4,GChi2:R*4,GRidgidity:R*4,GErrRidgidity:R*4,GTheta:R*4,GPhi:R*4,GP0(3):R*4,HChi2(2):R*4,HRidgidity(2):R*4,HErrRidgidity(2):R*4,  HTheta(2):R*4,HPhi(2):R*4,HP0(3,2):R*4,FChi2MS:R*4,GChi2MS:R*4,RidgidityMS:R*4,GRidgidityMS:R*4");
+  TrTrackNtuple* TrTN = AMSJob::gethead()->getntuple()->Get_trtr();
 
-}
-  TrTN.Event()=AMSEvent::gethead()->getid();
-  TrTN.Status=_status;
-  TrTN.Pattern=_Pattern;
-  TrTN.NHits=_NHits;
-  for(int k=0;k<_NHits;k++){
-   TrTN.pHits[k]=_Pthit[k]->getpos();
-   int i,pat;
-    pat=_Pthit[k]->getLayer()-1;
-    if(AMSTrRecHit::Out(IOPA.WriteAll)){
-      // Writeall
-      for(i=0;i<pat;i++){
-        AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrRecHit",i);
-         #ifdef __AMSDEBUG__
-          assert(pc != NULL);
-         #endif
-         TrTN.pHits[k]+=pc->getnelem();
-      }
-    }                                                        
-    else {
-    //WriteUsedOnly
-      for(i=0;i<pat;i++){
-        AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
+  if (TrTN->Ntrtr>=MAXTRTR) return;
+
+// Fill the ntuple 
+  if(AMSTrTrack::Out(1)){
+    int i;
+    TrTN->Status[TrTN->Ntrtr]=_status;
+    TrTN->Pattern[TrTN->Ntrtr]=_Pattern;
+    TrTN->NHits[TrTN->Ntrtr]=_NHits;
+    for(int k=0;k<_NHits;k++){
+     TrTN->pHits[TrTN->Ntrtr][k]=_Pthit[k]->getpos();
+      int pat;
+      pat=_Pthit[k]->getLayer()-1;
+      if(AMSTrRecHit::Out(IOPA.WriteAll)){
+        // Writeall
+        for(i=0;i<pat;i++){
+          AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrRecHit",i);
+           #ifdef __AMSDEBUG__
+            assert(pc != NULL);
+           #endif
+           TrTN->pHits[TrTN->Ntrtr][k]+=pc->getnelem();
+        }
+      }                                                        
+      else {
+      //WriteUsedOnly
+        for(i=0;i<pat;i++){
+          AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
           while(ptr && ptr->checkstatus(AMSDBc::USED)){
-            TrTN.pHits[k]++;
+            TrTN->pHits[TrTN->Ntrtr][k]++;
             ptr=ptr->next();
           }
+        }
       }
     }
-
-
+  
+  
+    TrTN->FastFitDone[TrTN->Ntrtr]=_FastFitDone;
+    TrTN->GeaneFitDone[TrTN->Ntrtr]=_GeaneFitDone;
+    TrTN->AdvancedFitDone[TrTN->Ntrtr]=_AdvancedFitDone;
+    TrTN->Chi2StrLine[TrTN->Ntrtr]=geant(_Chi2StrLine);
+    TrTN->Chi2Circle[TrTN->Ntrtr]=geant(_Chi2Circle);
+    TrTN->CircleRidgidity[TrTN->Ntrtr]=(geant)_CircleRidgidity;
+    TrTN->Chi2FastFit[TrTN->Ntrtr]=(geant)_Chi2FastFit;
+    TrTN->Ridgidity[TrTN->Ntrtr]=(geant)_Ridgidity;
+    TrTN->ErrRidgidity[TrTN->Ntrtr]=(geant)_ErrRidgidity;
+    TrTN->Theta[TrTN->Ntrtr]=(geant)_Theta;
+    TrTN->Phi[TrTN->Ntrtr]=(geant)_Phi;
+    for(i=0;i<3;i++)TrTN->P0[TrTN->Ntrtr][i]=(geant)_P0[i];
+    if(_GeaneFitDone){ 
+     TrTN->GChi2[TrTN->Ntrtr]=(geant)_GChi2;
+     TrTN->GRidgidity[TrTN->Ntrtr]=(geant)_GRidgidity;
+     TrTN->GErrRidgidity[TrTN->Ntrtr]=(geant)_GErrRidgidity;
+     TrTN->GTheta[TrTN->Ntrtr]=(geant)_GTheta;
+     TrTN->GPhi[TrTN->Ntrtr]=(geant)_GPhi;
+     for(i=0;i<3;i++)TrTN->GP0[TrTN->Ntrtr][i]=(geant)_GP0[i];
+    }
+    else{
+     TrTN->GChi2[TrTN->Ntrtr]=-1;
+     TrTN->GRidgidity[TrTN->Ntrtr]=0;
+     TrTN->GErrRidgidity[TrTN->Ntrtr]=0;
+     TrTN->GTheta[TrTN->Ntrtr]=0;
+     TrTN->GPhi[TrTN->Ntrtr]=0;
+     for(i=0;i<3;i++)TrTN->GP0[TrTN->Ntrtr][i]=0;
+    } 
+    if(_AdvancedFitDone){
+     for(i=0;i<2;i++)TrTN->HChi2[TrTN->Ntrtr][i]=(geant) _HChi2[i];
+     for(i=0;i<2;i++)TrTN->HRidgidity[TrTN->Ntrtr][i]=(geant)_HRidgidity[i];
+     for(i=0;i<2;i++)TrTN->HErrRidgidity[TrTN->Ntrtr][i]=(geant)_HErrRidgidity[i];
+     for(i=0;i<2;i++)TrTN->HTheta[TrTN->Ntrtr][i]=(geant)_HTheta[i];
+     for(i=0;i<2;i++)TrTN->HPhi[TrTN->Ntrtr][i]=(geant)_HPhi[i];
+     for(i=0;i<3;i++)TrTN->HP0_1[TrTN->Ntrtr][i]=(geant)_HP0[0][i];
+     for(i=0;i<3;i++)TrTN->HP0_2[TrTN->Ntrtr][i]=(geant)_HP0[1][i];
+    }
+    else{
+     for(i=0;i<2;i++)TrTN->HChi2[TrTN->Ntrtr][i]=-1;
+     for(i=0;i<2;i++)TrTN->HRidgidity[TrTN->Ntrtr][i]=0;
+     for(i=0;i<2;i++)TrTN->HErrRidgidity[TrTN->Ntrtr][i]=0;
+     for(i=0;i<2;i++)TrTN->HTheta[TrTN->Ntrtr][i]=0;
+     for(i=0;i<2;i++)TrTN->HPhi[TrTN->Ntrtr][i]=0;
+     for(i=0;i<3;i++)TrTN->HP0_1[TrTN->Ntrtr][i]=0;
+     for(i=0;i<3;i++)TrTN->HP0_2[TrTN->Ntrtr][i]=0;
+    }
+    TrTN->FChi2MS[TrTN->Ntrtr]=(geant)_Chi2MS;
+    TrTN->GChi2MS[TrTN->Ntrtr]=(geant)_GChi2MS;
+    TrTN->RidgidityMS[TrTN->Ntrtr]=(geant)_RidgidityMS;
+    TrTN->GRidgidityMS[TrTN->Ntrtr]=(geant)_GRidgidityMS;
+    TrTN->Ntrtr++;
   }
-  TrTN.FastFitDone=_FastFitDone;
-  TrTN.GeaneFitDone=_GeaneFitDone;
-  TrTN.AdvancedFitDone=_AdvancedFitDone;
-  TrTN.Chi2StrLine=geant(_Chi2StrLine);
-  TrTN.Chi2Circle=geant(_Chi2Circle);
-  TrTN.CircleRidgidity=(geant)_CircleRidgidity;
-  TrTN.Chi2FastFit=(geant)_Chi2FastFit;
-  TrTN.Ridgidity=(geant)_Ridgidity;
-  TrTN.ErrRidgidity=(geant)_ErrRidgidity;
-  TrTN.Theta=(geant)_Theta;
-  TrTN.Phi=(geant)_Phi;
-  for(i=0;i<3;i++)TrTN.P0[i]=(geant)_P0[i];
-  if(_GeaneFitDone){ 
-   TrTN.GChi2=(geant)_GChi2;
-   TrTN.GRidgidity=(geant)_GRidgidity;
-   TrTN.GErrRidgidity=(geant)_GErrRidgidity;
-   TrTN.GTheta=(geant)_GTheta;
-   TrTN.GPhi=(geant)_GPhi;
-   for(i=0;i<3;i++)TrTN.GP0[i]=(geant)_GP0[i];
-  }
-  else{
-   TrTN.GChi2=-1;
-   TrTN.GRidgidity=0;
-   TrTN.GErrRidgidity=0;
-   TrTN.GTheta=0;
-   TrTN.GPhi=0;
-   for(i=0;i<3;i++)TrTN.GP0[i]=0;
-  } 
-  if(_AdvancedFitDone){
-   for(i=0;i<2;i++)TrTN.HChi2[i]=(geant) _HChi2[i];
-   for(i=0;i<2;i++)TrTN.HRidgidity[i]=(geant)_HRidgidity[i];
-   for(i=0;i<2;i++)TrTN.HErrRidgidity[i]=(geant)_HErrRidgidity[i];
-   for(i=0;i<2;i++)TrTN.HTheta[i]=(geant)_HTheta[i];
-   for(i=0;i<2;i++)TrTN.HPhi[i]=(geant)_HPhi[i];
-   for(i=0;i<3;i++)TrTN.HP0_1[i]=(geant)_HP0[0][i];
-   for(i=0;i<3;i++)TrTN.HP0_2[i]=(geant)_HP0[1][i];
-  }
-  else{
-   for(i=0;i<2;i++)TrTN.HChi2[i]=-1;
-   for(i=0;i<2;i++)TrTN.HRidgidity[i]=0;
-   for(i=0;i<2;i++)TrTN.HErrRidgidity[i]=0;
-   for(i=0;i<2;i++)TrTN.HTheta[i]=0;
-   for(i=0;i<2;i++)TrTN.HPhi[i]=0;
-   for(i=0;i<3;i++)TrTN.HP0_1[i]=0;
-   for(i=0;i<3;i++)TrTN.HP0_2[i]=0;
-  }
-  TrTN.FChi2MS=(geant)_Chi2MS;
-  TrTN.GChi2MS=(geant)_GChi2MS;
-  TrTN.RidgidityMS=(geant)_RidgidityMS;
-  TrTN.GRidgidityMS=(geant)_GRidgidityMS;
-  HFNTB(IOPA.ntuple,"TrTrack");
-}
 }
 
 void AMSTrTrack::_copyEl(){

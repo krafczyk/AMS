@@ -191,24 +191,20 @@ AMSgObj::BookTimer.stop("SITKDIGIc");
 }
 
 void AMSTrRawCluster::_writeEl(){
+  TrRawClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trraw();
 
-  // fill the ntuple 
-static integer init=0;
-static TrRawClusterNtuple TrN;
-if(AMSTrRawCluster::Out( IOPA.WriteAll  )){
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"TrRawCl",TrN.getaddress(),
-  "TrRawCl:I*4,RawAddress:I*4,RawLength:I*4");
+  if (TrN->Ntrraw>=MAXTRRAW) return;
 
-}
-  TrN.Event()=AMSEvent::gethead()->getid();
-  TrN.address=_address+_strip*10000;
-  TrN.nelem=_nelem;
-   AMSTrIdSoft id(_address);
-   if(id.getside()==1 || checkstatus(AMSTrRawCluster::MATCHED))
-   HFNTB(IOPA.ntuple,"TrRawCl");
-}
+// Do not write K clusters if not matched
+  AMSTrIdSoft id(_address);
+  if(id.getside()==0 && !checkstatus(AMSTrRawCluster::MATCHED)) return;
+
+// Fill the ntuple 
+  if(AMSTrRawCluster::Out( IOPA.WriteAll  )){
+    TrN->address[TrN->Ntrraw]=_address+_strip*10000;
+    TrN->nelem[TrN->Ntrraw]=_nelem;
+    TrN->Ntrraw++;
+  }
 
 
 }

@@ -209,80 +209,71 @@ for(kk=0;kk<4;kk++){
 
 
 void AMSParticle::_writeEl(){
-  // fill the ntuple 
-static integer init=0;
-static ParticleNtuple PN;
-int i;
+  ParticleNtuple* PN = AMSJob::gethead()->getntuple()->Get_part();
 
-if(init++==0){
-  // get memory
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"Particle",PN.getaddress(),
-  "ParticleEvent:I*4, PCTCPointer(2):I*4,PBetaPointer:I*4, PChargePointer:I*4, PtrackPointer:I*4,   ParticleId:I*4,  PMass:R*4, PErrMass:R*4, PMom:R*4, PErrMom:R*4, PCharge:R*4, PTheta:R*4, PPhi:R*4, PCoo(3):R*4, SignalCTC(2):R*4, BetaCTC(2):R*4, ErrorBetaCTC(2):R*4, CooCTC(3,2):R*4,COOTOF(3,4):R");
+  if (PN->Npart>=MAXPART) return;
 
-}
- PN.ChargeP=_pcharge->getpos();
- PN.BetaP=_pbeta->getpos();
- integer pat=_pbeta->getpattern();
- for(i=0;i<pat;i++){
-   AMSContainer *pc=AMSEvent::gethead()->getC("AMSBeta",i);
-   #ifdef __AMSDEBUG__
-     assert(pc != NULL);
-   #endif
-   PN.BetaP+=pc->getnelem();
- }
-
- PN.TrackP=_ptrack->getpos();
- pat=_ptrack->getpattern();
-     if(AMSTrTrack::Out(IOPA.WriteAll)){
-       // Writeall
-     
-        for(i=0;i<pat;i++){
-         AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrTrack",i);
-         #ifdef __AMSDEBUG__
-          assert(pc != NULL);
-         #endif
-         PN.TrackP+=pc->getnelem();
-        }
-     }
-     else {
-       //WriteUsedOnly
-        for(i=0;i<pat;i++){
-         AMSTrTrack *ptr=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",i);
-          while(ptr && ptr->checkstatus(AMSDBc::USED)){ 
-            PN.TrackP++;
-            ptr=ptr->next();
-          }
-        }
-     }
- PN.Event()=AMSEvent::gethead()->getid();
+// Fill the ntuple 
+  PN->ChargeP[PN->Npart]=_pcharge->getpos();
+  PN->BetaP[PN->Npart]=_pbeta->getpos();
+  integer pat=_pbeta->getpattern();
+  int i;
+  for(i=0;i<pat;i++){
+    AMSContainer *pc=AMSEvent::gethead()->getC("AMSBeta",i);
+    #ifdef __AMSDEBUG__
+      assert(pc != NULL);
+    #endif
+    PN->BetaP[PN->Npart]+=pc->getnelem();
+  }
  
- PN.Particle=_GPart;
- PN.Mass=_Mass;
- PN.ErrMass=_ErrMass;
- PN.Momentum=_Momentum;
- PN.ErrMomentum=_ErrMomentum;
- PN.Charge=_Charge;
- PN.Theta=_Theta;
- PN.Phi=_Phi;
- for(i=0;i<3;i++)PN.Coo[i]=_Coo[i];
- for(i=0;i<CTCDBc::getnlay();i++){
-  PN.CTCP[i]=_pctc[i]?_pctc[i]->getpos():0;
-  PN.Value[0][i]=_Value[i].getsignal();
-  PN.Value[1][i]=_Value[i].getbeta();
-  PN.Value[2][i]=_Value[i].geterbeta();
-  PN.CooCTC[i][0]=_Value[i].getcoo()[0];
-  PN.CooCTC[i][1]=_Value[i].getcoo()[1];
-  PN.CooCTC[i][2]=_Value[i].getcoo()[2];
- }
+  PN->TrackP[PN->Npart]=_ptrack->getpos();
+  pat=_ptrack->getpattern();
+  if(AMSTrTrack::Out(IOPA.WriteAll)){
+    // Writeall
+    for(i=0;i<pat;i++){
+      AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrTrack",i);
+      #ifdef __AMSDEBUG__
+       assert(pc != NULL);
+      #endif
+      PN->TrackP[PN->Npart]+=pc->getnelem();
+    }
+  }
+  else {
+    //WriteUsedOnly
+    for(i=0;i<pat;i++){
+      AMSTrTrack *ptr=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",i);
+      while(ptr && ptr->checkstatus(AMSDBc::USED)){ 
+        PN->TrackP[PN->Npart]++;
+        ptr=ptr->next();
+      }
+    }
+  }
+ 
+  PN->Particle[PN->Npart]=_GPart;
+  PN->Mass[PN->Npart]=_Mass;
+  PN->ErrMass[PN->Npart]=_ErrMass;
+  PN->Momentum[PN->Npart]=_Momentum;
+  PN->ErrMomentum[PN->Npart]=_ErrMomentum;
+  PN->Charge[PN->Npart]=_Charge;
+  PN->Theta[PN->Npart]=_Theta;
+  PN->Phi[PN->Npart]=_Phi;
+  for(i=0;i<3;i++)PN->Coo[PN->Npart][i]=_Coo[i];
+  for(i=0;i<CTCDBc::getnlay();i++){
+    PN->CTCP[PN->Npart][i]=_pctc[i]?_pctc[i]->getpos():0;
+    PN->Value[0][PN->Npart][i]=_Value[i].getsignal();
+    PN->Value[1][PN->Npart][i]=_Value[i].getbeta();
+    PN->Value[2][PN->Npart][i]=_Value[i].geterbeta();
+    PN->CooCTC[PN->Npart][i][0]=_Value[i].getcoo()[0];
+    PN->CooCTC[PN->Npart][i][1]=_Value[i].getcoo()[1];
+    PN->CooCTC[PN->Npart][i][2]=_Value[i].getcoo()[2];
+  }
   for(i=0;i<4;i++){
     for(int j=0;j<3;j++){
-     PN.TOFCoo[i][j]=_TOFCoo[i][j];
+      PN->TOFCoo[PN->Npart][i][j]=_TOFCoo[i][j];
     }
   }
 
-
-  HFNTB(IOPA.ntuple,"Particle");
+  PN->Npart++;
 }
 
 void AMSParticle::_copyEl(){

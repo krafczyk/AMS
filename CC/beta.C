@@ -227,28 +227,22 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
 
 
 void AMSBeta::_writeEl(){
-  // fill the ntuple 
-static BetaNtuple BN;
-static integer init=0;
-if(init++==0){
-  //book the ntuple block
-  //
-  HBNAME(IOPA.ntuple,"Beta",BN.getaddress(),
-  "BetaEvent:I*4, BetaStatus:I*4,BetaPattern:I*4, Beta:R*4, BetaError:R*4, BetaChi2:R*4,BetaChi2S:R*4,BetaNTOF:I,BetapTOF(4):I*4,BetapTr:I*4");
+  BetaNtuple* BN = AMSJob::gethead()->getntuple()->Get_beta();
 
-}
-  BN.Event()=AMSEvent::gethead()->getid();
-  BN.Status=_status;
-  BN.Pattern=_Pattern;  
-  BN.Beta=_Beta;
-  BN.Error=_InvErrBeta;
-  BN.Chi2=_Chi2;
-  BN.Chi2S=_Chi2Space;
-  if(_Pattern ==0)BN.NTOF=4;
-  else if(_Pattern < 5)BN.NTOF=3;
-  else BN.NTOF=2;
-  for(int k=0;k<BN.NTOF;k++){
-    BN.pTOF[k]=_pcluster[k]->getpos();
+  if (BN->Nbeta>=MAXBETA) return;
+
+// fill the ntuple 
+  BN->Status[BN->Nbeta]=_status;
+  BN->Pattern[BN->Nbeta]=_Pattern;  
+  BN->Beta[BN->Nbeta]=_Beta;
+  BN->Error[BN->Nbeta]=_InvErrBeta;
+  BN->Chi2[BN->Nbeta]=_Chi2;
+  BN->Chi2S[BN->Nbeta]=_Chi2Space;
+  if(_Pattern ==0)BN->NTOF[BN->Nbeta]=4;
+  else if(_Pattern < 5)BN->NTOF[BN->Nbeta]=3;
+  else BN->NTOF[BN->Nbeta]=2;
+  for(int k=0;k<BN->NTOF[BN->Nbeta];k++){
+    BN->pTOF[BN->Nbeta][k]=_pcluster[k]->getpos();
     int i,pat;
     pat=_pcluster[k]->getntof()-1;
     if(AMSTOFCluster::Out(IOPA.WriteAll )){
@@ -258,7 +252,7 @@ if(init++==0){
          #ifdef __AMSDEBUG__
           assert(pc != NULL);
          #endif
-         BN.pTOF[k]+=pc->getnelem();
+         BN->pTOF[BN->Nbeta][k]+=pc->getnelem();
       }
     }                                                        
     else {
@@ -266,7 +260,7 @@ if(init++==0){
       for(i=0;i<pat;i++){
         AMSTOFCluster *ptr=(AMSTOFCluster*)AMSEvent::gethead()->getheadC("AMSTOFCluster",i);
           while(ptr && ptr->checkstatus(AMSDBc::USED)){
-            BN.pTOF[k]++;
+            BN->pTOF[BN->Nbeta][k]++;
             ptr=ptr->next();
           }
       }
@@ -274,33 +268,34 @@ if(init++==0){
 
 
 
- BN.pTr=_ptrack->getpos();
- pat=_ptrack->getpattern();
-     if(AMSTrTrack::Out(IOPA.WriteAll)){
-       // Writeall
-     
-        for(i=0;i<pat;i++){
-         AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrTrack",i);
-         #ifdef __AMSDEBUG__
-          assert(pc != NULL);
-         #endif
-         BN.pTr+=pc->getnelem();
-        }
-     }
-     else {
-       //WriteUsedOnly
-        for(i=0;i<pat;i++){
-         AMSTrTrack *ptr=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",i);
-          while(ptr && ptr->checkstatus(AMSDBc::USED)){ 
-            BN.pTr++;
-            ptr=ptr->next();
-          }
-        }
-     }
+    BN->pTr[BN->Nbeta]=_ptrack->getpos();
+    pat=_ptrack->getpattern();
+    if(AMSTrTrack::Out(IOPA.WriteAll)){
+      // Writeall
+    
+       for(i=0;i<pat;i++){
+        AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrTrack",i);
+        #ifdef __AMSDEBUG__
+         assert(pc != NULL);
+        #endif
+        BN->pTr[BN->Nbeta]+=pc->getnelem();
+       }
+    }
+    else {
+      //WriteUsedOnly
+       for(i=0;i<pat;i++){
+        AMSTrTrack *ptr=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",i);
+         while(ptr && ptr->checkstatus(AMSDBc::USED)){ 
+           BN->pTr[BN->Nbeta]++;
+           ptr=ptr->next();
+         }
+       }
+    }
 
 
   }
-  HFNTB(IOPA.ntuple,"Beta");
+
+  BN->Nbeta++;
 }
 
 void AMSBeta::_copyEl(){

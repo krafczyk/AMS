@@ -415,22 +415,17 @@ void AMSAntiRawCluster::siantinoise(number counter1[], number counter2[], intege
 
 
 void AMSAntiRawCluster::_writeEl(){
-  // fill the ntuple
-  if(AMSAntiRawCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
-static AntiRawClusterNtuple TN;
-static integer init=0;
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"AntiRawC",TN.getaddress(),
-  "AntiRawCluster:I*4,AntiRawStatus:I*4,AntiRawSector:I*4,AntiRawUpdown:I*4,AntiRawSignal:R*4");
+  AntiRawClusterNtuple* TN=AMSJob::gethead()->getntuple()->Get_antiraw();
 
-}
-TN.Event()=AMSEvent::gethead()->getid();
-  TN.Status=_status;
-  TN.Sector=_sector;
-  TN.UpDown=_updown;
-  TN.Signal=_signal;
-  HFNTB(IOPA.ntuple,"AntiRawC");
+  if (TN->Nantiraw>=MAXANTIRAW) return;
+
+// fill the ntuple
+  if(AMSAntiRawCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
+    TN->Status[TN->Nantiraw]=_status;
+    TN->Sector[TN->Nantiraw]=_sector;
+    TN->UpDown[TN->Nantiraw]=_updown;
+    TN->Signal[TN->Nantiraw]=_signal;
+    TN->Nantiraw++;
   }
 }
 
@@ -445,24 +440,19 @@ void AMSAntiRawCluster::_printEl(ostream & stream){
 
 
 void AMSAntiCluster::_writeEl(){
-  // fill the ntuple
-  if(AMSAntiCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
-static AntiClusterNtuple TN;
-static integer init=0;
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"AntiClus",TN.getaddress(),
-  "AntiCluster:I*4,AntiStatus:I*4,AntiSector:I*4,AntiEdep:R*4,AntiCoo(3):R*4,AntiErCoo(3):R*4");
+  AntiClusterNtuple* TN = AMSJob::gethead()->getntuple()->Get_anti();
 
-}
-TN.Event()=AMSEvent::gethead()->getid();
-  TN.Status=_status;
-  TN.Sector=_sector;
-  TN.Edep=_edep;
-  int i;
-  for(i=0;i<3;i++)TN.Coo[i]=_coo[i];
-  for(i=0;i<3;i++)TN.ErrorCoo[i]=_ecoo[i];
-  HFNTB(IOPA.ntuple,"AntiClus");
+  if (TN->Nanti>=MAXANTICL) return;
+
+// fill the ntuple
+  if(AMSAntiCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
+    TN->Status[TN->Nanti]=_status;
+    TN->Sector[TN->Nanti]=_sector;
+    TN->Edep[TN->Nanti]=_edep;
+    int i;
+    for(i=0;i<3;i++)TN->Coo[TN->Nanti][i]=_coo[i];
+    for(i=0;i<3;i++)TN->ErrorCoo[TN->Nanti][i]=_ecoo[i];
+    TN->Nanti++;
   }
 }
 

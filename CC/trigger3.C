@@ -677,27 +677,23 @@ else {
 
 
 void TriggerLVL3::_writeEl(){
-static integer init=0;
-static LVL3Ntuple lvl3N;
-int i;
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"LVL3",lvl3N.getaddress(),
-  "LVL3Event:I, LVL3TOFTr:I, LVL3AntiTr:I,LVL3TrackerTr:I,LVL3NTrHits:I, LVL3NPat:I, LVL3Pattern(2):I, LVL3Residual(2):R, LVL3Time:R,LVL3ELoss:R");
-}
-lvl3N.Event()=AMSEvent::gethead()->getid();
-lvl3N.TOFTr=_TOFTrigger;
-lvl3N.AntiTr=_AntiTrigger;
-lvl3N.TrackerTr=_TrackerTrigger;
-lvl3N.NTrHits=_NTrHits;
-lvl3N.NPatFound=_NPatFound;
-lvl3N.Residual[0]=_Residual[0];
-lvl3N.Residual[1]=_Residual[1];
-lvl3N.Pattern[0]=_Pattern[0];
-lvl3N.Pattern[1]=_Pattern[1];
-lvl3N.Time=_Time;
-lvl3N.ELoss=_TrEnergyLoss;
-HFNTB(IOPA.ntuple,"LVL3");
+  LVL3Ntuple* lvl3N = AMSJob::gethead()->getntuple()->Get_lvl3();
+
+  if (lvl3N->Nlvl3>=MAXLVL3) return;
+
+// Fill the ntuple
+  lvl3N->TOFTr[lvl3N->Nlvl3]=_TOFTrigger;
+  lvl3N->AntiTr[lvl3N->Nlvl3]=_AntiTrigger;
+  lvl3N->TrackerTr[lvl3N->Nlvl3]=_TrackerTrigger;
+  lvl3N->NTrHits[lvl3N->Nlvl3]=_NTrHits;
+  lvl3N->NPatFound[lvl3N->Nlvl3]=_NPatFound;
+  lvl3N->Residual[lvl3N->Nlvl3][0]=_Residual[0];
+  lvl3N->Residual[lvl3N->Nlvl3][1]=_Residual[1];
+  lvl3N->Pattern[lvl3N->Nlvl3][0]=_Pattern[0];
+  lvl3N->Pattern[lvl3N->Nlvl3][1]=_Pattern[1];
+  lvl3N->Time[lvl3N->Nlvl3]=_Time;
+  lvl3N->ELoss[lvl3N->Nlvl3]=_TrEnergyLoss;
+  lvl3N->Nlvl3++;
 
 }
 

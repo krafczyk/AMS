@@ -214,24 +214,19 @@ integer AMSCharge::_refit(number rid,number yy[],integer nx){
 }
 
 void AMSCharge::_writeEl(){
-  // fill the ntuple 
-static integer init=0;
-static ChargeNtuple CN;
-  int i;
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"Charge",CN.getaddress(),
-  "ChargeEvent:I*4, ChargeStatus:I*4,ChargeBetaP:I*4, ChargeTOF:I*4, ChargeTracker:I*4, ProbTOF(7):R*4, ProbTracker(7):R*4");
+  ChargeNtuple* CN = AMSJob::gethead()->getntuple()->Get_charge();
 
-}
-  CN.Event()=AMSEvent::gethead()->getid();
-  CN.Status=_status;
-  CN.BetaP=_pbeta->getpos();
-  CN.ChargeTOF=_ChargeTOF;
-  CN.ChargeTracker=_ChargeTracker;
-  for(i=0;i<7;i++)CN.ProbTOF[i]=_ProbTOF[i];
-  for(i=0;i<7;i++)CN.ProbTracker[i]=_ProbTracker[i];
-  HFNTB(IOPA.ntuple,"Charge");
+  if (CN->Ncharge>=MAXCHARGE) return;
+
+// Fill the ntuple 
+  CN->Status[CN->Ncharge]=_status;
+  CN->BetaP[CN->Ncharge]=_pbeta->getpos();
+  CN->ChargeTOF[CN->Ncharge]=_ChargeTOF;
+  CN->ChargeTracker[CN->Ncharge]=_ChargeTracker;
+  int i;
+  for(i=0;i<7;i++)CN->ProbTOF[CN->Ncharge][i]=_ProbTOF[i];
+  for(i=0;i<7;i++)CN->ProbTracker[CN->Ncharge][i]=_ProbTracker[i];
+  CN->Ncharge++;
 }
 
 void AMSCharge::_copyEl(){

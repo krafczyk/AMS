@@ -98,27 +98,17 @@ void AMSCTCRawHit::sictcdigi(){
 
 void AMSCTCRawHit::_writeEl(){
 
-static integer init=0;
-static CTCHitNtuple CTCCLN;
-int i;
+  CTCHitNtuple* CTCCLN = AMSJob::gethead()->getntuple()->Get_ctcht();
 
-  if(init++==0){
-    //book the ntuple block
-  HBNAME(IOPA.ntuple,"CTCHit",CTCCLN.getaddress(),
-  "CTCHit:I*4,CTCHitStatus:I*4, CTCHitLayer:I*4, CTCHitColumn:I*4,CTCHitRow:I*4,  CTCHitSignal:R*4");
+  if (CTCCLN->Nctcht>=MAXCTCHT) return;
 
-  }
-  CTCCLN.Event()=AMSEvent::gethead()->getid();
-  CTCCLN.Status=_status;
-  CTCCLN.Layer=_layer;
-  CTCCLN.Column=_column;
-  CTCCLN.Row=_row;
-  CTCCLN.Signal=_signal;
-  HFNTB(IOPA.ntuple,"CTCHit");
-
-
-
-
+// Fill the ntuple
+  CTCCLN->Status[CTCCLN->Nctcht]=_status;
+  CTCCLN->Layer[CTCCLN->Nctcht]=_layer;
+  CTCCLN->Column[CTCCLN->Nctcht]=_column;
+  CTCCLN->Row[CTCCLN->Nctcht]=_row;
+  CTCCLN->Signal[CTCCLN->Nctcht]=_signal;
+  CTCCLN->Nctcht++;
 
 }
 

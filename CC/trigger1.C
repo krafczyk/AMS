@@ -102,23 +102,18 @@ integer TriggerLVL1::checktofpattand(integer tof, integer paddle){
 
 void TriggerLVL1::_writeEl(){
 
-static integer init=0;
-static LVL1Ntuple lvl1N;
-int i;
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"LVL1",lvl1N.getaddress(),
-  "LVL1Event:I, LVL1Mode:I, LVL1TOFlag:I, LVL1TOFPatt(4):I,LVL1TOFPatt1(4):I,LVL1AntiPatt:I");
-}
+  LVL1Ntuple* lvl1N = AMSJob::gethead()->getntuple()->Get_lvl1();
 
-lvl1N.Event()=AMSEvent::gethead()->getid();
-lvl1N.Mode=_TriggerMode;
-lvl1N.TOFlag=_tofflag;
-for(i=0;i<4;i++)lvl1N.TOFPatt[i]=_tofpatt[i];
-for(i=0;i<4;i++)lvl1N.TOFPatt1[i]=_tofpatt1[i];
-lvl1N.AntiPatt=_antipatt;
-HFNTB(IOPA.ntuple,"LVL1");
+  if (lvl1N->Nlvl1>=MAXLVL1) return;
 
+// Fill the ntuple
+  lvl1N->Mode[lvl1N->Nlvl1]=_TriggerMode;
+  lvl1N->TOFlag[lvl1N->Nlvl1]=_tofflag;
+  int i;
+  for(i=0;i<4;i++)lvl1N->TOFPatt[lvl1N->Nlvl1][i]=_tofpatt[i];
+  for(i=0;i<4;i++)lvl1N->TOFPatt1[lvl1N->Nlvl1][i]=_tofpatt1[i];
+  lvl1N->AntiPatt[lvl1N->Nlvl1]=_antipatt;
+  lvl1N->Nlvl1++;
 
 }
 

@@ -357,28 +357,23 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
 //------------------------------------------------------------
 void AMSCTCCluster::_writeEl(){
 
-static integer init=0;
-static CTCClusterNtuple CTCCLN;
-int i;
-if(AMSCTCCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED))){
+  CTCClusterNtuple* CTCCLN = AMSJob::gethead()->getntuple()->Get_ctccl();
 
-if(init++==0){
-//book the ntuple block
-  HBNAME(IOPA.ntuple,"CTCClust",CTCCLN.getaddress(),
-  "CTCCluster:I*4,CTCStatus:I*4, CTCLayer:I*4, CTCCoo(3):R*4,CTCErCoo(3):R*4,CTCRawSignal:R*4,CTCSignal:R*4,CTCESignal:R*4");
+  if (CTCCLN->Nctccl>=MAXCTCCL) return;
+  
+// Fill the ntuple
+  if(AMSCTCCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED))){
+    CTCCLN->Status[CTCCLN->Nctccl]=_status; 
+    CTCCLN->Layer[CTCCLN->Nctccl]=_Layer;
+    int i;
+    for(i=0;i<3;i++)CTCCLN->Coo[CTCCLN->Nctccl][i]=_Coo[i];
+    for(i=0;i<3;i++)CTCCLN->ErrCoo[CTCCLN->Nctccl][i]=_ErrorCoo[i];
+    CTCCLN->RawSignal[CTCCLN->Nctccl]=_Signal;
+    CTCCLN->Signal[CTCCLN->Nctccl]=_CorrectedSignal;
+    CTCCLN->ErrorSignal[CTCCLN->Nctccl]=_ErrorSignal;
+    CTCCLN->Nctccl++;
+  }
 
-}
-  CTCCLN.Event()=AMSEvent::gethead()->getid();
-  CTCCLN.Status=_status; 
-  CTCCLN.Layer=_Layer;
-  for(i=0;i<3;i++)CTCCLN.Coo[i]=_Coo[i];
-  for(i=0;i<3;i++)CTCCLN.ErrCoo[i]=_ErrorCoo[i];
-  CTCCLN.RawSignal=_Signal;
-  CTCCLN.Signal=_CorrectedSignal;
-  CTCCLN.ErrorSignal=_ErrorSignal;
-  HFNTB(IOPA.ntuple,"CTCClust");
-
-}
 }
 void AMSCTCCluster::_copyEl(){
 }

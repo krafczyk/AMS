@@ -380,18 +380,20 @@ void  AMSEvent::write(){
   AMSEvent::gethead()->getheadC("AMSTrRecHit",4,1); 
   AMSEvent::gethead()->getheadC("AMSTrRecHit",5,1); 
    
-if(IOPA.hlun){
-_writeEl();
-AMSNode * cur;
-for (int i=0;;){
-  cur=AMSEvent::EventMap.getid(i++);   // get one by one
- if(cur){
-   if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->
-   writeC();
- }
- else break;
-}
-}
+  if(IOPA.hlun){
+    AMSJob::gethead()->getntuple()->reset();
+    _writeEl();
+    AMSNode * cur;
+    for (int i=0;;){
+      cur=AMSEvent::EventMap.getid(i++);   // get one by one
+      if(cur){
+        if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->
+        writeC();
+      }
+      else break;
+    }
+    AMSJob::gethead()->getntuple()->write();
+  }
 }
 
 void  AMSEvent::printA(integer debugl){
@@ -1113,125 +1115,116 @@ void AMSEvent::_printEl(ostream & stream){
 
 void AMSEvent::_writeEl(){
 
-  // fill the ntuple
-static integer init=0;
-static EventNtuple EN;
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"EventH",EN.getaddress(),
-  "EventNo:I*4, Run:I*4,  RunType:I*4 ,Time(2):I*4, PolePhi:R, ThetaS:R, PhiS:R, Particles:I, Tracks:I, Betas:I, Charges:I ,TrRecHits:I, TrClusters:I, TrRawClusters:I, TrMCClusters:I, TOFClusters:I, TOFMCClusters:I, CTCClusters:I, CTCMCClusters:I, AntiMCClusters:I, AntiClusters:I"); 
+// Fill the ntuple
+  EventNtuple* EN = AMSJob::gethead()->getntuple()->Get_event();
 
-}
-  EN.Event()=_id;
-  EN.Run=_run;
-  EN.RunType=_runtype;
-  UCOPY(&_time,EN.Time,2*sizeof(integer)/4);
-  EN.PolePhi=_NorthPolePhi;
-  EN.ThetaS=_StationTheta;
-  EN.PhiS=_StationPhi;
+  EN->Eventno=_id;
+  EN->Run=_run;
+  EN->RunType=_runtype;
+  UCOPY(&_time,EN->Time,2*sizeof(integer)/4);
+  EN->PolePhi=_NorthPolePhi;
+  EN->ThetaS=_StationTheta;
+  EN->PhiS=_StationPhi;
   integer  i,nc;
   AMSContainer *p;
-  EN.Particles=0;
-  EN.Tracks=0;
-  EN.Betas=0;
-  EN.Charges=0;
-  EN.TrRecHits=0;
-  EN.TrClusters=0;
-  EN.TrRawClusters=0;
-  EN.TrMCClusters=0;
-  EN.TOFClusters=0;
-  EN.TOFMCClusters=0;
-  EN.CTCClusters=0;
-  EN.CTCMCClusters=0;
-  EN.AntiClusters=0;
-  EN.AntiMCClusters=0;
+  EN->Particles=0;
+  EN->Tracks=0;
+  EN->Betas=0;
+  EN->Charges=0;
+  EN->TrRecHits=0;
+  EN->TrClusters=0;
+  EN->TrRawClusters=0;
+  EN->TrMCClusters=0;
+  EN->TOFClusters=0;
+  EN->TOFMCClusters=0;
+  EN->CTCClusters=0;
+  EN->CTCMCClusters=0;
+  EN->AntiClusters=0;
+  EN->AntiMCClusters=0;
 
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSParticle",i);
-   if(p) EN.Particles+=p->getnelem();
+   if(p) EN->Particles+=p->getnelem();
    else break;
   }  
 
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSTrTrack",i);
-   if(p) EN.Tracks+=p->getnelem();
+   if(p) EN->Tracks+=p->getnelem();
    else break;
   }
 
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSBeta",i);
-   if(p) EN.Betas+=p->getnelem();
+   if(p) EN->Betas+=p->getnelem();
    else break;
   }
 
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSCharge",i);
-   if(p) EN.Charges+=p->getnelem();
+   if(p) EN->Charges+=p->getnelem();
    else break;
   }
 
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSTrRecHit",i);
-   if(p) EN.TrRecHits+=p->getnelem();
+   if(p) EN->TrRecHits+=p->getnelem();
    else break;
   }
 
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSTrCluster",i);
-   if(p) EN.TrClusters+=p->getnelem();
+   if(p) EN->TrClusters+=p->getnelem();
    else break;
   }
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSTrRawCluster",i);
-   if(p) EN.TrRawClusters+=p->getnelem();
+   if(p) EN->TrRawClusters+=p->getnelem();
    else break;
   }
 
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSTrMCCluster",i);
-   if(p) EN.TrMCClusters+=p->getnelem();
+   if(p) EN->TrMCClusters+=p->getnelem();
    else break;
   }
  
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSTOFCluster",i);
-   if(p) EN.TOFClusters+=p->getnelem();
+   if(p) EN->TOFClusters+=p->getnelem();
    else break;
   }
 
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSTOFMCCluster",i);
-   if(p) EN.TOFMCClusters+=p->getnelem();
+   if(p) EN->TOFMCClusters+=p->getnelem();
    else break;
   }
 
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSCTCCluster",i);
-   if(p) EN.CTCClusters+=p->getnelem();
+   if(p) EN->CTCClusters+=p->getnelem();
    else break;
   }
   
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSCTCMCCluster",i);
-   if(p) EN.CTCMCClusters+=p->getnelem();
+   if(p) EN->CTCMCClusters+=p->getnelem();
    else break;
   }
 
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSAntiCluster",i);
-   if(p) EN.AntiClusters+=p->getnelem();
+   if(p) EN->AntiClusters+=p->getnelem();
    else break;
   }
   
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSAntiMCCluster",i);
-   if(p) EN.AntiMCClusters+=p->getnelem();
+   if(p) EN->AntiMCClusters+=p->getnelem();
    else break;
   }
 
-  HFNTB(IOPA.ntuple,"EventH");
-
- 
 }
 
 

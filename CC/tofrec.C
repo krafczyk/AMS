@@ -1016,30 +1016,22 @@ void AMSTOFRawCluster::build(int &status){
 }
 //-----------------------------------------------------------------------
 void AMSTOFRawCluster::_writeEl(){
+  TOFRawClusterNtuple* TN = AMSJob::gethead()->getntuple()->Get_tofraw();
 
-  // fill the ntuple
+  if (TN->Ntofraw>=MAXTOFRAW) return;
+
+// Fill the ntuple
   if(AMSTOFRawCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
-static TOFRawClusterNtuple TN;
-static integer init=0;
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"TOFRawCl",TN.getaddress(),
-  "TOFRawCluster:I*4,TOFRStatus:I*4,tofrNtof:I*4,tofrPlane:I*4, tofrtovta(2):R*4, TOfrtovtd(2):R*4,tofrsdtm(2):R*4");
-
-}
-TN.Event()=AMSEvent::gethead()->getid();
-  TN.Status=_status;
-  TN.Ntof=_ntof;
-  TN.Plane=_plane;
-  for(int i=0;i<2;i++){
-    TN.tovta[i]=_tovta[i];
-    TN.tovtd[i]=_tovta[i];
-    TN.sdtm[i]=_sdtm[i];
+    TN->Status[TN->Ntofraw]=_status;
+    TN->Layer[TN->Ntofraw]=_ntof;
+    TN->Bar[TN->Ntofraw]=_plane;
+    for(int i=0;i<2;i++){
+      TN->tovta[TN->Ntofraw][i]=_tovta[i];
+      TN->tovtd[TN->Ntofraw][i]=_tovta[i];
+      TN->sdtm[TN->Ntofraw][i]=_sdtm[i];
+    }
+    TN->Ntofraw++;
   }
-  HFNTB(IOPA.ntuple,"TOFRawCl");
-  }
-
-
 
 }
 //------
@@ -1056,27 +1048,22 @@ AMSTOFCluster * AMSTOFCluster::_Head[4]={0,0,0,0};
 
 
 void AMSTOFCluster::_writeEl(){
-  // fill the ntuple
-  if(AMSTOFCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
-static TOFClusterNtuple TN;
-static integer init=0;
-if(init++==0){
-  //book the ntuple block
-  HBNAME(IOPA.ntuple,"TOFClust",TN.getaddress(),
-  "TOFCluster:I*4,TOFStatus:I*4,Ntof:I*4,Plane:I*4, TOFEdep:R*4, TOFTime:R*4,TOFETime:R*4,TOFCoo(3):R*4,TOFErCoo(3):R*4");
+  TOFClusterNtuple* TN = AMSJob::gethead()->getntuple()->Get_tof();
 
-}
-TN.Event()=AMSEvent::gethead()->getid();
-  TN.Status=_status;
-  TN.Ntof=_ntof;
-  TN.Plane=_plane;
-  TN.Edep=_edep;
-  TN.Time=_time;
-  TN.ErrTime=_etime;
-  int i;
-  for(i=0;i<3;i++)TN.Coo[i]=_Coo[i];
-  for(i=0;i<3;i++)TN.ErrorCoo[i]=_ErrorCoo[i];
-  HFNTB(IOPA.ntuple,"TOFClust");
+  if (TN->Ntof>=MAXTOF) return;
+
+// Fill the ntuple
+  if(AMSTOFCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
+    TN->Status[TN->Ntof]=_status;
+    TN->Layer[TN->Ntof]=_ntof;
+    TN->Bar[TN->Ntof]=_plane;
+    TN->Edep[TN->Ntof]=_edep;
+    TN->Time[TN->Ntof]=_time;
+    TN->ErrTime[TN->Ntof]=_etime;
+    int i;
+    for(i=0;i<3;i++)TN->Coo[TN->Ntof][i]=_Coo[i];
+    for(i=0;i<3;i++)TN->ErrorCoo[TN->Ntof][i]=_ErrorCoo[i];
+    TN->Ntof++;
   }
 }
 

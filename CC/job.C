@@ -37,6 +37,7 @@
 #include <trrawcluster.h>
 #include <daqevt.h>
 #include <daqblock.h>
+#include <ntuple.h>
 #include <user.h>
 //+
  integer        ntdvNames;                       // number of TDV's types
@@ -1279,6 +1280,11 @@ AMSgtmed * AMSJob::getmed(AMSID id){
   return (AMSgtmed*)AMSJob::JobMap.getp(id);
 }
 
+AMSNtuple * AMSJob::getntuple(AMSID id){
+  if(id.getname() ==0 && id.getid()==0)id=AMSID("AMS Ntuple",0);
+  return (AMSNtuple*)AMSJob::JobMap.getp(id);
+}
+
 void AMSJob::setsetup(char *setup){
   if(setup && (strlen(setup)>1 || AMSFFKEY.ZeroSetupOk))strcpy(_Setup,setup);
   else strcpy(_Setup,"AMSSHUTTLE");   //defaults
@@ -1593,15 +1599,18 @@ _dbendjob();
 _axendjob();
 
 if(IOPA.hlun){
-  cout <<"Trying to close ntuple ... "<<endl;
-        char hpawc[256]="//PAWC";
-        HCDIR (hpawc, " ");
-        char houtput[9]="//output";
-        HCDIR (houtput, " ");
-        integer ICYCL=0;
-        HROUT (0, ICYCL, " ");
-        HREND ("output");
-        CLOSEF(IOPA.hlun);
+  int ntuple_entries;
+  HNOENT(IOPA.ntuple, ntuple_entries);
+  cout << " Closing AMS ntuple at unit " << IOPA.hlun << " with ";
+  cout << ntuple_entries << " events" << endl << endl;
+  char hpawc[256]="//PAWC";
+  HCDIR (hpawc, " ");
+  char houtput[9]="//output";
+  HCDIR (houtput, " ");
+  integer ICYCL=0;
+  HROUT (0, ICYCL, " ");
+  HREND ("output");
+  CLOSEF(IOPA.hlun);
 }
 
 
@@ -1622,6 +1631,11 @@ void AMSJob::uhinit(integer pass){
      exit(1);
     }
     else cout <<"Histo file opened."<<endl;
+
+// Open the n-tuple
+    static AMSNtuple ntuple(IOPA.ntuple,"AMS Ntuple");
+    gethead()->addup(&ntuple);
+
   }
    HBOOK1(200101,"Number of Nois Hits x",100,-0.5,99.5,0.);
    HBOOK1(200102,"Number of Nois Hits y",100,-0.5,99.5,0.);
@@ -1629,10 +1643,8 @@ void AMSJob::uhinit(integer pass){
    HBOOK1(200104,"Normal Spectrum y",200,-50.5,49.5,0.);
    HBOOK1(200105,"Above threshold spectrum x",200,-0.5,49.5,0.);
    HBOOK1(200106,"Above threshold spectrum y",200,-0.5,49.5,0.);
-   HBNT(IOPA.ntuple,"Simulation"," ");
 
 }
-
 
 void AMSJob::_tkendjob(){
 
