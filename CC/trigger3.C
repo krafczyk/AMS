@@ -659,8 +659,9 @@ out:
   //TriggerExpertLVL3::pExpert->update(plvl3);        
   tt2=HighResTime();
        }
-       if((plvl3->TrackerTriggerS())%32 >= LVL3FFKEY.Accept || 
-          (LVL3FFKEY.Accept>31 && plvl3->TrackerTriggerS()>=LVL3FFKEY.Accept)){ 
+//       if((plvl3->TrackerTriggerS())%32 >= LVL3FFKEY.Accept || 
+//          (LVL3FFKEY.Accept>31 && plvl3->TrackerTriggerS()>=LVL3FFKEY.Accept)){ 
+       if(plvl3->TrackerTriggerS()>=LVL3FFKEY.Accept){ 
          plvl3->settime(tt2-tt1);
          AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",0),plvl3);
        }
@@ -929,8 +930,7 @@ void TriggerLVL3::buildraw(integer n, int16u *p){
  //    cout <<k<<" "<<*(p+k)<<endl;
  //   }
  
-if(tra%32 >= LVL3FFKEY.Accept || 
-(LVL3FFKEY.Accept>31 && tra >=LVL3FFKEY.Accept)){
+if(tra >= LVL3FFKEY.Accept ){
  // swap 1 <-> 3
   if(tra%8==1)tra=tra+2; 
   else if(tra%8==3)tra=tra-2; 
