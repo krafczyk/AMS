@@ -241,7 +241,12 @@ mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));
   geant z[]={14.,8.};
   geant w[]={1.,2.};
 
-  mat.add(new AMSgmat("RICH_AEROGEL",a,z,w,2,.7368));  
+#ifdef __AMSDEBUG__
+  cout << "RICH aerogel density "<<RICHDB::aerogel_density() <<endl;
+#endif
+
+  mat.add(new AMSgmat("RICH_AEROGEL",a,z,w,2,RICHDB::aerogel_density()));
+  //  mat.add(new AMSgmat("RICH_AEROGEL",a,z,w,2,.7368));  
 } 
 // Aerogel density extracted from J Phys D 27(1994)414
 // Case: Pure aerogel
@@ -263,12 +268,14 @@ mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));
 }
 
 
-{ // Absorber walls: plexiglass too... 
+{ // Absorber walls: plexiglass too... C5H8O2
   geant a[]={12.01,1.01,16.0};
   geant z[]={6.,1.,8.};
   geant w[]={5.,8.,2.};
 
   mat.add(new AMSgmat("RICH_WALLS",a,z,w,3,1.16));
+
+  mat.add(new AMSgmat("RICH_SOLG",a,z,w,3,1.16));
 
   // Carbon fiber for the aerogel support structure
 
@@ -473,7 +480,6 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
 // RICH media
 
 {
-
   // Cerenkov photon properties for the radiator
 
   geant index[RICmaxentries];
@@ -482,6 +488,10 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
   geant dummy[RICmaxentries];
   integer iw;
   
+  // Recompute some tables
+
+  RICHDB::mat_init();
+
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       p[iw]=2*3.1415926*197.327e-9/RICHDB::wave_length[iw]; // Photon momentum in GeV
@@ -503,7 +513,18 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       abs_l[iw]=1.e-10;     //changed by VC 7-sep-2000
-      index[iw]=1.458;
+      index[iw]=RICHDB::pmtw_index;
+    }
+  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
+
+
+// Solid light-guides. They only work if __HOLLOW__ is undefined in richdbc.h 
+  pgtmed= (AMSgtmed*) tmed.add (new AMSgtmed("RICH SOLG",
+					     "RICH_SOLG",0));
+  for(iw=0;iw<RICHDB::entries;iw++)
+    {
+      abs_l[iw]=RICHDB::lg_abs[iw];
+      index[iw]=RICHDB::lg_index[iw];
     }
   pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 

@@ -874,15 +874,24 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
          }
        }
        else{
-//        GCTRAK.istop=2; // Absorb it
-        AMSRichMCHit::sirichhits(GCKINE.ipart,
-                		 Mother->GetCopyNo()-1,
-				 GCTRAK.vect,
-			       	 GCKINE.vert,
-				 GCKINE.pvert,
-                                 (GCKINE.itra!=1?100:0)+
-                                 RICHDB::numrefm*10+
-                                 (RICHDB::numrayl>0?Status_Rayleigh:0));
+	 //        GCTRAK.istop=2; // Absorb it
+	 if(GCKINE.vert[2]<RICradpos-RICHDB::rad_height-RICHDB::height)
+	   AMSRichMCHit::sirichhits(GCKINE.ipart,
+				    Mother->GetCopyNo()-1,
+				    GCTRAK.vect,
+				    GCKINE.vert,
+				    GCKINE.pvert,
+				    Status_LG_origin-
+				    (GCKINE.itra!=1?100:0));	  
+	 else
+	   AMSRichMCHit::sirichhits(GCKINE.ipart,
+				    Mother->GetCopyNo()-1,
+				    GCTRAK.vect,
+				    GCKINE.vert,
+				    GCKINE.pvert,
+				    (GCKINE.itra!=1?100:0)+
+				    RICHDB::numrefm*10+
+				    (RICHDB::numrayl>0?Status_Rayleigh:0));
        }
       }
       else if(GCTRAK.nstep!=0){	 

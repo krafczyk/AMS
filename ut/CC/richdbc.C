@@ -15,7 +15,10 @@ geant RICHDB::wave_length[RICmaxentries]={608.696, 605.797, 602.899, 600.000, 59
 					  288.406, 284.058, 279.71,  275.812, 272.464, 270.014,
 					  268.116, 266.667};
 
-geant RICHDB::rad_index=1.14;
+geant RICHDB::rad_index=1.05;
+
+
+// Fused SiO2 scaled to n=1.14
 
 geant RICHDB::index[RICmaxentries]={1.136,   1.13602, 1.13605, 1.13608, 1.13612, 1.13617,
 				    1.13623, 1.13631, 1.13635, 1.13642, 1.13647, 1.13656,
@@ -28,19 +31,13 @@ geant RICHDB::index[RICmaxentries]={1.136,   1.13602, 1.13605, 1.13608, 1.13612,
 
 
 
+geant RICHDB::abs_length[RICmaxentries]={36.,36.,36.,36.,36.,36.,36.,36.,36.,36.,36.,
+					 36.,36.,36.,36.,36.,36.,36.,36.,36.,36.,36.,
+					 36.,36.,36.,36.,36.,36.,36.,36.,36.,36.,36.,
+					 36.,36.,36.,36.,36.,36.,36.,36.,36.,36.,36.};
 
 
-geant RICHDB::abs_length[RICmaxentries]={1372.78, 1346.82, 1321.23, 1296, 1258.84, 1222.49, 1175.25,
-					 1118.14, 1084.89, 1041.71, 1010.19,  959.24,   919.9,  872.43,
-					 826.82,  783.02,  735.33,  685.02,  639.62,  596.52,  542.48,
-					 492.2,  445.49,   402.2,  347.91,   329.6,  267.31,  234.46,
-					 201.6,  186.54,  158.84,  134.55,  117.14,   97.82,    85.8,
-					 76.05,   69.19,   65.11,   61.21,   57.87,   55.11,   53.16,
-					 51.68,   50.57};
-
-
-
-
+// PMT quantum eff. from Hamamatsu
 
 geant RICHDB::eff[RICmaxentries]={1.296, 1.476, 1.717, 1.853, 2.041, 2.324, 2.646, 3.214, 3.504,
 				  3.904, 4.350, 5.171, 5.518, 6.420, 7.153, 8.143, 9.271,10.330,
@@ -57,7 +54,34 @@ integer RICHDB::n_pmts[15][2]={{11,7},{11,8},{11,7},{11,6},{11,5},{11,4},
 integer RICHDB::offset[15][2]={{0,1},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
                                {0,0},{0,0},{1,0}};
 
+
 geant RICHDB::pmt_p[RICmaxpmts][2];
+
+
+
+// PMT photocathode window
+
+geant RICHDB::pmtw_index=1.458;
+
+
+// Measured abs. length for Bicron-BC800 plastic.
+
+geant RICHDB::lg_abs[RICmaxentries]={100.000,100.000,100.000,100.000,100.000,
+				     100.000,100.000,100.000,100.000,100.000,
+				     100.000,100.000,100.000,100.000,100.000,
+				     100.000,100.000,100.000,100.000,100.000,
+				     100.000,100.000,100.000,100.000,100.000,
+				     100.000,99.9604,99.8544,99.3826,98.7339,
+				     94.7906,81.1226,57.4100,24.0361,10.2919,
+				      4.4379, 2.2767, 1.4859, 0.9670, 0.6569,
+				     0.4709, 0.3689, 0.3054, 0.2643};
+
+geant RICHDB::lg_index[RICmaxentries]={1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,
+				       1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,
+				       1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,
+				       1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,
+				       1.49,1.49,1.49,1.49};
+				       
 
 
 integer RICHDB::entries=RICmaxentries;
@@ -66,7 +90,7 @@ geant RICHDB::bottom_radius=67.;
 geant RICHDB::height=45.4;
 geant RICHDB::hole_radius=31.5;
 geant RICHDB::inner_mirror_height=50;
-geant RICHDB::rad_clarity=0.011;
+geant RICHDB::rad_clarity=0.0091;
 geant RICHDB::rad_radius=60.0;
 geant RICHDB::rad_height=2;
 geant RICHDB::rad_tile_size=15;
@@ -87,8 +111,47 @@ integer RICHDB::numrefm=0;
 integer RICHDB::numrayl=0;
 
 
+// Book some histograms
+
 void RICHDB::bookhist(){
 }
+
+// Recompute some vars 
+void RICHDB::mat_init(){
+// Update chromatic dispersion if the radiator index is different from 1.14
+// Scaled from fused SiO2
+#ifdef __AMSDEBUG__
+  if(RICHDB::rad_index!=1.14) 
+    cout <<"Energia     Indice"<<endl
+         <<"-------     ------"<<endl;
+#endif
+  if(RICHDB::rad_index!=1.14)
+  for(integer i=0;i<RICmaxentries;i++){
+    if(RICHDB::index[i]<1.) continue;
+    RICHDB::index[i]=1.+(RICHDB::index[i]-1.)*(RICHDB::rad_index-1.)/0.14;
+#ifdef __AMSDEBUG__
+    cout <<2*3.1415926*197.327e-9/RICHDB::wave_length[i]<<"   "<<
+           RICHDB::index[i]<<endl;
+#endif
+
+  }
+
+}
+
+// Aerogel density
+
+geant RICHDB::aerogel_density(){
+  geant water_conc=0.;
+  geant methanol_conc=0.;
+
+  // J.Phys D 27(1994)414: Unused
+  //  return (RICHDB::rad_index-1.)/(0.19+0.31*water_conc+0.38*methanol_conc);
+
+  // Matsushita
+  return (RICHDB::rad_index-1.)/0.28;
+}
+
+
 
 /// Now Some functions for the rich geometry
 

@@ -1,8 +1,12 @@
 // Author C.J. Delgado (1999) 
-
+// Updated October 2000
 
 #ifndef __RICHDB__
 #define __RICHDB__ 
+
+
+// Undefine next one to use solid guides
+#undef __HOLLOW__
 
 #include<job.h>
 #include<commons.h> 
@@ -25,6 +29,8 @@ const geant   RICshiheight=8.0;     // NEW!
 const geant   RICradpos=-75.26;// Top of the radiator position
 const geant   sq2=1.4142135623;// useful constant:sqrt(2)
 
+const geant   RICepsln=0.002;  // Useful to simulate absence of optical contact
+
 const integer RICmaxentries=44;
 const integer RICmaxrows=100;
 
@@ -45,6 +51,7 @@ const integer Status_Noise=-1;
 const integer Status_Window=-2;
 const integer Status_No_Cerenkov=-3;
 const integer Status_Fake=-4;
+const integer Status_LG_origin=-5;
 
 }
 
@@ -75,7 +82,8 @@ public: // To be migrated in the future
   // Light guide features
   static geant lg_height;
   static geant lg_tile_size;
-
+  static geant lg_abs[RICmaxentries];   // abs. length for solid LG
+  static geant lg_index[RICmaxentries]; // refractive index for solid_LG
 
   //---------- RADIATOR PARAMETERS
   static integer entries;
@@ -86,6 +94,7 @@ public: // To be migrated in the future
 
 
   //---------- PMT PARAMETERS
+  static geant pmtw_index; // Photocathode window mean refractive index
   static geant eff[RICmaxentries];
   static geant ped;
   static geant sigma_ped;
@@ -115,6 +124,8 @@ public:
   static geant x(integer);
   static geant y(integer);
   static void bookhist();
+  static void mat_init();
+  static geant aerogel_density();
   static geant total_height();
   static geant pmtb_height();
   static geant mirror_pos();
