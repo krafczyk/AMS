@@ -1,10 +1,10 @@
-
+DISPLAY=$1
+DISPLAY=$DISPLAY
+export DISPLAY
 ROOTSYS=/cern/root/v2.00
 export ROOTSYS
 LD_LIBRARY_PATH=.:$ROOTSYS/lib
 AMSEDDataDir=/offruns/scripts/log/root/
-DISPLAY=boron:0.0
-export DISPLAY
 export  AMSEDDataDir
 export LD_LIBRARY_PATH
 while offmonc
