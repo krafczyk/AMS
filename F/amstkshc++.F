@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.71 2003/02/25 11:08:48 alcaraz Exp $
+*  $Id: amstkshc++.F,v 1.72 2003/03/18 09:12:55 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -6942,7 +6942,7 @@ CDECK  ID>, TKFLDC.
           real xx(3),hxy(3,3)
           real *8 xval,hbase,der(14),erest(14),tkigufld
           external tkigufld
-          do i=1,2
+          do i=1,3
             do j=1,3
           ifail=1
           nder=1
@@ -9134,9 +9134,12 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.71 2003/02/25 11:08:48 alcaraz Exp $
+* $Id: amstkshc++.F,v 1.72 2003/03/18 09:12:55 choutko Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.72  2003/03/18 09:12:55  choutko
+* write down ascii mfield derivatives while creating mf record
+*
 * Revision 1.71  2003/02/25 11:08:48  alcaraz
 * Updated and improved path integral tracking method (J.Alcaraz, Feb 2003)
 * Hoping this time is OK

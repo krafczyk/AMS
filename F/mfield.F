@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.13 2002/01/11 16:09:42 choutko Exp $
+*  $Id: mfield.F,v 1.14 2003/03/18 09:12:56 choutko Exp $
       subroutine readmfield
 #      include "mfield.h"
        real hxy(3,3),x1(3)
@@ -55,6 +55,23 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
               bdx(i,j,k,2)=hxy(1,2)
               bdy(i,j,k,2)=hxy(2,2)
               bdz(i,j,k,2)=hxy(3,2)
+              brx=bx(i,j,k)*hxy(1,1)+by(i,j,k)*hxy(1,2)+
+     +        bz(i,j,k)*hxy(1,3)
+              bry=bx(i,j,k)*hxy(2,1)+by(i,j,k)*hxy(2,2)+
+     +        bz(i,j,k)*hxy(2,3)
+              brz=bx(i,j,k)*hxy(3,1)+by(i,j,k)*hxy(3,2)+
+     +        bz(i,j,k)*hxy(3,3)
+              brxm=hxy(1,1)**2+hxy(1,2)**2+hxy(1,3)**2
+              brym=hxy(2,1)**2+hxy(2,2)**2+hxy(2,3)**2
+              brzm=hxy(3,1)**2+hxy(3,2)**2+hxy(3,3)**2
+              bb=sqrt(bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+              brm=sqrt(brxm+brym+brzm)
+              if(bb.gt.0)then
+                br=sqrt(brx**2+bry**2+brz**2)/bb
+              else
+                br=0
+              endif
+              write(31,*)x1,bx(i,j,k),by(i,j,k),bz(i,j,k),br,brm
              enddo
            enddo
           enddo
