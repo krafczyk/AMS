@@ -4,7 +4,8 @@
  *       - Locally: "cd $AMSDir/python; gmake"
  *       - For all users in the machine: "cd $AMSDir/python; gmake; gmake install"
  *
- *    - Example of AMS analysis with Python. Run it simply as:
+ *    - Example of AMS analysis with Python. To run it:
+ *                 - setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH:$ROOTSYS/lib
  *                 - ana.root.py
  *
  *    - You can find few other examples in $AMSDir/python

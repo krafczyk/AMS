@@ -6,8 +6,11 @@ gmake install // installs the AMS.so library in the system
 gmake clean   // Clean up the directory (if you want to start from scratch)
 
 ams_example.rb // analysis example 
-               // the line with "$LOAD_PATH..." is necessary if 
-               // no "gmake install" has been done
+               // 1) Make sure that the ROOT shared libraries are accesible:
+               //         setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH:$ROOTSYS/lib
+               // 2) The line with "$LOAD_PATH..." is necessary if 
+               //    no "gmake install" has been done
 
 ams_example2.rb // Another analysis example , which illustrates how to run
                 // interactively. Try: "irb -r ams_example2.rb"
+

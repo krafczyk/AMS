@@ -4,7 +4,8 @@
  *       - Locally: "cd $AMSDir/ruby; gmake"
  *       - For all users in the machine: "cd $AMSDir/ruby; gmake; gmake install"
  *
- *    - Example of AMS analysis with Ruby. Run it simply as:
+ *    - Example of AMS analysis with Ruby. To run it:
+ *                 - setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH:$ROOTSYS/lib
  *                 - ana.root.rb
  *
  *    - You can find few other examples in $AMSDir/ruby
