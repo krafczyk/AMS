@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.194 2003/06/18 14:04:11 alexei Exp $
+# $Id: RemoteClient.pm,v 1.195 2003/06/19 07:13:15 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7,6 +7,7 @@
 #
 # Apr-May, 2003 : ValidateRuns, checkJobsTimeout, deleteTimeOutJobs,
 #                 parseJournalFiles
+# Jun 2003      : script to set links
 #
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2260,6 +2261,10 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             htmlTextField("Version","text",20,"All","QDSTVERSION"," ");
+            print "<tr><b>
+                   (give full or part of the string, e.g. <font color=blue><i>79</i>
+                   </font> is enough to search for 
+                   <font color=blue><i>v4.00/build79/os2</i></font>)</tr>\n";
           htmlTableEnd();
 # spectrum and focusing
 #            print "<tr><td><b><font color=\"blue\" size=2>Spectrum and Focusing</font></b>\n";
