@@ -34,39 +34,39 @@ PAWC_DEF PAWC;
 
   class ShuttleNt{
   public:
-    float StationR;
-    float StationTheta;
-    float StationPhi;
-    float GrMedPhi;
-    float StationYaw;
-    float StationPitch;
-    float StationRoll;
-    float StationSpeed;
-    float SunR;
-    float SunTheta;
-    float SunPhi;
-    float StThetaGTOD;
-    float StPhiGTOD;
-    float VelTheta;
-    float VelPhi;
-    float VelThetaGTOD;
-    float VelPhiGTOD;
-   time_t Time;
+    float StationR;     // cm
+    float StationTheta; // rad,I2000
+    float StationPhi;   // rad,I2000
+    float GrMedPhi;     // rad,I2000
+    float StationYaw;   // rad,LVLH
+    float StationPitch; // rad,LVLH
+    float StationRoll;  // rad,LVLH
+    float StationSpeed; // rad/sec
+    float SunR;         // km
+    float SunTheta;     // rad,GTOD
+    float SunPhi;       // rad,GTOD
+    float StThetaGTOD;  // rad,GTOD
+    float StPhiGTOD;    // rad,GTOD
+    float VelTheta;     // rad,I2000
+    float VelPhi;       // rad,I2000
+    float VelThetaGTOD; // rad,GTOD
+    float VelPhiGTOD;   // rad,GTOD
+    time_t Time;        // UNIX sec, tuned
   };
 
  class ShuttlePar{
   public:
-    float StationR;
-    float StationTheta;
-    float StationPhi;
-    float GrMedPhi;
-    float StationYaw;
-    float StationPitch;
-    float StationRoll;
-    float StationSpeed;
-    float SunR;
-    float SunTheta;
-    float SunPhi;
+    float StationR;     //cm
+   float StationTheta; //rad,GTOD
+   float StationPhi;   //rad,GTOD
+   float GrMedPhi;     // = 0 , GTOD
+   float StationYaw;   //rad,LVLH
+   float StationPitch; //rad,LVLH
+   float StationRoll;  //rad,LVLH
+   float StationSpeed; //rad/sec
+   float SunR;         //km
+   float SunTheta;     //rad,GTOD
+   float SunPhi;       //rad,GTOD
    time_t Time;
   };
 
