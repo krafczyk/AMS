@@ -37,7 +37,7 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
 
   debugger.Off();
   
-  char * filename = "evtd.root";		// default file name
+  char * filename = "mc.root";		// default file name
 
   if ( argc > 1 ) {		// now take the file name
     filename = *++argv;
@@ -57,9 +57,9 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
    TGeometry * geo = (TGeometry *)fgeo.Get("ams");
    AMSDisplay display("AMSRoot Event Display", geo);
    amsroot.GetEvent(0);
-   display.SetView (kTwoView);
-   display.ShowNextEvent(-1);
-   display.GetCanvas()->Update();	// force it to draw
+   //   display.SetView (kTwoView);
+      display.ShowNextEvent(-1);
+      display.GetCanvas()->Update();	// force it to draw
    
 
   
