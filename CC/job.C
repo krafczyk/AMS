@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.456 2003/07/25 16:46:50 alcaraz Exp $
+// $Id: job.C,v 1.457 2003/09/12 11:11:44 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -241,6 +241,8 @@ void AMSJob::_sirichdata(){
 
 // Move information to fortran commons
   RICGTKOV.usrcla=RICHDB::rad_clarity;
+  RICGTKOV.scatprob=RICHDB::scatprob;
+  RICGTKOV.scatang=RICHDB::scatang;
 
   RICCONTROL.iflgk_flag=0;  // This should be always zero
   RICCONTROL.recon=11;       // Reconstruct charge and beta
@@ -1507,6 +1509,7 @@ AMSEvent::debug=AMSFFKEY.Debug;
 //AMSgObj::BookTimer.book("AMSEvent::event");
 AMSgObj::BookTimer.book("GUOUT");
 AMSgObj::BookTimer.book("GUKINE");
+
 _siamsinitjob();
 
 _reamsinitjob();

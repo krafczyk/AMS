@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.187 2003/07/29 17:17:25 choutko Exp $
+//  $Id: commons.h,v 1.188 2003/09/12 11:11:52 mdelgado Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -915,6 +915,8 @@ class
 RICGTKOV_DEF{
 public:
 geant usrcla;
+geant scatprob;
+geant scatang;
 };
 
 #define RICGTKOV COMMON_BLOCK(RICGTKOV,gtckovext)

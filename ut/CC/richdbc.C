@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.38 2003/07/29 13:25:06 mdelgado Exp $
+//  $Id: richdbc.C,v 1.39 2003/09/12 11:11:45 mdelgado Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -143,8 +143,12 @@ geant RICHDB::rich_height=45.8;        // Mirror height (for historical reasons)
 //geant RICHDB::hole_radius=31.5;        // half ECAL hole side length
 geant RICHDB::hole_radius[2]={63.8/2.,64.3/2};
 geant RICHDB::inner_mirror_height=50;  // UNUSED
-//geant RICHDB::rad_clarity=0.0193;      // Radiator clarity
-geant RICHDB::rad_clarity=0.007598;      // Radiator clarity
+//geant RICHDB::rad_clarity=0.007598;      // Radiator clarity
+geant RICHDB::rad_clarity=0.0059;      // Radiator clarity
+geant RICHDB::scatprob=.15;                // Probability of surface scattering
+geant RICHDB::scatang=24e-3;             // Scattered angle 
+geant RICHDB::eff_rad_clarity=0.007598;  // clarity used in charge recosntruction
+
 geant RICHDB::rad_radius=60.0;         // Radiator radius
 geant RICHDB::rad_height=3;            // Radiator support structure thickness. In principle== aerogel radiator thickness
 geant RICHDB::naf_height=0.5;
@@ -205,7 +209,10 @@ void RICHDB::bookhist(){
   HBOOK1(123100,"Numero de hits sin reflejar",300,0.,50.,0.);
   HBOOK2(124000,"Posicion de los PMT",300,-70.,70.,300,-70.,70.,0.);
   HBOOK2(124010,"Posicion de los PMT",300,-60.,60.,300,-60.,60.,0.);
-#endif
+  HBOOK1(12345,"Probabilidad de scattering",2,0.,2.,0.);
+  HBOOK1(12346,"Angulo ph",50,0.,3.141592,0.);
+  HBOOK1(12347,"Angulo th",100,0.,2e-1,0.);
+#endif 
 
 }
 

@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.58 2003/08/18 11:55:43 mdelgado Exp $
+//  $Id: richrec.C,v 1.59 2003/09/12 11:11:45 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -1018,7 +1018,8 @@ void RichRadiatorTile::Init(){
   _rad_heights[1]=RICHDB::naf_height;
   _abs_length[0]=RICHDB::abs_length;
   _abs_length[1]=RICHDB::naf_abs_length;
-  _clarities[0]=RICHDB::rad_clarity;
+  //  _clarities[0]=RICHDB::rad_clarity;
+  _clarities[0]=RICHDB::eff_rad_clarity;  // We use the effective one due to the scattering
   _clarities[1]=0.;
   _index_tables[0]=RICHDB::index;
   _index_tables[1]=RICHDB::naf_index_table;

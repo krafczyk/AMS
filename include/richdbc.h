@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.32 2002/12/05 18:41:48 delgadom Exp $
+//  $Id: richdbc.h,v 1.33 2003/09/12 11:11:52 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -160,6 +160,9 @@ public: // To be migrated in the future
   static geant rad_height;
   static geant rad_length;
   static geant rad_index;   // Mean index for the main radiator
+  static geant scatprob;    // Probability of surface scattering
+  static geant scatang;     // Angle of surface scattering  
+  static geant eff_rad_clarity; // Effective radiator clarity for charge reconstruction 
 
   // Central NaF radiator features
   static geant naf_index;

@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.21 2003/03/20 10:16:14 delgadom Exp $
+//  $Id: richgeom.C,v 1.22 2003/09/12 11:11:45 mdelgado Exp $
 #include <typedefs.h>
 #include <node.h>
 #include <snode.h>
@@ -666,6 +666,9 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   par[2]=RICHDB::foil_height/2;
   
   coo[0]=0;coo[1]=0;coo[2]=RICHDB::total_height()/2.-RICHDB::rad_height-par[2];
+
+  // AVOID OPTICAL CONTACT OF THE RADIATOR WITH THE SUPPORT FOIL
+  par[2]-=RICepsln/2;
 
   rich->add(new AMSgvolume("RICH SOLG",
                            0,

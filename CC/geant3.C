@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.85 2003/07/11 09:12:56 choutko Exp $
+//  $Id: geant3.C,v 1.86 2003/09/12 11:11:44 mdelgado Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -449,6 +449,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 #endif
 
     // RICH simulation code
+    static int fscatcounter;
     if(GCKINE.ipart==Cerenkov_photon){
 // Cut by hand 
      if(GCTRAK.nstep>6000) GCTRAK.istop=1;
@@ -457,9 +458,10 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
       for(integer i=0;i<GCTRAK.nmec;i++){
         if(GCTRAK.lmec[i]==106) RICHDB::numrefm++;
+        if(GCTRAK.lmec[i]==2000) fscatcounter=1;
       }
       if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
-    }
+     }
 
 
 
@@ -478,7 +480,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
       else{
 	RICHDB::numrayl=0;
 	RICHDB::numrefm=0;
-
+	fscatcounter=0;
 #ifdef __AMSDEBUG__
 	//	static float max=-74.81;
 	//	if(GCTRAK.vect[2]>max){
@@ -496,7 +498,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 
      }
 
-    }
+}
 
     // THIS IS A TEST
         if(GCTRAK.inwvol==2 && GCVOLU.names[lvl][0]=='F' &&
@@ -605,6 +607,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
                                    vect,
 				   GCKINE.vert,
 				   GCKINE.pvert,
+				   fscatcounter*1000+
 				   (GCKINE.itra!=1?100:0)+
 				   RICHDB::numrefm*10+
 				   (RICHDB::numrayl>0?Status_Rayleigh:0));
