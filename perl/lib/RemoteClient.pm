@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.152 2003/05/07 10:34:51 alexei Exp $
+# $Id: RemoteClient.pm,v 1.153 2003/05/07 16:04:21 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6197,13 +6197,16 @@ sub parseJournalFile {
  my $dirpath   = shift;
 
 
+ my $jobnotfound  = 0;       # check that job exists in database
+                             # quit if not
+ my $jobid        = -1;
 
-my $sql       = undef;
+ my $sql       = undef;
 
-my $fevent =  1;
-my $levent =  0;
+ my $fevent =  1;
+ my $levent =  0;
 
-my $patternsmatched  = 0; 
+ my $patternsmatched  = 0; 
 
 my @startingjob   =();
 my @startingrun   =();
@@ -6328,14 +6331,15 @@ foreach my $block (@blocks) {
           } else {
 # assume journal file : jobnumber.journal
           my @jj = split ".journal",$joufile;
-          my $jobid = $jj[0];
+          $jobid = $jj[0];
           my $mailto = "vitali.choutko\@cern.ch,alexei.klimentov\@cern.ch";
           my $subject = "RunIncomplet : ".$inputfile;
           my $text    = " Program found RunIncomplete status in ".
                          $inputfile." file. ".
                          "\n Please provide job log file to V.Choutko".
                          "\n MC production team";
-          $sql = "SELECT Mails.address FROM Jobs, Mails WHERE Jobs.jid=$jobid AND Mails.mid = Jobs.mid";
+          $sql = "SELECT Mails.address FROM Jobs, Mails 
+                  WHERE Jobs.jid=$jobid AND Mails.mid = Jobs.mid";
           my $ret = $self->{sqlserver}->Query($sql);
           if(defined $ret->[0][0]){
               $mailto = $mailto.", $ret->[0][0]";
@@ -6371,6 +6375,13 @@ foreach my $block (@blocks) {
        }
     }
 
+   $jobid = $startingjob[2];
+   if ($self->findJob($jobid) != $jobid) {
+       $jobnotfound = 1;
+       print FILE "Fatal - cannot find JobInfo for $jobid \n";
+       system("mv $inputfile $inputfile.0"); 
+       return;
+   }
    if ($patternsmatched == $#StartingJobPatterns) { 
     $startingjob[0] = "StartingJob";
     $lastjobid = $startingjob[2];
@@ -6400,6 +6411,13 @@ foreach my $block (@blocks) {
        }
     }
 
+   $jobid = $startingjob[2];
+   if ($self->findJob($jobid) != $jobid) {
+       $jobnotfound = 1;
+       print FILE "Fatal - cannot find JobInfo for $jobid \n";
+       system("mv $inputfile $inputfile.0"); 
+       return;
+   }
    if ($patternsmatched == $#StartingJobPatterns) { 
     $startingjob[0] = "StartingJob";
     $startingjobR   = 1;
@@ -6729,8 +6747,8 @@ foreach my $block (@blocks) {
   $sql = $runupdate." STATUS='$status' WHERE run=$run";
   $self->{sqlserver}->Update($sql);
   print FILE "Update Runs : $sql \n";
-  my $lncmd = "mv $inputfile $inputfileLink";
-  system($lncmd); 
+  system("mv $inputfile $inputfileLink"); 
+  print FILE "mv $inputfile $inputfileLink\n";
 }
  close FILE;
  
@@ -7078,4 +7096,20 @@ sub getValidationDir {
         $dir = $ret->[0][0];
     }
     return $dir;
+}
+
+sub findJob {
+
+    my $self = shift;
+    my $jid  = shift;
+
+    my $rstatus = 0;
+
+    my $sql = "SELECT jid FROM Jobs WHERE jid=$jid";
+    my $ret = $self->{sqlserver}->Query($sql);
+    if (defined $ret->[0][0]) {
+        $rstatus = $ret->[0][0];
+    }
+
+    return $rstatus;
 }
