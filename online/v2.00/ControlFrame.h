@@ -19,19 +19,22 @@
 #include <TGSlider.h>
 #include <TGFileDialog.h>
 
+const nsubdets = 8;
+const nbuttons = 8;
+
 class AMSControlFrame : public TGTransientFrame {
 protected:
 TGGroupFrame *_pbutfr, *_pcontrolfr, *_pcombofr, *_plogfr, *_pcyclefr;
 TGRadioButton *_plogx[2];
 TGRadioButton *_plogy[2];
 TGRadioButton *_plogz[2];
-TGCheckButton *_pcycle[7];
-TGTextButton *_pbutton[7];
+TGCheckButton *_pcycle[nbuttons];
+TGTextButton *_pbutton[nbuttons];
 TGTextButton *_pcontrol[3];
 TGMenuBar           *fMenuBar;            // menubar
 TGPopupMenu         *fDetMenu;
-TGPopupMenu         *fSubDetMenu[7];      //sub det
-TGPopupMenu         *fSubDetCascadeMenu[7];
+TGPopupMenu         *fSubDetMenu[nsubdets];      //sub det
+TGPopupMenu         *fSubDetCascadeMenu[nsubdets];
 TGPopupMenu         *fSaveAsMenu;        //  saveas
 
 TGLayoutHints       *fMenuBarLayout;      // menubar layout hints

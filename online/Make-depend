@@ -2,78 +2,114 @@
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-AMSDisplay.o: /cern/root/v2.00/include/TROOT.h
-AMSDisplay.o: /cern/root/v2.00/include/TButton.h
-AMSDisplay.o: /cern/root/v2.00/include/TCanvas.h
-AMSDisplay.o: /cern/root/v2.00/include/TView.h
-AMSDisplay.o: /cern/root/v2.00/include/TArc.h
-AMSDisplay.o: /cern/root/v2.00/include/TText.h
-AMSDisplay.o: /cern/root/v2.00/include/TPaveLabel.h
-AMSDisplay.o: /cern/root/v2.00/include/TPaveText.h
-AMSDisplay.o: /cern/root/v2.00/include/TList.h
-AMSDisplay.o: /cern/root/v2.00/include/TDiamond.h
-AMSDisplay.o: /cern/root/v2.00/include/TNode.h
-AMSDisplay.o: /cern/root/v2.00/include/TTUBE.h
-AMSDisplay.o: /cern/root/v2.00/include/TMath.h
-AMSDisplay.o: /cern/root/v2.00/include/TPolyLine3D.h
-AMSDisplay.o: /cern/root/v2.00/include/X3DBuffer.h
-AMSDisplay.o: /cern/root/v2.00/include/DllImport.h AMSDisplay.h
-AMSDisplay.o: /cern/root/v2.00/include/TApplication.h AMSCanvas.h AMSHist.h
-AMSDisplay.o: /cern/root/v2.00/include/TTree.h
-AMSDisplay.o: /cern/root/v2.00/include/TNamed.h
-AMSDisplay.o: /cern/root/v2.00/include/TH2.h /cern/root/v2.00/include/TH1.h
-AMSDisplay.o: /cern/root/v2.00/include/TFile.h
-AMSDisplay.o: /cern/root/v2.00/include/TPad.h TSwitch.h TRadioButton.h
-AMSDisplay.o: Debugger.h /cern/root/v2.00/include/TObject.h AMSNtuple.h
-AMSDisplay.o: AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h AMSCTCHist.h
-AMSDisplay.o: AMSAxAMSHist.h AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
-AMSDisplay.o: /usr/include/standards.h /usr/include/machine/machtime.h
-AMSDisplay.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
-AMSDisplay.o: /usr/include/sys/select.h /usr/include/sys/timers.h
-AMSDisplay.o: /usr/include/sys/sysmisc.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TROOT.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TButton.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TCanvas.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TView.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TArc.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TText.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TPaveLabel.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TPaveText.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TList.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TDiamond.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TNode.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TTUBE.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TMath.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TPolyLine3D.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/X3DBuffer.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/DllImport.h AMSDisplay.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSDisplay.o: AMSHist.h /pgm0/EventDisplay/root/include/TTree.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TPad.h TSwitch.h TRadioButton.h
+AMSDisplay.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSDisplay.o: AMSNtuple.h AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h
+AMSDisplay.o: AMSCTCHist.h AMSAxAMSHist.h AMSLVL1Hist.h AMSLVL3Hist.h
+AMSDisplay.o: /usr/include/time.h /usr/include/standards.h
+AMSDisplay.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
+AMSDisplay.o: /usr/include/mach/machine/vm_types.h /usr/include/sys/select.h
+AMSDisplay.o: /usr/include/sys/timers.h /usr/include/sys/sysmisc.h
 AMSCanvas.o: /usr/include/unistd.h /usr/include/standards.h
 AMSCanvas.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
 AMSCanvas.o: /usr/include/sys/select.h /usr/include/sys/access.h
 AMSCanvas.o: /usr/include/sys/seek.h /usr/include/getopt.h
-AMSCanvas.o: /usr/include/stdlib.h /cern/root/v2.00/include/TROOT.h
-AMSCanvas.o: TMotifCanvas.h /cern/root/v2.00/include/TControlBar.h
-AMSCanvas.o: /cern/root/v2.00/include/TContextMenu.h
-AMSCanvas.o: /cern/root/v2.00/include/TText.h AMSDisplay.h
-AMSCanvas.o: /cern/root/v2.00/include/TApplication.h AMSCanvas.h AMSHist.h
-AMSCanvas.o: /cern/root/v2.00/include/TTree.h
-AMSCanvas.o: /cern/root/v2.00/include/TNamed.h /cern/root/v2.00/include/TH2.h
-AMSCanvas.o: /cern/root/v2.00/include/TH1.h /cern/root/v2.00/include/TFile.h
-AMSCanvas.o: /cern/root/v2.00/include/TPad.h
-AMSCanvas.o: /cern/root/v2.00/include/TPaveLabel.h Debugger.h
-AMSCanvas.o: /cern/root/v2.00/include/TObject.h
-AMSHist.o: AMSHist.h /cern/root/v2.00/include/TTree.h
-AMSHist.o: /cern/root/v2.00/include/TNamed.h /cern/root/v2.00/include/TH2.h
-AMSHist.o: /cern/root/v2.00/include/TH1.h /cern/root/v2.00/include/TFile.h
-AMSHist.o: /cern/root/v2.00/include/TPad.h
-AMSHist.o: /cern/root/v2.00/include/TPaveLabel.h
-AMSAntiHist.o: AMSAntiHist.h AMSHist.h /cern/root/v2.00/include/TTree.h
-AMSAntiHist.o: /cern/root/v2.00/include/TNamed.h
-AMSAntiHist.o: /cern/root/v2.00/include/TH2.h /cern/root/v2.00/include/TH1.h
-AMSAntiHist.o: /cern/root/v2.00/include/TFile.h
-AMSAntiHist.o: /cern/root/v2.00/include/TPad.h
-AMSAntiHist.o: /cern/root/v2.00/include/TPaveLabel.h AMSDisplay.h
-AMSAntiHist.o: /cern/root/v2.00/include/TApplication.h AMSCanvas.h
-AMSAntiHist.o: /cern/root/v2.00/include/TProfile.h AMSNtuple.h
+AMSCanvas.o: /usr/include/stdlib.h /pgm0/EventDisplay/root/include/TROOT.h
+AMSCanvas.o: TMotifCanvas.h /pgm0/EventDisplay/root/include/TControlBar.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TMenuBar.h
+AMSCanvas.o: /usr/include/Xm/RowColumn.h /usr/include/Xm/Xm.h
+AMSCanvas.o: /usr/include/X11/Intrinsic.h /usr/include/X11/Xlib.h
+AMSCanvas.o: /usr/include/X11/X.h /usr/include/X11/Xfuncproto.h
+AMSCanvas.o: /usr/include/X11/Xosdefs.h /usr/include/stddef.h
+AMSCanvas.o: /usr/include/X11/Xutil.h /usr/include/X11/Xresource.h
+AMSCanvas.o: /usr/include/string.h /usr/include/strings.h
+AMSCanvas.o: /usr/include/X11/Core.h /usr/include/X11/Composite.h
+AMSCanvas.o: /usr/include/X11/Constraint.h /usr/include/X11/Object.h
+AMSCanvas.o: /usr/include/X11/RectObj.h /usr/include/X11/Shell.h
+AMSCanvas.o: /usr/include/X11/SM/SMlib.h /usr/include/X11/SM/SM.h
+AMSCanvas.o: /usr/include/X11/ICE/ICElib.h /usr/include/X11/ICE/ICE.h
+AMSCanvas.o: /usr/include/X11/Xatom.h /usr/include/Xm/XmStrDefs.h
+AMSCanvas.o: /usr/include/X11/StringDefs.h /usr/include/Xm/VirtKeys.h
+AMSCanvas.o: /usr/include/Xm/VendorS.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TMenuToggle.h
+AMSCanvas.o: /usr/include/Xm/ToggleBG.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TContextMenu.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TMenu.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TMotifDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TFileSelectionDialog.h
+AMSCanvas.o: /usr/include/Xm/FileSB.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TErrorDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TInfoDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TBusyDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TPromptDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TQuestionDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TWarningDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TSelectionDialog.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TText.h AMSDisplay.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSCanvas.o: AMSHist.h /pgm0/EventDisplay/root/include/TTree.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TPaveLabel.h Debugger.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TObject.h
+AMSHist.o: AMSHist.h /pgm0/EventDisplay/root/include/TTree.h
+AMSHist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSHist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSHist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSHist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSHist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h
+AMSAntiHist.o: AMSAntiHist.h AMSHist.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TTree.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TProfile.h AMSNtuple.h
 AMSAntiHist.o: AMSTrackerHist.h AMSTOFHist.h AMSCTCHist.h AMSAxAMSHist.h
 AMSAntiHist.o: AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
 AMSAntiHist.o: /usr/include/standards.h /usr/include/machine/machtime.h
 AMSAntiHist.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
 AMSAntiHist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSAntiHist.o: /usr/include/sys/sysmisc.h
-AMSAntiHist.o: /cern/root/v2.00/include/TPaveText.h
-AMSTrackerHist.o: AMSTrackerHist.h AMSHist.h /cern/root/v2.00/include/TTree.h
-AMSTrackerHist.o: /cern/root/v2.00/include/TNamed.h
-AMSTrackerHist.o: /cern/root/v2.00/include/TH2.h
-AMSTrackerHist.o: /cern/root/v2.00/include/TH1.h
-AMSTrackerHist.o: /cern/root/v2.00/include/TFile.h
-AMSTrackerHist.o: /cern/root/v2.00/include/TPad.h
-AMSTrackerHist.o: /cern/root/v2.00/include/TPaveLabel.h AMSDisplay.h
-AMSTrackerHist.o: /cern/root/v2.00/include/TApplication.h AMSCanvas.h
+AMSAntiHist.o: /pgm0/EventDisplay/root/include/TPaveText.h
+AMSTrackerHist.o: AMSTrackerHist.h AMSHist.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TTree.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
 AMSTrackerHist.o: AMSNtuple.h AMSTOFHist.h AMSAntiHist.h AMSCTCHist.h
 AMSTrackerHist.o: AMSAxAMSHist.h AMSLVL1Hist.h AMSLVL3Hist.h
 AMSTrackerHist.o: /usr/include/time.h /usr/include/standards.h
@@ -81,95 +117,125 @@ AMSTrackerHist.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
 AMSTrackerHist.o: /usr/include/mach/machine/vm_types.h
 AMSTrackerHist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSTrackerHist.o: /usr/include/sys/sysmisc.h
-AMSTrackerHist.o: /cern/root/v2.00/include/TProfile.h
-AMSCTCHist.o: AMSCTCHist.h AMSHist.h /cern/root/v2.00/include/TTree.h
-AMSCTCHist.o: /cern/root/v2.00/include/TNamed.h
-AMSCTCHist.o: /cern/root/v2.00/include/TH2.h /cern/root/v2.00/include/TH1.h
-AMSCTCHist.o: /cern/root/v2.00/include/TFile.h
-AMSCTCHist.o: /cern/root/v2.00/include/TPad.h
-AMSCTCHist.o: /cern/root/v2.00/include/TPaveLabel.h AMSDisplay.h
-AMSCTCHist.o: /cern/root/v2.00/include/TApplication.h AMSCanvas.h AMSNtuple.h
-AMSCTCHist.o: AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h AMSAxAMSHist.h
-AMSCTCHist.o: AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
+AMSTrackerHist.o: /pgm0/EventDisplay/root/include/TProfile.h
+AMSCTCHist.o: AMSCTCHist.h AMSHist.h /pgm0/EventDisplay/root/include/TTree.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSCTCHist.o: AMSNtuple.h AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h
+AMSCTCHist.o: AMSAxAMSHist.h AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
 AMSCTCHist.o: /usr/include/standards.h /usr/include/machine/machtime.h
 AMSCTCHist.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
 AMSCTCHist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
-AMSCTCHist.o: /usr/include/sys/sysmisc.h /cern/root/v2.00/include/TProfile.h
-AMSTOFHist.o: AMSTOFHist.h AMSHist.h /cern/root/v2.00/include/TTree.h
-AMSTOFHist.o: /cern/root/v2.00/include/TNamed.h
-AMSTOFHist.o: /cern/root/v2.00/include/TH2.h /cern/root/v2.00/include/TH1.h
-AMSTOFHist.o: /cern/root/v2.00/include/TFile.h
-AMSTOFHist.o: /cern/root/v2.00/include/TPad.h
-AMSTOFHist.o: /cern/root/v2.00/include/TPaveLabel.h AMSDisplay.h
-AMSTOFHist.o: /cern/root/v2.00/include/TApplication.h AMSCanvas.h
-AMSTOFHist.o: /cern/root/v2.00/include/TGraphErrors.h AMSNtuple.h
+AMSCTCHist.o: /usr/include/sys/sysmisc.h
+AMSCTCHist.o: /pgm0/EventDisplay/root/include/TProfile.h
+AMSTOFHist.o: AMSTOFHist.h AMSHist.h /pgm0/EventDisplay/root/include/TTree.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TGraphErrors.h AMSNtuple.h
 AMSTOFHist.o: AMSTrackerHist.h AMSAntiHist.h AMSCTCHist.h AMSAxAMSHist.h
 AMSTOFHist.o: AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
 AMSTOFHist.o: /usr/include/standards.h /usr/include/machine/machtime.h
 AMSTOFHist.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
 AMSTOFHist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
-AMSTOFHist.o: /usr/include/sys/sysmisc.h /cern/root/v2.00/include/TProfile.h
-AMSTOFHist.o: /cern/root/v2.00/include/TPaveText.h
-AMSTOFHist.o: /cern/root/v2.00/include/TAttAxis.h
-AMSTOFHist.o: /cern/root/v2.00/include/TStyle.h
-AMSLVL1Hist.o: AMSLVL1Hist.h AMSHist.h /cern/root/v2.00/include/TTree.h
-AMSLVL1Hist.o: /cern/root/v2.00/include/TNamed.h
-AMSLVL1Hist.o: /cern/root/v2.00/include/TH2.h /cern/root/v2.00/include/TH1.h
-AMSLVL1Hist.o: /cern/root/v2.00/include/TFile.h
-AMSLVL1Hist.o: /cern/root/v2.00/include/TPad.h
-AMSLVL1Hist.o: /cern/root/v2.00/include/TPaveLabel.h AMSDisplay.h
-AMSLVL1Hist.o: /cern/root/v2.00/include/TApplication.h AMSCanvas.h
+AMSTOFHist.o: /usr/include/sys/sysmisc.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TProfile.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TPaveText.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TAttAxis.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TStyle.h
+AMSLVL1Hist.o: AMSLVL1Hist.h AMSHist.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TTree.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
+AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
 AMSLVL1Hist.o: AMSNtuple.h AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h
 AMSLVL1Hist.o: AMSCTCHist.h AMSAxAMSHist.h AMSLVL3Hist.h /usr/include/time.h
 AMSLVL1Hist.o: /usr/include/standards.h /usr/include/machine/machtime.h
 AMSLVL1Hist.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
 AMSLVL1Hist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSLVL1Hist.o: /usr/include/sys/sysmisc.h
-AMSLVL3Hist.o: AMSLVL3Hist.h AMSHist.h /cern/root/v2.00/include/TTree.h
-AMSLVL3Hist.o: /cern/root/v2.00/include/TNamed.h
-AMSLVL3Hist.o: /cern/root/v2.00/include/TH2.h /cern/root/v2.00/include/TH1.h
-AMSLVL3Hist.o: /cern/root/v2.00/include/TFile.h
-AMSLVL3Hist.o: /cern/root/v2.00/include/TPad.h
-AMSLVL3Hist.o: /cern/root/v2.00/include/TPaveLabel.h AMSDisplay.h
-AMSLVL3Hist.o: /cern/root/v2.00/include/TApplication.h AMSCanvas.h
+AMSLVL3Hist.o: AMSLVL3Hist.h AMSHist.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TTree.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
+AMSLVL3Hist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
 AMSLVL3Hist.o: AMSNtuple.h AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h
 AMSLVL3Hist.o: AMSCTCHist.h AMSAxAMSHist.h AMSLVL1Hist.h /usr/include/time.h
 AMSLVL3Hist.o: /usr/include/standards.h /usr/include/machine/machtime.h
 AMSLVL3Hist.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
 AMSLVL3Hist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSLVL3Hist.o: /usr/include/sys/sysmisc.h
-AMSAxAMSHist.o: AMSAxAMSHist.h AMSHist.h /cern/root/v2.00/include/TTree.h
-AMSAxAMSHist.o: /cern/root/v2.00/include/TNamed.h
-AMSAxAMSHist.o: /cern/root/v2.00/include/TH2.h /cern/root/v2.00/include/TH1.h
-AMSAxAMSHist.o: /cern/root/v2.00/include/TFile.h
-AMSAxAMSHist.o: /cern/root/v2.00/include/TPad.h
-AMSAxAMSHist.o: /cern/root/v2.00/include/TPaveLabel.h AMSNtuple.h
+AMSAxAMSHist.o: AMSAxAMSHist.h AMSHist.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TTree.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSNtuple.h
 AMSAxAMSHist.o: AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h AMSCTCHist.h
 AMSAxAMSHist.o: AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
 AMSAxAMSHist.o: /usr/include/standards.h /usr/include/machine/machtime.h
 AMSAxAMSHist.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
 AMSAxAMSHist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSAxAMSHist.o: /usr/include/sys/sysmisc.h AMSDisplay.h
-AMSAxAMSHist.o: /cern/root/v2.00/include/TApplication.h AMSCanvas.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
 AMSAxAMSHist.o: /usr/include/math.h /usr/include/stdlib.h
-AMSAxAMSHist.o: /usr/include/getopt.h /cern/root/v2.00/include/TPaveText.h
-AMSAxAMSHist.o: /cern/root/v2.00/include/TProfile.h
-AMSNtuple.o: AMSNtuple.h /cern/root/v2.00/include/TTree.h
-AMSNtuple.o: /cern/root/v2.00/include/TNamed.h /cern/root/v2.00/include/TH2.h
-AMSNtuple.o: /cern/root/v2.00/include/TH1.h /cern/root/v2.00/include/TFile.h
-AMSNtuple.o: /cern/root/v2.00/include/TPad.h AMSTrackerHist.h AMSHist.h
-AMSNtuple.o: /cern/root/v2.00/include/TPaveLabel.h AMSTOFHist.h AMSAntiHist.h
-AMSNtuple.o: AMSCTCHist.h AMSAxAMSHist.h AMSLVL1Hist.h AMSLVL3Hist.h
-AMSNtuple.o: /usr/include/time.h /usr/include/standards.h
-AMSNtuple.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
-AMSNtuple.o: /usr/include/mach/machine/vm_types.h /usr/include/sys/select.h
-AMSNtuple.o: /usr/include/sys/timers.h /usr/include/sys/sysmisc.h
-TRadioButton.o: /cern/root/v2.00/include/TCanvas.h
-TRadioButton.o: /cern/root/v2.00/include/TInterpreter.h TRadioButton.h
-TRadioButton.o: Debugger.h /cern/root/v2.00/include/TObject.h
-TSwitch.o: /cern/root/v2.00/include/TCanvas.h
-TSwitch.o: /cern/root/v2.00/include/TMath.h TSwitch.h TRadioButton.h
-TSwitch.o: Debugger.h /cern/root/v2.00/include/TObject.h
+AMSAxAMSHist.o: /usr/include/getopt.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TPaveText.h
+AMSAxAMSHist.o: /pgm0/EventDisplay/root/include/TProfile.h
+AMSGenHist.o: AMSGenHist.h AMSHist.h /pgm0/EventDisplay/root/include/TTree.h
+AMSGenHist.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSGenHist.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSGenHist.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSGenHist.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSGenHist.o: /pgm0/EventDisplay/root/include/TPad.h
+AMSGenHist.o: /pgm0/EventDisplay/root/include/TPaveLabel.h AMSDisplay.h
+AMSGenHist.o: /pgm0/EventDisplay/root/include/TApplication.h AMSCanvas.h
+AMSGenHist.o: /pgm0/EventDisplay/root/include/TProfile.h AMSNtuple.h
+AMSGenHist.o: AMSTrackerHist.h AMSTOFHist.h AMSAntiHist.h AMSCTCHist.h
+AMSGenHist.o: AMSAxAMSHist.h AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
+AMSGenHist.o: /usr/include/standards.h /usr/include/machine/machtime.h
+AMSGenHist.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
+AMSGenHist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
+AMSGenHist.o: /usr/include/sys/sysmisc.h
+AMSGenHist.o: /pgm0/EventDisplay/root/include/TPaveText.h
+AMSNtuple.o: AMSNtuple.h /pgm0/EventDisplay/root/include/TTree.h
+AMSNtuple.o: /pgm0/EventDisplay/root/include/TNamed.h
+AMSNtuple.o: /pgm0/EventDisplay/root/include/TH2.h
+AMSNtuple.o: /pgm0/EventDisplay/root/include/TH1.h
+AMSNtuple.o: /pgm0/EventDisplay/root/include/TFile.h
+AMSNtuple.o: /pgm0/EventDisplay/root/include/TPad.h AMSTrackerHist.h
+AMSNtuple.o: AMSHist.h /pgm0/EventDisplay/root/include/TPaveLabel.h
+AMSNtuple.o: AMSTOFHist.h AMSAntiHist.h AMSCTCHist.h AMSAxAMSHist.h
+AMSNtuple.o: AMSLVL1Hist.h AMSLVL3Hist.h /usr/include/time.h
+AMSNtuple.o: /usr/include/standards.h /usr/include/machine/machtime.h
+AMSNtuple.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
+AMSNtuple.o: /usr/include/sys/select.h /usr/include/sys/timers.h
+AMSNtuple.o: /usr/include/sys/sysmisc.h
+TRadioButton.o: /pgm0/EventDisplay/root/include/TCanvas.h
+TRadioButton.o: /pgm0/EventDisplay/root/include/TInterpreter.h TRadioButton.h
+TRadioButton.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+TSwitch.o: /pgm0/EventDisplay/root/include/TCanvas.h
+TSwitch.o: /pgm0/EventDisplay/root/include/TMath.h TSwitch.h TRadioButton.h
+TSwitch.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
 Debugger.o: /usr/include/stdio.h /usr/include/standards.h
 Debugger.o: /usr/include/sys/seek.h /usr/include/va_list.h
 Debugger.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
@@ -177,15 +243,18 @@ Debugger.o: /usr/include/sys/select.h /usr/include/getopt.h
 Debugger.o: /usr/include/sys/limits.h /usr/include/sys/machine/machlimits.h
 Debugger.o: /usr/include/sys/syslimits.h /usr/include/machine/machtime.h
 Debugger.o: /usr/include/sys/rt_limits.h /usr/include/stdarg.h Debugger.h
-Debugger.o: /cern/root/v2.00/include/TObject.h
-main.o: /cern/root/v2.00/include/TROOT.h
-main.o: /cern/root/v2.00/include/TApplication.h
-main.o: /cern/root/v2.00/include/TFile.h /cern/root/v2.00/include/TTree.h
-main.o: /cern/root/v2.00/include/TGeometry.h AMSDisplay.h AMSCanvas.h
-main.o: AMSHist.h /cern/root/v2.00/include/TNamed.h
-main.o: /cern/root/v2.00/include/TH2.h /cern/root/v2.00/include/TH1.h
-main.o: /cern/root/v2.00/include/TPad.h /cern/root/v2.00/include/TPaveLabel.h
-main.o: Debugger.h /cern/root/v2.00/include/TObject.h /usr/include/sys/stat.h
+Debugger.o: /pgm0/EventDisplay/root/include/TObject.h
+main.o: /pgm0/EventDisplay/root/include/TROOT.h
+main.o: /pgm0/EventDisplay/root/include/TApplication.h
+main.o: /pgm0/EventDisplay/root/include/TFile.h
+main.o: /pgm0/EventDisplay/root/include/TTree.h
+main.o: /pgm0/EventDisplay/root/include/TGeometry.h AMSDisplay.h AMSCanvas.h
+main.o: AMSHist.h /pgm0/EventDisplay/root/include/TNamed.h
+main.o: /pgm0/EventDisplay/root/include/TH2.h
+main.o: /pgm0/EventDisplay/root/include/TH1.h
+main.o: /pgm0/EventDisplay/root/include/TPad.h
+main.o: /pgm0/EventDisplay/root/include/TPaveLabel.h Debugger.h
+main.o: /pgm0/EventDisplay/root/include/TObject.h /usr/include/sys/stat.h
 main.o: /usr/include/standards.h /usr/include/sys/types.h
 main.o: /usr/include/mach/machine/vm_types.h /usr/include/sys/select.h
 main.o: /usr/include/sys/mode.h /usr/include/sys/file.h
@@ -199,4 +268,4 @@ main.o: /usr/include/machine/context.h /usr/include/sys/procset.h
 main.o: /usr/include/sys/access.h /usr/include/sys/fcntl.h
 main.o: /usr/include/sys/seek.h /usr/include/stdlib.h /usr/include/getopt.h
 main.o: main.h AMSAntiHist.h AMSTrackerHist.h AMSTOFHist.h AMSLVL1Hist.h
-main.o: AMSLVL3Hist.h AMSCTCHist.h AMSAxAMSHist.h
+main.o: AMSLVL3Hist.h AMSCTCHist.h AMSAxAMSHist.h AMSGenHist.h

@@ -116,13 +116,13 @@ void AMSControlFrame::CloseWindow()
 
 AMSControlFrame::~AMSControlFrame(){
 
-   for(int i=0;i<7;i++)delete fSubDetMenu[i];
-   for(i=0;i<7;i++)delete fSubDetCascadeMenu[i];
+   for(int i=0;i<nsubdets;i++)delete fSubDetMenu[i];
+   for(i=0;i<nsubdets;i++)delete fSubDetCascadeMenu[i];
     delete fDetMenu;
     delete fSaveAsMenu;
     for(i=0;i<3;i++)delete _pcontrol[i];
-    for(i=0;i<7;i++)delete _pbutton[i];    
-    for(i=0;i<7;i++)delete _pcycle[i];    
+    for(i=0;i<nbuttons;i++)delete _pbutton[i];    
+    for(i=0;i<nbuttons;i++)delete _pcycle[i];    
     for(i=0;i<2;i++)delete _plogx[i];    
     for(i=0;i<2;i++)delete _plogy[i];    
     for(i=0;i<2;i++)delete _plogz[i];    
@@ -154,15 +154,17 @@ AMSControlFrame::~AMSControlFrame(){
    ChangeOptions((GetOptions() & ~kHorizontalFrame) | kVerticalFrame);
 
    //create menus
-     char sSubDetMenu[7][]={ "&AntiCounters",
+     char sSubDetMenu[nsubdets][]={ 
+                          "&AntiCounters",
                           "T&racker",
                           "Level&1",
                           "Level&3",
                           "&TOF",
                           "&CTC",
-                          "A&xAMS"};
-   for(i=0;i<7;i++)fSubDetMenu[i]=0;
-   for( i=0;i<7;i++)fSubDetCascadeMenu[i]=0; 
+                          "A&xAMS",
+                          "General"};
+   for(i=0;i<nsubdets;i++) fSubDetMenu[i]=0;
+   for( i=0;i<nsubdets;i++)fSubDetCascadeMenu[i]=0; 
    fSaveAsMenu=new TGPopupMenu(fClient->GetRoot());
    fSaveAsMenu->AddEntry("Save As SubDetector.Set.&ps",1);
    fSaveAsMenu->AddEntry("Save As SubDetector.Set.&gif",2);
@@ -171,8 +173,9 @@ AMSControlFrame::~AMSControlFrame(){
    fSaveAsMenu->AddSeparator();
    fSaveAsMenu->AddEntry("&Quit",4);
    fDetMenu=new TGPopupMenu(fClient->GetRoot());
-       for(i=0;i<7;i++)fSubDetCascadeMenu[i] = new TGPopupMenu(fClient->GetRoot());
-   for(i=0;i<7;i++)fSubDetMenu[i] = new TGPopupMenu(fClient->GetRoot());
+    for(i=0;i<nsubdets;i++)
+                   fSubDetCascadeMenu[i] = new TGPopupMenu(fClient->GetRoot());
+   for(i=0;i<nsubdets;i++)fSubDetMenu[i] = new TGPopupMenu(fClient->GetRoot());
    fSubDetCascadeMenu[0]->AddEntry("1-4",101);
    fSubDetCascadeMenu[0]->AddEntry("5-8",102);
    fSubDetCascadeMenu[0]->AddEntry("9-12",103);
@@ -217,6 +220,8 @@ AMSControlFrame::~AMSControlFrame(){
    fSubDetMenu[6]->AddEntry("Set 0",160);
    fSubDetMenu[6]->AddEntry("Set 1",161);
 
+   fSubDetMenu[7]->AddEntry("Length",170);
+
    fMenuBarLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 0, 0, 1, 1);
    fMenuBarItemLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0);
    fMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight);
@@ -225,10 +230,10 @@ AMSControlFrame::~AMSControlFrame(){
 
       fDetMenu->Associate(this);
       fSaveAsMenu->Associate(this);
-   for(i=0;i<7;i++)fSubDetMenu[i]->Associate(this);
-   for(i=0;i<7;i++)fSubDetCascadeMenu[i]->Associate(this);
+   for(i=0;i<nsubdets;i++)fSubDetMenu[i]->Associate(this);
+   for(i=0;i<nsubdets;i++)fSubDetCascadeMenu[i]->Associate(this);
 
-   for(i=0;i<7;i++)fDetMenu->AddPopup(sSubDetMenu[i], fSubDetMenu[i]);
+   for(i=0;i<nsubdets;i++)fDetMenu->AddPopup(sSubDetMenu[i], fSubDetMenu[i]);
 
 
    // Create menubar
@@ -274,7 +279,7 @@ AMSControlFrame::~AMSControlFrame(){
    fL4 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 1, 1, 1, 1);
 
 
-   for(i=0;i<7;i++){
+   for(i=0;i<nbuttons;i++){
      _pbutton[i]=new TGTextButton(_pbutfr, sSubDetMenu[i], 200+i);
      wattr.fMask = kWABackPixel | kWAEventMask;
      wattr.fBackgroundPixel = tgbcolor;
@@ -282,7 +287,7 @@ AMSControlFrame::~AMSControlFrame(){
      gGXW->ChangeWindowAttributes(_pbutton[i]->GetId(), &wattr);
 
    }
-   for(i=0;i<7;i++){
+   for(i=0;i<nbuttons;i++){
      _pcycle[i]=new TGCheckButton(_pcyclefr, sSubDetMenu[i], 300+i);
      wattr.fMask = kWABackPixel | kWAEventMask;
      wattr.fBackgroundPixel = tggcolor;
@@ -303,12 +308,12 @@ AMSControlFrame::~AMSControlFrame(){
      gGXW->ChangeWindowAttributes(_plogy[i]->GetId(), &wattr);
      gGXW->ChangeWindowAttributes(_plogz[i]->GetId(), &wattr);
    }
-   for(i=0;i<7;i++)_pbutton[i]->Associate(this);
-   for(i=0;i<7;i++)_pcycle[i]->Associate(this);
+   for(i=0;i<nbuttons;i++)_pbutton[i]->Associate(this);
+   for(i=0;i<nbuttons;i++)_pcycle[i]->Associate(this);
    for(i=0;i<2;i++)_plogx[i]->Associate(this);   
    for(i=0;i<2;i++)_plogy[i]->Associate(this);   
    for(i=0;i<2;i++)_plogz[i]->Associate(this);   
-   for(i=0;i<7;i++){
+   for(i=0;i<nsubdets;i++){
     if((gAMSDisplay->getSubDet(i))->IsActive())_pcycle[i]->SetState(kButtonDown);
    }
    _pcontrol[0]=new TGTextButton(_pcontrolfr,"Stop Timer",401);
@@ -322,8 +327,8 @@ AMSControlFrame::~AMSControlFrame(){
    }
    for(i=0;i<3;i++)_pcontrol[i]->Associate(this);
    for(i=0;i<3;i++)_pcontrolfr->AddFrame(_pcontrol[i],fL1);
-   for(i=0;i<7;i++)_pbutfr->AddFrame(_pbutton[i],fL1);
-   for(i=0;i<7;i++)_pcyclefr->AddFrame(_pcycle[i],fL1);
+   for(i=0;i<nbuttons;i++)_pbutfr->AddFrame(_pbutton[i],fL1);
+   for(i=0;i<nbuttons;i++)_pcyclefr->AddFrame(_pcycle[i],fL1);
    for(i=0;i<2;i++)_plogfr->AddFrame(_plogx[i],fL1);
    for(i=0;i<2;i++)_plogfr->AddFrame(_plogy[i],fL1);
    for(i=0;i<2;i++)_plogfr->AddFrame(_plogz[i],fL1);

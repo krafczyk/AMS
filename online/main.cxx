@@ -18,6 +18,7 @@
 #include "AMSLVL3Hist.h"
 #include "AMSCTCHist.h"
 #include "AMSAxAMSHist.h"
+#include "AMSGenHist.h"
 
 void Myapp::HandleIdleTimer(){
   SetReturnFromRun(1);
@@ -61,6 +62,10 @@ void main(int argc, char *argv[])
   AMSCTCHist  CTCh("CTC","CTC  Hists",2,1);
   amd->AddSubDet(CTCh);
   AMSAxAMSHist  AxAMSh("AxAMS","AxAMS  Hists",2,1);
+
+  AMSGenHist genh("General", "General Hists",1,1);
+  amd->AddSubDet(genh);
+
   amd->AddSubDet(AxAMSh);
   amd->Init();
   amd->SetApplication(theApp);
