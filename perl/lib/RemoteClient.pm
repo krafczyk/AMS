@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.92 2003/04/08 14:55:52 choutko Exp $
+# $Id: RemoteClient.pm,v 1.93 2003/04/09 11:24:32 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1495,15 +1495,26 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             print "<FORM METHOD=\"POST\" action=\"$self->{Name}\">\n";
             print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
             print "<tr><td>\n";
-            print "<b><font color=\"magenta\" size=\"3\">User's Info </font><font size=\"2\"> (if in <i>italic</i> then cannot be changed)</font></b>\n";
+            print "<b><font color=\"magenta\" size=\"3\">User's Info </font>
+                   <font size=\"2\">(if in <i>italic</i> then cannot be changed)</font></b>\n";
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            print "<i><b>e-mail : </td><td><input type=\"text\" size=24 value=$cem name=\"CEM\" onFocus=\"this.blur()\" ></i>\n";
+            print "<i><b>e-mail : </td><td><input type=\"text\" size=24 value=$cem name=\"CEM\" onFocus=\"this.blur()\" >
+                   </i>\n";
             print "</b></font></td></tr>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<i><b>cite : </td><td><input type=\"text\" size=18 value=$cite name=\"CCA\" onFocus=\"this.blur()\"></i>\n";
             print "</b></font></td></tr>\n";
+            print "</TABLE>\n";
+             print "<tr><td><b><font color=\"blue\" size=\"3\">Datasets</font></b>\n";
+             print "</td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             foreach my $dataset (@{$self->{DataSetsT}}){
+              print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=$dataset->{name} >$dataset->{name}<BR>\n";
+              print "</b></font></td></tr>\n";
+             }
             print "</TABLE>\n";
             print "<tr><td>\n";
             print "<b><font color=\"red\" size=\"3\">Template</font></b>\n";
@@ -1514,19 +1525,12 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=\"Advanced\" >Advanced<BR>\n";
             print "</b></font></td></tr>\n";
             print "</TABLE>\n";
-             print "<tr><td><b><font color=\"blue\" size=\"3\">Datasets</font></b>\n";
-             print "</td><td>\n";
-             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-             print "<tr><td><font size=\"-1\"<b>\n";
-             foreach my $dataset (@{$self->{DataSetsT}}){
-              print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=$dataset->{name} >$dataset->{name}<BR>\n";
-             print "</b></font></td></tr>\n";
-          }
-           print "</TABLE>\n";
-          print "</TABLE>\n";
+            print "</TABLE>\n";
+          
           print "<p>\n";
           print "<br>\n";
-          print "<input type=\"submit\" name=\"FormType\" value=\"Continue\">        ";
+          print "<td><input type=\"submit\" name=\"FormType\" value=\"ReadMeFirst\">        ";
+          print "<input type=\"submit\" name=\"FormType\" value=\"Continue\"></td>        ";
           htmlReturnToMain();
           htmlFormEnd();
          htmlBottom();
@@ -1813,6 +1817,17 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
 
     if ($self->{q}->param("FormType")){
         $self->{read}=1;
+# check ReadMeFirst
+        if ($self->{q}->param("FormType") eq "ReadMeFirst") {
+         htmlTop();
+         $self->htmlTemplateTable("ReadMeFirst (click [Return] to Select Template or Production DataSet)");
+         print "<p></p>\n";
+         print $q->textarea(-name=>"RMF",-default=>" ",-rows=>30,-columns=>80);
+         print "<BR><TR>";
+#         print $q->submit(-name=>"FormType", -value=>"Return");
+         print htmlBottom();
+         return 1;   
+        }
 # check e-mail
         my $cem=lc($self->{q}->param("CEM"));
         if (not $self->findemail($cem)){
@@ -1836,7 +1851,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
                $hash->{$cite->{filename}}=$cite->{filedesc};
              }
           }
-          print "<tr><td><b><font color=\"red\">Job Template</font></b>\n";
+          print "<tr><td><b><font color=\"red\">Job Template </font></b>\n";
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
           print "<tr valign=middle><td align=left><b><font size=\"-1\"> File : </b></td> <td colspan=1>\n";
@@ -1849,7 +1864,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
           htmlTextField("Nick Name","text",24,"MC02-basic","QNick"," ");  
           print "</TABLE>\n";
 # Run Parameters
-          print "<tr><td><b><font color=\"blue\">Run Parameters</font></b>\n";
+          print "<tr><td><b><font color=\"blue\">Run Parameters</font><font color=\"black\">
+                 <i> (if in italic then cannot be changed)</font></b></i> \n";
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
           print "<tr valign=middle><td align=left><b><font size=\"-1\"> Particle : </b></td> <td colspan=1>\n";
@@ -1867,23 +1883,18 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             htmlTextField("Total Events","number",9,1000000.,"QEv"," ");  
             htmlTextField("Total Runs","number",7,3.,"QRun"," ");  
             my ($rndm1,$rndm2) = $self->getrndm();
-            htmlTextField("rndm1","text",12,$rndm1,"QRNDM1"," ");  
-            htmlTextField("rndm2","text",12,$rndm2,"QRNDM2"," ");  
+
+            htmlHiddenTextField("rndm1","hidden",12,$rndm1,"QRNDM1"," ");  
+            htmlHiddenTextField("rndm2","hidden",12,$rndm2,"QRNDM2"," ");  
+
+             htmlText("<i>rndm1 </i>",$rndm1);
+             htmlText("<i>rndm2 </i>",$rndm2);
+
             htmlTextField("Begin Time","text",8,"01062005","QTimeB"," (ddmmyyyy)");  
+
             htmlTextField("End Time","text",8,"01062008","QTimeE"," (ddmmyyyy)");  
             htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
            htmlTableEnd();
-            if ($self->{CCT} eq "remote") {
-             print "<tr><td>\n";
-             print "<b><font color=\"green\">MC Production Mode</font></b><BR>\n";
-             print "</td><td>\n";
-             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-             print "<tr><td><font size=\"-1\"<b>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Standalone </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> Client </b><BR>\n";
-             print "</b></font></td></tr>\n";
-           htmlTableEnd();
-         }
             print "<tr><td><b><font color=\"green\">Automatic DST files transfer to Server</font></b>\n";
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -1900,6 +1911,17 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
 #            }
             print "</b></font></td></tr>\n";
            htmlTableEnd();
+            if ($self->{CCT} eq "remote") {
+             print "<tr><td>\n";
+             print "<b><font color=\"green\">MC Production Mode</font></b><BR>\n";
+             print "</td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Standalone </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> Client </b><BR>\n";
+             print "</b></font></td></tr>\n";
+           htmlTableEnd();
+         }
 
           htmlTableEnd();
              if ($self->{CCT} ne "remote") {
@@ -1938,7 +1960,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
             print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
             print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=-1>\n"; 
           print "<br>\n";
-          print "<input type=\"submit\" name=\"BasicQuery\" value=\"Submit\"></br><br>        ";
+          print "<input type=\"submit\" name=\"BasicQuery\" value=\"Submit Request\"></br><br>        ";
           htmlReturnToMain();
           htmlFormEnd();
          htmlBottom();
@@ -2119,7 +2141,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
             print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=0>\n"; 
           print "<br>\n";
 #          print "<input type=\"submit\" name=\"AdvancedForm\" value=\"Continue\"></br><br>        ";
-          print "<input type=\"submit\" name=\"AdvancedQuery\" value=\"Submit\"></br><br>        ";
+          print "<input type=\"submit\" name=\"AdvancedQuery\" value=\"Submit Request\"></br><br>        ";
           htmlReturnToMain();
           htmlFormEnd();
          htmlBottom();
@@ -3733,6 +3755,20 @@ sub htmlTextField {
     my ($text,$type,$size,$value,$name,$comment) = @_;
     print "<tr><td><font size=\"2\">\n";
     print "<b> $text </td><td><input type=$type size=$size value=$value name=$name>$comment\n";
+    print "</b></font></td></tr>\n";
+}
+
+sub htmlHiddenTextField {
+    my ($text,$type,$size,$value,$name,$comment) = @_;
+    print "<tr><td><font size=\"2\">\n";
+    print "<b>  </td><td><input type=$type size=$size value=$value name=$name>$comment\n";
+    print "</b></font></td></tr>\n";
+}
+
+sub htmlText {
+    my ($text,$value) = @_;
+    print "<tr><td><font size=\"2\">\n";
+    print "<b> $text </td><td>$value\n";
     print "</b></font></td></tr>\n";
 }
 
