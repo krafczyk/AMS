@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.19 2002/05/22 12:27:08 choumilo Exp $
+//  $Id: trigger302.C,v 1.20 2002/05/23 06:40:33 choumilo Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -1097,13 +1097,14 @@ int TriggerLVL302::eccrosscheck(geant ect){
     geant ech2x(-1),ech2y(-1);
     geant ectfcr[2]={999,999};
     geant ecrtg[2]={999,999};
-    int ectrackok;
+    int ectrackok,match;
     int ncolx,ncoly;
     plvl3->setecemag(0);//reset EC-emag flag(noECactivity)
     plvl3->setecmatc(0);//reset EC-match flag(noECTrack)
     plvl3->setectofcr(ectfcr,ecrtg);//reset EC-track cross.point/slope
     ectot=0;
     ectrackok=0;
+    match=0;
 //
   if(plvl3->UseECEMinfo() || plvl3->UseECMATinfo()){// <--- use ECAL info
       _flowc[4]+=1;
@@ -1432,7 +1433,6 @@ int TriggerLVL302::eccrosscheck(geant ect){
 //
 // ---> ECAL-TOF/TRD match ?
 //
-  int match(0);
   if(plvl3->UseECMATinfo()){//use EC-Match info
     if(ectrackok){
       _flowc[11]+=1;
