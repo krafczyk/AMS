@@ -25,8 +25,8 @@ bit 0
 20   anti sector fired
 21   npart found
 22   npart found
-23   reserved
-24   reserved
+23   rigidity range
+24   -----
 25   reserved
 26   reserved
 27   reserved
@@ -89,7 +89,11 @@ npart
 2   2
 3   >=3
 
-
+rigidity (abs)
+0  <2 GV
+1  <8 GV
+2  <20 GV
+3  >20 GV
 
 correspondance between bits & status datacards words:
 

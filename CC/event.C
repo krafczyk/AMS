@@ -587,7 +587,7 @@ void AMSEvent::event(){
     uinteger status=AMSJob::gethead()->getstatustable()->getstatus(getid());
     // compare status 
     if(!(status & (1<<32))){    // Status exists
-      const int nsta=10;
+      const int nsta=11;
       uinteger Status[nsta];
       Status[0]=((status & ((1<<4)-1)))+1;
       Status[1]=((status>>4) & ((1<<1)-1))+1;
@@ -599,6 +599,7 @@ void AMSEvent::event(){
       Status[7]=((status>>17) & ((1<<2)-1))+1;
       Status[8]=((status>>19) & ((1<<2)-1))+1;
       Status[9]=((status>>21) & ((1<<2)-1))+1;
+      Status[10]=((status>>23) & ((1<<2)-1))+1;
         uinteger local=0;
       for(int i=0;i<nsta;i++){
         local=0;
@@ -1799,6 +1800,13 @@ void AMSEvent::_collectstatus(){
       else if(pat<5)spat=1;
       else spat=2;
       _status=_status | (spat<<15);       
+      number rig=fabs(pmom)/(charge+1);
+      uinteger srig;
+      if(rig<2)srig=0;
+      else if(rig<8)srig=1;
+      else if(rig<20)srig=2;
+      else srig=3;
+      _status=_status | (srig<<23);
     }
   }
   {
@@ -1816,4 +1824,5 @@ void AMSEvent::_collectstatus(){
       if(ncl>3)ncl=3;
       _status=_status | (ncl<<19);
   }
+     
 }

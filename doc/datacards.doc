@@ -559,5 +559,5 @@ I 1  status[32](32*0)    //
                              [8] ctclayerfired
                              [9] antisectorfired
                              [10] npartfound
-                                                   
+                             [11] rigidity range                                                   
         
