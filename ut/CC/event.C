@@ -24,6 +24,7 @@
 #include <tofsim.h>
 #include <stdlib.h>
 #include <tofcalib.h>
+#include <daqblock.h>
 #include <ntuple.h>
 #include <ctcdbc.h>
 #include <timeid.h>
@@ -266,6 +267,8 @@ void AMSEvent::_retofinitevent(){
 //
   for( i=0;i<SCLRS;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTOFCluster",i),0));
+//
+  DAQSBlock::clrtbll();//clear sc.data length
 }
 //=====================================================================
 void AMSEvent::_rectcinitevent(){

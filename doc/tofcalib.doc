@@ -57,18 +57,14 @@
        the dynode parameters may be taken from AVSD-calibration or again from
        BOLOGNIA GROUP.
        
-    c) tzcalibNNmc.dat/tzcalibMMrl.dat files contain average light speed and "0" 
-       time-differences (output from TDIF-calibration). These files contain also
-       slewing correction (common for all channels slope) and T0's for each bar.
-       This set is output from TZSL-calibration. Currently individual slewing
-       corrections (if needed at al) may be introduced "by hands" into this
-       file (default values are now equal to 1 to permit TZSL-calibration to run
-       in old=common_slope mode). If indiv. slewing corrections are provided from
-       external source and put in this file, then default value for common slope 
-       should be set to 1. TZSL-calibration may by run again to give some "common" 
-       slope correction (about 1 if indiv. slopes have something to do with reality).
+    c) tdvcalibNNmc.dat/tdvcalibMMrl.dat files contain average light speed and "0" 
+       time-differences (output from TDIF-calibration). This file is output from
+       TDIF-calibration.
+    d) tzscalibNNmc.dat/tzscalibMMrl.dat files containslewing correction (common 
+       for all channels slope) and T0's for each bar. This file is output from 
+       TZSL-calibration.
        
-    d) ancalibNNmc.dat/ancalibMMrl.dat files contain now individual anode_to_dinode
+    e) ancalibNNmc.dat/ancalibMMrl.dat files contain now individual anode_to_dinode
        ratios (these are used only by MC because for REAL events the Contin's
        parametrization is used currently for dinodes (it includes already an_to_dyn 
        ratio). These files contain also relative (to ref.bar) channel gains, impact
@@ -78,7 +74,7 @@
        reconstruction of real events use temporarily MC position_corrections.
        
        The version numbers NN/MM for each kind of final calibration files to be read
-       are defined inside of tofverlistKK.dat file which is read first at the 
+       are defined inside of tofverslistKK.dat file which is read first at the 
        beginning of program initialization phase. The version number KK of this file
        is defined by datacard TOFCA 28 and is in the range 01-99 (def.value=1) 
        

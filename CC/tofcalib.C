@@ -18,6 +18,7 @@
 #include <iostream.h>
 #include <fstream.h>
 #include <iomanip.h>
+#include <time.h>
 //#include <string.h>
 //#include <stdlib.h>
 //#include <stdio.h>
@@ -209,7 +210,38 @@ void TOFTZSLcalib::mfun(int &np, number grad[], number &f, number x[]
   number f1[4],f2[3],f3(0.),f4[3],f5(0.),f6(0.),f7(0.),f8(0.);
   number f9[3],f10(0.);
   geant w,tz,tzr;
-  char fname[80]="tzslcalib.dat";
+  char fname[80];
+  char frdate[30];
+  char in[2]="0";
+  char inum[11];
+  char vers1[3]="mc";
+  char vers2[3]="rl";
+  integer cfvn;
+  uinteger StartRun;
+  time_t StartTime;
+  int dig;
+//
+//--> create name for output file
+// 
+  strcpy(inum,"0123456789");
+  cfvn=TOFCAFFKEY.cfvers%100;
+  strcpy(fname,"tzcalib");
+  dig=cfvn/10;
+  in[0]=inum[dig];
+  strcat(fname,in);
+  dig=cfvn%10;
+  in[0]=inum[dig];
+  strcat(fname,in);
+  if(AMSJob::gethead()->isMCData())strcat(fname,vers1);
+  else strcat(fname,vers2);
+  strcat(fname,".dat");
+//
+//--> get run/time of the first event
+//
+  StartRun=AMSTOFRawEvent::getsrun();
+  StartTime=AMSTOFRawEvent::getstime();
+  strcpy(frdate,asctime(localtime(&StartTime)));
+//
 //
 //
   for(il=0;il<SCLRS;il++){
@@ -276,13 +308,16 @@ void TOFTZSLcalib::mfun(int &np, number grad[], number &f, number x[]
 // write parameters to ext.file:
     resol=-1.;
     if(f>=0. && events>0)resol=sqrt(f/events);
+//
     ofstream tcfile(fname,ios::out|ios::trunc);
     if(!tcfile){
       cerr<<"TOFTZSLcalib:error opening file for output"<<fname<<'\n';
       exit(8);
     }
-    cout<<"Open file for TzSl-calibration output, fname:"<<fname<<'\n';
+    cout<<"Open file for TZSL-calibration output, fname:"<<fname<<'\n';
     cout<<"Slope and individual T0's will be written !"<<'\n';
+    cout<<" First run used for calibration is "<<StartRun<<endl;
+    cout<<" Date of the first event : "<<frdate<<endl;
     tcfile.setf(ios::fixed);
     tcfile.width(6);
     tcfile.precision(2);// precision for slope
@@ -296,7 +331,11 @@ void TOFTZSLcalib::mfun(int &np, number grad[], number &f, number x[]
       }
       tcfile << endl;
     }
+    tcfile << endl<<"======================================================"<<endl;
+    tcfile << endl<<" First run used for calibration is "<<StartRun<<endl;
+    tcfile << endl<<" Date of the first event : "<<frdate<<endl;
     tcfile.close();
+    cout<<"TOFTZSLcalib:output file closed !"<<endl;
   }
 }
 //-----------------------------------------------------------------------
@@ -337,7 +376,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   geant slops[2];
   number shft,ftdel,qtotl[SCLRS],qsd1[SCLRS],qsd2[SCLRS],eanti(0),meanq,rr,qmax;
   number eacut=0.6;// cut on E-anti (mev). tempor (no calibration)
-  number qrcut=10.;// cut on max/mean-charge ratio
+  number qrcut=8.;// cut on max/mean-charge ratio
   number dscut=8.;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
   number *pntr[SCLRS];
   AMSTOFRawCluster *ptr;
@@ -482,7 +521,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     if(cptr)
            ntrk+=cptr->getnelem();
     HF1(1506,geant(ntrk),1.);
-    if(ntrk!=1)return;// require events with 1 track.  tempor commented to bypass tracker
+    if(ntrk!=1 && TOFCAFFKEY.truse>=0)return;// require events with 1 track.
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",0);
     if(ppart){
@@ -491,11 +530,9 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     } 
     else rid=0;
     pmom=fabs(rid);
-//  pmom=1.178;// tempor to bypass tracker and have Mu-beta=0.996
-//  pmom=1.37;// tempor to bypass tracker and have Mu-beta=0.997
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
-    if(pmom<TOFCAFFKEY.pcut[0] || pmom>TOFCAFFKEY.pcut[1])return;//remove low/too_high mom.
-    if(pmom<TOFCAFFKEY.pcut[0])return;//remove low mom.
+    if(TOFCAFFKEY.truse>=0)
+       if(pmom<TOFCAFFKEY.pcut[0] || pmom>TOFCAFFKEY.pcut[1])return;//remove low/too_high mom.
     if(TOFCAFFKEY.caltyp==0)bet=pmom/sqrt(pmom*pmom+pmas*pmas);// space calibration
     else bet=pmom/sqrt(pmom*pmom+mumas*mumas);// earth calibration
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1501,bet,1.);
@@ -686,7 +723,6 @@ void TOFTZSLcalib::select(){  // calibr. event selection
 //
     if(TOFCAFFKEY.caltyp==0)betm=TOFCAFFKEY.bmeanpr;// tempor! better use measured one ?
     else betm=TOFCAFFKEY.bmeanmu;
-    betm=bet;// tempor
 //
     TOFTZSLcalib::fill(betm,brnl,tld,tdi,dum); // fill calib.working arrays
 }
@@ -885,7 +921,38 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
   number bin,len,co,t,dis,sig,sli,meansl(0),bintot(0),speedl;
   number sl[SCBLMX],t0[SCBLMX],sumc,sumc2,sumt,sumt2,sumct,sumid,chi2[SCBLMX];
   geant td[SCTDBM];
-  char fname[80]="tdlvcalib.dat";
+  char fname[80];
+  char frdate[30];
+  char in[2]="0";
+  char inum[11];
+  char vers1[3]="mc";
+  char vers2[3]="rl";
+  integer cfvn;
+  uinteger StartRun;
+  time_t StartTime;
+  int dig;
+//
+//--> create name for output file
+// 
+  strcpy(inum,"0123456789");
+  cfvn=TOFCAFFKEY.cfvers%100;
+  strcpy(fname,"tdcalib");
+  dig=cfvn/10;
+  in[0]=inum[dig];
+  strcat(fname,in);
+  dig=cfvn%10;
+  in[0]=inum[dig];
+  strcat(fname,in);
+  if(AMSJob::gethead()->isMCData())strcat(fname,vers1);
+  else strcat(fname,vers2);
+  strcat(fname,".dat");
+//
+//--> get run/time of the first event
+//
+  StartRun=AMSTOFRawEvent::getsrun();
+  StartTime=AMSTOFRawEvent::getstime();
+  strcpy(frdate,asctime(localtime(&StartTime)));
+//
 //
   HPRINT(1600);
   HPRINT(1601);
@@ -940,7 +1007,7 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
         chi2[chan]=sumt2+t0[chan]*t0[chan]*sumid+sl[chan]*sl[chan]*sumc2
          -2*t0[chan]*sumt-2*sl[chan]*sumct+2*t0[chan]*sl[chan]*sumc;
         chi2[chan]/=number(bins-2);
-        if(chi2[chan]<3. &&
+        if(chi2[chan]<6. &&
                      fabs(sl[chan])>0.058 &&
                      fabs(sl[chan])<0.071){//only good for averaging
           bintot+=1;
@@ -1015,8 +1082,10 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
     cerr<<"TOFTDIFcalib:error opening file for output"<<fname<<'\n';
     exit(8);
   }
-  cout<<"Open file for TDIF-calibration output, fname:"<<fname<<'\n';
+  cout<<"Open file for TDLV-calibration output, fname:"<<fname<<'\n';
   cout<<"Lspeed and individual Tdif's will be written !"<<'\n';
+  cout<<" First run used for calibration is "<<StartRun<<endl;
+  cout<<" Date of the first event : "<<frdate<<endl;
   tcfile.setf(ios::fixed);
   tcfile.width(6);
   tcfile.precision(2);// precision for Lspeed and Tdiff's
@@ -1028,7 +1097,11 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
     }
     tcfile << endl;
   }
+  tcfile << endl<<"======================================================"<<endl;
+  tcfile << endl<<" First run used for calibration is "<<StartRun<<endl;
+  tcfile << endl<<" Date of the first event : "<<frdate<<endl;
   tcfile.close();
+  cout<<"TOFTDLVcalib:output file closed !"<<endl;
 }
 //=============================================================================
 //
@@ -1412,9 +1485,9 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
     chsq/=pow(sigt,2);
     chsq/=number(fpnt-2);
     betof=1./bci/cvel;
-    if(chsq>9.)betof=-1.;//cut on chi2
+    if(chsq>8.)betof=-1.;//cut on chi2
     if(TOFRECFFKEY.reprtf[2]>0){
-      if(chsq<=9.)HF1(1502,betof,1.);
+      if(chsq<=8.)HF1(1502,betof,1.);
       HF1(1205,chsq,1.);
       HF1(1206,tzer,1.);
     }
@@ -1619,8 +1692,39 @@ void TOFAMPLcalib::fit(){
   number *pntr[SCACMX];
   number aver;
   geant step[10],pmin[10],pmax[10],sigp[10];
-  char fname[80]="amplcalib.dat";
   integer nev1,nev2,npar=2;
+  char fname[80];
+  char frdate[30];
+  char in[2]="0";
+  char inum[11];
+  char vers1[3]="mc";
+  char vers2[3]="rl";
+  integer cfvn;
+  uinteger StartRun;
+  time_t StartTime;
+  int dig;
+//
+//--> create name for output file
+// 
+  strcpy(inum,"0123456789");
+  cfvn=TOFCAFFKEY.cfvers%100;
+  strcpy(fname,"ancalib");
+  dig=cfvn/10;
+  in[0]=inum[dig];
+  strcat(fname,in);
+  dig=cfvn%10;
+  in[0]=inum[dig];
+  strcat(fname,in);
+  if(AMSJob::gethead()->isMCData())strcat(fname,vers1);
+  else strcat(fname,vers2);
+  strcat(fname,".dat");
+//
+//--> get run/time of the first event
+//
+  StartRun=AMSTOFRawEvent::getsrun();
+  StartTime=AMSTOFRawEvent::getstime();
+  strcpy(frdate,asctime(localtime(&StartTime)));
+//
 //
 // ---> print "gain"-hist. (side-signals for center bin)
   for(il=0;il<SCLRS;il++){   
@@ -1816,7 +1920,7 @@ void TOFAMPLcalib::fit(){
 //
 //----> calc. mean charge for ref.counters (for abs.calibr):
 //
-  geant elref(2);// ref. Elos(mev,norm.incidence) for mip-region
+  geant elref(2.);// ref. Elos(mev,norm.incidence) for mip-region
   for(i=0;i<SCBTPN;i++){
     aabs[i]=0.;
     mip2q[i]=0.;
@@ -1832,6 +1936,14 @@ void TOFAMPLcalib::fit(){
 //
   geant a2d[SCCHMX],ea2d[SCCHMX],mval,mval2,err,r;
 //
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      for(i=0;i<2;i++){
+        chan=2*SCMXBR*il+2*ib+i;
+        a2d[chan]=5.;//just default value
+      }
+    }
+  }
   if(TOFCAFFKEY.dynflg==0){// <--- stand(old) dyn.calibr.
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
@@ -1944,11 +2056,13 @@ void TOFAMPLcalib::fit(){
     exit(8);
   }
   cout<<"Open file for AMPL-calibration output, fname:"<<fname<<'\n';
-  cout<<"Indiv. channel dynode/gain-param., mip2q's will be written !"<<'\n';
+  cout<<"Indiv. channel a2dr/gain-param., mip2q's will be written !"<<'\n';
+  cout<<" First run used for calibration is "<<StartRun<<endl;
+  cout<<" Date of the first event : "<<frdate<<endl;
 //
   tcfile.setf(ios::fixed);
   tcfile.width(6);
-  if(TOFCAFFKEY.dynflg==0){// <-- for standard(old) dynode calibr.
+//                         <-- for standard(old) dynode calibr.
     tcfile.precision(2);// precision for a2dr
     for(il=0;il<SCLRS;il++){ // <--- a2d-ratios:
       for(ib=0;ib<SCMXBR;ib++){
@@ -1963,7 +2077,6 @@ void TOFAMPLcalib::fit(){
       tcfile << endl;
     }
     tcfile << endl;
-  }
 //
 //
   tcfile.precision(3);// precision for gains
@@ -1987,6 +2100,7 @@ void TOFAMPLcalib::fit(){
     tcfile << mip2q[btyp]<<" ";
   }  
   tcfile << endl;
+  tcfile << endl;
 //
   for(btyp=0;btyp<SCBTPN;btyp++){ // <--- A-profile fit-parameters
     for(i=0;i<SCPROFP;i++)tcfile << aprofp[btyp][i]<<" ";
@@ -1994,6 +2108,9 @@ void TOFAMPLcalib::fit(){
   }  
   tcfile << endl;
 //
+  tcfile << endl<<"======================================================"<<endl;
+  tcfile << endl<<" First run used for calibration is "<<StartRun<<endl;
+  tcfile << endl<<" Date of the first event : "<<frdate<<endl;
   tcfile.close();
   cout<<"TOFAMPLcalib:output file closed !"<<endl;
 //
@@ -2120,7 +2237,37 @@ void TOFSTRRcalib::outp(){
   number t0,sl,chi2[SCCHMX],t,tq,co,dis,nev,bins;
   number sumc,sumt,sumct,sumc2,sumt2,sumid;
   number strr[SCCHMX],offs[SCCHMX];
-  char fname[80]="strrcalib.dat";
+  char fname[80];
+  char frdate[30];
+  char in[2]="0";
+  char inum[11];
+  char vers1[3]="mc";
+  char vers2[3]="rl";
+  integer cfvn;
+  uinteger StartRun;
+  time_t StartTime;
+  int dig;
+//
+//--> create name for output file
+// 
+  strcpy(inum,"0123456789");
+  cfvn=TOFCAFFKEY.cfvers%100;
+  strcpy(fname,"srscalib");
+  dig=cfvn/10;
+  in[0]=inum[dig];
+  strcat(fname,in);
+  dig=cfvn%10;
+  in[0]=inum[dig];
+  strcat(fname,in);
+  if(AMSJob::gethead()->isMCData())strcat(fname,vers1);
+  else strcat(fname,vers2);
+  strcat(fname,".dat");
+//
+//--> get run/time of the first event
+//
+  StartRun=AMSTOFRawEvent::getsrun();
+  StartTime=AMSTOFRawEvent::getstime();
+  strcpy(frdate,asctime(localtime(&StartTime)));
 //
   if(AMSJob::gethead()->isRealData()){
     idtol[0]=SCSRCLB;
@@ -2333,6 +2480,8 @@ void TOFSTRRcalib::outp(){
   }
   cout<<"Open file for STRR-calibration output, fname:"<<fname<<'\n';
   cout<<"Stretcher ratios for indiv.channels will be written !"<<'\n';
+  cout<<" First run used for calibration is "<<StartRun<<endl;
+  cout<<" Date of the first event : "<<frdate<<endl;
   tcfile.setf(ios::fixed);
   tcfile.width(6);
   tcfile.precision(2);// precision 
@@ -2351,6 +2500,9 @@ void TOFSTRRcalib::outp(){
     }
     tcfile << endl;
   }
+  tcfile << endl<<"======================================================"<<endl;
+  tcfile << endl<<" First run used for calibration is "<<StartRun<<endl;
+  tcfile << endl<<" Date of the first event : "<<frdate<<endl;
   tcfile.close();
   cout<<"TOFSTRRcalib:output file closed !"<<endl;
 }

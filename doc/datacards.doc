@@ -142,7 +142,7 @@ I  8 id-ref1(108);  // LBB for first ref. counter (if non zero)
 I  9 id-ref2(0);    // LBB for second ref. counter (if nonzero)
 I 10 fix-slope(1); // =0/1 to fix/release slope param.
 I 11 calibr.type(0);// =0/1 space/earth calibration
-I 12 truse(0);     // =0/1 to soft/hard usage of tracker info
+I 12 truse(0);     // =-1/0/1 to no/soft/hard usage of tracker info
 I 26 tofcoo(0)     // =0/1 -> use trancv/longit.coordinates from TOF 
   AMPL-calibration:
 I 12 truse(0);     // =1/0 to use/not tracker info
@@ -159,7 +159,8 @@ R 24 bgcut[0] (2)   // beta*gamma low-cut for mip in abs.calibr.
 R 25 bgcut[1] (10)  // beta*gamma high-cut for mip in abs.calibr.
 I 27 dynflg    (1)  // 0/1-> use stand/special(Contin's) dynode-calibration
   General :
-I 28 cfvers    (1)  // 01-99 vers.number NN for tofverlist(mc/rl)NN.dat file 
+I 28 cfvers    (1)  // 01-99 vers.number NN for tofverlist(mc/rl)NN.dat file
+I 29 cafdir    (0)  // use official/private directory for calibr.files
 //---------------------------------------------------------------------------------
 
 // CTC  Simulation

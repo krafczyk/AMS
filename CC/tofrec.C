@@ -18,45 +18,16 @@
 #include <daqblock.h>
 #include <tofcalib.h>
 #include <ntuple.h>
+#include <time.h>
 //
-#ifdef __PRIVATE__
-integer AMSTOFCluster::goodch[4][14]={1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-                                      1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-                                      1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-                                      1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-geant AMSTOFCluster::tcoef[4][14]={   0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                      0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                      0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                                      0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-#endif
 void AMSTOFCluster::init(){
-#ifdef __PRIVATE__
-  if(!(AMSJob::gethead()->isCalibration() & AMSJob::CTOF) && 
-     AMSJob::gethead()->isRealData()){
-char _fnam[]="tofcalib.private";
-char fnam[256]="";
-strcpy(fnam,AMSDATADIR.amsdatadir);
-strcat(fnam,_fnam);
-  ifstream iftxt(fnam,ios::in);
-  if(!iftxt){
-     cerr <<"AMSCharge::init-F-Error open file "<<fnam<<endl;
-     
-      exit(1);
-  }
-  for(int i=0;i<4;i++){
-   for( int j=0;j<14;j++){
-    iftxt >> goodch[i][j] >> tcoef[i][j];
-    cout <<i<<" "<<j<<" "<<goodch[i][j]<<" "<<tcoef[i][j]<<endl;
-   }
-  }
-  }
-#endif
-
 }
 extern TOFBrcal scbrcal[SCLRS][SCMXBR];// calibration data
 extern TOFVarp tofvpar;// TOF general parameters
 integer AMSTOFRawCluster::trpatt[SCLRS]={0,0,0,0};//just init. of static var.
 integer AMSTOFRawCluster::trflag=0;
+uinteger AMSTOFRawEvent::StartRun(0);
+time_t AMSTOFRawEvent::StartTime(0);
 //
 //
 //-----------------------------------------------------------------------
@@ -73,6 +44,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   number tsr[3],ths[2],fstd,t1,t2,t3,t4,dt;
   geant mtma[2],mtmd[2];
   int bad(1);
+  static int first(0);
   geant charge,edep;
   AMSTOFRawEvent *ptr;
   AMSTOFRawEvent *ptrN;
@@ -91,20 +63,17 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   if(TOFRECFFKEY.reprtf[1]>=1)
   cout<<endl<<"======> TOF::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
 #endif
-//---- tempor test
-//  TOFMCFFKEY.daqfmt=0;//raw fmt 
-//  im=0;
-//  for(i=0;i<DAQSBLK;i++){
-//    im+=DAQSBlock::calcblocklength(i);
-//  }
-//  HF1(1107,geant(im),1.);
-//  TOFMCFFKEY.daqfmt=1;//reduced fmt
-//  im=0;
-//  for(i=0;i<DAQSBLK;i++){
-//    im+=DAQSBlock::calcblocklength(i);
-//  }
-//  HF1(1108,geant(im),1.);
-//---- tempor test
+//
+  if(first==0){//store run/time for the first event
+    first=1;
+    StartRun=AMSEvent::gethead()->getrun();
+    StartTime=AMSEvent::gethead()->gettime();
+  }
+//---- Scint.data length monitoring:
+  if(TOFRECFFKEY.reprtf[2]>0 || TOFRECFFKEY.reprtf[4]>0){
+    im=DAQSBlock::gettbll();//total blocks length for current format
+    HF1(1107,geant(im),1.);
+  }
 //                             <---- loop over TOF RawEvent hits -----
   while(ptr){
     idd=ptr->getid();
@@ -179,16 +148,16 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         t3=(stdc1[i+1]&pbanti)*TOFDBc::tdcbin(1);//2-nd up-edge
         t4=(stdc1[i]&pbanti)*TOFDBc::tdcbin(1);//2-nd down-edge
         dt=t2-t3;
-      if(ilay==3 && ibar==2 && isid==0)HF1(1131,geant(dt),1.);
-      if(ilay==3 && ibar==2 && isid==1)HF1(1134,geant(dt),1.);
+//      if(ilay==3 && ibar==2 && isid==0)HF1(1131,geant(dt),1.);
+//      if(ilay==3 && ibar==2 && isid==1)HF1(1134,geant(dt),1.);
         if(dt<5. || dt>24.)continue;//wrong "hole" width(w2), take next "4"
         dt=t1-t2;
-      if(ilay==3 && ibar==2 && isid==0)HF1(1130,geant(dt),1.);
-      if(ilay==3 && ibar==2 && isid==1)HF1(1133,geant(dt),1.);
+//      if(ilay==3 && ibar==2 && isid==0)HF1(1130,geant(dt),1.);
+//      if(ilay==3 && ibar==2 && isid==1)HF1(1133,geant(dt),1.);
         if(dt<10. || dt>200.)continue;//wrong "1st_pulse" width(w1), ...
         dt=t2-t4;
-      if(ilay==3 && ibar==2 && isid==0)HF1(1132,geant(dt),1.);
-      if(ilay==3 && ibar==2 && isid==1)HF1(1135,geant(dt),1.);
+//      if(ilay==3 && ibar==2 && isid==0)HF1(1132,geant(dt),1.);
+//      if(ilay==3 && ibar==2 && isid==1)HF1(1135,geant(dt),1.);
         if(dt<1600. || dt>6000.)continue;//wrong "2nd_pulse" width(w3), ...
 //
         stdc2[nhit]=stdc1[i];
@@ -583,7 +552,7 @@ void AMSTOFRawCluster::build(int &status){
           if(smty[1]>0)tm[1]=number((stdc2[3]&pbanti)*TOFDBc::tdcbin(1));
           else tm[1]=0;
 // 
-// --> hist. for single history/slow/a/d-hit bars :
+// --> histogr. for single history/slow/a/d-hit bars :
 //
           if(TOFRECFFKEY.reprtf[2]>0){
             if(smty[0]>0 && nftdc[0]==2 && nstdc[0]==4){
@@ -834,13 +803,17 @@ void AMSTOFRawCluster::build(int &status){
   }
   for(i=0;i<SCLRS;i++)isum+=nbrch[i];
   HF1(1110,geant(isum),1.);// tot.number of layers
-  for(i=0;i<SCLRS;i++)if(nbrch[i]>0)HF1(1111,geant(i+1),1.);// layer appearence frequency
+  if(TOFRECFFKEY.reprtf[2]>0 || TOFRECFFKEY.reprtf[4]>0){
+    for(i=0;i<SCLRS;i++)if(nbrch[i]>0)HF1(1111,geant(i+1),1.);// layer appear. freq.
+  }
   if(isum>=2)conf=0;
   if(isum>=3){
     for(i=0;i<SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;
-  HF1(1112,geant(conf),1.);
+  if(TOFRECFFKEY.reprtf[2]>0 || TOFRECFFKEY.reprtf[4]>0){
+    HF1(1112,geant(conf),1.);
+  }
 //
   if((nbrch[0]+nbrch[1])>=1 && (nbrch[2]+nbrch[3])>=1)status=0; // good event
 // 
@@ -858,7 +831,9 @@ void AMSTOFRawCluster::build(int &status){
     for(i=0;i<SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;
-  HF1(1113,geant(conf),1.);
+  if(TOFRECFFKEY.reprtf[2]>0 || TOFRECFFKEY.reprtf[4]>0){
+    HF1(1113,geant(conf),1.);
+  }
 // 
 // --->same multtipl. checks for single 2-sided bar layers:
 //
@@ -874,7 +849,9 @@ void AMSTOFRawCluster::build(int &status){
     for(i=0;i<SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;
-  HF1(1114,geant(conf),1.);
+  if(TOFRECFFKEY.reprtf[2]>0 || TOFRECFFKEY.reprtf[4]>0){
+    HF1(1114,geant(conf),1.);
+  }
 //
   if(status!=0)return;//remove bad events
 //
@@ -904,25 +881,20 @@ void AMSTOFRawCluster::build(int &status){
   cosi=sqrt(1.+tgx*tgx+tgy*tgy);// this is 1/cos(theta) !!!
   trlen13=(zcb[0]-zcb[2])*cosi;//1->3
   trlen24=(zcb[1]-zcb[3])*cosi;//2->4
+  td13=(tcorr[0]-tcorr[2])*130./trlen13;// tormalized to 130cm distance
+  td24=(tcorr[1]-tcorr[3])*130./trlen24;// tormalized to 130cm distance
+  td14=tuncorr[0]-tuncorr[3];
 //
-  if(TOFRECFFKEY.reprtf[2]>0){
-      HF1(1529,edepa[0],1.); //layer=0 Anode-reconstructed Edep
-      HF1(1526,edepa[0],1.); //layer=0 Anode-reconstructed Edep
-      HF1(1530,edepa[2],1.); //layer=2 Anode-reconstructed Edep
-      HF1(1527,edepa[2],1.); //layer=2 Anode-reconstructed Edep
-      HF1(1531,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
-      HF1(1528,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
-      td13=(tcorr[0]-tcorr[2])*130./trlen13;// tormalized to 130cm distance
-      td24=(tcorr[1]-tcorr[3])*130./trlen24;// tormalized to 130cm distance
-      td14=tuncorr[0]-tuncorr[3];
+  if(TOFRECFFKEY.reprtf[2]>0 || TOFRECFFKEY.reprtf[4]>0){
       HF1(1532,td13,1.);//ToF for L0->L2
       HF1(1534,td24,1.);//ToF for L1->L3
-      HF1(1545,td14,1.);//uncorr.ToF for L1->L4
-      HF1(1533,tdiff[0],1.);//layer=0
-      HF1(1543,clong[0],1.);//Y-coord(loc.r.s.)
-      TOFRECFFKEY.relogic[2]=0;// tempor
-      if(fabs(td13-td24)>1.8)TOFRECFFKEY.relogic[2]=1;//tempor (bad event)
       HF1(1544,(td13-td24),1.);
+      HF1(1529,edepa[0],1.); //layer=0 Anode-reconstructed Edep
+      HF1(1526,edepa[0],1.); //layer=0 Anode-reconstructed Edep
+      HF1(1531,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
+      HF1(1528,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
+//      HF1(1533,tdiff[0],1.);//layer=0
+//      HF1(1543,clong[0],1.);//Y-coord(loc.r.s.)
       if(AMSJob::gethead()->isSimulation()){
         geant tch;
         charg[0]=pch1[0];
@@ -1729,7 +1701,8 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
       }// ---> end of SFET data check
 //
       else{
-        break;// hope no SFET data left (m.b. continue)
+//        break;// hope no SFET data left 
+        continue;// because of parallel readout
       }
 //
     }// ---> end of words loop

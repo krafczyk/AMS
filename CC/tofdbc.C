@@ -129,8 +129,8 @@ geant TOFDBc::_plnstr[15]={
           strcat(name,vers2);
     }
     strcat(name,".dat");
-    strcpy(fname,AMSDATADIR.amsdatadir);    
-//    strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+    if(TOFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+    if(TOFCAFFKEY.cafdir==1)strcpy(fname,"");
     strcat(fname,name);
     cout<<"TOFDBc::readgconf: Open file : "<<fname<<'\n';
     ifstream tcfile(fname,ios::in); // open needed config-file for reading
@@ -352,7 +352,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //
   integer cfvn;
   cfvn=TOFCAFFKEY.cfvers%100;
-  strcpy(name,"tofverlist");// basic name for tofverlistNN.dat file
+  strcpy(name,"tofverslist");// basic name for tofverslistNN.dat file
   dig=cfvn/10;
   in[0]=inum[dig]; 
   strcat(name,in);
@@ -361,8 +361,8 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
   strcat(name,in);
   strcat(name,".dat");
 //
-  strcpy(fname,AMSDATADIR.amsdatadir);
-//  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+  if(TOFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(TOFCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
   cout<<"TOFBrcal::build: Open file  "<<fname<<'\n';
   ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
@@ -379,15 +379,15 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //
 //------------------------------
 //
-//   --->  Read (lspeed/tdiffs + slope(s)/tzeros) calibration file :
+//   --->  Read lspeed/tdiffs calibration file :
 //
  ctyp=3;
- strcpy(name,"tzcalib");
+ strcpy(name,"tdvcalib");
  mcvn=mcvern[ctyp-1]%100;
  rlvn=rlvern[ctyp-1]%100;
  if(AMSJob::gethead()->isMCData()) //      for MC-event
  {
-       cout <<" TOFBrcal_build: MC-T0/Tdif-calibration is used"<<endl;
+       cout <<" TOFBrcal_build: MC-Tdif-calibration is used"<<endl;
        dig=mcvn/10;
        in[0]=inum[dig];
        strcat(name,in);
@@ -398,7 +398,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  }
  else                              //      for Real events
  {
-       cout <<" TOFBrcal_build: REAL-T0/Tdif-calibration is used"<<endl;
+       cout <<" TOFBrcal_build: REAL-Tdif-calibration is used"<<endl;
        dig=rlvn/10;
        in[0]=inum[dig];
        strcat(name,in);
@@ -409,40 +409,75 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  }
 //
  strcat(name,".dat");
- strcpy(fname,AMSDATADIR.amsdatadir);    
-// strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+ if(TOFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+ if(TOFCAFFKEY.cafdir==1)strcpy(fname,"");
  strcat(fname,name);
  cout<<"Open file : "<<fname<<'\n';
- ifstream tcfile(fname,ios::in); // open  file for reading
- if(!tcfile){
-   cerr <<"TOFBrcal_build: missing Lspeed/Tdif/Tzero/Slope(s)-file "<<fname<<endl;
+ ifstream tdcfile(fname,ios::in); // open  file for reading
+ if(!tdcfile){
+   cerr <<"TOFBrcal_build: missing Lspeed/Tdif-file "<<fname<<endl;
    exit(1);
  }
 //
 // ---> read Lspeed/Tdiffs:
- tcfile >> speedl;
+ tdcfile >> speedl;
  for(ila=0;ila<SCLRS;ila++){   
- for(ibr=0;ibr<SCMXBR;ibr++){  
-   cnum=ila*SCMXBR+ibr; // sequential counters numbering(0-55)
-   tcfile >> tdiff[cnum];
+   for(ibr=0;ibr<SCMXBR;ibr++){  
+     cnum=ila*SCMXBR+ibr; // sequential counters numbering(0-55)
+     tdcfile >> tdiff[cnum];
+   }
  }
+ tdcfile.close();
+//------------------------------
+//
+//   --->  Read slope/tzeros calibration file :
+//
+ ctyp=6;
+ strcpy(name,"tzscalib");
+ mcvn=mcvern[ctyp-1]%100;
+ rlvn=rlvern[ctyp-1]%100;
+ if(AMSJob::gethead()->isMCData()) //      for MC-event
+ {
+       cout <<" TOFBrcal_build: MC-T0-calibration is used"<<endl;
+       dig=mcvn/10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=mcvn%10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       strcat(name,vers1);
  }
-// ---> read Slope(s)/Tzeros:
- tcfile >> slpf;
+ else                              //      for Real events
+ {
+       cout <<" TOFBrcal_build: REAL-T0-calibration is used"<<endl;
+       dig=rlvn/10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=rlvn%10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       strcat(name,vers2);
+ }
+//
+ strcat(name,".dat");
+ if(TOFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+ if(TOFCAFFKEY.cafdir==1)strcpy(fname,"");
+ strcat(fname,name);
+ cout<<"Open file : "<<fname<<'\n';
+ ifstream tzcfile(fname,ios::in); // open  file for reading
+ if(!tzcfile){
+   cerr <<"TOFBrcal_build: missing Tzero/Slope(s)-file "<<fname<<endl;
+   exit(1);
+ }
+//
+// ---> read Slope/Tzero's:
+ tzcfile >> slpf;
  for(ila=0;ila<SCLRS;ila++){ 
    for(ibr=0;ibr<SCMXBR;ibr++){
-     tcfile >> slops1[ila][ibr];
-   } 
-   for(ibr=0;ibr<SCMXBR;ibr++){
-     tcfile >> slops2[ila][ibr];
+     tzcfile >> tzerf[ila][ibr];
    } 
  }
- for(ila=0;ila<SCLRS;ila++){ 
-   for(ibr=0;ibr<SCMXBR;ibr++){
-     tcfile >> tzerf[ila][ibr];
-   } 
- }
- tcfile.close();
+ tzcfile.close();
 //
 //-------------------------------------------- 
 //
@@ -475,8 +510,8 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
    strcat(name,vers2);
  }
    strcat(name,".dat");
-   strcpy(fname,AMSDATADIR.amsdatadir);    
-//   strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");
+   if(TOFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+   if(TOFCAFFKEY.cafdir==1)strcpy(fname,"");
    strcat(fname,name);
    cout<<"Open file : "<<fname<<'\n';
    ifstream scfile(fname,ios::in); // open str_ratio-file for reading
@@ -529,8 +564,8 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
    strcat(name,vers2);
  }
    strcat(name,".dat");
-   strcpy(fname,AMSDATADIR.amsdatadir);    
-//   strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+   if(TOFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+   if(TOFCAFFKEY.cafdir==1)strcpy(fname,"");
    strcat(fname,name);
    cout<<"Open file : "<<fname<<'\n';
    ifstream gcfile(fname,ios::in); // open a2d_ratio/gain/mip2q-file for reading
@@ -611,8 +646,8 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
    strcat(name,vers2);
  }
  strcat(name,".dat");
-   strcpy(fname,AMSDATADIR.amsdatadir);    
-// strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+ if(TOFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+ if(TOFCAFFKEY.cafdir==1)strcpy(fname,"");
  strcat(fname,name);
  cout<<"Open file : "<<fname<<'\n';
  ifstream icfile(fname,ios::in); // open a/d_integrator_param-file for reading
@@ -670,7 +705,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
         rlo[isp]=(ef1[isp]+ef2[isp])/(ef1[mrfp]+ef2[mrfp]);
       }
     }
-    else{// the same for Real
+    else{// pos.correction for Real
       p1=aprofp[brt-1][0];
       p2=aprofp[brt-1][1];
       p3=aprofp[brt-1][2];
@@ -693,8 +728,10 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     sta[0]=stat[cnum][0];
     sta[1]=stat[cnum][1];
     slope=slpf;// common slope from ext. file
-    slops[0]=slops1[ila][ibr];// indiv.slopes from ext.file
-    slops[1]=slops2[ila][ibr];
+//    slops[0]=slops1[ila][ibr];// indiv.slopes from ext.file
+//    slops[1]=slops2[ila][ibr];
+    slops[0]=1.;// default indiv.slopes
+    slops[1]=1.;
     tzer=tzerf[ila][ibr];//was read from ext. file
     tdif=tdiff[cnum];//was read from ext. file 
     td2p[0]=speedl;//mean speed of the light was read from external file
@@ -1263,6 +1300,175 @@ void TOFJobStat::print(){
     printf("\n\n");
   }
 //
+}
+//------------------------------------------
+void TOFJobStat::bookhist(){
+  int i,j,k,ich,il,ib,ii,jj;
+  char htit1[60];
+  char inum[11];
+  char in[2]="0";
+//
+  strcpy(inum,"0123456789");
+//
+    if(TOFRECFFKEY.reprtf[2]!=0 || TOFRECFFKEY.reprtf[4]!=0){ // Book reco-hist
+      HBOOK1(1100,"Fast-Slow hit time-difference(single hist/slow-hit measurements)",80,0.,80.,0.);
+      HBOOK1(1105,"Anode-Slow hit time-difference(single an/slow-hit measurements)",80,-40.,40.,0.);
+      HBOOK1(1106,"Dynode-Slow hit time-difference(single dyn/slow-hit measurements)",80,-120.,40.,0.);
+      HBOOK1(1107,"TOF+CTC+ANTI data length (16-bit words)",80,0.,1000.,0.);
+      HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,160.,0.);
+      HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,1600.,0.);
+      HBOOK1(1103,"Time_history:inp.pulse width(ns)",80,0.,80.,0.);
+      HBOOK1(1104,"Anode TovT:inp.pulse width(ns)",80,0.,320.,0.);
+      HBOOK1(1110,"RawClusterLevel:Total fired layers per event",5,0.,5.,0.);
+      HBOOK1(1111,"RawClusterLevel:Layer appearence frequency",5,0.,5.,0.);
+      HBOOK1(1112,"RawClusterLevel:Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
+      HBOOK1(1113,"RawClusterLevel:SingleBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
+      HBOOK1(1114,"RawClusterLevel:Single2SidedBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
+      HBOOK1(1115,"Fast-Slow hit time-difference(all hist/slow-hit meas.",80,-40.,120.,0.);
+//    HBOOK1(1130,"W1,L4-B3-S1",50,0.,200.,0.);
+//    HBOOK1(1131,"W2,L4-B3-S1",50,0.,100.,0.);
+//    HBOOK1(1132,"W3,L4-B3-S1",60,0.,6000.,0.);
+//    HBOOK1(1133,"W1,L4-B3-S2",50,0.,200.,0.);
+//    HBOOK1(1134,"W2,L4-B3-S2",50,0.,100.,0.);
+//    HBOOK1(1135,"W3,L4-B3-S2",60,0.,6000.,0.);
+      HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
+      HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
+      HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,24.,0.);
+      HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,240.,0.);
+      HBOOK1(1532,"(T1-T3)(ns),corr,trl-normalized,ideal evnt",80,1.,9.,0.);
+//      HBOOK1(1533,"L=1,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
+//      HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
+      HBOOK1(1534,"(T2-T4)(ns),corr,trl-normalized,ideal evnt",80,1.,9.,0.);
+      HBOOK1(1544,"(T1-T3)-(T2-T4),(ns),corr,ideal evnt",80,-4.,4.,0.);
+      HBOOK1(1535,"L=1,TOF Eclust(mev)",80,0.,24.,0.);
+      HBOOK1(1536,"L=3,TOF Eclust(mev)",80,0.,24.,0.);
+      HBOOK1(1537,"L=1,TOF Eclust(mev)",80,0.,240.,0.);
+      HBOOK1(1538,"L=3,TOF Eclust(mev)",80,0.,240.,0.);
+      HBOOK1(1539,"L=2,TOF Eclust(mev)",80,0.,24.,0.);
+      HBOOK1(1540,"L=4,TOF Eclust(mev)",80,0.,24.,0.);
+      HBOOK1(1541,"L=2,TOF Eclust(mev)",80,0.,240.,0.);
+      HBOOK1(1542,"L=4,TOF Eclust(mev)",80,0.,240.,0.);
+      if(TOFRECFFKEY.relogic[0]==1){ // STRR-calibration
+        HBOOK1(1200,"Stretcher-ratio for indiv. channel",80,35.,55.,0.);
+        HBOOK1(1201,"Offsets for indiv. channels",80,-100.,2300.,0.);
+        HBOOK1(1202,"Chi2 for indiv. channel",50,0.,5.,0.);
+        HBOOK1(1204,"Bin Tin-RMS in Tin-Tout fit",50,0.,10.,0.);
+// hist.1600-1711 are booked in init-function for Tin vs Tout correl.!!!(TDLV)
+// hist.1720-1790 are booked in init-function for BarRawTime histogr.!!!(TDLV)
+        if(TOFCAFFKEY.dynflg==1){ // for special(Contin's) Dynode calibr.
+          HBOOK1(1240,"Slope in Td vs Ta correlation",50,0.,2.,0.);
+          HBOOK1(1241,"Offset in Td vs Ta correlation",50,-200.,50.,0.);
+          HBOOK1(1242,"Chi2 in Td vs Ta correlation",50,0.,5.,0.);
+// hist.1800-1911 are booked in init-function for Tin vs Tout correl.!!!
+        }
+      }
+      if(TOFRECFFKEY.relogic[0]==3){ // TZSL-calibration
+        HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
+        HBOOK1(1501,"Particle beta(tracker)",80,0.9,1.1,0.);
+        HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
+        HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
+        HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
+        HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
+        HBOOK1(1203,"Res_long.coo(track-sc),L=4",50,-10.,10.,0.);
+        HBOOK1(1210,"Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);
+        HBOOK1(1211,"Res_transv.coo(track-sc),L=2",50,-20.,20.,0.);
+        HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
+        HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
+        HBOOK1(1215,"(Cos_tr-Cos_sc)/Cos_tr",50,-1.,1.,0.);
+        HBOOK1(1216,"Cos_tr",50,0.5,1.,0.);
+        HBOOK1(1217,"Cos_sc",50,0.5,1.,0.);
+        HBOOK1(1218,"TOF track-fit chi2-x",50,0.,5.,0.);
+        HBOOK1(1219,"TOF track-fit chi2-y",50,0.,5.,0.);
+        HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,20.,0.);
+        HBOOK1(1505,"Qmax ratio",80,0.,16.,0.);
+        HBOOK1(1507,"T0-difference inside bar-types 5",80,-0.4,0.4,0.);
+        HBOOK2(1502,"Layer-1,T vs exp(-TovT)",50,0.,0.4,50,3.,8.,0.);
+        HBOOK2(1514,"Layer-1,T vs SUM(1/Q)",50,0.,0.1,50,3.,8.,0.);
+        HBOOK2(1504,"Layer-3,T vs exp(-TovT)",50,0.,0.4,50,-2.,3.,0.);
+        HBOOK1(1524,"TRlen13-TRlen24",80,-4.,4.,0.);
+//        HBOOK1(1550,"Bar-time(corected),L=1",80,24.,26.,0.);
+//        HBOOK1(1551,"Bar-time(corected),L=2",80,23.5,25.5,0.);
+//        HBOOK1(1552,"Bar-time(corected),L=3",80,19.5,21.5,0.);
+//        HBOOK1(1553,"Bar-time(corected),L=4",80,19.,21.,0.);
+      }
+      if(TOFRECFFKEY.relogic[0]==4){ // AMPL-calibration
+        HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
+        HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
+        HBOOK1(1501,"Particle beta(tracker)",80,0.5,1.,0.);
+        HBOOK1(1502,"Particle beta(tof)",80,0.7,1.2,0.);
+        HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,40.,0.);
+        HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
+        HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
+        HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
+        HBOOK1(1203,"Res_long.coo(track-sc),L=4",50,-10.,10.,0.);
+        HBOOK1(1204,"Mass",80,0.,1.6,0.);
+        HBOOK1(1207,"Mass in working betga-range",80,0.,1.6,0.);
+        HBOOK1(1205,"Chisq (tof-beta-fit)",50,0.,10.,0.);
+        HBOOK1(1206,"Tzer (tof-beta-fit)",50,-2.5,2.5,0.);
+        HBOOK1(1210,"Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);
+        HBOOK1(1211,"Res_transv.coo(track-sc),L=2",50,-20.,20.,0.);
+        HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
+        HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
+        HBOOK1(1215,"(Cos_tr-Cos_sc)/Cos_tr",50,-1.,1.,0.);
+        HBOOK1(1216,"Cos_tr",50,0.5,1.,0.);
+        HBOOK1(1217,"Cos_sc",50,0.5,1.,0.);
+        HBOOK2(1218,"TOF-beta vs TRACKER-momentum",80,0.,4.,60,0.5,1.1,0.);
+        HBOOK2(1219,"Q(ref.btyp=5) vs Log(beta*gamma)",50,-0.1,1.9,80,0.,240.,0.);
+// hist.# 1220-1239 are reserved for imp.point distr.(later in TOFAMPLcalib.init()
+        HBOOK2(1248,"Cnannel-2  D-signal vs A-signal",80,0.,320.,80,0.,160.,0.);
+        HBOOK2(1249,"Ref.bar(type=5) A2D-ratio vs A-signal",80,0.,320.,50,0.,10.,0.);
+        HBOOK1(1250,"Ref.bar(type=5) Q-distr.(s=1,centre)",80,0.,160.,0.);        
+        HBOOK1(1251,"Ref.bar(type=5) Q-distr.(s=2,centre)",80,0.,240.,0.);
+        HBOOK1(1252,"Relative anode-gains(all channels)",80,0.5,2.,0.);
+        HBOOK1(1254,"Ref.bar A-profile (type-1)",70,-70.,70.,0.);        
+        HBOOK1(1255,"Ref.bar A-profile (type-2)",70,-70.,70.,0.);        
+        HBOOK1(1256,"Ref.bar A-profile (type-3)",70,-70.,70.,0.);        
+        HBOOK1(1257,"Ref.bar A-profile (type-4)",70,-70.,70.,0.);        
+        HBOOK1(1258,"Ref.bar A-profile (type-5)",70,-70.,70.,0.);        
+        HBOOK1(1259,"Anode_to_Dinode signal ratio(all channels)",80,9.,11.,0.);
+        HBOOK1(1260,"Anode_to_Dinode ratio error(all channels)",80,0.,0.4,0.);
+      }
+      if(TOFRECFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
+        for(il=0;il<SCLRS;il++){
+          for(ib=0;ib<SCMXBR;ib++){
+            for(i=0;i<2;i++){
+              strcpy(htit1,"FTDC/STDC/ATDC/DTDC multipl. for chan(LBBS) ");
+              in[0]=inum[il+1];
+              strcat(htit1,in);
+              ii=(ib+1)/10;
+              jj=(ib+1)%10;
+              in[0]=inum[ii];
+              strcat(htit1,in);
+              in[0]=inum[jj];
+              strcat(htit1,in);
+              in[0]=inum[i+1];
+              strcat(htit1,in);
+              ich=2*SCMXBR*il+2*ib+i;
+              HBOOK1(1300+ich,htit1,80,0.,80.,0.);
+            }
+          }
+        }
+      }
+    }
+}
+//-----------------------------
+void TOFJobStat::bookhistmc(){
+    if(TOFMCFFKEY.mcprtf[2]!=0){ // Book mc-hist
+      HBOOK1(1050,"Geant-hits in layer-1",80,0.,80.,0.);
+      HBOOK1(1051,"Geant-hits in layer-2",80,0.,80.,0.);
+      HBOOK1(1052,"Geant-hits in layer-3",80,0.,80.,0.);
+      HBOOK1(1053,"Geant-hits in layer-4",80,0.,80.,0.);
+      HBOOK1(1060,"Geant-Edep(mev) in layer-1",80,0.,24.,0.);
+      HBOOK1(1061,"Geant-Edep(mev) in layer-1",80,0.,240.,0.);
+      HBOOK1(1062,"Geant-Edep(mev) in layer-3",80,0.,24.,0.);
+      HBOOK1(1063,"Geant-Edep(mev) in layer-3",80,0.,240.,0.);
+      HBOOK2(1070,"Log(Qa) vs TovT,all channels",70,0.,280.,70,0.,8.4,0.);
+      HBOOK1(1071,"Total bar pulse-charge(pC),L-1",80,0.,1600.,0.);
+      HBOOK1(1072,"Total bar pulse-charge(pC),L-1",80,0.,16000.,0.);
+      HBOOK1(1073,"PMT-pulse amplitude(mV,id=108,s1)",80,0.,1000.,0.);
+      HBOOK1(1074,"Shaper amplitude (pC),all channels",80,0.,160.,0.);
+      HBOOK1(1075,"L=1,PM=1,Shaper TovT (ns)",80,50.,290.,0.);
+    }
 }
 //==========================================================================
 

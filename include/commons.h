@@ -244,6 +244,7 @@ geant bgcut[2];// beta*gamma low/high cuts for mip in abs.calibration
 integer tofcoo;// 0/1-> use transv/longit coord. from TOF
 integer dynflg;// 0/1-> use stand/special(Contin's) dynode calibr.
 integer cfvers;// 1-99 -> vers.number for tofverslistNN.dat file
+integer cafdir;// 0/1->use officical/private directory for calib.files
 };
 #define TOFCAFFKEY COMMON_BLOCK(TOFCAFFKEY,tofcaffkey)
 COMMON_BLOCK_DEF(TOFCAFFKEY_DEF,TOFCAFFKEY);

@@ -52,6 +52,7 @@ number DAQSBlock::rwtemp[DAQSTMX]={0,0,0,0,0,0,0,0, // just mem. reservation
                                    0,0,0,0,0,0,0,0,
                                    0,0,0,0,0,0,0,0,
                                    0,0,0,0,0,0,0,0};
+integer DAQSBlock::totbll=0;
 //
 // functions for S-blocks class:
 //
@@ -118,6 +119,7 @@ void DAQSBlock::buildraw(integer len, int16u *p){
   TOFJobStat::addaq1(naddr,dtyp);
   if(dtyp==0 && len>1)TOFJobStat::addaq2(naddr,dtyp);// raw-data
   if(dtyp==1 && len>5)TOFJobStat::addaq2(naddr,dtyp);// reduced
+  totbll+=len;//summing to have event(scint) data length
 #ifdef __AMSDEBUG__
   if(TOFRECFFKEY.reprtf[1]>=1 || ANTIRECFFKEY.reprtf[1]>=1 || CTCRECFFKEY.reprtf[1]>=1){
     cout<<"-----------------------------------------------------------"<<endl;

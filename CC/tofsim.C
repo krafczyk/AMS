@@ -93,7 +93,7 @@ void AMSTOFScan::build(){
 //
   integer cfvn;
   cfvn=TOFCAFFKEY.cfvers%100;
-  strcpy(name,"tofverlist");// basic name for tofverlistNN.dat file
+  strcpy(name,"tofverslist");// basic name for tofverslistNN.dat file
   dig=cfvn/10;
   in[0]=inum[dig]; 
   strcat(name,in);
@@ -102,8 +102,8 @@ void AMSTOFScan::build(){
   strcat(name,in);
   strcat(name,".dat");
 //
-  strcpy(fname,AMSDATADIR.amsdatadir);
-//  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+  if(TOFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(TOFCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
   cout<<"AMSTOFScan::build: Open file  "<<fname<<'\n';
   ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
@@ -127,7 +127,7 @@ void AMSTOFScan::build(){
   strcat(name,in);
   strcat(name,".dat");
   strcpy(fname,AMSDATADIR.amsdatadir);    
-//  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+//  strcpy(fname,"");//tempor
   strcat(fname,name);
   cout<<"Open file : "<<fname<<'\n';
   ifstream tcfile(fname,ios::in); // open needed tdisfmap-file for reading
@@ -166,7 +166,7 @@ void AMSTOFScan::build(){
     }
     strcat(name,".dat");
     strcpy(fname,AMSDATADIR.amsdatadir);
-//    strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
+//    strcpy(fname,"");//tempor
     strcat(fname,name);
     cout<<"Open file : "<<fname<<'\n';
     ifstream tcfile(fname,ios::in); // open needed t-calib. file for reading
