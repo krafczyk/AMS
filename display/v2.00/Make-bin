@@ -54,43 +54,46 @@ HDRSG         = # AMSR_Display.h GLinkDef.h
 
 DICT          = AMSR_Cint.cxx
 DICTH         = $(DICT:.cxx=.h)
-DICTO         = $(DICT:.cxx=.o)
+DICTO         = $(DICT:%.cxx=$(OBJDIR)/%.o)
 
 DICTG         = # AMSR_gCint.cxx
 DICTGH        = # $(DICTG:.cxx=.h)
-DICTGO        = # $(DICTG:.cxx=.o)
+DICTGO        = # $(DICTG:%.cxx=$(OBJDIR)/%.o)
 
 MAIN          = main.cxx
-MAINO         = $(MAIN:.cxx=.o)
+MAINO         = $(MAIN:%.cxx=$(OBJDIR)/%.o)
 
 MAINC          = mainc.cxx
-MAINOC         = $(MAINC:.cxx=.o)
+MAINOC         = $(MAINC:%.cxx=$(OBJDIR)/%.o)
 
 MAINV          = mainv.cxx
-MAINOV         = $(MAINV:.cxx=.o)
+MAINOV         = $(MAINV:%.cxx=$(OBJDIR)/%.o)
 
-OBJS          = $(SRCS:.cxx=.o) $(DICTO)
+OBJS          = $(SRCS:%.cxx=$(OBJDIR)/%.o) $(DICTO)
 
-OBJSG         = # $(SRCSG:.cxx=.o) $(DICTGO)
+OBJSG         = # $(SRCSG:%.cxx=$(OBJDIR)/%.o) $(DICTGO)
 
 ALLDICT       = $(DICT) $(DICTH) $(DICTG) $(DICTGH)
 ALLSRCS       = $(SRCS) $(SRCSG) $(HDRS) $(HDRSG) $(ALLDICT) $(MAIN)
 ALLOBJS       = $(OBJS) $(OBJSG) $(MAINO)
 
 
-AMSR_LIB       = libAMS.a
+AMSR_NOLIB      = $(OBJDIR)/amsed_nolib
+#AMSR_LIB       = $(OBJDIR)/libAMS.a
 
-AMSR_SHAREDLIB = libAMS.so
+AMSR_SHAREDLIB  = $(OBJDIR)/libAMS.so
 
-#AMSR_GLIB      = libAMSR_g.so
+#AMSR_GLIB      = $(OBJDIR)/libAMSg.so
 
-AMSR_PRG       = amsed
-AMSR_PRGC       = amsedc
-AMSR_PRGV       = amsedv
+AMSR_PRG        = $(OBJDIR)/amsed
+AMSR_PRGC       = $(OBJDIR)/amsedc
+AMSR_PRGV       = $(OBJDIR)/amsedv
 
 
 
 ##### TARGETS #####
+.PHONY :     interprete standalone realtime projector depend dist clean
+
 interprete:  $(AMSR_SHAREDLIB)
 
 standalone:  $(AMSR_PRG)
@@ -99,47 +102,48 @@ realtime:  $(AMSR_PRGC)
 
 projector:  $(AMSR_PRGV)
 
-$(AMSR_LIB):     $(DICT) $(OBJS)
-		rm -f $(AMSR_LIB)
-		-$(SHLD) -o $(AMSR_LIB) $(OBJS)
-		chmod 555 $(AMSR_LIB)
-		@echo "$(AMSR_LIB) done with $(OBJS) linked in"
+$(AMSR_NOLIB):  $(MAINO) $(OBJS)
+	rm -f $@
+	-$(LD) $(LDFLAGS) $^ $(LIBS) -o $@
+	chmod 555 $@
+	@echo "$@ done with $^ linked in"
 
-$(AMSR_SHAREDLIB):     $(DICT) $(OBJS)
-		rm -f $(AMSR_SHAREDLIB)
-		-$(SHLD) -o $(AMSR_SHAREDLIB) $(OBJS) $(SOLIBS) 
-		chmod 555 $(AMSR_SHAREDLIB)
-		@echo "$(AMSR_SHAREDLIB) done with $(OBJS) linked in"
-
+$(AMSR_SHAREDLIB):  $(OBJS)
+	rm -f $@
+	-$(SHLD) -o $@ $^
+	chmod 555 $@
+	@echo "$@ done with $^ linked in"
 
 $(AMSR_PRG):	$(AMSR_SHAREDLIB) $(MAINO)
-		$(LD) $(LDFLAGS) $(MAINO) $(AMSR_SHAREDLIB) $(GLIBS) -o $(AMSR_PRG) 
+		-$(LD) $(LDFLAGS) $(GLIBS) $^ -o $@
 
 $(AMSR_PRGC):	$(AMSR_SHAREDLIB) $(MAINOC)
-		$(LD) $(LDFLAGS) $(MAINOC) $(AMSR_SHAREDLIB) $(GLIBS) -o $(AMSR_PRGC) 
-
+		-$(LD) $(LDFLAGS) $(GLIBS) $^ -o $@
 
 $(AMSR_PRGV):	$(AMSR_SHAREDLIB) $(MAINOV)
-		$(LD) $(LDFLAGS) $(MAINOV) $(AMSR_SHAREDLIB) $(GLIBS) -o $(AMSR_PRGV) 
+		-$(LD) $(LDFLAGS) $(GLIBS) $^ -o $@
 
 
 $(DICT):        $(HDRS)
 		@echo "Generating dictionary ..."
-		rootcint -f $(DICT) -c $(ROOTH) $(HDRS)
+		rootcint -f $@ -c $(ROOTH) $^
 
 $(DICTG):       $(HDRSG)
 		@echo "Generating display dictionary ..."
-		rootcint -f $(DICTG) -c $(HDRSG)
+		rootcint -f $@ -c $^
 
 $(DICTO):       $(DICT)
-		$(CXX) $(NOOPT) $(CXXFLAGS) -c $(DICT)
+		$(CXX) $(NOOPT) $(CXXFLAGS) -c $< -o $@
 
 $(DICTGO):      $(DICTG)
-		$(CXX) $(NOOPT) $(CXXFLAGS) -c $(DICTG)
+		$(CXX) $(NOOPT) $(CXXFLAGS) -c $< -o $@
 
-depend:
-		makedepend -fMake-depend -- $(CXXFLAGS) -- $(SRCS) $(SRCSG) \
-		$(MAIN)
+AddPrefix   =    sed -e '/:/s@\(.*:\)@$(OBJDIR)/\1@'
+depend:         $(OBJDIR)/Make-depend
+
+$(OBJDIR)/Make-depend:    $(SRCS) $(SRCSG) $(MAIN)
+		$(GCC) -E -MM $(CXXFLAGS) $^ > $@.DELETE
+		cat $@.DELETE | $(AddPrefix) > $@; rm -f $@.DELETE
 
 dist:
 		rm -f $(AMSR_PRG).tar.gz ; \
