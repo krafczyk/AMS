@@ -42,7 +42,7 @@
 *
 *********************************************************************
 *
-      PARAMETER (NHITS=10, NITER=5)
+      PARAMETER (NHITS=10, NITER=25)
       DIMENSION AXX(3,NHITS), AV(3,NHITS), XM(3,NHITS), XP(2,NHITS), 
      + AL(NHITS),exm(3,nhits),iplanez(nhits)
       DIMENSION D(2*NHITS,5), DX(5),  IDAUX(4*NHITS)
@@ -51,7 +51,7 @@
       real *8 ER2(2*NHITS,2*NHITS),DD(5,5)
  
       DATA WLAD /0.03/, RLEN /9.36/
-
+      data tol/1.e-5/     
 
 *
 ***---------------------------------------------------------------
@@ -101,6 +101,7 @@ c        print*,'ipl, av= ', ipl, (av(i,ipl),i=1,3)
       OUTPAR(5) = 0.
 c      print*,'First: OUTpar= ', OUTpar
       do 30 iter = 1, NITER
+        outpar5=outpar(5)
         DO J = 1, NPOINTS
           IF (J.EQ.1) then
             ux = OUTPAR(3)
@@ -267,11 +268,17 @@ c          END DO
           END DO
         END DO
 c        PRINT*,' OUTpar= ', OUTpar
-
+         if(abs(outpar5-outpar(5))/2.997e-4.lt.tol)then
+          goto 998
+         endif
 30    continue
-
-        OUTPAR(5)=OUTPAR(5)/2.997E-4
-        OUTPAR(6)=SQRT(DD(5,5))/2.997E-4
+      ierr=2
+      write(*,*)'tkfita-Error-TooManyIterations'
+      goto 999
+ 998  continue
+c      write(*,*)'qq ',iter
+      OUTPAR(5)=OUTPAR(5)/2.997E-4
+      OUTPAR(6)=SQRT(DD(5,5))/2.997E-4
       IERR = 0
 
 999   CONTINUE
