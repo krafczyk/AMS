@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.5 2002/02/27 14:52:00 alexei Exp $
+# $Id: RemoteClient.pm,v 1.6 2002/03/11 16:22:21 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -212,7 +212,7 @@ my %mv=(
                if($line =~/$ent=/){
                    my @junk=split "$ent=",$line;                 
                    $template->{$ent}=$junk[$#junk];
-                   $buf=~ s/$ent=/C$ent=/;
+                   $buf=~ s/$ent=/C $ent=/;
                    last;
                }
             }         
@@ -378,8 +378,11 @@ foreach my $file (@allfiles){
  }
     if(defined $ior ){
       chomp $ior;
-      $self->{IOR}=$ior;
-     }
+      if($self->{IOR} ne $ior){
+        $self->{IOR}=$ior;
+        $self->{IORP}=undef;
+      }
+  }
  if( not defined $self->{IOR}){
   return $self->{ok};
  } 
@@ -465,7 +468,9 @@ if( defined $ref->{dbfile}){
                 if($ars->{Interface} eq "default"){
                  $ref->{IORP}=$ars->{IOR};
                  my $createt=time();
-                 my $sql="insert into Servers values('$ref->{dbfile}','$ref->{IOR}','$ref->{IORP}',NULL,'Active',$createt,$createt)";
+                 my $sql="delete Servers where dbfilename='$ref->{dbfile}'";
+                 $ref->{sqlserver}->Update($sql);
+                 $sql="insert into Servers values('$ref->{dbfile}','$ref->{IOR}','$ref->{IORP}',NULL,'Active',$createt,$createt)";
                  $ref->{sqlserver}->Update($sql);
                  last;
                 }
@@ -860,7 +865,7 @@ sub Connect{
              $self->ErrorPlus("Please fill in Name and Surname Field");
             }
             my $responsible=$self->{q}->param("CCR");
-            my $cite=$self->{q}->param("CCA");
+            my $cite=lc($self->{q}->param("CCA"));
             if(not defined $cite or $cite eq ""){
                 $cite=$self->{q}->param("CCAS");
               }
@@ -1294,7 +1299,9 @@ print qq`
 #          -default=>$tempnam[0]);
 ##          -labels=>$hash);
          my $ts=$self->{tsyntax};
-         my @keysa=sort keys %{$ts->{particles}};
+         my %hash=%{$ts->{particles}};
+         my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$ts->{particles}};
+#         my @keysa=sort keys %{$ts->{particles}};
          print "Particle";
          print $q->popup_menu(
           -name=>"QPart",
