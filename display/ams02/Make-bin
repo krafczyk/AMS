@@ -1,4 +1,4 @@
-#  $Id: Make-bin,v 1.9 2001/09/02 15:58:19 kscholbe Exp $
+#  $Id: Make-bin,v 1.10 2002/10/19 14:34:36 schol Exp $
 ##### MACROS #####
 
 ROOTH         = TTree.h TFile.h TH1.h
@@ -22,7 +22,7 @@ SRCS          = AMSR_Root.cxx AMSR_Maker.cxx \
 		AMSR_HistBrowser.cxx \
 		AMSR_Canvas.cxx \
 		AMSR_Display.cxx TGRunEventDialog.cxx \
-		TRadioButton.cxx TSwitch.cxx Debugger.cxx  
+		TRadioButton.cxx TSwitch.cxx Debugger.cxx  root.cxx
 		# MySelectionDialog.cxx \
 		# MOTIF_DialogManager.cxx 
 		# AMSR_ColorManager.cxx 
@@ -49,11 +49,13 @@ HDRS          = TRadioButton.h TSwitch.h \
 		AMSR_Canvas.h \
 		AMSR_GeometrySetter.h \
 		AMSR_Display.h TGRunEventDialog.h \
-                AMSR_Rootclasses.h LinkDef.h
+                EventRoot02.h TrTrackRoot02.h TRDTrackRoot.h\
+                AMSEventHeaderRoot.h MCEventGRoot02.h TRDClusterRoot.h\
+                LinkDef.h                
 		# MySelectionDialog.h \
 		# AMSR_ColorManager.h
 
-HDRS2        = AMSR_NtupleCommons.h AMSR_Types.h cfortran.h hbook.h
+HDRS2        =  AMSR_NtupleCommons.h AMSR_Types.h cfortran.h hbook.h
 
 SRCSG         = # AMSR_Display.cxx 		# AMSR_Fruit.cxx
 

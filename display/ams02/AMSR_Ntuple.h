@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.h,v 1.11 2001/08/24 10:02:04 kscholbe Exp $
+//  $Id: AMSR_Ntuple.h,v 1.12 2002/10/19 14:34:26 schol Exp $
 #ifndef AMSR_Ntuple_H
 #define AMSR_Ntuple_H
 
@@ -41,6 +41,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <TNamed.h>
+#include <TClonesArray.h>
 #ifndef __CINT__
  #include "AMSR_NtupleCommons.h"
 // #include "AMSR_Rootclasses.h"
@@ -49,6 +50,11 @@
 #include "AMSR_Types.h"
 #endif
 #include <time.h>
+#include "EventRoot02.h"
+#include "AMSEventHeaderRoot.h"
+#include "TRDClusterRoot.h"
+#include "TRDTrackRoot.h"
+#include "TrTrackRoot02.h"
 
 class TTree;
 class TFile;
@@ -58,8 +64,6 @@ class AMSR_Ntuple : public TNamed {
  private:
    Text_t        m_VarNames[500][20];    //Name list of m_NVar variables
    Int_t         m_NVar;        //Number of vairables in HGNTV
-//   TFile        *m_SampleTree;  //File storing the TTree sample
-   TTree        *m_SampleTree;  //a sample of TTree to communicate with ntuple
    Int_t         m_MemID;       //Actual ntuple ID in memory
 
  protected:
@@ -71,6 +75,15 @@ class AMSR_Ntuple : public TNamed {
    Bool_t        m_NtupleOpen;  //Indicator whether already ntuple open
    Bool_t        m_SameRead;    //Same variables reading for HGNTF
    TTree        *m_Tree;        //ROOT TTree associated with ntuple
+
+   EventRoot02 evroot02;
+   AMSEventHeaderRoot evroot02_Header;
+   TClonesArray* m_trdcl;
+   TClonesArray* m_trdtrk;
+   TClonesArray* m_trtrk;
+   TClonesArray* m_mceventg;
+   
+
 #ifndef __CINT__
    EVENTH_DEF   *m_BlkEventh;   //Pointers to common blocks used by CWN ntuple
    BETA_DEF     *m_BlkBeta;     // according to CWN block name
@@ -95,32 +108,10 @@ class AMSR_Ntuple : public TNamed {
    TOFRAWCL_DEF *m_BlkTofrawcl;
    ECALSHOWER_DEF  *m_Blkecsh;
 
-   /*   For top-level branch address setting-- not currently used
-
-   EventNtuple02* evt;
-   BetaNtuple02* beta;
-   ChargeNtuple02* charge;
-   ParticleNtuple02* part;
-   TOFClusterNtuple* tofcl;
-   TOFMCClusterNtuple* tofmccl;
-   TrClusterNtuple* trcl;
-   TrMCClusterNtuple* trclmc;
-   TrRecHitNtuple02* trrh;
-   TRDMCClusterNtuple* trdclmc;
-   TRDClusterNtuple* trdcl;
-   TrTrackNtuple02* trtr;
-   TRDTrackNtuple* trdtrk;
-   EcalShowerNtuple* ecalsh;
-   MCEventGNtuple02* mcg;
-   AntiClusterNtuple* anti;
-   ANTIMCClusterNtuple* antimc;
-   LVL3Ntuple* lvl3;
-   LVL1Ntuple02* lvl1; */
 #endif
    
  protected:
    void          SetTreeAddress();
-   void          CreateSampleTree();
    void          SetVarNames();
    
  public:

@@ -1,4 +1,4 @@
-//  $Id: AMSR_Maker.cxx,v 1.3 2001/08/04 21:25:12 kscholbe Exp $
+//  $Id: AMSR_Maker.cxx,v 1.4 2002/10/19 14:34:22 schol Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -134,26 +134,6 @@ void AMSR_Maker::PrintInfo()
    Dump();
 }
 
-//_____________________________________________________________________________
-void AMSR_Maker::MakeBranch()
-{
-//   Adds the list of physics objects to the AMS tree as a new branch
-
-   if (m_Save == 0) return;
-
-   TTree *tree = gAMSR_Root->Tree();
-   if (tree == 0  || m_Fruits == 0  || m_BranchName.Length() == 0) return;
-
-//  Make a branch tree if a branch name has been set
-   Int_t buffersize = 4000;
-   if (m_Fruits->InheritsFrom("TClonesArray")) {
-      debugger.Print("AMSR_Maker::MakeBranch() tree->Branch(%s, %lx, %d)\n",
-		m_BranchName.Data(), m_Fruits, buffersize);
-      tree->Branch(m_BranchName.Data(), &m_Fruits, buffersize);
-   } else {
-      tree->Branch(m_BranchName.Data(),m_Fruits->ClassName(), &m_Fruits, buffersize);
-   }
-}
 
 //______________________________________________________________________________
 void AMSR_Maker::Streamer(TBuffer &R__b)

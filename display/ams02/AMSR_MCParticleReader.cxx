@@ -1,4 +1,4 @@
-//  $Id: AMSR_MCParticleReader.cxx,v 1.4 2001/08/09 11:35:23 choutko Exp $
+//  $Id: AMSR_MCParticleReader.cxx,v 1.5 2002/10/19 14:34:21 schol Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -10,10 +10,12 @@
 #include <TClonesArray.h>
 //#include <TMCParticle.h>
 
+#include "AMSR_Types.h"
 #include "AMSR_Root.h"
 #include "AMSR_MCParticleReader.h"
 #include "AMSR_MCParticle.h"
 #include "AMSR_Ntuple.h"
+#include "MCEventGRoot02.h"
 
 const Float_t kPI   = TMath::Pi();
 const Float_t k2PI  = 2*kPI;
@@ -87,30 +89,66 @@ void AMSR_MCParticleReader::Finish()
 void AMSR_MCParticleReader::Make()
 {
 
+   EDataFileType m_DataFileType=gAMSR_Root->GetDataFileType();    
    Int_t k, i;
-   MCEVENTG_DEF *_ntuple = (gAMSR_Root->GetNtuple())->m_BlkMceventg;
+   if (m_DataFileType == kNtupleFile) {
+      MCEVENTG_DEF *_ntuple = (gAMSR_Root->GetNtuple())->m_BlkMceventg;
 
-   m_NParticles = _ntuple->nmcg>1?1:_ntuple->nmcg;
+      m_NParticles = _ntuple->nmcg>1?1:_ntuple->nmcg;
    //   m_NParticles=0;
-   debugger.Print("AMSR_MCParticleReader::Make(): making %d particles.\n", m_NParticles);
-   TClonesArray &particles = *(TClonesArray*)m_Fruits;
+      debugger.Print("AMSR_MCParticleReader::Make(): making %d particles.\n", m_NParticles);
+      TClonesArray &particles = *(TClonesArray*)m_Fruits;
     
-   for (k=0; k<m_NParticles;k++) {
-      debugger.Print("Making particle #%d:\n",k);
+      for (k=0; k<m_NParticles;k++) {
+        debugger.Print("Making particle #%d:\n",k);
 
-      new(particles[k]) AMSR_MCParticle();
-      AMSR_MCParticle * t = (AMSR_MCParticle *) particles[k];
-      t->m_GeantID          = _ntuple->Particle[k];
-      t->m_Mass             = _ntuple->mass[k];
-      t->m_Momentum         = _ntuple->momentum[k];
-      t->m_Charge           = _ntuple->charge[k];
-      for (i=0; i<3; i++){
+        new(particles[k]) AMSR_MCParticle();
+        AMSR_MCParticle * t = (AMSR_MCParticle *) particles[k];
+        t->m_GeantID          = _ntuple->Particle[k];
+        t->m_Mass             = _ntuple->mass[k];
+        t->m_Momentum         = _ntuple->momentum[k];
+        t->m_Charge           = _ntuple->charge[k];
+        for (i=0; i<3; i++){
           t->m_Position[i]  = _ntuple->coo[k][i];
           t->m_Dir[i]  = _ntuple->dir[k][i];
-      }
-      t->SetHelix();
+        }
+        t->SetHelix();
+     }
    }
+   else if (m_DataFileType == kRootFile){
+ 
+     TClonesArray *_roottree = (gAMSR_Root->GetNtuple())->m_mceventg;
+     m_NParticles = _roottree->GetEntries()>1?1:_roottree->GetEntries();
+   //   m_NParticles=0;
+      debugger.Print("AMSR_MCParticleReader::Make(): making %d particles.\n", m_NParticles);
+      TClonesArray &particles = *(TClonesArray*)m_Fruits;
 
+      TObject *element=_roottree->At(0); 
+      MCEventGRoot02* p_ok=dynamic_cast<MCEventGRoot02*>(element); 
+
+      if (p_ok) {
+       for (k=0; k<m_NParticles;k++) {
+         debugger.Print("Making particle #%d:\n",k);
+ 
+         new(particles[k]) AMSR_MCParticle();
+         AMSR_MCParticle * t = (AMSR_MCParticle *) particles[k];
+
+	 element=_roottree->At(k);             
+         MCEventGRoot02* p_obj=dynamic_cast<MCEventGRoot02*>(element);
+
+         t->m_GeantID          = p_obj->Particle;
+         t->m_Mass             = p_obj->Mass;
+         t->m_Momentum         = p_obj->Momentum;
+         t->m_Charge           = p_obj->Charge;
+         for (i=0; i<3; i++){
+           t->m_Position[i]  = p_obj->Coo[i];
+           t->m_Dir[i]  = p_obj->Dir[i];
+         }
+         t->SetHelix();
+       } 
+      }
+    }
+   
 }
 
 //_____________________________________________________________________________
@@ -118,4 +156,5 @@ void AMSR_MCParticleReader::PrintInfo()
 {
    AMSR_Maker::PrintInfo();
 }
+
 

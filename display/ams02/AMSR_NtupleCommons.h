@@ -1,4 +1,4 @@
-//  $Id: AMSR_NtupleCommons.h,v 1.17 2002/07/16 05:59:07 kscholbe Exp $
+//  $Id: AMSR_NtupleCommons.h,v 1.18 2002/10/19 14:34:27 schol Exp $
 #ifndef AMSR_NtupleCommons_H
 #define AMSR_NtupleCommons_H
 
@@ -63,7 +63,7 @@ struct EVENTH_DEF {
 #define blkEventh COMMON_BLOCK(EVENTH,eventh)
 COMMON_BLOCK_DEF(EVENTH_DEF,blkEventh);
 
-static const int NBETA = 50;
+static const int NBETA = 30;
 struct BETA_DEF {
    int   nbeta;
    int   betastatus[NBETA];

@@ -1,4 +1,4 @@
-//  $Id: AMSR_TrdClusterReader.cxx,v 1.2 2001/08/07 01:40:17 kscholbe Exp $
+//  $Id: AMSR_TrdClusterReader.cxx,v 1.3 2002/10/19 14:34:34 schol Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -14,10 +14,12 @@
 #include <TClonesArray.h>
 //#include <TMCParticle.h>
 
+#include "AMSR_Types.h"
 #include "AMSR_Root.h"
 #include "AMSR_TrdCluster.h"
 #include "AMSR_TrdClusterReader.h"
 #include "AMSR_Ntuple.h"
+#include "TRDClusterRoot.h"
 
 /*
 #include "ATLFMCMaker.h"
@@ -66,18 +68,20 @@ void AMSR_TrdClusterReader::Make()
 // Make the branch in result tree
 //
 
+   EDataFileType m_DataFileType=gAMSR_Root->GetDataFileType();    
    Int_t k;
-   TRDCL_DEF *_ntuple = (gAMSR_Root->GetNtuple())->m_BlkTrdcl;
+   if (m_DataFileType == kNtupleFile){
+     TRDCL_DEF *_ntuple = (gAMSR_Root->GetNtuple())->m_BlkTrdcl;
 
 //........................................................
 //....Store clusters in Root ClonesArray
 //........................................................
 //   m_Ncells    = ncells;
-   m_Nclusters = 0;		// it will be accumulated by AddCluster()
-   debugger.Print("AMSR_TrdClusterReader::Make(): making %d clusters.\n",
+     m_Nclusters = 0;		// it will be accumulated by AddCluster()
+     debugger.Print("AMSR_TrdClusterReader::Make(): making %d clusters.\n",
 	  _ntuple->ntrdcl);
-   for (k=0; k<_ntuple->ntrdcl; k++) {
-      AddCluster(_ntuple->status[k],
+     for (k=0; k<_ntuple->ntrdcl; k++) {
+        AddCluster(_ntuple->status[k],
                 &_ntuple->coo[k][0],
                  _ntuple->layer[k],
                 &_ntuple->coodir[k][0],
@@ -85,9 +89,37 @@ void AMSR_TrdClusterReader::Make()
                  _ntuple->hmultip[k],
                  _ntuple->edep[k],
                  _ntuple->prawhit[k]);
-   }
+       }
 
-   debugger.Print("AMSR_TrdClusterReader::Make(): %d clusters made.\n", m_Nclusters);
+     }
+     else if (m_DataFileType == kRootFile){
+        m_Nclusters = 0;		// it will be accumulated by AddCluster()              
+        TClonesArray *_roottree = (gAMSR_Root->GetNtuple())->m_trdcl;
+        if (_roottree->GetSize()>0) {	
+	  TObject *element=_roottree->At(0);
+          TRDClusterRoot* p_ok=dynamic_cast<TRDClusterRoot*>(element);
+          if (p_ok) {
+
+	   for (int k=0;k<_roottree->GetEntries();k++){
+
+	     element=_roottree->At(k);            
+             TRDClusterRoot* p_obj=dynamic_cast<TRDClusterRoot*>(element);
+
+             AddCluster(p_obj->Status, 
+                &p_obj->Coo[0],
+                 p_obj->Layer,
+                &p_obj->CooDir[0],
+                 p_obj->Multip,
+                 p_obj->HMultip,
+                 p_obj->EDep,0);
+           }
+         }
+
+      }
+
+   }
+ 
+      debugger.Print("AMSR_TrdClusterReader::Make(): %d clusters made.\n", m_Nclusters);
 }
 
 //_____________________________________________________________________________

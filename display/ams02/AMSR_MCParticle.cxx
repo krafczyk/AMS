@@ -1,4 +1,4 @@
-//  $Id: AMSR_MCParticle.cxx,v 1.5 2001/08/18 17:01:53 kscholbe Exp $
+//  $Id: AMSR_MCParticle.cxx,v 1.6 2002/10/19 14:34:20 schol Exp $
 #include <iostream.h>
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -45,10 +45,8 @@ void AMSR_MCParticle::SetHelix(){
    V[0]=rig *m_Dir[0];
    V[1]=rig *m_Dir[1];
    V[2]=rig*m_Dir[2];
-     THelix::SetHelix(P,V,0.3*Bfield/100,Range,kHelixX,Axis);
-   
 
-
+  THelix::SetHelix(P,V,0.3*Bfield/100,Range,kHelixX,Axis);
 
    SetLineColor(5);
    SetLineWidth(1);

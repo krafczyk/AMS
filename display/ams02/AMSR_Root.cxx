@@ -1,4 +1,4 @@
-//  $Id: AMSR_Root.cxx,v 1.9 2002/07/03 20:33:00 schol Exp $
+//  $Id: AMSR_Root.cxx,v 1.10 2002/10/19 14:34:29 schol Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -410,6 +410,7 @@ Int_t AMSR_Root::OpenDataFile(char * filename, EDataFileType type)
     sprintf(treeName,"h%d",ntpID);
 //    TTree * tNew = (TTree *)fNew->Get(treeName);
     TTree * tNew = (TTree *)fNew->Get("AMSRoot");
+    debugger.Print("Number of entries in AMSRoot tree: %d \n",tNew->GetEntries());
     if (! tNew) {
       return 2;
     }
@@ -421,11 +422,6 @@ Int_t AMSR_Root::OpenDataFile(char * filename, EDataFileType type)
     delete f;
     f = fNew;
     t = tNew;
-
-    //
-    //  Make event tree
-    //
-//    MakeTree("AMSR_Tree", "AMS Display Tree");
 
     //
     //  Initialize readers
@@ -498,7 +494,8 @@ Bool_t AMSR_Root::GetEvent(Int_t event)
 {
    // Get one event into the result tree
    //
-   if (m_Ntuple==0 || m_Ntuple->GetTree() == 0) return kFALSE;
+//   if (m_Ntuple==0 || m_Ntuple->GetTree() == 0) return kFALSE;
+   if (m_Ntuple==0) return kFALSE;
    if (event<0 || event>m_NEvent || event==m_Event) return kFALSE;
 
    //   cout << " Select Event No : ";
@@ -722,40 +719,6 @@ void AMSR_Root::Make(Int_t i)
 
 }
 
-//_____________________________________________________________________________
-void AMSR_Root::MakeTree(const char* name, const char*title)
-{
-//  Create a ROOT tree
-//  Loop on all makers to create the Root branch (if any)
-
-   if (m_Tree) return;
-
-   m_Tree = new TTree(name,title);
-
-   if (! m_Tree) {
-     debugger.Print("Can't make a tree\n");
-     return;	// error
-   }
-
-   TIter next(m_Makers);
-   AMSR_Maker *maker;
-   while (maker = (AMSR_Maker*)next()) {
-      debugger.Print("make branch %s\n", (char *)maker->ClassName());
-      maker->MakeBranch();
-   }
-}
-
-//_____________________________________________________________________________
-void AMSR_Root::FillTree()
-{
-//  Fill the ROOT tree, looping on all active branches
-
-  // Clean generated particles (depending on option Save)
-//   MCMaker()->CleanParticles();
-
-  // Now ready to fill the Root Tree
-   if(m_Tree) m_Tree->Fill();
-}
 
 //_____________________________________________________________________________
 void AMSR_Root::SortDown(Int_t n1, Float_t *a, Int_t *index, Bool_t down)

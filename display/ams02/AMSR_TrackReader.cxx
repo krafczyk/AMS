@@ -1,4 +1,4 @@
-//  $Id: AMSR_TrackReader.cxx,v 1.5 2001/08/07 01:40:17 kscholbe Exp $
+//  $Id: AMSR_TrackReader.cxx,v 1.6 2002/10/19 14:34:33 schol Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -12,11 +12,12 @@
 //#include <TMCParticle.h>
 
 #include "AMSR_Root.h"
+#include "AMSR_Types.h"
 //#include "ATLFMCMaker.h"
 #include "AMSR_TrackReader.h"
 #include "AMSR_Track.h"
 #include "AMSR_Ntuple.h"
-
+#include "TrTrackRoot02.h"
 const Float_t kPI   = TMath::Pi();
 const Float_t k2PI  = 2*kPI;
 const Int_t kMAXTRA = 100;
@@ -92,68 +93,102 @@ void AMSR_TrackReader::Finish()
 void AMSR_TrackReader::Make()
 {
 
+   EDataFileType m_DataFileType=gAMSR_Root->GetDataFileType();    
    Int_t k, i;
-   TRTRACK_DEF *_ntuple = (gAMSR_Root->GetNtuple())->m_BlkTrtrack;
+   if (m_DataFileType == kNtupleFile) {
+     TRTRACK_DEF *_ntuple = (gAMSR_Root->GetNtuple())->m_BlkTrtrack;
    
-   m_NTracks = _ntuple->ntrtr;
-   if(m_NTracks >= maxtr)m_NTracks=maxtr;
-   debugger.Print("AMSR_TrackReader::Make(): making %d tracks.\n", m_NTracks);
-   TClonesArray &tracks = *(TClonesArray*)m_Fruits;
-   for (k=0; k<m_NTracks; k++) {
-      debugger.Print("Making track #%d: status %d, pattern %d, %d hits\n",
-		k, _ntuple->trstatus[k], _ntuple->pattern[k], _ntuple->nhits[k]);
+     m_NTracks = _ntuple->ntrtr;
+     if(m_NTracks >= maxtr)m_NTracks=maxtr;
+     debugger.Print("AMSR_TrackReader::Make(): making %d tracks.\n", m_NTracks);
+     TClonesArray &tracks = *(TClonesArray*)m_Fruits;
+     for (k=0; k<m_NTracks; k++) {
+        debugger.Print("Making track #%d: status %d, pattern %d, %d hits\n",
+	 	k, _ntuple->trstatus[k], _ntuple->pattern[k], _ntuple->nhits[k]);
 
-      new(tracks[k]) AMSR_Track(_ntuple->trstatus[k], _ntuple->pattern[k]);
-      AMSR_Track * t = (AMSR_Track *) tracks[k];
-      t->m_ID              = k + 1;	    // in ntuple it starts at 1 not 0
-      t->m_NHits           = _ntuple->nhits[k];
-      for (i=0; i<6; i++)
-	t->m_PHits[i]      = _ntuple->phits[k][i];
+       new(tracks[k]) AMSR_Track(_ntuple->trstatus[k], _ntuple->pattern[k]);
+       AMSR_Track * t = (AMSR_Track *) tracks[k];
+       t->m_ID              = k + 1;	    // in ntuple it starts at 1 not 0
+       t->m_NHits           = _ntuple->nhits[k];
+       for (i=0; i<6; i++)
+	 t->m_PHits[i]      = _ntuple->phits[k][i];
       //      t->m_FastFitDone     = _ntuple->Fastfitdone[k];
-      t->m_GeaneFitDone    = _ntuple->Geanefitdone[k];
-      t->m_AdvancedFitDone = _ntuple->Advancedfitdone[k];
-      t->m_Chi2StrLine     = _ntuple->Chi2strline[k];
-      t->m_Chi2Circle      = _ntuple->Chi2circle[k];
-      t->m_CircleRigidity  = _ntuple->Circleridgidity[k];
+         t->m_GeaneFitDone    = _ntuple->Geanefitdone[k];
+         t->m_AdvancedFitDone = _ntuple->Advancedfitdone[k];
+         t->m_Chi2StrLine     = _ntuple->Chi2strline[k];
+         t->m_Chi2Circle      = _ntuple->Chi2circle[k];
+         t->m_CircleRigidity  = _ntuple->Circleridgidity[k];
 
-      t->m_FChi2           = _ntuple->Chi2fastfit[k];
-      t->m_FRigidity       = _ntuple->Ridgidity[k];
-      t->m_FErrRigidity    = _ntuple->Errridgidity[k];
-      t->m_FTheta          = _ntuple->Theta[k];
-      t->m_FPhi            = _ntuple->phi[k];
-      for(i=0; i<3; i++)
-        t->m_FP0[i]        = _ntuple->p0[k][i];
+         t->m_FChi2           = _ntuple->Chi2fastfit[k];
+         t->m_FRigidity       = _ntuple->Ridgidity[k];
+         t->m_FErrRigidity    = _ntuple->Errridgidity[k];
+         t->m_FTheta          = _ntuple->Theta[k];
+         t->m_FPhi            = _ntuple->phi[k];
+         for(i=0; i<3; i++)
+           t->m_FP0[i]        = _ntuple->p0[k][i];
 
-      t->m_GChi2           = _ntuple->gchi2[k];
-      t->m_GRigidity       = _ntuple->gridgidity[k];
-      t->m_GErrRigidity    = _ntuple->gerrridgidity[k];
+           t->m_GChi2           = _ntuple->gchi2[k];
+           t->m_GRigidity       = _ntuple->gridgidity[k];
+           t->m_GErrRigidity    = _ntuple->gerrridgidity[k];
 //      t->m_GTheta          = _ntuple->gtheta[k];
 //      t->m_GPhi            = _ntuple->gphi[k];
 //      for(i=0; i<3; i++)
 //        t->m_GP0[i]        = _ntuple->gp0[k][i];
 
-      for (i=0; i<2; i++) {
-        t->m_HChi2[i]        = _ntuple->hchi2[k][i];
-        t->m_HRigidity [i]   = _ntuple->Hridgidity[k][i];
-        t->m_HErrRigidity[i] = _ntuple->Herrridgidity[k][i];
-        t->m_HTheta[i]       = _ntuple->htheta[k][i];
-        t->m_HPhi[i]         = _ntuple->hphi[k][i];
+        for (i=0; i<2; i++) {
+           t->m_HChi2[i]        = _ntuple->hchi2[k][i];
+           t->m_HRigidity [i]   = _ntuple->Hridgidity[k][i];
+           t->m_HErrRigidity[i] = _ntuple->Herrridgidity[k][i];
+           t->m_HTheta[i]       = _ntuple->htheta[k][i];
+           t->m_HPhi[i]         = _ntuple->hphi[k][i];
 //	problem with 3d arrays
 //      for(j=0; j<3; j++)
-//        t->m_GP0[i][j]     = _ntuple->hp0[k][i][j];
-      }
+//           t->m_GP0[i][j]     = _ntuple->hp0[k][i][j];
+         }
 
       //      t->m_FChi2MS         = _ntuple->fchi2ms[k];
       // t->m_GChi2MS         = _ntuple->gchi2ms[k];
-      t->m_RigidityMS      = _ntuple->ridgidityms[k];
+         t->m_RigidityMS      = _ntuple->ridgidityms[k];
       //      t->m_GRigidityMS     = _ntuple->gridgidityms[k];
 
-      debugger.Print("Theta, phi,pos %f %f %f %f %f:\n",
+         debugger.Print("Theta, phi,pos %f %f %f %f %f:\n",
               t->m_FTheta, t->m_FPhi, t->m_FP0[0],
               t->m_FP0[1],t->m_FP0[2]);
 
 
-      t->SetHelix();
+         t->SetHelix();
+      }
+   }
+   else if (m_DataFileType == kRootFile){
+
+     TClonesArray *_roottree = (gAMSR_Root->GetNtuple())->m_trdtrk;
+
+     m_NTracks = _roottree->GetEntries();
+     if(m_NTracks >= maxtr)m_NTracks=maxtr;
+
+     debugger.Print("AMSR_TrackReader::Make(): making %d tracks.\n", m_NTracks);
+      TClonesArray &tracks = *(TClonesArray*)m_Fruits;
+
+      TObject *element=_roottree->At(0); 
+      TrTrackRoot02* p_ok=dynamic_cast<TrTrackRoot02*>(element); 
+
+      if (p_ok) {
+       for (k=0; k<m_NTracks;k++) {
+         debugger.Print("Making particle #%d:\n",k);
+ 
+         new(tracks[k]) AMSR_Track(p_ok->Status, p_ok->Pattern);
+         AMSR_Track * t = (AMSR_Track *) tracks[k];
+
+	 element=_roottree->At(k);             
+         TrTrackRoot02* p_obj=dynamic_cast<TrTrackRoot02*>(element);
+
+ // Need to fill in here...
+
+       } 
+      }
+
+
+
    }
    debugger.Print("AMSR_TrackReader::Make(): %d tracks made.\n", m_NTracks);
 

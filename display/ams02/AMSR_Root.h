@@ -1,4 +1,4 @@
-//  $Id: AMSR_Root.h,v 1.8 2001/08/23 21:05:48 kscholbe Exp $
+//  $Id: AMSR_Root.h,v 1.9 2002/10/19 14:34:30 schol Exp $
 #ifndef AMSR_Root_H
 #define AMSR_Root_H
 
@@ -162,8 +162,6 @@ public:
    virtual void   SetMode(Int_t mode=0)   {m_Mode=mode;}
    void           SetDisplay(AMSR_VirtualDisplay *display) {m_Display=display;}
    virtual void   Make(Int_t i=0);
-   void           MakeTree(const char* name="AMS Event", const char*title="AMSR_Root tree");
-   void           FillTree();
 
 //    Setters for flags and switches
 //   void           SetBfield(Bool_t field=1)     {m_Bfield=field;}

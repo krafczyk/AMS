@@ -1,4 +1,4 @@
-//  $Id: AMSR_Maker.h,v 1.2 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_Maker.h,v 1.3 2002/10/19 14:34:23 schol Exp $
 #ifndef AMSR_Maker_H
 #define AMSR_Maker_H
 
@@ -53,7 +53,6 @@ public:
    // Setters
    //
    virtual void   Save(Int_t save=1);
-   virtual void   MakeBranch();
    virtual void   Make() = 0;			// interface
 
    ClassDef(AMSR_Maker, 1)   //AMS virtual base class for Makers
