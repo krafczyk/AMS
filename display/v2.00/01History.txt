@@ -1,3 +1,6 @@
+1998.11.08      Shuwei YE
+  - Change AMSR_NtupleCommons.h to fit new format of ntuple used for GSI data.
+
 1998.10.06      Shuwei YE
   - Fix a bug concerning SiHit position.
   - Set correct bending direction of Particle in case beta<0 since its
