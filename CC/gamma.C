@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.48 2003/05/12 21:40:31 choutko Exp $
+//  $Id: gamma.C,v 1.49 2003/07/09 09:03:41 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -5148,12 +5148,21 @@ void AMSTrTrackGamma::_crHitLR(){
   // A simplified version of crHit
   // alignment still missing
   for(int i=0;i<_NhRight;i++){
+      if(!_PRight[i]){
+         cout <<" AMSTrTrackGamma::_crHitLR()-S-PLEASAEFIXME R "<<i<<" "<<_NhRight<<endl;
+        throw amsglobalerror("Problem in AMSTrTrackGamma",2);
+         break;
+      }
     for(int j=0;j<3;j++){
       _HRIGH[i][j]=_PRight[i]->getHit()[j];
      _EHRIGH[i][j]=_PRight[i]->getEHit()[j];
     }
   }
   for(int i=0;i<_NhLeft;i++){
+      if(!_PLeft[i]){
+         cout <<" AMSTrTrackGamma::_crHitLR()-S-PLEASAEFIXME L "<<i<<" "<<_NhLeft<<endl;
+        throw amsglobalerror("Problem in AMSTrTrackGamma",2);
+      }
     for(int j=0;j<3;j++){
        _HLEFT[i][j]=_PLeft[i]->getHit()[j];
        _EHLEFT[i][j]=_PLeft[i]->getEHit()[j];
