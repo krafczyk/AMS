@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.146 2003/12/18 12:21:27 choutko Exp $
+//  $Id: particle.C,v 1.147 2003/12/18 14:20:47 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -691,7 +691,7 @@ void AMSParticle::pid(){
   const int maxp=38;
   number prob[maxp];
   number pfit[maxp];
-    if(_pbeta){
+    if(_pbeta && !_pvert){
     _beta=1/fabs(_pbeta->getbeta());
     _ebeta=_pbeta->getebeta();
     _ebeta=_ebeta*_ebeta;
@@ -800,7 +800,7 @@ if(_Momentum<0){
  _prob[0]=0;
  _prob[1]=0;
 }
-else{
+else{ 
  _gpart[0]=2;
  _gpart[1]=2;
  _GPart=2;
@@ -1040,6 +1040,12 @@ _ptrd(0),_prich(0),_pShower(0),_pcharge(0),_pbeta(0){
   _Phi=pvert->getphi();
   _Coo=pvert->getvert();
   _ErrMass=_ErrMomentum/_Momentum*_Mass;
+//
+// Set Charge according to other stuff i.e. put - sign to momentum
+   if(_Charge<0){
+    _Charge=-_Charge;
+    _Momentum=-_Momentum;
+   }
 
 //   find beta
   _Beta=0;
