@@ -353,3 +353,16 @@ Below there is a description of a  ntuple.
 
 **) AMS global system definition :
 GTOD
+
+
+
+Known bugs:
+
+
+thetagl, phigl are wrong
+use  ../analysis/loc2gl.f instead
+
+stationr   is in I2000,
+
+status bit 27-29 are always zero.
+
