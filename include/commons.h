@@ -110,9 +110,10 @@ COMMON_BLOCK_DEF(CTCGEOMFFKEY_DEF,CTCGEOMFFKEY);
 
 class CTCMCFFKEY_DEF {
 public:
-  geant Refraction[2]; //refraction index (aerogel,wls)
+  geant Refraction[2]; // refraction index (aerogel,wls)
   geant Path2PhEl[2];  // path to phel con factor (aerogel,wls)
-  geant AbsLength[2]; // Absorbtion length in cm (aerogel, wls)
+  geant AbsLength[2];  // Absorbtion length in cm (aerogel, wls)
+  geant Edep2Phel[2];  // Edep to phel con factor (aerogel,wls)
 };
 #define CTCMCFFKEY COMMON_BLOCK(CTCMCFFKEY,ctcmcffkey)
 COMMON_BLOCK_DEF(CTCMCFFKEY_DEF,CTCMCFFKEY);

@@ -600,7 +600,7 @@ depend:
 ../bin/osf1/job.o: /usr/include/sys/signal.h /usr/include/machine/signal.h
 ../bin/osf1/job.o: /usr/include/sys/time.h ../include/charge.h
 ../bin/osf1/job.o: ../include/trrec.h ../include/tofrec.h ../include/beta.h
-../bin/osf1/job.o: ../include/ctcrec.h
+../bin/osf1/job.o: ../include/ctcrec.h ../include/ctcdbc.h
 ../bin/osf1/event.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/event.o: /usr/include/standards.h /usr/include/cxx/iostream.h
 ../bin/osf1/event.o: /usr/include/cxx/iostream.hxx /usr/include/cxx/cxxl.hxx
@@ -633,7 +633,7 @@ depend:
 ../bin/osf1/event.o: ../include/charge.h ../include/particle.h
 ../bin/osf1/event.o: ../include/ctc.h /usr/include/cxx/fstream.h
 ../bin/osf1/event.o: /usr/include/cxx/fstream.hxx ../include/tofsim.h
-../bin/osf1/event.o: ../include/ntuple.h
+../bin/osf1/event.o: ../include/ntuple.h ../include/ctcdbc.h
 ../bin/osf1/cont.o: ../include/cont.h ../include/typedefs.h
 ../bin/osf1/cont.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/cont.o: /usr/include/cxx/iostream.h /usr/include/cxx/iostream.hxx

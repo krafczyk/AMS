@@ -505,7 +505,7 @@ depend:
 ../bin/aix/job.o: ../include/event.h ../include/cont.h
 ../bin/aix/job.o: /usr/include/sys/time.h /usr/include/time.h
 ../bin/aix/job.o: ../include/charge.h ../include/trrec.h ../include/tofrec.h
-../bin/aix/job.o: ../include/beta.h ../include/ctcrec.h
+../bin/aix/job.o: ../include/beta.h ../include/ctcrec.h ../include/ctcdbc.h
 ../bin/aix/event.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/aix/event.o: /usr/lpp/xlC/include/iostream.h /usr/include/memory.h
 ../bin/aix/event.o: /usr/include/string.h /usr/include/standards.h
@@ -533,7 +533,7 @@ depend:
 ../bin/aix/event.o: ../include/beta.h ../include/ctcrec.h ../include/charge.h
 ../bin/aix/event.o: ../include/particle.h ../include/ctc.h
 ../bin/aix/event.o: /usr/lpp/xlC/include/fstream.h ../include/tofsim.h
-../bin/aix/event.o: ../include/ntuple.h
+../bin/aix/event.o: ../include/ntuple.h ../include/ctcdbc.h
 ../bin/aix/cont.o: ../include/cont.h ../include/typedefs.h
 ../bin/aix/cont.o: /usr/include/assert.h /usr/lpp/xlC/include/iostream.h
 ../bin/aix/cont.o: /usr/include/memory.h /usr/include/string.h

@@ -5,6 +5,7 @@ class AMSCTCRawCluster: public AMSlink{
 protected:
  integer _status;  // status
  integer _bar;     // bar number 
+ integer _layer;   // layer number
  number _signal;  //  signal in photoelectrons
 
 
@@ -14,6 +15,8 @@ public:
  integer getstatus() const{return _status;}
 
  integer getbarno()const {return _bar;}
+
+ integer getlayno()const {return _layer;}
 
  number getsignal()const {return _signal;}
 
@@ -27,6 +30,7 @@ public:
 class AMSCTCCluster: public AMSlink{
 protected:
  integer _Status;             // if USED bit on -- correction done
+ integer _Layer;              // Layer number
  AMSPoint _Coo;               // coordinates
  AMSPoint _ErrorCoo;          // Error to coordinates
  number   _Signal;            // signal in pe
@@ -40,6 +44,8 @@ public:
 
  inline void correct(number factor){_CorrectedSignal=_CorrectedSignal*factor;
  _ErrorSignal=_ErrorSignal*factor;}
+
+ integer getlayno() const {return _Layer;}
 
  number getrawsignal()const {return _Signal;}
 

@@ -48,17 +48,17 @@
      + ,HRidgidity ,HErrRidgidity ,HTheta ,HPhi ,HP0
      + ,FChi2MS,GChi2MS,RidgidityMS,GRidgidityMS,Coo,Dir,Momentum
      + ,Mass,Charge,CTCCoo,CTCErCoo,CTCRawSignal,CTCSignal
-     + ,CTCESignal,CTCMCXcoo,CTCMCXdir,CTCstep,CTCedep,CTCbeta
-     + ,Amplitude
+     + ,CTCESignal,CTCMCXcoo,CTCMCXdir,CTCstep,CTCcharge,CTCbeta
+     + ,Amplitude,CTCedep
       INTEGER EventNo,Run,RunType,Time ,BetaEvent,BetaPattern
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
      + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft
      + ,Status,NelemL,NelemR,TrMCCluster,IdsoftMC,Itra,Left ,Center 
      + ,Right ,TrRecHit,StatusR,Layer,TrTrack,TrStatus,Pattern,NHits
-     + ,phits
+     + ,phits,PCTCPointer
      + ,GeaneFitDone,AdvancedFitDone,EventNoMCEventG,Particle,CTCCluster
-     + ,CTCStatus,CTCMCEvent,CTCMCIdsoft,bar,px,py,
+     + ,CTCStatus,CTCLayer,CTCMCEvent,CTCMCIdsoft,bar,px,py,
      +  Particles, Tracks, Betas, Charges ,TrRecHits, TrClusters,
      +  TrMCClusters, TOFClusters, TOFMCClusters, CTCClusters,
      +  CTCMCClusters
@@ -95,14 +95,14 @@
      + chargebetap(maxch),chargetof(maxch),
      + chargetracker(maxch),probtof(7,maxch),probtracker(7,maxch)
 
-      common /particleC/npart,
+      common /particleC/npart,pctcpointer(2,maxpa),
      + pbetapointer(maxpa),pchargepointer(maxpa),
      + ptrackpointer(maxpa),particleid(maxpa),pmass(maxpa),
      + perrmass(maxpa),
      + pmom(maxpa),perrmom(maxpa),pcharge(maxpa),
      + ptheta(maxpa),pphi(maxpa),pcoo(3,maxpa),panti(maxpa),
-     + signalctc(maxpa),
-     + betactc(maxpa),errorbetactc(maxpa),cooctc(3,maxpa)
+     + signalctc(2,maxpa),
+     + betactc(2,maxpa),errorbetactc(2,maxpa),cooctc(3,2,maxpa)
 
       common /TOFClusterC/ntof,
      + TOFStatus(maxtof),plane(maxtof),
@@ -153,14 +153,15 @@
      + momentum(maxmcg),mass(maxmcg),charge(maxmcg)
 
       common/CTCClusterC/nctccl,
-     + CTCStatus(maxctccl),ctccoo(3,maxctccl),
+     + CTCStatus(maxctccl),CTCLayer(maxctccl),ctccoo(3,maxctccl),
      + ctcercoo(3,maxctccl),
      + ctcrawsignal(maxctccl),ctcsignal(maxctccl),ctcesignal(maxctccl)
 
       common/CTCMCClusterC/nctcclmc,
      + CTCMCIdsoft(maxctcclmc),CTCMCXcoo(3,maxctcclmc),
-     + CTCMCXdir(3,maxctcclmc),CTCstep(maxctcclmc),ctcedep(maxctcclmc),
-     + ctcbeta(maxctcclmc)
+     + CTCMCXdir(3,maxctcclmc),CTCstep(maxctcclmc),
+     + ctccharge(maxctcclmc),
+     + ctcbeta(maxctcclmc),ctcedep(maxctcclmc)
       character *64 cdet
       parameter (ndet=13)
       character *64 cblock(ndet)
@@ -213,13 +214,14 @@ c       iquest(10)=128000
      + 'probtracker(7,ncharge)')
 
       call hbname(1,cblock(4), npart,
-     + 'npart[0,10],pbetap(npart):I,pchargep(npart):I,'//
+     + 'npart[0,10],pctcp(2,npart):I,'//
+     + 'pbetap(npart):I,pchargep(npart):I,'//
      + 'ptrackp(npart):I,pid(npart):I,pmass(npart),'//
      + 'perrmass(npart),'//
      + 'pmom(npart),perrmom(npart),pcharge(npart),'//
      + 'ptheta(npart),pphi(npart),pcoo(3,npart),panti(npart),'//
-     + 'signalctc(npart),'//
-     + 'betactc(npart),errorbetactc(npart),cooctc(3,npart)')
+     + 'signalctc(2,npart),'//
+     + 'betactc(2,npart),errorbetactc(2,npart),cooctc(3,2,npart)')
 
       call hbname(1,cblock(5), ntof,
      + 'ntof[0,20],TOFStatus(ntof):I,plane(ntof):I,'//
@@ -272,16 +274,16 @@ c       iquest(10)=128000
      + 'momentum(nmcg):R,mass(nmcg):R,charge(nmcg):R')
 
       call hbname(1,cblock(12),nctccl,
-     + 'nctccl[0,20],CTCStatus(nctccl),ctccoo(3,nctccl),'//
-     + 'ctcercoo(3,nctccl),'//
+     + 'nctccl[0,20],CTCStatus(nctccl):I,CTCLayer(nctccl):I,'//
+     + 'ctccoo(3,nctccl),ctcercoo(3,nctccl),'//
      + 'ctcrawsignal(nctccl),'//
      + 'ctcsignal(nctccl),ctcesignal(nctccl)')
 
       call hbname(1,cblock(13),nctcclmc,
      + 'nctcclmc[0,200],CTCMCIdsoft(nctcclmc):I,'//
      + 'CTCMCXcoo(3,nctcclmc),'//
-     + 'CTCMCXdir(3,nctcclmc),CTCstep(nctcclmc),ctcedep(nctcclmc),'//
-     + 'ctcbeta(nctcclmc)')
+     + 'CTCMCXdir(3,nctcclmc),CTCstep(nctcclmc),'//
+     + 'ctccharge(nctcclmc),ctcbeta(nctcclmc),ctcedep(nctcclmc)')
 
         runold=-1
         do i=1,ndet
@@ -362,14 +364,15 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
         lun=40+idet
         do npart=1,maxpa
            if(eof(idet).eq.0)read(lun,end=45)
-     +     ne,pbetapointer(npart),pchargepointer(npart),
+     +     ne,(pctcpointer(kk,npart),kk=1,2),
+     +     pbetapointer(npart),pchargepointer(npart),
      +     ptrackpointer(npart),particleid(npart),pmass(npart),
      +     perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),
      +     ptheta(npart),pphi(npart),(pcoo(k,npart),k=1,3),
      +     panti(npart),
-     +     signalctc(npart),
-     +     betactc(npart),errorbetactc(npart),
-     +     (cooctc(k,npart),k=1,3)
+     +     (signalctc(kk,npart),kk=1,2),
+     +     (betactc(kk,npart),kk=1,2),(errorbetactc(kk,npart),kk=1,2),
+     +     ((cooctc(k,kk,npart),k=1,3),kk=1,2)
           goto 46
  45       eof(idet)=1
  46       continue
@@ -600,7 +603,8 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
         do nctccl=1,maxctccl
            iostat=1
            if(eof(idet).eq.0)read(lun,end=125)
-     +     ne,CTCStatus(nctccl),(ctccoo(k,nctccl),k=1,3),
+     +     ne,CTCStatus(nctccl),ctclayer(nctccl),
+     +     (ctccoo(k,nctccl),k=1,3),
      +     (ctcercoo(k,nctccl),k=1,3),
      +     ctcrawsignal(nctccl),ctcsignal(nctccl),ctcesignal(nctccl) 
            goto 126
@@ -629,8 +633,8 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
            if(eof(idet).eq.0)read(lun,end=135)
      +     ne, CTCMCIdsoft(nctcclmc),(CTCMCXcoo(k,nctcclmc),k=1,3),
      +     (CTCMCXdir(k,nctcclmc),k=1,3),
-     +     CTCstep(nctcclmc),ctcedep(nctcclmc),
-     +     ctcbeta(nctcclmc)
+     +     CTCstep(nctcclmc),ctccharge(nctcclmc),
+     +     ctcbeta(nctcclmc),ctcedep(nctcclmc)
            goto 136
  135       eof(idet)=1
  136       continue
@@ -697,7 +701,8 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
 
       REAL Beta,BetaError,BetaChi2,ProbTOF(7),ProbTracker(7),PMass
      + ,PErrMass,PMom,PErrMom,PCharge,PTheta,PPhi,PCoo(3),PAnti
-     + ,SignalCTC,BetaCTC,ErrorBetaCTC,CooCTC(3),TOFEdep,TOFTime
+     + ,SignalCTC(2),BetaCTC(2),ErrorBetaCTC(2),
+     +  CooCTC(3,2),TOFEdep,TOFTime
      + ,TOFETime,TOFCoo(3),TOFErCoo(3),TOFMCXcoo(3),TOFMCtof,TOFMCedep
      + ,Sumt,Sigmat,Meant,RMSt,ErrorMeant,
      +  SS(5,2),Xca(3),Xcb(3),Xgl(3),SumMC,Amplitude(5)
@@ -714,9 +719,9 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
      + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft
      + ,Status,Nelem,TrMCCluster,IdsoftMC,Itra,Left(2),Center(2)
      + ,Right(2),TrRecHit,StatusR,Layer,TrTrack,TrStatus,Pattern,NHits,
-     +  phits(6)
+     +  phits(6),pctcpointer(2)
      + ,GeaneFitDone,AdvancedFitDone,EventNoMCEventG,Particle,CTCCluster
-     + ,CTCStatus,CTCMCEvent,CTCMCIdsoft,px,py,Particles ,
+     + ,CTCStatus,CTCLayer,CTCMCEvent,CTCMCIdsoft,px,py,Particles ,
      +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
      +   TrMCClusters , TOFClusters , TOFMCClusters , 
      +   CTCClusters , CTCMCClusters 
@@ -748,7 +753,8 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
 *    idet=4
 *
 
-      common/particleC/particleevent,pbetapointer,pchargepointer,
+      common/particleC/particleevent,pctcpointer,
+     + pbetapointer,pchargepointer,
      + ptrackpointer,particleid,pmass,perrmass,pmom,perrmom,pcharge,
      + ptheta,pphi,pcoo,panti,signalctc,betactc,errorbetactc,cooctc
 *
@@ -802,7 +808,8 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
 *    idet=12
 *
      
-      common /ctcclustC/CTCCluster,CTCStatus,ctccoo,ctcercoo,
+      common /ctcclustC/CTCCluster,CTCStatus,ctclayer,
+     + ctccoo,ctcercoo,
      + ctcrawsignal,ctcsignal,ctcesignal
 
 *
@@ -810,7 +817,7 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
 *
 
       common /ctcmccluC/CTCMCEvent, CTCMCIdsoft,CTCMCXcoo,
-     + CTCMCXdir,CTCstep,ctcedep,ctcbeta
+     + CTCMCXdir,CTCstep,ctccharge,ctcbeta,ctcedep
       character *64 cdet
       parameter (ndet=13)
       character *64 cblock(ndet)
@@ -893,7 +900,8 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
             write(21)chargeevent,chargebetap,chargetof,
      +      chargetracker,probtof,probtracker
            else if( cblock(idet).eq.'PARTICLE')then
-            write(21) particleevent,pbetapointer,pchargepointer,
+            write(21) particleevent,pctcpointer,
+     + pbetapointer,pchargepointer,
      + ptrackpointer,particleid,pmass,perrmass,pmom,perrmom,pcharge,
      + ptheta,pphi,pcoo,panti,signalctc,betactc,errorbetactc,cooctc   
            else if( cblock(idet).eq.'TOFCLUST')then
@@ -923,11 +931,12 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
             write(21)EventNoMCEventG,Particle,coo,dir,
      + momentum,mass,charge
            else if( cblock(idet).eq.'CTCCLUST')then
-            write(21)CTCCluster,CTCStatus,ctccoo,ctcercoo,
+            write(21)CTCCluster,CTCStatus,ctclayer,
+     + ctccoo,ctcercoo,
      + ctcrawsignal,ctcsignal,ctcesignal
            else if( cblock(idet).eq.'CTCMCCLU')then
             write(21)CTCMCEvent, CTCMCIdsoft,CTCMCXcoo,
-     + CTCMCXdir,CTCstep,ctcedep,ctcbeta
+     + CTCMCXdir,CTCstep,ctccharge,ctcbeta,ctcedep
            else
             write(*,*)' Invalid cblock ',idet,' ',cblock(idet)
            endif

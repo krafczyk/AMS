@@ -6869,7 +6869,7 @@ c      print *,'starting momentum ',1./csix(1,0)
       if (ikal.eq.1) THEN
         CALL TKGFITMI(iver,ifail)
       elseif (ikal.eq.2) THEN
-        CALL TKGFITKF(iver,ifail)
+        CALL TKGFITKF(iver,chrg,ifail)
       endif
 
 c      print *,'fitpoint ',csix(6,0),csix(4,0),csix(5,0)
@@ -7541,16 +7541,18 @@ c      PARAMETER (NITER = 2)
            ENDDO
 *
            CH = SIGN(1.D0,CSIX(1,JSTOP-1))
-            if(ipart.le.32)then
-             ITYP = 5
-             IF ( CH.LT.0)  ITYP = 6
-            else if(ipart.le.120)then
-             ityp=ipart
-             if(ch.lt.0)ityp=ipart+100
-            else
-             ityp=ipart-100
-             if(ch.lt.0)ityp=ipart
-            endif
+            ityp=ipart
+            ipaold=ipart
+c            if(ipart.le.32)then
+c             ITYP = 5
+c             IF ( CH.LT.0)  ITYP = 6
+c            else if(ipart.le.120)then
+c             ityp=ipart
+c             if(ch.lt.0)ityp=ipart+100
+c            else
+c             ityp=ipart-100
+c             if(ch.lt.0)ityp=ipart
+c            endif
            CALL GUFLD(XXI,H(1))
            SPU = 1.
            CALL TRSDSC(PD,RD,PC,RC,H,CH,IERR,SPU,
@@ -7812,7 +7814,7 @@ c          print *,' chi2s ',iter,chi2,chi2n,chi2t,chi2m,1/csix(1,0)
 CDECK  ID>, TKGFITKF.   
 *CMZ :  3.21/02 29/03/94  15.41.50  by  S.Giani
 *-- Author :
-      SUBROUTINE TKGFITKF(IVER,IFAFT)
+      SUBROUTINE TKGFITKF(IVER,cho,IFAFT)
 *
 *    trak fitting using GEANE and KALMAN FILTER
 *
@@ -7911,7 +7913,6 @@ c      PARAMETER (NITER = 2)
       DATA DZERO,DSMALL,DBIG/0.D0,.1D-8,1.D8/
 *_____________________________________________________________________
 *
-          cho=charge
           ipo=ipart
           niter=100
          pold=0
@@ -7962,15 +7963,17 @@ ccc        IF (ITER.NE.1) CALL UCOPY(SS(1,1,0),CC(1,1,0),50)
            ENDDO
 *
            CH = SIGN(1.D0,CSIX(1,JSTOP-1))
-            if(ipo.le.32)then
-             ITYP = 5
-             IF ( CH.LT.0)  ITYP = 6
-            else if(ipo.le.120)then
+           if(ipo.le.32)then
+             idf=1
+           else
+             idf=100
+           endif
+            if (ch*cho.gt.0)then
              ityp=ipo
-             if(ch.lt.0)ityp=ipo+100
+            else if (ch.lt.0)then
+             ityp=ipo+idf
             else
-             ityp=ipo-100
-             if(ch.lt.0)ityp=ipo
+             ityp=ipo-idf
             endif
            CALL GUFLD(XXI,H)
            SPU = 1.
@@ -8180,7 +8183,7 @@ c        ENDIF
 *
 999   CONTINUE
 *
-       charge=cho
+       ipaold=ityp
        ipart=ipo
       END
 CDECK  ID>, TKERMT. 

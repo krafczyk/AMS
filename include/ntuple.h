@@ -37,6 +37,7 @@ friend class AMSCharge;
 class CTCClusterNtuple: public AMSNtuple{
 private:
 int Status;
+int Layer;
 float Coo[3];
 float ErrCoo[3];
 float RawSignal;
@@ -104,6 +105,7 @@ float Dir[3];
 float Step;
 float Charge;
 float Beta;
+float Edep;
 
 friend class AMSCTCMCCluster;
 
@@ -125,6 +127,7 @@ friend class AMSmceventg;
 
 class ParticleNtuple: public AMSNtuple{
 private:
+int CTCP[2];
 int BetaP;
 int ChargeP;
 int TrackP;
@@ -138,7 +141,8 @@ float Theta;
 float Phi;
 float Coo[3];
 float Anti;
-float Value[6];
+float Value[3][2];
+float CooCTC[2][3];
 
 friend class AMSParticle;
 

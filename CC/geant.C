@@ -194,16 +194,15 @@ extern "C" void gustep_(){
   // CTC
 
   if(GCVOLU.nlevel >1 && GCKINE.charge != 0  && GCTRAK.destep != 0 && 
-  GCTMED.isvol != 0 && GCVOLU.names[1][0]== 'A' && GCVOLU.names[1][1]=='G' && 
-  GCVOLU.names[1][2]=='E' && GCVOLU.names[1][3]=='L')
-     AMSCTCMCCluster::sictchits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
-     GCKINE.charge,GCTRAK.step, GCTRAK.getot);
+  GCTMED.isvol != 0 && 
+  ((GCVOLU.names[1][0]== 'A' && GCVOLU.names[1][1]=='G' && 
+   GCVOLU.names[1][2]=='E' && GCVOLU.names[1][3]=='L') ||
+   (GCVOLU.names[1][0]== 'W' && GCVOLU.names[1][1]=='L' && 
+   GCVOLU.names[1][2]=='S' && GCVOLU.names[1][3]==' ') ))
 
-  if(GCVOLU.nlevel >1 && GCKINE.charge != 0  && GCTRAK.destep != 0 && 
-  GCTMED.isvol != 0 && GCVOLU.names[1][0]== 'W' && GCVOLU.names[1][1]=='L' && 
-  GCVOLU.names[1][2]=='S' && GCVOLU.names[1][3]==' ')
      AMSCTCMCCluster::sictchits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
-     GCTRAK.destep,GCTRAK.step*pow(GCKINE.charge,2), GCTRAK.getot);
+     GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep);
+
 
   // ANTI     
 
@@ -389,7 +388,7 @@ extern "C" void uglast_(){
     ooStatus          rstatus;
     rstatus = dbout.Start(oocRead);
     rstatus = dbout.FindEventList(jobname,oocRead,listH);
-    if (rstatus == oocSuccess)  listH -> PrintMapStatistics(oocRead);
+    //    if (rstatus == oocSuccess)  listH -> PrintMapStatistics(oocRead);
     rstatus = dbout.Commit();
 //-
 #endif

@@ -17,13 +17,23 @@
 #include <charge.h>
 #include <ctc.h>
 
+class AntiMatter: public AMSlink{
+protected: 
+ integer _pid;
+ void _copyEl(){}
+ void _printEl(ostream & stream){ stream << " Pid " << _pid<<endl;}
+ void _writeEl(){}
+public:
+ AntiMatter(integer pid=0):AMSlink(0),_pid(pid){}
+};
+
 class AMSParticle: public AMSlink{
 protected:
 
-  AMSCTCCluster * _pctc;  // pointer to ctc
-  AMSBeta * _pbeta;      // pointer to beta 
-  AMSCharge * _pcharge;  // pointer to charge
-  AMSTrTrack * _ptrack;  // pointer to track;
+  AMSCTCCluster * _pctc[2];  // pointers to ctc
+  AMSBeta * _pbeta;          // pointer to beta 
+  AMSCharge * _pcharge;      // pointer to charge
+  AMSTrTrack * _ptrack;      // pointer to track;
 
   integer _GPart;        // Geant particle ID
 
@@ -36,7 +46,7 @@ protected:
   number  _Phi;
   AMSPoint _Coo;
   number  _SumAnti;
-  CTC    _Value;
+  CTC    _Value[2];
 
   void _copyEl();
   void _printEl(ostream & stream){ stream << " Mass "<<_Mass<<
@@ -49,16 +59,27 @@ protected:
  static integer _partP[20];
 public:
   AMSParticle *  next(){return (AMSParticle*)_next;}
-  AMSParticle(): AMSlink(0),  _pbeta(0), _pcharge(0), _ptrack(0), 
-  _pctc(0), _Value(0.,0.,1.,AMSPoint()){}
+  AMSParticle(): AMSlink(0),  _pbeta(0), _pcharge(0), _ptrack(0)
+ {
+    for(int i=0;i<2;i++){
+     _Value[i]=CTC(0.,0.,1.,AMSPoint());
+     _pctc[i]=0;
+    }
+ }
   AMSParticle(AMSBeta * pbeta, AMSCharge * pcharge, AMSTrTrack * ptrack,
   number mass, number errmass, number momentum, number errmomentum,
   number charge, number theta, number phi, AMSPoint coo, number sumanti): 
-  AMSlink(0), _pctc(0),_pbeta(pbeta), _pcharge(pcharge), _ptrack(ptrack), 
+  AMSlink(0),_pbeta(pbeta), _pcharge(pcharge), _ptrack(ptrack), 
   _Mass(mass),
   _ErrMass(errmass), _Momentum(momentum), _ErrMomentum(errmomentum),
-  _Charge(charge), _Theta(theta), _Phi(phi), _Coo(coo), _SumAnti(sumanti),
-  _Value(0.,0.,1., AMSPoint()){}
+  _Charge(charge), _Theta(theta), _Phi(phi), _Coo(coo), _SumAnti(sumanti)
+ {
+    for(int i=0;i<2;i++){
+     _Value[i]=CTC(0.,0.,1.,AMSPoint());
+     _pctc[i]=0;
+    }
+ }
+
   void ctcfit(); // CTC fit
   void pid();   // particle identification
   void refit(); // refit if necessary;

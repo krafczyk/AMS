@@ -387,9 +387,6 @@ void AMSTrTrack::build(){
       number par[2];
       number epar[2];
       while( phit[0]){
-           if(_CheckTime()>AMSFFKEY.CpuLimit){
-            throw AMSTrTrackError(" Cpulimit Exceeded ");
-           }
        if(TRFITFFKEY.FullReco || phit[0]->getstatus(AMSDBc::USED)==0){
        phit[1]=AMSTrRecHit::gethead(second);
        while( phit[1]){
@@ -471,6 +468,13 @@ out:
 }
 
 number AMSTrTrack::Distance(number par[2], AMSTrRecHit *ptr){
+const integer freq=10;
+static integer trig=0;
+trig=(trig+1)%freq;
+           if(trig==0 && _CheckTime()>AMSFFKEY.CpuLimit){
+            throw AMSTrTrackError(" Cpulimit Exceeded ");
+           }
+
    return fabs(par[0]+par[1]*ptr->getHit()[2]-ptr->getHit()[0])/
             sqrt(1+par[1]*par[1]);
 }
@@ -478,6 +482,7 @@ number AMSTrTrack::Distance(number par[2], AMSTrRecHit *ptr){
 
 
 integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
+
 #ifdef __UPOOL__
     AMSTrTrack track(pat, nhit ,pthit);
     AMSTrTrack *ptrack=   &track;
@@ -605,6 +610,10 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
   // fit =3  Geanefit pattern
   // fit =4  fast fit with ims=0
   // fit =5  geane fit with ims=0
+
+  // Protection from too low mass
+    if(ipart==2)ipart=5;
+    if(ipart==3)ipart=6;
   integer npt=_NHits;
   const integer maxhits=10;
   assert(npt < maxhits);

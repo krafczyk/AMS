@@ -27,7 +27,7 @@ MULS 1
 C MSEL 1=0
 LOSS 2
 CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
-HADR 2 
+HADR 1 
 TRIG 2000
 DEBUG -1 10 100
 C    tmaxf  smax   fieldm  cconv   maxcal  nitm    xtol iver ialg   steps 
@@ -42,7 +42,7 @@ TRFIT 6=1 7=1 8=1 9=1 10=1 11=1 12=1 13=1 14=1 15=1 16=1 17=1 18=1 19=1
 31=1
 C TRFIT 6=1 7=1 8=1 
 IOPA 1=3 2='pr.hbk'
-45='AMSParticle&AMSTrMCCluster&AMSCTCMCCluster'
+45='AntiMatter'
 RNDM 3376102393 1356078259
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=0   2=0      3=50.   4=0  5=0   6='v203 Protons '

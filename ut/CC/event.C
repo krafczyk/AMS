@@ -19,7 +19,7 @@
 #include <tofsim.h>
 #include <stdlib.h>
 #include <ntuple.h>
-
+#include <ctcdbc.h>
 //
 AMSTOFScan scmcscan[SCBTPN];// some "temporary" TOF solution
 //
@@ -78,6 +78,7 @@ void AMSEvent::_reamsinitevent(){
 void AMSEvent::_signinitevent(){
   AMSNode *ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSmceventg",0),0));
+
 }
 
 void AMSEvent::_sitkinitevent(){
@@ -119,22 +120,24 @@ void AMSEvent::_sitofinitevent(){
   ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSAntiMCCluster",0),0));
 }
-//====================================================================
 
 void AMSEvent::_sictcinitevent(){
-  AMSNode *ptr = AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSCTCMCCluster",0),0));
-
-  ptr = AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSAntiMCCluster",0),0));
+  for(int i=0;i<CTCDBc::getnlay();i++){
+   AMSEvent::gethead()->add (
+   new AMSContainer(AMSID("AMSContainer:AMSCTCMCCluster",i),0));
+  }
 }
 
 void AMSEvent::_sitrdinitevent(){
 }
 
+
+
 void AMSEvent::_retrdinitevent(){
 }
-//======================================================================
+
+
+
 void AMSEvent::_retofinitevent(){
   integer i;
   AMSNode *ptr;
@@ -157,12 +160,12 @@ void AMSEvent::_retofinitevent(){
 //=====================================================================
 void AMSEvent::_rectcinitevent(){
   integer i;
-  AMSNode *ptr=  AMSEvent::gethead()->add (
+  AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSCTCRawCluster",0),0));
-
-  ptr = AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSCTCCluster",0),0));
-
+  for(i=0;i<CTCDBc::getnlay();i++){
+   AMSEvent::gethead()->add (
+   new AMSContainer(AMSID("AMSContainer:AMSCTCCluster",i),0));
+  }
 
 }
 
@@ -177,6 +180,12 @@ void AMSEvent::_reaxinitevent(){
 
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSParticle",0),0));
+
+
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AntiMatter",0),0));
+
+
 
 
 }
@@ -197,12 +206,16 @@ void AMSEvent::_retkinitevent(){
 }
 
 void  AMSEvent::write(){
-  // Sort before by "Used" variable : AMSTrTrack & AMSTrCluster
+  // Sort before by "Used" variable : AMSTrTrack & AMSTrCluster & AMSCTCCl
+  AMSEvent::gethead()->getheadC("AMSCTCCluster",0,1); 
+  AMSEvent::gethead()->getheadC("AMSCTCCluster",1,1); 
+
   AMSEvent::gethead()->getheadC("AMSTrCluster",0,1); 
   AMSEvent::gethead()->getheadC("AMSTrCluster",1,1); 
   for(int i=0;i<npat;i++){
    AMSEvent::gethead()->getheadC("AMSTrTrack",i,1); 
   }
+ 
   AMSEvent::gethead()->getheadC("AMSTrRecHit",0,1); 
   AMSEvent::gethead()->getheadC("AMSTrRecHit",1,1); 
   AMSEvent::gethead()->getheadC("AMSTrRecHit",2,1); 

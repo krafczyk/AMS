@@ -15,6 +15,7 @@
 #include <extC.h>
 #include <event.h>
 #include <charge.h>
+#include <ctcdbc.h>
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
 integer AMSJob::debug=1;
@@ -175,10 +176,12 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.nwls=12;        // number of wls blocks
   CTCMCFFKEY.Refraction[0]=1.055;   // Refraction indexes
   CTCMCFFKEY.Refraction[1]=1.59;
-  CTCMCFFKEY.Path2PhEl[0]=34;       // Path to photoelectrons conv fact
+  CTCMCFFKEY.Path2PhEl[0]=23;   // Path to photoelectrons conv fact (was 34)
   CTCMCFFKEY.Path2PhEl[1]=28;
-  CTCMCFFKEY.AbsLength[0]=4.9;     // Abs Length in cm
+  CTCMCFFKEY.AbsLength[0]=15;   // Abs Length in cm  for hor readout (was 4.9)
   CTCMCFFKEY.AbsLength[1]=100;
+  CTCMCFFKEY.Edep2Phel[0]=0;   // Agel is not a scint
+  CTCMCFFKEY.Edep2Phel[1]=184e3;  // WLS is scint if vertical readout
 FFKEY("CTCGEOM",(float*)&CTCGEOMFFKEY,sizeof(CTCGEOMFFKEY_DEF)/sizeof(integer),"MIXED");
 FFKEY("CTCMC",(float*)&CTCMCFFKEY,sizeof(CTCMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }

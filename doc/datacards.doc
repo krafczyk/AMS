@@ -53,8 +53,11 @@ I 15   nwls(12)                 // number of wls  blocks (X-div.)
 
 CTCMC      
 R  1   Refraction[2](1.055,1.59) // Refraction indexes
-R  3   Path2PhEl(34.,28.)        // Path to photoelectrons conv factor
-R  5   AbsLengt(4.9, 100)        // Abs length in cm 
+R  3   Path2PhEl(23.,28.)        // Path to photoelectrons conv factor
+R  5   AbsLengt(15, 100)         // Abs length in cm 
+R  7   Edep2Phel(0,184e3)       //  Edep to phelectrons conv factor
+
+
 
 // Tracker Cluster  Simulation
 

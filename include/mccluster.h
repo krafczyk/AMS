@@ -87,28 +87,30 @@ protected:
  number   _step;    // step
  number   _charge;  // charge
  number   _beta;    // particle velocity
-
+ number   _edep;    // energy deposition
  void _writeEl();
  void _copyEl(){};
  void _printEl(ostream &stream){stream <<"AMSCTCMCCluster "<<_idsoft<<" "
- <<_charge<<" "<<_xcoo<<" "<<_step<<" "<<_beta<<endl;}
+ <<_charge<<" "<<_xcoo<<" "<<_step<<" "<<_beta<<" "<<_edep<<endl;}
  static integer Out(integer);
 public:
  AMSCTCMCCluster(integer idsoft, AMSPoint xcoo, AMSDir xdir, 
-                 number charge, number step, number beta) :
+                 number charge, number step, number beta, number edep) :
  _idsoft(idsoft), _xcoo(xcoo), _xdir(xdir), _charge(charge),_step(step), 
- _beta(beta){_next=0;};
+ _beta(beta),_edep(edep){_next=0;};
  AMSCTCMCCluster(integer idsoft, AMSPoint xcoo, 
-                 number charge, number step, number beta) :
+                 number charge, number step, number beta, number edep) :
  _idsoft(idsoft), _xcoo(xcoo), _charge(charge),_step(step), 
- _beta(beta){_next=0;};
+ _beta(beta), _edep(edep){_next=0;};
   AMSCTCMCCluster(){_next=0;};
  ~AMSCTCMCCluster(){};
  inline integer getid() const{return _idsoft;}
- inline integer getbarno() const{ return _idsoft%100;}
- inline integer getdetno() const{ return _idsoft/100;}
+ inline integer getbarno() const{ return _idsoft%1000;}
+ inline integer getdetno() const{ return _idsoft/10000;}
+ inline integer getlayno() const{ return (_idsoft/1000)%10;}
  inline number  getbeta() const { return _beta;}
  inline number  getstep() const { return _step;}
+ inline number  getedep() const { return _edep;}
  inline number  getcharge2() const { return _charge*_charge;}
  inline AMSPoint  getcoo() const { return _xcoo;}
  inline AMSDir  getdir() const { return _xdir;}
@@ -116,7 +118,7 @@ public:
    return _idsoft < ((AMSCTCMCCluster*)(&o)) ->_idsoft ;
  }
  static void sictchits(integer idsoft , geant vect[],geant charge, geant step,
- geant getot);
+ geant getot, geant edep);
   AMSCTCMCCluster *  next(){return (AMSCTCMCCluster*)_next;}
 //+
 #ifdef __DB__

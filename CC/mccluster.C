@@ -366,12 +366,15 @@ if(init++==0){
 }
 
 void AMSCTCMCCluster::sictchits(integer idsoft , geant vect[],geant charge, 
-geant stepc, geant getot){
+geant stepc, geant getot, geant edep){
    AMSPoint pnt(vect[0],vect[1],vect[2]);
    AMSDir dir(vect[3],vect[4],vect[5]);
    number beta=getot != 0 ? vect[6]/getot : 0;
-   if(beta>0)AMSEvent::gethead()->addnext(AMSID("AMSCTCMCCluster",0),
-   new AMSCTCMCCluster(idsoft,pnt,dir,charge,stepc,beta));
+   if(beta>0){
+    AMSCTCMCCluster *p=
+    new AMSCTCMCCluster(idsoft,pnt,dir,charge,stepc,beta,edep);
+    AMSEvent::gethead()->addnext(AMSID("AMSCTCMCCluster",p->getlayno()-1),p);
+   }
 
 }
 
@@ -384,7 +387,7 @@ int i;
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"CTCMCClu",CTCMCClusterN.getaddress(),
-  "CTCMCEvent:I*4,CTCMCIdsoft:I*4, CTCMCXcoo(3):R*4,CTCMCXdir(3):R*4,CTCstep:R*4, CTCCharge:R*4, CTCbeta:R*4");
+  "CTCMCEvent:I*4,CTCMCIdsoft:I*4, CTCMCXcoo(3):R*4,CTCMCXdir(3):R*4,CTCstep:R*4, CTCCharge:R*4, CTCbeta:R*4, CTCEdep:R*4");
 }
   CTCMCClusterN.Event()=AMSEvent::gethead()->getid();
   CTCMCClusterN.Idsoft=_idsoft;
@@ -393,6 +396,7 @@ if(init++==0){
   CTCMCClusterN.Step=_step;
   CTCMCClusterN.Charge=_charge;
   CTCMCClusterN.Beta=_beta;
+  CTCMCClusterN.Edep=_edep;
   HFNTB(IOPA.ntuple,"CTCMCClu");
 }
 

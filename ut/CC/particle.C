@@ -116,15 +116,16 @@ AMSDir dir(0,0,1.);
 AMSPoint outp;
 number theta, phi, sleng;
 number signal,beta,ebeta;
-  // Find CTC hit 
-
+  // Find CTC hits 
+integer kk;
+for(kk=0;kk<2;kk++){  
   AMSCTCCluster *pctc=(AMSCTCCluster*)AMSEvent::gethead()->
-  getheadC("AMSCTCCluster",0);
+  getheadC("AMSCTCCluster",kk);
   while(pctc){
     if(pctc->checkstatus(AMSDBc::USED)==0 ){
         AMSPoint coo=pctc->getcoo();
         // Change Z
-        AMSCTCRawCluster d(0,1,0);
+        AMSCTCRawCluster d(0,1,pctc->getlayno(),0);
         AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(0));
         coo[2]=p->loc2gl(AMSPoint(0,0,0))[2];
         _ptrack->interpolate(coo,dir,outp,theta,phi,sleng);
@@ -161,11 +162,13 @@ number signal,beta,ebeta;
    signal=0;
    beta=0;
    ebeta=1;
-   AMSCTCRawCluster d(0,1,0);
+   AMSCTCRawCluster d(0,1,kk+1,0);
    AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(0));
    _ptrack->interpolate(p->loc2gl(AMSPoint(0,0,0)),dir,outp,theta,phi,sleng);
  }
-    _Value=CTC(signal,beta,ebeta, outp);
+    _Value[kk]=CTC(signal,beta,ebeta, outp);
+    _pctc[kk]=pctc;
+}
 }
 void AMSParticle::_writeEl(){
   // fill the ntuple 
@@ -177,13 +180,14 @@ if(init++==0){
   // get memory
   //book the ntuple block
   HBNAME(IOPA.ntuple,"Particle",PN.getaddress(),
-  "ParticleEvent:I*4, PBetaPointer:I*4, PChargePointer:I*4, PtrackPointer:I*4,   ParticleId:I*4,  PMass:R*4, PErrMass:R*4, PMom:R*4, PErrMom:R*4, PCharge:R*4, PTheta:R*4, PPhi:R*4, PCoo(3):R*4, PAnti:R*4,SignalCTC:R*4, BetaCTC:R*4, ErrorBetaCTC:R*4, CooCTC(3):R*4");
+  "ParticleEvent:I*4, PCTCPointer(2):I*4,PBetaPointer:I*4, PChargePointer:I*4, PtrackPointer:I*4,   ParticleId:I*4,  PMass:R*4, PErrMass:R*4, PMom:R*4, PErrMom:R*4, PCharge:R*4, PTheta:R*4, PPhi:R*4, PCoo(3):R*4, PAnti:R*4,SignalCTC(2):R*4, BetaCTC(2):R*4, ErrorBetaCTC(2):R*4, CooCTC(3,2):R*4");
 
 }
  PN.ChargeP=_pcharge->getpos();
  PN.BetaP=_pbeta->getpos();
  PN.TrackP=_ptrack->getpos();
  PN.Event()=AMSEvent::gethead()->getid();
+ 
  PN.Particle=_GPart;
  PN.Mass=_Mass;
  PN.ErrMass=_ErrMass;
@@ -194,12 +198,17 @@ if(init++==0){
  PN.Phi=_Phi;
  for(i=0;i<3;i++)PN.Coo[i]=_Coo[i];
  PN.Anti=_SumAnti;
- PN.Value[0]=_Value.getsignal();
- PN.Value[1]=_Value.getbeta();
- PN.Value[2]=_Value.geterbeta();
- PN.Value[3]=_Value.getcoo()[0];
- PN.Value[4]=_Value.getcoo()[1];
- PN.Value[5]=_Value.getcoo()[2];
+ for(i=0;i<2;i++){
+  PN.CTCP[i]=_pctc[i]?_pctc[i]->getpos():0;
+  PN.Value[0][i]=_Value[i].getsignal();
+  PN.Value[1][i]=_Value[i].getbeta();
+  PN.Value[2][i]=_Value[i].geterbeta();
+  PN.CooCTC[i][0]=_Value[i].getcoo()[0];
+  PN.CooCTC[i][1]=_Value[i].getcoo()[1];
+  PN.CooCTC[i][2]=_Value[i].getcoo()[2];
+ }
+
+
   HFNTB(IOPA.ntuple,"Particle");
 }
 
@@ -257,6 +266,13 @@ void AMSParticle::pid(){
     num=_chargeP[9];
 }
   _GPart=_partP[num]; 
+  if(_Momentum <0){
+   if(_GPart < 40 )_GPart++;
+   else _GPart=_GPart+100;
+   
+   AMSEvent::gethead()->addnext(AMSID("AntiMatter",0),new AntiMatter(_GPart));
+   
+  }
 
 }
 void AMSParticle::refit(){
@@ -265,6 +281,7 @@ void AMSParticle::refit(){
     if(_Mass > 0){
      _ptrack->Fit(3,_GPart);
      number fac=_ptrack->getgrid()/_Momentum;
+     //     if(_Momentum<0)fac=-fac;
      integer itr;
      geant xmass,chrg,tlt7,uwb[1];
      integer nwb=0;

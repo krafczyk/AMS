@@ -346,6 +346,7 @@ AMSgtmed *p;
 void ctcgeom(AMSgvolume & mother){
 extern void ctcgeomV(AMSgvolume &);
 extern void ctcgeomE(AMSgvolume &, integer iflag);
+extern void ctcgeomEOld(AMSgvolume &, integer iflag);
   // steering for ctc geom
 if(strstr(AMSJob::gethead()->getsetup(),"CTCSimple")){
   ctcgeomV(mother);
@@ -434,7 +435,7 @@ CTCDBc::setnwls(CTCDBc::getnblk());
 
 
 
-void ctcgeomE(AMSgvolume & mother, integer iflag){
+void ctcgeomEOld(AMSgvolume & mother, integer iflag){
   // E. Choumilov version
 
 CTCDBc::setgeom(iflag);
@@ -652,6 +653,233 @@ for(i=0;i<loop;i++){ // <---- separators(WLS's) loop ----
 } // ----- end of separators(WLS's) loop ----->
 }
 //---------------------------------------------------------------
+
+void ctcgeomE(AMSgvolume & mother, integer iflag){
+  // E. Choumilov version   ( New one )
+
+CTCDBc::setgeom(iflag);
+
+geant par[6]={0.,0.,0.,0.,0.,0.};
+number nrm[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};
+number dx,dy,dxag,dz,zc,zr,gp,gpw,wl,wls,gwls,step,xleft;
+char name1[10];
+char name2[10];
+geant coo[3],cooz;
+integer gid=0;
+integer nmed,nblk,nwls,i,ind,loop;
+AMSNode *cur;
+AMSNode *dau;
+AMSgtmed *p;
+AMSID amsid;
+//
+zr=CTCDBc::getsupzc();
+wl=CTCDBc::getwallth();
+wls=CTCDBc::getwlsth();
+gp=CTCDBc::getagap();
+gpw=gp+wl;
+gwls=CTCDBc::getwgap();
+//
+//          <-- create supporting honeyc. plate in mother
+gid=1;
+dx=0.5*CTCDBc::gethcsize(0);
+dy=0.5*CTCDBc::gethcsize(1);
+dz=0.5*CTCDBc::gethcsize(2);
+par[0]=dx;                
+par[1]=dy;
+par[2]=dz;
+coo[0]=0.;
+coo[1]=0.;
+coo[2]=zr-dz; // supp.plate center z-pos
+dau=mother.add(new AMSgvolume(
+    "CTC_HONEYCOMB",0,"SUPP","BOX ",par,3,coo,nrm,"ONLY",0,gid));
+//
+//--------------
+//
+nwls=CTCDBc::getnblk();// one WLS per cell (one big aer.block)
+//
+//    <-- create outer aerogel-cover (made of WALL material) in mother
+gid=2;
+dx=0.5*(CTCDBc::getagsize(0)+2.*gpw);
+dy=0.5*(CTCDBc::getagsize(1)+2.*gpw);
+if(iflag==0)
+            dz=0.5*(CTCDBc::getagsize(2)+2.*gpw+wls+gwls);//no middle horiz. refl.wall
+else
+            dz=0.5*(CTCDBc::getagsize(2)+4.*gp+3.*wl);//incl. middle horiz. refl. wall 
+par[0]=dx;                
+par[1]=dy;
+par[2]=dz;
+coo[0]=0.;
+coo[1]=0.;
+coo[2]=zr+dz;// box center z-pos
+dau=mother.add(new AMSgvolume(
+    "CTC_WALL",0,"WALL","BOX ",par,3,coo,nrm,"MANY",0,gid));
+//---
+//  <--- put into this box "dummy_media"("air") to get space for aerogel
+//
+gid=3;
+par[0]=dx-wl;                
+par[1]=dy-wl;
+par[2]=dz-wl;
+coo[2]=zr+dz;
+dau=mother.add(new AMSgvolume(
+    "CTC_DUMMYMED",0,"DVOL","BOX ",par,3,coo,nrm,"MANY",0,gid));
+//--------------
+//          <-- add middle horiz. separator for side readout geometry(geom-1)
+if(iflag==1){
+gid=4;
+par[0]=dx-wl;                
+par[1]=dy-wl;
+par[2]=0.5*wl;
+coo[0]=0.;
+coo[1]=0.;
+coo[2]=zr+dz;// box center z-pos
+dau=mother.add(new AMSgvolume(
+    "CTC_WALL",0,"HSEP","BOX ",par,3,coo,nrm,"MANY",0,gid));
+}
+//--------------
+//
+//          <-- create pure aerogel-blocks in mother
+//
+nblk=CTCDBc::getnblk(); // number of big aerog. blocks (cells)
+dy=0.5*CTCDBc::getagsize(1);
+dz=0.5*CTCDBc::getagsize(2);
+par[1]=dy;                
+coo[1]=0.;
+if(iflag==0){
+  dx=0.5*(CTCDBc::getagsize(0)-(nblk-1)*(wl+2.*gp))/nblk;// half x-size
+  dxag=dx;
+  par[0]=dx;
+  par[2]=dz;
+  cooz=zr+wl+gwls+wls+gp+dz;// aerog. block center z-pos
+  step=2.*dx+2.*gp+wl;//x-dist between blocks centers
+  xleft=-0.5*CTCDBc::getagsize(0)+dx; // 1-st aerog.block center x-pos
+}
+else{
+  dx=0.5*(CTCDBc::getagsize(0)-nblk*(wls+2.*gp)-(nblk-1)*(wl+2.*gp))/nblk/2;
+  dxag=dx;
+  par[0]=dx;
+  par[2]=dz/2.;// half thickness of big block 
+  cooz=zr+gpw+1.5*dz+2.*gp+wl;// for top row  
+  step=4.*dx+2.*gp+wls+2.*gp+wl;//big step (till block in next cell)
+  xleft=-0.5*CTCDBc::getagsize(0)+dx; // 1-st aerog.block centre x-pos
+}
+//
+for(i=0;i<nblk;i++){ // <---- loop over aerog. blocks ----
+  if(iflag==0){
+    gid=11001+i;
+    coo[0]=xleft+i*step;
+    coo[2]=cooz;
+    dau=mother.add(new AMSgvolume(
+        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid));
+  }
+  if(iflag==1){
+    gid=11001+2*i;
+    coo[0]=xleft+i*step;
+    coo[2]=cooz;
+    dau=mother.add(new AMSgvolume(
+        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid));//1-st in top row
+    gid=12001+2*i;
+    coo[2]=cooz-dz-2.*gp-wl;
+    dau=mother.add(new AMSgvolume(
+        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid));//1-st in bot row
+//        
+    gid=11002+2*i;
+    coo[0]=xleft+i*step+2.*dxag+2.*gp+wls;
+    coo[2]=cooz;
+    dau=mother.add(new AMSgvolume(
+        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid));//2-nd in top row
+    gid=12002+2*i;
+    coo[2]=cooz-dz-2.*gp-wl;
+    dau=mother.add(new AMSgvolume(
+        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid));//2-nd in bot row
+  }
+} // ----- end of aerog. blocks loop ----->
+//--------------
+//
+//          <-- create vertical (separator) walls(geo=0/1) in mother
+//
+dx=0.5*wl;// half x-size
+dy=0.5*CTCDBc::getagsize(1)+gp;
+par[0]=dx;
+par[1]=dy;                
+coo[1]=0.;
+if(iflag==0){
+  dz=0.5*(CTCDBc::getagsize(2)+2.*gp+wls+gwls);
+  par[2]=dz;
+  coo[2]=zr+wl+dz;// separator center z-pos
+  step=2.*dxag+2.*gp+wl;//x-dist between separator centers
+  xleft=-0.5*CTCDBc::getagsize(0)+2.*dxag+gp+dx; // 1-st separator center x-pos
+//                                       (between 1-st and 2-nd aerog.block)
+}
+else{
+  dz=0.5*(CTCDBc::getagsize(2)+4.*gp+wl);
+  par[2]=dz;
+  coo[2]=zr+wl+dz; 
+  step=4.*dxag+4.*gp+wl+wls;
+  xleft=-0.5*CTCDBc::getagsize(0)+4.*dxag+3.*gp+wls+dx; // 1-st wall center x-pos
+//                                       
+}
+//
+loop=nblk-1;
+for(i=0;i<loop;i++){ // <---- separators loop ----
+  gid=51+i;
+  coo[0]=xleft+i*step;
+  dau=mother.add(new AMSgvolume(
+      "CTC_SEP",0,"VSEP","BOX ",par,3,coo,nrm,"ONLY",1,gid));
+} // ----- end of separators(WLS's) loop ----->
+
+//--------------
+//
+//   <-- create bottom WLS-strips(for geom=0) in mother
+//
+if(iflag==0){
+  dx=0.5*(CTCDBc::getagsize(0)+2.*gp-2.*nwls*gwls-(nwls-1)*wl)/nwls; //half x-size
+  dy=0.5*CTCDBc::getagsize(1)+gp-gwls;
+  dz=0.5*wls;
+  par[0]=dx;                
+  par[1]=dy;
+  par[2]=dz;
+  step=2.*dx+2.*gwls+wl;
+  xleft=-0.5*(CTCDBc::getagsize(0)+2.*gp)+gwls+dx;// 1-st wls centre x-pos
+  coo[1]=0.;
+  coo[2]=zr+wl+gwls+dz;// WLS center z-pos
+  for(i=0;i<nwls;i++){ // <---- loop over wls-strips ----
+    gid=21001+i;
+    coo[0]=xleft+i*step;
+    dau=mother.add(new AMSgvolume(
+        "CTC_WLS",0,"WLS ","BOX ",par,3,coo,nrm,"ONLY",1,gid));
+  } // ----- end of wls-strips loop ----->
+}
+//--------------
+//
+//          <-- create two rows of vertical WLS's (geom=1) in mother
+//
+if(iflag==1){
+  dx=0.5*wls;
+  dy=0.5*CTCDBc::getagsize(1)+gp-gwls;
+  dz=0.5*(CTCDBc::getagsize(2)/2.+2.*gp-2.*gwls);
+  par[0]=dx;
+  par[1]=dy;
+  par[2]=dz;
+  coo[1]=0.;
+  cooz=zr+3.*dz+2.*wl+3.*gwls;// for top row
+  step=4.*dxag+wl+4.*gp+wls;
+  xleft=-0.5*CTCDBc::getagsize(0)+2.*dxag+gp+dx;
+  for(i=0;i<nwls;i++){
+    gid=21001+i;    // top row
+    coo[0]=xleft+i*step;
+    coo[2]=cooz;
+    dau=mother.add(new AMSgvolume(
+        "CTC_WLS",0,"WLS ","BOX ",par,3,coo,nrm,"ONLY",1,gid));
+    gid=22001+i;    // bot row
+    coo[2]=cooz-2.*dz-wl-2.*gwls;
+    dau=mother.add(new AMSgvolume(
+        "CTC_WLS",0,"WLS ","BOX ",par,3,coo,nrm,"ONLY",1,gid));
+  }
+}
+//-----
+
+}
 
 
 
