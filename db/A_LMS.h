@@ -7,7 +7,7 @@
 // Oct  02, 1996 ak merge GetEvent&GetMCEvent, GetNevents&GetNMCEvents
 //                  add eventR, eventW flags
 //
-// Last Edit Oct 16, 1996. ak.
+// Last Edit Oct 25, 1996. ak.
 //
 #ifndef LMSSESSION_H
 #define LMSSESSION_H
@@ -111,10 +111,13 @@ public:
 	ooStatus	FillTMedia(char* listName);
 
 	ooStatus	DeleteEvent(char* listName, char* id);
+	ooStatus	DeleteSetup(char* setup);
 
         ooStatus        Start(ooMode mode); // start a transaction
         ooStatus        Commit();           // commit a transaction
         ooStatus        Abort();            // abort a transaction
+        integer         getTransLevel();    // checking for an active
+
         ooStatus        FindEventList (char* listName, ooMode mode, 
                                        ooHandle(AMSEventList)& listH);
         ooStatus        LMSInit(ooMode mode, char* prefix);
@@ -154,5 +157,9 @@ public:
         ooStatus Getmceventg (char* listName, char* eventID, integer run,
                                integer eventN, ooMode mode, 
                                integer ReadStartEnd);
+
+        ooStatus PrintList(ooMode mode);
+        ooStatus PrintList(char* listName, ooMode mode);
 };
 #endif
+

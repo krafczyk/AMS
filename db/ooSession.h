@@ -72,6 +72,7 @@ public:
 	ooStatus		DeleteDatabase(const char* DBName);
 	ooHandle(ooDBObj)&	DefaultDatabase() { return _databaseH; }
 
+
 	// Monitor Methods
 
 	void		StartTimer();
@@ -80,7 +81,7 @@ public:
 	void		StartStatistics();
 	void		PrintDeltaStatistics(char* label);
 	void		PrintCumulativeStatistics(char* label);
-
+        int             getTransLevel() { return _transLevel;}
 };
 
 #endif

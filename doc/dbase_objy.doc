@@ -1,6 +1,6 @@
                                                      Alexei Klimentov
                                                     (alexei.klimentov@cern.ch)
-Filename : dbase_objy.doc                            Last Edit : Oct 21, 1996.
+Filename : dbase_objy.doc                            Last Edit : Oct 31, 1996.
 
 General Information.
 
@@ -114,8 +114,32 @@ HOW TO BUILD CERNSP VERSION OF PROGRAM TO ACCESS dbase PLACED ON AMS ALPHA
 - start exec on cernsp.
 
 
-MORE INFORMATION CAN BE FOUND IN  
+AMS DBASE UTILITIES (../exe/$(ARCH) )
 
+ printList [listname]  - prints information about list with name listname or
+                         about all lists 
+ deleteRun             - delete all events of the particular run (works only on
+                         aix, because of bug in Objectivity)
+ deleteList            - delete list and all associated containers
+ deleteSetup           - delete setup
+
+MORE INFORMATION CAN BE FOUND IN  
+=======
+- build database on local disk
+- copy ../db/boot/LOM file from the local disk to the place you can access from
+  cernsp.
+- execute on cernsp setenv OO_FD_BOOT 'PATH'/LOM
+- copy schema files, method files, the result of ooddlx processing to the area
+  you can access from the cernsp
+- execute gmake -f MakeClientDB on cersnp, it starts compiling of *.C files.
+  as the result of MakeClientDB you'll get an executive one can run from 
+  cernsp. 
+- be sure that remote access to the database is allowed (oostartams should be
+  run and alive on afl3u0, usually I take care of this)
+- start exec on cernsp.
+
+
+MORE INFORMATION CAN BE FOUND IN  
    http://wwwcn1.cern.ch/asd/cernlib/rd45/index.html
 
 

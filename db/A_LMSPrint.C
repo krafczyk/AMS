@@ -6,44 +6,74 @@
 #include <typedefs.h>
 #include <A_LMS.h>
 
-void	LMS::PrintEvent(char* listName, char* eventID)
+
+ooStatus	LMS::PrintList(ooMode mode)
 {
-        ooStatus rstatus;
-    
-        rstatus = _session -> StartTransaction(oocRead);
-        if (rstatus != oocSuccess) {
-         cerr << "LMS::PrintEvent: ERROR - cannot start a transaction"<<endl;
-          return;
-        }
+	ooStatus	       rstatus = oocError;	// Return status
+        ooItr(AMSEventList)    listItr;
+        
 
-        ooHandle(AMSEventList) listH;
-        if(!listH.exist(_databaseH, listName, oocRead)) {
-         cerr << "LMS::PrintEvent: ERROR - cannot open "<<listName<<endl;
-          _session -> AbortTransaction();
-           return;
-        }
+        rstatus = Start(mode);
+        if (rstatus != oocSuccess) return rstatus;
 
-        ooHandle(AMSEventD)       eventH;
-        if (listH -> FindEvent(eventID, oocRead, eventH)) {
-          eventH -> Print();
+        _databaseH = _session -> DefaultDatabase();
+
+        rstatus = listItr.scan(_databaseH, mode);
+        if (rstatus == oocSuccess) {
+          while (listItr.next()) {
+            listItr -> PrintListStatistics();
+          }
         } else {
-         cerr << "LMS::PrintEvent: ERROR - cannot find event with ID ";
-         cerr <<eventID<<endl;
+          cout<<"LMS::PrintList-E- scan operation failed"<<endl;
         }
 
-        rstatus = _session -> CommitTransaction();
         if (rstatus != oocSuccess) {
-         cerr << "LMS::PrintEvent: ERROR - cannot commit a transaction"<<endl;
-         return;
+          rstatus = Abort();
+          return oocError;
         }
+
+        rstatus = Commit();
+
+	return rstatus;
 }
 
-
-void	LMS::PrintList(char* listName)
+ooStatus	LMS::PrintList(char* listName, ooMode mode)
 {
-	// Display not implemented message (to be implemented in LAB 6)
+	ooStatus	       rstatus = oocError;	// Return status
+        ooHandle(AMSEventList) listH;
+        ooItr(AMSEventList)    listItr;
+        
 
-	cout << endl;
-	cout << "WARNING: LMS::PrintList(" << listName << "'";
-	cout << ") is not implemented." << endl;
+        rstatus = Start(mode);
+        if (rstatus != oocSuccess) return rstatus;
+
+
+        rstatus = FindEventList(listName, mode, listH);
+        if (rstatus == oocSuccess) {
+         listH -> PrintListStatistics();
+        } else {
+         cout<<"LMS::PrintList-I- search for the list which has substring "
+             <<listName<<endl;
+         cout<<endl;
+         _databaseH = _session -> DefaultDatabase();
+         rstatus = listItr.scan(_databaseH, mode);
+         if (rstatus == oocSuccess) {
+          while (listItr.next()) {
+           if (listItr -> CheckListSstring(listName)) {
+            listItr -> PrintListStatistics();
+           }            
+          }
+        } else {
+          cout<<"LMS::PrintList-E- scan operation failed"<<endl;
+        }
+       }
+
+        if (rstatus != oocSuccess) {
+          rstatus = Abort();
+          return oocError;
+        }
+
+        rstatus = Commit();
+
+	return rstatus;
 }

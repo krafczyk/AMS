@@ -6,8 +6,9 @@
 // Aug     1996. ak. _Side (X/Y)
 //                   change the place of members in the class
 // Sep 10, 1996. ak. V1.25, _pValues
+// Nov 15, 1996. al. NelemL, NelemR
 //
-// Last Edit : Oct 10, 1996. ak
+// Last Edit : Nov 15, 1996. ak
 //
 
 #include <typedefs.h>
@@ -16,14 +17,12 @@
 
 declare (ooVArray, number);
 
-class AMSEventD;
 class AMSTrRecHitD;
+//class AMSEventD;
 
 class AMSTrClusterD : public ooObj {
 
  private:
-
-//   AMSTrIdSoft  _Id;
 
    number       _Sum;
    number       _Sigma;
@@ -32,7 +31,8 @@ class AMSTrClusterD : public ooObj {
    number       _ErrorMean;
 
    integer      _Status;
-   integer      _Nelem;
+   integer      _NelemL;
+   integer      _NelemR;
    integer      _Position;
    integer      _Side;
 
@@ -43,21 +43,22 @@ class AMSTrClusterD : public ooObj {
 
  public:
 
-   static const integer BAD;
-   static const integer WIDE;
-   static const integer NEAR;
+   //static const integer BAD;
+   //static const integer WIDE;
+   //static const integer NEAR;
 
 // Assosiations
    ooRef(AMSTrRecHitD) pTrRecHitX[] <-> pClusterX;
    ooRef(AMSTrRecHitD) pTrRecHitY[] <-> pClusterY;
+//   ooRef(AMSEventD)    pEventCl     <-> pCluster[];
 
 // Constructor
   AMSTrClusterD();
   AMSTrClusterD(AMSTrCluster* p);
+
 // Get Methods
-//  AMSTrIdSoft  getid()   {return _Id;}
   integer  getstatus()   {return _Status;}
-  integer  getnelem()    {return _Nelem;}
+  integer  getnelem()    {return _NelemL + _NelemR;}
   number   getSigma()    {return _Sigma;}
   number   getRms()      {return _Rms;}
   number   getVal()      {return _Sum;}
@@ -67,12 +68,11 @@ class AMSTrClusterD : public ooObj {
   integer  getSide()     {return _Side;}
   void     copy(AMSTrCluster* p);
   void     getValues(number* values);
+
 // Set Methods
   void     setPosition(integer pos) {_Position = pos;}
   void     setSide(integer side) {_Side = side;}
   void     setValues(number* values);
-
-// Add Methods
 
 };
 

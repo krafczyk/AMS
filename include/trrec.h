@@ -80,6 +80,7 @@ void   setValues(number* values)
     for(int i=0;i<getnelem();i++) _pValues[i] = values[i];
    }
   }
+integer getSide() {return _Id.getside();}
 //-
 
 AMSTrIdSoft getid()const {return _Id;}

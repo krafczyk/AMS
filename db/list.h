@@ -45,7 +45,6 @@ class AMSEventList : public ooContObj {
 
 
 
-
 integer _listType; 
 integer _nEvents; 
 integer _nEventsP; 
@@ -113,9 +112,12 @@ ooStatus AddBeta(char *, ooHandle(AMSEventD) &);
 ooStatus AddCharge(char *, ooHandle(AMSEventD) &); 
 ooStatus AddParticle(char *, ooHandle(AMSEventD) &); 
 
+
 ooStatus CopyGeometry(ooMode); 
 ooStatus CopyMaterial(ooMode); 
 ooStatus CopyTMedia(ooMode); 
+ooStatus CopyEventHeader(char *, ooHandle(AMSEventD) &, ooMode); 
+
 ooStatus CopyEvent(char *, ooHandle(AMSEventD) &, ooMode); 
 ooStatus CopyMCEvent(char *, ooHandle(AMSEventD) &, ooMode); 
 ooStatus CopyMCeventg(char *, ooHandle(AMSEventD) &, ooMode); 
@@ -136,12 +138,7 @@ ooStatus CopyCTCCluster(char *, ooHandle(AMSEventD) &, ooMode);
 ooStatus CopyBeta(char *, ooHandle(AMSEventD) &, ooMode); 
 ooStatus CopyCharge(char *, ooHandle(AMSEventD) &, ooMode); 
 ooStatus CopyParticle(char *, ooHandle(AMSEventD) &, ooMode); 
-
-
-ooStatus DeleteEvent(ooHandle(AMSEventD) &); 
-
-
-
+#line 127
 inline integer ListType() { return _listType; }
 inline void setListType(integer listType) { _listType = listType; }
 inline integer getNEvents() { return _nEvents; }
@@ -219,7 +216,15 @@ ooStatus LinkTrackHitM(char *, ooHandle(AMSEventD) &);
 void CopyByPos(ooHandle(AMSgvolumeD) &, ooMode); 
 void CopyByPtr(AMSNode *); 
 
-ooStatus PrintMap(ooMode); 
+ooBoolean CheckListSstring(char *); 
+
+ooStatus PrintMapStatistics(ooMode); 
+ooStatus PrintListStatistics(); 
+
+
+ooStatus DeleteEventList(); 
+ooStatus DeleteAllContainers(); 
+ooStatus DeleteMap(); 
     virtual ooTypeNumber ooGetTypeN() const;
     virtual char* ooGetTypeName() const;
     ooBoolean ooIsKindOf(ooTypeNumber typeN) const;
@@ -243,7 +248,7 @@ ooStatus PrintMap(ooMode);
 		       uint32, ooConstCPtr(ooObj) nearObj);
     ooRef(AMSEventList)& ooThis(ooRef(AMSEventList)& objId, ooMode aMode = oocNoOpen) const;
     AMSEventList(ooInternalObj iobj);
-#line 205 "list.ddl"
+#line 214 "list.ddl"
 }; 
 
 #endif /* !defined(LIST_H) */

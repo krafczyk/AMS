@@ -27,14 +27,16 @@ class ooRef(AMSTrRecHitD);
 class ooShortRef(AMSTrRecHitD);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
-#line 17 "tcluster.ddl"
+#line 18 "tcluster.ddl"
 declare(ooVArray,number)
 
-class AMSEventD; 
 class AMSTrRecHitD; 
 
+
 class AMSTrClusterD : public ooObj { 
-#line 28
+
+
+
 number _Sum; 
 number _Sigma; 
 number _Mean; 
@@ -42,7 +44,8 @@ number _Rms;
 number _ErrorMean; 
 
 integer _Status; 
-integer _Nelem; 
+integer _NelemL; 
+integer _NelemR; 
 integer _Position; 
 integer _Side; 
 
@@ -50,12 +53,8 @@ ooVArray(number) _pValues;
 
 
 protected: void _printEl(); 
-
-
-
-public: static const integer BAD; 
-static const integer WIDE; 
-static const integer NEAR; 
+#line 51 "tcluster.ddl"
+public: 
 #ifdef OO_DDL_TRANSLATION
 #line 51 "tcluster.ddl"
     ooRef(AMSTrRecHitD) pTrRecHitX[] <-> pClusterX;
@@ -136,13 +135,13 @@ static const integer NEAR;
       }
     static ooAssocNumber pTrRecHitY_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
-#line 55 "tcluster.ddl"
+#line 56 "tcluster.ddl"
 AMSTrClusterD(); 
 AMSTrClusterD(class AMSTrCluster *); 
 
 
 inline integer getstatus() { return _Status; }
-inline integer getnelem() { return _Nelem; }
+inline integer getnelem() { return _NelemL + _NelemR; }
 inline number getSigma() { return _Sigma; }
 inline number getRms() { return _Rms; }
 inline number getVal() { return _Sum; }
@@ -152,6 +151,7 @@ inline integer getPosition() { return _Position; }
 inline integer getSide() { return _Side; }
 void copy(AMSTrCluster *); 
 void getValues(number *); 
+
 
 inline void setPosition(integer pos) { _Position = pos; }
 inline void setSide(integer side) { _Side = side; }

@@ -10,9 +10,9 @@
 //                   ooVString Setup
 //                   remove fRunNumber function
 //                   modify number of parameters of AddTrTrack
-// Oct  01,1996      add ooVstring listName
+// Oct    ,1996      add ooVstring listName
 //
-// last edit Oct 18, 1996, ak.
+// last edit Nov 01, 1996, ak.
 //
 
 #include <ooMap.h>
@@ -26,7 +26,6 @@ class AMSEventList : public ooContObj {
 
  private:
 
-//  uinteger  fRunNumber;         // Run Number (if any)
   integer   _listType;          // 0 == simulation
   integer   _nEvents;           // number of events
   integer   _nEventsP;          // number of events
@@ -93,10 +92,13 @@ class AMSEventList : public ooContObj {
    ooStatus AddBeta(char* id, ooHandle(AMSEventD)&  eventH);
    ooStatus AddCharge(char* id, ooHandle(AMSEventD)&  eventH);
    ooStatus AddParticle(char* id, ooHandle(AMSEventD)&  eventH);
+
 //Copy Methods
    ooStatus CopyGeometry(ooMode mode);
    ooStatus CopyMaterial(ooMode mode);
    ooStatus CopyTMedia(ooMode mode);
+   ooStatus CopyEventHeader
+                     (char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
    ooStatus CopyEvent(char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
    ooStatus CopyMCEvent(char* id, ooHandle(AMSEventD)& eventH, ooMode mode);
    ooStatus CopyMCeventg(char* id, ooHandle(AMSEventD)& eventH, ooMode mode);
@@ -119,10 +121,9 @@ class AMSEventList : public ooContObj {
    ooStatus CopyParticle(char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
 
 // Delete Methods
-   ooStatus DeleteEvent(ooHandle(AMSEventD)&  eventH);
+
 
 // Set/Get Methods
-//   const   uinteger& RunNumber()         {return fRunNumber;}
            integer   ListType()          {return _listType;}
    void    setListType(integer listType) {_listType = listType;}
    integer getNEvents()                  {return _nEvents;}
@@ -200,7 +201,15 @@ class AMSEventList : public ooContObj {
    void CopyByPos(ooHandle(AMSgvolumeD)& ptr, ooMode mode);
    void CopyByPtr(AMSNode *ptr);
 
-   ooStatus PrintMap(ooMode mode);
+   ooBoolean  CheckListSstring(char* sstring);
+
+   ooStatus PrintMapStatistics(ooMode mode);
+   ooStatus PrintListStatistics();
+
+// Delete Methods
+   ooStatus DeleteEventList();
+   ooStatus DeleteAllContainers();
+   ooStatus DeleteMap();
 
 };
 

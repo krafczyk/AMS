@@ -1,10 +1,11 @@
 //  method source file for the object AMSTrCluster
 // May 10, 1996. First try with Objectivity 
-// Aug 06, 1996. Add _Side, to build compuond predicate during iteration
+// Aug 06, 1996. Add _Side, to build compound predicate during iteration
 // Sep 10, 1996. V1.25, _pValues
 // Oct 16, 1996. remove AMSTrIdSoft.
+// Nov 15, 1996. NelemL and NelemR
 //
-// Last Edit: Oct 16, 1996. ak.
+// Last Edit: Nov 15, 1996. ak.
 //
 #include <iostream.h>
 #include <string.h>
@@ -18,41 +19,41 @@
 AMSTrClusterD::AMSTrClusterD(){}
 AMSTrClusterD::AMSTrClusterD ( AMSTrCluster* p)
 {
-  //  _Id     = p -> _Id;
   _Status = p -> _Status;
-  _Nelem  = p -> _Nelem;
+  _NelemL = p -> _NelemL;
+  _NelemR = p -> _NelemR;
   _Sum    = p -> _Sum;
   _Sigma  = p -> _Sigma;
   _Mean   = p -> _Mean;
   _Rms    = p -> _Rms;
   _ErrorMean = p -> _ErrorMean;
-  _Side   = p -> _Id.getside();
+  _Side      = p -> _Id.getside();
 }
 
 void AMSTrClusterD::setValues(number* values)
 {
-  if (_Nelem > 0) {
-   _pValues.resize(_Nelem);
-   for (integer i =0; i< _Nelem; i++) { _pValues.set(i,values[i]);}
+  if (getnelem() > 0) {
+   _pValues.resize(_NelemR+_NelemL);
+   for (integer i =0; i< getnelem(); i++) { _pValues.set(i,values[i]);}
   }
 }    
 
 void AMSTrClusterD::getValues(number* values)
 {
-  if (_Nelem > 0) {
-   for (integer i =0; i< _Nelem; i++) { values[i] = _pValues[i];}
+  if (getnelem() > 0) {
+   for (integer i =0; i< getnelem(); i++) { values[i] = _pValues[i];}
   }
 }    
 
  void AMSTrClusterD::copy(AMSTrCluster* p)
 {
-  //   p -> _Id = _Id;     
-   p -> _Status = _Status; 
-   p -> _Nelem  = _Nelem;  
-   p -> _Sum    = _Sum;    
-   p -> _Sigma =  _Sigma;  
-   p -> _Mean  = _Mean;   
-   p -> _Rms   = _Rms;    
+   p -> _Status  = _Status; 
+   p -> _NelemL  = _NelemL;  
+   p -> _NelemR  = _NelemR;  
+   p -> _Sum     = _Sum;    
+   p -> _Sigma   =  _Sigma;  
+   p -> _Mean    = _Mean;   
+   p -> _Rms     = _Rms;    
    p -> _ErrorMean = _ErrorMean; 
 }
 

@@ -17,20 +17,20 @@ class opiDummyDeclaration;
 #include "eventD_ref.h"
 #endif
 
-class AMSTrRecHitD;
-#ifndef OO_BUGGY_TEMPLATES
-class ooHandle(AMSTrRecHitD);
-class ooItr(AMSTrRecHitD);
-class ooRef(AMSTrRecHitD);
-class ooShortRef(AMSTrRecHitD);
-#endif // !defined(OO_BUGGY_TEMPLATES)
-
 class AMSTrClusterD;
 #ifndef OO_BUGGY_TEMPLATES
 class ooHandle(AMSTrClusterD);
 class ooItr(AMSTrClusterD);
 class ooRef(AMSTrClusterD);
 class ooShortRef(AMSTrClusterD);
+#endif // !defined(OO_BUGGY_TEMPLATES)
+
+class AMSTrRecHitD;
+#ifndef OO_BUGGY_TEMPLATES
+class ooHandle(AMSTrRecHitD);
+class ooItr(AMSTrRecHitD);
+class ooRef(AMSTrRecHitD);
+class ooShortRef(AMSTrRecHitD);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
 class AMSTOFClusterD;
@@ -121,7 +121,7 @@ class ooRef(AMSParticleD);
 class ooShortRef(AMSParticleD);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
-#line 22 "eventD.ddl"
+#line 24 "eventD.ddl"
 class AMSTrRecHitD; 
 #ifdef OO_DDL_TRANSLATION
 #pragma ooclassref AMSTrRecHitD <trrechit_ref.h>
@@ -233,58 +233,27 @@ class AMSEventD : public ooObj {
 class ooVString fID; 
 
 time_t _Timestamp; 
-
 integer _run; 
-integer _runtype; 
-integer fErrorCode; 
+short _runtype; 
+short fErrorCode; 
 uinteger fEventNumber; 
 uinteger fTriggerMask; 
 
+short _nTrHits; 
+short _nTrClusters; 
+short _nTOFClusters; 
+short _nCTCClusters; 
+short _nTracks; 
+short _nBetas; 
+short _nCharges; 
+short _nParticles; 
+
+
 integer _Position; 
-#line 83 "eventD.ddl"
+#line 94 "eventD.ddl"
 public: 
 #ifdef OO_DDL_TRANSLATION
-#line 83 "eventD.ddl"
-    ooRef(AMSTrRecHitD) pTrRecHitS[] : delete(propagate);
-#else /* !defined(OO_DDL_TRANSLATION) */
-    /* Methods for unidirectional association link: pTrRecHitS[] */
-    ooStatus pTrRecHitS(ooItr(AMSTrRecHitD)& itr, ooMode mode = oocNoOpen) const;
-    ooStatus pTrRecHitS(ooItr(AMSTrRecHitD)& itr, const char* predicate) const
-      {
-	return opiInitAssocVPredItr(((ooHandle(ooObj) &) (itr)),
-				    ooDysoc(),
-				    ooAssocN(AMSEventD,pTrRecHitS),
-				    predicate,
-				    oocPublic,
-				    oocNoOpen);
-      }
-    ooStatus pTrRecHitS(ooItr(AMSTrRecHitD)& itr,
-		 ooMode mode,
-		 const ooAccessMode access,
-		 const char* predicate) const
-      {
-	return opiInitAssocVPredItr(((ooHandle(ooObj) &) (itr)),
-				    ooDysoc(),
-				    ooAssocN(AMSEventD,pTrRecHitS),
-				    predicate,
-				    access,
-				    mode);
-      }
-    ooStatus add_pTrRecHitS(const ooHandle(AMSTrRecHitD)& newObjH);
-    ooStatus sub_pTrRecHitS(const ooHandle(AMSTrRecHitD)& objH, uint32 number = 1);
-    ooStatus del_pTrRecHitS()
-      {
-	return opiDelUssoc(ooDysoc(), ooAssocN(AMSEventD,pTrRecHitS));
-      }
-    ooBoolean exist_pTrRecHitS(const ooHandle(AMSTrRecHitD)& objH) const;
-    ooBoolean exist_pTrRecHitS() const
-      {
-        return this->exist_pTrRecHitS((ooHandle(AMSTrRecHitD)&) (oocNullHandle));
-      }
-    static ooAssocNumber pTrRecHitS_ooAssocN;
-#endif /* !defined(OO_DDL_TRANSLATION) */
-#ifdef OO_DDL_TRANSLATION
-#line 84 "eventD.ddl"
+#line 94 "eventD.ddl"
     ooRef(AMSTrClusterD) pCluster[] : copy(delete);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pCluster[] */
@@ -324,7 +293,47 @@ public:
     static ooAssocNumber pCluster_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 85 "eventD.ddl"
+#line 96 "eventD.ddl"
+    ooRef(AMSTrRecHitD) pTrRecHitS[] : delete(propagate);
+#else /* !defined(OO_DDL_TRANSLATION) */
+    /* Methods for unidirectional association link: pTrRecHitS[] */
+    ooStatus pTrRecHitS(ooItr(AMSTrRecHitD)& itr, ooMode mode = oocNoOpen) const;
+    ooStatus pTrRecHitS(ooItr(AMSTrRecHitD)& itr, const char* predicate) const
+      {
+	return opiInitAssocVPredItr(((ooHandle(ooObj) &) (itr)),
+				    ooDysoc(),
+				    ooAssocN(AMSEventD,pTrRecHitS),
+				    predicate,
+				    oocPublic,
+				    oocNoOpen);
+      }
+    ooStatus pTrRecHitS(ooItr(AMSTrRecHitD)& itr,
+		 ooMode mode,
+		 const ooAccessMode access,
+		 const char* predicate) const
+      {
+	return opiInitAssocVPredItr(((ooHandle(ooObj) &) (itr)),
+				    ooDysoc(),
+				    ooAssocN(AMSEventD,pTrRecHitS),
+				    predicate,
+				    access,
+				    mode);
+      }
+    ooStatus add_pTrRecHitS(const ooHandle(AMSTrRecHitD)& newObjH);
+    ooStatus sub_pTrRecHitS(const ooHandle(AMSTrRecHitD)& objH, uint32 number = 1);
+    ooStatus del_pTrRecHitS()
+      {
+	return opiDelUssoc(ooDysoc(), ooAssocN(AMSEventD,pTrRecHitS));
+      }
+    ooBoolean exist_pTrRecHitS(const ooHandle(AMSTrRecHitD)& objH) const;
+    ooBoolean exist_pTrRecHitS() const
+      {
+        return this->exist_pTrRecHitS((ooHandle(AMSTrRecHitD)&) (oocNullHandle));
+      }
+    static ooAssocNumber pTrRecHitS_ooAssocN;
+#endif /* !defined(OO_DDL_TRANSLATION) */
+#ifdef OO_DDL_TRANSLATION
+#line 97 "eventD.ddl"
     ooRef(AMSTOFClusterD) pTOFCluster[] : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pTOFCluster[] */
@@ -364,7 +373,7 @@ public:
     static ooAssocNumber pTOFCluster_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 86 "eventD.ddl"
+#line 98 "eventD.ddl"
     ooRef(AMSCTCClusterD) pCTCCluster[] : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pCTCCluster[] */
@@ -404,7 +413,7 @@ public:
     static ooAssocNumber pCTCCluster_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 87 "eventD.ddl"
+#line 99 "eventD.ddl"
     ooRef(AMSTrMCClusterD) pMCCluster[] : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pMCCluster[] */
@@ -444,7 +453,7 @@ public:
     static ooAssocNumber pMCCluster_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 88 "eventD.ddl"
+#line 100 "eventD.ddl"
     ooRef(AMSTOFMCClusterD) pTOFMCCluster[] : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pTOFMCCluster[] */
@@ -484,7 +493,7 @@ public:
     static ooAssocNumber pTOFMCCluster_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 89 "eventD.ddl"
+#line 101 "eventD.ddl"
     ooRef(AMSCTCMCClusterD) pCTCMCCluster[] : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pCTCMCCluster[] */
@@ -524,7 +533,7 @@ public:
     static ooAssocNumber pCTCMCCluster_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 90 "eventD.ddl"
+#line 102 "eventD.ddl"
     ooRef(AMSAntiMCClusterD) pAntiMCCluster[] : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pAntiMCCluster[] */
@@ -564,7 +573,7 @@ public:
     static ooAssocNumber pAntiMCCluster_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 91 "eventD.ddl"
+#line 103 "eventD.ddl"
     ooRef(AMSmceventgD) pmcEventg[] : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pmcEventg[] */
@@ -604,7 +613,7 @@ public:
     static ooAssocNumber pmcEventg_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 92 "eventD.ddl"
+#line 104 "eventD.ddl"
     ooRef(AMSTrTrackD) pTrack[] <-> pEventT : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pTrack[] */
@@ -644,7 +653,7 @@ public:
     static ooAssocNumber pTrack_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 93 "eventD.ddl"
+#line 105 "eventD.ddl"
     ooRef(AMSBetaD) pBeta[] <-> pEventB : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pBeta[] */
@@ -684,7 +693,7 @@ public:
     static ooAssocNumber pBeta_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 94 "eventD.ddl"
+#line 106 "eventD.ddl"
     ooRef(AMSChargeD) pChargeE[] <-> pEventCh : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pChargeE[] */
@@ -724,7 +733,7 @@ public:
     static ooAssocNumber pChargeE_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 95 "eventD.ddl"
+#line 107 "eventD.ddl"
     ooRef(AMSParticleD) pParticleE[] <-> pEventP : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pParticleE[] */
@@ -763,7 +772,7 @@ public:
       }
     static ooAssocNumber pParticleE_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
-#line 99 "eventD.ddl"
+#line 111 "eventD.ddl"
 AMSEventD(); 
 AMSEventD(uinteger, integer, integer, time_t, char *); 
 
@@ -771,14 +780,48 @@ AMSEventD(uinteger, integer, integer, time_t, char *);
 
 
 inline integer &RunNumber() { return _run; }
-inline integer &RunType() { return _runtype; }
+inline short &RunType() { return _runtype; }
 inline uinteger &EventNumber() { return fEventNumber; }
 inline time_t &TriggerTime() { return _Timestamp; }
 inline uinteger &Trigmask() { return fTriggerMask; }
-inline integer &ErrorCode() { return fErrorCode; }
+inline short &ErrorCode() { return fErrorCode; }
 inline const char *GetID() { return fID; }
 inline integer getPosition() { return _Position; }
-void getNumbers(integer *, uinteger *, time_t &); 
+void getNumbers(integer &, integer &, uinteger &, time_t &); 
+
+
+inline void incTrHits() { _nTrHits ++; }
+inline void decTrHits() { _nTrHits --; }
+inline short &TrHits() { return _nTrHits; }
+
+inline void incTrClusters() { _nTrClusters ++; }
+inline void decTrClusters() { _nTrClusters --; }
+inline short &TrClusters() { return _nTrClusters; }
+
+inline void incTOFClusters() { _nTOFClusters ++; }
+inline void decTOFClusters() { _nTOFClusters --; }
+inline short &TOFClusters() { return _nTOFClusters; }
+
+inline void incCTCClusters() { _nCTCClusters ++; }
+inline void decCTCClusters() { _nCTCClusters --; }
+inline short &CTCClusters() { return _nCTCClusters; }
+
+inline void incTracks() { _nTracks ++; }
+inline void decTracks() { _nTracks --; }
+inline short &Tracks() { return _nTracks; }
+
+inline void incBetas() { _nBetas ++; }
+inline void decBetas() { _nBetas --; }
+inline short &Betas() { return _nBetas; }
+
+inline void incCharges() { _nCharges ++; }
+inline void decCharges() { _nCharges --; }
+inline short &Charges() { return _nCharges; }
+
+inline void incParticles() { _nParticles ++; }
+inline void decParticles() { _nParticles --; }
+inline short &Particles() { return _nParticles; }
+
 
 
 inline void setPosition(integer position) { _Position = position; }
@@ -802,7 +845,7 @@ void Print();
     static void ooAssocRegister();
     ooRef(AMSEventD)& ooThis(ooRef(AMSEventD)& objId, ooMode aMode = oocNoOpen) const;
     AMSEventD(ooInternalObj iobj);
-#line 121 "eventD.ddl"
+#line 167 "eventD.ddl"
 }; 
 
 #endif /* !defined(EVENT_D_H) */

@@ -1,6 +1,6 @@
 // class AMSMCEVENTG, Oct 02, 1996. ak.
 //
-// last edit : Oct 02, 1996
+// last edit : Nov 08, 1996
 //
 #include <typedefs.h>
 #include <point.h>
@@ -27,9 +27,12 @@ public:
 // constructors
 AMSmceventgD();
 AMSmceventgD(AMSmceventg* p);
-
+AMSmceventgD(AMSPoint coo, AMSDir dir, number mom, number mass, number charge, 
+             integer ipart, integer seed0, integer seed1);
 // get/set methods
 void copy(AMSmceventg* p);
 integer getPosition()    {return _Position;}
 void    setPosition(integer pos) {_Position = pos;}
+void    getAll(AMSPoint& coo, AMSDir& dir, number& mom, number& mass, 
+               number& charge, integer& ipart, integer& seed0, integer& seed1);
 };

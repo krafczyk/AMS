@@ -176,6 +176,7 @@ void LMS::CheckConstants()
        cout <<"AMSEventList::CheckConstants -I- check amsdbc"<<endl;
        rstatus = amsdbcItr -> CmpConstants();
       } 
+      
       commonsItr.scan(contH, mode);
       if (commonsItr.next()) {
        cout <<"AMSEventList::CheckConstants -I- check commons"<<endl;

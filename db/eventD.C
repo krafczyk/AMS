@@ -1,7 +1,7 @@
 // method source file for the object AMSEvent
 // May 06, 1996. ak. First try with Objectivity 
 //
-// last edit Oct 04, 1996. ak.
+// last edit Oct 30, 1996. ak.
 
 #include <iostream.h>
 #include <string.h>
@@ -27,9 +27,9 @@ AMSEventD::AMSEventD (uinteger EventNumber, integer run, integer runtype,
   _run         = run;
   _runtype     = runtype;
   _Timestamp   = time;
-  fTriggerMask = fErrorCode = 0;
-  //if (ID) strcpy(fID, ID);
-  fID = ID;
+  fTriggerMask = 0;
+  fErrorCode   = 0;
+  fID          = ID;
 }
 
 void AMSEventD::Print()
@@ -40,9 +40,11 @@ void AMSEventD::Print()
 
 
 
-void AMSEventD::getNumbers(integer* ibuff, uinteger* ubuff, time_t& time)
+void AMSEventD::getNumbers
+              (integer& run, integer& runtype, uinteger& eventn, time_t& time)
 {
-  UCOPY(&_run,ibuff,sizeof(integer)*3/4);
-  UCOPY(&fEventNumber,ubuff,sizeof(uinteger)*2/4);
-  time = _Timestamp;
+  run     = _run;
+  runtype = _runtype;
+  eventn  = fEventNumber;
+  time    = _Timestamp;
 }

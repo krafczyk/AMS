@@ -2,7 +2,7 @@
 // method source file for the object AMSmceventgD
 // Oct 02, 1996. First try with Objectivity 
 //
-// Oct 10, 1996. Last edit , ak.
+// Nov 08, 1996. Last edit , ak.
 //
 #include <iostream.h>
 #include <string.h>
@@ -24,6 +24,19 @@ AMSmceventgD::AMSmceventgD(AMSmceventg* p) {
  _seed[1]   = p -> _seed[1];
 
 }
+AMSmceventgD::AMSmceventgD(AMSPoint coo, AMSDir dir, number mom, 
+                           number mass, number charge, integer ipart, 
+                           integer seed0, integer seed1)
+{
+ _coo      = coo;
+ _dir      = dir;
+ _mom      = mom;
+ _mass     = mass;
+ _charge   = charge;
+ _ipart    = ipart;
+ _seed[0]  = seed0;
+ _seed[1]  = seed1;
+}
 
 void AMSmceventgD::copy(AMSmceventg* p) {
 
@@ -37,3 +50,16 @@ void AMSmceventgD::copy(AMSmceventg* p) {
   p -> _seed[1] = _seed[1];   
 }
 
+void   AMSmceventgD::getAll(AMSPoint& coo, AMSDir& dir, number& mom, 
+                           number& mass, number& charge, integer& ipart, 
+                           integer& seed0, integer& seed1)
+{
+ coo    = _coo;
+ dir    = _dir;
+ mom    = _mom;
+ mass   = _mass;
+ charge = _charge;
+ ipart  = _ipart;
+ seed0  = _seed[0];
+ seed1  = _seed[1];
+}

@@ -13,9 +13,11 @@
 // Sep, 24, 1996. ak. set one to many assoc. between Event and Charge,
 //                    Event and Particle
 //                    Add AMSCTCClusterD definitions and ref.
-// Oct, 16, 1996. ak. add delete(propagate)
+// Oct,   , 1996. ak. add delete(propagate)
+//                    keep number of tracks, clusters, hits per event
+//                    use short instead of integer for runtype and errorcode
 //
-// Last Edit: Oct 16, 1996. ak.
+// Last Edit: Oct 31, 1996. ak.
 
 #include <typedefs.h>
 
@@ -59,18 +61,27 @@ class AMSmceventgD;
 #pragma ooclassref AMSmceventgD <mceventgD_ref.h>
 
 class AMSEventD : public ooObj {
+
  private:
 
-  //char       fID[256];          // unique ID
   ooVString    fID;
-
+   
   time_t     _Timestamp;        // time of the trigger
-
   integer    _run;              // run number
-  integer    _runtype;          // type of Run
-  integer    fErrorCode;        // error code, if any
+  short      _runtype;          // type of Run
+  short      fErrorCode;        // error code, if any
   uinteger   fEventNumber;      // event number
   uinteger   fTriggerMask;      // trigger mask
+
+  short      _nTrHits;          // number of TrRecHits
+  short      _nTrClusters;      // number of TrClusters
+  short      _nTOFClusters;     // number of TOFClusters
+  short      _nCTCClusters;     // number of CTCClusters
+  short      _nTracks;          // number of Tracks
+  short      _nBetas;           // number of Betas
+  short      _nCharges;         // number of Charges
+  short      _nParticles;       // number of Particles
+
 
   integer    _Position;         // position in the container
 
@@ -80,8 +91,9 @@ class AMSEventD : public ooObj {
 
 //Assosiations
   
-  ooRef(AMSTrRecHitD)      pTrRecHitS[]   : delete (propagate);
-  ooRef(AMSTrClusterD)     pCluster[]     : copy (delete);
+  ooRef(AMSTrClusterD)     pCluster[]       : copy (delete);
+  //ooRef(AMSTrClusterD)     pCluster[]     : delete (propagate);  
+  ooRef(AMSTrRecHitD)      pTrRecHitS[]     : delete (propagate);
   ooRef(AMSTOFClusterD)    pTOFCluster[]    : delete (propagate);
   ooRef(AMSCTCClusterD)    pCTCCluster[]    : delete (propagate);
   ooRef(AMSTrMCClusterD)   pMCCluster[]     : delete (propagate);
@@ -103,17 +115,51 @@ class AMSEventD : public ooObj {
 // Get Methods
 
   inline   integer&  RunNumber()        {return _run;}
-  inline   integer&  RunType()          {return _runtype;}
+  inline   short&    RunType()          {return _runtype;}
   inline   uinteger& EventNumber()      {return fEventNumber;}
   inline   time_t&   TriggerTime()      {return _Timestamp;}
   inline   uinteger& Trigmask()         {return fTriggerMask;}
-  inline   integer&  ErrorCode()        {return fErrorCode;}
+  inline   short&    ErrorCode()        {return fErrorCode;}
   const    char*     GetID()            {return fID;}
-  integer  getPosition() { return _Position;}
-  void     getNumbers(integer* ibuff, uinteger* ubuff, time_t& time);
+  integer  getPosition()                { return _Position;}
+  void     getNumbers
+             (integer& run, integer& runtype, uinteger& eventn, time_t& time);
+
+  inline void incTrHits() {_nTrHits++;}
+  inline void decTrHits() {_nTrHits--;}
+  inline short& TrHits()  {return _nTrHits;}
+
+  inline void incTrClusters() {_nTrClusters++;}
+  inline void decTrClusters() {_nTrClusters--;}
+  inline short& TrClusters()  {return _nTrClusters;}
+
+  inline void incTOFClusters() {_nTOFClusters++;}
+  inline void decTOFClusters() {_nTOFClusters--;}
+  inline short& TOFClusters()  {return _nTOFClusters;}
+
+  inline void incCTCClusters() {_nCTCClusters++;}
+  inline void decCTCClusters() {_nCTCClusters--;}
+  inline short& CTCClusters()  {return _nCTCClusters;}
+
+  inline void incTracks() {_nTracks++;}
+  inline void decTracks() {_nTracks--;}
+  inline short& Tracks()  {return _nTracks;}
+
+  inline void incBetas()        {_nBetas++;}
+  inline void decBetas()        {_nBetas--;}
+  inline short& Betas()         {return _nBetas;}
+
+  inline void incCharges()      {_nCharges++;}
+  inline void decCharges()      {_nCharges--;}
+  inline short& Charges()       {return _nCharges;}
+
+  inline void incParticles()    {_nParticles++;}
+  inline void decParticles()    {_nParticles--;}
+  inline short& Particles()     {return _nParticles;}
+
 
 // Set Methods
- void setPosition(integer position) {_Position = position;}
+  void setPosition(integer position)    {_Position = position;}
 
 //
   void Print();

@@ -8,7 +8,7 @@
 //                    remove fRunNumber class member from list.ddl
 //                    set map per list, not map per dbase as before
 //
-// last edit Oct 07, 1996, ak.
+// last edit Nov 10, 1996, ak.
 //
 
 #include <stdio.h>
@@ -61,8 +61,6 @@ ooStatus   LMS::AddEvent(char* listName,
         if (WriteStartEnd == 1 || WriteStartEnd == -2) {
          rstatus = Start(oocUpdate);
          if (rstatus != oocSuccess) return rstatus;
-         //cout <<"AddEvent:: -I- StartTransaction, WriteStartEnd "
-         //     <<WriteStartEnd<<endl;
          StartRealTime = times(&cpt);
         }
 // Get pointer to default database
@@ -88,15 +86,9 @@ ooStatus   LMS::AddEvent(char* listName,
         if (rstatus == oocSuccess) {
           cout <<"LMS::AddEvent -W- event with ID "<<eventID
                <<" will be overwritten "<<endl;
-          //rstatus = Commit();
-          //rstatus = Start(mode);
-          //rstatus = listH -> FindEvent(eventID, mode, eventH, mapH);
-          //cout<<eventH -> RunNumber()<< " "<<eventH -> EventNumber()<<endl;
           rstatus = mapH -> remove(eventID);
           rstatus = ooDelete(eventH);
           listH -> decNEvents();
-          //rstatus = Commit();
-          //rstatus = Start(mode);
         }
 
         rstatus = listH -> AddEvent(run, eventNumber, eventID, eventW, mapH);
@@ -251,10 +243,18 @@ ooStatus LMS::GetEvent(char* listName, char* eventID, integer run,
           goto error;}
         }
 
-        if(eventT == 10)rstatus = listH -> CopyMCeventg(eventID, eventH, mode);
-        if(eventT == 100)rstatus = listH -> CopyMCEvent(eventID, eventH, mode);
-        if(eventT == 1000) rstatus = listH -> CopyEvent(eventID, eventH, mode);
-
+        if(eventT > 1) 
+             rstatus = listH -> CopyEventHeader(eventID, eventH, mode);
+        if (rstatus == oocSuccess) {
+         if(eventT == 10)rstatus = 
+                          listH -> CopyMCeventg(eventID, eventH, mode);
+         if(eventT == 100)rstatus = 
+                          listH -> CopyMCEvent(eventID, eventH, mode);
+         if(eventT == 1000) rstatus = 
+                          listH -> CopyEvent(eventID, eventH, mode);
+        } else {
+	 strcpy(err_mess, "Cannot copy event header. Quit. ");
+        }          
 error:
         if (rstatus == oocSuccess) {
           if (ReadStartEnd == -1 || ReadStartEnd == -2) {
@@ -580,11 +580,12 @@ ooStatus LMS::Getmceventg
          rstatus = oocError;
          nevents = listH -> getNEvents();
          if (nevents != 0) {
-           if (mceventgItr.next() != NULL) {
+          if (mceventgItr.next() != NULL) {
+           cout <<"Run, event "<<mceventgItr -> RunNumber()<<", "
+                              <<mceventgItr -> EventNumber()<<endl;
+           rstatus = listH -> CopyEventHeader(eventID, mceventgItr, mode);
            rstatus = listH -> CopyMCeventg(eventID, mceventgItr, mode);
-           //           cout <<"Run, event "<<mceventgItr -> RunNumber()<<", "
-           //                              <<mceventgItr -> EventNumber()<<endl;
-           }
+          }
          } else {
           do_commit = 1;
          } 

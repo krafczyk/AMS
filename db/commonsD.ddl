@@ -1,7 +1,8 @@
 // AMS common blocks
 // Objectivity version Oct 08, 1996 ak
+// Nov 12, 1996. ak. remove amsffkey and iopa from class definition
 //
-// Last Edit : Oct 11, 1996. ak.
+// Last Edit : Nov 12, 1996. ak.
 //
 
 #include <typedefs.h>
@@ -10,8 +11,6 @@
 class AMScommonsD : public ooObj {
 
 protected :
- AMSFFKEY_DEF     amsffkeyD;
- IOPA_DEF         iopaD;
  TOFMCFFKEY_DEF   tofmcffkeyD;
  TOFRECFFKEY_DEF  tofrecffkeyD;
  CTCGEOMFFKEY_DEF ctcgeomffkeyD;
