@@ -18,7 +18,7 @@
 //
 const integer ECFLSMX=10; // max. fiber-layers per S-layer
 const integer ECFBCMX=12; // max. fibers per layer in PMcell
-const integer ECSLMX=8; // max. S(uper)-layers
+const integer ECSLMX=9; // max. S(uper)-layers
 const integer ECPMSMX=36; // max. PMCell(PM's) per S-layer
 const integer ECFBLMX=500;// max. fibers per layer
 const integer ECROTN=10000; // geant numbering of ECAL rot. matr.(starting from...)

@@ -20,7 +20,7 @@ integer ECALDBc::debug=1;
 //---> default structural. data:
 //
 geant ECALDBc::_gendim[10]={
-   64.8,64.8,16., // i=1-3  x,y,z-dimentions of EC-radiator
+   64.8,64.8,18., // i=1-3  x,y,z-dimentions of EC-radiator
    11.4,          //  =4    dx(dy) thickn.of (PMT+electronics)-volume
    0.,0.,       //  =5,6    center shift in x,y   
   -142.3,       //  =7      Radiator(!!!) front face Z-pozition
@@ -46,7 +46,7 @@ geant ECALDBc::_rdcell[10]={
 integer ECALDBc::_slstruc[6]={
     1,           // i=1   1st super-layer projection(0->X, 1->Y)
    10,           // i=2   numb. of fiber-layers per super-layer
-   8,            //  =3   numb. of super-layers (X+Y)
+   9,            //  =3   numb. of super-layers (X+Y)
    36,           //  =4   numb. of PMT's per super-layer (in X(Y))
    1,1           //  =5-6 readout dir. in X/Y-proj (=1/-1->+/-) for the 1st PM-cell.  
 };
