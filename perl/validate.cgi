@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: validate.cgi,v 1.2 2002/03/11 16:41:40 alexei Exp $
+#  $Id: validate.cgi,v 1.3 2002/03/13 08:49:35 choutko Exp $
 use Gtk;
 use strict;
 
@@ -7,8 +7,8 @@ use strict;
 use lib::RemoteClient;
 
 
-my $debug="-D";
-unshift @ARGV, -N/cgi-bin/mon/validate.cgi;
+my $debug="-d";
+unshift @ARGV, "-N/cgi-bin/mon/validate.cgi";
 
 
 
