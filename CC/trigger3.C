@@ -1081,6 +1081,7 @@ void TriggerLVL3::_printEl(ostream & stream){
 }
 
 integer TriggerLVL3::LVL3OK(){
-  if(_TrackerTrigger ==0  || _TrackerTrigger ==2 )return 0;
+  if(_TrackerTrigger ==0  || _TrackerTrigger ==2 ||
+     (TRFITFFKEY.FastTracking>1 && _TrackerTrigger ==3))return 0;
   else return 1;
 }

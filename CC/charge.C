@@ -78,8 +78,12 @@ integer AMSCharge::build(integer refit){
           AMSPoint SenPnt=phit->getHit();
            ptrack->interpolate(SenPnt, SenDir, P1, theta, phi, sleng);
            AMSDir DTr(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));
-           EdepTracker[nhitTracker]=AMSTrRawCluster::ADC2KeV()*phit->getsum()*
-           pow(min(one,pbeta->getbeta()),2)*fabs(SenDir.prod(DTr));
+           int good=!phit->checkstatus(AMSTrRecHit::FalseX) && 
+             !phit->checkstatus(AMSTrRecHit::FalseTOFX);
+           geant sum=phit->getsum();
+           EdepTracker[nhitTracker]=AMSTrRawCluster::ADC2KeV()*
+             (good?sum:2*sum)*pow(min(one,pbeta->getbeta()),2)*
+             fabs(SenDir.prod(DTr));
          nhitTracker++;
          } else {
            cout<<"AMSCharge::build -E- phit -> getpsen == NULL "
