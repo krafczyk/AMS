@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.6 2004/01/19 22:38:06 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.7 2004/01/20 19:59:18 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSTOFHist.h"
@@ -29,18 +29,17 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
    }   
   return true;
   case kC_COMMAND:
-    
     switch (GET_SUBMSG(msg)) {
           
     case kCM_CHECKBUTTON:
     case kCM_RADIOBUTTON:
     case kCM_BUTTON:
       if(parm1/100000 == 2){
-	gAMSDisplay->Dispatch(parm1%100);
+	gAMSDisplay->Dispatch(parm1%1000);
 	return kTRUE;
       }
       if(parm1/100000 == 3){
-	(gAMSDisplay->getSubDet(parm1%100))->SetActive(_pcycle[parm1%100]->GetState());
+	(gAMSDisplay->getSubDet(parm1%1000))->SetActive(_pcycle[parm1%1000]->GetState());
 	return kTRUE;
       }
       if(parm1/100 == 5){
@@ -98,8 +97,9 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       break;
     case kCM_MENU:
       if(parm1/100000 ==1){
-	int sdet=(parm1/1000)%1000;
+	int sdet=(parm1/1000)%100;
 	int set=parm1%1000;
+//        cout <<"  get det/set "<<sdet<<" "<<set<<endl;
         gAMSDisplay->Dispatch(sdet,set);
         gAMSDisplay->GetCanvas()->Update();         
 
@@ -183,17 +183,33 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     fSaveAsMenu->AddSeparator();
     fSaveAsMenu->AddEntry("&Quit",4);
     fDetMenu=new TGPopupMenu(fClient->GetRoot());
-    for(i=0;i<gAMSDisplay->getMaxSubDet();i++)
-      fSubDetCascadeMenu.push_back(new TGPopupMenu(fClient->GetRoot()));
+//    for(i=0;i<gAMSDisplay->getMaxSubDet();i++)
+//      fSubDetCascadeMenu.push_back(new TGPopupMenu(fClient->GetRoot()));
+    
     for(i=0;i<gAMSDisplay->getMaxSubDet();i++)fSubDetMenu.push_back(new TGPopupMenu(fClient->GetRoot()));
     
     for(i=0;i<fSubDetMenu.size();i++){
-      
+      if(i<fSubDetMenu.size()-1){
       for(int j=0;j<gAMSDisplay->getSubDet(i)->getMSet();j++){
         int kpar=100000+1000*i+j;
         fSubDetMenu[i]->AddEntry(gAMSDisplay->getSubDet(i)->GetSetName(j),kpar);
       }
-      
+      }
+      else{
+        TGPopupMenu *fmenu=0;
+      for(int j=0;j<gAMSDisplay->getSubDet(i)->getMSet();j++){
+        int kpar=100000+1000*i+j;
+        if(gAMSDisplay->getSubDet(i)->GetSetName(j)[0]=='_'){
+//         cout <<"  fmenu "<<gAMSDisplay->getSubDet(i)->GetSetName(j)<<endl;
+         fmenu= new TGPopupMenu(fClient->GetRoot());
+         fSubDetMenu[i]->AddPopup(gAMSDisplay->getSubDet(i)->GetSetName(j)+1,fmenu);
+         fmenu->AddEntry(gAMSDisplay->getSubDet(i)->GetSetName(j)+1,kpar);
+        }
+        else{
+         fmenu->AddEntry(gAMSDisplay->getSubDet(i)->GetSetName(j),kpar);
+        }
+      }       
+      }      
     }
     
     
@@ -205,10 +221,10 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     fDetMenu->Associate(this);
     fSaveAsMenu->Associate(this);
     for(i=0;i<fSubDetMenu.size();i++)fSubDetMenu[i]->Associate(this);
-    for(i=0;i<fSubDetMenu.size();i++)fSubDetCascadeMenu[i]->Associate(this);
+//    for(i=0;i<fSubDetMenu.size();i++)fSubDetCascadeMenu[i]->Associate(this);
     
     for(i=0;i<fSubDetMenu.size();i++)fDetMenu->AddPopup(gAMSDisplay->getSubDet(i)->GetName(), fSubDetMenu[i]);
-    
+     
 
    // Create menubar
     fMenuBar = new TGMenuBar(this, 1, 1, kHorizontalFrame);

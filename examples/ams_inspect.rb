@@ -1,21 +1,3 @@
-/*! \example ams_inspect.rb
- *
- *    - SCRIPT ams_inspect, to plot interactively variables from AMS root files:
- *                 - ams_inspect [files]
- *
- *    - EXAMPLES: 
- *       - ams_inspect &
- *       - ams_inspect /f2users/choutko/g3v1g3.root &
- *       - ams_inspect /f2users/choutko/g3v1g3*.root &
- *
- *    - IMPORTANT: 
- *       - Please set the $AMSDir environment variable before using the script
- *       - It uses the "Ruby" scripting language (http://www.ruby-lang.org/en/)
- *       - To install Ruby with the Tk package on your computer, use:
- *              - "./configure --with-ext; make; make install"
- *
- */
-
 #!/usr/bin/env ruby
 #   Ruby/Tk GUI to plot AMS variables
 #   Juan Alcaraz, Jan-2004

@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.49 2003/07/14 07:47:11 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.50 2004/01/20 19:59:11 choutko Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -137,6 +137,7 @@ VII.  Standalone version
            cd mydir
            tar -xvf ~/ams.tar
            setenv AMSDataDir mydir
+           rm $AMSDataDir/DataBase/.*.map
              
           Third party libraries you may need to install
           i)   cernlib 

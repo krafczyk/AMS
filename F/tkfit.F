@@ -246,7 +246,7 @@ C (F*S_x*F + G*S_y*G)**{-1}
         ENDIF
         CALL DINV (5, DD, IDIM_EFF, IDAUX, IFAIL)
         IF (IFAIL.LT.0) THEN
-          PRINT*,' DD Covariance Matrix is Singular !!!'
+c          PRINT*,' DD Covariance Matrix is Singular !!!'
           outpar(5)=0
           GOTO 999
         ENDIF
