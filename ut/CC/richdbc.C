@@ -186,5 +186,5 @@ geant RICHDB::pmt_response(integer n_photons){ // Quite unefficient
 
   return u1*sqrt(-2*log(r*r)/r/r)*sqrt(sigma_ped*sigma_ped+
 				       n_photons*sigma_peak*sigma_peak)+
-    n_photons*peak-ped;  
+    n_photons*peak+ped;  
 }
