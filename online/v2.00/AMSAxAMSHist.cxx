@@ -26,7 +26,7 @@ _filled2[i++]->SetFillColor(color++);
 _filled2[i]=new TH1F("Charge","Charge",20,0.5,10.5);
 _filled2[i]->SetXTitle("Charge");
 _filled2[i++]->SetFillColor(color++);
-_filled2[i]=new TH1F("Velocity","Velocity",100,0.2,1.2);
+_filled2[i]=new TH1F("Velocity","Velocity",240,-1.2,1.2);
 _filled2[i]->SetXTitle("Velocity");
 _filled2[i++]->SetFillColor(color++);
 _filled2[i]=new TH1F("Mass","Mass",200,0.01,10.01);
