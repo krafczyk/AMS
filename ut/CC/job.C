@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.450 2003/06/03 10:13:04 choumilo Exp $
+// $Id: job.C,v 1.451 2003/06/19 15:21:18 isevilla Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -9,6 +9,7 @@
 //
 // Last Edit : Dec 27, 1997. ak. 
 //
+
 #include <tofdbc02.h>
 #include <ecaldbc.h>
 #include <ecalcalib.h>
@@ -552,6 +553,14 @@ CCFFKEY.StrMass=-1;
 CCFFKEY.SpecialCut=0;
 CCFFKEY.curtime=0;
 FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
+
+GMFFKEY.GammaSource=0; //ISN  
+GMFFKEY.SourceCoo[0]=1.46; //RA
+GMFFKEY.SourceCoo[1]=0.384; //DEC default:Crab
+GMFFKEY.SourceVisib=0.873; //50 degrees
+GMFFKEY.GammaBg=0;
+GMFFKEY.BgAngle=0.087; //5 degrees
+FFKEY("GMSRC",(float*)&GMFFKEY,sizeof(GMFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=================================================================================
 //

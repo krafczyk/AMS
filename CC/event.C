@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.314 2003/06/03 10:13:04 choumilo Exp $
+//  $Id: event.C,v 1.315 2003/06/19 15:21:18 isevilla Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -9,6 +9,7 @@
 //
 // Last Edit : Jan 07, 1999. ak.
 //
+
 #include <trrawcluster.h>
 #include <typedefs.h> 
 #include <tofdbc02.h> 
@@ -453,7 +454,7 @@ void AMSEvent::_signinitevent(){
     geant dd; 
     int i;
     number xsec=0;
-      if(CCFFKEY.low==0){
+    if(CCFFKEY.low==0&&GMFFKEY.GammaSource==0){ //equispaced events for sources for now
        xsec+=-dtime*(AMSmceventg::Orbit.Nskip+1)*log(RNDM(dd)+1.e-30);
       }
       else xsec+=dtime*(AMSmceventg::Orbit.Nskip+1);
@@ -470,8 +471,8 @@ void AMSEvent::_signinitevent(){
 //      return;
 //    }
     _NorthPolePhi=AMSmceventg::Orbit.PolePhi;
-    AMSmceventg::Orbit.UpdateOrbit(curtime, _StationTheta,_StationPhi,
-    _NorthPolePhi,_time);
+    AMSmceventg::Orbit.UpdateOrbit(curtime,_StationTheta,_StationPhi,_NorthPolePhi,_StationRa,_StationDec,_StationGLat,_StationGLong,_time);
+
     _usec=(curtime-integer(curtime))*1000000000;  // nsec for mc
     AMSmceventg::Orbit.Nskip=0;        
     AMSmceventg::Orbit.Ntot++;
@@ -487,6 +488,35 @@ void AMSEvent::_signinitevent(){
     //cout <<" 2 "<<AMSmceventg::Orbit.Axis<<" "<<ax1.prod(AMSmceventg::Orbit.Axis)<<endl;
     _VelTheta=AMSDBc::pi/2-ax2.gettheta();
     _VelPhi=ax2.getphi();
+    
+    // Once ISS celestial coo have been calculated, obtain AMS celestial coo
+    number raf,decf;
+    const float tilt=0.20944; // tilt of about 12 degrees around forward direction 
+    
+    skyposition forwardpos(_VelTheta,fmod(_VelPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi),_StationRad,_time); // calculate celestial position towards which ISS advances (X_lvlh)
+    forwardpos.GetRa(raf);  
+    forwardpos.GetDec(decf);  
+    
+    geant ziss[3],xiss[3],yiss[3],zams[3];
+    
+    ziss[0] = cos(_StationRa)*cos(_StationDec); // ISS pointing direction
+    ziss[1] = sin(_StationRa)*cos(_StationDec);
+    ziss[2] = sin(_StationDec);  
+    yiss[0] = -cos(raf)*cos(decf); // vector yiss points "backwards"
+    yiss[1] = -sin(raf)*cos(decf);
+    yiss[2] = -sin(decf);  
+    xiss[0] = yiss[1]*ziss[2]-ziss[1]*yiss[2]; // yiss x ziss
+    xiss[1] = -(yiss[0]*ziss[2]-ziss[0]*yiss[2]);
+    xiss[2] = yiss[0]*ziss[1]-ziss[0]*yiss[1];
+    zams[0] = sin(tilt)*xiss[0]+cos(tilt)*ziss[0]; // AMS pointing direction
+    zams[1] = sin(tilt)*xiss[1]+cos(tilt)*ziss[1];
+    zams[2] = sin(tilt)*xiss[2]+cos(tilt)*ziss[2];
+
+    _AMSRa=fmod(atan2(zams[1],zams[0])+AMSDBc::twopi,AMSDBc::twopi);
+    _AMSDec=asin(zams[2]);
+    skyposition amspos(_AMSRa,_AMSDec);
+    amspos.GetLong(_AMSGLong);
+    amspos.GetLat(_AMSGLat);
   }
   else if(AMSJob::gethead()->isSimulation() && rec){
   if(CCFFKEY.oldformat){
@@ -2140,6 +2170,14 @@ void AMSEvent::_writeEl(){
   EN->VelocityS=_StationSpeed;
   EN->VelTheta=_VelTheta;
   EN->VelPhi=fmod(_VelPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
+  EN->Ra=_StationRa*(360/AMSDBc::twopi);// ISN 
+  EN->Dec=_StationDec*(360/AMSDBc::twopi); // ISN 
+  EN->GLat=_StationGLat*(360/AMSDBc::twopi); //ISN 
+  EN->GLong=_StationGLong*(360/AMSDBc::twopi);//ISN 
+  EN->AMSRa=_AMSRa*(360/AMSDBc::twopi);// ISN 
+  EN->AMSDec=_AMSDec*(360/AMSDBc::twopi); // ISN 
+  EN->AMSGLat=_AMSGLat*(360/AMSDBc::twopi); //ISN 
+  EN->AMSGLong=_AMSGLong*(360/AMSDBc::twopi);//ISN     
   integer  i,nc;
   AMSContainer *p;
 //  EN->Particles=0;

@@ -1,8 +1,9 @@
-//  $Id: ntuple.C,v 1.146 2003/05/16 16:53:57 choutko Exp $
+//  $Id: ntuple.C,v 1.147 2003/06/19 15:21:17 isevilla Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
 //  
+
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -65,7 +66,7 @@ void AMSNtuple::init(){
 //
   HBNAME(_lun,"EventH",&_event02.Eventno,
  
-"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,TrTracks[0,1000]:I,TrRecHits[0,32766]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiClusters[0,100]:I,EcalClusters[0,500]:I,EcalHits[0,5000]:I,"
+         "eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Ra:R,Dec:R,GLong:R,GLat:R,AMSRa:R,AMSDec:R,AMSGLat:R,AMSGLong:R,TrTracks[0,1000]:I,TrRecHits[0,32766]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiClusters[0,100]:I,EcalClusters[0,500]:I,EcalHits[0,5000]:I," //ISN
 "RICMCClusters[0,10000]:I,RICHits[0,10000]:I,TRDRawHits[0,2000]:I,TRDClusters[0,1000]:I,TRDSegments[0,500]:I,TRDTracks[0,255]:I,EventStatus(2):I"); 
 
   HBNAME(_lun,"Beta",&_beta02.Nbeta,
@@ -374,6 +375,10 @@ void AMSNtuple::MemMonitor(const int n, int N = 0)
 #endif
   return;
 }
+
+
+
+
 
 
 

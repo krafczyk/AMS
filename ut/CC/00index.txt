@@ -1,8 +1,10 @@
-#  $Id: 00index.txt,v 1.5 2001/01/22 17:32:18 choutko Exp $
+#  $Id: 00index.txt,v 1.6 2003/06/19 15:21:19 isevilla Exp $
+
 amsdbc.C  // Various constants & parameters (geometry most)
 amsgeom.C // AMS Geometry
 amsgobj.C // AMS global vars ( Will disappear eventually)
 apool.C   // Advanced memory pool (superior to upool)
+astro.C     // Source sky position
 arr.C     // Fortran like 1 to 4 dim array (template)
 beta.C    // velocity
 catio.C   // concatenate io files

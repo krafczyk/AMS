@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.185 2003/06/03 10:13:25 choumilo Exp $
+//  $Id: commons.h,v 1.186 2003/06/19 15:25:00 isevilla Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -11,6 +11,7 @@
 #define mipsFortran
 #endif
 #include <cfortran.h>
+
 
 
 class TRMFFKEY_DEF{
@@ -689,6 +690,17 @@ public:
 COMMON_BLOCK_DEF(CCFFKEY_DEF,CCFFKEY);
 
 //
+//ISN 
+class GMFFKEY_DEF {
+public:
+integer GammaSource; // gamma source flag/identifier. 1 for user defined
+geant SourceCoo[2]; // user defined source equatorial coordinates (GammaSource=1)
+geant SourceVisib; // maximum zenith angle (to speed up simulation)
+integer GammaBg; // diffuse background flag 
+geant BgAngle; // angle for background integration
+};
+#define GMFFKEY COMMON_BLOCK(GMFFKEY,gmffkey)
+COMMON_BLOCK_DEF(GMFFKEY_DEF,GMFFKEY);
 
 
 class TRCLFFKEY_DEF {

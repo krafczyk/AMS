@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.67 2003/04/09 14:05:17 choumilo Exp $
+//  $Id: event.h,v 1.68 2003/06/19 15:25:00 isevilla Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -7,6 +7,7 @@
 //
 // Last Edit : May 23, 2002. ak.
 //
+
 #ifndef __AMSEVENT__
 #define __AMSEVENT__
 #include <fstream.h>
@@ -18,6 +19,7 @@
 #include <link.h>
 #include <cont.h>
 #include <daqevt.h>
+#include <astro.h> // ISN 
 class AMSEvent: public AMSNode{
 private:
   class ShuttlePar{
@@ -25,6 +27,10 @@ private:
    geant StationR;
    geant StationTheta;
    geant StationPhi;
+   // geant StationRa; // ISN these variables will be
+   // geant StationDec; // ISN used in DAQ with a data base
+   //geant StationGLat;
+   //geant StationGLong;
    geant GrMedPhi;
    geant StationYaw;
    geant StationPitch;
@@ -76,6 +82,14 @@ geant _StationRad;    //cm
 geant _StationTheta; 
 geant _StationPhi;   
 geant _NorthPolePhi;
+number _StationRa; //ISN  
+number _StationDec; //ISN 
+number _StationGLat; //ISN 
+number _StationGLong; //ISN 
+number _AMSRa; //ISN 
+number _AMSDec; //ISN 
+number _AMSGLat; //ISN 
+number _AMSGLong; //ISN
 geant _Yaw;
 geant _Pitch;
 geant _Roll;
@@ -182,7 +196,7 @@ AMSContainer * _getC(AMSID id);
 public:
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
 uinteger usec,geant pole, geant stationT, geant stationP, geant VelT, geant VelP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0):AMSNode(id),_run(run),_VelTheta(VelT),_VelPhi(VelP),
-_time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_Error(0){_Head=this;_status[0]=0;_status[1]=0;}
+  _time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_Error(0),_StationRa(0),_StationDec(0),_StationGLat(0),_StationGLong(0),_AMSRa(0),_AMSDec(0),_AMSGLat(0),_AMSGLong(0){_Head=this;_status[0]=0;_status[1]=0;} //ISN
 AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMSNode(id),_run(run),
    _runtype(runtype), _time(time), _usec(usec),_Error(0){
    _Head=this;
@@ -217,6 +231,10 @@ void SetTimeCoo(integer rec=0);
 void GetGeographicCoo(number & pole, number & theta, number &phi){
 pole=_NorthPolePhi;theta=_StationTheta;phi=_StationPhi;}
 geant GetStationRad() const{return _StationRad;}
+geant GetISSCoo(number & ra, number & dec){
+  ra=_StationRa;dec=_StationDec;} // ISN 
+geant GetAMSCoo(number & ra, number & dec){
+  ra=_AMSRa;dec=_AMSDec;} // ISN 
 static void  sethead(AMSEvent* head) 
 { _Head=head;if(_Head)AMSEvent::EventMap.map(*_Head);}
 integer removeC();

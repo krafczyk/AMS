@@ -1,6 +1,7 @@
-//  $Id: ntuple.h,v 1.86 2003/05/22 12:26:00 choutko Exp $
+//  $Id: ntuple.h,v 1.87 2003/06/19 15:25:00 isevilla Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
+
 
 
 const int NBRANCHES = 1;    // number of branches
@@ -86,6 +87,14 @@ public:
   float VelPhi;
   float ThetaM;
   float PhiM;
+  float Ra; // ISN 
+  float Dec; // ISN 
+  float GLong; // ISN 
+  float GLat; // ISN 
+  float AMSRa; // ISN 
+  float AMSDec; // ISN 
+  float AMSGLong; // ISN   
+  float AMSGLat; // ISN 
   int Tracks;
   int TrRecHits;
   int TrClusters;

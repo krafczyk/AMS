@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.39 2003/05/08 16:42:13 choutko Exp $
+//  $Id: mceventg.h,v 1.40 2003/06/19 15:25:00 isevilla Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -9,6 +9,7 @@
 //
 // Last edit : Feb 10, 1997. ak. 
 //
+
 #ifndef __AMSMCEVENTG__
 #define __AMSMCEVENTG__
 #include <point.h>
@@ -16,6 +17,7 @@
 #include <link.h>
 #include <io.h>
 #include <time.h>
+#include <astro.h>
 class orbit{
 public:
 integer Nskip;
@@ -31,6 +33,7 @@ number PolePhi;
 number PolePhiStatic;
 number PoleTheta;
 number EarthSpeed;
+number NodeSpeed; //ISN  
 number FlightTime;
 number EarthR;
 number DipoleR;
@@ -39,8 +42,7 @@ number DipolePhi;
 AMSDir Axis;
 tm Begin;
 tm End;
-integer UpdateOrbit(number curtime, geant & ThetaS, geant & PhiS,
-            geant & PolePhi, time_t & time); 
+integer UpdateOrbit(number curtime, geant & ThetaS, geant & PhiS, geant & PolePhi, number & RaS, number & DecS, number & GLatS, number & GLongS, time_t & time); 
 void UpdateOrbit(number theta,number phi, integer dir);
 void UpdateAxis(number veltheta, number velphi, number theta, number phi);
 orbit(geant ThetaI,geant PhiI, geant PolePhi, integer Dir);
@@ -140,6 +142,8 @@ integer EarthModulation();
 static void setcuts( geant [],geant[],geant[],integer,geant,geant);
 static void setspectra(integer begind, integer begint, integer endd, 
 integer endt, integer ipart, integer low);
+static void lookupsourcesp(integer sourceid,number & constant,number & index); //ISN 
+static void lookupsourcecoo(integer sourceid, geant & rasource, geant & decsource); //ISN
 static integer _hid;
 static void endjob();
 AMSmceventg *  next(){return (AMSmceventg*)_next;}

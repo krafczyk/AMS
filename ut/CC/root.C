@@ -1,5 +1,6 @@
-//  $Id: root.C,v 1.45 2003/05/20 09:06:24 choutko Exp $
+//  $Id: root.C,v 1.46 2003/06/19 15:21:16 isevilla Exp $
 //
+
 #include <root.h>
 #include <ntuple.h>
 #ifndef __ROOTSHAREDLIBRARY__
@@ -17,6 +18,8 @@
 #include <trigger302.h>
 #include <trrawcluster.h>
 #include <trrec.h>
+#include <astro.h>
+#include <amsdbc.h>
 #include <gamma.h>
 #endif
 using namespace root;
@@ -147,6 +150,8 @@ void AMSEventR::SetBranchA(TTree *fChain){
      vHeader=&fHeader;
      fChain->SetBranchAddress(tmp,&fHeader);
     }
+
+
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fEcalHit");
@@ -587,7 +592,6 @@ void AMSEventR::GetBranch(TTree *fChain){
      strcat(tmp,"fHeader");
      bHeader = fChain->GetBranch(tmp);
     }
-
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fEcalHit");
@@ -972,6 +976,7 @@ void AMSEventR::GetBranchA(TTree *fChain){
      strcat(tmp,"fMCEventg");
      vMCEventg=fChain->GetBranch(tmp)->GetAddress();
     }
+
 }
 
 
@@ -1038,7 +1043,6 @@ bool AMSEventR::ReadHeader(int entry){
 AMSEventR::AMSEventR():TSelector(){
  if(_Count++)cerr<<"AMSEventR::ctor-W-OnlyOneSingletonAllowed "<<this<<" "<<_Count<<endl;
  else cout<<"AMSEventR::ctor-I-SingletonInitialized "<<this<<endl;
-
 
 
 fEcalHit.reserve(MAXECHITS);
@@ -1120,6 +1124,7 @@ fRichMCCluster.clear();
 
 fMCTrack.clear();
 fMCEventg.clear();
+
 }
 
 
@@ -1442,7 +1447,6 @@ void AMSEventR::AddAMSObject(AMSmctrack *ptr)
   }
 }
 
-
 #endif
 
 
@@ -1463,6 +1467,14 @@ void HeaderR::Set(EventNtuple02* ptr){
     RadS=      ptr->RadS;
     ThetaS=    ptr->ThetaS;
     PhiS=      ptr->PhiS;
+    Ra=        ptr->Ra;
+    Dec=       ptr->Dec;
+    GLat=      ptr->GLat;
+    GLong=     ptr->GLong;
+    AMSRa=     ptr->AMSRa;
+    AMSDec=    ptr->AMSDec;
+    AMSGLat=   ptr->AMSGLat;
+    AMSGLong=  ptr->AMSGLong;
     Yaw=       ptr->Yaw;
     Pitch=     ptr->Pitch;
     Roll=      ptr->Roll;
@@ -1678,6 +1690,7 @@ fTrTrackR=-1;
  Mass=ptr->getmass();
 #endif
 }
+
 
 
 ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
