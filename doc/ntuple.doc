@@ -17,10 +17,10 @@ Below there is a description of a  ntuple.
                                                     // (1) Unix time (sec)
                                                     // (2) usec time
 * I*4  *              * EVENTH   * rawwords         // Event Lenght in bytes
-* R*4  *              * EVENTH   * RadS             // Shuttle Altitude ( GTOD cm)
+* R*4  *              * EVENTH   * RadS             // Shuttle Altitude ( I2000 cm)
 * R*4  *              * EVENTH   * ThetaS           // Shuttle Lattitude (GTOD rad)
 * R*4  *              * EVENTH   * PhiS             // Shuttle phi (GTOD rad)
-* R*4  *              * EVENTH   * YawS             // Shuttle yaw (GTOD rad) 
+* R*4  *              * EVENTH   * YawS             // Shuttle yaw (LVLH rad) 
 * R*4  *              * EVENTH   * PitchS           //         pitch
 * R*4  *              * EVENTH   * RollS            //         roll
 * R*4  *              * EVENTH   * VelocityS        // Shuttle speed (rad/sec)
@@ -352,10 +352,4 @@ Below there is a description of a  ntuple.
 
 
 **) AMS global system definition :
-
-Z axis :
-From center of earth to shuttle   (i.e. to zenith)
-X axis: 
-along velocity vector
-Y axis:
-complementary to right handed system.
+GTOD
