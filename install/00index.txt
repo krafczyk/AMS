@@ -1,8 +1,8 @@
-#  $Id: 00index.txt,v 1.29 2003/06/17 08:09:40 choutko Exp $
-Mopt      // makefile to gmake geant batch 
+#  $Id: 00index.txt,v 1.30 2003/06/26 15:07:34 choutko Exp $
+Mopt_ntuple // makefile to gmake geant batch  (obslolete, not recommended)
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
           // setenv AMSPROFILE 1  adds gprof
-Mopt_Root // same + ability to write root files
+Mopt      // same + ability to write root files   (Recommended)
 Mgxint    // makefile to gmake geant interactive  g3
 Moptg4    // makefile to gmake g4 batch
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version

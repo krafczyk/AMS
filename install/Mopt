@@ -1,18 +1,55 @@
-#  $Id: Mopt,v 1.246 2003/06/19 15:27:00 isevilla Exp $
+#  $Id: Mopt,v 1.247 2003/06/26 15:07:34 choutko Exp $
 #
 
 SHELL=/bin/sh
 CERN_LEVEL = pro
 CERNDIR = /cern/$(CERN_LEVEL)
-CERNSRCDIR = /afs/cern.ch/asis/share/cern/$(CERN_LEVEL)
-
+CERNSRCDIR = /cern/$(CERN_LEVEL)
+#
 ifndef AMSWD
 AMSWD := ..
 endif
 
 
-#
-###################################################################
+ifeq  "$(shell uname)"  "SunOS" 
+
+CC=CC
+FF=f77
+LD=CC
+BIN=$(AMSWD)/bin/sunosr/
+EXE=$(AMSWD)/exe/sunosr/
+LIB=$(AMSWD)/lib/sunosr/
+INCLUDE=../include/
+IFLAGS= -I/usr/include -I$(SRC)  -I$(ROOTSYS)/include
+ifdef AMSDEBUG
+CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include   -I../db  -D__WRITEROOT__  -I$(ROOTSYS)/include
+CFLAGSTOFSIM= $(CFLAGS)
+CFLAGSn=      $(CFLAGS)
+CFLAGSDAQ=    $(CFLAGS) 
+FFLAGS=   -g -I../include  
+FFLAGSn=   -g -I../include  
+CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db -D__WRITEROOT__  -I$(ROOTSYS)/include
+else
+#CFLAGSB=      -D__BATCH__   -library=rwtools7,iostream,Cstd,Crun    -I../include   -I../db -D__WRITEROOT__
+#CFLAGSB=      -D__BATCH__       -I../include     -mt -lpthread
+CFLAGSB=      -D__BATCH__       -I../include    -O4 -xarch=v8plusa -D__WRITEROOT__  -I$(ROOTSYS)/include
+CFLAGSTOFSIM= $(CFLAGSB)
+CFLAGSDAQ=    $(CFLAGSB)
+CFLAGSn=      $(CFLAGSB)
+CFLAGS=      $(CFLAGSB) 
+FFLAGS=   -O4 -xarch=v8plusa -I../include
+FFLAGSn=    -I../include
+endif
+DFLAGS=       -I/usr/include  -I../include   -I$(SRC)
+LDFLAGSSTATIC=   -O4 -xarch=v8plusa -Bstatic  -library=f77,Cstd,Crun -lm -L$ROOTSYS/lib -lRoot  -L$(CERNDIR)/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/usr/local/lib -lshift -L/afs/cern.ch/sw/nag/mark18/sun/flsol18da -lnag - -L/usr/lib -lm -lsocket  -L/usr/lib   -lnsl  -lm      -L/afs/cern.ch/exp/ams/Offline/lib/sunos -lamsut -L$ROOTSYS/lib -lRoot
+#LDFLAGS=   -Bstatic -library=f77,Cstd,Crun -lm   -L$(CERNDIR)/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/asis/packages/licensed/nag-mark16/sun4x_56/nagfl16df -lnag -L/usr/lib -lm  -L/usr/lib  -lsocket -lnsl  -lm -lc     -L/afs/cern.ch/exp/ams/Offline/lib/sunos -lamsut -L/usr/ucblib -lucb -Bdynamic -L/usr/lib -ldl 
+TIMEL=
+endif
+
+
+
+#################################################
+
 ifeq  "$(shell uname)"  "AIXold" 
 SHLDFLAGS=/usr/lpp/xlC/bin/makeC++SharedLib $(ROOTLIBS) -lm -lcurses -p 0
 ROOTLIBS=
@@ -34,125 +71,22 @@ LDFLAGS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lmathlib -l
 CC=xlC
 FF=xlf
 LD=xlC
-BIN=$(AMSWD)/bin/aix/
-EXE=$(AMSWD)/exe/aix/
-LIB=$(AMSWD)/lib/aix/
+BIN=../bin/aix/
+EXE=../exe/aix/
+LIB=../lib/aix/
 TIMEL=
 endif
+ROOTLIBS      = -L$(ROOTSYS)/lib  -lCore -lCint -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics 
+#ROOTLIBS      = -L$(ROOTSYS)/lib  -lBase -lCint -lClib -lCont -lFunc -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMeta -lMinuit -lNet -lPhysics -lPostscript -lProof -lTree -lRint -lTree -lUnix -lZip  
+#ROOTLIBS      = $(shell root-config --libs)
 
-###################################################################
-
-ifeq  "$(shell uname)"  "SunOS" 
-
-CC=CC
-FF=f77
-LD=CC
-BIN=$(AMSWD)/bin/sunos/
-EXE=$(AMSWD)/exe/sunos/
-LIB=$(AMSWD)/lib/sunos/
-INCLUDE=../include/
-IFLAGS= -I/usr/include -I$(SRC) 
-ifdef AMSDEBUG
-CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include   -I../db  
-CFLAGSTOFSIM= $(CFLAGS)
-CFLAGSn=      $(CFLAGS)
-CFLAGSDAQ=    $(CFLAGS) 
-FFLAGS=   -g -I../include  
-FFLAGSn=   -g -I../include  
-CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db 
-else
-#CFLAGSB=      -D__BATCH__   -library=rwtools7,iostream,Cstd,Crun    -I../include   -I../db 
-#CFLAGSB=      -D__BATCH__       -I../include     -mt -lpthread
-CFLAGSB=      -D__BATCH__       -I../include    -O4 -xarch=v8plusa
-CFLAGSTOFSIM= $(CFLAGSB)
-CFLAGSDAQ=    $(CFLAGSB)
-CFLAGSn=      $(CFLAGSB)
-CFLAGS=      $(CFLAGSB) 
-FFLAGS=   -O4 -xarch=v8plusa -I../include
-FFLAGSn=    -I../include
-endif
-DFLAGS=       -I/usr/include  -I../include   -I$(SRC)
-LDFLAGS=   -O4 -xarch=v8plusa -Bstatic  -library=f77,Cstd,Crun -lm   -L$(CERNDIR)/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/usr/local/lib -lshift -L/afs/cern.ch/sw/nag/mark18/sun/flsol18da -lnag - -L/usr/lib -lm -lsocket  -L/usr/lib   -lnsl  -lm      -L/afs/cern.ch/exp/ams/Offline/lib/sunos -lamsut 
-#LDFLAGS=   -Bstatic -library=f77,Cstd,Crun -lm   -L$(CERNDIR)/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/asis/packages/licensed/nag-mark16/sun4x_56/nagfl16df -lnag -L/usr/lib -lm  -L/usr/lib  -lsocket -lnsl  -lm -lc     -L/afs/cern.ch/exp/ams/Offline/lib/sunos -lamsut -L/usr/ucblib -lucb -Bdynamic -L/usr/lib -ldl 
-TIMEL=
-endif
-
-###################################################################
+#################################################
 
 ifeq  "$(shell uname)"  "OSF1" 
-ifdef DEC-g++
-
-CC=g++ 
-FF=g77
-LD=g++
-BINMT=$(AMSWD)/bin/osf1g++/mt/
-BIN=$(AMSWD)/bin/osf1g++/
-EXE=$(AMSWD)/exe/osf1g++/
-LIB=$(AMSWD)/lib/osf1g++/
-LDFLAGSIDL=   -lorbitcpp 
-LDFLAGSIDLMT=   -lorbitcpp -lORBit-mt -lIIOP-mt -lORBitutil-mt -lgthread -lglib -lpthread -lpopt 
-LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit -lglib -lIIOP -lORBitutil -lglib -lnsl  
-#LDFLAGSSTATICIDLMT= -L/usr/local/lib -lc -static $(LDFLAGSIDLMT) 
-LDFLAGSSTATICIDLMT= -L/usr/lib -lc -static $(LDFLAGSIDLMT) 
-LDFLAGSSTATICIDLMT=  -static $(LDFLAGSIDLMT) 
-IDL=orbit-idl
-IDLMT=orbit-idl-mt
-IDLCPP=orbit-idl -l c++
-
-CPP=g++  -I/usr/include/orbit-1.0
-CCC=gcc -I/usr/include/orbit-1.0
-CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT  -I/usr/include/orbit-mt-1.0 -fpermissive 
-SRC=$(BIN)
-SRCMT=$(BINMT)
-INCLUDE=../include/
-IFLAGS= -I/usr/include -I$(SRC)
-ifdef AMSDEBUG
-CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include   -I../db  
-CFLAGSTOFSIM= $(CFLAGS)
-CFLAGSn=      $(CFLAGS)
-CFLAGSDAQ=    $(CFLAGS) -D__ALPHA__
-FFLAGS=   -fno-automatic -g -I../include  
-FFLAGSn=   -fno-automatic -g -I../include  
-CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db  
-else
-CFLAGSB=      -D__BATCH__      -I../include   -I../db  
-CFLAGSTOFSIM= $(CFLAGSB)     -O1   
-CFLAGSDAQ=    $(CFLAGSB) -O2 -D__ALPHA__
-CFLAGSn=      $(CFLAGSB) -O2
-CFLAGS=      $(CFLAGSB) -O2
-FFLAGS=   -fno-automatic -O -I../include
-FFLAGSn=   -fno-automatic  -I../include
-endif
-DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include  -I$(SRC)
-LDFLAGS=  -static  -lUfor   -lfor -lFutil -lots -lm   -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -lshift -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da/  -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm  -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/osf1g++ -lamsut  -lg2c
-#LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
-TIMEL=
-INCS= $(wildcard $(SRC)*.*h)    
-INCSCPP= $(SRC)server-cpp-stubs.hh $(SRC)server-cpp-skels.hh $(SRC)server-cpp-common.hh 
-SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c 
-SRCSMT= $(SRCMT)server-stubs.c $(SRCMT)server-skels.c $(SRCMT)server-common.c 
-SRCSCPP= $(SRC)server-cpp-stubs.cc $(SRC)server-cpp-skels.cc $(SRC)server-cpp-common.cc 
-SRCSCPPMT= $(SRCMT)server-cpp-stubs.cc $(SRCMT)server-cpp-skels.cc $(SRCMT)server-cpp-common.cc 
-OBJECTCO=$(BIN)server-stubs.o $(BIN)server-skels.o $(BIN)server-common.o  
-OBJECTCOMT=$(BINMT)server-stubs.o $(BINMT)server-skels.o $(BINMT)server-common.o 
-OBJECTCL= $(BIN)server-cpp-stubs.o $(BIN)server-cpp-common.o
-OBJECTCLMT= $(BINMT)server-cpp-stubs.o $(BINMT)server-cpp-common.o
-OBJECTSEAUX=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver.o
-OBJECTSEAUXMT=$(BIN)id_mt.o $(BIN)node_mt.o $(BIN)astring_mt.o $(BIN)client_mt.o  $(BIN)amsdbc_mt.o $(BIN)timeid_mt.o  $(BIN)apool_mt.o $(BIN)snode_mt.o $(BIN)dbserver_mt.o
-OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL) 
-OBJECTSEMT=  $(BINMT)server-cpp-skels.o   $(OBJECTCLMT) 
-
-
-else 
-SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
-ROOTLIBS =
-
 ifdef AMSDEBUG
 O4=-g -D__AMSDEBUG__
 O4F=-g -D__AMSDEBUG__
-CFLAGSTOFSIM=   -D__BATCH__ -D__ALPHA__   $(O4)     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
 else
-CFLAGSTOFSIM=   -D__BATCH__ -D__ALPHA__   -g -O1    -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
 ifdef O4
 O4=-O4
 O4F=-O
@@ -161,13 +95,18 @@ O4=-O
 O4F=-O
 endif
 endif
-CFLAGS=   -D__BATCH__ -D__ALPHA__   $(O4)     -I../include -I$(ROOTSYS)/include  -I./db -tlocal 
-CFLAGSn=   -D__BATCH__ -D__ALPHA__   $(O4)     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
+CFLAGS=    -D__BATCH__ -D__ALPHA__   $(O4) -D__ROOTPOINTERS__ -D__WRITEROOT__  -I../include -I$(ROOTSYS)/include -tlocal
+CFLAGSTOFSIM=    -D__BATCH__ -D__ALPHA__   $(O4) -D__ROOTPOINTERS__ -D__WRITEROOT__  -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
+CFLAGSn=    -D__BATCH__ -D__ALPHA__   $(O4)  -D__ROOTPOINTERS__ -D__WRITEROOT__  -I../include -I$(ROOTSYS)/include  -tlocal
 CFLAGSDAQ= $(CFLAGS)
 FFLAGS=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian 
 FFLAGSn=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian 
 DFLAGS=     -I/usr/include  -I../include 
-LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321 -lmathlib -lpacklib -lkernlib -lshift  -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da/  -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
+LDFLAGS=    -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag $(ROOTLIBS) -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut 
+LDFLAGSSTATIC=    -non_shared   -L$(ROOTSYS)/lib -lRoot -lcxx -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321  -lmathlib -lpacklib -lkernlib -lshift -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da/  -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm -lcxx -lm 
+SHLDFLAGS=    -lshift -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  $(ROOTLIBS) -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut 
+SOFLAGS =  -v -Wl,-expect_unresolved,* -shared
+#FLAGSSTATIC= -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved "*" -g0 -O1 
 CC=cxx 
 ifeq "$(shell cxx -V | grep -c 6.)" "1"
 CC=cxx  
@@ -179,32 +118,39 @@ CC=cxx
 endif
 FF=f77
 LD=cxx
-BIN=$(AMSWD)/bin/osf1/
+BIN=$(AMSWD)/bin/osf1r/
 EXE=$(AMSWD)/exe/osf1/
 LIB=$(AMSWD)/lib/osf1/
+SHLD=$(LIB)/ntuple.so
 TIMEL=
 endif
-endif
 
-###################################################################
+#################################################
 
 ifeq  "$(shell uname)"  "Linux"
 ifdef AMSICC
-  CERNDIR = /f2dat1/CERN/2002/icc
-  NAGDIR  = /f2dat1/NagLib
+  CERNDIR = /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
+  NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
+#CC=/opt/intel/compiler60/ia32/bin/icc
+#FF=/opt/intel/compiler60/ia32/bin/ifc
+#LD=/opt/intel/compiler60/ia32/bin/icc
+
   ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
     FF=/opt/intel/compiler60/ia32/bin/ifc
   else
     FF=/opt/intel/compiler70/ia32/bin/ifc
   endif
-  CC=g++  -Wno-deprecated -mcpu=i686
-  LD=g++
   BINMT=$(AMSWD)/bin/linux/icc/mt/
-  BIN=$(AMSWD)/bin/linux/icc/
+  BIN=$(AMSWD)/bin/linuxr/icc/
   EXE=$(AMSWD)/exe/linux/icc/
   LIB=$(AMSWD)/lib/linux/icc/
+  CC=g++ -Wno-deprecated -mcpu=i686
+  LD=g++
+  SHLD=$(LIB)/ntuple.so
+
 else
-  CERN_LEVEL = pro
+
+#  CERN_LEVEL = pro
   CERN_LEVEL = 2001
   CERNDIR = /cern/$(CERN_LEVEL)
 #  CERNDIR = /afs/cern.ch/asis/i386_redhat72/cern/$(CERN_LEVEL)
@@ -217,47 +163,33 @@ else
 
 # Offsite example
 
-#CERN_LEVEL = 2001
-#CERNDIR = /afs/cern.ch/asis/i386_redhat72/cern/$(CERN_LEVEL)
-#CERNSRCDIR = /afs/cern.ch/asis/share/cern/$(CERN_LEVEL)
-#CERNLIBS = -lpacklib -lmathlib -lkernlib
-##CERNLIBS = -lpacklib_noshift -lmathlib -lkernlib_noshift
-#SHIFTLIB = 
+#  CERN_LEVEL = pro
+#  CERNDIR = /afs/cern.ch/asis/i386_redhat61/cern/$(CERN_LEVEL)
+#  CERNDIR = /afs/cern.ch/asis/i386_redhat72/cern/$(CERN_LEVEL)
+#  CERNSRCDIR = /afs/cern.ch/asis/share/cern/$(CERN_LEVEL)
+#  CERNLIBS = -lpacklib -lmathlib -lkernlib
+# CERNLIBS = -lpacklib_noshift -lmathlib -lkernlib_noshift
+#  SHIFTLIB = 
 # Copy lib to private AFS area for remote link, example:
-#NAGDIR = /afs/cern.ch/user/k/kscholbe/private/
+#  NAGDIR = /afs/cern.ch/user/k/kscholbe/private/
 
-  CC=g++  -Wno-deprecated -mcpu=i686
+  CC=g++ -Wno-deprecated -mcpu=i686 
   FF=g77
   LD=g++
-  SHLD=$(LIB)/ntuple.so
-  BINMT=$(AMSWD)/bin/linux/mt/
-  BIN=$(AMSWD)/bin/linux/
-  BINR=$(AMSWD)/bin/linuxr/
+  BIN=$(AMSWD)/bin/linuxr/
   EXE=$(AMSWD)/exe/linux/
   LIB=$(AMSWD)/lib/linux/
+  SHLD=$(LIB)/ntuple.so
 endif
 
-LDFLAGSIDL=   -lorbitcpp 
-LDFLAGSIDLMT=   -lorbitcpp -lORBit-mt -lIIOP-mt -lORBitutil-mt -lgthread -lglib -lpthread -lpopt 
+LDFLAGSIDL=   -lorbitcpp -lorbitcppCosNaming -lORBitCosNaming
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit -lglib -lIIOP -lORBitutil -lglib -lnsl  
-LDFLAGSSTATICIDLMT= -L/usr/local/lib -lc -static $(LDFLAGSIDLMT) 
-LDFLAGSSTATICIDLMT= -L/usr/lib -lc -static $(LDFLAGSIDLMT) 
-LDFLAGSSTATICIDLMT=  -static $(LDFLAGSIDLMT) 
 IDL=orbit-idl
 IDLMT=orbit-idl-mt
 IDLCPP=orbit-idl -l c++
-
-ifndef AMSICC
-  CPP=g++  -I/usr/include/orbit-1.0
-  CCC=gcc  -I/usr/include/orbit-1.0
-else
-  CPP=/opt/intel/compiler60/ia32/bin/icc
-  CCC=/opt/intel/compiler60/ia32/bin/icc
-  CPP=g++  -I/usr/include/orbit-1.0
-  CCC=gcc  -I/usr/include/orbit-1.0
-endif
-
-CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT -I/usr/include/orbit-mt-1.0
+CPP=g++  -I/usr/include/orbit-1.0 -Wno-deprecated -mcpu=i686 -fpermissive
+CCC=gcc -I/usr/include/orbit-1.0
+CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT  -I/usr/include/orbit-mt-1.0 -fpermissive 
 SRC=$(BIN)
 SRCMT=$(BINMT)
 INCLUDE=../include/
@@ -265,28 +197,33 @@ IFLAGS= -I/usr/include -I$(SRC)
 PFLAGS=
 
 ifdef AMSPROFILE
- PFLAGS+=-pg
+  PFLAGS+=-pg
 endif
 
 ifdef AMSDEBUG
-  CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db   $(PFLAGS)
+  CFLAGSB=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include  -I../db  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include $(PFLAGS)
 else
-  CFLAGSB=      -D__BATCH__      -I../include   -I../db   $(PFLAGS)
+  CFLAGSB=      -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include  $(PFLAGS)
 endif
 
 ifdef AMSICC
-  #PFLAGS+=  -D__ICC__ -tpp6 -mp1 -xi 
+  ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
+    CFLAGS+= -D_GCCIFC_
+    CFLAGSB+= -D_GCCIFC_
+  endif
+
+#PFLAGS+=  -D__ICC__ -tpp6 -mp1 -xi
   ifdef AMSDEBUG
-    CFLAGS=      $(CFLAGSB) 
-    CFLAGSTOFSIM= $(CFLAGS)
-    CFLAGSn=      $(CFLAGS)
-    CFLAGSDAQ=    $(CFLAGS)
+    CFLAGS=      $(CFLAGSB)  
+    CFLAGSTOFSIM= $(CFLAGSB)
+    CFLAGSDAQ=    $(CFLAGSB)
+    CFLAGSn=      $(CFLAGSB)
     FFLAGS=     -fp_port  -g -I../include   $(PFLAGS)
     FFLAGSn=    -fp_port   -g -I../include   $(PFLAGS)
     FFLAGS=     -D__ICC__ -tpp6 -mp1 -xi -fp_port  -g -I../include   $(PFLAGS)
     FFLAGSn=    -D__ICC__ -tpp6 -mp1 -xi -fp_port   -g -I../include   $(PFLAGS)
   else
-    CFLAGSTOFSIM= $(CFLAGSB)     -O1
+    CFLAGSTOFSIM= $(CFLAGSB)     -O1 
     CFLAGSDAQ=    $(CFLAGSB) -O2
     CFLAGSn=      $(CFLAGSB) -O2
     CFLAGS=      $(CFLAGSB) -O3
@@ -295,66 +232,80 @@ ifdef AMSICC
     FFLAGS=    -D__ICC__ -tpp6 -mp1 -xi -fp_port  -O3 -I../include  $(PFLAGS)
     FFLAGSn=   -D__ICC__ -tpp6 -mp1 -xi -fp_port  -O   -I../include  $(PFLAGS)
   endif
-  ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
-    CFLAGSn+= -D_GCCIFC_
-  endif
-
 else
-
-#  not AMSICC
-  ifdef AMSDEBUG  
-    CFLAGS=      $(CFLAGSB) 
-    CFLAGSTOFSIM= $(CFLAGS)
-    CFLAGSn=      $(CFLAGS)
-    CFLAGSDAQ=    $(CFLAGS)
-    FFLAGS=   -fno-automatic -g -I../include   $(PFLAGS)
-    FFLAGSn=   -fno-automatic -g -I../include   $(PFLAGS)
+#AMSICC not set
+  ifdef AMSDEBUG
+    CFLAGSTOFSIM= $(CFLAGSB)
+    CFLAGSn=      $(CFLAGSB)
+    CFLAGSDAQ=    $(CFLAGSB)
+    FFLAGS=   -fno-automatic -g -I../include  $(PFLAGS)
+    FFLAGSn=   -fno-automatic -g -I../include $(PFLAGS) 
+    CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db  
   else
     CFLAGSTOFSIM= $(CFLAGSB)     -O1   
-    CFLAGSDAQ=    $(CFLAGSB) -O2
+    CFLAGSDAQ=    $(CFLAGSB) -O2 
     CFLAGSn=      $(CFLAGSB) -O2
-    CFLAGS=      $(CFLAGSB) -O2
-    FFLAGS=   -fno-automatic -O3 -I../include  $(PFLAGS)
-    FFLAGSn=   -fno-automatic  -I../include  $(PFLAGS)
+    CFLAGS=      $(CFLAGSB) -O3
+    FFLAGS=   -fno-automatic -O3 -I../include $(PFLAGS)
+   FFLAGSn=   -fno-automatic  -I../include
   endif
 endif
-# end of AMSICC if
 
 DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include  -I$(SRC)
-
+SOFLAGS = -Wl,-shared,--allow-shlib-undefined
+ SHLDFLAGS=    $(SHIFTLIB)  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib  -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux $(ROOTLIBS) -lamsut  -lg2c -ldl -lshift
 ifdef AMSICC
+
+  #LDFLAGS=    -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib -L../lib/linux/icc  $(ROOTLIBS) -lamsut -ldl
   ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
-    LDFLAGS=  -static    -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lmy2  -lPEPCF90 -lPOSF90 -limf -lirc -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut    $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf
+     LDFLAGS=      -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lcxa  -lPEPCF90 -lPOSF90 -limf -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut  $(ROOTLIBS)   $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf -ldl
+     LDFLAGSSTATIC=  -static  -L$(ROOTSYS)/lib -lRoot   -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -lmy2  -lPEPCF90 -lPOSF90 -lmy -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut     $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins   -L$(ROOTSYS)/lib -lRoot   -ldl
+
   else
-    LDFLAGS=  -static    -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90 -limf -lirc -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut    $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf
+    # not 2.95
+
+    LDFLAGS=      -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lcxa  -lPEPCF90 -lPOSF90 -limf -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut  $(ROOTLIBS)   $(PFLAGS) -L/opt/intel/compiler70/ia32/lib    -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf -ldl
+    LDFLAGSSTATIC=  -static -L/opt/intel/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321 -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90  -lF90  -lPEPCF90 -lPOSF90 -lintrins -limf -L$(ROOTSYS)/lib -lRoot -ldl -lfreetype
+
   endif
 
-# not AMSICC case
+  #LDFLAGSSTATIC=  -static  -L$(ROOTSYS)/lib -lRoot   -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90    -lPEPCF90 -lPOSF90  -limf -lirc  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl   -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut     $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90  -lF90 -limf -lPEPCF90 -lPOSF90 -lintrins   -L$(ROOTSYS)/lib -lRoot   -ldl
+  #LDFLAGSSTATIC=  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L../lib/linux/icc  -lamsut -ldl
+  #LDFLAGSSTATIC=  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L../lib/linux/icc  -lamsut -ldl
+
 else
-  LDFLAGS=  -static   -L$(CERNDIR)/lib   -lgeant321  $(CERNLIBS) -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut  -lg2c  $(SHIFTLIB) $(PFLAGS)
+# not AMSICC case
+
+# Need ROOTLIBS
+  LDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  $(CERNLIBS) -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux $(ROOTLIBS) -lamsut  -lg2c -ldl $(SHIFTLIB)
+  #LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -lamsut  -lg2c -ldl $(SHIFTLIB) -lfreetype
+  LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  $(CERNLIBS) -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -lamsut  -lg2c -ldl -lfreetype
+
 endif
-# End of AMSICC if
 
 TIMEL=
-INCS= $(wildcard $(SRC)*.*h)    
-INCSCPP= $(SRC)server-cpp-stubs.hh $(SRC)server-cpp-skels.hh $(SRC)server-cpp-common.hh 
-SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c 
-SRCSMT= $(SRCMT)server-stubs.c $(SRCMT)server-skels.c $(SRCMT)server-common.c 
-SRCSCPP= $(SRC)server-cpp-stubs.cc $(SRC)server-cpp-skels.cc $(SRC)server-cpp-common.cc 
-SRCSCPPMT= $(SRCMT)server-cpp-stubs.cc $(SRCMT)server-cpp-skels.cc $(SRCMT)server-cpp-common.cc 
-OBJECTCO=$(BIN)server-stubs.o $(BIN)server-skels.o $(BIN)server-common.o  
-OBJECTCOMT=$(BINMT)server-stubs.o $(BINMT)server-skels.o $(BINMT)server-common.o 
+INCS= $(wildcard $(SRC)*.*h)
+INCSCPP= $(SRC)server-cpp-stubs.hh $(SRC)server-cpp-skels.hh $(SRC)server-cpp-common.hh
+SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c
+SRCSMT= $(SRCMT)server-stubs.c $(SRCMT)server-skels.c $(SRCMT)server-common.c
+SRCSCPP= $(SRC)server-cpp-stubs.cc $(SRC)server-cpp-skels.cc $(SRC)server-cpp-common.cc
+SRCSCPPMT= $(SRCMT)server-cpp-stubs.cc $(SRCMT)server-cpp-skels.cc $(SRCMT)server-cpp-common.cc
+OBJECTCO=$(BIN)server-stubs.o $(BIN)server-skels.o $(BIN)server-common.o
+OBJECTCOMT=$(BINMT)server-stubs.o $(BINMT)server-skels.o $(BINMT)server-common.o
 OBJECTCL= $(BIN)server-cpp-stubs.o $(BIN)server-cpp-common.o
 OBJECTCLMT= $(BINMT)server-cpp-stubs.o $(BINMT)server-cpp-common.o
 OBJECTSEAUX=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver.o
 OBJECTSEAUXMT=$(BIN)id_mt.o $(BIN)node_mt.o $(BIN)astring_mt.o $(BIN)client_mt.o  $(BIN)amsdbc_mt.o $(BIN)timeid_mt.o  $(BIN)apool_mt.o $(BIN)snode_mt.o $(BIN)dbserver_mt.o
 OBJECTSEAUXMT=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client_mt.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver_mt.o
-OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL) 
-OBJECTSEMT=  $(BINMT)server-cpp-skels.o   $(OBJECTCLMT) 
-endif
-# End of Linux case
+OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL)
+OBJECTSEMT=  $(BINMT)server-cpp-skels.o   $(OBJECTCLMT)
 
-###################################################################
+endif
+
+# end of Linux case
+
+#########################################################
+
 
 ifeq  "$(shell uname)"  "AIX"
 ifdef AMSDEBUG
@@ -378,14 +329,13 @@ LDFLAGS=       -lxlf90 -lxlf    -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathl
 CC=g++ 
 FF=xlf
 LD=g++ 
-BIN=$(AMSWD)/bin/aix/
-EXE=$(AMSWD)/exe/aix/
-LIB=$(AMSWD)/lib/aix/
+BIN=../bin/aix/
+EXE=../exe/aix/
+LIB=../lib/aix/
 TIMEL=
 endif
 
-###################################################################
-
+#################################################
 
 ifeq  "$(shell uname)"  "HP-UX" 
 ifdef AMSDEBUG
@@ -407,8 +357,8 @@ CC=g++
 FF=f77
 LD=g++
 BIN=../bin/hpux/
-EXE=$(AMSWD)/exe/hpux/
-LIB=$(AMSWD)/lib/hpux/
+EXE=../exe/hpux/
+LIB=../lib/hpux/
 TIMEL=
 endif
 #
@@ -416,25 +366,60 @@ endif
 #
 SCC=../CC/
 INCS= $(wildcard ../include/*.h)    
-SHLD=$(LIB)/ntuple.so
-IDLFLAGS=-D__CORBA__ -I$(BIN) 
-IDLFLAGSMT=-D__CORBA__  -I$(BINMT)
-FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C $(SCC)astro.C $(SCC)gbatch.C $(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C $(SCC)gsen.C $(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C $(SCC)amsgeom.C $(SCC)geant.C $(SCC)geant3.C $(SCC)mceventg.C ../F/tkmccl.F ../F/fint_my.F ../F/geocoor.F  $(SCC)rnormx.C  $(SCC)trid.C $(SCC)trdid.C $(SCC)link.C $(SCC)trrec.C $(SCC)ins_dummy.C $(SCC)trdsim.C $(SCC)trdrec.C $(SCC)uzstat.C ../F/amstkshc++.F  ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F $(SCC)job.C $(SCC)event.C $(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F $(SCC)tofrec02.C $(SCC)tofonline02.C $(SCC)tofuser02.C  $(SCC)antirec02.C $(SCC)tofsim02.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C $(SCC)commons.C $(SCC)apool.C $(SCC)tofdbc02.C $(SCC)tofcalib02.C  $(SCC)tofid.C $ $(SCC)timeid.C $(SCC)io.C $(SCC)trcalib.C $(SCC)tralig.C ../F/mtx2.F ../F/e04ccf.f $(SCC)trigger102.C $(SCC)trigger302.C $(SCC)antidbc02.C $(SCC)daqevt.C $(SCC)astring.C $(SCC)daqs2block.C ../F/mfield.F  ../F/egzav.F  ../F/tkfit.F  $(SCC)tkdbc.C $(SCC)trddbc.C  $(SCC)ntuple.C $(SCC)root.C $(SCC)user.C $(SCC)gamma.C $(SCC)status.C $(SCC)bcorr.C $(SCC)ecaldbc.C $(SCC)ecid.C $(SCC)ecalrec.C $(SCC)ecalcalib.C $(SCC)richdbc.C $(SCC)richrec.C $(SCC)richid.C $(SCC)richgeom.C ../F/gtckov.F ../F/graylc.F ../F/cerenkov.F $(SCC)producer.C $(SCC)client.C $(SCC)server.C $(SCC)dbserver.C
-OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o $(BIN)astro.o $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)ins_dummy.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o $(BIN)tofonline02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)tofsim02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o  $(BIN)tofid.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger102.o $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o   $(BIN)user.o $(BIN)gamma.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o  $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)ecalcalib.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)flinit.o $(BIN)sbcomp.o $(BIN)gskpho.o $(BIN)fint_my.o
-OBJECTSR= $(BINR)gbatch.o $(BINR)commons.o $(BINR)gvolume.o $(BINR)astro.o $(BINR)id.o $(BINR)node.o $(BINR)snode.o $(BINR)cern.o $(BINR)amsdbc.o $(BINR)gsen.o  $(BINR)mtx.o $(BINR)point.o $(BINR)amstkshc++.o  $(BINR)sgif.o $(BINR)upool.o $(BINR)gmat.o $(BINR)amsgobj.o $(BINR)amsgeom.o  $(BINR)geant.o $(BINR)geant3.o $(BINR)mceventg.o $(BINR)tkmccl.o $(BINR)geocoor.o $(BINR)rnormx.o  $(BINR)trid.o $(BINR)trdid.o $(BINR)link.o $(BINR)trrec.o $(BINR)ins_dummy.o $(BINR)trdsim.o $(BINR)trdrec.o $(BINR)uzstat.o $(BINR)tptcir.o $(BINR)trafit.o $(BINR)tcircf.o $(BINR)tszfit.o $(BINR)txyfit.o  $(BINR)job.o $(BINR)event.o $(BINR)cont.o $(BINR)trrawcluster.o $(BINR)mccluster.o $(BINR)rndm.o $(BINR)tofrec02.o $(BINR)tofonline02.o $(BINR)tofuser02.o $(BINR)antirec02.o $(BINR)tofsim02.o $(BINR)beta.o $(BINR)charge.o $(BINR)particle.o $(BINR)apool.o $(BINR)tofdbc02.o $(BINR)tofcalib02.o $(BINR)tofid.o $(BINR)timeid.o $(BINR)io.o $(BINR)trcalib.o $(BINR)tralig.o $(BINR)mtx2.o $(BINR)e04ccf.o $(BINR)trigger102.o $(BINR)trigger302.o $(BINR)antidbc02.o $(BINR)daqevt.o $(BINR)astring.o $(BINR)daqs2block.o $(BINR)mfield.o $(BINR)egzav.o $(BINR)tkfit.o $(BINR)tkdbc.o $(BINR)trddbc.o  $(BINR)ntuple.o $  $(BINR)user.o $(BINR)gamma.o $(BINR)status.o $(BINR)bcorr.o $(BINR)ecaldbc.o  $(BINR)ecid.o $(BINR)ecalrec.o $(BINR)ecalcalib.o $(BINR)richdbc.o $(BINR)richrec.o $(BINR)richid.o $(BINR)richgeom.o $(BINR)gtckov.o $(BINR)graylc.o $(BINR)cerenkov.o $(BINR)grfile.o $(BIN)flinit.o $(BINR)sbcomp.o $(BINR)gskpho.o $(BINR)fint_my.o
-OBJECTSC= $(BIN)gbatch_c.o $(BIN)commons.o $(BIN)gvolume.o $(BIN)astro.o $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant_c.o $(BIN)geant3_c.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o  $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job_c.o $(BIN)event_c.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o $(BIN)tofonline02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)tofsim02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o  $(BIN)tofid.o $(BIN)timeid_c.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger102.o $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o   $(BIN)user.o $(BIN)gamma.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)ecalcalib.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)flinit.o $(BIN)sbcomp.o $(BIN)producer.o $(BIN)client.o $(BIN)gskpho.o $(BIN)fint_my.o $(BIN)ins_dummy.o 
+IDLFLAGS=-D__CORBA__ -I$(BIN)
+FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C $(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C $(SCC)gsen.C $(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C $(SCC)amsgeom.C $(SCC)geant.C $(SCC)geant3.C $(SCC)mceventg.C ../F/tkmccl.F ../F/fint_my.F ../F/geocoor.F  $(SCC)rnormx.C  $(SCC)trid.C $(SCC)trdid.C $(SCC)link.C $(SCC)trrec.C $(SCC)trdsim.C $(SCC)trdrec.C $(SCC)uzstat.C ../F/amstkshc++.F  ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F $(SCC)job.C $(SCC)event.C $(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F $(SCC)tofrec02.C $(SCC)tofonline02.C $(SCC)tofuser02.C  $(SCC)antirec02.C $(SCC)tofsim02.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C $(SCC)commons.C $(SCC)apool.C $(SCC)tofdbc02.C $(SCC)tofcalib02.C $(SCC)tofid.C $(SCC)timeid.C $(SCC)io.C $(SCC)trcalib.C $(SCC)tralig.C ../F/mtx2.F ../F/e04ccf.f $(SCC)trigger102.C $(SCC)trigger302.C $(SCC)antidbc02.C $(SCC)daqevt.C $(SCC)astring.C $(SCC)daqs2block.C ../F/mfield.F  ../F/egzav.F  ../F/tkfit.F  $(SCC)tkdbc.C $(SCC)trddbc.C  $(SCC)ntuple.C $(SCC)root.C $(BIN)rootdict.C $(SCC)gamma.C $(SCC)user.C $(SCC)status.C $(SCC)bcorr.C $(SCC)ecaldbc.C $(SCC)ecid.C $(SCC)ecalrec.C $(SCC)ecalcalib.C $(SCC)richdbc.C $(SCC)richrec.C $(SCC)richid.C $(SCC)richgeom.C ../F/gtckov.F ../F/graylc.F ../F/cerenkov.F $(SCC)producer.C $(SCC)client.C $(SCC)server.C $(SCC)dbserver.C $(SCC)astro.C 
+OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o $(BIN)tofonline02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)tofsim02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)tofid.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger102.o $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)root.o $(BIN)rootdict.o $(BIN)user.o $(BIN)gamma.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)ecalcalib.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o   $(BIN)sbcomp.o $(BIN)gskpho.o $(BIN)flinit.o $(BIN)fint_my.o $(BIN)astro.o
+OBJECTSA= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o $(BIN)tofonline02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)tofsim02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)tofid.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger102.o $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)root.o $(BIN)rootdict.o $(BIN)user.o $(BIN)gamma.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)ecalcalib.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)sbcomp.o $(BIN)gskpho.o  $(BIN)flinit.o $(BIN)fint_my.o  $(BIN)ins_dummy.o $(BIN)astro.o
 
-standalone: $(EXE)gbatch.exe
+OBJECTSC= $(BIN)gbatch_c.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant_c.o $(BIN)geant3_c.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job_c.o $(BIN)event_c.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o $(BIN)tofonline02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)tofsim02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)tofid.o $(BIN)timeid_c.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o  $(BIN)trigger102.o $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)root.o $(BIN)rootdict.o $(BIN)user.o $(BIN)gamma.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)ecalcalib.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)flinit.o $(BIN)producer.o $(BIN)client.o $(BIN)fint_my.o $(BIN)ins_dummy.o $(BIN)astro.o
 
-$(EXE)gbatch.exe:	$(OBJECTS)
-	$(LD) -v -o $(EXE)gbatch.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
+
+static: $(EXE)gbatch.exe
+
+$(EXE)gbatch.exe:	$(OBJECTSA)
+	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch.exe $(OBJECTSA) $(TIMEL) $(LDFLAGSSTATIC)
+
+standalone: $(EXE)/gbatch_r.exe
+
+
+$(EXE)/gbatch_r.exe:	$(OBJECTS)
+	$(LD) -v -o $(EXE)/gbatch_r.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
+
+
+producerz: $(EXE)gbatchr-orbit.exe
+
+$(EXE)gbatchr_orbit.exe:	$(OBJECTCO) $(OBJECTCL) $(OBJECTSA)
+	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatchr_orbit.exe $(OBJECTSA) $(OBJECTCL) $(OBJECTCO) $(TIMEL) $(LDFLAGSSTATICIDL) $(LDFLAGSSTATIC)
+
+
+shared :	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o
+	$(LD) -O  $(SOFLAGS) $(BIN)/root_rs.o $(BIN)/rootdict_s.o $(SHLDFLAGS) -o  $(SHLD)
+
+
+$(BIN)rootdict.C:    ../include/linkdef.h  ../include/root_RV.h ../include/root.h
+	@echo "Generating dictionary"
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c ../include/root_RV.h ../include/linkdef.h
+	@echo "OK"
+
+$(BIN)rootdict_s.C:    ../include/linkdef.h  ../include/root_RVS.h ../include/root.h
+	@echo "Generating dictionary"
+	$(ROOTSYS)/bin/rootcint  -f $(BIN)rootdict_s.C -c ../include/root_RVS.h ../include/linkdef.h
+	@echo "OK"
+
+$(BIN)rootdict.o:         $(BIN)rootdict.C
+	$(CC) -c $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o 
+ 
+$(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
+	$(CC) -c $(CFLAGS) $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 
  
 $(BIN)gbatch.o:         $(SCC)gbatch.C
-	$(CC) -c $(CFLAGS)  $(SCC)gbatch.C -o $(BIN)gbatch.o
+	$(CC) -c $(CFLAGS) $(SCC)gbatch.C -o $(BIN)gbatch.o
+
 
 $(BIN)astro.o: 	 $(SCC)astro.C
-	$(CC) -c $(CFLAGS) $(SCC)astro.C -o $(BIN)astro.o
+	$(CC) -c $(CFLAGSn) $(SCC)astro.C -o $(BIN)astro.o
+
 
 $(BIN)job.o:    	 $(SCC)job.C
 	$(CC) -c $(CFLAGS) $(SCC)job.C -o $(BIN)job.o
@@ -446,32 +431,26 @@ $(BIN)daqs2block.o:    	 $(SCC)daqs2block.C
 $(BIN)astring.o:    	 $(SCC)astring.C
 	$(CC) -c $(CFLAGS) $(SCC)astring.C -o $(BIN)astring.o
 
-$(BIN)astring_mt.o:    	 $(SCC)astring.C
-	$(CC) -c $(CFLAGS) $(SCC)astring.C -o $(BIN)astring_mt.o
-
 $(BIN)event.o:    	 $(SCC)event.C
 	$(CC) -c $(CFLAGS) $(SCC)event.C -o $(BIN)event.o
 
 $(BIN)user.o:    	 $(SCC)user.C
 	$(CC) -c $(CFLAGS) $(SCC)user.C -o $(BIN)user.o
 
-$(BIN)gamma.o:    	 $(SCC)gamma.C
-	$(CC) -c $(CFLAGSTOFSIM) $(SCC)gamma.C -o $(BIN)gamma.o
-
 $(BIN)ntuple.o:    	 $(SCC)ntuple.C
 ifdef AMSMEMMONITOR
-	$(CC) -c $(CFLAGS) -D__MEMMONITOR__ $(SCC)ntuple.C -o $(BIN)ntuple.o
+	$(CC) -c -D__MEMMONITOR__ $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
 else
 	$(CC) -c $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
 endif
 $(BIN)root.o:    	 $(SCC)root.C
 	$(CC) -c $(CFLAGS) $(SCC)root.C -o $(BIN)root.o
 
+$(BIN)root_rs.o:    	 $(SCC)root.C
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
+
 $(BIN)id.o:    	 $(SCC)id.C
 	$(CC) -c $(CFLAGS)  $(SCC)id.C -o $(BIN)id.o
-
-$(BIN)id_mt.o:    	 $(SCC)id.C
-	$(CC) -c $(CFLAGS)  $(SCC)id.C -o $(BIN)id_mt.o
 
 $(BIN)bcorr.o:    	 $(SCC)bcorr.C
 	$(CC) -c $(CFLAGS) $(SCC)bcorr.C -o $(BIN)bcorr.o
@@ -484,20 +463,14 @@ $(BIN)trigger102.o:    	 $(SCC)trigger102.C
 	$(CC) -c $(CFLAGS) $(SCC)trigger102.C -o $(BIN)trigger102.o
 
 
-$(BIN)trigger302.o:    	 $(SCC)trigger302.C
+$(BIN)trigger302.o:      $(SCC)trigger302.C
 	$(CC) -c $(CFLAGS) $(SCC)trigger302.C -o $(BIN)trigger302.o
 
 $(BIN)node.o:	         $(SCC)node.C
 	$(CC) -c $(CFLAGS) $(SCC)node.C -o $(BIN)node.o
 
-$(BIN)node_mt.o:	         $(SCC)node.C
-	$(CC) -c $(CFLAGS) $(SCC)node.C -o $(BIN)node_mt.o
-
 $(BIN)snode.o:          $(SCC)snode.C
 	$(CC) -c $(CFLAGS) $(SCC)snode.C -o $(BIN)snode.o
-
-$(BIN)snode_mt.o:          $(SCC)snode.C
-	$(CC) -c $(CFLAGS) $(SCC)snode.C -o $(BIN)snode_mt.o
 
 $(BIN)gvolume.o:        $(SCC)gvolume.C
 	$(CC) -c $(CFLAGS) $(SCC)gvolume.C -o $(BIN)gvolume.o
@@ -505,9 +478,12 @@ $(BIN)gvolume.o:        $(SCC)gvolume.C
 $(BIN)timeid.o:        $(SCC)timeid.C
 	$(CC) -c $(CFLAGS) $(SCC)timeid.C -o $(BIN)timeid.o
            
-$(BIN)timeid_mt.o:        $(SCC)timeid.C
-	$(CC) -c $(CFLAGS) $(SCC)timeid.C -o $(BIN)timeid_mt.o
+$(BIN)tofid.o:        $(SCC)tofid.C
+	$(CC) -c $(CFLAGS) $(SCC)tofid.C -o $(BIN)tofid.o
            
+$(BIN)gamma.o:    	 $(SCC)gamma.C
+	$(CC) -c $(CFLAGS) $(SCC)gamma.C -o $(BIN)gamma.o
+
 $(BIN)status.o:        $(SCC)status.C
 	$(CC) -c $(CFLAGS) $(SCC)status.C -o $(BIN)status.o
            
@@ -560,6 +536,11 @@ $(BIN)mtx2.o:         ../F/mtx2.F
 $(BIN)amstkshc++.o:            ../F/amstkshc++.F
 	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include    ../F/amstkshc++.F -o $(BIN)amstkshc++.o
 
+ifeq  "$(shell uname)"  "SunOS" 
+
+$(BIN)mtx.o:                   ../F/mtx77.F
+	f77 -c $(FFLAGS)      ../F/mtx77.F -o $(BIN)mtx.o
+endif
 ifeq  "$(shell uname)"  "HP-UX" 
 
 $(BIN)mtx.o:                   ../F/mtx77.F
@@ -575,10 +556,10 @@ ifeq  "$(shell uname)"  "AIX"
 $(BIN)mtx.o:                   ../F/mtx.F
 	xlf90 -c $(FFLAGS)      ../F/mtx.F -o $(BIN)mtx.o
 endif
-ifeq  "$(shell uname)"  "SunOS" 
+ifeq  "$(shell uname)"  "AIXold" 
 
-$(BIN)mtx.o:                   ../F/mtx77.F
-	f77 -c $(FFLAGS)      ../F/mtx77.F -o $(BIN)mtx.o
+$(BIN)mtx.o:                   ../F/mtx.F
+	xlf90 -c $(FFLAGS)      ../F/mtx.F -o $(BIN)mtx.o
 endif
 
 ifeq  "$(shell uname)"  "OSF1" 
@@ -593,11 +574,8 @@ $(BIN)cern.o:	         $(SCC)cern.C
 $(BIN)amsdbc.o:         $(SCC)amsdbc.C
 	$(CC) -c $(CFLAGS) $(SCC)amsdbc.C -o $(BIN)amsdbc.o
 
-$(BIN)amsdbc_mt.o:         $(SCC)amsdbc.C
-	$(CC) -c $(CFLAGS) $(SCC)amsdbc.C -o $(BIN)amsdbc_mt.o
-
 $(BIN)tkdbc.o:         $(SCC)tkdbc.C
-	$(CC) -c $(CFLAGS)  $(SCC)tkdbc.C -o $(BIN)tkdbc.o
+	$(CC) -c $(CFLAGS) $(SCC)tkdbc.C -o $(BIN)tkdbc.o
 
 $(BIN)trddbc.o:         $(SCC)trddbc.C
 	$(CC) -c $(CFLAGS) $(SCC)trddbc.C -o $(BIN)trddbc.o
@@ -609,10 +587,6 @@ $(BIN)tofdbc02.o:         $(SCC)tofdbc02.C
 
 $(BIN)tofcalib02.o:         $(SCC)tofcalib02.C
 	$(CC) -c $(CFLAGS) $(SCC)tofcalib02.C -o $(BIN)tofcalib02.o
-
-
-$(BIN)tofid.o:         $(SCC)tofid.C
-	$(CC) -c $(CFLAGS) $(SCC)tofid.C -o $(BIN)tofid.o
 
 
 $(BIN)gsen.o:	         $(SCC)gsen.C
@@ -630,9 +604,6 @@ $(BIN)upool.o:	         $(SCC)upool.C
 
 $(BIN)apool.o:	         $(SCC)apool.C
 	$(CC) -c $(CFLAGS)  $(SCC)apool.C -o $(BIN)apool.o
-
-$(BIN)apool_mt.o:	         $(SCC)apool.C
-	$(CC) -c $(CFLAGS)  $(SCC)apool.C -o $(BIN)apool_mt.o
 
 $(BIN)gmat.o:         	 $(SCC)gmat.C
 	$(CC) -c $(CFLAGS) $(SCC)gmat.C -o $(BIN)gmat.o
@@ -653,7 +624,7 @@ $(BIN)mceventg.o: 	 $(SCC)mceventg.C
 	$(CC) -c $(CFLAGSn) $(SCC)mceventg.C -o $(BIN)mceventg.o
 
 $(BIN)mccluster.o: 	 $(SCC)mccluster.C
-	$(CC) -c $(CFLAGS) $(SCC)mccluster.C -o $(BIN)mccluster.o
+	$(CC) -c $(CFLAGSn) $(SCC)mccluster.C -o $(BIN)mccluster.o
 
 $(BIN)trrawcluster.o: 	 $(SCC)trrawcluster.C
 	$(CC) -c $(CFLAGS) $(SCC)trrawcluster.C -o $(BIN)trrawcluster.o
@@ -684,7 +655,7 @@ $(BIN)tralig.o: 	 $(SCC)tralig.C
 
 
 $(BIN)tofrec02.o: 	         $(SCC)tofrec02.C
-	$(CC) -c $(CFLAGS) $(SCC)tofrec02.C -o $(BIN)tofrec02.o
+	$(CC) -c $(CFLAGSn) $(SCC)tofrec02.C -o $(BIN)tofrec02.o
 
 
 $(BIN)tofonline02.o: 	         $(SCC)tofonline02.C
@@ -703,7 +674,7 @@ $(BIN)antidbc02.o: 	         $(SCC)antidbc02.C
 
 
 $(BIN)tofsim02.o: 	         $(SCC)tofsim02.C
-	$(CC) -c $(CFLAGSTOFSIM)        $(SCC)tofsim02.C -o $(BIN)tofsim02.o
+	$(CC) -c $(CFLAGSTOFSIM) $(SCC)tofsim02.C -o $(BIN)tofsim02.o
 
 
 $(BIN)beta.o: 	         $(SCC)beta.C
@@ -722,13 +693,16 @@ $(BIN)uzstat.o: 	 $(SCC)uzstat.C
 	$(CC) -c $(CFLAGS) $(SCC)uzstat.C -o $(BIN)uzstat.o
 
 $(BIN)io.o: 	 $(SCC)io.C
-	$(CC) -c $(CFLAGS)  $(SCC)io.C -o $(BIN)io.o
+	$(CC) -c $(CFLAGS) $(SCC)io.C -o $(BIN)io.o
 
 $(BIN)daqevt.o: 	 $(SCC)daqevt.C
-	$(CC) -c $(CFLAGSDAQ)   $(SCC)daqevt.C -o $(BIN)daqevt.o
+	$(CC) -c $(CFLAGSDAQ) $(SCC)daqevt.C -o $(BIN)daqevt.o
 
 $(BIN)commons.o: 	 $(SCC)commons.C
 	$(CC) -c $(CFLAGS) $(SCC)commons.C -o $(BIN)commons.o
+
+$(BIN)ecalcalib.o: 	 $(SCC)ecalcalib.C
+	$(CC) -c $(CFLAGS) $(SCC)ecalcalib.C -o $(BIN)ecalcalib.o
 
 $(BIN)ecaldbc.o: 	 $(SCC)ecaldbc.C
 	$(CC) -c $(CFLAGS) $(SCC)ecaldbc.C -o $(BIN)ecaldbc.o
@@ -738,9 +712,6 @@ $(BIN)ecalrec.o: 	 $(SCC)ecalrec.C
 
 $(BIN)ecid.o: 	 $(SCC)ecid.C
 	$(CC) -c $(CFLAGS) $(SCC)ecid.C -o $(BIN)ecid.o
-
-$(BIN)ecalcalib.o: 	 $(SCC)ecalcalib.C
-	$(CC) -c $(CFLAGS) $(SCC)ecalcalib.C -o $(BIN)ecalcalib.o
 
 $(BIN)richdbc.o: 	 $(SCC)richdbc.C
 	$(CC) -c $(CFLAGS) $(SCC)richdbc.C -o $(BIN)richdbc.o
@@ -763,31 +734,38 @@ $(BIN)graylc.o:          ../F/graylc.F
 $(BIN)cerenkov.o:	 ../F/cerenkov.F
 	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include ../F/cerenkov.F -o $(BIN)cerenkov.o
 
-../F/grfile.F:      $(CERNSRCDIR)/src/geant321/giopa/grfile.F
-	sed  "s/NQUOT=1000/NQUOT=32000/g"  $(CERNSRCDIR)/src/geant321/giopa/grfile.F > ../F/grfile.F
-
 ../F/flinit.F:      $(CERNSRCDIR)/src/geant321/fiface/flinit.F
 	sed  "s?OPEN(UNIT=LUNERR,FILE='flukaerr.dat'?OPEN(UNIT=LUNERR,FILE='/dev/null'?g"  $(CERNSRCDIR)/src/geant321/fiface/flinit.F > ../F/flinit.F
+
+../F/grfile.F:      $(CERNSRCDIR)/src/geant321/giopa/grfile.F
+	sed  "s/NQUOT=1000/NQUOT=32000/g"  /$(CERNSRCDIR)/src/geant321/giopa/grfile.F > ../F/grfile.F
 
 $(BIN)grfile.o:      ../F/grfile.F
 	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include ../F/grfile.F -o $(BIN)grfile.o
 
-$(BIN)flinit.o:      ../F/flinit.F
-	$(FF) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include ../F/flinit.F -o $(BIN)flinit.o
 ../F/gskpho.F:      $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F
 	sed  "s/N2-N1/NGPHOT\*10/g;s/MISSNG.GT.0/MISSNG.GT.NGPHOT\*10/g;s/MSSPOL.GT.0/MSSPOL.GT.NGPHOT\*10/g"  $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F > ../F/gskpho.F
 
 $(BIN)gskpho.o:      ../F/gskpho.F
 	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include ../F/gskpho.F -o $(BIN)gskpho.o
 
-$(BIN)fint_my.o:      ../F/fint_my.F
-	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include ../F/fint_my.F -o $(BIN)fint_my.o
-
 ../F/sbcomp.F:      $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F
 	sed  "s/STOP 'BIMPCT'/write(*,*)'****SBCOMP BIMPCT STOP ****',R0TRAJ,BIMPCT,R1TRAJ/g"  $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F > ../F/sbcomp.F
 
 $(BIN)sbcomp.o:      ../F/sbcomp.F
 	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include -DCERNLIB_DOUBLE ../F/sbcomp.F -o $(BIN)sbcomp.o
+
+$(BIN)gltrac.o:      ../F/gltrac.F
+	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include ../F/gltrac.F -o $(BIN)gltrac.o
+
+$(BIN)gstord.o:      ../F/gstord.F
+	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include ../F/gstord.F -o $(BIN)gstord.o
+
+$(BIN)flinit.o:      ../F/flinit.F
+	$(FF) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include ../F/flinit.F -o $(BIN)flinit.o
+$(BIN)fint_my.o:      ../F/fint_my.F
+	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include ../F/fint_my.F -o $(BIN)fint_my.o
+
 
 SERVER=$(EXE)amsprodserver.exe
 
@@ -796,42 +774,20 @@ server:	$(SERVER)
 $(SERVER):          $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX) $(BIN)server.o
 	$(LD) -v -o $(SERVER) $(BIN)server.o  $(OBJECTSE) $(OBJECTSEAUX) $(OBJECTCO)  $(LDFLAGSSTATICIDL) 
 
-SERVERMT=$(EXE)amsprodservermt.exe
-
-servermt:	$(SERVERMT)
-
-$(SERVERMT):          $(OBJECTCOMT) $(OBJECTSEMT) $(OBJECTSEAUXMT) $(BIN)server_mt.o $(BIN)mys.o
-	$(LD) -v -o $(SERVERMT) $(BIN)server_mt.o $(BIN)mys.o $(OBJECTSEMT) $(OBJECTSEAUXMT) $(OBJECTCOMT)  $(LDFLAGSSTATICIDLMT) 
-
 CLIENT=$(EXE)gbatch-orbit.exe
-
-CLIENTMT=$(EXE)gbatch-orbit-mt.exe
 
 producer:	$(CLIENT)
 
 $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC)
-	$(LD) -v -o $(CLIENT) $(OBJECTSC)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGS)
-
-producermt:	$(CLIENTMT)
-
-$(CLIENTMT):          $(OBJECTCOMT) $(OBJECTCLMT) $(OBJECTSC)
-	$(LD) -v -o $(CLIENTMT) $(OBJECTSC)  $(OBJECTCLMT) $(OBJECTCOMT) $(LDFLAGSSTATICIDLMT) $(TIMEL) $(LDFLAGS)
+	$(LD) $(FLAGSSTATIC) -v -o $(CLIENT) $(OBJECTSC)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
 
 $(OBJECTSE):         $(SRCSCPP)
-	$(CPP)  -fpermissive  -c $(CFLAGS) $(SRCSCPP) 
+	$(CPP)  -c $(CFLAGS) $(SRCSCPP) 
 	mv *.o $(BIN)
-
-$(OBJECTSEMT):         $(SRCSCPPMT)
-	$(CPP)  -fpermissive   -c $(CFLAGS) $(SRCSCPPMT) 
-	mv *.o $(BINMT)
 
 $(OBJECTCO):         $(SRCS)
-	$(CCC) -c $(CFLAGS) $(SRCS) 
+	$(CCC)  -c $(CFLAGS) $(SRCS) 
 	mv *.o $(BIN)
-
-$(OBJECTCOMT):         $(SRCSMT)
-	$(CCCMT) -c $(CFLAGS) $(SRCSMT) 
-	mv *.o $(BINMT)
 
 
 $(SRCS):    	 $(INCLUDE)server.idl
@@ -841,69 +797,41 @@ $(SRCS):    	 $(INCLUDE)server.idl
 
 
 
-$(SRCSMT):    	 $(INCLUDE)server.idl
-	$(IDLMT) $(INCLUDE)server.idl
-	mv *.h $(SRCMT)
-	mv *.c $(SRCMT)
-
 $(SRCSCPP):   $(SRCS) 	 $(INCLUDE)server.idl
 	$(IDLCPP) $(INCLUDE)server.idl
 	mv *.hh $(SRC)
 	mv *.cc $(SRC)
 
-$(INCSCPP):   $(SRCS) 	 $(INCLUDE)server.idl
-	$(IDLCPP) $(INCLUDE)server.idl
-	mv *.hh $(SRC)
 
-$(SRCSCPPMT):   $(SRCSMT) 	 $(INCLUDE)server.idl
-	$(IDLCPP) $(INCLUDE)server.idl
-	mv *.hh $(SRCMT)
-	mv *.cc $(SRCMT)
+$(BIN)gbatch_c.o:         $(SCC)gbatch.C
+	$(CPP) -c $(CFLAGS) -D__ROOTA__ $(SCC)gbatch.C $(IDLFLAGS)  -o $(BIN)gbatch_c.o
 
+$(BIN)geant_c.o: 	 $(SCC)geant.C
+	$(CPP) -c $(CFLAGSB) $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
 
-$(BIN)gbatch_c.o:         $(SCC)gbatch.C $(INCSCPP)
-	$(CPP) -c -fpermissive $(CFLAGS) -D__USE_STD_IOSTREAM $(SCC)gbatch.C $(IDLFLAGS)  -o $(BIN)gbatch_c.o
+$(BIN)job_c.o: 	 $(SCC)job.C
+	$(CPP) -c $(CFLAGS) $(IDLFLAGS) $(SCC)job.C -o $(BIN)job_c.o
 
-$(BIN)geant_c.o: 	 $(SCC)geant.C  $(INCSCPP)
-	$(CPP) -c -fpermissive $(CFLAGSB) $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
+$(BIN)geant3_c.o: 	 $(SCC)geant3.C
+	$(CPP) -c $(CFLAGS) $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
 
-$(BIN)job_c.o: 	 $(SCC)job.C  $(INCSCPP)
-	$(CPP) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)job.C -o $(BIN)job_c.o
+$(BIN)event_c.o: 	 $(SCC)event.C
+	$(CPP) -c $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
 
-$(BIN)geant3_c.o: 	 $(SCC)geant3.C  $(INCSCPP)
-	$(CPP) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
-
-$(BIN)event_c.o: 	 $(SCC)event.C  $(INCSCPP)
-	$(CPP) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
-
-$(BIN)timeid_c.o:        $(SCC)timeid.C  $(INCSCPP)
-	$(CPP) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
+$(BIN)timeid_c.o:        $(SCC)timeid.C
+	$(CPP) -c $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
            
-$(BIN)producer.o: 	 $(SCC)producer.C $(INCLUDE)client.h
-	$(CPP) -c -w -fpermissive $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
+$(BIN)producer.o: 	 $(SCC)producer.C
+	$(CPP) -c -w $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
 
 $(BIN)client.o: 	 $(SCC)client.C
-	$(CPP) -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o
-
-$(BIN)client_mt.o: 	 $(SCC)client.C
-	$(CPP) -c -w -fpermissive $(CFLAGS) $(IDLFLAGSMT) $(SCC)client.C -o $(BIN)client_mt.o
+	$(CPP) -fpermissive -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o
 
 $(BIN)server.o: 	 $(SCC)server.C
-	$(CPP)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
-
-$(BIN)server_mt.o: 	 $(SCC)server.C
-	$(CPP)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGSMT) $(SCC)server.C -o $(BIN)server_mt.o
-
-$(BIN)mys.o: 	 $(SCC)mys.c
-	$(CCCMT) -c  $(CFLAGS) $(IDLFLAGSMT) $(SCC)mys.c -o $(BIN)mys.o
+	$(CPP)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
 
 $(BIN)dbserver.o: 	 $(SCC)dbserver.C
-	$(CPP)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
-
-$(BIN)dbserver_mt.o: 	 $(SCC)dbserver.C
-	$(CPP)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGSMT) $(SCC)dbserver.C -o $(BIN)dbserver_mt.o
-
-
+	$(CPP)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
 
 
 depend:         $(BIN)Make-depend
@@ -913,22 +841,22 @@ $(BIN)Make-depend:    $(INCS)
 ifneq "$(shell du -a  $(BIN)Make-depend | grep -c  ake)" "1"
 		touch $(BIN)Make-depend
 endif
-		makedepend -f $(BIN)Make-depend  $(DFLAGS)  $(FILES) -p$(BIN)
+		makedepend -f $(BIN)Make-depend  -D__WRITEROOT__ $(DFLAGS)  $(FILES) -p$(BIN)
 		cat  $(BIN)Make-depend | sed -e 'sx/../CC/x/x1' > $(BIN)Make-depend.new
 		rm -f $(BIN)Make-depend
 		mv $(BIN)Make-depend.new $(BIN)Make-depend
-
 
 clean: 
 	rm -f $(BIN)*.o 
 	rm -f $(BIN)Make-depend 
 	rm -f $(BIN)*.C
 	rm -f $(BIN)*.h
+	rm -f $(EXE)gbatch_r.exe
 	rm -f $(EXE)gbatch.exe
-
 
 ##### DEPENDENCIES #####
 ifneq ($(MAKECMDGOALS),touch_depend)
  include $(BIN)Make-depend
 endif
+
 
