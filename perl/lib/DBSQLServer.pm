@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.64 2004/02/27 10:10:04 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.65 2004/03/12 10:24:01 alexei Exp $
 
 #
 #
@@ -775,6 +775,11 @@ my $sql;
     warn "Table Mails has $cnt entries. Not initialized";
  }
 
+    print "************ Check cern_hosts and cpu_coeff tables \n";
+    print "             to update run ~AMS/sql/c_m_all_hosts_cern.sql \n';
+    print "             and ~AMS/perl/updatemips.cgi -h from pcamsf0 \n";
+    print "************ Check localhosts table \n";
+    print "             to update run ~AMS/perl/updateHostClock.o.cgi \n";
 
 }
 

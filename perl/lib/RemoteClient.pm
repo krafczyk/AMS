@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.255 2004/03/11 09:12:36 alexei Exp $
+# $Id: RemoteClient.pm,v 1.256 2004/03/12 10:24:01 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -42,6 +42,8 @@
 #                  if CRC=0 didn't check it either
 # Mar  9, 2004   : getHostsList sub, getDisks add MC[GB] - GB for MC's DSTs 
 # Mar 10, 2004   : listJobs, listNtuples, listRuns - modified to speed up output
+# Mar 12, 2004   : getHostsMips & updateHostsMips subs
+#                  2 new tables cern_hosts and cpu_coeff
 #
 # ToDo : checkJobsTimeout - reduce number of SQLs
 #
@@ -64,7 +66,7 @@ use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 use File::Find;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs getHostsList getOutputPath updateHostInfo parseJournalFiles stopParseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs getHostsList getHostsMips getOutputPath updateHostInfo parseJournalFiles stopParseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateHostsMips);
 
 
 my     $webmode         = 1; # 1- cgi is executed from Web interface and 
@@ -985,6 +987,16 @@ sub ValidateRuns {
       DBServer::InitDBFile($self->{dbserver});
     }
     foreach my $run (@{$self->{dbserver}->{rtb}}){
+# check flag
+     $timenow = time();
+     $sql   = "select flag from FilesProcessing";
+     my $rflag = $self->{sqlserver}->Query($sql);
+     if ($rflag->[0][0] == 0) {
+         $self->updateFilesProcessing();
+         $self->amsprint("Processing flag = 0. Stop Runs Validation.",0);
+         return 1;
+     }
+#
      my @cpntuples   =();
      my @mvntuples   =();
      my $runupdate   = "UPDATE runs SET ";
@@ -1071,6 +1083,7 @@ sub ValidateRuns {
            my $cputime = sprintf("%.2f",$run->{cinfo}->{CPUTimeSpent});
            my $elapsed = sprintf("%.2f",$run->{cinfo}->{TimeSpent});
            my $host    = $run->{cinfo}->{HostName};
+           
 # get list of local hosts
            $sql = "UPDATE jobs SET 
                                      EVENTS=$events,
@@ -1078,7 +1091,7 @@ sub ValidateRuns {
                                      CPUTIME=$cputime,
                                      ELAPSED=$elapsed,
                                      HOST='$host',
-                                     MIPS=(SELECT clock FROM localhosts WHERE  NAME LIKE '$host%'),
+                                     MIPS=(SELECT mips FROM cern_hosts WHERE  cern_hosts.host LIKE '$host%'),
                                      TIMESTAMP=$timenow  
                             WHERE JID = $run->{Run}";
           $self->{sqlserver}->Update($sql);
@@ -5222,7 +5235,10 @@ sub checkJobsTimeout {
     } else {
      $sql = "SELECT runs.run 
               FROM runs 
-               WHERE runs.status != 'Completed' AND runs.status != 'TimeOut'";
+               WHERE runs.status != 'Completed' AND 
+                     runs.status != 'TimeOut'   AND 
+                     runs.staus  != 'Finished'  AND 
+                     runs.status != 'Processing'";
       my $r1=$self->{sqlserver}->Query($sql);
       if( defined $r1->[0][0]){
        foreach my $r (@{$r1}){
@@ -5273,9 +5289,9 @@ sub checkJobsTimeout {
          if (defined $r4->[0][0]) {
              $jobstatus = $r4->[0][1];
              if ($jobstatus eq 'Failed'     ||
-                 $jobstatus eq "Finished"   ||
-                 $jobstatus eq "Foreign"    ||
-                 $jobstatus eq "Processing" ||
+#-                 $jobstatus eq "Finished"   ||
+#-                 $jobstatus eq "Foreign"    ||
+#-                 $jobstatus eq "Processing" ||
                  $jobstatus eq "Unchecked")  {
                $sql= "UPDATE runs SET status='TimeOut' WHERE run=$jid";
                $self->{sqlserver}->Update($sql); 
@@ -5377,173 +5393,141 @@ sub updateHostInfo {
 }
 
 
-sub calculateMips {
+sub getHostsMips {
 
-    my @directories=(
-     'aprotons',
-     'deuterons',
-     'electrons',
-     'gamma',
-     'positrons',
-     'protons',
-     'C',
-     'He');
-     
-    my $self   = shift;
+    my $self     = shift;
+    my $hostname = shift;
 
-    my $sql    = undef;
-    my $jobname= undef;
-
-    my @names;
-    my @cpus;
-    my @elapsed;
-    my @events;
-    my @mips;
-    my @cpumean;
-    my @elapsedmean;
-    my @cpusigma;
-    my @elapsedsigma;
-    my @mipsmean;
-    my @mipssigma;
-    my @njobs;
-    my @particle;
-
-    my $n  = 0;
-#
-    my $timenow = time();
-    my $ltime   = localtime($timenow);
-#
-    print "Start calculateMips : $ltime \n";
- 
-# get jobname and mips
-#
-    $sql = "SELECT 
-              jobs.jobname, jobs.events, jobs.cputime, jobs.elapsed, jobs.mips, jobs.jid, 
-              runs.fevent, runs.levent, ntuples.path     
-              FROM Jobs, Runs, Ntuples  
-              WHERE jobs.jid=runs.jid AND runs.status='Completed' AND jobs.mips>0 AND runs.run=ntuples.run  
-              ORDER BY jid";
-    my $r0 = $self->{sqlserver}->Query($sql);
-    my $jidOld = 0;
-    if (defined $r0->[0][0]) {
-     foreach my $job (@{$r0}){
-      $jobname=trimblanks($job->[0]);
-      my $cite    = undef;
-      my $jid     = undef;
-      my $jobtype = undef;
-      my $eventsj = undef;
-      my $cpusj   = undef;
-      my $elapsedj= undef;
-      my $mipsj   = undef;
-      my $fevent  = undef;
-      my $levent  = undef;
-      my $path    = undef;
-      my $partj   = 'xyz';
-      my $newjob  = 1;
-      my @junk    = split '\.',$jobname;
-      if ($#junk > 0) {
-         $cite        = $junk[0];
-         $jid         = $junk[1];
-         if ($jid != $jidOld) { 
-          $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];     
-          $jobtype=trimblanks($jobtype);
-          $eventsj     = $job->[1];
-          $cpusj       = $job->[2];
-          $elapsedj    = $job->[3];
-          $mipsj       = $job->[4];
-          $jid         = $job->[5];
-          $fevent      = $job->[6];
-          $levent      = $job->[7];
-          $path        = $job->[8];
-
-          $eventsj    = $levent - $fevent + 1;
-
-
-          my $partj= $self->getJobParticleFromDSTPath($path);
-          my $i        = 0;
-          for ($i=0; $i<$#names+1; $i++) {
-             if ($names[$i] eq $jobtype && $particle[$i] eq $partj) {
-                 $events[$i] = $events[$i] + $eventsj;
-                 $cpus[$i]   = $cpus[$i]   + $cpusj;
-                 $elapsed[$i]= $elapsed[$i]+ $elapsedj;
-                 $mips[$i]   = $mips[$i]   + $mipsj;
-                 if ($eventsj > 0 && $mipsj > 0) {
-                  $mipsmean[$i]     = $mipsmean[$i] + ($cpusj*1000/$eventsj)/$mipsj;
+    my $mips     = 0;
+    my $mhz      = 0;
+    my $model    = undef;
+    my @junk     = split '\.',$hostname;
+    my $name     = $junk[0];
+    my $sql = "SELECT model, mhz FROM cern_hosts WHERE host='$name'";
+    my $ret = $self->{sqlserver}->Query($sql);
+    if (defined $ret->[0][0]) {
+        $model = trimblanks($ret->[0][0]);
+        $mhz = $ret->[0][1];
+        $sql ="SELECT model, minclock, maxclock, coeff FROM cpu_coeff";
+        my $r0 = $self->{sqlserver}->Query($sql);
+        if (defined $r0->[0][0]) {
+         foreach my $m (@{$r0}){
+             my $mm = $m->[0];
+             my $min= $m->[1];
+             my $max= $m->[2];
+             my $coeff = $m->[3];
+             if ($model =~ m/$mm/) {
+                 if ($mhz > $min && $mhz < $max) {
+                     $mips = $mhz*$coeff;
+                     last;
                  }
-                 if ($njobs[$i] > 0) {$njobs[$i]++;}
-                 $newjob  = 0;
-                 last;
              }
-          }
-          if ($newjob == 1) {
-                 $names[$n]     = $jobtype;
-                 $events[$n]    = $eventsj;
-                 $cpus[$n]      = $cpusj;
-                 $elapsed[$n]   = $elapsedj;
-                 $mips[$n]      = $mipsj;
-                 $particle[$n]  = $partj;
-                 $njobs[$n]  = 1;
-                 if ($events[$n]>0 && $mipsj > 0) {
-                  $mipsmean[$n]     = ($cpusj/($events[$n]))*1000/$mipsj;
-                 }
-                 $n++;
-             }
-      }
-      $jidOld=$jid;
+         }
+         if ($mips == 0) {print "Cannot find corresponding model for $hostname in cpu_coeff table \n";}
      }
-  }
-    my $totaljobs = 0;
-    for (my $j=0; $j<$#names+1; $j++) {
-     $mipsmean[$j]    = $mipsmean[$j]/$njobs[$j];
-     $mipssigma[$j]   = 0;
- 
-     if ($events[$j] > 0) {
-      if ($njobs[$j]>1) {
-       $totaljobs = $totaljobs + $njobs[$j];
-       foreach my $job (@{$r0}){
-        $jobname=trimblanks($job->[0]);
-        my @junk    = split '\.',$jobname;
-        if ($#junk > 0) {
-         my $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];     
-         $jobtype=trimblanks($jobtype);
-         my $path = $job->[8];
-         my $partj= $self->getJobParticleFromDSTPath($path);
-         if ($jobtype eq $names[$j] && $partj eq $particle[$j]) {
-           my $eventsj     = $job->[1];
-           my $cpusj       = $job->[2];
-           my $elapsedj    = $job->[3];
-           my $mipsj       = $job->[4];
-           my $jid         = $job->[5];
-           my $fevent      = $job->[6];
-           my $levent      = $job->[7];
-           $eventsj        = $levent - $fevent + 1;
-           if ($eventsj > 0 && $mipsj >0) {
-               $mipssigma[$j]    = ($mipsmean[$j] - ($cpusj*1000/$eventsj)/$mipsj)**2;
-           }
-       }
-     }
+    } else {
+         print "Cannot find $hostname in cern_hosts table \n";
     }
-   }
-  }
- }
- 
-    my $header =  sprintf("Jobs     Events     CPU[s]   Elapsed[s]   MIPS       <MIPS>       Particle        JobName\n");
-    print "$header";
-    foreach my $p (@directories) {
-     for (my $j=0; $j<$#names+1; $j++) {
-      if ($particle[$j] eq $p) { 
-       if ($events[$j] > 0 && $njobs[$j]>1) {
-         $mipssigma[$j] = sqrt($mipssigma[$j])/($njobs[$j]-1);
-       }
-       my $line = sprintf("%5.f %11.f %9.f %9.f %9.f %6.2f +/- %2.4f %12s  %20s \n",
-                        $njobs[$j],$events[$j],$cpus[$j],$elapsed[$j],$mips[$j],$mipsmean[$j],$mipssigma[$j],$particle[$j],$names[$j]);
-       print "$line";
-    }
-  }
-  }
-     print "\n Total Jobs : $totaljobs \n";
- }
+    if ($verbose == 1) {print "$hostname $mips \n";}
+    return $mips;
 }
+
+sub updateHostsMips {
+
+    my $self     = shift;
+
+  my $HelpTxt = "
+     updateHostsMips updates MIPS column in cern_hosts DB table 
+                     using host clock and coefficient from 
+                     cpu_coeff table.
+
+
+     -p    - print list of known hosts
+     -h    - print help
+     -v    - verbose mode
+     -u    - update table 
+     
+     from pcamsf0 only :
+
+     ./updatemips.cgi -p -v -u
+";
+
+  my $printOut = 0;
+  my $update   = 0;
+  my $verbose  = 0;
+
+  foreach my $chop  (@ARGV){
+    if($chop =~/^-p/){
+     $printOut = 1;
+    } 
+    if ($chop =~/^-v/) {
+     $verbose = 1;
+    }
+    if ($chop =~/^-v/) {
+     $update = 1;
+    }
+    if ($chop =~/^-h/) {
+      print "$HelpTxt \n";
+      return 1;
+    }
+
+   }
+
+
+
+    my $mips     = 0;
+    my $mhz      = 0;
+    my $model    = undef;
+    my $hostname = undef;
+
+    my $sql = "SELECT host, model, mhz FROM cern_hosts";
+    my $ret = $self->{sqlserver}->Query($sql);
+    if ($printOut == 1) {printf (" %10s %8s  %5s  %20s\n","Host", "ClockMHz", "Mips", "Model");}
+    if (defined $ret->[0][0]) {
+      foreach my $h (@{$ret}){
+        $hostname = trimblanks($h->[0]);
+        $model = trimblanks($h->[1]);
+        $mhz = $h->[2];
+        $sql ="SELECT model, minclock, maxclock, coeff FROM cpu_coeff";
+        my $r0 = $self->{sqlserver}->Query($sql);
+        if (defined $r0->[0][0]) {
+         foreach my $m (@{$r0}){
+             $mips = 0;
+             my $mm = trimblanks($m->[0]);
+             my $min= $m->[1];
+             my $max= $m->[2];
+             my $coeff = $m->[3];
+#             print "$model ... $mm \n";
+
+             my $tmm = trimblanks($m->[0]);
+             $tmm =~ s/\(//g;
+             $tmm =~ s/\)//g;
+
+             my $tmodel = $model;
+             $tmodel =~ s/\(//g;
+             $tmodel =~ s/\)//g;
+
+             if ($tmodel =~ /$tmm/) {
+#                 print "found $model \n";
+                 if ($mhz > $min && $mhz < $max) {
+                     $mips = $mhz*$coeff;
+                     if ($update == 1) {
+                      $sql = "UPDATE cern_hosts SET MIPS=$mips where host='$hostname'";
+                      $self->{sqlserver}->Update($sql);
+                     }
+                     last;
+                 }
+             }
+         }
+         if ($mips == 0) {print "Cannot find corresponding model for $hostname in cpu_coeff table \n";}
+     }
+        if ($printOut == 1) {printf (" %10s %6d  %6d  %20s\n",$hostname, $mhz, $mips, $model);}
+    }
+
+  }
+      return 1;
+}
+
 
 sub getJobParticleFromNTPath {
     my $self = shift;
@@ -8951,13 +8935,16 @@ sub getHostsList {
     my $h    = undef;
 
     my @hostlist   =();
-    my @njobs      =();
-    my $totaljobs  = 0;
+    my @njobs      =(); # jobs per host
+    my @nmips      =(); # mips per host
 
+    my $totaljobs  = 0;
+    my $totalmips  = 0;
 
     my $nCites = 0;
-    my $nJobs  = 0;
     my $nHosts = 0;
+    my $nJobs  = 0;
+    my $nMips  = 0;
 
     my $CiteName = undef;
 
@@ -9002,16 +8989,22 @@ sub getHostsList {
 
          @hostlist   =();
          $totaljobs  = 0;
+         $totalmips  = 0;
 
          for (my $i=0; $i<1000; $i++) {
           $njobs[$i] = 0;
+          $nmips[$i] = 0;
          }
-         $sql  = "SELECT host FROM Jobs WHERE host != 'host' and cid=$cid ORDER BY host";
+         $sql  = "SELECT host, mips FROM Jobs WHERE host != 'host' and cid=$cid ORDER BY host";
          $h=$self->{sqlserver}->Query($sql);
          if (defined $h->[0][0]) {
           foreach my $host (@{$h}){
-            $totaljobs++;
             my $hostname = trimblanks($host->[0]);
+            my $mips = 0;
+            if (defined $host->[1]) {$mips = $host->[1];}
+            $totaljobs++;
+            $totalmips += $mips;
+
             my @junk     = split '\.',$hostname;
             if ($#junk > 0) { $hostname = $junk[0];}
             my $newcomp = 1;
@@ -9019,26 +9012,29 @@ sub getHostsList {
                 if ($comp =~ $hostname) {
                   $newcomp = 0;
                   $njobs[$#hostlist]++;   
+                  $nmips[$#hostlist] += $mips;
                 }
             }
             if ($newcomp == 1) {
              push @hostlist, $hostname;
              $njobs[$#hostlist] = 1;
+             $nmips[$#hostlist] = $mips;
             }
           }
       }
        my $j = $#hostlist+1;
        if ($totaljobs > 0) {
         $nCites++;
-        $nJobs = $nJobs + $totaljobs;
-        $nHosts= $nHosts+ $j;
+        $nJobs  += $totaljobs;
+        $nMips  += $totalmips;
+        $nHosts += $j;
         print "\n";
-        print "Cite : $cid, $name , Hosts : $j, Jobs : $totaljobs ";
+        print "Cite : $cid, $name , Hosts : $j, Jobs : $totaljobs Mips : $totalmips";
          my $i = 0;
          $j = 0;
          foreach my $comp (@hostlist) {
              if ($j == 0) { print "\n";}
-             printf (" %10s %5d ",$hostlist[$i],$njobs[$i]);
+             printf (" %10s %5d %6d",$hostlist[$i],$njobs[$i],$nmips[$i]);
              $i++;
              $j++;
              if ($j == 3) { $j=0;}
@@ -9047,7 +9043,7 @@ sub getHostsList {
      }
         print "\n";
         print "---------------- Summary --------------------- \n";
-        print "Active Cites : $nCites, Total Jobs : $nJobs, Hosts : $nHosts \n";
+        print "Active Cites : $nCites, Total Jobs : $nJobs, Hosts : $nHosts Mips : $nMips\n";
         print "----------------         --------------------- \n";
 
     } else {
