@@ -1,6 +1,11 @@
-#  $Id: Mgxint,v 1.73 2003/02/13 12:32:34 choutko Exp $
+#  $Id: Mgxint,v 1.74 2003/03/12 22:33:44 schol Exp $
 #
 SHELL=/bin/sh
+
+CERN_LEVEL = pro
+CERNDIR = /cern/$(CERN_LEVEL)
+CERNSRCDIR = /afs/cern.ch/asis/share/cern/$(CERN_LEVEL)
+
 
 ifndef AMSWD
 AMSWD := ..
@@ -45,12 +50,21 @@ EXE=/exe/hpux
 TIMEL=
 endif
 ifeq  "$(shell uname)"  "Linux"
+
+CERN_LEVEL=pro
+CERNDIR = /afs/cern.ch/asis/i386_redhat61/cern/$(CERN_LEVEL)
+CERNSRCDIR = /afs/cern.ch/asis/share/cern/$(CERN_LEVEL)
+NAGDIR = /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
+#NAGDIR = /offline/n
+# Copy lib to private AFS area for remote link, example:
+#NAGDIR = /afs/cern.ch/user/k/kscholbe/private/
+
 CFLAGS=    -D__AMSDEBUG__      -I../include   -I../db 
 CFLAGSTOFSIM=             -I../include   -I../db
 CFLAGSn=           -I../include   -I../db
 FFLAGS=   -fno-automatic -g -I../include  
 CFLAGSDAQ=         -I../include 
-LDFLAGS=    -static -L/cern/pro/lib  -lgeant321  -lpawlib -llapack3 -lpacklib_noshift -lgraflib -lgrafX11  -lmathlib -lpacklib_noshift -lkernlib_noshift -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib   -lcrypt -ldl   -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
+LDFLAGS=    -static -L$(CERNDIR)/lib  -lgeant321  -lpawlib -llapack3 -lpacklib_noshift -lgraflib -lgrafX11  -lmathlib -lpacklib_noshift -lkernlib_noshift -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib   -lcrypt -ldl   -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
 CC=g++ -D__NAMESPACE__ -Wno-deprecated -mcpu=i686
 FF=g77
 LD=g++
@@ -98,11 +112,11 @@ $(BIN)/gi2.o:      ../CC/gi2.C
 $(BIN)/gi.o:      ../F/gi.F
 	$(FF) -c $(FFLAGS) ../F/gi.F -o $(BIN)/gi.o
 
-../F/grfile.F:      /cern/pro/src/geant321/giopa/grfile.F
-	sed  "s/NQUOT=1000/NQUOT=32000/g"  /cern/pro/src/geant321/giopa/grfile.F > ../F/grfile.F
+../F/grfile.F:      $(CERNSRCDIR)/src/geant321/giopa/grfile.F
+	sed  "s/NQUOT=1000/NQUOT=32000/g"  $(CERNSRCDIR)/src/geant321/giopa/grfile.F > ../F/grfile.F
 
 $(BIN)/grfile.o:      ../F/grfile.F
-	$(FF) -c $(FFLAGS) -I/cern/pro/include ../F/grfile.F -o $(BIN)/grfile.o
+	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include ../F/grfile.F -o $(BIN)/grfile.o
 
 
 depend: 	
