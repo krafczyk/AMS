@@ -83,6 +83,40 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   const integer rel=1; 
   integer flag=1;
 
+
+  par[0]=45;
+  par[1]=360;
+  par[2]=4;
+  par[3]=2;
+  par[4]=(RICpmtlength+RICeleclength)/2+RICGEOM.light_guides_height/2;
+  par[5]=(RICGEOM.light_guides_length/2-RICpmtshield);
+  par[6]=RICGEOM.light_guides_length/2;
+  par[7]=-((RICpmtlength+RICeleclength)/2+RICGEOM.light_guides_height/2);
+  par[8]=(RICGEOM.light_guides_length/2-RICpmtshield);
+  par[9]=RICGEOM.light_guides_length/2;
+
+  coo[0]=0;
+  coo[1]=0;
+  coo[2]=0;
+
+  dummy=lig->add(new AMSgvolume("RICH SHIELD",
+				0,
+				"PMTS",
+				"PGON",
+				par,
+				10,
+				coo,
+				nrm,
+				"ONLY",
+				0,
+				copia,
+				rel));
+
+#ifdef __G4AMS__
+  ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
+
+
   par[0]=RICGEOM.light_guides_length/2-RICpmtshield;
   par[1]=RICGEOM.light_guides_length/2-RICpmtshield;
   par[2]=(RICpmtlength-RICotherthk)/2; 
@@ -806,17 +840,10 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 
       coo[2]=RICHDB::pmt_pos();
       
-      par[0]=45;
-      par[1]=360;
-      par[2]=4;
-      par[3]=2;
-      par[4]=(RICpmtlength+RICeleclength)/2+RICGEOM.light_guides_height/2;
-      par[5]=(RICGEOM.light_guides_length/2-RICpmtshield);
-      par[6]=RICGEOM.light_guides_length/2;
-      par[7]=-((RICpmtlength+RICeleclength)/2+RICGEOM.light_guides_height/2);
-      par[8]=(RICGEOM.light_guides_length/2-RICpmtshield);
-      par[9]=RICGEOM.light_guides_length/2;
-      
+      par[0]=RICGEOM.light_guides_length/2;
+      par[1]=RICGEOM.light_guides_length/2;
+      par[2]=(RICpmtlength+RICeleclength)/2+RICGEOM.light_guides_height/2;
+
       coo[0]=xedge+j*RICGEOM.light_guides_length;
       coo[1]=yedge+i*RICGEOM.light_guides_length;
       
@@ -824,12 +851,12 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       RICHDB::pmt_p[copia-1][0]=coo[0];
       RICHDB::pmt_p[copia-1][1]=coo[1];
 
-      lig=rich->add(new AMSgvolume("RICH SHIELD",
+      lig=rich->add(new AMSgvolume("VACUUM",
 				   0,
 				   "PMTB",
-				   "PGON",
+				   "BOX",
 				   par,
-				   10,
+				   3,
 				   coo,
 				   nrm,
 				   "ONLY",
@@ -846,18 +873,20 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       RICHDB::pmt_p[copia-1][0]=coo[0];
       RICHDB::pmt_p[copia-1][1]=coo[1];
 
-      lig=rich->add(new AMSgvolume("RICH SHIELD",
+      lig=rich->add(new AMSgvolume("VACUUM",
 				   0,
 				   "PMTB",
-				   "PGON",
+				   "BOX",
 				   par,
-				   10,
+				   3,
 				   coo,
 				   nrm,
 				   "ONLY",
 				   0,
 				   copia++,
 				   rel));
+
+      
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On)
 	Put_pmt((AMSgvolume *)lig,copia-1);
@@ -868,18 +897,20 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       RICHDB::pmt_p[copia-1][0]=coo[0];
       RICHDB::pmt_p[copia-1][1]=coo[1];
 
-      lig=rich->add(new AMSgvolume("RICH SHIELD",
+      lig=rich->add(new AMSgvolume("VACUUM",
 				   0,
 				   "PMTB",
-				   "PGON",
+				   "BOX",
 				   par,
-				   10,
+				   3,
 				   coo,
 				   nrm,
 				   "ONLY",
 				   0,
 				   copia++,
 				   rel));
+
+
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On)
 	Put_pmt((AMSgvolume *)lig,copia-1);
@@ -891,18 +922,20 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       RICHDB::pmt_p[copia-1][0]=coo[0];
       RICHDB::pmt_p[copia-1][1]=coo[1];
 
-      lig=rich->add(new AMSgvolume("RICH SHIELD",
+      lig=rich->add(new AMSgvolume("VACUUM",
 				   0,
 				   "PMTB",
-				   "PGON",
+				   "BOX",
 				   par,
-				   10,
+				   3,
 				   coo,
 				   nrm,
 				   "ONLY",
 				   0,
 				   copia++,
 				   rel));
+
+
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On)
 	Put_pmt((AMSgvolume *)lig,copia-1);
@@ -917,18 +950,20 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       RICHDB::pmt_p[copia-1][0]=coo[0];
       RICHDB::pmt_p[copia-1][1]=coo[1];
 
-      lig=rich->add(new AMSgvolume("RICH SHIELD",
+      lig=rich->add(new AMSgvolume("VACUUM",
 				   0,
 				   "PMTB",
-				   "PGON",
+				   "BOX",
 				   par,
-				   10,
+				   3,
 				   coo,
 				   nrm,
 				   "ONLY",
 				   0,
 				   copia++,
 				   rel));
+
+
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On)
 	Put_pmt((AMSgvolume *)lig,copia-1);
@@ -939,18 +974,20 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       RICHDB::pmt_p[copia-1][0]=coo[0];
       RICHDB::pmt_p[copia-1][1]=coo[1];
 
-      lig=rich->add(new AMSgvolume("RICH SHIELD",
+      lig=rich->add(new AMSgvolume("VACUUM",
 				   0,
 				   "PMTB",
-				   "PGON",
+				   "BOX",
 				   par,
-				   10,
+				   3,
 				   coo,
 				   nrm,
 				   "ONLY",
 				   0,
 				   copia++,
 				   rel));
+
+
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On)
 	Put_pmt((AMSgvolume *)lig,copia-1);
@@ -961,18 +998,20 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       RICHDB::pmt_p[copia-1][0]=coo[0];
       RICHDB::pmt_p[copia-1][1]=coo[1];
 
-      lig=rich->add(new AMSgvolume("RICH SHIELD",
+      lig=rich->add(new AMSgvolume("VACUUM",
 				   0,
 				   "PMTB",
-				   "PGON",
+				   "BOX",
 				   par,
-				   10,
+				   3,
 				   coo,
 				   nrm,
 				   "ONLY",
 				   0,
 				   copia++,
 				   rel));
+
+
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On)
 	Put_pmt((AMSgvolume *)lig,copia-1);
@@ -983,19 +1022,22 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 
       RICHDB::pmt_p[copia-1][0]=coo[0];
       RICHDB::pmt_p[copia-1][1]=coo[1];
-
-      lig=rich->add(new AMSgvolume("RICH SHIELD",
+      
+      lig=rich->add(new AMSgvolume("VACUUM",
 				   0,
 				   "PMTB",
-				   "PGON",
+				   "BOX",
 				   par,
-				   10,
+				   3,
 				   coo,
 				   nrm,
 				   "ONLY",
 				   0,
 				   copia++,
 				   rel));
+
+
+
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On)
 	Put_pmt((AMSgvolume *)lig,copia-1);
@@ -1019,18 +1061,21 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       RICHDB::pmt_p[copia-1][0]=coo[0];
       RICHDB::pmt_p[copia-1][1]=coo[1];
 
-      lig=rich->add(new AMSgvolume("RICH SHIELD",
+      lig=rich->add(new AMSgvolume("VACUUM",
 				   0,
 				   "PMTB",
-				   "PGON",
+				   "BOX",
 				   par,
-				   10,
+				   3,
 				   coo,
 				   nrm,
 				   "ONLY",
 				   0,
 				   copia++,
 				   rel));
+
+
+
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On)
 	Put_pmt((AMSgvolume *)lig,copia-1);
@@ -1041,18 +1086,20 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       RICHDB::pmt_p[copia-1][0]=coo[0];
       RICHDB::pmt_p[copia-1][1]=coo[1];
 
-      lig=rich->add(new AMSgvolume("RICH SHIELD",
+      lig=rich->add(new AMSgvolume("VACUUM",
 				   0,
 				   "PMTB",
-				   "PGON",
+				   "BOX",
 				   par,
-				   10,
+				   3,
 				   coo,
 				   nrm,
 				   "ONLY",
 				   0,
 				   copia++,
 				   rel));
+
+
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On)
 	Put_pmt((AMSgvolume *)lig,copia-1);
@@ -1063,18 +1110,20 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       RICHDB::pmt_p[copia-1][0]=coo[0];
       RICHDB::pmt_p[copia-1][1]=coo[1];
 
-      lig=rich->add(new AMSgvolume("RICH SHIELD",
+      lig=rich->add(new AMSgvolume("VACUUM",
 				   0,
 				   "PMTB",
-				   "PGON",
+				   "BOX",
 				   par,
-				   10,
+				   3,
 				   coo,
 				   nrm,
 				   "ONLY",
 				   0,
 				   copia++,
 				   rel));
+
+
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On)
 	Put_pmt((AMSgvolume *)lig,copia-1);
@@ -1086,18 +1135,20 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       RICHDB::pmt_p[copia-1][0]=coo[0];
       RICHDB::pmt_p[copia-1][1]=coo[1];
 
-      lig=rich->add(new AMSgvolume("RICH SHIELD",
+      lig=rich->add(new AMSgvolume("VACUUM",
 				   0,
 				   "PMTB",
-				   "PGON",
+				   "BOX",
 				   par,
-				   10,
+				   3,
 				   coo,
 				   nrm,
 				   "ONLY",
 				   0,
 				   copia++,
 				   rel));
+
+
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On)
 	Put_pmt((AMSgvolume *)lig,copia-1);
