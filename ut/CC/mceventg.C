@@ -443,11 +443,10 @@ integer AMSmceventg::accept(){
     if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){
       if(_mom>=_momrange[0] && _mom <= _momrange[1]){
         geant d;
-        if(CCFFKEY.low || _fixeddir || _dir[2]<_albedocz || RNDM(d)< _albedorate){
-          if(CCFFKEY.low == 0  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
+//        if(CCFFKEY.low || _fixeddir || _dir[2]<_albedocz || RNDM(d)< _albedorate){
+          if(!CCFFKEY.low  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
            return EarthModulation();
           else return 1;
-        }
       }
     }
   }
