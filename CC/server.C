@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.113 2004/06/28 13:25:09 choutko Exp $
+//  $Id: server.C,v 1.114 2004/10/08 09:11:46 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -3291,6 +3291,8 @@ if(_parent->Debug() && ne.Status!=DPS::Producer::InProgress){
   }
  }
     _parent->EMessage(AMSClient::print(vne,"Update:DST Not Found "));
+ _dst.insert(make_pair(ne.Type,vne));
+  if(ci.Type!=DPS::Client::Server)PropagateDST(ne,DPS::Client::Create,DPS::Client::AnyButSelf,_parent->getcid().uid);
  break;
  case DPS::Client::Delete:
  for(DSTLI li=b.first;li!=b.second;++li){
@@ -4412,7 +4414,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
        }
       }
       else{
-       _parent->EMessage(" UpdateRunTable-UnableToUpdate"); 
+       _parent->EMessage(" UpdateHostTable-UnableToUpdate"); 
         return 0;
       }
        DPS::Client::ActiveHost *pre;
@@ -4473,7 +4475,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
        }
       }
       else{
-       _parent->EMessage(" UpdateRunTable-UnableToUpdate"); 
+       _parent->EMessage(" UpdateRunTable-UnableToUpdateInfoS"); 
         return 0;
       }
       DPS::Producer::RunEvInfo *pre;

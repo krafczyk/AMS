@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.88 2004/09/27 15:00:30 choumilo Exp $
+//  $Id: geant3.C,v 1.89 2004/10/08 09:11:45 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -90,7 +90,14 @@ if(    !AMSEvent::gethead()->HasNoCriticalErrors())return;
   if(TRDMCFFKEY.mode <3 && TRDMCFFKEY.mode >=0) {
     //saveliev
     simtrd_(TRDMCFFKEY.g3trd);
-    if(TRDMCFFKEY.mode<2)trphoton_(TRDMCFFKEY.g3trd);
+    if(TRDMCFFKEY.mode<2){
+         if(GCTRAK.gekin != GCTRAK.gekin){
+          cerr <<"  gekin problem "<<endl;
+          GCTRAK.istop =1;
+          AMSEvent::gethead()->seterror(2);
+         }
+         trphoton_(TRDMCFFKEY.g3trd);
+    }
     if(TRDMCFFKEY.mode==0)simde_(TRDMCFFKEY.g3trd);
   }
   else if(TRDMCFFKEY.mode ==3){

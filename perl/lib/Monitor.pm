@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.78 2004/09/21 11:54:23 choutko Exp $
+# $Id: Monitor.pm,v 1.79 2004/10/08 09:11:53 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -1065,10 +1065,20 @@ sub PNtupleSort{
      for my $i (0 ... $#{$Monitor::Singleton->{rtb}}){
          $#text=-1;
          my $hash=$Monitor::Singleton->{rtb}[$i];
-         
+         my $st="Undefined";
+         if($hash->{cuid} ne 0){
+         for my $j (0 ... $#{$Monitor::Singleton->{acl}}){
+          my $hasha=$Monitor::Singleton->{acl}[$j];
+           
+          if( $hasha->{id}->{uid} eq $hash->{cuid}){
+              $st=$hasha->{StatusType};
+              last;
+          }
+          }
+         }
          push @text,  $hash->{uid},$hash->{Run},$hash->{FirstEvent}, 
         $hash->{LastEvent}, $hash->{Priority}, $hash->{FilePath}, 
-         $hash->{Status}, $hash->{History},$hash->{CounterFail},;
+         $hash->{Status}, $hash->{History},$st,$hash->{CounterFail},;
          push @output, [@text];   
      }
     }elsif( $name eq "Killer"){        
@@ -1596,6 +1606,7 @@ sub ResetFailedRuns{
 
       for my $j (0 ... $#{$ref->{rtb}}){
         my %rdst=%{${$ref->{rtb}}[$j]};
+
  if($rdst{Status} eq "Processing"){
      my $found=0;
      foreach my $ac (@{$ref->{acl}}){
@@ -1614,6 +1625,12 @@ sub ResetFailedRuns{
          if($rdst{Run}>(1<<26)){
           $rdst{Status}="Foreign";
           }
+     }
+       if($rdst{Status} eq "Allocated"){
+      
+         $rdst{Status}="Finished";
+     }
+
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
             try{
@@ -1632,13 +1649,12 @@ sub ResetFailedRuns{
             catch CORBA::SystemException with{
                 warn "sendback corba exc";
             };
+        
         }
 
 
-     }
+
 }
-
-
 
     for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
      my %nc=%{$Monitor::Singleton->{dsts}[$i]};
@@ -1797,7 +1813,7 @@ FoundRun:
      my $run=-1;
      for my $j (0 ... $#sortedrtb){
           my $hdst=$sortedrtb[$j];
-          if( $hdst->{Type} eq "RootFile"){
+          if( $hdst->{Type} eq "Ntuple"){
            if($hdst->{Status} eq "Validated"){
                my @text=split '\/',$hdst->{Name};
                my @name=split '\.',$text[$#text];
@@ -1918,12 +1934,208 @@ sub RestoreRuns{
          }
      }
 {
+
+
+
+ my $joudir="/f2users/scratch/MC/cern/jou/MCProducer/";
+opendir THISDIR ,$joudir or die "unable to open $joudir";
+my @allfiles= readdir THISDIR;
+closedir THISDIR;
+foreach my $file (@allfiles){
+    if($file=~/\.journal$/){
+        my @junk=split '\.', $file;
+        my $run=int($junk[0]);
+        if($run>1100 && $run<12000){
+            my $full=$joudir.$file;
+            open(FILE,"<".$full) or die "Unable to open journal file $full \n";
+            my $buf;
+            read(FILE,$buf,1638400) or next;
+            close FILE;
+            if($buf=~/RunFinished1/ && $buf=~/, Status Finished/){
+#              warn "  $run finished "; 
+              @junk=split 'CloseDST  \, Status Validated \, Type Ntuple \, Name ', $buf;
+              if($#junk<1){
+                  die " no  dst found for run $run";
+              }
+              else{ 
+               my @j2=split '[:,]', $junk[1];
+#               warn "  file $j2[1] found \n";
+               if( open(FILE,"<".$j2[1])){
+                 close FILE;
+                 die "  $j2[1] exists !!! \n";
+               }        
+            }              
+          }
+           else{
+      my %rdst; 
+      for my $j (0 ... $#{$ref->{rtb}}){
+        %rdst=%{${$ref->{rtb}}[$j]};
+        if ($rdst{uid}>$maxrun){
+          $maxrun=$rdst{uid};
+         }
+        if($rdst{Run} eq $run){
+         goto FoundRun;
+        }
+       }
+               warn "  run $ run not finished \n";
+            my @rec=split '-I-TimeStamp', $buf;
+            my $dstf=0;
+            my $lste=0;
+            my $stime=time();
+            foreach my $sbuf (@rec){
+                if($sbuf=~/StartingRun/ && $sbuf=~/SubmitTimeU/){
+                    @junk=split /SubmitTimeU/,$sbuf;
+                    my @sjunk=split '\,', $junk[1];
+                    $stime=$sjunk[0];
+                    warn "  submit time $stime run $run \n";
+                }
+            }
+            foreach my $sbuf (@rec){
+              @junk=split 'CloseDST  \, Status Validated \, Type Ntuple \, ', $sbuf;
+              if($#junk<1){
+                warn " no clsed dst found for run $run \n";
+                next;
+              }               
+              $dstf=1;
+              my %hdst=%{$Monitor::Singleton->{dsts}[0]};
+            $hdst{Status}='Validated';
+            my @src=split ' \, ',$junk[1];
+            foreach my $entry (@src){
+                my @value=split ' ',$entry;
+                $hdst{$value[0]}=$value[1];
+                warn " $value[0] $value[1] \n";
+                if($value[0]=~/LastEvent/){
+                 $lste=$value[1];
+                }                
+            }
+              if($maxrun<10000){
+                my %cid=%{$ref->{cid}};
+        my $arsref;
+        foreach $arsref (@{$ref->{arpref}}){
+            try{
+                $arsref->sendDSTEnd(\%cid,\%hdst,"Create");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+#                $arsref->sendDSTEnd(\%cid,\%hdst,"ClearCreate");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+    }
+          }
 opendir THISDIR ,$dir or die "unable to open $dir";
 my @allfiles= readdir THISDIR;
 closedir THISDIR;
+foreach my $file (@allfiles){
+    if ($file =~/^cern\.$run/){
+        warn " found file for $run \n";
+        my $full=$dir.$file;
+        open(FILE,"<".$full) or die "Unable to open file $full\n";
+        my $buf;
+        read(FILE,$buf,16384000) or next;
+        close FILE;
+        $rdst{Run}=$run;
+        $maxrun=$maxrun+1;
+        $rdst{uid}=$maxrun;
+        $rdst{FirstEvent}=1;
+        $rdst{FilePath}=$file;
+        $rdst{History}="ToBeRerun";
+        $rdst{cuid}=$run;
+        $rdst{SubmitTime}=$stime;
+           my @sbuf=split "\n",$buf;
+             foreach my $line (@sbuf){
+                 if($line=~/^TRIG=/){ 
+                     my @text= split '=',$line;
+                    if($dstf eq 0){
+                     $rdst{LastEvent}=$text[1];
+                     $rdst{Status}="ToBeRerun";
+                    }
+                    else{
+                     $rdst{Status}="Finished";
+                     $rdst{LastEvent}=$lste;
+                    }
+
+                 }
+                 elsif($line=~/^TIMBEG=/){
+                      my @text= split '=',$line;
+                      my $timbeg=$text[1];
+                     my $year=$timbeg%10000-1900;
+                     my $month=int($timbeg/10000)%100-1;
+                     my $date=int($timbeg/1000000)%100;
+                     $rdst{TFEvent}=timelocal(1,0,8,$date,$month,$year);
+                 }
+                 elsif($line=~/^TIMEND=/){
+                      my @text= split '=',$line;
+                      my $timbeg=$text[1];
+                     my $year=$timbeg%10000-1900;
+                     my $month=int($timbeg/10000)%100-1;
+                     my $date=int($timbeg/1000000)%100;
+                     $rdst{TLEvent}=timelocal(1,0,8,$date,$month,$year);
+                     warn " Run $run completed $rdst{Status} $rdst{uid} \n";
+                      if($maxrun<=10000){
+        my $arsref;
+        foreach $arsref (@{$ref->{arpref}}){
+            try{
+                $arsref->sendRunEvInfo(\%rdst,"Create");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                $arsref->sendRunEvInfo(\%rdst,"Create");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+    }
+
+                     last;
+                  }
+             }
+    }
+}
+ 
 
 
-for my $run (825...850){
+
+
+
+FoundRun:
+           }             
+    }
+}
+}
+
+
+
+     for my $i (0 ... $#{$Monitor::Singleton->{env}}){
+         my $hash=$Monitor::Singleton->{env}[$i];
+         my @text = split '\=',$hash;
+         if($text[0]=~/^AMSDataDir/){
+           warn "  AMSDataDir $text[1] \n";
+           $dir=$text[1]."/prod.log/scripts/";
+           last;
+         }
+     }
+
+opendir THISDIR ,$dir or die "unable to open $dir";
+@allfiles= readdir THISDIR;
+closedir THISDIR;
+
+for my $run (943...100000){
 foreach my $file (@allfiles){
     if ($file =~/^cern\.$run/){
                my %rdst; 
@@ -1976,7 +2188,7 @@ foreach my $file (@allfiles){
                      my $date=int($timbeg/1000000)%100;
                      $rdst{TLEvent}=timelocal(1,0,8,$date,$month,$year);
                      warn " Run $run completed $rdst{Status} $rdst{uid} \n";
-                      if($maxrun<=1000){
+                      if($maxrun<=10000){
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
             try{
@@ -2008,190 +2220,9 @@ fr3:
 }
 }
 
-return
-
- my $joudir="/f2users/scratch/MC/cern/jou/MCProducer/";
-opendir THISDIR ,$joudir or die "unable to open $joudir";
-my @allfiles= readdir THISDIR;
-closedir THISDIR;
-foreach my $file (@allfiles){
-    if($file=~/\.journal$/){
-        my @junk=split '\.', $file;
-        my $run=int($junk[0]);
-        if($run>400 && $run<584){
-            my $full=$joudir.$file;
-            open(FILE,"<".$full) or die "Unable to open journal file $full \n";
-            my $buf;
-            read(FILE,$buf,1638400) or next;
-            close FILE;
-            if($buf=~/RunFinished/ && $buf=~/, Status Finished/){
-#              warn "  $run finished "; 
-              @junk=split 'CloseDST  \, Status Validated \, Type RootFile \, Name ', $buf;
-              if($#junk<1){
-                  die " no  dst found for run $run";
-              }
-              else{ 
-               my @j2=split '[:,]', $junk[1];
-#               warn "  file $j2[1] found \n";
-               if( open(FILE,"<".$j2[1])){
-                 close FILE;
-                 die "  $j2[1] exists !!! \n";
-               }        
-            }              
-           }
-           else{
-      my %rdst; 
-      for my $j (0 ... $#{$ref->{rtb}}){
-        %rdst=%{${$ref->{rtb}}[$j]};
-        if ($rdst{uid}>$maxrun){
-          $maxrun=$rdst{uid};
-         }
-        if($rdst{Run} eq $run){
-         goto FoundRun;
-        }
-       }
-               warn "  run $ run not finished \n";
-            my @rec=split '-I-TimeStamp', $buf;
-            my $dstf=0;
-            my $lste=0;
-            my $stime=time();
-            foreach my $sbuf (@rec){
-                if($sbuf=~/StartingRun/ && $sbuf=~/SubmitTimeU/){
-                    @junk=split /SubmitTimeU/,$sbuf;
-                    my @sjunk=split '\,', $junk[1];
-                    $stime=$sjunk[0];
-                    warn "  submit time $stime run $run \n";
-                }
-            }
-            foreach my $sbuf (@rec){
-              @junk=split 'CloseDST  \, Status Validated \, Type RootFile \, ', $sbuf;
-              if($#junk<1){
-                warn " no clsed dst found for run $run \n";
-                next;
-              }               
-              $dstf=1;
-              my %hdst=%{$Monitor::Singleton->{dsts}[0]};
-            $hdst{Status}='Validated';
-            my @src=split ' \, ',$junk[1];
-            foreach my $entry (@src){
-                my @value=split ' ',$entry;
-                $hdst{$value[0]}=$value[1];
-                warn " $value[0] $value[1] \n";
-                if($value[0]=~/LastEvent/){
-                 $lste=$value[1];
-                }                
-            }
-              if($maxrun<100){
-                my %cid=%{$ref->{cid}};
-        my $arsref;
-        foreach $arsref (@{$ref->{arpref}}){
-            try{
-                $arsref->sendDSTEnd(\%cid,\%hdst,"Create");
-                last;
-            }
-            catch CORBA::SystemException with{
-                warn "sendback corba exc";
-            };
-        }
-        foreach $arsref (@{$ref->{ardref}}){
-            try{
-                $arsref->sendDSTEnd(\%cid,\%hdst,"ClearCreate");
-                last;
-            }
-            catch CORBA::SystemException with{
-                warn "sendback corba exc";
-            };
-        }
-    }
-          }
-return; 
-opendir THISDIR ,$dir or die "unable to open $dir";
-my @allfiles= readdir THISDIR;
-closedir THISDIR;
-foreach my $file (@allfiles){
-    if ($file =~/^cern\.$run/){
-        warn " found file for $run \n";
-        my $full=$dir.$file;
-        open(FILE,"<".$full) or die "Unable to open file $full\n";
-        my $buf;
-        read(FILE,$buf,16384000) or next;
-        close FILE;
-        $rdst{Run}=$run;
-        $maxrun=$maxrun+1;
-        $rdst{uid}=$maxrun;
-        $rdst{FirstEvent}=1;
-        $rdst{FilePath}=$file;
-        $rdst{History}="ToBeRerun";
-        $rdst{cuid}=$run;
-        $rdst{SubmitTime}=$stime;
-           my @sbuf=split "\n",$buf;
-             foreach my $line (@sbuf){
-                 if($line=~/^TRIG=/){ 
-                     my @text= split '=',$line;
-                    if($dstf eq 0){
-                     $rdst{LastEvent}=$text[1];
-                     $rdst{Status}="ToBeRerun";
-                    }
-                    else{
-                     $rdst{Status}="Finished";
-                     $rdst{LastEvent}=$lste;
-                    }
-
-                 }
-                 elsif($line=~/^TIMBEG=/){
-                      my @text= split '=',$line;
-                      my $timbeg=$text[1];
-                     my $year=$timbeg%10000-1900;
-                     my $month=int($timbeg/10000)%100-1;
-                     my $date=int($timbeg/1000000)%100;
-                     $rdst{TFEvent}=timelocal(1,0,8,$date,$month,$year);
-                 }
-                 elsif($line=~/^TIMEND=/){
-                      my @text= split '=',$line;
-                      my $timbeg=$text[1];
-                     my $year=$timbeg%10000-1900;
-                     my $month=int($timbeg/10000)%100-1;
-                     my $date=int($timbeg/1000000)%100;
-                     $rdst{TLEvent}=timelocal(1,0,8,$date,$month,$year);
-                     warn " Run $run completed $rdst{Status} $rdst{uid} \n";
-                      if($maxrun<=100){
-        my $arsref;
-        foreach $arsref (@{$ref->{arpref}}){
-            try{
-                $arsref->sendRunEvInfo(\%rdst,"Create");
-                last;
-            }
-            catch CORBA::SystemException with{
-                warn "sendback corba exc";
-            };
-        }
-        foreach $arsref (@{$ref->{ardref}}){
-            try{
-                $arsref->sendRunEvInfo(\%rdst,"Create");
-                last;
-            }
-            catch CORBA::SystemException with{
-                warn "sendback corba exc";
-            };
-        }
-    }
-
-                     last;
-                  }
-             }
-    }
-}
- 
 
 
 
-
-
-FoundRun:
-           }             
-    }
-}
-}
 }
 
 sub RestoreRuns_no{

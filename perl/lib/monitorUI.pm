@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.36 2004/06/28 13:25:19 choutko Exp $
+#  $Id: monitorUI.pm,v 1.37 2004/10/08 09:11:53 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -1332,6 +1332,7 @@ sub show_sample{
 "FilePath",
 "Status",
 "History",
+"StType",
 "Fails",
                  );
     }elsif( $name eq "Killer"){

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.468 2004/09/27 15:00:31 choumilo Exp $
+// $Id: job.C,v 1.469 2004/10/08 09:11:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1480,7 +1480,7 @@ if(TRDMCFFKEY.mode==-1){
  }
 }
 if(TRFITFFKEY.FastTracking==-1){
- TRFITFFKEY.FastTracking=0;
+ TRFITFFKEY.FastTracking=1;
 }
 
 // check delta etc

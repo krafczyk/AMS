@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.79 2003/05/22 12:25:52 choutko Exp $
+//  $Id: gbatch.C,v 1.80 2004/10/08 09:11:45 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -115,6 +115,7 @@ using namespace glconst;
     GCFLAG.IEORUN=1;
     GCFLAG.IEOTRI=1;
     AMSStatus::setmode(0);
+    AMSFFKEY.CpuLimit=15;
     break;
   case SIGQUIT:
     cerr <<" Process suspended"<<endl;
