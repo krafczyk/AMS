@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.19 2002/03/14 14:13:32 choutko Exp $
+# $Id: RemoteClient.pm,v 1.20 2002/03/14 14:23:31 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -609,7 +609,6 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
         print $self->{q}->end_form();
    return;
      }
-   my $thrusted=0;
    my $validated=0;
    my $bad=0; 
    my $unchecked=0; 
@@ -641,39 +640,27 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
              $self->{sqlserver}->Update($sql);
 # Find corresponding ntuples
           foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
-              if($ntuple->{Type} eq "Ntuple" and ($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and $ntuple->{Run}== $run->{Run}){
+              if($ntuple->{Type} eq "Ntuple" and $ntuple->{Status} eq "Success"and $ntuple->{Run}== $run->{Run}){
 # suppress double //
                   $ntuple->{Name}=~s/\/\//\//;                  
                   my @fpatha=split ':', $ntuple->{Name};
                   my $fpath=$fpatha[$#fpatha];
                   my $suc=open(FILE,"<".$fpath);
-                  my $badevents=$ntuple->{ErrorNumber};
-                  my $events=$ntuple->{EventNumber};
-                  $status="OK";                     
+                  my ($events,$badevents);
                   if(not $suc){
-                      if($ntuple->{Status} ne "Validated"){
-                        $status="Unchecked";                     
-                        $events=$ntuple->{EventNumber};
-                        $badevents="NULL";
-                        $unchecked++;
-                      }
-                      else{
-                        $thrusted++;
-                      }
+                    $status="Unchecked";                     
+                    $events=$ntuple->{EventNumber};
+                    $badevents="NULL";
+                    $unchecked++;
                   }  
                   else{
                       close FILE;
                       my $i=system("$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber}");
                       if( ($i == 0xff00) or ($i & 0xff)){
-                      if($ntuple->{Status} ne "Validated"){
                        $status="Unchecked";                     
                        $events=$ntuple->{EventNumber};
                        $badevents="NULL";
                        $unchecked++;
-                      }
-                      else{
-                        $thrusted++;
-                      }
                       }
                       else{
                           $i=($i>>8);
@@ -749,7 +736,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
          }
      }
   }
-   $self->InfoPlus("$validated Ntuple(s) Successfully Validated.\n $bad Ntuple(s) Turned Bad.\n $unchecked Ntuples(s) Could Not Be Validated.\n $thrusted Ntuples Could Not be Validated But Assumed  OK.");
+   $self->InfoPlus("$validated Ntuple(s) Successfully Validated.\n $bad Ntuple(s) Turned Bad.\n $unchecked Ntuples(s) Could Not Be Validated.");
         $self->{ok}=1;
     
 }
@@ -1973,23 +1960,12 @@ print qq`
         if($#stag<0){
               $self->ErrorPlus("Unable to find gbatch-orbit on the Server ");
         }
-        $key='ntuplevalidator';
-        $sql="select myvalue from Environment where mykey='".$key."'";
-        $ret=$self->{sqlserver}->Query($sql);
-        if( not defined $ret->[0][0]){
-            $self->ErrorPlus("unable to retreive ntuplevalidator name from db");
-        }
-         my $nv=$ret->[0][0];
-         my @stag1=stat "$self->{AMSSoftwareDir}/$nv";
-        if($#stag1<0){
-              $self->ErrorPlus("Unable to find $nv on the Server ");
-        }
         my $file2tar;
         my $filedb;
         if($self->{CCT} eq "remote"){
         $filedb="$self->{UploadsDir}/ams02mcdb.tar.gz";
         my @sta = stat $filedb;
-        if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9] or $stag1[9] > $sta[9]){
+        if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9]){
         my $filen="$self->{UploadsDir}/ams02mcdb.tar.$run";
         $key='dbversion';
         $sql="select myvalue from Environment where mykey='".$key."'";
@@ -2009,10 +1985,6 @@ print qq`
          $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatch") ;
           if($i){
               $self->ErrorPlus("Unable to tar gbatch-orbit to $filen ");
-          }
-         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv") ;
-          if($i){
-              $self->ErrorPlus("Unable to tar $nv to $filen ");
           }
          $i=system("tar -C$self->{CERN_ROOT} -uf $filen lib/flukaaf.dat") ;
           if($i){
@@ -2795,7 +2767,7 @@ sub listMails {
 sub listServers {
     my $self = shift;
      print "<b><h2><A Name = \"servers\"> </a></h2></b> \n";
-     print "<TR><B><font color=green size= 5><a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/monmcdb.cgi\"><b><font color=blue> MC Servers </font></a><font size=3><i>(Click  servers to check current production status)</font></i></font>";
+     print "<TR><B><font color=green size= 5><a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/monmcdb.o.cgi\"><b><font color=blue> MC Servers </font></a><font size=3><i>(Click  servers to check current production status)</font></i></font>";
      print "<p>\n";
      print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -2949,24 +2921,36 @@ sub listNtuples {
 
 sub ht_init{
   my $self = shift;
-  print "<table border=0   cellpadding=5 cellspacing=0 width=\"100%\">
-         <tr bgcolor=\"#ffff9f\">\n";
-   print "<Body BGCOLOR=\"#ffffd0\">\n";
-   print "<tr bgcolor=\"#ffff66\"><td align=center colspan=3>
-          <font size=\"+2\" color=\"ff0066\"> <b>\n";
-   print "AMS MC PRODUCTION STATUS \n";
-   print "</b></font></td></tr>\n";
-   print "</TR></TABLE>\n";
-#
+
+  print "<table border=0   cellpadding=5 cellspacing=0 width=\"100%\">";
+   print "<tr bgcolor=\"#ffdc99\">\n";
+    print "<td align=left> <font size=\"-1\"><b>";
+     print  "<a href=\"/AMS/ams_homepage.html\">AMS</a>\n";
+     print "&nbsp; <a href=\"/AMS/Computing/computing.html\">Computing</a>\n";
+    print "</b></font></td>\n";
+    print "<td align=right> <font size=\"-1\">\n";
+    print "&nbsp;</font></td></tr>\n";
+    print "<tr bgcolor=\"#ffdc9f\"><td align=center colspan=2><font size=\"+2\" color=\"#3366ff\">";
+    print "<b> AMS MC Production Status \n";
+    print "</b></font></td></tr>\n";
+    print "<tr bgcolor=\"#ffdc9f\"><td align=left> <font size=\"-1\">\n";
+    print "&nbsp</font></td>\n";
+    print "<td align=right> <font size=\"-1\">\n";
+    print "&nbsp; </font></td></tr> \n";
+    print "<tr><td colspan=2 align=right> <font size=\"-1\">\n";
+   print "</font></td></tr>\n";
+  print "</table>\n";
+  print "<table border=0 width=\"100%\">";
    my $time; 
-   print "<p></p>\n";
-   print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
    $time = localtime;
-   print "<tr><td width=100% align=\"right\"><b>Page Update :  $time </b></td><tr>\n";
+   print "<tr><td><font size=\"-1\"><b>Page Update : $time</b></td>\n";
    my $dbtime = $self->lastDBUpdate();
    $time= EpochToDDMMYYHHMMSS($dbtime); 
-   print "<tr><td width=100% align=\"right\"><b>Last DB Update : $time </b></td><tr>\n";
-   print "</table><p></p>\n";
+   print "<td align=right><font size=\"-1\"><b>Last DB Update : $time </b></td></tr>\n";
+   print "</TR></TABLE>\n";
+   print "<p></p>\n";
+  
+#
 #
 }
 
@@ -3026,22 +3010,62 @@ sub ht_Menus {
         <a href=\"#runs\"><b><font color=green> Runs </b></font></a>\n";
  print "<dt><img src=\"$purplebullet\">&#160;&#160;
         <a href=\"#ntuples\"><b><font color=green> Ntuples </b></font></a>\n";
+ print "<dt><img src=\"$bluebullet\">&#160;&#160;
+        <a href=\"http://ams.cern.ch/AMS/Computing/mcproduction/rc.html\">
+        <b><font color=green> Submit MC Job </b></font></a>\n";
 }
 
 sub lastDBUpdate {
      my $self = shift;
      my $lastupd =0;
-     my $sql="SELECT MAX(cites.timestamp), MAX(mails.timestamp), 
-                     MAX(servers.lastupdate), MAX(jobs.time), 
-                     MAX(runs.submit), MAX(ntuples.timestamp) 
-              FROM cites, mails, servers, jobs, runs, ntuples";
-     my $ret=$self->{sqlserver}->Query($sql);
+     my $sql;
+     my $ret;
+      $sql="SELECT MAX(cites.timestamp) FROM cites"; 
+      $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
-      foreach my $time (@{$ret}){
-        if($time->[0]>$lastupd){
-          $lastupd=$time->[0];
-        }
+        if($ret->[0][0]>$lastupd){
+          $lastupd=$ret->[0][0];
+      }
     }
-  }
+      $sql="SELECT MAX(mails.timestamp) FROM mails"; 
+      $ret=$self->{sqlserver}->Query($sql);
+     if(defined $ret->[0][0]){
+        if($ret->[0][0]>$lastupd){
+          $lastupd=$ret->[0][0];
+      }
+    }
+
+      $sql="SELECT MAX(servers.lastupdate) FROM servers"; 
+      $ret=$self->{sqlserver}->Query($sql);
+     if(defined $ret->[0][0]){
+        if($ret->[0][0]>$lastupd){
+          $lastupd=$ret->[0][0];
+      }
+    }
+
+      $sql="SELECT MAX(jobs.time) FROM jobs"; 
+      $ret=$self->{sqlserver}->Query($sql);
+     if(defined $ret->[0][0]){
+        if($ret->[0][0]>$lastupd){
+          $lastupd=$ret->[0][0];
+      }
+    }
+
+      $sql="SELECT MAX(runs.submit) FROM runs"; 
+      $ret=$self->{sqlserver}->Query($sql);
+     if(defined $ret->[0][0]){
+        if($ret->[0][0]>$lastupd){
+          $lastupd=$ret->[0][0];
+      }
+    }
+
+      $sql="SELECT MAX(ntuples.timestamp) FROM ntuples"; 
+      $ret=$self->{sqlserver}->Query($sql);
+     if(defined $ret->[0][0]){
+        if($ret->[0][0]>$lastupd){
+          $lastupd=$ret->[0][0];
+      }
+    }
+
   return $lastupd;
  }
