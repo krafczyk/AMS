@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.14 2002/07/17 10:49:01 delgadom Exp $
+//  $Id: richrec.h,v 1.15 2002/09/17 12:12:20 choutko Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -57,12 +57,11 @@ class AMSRichRawEvent: public AMSlink{
 private:
   integer _channel; // (PMT number-1)*16+window number
   integer _counts;  // 0 means true, 1 means noise
-  uinteger _status;
 
 	 
 public:
-  AMSRichRawEvent(integer channel,integer counts,uinteger status=0):AMSlink(),
-    _channel(channel),_counts(counts),_status(status){};
+  AMSRichRawEvent(integer channel,integer counts,uinteger status=0):AMSlink(status),
+    _channel(channel),_counts(counts){};
   ~AMSRichRawEvent(){};
   AMSRichRawEvent * next(){return (AMSRichRawEvent*)_next;}
 
@@ -126,7 +125,6 @@ private:
   AMSTrTrack* _ptrack;
   integer _used;
   integer _mused;
-  uinteger _status;
   number  _beta;
   number  _errorbeta;
   number  _quality;
@@ -152,8 +150,8 @@ protected:
   void _copyEl();
   void CalcBetaError();
 public:
-  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,uinteger status=0):AMSlink(),
-   _ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_status(status){CalcBetaError();};
+  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,uinteger status=0):AMSlink(status),
+   _ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality){CalcBetaError();};
   ~AMSRichRing(){};
   AMSRichRing * next(){return (AMSRichRing*)_next;}
 
@@ -162,7 +160,8 @@ public:
   static void rebuild(AMSTrTrack *ptrack);
   AMSTrTrack* gettrack(){return _ptrack;}
   integer getused(){return _used;}
-  integer getstatus(){return _status;}
+  uinteger getstatus(){return _status;}
+  bool IsGood(){return !checkstatus(dirty_ring);}
   number getbeta(){return _beta;}
   number geterrorbeta(){return _errorbeta;}
   number getquality(){return _quality;}
