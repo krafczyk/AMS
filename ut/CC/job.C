@@ -393,9 +393,9 @@ if(AMSFFKEY.Write > 0 && AMSFFKEY.Write%2==0)AMSFFKEY.Write++;
 
 
 void AMSJob::init(){
-_timeinitjob();
 if(_jobtype ==AMSFFKEY.Simulation)_siamsinitjob();
 _reamsinitjob();
+_timeinitjob();
 cout << *this;
 }
 void AMSJob::_siamsinitjob(){
@@ -696,6 +696,8 @@ TID.add (new AMSTimeID("TrackerGains",
 TID.add (new AMSTimeID("TrackerSigmas",
    begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::sigmas));
+// change deliberately one sigma;
+// AMSTrIdSoft::sigmas[1]=3.44;
 TID.add (new AMSTimeID("TrackerStatus",
    begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::status));

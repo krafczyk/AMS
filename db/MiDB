@@ -1,0 +1,622 @@
+# Make Interactive AMS + DB exe file
+#
+# V0.0     May 1996. A.Klimentov
+# 
+# V1.25    Sep 12, 1996. ak. cxxfix, etc
+# AIX/OSF1 Sep 18, 1996. ak/vs
+# Make dependencies from ../include/*.h  Oct 21, 1996. ak.
+#
+# Last Edit : Oct 21, 1996. ak
+# V. Choutko 5/02/97
+#
+
+#
+SHELL=/bin/sh
+#
+ifeq  "$(shell uname)"  "AIX"
+BIN_DB          = ../db/bin/aix/
+BIN             = ../bin/aix
+EXE             = ../exe/aix/
+
+CFLAGS= -D__AMSDEBUG__   -D__DB__ 
+CCFLAGS = -g
+FFLAGS=   -g -I../include -qextname -d
+DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include -I/usr/lpp/xlC/include -I../include -I../include/stl
+GLIBS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lpawlib -lgraflib -lgrafX11 -lmathlib    -lpacklib -lkernlib  -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag
+
+
+CC=xlC
+FF=xlf
+LD=xlC
+TIMEL=../bin/aix/timel.o
+
+include config.user_ibmrs6000
+
+INC_OODDL      = /usr/lpp/xlC/include
+
+endif
+
+ifeq  "$(shell uname)"  "OSF1"
+BIN_DB          = ../db/bin/osf1/
+BIN             = ../bin/osf1
+EXE             = ../exe/osf1/
+
+CFLAGS= -D__AMSDEBUG__   -D__ALPHA__ -D__APOOL__ -D__DB__ 
+CCFLAGS = -define_templates -g
+
+FFLAGS=   -g -I../include  -d -static -nofor_main -convert big_endian
+DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl \
+         -I/usr/include/cxx
+
+GLIBS = -g -lUfor   -lfor -lFutil -lots -lm -L/cern/old/lib  -lgeant321 -lpawlib -lgraflib -lgrafX11 -lmathlib    -lpacklib -lkernlib  -L/usr/lib -lXm -lXt -lX11 -lPW -lm   -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag
+
+CC=cxx
+FF=f77
+LD=cxx
+TIMEL=../bin/osf1/timel.o
+
+include config.user_alphaosf1
+
+endif
+
+
+#########################
+#                       #
+# Configuration Section #
+#                       #
+#########################
+
+BOOTF=/ams/db/LOM
+BOOT=/afs/cern.ch/user/c/choutko/public/objectivity/LOM
+#include config.user
+include config.$(ARCH)
+#########################
+#                       #
+# Program Executables   #
+#                       #
+#########################
+
+LMS	= $(EXE)lmsI
+
+#########################
+#                       #
+# Schema Files          #
+#                       #
+#########################
+
+DDL_SRC         = ../db/
+
+SCHEMA_DDL		=  eventD.ddl  list.ddl \
+                           trrechit.ddl  ttrack.ddl \
+                           tmccluster.ddl  tcluster.ddl \
+			   tofrecD.ddl  tbeta.ddl \
+                           chargeD.ddl  particleD.ddl \
+			   mctofclusterD.ddl  gvolumeD.ddl \
+                           gmatD.ddl  gtmedD.ddl \
+                           ctcrecD.ddl mcctcclusterD.ddl \
+                           mcanticlusterD.ddl mceventgD.ddl \
+                           amsdbcD.ddl tofdbcD.ddl commonsD.ddl ctcdbcD.ddl
+
+
+SCHEMA_SRCS		= $(SCHEMA_DDL:.ddl=_ddl.C)
+#SCHEMA_OBJS		= $(SCHEMA_DDL:.ddl=_ddl.o)
+SCHEMA_METHOD_SRCS	= $(SCHEMA_DDL:.ddl=.C)
+#SCHEMA_METHOD_OBJS	= $(SCHEMA_DDL:.ddl=.o)
+SCHEMA_HDRS_REF		= $(SCHEMA_DDL:.ddl=_ref.h)
+SCHEMA_HDRS_NOREF	= $(SCHEMA_DDL:.ddl=.h)
+SCHEMA_HDRS		= $(SCHEMA_HDRS_REF) $(SCHEMA_HDRS_NOREF)
+
+SCHEMA_OBJS		=   $(BIN_DB)eventD_ddl.o  $(BIN_DB)list_ddl.o \
+                            $(BIN_DB)trrechit_ddl.o  $(BIN_DB)ttrack_ddl.o \
+                            $(BIN_DB)tmccluster_ddl.o $(BIN_DB)tcluster_ddl.o \
+			    $(BIN_DB)tofrecD_ddl.o  $(BIN_DB)tbeta_ddl.o \
+                           $(BIN_DB)chargeD_ddl.o  $(BIN_DB)particleD_ddl.o \
+			   $(BIN_DB)mctofclusterD_ddl.o  \
+                           $(BIN_DB)gvolumeD_ddl.o \
+                           $(BIN_DB)gmatD_ddl.o  $(BIN_DB)gtmedD_ddl.o \
+                           $(BIN_DB)ctcrecD_ddl.o \
+                           $(BIN_DB)mcctcclusterD_ddl.o \
+                           $(BIN_DB)mcanticlusterD_ddl.o \
+                           $(BIN_DB)mceventgD_ddl.o \
+                           $(BIN_DB)amsdbcD_ddl.o $(BIN_DB)tofdbcD_ddl.o \
+                           $(BIN_DB)commonsD_ddl.o $(BIN_DB)ctcdbcD_ddl.o
+
+SCHEMA_METHOD_OBJS      =  $(BIN_DB)eventD.o  $(BIN_DB)list.o \
+                           $(BIN_DB)trrechit.o  $(BIN_DB)ttrack.o \
+                           $(BIN_DB)tmccluster.o  $(BIN_DB)tcluster.o \
+			   $(BIN_DB)tofrecD.o  $(BIN_DB)tbeta.o \
+                           $(BIN_DB)chargeD.o  $(BIN_DB)particleD.o \
+			   $(BIN_DB)mctofclusterD.o  \
+                           $(BIN_DB)gvolumeD.o \
+                           $(BIN_DB)gmatD.o  $(BIN_DB)gtmedD.o \
+                           $(BIN_DB)ctcrecD.o $(BIN_DB)mcctcclusterD.o \
+                           $(BIN_DB)mcanticlusterD.o \
+                           $(BIN_DB)mceventgD.o \
+                           $(BIN_DB)amsdbcD.o $(BIN_DB)tofdbcD.o \
+                           $(BIN_DB)commonsD.o $(BIN_DB)ctcdbcD.o
+
+
+#########################
+#                       #
+# Program Source        #
+#                       #
+#########################
+
+ifeq  "$(shell uname)"  "OSF1"
+
+LMS_SRCS	= A_LMS.C   \
+		  A_LMSAdd.C \
+		  A_LMSFill.C \
+		  A_LMSMenu.C \
+		  A_LMSDelete.C \
+		  A_LMSPrint.C \
+                  ooSession.C     \
+                  ooStats.C        \
+                  cxxfix.C          
+
+LMS_OBJS	= $(BIN_DB)A_LMS.o   \
+		  $(BIN_DB)A_LMSAdd.o \
+		  $(BIN_DB)A_LMSFill.o \
+		  $(BIN_DB)A_LMSMenu.o \
+		  $(BIN_DB)A_LMSDelete.o \
+		  $(BIN_DB)A_LMSPrint.o \
+                  $(BIN_DB)ooSession.o     \
+                  $(BIN_DB)ooStats.o        \
+                  $(BIN_DB)cxxfix.o          
+endif
+
+ifeq  "$(shell uname)"  "AIX"
+
+LMS_SRCS	= A_LMS.C   \
+		  A_LMSAdd.C \
+		  A_LMSFill.C \
+		  A_LMSMenu.C \
+		  A_LMSDelete.C \
+		  A_LMSPrint.C \
+                  ooSession.C     \
+                  ooStats.C        \
+                  ../CC/geant.C          
+
+LMS_OBJS	= $(BIN_DB)A_LMS.o   \
+		  $(BIN_DB)A_LMSAdd.o \
+		  $(BIN_DB)A_LMSFill.o \
+		  $(BIN_DB)A_LMSMenu.o \
+		  $(BIN_DB)A_LMSDelete.o \
+		  $(BIN_DB)A_LMSPrint.o \
+                  $(BIN_DB)ooSession.o     \
+                  $(BIN_DB)ooStats.o        \
+                  $(BIN_DB)geantiDB.o
+endif
+
+#########################
+#                       #
+# Program Directories   #
+#                       #
+#########################
+
+INC_DIR		= $(INSTALL_DIR)/$(ARCH)/include
+LIB_DIR		= $(INSTALL_DIR)/$(ARCH)/lib
+BIN_DIR		= $(INSTALL_DIR)/$(ARCH)/bin
+
+INC_AMS         = ../include
+INC_STL         = ../include/stl
+INC_DDL         = ../db 
+
+#########################
+#                       #
+# Objectivity Tools	#
+#                       #
+#########################
+
+OODDL		= $(BIN_DIR)/ooddlx
+OONEWFD		= $(BIN_DIR)/oonewfd
+OODELETEFD	= $(BIN_DIR)/oodeletefd
+
+#########################
+#                       #
+# Compile Rules         #
+#                       #
+#########################
+
+INCLUDES = -I$(INC_DIR) -I$(INC_DDL) -I$(INC_AMS) -I$(INC_STL)
+
+.SUFFIXES: .C .ddl 
+
+#.C.o:
+#	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) -c $*.C -o $(BIN_DB)$*.o
+
+
+#########################
+#                       #
+# Object Files          #
+#                       #
+#########################
+
+DB_OBJS	= $(SCHEMA_OBJS) $(SCHEMA_METHOD_OBJS) $(LMS_OBJS)
+
+#########################
+#                       #
+# Link Rules            #
+#                       #
+#########################
+
+OBJECT_LIBS	= $(LIB_DIR)/liboo.a
+SRC             = ../CC
+
+ifeq  "$(shell uname)"  "OSF1"
+
+GEANT_OBJS= $(BIN)/gxint.o $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN)/node.o $(BIN)/snode.o $(BIN)/cern.o $(BIN)/amsdbc.o $(BIN)/gsen.o  $(BIN)/mtx.o $(BIN)/point.o $(BIN)/amstkshc++.o $(BIN)/sgif.o $(BIN)/gmat.o $(BIN)/amsgobj.o $(BIN)/amsgeom.o   $(BIN)/mceventg.o $(BIN)/tkmccl.o $(BIN)/rnormx.o  $(BIN)/trid.o $(BIN)/link.o  $(BIN)/uzstat.o $(BIN)/tptcir.o $(BIN)/trafit.o $(BIN)/tcircf.o $(BIN)/tszfit.o $(BIN)/txyfit.o  $(BIN)/job.o $(BIN)/event.o $(BIN)/cont.o $(BIN)/trrawcluster.o $(BIN)/mccluster.o $(BIN)/rndm.o $(BIN)/tofrec.o $(BIN)/beta.o $(BIN)/charge.o $(BIN)/particle.o $(BIN)/tofdbc.o $(BIN)/ctcrec.o \
+$(BIN)/ctcdbc.o $(BIN)/tofsim.o $(BIN)/timel.o $(BIN)/tofcalib.o  $(BIN)/timeid.o
+
+
+endif
+
+ifeq  "$(shell uname)"  "AIX"
+
+GEANT_OBJS= $(BIN)/gxint.o $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN)/node.o $(BIN)/snode.o $(BIN)/cern.o $(BIN)/amsdbc.o $(BIN)/gsen.o  $(BIN)/mtx.o $(BIN)/point.o $(BIN)/amstkshc++.o $(BIN)/sgif.o $(BIN)/upool.o $(BIN)/gmat.o $(BIN)/amsgobj.o $(BIN)/amsgeom.o  $(BIN)/mceventg.o $(BIN)/tkmccl.o $(BIN)/rnormx.o  $(BIN)/trid.o $(BIN)/link.o $(BIN)/trrec.o $(BIN)/uzstat.o $(BIN)/tptcir.o $(BIN)/trafit.o $(BIN)/tcircf.o $(BIN)/tszfit.o $(BIN)/txyfit.o  $(BIN)/job.o $(BIN)/event.o $(BIN)/cont.o $(BIN)/trrawcluster.o $(BIN)/mccluster.o $(BIN)/rndm.o $(BIN)/tofrec.o $(BIN)/tofsim.o $(BIN)/beta.o $(BIN)/charge.o $(BIN)/particle.o $(BIN)/apool.o $(BIN)/tofdbc.o $(BIN)/ctcrec.o $(BIN)/ctcdbc.o $(BIN)/tofsim.o $(BIN)/tofcalib.o $(BIN)/timeid.o
+
+endif
+
+CERN_LIBS       = -L/cern/96a/lib  -lgeant321 -lmathlib -lpacklib -lkernlib
+
+all:	$(LMS)
+
+$(LMS): $(DB_OBJS) 
+	$(LD) $(LD_FLAGS) -o $(LMS) $(DB_OBJS) $(GEANT_OBJS) $(OBJECT_LIBS) \
+        $(GLIBS)
+
+	chmod +x $(LMS)
+	rm    ../db/cxxfix.C
+	rm    $(BIN_DB)cxxfix.o
+
+#########################
+#                       #
+# Schema Rules          #
+#                       #
+#########################
+
+$(BOOT):
+	$(OONEWFD) -fdlocalpath $(BOOTF).FDDB -pagesize $(PAGESIZE) -lockserverhost $(LS_HOST)  -fdnumber $(FDID) $(BOOT)
+
+.ddl.h: 
+	$(OODDL) -D__DECCXX $(INCLUDES) $*.ddl $(BOOT)
+
+$(SCHEMA_DDL:.ddl=.h): $(BOOT)
+
+#########################
+#                       #
+# Other Rules           #
+#                       #
+#########################
+
+clean:
+	rm -rf $(LMS) $(DB_OBJS) $(SCHEMA_SRCS) $(SCHEMA_HDRS) Templates.DB
+	$(OODELETEFD) -force $(BOOT)
+
+#########################
+#                       #
+# Dependencies		#
+#                       #
+#########################
+
+ifeq  "$(shell uname)"  "OSF1"
+../db/cxxfix.C:        
+	cat  ../CC/geant.C > ../db/cxxfix.C
+	cat $(SRC)/trrec.C >> ../db/cxxfix.C
+	cat $(SRC)/apool.C >> ../db/cxxfix.C
+	cat $(SRC)/upool.C >> ../db/cxxfix.C
+ $(BIN_DB)cxxfix.o:         ../db/cxxfix.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/cxxfix.C \
+                                                -o $(BIN_DB)cxxfix.o
+endif
+
+ifeq  "$(shell uname)"  "AIX"
+ $(BIN_DB)geantiDB.o:         ../CC/geant.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../CC/geant.C \
+                                                -o $(BIN_DB)geantiDB.o
+endif
+
+ $(BIN_DB)eventD.o:   eventD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/eventD.C \
+                                                -o $(BIN_DB)eventD.o
+ $(BIN_DB)eventD.o:   eventD.ddl  eventD.h  eventD_ref.h \
+                      tcluster.ddl   tcluster.h  tcluster_ref.h \
+                      ttrack_ref.h  tmccluster_ref.h 
+
+ $(BIN_DB)eventD_ddl.o:   eventD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/eventD_ddl.C \
+                                              -o $(BIN_DB)eventD_ddl.o
+ $(BIN_DB)eventD_ddl.o:   eventD.ddl  eventD.h  eventD_ref.h  \
+                          tcluster.ddl   tcluster.h  tcluster_ref.h
+ eventD_ref.h:   eventD.ddl 
+ eventD_ddl.C:   eventD.h  tcluster.h  ttrack.h  tmccluster.h  tofrecD.h  \
+                 chargeD.h particleD.h  mctofclusterD.h  tbeta.h  gmatD.h  \
+                 gtmedD.h  gvolumeD.h  list.ddl  list.h  list_ref.h \
+                 ctcrecD.h mcctcclusterD.h mcanticlusterD.h mceventgD.h \
+                 amsdbcD.h tofdbcD.h commonsD.h ctcdbcD.h
+
+ $(BIN_DB)list.o:   list.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/list.C \
+                                                -o $(BIN_DB)list.o
+ $(BIN_DB)list.o :       list.ddl  list.h  list_ref.h \
+                         eventD.ddl  eventD_ref.h  eventD.h  A_LMS.h
+ $(BIN_DB)list_ddl.o:    list_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/list_ddl.C \
+                                                -o $(BIN_DB)list_ddl.o
+ $(BIN_DB)list_ddl.o :   list.ddl  list.h  list_ref.h 
+ list_ref.h :   list.ddl
+ list_ddl.C :   list.h  list.ddl
+
+ $(BIN_DB)tcluster.o:   tcluster.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tcluster.C \
+                                                -o $(BIN_DB)tcluster.o
+ $(BIN_DB)tcluster.o:  tcluster.ddl   tcluster.h  tcluster_ref.h
+
+ $(BIN_DB)tcluster_ddl.o:   tcluster_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tcluster_ddl.C \
+                                                -o $(BIN_DB)tcluster_ddl.o
+ $(BIN_DB)tcluster_ddl.o:  tcluster.ddl   tcluster.h  tcluster_ref.h 
+ tcluster_ref.h:           tcluster.ddl   tcluster.h  trrechit.ddl   \
+                           trrechit.h  trrechit_ref.h \
+                           ../include/trid.h ../include/trrec.h
+
+ $(BIN_DB)trrechit.o:   trrechit.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/trrechit.C \
+                                                -o $(BIN_DB)trrechit.o
+ $(BIN_DB)trrechit.o:   trrechit.ddl   trrechit.h trrechit_ref.h
+ $(BIN_DB)trrechit_ddl.o:   trrechit_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/trrechit_ddl.C \
+                                                -o $(BIN_DB)trrechit_ddl.o
+ $(BIN_DB)trrechit_ddl.o:   trrechit.ddl   trrechit.h trrechit_ref.h 
+ trrechit_ref.h:   trrechit.ddl   trrechit.h  tcluster.ddl   tcluster.h \
+                   ttrack.ddl    ttrack.h ttrack_ref.h  \
+                   ../include/trrec.h ../include/point.h
+
+ $(BIN_DB)ttrack.o:         ttrack.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/ttrack.C \
+                                                -o $(BIN_DB)ttrack.o
+ $(BIN_DB)ttrack.o:         ttrack.ddl   ttrack.h  ttrack_ref.h
+ $(BIN_DB)ttrack_ddl.o:     ttrack_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/ttrack_ddl.C \
+                                                -o $(BIN_DB)ttrack_ddl.o
+ $(BIN_DB)ttrack_ddl.o:     ttrack.ddl   ttrack.h  ttrack_ref.h
+ ttrack_ref.h:              ttrack.ddl   ttrack.h trrechit.ddl   trrechit.h \
+                            ../include/trrec.h ../include/point.h
+
+ $(BIN_DB)tmccluster.o:     tmccluster.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tmccluster.C \
+                                                -o $(BIN_DB)tmccluster.o
+ $(BIN_DB)tmccluster.o: tmccluster.ddl   tmccluster.h  tmccluster_ref.h
+ $(BIN_DB)tmccluster_ddl.o:   tmccluster_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tmccluster_ddl.C \
+                                                -o $(BIN_DB)tmccluster_ddl.o
+ $(BIN_DB)tmccluster_ddl.o:    tmccluster.ddl   tmccluster.h  tmccluster_ref.h 
+ tmccluster_ref.h:             tmccluster.ddl   tmccluster.h \
+                               ../include/trid.h ../include/mccluster.h \
+                               ../include/point.h
+
+
+ $(BIN_DB)mctofclusterD.o:   mctofclusterD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/mctofclusterD.C \
+                                                -o $(BIN_DB)mctofclusterD.o
+ $(BIN_DB)mctofclusterD.o:  mctofclusterD.ddl   mctofclusterD.h  mctofclusterD_ref.h
+ $(BIN_DB)mctofclusterD_ddl.o:   mctofclusterD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/mctofclusterD_ddl.C \
+                                             -o $(BIN_DB)mctofclusterD_ddl.o
+ $(BIN_DB)mctofclusterD_ddl.o:   mctofclusterD.ddl   mctofclusterD.h  \
+                                 mctofclusterD_ref.h
+ mctofclusterD_ref.h:            mctofclusterD.ddl   mctofclusterD.h \
+                                 ../include/mccluster.h
+
+ $(BIN_DB)tofrecD.o:   tofrecD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tofrecD.C \
+                                                -o $(BIN_DB)tofrecD.o
+ $(BIN_DB)tofrecD.o:        tofrecD.ddl    tofrecD.h  tofrecD_ref.h
+ $(BIN_DB)tofrecD_ddl.o:    tofrecD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tofrecD_ddl.C \
+                                                -o $(BIN_DB)tofrecD_ddl.o
+ $(BIN_DB)tofrecD_ddl.o:    tofrecD.ddl    tofrecD.h  tofrecD_ref.h
+ tofrecD_ref.h:             tofrecD.ddl    tofrecD.h  ../include/tofrec.h
+
+ $(BIN_DB)tbeta.o:   tbeta.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tbeta.C \
+                                                -o $(BIN_DB)tbeta.o
+ $(BIN_DB)tbeta.o:          tbeta.ddl      tbeta.h   tbeta_ref.h
+ $(BIN_DB)tbeta_ddl.o:   tbeta_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tbeta_ddl.C \
+                                                -o $(BIN_DB)tbeta_ddl.o
+ $(BIN_DB)tbeta_ddl.o:      tbeta.ddl      tbeta.h   tbeta_ref.h
+ tbeta_ref.h:      tbeta.ddl      tbeta.h   ../include/beta.h
+
+ $(BIN_DB)chargeD.o:   chargeD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/chargeD.C \
+                                                -o $(BIN_DB)chargeD.o
+ $(BIN_DB)chargeD.o:        chargeD.ddl      chargeD.h   chargeD_ref.h
+ $(BIN_DB)chargeD_ddl.o:    chargeD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/chargeD_ddl.C \
+                                                -o $(BIN_DB)chargeD_ddl.o
+ $(BIN_DB)chargeD_ddl.o:    chargeD.ddl      chargeD.h   chargeD_ref.h 
+ chargeD_ref.h:             chargeD.ddl      chargeD.h   ../include/charge.h
+
+ $(BIN_DB)particleD.o:   particleD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/particleD.C \
+                                                -o $(BIN_DB)particleD.o
+ $(BIN_DB)particleD.o:       particleD.ddl    particleD.h   particleD_ref.h
+ $(BIN_DB)particleD_ddl.o:   particleD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/particleD_ddl.C \
+                                                -o $(BIN_DB)particleD_ddl.o
+ $(BIN_DB)particleD_ddl.o:   particleD.ddl    particleD.h   particleD_ref.h
+ particleD_ref.h:            particleD.ddl   particleD.h  ../include/particle.h
+
+ $(BIN_DB)gvolumeD.o:        gvolumeD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/gvolumeD.C \
+                                                -o $(BIN_DB)gvolumeD.o
+ $(BIN_DB)gvolumeD.o:        gvolumeD.ddl    gvolumeD.h   gvolumeD_ref.h
+ $(BIN_DB)gvolumeD_ddl.o:    gvolumeD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/gvolumeD_ddl.C \
+                                                -o $(BIN_DB)gvolumeD_ddl.o
+ $(BIN_DB)gvolumeD_ddl.o:    gvolumeD.ddl    gvolumeD.h   gvolumeD_ref.h
+ gvolumeD_ref.h:             gvolumeD.ddl    gvolumeD.h   ../include/gvolume.h
+
+ $(BIN_DB)gmatD.o:   gmatD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/gmatD.C \
+                                                -o $(BIN_DB)gmatD.o
+ $(BIN_DB)gmatD.o:           gmatD.ddl    gmatD.h   gmatD_ref.h
+ $(BIN_DB)gmatD_ddl.o:       gmatD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/gmatD_ddl.C \
+                                                -o $(BIN_DB)gmatD_ddl.o
+ $(BIN_DB)gmatD_ddl.o:       gmatD.ddl    gmatD.h   gmatD_ref.h
+ gmatD_ref.h:                gmatD.ddl    gmatD.h   ../include/gmat.h
+
+ $(BIN_DB)gtmedD.o:          gtmedD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/gtmedD.C \
+                                                -o $(BIN_DB)gtmedD.o
+ $(BIN_DB)gtmedD.o:          gtmedD.ddl    gtmedD.h   gtmedD_ref.h
+ $(BIN_DB)gtmedD_ddl.o:      gtmedD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/gtmedD_ddl.C \
+                                                -o $(BIN_DB)gtmedD_ddl.o
+ $(BIN_DB)gtmedD_ddl.o:      gtmedD.ddl    gtmedD.h   gtmedD_ref.h
+ gtmedD_ref.o:               gtmedD.ddl    gtmedD.h   ../include/gmat.h 
+
+ $(BIN_DB)amsdbcD.o:          amsdbcD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/amsdbcD.C \
+                                                -o $(BIN_DB)amsdbcD.o
+ $(BIN_DB)amsdbcD.o:          amsdbcD.ddl    amsdbcD.h   amsdbcD_ref.h
+ $(BIN_DB)amsdbcD_ddl.o:      amsdbcD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/amsdbcD_ddl.C \
+                                                -o $(BIN_DB)amsdbcD_ddl.o
+ $(BIN_DB)amsdbcD_ddl.o:     amsdbcD.ddl    amsdbcD.h   amsdbcD_ref.h
+ amsdbcD_ref.o:              amsdbcD.ddl    amsdbcD.h  
+
+ $(BIN_DB)tofdbcD.o:          tofdbcD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tofdbcD.C \
+                                                -o $(BIN_DB)tofdbcD.o
+ $(BIN_DB)tofdbcD.o:          tofdbcD.ddl    tofdbcD.h   tofdbcD_ref.h
+ $(BIN_DB)tofdbcD_ddl.o:      tofdbcD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tofdbcD_ddl.C \
+                                                -o $(BIN_DB)tofdbcD_ddl.o
+ $(BIN_DB)tofdbcD_ddl.o:     tofdbcD.ddl    tofdbcD.h   tofdbcD_ref.h
+ tofdbcD_ref.o:              tofdbcD.ddl    tofdbcD.h  
+
+ $(BIN_DB)ctcdbcD.o:          ctcdbcD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/ctcdbcD.C \
+                                                -o $(BIN_DB)ctcdbcD.o
+ $(BIN_DB)ctcdbcD.o:          ctcdbcD.ddl    ctcdbcD.h   ctcdbcD_ref.h
+ $(BIN_DB)ctcdbcD_ddl.o:      ctcdbcD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/ctcdbcD_ddl.C \
+                                                -o $(BIN_DB)ctcdbcD_ddl.o
+ $(BIN_DB)ctcdbcD_ddl.o:     ctcdbcD.ddl    ctcdbcD.h   ctcdbcD_ref.h
+ ctcdbcD_ref.o:              ctcdbcD.ddl    ctcdbcD.h  
+
+ $(BIN_DB)commonsD.o:          commonsD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/commonsD.C \
+                                                -o $(BIN_DB)commonsD.o
+ $(BIN_DB)commonsD.o:          commonsD.ddl    commonsD.h   commonsD_ref.h \
+                               ../include/commons.h
+ $(BIN_DB)commonsD_ddl.o:      commonsD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/commonsD_ddl.C \
+                                                -o $(BIN_DB)commonsD_ddl.o
+ $(BIN_DB)commonsD_ddl.o:     commonsD.ddl    commonsD.h   commonsD_ref.h
+ commonsD_ref.o:              commonsD.ddl    commonsD.h  ../include/commons.h
+
+
+ $(BIN_DB)ctcrecD.o:   ctcrecD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/ctcrecD.C \
+                                                -o $(BIN_DB)ctcrecD.o
+ $(BIN_DB)ctcrecD.o:        ctcrecD.ddl    ctcrecD.h  ctcrecD_ref.h
+ $(BIN_DB)ctcrecD_ddl.o:    ctcrecD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
+                            ../db/ctcrecD_ddl.C  -o $(BIN_DB)ctcrecD_ddl.o
+ $(BIN_DB)ctcrecD_ddl.o:    ctcrecD.ddl    ctcrecD.h  ctcrecD_ref.h
+ ctcrecD_ref.h:             ctcrecD.ddl    ctcrecD.h ../include/ctcrec.h
+
+ $(BIN_DB)mcctcclusterD.o:   mcctcclusterD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
+                  ../db/mcctcclusterD.C -o $(BIN_DB)mcctcclusterD.o
+ $(BIN_DB)mcctcclusterD.o:  \
+                         mcctcclusterD.ddl mcctcclusterD.h mcctcclusterD_ref.h
+ $(BIN_DB)mcctcclusterD_ddl.o:    mcctcclusterD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
+               ../db/mcctcclusterD_ddl.C  -o $(BIN_DB)mcctcclusterD_ddl.o
+ $(BIN_DB)mcctcclusterD_ddl.o: \
+                mcctcclusterD.ddl mcctcclusterD.h  mcctcclusterD_ref.h
+ mcctcclusterD_ref.h:   mcctcclusterD.ddl    mcctcclusterD.h \
+                        ../include/mccluster.h
+
+ $(BIN_DB)mcanticlusterD.o:   mcanticlusterD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/mcanticlusterD.C \
+                                                -o $(BIN_DB)mcanticlusterD.o
+ $(BIN_DB)mcanticlusterD.o:  mcanticlusterD.ddl   mcanticlusterD.h  mcanticlusterD_ref.h
+ $(BIN_DB)mcanticlusterD_ddl.o: mcanticlusterD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/mcanticlusterD_ddl.C \
+                                             -o $(BIN_DB)mcanticlusterD_ddl.o
+ $(BIN_DB)mcanticlusterD_ddl.o:  mcanticlusterD.ddl   mcanticlusterD.h  \
+                                 mcanticlusterD_ref.h
+ mcanticlusterD_ref.h:           mcanticlusterD.ddl mcanticlusterD.h \
+                                 ../include/mccluster.h
+
+ $(BIN_DB)mceventgD.o:   mceventgD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/mceventgD.C \
+                                                -o $(BIN_DB)mceventgD.o
+ $(BIN_DB)mceventgD.o:  mceventgD.ddl   mceventgD.h  mceventgD_ref.h
+ $(BIN_DB)mceventgD_ddl.o: mceventgD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/mceventgD_ddl.C \
+                                             -o $(BIN_DB)mceventgD_ddl.o
+ $(BIN_DB)mceventgD_ddl.o:  mceventgD.ddl   mceventgD.h  mceventgD_ref.h
+ mceventgD_ref.h:           mceventgD.ddl   mceventgD.h  ../include/mceventg.h
+
+
+ $(BIN_DB)A_LMS.o:           A_LMS.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/A_LMS.C \
+                                                -o $(BIN_DB)A_LMS.o
+ $(BIN_DB)A_LMS.o:           eventD.ddl  eventD.h eventD_ref.h \
+                             gtmedD.ddl  gtmedD.h  gtmedD_ref.h  \
+                             gmatD.ddl  gmatD.h  gmatD_ref.h \
+                             gvolumeD.ddl  gvolumeD.h  gvolumeD_ref.h \
+                             trrechit.ddl  trrechit.h  trrechit_ref.h \
+                             A_LMS.h  ooSession.h  ooStats.h \
+                             list.ddl  list.h  list_ref.h
+
+
+ $(BIN_DB)A_LMSAdd.o:   A_LMSAdd.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/A_LMSAdd.C \
+                                                -o $(BIN_DB)A_LMSAdd.o
+ $(BIN_DB)A_LMSAdd.o:        eventD.ddl  eventD.h  eventD_ref.h  \
+                             A_LMS.h  ooSession.h  ooStats.h \
+                             list.ddl  list.h  list_ref.h
+
+ $(BIN_DB)A_LMSFill.o:       A_LMSFill.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/A_LMSFill.C \
+                                                -o $(BIN_DB)A_LMSFill.o
+ $(BIN_DB)A_LMSFill.o:      eventD.ddl  eventD.h  eventD_ref.h  A_LMS.h  \
+                            ooSession.h  ooStats.h list.ddl  list.h  list_ref.h
+
+ $(BIN_DB)A_LMSMenu.o:   A_LMSMenu.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/A_LMSMenu.C \
+                                                -o $(BIN_DB)A_LMSMenu.o
+ $(BIN_DB)A_LMSMenu.o:    eventD.ddl  eventD.h  eventD_ref.h  A_LMS.h  \
+                          ooSession.h  ooStats.h \
+                          list.ddl  list.h  list_ref.h
+
+ $(BIN_DB)A_LMSDelete.o:   A_LMSDelete.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/A_LMSDelete.C \
+                                                -o $(BIN_DB)A_LMSDelete.o
+ $(BIN_DB)A_LMSDelete.o:  eventD.ddl  eventD.h  eventD_ref.h  A_LMS.h  \
+                          ooSession.h  ooStats.h  list.ddl  list.h  list_ref.h
+
+ $(BIN_DB)A_LMSPrint.o:   A_LMSPrint.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/A_LMSPrint.C \
+                                                -o $(BIN_DB)A_LMSPrint.o
+ $(BIN_DB)A_LMSPrint.o:  eventD.ddl  eventD.h  eventD_ref.h  A_LMS.h  \
+                          ooSession.h  ooStats.h  list.ddl  list.h  list_ref.h
+
+
+ $(BIN_DB)ooSession.o:   ooSession.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/ooSession.C \
+                                                -o $(BIN_DB)ooSession.o
+ $(BIN_DB)ooSession.o:      ooSession.h  ooStats.h
+ $(BIN_DB)ooStats.o:   ooStats.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/ooStats.C \
+                                                -o $(BIN_DB)ooStats.o
+ $(BIN_DB)ooStats.o:        ooStats.h
+

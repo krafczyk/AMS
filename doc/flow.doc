@@ -41,7 +41,6 @@ M A I N  ->      gbatch.C
  |    |   
  |    |->AMSJob::init      User initialization routine 
  |    |   |
- |    |   |->_timeinitjob   Initialization time dependent vars
  |    |   |
  |    |   |->_siamsinitjob   Simulation initialization
  |    |   |    | 
@@ -52,12 +51,14 @@ M A I N  ->      gbatch.C
  |    |   |    |->_sictcinitjob
  |    |   |    
  |    |   |->_reamsinitjob    
- |    |        | 
- |    |        |->_retkinitjob
- |    |        |->_retofinitjob
- |    |        |->_retrdinitjob
- |    |        |->_rectcinitjob
- |    |        |->_reaxinitjob
+ |    |   |    | 
+ |    |   |    |->_retkinitjob
+ |    |   |    |->_retofinitjob
+ |    |   |    |->_retrdinitjob
+ |    |   |    |->_rectcinitjob
+ |    |   |    |->_reaxinitjob
+ |    |   |
+ |    |   |->_timeinitjob   Initialization time dependent vars
  |    |
  |    |   
  |    |->uhinit            Use histograms/ntuples

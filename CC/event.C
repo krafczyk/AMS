@@ -35,9 +35,9 @@ void AMSEvent::_init(){
   if(_run != SRun){
    SRun=_run;
    cout <<" AMS-I-New Run "<<_run<<endl;
-   _validate();
    if(AMSJob::gethead()->getjobtype() == AMSFFKEY.Simulation)_siamsinitrun();
    _reamsinitrun();
+   _validate();
   }
   init();
 }
@@ -830,12 +830,16 @@ void AMSEvent::_validate(){
 AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
 AMSTimeID * offspring=(AMSTimeID*)ptid->down();
 while(offspring){
-  //
-  // Here should be update for db version
-  // 
-
+  integer nb=offspring->GetNbytes();
+  char * tmp =new char[nb];
+  assert(tmp !=NULL);
+  integer ncp=offspring->CopyOut((void*)tmp);
+  ncp=offspring->CopyIn((void*)tmp);
+  
+  delete[] tmp;
   if(offspring->validate(_time)){
-    cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<" validated."<<endl;
+    cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<
+      " validated. ("<<ncp<<" bytes )"<<endl;
   }
     else {
       cerr<<"AMSEvent::_validate-F-"<<offspring->getname()<<" not validated."<<endl;

@@ -11,6 +11,8 @@ AMSTimeID::AMSTimeID(char * id, tm & begin, tm &end,
       time(&_Insert);
       _Begin=mktime(&begin); 
       _End=mktime(&end); 
+      _Nbytes+=sizeof(integer);
+      _CRC=_CalcCRC();
 }
 
 void AMSTimeID::gettime(time_t & insert, time_t & begin, time_t & end) const{
@@ -28,23 +30,30 @@ _End=end;
 
 integer AMSTimeID::CopyIn(void *pdata){
   if(pdata && _pData){
-    integer n=_Nbytes/sizeof(integer);
+    integer n=_Nbytes/sizeof(integer)-1;
     integer i;
     for(i=0;i<n;i++){
      *((integer*)_pData+i)=*((integer*)pdata+i);
     }
-    return _Nbytes;
+    _CRC=*((integer*)pdata+n);
+    if(_CRC != _CalcCRC()){
+      cerr<<"AMSTimeID::CopyIn-E-CRC Error "<<getname()<<" "<<_CRC<<" "
+      <<_CalcCRC()<<endl;
+      exit(1);
+    }
+    else return _Nbytes;
   }
   else return 0;
 }
 
 integer AMSTimeID::CopyOut(void *pdata){
   if(pdata && _pData){
-    integer n=_Nbytes/sizeof(integer);
+    integer n=_Nbytes/sizeof(integer)-1;
     integer i;
     for(i=0;i<n;i++){
      *((integer*)pdata+i)=*((integer*)_pData+i);
     }
+    *((integer*)pdata+n)=_CRC;
     return _Nbytes;
   }
   else return 0;
@@ -55,4 +64,14 @@ integer AMSTimeID::CopyOut(void *pdata){
 integer AMSTimeID::validate(time_t & Time){
 if (Time >= _Begin && Time <= _End)return 1;
 else return 0;
+}
+
+integer AMSTimeID::_CalcCRC(){
+ integer crc=0;
+ int i;
+    integer n=_Nbytes/sizeof(integer)-1;
+    for(i=0;i<n;i++){
+     crc=crc ^ *((integer*)_pData+i);
+    }
+  return crc;
 }
