@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.36 2003/07/18 19:30:17 delgadom Exp $
+//  $Id: richdbc.C,v 1.37 2003/07/28 17:00:20 choutko Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -530,35 +530,10 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
   geant rad_height=crossed_tile.getheight();
   r=crossed_tile.getemissionpoint();
   dir=crossed_tile.getemissiondir();
-  
-  /***************************************
-
-  AMSDir dir2(0,0,-1);
-  AMSPoint r2;
-
-
-  number mean_z=RICHDB::mean_height();
-  ptrack->interpolate(AMSPoint(0,0,RICradpos-RICHDB::rad_height+mean_z),dir2,r2,theta,phi,sleng);
-
-
-  // Simple approx. WITHOUT BORDER EFFECTS
-  length=RICHDB::rad_height/cos(theta);
-
-  // Put it in local frame
-
-  theta=twopi/2.-theta;
-  phi=twopi/2.-phi;
-  AMSDir u2(theta,phi);
-  u2[2]*=-1;
-  r2[2]=RICHDB::rad_height-mean_z;
-
-
-  u[2]*=-1;
-  r[2]=RICHDB::rad_height-mean_z;
-
-
-  ***************************/
-
+  //  added by VC 28-july-2003 
+  //   subject to verification by RICH expert
+  //
+      length=rad_height/fabs(cos(dir.gettheta()));
   theta=twopi/2.-dir.gettheta();
   phi=twopi/2.-dir.getphi();
   AMSDir u(theta,phi);

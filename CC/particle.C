@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.136 2003/07/25 16:46:51 alcaraz Exp $
+//  $Id: particle.C,v 1.137 2003/07/28 17:00:19 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -461,7 +461,6 @@ void AMSParticle::richfit(){
   _RichPath[0]=direct;
   _RichPath[1]=reflected;
   _RichLength=length;
-
 
 //  Add more
   AMSRichRing::rebuild(_ptrack);
