@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.114 2001/08/08 14:34:09 choutko Exp $
+//  $Id: mceventg.C,v 1.115 2001/08/09 15:16:31 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -861,6 +861,8 @@ else{
   MCEventGNtuple02* GN = AMSJob::gethead()->getntuple()->Get_mcg02();
 
   if (GN->Nmcg>=MAXMCG02) return;
+// added specifically to reduce ntuple size
+  if (GN->Nmcg>=MAXMCG*2.5) return;
 
 // Fill the ntuple
 if( Out(_ipart>0 || IOPA.WriteAll%10==1 )){
@@ -1052,13 +1054,13 @@ static integer init=0;
 static number ECALZ=-FLT_MAX;
 if(!init){
  init=1;
- AMSgvolume *p =AMSJob::gethead()->getgeomvolume(AMSID("ECMO",1));
+ AMSgvolume *p =AMSJob::gethead()->getgeomvolume(AMSID("PMS1",1));
 if(p){
- ECALZ=p->getcooA(2)+p->getpar(2);
+ ECALZ=p->getcooA(2)*0.95;
  cout <<"AMSmceventg::FillMCInfo-I-LowestZSetTo "<<ECALZ<<endl;
 }
 else{
- cerr<<"AMSmceventg::FillMCInfo-W-NoECMOVolumeFound"<<endl;
+ cerr<<"AMSmceventg::FillMCInfo-W-NoPMS1VolumeFound"<<endl;
 }
 }
 

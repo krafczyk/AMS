@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.130 2001/08/03 13:26:37 choutko Exp $
+//  $Id: trrec.C,v 1.131 2001/08/09 15:16:32 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1204,6 +1204,8 @@ else{
  TrRecHitNtuple02* THN = AMSJob::gethead()->getntuple()->Get_trrh02();
 
   if (THN->Ntrrh>=root::MAXTRRH02) return;
+// added specifically to reduce ntuple size
+  if (THN->Ntrrh>=root::MAXTRRH) return;
 
 // Fill the ntuple 
   integer flag =    (IOPA.WriteAll%10==1)
