@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.25 2003/06/26 13:13:28 choumilo Exp $
+//  $Id: tofsim02.C,v 1.26 2003/12/08 09:31:04 choutko Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 #include <tofdbc02.h>
@@ -1479,7 +1479,7 @@ number TOF2Tovt::tr2time(int &trcode, uinteger toftrp[]){
 	misl2=4;
       }
 //---14c
-      bot=trbl[4];
+      bot=trbl[3];
       ebot.bitclr(1,0);
       bot.testbit(i1,i2);
       if(i2>=i1){
