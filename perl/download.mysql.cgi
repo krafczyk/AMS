@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: download.mysql.cgi,v 1.1 2002/08/08 17:18:08 alexei Exp $
+#  $Id: download.mysql.cgi,v 1.2 2003/11/18 10:34:12 alexei Exp $
 use Gtk;
 use strict;
 
@@ -20,7 +20,7 @@ my $nocgi=1;
 my $html=new RemoteClient($nocgi);
 
 
-$html->Download();
+$html->DownloadSA();
 
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: download.o.cgi,v 1.1 2002/08/07 08:08:07 alexei Exp $
+#  $Id: download.o.cgi,v 1.2 2003/11/18 10:34:12 alexei Exp $
 use Gtk;
 use strict;
 
@@ -19,7 +19,7 @@ my $nocgi=1;
 my $html=new RemoteClient($nocgi);
 
 
-$html->Download();
+$html->DownloadSA();
 
 
 
