@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.49 2002/04/19 16:12:54 delgadom Exp $
+//  $Id: mccluster.C,v 1.50 2002/04/23 16:47:12 delgadom Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -559,10 +559,25 @@ void AMSRichMCHit::sirichhits(integer id,
        <<"Asigned pixel "<<channel.getpixel()<<endl
        <<"Asigned position "<<channel.x()<<","<<channel.y()<<endl;
 #endif
-  if(channel.getchannel()>=0)
-  AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
-			       new AMSRichMCHit(id,channel.getchannel(),adc,
-						r,u,status));
+
+  // The primary history does not has good channel info so we do it by hand
+
+  if(status==Status_primary_rad ||
+     status==Status_primary_tracker ||
+     status==Status_primary_tof ||
+     status==Status_primary_radb)
+    AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
+				 new AMSRichMCHit(id,-1,0,
+						  r,u,status));
+  
+  
+  else
+    
+    
+    if(channel.getchannel()>=0)
+      AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
+				   new AMSRichMCHit(id,channel.getchannel(),adc,
+						    r,u,status));
 }
 
 

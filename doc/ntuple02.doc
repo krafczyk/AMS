@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.34 2002/04/23 14:11:15 choutko Exp $
+#  $Id: ntuple02.doc,v 1.35 2002/04/23 16:47:45 delgadom Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -137,6 +137,13 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 * R*4  *           * PARTICLE * cootrd(3,npart)  // trd extrapol in the middle
 * R*4  *           * PARTICLE * coorich(3,2,npart)  //rich extrapol in radiator
 						    // and PMT array
+* R*4  *           * PARTICLE * pathrich(2,npart)  //  Estimated fraction
+	                                           //  of ring photons 
+	                                           //  within RICH acceptance
+						   //  (direct and reflected ones 
+						   //   repectively)		
+* R*4  *           * PARTICLE * lengthrich(npart)  // Estimated pathlength of 
+						   // particle within rich radiator
 
 * I*4  * [0,20]    * TOFCLUST * ntof             // TOF clusters number
 * I*4  *           * TOFCLUST * TOFStatus(ntof)  // Status: 

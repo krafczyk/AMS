@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.36 2002/04/19 15:24:04 delgadom Exp $
+//  $Id: particle.h,v 1.37 2002/04/23 16:47:38 delgadom Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -61,6 +61,8 @@ protected:
   AMSPoint _TrCoo[trconst::maxlay];  
   AMSPoint _TRDCoo;  
   AMSPoint _RichCoo[2];
+  number   _RichPath[2];
+  number   _RichLength;
   number   _Local[trconst::maxlay];
 
 // new
@@ -101,6 +103,8 @@ public:
     for(i=0;i<2*ecalconst::ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2;i++)_RichCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<2;i++)_RichPath[i]=0.;
+    _RichLength=0.;
     for(i=0;i<6;i++){
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;
@@ -121,6 +125,8 @@ public:
     for(i=0;i<2*ecalconst::ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2;i++)_RichCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<2;i++)_RichPath[i]=0.;
+    _RichLength=0.;
     for(i=0;i<6;i++){
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;

@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.72 2002/03/12 19:14:16 mdelgado Exp $
+//  $Id: gmat.C,v 1.73 2002/04/23 16:47:06 delgadom Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -650,7 +650,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
 
 pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR","RICH_MIRROR",0));
   for(iw=0;iw<RICHDB::entries;iw++)
-    abs_l[iw]=1.-0.90; // Reflectivity=90%   
+    abs_l[iw]=1.-0.85; // Reflectivity=85%   
   index[0]=0;          // The mirror is a metal
   pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 

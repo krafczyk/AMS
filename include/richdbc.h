@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.22 2002/04/19 15:24:05 delgadom Exp $
+//  $Id: richdbc.h,v 1.23 2002/04/23 16:47:40 delgadom Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -11,6 +11,7 @@
 
 #include<job.h>
 #include<commons.h> 
+#include<trrec.h>
 
 // Constants
 namespace richconst{
@@ -118,7 +119,10 @@ public: // To be migrated in the future
   static geant rad_height;
   static geant rad_length;
   static geant rad_index;   // Mean index
+
   static geant foil_height; // Radiator foil support height
+  static geant foil_index;	
+
   static geant rad_supthk;
 
   // Light guide features
@@ -188,6 +192,9 @@ public:
   static geant mean_height();
   static integer _Nph;
   static integer & Nph(){return _Nph;}  
+  static geant ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
+			     geant &length);
+  
 };
 
 #endif

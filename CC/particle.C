@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.108 2002/04/19 15:23:55 delgadom Exp $
+//  $Id: particle.C,v 1.109 2002/04/23 16:47:19 delgadom Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -369,6 +369,24 @@ void AMSParticle::richfit(){
   _ptrack->interpolate(AMSPoint(0,0,RICradpos),dir,_RichCoo[0],theta,phi,sleng);
   _ptrack->interpolate(AMSPoint(0,0,RICradpos-RICHDB::pmt_pos()-RICHDB::cato_pos()),dir,_RichCoo[1],theta,phi,sleng);
 
+
+  //  cout <<"TEST DE RICHRING"<<endl;
+
+  //  geant direct,ref,length;
+  //  cout <<"La suma sale "<<RICHDB::ring_fraction(_ptrack,direct,ref,length)<<endl;
+  //  cout <<"   Direct:"<<direct<<endl
+  //       <<"   Reflected:"<<ref<<endl
+  //       <<"   path length:"<<length<<endl;
+
+
+  geant direct,reflected,length;
+  RICHDB::ring_fraction(_ptrack,direct,reflected,length);
+
+  _RichPath[0]=direct;
+  _RichPath[1]=reflected;
+  _RichLength=length;
+
+
 //  Add more
   AMSRichRing::rebuild(_ptrack);
 
@@ -466,7 +484,10 @@ void AMSParticle::_writeEl(){
     for(int j=0;j<3;j++){
       PN->RichCoo[PN->Npart][i][j]=_RichCoo[i][j];
     }
+    PN->RichPath[PN->Npart][i]=_RichPath[i];
   }
+  PN->RichLength[PN->Npart]=_RichLength;
+
 
   PN->Cutoff[PN->Npart]=_CutoffMomentum;
   for(i=0;i<3;i++)PN->TRDCoo[PN->Npart][i]=_TRDCoo[i];

@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.25 2002/04/18 14:56:07 delgadom Exp $
+//  $Id: richdbc.C,v 1.26 2002/04/23 16:47:23 delgadom Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -129,6 +129,7 @@ geant RICHDB::lg_length=3.1;        // Side length of light guide top (Called lg
 geant RICHDB::lg_bottom_length=1.77;
 geant RICHDB::inner_pixel=0.38;
 geant RICHDB::foil_height=0.1;
+geant RICHDB::foil_index=1.49;
 geant RICHDB::rad_supthk=0.1;
 
 
@@ -484,3 +485,190 @@ geant RICHDB::mean_height(){
   }
   return -1;  // Codigo de error
 }
+
+
+
+//#define DEVELOPMENT_STAGE
+//#ifdef DEVELOPMENT_STAGE
+
+
+
+#include <trrec.h>
+
+
+geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
+			    geant &length){
+
+  number theta,phi,sleng;  // Track parameter
+  integer i;
+  const integer NPHI=100;
+  const geant twopi=3.14159265359*2;
+
+
+  // Obtain the track parameters
+
+  AMSDir dir(0,0,1);
+  AMSPoint r;
+  number mean_z=RICHDB::mean_height();
+  ptrack->interpolate(AMSPoint(0,0,RICradpos-RICHDB::rad_height+mean_z),dir,r,theta,phi,sleng);
+
+
+
+  // Simple approx. WITHOUT BORDER EFFECTS
+  length=RICHDB::rad_height/cos(theta);
+
+  // Put it in local frame
+
+
+  theta=twopi/2.-theta;
+  phi=twopi/2.-phi;
+  AMSDir u(theta,phi);
+
+
+  u[2]*=-1;
+  r[2]=RICHDB::rad_height-mean_z;
+
+#ifdef __AMSDEBUG__
+  cout <<"Theta and phi "<<theta<<" "<<phi<<endl;
+  cout <<"u: "<<u[0]<<" "<<u[1]<<" "<<u[2]<<endl;
+#endif
+
+
+  // Here comes the Fast-Tracing routine
+
+
+  //Init
+  geant kc=(RICHDB::bottom_radius-RICHDB::top_radius)/RICHDB::rich_height;
+  geant ac=RICHDB::rad_height+RICHDB::foil_height-RICHDB::top_radius/kc;
+  direct=0;
+  reflected=0;
+
+
+  for(phi=0;phi<twopi;phi+=twopi/NPHI){
+    geant cc,sc,cp,sp,cn,sb,f,sn;
+    geant r0[3],u0[3],r1[3],u1[3],r2[3],u2[3],n[3],r3[3];
+
+
+    cc=1./1.0/RICHDB::rad_index; // beta=1
+    sc=sqrt(1-cc*cc);
+    cp=cos(phi);
+    sp=sin(phi);
+    f=sqrt(u[0]*u[0]+u[1]*u[1]);
+
+    for(i=0;i<3;i++) r0[i]=r[i];
+
+    if(f>0){
+      u0[0]=sc/f*(sp*u[0]*u[2]+cp*u[1])+cc*u[0];
+      u0[1]=sc/f*(sp*u[1]*u[2]-cp*u[0])+cc*u[1];
+      u0[2]=-f*sc*sp+u[2]*cc;}
+    else{
+      u0[0]=sc*cp;
+      u0[1]=sc*sp;
+      u0[2]=cc;}
+
+    
+    geant l=(RICHDB::rad_height-r0[2])/u0[2];
+    
+    for(i=0;i<3;i++) r1[i]=r0[i]+l*u0[i];
+    if (sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
+
+    
+    n[0]=0.;n[1]=0.;n[2]=1.;
+
+    cn=n[2]*u0[2];
+    sn=sqrt(1-cn*cn);
+
+
+    // Radiator->foil refraction
+
+    if(RICHDB::rad_index*sn>RICHDB::foil_index) continue;
+    f=sqrt(1-(RICHDB::rad_index/RICHDB::foil_index*sn)*
+	   (RICHDB::rad_index/RICHDB::foil_index*sn))-
+      RICHDB::rad_index/RICHDB::foil_index*cn;
+    for(i=0;i<3;i++) u1[i]=RICHDB::rad_index/RICHDB::foil_index*u0[i]+f*n[i];
+
+    // Propagate to foil end
+    l=RICHDB::foil_height/u1[2];
+    for(i=0;i<3;i++) r1[i]=r1[i]+l*u1[i];
+    if (sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
+
+
+    // Exiting foil
+    cn=u1[2]*n[2];
+    sn=sqrt(1-cn*cn);
+    if(RICHDB::foil_index*sn>1) return 0.;
+    f=sqrt(1-(RICHDB::foil_index*sn)*(RICHDB::foil_index*sn))
+      -RICHDB::foil_index*cn;
+    for(i=0;i<3;i++) u1[i]=RICHDB::foil_index*u1[i]+f*n[i];
+
+
+    // Propagation to base
+
+    l=RICHDB::rich_height/u1[2];
+    for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
+
+    geant maxxy=fabs(r2[0])>fabs(r2[1])?fabs(r2[0]):fabs(r2[1]);
+    geant rbase=sqrt(r2[0]*r2[0]+r2[1]*r2[1]);
+    
+    if (maxxy<RICHDB::hole_radius+RICpmtsupport) continue;
+
+    if(rbase<RICHDB::bottom_radius){
+      direct+=1./NPHI;
+      continue;
+    }
+
+    
+    geant a=1-(kc*kc+1)*u1[2]*u1[2];
+    geant b=2*(r1[0]*u1[0]+r1[1]*u1[1]-kc*kc*(r1[2]-ac)*u1[2]);
+    geant c=r1[0]*r1[0]+r1[1]*r1[1]-(kc*(r1[2]-ac))*(kc*(r1[2]-ac));
+    geant d=b*b-4*a*c;
+    if(d<0) continue;
+    l=(-b+sqrt(d))/2./a;
+    if(l<0) continue;
+
+    for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
+
+    f=1./sqrt(1+kc*kc);
+    n[0]=-f*r2[0]/sqrt(r2[0]*r2[0]+r2[1]*r2[1]);
+    n[1]=-f*r2[1]/sqrt(r2[0]*r2[0]+r2[1]*r2[1]);
+    n[2]=f*kc;
+
+    f=2*(u1[0]*n[0]+u1[1]*n[1]+u1[2]*n[2]);
+    for(i=0;i<3;i++) u2[i]=u1[i]-f*n[i];
+
+    l=(RICHDB::rich_height+RICHDB::rad_height+RICHDB::foil_height-r2[2])/u2[2];
+    for(i=0;i<3;i++) r3[i]=r2[i]+l*u2[i];
+
+    maxxy=fabs(r3[0])>fabs(r3[1])?fabs(r3[0]):fabs(r3[1]);
+    rbase=sqrt(r3[0]*r3[0]+r3[1]*r3[1]);
+
+
+    if (maxxy<RICHDB::hole_radius+RICpmtsupport) continue;
+
+    if(rbase<RICHDB::bottom_radius){
+      reflected+=1./NPHI;
+      continue;
+    }
+
+  }
+
+#ifdef __AMSDEBUG__  
+  cout <<"Ref dir "<<reflected<< " "<<direct<<endl;
+#endif
+  return reflected+direct;
+
+}
+//#endif
+
+
+
+
+
+
+
+
+
+
+
+
+

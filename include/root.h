@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.56 2002/04/19 15:24:06 delgadom Exp $
+//  $Id: root.h,v 1.57 2002/04/23 16:47:42 delgadom Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -203,6 +203,8 @@ public:
 #endif
   float TRDCoo[MAXPART02][3];
   float RichCoo[MAXPART02][2][3];
+  float RichPath[MAXPART02][2];
+  float RichLength[MAXPART02];
 #ifdef __WRITEROOT__
   ParticleNtuple02();
 ClassDef(ParticleNtuple02,1)       //ParticleNtuple
