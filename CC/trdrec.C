@@ -876,3 +876,13 @@ bool AMSTRDTrack::IsEcalCandidate(){
    else return false;   
 
 }
+
+
+bool AMSTRDTrack::IsHighGammaTrack(){
+ uinteger hmul=0;
+ uinteger threshold=3;
+ for (int i=0;i<_Base._NHits;i++){
+  if(_Base._PCluster[i]->getmult()==1)hmul+=_Base._PCluster[i]->gethmult();
+ }
+ return hmul>threshold;
+}

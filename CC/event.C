@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.273 2001/09/25 08:06:48 choutko Exp $
+//  $Id: event.C,v 1.274 2001/11/13 11:29:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -43,6 +43,7 @@
 #include <trigger102.h>
 #include <trigger1.h>
 #include <trigger3.h>
+#include <trigger302.h>
 #include <bcorr.h>
 #include <antirec02.h>
 #include <antirec.h>
@@ -1457,11 +1458,13 @@ void AMSEvent::_retkevent(integer refit){
 
 // do not reconstruct events without lvl3 if  LVL3FFKEY.Accept
  
-    TriggerLVL3 *ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
+    AMSlink *ptr=getheadC("TriggerLVL3",0);
     AMSlink *ptr1=getheadC("TriggerLVL1",0);
 
-
-if(ptr1 && (!LVL3FFKEY.Accept || (ptr1 && ptr && ptr->LVL3OK()))){
+    TriggerLVL3 *ptr3=dynamic_cast<TriggerLVL3*>(ptr);
+    TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
+     
+if(ptr1 && (!LVL3FFKEY.Accept || (ptr1 && ptr && ((ptr3 && ptr3->LVL3OK()) || (ptr3-2 && ptr302->LVL3OK()))))){
 AMSgObj::BookTimer.start("RETKEVENT");
   AMSgObj::BookTimer.start("TrCluster");
   buildC("AMSTrCluster",refit);
@@ -1479,9 +1482,18 @@ AMSgObj::BookTimer.start("RETKEVENT");
   AMSgObj::BookTimer.start("TrTrack");
   
 
-  
+  AMSTRDTrack *ptrd=(AMSTRDTrack*)getheadC("AMSTRDTrack",0); 
+  bool hmul=false;
+  while(ptrd){
+    if(ptrd->IsHighGammaTrack()){
+     hmul=true;
+     break;
+    }
+    ptrd=ptrd->next();
+  }
+//   cout <<" ptrd "<<hmul<<endl;
   Trigger2LVL1 * ptr12= dynamic_cast<Trigger2LVL1*>(ptr1);
-  if(ptr12 && (ptr12->IsECHighEnergy() || ptr12->IsECEMagEnergy() || TRFITFFKEY.LowMargin)){
+  if(ptr12 && (ptr12->IsECHighEnergy() || ptr12->IsECEMagEnergy() || TRFITFFKEY.LowMargin || hmul)){
     AMSTrTrack::setMargin(1);
   }
   else{
@@ -2123,7 +2135,7 @@ void AMSEvent::_sirichevent(){
 void AMSEvent:: _sitrigevent(){
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
     Trigger2LVL1::build();
-    TriggerLVL3::build2();
+    TriggerLVL302::build();
   }
   else{
     TriggerLVL1::build();
@@ -2138,7 +2150,7 @@ void AMSEvent:: _retrigevent(){
   
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 //   if(TGL1FFKEY.RebuildLVL1)Trigger2LVL1::build();
-//   if(LVL3FFKEY.RebuildLVL3)TriggerLVL3::build2();
+//   if(LVL3FFKEY.RebuildLVL3)TriggerLVL302::build();
   }
   else{
 //   if(LVL1FFKEY.RebuildLVL1)TriggerLVL1::build();
@@ -3101,7 +3113,7 @@ void AMSEvent::_collectstatus(){
       uinteger __status=0;
 
   {
-    TriggerLVL3 *ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
+    TriggerLVL3 *ptr=dynamic_cast<TriggerLVL3*>(getheadC("TriggerLVL3",0));
     if(ptr){
       integer lvl3o=ptr->TrackerTrigger();
       integer prescale = lvl3o>=32?1:0;
@@ -3109,7 +3121,7 @@ void AMSEvent::_collectstatus(){
       __status=__status | lvl3o | (prescale<<4);
       
     }
-  }
+   }
   {
     AMSParticle *ptr=(AMSParticle*)getheadC("AMSParticle",0);
     AMSParticle *ptr1=(AMSParticle*)getheadC("AMSParticle",1);

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.383 2001/10/02 12:57:23 choutko Exp $
+// $Id: job.C,v 1.384 2001/11/13 11:29:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -42,6 +42,7 @@
 #include <trigger102.h>
 #include <trigger1.h>
 #include <trigger3.h>
+#include <trigger302.h>
 #include <bcorr.h>
 #include <trid.h>
 #include <trrawcluster.h>
@@ -946,7 +947,7 @@ TRDCLFFKEY.ADC2KeV=1.e6/TRDMCFFKEY.GeV2ADC/TRDMCFFKEY.gain;
 TRDCLFFKEY.Thr1S=0.11;
 TRDCLFFKEY.Thr1A=0.33;
 TRDCLFFKEY.Thr1R=6;
-TRDCLFFKEY.Thr1H=5.;
+TRDCLFFKEY.Thr1H=5.9;
 TRDCLFFKEY.MaxHitsInCluster=3;
 FFKEY("TRDCL",(float*)&TRDCLFFKEY,sizeof(TRDCLFFKEY_DEF)/sizeof(integer),"MIXED");
 
@@ -1809,7 +1810,7 @@ void AMSJob::_sitrig2initjob(){
   if(LVL3FFKEY.RebuildLVL3==1)cout <<"AMSJob::_sitrig2initjob-W-TriggerLvl3 will be rebuild from TOF/Tracker data; Original Trigger info will be lost"<<endl;
   else if(LVL3FFKEY.RebuildLVL3)cout <<"AMSJob::_sitrig2initjob-W-TriggerLvl3 will be rebuild from TOF/Trigger data Original Trigger info will be kept"<<endl;
   AMSgObj::BookTimer.book("LVL3");
-  TriggerLVL3::init();  
+  TriggerLVL302::init();  
 }
 //-------------------------------------------------------------------------------------------
 void AMSJob::_sitkinitjob(){

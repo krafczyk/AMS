@@ -1,11 +1,6 @@
-#  $Id: ntuple.doc,v 1.100 2001/01/22 17:00:56 vitali Exp $
+#  $Id: ntuple.doc,v 1.101 2001/11/13 11:30:01 choutko Exp $
 This is AMS01 ntuple description (frozen)
-Thanks to Juan's courtesy there is no more dumb ntuple, only
-clever one survived. No more nconvert.
-
-Below there is a description of a  ntuple.
-
-(!) New : Record Length = 8000
+NB : Record Length = 8000
 
 
  ********************************************
