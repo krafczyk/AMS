@@ -37,11 +37,9 @@
 //#pragma link C++ class AMSR_KeyNode;
 #pragma link C++ class AMSR_Canvas;
 #pragma link C++ class AMSR_Axis;
-//#pragma link C++ class AMSR_GifPad;
 #pragma link C++ class TRadioButton;
 #pragma link C++ class TSwitch;
 #pragma link C++ class TGRunEventDialog;
-//#pragma link C++ class MsgBox;
 
 #pragma link C++ class Debugger;
 

@@ -10,7 +10,7 @@ void IdleHandle(Int_t option)
 //  static char *cut   
 //   = "ntrtr==1 && Ridgidity<0 && abs(pmom)/pcharge<2 && nctccl<2";
 //  static char *cut = "Chi2strline[0]<1 && Chi2circle[0]<1 && Chi2fastfit[0]<10 && beta[0]<0.";
-  static char *cut = "npart==1 && abs(pmom[0])<1.";
+  static char *cut = "npart==1";
 //  static char *cut = "abs(pmom[0])<1.";
 
 
@@ -64,7 +64,8 @@ void IdleHandle(Int_t option)
 //    ntp->SetBranchStatus("Chi2fastfit",1);
 //    ntp->SetBranchStatus("beta",1);      //end of enabling branches
     ntp->SetBranchStatus("npart", 1);
-    ntp->SetBranchStatus("pmom", 1);
+//    ntp->SetBranchStatus("ntrtr", 1);
+//    ntp->SetBranchStatus("pmom", 1);
 //    ntp->SetBranchStatus("pmass", 1);
 
     Int_t current = gAMSR_Root->Event();

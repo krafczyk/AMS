@@ -1,4 +1,10 @@
 
+1998.09.22      Shuwei YE
+  - Fixed a bug in AMSR_Display::DrawView. "m_Geometry->Draw()" will create
+    a new TView instead on the existing one which is not expected.
+  - Add some protections in main program
+  - Add platform checking in Makefile
+
 1998.08.17      Shuwei YE
   - Update to suit ROOT-v2.00 by Vitali Choutko
   - IBM/AIX support

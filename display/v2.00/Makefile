@@ -19,6 +19,7 @@ ROOTLIBS      = -L$(ROOTSYS)/lib -lNew -lBase -lCint -lClib -lCont -lFunc \
                 -lPostscript -lProof -lTree -lUnix -lZip
 ROOTGLIBS     = -lRint -lGpad -lGui -lGX11 -lX3d
 CERNLIBS      = -L/cern/pro/lib -lmathlib -lpacklib -lkernlib
+#OPT           = -g -DROOT10308
 OPT           = -g
 NOOPT         =
 ARLD          = ar vr
@@ -164,8 +165,10 @@ include Make-bin
 
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),touch_depend)
-ifneq "$(FOUND)" ""
+ifneq ($(MAKECMDGOALS),dist)
+#ifneq "$(FOUND)" ""
  include $(OBJDIR)/Make-depend
+#endif
 endif
 endif
 endif

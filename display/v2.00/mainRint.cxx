@@ -19,7 +19,7 @@
 //--------------------------------------------------------------------------
 
 #include <TROOT.h>
-#include <TApplication.h>
+#include <TRint.h>
 #include <TFile.h>
 //#include <TTree.h>
 #include <TGeometry.h>
@@ -92,7 +92,7 @@ main(int argc, char *argv[])
   // by TRint (which inherits from TApplication) you will be able
   // to execute CINT commands once in the eventloop (via Run()).
   int nargs=0;
-  TApplication *theApp = new TApplication("App", &nargs, 0);
+  TRint *theApp = new TRint("App", &nargs, 0);
 //  TApplication *theApp = new TApplication("App", &argc, argv);
 
   //

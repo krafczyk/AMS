@@ -969,7 +969,6 @@ void AMSR_Display::DrawView(Float_t theta, Float_t phi, Int_t index)
    TView *view = new TView(1);
    // add the geomtry to the pad
    if (m_DrawGeometry) {
-     view->SetRange(-800.0, -800.0, -520.0, 800.0, 800.0, 520.0);
      EVisibility vis;
      if(m_DrawMoreGeometry)vis=kDrawAll;
      else vis=kDrawNone;
@@ -987,10 +986,16 @@ void AMSR_Display::DrawView(Float_t theta, Float_t phi, Int_t index)
      if(node)node->SetVisibility(vis);
      node=m_Geometry->GetNode("STK_L6_HONEYCOMB");
      if(node)node->SetVisibility(vis);
-     m_Geometry->Draw();
+//     m_Geometry->Draw();  // without option "same" will create a new TView
+     m_Geometry->Draw("same");
+//     view->SetRange(-800.0, -800.0, -520.0, 800.0, 800.0, 520.0);
    }
-   else
-     view->SetRange(-100.0, -100.0, -120.0, 100.0, 100.0, 120.0);
+//   else {
+//     view = new TView(1);
+//     view->SetRange(-100.0, -100.0, -120.0, 100.0, 100.0, 120.0);
+//   }
+
+    view->SetRange(-80.0, -80.0, -80.0, 80.0, 80.0, 80.0);
 
    //Loop on all makers to add their products to the pad
    TIter next(gAMSR_Root->Makers());

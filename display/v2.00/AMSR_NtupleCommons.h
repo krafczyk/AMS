@@ -8,7 +8,7 @@
 #endif
 
 #include "cfortran.h"
-#include "hbook.h"
+//#include "hbook.h"
 
 const int NWPAW=1000000;
 struct PAWC_DEF{float hmem[NWPAW];};

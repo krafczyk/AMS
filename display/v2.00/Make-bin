@@ -46,9 +46,11 @@ HDRS          = TRadioButton.h TSwitch.h \
 		AMSR_Display.h TGRunEventDialog.h \
                 LinkDef.h
 		# MySelectionDialog.h \
-		# AMSR_ColorManager.h 
+		# AMSR_ColorManager.h
 
-SRCSG         = # AMSR_Display.cxx 		# AMSR_Fruit.cxx 
+HDRS2        = AMSR_NtupleCommons.h AMSR_Types.h cfortran.h hbook.h
+
+SRCSG         = # AMSR_Display.cxx 		# AMSR_Fruit.cxx
 
 HDRSG         = # AMSR_Display.h GLinkDef.h
 
@@ -83,13 +85,14 @@ OBJS          = $(SRCS:%.cxx=$(OBJDIR)/%.o) $(DICTO) $(FORO)
 OBJSG         = # $(SRCSG:%.cxx=$(OBJDIR)/%.o) $(DICTGO)
 
 ALLDICT       = $(DICT) $(DICTH) $(DICTG) $(DICTGH)
-ALLSRCS       = $(SRCS) $(SRCSG) $(HDRS) $(HDRSG) $(ALLDICT) \
+# ALLSRCS       = $(SRCS) $(SRCSG) $(HDRS) $(HDRSG) $(ALLDICT)
+ALLSRCS       = $(SRCS) $(SRCSG) $(FORSRC) $(HDRS) $(HDRS2) $(HDRSG) \
                 $(MAIN) $(MAINRINT) $(MAINC) $(MAINV)
 ALLOBJS       = $(OBJS) $(OBJSG) $(MAINO) $(MAINRINTO) $(MAINOC) $(MAINOV)
 
 
 #####################################
-###                               ###
+	###                               ###
 ###  physical names for TARGETS   ###
 ###                               ###
 #####################################
@@ -97,6 +100,7 @@ AMSR_STATICLIB  = $(OBJDIR)/libAMS.a
 
 AMSR_SHAREDLIB  = $(OBJDIR)/libAMS.so
 
+AMSR_TAR        = display
 AMSR_PRG        = $(OBJDIR)/amsed
 AMSR_RINT       = $(OBJDIR)/amsRint
 AMSR_PRGC       = $(OBJDIR)/amsedc
@@ -111,13 +115,13 @@ AMSR_PRGV       = $(OBJDIR)/amsedv
 .PHONY :     standalone interactive realtime projector depend dist clean
 .PHONY :     touch_depend
 
-interactive: $(CHECK_SUPPORT) $(AMSR_RINT)
+interactive: $(AMSR_RINT)
 
-standalone:  $(CHECK_SUPPORT) $(AMSR_PRG)
+standalone:  $(AMSR_PRG)
 
-realtime:    $(CHECK_SUPPORT) $(AMSR_PRGC)
+realtime:    $(AMSR_PRGC)
 
-projector:   $(CHECK_SUPPORT) $(AMSR_PRGV)
+projector:   $(AMSR_PRGV)
 
 
 ###########################
@@ -127,17 +131,6 @@ projector:   $(CHECK_SUPPORT) $(AMSR_PRGV)
 ###########################
 ## --First rule is to check if the platform is supported
 
-CHECK_SUPPORT = ""
-$(CHECK_SUPPORT):
- ifeq "$(FOUND)" ""
-	@echo "Sorry! platform of $(OS) not yet supported"
-	@echo " current only supported are $(SUPPORTED)"
-	@false
- else
-#	@echo "your platform of $(FOUND) is supported"
-	@true
- endif
-
 $(AMSR_SHAREDLIB):  $(OBJS)
 	rm -f $@
 	-$(SHLD) -o $@ $^ $(ADDLIBS)
@@ -146,7 +139,7 @@ $(AMSR_SHAREDLIB):  $(OBJS)
 
 $(AMSR_STATICLIB):  $(OBJS)
 	rm -f $@
-	$(ARLD)  $@ $^
+	-$(ARLD)  $@ $^
 	chmod 555 $@
 	@echo "$@ done with $^ linked in"
 
@@ -177,19 +170,43 @@ $(DICTO):       $(DICT)
 $(DICTGO):      $(DICTG)
 		$(CXX) $(NOOPT) $(CXXFLAGS) -c $< -o $@
 
-AddPrefix   =    sed -e '/:/s@\(.*:\)@$(OBJDIR)/\1@'
+AddPrefix   =    sed -e '/:/s%\(.*:\)%$(OBJDIR)/\1%'
 depend:         $(OBJDIR)/Make-depend
 touch_depend:
 		touch $(OBJDIR)/Make-depend
 
 $(OBJDIR)/Make-depend:    $(SRCS) $(SRCSG) $(MAIN) $(MAINRINT)
 		$(GCC) -E -MM $(INCLUDES) $^ > $@.DELETE
-		cat $@.DELETE | $(AddPrefix) > $@; rm -f $@.DELETE
+		@cat $@.DELETE | $(AddPrefix) > $@; rm -f $@.DELETE
 
 dist:
-		rm -f $(AMSR_PRG).tar.gz ; \
-		tar cvf $(AMSR_PRG).tar $(ALLSRCS) *.C Make* \
-		gzip $(AMSR_PRG).tar
+		rm -f $(AMSR_TAR).tar.gz ;
+		tar cvf $(AMSR_TAR).tar $(ALLSRCS) \
+                        *.C Make* 0* ams_group.root*
+		gzip $(AMSR_TAR).tar
 
 clean:
 		@rm -f $(ALLOBJS) $(ALLDICT)
+
+#================================================================C
+#
+#--use "include" as to a check for the support-platforms :
+#
+#   force to print some message if the platform is not supported,
+#   nothing to do if it is supported.
+#
+#================================================================C
+CHECK_SUPPORT = ""
+$(CHECK_SUPPORT):
+ ifeq "$(FOUND)" ""
+	@echo "Sorry! platform of $(OS) not yet supported"
+	@echo " current only supported are $(SUPPORTED)"
+	@false
+ else
+#	@echo "your platform of $(FOUND) is supported"
+	@true
+ endif
+
+ifeq "$(FOUND)" ""
+ include $(CHECK_SUPPORT)
+endif
