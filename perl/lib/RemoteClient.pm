@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.122 2003/04/24 17:09:53 alexei Exp $
+# $Id: RemoteClient.pm,v 1.123 2003/04/25 07:11:29 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -66,7 +66,9 @@ my %fields=(
         UploadsDir=>undef,
         UploadsHREF=>undef,
         FileDB=>undef,
+        FileBBFTP=>undef,
         FileAttDB=>undef,
+        FileBBFTPTimestamp=>undef,
         FileDBTimestamp=>undef,
         FileAttDBTimestamp=>undef,
         FileDBLastLoad=>undef,
@@ -293,6 +295,7 @@ my %mv=(
     else{    
      $self->{$key}="ams02mcdb.tar.gz";
     }
+
     $key='FileAttDB';
     $sql="select myvalue from Environment where mykey='".$key."'";
     $ret=$self->{sqlserver}->Query($sql);
@@ -301,6 +304,17 @@ my %mv=(
     }
     else{    
      $self->{$key}="ams02mcdb.addon.tar.gz";
+    }
+
+
+    $key='FileBBFTP';
+    $sql="select myvalue from Environment where mykey='".$key."'";
+    $ret=$self->{sqlserver}->Query($sql);
+    if( defined $ret->[0][0]){
+     $self->{$key}=$ret->[0][0];
+    }
+    else{    
+     $self->{$key}="ams02bbftp.tar.gz";
     }
 
 
@@ -3813,22 +3827,28 @@ print qq`
            $uplt1    = $uplt->[1];
           }
         }
-        $filedb="$self->{UploadsDir}/$self->{FileDB}";
-        my @sta0 = stat $filedb;
-        $filedb="$self->{UploadsDir}/$self->{FileAttDB}";
-        my @sta1 = stat $filedb;
-        $self->{FileDBTimestamp}=$sta0[9];
-        $self->{FileAttDBTimestamp}=$sta1[9];
+
+          $self->DownloadTime();
+#
+#        $filedb="$self->{UploadsDir}/$self->{FileDB}";
+#        $self->{FileDBTimestamp}=(stat($filedb))[9];
+#        $filedb="$self->{UploadsDir}/$self->{FileAttDB}";
+#        $self->{FileAttDBTimestamp}=(stat($filedb))[9];
+#        $filedb="$self->{UploadsDir}/$self->{FileBBFTP}";
+#        $self->{FileBBFTPTimestamp}=(stat($filedb))[9];
+#
+
         $self->{FileDBLastLoad}=$uplt0;
         $self->{FileAttDBLastLoad}=$uplt1;
+
         if ($self->{dwldaddon} == 1) {
-         if($uplt0 == 0 or $uplt0 < $sta0[9] or $uplt1 == 0 or $uplt1 < $sta1[9]) {
+         if($uplt0 == 0 or $uplt0 < $self->{FileDBTimestamp} or $uplt1 == 0 or $uplt1 < $self->FileAttDBTimestamp) {
             $self->Download();
          } else {
           $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
          } 
         } else {
-         if($uplt0 == 0 or $uplt0 < $sta0[9]) {
+         if($uplt0 == 0 or $uplt0 < $self->{FileDBTimestamp}) {
             $self->Download();
         } else {
          $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
@@ -5148,7 +5168,7 @@ sub listNtuples {
      my $sql="SELECT Ntuples.run, Ntuples.jid, Ntuples.nevents, Ntuples.neventserr, 
                      Ntuples.timestamp, Ntuples.status, Ntuples.path
               FROM   Ntuples
-              ORDER  BY Ntuples.timestamp";
+              ORDER  BY Ntuples.jid";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td width=10% align=left><b><font color=\"blue\" > JobId </font></b></td>";
               print "<td width=10%><b><font color=\"blue\"> Run </font></b></td>";
@@ -5193,13 +5213,19 @@ sub AllDone{
 
 sub DownloadTime {
         my $self = shift;
+
         my $filedb="$self->{UploadsDir}/$self->{FileDB}";
-        my @sta0 = stat $filedb;
+        $self->{FileDBTimestamp}=(stat($filedb))[9];
+
         $filedb="$self->{UploadsDir}/$self->{FileAttDB}";
-        my @sta1 = stat $filedb;
-        $self->{FileDBTimestamp}=$sta0[9];
-        $self->{FileAttDBTimestamp}=$sta1[9];
+        $self->{FileAttDBTimestamp}=(stat($filedb))[9];
+
+        $filedb="$self->{UploadsDir}/$self->{FileBBFTP}";
+        $self->{FileBBFTPTimestamp}=(stat($filedb))[9];
+
+
     }
+
 sub Download {
     my $self = shift;
     print "Content-type: text/html\n\n";
@@ -5242,10 +5268,12 @@ sub Download {
 sub DownloadSA {
     my $self = shift;
     $self->{UploadsHREF}="AMS02MCUploads";
-    $self->{UploadsDir}="/var/www/cgi-bin/AMS02MCUploads";
-    $self->{FileDB}="ams02mcdb.tar.gz";
-    $self->{FileAttDB}="ams02mcdb.addon.tar.gz";
-    $self->{dwldaddon} = 1;
+    $self->{UploadsDir} ="/var/www/cgi-bin/AMS02MCUploads";
+    $self->{FileDB}     ="ams02mcdb.tar.gz";
+    $self->{FileAttDB}  ="ams02mcdb.addon.tar.gz";
+    $self->{FileBBFTP}  ="ams02bbftp.tar.gz";
+    $self->{dwldaddon}  = 1;
+    $self->DownloadTime();
     print "Content-type: text/html\n\n";
     print "<HTML>\n";
     print "<body bgcolor=cornsilk text=black link=#007746 vlink=navy alink=tomato>\n";
@@ -5261,7 +5289,6 @@ sub DownloadSA {
 
 sub PrintDownloadTable {
     my $self = shift;
-    $self->DownloadTime();
     print "<tr><td width=600>\n";
     print "<table border=\"0\" cellspacing=\"5\" cellpadding=\"5\">\n";
     print "<P>\n";
@@ -5273,7 +5300,6 @@ sub PrintDownloadTable {
     print "<br><br>\n";
 #   print "<br><font size=\"4\"><a href=$self->{UploadsHREF}/$self->{FileDB}>  filedb files (tar.gz)</a></font>";
     my $file= $self->{FileDB};
-#    $file=~ s/gz/Z /;
     print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$file>  filedb files (tar.gz)</a>
            </font>";
@@ -5281,8 +5307,6 @@ sub PrintDownloadTable {
     print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
     print "<br><br>";
     $file= $self->{FileAttDB};
-#    $file=~ s/gz/Z /;
-#           <a href=$self->{UploadsHREF}/$self->{FileAttDB}>   filedb att.files (tar.gz)</a>
     if ($self->{dwldaddon} == 1) {
      print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$file>   filedb att.files (tar.gz)</a>
@@ -5290,6 +5314,13 @@ sub PrintDownloadTable {
      $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp});
      print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
      print "<br><br>\n";
+     my $file= $self->{FileBBFTP};
+     print "<br><font size=\"4\">
+           <a href=load.cgi?$self->{UploadsHREF}/$file>  bbftp files (tar.gz) - <i> optional </i></a>
+           </font>";
+     my $dtime=EpochToDDMMYYHHMMSS($self->{FileBBFTPTimestamp});
+     print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
+     print "<br><br>";
     }
     print "</TD></TR>\n";
     print "</TABLE>\n";
