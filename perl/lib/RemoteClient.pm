@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.293 2005/02/07 14:48:46 alexei Exp $
+# $Id: RemoteClient.pm,v 1.294 2005/02/14 11:10:02 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1164,17 +1164,12 @@ sub ValidateRuns {
 
     foreach my $run (@{$self->{dbserver}->{rtb}}){
  # check flag
-     my $rflag = $self->getFilesProcessingFlag();
-     if ($rflag == 0) {
-         $self->updateFilesProcessing();
-         $self->printValidateStat();
-         $self->amsprint("Processing flag = 0. Stop Runs Validation.",0);
-         return 1;
-     } elsif ($rflag ==  -1) {
-         $self->printValidateStat();
-         $self->amsprint("Processing flag = -1. Stop Runs Validation.",0);
+     my ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
+     if ($rflag != 0) {
+         $self->amsprint("Processing flag = $rflag, $procstarttime. Stop parseJournalFiles.",0);
          return 1;
      }
+     $self->initFilesProcessingFlag();
 #
      $timenow = time();
      $CheckedRuns[0]++;
@@ -7530,6 +7525,14 @@ sub parseJournalFiles {
       $self->amsprint("parseJournalFiles -ERROR- script cannot be run from account : $whoami",0);
       die "bye";
     }
+
+# check flag
+     my ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
+     if ($rflag != 0) {
+         $self->amsprint("Processing flag = $rflag, $procstarttime. Stop parseJournalFiles.",0);
+         return 1;
+     }
+     $self->initFilesProcessingFlag();
 #
    $self->setActiveProductionSet();
    if (not defined $ActiveProductionSet || $ActiveProductionSet eq $UNKNOWN) {
@@ -7538,7 +7541,6 @@ sub parseJournalFiles {
   }
 # set flag
    my $timenow = time();
-   $self->initFilesProcessingFlag();
 #
     $self->set_root_env();
 
@@ -7653,19 +7655,6 @@ sub parseJournalFiles {
            $lastfile = $newfile;
        }
 
-# check flag
-     $timenow = time();
-     my $rflag = $self->getFilesProcessingFlag();
-     if ($rflag == 0) {
-         if ($webmode == 0) {$self -> printParserStat();}
-         $self->updateFilesProcessing();
-         $self->amsprint("Processing flag = 0. Stop parseJournalFiles.",0);
-         return 1;
-     } elsif ($rflag == -1) {
-         $self->amsprint("Processing flag = -1. Stop parseJournalFiles.",0);
-         return 1;
-     }
-#
        my $color   ="black";
        my $fstatus ="CheckInProgress";
        if ($writetime < $timestamp) { $color   = "magenta";
@@ -9469,8 +9458,8 @@ sub getFilesProcessingFlag {
 #
     my $self = shift;
 
-    my $return = -1;
-
+    my $flag      = -1;
+    my $starttime = 0;
     my $whoami = getlogin();
     if ($whoami =~ 'ams' || $whoami =~ 'alexei') {
     } else {
@@ -9479,10 +9468,13 @@ sub getFilesProcessingFlag {
     }
 
    my $timenow = time();
-   my $sql = "SELECT flag from FilesProcessing";
+   my $sql = "SELECT flag, timestamp from FilesProcessing";
    my $ret = $self->{sqlserver}->Query($sql);
-   if (defined $ret) { $return = $ret->[0][0];}
-   return $return;
+   if (defined $ret) { 
+      $flag      = $ret->[0][0];
+      $starttime = $ret->[0][1];}
+
+   return $flag, $starttime;
 }
 
 
@@ -11819,7 +11811,6 @@ sub readDataSets() {
       }
      } # end jobs of jobs
 
-    sub prio { $b->{TOTALEVENTS}*$b->{CPUPEREVENTPERGHZ}  <=> $a->{TOTALEVENTS}*$a->{CPUPEREVENTPERGHZ};}
     my @tmpb=sort prio @tmpa;
     foreach my $tmp (@tmpb){
      push @{$dataset->{jobs}},$tmp;     
@@ -11993,7 +11984,6 @@ sub readDataSetsOld() {
     } # end jobs of jobs
     $td3 = new Benchmark;
 
-    sub prio { $b->{TOTALEVENTS}*$b->{CPUPEREVENTPERGHZ}  <=> $a->{TOTALEVENTS}*$a->{CPUPEREVENTPERGHZ};}
     my @tmpb=sort prio @tmpa;
     foreach my $tmp (@tmpb){
      push @{$dataset->{jobs}},$tmp;     
