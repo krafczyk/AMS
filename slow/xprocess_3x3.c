@@ -131,7 +131,7 @@ pid_t pid;
       }
 
 
-      if (j<N_comp) {
+      if (j==5) { /*(j<N_comp) {*/
         /*--------------- check logfile length -------- */
         er=open_log(j, 0);
         if (er<0) 
@@ -476,8 +476,8 @@ pid_t pid;
 }
 
 int open_log(int j, int mode) {
-int er, ii;
-char *ch1, ch[256], chb[256], chb1[256], *token, chbuf[80];
+int er, ii,CO;
+char *ch1, ch[256], chb[256], chb1[256], *token, chbuf[80],cho[256],cha[256];
 struct stat stat_buf;
 FILE *fp;
 char delime[]=" .";
@@ -516,15 +516,28 @@ CONT:
   er=isdigit(chb[0]);
   if (er==0)
     goto CONT;
+  CO=0;
+CO2:
   token=strtok(NULL,delime);
   if (token==NULL)
     goto CONT;
-  strcpy(ch,token);
-  if (strcmp(ch,"log\n")!=0)
-    goto CONT;   
+  if (CO==0)
+    strcpy(ch,token);
+  strcpy(cho,token);
+  if (strcmp(cho,"log\n")!=0) {
+    sprintf(cha,"%s",token);
+    er=islower(cha[0]);
+    if ((er==0)||(cha[0]=='e'))
+      goto CONT;
+    CO=1;
+    goto CO2;
+  }  
   fclose(fp);
   /*  token=strtok(chb,del);*/
-  sprintf(ch,"%s.log",chb);
+  if (CO==0)
+    sprintf(ch,"%s.log",chb);
+  else
+    sprintf(ch,"%s.%s.log",chb,cha);
   if (mode!=1) { /* check mode */
     sprintf(chb1,"/dat0/local/logs/%s",ch);
     er = stat(chb1,&stat_buf);
@@ -556,8 +569,8 @@ CONT:
 }
 
 int open_elog(int j) {
-int er,ii;
-char *ch1, ch[256], chb[256], *token, chbuf[80];
+int er,ii,CO;
+char *ch1, ch[256], chb[256], *token, chbuf[80], cho[256],cha[256];
 struct stat stat_buf;
 FILE *fp;
 char delime[]=" .";
@@ -596,19 +609,32 @@ CONT:
   er=isdigit(chb[0]);
   if (er==0)  
     goto CONT;
+  CO=0;
+CO2:
   token=strtok(NULL,delime);
   if (token==NULL)
     goto CONT;
-  strcpy(ch,token);
-  if (strcmp(ch,"e")!=0)
-    goto CONT;
+  if (CO==0)
+    strcpy(ch,token);
+  strcpy(cho,token);
+  if (strcmp(cho,"e")!=0) {
+    sprintf(cha,"%s",token);
+    er=islower(cha[0]);
+    if ((er==0)||(cha[0]=='e'))
+      goto CONT;
+    CO=1;
+    goto CO2;
+  }
   token=strtok(NULL,delime);
   strcpy(ch,token);
   if (strcmp(ch,"log\n")!=0)
     goto CONT;   
   fclose(fp);
   /*  token=strtok(chb,del);*/
-  sprintf(ch,"%s.e.log",chb);
+  if (CO==0)
+    sprintf(ch,"%s.e.log",chb);
+  else 
+    sprintf(ch,"%s.%s.e.log",chb,cha);
   sprintf(ch,"/usr/sue/bin/rsh %s cat /dat0/local/logs/%s > %s",host_name[j],ch,temp_name);
   er=system(ch);
   if (er<0){
