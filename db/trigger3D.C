@@ -13,7 +13,7 @@ extern "C" float etime_(float ar[]);
   geant Triggerlvl3D::_TOFCoo[SCLRS][SCMXBR][3];
   geant Triggerlvl3D::_TrackerCoo[NTRHDRP][2][3];
   geant Triggerlvl3D::_TrackerCooZ[nl];
-  integer Triggerlvl3D::_TrackerDRP2Layer[NTRHDRP];
+  integer Triggerlvl3D::_TrackerDRP2Layer[NTRHDRP][2];
   const integer Triggerlvl3D::_patconf[LVL3NPAT][nl]={
                       0,1,2,3,4,5,   // 123456  0
                       0,1,2,3,5,0,   // 12346   1
@@ -63,7 +63,7 @@ extern "C" float etime_(float ar[]);
      3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3};
   const integer Triggerlvl3D::_patd[5]={0,1,7,22,42};
   number Triggerlvl3D::_stripsize;
-
+//  integer Triggerlvl3D::_TrackerOtherTDR[NTRHDRP][2];
 
 
 
@@ -124,8 +124,8 @@ for (i=0;i<SCLRS;i++){
     }
 }
 for (i=0;i<NTRHDRP;i++){
- _TrackerDRP2Layer[i] = p->  _TrackerDRP2Layer[i];
     for (j=0;j<2;j++){
+    _TrackerDRP2Layer[i][j] = p->  _TrackerDRP2Layer[i][j];
     _TrackerAux[i][j]    = p-> _TrackerAux[i][j];
       for (integer k=0;k<3;k++){
        _TrackerCoo[i][j][k] = p -> _TrackerCoo[i][j][k];
@@ -198,5 +198,5 @@ void Triggerlvl3D::getTrackerCooZ(geant* nbuff8){
      UCOPY( &_TrackerCooZ, nbuff8, sizeof(geant)*nl/4); }
 
 void Triggerlvl3D::getTrackerDRP2Layer(integer* nbuff9){
-     UCOPY( &_TrackerDRP2Layer,nbuff9, sizeof(integer)*NTRHDRP/4);}
+     UCOPY( &_TrackerDRP2Layer,nbuff9, sizeof(integer)*NTRHDRP*2/4);}
 

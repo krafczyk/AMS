@@ -58,7 +58,7 @@ FF=f77
 LD=cxx
 TIMEL=../bin/osf1/timel.o
 
-include config.user_alphaosf1
+include config.user1_alphaosf1
 
 endif
 

@@ -20,16 +20,18 @@
   _edep     = p -> _edep;
   _charge   = p -> _charge;
   _beta     = p -> _beta;
+  _time     = p -> _time;
 }
 
  void  AMSCTCMCClusterD:: copy(AMSCTCMCCluster* p)
 {
   p -> _idsoft = _idsoft;   
   p -> _xcoo   = _xcoo;     
-  p -> _xdir    = _xdir;     
+  p -> _xdir   = _xdir;     
   p -> _step   = _step;     
-  p -> _charge  = _charge;     
-  p -> _edep  = _edep;     
-  p -> _beta  = _beta;     
+  p -> _charge = _charge;     
+  p -> _edep   = _edep;     
+  p -> _beta   = _beta;  
+  p -> _time   = _time;   
 }
  

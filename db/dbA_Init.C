@@ -44,13 +44,15 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
     char                      *message;
     char                      *cptr;
     char                      *dbpathname;
+    if( mode == oocUpdate && (setUpdate() != oocSuccess))
+    cout << "LMS::ClusteringInit Check!!! for inconsistencies" << endl;
 
-    if( !mcevents()   && 
-        !mceventg()   && 
-        !rawevents()  && 
-        !recoevents() && 
-        !setup()      && 
-        !!slow()       )  return oocSuccess;
+    if( !mcevents(mode)   && 
+        !mceventg(mode)   && 
+        !rawevents(mode)  && 
+        !recoevents(mode) && 
+        !setup(mode)      && 
+        !slow(mode)       )  return oocSuccess;
 
     cptr = getenv("OO_FD_BOOT");
     if (!cptr) Fatal("ClusteringInit: environment OO_FD_BOOT in undefined");
@@ -72,8 +74,9 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
     ContainersC(_catdbH, dbTabH);
     if (dbTabH == NULL) 
                       Fatal("ClusteringInit: catalog of databases not found");
+    _dbTabH = dbTabH;
  
-    if( mcevents() || mceventg() || rawevents() || recoevents()) {
+    if( mcevents(mode) || mceventg(mode) || rawevents(mode) || recoevents(mode)) {
     // get TagDB pathname
     integer ntagdbs = dbTabH -> size(dbtag);
     if(ntagdbs < 1) {
@@ -142,7 +145,7 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
     }
 //MC DB
     ooHandle(AMSMCEventList)  mclistH;
-    if (mcevents() || mceventg()) {
+    if (mcevents(mode) || mceventg(mode)) {
      // get db path name
      integer nsimdbs = dbTabH -> size(dbsim);
      if (nsimdbs < 1) {
@@ -211,7 +214,8 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
     }
 
 //Raw DB
-    if (rawevents()) {
+    ooHandle(AMSRawEventList)  rawlistH;
+    if (rawevents(mode)) {
      // get db path name
 
       integer nrawdbs = dbTabH -> size(dbraw);
@@ -251,22 +255,34 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
      _rawdbH = dbH;
      contName  = StrCat("Events_",_prefix); 
      if (mode == oocUpdate) {
-      status = Container(dbH, contName, contH);
+//      status = Container(dbH, contName, contH);
+      status = rawList(dbH, contName, rawlistH);
+      if (status == 1) cout << "ClusteringInit: rawcontainer "
+                                            << contName << " is created" << endl;
+      if (rawlistH == NULL) cout << "dbA_Init rawlistH=rawcontH is NULL" << endl;
       if (status == -1) {
        message = StrCat("ClusteringInit: Cannot create container ",contName);
        Fatal(message);
-      } 
-      _rawcontH = contH;
+      }
+//      _rawcontH = contH;
+      _rawcontH = rawlistH;
      } else {
       int j = 0;
       rawcontCat.resize(nrawdbs);
       for (int i=0; i<nrawdbs; i++) {
        dbH = dbTabH -> getDB(dbraw,i);
-       status = Container(dbH, contName, contH);
+//       status = Container(dbH, contName, contH);
+       status = rawList(dbH, contName, rawlistH);
+
        if (status == 0) {
+         rawcontCat.set(i,rawlistH);
+        _rawcontH = rawlistH;
+        _rawdbH   = dbH;
+/*
         rawcontCat.set(i,contH);
         _rawdbH   = dbH;
         _rawcontH = contH;
+*/
         j++;
        }
       }
@@ -280,7 +296,7 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
 
 //Reco DB
     ooHandle(AMSEventList)    listH;
-    if (recoevents()) {
+    if (recoevents(mode)) {
      integer nrecdbs = dbTabH -> size(dbrec);
 
      if(nrecdbs < 1) {
@@ -347,7 +363,7 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
      listH -> SetContainersNames(_prefix);
     } 
     
-    if (setup()) {
+    if (setup(mode)) {
      // get db path name
      integer nsetupdbs = dbTabH -> size(dbsetup);
      cout<<"ClusteringInit :: setup database(s) found "<<nsetupdbs<<endl;
@@ -371,7 +387,7 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
 
       // check the material container and database size (I write material
       // first if it exists I suppose others (geometry, tmed) exist also
-      contName = StrCat("Materials_",_setup);
+      contName = StrCat3("Materials_",_setup,_version);
       cout<<"ClusteringInit -I- check container "<<contName<<endl;
       int jj = 0;
       for (int j = 0; j < nsetupdbs; j++) {
@@ -383,6 +399,7 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
       } 
       if (jj == 0) {
        Message("ClusteringInit : cannot find container ");
+       cout << "Name= " << contName << endl;
        if (mode != oocUpdate) 
         Fatal("ClusteringInit: cannot create container in Read mode");
        dbH = dbTabH -> currentDB(dbsetup);
@@ -401,11 +418,68 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
       if(contName)   delete [] contName;
      }   
      _setupdbH = dbH;
+
+// TDV database
+     //
+     // get db path name
+     integer ntdvdbs = dbTabH -> size(dbtdv);
+     integer createContainer = 1;
+     cout<<"ClusteringInit :: tdv database(s) found "<<ntdvdbs<<endl;
+
+//     contName = StrDup("Time_Dep_Var");
+  if (simulation() )
+        contName = StrCat("Time_Dep_Var_S",_version);
+     else
+        contName = StrCat("Time_Dep_Var",_version);
+
+     if (ntdvdbs < 1) {  // no TDV databases found
+       cptr = getenv("AMS_TDVDB_Path");
+       if ( cptr )
+        dbpathname =StrDup(cptr);
+       else
+        dbpathname =StrDup(AMSdbs::pathNameTab[dbtdv]);
+       cout<<"ClusteringInit: TDVDB path "<<AMSdbs::pathNameTab[dbtdv]<<endl;
+       dbH = db("TDV-0",dbpathname);
+       if (dbH == NULL) Fatal ("ClusteringInit:: _tdvdbH is NULL");
+       dbTabH -> newDB(dbtdv, dbH);
+       ntdvdbs = 1;
+       delete [] dbpathname;
+     } else {            // there are TDV databases
+      int size = dbTabH -> dbsize(dbtdv);
+      if (size/1000 > maxTDVDBSize*1000) {
+       if(dbTabH -> extend(dbtdv)) {
+         Message("ClusteringInit:: new TDV database created ");
+         dbH = dbTabH -> currentDB(dbtdv);
+       } else {
+         Fatal("ClusteringInit:: cannot extend TDV database");
+       }
+      } else {        // dbsize < limit
+       cout<<"ClusteringInit -I- check container "<<contName<<endl;
+       dbH = dbTabH -> currentDB(dbtdv);
+ if (contH.exist(dbH, contName, mode)) createContainer = 0;
+      }
+     }
+     if (createContainer == 1) {
+      createContainer = 0;
+      if (mode == oocUpdate) {
+       Message("ClusteringInit: create container");
+       int status = Container(dbH, contName, contH);
+       if (status == -1) Fatal("ClusteringTDV: Failed to create container");
+      } else {
+       Warning("ClusteringInit:: TDV container not found");
+       Warning("ClusteringInit:: container cannot be created in Read mode");
+      }
+     }
+     if(contName)   delete [] contName;
+     _tdvdbH = dbH;
+
+
     }
 
-    if (slow()) {
+    if (slow(mode)) {
      _slowdbH  = db("Slow");        // house keeping and slow control
     }
+
 
     Commit();
     Message("ClusteringInit : all done");
@@ -638,6 +712,65 @@ integer  LMS::mcList(ooHandle(ooDBObj) &dbH, char* listName,
   }
   return rstatus;
 }
+
+integer  LMS::rawList(ooHandle(ooDBObj) &dbH, char* listName,
+                      ooHandle(AMSRawEventList)& listH)
+
+  // dbH       - pointer to database
+  // listName  - name of container to store events
+  // listH     - pointer to the created container
+  // return    -1  - error
+  //            0  - container exists
+  //            1  - container is created
+{
+  integer         rstatus = -1;
+
+  if (!listName) Fatal ("RawList: listName is NULL");
+
+  if(!dbH) Fatal("RawList: rawdbH is NULL");
+
+  ooMode mode = Mode();
+  if (listH.exist(dbH, listName, mode)) {
+     cout << "raw container" << listName << "already exists" << endl;
+   rstatus = 0;
+  } else {
+   if (mode == oocUpdate) {
+
+     listH = new(listName,1,0,0,dbH)
+                               AMSRawEventList(listName,_setup,_prefix);
+     if (listH == NULL) cout << "Raw listH=AMSRawEventList is NULL" << endl;
+     rstatus = 1;
+    } else {
+      cerr<<"List: "<<listName<<endl;
+      Warning("Container does not exist. Cannot be created in read mode");
+      rstatus = -1;
+    }
+  }
+  return rstatus;
+}
+
+void LMS::ContainersRaw(ooHandle(ooDBObj) & dbH, char* listname)
+//
+// create all containers for Raw database
+//
+{
+  integer              rstatus = 1;
+  ooHandle(ooContObj)  contH;
+  char*                contName;
+
+  ooMode openMode = Mode();
+
+
+  contName = StrCat("RawEvents_",listname);
+
+  if (!contH.exist(dbH, contName, openMode) && openMode == oocUpdate)
+   contH    = new(contName,0,0,0,dbH) ooContObj;
+
+  if (contName) delete [] contName;
+  Message("Rawcontainers are opened/created");
+
+}
+
 
 void LMS::ContainersM(ooHandle(ooDBObj) & dbH, char* listname)
 //

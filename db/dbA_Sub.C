@@ -20,7 +20,7 @@
 #include <dbA.h>
 
 
-ooStatus LMS::FindTagEvent(uinteger runUni, uinteger eventNumber,
+ooStatus LMS::FindTagEvent(integer runUni, integer eventNumber,
                                      ooHandle(AMSEventTag)& eventH)
 {
  ooStatus rstatus = oocError;
@@ -67,7 +67,7 @@ ooStatus LMS::FindTagEvent(uinteger runUni, uinteger eventNumber,
  return rstatus;
 }
 
-integer LMS::FindRun(uinteger runUni)
+integer LMS::FindRun(integer runUni)
 {
  ooStatus rstatus = oocError;
  ooItr(AMSEventTag)   eventItr;
@@ -106,7 +106,7 @@ void LMS::Refresh()
   Warning("Refresh:: pointer to tag list is NULL");
  }
 
- if (mcevents()) {
+ if (mcevents(oocRead)) {
    if (mcCont() != NULL ) {
       contH.exist(mcdb(), mcCont() -> ListName(), Mode());
    } else {
@@ -114,7 +114,7 @@ void LMS::Refresh()
    }     
  }
 
- if(recoevents()) {
+ if(recoevents(oocRead)) {
    if(recoCont() != NULL ) {
      contH.exist(recodb(), recoCont() -> ListName(), Mode());
    } else {

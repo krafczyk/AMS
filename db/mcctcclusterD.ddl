@@ -20,6 +20,7 @@ public:
  number   _edep;    // energy deposition
  number   _beta;    // particle velocity
  integer  _idsoft;   // barnumber +(1-if agel;2-if wls)*100
+ number   _time;      // time
 
 
 // Constructor
@@ -36,4 +37,8 @@ public:
  inline number   getedep() { return _edep;}
  inline number   getbeta() { return _beta;}
  inline integer  getid()   { return _idsoft;}
+ inline number   gettime() { return _time;}
+ inline integer  getlayno() const{ return CTCDBc::getgeom()<2?(_idsoft/1000)%10:
+ _idsoft/1000000;}
+
 };

@@ -2,7 +2,7 @@
 //
 // method file for AMSEventTag class
 //
-// Last Edit: Nov 14, 1997 ak.
+// Last Edit: Jun 25, 1997 ak.
 //
 #include <typedefs.h>
 #include <cern.h>
@@ -12,7 +12,9 @@ AMSEventTag::AMSEventTag(uinteger run, uinteger eventNumber)
 {
   setrun(run);
   setevent(eventNumber);
-  _runType = -1;
+  _RunType = -1;
+//  _runAux = 0;
+//  _runOff = 0;
 }
 
 AMSEventTag::AMSEventTag(uinteger run, uinteger runType, 
@@ -22,5 +24,6 @@ AMSEventTag::AMSEventTag(uinteger run, uinteger runType,
   setevent(eventNumber);
   settime(time);
   _RunType = runType;
+//  _runOff = 0;
 }
   

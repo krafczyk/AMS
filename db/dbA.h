@@ -32,12 +32,12 @@
 #include <tbeta_ref.h>
 #include <chargeD_ref.h>
 #include <particleD_ref.h>
-#include <gmatD_ref.h>
-#include <gtmedD_ref.h>
-#include <gvolumeD_ref.h>
-#include <amsdbcD_ref.h>
-#include <ctcdbcD_ref.h>
-#include <tofdbcD_ref.h>
+// #include <gmatD_ref.h>
+// #include <gtmedD_ref.h>
+// #include <gvolumeD_ref.h>
+// #include <amsdbcD_ref.h>
+// #include <ctcdbcD_ref.h>
+// #include <tofdbcD_ref.h>
 #include <dbcatalog_ref.h>
 #include <daqevt.h>
 #include <recevent.h>
@@ -49,12 +49,12 @@
 #include <tbeta.h>
 #include <chargeD.h>
 #include <particleD.h>
-#include <gmatD.h>
-#include <gtmedD.h>
-#include <gvolumeD.h>
-#include <amsdbcD.h>
-#include <ctcdbcD.h>
-#include <tofdbcD.h>
+// #include <gmatD.h>
+// #include <gtmedD.h>
+// #include <gvolumeD.h>
+// #include <amsdbcD.h>
+// #include <ctcdbcD.h>
+// #include <tofdbcD.h>
 #include <dbcatalog.h>
 
 #include <rd45.h>
@@ -63,11 +63,13 @@
 #include <listTag.h>
 #include <mclist.h>
 #include <rclist.h>
+#include <rawlist.h>
 
 #include <list_ref.h>
 #include <listTag_ref.h>
 #include <mclist_ref.h>
 #include <rclist_ref.h>
+#include <rawlist_ref.h>
 
 #include <eventTag_ref.h>
 #include <eventTag.h>
@@ -75,6 +77,7 @@
 declare(ooVArray, ooRef(AMSEventList))
 declare(ooVArray, ooRef(AMSEventTagList))
 declare(ooVArray, ooRef(AMSMCEventList))
+declare(ooVArray, ooRef(AMSRawEventList))
 
 class LMS : public ooSession {
 
@@ -82,6 +85,8 @@ private:
        char              *_applicationName;
        char              *_prefix;
        char              *_setup;
+       char              *_version;
+       integer           _jobtype;
        integer           _applicationTypeR; // see db_comm.h for details
        integer           _applicationTypeW; // see db_comm.h for details
 
@@ -100,16 +105,21 @@ private:
        ooHandle(ooDBObj)    _setupdbH;    // geometry dbase
        ooHandle(ooDBObj)    _slowdbH;     // slow control and H/K dbase
        ooHandle(ooDBObj)    _tagdbH;      // handle to geometry dbase
+       ooHandle(ooDBObj)    _tdvdbH;      // handle to tdv dbase
+       ooHandle(AMSdbs)     _dbTabH;      // handle to database catalog
+
 
        ooHandle(AMSMCEventList)   _mccontH;      // to mc events container
-       ooHandle(ooContObj)        _rawcontH;     // to raw events container
+//       ooHandle(ooContObj)        _rawcontH;     // to raw events container
+       ooHandle(AMSRawEventList)   _rawcontH;     // to raw events container
        ooHandle(AMSEventList)     _recocontH;    // to reco events container
        ooHandle(AMSEventTagList)  _tagcontH;     // to tag container
 
        ooVArray(ooRef(AMSEventTagList))  tagcontCat;    //
        ooVArray(ooRef(AMSEventList))     recocontCat;   //
        ooVArray(ooRef(AMSMCEventList))   mccontCat;     //
-       ooVArray(ooRef(ooContObj))        rawcontCat;    //
+//       ooVArray(ooRef(ooContObj))        rawcontCat;    //
+       ooVArray(ooRef(AMSRawEventList))  rawcontCat;    //
 
 public:
 // Constructor & Destructor
@@ -118,22 +128,27 @@ public:
  ~LMS(); 
 
 	// Action Methods
-        ooStatus       AddRawEvent(ooHandle(ooContObj)& contH, 
-                                   DAQEvent *pdaq, integer WriteStartEnd);
+       ooStatus        AddRawEvent(ooHandle(AMSRawEventList)& contH,
+                                   DAQEvent *pdaq, integer WriteStartEnd,
+                                   ooHandle(AMSEventTag)&  tageventH);
 
         ooStatus       AddRawEvent(ooHandle(ooContObj)& contH, 
-                                    uinteger run, uinteger runAux,
-                                    uinteger eventNumber, time_t time, 
+                                    integer run, integer runAux,
+                                    integer eventNumber, time_t time, 
                                     integer ldata, uint16* data, 
                                     integer WriteStartEnd);
+// new addition 16.12.97
+        ooStatus       AddRawEvent(ooHandle(AMSEventTag)&  tageventH,
+                         integer run, integer eventNumber,
+                         time_t time, integer runtype,integer WriteStartEnd);
 
-        ooStatus        AddEvent(uinteger run, uinteger eventNumber,
+        ooStatus        AddEvent(integer run, integer eventNumber,
                                  time_t time, integer runtype,
                                  number pole, number stationT, 
                                  number stationP, integer WriteStartEnd);
 
         ooStatus        AddMCEvent(ooHandle(AMSEventTag)&  tageventH,
-                                 uinteger run, uinteger eventNumber,
+                                 integer run, integer eventNumber,
                                  time_t time, integer runtype);
 
 	ooStatus	AddGeometry();
@@ -141,36 +156,48 @@ public:
 	ooStatus	AddMaterial();
 	ooStatus	Addamsdbc();
 	ooStatus	AddTMedia();
-	ooStatus	AddTDV();
-	ooStatus	FillTDV();
+//        ooStatus        AddTDV();
+	ooStatus	AddAllTDV();
+//        ooStatus        FillTDV();
+	ooStatus	FillTDV(integer ntdv);
 
 
-        ooStatus        ReadEvents(uinteger& run, uinteger& eventNumber,
+        ooStatus        ReadEvents(integer& run, integer& eventNumber,
                                    integer nevents, time_t& time,
                                    integer StartCommit);
-        ooStatus        ReadMCEvents(uinteger& run, uinteger& eventNumber, 
+        ooStatus        ReadMCEvents(integer& run, integer& eventNumber, 
                                      integer nevents, time_t& time, 
                                      integer StartCommit);
-        ooStatus        ReadRawEvent(uinteger& run, uinteger & runAux,
-                                     uinteger & eventNumber, time_t & time, 
+        ooStatus        ReadRawEvent(integer& run, integer & runAux,
+                                     integer & eventNumber, time_t & time, 
                                      integer & ldata, uint16* data,
                                      integer StartCommit);
-        ooStatus        ReadRawEvents(uinteger& run, uinteger & runAux,
-                                     uinteger & eventNumber, time_t & time,
+        ooStatus        ReadRawEvents(integer& run, integer & runAux,
+                                     integer & eventNumber, time_t & time,
                                      integer & ldata, uint16* data,
                                      integer nevents, integer StartCommit);
+        ooStatus        ReadRawEvents(integer& run, integer & eventNumber,
+                                     integer nevents,  time_t & time,
+                                     integer StartCommit);
+
 	ooStatus	ReadGeometry();
         ooStatus        CopyGeometry();
-        void CopyByPos(ooHandle(AMSgvolumeD)& ptr, ooMode mode);
+//        void CopyByPos(ooHandle(AMSgvolumeD)& ptr, ooMode mode);
 	ooStatus	ReadMaterial();
 	ooStatus	ReadTMedia();
-	ooStatus	ReadAllTDV();
-	ooStatus	ReadTDV(char* name, time_t I, time_t B, time_t E, 
-                                uinteger* buff);
+//	ooStatus	ReadAllTDV();
+        ooStatus        ReadTDV(char* name, integer id,
+                                time_t I, time_t B, time_t E, uinteger* buff);
+
+//	ooStatus	ReadTDV(char* name, time_t I, time_t B, time_t E, 
+//                                uinteger* buff);
+        ooStatus        ReadTKDBc();
+
 
         ooStatus        DeleteEvent
-                          (uinteger run, uinteger eventNumber, integer flag);
+                          (integer run, integer eventNumber, integer flag);
 	ooStatus	DeleteSetup(char* setup);
+        ooStatus        DeleteTDVContainer();
 
         ooStatus        FindEventList (ooHandle(ooDBObj)& dbH, char* listName, 
                                        ooHandle(EventList)& listH);
@@ -192,20 +219,25 @@ public:
   void     setprefix(const char *prefix) { 
                                            if (_prefix) delete [] _prefix;
                                            _prefix = StrDup(prefix);}
+  void     setjobtype(int jobtype)       { _jobtype = jobtype;}
   void     setsetup(const char *setup)   {
                                           if (_setup) delete [] _setup;
                                           _setup  = StrDup(setup);}
+  void     setversion(const char *version)   {
+                                          if (_version) delete [] _version;
+                                          _version  = StrCat("_",version);}
+
   void     settypeR(const integer atype)  {_applicationTypeR = atype;}
   void     settypeW(const integer atype)  {_applicationTypeW = atype;}
   integer  applicationtypeR()             {return _applicationTypeR;}
   integer  applicationtypeW()             {return _applicationTypeW;}
 
-  integer recoevents();
-  integer rawevents();
-  integer mcevents();
-  integer mceventg();
-  integer setup();
-  integer slow();
+  integer recoevents(ooMode mode);
+  integer rawevents(ooMode mode);
+  integer mcevents(ooMode mode);
+  integer mceventg(ooMode mode);
+  integer setup(ooMode mode);
+  integer slow(ooMode mode);
 
   inline ooMode                 mrowMode() { return _mrowmode;}
   inline void setmrowMode(ooMode mrowmode) { _mrowmode = mrowmode;}
@@ -216,9 +248,12 @@ public:
   inline ooHandle(ooDBObj)&    setupdb()    {return _setupdbH;}
   inline ooHandle(ooDBObj)&    slowdb()     {return _slowdbH;}
   inline ooHandle(ooDBObj)&    tagdb()      {return _tagdbH;}
+  inline ooHandle(ooDBObj)&    tdvdb()      {return _tdvdbH;}
+  inline ooHandle(AMSdbs)&     Tabdb()      {return _dbTabH;}
 
   inline ooHandle(AMSMCEventList)&   mcCont()       {return _mccontH;}
-  inline ooHandle(ooContObj)&        rawCont()      {return _rawcontH;}
+//  inline ooHandle(ooContObj)&        rawCont()      {return _rawcontH;}
+  inline ooHandle(AMSRawEventList)&  rawCont()      {return _rawcontH;}
   inline ooHandle(AMSEventList)&     recoCont()     {return _recocontH;}
   inline ooHandle(AMSEventTagList)&  tagCont()      {return _tagcontH;}
 
@@ -232,13 +267,17 @@ public:
   void     ContainersC(ooHandle(ooDBObj) & dbH, ooHandle(AMSdbs) & dbTabH);
   void     ContainersR(ooHandle(ooDBObj) & dbH, char* listname);
   void     ContainersM(ooHandle(ooDBObj) & dbH, char* listname);
+  void     ContainersRaw(ooHandle(ooDBObj) & dbH, char* listname);
+
   integer  TagList(ooHandle(ooDBObj) & dbH, char* listName, char* setup,
                                     ooHandle(AMSEventTagList) & listH);
-
   integer  List(ooHandle(ooDBObj) & dbH, char* listName, 
                 ooHandle(AMSEventList)& listH);
   integer  mcList(ooHandle(ooDBObj) & dbH, char* listName, 
                                      ooHandle(AMSMCEventList) & listH);
+  integer  rawList(ooHandle(ooDBObj) & dbH, char* listName,
+                                     ooHandle(AMSRawEventList) & listH);
+
 
 // Transactions
   void StartUpdate(const char *tag=NULL);
@@ -250,14 +289,15 @@ public:
 // Get
   char*  getApplicationName() {return _applicationName;}
   char*  getsetup()           {return _setup;}
+  int    jobtype()            {return _jobtype;}
 
 // Find
-  ooStatus FindTagEvent(uinteger runUni, uinteger eventNumber,
+  ooStatus FindTagEvent(integer runUni, integer eventNumber,
                         ooHandle(AMSEventTag)& eventH);
-  integer  FindRun(uinteger runUni);
+  integer  FindRun(integer runUni);
 
   // checking methods
-  inline integer isTagKeyValid(uinteger run, uinteger eventNumber)
+  inline integer isTagKeyValid(integer run, integer eventNumber)
   { integer rstatus = 1;
     if (run < 1 || eventNumber < 1) {
      cerr<<"Invalid Run/Event. Run # "<<run<<", event # "<<eventNumber<<endl;
@@ -266,11 +306,16 @@ public:
     return rstatus;
   }
  void Refresh();
+ int  simulation() {if (_jobtype == 0) return 1;
+                    if (_jobtype != 0) return 0;}
  
  integer  tagcontN(integer n, ooHandle(AMSEventTagList)& listH);
  inline integer   ntagconts()         {return tagcontCat.size();}
 
- integer  rawcontN(integer n, ooHandle(ooContObj)& contH);
+// integer  rawcontN(integer n, ooHandle(ooContObj)& contH);
+// inline integer   nrawconts()         {return rawcontCat.size();}
+
+ integer  rawcontN(integer n, ooHandle(AMSRawEventList)& contH);
  inline integer   nrawconts()         {return rawcontCat.size();}
 
  integer   mccontN(integer n, ooHandle(AMSMCEventList) & contH);

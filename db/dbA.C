@@ -86,7 +86,7 @@ void LMS::StartRead(ooMode mode, const char *tag)
 {
     if ((TransStart(mode,tag) != oocSuccess) || (setRead() != oocSuccess))
         Fatal("could not start transaction in read mode");
-    _transStart++;
+    _transStart++; 
 }
 
 void LMS::Commit()
@@ -103,47 +103,53 @@ void LMS::Abort()
     _transAbort++;
 }
 
-  integer LMS::recoevents() 
+  integer LMS::recoevents(ooMode mode) 
 {
-  if (Mode() == oocUpdate) 
+//  if (Mode() == oocUpdate) 
+    if (mode == oocUpdate)
     return (_applicationTypeW/DBWriteRecE)%2;
   else
     return (_applicationTypeR/DBWriteRecE)%2;
 }
 
-  integer LMS::rawevents()  
+  integer LMS::rawevents(ooMode mode)  
 {
-  if (Mode() == oocUpdate)
+//  if (Mode() == oocUpdate)
+    if (mode == oocUpdate)
    return (_applicationTypeW/DBWriteRawE)%2;
   else
    return (_applicationTypeR/DBWriteRawE)%2;
 }
 
-  integer LMS::mceventg()   
+  integer LMS::mceventg(ooMode mode)   
 {
-  if (Mode() == oocUpdate)
+//  if (Mode() == oocUpdate)
+  if (mode == oocUpdate)
     return ((_applicationTypeW/DBWriteMCEg)%2);
   else
     return ((_applicationTypeR/DBWriteMCEg)%2);
 }
-  integer LMS::mcevents()   
+  integer LMS::mcevents(ooMode mode)   
 {
-  if (Mode() == oocUpdate)
+//  if (Mode() == oocUpdate)
+  if (mode == oocUpdate)
     return ((_applicationTypeW/DBWriteMC)%2);
   else
     return ((_applicationTypeR/DBWriteMC)%2);
 }
-  integer LMS::setup()      
+  integer LMS::setup(ooMode mode)      
 {
- if (Mode() == oocUpdate)
+// if (Mode() == oocUpdate)
+ if (mode == oocUpdate)
   return (_applicationTypeW/DBWriteGeom)%2;
  else
   return (_applicationTypeR/DBWriteGeom)%2;
 }
 
-  integer LMS::slow()       
+  integer LMS::slow(ooMode mode)       
 {
-  if (Mode() == oocUpdate)
+//  if (Mode() == oocUpdate)
+ if (mode == oocUpdate)
    return (_applicationTypeW/DBWriteSlow)%2;
   else
    return (_applicationTypeR/DBWriteSlow)%2;
@@ -159,7 +165,8 @@ void LMS::Abort()
      return rc;
   }
 
- integer  LMS::rawcontN(integer n, ooHandle(ooContObj)& contH)
+// integer  LMS::rawcontN(integer n, ooHandle(ooContObj)& contH)
+ integer  LMS::rawcontN(integer n, ooHandle(AMSRawEventList)& contH)
   {
      int rc = 0;
      if (nrawconts() >= n) {

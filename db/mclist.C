@@ -167,7 +167,7 @@ ooStatus AMSMCEventList::Addtrmccluster(ooHandle(AMSmcevent) & eventH)
         AMSContainer* pCont = AMSEvent::gethead() -> getC("AMSTrMCCluster",0);
         integer nelem = pCont -> getnelem();
         if (nelem > 0) {
-          // create VArray to store TOFMCClusters
+          // create VArray to store AMSTrMCClusters
           trmcclusterH = new(contMCClusterH) AMSTrMCClusterV(nelem);
           rstatus = eventH -> set_pMCCluster(trmcclusterH);
           if (rstatus != oocSuccess) {
@@ -187,7 +187,9 @@ ooStatus AMSMCEventList::Addtrmccluster(ooHandle(AMSmcevent) & eventH)
            i++;
            p = p -> next();
           }
+
         } //nelem > 0
+
 
         return rstatus;
 }
@@ -228,7 +230,8 @@ ooStatus AMSMCEventList::Addtofmccluster(ooHandle(AMSmcevent) & eventH)
           i++;
           p = p -> next();
          }
-        } //nelem > 0
+        } //nelem > 0 
+
         return rstatus;
 }
 
@@ -244,8 +247,12 @@ ooStatus AMSMCEventList::Addctcmccluster(ooHandle(AMSmcevent) & eventH)
         }
 
         // get first cluster
+  int icnt;
+  for(icnt=0;icnt<CTCDBc::getnlay();icnt++){ 
          AMSCTCMCCluster* p = (AMSCTCMCCluster*)AMSEvent::gethead() -> 
-                                            getheadC("AMSCTCMCCluster",0);
+                                            getheadC("AMSCTCMCCluster",icnt);
+// AMSEvent::gethead()->addnext(AMSID("AMSCTCMCCluster",p->getlayno()-1),p);
+        
         if (p == NULL && dbg_prtout) {
          Message("AddCTCMCCluster : AMSCTCMCCluster* p == NULL");
          return oocSuccess;
@@ -257,8 +264,10 @@ ooStatus AMSMCEventList::Addctcmccluster(ooHandle(AMSmcevent) & eventH)
            Error("AddCTCMCCluster: cannot set the MCCluster to Event assoc.");
            return rstatus;
          }
+
          p = p -> next();
-       }
+       } //end of while
+      } //end of for
         return rstatus;
 }
 
@@ -320,6 +329,7 @@ ooStatus AMSMCEventList::Addtriggerlvl1(ooHandle(AMSmcevent) & eventH)
           Error("Addtriggerlvl1: cannot set the Triggerlvl1 to Event assoc.");
           return rstatus;
          }
+
 //         p = p -> next();
        }
         return rstatus;
@@ -428,9 +438,11 @@ ooStatus AMSMCEventList::Readctcmccluster(ooHandle(AMSmcevent) & eventH)
                                                CTCMCClusterItr -> getcharge(),
                                                CTCMCClusterItr -> getstep(),
                                                CTCMCClusterItr -> getbeta(),
-                                               CTCMCClusterItr -> getedep()
+                                               CTCMCClusterItr -> getedep(),
+                                               CTCMCClusterItr -> gettime()
                                                );
-           AMSEvent::gethead() -> addnext(AMSID("AMSCTCMCCluster",0),p);
+//AMSEvent::gethead() -> addnext(AMSID("AMSCTCMCCluster",0),p);
+  AMSEvent::gethead() -> addnext(AMSID("AMSCTCMCCluster",p->getlayno()-1),p);
            imcs++;
           }
          }

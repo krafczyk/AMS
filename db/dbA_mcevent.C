@@ -73,7 +73,7 @@ static  integer nTagCont;
 static  ooItr(AMSEventTag)     tageventItr;             
 
 ooStatus LMS::AddMCEvent(ooHandle(AMSEventTag)&  tageventH,
-                         uinteger run, uinteger eventNumber,
+                         integer run, integer eventNumber,
                          time_t time, integer runtype)
 //
 // listH         - pointer to the container to place event in
@@ -82,6 +82,7 @@ ooStatus LMS::AddMCEvent(ooHandle(AMSEventTag)&  tageventH,
 //
 
   {
+    ooMode mode = oocUpdate;
     ooStatus rstatus = oocError;
 
     ooHandle(ooDBObj)  dbH = mcdb();
@@ -97,8 +98,8 @@ ooStatus LMS::AddMCEvent(ooHandle(AMSEventTag)&  tageventH,
 
     rstatus = tageventH -> set_itsMCEvent(eventH);
 
-    if (mceventg()) rstatus = listH -> Addmceventg(eventH);
-    if (mcevents())
+    if (mceventg(mode)) rstatus = listH -> Addmceventg(eventH);
+    if (mcevents(mode))
     {
      rstatus = listH -> Addantimccluster(eventH);
      rstatus = listH -> Addctcmccluster(eventH);
@@ -113,7 +114,7 @@ ooStatus LMS::AddMCEvent(ooHandle(AMSEventTag)&  tageventH,
 end:
     return rstatus;
   }
-ooStatus LMS::ReadMCEvents(uinteger& run, uinteger& eventn,
+ooStatus LMS::ReadMCEvents(integer& run, integer& eventn,
                            integer   nevents,
                            time_t& time, 
                            integer StartCommit)
@@ -179,19 +180,22 @@ ooStatus LMS::ReadMCEvents(uinteger& run, uinteger& eventn,
        eventItr -> readEvent(run, eventn, time, runtype);
        eventItr -> print();
        //create event
+// one new argument uinteger usec is addedd !!!!!!!!!!!!!!!!
        AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
                     new AMSEvent(AMSID("Event",eventn),run,runtype,time,
-                                 pole, stationtheta, stationphi)));
-       if(mceventg()) {
+                              0,   pole, stationtheta, stationphi)));
+
+       if(mceventg(mode)) {
        eventItr -> pmcEventg(mceventgItr);
-       // read mceventg
+// read mceventg
        if (mceventgItr != NULL) {
         if (dbread_only != 0) {
          AMSmceventg* p = new AMSmceventg();
          mceventgItr -> copy(p);
          AMSEvent::gethead() -> addnext(AMSID("AMSmceventg",0),p);
-         p -> InitSeed();
-         p->run();
+         if(!mcevents(mode)){
+          p -> InitSeed();
+          p->run();    }
         }
          mcevent_size = mcevent_size + sizeof(AMSmceventgD);
         } else {
@@ -201,8 +205,8 @@ ooStatus LMS::ReadMCEvents(uinteger& run, uinteger& eventn,
         }
        }
 
-       if(mcevents()) {
-       // read trmccluster
+       if(mcevents(mode)) {
+// read trmccluster
         ooItr(AMSTrMCClusterV) trmcclusterItr;          
         eventItr -> pMCCluster(trmcclusterItr, mode);
         integer imcs=0;
@@ -214,6 +218,8 @@ ooStatus LMS::ReadMCEvents(uinteger& run, uinteger& eventn,
             AMSTrMCClusterD trmcclusterD = trmcclusterItr -> get(j);
             AMSTrMCClusterD* pD;
             pD = & trmcclusterD;
+
+/*
             AMSTrMCCluster* p = new AMSTrMCCluster(
                                                    pD -> getid(),
                                                    pD -> getxca(),
@@ -222,7 +228,11 @@ ooStatus LMS::ReadMCEvents(uinteger& run, uinteger& eventn,
                                                    pD -> getsum(),
                                                    pD -> getitra()
                                                    );
+*/
+            AMSTrMCCluster* p = new AMSTrMCCluster();
+            pD->copy(p);
             AMSEvent::gethead() -> addnext(AMSID("AMSTrMCCluster",0),p);
+            
             mcevent_size = mcevent_size + sizeof(AMSTrMCClusterD);
            }
           }
@@ -275,6 +285,8 @@ ooStatus LMS::ReadMCEvents(uinteger& run, uinteger& eventn,
         mcevent_size = mcevent_size + sizeof(AMSAntiMCClusterD)*imcs;
         if (imcs == 0) 
             Message("ReadMCEvents : no Anti MC clusters for this event");
+/*
+
 //
 // read triggerlvl1
        integer TofPatt[SCLRS];
@@ -398,9 +410,9 @@ ooStatus LMS::ReadMCEvents(uinteger& run, uinteger& eventn,
             Message("ReadMCEvents : no Trigger3 info for this event");
        }
 
-
+*/
 //
-       // read ctcmccluster
+// read ctcmccluster
        ooItr(AMSCTCMCClusterD) CTCMCClusterItr;        
        imcs=0;
        eventItr -> pCTCMCCluster(CTCMCClusterItr, mode);
@@ -413,9 +425,12 @@ ooStatus LMS::ReadMCEvents(uinteger& run, uinteger& eventn,
                                                CTCMCClusterItr -> getcharge(),
                                                CTCMCClusterItr -> getstep(),
                                                CTCMCClusterItr -> getbeta(),
-                                               CTCMCClusterItr -> getedep()
+                                               CTCMCClusterItr -> getedep(),
+                                               CTCMCClusterItr -> gettime()
                                                );
-           AMSEvent::gethead() -> addnext(AMSID("AMSCTCMCCluster",0),p);
+ AMSEvent::gethead() -> addnext(AMSID("AMSCTCMCCluster",p->getlayno()-1),p);
+
+//           AMSEvent::gethead() -> addnext(AMSID("AMSCTCMCCluster",0),p);
            imcs++;
         }
        }

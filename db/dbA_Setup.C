@@ -16,7 +16,7 @@
 // May  05, 1997. ak. separate file for setup
 // July 01, 1997. ah. CmpGeometry method implemented
 //
-// last edit May 08, 1997, ak.
+// last edit Nov 28, 1997, ak.
 //
 
 #include <stdio.h>
@@ -36,9 +36,8 @@
 #include <db_comm.h>
 #include <dbA.h>
 
-#include <event.h>
-#include <job.h>
-
+//#include <event.h>
+//#include <job.h>
 
 #include <db_comm.h>
 
@@ -50,9 +49,8 @@
 #include <ctcdbcD_ref.h>
 #include <tofdbcD_ref.h>
 #include <commonsD_ref.h>
-#include <list_ref.h>
+#include <tkdbcV_ref.h>
 
-#include <list.h>
 #include <gvolumeD.h>
 #include <gmatD.h>
 #include <gtmedD.h>
@@ -61,6 +59,7 @@
 #include <ctcdbcD.h>
 #include <tofdbcD.h>
 #include <commonsD.h>
+#include <tkdbcV.h>
 
 #include <amsgobj.h>
 #include <gmat.h>
@@ -94,6 +93,7 @@ ooHandle(AntiDBcD)         antidbcH;
 ooHandle(CTCDBcD)          ctcdbcH;
 ooHandle(TOFDBcD)          tofdbcH;
 ooHandle(AMScommonsD)      commonsH;
+ooHandle(TKDBcV)           tkdbcH;
 
 // Iterators
 ooItr(AMSgvolumeD)     geometryItr;             // geometry
@@ -105,6 +105,29 @@ ooItr(AntiDBcD)        antidbcItr;              // antidbc
 ooItr(TOFDBcD)         tofdbcItr;               // tofdbc
 ooItr(AMScommonsD)     commonsItr;              // commons
 ooItr(CTCDBcD)         ctcdbcItr;               // ctcdbc
+ooItr(TKDBcV)          tkdbcItr;                // tkdbc
+
+void CopyByPos(ooHandle(AMSgvolumeD)& ptr, ooMode mode)
+{
+  ooHandle(AMSgvolumeD) cur;
+  ooHandle(AMSgvolumeD) tmp;
+  //static integer nnn = 0;
+
+  //if (ptr != NULL ) cout <<"ptr -> Pos "<< ptr -> getContPos()<<endl;
+  //cout <<"in "<<++nnn<<endl;
+  cur = ptr;
+  while(cur != NULL) {
+    geometryHT[NN] = cur;
+    geometryP[NN]  = cur -> getContPos();
+    NN++;
+    //cout <<"NN... "<<NN<<" contPos "<<cur -> getContPos();
+    //cout<<"down "<<cur-> _Down<<", next "<<cur-> _Next<<endl;
+    tmp = cur -> _Down;
+    if (tmp != NULL) CopyByPos(tmp, mode);
+    cur = cur -> _Next;
+  }   
+  // cout <<"exit "<<nnn--<<endl;
+}
 
 
 ooStatus LMS::WriteGeometry()
@@ -115,6 +138,7 @@ ooStatus LMS::WriteGeometry()
   AMSgvolume *             cur;
   integer                  i=0;
   integer                  pos;
+  char       *             contName;
 
   AMSgvolume * pg = AMSJob::gethead() -> getgeom();
   if (pg == NULL) return rstatus;
@@ -124,7 +148,7 @@ ooStatus LMS::WriteGeometry()
   char *setup = StrDup(_setup);
   if(!_setup) Fatal("WriteGeometry : invalid setup name");
   if(dbg_prtout) cout <<"WriteGeometry -I- setup "<<setup<<endl;
-  char* contName = StrCat("Geometry_",setup);
+  contName = StrCat3("Geometry_",setup,_version);
 
   // check container
   ooHandle(ooDBObj)    dbH = setupdb();
@@ -238,17 +262,17 @@ ooStatus LMS::CopyGeometry()
   AMSgvolume *             cur;
   AMSgvolume *             ptr;
  
-  cout <<"AMSEventList::CopyGeometry - let's copy geometry"<<endl;
+  cout <<"LMS::CopyGeometry - let's copy geometry"<<endl;
  
   NN = 0;
 
   // get setup name
   //char* setup = AMSJob::gethead() -> getsetup();
   char *setup = StrDup(_setup);
-  cout <<"AMSEventList::CopyGeometry -I- setup name "<<setup<<endl;
+  cout <<"LMS::CopyGeometry -I- setup name "<<setup<<endl;
 
-  char* contName = StrCat("Geometry_",setup);
-  cout <<"AMSEventList::CopyGeometry -I- container "<<contName<<endl;
+  char* contName = StrCat3("Geometry_",setup,_version);
+  cout <<"LMS::CopyGeometry -I- container "<<contName<<endl;
 
   ooHandle(ooDBObj) dbH = setupdb();
   int status = Container(dbH, contName, contGeometryH);
@@ -285,7 +309,7 @@ ooStatus LMS::CopyGeometry()
          geometryItr -> _Next = NULL;
          geometryItr -> setNext(0); 
          cout 
-          <<"AMSEventList::CopyGeometry -I- Next ptr of mother set to 0"<<endl;
+          <<"LMS::CopyGeometry -I- Next ptr of mother set to 0"<<endl;
         }
         CopyByPos(geometryItr, mode);
         break;
@@ -301,10 +325,12 @@ ooStatus LMS::CopyGeometry()
    AMSgvolume* p;
    AMSPoint                 coo[1];
    geant                    par[6];
+   geant                    cooAG[3];
    geant                    cooG[3];
    number                   nbuff0[9];
-   //number                   nrm[3][3];
-   number                   inrm[3][3];
+   number                   nrmA[3][3];
+   number                   nrm[3][3];
+   number                   inrmA[3][3];
    char                     gonly[5];
    char                     shape[5];
 
@@ -320,18 +346,30 @@ ooStatus LMS::CopyGeometry()
                     cooG[1] = coo[0] [1];
                     cooG[2] = coo[0] [2];
 
+                    geometryHT[j] -> getcooA(coo);
+                    cooAG[0] = coo[0] [0];
+                    cooAG[1] = coo[0] [1];
+                    cooAG[2] = coo[0] [2];
+
                     geometryHT[j] -> getgonly(gonly);
    integer posp   = geometryHT[j] -> getposp();
    integer gid    = geometryHT[j] -> getgid();
    integer npar   = geometryHT[j] -> getnpar();
-   //geometryHT[j] -> getnrm(nbuff0);
-   //UCOPY(nbuff0,nrm,sizeof(number)*9/4);
-                    geometryHT[j] -> getinrm(nbuff0);
-                    UCOPY(nbuff0,inrm,sizeof(number)*9/4);
 
-   integer rel    = 0;
-   p = new AMSgvolume (matter, rotmno, name, shape, par, npar, 
-                       cooG, inrm, gonly, posp, gid);
+                    geometryHT[j] -> getnrmA(nbuff0);
+                    UCOPY(nbuff0,nrmA,sizeof(number)*9/4);
+
+                    geometryHT[j] -> getnrm(nbuff0);
+                    UCOPY(nbuff0,nrm,sizeof(number)*9/4);
+
+   integer rel    = geometryHT[j] -> getrel();
+   if (rel == 1) 
+    p = new AMSgvolume (matter, rotmno, name, shape, par, npar, 
+                        cooG, nrm, gonly, posp, gid, rel);
+   if (rel == 0) 
+    p = new AMSgvolume (matter, rotmno, name, shape, par, npar, 
+                        cooAG, nrmA, gonly, posp, gid, rel);
+   
    integer pos = geometryHT[j] -> getContPos();
    p -> setContPos(pos);
 
@@ -358,7 +396,7 @@ ooStatus LMS::CopyGeometry()
     }
   }
 
-  cout <<"AMSEventList::CopyGeometry -I- Copy done "<<endl;
+  cout <<"LMS::CopyGeometry -I- Copy done "<<endl;
   GGCLOS();
   AMSgObj::GVolMap.map(*mother);
 
@@ -366,28 +404,6 @@ ooStatus LMS::CopyGeometry()
   if(setup)    delete [] setup;  
 
   return oocSuccess;
-}
-
-void LMS::CopyByPos(ooHandle(AMSgvolumeD)& ptr, ooMode mode)
-{
-  ooHandle(AMSgvolumeD) cur;
-  ooHandle(AMSgvolumeD) tmp;
-  //static integer nnn = 0;
-
-  //if (ptr != NULL ) cout <<"ptr -> Pos "<< ptr -> getContPos()<<endl;
-  //cout <<"in "<<++nnn<<endl;
-  cur = ptr;
-  while(cur != NULL) {
-    geometryHT[NN] = cur;
-    geometryP[NN]  = cur -> getContPos();
-    NN++;
-    //cout <<"NN... "<<NN<<" contPos "<<cur -> getContPos();
-    //cout<<"down "<<cur-> _Down<<", next "<<cur-> _Next<<endl;
-    tmp = cur -> _Down;
-    if (tmp != NULL) CopyByPos(tmp, mode);
-    cur = cur -> _Next;
-  }   
-  // cout <<"exit "<<nnn--<<endl;
 }
 
 
@@ -443,7 +459,7 @@ ooStatus   LMS::AddMaterial()
          // get setup and container names
          //char* setup = AMSJob::gethead() -> getsetup();
          char *setup = StrDup(_setup);
-         char* contName = StrCat("Materials_",setup);
+         char* contName = StrCat3("Materials_",setup,_version);
          if(setup) delete [] setup;  
 
          // check container
@@ -530,7 +546,7 @@ ooStatus   LMS::AddTMedia()
           char *setup = StrDup(_setup);
           if(!setup) Fatal("AddTMedia: invalid setup name");
           if(dbg_prtout) cout <<"AddTmedia -I- setup "<<setup<<endl;
-          char* contName = StrCat("TMedia_",setup);
+          char* contName = StrCat3("TMedia_",setup,_version);
           if(setup) delete [] setup;  
 
           // check container
@@ -607,8 +623,8 @@ ooStatus   LMS::Addamsdbc()
         // get setup and container names
         //char* setup = AMSJob::gethead() -> getsetup();
         char *setup = StrDup(_setup);
-        cout <<"AMSEventList::Addamsdb -I- setup name "<<setup<<endl;
-        char* contName = StrCat("amsdbc_",setup);
+        cout <<"LMS::Addamsdb -I- setup name "<<setup<<endl;
+        char* contName = StrCat3("amsdbc_",setup,_version);
         if(setup) delete [] setup;  
 
         // check container
@@ -620,7 +636,9 @@ ooStatus   LMS::Addamsdbc()
          commonsH = new(contH) AMScommonsD();
          ctcdbcH  = new(contH) CTCDBcD();
          tofdbcH  = new(contH) TOFDBcD();
-         antidbcH  = new(contH) AntiDBcD();
+         antidbcH = new(contH) AntiDBcD();
+         tkdbcH   = new(contH) TKDBcV(); 
+         rstatus = oocSuccess;
         } else {
           cout << "Addamsdbc -I- Found container "<<contName<< endl;
           amsdbcItr.scan(contH, Mode());
@@ -665,9 +683,14 @@ ooStatus   LMS::Addamsdbc()
             "Addamsdbc: antidbc comparison failed. Please, write new setup");
           }
 
+          tkdbcItr.scan(contH, Mode());
+          if (tkdbcItr.next()) {
+           Message("Addamsdbc : check tkdbc");
+           rstatus = tkdbcItr -> CmpConstants();
+           if (rstatus != oocSuccess) 
+                              Fatal("Addamsdbc : tkdbc comparison failed");
+         }
         }
-          
-          rstatus = oocSuccess;
 
 end:
         if (rstatus == oocSuccess) {
@@ -718,7 +741,7 @@ ooStatus   LMS::ReadMaterial()
         // get setup name
         char *setup = StrDup(_setup);
         if(dbg_prtout) cout <<"ReadMaterial -I- setup "<<setup<<endl;
-        char* contName = StrCat("Materials_",setup);
+        char* contName = StrCat3("Materials_",setup,_version);
         if(setup) delete [] setup;  
         if(dbg_prtout) cout <<"ReadMaterial -I-  container "<<contName<<endl;
         integer status = Container(dbH, contName, contgmatH);
@@ -786,7 +809,7 @@ ooStatus   LMS::ReadTMedia()
         Message("ReadTMedia : read started");
         char *setup = StrDup(_setup);
         if(dbg_prtout) cout <<"ReadTMedia -I- setup "<<setup<<endl;
-        char* contName = StrCat("TMedia_",setup);
+        char* contName = StrCat3("TMedia_",setup,_version);
         if(dbg_prtout) cout <<"ReadTMedia -I- container "<<contName<<endl;
         integer status = Container(dbH, contName, contgtmedH);
         if (status == -1) {
@@ -837,7 +860,9 @@ void LMS::CheckConstants()
         ooItr(AMSDBcD)       amsdbcItr;               // amsdbc
         ooItr(CTCDBcD)       ctcdbcItr;               // ctcdbc
         ooItr(TOFDBcD)       tofdbcItr;               // tofdbc
-        ooItr(AntiDBcD)       antidbcItr;             // antidbc
+        ooItr(AntiDBcD)      antidbcItr;              // antidbc
+        ooItr(TKDBcV)        tkdbcItr;
+
         ooHandle(ooDBObj)    dbH;
         char*                contName;
         integer              Read = 0;
@@ -847,9 +872,8 @@ void LMS::CheckConstants()
         dbH = setupdb();
         if (dbH == NULL) Fatal("CheckConstants : Cannot open setup dbase ");
 
-        //char* setup = AMSJob::gethead() -> getsetup();
-        char *setup = StrDup(_setup);
-        contName = StrCat("amsdbc_",setup);
+        char *setup    = StrDup(_setup);
+        contName = StrCat3("amsdbc_",setup,_version);
         if(setup) delete [] setup;  
         if (!contH.exist(dbH, contName, oocRead)) {
          rstatus = oocError;
@@ -884,6 +908,7 @@ void LMS::CheckConstants()
         goto end;
        }
       }
+
       antidbcItr.scan(contH, Mode());
       if (antidbcItr.next()) {
        Message("CheckConstants : check antidbc");
@@ -893,7 +918,6 @@ void LMS::CheckConstants()
         goto end;
        }
       }
-
 
 end:
         if (contName) delete [] contName;
@@ -920,8 +944,8 @@ void LMS::CheckCommons()
         dbH = setupdb();
         if (dbH == NULL) Fatal("CheckConstants : Cannot open setup dbase ");
 
-        char *setup = StrDup(_setup);
-        contName = StrCat("amsdbc_",setup);
+        char *setup    = StrDup(_setup);
+        contName = StrCat3("amsdbc_",setup,_version);
         if(setup) delete [] setup;  
         if (!contH.exist(dbH, contName, oocRead)) {
          rstatus = oocError;
@@ -947,5 +971,52 @@ end:
         } else {
           Abort();
           Fatal("CheckConstants : Quit");
+        }
+}
+
+ooStatus LMS::ReadTKDBc()
+{
+	ooStatus 	     rstatus = oocError;      // Return status
+        ooHandle(ooContObj)  contH;                   // container
+        ooItr(TKDBcV)        tkdbcItr;
+
+        ooHandle(ooDBObj)    dbH;
+        char*                contName;
+        integer              Read = 0;
+
+        StartRead(oocMROW);
+
+        dbH = setupdb();
+        if (dbH == NULL) Fatal("ReadTKDBC : Cannot open setup dbase ");
+
+        char *setup = StrDup(_setup);
+        contName = StrCat3("amsdbc_",setup,_version);
+        if(setup) delete [] setup;  
+        if (!contH.exist(dbH, contName, oocRead)) {
+         rstatus = oocError;
+         cout<<"ReadTKDBC : cannot open a container "<<contName<<endl;
+         goto end;
+        }
+
+
+        tkdbcItr.scan(contH, Mode());
+        if (tkdbcItr.next()) {
+         Message("CheckTKDBC : copy tkdbc");
+         rstatus = tkdbcItr -> ReadTKDBc();
+         if (rstatus != oocSuccess) {
+          rstatus = oocError;
+          goto end;
+        }
+       }
+
+end:
+        if (contName) delete [] contName;
+        if (rstatus == oocSuccess) {
+	  Commit(); 	           // Commit the transaction
+          if (rstatus != oocSuccess) exit (1);
+          return rstatus;
+        } else {
+          Abort();
+          Fatal("ReadTKDBc : Quit");
         }
 }

@@ -108,6 +108,17 @@ class AMSeventD : public dbEvent {
    
   ooVArray(ParticleS)  particleS;
 
+  short      _nAntiClusters;    // number of Betas
+  short      _nBetas;           // number of Betas
+  short      _nCharges;         // number of Charges
+  short      _nCTCClusters;     // number of CTCClusters
+  short      _nParticles;       // number of Particles
+  short      _nTOFClusters;     // number of TOFClusters
+  short      _nTracks;          // number of Tracks
+  short      _nTrClusters;      // number of TrClusters
+  short      _nTrHits;          // number of TrRecHits
+
+
  public:
 
 //Assosiations
@@ -127,8 +138,49 @@ class AMSeventD : public dbEvent {
   AMSeventD();
   AMSeventD(integer run, uinteger event, time_t time);
 
+// Methods
+
+  void     clearCounts();
+
+  inline void  incAntiClusters() {_nAntiClusters++;}
+  inline void  decAntiClusters() {if(_nAntiClusters > 0) _nAntiClusters--;}
+  inline short AntiVlusters()  {return _nAntiClusters;}
+
+  inline void  incTrHits() {_nTrHits++;}
+  inline void  decTrHits() {if(_nTrHits > 0) _nTrHits--;}
+  inline short TrHits()    {return _nTrHits;}
+
+  inline void  incTrClusters() {_nTrClusters++;}
+  inline void  decTrClusters() {if(_nTrClusters>0) _nTrClusters--;}
+  inline short TrClusters()    {return _nTrClusters;}
+
+  inline void incTOFClusters() {_nTOFClusters++;}
+  inline void decTOFClusters() {if(_nTOFClusters > 0) _nTOFClusters--;}
+  inline short TOFClusters()   {return _nTOFClusters;}
+
+  inline void incCTCClusters() {_nCTCClusters++;}
+  inline void decCTCClusters() {if(_nCTCClusters > 0) _nCTCClusters--;}
+  inline short CTCClusters()   {return _nCTCClusters;}
+
+  inline void incTracks() {_nTracks++;}
+  inline void decTracks() {if(_nTracks>0) _nTracks--;}
+  inline short Tracks()   {return _nTracks;}
+
+  inline void incBetas()        {_nBetas++;}
+  inline void decBetas()        {if (_nBetas>0) _nBetas--;}
+  inline short Betas()          {return _nBetas;}
+
+  inline void incCharges()      {_nCharges++;}
+  inline void decCharges()      {if (_nCharges>0) _nCharges--;}
+  inline short Charges()        {return _nCharges;}
+
+  inline void incParticles()    {_nParticles++;}
+  inline void decParticles()    {if (_nParticles>0) _nParticles--;}
+  inline short Particles()      {return _nParticles;}
+
 //
   void addParticle(int npart, ParticleS* particle);
-  void readEvent(uinteger& run, uinteger& eventNumber, time_t& time);
+//
+  void readEvent(integer& run, integer& eventNumber, time_t& time);
 
 };

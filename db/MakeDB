@@ -90,8 +90,8 @@ LMS	= $(EXE)lmsA
 
 DDL_SRC         = ../db/
 
-SCHEMA_DDL		=  list.ddl listTag.ddl rclist.ddl mclist.ddl \
-                           dbcatalog.ddl \
+SCHEMA_DDL		=  list.ddl listTag.ddl rclist.ddl \
+                           mclist.ddl rawlist \
                            dbevent.ddl \
                            eventTag.ddl mcevent.ddl \
                            raweventD.ddl recevent.ddl  \
@@ -104,15 +104,18 @@ SCHEMA_DDL		=  list.ddl listTag.ddl rclist.ddl mclist.ddl \
                            tofrecD.ddl  \
                            trrechit.ddl \
                            ttrack.ddl   \
+                           dbcatalog.ddl \
                            gvolumeD.ddl  gmatD.ddl  gtmedD.ddl \
                            amsdbcD.ddl antidbcD.ddl commonsD.ddl \
                            ctcdbcD.ddl tofdbcD.ddl \
-                           timeidD.ddl \
+                           timeidD.ddl tkdbcV.ddl \
                            mcanticlusterD.ddl \
                            mcctcclusterD.ddl \
                            mceventgD.ddl \
 			   mctofclusterV.ddl  \
-                           tmcclusterV.ddl  
+                           tmcclusterV.ddl    \
+                           trigger1D.ddl     \
+                           trigger3D.ddl     \
 
 
 SCHEMA_SRCS		= $(SCHEMA_DDL:.ddl=_ddl.C)
@@ -127,6 +130,7 @@ SCHEMA_OBJS		=   $(BIN_DB)list_ddl.o \
                             $(BIN_DB)listTag_ddl.o \
                             $(BIN_DB)rclist_ddl.o \
                             $(BIN_DB)mclist_ddl.o \
+                            $(BIN_DB)rawlist_ddl.o \
                             $(BIN_DB)dbcatalog_ddl.o  \
                             $(BIN_DB)dbevent_ddl.o  \
                             $(BIN_DB)eventTag_ddl.o  \
@@ -155,13 +159,17 @@ SCHEMA_OBJS		=   $(BIN_DB)list_ddl.o \
                             $(BIN_DB)mcctcclusterD_ddl.o \
                             $(BIN_DB)mceventgD_ddl.o \
 			    $(BIN_DB)mctofclusterV_ddl.o  \
-                            $(BIN_DB)tmcclusterV_ddl.o  
+                            $(BIN_DB)tmcclusterV_ddl.o  \
+                            $(BIN_DB)trigger1D_ddl.o \
+                            $(BIN_DB)trigger3D_ddl.o \
+                            $(BIN_DB)tkdbcV_ddl.o \
 
 
 
 SCHEMA_METHOD_OBJS      =  $(BIN_DB)list.o \
                            $(BIN_DB)listTag.o \
                            $(BIN_DB)mclist.o \
+                           $(BIN_DB)rawlist.o \
                            $(BIN_DB)rclist.o \
                            $(BIN_DB)dbcatalog.o  \
                            $(BIN_DB)dbevent.o  \
@@ -190,7 +198,10 @@ SCHEMA_METHOD_OBJS      =  $(BIN_DB)list.o \
                            $(BIN_DB)mcctcclusterD.o \
                            $(BIN_DB)mceventgD.o \
 			   $(BIN_DB)mctofclusterV.o  \
-                           $(BIN_DB)tmcclusterV.o  
+                           $(BIN_DB)tmcclusterV.o  \
+                           $(BIN_DB)trigger1D.o \
+                           $(BIN_DB)trigger3D.o \
+                           $(BIN_DB)tkdbcV.o \
 
 
 #########################
@@ -204,6 +215,7 @@ LMS_SRCS	= dbA.C   \
 		  dbA_Add.C \
 		  dbA_Init.C \
 		  dbA_mcevent.C \
+                  dbA_rawevent.C \
 		  dbA_Setup.C \
 		  dbA_Sub.C   \
 		  dbA_Delete.C \
@@ -223,6 +235,7 @@ LMS_OBJS	= $(BIN_DB)dbA.o   \
 		  $(BIN_DB)dbA_Add.o \
 		  $(BIN_DB)dbA_Init.o \
 		  $(BIN_DB)dbA_mcevent.o \
+                  $(BIN_DB)dbA_rawevent.o \
 		  $(BIN_DB)dbA_Setup.o \
 		  $(BIN_DB)dbA_Sub.o \
 		  $(BIN_DB)dbA_Delete.o \
@@ -293,13 +306,13 @@ DB_OBJS	= $(SCHEMA_OBJS) $(SCHEMA_METHOD_OBJS) $(LMS_OBJS)
 OBJECT_LIBS	= $(LIB_DIR)/liboo.a
 SRC             = ../CC
 
-GEANT_OBJS= $(BIN)/gbatch.o $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN)/node.o $(BIN)/snode.o $(BIN)/cern.o $(BIN)/amsdbc.o $(BIN)/gsen.o  $(BIN)/mtx.o $(BIN)/point.o $(BIN)/amstkshc++.o $(BIN)/sgif.o $(BIN)/upool.o $(BIN)/gmat.o $(BIN)/amsgobj.o $(BIN)/amsgeom.o $(BIN)/mceventg.o $(BIN)/tkmccl.o $(BIN)/rnormx.o  $(BIN)/trid.o $(BIN)/link.o $(BIN)/trrec.o $(BIN)/uzstat.o $(BIN)/tptcir.o $(BIN)/trafit.o $(BIN)/tcircf.o $(BIN)/tszfit.o $(BIN)/txyfit.o  $(BIN)/cont.o $(BIN)/trrawcluster.o $(BIN)/mccluster.o $(BIN)/rndm.o $(BIN)/tofrec.o $(BIN)/antirec.o $(BIN)/tofsim.o $(BIN)/beta.o $(BIN)/charge.o $(BIN)/particle.o $(BIN)/apool.o $(BIN)/tofdbc.o $(BIN)/ctcrec.o $(BIN)/ctcdbc.o $(BIN)/tofcalib.o $(BIN)/timeid.o $(BIN)/io.o $(BIN)/trcalib.o $(BIN)/mtx2.o $(BIN)/e04ccf.o $(BIN)/trigger1.o $(BIN)/trigger3.o $(BIN)/daqevt.o $(BIN)/antidbc.o $(BIN)/daqblock.o $(BIN)/astring.o $(BIN)/ins_dummy.o  $(BIN)/mfield.o $(BIN)/egzav.o $(BIN)/tkdbc.o
+GEANT_OBJS= $(BIN)/gbatch.o $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN)/node.o $(BIN)/snode.o $(BIN)/cern.o $(BIN)/amsdbc.o $(BIN)/gsen.o  $(BIN)/mtx.o $(BIN)/point.o $(BIN)/amstkshc++.o $(BIN)/sgif.o $(BIN)/upool.o $(BIN)/gmat.o $(BIN)/amsgobj.o $(BIN)/amsgeom.o $(BIN)/mceventg.o $(BIN)/tkmccl.o $(BIN)/rnormx.o  $(BIN)/trid.o $(BIN)/link.o $(BIN)/trrec.o $(BIN)/uzstat.o $(BIN)/tptcir.o $(BIN)/trafit.o $(BIN)/tcircf.o $(BIN)/tszfit.o $(BIN)/txyfit.o  $(BIN)/cont.o $(BIN)/trrawcluster.o $(BIN)/mccluster.o $(BIN)/rndm.o $(BIN)/tofrec.o $(BIN)/antirec.o $(BIN)/tofsim.o $(BIN)/beta.o $(BIN)/charge.o $(BIN)/particle.o $(BIN)/apool.o $(BIN)/tofdbc.o $(BIN)/ctcrec.o $(BIN)/ctcdbc.o $(BIN)/tofcalib.o $(BIN)/timeid.o $(BIN)/io.o $(BIN)/trcalib.o $(BIN)/mtx2.o $(BIN)/e04ccf.o $(BIN)/trigger1.o $(BIN)/trigger3.o $(BIN)/daqevt.o $(BIN)/antidbc.o $(BIN)/daqblock.o $(BIN)/astring.o $(BIN)/ins_dummy.o  $(BIN)/mfield.o $(BIN)/egzav.o $(BIN)/tkdbc.o $(BIN)/ctcsim.o $(BIN)/user.o
 
 CERN_LIBS       = -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib
 
 all:	$(LMS)
 
-$(LMS): $(DB_OBJS) 
+$(LMS): $(DB_OBJS) $(GEANT_OBJS)
 	$(LD) $(LD_FLAGS) -o $(LMS) $(DB_OBJS) $(GEANT_OBJS) $(OBJECT_LIBS) \
         $(GLIBS)
 
@@ -309,7 +322,7 @@ $(LMS): $(DB_OBJS)
 #                       #
 #########################
 
-$(BOOT):
+$(BOOT): config.user1_alphaosf1
 	$(OONEWFD) -fdlocalpath $(BOOTF).FDDB -pagesize $(PAGESIZE) -lockserverhost $(LS_HOST)  -fdnumber $(FDID) $(BOOT)
 
 .ddl.h: 
@@ -333,13 +346,13 @@ clean:
 #                       #
 #########################
 
- $(BIN_DB)geantDB.o:         ../CC/geant.C
+ $(BIN_DB)geantDB.o:         ../CC/geant.C dbA.h
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../CC/geant.C \
                                                 -o $(BIN_DB)geantDB.o
- $(BIN_DB)jobDB.o:         ../CC/job.C
+ $(BIN_DB)jobDB.o:         ../CC/job.C dbA.h
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../CC/job.C \
                                                 -o $(BIN_DB)jobDB.o
- $(BIN_DB)eventDB.o:         ../CC/event.C
+ $(BIN_DB)eventDB.o:         ../CC/event.C dbA.h
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../CC/event.C \
                                                 -o $(BIN_DB)eventDB.o
  $(BIN_DB)list.o:   list.C
@@ -569,6 +582,8 @@ clean:
                              dbA.h  ooSession.h  ooStats.h \
                              list.ddl  list.h  list_ref.h db_comm.h \
                              rclist.ddl rclist.h \
+                             mclist.ddl mclist.h \
+                             rawlist.ddl rawlist.h \
                              ../include/job.h
 
  $(BIN_DB)dbA_Setup.o:   dbA_Setup.C
@@ -591,7 +606,10 @@ clean:
                           dbA.h  \
                           ooSession.h  ooStats.h  \
                           list.ddl  list.h  list_ref.h \
-                          rclist.ddl rclist.h 
+                          rclist.ddl rclist.h \
+                          mclist.ddl mclist.h \
+                          rawlist.ddl rawlist.h
+
 
  $(BIN_DB)dbA_Print.o:   dbA_Print.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/dbA_Print.C \
@@ -599,7 +617,8 @@ clean:
  $(BIN_DB)dbA_Print.o:    dbA.h  \
                           ooSession.h  ooStats.h  \
                           list.ddl  list.h  list_ref.h \
-                          mclist.ddl mclist.h rclist.ddl rclist.h 
+                          mclist.ddl mclist.h rclist.ddl rclist.h \
+                          rawlist.ddl rawlist.h
 
 
  $(BIN_DB)ooEnvironment.o:   ooEnvironment.C
@@ -698,13 +717,14 @@ clean:
                                               -o $(BIN_DB)mcevent_ddl.o
  $(BIN_DB)mcevent_ddl.o:   mcevent.ddl  mcevent.h  mcevent_ref.h  \
                            tmcclusterV.h mctofclusterV.h mcctcclusterD.h \
-                           mceventgD.h mcanticlusterD.h\
+                           mceventgD.h mcanticlusterD.h trigger1D.h trigger3D.h\
                            ../include/mccluster.h
 
  mcevent_ref.h:   mcevent.ddl mcanticlusterD.ddl mcctcclusterD.ddl \
-                              mctofclusterV.ddl mceventgD.ddl tmcclusterV.ddl
+                              mctofclusterV.ddl mceventgD.ddl tmcclusterV.ddl \
+                              trigger1D.ddl trigger3D.ddl
  mcevent_ddl.C:   mcevent.h  mcanticlusterD.h mcctcclusterD.h mctofclusterV.h \
-                             mceventgD.h tmcclusterV.h
+                             mceventgD.h tmcclusterV.h trigger1D.h trigger3D.h
 
  $(BIN_DB)mctofclusterD.o:   mctofclusterD.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/mctofclusterD.C \
@@ -791,6 +811,21 @@ clean:
  mclist_ref.h:   mclist.ddl 
  mclist_ddl.C:   mclist.h  
 
+$(BIN_DB)rawlist.o:   rawlist.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
+                           ../db/rawlist.C -o $(BIN_DB)rawlist.o
+ $(BIN_DB)rawlist.o:   rawlist.ddl  rawlist.h  rawlist_ref.h list.ddl list.h \
+                      db_comm.h
+ $(BIN_DB)rawlist_ddl.o:   rawlist_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
+                           ../db/rawlist_ddl.C -o $(BIN_DB)rawlist_ddl.o
+ $(BIN_DB)rawlist_ddl.o:  rawlist.ddl  rawlist.h  rawlist_ref.h  list.ddl list.h \
+                          raweventD.ddl raweventD.h raweventD_ref.h
+
+ rawlist_ref.h:   rawlist.ddl
+ rawlist_ddl.C:   rawlist.h
+
+
  $(BIN_DB)rclist.o:   rclist.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
                            ../db/rclist.C -o $(BIN_DB)rclist.o
@@ -811,6 +846,14 @@ clean:
  $(BIN_DB)dbA_mcevent.o:    dbA.h  ooSession.h  ooStats.h \
                              list.ddl  list.h  list_ref.h db_comm.h \
                              ../include/job.h
+
+$(BIN_DB)dbA_rawevent.o:   dbA_rawevent.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/dbA_rawevent.C \
+                                                -o $(BIN_DB)dbA_rawevent.o
+ $(BIN_DB)dbA_rawevent.o:    dbA.h  ooSession.h  ooStats.h \
+                             list.ddl  list.h  list_ref.h db_comm.h \
+                             ../include/job.h
+
 
  $(BIN_DB)dbevent.o:   dbevent.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/dbevent.C \
@@ -862,5 +905,35 @@ clean:
                    ../db/dbcatalog_ddl.C -o $(BIN_DB)dbcatalog_ddl.o
  $(BIN_DB)dbcatalog_ddl.o:     dbcatalog.h   dbcatalog_ddl.C
  dbcatalog_ref.o:              dbcatalog.ddl    dbcatalog.h  
+
+ $(BIN_DB)trigger1D.o:          trigger1D.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
+                        ../db/trigger1D.C -o $(BIN_DB)trigger1D.o
+ $(BIN_DB)trigger1D.o:         trigger1D.h   trigger1D_ref.h trigger1D.ddl  
+ $(BIN_DB)trigger1D_ddl.o:     trigger1D.h   trigger1D_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
+                   ../db/trigger1D_ddl.C -o $(BIN_DB)trigger1D_ddl.o
+ $(BIN_DB)trigger1D_ddl.o:     trigger1D.h   trigger1D_ddl.C
+ trigger1D_ref.o:              trigger1D.ddl    trigger1D.h
+
+ $(BIN_DB)trigger3D.o:          trigger3D.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
+                        ../db/trigger3D.C -o $(BIN_DB)trigger3D.o
+ $(BIN_DB)trigger3D.o:         trigger3D.h   trigger3D_ref.h trigger3D.ddl
+ $(BIN_DB)trigger3D_ddl.o:     trigger3D.h   trigger3D_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
+                   ../db/trigger3D_ddl.C -o $(BIN_DB)trigger3D_ddl.o
+ $(BIN_DB)trigger3D_ddl.o:     trigger3D.h   trigger3D_ddl.C
+ trigger3D_ref.o:              trigger3D.ddl    trigger3D.h
+
+ $(BIN_DB)tkdbcV.o:          tkdbcV.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tkdbcV.C \
+                                                -o $(BIN_DB)tkdbcV.o
+ $(BIN_DB)tkdbcV.o:          tkdbcV.h   tkdbcV_ref.h tkdbcV.ddl
+ $(BIN_DB)tkdbcV_ddl.o:      tkdbcV.h   tkdbcV_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tkdbcV_ddl.C \
+                                                -o $(BIN_DB)tkdbcV_ddl.o
+ $(BIN_DB)tkdbcV_ddl.o:     tkdbcV.ddl    tkdbcV.h   tkdbcV_ref.h
+ tkdbcV_ref.o:              tkdbcV.ddl    tkdbcV.h
 
 

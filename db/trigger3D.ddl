@@ -44,7 +44,7 @@ protected:
  static geant _TOFCoo[SCLRS][SCMXBR][3];
  static geant _TrackerCoo[NTRHDRP][2][3];
  static geant _TrackerCooZ[nl];
- static integer _TrackerDRP2Layer[NTRHDRP];
+ static integer _TrackerDRP2Layer[NTRHDRP][2];
  static const integer _patconf[LVL3NPAT][nl];
  static const integer _patpoints[LVL3NPAT];
  static const integer _patd[5]; 

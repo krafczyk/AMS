@@ -15,7 +15,7 @@ enum {headerid = 0, lvl1id = 1, lvl3id = 3, tofid = 10, antiid =20,
 
 
 AMSraweventD::AMSraweventD(
-             uinteger runUni, uinteger runAux, uinteger eventNumber, 
+             integer runUni, integer runAux, integer eventNumber, 
              time_t time, integer ldata, uint16 data[])
 {
  integer i;
@@ -33,7 +33,7 @@ AMSraweventD::AMSraweventD(
 }
 
 AMSraweventD::AMSraweventD
-        (uinteger runUni, uinteger eventNumber, time_t time, DAQEvent *pdaq)
+        (integer runUni, integer eventNumber, time_t time, DAQEvent *pdaq)
 {
  integer i;
 
@@ -51,8 +51,8 @@ AMSraweventD::AMSraweventD
  }
 }
 
-void AMSraweventD::readEvent (uinteger& run, uinteger & runAux, 
-                              uinteger & eventNumber, time_t & time,
+void AMSraweventD::readEvent (integer& run, integer & runAux, 
+                              integer & eventNumber, time_t & time,
                               integer & ldata, uint16* data)
 {
  integer i;
@@ -67,6 +67,21 @@ void AMSraweventD::readEvent (uinteger& run, uinteger & runAux,
    for (i=0; i<ldata; i++) data[i] = Data[i];
  }
 }
+
+void AMSraweventD::readEvent (integer& run, integer & eventNumber,
+                              time_t & time, integer & runAux)
+{
+ integer i;
+
+// return types are: uinteger Run(); uinteger Event();
+ run         = Run();
+ runAux      = _runAux;
+ eventNumber = Event();
+ time        = Time();
+
+}
+
+
 void AMSraweventD::dump(integer sdetid) {
 // dump event
 // if sdetid == -1 dump whole event

@@ -11,8 +11,9 @@
 #include <mcevent.h>
 
 
-AMSmcevent::AMSmcevent (integer run, uinteger eventNumber, time_t time,
+AMSmcevent::AMSmcevent (integer run, integer eventNumber, time_t time,
                         integer runtype){
+  cout << "AMSmcevent: Run= " << run << " Event= " << eventNumber << endl;
   setrun(run);
   setevent(eventNumber);
   settime(time);
@@ -20,7 +21,7 @@ AMSmcevent::AMSmcevent (integer run, uinteger eventNumber, time_t time,
 }
 
 
-void AMSmcevent::readEvent(uinteger& run, uinteger& eventNumber, time_t& time,
+void AMSmcevent::readEvent(integer& run, integer& eventNumber, time_t& time,
                            integer& runtype)
 {
   run          = Run();

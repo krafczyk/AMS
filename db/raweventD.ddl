@@ -20,7 +20,7 @@ class AMSraweventD : public dbEvent {
 
 private:
 
-uinteger _runAux;               // auxillary run number
+integer _runAux;               // auxillary run number
 
 ooVArray(uint16)  Data;         // DataBlock
 
@@ -28,20 +28,24 @@ public:
 
 // constructors
 AMSraweventD() {};
-AMSraweventD(uinteger runUni, uinteger runAux, uinteger eventNumber, 
+AMSraweventD(integer runUni, integer runAux, integer eventNumber, 
              time_t time, integer ldata, uint16 data[]);
 
 AMSraweventD
-       (uinteger runUni, uinteger eventNumber, time_t time, DAQEvent *pdaq);
+       (integer runUni, integer eventNumber, time_t time, DAQEvent *pdaq);
 
 // get/set methods
 
 void    dump(integer sdetid); 
 integer eventlength() {return Data.size();}
-uinteger getrunAux()   const { return _runAux;}
-void    readEvent (uinteger & run, uinteger & runAux, 
-                   uinteger & eventNumber, time_t & time, 
+integer getrunAux()   const { return _runAux;}
+void    readEvent (integer & run, integer & runAux, 
+                   integer & eventNumber, time_t & time, 
                    integer & ldata, uint16* data);
+
+void    readEvent (integer & run, integer & eventNumber,
+                   time_t & time, integer & runAux);
+
 integer sdetlength(integer sdetid);
 integer sdet(integer sdetid);
 

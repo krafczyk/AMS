@@ -55,7 +55,7 @@ class AMSmcevent : public dbEvent {
 
  private:
 
-  integer _runtype;
+  uinteger _runtype;
 
  public:
 
@@ -72,11 +72,11 @@ class AMSmcevent : public dbEvent {
 //Constructors
 
   AMSmcevent();
-  AMSmcevent(integer run, uinteger event, time_t time, integer runtype);
+  AMSmcevent(integer run, integer event, time_t time, integer runtype);
 
 // Get Methods
   void 
-    readEvent(uinteger& run, uinteger& event, time_t& time, integer& runtype);
+    readEvent(integer& run, integer& event, time_t& time, integer& runtype);
 
 };
 
