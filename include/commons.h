@@ -71,6 +71,7 @@ geant Thr;
 integer mcprtf[5];     // TOF MC-print flag (=0 -> no_printing)
 integer trlogic[2]; // to control trigger logic
 integer fast;    // 1/0 fast/slow algo;
+integer tdfnam[3];// f-name for PMT t-distr. files map
 };
 #define TOFMCFFKEY COMMON_BLOCK(TOFMCFFKEY,tofmcffkey)
 COMMON_BLOCK_DEF(TOFMCFFKEY_DEF,TOFMCFFKEY);
@@ -82,6 +83,15 @@ geant ThrS;  // limit on sum
 //
   integer reprtf[5]; //RECO print flag 
   integer relogic[5];//RECO logic flag
+  integer config[3];// geometry-configuration file name (max 11 letters)
+  geant daqthr[5];// daq thresholds
+  geant cuts[10];// cuts 
+  integer sec[2];
+  integer min[2];
+  integer hour[2];
+  integer day[2];
+  integer mon[2];
+  integer year[2];
 };
 #define TOFRECFFKEY COMMON_BLOCK(TOFRECFFKEY,tofrecffkey)
 COMMON_BLOCK_DEF(TOFRECFFKEY_DEF,TOFRECFFKEY);

@@ -9,39 +9,28 @@
 //
 integer TOFDBc::debug=1;
 //
-// Initialize TOF geometry parameters
+//
+//======> memory reservation for _brtype :
+// (real values are initialized from ext. geomconfig-file in amsgeom.c) 
+integer TOFDBc::_brtype[SCBLMX]={
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0
+};
+//
+// Initialize TOF geometry parameters(defaults, real ones are read from gconfig-file)
 //
 //---> bar lengthes (cm) for each of SCBTPN types :
-const number TOFDBc::_brlen[SCBTPN]={
+geant TOFDBc::_brlen[SCBTPN]={
   72.6,99.6,118.6,130.6,135.4
 };
-//---> bar types  in layers (4 layers top->bot):          
-const integer TOFDBc::_brtype[SCLRS][SCMXBR]={
-  {1,2,3,4,5,5,5,5,5,5,4,3,2,1},
-  {1,2,3,4,5,5,5,5,5,5,4,3,2,1},
-  {1,2,3,4,5,5,5,5,5,5,4,3,2,1},
-  {1,2,3,4,5,5,5,5,5,5,4,3,2,1}
-};
-//---> name list for bar t-calibration files:
-const char TOFDBc::_brfnam[SCBTPN][6]={
-  {'1','0','7','2','6','\0'},
-  {'1','0','9','9','6','\0'},
-  {'1','1','1','8','6','\0'},
-  {'1','1','3','0','6','\0'},
-  {'1','1','3','5','4','\0'}
-};
 //---> plane rotation mask for 4 layers (1/0 -> rotated/not):
-const integer TOFDBc::_plrotm[SCLRS]={
+integer TOFDBc::_plrotm[SCLRS]={
   0,1,1,0
 };
 //---> honeycomb supporting str. data:
-const number TOFDBc::_mcfpar[10]={
-  8000.,   // i=1  Mev to photons convertion factor in scintillator.
-  0.19,    // i=2  PMT mean quantum efficiency
-  0.14,    // i=3  PMT transition time spread (ns)
-  0.,0.,0.,0.,0.,0.,0.
-};
-const number TOFDBc::_supstr[10]={
+geant TOFDBc::_supstr[10]={
    59.9,    // i=1    Z-coo of TOP honeycomb (BOT-side)
   -59.9,    //  =2    Z-coo    BOT           (TOP     )
    0.,0.,  //  =3,4  X/Y-shifts of TOP honeycomb centre in Mother r.s.
@@ -50,7 +39,7 @@ const number TOFDBc::_supstr[10]={
    0.,0.   //  =9,10 spare
 };
 //---> sc. plane design parameters:
-const number TOFDBc::_plnstr[15]={
+geant TOFDBc::_plnstr[15]={
   0.,0.,  // i=1,2  Z-gap between honeycomb and outer/inner scint. planes
     1.25,  // i=3    Z-shift of even/odd bars in plane (0 -> flat plane)
      0.6,  // i=4    X(Y)-overlaping(incl. sc_cover) of even/odd bars (0 for flat)
@@ -62,42 +51,29 @@ const number TOFDBc::_plnstr[15]={
   0.7,        // i=12 Z-shift of sc.bar/PMT-box centers (depends on par. i=10)
   0.,0.,0.    // i=13-15 spare
 };
-//---> Initialize TOF MC/RECO parameters :
+//---> Initialize TOF MC/RECO "time-stable" parameters :
 //
-  const number TOFDBc::_edep2ph={8000.};    // edep(Mev)-to-Photons convertion
-  const number TOFDBc::_pmqeff=0.19;      // PM mean quantum efficiency
-  const number TOFDBc::_trtspr=0.14;      // PM transition time spread (ns)
-  const number TOFDBc::_fladctb=0.05;     // MC flash-ADC time binning (ns)
-  const number TOFDBc::_shaptb=2.;        // MC shaper pulse time binning
-  const number TOFDBc::_di2anr=0.1;       // dinode-to-anode signal ratio
-  const number TOFDBc::_shrtim=0.5;       // MC shaper pulse rise time (ns)
-  const number TOFDBc::_shftim=50.;       // MC shaper pulse fall time (ns)
-  const number TOFDBc::_accdel[2]={
+  const geant TOFDBc::_edep2ph={8000.};// edep(Mev)-to-Photons convertion
+  const geant TOFDBc::_fladctb=0.05;   // MC flash-ADC time binning (ns)
+  const geant TOFDBc::_shaptb=2.;      // MC shaper pulse time binning
+  const geant TOFDBc::_shrtim=0.5;     // MC shaper pulse rise time (ns)
+  const geant TOFDBc::_shftim=50.;     // MC shaper pulse fall time (ns)
+  const geant TOFDBc::_accdel[2]={
     50.,                       // "accept" fix-delay(ns) for fast(history) TDC
     20.                        // "accept" fix-delay(ns) for slow TDC(stratcher)
   };
-  const number TOFDBc::_accdelmx[2]={
+  const geant TOFDBc::_accdelmx[2]={
     1000.,                     //max. "accept" delay(ns) for fast(history) TDC
     100.                       //max. "accept" delay(ns) for slow TDC(stratcher)
   };
-  const number TOFDBc::_fstdw=5.; //t-window for the same hit search in f/s_tdc
-  const number TOFDBc::_hiscutb=50.; //"befor"-cut in time history (ns)
-  const number TOFDBc::_hiscuta=150.;//"after"-cut in time history (ns)
-  const number TOFDBc::_strrat=20.;  // MC stratcher ratio 
-  const number TOFDBc::_tdcbin[4]={
+  const geant TOFDBc::_strflu=0.;   // Stretcher "end-mark" time fluctuations (ns)
+  const geant TOFDBc::_tdcbin[4]={
     1.,                            // pipe/line TDC binning for fast-tdc meas.
     1.,                            // pipe/line TDC binning for slow-tdc meas.
     2.,                            // pipe/line TDC binning for adc-anode meas.
     2.                             // pipe/line TDC binning for adc-dinode meas.
   };
-  const number TOFDBc::_daqthr[5]={
-    40.,             // MC threshold(mV) for discr. of "z>=1"-trig,fast/slow_TDC
-    100.,            // MC threshold for discr. of "z>1"-trig
-    200.,            // MC threshold for discr. of "z>2"-trig
-    10.,           // MC threshold(pC) for anode Time_over_Thresh(TovT) measurement
-    10.            // MC threshold for dinode Time_over_thresh measurement
-  };
-  const number TOFDBc::_daqpwd[10]={
+  const geant TOFDBc::_daqpwd[10]={
     50.,           // pulse width of "z>=1" trig. signal (ns)
     50.,           // pulse width of "z>1" trig. signal
     50.,           // pulse width of "z>2" trig. signal
@@ -109,30 +85,16 @@ const number TOFDBc::_plnstr[15]={
     2.,            // discr. dead time of "z>1" trig. (ns)
     2.             // discr. dead time of "z>2" trig. (ns)
   };
-  const number TOFDBc::_trigtb=0.5;// MC t-bin in logic(trig) pulse handling (ns)
+  const geant TOFDBc::_trigtb=0.5;// MC t-bin in logic(trig) pulse handling (ns)
+  const geant TOFDBc::_di2anr=0.1;  // dinode->anode signal ratio (default,mc)
+  const geant TOFDBc::_strrat=40.;  // stretcher ratio (default,mc)
 //===============================================================================
-//
-//  TOFBrcal static variables definition (just memory reservation):
-//     (real values will be stored later by TOFBrcal::init() )
-//
-number TOFBrcal::slope;
-//---
-number TOFBrcal::td2pos[2];
-//---
-number TOFBrcal::logqin[SCACRFP];//  Log(inp_charge(pC)) ref.points
-//---
-number TOFBrcal::tovta[SCACRFP];// measured(Tovt) A-amplitude points(ns)
-//---
-number TOFBrcal::tovtd[SCACRFP];// measured(Tovt) D-amplitude points(ns)
-//---
-number TOFBrcal::asatl;//anode-chain saturation boundary (MeV)
-//-------------------
 //  TOFBrcal class functions :
 //
-number TOFBrcal::ama2mip(int am[2]){ // 2-side A-Tovt's -> Mev 
+geant TOFBrcal::ama2mip(integer am[2]){ // 2-side A-Tovt's -> Mev 
   static int nmx=SCACRFP-1;
   int isd,i;
-  number amf[2],qt,lnq;
+  geant amf[2],qt,lnq;
   amf[0]=am[0]*TOFDBc::tdcbin(2); // conv. to ns
   amf[1]=am[1]*TOFDBc::tdcbin(2); // conv. to ns
   qt=0.;
@@ -153,10 +115,10 @@ number TOFBrcal::ama2mip(int am[2]){ // 2-side A-Tovt's -> Mev
   return qt;
 }
 //---
-number TOFBrcal::amd2mip(int am[2]){ // 2-sides D-Tovt's -> Mev
+geant TOFBrcal::amd2mip(integer am[2]){ // 2-sides D-Tovt's -> Mev
   static int nmx=SCACRFP-1;
   int isd,i;
-  number amf[2],qt,lnq;
+  geant amf[2],qt,lnq;
   amf[0]=am[0]*TOFDBc::tdcbin(3); // conv. to ns
   amf[1]=am[1]*TOFDBc::tdcbin(3); // conv. to ns
   qt=0.;
@@ -177,11 +139,11 @@ number TOFBrcal::amd2mip(int am[2]){ // 2-sides D-Tovt's -> Mev
   return qt;
 }
 //---
-number TOFBrcal::poscor(number point){
+geant TOFBrcal::poscor(geant point){
 //(return light-out corr.factor, input 'point' is Y-coord. in bar loc.r.s.)
   static int nmx=SCANPNT-1;
   int i;
-  number corr;
+  geant corr;
   if(point >= yscanp[nmx])corr=relout[nmx]+(relout[nmx]-relout[nmx-1])
                          *(point-yscanp[nmx])/(yscanp[nmx]-yscanp[nmx-1]);
   if(point < yscanp[0])corr=relout[0]+(relout[1]-relout[0])
@@ -194,8 +156,8 @@ number TOFBrcal::poscor(number point){
   return corr;//you should devide signal by this value later
 }
 //---
-number TOFBrcal::tm2t(int tm[2], int am[2]){ // (2-sides_times+Tovt)->Time (ns)
-  number tmf[2],amf[2],time,shft;
+geant TOFBrcal::tm2t(integer tm[2], integer am[2]){ // (2-sides_times+Tovt)->Time (ns)
+  geant tmf[2],amf[2],time,shft;
   shft=TOFDBc::shftim();
   amf[0]=am[0]*TOFDBc::tdcbin(3); // conv. to ns
   amf[1]=am[1]*TOFDBc::tdcbin(3); // conv. to ns
@@ -218,7 +180,7 @@ integer TOFJobStat::brcount[SCBLMX][SCCSTA];
 //
 void TOFJobStat::print(){
   int il,ib,ic;
-  float rc;
+  geant rc;
   printf("\n");
   printf("    ============ JOB TOF-statistics =============\n");
   printf("\n");
@@ -255,15 +217,15 @@ if(TOFMCFFKEY.mcprtf[3]==0)return;
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][1])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][1])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][1])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][1])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n\n");
@@ -274,15 +236,15 @@ if(TOFMCFFKEY.mcprtf[3]==0)return;
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][2])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][2])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][2])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][2])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n\n");
@@ -293,15 +255,15 @@ if(TOFMCFFKEY.mcprtf[3]==0)return;
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][3])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][3])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][3])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][3])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n\n");
@@ -312,15 +274,15 @@ if(TOFMCFFKEY.mcprtf[3]==0)return;
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][4])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][4])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][4])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][4])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n\n");
@@ -331,15 +293,15 @@ if(TOFMCFFKEY.mcprtf[3]==0)return;
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][5])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][5])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][5])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][5])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n\n");
@@ -350,15 +312,15 @@ if(TOFMCFFKEY.mcprtf[3]==0)return;
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][6])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][6])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][6])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][6])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n\n");
@@ -369,15 +331,15 @@ if(TOFMCFFKEY.mcprtf[3]==0)return;
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][7])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][7])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][7])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][7])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n\n");
@@ -388,15 +350,15 @@ if(TOFMCFFKEY.mcprtf[3]==0)return;
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][8])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][8])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
-      rc=float(chcount[ic][0]);
-      if(rc>0.)rc=float(chcount[ic][8])/rc;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][8])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n\n");

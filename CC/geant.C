@@ -219,7 +219,7 @@ extern "C" void gustep_(){
         if(dtr2>trcut2){// too big transv. shift: subdivide step
           nd=(integer)sqrt(dtr2/trcut2);
           nd+=1;
-	  geant vect[3],destep; 
+	  geant vect[3]; 
           for(i=1;i<=nd;i++){//loop over subdivisions
             div=geant(i)/geant(nd);
             vect[0]=xpr+(x-xpr)*div;

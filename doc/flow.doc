@@ -130,8 +130,8 @@ M A I N  ->      gbatch.C
  |        |    |   |->_sitrdevent     Simulate TRD
  |        |    |   |->_sitofevent     Simulate TOF
  |        |    |   |       |
- |        |    |   |       |->AMSTOFTovt::build()        Geant_hts-->Tovt_hts
- |        |    |   |       |->AMSTOFRawEvent::mc_build() Tovt_hts-->RawEvt_hts
+ |        |    |   |       |->AMSTOFTovt::build()           Geant_hits-->Tovt_hits
+ |        |    |   |       |->AMSTOFRawEvent::mc_build()    Tovt_hits-->RawEvent_hits
  |        |    |   |
  |        |    |   |->_sictcevent     Simulate CTC
  |        |    |   |     

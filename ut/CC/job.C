@@ -9,7 +9,8 @@
 #include <math.h>
 #include <commons.h>
 #include <amsdbc.h>
-#include <tofdbc.h>
+#include <iostream.h>
+#include <fstream.h>
 #include <trid.h>
 #include <mccluster.h>
 #include <extC.h>
@@ -18,9 +19,19 @@
 #include <ctcdbc.h>
 #include <timeid.h>
 #include <mceventg.h>
+#include <tofdbc.h>
+#include <tofsim.h>
+#include <tofcalib.h>
+#include <tofrec.h>
+//
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
 integer AMSJob::debug=1;
+//
+TOFVarp tofvpar; // TOF general parameters (not const !)
+AMSTOFScan scmcscan[SCBLMX];// TOF mcscan PMT time-distributions
+TOFBrcal scbrcal[SCLRS][SCMXBR];// TOF individual sc.bar parameters 
+//
 void AMSJob::data(){
 #ifdef __HPUX__
   AMSTrIdSoft::init();
@@ -129,8 +140,9 @@ CCFFKEY.run=100;
 CCFFKEY.low=0;
 FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
-//==========================================================================
+//=================================================================================
 void AMSJob::_sitofdata(){
+  char tfname[12]="tdfmap01";//file-name for t_distr.files map(max 11 letters )
   TOFMCFFKEY.TimeSigma=0.8e-10; // time resolution(sec) for simplified algorithm
   TOFMCFFKEY.TimeSigma2=3.2e-10;
   TOFMCFFKEY.TimeProbability2=0.035;
@@ -145,9 +157,10 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.trlogic[0]=0; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
   TOFMCFFKEY.trlogic[1]=0; // spare 
   TOFMCFFKEY.fast=1;
+  UCTOH(tfname,TOFMCFFKEY.tdfnam,4,12);
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
-//=======================================================================================
+//=================================================================================
 
 void AMSJob::_sictcdata(){
 
@@ -292,8 +305,9 @@ TRFITFFKEY.FastTracking=0;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }
-
+//========================================================================
 void AMSJob::_retofdata(){
+  char cfname[12]="geomconf";//generic geomconfig-file name (max 11 letters)
   TOFRECFFKEY.Thr1=0.45;// Threshold (mev) on peak bar energy 
   TOFRECFFKEY.ThrS=0.9; // Threshold (mev) on total cluster energy
 //
@@ -302,14 +316,47 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.reprtf[2]=0; // RECO print flag for histograms
   TOFRECFFKEY.reprtf[3]=0; // RECO print flag 
   TOFRECFFKEY.reprtf[4]=0; // RECO print flag
+//
   TOFRECFFKEY.relogic[0]=0;// 0/1 -> normal/calibr. run. 
   TOFRECFFKEY.relogic[1]=0;// RECO logic flag 
   TOFRECFFKEY.relogic[2]=0;// RECO logic flag 
   TOFRECFFKEY.relogic[3]=0;// RECO logic flag 
-  TOFRECFFKEY.relogic[4]=0;// RECO logic flag 
+  TOFRECFFKEY.relogic[4]=0;// RECO logic flag
+//
+  UCTOH(cfname,TOFRECFFKEY.config,4,12);
+//
+  TOFRECFFKEY.daqthr[0]=40.;//thresh(mV) for discr. of "z>=1"-trig (fast/slow_TDC) 
+  TOFRECFFKEY.daqthr[1]=100.;//thresh(mV) for discr. of "z>1"-trig  
+  TOFRECFFKEY.daqthr[2]=200.;//thresh(mV) for discr. of "z>2"-trig  
+  TOFRECFFKEY.daqthr[3]=10.;//thresh(pC) for anode Time_over_Thresh. discr.  
+  TOFRECFFKEY.daqthr[4]=10.;//thresh(pC) for dinode Time_over_Thresh. discr.
+//
+  TOFRECFFKEY.cuts[0]=5.;//t-window(ns) for "the same hit" search in f/s_tdc
+  TOFRECFFKEY.cuts[1]=50.;//"befor"-cut in time history (ns)
+  TOFRECFFKEY.cuts[2]=150.;//"after"-cut in time history (ns)
+  TOFRECFFKEY.cuts[3]=0.;// spare
+  TOFRECFFKEY.cuts[4]=0.;
+  TOFRECFFKEY.cuts[5]=0.;
+  TOFRECFFKEY.cuts[6]=0.;
+  TOFRECFFKEY.cuts[7]=0.;
+  TOFRECFFKEY.cuts[8]=0.;
+  TOFRECFFKEY.cuts[9]=0.;
+//  
+  TOFRECFFKEY.sec[0]=0; 
+  TOFRECFFKEY.sec[1]=0;
+  TOFRECFFKEY.min[0]=0;
+  TOFRECFFKEY.min[1]=0;
+  TOFRECFFKEY.hour[0]=0;
+  TOFRECFFKEY.hour[1]=0;
+  TOFRECFFKEY.day[0]=1;
+  TOFRECFFKEY.day[1]=1;
+  TOFRECFFKEY.mon[0]=0;
+  TOFRECFFKEY.mon[1]=0;
+  TOFRECFFKEY.year[0]=96;
+  TOFRECFFKEY.year[1]=98;
   FFKEY("TOFREC",(float*)&TOFRECFFKEY,sizeof(TOFRECFFKEY_DEF)/sizeof(integer),"MIXED");
 }
-
+//=====================================================================================
 void AMSJob::_rectcdata(){
   CTCRECFFKEY.Thr1=1.5;
   CTCRECFFKEY.ThrS=3;
@@ -519,6 +566,96 @@ void AMSJob::_sitofinitjob(){
 #ifdef __AMSDEBUG__
 #endif
     }
+//------------------------------------------------
+// ===> create scmcscan structure :
+//                                  <-- first read tdfmap-file
+    int i,ic;
+    int brfnam[SCBLMX];
+    char fname[80];
+    char name[12];
+    UHTOC(TOFMCFFKEY.tdfnam,4,name,12);
+    strcat(name,".dat");
+//    strcpy(fname,AMSDATADIR.amsdatadir);    
+    strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");
+    strcat(fname,name);
+    cout<<"Open file : "<<fname<<'\n';
+    ifstream tcfile(fname,ios::in); // open needed tdfmap-file for reading
+    if(!tcfile){
+      cerr <<"TOFtdfmap-read: Error open tdfmap-file "<<fname<<endl;
+      exit(1);
+    }
+    for(ic=0;ic<SCBLMX;ic++) tcfile >> brfnam[ic];
+//-------------------
+//                                  <-- now read t-distr. files
+ char in[2]="0";
+ char inum[11];
+ int j,ila,ibr,brt,ibrm,isp,nsp,ibt,cnum,dnum,mult;
+ integer nb;
+ geant scp[SCANPNT];
+ geant nft,bl,bw;
+ geant arr[AMSDISL];
+ geant ef1[SCANPNT],ef2[SCANPNT];
+ AMSDistr td1[SCANPNT];
+ AMSDistr td2[SCANPNT];
+ geant eff1,eff2;
+//
+  strcpy(inum,"0123456789");
+  for(ila=0;ila<SCLRS;ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<SCMXBR;ibr++){  // <-------- loop over bar in layer
+    brt=TOFDBc::brtype(ila,ibr);
+    if(brt==0)continue; // skip missing counters
+    cnum=ila*SCMXBR+ibr; // sequential counter numbering(0-55)
+    dnum=brfnam[cnum];// 4-digits t-distr. file name
+    mult=1000;
+    strcpy(name,"");
+    for(i=3;i>=0;i--){//create 4-letters file name
+      j=dnum/mult;
+      in[0]=inum[j];
+      strcat(name,in);
+      dnum=dnum%mult;
+      mult=mult/10;
+    }
+    strcat(name,".dat");
+    strcpy(fname,AMSDATADIR.amsdatadir);
+    strcat(fname,name);
+    cout<<"Open file : "<<fname<<'\n';
+    ifstream tcfile(fname,ios::in); // open needed t-calib. file for reading
+    if(!tcfile){
+      cerr <<"Sitofinitjob(job.c): Error open MC-t_distr. file "<<fname<<endl;
+      exit(1);
+    }
+// <-- fill errays scp,ef1,ef2 from file
+//
+    tcfile >> nsp;// read # of calibr. points
+    if(nsp!=SCANPNT){
+      cerr<<"Sitofinitjob: bad # of MC Y-scan point ! "<<nsp<<'\n';
+      exit(1);
+    } 
+    for(isp=0;isp<SCANPNT;isp++){ // sp. points loop to prepare arr. of t-distr
+      tcfile >> scp[isp];
+      tcfile >> nft;   // for PM-1
+      tcfile >> nb;
+      tcfile >> bl;
+      tcfile >> bw;
+      tcfile >> ef1[isp];
+      for(i=0;i<nb;i++){arr[i]=0.;}
+      for(i=0;i<nb;i++){tcfile >> arr[i];}
+      td1[isp]=AMSDistr(nb,bl,bw,arr);
+      tcfile >> nft;   // for PM-2
+      tcfile >> nb;
+      tcfile >> bl;
+      tcfile >> bw;
+      tcfile >> ef2[isp];
+      for(i=0;i<nb;i++){arr[i]=0.;}
+      for(i=0;i<nb;i++){tcfile >> arr[i];}
+      td2[isp]=AMSDistr(nb,bl,bw,arr);
+//
+    } // <--- end of scan points loop -----
+//
+    scmcscan[cnum]=AMSTOFScan(scp,ef1,ef2,td1,td2);// create bar MC-t-scan obj
+    tcfile.close(); // close file
+  } // --- end of bar loop --->
+  } // --- end of layer loop --->
 }
 //========================================================================
 void AMSJob::_sictcinitjob(){
@@ -562,7 +699,7 @@ void AMSJob::_retofinitjob(){
       HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,24.,0.);
       HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,240.,0.);
       HBOOK1(1532,"(T1-T3)(ns),corr,ideal evnt",50,3.,6.,0.);
-      HBOOK1(1533,"L=1,side1/2 Tdiff(ns),ideal evnt",100,-2.5,2.5,0.);
+      HBOOK1(1533,"L=1,side1/2 Tdiff(ns),ideal evnt",100,-4.,0.,0.);
       HBOOK1(1534,"(T2-T4)(ns),corr,ideal evnt",50,3.,6.,0.);
       HBOOK1(1535,"L=1,TOF Eclust(mev)",80,0.,24.,0.);
       HBOOK1(1536,"L=3,TOF Eclust(mev)",80,0.,24.,0.);
@@ -600,10 +737,98 @@ void AMSJob::_retofinitjob(){
          HBOOK1(1525,"Layer-4 PM-2 a-ampl,noncor",80,50.,290.,0.);
       }
     }
-//
+//-------------------------
 //  Clear JOB-statistics counters for SIM/REC :
 //
     TOFJobStat::clear();
+//-------------------------
+// ===> create tofvpar structure :
+//
+ tofvpar.init(TOFRECFFKEY.daqthr, TOFRECFFKEY.cuts);//daqthr/cuts reading
+//-------------------------
+// ===> create scbrcal structures :
+// 
+ integer i,j,ila,ibr,ibrm,isp,nsp,ibt,cnum,dnum,mult;
+//
+ geant scp[SCANPNT];
+ geant rlo[SCANPNT];// relat.(to Y=0) light output
+ integer lps=1000;
+ geant ef1[SCANPNT],ef2[SCANPNT];
+ integer i1,i2,sta[2];
+ geant r,eff1,eff2;
+ integer sid,brt;
+ geant gna[2],gnd[2],qath,qdth,a2dr,tth,strat;
+ geant fstrd,tzer,mip2q;
+ geant tzero[SCBTPN]={4.20,5.02,5.57,5.89,6.03};// tempor T0's by bar types
+//
+//----  
+// 
+ if(AMSJob::gethead()->getjobtype() == AMSFFKEY.Simulation){ // For MC :
+//
+//---> TOFBrcal bank variables init :
+//
+  geant slope=3.18;// tempor
+//---
+  geant td2p[2]={16.9,1.8};// tempor timeD->coord conv.factor(cm/ns) and error(cm)
+//---
+  geant logqin[SCACRFP]={ //  Log(inp_charge(mV*ns)) ref.points
+     0.,0.98,1.94,2.9,3.86};               // (Log(Q_thresh) is subtracted)
+//---
+  geant tovta[SCACRFP]={ // measured(Tovt) amplitude points
+     0.,50.,100.,150.,200.};      //  ("anode" chain, ns)
+//---
+  geant tovtd[SCACRFP]={ // measured(Tovt) amplitude points
+     0.,50.,100.,150.,200.};      //  ("dinode" chain, ns)
+//---
+  geant asatl=20.;//(mev,~10MIPs),if E-dinode(1-end) higher - use it instead
+//                                 of anode measurements
+//
+//---------------------------------------------
+//   ===> fill TOFBrcal bank :
+//
+  for(ila=0;ila<SCLRS;ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<SCMXBR;ibr++){  // <-------- loop over bar in layer
+    brt=TOFDBc::brtype(ila,ibr);
+    if(brt==0)continue; // skip missing counters
+    cnum=ila*SCMXBR+ibr; // sequential counter numbering(0-55)
+    scmcscan[cnum].getscp(scp);//read sc.point from scmcscan-object
+  // read from file or DB:
+    gna[0]=1.; // tempor, will depend on practical calibr. sceme
+    gna[1]=1.;
+    gnd[0]=1.;
+    gnd[1]=1.;
+    qath=tofvpar.daqthr(3); // (pC) thresh. at shaper inp.(anode) (may be diff.
+//              from tofvpar.daqthr(3) in reality !!!, but proportional to him)
+    qdth=tofvpar.daqthr(4); // ...................        (dinode) ................
+    mip2q=117.;//(pC/mev), dE(mev)_at_counter_center->Q(pC)_at_PM_anode(2x3-sum)
+    //                     (depends on bar-type)
+    a2dr=1./TOFDBc::di2anr();// anode_to_dinode signal ratio from MC
+    tth=tofvpar.daqthr(0); // (mV), time-discr. threshold
+    strat=TOFDBc::strrat(); // tempor stratcher ratio from MC
+    fstrd=TOFDBc::accdel(0)-TOFDBc::accdel(1);//(ns),fast-slow TDC trigger delay
+    int mrfp;
+    mrfp=SCANPNT/2+1;
+    scmcscan[cnum].getefarr(ef1,ef2);//read eff1/2 from scmcscan-object
+    for(isp=0;isp<SCANPNT;isp++){ // fill 2-ends rel. l.output at scan-points
+      rlo[isp]=(ef1[isp]+ef2[isp])/(ef1[mrfp]+ef2[mrfp]);
+    }
+  //
+    sid=100*(ila+1)+(ibr+1);
+    tzer=tzero[brt-1];// tempor (later should be red from DB)
+    sta[0]=0;//status ok, really should be taken from slow-control data or manually
+    sta[1]=0;
+    scbrcal[ila][ibr]=TOFBrcal(sid,sta,gna,gnd,qath,qdth,a2dr,asatl,tth,
+                              strat,fstrd,tzer,slope,td2p,mip2q,scp,rlo,
+                              logqin,tovta,tovtd);
+//
+  } // --- end of bar loop --->
+  } // --- end of layer loop --->
+//
+ } // <--- end of MC branch --
+//---------------------------------------------------------------------
+ else{ //                                                For Real Data :
+ }
+//----
 }
 //====================================================================
 void AMSJob::_rectcinitjob(){
@@ -681,6 +906,7 @@ end.tm_year=TKFIELD.iyear[1];
 TID.add (new AMSTimeID(AMSID("MagneticFieldMap",getjobtype()),
    begin,end,sizeof(TKFIELD_DEF),(void*)&TKFIELD));
 }
+//----------------------------
 //
 // Pedestals, Gains,  Sigmas & commons noise for tracker
 //      
@@ -724,7 +950,41 @@ TID.add (new AMSTimeID(AMSID("TrackerCommonNoise",getjobtype()),
    begin,end,sizeof(AMSTrIdSoft::cmnnoise[0])*ms,
    (void*)AMSTrIdSoft::cmnnoise));
 }
+//---------------------------------------
+//
+//   TOF : calibration parameters for all sc.bars
+//
+{
+tm begin;
+tm end;
+begin.tm_sec=TOFRECFFKEY.sec[0];
+begin.tm_min=TOFRECFFKEY.min[0];
+begin.tm_hour=TOFRECFFKEY.hour[0];
+begin.tm_mday=TOFRECFFKEY.day[0];
+begin.tm_mon=TOFRECFFKEY.mon[0];
+begin.tm_year=TOFRECFFKEY.year[0];
 
+end.tm_sec=TOFRECFFKEY.sec[1];
+end.tm_min=TOFRECFFKEY.min[1];
+end.tm_hour=TOFRECFFKEY.hour[1];
+end.tm_mday=TOFRECFFKEY.day[1];
+end.tm_mon=TOFRECFFKEY.mon[1];
+end.tm_year=TOFRECFFKEY.year[1];
+
+   
+TID.add (new AMSTimeID(AMSID("Tofbarcal1",getjobtype()),
+   begin,end,SCBLMX*sizeof(scbrcal[0][0]),
+   (void*)&scbrcal[0][0]));
+   
+TID.add (new AMSTimeID(AMSID("Tofvpar",getjobtype()),
+   begin,end,sizeof(TOFVarp),
+   (void*)&tofvpar));
+   
+TID.add (new AMSTimeID(AMSID("Tofmcscans",getjobtype()),
+   begin,end,SCBLMX*sizeof(AMSTOFScan),
+   (void*)&scmcscan[0]));
+}
+//---------------------------------------
 //
 // Data to fit particle charge magnitude
 //

@@ -12,17 +12,18 @@
 #include <tofrec.h>
 #include <tofcalib.h>
 #include <particle.h>
+#include <iostream.h>
+#include <fstream.h>
 //#include <string.h>
 //#include <stdlib.h>
-//#include <iostream.h>
 //#include <stdio.h>
 //
 //
 extern TOFBrcal scbrcal[SCLRS][SCMXBR];// TZSL-calibration data
 //
-number TOFTZSLcalib::strrat;
-number TOFTZSLcalib::slope;
-number TOFTZSLcalib::tzero[SCLRS][SCMXBR];
+geant TOFTZSLcalib::strrat;
+geant TOFTZSLcalib::slope;
+geant TOFTZSLcalib::tzero[SCLRS][SCMXBR];
 number TOFTZSLcalib::s1;
 number TOFTZSLcalib::s2;
 number TOFTZSLcalib::s3[SCLRS][SCMXBR];
@@ -75,7 +76,7 @@ void TOFTZSLcalib::mfit(){  // calibr. fit procedure
   ifit[0]=1;// release slope-parameter 
 //
   strcpy(pnam[1],p2nam); // for inverse stratcher ratio
-  start[1]=0.05;
+  start[1]=0.025;
   step[1]=0.05;
   plow[1]=0.001;
   phigh[1]=1.;
@@ -199,6 +200,8 @@ void TOFTZSLcalib::mfun(int &np, number grad[], number &f, number x[]
   static int first(0);
   number f1[4],f2[3],f3(0.),f4[3],f5(0.),f6(0.),f7(0.),f8(0.);
   number f9[3],f10(0.);
+  geant w;
+  char fname[80]="tzslcalib.dat";
 //
 //
   for(il=0;il<SCLRS;il++){
@@ -251,13 +254,26 @@ void TOFTZSLcalib::mfun(int &np, number grad[], number &f, number x[]
   if(flg==3){
     resol=-1.;
     if(f>=0. && events>0)resol=sqrt(f/events);
-    strrat=1./x[1];
-    slope=x[0];
+    ofstream tcfile(fname,ios::out);
+    if(!tcfile){
+      cerr<<"TOFTZSLcalib:error opening file for output"<<fname<<'\n';
+      exit(8);
+    }
+    cout<<"Open file for TzSl-calibration output, fname:"<<fname<<'\n';
+    cout<<"Strrat,slope and individual T-thr,Qathr,T0 will be written !"<<'\n';
+    strrat=geant(1./x[1]);
+    slope=geant(x[0]);
+    tcfile << strrat;
+    tcfile << slope;
     for(il=0;il<SCLRS;il++){
       for(ib=0;ib<SCMXBR;ib++){
-        tzero[il][ib]=x[2+il*SCMXBR+ib];
+        tcfile << scbrcal[il][ib].gettthr();
+        tcfile << scbrcal[il][ib].getqathr();
+        tzero[il][ib]=geant(x[2+il*SCMXBR+ib]);
+        tcfile << tzero[il][ib];
       }
     }
+    tcfile.close();
   }
 }
 //-----------------------------------------------------------------------
@@ -265,7 +281,7 @@ void TOFTZSLcalib::mfun(int &np, number grad[], number &f, number x[]
 void TOFTZSLcalib::fill(number bet, int ib[4], number tld[3]
                                              ,number dt[3],number du[3]){
   static int first(0);
-  static number vl(29.979); // light velosity [cm/ns]
+  static number vl(29.979); // light velocity [cm/ns]
   number dtr[3];
   int i,j;
   if(first==0){
@@ -326,7 +342,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   if(bad==1)return; // remove events with bars/layer != 1
   TOFJobStat::addre(3);
 //------>
-    float t1,t2,t3,t4,t13,t24;
+    geant t1,t2,t3,t4,t13,t24;
        ilay=0; //        <-- some hist. for calibration run
     strr=scbrcal[ilay][brnl[ilay]].gtstrat();
     shft=TOFDBc::shftim();
@@ -397,7 +413,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
       HF1(1509,t24,1.);
     }
 //------> get parameters from tracker:
-    static number pmas(0.938),pmomc(7.),betm(0.996),pmomc1(25.);
+    static number pmas(0.938),pmomc(8.),betm(0.996),pmomc1(25.);
     number pmom,bet,chi2;
     number the,phi,rid,err;
     AMSPoint C0;
@@ -409,7 +425,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get TOF-matched track
     if(cptr)
            ntrk+=cptr->getnelem();
-    HF1(1506,float(ntrk),1.);
+    HF1(1506,geant(ntrk),1.);
     if(ntrk!=1)return;// require events with 1 track 
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",0);
@@ -419,14 +435,14 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     } 
     else rid=0;
     pmom=fabs(rid);
-    if(TOFRECFFKEY.reprtf[2]>0)HF1(1500,float(pmom),1.);
+    if(TOFRECFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
     if(pmom<pmomc || pmom>pmomc1)return;// remove low/too_high mom events
     bet=pmom/sqrt(pmom*pmom+pmas*pmas);
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1501,bet,1.);
     TOFJobStat::addre(4);
 //
     int il,ib,ix(0),iy(0);
-    float x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,tg;
+    geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,tg;
     number ram[4],dum[3],tld[3],tdi[3];
     for(il=0;il<4;il++){
       ib=brnl[il];

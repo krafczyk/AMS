@@ -110,7 +110,7 @@ number nrm1[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};
 number nrm2[3][3]={0.,-1.,0.,1.,0.,0., 0.,0.,1.};// for rotated layers (90degr)
 number inrm[3][3];
 number dz,dz1,dz2,zc,dx,dxt;
-integer nbm,nrot;
+integer btyp,nbm,nrot;
 char name[5];
 number co[3]={0.,0.,0.};
 geant coo[3]={0.,0.,0.};
@@ -120,6 +120,8 @@ AMSNode *cur;
 AMSNode *dau;
 AMSgtmed *p;
 AMSID amsid;
+//
+TOFDBc::readgconf(TOFRECFFKEY.config);// read TOF-counters geometry parameters
 //------
 dz1=TOFDBc::supstr(7)/2.+TOFDBc::plnstr(1)+TOFDBc::plnstr(7)
    +TOFDBc::plnstr(6)/2.+TOFDBc::plnstr(3)/2.;//dz hon_str/outer_sc_fixation
@@ -197,6 +199,8 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
 //
 //   <-- cr/position sc. counter (cover + scint. as solid cover)
 //
+    btyp=TOFDBc::brtype(ip,ib);
+    if(btyp==0)continue;// skip physically missing counters
     pr[1]=TOFDBc::brlen(ip,ib)/2.+TOFDBc::plnstr(11); // dy/2 (sc.length+lg) 
     if(TOFDBc::plrotm(ip)==0){  // <-- unrotated planes
       coo[0]=co[0]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));

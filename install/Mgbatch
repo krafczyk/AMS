@@ -29,7 +29,7 @@ ifeq  "$(shell uname)"  "HP-UX"
 CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g   -fhandle-exceptions  -I../include -I../include/stl  
 FFLAGS=   -K +ppu -g -I../include 
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
-LDFLAGS=  -g  -L/cern/95a/lib  -lgeant321  -lpacklib -lmathlib -lkernlib   -L/afs/cern.ch/asis/packages/licensed/nag-mark16/hp700_ux100/nagfl16df -lnag -L/usr/local/lib -lm -lg++ -lstdc++  -lcl -lisamstub -L/usr/local/lib/gcc-lib/hppa1.1-hp-hpux9.05/2.7.2 -lgcc /usr/lib/end.o
+LDFLAGS=  -g  -L/cern/96a/lib  -lgeant321  -lpacklib -lmathlib -lkernlib   -L/afs/cern.ch/asis/packages/licensed/nag-mark16/hp700_ux100/nagfl16df -lnag -L/usr/local/lib -lm -lg++ -lstdc++  -lcl -lisamstub -L/usr/local/lib/gcc-lib/hppa1.1-hp-hpux9.05/2.7.2 -lgcc /usr/lib/end.o
 CC=g++
 FF=f77
 LD=g++
@@ -372,19 +372,19 @@ depend:
 ../bin/aix/amsgeom.o: /usr/include/stddef.h /usr/include/stdlib.h
 ../bin/aix/amsgeom.o: ../include/snode.h ../include/upool.h
 ../bin/aix/amsgeom.o: /usr/lpp/xlC/include/new.h ../include/amsdbc.h
-../bin/aix/amsgeom.o: ../include/tofdbc.h ../include/ctcdbc.h
-../bin/aix/amsgeom.o: ../include/commons.h ../include/cern.h
+../bin/aix/amsgeom.o: ../include/tofdbc.h ../include/cern.h
 ../bin/aix/amsgeom.o: ../include/cfortran.h /usr/include/stdio.h
 ../bin/aix/amsgeom.o: /usr/include/malloc.h ../include/hbook.h
 ../bin/aix/amsgeom.o: ../include/geant321.h ../include/geant321g.h
-../bin/aix/amsgeom.o: ../include/gmat.h ../include/extC.h
+../bin/aix/amsgeom.o: ../include/commons.h ../include/extC.h
+../bin/aix/amsgeom.o: /usr/lpp/xlC/include/fstream.h ../include/job.h
 ../bin/aix/amsgeom.o: ../include/gvolume.h ../include/point.h
-../bin/aix/amsgeom.o: /usr/include/math.h ../include/amsgobj.h
-../bin/aix/amsgeom.o: ../include/uzstat.h /usr/include/limits.h
-../bin/aix/amsgeom.o: /usr/include/sys/limits.h ../include/job.h
+../bin/aix/amsgeom.o: /usr/include/math.h ../include/gmat.h
 ../bin/aix/amsgeom.o: /usr/lpp/xlC/include/iomanip.h
-../bin/aix/amsgeom.o: /usr/lpp/xlC/include/generic.h ../include/timeid.h
-../bin/aix/amsgeom.o: /usr/include/time.h
+../bin/aix/amsgeom.o: /usr/lpp/xlC/include/generic.h ../include/amsgobj.h
+../bin/aix/amsgeom.o: ../include/uzstat.h /usr/include/limits.h
+../bin/aix/amsgeom.o: /usr/include/sys/limits.h ../include/timeid.h
+../bin/aix/amsgeom.o: /usr/include/time.h ../include/ctcdbc.h
 ../bin/aix/geant.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/aix/geant.o: /usr/lpp/xlC/include/iostream.h /usr/include/memory.h
 ../bin/aix/geant.o: /usr/include/string.h /usr/include/standards.h
@@ -490,7 +490,7 @@ depend:
 ../bin/aix/trrec.o: /usr/include/time.h /usr/include/sys/time.h
 ../bin/aix/trrec.o: ../include/trrawcluster.h ../include/extC.h
 ../bin/aix/trrec.o: ../include/tofrec.h ../include/tofdbc.h
-../bin/aix/trrec.o: ../include/ntuple.h
+../bin/aix/trrec.o: /usr/lpp/xlC/include/fstream.h ../include/ntuple.h
 ../bin/aix/uzstat.o: ../include/uzstat.h ../include/cern.h
 ../bin/aix/uzstat.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/aix/uzstat.o: /usr/lpp/xlC/include/iostream.h /usr/include/memory.h
@@ -529,42 +529,44 @@ depend:
 ../bin/aix/job.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/aix/job.o: /usr/include/sys/limits.h ../include/timeid.h
 ../bin/aix/job.o: /usr/include/time.h ../include/commons.h
-../bin/aix/job.o: ../include/tofdbc.h ../include/trid.h ../include/amsstl.h
-../bin/aix/job.o: ../include/link.h ../include/apool.h ../include/mccluster.h
-../bin/aix/job.o: ../include/gsen.h ../include/extC.h ../include/event.h
-../bin/aix/job.o: ../include/cont.h /usr/include/sys/time.h
-../bin/aix/job.o: ../include/charge.h ../include/trrec.h ../include/tofrec.h
+../bin/aix/job.o: /usr/lpp/xlC/include/fstream.h ../include/trid.h
+../bin/aix/job.o: ../include/amsstl.h ../include/link.h ../include/apool.h
+../bin/aix/job.o: ../include/mccluster.h ../include/gsen.h ../include/extC.h
+../bin/aix/job.o: ../include/event.h ../include/cont.h
+../bin/aix/job.o: /usr/include/sys/time.h ../include/charge.h
+../bin/aix/job.o: ../include/trrec.h ../include/tofrec.h ../include/tofdbc.h
 ../bin/aix/job.o: ../include/beta.h ../include/ctcrec.h ../include/ctcdbc.h
-../bin/aix/job.o: ../include/mceventg.h ../include/io.h
-../bin/aix/job.o: /usr/lpp/xlC/include/fstream.h
+../bin/aix/job.o: ../include/mceventg.h ../include/io.h ../include/tofsim.h
+../bin/aix/job.o: ../include/tofcalib.h
 ../bin/aix/event.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/aix/event.o: /usr/lpp/xlC/include/iostream.h /usr/include/memory.h
 ../bin/aix/event.o: /usr/include/string.h /usr/include/standards.h
 ../bin/aix/event.o: /usr/include/sys/types.h ../include/tofdbc.h
-../bin/aix/event.o: ../include/event.h ../include/job.h ../include/node.h
-../bin/aix/event.o: ../include/id.h /usr/lpp/xlC/include/strstream.h
-../bin/aix/event.o: /usr/include/stddef.h /usr/include/stdlib.h
-../bin/aix/event.o: ../include/snode.h ../include/upool.h
-../bin/aix/event.o: /usr/lpp/xlC/include/new.h ../include/gvolume.h
 ../bin/aix/event.o: ../include/cern.h ../include/cfortran.h
 ../bin/aix/event.o: /usr/include/stdio.h /usr/include/malloc.h
 ../bin/aix/event.o: ../include/hbook.h ../include/geant321.h
-../bin/aix/event.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/aix/event.o: ../include/geant321g.h ../include/commons.h
+../bin/aix/event.o: ../include/amsdbc.h ../include/extC.h
+../bin/aix/event.o: /usr/include/stdlib.h /usr/lpp/xlC/include/fstream.h
+../bin/aix/event.o: ../include/job.h ../include/node.h ../include/id.h
+../bin/aix/event.o: /usr/lpp/xlC/include/strstream.h /usr/include/stddef.h
+../bin/aix/event.o: ../include/snode.h ../include/upool.h
+../bin/aix/event.o: /usr/lpp/xlC/include/new.h ../include/gvolume.h
 ../bin/aix/event.o: ../include/point.h /usr/include/math.h ../include/gmat.h
 ../bin/aix/event.o: /usr/lpp/xlC/include/iomanip.h
 ../bin/aix/event.o: /usr/lpp/xlC/include/generic.h ../include/amsgobj.h
 ../bin/aix/event.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/aix/event.o: /usr/include/sys/limits.h ../include/timeid.h
-../bin/aix/event.o: /usr/include/time.h ../include/link.h ../include/apool.h
-../bin/aix/event.o: ../include/cont.h /usr/include/sys/time.h
-../bin/aix/event.o: ../include/commons.h ../include/trrawcluster.h
+../bin/aix/event.o: /usr/include/time.h ../include/event.h ../include/link.h
+../bin/aix/event.o: ../include/apool.h ../include/cont.h
+../bin/aix/event.o: /usr/include/sys/time.h ../include/trrawcluster.h
 ../bin/aix/event.o: ../include/gsen.h ../include/trid.h ../include/amsstl.h
 ../bin/aix/event.o: ../include/trrec.h ../include/mccluster.h
 ../bin/aix/event.o: ../include/tofrec.h ../include/beta.h ../include/ctcrec.h
 ../bin/aix/event.o: ../include/charge.h ../include/particle.h
-../bin/aix/event.o: ../include/ctc.h /usr/lpp/xlC/include/fstream.h
-../bin/aix/event.o: ../include/tofsim.h ../include/tofcalib.h
-../bin/aix/event.o: ../include/ntuple.h ../include/ctcdbc.h
+../bin/aix/event.o: ../include/ctc.h ../include/tofsim.h
+../bin/aix/event.o: ../include/tofcalib.h ../include/ntuple.h
+../bin/aix/event.o: ../include/ctcdbc.h
 ../bin/aix/cont.o: ../include/cont.h ../include/typedefs.h
 ../bin/aix/cont.o: /usr/include/assert.h /usr/lpp/xlC/include/iostream.h
 ../bin/aix/cont.o: /usr/include/memory.h /usr/include/string.h
@@ -651,9 +653,9 @@ depend:
 ../bin/aix/tofrec.o: ../include/commons.h ../include/mccluster.h
 ../bin/aix/tofrec.o: ../include/gsen.h ../include/trid.h ../include/amsstl.h
 ../bin/aix/tofrec.o: ../include/extC.h ../include/tofdbc.h
-../bin/aix/tofrec.o: ../include/tofsim.h ../include/trrec.h
-../bin/aix/tofrec.o: ../include/tofrec.h ../include/tofcalib.h
-../bin/aix/tofrec.o: ../include/ntuple.h
+../bin/aix/tofrec.o: /usr/lpp/xlC/include/fstream.h ../include/tofsim.h
+../bin/aix/tofrec.o: ../include/trrec.h ../include/tofrec.h
+../bin/aix/tofrec.o: ../include/tofcalib.h ../include/ntuple.h
 ../bin/aix/tofsim.o: /usr/lpp/xlC/include/iostream.h /usr/include/memory.h
 ../bin/aix/tofsim.o: /usr/include/string.h /usr/include/standards.h
 ../bin/aix/tofsim.o: /usr/include/sys/types.h /usr/include/stdio.h
@@ -675,9 +677,9 @@ depend:
 ../bin/aix/tofsim.o: /usr/include/time.h ../include/link.h ../include/apool.h
 ../bin/aix/tofsim.o: ../include/cont.h /usr/include/sys/time.h
 ../bin/aix/tofsim.o: ../include/amsstl.h ../include/commons.h
-../bin/aix/tofsim.o: ../include/tofdbc.h ../include/tofsim.h
-../bin/aix/tofsim.o: ../include/mccluster.h ../include/gsen.h
-../bin/aix/tofsim.o: ../include/trid.h
+../bin/aix/tofsim.o: ../include/tofdbc.h /usr/lpp/xlC/include/fstream.h
+../bin/aix/tofsim.o: ../include/tofsim.h ../include/mccluster.h
+../bin/aix/tofsim.o: ../include/gsen.h ../include/trid.h
 ../bin/aix/beta.o: ../include/beta.h ../include/link.h ../include/typedefs.h
 ../bin/aix/beta.o: /usr/include/assert.h /usr/lpp/xlC/include/iostream.h
 ../bin/aix/beta.o: /usr/include/memory.h /usr/include/string.h
@@ -699,9 +701,10 @@ depend:
 ../bin/aix/beta.o: /usr/include/sys/limits.h ../include/timeid.h
 ../bin/aix/beta.o: /usr/include/time.h ../include/cont.h
 ../bin/aix/beta.o: /usr/include/sys/time.h ../include/tofdbc.h
-../bin/aix/beta.o: ../include/trrec.h ../include/gsen.h ../include/trid.h
-../bin/aix/beta.o: ../include/amsstl.h ../include/commons.h
-../bin/aix/beta.o: ../include/ctcrec.h ../include/extC.h ../include/ntuple.h
+../bin/aix/beta.o: ../include/commons.h ../include/extC.h
+../bin/aix/beta.o: /usr/lpp/xlC/include/fstream.h ../include/trrec.h
+../bin/aix/beta.o: ../include/gsen.h ../include/trid.h ../include/amsstl.h
+../bin/aix/beta.o: ../include/ctcrec.h ../include/ntuple.h
 ../bin/aix/charge.o: ../include/beta.h ../include/link.h
 ../bin/aix/charge.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/aix/charge.o: /usr/lpp/xlC/include/iostream.h /usr/include/memory.h
@@ -723,10 +726,10 @@ depend:
 ../bin/aix/charge.o: /usr/include/sys/limits.h ../include/timeid.h
 ../bin/aix/charge.o: /usr/include/time.h ../include/cont.h
 ../bin/aix/charge.o: /usr/include/sys/time.h ../include/tofdbc.h
-../bin/aix/charge.o: ../include/trrec.h ../include/gsen.h ../include/trid.h
-../bin/aix/charge.o: ../include/amsstl.h ../include/commons.h
-../bin/aix/charge.o: ../include/ctcrec.h ../include/extC.h
-../bin/aix/charge.o: ../include/charge.h /usr/lpp/xlC/include/fstream.h
+../bin/aix/charge.o: ../include/commons.h ../include/extC.h
+../bin/aix/charge.o: /usr/lpp/xlC/include/fstream.h ../include/trrec.h
+../bin/aix/charge.o: ../include/gsen.h ../include/trid.h ../include/amsstl.h
+../bin/aix/charge.o: ../include/ctcrec.h ../include/charge.h
 ../bin/aix/charge.o: ../include/ntuple.h
 ../bin/aix/particle.o: ../include/commons.h ../include/cern.h
 ../bin/aix/particle.o: ../include/typedefs.h /usr/include/assert.h
@@ -752,8 +755,8 @@ depend:
 ../bin/aix/particle.o: /usr/lpp/xlC/include/generic.h ../include/timeid.h
 ../bin/aix/particle.o: /usr/include/time.h /usr/include/sys/time.h
 ../bin/aix/particle.o: ../include/tofrec.h ../include/tofdbc.h
-../bin/aix/particle.o: ../include/beta.h ../include/ctcrec.h
-../bin/aix/particle.o: /usr/lpp/xlC/include/fstream.h ../include/particle.h
+../bin/aix/particle.o: /usr/lpp/xlC/include/fstream.h ../include/beta.h
+../bin/aix/particle.o: ../include/ctcrec.h ../include/particle.h
 ../bin/aix/particle.o: ../include/ctc.h ../include/mccluster.h
 ../bin/aix/particle.o: ../include/ctcdbc.h ../include/ntuple.h
 ../bin/aix/commons.o: ../include/commons.h ../include/cern.h
@@ -779,14 +782,26 @@ depend:
 ../bin/aix/apool.o: ../include/amsgobj.h ../include/uzstat.h
 ../bin/aix/apool.o: /usr/include/limits.h /usr/include/sys/limits.h
 ../bin/aix/tofdbc.o: /usr/include/math.h ../include/tofdbc.h
-../bin/aix/tofdbc.o: /usr/include/string.h /usr/include/standards.h
-../bin/aix/tofdbc.o: /usr/include/sys/types.h ../include/typedefs.h
+../bin/aix/tofdbc.o: ../include/cern.h ../include/typedefs.h
 ../bin/aix/tofdbc.o: /usr/include/assert.h /usr/lpp/xlC/include/iostream.h
-../bin/aix/tofdbc.o: /usr/include/memory.h /usr/include/stdio.h
-../bin/aix/tofdbc.o: ../include/commons.h ../include/cern.h
-../bin/aix/tofdbc.o: ../include/cfortran.h /usr/include/malloc.h
-../bin/aix/tofdbc.o: ../include/hbook.h ../include/geant321.h
-../bin/aix/tofdbc.o: ../include/geant321g.h
+../bin/aix/tofdbc.o: /usr/include/memory.h /usr/include/string.h
+../bin/aix/tofdbc.o: /usr/include/standards.h /usr/include/sys/types.h
+../bin/aix/tofdbc.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/aix/tofdbc.o: /usr/include/malloc.h ../include/hbook.h
+../bin/aix/tofdbc.o: ../include/geant321.h ../include/geant321g.h
+../bin/aix/tofdbc.o: ../include/commons.h ../include/amsdbc.h
+../bin/aix/tofdbc.o: ../include/extC.h /usr/include/stdlib.h
+../bin/aix/tofdbc.o: /usr/lpp/xlC/include/fstream.h ../include/job.h
+../bin/aix/tofdbc.o: ../include/node.h ../include/id.h
+../bin/aix/tofdbc.o: /usr/lpp/xlC/include/strstream.h /usr/include/stddef.h
+../bin/aix/tofdbc.o: ../include/snode.h ../include/upool.h
+../bin/aix/tofdbc.o: /usr/lpp/xlC/include/new.h ../include/gvolume.h
+../bin/aix/tofdbc.o: ../include/point.h ../include/gmat.h
+../bin/aix/tofdbc.o: /usr/lpp/xlC/include/iomanip.h
+../bin/aix/tofdbc.o: /usr/lpp/xlC/include/generic.h ../include/amsgobj.h
+../bin/aix/tofdbc.o: ../include/uzstat.h /usr/include/limits.h
+../bin/aix/tofdbc.o: /usr/include/sys/limits.h ../include/timeid.h
+../bin/aix/tofdbc.o: /usr/include/time.h
 ../bin/aix/ctcrec.o: ../include/ctcrec.h ../include/typedefs.h
 ../bin/aix/ctcrec.o: /usr/include/assert.h /usr/lpp/xlC/include/iostream.h
 ../bin/aix/ctcrec.o: /usr/include/memory.h /usr/include/string.h
@@ -810,8 +825,8 @@ depend:
 ../bin/aix/ctcrec.o: /usr/include/sys/time.h ../include/commons.h
 ../bin/aix/ctcrec.o: ../include/mccluster.h ../include/gsen.h
 ../bin/aix/ctcrec.o: ../include/trid.h ../include/amsstl.h ../include/extC.h
-../bin/aix/ctcrec.o: ../include/tofdbc.h ../include/ctcdbc.h
-../bin/aix/ctcrec.o: ../include/ntuple.h
+../bin/aix/ctcrec.o: ../include/tofdbc.h /usr/lpp/xlC/include/fstream.h
+../bin/aix/ctcrec.o: ../include/ctcdbc.h ../include/ntuple.h
 ../bin/aix/ctcdbc.o: ../include/ctcdbc.h ../include/commons.h
 ../bin/aix/ctcdbc.o: ../include/cern.h ../include/typedefs.h
 ../bin/aix/ctcdbc.o: /usr/include/assert.h /usr/lpp/xlC/include/iostream.h
@@ -844,11 +859,11 @@ depend:
 ../bin/aix/tofcalib.o: ../include/mccluster.h ../include/gsen.h
 ../bin/aix/tofcalib.o: ../include/trid.h ../include/amsstl.h
 ../bin/aix/tofcalib.o: ../include/extC.h ../include/tofdbc.h
-../bin/aix/tofcalib.o: ../include/tofsim.h ../include/trrec.h
-../bin/aix/tofcalib.o: ../include/tofrec.h ../include/tofcalib.h
-../bin/aix/tofcalib.o: ../include/particle.h ../include/beta.h
-../bin/aix/tofcalib.o: ../include/ctcrec.h ../include/charge.h
-../bin/aix/tofcalib.o: ../include/ctc.h
+../bin/aix/tofcalib.o: /usr/lpp/xlC/include/fstream.h ../include/tofsim.h
+../bin/aix/tofcalib.o: ../include/trrec.h ../include/tofrec.h
+../bin/aix/tofcalib.o: ../include/tofcalib.h ../include/particle.h
+../bin/aix/tofcalib.o: ../include/beta.h ../include/ctcrec.h
+../bin/aix/tofcalib.o: ../include/charge.h ../include/ctc.h
 ../bin/aix/timeid.o: ../include/timeid.h /usr/include/time.h
 ../bin/aix/timeid.o: ../include/node.h ../include/typedefs.h
 ../bin/aix/timeid.o: /usr/include/assert.h /usr/lpp/xlC/include/iostream.h

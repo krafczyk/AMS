@@ -34,19 +34,20 @@ I86   ffile(' ')                 // file name
 // TOF  Simulation
 
 TOFMC      
-R 1   TimeSigma(80e-12)  // Time resolution(sec) for simplified algorithm 
-R 2   TimeSigma2(320e-12)  // 2nd Time res(sec) for simplified algorithm 
-R 3   TimeProbability2(0.035)  // 2nd Time Probability
-R 4   padl(10.5)          // Sc. bars transv. step (cm) ..................
-R 5   Thr(0.1)            // Sc.bar Elos-thresh(mev) to participate in Reco 
-I 6   Print-flag(0)       // to print init arrays if=1        
-I 7   Print-flag(0)       // to print PMT pulses if=1        
-I 8   Print-flag(0)       // to print histograms if=1        
-I 9   Print-flag(0)       // spare        
-I10   Print-flag(0)       // spare
-I11   Trig.logic-flag(0)  //  use AND/OR(if=1) for two side PMT logicsignal   
-I12   Trig.logic-flag(0)  // spare        
-I13   fast(1)             //  fast/slow algorithm switch 
+R  1   TimeSigma(80e-12)  // Time resolution(sec) for simplified(fast) algorithm 
+R  2   TimeSigma2(320e-12)  // 2nd Time res(sec) for simplified algorithm 
+R  3   TimeProbability2(0.035)  // 2nd Time Probability
+R  4   padl(10.5)          // Sc. bars transv. step (cm) ..................
+R  5   Thr(0.1)            // Sc.bar Elos-thresh(mev) to participate in Reco 
+I  6   Print-flag(0)       // to print init arrays if=1        
+I  7   Print-flag(0)       // to print PMT pulses if=1        
+I  8   Print-flag(0)       // to print MC-histograms if=1        
+I  9   Print-flag(0)       // spare        
+I 10   Print-flag(0)       // spare
+I 11   Trig.logic-flag(0)  //  use AND/OR(if=0/1) for two side logic signals   
+I 12   Trig.logic-flag(0)  // spare        
+I 13   fast(1)             //  fast/slow(i.e. accurate) (1/0) algorithm switch
+I 14-16  file-name         // (<=11 letters) contains map of t-distr. file names
 
 
 // TOF Reconstruction
@@ -64,6 +65,22 @@ I 9   RECO logic-flag(0)  // spare
 I 10  RECO logic-flag(0)  // spare
 I 11  RECO logic-flag(0)  // spare
 I 12  RECO logic-flag(0)  // spare
+I 13-15 generic file-name // (<=11 letters) contains bar-types map and geometry const.
+I 16  DAQ-thresh-1 (40)     // thresh.(mv) for fast t-discriminator (z>=1 trig)
+I 17  DAQ-thresh-2 (100)    // thresh.(mv) for z>1-trig. discr.
+I 18  DAQ-thresh-3 (200)    // thresh.(mv) for z>2-trig. discr.
+I 19  DAQ-thresh-4 (10)     // thresh.(pC) for anode Time_over_Threshold discr.
+I 20  DAQ-thresh-5 (10)     // thresh.(pC) for dinode Time_over_Threshold discr.
+I 21  cut-1 ()            // cut on time diff. of the same hit in fast/slow TDC
+I 22  cut-2 ()            // cut on min. distance of "befor"-hit in time history TDC
+I 23  cut-3 ()            // ........................"after"-hit in time history TDC
+I 24-30 spare cuts        //
+I 31   sec[2](0,0)        // Validity time:
+I 33   min[2](0,0)        //
+I 35   hour[2](0,0)       // 
+I 37   day[2](1,1)        //
+I 39   mon[2](0,0)        //
+I 41   year[2](96,98)     //
 //---------------------------------------------------------------------------------
 
 // CTC  Simulation
