@@ -15,7 +15,7 @@ C      CALL HBOOK1(12,  'NTRTR', 12, -1, 5, 0.)
 C      CALL HBOOK1(13,  'NBETA', 12, -1, 5, 0.)
 C      CALL HBOOK1(103, '[b](v/c)', 120, -1.2, 1.2, 0.)
 * 
-       call HROPEN(44,'output','aprf.hbk','NP',1024,iostat)      
+       call HROPEN(44,'output','posn.hbk','NP',1024,iostat)      
       x=aprf(0,1)
       RETURN
       END
@@ -84,7 +84,7 @@ C     &  'NBETA','BETA', 'NPART', 'NTRTR', 'NHITS', 217*' '/
 *
 *-- Comment the following in case you do not want to write selectd events
 *--  into new ntuples
-      icut=aprf(1,1)
+      icut=aprf(1,-1)
       USRCUT =icut
       if(usrcut.ne.0)then
         notzero=notzero+1
@@ -125,10 +125,6 @@ C      CALL HPRINT(0)
 
       integer FUNCTION aprf(init,isig)
       INCLUDE 'cwncom.inc'
-
-*
-*--   Enter user code here
-*
          integer patmiss(6,22)
          data patmiss/                0,0,0,0,0,0,   ! 123456  0
      +                                0,0,0,0,0,5,   ! 12346   1
@@ -155,15 +151,18 @@ C      CALL HPRINT(0)
 
       integer pm
       logical cut
-         aprf=0
-c    write(*,*)init,isig
+      aprf=0
+      
       if(init.eq.0)then
-c         call hbook1(2,'Nparticles',20,-0.5,19.5,0.)
          call hbook1(11,'Trclusters',200,-0.5,199.5,0.)
          call hbook1(12,'TOFclusters',50,-0.5,49.5,0.)
          call hbook1(13,'mass',200,-5.,15.,0.)
          call hbook1(15,'gr/r',200,-1.,4.,0.)
-         call hbook1(21,'ridgidity',200,-40.,40.,0.)
+         call hbook1(21,'ridgidity',200,-10.,10.,0.)
+         call hbook1(1077,'beta',200,-5.,5.,0.)
+         call hbook1(1078,'beta',200,0.,20.,0.)
+         call hbook1(621,'ridgidity',200,-10.,10.,0.)
+         call hbook1(721,'ridgidity',200,-10.,10.,0.)
          call hbook1(22,'charge',10,0.5,10.5,0.)
          call hbook1(23,'beta',200,-1.1,1.1,0.)
          call hbook1(24,'betapattern',23,-0.5,22.5,0.)
@@ -174,20 +173,22 @@ c         call hbook1(2,'Nparticles',20,-0.5,19.5,0.)
          call hbook1(41,'probtr',200,0.,1.,0.)
          call hbook1(51,'chi2f',200,0.,50.,0.)
          call hbook1(52,'chi2c',200,0.,10.,0.)
-         call hbook1(53,'chi2d',200,0.,50.,0.)
+         call hbook1(53,'chi2d',200,0.,51000.,0.)
          call hbook1(54,'chi2fms',200,0.,400.,0.)
          call hbook1(61,'phi',200,-0.002,0.002,0.)
          call hbook1(62,'the',200,-0.002,0.002,0.)
          call hbook1(63,'ridgidity rp',400,0,100.,0.)
          call hbook1(64,'ridgidity rt',400,0,100.,0.)
          call hbook1(65,'ridgidity 1',400,0,100.,0.)
-         call hbook1(71,'pmass',200,-2.,12.,0.)
+         call hbook2(66,'ctc',100,-70.,70.,100,-50.,50.,0.)
+         call hbook2(67,'ctc',100,-70.,70.,100,-50.,50.,0.)
+         call hbook1(71,'pmass',200,-1.,1.,0.)
          call hbook1(72,'perrmass/pmass',200,0.,1.,0.)
          call hbook1(73,'prob',200,0.,1.,0.)
          call hbook1(82,'pid',200,-0.5,199.5,0.)
          call hbook1(91,'ridgidity',200,-40.,40.,0.)
-         call hbook1(92,'pmass',200,-2.,12.,0.)
-         call hbook1(93,'pattern',25,-0.5,24.5,0.)
+         call hbook1(92,'pmass',200,-1.,1.,0.)
+         call hbook1(93,'pmass',200,-1.,1.,0.)
          call hbook1(94,'locgl',10,-0.5,9.5,0.)
          call hbook1(95,'summis',200,-0.5,199.5,0.)
          call hbook1(96,'disty',200,-1.,1.,0.)
@@ -197,7 +198,8 @@ c         call hbook1(2,'Nparticles',20,-0.5,19.5,0.)
          call hbook1(1000+12,'TOFclusters',50,-0.5,49.5,0.)
          call hbook1(1000+13,'mass',200,-5.,15.,0.)
          call hbook1(1000+15,'gr/r',200,-1.,4.,0.)
-         call hbook1(1000+21,'ridgidity',200,-40.,40.,0.)
+         call hbook1(1000+21,'ridgidity',200,-10.,10.,0.)
+         call hbook1(2021,'ridgidity',200,-10.,10.,0.)
          call hbook1(1000+22,'charge',10,0.5,10.5,0.)
          call hbook1(1000+23,'beta',200,-1.1,1.1,0.)
          call hbook1(1000+24,'betapattern',23,-0.5,22.5,0.)
@@ -208,11 +210,11 @@ c         call hbook1(2,'Nparticles',20,-0.5,19.5,0.)
          call hbook1(1000+41,'probtr',200,0.,1.,0.)
          call hbook1(1000+51,'chi2f',200,0.,50.,0.)
          call hbook1(1000+52,'chi2c',200,0.,10.,0.)
-         call hbook1(1000+53,'chi2d',200,0.,50.,0.)
+         call hbook1(1000+53,'chi2d',200,0.,51000.,0.)
          call hbook1(1000+54,'chi2fms',200,0.,400.,0.)
          call hbook1(1000+61,'phi',200,-0.002,0.002,0.)
          call hbook1(1000+62,'the',200,-0.002,0.002,0.)
-         call hbook1(1000+71,'pmass',200,-2.,12.,0.)
+         call hbook1(1000+71,'pmass',200,-1.,1.,0.)
          call hbook1(1000+72,'perrmass/pmass',200,0.,1.,0.)
          call hbook1(1000+73,'prob',200,0.,1.,0.)
          call hbook1(1000+82,'pid',200,-0.5,199.5,0.)
@@ -223,15 +225,13 @@ c         call hbook1(2,'Nparticles',20,-0.5,19.5,0.)
          call hbook1(1000+94,'locgl',2,-0.5,1.5,0.)
          call hbook1(1000+95,'summis',200,-0.5,199.5,0.)
          call hbook1(1000+96,'disty',200,-1.,1.,0.)
-c         init=1
-c         write(*,*)'out'
          return
       endif
 *
 *    Basic cuts
 *
 c      call hf1(2,float(npart),1.)
-      if(mod(eventstatus/1048576,4).gt.0.and.
+      if(mod(eventstatus/1048576/2,4).gt.0.and.
      +  mod(eventstatus/32,8).eq.0)then
         r=gridgidity(ptrackp(1))/ridgidity(ptrackp(1))
         if(beta(pbetap(1)).lt.0)r=-r
@@ -243,7 +243,8 @@ c      call hf1(2,float(npart),1.)
         call hf1(25,float(pattern(ptrackp(1))),1.)
         call hf1(26,cos(thetagl(1)),1.)
         if(geanefitdone(ptrackp(1)).eq.0.or.
-     +    (r.gt.0.4.and.r.lt.2.5))then
+c     +    (r.gt.0.4.and.r.lt.2.5))then
+     +    (r.gt.0.4.and.r.lt.2.5e4))then
           if(xsign(pmom(1)).eq.isig.and.
      +       betapattern(pbetap(1)).lt.5.and.
      +       advancedfitdone(ptrackp(1)).ne.0)then
@@ -251,7 +252,8 @@ c      call hf1(2,float(npart),1.)
              r2=ridgidity(ptrackp(1))/hridgidity(2,ptrackp(1))
              call hf1(31,r1,1.)
              call hf1(32,r2,1.)
-             if(r1.gt.0.4.and.r1.lt.1.6.and.r2.gt.0.4.and.r2.lt.1.6)then
+c             if(r1.gt.0.4.and.r1.lt.1.6.and.r2.gt.0.4.and.r2.lt.1.6)then
+             if(r1.gt.0..and.r1.lt.1000.and.r2.gt.0..and.r2.lt.1000)then
                call hf1(41,proballtracker(pchargep(1)),1.)
                if(proballtracker(pchargep(1)).gt.0.05)then
                 call hf1(51,chi2fastfit(ptrackp(1)),1.)
@@ -260,7 +262,7 @@ c      call hf1(2,float(npart),1.)
                 d=chi2fastfit(iptr)-hchi2(1,iptr)-hchi2(2,iptr)
                 call hf1(53,d,1.)
                 call hf1(54,fchi2ms(ptrackp(1)),1.)
-                if(d.lt.50.and.fchi2ms(ptrackp(1)).lt.200.)then
+                if(d.lt.50)then
                    rp= asin(sin(hphi(2,iptr)-hphi(1,iptr)))
                    rt=htheta(2,iptr)-htheta(1,iptr)
                    call hf1(61,rp,1.)
@@ -286,10 +288,21 @@ c      call hf1(2,float(npart),1.)
      +              cooctc(1,1,1).lt.xlr.and.
      +              cooctc(2,1,1).gt.yll.and.
      +              cooctc(2,1,1).lt.ylr
+                    call hf2(66,cooctc(1,1,1),cooctc(2,1,1),1.)
+                    if(abs(pmom(1)).lt.5)then
                        call hf1(1021,pmom(1),1.)
-                     if(atcnbphe(2,1)+atcnbphe(1,1).lt.1.5.and.cut)then
+                    zg=(abs(1/beta(pbetap(1)))-1.)
+     +              /betaerror(pbetap(1))
+                       call hf1(1077,zg,1.)
+                      if(abs(1/beta(pbetap(1)))
+     +                 .lt.1+1.*betaerror(pbetap(1)))then
+                       call hf1(621,pmom(1),1.)
+                       call hf1(1078,atcnbphe(1,1)+atcnbphe(2,1),1.)
+                     if(atcnbphe(1,1)+atcnbphe(2,1).gt.1.5)then
                        call hf1(2021,pmom(1),1.)
+                     if(abs(pmass(1)).lt.2.)then
                       summis=0
+                      
                       goto 777
                       disty=-1.e6
                       do i=1,6
@@ -316,14 +329,16 @@ c      call hf1(2,float(npart),1.)
                       enddo
                       call hf1(95,summis,1.)
  777                  continue
-                     if(abs(pmass(1)).gt.0.2.or.pmom(1).gt.0)then
-                       if(isig.lt.0)then
+                       call hf1(92,pmass(1),1.)
+                     if(pmass(1).lt.0.35)then
+                       call hf1(93,pmass(1),1.)
+                       if(isig.gt.0)then
                         aprf=1
-                        write(46,*)run,eventno,pmass(1),pmom(1),
+                        write(86,*)run,eventno,pmass(1),pmom(1),
      +                  address(ptrackp(1))
-                       else if(rndm(d).lt.0.004)then
+                       else if(rndm(d).lt.0.05)then
                         aprf=1
-                        write(48,*)run,eventno,pmass(1),pmom(1),
+                        write(87,*)run,eventno,pmass(1),pmom(1),
      +                  address(ptrackp(1))
                        endif
                        istat=trstatus(ptrackp(1))
@@ -375,6 +390,9 @@ c      call hf1(2,float(npart),1.)
                       endif                      
                      endif                      
                     endif
+                    endif
+                    endif
+                    endif
                    endif
                 endif
                endif
@@ -383,8 +401,10 @@ c      call hf1(2,float(npart),1.)
         endif
       endif     
 *
-c      write(*,*)' out '
       END
+
+
+
       function xsign(x)
        xsign=1.
        if(x.lt.0)xsign=-1.
