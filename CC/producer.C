@@ -621,16 +621,23 @@ void AMSProducer::sendDSTInfo(){
 
 bool AMSProducer::Progressing(){
 static integer total=-1;
- if(total>0 && total == _cinfo.EventsProcessed){
+static float xt=0;
+float lt;
+TIMEX(lt);
+ if(total>=0 && lt-xt>AMSFFKEY.CpuLimit*2){
    total=-1;   
    return false;
  }
  else if(total<0){
   total=_cinfo.EventsProcessed;
+  TIMEX(xt);
+  return true;
+ }
+ else if(total != _cinfo.EventsProcessed){
+  total=-1;
   return true;
  }
  else{
-  total=-1;
   return true;
  }
 }

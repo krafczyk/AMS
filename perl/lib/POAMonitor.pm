@@ -17,6 +17,9 @@ sub MonInfo{
     my ($class,$cid,$message,$error,$timeout)=@_;
     if(ref($monitorUI::Singleton)){
      monitorUI::MonInfo($message,$error,$timeout);     
+        while (Gtk->events_pending()){
+             Gtk->main_iteration();
+         }
     }
     else{
     }    

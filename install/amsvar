@@ -14,6 +14,6 @@ setenv SlowRateDataDir   $Offline/SlowRateDataDir
 setenv AMSGeoDir         $Offline/vdev/display/v2.00
 setenv amsed             $Offline/vdev/display/v2.00/$OS/bin/amsed
 limit core 0
-limit data 384000
+limit data 512000
 limit stack 32000
 

@@ -1,26 +1,8 @@
-// This code implementation is the intellectual property of
-// the GEANT4 collaboration.
 //
-// By copying, distributing or modifying the Program (or any work
-// based on the Program) you indicate your acceptance of this statement,
-// and all its terms.
-//
-// $Id: g4xray.C,v 1.1 2000/09/05 13:40:55 choutko Exp $
+// $Id: g4xray.C,v 1.2 2001/01/09 15:08:25 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
-// ----------------------------------------------------------------------
-//      GEANT 4 class implementation file
-//
-//      For information related to this code contact:
-//      CERN, CN Division, ASD Group
-//      History: first implementation, based on object model of
-//      4th April 1996, G.Cosmo
-// **********************************************************************
-//  Added particle definitions, H.Kurashige, 19 April 1996
-//  Added SetCuts implementation , L.Urban , 12 June 1996
-//  Code uses operators (+=, *=, ++, -> etc.) correctly, P. Urban, 26/6/96
-
 // ----------------------------------------------------------------------
 
 #include "G4ios.hh"
