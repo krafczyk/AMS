@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.89 2003/12/10 15:54:41 choutko Exp $
+//  $Id: ecalrec.C,v 1.90 2003/12/11 16:14:03 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -2163,7 +2163,7 @@ void AMSEcalShower::ProfileFit(){
     number ww[lwc],bound,epsa,epsr,result,abserr;
     integer inf,iww[liwc];
     ifail=1;
-    for(int i=Maxrow-1;i>=0;i++){
+    for(int i=Maxrow-1;i>=0;i--){
       if(_Edep[i]){
        bound=_Ez[i]-_Ez[0]+_Dz/2;
        break;
@@ -2218,7 +2218,7 @@ void AMSEcalShower::ProfileFit(){
     inf=1;
     int liw=liwc;
     int lw=lwc;
-    for(int i=Maxrow-1;i>=0;i++){
+    for(int i=Maxrow-1;i>=0;i--){
       if(_Edep[i]){
        bound=_Ez[i]-_Ez[0]+_Dz/2;
        break;

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.80 2003/12/03 10:31:45 choutko Exp $
+//  $Id: producer.C,v 1.81 2003/12/11 16:14:03 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -201,6 +201,7 @@ if (_Solo){
     _cinfo.TimeSpent=0;
     _cinfo.HostName=_pid.HostName; 
     _cinfo.Run=_reinfo->Run;
+    _reinfo->cinfo=_cinfo;
      LMessage(AMSClient::print(_reinfo,"StartingRun"));
   return;
 }
