@@ -1,4 +1,4 @@
-//  $Id: trcalib.C,v 1.52 2001/12/07 11:32:19 choutko Exp $
+//  $Id: trcalib.C,v 1.53 2002/07/18 13:45:46 choutko Exp $
 #include <trcalib.h>
 #include <event.h>
 #include <math.h>
@@ -614,8 +614,8 @@ void AMSTrCalibFit::alfun(integer &n, number xc[], number &fc, AMSTrCalibFit *p)
     number error=out[8];
 //    error=0.1;
     //cout <<npfit<<" "<<out[5]<<" "<<out[6]<<" "<<error<<" "<<p->_pData[niter]._InvRigidity<<" "<<p->_pData[niter]._ErrInvRigidity<<" "<<niter<<endl;
-    if(p->_Algorithm ==0)fc+=pow(energy/out[5]-(p->_pData)[niter]._InvBeta,2.)/
-     (pow((p->_pData)[niter]._ErrInvBeta,2.)+pow(pm2/energy*out[8],2.));    
+    if(p->_Algorithm ==0)fc+=pow(energy/out[5]-(p->_pData)[niter]._InvBeta,double(2.))/
+(((p->_pData)[niter]._ErrInvBeta)*((p->_pData)[niter]._ErrInvBeta)+(pm2/energy*out[8])*(pm2/energy*out[8]));    
     else if(p->_Algorithm<3)fc+=out[6];
     else {
         // Fit every combi from pattern
@@ -847,7 +847,7 @@ void AMSTrIdCalib::_hist(){
           HF1(400000+2,_ADC2[ch]-sigmas[ch],1.);
           HF1(400010+2,_ADC2[ch],1.);
           HF1(400020+2,sigmas[ch],1.);
-          HF1(400000+3,_ADC2[ch]/sqrt(_Count[ch]),1.);
+          HF1(400000+3,_ADC2[ch]/sqrt(double(_Count[ch])),1.);
 
           HF1(400000+(l+1)*100+1,_ADCRaw[ch]-cid.getped(),1.);
           HF1(400010+(l+1)*100+1,_ADCRaw[ch],1.);
@@ -855,7 +855,7 @@ void AMSTrIdCalib::_hist(){
           HF1(400000+(l+1)*100+2,_ADC2[ch]-sigmas[ch],1.);
           HF1(400010+(l+1)*100+2,_ADC2[ch],1.);
           HF1(400020+(l+1)*100+2,cid.getsig(),1.);
-          HF1(400000+(l+1)*100+3,_ADC2[ch]/sqrt(_Count[ch]),1.);
+          HF1(400000+(l+1)*100+3,_ADC2[ch]/sqrt(double(_Count[ch])),1.);
          }
         }
        }

@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.43 2002/07/12 11:19:00 choutko Exp $
+//  $Id: server.h,v 1.44 2002/07/18 13:45:50 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -17,6 +17,14 @@
 #include <timeid.h>
 
 class AMSServerI : public AMSNode{
+public:
+typedef list<DPS::Server::CriticalOps> COL;
+typedef list<DPS::Server::CriticalOps>::iterator COLI;
+typedef list<DPS::Client::ActiveHost_var> AHL;
+typedef list<DPS::Client::ActiveHost_var>::iterator AHLI;
+typedef list<DPS::Client::ActiveClient_var> ACL;
+typedef list<DPS::Client::ActiveClient_var>::iterator ACLI;
+
 protected:
 
 uinteger _SubmitTime;
@@ -28,17 +36,12 @@ uinteger _RecID;
 CORBA::ORB_ptr  _defaultorb;    
 AMSClient * _parent;
 
-typedef list<DPS::Server::CriticalOps> COL;
-typedef list<DPS::Server::CriticalOps>::iterator COLI;
 COL _col;
 
- DPS::Client::ClientType _Type;
-typedef list<DPS::Client::ActiveHost_var> AHL;
-typedef list<DPS::Client::ActiveHost_var>::iterator AHLI;
+DPS::Client::ClientType _Type;
+
 AHL  _ahl;
 
-typedef list<DPS::Client::ActiveClient_var> ACL;
-typedef list<DPS::Client::ActiveClient_var>::iterator ACLI;
 ACL  _acl;     // Active Server List
 class ACA{
 private:

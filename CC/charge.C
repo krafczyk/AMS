@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.59 2002/06/03 14:53:34 alexei Exp $
+//  $Id: charge.C,v 1.60 2002/07/18 13:45:46 choutko Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -40,7 +40,7 @@ integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6,7,8,9};
 char AMSCharge::_fnam[128]="lkhd_v216.data";
 
 number AMSCharge::getprobcharge(integer charge){
-charge=fabs(charge);
+charge=abs(charge);
 if(charge>_chargeTracker[ncharge-1]){
   cerr <<" AMSCharge::getprobcharge-E-charge too big "<<charge<<endl;
   return 0;

@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.21 2002/06/03 14:53:34 alexei Exp $
+//  $Id: trigger302.C,v 1.22 2002/07/18 13:45:46 choutko Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -1267,7 +1267,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
 	  crms[sl]=cel2-ecogt[sl]*ecogt[sl];//rms**2
 	  if(crms[sl]<0)crms[sl]=0;
 	  else crms[sl]=sqrt(crms[sl])*_ECpmdx;// in cm
-	  if(crms[sl]==0)crms[sl]=_ECpmdx/sqrt(12);//for 1-pm cluster
+	  if(crms[sl]==0)crms[sl]=_ECpmdx/sqrt(12.);//for 1-pm cluster
 	  ecogt[sl]=-0.5*_ECpmdx*_ECpmpsl+_ECpmdx*(ecogt[sl]-0.5);//cog in cm
 	  if(sl%2==0)ecogt[sl]+=_ECpmy0;//tempor 1st sl->Y
 	  else ecogt[sl]+=_ECpmx0;

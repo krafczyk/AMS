@@ -1,4 +1,4 @@
-#  $Id: g4.doc,v 1.27 2002/07/18 11:42:02 choutko Exp $
+#  $Id: g4.doc,v 1.28 2002/07/18 13:45:50 choutko Exp $
 -------
 Platform:
 linux-gcc2.95.3 ($G4SYSTEM=Linux-g++), linux-iccv6  ($G4SYSTEM=Linux-icc) 
@@ -89,13 +89,7 @@ CPU/Event(au)       1       7 (13 if only GEANTRACKING time compared)
 
 Linux-icc:
 
-ok
-
-run time g3g4.test.job comparison:
-
-                   G3      G4         
-Memory(mb)         60     160
-CPU/Event(au)       1       7 (13 if only GEANTRACKING time compared)      
+ok, ~10% faster than g++ version
 
 
 

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.87 2002/07/12 11:18:59 choutko Exp $
+//  $Id: server.C,v 1.88 2002/07/18 13:45:46 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -1684,6 +1684,11 @@ return length;
      switch (op.Action){
       case StartClient: KillClient: CheckClient:
         CriticalOps op1(op);
+//        op1.TimeOut=op.TimeOut;
+//        op1.Action=op.Action;
+//        op1.TimeStamp=op.TimeStamp;
+//        op1.Type=op.Type;
+//        op1.id=op.id;
         if(op.Action==StartClient)op1.Action=ClearStartClient;        
         if(op.Action==KillClient)op1.Action=ClearKillClient;        
         if(op.Action==CheckClient)op1.Action=ClearCheckClient;        
