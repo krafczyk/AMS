@@ -1,4 +1,4 @@
-//  $Id: AMSR_TrdClusterReader.cxx,v 1.1 2001/08/05 22:43:56 kscholbe Exp $
+//  $Id: AMSR_TrdClusterReader.cxx,v 1.2 2001/08/07 01:40:17 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -206,6 +206,8 @@ void  AMSR_TrdClusterReader::AddCluster(Int_t status,
 
  
     debugger.Print("x,y,layer,ladder_num,ercooA[0],ercooA[1] %f %f %d %d %f %f\n",cooA[0],cooA[1],layer,ladder_num,ercooA[0],ercooA[1]);
+
+// Probably need a better way to indicate energy than this...
    ercooA[2]=sqrt(edep/2);
 
    TClonesArray &clusters = *(TClonesArray*)m_Fruits;

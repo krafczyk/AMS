@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.12 2001/08/06 15:59:23 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.13 2001/08/07 01:40:16 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -196,10 +196,7 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("Velphi", &m_BlkEventh->Velphi, "Velphi/F");
    m_Tree->Branch("Thetam", &m_BlkEventh->Thetam, "Thetam/F");
    m_Tree->Branch("Phim", &m_BlkEventh->Phim, "Phim/F");
-   m_Tree->Branch("Particles", &m_BlkEventh->Particles, "Particles/i");
    m_Tree->Branch("Tracks", &m_BlkEventh->Tracks, "Tracks/i");
-   m_Tree->Branch("Betas", &m_BlkEventh->Betas, "Betas/i");
-   m_Tree->Branch("Charges", &m_BlkEventh->Charges, "Charges/i");
    m_Tree->Branch("Trrechits", &m_BlkEventh->Trrechits, "Trrechits/i");
    m_Tree->Branch("Trclusters", &m_BlkEventh->Trclusters, "Trclusters/i");
    m_Tree->Branch("Trrawclusters", &m_BlkEventh->Trrawclusters, "Trrawclusters/i");
@@ -360,9 +357,9 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("gchi2", m_BlkTrtrack->gchi2, "gchi2[ntrtr]/F");
    m_Tree->Branch("gridgidity", m_BlkTrtrack->gridgidity, "gridgidity[ntrtr]/F");
    m_Tree->Branch("gerrridgidity", m_BlkTrtrack->gerrridgidity, "gerrridgidity[ntrtr]/F");
-   m_Tree->Branch("gtheta", m_BlkTrtrack->gtheta, "gtheta[ntrtr]/F");
-   m_Tree->Branch("gphi", m_BlkTrtrack->gphi, "gphi[ntrtr]/F");
-   m_Tree->Branch("gp0", m_BlkTrtrack->gp0, "gp0[ntrtr][3]/F");
+//   m_Tree->Branch("gtheta", m_BlkTrtrack->gtheta, "gtheta[ntrtr]/F");
+//   m_Tree->Branch("gphi", m_BlkTrtrack->gphi, "gphi[ntrtr]/F");
+//   m_Tree->Branch("gp0", m_BlkTrtrack->gp0, "gp0[ntrtr][3]/F");
    m_Tree->Branch("hchi2", m_BlkTrtrack->hchi2, "hchi2[ntrtr][2]/F");
    m_Tree->Branch("Hridgidity", m_BlkTrtrack->Hridgidity, "Hridgidity[ntrtr][2]/F");
    m_Tree->Branch("Herrridgidity", m_BlkTrtrack->Herrridgidity, "Herrridgidity[ntrtr][2]/F");
@@ -666,10 +663,10 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("Velphi", &m_BlkEventh->Velphi);
    m_Tree->SetBranchAddress("Thetam", &m_BlkEventh->Thetam);
    m_Tree->SetBranchAddress("Phim", &m_BlkEventh->Phim);
-   m_Tree->SetBranchAddress("Particles", &m_BlkEventh->Particles);
+//   m_Tree->SetBranchAddress("Particles", &m_BlkEventh->Particles);
    m_Tree->SetBranchAddress("Tracks", &m_BlkEventh->Tracks);
-   m_Tree->SetBranchAddress("Betas", &m_BlkEventh->Betas);
-   m_Tree->SetBranchAddress("Charges", &m_BlkEventh->Charges);
+//   m_Tree->SetBranchAddress("Betas", &m_BlkEventh->Betas);
+//   m_Tree->SetBranchAddress("Charges", &m_BlkEventh->Charges);
    m_Tree->SetBranchAddress("Trrechits", &m_BlkEventh->Trrechits);
    m_Tree->SetBranchAddress("Trclusters", &m_BlkEventh->Trclusters);
    m_Tree->SetBranchAddress("Trrawclusters", &m_BlkEventh->Trrawclusters);
@@ -799,9 +796,9 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("gchi2", m_BlkTrtrack->gchi2);
    m_Tree->SetBranchAddress("gridgidity", m_BlkTrtrack->gridgidity);
    m_Tree->SetBranchAddress("gerrridgidity", m_BlkTrtrack->gerrridgidity);
-   m_Tree->SetBranchAddress("gtheta", m_BlkTrtrack->gtheta);
-   m_Tree->SetBranchAddress("gphi", m_BlkTrtrack->gphi);
-   m_Tree->SetBranchAddress("gp0", m_BlkTrtrack->gp0);
+//   m_Tree->SetBranchAddress("gtheta", m_BlkTrtrack->gtheta);
+//   m_Tree->SetBranchAddress("gphi", m_BlkTrtrack->gphi);
+//   m_Tree->SetBranchAddress("gp0", m_BlkTrtrack->gp0);
    m_Tree->SetBranchAddress("hchi2", m_BlkTrtrack->hchi2);
    m_Tree->SetBranchAddress("Hridgidity", m_BlkTrtrack->Hridgidity);
    m_Tree->SetBranchAddress("Herrridgidity", m_BlkTrtrack->Herrridgidity);

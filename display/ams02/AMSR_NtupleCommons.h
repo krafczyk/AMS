@@ -1,4 +1,4 @@
-//  $Id: AMSR_NtupleCommons.h,v 1.9 2001/08/05 22:43:55 kscholbe Exp $
+//  $Id: AMSR_NtupleCommons.h,v 1.10 2001/08/07 01:40:17 kscholbe Exp $
 #ifndef AMSR_NtupleCommons_H
 #define AMSR_NtupleCommons_H
 
@@ -39,10 +39,7 @@ struct EVENTH_DEF {
    float Velphi;
    float Thetam;
    float Phim;
-   int   Particles;
    int   Tracks;
-   int   Betas;
-   int   Charges;
    int   Trrechits;
    int   Trclusters;
    int   Trrawclusters;
@@ -269,9 +266,9 @@ struct TRTRACK_DEF {
    float gchi2[NTRTR];
    float gridgidity[NTRTR];
    float gerrridgidity[NTRTR];
-   float gtheta[NTRTR];
-   float gphi[NTRTR];
-   float gp0[NTRTR][3];
+  //   float gtheta[NTRTR];
+  //   float gphi[NTRTR];
+  //   float gp0[NTRTR][3];
    float hchi2[NTRTR][2];
    float Hridgidity[NTRTR][2];
    float Herrridgidity[NTRTR][2];

@@ -1,4 +1,4 @@
-//  $Id: AMSR_TrackReader.cxx,v 1.4 2001/08/04 21:25:12 kscholbe Exp $
+//  $Id: AMSR_TrackReader.cxx,v 1.5 2001/08/07 01:40:17 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -127,10 +127,10 @@ void AMSR_TrackReader::Make()
       t->m_GChi2           = _ntuple->gchi2[k];
       t->m_GRigidity       = _ntuple->gridgidity[k];
       t->m_GErrRigidity    = _ntuple->gerrridgidity[k];
-      t->m_GTheta          = _ntuple->gtheta[k];
-      t->m_GPhi            = _ntuple->gphi[k];
-      for(i=0; i<3; i++)
-        t->m_GP0[i]        = _ntuple->gp0[k][i];
+//      t->m_GTheta          = _ntuple->gtheta[k];
+//      t->m_GPhi            = _ntuple->gphi[k];
+//      for(i=0; i<3; i++)
+//        t->m_GP0[i]        = _ntuple->gp0[k][i];
 
       for (i=0; i<2; i++) {
         t->m_HChi2[i]        = _ntuple->hchi2[k][i];
