@@ -225,8 +225,8 @@ if(init++==0){
   CN.BetaP=_pbeta->getpos();
   CN.ChargeTOF=_ChargeTOF;
   CN.ChargeTracker=_ChargeTracker;
-  for(i=0;i<ncharge;i++)CN.ProbTOF[i]=_ProbTOF[i];
-  for(i=0;i<ncharge;i++)CN.ProbTracker[i]=_ProbTracker[i];
+  for(i=0;i<7;i++)CN.ProbTOF[i]=_ProbTOF[i];
+  for(i=0;i<7;i++)CN.ProbTracker[i]=_ProbTracker[i];
   HFNTB(IOPA.ntuple,"Charge");
 }
 

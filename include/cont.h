@@ -18,7 +18,7 @@ public:
 void * operator new(size_t t, void *p) {return p;}
 void * operator new(size_t t) {return UPool.insert(t);}
 void operator delete(void *p)
-  {if(p){((AMSContainer*)p)->~AMSContainer();UPool.udelete(p);p=0;}}
+  {UPool.udelete(p);p=0;}
 
 AMSContainer(AMSID id,integer nelem=0):
 AMSNode(id),_nelem(nelem),_Last(0),_Head(0),_sorted(0){}

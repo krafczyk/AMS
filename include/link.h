@@ -46,7 +46,7 @@ public:
   void * operator new(size_t t, void *p) {return p;}
   void * operator new(size_t t) {return UPool.insert(t);}
   void operator delete(void *p)
-   {if(p){((AMSlink*)p)->~AMSlink();UPool.udelete(p);}}
+   {UPool.udelete(p);p=0;}
   void erase(){_erase();delete this;} 
   inline AMSlink*  next(){return _next;}
   AMSlink*  next(integer & last);
