@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.48 2003/07/25 16:47:48 alcaraz Exp $
+//  $Id: particle.h,v 1.49 2003/12/18 12:22:07 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -183,7 +183,7 @@ void       setptrack(AMSTrTrack* p) {_ptrack  = p;}
 
 integer    getgpart()               {return _GPart;}
 void       setgpart(integer gpart)  {_GPart = gpart;}
-uinteger contnumber() const {return _ptrack->getpattern()<0?1:0;}
+uinteger contnumber() const {return _ptrack->getpattern()<0 && !_pvert?1:0;}
 //-
 ~AMSParticle(){
 if(_ptrack && _ptrack->getpattern()<0){
