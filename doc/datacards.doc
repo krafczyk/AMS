@@ -258,6 +258,10 @@ R 10 light_guides_length(3)	// PMT box size
 
 
 
+RICCONT
+I 1  iflgk_flag(0)              // Activate the use of the GCTRAK.iflgk=1 in the tracking
+
+
 
 //--------------------------------------------------------------------------------
 

@@ -221,6 +221,8 @@ _sisrddata();
 //========================================================================
 //
 void AMSJob::_sirichdata(){
+
+// Geometry defaults
   RICGEOM.top_radius=RICHDB::top_radius;
   RICGEOM.bottom_radius=RICHDB::bottom_radius;
   RICGEOM.hole_radius=RICHDB::hole_radius;
@@ -230,23 +232,13 @@ void AMSJob::_sirichdata(){
   RICGEOM.radiator_box_length=RICHDB::rad_tile_size;
   RICGEOM.light_guides_height=RICHDB::lg_height;
   RICGEOM.light_guides_length=RICHDB::lg_tile_size;
+
 // Move information to fortran commons
   RICGTKOV.usrcla=RICHDB::rad_clarity;
-  return;
 
-// NEW! RICH key disabled
-
-  RICGEOM.top_radius=63.6;
-  RICGEOM.bottom_radius=74;
-  RICGEOM.hole_radius=33;
-  RICGEOM.height=40;
-  RICGEOM.inner_mirror_height=50;
-  RICGEOM.radiator_radius=63.6;
-  RICGEOM.radiator_height=2;
-  RICGEOM.radiator_box_length=15;
-  RICGEOM.light_guides_height=3; 
-  RICGEOM.light_guides_length=3.2;
-  FFKEY("RICGEOM",(float *)&RICGEOM,sizeof(RICGEOM_DEF)/sizeof(integer),"REAL");
+  RICCONTROL.iflgk_flag=0;
+//  FFKEY("RICGEOM",(float *)&RICGEOM,sizeof(RICGEOM_DEF)/sizeof(integer),"REAL");
+  FFKEY("RICCONT",(float *)&RICCONTROL,sizeof(RICCONTROL_DEF)/sizeof(integer),"MIXED");
 }
 
 void AMSJob::_sitrigdata(){

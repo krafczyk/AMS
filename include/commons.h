@@ -893,6 +893,13 @@ geant light_guides_length;
 #define RICGEOM COMMON_BLOCK(RICGEOM,ricgeom)
 COMMON_BLOCK_DEF(RICGEOM_DEF,RICGEOM);
 
+class RICCONTROL_DEF{
+public:
+integer iflgk_flag;
+};
+#define RICCONTROL COMMON_BLOCK(RICCONTROL,riccontrol)
+COMMON_BLOCK_DEF(RICCONTROL_DEF,RICCONTROL);
+
 
 
 class AMSCommonsI{
