@@ -1,4 +1,4 @@
-//  $Id: AMSHist.h,v 1.5 2001/01/22 17:32:52 choutko Exp $
+//  $Id: AMSHist.h,v 1.6 2003/06/17 07:39:53 choutko Exp $
 #ifndef __AMSHIST__
 #define __AMSHIST__
 #include <TTree.h>
@@ -8,29 +8,34 @@
 #include <TFile.h>
 #include <TPad.h>
 #include <TPaveLabel.h>
-class AMSNtuple;
+#include <TString.h>
+#include <vector>
+using namespace std;
+class AMSNtupleR;
 class AMSHist : public TNamed {
 protected:
  Int_t _cSet;
- Int_t _mSet;
- Bool_t _active; 
- TH1 ** _fetched2;  
- TH1 ** _filled2;
- Int_t _m2fetched;
- Int_t _m2filled;
- virtual void _Fetch()=0;
- virtual void _Fill()=0;
-
+ Int_t _cSetl;
+ bool _active; 
+ vector <TH1*> _filled;
+ vector <TString> SetName;
 public:
+ const char * GetSetName(unsigned int i){return i<SetName.size()?SetName[i].Data():0;}
  Int_t & getCSet() {return _cSet;}
+ Int_t & getCSetl() {return _cSetl;}
+ Int_t  getMSet() {return SetName.size();}
+ void   AddSet(const TString & name){SetName.push_back(name);}  
+ void   AddSet(const char* name){SetName.push_back(TString(name));}  
  void Reset(); 
- virtual void Fill(AMSNtuple * ntuple);
- AMSHist(Text_t * name, Text_t * title, Int_t maxset=0, Int_t active=1):
- TNamed(name,title),_cSet(0),_mSet(maxset),_active(active),_m2fetched(0),_m2filled(0),_fetched2(0),_filled2(0){}
+ AMSHist(Text_t * name, Text_t * title,  Int_t active=1):
+ TNamed(name,title),_cSet(0),_cSetl(0),_active(active){}
  Int_t DispatchHist(Int_t cset=-1);
+ virtual void Book(){};    // User Routine to Book the histos & set up sets
+ virtual void Fill(AMSNtupleR * ntuple);  //< User routine fill the histos
  virtual void ShowSet(Int_t cset)=0;
  virtual ~AMSHist();
- Bool_t & IsActive(){return _active;}
+ void  SetActive(bool active){_active=active;}
+ bool  IsActive(){return (SetName.size()>0) && _active;}
  ClassDef(AMSHist, 1)   //Abstract class to browse hist
      };
 #endif

@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.13 2003/06/17 07:39:54 choutko Exp $
+//  $Id: AMSECALHist.cxx,v 1.1 2003/06/17 07:39:53 choutko Exp $
 // By V. Choutko & D. Casadei
 // Last changes: 27 Feb 1998 by D.C.
 #include <iostream.h>
@@ -10,20 +10,20 @@
 #include <TAttAxis.h>
 #include <TStyle.h>
 #include <TCanvas.h>
-#include "AMSTOFHist.h"
+#include "AMSECALHist.h"
 
 
 
-void AMSTOFHist::Book(){ 
+void AMSECALHist::Book(){ 
 }
 
 
-void AMSTOFHist::ShowSet(Int_t Set){
+void AMSECALHist::ShowSet(Int_t Set){
 }
 
 
 
-void AMSTOFHist::Fill(AMSNtupleR *ntuple){ 
+void AMSECALHist::Fill(AMSNtupleR *ntuple){ 
 }
 
 

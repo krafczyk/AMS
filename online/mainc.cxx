@@ -1,4 +1,4 @@
-//  $Id: mainc.cxx,v 1.13 2001/01/22 17:32:52 choutko Exp $
+//  $Id: mainc.cxx,v 1.14 2003/06/17 07:39:55 choutko Exp $
 #include <TROOT.h>
 #include <TApplication.h>
 #include <TFile.h>
@@ -11,6 +11,8 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
 #include "main.h"
 #include "AMSAntiHist.h"
 #include "AMSTrackerHist.h"
@@ -19,11 +21,13 @@
 #include "AMSLVL3Hist.h"
 #include "AMSCTCHist.h"
 #include "AMSAxAMSHist.h"
+#include "AMSGenHist.h"
 
 void Myapp::HandleIdleTimer(){
 SetReturnFromRun(1);
 Terminate();
 }
+void (handler)(int);
 extern void InitGui(); // loads the device dependent graphics system
 VoidFuncPtr_t initfuncs[] = { InitGui, 0 };
 int Error; // needed by Motif
@@ -32,6 +36,13 @@ TROOT root("AMS", "AMS ROOT", initfuncs);
 
 int main(int argc, char *argv[])
 {
+     *signal(SIGFPE, handler);
+     *signal(SIGCONT, handler);
+     *signal(SIGTERM, handler);
+     *signal(SIGINT, handler);
+     *signal(SIGQUIT, handler);
+
+
 // First create application environment. If you replace TApplication
 // by TRint (which inherits from TApplication) you will be able
 // to execute CINT commands once in the eventloop (via Run()).
@@ -74,10 +85,10 @@ out:
 
 
    printf("opening file %s...\n", fnam);
-  AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Online Display",&f);
+  AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Offline Display",&f);
   AMSAntiHist  antih("ANTI","Anti counter Hists",1,1);
   amd->AddSubDet(antih);
-  AMSTrackerHist  trackerh("Tracker","Tracker  Hists",5,1);
+  AMSTrackerHist  trackerh("Tracker","Tracker  Hists",7,1);
   amd->AddSubDet(trackerh);
   AMSLVL1Hist  LVL1h("LVL1","LVL1  Hists",4,1);
   amd->AddSubDet(LVL1h);
@@ -87,12 +98,15 @@ out:
   amd->AddSubDet(TOFh);
   AMSCTCHist  CTCh("CTC","CTC  Hists",2,1);
   amd->AddSubDet(CTCh);
-  AMSAxAMSHist  AxAMSh("AxAMS","AxAMS  Hists",2,1);
+  AMSAxAMSHist  AxAMSh("AxAMS","AxAMS  Hists",4,1);
   amd->AddSubDet(AxAMSh);
+  AMSGenHist  Genh("Gen","Gen  Hists",6,1);
+  amd->AddSubDet(Genh);
+
   amd->Init();
   amd->SetApplication(theApp);
   amd->Begin()=0;
-  amd->Sample()=990;
+  amd->Sample()=4000;
       for(;;){
         amd->Fill();
         amd->DispatchProcesses();  
@@ -122,4 +136,20 @@ out:
   
 
 
+}
+
+
+void (handler)(int sig){
+  if(sig==SIGFPE)cerr <<" FPE intercepted"<<endl;
+  else if (sig==SIGTERM || sig==SIGINT){
+    cerr <<" SIGTERM intercepted"<<endl;
+    exit(1);
+  }
+  else if(sig==SIGQUIT){
+      cerr <<" Process suspended"<<endl;
+     pause();
+  }
+  else if(sig==SIGCONT){
+      cerr <<" Process resumed"<<endl;
+  }
 }

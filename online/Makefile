@@ -1,48 +1,144 @@
-#  $Id: Makefile,v 1.3 2001/01/22 17:32:52 choutko Exp $
-# Makefile for AMS Event Display for alpha/cxx 
+#  $Id: Makefile,v 1.4 2003/06/17 07:39:55 choutko Exp $
 
-PLATFORM      = alpha
-#SHLD          = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx \
-#                -expect_unresolved -g0 -O1 -shared /usr/lib/cmplrs/cc/crt0.o \
-#                /usr/lib/cmplrs/cxx/_main.o
-SHLD          = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx \
-                -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o \
-                /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
+PLATFORM      =  Linux
 
-CXX           =  cxx
-CXXFLAGS      =  -I$(ROOTSYS)/include -I/usr/include
-OPT           = -O4 -DROOT10308
-NOOPT         = 
-LD            = cxx 
-LDFLAGS       = -g
-SOFLAGS       = -b
-SOGFLAGS      = -b
+CXX           =  g++ -Wno-deprecated
+CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+OPT           = -O2
+NOOPT         = -g
+LD            = g++
+LDFLAGS       = -g 
 
-ROOTLIBS      = -L$(ROOTSYS)/lib -lBase -lCint -lClib -lCont -lFunc -lGraf \
-                -lGraf3d -lHist -lHtml -lMeta -lMinuit -lNet -lPostscript \
-                -lProof -lRint -lTree -lUnix -lZip   # -lEG -lEGPythia
-ROOTGLIBS     = -lGpad -lGX11 -lMotif -lWidgets -lX3d
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 
 
-LIBS          = $(ROOTLIBS) -lm 
-GLIBS         = $(ROOTLIBS) $(ROOTGLIBS) -lXm -lXt -lX11 -lm -lPW
+LIBS          =  $(ROOTLIBS) -lm -ldl
+GLIBS         = -L$(ROOTSYS)/lib -lGX11TTF  -lCore -lCint -lHist -lGraf -lGraf3d -lGui -lGpad -lGX11  -lTree -lRint -lPostscript -lMatrix -lPhysics  -lHistPainter -lMinuit -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -lXpm -lm -ldl 
 
-PYTHIALIB     = -L$(PYTHIA) -lPythia
+##### MACROS #####
+
+ROOTH         = TTree.h TFile.h TH1.h
+
+SRCS          = AMSDisplay.cxx \
+                AMSHist.cxx \
+                AMSAntiHist.cxx\
+                AMSTrackerHist.cxx\
+                AMSRICHHist.cxx\
+                AMSECALHist.cxx\
+                AMSTRDHist.cxx\
+                AMSTOFHist.cxx\
+                AMSLVL1Hist.cxx\
+                AMSLVL3Hist.cxx\
+                AMSAxAMSHist.cxx\
+                AMSGenHist.cxx\
+                root.cxx\
+                AMSNtuple.cxx  ControlFrame.cxx\
+
+HDRS          =   \
+                ../include/root_RVS.h\
+		AMSDisplay.h \
+		AMSHist.h \
+		AMSAntiHist.h \
+		AMSTrackerHist.h \
+                AMSRICHHist.h\
+                AMSECALHist.h\
+                AMSTRDHist.h\
+                AMSTOFHist.h\
+                AMSLVL1Hist.h\
+                AMSLVL3Hist.h ControlFrame.h\
+                AMSAxAMSHist.h\
+                AMSGenHist.h\
+                AMSNtuple.h\
+                LinkDef.h
+PREFIX        = $(AMSWD)/online/
+DICT          = AMSCint.cxx
+DICTH         = $(DICT:.cxx=.h)
+DICTO         = $(DICT:%.cxx=$(PREFIX)%.o)
+
+
+MAIN          = main.cxx
+MAINH         = $(MAIN:.cxx=.h)
+MAINO         = $(MAIN:%.cxx=$(PREFIX)%.o)
+
+MAINC          = mainc.cxx
+MAINOC         = $(MAINC:.cxx=.o)
+
+OBJS          = $(SRCS:%.cxx=$(PREFIX)%.o) 
+
+
+ALLDICT       = $(DICT) $(DICTH) 
+ALLSRCS       = $(SRCS)  $(HDRS)  $(ALLDICT) $(MAIN) $(MAINH) $(MAINC)
+ALLOBJS       = $(OBJS) $(MAINO)
+
+
+AMSLIB       = libAMS.a
+
+AMSSHAREDLIB = libAMS.so
+
+
+AMSPRG       = $(PREFIX)offmon
+AMSPRGC       = $(PREFIX)offmonc
+
+
+
+##### TARGETS #####
+interprete:  $(AMSSHAREDLIB)
+
+standalone:  $(AMSPRG)
+
+osdepend:  $(AMSPRGC)
+
+
+
+$(AMSPRG):      $(ALLOBJS) $(DICTO) $(MAINH)
+		$(LD)  -static  $(LDFLAGS) $(ALLOBJS)  $(DICTO)  $(LIBS)  \
+		-o $(@) 
+		@echo "$(AMSPRG) done"
+
+$(AMSPRGC):	$(ALLOBJS) $(DICTO)
+		$(LD) -rdynamic $(LDFLAGS) $(ALLOBJS) $(DICTO)   $(LIBS) -o $(AMSPRGC) 
+
+
+$(DICT):        $(HDRS)
+		@echo "Generating dictionary ..."
+		rootcint -f $(DICT) -c $(ROOTH) $(HDRS)
+
+
+
+
+depend:		$(PREFIX)Make-depend 
+touch_depend:
+		touch $(PREFIX)Make-depend
+$(PREFIX)Make-depend:	
+ifneq "$(shell du -a  $(PREFIX)Make-depend | grep -c  ake)" "1"
+		touch $(PREFIX)Make-depend
+endif
+	makedepend -f$(PREFIX)Make-depend -- $(CXXFLAGS) -- $(SRCS) $(SRCSG) -p$(PREFIX) \
+		$(MAIN)
+		cat  $(PREFIX)Make-depend | sed -e 'sx/../CC/x/x1' > $(PREFIX)Make-depend.new
+		rm -f $(PREFIX)Make-depend
+		mv $(PREFIX)Make-depend.new $(PREFIX)Make-depend
+
+dist:
+		rm -f $(AMSPRG).tar.gz ; \
+		tar cvf $(AMSPRG).tar $(ALLSRCS) 00index.txt Make* ; \
+		gzip $(AMSPRG).tar
+
+clean:
+		@rm -f $(ALLOBJS) $(ALLDICT)
 
 
 ##### RULES #####
 
-.SUFFIXES: .cxx
+$(ALLOBJS): $(PREFIX)%.o : %.cxx 
+	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
-.cxx.o:
-	$(CXX) $(OPT) $(CXXFLAGS) -c $<
-
-
-##### MACROS and TARGETS #####
-
-include Make-bin
+$(DICTO): $(PREFIX)%.o : %.cxx 
+	$(CXX) $(NOOPT) $(CXXFLAGS)  -c $(<)  -o $(@)
 
 
 ##### DEPENDENCIES #####
 
-include Make-depend
+ifneq ($(MAKECMDGOALS),touch_depend)
+include $(PREFIX)Make-depend
+endif
 

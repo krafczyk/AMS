@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.5 2001/01/22 17:32:51 choutko Exp $
+#  $Id: 00index.txt,v 1.6 2003/06/17 07:39:52 choutko Exp $
 
 =========================================================================
 
@@ -17,7 +17,7 @@ The program sources can be obtained by doing
 
 	cvs checkout AMS/online
 
-This will create AMS/pnline directory and put all source files
+This will create AMS/online directory and put all source files
 of AMS offline monitor into it.
 
 
@@ -26,7 +26,7 @@ of AMS offline monitor into it.
 ---------------------
 
 This program is based on Rene Brun's ROOT and ATLFast program.  To build it,
-cd to AMS/pnline directory, then type 
+cd to AMS/online directory, then type 
 
 	gmake depend
 
@@ -47,7 +47,7 @@ To run it, please make sure you have the environment to run ROOT.
 Only 3 things needs to be set:
 
 1. Environment variable ROOTSYS  should point to the ROOT directory.
-   (On boronams $ROOTSYS should be set to /pgm0/EventDisplay/root)
+   (On boronams $ROOTSYS should be set to /cern/root/v2.00)
 2. .:$ROOTSYS/lib is added into Environment variables LD_LIBRARY_PATH.
 3. $ROOTSYS/bin is in your path.
 
@@ -56,10 +56,15 @@ Type h2root your_converted_ntuple_file_name your_preferred_name
 Type offmon your_preferred_name.
 
 
+-------------------------------------------------------------------------
+4. Tutorial
+----------------------
+
+There is a short tutorial for this program.  You can find the postscript
+version in the AMS/doc directory.
 
 
-
-4. Relevant files
+5. Relevant files
 
 TCanvasImp          //aux
 TMotifCanvas        //aux

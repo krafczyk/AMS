@@ -1,4 +1,4 @@
-//  $Id: AMSCanvas.cxx,v 1.11 2001/01/22 17:32:51 choutko Exp $
+//  $Id: AMSCanvas.cxx,v 1.12 2003/06/17 07:39:53 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -10,53 +10,9 @@
 #include <iostream.h>
 #include <stdlib.h>
 #include <TROOT.h>
-#ifndef ROOT_TMotifCanvas
-#include <TMotifCanvas.h>
-#endif
-#ifndef ROOT_TControlBar
 #include <TControlBar.h>
-#endif
-#ifndef ROOT_TMenuBar
-#include <TMenuBar.h>
-#endif
-#ifndef ROOT_TMenuToggle
-#include <TMenuToggle.h>
-#endif
-#ifndef ROOT_TContextMenu
 #include <TContextMenu.h>
-#endif
-#ifndef ROOT_TMenu
-#include <TMenu.h>
-#endif
-#ifndef ROOT_TMotifDialog
-#include <TMotifDialog.h>
-#endif
-#ifndef ROOT_TFileSelectionDialog
-#include <TFileSelectionDialog.h>
-#endif
-#ifndef ROOT_TErrorDialog
-#include <TErrorDialog.h>
-#endif
-#ifndef ROOT_TInfoDialog
-#include <TInfoDialog.h>
-#endif
-#ifndef ROOT_TBusyDialog
-#include <TBusyDialog.h>
-#endif
-#ifndef ROOT_TPromptDialog
-#include <TPromptDialog.h>
-#endif
-#ifndef ROOT_TQuestionDialog
-#include <TQuestionDialog.h>
-#endif
-#ifndef ROOT_TWarningDialog
-#include <TWarningDialog.h>
-#endif
-#ifndef ROOT_TSelectionDialog
-#include <TSelectionDialog.h>
-#endif
 
-//#include "MySelectionDialog.h"
 
 #include <TText.h>
 
@@ -65,71 +21,8 @@
 #include "Debugger.h"
 
 
-MenuDesc_t AMSCanvas::fgAMSFilePane[] = {
-   { kAction, "Save As SubDetector.Set.ps", SaveParticleCB, NULL },
-   { kAction, "Save As subDetector.Set.gif", SaveParticleGIF, NULL },
-   { kAction, "Print",PrintCB, NULL },
-   { kEnd },
-};
 
-MenuDesc_t AMSCanvas::fgAMSFileANTI[] = {
-   { kAction, "Occupancies/Amplitudes Distibution", AntiSet0CB, NULL },
-   { kAction, "UpVsDown 1-4", AntiSet1CB, NULL },
-   { kAction, "UpVsDown 5-8", AntiSet2CB, NULL },
-   { kAction, "UpVsDown 9-12", AntiSet3CB, NULL },
-   { kAction, "UpVsDown 13-16", AntiSet4CB, NULL },
-   { kEnd },
-};
-
-MenuDesc_t AMSCanvas::fgAMSFileTracker[] = {
-   { kAction, "PreClusters Distributions Set 1", TrackerSet0CB, NULL },
-   { kAction, "PreClusters Distributions Set 2", TrackerSet1CB, NULL },
-   { kAction, "Clusters Distributions", TrackerSet2CB, NULL },
-   { kAction, "Calibration Set 1", TrackerSet3CB, NULL },
-   { kAction, "Calibration Set 2", TrackerSet4CB, NULL },
-   { kEnd },
-};
-
-MenuDesc_t AMSCanvas::fgAMSFileTOF[] = {
-   { kAction, "JL1/TOF Side Occupancies",    TOFSet0CB, NULL },
-   { kAction, "JL1/TOF Counter Occupancies", TOFSet1CB, NULL },
-   { kAction, "Occupancies Distributions",   TOFSet2CB, NULL },
-   { kAction, "Tdiffs/(data size)/config",   TOFSet3CB, NULL },
-   { kAction, "NTof/Eloss Distributions ",   TOFSet4CB, NULL },
-   { kAction, "Mean Eloss per counter (MeV)",TOFSet5CB, NULL },
-   { kAction, "Anode Charge Spectra",        TOFSet6CB, NULL },
-   { kAction, "Dynode Charge Spectra",       TOFSet7CB, NULL },
-   { kAction, "Time Stretcher Ratios",       TOFSet8CB, NULL },
-   { kEnd },
-};
-
-MenuDesc_t AMSCanvas::fgAMSFileLVL1[] = {
-   { kAction, "Occupancies Distibutions", LVL1Set0CB, NULL },
-   { kAction, "LVL1 vs TOF",  LVL1Set1CB, NULL },
-   { kAction, "TOF Trigger Pattern",  LVL1Set2CB, NULL },
-   { kAction, "LVL1 vs Anti",  LVL1Set3CB, NULL },
-   { kEnd },
-};
-
-MenuDesc_t AMSCanvas::fgAMSFileLVL3[] = {
-   { kAction, "LVL3 Distributions", LVL3Set0CB, NULL },
-   { kAction, "LVL3/AxAMS Comparision",  LVL3Set1CB, NULL },
-   { kEnd },
-};
-
-MenuDesc_t AMSCanvas::fgAMSFileCTC[] = {
-   { kAction, "Layer 1 Distributions", CTCSet0CB, NULL },
-   { kAction, "Layer 2 Distributions",  CTCSet1CB, NULL },
-   { kEnd },
-};
-
-MenuDesc_t AMSCanvas::fgAMSFileAxAMS[] = {
-   { kAction, "AxAMS Set 0", AxAMSSet0CB, NULL },
-   { kAction, "AxAMS Set 1",  AxAMSSet1CB, NULL },
-   { kEnd },
-};
-
-TMotifCanvas * AMSCanvas::fTheCanvas = 0;
+TRootCanvas * AMSCanvas::fTheCanvas = 0;
 
 
 ClassImp(AMSCanvas)
@@ -165,28 +58,10 @@ AMSCanvas::AMSCanvas(Text_t *name, Text_t *title, Int_t ww, Int_t wh)
     return;
   }
   else {
-    fTheCanvas = (TMotifCanvas *) fCanvasImp;
+    fTheCanvas = (TRootCanvas *) fCanvasImp;
     printf("fTheCanvas = %lx in AMSCanvas::AMSCanvas()\n", fTheCanvas);
   }
-
-  TMotifCanvas * canvas = (TMotifCanvas *) fCanvasImp;
-  TMenuBar * menu = canvas->Menu();
-  menu->AddSubmenu("Save As", fgAMSFilePane, NULL);
-  menu->AddSubmenu("ANTI", fgAMSFileANTI, NULL);
-  menu->AddSubmenu("Tracker", fgAMSFileTracker, NULL);
-  menu->AddSubmenu("LVL1", fgAMSFileLVL1, NULL);
-  menu->AddSubmenu("LVL3", fgAMSFileLVL3, NULL);
-  menu->AddSubmenu("TOF", fgAMSFileTOF, NULL);
-  menu->AddSubmenu("CTC", fgAMSFileCTC, NULL);
-  menu->AddSubmenu("AxAMS", fgAMSFileAxAMS, NULL);
-  TMenuItem * classesMenu = menu->RemoveItem("Classes");
-  //  TMenuItem * inspectorMenu = menu->RemoveItem("Inspector");
-  TMenuItem * editMenu = menu->RemoveItem("Edit");
-  TMenuItem * viewMenu = menu->RemoveItem("View");
-  //menu->AddAction("my print", this->SaveCB, this);
-  //menu->AddAction("my print", this->*myfunc, this);
-  TMenuItem * m = menu->FindNamedItem("Event Status");
-  if (m->MenuType() == kToggle) ((TMenuToggle*)m)->SetVisualState(GetShowEventStatus());
+// SetWindowSize(2000,2000);
 
 
   //
@@ -506,164 +381,23 @@ void AMSCanvas::HandleInput(Int_t event, Int_t px, Int_t py)
 
 //______________________________________________________________________
 
-void AMSCanvas::CTCSet0CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(5,0);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::CTCSet1CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(5,1);
+void AMSCanvas::SubDet(int det, int set){
+   gAMSDisplay->Dispatch(det,set);
    gAMSDisplay->GetCanvas()->Update();		// refresh the screen
 }
 
-void AMSCanvas::AxAMSSet0CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(6,0);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::AxAMSSet1CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(6,1);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
 
-void AMSCanvas::LVL3Set0CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(3,0);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::LVL3Set1CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(3,1);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::LVL1Set0CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(2,0);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::LVL1Set1CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(2,1);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::LVL1Set2CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(2,2);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::LVL1Set3CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(2,3);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TrackerSet0CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(1,0);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TrackerSet1CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(1,1);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TrackerSet2CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(1,2);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TrackerSet3CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(1,3);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TrackerSet4CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(1,4);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::AntiSet0CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(0,0);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::AntiSet1CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(0,1);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::AntiSet2CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(0,2);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::AntiSet3CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(0,3);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::AntiSet4CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(0,4);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TOFSet0CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(4,0);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TOFSet1CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(4,1);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TOFSet2CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(4,2);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TOFSet3CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(4,3);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TOFSet4CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(4,4);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TOFSet5CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(4,5);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TOFSet6CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(4,6);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TOFSet7CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(4,7);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TOFSet8CB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-   gAMSDisplay->Dispatch(4,8);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
 
 
 //______________________________________________________________________
-void AMSCanvas::SaveParticleCB(Widget wid, XtPointer cd, XtPointer pointer)
+void AMSCanvas::SaveParticleCB()
 {
    char fnam[255];
    sprintf(fnam, "%s.%s.ps",gAMSDisplay->getCurSubDet()->GetName(),gAMSDisplay->getGrSet());
    gAMSDisplay->GetCanvas()->SaveAs(fnam);
    gAMSDisplay->GetCanvas()->Update();		// refresh the screen
 }
-void AMSCanvas::SaveParticleGIF(Widget wid, XtPointer cd, XtPointer pointer)
+void AMSCanvas::SaveParticleGIF()
 {
    char fnam[255];
    sprintf(fnam, "%s.%s.gif",gAMSDisplay->getCurSubDet()->GetName(),gAMSDisplay->getGrSet());
@@ -672,17 +406,7 @@ void AMSCanvas::SaveParticleGIF(Widget wid, XtPointer cd, XtPointer pointer)
 }
 
 
-//______________________________________________________________________
-void AMSCanvas::OpenFileCB(Widget wid, XtPointer cd, XtPointer pointer)
-{
-
-
-
-}
-
-
-//______________________________________________________________________
-void AMSCanvas::PrintCB(Widget wid, XtPointer cd, XtPointer pointer)
+void AMSCanvas::PrintCB()
 {
  
    pid_t pid = getpid();
@@ -696,6 +420,8 @@ void AMSCanvas::PrintCB(Widget wid, XtPointer cd, XtPointer pointer)
    sprintf(cmd, "rm /tmp/AMSOnDisplay.%u.ps",pid);
    system(cmd);
 }
+
+
 
 
 //______________________________________________________________________

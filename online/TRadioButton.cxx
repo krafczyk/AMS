@@ -1,4 +1,4 @@
-//  $Id: TRadioButton.cxx,v 1.2 2001/01/22 17:32:52 choutko Exp $
+//  $Id: TRadioButton.cxx,v 1.3 2003/06/17 07:39:55 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -10,7 +10,6 @@
 #include <TInterpreter.h>
 
 #include "TRadioButton.h"
-#include "Debugger.h"
 
 ClassImp(TRadioButton)
 
@@ -21,7 +20,6 @@ TRadioButton::TRadioButton(Bool_t *state, char * onMethod,
 		 char * offMethod)
   : TButton("", onMethod, x1, y1, x2, y2) 
 {
-   debugger.Print("initializing TRadioButton.\n");
 
    fState     = state;
    fOffMethod = offMethod;

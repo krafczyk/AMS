@@ -1,4 +1,4 @@
-//  $Id: TSwitch.cxx,v 1.2 2001/01/22 17:32:52 choutko Exp $
+//  $Id: TSwitch.cxx,v 1.3 2003/06/17 07:39:55 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -10,7 +10,6 @@
 #include <TMath.h>
 
 #include "TSwitch.h"
-#include "Debugger.h"
 
 ClassImp(TSwitch)
 
@@ -21,12 +20,10 @@ TSwitch::TSwitch(const char * title, Bool_t *state, char * method,
 				char * offMethod)
   : TPad(title, "", x1, y1, x2, y2)	// method is defined in ExecuteEvent
 {
-   debugger.Print("initializing TSwitch.\n");
 
    TVirtualPad * gPadSave = gPad;
    this->Draw();
    this->cd();
-   GetCanvas()->SetEditable(kIsNotEditable);
 
 // Coord_t ycenter = (y1+y2)/2,
 //  butsize = (y2-y1)/3,
@@ -42,12 +39,10 @@ TSwitch::TSwitch(const char * title, Bool_t *state, char * method,
    Int_t bsize = TMath::Abs(yhi-ylow);
    Int_t xhi   = xlow + bsize;
          butx2 = this->AbsPixeltoX(xhi);
-   debugger.Print("+++ button at (%d,%d)-(%d,%d)\n", xlow, ylow, xhi, yhi);
 
  
    fButton = new TRadioButton(state, method, butx1, buty1, butx2, buty2, offMethod);
    fPrimitives->Add(fButton);
-   debugger.Print("fButton = %lx\n", fButton);
 // fButton->Draw();
 
    fText   = new TText(butx2+0.5*(butx2-butx1), 0.5, title);
@@ -63,15 +58,9 @@ TSwitch::TSwitch(const char * title, Bool_t *state, char * method,
    Color_t color = fText->GetTextColor();
    Font_t  font  = fText->GetTextFont();
    Float_t size  = fText->GetTextSize();
-// TAttText(22,0,1,61,0.65)
-   debugger.Print("text: align=%d, angle=%f, color=%d, font=%d, size=%f\n",
-		align, angle, color, font, size);
-   debugger.Print("fText = %lx\n", fText);
-// fText->Draw();
 
    SetBorderMode(1);
    this->Modified();
-   debugger.Print("+++ End of TSwitch::TSwitch()\n");
 
    gPadSave->cd();
 }

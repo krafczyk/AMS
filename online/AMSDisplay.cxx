@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.10 2001/01/22 17:32:52 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.11 2003/06/17 07:39:53 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -28,6 +28,8 @@
 #include "TSwitch.h"
 #include "Debugger.h"
 #include "AMSNtuple.h"
+#include "ControlFrame.h"
+#include <dlfcn.h>
 AMSOnDisplay * gAMSDisplay;
 
 ClassImp(AMSOnDisplay)
@@ -36,16 +38,14 @@ AMSOnDisplay * AMSOnDisplay::_Head=0;
 
 
 //_____________________________________________________________________________
-AMSOnDisplay::AMSOnDisplay() : TObject()
-{
+AMSOnDisplay::AMSOnDisplay() : TObject(){
    // Default constructor of AMSOnDisplay
    //
-   m_file=0;
    m_logx=kFALSE;
    m_logy=kFALSE;
    m_logz=kFALSE;
    m_theapp=0;
-   _msubdet=0;
+   m_ControlFrame=0;
    _Head=this;   
    _cursubdet=0;
    _cursubdetb=0;
@@ -57,8 +57,8 @@ AMSOnDisplay::AMSOnDisplay() : TObject()
 
 
 //_____________________________________________________________________________
-AMSOnDisplay::AMSOnDisplay(const char *title, TFile *file):TObject(){
-   m_file=file;
+AMSOnDisplay::AMSOnDisplay(const char *title, AMSNtupleR *file):TObject(){
+   m_ntuple=file;
    m_theapp=0;
    m_logx=kFALSE;
    m_logy=kFALSE;
@@ -66,30 +66,28 @@ AMSOnDisplay::AMSOnDisplay(const char *title, TFile *file):TObject(){
    _grset[0]='\0';
    _Begin=0;
    _Sample=10000;
-   _msubdet=0;
    _Head=this;
    _cursubdet=0;
    _cursubdetb=0;
    gAMSDisplay=this;
-   m_ntuple = new AMSNtuple(file);
+   m_ntuple = file;
    // Constructor of AMSOnDisplay
    //
 
 
-   m_Canvas = new AMSCanvas("Canvas", (Text_t*)title,1024,768);
-   m_Canvas->SetEditable(kIsNotEditable);
-
+   m_Canvas = new TCanvas("Canvas", (Text_t*)title,1024,768);
+//   m_Canvas->SetCanvasSize(2000,2000);
    //
    // Create pads on the canvas
    //
    m_Canvas->cd();
 
 
-   Float_t xsep = 0.2;
+   Float_t xsep = 0.0;
    //
    // Create title pad
    // ----------------------------
-   m_TitlePad = new TPad("TitlePad", "AMSRoot Offline display", xsep,0.95, 1.0, 1.0);
+   m_TitlePad = new TPad("TitlePad", "AMSRoot Online display", xsep,0.95, 1.0, 1.0);
    m_TitlePad->Draw();
    m_TitlePad->Modified();
    m_TitlePad->SetFillColor(33);
@@ -103,123 +101,35 @@ AMSOnDisplay::AMSOnDisplay(const char *title, TFile *file):TObject(){
    m_Pad->SetFillColor(0);	//white 
    m_Pad->SetBorderSize(2);
    m_Pad->Draw();
-   //
-   // Create button pad
-   // ----------------------------
-   m_Canvas->cd();
-   m_ButtonPad = new TPad("buttons", "button pad",0,0.45,xsep,1.0);
-   //m_ButtonPad->SetFillColor(38);
-   m_ButtonPad->SetFillColor(13);
-   m_ButtonPad->SetBorderSize(2);
-   m_ButtonPad->SetBorderMode(-1);
-   m_ButtonPad->Draw();
-   //
-   // Create switch pad
-   // ----------------------------
-   m_TrigPad = new TPad("TrigPad", "trigger pad",0,0.1,xsep,0.45);
-   //m_TrigPad->SetFillColor(22);
-   m_TrigPad->SetFillColor(13);
-   m_TrigPad->SetBorderSize(2);
-   m_TrigPad->SetBorderMode(-1);
-   m_TrigPad->Draw();
-   //
-   // Create Run info pad
-   // ----------------------------
-   m_RunInfoPad = new TPad("RunInfoPad", "run info pad", 0, 0.0, 0.2, 0.1);
-   m_RunInfoPad->SetFillColor(0);
-   m_RunInfoPad->SetBorderSize(1);
-   m_RunInfoPad->SetBorderMode(1);
-   m_RunInfoPad->Draw();
+
+
+
    //
    // Create object info pad
    // ----------------------------
    m_Canvas->cd();
-   m_ObjInfoPad = new TPad("ObjInfoPad", "object info pad", 0.2, 0, 1, 0.05);
+   m_ObjInfoPad = new TPad("ObjInfoPad", "object info pad", xsep, 0, 1, 0.05);
    m_ObjInfoPad->SetFillColor(0);
-   m_RunInfoPad->SetBorderSize(1);
-    m_ObjInfoPad->SetBorderMode(2);
+   m_ObjInfoPad->SetBorderSize(1);
+   m_ObjInfoPad->SetBorderMode(2);
    m_ObjInfoPad->Draw();
 
-   
 
 
 }
  void AMSOnDisplay::Init(){  // Create user interface control pad
 
    m_Canvas->cd();
-   DisplayButtons();
-
-
-   // Create switch pad
-   m_TrigPad->cd();
-
-   TSwitch * sw[8];
-
-   Float_t y = 0.96, dy = 0.09, height=0.09;
-   sw[0] = new TSwitch("LogX", &(m_logx), 
-			"gAMSDisplay->Draw()", 0.0, y-height, 1.0, y);
-   y -= dy;
-
-   sw[1] = new TSwitch("LogY", &(m_logy), 
-			"gAMSDisplay->Draw()", 0.0, y-height, 1.0, y);
-   y -= dy;
-
-   sw[1] = new TSwitch("LogZ", &(m_logz), 
-			"gAMSDisplay->Draw()", 0.0, y-height, 1.0, y);
-   y -= dy;
-
-   for(int i=0;i<getMaxSubDet();i++){
-    char text[80];
-    sprintf(text,"Cycle %s",getSubDet(i)->GetName());
-    new TSwitch(text,& getSubDet(i)->IsActive(), 
-			"gAMSDisplay->Draw()", 0.0, y-height, 1.0, y);
-    y -= dy;
-
-   } 
    Draw();
    m_Canvas->cd();
    m_Canvas->Update();
+   
+   // Create Controlframe
+   m_ControlFrame= new AMSControlFrame(gClient->GetRoot(), (TRootCanvas*)m_Canvas->GetCanvasImp(), 400, 200);
 
 }
 
 
-
-//_____________________________________________________________________________
-void AMSOnDisplay::DisplayButtons()
-{
-//    Create the user interface buttons
-
-   m_ButtonPad->cd();
-
-   Int_t butcolor = 33;
-   Float_t dbutton = 0.085;
-   Float_t y  = 0.99;
-   Float_t dy = 0.01;
-   Float_t x0 = 0.05;
-   Float_t x1 = 0.95;
-   TButton *button;
-   char but[255];
-  for(int i=0;i<getMaxSubDet();i++){
-    sprintf(but,"gAMSDisplay->Dispatch(%d)",i);  
-    button = new TButton(getSubDet(i)->GetName(),but,x0,y-dbutton,x1,y);
-    button->SetFillColor(38);
-    button->Draw();
-    y -= dbutton +dy;
-   }
-   button = new TButton("Stop Timer","gAMSDisplay->StartStop()",x0,y-dbutton,x1,y);
-   button->SetFillColor(butcolor);
-   button->Draw();
-    y -= dbutton +dy;
-    button = new TButton("Fill","gAMSDisplay->Filled()",x0,y-dbutton,x1,y);
-    button->SetFillColor(butcolor);
-    button->Draw();
-    y -= dbutton +dy;
-    button = new TButton("Reset","gAMSDisplay->Reset()",x0,y-dbutton,x1,y);
-    button->SetFillColor(butcolor);
-    button->Draw();
-
-
-}
 
 
 
@@ -229,15 +139,11 @@ void AMSOnDisplay::Draw(Option_t *option)
 {
 //    Insert current event in graphics pad list
 
-   m_Canvas->SetEditable(kIsNotEditable);
 
 
    DrawTitle();
    DrawRunInfo();
    m_Pad->cd();
-   //   int j=0;
-   //   if(m_logx)j=1;
-   //   cout <<"logx "<<j<<endl;
    if(m_logx)m_Pad->SetLogx(1);
    else  m_Pad->SetLogx(0);
    if(m_logy)m_Pad->SetLogy(1);
@@ -259,7 +165,7 @@ void AMSOnDisplay::DrawTitle(Option_t *option)
    static TText * text=0;
    static char atext[255];
 
-   sprintf(atext, "Alpha Magnetic Spectrometer Offline Display   %s.Set_%d",gAMSDisplay->getCurSubDet()->GetName(),gAMSDisplay->getCurSubDet()->getCSet());
+   sprintf(atext, "Alpha Magnetic Spectrometer Online Display    %s.Set_%d",gAMSDisplay->getCurSubDet()->GetName(),gAMSDisplay->getCurSubDet()->getCSet());
    sprintf(_grset,"%d",gAMSDisplay->getCurSubDet()->getCSet());
 
    TVirtualPad * gPadSave = gPad;
@@ -271,7 +177,7 @@ void AMSOnDisplay::DrawTitle(Option_t *option)
    else
 	text->SetText(0.5, 0.5, atext);
 
-   text->SetTextFont(7);
+//   text->SetTextFont(7);
    text->SetTextAlign(22);
    text->SetTextSize(0.65);
    text->Draw();
@@ -280,47 +186,28 @@ void AMSOnDisplay::DrawTitle(Option_t *option)
 }
 
 
-
-//_____________________________________________________________________________
 void AMSOnDisplay::DrawRunInfo(Option_t *option)
 {
 
-   const int kTMAX = 80;
    static TText * text=0;
-   static TText * text1=0;
-   static char atext[kTMAX];
+   static char atext[255]="Alpha";
 
    TVirtualPad * gPadSave = gPad;
-   m_RunInfoPad->cd();
-
-   sprintf(atext,"Run %d",m_ntuple->GetRun());
-   for (Int_t i=strlen(atext);i<kTMAX-1;i++) atext[i] = ' ';
-   atext[kTMAX-1] = 0;
+   m_ObjInfoPad->cd();
+   m_ObjInfoPad->Clear();
+   atext[0]=0;
+   sprintf(atext,"Run %d   EventsProcessed %d OutOf %d",m_ntuple->GetRun(),_Begin,m_ntuple->Entries(),m_ntuple->GetTime());
 
    if (! text) {
-	text = new TText(0.04, 0.75, atext);
+	text = new TText(0.5, 0.38, atext);
    }
    else
-	text->SetText(0.04, 0.75,atext);
+	text->SetText(0.5, 0.38,atext);
 
-   //   text->SetTextFont(7);
-   text->SetTextAlign(12);
-   text->SetTextSize(0.3);
+//   text->SetTextFont(7);
+   text->SetTextAlign(22);
+   text->SetTextSize(0.6);
    text->Draw();
-   sprintf(atext,"%s",m_ntuple->GetTime());
-    for ( i=strlen(atext);i<kTMAX-1;i++) atext[i] = ' ';
-      atext[kTMAX-1] = 0;
-   
-      if (! text1) {
-   	text1 = new TText(0.04, 0.25, atext);
-      }
-      else
-   	text1->SetText(0.04, 0.25,atext);
-   
-      //   text->SetTextFont(7);
-      text1->SetTextAlign(12);
-      text1->SetTextSize(0.22);
-      text1->Draw();
 
    gPadSave->cd();
 }
@@ -328,9 +215,9 @@ void AMSOnDisplay::DrawRunInfo(Option_t *option)
 
 
 
-void AMSOnDisplay::StartStop(){
+void AMSOnDisplay::StartStop(char *buf){
+  if(buf)buf[0]='\0';
   if(!m_theapp)return;
-  gPad->Clear();
   static int state=0;
   state=(state+1)%2;
    static TText * text=0;
@@ -346,29 +233,33 @@ void AMSOnDisplay::StartStop(){
 	else text = new TText(0.5, 0.5, atext2);
    }
     if(state%2)m_theapp->RemoveIdleTimer();
-    else m_theapp->SetIdleTimer(18,"");
+    else m_theapp->SetIdleTimer(15,"");
    text->SetTextAlign(22);
    text->SetTextSize(0.55);
-   text->Draw();
-
-
+   if(!buf){
+    gPad->Clear();
+    text->Draw();
+   }
+   else {
+	if(state%2)strcpy(buf, atext1);
+	else strcpy(buf,atext2);
+   }
 }
 
 void AMSOnDisplay::AddSubDet(  AMSHist & subdet){
-  if( _msubdet<10){
-     _subdet[_msubdet++]=&subdet;
-  }
-  else cerr <<"AMSOnDisplay::AddSubDet-S-NoMoreRoomForSubdetector "<<(const char*)subdet.GetName()<<endl;
+   subdet.Book();
+   _subdet.push_back(&subdet);
 }
 
 
 
 Int_t AMSOnDisplay::Dispatch(Int_t subdet, Int_t set){
+   if(_subdet[subdet]->getMSet()==0)return subdet; 
    TVirtualPad * gPadSave = gPad;
    m_Pad->cd();
    Int_t retcode;
    _cursubdetb=subdet;
-   if(subdet>=0 && subdet<_msubdet ){
+   if(subdet>=0 && subdet<_subdet.size() ){
       int temp=_cursubdet;
       int tempset=_subdet[subdet]->getCSet();
       retcode=_subdet[subdet]->DispatchHist(set);
@@ -385,15 +276,36 @@ Int_t AMSOnDisplay::Dispatch(Int_t subdet, Int_t set){
    return retcode;
 }
 
+Int_t AMSOnDisplay::RDispatch(){
+  Int_t subdet=_cursubdetb;
+   TVirtualPad * gPadSave = gPad;
+   m_Pad->cd();
+   Int_t retcode;
+   _cursubdetb=subdet;
+   if(subdet>=0 && subdet<_subdet.size() ){
+      int temp=_cursubdet;
+      int tempset=_subdet[subdet]->getCSetl();
+      if(tempset<0)tempset=_subdet[subdet]->getMSet()-1;
+      retcode=_subdet[subdet]->DispatchHist(tempset);
+      _cursubdet=subdet;
+      //      cout <<" subdet "<<subdet<<" "<<" "<<tempset<<endl;
+      Draw();
+      _cursubdet=temp;
+   }   
+   gPadSave->cd();
+      m_Canvas->Update();
+   return retcode;
+}
+
 void AMSOnDisplay::DispatchProcesses(){
   // Check some of the subdet are active
   static Int_t change=1;
-  if(!_msubdet){
+  if(_subdet.size()==0){
     cerr <<" AMSOnDisplay::DispatchProcesses-E-NoSubDetectorsFound"<<endl;
     return;
   }
   int active=0;
-  for(int i=0;i<_msubdet;i++){
+  for(int i=0;i<_subdet.size();i++){
     if(_subdet[i]->IsActive()){
       active++;
       break;
@@ -403,20 +315,18 @@ void AMSOnDisplay::DispatchProcesses(){
     cerr <<"no active subproc"<<endl;
     _cursubdet=0;
     _cursubdetb=0;
-    _subdet[0]->IsActive()=1;
+    return;
   }
-   if(change==0)_cursubdet=(_cursubdet+1)%_msubdet;
+   if(change==0)_cursubdet=(_cursubdet+1)%_subdet.size();
    while(!_subdet[_cursubdet]->IsActive()){
-    _cursubdet=(_cursubdet+1)%_msubdet;
+    _cursubdet=(_cursubdet+1)%_subdet.size();
    }
    change=Dispatch(_cursubdet);
 }
 
-void AMSOnDisplay::Filled(){
-  static int filled=0;
-  if(filled)return;
-   filled=Fill();
-  gPad->Clear();
+void AMSOnDisplay::Filled(char *buf){
+  if(buf)buf[0]='\0';
+   bool filled=Fill();
   static int state=0;
    static TText * text=0;
    static char atext2[20]="Fill";
@@ -433,34 +343,120 @@ void AMSOnDisplay::Filled(){
    }
    text->SetTextAlign(22);
    text->SetTextSize(0.55);
-   text->Draw();
-
+   if(!buf){
+    gPad->Clear();
+    text->Draw();
+   }
+   else {
+	if(filled%2)strcpy(buf,atext1);
+	else strcpy(buf,atext2);
+   }
 }
 
 
 
-Int_t AMSOnDisplay::Fill(){
-  int retcode=0;
-  int _End=_Begin+_Sample;  
+bool AMSOnDisplay::Fill(bool checkonly){
+  int _End=m_ntuple->Entries();
+  DrawRunInfo();
+  if(checkonly)return _Begin>=_End;
+  int retcode=1;
+  time_t timett1,timett2;
+  time(&timett1);
   for(int i=_Begin;i<_End;i++){
-   if(!m_ntuple->ReadOneEvent(i)){
-     retcode=1;
-     break;
+   int ret= m_ntuple->ReadOneEvent(i);
+   if(ret<0){
+     cout <<"  interrupt received"<<endl;
+     return false;
    }
      _Begin++;
-     for(int j=0;j<_msubdet;j++){
-      _subdet[j]->Fill(m_ntuple);
+     time(&timett2);
+     if(timett2-timett1>0){
+         timett1=timett2;
+         DrawRunInfo();
+         m_Canvas->Update();
      }
+//     if(_Begin>=_End){
+//         _Begin=0;
+//         i=-1;
+//         cout <<"  reset we jopu"<<endl;
+//     }
+     if(ret){
+      for(int j=0;j<_subdet.size();j++){
+       _subdet[j]->Fill(m_ntuple);
+      }
+    }
   }
-    _Sample*=1.41;
-  return retcode;
+  DrawRunInfo();
+  m_Canvas->Update();
+  return true;
 }
 
 
 void AMSOnDisplay::Reset(){
-     for(int j=0;j<_msubdet;j++){
+     for(int j=0;j<_subdet.size();j++){
       _subdet[j]->Reset();
      }
+     _Begin=0;
+}
+
+
+int  AMSOnDisplay::ReLoad(){
+        static void *handle=0;
+        char cmd[]="g++ -I$ROOTSYS/include -c AMSNtupleSelect.C";
+        int $i=system(cmd);
+        if(!$i){
+         char cmd1[]="g++ -shared AMSNtupleSelect.o -o libuser.so";
+         $i=system(cmd1);
+         if(!$i){  
+           if(handle)dlclose(handle);
+           if(handle=dlopen("libuser.so",RTLD_NOW)){
+              return 0;
+           }
+           cout <<dlerror()<<endl;
+           return 1;
+//            gSystem->Load("libuser.so");  //redundant to 
+//           gSystem->Unload("libuser.so");  
+//           cout <<"result "<<$i<<endl;
+//           if($i==-1)$i=1;
+//           else $i==0;
+//           return $i;
+            
+        }
+        }
+        return -1;
+
+}
+void AMSOnDisplay::SaveParticleCB()
+{
+   char fnam[255];
+   sprintf(fnam, "%s.%s.ps",getCurSubDet()->GetName(),getGrSet());
+   GetCanvas()->SaveAs(fnam);
+   GetCanvas()->Update();          // refresh the screen
+}
+
+
+void AMSOnDisplay::SaveParticleGIF()
+{
+   char fnam[255];
+   sprintf(fnam, "%s.%s.gif",getCurSubDet()->GetName(),getGrSet());
+   GetCanvas()->SaveAs(fnam);
+   GetCanvas()->Update();          // refresh the screen
+}
+
+
+void AMSOnDisplay::PrintCB()
+{
+
+   pid_t pid = getpid();
+   char filename[80];
+   sprintf(filename, "/tmp/AMSOnDisplay.%u.ps",pid);
+   gAMSDisplay->GetCanvas()->SaveAs(filename);
+   gAMSDisplay->GetCanvas()->Update();          // refresh the screen
+   char cmd[255];
+   sprintf(cmd, "lpr /tmp/AMSOnDisplay.%u.ps",pid);
+   system(cmd);
+   sprintf(cmd, "rm /tmp/AMSOnDisplay.%u.ps",pid);
+   system(cmd);
 }
 
 

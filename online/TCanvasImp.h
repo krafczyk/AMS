@@ -1,4 +1,4 @@
-//  $Id: TCanvasImp.h,v 1.2 2001/01/22 17:32:52 choutko Exp $
+//  $Id: TCanvasImp.h,v 1.3 2003/06/17 07:39:55 choutko Exp $
 
 // Copyright (C) 1995 CodeCERN. All rights reserved.
 
