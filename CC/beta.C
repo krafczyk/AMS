@@ -378,6 +378,9 @@ void AMSBeta::_printEl(ostream & stream){ stream << " Pattern " << _Pattern << "
 
 
 number AMSBeta::betacorr(number zint,number z0,number part){
+ if(zint<1./FLT_MAX){
+   return 1;
+ }
  number zmin=zint*part;
  number zb=z0+1;
  number x0;
