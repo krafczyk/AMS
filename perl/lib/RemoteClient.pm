@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.106 2003/04/17 17:11:41 alexei Exp $
+# $Id: RemoteClient.pm,v 1.107 2003/04/19 09:07:30 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -17,7 +17,7 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout);
 
 my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
 my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
@@ -4027,6 +4027,38 @@ sub trimblanks {
     return wantarray ? @inp_string : $inp_string[0];
 }
 
+sub checkJobsTimeout {
+    my $self = shift;
+    my $lastupd=>undef; 
+    my $sql;
+    my $timenow = time();
+    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid FROM jobs 
+          WHERE jobs.timestamp+jobs.timeout < $timenow"; 
+    my $r4=$self->{sqlserver}->Query($sql);
+    if( defined $r4->[0][0]){
+     foreach my $job (@{$r4}){
+         my $jid          = $job->[0];
+         my $timestamp    = $job->[1];
+         my $timeout      = $job->[2];
+         my $mid          = $job->[3];
+         $sql="SELECT run FROM runs WHERE jid = $jid";
+         my $r3=$self->{sqlserver}->Query($sql); 
+         if (not defined $r3->[0][0]) {
+          $sql="SELECT address FROM mails WHERE mid = $mid";
+          my $r2=$self->{sqlserver}->Query($sql);
+          if (defined $r2->[0][0]) {
+              my $address = $r2->[0][0];
+              my $submittime = localtime($timestamp);
+              my $timeouttime= localtime($timestamp+$timeout);
+              my $message    = "Job $jid, Submitted : $submittime, Timeout : $timeout sec. \n Job will be removed from database : $timeouttime. MC Production Team \n";
+#              $self->sendmailmessage($address,$subject,$message);
+              print "$message\n";
+          }
+      }
+     }
+ }
+}
+
 sub listAll {
     my $self = shift;
     my $show = shift;
@@ -4389,6 +4421,7 @@ sub listCites {
      print_bar($bluebar,3);
      print "<p></p>\n";
 }
+
 sub listDisksAMS {
     my $self = shift;
     my $lastupd=>undef; 
