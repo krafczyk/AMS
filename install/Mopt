@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.248 2003/07/07 12:59:46 choutko Exp $
+#  $Id: Mopt,v 1.249 2003/07/11 09:12:42 choutko Exp $
 #
 
 SHELL=/bin/sh
@@ -129,7 +129,7 @@ endif
 
 ifeq  "$(shell uname)"  "Linux"
 ifdef AMSICC
-  CERNDIR = /afs/cern.ch/exp/ams/Offline/CERN/2003/icc
+  CERNDIR = /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
   NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
 #CC=/opt/intel/compiler60/ia32/bin/icc
 #FF=/opt/intel/compiler60/ia32/bin/ifc
