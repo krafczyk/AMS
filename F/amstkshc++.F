@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.68 2002/08/09 16:03:49 choutko Exp $
+*  $Id: amstkshc++.F,v 1.69 2003/01/07 18:35:58 jorgec Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -1190,7 +1190,7 @@ c            write(*,*)'ncomp ',z_t,a_t,dens
                ZELA = ZEL/DENS
             END IF
             IF (Zin.LT.BIG) THEN
-               ZinA = Zin/DENS
+               Zine = Zin/DENS
             END IF
             IF (Zqe.LT.BIG) THEN
                Zqel = Zqe/DENS
@@ -1419,7 +1419,7 @@ CDE, FCONS.
 c      REAL RNDMm(1)
       real *4 pmom_p(6),pmom_t(6)
       parameter (nsecm=1000)
-      real *4 p_sec(6,nsecm)
+      real *4 p_sec(6,nsecm),v_sec(7),acoo(7)
 *
       NP = 0
 *
@@ -1510,7 +1510,7 @@ c            CALL GRNDM(RNDMm,1)
       ELSE
 c           goto 888
             int=3
-            call abinelset(vect,ipart)
+CJC            call abinelset(vect,ipart)
             if(ihvse(2).eq.1)then
              ISTOP = 1
              DESTEP = DESTEP + GEKIN
@@ -1560,6 +1560,7 @@ c             write(*,*)' bamc ',a_t,z_t,nsec
                 write(*,*)'absiin-E-Stack overflowExiting' 
                 nsec=0
                endif
+             emax=0.
              do i=1,nsec
               if((p_sec(4,i)-p_sec(6,i).gt.cuthad.or.
      +            p_sec(5,i).lt.7)
@@ -1576,10 +1577,20 @@ c             write(*,*)' bamc ',a_t,z_t,nsec
                 call gsking(ngkine)
                 ngkine=ngkine-1
                endif
+               if(p_sec(4,i).gt.emax)then
+                emax=p_sec(4,i)
+                i_sec=nint(p_sec(5,i))
+                do j=1,3
+                 v_sec(j)=vect(j)
+                 v_sec(3+j)=p_sec(j,i)
+                enddo
+                v_sec(7)=sqrt(v_sec(4)**2+v_sec(5)**2+v_sec(6)**2)
+               endif
               else
                DESTEP = DESTEP + p_sec(4,i)-p_sec(6,i)
               endif
              enddo
+             call abinelset(v_sec,i_sec)
              ISTOP = 1
              GEKIN  = 0.
              GETOT  = AMASS
@@ -8404,8 +8415,9 @@ c           write(*,*)'abinelsetlogicerroralreadyset'
          do i=1,7
           coo(i)=acoo(i)
          enddo
-         endif
+CJC         endif
          iset=ipart
+         endif
 c         iset=iset-1
        end
        subroutine abinelget(isett,acoo)
@@ -9122,9 +9134,13 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.68 2002/08/09 16:03:49 choutko Exp $
+* $Id: amstkshc++.F,v 1.69 2003/01/07 18:35:58 jorgec Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.69  2003/01/07 18:35:58  jorgec
+* Zine bug fixed
+* better track of secondaries
+*
 * Revision 1.68  2002/08/09 16:03:49  choutko
 * added be10 (as ipart 114)
 *
