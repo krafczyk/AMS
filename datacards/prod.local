@@ -16,7 +16,8 @@ else
 echo $UNAME is not supported yet
 
 fi
-
+RUN=$1
+EVENT=$2
 
 $Offline/vdev/exe/$MACHINE/gbatch.exe <<!
 LIST
@@ -27,7 +28,7 @@ LOSS 1
 CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
 HADR 1
 TRIG 100000000
-DEBUG -1 10 1
+DEBUG -1 10 1000
 C    tmaxf  smax   fieldm  cconv   maxcal  nitm    xtol iver ialg   steps 
 TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03 
 C npars ims 
@@ -46,7 +47,7 @@ DAQC 1=1 2='$Offline/RunsDir.local/runs/'
 TRCALIB 9=2 13=1
 TERM 1=1234567890
 L3REC  11=1 12=2 
-SELECT 0 -1
+SELECT $RUN $EVENT
 C LVL1 3=1
 END
 

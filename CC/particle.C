@@ -1,4 +1,5 @@
 
+
 // Author V. Choutko 6-june-1996
  
 #include <commons.h>
@@ -275,7 +276,6 @@ void AMSParticle::_writeEl(){
       }
     }
   }
- 
   PN->Particle[PN->Npart]=_GPart;
   PN->Mass[PN->Npart]=_Mass;
   PN->ErrMass[PN->Npart]=_ErrMass;
@@ -304,6 +304,7 @@ void AMSParticle::_writeEl(){
   for(i=0;i<2;i++){
     for(int j=0;j<3;j++){
       PN->AntiCoo[PN->Npart][i][j]=_AntiCoo[i][j];
+//      cout <<i<<" "<<j<<" "<<_AntiCoo[i][j]<<endl;
     }
   }
   for(i=0;i<6;i++){
