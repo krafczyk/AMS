@@ -44,7 +44,6 @@ Below there is a description of a  ntuple.
 * I*4  *              * EVENTH   * AntiMCClusters   // No of Anti MC Hits
 * I*4  *              * EVENTH   * AntiClusters     // No of Amti clusters
 * I*4  *              * EVENTH   * EventStatus      // EventStatus (see status.doc)
-* R*4  *              * EVENTH   * Dummy[3]         // Dummies to be filled
 
 * I*4  * [0,10]       * BETA     * nbeta             // betas number
 * I*4  *              * BETA     * betastatus        // 4 - ambig
@@ -367,7 +366,7 @@ Below there is a description of a  ntuple.
 16 - 4th tof plane was recovered using tracker           (status&32768 !=0)
 17 - LocalDB was used to align track                     (status&65536 !=0)
 18 - GlobalDB was used to align the track                (status&(65536*2)!=0)
-19 - ????
+19 - Cluster was used to get the charge                  (status&(65536*4)!=0)
 
 **) AMS global system definition :
 GTOD
