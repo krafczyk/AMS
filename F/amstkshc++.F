@@ -5746,6 +5746,27 @@ C
       nstp5=npln*5
       IVER = 0
 *
+* stupid geane doesn' want to track if z1 < Z2 
+*
+
+      if(xhits(3,1).lt.xhits(3,npt))then
+        iver=1
+        do i=1,npt/2
+          do j=1,3
+           tmp=xhits(j,i)
+           xhits(j,i)=xhits(j,npt+1-i)
+           xhits(j,npt+1-i)=tmp
+           tmp=ysigma(j,i)
+           ysigma(j,i)=ysigma(j,npt+1-i)
+           ysigma(j,npt+1-i)=tmp
+           tmp=ynormal(j,i)
+           ynormal(j,i)=ynormal(j,npt+1-i)
+           ynormal(j,npt+1-i)=tmp
+          enddo
+        enddo
+      endif   
+
+*
 **     compute a starting point trajectory parameters
 *
 *             get helix crossing three points
@@ -5760,7 +5781,7 @@ C
 *    Slope dy/dx of tangent at Xp,Yp is -alpha/beta.
 *
 *
-             r=(xhits(1,2)-xhits(1,1))**2+
+             r=(ysigma(1,2)-xhits(1,1))**2+
      +         (xhits(2,2)-xhits(2,1))**2+
      +         (xhits(3,2)-xhits(3,1))**2
              r2=(xhits(1,npt)-xhits(1,npt-1))**2+
