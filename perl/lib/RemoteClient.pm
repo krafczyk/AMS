@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.139 2003/04/30 14:38:41 alexei Exp $
+# $Id: RemoteClient.pm,v 1.140 2003/04/30 22:00:12 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -740,7 +740,6 @@ sub RestartServer{
                print FILE "$submit  -B$self->{dbfile} \n";
              }
            close FILE;
-#           my $i=system("$submit -B$self->{dbfile}" );
               my $i=system("chmod +x $full");
            return $i;
           }
@@ -941,10 +940,10 @@ sub ValidateRuns {
          my $status='Failed';
          if ($copyfailed == 0) {
           htmlText("Validation done : send Delete to DBServer, Run =",$run->{Run});
-#          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
+          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
           foreach my $ntuple (@cpntuples) {
            my $cmd="rm -i $ntuple";
-#           system($cmd);
+           system($cmd);
            htmlText("Validation done : system command rm -i ",$ntuple);
          }
           if ($#cpntuples >= 0) { $status = 'Completed';}
@@ -955,7 +954,7 @@ sub ValidateRuns {
                foreach my $ntuple (@mvntuples) {
                 my $cmd = "rm -i $ntuple";
                 htmlText("Validation failed : system command rm -i ",$ntuple);
-#                system($cmd);
+                system($cmd);
                 $failedcp++;
                 $copied--;
                }
@@ -1026,36 +1025,45 @@ sub doCopy {
           }   
          if ($mtime) {
 # find job
-          $sql = "SELECT cites.name,jobname,jobs.jid,datasets.name  FROM jobs,cites,datasets  
-                           WHERE jid=$jid AND cites.cid=jobs.cid AND jobs.did=datasets.did";
+          $sql = "SELECT cites.name,jobname,jobs.jid FROM jobs,cites 
+                           WHERE jid =$jid AND cites.cid=jobs.cid";
           my $r1 = $self->{sqlserver}->Query($sql);
           if (defined $r1->[0][0]) {
             my $cite    = $r1->[0][0];
             my $jobname = $r1->[0][1];
-            my $dataset = $r1->[0][3];
-            $jobname =~ s/$cite.//;
-            $jobname =~ s/$jid.//;
-            $jobname =~ s/.job//;
-            $outputpath = $outputpath."/".$dataset."/".$jobname;
-            $cmd = "mkdir -p $outputpath";
-            $cmdstatus = system($cmd);
-            if (!$cmdstatus) {
-             $outputpath = $outputpath."/".$file;
-             $cmd = "cp -pi -d -v $inputfile  $outputpath >> $logfile";
-             $cmdstatus = system($cmd);
-             if ($cmdstatus) {
+            my $dataset = "unknown";
+            $sql = "SELECT jobs.jid, datasets.name  FROM datasets, jobs   
+                           WHERE jid =$jid AND jobs.did=datasets.did";
+            my $r2 = $self->{sqlserver}->Query($sql);
+            if (defined $r2->[0][0]) {
+              $dataset = $r2->[0][1];
+              $jobname =~ s/$cite.//;
+              $jobname =~ s/$jid.//;
+              $jobname =~ s/.job//;
+              $outputpath = $outputpath."/".$dataset."/".$jobname;
+              $cmd = "mkdir -p $outputpath";
+              $cmdstatus = system($cmd);
+              if ($cmdstatus == 0) {
+               $outputpath = $outputpath."/".$file;
+               $cmd = "cp -pi -d -v $inputfile  $outputpath >> $logfile";
+               $cmdstatus = system($cmd);
+               if ($cmdstatus == 0 ) {
                  my $rstatus = system("$self->{AMSSoftwareDir}/exe/linux/crc $outputpath $crc");
+                 $rstatus=($rstatus>>8);
                  if ($rstatus == 1) {
-                   return $outputpath,0;
+                   return $outputpath,1;
                  } else {
                   htmlWarning("doCopy","crc calculation failed for ",$outputpath);
                   htmlWarning("doCopy","crc calculation failed status ",$rstatus);
-                  return $outputpath,1;
+                  return $outputpath,0;
                  }
+               }
+               return $outputpath,0;
+              } else {
+               htmlWarning("doCopy","failed",$cmd);
              }
-             return $outputpath,1;
             } else {
-             htmlWarning("doCopy","failed",$cmd);
+             htmlWarning("doCopy","cannot find dataset for JID=",$jid);
             }
            } else {
             htmlWarning("doCopy","cannot get info for JID=",$jid);
@@ -1803,14 +1811,14 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
           print "<tr><td><b><font color=\"green\" size=2>Job Template</font></b>\n";
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-          print "<tr valign=middle><td align=left><b><font size=\"-1\"> File : </b></td> <td colspan=1>\n";
-          print "<select name=\"QTemp\" >\n";
-          print "<option value=\"Any\">  </option>\n";
-          foreach my $template (@tempnam) {
-            print "<option value=\"$template\">$template </option>\n";
-          }
-          print "</select>\n";
-          print "</b></td></tr>\n";
+#          print "<tr valign=middle><td align=left><b><font size=\"-1\"> File : </b></td> <td colspan=1>\n";
+#          print "<select name=\"QTemp\" >\n";
+#          print "<option value=\"Any\">  </option>\n";
+#          foreach my $template (@tempnam) {
+#            print "<option value=\"$template\">$template </option>\n";
+#          }
+#          print "</select>\n";
+#          print "</b></td></tr>\n";
            my $found=0;
            @tempnam=();
            $hash={};
@@ -1833,12 +1841,12 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
              print "<option value=\"$template\">$desc[$i] </option>\n";
              $i++;
             }
-            print "</select>\n";
-            htmlTextField("Job nickname","text",80,'Any',"QNick"," ");  
-            print "</b></td></tr>\n";
+#            print "</select>\n";
+#            htmlTextField("Job nickname","text",80,'Any',"QNick"," ");  
+#            print "</b></td></tr>\n";
         htmlTableEnd();
 # Job Parameters
-          print "<tr><td><b><font color=\"green\" size=2>Cite HW Parameters</font></b>\n";
+          print "<tr><td><b><font color=\"green\" size=2>Job Parameters</font></b>\n";
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
           print "<tr valign=middle><td align=left><b><font size=\"-1\"> Particle : </b></td> <td colspan=1>\n";
@@ -1858,67 +1866,67 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
            htmlTableEnd();
 # spectrum and focusing
-            print "<tr><td><b><font color=\"blue\" size=2>Spectrum and Focusing</font></b>\n";
-            print "</td><td>\n";
-            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-            $ts=$self->{tsyntax};
-            @keysa=sort keys %{$ts->{spectra}};
-              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Input Spectrum : </b></td> <td colspan=1>\n";
-              print "<select name=\"QSpec\" >\n";
-              print "<option value=\"Any\">  </option>\n";
-              foreach my $spectrum (@keysa) {
-                print "<option value=\"$spectrum\">$spectrum </option>\n";
-              }
-              print "</select>\n";
-              print "</b></td></tr>\n";
-           @keysa=sort keys %{$ts->{focus}};
-              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Focusing : </b></td> <td colspan=1>\n";
-              print "<select name=\"QFocus\" >\n";
-              print "<option value=\"Any\">  </option>\n";
-              foreach my $focus (@keysa) {
-                print "<option value=\"$focus\">$focus </option>\n";
-              }
-              print "</select>\n";
-              print "</b></td></tr>\n";
-           htmlTableEnd();
-# geo magnetic cutoff
-            print "<tr><td><b><font color=\"blue\" size=2>GeoMagnetic Cutoff</font></b>\n";
-            print "</td><td>\n";
-            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-            print "<tr><td><font size=\"-1\"<b>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"GCF\" VALUE=\"1\" CHECKED><b> Yes </b>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"GCF\" VALUE=\"0\" ><b> No </b><BR>\n";
-             print "</b></font></td></tr>\n";
-           htmlTableEnd();
-# cube coordinates
-            print "<tr><td><b><font color=\"blue\" size=2>Cube Coordinates</font></b>\n";
-            print "</td><td>\n";
-            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-            print "<tr><td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Min : X : <input type=\"number\" size=5 value=-195 name=\"QXL\"></td>\n";  
-            print "<td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYL\"></td>\n";  
-            print "<td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZL\"> (cm)</td>\n";  
-            print "</b></font></tr>\n";
-            print "<tr><td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Max : X : <input type=\"number\" size=5 value=-195 name=\"QXU\"></td>\n";  
-            print "<td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYU\"></td>\n";  
-            print "<td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZU\"> (cm)</td>\n";  
-            print "</b></font></tr>\n";
-            htmlTextField("Cos Theta Max ","number",5,0.25,"QCos"," ");
-            @keysa=sort keys %{$ts->{planes}};
-              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Cube Surface Generation : </b></td> <td colspan=1>\n";
-              print "<select name=\"QPlanes\" >\n";
-              print "<option value=\"Any\">  </option>\n";
-              foreach my $surface (@keysa) {
-                print "<option value=\"$surface\">$surface </option>\n";
-              }
-              print "</select>\n";
-              print "</b></td></tr>\n";
-           htmlTableEnd();
+#            print "<tr><td><b><font color=\"blue\" size=2>Spectrum and Focusing</font></b>\n";
+#            print "</td><td>\n";
+#            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+#            $ts=$self->{tsyntax};
+#            @keysa=sort keys %{$ts->{spectra}};
+#              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Input Spectrum : </b></td> <td colspan=1>\n";
+#              print "<select name=\"QSpec\" >\n";
+#              print "<option value=\"Any\">  </option>\n";
+#              foreach my $spectrum (@keysa) {
+#                print "<option value=\"$spectrum\">$spectrum </option>\n";
+#              }
+#              print "</select>\n";
+#              print "</b></td></tr>\n";
+#           @keysa=sort keys %{$ts->{focus}};
+#              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Focusing : </b></td> <td colspan=1>\n";
+#              print "<select name=\"QFocus\" >\n";
+#              print "<option value=\"Any\">  </option>\n";
+#              foreach my $focus (@keysa) {
+#                print "<option value=\"$focus\">$focus </option>\n";
+#              }
+#              print "</select>\n";
+#              print "</b></td></tr>\n";
+#           htmlTableEnd();
+## geo magnetic cutoff
+#            print "<tr><td><b><font color=\"blue\" size=2>GeoMagnetic Cutoff</font></b>\n";
+#            print "</td><td>\n";
+#            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+#            print "<tr><td><font size=\"-1\"<b>\n";
+#             print "<INPUT TYPE=\"radio\" NAME=\"GCF\" VALUE=\"1\" CHECKED><b> Yes </b>\n";
+#             print "<INPUT TYPE=\"radio\" NAME=\"GCF\" VALUE=\"0\" ><b> No </b><BR>\n";
+#             print "</b></font></td></tr>\n";
+#           htmlTableEnd();
+## cube coordinates
+#            print "<tr><td><b><font color=\"blue\" size=2>Cube Coordinates</font></b>\n";
+#            print "</td><td>\n";
+#            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+#            print "<tr><td width=\"30%\"><font size=\"2\">\n";
+#            print "<b> Min : X : <input type=\"number\" size=5 value=-195 name=\"QXL\"></td>\n";  
+#            print "<td width=\"30%\"><font size=\"2\">\n";
+#            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYL\"></td>\n";  
+#            print "<td width=\"30%\"><font size=\"2\">\n";
+#            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZL\"> (cm)</td>\n";  
+#            print "</b></font></tr>\n";
+#            print "<tr><td width=\"30%\"><font size=\"2\">\n";
+#            print "<b> Max : X : <input type=\"number\" size=5 value=-195 name=\"QXU\"></td>\n";  
+#            print "<td width=\"30%\"><font size=\"2\">\n";
+#            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYU\"></td>\n";  
+#            print "<td width=\"30%\"><font size=\"2\">\n";
+#            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZU\"> (cm)</td>\n";  
+#            print "</b></font></tr>\n";
+#            htmlTextField("Cos Theta Max ","number",5,0.25,"QCos"," ");
+#            @keysa=sort keys %{$ts->{planes}};
+#              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Cube Surface Generation : </b></td> <td colspan=1>\n";
+#              print "<select name=\"QPlanes\" >\n";
+#              print "<option value=\"Any\">  </option>\n";
+#              foreach my $surface (@keysa) {
+#                print "<option value=\"$surface\">$surface </option>\n";
+#              }
+#              print "</select>\n";
+#              print "</b></td></tr>\n";
+#           htmlTableEnd();
       htmlTableEnd();
    print "<p><br>\n";
    print "<b> Print <INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ALL\" CHECKED> Full Listing\n";
@@ -5898,12 +5906,12 @@ my $levent =  0;
 
 my $patternsmatched  = 0; 
 
-my @startingjob;
-my @startingrun;
-my @opendst;
-my @closedst;
-my @runfinished;
-
+my @startingjob   =();
+my @startingrun   =();
+my @opendst       =();
+my @closedst      =();;
+my @runfinished   =();
+my @runincomplete =();
 
 my $timestamp = 0;    # unix time 
 my $lastrun   = 0;
@@ -5959,8 +5967,60 @@ foreach my $block (@blocks) {
     my ($utime,@jj) = split " ",$block;
     if (defined $utime) {
 #
-# find one of the following : RunIncomplete StartingJob, StartingRun, OpenDST, CloseDST, RunFinished
+# find one of the following : RunIncomplete StartingJob, StartingRun, 
+#                             OpenDST, CloseDST, RunFinished
+#
+#-I-TimeStamp 1051668098 Wed Apr 30 04:01:38 2003
+#,  RunIncomplete CInfo  , Host ccwall43 , EventsProcessed 162892 , LastEvent 319737 
+#, Errors 4364 , CPU 100271 , Elapsed 126696 , CPU/Event 0.615564 , Status Failed
+
       if ($block =~/RunIncomplete/) {
+          if ($startingrunR == 1) {
+              print FILE "RunIncomplete : Ntuples Validated : $validated. Continue\n";
+              print FILE "$block \n";
+
+          $patternsmatched  = 0;
+          my @RunIncompletePatterns = 
+                ("RunIncomplete","Host","EventsProcessed","LastEvent","Errors",
+                              "CPU","Elapsed","CPU/Event","Status");
+          for (my $i=0; $i<$#junk+1; $i++) {
+           my @jj = split " ",$junk[$i];
+           if ($#jj > 0) {
+            my $found = 0;
+            my $j     = 0;
+            while ($j<$#RunIncompletePatterns+1 && $found == 0) { 
+            if ($jj[0] eq $RunIncompletePatterns[$j]) {
+             $runincomplete[$j] = trimblanks($jj[1]);
+             $patternsmatched++;
+             $found = 1;
+            }
+            $j++;
+         }
+        }
+       }
+   if ($patternsmatched == $#RunIncompletePatterns+1) { #RunIncomplete has a pair CInfo
+    $runincomplete[0] = "RunIncomplete";
+    $runfinishedR   = 1;
+    my $sql = "SELECT run FROM runs WHERE run = $lastrun AND levent=$runincomplete[3]";
+    my $ret = $self->{sqlserver}->Query($sql);
+    if (not defined $ret->[0][0]) {
+     my $cputime = sprintf("%.0f",$runincomplete[5]);
+     my $elapsed = sprintf("%.0f",$runincomplete[6]);
+     $sql = "UPDATE Jobs SET EVENTS=$runincomplete[2], ERRORS=$runincomplete[4], 
+                                   CPUTIME=$cputime, ELAPSED=$elapsed,
+                                   HOST='$runfinished[1]', TIMESTAMP = $timestamp 
+                   WHERE JID = (SELECT Runs.jid FROM Runs WHERE Runs.jid = $lastrun)";
+     print FILE "$sql \n";
+     $self->{sqlserver}->Update($sql);
+    }
+   } else {
+       print FILE "parseJournalFile -W- RunIncomplete - cannot find all patterns \n";
+   }
+   #
+   # end RunIncomplete - normal
+   # if no NTuples produced
+   #
+          } else {
 # assume journal file : jobnumber.journal
           my @jj = split ".journal",$joufile;
           my $jobid = $jj[0];
@@ -5978,6 +6038,7 @@ foreach my $block (@blocks) {
           $self->sendmailmessage($mailto,$subject,$text);
           last;
       }
+     }
       elsif ($block =~/StartingJob/) {
 
 #
@@ -6191,12 +6252,13 @@ foreach my $block (@blocks) {
       my $i = 0;
       my $crccmd = "$self->{AMSSoftwareDir}/exe/linux/crc $dstfile $ntcrc";
       $i=system($crccmd);
+      $i=($i>>8);
       print FILE "$crccmd : Status : $i \n";
-#      if ($i != 1) {
-#          $unchecked++;
-#          $copyfailed = 1;
-#          last;
-#      }
+      if ($i != 1) {
+          $unchecked++;
+          $copyfailed = 1;
+          last;
+      }
       $i=0;
       if ($nttype eq 'Ntuple') {
         my $validatecmd = 
