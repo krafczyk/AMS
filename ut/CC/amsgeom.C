@@ -98,7 +98,10 @@ if(!G4FFKEY.UniformMagField){
  trdgeom02(mother);
  srdgeom02(mother);
  ecalgeom02(mother);
- // richgeom02(mother);
+#ifdef __AMSDEBUG__
+ cout<<"G4 RICH geometry only for debugging."<<endl;
+ richgeom02(mother);
+#endif
 }
 #else
  trdgeom02(mother);
