@@ -452,6 +452,22 @@ PROTOCCALLSFSUB0(GZINIT,gzinit)
 
 
 
+struct GCMATE_DEF {
+  integer nmat;
+  integer namate[5];
+  float a;
+  float z;
+  float dens;
+  float radl;
+  float absl;
+
+
+};
+
+#define GCMATE COMMON_BLOCK(GCMATE,gcmate)
+COMMON_BLOCK_DEF(GCMATE_DEF,GCMATE);
+
+
 struct GCKINE_DEF{
 integer ikine;
 float pkine[10];
