@@ -244,11 +244,12 @@ Word2 & 31         Number of TDR      (24)
 Then 24 subblocks
 
 Subblock format 
-
 Word3              TDR Number         0-23
-Word4 to 43     Data
+Word4              Subsubblock Length (SSL=42)
+Word5       
+Word6 to 46     Data
 
-
+Data format:
 
  1 128     Number of events to throw out before beginning calibration
  2 2048    Number of events for pedestal calculation
@@ -261,7 +262,7 @@ Word4 to 43     Data
  9 14      f1 Cut for histo (in 1/8)
 10 10      f2 Cut for histo pass 2 (in 1/8)
 11 24      g Cut for non gaussien behaviour (in 1/8)
-1250      out_g Number of event out of bound for non gaussien
+12 50      out_g Number of event out of bound for non gaussien
 13 24      Seed cut (in 1/8)
 14 8       Neigbour cut (in 1/8)
 15 48      ADC min
@@ -293,7 +294,7 @@ Word4 to 43     Data
 
     
 
-then 2 to 3 words (?)
+then 2 to 3 words 
 
 WordSL-2 CRC1
 WordSL-1 CRC2
