@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.9 2003/04/09 14:05:06 choumilo Exp $
+//  $Id: antirec02.C,v 1.10 2003/04/10 14:48:10 choutko Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -146,8 +146,6 @@ void Anti2RawEvent::mc_build(int &stat){
   static geant pshape[ANTI2C::ANFADC];//store PM single ph.el. pulse shape
 //(+ result of time-dispersion of original light flash due to light collection) 
   if(first++==0){
-    AMSmceventg::SaveSeeds();
-    AMSmceventg::SetSeed(0);
     ANTI2DBc::inipulsh(nshap,pshape); // prep.PM-pulse shape arr.(in ANTI2DBc::fadcbw() bins)
   }
 //
