@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.9 2001/04/27 21:50:33 choutko Exp $
+//  $Id: trddbc.h,v 1.10 2001/05/05 19:49:05 kscholbe Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>
@@ -69,6 +69,8 @@ private:
     static const number  _ManifoldWidth;
     static const number  _BulkheadGap;
     static const integer _LadderOrientation[mtrdo][trdconst::maxlay];    
+    static const number  _SpacerWidth; 
+    static const integer _NumberSpacers[trdconst::maxtube];
 
  //Sizes    
    static number    _OctagonDimensions[maxo][10]; 
@@ -252,7 +254,8 @@ public:
     static  number  BulkheadGap(){return _BulkheadGap;}
     static  integer LadderOrientation(uinteger oct, uinteger lay){return lay<LayersNo(oct)?_LadderOrientation[oct][lay]:0;}     
     static  integer LadderShift(uinteger oct, uinteger lay,uinteger lad){return lad%2?-1:1;}
-
+    static number SpacerWidth(){return _SpacerWidth;}
+    static  integer NumberSpacers(uinteger tube){return tube<trdconst::maxtube?_NumberSpacers[tube]:0;}     
 
 
  //Sizes    
