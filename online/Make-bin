@@ -12,7 +12,6 @@ SRCS          = AMSDisplay.cxx \
                 AMSLVL1Hist.cxx\
                 AMSLVL3Hist.cxx\
                 AMSAxAMSHist.cxx\
-                AMSGenHist.cxx\
                 AMSNtuple.cxx\
 		TRadioButton.cxx TSwitch.cxx Debugger.cxx 
 
@@ -28,7 +27,6 @@ HDRS          = TRadioButton.h TSwitch.h \
                 AMSLVL1Hist.h\
                 AMSLVL3Hist.h\
                 AMSAxAMSHist.h\
-                AMSGenHist.h\
                 AMSNtuple.h\
                 LinkDef.h
 
@@ -66,7 +64,9 @@ AMSPRGC       = offmonc
 ##### TARGETS #####
 interprete:  $(AMSSHAREDLIB)
 
-standalone:  $(AMSPRG)
+standalone:     
+		@echo "Version 1.03 is not supported anymore"
+		@echo "please use ~/AMS/online/v2.00 instead"
 
 realtime:  $(AMSPRGC)
 
