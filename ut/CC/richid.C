@@ -436,6 +436,10 @@ geant *AMSRICHIdSoft::_threshold=0;
 integer *AMSRICHIdSoft::_gain_mode_boundary=0;
 integer *AMSRICHIdSoft::_status=0;
 
+uinteger AMSRICHIdSoft::_nbins=1000;  // default value
+geant *AMSRICHIdSoft::_cumulative_prob=0;
+geant *AMSRICHIdSoft::_step=0;
+
 void AMSRICHIdSoft::Init(){
   _nchannels=AMSRICHIdGeom::getpmtnb()*16;  // Assume 16 channels per PMT
   _ped=new geant[2*_nchannels];
@@ -451,12 +455,14 @@ void AMSRICHIdSoft::Init(){
   _gain_mode_boundary=new integer[_nchannels];
   _status=new integer[_nchannels];
 
+  _cumulative_prob=new geant[2*_nchannels*_nbins];
+  _step=new geant[2*_nchannels];
 
   // Check
 
   assert(_ped && _sig_ped && _lambda && _scale && _transparency && 
          _lambda_dyn && _scale_dyn && _threshold && _gain_mode_boundary &&
-         _status);
+         _status && _cumulative_prob);
 
 
   // Here we should fill all the values
@@ -539,14 +545,26 @@ void AMSRICHIdSoft::Init(){
     cout<<"AMSRICHIdSoft::Init: Using nominal calibration."<<endl;
     for(int i=0;i<_nchannels;i++){
       for(int hl=0;hl<2;hl++){
+	// OLD PMT simulation 
+	//        _ped[2*i+hl]=0.;
+	//        _sig_ped[2*i+hl]=4.;
+	//        _threshold[2*i+hl]=4.;
+	//        _lambda[2*i+hl]=1.23;
+	//        _scale[2*i+hl]=30./(5.-4.*hl);;
+	//        _transparency[2*i+hl]=0.;
+	//        _lambda_dyn[2*i+hl]=0.;
+	//        _scale_dyn[2*i+hl]=0.;
+
+	// New PMT simulation
         _ped[2*i+hl]=0.;
         _sig_ped[2*i+hl]=4.;
         _threshold[2*i+hl]=4.;
-        _lambda[2*i+hl]=1.23;
-        _scale[2*i+hl]=30./(5.-4.*hl);;
+        _lambda[2*i+hl]=4.92;
+        _scale[2*i+hl]=12.25/(5.-4.*hl);;
         _transparency[2*i+hl]=0.;
         _lambda_dyn[2*i+hl]=0.;
         _scale_dyn[2*i+hl]=0.;
+
       }
       
       _gain_mode_boundary[i]=3000;
@@ -557,9 +575,56 @@ void AMSRICHIdSoft::Init(){
 
 
   }
+
+
+
+  // Fill the probability function for each channel
+  fill_probability();
+
+}
+
+
+void AMSRICHIdSoft::fill_probability(){
+  for(int channel=0;channel<_nchannels;channel++)
+    for(int mode=0;mode<2;mode++){
+      geant gain,sigma;
+      geant lambda,scale;
+      
+      lambda=_lambda[2*channel+mode];
+      scale=_scale[2*channel+mode];	
+      GETRMURSG(lambda,scale,gain,sigma);
+
+      geant upper_limit=gain*10;
+      _step[2*channel+mode]=upper_limit/_nbins;
+      
+      // Use the trapezoid rule to compute the integral
+      _cumulative_prob[2*channel*_nbins+mode*_nbins]=0;
+      for(int i=1;i<_nbins;i++){
+	float value,x1,x2;
+
+	x1=i*_step[2*channel+mode];
+	x2=(i-1)*_step[2*channel+mode];
+	value=PDENS(x1,lambda,scale)+PDENS(x2,lambda,scale);
+	value*=_step[2*channel+mode]/2;
+	_cumulative_prob[2*channel*_nbins+mode*_nbins+i]=_cumulative_prob[2*channel*_nbins+mode*_nbins+i-1]+value;
+      }
+
+      for(int i=0;i<_nbins;i++)
+	_cumulative_prob[2*channel*_nbins+mode*_nbins+i]/=
+	  _cumulative_prob[2*channel*_nbins+mode*_nbins+_nbins-1];
+
+    }
 }
 
 
 
-
+geant AMSRICHIdSoft::simulate_single_pe(int mode){
+  // Sample from the _cumulative_prob for _address and mode
+  geant dummy=0;
+  geant value=RNDM(dummy);
+  for(int i=0;i<_nbins;i++){
+    if(value<=_cumulative_prob[2*_nbins*_address+(mode<=0?0:1)*_nbins+i])
+      return i*_step[2*_address+(mode<=0?0:1)];
+  }
+}
 
