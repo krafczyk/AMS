@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.35 2002/09/20 12:41:58 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.36 2002/09/20 12:42:28 choutko Exp $          
 
 
 0. In the current version only AMS02-setup is supported.
@@ -32,7 +32,8 @@ a) AMS Home Page at http://ams.cern.ch/AMS/analysis.html  -> SoftwareManagement
 b) AMS02 VeryShort Home Page at  http://ams.cern.ch/AMS/Analysis/hpl3itp1/ams02.html
 c) files in doc subdirectory of AMS directory tree ( see VI. how to access) 
 d) 00index.txt file in each subdirectory
-
+e) AMS02 Software Status Report in
+    http://ams.cern.ch/AMS/Analysis/hpl3itp1/ams02_ss_2002.ps
 
 VI. Access to AMS software
 
