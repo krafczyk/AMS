@@ -38,6 +38,13 @@ PROTOCCALLSFSUB0(UGLAST,uglast)
 #define UGLAST() CCALLSFSUB0(UGLAST,uglast)
 //
 void (handler)(int);
+#ifndef __IBMAIX__
+namespace glconst{
+integer cpul=1;
+}
+#else
+integer cpul=1;
+#endif
 main(){
      *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
@@ -57,11 +64,23 @@ main(){
 return 0;
 }
 void (handler)(int sig){
+#ifndef __IBMAIX__
+using namespace glconst;
+#endif
   switch(sig){
   case SIGFPE:
    cerr <<" FPE intercepted"<<endl;
    break;
-  case SIGTERM: case SIGINT: case SIGXCPU:
+  case SIGXCPU:
+    if(cpul){
+       cerr <<" Cpu limit exceeded"<<endl;
+       cpul=0;
+       GCFLAG.IEORUN=1;
+       GCFLAG.IEOTRI=1;
+       AMSStatus::setmode(0);
+    }
+    break;
+  case SIGTERM: case SIGINT: 
     cerr <<" SIGTERM intercepted"<<endl;
     GCFLAG.IEORUN=1;
     GCFLAG.IEOTRI=1;
