@@ -1,4 +1,4 @@
-//  $Id: tofsim.C,v 1.49 2001/03/28 11:34:47 choutko Exp $
+//  $Id: tofsim.C,v 1.50 2001/09/13 09:48:53 choutko Exp $
 // Author Choumilov.E. 10.07.96.
 #include <iostream.h>
 #include <stdio.h>
@@ -76,7 +76,7 @@ geant AMSTOFScan::gettm1( geant rnd, geant r, int i1,  int i2)
     else{
       geant t1=tdist1[i1].getrand(rnd);
       geant t2=tdist1[i2].getrand(rnd);
-      return (t1+(t2-t1)*r);
+      return t1+(t2-t1)*r>0?t1+(t2-t1)*r:0;
     }
   }
 
@@ -86,7 +86,7 @@ geant AMSTOFScan::gettm2( geant rnd,  geant r,  int i1,  int i2)
     else{
       geant t1=tdist2[i1].getrand(rnd);
       geant t2=tdist2[i2].getrand(rnd);
-      return (t1+(t2-t1)*r);
+      return t1+(t2-t1)*r>0?t1+(t2-t1)*r:0;
     }
   }
 

@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.10 2001/09/12 16:17:02 choutko Exp $
+//  $Id: tofsim02.C,v 1.11 2001/09/13 09:48:53 choutko Exp $
 // Author Choumilov.E. 10.07.96.
 #include <tofdbc02.h>
 #include <iostream.h>
@@ -122,7 +122,7 @@ geant TOF2Scan::gettm1(geant r, int i1, int i2){
   rnd=RNDM(dummy);
   t1=tdist1[i1].gettime(rnd);
   t2=tdist1[i2].gettime(rnd);
-  return t1+(t2-t1)*r;
+  return t1+(t2-t1)*r>0?t1+(t2-t1)*r:0;
 
 };    
 geant TOF2Scan::gettm2(geant r, int i1, int i2){
@@ -131,7 +131,7 @@ geant TOF2Scan::gettm2(geant r, int i1, int i2){
   rnd=RNDM(dummy);
   t1=tdist2[i1].gettime(rnd);
   t2=tdist2[i2].gettime(rnd);
-  return t1+(t2-t1)*r;
+  return t1+(t2-t1)*r>0?t1+(t2-t1)*r:0;
 
 };    
 //------------------------------------------------------------------

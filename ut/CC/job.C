@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.380 2001/09/11 12:57:03 choumilo Exp $
+// $Id: job.C,v 1.381 2001/09/13 09:48:52 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1202,8 +1202,8 @@ void AMSJob::_retofdata(){
 //
 void AMSJob::_retof2data(){
 // 
-  TFREFFKEY.Thr1=0.4;//(1) Threshold (mev) on peak bar energy
-  TFREFFKEY.ThrS=0.5; //(2) Threshold (mev) on total cluster energy
+  TFREFFKEY.Thr1=0.2;//(1) Threshold (mev) on peak bar energy
+  TFREFFKEY.ThrS=0.2; //(2) Threshold (mev) on total cluster energy
 //
   TFREFFKEY.reprtf[0]=0; //(3) RECO print flag for statistics 
   TFREFFKEY.reprtf[1]=0; //(4) print flag for DAQ (1/2-> print for decoding/dec+encoding)
