@@ -344,6 +344,7 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 _siecalinitrun();
 _sitrdinitrun();
 _sisrdinitrun();
+_sirichinitrun();
 }
 else {
 _sictcinitrun();
@@ -391,6 +392,7 @@ void AMSEvent::_siamsinitevent(){
 _siecalinitevent();
 _sitrdinitevent();
 _sisrdinitevent();
+_sirichinitevent();
 }
 else{
  _sictcinitevent();
@@ -698,6 +700,11 @@ void AMSEvent::_siecalinitevent(){
     ptr = AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalMCHit",i),0));
   }
+}
+
+void AMSEvent::_sirichinitevent(){
+  AMSNode *ptr;
+  ptr=AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSRichMCHit",0),0));
 }
 
 void AMSEvent::_sisrdinitevent(){
@@ -1069,7 +1076,8 @@ void AMSEvent::event(){
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
       _siecalevent(); 
       _sitrdevent(); 
-      _sisrdevent(); 
+      _sisrdevent();
+      _sirichevent();
       }
     _sitrigevent(); 
     if(TOFMCFFKEY.fast==0)_sidaqevent(); //DAQ-simulation only for slow algorithm
@@ -1572,6 +1580,9 @@ void AMSEvent::_sitrdinitrun(){
 }
 void AMSEvent::_sisrdinitrun(){
 }
+void AMSEvent::_sirichinitrun(){
+}
+
 
 void AMSEvent::_retkinitrun(){
   // Warning if TRFITFFKEY.FastTracking is on...
@@ -1685,6 +1696,11 @@ void AMSEvent:: _siecalevent(){
   AMSgObj::BookTimer.stop("SIECALEVENT");
 }
 //----------------------------------------------------------------
+
+
+void AMSEvent::_sirichevent(){
+}
+
 
 void AMSEvent:: _sitrigevent(){
 

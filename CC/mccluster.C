@@ -403,7 +403,7 @@ void AMSRichMCHit::sirichhits(integer idsoft , geant vect[],
 {
 
   AMSPoint p(vect[0],vect[1],vect[2]);
-  AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",int(idsoft)),
+  AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
 			       new AMSRichMCHit(idsoft,p,energy,kind));
 }
 

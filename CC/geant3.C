@@ -182,17 +182,61 @@ extern "C" void gustep_(){
 		   20.633,20.633,20.633,20.633,20.010,18.923,17.355,16.266,14.918, 
 		   13.682,11.509,10.555, 8.321, 7.153, 6.282, 6.148, 4.953};
       
+      geant wave_l[]={608.696, 605.797, 602.899, 600.000, 595.652, 591.304,
+		      585.507, 578.261, 573.913, 568.116, 563.768, 556.522,
+		      550.725, 543.478, 536.232, 528.986, 520.739, 511.594,
+		      502.899, 494.203, 482.609, 471.014, 459.42,  447.826,
+		      431.884, 426.087, 404.348, 391.304, 376.812, 369.565,
+		      355.012, 340.58,  328.986, 314.493, 304.348, 295.304, 
+		      288.406, 284.058, 279.71,  275.812, 272.464, 270.014,
+		      268.116, 266.667};
       
+
+
       switch(GCKINE.ipart)
 	{
 	case 0:
         case 50: // Cerenkov photons
-	  // Do all the job: compute if the particle is detected
+{	  // Do all the job: compute if the particle is detected
 	  // using the detection eff(iciency) array and put it in the
 	  // mccluster
+
+	  geant wl=2*3.1415926*197.327e-9/GCTRAK.vect[6];
+	  if(wl<wave_l[0] && wl>wave_l[43]){
+	    for(integer i=0;i<44;i++)
+	      if(wave_l[i]>wl && wave_l[i+1]<wl) break;
+	    
+	    // linear interpolation of eff: it's good because the bining is 
+	    // small enough
+
+	    geant dummy;
+	    geant ieff=(eff[i+1]-eff[i])*(wl-wave_l[i])/(wave_l[i+1]-wave_l[i])+eff[i];
+	    geant rnumber=RNDM(dummy);
+
+	    if(100*rnumber<ieff) // Detected!!!
+	      { 
+//		cout << "IPART " << GCKINE.ipart << "detected at:" << endl;
+//		cout << GCVOLU.names[lvl][0] << GCVOLU.names[lvl][1] <<
+//		  GCVOLU.names[lvl][2] << GCVOLU.names[lvl][3] << " copy number " <<
+//		  GCVOLU.number[lvl] <<endl;
+//		cout << GCVOLU.names[lvl-1][0] << GCVOLU.names[lvl-1][1] <<
+//		  GCVOLU.names[lvl-1][2] << GCVOLU.names[lvl-1][3] << " copy number " <<
+//		  GCVOLU.number[lvl-1] <<endl;
+		AMSRichMCHit::sirichhits(GCVOLU.number[lvl]+10000*GCVOLU.number[lvl-1],
+					 GCTRAK.vect,
+					 GCTRAK.getot,
+					 0); // 0 means gamma
+					 
+	      }
+	  }
 	  GCTRAK.istop=1; // Absorb it
 	  break;
+}
 	default:
+	  AMSRichMCHit::sirichhits(GCVOLU.number[lvl]+10000*GCVOLU.number[lvl-1],
+				   GCTRAK.vect,
+				   GCTRAK.getot,
+				   GCKINE.ipart);
 	  break;
    	}
     }
