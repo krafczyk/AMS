@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.100 2003/04/17 10:15:30 choutko Exp $
+# $Id: RemoteClient.pm,v 1.101 2003/04/17 10:32:46 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2777,6 +2777,7 @@ print qq`
         if($cput < 300 ){
              $self->ErrorPlus("Computer Clock $cput  is too low for the AMS02 MC ");
         }
+        my $clock=$cput;
         if($cput > 3000 ){
             $cput=3000;
         }
@@ -3132,6 +3133,9 @@ print qq`
          $buf=~ s/CPULIM=/CPULIM=$cputf/;         
          $buf=~ s/PMIN=/PMIN=$pminf/;         
          $buf=~ s/PMAX=/PMAX=$pmaxf/;         
+         $buf= $buf."CLOCK=$clock \n";
+         my $cputype=$q->param("QCPUType");
+         $buf= $buf."CPUTYPE=$cputype\n";
          if($self->{CCT} eq "local"){
            $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;         
          }       
