@@ -1974,6 +1974,6 @@ int16u AMSTOFRawEvent::sw2hwid(int16u a1, int16u a2, int16u a3){
 
 
 
-AMSID AMSTOFCluster::crgid(){
+AMSID AMSTOFCluster::crgid(int kk){
 return AMSID("TOFS",_ntof*100+_plane);
 }
