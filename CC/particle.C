@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.142 2003/09/22 17:38:28 mdelgado Exp $
+//  $Id: particle.C,v 1.143 2003/11/10 11:16:58 alcaraz Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -1011,45 +1011,53 @@ void AMSParticle::alfun(integer & n , number xc[], number &fc, AMSParticle *p){
 
 AMSParticle::AMSParticle(AMSVtx *pvert):_pvert(pvert),_ptrack(0),
 _ptrd(0),_prich(0),_pShower(0),_pcharge(0),_pbeta(0){
-    int i;
-    for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
-    for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
-    for(i=0;i<2*ecalconst::ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
-    for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
-    for(i=0;i<2;i++)_RichCoo[i]=AMSPoint(0,0,0);
-    for(i=0;i<2;i++)_RichPath[i]=0.;
-    for(i=0;i<2;i++)_RichPathBeta[i]=0.;
-    _RichLength=0.;
-    for(i=0;i<TKDBc::nlay();i++){
+  int i;
+  for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
+  for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
+  for(i=0;i<2*ecalconst::ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
+  for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
+  for(i=0;i<2;i++)_RichCoo[i]=AMSPoint(0,0,0);
+  for(i=0;i<2;i++)_RichPath[i]=0.;
+  for(i=0;i<2;i++)_RichPathBeta[i]=0.;
+  _RichLength=0.;
+  for(i=0;i<TKDBc::nlay();i++){
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;
-    }
+  }
 
-    _Charge=pvert->getcharge();
-    _Mass=pvert->getmass();
-    _Momentum=pvert->getmom();
-    _ErrMomentum=pvert->geterrmom();
-    _Theta=pvert->gettheta();
-    _Phi=pvert->getphi();
-    _Coo=pvert->getvert();
-    _ErrMass=_ErrMomentum/_Momentum*_Mass;
+  _Charge=pvert->getcharge();
+  _Mass=pvert->getmass();
+  _Momentum=pvert->getmom();
+  _ErrMomentum=pvert->geterrmom();
+  _Theta=pvert->gettheta();
+  _Phi=pvert->getphi();
+  _Coo=pvert->getvert();
+  _ErrMass=_ErrMomentum/_Momentum*_Mass;
 
 //   find beta
-     _Beta=0;
-     _ErrBeta=1;
+  _Beta=0;
+  _ErrBeta=1;
          
+  number betamin = 999.;
   for(int patb=0; patb<npatb; patb++){
     AMSBeta *pbeta=(AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
     while(pbeta){
-      if (pbeta->getptrack()->checkstatus(AMSDBc::TOFFORGAMMA)) {
-        _Beta=pbeta->getbeta();
-        _pbeta=pbeta;
-        _ErrBeta=pbeta->getebeta()*_Beta*_Beta;
-        break;
-      }
-      pbeta=pbeta->next();
+        AMSTrTrack *ptrbeta = pbeta->getptrack();
+        AMSTrTrack *ptr = NULL;
+        for (i=0;i<pvert->getntracks();i++) {
+            if (ptrbeta==pvert->gettrack(i)) {
+                  ptr = ptrbeta;
+                  break;
+            }
+        }
+        if (ptr && pbeta->getbeta()<betamin) { 
+            betamin = pbeta->getbeta();
+            _Beta = betamin;
+            _pbeta = pbeta;
+            _ErrBeta = pbeta->getebeta()*_Beta*_Beta;
+        }
+        pbeta=pbeta->next();
     }
-    if(_pbeta)break;
   }
 
   if(!_pbeta){

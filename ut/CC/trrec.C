@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.154 2003/11/07 17:35:07 alcaraz Exp $
+//  $Id: trrec.C,v 1.155 2003/11/10 11:16:58 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1582,7 +1582,7 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[trcon
 #endif
 
     number gers=0.03;
-    ptrack->VerySimpleFit(AMSPoint(gers,gers,gers));
+    ptrack->SimpleFit(AMSPoint(gers,gers,gers));
     if(ptrack->_Chi2StrLine< TRFITFFKEY.Chi2StrLine){
      if(ptrack->_Chi2WithoutMS< TRFITFFKEY.Chi2WithoutMS && 
       fabs(ptrack->_RigidityWithoutMS)>TRFITFFKEY.RidgidityMin ){
@@ -1667,7 +1667,7 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
 #endif
 
     number gers=0.03;
-    ptrack->VerySimpleFit(AMSPoint(gers,gers,gers));
+    ptrack->SimpleFit(AMSPoint(gers,gers,gers));
     if(ptrack->_Chi2StrLine< TRFITFFKEY.Chi2StrLine){
      if(ptrack->_Chi2WithoutMS< TRFITFFKEY.Chi2WithoutMS && 
       fabs(ptrack->_RigidityWithoutMS)>TRFITFFKEY.RidgidityMin ){
