@@ -10,11 +10,21 @@ LINE: while($line=<FILEI>){
     next LINE if $line =~ /^#/;
     @args=split ' ',$line;
     if ($args[0] >= $runs[0] && $args[0] <= $runs[1]){
-        $args[2]=0;
-        foreach $args (@args){
-            print FILEO "$args ";
-        } 
-        print FILEO "\n";
+        $count=$args[2];
+        $xmax=262144;
+        while($args[1]<$count){
+        if($count-$args[1]>$xmax+$xmax/2){
+            $args[2]=$args[1]+$xmax;
+        }
+        else{
+            $args[2]=$count;
+        }
+         foreach $args (@args){
+             print FILEO "$args ";
+         } 
+         print FILEO "\n";
+            $args[1]=$args[2]+1;
+    }
     }
 }
     close FILEI;
