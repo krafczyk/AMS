@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.56 2002/03/28 15:13:02 choutko Exp $
+//  $Id: producer.C,v 1.57 2002/04/03 11:04:57 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -98,7 +98,7 @@ void AMSProducer::sendid(){
 again:
 
      list<DPS::Producer_var>::iterator li = _plist.begin();
-     time_t cput=3*AMSFFKEY.CpuLimit;
+     time_t cput=5*AMSFFKEY.CpuLimit;
      time_t cpug=12*3600;
      if(!IsLocal() && cput<cpug)cput=cpug; 
      cout <<"   TimeOut sending "<<cput<<endl;
@@ -371,6 +371,15 @@ if(exedir && nve && AMSCommonsI::getosname()){
      ntend->ErrorNumber=int(i*ntend->EventNumber/100);
     }
   }
+ }
+ else if(!nve){
+   cerr<<"AMSProducer::sendNtupleEnd-E-UnableToValideNtupleBecauseNtupleValidatorExecIsNull"<<endl;
+ }
+ else if(!exedir){
+   cerr<<"AMSProducer::sendNtupleEnd-E-UnableToValideNtupleBecauseExeDirIsNull"<<endl;
+ }
+ else {
+   cerr<<"AMSProducer::sendNtupleEnd-E-UnableToValideNtupleBecauseOsNameIsNull"<<endl;
  }
 }
 

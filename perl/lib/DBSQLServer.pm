@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.19 2002/04/01 12:03:13 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.20 2002/04/03 11:04:58 choutko Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -191,7 +191,11 @@ sub Create{
 #   check if tables exist
     my $i=0;
     foreach my $table (@tables){
-     if($self->{dbinit}<2){
+    if($i==0){
+     $i++;
+     next;
+    } 
+    if($self->{dbinit}<2){
        my $ok =$dbh->do("select * from $table");
       if(defined $ok){
         warn "Table $table already exist";
@@ -208,7 +212,7 @@ sub Create{
      }        
     $dbh->do("drop table ".$tables[$i]);
     my $sth=$dbh->prepare($createtables[$i]) or die "cannot prepare: ".$dbh->errstr();
-     print " $createtables[$i] \n";
+#     print " $createtables[$i] \n";
     $sth->execute() or die "cannot execute: ".$dbh->errstr();
     $sth->finish();    
      if ($tables[$i] eq "Servers" and $self->{dbdriver} =~ m/Oracle/) {

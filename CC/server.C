@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.82 2002/03/28 14:33:43 choutko Exp $
+//  $Id: server.C,v 1.83 2002/04/03 11:04:57 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -746,8 +746,13 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
   if(suc){
   if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
    CORBA::String_var _refstring=_refmap.find((const char *)((ahlv)->Interface))->second;
+  if(! (const char*)(_refstring)){
+       _parent->EMessage(AMSClient::print(ahlv, " Could not find refstring for the host "));
+     _refstring=_refmap.find((const char *)("default"))->second;
+    
+  }
 #ifdef __AMSDEBUG__
-    cout <<((ahlv)->Interface)<<" "<<_refstring<<endl;
+    cout <<" interface :"<<((ahlv)->Interface)<<" "<<_refstring<<endl;
 #endif
     NCLI cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)(ahlv)->HostName)); 
     if(cli==_ncl.end())cli=_ncl.begin();

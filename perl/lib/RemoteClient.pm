@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.39 2002/04/02 17:51:32 alexei Exp $
+# $Id: RemoteClient.pm,v 1.40 2002/04/03 11:04:58 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -1098,8 +1098,8 @@ PART:
                my $r4=$self->{sqlserver}->Query($sql);
                if (defined $r4->[0][0]) {
                  foreach my $nt (@{$r4}){
-                  my $time =localtime($nt->[3]);
-                  my ($wday,$mon,$day,$time,$year) = split " ",$time;
+                  my $timel =localtime($nt->[3]);
+                  my ($wday,$mon,$day,$time,$year) = split " ",$timel;
                   my $status=$nt->[4];
                   my $color=statusColor($status);
                   print "<td><b> $nt->[0] </td></b><td><b> $nt->[1] </td>
@@ -2871,7 +2871,27 @@ print qq`
         }
          open(FILE,">".$root) or die "Unable to open file $root\n";  
          if($self->{CCT} eq "local"){
-          print FILE "export NtupleDir=$self->{AMSDSTOutputDir} \n";
+          if(defined $self->{AMSDSTOutputDir} and $self->{AMSDSTOutputDir} ne ""){
+ print FILE "export NtupleDir=$self->{AMSDSTOutputDir} \n";
+}
+        my $key='ntuplevalidator';
+        my $sql="select myvalue from Environment where mykey='".$key."'";
+        my $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive ntuplevalidator name from db");
+        }
+          my @tmpa=split '/', $ret->[0][0];
+          print FILE "export NtupleValidatorExec=$tmpa[$#tmpa] \n";
+        $key='getior';
+        $sql="select myvalue from Environment where mykey='".$key."'";
+        $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive getior name from db");
+        }
+           @tmpa=split '/', $ret->[0][0];
+          print FILE "export GetIorExec=$tmpa[$#tmpa] \n";
+          print FILE "export ExeDir=$self->{AMSSoftwareDir}/exe \n";
+          print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
       }
          print FILE $buf;
          print FILE $tmpb;
