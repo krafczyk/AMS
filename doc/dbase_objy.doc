@@ -1,6 +1,6 @@
                                                      Alexei Klimentov
                                                     (alexei.klimentov@cern.ch)
-Filename : dbase_objy.doc                            Last Edit : Nov 25, 1997.
+Filename : dbase_objy.doc                            Last Edit : Feb 22, 1998.
 
 
 
@@ -43,7 +43,7 @@ applications use system name and boot file when referring to federated
 database.
 
  The top level of hierarchical storage is a federated database 
-        /DBase/trk/calib/boot/LOM.FDDB. 
+        /offdata/database/boot/LOM.FDDB. 
 
  A schema is a physical representation of Objectivity/DB data model. With some 
 extent schemas are the translation of AMS C++ classes to Objectivity. 
@@ -70,7 +70,11 @@ units, called basic objects.
  Slow          - containes house keeping data 
 
  to change the default location  (for the private federations) do
- setenv  AMS_TagDB_Path  ~/here/there/
+ setenv  AMS_TagDB_Path  ~/here/there/, for the official version do 
+
+ setenv AMS_TDVDB_Path /offdata/database/dbs/tdv/
+ setenv AMS_SetupDB_Path /offdata/database/dbs/setup/
+
 (similar for AMS_MCDB_Path, AMS_RecDB_Path, AMS_SetupDB_Path, AMS_RawDB_Path, 
  AMS_SlowDB_Path) 
 
@@ -141,6 +145,9 @@ Makefiles :
   MakeSDB - to create AMS + 'Setup' + 'TDV' Databases (no event's classes)
             MakeSDB uses AMS object files, created by Mgbatch 
 
+  MakeSDB_C - similar to MakeSDB but supposes that the official database will be
+              used
+
 *) goto ~/AMS/db directory first.
 
 
@@ -174,12 +181,12 @@ How to start ?
  from this point it is Objectivity specific
 
  - get login definitions from the file ~/AMS/doc/objy_def, edit and execute them
- - to have own database :
+ - to have private database :
     edit config.user_$ARCH and change FDID, set it to your CERN phone number
    MakeSDB 
  - build program to access production database
-   set OO_FD_BOOT /DBase/trk/calib/boot/LOM
-   MakeSDB
+   set OO_FD_BOOT /offdata/database/boot/LOM
+   MakeSDB_C
 
 
  setenv OO_CACHE_MAX 1000 (set the cache size to 1000, it a bit improves speed
