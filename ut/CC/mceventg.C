@@ -7,7 +7,7 @@
 #include <commons.h>
 #include <ntuple.h>
 #include <io.h>
-
+#include <extC.h>
 orbit AMSmceventg::Orbit;
 integer AMSmceventg::_hid=20001;
 AMSPoint AMSmceventg::_coorange[2];
@@ -36,6 +36,21 @@ InitSeed();
 }
 
 void AMSmceventg::gener(){
+  if(CCFFKEY.low ==2){
+    geant mom,themu,phimu,chmu,xmu,ymu,zmu;
+    CMGENE(mom,themu,phimu,chmu,xmu,ymu,zmu);
+    _mom=mom;
+    _coo[0]=xmu;
+    _coo[1]=ymu;
+    _coo[2]=zmu;
+    _dir[0]=sin(themu)*cos(phimu);
+    _dir[1]=sin(themu)*sin(phimu);
+    _dir[2]=-cos(themu);
+    if(chmu < 0)_ipart=6;
+    else _ipart=5;
+    init(_ipart);
+  }
+  else {
 static integer ini=0;
 integer curp=0;
  number phi;
@@ -120,12 +135,15 @@ else {
  }
 if(_fixedplane == 0)_coo=_coo/2;
 }
+  }
 }
+
 
 void AMSmceventg::setspectra(integer begindate, integer begintime, 
                              integer enddate, integer endtime, 
                               integer ipart,  integer low){
 
+ if(low ==2)ipart=5;
  char chp[21];
  integer itrtyp;
  geant mass;
@@ -190,6 +208,10 @@ if(ipart == 3 && low ){
  HF1(_hid,4.75,7.3);
  HF1(_hid,5.25,2.7);
  HF1(_hid,5.75,.4);
+}
+else if(low ==2){
+  cout <<"AMSMceventg::setspectra-W-Sea Level muons Generator Chosen"<<endl;
+  CMINIT();
 }
 else {
  integer nchan=1000;

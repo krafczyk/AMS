@@ -37,3 +37,11 @@ extern "C" void readSetup();
 extern "C" void writeSetup();
 extern "C" void readmfield_();
 #define READMFIELD readmfield_
+
+extern "C" void cminit_();
+extern "C" void cmgene_(geant & pmu, geant & themu, geant & phimu, 
+                       geant & chargemu, geant & xmu, geant & ymu, geant &zmu);
+extern "C" void cmend_();
+#define CMEND cmend_
+#define CMGENE cmgene_
+#define CMINIT cminit_

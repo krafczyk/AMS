@@ -486,6 +486,7 @@ static integer event=0;
 
 extern "C" void uglast_(){
        GLAST();
+       if( CCFFKEY.low ==2)CMEND();
 #ifdef __DB__
      dbout.dbend();
 #endif
