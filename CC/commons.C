@@ -77,7 +77,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v3.00";
-uinteger AMSCommonsI::_build=955;
+uinteger AMSCommonsI::_build=957;
 uinteger AMSCommonsI::_os=0;
 AMSCommonsI::AMSCommonsI(){
   init();
@@ -91,7 +91,7 @@ void AMSCommonsI::init(){
       cout <<"AMSCommonsI-I-HardwareIdentifiedAs alpha-OSF"<<endl;
       _os=1;
      }
-     else if(strstr(gtvh,"i386") && strstr(gtvb,"Linux")){
+     else if((strstr(gtvh,"i386") || strstr(gtvh,"LINUX")) && strstr(gtvb,"Linux")){
       cout <<"AMSCommonsI-I-HardwareIdentifiedAs i386-linux"<<endl;
       _os=2;
      }

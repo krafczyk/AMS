@@ -11,7 +11,7 @@ namespace g4ams{
 #endif
 namespace gams{
   void UGINIT(int argc, char **argv );
-  void UGLAST();
+  void UGLAST(const char *message=0);
 }
 
 class G4VPhysicalVolume;

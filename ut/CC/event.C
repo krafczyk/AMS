@@ -371,6 +371,12 @@ if(AMSJob::gethead()->isProduction() ){
   AMSJob::gethead()->uhinit(getrun(),getid());
   AMSJob::map(1);
  }
+ else{
+#ifdef __CORBA__
+  AMSJob::gethead()->uhinit(getrun(),getid());
+#endif
+ }
+
 }
 if(AMSJob::gethead()->isProduction() && AMSJob::gethead()->isRealData()){
  if(!SRun){
@@ -413,6 +419,12 @@ else{
 }
 
 void AMSEvent::_reamsinitevent(){
+#ifdef __CORBA__
+ if( getrun() != SELECTFFKEY.Run){
+   seterror();
+   throw amsglobalerror("AMSProducer-E-RunIsDifferent ");
+ }
+#endif
  _signinitevent();
  _sitkinitevent();
  _redaqinitevent();

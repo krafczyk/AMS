@@ -24,6 +24,7 @@
 #include <daqevt.h>
 #include <iostream.h>
 #include <richdbc.h>
+#include <producer.h>
 #ifdef __AMSDEBUG__
 static integer globalbadthinghappened=0;
 
@@ -465,11 +466,19 @@ extern "C" void guout_(){
    }
    catch (AMSuPoolError e){
      cerr << e.getmessage()<<endl;
+     AMSEvent::gethead()->seterror();
+#ifdef __CORBA__
+     AMSProducer::gethead()->AddEvent();
+#endif
      AMSEvent::gethead()->Recovery();
       return;
    }
    catch (AMSaPoolError e){
      cerr << e.getmessage()<<endl;
+     AMSEvent::gethead()->seterror();
+#ifdef __CORBA__
+     AMSProducer::gethead()->AddEvent();
+#endif
      AMSEvent::gethead()->Recovery();
       return;
    }
@@ -478,6 +487,9 @@ extern "C" void guout_(){
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
      AMSEvent::gethead()->seterror();
+#ifdef __CORBA__
+     AMSProducer::gethead()->AddEvent();
+#endif
 /*
      UPool.Release(0);
      AMSEvent::gethead()->remove();
@@ -492,6 +504,9 @@ extern "C" void guout_(){
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
      AMSEvent::gethead()->seterror();
+#ifdef __CORBA__
+     AMSProducer::gethead()->AddEvent();
+#endif
 /*
      UPool.Release(0);
      AMSEvent::gethead()->remove();
@@ -501,6 +516,9 @@ extern "C" void guout_(){
       return;
 */
    }
+#ifdef __CORBA__
+     AMSProducer::gethead()->AddEvent();
+#endif
       AMSgObj::BookTimer.start("GUOUT");
       if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
          GCFLAG.IEVENT==GCFLAG.NEVENT)
@@ -635,16 +653,19 @@ static integer event=0;
     // read daq    
     //
     DAQEvent * pdaq=0;
+    DAQEvent::InitResult res=DAQEvent::init();
     for(;;){
-      pdaq = new DAQEvent();
-      if(!(pdaq->read()))break;
-      AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
-      new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
-      pdaq->runtype(),pdaq->time(),pdaq->usec())));
-//      pdaq->runtype(),tm,pdaq->usec()))); // tempor introduced to read PC-made files
-//<------      
-      AMSEvent::gethead()->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq);
-      if(GCFLAG.IEORUN==2){
+     if(res==DAQEvent::OK){ 
+       pdaq = new DAQEvent();
+       if(pdaq->read()){
+        AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
+        new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
+        pdaq->runtype(),pdaq->time(),pdaq->usec())));
+        AMSEvent::gethead()->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq);
+        if(SELECTFFKEY.Run==SELECTFFKEY.RunE && SELECTFFKEY.EventE && AMSEvent::gethead()->getid()>SELECTFFKEY.EventE){
+         pdaq->SetEOFIn();    
+        } 
+        if(GCFLAG.IEORUN==2){
       // if production 
       // try to update the badrun list
          if(AMSJob::gethead()->isProduction() && AMSJob::gethead()->isRealData()){
@@ -675,13 +696,44 @@ static integer event=0;
       }
       else if (GCFLAG.IEORUN==-2){
         GCFLAG.IEORUN=0;
-      //  AMSJob::gethead()->uhend();
       //  AMSJob::gethead()->uhinit(pdaq->runno(),pdaq->eventno());
       }
       guout_();
       if(GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT)break;
       GCFLAG.IEVENT++;
     }
+    else{
+#ifdef __CORBA__
+    try{
+     AMSJob::gethead()->uhend();
+     AMSProducer::gethead()->sendRunEnd(res);
+     AMSProducer::gethead()->getRunEventInfo();
+    }
+    catch (AMSClientError a){
+     cerr<<a.getMessage()<<endl;
+     break;
+    }
+#else
+     break;
+#endif
+    }
+   }
+   else{
+#ifdef __CORBA__
+    try{
+     AMSJob::gethead()->uhend();
+     AMSProducer::gethead()->sendRunEnd(res);
+     AMSProducer::gethead()->getRunEventInfo();
+    }
+    catch (AMSClientError a){
+     cerr<<a.getMessage()<<endl;
+     break;
+    }
+#else
+     break;
+#endif
+   }
+   }
      GCFLAG.IEORUN=1;
      GCFLAG.IEOTRI=1;
       AMSgObj::BookTimer.stop("GUKINE");

@@ -10,6 +10,7 @@
 #include <status.h>
 #include <commons.h>
 #include <geantnamespace.h>
+#include <producer.h>
 const int NWPAW=1000000;
 struct PAWC_DEF{
 float q[NWPAW];
@@ -30,9 +31,6 @@ void (handler)(int);
  namespace glconst{
   integer cpul=1;
  }
-#ifdef __CORBA__
-#include <producer.h>
-#endif
  main(int argc, char * argv[] ){
       using namespace gams;
      *signal(SIGFPE, handler);
@@ -57,10 +55,22 @@ try{
 } 
 catch (std::bad_alloc a){
  std::cerr <<"catch-F-NoMemoryAvailable "<<endl;
+    UGLAST("catch-F-NoMemoryAvailable ");
+    return 1;
 }
 catch (amsglobalerror a){
  cerr<<a.getmessage()<<endl;
+    UGLAST(a.getmessage());
+    return 1;
 }
+#ifdef __CORBA__
+catch (AMSClientError & a){
+ cerr<<a.getMessage()<<" "<<endl;
+ if(AMSProducer::gethead()){
+  AMSProducer::gethead()->Error()=a;
+ }
+}
+#endif
     UGLAST();
     
 return 0;

@@ -600,7 +600,7 @@ I 2 event(position) number          // Event (if > 0) Position(<0)
 I 3 File                            // File with selected events
                                     // format ascii Run Event
 I43 Last Run No(0)                  //  No effect if zero
-                                     
+I44 Last EventNo(0)                 //  No effect if zero or LastRun!=Run
 
 
 

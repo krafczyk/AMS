@@ -112,8 +112,9 @@ static fstream fbin;
 static char * ofnam;
 static fstream fbout;
 void SetEOFIn();
-
-static void init(integer mode, integer format=0);
+enum InitResult{Interrupt,NoInputFile,UnableToOpenFile,UnableToFindRunEvent,OK};
+static InitResult init();
+static char * _getNextFile(integer & run, integer & event);
 static void initO(integer run);
 static void addsubdetector(pid pgetid, pputdata pput, uinteger btype=0);
 static void addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget, uinteger btype=0);
@@ -125,6 +126,7 @@ integer sdet(uint16 sdetid);
 void    dump(uint16 sdetid); 
 //-  
 static void setfiles(char *ifile, char *ofile);
+static void setfile(const char *ifile);
 static integer parser(char *ifile, char ** & ifnam); 
 };
 

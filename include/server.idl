@@ -3,6 +3,24 @@ module DPS{
    typedef unsigned long time;
   interface Client{
 
+   enum RecordChange{Delete,Update,Create};
+   enum ClientStatus{Lost,Unknown,Submitted,Registered,Active};
+   enum ClientType{Generic,Server,Consumer,Producer,Monitor};
+   enum ClientExiting{NOP,CInExit,SInExit,CInAbort,SInAbort,SInKill};
+   enum HostStatus{NoResponse,LastClientFailed,OK};
+
+    struct CID{
+    string HostName;
+    unsigned long uid;
+    unsigned long pid;
+    unsigned long ppid;
+    ClientType   Type;
+    ClientExiting Status;
+    string Interface;
+    };
+
+    boolean sendId(inout CID id, in time TimeOut);      
+
    struct NominalClient{
     short MaxClients;
     float CPUNeeded; 
@@ -12,153 +30,31 @@ module DPS{
     string SubmitCommand;
    }; 
 
-    enum ClientStatus{Unknown,Submitted,Registered,Busy,Idle,Lost};
 
-    enum ClientType{Generic,Server,Consumer,Producer,Monitor};
 
-    struct CID{
-    string HostName;
-    unsigned long uid;
-    unsigned long pid;
-    unsigned long ppid;
-    };
+    struct ActiveRef{
+      string IOR;
+      string Interface;
+      ClientType Type;
+    }; 
+
+    typedef sequence<ActiveRef> ARS;
+
+    long getARS(in CID cid, out ARS ars);
 
     struct ActiveClient{
      CID id;
-     string IOR;
+     ARS ars; 
      time LastUpdate;
      time Start;
      ClientStatus Status;
-     ClientType   Type;
    };
-
     typedef sequence<ActiveClient> ACS;
-    void getACL(out ACS acl);
-
-    typedef sequence<NominalClient> NCS;
-    void  getNCL(out NCS ncl);
-      
-    boolean sendId(in CID id, in long Propagate, in long Error);      
-   
-   enum HostStatus{NoResponse,LastClientFailed,OK};
-   struct ActiveHost{
-      string HostName;
-      string Interface;
-      HostStatus Status;
-      short ClientsRunning;
-      short ClientsAllowed; 
-      long ClientsProcessed;
-      long ClientsFailed;
-      time LastUpdate;
-   };
-
-  };
- 
-  interface Producer: Client{
-    typedef sequence<octet> TDV;
-    TDV getTDV(in string name, in time Insert, in time Begin, in time End);
-    void sendTDV(in TDV tdv, in string name, in time Insert, in time Begin, in time End, in long Propagate, in long Error );
-    enum RunStatus{Failed,ToBeRerun, Processing, Finished};
-     struct RunEvInfo{
-     unsigned long Run;
-     long FirstEvent;
-     long LastEvent;
-     long Priority;
-     string FilePath;
-     RunStatus Status;
-     string OutputDirPath;
-     long UpdateFreq;
-     long DieHard;
-     time SubmitTime;
-    };
-/*
-    enum RunStatus{ToBeRerun, Processing, Finished};
-    struct RunEvE{
-      RunEv rv;
-      long Priority;
-      RunStatus Status;
-    };
-    typedef sequence<RunEvE> RunEvTable;
-    RunEvTable getRunEvTable();
-    void sendRunEvTable(in RunEvTable ret);
-*/
-    RunEvInfo getRunEvInfo(in long Propagate, in long Error);
-    struct CurrentInfo{
-      CID id;
-      unsigned long Run;
-      long EvenstProcessed;     
-      long LastEventProcessed;
-      long ErrorsFound;
-      float CPUTimeSpent;
-    }; 
-    void sendCurrentInfo(in CurrentInfo ci, in long Propagate, in long Error); 
- 
-    struct TDVTableEntry{
-     unsigned long CRC;
-     time Insert;
-     time Begin;
-     time End;
-    };
-    typedef sequence<TDVTableEntry> TDVTable; 
-    TDVTable getTDVTable(in string Name, in unsigned long Run,in long Propagate, in long Error);     
     
-    enum DSTStatus{Success,Failure};
-    struct DSTEnd{
-     time   Insert;
-     time   Begin;
-     time   End;
-     long   FirstEvent;
-     long   LastEvent;
-     long   EventNumber;
-     DSTStatus Status;
-    };    
-    struct NtupleEnd{
-     string NtupleName;
-     string NtuplePath;
-     DSTEnd dn;
-    };
-    void sendNtupleEnd(in NtupleEnd ne, in long Propagate, in long Error); 
-    
-    struct EventStatusEnd{
-     TDV body;
-     DSTEnd dn;
-    };
-    void sendEventStatusEnd(in EventStatusEnd ee, in long Propagate, in long Error); 
-    
-    
-/*
+    void Exiting(in CID id, in string Error, in ClientExiting Status);
 
-    struct RSChange{
-     unsigned long Run;
-     RunStatus Status;
-    };
-    void SendRunStatus(in RSChange status, in long Propagate, in long Error); 
-*/
-    struct EndRunInfo{
-     CID id;
-     unsigned long Run;
-     long EventsProcessed;
-     long ErrorsFound;
-    };
 
-    void sendEndRunInfo(in EndRunInfo er,in long Propagate, in long Error); 
-    
-  };
 
-  interface Server: Client{
-
-    enum OpType{StartServer,StartClient,KillServer,KillClient,ClearStartServer,
-    ClearStartClient, ClearKillServer, ClearKillClient};
-
-    struct CriticalOps{
-     time TimeOut;
-     OpType Action;
-     time TimeStamp;
-    };
-    void sendCriticalOps(in CriticalOps op, in long Propagate,in long Error);
-    void sendACL(in ACS acl, in long Propagate,in long Error);
-    void sendNCL(in NCS ncl, in long Propagate,in long Error);
-    void ping();
    struct NominalHost{
     string HostName;
     string Interface;
@@ -167,10 +63,130 @@ module DPS{
     short   Memory;
     long    Clock;      
    };
+
+   typedef sequence<NominalHost> NHS;
+
+
+
+      
    
+   struct ActiveHost{
+      string HostName;
+      string Interface;
+      HostStatus Status;
+      short ClientsRunning;
+      short ClientsAllowed; 
+      long ClientsProcessed;
+      long ClientsFailed;
+      long ClientsKilled;
+      time LastUpdate;
+   };
+
     typedef sequence<ActiveHost> AHS;
-    void getAHL(out AHS ahl);
-    void sendAHL(in AHS ahl, in long Propagate,in long Error);
+     
+  };
+ 
+  interface Producer: Client{
+
+    enum RunStatus{ToBeRerun, Failed,Processing, Finished};
+    enum DSTStatus{Success,Failure};
+
+    typedef sequence<octet> TDV;
+    TDV getTDV(in string name, in time Insert, in time Begin, in time End);
+    void sendTDV(in TDV tdv, in string name, in time Insert, in time Begin, in time End, in long Propagate, in long Error );
+
+    struct CurrentInfo{
+      unsigned long Run;
+      long EventsProcessed;     
+      long LastEventProcessed;
+      long ErrorsFound;
+      float CPUTimeSpent;
+       RunStatus Status;
+    }; 
+    void sendCurrentInfo(in CID id,in CurrentInfo ci); 
+ 
+
+
+     struct RunEvInfo{
+     unsigned long uid;
+     unsigned long Run;
+     long FirstEvent;
+     long LastEvent;
+     long Priority;
+     string FilePath;
+     RunStatus Status;
+     string OutputDirPath;
+     long DieHard;
+     long UpdateFreq;
+     time SubmitTime;
+     unsigned long cuid;
+     CurrentInfo cinfo;     
+    };
+    typedef sequence<RunEvInfo> RES;
+    long getRunEvInfoS(in CID id, out RES res, inout unsigned long maxr); 
+    void getRunEvInfo(in CID id, out RunEvInfo rv);
+    void sendRunEvInfo(in RunEvInfo ri, in RecordChange rch);
+
+    struct TDVTableEntry{
+     unsigned long CRC;
+     time Insert;
+     time Begin;
+     time End;
+    };
+
+    typedef sequence<TDVTableEntry> TDVTable; 
+    TDVTable getTDVTable(in string Name, in unsigned long Run,in long Propagate, in long Error);     
+    
+    struct DST{
+     time   Insert;
+     time   Begin;
+     time   End;
+     long   Run;
+     long   FirstEvent;
+     long   LastEvent;
+     long   EventNumber;
+     DSTStatus Status;
+     string Name;
+    };    
+
+    void sendNtupleEnd(in CID id, in DST ne, in RecordChange re); 
+    typedef sequence<DST> DSTS;
+    long getNtupleS(in CID id, out DSTS dsts);     
+
+    struct EventStatusEnd{
+     TDV body;
+     DST dn;
+    };
+    void sendEventStatusEnd(in CID id, in EventStatusEnd ee, in RecordChange re); 
+    
+    
+  };
+
+  interface Server: Client{
+
+    enum OpType{StartClient,KillClient,ClearStartClient,ClearKillClient};
+
+    struct CriticalOps{
+     time TimeOut;
+     OpType Action;
+     time TimeStamp;
+     ClientType Type; 
+    };
+
+    void sendCriticalOps(in CID id, in CriticalOps op);
+    void ping();
+    boolean TypeExists(in DPS::Client::ClientType type);
+
+    long getACS(in CID id, out ACS acl, inout unsigned long maxc);
+    void sendAC(in CID id, in ActiveClient ac, in RecordChange rc);
+
+
+    boolean getNC(in CID cid, out NominalClient nc);
+
+    long getNHS(in CID id, out NHS nhs);
+
+    long getAHS(in CID id, out AHS ahl);
+
    };
   interface Monitor: Client{
   };

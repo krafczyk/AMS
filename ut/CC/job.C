@@ -139,6 +139,7 @@ void AMSJob::data(){
   SELECTFFKEY.Run=0;
   SELECTFFKEY.Event=0;
   SELECTFFKEY.RunE=0;
+  SELECTFFKEY.EventE=0;
   VBLANK(SELECTFFKEY.File,40);
   char * SELECT="SELECT";
   char * MIXED="MIXED";
@@ -1459,16 +1460,16 @@ for (i=0;i<len;i++){
   }
 }
 }
-_jobtype=setjobtype(AMSFFKEY.Jobtype%10 != 0);
-_jobtype=setjobtype(((AMSFFKEY.Jobtype/10)%10 != 0)<<(RealData-1));
+setjobtype(AMSFFKEY.Jobtype%10 != 0);
+setjobtype(((AMSFFKEY.Jobtype/10)%10 != 0)<<(RealData-1));
 uinteger ical=(AMSFFKEY.Jobtype/100)%10;
 uinteger ucal=1;
-if(ical)_jobtype=setjobtype(ucal<<(ical+1));
+if(ical)setjobtype(ucal<<(ical+1));
 uinteger imon=(AMSFFKEY.Jobtype/1000)%10;
 uinteger umon=1;
-if(imon)_jobtype=setjobtype(umon<<(imon+1+8));
+if(imon)setjobtype(umon<<(imon+1+8));
 uinteger iprod=(AMSFFKEY.Jobtype/10000)%10;
-if(iprod)_jobtype=setjobtype(1<<(1+1+8+8));
+if(iprod)setjobtype(Production);
 
 if(IOPA.mode && isSimulation()){
    AMSIO::setfile(ffile);
@@ -1479,7 +1480,6 @@ if(isSimulation() && DAQCFFKEY.mode%10 == 1)DAQCFFKEY.mode=DAQCFFKEY.mode-1;
 if(DAQCFFKEY.mode){
    AMSEvent::setfile(sfile);
    DAQEvent::setfiles(ifile,ofile);
-   DAQEvent::init(DAQCFFKEY.mode);
 }
 
 
@@ -1582,6 +1582,10 @@ if(TRCLFFKEY.Thr1R[0]<0){
  }
  else TRCLFFKEY.Thr1R[0]=3;
 }
+
+    char hfile[161];
+    UHTOC(IOPA.hfile,40,hfile,160);  
+    _hextname=hfile;
 
 
 }
@@ -2843,7 +2847,7 @@ AMSTimeID * AMSJob::gettimestructure(const AMSID & id){
      else return  (AMSTimeID*)p;
 }
 
-AMSJob::AMSJob(AMSID id, uinteger jobtype):AMSNode(id),_jobtype(jobtype),_pAMSG4Physics(0),_pAMSG4GeneratorInterface(0)
+AMSJob::AMSJob(AMSID id, uinteger jobtype):AMSNode(id),_jobtype(jobtype),_pAMSG4Physics(0),_pAMSG4GeneratorInterface(0),_NtupleActive(false)
 {_Setup[0]='\0';_TriggerC[0][0]='\0';_TriggerI=1;_TriggerN=0;
 _TDVC[0][0]='\0';
 _TDVN=0;
@@ -2900,9 +2904,10 @@ abort();
 }
 #endif
 }
-
+#include <producer.h>
 void AMSJob::uhend(){
-if(IOPA.hlun){
+if(IOPA.hlun && _NtupleActive){
+  _NtupleActive=false;
   int ntuple_entries;
   HNOENT(IOPA.ntuple, ntuple_entries);
   cout << " Closing AMS ntuple at unit " << IOPA.hlun << " with ";
@@ -2915,6 +2920,10 @@ if(IOPA.hlun){
   HROUT (0, ICYCL, " ");
   HREND ("output");
   CLOSEF(IOPA.hlun);
+#ifdef __CORBA__
+  if(AMSEvent::gethead())AMSProducer::gethead()->sendNtupleEnd(_ntuplefilename,ntuple_entries,AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime(),true);
+else AMSProducer::gethead()->sendNtupleEnd(_ntuplefilename,ntuple_entries,0,0,false);
+#endif
 }
 }
 
@@ -2941,10 +2950,13 @@ void AMSJob::urinit(integer eventno){
 
 
 void AMSJob::uhinit(integer run, integer eventno){
+  if(_NtupleActive)uhend();
   if(IOPA.hlun ){
-    char hfile[161];
-    UHTOC(IOPA.hfile,40,hfile,160);  
-    strcpy(_ntuplefilename,hfile);
+   
+   strcpy(_ntuplefilename,(const char *)_hextname);
+   AString mdir("mkdir -p ");
+   mdir+=_ntuplefilename;
+   system((const char*)mdir);
     integer iostat;
     integer rsize=8000;
     if(eventno){
@@ -2961,6 +2973,7 @@ void AMSJob::uhinit(integer run, integer eventno){
     HROPEN(IOPA.hlun,"output",_ntuplefilename,"NPQ",rsize,iostat);
     if(iostat){
      cerr << "Error opening Histo file "<<_ntuplefilename<<endl;
+     throw amsglobalerror("UnableToOpenHistoFile");
     }
     else cout <<"Histo file "<<_ntuplefilename<<" opened."<<endl;
 
@@ -2976,7 +2989,10 @@ void AMSJob::uhinit(integer run, integer eventno){
    HBOOK1(200105,"Above threshold spectrum x",200,-0.5,49.5,0.);
    HBOOK1(200106,"Above threshold spectrum y",200,-0.5,49.5,0.);
    HBOOK1(200107," adc over",3000,29999.5,32999.5,0.);
-
+    _NtupleActive=true;
+#ifdef __CORBA__
+  AMSProducer::gethead()->sendNtupleStart(run,eventno,AMSEvent::gethead()?AMSEvent::gethead()->gettime():0);
+#endif
 }
 
 void AMSJob::_tkendjob(){

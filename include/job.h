@@ -72,10 +72,11 @@ char* getname() {return _name;}
 
 class AMSJob : public AMSNode{
 private:
+AString _hextname;
 uinteger _jobtype;    // 0 == simulation
 uinteger _eventRtype; // see eventR 
 char _Setup[256];
-
+bool _NtupleActive;
 char _TriggerC[maxtrig][256];
 integer _TriggerI;
 integer _TriggerN;
@@ -175,6 +176,7 @@ void _axendjob();
 void _timeinitjob();
 
 public:
+void SetNtuplePath(const char * hname){_hextname=hname;}
 static AMSNodeMap JobMap;
 static long GetNtupleFileSize();
 #ifdef __DB__
@@ -238,7 +240,7 @@ uinteger isRealData(){return _jobtype & RealData;}
 uinteger isMCData(){ return !isRealData();}
 uinteger isProduction(){ return _jobtype & Production;}
 uinteger jobtype() {return _jobtype;}
-uinteger setjobtype(uinteger checker){return _jobtype | checker;}   
+void setjobtype(uinteger checker){_jobtype= _jobtype | checker;}   
 
 uinteger eventRtype()     { return _eventRtype;}
 void     seteventRtype(integer eventR) {_eventRtype = eventR;}

@@ -26,6 +26,7 @@
 #include "G4StateManager.hh"
 #include "G4ApplicationState.hh"
 #include <g4xray.h>
+#include <producer.h>
 #ifdef G4VIS_USE
 #include <g4visman.h>
 #endif
@@ -215,9 +216,12 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
     //
     // read daq    
     //
+    DAQEvent * pdaq=0;
+    DAQEvent::InitResult res=DAQEvent::init();
   for(;;){
-      pdaq = new DAQEvent();
-      if(!(pdaq->read()))break;
+     if(res==DAQEvent::OK){ 
+       pdaq = new DAQEvent();
+       if(pdaq->read()){
       AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
       new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
       pdaq->runtype(),pdaq->time(),pdaq->usec())));
@@ -262,6 +266,38 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
       if(GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT)break;
       GCFLAG.IEVENT++;
   }
+  else{
+#ifdef __CORBA__
+    try{
+     AMSJob::gethead()->uhend();
+     AMSProducer::gethead()->sendRunEnd(res);
+     AMSProducer::gethead()->getRunEventInfo();
+    }
+    catch (AMSClient::Error a){
+     cerr<<a.getMessage()<<endl;
+     break;
+    }
+#else
+     break;
+#endif
+    }
+   }
+   else{
+#ifdef __CORBA__
+    try{
+     AMSJob::gethead()->uhend();
+     AMSProducer::gethead()->sendRunEnd(res);
+     AMSProducer::gethead()->getRunEventInfo();
+    }
+    catch (AMSClient::Error a){
+     cerr<<a.getMessage()<<endl;
+     break;
+    }
+#else
+     break;
+#endif
+}
+}  
      GCFLAG.IEORUN=1;
      GCFLAG.IEOTRI=1;
      return; 

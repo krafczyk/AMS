@@ -1,2 +1,2 @@
-../exe/linux/amsprodserver.exe -R../prod/RunTable -P../prod/NominalProducer -H../prod/NominalHost -S../prod/NominalServer -F../prod/NominalInterface
+../exe/linux/amsprodserver.exe -R../prod/RunTable -P../prod/NominalProducer -H../prod/NominalHost -S../prod/NominalServer -F../prod/NominalInterface -N/dat0/local/logs/producer
 

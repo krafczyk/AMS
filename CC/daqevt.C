@@ -93,14 +93,25 @@ fstream DAQEvent::fbin;
 fstream DAQEvent::fbout;
 
 
+void DAQEvent::setfile(const char *ifile){
+if(ifnam[0])delete [] ifnam[0];
+ifnam[0]=new char[strlen(ifile)+1];
+strcpy(ifnam[0],ifile);
+InputFiles=1;
+KIFiles=0;
+}
+
 void DAQEvent::setfiles(char *ifile, char *ofile){
   if(ifile){
    InputFiles=parser(ifile,ifnam);
    if(InputFiles)
     cout <<"DAQEvent::setfiles-I-"<<InputFiles<<" input files parsed"<<endl;
    else if(DAQCFFKEY.mode%10){
-    cerr <<"DAQEvent::setfiles-F-No input files parsed"<<endl; 
-    exit(1);   
+    ifnam=new char*[1];
+    ifnam[0]=0;
+    InputFiles=0;
+    KIFiles=0;
+    //cerr <<"DAQEvent::setfiles-F-No input files parsed"<<endl; 
    }
   }
   if(ofile){
@@ -313,19 +324,23 @@ void DAQEvent::setoffset(uinteger offset){
 integer DAQEvent::read(){
   enum open_mode{binary=0x80};
   do{
-    if(fbin.eof() && KIFiles<InputFiles-1){
-     fbin.close();
-     for(;;){
-       fbin.open(ifnam[++KIFiles],ios::in|binary);
+    if(fbin.eof()){
+      fbin.close();
+      integer Run,Event;
+      char * fnam=_getNextFile(Run, Event);
+     if(fnam){
+      for(;;){
+       fbin.open(fnam,ios::in|binary);
        if(fbin){ 
-        cout <<"DAQEvent::read-I-opened file "<<ifnam[KIFiles]<<endl;
+        cout <<"DAQEvent::read-I-opened file "<<fnam<<endl;
         break;
        }    
        else{
-        cerr<<"DAQEvent::read-F-cannot open file "<<ifnam[KIFiles]<<endl;
-        if(KIFiles>=InputFiles-1)return 0;
+        cerr<<"DAQEvent::read-F-cannot open file "<<fnam<<endl;
+        if((fnam=_getNextFile(Run, Event))==0)return 0;
        }
      }
+    }
     }
     if(fbin.good() && !fbin.eof()){
      int16u l16[2];
@@ -337,28 +352,30 @@ integer DAQEvent::read(){
      _Length= _Length | ((l16[1] & 63)<<16);
      //cout <<" Length "<<_Length<<endl;
 
-    if(fbin.eof() && KIFiles<InputFiles-1){
+    if(fbin.eof()){
+      integer Run,Event;
+      char * fnam=_getNextFile(Run, Event);
+     if(fnam){
      fbin.close();
      for(;;){
-     fbin.open(ifnam[++KIFiles],ios::in|binary);
-     if(fbin){ 
-       cout <<"DAQEvent::read-I-opened file "<<ifnam[KIFiles]<<endl;
-      fbin.read(( char*)(l16),sizeof(l16));
-      _convertl(l16[0]);
-      _Length=l16[0]+_OffsetL;
-      _convertl(l16[1]);
-      _Length= _Length | ((l16[1] & 63)<<16);
-      //cout <<" Length "<<_Length<<endl;
-      break;
-      
-
+      fbin.open(fnam,ios::in|binary);
+      if(fbin){ 
+       cout <<"DAQEvent::read-I-opened file "<<fnam<<endl;
+       fbin.read(( char*)(l16),sizeof(l16));
+       _convertl(l16[0]);
+       _Length=l16[0]+_OffsetL;
+       _convertl(l16[1]);
+       _Length= _Length | ((l16[1] & 63)<<16);
+       //cout <<" Length "<<_Length<<endl;
+       break;
      }    
      else{
-        cerr<<"DAQEvent::read-F-cannot open file "<<ifnam[KIFiles]<<endl;
-        if(KIFiles>=InputFiles-1)return 0;
+        cerr<<"DAQEvent::read-F-cannot open file "<<fnam<<endl;
+        if((fnam=_getNextFile(Run, Event))==0)return 0;
+     
      }
-     }
-
+    }
+    }
     }
      if(fbin.good() && !fbin.eof()){
       if(_create()){
@@ -382,13 +399,14 @@ integer DAQEvent::read(){
 
 
 
-void DAQEvent::init(integer mode, integer format){
+DAQEvent::InitResult DAQEvent::init(){
   enum open_mode{binary=0x80};
-  if(mode%10 ==1 ){
-    if(ifnam[0]){
-    fbin.open(ifnam[0],ios::in|binary);
+  integer Run,Event;
+    char * fnam=_getNextFile(Run, Event);
+    if(fnam){
+    fbin.open(fnam,ios::in);
     if(fbin){ 
-    if(SELECTFFKEY.Run){
+    if(Run){
      DAQEvent daq;
      integer run=-1;
      integer ok=1;
@@ -396,7 +414,7 @@ void DAQEvent::init(integer mode, integer format){
      while(ok){
       if(GCFLAG.IEOTRI){
        cerr<<"DAQEvent::init-F-Interrupt"<<endl;
-       exit(1);
+       return Interrupt;
       }
       ok=daq.read();
       if(ok){
@@ -406,10 +424,9 @@ void DAQEvent::init(integer mode, integer format){
           run=daq.runno();
           Time_1 = 0;
         } 
-         if(SELECTFFKEY.Event >=0 && daq.runno() == SELECTFFKEY.Run &&
-         daq.eventno() >= SELECTFFKEY.Event)break;
-         if(daq.runno() == SELECTFFKEY.Run && iposr ==
-         -SELECTFFKEY.Event)break;
+         if(Event >=0 && daq.runno() == Run &&
+         daq.eventno() >= Event)break;
+         if(daq.runno() == Run && iposr ==-Event)break;
        run=daq.runno();
        daq.shrink();
       }
@@ -417,35 +434,30 @@ void DAQEvent::init(integer mode, integer format){
      // pos back if fbin.good
      if(ok){
             fbin.seekg(integer(fbin.tellg())-daq.getlength());
-            cout<<"DAQEvent::init-I-Selected Run = "<<SELECTFFKEY.Run<<
+            cout<<"DAQEvent::init-I-Selected Run = "<<Run<<
               " Event = "<<daq.eventno()<< " Position = "<<iposr<<endl;
 
      }
      else {
-       if(format==0 ){
         cerr <<"DAQEvent::init-F-Failed to select Run = "<<
-        SELECTFFKEY.Run<<" Event >= "<<SELECTFFKEY.Event<<endl;
-        exit(1);
-       }
-       else{
-        cout <<"Total of "<<iposr<<" Events of Run " <<run<<
-         " has been read."<<endl;
-       }
+        Run<<" Event >= "<<Event<<endl;
+        return UnableToFindRunEvent;
      }
 
     }
     }
     else{
-      cerr<<"DAQEvent::init-F-cannot open file "<<ifnam[KIFiles]<<" in mode "<<mode<<endl;
-      exit(1);
+      cerr<<"DAQEvent::init-F-cannot open file "<<fnam<<" in mode input"<<endl;
+      return UnableToOpenFile;
     }
     }
     else {
-      cerr <<"DAQEvent::init-F-no input file to init "<<endl;
-      exit(1);
+      cout <<"DAQEvent::init-I-NoMoreInputFiles"<<endl;
+      return NoInputFile;
     }
-  }
+    return OK;
 }
+
 
 void DAQEvent::initO(integer run){
   enum open_mode{binary=0x80};
@@ -778,3 +790,19 @@ void DAQEvent::SetEOFIn(){
    GCFLAG.IEORUN=0;
   }
 }
+
+char * DAQEvent::_getNextFile(integer & run, integer &event){
+if(KIFiles==0){
+run=SELECTFFKEY.Run;
+event=SELECTFFKEY.Event;
+}
+else{
+run=0;
+event=0;
+}
+if(KIFiles<InputFiles)return ifnam[KIFiles++];
+else return 0;
+
+
+}
+

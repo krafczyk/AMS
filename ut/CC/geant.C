@@ -116,9 +116,7 @@ LMS*                   lms;
 
 extern "C" void npq_();
 extern "C" void timest_(float & t);
-#ifdef __CORBA__
 #include <producer.h>
-#endif 
 void gams::UGINIT(int argc,  char * argv[]){
   float zero=0;
   timest_(zero);
@@ -130,14 +128,8 @@ void gams::UGINIT(int argc,  char * argv[]){
    AMSJob::gethead()->udata();
 
 #ifdef __CORBA__
-try{
-  new AMSProducer(argc,argv,PRODFFKEY.Debug);
-  
-}
-catch (AMSProducer::Error & a){
- cerr<<a.getMessage()<<endl;
- if(a.getSeverity()>1)abort();
-}
+  AMSJob::gethead()->add( new AMSProducer(argc,argv,PRODFFKEY.Debug));
+  AMSJob::gethead()->setjobtype(AMSJob::Production);  
 #endif
 
 
@@ -196,7 +188,8 @@ AMSJob::map(1);
 
 
 
-void gams::UGLAST(){
+void gams::UGLAST(const char *message){
+if(message)AMSJob::gethead()->setMessage(message);
 #ifdef __G4AMS__
 if(MISCFFKEY.G4On)g4ams::G4LAST();
 if(MISCFFKEY.G3On)

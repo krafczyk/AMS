@@ -4,9 +4,15 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <iostream.h>
+#include <event.h>
+#include <job.h>
 AMSProducer * AMSProducer::_Head=0;
-AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSProducer::Error):_debug(debug),_pid(0){
-if(_Head)throw AMSProducer::Error("AMSProducer::AMSProducer-E-AMSProducerALreadyExists",0); 
+AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)){
+DPS::Producer_var pnill=DPS::Producer::_nil();
+_plist.push_back(pnill);
+if(_Head){
+ FMessage("AMSProducer::::AMSProducer-E-AMSProducerALreadyExists",DPS::Client::CInAbort);
+}
 else{
  char * ior=0;
  uinteger uid=0;
@@ -25,37 +31,44 @@ else{
   }
  }
   if(!ior){
-   throw AMSProducer::Error("AMSProducer::AMSProducer-F-NoIOR",2);
+   if(_debug)_openLogFile("Producer");
+   FMessage("AMSProducer::AMSProducer-F-NoIOR",DPS::Client::CInAbort);
   }
-  _pid= new DPS::Client::CID(); 
-  _getpidhost(uid);
-  if(_debug)_openLogFile();
-  CORBA::ORB_var orb= CORBA::ORB_init(argc,argv);
+  _orb= CORBA::ORB_init(argc,argv);
   try{
-   CORBA::Object_var obj=orb->string_to_object(ior);
-   if(CORBA::is_nil(obj))throw AMSProducer::Error("AMSProducer::AMSProducer-F-CORBA::is_nil-1",2);
-   DPS::Producer_var var=DPS::Producer::_narrow(obj);
-   if(CORBA::is_nil(var))throw AMSProducer::Error("AMSProducer::AMSProducer-F-CORBA::is_nil-2",2);
-   _plist.push_back(var);
-    cout << "   ***** sending id"<<endl;
-   if(!(var->sendId(_pid,1,0))){
-     // dieHard
-     Message("Server Requested Termination after sendID ",2);
-     abort();
+   CORBA::Object_var obj=_orb->string_to_object(ior);
+   if(!CORBA::is_nil(obj)){
+    DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
+    if(!CORBA::is_nil(_pvar)){
+     _plist.clear();
+     _plist.push_front(_pvar);
+     if(_debug)_openLogFile("Producer");
+     if(!_getpidhost(uid)){
+      FMessage("AMSProducer::AMSProducer-F-UnableToGetHostName", DPS::Client::CInAbort);
+     }
+     time_t cput=3*AMSFFKEY.CpuLimit;
+     if(!(_pvar->sendId(_pid,cput))){
+      // dieHard
+      FMessage("Server Requested Termination after sendID ",DPS::Client::SInExit);
+     }
+     IMessage("sendID-I-");
+     UpdateARS();
+     getRunEventInfo();
+     _Head=this;
+     }
+    }
    }
-   Message("sendID-I-");
-  }
    catch (CORBA::MARSHAL a){
-   throw  AMSProducer::Error("AMSProducer::AMSProducer-F-CORBA::MARSHAL",2);
+   FMessage("AMSProducer::AMSProducer-F-CORBA::MARSHAL",DPS::Client::CInAbort);
   }
   catch (CORBA::COMM_FAILURE a){
-   throw  AMSProducer::Error("AMSProducer::AMSProducer-F-CORBA::COMM_FAILURE",2);
+   FMessage("AMSProducer::AMSProducer-F-CORBA::COMM_FAILURE",DPS::Client::CInAbort);
   }
   catch (CORBA::SystemException & a){
-   throw  AMSProducer::Error("AMSProducer::AMSProducer-F-CORBA::SystemError",2);
+   FMessage("AMSProducer::AMSProducer-F-CORBA::SystemError",DPS::Client::CInAbort);
   }
 }
-_Head=this;
+FMessage("AMSProducer::AMSProducer-F-UnableToInitCorba",DPS::Client::CInAbort);
 }
 
 void AMSProducer::getTDVTable(uinteger size, uinteger * db[5]){
@@ -64,70 +77,173 @@ void AMSProducer::getTDVTable(uinteger size, uinteger * db[5]){
 void AMSProducer::getTDV(const char * tdv,uinteger Tag, uinteger Insert, uinteger Begin, uinteger End){
 }
 
-void AMSProducer::getRunEventinfo(){
+void AMSProducer::getRunEventInfo(){
+UpdateARS();
+ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+  try{
+    if(_reinfo->DieHard)FMessage("AMSProducer::getRunEventinfo-I-ServerRequestedExit",DPS::Client::SInExit);
+    (*li)->getRunEvInfo(_pid,_reinfo);
+    _cinfo.Run=_reinfo->Run;
+    SELECTFFKEY.Run=_reinfo->Run;
+    SELECTFFKEY.Event=_reinfo->FirstEvent;
+    SELECTFFKEY.RunE=_reinfo->Run;
+    SELECTFFKEY.EventE=_reinfo->LastEvent;    
+    _cinfo.EventsProcessed=0;
+    _cinfo.ErrorsFound=0;
+    _cinfo.Status=DPS::Producer::Processing;
+    _cinfo.CPUTimeSpent=0;
+    DAQEvent::setfile((const char *)(_reinfo->FilePath));
+    AMSJob::gethead()->SetNtuplePath(_reinfo->OutputDirPath);
+    TIMEX(_T0);
+    return;
+  }
+  catch  (CORBA::SystemException & a){
+  }
+ }
+ FMessage("AMSProducer::getRunEventinfo-F-UnableToGetRunEvInfo",DPS::Client::CInAbort);
 }
 
 void AMSProducer::sendCurrentRunInfo(){
+int failure=0;
+ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+  try{
+   if(!CORBA::is_nil(*li)){
+    (*li)->sendCurrentInfo(_pid,_cinfo);
+     break;
+   }
+  }
+  catch  (CORBA::SystemException & a){
+   failure++;
+  }
+}
+if(failure)UpdateARS();
+
+
 }
 
 void AMSProducer::getASL(){
 }
 
 
-void AMSProducer::sendNtupleEnd(){
-}
-
-void AMSProducer::sendRunEnd(){
-}
-
-
-#include <sys/types.h>
-#include <sys/time.h>
-#include <time.h>
-void AMSProducer::_openLogFile(){
-AString fnam;
-char * logdir=getenv("ProductionLogDir");
-if(!logdir){
- cerr<<"AMSProducer::_openLogFile-W-ProductionLogDirNotDefined:$AMSDataDir/prod.log will be used"<<endl;
- logdir=getenv("AMSDataDir");
- fnam=logdir;
- fnam+="/prod.log";
-}
-else fnam=logdir;
- fnam+="/";
- time_t timecur;
- time(&timecur);
- char time[255];
- sprintf(time,"%d.%s.%d.%d",timecur,(const char *)_pid->HostName,_pid->pid,_pid->uid);
- fnam+=time;
- _fbin.open(fnam,ios::out);
- if(!_fbin)throw AMSProducer::Error("AMSProducer::_openLogFile-F-UnableOpenLogFile",2);
-}
-
-extern "C" pid_t getpid();
-extern "C" pid_t getppid();
-extern "C" int gethostname(char*, int);
-void AMSProducer::_getpidhost(uinteger uid){
- _pid->uid=uid;
- _pid->pid=getpid();
- _pid->ppid=getppid();
- char name[256];
- int len=255;
- if(gethostname(name,len))throw AMSProducer::Error("AMSProducer::_getpidhost-F-UnableGetHostName",2);
- _pid->HostName=(const char*)name;
-}
-
-void AMSProducer::Message(const char * message, int stream){
-
-#ifdef __AMSDEBUG__
-cout<<message<<endl;
-#else
-if(stream==1)cout<<message<<endl;
-else if(stream>0)cerr<<message<<endl;
-#endif
-   if(_fbin){
-     time_t tcur;
-     time(&tcur);
-     _fbin<<message << " "<<ctime(&tcur)<<endl;
+void AMSProducer::sendNtupleEnd(const char * name, int entries, int last, time_t end, bool success){
+_ntend.Name=name;
+_ntend.Status=success?DPS::Producer::Success:DPS::Producer::Failure;
+_ntend.EventNumber=entries;
+_ntend.LastEvent=last;
+_ntend.End=end;
+time_t tt;
+time(&tt);
+_ntend.Insert=tt;
+uinteger suc=0;
+UpdateARS();
+ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+  try{
+   if(!CORBA::is_nil(*li)){
+    (*li)->sendNtupleEnd(_pid,_ntend,DPS::Client::Create);
+     suc++;
    }
+  }
+  catch  (CORBA::SystemException & a){
+  }
+}
+if(!suc)FMessage("AMSProducer::sendRunEnd-F-UnableToSendRunEndInfo ",DPS::Client::CInAbort);
+
+
+
+}
+
+void AMSProducer::sendNtupleStart(int run, int first,time_t begin){
+_ntend.Run=run;
+_ntend.FirstEvent=first;
+_ntend.Begin=begin;
+}
+
+
+void AMSProducer::Exiting(const char * message){
+if(_ExitInProgress)return;
+#ifdef __AMSDEBUG__
+cout<< " Exiting ...."<<(message?message:" ")<<endl;
+#endif
+_ExitInProgress=true;
+for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+try{
+if(!CORBA::is_nil(*li))
+(*li)->Exiting(_pid,(message?message:AMSClient::_error.getMessage()),AMSClient::_error.ExitReason());
+break;
+}
+catch  (CORBA::SystemException & a){}
+}
+}
+
+
+void AMSProducer::UpdateARS(){
+for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+try{
+if(!CORBA::is_nil(*li)){
+     DPS::Client::ARS * pars;
+     int length=(*li)->getARS(_pid,pars);
+     DPS::Client::ARS_var ars=pars;
+     if(length==0){
+      FMessage("getARS-S-UnableToGetARS ",DPS::Client::CInAbort);
+     }   
+     for(int i=0;i<length;i++){
+        CORBA::Object_var obj=_orb->string_to_object((ars[i]).IOR);
+        if(!CORBA::is_nil(obj)){
+        DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
+        if(!CORBA::is_nil(_pvar)){
+         if(i==0)_plist.clear();
+         _plist.push_front(_pvar);
+        }
+        }
+       }
+      break;
+}
+}
+catch  (CORBA::SystemException & a){}
+}
+
+}
+
+
+void AMSProducer::sendRunEnd(DAQEvent::InitResult res){
+_cinfo.Status= (res==DAQEvent::OK)?DPS::Producer::Finished: DPS::Producer::Failed;
+TIMEX(_cinfo.CPUTimeSpent);
+_cinfo.CPUTimeSpent+=-_T0;
+UpdateARS();
+ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+  try{
+   if(!CORBA::is_nil(*li)){
+    (*li)->sendCurrentInfo(_pid,_cinfo);
+     return;
+   }
+  }
+  catch  (CORBA::SystemException & a){
+  }
+}
+FMessage("AMSProducer::sendRunEnd-F-UnableToSendRunEndInfo ",DPS::Client::CInAbort);
+
+
+}
+
+void AMSProducer::AddEvent(){
+if(_cinfo.Run == AMSEvent::gethead()->getrun()){
+ _cinfo.EventsProcessed++;
+ _cinfo.LastEventProcessed=AMSEvent::gethead()->getid();
+}
+if(!(AMSEvent::gethead()->HasNoErrors())){
+  _cinfo.ErrorsFound++;
+  TIMEX(_cinfo.CPUTimeSpent);
+  _cinfo.CPUTimeSpent+=-_T0;
+  sendCurrentRunInfo();
+}
+else if(_cinfo.EventsProcessed%_reinfo->UpdateFreq==1 ){
+  TIMEX(_cinfo.CPUTimeSpent);
+  _cinfo.CPUTimeSpent+=-_T0;
+  sendCurrentRunInfo();
+}
+}
+
+AMSProducer::~AMSProducer(){
+const char * a=0;
+Exiting(_up?_up->getMessage():a);
 }
