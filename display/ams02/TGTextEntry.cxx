@@ -1,4 +1,4 @@
-//  $Id: TGTextEntry.cxx,v 1.2 2001/01/22 17:32:36 choutko Exp $
+//  $Id: TGTextEntry.cxx,v 1.3 2001/06/25 20:21:43 kscholbe Exp $
 //*CMZ :  2.00/00 23/02/98  16.13.28  by  Fons Rademakers
 //*-- Author :    Fons Rademakers   08/01/98
 
@@ -93,8 +93,8 @@ TGTextEntry::TGTextEntry(const TGWindow *p, TGTextBuffer *text, Int_t id,
    fText       = text;
 
    int tw, max_ascent, max_descent;
-   tw = gGXW->TextWidth(fFontStruct, fText->GetString(), fText->GetTextLength());
-   gGXW->GetFontProperties(fFontStruct, max_ascent, max_descent);
+   tw = gVirtualX->TextWidth(fFontStruct, fText->GetString(), fText->GetTextLength());
+   gVirtualX->GetFontProperties(fFontStruct, max_ascent, max_descent);
 
    Resize(tw + 8, max_ascent + max_descent + 7);
 
@@ -103,13 +103,13 @@ TGTextEntry::TGTextEntry(const TGWindow *p, TGTextBuffer *text, Int_t id,
    fSelectionOn = fCursorOn = kFALSE;
    fCurBlink    = 0;
 
-   gGXW->SetCursor(fId, fgDefaultCursor);
+   gVirtualX->SetCursor(fId, fgDefaultCursor);
 
-   gGXW->GrabButton(fId, kAnyButton, kAnyModifier,
+   gVirtualX->GrabButton(fId, kAnyButton, kAnyModifier,
                     kButtonPressMask | kButtonReleaseMask | kPointerMotionMask,
                     kNone, kNone);
 
-   gGXW->SelectInput(fId, kKeyPressMask | kExposureMask | kFocusChangeMask);
+   gVirtualX->SelectInput(fId, kKeyPressMask | kExposureMask | kFocusChangeMask);
 }
 
 //______________________________________________________________________________
@@ -133,15 +133,15 @@ void TGTextEntry::DoRedraw()
    x = 4; // do not center text
    y = 4;
 
-   gGXW->GetFontProperties(fFontStruct, max_ascent, max_descent);
-   gGXW->DrawString(fId, fNormGC, x, y + max_ascent,
+   gVirtualX->GetFontProperties(fFontStruct, max_ascent, max_descent);
+   gVirtualX->DrawString(fId, fNormGC, x, y + max_ascent,
                     fText->GetString(), fText->GetTextLength());
 
    if (fCursorOn) {
-      gGXW->DrawLine(fId, fgBlackGC, fCursorX, 3,
+      gVirtualX->DrawLine(fId, fgBlackGC, fCursorX, 3,
                      fCursorX, max_ascent + max_descent + 3);
 //  } else {
-//     gGXW->DrawLine(fId, fgWhiteGC, fCursorX, 4,
+//     gVirtualX->DrawLine(fId, fgWhiteGC, fCursorX, 4,
 //                    fCursorX, max_ascent + max_descent + 1);
    }
 
@@ -153,12 +153,12 @@ void TGTextEntry::DoRedraw()
       ixs = TMath::Min(fStartIX, fEndIX);
       iws = TMath::Abs(fEndIX - fStartIX);
 
-      gGXW->FillRectangle(fId, fSelbackGC, x+xs, y-1,
+      gVirtualX->FillRectangle(fId, fSelbackGC, x+xs, y-1,
                           ws, max_ascent + max_descent +1);
 
       // fText->Draw(fId, fNormGC, x, y + max_ascent);
 
-      gGXW->DrawString(fId, fSelGC, x+xs, y + max_ascent,
+      gVirtualX->DrawString(fId, fSelGC, x+xs, y + max_ascent,
                        (fText->GetString())+ixs, iws);
    }
 
@@ -173,15 +173,15 @@ void TGTextEntry::DrawBorder()
 
    switch (fOptions & (kSunkenFrame | kRaisedFrame | kDoubleBorder)) {
       case kSunkenFrame | kDoubleBorder:
-         gGXW->DrawLine(fId, fgShadowGC, 0, 0, fWidth-2, 0);
-         gGXW->DrawLine(fId, fgShadowGC, 0, 0, 0, fHeight-2);
-         gGXW->DrawLine(fId, fgBlackGC, 1, 1, fWidth-3, 1);
-         gGXW->DrawLine(fId, fgBlackGC, 1, 1, 1, fHeight-3);
+         gVirtualX->DrawLine(fId, fgShadowGC, 0, 0, fWidth-2, 0);
+         gVirtualX->DrawLine(fId, fgShadowGC, 0, 0, 0, fHeight-2);
+         gVirtualX->DrawLine(fId, fgBlackGC, 1, 1, fWidth-3, 1);
+         gVirtualX->DrawLine(fId, fgBlackGC, 1, 1, 1, fHeight-3);
 
-         gGXW->DrawLine(fId, fgHilightGC, 0, fHeight-1, fWidth-1, fHeight-1);
-         gGXW->DrawLine(fId, fgHilightGC, fWidth-1, fHeight-1, fWidth-1, 0);
-         gGXW->DrawLine(fId, fgBckgndGC,  1, fHeight-2, fWidth-2, fHeight-2);
-         gGXW->DrawLine(fId, fgBckgndGC,  fWidth-2, 1, fWidth-2, fHeight-2);
+         gVirtualX->DrawLine(fId, fgHilightGC, 0, fHeight-1, fWidth-1, fHeight-1);
+         gVirtualX->DrawLine(fId, fgHilightGC, fWidth-1, fHeight-1, fWidth-1, 0);
+         gVirtualX->DrawLine(fId, fgBckgndGC,  1, fHeight-2, fWidth-2, fHeight-2);
+         gVirtualX->DrawLine(fId, fgBckgndGC,  fWidth-2, 1, fWidth-2, fHeight-2);
          break;
 
       default:
@@ -199,7 +199,7 @@ Int_t TGTextEntry::GetCharacterIndex(Int_t xcoord)
 
    // check for out of boundaries first...
    len = fText->GetTextLength();
-   tw = gGXW->TextWidth(fFontStruct, fText->GetString(), len);
+   tw = gVirtualX->TextWidth(fFontStruct, fText->GetString(), len);
    if (xcoord < 0) return 0;
    if (xcoord > tw) return len; // len-1
 
@@ -208,7 +208,7 @@ Int_t TGTextEntry::GetCharacterIndex(Int_t xcoord)
    down = 0;
    while (up-down > 1) {
       ix = (up+down) >> 1;
-      tw = gGXW->TextWidth(fFontStruct, fText->GetString(), ix);
+      tw = gVirtualX->TextWidth(fFontStruct, fText->GetString(), ix);
       if (tw > xcoord)
          up = ix;
       else
@@ -233,13 +233,13 @@ Bool_t TGTextEntry::HandleButton(Event_t *event)
 
    if (event->fType == kButtonPress) {
 
-      gGXW->SetInputFocus(fId);
+      gVirtualX->SetInputFocus(fId);
 
       if (event->fCode == kButton1) {
 
          x = 4;
          fStartIX     = GetCharacterIndex(event->fX - x);
-         fStartX      = gGXW->TextWidth(fFontStruct, fText->GetString(), fStartIX);
+         fStartX      = gVirtualX->TextWidth(fFontStruct, fText->GetString(), fStartIX);
          fCursorIX    = fStartIX;
          fCursorX     = fStartX + x;
          fSelectionOn = kFALSE;
@@ -247,11 +247,11 @@ Bool_t TGTextEntry::HandleButton(Event_t *event)
 
       } else if (event->fCode == kButton2) {
 
-         if (gGXW->GetPrimarySelectionOwner() == kNone) {
+         if (gVirtualX->GetPrimarySelectionOwner() == kNone) {
             // No primary selection, so use the cut buffer
             PastePrimary(fClient->GetRoot()->GetId(), kCutBuffer, kFALSE);
          } else {
-            gGXW->ConvertPrimarySelection(fId, event->fTime);
+            gVirtualX->ConvertPrimarySelection(fId, event->fTime);
          }
 
       }
@@ -264,13 +264,13 @@ Bool_t TGTextEntry::HandleDoubleClick(Event_t *)
 {
    // Handle double click event in the text entry widget.
 
-   gGXW->SetInputFocus(fId);
+   gVirtualX->SetInputFocus(fId);
 
    int x        = 4;
    fStartIX     = 0;
-   fStartX      = gGXW->TextWidth(fFontStruct, fText->GetString(), fStartIX);
+   fStartX      = gVirtualX->TextWidth(fFontStruct, fText->GetString(), fStartIX);
    fEndIX       = fText->GetTextLength();
-   fEndX        = gGXW->TextWidth(fFontStruct, fText->GetString(), fEndIX);
+   fEndX        = gVirtualX->TextWidth(fFontStruct, fText->GetString(), fEndIX);
    fCursorIX    = fEndIX;
    fCursorX     = fEndX + x;
    fSelectionOn = kTRUE;
@@ -288,7 +288,7 @@ Bool_t TGTextEntry::HandleMotion(Event_t *event)
    int x = 4;
 
    fEndIX       = GetCharacterIndex(event->fX - x); // + 1;
-   fEndX        = gGXW->TextWidth(fFontStruct, fText->GetString(), fEndIX);
+   fEndX        = gVirtualX->TextWidth(fFontStruct, fText->GetString(), fEndIX);
    fCursorIX    = fEndIX;
    fCursorX     = fEndX + x;
    fSelectionOn = kTRUE;
@@ -309,7 +309,7 @@ Bool_t TGTextEntry::HandleKey(Event_t *event)
    Int_t  keysym;
 
    len = fText->GetTextLength();
-   gGXW->LookupString(event, tmp, sizeof(tmp), keysym);
+   gVirtualX->LookupString(event, tmp, sizeof(tmp), keysym);
    n = strlen(tmp);
 
    switch (keysym) {
@@ -394,7 +394,7 @@ Bool_t TGTextEntry::HandleKey(Event_t *event)
       SendMessage(fMsgWindow, MK_MSG(kC_TEXTENTRY, kTE_TEXTCHANGED),
                   fWidgetId, keysym);
    }
-   fCursorX = 4 + gGXW->TextWidth(fFontStruct, fText->GetString(), fCursorIX);
+   fCursorX = 4 + gVirtualX->TextWidth(fFontStruct, fText->GetString(), fCursorIX);
    fClient->NeedRedraw(this);
 
    return kTRUE;
@@ -441,7 +441,7 @@ void TGTextEntry::PastePrimary(Window_t wid, Atom_t property, Bool_t del)
    TString data;
    Int_t   nchar;
 
-   gGXW->GetPasteBuffer(wid, property, data, nchar, del);
+   gVirtualX->GetPasteBuffer(wid, property, data, nchar, del);
 
    if (nchar) {
       // remove any previous selected text
@@ -463,7 +463,7 @@ void TGTextEntry::PastePrimary(Window_t wid, Atom_t property, Bool_t del)
 
    SendMessage(fMsgWindow, MK_MSG(kC_TEXTENTRY, kTE_TEXTCHANGED),
                fWidgetId, 0);
-   fCursorX = 4 + gGXW->TextWidth(fFontStruct, fText->GetString(), fCursorIX);
+   fCursorX = 4 + gVirtualX->TextWidth(fFontStruct, fText->GetString(), fCursorIX);
    fClient->NeedRedraw(this);
 }
 
