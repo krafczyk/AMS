@@ -272,7 +272,8 @@ Below there is a description of a  ntuple.
 
  * I*4  * [0,500]     * TRRAWCL  * ntrraw                // trrawcl num
  * I*4  *             * TRRAWCL  * rawaddress(ntrraw)    // see TRCLUSTE Idsoft
- * I*4  *             * TRRAWCL  * rawlength(ntrraw)    //  rawcl length
+ * I*4  *             * TRRAWCL  * rawlength(ntrraw)     //  rawcl length
+ * R*4  *             * TRRAWCL  * s2n(ntrraw)           // s/n for seed
 
 
 
