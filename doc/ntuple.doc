@@ -107,7 +107,8 @@ Below there is a description of a  ntuple.
 * R*4  *              * PARTICLE * cooctc(3,2,npart) // tracker extrapol in ctc
 * R*4  *              * PARTICLE * cootof(3,4,npart) // tracker extrapol in tof
 * R*4  *              * PARTICLE * cooanti(3,2,npart)// tracker extrapol in anti
-* R*4  *              * PARTICLE * cootr(3,6,npart)  // tracker extrapol in tr
+* R*4  *              * PARTICLE * cootr(3,6,npart)  // tracker extrapol in tr  *****)
+                                                      
 
 
 * I*4  * [0,20]       * TOFCLUST * ntof                // TOF clusters number
@@ -432,6 +433,14 @@ Addendum (V.Choutko + F.Barao) : The code below should do the job
           enddo
          enddo
          end
+
+
+
+*****) Changed from build=101
+
+cootr(3,1:6,npart) now contains the minimal distance to sensor edge in sensor length units;
+
+
 
 
 
