@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.240 2004/02/02 09:56:28 alexei Exp $
+# $Id: RemoteClient.pm,v 1.241 2004/02/03 11:44:16 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2152,7 +2152,7 @@ CheckCite:            if (defined $q->param("QCite")) {
           }
           if ($q->param("ROOTACCESS") eq "CASTOR") {
               $accessmode = "CASTOR";
-              $prefix     = "/castor/cern.ch/ams/";
+              $prefix     = "rfio:/castor/cern.ch/ams/";
           }
       }
 
@@ -2340,6 +2340,7 @@ CheckCite:            if (defined $q->param("QCite")) {
    print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"NFS\">  NFS \n";
    print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"HTTP\"> via WebServer \n";
    print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"CASTOR\">  rfio CASTOR\n";
+   print "<i><font color=green> (Note : files are copied to CASTOR weekly, access via HTTP is slow) </font><i>\n";
    print "<TR></TR>\n";
 
      print "<p><br>\n";
@@ -8269,15 +8270,17 @@ sub checkDB {
   my $outputfile = undef;
   my $checkCRC = 0; # check CRC for files
   my $updateDB = 0; # set last crc check time
+  my $verbose  = 0; # verbose mode
 
   my $HelpTxt = "
      checkDB compares DB and directories contents
-     -d    - directory path
-     -p    - DST query word for Database
+     -d    - directory path (d:directory)
+     -p    - DST query word for Database (p:query)
      -crc  - calculate CRC and compare them 
      -o    - write output to file
      -h    - print help
      -u    - update DB (valid only with -crc)
+     -v    - verbose mode
      checkDB -d:/f2dah1/MC/AMS02/2004A/protons -crc
 ";
 #
@@ -8305,6 +8308,9 @@ sub checkDB {
     }
     if ($chop =~/^-u/) {
      $updateDB = 1;
+    }
+    if ($chop =~/^-v/) {
+     $verbose = 1;
     }
     if ($chop =~/^-h/) {
       print "$HelpTxt \n";
@@ -8337,14 +8343,14 @@ sub checkDB {
 
  
  if (defined $ntpath) {
-    $sql = "SELECT COUNT(PATH) FROM ntuples WHERE PATH LIKE '%/$ntpath%'";
+    $sql = "SELECT COUNT(PATH) FROM ntuples WHERE PATH LIKE '%$ntpath%'";
     my $ret=$self->{sqlserver}->Query($sql);
     if(defined $ret->[0][0]){
       if ($ret->[0][0] > 0) {
         $nfiles = $ret->[0][0];
         print "$nfiles DSTs matched to path like '$ntpath'\n";
         print "start comparison \n";
-        $sql = "SELECT PATH, CRC FROM ntuples WHERE PATH LIKE '%/$ntpath%' ORDER BY RUN";
+        $sql = "SELECT PATH, CRC FROM ntuples WHERE PATH LIKE '%$ntpath%' ORDER BY RUN";
         $ret=$self->{sqlserver}->Query($sql);
         if(defined $ret->[0][0]){
          foreach my $nt (@{$ret}){
@@ -8369,6 +8375,7 @@ sub checkDB {
                  my $timenow = time();
                  $sql = "UPDATE ntuples SET crctime = $timenow, crcflag=$rstatus  
                            WHERE path='$filename'";
+                 if ($verbose == 1) {print "$sql \n";}
                  $self->{sqlserver}->Update($sql); 
                }
               }
@@ -8390,27 +8397,34 @@ sub checkDB {
     my $i= 0;
     my $nprint = 0;
     while ($i <= $#inputFiles) {
-      
       if (-d $inputFiles[$i]) {
-#          print "Directory : $inputFiles[$i] \n";
+          if ($verbose == 1) {print "Directory : $inputFiles[$i] \n";}
       } else {
           $nfiles++;
           my $filename = trimblanks($inputFiles[$i]);
-          $sql = "SELECT PATH, CRC FROM NTUPLES WHERE PATH='$filename'";
+          $sql = "SELECT PATH, CRC FROM NTUPLES WHERE PATH like '$filename'";
           my $ret=$self->{sqlserver}->Query($sql);
           if(not defined $ret->[0][0]){
               $notindb++;
               print "* not in DB* $filename\n";
           } else {
-           if ($checkCRC == 1) {
-              my $rstatus = $self->calculateCRC($ret->[0][0],$ret->[0][1]);
+            my $filename = $ret->[0][0];
+            my $crc      = $ret->[0][1];
+            if ($checkCRC == 1) {
+              my $rstatus = $self->calculateCRC($filename,$crc);
               if ($rstatus == 1) {
                $correct++;
               } else {
                 $crcerror++;
               }
+             if ($updateDB == 1) {
+              my $timenow = time();
+              $sql = "UPDATE ntuples SET crctime = $timenow, crcflag=$rstatus  
+                           WHERE path='$filename'";
+              if ($verbose == 1) {print "$sql \n";}
+              $self->{sqlserver}->Update($sql); 
+             }
           }
-       }
        $nprint++;
           if ($nprint == 10) {
               my $t = time();
@@ -8418,6 +8432,7 @@ sub checkDB {
            print "$l - Files Checked : $nfiles not found in DB $notindb CRC error : $crcerror \n";
            $nprint = 0;
           }
+       }
       }
       $i++;
   }
