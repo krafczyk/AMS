@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.19 2002/12/02 13:59:35 choutko Exp $
+//  $Id: gamma.C,v 1.20 2002/12/05 09:16:25 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -1117,6 +1117,8 @@ integer AMSTrTrackGamma::build(integer refit){
   if (esc_0 >= 2 && esc_2 >= 3) return 0;
   if (esc_0 >= 2 && esc_2 >= 2 && es_f1 >= 2) return 0;
   if (esc_1 <= 2 && esc_2 >= 4) return 0;
+  if (esc_1 <= 2 && esc_0 >= 2 && es_f1 >= 3) return 0;
+  if ((es_f1 + esc_0) >= 6) return 0;
   if (esc_10 >= 3)  return 0;
   if (esc_20 != 0)  return 0;
 
@@ -1177,8 +1179,9 @@ RoadXZ.Check_TRD_TK1(FLPAT[0],H[0],ii);
 RoadXZ.getTofMul(2,ii,tm34);
 //
 RoadXZ.makeEC_out(ecc,out);
+ if (out==0){
 RoadXZ.Lines_Top_Bottom(out);
-
+ }
 #ifdef __AMSDEBUG__
  cout << "AAA ii[0] "<<ii[0]<<" ii[1] "<<ii[1]<<" ii[2] "<<ii[2]<< endl;
  cout << "ii[3] "<<ii[3]<<" ii[4] "<<ii[4]<<endl;
@@ -1188,7 +1191,7 @@ RoadXZ.Lines_Top_Bottom(out);
  if (out==1){
 RoadXZ.getParRoadXZ(fbotf,ftopf,x_starf,z_starf,SLOPEf,INTERf);
 RoadXZ.LastCheckTRDX(slo,inte,chit);
- if (chit <= 0.2 && chit > 0.001 ) {
+ if (chit <= 0.4 && chit > 0.001 ) {
    ftopf=1;
    fbotf=0;
    SLOPEf=slo;
@@ -1248,6 +1251,8 @@ RoadXZ.LastCheckTRDX(slo,inte,chit);
       firL=0;
       lasL=0;
     }
+    if (init_R==0 || init_L==0) return 0;
+    if (firR == lasR || firL == lasL) return 0;
 #ifdef __AMSDEBUG__
     if (init_R==0 || init_L==0){
       cout<<"NO SUFFICIENT HITS FOR DOUBLE TRACK RECOGNITION "<<endl;
@@ -1300,8 +1305,12 @@ RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
    cout<<" Let's check that I have maximum 2 hits per plane: INDEXPL["<<i<<"]= "<<INDEXPL[i]<<endl;
 #endif
    if (INDEXPL[i] < FLPAT[i]) recowrong++;
-   if (FLPAT[i] == 2 && INDEXPL[i] == 0) refitting++;
+   //if (slr != 10000 && qlr != 10000 && refitting != 2000){
+    if (refitting != 2000){
+     if (FLPAT[i] == 2 && INDEXPL[i] == 0) refitting++;
   }
+   if (slr == 200 && qlr == 200)refitting++;
+ }
 #ifdef __AMSDEBUG__
  cout << "             BE CAREFUL : recowrong = "<<recowrong<<endl;
 #endif
@@ -1324,6 +1333,30 @@ RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
    cout<< "*$$        INDEXPL["<<i<<"]= "<<INDEXPL[i]<<endl; 
  }
 #endif
+
+ //  if (refitting == 2000){
+if (refitting == 8000){
+
+   for(int i=0;i<TKDBc::nlay();i++){
+_LeftRight(H[i],i,CE[i]);
+   } 
+
+   SLOPEf=slr;
+   INTERf=qlr;
+   refitting=0;
+   cout << "SLOPEf INTERf = "<<SLOPEf<<" "<<INTERf<<endl;
+   cout << "ENTERING ones slr qlr = "<<slr<<" "<<qlr<<endl;  
+RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
+                      firR,lasR,firL,lasL,fir_planeR,fir_planeL,
+                     las_planeR,las_planeL,slr,qlr);
+
+}
+
+ for(int i=0;i<TKDBc::nlay();i++){
+   INDEXPL[i]=0;
+ }
+ 
+
  AMSTrRecHit * parrayR[trconst::maxlay];
  int nright=-1; 
   for (int i=0;i<TKDBc::nlay();i++){
@@ -1389,13 +1422,14 @@ cout<< "*$$$$$$$ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<end
     pntLR->PAIR2GAMMA(counting,plusminus);
       
       if (pntLR->_VE1[2] <= 47 || pntLR->_VE2[2] <= 47  ){
-	refitting+=100;
+	//refitting+=100;
       }
     }
 
 
     // before proceeding check refitting:
-    if (refitting >= 100){
+    //    if (refitting >= 100){
+    if (refitting >= 1000000){
       delete pntLR; 
       for(int i=0;i<TKDBc::nlay();i++){
 _LeftRight(H[i],i,CE[i]);
@@ -1406,19 +1440,19 @@ RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
                      firR,lasR,firL,lasL,fir_planeR,fir_planeL,
                      las_planeR,las_planeL,slr,qlr);
 
- if (refitting >=10000){
-   for(int i=0;i<TKDBc::nlay();i++){
-     _LeftRight(H[i],i,CE[i]);
-   } 
-   SLOPEf=slr;
-   INTERf=qlr;
+// if (refitting >=10000){
+//  for(int i=0;i<TKDBc::nlay();i++){
+//    _LeftRight(H[i],i,CE[i]);
+//  } 
+//  SLOPEf=slr;
+//  INTERf=qlr;
    //cout << "SLOPEf INTERf = "<<SLOPEf<<" "<<INTERf<<endl;
    //cout <<" 5 refitting  "<<refitting<<endl;
- refitting=0;
-RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
-                     firR,lasR,firL,lasL,fir_planeR,fir_planeL,
-                     las_planeR,las_planeL,slr,qlr);
- }
+// refitting=0;
+//RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
+//                    firR,lasR,firL,lasL,fir_planeR,fir_planeL,
+//                    las_planeR,las_planeL,slr,qlr);
+//}
  for(int i=0;i<TKDBc::nlay();i++){
    INDEXPL[i]=0;
  }
@@ -1581,21 +1615,21 @@ pntLR->PAIR2GAMMA(counting,plusminus);
 
 if (flag >= 500){
    // Let's defined the expected residual "RES_REF " in the empty plane  "pla".
-   int pla=flag-500;
-   RES_REF=0;
-   if (pla != 0){
-     RES_REF=0.03;
-      for(int jh=0;jh<pla;jh++){
-        RES_REF=res_d[jh]; // we take the residual which comes immediately before
-      }     
-   }
+   //int pla=flag-500;
+  // RES_REF=0;
+   //if (pla != 0){
+   //  RES_REF=0.03;
+    //  for(int jh=0;jh<pla;jh++){
+    //    RES_REF=res_d[jh]; // we take the residual which comes immediately before
+    //  }     
+  // }
 
 
-AMSPoint ZEL(pntLR->_GP0MSL[0],pntLR->_GP0MSL[1],z_tkl[pla]);
-AMSPoint ZER(pntLR->_GP0MSR[0],pntLR->_GP0MSR[1],z_tkl[pla]);
-pntLR->interpolate(1,ZEL,DIRi,P_0L2,tetL,fifL,sileL);
-pntLR->interpolate(0,ZER,DIRi,P_0R2,tetR,fifR,sileR);
-pntLR->HITRESEARCH(pla,RES_REF,P_0L2,P_0R2);
+//AMSPoint ZEL(pntLR->_GP0MSL[0],pntLR->_GP0MSL[1],z_tkl[pla]);
+//AMSPoint ZER(pntLR->_GP0MSR[0],pntLR->_GP0MSR[1],z_tkl[pla]);
+//pntLR->interpolate(1,ZEL,DIRi,P_0L2,tetL,fifL,sileL);
+//pntLR->interpolate(0,ZER,DIRi,P_0R2,tetR,fifR,sileR);
+//pntLR->HITRESEARCH(pla,RES_REF,P_0L2,P_0R2);
 delete pntLR; 
   nright=-1;  
   nleft=-1;
@@ -2475,85 +2509,8 @@ AMSPoint p_hi;
  number deposfmin=-1; 
  number deposlmin=-1; 
  //
- while (MinDX2L == 10000){
-   conL_f++;
-   conLf=0.5*conL_f;
-   if (MinDX2L == 10000) DeltaRecoTop+=conL_f;
-   //
-   for (int i=0;i<TKDBc::nlay();i++){
-     for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-       p_hi = p->getHit(); 
-       deposf = p->getsum();
-       if (p->checkstatus(AMSDBc::GAMMALEFT)){
-	 //
-	 if (p_hi[2] == firL && (p_hi[0] <= X2P+DeltaRecoTop && p_hi[0] >= X2P-DeltaRecoTop)){
-	   if (fabs(X2P-p_hi[0]) <= MinDX2L ){
-	     //
- 	     if (deposf >= deposfmin){ // in this way I take akways the greatest charge at first hit
- 	       deposfmin=deposf;
-	       //
-	       for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(i); pcha!=NULL; pcha=pcha->next()){
-		 pcha->clearstatus(AMSDBc::TOFFORGAMMA);
-	       }
-	       p->setstatus(AMSDBc::TOFFORGAMMA);
-	       MinDX2L=fabs(X2P-p_hi[0]);
-	       firLX=p_hi[0];
-	       //
-	      }
-	     //
-	   }
-	 }
-          //
-   	 }
-      }
-    }
-     //
-    }
-
-	 //
-   while (MinDX3L == 10000){
-   conL_l++;
-   conLl=0.5*conL_l;
-    if (MinDX3L == 10000) DeltaRecoBottom+=conLl;
-   for (int i=0;i<TKDBc::nlay();i++){
-     for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-       p_hi = p->getHit();
-       deposl = p->getsum(); 
-       if (p->checkstatus(AMSDBc::GAMMALEFT)){
-	 if (p_hi[2] == lasL && (p_hi[0] <= X3P+DeltaRecoBottom && p_hi[0] >= X3P-DeltaRecoBottom)){
-	   if (fabs(X3P-p_hi[0]) <= MinDX3L){
-             
-     
-	     for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(i); pcha!=NULL; pcha=pcha->next()){
-	       pcha->clearstatus(AMSDBc::TOFFORGAMMA);
-	     }
-	     p->setstatus(AMSDBc::TOFFORGAMMA);
-	     MinDX3L=fabs(X3P-p_hi[0]);
-	     lasLX=p_hi[0];
-	   }
-	 }
-	 //
-    }
-      }
-         }
-     }
-   conL_w=max(conLl,conLf);
-   //   cout <<" conL_l "<<conL_l<<" conL_f "<<conL_f<<" conL_w "<<conL_w<<endl;
 
  //*****************
-
-AMSTrRecHit * pa;
-AMSTrRecHit * bo;
-AMSPoint pa_hi;
-AMSPoint bo_hi;
-
- double RegStr=3.5;
- if (refitting){
- double RegStr=3.5;
- }
-
 
  int lhi=0;
  double x_d3[3],z_d3[3],y_d3[3];
@@ -2565,119 +2522,264 @@ AMSPoint bo_hi;
  double M_X,Q_X,M_Y,Q_Y,Str,Circ;  
  CAMAX=-10000;
  
- for (int i=0;i<TKDBc::nlay();i++){
-   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-     p_hi = p->getHit(); 
-     if (p->checkstatus(AMSDBc::GAMMALEFT)){
-       if (p_hi[2] == firL && p->checkstatus(AMSDBc::TOFFORGAMMA)){
-	 //
-         for (int ii=0;ii<TKDBc::nlay();ii++){
-	   for (pa=AMSTrRecHit::gethead(ii); pa!=NULL; pa=pa->next()){
-	if(pa->checkstatus(AMSDBc::FalseX) || pa->checkstatus(AMSDBc::FalseTOFX))continue;
-	     pa_hi = pa->getHit(); 
-	     if (pa->checkstatus(AMSDBc::GAMMALEFT)){
-	       if (pa_hi[2] == lasL && pa->checkstatus(AMSDBc::TOFFORGAMMA)){
-//                
-		 AMSTrTrackGamma::_intercept(p_hi[0],p_hi[1],p_hi[2],pa_hi[0],pa_hi[1],pa_hi[2],M_X,Q_X,M_Y,Q_Y);   
-//
-	         //ALTERNATIVE
-                 if (refitting){	 
-		 x_d[0]= p_hi[0];
-		 y_d[0]= p_hi[1];
-                 z_d[0]= p_hi[2];
-                 }
-		 //
+AMSPoint phii[8];
+number depo[8];
+AMSTrRecHit * pu[8];
 
-		 for (int j=(i+1);j<ii;j++){
-		   RegStr=3.5+conL_w;
+ double A0,B0,VA0;
+ int lk=-1;
+ int lkfil=0;
+ int lkfil2=0;
+ int lo=-1;
+
+ double AFL,BFL,VAMAXL;
+ double AFR,BFR,VAMAXR;
+
  
-		   //ALTERNATIVE
-                   if (refitting){
-                     RegStr=3.5+conL_w;                   	
-                   if (z_d[lhi] != 10000){
-		    lhi++;
-		    if (lhi > 1){ 
-                     if (lhi == 2) {
-		       for (int im=0;im<lhi;im++){
-		       }
-		 AMSTrTrackGamma::_intercept(x_d[lhi-2],y_d[lhi-2],z_d[lhi-2],x_d[lhi-1],y_d[lhi-1],z_d[lhi-1],M_X,Q_X,M_Y,Q_Y);   
-                     }
-                     if (lhi > 2){
-                       for (int jk=0;jk<3;jk++){
-                         x_d3[jk]=x_d[lhi+jk-3];
-                         y_d3[jk]=y_d[lhi+jk-3];  
-                         z_d3[jk]=z_d[lhi+jk-3];  
-                       }
-		 AMSTrTrackGamma::_intercept(x_d[lhi-2],y_d[lhi-2],z_d[lhi-2],x_d[lhi-1],y_d[lhi-1],z_d[lhi-1],M_X,Q_X,M_Y,Q_Y);   
-                     }
-		    }		
-		   }   
-                   }
-		   number bochamin=-1; 
-		   for (bo=AMSTrRecHit::gethead(j); bo!=NULL; bo=bo->next()){
-		     if(bo->checkstatus(AMSDBc::FalseX) || bo->checkstatus(AMSDBc::FalseTOFX))continue;
-		     bo_hi = bo->getHit();
-                     number bocha  = bo->getsum(); 
-		     if (bo->checkstatus(AMSDBc::GAMMALEFT)){
-		       AMSTrTrackGamma::_DISTANCE(bo_hi[0],bo_hi[1],bo_hi[2],M_X,Q_X,M_Y,Q_Y,Str,Circ);
-		       if (FLPAT[j] == 1){
+ double VA0MAX=10000;
+ double VA0MAX2=10000;
 
-			 if (fabs(Str) <= RegStr && fabs(Circ) < 5){
-			   RegStr=fabs(Str);
-                           
-                           if (bocha >= bochamin){ // I take akways the greatest charge single hit
- 	                      bochamin=bocha;
 
-			   for (AMSTrRecHit * bo2=AMSTrRecHit::gethead(j); bo2!=NULL; bo2=bo2->next()){
-			     bo2->clearstatus(AMSDBc::TOFFORGAMMA);
-			   }
-			   bo->setstatus(AMSDBc::TOFFORGAMMA);
-                                         
-			   //ALTERNATIVE
-                           if (refitting){	
-			   x_d[lhi]=bo_hi[0];
-                           y_d[lhi]=bo_hi[1];
-			   z_d[lhi]=bo_hi[2];
-			   }
-                          //  
-			   
-			   }
-			 }
-		       }
-		       if (FLPAT[j] != 1){
-			 if (fabs(Str) <= RegStr){
-			   RegStr=fabs(Str);
-			   for (AMSTrRecHit * bo2=AMSTrRecHit::gethead(j); bo2!=NULL; bo2=bo2->next()){
-			     bo2->clearstatus(AMSDBc::TOFFORGAMMA);
-			   }
-			   bo->setstatus(AMSDBc::TOFFORGAMMA);
+ double ptryx[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+ double ptryy[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+ double ptryz[8]={10000,10000,10000,10000,10000,10000,10000,10000};
 
-			   //ALTERNATIVE
-                           if (refitting){	
-      			   x_d[lhi]=bo_hi[0];
-                           y_d[lhi]=bo_hi[1];
-			   z_d[lhi]=bo_hi[2];
-			   }
-			   //  
-			   
-			 }
+ double xaml[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+ double yaml[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+ double zaml[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+ double xaml2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+ double yaml2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+ double zaml2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+
+ int ifi=0;
+ int ila=0;
+  for(int i=0;i<TKDBc::nlay();i++){
+    if(firL > (TKDBc::zposl(i))-0.5 && firL < (TKDBc::zposl(i))+0.5){
+      ifi=i;
+    }
+    if(lasL > (TKDBc::zposl(i))-0.5 && lasL < (TKDBc::zposl(i))+0.5){
+      ila=i;
+    }
+  }
+
+ double RegStr0;
+ double RegStr;
+ RegStr=0;
+ RegStr0=2.5;
+ if (refitting){
+  RegStr0=2.;
+ }
+   /////////000000000000000000//////////////////
+ if (fbotf == 1 && ftopf == 0){
+ DeltaRecoTop=3.5;
+ DeltaRecoBottom=2.5;
+ }
+ if (fbotf == 0 && ftopf == 1){
+ DeltaRecoTop=2.5;
+ DeltaRecoBottom=3.5;
+ }
+
+ if(refitting == 0){
+
+VA0MAX=10000;
+VA0MAX2=10000;
+
+   ////////
+   for (pu[ifi]=AMSTrRecHit::gethead(ifi); pu[ifi]!=NULL; pu[ifi]=pu[ifi]->next()){
+     if(pu[ifi]->checkstatus(AMSDBc::FalseX) || pu[ifi]->checkstatus(AMSDBc::FalseTOFX))continue;
+     //     if (pu[ifi]->checkstatus(AMSDBc::GAMMALEFT) && pu[ifi]->checkstatus(AMSDBc::TOFFORGAMMA)){
+     if (pu[ifi]->checkstatus(AMSDBc::GAMMALEFT)){
+       phii[ifi] = pu[ifi]->getHit(); 
+       if (phii[ifi][0] <= X2P+DeltaRecoTop && phii[ifi][0] >= X2P-DeltaRecoTop){
+
+
+
+	 for (pu[ila]=AMSTrRecHit::gethead(ila); pu[ila]!=NULL; pu[ila]=pu[ila]->next()){
+	   if(pu[ila]->checkstatus(AMSDBc::FalseX) || pu[ila]->checkstatus(AMSDBc::FalseTOFX))continue;
+	   //	 if (pu[ila]->checkstatus(AMSDBc::GAMMALEFT) && pu[ila]->checkstatus(AMSDBc::TOFFORGAMMA)){
+	   if (pu[ila]->checkstatus(AMSDBc::GAMMALEFT)){
+	     phii[ila] = pu[ila]->getHit(); 
+	     if (phii[ila][0] <= X3P+DeltaRecoBottom && phii[ila][0] >= X3P-DeltaRecoBottom){
+	       //
+	       AMSTrTrackGamma::_intercept(phii[ifi][0],phii[ifi][1],phii[ifi][2],phii[ila][0],phii[ila][1],phii[ila][2],M_X,Q_X,M_Y,Q_Y); 
+	       //
+	       for (int i=ifi+1;i<ila;i++){
+		 //                      RegStr=RegStr0+conL_w;
+		 RegStr=RegStr0;
+		 for (pu[i]=AMSTrRecHit::gethead(i); pu[i]!=NULL; pu[i]=pu[i]->next()){
+		   if(pu[i]->checkstatus(AMSDBc::FalseX) || pu[i]->checkstatus(AMSDBc::FalseTOFX))continue;
+		   if (pu[i]->checkstatus(AMSDBc::GAMMALEFT)){
+		     
+		     phii[i] = pu[i]->getHit(); 
+		     AMSTrTrackGamma::_DISTANCE(phii[i][0],phii[i][1],phii[i][2],M_X,Q_X,M_Y,Q_Y,Str,Circ);
+		     if (fabs(Str) <= RegStr){
+		       RegStr=fabs(Str);
+		       
+		       for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(i); pcha!=NULL; pcha=pcha->next()){
+			 pcha->clearstatus(AMSDBc::TOFFORGAMMA);
 		       }
-		       //
+		       pu[i]->setstatus(AMSDBc::TOFFORGAMMA);
 		     }
-		   }
+		   }			    
 		 }
-		 //
 	       }
-	     }
+	       lk=0;
+	       for (int ii=0;ii<TKDBc::nlay();ii++){
+		 for (p=AMSTrRecHit::gethead(ii); p!=NULL; p=p->next()){
+		   if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+		   p_hi = p->getHit(); 
+		   if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
+		     ptryx[lk]=p_hi[0];
+		     ptryy[lk]=p_hi[1];
+		     ptryz[lk]=p_hi[2];
+		     lk++;
+		   }  
+		 }
+	       }
+	       if (lk < 4) continue;
+	       dlinearme(lk,ptryz,ptryx,A0,B0,VA0);
+	       if (VA0 < VA0MAX){
+		 VA0MAX=VA0;
+		 lkfil=lk; 
+		 for (int ii=0;ii<lk;ii++){
+		   zaml[ii]=ptryz[ii];
+		   xaml[ii]=ptryx[ii];
+		   yaml[ii]=ptryy[ii];  
+		   
+		 }
+	       }
+	       if (VA0 > VA0MAX && VA0 <VA0MAX2){
+		 VA0MAX2=VA0;
+		 lkfil2=lk; 
+		 for (int ii=0;ii<lk;ii++){
+		   zaml2[ii]=ptryz[ii];
+		   xaml2[ii]=ptryx[ii];
+		   yaml2[ii]=ptryy[ii];  
+		   
+		 }
+	       }
+	     }   
 	   }
 	 }
        }
      }
    }
- }
- //*****************
+ }// refitting
+
+   /////////000000000000000000//////////////////
+
+ if(refitting!= 0 && refitting<100){
+
+VA0MAX=10000;
+VA0MAX2=10000;
+
+   for (pu[ifi]=AMSTrRecHit::gethead(ifi); pu[ifi]!=NULL; pu[ifi]=pu[ifi]->next()){
+    if(pu[ifi]->checkstatus(AMSDBc::FalseX) || pu[ifi]->checkstatus(AMSDBc::FalseTOFX))continue;
+      if (pu[ifi]->checkstatus(AMSDBc::GAMMALEFT)){
+        phii[ifi] = pu[ifi]->getHit(); 
+
+	  for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(ifi); pcha!=NULL; pcha=pcha->next()){
+	    pcha->clearstatus(AMSDBc::TOFFORGAMMA);
+	  }
+
+
+	  pu[ifi]->setstatus(AMSDBc::TOFFORGAMMA);
+
+
+	  for (pu[ila]=AMSTrRecHit::gethead(ila); pu[ila]!=NULL; pu[ila]=pu[ila]->next()){
+	    if(pu[ila]->checkstatus(AMSDBc::FalseX) || pu[ila]->checkstatus(AMSDBc::FalseTOFX))continue;
+	    if (pu[ila]->checkstatus(AMSDBc::GAMMALEFT)){
+	      phii[ila] = pu[ila]->getHit(); 
+
+		for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(ila); pcha!=NULL; pcha=pcha->next()){
+		  pcha->clearstatus(AMSDBc::TOFFORGAMMA);
+		}
+
+
+		pu[ila]->setstatus(AMSDBc::TOFFORGAMMA);
+
+	    //
+		AMSTrTrackGamma::_intercept(phii[ifi][0],phii[ifi][1],phii[ifi][2],phii[ila][0],phii[ila][1],phii[ila][2],M_X,Q_X,M_Y,Q_Y); 
+           //
+           	    for (int i=ifi+1;i<ila;i++){
+                      RegStr=RegStr0;
+		      for (pu[i]=AMSTrRecHit::gethead(i); pu[i]!=NULL; pu[i]=pu[i]->next()){
+			if(pu[i]->checkstatus(AMSDBc::FalseX) || pu[i]->checkstatus(AMSDBc::FalseTOFX))continue;
+			if (pu[i]->checkstatus(AMSDBc::GAMMALEFT)){
+			  
+			  phii[i] = pu[i]->getHit(); 
+			  AMSTrTrackGamma::_DISTANCE(phii[i][0],phii[i][1],phii[i][2],M_X,Q_X,M_Y,Q_Y,Str,Circ);
+			  if (fabs(Str) <= RegStr){
+			     RegStr=fabs(Str);
+			    
+			    for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(i); pcha!=NULL; pcha=pcha->next()){
+			      pcha->clearstatus(AMSDBc::TOFFORGAMMA);
+			    }
+			    pu[i]->setstatus(AMSDBc::TOFFORGAMMA);
+			  }
+			}			    
+		      }
+		    }
+                    lk=0;
+		    for (int ii=0;ii<TKDBc::nlay();ii++){
+		      for (p=AMSTrRecHit::gethead(ii); p!=NULL; p=p->next()){
+			if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+			p_hi = p->getHit(); 
+			if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
+			  ptryx[lk]=p_hi[0];
+			  ptryy[lk]=p_hi[1];
+			  ptryz[lk]=p_hi[2];
+                          lk++;
+                        }  
+		      }
+		    }
+		    if (lk < 4) continue;
+		  dlinearme(lk,ptryz,ptryx,A0,B0,VA0);
+                  if (VA0 < VA0MAX){
+		      VA0MAX=VA0;
+                      lkfil=lk; 
+                      for (int ii=0;ii<lk;ii++){
+                       zaml[ii]=ptryz[ii];
+		       xaml[ii]=ptryx[ii];
+		       yaml[ii]=ptryy[ii];  
+                       
+		      }
+                  }
+                  if (VA0 > VA0MAX && VA0 <VA0MAX2){
+                    VA0MAX2=VA0;
+                      lkfil2=lk; 
+                      for (int ii=0;ii<lk;ii++){
+                       zaml2[ii]=ptryz[ii];
+		       xaml2[ii]=ptryx[ii];
+		       yaml2[ii]=ptryy[ii];  
+                       
+		      }
+                  }
+		  //
+	    }
+	  }
+      }
+   }
+	      }// refitting
+
+                      VAMAXL=VA0MAX;
+
+
+  for (int i=0;i<TKDBc::nlay();i++){
+   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+	p_hi = p->getHit(); 
+        p->clearstatus(AMSDBc::TOFFORGAMMA); 
+        for (int ii=0;ii<lkfil;ii++){
+	  if (p_hi[0]==xaml[ii]  && p_hi[1]==yaml[ii]   && p_hi[2]==zaml[ii]){
+            p->setstatus(AMSDBc::TOFFORGAMMA);
+	  }
+	}
+   }
+  }
+
  //////////////////////////////////////////
+
  ///
  double xa[8];
  double za[8];
@@ -2702,15 +2804,12 @@ AMSPoint bo_hi;
  double A11,B11,VA11;
  dlinearme(laa,za,xa,A11,B11,VA11);         // linear fit
 
+ AFL=A11;
+ BFL=B11;
+ VAMAXL=VA11;
 
- if (VA11 < 0.01){
-   FIXMl=B11;
-   FIXQl=A11;
-   FIXVAl=VA11;
-  
-}
 
-  if (refitting >=100 && VA11 >1){
+  if (VA11 >1){
 
 
 
@@ -2734,19 +2833,14 @@ AMSPoint pe_hi;
      p_hi = p->getHit(); 
       if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
           diffm=10000;
-          number pechamin=-1;
           for (pe=AMSTrRecHit::gethead(i); pe!=NULL; pe=pe->next()){
 	    if(pe->checkstatus(AMSDBc::FalseX) || pe->checkstatus(AMSDBc::FalseTOFX))continue;
             pe_hi = pe->getHit();
-            number pecha  = pe->getsum();
             if (pe_hi[1] == p_hi[1]){
               if (fabs(pe_hi[0]-(SLOPEf*p_hi[2]+INTERf)) <= diffm){
-                if (pecha >= pechamin){
-                  pechamin=pecha;
 		xnew[i]=pe_hi[0];
                 diffm=fabs(pe_hi[0]-(SLOPEf*p_hi[2]+INTERf));
 		}
-              }
 	    }
 	  }
       //
@@ -2789,18 +2883,13 @@ AMSPoint pe_hi;
      p_hi = p->getHit(); 
       if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
           diffm=10000;
-          number pechamin=-1;
           for (pe=AMSTrRecHit::gethead(i); pe!=NULL; pe=pe->next()){
 	    if(pe->checkstatus(AMSDBc::FalseX) || pe->checkstatus(AMSDBc::FalseTOFX))continue;
             pe_hi = pe->getHit();
-            number pecha  = pe->getsum();
             if (pe_hi[1] == p_hi[1]){
               if (fabs(pe_hi[0]-(M_X*p_hi[2]+Q_X)) <= diffm){
-                if (pecha >= pechamin){
-                  pechamin=pecha;
 		xnew[i]=pe_hi[0];
                 diffm=fabs(pe_hi[0]-(M_X*p_hi[2]+Q_X));
-		}
               }
 	    }
 	  }
@@ -2959,20 +3048,17 @@ if (higcou != 0 && (li-higcou2) >= 3 && li > 3){
   
 // NOW RIGHT :
 
-   DeltaRecoTop=2.5;
-   DeltaRecoBottom=2.5;
+
+
+
    MinDX2R=10000;
    MinDX3R=10000;
-
  if (fbotf == 1 && ftopf == 0){
    INTERf=x_starf-(SLOPEf*z_starf);
  }
    X2P=SLOPEf*firR+INTERf;
    X3P=SLOPEf*lasR+INTERf;
-#ifdef __AMSDEBUG__
- cout << "RIGHT X2P = "<<X2P<< "X3P = "<<X3P<<endl;
-  cout << "x2l = "<<DeltaRecoTop<< " x3l = "<<DeltaRecoBottom<<endl;
-#endif
+
 
    double conR_w=0;
    double firRX;
@@ -2983,192 +3069,133 @@ if (higcou != 0 && (li-higcou2) >= 3 && li > 3){
      double conRl=0;
     deposfmin=-1; 
     deposlmin=-1; 
-   /// /// /// /// //// /
-   while (MinDX2R == 10000){
-     conR_f++;
-     conRf=0.5*conR_f;
-     if (MinDX2R == 10000) DeltaRecoTop+=conRf;
-
-     //
-     for (int i=0;i<TKDBc::nlay();i++){
-       for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-	 p_hi = p->getHit();  
-         deposf = p->getsum();
-   	 if (p->checkstatus(AMSDBc::GAMMARIGHT)){
-   	   if (p_hi[2] == firR && (p_hi[0] <= X2P+DeltaRecoTop && p_hi[0] >= X2P-DeltaRecoTop)){
-   	     if (fabs(X2P-p_hi[0]) <= MinDX2R){
-	     //
- 	     if (deposf >= deposfmin){
- 	       deposfmin=deposf;
-	       //
-	       for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(i); pcha!=NULL; pcha=pcha->next()){
-		 pcha->clearstatus(AMSDBc::TOFFORGAMMA);
-	       }
-	       p->setstatus(AMSDBc::TOFFORGAMMA);
-   	       MinDX2R=fabs(X2P-p_hi[0]);
-   	       firRX=p_hi[0];
-	       //
-	      }
-             //
-	     }
-	   }
-	   //
-   	 }
-       }
-     }
-     //
-   }
-   /////////
-       while (MinDX3R == 10000){
-   	conR_l++;
-        conRl=0.5*conR_l;
-  	if (MinDX3R == 10000) DeltaRecoBottom+=conRl;
-	for (int i=0;i<TKDBc::nlay();i++){
-	  for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-	    p_hi = p->getHit(); 
-	    if (p->checkstatus(AMSDBc::GAMMARIGHT)){
-	      if (p_hi[2] == lasR && (p_hi[0] <= X3P+DeltaRecoBottom && p_hi[0] >= X3P-DeltaRecoBottom)){
-		if (fabs(X3P-p_hi[0]) < MinDX3R){
-		  for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(i); pcha!=NULL; pcha=pcha->next()){
-		    pcha->clearstatus(AMSDBc::TOFFORGAMMA);
-		  }
-		  p->setstatus(AMSDBc::TOFFORGAMMA);
-		  MinDX3R=fabs(X3P-p_hi[0]);
-		  lasRX=p_hi[0];
-		}
-	      }
-	      //
-	    }
-	  }
-	  	}
-	   }
-      
-      conR_w=max(conRl,conRf);
-
-
-#ifdef __AMSDEBUG__
-   cout <<" conR_l "<<conR_l<<" conR_f "<<conR_f<<" conR_w "<<conR_w<<endl;
-   if((MinDX2R < 2*MinDX3R || MinDX3R < 2*MinDX2R) || (MinDX2R > 2 || MinDX3R >2)){
-     cout << "MinDX2R  MinDX3R= "<<MinDX2R<<" "<<MinDX3R<<endl;
-     cout <<" SOmething is wrong in the X road path "<<endl;
-   } //the end
-#endif
-
- //*****************
- // NOW RIGHT :
 
 CAMAX=-10000;
- RegStr=3.5;
+ RegStr=0;
+ RegStr0=2.5;
  if (refitting){
-  RegStr=3.5;
+  RegStr0=2.;
  }
 
 lhi=0;
  for (int i=0;i<TKDBc::nlay();i++){
  z_d[i]=10000;
+ y_d[i]=10000;
+ x_d[i]=10000;
+ }
+ lk=-1;
+ int lkfir=0;
+ int lkfir2=0;
+ lo=-1;
+ VA0MAX=10000;
+ VA0MAX2=10000;
+ ifi=0;
+ ila=0;
+ for (int i=0;i<8;i++){
+  ptryx[i]=10000;
+  ptryy[i]=10000;
+  ptryz[i]=10000;
+ }
+ double xamr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+ double yamr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+ double zamr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+ double xamr2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+ double yamr2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+ double zamr2[8]={10000,10000,10000,10000,10000,10000,10000,10000};
+ ifi=0;
+ ila=0;
+  for(int i=0;i<TKDBc::nlay();i++){
+    if(firR > (TKDBc::zposl(i))-0.5 && firR < (TKDBc::zposl(i))+0.5){
+      ifi=i;
+    }
+    if(lasR > (TKDBc::zposl(i))-0.5 && lasR < (TKDBc::zposl(i))+0.5){
+      ila=i;
+    }
+  }
+   /////////000000000000000000//////////////////
+ if (fbotf == 1 && ftopf == 0){
+ DeltaRecoTop=2.5;
+ DeltaRecoBottom=1.5;
+ }
+ if (fbotf == 0 && ftopf == 1){
+ DeltaRecoTop=1.5;
+ DeltaRecoBottom=2.5;
  }
 
- for (int i=0;i<TKDBc::nlay();i++){
-   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
-	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
-     p_hi = p->getHit(); 
-     if (p->checkstatus(AMSDBc::GAMMARIGHT)){
-       if (p_hi[2] == firR && p->checkstatus(AMSDBc::TOFFORGAMMA)){
-         for (int ii=0;ii<TKDBc::nlay();ii++){
-	   for (pa=AMSTrRecHit::gethead(ii); pa!=NULL; pa=pa->next()){
-	     if(pa->checkstatus(AMSDBc::FalseX) || pa->checkstatus(AMSDBc::FalseTOFX))continue;
-	     pa_hi = pa->getHit(); 
-	     if (pa->checkstatus(AMSDBc::GAMMARIGHT)){
-	       if (pa_hi[2] == lasR && pa->checkstatus(AMSDBc::TOFFORGAMMA)){
 
-		 AMSTrTrackGamma::_intercept(p_hi[0],p_hi[1],p_hi[2],pa_hi[0],pa_hi[1],pa_hi[2],M_X,Q_X,M_Y,Q_Y);
-		 //
-	         //ALTERNATIVE	 
-		 if (refitting){	
-		 x_d[0]= p_hi[0];
-                 y_d[0]= p_hi[1];
-		 z_d[0]= p_hi[2];
-                 }
-		 //
-		 for (int j=(i+1);j<ii;j++){
-		   RegStr=3.5+conR_w;
+ if(refitting == 0){
 
-		   //ALTERNATIVE
-                  if (refitting){
-                    RegStr=3.5+conR_w;	
-                   if (z_d[lhi] != 10000){
-		    lhi++;
-		    if (lhi > 1){ 
-                     if (lhi == 2) {
-		 AMSTrTrackGamma::_intercept(x_d[lhi-2],y_d[lhi-2],z_d[lhi-2],x_d[lhi-1],y_d[lhi-1],z_d[lhi-1],M_X,Q_X,M_Y,Q_Y);   
-                     }
-                     if (lhi > 2){
-                       for (int jk=0;jk<3;jk++){
-                         x_d3[jk]=x_d[lhi+jk-3];
-                         y_d3[jk]=y_d[lhi+jk-3];
-                         z_d3[jk]=z_d[lhi+jk-3];
-                       }
-		 AMSTrTrackGamma::_intercept(x_d[lhi-2],y_d[lhi-2],z_d[lhi-2],x_d[lhi-1],y_d[lhi-1],z_d[lhi-1],M_X,Q_X,M_Y,Q_Y);   
-                     }
-		    }		
-		   }
-                  }   
-		   //
-		   	
-		   number bochamin=-1; 	   
-		   for (bo=AMSTrRecHit::gethead(j); bo!=NULL; bo=bo->next()){
-		     if(bo->checkstatus(AMSDBc::FalseX) || bo->checkstatus(AMSDBc::FalseTOFX))continue;
-		     bo_hi = bo->getHit(); 
-                     number bocha  = bo->getsum(); 
-		     if (bo->checkstatus(AMSDBc::GAMMARIGHT)){
-		       AMSTrTrackGamma::_DISTANCE(bo_hi[0],bo_hi[1],bo_hi[2],M_X,Q_X,M_Y,Q_Y,Str,Circ);  
-		       //
-		       if (FLPAT[j] == 1){
-
-			 if (fabs(Str) <= RegStr && fabs(Circ) < 5){
-			   RegStr=fabs(Str);
-                           
-                           if (bocha >= bochamin){ // I take akways the greatest charge single hit
- 	                      bochamin=bocha;
-
-			   for (AMSTrRecHit * bo2=AMSTrRecHit::gethead(j); bo2!=NULL; bo2=bo2->next()){
-			     bo2->clearstatus(AMSDBc::TOFFORGAMMA);
-			   }
-			   bo->setstatus(AMSDBc::TOFFORGAMMA);
-			   //ALTERNATIVE
-                           if (refitting){	
-			   x_d[lhi]=bo_hi[0];
-                           y_d[lhi]=bo_hi[1];
-			   z_d[lhi]=bo_hi[2];
-                           }
-			   //
-			   }
-			 }
-		       }
-		       if (FLPAT[j] != 1){
-			 if (fabs(Str) <= RegStr){
-
-			   RegStr=fabs(Str);
-			   for (AMSTrRecHit * bo2=AMSTrRecHit::gethead(j); bo2!=NULL; bo2=bo2->next()){
-			     bo2->clearstatus(AMSDBc::TOFFORGAMMA);
-			   }
-			   bo->setstatus(AMSDBc::TOFFORGAMMA);
-			   //ALTERNATIVE
-                           if (refitting){	
-			   x_d[lhi]=bo_hi[0];
-                           y_d[lhi]=bo_hi[1];
-			   z_d[lhi]=bo_hi[2];
-                           }
-			   //
-			 }
-		       }
-		       //
+VA0MAX=10000;
+VA0MAX2=10000;
+ for (pu[ifi]=AMSTrRecHit::gethead(ifi); pu[ifi]!=NULL; pu[ifi]=pu[ifi]->next()){
+   if(pu[ifi]->checkstatus(AMSDBc::FalseX) || pu[ifi]->checkstatus(AMSDBc::FalseTOFX))continue;
+   if (pu[ifi]->checkstatus(AMSDBc::GAMMARIGHT)){
+     phii[ifi] = pu[ifi]->getHit(); 
+     if (phii[ifi][0] <= X2P+DeltaRecoTop && phii[ifi][0] >= X2P-DeltaRecoTop){
+       
+       for (pu[ila]=AMSTrRecHit::gethead(ila); pu[ila]!=NULL; pu[ila]=pu[ila]->next()){
+	 if(pu[ila]->checkstatus(AMSDBc::FalseX) || pu[ila]->checkstatus(AMSDBc::FalseTOFX))continue;
+	 if (pu[ila]->checkstatus(AMSDBc::GAMMARIGHT)){
+	   phii[ila] = pu[ila]->getHit(); 
+	   if (phii[ila][0] <= X3P+DeltaRecoBottom && phii[ila][0] >= X3P-DeltaRecoBottom){
+	     
+	     //
+	     AMSTrTrackGamma::_intercept(phii[ifi][0],phii[ifi][1],phii[ifi][2],phii[ila][0],phii[ila][1],phii[ila][2],M_X,Q_X,M_Y,Q_Y); 
+	     //
+	     for (int i=ifi+1;i<ila;i++){
+	       RegStr=RegStr0;
+	       
+	       for (pu[i]=AMSTrRecHit::gethead(i); pu[i]!=NULL; pu[i]=pu[i]->next()){
+		 if(pu[i]->checkstatus(AMSDBc::FalseX) || pu[i]->checkstatus(AMSDBc::FalseTOFX))continue;
+		 if (pu[i]->checkstatus(AMSDBc::GAMMARIGHT)){
+		   
+		   phii[i] = pu[i]->getHit(); 
+		   AMSTrTrackGamma::_DISTANCE(phii[i][0],phii[i][1],phii[i][2],M_X,Q_X,M_Y,Q_Y,Str,Circ);
+		   if (fabs(Str) <= RegStr){
+		     RegStr=fabs(Str);
+		     
+		     for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(i); pcha!=NULL; pcha=pcha->next()){
+		       pcha->clearstatus(AMSDBc::TOFFORGAMMA);
 		     }
+		     pu[i]->setstatus(AMSDBc::TOFFORGAMMA);
 		   }
-		 }
-		 //
+		 }			    
+	       }
+	     }
+	     lk=0;
+	     for (int ii=0;ii<TKDBc::nlay();ii++){
+	       for (p=AMSTrRecHit::gethead(ii); p!=NULL; p=p->next()){
+		 if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+		 p_hi = p->getHit(); 
+		 if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
+		   ptryx[lk]=p_hi[0];
+		   ptryy[lk]=p_hi[1];
+		   ptryz[lk]=p_hi[2];
+		   lk++;
+		 }  
+	       }
+	     }
+	     if (lk < 4) continue;
+	     dlinearme(lk,ptryz,ptryx,A0,B0,VA0);
+	     if (VA0 < VA0MAX){
+	       VA0MAX=VA0;
+	       lkfir=lk; 
+	       for (int ii=0;ii<lk;ii++){
+		 zamr[ii]=ptryz[ii];
+		 xamr[ii]=ptryx[ii];
+		 yamr[ii]=ptryy[ii];  
+		 
+	       }
+	     }
+	     
+	     if (VA0 > VA0MAX && VA0 <VA0MAX2){
+	       VA0MAX2=VA0;
+	       lkfir2=lk; 
+	       for (int ii=0;ii<lk;ii++){
+		 zamr2[ii]=ptryz[ii];
+		 xamr2[ii]=ptryx[ii];
+		 yamr2[ii]=ptryy[ii];  
+		 
 	       }
 	     }
 	   }
@@ -3177,7 +3204,147 @@ lhi=0;
      }
    }
  }
+ }// refitting
+
+
+
  //*****************
+
+ if(refitting!= 0 && refitting<100){
+VA0MAX=10000;
+VA0MAX2=10000;
+   for (pu[ifi]=AMSTrRecHit::gethead(ifi); pu[ifi]!=NULL; pu[ifi]=pu[ifi]->next()){
+    if(pu[ifi]->checkstatus(AMSDBc::FalseX) || pu[ifi]->checkstatus(AMSDBc::FalseTOFX))continue;
+      if (pu[ifi]->checkstatus(AMSDBc::GAMMARIGHT)){
+        phii[ifi] = pu[ifi]->getHit(); 
+
+	  for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(ifi); pcha!=NULL; pcha=pcha->next()){
+	    pcha->clearstatus(AMSDBc::TOFFORGAMMA);
+	  }
+
+
+	  pu[ifi]->setstatus(AMSDBc::TOFFORGAMMA);
+	  firRX=p_hi[0];
+	//
+	  for (pu[ila]=AMSTrRecHit::gethead(ila); pu[ila]!=NULL; pu[ila]=pu[ila]->next()){
+	    if(pu[ila]->checkstatus(AMSDBc::FalseX) || pu[ila]->checkstatus(AMSDBc::FalseTOFX))continue;
+	    if (pu[ila]->checkstatus(AMSDBc::GAMMARIGHT)){
+	      phii[ila] = pu[ila]->getHit(); 
+
+		for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(ila); pcha!=NULL; pcha=pcha->next()){
+		  pcha->clearstatus(AMSDBc::TOFFORGAMMA);
+		}
+
+
+		pu[ila]->setstatus(AMSDBc::TOFFORGAMMA);
+		lasRX=p_hi[0];
+	    //
+		AMSTrTrackGamma::_intercept(phii[ifi][0],phii[ifi][1],phii[ifi][2],phii[ila][0],phii[ila][1],phii[ila][2],M_X,Q_X,M_Y,Q_Y); 
+           //
+           	    for (int i=ifi+1;i<ila;i++){
+                      RegStr=RegStr0;
+		      for (pu[i]=AMSTrRecHit::gethead(i); pu[i]!=NULL; pu[i]=pu[i]->next()){
+			if(pu[i]->checkstatus(AMSDBc::FalseX) || pu[i]->checkstatus(AMSDBc::FalseTOFX))continue;
+			if (pu[i]->checkstatus(AMSDBc::GAMMARIGHT)){
+			  
+			  phii[i] = pu[i]->getHit(); 
+			  AMSTrTrackGamma::_DISTANCE(phii[i][0],phii[i][1],phii[i][2],M_X,Q_X,M_Y,Q_Y,Str,Circ);
+			  if (fabs(Str) <= RegStr){
+			     RegStr=fabs(Str);
+			    
+			    for (AMSTrRecHit * pcha=AMSTrRecHit::gethead(i); pcha!=NULL; pcha=pcha->next()){
+			      pcha->clearstatus(AMSDBc::TOFFORGAMMA);
+			    }
+
+			    pu[i]->setstatus(AMSDBc::TOFFORGAMMA);
+			  }
+			}			    
+		      }
+		    }
+                    lk=0;
+		    for (int ii=0;ii<TKDBc::nlay();ii++){
+		      for (p=AMSTrRecHit::gethead(ii); p!=NULL; p=p->next()){
+			if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+			p_hi = p->getHit(); 
+			if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
+			  ptryx[lk]=p_hi[0];
+			  ptryy[lk]=p_hi[1];
+			  ptryz[lk]=p_hi[2];
+                          lk++;
+                        }  
+		      }
+		    }
+		    if (lk < 4) continue;
+		  dlinearme(lk,ptryz,ptryx,A0,B0,VA0);
+                  if (VA0 < VA0MAX){
+		      VA0MAX=VA0;
+                      lkfir=lk; 
+                      for (int ii=0;ii<lk;ii++){
+                       zamr[ii]=ptryz[ii];
+		       xamr[ii]=ptryx[ii];
+		       yamr[ii]=ptryy[ii];  
+                       
+		      }
+                  }
+                  if (VA0 > VA0MAX && VA0 <VA0MAX2){
+                    VA0MAX2=VA0;
+                      lkfir2=lk; 
+                      for (int ii=0;ii<lk;ii++){
+                       zamr2[ii]=ptryz[ii];
+		       xamr2[ii]=ptryx[ii];
+		       yamr2[ii]=ptryy[ii];  
+                       
+		      }
+                  }
+	    }
+	  }
+      }
+   }
+	      }// refitting
+
+
+
+		      double temp=0;
+                      double tkxlr[8]={0,0,0,0,0,0,0,0};
+		      VAMAXR=VA0MAX;
+                      if (refitting !=0 && refitting < 2000){
+                      //cout<<"VAMAXR "<<VAMAXR<<endl;
+                      
+                      if (VAMAXR < 1 && VAMAXL < 1){
+                        for (int i1=0;i1<lkfil;i1++){
+			  for (int i2=0;i2<lkfir;i2++){
+			    if (zaml[i1] > (zamr[i2]-0.5) && zaml[i1] < (zamr[i2]+0.5)){
+                              for(int i3=0;i3<TKDBc::nlay();i3++){
+                                if (zaml[i1] > ((TKDBc::zposl(i3))-0.5) && zaml[i1] < ((TKDBc::zposl(i3))+0.5)){
+                                  tkxlr[i3]=fabs(xaml[i1]-xamr[i2]);
+                                  temp+=tkxlr[i3];
+				}
+			      }		  
+			    }
+			  }
+			}
+		      }
+                      temp=temp/8;
+                      
+		      }//refitting
+
+
+
+  for (int i=0;i<TKDBc::nlay();i++){
+   for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
+	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+	p_hi = p->getHit(); 
+        p->clearstatus(AMSDBc::TOFFORGAMMA); 
+        for (int ii=0;ii<lkfir;ii++){
+	  if (p_hi[0]==xamr[ii]  && p_hi[1]==yamr[ii]   && p_hi[2]==zamr[ii]){
+            p->setstatus(AMSDBc::TOFFORGAMMA);
+	  }
+	}
+   }
+  }
+
+
+
  //////////////////////////////////////////////////
  laa=0;
   //Now in order to be free from the status(AMSDBc::TOFFORGAMMA):
@@ -3198,16 +3365,13 @@ lhi=0;
  //*****************
 
  dlinearme(laa,za,xa,A11,B11,VA11);         // linear fit
-if (VA11 < 0.01){
-   FIXMr=B11;
-   FIXQr=A11;
-   FIXVAr=VA11;
- }
+ AFR=A11;
+ BFR=B11;
+ VAMAXR=VA11;
 
- if (refitting >=100  && VA11 >1){
+
+ if (VA11 >1){
  
-
-
 double z_tkl[trconst::maxlay];
  for(int i=0;i<TKDBc::nlay();i++){
    z_tkl[i]=TKDBc::zposl(i);
@@ -3229,18 +3393,13 @@ AMSPoint pe_hi;
      p_hi = p->getHit(); 
       if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
           diffm=10000;
-          number pechamin=-1;
           for (pe=AMSTrRecHit::gethead(i); pe!=NULL; pe=pe->next()){
 	if(pe->checkstatus(AMSDBc::FalseX) || pe->checkstatus(AMSDBc::FalseTOFX))continue;
             pe_hi = pe->getHit();
-            number pecha  = pe->getsum(); 
             if (pe_hi[1] == p_hi[1]){
               if (fabs(pe_hi[0]-(SLOPEf*p_hi[2]+INTERf)) <= diffm){
-                if (pecha >= pechamin){
-                  pechamin=pecha;
 		xnew[i]=pe_hi[0];
                 diffm=fabs(pe_hi[0]-(SLOPEf*p_hi[2]+INTERf));
-		}
               }
 	    }
 	  }
@@ -3285,18 +3444,13 @@ AMSPoint pe_hi;
      p_hi = p->getHit(); 
       if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
           diffm=10000;
-          number pechamin=-1;
           for (pe=AMSTrRecHit::gethead(i); pe!=NULL; pe=pe->next()){
 	    if(pe->checkstatus(AMSDBc::FalseX) || pe->checkstatus(AMSDBc::FalseTOFX))continue;
             pe_hi = pe->getHit();
-            number pecha  = pe->getsum();
             if (pe_hi[1] == p_hi[1]){
               if (fabs(pe_hi[0]-(SLOPEf*p_hi[2]+INTERf)) <= diffm){
-                if (pecha >= pechamin){
-                  pechamin=pecha;
 		xnew[i]=pe_hi[0];
                 diffm=fabs(pe_hi[0]-(SLOPEf*p_hi[2]+INTERf));
-		}
               }
 	    }
 	  }
@@ -3427,9 +3581,18 @@ AMSPoint pe_hi;
    //   cout <<" FIXVAr= "<<FIXVAr<<endl;
    //   cout <<" FIXMr, FIXQr "<<FIXMr<<" "<<FIXQr<<endl;
 
-  } //refitting >=100
+  } //VA11>1
 
-
+ int testim=0;
+ if (refitting !=0 && refitting < 2000){
+ if (VAMAXR < 1 && VAMAXL < 1){
+   if (fabs(BFR-BFL) > 0.2 || temp > 2){
+     // the two lines are "sghembe"
+     testim=1; 
+   }
+ }
+ 
+ } //refitting
 //*****************
   for (int i=0;i<TKDBc::nlay();i++){
    for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
@@ -3458,7 +3621,11 @@ AMSPoint pe_hi;
      // we require sufficient number of hits
      //     if ((FIXVAr > 1 || FIXVAl > 1) && (lesshit <= 4)){
      if ((FIXVAr > 1 || FIXVAl > 1)){
-     if ((bestvar == FIXVAr && FIXNUr > 4) ||  (bestvar == FIXVAl && FIXNUl > 4)){
+     if ((bestvar == FIXVAr && FIXNUr > 3) ||  (bestvar == FIXVAl && FIXNUl > 3)){
+       if (bestvar > 1){
+          slr=200;
+          qlr=200;
+       }
        if (bestvar < 1){
 	 if (bestvar == FIXVAr){
 	   //              cout <<" out FIXMr, FIXQr "<<FIXMr<<" "<<FIXQr<<endl;
@@ -3471,78 +3638,218 @@ AMSPoint pe_hi;
           qlr=FIXQl;
 	 }
 
-         refitting+=10000;
+	 //         refitting+=10000;
        }
      }
      }
   }
+    if (VAMAXR < 1 && VAMAXL < 1 && testim == 1){
+     refitting=2000;
+     if (VAMAXR < VAMAXL){
+       slr=BFR;
+       qlr=AFR;
+     }
+     if (VAMAXL < VAMAXR){
+       slr=BFL;
+       qlr=AFL;
+     }
+    }
 
  // tk1 SINGLE HIT
  double h1r[3]={10000,10000,10000};
  double h2r[3]={10000,10000,10000};
+ double h3r[3]={10000,10000,10000};
+ double h4r[3]={10000,10000,10000};
+
  double h1l[3]={10000,10000,10000};
  double h2l[3]={10000,10000,10000};
  double h3l[3]={10000,10000,10000};
- double h3r[3]={10000,10000,10000};
+ double h4l[3]={10000,10000,10000};
 
-   for (p=AMSTrRecHit::gethead(0); p!=NULL; p=p->next()){ 
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+ number de1_r=0;
+ number de2_r=0;
+ number de3_r=0;
+ number de1_l=0;
+ number de2_l=0;
+ number de3_l=0;
+
+   for (p=AMSTrRecHit::gethead(0); p!=NULL; p=p->next()){
+	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue; 
      AMSPoint ph=p->getHit();
+     number depos = p->getsum(); 
      if (p->checkstatus(AMSDBc::GAMMARIGHT)){
        h1r[0]= ph[0];
        h1r[1]= ph[1];
        h1r[2]= ph[2];
+       de1_r=depos;
      }
      if (p->checkstatus(AMSDBc::GAMMALEFT)){
        h1l[0]= ph[0];
        h1l[1]= ph[1];
        h1l[2]= ph[2];
+       de1_l=depos;
      }
    }
    for (p=AMSTrRecHit::gethead(1); p!=NULL; p=p->next()){
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue; 
+	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue; 
      AMSPoint ph=p->getHit();
+     number depos = p->getsum(); 
      if (p->checkstatus(AMSDBc::GAMMARIGHT)){
        h2r[0]= ph[0];
        h2r[1]= ph[1];
        h2r[2]= ph[2];
+       de2_r=depos;
      }
      if (p->checkstatus(AMSDBc::GAMMALEFT)){
        h2l[0]= ph[0];
        h2l[1]= ph[1];
        h2l[2]= ph[2];
+       de2_l=depos;
      }
    }
 
    for (p=AMSTrRecHit::gethead(2); p!=NULL; p=p->next()){
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue; 
+	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue; 
      AMSPoint ph=p->getHit();
+     number depos = p->getsum(); 
      if (p->checkstatus(AMSDBc::GAMMARIGHT)){
        h3r[0]= ph[0];
        h3r[1]= ph[1];
        h3r[2]= ph[2];
+       de3_r=depos;
      }
      if (p->checkstatus(AMSDBc::GAMMALEFT)){
        h3l[0]= ph[0];
        h3l[1]= ph[1];
        h3l[2]= ph[2];
+       de3_l=depos; 
+     }
+   }
+
+   for (p=AMSTrRecHit::gethead(3); p!=NULL; p=p->next()){
+	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue; 
+     AMSPoint ph=p->getHit();
+     if (p->checkstatus(AMSDBc::GAMMARIGHT)){
+       h4r[0]= ph[0];
+       h4r[1]= ph[1];
+       h4r[2]= ph[2];
+
+     }
+     if (p->checkstatus(AMSDBc::GAMMALEFT)){
+       h4l[0]= ph[0];
+       h4l[1]= ph[1];
+       h4l[2]= ph[2];
+
      }
    }
 
 
-   double rewy[3]={10000,10000,10000};
+   double rewy[5]={10000,10000,10000,10000,10000};
+   number xhwxy[5]={10000,10000,10000,10000,10000};
    if (h2r[2] != 10000 && h2l[2] != 10000){
      rewy[1]=fabs(h2r[1]-h2l[1]);
+     xhwxy[1]=0.5*(de2_r+de2_l)*0.85;
    }
    if (h3r[2] != 10000 && h3l[2] != 10000){
      rewy[2]=fabs(h3r[1]-h3l[1]);
+     xhwxy[2]=0.5*(de3_r+de3_l)*0.85;
+   }
+   if (h3r[2] != 10000 && h3l[2] == 10000 && h2r[2] == 10000 && h2l[2] != 10000 ){
+     rewy[3]=fabs(h3r[1]-h2l[1]);
+   }
+    if   (h3r[2] == 10000 && h3l[2] != 10000 && h2r[2] != 10000 && h2l[2] == 10000 ){
+     rewy[3]=fabs(h3l[1]-h2r[1]);
+   }
+   if (h4r[2] != 10000 && h4l[2] != 10000){
+     rewy[4]=fabs(h4r[1]-h4l[1]);
+    
    }
 
+
+   if ((h1r[2] == 10000 && h1l[2] == 10000) && (h2r[2] == 10000 && h2l[2] == 10000)){
+
+   if ((h3r[2] != 10000 && h3l[2] == 10000)  && 
+       (h4r[2] != 10000 && h4l[2] != 10000)){
+     if (rewy[4] <= 0.2 ){
+	 for (p=AMSTrRecHit::gethead(2); p!=NULL; p=p->next()){ 
+	   if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+	   AMSPoint ph=p->getHit();
+	   if (p->checkstatus(AMSDBc::GAMMARIGHT)){
+	     if (ph[0] == h3r[0] && ph[1] == h3r[1] && ph[2] == h3r[2]){
+	       p->setstatus(AMSDBc::GAMMALEFT);
+	       p->setstatus(AMSDBc::GAMMARIGHT);
+	     }
+	   }
+	 }
+     }
+   }
+   if ((h3r[2] == 10000 && h3l[2] != 10000)  && 
+       (h4r[2] != 10000 && h4l[2] != 10000)){
+     if (rewy[4] <= 0.2 ){
+	 for (p=AMSTrRecHit::gethead(2); p!=NULL; p=p->next()){ 
+	   if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+	   AMSPoint ph=p->getHit();
+	   if (p->checkstatus(AMSDBc::GAMMALEFT)){
+	     if (ph[0] == h3l[0] && ph[1] == h3l[1] && ph[2] == h3l[2]){
+	       p->setstatus(AMSDBc::GAMMALEFT);
+	       p->setstatus(AMSDBc::GAMMARIGHT);
+	     }
+	   }
+	 }
+     }
+   }
+   }
+
+   if (h1r[2] == 10000 && h1l[2] == 10000){
+
+     if ((h2r[2] != 10000 && h2l[2] == 10000)  && 
+         ((h3r[2] != 10000 && h3l[2] != 10000) ||
+	  (h4r[2] != 10000 && h4l[2] != 10000))){
+       if (rewy[2] <= 0.12 || rewy[4] <= 0.2 ){
+	 for (p=AMSTrRecHit::gethead(1); p!=NULL; p=p->next()){ 
+	   if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+	   AMSPoint ph=p->getHit();
+	   if (p->checkstatus(AMSDBc::GAMMARIGHT)){
+	     if (ph[0] == h2r[0] && ph[1] == h2r[1] && ph[2] == h2r[2]){
+	       p->setstatus(AMSDBc::GAMMALEFT);
+	       p->setstatus(AMSDBc::GAMMARIGHT);
+	     }
+	   }
+	 }
+       }     
+     }
+     if ((h2r[2] == 10000 && h2l[2] != 10000)  && 
+         ((h3r[2] != 10000 && h3l[2] != 10000) ||
+	  (h4r[2] != 10000 && h4l[2] != 10000))){
+       if (rewy[2] <= 0.12 || rewy[4] <= 0.2 ){
+	 for (p=AMSTrRecHit::gethead(1); p!=NULL; p=p->next()){ 
+	   if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+	   AMSPoint ph=p->getHit();
+	   if (p->checkstatus(AMSDBc::GAMMALEFT)){
+	     if (ph[0] == h2l[0] && ph[1] == h2l[1] && ph[2] == h2l[2]){
+	       p->setstatus(AMSDBc::GAMMALEFT);
+	       p->setstatus(AMSDBc::GAMMARIGHT);
+	     }
+	   }
+	 }
+       }     
+     }
+     
+   }
+
+
    if ((h1r[2] != 10000 && h1l[2] == 10000) && 
-       ((h2r[2] != 10000 && h2l[2] != 10000) ||  (h3r[2] != 10000 && h3l[2] != 10000))){
-     if (rewy[1] <= 0.09 || rewy[2] <= 0.12 ){
+       (((h2r[2] != 10000 && h2l[2] != 10000) ||  (h3r[2] != 10000 && h3l[2] != 10000)) ||
+         (h3r[2] != 10000 && h3l[2] == 10000 && h2r[2] == 10000 && h2l[2] != 10000 ) ||
+         (h3r[2] == 10000 && h3l[2] != 10000 && h2r[2] != 10000 && h2l[2] == 10000 ) ||
+         (h4r[2] != 10000 && h4l[2] != 10000))){
+     if (rewy[1] <= 0.09 || rewy[2] <= 0.12 || rewy[3] <= 0.12 || rewy[4] <= 0.2 ){
+       //
+       //charge 
+       //      if (de1_r >= xhwxy[1] || de1_r >= xhwxy[2]){
+       //
        for (p=AMSTrRecHit::gethead(0); p!=NULL; p=p->next()){ 
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+	 if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
 	 AMSPoint ph=p->getHit();
 	 if (p->checkstatus(AMSDBc::GAMMARIGHT)){
 	   if (ph[0] == h1r[0] && ph[1] == h1r[1] && ph[2] == h1r[2]){
@@ -3551,13 +3858,20 @@ AMSPoint pe_hi;
 	   }
 	 }
        }
+       //       }
      }
    }
    if ((h1r[2] == 10000 && h1l[2] != 10000) && 
-       ((h2r[2] != 10000 && h2l[2] != 10000) ||  (h3r[2] != 10000 && h3l[2] != 10000))){
-     if (rewy[1] <= 0.09 || rewy[2] <= 0.12 ){
+       (((h2r[2] != 10000 && h2l[2] != 10000) ||  (h3r[2] != 10000 && h3l[2] != 10000)) ||
+         (h3r[2] != 10000 && h3l[2] == 10000 && h2r[2] == 10000 && h2l[2] != 10000 ) ||
+         (h3r[2] == 10000 && h3l[2] != 10000 && h2r[2] != 10000 && h2l[2] == 10000 )) ||
+         (h4r[2] != 10000 && h4l[2] != 10000)){
+     if (rewy[1] <= 0.09 || rewy[2] <= 0.12 || rewy[3] <= 0.12  || rewy[4] <= 0.2 ){
+       //charge 
+       //       if (de1_l >= xhwxy[1] || de1_l >= xhwxy[2]){
+       //
        for (p=AMSTrRecHit::gethead(0); p!=NULL; p=p->next()){
-     if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue; 
+	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue; 
 	 AMSPoint ph=p->getHit();
 	 if (p->checkstatus(AMSDBc::GAMMALEFT)){
 	   if (ph[0] == h1l[0] && ph[1] == h1l[1] && ph[2] == h1l[2]){
@@ -3566,6 +3880,7 @@ AMSPoint pe_hi;
 	   }
 	 }
        }
+       //  }
      }
    }
 
