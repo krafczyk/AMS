@@ -1,4 +1,4 @@
-//  $Id: amsdbc.C,v 1.45 2002/11/14 14:07:16 choutko Exp $
+//  $Id: amsdbc.C,v 1.46 2004/02/24 19:25:11 alcaraz Exp $
 // Author V. Choutko 24-may-1996
  
 #include <math.h>
@@ -36,8 +36,8 @@ const uinteger AMSDBc::CATLEAK      =16384*2*2*2*2*2*2*2*2*2*2*2;
 const uinteger AMSDBc::JUNK         =16384*2*2*2*2*2*2*2*2*2*2*2*2;
 const uinteger AMSDBc::ECALTRACK    =16384*2*2*2*2*2*2*2*2*2*2*2*2*2;
 const uinteger AMSDBc::LOWGCHUSED   =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
-const uinteger AMSDBc::GAMMALEFT    =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
-const uinteger AMSDBc::GAMMARIGHT   =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
+const uinteger AMSDBc::S_AMBIG      =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
+const uinteger AMSDBc::AUX          =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
 const uinteger AMSDBc::TOFFORGAMMA  =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U;
 
 integer AMSDBc::debug=1;

@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.165 2004/01/21 09:18:48 alcaraz Exp $
+//  $Id: trrec.C,v 1.166 2004/02/24 19:25:11 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2109,11 +2109,7 @@ void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrR
            if (py){
              AMSTrRecHit* paux = AMSTrRecHit::gethead(pthit[i]->getLayer()-1);
              while (paux) {
-                  if (py==paux->getClusterP(1) && paux!=pthit[i]) {
-                        if(paux->checkstatus(AMSDBc::USED))
-                                paux->setstatus(AMSDBc::AMBIG);
-                        else paux->setstatus(AMSDBc::USED);
-                  }
+                  if (py==paux->getClusterP(1)) paux->setstatus(AMSDBc::S_AMBIG);
                   paux = paux->next();
              }
            }
@@ -4064,7 +4060,7 @@ AMSTrRecHit* AMSTrRecHit::firstgood(integer pattern, integer index){
 
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->Good()) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          break;
@@ -4082,7 +4078,7 @@ AMSTrRecHit* AMSTrRecHit::firstgood_path(integer pattern, integer index,number p
 
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->Good()) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          if (!phit->is_in_path(par)) continue;
@@ -4101,7 +4097,7 @@ AMSTrRecHit* AMSTrRecHit::nextgood(){
        if (phit) phit = phit->next();
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->Good()) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          break;
@@ -4119,7 +4115,7 @@ AMSTrRecHit* AMSTrRecHit::nextgood_path(number par[2][3]){
        if (phit) phit = phit->next();
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->Good()) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          if (!phit->is_in_path(par)) continue;
@@ -4158,7 +4154,7 @@ AMSTrRecHit* AMSTrRecHit::firstgood_FalseX(integer pattern, integer index){
          if (!phit->Good()) continue;
          if (phit->checkstatus(AMSDBc::WEAK)) continue;
          if (phit->checkstatus(AMSDBc::FalseX)) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          break;
@@ -4178,7 +4174,7 @@ AMSTrRecHit* AMSTrRecHit::firstgood_FalseX_path(integer pattern, integer index,n
          if (!phit->Good()) continue;
          if (phit->checkstatus(AMSDBc::WEAK)) continue;
          if (phit->checkstatus(AMSDBc::FalseX)) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          if (!phit->is_in_path(par)) continue;
@@ -4199,7 +4195,7 @@ AMSTrRecHit* AMSTrRecHit::nextgood_FalseX(){
          if (!phit->Good()) continue;
          if (phit->checkstatus(AMSDBc::WEAK)) continue;
          if (phit->checkstatus(AMSDBc::FalseX)) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          break;
@@ -4219,7 +4215,7 @@ AMSTrRecHit* AMSTrRecHit::nextgood_FalseX_path(number par[2][3]){
          if (!phit->Good()) continue;
          if (phit->checkstatus(AMSDBc::WEAK)) continue;
          if (phit->checkstatus(AMSDBc::FalseX)) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          if (!phit->is_in_path(par)) continue;
@@ -4257,7 +4253,7 @@ AMSTrRecHit* AMSTrRecHit::firstgood_FalseTOFX(integer pattern, integer index){
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->checkstatus(AMSDBc::FalseTOFX)) continue;
          if (!phit->Good()) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          break;
@@ -4276,7 +4272,7 @@ AMSTrRecHit* AMSTrRecHit::firstgood_FalseTOFX_path(integer pattern, integer inde
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->checkstatus(AMSDBc::FalseTOFX)) continue;
          if (!phit->Good()) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          if (!phit->is_in_path(par)) continue;
@@ -4296,7 +4292,7 @@ AMSTrRecHit* AMSTrRecHit::nextgood_FalseTOFX(){
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->checkstatus(AMSDBc::FalseTOFX)) continue;
          if (!phit->Good()) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          break;
@@ -4315,7 +4311,7 @@ AMSTrRecHit* AMSTrRecHit::nextgood_FalseTOFX_path(number par[2][3]){
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->checkstatus(AMSDBc::FalseTOFX)) continue;
          if (!phit->Good()) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          if (!phit->is_in_path(par)) continue;
@@ -4353,7 +4349,7 @@ AMSTrRecHit* AMSTrRecHit::firstgood_WEAK(integer pattern, integer index){
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->checkstatus(AMSDBc::WEAK)) continue;
          if (!phit->Good()) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          break;
@@ -4372,7 +4368,7 @@ AMSTrRecHit* AMSTrRecHit::firstgood_WEAK_path(integer pattern, integer index,num
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->checkstatus(AMSDBc::WEAK)) continue;
          if (!phit->Good()) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          if (!phit->is_in_path(par)) continue;
@@ -4392,7 +4388,7 @@ AMSTrRecHit* AMSTrRecHit::nextgood_WEAK(){
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->checkstatus(AMSDBc::WEAK)) continue;
          if (!phit->Good()) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          break;
@@ -4411,7 +4407,7 @@ AMSTrRecHit* AMSTrRecHit::nextgood_WEAK_path(number par[2][3]){
        for (;phit!=NULL;phit=phit->next()) {
          if (!phit->checkstatus(AMSDBc::WEAK)) continue;
          if (!phit->Good()) continue;
-         if (phit->checkstatus(AMSDBc::USED) 
+         if (phit->checkstatus(AMSDBc::S_AMBIG) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          if (!phit->is_in_path(par)) continue;
