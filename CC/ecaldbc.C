@@ -199,8 +199,8 @@ int ECALDBc::_scalef=2;// MC/Data scale factor in used in ADC->DAQ-value
     w[0]=1.;
   }
 //---
-  number ECALDBc::segarea(number r, number ds){//segment area fraction (wrt full disk)
-//                                    r-radious, ds-horde_displacement(from center)
+  number ECALDBc::segarea(number r, number ds){//small_segment area fraction (wrt full disk)
+//                                    r-radious, ds-horde_distance(from center)
     number sina,cs,sn,a;
     if(ds>=r)return(0.);
     cs=ds/r;
@@ -210,6 +210,7 @@ int ECALDBc::_scalef=2;// MC/Data scale factor in used in ADC->DAQ-value
     return ((a-sina)/2./AMSDBc::pi);
   }
 //---
+// fiberID(SSLLFFF) to cellID(SSPPC) conversion
 // ("analog" design - fiber_edep division between neigb.pixels/pmts with fraction w)
 //
   void ECALDBc::fid2cida(integer fid, integer cid[4], number w[4]){
@@ -223,7 +224,7 @@ int ECALDBc::_scalef=2;// MC/Data scale factor in used in ADC->DAQ-value
     pmpit=_rdcell[6];//PM-pitch(transv)
     pmsiz=_rdcell[4]*2.;//PM_size
     pxsiz=_rdcell[4];// SubCell(pixel) size
-    fr=_rdcell[3]/2+_rdcell[7];// tempor   fiber+glue radious 
+    fr=_rdcell[3]/2;//   fiber radious 
     fidd=fid/1000;
     fff=fid%1000-1;
     ll=fidd%100-1;
@@ -264,8 +265,8 @@ int ECALDBc::_scalef=2;// MC/Data scale factor in used in ADC->DAQ-value
 //        
       case 2:  //<-- near the right PM-boundary
         cell=1+tbc;
-        bdis=pmdis;
-	w[0]=segarea(fr,bdis);
+        bdis=pmsiz-pmdis;
+	w[0]=1.-segarea(fr,bdis);
 	cid[0]=1000*ss+(pm+1)*10+(cell+1);
 	if(pm==(npm-1))return;// last PM
 	w[1]=1.-w[0];

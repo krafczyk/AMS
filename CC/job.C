@@ -585,7 +585,7 @@ FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED"
 //
 void AMSJob::_sitof2data(){
   TFMCFFKEY.TimeSigma=1.71e-10; //(1) side time resolution(sec,/1.41=121ps) 
-  TFMCFFKEY.TimeSigma2=4.5e-10;//(2)
+  TFMCFFKEY.TimeSigma2=4.5e-10; //(2)
   TFMCFFKEY.TimeProbability2=0.035;//(3)
   TFMCFFKEY.padl=11.5;        //(4) not used now (spare)
   TFMCFFKEY.Thr=0.1;          //(5) Sc.bar Elos-thresh.(Mev) to participate in Simul.   
@@ -597,7 +597,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.mcprtf[4]=0;     //(10) spare
   TFMCFFKEY.trlogic[0]=1; //(11) MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
   TFMCFFKEY.trlogic[1]=0; //(12)........(=0/1/2-> accept at least ANY3/ALL4/SPECIAL2 layer coincidence) 
-  TFMCFFKEY.fast=0;       //(13) 0/1->off/on fast generation in mceventg.C
+  TFMCFFKEY.fast=0;       //(13) 0/1/2->off/on fast generation in mceventg.C(2-> EC requirement)
   TFMCFFKEY.daqfmt=0;     //(14) 0/1-> raw/reduced TDC format for DAQ simulation
   TFMCFFKEY.birks=1;      //(15) 0/1->  not apply/apply birks corrections
   TFMCFFKEY.adsimpl=0;    //(16) not used now

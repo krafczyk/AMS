@@ -272,6 +272,7 @@ This is AMS02 Ntuple Description
 
 * I*4  * [0,500]      * ECALHITS * necht               // ECAL hits number
 * I*4  *              * ECALHITS * EchtStatus(necht)   // Status: 
+* I*4  *              * ECALHITS * EchtIdsoft(necht)   // SSPPC(SupLayer/PM/subCell)
 * I*4  *              * ECALHITS * EchtProj(necht)     // projection (0-x,1-y)
 * I*4  *              * ECALHITS * EchtPlane(necht)    // ECAL plane number (0,...)
 * I*4  *              * ECALHITS * EchtCell(necht)     // ECAL Cell number (0,...)

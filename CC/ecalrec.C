@@ -82,7 +82,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       y=ptr->getcoo(1);
       x=x-ECALDBc::gendim(5);// go to local (ECAL-radiator) system
       y=y-ECALDBc::gendim(6);
-      proj=(1-2*(il%2))*(1-2*ECALDBc::slstruc(1));//proj=+1/-1=>Y/X
+      proj=(1-2*(il%2))*(2*ECALDBc::slstruc(1)-1);//proj=+1/-1=>Y/X
       if(proj>0){ // <-- fiber from Y-proj
         coo=x;// get X-coord(along fiber)
         hflen=ECALDBc::gendim(1)/2.;// 0.5*fiber length in X-dir
@@ -104,8 +104,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
           sc=cid%10-1; // SubCell(pixel)
           pm=(cid/10)%100-1; // PM
 //
-          if(proj>0)rdir=(1-2*(pm%2))*ECALDBc::slstruc(6);//+-1 readout dir(along pos/neg Y)
-          else rdir=(1-2*(pm%2))*ECALDBc::slstruc(5);//+-1 readout dir(along pos/neg X)
+          if(proj>0)rdir=(1-2*(pm%2))*ECALDBc::slstruc(6);//+-1 readout dir(along pos/neg X)
+          else rdir=(1-2*(pm%2))*ECALDBc::slstruc(5);//+-1 readout dir(along pos/neg Y)
 //
           pmdis=coo+hflen;//to count from "-" edge of fiber (0-2*hflen)
           if(rdir<0)pmdis=2.*hflen-pmdis;

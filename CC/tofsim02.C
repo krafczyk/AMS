@@ -872,7 +872,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
 //
 // branch-1 "z>=1(FT)" logic (with HIGH thresh.!!!) :
             if(upd11==0 && am>=daqt1){
-              if((tm-td1b1)>daqp7){//dead time check for z>=1 signal
+              if((tm-td1b1)>daqp7){//dead time (dbl-time-res)check for z>=1(FT) signal
                 upd11=1;  // set flag for branch z>=1
                 if(_ntr1<TOF2GC::SCTHMX1){
                   _ttr1[_ntr1]=tm;//don't need accurate up-time for trigger
@@ -885,7 +885,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
               } 
             }
 //        
-// branch-2 "fast TDC logic" :        
+// branch-2 "fast(history) TDC logic" :        
             if(upd12==0){
               if((tm-td1b2d)>daqp3){ //dead-time(=f_TDC dbl.resol ?)-check, f-TDC channel
                 upd12=1;  // set flag for branch f-TDC
@@ -920,7 +920,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
           }
 // f-tdc 
           if(upd12==1){ 
-            if(upd1 ==0){//"f-TDC" clear when discr.1 down (tempor)
+            if(upd1 ==0){//"f-TDC" clear when discr.1 down 
               upd12=0;
               td1b2d=tm;
               if(_nftdc<TOF2GC::SCTHMX2){
