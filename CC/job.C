@@ -76,8 +76,8 @@ TRMCFFKEY.gain[0]=1;
 TRMCFFKEY.gain[1]=1;
 TRMCFFKEY.sigma[1]=110/20/sqrt(3.); // sig/noise ratio is about 20 for y
 TRMCFFKEY.sigma[0]=TRMCFFKEY.sigma[1]*1.41;   // x strip two times larger y
-TRMCFFKEY.thr[0]=20;      // should be sync with sigma approx 4*sigma
-TRMCFFKEY.thr[1]=15;      // ------------------------
+TRMCFFKEY.thr[0]=17;      // should be sync with sigma approx 4*sigma
+TRMCFFKEY.thr[1]=12;      // ------------------------
 TRMCFFKEY.neib[0]=2;
 TRMCFFKEY.neib[1]=2;
 TRMCFFKEY.cmn[0]=50;
@@ -215,7 +215,7 @@ TRCLFFKEY.ThrClNMin[1]=2;
 TRCLFFKEY.ThrClNEl[1]=3;
 
 TRCLFFKEY.ThrClA[0]=45;
-TRCLFFKEY.Thr1A[0] =25;
+TRCLFFKEY.Thr1A[0] =30;
 TRCLFFKEY.Thr2A[0] =6;
 
 TRCLFFKEY.ThrClS[0]=14;
