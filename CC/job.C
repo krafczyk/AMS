@@ -596,6 +596,12 @@ for(k=0;k<6;k++){
    TRCLFFKEY.ResFunY[l][k]=0;
   }
 }
+  TRCLFFKEY.CommonGain[0]=1.6;
+  TRCLFFKEY.CommonGain[1]=1.;
+  TRCLFFKEY.CommonShift[0]=4.5;
+  TRCLFFKEY.CommonShift[1]=0.;
+
+
 
 FFKEY("TRCL",(float*)&TRCLFFKEY,sizeof(TRCLFFKEY_DEF)/sizeof(integer),"MIXED");
 
