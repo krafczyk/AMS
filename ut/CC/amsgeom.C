@@ -46,7 +46,7 @@ extern void ecalgeom02(AMSgvolume &);
 extern void trdgeom02(AMSgvolume &);
 extern void srdgeom02(AMSgvolume &);
 #ifdef __G4AMS__
-extern void testboolgeom(AMSgvolume &);
+extern void testg4geom(AMSgvolume &);
 #endif
 AMSID amsid;
 geant par[3];
@@ -83,6 +83,7 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  antigeom02(mother);
 
 #ifdef  __G4AMS__
+   //testg4geom(mother);
  trdgeom02(mother);
  srdgeom02(mother);
  ecalgeom02(mother);
@@ -2091,22 +2092,6 @@ AMSgtmed *p;
       dau=(AMSgvolume*)mother.add(new AMSgvolume(
       "MAGNET",0,name,"TUBE",par,3,coo,
        nrm, "ONLY",0,gid,1));
-/*
-#ifdef __G4AMS__
-// add boolean for testing
-      coo[0]=par[1];
-      coo[1]=0;
-      coo[2]=0;
-      par[1]=(par[1]-par[0])/2;
-      par[0]=0;
-      dau->addboolean("TUBE",par,3,coo,nrm,'-');
-            
-      coo[0]=-coo[0];
-      coo[1]=0;
-      coo[2]=0;
-      dau->addboolean("TUBE",par,3,coo,nrm,'+');
-#endif
-*/            
       gid=2;
       coo[0]=0;
       coo[1]=0;
@@ -2871,11 +2856,15 @@ void ecalgeom02(AMSgvolume & mother){
           pECfib=pECfbl->add(new AMSgvolume(
           "EC_FWALL",0,"ECFW","TUBE",par,3,coo,nrm0,"ONLY",isupl==0 && ifibl==0 && ifib==0?1:-1,gid,1));
 //
+#ifndef __G4AMS__
           if(isupl==0 && ifibl==0 && ifib==0){
+#else
+          if(MISCFFKEY.G4On || (isupl==0 && ifibl==0 && ifib==0)){
+#endif
             par[1]=ECALDBc::rdcell(4)/2.;// fiber-core radious
 	    coo[0]=0.;
 	    coo[1]=0.;
-	    gid=1;
+//	    gid=1;
 	    pECfsen=pECfib->add(new AMSgvolume(
             "EC_FCORE",0,"ECFC","TUBE",par,3,coo,nrm0,"ONLY",0,gid,1));
 	  }	 
@@ -2954,80 +2943,52 @@ cout <<"amsgeom::srdgeom02-I-SRDGeometryDone"<<endl;
 }
 
 #ifdef __G4AMS__
-void testboolgeom(AMSgvolume &mother){
-  AMSgvolume *dummy;
-  geant par[11],coo[3];
-  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.}; // {vx, vy, vz}
-  number nrm1[3][3]={0,0,1,1,0,0,0,1,0};
-  integer gid=1,  
-          rel=1, 
-          posp=0;
-  par[0]=0;
-  par[1]=90;
-  par[2]=31;
-  coo[0]=0;
-  coo[1]=0;
-  coo[2]=-103.66;
-  dummy=dynamic_cast<AMSgvolume*>(mother.add(new AMSgvolume("IRON",
-				0,
-				"RICH",
-				"TUBE",
-				par,
-				3,
-				coo,
-				nrm,
-//				"ONLY",
-				"BOOL",
-				posp,
-				gid,
-				rel)));
-				
-  //cyl
-  par[0]=0;
-  par[1]=10;
-  par[2]=31;
-  coo[0]=0;
-  coo[1]=0;
-  coo[2]=0;
-
-                 dummy->addboolean("TUBE",par,3,coo,nrm,'-');
+void testg4geom(AMSgvolume &mother){
+AMSID amsid;
+geant par[6]={0.,0.,0.,0.,0.,0.};
+char name[]="MyFirstReplica";
+char name2[]="My2ndReplica";
+geant coo[3]={0.,0.,12.};
+number nrm[3][3]={0,0,1,1,0,0,0,1,0};
+integer gid=0;
+AMSNode * cur;
+AMSgvolume * dau;
+AMSgtmed *p;
+     geant magnetl=86.;
+      gid=1;
+      par[0]=0.;
+      par[1]=10./2;
+      par[2]=20./2;
+      par[3]=10;
+      par[4]=par[1]*2;
+      par[5]=0;
+      dau=(AMSgvolume*)mother.add(new AMSgvolume(
+      "MAGNET",0,name,"TUBE",par,6,coo,
+       nrm, "REPX",0,gid,1));
+      par[0]=0;
+      par[1]=par[1]/2;
+      par[2]=par[2]/2;
+      coo[0]=0;
+      coo[1]=0;
+      coo[2]=0;
+      dau->add( new AMSgvolume("VACUUM",0,name2,"TUBE",par,3,coo,nrm,"ONLY",
+      0,gid+1,1));       
 /*
-  //box
-  par[0]=10;
-  par[1]=2;
-  par[2]=40;
-  coo[0]=-110;
-  coo[1]=0;
-  coo[2]=0;
-                 dummy->addboolean(new AMSgvolume("BOX",par,3,coo,nrm1,'+');
-  //cyl
-  par[0]=0;
-  par[1]=10;
-  par[2]=31;
-  coo[0]=90;
-  coo[1]=0;
-  coo[2]=0;
+      gid=2;
+      coo[2]=+50;
+      par[0]=8./2;
+      par[1]=8./2;
+      par[2]=16./2;
+      par[3]=12;
+      par[4]=par[0]*2+0.2;
+      par[5]=0;
+      dau=(AMSgvolume*)mother.add(new AMSgvolume(
+      "MAGNET",0,name2,"BOX",par,6,coo,
+       nrm, "REPX",0,gid,1));
 
-                 dummy->addboolean(new AMSgvolume("TUBE",par,3,coo,nrm,'-');
-
-//two spheres;
-par[0]=0;
-par[1]=10;
-par[2]=0;
-par[3]=180;
-par[4]=0;
-par[5]=360;
-  coo[0]=-95;
-  coo[1]=-10;
-  coo[2]=-11;
-                 dummy->addboolean("SPHE",par,6,coo,nrm,'+');
-  coo[0]=-95;
-  coo[1]=+10;
-  coo[2]=-11;
-                 dummy->addboolean("SPHE",par,6,coo,nrm,'+');
 */
-}
 
+}
 #endif
 
 

@@ -82,6 +82,7 @@ class AMSgvolume : public AMSNode {
  public:
   ~AMSgvolume();
  void MakeG3Volumes();
+    AMSgtmed* getpgtmed() const {return _pgtmed;}
 #ifdef __G4AMS__
  void MakeG4Volumes();
   AMSgvolume* offspring(){return _offspring;}

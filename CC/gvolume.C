@@ -24,6 +24,7 @@
 #include "G4UserLimits.hh"
 #include <geant4.h>
 #include "G4VisAttributes.hh"
+#include "G4PVReplica.hh"
 #endif
 integer AMSgvolume::debug=0;
 AMSgvolume::_amsrm AMSgvolume::_UnitRM;
@@ -50,7 +51,7 @@ for(i=0;i<3;i++){
 AMSgvolume::~AMSgvolume(){
  delete[] _par;
  delete[] _shape;
- delete _nrmA;
+if(_nrmA != &_UnitRM) delete _nrmA;
 if(_nrm != &_UnitRM)delete _nrm;
 }
 
@@ -147,7 +148,10 @@ void AMSgvolume::_init(){
       _gl2loc(cur,coo);
     _coo=coo;     
   }
-
+  if(!(*_nrmA != _UnitRM)){
+   delete _nrmA;
+   _nrmA=&_UnitRM;
+  }
 }
 
 ostream & AMSgvolume::print(ostream & stream)const{
@@ -381,7 +385,7 @@ integer AMSgvolume::_Norp=0;
          }
          
       }
-      else{
+      else if(!strstr(_gonly,"REP")){
        cerr<<"AMSgvolume::_MakeG4Volumes-F-MANYIsNotAllowedInG4 "<<_name<<" "<<_gid<<endl;
        exit(1);
       }
@@ -403,8 +407,61 @@ integer AMSgvolume::_Norp=0;
 
    }
     // Now placement 
-    
+    if(strstr(_gonly,"REP")){
+     G4String shape(_shape);
+     if(shape!="BOX " && shape!="TUBS" && shape!="TUBE"){
+       cerr<<"AMSgvolume::_MakeG4Volumes-F-ReplicaShapeNotSupported "<<_shape<<endl;
+       exit(1);
+     }
+     EAxis paxis;
+     switch(_gonly[3]){
+     case 'X':
+     case 'x':
+       paxis=kXAxis;
+       break;
+     case 'Y':
+     case 'y':
+       paxis=kYAxis;
+       break;
+     case 'Z':
+     case 'z':
+       paxis=kZAxis;
+     case 'R':
+     case 'r':
+       paxis=kRho;
+     case 'P':
+     case 'p':
+       paxis=kPhi;
+     default:
+       cerr<<"AMSgvolume::_MakeG4Volumes-F-ReplicaAxisNotSupported "<<_gonly<<endl;
+    }  
+      int nrep=_par[_npar-1-2];
+      number width=_par[_npar-1-1]*cm;
+      number offset=_par[_npar-1-0]*cm;
+//   build a dummy volume now
+     G4String DummyName(_name);
+     DummyName+="ReplicaWrapper";
+     number DummyCoo[3];
+     if(paxis==kXAxis){
+        DummyCoo[0]=width*nrep/2.;
+        DummyCoo[1]=_par[1]*cm;
+     }
+     else{
+        DummyCoo[1]=width*nrep;
+        DummyCoo[0]=_shape=="BOX "?_par[0]*cm:_par[1]*cm;
+     }
+     G4VSolid * dsolid=new G4Box(DummyName,DummyCoo[0],DummyCoo[1],_par[2]*cm);
+     G4LogicalVolume *dlogical= new G4LogicalVolume(dsolid,
+     up()->getpgtmed()->getpgmat()->getpamsg4m(),DummyName);
+     dlogical-> SetVisAttributes (G4VisAttributes::Invisible);
+     G4PVPlacement * dummyp=new G4PVPlacement(_pg4rm,G4ThreeVector(_coo[0]*cm,_coo[1]*cm,_coo[2]*cm),DummyName,dlogical,up()->_pg4v,false,_gid);
+     _pg4v= new G4PVReplica(G4String(_name),_pg4l,dummyp,paxis,nrep,width,offset);
+    }
+
+
+    else{
     _pg4v=new G4PVPlacement(up()?_pg4rm:0,G4ThreeVector(_coo[0]*cm,_coo[1]*cm,_coo[2]*cm),G4String(_name),_pg4l,up()?up()->_pg4v:0,false,_gid);
+    }
     if(!up())_pg4l-> SetVisAttributes (G4VisAttributes::Invisible);
     else if(!(up()->up()))_pg4l-> SetVisAttributes (G4VisAttributes::Invisible);
     if(!up() && _Norp){
@@ -435,12 +492,13 @@ void AMSgvolume::MakeG4Volumes(){
 // Recursive Routine
 
   _Nlog++;
-  _Nrm++;
   _Nph++;
   AMSgvolume *cur = up() && prev()?prev():up();
+  if(_rotmno){
+    _Nrm++;
     int newrm=1;
     while (cur){
-     if(VolumeHasSameRotationMatrixAs(cur)){
+     if(VolumeHasSameRotationMatrixAs(cur) ){
       pg4rm()=cur->pg4rm();
       _Nrm--;
       newrm=0;
@@ -459,6 +517,7 @@ void AMSgvolume::MakeG4Volumes(){
       cur=cur->up() && cur->prev()?cur->prev():cur->down();
      }
     }
+    }
     int newv=1;
     cur = up() && prev()?prev():up();
     while (cur){
@@ -470,6 +529,7 @@ void AMSgvolume::MakeG4Volumes(){
       }
      cur=cur->up() && cur->prev()?cur->prev():cur->up();
     }
+/*
     if(newv){
      cur = up()&& up()->prev()?(up()->prev())->down():0;
      while (cur){
@@ -482,7 +542,7 @@ void AMSgvolume::MakeG4Volumes(){
       cur=cur->down();
      }
     }
-
+*/
     if(newv){
      cur = up() && prev()?prev():0;
      while (cur){
@@ -502,10 +562,11 @@ void AMSgvolume::MakeG4Volumes(){
 
 int AMSgvolume::VolumeHasSameG4AttributesAs(AMSgvolume* o ){
 if(strcmp(getname(),o->getname()))return 0;
+if(strcmp(_shape,o->_shape))return 0;
+if(_npar!=o->_npar)return 0;
 for (int i=0;i<_npar;i++){
  if(getpar(i)!= o->getpar(i))return 0;
 }
-if(strcmp(_shape,o->_shape))return 0;
 if(strcmp(_gonly,o->_gonly))return 0;
 if(_pgtmed != o->_pgtmed)return 0;
 if(strstr(_gonly,"BOO")){
@@ -537,6 +598,7 @@ if(strcmp(getname(),o->getname()))return 0;
 if(strcmp(_shape,o->_shape))return 0;
 if(_pgtmed != o->_pgtmed)return 0;
 if(abs(_posp)!=abs(o->_posp))return 0;
+if(strcmp(_gonly,o->_gonly))return 0;
 if(_posp==0){
  for (int i=0;i<_npar;i++){
   if(getpar(i)!= o->getpar(i))return 0;
@@ -563,8 +625,8 @@ integer AMSgvolume::_Nrm=0;
 void AMSgvolume::MakeG3Volumes(){
 
 
-//ignore boolean volumes
-if(!strstr(_gonly,"BOO")){
+//ignore g4 volumes
+if(VolumeHasG3Attributes()){
 // Recursive Routine
 
   _Nlog++;
