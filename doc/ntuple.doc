@@ -277,7 +277,15 @@ Below there is a description of a  ntuple.
 * R*4  *              * ECALCLUST * EcalEdep(necal)      // ECAL measured energy(MeV) 
 * R*4  *              * ECALCLUST * EcalCoo(3,necal)     // ECAL Coo (cm)
 * R*4  *              * ECALCLUST * EcalErrCoo(3,necal)  // ECAL Error Coo
-* I*4  * [0,10]       * ECALCLUST * EcalNmemb(necal)         // Number of hits in cluster 
+* I*4  * [0,10]       * ECALCLUST * EcalNmemb(necal)         // Number of hits in cluster
+
+
+* I*4  * [0,1000]     * ECALCELL * ncelle                // cells (with energy deposit>0) number
+* R*4  *              * ECALCELL * EcalEdepCell(ncelle)  // ECAL deposited energy(GeV)  
+* R*4  *              * ECALCELL * EcalEdepAtt(ncelle)   // ECAL measured energy(GeV)  
+* I*4  * [0,7]        * ECALCELL * EcalSuperLayer(ncelle)// ECAL superlayer number (0,...)
+* I*4  * [0,35]       * ECALCELL * EcalPhotoMultiplier(ncelle)// ECAL photomultiplier number (0,...)
+* I*4  * [0,3]        * ECALCELL * EcalSubCell(ncelle)   // ECAL subcell number (0,...)
 
 
  * I*4  * [0,2]       * LVL3     * nlvl3                 // lvl3trigger number 
