@@ -1,4 +1,4 @@
-*  $Id: egzav.F,v 1.7 2002/03/27 18:43:17 choutko Exp $
+*  $Id: egzav.F,v 1.8 2002/07/10 14:54:12 alexei Exp $
       SUBROUTINE CMINIT
 *     =================================================================
 *
@@ -2122,7 +2122,9 @@ C     DATA RT/615./,ZT/585./
        n=3
        ldz=3
        ifail=-1
+#ifndef __ICC__
        call f02eaf('N',n,xma,lda,wr,wi,z,ldz,work,lwork,ifail)
+#endif
        if(ifail.eq.0)then       
        do i=1,3
         xwr(i)=sqrt(wr(i)**2+wi(i)**2)

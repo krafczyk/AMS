@@ -1,4 +1,4 @@
-//  $Id: io.C,v 1.27 2002/01/11 16:09:34 choutko Exp $
+//  $Id: io.C,v 1.28 2002/07/10 14:54:02 alexei Exp $
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <io.h>
@@ -194,13 +194,13 @@ void AMSIO::init(integer mode,integer format){
              }
     }
     else fbin.open(fnam,ios::out|ios::app);
-    if(fbin==0){
+    if(!fbin){
       cerr<<"AMSIO::init-F-cannot open file "<<fnam<<" in mode "<<mode<<endl;
       exit(1);
     }
     static char buffer[32*sizeof(AMSIO)+1];
     // Associate buffer
-#if defined(__USE_STD_IOSTREAM) || defined(__STDC_HOSTED__) || defined(sun)
+#if defined(__USE_STD_IOSTREAM) || defined(__STDC_HOSTED__) || defined(sun) || defined(__ICC__)
     (fbin.rdbuf())->pubsetbuf(buffer,32*sizeof(AMSIO));
 #else
     (fbin.rdbuf())->setbuf(buffer,32*sizeof(AMSIO));

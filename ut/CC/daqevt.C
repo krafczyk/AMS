@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.69 2002/01/11 16:09:33 choutko Exp $
+//  $Id: daqevt.C,v 1.70 2002/07/10 14:54:01 alexei Exp $
 #include <stdio.h>
 #include <daqevt.h>
 #include <event.h>
@@ -501,7 +501,7 @@ void DAQEvent::initO(integer run){
      if(fbout){ 
       static char buffer[2048+1];
       // Associate buffer
-#if defined(__USE_STD_IOSTREAM) || defined(__STDC_HOSTED__)  || defined(sun)
+#if defined(__USE_STD_IOSTREAM) || defined(__STDC_HOSTED__)  || defined(sun) || defined(__ICC__)
       (fbout.rdbuf())->pubsetbuf(buffer,2048);
 #else
       (fbout.rdbuf())->setbuf(buffer,2048);
