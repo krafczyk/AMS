@@ -51,7 +51,7 @@ CC/gmat.C    << new geant4  constructors
 
 To be done
 
-<User cuts a-la geant4>
+<User cuts a-la geant3>
 
 
 F/rndm.F  <-- heprandom
@@ -60,21 +60,17 @@ F/rndm.F  <-- heprandom
 
 
 
-Status:
+Status (geant4.2.0):
 
 
-Tracking is o.k. now except looping in osf1 with our field
-uniform field everywhere
+Tracking is ok for dec/cxx, memory leak for linux/gcc2.95.2,
+                            looping for linux/egcs.1.1.2
 
-interactive version is working now
+interactive version ok
 
-geometry tested: tof,tracker,trd,srd,magnet
+geometry tested: tof,tracker,trd,srd,magnet,ecal,anti,rich
 
-will be tested : ecal
 
-explicit coding needed due to many qual : anti, rich
-
-g4ams boolean interface is released (but not tested)
 
 
 
