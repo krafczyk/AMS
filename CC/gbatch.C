@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.65 2002/02/12 08:43:46 choumilo Exp $
+//  $Id: gbatch.C,v 1.66 2002/04/23 07:56:12 alexei Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -10,9 +10,13 @@
 #include <geantnamespace.h>
 #include <producer.h>
 const int NWPAW=1000000;
+
+#ifdef __ROOTA__
+#else
 struct PAWC_DEF{
 float q[NWPAW];
 };
+#endif
 const int NWGEAN=10000000;
 struct GCBANK_DEF{
 float q[NWGEAN];
@@ -22,9 +26,13 @@ float q[NWGEAN];
 COMMON_BLOCK_DEF(GCBANK_DEF,GCBANK);
 GCBANK_DEF GCBANK;
 
+#ifdef __ROOTA__
+#else
 #define PAWC COMMON_BLOCK(PAWC,pawc)
 COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
 PAWC_DEF PAWC;
+#endif
+
 void (handler)(int);
  namespace glconst{
   integer cpul=1;
