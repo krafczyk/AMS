@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.410 2002/07/17 10:46:35 delgadom Exp $
+// $Id: job.C,v 1.411 2002/08/28 10:08:58 delgadom Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -223,6 +223,7 @@ _simag2data();
 void AMSJob::_sirichdata(){
 
 // Geometry defaults: unused
+  /*************************************************
   RICGEOM.top_radius=RICHDB::top_radius;
   RICGEOM.bottom_radius=RICHDB::bottom_radius;
   RICGEOM.hole_radius=RICHDB::hole_radius;
@@ -232,6 +233,7 @@ void AMSJob::_sirichdata(){
   RICGEOM.radiator_box_length=RICHDB::rad_length;
   RICGEOM.light_guides_height=RICHDB::lg_height;
   RICGEOM.light_guides_length=RICHDB::lg_length;
+  *******************************************************/
 
 // Move information to fortran commons
   RICGTKOV.usrcla=RICHDB::rad_clarity;

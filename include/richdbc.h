@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.28 2002/08/19 11:19:07 mdelgado Exp $
+//  $Id: richdbc.h,v 1.29 2002/08/28 10:09:17 delgadom Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -37,14 +37,19 @@ const geant   RICepsln=0.002;  // Useful to simulate absence of optical contact
 */
 
 
-const geant      RICradpos=-75.26;     // Top of the radiator position
+const geant      RICradpos=-71.87;     // Top of the radiator position
 const geant      RICaethk=0.1;         // Radiator support thickness
 #define RIClgthk (2.5*RIClgthk_top)    // A simple fix in the meanwhile
 const geant      RIClgthk_top=0.02;    // LG    top gap
 const geant      RIClgthk_bot=0.07;    // LG bottom gap
 const geant      RICmithk=0.2;         // Mirror thickness
-const geant      RICradmirgap=0.;      // Mirror-Radiator Distance  (if !=0 Chk gustep)
-const geant      RIClgdmirgap=0.;      // LG-Mirror Distance        (if !=0 Chk gustep)
+//const geant      RICradmirgap=0.;      // Mirror-Radiator Distance  (if !=0 Chk gustep)
+//const geant      RIClgdmirgap=0.;      // LG-Mirror Distance        (if !=0 Chk gustep)
+
+ const geant      RICradmirgap=0.1;
+ const geant      RIClgdmirgap=0.4;
+
+
 const geant      RICotherthk=0.08;     // PMT window thickness
 const geant      RICcatolength=1.81;   // cathode window length 
 const geant      RICcatogap=0.03;      // Gap btwn PMT pixels 
@@ -56,6 +61,7 @@ const geant      RICshiheight=6.5;     // This for the new LG with 3.4
 const geant      RICpmtshield=0.1;     // PMT shield thickness 
 const geant      RICepsln=0.002;       // Epsilon
 const geant      RICpmtfoil=0.1;       // thickness of the goil over the LG
+const geant      RICpmtsupportheight=11.1;  // support structure height
 const geant      PMT_electronics=3.0;    // PMT side size
 const geant      cato_inner_pixel=0.42;  // Inner pixel side size in the photocathode
 const geant      cathode_length=RICcatolength+RICcatogap;
@@ -122,7 +128,7 @@ public: // To be migrated in the future
   static geant top_radius;
   static geant bottom_radius;
   static geant rich_height;
-  static geant hole_radius;
+  static geant hole_radius[2];  // Now it is rectangular
 
 
   // Inner mirror features

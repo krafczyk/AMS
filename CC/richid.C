@@ -61,7 +61,7 @@ void AMSRICHIdGeom::Init(){
 
     integer pmtnb=0;
 
-    // Setup crates 0,2,4,6: It's a bit tricky due to the strange arrangement of pmts
+    // Setup crates 0,4: It's a bit tricky due to the pmts arrangement
     {
       const int nrows=17;
       const int pmts[nrows]={6,8,8,9,9,9,9,9,9,9,9,9,9,9,8,8,6};
@@ -69,34 +69,76 @@ void AMSRICHIdGeom::Init(){
       const int max_pmts=10;
       const int block_number=6; 
       
-      geant xedge=RICHDB::hole_radius+pitch/2+RICpmtsupport;
-      geant yedge=-RICHDB::hole_radius+pitch/2;  
+      //      geant xedge=RICHDB::hole_radius+pitch/2+RICpmtsupport;
+      //      geant yedge=-RICHDB::hole_radius+pitch/2;  
 
-      for(int i=0;i<nrows;i++){
 
+      // Block 0 and 4 specifics
+      geant xedge=34.65;
+      geant yedge=-29.6;
+
+      for(int i=0;i<nrows;i++)
+	
 	for(int j=0;j<pmts[i];j++){
-         
+	  
           *(_pmt_p[0]+_crate_pmt[0]+pmtnb)=xedge+(j+offset[i])*pitch;
           *(_pmt_p[1]+_crate_pmt[0]+pmtnb)=yedge+i*pitch;
           *(_pmt_p[2]+_crate_pmt[0]+pmtnb)=-RICHDB::pmt_pos();
-
-          *(_pmt_p[0]+_crate_pmt[2]+pmtnb)=yedge+i*pitch;
-          *(_pmt_p[1]+_crate_pmt[2]+pmtnb)=xedge+(j+offset[i])*pitch;
-          *(_pmt_p[2]+_crate_pmt[2]+pmtnb)=-RICHDB::pmt_pos();
-
+	  
+	  
           *(_pmt_p[0]+_crate_pmt[4]+pmtnb)=-(xedge+(j+offset[i])*pitch);
           *(_pmt_p[1]+_crate_pmt[4]+pmtnb)=-(yedge+i*pitch);
           *(_pmt_p[2]+_crate_pmt[4]+pmtnb)=-RICHDB::pmt_pos();
-
-          *(_pmt_p[0]+_crate_pmt[6]+pmtnb)=-(yedge+i*pitch);
-          *(_pmt_p[1]+_crate_pmt[6]+pmtnb)=-(xedge+(j+offset[i])*pitch);
-          *(_pmt_p[2]+_crate_pmt[6]+pmtnb)=-RICHDB::pmt_pos();
-
+	  
+	  
 	  pmtnb++;
-
+	  
         }
-      }
     }
+
+
+    pmtnb=0;
+
+
+    // Setup crates 2,6: It's a bit tricky due to the pmts arrangement
+    {
+      const int nrows=17;
+      const int pmts[nrows]={6,8,8,9,9,9,9,9,9,9,9,9,9,9,8,8,6};
+      const int offset[nrows]={1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+      const int max_pmts=10;
+      const int block_number=6; 
+      
+      //      geant xedge=RICHDB::hole_radius+pitch/2+RICpmtsupport;
+      //      geant yedge=-RICHDB::hole_radius+pitch/2;  
+
+
+      // Block 2 and 6 specifics
+      geant xedge=29.85;
+      geant yedge=34.4;
+      geant shift=0;
+
+      for(int i=0;i<nrows;i++)
+	for(int j=0;j<pmts[i];j++){
+	  
+	  shift=i<9?0:-.5;
+	  
+          *(_pmt_p[0]+_crate_pmt[2]+pmtnb)=xedge-i*pitch+shift;
+          *(_pmt_p[1]+_crate_pmt[2]+pmtnb)=yedge+(j+offset[i])*pitch;
+          *(_pmt_p[2]+_crate_pmt[2]+pmtnb)=-RICHDB::pmt_pos();
+	  
+	  
+          *(_pmt_p[0]+_crate_pmt[6]+pmtnb)=-(xedge-i*pitch+shift);
+	  *(_pmt_p[1]+_crate_pmt[6]+pmtnb)=-(yedge+(j+offset[i])*pitch);
+          *(_pmt_p[2]+_crate_pmt[6]+pmtnb)=-RICHDB::pmt_pos();
+	  
+	  
+	  pmtnb++;
+	  
+        }
+    }
+
+
+
 
     pmtnb=0;
 
@@ -107,8 +149,11 @@ void AMSRICHIdGeom::Init(){
       const int offset[nrows]={1,0,0,0,0,0,0};
       const int max_pmts=6;
           
-      geant xedge=RICHDB::hole_radius+pitch/2+RICpmtsupport;
-      geant yedge=RICHDB::hole_radius+pitch/2+RICpmtsupport;
+      //      geant xedge=RICHDB::hole_radius+pitch/2+RICpmtsupport;
+      //      geant yedge=RICHDB::hole_radius+pitch/2+RICpmtsupport;
+
+      geant xedge=34.65;
+      geant yedge=34.4;
 
       for(int i=0;i<nrows;i++)
        for(int j=0;j<pmts[i];j++){

@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.30 2002/07/17 10:47:04 delgadom Exp $
+//  $Id: richdbc.C,v 1.31 2002/08/28 10:09:04 delgadom Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -117,9 +117,10 @@ geant RICHDB::lg_index[RICmaxentries]={1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1
 
 integer RICHDB::entries=RICmaxentries;
 geant RICHDB::top_radius=60.0;         // Top mirror radius
-geant RICHDB::bottom_radius=67.;       // Bottom mirror radius
-geant RICHDB::rich_height=46.8;             // Expansion height
-geant RICHDB::hole_radius=31.5;        // half ECAL hole side length
+geant RICHDB::bottom_radius=66.82;       // Bottom mirror radius
+geant RICHDB::rich_height=45.8;        // Mirror height (for historical reasons)
+//geant RICHDB::hole_radius=31.5;        // half ECAL hole side length
+geant RICHDB::hole_radius[2]={63.8/2.,64.3/2};
 geant RICHDB::inner_mirror_height=50;  // UNUSED
 geant RICHDB::rad_clarity=0.0091;      // Radiator clarity
 geant RICHDB::rad_radius=60.0;         // Radiator radius
@@ -133,7 +134,7 @@ geant RICHDB::foil_height=0.1;
 geant RICHDB::foil_index=1.49;
 
 
-geant RICHDB::rad_supthk=0.1;
+//geant RICHDB::rad_supthk=0.1;  // Unused. Instead using foil_height
 
 
 integer RICHDB::total=0;
@@ -163,7 +164,8 @@ integer RICHDB::numrayl=0;
 // Book some histograms
 
 void RICHDB::bookhist(){
-#ifdef __AMSDEBUG
+#ifdef __AMSDEBUG__
+  dump();
   cout <<"RICH BOOKING"<<endl;
   HBOOK1(123456,"Error de los directos",50,-1.,1.,0.);
   HBOOK1(123457,"Error de los reflejados",50,-1.,1.,0.);
@@ -185,11 +187,6 @@ void RICHDB::mat_init(){
   for(integer i=0;i<RICmaxentries;i++){
     if(RICHDB::index[i]<1.) continue;
     RICHDB::index[i]=1.+(RICHDB::index[i]-1.)*(RICHDB::rad_index-1.)/0.14;
-
-#ifdef __AMSDEBUG__
-    cout <<2*3.1415926*197.327e-9/RICHDB::wave_length[i]<<"   "<<
-           RICHDB::index[i]<<endl;
-#endif
 
   }
 
@@ -215,47 +212,32 @@ geant RICHDB::aerogel_density(){
 
 geant RICHDB::total_height()
 {
-#ifdef __AMSDEBUG__
-  cout<<"Total_height:"<<rad_height+foil_height+RICradmirgap+rich_height+
-                  RIClgdmirgap+lg_height+RICpmtlength+RICeleclength<<endl;
-#endif
 
   return rad_height+foil_height+RICradmirgap+rich_height+
-                  RIClgdmirgap+lg_height+RICpmtlength+RICeleclength
-                  +RICpmtfoil;
+    RIClgdmirgap+RICpmtsupportheight;
+    //    lg_height+RICpmtlength+RICeleclength
+    //                  +RICpmtfoil;
 }
 
 geant RICHDB::pmtb_height() // NEW!
 {
-#ifdef __AMSDEBUG__
-  cout<<"pmtb_height:"<<RICpmtlength+RICeleclength+lg_height+RICpmtfoil<<endl;
-#endif
 
   return RICpmtlength+RICeleclength+lg_height+RICpmtfoil;
 }
 
 geant RICHDB::mirror_pos()
 {
-#ifdef __AMSDEBUG__
-  cout<<"mirror_pos:"<<rad_height+foil_height+RICradmirgap+rich_height/2.<<endl;
-#endif
+
   return rad_height+foil_height+RICradmirgap+rich_height/2.;
 }
 
 geant RICHDB::rad_pos()
 {
-#ifdef __AMSDEBUG__
-  cout <<"rad_pos:"<<rad_height/2.<<endl;
-#endif
   return rad_height/2;
 }
 
 geant RICHDB::pmt_pos() // In RICH
 {  
-#ifdef __AMSDEBUG__
-  cout <<"pmt(f)_pos:"<<rad_height+foil_height+RICradmirgap+rich_height+
-             RIClgdmirgap+pmtb_height()/2.<<endl;
-#endif
 
   return rad_height+foil_height+RICradmirgap+rich_height+
              RIClgdmirgap+pmtb_height()/2.;
@@ -263,49 +245,28 @@ geant RICHDB::pmt_pos() // In RICH
 
 geant RICHDB::elec_pos() // In PMT box
 {
-#ifdef __AMSDEBUG__
-  cout <<"elec_pos:"<<cato_pos()+RICpmtlength/2.<<endl;
-#endif
 
   return cato_pos()+RICpmtlength/2.;
 }
 
 geant RICHDB::cato_pos() // In PMT box
 {
-#ifdef __AMSDEBUG__
-  cout <<"cato_pos:"<<lg_pos()+(lg_height+RICotherthk)/2<<endl;
-#endif
 
   return lg_pos()+(lg_height+RICotherthk)/2;
 }
 
 geant RICHDB::lg_pos()
 {
-#ifdef __AMSDEBUG__
-cout <<"lg_pos:"<<-(RICpmtlength+RICeleclength)/2+RICpmtfoil/2.<<endl;
-#endif
-
   return -(RICpmtlength+RICeleclength)/2+RICpmtfoil/2.;
 }
 
 geant RICHDB::shield_pos(){
-#ifdef __AMSDEBUG__
-cout <<"shield_pos:"<<elec_pos()-RICotherthk/2.<<endl;
-#endif
 
   return elec_pos()-RICotherthk/2.;
 }
 
 geant RICHDB::lg_mirror_angle(integer i)
 {
-#ifdef __AMSDEBUG__
-cout <<"lg_mirror_angle(1):"<<atan2(lg_length/2.-
-       (lg_bottom_length/2.+RIClgthk_bot/2.),
-        lg_height)*180./3.1415926<<endl
-     <<"lg_mirror_angle(2):"<<atan2(lg_length/4.-
-        (RIClgthk_bot+inner_pixel),
-         lg_height)*180./3.1415926<<endl;
-#endif
 
   if(i==1) // NEW!
     return atan2(lg_length/2.-
@@ -323,13 +284,6 @@ cout <<"lg_mirror_angle(1):"<<atan2(lg_length/2.-
 
 geant RICHDB::lg_mirror_pos(integer i)
 {
-#ifdef __AMSDEBUG__
-cout <<"lg_mirror_pos(1):"<<lg_bottom_length/2.+RIClgthk_bot/2.
-           +lg_height/2.*tan(lg_mirror_angle(1)*3.1415926/180.)<<endl
-     <<"lg_mirror_pos(2):"<<RIClgthk_bot+inner_pixel+  
-            lg_height/2.*tan(lg_mirror_angle(2)*3.1415926/180.)<<endl;
-
-#endif
 
   if(i==1)
     return lg_bottom_length/2.+RIClgthk_bot/2.
@@ -621,10 +575,14 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
     l=RICHDB::rich_height/u1[2];
     for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
 
-    geant maxxy=fabs(r2[0])>fabs(r2[1])?fabs(r2[0]):fabs(r2[1]);
+    //    geant maxxy=fabs(r2[0])>fabs(r2[1])?fabs(r2[0]):fabs(r2[1]);
     geant rbase=sqrt(r2[0]*r2[0]+r2[1]*r2[1]);
     
-    if (maxxy<RICHDB::hole_radius+RICpmtsupport) continue;
+    
+    if(fabs(r2[0])<RICHDB::hole_radius[0]+RICpmtsupport ||
+       fabs(r2[1])<RICHDB::hole_radius[1]+RICpmtsupport) continue;
+
+    //    if (maxxy<RICHDB::hole_radius+RICpmtsupport) continue;
 
     if(rbase<RICHDB::bottom_radius){
       direct+=1./NPHI;
@@ -653,11 +611,14 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
     l=(RICHDB::rich_height+RICHDB::rad_height+RICHDB::foil_height-r2[2])/u2[2];
     for(i=0;i<3;i++) r3[i]=r2[i]+l*u2[i];
 
-    maxxy=fabs(r3[0])>fabs(r3[1])?fabs(r3[0]):fabs(r3[1]);
+    //    maxxy=fabs(r3[0])>fabs(r3[1])?fabs(r3[0]):fabs(r3[1]);
     rbase=sqrt(r3[0]*r3[0]+r3[1]*r3[1]);
 
 
-    if (maxxy<RICHDB::hole_radius+RICpmtsupport) continue;
+    if(fabs(r3[0])<RICHDB::hole_radius[0]+RICpmtsupport ||
+       fabs(r3[1])<RICHDB::hole_radius[1]+RICpmtsupport) continue;
+    
+    //    if (maxxy<RICHDB::hole_radius+RICpmtsupport) continue;
 
     if(rbase<RICHDB::bottom_radius){
       reflected+=1./NPHI;
@@ -703,7 +664,7 @@ void RICHDB::dump(){
     "  rad_index:  "<<rad_index<<endl<<
     "  foil_height:  "<<foil_height<<endl<<
     "  foil_index:  "<<foil_index<<endl<<
-    "  rad_supthk:  "<<rad_supthk<<endl<<
+    //    "  rad_supthk:  "<<rad_supthk<<endl<<
     "  lg_height:  "<<lg_height<<endl<<
     "  lg_length:  "<<lg_length<<endl<<
     "  lg_bottom_length:  "<<lg_bottom_length<<endl<<
@@ -732,6 +693,9 @@ void RICHDB::dump(){
 
 
 }
+
+
+
 
 
 

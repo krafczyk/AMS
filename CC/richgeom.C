@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.15 2002/05/21 16:35:07 delgadom Exp $
+//  $Id: richgeom.C,v 1.16 2002/08/28 10:09:06 delgadom Exp $
 #include <typedefs.h>
 #include <node.h>
 #include <snode.h>
@@ -541,7 +541,7 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 #endif
 
 
-  ////////// Mirror: WARNING Need to be update
+  ////////// Mirror: WARNING Need to be update: done
 
 //  par[0]=RICGEOM.height/2;
 //  par[1]=RICGEOM.bottom_radius;
@@ -612,6 +612,9 @@ void amsgeom::richgeom02(AMSgvolume & mother)
                              1,
                              rel));
 
+
+
+  // Foil below radiator
 
   par[0]=0.;
   par[1]=RICHDB::top_radius;
@@ -703,6 +706,92 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 #endif
 
 
+  // Support structure: simple version
+
+
+  coo[0]=0;
+  coo[1]=RICHDB::hole_radius[1]-RICpmtsupport/2;
+  coo[2]=RICHDB::total_height()/2-RICHDB::pmt_pos()+
+    (RICpmtlength+RICeleclength+RICHDB::lg_height-RICpmtsupportheight)/2;
+
+
+  par[0]=RICHDB::bottom_radius;
+  par[1]=RICpmtsupport/2;
+  par[2]=RICpmtsupportheight/2;
+
+  
+  dummy=rich->add(new AMSgvolume("RICH CARBON",
+                                 0,            
+                                 "PMS0",       
+                                 "BOX ",       
+                                 par,          
+                                 3,            
+                                 coo,          
+                                 nrm,          
+                                 "ONLY",       
+                                 0,            
+                                 1,            
+                                 rel));
+
+
+  coo[1]*=-1;
+
+  dummy=rich->add(new AMSgvolume("RICH CARBON",
+                                 0,
+                                 "PMS0",
+                                 "BOX ",
+                                 par,
+                                 3,
+                                 coo,
+                                 nrm,
+                                 "ONLY",
+                                 0,
+                                 2,
+                                 rel));
+
+
+  coo[0]=RICHDB::hole_radius[0]-RICpmtsupport/2;
+  coo[1]=0;
+  coo[2]=RICHDB::total_height()/2-RICHDB::pmt_pos()+
+    (RICpmtlength+RICeleclength+RICHDB::lg_height-RICpmtsupportheight)/2;
+
+
+  par[0]=RICpmtsupport/2;
+  par[1]=RICHDB::hole_radius[1]-RICpmtsupport;
+  par[2]=RICpmtsupportheight/2;
+
+  
+  dummy=rich->add(new AMSgvolume("RICH CARBON",
+                                 0,
+                                 "PMS1",
+                                 "BOX ",
+                                 par,
+                                 3,
+                                 coo,
+                                 nrm,
+                                 "ONLY",
+                                 0,
+                                 1,
+                                 rel));
+
+  coo[0]*=-1;
+
+  dummy=rich->add(new AMSgvolume("RICH CARBON",
+                                 0,
+                                 "PMS1",
+                                 "BOX ",
+                                 par,
+                                 3,
+                                 coo,
+                                 nrm,
+                                 "ONLY",
+                                 0,
+                                 2,
+                                 rel));
+
+
+
+  /******** Old support structure *************8
   /// PMT support structure
   // WARNING: to add the support bars
 
@@ -710,24 +799,29 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   coo[1]=0;
   coo[2]=RICHDB::total_height()/2-RICHDB::pmt_pos();  
 
-  par[0]=45;
-  par[1]=360;
-  par[2]=4;
-  par[3]=2;
-  par[4]=-((RICpmtlength+RICeleclength)/2+RICHDB::lg_height/2);
-  par[5]=RICHDB::hole_radius;
-  par[6]=RICHDB::hole_radius+RICpmtsupport;
-  par[7]=((RICpmtlength+RICeleclength)/2+RICHDB::lg_height/2);
-  par[8]=RICHDB::hole_radius;
-  par[9]=RICHDB::hole_radius+RICpmtsupport;
+  //  par[0]=45;
+  //  par[1]=360;
+  //  par[2]=4;
+  //  par[3]=2;
+  //  par[4]=-((RICpmtlength+RICeleclength)/2+RICHDB::lg_height/2);
+  //  par[5]=RICHDB::hole_radius;
+  //  par[6]=RICHDB::hole_radius+RICpmtsupport;
+  //  par[7]=((RICpmtlength+RICeleclength)/2+RICHDB::lg_height/2);
+  //  par[8]=RICHDB::hole_radius;
+  //  par[9]=RICHDB::hole_radius+RICpmtsupport;
+
+  
+  par[0]=RICHDB::hole_radius[0]+RICpmtsupport;
+  par[1]=RICHDB::hole_radius[1]+RICpmtsupport;
+  par[2]=(RICpmtlength+RICeleclength)/2+RICHDB::lg_height/2;
 
 
   dummy=rich->add(new AMSgvolume("RICH CARBON",
 				 0,
 				 "PMS1",
-				 "PGON",
+				 "BOX ",
 				 par,
-				 10,
+				 3,
 				 coo,
 				 nrm,
 				 "ONLY",
@@ -735,6 +829,25 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 				 1,
 				 rel));
   
+
+  par[0]=RICHDB::hole_radius[0];
+  par[1]=RICHDB::hole_radius[1];
+  par[2]=(RICpmtlength+RICeleclength)/2+RICHDB::lg_height/2;
+  coo[2]=0;
+
+  dummy->add(new AMSgvolume("VACUUM",
+			    0,
+			    "PMS0",
+			    "BOX ",
+			    par,
+			    3,
+			    coo,
+			    nrm,
+			    "ONLY",
+			    0,
+			    1,
+			    rel));
+
 
   par[0]=(RICHDB::bottom_radius-RICHDB::hole_radius-RICpmtsupport)/2;
   par[1]=RICpmtsupport/2;
@@ -750,6 +863,8 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   coo[0]=xpos;
   coo[1]=ypos;
   coo[2]=RICHDB::total_height()/2-RICHDB::pmt_pos();
+
+// WARNING: The material should be checked 
 
   dummy=rich->add(new AMSgvolume("RICH CARBON",
 				 0,
@@ -870,6 +985,8 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 				 0,
 				 8,
 				 rel));
+
+  *********************************************/
 
   ///// Positioning PMTs
 
