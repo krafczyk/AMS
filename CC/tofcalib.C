@@ -679,7 +679,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     HF1(1217,cosc,1.);
     cosi=sqrt(1.+tgx*tgx+tgy*tgy);// this is 1/cos(theta) !!!
 //
-    if(TOFCAFFKEY.truse==0){ // use track-length from TOF
+    if(TOFCAFFKEY.truse<=0){ // use track-length from TOF
       tld[0]=(zc[0]-zc[1])*cosi;//1->2
       tld[1]=(zc[0]-zc[2])*cosi;//1->3
       tld[2]=(zc[0]-zc[3])*cosi;//1->4
@@ -691,7 +691,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     }
     if(TOFRECFFKEY.reprtf[2]>0){
       HF1(1524,geant(tld[1]-tld[2]+tld[0]),1.);//Trlen13-Trlen24
-      if(TOFCAFFKEY.truse != 0){
+      if(TOFCAFFKEY.truse > 0){
         HF1(1215,(cost-cosc)/cost,1.);
         HF1(1216,cost,1.);
       }
@@ -1139,7 +1139,7 @@ void TOFAMPLcalib::init(){ // ----> initialization for AMPL-calibration
   char inum[11];
   char in[2]="0";
 //
-  if(TOFCAFFKEY.truse==0){
+  if(TOFCAFFKEY.truse < 0){
     cout<<"TOFAMPLcalib::init: Only TOF info will be used !!!"<<endl;
   }
   else {
@@ -1289,7 +1289,7 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
   number am1[SCLRS],am2[SCLRS],am1d[SCLRS],am2d[SCLRS],am[2],eanti(0);
   geant ainp[2],dinp[2],cinp,trlen[SCLRS];
   number ltim[4],tdif[4],trle[4],fpnt,bci,sut,sul,sul2,sutl,tzer,chsq,betof;
-  number sigt(0.116),cvel(29.979);// time meas.accuracy and light velocity 
+  number sigt(0.121),cvel(29.979);// time meas.accuracy and light velocity 
   number eacut=0.6;// cut on E-anti (mev)
   number dscut=5.6;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
   AMSTOFRawCluster *ptr;
@@ -1367,7 +1367,7 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
     if(cptr)
            ntrk+=cptr->getnelem();
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1506,geant(ntrk),1.);
-    if(ntrk!=1 && TOFCAFFKEY.truse==1)return;// require events with 1 track 
+    if(ntrk!=1 && TOFCAFFKEY.truse>=0)return;// require events with 1 track 
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",0);
     if(ppart){
@@ -1396,7 +1396,7 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
 //
     bad=0;
     if(pmom<=pcut[0] || pmom>=pcut[1])bad=1;// out of needed mom.range
-    if(TOFCAFFKEY.truse==1 && bad==1)return;
+    if(TOFCAFFKEY.truse>=0 && bad==1)return;
     TOFJobStat::addre(14);
 //
     bad=0;
@@ -1430,6 +1430,7 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
       }
       cost=geant((fabs(cstr[0])+fabs(cstr[1])+fabs(cstr[2])+fabs(cstr[3]))/4);// average cos from track
     }
+//
     if(bad)return;//too big difference of TOF-Tracker coord.
     TOFJobStat::addre(15);
 //
@@ -1923,7 +1924,7 @@ void TOFAMPLcalib::fit(){
   geant elref(2.);// ref. Elos(mev,norm.incidence) for mip-region
   for(i=0;i<SCBTPN;i++){
     aabs[i]=0.;
-    mip2q[i]=0.;
+    mip2q[i]=100.;//default valie
     nev=nevrfc[i];
     if(nev>=TOFCAFFKEY.minev){
       aabs[i]=geant(ammrfc[i]/nev);
@@ -2147,14 +2148,21 @@ integer TOFSTRRcalib::nevtot[SCCHMX];       // total number of analized events
 integer TOFSTRRcalib::nevnt2[SCCHMX];// for f/s-tdc time difference
 number TOFSTRRcalib::fstdif[SCCHMX];
 number TOFSTRRcalib::fstdif2[SCCHMX];
+number TOFSTRRcalib::sbins[SCCHMX];// for "points-fit" method
+number TOFSTRRcalib::ssumc[SCCHMX];
+number TOFSTRRcalib::ssumt[SCCHMX];
+number TOFSTRRcalib::ssumid[SCCHMX];
+number TOFSTRRcalib::ssumct[SCCHMX];
+number TOFSTRRcalib::ssumc2[SCCHMX];
+number TOFSTRRcalib::ssumt2[SCCHMX];
 //----------
 void TOFSTRRcalib::init(){
   integer i,j,il,ib,id,ii,jj;
   char htit1[60];
   char inum[11];
   char in[2]="0";
-  geant til[2]={25.,25.};// hist.limits for Tin
-  geant tih[2]={100.,100.};
+  geant til[2]={15.,15.};// hist.limits for Tin
+  geant tih[2]={95.,95.};
   geant tol[2]={2000.,2000.};// hist.limits for Tout
   geant toh[2]={5500.,5500.};
   integer mrf;
@@ -2192,6 +2200,13 @@ void TOFSTRRcalib::init(){
     nevnt2[i]=0;
     fstdif[i]=0.;
     fstdif2[i]=0.;
+    sbins[i]=0.;
+    ssumc[i]=0.;
+    ssumt[i]=0.;
+    ssumid[i]=0.;
+    ssumct[i]=0.;
+    ssumc2[i]=0.;
+    ssumt2[i]=0.;
     for(j=0;j<SCSRCHB;j++){
       dtin[i][j]=0.;
       dtinq[i][j]=0.;
@@ -2218,10 +2233,17 @@ void TOFSTRRcalib::fill(integer ichan, number tm[3]){
   dti=tm[0]-tm[1];
   dto=tm[1]-tm[2];
   idto=integer(dto/SCSRCTB);// time bin = SCSRCTB ns
-  if(idto>=idtol[0] && idto<idtol[1] && dti>20. && dti<150.){
+  if(idto>=idtol[0] && idto<idtol[1] && dti>20. && dti<130.){
     nevnt[ichan][idto]+=1;
     dtin[ichan][idto]+=dti;
     dtinq[ichan][idto]+=(dti*dti);
+    sbins[ichan]+=1.;// for "points-method"
+    ssumid[ichan]+=1.;
+    ssumc[ichan]+=dto;
+    ssumt[ichan]+=dti;
+    ssumct[ichan]+=(dto*dti);
+    ssumc2[ichan]+=(dto*dto);
+    ssumt2[ichan]+=(dti*dti);
   }
   HF2(1600+ichan,geant(dti),geant(dto),1.);
 }
@@ -2237,6 +2259,8 @@ void TOFSTRRcalib::outp(){
   number t0,sl,chi2[SCCHMX],t,tq,co,dis,nev,bins;
   number sumc,sumt,sumct,sumc2,sumt2,sumid;
   number strr[SCCHMX],offs[SCCHMX];
+  int method(1);// <------ method number to use for fit (0/1->bins/points)
+  number pndis(0.27);// rms**2 (ns) for points-method
   char fname[80];
   char frdate[30];
   char in[2]="0";
@@ -2252,7 +2276,7 @@ void TOFSTRRcalib::outp(){
 // 
   strcpy(inum,"0123456789");
   cfvn=TOFCAFFKEY.cfvers%100;
-  strcpy(fname,"srscalib");
+  strcpy(fname,"srcalib");
   dig=cfvn/10;
   in[0]=inum[dig];
   strcat(fname,in);
@@ -2277,6 +2301,7 @@ void TOFSTRRcalib::outp(){
     idtol[0]=SCSRCLBMC;
     idtol[1]=SCSRCHBMC;
   }
+if(method==0){// <----- "bin-method"
   for(ic=0;ic<SCCHMX;ic++){ // <-- chan. loop
     sumc=0.;
     sumt=0.;
@@ -2293,12 +2318,12 @@ void TOFSTRRcalib::outp(){
     for(j=idtol[0];j<idtol[1];j++){//<-- Tout bin loop
       nev=number(nevnt[ic][j]);
       co=(number(j)+0.5)*SCSRCTB;// mid. of Tout bin
-      if(nev>=5.){ // min. 5 events
-        t=dtin[ic][j]/nev; // get mean
+      if(nev>=3.){ // min. 3 events
+        t=dtin[ic][j]/nev; //get mean
         tq=dtinq[ic][j]/nev; // mean square
         dis=tq-t*t;// rms**2
         if(dis>=0.)HF1(1204,geant(sqrt(dis)),1.);
-        if(dis>=0. && sqrt(dis)<1.6){// apply max.cut on rms (2ns)
+        if(dis>=0. && sqrt(dis)<2.){// apply max.cut on rms (2ns)
           if(dis==0.)dis=1./12.;// if all events was in single Tin bin=1ns
           dis/=(nev-1.);// rms**2 of the mean
           bins+=1.;
@@ -2312,7 +2337,7 @@ void TOFSTRRcalib::outp(){
       }
     }//--> end of bin loop
 //
-    if(bins>=10){
+    if(bins>=15.){
       t0=(sumt*sumc2-sumct*sumc)/(sumid*sumc2-(sumc*sumc));
       sl=(sumct*sumid-sumc*sumt)/(sumid*sumc2-(sumc*sumc));
       chi2[ic]=sumt2+t0*t0*sumid+sl*sl*sumc2
@@ -2327,7 +2352,42 @@ void TOFSTRRcalib::outp(){
       HF1(1202,geant(chi2[ic]),1.);
     }
   }//--> end of chan. loop
+}
+//---
+else{// <--------"points=method"
+  dis=pndis;// rms**2 (ns**2)
+  for(ic=0;ic<SCCHMX;ic++){ // <-- chan. loop
+    t0=0.;
+    sl=0.;
+    strr[ic]=0.;
+    offs[ic]=0.;
+    chi2[ic]=0.;
+    HF1(1204,geant(sqrt(dis)),1.);
+    sumc=ssumc[ic]/dis;
+    sumt=ssumt[ic]/dis;
+    sumid=ssumid[ic]/dis;
+    sumct=ssumct[ic]/dis;
+    sumc2=ssumc2[ic]/dis;
+    sumt2=ssumt2[ic]/dis;
+    bins=sbins[ic];
 //
+    if(bins>=100.){
+      t0=(sumt*sumc2-sumct*sumc)/(sumid*sumc2-(sumc*sumc));
+      sl=(sumct*sumid-sumc*sumt)/(sumid*sumc2-(sumc*sumc));
+      chi2[ic]=sumt2+t0*t0*sumid+sl*sl*sumc2
+        -2.*t0*sumt-2.*sl*sumct+2.*t0*sl*sumc;
+      chi2[ic]/=(bins-2.);
+      if(sl>0.){
+        strr[ic]=1./sl;
+        offs[ic]=-t0/sl;
+      }
+      HF1(1200,geant(strr[ic]),1.);
+      HF1(1201,geant(offs[ic]),1.);
+      HF1(1202,geant(chi2[ic]),1.);
+    }
+  }//--> end of chan. loop
+}
+//------------
   printf("\n\n");
   printf("===========> Channels STRR-calibration report :\n\n");
   printf("\n");
@@ -2490,12 +2550,12 @@ void TOFSTRRcalib::outp(){
       ic=il*SCMXBR*2+ib*2;
       dbsta=-1;
       if(chi2[ic]>0.)dbsta=0; 
-      if(chi2[ic]>3.)dbsta=10;//problem with t-measurement
+      if(chi2[ic]>20.)dbsta=10;//problem with t-measurement
       tcfile <<strr[ic]<<" "<<offs[ic]<<" "<<dbsta<<"  ";// side-1
       ic+=1;
       dbsta=-1;
       if(chi2[ic]>0.)dbsta=0; 
-      if(chi2[ic]>3.)dbsta=10;//problem with t-measurement
+      if(chi2[ic]>20.)dbsta=10;//problem with t-measurement
       tcfile <<strr[ic]<<" "<<offs[ic]<<" "<<dbsta<<endl;// side-2
     }
     tcfile << endl;
@@ -2579,7 +2639,7 @@ void TOFAVSDcalib::fit(){
   number t0,sl,t,tq,co,dis,nevf,bins;
   number sumc,sumt,sumct,sumc2,sumt2,sumid;
   number slop[SCCHMX],offs[SCCHMX],chi2[SCCHMX];
-  char fname[80]="avsdcalib.dat";
+  char fname[80]="avcalib.dat";
 //
 // ---> calculate/print TovT-d vs TovT-a param.(special(A.Contin's) dyn-calibr):
 //

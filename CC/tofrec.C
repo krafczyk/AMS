@@ -312,9 +312,9 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         nadca[isid]=ptr->getadca(adca1);
         nadcd[isid]=ptr->getadcd(adcd1);
         if(nstdc[isid]==4){ // require only one "4-edge" sTDC-hit
-          tsr[0]=(stdc1[3]&pbanti)*TOFDBc::tdcbin(1);
-          tsr[1]=(stdc1[2]&pbanti)*TOFDBc::tdcbin(1);
-          tsr[2]=(stdc1[0]&pbanti)*TOFDBc::tdcbin(1);
+          tsr[0]=number((stdc1[3]&pbanti)*TOFDBc::tdcbin(1));
+          tsr[1]=number((stdc1[2]&pbanti)*TOFDBc::tdcbin(1));
+          tsr[2]=number((stdc1[0]&pbanti)*TOFDBc::tdcbin(1));
           TOFSTRRcalib::fill(chnum,tsr);
           if(nftdc[isid]==2 && nadca[isid]==2){ // require only one "2-edge" f/a-TDC-hit
             ths[0]=(ftdc1[1]&pbanti)*TOFDBc::tdcbin(0);

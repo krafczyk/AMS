@@ -676,7 +676,7 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.tzref[0]=0.;// (4)T0 for ref. counters
   TOFCAFFKEY.tzref[1]=0.;// (5)T0 for ref. counters
   TOFCAFFKEY.fixsl=25.;// (6)def. slope
-  TOFCAFFKEY.bmeanmu=0.998;// (7)mean muon velocity in the above range
+  TOFCAFFKEY.bmeanmu=0.996;// (7)mean muon velocity in the above range
   TOFCAFFKEY.idref[0]=108;//(8)LBB for first ref. counter 
   TOFCAFFKEY.idref[1]=0;//(9)LBB for second ref. counter (if nonzero)
   TOFCAFFKEY.ifsl=1;//(10) 0/1 to fix/release slope param.
@@ -1651,181 +1651,18 @@ void AMSJob::_ctcendjob(){
 //
 //-------------------------------------------------------------------
 void AMSJob::_tofendjob(){
-  int i,j,k,ich;
-//--------> some TOF stuff :
-       if(isSimulation() && TOFMCFFKEY.mcprtf[2]!=0 && TOFMCFFKEY.fast==0){ // print MC-hists
-         HPRINT(1050);
-         HPRINT(1051);
-         HPRINT(1052);
-         HPRINT(1053);
-         HPRINT(1060);
-         HPRINT(1061);
-         HPRINT(1062);
-         HPRINT(1063);
-         HPRINT(1070);
-         HPRINT(1071);
-         HPRINT(1072);
-         HPRINT(1073);
-         HPRINT(1074);
-         HPRINT(1075);
-       }
-       if(TOFRECFFKEY.reprtf[2]!=0 || TOFRECFFKEY.reprtf[4]!=0){ // print RECO-hists
-         HPRINT(1535);
-         HPRINT(1536);
-         HPRINT(1537);
-         HPRINT(1538);
-         HPRINT(1539);
-         HPRINT(1540);
-         HPRINT(1541);
-         HPRINT(1542);
-         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
-           HPRINT(1100);
-           HPRINT(1115);
-           HPRINT(1105);
-           HPRINT(1106);
-           HPRINT(1107);
-           HPRINT(1101);
-           HPRINT(1102);
-           HPRINT(1103);
-           HPRINT(1104);
-           HPRINT(1110);
-           HPRINT(1111);
-           HPRINT(1112);
-           HPRINT(1113);
-           HPRINT(1114);
-//       HPRINT(1130);
-//       HPRINT(1131);
-//       HPRINT(1132);
-//       HPRINT(1133);
-//       HPRINT(1134);
-//       HPRINT(1135);
-           HPRINT(1526);
-           HPRINT(1528);
-           HPRINT(1529);
-           HPRINT(1531);
-           HPRINT(1532);
-//           HPRINT(1533);
-//           HPRINT(1543);
-           HPRINT(1544);
-           HPRINT(1534);
-         }
-         if(TOFRECFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
-           for(i=0;i<SCLRS;i++){
-             for(j=0;j<SCMXBR;j++){
-               for(k=0;k<2;k++){
-                 ich=2*SCMXBR*i+2*j+k;
-                 HPRINT(1300+ich);
-               }
-             }
-           }
-         }
-       }
-// ---> calibration specific :
-       if(TOFRECFFKEY.relogic[0]==3){// for TZSL-calibr. runs
-         HPRINT(1500);
-         HPRINT(1501);
-         HPRINT(1506);
-         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
-           HPRINT(1502);
-           HPRINT(1514);
-           HPRINT(1504);
-           HPRINT(1503);
-           HPRINT(1505);
-           HPRINT(1200);
-           HPRINT(1201);
-           HPRINT(1202);
-           HPRINT(1203);
-           HPRINT(1210);
-           HPRINT(1211);
-           HPRINT(1212);
-           HPRINT(1213);
-           HPRINT(1215);
-           HPRINT(1216);
-           HPRINT(1217);
-           HPRINT(1218);
-           HPRINT(1219);
-           HPRINT(1524);
-//           HPRINT(1550);
-//           HPRINT(1551);
-//           HPRINT(1552);
-//           HPRINT(1553);
-           TOFTZSLcalib::mfit();
-           HPRINT(1507);
-         }
-       }
-//
-       if(TOFRECFFKEY.relogic[0]==4){// for AMPL-calibr. runs
-         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
-           HPRINT(1506);
-           HPRINT(1500);
-           HPRINT(1501);
-           HPRINT(1502);
-           HPRINT(1205);
-           HPRINT(1206);
-           HPRINT(1503);
-           HPRINT(1200);
-           HPRINT(1201);
-           HPRINT(1202);
-           HPRINT(1203);
-           HPRINT(1210);
-           HPRINT(1211);
-           HPRINT(1212);
-           HPRINT(1213);
-           HPRINT(1215);
-           HPRINT(1216);
-           HPRINT(1217);
-           HPRINT(1218);
-           HPRINT(1219);
-           HPRINT(1204);
-           HPRINT(1207);
-           HPRINT(1248);
-           HPRINT(1249);
-           HPRINT(1250);
-           HPRINT(1251);
-           TOFAMPLcalib::fit();
-           HPRINT(1259);
-           HPRINT(1260);
-           HPRINT(1252);
-           HPRINT(1254);
-           HPRINT(1255);
-           HPRINT(1256);
-           HPRINT(1257);
-           HPRINT(1258);
-         }
-       }
-//
-//
-       if(TOFRECFFKEY.relogic[0]==1){// for STRR-calibr. runs
-         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){//for Real/Mc-SLOW
-           TOFSTRRcalib::outp();
-           HPRINT(1200);
-           HPRINT(1201);
-           HPRINT(1202);
-           HPRINT(1204);
-           if(TOFCAFFKEY.dynflg==1){
-             TOFAVSDcalib::fit();
-             HPRINT(1240);
-             HPRINT(1241);
-             HPRINT(1242);
-           }
-         }
-       }
-//
-       if(TOFRECFFKEY.relogic[0]==2){// for TDIF-calibr. runs
-         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){//for Real/Mc-SLOW
-           TOFTDIFcalib::fit();
-         }
-       }
-       TOFJobStat::print(); // Print JOB-TOF statistics
+       if(isSimulation())TOFJobStat::outpmc();
+       TOFJobStat::outp();
+       TOFJobStat::printstat(); // Print JOB-TOF statistics
 }
 //-----------------------------------------------------------------------
 void AMSJob::_antiendjob(){
 //
-  ANTIJobStat::print(); // Print JOB-ANTI statistics
+  if(ANTIRECFFKEY.reprtf[0]>0)ANTIJobStat::print(); // Print JOB-ANTI statistics
   if(isSimulation() && ANTIMCFFKEY.mcprtf>0){
     HPRINT(2000);
   }
-  if(ANTIRECFFKEY.reprtf[0]){
+  if(ANTIRECFFKEY.reprtf[0]>0){
     HPRINT(2500);
     HPRINT(2501);
   }

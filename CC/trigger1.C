@@ -21,25 +21,26 @@ void TriggerLVL1::build(){
   integer tofflag(0);
   integer nanti=0;
   integer antipatt=0;
-  if(!AMSJob::gethead()->isReconstruction()){
-  if(TOFMCFFKEY.fast==0){ // for slow algorithm
-    tofflag=AMSTOFRawEvent::gettrfl();
-    AMSTOFRawEvent::getpatt(tofpatt);
-  }
-  else{                   // for fast algorithm
-    tofflag=AMSTOFRawCluster::gettrfl();
-    AMSTOFRawCluster::getpatt(tofpatt);
-  }
-  for(i=0;i<SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
+  if(!AMSJob::gethead()->isReconstruction()){// <---- MC
+    if(TOFMCFFKEY.fast==0){ // for slow algorithm
+      tofflag=AMSTOFRawEvent::gettrfl();
+      AMSTOFRawEvent::getpatt(tofpatt);
+    }
+    else{                   // for fast algorithm
+      tofflag=AMSTOFRawCluster::gettrfl();
+      AMSTOFRawCluster::getpatt(tofpatt);
+    }
+    for(i=0;i<SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
 // ANTI :
-  integer cbt,lsbit(1);
-  antipatt=AMSAntiRawEvent::getpatt();
-  for(i=0;i<MAXANTI;i++){
-    cbt=lsbit<<i;
-    if((antipatt&cbt)>0)nanti+=1;//counts paddles
+    integer cbt,lsbit(1);
+    antipatt=AMSAntiRawEvent::getpatt();
+    for(i=0;i<MAXANTI;i++){
+      cbt=lsbit<<i;
+      if((antipatt&cbt)>0)nanti+=1;//counts paddles
+    }
   }
-  }
-  else if(LVL1FFKEY.RebuildLVL1){
+//----
+  else if(LVL1FFKEY.RebuildLVL1){ // <---------- Real
     (AMSEvent::gethead()->getC("TriggerLVL1",0))->eraseC();
     tofflag=1;
     AMSTOFRawCluster *pcl=(AMSTOFRawCluster*)AMSEvent::gethead()->getheadC("AMSTOFRawCluster",0);
@@ -49,33 +50,34 @@ void TriggerLVL1::build(){
      tofpatt[plane]=tofpatt[plane] | ( 1 << bar);  
      pcl=pcl->next();
     }
-  for(i=0;i<SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
+    for(i=0;i<SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
 // ANTI :
-  integer antip[2]={0,0};
-  for(int k=0;k<2;k++){
-    AMSAntiRawCluster *pcl=(AMSAntiRawCluster *)AMSEvent::gethead()->getheadC("AMSAntiRawCluster",k);
-    while(pcl){
-     int sector=pcl->getsector()-1;
-     int updown=pcl->getupdown();
-     antip[updown]=antip[updown] | ( 1 << sector);  
-     pcl=pcl->next();
+    integer antip[2]={0,0};
+    for(int k=0;k<2;k++){
+      AMSAntiRawCluster *pcl=(AMSAntiRawCluster *)AMSEvent::gethead()->getheadC("AMSAntiRawCluster",k);
+      while(pcl){
+      int sector=pcl->getsector()-1;
+       int updown=pcl->getupdown();
+       antip[updown]=antip[updown] | ( 1 << sector);  
+       pcl=pcl->next();
+      }
+    }
+    antipatt=antip[0] & antip[1];
+ 
+    integer cbt;
+    for(i=0;i<MAXANTI;i++){
+      cbt=1<<i;
+      if((antipatt&cbt)>0)nanti+=1;//counts paddles
     }
   }
-  antipatt=antip[0] & antip[1];
- 
-  integer cbt;
-  for(i=0;i<MAXANTI;i++){
-    cbt=1<<i;
-    if((antipatt&cbt)>0)nanti+=1;//counts paddles
-  }
-    
-  }
+//------
   for(i=0;i<4;i++){
     tofpatt[i]=tofpatt[i] | (tofpatt[i]<<16);
   }
-  if(tofflag && ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti)
+  if(tofflag>0 && ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
                        new TriggerLVL1(1,tofflag,tofpatt,antipatt));
+  }
 
 
 }
@@ -295,8 +297,8 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
     tofp1[k]=tempor[k] | (tempand[k] <<16);
   }
 
-
-  z=1;
+  z= tofp[0] || tofp[1] || tofp[2] || tofp[3]?1:0; 
+  //z=1;
   if(*(p+2) & (1<<4))z=3;
   //anti
   uinteger xneg= (((*(p+1) >> 8) & 3) & ((*(p+1) >> 10) & 3)); 

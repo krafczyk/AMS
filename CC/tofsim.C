@@ -302,10 +302,10 @@ void AMSTOFTovt::build()
     }
     cnum=ilay*SCMXBR+ibar;// sequential counter number
     scmcscan[cnum].getxbin(y,i1,i2,r);//y-bin # (longit.(x !)-coord. in LTRANS )
-    scbrcal[ilay][ibar].getbstat(status);//get status of two ends
+    scbrcal[ilay][ibar].getbstat(status);//get status of two ends (from DB)
     nel0=de*convr;// -> photons
 // PM-1 actions --->
-  if(status[0]==0){// alive side
+  if(status[0]>=0){// alive side
     eff=scmcscan[cnum].getef1(r,i1,i2);//eff for PM-1
     nel=nel0*eff;// mean number of photoelectrons
     POISSN(nel,nelec,ierr);// fluctuations
@@ -327,7 +327,7 @@ void AMSTOFTovt::build()
   }
 //
 // PM-2 actions --->
-  if(status[1]==0){// alive side
+  if(status[1]>=0){// alive side
     eff=scmcscan[cnum].getef2(r,i1,i2);//eff for PM-2
     nel=nel0*eff;// mean number of photoelectrons
     POISSN(nel,nelec,ierr);// fluctuations
@@ -355,7 +355,7 @@ void AMSTOFTovt::build()
         edepb*=1000.;// --->MeV
         if(edepb>TOFMCFFKEY.Thr){// process only bar with Edep>Ethr
 // PM-1 loop to apply pulse shape :
-        if(status[0]==0){// alive side
+        if(status[0]>=0){// alive side
           idd=id*10+1;//LBBS
           for(i=0;i<SCTBMX+1;i++)tslice[i]=0.;
           for(i=0;i<SCTBMX;i++){
@@ -373,7 +373,7 @@ void AMSTOFTovt::build()
         }
 //        
 // PM-2 loop to apply pulse shape :
-        if(status[1]==0){// alive side
+        if(status[1]>=0){// alive side
           idd=id*10+2;
           for(i=0;i<SCTBMX+1;i++)tslice[i]=0.;
           for(i=0;i<SCTBMX;i++){

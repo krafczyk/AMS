@@ -103,7 +103,7 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::_strjit2=0.035;  // "stop"(FT)-pulse jitter at stretcher input
   geant TOFDBc::_accdel=5000.;//Lev-1 signal delay with respect to FT (ns)
   geant TOFDBc::_ftdelf=65.;  // FastTrigger (FT) fixed (by h/w) delay (ns)
-  geant TOFDBc::_ftdelm=100.; // FT max delay (allowed by stretcher logic) (ns)
+  geant TOFDBc::_ftdelm=200.; // FT max delay (allowed by stretcher logic) (ns)
   geant TOFDBc::_fstdcd=28.;   // Same hit(up-edge) relative delay in fast-slow TDC
   geant TOFDBc::_fatdcd=5.;   // Same hit(up-edge) relative delay in fast-A(D) TDC
   integer TOFDBc::_pbonup=1;  // set phase-bit for leading(up) edge (yes/no->1/0) 
@@ -538,7 +538,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //   --->  Read a2d-ratios, gains, mip2q and A-profile param. calib.file :
 //
  ctyp=4;
- strcpy(name,"ancalib");
+ strcpy(name,"anacalib");
  mcvn=mcvern[ctyp-1]%100;
  rlvn=rlvern[ctyp-1]%100;
  if(AMSJob::gethead()->isMCData())           // for MC-event
@@ -908,7 +908,7 @@ integer TOFJobStat::scdaqbc4[SCCRAT][2];
 //
 // function to print Job-statistics at the end of JOB(RUN):
 //
-void TOFJobStat::print(){
+void TOFJobStat::printstat(){
   int il,ib,ic;
   geant rc;
 //
@@ -1353,14 +1353,14 @@ void TOFJobStat::bookhist(){
     if(TOFRECFFKEY.relogic[0]==1){ // STRR-calibration
       HBOOK1(1200,"Stretcher-ratio for indiv. channel",80,35.,55.,0.);
       HBOOK1(1201,"Offsets for indiv. channels",80,-100.,2300.,0.);
-      HBOOK1(1202,"Chi2 for indiv. channel",50,0.,5.,0.);
+      HBOOK1(1202,"Chi2 for indiv. channel",50,0.,10.,0.);
       HBOOK1(1204,"Bin Tin-RMS in Tin-Tout fit",50,0.,10.,0.);
 // hist.1600-1711 are booked in init-function for Tin vs Tout correl.!!!(TDLV)
 // hist.1720-1790 are booked in init-function for BarRawTime histogr.!!!(TDLV)
       if(TOFCAFFKEY.dynflg==1){ // for special(Contin's) Dynode calibr.
-	HBOOK1(1240,"Slope in Td vs Ta correlation",50,0.,2.,0.);
-	HBOOK1(1241,"Offset in Td vs Ta correlation",50,-200.,50.,0.);
-	HBOOK1(1242,"Chi2 in Td vs Ta correlation",50,0.,5.,0.);
+        HBOOK1(1240,"Slope in Td vs Ta correlation",50,0.,2.,0.);
+        HBOOK1(1241,"Offset in Td vs Ta correlation",50,-200.,50.,0.);
+        HBOOK1(1242,"Chi2 in Td vs Ta correlation",50,0.,10.,0.);
 // hist.1800-1911 are booked in init-function for Tin vs Tout correl.!!!
       }
     }
@@ -1471,6 +1471,167 @@ void TOFJobStat::bookhistmc(){
       HBOOK1(1074,"Shaper amplitude (pC),all channels",80,0.,160.,0.);
       HBOOK1(1075,"L=1,PM=1,Shaper TovT (ns)",80,50.,290.,0.);
     }
+}
+//----------------------------
+void TOFJobStat::outp(){
+  int i,j,k,ich;
+       if(TOFRECFFKEY.reprtf[2]!=0 || TOFRECFFKEY.reprtf[4]!=0){ // print RECO-hists
+         HPRINT(1535);
+         HPRINT(1536);
+         HPRINT(1537);
+         HPRINT(1538);
+         HPRINT(1539);
+         HPRINT(1540);
+         HPRINT(1541);
+         HPRINT(1542);
+           HPRINT(1100);
+           HPRINT(1115);
+           HPRINT(1105);
+           HPRINT(1106);
+           HPRINT(1107);
+           HPRINT(1101);
+           HPRINT(1102);
+           HPRINT(1103);
+           HPRINT(1104);
+           HPRINT(1110);
+           HPRINT(1111);
+           HPRINT(1112);
+           HPRINT(1113);
+           HPRINT(1114);
+//       HPRINT(1130);
+//       HPRINT(1131);
+//       HPRINT(1132);
+//       HPRINT(1133);
+//       HPRINT(1134);
+//       HPRINT(1135);
+           HPRINT(1526);
+           HPRINT(1528);
+           HPRINT(1529);
+           HPRINT(1531);
+           HPRINT(1532);
+//           HPRINT(1533);
+//           HPRINT(1543);
+           HPRINT(1544);
+           HPRINT(1534);
+         if(TOFRECFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
+           for(i=0;i<SCLRS;i++){
+             for(j=0;j<SCMXBR;j++){
+               for(k=0;k<2;k++){
+                 ich=2*SCMXBR*i+2*j+k;
+                 HPRINT(1300+ich);
+               }
+             }
+           }
+         }
+       }
+// ---> calibration specific :
+       if(TOFRECFFKEY.relogic[0]==3){// for TZSL-calibr. runs
+         HPRINT(1500);
+         HPRINT(1501);
+         HPRINT(1506);
+           HPRINT(1502);
+           HPRINT(1514);
+           HPRINT(1504);
+           HPRINT(1503);
+           HPRINT(1505);
+           HPRINT(1200);
+           HPRINT(1201);
+           HPRINT(1202);
+           HPRINT(1203);
+           HPRINT(1210);
+           HPRINT(1211);
+           HPRINT(1212);
+           HPRINT(1213);
+           HPRINT(1215);
+           HPRINT(1216);
+           HPRINT(1217);
+           HPRINT(1218);
+           HPRINT(1219);
+           HPRINT(1524);
+//           HPRINT(1550);
+//           HPRINT(1551);
+//           HPRINT(1552);
+//           HPRINT(1553);
+           TOFTZSLcalib::mfit();
+           HPRINT(1507);
+       }
+//
+       if(TOFRECFFKEY.relogic[0]==4){// for AMPL-calibr. runs
+           HPRINT(1506);
+           HPRINT(1500);
+           HPRINT(1501);
+           HPRINT(1502);
+           HPRINT(1205);
+           HPRINT(1206);
+           HPRINT(1503);
+           HPRINT(1200);
+           HPRINT(1201);
+           HPRINT(1202);
+           HPRINT(1203);
+           HPRINT(1210);
+           HPRINT(1211);
+           HPRINT(1212);
+           HPRINT(1213);
+           HPRINT(1215);
+           HPRINT(1216);
+           HPRINT(1217);
+           HPRINT(1218);
+           HPRINT(1219);
+           HPRINT(1204);
+           HPRINT(1207);
+           HPRINT(1248);
+           HPRINT(1249);
+           HPRINT(1250);
+           HPRINT(1251);
+           TOFAMPLcalib::fit();
+           HPRINT(1259);
+           HPRINT(1260);
+           HPRINT(1252);
+           HPRINT(1254);
+           HPRINT(1255);
+           HPRINT(1256);
+           HPRINT(1257);
+           HPRINT(1258);
+       }
+//
+//
+       if(TOFRECFFKEY.relogic[0]==1){// for STRR-calibr. runs
+           TOFSTRRcalib::outp();
+           HPRINT(1200);
+           HPRINT(1201);
+           HPRINT(1202);
+           HPRINT(1204);
+           if(TOFCAFFKEY.dynflg==1){
+             TOFAVSDcalib::fit();
+             HPRINT(1240);
+             HPRINT(1241);
+             HPRINT(1242);
+           }
+       }
+//
+       if(TOFRECFFKEY.relogic[0]==2){// for TDIF-calibr. runs
+           TOFTDIFcalib::fit();
+       }
+//
+}
+//----------------------------
+void TOFJobStat::outpmc(){
+       if(TOFMCFFKEY.mcprtf[2]!=0 && TOFMCFFKEY.fast==0){ // print MC-hists
+         HPRINT(1050);
+         HPRINT(1051);
+         HPRINT(1052);
+         HPRINT(1053);
+         HPRINT(1060);
+         HPRINT(1061);
+         HPRINT(1062);
+         HPRINT(1063);
+         HPRINT(1070);
+         HPRINT(1071);
+         HPRINT(1072);
+         HPRINT(1073);
+         HPRINT(1074);
+         HPRINT(1075);
+       }
 }
 //==========================================================================
 
