@@ -2261,9 +2261,51 @@ void AMSEvent::_collectstatus(){
   }
   {
     AMSParticle *ptr=(AMSParticle*)getheadC("AMSParticle",0);
+    AMSParticle *ptr1=(AMSParticle*)getheadC("AMSParticle",1);
     int npart=0;
     if(ptr){
       AMSContainer *ptrc=getC("AMSParticle",0);
+      npart=ptrc->getnelem();
+      if(npart>3)npart=3;
+      _status= _status | (npart<<21);
+      integer charge=ptr->getcharge()-1;
+      if(charge>7)charge=7;
+      _status=_status | (charge<<5);
+      number pmom=ptr->getmomentum();
+      integer sign=pmom<0?0:1;
+      _status=_status | (sign<<8);
+      sign=(ptr->getpbeta())->getbeta()<0?0:1;
+      _status=_status | (sign<<9);
+      integer pat=(ptr->getptrack())->getpattern();
+      if(pat>31)pat=31;
+      if(pat<0)pat=31;
+      _status=_status | (pat<<10);
+       pat=(ptr->getpbeta())->getpattern();
+      integer spat=0;
+      if(pat==0)spat==0;
+      else if(pat<5)spat=1;
+      else spat=2;
+      _status=_status | (spat<<15);       
+      number rig=fabs(pmom)/(charge+1);
+      uinteger srig;
+      if(rig<2)srig=0;
+      else if(rig<8)srig=1;
+      else if(rig<20)srig=2;
+      else srig=3;
+      _status=_status | (srig<<23);
+      uinteger trquality;
+      if((ptr->getptrack())->checkstatus(AMSDBc::FalseTOFX))trquality=3;
+      else if( (ptr->getptrack())->checkstatus(AMSDBc::FalseX))trquality=2;
+      else if((ptr->getptrack())->checkstatus(AMSDBc::WEAK) )trquality=1;
+      else trquality=0;   
+      _status=_status | (trquality<<25);
+       uinteger localdb=0;
+       if((ptr->getptrack())->checkstatus(AMSDBc::LocalDB))localdb=1;
+      _status=_status | (localdb<<29);
+    }
+    else if(ptr1){
+      ptr=ptr1;     
+      AMSContainer *ptrc=getC("AMSParticle",1);
       npart=ptrc->getnelem();
       if(npart>3)npart=3;
       _status= _status | (npart<<21);
