@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.135 2001/11/30 16:47:02 choutko Exp $
+//  $Id: amsgeom.C,v 1.136 2001/12/18 17:34:21 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2078,7 +2078,7 @@ ostrstream ost(name,sizeof(name));
          }
 #endif
          gid=i+1+10*(j+1)+1000*(k+1);
-         if(TKDBc::activeladdshuttle(i+1,j+1,0)){  
+         if(TKDBc::activeladdshuttle(i+1,j+1,0)){ 
           integer status=1;
           if(TKDBc::update())TKDBc::SetSensor(i,j,k,status,coo,nrm,gid);
           else               TKDBc::GetSensor(i,j,k,status,coo,nrm);
@@ -3344,6 +3344,7 @@ integer nrot=501; // Temporary arbitary assignment
 AMSNode * cur;
 AMSgvolume * dau;
 int i;
+int nhalfL=0; 
 for ( i=0;i<TKDBc::nlay();i++){
 ostrstream ost(name,sizeof(name));
  ost << "STK"<<i+1<<ends;
@@ -3479,6 +3480,7 @@ ostrstream ost(name,sizeof(name));
 #endif
          gid=i+1+10*(j+1)+1000*(k+1);
          if(TKDBc::activeladdshuttle(i+1,j+1,0)){  
+          if(k==0)nhalfL++;
           integer status=1;
           if(TKDBc::update())TKDBc::SetSensor(i,j,k,status,coo,nrm,gid);
           else               TKDBc::GetSensor(i,j,k,status,coo,nrm);
@@ -3516,6 +3518,7 @@ ostrstream ost(name,sizeof(name));
 #endif
         gid=i+1+10*(j+1)+1000*(k+1);
         if(TKDBc::activeladdshuttle(i+1,j+1,1)){  
+         if(k==TKDBc::nhalf(i+1,j+1))nhalfL++;
          integer status=1;
          if(TKDBc::update())TKDBc::SetSensor(i,j,k,status,coo,nrm,gid);
          else               TKDBc::GetSensor(i,j,k,status,coo,nrm);
@@ -3572,7 +3575,7 @@ ostrstream ost(name,sizeof(name));
 
 
 }
-
+cout <<"TKGeom-I-"<<nhalfL<<" Active halfladders initialized"<<endl;
 
 }
 

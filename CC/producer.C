@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.42 2001/07/05 17:15:44 choutko Exp $
+//  $Id: producer.C,v 1.43 2001/12/18 17:34:21 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -691,7 +691,7 @@ FMessage("AMSProducer::getinitTDV-F-tdvgetFailed",DPS::Client::CInAbort);
 }
 
 bool AMSProducer::getTDV(AMSTimeID * tdv, int id){
-cout <<" trying to get tdv "<<tdv->getname()<<endl;
+//cout <<" trying to get tdv "<<tdv->getname()<<endl;
 DPS::Producer::TDVbody * pbody;
 DPS::Producer::TDVName name;
 name.Name=tdv->getname();

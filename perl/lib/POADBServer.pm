@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.5 2001/02/21 12:45:35 choutko Exp $
+#  $Id: POADBServer.pm,v 1.6 2001/12/18 17:34:35 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -912,6 +912,21 @@ sub getACS{
     return ($#{$ref->{$tag[0]}}+1,$ref->{$tag[0]},$ref->{$tag[1]});
 }
 
+
+            sub Clock { 
+                if($a->{Status} eq $b->{Status}){
+                    return $b->{Clock}<=>$a->{Clock};
+                }
+                elsif($a->{Status} ne $b->{Status}){
+                    if($b->{Status} eq "OK"){
+                     return 1;
+                    }elsif($a->{Status} ne "NoResponse"){
+                    return -1;
+                    }else{
+                     return 0;
+                    }
+                }
+           }
 sub getFreeHost{
     my $ref=$DBServer::Singleton;
     my ($class,$cid)=@_;
@@ -919,20 +934,9 @@ sub getFreeHost{
         getGeneric($cid,"ahls","nsl","asl");
         my $hash=$ref->{nsl}[0];
         if ($#{$ref->{asl}}+1 < $hash->{MaxClients}){
-            sub Clock { 
-                if($a->{Status} eq $b->{Status}){
-                  return $b->{Clock}  <=> $a->{Clock};
-                }elsif( $b->{Status} eq "OK"){
-                 return 0;
-                }elsif($a->{Status} ne "NoResponse"){
-                  return 1;
-                }else{
-                  return 0;
-                }
-            }
         my @sortedahl=sort Clock @{$ref->{ahls}};
               foreach my $ahl (@sortedahl){
-                  if ($ahl->{Status} ne "NoResponse" or $ahl->{Status} ne "InActive" ){
+                  if ($ahl->{Status} ne "NoResponse" and $ahl->{Status} ne "InActive" ){
                       if ($ahl->{ClientsRunning}<$ahl->{ClientsAllowed}){
                           $ahl->{Status}="InActive";
                           POADBServer::sendAH("Class",$cid,$ahl,"Update");
@@ -955,7 +959,7 @@ sub getFreeHost{
         if($#{$ref->{acl}} <$runstorerun){
         my @sortedahl=sort Clock @{$ref->{ahlp}};
               foreach my $ahl (@sortedahl){
-                  if ($ahl->{Status} ne "NoResponse" or $ahl->{Status} ne "InActive" ){
+                  if ($ahl->{Status} ne "NoResponse" and $ahl->{Status} ne "InActive" ){
                       if ($ahl->{ClientsRunning}<$ahl->{ClientsAllowed}){
                           $ahl->{Status}="InActive";
                            sendAH("Class",$cid,$ahl,"Update");

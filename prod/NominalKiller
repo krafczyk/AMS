@@ -6,6 +6,6 @@
  somehost0 0
  -o /dat0/local/logs/
  /usr/local/lsf/bin/bsub -K -q linux_control -m            
- somehost1 1
+ pcamsf4 1
  "1>&"/dat0/local/logs/
  rsh

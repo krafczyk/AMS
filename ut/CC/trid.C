@@ -1,4 +1,4 @@
-//  $Id: trid.C,v 1.32 2001/01/22 17:32:23 choutko Exp $
+//  $Id: trid.C,v 1.33 2001/12/18 17:34:21 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -873,29 +873,31 @@ else if(setup==2){
   strcpy(_TCm,"TrackerCmnNoise2");
 
 
-   _ncrates=7;
+   _ncrates=8;
+    const int ntdr24=24;
   // Dummy setup
   int s;
   for(s=0;s<_ncrates;s++)_CrateNo[s]=s;
   int count=0;
-  // crate contains 32 drp
+  // crate contains 24 drp
   for(s=0;s<2;s++){
    for(i=0;i<TKDBc::nlay();i++){
     for(j=0;j<TKDBc::nlad(i+1);j++){
      if(TKDBc::activeladdshuttle(i+1,j+1,s)){
-     if(count/ntdr >= _ncrates){
+     
+     if(count/ntdr24 >= _ncrates){
       cerr<<"AMSTrIdSoft::inttab-F-Wrong crates no "<<count<<endl;
       exit(1);
      }
-     _GetHard[i][j][s][2]=count/ntdr;            //crate
-     _GetHard[i][j][s][0]=count%ntdr;     //side x
-     _GetHard[i][j][s][1]=count%ntdr;     //side y
+     _GetHard[i][j][s][2]=count/ntdr24;            //crate
+     _GetHard[i][j][s][0]=count%ntdr24;     //side x
+     _GetHard[i][j][s][1]=count%ntdr24;     //side y
       count++;
     }
     }
    }
   }
-  cout <<" max crate number "<<(count-1)/ntdr<<endl;
+  cout <<" max crate number "<<(count-1)/ntdr24<<endl;
 }
 
 

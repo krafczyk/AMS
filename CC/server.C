@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.74 2001/08/01 13:28:43 choutko Exp $
+//  $Id: server.C,v 1.75 2001/12/18 17:34:21 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -1332,7 +1332,12 @@ return 0;
         HostClientFailed(*i); 
         ((*i)->ClientsKilled)++; 
         break;
-       }  
+       }
+       DPS::Client::CID cid=_parent->getcid();      
+       cid.Type=getType();
+       cid.Interface= (const char *) " "; 
+        PropagateAH(cid,*i,DPS::Client::Update);
+  
         break;
        }
        }
@@ -3968,6 +3973,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       }
       DPS::Client::ActiveHost *pre;
       int ret=dvar->getFreeHost(tcid,pre);     
+        cout <<"  get free host "<<AMSClient::print(*pre," ");
       prv=pre;
       return ret;
      }
@@ -4178,8 +4184,6 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
 //      Here find the corr Ahost and update it
         for(AMSServerI * curp=getServer(); curp; curp=(curp->down())?curp->down():curp->next()){
           if(curp->getType()==ac.id.Type){
-            cout<<"ac.id.HostName "<<(const char *)((ac.id).HostName)<<endl;
-            cout<<"getahl() loop"<<endl;
              for(AHLI i=curp->getahl().begin();i!=curp->getahl().end();++i){
                cout<<(const char *)(*i)->HostName<<endl;
                if(!strcmp((const char *)(*i)->HostName, (const char *)((ac.id).HostName))){
@@ -4271,6 +4275,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
       DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
       dvar->sendAH(pid,ah,rc);
+      cout <<"   database modified "<<endl; 
       return 1;
      }
      catch(DPS::DBServer::DBProblem &dbl){
@@ -4303,7 +4308,10 @@ void AMSServerI::HostClientFailed(DPS::Client::ActiveHost_var &ahlv){
      time_t tt;
      time(&tt);
      cout <<" HClF ::- Info: - "<<ahlv->ClientsProcessed<<" "<<ahlv->ClientsFailed<<" "<<tt-ahlv->LastFailed<<endl;
-     if(ahlv->Status!=DPS::Client::NoResponse && (ahlv)->ClientsProcessed>3 && (ahlv)->ClientsFailed>((ahlv)->ClientsProcessed+1)/2 && tt-ahlv->LastFailed<86400)(ahlv)->Status=DPS::Client::InActive;
+     if(ahlv->Status!=DPS::Client::NoResponse && (ahlv)->ClientsProcessed>3 && (ahlv)->ClientsFailed>((ahlv)->ClientsProcessed+1)/2 && tt-ahlv->LastFailed<86400){
+     (ahlv)->Status=DPS::Client::InActive;
+     cout <<" settting host "<<ahlv->HostName <<" to inactive "<<endl;
+}
       ahlv->LastFailed=tt;
 
 }
