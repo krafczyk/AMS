@@ -79,8 +79,6 @@ Below there is a description of a  ntuple.
 * R*4  *              * CHARGE   * truntracker            // Trun (-1) mean
 
 * I*4  * [0,10]       * PARTICLE * npart                   // particles number
-* I*4  *              * PARTICLE * pctcp(2,npart)    // pointer(s) to cerenkov
-                                                     // cluster (matched)
 * I*4  *              * PARTICLE * pbetap(npart)     // pointer to beta
 * I*4  *              * PARTICLE * pchargep(npart)   // pointer to charge
 * I*4  *              * PARTICLE * ptrackp(npart)    // pointer to track
