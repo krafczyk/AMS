@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.16 2001/02/18 15:06:42 choutko Exp $
+//  $Id: client.C,v 1.17 2001/03/02 10:40:52 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -202,7 +202,7 @@ return _streambuffer;
 
 char * AMSClient::print(const DPS::Producer::DSTInfo & a,const char * mes){
 _ost.seekp(0);
-_ost<<mes<<" "<<a.uid<<" Host "<<a.HostName<<" Mode "<<RunMode2string(a.Mode)<<" UpdateFreq "<<a.UpdateFreq<<"NtupleOutput "<<a.OutputDirPath<<" FreeKb "<<a.FreeSpace<<" TotalKb "<<a.TotalSpace<<ends;
+_ost<<mes<<" "<<a.uid<<" Host "<<a.HostName<<" Mode "<<RunMode2string(a.Mode)<<" UpdateFreq "<<a.UpdateFreq<<" DSType "<<DSTT2string(a.type)<<" NtupleOutput "<<a.OutputDirPath<<" FreeKb "<<a.FreeSpace<<" TotalKb "<<a.TotalSpace<<ends;
 return _streambuffer;
 }
 

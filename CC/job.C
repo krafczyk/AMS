@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.358 2001/01/23 11:50:37 choutko Exp $
+// $Id: job.C,v 1.359 2001/03/02 10:40:52 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1598,6 +1598,10 @@ if(TRCLFFKEY.Thr1R[0]<0){
     UHTOC(IOPA.hfile,40,hfile,160);  
     _hextname=hfile;
 
+    char rfile[161];
+    UHTOC(IOPA.rfile,40,rfile,160);  
+    _rextname=rfile;
+
 
 }
 
@@ -2937,29 +2941,49 @@ if(IOPA.hlun && _NtupleActive){
   HREND ("output");
   CLOSEF(IOPA.hlun);
 #ifdef __CORBA__
-  if(AMSEvent::gethead())AMSProducer::gethead()->sendNtupleEnd(ntuple_entries,AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime(),true);
-else AMSProducer::gethead()->sendNtupleEnd(ntuple_entries,e,t,true);
+  if(AMSEvent::gethead())AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::Ntuple,ntuple_entries,AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime(),true);
+else AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::Ntuple,ntuple_entries,e,t,true);
+#endif
+}
+else if(IOPA.WriteRoot){
+if(_pntuple)_pntuple->endR();
+#ifdef __CORBA__
+int root_entries=0;  //  add in futire smth reasonable
+  if(AMSEvent::gethead())AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::RootFile,root_entries,AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime(),true);
+else AMSProducer::gethead()->sendNtupleEnd(DPS::Producer::RootFile,root_entries,e,t,true);
 #endif
 }
 }
 
-void AMSJob::urinit(integer eventno){
+void AMSJob::urinit(integer run, integer eventno, time_t tt)
+throw (amsglobalerror){
+  if(_pntuple)_pntuple->endR();
   if(IOPA.WriteRoot){
-    char rfile[161];
-    UHTOC(IOPA.rfile,40,rfile,160);  
-    char filename[256];
-    strcpy(filename,rfile);
+    char filename[512];
+    strcpy(filename,(const char*)_rextname);
+     AString mdir("mkdir -p ");
+     mdir+=filename;
     integer iostat;
     integer rsize=8000;
     if(eventno){
       char event[80];  
+      if(isProduction()){
+       system((const char*)mdir);
+       strcat(filename,"/");
+      }
+      sprintf(event,"%d",run);
+      strcat(filename,event);
       sprintf(event,".%d",eventno);
       strcat(filename,event);
-    }
+      strcat(filename,".root");
+     }
     if(_pntuple)_pntuple->initR(filename);
     else{
         _pntuple = new AMSNtuple(filename);
     }
+#ifdef __CORBA__
+      AMSProducer::gethead()->sendNtupleStart(DPS::Producer::RootFile,filename,run,eventno,tt);
+#endif
   }
 }
 
@@ -3001,16 +3025,17 @@ throw (amsglobalerror){
     else{
         _pntuple = new AMSNtuple(IOPA.ntuple,"AMS Ntuple");
     }
+    _NtupleActive=true;
+#ifdef __CORBA__
+      AMSProducer::gethead()->sendNtupleStart(DPS::Producer::Ntuple,_ntuplefilename,run,eventno,tt);
+#endif
   }
+  urinit(run,eventno,tt);
    HBOOK1(200101,"Number of Nois Hits x",100,-0.5,99.5,0.);
    HBOOK1(200102,"Number of Nois Hits y",100,-0.5,99.5,0.);
    HBOOK1(200105,"Above threshold spectrum x",200,-0.5,49.5,0.);
    HBOOK1(200106,"Above threshold spectrum y",200,-0.5,49.5,0.);
    HBOOK1(200107," adc over",3000,29999.5,32999.5,0.);
-    _NtupleActive=true;
-#ifdef __CORBA__
-  AMSProducer::gethead()->sendNtupleStart(_ntuplefilename,run,eventno,tt);
-#endif
 }
 
 void AMSJob::_tkendjob(){

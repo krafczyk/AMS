@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.33 2001/02/15 11:00:01 choutko Exp $
+# $Id: Monitor.pm,v 1.34 2001/03/02 10:41:01 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -861,7 +861,7 @@ int($hash->{CPUNeeded}*10)/10,
          $#text=-1;
          my $hash=$Monitor::Singleton->{dsti}[$i];
          
-         push @text, $hash->{uid}, $hash->{HostName},$hash->{OutputDirPath},$hash->{Mode},$hash->{UpdateFreq};
+         push @text, $hash->{uid}, $hash->{HostName},$hash->{OutputDirPath},$hash->{Mode},$hash->{UpdateFreq},$hash->{type};
          push @output, [@text];   
      }
     }elsif( $name eq "Run"){        
@@ -1013,6 +1013,7 @@ sub sendback{
         $nc{OutputDirPath}=shift @data;
         $nc{Mode}=shift @data;
         $nc{UpdateFreq}=shift @data;
+        $nc{type}=shift @data;
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
             try{

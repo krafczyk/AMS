@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.255 2001/01/22 17:32:19 choutko Exp $
+//  $Id: event.C,v 1.256 2001/03/02 10:40:52 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1048,7 +1048,7 @@ for(int il=0;il<TKDBc::nlay();il++){
     }
    }
     // check if one want to close ntuple 
-    if(IOPA.MaxNtupleEntries){
+    if(!IOPA.WriteRoot && IOPA.MaxNtupleEntries){
       //cout <<"qq "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<endl;
       // cout <<"op "<<AMSJob::gethead()->GetNtupleFileSize()<<" "<<IOPA.MaxFileSize<<endl;
        if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0 || AMSJob::gethead()->GetNtupleFileSize()>IOPA.MaxFileSize){
@@ -2602,8 +2602,8 @@ while(offspring){
       cerr<<" Begin : " <<ctime(&b)<<endl; 
       cerr<<" End : " <<ctime(&e)<<endl; 
       cerr<<" Insert : " <<ctime(&i)<<endl; 
-      gams::UGLAST("TDV not validated");
-      exit(1);
+      throw amsglobalerror("TDV Not    Validated ",3);
+ 
     }
     offspring=(AMSTimeID*)offspring->next();
   }

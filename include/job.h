@@ -1,4 +1,4 @@
-//  $Id: job.h,v 1.51 2001/01/22 17:32:44 choutko Exp $
+//  $Id: job.h,v 1.52 2001/03/02 10:40:56 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 24, 1997. ak. add _eventRtype 
@@ -74,6 +74,7 @@ char* getname() {return _name;}
 class AMSJob : public AMSNode{
 private:
 AString _hextname;
+AString _rextname;
 uinteger _jobtype;    // 0 == simulation
 uinteger _eventRtype; // see eventR 
 char _Setup[256];
@@ -87,6 +88,7 @@ integer _TDVN;
 static AMSJob* _Head;
 static AMSNtuple* _pntuple;
 static char _ntuplefilename[256];
+static char _rootfilename[256];
 AMSG4Physics* _pAMSG4Physics;
 AMSG4GeneratorInterface* _pAMSG4GeneratorInterface;
 void _init(){};
@@ -179,6 +181,7 @@ void _timeinitjob();
 
 public:
 void SetNtuplePath(const char * hname){_hextname=hname;}
+void SetRootPath(const char * hname){_rextname=hname;}
 static AMSNodeMap JobMap;
 static long GetNtupleFileSize();
 #ifdef __DB__
@@ -267,7 +270,7 @@ void data();
 void udata();
 void init();
 void uhinit(integer run=0,integer pass=0, time_t tt=0) throw (amsglobalerror);
-void urinit(integer pass=0);
+void urinit(integer run=0,integer pass=0, time_t tt=0) throw (amsglobalerror);
 void uhend(uinteger run=0,uinteger event=0, time_t time=0);
 AMSTimeID * gettimestructure();
 AMSNode * getaligstructure();

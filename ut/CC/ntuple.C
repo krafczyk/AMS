@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.67 2001/02/28 19:07:02 kscholbe Exp $
+//  $Id: ntuple.C,v 1.68 2001/03/02 10:40:53 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -266,6 +266,18 @@ void AMSNtuple::write(integer addentry){
   }
 }
 
+void AMSNtuple::endR(){
+#ifdef __WRITEROOT__
+   if(_rfile){
+     _rfile->Write();
+     _rfile->Close();
+     delete _rfile;
+   }
+   if(_tree)delete _tree;
+   _tree=0;
+   _rfile=0;
+#endif
+}
 void AMSNtuple::initR(char* fname){
 #ifdef __WRITEROOT__
    cout << "Initializing tree...\n"<<endl;
@@ -276,27 +288,24 @@ void AMSNtuple::initR(char* fname){
      delete _rfile;
    }
    if(_tree)delete _tree;
-   _rfile= new TFile(fname,"RECREATE");
+   _rfile= new TFile(fname,"CREATE");
+   if(!_rfile)throw amsglobalerror("UnableToOpenRootFile",3);
    _rfile->SetCompressionLevel(IOPA.WriteRoot);
    _tree= new TTree("AMSRoot","AMS Ntuple Root");
 //   _tree->SetAutoSave(100000000);
-
+  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
+    
    void *pev1=(void*)&_event;
-   TBranch *b1=_tree->Branch("event", "EventNtuple",  &pev1, 64000,1); 
-    void *pev2=(void*)&_event02;
-   TBranch *b2=_tree->Branch("event02", "EventNtuple02",  &pev2, 64000,1); 
+   TBranch *b1=_tree->Branch("event", "EventNtuple",  &pev1, 64000,0); 
+   _tree->Fill();
+/**/ 
+
    void *pev3=(void*)&_beta; 
    TBranch *b3=_tree->Branch("beta", "BetaNtuple",  &pev3, 64000,1); 
-   void *pev4=(void*)&_beta02;
-   TBranch *b4=_tree->Branch("beta02", "BetaNtuple02",  &pev4, 64000,1);
    void *pev5=(void*)&_charge;
    TBranch *b5=_tree->Branch("charge", "ChargeNtuple",  &pev5, 64000,1);
-   void *pev6=(void*)&_charge02;
-   TBranch *b6=_tree->Branch("charge02", "ChargeNtuple02",  &pev6, 64000,1);
    void *pev7=(void*)&_part;
    TBranch *b7=_tree->Branch("part", "ParticleNtuple",  &pev7, 64000,1);
-   void *pev77=(void*)&_part02;
-   TBranch *b77=_tree->Branch("part02", "ParticleNtuple02",  &pev77, 64000,1);
    void *pev8=(void*)&_tof;
    TBranch *b8=_tree->Branch("tofcl", "TOFClusterNtuple",  &pev8, 64000,1);
    void *pev9=(void*)&_tofmc;
@@ -305,20 +314,12 @@ void AMSNtuple::initR(char* fname){
    TBranch *b0=_tree->Branch("trcl", "TrClusterNtuple",  &pev0, 64000,1);
    void *peva=(void*)&_trclmc;
    TBranch *ba=_tree->Branch("trclmc", "TrMCClusterNtuple",  &peva, 64000,1);
-   void *pevb=(void*)&_trdclmc;
-   TBranch *bb=_tree->Branch("trdclmc", "TRDMCClusterNtuple",  &pevb, 64000,1);
    void *pevc=(void*)&_trrh;
    TBranch *bc=_tree->Branch("trrh", "TrRecHitNtuple",  &pevc, 64000,1);
-   void *pevd=(void*)&_trrh02;
-   TBranch *bd=_tree->Branch("trrh", "TrRecHitNtuple02",  &pevd, 64000,1);
    void *peve=(void*)&_trtr;
    TBranch *be=_tree->Branch("trtr", "TrTrackNtuple",  &peve, 64000,1);
-   void *pevf=(void*)&_trtr02;
-   TBranch *bf=_tree->Branch("trtr02", "TrTrackNtuple02",  &pevf, 64000,1);
    void *pevg=(void*)&_mcg;
    TBranch *bg=_tree->Branch("mcg", "MCEventGNtuple",  &pevg, 64000,1);
-   void *pevgg=(void*)&_mcg02;
-   TBranch *bgg=_tree->Branch("mcg02", "MCEventGNtuple02",  &pevgg, 64000,1);
    void *pevh=(void*)&_ctccl;
    TBranch *bh=_tree->Branch("ctccl", "CTCClusterNtuple",  &pevh, 64000,1);
    void *pevi=(void*)&_ctcclmc;
@@ -331,8 +332,6 @@ void AMSNtuple::initR(char* fname){
    TBranch *bl=_tree->Branch("lvl3", "LVL3Ntuple",  &pevl, 64000,1);
    void *pevm=(void*)&_lvl1;
    TBranch *bm=_tree->Branch("lvl1", "LVL1Ntuple",  &pevm, 64000,1);
-   void *pevn=(void*)&_lvl102;
-   TBranch *bn=_tree->Branch("lvl102", "LVL1Ntuple02",  &pevn, 64000,1);
    void *pevo=(void*)&_ctcht;
    TBranch *bo=_tree->Branch("ctcht", "CTCHitNtuple",  &pevo, 64000,1);
    void *pevp=(void*)&_trraw;
@@ -341,6 +340,24 @@ void AMSNtuple::initR(char* fname){
    TBranch *bq=_tree->Branch("antiraw", "AntiRawClusterNtuple",  &pevq, 64000,1);
    void *pevr=(void*)&_tofraw;
    TBranch *br=_tree->Branch("tofraw", "TOFRawClusterNtuple",  &pevr, 64000,1);
+  }
+  else{
+    void *pev2=(void*)&_event02;
+   TBranch *b2=_tree->Branch("event02", "EventNtuple02",  &pev2, 64000,1); 
+   void *pev4=(void*)&_beta02;
+   TBranch *b4=_tree->Branch("beta02", "BetaNtuple02",  &pev4, 64000,1);
+   void *pev6=(void*)&_charge02;
+   TBranch *b6=_tree->Branch("charge02", "ChargeNtuple02",  &pev6, 64000,1);
+   void *pev77=(void*)&_part02;
+   TBranch *b77=_tree->Branch("part02", "ParticleNtuple02",  &pev77, 64000,1);
+   void *pevd=(void*)&_trrh02;
+   TBranch *bd=_tree->Branch("trrh", "TrRecHitNtuple02",  &pevd, 64000,1);
+   void *pevb=(void*)&_trdclmc;
+   TBranch *bb=_tree->Branch("trdclmc", "TRDMCClusterNtuple",  &pevb, 64000,1);
+   void *pevf=(void*)&_trtr02;
+   TBranch *bf=_tree->Branch("trtr02", "TrTrackNtuple02",  &pevf, 64000,1);
+   void *pevgg=(void*)&_mcg02;
+   TBranch *bgg=_tree->Branch("mcg02", "MCEventGNtuple02",  &pevgg, 64000,1);
    void *pevs=(void*)&_ecclust;
    TBranch *bs=_tree->Branch("ecalcl", "EcalClusterNtuple",  &pevs, 64000,1);
    void *pevt=(void*)&_ecalhit;
@@ -351,14 +368,17 @@ void AMSNtuple::initR(char* fname){
    TBranch *bv=_tree->Branch("ricevent","RICEventNtuple",&pevv,64000,1);
    void *pevw=(void*)&_ring;
    TBranch *bw=_tree->Branch("ring","RICRing",&pevw,64000,1);  
+   void *pevn=(void*)&_lvl102;
+   TBranch *bn=_tree->Branch("lvl102", "LVL1Ntuple02",  &pevn, 64000,1);
+  }
    cout <<"AMSNtuple::initR-I-OpenRootFile "<<fname<<" "<<_rfile<<" "<<_tree<<endl;
 #else
 cerr <<" RootFileOutput is Not supported in this version "<<endl;
 exit(1);
 #endif
 }
-
 void AMSNtuple::writeR(){
+
 #ifdef __WRITEROOT__
   if(_tree){
     _tree->Fill();

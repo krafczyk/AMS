@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.41 2001/01/22 17:32:44 choutko Exp $
+//  $Id: ntuple.h,v 1.42 2001/03/02 10:40:56 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -60,6 +60,7 @@ public:
   void reset(int i=0);
   void write(integer addentry=0);
   void writeR();
+  void endR();
   void initR(char* name);
   integer getentries(){return _Nentries;}
   EventNtuple* Get_event() {return &_event;}

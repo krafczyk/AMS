@@ -1,4 +1,4 @@
-//  $Id: producer.h,v 1.11 2001/01/23 11:50:38 choutko Exp $
+//  $Id: producer.h,v 1.12 2001/03/02 10:40:56 choutko Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__
@@ -14,7 +14,7 @@ typedef list<DPS::Producer_var> PList;
 PList _plist;
 static AMSProducer * _Head;
 DPS::Producer::CurrentInfo _cinfo;
-DPS::Producer::DST   _ntend;
+DPS::Producer::DST   _ntend[2];  // 0 - ntuple 1 -root
 DPS::Producer::DST   _evtag;
 DPS::Producer::RunEvInfo_var   _reinfo;
 DPS::Producer::DSTInfo_var   _dstinfo;
@@ -26,6 +26,7 @@ public:
 AMSProducer(int argc,  char * argv[], int debug) throw (AMSClientError);
 ~AMSProducer();
 static AMSProducer* gethead(){return _Head;}
+DPS::Producer::DST * getdst(DPS::Producer::DSTType type);
 void AddEvent();
 void UpdateARS();
 void getRunEventInfo();
@@ -34,9 +35,9 @@ void getASL();
 void sendSelfId();
 void sendDSTInfo();
 bool Progressing();
-void sendNtupleStart(const char * name,int run, int first,time_t begin);
-void sendNtupleUpdate();
-void sendNtupleEnd(int entries, int last, time_t end, bool suc);
+void sendNtupleStart(DPS::Producer::DSTType type,const char * name,int run, int first,time_t begin);
+void sendNtupleUpdate(DPS::Producer::DSTType type);
+void sendNtupleEnd(DPS::Producer::DSTType type,int entries, int last, time_t end, bool suc);
 void sendRunEnd(DAQEvent::InitResult res);
 void sendEventTagEnd(const char *name, uinteger run,time_t insert, time_t begin,time_t end,uinteger first,uinteger last,integer nelem, bool fail);  
 void sendEventTagBegin(const char * name,uinteger run,uinteger first);  

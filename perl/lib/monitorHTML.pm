@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.10 2001/02/18 15:06:46 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.11 2001/03/02 10:41:01 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -340,6 +340,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
         "OutputDirPath",
         "RunMode",
         "UpdateFreq",
+        "DSTType",
                  );
 }elsif( $name eq "Run"){
     $#titles=-1;
@@ -380,11 +381,12 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
         my @text=@{$output[$i]};
         my $string="";
      for my $j (0...$#titles){
-         $string=$string.$titles[$j];
-         my $substr=$titles[$j];
-         $string=$string."<INPUT TYPE=\"TEXT\" NAME=\"TextField\" VALUE=$text[$j]><BR>";
+
+         print $titles[$j];
+         print $q->textfield(-name=>"noname",-default=>"$text[$j]");
+         print "<BR>";
+         
      }
-        print $string;
         print $q->submit(-name=>"MyControl$i", -value=>"Create");
         print $q->submit(-name=>"MyControl$i", -value=>"Update");
         print $q->submit(-name=>"MyControl$i", -value=>"Delete");

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.38 2001/02/28 19:21:13 kscholbe Exp $
+//  $Id: root.h,v 1.39 2001/03/02 10:40:56 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -134,7 +134,7 @@ public:
 friend class AMSEvent;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__
-ClassDef(EventNtuple02,1)       //EventNtuple
+ClassDef(EventNtuple02,1)       //EventNtuple02
 #endif
 };
 

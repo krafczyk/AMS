@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.184 2001/02/23 17:57:31 choutko Exp $
+#  $Id: Mopt,v 1.185 2001/03/02 10:40:57 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -559,7 +559,7 @@ $(BIN)event_c.o: 	 $(SCC)event.C
 $(BIN)timeid_c.o:        $(SCC)timeid.C
 	$(CC) -c $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
            
-$(BIN)producer.o: 	 $(SCC)producer.C
+$(BIN)producer.o: 	 $(SCC)producer.C $(INCLUDE)client.h
 	$(CC) -c -w $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
 
 $(BIN)client.o: 	 $(SCC)client.C

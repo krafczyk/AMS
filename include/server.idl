@@ -1,4 +1,4 @@
- #pragma prefix "ams.cern.ch"
+#pragma prefix "ams.cern.ch"
 module DPS{
    typedef unsigned long time;
   interface Client{
@@ -149,6 +149,7 @@ module DPS{
     void sendCurrentInfo(in CID id,in CurrentInfo ci, in long propagate); 
 
     struct DSTInfo{
+     DSTType type;
      unsigned long uid;
      string HostName;
      string OutputDirPath;

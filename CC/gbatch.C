@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.58 2001/01/26 10:07:59 choutko Exp $
+//  $Id: gbatch.C,v 1.59 2001/03/02 10:40:52 choutko Exp $
 
  
 #include <iostream.h>
@@ -56,6 +56,13 @@ try{
 } 
 catch (amsglobalerror & a){
  cerr<<a.getmessage()<< endl;
+#ifdef __CORBA__
+  AMSClientError ab((const char*)a.getmessage(),DPS::Client::CInAbort);
+ if(AMSProducer::gethead()){
+  cerr<<"setting errror"<< endl;
+  AMSProducer::gethead()->Error()=ab;
+ }
+#endif
     UGLAST(a.getmessage());
     return 1;
 }

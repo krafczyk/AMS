@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.48 2001/01/22 17:32:20 choutko Exp $
+//  $Id: geant3.C,v 1.49 2001/03/02 10:40:52 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -29,6 +29,7 @@
 #include <producer.h>
 #include <geantnamespace.h>         
 #include <status.h>
+#include <ntuple.h>
 #ifdef __AMSDEBUG__
 static integer globalbadthinghappened=0;
 
@@ -45,6 +46,10 @@ extern "C" void simde_(int&);
 extern "C" void trphoton_(int&);
 extern "C" void simtrd_(int& );
 extern "C" void gustep_(){
+        cout << "qq c "<<endl;
+            AMSJob::gethead()->getntuple()->writeR();
+     cout <<" qq d "<<endl;
+
 //AMSmceventg::SaveSeeds();
 //cout <<" in gustep "<<GCFLAG.NRNDM[0]<<" "<<GCFLAG.NRNDM[1]<<endl;
 //if (GCTRAK.istop ){
@@ -438,10 +443,17 @@ GDCXYZ();
    }
   if(trig==0 && freq>1)AMSgObj::BookTimer.stop("GUSTEP");
    //  cout <<" gustep out"<<endl;
+        cout << "qq e "<<endl;
+            AMSJob::gethead()->getntuple()->writeR();
+     cout <<" qq f "<<endl;
+
 }
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
-
+        cout << "qq 1 "<<endl;
+            AMSJob::gethead()->getntuple()->writeR();
+     cout <<" qq 2 "<<endl;
+   
    try{
    if(AMSJob::gethead()->isSimulation()){
       number tt=AMSgObj::BookTimer.stop("GEANTTRACKING");
@@ -624,6 +636,7 @@ try{
      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
      genp->run(GCKINE.ikine);
      //genp->_printEl(cout);
+
     }
    }
    }
@@ -648,6 +661,7 @@ try{
      return;
     }   
    }
+
   }
   else {
     //
@@ -786,10 +800,23 @@ try{
 }
 catch (amsglobalerror & a){
  cerr<<a.getmessage()<< endl;
+#ifdef __CORBA__
+  if(a.getlevel()>2){
+  AMSClientError ab((const char*)a.getmessage(),DPS::Client::CInAbort);
+ if(AMSProducer::gethead()){
+  cerr<<"setting errror"<< endl;
+  AMSProducer::gethead()->Error()=ab;
+ }
+ }
+#endif
     gams::UGLAST(a.getmessage());
     exit(1);
 }
     AMSgObj::BookTimer.stop("GUKINE");
+        cout << "qq a "<<endl;
+            AMSJob::gethead()->getntuple()->writeR();
+     cout <<" qq b "<<endl;
+
 }
 
 

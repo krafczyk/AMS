@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.54 2001/02/28 14:55:53 choutko Exp $
+//  $Id: server.C,v 1.55 2001/03/02 10:40:53 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -1651,6 +1651,18 @@ if(NS){
      break;
    }
    fbin>>ncl->UpdateFreq;
+   fbin>>imode;
+   switch (imode){
+     case 0:
+     ncl->type=Ntuple;
+     break;
+     case 1:
+     ncl->type=RootFile;
+     break;
+     default:
+     ncl->type=Ntuple;
+     break;
+   }
    fbin>>tmpbuf;
     ncl->OutputDirPath=(const char*)tmpbuf;
     ncl->DieHard=0;

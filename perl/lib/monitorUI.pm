@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.22 2001/02/09 13:08:50 choutko Exp $
+#  $Id: monitorUI.pm,v 1.23 2001/03/02 10:41:01 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -1254,6 +1254,7 @@ sub show_sample{
         "OutputDirPath",
         "RunMode",
         "UpdateFreq",
+        "DSTType",
                  );
     }elsif( $name eq "Run"){
         $#titles=-1;

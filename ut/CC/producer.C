@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.33 2001/02/18 15:06:43 choutko Exp $
+//  $Id: producer.C,v 1.34 2001/03/02 10:40:53 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -109,7 +109,6 @@ UpdateARS();
 
 
 
-
     if(_dstinfo->Mode==DPS::Producer::RILO || _dstinfo->Mode==DPS::Producer::RIRO){ 
      DAQEvent::setfile((const char *)(_reinfo->FilePath));
 }
@@ -160,7 +159,16 @@ else{
     sprintf(tmp,"%d",_reinfo->Run);
     ntpath+=tmp;
     ntpath+="/";
-    AMSJob::gethead()->SetNtuplePath((const char *)ntpath);
+     IOPA.hlun=0;
+     IOPA.WriteRoot=0;
+    if(_dstinfo->type == DPS::Producer::RootFile){
+      IOPA.WriteRoot=1;
+      AMSJob::gethead()->SetRootPath((const char *)ntpath);
+    }
+    else{
+       IOPA.hlun=1;
+       AMSJob::gethead()->SetNtuplePath((const char *)ntpath);
+    }
     struct timeb  ft;
     ftime(&ft);
     _ST0=ft.time+ft.millitm/1000.;
@@ -193,22 +201,27 @@ int failure=0;
 }
 if(failure)UpdateARS();
 
-if(force)sendNtupleUpdate();
+if(force){
+  if(IOPA.hlun)sendNtupleUpdate(DPS::Producer::Ntuple);
+  else if(IOPA.WriteRoot)sendNtupleUpdate(DPS::Producer::RootFile);
+}
 }
 
 void AMSProducer::getASL(){
 }
 
 
-void AMSProducer::sendNtupleEnd(int entries, int last, time_t end, bool success){
-_ntend.Status=success?DPS::Producer::Success:DPS::Producer::Failure;
-_ntend.EventNumber=entries;
-_ntend.LastEvent=last;
-_ntend.End=end;
-_ntend.Type=DPS::Producer::Ntuple;
-if(_ntend.End==0 || _ntend.LastEvent==0)_ntend.Status=DPS::Producer::Failure;
+void AMSProducer::sendNtupleEnd(DPS::Producer::DSTType type,int entries, int last, time_t end, bool success){
+DPS::Producer::DST *ntend=getdst(type);
+if(ntend){
+ntend->Status=success?DPS::Producer::Success:DPS::Producer::Failure;
+ntend->EventNumber=entries;
+ntend->LastEvent=last;
+ntend->End=end;
+ntend->Type=type;
+if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
 {
-   AString a=(const char*)_ntend.Name;
+   AString a=(const char*)ntend->Name;
    int bstart=0;
    for (int i=0;i<a.length();i++){
     if(a[i]==':'){
@@ -220,11 +233,11 @@ if(_ntend.End==0 || _ntend.LastEvent==0)_ntend.Status=DPS::Producer::Failure;
     stat((const char*)a(bstart), &statbuf);
     
 
-_ntend.Insert=statbuf.st_ctime;
-_ntend.size=statbuf.st_size/1024./1024.+0.5;
+ntend->Insert=statbuf.st_ctime;
+ntend->size=statbuf.st_size/1024./1024.+0.5;
 
 }
-cout << " nt end " <<_ntend.Insert<<" "<<_ntend.Begin<<" "<<_ntend.End<<endl;
+cout << " nt end " <<ntend->Insert<<" "<<ntend->Begin<<" "<<ntend->End<<endl;
 UpdateARS();
 sendDSTInfo();
 
@@ -233,14 +246,14 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
 
   try{
    if(!CORBA::is_nil(*li)){
-    (*li)->sendDSTEnd(_pid,_ntend,DPS::Client::Delete);
+    (*li)->sendDSTEnd(_pid,*ntend,DPS::Client::Delete);
      break;
    }
   }
   catch  (CORBA::SystemException & a){
   }
 }
-   AString a=(const char*)_ntend.Name;
+   AString a=(const char*)ntend->Name;
    int bstart=0;
    for (int i=0;i<a.length();i++){
     if(a[i]==':'){
@@ -294,11 +307,11 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
       a=(const char*)_pid.HostName;
      a+=":REMOTE:";
      a+=(const char*)fpath.fname;
-     _ntend.Name=(const char *)a;
+     ntend->Name=(const char *)a;
      for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
       try{
        if(!CORBA::is_nil(*li)){
-        (*li)->sendDSTEnd(_pid,_ntend,DPS::Client::Create);
+        (*li)->sendDSTEnd(_pid,*ntend,DPS::Client::Create);
         return;
        }
       }
@@ -320,38 +333,43 @@ else{
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
-    (*li)->sendDSTEnd(_pid,_ntend,DPS::Client::Update);
-     if( _ntend.Status==DPS::Producer::Failure)FMessage("Ntuple Failure",DPS::Client::CInAbort);
+    (*li)->sendDSTEnd(_pid,*ntend,DPS::Client::Update);
+     if( ntend->Status==DPS::Producer::Failure)FMessage("Ntuple Failure",DPS::Client::CInAbort);
      return;
    }
   }
   catch  (CORBA::SystemException & a){
   }
 }
-FMessage("AMSProducer::sendRunEnd-F-UnableToSendNtupleEndInfo ",DPS::Client::CInAbort);
+FMessage("AMSProducer::sendNtupleEnd-F-UnableToSendNtupleEndInfo ",DPS::Client::CInAbort);
 }
-  
+}
+else{
+FMessage("AMSProducer::sendNtupleEnd-F-UNknownDSTType ",DPS::Client::CInAbort);
+}  
 }
 
 
 
-void AMSProducer::sendNtupleStart(const char * name, int run, int first,time_t begin){
+void AMSProducer::sendNtupleStart(DPS::Producer::DSTType type,const char * name, int run, int first,time_t begin){
+DPS::Producer::DST *ntend=getdst(type);
+if(ntend){
 AString a=(const char*)_pid.HostName;
 a+=":";
 a+=name;
-_ntend.Name=(const char *)a;
-_ntend.Run=run;
-_ntend.FirstEvent=first;
-_ntend.Begin=begin;
+ntend->Name=(const char *)a;
+ntend->Run=run;
+ntend->FirstEvent=first;
+ntend->Begin=begin;
 time_t tt;
 time(&tt);
-_ntend.Insert=tt;
-_ntend.End=0;
-_ntend.LastEvent=0;
-_ntend.EventNumber=0;
-_ntend.Status=DPS::Producer::InProgress;
-_ntend.Type=DPS::Producer::Ntuple;
-_ntend.size=0;
+ntend->Insert=tt;
+ntend->End=0;
+ntend->LastEvent=0;
+ntend->EventNumber=0;
+ntend->Status=DPS::Producer::InProgress;
+ntend->Type=type;
+ntend->size=0;
 UpdateARS();
 
 
@@ -360,19 +378,25 @@ sendDSTInfo();
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
-    (*li)->sendDSTEnd(_pid,_ntend,DPS::Client::Create);
+    (*li)->sendDSTEnd(_pid,*ntend,DPS::Client::Create);
     return;
    }
   }
   catch  (CORBA::SystemException & a){
   }
 }
-FMessage("AMSProducer::sendRunEnd-F-UnableToSendNtupleStartInfo ",DPS::Client::CInAbort);
+FMessage("AMSProducer::sendNtupleStart-F-UnableToSendNtupleStartInfo ",DPS::Client::CInAbort);
+}
+else{
+FMessage("AMSProducer::sendNtupleEnd-F-UNknownDSTType ",DPS::Client::CInAbort);
+}
 }
 
-void AMSProducer::sendNtupleUpdate(){
-_ntend.Status=DPS::Producer::InProgress;
-   AString a=(const char*)_ntend.Name;
+void AMSProducer::sendNtupleUpdate(DPS::Producer::DSTType type){
+DPS::Producer::DST *ntend=getdst(type);
+if(ntend){
+ntend->Status=DPS::Producer::InProgress;
+   AString a=(const char*)ntend->Name;
    int bstart=0;
    for (int i=0;i<a.length();i++){
     if(a[i]==':'){
@@ -384,8 +408,8 @@ _ntend.Status=DPS::Producer::InProgress;
     stat((const char*)a(bstart), &statbuf);
     
 
-_ntend.Insert=statbuf.st_ctime;
-_ntend.size=statbuf.st_size/1024./1024.+0.5;
+ntend->Insert=statbuf.st_ctime;
+ntend->size=statbuf.st_size/1024./1024.+0.5;
 
 UpdateARS();
 
@@ -395,16 +419,20 @@ sendDSTInfo();
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
-    (*li)->sendDSTEnd(_pid,_ntend,DPS::Client::Update);
+    (*li)->sendDSTEnd(_pid,*ntend,DPS::Client::Update);
     return;
    }
   }
   catch  (CORBA::SystemException & a){
   }
 }
-FMessage("AMSProducer::sendRunEnd-F-UnableToSendNtupleStartInfo ",DPS::Client::CInAbort);
+FMessage("AMSProducer::sendNtupleUpdate-F-UnableToSendNtupleStartInfo ",DPS::Client::CInAbort);
 }
+else{
+FMessage("AMSProducer::sendNtupleUpdate-F-UNknownDSTType ",DPS::Client::CInAbort);
+}  
 
+}
 
 void AMSProducer::Exiting(const char * message){
 if(_ExitInProgress)return;
@@ -862,4 +890,17 @@ cerr <<"AMSPRoducer::Progressing "<<total<<" "<<lt-xt<<" "<<AMSFFKEY.CpuLimit*2<
  else{
   return true;
  }
+}
+
+DPS::Producer::DST* AMSProducer::getdst(DPS::Producer::DSTType type){
+switch (type){
+case DPS::Producer::Ntuple:
+return &(_ntend[0]);
+break;
+case DPS::Producer::RootFile:
+return &(_ntend[1]);
+break;
+default:
+return 0;
+}
 }
