@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.287 2005/02/03 17:34:43 alexei Exp $
+# $Id: RemoteClient.pm,v 1.288 2005/02/04 12:58:21 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -416,6 +416,8 @@ my %mv=(
         $validatecgi = $validatecgiMySQL;
     } 
 #
+    $self->setActiveProductionSet();
+#
  $dir=$ENV{CERN_ROOT};
  if (defined $dir){
      $self->{CERN_ROOT}=$dir;
@@ -617,7 +619,11 @@ my %mv=(
               my $ret=$self->{sqlserver}->Query($sql);
               if( defined $ret->[0][0]){
                  $dataset->{did}=$ret->[0][0];    
-                 $sql="select jid,time,triggers,timeout from Jobs where did=$ret->[0][0] and jobname like '%$template->{filename}'";
+                 $sql="select jid,time,triggers,timeout from Jobs 
+                       where 
+                        timestamp > $ProductionStartTime and 
+                         did=$ret->[0][0] and 
+                          jobname like '%$template->{filename}'";
                  my $r2= $self->{sqlserver}->Query($sql);
                  if(defined $r2->[0][0]){
                      foreach my $job (@{$r2}){
