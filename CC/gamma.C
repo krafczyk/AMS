@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.21 2002/12/05 14:52:22 choutko Exp $
+//  $Id: gamma.C,v 1.22 2002/12/06 09:36:28 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -4615,16 +4615,31 @@ void MYlfit::make_VAR(){
   for(int i=0;i<L;++i){
     sum += pow((y[i]-a-(b*x[i])),2);
   }
+  if(L-1>0){
   VAR=sum/(L-1);
+  }
+  else{
+   cerr <<" this should be fixed by GL"<<endl;
+  }
 }
 
 void MYlfit::make_a(){
   delta=L*sigma(x,x)-pow(sigma(x),2.0);
-  a=(1.0/delta)*(sigma(x,x)*sigma(y)-sigma(x)*sigma(x,y));
+  if(delta){
+   a=(1.0/delta)*(sigma(x,x)*sigma(y)-sigma(x)*sigma(x,y));
+  }
+  else{
+   cerr <<" this should be fixed by GL"<<endl;
+  }
 }
 
 void MYlfit::make_b(){
-  b=(1.0/delta)*(L*sigma(x,y)-sigma(x)*sigma(y));
+  if(delta){
+   b=(1.0/delta)*(L*sigma(x,y)-sigma(x)*sigma(y));
+  }
+  else{
+   cerr <<" this should be fixed by GL"<<endl;
+  }
 }
 
 void MYlfit::display(){
