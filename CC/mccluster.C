@@ -201,7 +201,7 @@ void AMSTrMCCluster::_writeEl(){
   if (TrMCClusterN->Ntrclmc>=MAXTRCLMC) return;
   
 // Fill the ntuple
-  if(AMSTrMCCluster::Out( IOPA.WriteAll)){
+  if(AMSTrMCCluster::Out( IOPA.WriteAll==1)){
     TrMCClusterN->Idsoft[TrMCClusterN->Ntrclmc]=_idsoft;
     TrMCClusterN->TrackNo[TrMCClusterN->Ntrclmc]=_itra;
     int i;
@@ -379,7 +379,7 @@ void AMSTOFMCCluster::_writeEl(){
   if (TOFMCClusterN->Ntofmc>=MAXTOFMC) return;
   
 // Fill the ntuple
-  if(AMSTOFMCCluster::Out( IOPA.WriteAll)){
+  if(AMSTOFMCCluster::Out( IOPA.WriteAll==1)){
     TOFMCClusterN->Idsoft[TOFMCClusterN->Ntofmc]=idsoft;
     for(int i=0;i<3;i++)TOFMCClusterN->Coo[TOFMCClusterN->Ntofmc][i]=xcoo[i];
     TOFMCClusterN->TOF[TOFMCClusterN->Ntofmc]=tof;
@@ -396,7 +396,7 @@ void AMSAntiMCCluster::_writeEl(){
   if (AntiMCClusterN->Nantimc>=MAXANTIMC) return;
   
 // fill the ntuple
-  if(AMSAntiMCCluster::Out( IOPA.WriteAll)){
+  if(AMSAntiMCCluster::Out( IOPA.WriteAll==1)){
     AntiMCClusterN->Idsoft[AntiMCClusterN->Nantimc]=_idsoft;
     for(int i=0;i<3;i++)AntiMCClusterN->Coo[AntiMCClusterN->Nantimc][i]=_xcoo[i];
     AntiMCClusterN->TOF[AntiMCClusterN->Nantimc]=_tof;
@@ -441,7 +441,7 @@ void AMSCTCMCCluster::_writeEl(){
   if (CTCMCClusterN->Nctcclmc>=MAXCTCCLMC) return;
   
 // Fill ntuple
-  if(AMSCTCMCCluster::Out( IOPA.WriteAll)){
+  if(AMSCTCMCCluster::Out( IOPA.WriteAll==1)){
     CTCMCClusterN->Idsoft[CTCMCClusterN->Nctcclmc]=_idsoft;
     int i;
     for(i=0;i<3;i++)CTCMCClusterN->Coo[CTCMCClusterN->Nctcclmc][i]=_xcoo[i];

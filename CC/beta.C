@@ -245,7 +245,7 @@ void AMSBeta::_writeEl(){
     BN->pTOF[BN->Nbeta][k]=_pcluster[k]->getpos();
     int i,pat;
     pat=_pcluster[k]->getntof()-1;
-    if(AMSTOFCluster::Out(IOPA.WriteAll )){
+    if(AMSTOFCluster::Out(IOPA.WriteAll==1)){
       // Writeall
       for(i=0;i<pat;i++){
         AMSContainer *pc=AMSEvent::gethead()->getC("AMSTOFCluster",i);
@@ -270,7 +270,7 @@ void AMSBeta::_writeEl(){
 
     BN->pTr[BN->Nbeta]=_ptrack->getpos();
     pat=_ptrack->getpattern();
-    if(AMSTrTrack::Out(IOPA.WriteAll)){
+    if(AMSTrTrack::Out(IOPA.WriteAll==1)){
       // Writeall
     
        for(i=0;i<pat;i++){

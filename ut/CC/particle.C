@@ -228,7 +228,7 @@ void AMSParticle::_writeEl(){
  
   PN->TrackP[PN->Npart]=_ptrack->getpos();
   pat=_ptrack->getpattern();
-  if(AMSTrTrack::Out(IOPA.WriteAll)){
+  if(AMSTrTrack::Out(IOPA.WriteAll==1)){
     // Writeall
     for(i=0;i<pat;i++){
       AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrTrack",i);

@@ -73,6 +73,7 @@ public:
      static const integer NEAR;
      static const integer REFITTED;
      static const integer WEAK;
+     static const integer AwayTOF;
 static integer Out(integer);
 number getVal(){return _Sum;}
 number getcofg(integer side, AMSTrIdGeom * id);
@@ -118,9 +119,13 @@ AMSTrCluster():AMSlink(){_NelemL=0; _NelemR=0;_pValues=0;};
 integer operator < (AMSlink & o) const {
 // No RTTI - take a "risk" here
   AMSTrCluster * p= (AMSTrCluster*)(&o);
-//  return getid() < p->getid();
-// New operator < 15/11/96 for ntuple purpose
-  if (checkstatus(AMSDBc::USED) && !(p->checkstatus(AMSDBc::USED)))return 1;
+
+ integer ithis =   (!checkstatus(AMSDBc::USED))
+                 + 2*(checkstatus(AMSTrCluster::AwayTOF));
+ integer iother =   (!p->checkstatus(AMSDBc::USED))
+                  + 2*(p->checkstatus(AMSTrCluster::AwayTOF));
+
+ if (ithis<iother)return 1;
  else return 0;
 
 }
@@ -154,8 +159,16 @@ public:
   _Layer <<" Coo " << _Hit<< endl;}
 integer operator < (AMSlink & o) const {
   AMSTrRecHit * p= (AMSTrRecHit*)(&o);
-  if (checkstatus(AMSDBc::USED) && !(p->checkstatus(AMSDBc::USED)))return 1;
- else return 0;             
+
+  integer ithis =   (!checkstatus(AMSDBc::USED))
+                  + 2*(checkstatus(AMSTrRecHit::AwayTOF));
+  integer iother =   (!p->checkstatus(AMSDBc::USED))
+                   + 2*(p->checkstatus(AMSTrRecHit::AwayTOF));
+
+  if (ithis<iother)return 1;
+  else return 0;
+
+
 
 } 
 

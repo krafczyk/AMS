@@ -1021,7 +1021,7 @@ void AMSTOFRawCluster::_writeEl(){
   if (TN->Ntofraw>=MAXTOFRAW) return;
 
 // Fill the ntuple
-  if(AMSTOFRawCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
+  if(AMSTOFRawCluster::Out( IOPA.WriteAll==1 ||  checkstatus(AMSDBc::USED ))){
     TN->Status[TN->Ntofraw]=_status;
     TN->Layer[TN->Ntofraw]=_ntof;
     TN->Bar[TN->Ntofraw]=_plane;
@@ -1053,7 +1053,7 @@ void AMSTOFCluster::_writeEl(){
   if (TN->Ntof>=MAXTOF) return;
 
 // Fill the ntuple
-  if(AMSTOFCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
+  if(AMSTOFCluster::Out( IOPA.WriteAll==1 ||  checkstatus(AMSDBc::USED ))){
     TN->Status[TN->Ntof]=_status;
     TN->Layer[TN->Ntof]=_ntof;
     TN->Bar[TN->Ntof]=_plane;

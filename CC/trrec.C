@@ -27,10 +27,13 @@
 
 
 integer AMSTrTrack::_RefitIsNeeded=0;
+
 const integer AMSTrCluster::WIDE=1;
 const integer AMSTrCluster::NEAR=2;
 const integer AMSTrCluster::REFITTED=4;
 const integer AMSTrCluster::WEAK=8;
+const integer AMSTrCluster::AwayTOF=128;
+
 const integer AMSTrRecHit::FalseX=1;
 const integer AMSTrRecHit::FalseTOFX=2;
 const integer AMSTrRecHit::AwayTOF=128;
@@ -761,7 +764,11 @@ void AMSTrCluster::_writeEl(){
   if (TrN->Ntrcl>=MAXTRCL) return;
 
 // Fill the ntuple 
-  if(AMSTrCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
+  integer flag =    (IOPA.WriteAll==1)
+                 || (IOPA.WriteAll==0 && checkstatus(AMSDBc::USED))
+                 || (IOPA.WriteAll==2 && !checkstatus(AMSTrCluster::AwayTOF));
+
+  if(AMSTrCluster::Out(flag) ){
     TrN->Idsoft[TrN->Ntrcl]=_Id.cmpt();
     TrN->Status[TrN->Ntrcl]=_status;
     TrN->NelemL[TrN->Ntrcl]=_NelemL;
@@ -999,10 +1006,18 @@ integer AMSTrRecHit::markAwayTOFHits(){
                (phit[3]->getcoo()[2] - phit[0]->getcoo()[2]);
     number intercept_y= phit[0]->getcoo()[1] - slope_y*phit[0]->getcoo()[2];
 
+// First mark all TRClusters as "away from TOF" by default
+    AMSTrCluster* pclus;
+    for (i=0;i<1;i++) {
+      pclus = (AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
+      for (; pclus!=NULL; pclus=pclus->next()) {
+        pclus->setstatus(AMSTrCluster::AwayTOF);
+      }
+    }
+
 // Mark AMSTrRecHits which are outside the TOF path
     AMSTrRecHit * ptrhit;
     AMSPoint hit;
-    AMSTrCluster* pclus;
     for (i=0;i<6;i++) {
       for (ptrhit=AMSTrRecHit::gethead(i); ptrhit!=NULL; ptrhit=ptrhit->next()){
         hit = ptrhit->getHit();
@@ -1011,10 +1026,12 @@ integer AMSTrRecHit::markAwayTOFHits(){
         if (    xres > TRFITFFKEY.SearchRegTOF
              || yres > TRFITFFKEY.SearchRegTOF    ) {
           ptrhit->setstatus(AMSTrRecHit::AwayTOF);
+        }
+        else {
           pclus = ptrhit->getClusterP(0);
-          if (pclus) pclus->setstatus(AMSTrRecHit::AwayTOF);
+          if (pclus) pclus->clearstatus(AMSTrCluster::AwayTOF);
           pclus = ptrhit->getClusterP(1);
-          if (pclus) pclus->setstatus(AMSTrRecHit::AwayTOF);
+          if (pclus) pclus->clearstatus(AMSTrCluster::AwayTOF);
         }
       }
     }
@@ -1046,32 +1063,47 @@ void AMSTrRecHit::_writeEl(){
   if (THN->Ntrrh>=MAXTRRH) return;
 
 // Fill the ntuple 
-  if(AMSTrRecHit::Out( IOPA.WriteAll || checkstatus(AMSDBc::USED ))){
+  integer flag =    (IOPA.WriteAll==1)
+                 || (IOPA.WriteAll==0 && checkstatus(AMSDBc::USED))
+                 || (IOPA.WriteAll==2 && !checkstatus(AMSTrRecHit::AwayTOF));
+
+  if(AMSTrRecHit::Out(flag) ){
     if(_Xcl)THN->pX[THN->Ntrrh]=_Xcl->getpos();
     else THN->pX[THN->Ntrrh]=-1;
     THN->pY[THN->Ntrrh]=_Ycl->getpos();
-      int pat;
-      pat=1;
-      if(AMSTrCluster::Out(IOPA.WriteAll    )){
-        // Writeall
+    int pat;
+    pat=1;
+    if(AMSTrCluster::Out(IOPA.WriteAll==1)){
+      // Writeall
       for(int i=0;i<pat;i++){
           AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrCluster",i);
            #ifdef __AMSDEBUG__
             assert(pc != NULL);
            #endif
            THN->pY[THN->Ntrrh]+=pc->getnelem();
-        }
-      }                                                        
-      else {
-      //WriteUsedOnly
-        for(int i=0;i<pat;i++){
-          AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
-          while(ptr && ptr->checkstatus(AMSDBc::USED)){
-            THN->pY[THN->Ntrrh]++;
-            ptr=ptr->next();
-          }
+      }
+    }                                                        
+    else if (AMSTrCluster::Out(IOPA.WriteAll==0)){
+      //Write only USED hits
+      for(int i=0;i<pat;i++){
+        AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
+        while(ptr && ptr->checkstatus(AMSDBc::USED) ){
+          THN->pY[THN->Ntrrh]++;
+          ptr=ptr->next();
         }
       }
+    }
+    else if (AMSTrCluster::Out(IOPA.WriteAll==2)){
+      //Write only hits consistent with TOF
+      for(int i=0;i<pat;i++){
+        AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
+        while(ptr && !(ptr->checkstatus(AMSTrCluster::AwayTOF)) ){
+          THN->pY[THN->Ntrrh]++;
+          ptr=ptr->next();
+        }
+      }
+    }
+    else return;
   
     if(!checkstatus(AMSTrRecHit::FalseX) && !checkstatus(AMSTrRecHit::FalseTOFX) &&
         ((_Xcl->getid()).getlayer() != _Layer) || 
@@ -2033,7 +2065,7 @@ void AMSTrTrack::_writeEl(){
      TrTN->pHits[TrTN->Ntrtr][k]=_Pthit[k]->getpos();
       int pat;
       pat=_Pthit[k]->getLayer()-1;
-      if(AMSTrRecHit::Out(IOPA.WriteAll)){
+      if (AMSTrRecHit::Out(IOPA.WriteAll==1)){
         // Writeall
         for(i=0;i<pat;i++){
           AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrRecHit",i);
@@ -2043,7 +2075,7 @@ void AMSTrTrack::_writeEl(){
            TrTN->pHits[TrTN->Ntrtr][k]+=pc->getnelem();
         }
       }                                                        
-      else {
+      else if (AMSTrRecHit::Out(IOPA.WriteAll==0)){
       //WriteUsedOnly
         for(i=0;i<pat;i++){
           AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
@@ -2053,6 +2085,17 @@ void AMSTrTrack::_writeEl(){
           }
         }
       }
+      else if (AMSTrRecHit::Out(IOPA.WriteAll==2)){
+      //WriteUsedOnly
+        for(i=0;i<pat;i++){
+          AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
+          while(ptr && !(ptr->checkstatus(AMSTrRecHit::AwayTOF)) ){
+            TrTN->pHits[TrTN->Ntrtr][k]++;
+            ptr=ptr->next();
+          }
+        }
+      }
+      else return;
     }
   
   

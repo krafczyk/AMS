@@ -362,7 +362,7 @@ void AMSCTCCluster::_writeEl(){
   if (CTCCLN->Nctccl>=MAXCTCCL) return;
   
 // Fill the ntuple
-  if(AMSCTCCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED))){
+  if(AMSCTCCluster::Out( IOPA.WriteAll==1 ||  checkstatus(AMSDBc::USED))){
     CTCCLN->Status[CTCCLN->Nctccl]=_status; 
     CTCCLN->Layer[CTCCLN->Nctccl]=_Layer;
     int i;
