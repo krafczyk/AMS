@@ -185,6 +185,8 @@ module DPS{
      unsigned long      CounterFail;
      time SubmitTime;
      unsigned long cuid;
+     unsigned long rndm1;
+     unsigned long rndm2;
 //     unsigned long pid;
      CurrentInfo cinfo;     
     };
@@ -213,8 +215,11 @@ module DPS{
      string Name;
      string Version;
      unsigned long crc;
+     unsigned long rndm1;
+     unsigned long rndm2;
      long FreeSpace;
      long TotalSpace;
+
     };    
 
     void sendDSTEnd(in CID id, in DST ne, in RecordChange re)raises(DBProblem); 

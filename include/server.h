@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.49 2004/06/16 09:39:57 choutko Exp $
+//  $Id: server.h,v 1.50 2005/01/04 20:57:16 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -398,7 +398,7 @@ public:
 
   void sendDSTEnd(const DPS::Client::CID & ci, const  DPS::Producer::DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException);
 
-uinteger getSmartFirst(uinteger run);
+uinteger getSmartFirst(uinteger run,uinteger rndm[2]);
 
 void PropagateRun(const DPS::Producer::RunEvInfo & ri, DPS::Client::RecordChange rc,  DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0);
 bool PropagateRunDB(const DPS::Producer::RunEvInfo & ri, DPS::Client::RecordChange rc);

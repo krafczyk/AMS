@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.116 2004/12/18 17:34:54 choutko Exp $
+//  $Id: server.C,v 1.117 2005/01/04 20:57:16 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -3078,9 +3078,14 @@ if(dv->DieHard ==0){
    _parent->IMessage(AMSClient::print(rv));
   }
   PropagateRun(rv, DPS::Client::Update);
-  uinteger smartfirst=getSmartFirst(rv->Run);
+  uinteger rndm[2]={0,0};
+  uinteger smartfirst=getSmartFirst(rv->Run,rndm);
  if( smartfirst>rv->FirstEvent){
    rv->FirstEvent=smartfirst;
+   if(rndm[0] && rndm[1]){
+    rv->rndm1=rndm[0];
+    rv->rndm2=rndm[1];
+   }
    _parent->IMessage(AMSClient::print(rv,"Run First Event Modified"));
    if(smartfirst>rv->LastEvent){
    _parent->EMessage(AMSClient::print(rv,"***SMART PROBLEM***"));
@@ -3733,7 +3738,7 @@ IMessage((const char*)li->second);
 }
 
 
-uinteger Producer_impl::getSmartFirst(uinteger run){
+uinteger Producer_impl::getSmartFirst(uinteger run, uinteger rndm[2]){
  pair<DSTLI,DSTLI>dst[3];
  bool present[3];
  DPS::Producer::DSTType Ntuple=DPS::Producer::Ntuple;
@@ -3749,21 +3754,31 @@ uinteger Producer_impl::getSmartFirst(uinteger run){
    check=check || present[i];
  }
   if(!check)return 0;
+  uinteger rndmm[3][2];
   uinteger first[3]={INT_MAX,INT_MAX,INT_MAX};
  for(int i=0;i<3;i++){
   if(present[i]){
    first[i]=0;
    for(DSTLI li=dst[i].first;li!=dst[i].second;++li){
     if(((li->second)->Status ==DPS::Producer::Success  || (li->second)->Status ==DPS::Producer::Validated) && (li->second)->Run==run){
-     if(first[i]<((li->second)->LastEvent)+1)first[i]=((li->second)->LastEvent)+1;
+     if(first[i]<((li->second)->LastEvent)+1){
+       first[i]=((li->second)->LastEvent)+1;
+       rndmm[i][0]=(li->second)->rndm1;
+       rndmm[i][1]=(li->second)->rndm2;
+     }
     }
    }
   }
  }
  uinteger veryfirst=INT_MAX;
  for(int i=0;i<3;i++){
-  if(veryfirst>first[i])veryfirst=first[i];
+  if(veryfirst>first[i]){
+    veryfirst=first[i];
+    rndm[0]=rndmm[i][0];
+    rndm[1]=rndmm[i][1];
+  }
  }
+ 
  return veryfirst;
 }
 

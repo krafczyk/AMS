@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.284 2004/12/06 14:14:58 alexei Exp $
+# $Id: RemoteClient.pm,v 1.285 2005/01/04 20:57:16 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4770,7 +4770,8 @@ print qq`
          $ri->{TLEvent}=$timendu;
          $ri->{Priority}=0;
          $ri->{FilePath}=$script;
-       
+         $ri->{rndm1}=0;       
+         $ri->{rndm2}=0;       
             if ($self->{CCT} eq "remote"){
              $ri->{Status}="Foreign";
              $ri->{History}="Foreign";

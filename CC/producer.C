@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.89 2004/12/18 17:34:54 choutko Exp $
+//  $Id: producer.C,v 1.90 2005/01/04 20:57:16 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -193,9 +193,9 @@ if (_Solo){
     _reinfo->CounterFail=0;
    }
     SELECTFFKEY.Run=_reinfo->Run;
-    SELECTFFKEY.Event=_reinfo->FirstEvent;
+    //SELECTFFKEY.Event=_reinfo->FirstEvent;
     SELECTFFKEY.RunE=_reinfo->Run;
-    SELECTFFKEY.EventE=_reinfo->LastEvent;    
+    //SELECTFFKEY.EventE=_reinfo->LastEvent;    
     _cinfo.EventsProcessed=0;
     _cinfo.ErrorsFound=0;
     _cinfo.Status=DPS::Producer::Processing;
@@ -231,9 +231,9 @@ again:
     _cinfo.Run=_reinfo->Run;
     _cinfo.HostName=_pid.HostName; 
     SELECTFFKEY.Run=_reinfo->Run;
-    SELECTFFKEY.Event=_reinfo->FirstEvent;
+    //SELECTFFKEY.Event=_reinfo->FirstEvent;
     SELECTFFKEY.RunE=_reinfo->Run;
-    SELECTFFKEY.EventE=_reinfo->LastEvent;    
+    //SELECTFFKEY.EventE=_reinfo->LastEvent;    
     _cinfo.EventsProcessed=0;
     _cinfo.ErrorsFound=0;
     _cinfo.Status=DPS::Producer::Processing;
@@ -242,6 +242,7 @@ again:
 
    if(AMSJob::gethead()->isSimulation()){
     GCFLAG.IEVENT=_reinfo->FirstEvent;
+/*
     if(GCFLAG.IEVENT>1 ){
      // should call the rndm odnako
      cerr<<"AMSProducer::getRunEventInfo-W-ChangingRNDMBecauseFirstEventNumberNotOne"<<endl;
@@ -249,6 +250,24 @@ again:
       geant dum;
       RNDM(dum);
      }
+    }
+*/
+    if(GCFLAG.IEVENT>1 ){
+    if(!_reinfo->rndm1 ||  !_reinfo->rndm2){
+
+     cerr<<"AMSProducer::getRunEventInfo-W-FirstEventNumberNotOneButRNDMIsZero"<<endl;
+     for(int i=1;i<GCFLAG.IEVENT;i++){
+      geant dum;
+      RNDM(dum);
+     }
+
+    }
+    else{
+      cout<<"AMSProducer::getRunEventInfo-W-ChangingRNDMBecauseFirstEventNumberNotOne "<<_reinfo->rndm1<<" "<<_reinfo->rndm2<<endl;
+       GCFLAG.NRNDM[0]=_reinfo->rndm1;      
+       GCFLAG.NRNDM[1]=_reinfo->rndm2;
+       AMSmceventg::RestoreSeeds();      
+    }
     }
     GCFLAG.NEVENT=_reinfo->LastEvent;
     CCFFKEY.run=_reinfo->Run;
@@ -441,6 +460,10 @@ ntend->EventNumber=entries;
 ntend->LastEvent=last;
 ntend->End=end;
 ntend->Type=type;
+AMSmceventg::SaveSeeds();
+ntend->rndm1=GCFLAG.NRNDM[0];
+ntend->rndm2=GCFLAG.NRNDM[1];
+//cout <<"  Sending Last Event " <<ntend->LastEvent<<" "<<ntend->rndm1<<" "<<ntend->rndm2<<endl;
 if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
 {
    AString a=(const char*)ntend->Name;
