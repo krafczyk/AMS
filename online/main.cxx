@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.17 2003/06/19 13:00:13 choutko Exp $
+//  $Id: main.cxx,v 1.18 2004/01/19 22:38:06 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -24,6 +24,7 @@
 #include "AMSTRDHist.h"
 #include "AMSAxAMSHist.h"
 #include "AMSGenHist.h"
+#include "AMSEverything.h"
 #include "main.h"
 #include <dirent.h>
 #include <TString.h>
@@ -92,7 +93,9 @@ int main(int argc, char *argv[])
   amd->AddSubDet(AxAMSh);
   AMSGenHist  Genh("&General","Gen  Hists");
   amd->AddSubDet(Genh);
-  
+  AMSEverything  Everyh("E&verything","All Hists");
+  amd->AddSubDet(Everyh);
+ 
 
 
   amd->Init();

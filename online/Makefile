@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.8 2003/09/04 10:28:00 choutko Exp $
+#  $Id: Makefile,v 1.9 2004/01/19 22:38:06 choutko Exp $
 
 PLATFORM      =  Linux
 
@@ -32,6 +32,7 @@ SRCS          = AMSDisplay.cxx \
                 AMSAxAMSHist.cxx\
                 AMSGenHist.cxx\
                 AMSNtuple.cxx \
+                AMSEverything.cxx
 
 HDRS          =   \
                 ../include/root_RVS.h\
@@ -116,6 +117,9 @@ endif
 		cat  $(PREFIX)Make-depend | sed -e 'sx/../CC/x/x1' > $(PREFIX)Make-depend.new
 		rm -f $(PREFIX)Make-depend
 		mv $(PREFIX)Make-depend.new $(PREFIX)Make-depend
+
+AMSEverything.cxx:      ../perl/online.perl ../include/root_methods.h
+	perl ../perl/online.perl
 
 dist:
 		rm -f $(AMSPRG).tar.gz ; \

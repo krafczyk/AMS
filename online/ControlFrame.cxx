@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.5 2003/07/01 06:42:20 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.6 2004/01/19 22:38:06 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSTOFHist.h"
@@ -35,11 +35,11 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
     case kCM_CHECKBUTTON:
     case kCM_RADIOBUTTON:
     case kCM_BUTTON:
-      if(parm1/10000 == 2){
+      if(parm1/100000 == 2){
 	gAMSDisplay->Dispatch(parm1%100);
 	return kTRUE;
       }
-      if(parm1/10000 == 3){
+      if(parm1/100000 == 3){
 	(gAMSDisplay->getSubDet(parm1%100))->SetActive(_pcycle[parm1%100]->GetState());
 	return kTRUE;
       }
@@ -97,9 +97,9 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       }
       break;
     case kCM_MENU:
-      if(parm1/10000 ==1){
-	int sdet=(parm1/100)%100;
-	int set=parm1%100;
+      if(parm1/100000 ==1){
+	int sdet=(parm1/1000)%1000;
+	int set=parm1%1000;
         gAMSDisplay->Dispatch(sdet,set);
         gAMSDisplay->GetCanvas()->Update();         
 
@@ -190,7 +190,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     for(i=0;i<fSubDetMenu.size();i++){
       
       for(int j=0;j<gAMSDisplay->getSubDet(i)->getMSet();j++){
-        int kpar=10000+100*i+j;
+        int kpar=100000+1000*i+j;
         fSubDetMenu[i]->AddEntry(gAMSDisplay->getSubDet(i)->GetSetName(j),kpar);
       }
       
@@ -256,7 +256,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     
    
     for(i=0;i<fSubDetMenu.size();i++){
-       _pbutton.push_back(new TGTextButton(_pbutfr, gAMSDisplay->getSubDet(i)->GetName(), 20000+i));
+       _pbutton.push_back(new TGTextButton(_pbutfr, gAMSDisplay->getSubDet(i)->GetName(), 200000+i));
       wattr.fMask = kWABackPixel | kWAEventMask;
       wattr.fBackgroundPixel = tgbcolor;
       wattr.fEventMask = kExposureMask;
@@ -265,7 +265,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     }
     //  get subdet from amsdisplay
     for(i=0;i<_pbutton.size();i++){
-      _pcycle.push_back(new TGCheckButton(_pcyclefr, gAMSDisplay->getSubDet(i)->GetName(), 30000+i));
+      _pcycle.push_back(new TGCheckButton(_pcyclefr, gAMSDisplay->getSubDet(i)->GetName(), 300000+i));
       wattr.fMask = kWABackPixel | kWAEventMask;
       wattr.fBackgroundPixel = tggcolor;
       wattr.fEventMask = kExposureMask;
