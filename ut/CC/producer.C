@@ -37,6 +37,7 @@ else{
    DPS::Producer_var var=DPS::Producer::_narrow(obj);
    if(CORBA::is_nil(var))throw AMSProducer::Error("AMSProducer::AMSProducer-F-CORBA::is_nil-2",2);
    _plist.push_back(var);
+    cout << "   ***** sending id"<<endl;
    if(!(var->sendId(_pid,1,0))){
      // dieHard
      Message("Server Requested Termination after sendID ",2);

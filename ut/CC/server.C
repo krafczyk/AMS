@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
-#include <astring.h>
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
@@ -27,8 +26,7 @@ Back:
        goto Back;
      }
      try{
-      sleep(1);
-      AMSServer::Singleton()->getOrb()->perform_work();
+      AMSServer::Singleton()->Listening();
      }
      catch(CORBA::SystemException &a){
       cerr <<"CorbaSystemExceptionDuringPerform_Work "<<endl;
@@ -40,7 +38,7 @@ Back:
 
 
 AMSServer::AMSServer(int argc, char* argv[]){
-
+ char *iface=0;
  char * ior=0;
  uinteger uid=0;
  char *rfile=0;
@@ -64,6 +62,9 @@ AMSServer::AMSServer(int argc, char* argv[]){
     case 'S':   //NominalServer
      nserver=++pchar;
      break;
+    case 'F':   //NominalInterface
+     iface=++pchar;
+     break;
     case 'P':   //NominalProducer
      nproducer=++pchar;
      break;
@@ -78,15 +79,64 @@ AMSServer::AMSServer(int argc, char* argv[]){
      break;
   }
  }
-  _orb=CORBA::ORB_init(argc,argv);
-   CORBA::Object_var obj=_orb->resolve_initial_references("RootPOA");
-  _poa=PortableServer::POA::_narrow(obj);
-  _mgr=_poa->the_POAManager();
-  _mgr->activate();
-  _pser= new Server_impl(_poa,_orb,nserver,nhost);
+if(iface){
+ ifstream fbin;
+ fbin.open(iface);
+ if(fbin){
+   if(fbin.get()=='#')fbin.ignore(1024,'\n');
+   else fbin.seekg(fbin.tellg()-sizeof(char));
+  while(!fbin.eof() && fbin.good()){ 
+   char tmpbuf[1024];
+   fbin>>tmpbuf;
+   if(fbin.good()){
+  try{
+   cout <<"qq0 "<<tmpbuf<<endl;
+   OrbitVars e;
+   cout <<"qq1 "<<tmpbuf<<endl;
+   e._orb=CORBA::ORB_init(argc,argv);
+   CORBA::Object_var obj=e._orb->resolve_initial_references("RootPOA");
+   e._poa=PortableServer::POA::_narrow(obj);
+/*
+   // orbit doesnot support policies in cpp yet -> mod the sources, so root poa now has multiple_id policu
+   PortableServer::IdUniquenessPolicy_var lf=e._poa->create_iduniqueness_policy(PortableServer::MULTIPLE_ID);
+   CORBA::Policy pl;
+   pl.length(1);
+    pl[0]=lf;
+   e._poa=e._poa->create_POA("AMSPOA",PortableServer::POAManager::_nil(),pl);
+*/
+   e._mgr=e._poa->the_POAManager();
+   e._mgr->activate();
+   AString a(tmpbuf);
+   cout <<"qq2 "<<tmpbuf<<endl;
+   _orbmap[a]=e;
+   cout <<"qq "<<tmpbuf<<endl;
+   }   
+  catch (CORBA::SystemException &ex){
+   cerr <<"AMSServer::AMSServer-E-CorbaSysExeceptionOnInit "<<tmpbuf<<endl;
+  }
+  }  
+  }
+ }
+ else{
+  cerr<<"AMSServer::AMSServer-F-UnableToOpenNIFile "<<iface<<endl;
+  abort();
+ }
+ if(_orbmap.size()<1){
+   cerr <<"AMSServer::AMSServer-F-NoInterfacesOpen "<<endl;
+   abort();
+ }
+}
+else{
+  cerr<<"AMSServer::AMSServer-F-UnableToFindNIFile "<<endl;
+  abort();
+}
+
+
+
+  _pser= new Server_impl(_orbmap,nserver,nhost);
  if(ior==0){      //  Primary
   if(rfile){  
-   _pser->add(new Producer_impl(_poa,_orb,nproducer,rfile,ntuplestring,eventtagstring));
+   _pser->add(new Producer_impl(_orbmap,nproducer,rfile,ntuplestring,eventtagstring));
   }  
   
  }
@@ -96,11 +146,14 @@ AMSServer::AMSServer(int argc, char* argv[]){
 
 }
 
-Producer_impl::Producer_impl(PortableServer::POA_ptr poa, CORBA::ORB_ptr orb, char * NC, char *RF, char *NS, char *TS): POA_DPS::Producer(),AMSServerI(AMSID("Producer",0)){
+Producer_impl::Producer_impl(const map<AString, AMSServer::OrbitVars> & mo, char * NC, char *RF, char *NS, char *TS): POA_DPS::Producer(),AMSServerI(AMSID("Producer",0)){
 
- PortableServer::ObjectId_var oid=poa->activate_object(this);
- _ref = reinterpret_cast<DPS::Producer_ptr>(poa->id_to_reference(oid));
- _refstring=orb->object_to_string(_ref);
+typedef map<AString, AMSServer::OrbitVars>::const_iterator MOI;
+for(MOI i=mo.begin();i!=mo.end();++i){
+  PortableServer::ObjectId_var oid=(i->second)._poa->activate_object(this);
+  DPS::Producer_var _ref = reinterpret_cast<DPS::Producer_ptr>((i->second)._poa->id_to_reference(oid));
+   _refmap[i->first]=((i->second)._orb)->object_to_string(_ref);
+}
 // Here read nominalclients
    
 if(NC){
@@ -157,12 +210,15 @@ else{
 }
 }
 
-Server_impl::Server_impl(PortableServer::POA_ptr poa, CORBA::ORB_ptr orb, char* NS, char * NH): POA_DPS::Server(),AMSServerI(AMSID("Server",0)){
-//Here init asl
+Server_impl::Server_impl(const map<AString, AMSServer::OrbitVars> & mo, char* NS, char * NH): POA_DPS::Server(),AMSServerI(AMSID("Server",0)){
 
- PortableServer::ObjectId_var oid=poa->activate_object(this);
- _ref = reinterpret_cast<DPS::Server_ptr>(poa->id_to_reference(oid));
- _refstring=orb->object_to_string(_ref);
+typedef map<AString, AMSServer::OrbitVars>::const_iterator MOI;
+for(MOI i=mo.begin();i!=mo.end();++i){
+  cout <<i->first<<endl;
+  PortableServer::ObjectId_var oid=(i->second)._poa->activate_object(this);
+  DPS::Server_var _ref = reinterpret_cast<DPS::Server_ptr>((i->second)._poa->id_to_reference(oid));
+   _refmap[i->first]=(i->second)._orb->object_to_string(_ref);
+}
 if(NS){
  ifstream fbin;
  fbin.open(NS);
@@ -225,16 +281,26 @@ void Producer_impl::_init(){
   for(NHLI i=(_pser->getNHL()).begin();i!=(_pser->getNHL()).end();++i){
    DPS::Client::ActiveHost_var ah= new DPS::Client::ActiveHost();
    ah->HostName=CORBA::string_dup((*i)->HostName);
-   if(_pser->pingHost((const char*)(ah->HostName)))ah->Status=DPS::Client::OK; 
-   else ah->Status=DPS::Client::NoResponse; 
+   ah->Interface=CORBA::string_dup((*i)->Interface);
+   if(_pser->pingHost((const char*)(ah->HostName)))ah->Status=DPS::Client::OK;
+   else ah->Status=DPS::Client::NoResponse;
    ah->ClientsProcessed=0;
    ah->ClientsFailed=0;
    ah->ClientsRunning=0;
    ah->ClientsAllowed=min((*i)->CPUNumber/_ncl->CPUNeeded,(*i)->Memory/float(_ncl->MemoryNeeded));
- 
+
    time_t tt;
    time(&tt);
    ah->LastUpdate=tt;
+//Check Interface
+   if(_refmap.find((const char *)(ah->Interface))==_refmap.end()){
+   ah->Interface=(const char *)((_refmap.begin())->first);
+#ifdef __AMSDEBUG__
+       if((_refmap.begin())->first != "default"){
+        cerr<<"Producer_impl::_init-S-FirstRefmapEntry!=default "<<(_refmap.begin())->first<<endl;
+   }
+#endif
+   }
    _ahl.push_back(ah);
   }
  }
@@ -253,6 +319,7 @@ void Server_impl::_init(){
   for(NHLI i=(_pser->getNHL()).begin();i!=(_pser->getNHL()).end();++i){
    DPS::Client::ActiveHost_var ah= new DPS::Client::ActiveHost();
    ah->HostName=CORBA::string_dup((*i)->HostName);
+   ah->Interface=CORBA::string_dup((*i)->Interface);
    if(_pser->pingHost((const char*)(ah->HostName)))ah->Status=DPS::Client::OK; 
    else ah->Status=DPS::Client::NoResponse; 
    ah->ClientsProcessed=0;
@@ -263,6 +330,15 @@ void Server_impl::_init(){
    time_t tt;
    time(&tt);
    ah->LastUpdate=tt;
+//Check Interface
+   if(_refmap.find((const char *)(ah->Interface))==_refmap.end()){
+   ah->Interface=(const char *)((_refmap.begin())->first);
+#ifdef __AMSDEBUG__
+       if((_refmap.begin())->first != "default"){
+        cerr<<"Server_impl::_init-S-FirstRefmapEntry!=default "<<(_refmap.begin())->first<<endl;
+   }
+#endif
+   }
    _ahl.push_back(ah);
   }
  }
@@ -271,38 +347,38 @@ void Server_impl::_init(){
   abort();
  }
  // Registered itself in _acl
-DPS::Client::ActiveClient_var as= new DPS::Client::ActiveClient();
-     
+     DPS::Client::ActiveClient_var as= new DPS::Client::ActiveClient();
      (as->id).uid=_Submit;
      (as->id).pid=getpid();
      (as->id).ppid=getppid();
-     char name[256];
-     int len=255;
-     if(gethostname(name,len)){
-       cerr<<"Server_impl-ctor-S-UnableToGetHostName"<<endl;
-       (as->id).HostName=(const char *) " ";
-     }
-     else (as->id).HostName=(const char *) name;
-     as->IOR= CORBA::string_dup(_refstring);
      as->Type=DPS::Client::Server;
      as->Status=DPS::Client::Registered;
      time_t tt;
      time(&tt);
      as->LastUpdate=tt;     
      as->Start=tt;
+     char name[256];
+     int len=255;
+     if(gethostname(name,len)){
+       cerr<<"Server_impl-ctor-F-UnableToGetHostName"<<endl;
+       abort();
+     }
+//Find corr server
+     for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
+       if(strstr((const char *)((*i)->HostName),(const char *)((as->id).HostName))){
+      ((*i)->ClientsRunning)++;
+//Find Interface
+       as->IOR=(const char *)(_refmap.find((const char*)((*i)->Interface))->second);
+       break;
+      } 
+    }
      _asl.push_back(as);
-//   Find corr server
- for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
-  if(strstr((const char *)((*i)->HostName),(const char *)((as->id).HostName))){
-   ((*i)->ClientsRunning)++;
-   break;
-  }
- }
 
 }
 
 
 CORBA::Boolean Producer_impl::sendId(const DPS::Client::CID& cid, int p, int e) throw (CORBA::SystemException){
+    cout <<"  gotta "<<endl;
      for(ACLI j=_acl.begin();j!=_acl.end();++j){
       if(((*j)->id).uid==cid.uid){
        ((*j)->id).pid=cid.pid;
@@ -432,6 +508,7 @@ void Producer_impl::StartClients(){
     }   
     if(curc>=(*i)->ClientsAllowed)break;
     // HereStartClient
+   CORBA::String_var _refstring=_refmap.find((const char *)((*i)->Interface))->second;
 #ifdef __AMSDEBUG__
     cout <<_refstring<<endl;
 #endif
@@ -502,3 +579,10 @@ void Server_impl::CheckClients(){
 
 
 
+void AMSServer::Listening(){
+typedef map<AString, AMSServer::OrbitVars>::iterator MOI; 
+      for(MOI i=_orbmap.begin();i!=_orbmap.end();++i){
+       sleep(1);
+       (i->second)._orb->perform_work();
+      }
+}

@@ -11,7 +11,9 @@ extern "C" void shl_unload(){
 extern "C" void shl_get(){
 }
 extern "C" void uginit_(){
-gams::UGINIT();
+int argc=0;
+char **argv=0;
+gams::UGINIT(argc,argv);
 }
 extern "C" void uglast_(){
 gams::UGLAST();

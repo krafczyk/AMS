@@ -4,16 +4,20 @@
 #include <time.h>
 #include <iostream.h>
 #include <unistd.h>
+#include <map>
 #include <list>
 #include <queue>
 #include <server-cpp-common.hh> 
 #include <server-cpp-skels.hh>
 #include <ORBitservices/CosNaming.hh>
 #include <node.h>
+#include <astring.h>
 
 class AMSServerI : public AMSNode{
  protected:
  unsigned long _Submit;
+ typedef map<AString,CORBA::String_var> MS;
+ MS _refmap;
  public:
  virtual void StartClients()=0;
  virtual void CheckClients()=0; 
@@ -25,6 +29,40 @@ class AMSServerI : public AMSNode{
   AMSServerI * down(){return dynamic_cast<AMSServerI*>(AMSNode::down());}
   AMSServerI(AMSID id):AMSNode(id),_Submit(0){};
 };
+
+
+
+class AMSServer{
+public:
+class OrbitVars{
+public:
+CORBA::ORB_ptr  _orb;    
+PortableServer::POA_ptr _poa;
+PortableServer::POAManager_ptr _mgr;
+/*
+~OrbitVars(){CORBA::release(_orb);
+             CORBA::release(_poa);
+             CORBA::release(_mgr);}
+*/
+};
+protected:
+static AMSServer * _Head;
+typedef map<AString, AMSServer::OrbitVars> MO;  
+MO _orbmap; 
+AMSServerI *   _pser;
+public:
+AMSServer(int argc, char *argv[]);
+static AMSServer* & Singleton(){return _Head;};
+void Listening();
+void UpdateDB();
+void SystemCheck();
+~AMSServer(){if(_pser)delete _pser;}
+
+};
+
+
+
+
 
 class Producer_impl : public virtual POA_DPS::Producer, public AMSServerI{
 protected:
@@ -39,9 +77,10 @@ else return false;
 }
 };
 typedef  priority_queue<DPS::Producer::RunEvInfo_var,vector<DPS::Producer::RunEvInfo_var>,Prio> RunQueue;
-//typedef list<DPS::Producer::RunEvInfo> RunQueue;
+/*
 DPS::Producer_mgr _ref;
 CORBA::String_var _refstring;
+*/
 RunQueue _rq;
 typedef list<DPS::Client::ActiveClient_var> ACL;
 typedef list<DPS::Client::ActiveClient_var>::iterator ACLI;
@@ -68,7 +107,7 @@ public:
   void sendEndRunInfo(const  EndRunInfo & ne, int Propagate, int Error)throw (CORBA::SystemException);
 
   virtual DPS::Producer::RunEvInfo *  getRunEvInfo(int p,int e)throw (CORBA::SystemException);
-  Producer_impl(PortableServer::POA_ptr poa, CORBA::ORB_ptr orb, char * NC=0, char* RF=0, char* NS=0, char * TS=0);
+  Producer_impl(const map<AString, AMSServer::OrbitVars> & mo, char * NC=0, char* RF=0, char* NS=0, char * TS=0);
 };
 class Server_impl : public virtual POA_DPS::Server, public AMSServerI{
 protected:
@@ -81,8 +120,6 @@ ACL  _asl;     // Active Server List
 DPS::Client::NominalClient_var _ncl;
 typedef list<DPS::Server::NominalHost_var> NHL;
 NHL  _nhl;
-DPS::Server_mgr _ref;
-CORBA::String_var _refstring;
 public:
  NHL & getNHL(){return _nhl;}
  AMSServerI * getServer(){return this;}
@@ -99,7 +136,7 @@ public:
   void sendAHL(const AHS & ahl, int Propagate,int Error)throw (CORBA::SystemException);
   void sendNCL(const NCS & ncl, int Propagate,int Error)throw (CORBA::SystemException);
   void ping()throw (CORBA::SystemException);
-  Server_impl(PortableServer::POA_ptr poa, CORBA::ORB_ptr orb, char * NS=0, char* NH=0);
+  Server_impl(const map<AString, AMSServer::OrbitVars> & mo, char * NS=0, char* NH=0);
   ~Server_impl(){if(_down)_down->remove();}
   bool pingHost(const char * host);
 };
@@ -107,23 +144,6 @@ public:
 
 
 
-
-class AMSServer{
-protected:
-static AMSServer * _Head;
-CORBA::ORB_var  _orb; 
-PortableServer::POA_var _poa;
-PortableServer::POAManager_var _mgr;
-AMSServerI *   _pser;
-public:
-AMSServer(int argc, char *argv[]);
-static AMSServer* & Singleton(){return _Head;};
-const CORBA::ORB_var & getOrb()const {return _orb;}
-void UpdateDB();
-void SystemCheck();
-~AMSServer(){if(_pser)delete _pser;}
-
-};
 
 
 

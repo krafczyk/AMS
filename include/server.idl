@@ -43,6 +43,7 @@ module DPS{
    enum HostStatus{NoResponse,LastClientFailed,OK};
    struct ActiveHost{
       string HostName;
+      string Interface;
       HostStatus Status;
       short ClientsRunning;
       short ClientsAllowed; 
