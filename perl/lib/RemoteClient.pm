@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.279 2004/09/23 11:31:10 alexei Exp $
+# $Id: RemoteClient.pm,v 1.280 2004/09/23 14:42:01 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3309,9 +3309,9 @@ else {
                foreach my $fs (@{$self->{FilesystemT}}){
                  if ($fs->{available} > $maxavail) {
                    $maxavail = $fs->{available};
-                   $ntdir = $fs->{disk}.$fs->{path};
+                   $ntdir = $fs->{disk}.$fs->{path}."/".$ActiveProductionSet;
                    if ($fs->{disk} =~ /vice/) {
-                    $ntdir = $fs->{path};
+                    $ntdir = $fs->{path}."/".$ActiveProductionSet;
                    }
                  }
                }
@@ -3489,9 +3489,9 @@ DDTAB:         $self->htmlTemplateTable(" ");
                foreach my $fs (@{$self->{FilesystemT}}){
                  if ($fs->{available} > $maxavail) {
                    $maxavail = $fs->{available};
-                   $ntdir = $fs->{disk}.$fs->{path};
+                   $ntdir = $fs->{disk}.$fs->{path}."/".$ActiveProductionSet;
                    if ($fs->{disk} =~ /vice/) {
-                    $ntdir = $fs->{path};
+                    $ntdir = $fs->{path}."/".$ActiveProductionSet;
                    }
                  }
               }
@@ -3552,7 +3552,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
             }
             print "</select>\n";
             print "</b></td></tr>\n";
-            htmlTextField("Nick Name","text",24,"MC02-dataset","QNick"," ");  
+            htmlTextField("Nick Name","text",24,$ActiveProductionSet,"QNick"," ");  
             print "</TABLE>\n";
 # Cite Parameters
               print "<tr><td><b><font color=\"blue\">Cite HW Parameters</font></b>\n";
@@ -3627,9 +3627,9 @@ DDTAB:          $self->htmlTemplateTable(" ");
                foreach my $fs (@{$self->{FilesystemT}}){
                 if ($fs->{available} > $maxavail) {
                    $maxavail = $fs->{available};
-                   $ntdir = $fs->{disk}.$fs->{path};
+                   $ntdir = $fs->{disk}.$fs->{path}."/".$ActiveProductionSet;
                    if ($fs->{disk} =~ /vice/) {
-                    $ntdir = $fs->{path};
+                    $ntdir = $fs->{path}."/".$ActiveProductionSet;
                    }
                  }
                }
