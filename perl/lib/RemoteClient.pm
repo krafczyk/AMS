@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.157 2003/05/08 09:23:24 alexei Exp $
+# $Id: RemoteClient.pm,v 1.158 2003/05/08 11:16:27 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2663,8 +2663,8 @@ else {
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"R\" ><b> Custom </b><i> (specific for for cite <font color=\"green\"> $self->{CCA} </font>)</i><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"L\" CHECKED><b> Generic </b><i> (AMS generic)</i><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"C\" ><b> Custom </b><i> (specific for for cite <font color=\"green\"> $self->{CCA} </font>)</i><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"G\" CHECKED><b> Generic </b><i> (AMS generic)</i><BR>\n";
              print "</b></font></td></tr>\n";
             htmlTableEnd();
 
@@ -2813,8 +2813,8 @@ DDTAB:         $self->htmlTemplateTable(" ");
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"R\" ><b> Custom </b><i> (specific for for cite <font color=\"green\"> $self->{CCA} </font>)</i><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"L\" CHECKED><b> Generic </b><i> (AMS generic)</i><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"C\" ><b> Custom </b><i> (specific for for cite <font color=\"green\"> $self->{CCA} </font>)</i><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"G\" CHECKED><b> Generic </b><i> (AMS generic)</i><BR>\n";
              print "</b></font></td></tr>\n";
             htmlTableEnd();
             print "<tr><td><b><font color=\"red\">Spectrum and Focusing</font></b>\n";
@@ -3008,8 +3008,8 @@ DDTAB:         $self->htmlTemplateTable(" ");
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"R\" ><b> Custom </b><i> (specific for for cite <font color=\"green\"> $self->{CCA} </font>)</i><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"L\" CHECKED><b> Generic </b><i> (AMS generic)</i><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"C\" ><b> Custom </b><i> (specific for for cite <font color=\"green\"> $self->{CCA} </font>)</i><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"G\" CHECKED><b> Generic </b><i> (AMS generic)</i><BR>\n";
              print "</b></font></td></tr>\n";
             htmlTableEnd();
            htmlTableEnd();
@@ -3373,6 +3373,8 @@ print qq`
         } else {
           $self->{dwldaddon}=0;
         }
+#
+# 'C'/'G' - custom, generic
 #
         my $jst=$q->param("JST");
 #
@@ -5030,68 +5032,96 @@ sub queryDB {
 
 sub listStat {
     my $self = shift;
-    my $jobsreq    = 0;
-    my $jobsdone   = 0;
-    my $jobsfailed = 0;
-    my $jobstimeout= 0;
-    my $trigreq    = 0;
-    my $trigdone   = 0;  
-    my $timestart  = 0;
+
+    my $jobsreq    = 0;  # active jobs
+    my $jobsdone   = 0;  # successfully finished
+    my $jobsfailed = 0;  # failed
+    my $jobstimeout= 0;  # timeout
+    my $trigreq    = 0;  # requested events
+    my $trigdone   = 0;  # processed levent-fevent+1
+    my $timestart  = 0;  # 1st job request time
+    my $lastupd    = 0;  # last job request time
+
+    my $sql        = undef;
+    my $ret        = undef;
+
      print "<b><h2><A Name = \"stat\"> </a></h2></b> \n";
      htmlTable("MC02 Jobs");
-     my $sql="SELECT MIN(Jobs.timestamp) FROM Jobs, Cites 
+
+# first job timestamp
+      $sql="SELECT MIN(Jobs.timestamp) FROM Jobs, Cites 
                 WHERE Jobs.cid=Cites.cid and Cites.name!='test'";
-     my $r0=$self->{sqlserver}->Query($sql);
-     if (defined $r0->[0][0]) {
-       $timestart = $r0->[0][0];
-     }
-     $sql="SELECT Jobs.jid, Jobs.triggers FROM Jobs, Cites 
-            WHERE 
-                    (Jobs.cid != Cites.cid AND
-                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
-     my $r3=$self->{sqlserver}->Query($sql);
-     print_bar($bluebar,3);
-     my $newline = " ";
-     if(defined $r3->[0][0]){
-      foreach my $job (@{$r3}){
-          my $jid       = $job->[0];
-          my $trig         = $job->[1];
-          $sql="SELECT status, levent, fevent from Runs WHERE jid=$jid";
-          $r3=$self->{sqlserver}->Query($sql);
-          if (defined $r3->[0][0]) {
-              my $status = $r3->[0][0];
-              my $levent = $r3->[0][1];
-              my $fevent = $r3->[0][2];
-              if ($status eq 'Finished' || $status eq 'Completed') { 
-                  $jobsdone++;
-                  $trigdone += $levent - $fevent + 1;
-             } elsif ($status eq 'Failed' || $status eq 'Unchecked') {  
-               $jobsfailed++;
-             } else {
-               $jobsreq++;
-              }
-          } else {
-               $jobsreq++;
-          }
-          $trigreq = $trigreq + $trig;
+      $ret=$self->{sqlserver}->Query($sql);
+      if (defined $ret->[0][0]) {
+       $timestart = $ret->[0][0];
       }
-    $sql = "SELECT COUNT(jid) FROM Runs WHERE status='TimeOut'";
-    my $r5 = $self->{sqlserver}->Query($sql);
-    if (defined $r5->[0][0]) {
-         $jobstimeout = $r5->[0][0];
+# last job timestamp
+      $sql="SELECT MAX(Jobs.timestamp) FROM Jobs, Cites 
+                 WHERE Jobs.cid=Cites.cid and Cites.name!='test'";
+      $ret=$self->{sqlserver}->Query($sql);
+      if (defined $ret->[0][0]) {
+       $lastupd=localtime($ret->[0][0]);
+      }
+
+# running (active jobs)
+      $sql = "SELECT COUNT(jobs.jid), SUM(triggers) FROM Jobs, Cites WHERE 
+                     (Jobs.cid != Cites.cid AND
+                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
+      $ret = $self->{sqlserver}->Query($sql);
+      if (defined $ret->[0][0]) {
+         $jobsreq = $ret->[0][0];
+         $trigreq = $ret->[0][1];
+      }
+     $sql = "SELECT COUNT(runs.jid) FROM Jobs, Runs, Cites 
+              WHERE  runs.jid = jobs.jid AND 
+                     (Jobs.cid != Cites.cid AND
+                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
+      $ret = $self->{sqlserver}->Query($sql);
+      if (defined $ret->[0][0]) {
+         $jobsreq = $jobsreq - $ret->[0][0];
+      }
+    $sql = "SELECT COUNT(runs.jid) FROM Jobs, Runs, Cites 
+              WHERE  runs.jid = jobs.jid AND 
+                     (runs.status='Foreign' OR runs.status='Processing') AND
+                     (Jobs.cid != Cites.cid AND
+                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
+    $ret = $self->{sqlserver}->Query($sql);
+    if (defined $ret->[0][0]) {
+         $jobsreq += $ret->[0][0];
      }
 
-               $sql="SELECT MAX(Jobs.timestamp) FROM Jobs, Cites 
-                            WHERE Jobs.cid=Cites.cid and Cites.name!='test'";
-               $r3=$self->{sqlserver}->Query($sql);
-               my $lastupd=localtime($r3->[0][0]);
+# finished/completed jobs
+    $sql = "SELECT COUNT(jid), sum(fevent), sum(levent) FROM Runs 
+                WHERE status='Finished' OR status='Completed'";
+    $ret = $self->{sqlserver}->Query($sql);
+    if (defined $ret->[0][0]) {
+         $jobsdone = $ret->[0][0];
+         $trigdone = $ret->[0][2] - $ret->[0][1] + $jobsdone
+     }
+
+# failed/unchecked jobs
+    $sql = "SELECT COUNT(jid) FROM Runs 
+                WHERE status='Failed' OR status='Unchecked'";
+    $ret = $self->{sqlserver}->Query($sql);
+    if (defined $ret->[0][0]) {
+         $jobsfailed = $ret->[0][0];
+     }
+
+# timeout jobs
+    $sql = "SELECT COUNT(jid) FROM Runs WHERE status='TimeOut'";
+    $ret = $self->{sqlserver}->Query($sql);
+    if (defined $ret->[0][0]) {
+         $jobstimeout = $ret->[0][0];
+     }
+
+# ntuples, runs
                $sql="SELECT COUNT(run), SUM(SIZEMB) from ntuples";
-               $r3=$self->{sqlserver}->Query($sql);
+               $ret=$self->{sqlserver}->Query($sql);
                my $nntuples=0;
                my $nsizegb =0;
-               if(defined $r3->[0][0]){
-                $nntuples= $r3->[0][0];
-                $nsizegb = sprintf("%.1f",$r3->[0][1]/1000);
+               if(defined $ret->[0][0]){
+                $nntuples= $ret->[0][0];
+                $nsizegb = sprintf("%.1f",$ret->[0][1]/1000);
                }
                my $timenow = time();
                my $timepassed = sprintf("%.1f",($timenow - $timestart)/60/60/24);
@@ -5150,7 +5180,7 @@ sub listStat {
 
           print "</font></tr>\n";
  
-  }
+
        htmlTableEnd();
      htmlTableEnd();
      print_bar($bluebar,3);
