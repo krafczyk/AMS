@@ -64,20 +64,38 @@ b) As a developper :
 
 
 
-VII.  Standalone version   - Support is disabled, ignore it. 
+VII.  Standalone version   
 
-If you have neither account on cernsp nor afs server,
-   below are some hints how to build the standalone version of AMS 
-   (without dbase):
+      If you want to run the ams software on your local computer
+      below are some hints:
 
-a) Set up CERN libraries 
-   eq. -L/cern/pro/lib  -lgeant321  -lpacklib -lmathlib -lkernlib
+              
+      a. copy /offline/vdev to somewhere on your computer
 
-b) copy files from /afs/cern.ch/user/c/choutko/public/data
-   or  AMS.html("Data files for standalone version")
-   to <your preferred dir>  
+      b. Case i:  You have an afs installed
 
-c) setenv AMSDataDir  <your preferred dir>
+           setenv Offline /afs/cern.ch/exp/ams/Offline
+           source /offline/vdev/install/amsvar
+
+         Case ii: You don't have afs installed
+          login in ams computer         
+          setenv Offline /offline
+          source $Offline/vdev/install/amsvar
+          cd $AMSDataDir
+          tar -cvf ~/ams.tar v3.00/*.dat 
+          tar -uvf ~/ams.tar v3.00/T*
+          tar -uvf ~/ams.tar DataBase/MagneticFieldMap/MagneticFieldMap.0.8*
+          tar -uvf ~/ams.tar DataBase/Tracker*.2*
+          tar -uvf ~/ams.tar DataBase/Tracker*2
+          tar -uvf ~/ams.tar DataBase/Tof*/*.0.*
+          tar -uvf ~/ams.tar DataBase/.*0
+           tar -uvf ~/ams.tar DataBase/.TrA*1
+          login in  your computer:
+           mkdir mydir
+           cd mydir
+           tar -xvf ams.tar
+           setenv AMSDataDir mydir
+             
 
 
 
