@@ -53,7 +53,7 @@ integer gid=1;
       par[1]=AMSDBc::ams_size[1]/2;
       par[2]=AMSDBc::ams_size[2]/2;
       // to be able rotate ams as a whole
-static AMSgvolume false_mother("VACUUM",0,AMSDBc::ams_name,"BOX ",par,3,coo,nrm,"ONLY",  0,-gid);  // AMS false mother volume
+static AMSgvolume false_mother("VACUUM",0,AMSDBc::ams_name,"BOX ",par,3,coo,nrm,"ONLY",  0,gid,1);  // AMS false mother volume
 static AMSgvolume mother("VACUUM",AMSDBc::ams_rotmno,"FMOT","BOX",par,3,AMSDBc::ams_coo,AMSDBc::ams_nrm,"ONLY",  0,gid);  // AMS mother volume
 AMSJob::gethead()->addup( &false_mother);
 false_mother.add(&mother);
@@ -98,8 +98,26 @@ else{
  cerr <<" AMSGeom-F-Unknown setup selected. "<<AMSJob::gethead()->getsetup()<<endl;
  exit(1);
 }
-cout <<" AMSGeom-I-TotalOf "<<GlobalRotMatrixNo()<<" rotation matrixes  created"<<endl;
+
+
+
+
+#ifdef __G4AMS__
+if(MISCFFKEY.G3On){
+#endif
+false_mother.MakeG3Volumes();
+
+  cout << "AMSGeom::-I-"<<getNpv()<<" Physical volumes, "<<getNlv()<<" logical volumes and "<<getNrm()<<" rotation matrixes have beem created "<<endl;
 GGCLOS();
+cout <<" AMSGeom-I-TotalOf "<<GlobalRotMatrixNo()<<" rotation matrixes  created"<<endl;
+
+#ifdef __G4AMS__
+}
+getNpv()=0;
+getNlv()=0;
+getNrm()=0;
+#endif
+
 AMSgObj::GVolMap.map(mother);
 #ifdef __AMSDEBUG__
 // if(AMSgvolume::debug)AMSgObj::GVolMap.print();

@@ -12,25 +12,21 @@ b) Constructors:
            geant coo[] ,  number nrm[][3] , const char gonly[] ,
            integer posp,integer gid, integer rel)       // constructor
 
-  AMSgvolume (char matter[],integer rotmno,const char name[],
-           const char shape[] ,   geant par[] , integer npar,
-           geant coo[] ,  number nrm1[3] number nrm2[3],number nrm3[3],
-         , const char gonly[] ,
-           integer posp,integer gid, integer rel)       // constructor
 //  where 
 //  integer matter        ! geant tracking media index
 //  char matter[]         ! geant tracking media name
-//  integer rotmno        ! geant rotation matrix index
+//  integer rotmno        ! donot use rotmatrix(0) use it(!0)
 //  char name[]           ! geant volume name ( as in GSVOLUM)
 //  char shape[]          ! geant volume shape
 //  geant par[]           ! geant volume paramerters
 //  integer npar          ! parameters number
 //  geant   coo[3]        ! geant volume ABSOLUTE coordinates if rel==0
 //  geant   coo[3]        ! geant volume RELATIVE  coordinates if rel!=0
-//  number nrm[3][3]      ! ABSOLUTE rotation matrix (1st index 1st) if rel==0
+//  number nrm[3][3]     ! ABSOLUTE rotation matrix (1st index 1st) if rel==0
 //  number nrm[3][3]      ! RELATIVE rotation matrix (1st index 1st) if rel!=0
-//  char gonly[]          ! 'Many' or 'ONLY'
-//  integer posp          ! Position by gsposp(1,-1 (-1 == not call gsvolu)) or by gspos(0) or NOT position at all (-2)
+//  char gonly[]          ! 'MANY' or 'ONLY'
+//  integer posp          ! Position by gsposp(1,-1) or by gspos(0)
+                          ! call gsvolume(1,0)  
 //  integer gid           ! geant volume id
 //  integer rel           ! See above for coo & nrm
 
@@ -42,6 +38,6 @@ c) member functions:
 
   AMSPoint gl2loc(AMSPoint);  // conversion global->local
   AMSPoint loc2gl(AMSPoint);  // conversion local->global
-  number getinrm(integer i ,integer j)const{return _inrm[i][j];}  
-  number getcoo(integer i)const {return _coo[i];}
-  number getpar(integer i)const {return i>=0 && i<_npar ? par[i]:0;} 
+  number getnrm(integer i ,integer j)
+  number getcoo(integer i)
+  number getpar(integer i)

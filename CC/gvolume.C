@@ -55,7 +55,7 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
            integer posp,integer gid, integer rel) :
-     _npar(npar), _posp(posp),_pg4v(0),_pg4l(0),_pg4rm(0),
+     _npar(npar), _posp(posp),_rotmno(rotmno),_pg4v(0),_pg4l(0),_pg4rm(0),
      _gid(abs(gid)),_cooA(coo[0],coo[1],coo[2]),_rel(rel),AMSNode(0){
       _pgtmed= (AMSgtmed *)AMSgObj::GTrMedMap.getp(AMSID(0,matter));
       if(_pgtmed)_matter=_pgtmed->getmedia();
@@ -64,6 +64,7 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
         exit(1);
       }
    setname(name);
+   setid(_gid);
    _coo=_cooA;
    if(_npar){
      _par=new geant[_npar];
@@ -83,40 +84,17 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
 
    if(gonly)strcpy(_gonly,gonly);
 
-   if(rotmno==0){
-     _rotmno=0;
-   }
-   else {
-    // warning
-    if(_LastRotMatrixOutOfOrder!=rotmno){
-      if(rotmno<_GlobalRotMatrixNo)cerr<<"AMSgvolume::ctor-W-RotationMatrixNoOutOfOrder "<<rotmno<<" "<<_GlobalRotMatrixNo<<" "<<getname()<<" "<<getid()<<endl;
-     _LastRotMatrixOutOfOrder=rotmno;
-     _rotmno=++_GlobalRotMatrixNo;
-    }
-    else _rotmno=_GlobalRotMatrixNo;
-   }
+    if(!_rotmno && !_rel){
+        cerr <<"AMSgvolume::ctor-W-RotNatrixZeroInAbsModeIsNotAllowed "<<getname() << " " <<getid()<<endl;
+       _rotmno=1;
+     }
 
-   if(_rotmno || !_rel){
+   if(_rotmno ){
     _nrm= new _amsrm(nrm);
    }
    else _nrm= &_UnitRM;   
    _nrmA= new _amsrm(nrm);
  
-     setid(_gid);
-#ifdef __G4AMS__
-if(MISCFFKEY.G3On){
-#endif
-      int ivol;
-      if (_gid  && !posp){
-       GSVOLU(_name,_shape,_matter,_par,npar,ivol);
-      }      
-#ifdef __G4AMS__
-}
-if(MISCFFKEY.G4On){
-  // Do everything if only top 
-  if(gid<0)_MakeG4Volumes(); 
-}
-#endif          
       
 }
 
@@ -133,15 +111,6 @@ else return;
 }
 
 void AMSgvolume::_init(){
-#ifdef __G4AMS__
- if(!_pg4rmU){
-   _pg4rmU=new AMSG4RotationMatrix();   
-#ifdef __AMSDEBUG__
-   cout <<_pg4rmU->xx()<<_pg4rmU->xy()<<_pg4rmU->xz()<<_pg4rmU->yx()<<_pg4rmU->yy()<<_pg4rmU->yz()<<_pg4rmU->zx()<<_pg4rmU->zy()<<_pg4rmU->zz()<<endl;
-#endif
-   AMSG4RotationMatrix::Test();
- }
-#endif
 
 
   //
@@ -169,86 +138,9 @@ void AMSgvolume::_init(){
       _gl2loc(cur,coo);
     _coo=coo;     
   }
-  if (_gid > 0) {
-   int newv=0;
-   int newr=1;
-   cur=prev();
-   if(cur){
-    if(cur->_rotmno == _rotmno) {
-     newr=0;
-#ifdef __G4AMS__
-     if(VolumeHasSameRotationMatrixAs(cur))pg4rm()=cur->pg4rm();
-#endif
-    }
-    newv=1;
-    while (cur){
-     if(!strcmp(cur->getname(),getname())){
-      newv=0;
-#ifdef __G4AMS__
-      if(VolumeHasSameSizesAndMaterialAs(cur))pg4l()=cur->pg4l(); 
-#endif
-      break;  
-     }
-     cur=(AMSgvolume*)cur->prev();
-    }
-   }
-   else {
-    newv=1;
-    if (up()){
-     if(up()->_rotmno != _rotmno){
-      newr=1;
-
-     }
-    }
-   }
-#ifdef __G4AMS__
- if(MISCFFKEY.G3On){
-#endif
-   int ivol;
-   if(newv) {
-    if(_posp > 0){
-     GSVOLU(_name,_shape,_matter,_par,0,ivol);
-    }
-   }
-   if(newr && _rotmno){
-    geant r[3],sph,cth,cph,sth,theta[3],phi[3];
-    integer rt=0;
-    for (int j=0;j<3;j++){
-    for (int k=0;k<3;k++) r[k]=(_nrm->_nrm)[k][j];
-     GFANG(r, cth,  sth, cph, sph,  rt);
-     theta[j]=atan2((double)sth,(double)cth)*AMSDBc::raddeg;
-     phi[j]=atan2((double)sph,(double)cph)*AMSDBc::raddeg;
-    }
-    GSROTM(_rotmno,theta[0],phi[0],theta[1],phi[1],theta[2],phi[2]);
-#ifdef __AMSDEBUG__
-    if(debug)GPROTM(_rotmno);  
-#endif
-   }
-   //   char * nn=(char*)getname();
-   //   char * pp=(char*)up()->getname();
-   geant coo[3];
-   _coo.getp(coo[0],coo[1],coo[2]);
-   if(_posp>-2){
-    GSPOSP(_name,_gid,up()->_name, 
-          coo[0],coo[1],coo[2],_rotmno,_gonly, 
-          _par,_npar);
-   }
-   else if(_posp==0){
-    GSPOS(_name,_gid,up()->_name, 
-          coo[0],coo[1],coo[2],_rotmno,_gonly);
-   }
-    else{
-       cout<<"AMSgvolume::init-W-NoGEANT3PositionSelected"<<endl;
-     }
-#ifdef __G4AMS__
-  }
-if(MISCFFKEY.G4On){
- _MakeG4Volumes();
-}
-#endif
- }
 
 }
+
 ostream & AMSgvolume::print(ostream & stream)const{
 return(AMSID::print(stream) << _shape <<  " GV" << endl);}
 
@@ -288,9 +180,9 @@ AMSPoint AMSgvolume::loc2gl(AMSPoint xv){
 
 #ifdef __G4AMS__
  amsg4rm * AMSgvolume::_pg4rmU=0;
+integer AMSgvolume::_Norp=0;
  void AMSgvolume::_MakeG4Volumes(){
-//     cout << "Make "<<_name<<endl;
-//      return;
+
     // This is main routine for geant4 like volumes
     // Quite boring
     // ok first create solid - and here is a nightmare.
@@ -385,7 +277,6 @@ AMSPoint AMSgvolume::loc2gl(AMSPoint xv){
     if (!_pg4rm){
       //check if zero
       if(!_rotmno){
-//       _pg4rm=_pg4rmU;
          _pg4rm=0;
       }
       else{
@@ -401,10 +292,66 @@ AMSPoint AMSgvolume::loc2gl(AMSPoint xv){
      exit(1);
     }    
     _pg4v=new G4PVPlacement(_pg4rm,G4ThreeVector(_coo[0],_coo[1],_coo[2]),G4String(_name),_pg4l,up()?up()->_pg4v:0,false,_gid);
+    
+    if(!up() && _Norp){
+       // fatal logic error
+       cerr<< " AMSgvolume::_MakeG4Volumes-F-LogicErrorAmbigWorldVolume for "<<
+       getname()<<" "<<getid()<<endl;
+       exit(1);
+    }
+    else if(!up())_Norp++;
+
 
     // now Sensitive (if any)
 
 }
+
+void AMSgvolume::MakeG4Volumes(){
+
+
+ if(!_pg4rmU){
+   _pg4rmU=new AMSG4RotationMatrix();   
+#ifdef __AMSDEBUG__
+   cout <<_pg4rmU->xx()<<_pg4rmU->xy()<<_pg4rmU->xz()<<_pg4rmU->yx()<<_pg4rmU->yy()<<_pg4rmU->yz()<<_pg4rmU->zx()<<_pg4rmU->zy()<<_pg4rmU->zz()<<endl;
+#endif
+   AMSG4RotationMatrix::Test();
+ }
+
+
+
+// Recursive Routine
+
+  _Nlog++;
+  _Nrm++;
+  _Nph++;
+  AMSgvolume *cur = up() && prev()?prev():up();
+
+    while (cur){
+     if(VolumeHasSameRotationMatrixAs(cur)){
+      pg4rm()=cur->pg4rm();
+      _Nrm--;
+      break;
+     }
+     cur=cur->up() && cur->prev()?cur->prev():cur->up();
+    }
+
+    cur = up() && prev()?prev():up();
+
+    while (cur){
+      if(VolumeHasSameG4AttributesAs(cur)){
+       pg4l()=cur->pg4l(); 
+       _Nlog--;
+       break;  
+      }
+     cur=cur->up() && cur->prev()?cur->prev():cur->up();
+    }
+    _MakeG4Volumes();
+     if(down())down()->MakeG4Volumes();
+     if(up() && next())next()->MakeG4Volumes();
+     
+}
+
+
 #endif
 
 int AMSgvolume::VolumeHasSameRotationMatrixAs(AMSgvolume * o ){
@@ -417,7 +364,8 @@ return 1;
 
 }
 
-int AMSgvolume::VolumeHasSameSizesAndMaterialAs(AMSgvolume* o ){
+int AMSgvolume::VolumeHasSameG4AttributesAs(AMSgvolume* o ){
+if(strcmp(getname(),o->getname()))return 0;
 for (int i=0;i<_npar;i++){
  if(getpar(i)!= o->getpar(i))return 0;
 }
@@ -425,3 +373,102 @@ if(strcmp(_shape,o->_shape))return 0;
 if(_pgtmed != o->_pgtmed)return 0;
 return 1;
 }
+
+int AMSgvolume::VolumeHasSameG3AttributesAs(AMSgvolume* o ){
+if(strcmp(getname(),o->getname()))return 0;
+if(strcmp(_shape,o->_shape))return 0;
+if(_pgtmed != o->_pgtmed)return 0;
+if(abs(_posp)!=abs(o->_posp))return 0;
+if(_posp==0){
+ for (int i=0;i<_npar;i++){
+  if(getpar(i)!= o->getpar(i))return 0;
+ }
+}
+return 1;
+}
+
+integer AMSgvolume::_Nph=0;
+integer AMSgvolume::_Nlog=0;
+integer AMSgvolume::_Nrm=0;
+
+
+
+
+
+
+void AMSgvolume::MakeG3Volumes(){
+
+//if(!strcmp(_name,"TRDR")){
+//  cout << " TRDR ok "<<endl;
+//}
+
+
+
+// Recursive Routine
+
+  _Nlog++;
+  _Nrm++;
+  _Nph++;
+  AMSgvolume *cur = up() && prev()?prev():up();
+    int newrm=1;
+    while (cur){
+     if(VolumeHasSameRotationMatrixAs(cur)){
+      _Nrm--;
+      newrm=0;
+      _rotmno=cur->getrotmatrixno();
+      break;
+     }
+     cur=cur->up() && cur->prev()?cur->prev():cur->up();
+    }
+    if(newrm){
+      if(_rotmno){
+        _rotmno=++_GlobalRotMatrixNo;
+        geant r[3],sph,cth,cph,sth,theta[3],phi[3];
+        integer rt=0;
+        for (int j=0;j<3;j++){
+         for (int k=0;k<3;k++) r[k]=(_nrm->_nrm)[k][j];
+         GFANG(r, cth,  sth, cph, sph,  rt);
+         theta[j]=atan2((double)sth,(double)cth)*AMSDBc::raddeg;
+         phi[j]=atan2((double)sph,(double)cph)*AMSDBc::raddeg;
+        }
+        GSROTM(_rotmno,theta[0],phi[0],theta[1],phi[1],theta[2],phi[2]);
+#ifdef __AMSDEBUG__
+        if(debug)GPROTM(_rotmno);  
+#endif
+      }
+      else _Nrm--;
+    }
+
+    cur = up() && prev()?prev():up();
+    int newv=1;
+    while (cur){
+      if(VolumeHasSameG3AttributesAs(cur)){
+       _Nlog--;
+       newv=0;
+       break;  
+      }
+     cur=cur->up() && cur->prev()?cur->prev():cur->up();
+    }
+    if(newv){
+       int ivol;
+       if(!_posp)GSVOLU(_name,_shape,_matter,_par,_npar,ivol);
+       else if(_posp>0)  GSVOLU(_name,_shape,_matter,_par,0,ivol);
+    }    
+// Position
+    if(up()){
+     geant coo[3];
+     _coo.getp(coo[0],coo[1],coo[2]);
+     if(_posp){
+       GSPOSP(_name,_gid,up()->_name,coo[0],coo[1],coo[2],_rotmno,_gonly,
+          _par,_npar);
+     }
+     else {
+      GSPOS(_name,_gid,up()->_name,coo[0],coo[1],coo[2],_rotmno,_gonly);
+     } 
+    }
+
+    if(down())down()->MakeG3Volumes();
+    if(up() && next())next()->MakeG3Volumes();
+     
+}
+

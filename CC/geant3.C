@@ -25,6 +25,7 @@
 #include <daqevt.h>
 #include <iostream.h>
 extern "C" void gustep_(){
+//if(GCKINE.ipart==50)cout <<"vlalalalalalalala"<<endl;
 //    cout <<"    ----> in gustep "<<endl;
   try{
 
@@ -171,6 +172,7 @@ extern "C" void gustep_(){
     }
 //
   GSKING(0);
+  GSKPHO(0);
 #ifndef __BATCH__
   GSXYZ();
 #endif

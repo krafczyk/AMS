@@ -60,17 +60,29 @@ class AMSgvolume : public AMSNode {
    void  _gl2loc(AMSgvolume * cur, AMSPoint & coo); 
    virtual ostream & print(ostream &)const;
    static _amsrm _UnitRM;
+ static integer _Nlog;
+ static integer _Nph;
+ static integer _Nrm;
 #ifdef __G4AMS__
  static amsg4rm* _pg4rmU;    // unity rot matrix
  void _MakeG4Volumes();
+ static integer _Norp;
 #endif
   AMSgvolume():AMSNode(0),_npar(0),_par(0),_shape(0),_nrm(0),_nrmA(0),_pg4v(0),_pg4l(0),_pg4rm(0), _pgtmed(0){};
  public:
   ~AMSgvolume();
+ void MakeG3Volumes();
+#ifdef __G4AMS__
+ void MakeG4Volumes();
+#endif
+static  integer & getNlv()  {return _Nlog;}
+static  integer & getNpv()  {return _Nph;}
+static  integer & getNrm()  {return _Nrm;}
   static void amsgeom();
   static uinteger & GlobalRotMatrixNo(){return _GlobalRotMatrixNo;}
   int VolumeHasSameRotationMatrixAs(AMSgvolume *pvo );
-  int VolumeHasSameSizesAndMaterialAs(AMSgvolume *pvo );
+  int VolumeHasSameG3AttributesAs(AMSgvolume *pvo );
+  int VolumeHasSameG4AttributesAs(AMSgvolume *pvo );
    amsg4pv * & pg4v()  {return _pg4v;}
   G4LogicalVolume * & pg4l()  {return _pg4l;}
   amsg4rm * & pg4rm() {return _pg4rm;}
@@ -78,7 +90,7 @@ class AMSgvolume : public AMSNode {
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
            integer posp,integer gid, integer rel=0);
-
+  integer getrotmatrixno() const{return _rotmno;}
   number getnrm(integer i ,integer j)const{return _nrm->_nrm[i][j];}
   number getnrmA(integer i ,integer j)const{return _nrmA->_nrm[i][j];}
   number getcoo(integer i) {return _coo[i];}

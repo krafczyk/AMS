@@ -366,6 +366,14 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
      fieldMgr->GetChordFinder()->SetDeltaChord(delta);
      cout << "chord "<<fieldMgr->GetChordFinder()->GetDeltaChord()<<endl;
  } 
+
+if(!_pv){
+  cout << "AMSG4DetectorInterface::Construct-I-Building Geometry "<<endl;
+  AMSJob::gethead()->getgeom()->MakeG4Volumes();
+  cout << "AMSG4DetectorInterface::Construct-I-"<<AMSgvolume::getNpv()<<" Physical volumes, "<<AMSgvolume::getNlv()<<" logical volumes and "<<AMSgvolume::getNrm()<<" rotation matrixes have beem created "<<endl;
+ _pv=AMSJob::gethead()->getgeom()->pg4v();
+}
+ 
  if(!_pv){
    cerr <<"g4ams::G4INIT()-W-DummyDetectorWillBeCreated "<<endl;
    double kfac=1;
@@ -511,11 +519,11 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
     G4StepPoint * PostPoint = Step->GetPostStepPoint();
     G4VPhysicalVolume * PostPV = PostPoint->GetPhysicalVolume();
     if(PostPV){
-      cout << "Stepping  "<<" "<<PostPV->GetName()<<" "<<PostPoint->GetPosition()<<endl;
+      cout << "Stepping  "<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<endl;
     GCTMED.isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0;
     GCTRAK.destep=Step->GetTotalEnergyDeposit()*GeV;
     if(GCTMED.isvol){
-      cout << "Stepping  sensitive"<<" "<<PostPV->GetName()<<endl;
+      cout << "Stepping  sensitive"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<endl;
      // gothering some info and put it into geant3 commons
 
      G4StepPoint * PrePoint = Step->GetPreStepPoint();
@@ -613,7 +621,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      G4VPhysicalVolume * GrandMother= Mother?Mother->GetMother():0;      
   // Tracker
      if(GCTRAK.destep && GrandMother && GrandMother->GetName()[0]=='S' 
-     &&  GrandMother->GetName()[0]=='T' && GrandMother->GetName()[0]=='K'){
+     &&  GrandMother->GetName()[1]=='T' && GrandMother->GetName()[2]=='K'){
+       cout <<" tracker "<<endl;
       AMSTrMCCluster::sitkhits(PostPV->GetCopyNo(),GCTRAK.vect,
       GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
      }
