@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.385 2001/11/19 13:28:28 choumilo Exp $
+// $Id: job.C,v 1.386 2001/11/20 10:28:46 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3668,9 +3668,9 @@ if(DAQCFFKEY.LCrateinDAQ ){
 
 {
 //           lvl3
-    DAQEvent::addsubdetector(&TriggerLVL3::checkdaqid,&TriggerLVL3::buildraw);
-    DAQEvent::addblocktype(&TriggerLVL3::getmaxblocks,&TriggerLVL3::calcdaqlength,
-    &TriggerLVL3::builddaq);
+    DAQEvent::addsubdetector(&TriggerLVL302::checkdaqid,&TriggerLVL302::buildraw);
+    DAQEvent::addblocktype(&TriggerLVL302::getmaxblocks,&TriggerLVL302::calcdaqlength,
+    &TriggerLVL302::builddaq);
 
 }    
 if(DAQCFFKEY.SCrateinDAQ){
