@@ -158,7 +158,7 @@ void AMSIO::init(integer mode,integer format){
               CCFFKEY.begindate=1900+pb->tm_year+10000*(pb->tm_mon+1)+
               1000000*pb->tm_mday;
               CCFFKEY.begintime=pb->tm_sec+100*pb->tm_min+
-              10000*(pb->tm_hour);
+              10000*(pb->tm_isdst?pb->tm_hour-1:pb->tm_hour);
              }
         }
 
