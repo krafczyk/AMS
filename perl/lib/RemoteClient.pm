@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.56 2002/07/23 14:35:40 alexei Exp $
+# $Id: RemoteClient.pm,v 1.57 2002/08/07 08:08:14 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -1718,13 +1718,14 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
 
 # Files Upload
     if ($self->{q}->param("Download")){
-        $self->{read}=1;
-        $self->{CEM}=$self->{q}->param("CEM");
-        my $upl0=$self->{q}->param("UPL0");
-        my $time = time();
-        $sql="update Mails set timeu1=$upl0, timeu2=$upl0, timestamp=$time WHERE address='$self->{CEM}'";
-        $self->{sqlserver}->Update($sql);
-        $self->AllDone();
+     $self->{read}=1;
+     $self->{CEM}=$self->{q}->param("CEM");
+     my $upl0=$self->{q}->param("UPL0");
+     my $time = time();
+     $sql=
+      "update Mails set timeu1=$upl0, timeu2=$upl0, timestamp=$time WHERE address='$self->{CEM}'";
+     $self->{sqlserver}->Update($sql);
+     $self->AllDone();
    }
 #Download ends here 
 
@@ -2418,9 +2419,11 @@ print qq`
         }
     }
 #MyQuery ends here
-    if ($self->{q}->param("BasicQuery") or $self->{q}->param("AdvancedQuery") or 
+    if ($self->{q}->param("BasicQuery")      or 
+        $self->{q}->param("AdvancedQuery")   or 
         $self->{q}->param("ProductionQuery") or
-        $self->{q}->param("BasicForm") or $self->{q}->param("AdvancedForm") or 
+        $self->{q}->param("BasicForm")       or 
+        $self->{q}->param("AdvancedForm")    or 
         $self->{q}->param("ProductionForm")){
         $self->{read}=1;
 #  check par
@@ -2432,22 +2435,24 @@ print qq`
             $self->ErrorPlus("Welcome $cem. Your account is not yet set up.
             Please try again later.");
         }
-        if($self->{q}->param("BasicQuery") eq "Save" or $self->{q}->param("AdvancedQuery") eq "Save"  or 
+        if($self->{q}->param("BasicQuery") eq "Save"     or 
+           $self->{q}->param("AdvancedQuery") eq "Save"  or 
            $self->{q}->param("ProductionQuery") eq "Save"){
             my $pass=$q->param("password");
             if($self->{CCT} ne "remote" or defined $pass){
-            my $crypt=crypt($pass,"ams");
-            if($crypt ne "amGzkSRlnSMUU"){
-                   $self->sendmailerror("User authorization failed","$self->{CEM}");
-                  $self->ErrorPlus("User Authorization Failed. All Your Activity is Logged.");
-                   return;
+             my $crypt=crypt($pass,"ams");
+             if($crypt ne "amGzkSRlnSMUU"){
+              $self->sendmailerror("User authorization failed","$self->{CEM}");
+              $self->ErrorPlus
+                    ("User Authorization Failed. All Your Activity is Logged.");
+              return;
 
-                }
-        }
+             }
+         }
          my $filename=$q->param("FEM");
          $q=get_state($filename);          
          if(not defined $q){
-             $self->ErrorPlus("Save State Expired. Please Start From the Very Beginning");
+          $self->ErrorPlus("Save State Expired. Please Start From the Very Beginning");
          }
          $self->{q}=$q;
          unlink $filename;
@@ -2631,7 +2636,8 @@ print qq`
         if($self->{q}->param("AdvancedQuery") or $self->{q}->param("AdvancedForm") ){
              $setup=$q->param("QSetup");
             if((not $setup =~ '^AMS02') and (not $setup=~'^AMSSHUTTLE')){
-                $self->ErrorPlus("Setup $setup does not exist. Only AMS02xxx or AMSSHUTTLEyyy  setup names allowed.");
+             $self->ErrorPlus
+             ("Setup $setup does not exist. Only AMS02xxx or AMSSHUTTLEyyy  setup names allowed.");
             }
              $trtype=$q->param("QTrType");
              $rootntuple=$q->param("RootNtuple");
@@ -2689,14 +2695,14 @@ print qq`
              if (($run%$switch)+$runno >$max){
               foreach my $chop (@{$self->{MailT}}) {
               if($chop->{rserver}==1){
-                  my $address=$chop->{address};
-                  my $subject="AMS02MC Request Form: run Capacity Exceeded for Cite $self->{CCA} $run";
-                  my $message=" see subject";
-                  $self->sendmailmessage($address,$subject,$message);
-                  last;
+               my $address=$chop->{address};
+               my $subject="AMS02MC Request Form: run Capacity Exceeded for Cite $self->{CCA} $run";
+               my $message=" see subject";
+               $self->sendmailmessage($address,$subject,$message);
+               last;
               }
-              }          
-                $self->ErrorPlus("Run Capacity Exceeds.");
+             }          
+             $self->ErrorPlus("Run Capacity Exceeds.");
           }
              
 #       now everything is o.k except server check
@@ -2711,8 +2717,6 @@ print qq`
           }
             $self->ErrorPlus("Unable to Connect to Server.");
          }
-
-
 #        prepare the tables
     
 # check tar ball exists
@@ -2722,7 +2726,7 @@ print qq`
         if( not defined $ret->[0][0]){
             $self->ErrorPlus("unable to retreive gbatch name from db");
         }
-         my $gbatch=$ret->[0][0];
+        my $gbatch=$ret->[0][0];
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
         if($#stag<0){
               $self->ErrorPlus("Unable to find gbatch-orbit on the Server ");
@@ -2771,9 +2775,9 @@ print qq`
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/T* $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/ri* $self->{UploadsDir}/$dbversion";
         $i=system "tar -C$self->{UploadsDir} -h -cf $filen $dbversion";
-          if($i){
+        if($i){
               $self->ErrorPlus("Unable to tar $self->{UploadsDir} $dbversion to $filen");
-          }
+         }
          $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatch") ;
           if($i){
               $self->ErrorPlus("Unable to tar gbatch-orbit to $filen ");
@@ -2783,8 +2787,8 @@ print qq`
               $self->ErrorPlus("Unable to tar flukaaf.dat to $filen ");
           }
           $i=system("gzip -f $filen");
-                      if($i){
-              $self->ErrorPlus("Unable to gzip  $filen");
+          if($i){
+           $self->ErrorPlus("Unable to gzip  $filen");
           }
           $i=system("mv $filedb $filedb.o");
           $i=system("mv $filen.gz $filedb");
@@ -3148,9 +3152,11 @@ print qq`
         if($uplt0 == 0 or $uplt0 < $sta0[9] or $uplt1 == 0 or $uplt1 < $sta1[9]) {
             $self->Download();
         } else {
-                  $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
+         $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
       }             
-     } 
+     } else { 
+      $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
+     }
 }
 #here the default action
  if($self->{read}==0){
