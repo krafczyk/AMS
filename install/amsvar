@@ -13,6 +13,7 @@ setenv RunsSummaryFile   $Offline/runs_STS91.log
 setenv SlowRateDataDir   $Offline/SlowRateDataDir
 setenv AMSGeoDir         $Offline/vdev/display/v2.00
 setenv amsed             $Offline/vdev/display/v2.00/$OS/bin/amsed
+setenv amsed02           $Offline/vdev/display/ams02/$OS/bin/amsed      
 limit core 0
 limit data 700000
 limit stack 32000
