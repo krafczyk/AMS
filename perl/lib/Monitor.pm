@@ -310,8 +310,9 @@ sub Update2{
 
 
 sub getior{
-    my $file ="/tmp/o";
-    my $fileo ="/tmp/oo";
+    my $pid=$Monitor::Singleton->{cid}->{pid};
+    my $file ="/tmp/o."."$pid";
+    my $fileo ="/tmp/oo."."$pid";
     my $i=system "bjobs -q linux_server >$file" ;
     if($i){
         return undef;
@@ -336,6 +337,9 @@ sub getior{
     }
 
     close(FILE);
+    system "rm -f $file";
+    system "rm -f $fileo";
+
 }
 
 sub getdbok{
@@ -379,6 +383,7 @@ sub getactivehosts{
     my @output=();
     my @text=();
     my @final_text=();
+     my $total_time=0;
      my $total_cpu=0;
      my $total_ev=0;
     my $i;
@@ -412,6 +417,7 @@ sub getactivehosts{
      my $lastevt=0;
      my $err=0;
      my $cpu=0;
+     my $time=0;
      my $total=0;
      for my $j (0 ... $#{$Monitor::Singleton->{rtb}}){
        my $rdst=$Monitor::Singleton->{rtb}[$j];
@@ -423,6 +429,7 @@ sub getactivehosts{
                $lastevt+=$rdstc->{LastEventProcessed}+1-$rdst->{FirstEvent};
                $err+=$rdstc->{ErrorsFound};
                $cpu+=$rdstc->{CPUTimeSpent};
+               $time+=$rdstc->{TimeSpent};
            }
        }
    }
@@ -430,9 +437,11 @@ sub getactivehosts{
    push @text, int(1000*$lastevt/$total)/10.; 
    push @text, $err; 
      $total_cpu+=$cpu;
+     $total_time+=$time;
      $total_ev+=$evt;
    my $cpuper=int ($cpu*1000/($evt+1));
-   push @text, $cpuper/1000.;
+    my $effic=int ($cpu*100/$time); 
+  push @text, $cpuper/1000., $effic/100.;
      push @text, $hash->{Status};
     if( $hash->{Status} eq "LastClientFailed"){
       push @text ,1;
@@ -444,8 +453,8 @@ sub getactivehosts{
      if($i==0){
          @final_text=@text;
          $final_text[0]="Total";
-         $final_text[10]="";
-         $final_text[11]=0;
+         $final_text[11]="  ";
+         $final_text[12]=0;
      }
      else{
         for my $i (1 ...8){ 
@@ -457,6 +466,7 @@ sub getactivehosts{
     my $total_pr=$final_text[1]==0?1:$final_text[1];
    my $cpuper=int ($total_cpu*1000/($total_ev+1)/$total_pr);
    $final_text[9]= $cpuper/1000.;
+    $final_text[10]= int($total_cpu/$total_time*100)/100.;
     
     push @output, [@final_text];
 
@@ -579,7 +589,7 @@ sub getntuples{
      if($hash->{Type} eq "Ntuple"){
          if($hash->{Status} eq $sort[$j]){
      my $ctime=localtime($hash->{Insert});
-     push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Status},$hash->{Name},$hash->{Status};
+     push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$hash->{Status};
      push @output, [@text];
  }
  }

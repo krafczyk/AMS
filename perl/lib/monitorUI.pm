@@ -32,6 +32,75 @@ my @book_open_xpm = (
 "     ..         ",
 "                ");
 
+my @book_open_r_xpm = (
+"16 16 4 1",
+"       c None s None",
+".      c black",
+"X      c #808080",
+"o      c red",
+"                ",
+"  ..            ",
+" .Xo.    ...    ",
+" .Xoo. ..oo.    ",
+" .Xooo.Xooo...  ",
+" .Xooo.oooo.X.  ",
+" .Xooo.Xooo.X.  ",
+" .Xooo.oooo.X.  ",
+" .Xooo.Xooo.X.  ",
+" .Xooo.oooo.X.  ",
+"  .Xoo.Xoo..X.  ",
+"   .Xo.o..ooX.  ",
+"    .X..XXXXX.  ",
+"    ..X.......  ",
+"     ..         ",
+"                ");
+
+my @book_open_g_xpm = (
+"16 16 4 1",
+"       c None s None",
+".      c black",
+"X      c #808080",
+"o      c green",
+"                ",
+"  ..            ",
+" .Xo.    ...    ",
+" .Xoo. ..oo.    ",
+" .Xooo.Xooo...  ",
+" .Xooo.oooo.X.  ",
+" .Xooo.Xooo.X.  ",
+" .Xooo.oooo.X.  ",
+" .Xooo.Xooo.X.  ",
+" .Xooo.oooo.X.  ",
+"  .Xoo.Xoo..X.  ",
+"   .Xo.o..ooX.  ",
+"    .X..XXXXX.  ",
+"    ..X.......  ",
+"     ..         ",
+"                ");
+
+my @book_open_y_xpm = (
+"16 16 4 1",
+"       c None s None",
+".      c black",
+"X      c #808080",
+"o      c yellow",
+"                ",
+"  ..            ",
+" .Xo.    ...    ",
+" .Xoo. ..oo.    ",
+" .Xooo.Xooo...  ",
+" .Xooo.oooo.X.  ",
+" .Xooo.Xooo.X.  ",
+" .Xooo.oooo.X.  ",
+" .Xooo.Xooo.X.  ",
+" .Xooo.oooo.X.  ",
+"  .Xoo.Xoo..X.  ",
+"   .Xo.o..ooX.  ",
+"    .X..XXXXX.  ",
+"    ..X.......  ",
+"     ..         ",
+"                ");
+
 
 my @green_xpm = (
 "16 16 6 1",
@@ -209,7 +278,7 @@ my %fields=(
                maskb=>[],
                notebookw=>undef,
                statusbar=>undef,
-               notebook=>[0,0,0],
+               notebook=>[0,0,0,0],
                current_page=>undef,
             );
     my $type=shift;
@@ -316,7 +385,15 @@ my $transparent;
     }
     $monitorUI::Singleton=$mybless;
 
- ($book_open, $book_open_mask) = Gtk::Gdk::Pixmap->create_from_xpm_d($notebook->window, $transparent, @book_open_xpm);
+ ($book_open, $book_open_mask) = Gtk::Gdk::Pixmap->create_from_xpm_d($notebook->window, $transparent, @book_open_g_xpm);
+$self->{pixmapbo}[0]=$book_open;
+$self->{maskbo}[0]=$book_open_mask;
+ ($book_open, $book_open_mask) = Gtk::Gdk::Pixmap->create_from_xpm_d($notebook->window, $transparent, @book_open_y_xpm);
+$self->{pixmapbo}[1]=$book_open;
+$self->{maskbo}[1]=$book_open_mask;
+ ($book_open, $book_open_mask) = Gtk::Gdk::Pixmap->create_from_xpm_d($notebook->window, $transparent, @book_open_r_xpm);
+$self->{pixmapbo}[2]=$book_open;
+$self->{maskbo}[2]=$book_open_mask;
 my ($book_closed, $book_closed_mask) = Gtk::Gdk::Pixmap->create_from_xpm_d($notebook->window, $transparent, @book_closed_g_xpm);
 $self->{pixmapb}[0]=$book_closed;
 $self->{maskb}[0]=$book_closed_mask;
@@ -328,7 +405,7 @@ $self->{pixmapb}[2]=$book_closed;
 $self->{maskb}[2]=$book_closed_mask;
 
 
-$self->notebook_create_pages($notebook, 0, 2);
+$self->notebook_create_pages($notebook, 0, 3);
 
 my $statusbar = new Gtk::Statusbar;
 $vbox->pack_end($statusbar, 1, 1, 0);
@@ -360,13 +437,16 @@ sub notebook_page_switch {
 	my $new_page_tab_pixmap = ($new_page->tab_label->children)[0]->widget;
 	my $new_page_menu_pixmap = ($new_page->menu_label->children)[0]->widget;
 
-	$new_page_tab_pixmap->set( $book_open, $book_open_mask );
-	$new_page_menu_pixmap->set( $book_open, $book_open_mask );
+#	$new_page_tab_pixmap->set( $book_open, $book_open_mask );
+#	$new_page_menu_pixmap->set( $book_open, $book_open_mask );
         my $Singleton=$monitorUI::Singleton;	
+                my $num=$Singleton->{notebook}[$page_num];
+		$new_page_tab_pixmap->set( $Singleton->{pixmapbo}[$num],  $Singleton->{maskbo}[$num]  );
+		$new_page_menu_pixmap->set( $Singleton->{pixmapbo}[$num],  $Singleton->{maskbo}[$num]  );
 	if ( defined $old_page  and defined $Singleton->{current_page}) {
 		my $old_page_tab_pixmap = ($old_page->tab_label->children)[0]->widget;
 		my $old_page_menu_pixmap = ($old_page->menu_label->children)[0]->widget;
-                my $num=$Singleton->{notebook}[$Singleton->{current_page}];
+                $num=$Singleton->{notebook}[$Singleton->{current_page}];
 		$old_page_tab_pixmap->set( $Singleton->{pixmapb}[$num],  $Singleton->{maskb}[$num]  );
 		$old_page_menu_pixmap->set( $Singleton->{pixmapb}[$num],  $Singleton->{maskb}[$num]  );
                                          
@@ -408,10 +488,12 @@ sub notebook_create_pages {
 	
 	for $i ( $start .. $end ) {
             if($i==0){
-                $buffer="Producer";
+                $buffer="Producer Processes";
               }elsif($i==1){
-                  $buffer="Server";
+                  $buffer="Producer I/O";
               }elsif($i==2){
+                  $buffer="Server";
+              }elsif($i==3){
                  $buffer="DiskUsage";
               } 	
 
@@ -478,6 +560,7 @@ sub notebook_create_pages {
         $policy_y='automatic';
                 $buffer="Producer_ActiveClients";
                 create_frame ($child,$self,$buffer,$policy_x,$policy_y,18,@titles);
+              }elsif($i==1){
 
                         $#titles=-1;
                 	@titles = (
@@ -510,7 +593,7 @@ sub notebook_create_pages {
                 $buffer="Producer_Ntuples";
                 create_frame ($child,$self,$buffer,$policy_x,$policy_y,16,@titles);
 
-              }elsif($i==1){
+              }elsif($i==2){
 
                         $#titles=-1;
                 	@titles = (
@@ -526,7 +609,7 @@ sub notebook_create_pages {
         $policy_y='automatic';
                 $buffer="Server_ActiveClients";
                 create_frame ($child,$self,$buffer,$policy_x,$policy_y,20,@titles);
-              }elsif($i==2){
+              }elsif($i==3){
 	@titles = (
 	    "FileSystem",
 	    "Total (Mbytes)",
@@ -613,9 +696,10 @@ sub Update{
      for $i (0 ... $#output){
          my @text=@{$output[$i]};
      $clist->append(@text);
-     $clist->set_pixtext($i, 10, $text[10], 5, $monitorUI::Singleton->{pixmap}[$text[11]], $monitorUI::Singleton->{mask}[$text[11]]);
-         if($text[11]>$monitorUI::Singleton->{notebook}[0]){
-             $monitorUI::Singleton->{notebook}[0]=$text[11];
+         my $pmc=$#text-1;
+     $clist->set_pixtext($i, $pmc, $text[$pmc], 5, $monitorUI::Singleton->{pixmap}[$text[$pmc+1]], $monitorUI::Singleton->{mask}[$text[$pmc+1]]);
+         if($text[$pmc+1]>$monitorUI::Singleton->{notebook}[0]){
+             $monitorUI::Singleton->{notebook}[0]=$text[$pmc+1];
          }
      }
      $clist->thaw();
@@ -645,6 +729,7 @@ sub Update{
      my $clist=$monitorUI::Singleton->{clist}->{Producer_Runs};
      $clist->freeze();   
      $clist->clear();
+     $monitorUI::Singleton->{notebook}[1]=0;
      my @output=$monitor->getruns;
      my $i;
      for $i (0 ... $#output){
@@ -652,6 +737,9 @@ sub Update{
      $clist->append(@text);
          my $pmc=$#text-1;
      $clist->set_pixtext($i, $pmc, $text[$pmc], 5, $monitorUI::Singleton->{pixmap}[$text[$pmc+1]], $monitorUI::Singleton->{mask}[$text[$pmc+1]]);
+         if($text[$pmc+1]>$monitorUI::Singleton->{notebook}[1]){
+             $monitorUI::Singleton->{notebook}[1]=$text[$pmc+1];
+         }
      }
      $clist->thaw();
 
@@ -678,14 +766,14 @@ sub Update{
      $clist->clear();
      my @output=$monitor->getactiveclients("Server");     
      my $i;
-     $monitorUI::Singleton->{notebook}[1]=0;
+     $monitorUI::Singleton->{notebook}[2]=0;
      for $i (0 ... $#output){
          my @text=@{$output[$i]};
      $clist->append(@text);
          my $pmc=$#text-1;
      $clist->set_pixtext($i, $pmc, $text[$pmc], 5, $monitorUI::Singleton->{pixmap}[$text[$pmc+1]], $monitorUI::Singleton->{mask}[$text[$pmc+1]]);
-         if($text[$pmc+1]>$monitorUI::Singleton->{notebook}[1]){
-             $monitorUI::Singleton->{notebook}[1]=$text[$pmc+1];
+         if($text[$pmc+1]>$monitorUI::Singleton->{notebook}[2]){
+             $monitorUI::Singleton->{notebook}[2]=$text[$pmc+1];
          }
      }
      $clist->thaw();
@@ -698,21 +786,21 @@ sub Update{
      $clist->clear();
      my @output=$monitor->getdbok();     
      my $i;
-     $monitorUI::Singleton->{notebook}[2]=0;
+     $monitorUI::Singleton->{notebook}[3]=0;
      for $i (0 ... $#output){
          my @text=@{$output[$i]};
      $clist->append(@text);
      $clist->set_pixtext($i, 4, "", 5, $monitorUI::Singleton->{pixmap}[$text[4]], $monitorUI::Singleton->{mask}[$text[4]]);
-         if($text[4]>$monitorUI::Singleton->{notebook}[2]){
-             $monitorUI::Singleton->{notebook}[2]=$text[4];
+         if($text[4]>$monitorUI::Singleton->{notebook}[3]){
+             $monitorUI::Singleton->{notebook}[3]=$text[4];
          }
      }
      $clist->thaw();
 
 }
 
-    warn "herehere ";
      notebook_update_pages $monitorUI::Singleton->{notebookw}, 0, 2;
+    warn "herehere ";
 }
 
 sub Warning(){
