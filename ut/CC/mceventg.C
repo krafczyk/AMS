@@ -38,15 +38,9 @@ if(!CCFFKEY.oldformat)Orbit.UpdateAxis(io.getveltheta(),
 }
 
 
-AMSmceventg::AMSmceventg(integer ipart, geant mom, AMSPoint & coo,
-AMSDir & dir, integer nskip):_nskip(nskip){
+AMSmceventg::AMSmceventg(integer ipart, geant mom, const AMSPoint & coo,
+const AMSDir & dir, integer nskip):_nskip(nskip),_mom(mom),_coo(coo),_dir(dir){
 init(ipart);
-_mom=mom;
-int i;
-for(i=0;i<3;i++){
- _coo[i]=coo[i];
- _dir[i]=dir[i];
-}
 }
 
 void AMSmceventg::gener(){

@@ -1098,6 +1098,7 @@ C
 CDE, FCONS.
 
       parameter (xm_proton=0.938)
+              common /hvsec/ihvse(2)
       REAL RNDMm(1)
       real *4 pmom_p(5),pmom_t(6)
 *
@@ -1187,11 +1188,11 @@ c         write(*,*)iqi,(sela+sqel)/fsig
          END IF
       ELSE
 c           goto 888
+            call abinelset(vect)
+            if(ihvse(2).eq.1)then
             ISTOP = 1
-             iil=iil+1
-
-c             write(*,*)iil
             DESTEP = DESTEP + GETOT
+            endif
             GO TO 110
       endif
    80 IF(INT.Eq.1.or.int.eq.2)then
@@ -1482,8 +1483,9 @@ C.
 C.
 C.    ------------------------------------------------------------------
 C.
+              common /hvsec/ihvse(2)
       if(ipart.ge.32)then
-          call abdist
+          if(ihvse(1).eq.1)call abdist
       else
        if(ihadr.le.3)then
         CALL GPGHEI
@@ -1542,8 +1544,9 @@ C.
 C.
 C.    ------------------------------------------------------------------
 C.
+              common /hvsec/ihvse(2)
       if(ipart.ge.32)then
-       call abufin
+       if(ihvse(1).eq.1)call abufin
       else
       if(ihadr.le.3)then
        CALL GHEISH
@@ -5467,6 +5470,8 @@ C
       END
 CDECK  ID>, TKFINI. 
           subroutine tkfini
+              common /hvsec/ihvse(2)
+              data ihvse/1,0/
 
               common /tkgdefC/tmaxf,smax,fieldmm,cconv,
      +        maxcal,nitm,xtol,iver,ialg,steps,npars,ims,
@@ -5514,6 +5519,7 @@ CDECK  ID>, TKFINI.
            cconv=5.e-4
            xtol=1.e-2
            call ffkey('TKFIT',tmaxf,20,'MIXED')
+           call ffkey('HISE',ihvse,2,'MIXED' )
 999          end
 CDECK  ID>, TKFITG. 
          subroutine tkfitg(npt,xhits,ysigma,ynormal,ipart,
@@ -7976,3 +7982,39 @@ CDECK  ID>, DUMMY.
       common /quest/iquest(100)
       iquest(10)=64000
       end
+
+      subroutine abinelset(acoo)
+         implicit none
+         real acoo(7),coo(7)
+         common /abinelseti/iset,coo
+         integer iset,i
+         data iset/0/
+         if(iset.ne.0)then
+c           write(*,*)'abinelsetlogicerroralreadyset'
+         else
+         do i=1,7
+          coo(i)=acoo(i)
+         enddo
+         endif
+         iset=iset-1
+       end
+       subroutine abinelget(isett,acoo)
+         implicit none
+         integer iset,isett,i
+         real coo(7),acoo(7)
+         common /abinelseti/iset,coo
+         isett=iset
+         do i=1,7
+          acoo(i)=coo(i)
+         enddo
+       end         
+       subroutine abinelclear
+         implicit none
+         integer iset,isett,i
+         real coo(7),acoo(7)
+         common /abinelseti/iset,coo
+         do i=1,7
+          coo(i)=0
+         enddo
+         iset=0
+       end         

@@ -364,7 +364,9 @@ extern "C" void guout_(){
    UPool.erase(2000000);
 }
 
+extern "C" void abinelclear_();
 extern "C" void gukine_(){
+abinelclear_();
 
 static integer event=0;
 

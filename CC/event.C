@@ -1055,6 +1055,9 @@ void AMSEvent::event(){
     AMSUser::InitEvent();
    try{
     if(AMSJob::gethead()->isSimulation())_siamsevent();
+    AMSmceventg *ptr=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
+    
+
     if(!CCFFKEY.Fast && !(!IOPA.hlun && !IOPA.WriteRoot && (DAQCFFKEY.mode/10)%10)){
 
     _reamsevent();
@@ -1077,6 +1080,18 @@ void AMSEvent::event(){
 }
   //------------------------------------------------------------------
   void AMSEvent::_siamsevent(){
+    AMSmceventg *ptr=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
+    if(ptr){
+     int iset;
+     geant coo[7];
+     abinelget_(iset,coo);
+     if(iset){
+       AMSmceventg* genp=new AMSmceventg(iset,coo[6],AMSPoint(coo[0],coo[1],coo[
+2]),AMSDir(coo[3],coo[4],coo[5]));
+       AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
+
+     }
+    }
     _sitofevent(); 
     _siantievent(); 
     _sictcevent(); 

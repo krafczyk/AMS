@@ -441,7 +441,7 @@ I62  FalseTOFXTracking(1)   // Try(1) or do not try(0) 4y + TOF tracking
 I63  TOFTracking(1)         // Filter out(1) or not(0) hits inconsistent with TOF
                             // before tracking
 
-I64  ForceAdvencedFit(0)    // Force(1) or not advanced fit for all particles
+I64  ForceAdvencedFit(2)    // Force(1) or not advanced fit for all particles
 
 R65  ThrClA[2](0,0)         // mark trreccl good if ampl > ThrClA
 R67  ThrClR[2](0,0)         // mark trreccl good if ampl/s > ThrClR
@@ -673,3 +673,12 @@ G4FF    // Geant4 Datacards
 I 1 BFOrder(4)       // Runge Kutta order 
 R 2 Delta(0.001)     // Runge Kutta delta
 I 3 UniformField(0)  // Use(1)/not use(0) average uniform mag field instead field map
+
+
+
+
+HISE   // Heavy Ion MC switch (Geant3 only)
+I1 HISW(1)              // heavy ion mc switch (1== abpackage)
+I2 HISA(0)              // additional switch hisw dependent
+
+

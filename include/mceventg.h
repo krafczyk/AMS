@@ -79,7 +79,7 @@ void setseed(integer seed[2]){_seed[0]=seed[0];_seed[1]=seed[1];}
 static integer fixedmom(){return _fixedmom;}
 static integer fixeddir(){return _fixeddir;}
 static integer debug;
-AMSmceventg(integer ip, geant mom, AMSPoint & coo, AMSDir & dir, integer nskip=0);
+AMSmceventg(integer ip, geant mom, const AMSPoint & coo, const AMSDir & dir, integer nskip=0);
 AMSmceventg(integer seed[2]){_next=0;_nskip=0;setseed(seed);}
 AMSmceventg( const AMSIO & io);
 ~AMSmceventg(){}
@@ -95,7 +95,7 @@ number getcharge()const {return _charge;}
 AMSDir getdir()const {return _dir;}
 number getmom()const {return _mom;}
 void setmom(number mom) { _mom=mom;}
-integer getpid()const {return _ipart;}
+integer & pid() {return _ipart;}
 number getmass() const {return _mass;}
 integer accept();
 integer acceptio();

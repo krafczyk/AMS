@@ -1247,7 +1247,7 @@ void AMSTrAligData::Init(AMSParticle *ppart, AMSmceventg *pmcg){
    _Address=ptrack->getaddress();
    _InvRigidity=pmcg->getcharge()/pmcg->getmom();
    _ErrInvRigidity=0.01*_InvRigidity;
-   _Pid=pmcg->getpid();
+   _Pid=pmcg->pid();
   _NHits=TKDBc::patpoints(pattern);
   _Hits= new AMSPoint[_NHits];
   _EHits=new AMSPoint[_NHits];

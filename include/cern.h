@@ -19,6 +19,7 @@
 //#define UCOPY(A,B,I) CCALLSFSUB3(UCOPY,ucopy,FLOATV,FLOATV,INT,A,B,I)
 extern "C" void timel_(float & );
 extern "C" void timex_(float & t);
+extern "C" void abinelget_(int &t,geant coo[]);
 #define TIMEX timex_  
 #define TIMEL timel_  
 extern "C" void ucopy_(const void *, void*, const int &);

@@ -223,7 +223,7 @@ Below there is a description of a  ntuple.
 * R*4  *              * TRTRACK  * pirigerr(ntrtr) // PathInt err(1/rig) (<0 means fit wan not succesful)
 * R*4  *              * TRTRACK  * ridgidityms(ntrtr) // fast rigidity mscat off
 * R*4  *              * TRTRACK  * pirigidity(ntrtr) // PathInt rigidity
-* I*4  * [0,20]       * MCEVENTG * nmcg // Number of input particles in MC gen
+* I*4  * [0,20]       * MCEVENTG * nmcg // Number of input particles in MC gen  ******)
 * I*4  *              *MCEVENTG  * nskip  //Pos no for test beam data or MC spec
 * I*4  *              * MCEVENTG * Particle(nmcg) // Geant particle id
 * R*4  *              * MCEVENTG * coo(3,nmcg)  // geant particle coos
@@ -452,13 +452,12 @@ Addendum (V.Choutko + F.Barao) : The code below should do the job
 
 *****) Changed from build=101
 
-cootr(3,1:6,npart) now contains the minimal distance to sensor edge in sensor length units;
+cootr(3,1:nlay(),npart) now contains the minimal distance to sensor edge in sensor length units;
 
 
 
-
-=======
-Known bugs:
+******) geant3 only  particle<0 means heavy ion nonelstic scattering occured
+        in for -particle with dir & momentum at coo
 
 
 
