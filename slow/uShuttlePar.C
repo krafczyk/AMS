@@ -273,6 +273,7 @@ uint para,statu;
       // check record
 
       if (utime>896825174) nach=1;
+       else nach=0;
 	
       if((Radius(Coo_M1950)>.1) && (Radius(Vel_M1950)>.1) && (times>0)) {
 
@@ -305,14 +306,15 @@ uint para,statu;
 	
       	if ((badlist) && (para)) {
 	  if (badlist_search(utime, cur)) {
-	    para=0;
+	    para=2;
 	  }
 	}
       if (para==0) {
 	return -1;
       }
+      else if(para==2)return -2;
 
-      if (!nach) return -1;
+      if (!nach) return -3;
 
                          blockNt.StationTheta=d2f(Geo.Teta);
                          blockNt.StationPhi=d2f(Geo.Phi);

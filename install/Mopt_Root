@@ -2,8 +2,8 @@
 SHELL=/bin/sh
 #
 ifeq  "$(shell uname)"  "AIX" 
-SHLDFLAGS=/usr/lpp/xlC/bin/makeC++SharedLib $(ROOTLIBS) -lm -lcurses -p 0
 ROOTLIBS      = -L$(ROOTSYS)/lib -lRoot -lCint 
+SHLDFLAGS=/usr/lpp/xlC/bin/makeC++SharedLib $(ROOTLIBS) -lm -lcurses -p 0
 CFLAGS=   -D__BATCH__ -O2   -D__WRITEROOT__ -D__IBMAIX__ -I../include -I$(ROOTSYS)/include -I../include/stl
 CFLAGSn=   -D__BATCH__ -D__WRITEROOT__ -g   -I../include -I$(ROOTSYS)/include -I../include/stl
 FFLAGS=    -I../include -O -qextname 
@@ -19,12 +19,13 @@ TIMEL=../bin/aix/timel.o
 endif
 ifeq  "$(shell uname)"  "OSF1" 
 SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
-ROOTLIBS      = -L$(ROOTSYS)/lib -lBase -lCint -lClib -lCont -lFunc -lGraf                 -lGraf3d -lHist -lHtml -lMeta -lMinuit -lNet -lPostscript   -lProof -lRint -lTree -lUnix -lZip
+ROOTLIBS      = -L$(ROOTSYS)/lib  -lBase -lCint -lClib -lCont -lFunc -lGraf                 -lGraf3d -lHist -lHtml -lMeta -lMinuit -lNet -lPostscript   -lProof -lRint -lTree -lUnix -lZip
+#ROOTLIBS      = -L$(ROOTSYS)/lib  -lRoot
 CFLAGS=  -D__BATCH__ -D__ALPHA__   -O4 -D__WRITEROOT__    -I../include -I$(ROOTSYS)/include -I../include/stl -define_templates 
 CFLAGSn=  -D__BATCH__ -D__ALPHA__  -O4  -D__WRITEROOT__   -I../include -I$(ROOTSYS)/include -I../include/stl -define_templates 
 FFLAGS=   -O -I../include  -d -static -nofor_main -convert big_endian -fpe2
 DFLAGS=  -g   -I/usr/include  -I../include -I../include/stl -I/usr/include/cxx
-LDFLAGS=   -lUfor   -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag  $(ROOTLIBS)
+LDFLAGS=    -lUfor    -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag  $(ROOTLIBS)
 CC=cxx
 FF=f77
 LD=cxx
@@ -52,8 +53,8 @@ endif
 #
 SCC=../CC/
 SHLD=..$(LIB)/ntuple.so
-FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C $(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C  $(SCC)gsen.C $(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C $(SCC)amsgeom.C $(SCC)geant.C $(SCC)mceventg.C ../F/tkmccl.F $(SCC)rnormx.C  $(SCC)trid.C $(SCC)link.C $(SCC)trrec.C $(SCC)uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F $(SCC)job.C $(SCC)event.C $(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F $(SCC)tofrec.C $(SCC)tofonline.C  $(SCC)antirec.C $(SCC)tofsim.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C $(SCC)commons.C $(SCC)apool.C $(SCC)tofdbc.C $(SCC)ctcrec.C $(SCC)ctcsim.C $(SCC)ctcdbc.C $(SCC)tofcalib.C $(SCC)ctccalib.C $(SCC)timeid.C $(SCC)io.C $(SCC)trcalib.C ../F/mtx2.F ../F/e04ccf.f $(SCC)trigger1.C $(SCC)trigger3.C $(SCC)antidbc.C $(SCC)daqevt.C $(SCC)astring.C $(SCC)daqblock.C ../F/mfield.F ../F/egzav.F  $(SCC)tkdbc.C $(SCC)ntuple.C $(SCC)root.C $(SCC)user.C $(SCC)status.C
-OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)link.o $(BIN)trrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec.o $(BIN)tofonline.o $(BIN)antirec.o $(BIN)tofsim.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc.o $(BIN)ctcrec.o $(BIN)ctcsim.o $(BIN)ctcdbc.o $(BIN)tofcalib.o $(BIN)ctccalib.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger1.o $(BIN)trigger3.o $(BIN)antidbc.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqblock.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkdbc.o $(BIN)ntuple.o $(BIN)root.o $(BIN)rootdict.o $(BIN)user.o $(BIN)status.o
+FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C $(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C  $(SCC)gsen.C $(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C $(SCC)amsgeom.C $(SCC)geant.C $(SCC)mceventg.C ../F/tkmccl.F $(SCC)rnormx.C  $(SCC)trid.C $(SCC)link.C $(SCC)trrec.C $(SCC)uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F $(SCC)job.C $(SCC)event.C $(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F $(SCC)tofrec.C $(SCC)tofonline.C  $(SCC)antirec.C $(SCC)tofsim.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C $(SCC)commons.C $(SCC)apool.C $(SCC)tofdbc.C $(SCC)ctcrec.C $(SCC)ctcsim.C $(SCC)ctcdbc.C $(SCC)tofcalib.C $(SCC)ctccalib.C $(SCC)timeid.C $(SCC)io.C $(SCC)trcalib.C ../F/mtx2.F ../F/e04ccf.f $(SCC)trigger1.C $(SCC)trigger3.C $(SCC)antidbc.C $(SCC)daqevt.C $(SCC)astring.C $(SCC)daqblock.C ../F/mfield.F ../F/egzav.F  $(SCC)tkdbc.C $(SCC)ntuple.C $(SCC)root.C $(SCC)user.C $(SCC)status.C $(SCC)extC.C
+OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)link.o $(BIN)trrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec.o $(BIN)tofonline.o $(BIN)antirec.o $(BIN)tofsim.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc.o $(BIN)ctcrec.o $(BIN)ctcsim.o $(BIN)ctcdbc.o $(BIN)tofcalib.o $(BIN)ctccalib.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger1.o $(BIN)trigger3.o $(BIN)antidbc.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqblock.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkdbc.o $(BIN)ntuple.o $(BIN)root.o $(BIN)rootdict.o $(BIN)user.o $(BIN)status.o $(BIN)extC.o
 ..$(EXE)/gbatch.exe:	$(OBJECTS)
 	$(FF) -c $(FFLAGS) ../F/timel.F -o $(BIN)timel.o
 	$(LD) -v -o ..$(EXE)/gbatch.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
@@ -94,6 +95,9 @@ $(BIN)user.o:    	 $(SCC)user.C
 
 $(BIN)ntuple.o:    	 $(SCC)ntuple.C
 	$(CC) -c $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
+
+$(BIN)extC.o:    	 $(SCC)extC.C
+	$(CC) -c $(CFLAGS) $(SCC)extC.C -o $(BIN)extC.o
 
 $(BIN)root.o:    	 $(SCC)root.C
 	$(CC) -c $(CFLAGS) $(SCC)root.C -o $(BIN)root.o

@@ -21,14 +21,13 @@
 #include <amsgobj.h>
 #include <timeid.h>
 #include <commons.h>
-#include <ntuple.h>
 #include <status.h>
 #ifdef __DB__
 #include <db_comm.h>
 #endif
 
 
-
+class AMSNtuple;
 const integer maxtrig=20;
 const integer maxtdv=255;
 const integer maxtdvsize=256;

@@ -281,7 +281,7 @@ void AMSParticle::_writeEl(){
   PN->ErrMomentum[PN->Npart]=_ErrMomentum;
   PN->Charge[PN->Npart]=_Charge;
   PN->Theta[PN->Npart]=_Theta;
-  PN->Phi[PN->Npart]=_Phi;
+  PN->Phi[PN->Npart]=fmod(_Phi+AMSDBc::twopi,AMSDBc::twopi);
   for(i=0;i<3;i++)PN->Coo[PN->Npart][i]=_Coo[i];
   for(i=0;i<CTCDBc::getnlay();i++){
     PN->CTCP[PN->Npart][i]=_pctc[i]?_pctc[i]->getpos():0;
@@ -396,15 +396,24 @@ void AMSParticle::refit(){
       _ptrack->intercept(_TrCoo[layer],layer,theta,phi);
 // Change theta,phi,coo 
       if(_pbeta->getbeta()>0 && layer==0){
-          _Theta=theta;    
-          _Phi=phi;    
+          _Theta=theta;
+          _Phi=phi;
           _Coo=_TrCoo[0];
-      }       
+         // change theta according to beta
+          if(_Theta<AMSDBc::pi/2){
+           _Theta=AMSDBc::pi-_Theta;
+           _Phi+=AMSDBc::pi;
+          }
+     }       
       else if(_pbeta->getbeta()<=0 && layer==nl-1){
           _Theta=theta;    
-          _Phi=phi;    
+         // change theta according to beta
+          _Phi=phi;
           _Coo=_TrCoo[nl-1];
-          
+          if(_Theta>AMSDBc::pi/2){
+            _Theta=AMSDBc::pi-_Theta;
+            _Phi+=AMSDBc::pi;
+          }
       }
     }
 

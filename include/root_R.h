@@ -1,8 +1,8 @@
-#define __WRITEROOT__
+#define __WRITEROOTH__
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 #include <TObject.h>
 #include <TTree.h>
 #include <TFile.h>
@@ -30,7 +30,7 @@ const int MAXCTCCLMC =   200;
 const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class EventNtuple: public TObject {
 #else
 class EventNtuple {
@@ -66,12 +66,12 @@ public:
   int EventStatus; 
 friend class AMSEvent;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(EventNtuple,1)       //EventNtuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class BetaNtuple : public TObject {
 #else
 class BetaNtuple {
@@ -90,12 +90,12 @@ public:
 
 friend class AMSBeta;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(BetaNtuple,1)       //BetaNtuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class ChargeNtuple : public TObject {
 #else
 class ChargeNtuple {
@@ -113,13 +113,13 @@ public:
 
 friend class AMSCharge;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(ChargeNtuple,1)       //ChargeNtuple
 #endif
 };
 
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class ParticleNtuple : public TObject {
 #else
 class ParticleNtuple {
@@ -146,13 +146,13 @@ public:
   float TrCoo[MAXPART][6][3];
 friend class AMSParticle;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(ParticleNtuple,1)       //ParticleNtuple
 #endif
 };
 
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class TOFClusterNtuple : public TObject {
 #else
 class TOFClusterNtuple {
@@ -170,12 +170,12 @@ public:
 
 friend class AMSTOFCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(TOFClusterNtuple,1)       //TOFClusterNtuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class TOFMCClusterNtuple : public TObject {
 #else
 class TOFMCClusterNtuple {
@@ -189,12 +189,12 @@ public:
 
 friend class AMSTOFMCCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(TOFMCClusterNtuple,1)       //TOFMCClusterNtuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class TrClusterNtuple : public TObject {
 #else
 class TrClusterNtuple {
@@ -214,12 +214,12 @@ public:
 
 friend class AMSTrCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(TrClusterNtuple,1)       //TrClusterNtuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class TrMCClusterNtuple : public TObject {
 #else
 class TrMCClusterNtuple {
@@ -239,13 +239,13 @@ public:
 
 friend class AMSTrMCCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(TrMCClusterNtuple,1)       //TrMCClusterNtuple
 #endif
 };
 
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class TrRecHitNtuple : public TObject {
 #else
 class TrRecHitNtuple {
@@ -263,12 +263,12 @@ public:
 
 friend class AMSTrRecHit;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(TrRecHitNtuple,1)       //TrRecHitNtuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class TrTrackNtuple : public TObject {
 #else
 class TrTrackNtuple {
@@ -310,12 +310,12 @@ public:
 
 friend class AMSTrTrack;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(TrTrackNtuple,1)       //TrTrackNtuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class MCEventGNtuple : public TObject {
 #else
 class MCEventGNtuple {
@@ -332,13 +332,13 @@ public:
 
 friend class AMSmceventg;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(MCEventGNtuple,1)       //MCEventGNtuple
 #endif
 };
 
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class CTCClusterNtuple : public TObject {
 #else
 class CTCClusterNtuple {
@@ -355,12 +355,12 @@ public:
 
 friend class AMSCTCCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(CTCClusterNtuple,1)       //CTCClusterNtuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class CTCMCClusterNtuple : public TObject {
 #else
 class CTCMCClusterNtuple {
@@ -377,12 +377,12 @@ public:
 
 friend class AMSCTCMCCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(CTCMCClusterNtuple,1)       //CTCMCClusterNtuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class AntiClusterNtuple : public TObject {
 #else
 class AntiClusterNtuple {
@@ -397,12 +397,12 @@ public:
 
 friend class AMSAntiCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(AntiClusterNtuple,1)       //AntiClusterNtuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class ANTIMCClusterNtuple : public TObject {
 #else
 class ANTIMCClusterNtuple {
@@ -416,12 +416,12 @@ public:
 
 friend class AMSAntiMCCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(ANTIMCClusterNtuple,1)       //ANTIMCClusterNtuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class LVL3Ntuple : public TObject {
 #else
 class LVL3Ntuple {
@@ -440,12 +440,12 @@ public:
 
 friend class TriggerLVL3;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(LVL3Ntuple,1)       //LVL3Ntuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class LVL1Ntuple : public TObject {
 #else
 class LVL1Ntuple {
@@ -460,12 +460,12 @@ public:
 
 friend class TriggerLVL1;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(LVL1Ntuple,1)       //LVL1Ntuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class CTCHitNtuple : public TObject {
 #else
 class CTCHitNtuple {
@@ -481,12 +481,12 @@ public:
 
 friend class AMSCTCRawHit;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(CTCHitNtuple,1)       //CTCHitNtuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class TrRawClusterNtuple : public TObject {
 #else
 class TrRawClusterNtuple {
@@ -498,12 +498,12 @@ public:
   float s2n[MAXTRRAW];
 friend class AMSTrRawCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(TrRawClusterNtuple,1)       //TrRawClusterNtuple
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class AntiRawClusterNtuple : public TObject {
 #else
 class AntiRawClusterNtuple {
@@ -517,12 +517,12 @@ public:
 
 friend class AMSAntiRawCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(AntiRawClusterNtuple ,1)       //AntiRawClusterNtuple 
 #endif
 };
 
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 class TOFRawClusterNtuple : public TObject {
 #else
 class TOFRawClusterNtuple {
@@ -538,7 +538,7 @@ public:
 
 friend class AMSTOFRawCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
+#ifdef __WRITEROOTH__
 ClassDef(TOFRawClusterNtuple ,1)       //TOFRawClusterNtuple 
 #endif
 };

@@ -33,7 +33,7 @@ void AMSNtuple::init(){
   _Nentries=0;
   HBNT(_lun, getname()," ");
   HBNAME(_lun,"EventH",&_event.Eventno,
-  "eventno:I,run:I,runtype:I,time(2):I,RawWords[0,32000]:I,GrMedPhi:R,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,CTCClusters[0,1000]:I,CTCMCClusters[0,100000]:I,AntiMCClusters[0,100000]:I,AntiClusters[0,1000]:I,EventStatus:I");
+  "eventno[0,10000000]:I,run:I,runtype:I,time(2):I,RawWords[0,32000]:I,GrMedPhi:R,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,Particles[0,100]:I,Tracks[0,100]:I,Betas[0,100]:I,Charges[0,100]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,CTCClusters[0,100]:I,CTCMCClusters[0,100000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,100]:I,EventStatus:I");
 
   HBNAME(_lun,"Beta",&_beta.Nbeta,
       "nbeta[0,100],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betaerror(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
@@ -81,7 +81,7 @@ void AMSNtuple::init(){
   "nlvl3[0,2],LVL3TOFTr(nlvl3)[0,10],LVL3AntiTr(nlvl3)[0,10],LVL3TrackerTr(nlvl3),LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pattern(2,nlvl3)[-1,100],LVL3Residual(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R");
 
   HBNAME(_lun,"LVL1",&_lvl1.Nlvl1,
-  "nlvl1[0,2],LVL1Mode(nlvl1),LVL1Flag(nlvl1),LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1)");
+  "nlvl1[0,2],LVL1Mode(nlvl1)[0,1],LVL1Flag(nlvl1)[-10,10],LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1)");
 
   HBNAME(_lun,"CTCHit",&_ctcht.Nctcht,
   "nctcht[0,50],CTChitStatus(nctcht):I,CTChitLayer(nctcht)[0,10]:I,ctchitcolumn(nctcht)[0,100]:I,ctchitrow(nctcht)[0,100]:I,ctchitsignal(nctcht)");
@@ -90,10 +90,10 @@ void AMSNtuple::init(){
   "ntrraw[0,500],rawaddress(ntrraw):I,rawlength(ntrraw)[-1,30000]:I,s2n(ntrraw):R");
 
   HBNAME(_lun,"AntiRawC",&_antiraw.Nantiraw,
-  "nantiraw[0,32],antirawstatus(nantiraw):I,antirawsector(nantiraw)[0,100]:I,antirawupdown(nantiraw)[0,10]:I,antirawsignal(nantiraw)");
+  "nantiraw[0,32],antirawstatus(nantiraw):I,antirawsector(nantiraw)[0,100]:I,antirawupdown(nantiraw)[0,7]:I,antirawsignal(nantiraw)");
 
   HBNAME(_lun,"TOFRawCl",&_tofraw.Ntofraw,
-  "ntofraw[0,20],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,10]:I,tofrbar(ntofraw)[0,100]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw)");
+  "ntofraw[0,20],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,7]:I,tofrbar(ntofraw)[0,31]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw)");
 
 }
 void AMSNtuple::reset(int full){

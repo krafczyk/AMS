@@ -107,7 +107,7 @@ void TriggerLVL1::_writeEl(){
   if (lvl1N->Nlvl1>=MAXLVL1) return;
 
 // Fill the ntuple
-  lvl1N->Mode[lvl1N->Nlvl1]=_TriggerMode;
+  lvl1N->Mode[lvl1N->Nlvl1]=0;
   lvl1N->TOFlag[lvl1N->Nlvl1]=_tofflag;
   int i;
   for(i=0;i<4;i++)lvl1N->TOFPatt[lvl1N->Nlvl1][i]=_tofpatt[i];
