@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.22 2001/05/10 09:45:29 mdelgado Exp $
+//  $Id: richrec.C,v 1.23 2001/05/14 12:08:06 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -585,5 +585,11 @@ void AMSRichRing::CalcBetaError(){
     RICHDB::rad_height/RICHDB::height*40./2.;
 
 
-  _errorbeta=_used>0?AMSRichRing::Sigma(_beta,A,B)/sqrt(geant(_used)):1;
+  _errorbeta=_used>0?
+    sqrt(AMSRichRing::Sigma(_beta,A,B)*
+	 AMSRichRing::Sigma(_beta,A,B)/geant(_used)+0.016e-2*0.016e-2):1;
 }
+
+
+
+
