@@ -26,11 +26,11 @@ are in ../doc/dbase_objy.doc
 
 
 
+New
+----
+
+Moptg4    // makefile to ams02+geant4 use gmake -if Moptg4 to build exec
 
 
-*) Makedepend doesnot work properly on alpha ( after OS upgrade).
-  The reasons are not yet unsderstood.
-  A workaround is remove first all object files from ../bin/osf1
-  and then compile/link as usual thru clmake.
-  
-  
+
+
