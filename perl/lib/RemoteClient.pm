@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.144 2003/05/01 11:59:28 alexei Exp $
+# $Id: RemoteClient.pm,v 1.145 2003/05/02 17:29:21 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1498,6 +1498,11 @@ sub Connect{
          $trtype = $q->param("QTrType");
          print "<tr><td><font size=\"3\" color=$color><b>Trigger Type : </b></td><td><b> $trtype</b></td></tr>\n";
          $sql=$sql." TRTYPE= '$trtype' AND ";
+      }
+        if (defined $q->param("QSetup")) {
+         $setup = $q->param("QSetup");
+         print "<tr><td><font size=\"3\" color=$color><b>Setup : </b></td><td><b> $setup</b></td></tr>\n";
+         $sql=$sql." SETUP= '$setup' AND ";
       }
         if (defined $q->param("NTOUT")) {
          my $outform=>undef;
@@ -4502,9 +4507,14 @@ sub checkJobsTimeout {
     my $r3=$self->{sqlserver}->Query($sql);
     if( defined $r3->[0][0]){
      foreach my $job (@{$r3}){
+         my $tmoutflag    = 0;
+         my $owner        ="xyz";
+         my $jobstatus    ="unknown";
          my $jid          = $job->[0];
+         my $address      = "alexei.klimentov\@cern.ch";
 
          my $timestamp    = $job->[1];
+         my $submittime = localtime($timestamp);
          my $timeout      = $job->[2];
          my $tsubmit      = EpochToDDMMYYHHMMSS($timestamp);
          my $texpire      = EpochToDDMMYYHHMMSS($timestamp+$timeout);
@@ -4512,42 +4522,52 @@ sub checkJobsTimeout {
          my $mid          = $job->[3];
          my $cid          = $job->[4];
          my $cite         = $job->[5];
-         $sql="SELECT runs.run, runs.status, mails.name, mails.address 
-                FROM runs, mails 
-                WHERE runs.jid = $jid AND 
-                      runs.status != 'Completed' AND 
-                      runs.status != 'TimeOut' AND 
-                      mails.mid = $mid";
-         my $r4=$self->{sqlserver}->Query($sql); 
+         $sql = "SELECT mails.name, mails.address FROM Mails WHERE mails.mid=$mid";
+         my $r4 = $self->{sqlserver}->Query($sql);
          if (defined $r4->[0][0]) {
-              my $rstatus = $r4->[0][1];
-              my $owner   = $r4->[0][2];
-              my $address = $r4->[0][3].",alexei.klimentov\@cern.ch";
-              my $sujet = "Job : $jid - expired";
-              my $submittime = localtime($timestamp);
-              my $timeouttime= localtime($timestamp+$timeout);
-              my $timenow    = time();
-              if ($timenow > $timestamp+$timeout) {
-                  $timeouttime = localtime($timenow+60*60);
-              } 
-              my $message    = "Job $jid, Submitted : $submittime, Timeout : $timeout sec. \n Job will be removed from database : $timeouttime. MC Production Team \n";
-               $self->sendmailmessage($address,$sujet,$message);
-#              print "$address : $sujet : $message ";
-              $sql= "UPDATE runs SET status='TimeOut' WHERE run=$jid";
-              $self->{sqlserver}->Update($sql); 
+            $owner   = $r4->[0][0];
+            $address = $r4->[0][1].",".$address;
+          }
+
+         $sql="SELECT runs.run, runs.status 
+                FROM runs 
+                WHERE runs.jid = $jid";
+         $r4=$self->{sqlserver}->Query($sql); 
+         if (defined $r4->[0][0]) {
+             $jobstatus = $r4->[0][1];
+             if ($jobstatus eq "Processing" ||
+                 $jobstatus eq "Foreign"    ||
+                 $jobstatus eq "Unchecked"  ||
+                 $jobstatus eq "Failed") {
+               $sql= "UPDATE runs SET status='TimeOut' WHERE run=$jid";
+               $self->{sqlserver}->Update($sql); 
+               $tmoutflag = 1;
+             }
+          }
+           else {
+              $tmoutflag = 1;
+          }
+      if ($tmoutflag == 1) {
+       my $timenow    = time();
+       my $deletetime = localtime($timenow+60*60);
+       my $sujet = "Job : $jid - expired";
+       my $message    = "Job $jid, Submitted : $submittime, Timeout : $timeout sec. 
+                         \n Job will be removed from database.
+                         \n Not earlier than  : $deletetime.
+                         \n MC Production Team.";
+       $self->sendmailmessage($address,$sujet,$message);
 
         print "<td><b><font color=\"black\">$cite </font></b></td>";
         print "<td><b><font color=\"black\">$jid </font></b></td>";
         print "<td><b><font color=\"black\">$tsubmit </font></b></td>";
         print "<td><b><font color=\"black\">$texpire </font></b></td>";
-        print "<td><b><font color=\"black\">$rstatus </font></b></td>";
+        print "<td><b><font color=\"black\">$jobstatus </font></b></td>";
         print "<td><b><font color=\"black\">$owner </font></b></td>";
         print "</tr>\n";
-
-
-          }
+      }
      }
  }
+
   $self->htmlTableEnd();
  $self->htmlBottom();
 }
@@ -4815,13 +4835,15 @@ sub listStat {
           my $trig         = $job->[1];
           $jobsreq++;
           $trigreq = $trigreq + $trig;
-          $sql="SELECT status from Runs WHERE jid=$jid";
+          $sql="SELECT status, levent, fevent from Runs WHERE jid=$jid";
           $r3=$self->{sqlserver}->Query($sql);
           if (defined $r3->[0][0]) {
               my $status = $r3->[0][0];
+              my $levent = $r3->[0][1];
+              my $fevent = $r3->[0][2];
               if ($status eq 'Finished' || $status eq 'Completed') { 
                   $jobsdone++;
-                  $trigdone = $trigdone + $trig;}
+                  $trigdone += $levent - $fevent + 1;}
               if ($status eq 'Failed' || $status eq 'Unchecked')   
                 { $jobsfailed++;}
           }
@@ -4927,7 +4949,7 @@ sub listStat {
       foreach my $ds (@{$r5}){
           my $did       = $ds->[0];
           my $dataset   = trimblanks($ds->[1]);
-          $sql = "SELECT SUM(triggers) FROM Jobs, Runs, Cites  
+          $sql = "SELECT SUM(levent), SUM(fevent), COUNT(fevent) FROM Jobs, Runs, Cites  
                   WHERE 
                     Jobs.did = $did AND
                     Jobs.jid = Runs.jid AND  
@@ -4937,7 +4959,7 @@ sub listStat {
            my $r6=$self->{sqlserver}->Query($sql);
            my $events = 0;
            if(defined $r6->[0][0]){
-             $events = $r6->[0][0];
+             $events = $r6->[0][0] - $r6->[0][1] + $r6->[0][2];
              if ($events > 1000 && $events <= 1000000) {
                  $events=sprintf("%.2fK",$events/1000);
              } elsif ($events > 1000000) {
@@ -5845,9 +5867,10 @@ sub parseJournalFiles {
  htmlTop();
  htmlTable("Parse Journal Files");
 
- my $sql = "SELECT dirpath,journals.timestamp,name 
+ my $sql = "SELECT dirpath,journals.timestamp,name,journals.cid  
               FROM journals,cites WHERE journals.cid=cites.cid";
 
+ my $cid = undef;
  my $ret = $self->{sqlserver}->Query($sql);
 
  if(defined $ret->[0][0]){
@@ -5856,6 +5879,7 @@ sub parseJournalFiles {
    my $dir        = trimblanks($jou->[0]);
    my $timestamp  = trimblanks($jou->[1]);
    my $cite       = trimblanks($jou->[2]);
+      $cid        = $jou->[3];
    my $lastcheck  = EpochToDDMMYYHHMMSS($timestamp);
    my $title  = "Cite : ".$cite.", Directory : ".$dir." Last Check ".$lastcheck;
    htmlTable($title);
@@ -5898,8 +5922,11 @@ sub parseJournalFiles {
    }
    htmlTableEnd();
    htmlTableEnd();
-   $sql = "UPDATE journals SET timestamp=$timenow, lastfile = '$lastfile'";
-   $self->{sqlserver}->Update($sql); 
+   if (defined $cid) {
+    $sql = "UPDATE journals SET timestamp=$timenow, lastfile = '$lastfile' 
+            WHERE cid=$cid";
+    $self->{sqlserver}->Update($sql); 
+   }
   }
  } else {
      print "Warning - table Journals is empty \n";
@@ -5938,7 +5965,6 @@ my @runfinished   =();
 my @runincomplete =();
 
 my $timestamp = 0;    # unix time 
-my $lastrun   = 0;
 my $lastjobid = 0;
 
 my $startingjobR = 0; # StartingJob record found and parsed
@@ -5956,6 +5982,8 @@ my $status = undef;   # Run status
    my $bad      =0; 
    my $unchecked=0; 
 
+
+   my $run  = 0;
 
     open(FILE,"<",$inputfile) or die "Unable to open $inputfile";
     my $buf;
@@ -6005,7 +6033,7 @@ foreach my $block (@blocks) {
 
           $patternsmatched  = 0;
           my @RunIncompletePatterns = 
-                ("RunIncomplete","Host","EventsProcessed","LastEvent","Errors",
+                ("RunIncomplete","Host","Run","EventsProcessed","LastEvent","Errors",
                               "CPU","Elapsed","CPU/Event","Status");
           for (my $i=0; $i<$#junk+1; $i++) {
            my @jj = split " ",$junk[$i];
@@ -6024,16 +6052,18 @@ foreach my $block (@blocks) {
        }
    if ($patternsmatched == $#RunIncompletePatterns+1) { #RunIncomplete has a pair CInfo
     $runincomplete[0] = "RunIncomplete";
+    $run              = $runincomplete[2];
+    
     $runfinishedR   = 1;
-    my $sql = "SELECT run FROM runs WHERE run = $lastrun AND levent=$runincomplete[3]";
+    my $sql = "SELECT run FROM runs WHERE run = $run AND levent=$runincomplete[4]";
     my $ret = $self->{sqlserver}->Query($sql);
     if (not defined $ret->[0][0]) {
-     my $cputime = sprintf("%.0f",$runincomplete[5]);
-     my $elapsed = sprintf("%.0f",$runincomplete[6]);
-     $sql = "UPDATE Jobs SET EVENTS=$runincomplete[2], ERRORS=$runincomplete[4], 
+     my $cputime = sprintf("%.0f",$runincomplete[6]);
+     my $elapsed = sprintf("%.0f",$runincomplete[7]);
+     $sql = "UPDATE Jobs SET EVENTS=$runincomplete[3], ERRORS=$runincomplete[5], 
                                    CPUTIME=$cputime, ELAPSED=$elapsed,
                                    HOST='$runfinished[1]', TIMESTAMP = $timestamp 
-                   WHERE JID = (SELECT Runs.jid FROM Runs WHERE Runs.jid = $lastrun)";
+                   WHERE JID = (SELECT Runs.jid FROM Runs WHERE Runs.jid = $run)";
      print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
     }
@@ -6059,7 +6089,7 @@ foreach my $block (@blocks) {
           if(defined $ret->[0][0]){
               $mailto = $mailto.", $ret->[0][0]";
           }
-          $self->sendmailmessage($mailto,$subject,$text);
+#          $self->sendmailmessage($mailto,$subject,$text);
           last;
       }
      }
@@ -6132,7 +6162,7 @@ foreach my $block (@blocks) {
 #
 # StartingRun REI, ID 0 , Run 134217740 , FirstEvent 1 , LastEvent 21000 , Prio 0 , Path  , 
 # Status Allocated , History Foreign , ClientID 134217740 , SubmitTimeU 1049456649, 
-# SubmitTime Fri Apr  4 13:44:09 2003, Host pcamsvc , EventsProcessed 0 , 
+# SubmitTime Fri Apr  4 13:44:09 2003, Host pcamsvc , Run 0, EventsProcessed 0 , 
 # LastEvent 0 , Errors 0 , CPU 0 , Elapsed 0 , CPU/Event 0 , Status Processing
 #
       $patternsmatched = 0;
@@ -6140,25 +6170,26 @@ foreach my $block (@blocks) {
                                  "Prio","Path","Status","History","ClientID",
                                  "SubmitTime","SubmitTimeU","Host","EventsProcessed","LastEvent",
                                  "Errors","CPU","Elapsed","CPU/Event","Status");
-       for (my $i=0; $i<$#junk+1; $i++) { 
-        my @jj = split " ",$junk[$i];
-        if ($#jj > 0) {
-         my $found = 0;
-         my $j     = 0;
-         while ($j<$#StartingRunPatterns+1 && $found == 0) { 
-          if ($jj[0] eq $StartingRunPatterns[$j]) {
-            $startingrun[$j] = trimblanks($jj[1]);
-            $patternsmatched++;
-            $found = 1;
+
+      my $j = 0;
+      foreach my $pat (@StartingRunPatterns) {
+        foreach my $xyz (@junk) {
+         my @jj = split " ",$xyz;
+         if ($#jj > 0) {
+             if ($pat eq $jj[0]) {
+              $patternsmatched++;
+              $startingrun[$j] = trimblanks($jj[1]);
+              if ($jj[0] eq 'Run') { last;}
+             }
           }
-          $j++;
-      }
-     }
-    }
-   if ($patternsmatched == $#StartingRunPatterns) { #OpenDST has no pair
-       if ($lastrun != $startingrun[2]) {
-           $lastrun = $startingrun[2];
        }
+       $j++;
+      }  
+
+
+   
+   if ($patternsmatched == $#StartingRunPatterns+4) { # Ignore one 'Run' 
+    $run = $startingrun[2];
     $startingrun[0] = "StartingRun";
     $startingrunR   = 1;
     $timestamp = time();
@@ -6168,6 +6199,7 @@ foreach my $block (@blocks) {
      $sql = "INSERT INTO runs (run,jid,fevent,levent,fetime,letime,submit,status) 
               VALUES($startingrun[2],$lastjobid,$startingrun[3],
                      $startingrun[4],0,0,$startingrun[11],'$startingrun[7]')";
+     print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
      $sql = "update jobs set 
                                host='$startingrun[12]',
@@ -6175,10 +6207,11 @@ foreach my $block (@blocks) {
                                cputime=$startingrun[16], elapsed=$startingrun[17],
                                timestamp=$timestamp 
                    where jid=$lastjobid";
+     print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
     } 
    } else  {
-       print FILE "parseJournalFiles -W- StartingRun - cannot find all patterns";
+       print FILE "parseJournalFiles -W- StartingRun - cannot find all patterns $patternsmatched/$#StartingRunPatterns";
    }
    # end StartingRun 
    #
@@ -6357,7 +6390,7 @@ foreach my $block (@blocks) {
 # Errors 3 , CPU 712.62 , Elapsed 725.923 , CPU/Event 0.0660017 , Status Finished
 #
     $patternsmatched  = 0;
-    my @RunFinishedPatterns = ("RunFinished","Host","EventsProcessed","LastEvent","Errors",
+    my @RunFinishedPatterns = ("RunFinished","Host","Run","EventsProcessed","LastEvent","Errors",
                               "CPU","Elapsed","CPU/Event","Status");
      for (my $i=0; $i<$#junk+1; $i++) {
       my @jj = split " ",$junk[$i];
@@ -6377,20 +6410,20 @@ foreach my $block (@blocks) {
    if ($patternsmatched == $#RunFinishedPatterns+1) { #RunFinsihed has a pair CInfo
     $runfinished[0] = "RunFinished";
     $runfinishedR   = 1;
-    my $sql = "SELECT run FROM runs WHERE run = $lastrun AND levent=$runfinished[3]";
+    my $sql = "SELECT run FROM runs WHERE run = $run AND levent=$runfinished[3]";
     my $ret = $self->{sqlserver}->Query($sql);
     if (not defined $ret->[0][0]) {
-     my $cputime = sprintf("%.0f",$runfinished[5]);
-     my $elapsed = sprintf("%.0f",$runfinished[6]);
-     $sql = "update jobs set events=$runfinished[2], errors=$runfinished[4], 
+     my $cputime = sprintf("%.0f",$runfinished[6]);
+     my $elapsed = sprintf("%.0f",$runfinished[7]);
+     $sql = "update jobs set events=$runfinished[3], errors=$runfinished[5], 
                                    cputime=$cputime, elapsed=$elapsed,
                                    host='$runfinished[1]',timestamp = $timestamp 
-                               where jid = (select runs.jid from runs where runs.jid = $lastrun)";
+                               where jid = (select runs.jid from runs where runs.jid = $run)";
      print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
     }
    } else {
-       print FILE "parseJournalFile -W- RunFinished - cannot find all patterns \n";
+       print FILE "parseJournalFile -W- RunFinished - cannot find all patterns $patternsmatched/$#RunFinishedPatterns\n";
    }
    #
    # end RunFinished
@@ -6401,6 +6434,7 @@ foreach my $block (@blocks) {
 
  if ($startingrunR == 1 || $runfinishedR == 1) {
   $status="Failed";
+  my $inputfileLink = $inputfile.".0";
   if ($copyfailed == 0) {
     foreach my $ntuple (@cpntuples) {
       my $cmd="rm  $ntuple";
@@ -6408,10 +6442,13 @@ foreach my $block (@blocks) {
       system($cmd);
       print FILE "Validation done : system command rm -i $ntuple \n";
   }
-  if ($#cpntuples >= 0) { $status = 'Completed';}
+  if ($#cpntuples >= 0) { 
+    $status = 'Completed';
+    $inputfileLink = $inputfile.".1";
+   }
  }
   else{
-   print FILE "Validation/copy failed : Run =$lastrun \n";
+   print FILE "Validation/copy failed : Run =$run \n";
    $status='Unchecked';
    foreach my $ntuple (@mvntuples) {
      my $cmd = "rm  $ntuple";
@@ -6419,14 +6456,16 @@ foreach my $block (@blocks) {
      print FILE "$cmd\n";
      system($cmd);
     }
-    $sql = "DELETE ntuples WHERE run=$lastrun";
+    $sql = "DELETE ntuples WHERE run=$run";
     $self->{sqlserver}->Update($sql);
     print FILE "$sql \n";
     $runupdate = "UPDATE runs SET ";
 }
-  $sql = $runupdate." STATUS='$status' WHERE run=$lastrun";
+  $sql = $runupdate." STATUS='$status' WHERE run=$run";
   $self->{sqlserver}->Update($sql);
   print FILE "Update Runs : $sql \n";
+  my $lncmd = "mv $inputfile $inputfileLink";
+  system($lncmd); 
  }
  close FILE;
  
@@ -6565,7 +6604,12 @@ sub deleteTimeOutJobs {
     if (not $self->ServerConnect()){
         die "deleteTimeOutJobs -F- Unable To Connect To Server";
     }
+# get list of runs from Server
+    if( not defined $self->{dbserver}->{rtb}){
+      DBServer::InitDBFile($self->{dbserver});
+    }
 #
+
     my $sql  = undef;
     $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid, 
                  cites.name, mails.name FROM jobs, cites, mails, runs  
@@ -6600,6 +6644,12 @@ sub deleteTimeOutJobs {
             $self->{sqlserver}->Update($sql);
             $sql = "DELETE Jobs WHERE jid=$jid";
             $self->{sqlserver}->Update($sql);
+            foreach my $runinfo (@{$self->{dbserver}->{rtb}}){
+             if($runinfo->{Run}=$jid) {
+              DBServer::sendRunEvInfo($self->{dbserver},$runinfo,"Delete"); 
+              last;
+             }
+            }
         print "<td><b><font color=\"black\">$cite </font></b></td>";
         print "<td><b><font color=\"black\">$jid </font></b></td>";
         print "<td><b><font color=\"black\">$tsubmit </font></b></td>";
