@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.9 2003/07/11 13:43:54 choutko Exp $
+#  $Id: Makefile,v 1.10 2003/07/11 14:52:45 choutko Exp $
 
 PLATFORM      =  Linux
 
@@ -19,13 +19,15 @@ GLIBS         = -L$(ROOTSYS)/lib -lGX11TTF  -lCore -lCint -lHist -lGraf -lGraf3d
 
 ROOTH         = TTree.h TFile.h TH1.h
 
-SRCS          = AMSDisplay.cxx \
+SRCS          = TGRunEventDialog.cxx \
+                ControlFrame.cxx \
                 AMSNtupleV.cxx \
-                AMSR_GeometrySetter.cxx \
-                TGRunEventDialog.cxx \
+
+SRCSN          = AMSR_GeometrySetter.cxx \
+                 AMSDisplay.cxx \
                 AMSR_Axis.cxx  
-HDRS          =   \
-                ../include/root_RVS.h\
+
+HDRS          =  ../include/root_RVS.h\
 		ControlFrame.h \
 		AMSDisplay.h \
 		AMSNtupleV.h \
@@ -48,17 +50,13 @@ MAINOC         = $(MAINC:.cxx=.o)
 
 OBJS          = $(SRCS:%.cxx=$(PREFIX)%.o) 
 OBJSR          = $(PREFIX)root.o 
-OBJSN         =   $(PREFIX)AMSNtuple.o
-OBJSC          = $(PREFIX)ControlFrame.o
+OBJSN          = $(SRCSN:%.cxx=$(PREFIX)%.o) 
+OBJSC         =   $(PREFIX)AMSNtuple.o
 
 ALLDICT       = $(DICT) $(DICTH) 
 ALLSRCS       = $(SRCS)  $(HDRS)  $(ALLDICT) $(MAIN) $(MAINH) $(MAINC)
 ALLOBJS       = $(OBJS) $(MAINO) 
 
-
-AMSLIB       = libAMS.a
-
-AMSSHAREDLIB = libAMS.so
 
 
 AMSPRG       = $(PREFIX)amsed
@@ -73,13 +71,12 @@ osdepend:  $(AMSPRGC)
 
 
 
-$(AMSPRG):      $(ALLOBJS) $(DICTO) $(MAINH) $(OBJSR) $(OBJSN)  $(OBJSC)
-		$(LD)  -static  $(LDFLAGS) $(ALLOBJS) $(OBJSR) $(OBJSN)  $(OBJSC) $(DICTO)  $(LIBS)  \
-		-o $(@) 
+$(AMSPRG):      $(ALLOBJS) $(DICTO) $(MAINH) $(OBJSR) $(OBJSN)  $(OBJSC)  
+		$(LD)  -static  $(LDFLAGS) $(ALLOBJS) $(OBJSR) $(OBJSN)  $(OBJSC)  $(DICTO)  $(LIBS)  -o $(@) 
 		@echo "$(AMSPRG) done"
 
-$(AMSPRGC):	$(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSN) $(OBJSC)
-		$(LD) -rdynamic $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSN) $(OBJSC)   $(LIBS) -o $(AMSPRGC) 
+$(AMSPRGC):	$(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSN) $(OBJSC)  
+		$(LD) -rdynamic $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSN) $(OBJSC)     $(LIBS) -o $(@)  
 
 
 $(DICT):        $(HDRS)
@@ -114,15 +111,15 @@ clean:
 ##### RULES #####
 
 $(ALLOBJS): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
-
-$(OBJSC): $(PREFIX)%.o : %.cxx 
 	$(CXX) $(OPTC) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(OBJSR): $(PREFIX)%.o : ../CC/%.C 
 	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
-$(OBJSN): $(PREFIX)%.o : ../online/%.cxx 
+$(OBJSN): $(PREFIX)%.o : %.cxx 
+	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
+
+$(OBJSC): $(PREFIX)%.o : ../online/%.cxx 
 	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(DICTO): $(PREFIX)%.o : %.cxx 

@@ -533,6 +533,13 @@ for(int i=0;i<ev->nParticle();i++){
 //      cout <<"removing point point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
       continue;
      }
+     const double hole=32;
+     if(fabs(array[k*3+0])<hole && fabs(array[k*3+1])<hole){
+       // in the hole
+      k--;
+      npoint--;
+      continue;
+     }
 //    cout <<" ray "<<ray.X()<<" "<<ray.Y()<<" "<<ray.Z()<<endl;
 //    cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
    }   
