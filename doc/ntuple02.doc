@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.9 2001/05/02 15:53:45 choutko Exp $
+#  $Id: ntuple02.doc,v 1.10 2001/05/08 14:20:16 choutko Exp $
 This is AMS02 Ntuple Description
 
  *****************************************
@@ -384,7 +384,7 @@ This is AMS02 Ntuple Description
  * I*4  *          * RICEVENT * Radc(Rhits)           // ADC counts
  * R*4  *          * RICEVENT * Rx(Rhits)             // X pos. of the channel
  * R*4  *          * RICEVENT * Ry(Rhits)             // Y pos. of the channel
- * I*4  * [0,100]  * RING     * nrings                // Nb of tracks used in the RICH reconstruction
+ * I*4  * [0,100]  * RING     * nrings                // Nb of rings created in rich rec
  * I*4  *          * RING     * trackn(nrings)        // Pointer to track
  * I*4  *          * RING     * hused(nrings)         // Nb. of RICH hits in a ring matching the track
  * R*4  *          * RING     * rbeta(nrings)         // Reconstructed beta

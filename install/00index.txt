@@ -1,6 +1,7 @@
-#  $Id: 00index.txt,v 1.20 2001/01/22 17:32:47 choutko Exp $
+#  $Id: 00index.txt,v 1.21 2001/05/08 14:20:17 choutko Exp $
 Mopt      // makefile to gmake geant batch 
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
+Mopt_Root // same + ability to write root files
 Mgxint    // makefile to gmake geant interactive  g3
 Moptg4    // makefile to gmake g4 batch
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version

@@ -211,6 +211,7 @@ print FILE 'KINE $PART '."\n";
 print FILE 'MULS 1 '."\n";
 print FILE 'C MSEL 1=0'."\n";
 print FILE 'LOSS 1 '."\n";
+print FILE 'CKOV 1 '."\n";
 print FILE 'CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001'."\n";
 print FILE 'HADR 1'."\n";
 print FILE 'TRIG $TRIG'."\n";

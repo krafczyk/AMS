@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.19 2001/04/24 17:20:54 mdelgado Exp $
+//  $Id: richrec.C,v 1.20 2001/05/08 14:20:15 choutko Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -308,10 +308,10 @@ void AMSRichRing::build(){
   safe_array<integer_small_array,1> size(ARRAYSIZE);
 
 #else
-  static geant recs[MAXRICHITS][3];
-  static geant mean[MAXRICHITS][3];
-  static geant probs[MAXRICHITS][3];
-  static integer size[MAXRICHITS][3];
+  geant recs[MAXRICHITS][3];
+  geant mean[MAXRICHITS][3];
+  geant probs[MAXRICHITS][3];
+  integer size[MAXRICHITS][3];
 #endif
   
 
@@ -539,14 +539,14 @@ void AMSRichRing::build(){
 						     ));
 	
       } else {
-	// Add empty ring to keep track of no recostructed tracks
-	AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
-				     new AMSRichRing(track->getpos(),
-						     0,
-						     0.,
-						     0.,
-						     0. // Unused by now
-						     ));
+//	// Add empty ring to keep track of no recostructed tracks
+//	AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
+//				     new AMSRichRing(track->getpos(),
+//						     0,
+//						     0.,
+//						     0.,
+//						     0. // Unused by now
+//						     ));
       }
     }
     
