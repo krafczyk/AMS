@@ -55,6 +55,19 @@ ANTIPcal antisccal[MAXANTI];// create empty array of antipaddles calibr. objects
     _stradi=ANTIGEOMFFKEY.stradi;
     _stleng=ANTIGEOMFFKEY.stleng;
     _stthic=ANTIGEOMFFKEY.stthic;
+    if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE"))
+    {
+          cout <<" ANTIGeom-I-Shuttle setup selected."<<endl;
+    }
+    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+          cout <<" ANTIGeom-I-AMS02 setup selected."<<endl;
+          _scleng=83.+19.; //(old+19) tempor solution
+          _stleng=83.+19.; //(old+19) tempor solution
+    }
+    else
+    {
+          cout <<" ANTIGeom-I-AMS001 setup selected."<<endl;
+    }
   }
 //======================================================================
 // ANTIPcal class member functions:

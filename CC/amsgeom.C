@@ -318,6 +318,8 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
 }   //   <<<============= end of sc. planes loop =============
 }
 //-------------------------------------------------------------------
+// for future AMS02 setup:
+//
 void tofgeom02(AMSgvolume & mother){ 
 number pr[3]={0.,0.,0.};
 geant par[6]={0.,0.,0.};
