@@ -16,8 +16,8 @@
 #include <ctc.h>
 #include <particle.h>
 
-class AMSEventD;
-#pragma ooclassref AMSEventD <eventD_ref.h>
+class AMSeventD;
+#pragma ooclassref AMSeventD <recevent_ref.h>
 
 class AMSTrTrackD;
 #pragma ooclassref AMSTrTrackD <ttrack_ref.h>
@@ -58,7 +58,7 @@ public:
   AMSParticleD(AMSParticle* p);
 
 // Associations
- ooHandle(AMSEventD)      pEventP  <-> pParticleE[] ;
+ ooHandle(AMSeventD)      pEventP  <-> pParticleE[] ;
  ooHandle(AMSChargeD)     pChargeP <-> pParticleC ;
  ooHandle(AMSBetaD)       pBetaP   : copy (delete);
  ooHandle(AMSTrTrackD)    pTrackP  : copy (delete);

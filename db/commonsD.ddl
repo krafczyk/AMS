@@ -26,6 +26,7 @@ protected :
  ooVArray(integer) ccffkeyD;
  ooVArray(integer) trclffkeyD;
  ooVArray(integer) trcalibD;
+ ooVArray(integer) trigffkeyD;
 
 //
 public:

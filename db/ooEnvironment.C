@@ -12,7 +12,7 @@
  *
  *      Description:
  *
- *      RCSid = "$Id: ooEnvironment.C,v 1.1 1996/10/18 20:58:22 choutko Exp $"
+ *      RCSid = "$Id: ooEnvironment.C,v 1.2 1997/05/14 05:41:44 alexei Exp $"
  *
  ****************************************************************************
  */
@@ -20,7 +20,10 @@
 
 #include <oo.h>
 
-#include <unistd.h>
+#ifndef _WIN32
+#  include <unistd.h>
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -208,17 +211,19 @@ ooEnv::readEnvVars ( )
 	}
 
 	//	Get the Cache Initial size.
-	if (getEnv(tempint,"OO_CACHE_INIT") != 0 )
+	if (getEnv(tempint,"OO_CACHE_INIT") != 0 ) {
+          cout <<"OO_CACHE_INIT... "<<tempint<<endl;;
 		cacheIPgs = tempint ;
-
+        }
 	//	Get the containr distribution default;
 	if (getEnv(tempint,"OO_RAND_DIST") != 0 )
 		randDist = tempint ;
 
 	//	Get the Cache Max. size.
-	if (getEnv(tempint,"OO_CACHE_MAX") != 0 )
+	if (getEnv(tempint,"OO_CACHE_MAX") != 0 ) {
+          cout <<"OO_CACHE_MAX... "<<tempint<<endl;
 		cacheMPgs = tempint ;
-
+        }
 	//	Container Initial Size
 	if (getEnv(tempint,"OO_CONT_INIT") != 0 ) 
 		CntIPgs = tempint ;

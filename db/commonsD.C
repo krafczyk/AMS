@@ -2,7 +2,7 @@
 // Objectivity version Oct 08, 1996 ak
 // Oct 14, 1996. ak. don't compare ccffkey run
 //
-// Last Edit : Oct 16, 1996. ak.
+// Last Edit : May 12, 1996. ak.
 //
 
 #include <typedefs.h>
@@ -111,6 +111,15 @@ AMScommonsD::AMScommonsD() {
   for (i=0; i<l/4; i++) { chargefitffkeyD.set(i,buff[i]);}
   delete [] buff;
 
+//trigffkey
+  l = sizeof(TRIGFFKEY);
+  trigffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TRIGFFKEY,l);
+  for (i=0; i<l/4; i++) { trigffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+
 }
 
 ooStatus AMScommonsD::CmpConstants(integer Write) {
@@ -140,7 +149,7 @@ ooStatus AMScommonsD::CmpConstants(integer Write) {
   for (i=0; i<ld; i++) {
    if (buff[i] != tofmcffkeyD[i]) {
     cout<<"AMScommonsD::CmpConstants -W- TOFMCFFKEY element "<<i
-        <<" is different "<<endl;
+        <<" is different "<<buff[i]<<", "<<tofmcffkeyD[i]<<endl;
     }
   }
   delete [] buff;
@@ -160,7 +169,7 @@ tofrecffkey:
   for (i=0; i<ld; i++) {
    if (buff[i] != tofrecffkeyD[i]) {
     cout<<"AMScommonsD::CmpConstants -W- TOFRECFFKEY element "<<i
-        <<" is different "<<endl;
+        <<" is different "<<buff[i]<<", "<<tofrecffkeyD[i]<<endl;
     }
   }
   delete [] buff;
@@ -180,7 +189,7 @@ ctcmcffkey:
   for (i=0; i<ld; i++) {
    if (buff[i] != ctcmcffkeyD[i]) {
     cout<<"AMScommonsD::CmpConstants -W- CTCMCFFKEY element "<<i
-        <<" is different "<<endl;
+        <<" is different "<<buff[i]<<", "<<ctcmcffkeyD[i]<<endl;
     }
   }
   delete [] buff;
@@ -202,7 +211,7 @@ ctcgeomffkey:
    for (i=0; i<ld; i++) {
     if (buff[i] != ctcgeomffkeyD[i]) {
      cout<<"AMScommonsD::CmpConstants -W- CTCGEOMFFKEY element "<<i
-         <<" is different "<<endl;
+         <<" is different "<<buff[i]<<", "<<ctcgeomffkeyD[i]<<endl;
      set_geom = 1;
      }
    }
@@ -239,7 +248,7 @@ ctcrecffkey:
   for (i=0; i<ld; i++) {
    if (buff[i] != trmcffkeyD[i]) {
     cout<<"AMScommonsD::CmpConstants -W- TRMCFFKEY element "<<i
-        <<" is different "<<endl;
+        <<" is different "<<buff[i]<<", "<<trmcffkeyD[i]<<endl;
     }
   }
   delete [] buff;
@@ -279,7 +288,7 @@ trfitffkey:
   for (i=0; i<ld; i++) {
    if (buff[i] != trfitffkeyD[i]) {
     cout<<"AMScommonsD::CmpConstants -W- TRFITFFKEY element "<<i
-        <<" is different "<<endl;
+        <<" is different "<<buff[i]<<", "<<trfitffkeyD[i]<<endl;
     }
   }
   delete [] buff;
@@ -299,7 +308,7 @@ ccffkey:
   for (i=0; i<ld; i++) {
    if (buff[i] != ccffkeyD[i]) {
     cout<<"AMScommonsD::CmpConstants -W- CCFFKEY element "<<i
-        <<" is different "<<endl;
+        <<" is different "<<buff[i]<<", "<<ccffkeyD[i]<<endl;
     }
   }
   delete [] buff;
@@ -319,7 +328,7 @@ trclffkey:
   for (i=0; i<ld; i++) {
    if (buff[i] != trclffkeyD[i]) {
     cout<<"AMScommonsD::CmpConstants -W- TRCLFFKEY element "<<i
-        <<" is different "<<endl;
+        <<" is different "<<buff[i]<<", "<<trclffkeyD[i]<<endl;
     }
   }
   delete [] buff;
@@ -339,7 +348,7 @@ trcalib:
   for (i=0; i<ld; i++) {
    if (buff[i] != trcalibD[i]) {
     cout<<"AMScommonsD::CmpConstants -W- TRCALIB element "<<i
-        <<" is different "<<endl;
+        <<" is different "<<buff[i]<<", "<<trcalibD[i]<<endl;
     }
   }
   delete [] buff;
@@ -352,18 +361,37 @@ chargefitffkey:
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- CHARGEFITFFKEY and chargefitffkeyD "
         <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
-   goto cmpend;
+   goto trigffkey;
   }
   buff = new integer[lm/4];
   memcpy(buff,&CHARGEFITFFKEY,lm);
   for (i=0; i<ld; i++) {
    if (buff[i] != chargefitffkeyD[i]) {
     cout<<"AMScommonsD::CmpConstants -W- CHARGEFITFFKEY element "<<i
-        <<" is different "<<endl;
+        <<" is different "<<buff[i]<<", "<<chargefitffkeyD[i]<<endl;
     }
   }
   delete [] buff;
 
+trigffkey:
+  ld = trigffkeyD.size();
+  cout<<"AMScommonsD::CmpConstants -I- TRIGFFKEY, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(TRIGFFKEY);
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- TRIGFFKEY and trigffkeyD "
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
+   goto cmpend;
+  }
+  buff = new integer[lm/4];
+  memcpy(buff,&TRIGFFKEY,lm);
+  for (i=0; i<ld; i++) {
+   if (buff[i] != trigffkeyD[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- TRIGFFKEY element "<<i
+        <<" is different "<<buff[i]<<", "<<trigffkeyD[i]<<endl;
+    }
+  }
+  delete [] buff;
 
 cmpend:
 
@@ -487,6 +515,14 @@ void AMScommonsD::CopyConstants() {
   buff = new integer[l/4];
   memcpy(buff,&CHARGEFITFFKEY,l);
   for (i=0; i<l/4; i++) { chargefitffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//trigffkey
+  l = sizeof(TRIGFFKEY);
+  trigffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TRIGFFKEY,l);
+  for (i=0; i<l/4; i++) { trigffkeyD.set(i,buff[i]);}
   delete [] buff;
 
 

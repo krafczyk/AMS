@@ -22,11 +22,11 @@ AMSmceventgD::AMSmceventgD(AMSmceventg* p) {
  _ipart     = p -> _ipart;
  _seed[0]   = p -> _seed[0];
  _seed[1]   = p -> _seed[1];
-
+ _nskip     = p -> _nskip;
 }
 AMSmceventgD::AMSmceventgD(AMSPoint coo, AMSDir dir, number mom, 
                            number mass, number charge, integer ipart, 
-                           integer seed0, integer seed1)
+                           integer seed0, integer seed1, integer nskip)
 {
  _coo      = coo;
  _dir      = dir;
@@ -36,6 +36,7 @@ AMSmceventgD::AMSmceventgD(AMSPoint coo, AMSDir dir, number mom,
  _ipart    = ipart;
  _seed[0]  = seed0;
  _seed[1]  = seed1;
+ _nskip    = nskip;
 }
 
 void AMSmceventgD::copy(AMSmceventg* p) {
@@ -48,11 +49,12 @@ void AMSmceventgD::copy(AMSmceventg* p) {
   p -> _ipart   = _ipart;     
   p -> _seed[0] = _seed[0];   
   p -> _seed[1] = _seed[1];   
+  p -> _nskip   = _nskip;
 }
 
 void   AMSmceventgD::getAll(AMSPoint& coo, AMSDir& dir, number& mom, 
                            number& mass, number& charge, integer& ipart, 
-                           integer& seed0, integer& seed1)
+                           integer& seed0, integer& seed1, integer& nskip)
 {
  coo    = _coo;
  dir    = _dir;
@@ -62,4 +64,5 @@ void   AMSmceventgD::getAll(AMSPoint& coo, AMSDir& dir, number& mom,
  ipart  = _ipart;
  seed0  = _seed[0];
  seed1  = _seed[1];
+ nskip  = _nskip;
 }

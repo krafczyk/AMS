@@ -1,1094 +1,1211 @@
-//
-// MODULE NAME:		ooSession.C
-// AUTHOR:		Objectivity Training
-// DATE:		April 11, 1995
-//
-// COPYRIGHT:
-//   Copyright 1995 Objectivity, Inc.  All rights reserved.
-//
-// SECURITY:
-//   Objectivity, Inc. Object Code Only source materials -
-//   Company Confidential.
-//
-// DESCRIPTION:
-//   This header file contains the definitions for the
-//   objectivity training database services class
-//
-// USAGE:
-//
-// DEPENDENCIES:
-//
-// UPDATES/MODIFICATIONS:
-// Date     SPR   By  Description
-//
-// LIMITATIONS/KNOWN BUGS
-//
-//
+/* 
+ ******************************************************************************
+ *
+ *      Objectivity Inc.
+ *      Copyright (c) 1995, Objectivity, Inc. USA   All rights reserved.
+ *
+ ****************************************************************************
+ *
+ *      File:   ooSession.C
+ *
+ *      Functions(s):
+ *
+ *      Description:
+ *
+ *      RCSid = "$Id: ooSession.C,v 1.2 1997/05/14 05:41:45 alexei Exp $"
+ *
+ ****************************************************************************
+ */
+#ifndef _OOSESSION_C_
+#define _OOSESSION_C_
 
-#include <stdio.h>
-#include <string.h>
+
+#include <oo.h>
+#include <ooMap.h>
+
+#ifndef _WIN32
+#  include <unistd.h>
+#endif
+
 #include <stdlib.h>
-#include <iostream.h>
+
 #include "ooSession.h"
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		Instance
-//
-// Description:		This method make a single instance of the ooSession class.
-//
-// Input Arguments:     look to Initialize
-//
-// Output Arguments:	None
-//
-// Return Value:	pointer to the unique instance
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
 
-ooSession * ooSession::_instance = 0;    // initialize static _instance
 
-ooSession * ooSession::Instance(const char* fdName, const uint32 nFiles,
-			   const uint32 nPages, const uint32 nMaxPages)
+
+
+
+implement(ooVArray,ooRef(ooContObj))
+
+ooHandle(ooFDObj) ooSession::fdbH ; 
+ooHandle(ooContObj) ooSession::contH ;   
+ooHandle(ooDBObj) ooSession::dbH ; 
+ooTrans ooSession::transaction ; 
+
+
+ooStats* ooSession::stats_p = new ooStats ( ) ; 
+
+// these two are used only by the session class to support persistent
+// session configuration and object lookup.
+//
+ooHandle(ooContObj) ooSession::sessionContH ;   
+ooHandle(ooDBObj) ooSession::sessiondbH ; 
+ooHandle(ooMap) ooSession::contMapH ; 
+static const char* sessionCont_Name = "sessionCont-0" ;
+static const char* sessiondb_Name = "ooSession" ;
+static const char* contMap_Name = "contMap_Name" ;
+
+
+
+
+#ifdef OO_VERSION3X
+ooAMSUsage ooSession::amsUsage ;
+#endif
+
+unsigned ooSession::refCount = 0 ;
+
+unsigned short ooSession::transactionCount = 0 ;
+unsigned short ooSession::init_called = 0 ;
+
+
+// ooTimer Stuff...
+#ifdef __ALPHAOSF1
+struct timespec ooTimer::txn_startT ;
+struct timespec ooTimer::txn_endT ;
+#else
+struct timeval ooTimer::txn_startT ;
+struct timeval ooTimer::txn_endT ;
+struct timezone ooTimer::tz ;
+#endif
+unsigned ooTimer::update_msecs = 0 ;
+unsigned ooTimer::no_updates = 0 ;
+unsigned ooTimer::read_msecs = 0 ;
+unsigned ooTimer::no_reads = 0 ;
+unsigned ooTimer::tot_update_msecs = 0 ;
+unsigned ooTimer::tot_no_updates = 0 ;
+unsigned ooTimer::tot_read_msecs = 0 ;
+unsigned ooTimer::tot_no_reads = 0 ;
+
+
+
+
+#ifdef ROGUEWAVE
+#include <rw/tvhdict.h>
+#include <rw/cstring.h>
+#include <rw/rstream.h>
+static unsigned hashString(const RWCString& str) {return str.hash();}
+RWTValHashDictionary<RWCString, ooHandle(ooObj)> ooSession::containerDict (hashString);
+#endif
+
+
+// used to tag/name transactions for timing.
+static char* txn_tag = (char*) 0 ;
+
+
+
+
+
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::ooSession
+ *
+ *      Description: 
+ *		constructor
+ *
+ *      Returns:
+ *		nothing
+ * 
+ *      Side Effects:
+ *		none.
+ *
+ *
+ ******************************************************************************
+ */
+ooSession::ooSession (
+	ooMode read_write )
 {
-  if ( _instance == 0 ) {
-     _instance = new ooSession;
-     _instance->Initialize(fdName, nFiles, nPages, nMaxPages);
-   }
-  return _instance;
-}
+	++refCount ;
+	if ( refCount == 1 )
+		stats_p->Start();
 
+	lastErrCode		= oocNoError ;
+	lastErrString		= (char*) 0 ;
+	mode			= read_write ;
+	persistent		= 1 ;
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		ooSession
-//
-// Description:		This method is the constructor for the ooSession class.
-//			It initializes the private variables used by this class.
-//
-// Input Arguments:	None
-//
-// Output Arguments:	None
-//
-// Return Value:	None
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
+	if ( setMode () != oocSuccess )
+		ooSignal ( oocWarning, ooS_failed_fd_reopen, 0, "ooSession()", mode ) ;
 
-ooSession::ooSession()
-{
-	_fdName = NULL;
-	_fdMROWMode = oocMROWIfAllowed;	// oocMROWIfAllowed is used as "unitiailized"
-	_nFiles = 0;
-	_nPages = 0;
-	_nMaxPages = 0;
-	_databaseName = NULL;
-	_transLevel = 0;
-	_abortPending = oocFalse;
-	_lockWait = oocTransNoWait;	// Uninitialized value
-	_startTime = 0;
-	_endTime = 0;
-	_verbose = oocFalse;
-}
+	if (contR.size() < 20)
+		contR.resize ( 20 ) ;
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		~ooSession
-//
-// Description:		This method is the destructor for the ooSession class.
-//
-// Input Arguments:	None
-//
-// Output Arguments:	None
-//
-// Return Value:	None
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
-
-ooSession::~ooSession()
-{
-	if (_fdName) delete _fdName;
-	if (_databaseName) delete _databaseName;
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		Initialize
-//
-// Description:		This method initializes an Objectivity/DB session. It:
-//
-//			 - Reads in the appropriate environment variables (as overrides)
-//			 - Calls ooInit() to initialize the cache (converting MB to
-//				pages)
-//			 - Initializes the federated database name (validating it)
-//
-// Input Arguments:	fdName (char*)	federated database path/file
-//			nFiles (uint32)	max number of simultaneous file descriptors
-//			nPages (uint32)	initial cache size in MB
-//			nMaxPages (uint32)	maximum cache size in MB
-//
-// Output Arguments:	None
-//
-// Return Value:	ooStatus (oocSuccess/oocError)
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
-
-ooStatus	ooSession::Initialize(const char* fdName, const uint32 nFiles,
-			   const uint32 nPages, const uint32 nMaxPages)
-{
-	ooStatus	rstatus;
-
-	// Read in environment variables
-	ReadEnvironmentVars();
-
-	// Initialize Objectivity/DB, using overriding values from the enviroment
-
-	if (_nFiles == 0)
-	   _nFiles = nFiles;
-
-	if (_nPages == 0)
-	   _nPages = nPages;
-
-	if (_nMaxPages == 0)
-	   _nMaxPages = nMaxPages;
-
-	if (_verbose) {
-	   cout << "VERBOSE: ooInit(" << _nFiles << "," << _nPages << ",";
-	   cout << _nMaxPages << ")" << endl;
-	}
-	rstatus = ooInit(_nFiles, _nPages, _nMaxPages);
-	if (rstatus != oocSuccess) {
-	   cerr << "ERROR: ooInit() failed." << endl;
-	   return rstatus;
-	}
-
-	// Initialize the federated database name, using overriding env value
-	if (_fdName == NULL) {
-	   _fdName = new char[strlen(fdName) + 1];
-	   if (fdName == NULL) {
-	      cerr << "ERROR: Memory allocation failure for '" << fdName << "'." << endl;
-	      return oocError;
-	   }
-	   strcpy(_fdName, fdName);
-	}
-
-	// Start a transaction to create/open a default database
-	rstatus = StartTransaction(oocUpdate);
-	if (rstatus != oocSuccess) {
-	   cerr << "ERROR: TransactionStart failed." << endl;
-	   return rstatus;
-	}
-
-	// Commit the transaction and return
-	rstatus = CommitTransaction();
-
-	return rstatus;
+	if ( dbg_txns() )
+		cout << "ooSession::transactionCount= " <<
+		transactionCount << " :<ooSession(" <<
+		(read_write == oocRead ? "oocRead" : "oocUpdate") << ")" << endl;
 
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		ReadEnvironmentVars
-//
-// Description:		This method reads in overriding environment settings for:
-//
-//			 - federated database name
-//			 - cache parameters
-//			 - MROW mode (on off)
-//			 - Lock waiting
-//
-// Input Arguments:	None
-//
-// Output Arguments:	None
-//
-// Return Value:	None
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
-
-void	ooSession::ReadEnvironmentVars()
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::~ooSession
+ *
+ *      Description: 
+ *		destructor
+ *
+ *      Returns:
+ *		nothing
+ * 
+ *      Side Effects:
+ *		frees error string malloc'd by strdup at transaction commit.
+ *
+ *
+ ******************************************************************************
+ */
+ooSession::~ooSession ( )
 {
-	// Read in a value for verbose (echo) mode.
+	--refCount ;
 
-	char*	verbose;
+	if ( lastErrString != 0 ) 
+		free ( lastErrString ) ;
 
-	verbose = getenv("OO_VERBOSE");
-	if (verbose) {
-	   _verbose = oocTrue;
+	if ( dbg_txns() ) {
+		cout << "ooSession::transactionCount= " <<
+		transactionCount << " :>~ooSession(" <<
+		(mode == oocRead ? "oocRead" : "oocUpdate") << ")" << endl;
 	}
 
-	// Read in a value for the Federated Database Name
-
-	char*	fdName;
-
-	fdName = getenv("OO_FD_BOOT");
-	if (fdName) {
-	   _fdName = new char[strlen(fdName) + 1];
-	   strcpy(_fdName, fdName);
-	   if (_verbose) {
-	      cout << "VERBOSE: setenv OO_FD_BOOT '" << _fdName << "'" << endl;
-	   }
+	if ( runStats() && refCount == 0 ) {
+		if ( tot_no_updates != 0 && tot_no_reads != 0 ) {
+			 cout << endl << 
+			"cumulative average msecs, update txns: " <<
+			tot_update_msecs/tot_no_updates << endl <<
+			"cumulative average msecs, read txns: " <<
+			tot_read_msecs/tot_no_reads << endl ;
+		}
+		ooRunStatus ( ) ;
 	}
-
-	// Read in a value for the Default Database Name
-	//      (default to "ooDefaultDB" if not specified)
-
-	char*	dbName;
-
-	dbName = getenv("OO_DB_NAME");
-	if (dbName) {
-	   _databaseName = new char[strlen(dbName) + 1];
-	   strcpy(_databaseName, dbName);
-	   if (_verbose) {
-	      cout << "VERBOSE: setenv OO_DB_NAME '" << _databaseName << "'" << endl;
-	   }
-	} else {
-	   _databaseName = new char[12];
-	   strcpy(_databaseName, "ooDefaultDB");
-	   if (_verbose) {
-	      cout << "VERBOSE: Default database set to '" << _databaseName << "'." << endl;
-	   }
-	}
-
-	// Read in a value for the Number of Concurrent File Descriptors
-
-	char*	value;
-
-	value = getenv("OO_N_FILES");
-	if (value) {
-	   _nFiles = atoi(value);
-	   if (_verbose) {
-	      cout << "VERBOSE: setenv OO_N_FILES '" << _nFiles << "'" << endl;
-	   }
-	}
-
-	// Read in a value for the Initial Cache Size (in pages)
-
-	value = getenv("OO_N_PAGES");
-	if (value) {
-	   _nPages = atoi(value);
-	   if (_verbose) {
-	      cout << "VERBOSE: setenv OO_N_PAGES '" << _nPages << "'" << endl;
-	   }
-	}
-
-	// Read in a value for the Maximum Cache Size (in pages)
-
-	value = getenv("OO_N_MAX_PAGES");
-	if (value) {
-	   _nMaxPages = atoi(value);
-	   if (_verbose) {
-	      cout << "VERBOSE: setenv OO_N_MAX_PAGES '" << _nMaxPages << "'" << endl;
-	   }
-	}
-
-	// Read in a value for the MROW global override
-
-	value = getenv("OO_MROW");
-	if (value) {
-	   if (strcmp(value, "oocMROW") == 0) {
-	      _fdMROWMode = oocMROW;
-	      if (_verbose) {
-		 cout << "VERBOSE: setenv OO_MROW 'oocMROW'" << endl;
-	      }
-	   } else if (strcmp(value, "oocNoMROW") == 0) {
-	      _fdMROWMode = oocNoMROW;
-	      if (_verbose) {
-		 cout << "VERBOSE: setenv OO_MROW 'oocNoMROW'" << endl;
-	      }
-	   } else {
-	      cerr << "WARNING: Unknown value for OO_MROW (" << value;
-	      cerr << ") -- ignored." << endl;
-	   }
-	}
-
-	// Read in a value for the Lock waiting global override
-
-	value = getenv("OO_LOCK_WAIT");
-	if (value) {
-	   if (strcmp(value, "oocNoWait") == 0) {
-	      _lockWait = oocNoWait;
-	      if (_verbose) {
-		 cout << "VERBOSE: setenv OO_LOCK_WAIT 'oocNoWait'" << endl;
-	      }
-	   } else if (strcmp(value, "oocWait") == 0) {
-	      _lockWait = oocWait;
-	      if (_verbose) {
-		 cout << "VERBOSE: setenv OO_LOCK_WAIT 'oocWait'" << endl;
-	      }
-	   } else {
-	      _lockWait = atoi(value);
-	      if (_verbose) {
-		 cout << "VERBOSE: setenv OO_LOCK_WAIT '" << _lockWait << "'" << endl;
-	      }
-	   }
-	}
-
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		StartTransaction
-//
-// Description:		This method starts a Read/Update MROW/non-MROW transaction.
-//			The federated database is also opened in the
-//			specified mode.
-//			A transaction level is checked/incremented to
-//			allow an outer transaction OVERRIDE (i.e. this function
-//			is a NOP if their is already an active transaction).
-//			Note: nested transactions are NOT supported in the current
-//			version of Objectivity.
-//
-// Input Arguments:	fdMode (ooMode)		fd open mode (oocRead/oocUpdate)
-//			mrowMode (ooMode)	enable/disable MROW (oocNoMROW/
-//						oocMROW)
-//
-// Output Arguments:	None
-//
-// Return Value:	ooStatus (oocSuccess/oocError)
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
 
-ooStatus	ooSession::StartTransaction(ooMode fdmode, ooMode mrowMode,
-				ooIndexMode indexMode)
+// Optionally print run status ;
+void
+ooSession::stats ( )
 {
-	ooStatus	rstatus = oocSuccess;
+	if ( runStats() ) 
+		ooRunStatus ( ) ;
 
-	// Start a transaction only if no other transaction is active
-
-	ooMode	localMROWMode;
-
-	if (_transLevel == 0) {
-
-	   // Determine if MROW environmental override exists
-	   //    (i.e., the session variable is different than constructor
-	   //     set value) and use them if they do exist.
-
-	   if (_fdMROWMode != oocMROWIfAllowed)
-	      localMROWMode = _fdMROWMode;
-	   else
-	      localMROWMode = mrowMode;
-
-	   if (_verbose) {
-	      cout << "VERBOSE: ooTrans::start(";
-
-	      switch (localMROWMode) {
-	      case oocMROW:		cout << "oocMROW,";
-					break;
-	      case oocNoMROW:		cout << "oocNoMROW,";
-					break;
-	      case oocMROWIfAllowed:	cout << "oocMROWIfAllowed,";
-					break;
-	      default:			cout << "unknown=" << localMROWMode << ",";
-	      }
-
-	      switch (_lockWait) {
-	      case oocWait:		cout << "oocWait,";
-					break;
-	      case oocNoWait:		cout << "oocNoWait,";
-					break;
-	      case oocTransNoWait:	cout << "oocTransNoWait,";
-					break;
-	      default:			cout << _lockWait << ",";
-	      }
-
-	      switch (indexMode) {
-	      case oocInsensitive:	cout << "Insensitive";
-					break;
-	      case oocSensitive:	cout << "oocSensitive";
-					break;
-	      default:			cout << "unknown=" << indexMode;
-	      }
-
-	      cout << ")." << endl;
-	   }
-
-	   rstatus = _transaction.start(localMROWMode, _lockWait, indexMode);
-	   if (rstatus != oocSuccess) {
-	      cerr << "ERROR: Cannot start a transaction." << endl;
-	      return rstatus;
-	   }
-
-	   // Increment the transaction level
-
-	   _transLevel++;
-
-	   // Open the Federated database
-
-	   if (_verbose) {
-	      if (fdmode == oocUpdate) {
-		 cout << "VERBOSE: ooHandle(ooFDObj)::open(\"" << _fdName << "\",oocUpdate)" << endl;
-	      } else {
-		 cout << "VERBOSE: ooHandle(ooFDObj)::open(\"" << _fdName << "\",oocRead)" << endl;
-	      }
-	   }
-
-	   rstatus = _fdHandle.open(_fdName, fdmode);
-	   if (rstatus != oocSuccess) {
-	      cerr << "ERROR: Cannot open the federated database '" << _fdName;
-	      cerr << "'." << endl;
-	      AbortTransaction();
-	      return rstatus;
-	   }
-
-	   // Create/Open a default database
-	   if (_databaseName != NULL) {
-	      if (!_databaseH.exist(_fdHandle, _databaseName)) {
-		 // Create a default database
-		 rstatus = CreateDatabase(_databaseName, _databaseH);
-	      } else {
-		 // Open a default database (in same mode as the federated database)
-	         rstatus = OpenDatabase(_databaseName, fdmode, _databaseH);
-	         if (rstatus != oocSuccess) {
-		    cerr << "ERROR: Cannot open the default database '" << _databaseName;
-		    cerr << "'." << endl;
-		    AbortTransaction();
-		    return rstatus;
-	         }
-	      }
-	   }
-
-	} else {
-
-	   if (_verbose) {
-	      cout << "VERBOSE: Ignoring inner ooTrans::start() (level=";
-	      cout << _transLevel << ")." << endl;
-	   }
-	   // Increment the transaction level and do nothing
-	   _transLevel++;
-
-	}
-
-	return rstatus;
-
+	return ;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
+//	extern void opiPrintHList(uint32 level = 0, uint32 number = 0);
+//	opiPrintHList(0);  // How many on the stack
+//	opiPrintHList(1);  // List the pointer address of all handles
+//	opiPrintHList(2);  // Above and oids
 //
-// Class Name:		ooSession
-// Method Name:		CommitTransaction
-//
-// Description:		This method commits an outstanding transaction.
-//			A transaction level is checked/decremented to allow
-//			an outer transaction OVERRIDE (i.e. this function is
-//			a NOP if it is not the outer transaction).
-//			The transaction level is also checked to see if
-//			any "nested" transactions hav aborted (abort = 1).
-//			If so, then do not commit.
-//
-// Input Arguments:	None
-//
-// Output Arguments:	None
-//
-// Return Value:	ooStatus (oocSuccess/oocError)
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
-
-ooStatus	ooSession::CommitTransaction()
+// print out the list of active handles.
+void
+ooSession::printHandleStack (
+	int level )
 {
-	ooStatus	rstatus = oocSuccess;
+	opiPrintHList ( level ) ;
 
-	// Commit a transaction only if no other transaction is active
-	if (_transLevel == 1) {
-
-	   // Check to see if an abort is pending (if so, abort instead of commiting)
-	   if (_abortPending) {
-
-	      if (_verbose) {
-		 cout << "VERBOSE: ooTrans::abort() due to inner abort." << endl;
-	      }
-
-	      // Abort the transaction
-	      rstatus = _transaction.abort();
-
-	      // Rest the abort pending flag
-	      _abortPending = oocFalse;
-
-	   } else {
-
-	      if (_verbose) {
-		 cout << "VERBOSE: ooTrans::commit()" << endl;
-	      }
-
-	      // Commit the transaction
-	      rstatus = _transaction.commit();
-
-	   }
-
-	} else {
-	   if (_verbose) {
-	      cout << "VERBOSE: Ignoring inner ooTrans::commit() (level=";
-	      cout << _transLevel << ")." << endl;
-	   }
-	}
-
-	// Decrement the transaction level and do nothing
-	_transLevel--;
-
-	return rstatus;
-}/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		HardCommitTransaction
-//
-// Description:		This method commits an outstanding transaction.
-//			A transaction level is checked/zerod
-//			The transaction level is also checked to see if
-//			any "nested" transactions hav aborted (abort = 1).
-//			If so, then do not commit.
-//
-// Input Arguments:	None
-//
-// Output Arguments:	None
-//
-// Return Value:	ooStatus (oocSuccess/oocError)
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
-
-ooStatus	ooSession::HardCommitTransaction()
-{
-	ooStatus	rstatus = oocSuccess;
-
-	// Commit a transaction if a transaction is active
-	if (_transLevel >= 1) {
-
-	   // Check to see if an abort is pending (if so, abort instead of commiting)
-	   if (_abortPending) {
-
-	      if (_verbose) {
-		 cout << "VERBOSE: ooTrans::abort() due to inner abort." << endl;
-	      }
-
-	      // Abort the transaction
-	      rstatus = _transaction.abort();
-
-	      // Rest the abort pending flag
-	      _abortPending = oocFalse;
-
-	   } else {
-
-	      if (_verbose) {
-		 cout << "VERBOSE: ooTrans::commit()" << endl;
-	      }
-
-	      // Commit the transaction
-	      rstatus = _transaction.commit();
-
-	   }
-
-	} else {
-	   if (_verbose) {
-	      cout << "VERBOSE: Ignoring inner ooTrans::commit() (level=";
-	      cout << _transLevel << ")." << endl;
-	   }
-	}
-
-	// zero the transaction level and do nothing
-	_transLevel = 0;
-
-	return rstatus;
+	return ;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		CommitandHoldTransaction
-//
-// Description:		This method commits an outstanding transaction.
-//			A transaction level is checked/decremented to allow
-//			an outer transaction OVERRIDE (i.e. this function is
-//			a NOP if it is not the outer transaction).
-//			The transaction level is also checked to see if
-//			any "nested" transactions hav aborted (abort = 1).
-//			If so, then do not commit.
-//
-// Input Arguments:	None
-//
-// Output Arguments:	None
-//
-// Return Value:	ooStatus (oocSuccess/oocError)
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
 
-ooStatus	ooSession::CommitandHoldTransaction()
+
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::Init
+ *
+ *      Description: 
+ *		initializes the connection to the federation, and
+ *		opens it in the mode specified in the ctor.
+ *
+ *		always called, a 'final constructor', allows static
+ *		instances of this class, since Init must be called 
+ *		after main().
+ *
+ *      Returns:
+ *		nothing
+ * 
+ *      Side Effects:
+ *		Opens fddb and db, initializes handles.
+ *
+ *
+ ******************************************************************************
+ */
+void
+ooSession::Init ( )
 {
-	ooStatus	rstatus = oocSuccess;
+	if ( verbose() ) 
+		cout << "initializing Objectivity/DB ..." << endl;
 
-	// Commit a transaction only if no other transaction is active
-	if (_transLevel == 1) {
+	//	Initialize Objectivity/DB
+	//
+	if ( ooInit(12,cacheIPgs(),cacheMPgs()) != oocSuccess ) 
+		ooSignal ( oocUserError, ooS_failed_init, 0, "Init()" )  ;
 
-	   // Check to see if an abort is pending (if so, abort instead of commiting)
-	   if (_abortPending) {
+	init_called = 1 ;
 
-	      if (_verbose) {
-		 cout << "VERBOSE: ooTrans::abort() due to inner abort." << endl;
-	      }
+#ifdef OO_VERSION3X
+	ooSetAMSUsage ( amsUsage ) ; 
+#endif
 
-	      // Abort the transaction
-	      rstatus = _transaction.abort();
+	ooSetLockWait ( lockWait() ) ;
 
-	      // Rest the abort pending flag
-	      _abortPending = oocFalse;
+	if ( oo_hot_mode() )
+		ooSetHotMode ( ) ;
 
-	   } else {
+	if ( oo_no_lock() )
+		ooNoLock ( ) ;
 
-	      if (_verbose) {
-		 cout << "VERBOSE: ooTrans::commitAndHold()" << endl;
-	      }
+	if ( oo_no_journal() )
+		ooNoJournal ( ) ;
 
-	      // Commit the transaction
-	      rstatus = _transaction.commitAndHold();
+	// Start the First Transaction here.
+	//
+	transaction.start ( mrow() ) ;
 
-	   }
+	// Open the Federated DataBase.
+	//
+//	if ( fdbH.open ( fdBootName(), mode ) != oocSuccess ) {
+	if ( fdbH.exist ( fdBootName(), mode ) == oocFalse )
+                ooSignal ( oocUserError, ooS_failed_fd_open, 0, "Init()", fdBootName() )  ;
 
-	} else {
-	   if (_verbose) {
-	      cout << "VERBOSE: Ignoring inner ooTrans::commitAndHold() (level=";
-	      cout << _transLevel << ")." << endl;
-	   }
+	// initialize the ooSession's database (large scale use) if indicated.
+	//
+	if ( use_session_db() )
+		setup_session_db ( sessiondbH ) ;
+
+	if ( verbose() ) {
+		cout << "ooSession::Init - Opening Context, FD: " <<
+		fdBootName() <<
+		" DB: " << 
+		dbFileName() << endl <<
+		*this ;
+
+		if ( oo_hot_mode() )
+			cout << "ooSession - Warning, ooSetHotMode() selected." << endl ;
+		if (  oo_no_lock() )
+			cout << "ooSession - Warning, oo_no_lock() selected." << endl ;
+		if (  oo_no_journal() )
+			cout << "ooSession - Warning, oo_no_journal() selected." << endl ;
 	}
 
-	// do not Decrement the transaction level and do nothing
-//	_transLevel--;
-
-	return rstatus;
+	transaction.commit ( ) ;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		AbortTransaction
-//
-// Description:		This method aborts an outstanding transaction.
-//			A transaction level is checked/decremented to allow
-//			an outer transaction OVERRIDE (i.e. this function is
-//			a NOP if it is not the outer transaction).
-//
-// Input Arguments:	None
-//
-// Output Arguments:	None
-//
-// Return Value:	ooStatus (oocSuccess/oocError)
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
 
-ooStatus	ooSession::AbortTransaction()
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::setup_session_db
+ *
+ *      Description: 
+ *		Find/Create the session database
+ *
+ *      Returns:
+ *		nothing
+ * 
+ *      Side Effects:
+ *		finds and initializes the session database.
+ *
+ *
+ ******************************************************************************
+ */
+void
+ooSession::setup_session_db (
+	ooHandle(ooDBObj)& sessiondb_H ) 
 {
-	ooStatus	rstatus = oocSuccess;
+	if ( db ( sessiondb_H, sessiondb_Name, dbPathName(), dbHostName() ) != oocSuccess )
+		ooSignal ( oocUserError, ooS_failed_db_open, 0, "setup_session_db()", (char*) sessiondb_Name ) ;
 
-	// Abort a transaction only if no other transaction is active
-	if (_transLevel == 1) {
-
-	   if (_verbose) {
-	      cout << "VERBOSE: ooTrans::abort()" << endl;
-	   }
-
-	   // Abort the transaction
-	   rstatus = _transaction.abort();
-
-	   // Always set the abort pending to false
-	   _abortPending = oocFalse;
-
-	} else {
-
-	   if (_verbose) {
-	      cout << "VERBOSE: Ignoring inner ooTrans::abort() (level=";
-	      cout << _transLevel << "). -- future commits disabled" << endl;
-	   }
-
-	   // Set the abort pending flag
-	   _abortPending = oocTrue;
-
-	}
-
-	// Decrement the transaction level
-	_transLevel--;
-
-	return rstatus;
+	return ;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		SetLockWait
-//
-// Description:		This method sets the lock waiting mode.
-//			The StartTransaction method uses the results of this
-//			method for subsequent transactions.
-//
-// Input Arguments:	waitOption (int32)	Wait in seconds or ooc[No]Wait
-//
-// Output Arguments:	None
-//
-// Return Value:	None
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
 
-void	ooSession::SetLockWait(int32 waitOption)
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::setup_session_map
+ *
+ *      Description: 
+ *		Find/Create the session container and container map.
+ *
+ *      Returns:
+ *		nothing
+ * 
+ *      Side Effects:
+ *		finds and initializes the session container map.
+ *
+ *
+ ******************************************************************************
+ */
+void
+ooSession::setup_session_map (
+	ooHandle(ooDBObj)& _db_H )
 {
-	if (_verbose) {
-	   cout << "VERBOSE: ooSetLockWait(" << waitOption << ")" << endl;
+	if ( _db_H == 0 )
+		ooSignal ( oocUserError, ooS_failed_session_map, &fdbH, "setup_session_map()" ) ;
+
+	if ( sessionContH.lookupObj ( _db_H, sessionCont_Name ) != oocSuccess ) {
+		sessionContH = new ( _db_H ) ooContObj ( ) ;
+		sessionContH.nameObj ( _db_H, sessionCont_Name ) ;
+	}
+	if( contMapH.lookupObj ( sessionContH, contMap_Name ) != oocSuccess ) {
+		contMapH = new ( sessionContH ) ooMap ( ) ;
+		contMapH.nameObj ( sessionContH, contMap_Name ) ;
 	}
 
-	// Set the session data member (for subsequent transactions)
-	_lockWait = waitOption;
-
-	// Set the immediate lock waiting behavior
-	ooSetLockWait(waitOption);
+	return ;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		OpenDatabase
-//
-// Description:		This method opens the database specified by DBName in
-//			the mode specified.
-//
-// Input Arguments:	DBName (char*)	database system name
-//			mode (ooMode)	oocRead/oocUpdate
-//
-// Output Arguments:	databaseH (ooHandle(ooDBObj))	handle to opened database
-//
-// Return Value:	ooStatus (oocSuccess/oocError)
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
-
-ooStatus	ooSession::OpenDatabase(const char* DBName, ooMode mode,
-			     ooHandle(ooDBObj)& databaseH)
+ooHandle(ooMap)&
+ooSession::contMap()
 {
-	ooStatus	rstatus = oocSuccess;
+	if ( contMapH == 0 )
+		setup_session_map ( dbH ) ;
 
-	if (_verbose) {
-	   cout << "VERBOSE: ooHandle(ooDBObj)::open(fdH,\"" << DBName << "\")" << endl;
-	}
-
-	// Check to see if the database exists
-	if (databaseH.exist(_fdHandle, DBName)) {
-	   // It exists -- Open it in the appropriate mode
-	   rstatus = databaseH.open(_fdHandle, DBName, mode);
-	} else {
-	   cerr << "ERROR: Database '" << DBName << "' does not exist." << endl;
-	   rstatus = oocError;
-	}
-
-	return rstatus;
+	return contMapH ;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		CreateDatabase
-//
-// Description:		This method creates a database of name DBName.
-//
-// Input Arguments:	DBName (char*)	database system name
-//
-// Output Arguments:	databaseH (ooHandle(ooDBObj))	handle to created database
-//
-// Return Value:	ooStatus (oocSuccess/oocError)
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
 
-ooStatus	ooSession::CreateDatabase(const char* DBName,
-			      ooHandle(ooDBObj)& databaseH, ooBoolean replaceDatabase)
+
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::TransStart
+ *
+ *      Description: 
+ *		Start a transaction, if you are not already within one.
+ *
+ *      Returns:
+ *		nothing
+ * 
+ *      Side Effects:
+ *		none.
+ *
+ *
+ ******************************************************************************
+ */
+ooStatus
+ooSession::TransStart (
+	ooMode md,
+	const char* tag )
 {
-	ooStatus	rstatus = oocSuccess;
+	ooStatus ret_val = oocError ;
 
-	// Check to see if the database exists
-	if (databaseH.exist(_fdHandle, DBName)) {
-	   if (replaceDatabase) {
-		// Delete the current database
-		rstatus = DeleteDatabase(DBName);
-		if (rstatus != oocSuccess) {
-		   cerr << "ERROR: Cannot delete existing database '" << DBName;
-		   cerr << "'." << endl;
-		   return rstatus;
+	if ( init_called == 1 ) {
+		mrow ( md ) ;
+
+		if ( transaction.isActive() == oocFalse &&
+			transactionCount == 0 )
+		{
+			if ( time_txns() ) {
+				if ( tag != 0 ) 
+					txn_tag = strdup(tag);
+				set_txn_startT ( ) ;
+			}
+
+			// *** REAL TXN START ***
+		//	transaction.start ( mrow(), oocTransNoWait, indexMode() ) ;
+			ret_val = transaction.start ( mrow(), lockWait(), indexMode() ) ;
+
+			if ( mode == oocUpdate )
+				tot_no_updates += ++no_updates ;
+			else 
+				tot_no_reads += ++no_reads ;
+			if ( dbg_txns() )
+				cout << "ooSession::transactionCount= " <<
+				transactionCount << " :<TransStart(" <<
+				(mode == oocRead ? "oocRead" : "oocUpdate") << ")" << endl;
 		}
 
-		// Create the new database
-	        if (_verbose) {
-	           cout << "VERBOSE: new ooDBObj(\"" << DBName << "\")" << endl;
-	        }
+		++transactionCount ;
 
-		databaseH = new ooDBObj(DBName);
-
-	   } else {
-	      cerr << "ERROR: A database exists with name '" << DBName << "'." << endl;
-	      return oocError;
-	   }
-	} else {
-	   if (_verbose) {
-	     cout << "VERBOSE: new ooDBObj(\"" << DBName << "\")" << endl;
-	   }
-	   databaseH = new ooDBObj(DBName);
+		// if ( fd().isOpen == oocFalse )
+		fd().open ( fdBootName(), mode ) ;   
 	}
 
-	return rstatus;
-
-}
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		OorCDatabase
-//
-// Description:		This method open or creates a database of name DBName.
-//
-// Input Arguments:	DBName (char*)	database system name
-//
-// Output Arguments:	databaseH (ooHandle(ooDBObj))	handle to created database
-//
-// Return Value:	ooStatus (oocSuccess/oocError)
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
-
-ooStatus	ooSession::OorCDatabase(const char* DBName, ooMode mode,
-			      ooHandle(ooDBObj)& databaseH)
-{
-	ooStatus	rstatus = oocSuccess;
-
-	   if (_verbose) {
-	     cout << "VERBOSE: new/open ooDBObj(\"" << DBName << "\")" << endl;
-	   }
-
-	   // Create/Open a database
-	   if (DBName != NULL) {
-	      if (!databaseH.exist(_fdHandle, DBName)) {
-		 // Create a database
-		 rstatus = CreateDatabase(DBName, databaseH);
-	      } else {
-		 // Open a database 
-	         rstatus = OpenDatabase(DBName, mode, databaseH);
-	         if (rstatus != oocSuccess) {
-		    cerr << "ERROR: Cannot open the database '" << DBName;
-		    cerr << "'." << endl;
-		  }
-		 return rstatus;
-	      }
-	   }
-	return rstatus;
+	return ret_val ;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		DeleteDatabase
-//
-// Description:		This method deletes the database specified by DBName.
-//
-// Input Arguments:	DBName (char*)	database system name
-//
-// Output Arguments:	None
-//
-// Return Value:	ooStatus (oocSuccess/oocError)
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
 
-ooStatus	ooSession::DeleteDatabase(const char* DBName)
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::TransCommit
+ *
+ *      Description: 
+ *		Commits the current transaction if one is active.
+ *		Saves the last error number and string, if set.
+ *
+ *      Returns:
+ *		nothing
+ * 
+ *      Side Effects:
+ *		DELETES all temporary containers, invalidating their handles.
+ *		Cross transaction cacheing of temnporary data is not supported
+ *		by this class.
+ *
+ *
+ ******************************************************************************
+ */
+ooStatus
+ooSession::TransCommit ( )
 {
-	ooStatus		rstatus = oocSuccess;
-	ooHandle(ooDBObj)	databaseH;
+	ooStatus ret_val = oocError ;
 
-	// Open the database for update
-	rstatus = OpenDatabase(DBName, oocUpdate, databaseH);
-	if (rstatus != oocSuccess) {
-	   cerr << "ERROR: Cannot open database '" << DBName << "' for update." << endl;
-	   return rstatus;
+	if ( init_called == 1 ) {
+		if ( transaction.isActive() == oocTrue &&
+			transactionCount == 1 ) {
+			internalCommit ( ) ;
+
+			// if print handle stack ?
+			if ( handleStack() ) 
+				printHandleStack ( ) ;
+
+			// *** REAL COMMIT ***
+			ret_val = transaction.commit ( ) ;
+
+			if ( time_txns() > 0 ) {
+				set_txn_endT ( ) ;
+				if ( mode == oocUpdate ) { 
+					update_msecs += cmpTime ( txn_startT, txn_endT ) ;
+					tot_update_msecs += update_msecs ;
+				}
+				else {
+					read_msecs += cmpTime ( txn_startT, txn_endT ) ;
+					tot_read_msecs += read_msecs ;
+				}
+
+				if ( time_txns() == 3 )
+					print_txn_time ( mode, txn_tag ) ;
+				if ( txn_tag != 0 ) 
+					free ( txn_tag ) ;
+				txn_tag = (char*) 0 ;
+			}
+
+			// print transaction count(s) ?
+			if ( dbg_txns() )
+				cout << "ooSession::transactionCount= " <<
+				transactionCount << " :>TransCommit(" <<
+				(mode == oocRead ? "oocRead" : "oocUpdate") << ")" << endl;
+
+			// print run status ?
+			if ( txn_run_stats() )
+				stats_p->PrintDelta ( cout ) ;
+		}
+
+		if ( transactionCount >= 1 )
+			--transactionCount ;
 	}
 
-	if (_verbose) {
-	   cout << "VERBOSE: ooDelete(handle to '" << DBName << ")" << endl;
+	return ret_val ;
+}
+
+
+/*
+ ******************************************************************************
+ *
+ *      !!!!!   CHANGED TransCommit FUNCTION   !!!!!
+ *
+ *      Function Name:  ooSession::TransAbort
+ *
+ *      Description: 
+ *		Aborts the current transaction if one is active.
+ *		Saves the last error number and string, if set.
+ *
+ *      Returns:
+ *		nothing
+ * 
+ *      Side Effects:
+ *		DELETES all temporary containers, invalidating their handles.
+ *		Cross transaction cacheing of temnporary data is not supported
+ *		by this class.
+ *
+ *
+ ******************************************************************************
+ */
+ooStatus
+ooSession::TransAbort ( )
+{
+	ooStatus ret_val = oocError ;
+
+	if ( init_called == 1 ) {
+		if ( transaction.isActive() == oocTrue &&
+			transactionCount == 1 ) {
+			internalCommit ( ) ;
+
+			// if print handle stack ?
+			if ( handleStack() ) 
+				printHandleStack ( ) ;
+
+			// *** REAL ABORT ***
+			ret_val = transaction.abort ( ) ;
+
+			if ( time_txns() > 0 ) {
+				set_txn_endT ( ) ;
+				if ( mode == oocUpdate ) { 
+					update_msecs += cmpTime ( txn_startT, txn_endT ) ;
+					tot_update_msecs += update_msecs ;
+				}
+				else {
+					read_msecs += cmpTime ( txn_startT, txn_endT ) ;
+					tot_read_msecs += read_msecs ;
+				}
+
+				if ( time_txns() == 3 )
+					print_txn_time ( mode, txn_tag ) ;
+				if ( txn_tag != 0 ) 
+					free ( txn_tag ) ;
+				txn_tag = (char*) 0 ;
+			}
+
+			// print transaction count(s) ?
+			if ( dbg_txns() )
+				cout << "ooSession::transactionCount= " <<
+				transactionCount << " :>TransAbort(" <<
+				(mode == oocRead ? "oocRead" : "oocUpdate") << ")" << endl;
+
+			// print run status ?
+			if ( txn_run_stats() )
+				stats_p->PrintDelta ( cout ) ;
+		}
+
+		if ( transactionCount >= 1 )
+			--transactionCount ;
 	}
 
-	// Delete the database
-	rstatus = ooDelete(databaseH);
-
-	return rstatus;
+	return ret_val ;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		StartTimer
-//
-// Description:		This method starts a wall-clock timer.
-//
-// Input Arguments:	None
-//
-// Output Arguments:	None
-//
-// Return Value:	None
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
 
-void		ooSession::StartTimer()
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::internalCommit
+ *
+ *      Description: 
+ *		Does the internal transaction commit cleanup work
+ *
+ *      Returns:
+ *		nothing
+ * 
+ *      Side Effects:
+ *		many...
+ *
+ *
+ ******************************************************************************
+ */
+void
+ooSession::internalCommit ( ) 
 {
-	// Grab the current time
-	_startTime = time(0);
+	int size = contR.size ( ) ;
+    ooRef(ooContObj) nulRef(0);
+
+	ooHandle(ooContObj) tmp_h = 0 ;
+	for ( int ix = 0; ix < size; ix++ ) {
+		tmp_h = contR.elem(ix) ;
+		if ( tmp_h.isValid() == oocTrue  ) {
+			ooDelete ( tmp_h ) ;
+			contR.set(ix,nulRef) ;		// 9.1.97  M.N + D.D
+		}
+	}
+
+	if ( oovLastError != 0 ) {
+		lastErrCode = oovLastError->errorN ; 
+		if ( oovLastError->message != 0 ) {
+			if ( lastErrString != 0 )
+				free ( lastErrString ) ;
+			lastErrString = strdup(oovLastError->message) ;
+		}
+	}
+
+	return ;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		EndTimer
-//
-// Description:		This method stops a wall-clock timer.
-//
-// Input Arguments:	None
-//
-// Output Arguments:	None
-//
-// Return Value:	None
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
 
-void		ooSession::EndTimer()
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::setMode
+ *
+ *      Description: 
+ *		Actively sets the openMode of the Federation within the
+ *		context of a transaction.
+ *
+ *      Returns:
+ *		oocSuccess or oocError
+ * 
+ *      Side Effects:
+ *		none.
+ *
+ *
+ ******************************************************************************
+ */
+int
+ooSession::setMode ( ) 
 {
-	// Grab the current time
-	_endTime = time(0);
+	int ret_val = oocSuccess ;
+
+	if ( transaction.isActive() == oocTrue ) {
+		ooMode c_mode = fd().openMode() ;
+		if ( c_mode != oocUpdate && c_mode != mode && c_mode != oocNoOpen ) {
+			fd().close ( ) ;
+			ret_val = fd().open ( fdBootName(), mode ) ; 
+			if ( ret_val != oocSuccess ) 
+				ooSignal ( oocWarning, ooS_failed_fd_reopen, 0, "setMode()", mode ) ;
+		}
+	}
+
+	return ret_val ;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		PrintTimer
-//
-// Description:		This method prints the difference between start/stop times.
-//
-// Input Arguments:	label (char*)	Informational label prepended to output.
-//
-// Output Arguments:	None
-//
-// Return Value:	None
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
 
-void		ooSession::PrintTimer(char* label)
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::setRead
+ *
+ *      Description: 
+ *
+ *      Returns:
+ *		nothing
+ * 
+ *      Side Effects:
+ *		none.
+ *
+ *
+ ******************************************************************************
+ */
+int
+ooSession::setRead ( ) 
 {
-	// Print the difference of start and end times
-	cout << label << " Elapsed Time: " << ((float) (_endTime - _startTime));
-	cout << " seconds." << endl;
+	int ret_val = oocSuccess ;
+
+	mode = oocRead ;
+
+	ret_val = setMode ( ) ;
+
+	return ret_val ;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		StartStatistics
-//
-// Description:		This method sets the encapsulated ooRunStatus() delta
-//			counters. This method is used in conjunction with
-//			ooSession::Print*Statistics() to observe Objectivity/DB
-//			internal behavior.
-//
-// Input Arguments:	None
-//
-// Output Arguments:	None
-//
-// Return Value:	None
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
 
-void		ooSession::StartStatistics()
+
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::setUpdate
+ *
+ *      Description: 
+ *
+ *      Returns:
+ *		nothing
+ * 
+ *      Side Effects:
+ *		none.
+ *
+ *
+ ******************************************************************************
+ */
+int
+ooSession::setUpdate ( )
 {
-	_monitor.Start();
+	int ret_val = oocSuccess ;
+
+	mode = oocUpdate ;
+
+	ret_val = setMode ( ) ;
+
+	return ret_val ;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		PrintDeltaStatistics
-//
-// Description:		This method prints the ooRunStatus() statistics of
-//			for the Objectivity/DB Object and Storage Managers.
-//			Delta information is printed since the last call to
-//			ooSession::{StartStatistics,Print*Statistics}.
-//
-// Input Arguments:	label (char*)	Informational label prepended to output.
-//
-// Output Arguments:	None
-//
-// Return Value:	None
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
 
-void		ooSession::PrintDeltaStatistics(char* label)
+
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::addTempCont
+ *
+ *      Description: 
+ *
+ *      Returns:
+ *		nothing
+ * 
+ *      Side Effects:
+ *		none.
+ *
+ *
+ ******************************************************************************
+ */
+void
+ooSession::addTempCont (
+	ooHandle(ooContObj)& cont_h )
 {
-	// Print label
-	cout << label << endl;
+	int size = contR.size ( ) ;
 
-	// Print delta information
-	_monitor.PrintDelta(cout);
+	ooHandle(ooContObj) tmp_h = 0 ;
+	for ( int ix = 0; ix < size; ix++ ) {
+		tmp_h = contR.elem(ix) ;
+		if ( tmp_h == 0 ) {
+			contR.set (ix,cont_h) ;
+			break ;
+		}
+	}
+ 
+	if ( ix == size ) {
+		contR.resize ( contR.size() + 10 ) ;
+		contR.set(ix,cont_h) ;
+	}
+
+	return ;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-// Class Name:		ooSession
-// Method Name:		PrintCumulativeStatistics
-//
-// Description:		This method prints the ooRunStatus() statistics of
-//			for the Objectivity/DB Object and Storage Managers.
-//			Cumulative information (since the beginning of the
-//			process is printed.
-//
-// Input Arguments:	label (char*)	Informational label prepended to output.
-//
-// Output Arguments:	None
-//
-// Return Value:	None
-//
-// Special Notes:	None
-//
-/////////////////////////////////////////////////////////////////////////////////
 
-void		ooSession::PrintCumulativeStatistics(char* label)
+
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::tempCont
+ *
+ *      Description: 
+ *
+ *      Returns:
+ *		nothing
+ * 
+ *      Side Effects:
+ *		none.
+ *
+ *
+ ******************************************************************************
+ */
+ooHandle(ooContObj)
+ooSession::tempCont (
+	const char* ContName,
+	uint32 hash,
+	uint32 initPages ) 
 {
-	// Print label
-	cout << endl << label << endl;
+	ooHandle(ooContObj)	ret_h ;
+	static int num = 0 ;
+	uint32 initial_pages = ( CntIPgs() >= initPages ? CntIPgs() : initPages ) ;
 
-	// Print cumulative information
-	_monitor.PrintCumulative(cout);
+	if ( ContName != 0 ) 
+		ret_h = container ( ContName, hash ) ;
+	else {
+		setUpdate ( ) ;
+		char buffer[64] ;
+
+		sprintf ( buffer, "%X-%d", 
+#ifdef _WIN32
+			(int)GetCurrentProcessId(),
+#else
+			getpid(),
+#endif
+			num++ ) ;
+
+		if ( ret_h.lookupObj ( dbH, buffer ) != oocSuccess ) {
+			ret_h = new ( buffer, hash, initial_pages, CntGPct(), dbH ) ooContObj ( ) ;
+			if (! ret_h.isValid() )
+				ooSignal(oocUserError,ooS_failed_container,0,"tempCont()",(char*)buffer);
+			else
+				ret_h.nameObj ( dbH, buffer ) ;
+		}
+
+	}
+
+	addTempCont ( ret_h ) ;
+
+	return ret_h ;
 }
 
+
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::random
+ *
+ *      Description: 
+ *
+ *      Returns:
+ *		integer, == 1, ooContObj was created, == 0, ooContObj was found.
+ * 
+ *      Side Effects:
+ *		none.
+ *
+ *
+ ******************************************************************************
+ */
+int
+ooSession::random (
+	ooHandle(ooContObj)& cont_h,
+	int MaxDistribution,
+	const char* Prefix,
+	uint32 hash,
+	uint32 initPages ) 
+{
+	ooStatus ret =  0 ;
+	uint32 initial_pages = ( rndCntIPgs() >= initPages ? rndCntIPgs() : initPages ) ;
+
+	int maxdistribution = randDist() ;
+	if ( MaxDistribution != 0 )
+		maxdistribution = MaxDistribution ;
+
+	int seed = rand() % maxdistribution ;
+	char nameBuff[128] ;
+	char buff[128] ;
+	if ( Prefix != 0 ) 
+		strcpy ( buff, Prefix ) ;
+	else
+		strcpy ( buff, "SessionCont" ) ;
+	sprintf ( nameBuff, "%s-%X", buff, seed ) ;
+
+	ret = contMap()->lookup ( nameBuff, cont_h, oocNoOpen ) ;
+	if ( cont_h.isValid() == oocFalse || ret != oocSuccess ) {
+		setUpdate ( ) ;
+		ret = 1 ;
+		ooHandle(ooContObj)* Handles = new ooHandle(ooContObj) [maxdistribution] ;
+		ooNewConts (ooContObj,maxdistribution,dbH,hash,initial_pages,rndCntGPct(),oocFalse,Handles) ; 
+		for ( int cn = 0; cn < maxdistribution; cn++ ) {
+			sprintf ( nameBuff, "%s-%X", buff, cn ) ;
+			contMap()->remove ( nameBuff ) ;
+			contMap()->add ( nameBuff, Handles[cn] ) ;
+		}
+		delete [] Handles ;
+	}
+
+	// now look it up, it should be there.
+	sprintf ( nameBuff, "%s-%X", buff, seed ) ;
+	if ( contMap()->lookup ( nameBuff, cont_h, oocNoOpen ) != oocSuccess )
+                ooSignal(oocUserError,ooS_failed_container,0,"random()",(char*)nameBuff);
+
+	if ( persistent == 0 )
+		addTempCont ( cont_h ) ;
+
+	return ret ;
+}
+
+
+
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::container
+ *
+ *      Description: 
+ *
+ *      Returns:
+ *		integer, == 1, ooContObj was created, == 0, ooContObj was found.
+ * 
+ *      Side Effects:
+ *		none.
+ *
+ *
+ ******************************************************************************
+ */
+int
+ooSession::container (
+	ooHandle(ooContObj)& cont_h,
+	int ContainerNumber,
+	const char* Prefix,
+	uint32 hash,
+	uint32 initPages ) 
+{
+	int ret = 0 ;
+	char buff[64] ;
+
+	if ( Prefix != 0 ) 
+		sprintf ( buff, "%.50s-%X", Prefix, ContainerNumber ) ;
+	else
+		sprintf ( buff, "SessionCont-%X", ContainerNumber ) ;
+
+	ret = container ( cont_h, buff, hash, initPages ) ;
+
+	return ret ;
+}
+
+
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::container
+ *
+ *      Description: 
+ *
+ *      Returns:
+ *		integer, == 1, ooContObj was created, == 0, ooContObj was found.
+ * 
+ *      Side Effects:
+ *		none.
+ *
+ *
+ ******************************************************************************
+ */
+int
+ooSession::container (
+	ooHandle(ooContObj)& cont_h,
+	const char* ContName,
+	uint32 hash,
+	uint32 initPages )
+{
+	ooStatus ret = oocError ;
+
+	uint32 initial_pages = ( CntIPgs() >= initPages ? CntIPgs() : initPages ) ;
+
+	const char* container_name = contName ( ) ;
+
+	if ( ContName != 0 )
+		container_name = ContName ;
+
+	if ( !dbH.isValid() )
+		db();
+
+#ifdef ROGUEWAVE
+	if ( containerDict.findValue(container_name,cont_h) ) { 
+		if ( cont_h.isValid() ) 
+			ret = oocSuccess ;
+		else	// cont_h is invalidated (by abort)
+			containerDict.remove(container_name);
+	}
+	else {
+#endif
+
+	ret = contMap()->lookup ( container_name, cont_h, oocNoOpen ) ;
+	if ( cont_h.isValid() == oocFalse || ret != oocSuccess ) {
+		setUpdate ( ) ;
+		cont_h = new ( container_name, hash, initial_pages, CntGPct(), dbH )
+					ooContObj ( ) ;
+		ret = oocSuccess ;
+		if (! cont_h.isValid())
+			ooSignal(oocUserError,ooS_failed_container,0,"container()",(char*)container_name);
+		else {
+			contMap()->remove ( container_name ) ;
+			contMap()->add ( container_name, cont_h ) ;
+		}
+	}
+
+#ifdef ROGUEWAVE
+		containerDict.insertKeyAndValue(container_name,cont_h) ;
+	}
+#endif
+
+	if ( cont_h != 0 )
+		ret = oocSuccess ;
+
+	if ( persistent == 0 )
+		addTempCont ( cont_h ) ;
+
+	return ret ;
+}
+
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::findContainer
+ *
+ *      Description: 
+ *
+ *      Returns:
+ *		integer, == oocSuccess, ooContObj was found, == oocError, ooContObj was not found.
+ * 
+ *      Side Effects:
+ *		none.
+ *
+ *
+ ******************************************************************************
+ */
+int
+ooSession::findContainer (
+	ooHandle(ooContObj)& cont_h,
+	const char* ContName )
+{
+	ooStatus ret = oocError ;
+
+	if (dbH == 0) db();
+	if ( ContName != 0 )
+		ret = contMap()->lookup ( ContName, cont_h, oocNoOpen ) ;
+
+	return ret ;
+}
+
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::db
+ *
+ *      Description: 
+ *
+ *      Returns:
+ *		integer, == 1, db was created, == 0, db was found.
+ * 
+ *      Side Effects:
+ *		none.
+ *
+ *
+ ******************************************************************************
+ */
+ooStatus
+ooSession::db (
+	ooHandle(ooDBObj)& db_h,
+	const char* DBName,
+	const char* DBPathName,
+	const char* DBHostName )
+{
+	ooStatus ret = oocError ;
+	const char* db_name = (const char*) 0 ;
+	const char* db_hostname = (const char*) 0 ;
+	const char* db_pathname = (const char*) 0 ;
+
+	if ( DBName != 0 ) 
+		db_name = DBName ;
+	else
+		db_name = dbFileName() ;
+
+	if ( DBHostName != 0 ) 
+		db_hostname = DBHostName ;
+	else
+		db_hostname = dbHostName() ;
+
+	if ( DBPathName != 0 ) 
+		db_pathname = DBPathName ;
+	else
+		db_pathname = dbPathName() ;
+
+	if ( db_name != 0 || (db_h.isValid() != oocTrue) ) {
+		db_h = 0 ;
+//		if ( db_h.open ( fdbH, db_name, mode ) != oocSuccess ) {
+		if ( db_h.exist ( fdbH, db_name, mode ) != oocTrue ) {
+			db_h = new ( fdbH ) ooDBObj (
+				db_name, 0, 0, db_hostname, db_pathname ) ;
+			ret = oocSuccess ;
+			if (db_h.isValid() != oocTrue)
+				ooSignal(oocUserError,ooS_failed_db_open,0,"db()",(char*)dbFileName());
+		}
+	}
+
+	if ( db_h != 0 ) 
+		ret = oocSuccess ;
+
+	return ret ;
+}
+
+
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  ooSession::replace_db
+ *
+ *      Description: 
+ *
+ *      Returns:
+ *		integer, == 1, db was created, == 0, db was found.
+ * 
+ *      Side Effects:
+ *		none.
+ *
+ *
+ ******************************************************************************
+ */
+int
+ooSession::replace_db (
+	ooHandle(ooDBObj)& db_h,
+	const char* DBName )
+{
+	int ret = 0 ;
+	const char* db_name = (const char*) 0 ;
+
+	if ( DBName == 0 ) 
+		db_name = dbFileName() ;
+	else
+		db_name = DBName ;
+
+	if ( db_h.exist ( fdbH, db_name, mode ) == oocTrue ) {
+/*
+		db_h.close ( ) ;
+		ooDelete ( db_h ) ;
+		db ( db_h, db_name, dbPathName(), dbHostName() ) ;
+*/
+		db_h = ooReplace ( ooDBObj, ( db_name, 0, 0, dbHostName(), dbPathName() ), fdbH ) ;
+	}
+	else {
+               	db_h = new ( fdbH ) ooDBObj ( db_name, 0, 0, dbHostName(), dbPathName() ) ;
+		ret = 1 ;
+		if (! db_h.isValid() )
+                        ooSignal(oocUserError,ooS_failed_db_open,0,"replace_db()",(char*)DBName);
+	}
+
+	return ret ;
+}
+
+/*
+ ******************************************************************************
+ *
+ *      Function Name:  operator << ostream& ooSession&
+ *
+ *      Description: 
+ *
+ *      Returns:
+ *		nothing
+ * 
+ *      Side Effects:
+ *		none.
+ *
+ *
+ ******************************************************************************
+ */
+ostream&
+operator<< (
+	ostream& os,
+	ooSession& s_r ) 
+{
+	os << *(ooEnvironment*)(&s_r) << endl ;
+
+	ooRef(ooFDObj) fd_r = s_r.fdbH ;
+	os << "Federation Handle: " <<
+	"[" << fd_r.get_DB() << "," << fd_r.get_OC() << ","
+	<< fd_r.get_page() << "," << fd_r.get_slot() << "]" << endl ;
+
+	ooRef(ooDBObj) db_r = s_r.dbH ;
+	os << "Database Handle: " <<
+	"[" << db_r.get_DB() << "," << db_r.get_OC() << ","
+	<< db_r.get_page() << "," << db_r.get_slot() << "]" << endl ;
+
+	ooRef(ooContObj) cn_r = s_r.contH ;
+	os << "Container Handle: " <<
+	"[" << cn_r.get_DB() << "," << cn_r.get_OC() << ","
+	<< cn_r.get_page() << "," << cn_r.get_slot() << "]" << endl ;
+
+	if ( s_r.mode == oocNoOpen ) 
+		os << "Access mode is: noOpen." << endl ;
+	else if ( s_r.mode == oocRead ) 
+		os << "Access mode is: Read." << endl ;
+	else
+		os << "Access mode is: Update" << endl ;
+
+	return os ;
+}
+
+
+void
+ooSession::printContainerMap ( ) 
+{
+	// ooMapItr mapItr = contMapH ; 
+	ooMapItr mapItr ( contMapH ) ; 	// needed by cxx, alphaOSF1
+
+	while ( mapItr.next() ) {
+		printf ( "%s --- ", mapItr->name() );
+		mapItr->oid().print();
+	}
+
+	return ;
+}
+
+
+
+#endif /* _OOSESSION_C_ */

@@ -88,7 +88,7 @@ ooStatus AMSgmatD::CmpMaterials(integer id, AMSgmat* p)
   }
 
   if (_npar == p -> _npar) {
-   geant a[3], z[3], w[3];
+   geant a[10], z[10], w[10];
    p -> getNumbers(a, z, w);
    for (integer i =0; i< _npar; i++)
      {

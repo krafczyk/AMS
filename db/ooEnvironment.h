@@ -17,7 +17,7 @@
 #ifndef _OOENVIRONMENT_H_
 #define _OOENVIRONMENT_H_
 
-#include <stream.h>
+#include <iostream.h>
 
 
 	class ooEnv {

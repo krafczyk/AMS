@@ -20,12 +20,12 @@ class opiDummyDeclaration;
 #include "particleD_ref.h"
 #endif
 
-class AMSEventD;
+class AMSeventD;
 #ifndef OO_BUGGY_TEMPLATES
-class ooHandle(AMSEventD);
-class ooItr(AMSEventD);
-class ooRef(AMSEventD);
-class ooShortRef(AMSEventD);
+class ooHandle(AMSeventD);
+class ooItr(AMSeventD);
+class ooRef(AMSeventD);
+class ooShortRef(AMSeventD);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
 class AMSChargeD;
@@ -61,11 +61,11 @@ class ooShortRef(AMSCTCClusterD);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
 #line 19 "particleD.ddl"
-class AMSEventD; 
+class AMSeventD; 
 #ifdef OO_DDL_TRANSLATION
-#pragma ooclassref AMSEventD <eventD_ref.h>
+#pragma ooclassref AMSeventD <recevent_ref.h>
 #else
-#include <eventD_ref.h>
+#include <recevent_ref.h>
 #endif
 class opiDummyDeclaration;
 
@@ -128,26 +128,26 @@ public: AMSParticleD();
 AMSParticleD(class AMSParticle *); 
 #ifdef OO_DDL_TRANSLATION
 #line 61 "particleD.ddl"
-    ooRef(AMSEventD) pEventP <-> pParticleE[];
+    ooRef(AMSeventD) pEventP <-> pParticleE[];
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pEventP */
 #if !defined(__DECCXX) || !defined(OO_VMS)
-    ooHandle(AMSEventD) pEventP(ooMode mode = oocNoOpen) const;
+    ooHandle(AMSeventD) pEventP(ooMode mode = oocNoOpen) const;
 #endif
-    ooHandle(AMSEventD)& pEventP(ooHandle(AMSEventD)& objH,
+    ooHandle(AMSeventD)& pEventP(ooHandle(AMSeventD)& objH,
 		       ooMode mode = oocNoOpen) const;
-    ooStatus set_pEventP(const ooHandle(AMSEventD)& objH);
+    ooStatus set_pEventP(const ooHandle(AMSeventD)& objH);
     ooStatus del_pEventP()
       {
 	return opiDelAssoc_1(ooDysoc(), ooAssocN(AMSParticleD,pEventP));
       }
-    ooBoolean exist_pEventP(const ooHandle(AMSEventD)& objH) const;
+    ooBoolean exist_pEventP(const ooHandle(AMSeventD)& objH) const;
     ooBoolean exist_pEventP() const
       {
-        return this->exist_pEventP((ooHandle(AMSEventD)&) (oocNullHandle));
+        return this->exist_pEventP((ooHandle(AMSeventD)&) (oocNullHandle));
       }
     static ooAssocNumber pEventP_ooAssocN;
-    ooRef(AMSEventD)& pEventP(ooRef(AMSEventD)& objId, ooMode mode = oocNoOpen) const;
+    ooRef(AMSeventD)& pEventP(ooRef(AMSeventD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
 #line 62 "particleD.ddl"

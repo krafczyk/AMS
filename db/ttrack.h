@@ -27,7 +27,7 @@ class ooRef(AMSTrRecHitD);
 class ooShortRef(AMSTrRecHitD);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
-#line 21 "ttrack.ddl"
+#line 19 "ttrack.ddl"
 class AMSTrRecHitD; 
 #ifdef OO_DDL_TRANSLATION
 #pragma ooclassref AMSTrRecHitD <trrechit_ref.h>
@@ -35,7 +35,8 @@ class AMSTrRecHitD;
 #include <trrechit_ref.h>
 #endif
 class opiDummyDeclaration;
-#line 31
+
+
 class AMSTrTrackD : public ooObj { 
 
 
@@ -75,10 +76,10 @@ integer _GeaneFitDone;
 integer _AdvancedFitDone; 
 
 integer _Position; 
-#line 75 "ttrack.ddl"
+#line 66 "ttrack.ddl"
 public: 
 #ifdef OO_DDL_TRANSLATION
-#line 75 "ttrack.ddl"
+#line 66 "ttrack.ddl"
     ooRef(AMSTrRecHitD) pTrRecHitT[] : copy(delete);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pTrRecHitT[] */
@@ -117,7 +118,7 @@ public:
       }
     static ooAssocNumber pTrRecHitT_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
-#line 81 "ttrack.ddl"
+#line 70 "ttrack.ddl"
 AMSTrTrackD(); 
 AMSTrTrackD(class AMSTrTrack *); 
 
@@ -163,7 +164,7 @@ inline void setPosition(integer pos) { _Position = pos; }
     static void ooAssocRegister();
     ooRef(AMSTrTrackD)& ooThis(ooRef(AMSTrTrackD)& objId, ooMode aMode = oocNoOpen) const;
     AMSTrTrackD(ooInternalObj iobj);
-#line 93 "ttrack.ddl"
+#line 82 "ttrack.ddl"
 }; 
 
 #endif /* !defined(TTRACK_H) */

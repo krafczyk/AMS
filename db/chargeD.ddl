@@ -13,8 +13,8 @@
 class AMSCharge;
 const integer nchargeD=7; // e,p,He...C
 
-class AMSEventD;
-#pragma ooclassref AMSEventD <eventD_ref.h>
+class AMSeventD;
+#pragma ooclassref AMSeventD <recevent_ref.h>
 
 class AMSBetaD;
 #pragma ooclassref AMSBetaD <tbeta_ref.h>
@@ -42,7 +42,7 @@ public:
 
 // Assosiations
 
-  ooHandle(AMSEventD)    pEventCh    <-> pChargeE[];
+  ooHandle(AMSeventD)    pEventCh    <-> pChargeE[];
   ooHandle(AMSParticleD) pParticleC  <-> pChargeP;
   ooHandle(AMSBetaD)     pBetaCh     : copy (delete);
 

@@ -79,7 +79,6 @@ AMSmceventg *  next(){return (AMSmceventg*)_next;}
 AMSmceventg(){_next=0;}
 #ifdef __DB__
    friend class AMSmceventgD;
-   friend class AMSmceventD;
 #endif
 };
 #endif

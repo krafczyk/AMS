@@ -1,4 +1,24 @@
+/* 
+ ******************************************************************************
+ *
+ *      Objectivity Inc.
+ *      Copyright (c) 1995, Objectivity, Inc. USA   All rights reserved.
+ *
+ ****************************************************************************
+ *
+ *      File:   ooStats.C
+ *
+ *      Functions(s):
+ *
+ *      Description:
+ *
+ *      RCSid = "$Id: ooStats.C,v 1.2 1997/05/14 05:41:45 alexei Exp $"
+ *
+ ****************************************************************************
+*/
+
 #include "ooStats.h"
+
 
 ooStats::ooStats()
 {

@@ -10,7 +10,7 @@
 
 #define nl 6
 #define nld 17
-#define mxstr 642
+#define mxstr 640
 
 class AMSDBcD: public ooObj {
 //
@@ -24,7 +24,6 @@ protected:
    number  _laydD[nl][5];
    number  _zposlD[nl];
    integer _nladD[nl];
-   integer _ntubeD[nl];
    integer _nsenD[nl][nld];
    integer _nhalfD[nl][nld];
    number  _zposD[nl];
@@ -32,11 +31,10 @@ protected:
    number  _ssize_inactiveD[nl][2];
    integer _nstripssenD[nl][2];
    integer _nstripsdrpD[nl][2];
-   number  _c2cD[nl];
-   number  _tube_inner_diaD[nl];
    number  _silicon_zD[nl];
-   number  _tube_wD[nl];
    number  _zelecD[nl][2];
+   number  _c2cD[nl];
+   number  _support_wD[nl];
 
    number raddegD;
    number piD;
@@ -55,7 +53,6 @@ public:
    CmpConstants();
 
 // member functions
-   inline integer Ntube(integer i){return _ntubeD[i];}
    inline number layd(integer i, integer j)
      {return _laydD[i][j];}
    inline number  zposl(integer i){return _zposlD[i];}
@@ -69,9 +66,7 @@ public:
      return _ssize_inactiveD[ilay][side];
    }
    inline number  c2c(integer i){return _c2cD[i];}
-   inline number tube_inner_dia(integer i){return _tube_inner_diaD[i];}
    inline number  silicon_z(integer i){return _silicon_zD[i];}
-   inline number tube_w(integer i){return _tube_wD[i];}
    inline number zelec(integer i, integer j){return _zelecD[i][j];}
 
    inline integer nlay(){return _nlayD;}

@@ -10,7 +10,10 @@ const int DBWriteMC   =      100; // write all MC banks
 const int DBWriteRawE =     1000; // write raw event
 const int DBWriteRecE =    10000; // write reconstructed event
 const int DBWritePart =   100000; // write particle info.
-const int DBWriteMCEv =  1000000; // write MC event
-const int DBWriteDumm = 10000000; // write dummy event, debugging only
+const int DBWriteSlow =  1000000; // write slow control block
+
+const int TagEvent    =        1;
+const int RawEvent    =       10;
+const int RecoEvent   =      100;
 
 #endif

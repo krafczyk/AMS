@@ -89,6 +89,18 @@ public:
 
 #ifdef __DB__
    friend class AMSParticleD;
+
+   number  getmass() {return _Mass;}
+   number  geterrmass() {return _ErrMass;}
+   number  getmomentum() {return _Momentum;}
+   number  geterrmomentum() {return _ErrMomentum;}
+   number  getcharge() {return _Charge;}
+   number  gettheta() {return _Theta;}
+   number  getphi() {return _Phi;}
+   AMSPoint getcoo() {return _Coo;}
+   number   getsumanti() {return _SumAnti;}
+
+
 #endif
 AMSBeta*       getpbeta()       { return _pbeta;}
 AMSCharge*     getpcharge()     { return _pcharge;}

@@ -27,7 +27,7 @@
 //           Mar  19, 1997 ak.  see db_comm.h about new eventR/eventW
 //                              call dbend from uglast
 //                              eventRtype 
-//  Last Edit: Mar 27, 1997. ak
+//  Last Edit: May 12, 1997. ak
 //
 
 #include <typedefs.h>
@@ -76,15 +76,32 @@ PROTOCCALLSFSUB0(UGLAST,uglast)
 #ifdef __DB__
 class AMSEventList;
 
-#include <A_LMS.h>
+#include <dbA.h>
 
-implement (ooVArray, geant)   //;
-implement (ooVArray, number)  //;
-implement (ooVArray, integer) //;
-implement (ooVArray, AMSTOFMCClusterD) //;
-implement (ooVArray, AMSTrMCClusterD) //;
+// declaration ooVArray(...)
+#include <commonsD_ref.h>     
+#include <commonsD.h>
 
-LMS	               dbout(oocUpdate);
+#include <mctofclusterV_ref.h>
+#include <mctofclusterV.h>
+
+#include <tmcclusterV_ref.h>
+#include <tmcclusterV.h>
+
+//#include <timeidD_ref.h>
+//#include <timeidD.h>
+
+// -
+
+implement (ooVArray, geant)   
+implement (ooVArray, number)  
+implement (ooVArray, integer) 
+  //implement (ooVArray, uinteger) 
+implement (ooVArray, AMSTOFMCClusterD) 
+implement (ooVArray, AMSTrMCClusterD) 
+implement (ooVArray, ParticleS) 
+
+LMS	               dbout;
 
 #endif
 
@@ -125,18 +142,24 @@ extern "C" void uginit_(){
    ooMode   mrowmode;
    eventR = AMSFFKEY.Read;
    eventW = AMSFFKEY.Write;
-   char* jobname = AMSJob::gethead()-> getname();
-         jobtype = AMSJob:: gethead() -> jobtype();
    if (eventW > 0) mode = oocUpdate;
    if (eventW < DBWriteGeom) {
      mode = oocRead;
      mrowmode = oocMROW;
    }
-   if (dbg_prtout) cout <<"_uginit -I- LMS init for job "<<jobname<<endl;
-   if ((eventW/DBWriteMCEv)%2 == 1 || (eventR/DBWriteMCEv)%2 == 1) 
-                              dbout.LMSInitS(mode,mrowmode,jobname);
-   if ((eventW/DBWriteMCEv)%2 != 1 && (eventR/DBWriteMCEv)%2 != 1) 
-                              dbout.LMSInit(mode,mrowmode,jobname);
+   char* jobname = AMSJob::gethead()-> getname();
+   char* setup     = AMSJob::gethead() -> getsetup();
+   if (dbg_prtout) {
+     cout <<"_uginit -I- LMS init for job "<<jobname<<endl;
+     cout <<"                       setup "<<setup<<endl;
+   }
+   //DbApplication  DbApp(jobname);
+   dbout.setapplicationName(jobname);
+   dbout.setprefix(jobname);
+   dbout.setsetup(setup);
+   dbout.settypeR(eventR);
+   dbout.settypeW(eventW);
+   dbout.ClusteringInit(mode,mrowmode);
    readGeomDB();
 #else
    AMSgmat::amsmat();
@@ -360,13 +383,18 @@ extern "C" void guout_(){
    if(trig) {
     if ( eventW > DBWriteGeom) {
      integer run   = AMSEvent::gethead() -> getrun();
-     run = CCFFKEY.run;
      char* jobname = AMSJob::gethead()->getname();
      integer event = AMSEvent::gethead() -> getEvent();
+     time_t  time  = AMSEvent::gethead() -> gettime();
+     integer rtype = AMSEvent::gethead() -> getruntype();
+     number pole, stationT, stationP;
+     AMSEvent::gethead() -> GetGeographicCoo(pole, stationT, stationP);
      integer WriteStartEnd = 0;
      if (trigEvents == 0 && AMSFFKEY.Read < 10)     WriteStartEnd = 1;
-     dbout.AddEvent(jobname,run,event,WriteStartEnd,eventW);
-     trigEvents++;
+      if(dbout.recoevents() || dbout.mcevents() || dbout.mceventg())
+        dbout.AddEvent(run, event, time, rtype, pole, stationT, stationP, 
+                       WriteStartEnd);
+      trigEvents++;
     } 
     if (dbg_prtout != 0 && eventW < DBWriteGeom) cout <<
          "GUOUT - I - AMSFFKEY.Write = 0, no database action "<<endl;
@@ -436,7 +464,7 @@ static integer event=0;
 extern "C" void uglast_(){
        GLAST();
 #ifdef __DB__
-     dbout.dbend(eventR, eventW);
+     dbout.dbend();
 #endif
        delete AMSJob::gethead();
 }
@@ -447,56 +475,38 @@ extern "C" void readDB(){
 
 ooHandle(AMSEventList) listH;
 ooStatus               rstatus;
-struct       tms       cpt;
-Float_t                StartRealTime;
-Float_t                EndRealTime;
 
   integer nevents = GCFLAG.NEVENT;
-  ooMode   mode     = oocRead;
-  ooMode   mrowmode = oocMROW;
   char* jobname   = AMSJob::gethead()->getname();
   char* setup     = AMSJob::gethead() -> getsetup();
-  long int gTicks = sysconf(_SC_CLK_TCK);
-  integer run     = SELECTFFKEY.Run;         // run number to read
-  integer eventF  = SELECTFFKEY.Event;       // event number to start from
-  if (AMSFFKEY.Write) mode = oocUpdate;
-   StartRealTime = times(&cpt);
+  uinteger run    = SELECTFFKEY.Run;         // run number to read
+  integer  eventF = SELECTFFKEY.Event;       // event number to start from
+  uinteger eventn;
+  time_t   time;
+
    if (eventF > 0 ) {
-     eventNu = eventF;
+     eventn = eventF;
    } else {
-    eventNu       = 0;
+    eventn       = 0;
    }
    if (run < 0)     run = 0;
-   if ( (eventR > DBWriteMCEg+1)  && (eventR/DBWriteMCEv)%2 != 1) {
-    AMSJob::gethead() -> seteventRtype(eventR);
-    rstatus = dbout.GetNEvents
-            (jobname, run, eventNu, nevents, mode, mrowmode, eventR);
-   } else {
-    ReadStartEnd = 0; 
-    integer nST = dbout.getNTransStart();
-    integer nCT = dbout.getNTransCommit();
-    integer nAT = dbout.getNTransAbort();
 
+    ReadStartEnd = 0; 
+    integer nST = dbout.nTransStart();
+    integer nCT = dbout.nTransCommit();
+    integer nAT = dbout.nTransAbort();
+    number  pole, stationT, stationP;
+    integer rtype;
     if (readEvents == 0) AMSJob::gethead() -> seteventRtype(eventR);
     if ((readEvents == 0) || (nST == (nCT + nAT))) ReadStartEnd = 1;
-    if ( (eventR/DBWriteMCEg)%2 == 1)
-    rstatus =dbout.Getmceventg
-              (jobname, run, eventNu, mode, mrowmode, ReadStartEnd);
-    if ( (eventR/DBWriteMCEv)%2 == 1)
-    rstatus =dbout.GetmceventD
-              (jobname, run, eventNu, mode, mrowmode, ReadStartEnd);
-    readEvents++;
-   }
+    if (dbout.mcevents() || dbout.mceventg())
+    rstatus =dbout.ReadMCEvents(run, eventn, nevents, time, ReadStartEnd);
    if (rstatus == oocSuccess) {
-    EndRealTime = times(&cpt);
-    if (dbg_prtout) cout <<"elapsed time (EndRealTime - StartRealTime) "
-         <<(EndRealTime - StartRealTime)<<" "<<gTicks<<" sec."
-         <<endl;
-     if ((eventR < DBWriteMC) || (eventR/DBWriteMCEv)%2 == 1) {
+    readEvents++;
+    if ((eventR < DBWriteMC) || dbout.mceventg()) {
        eventNu++;
        return; }
-   } 
-
+   }
    UGLAST();
    exit(0);
 #endif
@@ -509,16 +519,14 @@ extern "C" void writeGeomDB(){
       integer eventW = AMSFFKEY.Write;
       char* jobname = AMSJob::gethead()->getname();
       char* setup = AMSJob::gethead() -> getsetup();
-      cout <<"uglast_ -I- geometry and setup will be saved to database"<<endl;
-      cout <<"            for the job with name "<<jobname<<endl;
-      ooHandle(AMSEventList) listH;
-      ooStatus rstatus = oocSuccess;
-      rstatus = dbout.AddList(jobname,jobtype,eventW,setup,listH);
-      dbout.AddMaterial(jobname);
-      dbout.AddTMedia(jobname);
-      dbout.AddGeometry(jobname);
-      dbout.Addamsdbc(jobname);
-      dbout.AddTDV(jobname);
+      cout <<"uglast -I- geometry and setup will be written to database"<<endl;
+      cout <<"           for the job "<<jobname<<endl;
+      cout <<"            with setup "<<setup<<endl;
+      dbout.AddMaterial();
+      dbout.AddTMedia();
+      dbout.AddGeometry();
+      dbout.Addamsdbc();
+      dbout.AddTDV();
      }
 #endif
 }
@@ -529,45 +537,22 @@ extern "C" void readGeomDB(){
 
   char* jobname = AMSJob::gethead()->getname();
   char* setup = AMSJob::gethead() -> getsetup();
-  ooHandle(AMSEventList) listH;
-  ooStatus rstatus = oocSuccess;
-  if (eventW < DBWriteGeom) {
-   if (eventR) {
-    rstatus = dbout.Start(oocRead);
-    rstatus = dbout.FindEventList(jobname,oocRead,listH);
-    if (rstatus != oocSuccess) {
-     rstatus = dbout.Commit();
-      cout <<"uginit_ -E- cannot open list with name "<<jobname<<endl;
-       exit(1);
-    } 
-      integer nn = listH -> getNEvents();
-      if (nn < GCFLAG.NEVENT && eventR > 1) {
-        cout <<"uginit_ -W- there are "<<nn<<" events in the list "
-             <<jobname<<endl;
-        cout<<"uginit_ -W- GCFLAG.NEVENT will be set to "<<nn<<endl;
-      }
-    rstatus = dbout.Commit();
-   }
-  } else {
-   rstatus = dbout.AddList(jobname,jobtype,eventW,setup,listH);
-  }
 
   if ( (AMSFFKEY.Read%2) == 0) {
     cout <<"uginit_ -I- geometry and setup will be created now "<<endl;
     cout <<"            for the job with name "<<jobname<<endl;
-    cout <<"jobname length "<<strlen(jobname)<<endl;
    AMSgmat::amsmat();
    AMSgvolume::amsgeom();
-  } 
+  }  
   if ((AMSFFKEY.Read%2) == 1)   {
    dbout.CheckConstants();
    cout <<"uginit_ -I- geometry and setup will be read from database"<<endl;
    cout <<"            for the job with name "<<jobname<<endl;
-   dbout.FillMaterial(jobname);
+   dbout.ReadMaterial();
    GPMATE(0);
-   dbout.FillTMedia(jobname);
+   dbout.ReadTMedia();
    GPTMED(0);
-   dbout.FillGeometry(jobname);
+   dbout.ReadGeometry();
   }
 #endif
 }

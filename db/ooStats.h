@@ -1,3 +1,34 @@
+/* 
+ ******************************************************************************
+ *
+ *      Objectivity Inc.
+ *      Copyright (c) 1995, Objectivity, Inc. USA   All rights reserved.
+ *
+ ****************************************************************************
+ *
+ *      File:   ooStats.C
+ *
+ *      Functions(s):
+ *
+ *      Description:
+ *
+ *      RCSid = "$Id: ooStats.h,v 1.2 1997/05/14 05:41:46 alexei Exp $"
+ *
+ ****************************************************************************
+*/
+
+/* 
+ **********************************************************************************
+ *
+ * DISCLAIMER: This class contains structures which mirror internal Objectivity
+ *             Object and Storage Manager structures. These status structures
+ *             are subject to change, so the validity (and integrity) of the
+ *             results cannot be guaranteed for releases after/before 3.5.0.
+ *             The accuracy of the values provided is the same as for ooRunStatus().
+ *
+ **********************************************************************************
+*/
+
 #ifndef _OOSTATS_H
 #define _OOSTATS_H
 
@@ -7,15 +38,6 @@
 #include <sys/types.h>
 #include <oo.h>
 
-///////////////////////////////////////////////////////////////////////////////////
-//
-// DISCLAIMER: This class contains structures which mirror internal Objectivity
-//             Object and Storage Manager structures. These status structures
-//             are subject to change, so the validity (and integrity) of the
-//             results cannot be guaranteed for releases after/before 3.5.0.
-//             The accuracy of the values provided is the same as for ooRunStatus().
-//
-///////////////////////////////////////////////////////////////////////////////////
 
 struct xomHK {
 #ifdef OO_ALPHAOSF1

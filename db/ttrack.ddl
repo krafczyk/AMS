@@ -15,17 +15,9 @@
 #include <point.h>
 #include <trrec.h>
 
-//class AMSEventD;
-//#pragma ooclassref AMSEventD <eventD_ref.h>
 
 class AMSTrRecHitD;
 #pragma ooclassref AMSTrRecHitD <trrechit_ref.h>
-
-//class AMSBetaD;
-//#pragma ooclassref AMSBetaD <tbeta_ref.h>
-
-//class AMSParticleD;
-//#pragma ooclassref AMSParticleD <particleD_ref.h>
 
 
 class AMSTrTrackD: public ooObj {
@@ -71,10 +63,7 @@ integer _Position;  //pos from link.h
 public:
 
 // Assosiations
-//ooRef(AMSEventD)       pEventT      <-> pTrack[] ;
 ooRef(AMSTrRecHitD)    pTrRecHitT[] : copy(delete);
-//ooHandle(AMSBetaD)     pBetaT       <-> pTrackBeta;
-//ooHandle(AMSParticleD) pParticleT   <-> pTrackP;
 
 //constructor 
 

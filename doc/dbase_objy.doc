@@ -1,6 +1,6 @@
                                                      Alexei Klimentov
                                                     (alexei.klimentov@cern.ch)
-Filename : dbase_objy.doc                            Last Edit : Mar 25, 1997.
+Filename : dbase_objy.doc                            Last Edit : May 11, 1997.
 
 General Information.
 
@@ -32,9 +32,9 @@ and they are machine independent.
 config.'ARCH' files, all are in ~/AMS/install/ and ~/AMS/db/. The definitions
 from objy_def needs to be executed once per login session (use command 
 source objy_def, to execute it) , config* files are included in make file. You
-have to change the FDID number in config file (use the last 4 digits of your 
-CERN office phone number, if you need more than one FDID, ask me and I'll 
-allocate it for you).
+have to change the id number of federated database (FDID) in config file (use 
+the last 4 digits of your CERN office phone number, if you need more than one 
+FDID, ask me and I'll allocate it for you).
 
  The object files are placed in ~/AMS/db/bin/'ARCH', the exe files are in 
 ~/AMS/exe/'ARCH'. 
@@ -42,9 +42,7 @@ allocate it for you).
  There are two make files :
   MakeDB *) - to create database and AMS+DB version of the 'standard' AMS 
               program. MakeDB uses AMS object files, created by Mgbatch 
-              (Mcxxfix)
-  InitDB *) - to create database initialization program lmsInit. lmsInit 
-              should be executed once, before execution of any other program.
+              
 
 *) goto ~/AMS/db directory first.
 
@@ -53,12 +51,19 @@ JobName and SetupName datacards. The combination of event number and run
 number is unique within the list and is used to build search index. Geometry, 
 tracking media, materials and constants are also associated with the list.
 
-Event data are splitted between several containers. 
+Data are splitted between several databases.
+EventTag database - containes short description of event (see eventTag.ddl 
+                    file) and keeps pointers to reconstructed, simulated or
+                    raw events.
+MCEvents database  - containes simulated data
+RecEcents database - containes reconstructed data
+RawEvents database - containes raw data
+Setup     database - containes geometry, constants and materials description of
+                     miscellaneous setups
+ In database data are organized by containers.
 For example: 
             the information about tracks, clusters, hits, betas, etc is stored
             in containers TrTracks, TrClusters, TrRecHits, Beta, etc.
-Setup (geometry, materials, constants, etc) are stored in the separate file
-AMSsetupDB
 
  READ and WRITE data cards have the following meaning :
  READ = 1 (WRITE = 1)
@@ -70,9 +75,10 @@ AMSsetupDB
  READ = 1000 (WRITE = 1000)
     read (write) raw event 
  READ = 10000 (WRITE = 1000)
-    read (write) all banks from the database for the list defined by JobName
+    read (write) full reconstructed event
  READ = 100000 (WRITE = 100000)
-    special mode. read (write) MC event.
+    special mode. read (write) particle information only
+
 
 How to start ?
 
@@ -95,7 +101,7 @@ How to start ?
 // to run the browser
 
    $setenv DISPLAY display_name:0
-   $ootoolmgr 'PATH'/LOM& 
+   $ootoolmgr 'PATH'/LOM & 
 
    where LOM is the name of your bootfile and PATH is a path to it
 
@@ -137,42 +143,24 @@ MORE INFORMATION CAN BE FOUND IN
 
 Main Subroutines :
 
-AddList(listName, flag, listH) - add list to the database
+AddMaterial()  - write materials to database
+ReadMaterial() - read materials from database
 
-       char*   listName                - list name
-       integer flag
-       ooHandle(AMSEventList) listH  - pointer to the list, returned by the 
-                                       subroutine
+AddTMedia()    - write tracking media to database
+ReadTMedia()   - read tracking media from database
 
-AddEvent(listName,run,event,WriteStartEnd, eventW) - write event to database
+AddGeometry()  - write geometry to database
+ReadGeometry() - read geometry from database
 
-       char* listName - name of list event associated with
-       run            - run number
-       event          - event number
-       WriteStartEnd  - flag, 1 - start write transaction 
-                             -1 - commit write tranaction
-                             -2 - start and commit after writing 1 event
-       eventW         - AMSFFKEY.Write datacard
+AddEvent(ooHandle(AMSEventList)& listH, uinteger run, uinteger eventNumber,
+         time_t time, integer WriteStartEnd)
+//
+// listH         - pointer to the container to place event in
+// run           - unique run number
+// eventNumber   - event number
+// WriteStartEnd - flag;
+//                       1 - start transaction
+//                      -1 - end transaction
+//                      -2 - start&end trasaction
+//
 
-GetNEvents
-            (char* listName, integer run, integer event,
-             integer N, ooMode mode, ooMode mrowmode, integer eventR)
-
-      read N events, starting from event with eventN
-
- listName  - name of List
- run       - run number 
- event     - event number to start from
- N         - number of events to read from dbase
- eventR    - type of event to read, (corresponds to AMSFFKEY.Read datacard)
- ooMode  mode     - database open mode (Update or Read)
-
-
-AddMaterial(listName)  - write materials to database
-FillMaterial(listName) - read materials from database
-
-AddTMedia(listName)   - write tracking media to database
-FillTMedia(listName)  - read tracking media from database
-
-AddGeometry(listName)  - write geometry to database
-FillGeometry(listName) - read geometry from database

@@ -30,12 +30,10 @@ AMSDBcD:: AMSDBcD()
   for (i=0; i<nl; i++) {
    _zposlD[i] = AMSDBc::_zposl[i];
    _nladD[i]  = AMSDBc::_nlad[i];
-   _ntubeD[i] = AMSDBc::_ntube[i];
    _zposD[i]  = AMSDBc::_zpos[i];
    _c2cD[i]   = AMSDBc::_c2c[i];
-   _tube_inner_diaD[i]  = AMSDBc::_tube_inner_dia[i];
-   _silicon_zD[i]  = AMSDBc::_silicon_z[i];
-   _tube_wD[i]  = AMSDBc::_tube_w[i];
+    _silicon_zD[i]  = AMSDBc::_silicon_z[i];
+   _support_wD[i]  = AMSDBc::_support_w[i];
 
   }
 
@@ -99,23 +97,18 @@ ooStatus AMSDBcD::CmpConstants()
   for (i=0; i<nl; i++) {
     if((_zposlD[i] != AMSDBc::_zposl[i]) ||
        (_nladD[i]  != AMSDBc::_nlad[i])  ||
-       (_ntubeD[i] != AMSDBc::_ntube[i]) ||
        (_zposD[i]  != AMSDBc::_zpos[i])  ||
        (_c2cD[i]   != AMSDBc::_c2c[i])   ||
-       (_tube_inner_diaD[i]  != AMSDBc::_tube_inner_dia[i]) ||
        (_silicon_zD[i]  != AMSDBc::_silicon_z[i]) ||
-       (_tube_wD[i] != AMSDBc::_tube_w[i]) )
+       (_support_wD[i] != AMSDBc::_support_w[i]) )
       {
         rstatus = oocError;
         cout<<"zposl "<<_zposlD[i]<<" "<<AMSDBc::_zposl[i]<<endl;
         cout<<"nlad "<<_nladD[i] <<" "<<AMSDBc::_nlad[i]<<endl;
-        cout<<"ntube "<<_ntubeD[i]<<AMSDBc::_ntube[i]<<endl;
         cout<<"zpos "<<_zposD[i]<<" "<<AMSDBc::_zpos[i]<<endl;
         cout<<"c2c "<<_c2cD[i]<<" "<<AMSDBc::_c2c[i]<<endl;
-        cout<<"tube_inner_dia"
-            <<_tube_inner_diaD[i]<<AMSDBc::_tube_inner_dia[i]<<endl;
         cout<<"silicon z"<<_silicon_zD[i]<<" "<<AMSDBc::_silicon_z[i]<<endl;
-        cout<<"tube_w"<<_tube_wD[i]<<" "<<AMSDBc::_tube_w[i]<<endl;
+        cout<<"support_w"<<_support_wD[i]<<" "<<AMSDBc::_support_w[i]<<endl;
         break;
       }
   }
