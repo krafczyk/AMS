@@ -800,12 +800,12 @@ void AMSJob::_retrddata(){
 
 void AMSJob::udata(){
 
-#ifdef __MASSP__
+  //#ifdef __MASSP__
   if(TRMFFKEY .OKAY!= 1234567890){
     cerr << "Datacards not terminated properly "<<endl;
     exit(1);  
    }
-#endif
+  //#endif
 
 {
   int i,j,k;

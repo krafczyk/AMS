@@ -607,12 +607,12 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
          int16u conn,tdrs;
          tdrs=tdrn/2;
          if(tdrn%2==0){
-          if(j==0)conn=1;
-          else conn=0;
+          if(j==0)conn=0;
+          else conn=1;
          }
          else {
-          if(j==0)conn=3;
-          else conn=2;
+          if(j==0)conn=2;
+          else conn=3;
          }
          int16u haddr=(conn<<10) | (tdrs <<12);
          AMSTrIdSoft idd(ic,haddr);
@@ -636,12 +636,12 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
        for(j=0;j<4;j++){
           int16u conn, tdrk;
           if(tdrn%2 ==0){
-            if(j<2)conn=j+2;
-            else conn=j-2;
+            if(j<2)conn=j;
+            else conn=j;
           }
           else {
-           if(j<2)conn=j+2;
-           else conn=j-2;
+           if(j<2)conn=j;
+           else conn=j;
            conn+= 4;
           }
           tdrk=(tdrn-16)/2;
@@ -728,12 +728,12 @@ void AMSTrRawCluster::buildrawMixed(integer n, int16u *p){
          int16u conn,tdrs;
          tdrs=tdrn/2;
          if(tdrn%2==0){
-          if(j==0)conn=1;
-          else conn=0;
+          if(j==0)conn=0;
+          else conn=1;
          }
          else {
-          if(j==0)conn=3;
-          else conn=2;
+          if(j==0)conn=2;
+          else conn=3;
          }
          int16u haddr=(conn<<10) | (tdrs <<12);
          AMSTrIdSoft idd(ic,haddr);
@@ -757,12 +757,12 @@ void AMSTrRawCluster::buildrawMixed(integer n, int16u *p){
        for(j=0;j<4;j++){
           int16u conn, tdrk;
           if(tdrn%2 ==0){
-            if(j<2)conn=j+2;
-            else conn=j-2;
+            if(j<2)conn=j;
+            else conn=j;
           }
           else {
-           if(j<2)conn=j+2;
-           else conn=j-2;
+           if(j<2)conn=j;
+           else conn=j;
            conn+= 4;
           }
           tdrk=(tdrn-16)/2;
@@ -1153,12 +1153,12 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
          int16u conn,tdrs;
          tdrs=tdrn/2;
          if(tdrn%2==0){
-          if(j==0)conn=1;
-          else conn=0;
+          if(j==0)conn=0;
+          else conn=1;
          }
          else{
-          if(j==0)conn=3;
-          else conn=2;
+          if(j==0)conn=2;
+          else conn=3;
          }
          int16u haddr=(conn<<10) | (tdrs <<12);
          AMSTrIdSoft idd(ic,haddr);
@@ -1181,12 +1181,12 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
        for(j=0;j<4;j++){
           int16u conn, tdrk;
           if(tdrn%2 ==0){
-            if(j<2)conn=j+2;
-            else conn=j-2;
+            if(j<2)conn=j;
+            else conn=j;
           }
           else {
-           if(j<2)conn=j+2;
-           else conn=j-2;
+           if(j<2)conn=j;
+           else conn=j;
            conn+= 4;
           }
           tdrk=(tdrn-16)/2;
@@ -1308,12 +1308,12 @@ void AMSTrRawCluster::updsigSRaw(integer n, int16u* p){
          int16u conn,tdrs;
          tdrs=tdrn/2;
          if(tdrn%2==0){
-          if(j==0)conn=1;
-          else conn=0;
+          if(j==0)conn=0;
+          else conn=1;
          }
          else {
-          if(j==0)conn=3;
-          else conn=2;
+          if(j==0)conn=2;
+          else conn=3;
          }
          int16u haddr=(conn<<10) | (tdrs <<12);
          AMSTrIdSoft idd(ic,haddr);
@@ -1336,12 +1336,12 @@ void AMSTrRawCluster::updsigSRaw(integer n, int16u* p){
        for(j=0;j<4;j++){
           int16u conn, tdrk;
           if(tdrn%2 ==0){
-            if(j<2)conn=j+2;
-            else conn=j-2;
+            if(j<2)conn=j;
+            else conn=j;
           }
           else {
-           if(j<2)conn=j+2;
-           else conn=j-2;
+           if(j<2)conn=j;
+           else conn=j;
            conn+= 4;
           }
           tdrk=(tdrn-16)/2;
@@ -1515,12 +1515,12 @@ void AMSTrRawCluster::updstatusSRaw(integer n, int16u* p){
          int16u conn,tdrs;
          tdrs=tdrn/2;
          if(tdrn%2==0){
-          if(j==0)conn=1;
-          else conn=0;
+          if(j==0)conn=0;
+          else conn=1;
          }
          else {
-          if(j==0)conn=3;
-          else conn=2;
+          if(j==0)conn=2;
+          else conn=3;
          }
          int16u haddr=(conn<<10) | (tdrs <<12);
          AMSTrIdSoft idd(ic,haddr);
@@ -1542,12 +1542,12 @@ void AMSTrRawCluster::updstatusSRaw(integer n, int16u* p){
        for(j=0;j<4;j++){
           int16u conn, tdrk;
           if(tdrn%2 ==0){
-            if(j<2)conn=j+2;
-            else conn=j-2;
+            if(j<2)conn=j;
+            else conn=j;
           }
           else {
-           if(j<2)conn=j+2;
-           else conn=j-2;
+           if(j<2)conn=j;
+           else conn=j;
            conn+= 4;
           }
           tdrk=(tdrn-16)/2;

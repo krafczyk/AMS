@@ -37,7 +37,7 @@ integer AMSBeta::build(integer refit){
     getheadC("AMSTrTrack",patt);
     while(ptrack ){   
     
-      if(ptrack->checkstatus(AMSDBc::USED)==0){        
+      if(BETAFITFFKEY.FullReco || ptrack->checkstatus(AMSDBc::USED)==0){        
    // Now TOF hits 
 
      AMSTOFCluster * phit[4]={0,0,0,0};
@@ -141,19 +141,30 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
     pbeta->SimpleFit(nhit, sleng);
     if(pbeta->getchi2()< BETAFITFFKEY.Chi2 && fabs(pbeta->getbeta())<1.41){
       // Mark Track as used
+         if(ptrack->checkstatus(AMSDBc::RELEASED))
+         ptrack->setstatus(AMSDBc::AMBIG);
+         if(ptrack->checkstatus(AMSDBc::USED))
+         ptrack->setstatus(AMSDBc::AMBIG);
          ptrack->setstatus(AMSDBc::USED);
          // Mark hits as USED
          int i;
          for( i=0;i<nhit;i++){
            if(pthit[i]->checkstatus(AMSDBc::USED))
            pthit[i]->setstatus(AMSDBc::AMBIG);
+           if(pthit[i]->checkstatus(AMSDBc::RELEASED))
+           pthit[i]->setstatus(AMSDBc::AMBIG);
            pthit[i]->setstatus(AMSDBc::USED);
          }
          if(fabs(pbeta->getbeta()) < BETAFITFFKEY.LowBetaThr && pat !=7){
+           //release track
+          ptrack->clearstatus(AMSDBc::USED);
+          ptrack->setstatus(AMSDBc::RELEASED);
           // release hits if pat # 7 and low beta
           for( i=0;i<nhit;i++){
            if(pthit[i]->getntof() ==2)pthit[i]->clearstatus(AMSDBc::USED);
            if(pthit[i]->getntof() ==3)pthit[i]->clearstatus(AMSDBc::USED);
+           if(pthit[i]->getntof() ==2)pthit[i]->setstatus(AMSDBc::RELEASED);
+           if(pthit[i]->getntof() ==3)pthit[i]->setstatus(AMSDBc::RELEASED);
           }
           // set AMBIG flag on beta here if pat = 0,1 or 4
           if(pat==0 || pat==1 || pat==4)pbeta->setstatus(AMSDBc::AMBIG);

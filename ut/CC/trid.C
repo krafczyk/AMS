@@ -703,6 +703,76 @@ void AMSTrIdSoft::inittable(){
   _GetHard[5][9][1][1]=0 | 1<<2;     //side y
 
   int l,i1,j1,k1,l1;
+  for(k=0;k<2;k++){
+   for(l=0;l<2;l++){
+     int tot=0;
+     for(i=0;i<nl;i++){
+      for(j=0;j<nld;j++){
+          int a=_GetHard[i][j][k][l];
+          if(a>=0){
+            if(l==0){
+              //side x
+              int conn=a&7;
+              switch (conn){
+              case 0:
+               conn=2;
+               break;
+              case 1:
+               conn=3;
+               break;
+              case 2:
+               conn=0;
+               break;
+              case 3:
+               conn=1;
+               break;
+              case 4:
+               conn=6;
+               break;
+              case 5:
+               conn=7;
+               break;
+              case 6:
+               conn=4;
+               break;
+              case 7:
+               conn=5;
+               break;
+              }
+              a=a&(~7);
+              _GetHard[i][j][k][l]= a | conn;
+            }
+            else {
+              //side y
+              int conn=a&3;
+              switch (conn){
+              case 0:
+               conn=1;
+               break;
+              case 1:
+               conn=0;
+               break;
+              case 2:
+               conn=3;
+               break;
+              case 3:
+               conn=2;
+               break;
+              }
+              a=a&(~3);
+              _GetHard[i][j][k][l]= a | conn;
+            }
+
+          }
+          
+      }
+     }
+   }
+  }
+
+
+
+
 #ifdef __AMSDEBUG__
   // perform duplicate check
   for(k=0;k<2;k++){

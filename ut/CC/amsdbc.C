@@ -9,6 +9,7 @@ const integer AMSDBc::AMBIG=4;
 const integer AMSDBc::BAD=16;
 const integer AMSDBc::USED=32;
 const integer AMSDBc::DELETED=64;
+const integer AMSDBc::RELEASED=64;
 
 integer AMSDBc::debug=1;
 integer AMSDBc::BigEndian=0;

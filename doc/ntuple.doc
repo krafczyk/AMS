@@ -87,6 +87,7 @@ Below there is a description of a converted ntuple.
                                                        // extrapolated into ctc
 * I*4  * [0,20]       * TOFCLUST * ntof                // TOF clusters number
 * I*4  *              * TOFCLUST * TOFStatus(ntof)  // Status: 0->ok 
+                                                    // bit 4 - ambig
                                                     // bit 256 -> "1-sided" counter
                                                     // bit 512 -> bad t-measurement
                                                     //            on one of the sides
@@ -302,7 +303,7 @@ Below there is a description of a converted ntuple.
 All:
 16 - BAD
 32 - USED
-64 - Mark  to delete
+64 - Service bit
 
 Tracker clusters:
 1 - WIDE cluster
@@ -318,6 +319,7 @@ Tracker clusters:
 Tracks:
 1 - FalseX
 2 - FalseTOFX
+4 - Ambiguous track, i.e. several betas can used it
 
 **) Pointers to beta, charge, track, trrechit, trclusters are OK now
 

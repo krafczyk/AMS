@@ -59,6 +59,7 @@ public:
      static const integer BAD;
      static const integer USED;
      static const integer DELETED;
+     static const integer RELEASED;
 
 // machine dependent values
 
