@@ -1,4 +1,4 @@
-//  $Id: oracle.h,v 1.2 2001/03/02 17:45:30 alexei Exp $
+//  $Id: oracle.h,v 1.3 2001/03/26 14:19:33 alexei Exp $
 //
 // ORACLE related subroutines 
 //
@@ -11,12 +11,13 @@
 //              Jan    , 2001. Hosts, Clients, Runs
 //              Feb    , 2001. Active CLients, hosts.
 //
-// Last Edit : Mar. 2, 2001
+// Last Edit : Mar. 16, 2001
 //
 
 
 #ifdef __AMSORACLE__
 
+const int debug = 1;
 
 const int  NON_EXISTENT = -942;
 const int  NOT_FOUND    = 1403;
@@ -976,6 +977,7 @@ namespace AMSoracle {
   int  getHost(unsigned int type, ActiveHost *host);
   unsigned int  getHostId(unsigned int cid);
   void gettablename(char *tdvn);
+  int  getTableSize(const char *table);
   int  gettdvbody(TDVrec *tdv, unsigned int *pdata);
   int  gettdv(TDVrec *tdv, int deftable);
   int  decHostClientsActive(unsigned int clientId, unsigned int ctype);
@@ -1037,6 +1039,7 @@ namespace AMSoracle {
                         unsigned int clkilled,
                         unsigned int lastupd);
 
+  int   insertDataCards(const char *scriptpath);
 
   int   insertDST(
                   const unsigned int Insert,

@@ -1,12 +1,22 @@
-//  $Id: dbserver.C,v 1.14 2001/03/16 10:39:47 choutko Exp $
+//  $Id: dbserver.C,v 1.15 2001/03/26 14:19:26 alexei Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
-//                      
-//  Last Edit : Mar 2, 2001. ak
+//  Mar,    2001. a.k. debugging   
+//                    
+//  Last Edit : Mar 26, 2001. ak
 //
+#include <stdlib.h>
+#include <server.h>
+#include <fstream.h>
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
+#include <algorithm>
 #include <amsdbc.h>
+#include <signal.h>
 #include <dbserver.h>
+
 #ifdef __AMSORACLE__
 #include <oracle.h>
 #endif
@@ -20,12 +30,15 @@ for(MOI i=mo.begin();i!=mo.end();++i){
    if(!pcur)pcur=this;
 //   else add(pcur = new DBServer_impl());
  PortableServer::ObjectId_var oid=(i->second)._poa->activate_object(pcur);
+  //  DPS::DBServer_var _ref = reinterpret_cast<DPS::DBServer_ptr>((i->second)._poa->id_to_reference(oid));
+  //  DPS::DBServer_ptr _ref = reinterpret_cast<DPS::DBServer_ptr>((i->second)._poa->id_to_reference(oid));
   DPS::DBServer_ptr _ref = reinterpret_cast<DPS::DBServer_ptr>((i->second)._poa->id_to_reference(oid));
    _refmap[i->first]=((i->second)._orb)->object_to_string(_ref);
    if(!strcmp((const char *)(i->first),(const char*)cid.Interface)){
     _defaultorb=(i->second)._orb;
    }
 }
+
 
 // local client
 
@@ -68,6 +81,8 @@ for(MOI i=mo.begin();i!=mo.end();++i){
    if(!pcur)pcur=this;
 //   else add(pcur = new DBServer_impl());
  PortableServer::ObjectId_var oid=(i->second)._poa->activate_object(pcur);
+// DPS::DBServer_var _ref = reinterpret_cast<DPS::DBServer_ptr>((i->second)._poa->id_to_reference(oid));
+//  DPS::DBServer_ptr _ref = reinterpret_cast<DPS::DBServer_ptr>((i->second)._poa->id_to_reference(oid));
   DPS::DBServer_ptr _ref = reinterpret_cast<DPS::DBServer_ptr>((i->second)._poa->id_to_reference(oid));
    _refmap[i->first]=((i->second)._orb)->object_to_string(_ref);
    if(!strcmp((const char *)(i->first),(const char*)cid.Interface)){
@@ -75,6 +90,10 @@ for(MOI i=mo.begin();i!=mo.end();++i){
    }
 }
 
+
+// Now Read ActiveCLient
+
+ ReReadTables(_cvar);
 
 // local client
 
@@ -108,14 +127,11 @@ for(MOI i=mo.begin();i!=mo.end();++i){
      _acl.push_back(as);
 
 
-
-//Now Read ActiveClient
-
-
-
-
-ReReadTables(_cvar);
-
+// - moved up
+//
+// Now Read ActiveClient
+//  ReReadTables(_cvar);
+// -
 
 }
 
@@ -494,6 +510,9 @@ void  DBServer_impl::_init(){
                                          (const char*)nc.SubmitCommand,
                                          (const char*)nc.HostName,
                                          nc.LogInTheEnd) == 1) AMSoracle::commit();
+        if (nc.Type == DPS::Client::Producer) {
+          AMSoracle::insertDataCards((const char*)nc.WholeScriptPath);
+        }
        }
        break;
      case DPS::Client::Update:
@@ -525,10 +544,75 @@ void  DBServer_impl::_init(){
   sendNC(tcid, nc, rc);
 }
 
-   CORBA::Boolean  DBServer_impl::getDBSpace(const DPS::Client::CID &cid, const char * path, const char * addpath,DB_out db){
+#include <sys/statfs.h>
+
+   CORBA::Boolean  DBServer_impl::getDBSpace(const DPS::Client::CID &cid, const char * path, const char * addpath,DB_out dbo)
+{
+  //
+  // if AMSDBDir not defined - return the size of production tables
+  // else return the real disk usage info
+  //
+
+  DB_var dbv = new DB();
+  AString amsdbdir;
+  char *gtv;
+  if (strcmp(addpath,"/DataBase/")==0 ) {
+   gtv=getenv("AMSDBDir");
+   if (gtv && strlen(gtv) > 0) {
+    amsdbdir = gtv;
+   } else {
+    AString a("UnknownENV-AMSDBDir. Get Tables size ");
+    _parent->EMessage(a);
+    char tablename[80];
+    strcpy(tablename,"M_PRODRUNS");
+    int kbytes = AMSoracle::getTableSize(tablename);
+    strcpy(tablename,"M_PRODINFO");
+    kbytes = kbytes + AMSoracle::getTableSize(tablename);
+    int mbytes = kbytes/1000.;
+    dbv-> fs = (const char*)"M_PRODRUNS, M_PRODINFO";
+    dbv-> dbfree = -1;
+    dbv-> dbtotal= mbytes;
+    dbv-> bs     = -1;
+    dbo=dbv._retn();
+    return true;
+   }
+  } else {
+   gtv=getenv(path);
+   if (gtv && strlen(gtv) > 0) {
+     amsdbdir = gtv;
+    } else {
+      AString a("UnknownENVingetDBSpace ");
+      a+=path;
+      a+=" ";
+      a+=addpath;
+      _parent->EMessage(a);
+      dbv->fs=(const char *)" Unknown";
+      dbv->dbfree=-1;
+      dbv->dbtotal=-1;
+      dbv->bs=-1;
+      dbo=dbv._retn();
+      return false;
+    }
+  }
+  struct statfs buffer;
+  int fail=statfs((const char*)amsdbdir,&buffer);
+  if(fail){
+    dbv->fs=(const char *)amsdbdir;
+    dbv->dbfree=-1;
+    dbv->dbtotal=-1;
+    dbv->bs=-1;
+    dbo=dbv._retn();
+    return false;
+  }
+  else{
+    dbv->fs=(const char *)amsdbdir;
+    dbv->dbfree= (buffer.f_bavail*(buffer.f_bsize/1024./1024.));
+    dbv->dbtotal= (buffer.f_blocks*(buffer.f_bsize/1024./1024.));
+    dbv->bs=1024*1024;
+    dbo=dbv._retn();
+  }
+    return true;
 }
-
-
 
    int  DBServer_impl::getNHS(const DPS::Client::CID &cid,NHS_out nhl)
 {
@@ -1226,7 +1310,12 @@ tmend    = e;
                               ne.Status,
                               ne.Type,
                               ne.size,
-                              (const char*)ne.Name) == 1) AMSoracle::commit();
+                              (const char*)ne.Name) == 1) {
+       // cout<<"DBServer_impl::sendDSTEnd -I- insert DST Run "<<ne.Run<<" do commit "<<endl;
+               AMSoracle::commit();
+     } else {
+        cout<<"DBServer_impl::sendDSTEnd -W- insert DST Run "<<ne.Run<<" NO COMMIT "<<endl;
+     }
      }
      break;
    case DPS::Client::Update:
@@ -1244,7 +1333,13 @@ tmend    = e;
                               ne.Status,
                               ne.Type,
                               ne.size,
-                              (const char*)ne.Name) == 1) AMSoracle::commit();
+                              (const char*)ne.Name) == 1) {
+       cout<<"update DST Run "<<ne.Run<<" do commit "<<endl;
+               AMSoracle::commit();
+     } else {
+       cout<<"update DST Run "<<ne.Run<<" NO COMMIT "<<endl;
+     }
+
      }
      break;
    case DPS::Client::Delete:
@@ -1308,17 +1403,19 @@ tmend    = e;
 
   void  DBServer_impl::sendRunEvInfo(const  RunEvInfo & ne,DPS::Client::RecordChange rc)
 {
+  // cout<<"************* DBServer_impl::sendRunEvInfo "<<endl;
   unsigned int run = ne.Run;
   unsigned int uid = ne.uid;
   char     filepath[1024];
 
+  // cout<<"Run "<<run<<endl;
   int runfound = AMSoracle::findRun(run, uid);
   AMSoracle::RunTable *rtable = 0;
   AMSoracle::ProdRun  *prun   = 0;
   switch(rc) {
   case DPS::Client::Create:
     if (!runfound) {
-      strcpy(filepath, ne.FilePath);
+      strcpy(filepath, (const char *)ne.FilePath);
       rtable = new AMSoracle::RunTable;
       rtable -> set(ne.Run, ne.uid, ne.FirstEvent, ne.LastEvent, ne.TFEvent,
                     ne.TLEvent, ne.Priority, 
@@ -1326,6 +1423,7 @@ tmend    = e;
                     ne.Status, ne.History, ne.SubmitTime, ne.cuid);
       AMSoracle::insertRunTable(rtable,1);
       prun = new AMSoracle::ProdRun;
+      // cout<<"insert "<<ne.Run<<" host "<<(const char *)ne.cinfo.HostName<<endl;
       prun -> updateInfo(ne.Run, 
                          ne.uid,
                          ne.cinfo.EventsProcessed,
@@ -1336,7 +1434,11 @@ tmend    = e;
                          ne.cinfo.TimeSpent,
                          ne.cinfo.Status,
                          (const char *)ne.cinfo.HostName);
-      if (AMSoracle::updateProdTable(prun) == 1)  AMSoracle::commit();
+      if (AMSoracle::updateProdTable(prun) == 1)  {
+        AMSoracle::commit();
+      } else {
+              cout<<"DBServer_impl::sendRunEvInfo -W- No Commit during update. "<<ne.Run<<endl;
+      }
     } else {
       _parent -> EMessage(AMSClient::print(ne,"Run exists. not recreated"));
     }
@@ -1362,9 +1464,15 @@ tmend    = e;
                          ne.cinfo.Status,
                          (const char *)ne.cinfo.HostName);
 
-      AMSoracle::updateProdTable(prun);
-        if(ne.cinfo.Status == DPS::Producer::Finished ||
-           ne.cinfo.Status == DPS::Producer::Failed ) {
+      if (AMSoracle::updateProdTable(prun) == 1) {
+        AMSoracle::commit();
+      } else {
+              cout<<"DBServer_impl::sendRunEvInfo -W- no commit, update prod table "
+                  <<" host "<<(const char *)ne.cinfo.HostName<<endl;
+      }
+
+        if(ne.Status == DPS::Producer::Finished ||
+           ne.Status == DPS::Producer::Failed  ) {
            unsigned int timestamp;
            unsigned int id;
            unsigned int tinsert;
@@ -1389,6 +1497,13 @@ tmend    = e;
               prun -> set(ne.Run, ne.cinfo.EventsProcessed,
                           ne.FirstEvent, ne.LastEvent,
                           tinsert, id);
+              /*
+              if (doinsert) cout<<"before run "<<ne.Run<<" insert "
+                                <<(const char *)ne.cinfo.HostName<<endl;
+              if (doupdate) cout<<"before run "<<ne.Run<<" update "
+                                <<(const char *)ne.cinfo.HostName<<endl;
+              prun -> print();
+              */              
              if (doinsert)
                 AMSoracle::insertProdRun(prun);
              else

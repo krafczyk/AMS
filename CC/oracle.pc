@@ -1,4 +1,4 @@
-//  $Id: oracle.pc,v 1.2 2001/03/02 17:45:24 alexei Exp $
+//  $Id: oracle.pc,v 1.3 2001/03/26 14:19:26 alexei Exp $
 //
 // Subroutines to work with AMS ORACLE database
 //
@@ -9,9 +9,10 @@
 //              Jan  19, 2001. gettdv - return b/e and set insert to 1
 //                             for the default records
 //              Jan  23, 2001. eventtags, prodruns, etc
-//              Feb  15, 2001. active client tables
+//              Feb  15, 2001. nominal/active clients and hosts tables
+//              Mar  15, 2001. NHosts_Cursor, NClients_Cursor, ACLients_Cursor
 //
-// Last Edit : Mar. 2, 2001
+// Last Edit : Mar. 26, 2001
 //
 
 #include <iostream.h>
@@ -37,11 +38,10 @@
 #include <oraca.h>
 
 
-int debug = 1;   // 0, 1, 2, 3
-
-
 #include <oracle.h>
 
+const int ACLIENTSARRAYSIZE = 100;
+const int MAXDSTARRAYSIZE   = 100;
 
 EXEC SQL BEGIN DECLARE SECTION;
 //
@@ -120,7 +120,8 @@ EXEC SQL BEGIN DECLARE SECTION;
 // Hosts and Clients
 
   unsigned int    thostid;
-  unsigned int    texecid;
+  unsigned int    tprodid;
+  unsigned int    tdatacardsid;
   char            thostname[40];
   char            tinterface[40];
   char            tplatform[80];
@@ -163,8 +164,12 @@ EXEC SQL BEGIN DECLARE SECTION;
   char      tlogpath[1024];
   char      tsubmitcmd[1024];
 
+// datacards
+  char      tname[1024];
+  varchar   datacards[4000];
+//
 // Structures
-
+//
    struct tdvt   {               // to get info from m_tdv_names
     char   name[256];
     int    datamc;
@@ -222,7 +227,7 @@ EXEC SQL BEGIN DECLARE SECTION;
      unsigned int  hostid;
      int   logintheend;
      unsigned int timestamp;
-   } nominaldesc[100];
+   } nominaldesc[50];
 
    struct ActiveClientStruct {
      unsigned int id;
@@ -244,7 +249,7 @@ EXEC SQL BEGIN DECLARE SECTION;
                                         int    memory;
                                    int          clock;
                                    unsigned long int timestamp;
-  } nominalhost[100];
+  } nominalhost[50];
 
 
 
@@ -265,19 +270,145 @@ EXEC SQL BEGIN DECLARE SECTION;
 
    struct hostName {
      char         name[40];
-   } hostNames[100];
+   } hostNames[50];
 
   struct clientStatus {
      char    status[40];
-  } clientstatus[100];
+  } clientstatus[50];
 
   struct interfaceName {
      char    name[40];
-  } interfaces[100];
+  } interfaces[50];
 
   struct platformType {
      char    type[80];
-  } platforms[100];
+  } platforms[50];
+
+//
+// cursors
+//
+
+    EXEC SQL DECLARE NHosts_Cursor  CURSOR  FOR 
+             SELECT * FROM m_nominal_hosts;
+
+    EXEC SQL DECLARE NClients_Cursor  CURSOR  FOR 
+             SELECT * FROM m_nominal_clients;
+
+    EXEC SQL DECLARE AClients_Cursor  CURSOR  FOR 
+             SELECT m_active_clients.* FROM m_active_clients 
+             WHERE m_active_clients.type = :ttype 
+             ORDER BY m_active_clients.id;
+
+    EXEC SQL DECLARE DSTInfo_Cursor CURSOR FOR
+        SELECT 
+              m_dstinfo.type,
+              m_dstinfo.id,
+              m_dstinfo.dirpath,
+              m_dstinfo.runmode,
+              m_dstinfo.updfreq,
+              m_dstinfo.diehard,
+              m_dstinfo.freespace,
+              m_dstinfo.totalspace,
+              m_nominal_hosts.name 
+
+         FROM m_dstinfo, 
+              m_nominal_hosts
+
+          WHERE
+                m_dstinfo.hostid = m_nominal_hosts.id AND
+                m_nominal_hosts.name = :thostname;
+
+
+  EXEC SQL DECLARE DSTInfoALL_Cursor CURSOR FOR
+        SELECT 
+              m_dstinfo.type,
+              m_dstinfo.id,
+              m_dstinfo.dirpath,
+              m_dstinfo.runmode,
+              m_dstinfo.updfreq,
+              m_dstinfo.diehard,
+              m_dstinfo.freespace,
+              m_dstinfo.totalspace,
+              m_nominal_hosts.name 
+
+         FROM m_dstinfo, 
+              m_nominal_hosts
+
+          WHERE
+                m_dstinfo.hostid = m_nominal_hosts.id;
+
+  EXEC SQL DECLARE DST_Cursor CURSOR FOR
+           SELECT * FROM m_dst;
+
+    EXEC SQL DECLARE AHT_Cursor CURSOR FOR
+        SELECT m_active_hosts.status,
+              m_active_hosts.active,
+              m_active_hosts.allowed,
+              m_active_hosts.processed,
+              m_active_hosts.failed,
+              m_active_hosts.killed,
+              m_active_hosts.lastupdate,
+              m_active_hosts.clock,
+              m_nominal_hosts.name, 
+              m_interfaces.name 
+       FROM m_active_hosts,
+            m_nominal_hosts, 
+            m_interfaces                       
+                    WHERE 
+                      m_active_hosts.interface = m_interfaces.id AND
+                      m_active_hosts.id  = m_nominal_hosts.id    AND
+                      m_active_hosts.type = :ttype;
+    EXEC SQL DECLARE AHH_Cursor CURSOR FOR
+          SELECT m_active_hosts.status,
+                        m_active_hosts.active,
+                        m_active_hosts.allowed,
+                        m_active_hosts.processed,
+                        m_active_hosts.failed,
+                        m_active_hosts.killed,
+                        m_active_hosts.lastupdate,
+                        m_active_hosts.clock,
+                        m_nominal_hosts.name, 
+                        m_interfaces.name 
+       FROM m_active_hosts,
+            m_nominal_hosts, 
+            m_interfaces                       
+                    WHERE 
+                      m_active_hosts.interface = m_interfaces.id AND
+                      m_active_hosts.id  = m_nominal_hosts.id    AND
+                      m_active_hosts.id = :thostid               AND
+                      m_active_hosts.type = :ttype;
+
+
+   EXEC SQL DECLARE ACID_Cursor CURSOR FOR
+       SELECT m_active_clients_id.id,
+              m_active_clients_id.pid,
+              m_active_clients_id.ppid,
+              m_active_clients_id.exitingstatus,
+              m_nominal_hosts.name, 
+              m_interfaces.name 
+       FROM m_active_clients_id, 
+            m_nominal_hosts, 
+            m_interfaces                       
+                    WHERE 
+                      m_active_clients_id.type = :ttype AND
+                      m_active_clients_id.hostid = m_nominal_hosts.id AND
+                      m_active_clients_id.interface = m_interfaces.id
+                    ORDER BY m_active_clients_id.id;
+
+
+  EXEC SQL DECLARE AC_Cursor CURSOR FOR
+           SELECT m_active_clients_ref.ior,
+                  m_active_clients_ref.type,
+                  m_active_clients_ref.reftype,
+                  m_active_clients_ref.uiid,
+                  m_interfaces.name 
+           FROM
+                  m_active_clients_ref,
+                  m_interfaces
+           WHERE
+                      m_active_clients_ref.id = :tid AND
+                      m_active_clients_ref.interface = m_interfaces.id
+           ORDER BY m_active_clients_ref.id;
 
 EXEC SQL END DECLARE SECTION;
 
@@ -1130,13 +1261,14 @@ int AMSoracle::insertProdRun(AMSoracle::ProdRun *prun)
                       terrors, tcputime, teltime, tstatus, thostname);
 
    thostid = findHost(thostname);
-   tinsert = time((time_t)0);
-   tid = findmaxprodidx();
+   if (thostid) {
+    tinsert = time((time_t)0);
+    tid = findmaxprodidx();
 
    
-   if (debug) prun -> print();
+    if (debug) prun -> print();
 
-   EXEC SQL WHENEVER SQLERROR DO 
+    EXEC SQL WHENEVER SQLERROR DO 
           sql_error("ORACLE error: AMSoracle::insertProdRun");
 
 
@@ -1154,14 +1286,17 @@ int AMSoracle::insertProdRun(AMSoracle::ProdRun *prun)
        :tcputime,
        :teltime,
        :tstatus,
-       :texecid,
+       :tprodid,
        :thostid,
        :tinsert);
 
        rstatus = 1;
+   } else {
+    cout<<"AMSoracle::insertProdRun -W- unknown host "<<thostname<<endl;
+   }
   }
      return rstatus;
-}    
+} 
 
 int AMSoracle::updateProdRun(AMSoracle::ProdRun *prun)
 {
@@ -1179,7 +1314,7 @@ int AMSoracle::updateProdRun(AMSoracle::ProdRun *prun)
    EXEC SQL WHENEVER SQLERROR DO 
           sql_error("ORACLE error: AMSoracle::insertProdRun");
 
-
+   if (thostid) {
       EXEC SQL UPDATE m_prodruns
            SET 
              eventsp = :teventsp,
@@ -1193,6 +1328,9 @@ int AMSoracle::updateProdRun(AMSoracle::ProdRun *prun)
              timestamp       = :tinsert
            WHERE run = :trun AND idx = :tid;
        rstatus = 1;
+   } else {
+    cout<<"AMSoracle::insertProdRun -W- unknown host "<<thostname<<endl;
+   }
   }
      return rstatus;
 }    
@@ -1904,12 +2042,12 @@ int AMSoracle::updateProdTable(ProdRun *rtable)
  
   if (rtable) {
 
+    rtable -> getInfo(trun, tid, teventsp, teventlp, tcerrors,
+                      terrors, tcputime, teltime, tstatus, thostname);
     thostid = findHost(thostname);
    
     if (thostid) {
 
-     rtable -> getInfo(trun, tid, teventsp, teventlp, tcerrors,
-                      terrors, tcputime, teltime, tstatus, thostname);
      tinsert = time((time_t)0);
 
 // insert or update m_prodinfo
@@ -1949,6 +2087,8 @@ int AMSoracle::updateProdTable(ProdRun *rtable)
    } else {
      cout<<"AMSoracle::updateProdTable -E- More than run "<<trun<<endl;
    }
+  } else {
+   cout<<"AMSoracle::updateProdTable -W- cannot find host "<<thostname<<endl;
   }  
  }
    return rstatus;
@@ -2073,25 +2213,7 @@ int AMSoracle::getDSTInfo(const char *hostname, DSTInfo *dstinfo)
  
    if (hostname) {
     strcpy(thostname,hostname);
-    EXEC SQL DECLARE DSTInfo_Cursor CURSOR FOR
-        SELECT 
-              m_dstinfo.type,
-              m_dstinfo.id,
-              m_dstinfo.dirpath,
-              m_dstinfo.runmode,
-              m_dstinfo.updfreq,
-              m_dstinfo.diehard,
-              m_dstinfo.freespace,
-              m_dstinfo.totalspace,
-              m_nominal_hosts.name 
-
-         FROM m_dstinfo, 
-              m_nominal_hosts
-
-          WHERE
-                m_dstinfo.hostid = m_nominal_hosts.id AND
-                m_nominal_hosts.name = :thostname;
-   }
+   
 
    EXEC SQL OPEN  DSTInfo_Cursor;
 
@@ -2125,7 +2247,9 @@ int AMSoracle::getDSTInfo(const char *hostname, DSTInfo *dstinfo)
 
   EXEC SQL CLOSE  DSTInfo_Cursor;
   EXEC SQL WHENEVER NOT FOUND DO sql_notfound("nothing is selected");
-
+ } else {
+  Fmessage("AMSoracle::getDSTInfo","invalid hostname","E");
+ }
  return N;
 }
 
@@ -2137,25 +2261,7 @@ int AMSoracle::getDSTInfoALL(DSTInfo *dstinfo)
   EXEC SQL WHENEVER SQLERROR DO 
                     sql_error("ORACLE error: AMSoracle::getDSTInfo");
  
-  EXEC SQL DECLARE DSTInfoALL_Cursor CURSOR FOR
-        SELECT 
-              m_dstinfo.type,
-              m_dstinfo.id,
-              m_dstinfo.dirpath,
-              m_dstinfo.runmode,
-              m_dstinfo.updfreq,
-              m_dstinfo.diehard,
-              m_dstinfo.freespace,
-              m_dstinfo.totalspace,
-              m_nominal_hosts.name 
-
-         FROM m_dstinfo, 
-              m_nominal_hosts
-
-          WHERE
-                m_dstinfo.hostid = m_nominal_hosts.id;
-
-  
+  if (dstinfo) {
    EXEC SQL OPEN  DSTInfoALL_Cursor;
 
    EXEC  SQL WHENEVER NOT FOUND DO BREAK;
@@ -2189,6 +2295,9 @@ int AMSoracle::getDSTInfoALL(DSTInfo *dstinfo)
 
   EXEC SQL CLOSE  DSTInfoALL_Cursor;
   EXEC SQL WHENEVER NOT FOUND DO sql_notfound("nothing is selected");
+ } else {
+  Fmessage("AMSoracle::getDSTInfoAll","invalid *dstinfo","E");
+ }
 
  return N;
 }
@@ -2198,24 +2307,22 @@ int AMSoracle::getDSTInfoALL(DSTInfo *dstinfo)
 int AMSoracle::getDST(DST *dst)
 {
 
-  int ndsts = 0;
-  int N = 0;
+   int ndsts   = 0;
+   int n       = 0;
 
-  EXEC SQL WHENEVER SQLERROR DO 
+   EXEC SQL WHENEVER SQLERROR DO 
                     sql_error("ORACLE error: AMSoracle::getDST");
-
-  EXEC SQL DECLARE DST_Cursor CURSOR FOR
-        SELECT * FROM m_dst;
 
    EXEC SQL OPEN  DST_Cursor;
 
-   EXEC  SQL WHENEVER NOT FOUND DO BREAK;
+   // EXEC  SQL WHENEVER NOT FOUND DO BREAK;
 
    for (;;)
    {
      EXEC SQL FETCH DST_Cursor INTO :tdst;
-     N = sqlca.sqlerrd[2];
-     for (int i=0; i<N; i++) {
+     n = sqlca.sqlerrd[2] - ndsts;
+     if (n) {
+      for (int i=0; i<n; i++) {
          dst[ndsts+i].set(
                       tdst[i].insert,
                       tdst[i].begin,
@@ -2230,7 +2337,9 @@ int AMSoracle::getDST(DST *dst)
                       tdst[i].name);
 
      }
-     ndsts = ndsts + N;
+     ndsts = sqlca.sqlerrd[2];
+    }
+    if (n < MAXDSTARRAYSIZE) break;
  }
 
   EXEC SQL CLOSE  DST_Cursor;
@@ -2488,12 +2597,14 @@ int AMSoracle::findPlatform(const char *name)
 int AMSoracle::findHost(const char *host)
 {
   int nhosts = 0;
+  int hostid = 0;
 // find host
    EXEC SQL WHENEVER SQLERROR DO sql_error("ORACLE error: AMSoracle::findHost");
    if (host) {
     strcpy(thostname,host);
     strtok(thostname,".");
     suppressBlanks(thostname);
+    thostid = 0;
     EXEC SQL SELECT id 
                    INTO :thostid 
                        FROM m_nominal_hosts 
@@ -2505,8 +2616,9 @@ int AMSoracle::findHost(const char *host)
     } else if (nhosts > 1) {
      cout<<"AMSoracle::findhost -E- more than one host "<<thostname<<endl;
     }
+  hostid = thostid;
  }
-  return thostid;
+  return hostid;
 
 }
 
@@ -2582,22 +2694,37 @@ int AMSoracle::initActiveHostTable(const unsigned int hoststatus)
 
    EXEC SQL WHENEVER SQLERROR DO 
                sql_error("ORACLE error:AMSoracle::initActiveHostTable");
-
-
-   EXEC SQL SELECT * INTO :nominalhost FROM m_nominal_hosts;
-
+//
+// it is assumed there are < 50 NOMINAL HOSTS
+//
+   EXEC SQL OPEN NHosts_Cursor;
+   EXEC SQL WHENEVER NOT FOUND DO sql_notfound("nothing is selected");
+   
+   
+    EXEC SQL FETCH NHosts_Cursor INTO :nominalhost;
     nhosts = sqlca.sqlerrd[2];
-    if (sqlca.sqlerrd[2] < 1) {
+    if (nhosts < 1) {
      cout<<"AMSoracle::initActiveHostTable -E- table m_nominal_hosts empty "<<endl;
      return rstatus;
     } 
-    EXEC SQL SELECT * INTO :nominaldesc FROM m_nominal_clients;
+   EXEC SQL CLOSE NHosts_Cursor;
 
-    if (sqlca.sqlerrd[2] < 1) {
+//
+// it is assumed there are < 50 NOMINAL CLIENTS
+//
+   EXEC SQL OPEN NClients_Cursor;
+   EXEC SQL FETCH NClients_Cursor INTO :nominaldesc;
+    nclients = sqlca.sqlerrd[2];
+    if (nclients < 1) {
      cout<<"AMSoracle::initActiveHostTable -E- table m_nominal_clients empty"<<endl;
      return rstatus;
     } 
-    nclients = sqlca.sqlerrd[2];
+   EXEC SQL CLOSE NClients_Cursor;
+   EXEC SQL WHENEVER NOT FOUND DO sql_notfound("nothing is selected");
+
+//
+// ANYWAY ONLY FIRST 50 HOSTS AND FIRST 50 CLIENTS ARE PROCESSED
+//
     tinsert = time((time_t)0);
     tstatus = hoststatus;
     for (int i=0; i<nhosts; i++) {
@@ -2658,7 +2785,8 @@ int AMSoracle::findActiveHost(const char *host, unsigned int type)
 {
     thostid = 0;
 // find host
-    EXEC SQL WHENEVER SQLERROR DO sql_nothing("ORACLE warning: AMSoracle::findActiveHost");
+    EXEC SQL WHENEVER SQLERROR DO 
+                      sql_nothing("ORACLE warning: AMSoracle::findActiveHost");
     if (host) {
      strcpy(thostname,host);
      strtok(thostname,".");
@@ -2696,7 +2824,8 @@ int AMSoracle::updateActiveHost(unsigned int type,
  int rstatus = -1;
  int hostid  = -1;
 
-  EXEC SQL WHENEVER SQLERROR DO sql_error("ORACLE error:AMSoracle::updateActiveHost");
+  EXEC SQL WHENEVER SQLERROR DO 
+                    sql_error("ORACLE error:AMSoracle::updateActiveHost");
 
  if (host) {
   thostid = AMSoracle::findActiveHost(host, type);
@@ -3110,47 +3239,10 @@ int AMSoracle::getActiveHostList(unsigned int cltype, unsigned int hostid, Activ
   if (hostl) {
    ttype = cltype;
    if (!ct) {
-    EXEC SQL DECLARE AHT_Cursor CURSOR FOR
-        SELECT m_active_hosts.status,
-              m_active_hosts.active,
-              m_active_hosts.allowed,
-              m_active_hosts.processed,
-              m_active_hosts.failed,
-              m_active_hosts.killed,
-              m_active_hosts.lastupdate,
-              m_active_hosts.clock,
-              m_nominal_hosts.name, 
-              m_interfaces.name 
-       FROM m_active_hosts,
-            m_nominal_hosts, 
-            m_interfaces                       
-                    WHERE 
-                      m_active_hosts.interface = m_interfaces.id AND
-                      m_active_hosts.id  = m_nominal_hosts.id    AND
-                      m_active_hosts.type = :ttype;
       EXEC SQL OPEN  AHT_Cursor;
    } else {
     ttype = cltype;
     thostid = hostid;
-    EXEC SQL DECLARE AHH_Cursor CURSOR FOR
-          SELECT m_active_hosts.status,
-                        m_active_hosts.active,
-                        m_active_hosts.allowed,
-                        m_active_hosts.processed,
-                        m_active_hosts.failed,
-                        m_active_hosts.killed,
-                        m_active_hosts.lastupdate,
-                        m_active_hosts.clock,
-                        m_nominal_hosts.name, 
-                        m_interfaces.name 
-       FROM m_active_hosts,
-            m_nominal_hosts, 
-            m_interfaces                       
-                    WHERE 
-                      m_active_hosts.interface = m_interfaces.id AND
-                      m_active_hosts.id  = m_nominal_hosts.id    AND
-                      m_active_hosts.id = :thostid               AND
-                      m_active_hosts.type = :ttype;
       EXEC SQL OPEN  AHH_Cursor;
    }
 
@@ -3774,31 +3866,37 @@ int AMSoracle::getActiveClientDesc(const unsigned int type,
 {
  int rstatus = 0;
 
-  EXEC SQL WHENEVER SQLERROR DO sql_error("ORACLE error: AMSoracle::getActiveClientDesc");
- 
- if (procdesc) {
-  ttype = type;
-  EXEC SQL SELECT m_active_clients.*
-           INTO :activeclient
-           FROM m_active_clients 
-           WHERE m_active_clients.type = :ttype 
-           ORDER BY m_active_clients.id;
+ if (!procdesc) return rstatus;
 
-   int n = sqlca.sqlerrd[2];
-   if ( n < 1) {
+  EXEC SQL WHENEVER SQLERROR DO 
+                    sql_error("ORACLE error: AMSoracle::getActiveClientDesc");
+
+  EXEC SQL WHENEVER NOT FOUND DO sql_notfound("nothing is selected");
+
+  ttype = type;
+  int num_ret = 0;
+  int n = 0;
+  EXEC SQL OPEN AClients_Cursor;
+  for (;;) {
+   EXEC SQL FETCH AClients_Cursor INTO :activeclient;             
+   n = sqlca.sqlerrd[2] - num_ret;
+   if (n) {
+    for (int i=0; i<n; i++) {
+     procdesc[num_ret+i].set(activeclient[i].id,
+                             activeclient[i].lastupd,
+                             activeclient[i].starttime,
+                             activeclient[i].status);
+    }
+    num_ret = sqlca.sqlerrd[2];
+   } 
+    if (n < ACLIENTSARRAYSIZE) break;
+  }
+   if (!num_ret)
      cout<<"AMSoracle::getActiveClientDesc -I- no info for process type "
          <<type<<" in m_active_clients table"<<endl;
-   } else {
-    for (int i=0; i<n; i++) {
-     procdesc[i].set(activeclient[i].id,
-                     activeclient[i].lastupd,
-                     activeclient[i].starttime,
-                     activeclient[i].status);
+  rstatus = num_ret;
+  EXEC SQL CLOSE AClients_Cursor ;
 
-    }
-  }
-  rstatus = n;
- }
  return rstatus;
 }
 
@@ -3812,23 +3910,6 @@ int AMSoracle::getActiveClientId(const unsigned int type,
 
  if (procdesc) {
   ttype = type;
-   EXEC SQL DECLARE ACID_Cursor CURSOR FOR
-       SELECT m_active_clients_id.id,
-              m_active_clients_id.pid,
-              m_active_clients_id.ppid,
-              m_active_clients_id.exitingstatus,
-              m_nominal_hosts.name, 
-              m_interfaces.name 
-       FROM m_active_clients_id, 
-            m_nominal_hosts, 
-            m_interfaces                       
-                    WHERE 
-                      m_active_clients_id.type = :ttype AND
-                      m_active_clients_id.hostid = m_nominal_hosts.id AND
-                      m_active_clients_id.interface = m_interfaces.id
-                    ORDER BY m_active_clients_id.id;
-
-
    EXEC SQL OPEN  ACID_Cursor;
 
    EXEC  SQL WHENEVER NOT FOUND DO BREAK;
@@ -3867,21 +3948,9 @@ int AMSoracle::getActiveClientRef(const unsigned int id,
 {
  int rstatus = -1;
 
-  EXEC SQL WHENEVER SQLERROR DO sql_error("ORACLE error: AMSoracle::getActiveClientRef");
+  EXEC SQL WHENEVER SQLERROR DO 
+           sql_error("ORACLE error: AMSoracle::getActiveClientRef");
  
-  EXEC SQL DECLARE AC_Cursor CURSOR FOR
-           SELECT m_active_clients_ref.ior,
-                  m_active_clients_ref.type,
-                  m_active_clients_ref.reftype,
-                  m_active_clients_ref.uiid,
-                  m_interfaces.name 
-           FROM
-                  m_active_clients_ref,
-                  m_interfaces
-           WHERE
-                      m_active_clients_ref.id = :tid AND
-                      m_active_clients_ref.interface = m_interfaces.id
-           ORDER BY m_active_clients_ref.id;
 
  if (procdesc) {
   EXEC SQL OPEN AC_Cursor;
@@ -4121,7 +4190,82 @@ int AMSoracle::setClientExitingStatus(unsigned int cid, unsigned int status)
 
   return rstatus;
 }
+// datacards
+int AMSoracle::insertDataCards(const char *scriptpath)
+{
+  const int MAXDATACARDSSIZE = 4000;
 
+  int rstatus = 0;
+  FILE *file;
+  char jobname[1024];
+  char line[256];
+  char filename[512];
+
+  EXEC SQL WHENEVER SQLERROR DO 
+           sql_nothing("ORACLE warning: AMSoracle::insertDataCards");
+
+   if (scriptpath) {
+    if (strlen(scriptpath) > 1024) {
+     cout<<"AMSoracle::insertDataCards -E- filename "<<scriptpath
+         <<" too long "<<endl;
+     return rstatus;
+    }
+    strcpy(filename,scriptpath);
+    if ((file=fopen(filename,"r"))==NULL) {
+     cout<<"AMSoracle::insertDataCards -E- file "<<filename<<" not found "<<endl;
+     return rstatus;
+    }
+    int j = 0;
+    int l = strlen(filename);
+    for (int i=l-1; filename[i]!='/'; i--) {
+     j++;
+    }
+    for (int i=0; i<j; i++) {
+     jobname[i] = filename[l-j+i];
+    }
+    jobname[i] = '\0';
+    strcpy(tname,jobname);
+    suppressBlanks(tname);
+    EXEC SQL SELECT idx INTO :tid FROM m_datacards
+             WHERE dname = :tname;
+    if (sqlca.sqlerrd[2] != 1) {
+     tid = 0;
+     EXEC SQL SELECT MAX(idx) INTO :tid FROM m_datacards;
+     if (tid < 1) {
+       tid = 1;
+     } else {
+       tid++;
+     }
+     tinsert = time((time_t)0);
+     EXEC SQL INSERT INTO m_datacards
+         VALUES(
+                 :tname,
+                 :tid,
+                 :tinsert);
+     int ll = 0;
+     while (fgets(line,256,file)) {
+      ll = ll + strlen(line);
+      if (ll > MAXDATACARDSSIZE) {
+       Fmessage("AMSoracle::insertDataCards","Line is too long","E");
+       return rstatus;
+      }
+      strcat((char *)datacards.arr,line);
+     }
+     datacards.len = (unsigned short)strlen((char *)datacards.arr);
+     EXEC SQL INSERT INTO m_datacards_cards
+             VALUES(
+               :tid,
+               :datacards);
+     EXEC SQL COMMIT;
+     rstatus = 1;
+  } else {
+    Fmessage("AMSoracle::insertDataCards",tname,"I");
+    Fmessage("AMSoracle::insertDataCards", " already exists ","I");
+  }
+  fclose(file);
+ }
+ return rstatus;
+}
 //
 // General subroutines
 //
@@ -4157,6 +4301,30 @@ void AMSoracle::commit()
     EXEC SQL COMMIT WORK;
 
 }    
+int AMSoracle::getTableSize(const char *tablename)
+{
+//
+// return 'tablename' size in KBytes or -1
+//
+ int tsize = -1;
+ EXEC SQL WHENEVER SQLERROR DO sql_error("ORACLE error: getTableSize ");
+ if (tablename) {
+  strcpy(tname,tablename);
+  
+     (void) sprintf((char *)dynstmt.arr," %s %s ",
+     "SELECT SUM(BYTES)/1024 FROM USER_SEGMENTS ",
+     "where segment_name LIKE :tname");
+   dynstmt.len = (unsigned short)strlen((char *)dynstmt.arr);
+//   printf("%s \n",dynstmt.arr);
+
+  EXEC SQL PREPARE S from :dynstmt;
+  EXEC SQL DECLARE DBS CURSOR FOR S;
+  EXEC SQL OPEN DBS  USING :tname;
+  EXEC SQL FETCH DBS into :tsize;
+  EXEC SQL CLOSE DBS;
+ }
+return tsize;
+}
 
 int AMSoracle::MakeQuery()
 {

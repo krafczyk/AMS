@@ -1,2 +1,2 @@
--OI -R../prod/RunTable -P../prod/NominalProducer -H../prod/NominalHost -S../prod/NominalServer -F/amsdat1/scratch/alexei/AMS/prod/NominalInterface -N../prod/NominalNtuple -Ihrdl -D1 -K../prod/NominalKiller
+-OI -R../prod/RunTable -P../prod/NominalProducer -H../prod/NominalHost -S../prod/NominalServer -F/f0dah0/alexei/AMS/prod/NominalInterface -N../prod/NominalNtuple -Ihrdl -D1 -K../prod/NominalKiller
 

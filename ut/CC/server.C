@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.59 2001/03/26 10:27:17 choutko Exp $
+//  $Id: server.C,v 1.60 2001/03/26 14:19:26 alexei Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -3354,6 +3354,7 @@ CORBA::Boolean Server_impl::getDBSpace(const DPS::Client::CID &cid, const char *
 
    DB_var dbv= new DB();
    AString amsdatadir; 
+
    char* gtv=getenv(path);
    if(gtv && strlen(gtv)>0){
      amsdatadir=gtv;
@@ -3938,7 +3939,12 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
    bool done=false;
    bool retry=false;
    pcur->getacl().sort(Less(_parent->getcid()));
+
+   // cout<<"Producer_impl::PropagateRunDB -I- size : "<<pcur->getacl().size()<<endl;
+
    for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+     // cout<<"Producer_impl::PropagateRunDB -I- ((*li)->ars).length() : "
+     // <<((*li)->ars).length()<<endl;
    while( ! done){
    for (int i=0;i<((*li)->ars).length();i++){
     try{

@@ -1,9 +1,17 @@
-drop table m_datacard_sets;
-create table m_datacard_sets
+drop table m_datacards;
+create table m_datacards
     ( 
-      tinsert   date    not null,
-      idx       number(6),
-      datacards varchar2(3000)
+      dname       varchar2(80),
+      idx         number(10),
+      timestamp   number(24)
+)
+;
+
+drop table m_datacards_cards;
+create table m_datacards_cards
+    ( 
+      idx       number(10),
+      datacards varchar2(4000)
 )
 ;
 
