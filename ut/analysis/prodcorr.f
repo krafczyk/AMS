@@ -214,9 +214,9 @@ c
 	      TOFErCoo(1,ntof)=2.6
 	      TOFErCoo(2,ntof)=sqrt(12.)
 	      if(il.eq.1)then
-	        brzco= 664.-0.6-1.45*(1-mod(ib,2))
+	        brzco= 66.4-0.6-1.45*(1-mod(ib,2))
 	      else
-	        brzco=-664.+0.6+1.45*(1-mod(ib,2))
+	        brzco=-66.4+0.6+1.45*(1-mod(ib,2))
 	      endif
 	    else                       ! along Y
 	      TOFCoo(1,ntof)=brtco
@@ -224,9 +224,9 @@ c
 	      TOFErCoo(1,ntof)=sqrt(12.)
 	      TOFErCoo(2,ntof)=2.6
 	      if(il.eq.2)then
-	        brzco= 664.-0.6-2.7-1.45*(1-mod(ib,2))
+	        brzco= 66.4-0.6-2.7-1.45*(1-mod(ib,2))
 	      else
-	        brzco=-664.+0.6+2.7+1.45*(1-mod(ib,2))
+	        brzco=-66.4+0.6+2.7+1.45*(1-mod(ib,2))
 	      endif
 	    endif
 	    TOFCoo(3,ntof)=brzco
