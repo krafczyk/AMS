@@ -2,9 +2,11 @@
 #include <commons.h>
 char * AMSIO::fnam=0;
 fstream AMSIO::fbin;
-AMSIO::AMSIO(integer run, integer event, time_t time, integer ipart, integer seed[], 
-             AMSPoint coo,AMSDir dir, number mom): _run(run),_event(event),
-  _ipart(ipart),_mom(mom),_time(time){
+AMSIO::AMSIO(integer run, integer event, time_t time, integer ipart, 
+integer seed[], AMSPoint coo,AMSDir dir, number mom, number pole,
+number stheta, number sphi, integer nskip): _run(run),_event(event),
+  _ipart(ipart),_mom(mom),_time(time),_polephi(pole),_stationtheta(stheta),
+_stationphi(sphi),_nskip(nskip){
 _seed[0]=seed[0];
 _seed[1]=seed[1];
 int i;
@@ -94,8 +96,14 @@ void AMSIO::write(){
 }
 integer AMSIO::read(){
    if(fbin.good() && !fbin.eof()){
-     fbin.read((char*)this,sizeof(AMSIO));
+     fbin.read((char*)this,sizeof(AMSIO)-CCFFKEY.oldformat*4*sizeof(integer));
      convert();
+     if(CCFFKEY.oldformat){
+      _polephi=0;
+      _stationphi=0;
+      _stationtheta=0;
+      _nskip=0;
+     }
    }
    return fbin.good() && !fbin.eof();
 }

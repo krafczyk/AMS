@@ -132,7 +132,7 @@ TRMCFFKEY.day[1]=1;
 TRMCFFKEY.mon[0]=0;
 TRMCFFKEY.mon[1]=0;
 TRMCFFKEY.year[0]=96;
-TRMCFFKEY.year[1]=98;
+TRMCFFKEY.year[1]=99;
 FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 TRCALIB.EventsPerIteration[0]=100;
@@ -183,6 +183,12 @@ CCFFKEY.albedocz=0.05;
 CCFFKEY.npat=1;
 CCFFKEY.run=100;
 CCFFKEY.low=0;
+CCFFKEY.earth=1;
+CCFFKEY.theta=51.65;
+CCFFKEY.phi=290.;
+CCFFKEY.begin=802041998;
+CCFFKEY.end=1204041998;
+CCFFKEY.oldformat=0;
 FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=================================================================================
@@ -443,7 +449,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.mon[0]=0;
   TOFRECFFKEY.mon[1]=0;
   TOFRECFFKEY.year[0]=96;
-  TOFRECFFKEY.year[1]=98;
+  TOFRECFFKEY.year[1]=99;
   FFKEY("TOFREC",(float*)&TOFRECFFKEY,sizeof(TOFRECFFKEY_DEF)/sizeof(integer),"MIXED");
 //-----------------------
 //    defaults for calibration:
@@ -650,7 +656,8 @@ void AMSJob::_signinitjob(){
 
   AMSmceventg::setcuts(CCFFKEY.coo,CCFFKEY.dir,CCFFKEY.momr,
   CCFFKEY.fixp,CCFFKEY.albedor,CCFFKEY.albedocz);
-
+  //
+  AMSmceventg::setspectra(CCFFKEY.begin,CCFFKEY.end,GCKINE.ikine,CCFFKEY.low);
 
 }
 void AMSJob::_sitofinitjob(){

@@ -14,9 +14,15 @@ begin.tm_hour=10;
 begin.tm_mday=2;
 begin.tm_mon=1;
 begin.tm_year=96;
-//begin.tm_wday=0;
-//begin.tm_yday=0;
 Time=mktime(&begin);
+cout <<ctime(&Time)<<endl;
+Time+=1500.5;
+cout <<ctime(&Time)<<endl;
+Time+=.3;
+cout <<ctime(&Time)<<endl;
+Time+=.7;
+cout <<ctime(&Time)<<endl;
+Time+=1;
 cout <<ctime(&Time)<<endl;
 return 0;
 }

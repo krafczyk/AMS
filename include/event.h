@@ -13,14 +13,18 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <time.h>
+#include <mceventg.h>
 class AMSEvent: public AMSNode{
 private:
 integer _run;
 integer _runtype;
+number _NorthPolePhi;
+number _StationTheta;
+number _StationPhi;
+time_t _time;
 static integer SRun;
 static AMSEvent * _Head;
 static AMSNodeMap EventMap;
-time_t _time;
 void _printEl(ostream & stream);
 void _copyEl();
 void _writeEl();
@@ -78,8 +82,15 @@ AMSlink * _getlastC( AMSID id);
 integer _setheadC( AMSID id, AMSlink * p);
 AMSContainer * _getC(AMSID id);
 public:
-AMSEvent(AMSID id, integer run, integer runtype,time_t time ):AMSNode(id),_run(run),
-_time(time), _runtype(runtype){_Head=this;}
+AMSEvent(AMSID id, integer run, integer runtype,time_t time,
+number pole, number stationT, number stationP ):AMSNode(id),_run(run),
+_time(time), _runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),
+_StationTheta(stationT){_Head=this;}
+AMSEvent(AMSID id, integer run, integer runtype):AMSNode(id),_run(run),
+   _runtype(runtype){
+if(AMSJob::gethead()->isSimulation())SetTimeCoo();
+_Head=this;
+}
 ~AMSEvent(){_Head=0;}
 static AMSEvent * gethead()  {return _Head;}
 static integer debug;
@@ -94,11 +105,13 @@ integer setheadC( AMSID id, AMSlink *p){return _setheadC(id,p);}
 AMSContainer * getC(char name[], integer id){return _getC(AMSID(name,id));}
 AMSContainer * getC( AMSID id){return _getC(id);}
 integer getnC (char name[]);
+void SetTimeCoo();
+void GetGeographicCoo(number & pole, number & theta, number &phi){
+pole=_NorthPolePhi;theta=_StationTheta;phi=_StationPhi;}
 static void  sethead(AMSEvent* head) 
 { _Head=head;if(_Head)AMSEvent::EventMap.map(*_Head);}
 integer removeC();
 void Recovery();
-void init();
 void write();
 void copy();
 void printA(integer debugl=0);

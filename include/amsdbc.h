@@ -38,6 +38,7 @@ public:
 // constants
    static const number raddeg;
    static const number pi;
+   static const number twopi;
 // AMS parameters
      static  geant ams_size[3];
      static const char ams_name[129];

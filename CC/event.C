@@ -33,13 +33,20 @@ integer AMSEvent::SRun=0;
 void AMSEvent::_init(){
   // check old run & 
   if(_run != SRun){
-   SRun=_run;
    cout <<" AMS-I-New Run "<<_run<<endl;
    if(AMSJob::gethead()->isSimulation())_siamsinitrun();
    _reamsinitrun();
-  _validate();
   }
-  init();
+
+  // Initialize containers & aob
+  if(AMSJob::gethead()->isSimulation())_siamsinitevent();
+  _reamsinitevent();
+  if(AMSJob::gethead()->isCalibration())_caamsinitevent();
+
+  if(_run != SRun){
+    SRun=_run;
+   _validate();
+  }
 }
 
 void AMSEvent::_siamsinitrun(){
@@ -57,12 +64,6 @@ _rectcinitrun();
 _reaxinitrun();
 }
 
-void AMSEvent::init(){
-  // Initialize containers
-if(AMSJob::gethead()->isSimulation())_siamsinitevent();
-_reamsinitevent();
-   if(AMSJob::gethead()->isCalibration())_caamsinitevent();
-}
 
 void AMSEvent::_siamsinitevent(){
  _signinitevent();
@@ -83,8 +84,33 @@ void AMSEvent::_reamsinitevent(){
 void AMSEvent::_signinitevent(){
   AMSNode *ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSmceventg",0),0));
+ 
+}
+
+void AMSEvent::SetTimeCoo(){    
+
+  // Allocate time & define the geographic coordinates
+
+  number sec=(AMSmceventg::Orbit.Nskip+1)*
+             AMSmceventg::Orbit.FlightTime/GCFLAG.NEVENT;
+  static number curtime=0;
+  static number theta=AMSmceventg::Orbit.ThetaI;
+  static number phi=AMSmceventg::Orbit.PhiI;
+  static number pole=AMSmceventg::Orbit.PolePhi;
+  curtime+=sec;
+  pole=fmod(pole+AMSmceventg::Orbit.EarthSpeed*sec,AMSDBc::twopi);
+  phi=fmod(phi+AMSmceventg::Orbit.AlphaSpeed*sec,AMSDBc::twopi);
+  theta=asin(AMSmceventg::Orbit.AlphaSinThetaMax*
+        cos(phi-AMSmceventg::Orbit.PhiZero));
+  _time=mktime(&AMSmceventg::Orbit.Begin)+curtime+0.5;
+  _NorthPolePhi=pole;
+  _StationTheta=theta;
+  _StationPhi=phi;
+  GCFLAG.IEVENT=GCFLAG.IEVENT+AMSmceventg::Orbit.Nskip;
+  AMSmceventg::Orbit.Nskip=0;        
 
 }
+
 
 void AMSEvent::_sitkinitevent(){
   AMSEvent::gethead()->add (
@@ -639,7 +665,7 @@ void AMSEvent::_copyEl(){
 
 void AMSEvent::_printEl(ostream & stream){
  stream << "Run "<<_run<<" "<<getname()<<" "<< getid()<<" Time "<< 
- ctime(&_time)<<endl;
+   ctime(&_time)<<" Theta "<<_StationTheta<<" Phi "<<_StationPhi<<endl;
 }
 
 void AMSEvent::_writeEl(){
@@ -650,13 +676,16 @@ static EventNtuple EN;
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"EventH",EN.getaddress(),
-  "EventNo:I*4, Run:I*4,  RunType:I*4 ,Time(2):I*4, Particles:I, Tracks:I, Betas:I, Charges:I ,TrRecHits:I, TrClusters:I, TrMCClusters:I, TOFClusters:I, TOFMCClusters:I, CTCClusters:I, CTCMCClusters:I"); 
+  "EventNo:I*4, Run:I*4,  RunType:I*4 ,Time(2):I*4, PolePhi:R, ThetaS:R, PhiS:R, Particles:I, Tracks:I, Betas:I, Charges:I ,TrRecHits:I, TrClusters:I, TrMCClusters:I, TOFClusters:I, TOFMCClusters:I, CTCClusters:I, CTCMCClusters:I"); 
 
 }
   EN.Event()=_id;
   EN.Run=_run;
   EN.RunType=_runtype;
   UCOPY(&_time,EN.Time,2*sizeof(integer)/4);
+  EN.PolePhi=_NorthPolePhi;
+  EN.ThetaS=_StationTheta;
+  EN.PhiS=_StationPhi;
   integer  i,nc;
   AMSContainer *p;
   EN.Particles=0;

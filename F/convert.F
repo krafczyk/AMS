@@ -37,7 +37,7 @@
      + ,FChi2MS,GChi2MS,RidgidityMS,GRidgidityMS,Coo,Dir,Momentum
      + ,Mass,Charge,CTCCoo,CTCErCoo,CTCRawSignal,CTCSignal
      + ,CTCESignal,CTCMCXcoo,CTCMCXdir,CTCstep,CTCcharge,CTCbeta
-     + ,Amplitude,CTCedep
+     + ,Amplitude,CTCedep,PolePhi,ThetaS,PhiS
       INTEGER EventNo,Run,RunType,Time(2) ,BetaEvent,BetaPattern
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
@@ -49,7 +49,7 @@
      + ,CTCStatus,CTCLayer,CTCMCEvent,CTCMCIdsoft,bar,px,py,
      +  Particles, Tracks, Betas, Charges ,TrRecHits, TrClusters,
      +  TrMCClusters, TOFClusters, TOFMCClusters, CTCClusters,
-     +  CTCMCClusters
+     +  CTCMCClusters,Nskip
 *
 *
 *
@@ -70,7 +70,7 @@
       parameter(maxctccl=20)
       parameter(maxctcclmc=200)
 
-      common /eventhC/eventno,run,runtype,time,
+      common /eventhC/eventno,run,runtype,time,PolePhi,ThetaS,PhiS,
      +    Particles, Tracks, Betas, Charges ,TrRecHits,
      +    TrClusters, TrMCClusters, TOFClusters, TOFMCClusters,
      +    CTCClusters, CTCMCClusters
@@ -136,7 +136,7 @@
      + hphi(2,maxtrtr),hp0(3,2,maxtrtr),fchi2ms(maxtrtr),
      + gchi2ms(maxtrtr),ridgidityms(maxtrtr),gridgidityms(maxtrtr)
 
-      common/McEventGC/nmcg,
+      common/McEventGC/nmcg,nskip(maxmcg),
      + Particle(maxmcg),coo(3,maxmcg),dir(3,maxmcg),
      + momentum(maxmcg),mass(maxmcg),charge(maxmcg)
 
@@ -187,7 +187,8 @@ c       iquest(10)=128000
        enddo
         call hbnt(1,'Converted Ntuple',' ')
        call hbname(1,cblock(1),Eventno,
-     + 'eventno:I,run:I,runtype:I,time(2):I, Particles:I,'//
+     + 'eventno:I,run:I,runtype:I,time(2):I,'//
+     + 'PolePhi:R ,ThetaS:R ,PhiS:R, Particles:I,'//
      + 'Tracks:I, Betas:I, Charges:I ,TrRecHits:I, TrClusters:I,'//
      + 'TrMCClusters:I, TOFClusters:I, TOFMCClusters:I,'//
      + 'CTCClusters:I, CTCMCClusters:I')
@@ -259,7 +260,8 @@ c       iquest(10)=128000
      + 'gchi2ms(ntrtr),ridgidityms(ntrtr),gridgidityms(ntrtr)')
 
       call hbname(1,cblock(11),nmcg,
-     + 'nmcg[0,20],Particle(nmcg):I,coo(3,nmcg),dir(3,nmcg),'//
+     + 'nmcg[0,20],nskip(nmcg):I,'//
+     + 'Particle(nmcg):I,coo(3,nmcg),dir(3,nmcg),'//
      + 'momentum(nmcg):R,mass(nmcg):R,charge(nmcg):R')
 
       call hbname(1,cblock(12),nctccl,
@@ -281,7 +283,8 @@ c       iquest(10)=128000
        do ll=1,100000000
         idet=1
         lun=40+idet
-        read(lun,end=15)eventno,run,runtype,time, Particles ,
+        read(lun,end=15)eventno,run,runtype,time, PolePhi,ThetaS,
+     +   PhiS,Particles ,
      +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
      +   TrMCClusters , TOFClusters , TOFMCClusters , 
      +   CTCClusters , CTCMCClusters 
@@ -589,7 +592,7 @@ c            write(*,*)' ntrrh eq 0 ', events
         do while(truth)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=115)
-     +     ne,Particle(nmcg),(coo(k,nmcg),k=1,3),
+     +     ne,nskip(nmcg),Particle(nmcg),(coo(k,nmcg),k=1,3),
      +     (dir(k,nmcg),k=1,3),
      +     momentum(nmcg),mass(nmcg),charge(nmcg)
            goto 116
@@ -751,7 +754,8 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
 *
 *    idet=1
 *
-      common /eventhC/eventno,run,runtype,time,Particles ,
+      common /eventhC/eventno,run,runtype,time,PolePhi,ThetaS,PhiS,
+     +   Particles ,
      +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
      +   TrMCClusters , TOFClusters , TOFMCClusters , 
      +   CTCClusters , CTCMCClusters 
@@ -819,7 +823,7 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
 *    idet=11
 *
 
-      common /mceventgC/EventNoMCEventG,Particle,coo,dir,
+      common /mceventgC/EventNoMCEventG,nskip,Particle,coo,dir,
      + momentum,mass,charge
 
 *
@@ -908,7 +912,8 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
           goto 999
          endif
                 if( cblock(idet).eq.'EVENTH')then
-            write(21)eventno,run,runtype,time,Particles ,
+            write(21)eventno,run,runtype,time,PolePhi,ThetaS,PhiS,
+     +   Particles ,
      +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
      +   TrMCClusters , TOFClusters , TOFMCClusters , 
      +   CTCClusters , CTCMCClusters 
@@ -946,7 +951,7 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
      + HRidgidity,HErrRidgidity,htheta,hphi,hp0,fchi2ms,gchi2ms,
      + ridgidityms,gridgidityms 
            else if( cblock(idet).eq.'MCEVENTG')then
-            write(21)EventNoMCEventG,Particle,coo,dir,
+            write(21)EventNoMCEventG,nskip,Particle,coo,dir,
      + momentum,mass,charge
            else if( cblock(idet).eq.'CTCCLUST')then
             write(21)CTCCluster,CTCStatus,ctclayer,

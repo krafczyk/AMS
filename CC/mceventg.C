@@ -8,7 +8,8 @@
 #include <ntuple.h>
 #include <io.h>
 
-extern "C" void spectra_();
+orbit AMSmceventg::Orbit;
+integer AMSmceventg::_hid=20001;
 AMSPoint AMSmceventg::_coorange[2];
 AMSPoint AMSmceventg::_dirrange[2];
 number   AMSmceventg::_momrange[2];
@@ -21,6 +22,7 @@ number   AMSmceventg::_albedocz;
 number   AMSmceventg::_planesw[6];
 
 AMSmceventg::AMSmceventg(const AMSIO & io){
+_nskip=io._nskip;
 _seed[0]=io._seed[0];
 _seed[1]=io._seed[1];
 init(io._ipart);
@@ -40,29 +42,7 @@ integer curp=0;
  number theta;
  if(_fixedmom)_mom=_momrange[0];
 else {
- integer id;
- if(_ipart%100==67)id=20006;  
- else if(_ipart%100==65 || _ipart%100==66)id=20005;
- else if(_ipart%100==63 || _ipart%100==64)id=20004;
- else if(_ipart%100==61 || _ipart%100==62)id=20003;
- else if(_ipart%100==47)id=20002;
- else if(_ipart==3 && CCFFKEY.low==1)id=30001;   // special low energy electron background !!!!!!!
- else if(_ipart==15)id=120001;   // aprotons
- else id=20001;
- if(ini==0){
-   ini=1;
-   spectra_();
-   
-   HPRINT(id);
- }
- number ee=HRNDM1(id);
- if(id != 120001)ee=pow(10.,ee);
- ee=ee/1000.;
-  // _mom ; Not so evident ...
- if(_mass< 0.9)_mom=sqrt(ee*(ee+2*_mass));
- else _mom=sqrt(ee*(ee+2*0.938))*_mass/0.938;
- // special low energy electron background !!!!
- if(_ipart==3 && CCFFKEY.low==1)_mom=HRNDM1(id)/1000.;
+ _mom=HRNDM1(_hid)/1000.;  // momentum in GeV
 }
 
 if(_fixeddir){
@@ -141,6 +121,116 @@ else {
 }
 }
 
+void AMSmceventg::setspectra(integer begin, integer end, integer ipart,
+                             integer low){
+
+ char chp[21];
+ integer itrtyp;
+ geant mass;
+ geant charge;
+ geant tlife;
+ geant ub[1];
+ integer nwb=0;
+ GFPART(ipart,chp,itrtyp,mass,charge,tlife,ub,nwb);
+ charge=fabs(charge);
+
+  Orbit.Begin.tm_year  =  begin%10000-1900;
+  Orbit.Begin.tm_mon = (begin/10000)%100-1;
+  Orbit.Begin.tm_mday   = (begin/1000000)%100;
+  Orbit.Begin.tm_hour  = (begin/100000000)%100;
+  Orbit.Begin.tm_min=0;
+  Orbit.Begin.tm_sec=0;
+  Orbit.Begin.tm_isdst = 0;
+
+  Orbit.End.tm_year  =  end%10000-1900;
+  Orbit.End.tm_mon = (end/10000)%100-1;
+  Orbit.End.tm_mday   = (end/1000000)%100;
+  Orbit.End.tm_hour  = (end/100000000)%100;
+  Orbit.End.tm_min=0;
+  Orbit.End.tm_sec=0;
+  Orbit.End.tm_isdst = 0;
+  Orbit.FlightTime=difftime(mktime(&Orbit.End),mktime(&Orbit.Begin));
+  
+  Orbit.ThetaI=CCFFKEY.theta/AMSDBc::raddeg;
+  Orbit.PhiI=CCFFKEY.phi/AMSDBc::raddeg;
+  Orbit.AlphaSinThetaMax=sin(51.65/AMSDBc::raddeg);
+  Orbit.PhiZero=Orbit.PhiI-acos(Orbit.AlphaSinThetaMax/sin(Orbit.ThetaI));
+  
+  Orbit.AlphaSpeed=AMSDBc::twopi/92.36/60.;
+  Orbit.EarthSpeed=AMSDBc::twopi/24/3600;
+  Orbit.PolePhi=290./AMSDBc::raddeg;
+  Orbit.PoleTheta=78.6/AMSDBc::raddeg;
+  Orbit.Nskip=0;
+if(ipart == 3 && low ){
+ HBOOK1(_hid,"Low Electron Spectrum",12,0.,6.,0.);
+ HF1(_hid,0.75,12900.);
+ HF1(_hid,1.25,4550.);
+ HF1(_hid,1.75,1810.);
+ HF1(_hid,2.25,846.);
+ HF1(_hid,2.75,376.);
+ HF1(_hid,3.25,177.);
+ HF1(_hid,3.75,67.);
+ HF1(_hid,4.25,29.);
+ HF1(_hid,4.75,7.3);
+ HF1(_hid,5.25,2.7);
+ HF1(_hid,5.75,.4);
+}
+else {
+ integer nchan=1000;
+ geant binw=100*mass/0.938;
+ geant al=binw/2;
+ geant bl=binw/2+nchan*binw;
+ HBOOK1(_hid,"Spectrum",nchan,al,bl,0.);
+ HBOOK1(_hid+1,"Spectrum",nchan,al,bl,0.);
+//
+// find a modulation
+//
+ geant modul[8]={400.,350.,550.,650.,950.,1300.,1200.,1000.};
+ integer year=(begin%10000+end%10000)/2-1997; 
+ if(year <=0 || year > 7){
+  cerr<<"AMSmceventg::setspectra-F-year not supported yet: "<<year<<endl;
+  exit(1);
+ }
+ integer i; 
+ for(i=0;i<nchan;i++){
+  geant xm=i*binw+al+binw/2;
+  number xmom=xm/1000;
+  number xkin=(sqrt(xmom*xmom+mass*mass)-mass)*1000;
+  number amass=mass*1000;
+  number z=charge;
+  number xkm=xkin+z*modul[year];
+  number xt=xkm/1000+mass;
+  number beta=sqrt(1.-mass*mass/xt/xt);
+  number xrig=beta*xt/z;
+  geant y;
+   if (ipart < 15 ){
+   // a-la proton
+    y=1.5e4/beta/pow(xrig,2.74);
+    y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
+   }    
+   else if (ipart > 15 && ipart < 100){
+    // He etc...
+    y=.5e4/beta/pow(xrig,2.68);
+    y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
+   }    
+   else if (ipart == 15 || ipart > 100){
+    number xb=1.5;
+    number xa=3.0;
+    number fact=pow(xa/xb,1./(xa+xb));
+    fact=2.7/fact;
+    number zz=xrig/fact;
+    number ampl=0.1;
+    y=ampl*pow(zz,xa)/(pow(zz,xa+xb)+1.);
+    y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
+   }
+  HF1(_hid,xm,y);
+  HF1(_hid+1,xm,y);
+}
+}
+#ifdef __AMSDEBUG__
+HPRINT(_hid);
+#endif
+}
 
 void AMSmceventg::setcuts(geant coo[6], geant dir[6],
    geant momr[2],integer fxp=0,geant albedor=0.1 ,geant albedocz=0.05){
@@ -177,13 +267,46 @@ integer AMSmceventg::accept(){
       if(_mom>=_momrange[0] && _mom <= _momrange[1]){
         geant d;
         if (_dir[2]<_albedocz || RNDM(d)< _albedorate){
-          return 1;
+          if(CCFFKEY.low == 0  && CCFFKEY.earth == 1) return EarthModulation();
+          else return 1;
         }
       }
     }
   }
   return 0;
 }
+
+integer AMSmceventg::EarthModulation(){
+  // Get current station position from event bank
+  number polephi,theta,phi;
+  AMSEvent::gethead()->GetGeographicCoo(polephi, theta, phi);
+
+  number um=sin(AMSDBc::pi/2-Orbit.PoleTheta)*cos(polephi);
+  number vm=sin(AMSDBc::pi/2-Orbit.PoleTheta)*sin(polephi);
+  number wm=cos(AMSDBc::pi/2-Orbit.PoleTheta);
+
+  number up=sin(AMSDBc::pi/2-theta)*cos(phi);
+  number vp=sin(AMSDBc::pi/2-theta)*sin(phi);
+  number wp=cos(AMSDBc::pi/2-theta);
+  number cts=um*up+vm*vp+wm*wp;
+  number xl=acos(cts);
+  number cl=fabs(sin(xl));
+  number uv=vm*wp-wm*vp;
+  number vv=wm*up-wp*um;
+  number wv=um*vp-vm*up;
+
+  number ue=_dir[0];
+  number ve=_dir[1];
+  number we=_dir[2];
+  number cth=ue*uv+ve*vv+we*wv;
+  number mom=60.*pow(cl,4)/pow(sqrt(1.-cth*pow(cl,3))+1,2)*fabs(_charge);
+  if (_mom > mom)return 1;
+  else {
+   _nskip=++Orbit.Nskip;
+   return 0;
+  }
+}
+  
   void AMSmceventg::init(integer ipart){
 _ipart=ipart;
 char chn[20];
@@ -206,6 +329,8 @@ _charge=charge;
     do{
       gener();
     }while(!accept());
+    // Set seed
+   GRNDMQ(_seed[0],_seed[1],0,"G");
    vertex[0]=_coo[0];
    vertex[1]=_coo[1];
    vertex[2]=_coo[2];
@@ -224,11 +349,9 @@ _charge=charge;
     AMSPoint coo(_coo);
     AMSDir dir(_dir);
     number mom(_mom);
-    do{
-      gener();
-    }while(!accept());
-    //
-    // RNDM synchronization
+    //    do{
+    //      gener();
+    //    }while(!accept());
     //
 
    _coo=coo;
@@ -281,7 +404,10 @@ void AMSmceventg::_copyEl(){
    integer run,event;
    run=AMSEvent::gethead()->getrun();
    event=AMSEvent::gethead()->getEvent();
-   AMSIO io(run,event,AMSEvent::gethead()->gettime(),_ipart,_seed,_coo,_dir,_mom);
+   number pole,theta,phi;
+   AMSEvent::gethead()->GetGeographicCoo(pole,theta,phi);
+   AMSIO io(run,event,AMSEvent::gethead()->gettime(),_ipart,_seed,_coo,_dir,_mom,
+   pole,theta,phi,_nskip);
    io.write();
 }
 
@@ -295,10 +421,11 @@ if(init++==0){
   // get memory
   //book the ntuple block
   HBNAME(IOPA.ntuple,"MCEventG",GN.getaddress(),
-  "EventNoMCEventG:I*4, Particle:I*4,  Coo(3):R*4, Dir(3):R*4, Momentum:R*4, Mass:R*4, Charge:R*4");
+  "EventNoMCEventG:I*4, Nskip:I, Particle:I*4,  Coo(3):R*4, Dir(3):R*4, Momentum:R*4, Mass:R*4, Charge:R*4");
 
 }
   GN.Event()=AMSEvent::gethead()->getid();
+  GN.Nskip=_nskip;
   GN.Particle=_ipart;
   for(i=0;i<3;i++)GN.Coo[i]=_coo[i];
   for(i=0;i<3;i++)GN.Dir[i]=_dir[i];

@@ -53,6 +53,9 @@ private:
 int Run;
 int RunType;
 int Time[2];
+float PolePhi;
+float ThetaS;
+float PhiS;
 int Particles;
 int Tracks;
 int Betas;
@@ -114,13 +117,13 @@ friend class AMSCTCMCCluster;
 
 class MCEventGNtuple: public AMSNtuple{
 private:
+int Nskip;
 int Particle;
 float Coo[3];
 float Dir[3];
 float Momentum;
 float Mass;
 float Charge;
-
 friend class AMSmceventg;
 };
 

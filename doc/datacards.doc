@@ -170,6 +170,12 @@ R17 albedocz(0.05)                //assumed min cos(theta) for albedo
 I18 npat(1)                       //number of particle to generate in one go
 I19 run(100)                      //run number
 I20 low(0)                        //normal(0) or low(1) spectrum if ipart=3
+I21 earth(1)                      // Earth magnetic field modulation on (1) off(0)
+R22 theta(51.65)                  //Station Theta(deg) at begin
+R23 phi(290.)                     //Station Phi(deg) at begin
+I24 begin(0802041998)             // start time (hhddmmyyyy)
+I25 end(1206041998)               // end time   (hhddmmyyyy)
+I26 oldformat(0)                  // 1 if oldformat for io read is used
 
 KINE 
 1 IPART        // Geant particle id

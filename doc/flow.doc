@@ -97,7 +97,6 @@ M A I N  ->      gbatch.C
  |    |   |    |    |->_rectcinitrun
  |    |   |    |    |->_reaxinitrun
  |    |   |    |                      
- |    |   |    |->_validate        Validate time dep constants
  |    |   |    |
  |    |   |    |->_siamsinitevent    Initialize event
  |    |   |    |    |
@@ -108,12 +107,14 @@ M A I N  ->      gbatch.C
  |    |   |    |    |->_sictcinitevent
  |    |   |    |    |
  |    |   |    |->_reamsinitevent
- |    |   |         |
- |    |   |         |->_retkinitevent
- |    |   |         |->_retofinitevent
- |    |   |         |->_retrdinitevent
- |    |   |         |->_rectcinitevent
- |    |   |         |->_reaxinitevent
+ |    |   |    |    |
+ |    |   |    |    |->_retkinitevent
+ |    |   |    |    |->_retofinitevent
+ |    |   |    |    |->_retrdinitevent
+ |    |   |    |    |->_rectcinitevent
+ |    |   |    |    |->_reaxinitevent
+ |    |   |    |
+ |    |   |    |->_validate        Validate time dep constants
  |    |   |   
  |    |   |->AMSmceventg->run      Create MC Gen  structure
  |    |

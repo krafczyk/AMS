@@ -14,6 +14,22 @@
 #include <cern.h>
 #include <link.h>
 #include <io.h>
+#include <time.h>
+class orbit{
+public:
+integer Nskip;
+number AlphaSinThetaMax;
+number AlphaSpeed;
+number ThetaI;
+number PhiI;
+number PhiZero;
+number PolePhi;
+number PoleTheta;
+number EarthSpeed;
+number FlightTime;
+tm Begin;
+tm End;
+};
 class AMSmceventg: public AMSlink {
 private:
 
@@ -23,10 +39,9 @@ AMSDir   _dir;
 number _mom;
 number _mass;
 number _charge;
-
 integer _ipart;
 integer _seed[2];
-
+integer _nskip;
 static AMSPoint _coorange[2];
 static AMSPoint _dirrange[2];
 static number _momrange[2];
@@ -41,10 +56,11 @@ void _printEl(ostream & stream);
 void _copyEl();
 void _writeEl();
 public:
+static orbit Orbit;
 integer getseed(integer i)const{return (i>=0 && i<2) ? _seed[i]: 0;}
 void setseed(integer seed[2]){_seed[0]=seed[0];_seed[1]=seed[1];}
 static integer debug;
-AMSmceventg(integer seed[2]){_next=0;setseed(seed);}
+AMSmceventg(integer seed[2]){_next=0;_nskip=0;setseed(seed);}
 AMSmceventg( const AMSIO & io);
 ~AMSmceventg(){}
 void init(integer);
@@ -53,7 +69,10 @@ void run();
 void InitSeed();
 void gener();
 integer accept();
+integer EarthModulation();
 static void setcuts( geant [],geant[],geant[],integer,geant,geant);
+static void setspectra(integer begin, integer end, integer ipart, integer low);
+static integer _hid;
 AMSmceventg *  next(){return (AMSmceventg*)_next;}
 //+
 AMSmceventg(){_next=0;}

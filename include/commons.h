@@ -290,6 +290,12 @@ public:
   integer npat;       //18
   integer run;
   integer low;
+  integer earth;      // earth mafnetic field modulation
+  geant theta;         // station theta at begin
+  geant phi;           // station phi at begin
+  integer begin;      // time begin format hhddmmyyyy
+  integer end;        // time end   format hhddmmyyyy
+  integer oldformat;
 };
 //
 #define CCFFKEY COMMON_BLOCK(CCFFKEY,ccffkey)

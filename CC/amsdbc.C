@@ -11,7 +11,8 @@ const integer AMSDBc::DELETED=64;
 
 integer AMSDBc::debug=1;
 const number AMSDBc::raddeg=57.295779;
-const number AMSDBc::pi=3.1415926;
+const number AMSDBc::pi=3.14159265358979;
+const number AMSDBc::twopi=2*pi;
       geant AMSDBc::ams_size[3]={380.,380.,380.};
      const char AMSDBc::ams_name[]="AMSG version 1.00";
       geant AMSDBc::ams_coo[3]={0.,0.,0.};

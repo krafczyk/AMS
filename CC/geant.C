@@ -382,9 +382,7 @@ extern "C" void guout_(){
 extern "C" void gukine_(){
 
 static integer event=0;
-time_t         Time;
 
-   time(&Time);
 
    AMSgObj::BookTimer.start("GEANTTRACKING");
 
@@ -397,7 +395,7 @@ time_t         Time;
 // create new event & initialize it
   if(IOPA.mode !=1){
   AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
-  new AMSEvent(AMSID("Event",++event),CCFFKEY.run,0,Time)));
+  new AMSEvent(AMSID("Event",++event),CCFFKEY.run,0)));
    for(integer i=0;i<CCFFKEY.npat;i++){
     AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
     if(genp){
@@ -410,7 +408,8 @@ time_t         Time;
    AMSIO io;
    if(io.read()){
     AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
-    new AMSEvent(AMSID("Event",io.getevent()),io.getrun(),0,io.gettime())));
+    new AMSEvent(AMSID("Event",io.getevent()),io.getrun(),0,io.gettime(),
+    io.getpolephi(),io.getstheta(),io.getsphi())));
     AMSmceventg* genp=new AMSmceventg(io);
     if(genp){
      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
