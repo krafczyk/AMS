@@ -53,7 +53,16 @@ if(_fixeddir){
  _dir=_dirrange[0];
  if(_fixedpoint){
   _coo=_coorange[0];
-  return;
+ }
+ else {
+  number lx=_coorange[1][0]-_coorange[0][0];
+  number ly=_coorange[1][1]-_coorange[0][1];
+  number lz=_coorange[1][2]-_coorange[0][2];
+  number x=_coorange[0][0];
+  number y=_coorange[0][1];
+  number z=_coorange[0][2];
+  geant d;
+  _coo=AMSPoint(x+lx*RNDM(d),y+ly*RNDM(d),z+lz*RNDM(d));
  }
 }
 else {
@@ -66,6 +75,7 @@ else {
   _coo=_coorange[0];
   return;
  }
+
  if(_fixedplane)curp=_fixedplane;
  else {
   geant r=RNDM(d)-1.e-5;
@@ -114,6 +124,8 @@ else {
  }
 }
 }
+
+
 void AMSmceventg::setcuts(geant coo[6], geant dir[6],
    geant momr[2],integer fxp=0,geant albedor=0.1 ,geant albedocz=0.05){
     _albedorate=albedor;
@@ -129,8 +141,8 @@ void AMSmceventg::setcuts(geant coo[6], geant dir[6],
     _fixedpoint=0;
     _fixeddir=0;
     if(momr[0]>=momr[1])_fixedmom=1;
-    if(coo[0]>=coo[3] || coo[1]>=coo[4] || coo[2]>=coo[5])_fixedpoint=1;
-    if(dir[0]>=dir[3] || dir[1]>=dir[4] || dir[2]>=dir[5])_fixeddir=1;
+    if(coo[0]>=coo[3] && coo[1]>=coo[4] && coo[2]>=coo[5])_fixedpoint=1;
+    if(dir[0]>=dir[3] && dir[1]>=dir[4] && dir[2]>=dir[5])_fixeddir=1;
     number area[6];
     area[0]=AMSDBc::ams_size[0]*AMSDBc::ams_size[1];
     area[1]=AMSDBc::ams_size[0]*AMSDBc::ams_size[1];

@@ -76,7 +76,7 @@ geant tdcbin[4];   // p/l TDC binning for ftdc/stdc/adca/adcd
 geant daqthr[5];   // MC DAQ-system thresholds
 geant daqpwd[10];  // MC DAQ-system pulse_widths/dead_times/...
 geant trigtb;      // MC time binning in logic(trigger) pulse manipulation
-integer mcprtf;     // TOF MC-print flag (=0 -> no_printing)
+integer mcprtf[5];     // TOF MC-print flag (=0 -> no_printing)
 integer trlogic[2]; // to control trigger logic
 
 };

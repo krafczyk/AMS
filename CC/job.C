@@ -151,7 +151,12 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.daqpwd[8]=2.; // discr. dead time of "z>1" trig. (ns)
   TOFMCFFKEY.daqpwd[9]=2.; // discr. dead time of "z>2" trig. (ns)
   TOFMCFFKEY.trigtb=0.5;   // MC time binning in logic(trigger) pulse manipulation (ns)
-  TOFMCFFKEY.mcprtf=0;     // TOF MC-print flag (=0 -> no_printing)
+
+  TOFMCFFKEY.mcprtf[0]=0;     // TOF MC print flag for init arrays
+  TOFMCFFKEY.mcprtf[1]=0;     // TOF MC print flag for MC pulses
+  TOFMCFFKEY.mcprtf[2]=0;     // ...................... histograms
+  TOFMCFFKEY.mcprtf[3]=0;     // spare
+  TOFMCFFKEY.mcprtf[4]=0;     // spare
   TOFMCFFKEY.trlogic[0]=0; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
   TOFMCFFKEY.trlogic[1]=0; // spare 
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
