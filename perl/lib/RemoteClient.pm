@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.124 2003/04/25 09:27:48 alexei Exp $
+# $Id: RemoteClient.pm,v 1.125 2003/04/25 11:09:18 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -73,7 +73,7 @@ my %fields=(
         FileAttDBTimestamp=>undef,
         FileDBLastLoad=>undef,
         FileAttDBLastLoad=>undef,
-        LocalClientsDir=>"prod.log/scripts/",
+        LocalClientsDir=>"prod.log.orig/scripts/",
         Name=>'/cgi-bin/mon/rc.cgi',
         DataMC=>0,
         IOR=>undef,
@@ -3542,7 +3542,7 @@ print qq`
            }
        }
          if($i > 1){
-            my ($rid,$rndm1,$rndm2) = $self->getrndm();
+            ($rid,$rndm1,$rndm2) = $self->getrndm();
          }
           $buf=~ s/RNDM1=/RNDM1=$rndm1/;         
           $buf=~ s/RNDM2=/RNDM2=$rndm2/;         
@@ -3566,6 +3566,7 @@ print qq`
          $buf=~ s/PMAX=/PMAX=$pmaxf/;         
          my $cpus=$q->param("QCPUTime");         
          $buf=~ s/PART=/CPUTIME=$cpus \nPART=/; 
+         $buf=~ s/TIME 3=/TIME 2=$cputf 3=/; 
          my $cputype=$q->param("QCPUType");
          $buf=~ s/PART=/CPUTYPE=$cputype \nPART=/; 
          $buf=~ s/PART=/CLOCK=$clock \nPART=/;         
