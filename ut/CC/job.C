@@ -258,7 +258,7 @@ void AMSJob::_sitrigdata(){
   LVL3FFKEY.TrMaxHits=20;
   LVL3FFKEY.Splitting=0.04;
   LVL3FFKEY.NRep=1;
-  LVL3FFKEY.Accept=1;
+  LVL3FFKEY.Accept=0;
   LVL3FFKEY.RebuildLVL3=2;
   LVL3FFKEY.NoK=1;
   LVL3FFKEY.TrHeavyIonThr=200;
