@@ -3189,9 +3189,8 @@ void richgeom02(AMSgvolume & mother)
 				  rel));
 	// Fill the box:
 
-	if(copia==-2) // Only once.
+	if(copia==2) // Only once.
 	  {
-	    
 	    // SHIELDING: We use the TOF_PMT_BOX material... to be changed in
 	    // the future
 
@@ -3212,7 +3211,7 @@ void richgeom02(AMSgvolume & mother)
 				       coo,
 				       nrm,
 				       "ONLY",
-				       posp,
+				       0,
 				       1,
 				       rel));
 	    
@@ -3227,7 +3226,7 @@ void richgeom02(AMSgvolume & mother)
 				       coo,
 				       nrm,
 				       "ONLY",
-				       posp,
+				       0,
 				       2,
 				       rel));
 	    
@@ -3245,7 +3244,7 @@ void richgeom02(AMSgvolume & mother)
 				       coo,
 				       nrm,
 				       "ONLY",
-				       posp,
+				       0,
 				       1,
 				       rel));
 	    
@@ -3260,7 +3259,7 @@ void richgeom02(AMSgvolume & mother)
 				       coo,
 				       nrm,
 				       "ONLY",
-				       posp,
+				       0,
 				       2,
 				       rel));
 	       
@@ -3273,7 +3272,7 @@ void richgeom02(AMSgvolume & mother)
 
 	    coo[0]=0;
 	    coo[1]=0;
-	    coo[2]=5-3-.05;
+	    coo[2]=5.-3.-.05;
 	    
 	    dummy=p->add(new AMSgvolume("RICH PMTS",
 					0,
@@ -3284,20 +3283,20 @@ void richgeom02(AMSgvolume & mother)
 					coo,
 					nrm,
 					"ONLY",
-					posp,
+					0,
 					1,
 					rel));
-	    
+
 
 	    // Glue
 
 	    par[0]=1.5-.1;
 	    par[1]=1.5-.1;
-	    par[2]=(4.5-.1)/2;
+	    par[2]=(4.5-.1)/2.;
 
 	    coo[0]=0;
 	    coo[1]=0;
-	    coo[2]=5-3-.1-par[2];
+	    coo[2]=5.-3.-.1-par[2];
 
 	    dummy=p->add(new AMSgvolume("RICH GLUE",
 					0,
@@ -3308,7 +3307,7 @@ void richgeom02(AMSgvolume & mother)
 					coo,
 					nrm,
 					"ONLY",
-					posp,
+					0,
 					1,
 					rel));
 
@@ -3341,7 +3340,7 @@ void richgeom02(AMSgvolume & mother)
 				     coo,
 				     nrm,
 				     "ONLY",
-				     posp,
+				     0,
 				     1,
 				     rel));
 
@@ -3375,7 +3374,7 @@ void richgeom02(AMSgvolume & mother)
 					 coo,
 					 nrm,
 					 "MANY",
-					 posp,
+					 0,
 					 1,
 					 rel));
 	    
@@ -3411,7 +3410,7 @@ void richgeom02(AMSgvolume & mother)
 					 coo,
 					 nrm,  // Rotated 90 degrees
 					 "MANY",
-					 posp,
+					 0,
 					 1,
 					 rel));
 	    
@@ -3445,7 +3444,7 @@ void richgeom02(AMSgvolume & mother)
 					 coo,
 					 nrm,  // Rotated 90 degrees
 					 "MANY",
-					 posp,
+					 0,
 					 1,
 					 rel));
 	    
@@ -3477,7 +3476,7 @@ void richgeom02(AMSgvolume & mother)
 					 coo,
 					 nrm,
 					 "MANY",
-					 posp,
+					 0,
 					 1,
 					 rel));
 	    
@@ -3513,7 +3512,7 @@ void richgeom02(AMSgvolume & mother)
 					 coo,
 					 nrm,  // Rotated 90 degrees
 					 "MANY",
-					 posp,
+					 0,
 					 1,
 					 rel));
 	    
@@ -3541,14 +3540,13 @@ void richgeom02(AMSgvolume & mother)
 					coo,
 					nrma,
 					"ONLY",
-					posp,
+					0,
 					2,
 					rel)); 
 
 
 
 //	    cout<< "RICH: LG finished" << endl;
-
 	    
 	  }
       
