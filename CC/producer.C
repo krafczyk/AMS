@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.52 2002/03/26 21:21:53 choutko Exp $
+//  $Id: producer.C,v 1.53 2002/03/27 10:41:59 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -111,7 +111,6 @@ again:
       }
      }
      IMessage(AMSClient::print(_pid,"sendID-I-Success"));
-      cout << " ret now "<<endl;
       return;       
      }
    catch (CORBA::MARSHAL a){
