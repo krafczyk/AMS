@@ -7,6 +7,7 @@ extern void tkgeom(AMSgvolume &);
 extern void tkgeom02(AMSgvolume &);
 extern void magnetgeom(AMSgvolume &);
 extern void magnetgeom02(AMSgvolume &);
+extern void magnetgeom02r(AMSgvolume &);
 extern void magnetgeom02Test(AMSgvolume &);
 extern void tofgeom(AMSgvolume &);
 extern void tofgeom01(AMSgvolume &);

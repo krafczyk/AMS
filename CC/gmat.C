@@ -119,7 +119,7 @@ return(AMSID::print(stream)  <<  " GSTMED" << endl);
 
 uinteger AMSgmat::_GlobalMatI=0;
 uinteger AMSgtmed::_GlobalMedI=0;
-
+//-------------------------------------------------------------------------
 void AMSgmat::amsmat(){
 static AMSgmat mat;
 mat.setname("Materials:");
@@ -293,7 +293,7 @@ mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));
 
 
 }
-//----------------------------------------------------------
+//-------------------------------------------
 // Light lead for ECAL test :
 {
 mat.add (new AMSgmat("LIGHTLEAD",207.19,82., 6.36 ,1.,32.5));
@@ -315,7 +315,7 @@ mat.add (new AMSgmat( "EC-AL-HONEYC",26.98, 13., 0.04, 600., 2660.));//tempor as
 
   mat.add(new AMSgmat("ECFPLEX",a,z,w,3,1.16));
 }
-//----------------------------------------------------------
+//------------------------------------------
 
 
 {
@@ -367,6 +367,13 @@ mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
   mat.add (new AMSgmat("YAlO3",a,z,w,3,5.55));
 
 }
+//--------------------------------
+//  Magnet materials:
+{
+  mat.add (new AMSgmat("MCOPPER", 63.54,29.,8.96  ,1.43,14.8));//magnet_coil copper
+//                                                               reduced dens.(?)
+}
+//-------------------------------
 #ifdef __AMSDEBUG__
 if(AMSgmat::debug)GPMATE(0);
 #endif
@@ -377,7 +384,7 @@ if(AMSgtmed::debug)AMSgObj::GTrMedMap.print();
 #endif
 cout <<"AMSgmat::amsmat-I-TotalOf "<<GetLastMatNo()<<" materials defined"<<endl;
 }
-
+//------------------------------------------------------------------------------
 void AMSgtmed::amstmed(){
 
 
@@ -701,8 +708,27 @@ tmed.add (new AMSgtmed("SRDXtall","YAlO3",1));
 tmed.add (new AMSgtmed("SRDPMT","PMT_WINDOW",1));
 
 }
-
-
+//--------------------
+{
+// ---> AMS02 Magnet Media:
+AMSgtmed * magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MVACMED","VACUUM",0));
+  magmed->CUTGAM(0.002);// increased Egamma cut
+  magmed->CUTELE(0.002);// increased Eelect cut
+//
+magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MVCASEMED","ALUMINIUM",0));//tempor 1/2 aluminium
+  magmed->CUTGAM(0.002);// increased Egamma cut
+  magmed->CUTELE(0.002);// increased Eelect cut
+//
+magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MCOILMED","MCOPPER",0));
+  magmed->CUTGAM(0.002);// increased Egamma cut
+  magmed->CUTELE(0.002);// increased Eelect cut
+//
+magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MLHEMED","HELIUM",0));
+  magmed->CUTGAM(0.002);// increased Egamma cut
+  magmed->CUTELE(0.002);// increased Eelect cut
+//
+}
+//--------------------
 
 //---------------
 AMSgObj::GTrMedMap.map(tmed);
@@ -714,7 +740,7 @@ if(AMSgmat::debug)GPTMED(0);
 #endif
 cout <<"AMSgmat::amstmed-I-TotalOf "<<GetLastMedNo()<<" media defined"<<endl;
 }
-
+//-----------------------------------------------------------------------------
 
 void AMSgtmed::AGSCKOV(integer nument, geant pmom[], geant absl[], geant eff[], geant rindex[], geant rayleigh){
 

@@ -5,6 +5,7 @@
 // Passive Shield Geometry V. Choutko 22-jul-1996
 // CTC (Cherenkov Thresh. Counter) geometry E.Choumilov 26-sep-1996
 // ATC (Aerogel Threshold Cerenkov) geometry A.K.Gougas 14-Mar-1997
+// MAGNET geometry v0.0  E.Choumilov 17.11.2000
 // 
 //
 #include <typedefs.h>
@@ -36,6 +37,7 @@ extern void tkgeom(AMSgvolume &);
 extern void tkgeom02(AMSgvolume &);
 extern void magnetgeom(AMSgvolume &);
 extern void magnetgeom02(AMSgvolume &);
+extern void magnetgeom02o(AMSgvolume &);
 extern void magnetgeom02Test(AMSgvolume &);
 extern void tofgeom(AMSgvolume &);
 extern void tofgeom01(AMSgvolume &);
@@ -2378,7 +2380,7 @@ AMSgtmed *p;
 
        
 }
-void amsgeom::magnetgeom02(AMSgvolume & mother){
+void amsgeom::magnetgeom02o(AMSgvolume & mother){
 AMSID amsid;
 geant par[6]={0.,0.,0.,0.,0.,0.};
 char name[5]="MAGN";
@@ -2430,6 +2432,106 @@ AMSgtmed *p;
 */
     
 }
+//------------------------------------------------
+void amsgeom::magnetgeom02(AMSgvolume & mother){
+//
+AMSID amsid;
+geant par[15]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
+geant coo[3]={0.,0.,0.};
+number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+integer gid;
+AMSNode * mmoth ;
+AMSNode * mivol;
+AMSNode * coil;
+AMSNode * cur;
+     geant casl1=40.;     //vac.case half-length at inner radious
+     geant casl2;//      .......................... outer .......
+     geant casl1i,casl2i; // same for its internal surface
+     geant tancon,coscon;
+     geant conang=27.;    //flange angl(degr,wrt horizont)
+     geant casr1=55.8;    //vac.case inner radious
+     geant casr2=134.;    //vac.case outer radious
+     geant cylit=0.3;     //inner cyl. thickness
+     geant cylot=0.2;     //outer cyl. thickness
+     geant flant=0.2;     //flange thickness
+//
+     tancon=tan(conang/AMSDBc::raddeg);
+     coscon=cos(conang/AMSDBc::raddeg);
+     casl2=casl1+(casr2-casr1)*tancon;
+     casl1i=casl1+cylit*tancon-flant/coscon;
+     casl2i=casl1i+(casr2-casr1-cylit-cylot)*tancon;
+     par[0]=0.;//phi0
+     par[1]=360.;//dphi
+     par[2]=4;
+     par[3]=-casl2;
+     par[4]=casr2;
+     par[5]=casr2;
+     par[6]=-casl1;
+     par[7]=casr1;
+     par[8]=casr2;
+     par[9]=casl1;
+     par[10]=casr1;
+     par[11]=casr2;
+     par[12]=casl2;
+     par[13]=casr2;
+     par[14]=casr2;
+     gid=1;
+     mmoth=mother.add(new AMSgvolume(
+          "MVCASEMED",0,"MMOT","PCON",par,15,coo,nrm,"ONLY",1,gid,1));//magnet case vol.
+     par[3]=-casl2i;
+     par[4]=casr2-cylot;
+     par[5]=casr2-cylot;
+     par[6]=-casl1i;
+     par[7]=casr1+cylit;
+     par[8]=casr2-cylot;
+     par[9]=casl1i;
+     par[10]=casr1+cylit;
+     par[11]=casr2-cylot;
+     par[12]=casl2i;
+     par[13]=casr2-cylot;
+     par[14]=casr2-cylot;
+     mivol=mmoth->add(new AMSgvolume(
+          "MVACMED",0,"MVOL","PCON",par,15,coo,nrm,"ONLY",1,gid,1));//inner vac.volume
+//
+// ---> coils:
+//
+     geant ctth=5.;         //thickness of coil turn
+     geant cgap=6.;         //coil-intern.cylinder gap
+     geant crsz=31.;        //coil radial size
+     geant chzs=38.;        //coil half z-size(imply rectang.shape)
+     par[0]=casr1+cylit+cgap;//rmin
+     par[1]=casr1+cylit+cgap+crsz;//rmax
+     par[2]=chzs;//dz
+     par[3]=0.;//phi1 tempor 
+     par[4]=360.;//phi2 tempor 
+     gid=1;
+     coil=mivol->add(new AMSgvolume(
+          "MCOILMED",0,"COIL","TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//solid coil
+     par[0]=casr1+cylit+cgap+ctth;//rmin
+     par[1]=casr1+cylit+cgap+crsz-ctth;//rmax
+     par[2]=chzs-ctth;//dz
+     par[3]=0.;//phi1 tempor 
+     par[4]=360.;//phi2 tempor
+     gid=1;
+     cur=coil->add(new AMSgvolume(
+          "MVACMED",0,"COIH","TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//coil hole
+//
+// ---> liq.helium(withought its vessel):
+//
+     geant hvgap=40.;    //he_vessel-intern.cylinder gap
+     geant hvrsz=31.;    //he_vessel radial size
+     geant hvhzs=54.;    //he_vessel half z-size(imply rectang.shape)
+     par[0]=casr1+cylit+hvgap;//rmin
+     par[1]=casr1+cylit+hvgap+hvrsz;//rmax
+     par[2]=hvhzs;//dz
+     par[3]=0.;//phi1 tempor 
+     par[4]=360.;//phi2 tempor 
+     gid=1;
+     cur=mivol->add(new AMSgvolume(
+          "MLHEMED",0,"LIHE","TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//liq.helium
+  cout<<"AMSGEOM: MAGNET02-geometry(G3/G4-compatible) done!"<<endl;
+}
+//
 void amsgeom::magnetgeom02Test(AMSgvolume & mother){
 AMSID amsid;
 geant par[6]={0.,0.,0.,0.,0.,0.};

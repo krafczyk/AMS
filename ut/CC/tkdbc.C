@@ -982,14 +982,14 @@ const number  support_hc_z[_nlay]={-3.052,-1.452,-1.452,-1.452,-1.452,-1.452,-1.
                                                384,640,384,640,384,640};
    UCOPY(nstripsdrp,_nstripsdrp,sizeof(nstripsdrp)/sizeof(integer));
    const number layd[_nlay][5]={
-                               5.3,0.,75., 0.,75.,
+                               5.3,0.,72., 0.,72.,
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
                                1.92,0.,54.0,0.,54.0, 
-                               5.3,0.,75. ,0.,75.};
+                               5.3,0.,72. ,0.,72.};
    UCOPY(layd,_layd,sizeof(layd)/sizeof(integer));
    const number halfldist[_nlay]={0.047,0.047,0.047,0.047,0.047,0.047,0.047,0.047};
    UCOPY(halfldist,_halfldist,sizeof(halfldist)/sizeof(integer));
