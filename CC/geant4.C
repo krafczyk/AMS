@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.48 2002/06/03 14:53:34 alexei Exp $
+//  $Id: geant4.C,v 1.49 2002/07/17 14:46:02 choutko Exp $
 #include <job.h>
 #include <event.h>
 #include <trrec.h>
@@ -774,7 +774,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      &&  PrePV->GetName()(2)=='D' && PrePV->GetName()(3)=='T'){
 //       cout <<" trd "<<endl;
         AMSTRDMCCluster::sitrdhits(PrePV->GetCopyNo(),GCTRAK.vect,
-        GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart);   
+        GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart,GCKINE.itra);   
      }
 
 
