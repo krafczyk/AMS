@@ -160,7 +160,7 @@
 *
        call HROPEN(4,'output',fnam,'N',1024,iostat)
        if(iostat.ne.0)then
-        write(*,*)'unable to open output file ',fnam
+        write(*,*)'Unable to open output file ',fnam
         stop
        endif
        cblock(1)='EVENTH'
@@ -751,7 +751,7 @@ c        write(*,*)eventno
 *
        call HROPEN(4,'input',fnam,' ',1024,iostat)
        if(iostat.ne.0)then
-        write(*,*)'unable to input file ',fnam
+        write(*,*)'Unable to open input file ',fnam
         stop
        endif
        ic=0

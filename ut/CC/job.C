@@ -40,7 +40,7 @@ void AMSJob::data(){
   VBLANK(AMSFFKEY.Setupname,40);
   AMSFFKEY.ZeroSetupOk=0;
   // Set Defaults
-FFKEY("AMSJOB",(float*)(&AMSFFKEY.Jobtype),87,"MIXED");
+FFKEY("AMSJOB",(float*)(&AMSFFKEY.Jobtype),86,"MIXED");
 _siamsdata();
 _reamsdata();
 }
