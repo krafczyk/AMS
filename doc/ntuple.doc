@@ -188,19 +188,19 @@ Below there is a description of a  ntuple.
 * R*4  *              * TRTRACK  * CircleRidgidity(ntrtr) // circular rigidity
 * R*4  *              * TRTRACK  * Chi2FastFit(ntrtr) // chi2 fast nonl fit
 * R*4  *              * TRTRACK  * Ridgidity(ntrtr) // fast nonl rigidity
-* R*4  *              * TRTRACK  * ErrRidgidity(ntrtr) // err to above
+* R*4  *              * TRTRACK  * ErrRidgidity(ntrtr) // err to 1/above
 * R*4  *              * TRTRACK  * Theta(ntrtr) // theta (from fast)
 * R*4  *              * TRTRACK  * phi(ntrtr)   // phi ---------
 * R*4  *              * TRTRACK  * p0(3,ntrtr)  // coords ----------
 * R*4  *              * TRTRACK  * gchi2(ntrtr) // geane chi2
 * R*4  *              * TRTRACK  * gridgidity(ntrtr)// ------ rigidity
-* R*4  *              * TRTRACK  * gerrridgidity(ntrtr) //error to above
+* R*4  *              * TRTRACK  * gerrridgidity(ntrtr) //error to 1/above
 * R*4  *              * TRTRACK  * gtheta(ntrtr)// -------- theta
 * R*4  *              * TRTRACK  * gphi(ntrtr)  // -------- phi
 * R*4  *              * TRTRACK  * gp0(3,ntrtr) // ------ coords
 * R*4  *              * TRTRACK  * hchi2(2,ntrtr) // two halves chi2s
 * R*4  *              * TRTRACK  * HRidgidity(2,ntrtr) //-------- rigities
-* R*4  *              * TRTRACK  * HErrRidgidity(2,ntrtr) // errors to above
+* R*4  *              * TRTRACK  * HErrRidgidity(2,ntrtr) // errors to 1/above
 * R*4  *              * TRTRACK  * htheta(2,ntrtr) // ------- thetas
 * R*4  *              * TRTRACK  * hphi(2,ntrtr) // ------ phis
 * R*4  *              * TRTRACK  * hp0(3,2,ntrtr) // ------- coords

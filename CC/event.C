@@ -403,7 +403,7 @@ void AMSEvent::_signinitevent(){
     _VelTheta=AMSDBc::pi/2-ax2.gettheta();
     _VelPhi=ax2.getphi();
   }
-  else if(!AMSJob::gethead()->isSimulation() && rec){
+  else if((!AMSJob::gethead()->isSimulation() && rec) || (AMSJob::gethead()->isSimulation() && IsTest())){
     static integer hint=0;
     //get right record
     if( Array[hint].Time<=_time && 
@@ -885,6 +885,7 @@ void AMSEvent::event(){
       return;
     }
    }
+   //_status=AMSJob::gethead()->getstatustable()->getstatus(getid(),getrun());
    AMSgObj::BookTimer.stop("EventStatus");
     AMSUser::InitEvent();
     if(AMSJob::gethead()->isSimulation())_siamsevent();
@@ -988,14 +989,16 @@ void AMSEvent::_catkevent(){
   }
   else if(TRCALIB.CalibProcedureNo == 2){
 int i,j;
-for(i=0;i<2;i++){
-  for(j=0;j<tkcalpat;j++){
-    if(AMSTrCalibFit::getHead(i,j)->Test()){
-     AMSgObj::BookTimer.start("CalTrFit");
-     AMSTrCalibFit::getHead(i,j)->Fit();
-     AMSgObj::BookTimer.stop("CalTrFit");
-    }
+for(i=0;i<nalg;i++){
+  if(TRCALIB.Method==0 || TRCALIB.Method==i){
+   for(j=0;j<tkcalpat;j++){
+     if(AMSTrCalibFit::getHead(i,j)->Test()){
+      AMSgObj::BookTimer.start("CalTrFit");
+      AMSTrCalibFit::getHead(i,j)->Fit();
+      AMSgObj::BookTimer.stop("CalTrFit");
+     }
   }
+ }
 }
   }
   AMSgObj::BookTimer.stop("CalTrFill");
@@ -2231,3 +2234,10 @@ void AMSEvent::_collectstatus(){
     } 
 }
 
+
+integer AMSEvent::IsTest(){
+ 
+ if(MISCFFKEY.BeamTest || AMSmceventg::fixeddir() || AMSmceventg::fixedmom() ||
+    CCFFKEY.low)return 1;
+ else return 0;   
+}

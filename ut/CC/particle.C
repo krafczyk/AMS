@@ -99,10 +99,12 @@ integer AMSParticle::build(integer refit){
           ppart->pid();
            
           AMSgObj::BookTimer.start("ReAxRefit");
-          ppart->refit();
-          ppart->ctcfit();
-          ppart->toffit();
-          ppart->antifit();
+           ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
+          if(!(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
+           ppart->ctcfit();
+           ppart->toffit();
+           ppart->antifit();
+          }
           AMSgObj::BookTimer.stop("ReAxRefit");
           AMSEvent::gethead()->addnext(AMSID("AMSParticle",0),ppart);
           }
@@ -404,7 +406,7 @@ void AMSParticle::pid(){
   if(_Charge>1)AMSEvent::gethead()->addnext(AMSID("HeavyIon",0),new AntiMatter(_GPart));
 
 }
-void AMSParticle::refit(){
+void AMSParticle::refit(int fast){
     for(int layer=0;layer<nl;layer++){
        number theta,phi;
       _ptrack->intercept(_TrCoo[layer],layer,theta,phi);
@@ -431,6 +433,7 @@ void AMSParticle::refit(){
       }
     }
     _loc2gl();
+    if(fast)return;
 
   if(_GPart !=14 ){
    if(_Charge >= 1.5 || fabs(_Mass-0.938)>1.5*_ErrMass){

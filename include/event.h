@@ -159,6 +159,7 @@ AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMS
 ~AMSEvent(){_Head=0;}
 void _printEl(ostream & stream);
 void loc2gl();
+static integer IsTest();
 static void SetShuttlePar();
 static AMSEvent * gethead()  {return _Head;}
 static integer debug;

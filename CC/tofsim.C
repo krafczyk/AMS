@@ -324,6 +324,10 @@ void AMSTOFTovt::build()
       if(am>0){
         ii=integer(tm*ifadcb);
         if(ii>SCTBMX)ii=SCTBMX;
+        else if(ii<0){
+         cerr<<"AMSTOFTovt::build()-S-ii<0 "<<ii<<endl;
+         break;
+        }
         tslice1[ii]+=am;
       }
     } // >>>----- end of PM-1 loop ------>
@@ -346,6 +350,10 @@ void AMSTOFTovt::build()
       if(am>0){
         ii=integer(tm*ifadcb);
         if(ii>SCTBMX)ii=SCTBMX;
+        else if(ii<0){
+         cerr<<"AMSTOFTovt::build()-S-ii<0 "<<ii<<endl;
+         break;
+        }
         tslice2[ii]+=am;
       }
     } // >>>----- end of PM-2 loop ------>
@@ -454,6 +462,8 @@ void AMSTOFTovt::inipsh(integer &nbn, geant arr[])
       tgo=(ao2-ao1)/(boh-bol);
       al=ao1+tgo*(bl-bol);
       io+=1;
+      //next line to prevent stupid egcs optimize io away.
+      float jdum=RNDM(io); 
       if((io+1)<tbins){
         bol=pmpsb[io];
         boh=pmpsb[io+1];

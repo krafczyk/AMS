@@ -89,14 +89,15 @@ protected:
   AMSPoint * _EHits;
   geant _InvBeta;
   geant _ErrInvBeta;
-  geant _InvMomentum;
-  geant _ErrInvMomentum;
-static integer patpoints[2][tkcalpat];
-static integer patconf[2][tkcalpat][6];
+  geant _InvRigidity;
+  geant _ErrInvRigidity;
+static integer patpoints[nalg][tkcalpat];
+static integer patconf[nalg][tkcalpat][6];
 public:
 AMSTrCalibData():_NHits(0),_Hits(0),_EHits(0),_InvBeta(0),_ErrInvBeta(0),
-_InvMomentum(0),_ErrInvMomentum(0){};
-integer Init(AMSBeta * pbeta, AMSTrTrack *ptrack, integer pattern, integer alg);
+_InvRigidity(0),_ErrInvRigidity(0){};
+integer Init(AMSBeta * pbeta, AMSTrTrack *ptrack, AMSmceventg *pgen, 
+integer pattern, integer alg);
 integer Select(integer alg, integer pattern);
 integer PatternMatch(integer patcal,integer pattr);
 friend class AMSTrCalibFit;
@@ -113,22 +114,23 @@ integer _NIter;
 AMSTrCalibData * _pData;
 integer _Algorithm;
 integer _NSen;    // Sensor number
+integer _Pid;   // presumed particleid 
 AMSTrCalibPar * _pParC[6];       // pointer to fitted current par
 AMSTrCalibPar * _pParM;          // Pointer to fitted mean parameters
 AMSTrCalibPar * _pParS;          // Pointer to fitted sigmas parameters
-static  AMSTrCalibFit  * _pCalFit[2][tkcalpat];
+static  AMSTrCalibFit  * _pCalFit[nalg][tkcalpat];
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
 static void alfun(integer & n, number xc[], number & fc, AMSTrCalibFit * ptr);
 public:
 AMSTrCalibFit();
-AMSTrCalibFit(integer pattern, integer data, integer iter, integer alg);
+AMSTrCalibFit(integer pattern, integer data, integer iter, integer alg, integer ipart);
 integer Test();
 void Fit();
 void Anal();
 
 static AMSTrCalibFit * getHead(integer alg, integer pat)
-  {return pat>=0 && pat<tkcalpat && alg>=0 && alg<2 ? _pCalFit[alg][pat]:0;}
+  {return pat>=0 && pat<tkcalpat && alg>=0 && alg<nalg ? _pCalFit[alg][pat]:0;}
 static void setHead(integer alg, integer pat, AMSTrCalibFit * ptr);
 integer getlayer(integer c);
 ~AMSTrCalibFit();

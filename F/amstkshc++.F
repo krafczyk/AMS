@@ -5531,7 +5531,7 @@ CDECK  ID>, TKFITG.
 *               =2     GEANE banded matrix inv
 *               =3     GEANE Kalman filter
 *
-* Output   out(9) ! x0,y0,z0,theta,phi,p,chi2,ier, err(1/p)
+* Output   out(9) ! x0,y0,z0,theta,phi,rig,chi2,ier, err(1/rig)
 *
 *
 * Multiple scattering (default on) can be switched off in all 3 algorithmes
@@ -5561,7 +5561,7 @@ CDECK  ID>, TKFITG.
             call gfpart(ipart,cnn,itrt7,xmass,chrg,tlt7,uwb,nwb)
              ims=imsa
              call tkfini
-             ialg=ialgo
+             ialg=mod(ialgo,10)
              npoint=npt
              do i=1,npt
               do k=1,3
@@ -5591,6 +5591,7 @@ c              pinit=abs(pinit)
              else
              pinit=1000
              endif
+             if(ialgo/10.eq.1)pinit=1/out(1)
              x(1)=xp(1,1)
              x(2)=nx/nz
              x(3)=xp(2,1)
@@ -5604,7 +5605,7 @@ c              pinit=abs(pinit)
               n=npars
               tol=xtol
               ifail=0
-              call tkhmd(1,n,x,f,tol,maxcal,ifail,er)
+              call tkhmd(1+(ialgo/10)*10,n,x,f,tol,maxcal,ifail,er)
               if(ifail.eq.0)then
 *
 * Smoothing
@@ -5626,7 +5627,7 @@ c               call tkhmd(2,n,x,f,tol,2,ifail1,er1)
               cx=-1.d0/sqrt(1.d0+x(2)**2+x(4)**2)
               out(4)=aycos(cx)
               if(x(5).ne.0)then
-              out(6)=1./x(5)*chrg
+              out(6)=1./x(5)
               else
               out(6)=1.e10
               endif
@@ -5915,12 +5916,14 @@ c        print *,' Fit failed ',ifail
               common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
      +        yn(3,maxpl),xmass,chrg
           real *8 xc(6),fc,tol,dlt
+          real *8 xcinit
           real *4 point(6)
           real *4 init(7),out(7)
           real* 8 m55(5,5,maxpl),sol(5),g(5),gg(5,5),
      +    icc(2,2,maxpl) ,aa(maxpl),bb(maxpl),fcb
           real *4 fact(maxpl),xmsr(maxpl,maxpl),xms(maxpl),fck(maxpl)
           ifail=0
+          xcinit=xc(5)
 
 *
 * Load starting Values
@@ -5953,7 +5956,12 @@ c        print *,' Fit failed ',ifail
             init(5)=-xc(4)*dnorm
             init(6)=-dnorm
             if(xc(5).ne.0)then
-             init(7)=1./xc(5)*chrg
+             if(icase/10.eq.0)then
+                init(7)=1./xc(5)*chrg
+             else
+                init(7)=1./xcinit*chrg
+                xc(5)=xcinit
+             endif
             else
              init(7)=1.e10
             endif
@@ -5985,7 +5993,7 @@ c        print *,' Fit failed ',ifail
               beta=max(abs(init(7)/sqrt(init(7)**2+xmass**2)),0.1)
               fact(i)=(sms*chrg/init(7)/beta)**2/abs(init(6))
              endif
-               if(icase.eq.1)then
+               if(mod(icase,10).eq.1)then
                do im=i,1,-1
                 xmsr(im,i)=0
                 do il=2,min(i,im)-1
@@ -6011,7 +6019,7 @@ c                xms(i)=fact(i)*(xp(3,i)-xp(3,i-1))**2*(i-2)*2  ! last 2 - tubes
                endif
                fck(i)=tkermt(out(1),point(1),ys(1,i),ims,xms(i),
      +          icc(1,1,i),aa(i),bb(i))
-              if(icase.eq.1)then
+              if(mod(icase,10).eq.1)then
                 call ucopy(out(1),init(1),7)
                else
                 call ucopy(out(4),init(4),4)

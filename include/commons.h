@@ -589,6 +589,7 @@ char amsdatabase[128];
 #define AMSDATADIR COMMON_BLOCK(AMSDATADIR,amsdatadir)
 COMMON_BLOCK_DEF(AMSDATADIR_DEF,AMSDATADIR);
 
+const integer nalg=3;
 class TRCALIB_DEF{
 public:
 integer CalibProcedureNo;
@@ -606,14 +607,14 @@ integer UPDF;
 integer LaserRun;
 integer PrintBadChList;
                                 // Proc # 2 starts here
-integer EventsPerIteration[2];
-integer NumberOfIterations[2];
+integer EventsPerIteration[nalg];
+integer NumberOfIterations[nalg];
                                  // Select Cut
-geant BetaCut[2][2];             // Beta limits
-geant HitsRatioCut[2];           // Hit Ratio
+geant BetaCut[nalg][2];             // Beta limits
+geant HitsRatioCut[nalg];           // Hit Ratio  // cos(pred,fitted) for alg 3
                                  // Global fit cuts
-geant MomentumCut[2][2];         // momentum ----------
-geant Chi2Cut[2];                // chi2 --------------- 
+geant MomentumCut[nalg][2];         // momentum ----------
+geant Chi2Cut[nalg];                // chi2 --------------- 
 geant InitialCoo[6][3];          // Coordinates displacement
 geant InitialRM[6][3][3];        // Rot Matrix --------
 };

@@ -82,6 +82,12 @@ if(iftxt){
    for(j=0;j<3;j++){
      for(k=0;k<3;k++)iftxt >> _HeadLadder[1][idum]._nrm[j][k];
    }
+   if(lay=='P'){
+    _HeadLadder[1][idum]._nrm[2][0]*=-1;
+    _HeadLadder[1][idum]._nrm[2][1]*=-1;
+    _HeadLadder[1][idum]._nrm[0][2]*=-1;
+    _HeadLadder[1][idum]._nrm[1][2]*=-1;
+   }
  }
 
 
@@ -100,7 +106,7 @@ if(iftxt.eof() ){
 }
 else {
  _ReadOK=1;
- cout <<"TKDBc::read-I-"<<active<<" active sensors have been read"<<endl;
+ cout <<"TKDBc::read-I-"<<active<<" active sensors have been read from "<<fnam<<endl;
  updatef();
 }
 }

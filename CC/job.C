@@ -310,20 +310,28 @@ TRCALIB.UPDF=4;
 TRCALIB.PrintBadChList=0;
 TRCALIB.EventsPerIteration[0]=100;
 TRCALIB.EventsPerIteration[1]=100;
-TRCALIB.NumberOfIterations[0]=200;
-TRCALIB.NumberOfIterations[1]=200;
+TRCALIB.EventsPerIteration[2]=100;
+TRCALIB.NumberOfIterations[0]=100;
+TRCALIB.NumberOfIterations[1]=100;
+TRCALIB.NumberOfIterations[2]=100;
 TRCALIB.BetaCut[0][0]=0.7;
 TRCALIB.BetaCut[0][1]=10.;
 TRCALIB.BetaCut[1][0]=1;
 TRCALIB.BetaCut[1][1]=10;
+TRCALIB.BetaCut[2][0]=0.7;
+TRCALIB.BetaCut[2][1]=1.4;
 TRCALIB.HitsRatioCut[0]=2.2;
 TRCALIB.HitsRatioCut[1]=2.2;
+TRCALIB.HitsRatioCut[2]=0.998;
 TRCALIB.MomentumCut[0][0]=-FLT_MAX;
 TRCALIB.MomentumCut[0][1]=FLT_MAX;
 TRCALIB.MomentumCut[1][0]=3;
 TRCALIB.MomentumCut[1][1]=FLT_MAX;
+TRCALIB.MomentumCut[2][0]=-FLT_MAX;
+TRCALIB.MomentumCut[2][1]=FLT_MAX;
 TRCALIB.Chi2Cut[0]=3;
 TRCALIB.Chi2Cut[1]=3;
+TRCALIB.Chi2Cut[2]=100;
 int i,j,k;
 for (i=0;i<6;i++){
  for(j=0;j<3;j++){
@@ -1194,6 +1202,7 @@ if(isCalibration() & CAMS)_caaxinitjob();
 }
 
 void AMSJob::_catkinitjob(){
+cout <<" AMSJob::_catkinitjob()-i_Initialized for Proc no  "<<TRCALIB.CalibProcedureNo<<endl;
 AMSgObj::BookTimer.book("CalTrFill");
 AMSgObj::BookTimer.book("CalTrFit");
 if(TRCALIB.CalibProcedureNo == 1 || TRCALIB.CalibProcedureNo==4){
@@ -1201,10 +1210,10 @@ if(TRCALIB.CalibProcedureNo == 1 || TRCALIB.CalibProcedureNo==4){
 }
 else if(TRCALIB.CalibProcedureNo == 2){
 int i,j;
-for(i=0;i<2;i++){
+for(i=0;i<nalg;i++){
   for(j=0;j<tkcalpat;j++){
     AMSTrCalibFit::setHead(i,j, new 
-    AMSTrCalibFit(j,TRCALIB.EventsPerIteration[i],TRCALIB.NumberOfIterations[i],i));
+    AMSTrCalibFit(j,TRCALIB.EventsPerIteration[i],TRCALIB.NumberOfIterations[i],i,GCKINE.ikine));
   }
 }
 }
@@ -1359,6 +1368,8 @@ void AMSJob::_reaxinitjob(){
   }
 
 
+if (AMSJob::gethead()->isMonitoring()) {
+
   const   int nids = 17;
   
   int16u ids[nids] =
@@ -1408,6 +1419,11 @@ void AMSJob::_reaxinitjob(){
     HBOOK1(300001,"Length (words) TOF",200,0.,600.,0.);
     HBOOK1(300002,"Length (words) Tracker",300,0.,1500.,0.);
     HBOOK1(300003,"Time Difference(msec)",500,-0.02,80.-0.02,0);
+
+
+}
+
+
 }
 
 void AMSJob::_retrdinitjob(){
@@ -1754,13 +1770,17 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd6",isRealData()),
 }
 
 {
-  tm begin=AMSmceventg::Orbit.Begin;
+  tm begin;
   tm end;
   if(AMSFFKEY.Update==87){
+    begin=AMSmceventg::Orbit.Begin;
     end=AMSmceventg::Orbit.End;
     AMSEvent::SetShuttlePar();
   }
-  else end=AMSmceventg::Orbit.Begin;
+  else{
+     begin=AMSmceventg::Orbit.End;
+     end=AMSmceventg::Orbit.Begin;
+  }
   TID.add (new AMSTimeID(AMSID("ShuttlePar",isRealData()),
                          begin,end,
                          sizeof(AMSEvent::Array),(void*)AMSEvent::Array));
@@ -1768,7 +1788,7 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd6",isRealData()),
 
 
 if(MISCFFKEY.BeamTest){
-  tm begin=AMSmceventg::Orbit.Begin;
+  tm begin=AMSmceventg::Orbit.End;
   tm end=AMSmceventg::Orbit.Begin;
   TID.add (new AMSTimeID(AMSID("BeamPar",isRealData()),
                          begin,end,
@@ -1779,12 +1799,16 @@ if(MISCFFKEY.BeamTest){
 
 
 {
-  tm begin=AMSmceventg::Orbit.Begin;
+  tm begin;
   tm end;
   if(AMSFFKEY.Update==88){
+    begin=AMSmceventg::Orbit.Begin;
     end=AMSmceventg::Orbit.End;
   }
-  else end=AMSmceventg::Orbit.Begin;
+  else{
+     begin=AMSmceventg::Orbit.End;
+     end=AMSmceventg::Orbit.Begin;
+  }
   AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
                           isRealData()),begin,end,getstatustable()->getsize(),
                           getstatustable()->getptr()));

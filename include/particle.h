@@ -95,7 +95,7 @@ public:
   void toffit(); // TOF fit
   void antifit(); // Anti fit
   void pid();   // particle identification
-  void refit(); // refit if necessary;
+  void refit(int i=0); // refit if necessary;
   static integer build(integer refit=0);
   static void print();
   number getsinmagmer()const{return _SinMagMeridian;}
@@ -106,8 +106,6 @@ public:
 
    number  geterrmass() {return _ErrMass;}
    number  geterrmomentum() {return _ErrMomentum;}
-   number  gettheta() {return _Theta;}
-   number  getphi() {return _Phi;}
    AMSPoint getcoo() {return _Coo;}
 
 
@@ -120,6 +118,9 @@ AMSCTCCluster* getpctc(int n)   {  return n>=0 && n<2 ? _pctc[n]:0;}
 number  getmass() const {return _Mass;}
 number  getmomentum() const {return _Momentum;}
 number getcharge() const {return _Charge;}
+   number  gettheta() {return _Theta;}
+   number  getphi() {return _Phi;}
+
 void       setpbeta(AMSBeta* p)     {_pbeta   = p;}
 void       setpcharge(AMSCharge* p) {_pcharge = p;}
 void       setptrack(AMSTrTrack* p) {_ptrack  = p;}

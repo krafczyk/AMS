@@ -468,15 +468,16 @@ I13 DPS(1);                               // Dynamic pedestal subtraction off(0)
                                        // on ( >0)
 I14 UPDF;                               // Dynamic pedestal update freq
 I15 LaserRun(0)
-I16 PrintBadChList(0)                  // 
-I17  EventsPerIteration[2](100,100)    // Events in one bunch
-I19 NumberOfIterations[2](200,200)    // number of bunches
-R21 BetaCut[2][2](0.7,10.,1.,10.)    // Beta limits
-R25 HitsRatioCut[2](2.5,2.5)          // Hit Ratio Limits
-R27 MomentumCut[2][2](-inf,inf,3,inf) // momentum ----------
-R31 Chi2Cut[2](3.,3.)                 // chi2 ---------------
-R33 InitialCoo[6][3](0)               // Coordinates displacement
-R51 InitialRM[6][3][3](0)             // Rot Matrix --------
+I16 PrintBadChList(0)                  //
+                                       // TRCALIB # 2 starts here 
+I17  EventsPerIteration[3](100,100,100)    // Events in one bunch
+I20 NumberOfIterations[3](200,200,200)    // number of bunches
+R23 BetaCut[3][2](0.7,1.,0.7,10.,10.,1.4)    // Beta limits
+R29 HitsRatioCut[3](2.5,2.5,0.998)          // Hit Ratio Limits
+R32 MomentumCut[3][2](-inf,3,-inf,inf,inf,inf) // momentum ----------
+R38 Chi2Cut[3](3.,3.,100.)                 // chi2 ---------------
+R41 InitialCoo[6][3](0)               // Coordinates displacement
+R59 InitialRM[6][3][3](0)             // Rot Matrix --------
 };
 
 
