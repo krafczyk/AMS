@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.75 2001/12/12 10:17:02 choutko Exp $
+//  $Id: timeid.C,v 1.76 2002/03/22 13:07:35 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -673,12 +673,13 @@ integer AMSTimeID::readDB(integer reenter){
 
 char* AMSTimeID::_getsubdirname(time_t begin){
 static char  _buf[32];
+tm * tm1=localtime(&begin);
+int tzz=timezone;
 tm * tmp=gmtime(&begin);
 tmp->tm_hour=0;
 tmp->tm_min=0;
 tmp->tm_sec=0;
-begin=mktime(tmp);
-sprintf(_buf,"%d",mktime(tmp));
+sprintf(_buf,"%d",mktime(tmp)-3600-tzz);
 return _buf;
 }
 
