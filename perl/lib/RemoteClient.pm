@@ -1,6 +1,7 @@
-# $Id: RemoteClient.pm,v 1.93 2003/04/09 11:24:32 alexei Exp $
+# $Id: RemoteClient.pm,v 1.94 2003/04/09 16:03:57 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
+#
 #
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -38,7 +39,7 @@ my     $monmcdbMySQL ='http://pcamsf0.cern.ch/cgi-bin/mon/monmcdb.mysql.cgi';
 my     $rccgi      ='http://pcamsf0.cern.ch/cgi-bin/mon/rc.o.cgi?queryDB=Form';
 my     $rccgiMySQL ='http://pcamsf0.cern.ch/cgi-bin/mon/rc.mysql.cgi?queryDB=Form';
 
-my     $rchtml='http://ams.cern.ch/AMS/Computing/mcproduction/rc.html';
+my     $rchtml='http://pcamsf0.cern.ch/rc.html';
 my     $rchtmlMySQL='http://ams.cern.ch/AMS/Computing/mcproduction/rc.mysql.html';
 
 my     $validatecgi      ='http://pcamsf0.cern.ch/cgi-bin/mon/validate.o.cgi';
@@ -477,6 +478,14 @@ foreach my $file (@allfiles){
         }        
     }
     
+        if($file =~/^\.Help/ ){
+         my $full=$dir."/$file";
+         open(FILE,"<".$full) or die "Unable to open file $full \n";
+         my $buf;
+         read(FILE,$buf,1638400) or die "Unable to read file $full \n";;
+         $tsyntax->{headers}->{help}=$buf;
+         close FILE;
+        }
     if ($file =~/^\./){
         if($file =~/^\.Header/ ){
         my $full=$dir."/$file";
@@ -490,7 +499,7 @@ foreach my $file (@allfiles){
         else {
             next;
         }
-    }
+}
 } 
     if (not defined $self->{TempT}){
         die "No Basic Templates Available";
@@ -1339,7 +1348,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             print "</b></td></tr>\n";
         htmlTableEnd();
 # Run Parameters
-          print "<tr><td><b><font color=\"green\" size=2>Run Parameters</font></b>\n";
+          print "<tr><td><b><font color=\"green\" size=2>Cite HW Parameters</font></b>\n";
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
           print "<tr valign=middle><td align=left><b><font size=\"-1\"> Particle : </b></td> <td colspan=1>\n";
@@ -1511,8 +1520,14 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
-             foreach my $dataset (@{$self->{DataSetsT}}){
-              print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=$dataset->{name} >$dataset->{name}<BR>\n";
+             my $firstdataset = 1;
+             my $checked="CHECKED";
+              foreach my $dataset (@{$self->{DataSetsT}}){
+              if ($firstdataset++ != 1) {
+                  $checked="";
+              }
+               print "</b>
+                     <INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=$dataset->{name} $checked>$dataset->{name}<BR>\n";
               print "</b></font></td></tr>\n";
              }
             print "</TABLE>\n";
@@ -1520,8 +1535,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             print "<b><font color=\"red\" size=\"3\">Template</font></b>\n";
             print "</td><TD>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-            print "<tr><td><font size=\"-1\"<b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=\"Basic\" CHECKED>Basic<BR>\n";
+            print "<tr><td><font size=\"-1\"</b>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=\"Basic\" >Basic<BR>\n";
             print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=\"Advanced\" >Advanced<BR>\n";
             print "</b></font></td></tr>\n";
             print "</TABLE>\n";
@@ -1529,8 +1544,9 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
           
           print "<p>\n";
           print "<br>\n";
-          print "<td><input type=\"submit\" name=\"FormType\" value=\"ReadMeFirst\">        ";
-          print "<input type=\"submit\" name=\"FormType\" value=\"Continue\"></td>        ";
+          print "<td><input type=\"submit\" name=\"FormType\" value=\"Continue\">       ";
+
+          htmlReadMeFirst();
           htmlReturnToMain();
           htmlFormEnd();
          htmlBottom();
@@ -1822,7 +1838,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
          htmlTop();
          $self->htmlTemplateTable("ReadMeFirst (click [Return] to Select Template or Production DataSet)");
          print "<p></p>\n";
-         print $q->textarea(-name=>"RMF",-default=>" ",-rows=>30,-columns=>80);
+         print $q->textarea(-name=>"RMF",-default=>"$self->{tsyntax}->{headers}->{help}",-rows=>30,-columns=>80);
          print "<BR><TR>";
 #         print $q->submit(-name=>"FormType", -value=>"Return");
          print htmlBottom();
@@ -1863,6 +1879,21 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
           print "</b></td></tr>\n";
           htmlTextField("Nick Name","text",24,"MC02-basic","QNick"," ");  
           print "</TABLE>\n";
+# Cite HW Parameters
+          print "<tr><td><b><font color=\"blue\">Cite HW Parameters</font></b></i> \n";
+          print "</td><td>\n";
+          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+              print "<tr valign=middle><td align=left><b><font  size=\"-1\"> CPU Type :</b>
+                     </td><td colspan=1>\n";
+              print "<select name=\"QCPUType\" >\n";
+               my %hash=%{$self->{cputypes}};
+               my @keysa=sort {$hash{$b} <=>$hash{$a}} keys %{$self->{cputypes}};
+              foreach my $cputype (@keysa) {
+                  print "<option value=\"$cputype\">$cputype </option>\n";
+              }
+              print "</select>\n";
+          htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
+          htmlTableEnd();
 # Run Parameters
           print "<tr><td><b><font color=\"blue\">Run Parameters</font><font color=\"black\">
                  <i> (if in italic then cannot be changed)</font></b></i> \n";
@@ -1882,18 +1913,19 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
             htmlTextField("Total Events","number",9,1000000.,"QEv"," ");  
             htmlTextField("Total Runs","number",7,3.,"QRun"," ");  
-            my ($rndm1,$rndm2) = $self->getrndm();
+            my ($rid,$rndm1,$rndm2) = $self->getrndm();
 
+            htmlHiddenTextField("rndms","hidden",12,$rid,"QRNDMS"," ");  
             htmlHiddenTextField("rndm1","hidden",12,$rndm1,"QRNDM1"," ");  
             htmlHiddenTextField("rndm2","hidden",12,$rndm2,"QRNDM2"," ");  
 
-             htmlText("<i>rndm1 </i>",$rndm1);
-             htmlText("<i>rndm2 </i>",$rndm2);
+            htmlText("<i>rndm sequence number </i>",$rid);
+            htmlText("<i>rndm1 </i>",$rndm1);
+            htmlText("<i>rndm2 </i>",$rndm2);
 
             htmlTextField("Begin Time","text",8,"01062005","QTimeB"," (ddmmyyyy)");  
 
             htmlTextField("End Time","text",8,"01062008","QTimeE"," (ddmmyyyy)");  
-            htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
            htmlTableEnd();
             print "<tr><td><b><font color=\"green\">Automatic DST files transfer to Server</font></b>\n";
             print "</td><td>\n";
@@ -1966,13 +1998,28 @@ DDTAB:         $self->htmlTemplateTable(" ");
          htmlBottom();
          } elsif($self->{q}->param("CTT") eq "Advanced"){
              htmlTop();
-             $self->htmlTemplateTable("Select  Parameters for Advanced Request");
+             $self->htmlTemplateTable("Select Parameters for Advanced Request");
 # Job Nick Name
           print "<tr><td><b><font color=\"red\">Job Nick Name</font></b>\n";
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
           htmlTextField("Nick Name","text",24,"MC02-advanced","QNick"," ");  
           print "</TABLE>\n";
+# Cite Parameters
+              print "<tr><td><b><font color=\"blue\">Cite HW Parameters</font></b>\n";
+              print "</td><td>\n";
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+              print "<tr valign=middle><td align=left><b><font  size=\"-1\"> CPU Type :</b>
+                     </td><td colspan=1>\n";
+              print "<select name=\"QCPUType\" >\n";
+               my %hash=%{$self->{cputypes}};
+               my @keysa=sort {$hash{$b} <=>$hash{$a}} keys %{$self->{cputypes}};
+              foreach my $cputype (@keysa) {
+                  print "<option value=\"$cputype\">$cputype </option>\n";
+              }
+              print "</select>\n";
+              htmlTextField("CPU clock","number",10,1000,"QCPU"," [MHz]");  
+              htmlTableEnd();
 # Run Parameters
               print "<tr><td><b><font color=\"blue\">Run Parameters</font></b>\n";
               print "</td><td>\n";
@@ -1991,12 +2038,18 @@ DDTAB:         $self->htmlTemplateTable(" ");
               htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
               htmlTextField("Total Events","number",12,1000000.,"QEv"," ");  
               htmlTextField("Total Runs","number",12,3.,"QRun"," ");  
-              my ($rndm1,$rndm2) = $self->getrndm();
-              htmlTextField("rndm1","text",12,$rndm1,"QRNDM1"," ");  
-              htmlTextField("rndm2","text",12,$rndm2,"QRNDM2"," ");  
+              my ($rid,$rndm1,$rndm2) = $self->getrndm();
+
+              htmlHiddenTextField("rndms","hidden",12,$rid,"QRNDMS"," ");  
+              htmlHiddenTextField("rndm1","hidden",12,$rndm1,"QRNDM1"," ");  
+              htmlHiddenTextField("rndm2","hidden",12,$rndm2,"QRNDM2"," ");  
+
+              htmlText("<i>rndm sequence number </i>",$rid);
+              htmlText("<i>rndm1 </i>",$rndm1);
+              htmlText("<i>rndm2 </i>",$rndm2);
+
               htmlTextField("Begin Time","text",11,"01062005","QTimeB"," (ddmmyyyy)");  
               htmlTextField("End Time","text",11,"01062008","QTimeE"," (ddmmyyyy)");  
-              htmlTextField("CPU clock","number",10,1000,"QCPU"," [MHz]");  
               htmlTextField("Setup","text",20,"AMS02","QSetup"," ");
               htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
            htmlTableEnd();
@@ -2185,23 +2238,31 @@ DDTAB:         $self->htmlTemplateTable(" ");
             print "</b></td></tr>\n";
             htmlTextField("Nick Name","text",24,"MC02-dataset","QNick"," ");  
             print "</TABLE>\n";
+# Cite Parameters
+              print "<tr><td><b><font color=\"blue\">Cite HW Parameters</font></b>\n";
+              print "</td><td>\n";
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+              print "<tr valign=middle><td align=left><b><font  size=\"-1\"> CPU Type :</b>
+                     </td><td colspan=1>\n";
+              print "<select name=\"QCPUType\" >\n";
+               my %hash=%{$self->{cputypes}};
+               my @keysa=sort {$hash{$b} <=>$hash{$a}} keys %{$self->{cputypes}};
+              foreach my $cputype (@keysa) {
+                  print "<option value=\"$cputype\">$cputype </option>\n";
+              }
+              print "</select>\n";
+              htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
+            htmlTableEnd();
 # Run Parameters
               print "<tr><td><b><font color=\"blue\">Run Parameters</font></b>\n";
               print "</td><td>\n";
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
               $q->param("QEv",0);
               htmlTextField("CPU Time Limit Per Job","number",9,80000,"QCPUTime"," sec");  
-            print "<tr valign=middle><td align=left><b><font  size=\"-1\"> CPU Type :</b></td><td colspan=1>\n";
-            print "<select name=\"QCPUType\" >\n";
-              my %hash=%{$self->{cputypes}};
-              my @keysa=sort {$hash{$b} <=>$hash{$a}} keys %{$self->{cputypes}};
-            foreach my $cputype (@keysa) {
-                 print "<option value=\"$cputype\">$cputype </option>\n";
-            }
-            print "</select>\n";
-              htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
               htmlTextField("Total Jobs Requested","number",7,5.,"QRun"," ");  
               htmlTextField("Total  Real Time Required","number",3,10,"QTimeOut"," (days)");  
+              my ($rid,$rndm1,$rndm2) = $self->getrndm();
+              htmlTextField("RNDM sequence number","number",7,$rid,"QRNDMS"," ");
             htmlTableEnd();
             if ($self->{CCT} eq "remote") {
              print "<tr><td>\n";
@@ -2262,7 +2323,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=$dataset->{did}>\n"; 
            print "<br>\n";
            print "<input type=\"submit\" name=\"ProductionQuery\" value=\"Submit Request\"></br><br>        ";
-           print "<a href=load.cgi?$self->{UploadsHREF}/Help.txt target=\"_blank\">H E L P \n";
+           print "<b><a href=load.cgi?$self->{UploadsHREF}/Help.txt target=\"_blank\">H E L P </b>\n";
            htmlReturnToMain();
            htmlBottom();
              }
@@ -2333,7 +2394,7 @@ print qq`
           print $q->textfield(-name=>"QEv",-default=>1000000);
                 print "Number of Runs (Max 100)";
           print $q->textfield(-name=>"QRun",-default=>3);
-                my ($rndm1,$rndm2) = $self->getrndm();
+            my ($rid,$rndm1,$rndm2) = $self->getrndm();
           print "<BR>";
                 print "RNDM1 ";
           print $q->textfield(-name=>"QRNDM1",-default=>$rndm1);
@@ -2386,7 +2447,7 @@ print qq`
           print $q->textfield(-name=>"QEv",-default=>1000000);
                 print "Number of Jobs (Max 100)";
           print $q->textfield(-name=>"QRun",-default=>3);
-                my ($rndm1,$rndm2) = $self->getrndm();
+            my ($rid,$rndm1,$rndm2) = $self->getrndm();
           print "<BR>";
                 print "RNDM1 ";
           print $q->textfield(-name=>"QRNDM1",-default=>$rndm1);
@@ -2609,7 +2670,7 @@ print qq`
          foreach my $tmp (@{$dataset->{jobs}}) {
             if($template eq $tmp->{filename}){
                 $templatebuffer=$tmp->{filebody};
-                my ($rndm1,$rndm2) = $self->getrndm();
+                my ($rid,$rndm1,$rndm2) = $self->getrndm();
                 if(not defined $q->param("QRNDM1")){
                     $q->param("QRNDM1",$rndm1);
                 }
@@ -3037,7 +3098,7 @@ print qq`
            }
        }
          if($i > 1){
-             ($rndm1,$rndm2)=$self->getrndm();
+            my ($rid,$rndm1,$rndm2) = $self->getrndm();
          }
           $buf=~ s/RNDM1=/RNDM1=$rndm1/;         
           $buf=~ s/RNDM2=/RNDM2=$rndm2/;         
@@ -3646,24 +3707,26 @@ sub getrndm(){
         else{
             $maxrun=$res->[0][0];
         }
-        $sql="select rndm1,rndm2 from RNDM where rid=$maxrun";
+        $sql="select rid,rndm1,rndm2 from RNDM where rid=$maxrun";
         my $res=$self->{sqlserver}->Query($sql);
         if( not defined $res->[0][0] ){
           my $big=2147483647;
           my $rndm1=int (rand $big);
           my $rndm2=int (rand $big);
+          my $rid  = 0;
            Warning::error($self->{q},"unable to read rndm table $maxrun");
 
           return ($rndm1,$rndm2);
          }
-    my $rndm1=$res->[0][0];
-    my $rndm2=$res->[0][1];
+    my $rid  =$res->[0][0];
+    my $rndm1=$res->[0][1];
+    my $rndm2=$res->[0][2];
              $sql="UPDATE RNDM SET rid=-rid where rid=$maxrun";
              $self->{sqlserver}->Update($sql);
              $maxrun=-$maxrun+1;
              $sql="UPDATE RNDM SET rid=-rid where rid=$maxrun";
              $self->{sqlserver}->Update($sql);
-             return ($rndm1,$rndm2);
+             return ($rid,$rndm1,$rndm2);
  
     }
 
@@ -3775,6 +3838,12 @@ sub htmlText {
 sub htmlReturnToMain {
             print "<p><tr><td><i>\n";
             print "Return to <a href=$rchtml> MC02 Remote Client Request</a>\n";
+            print "</i></td></tr>\n";
+        }
+
+sub htmlReadMeFirst {
+            print "<p><tr><td><i>\n";
+            print "<font color=\"green\"><b><a href=http://pcamsf0.cern.ch/cgi-bin/mon/load.cgi?AMS02MCUploads/Help.txt target=\"_blank\"> ReadMeFirst</a></b></font>\n";
             print "</i></td></tr>\n";
         }
 
@@ -3931,7 +4000,7 @@ sub queryDB {
             print "</b></td></tr>\n";
         htmlTableEnd();
 # Run Parameters
-          print "<tr><td><b><font color=\"blue\" size=2>Run Parameters</font></b>\n";
+          print "<tr><td><b><font color=\"blue\" size=2>Cite HW Parameters</font></b>\n";
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
           print "<tr valign=middle><td align=left><b><font size=\"-1\"> Particle : </b></td> <td colspan=1>\n";
