@@ -1,4 +1,4 @@
-//  $Id: backup.C,v 1.7 2001/01/22 17:32:54 choutko Exp $
+//  $Id: backup.C,v 1.8 2001/05/07 08:32:44 choutko Exp $
 /* Directory backup from Dir1 Dir2 */
 #include <time.h>
 #include <iostream.h>
@@ -14,8 +14,8 @@
 #include <string.h>
 int DELETE,DELCOPY,COPY,MKDIR,TOUCHED;
 int AMSbi(char *a[], char * obj, int i);
-int _sort(dirent ** d1, dirent ** d2);
-int _select(dirent *d1);
+int _sort(const dirent ** d1, const dirent ** d2);
+int _select(const dirent *d1);
 void check(char *buf, int del);
 int backup(char * dir1 , char * dir2, int del);
 int main (int argc, char *argv[]) {
@@ -78,11 +78,11 @@ char *dir1, *dir2;
 
 
 }
-int _sort(dirent ** d1, dirent **d2){
+int _sort(const dirent ** d1, const dirent **d2){
   return strcmp( (*d1)->d_name, (*d2)->d_name);
 }
 
-int _select(dirent *d1){
+int _select(const dirent *d1){
  if(!strcmp(d1->d_name,"."))return 0;
  if(!strcmp(d1->d_name,".."))return 0;
  return 1;
@@ -96,8 +96,8 @@ int backup(char * dir1, char * dir2, int erase){
    char buf2[256];
    dirent ** namelist1;
    dirent ** namelist2;
-   char ** ar1;
-   char ** ar2;
+   char ** ar1=0;
+   char ** ar2=0;
    int l1 = scandir(dir1, &namelist1,&_select,&_sort);
     if (l1<0) {
       cout <<"Backup-F-CanNotScanDir "<<dir1<<endl;

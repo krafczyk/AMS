@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.196 2001/04/28 14:19:56 kscholbe Exp $
+#  $Id: Mopt,v 1.197 2001/05/07 08:32:30 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -29,6 +29,67 @@ LIB=../lib/aix/
 TIMEL=
 endif
 ifeq  "$(shell uname)"  "OSF1" 
+ifdef DEC-g++
+
+CC=g++ 
+FF=g77
+LD=g++
+BINMT=../bin/osf1g++/mt/
+BIN=../bin/osf1g++/
+EXE=../exe/osf1g++/
+LIB=../lib/osf1g++/
+LDFLAGSIDL=   -lorbitcpp 
+LDFLAGSIDLMT=   -lorbitcpp -lORBit-mt -lIIOP-mt -lORBitutil-mt -lgthread -lglib -lpthread -lpopt 
+LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit -lglib -lIIOP -lORBitutil -lglib -lnsl  
+LDFLAGSSTATICIDLMT= -static $(LDFLAGSIDLMT) 
+IDL=orbit-idl
+IDLMT=orbit-idl-mt
+IDLCPP=orbit-idl -l c++
+CPP=g++ 
+CCC=gcc
+CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT -I/usr/include/ORBit-mt
+SRC=$(BIN)
+SRCMT=$(BINMT)
+INCLUDE=../include/
+IFLAGS= -I/usr/include -I$(SRC)
+ifdef AMSDEBUG
+CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include   -I../db  
+CFLAGSTOFSIM= $(CFLAGS)
+CFLAGSn=      $(CFLAGS)
+CFLAGSDAQ=    $(CFLAGS) -D__ALPHA__
+FFLAGS=   -fno-automatic -g -I../include  
+FFLAGSn=   -fno-automatic -g -I../include  
+CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db  
+else
+CFLAGSB=      -D__BATCH__      -I../include   -I../db  
+CFLAGSTOFSIM= $(CFLAGSB)     -O1   
+CFLAGSDAQ=    $(CFLAGSB) -O2 -D__ALPHA__
+CFLAGSn=      $(CFLAGSB) -O2
+CFLAGS=      $(CFLAGSB) -O2
+FFLAGS=   -fno-automatic -O -I../include
+FFLAGSn=   -fno-automatic  -I../include
+endif
+DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include  -I$(SRC)
+LDFLAGS=  -static  -lUfor   -lfor -lFutil -lots -lm   -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm  -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/osf1g++ -lamsut  -lg2c
+#LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
+TIMEL=
+INCS= $(wildcard $(SRC)*.*h)    
+INCSCPP= $(SRC)server-cpp-stubs.hh $(SRC)server-cpp-skels.hh $(SRC)server-cpp-common.hh 
+SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c 
+SRCSMT= $(SRCMT)server-stubs.c $(SRCMT)server-skels.c $(SRCMT)server-common.c 
+SRCSCPP= $(SRC)server-cpp-stubs.cc $(SRC)server-cpp-skels.cc $(SRC)server-cpp-common.cc 
+SRCSCPPMT= $(SRCMT)server-cpp-stubs.cc $(SRCMT)server-cpp-skels.cc $(SRCMT)server-cpp-common.cc 
+OBJECTCO=$(BIN)server-stubs.o $(BIN)server-skels.o $(BIN)server-common.o  
+OBJECTCOMT=$(BINMT)server-stubs.o $(BINMT)server-skels.o $(BINMT)server-common.o 
+OBJECTCL= $(BIN)server-cpp-stubs.o $(BIN)server-cpp-common.o
+OBJECTCLMT= $(BINMT)server-cpp-stubs.o $(BINMT)server-cpp-common.o
+OBJECTSEAUX=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver.o
+OBJECTSEAUXMT=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client_mt.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver_mt.o
+OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL) 
+OBJECTSEMT=  $(BINMT)server-cpp-skels.o   $(OBJECTCLMT) 
+
+
+else 
 SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
 ROOTLIBS =
 
@@ -68,6 +129,7 @@ BIN=../bin/osf1/
 EXE=../exe/osf1/
 LIB=../lib/osf1/
 TIMEL=
+endif
 endif
 ifeq  "$(shell uname)"  "Linux"
 CC=g++ 
