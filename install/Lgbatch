@@ -43,15 +43,18 @@ endif
 #
 #
 #
-FILES= ../CC/gbatch.C
-OBJECTS= ..$(BIN)/gbatch.o
+FILES= ../CC/gbatch.C ../F/sgif.F
+OBJECTS= ..$(BIN)/gbatch.o ..$(BIN)/sgif.o
 gbatch.exe:	$(OBJECTS)
 	$(FF) -c $(FFLAGS) ../F/timel.F -o ..$(BIN)/timel.o
-	$(LD) -v -o ..$(EXE)/gbatch.exe $(OBJECTS) $(TIMEL) -L..$(LIB) -lams $(LDFLAGS)
+	$(LD) -v -o ..$(EXE)/gbatch.exe $(OBJECTS) $(TIMEL)  -L..$(LIB) -lams $(LDFLAGS) 
 
 	chmod +x  ..$(EXE)/gbatch.exe 
 
 
 ..$(BIN)/gbatch.o:         ../CC/gbatch.C
 	$(CC) -c $(CFLAGS) ../CC/gbatch.C -o ..$(BIN)/gbatch.o
+
+..$(BIN)/sgif.o:         ../F/sgif.F
+	$(FF) -c $(FFLAGS) ../F/sgif.F -o ..$(BIN)/sgif.o
 
