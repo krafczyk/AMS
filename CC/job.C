@@ -751,8 +751,8 @@ void AMSJob::_reantidata(){
 }
 //========================================================================
 void AMSJob::_rectcdata(){
-  CTCRECFFKEY.Thr1=0.25; //(1)
-  CTCRECFFKEY.ThrS=0.5;  //(2)
+  CTCRECFFKEY.Thr1=0.25/2; //(1)
+  CTCRECFFKEY.ThrS=0.5/2;  //(2)
   CTCRECFFKEY.reprtf[0]=0;//(3) Reco print_hist flag (0/1->no/yes)
   CTCRECFFKEY.reprtf[1]=0;//(4) DAQ-print (1/2->print for decoding/decoding+encoding)
   CTCRECFFKEY.reprtf[2]=0;//(5) spare
