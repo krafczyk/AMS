@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.16 2002/04/11 14:17:55 choutko Exp $
+#  $Id: Mopt_Root,v 1.17 2002/04/23 07:56:30 alexei Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -60,9 +60,11 @@ CFLAGSDAQ= $(CFLAGS)
 FFLAGS=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian 
 FFLAGSn=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian 
 DFLAGS=     -I/usr/include  -I../include 
-LDFLAGS=    -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag $(ROOTLIBS) -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut 
+LDFLAGS=    -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag $(ROOTLIBS) -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut 
+LDFLAGSSTATIC=    -L$(ROOTSYS)/lib -lRoot $(ROOTSYS)/lib/R__dummy.o -lcxxstd -lcxx -lexc -lots -lc  -lUfor   -lfor -lFutil -lm -L$(CERNDIR)/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag  -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut 
 SHLDFLAGS=    -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  $(ROOTLIBS) -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut 
 SOFLAGS = -Wl,-expect_unresolved,* -call_shared
+FLAGSSTATIC= -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved "*" -g0 -O1 
 CC=cxx 
 ifeq "$(shell cxx -V | grep -c 6.)" "1"
 CC=cxx  
@@ -124,8 +126,10 @@ endif
 DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include  -I$(SRC)
 #LDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux $(ROOTLIBS) -lamsut  -lg2c -ldl
 LDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux $(ROOTLIBS) -lamsut  -lg2c -ldl
-SHLDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux $(ROOTLIBS) -lg2c -ldl
+LDFLAGSSTATIC=      -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux $(ROOTLIBS) -lamsut  -lg2c -ldl
+SHLDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lg2c -ldl
 SOFLAGS = -shared
+FLAGSSTATIC=
 TIMEL=
 INCS= $(wildcard $(SRC)*.*h)    
 SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c 
@@ -205,11 +209,16 @@ standalone: $(EXE)/gbatch_r.exe
 
 
 $(EXE)/gbatch_r.exe:	$(OBJECTS)
+	rm $(BIN)gbatch.o
+	$(CC) -c $(CFLAGS) -D__USE_STD_IOSTREAM $(SCC)gbatch.C -o $(BIN)gbatch.o
 	$(LD) -v -o $(EXE)/gbatch_r.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
+static: $(EXE)gbatch_ra.exe
 
-#$(EXE)/gbatch_r.exe:	$(OBJECTS)
-#	$(LD) -v -o $(EXE)/gbatch_r.exe $(BIN)trd.o $(OBJECTS) $(TIMEL) $(LDFLAGS)
+$(EXE)gbatch_ra.exe:	$(OBJECTS)
+	rm $(BIN)gbatch.o
+	$(CC) -c $(CFLAGS) -D__USE_STD_IOSTREAM -D__ROOTA__ $(SCC)gbatch.C -o $(BIN)gbatch.o
+	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch_ra.exe $(OBJECTS) $(TIMEL) $(LDFLAGSSTATIC)
 
 
 shared :	$(BIN)root_r.o ../include/root_R.h ../include/root.h $(BIN)rootdict.o
