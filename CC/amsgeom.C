@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.177 2003/05/22 08:36:29 choumilo Exp $
+//  $Id: amsgeom.C,v 1.178 2003/07/16 12:58:25 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2176,12 +2176,13 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 // Bottom ones only for now
 	if (h<2){
 
-//	cout << "amsgeom RSHPD: ";
+//	cout <<endl<< "amsgeom RSHPD: h "<<h<<" l "<<l<<endl;
 //         for (ip=0;ip<11;ip++){ cout << par[ip]<<" ";}
          
 
          oct[itrd]->add(new AMSgvolume(TRDDBc::RadiatorHoleMedia(),
-			       0,name,"TRAP",par,11,coo,nrm,"ONLY",h==0 && l==0?1:-1,gid,1));    }
+			       0,name,"TRAP",par,11,coo,nrm,"ONLY",h==0 && l==0?1:-1,gid,1));    
+       }
         }
 
       }
