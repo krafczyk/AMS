@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.145 2003/12/17 17:05:54 choutko Exp $
+//  $Id: particle.C,v 1.146 2003/12/18 12:21:27 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -50,6 +50,33 @@ integer AMSParticle::build(integer refit){
      AMSCharge *pcharge=(AMSCharge*)AMSEvent::gethead()->
      getheadC("AMSCharge",0);
       int partfound=0;
+
+
+//   Make vertex particle
+
+      number mbig=100000;
+      AMSVtx *pcand=0;
+      for( AMSVtx *pvert=(AMSVtx*)AMSEvent::gethead()->getheadC("AMSVtx",0);pvert!=NULL;pvert=pvert->next()){   
+// VC pvert
+         if(abs(pvert->getcharge())<2 && !pvert->checkstatus(AMSDBc::BAD)){    
+           if(pvert->getmass()/pvert->getmom()<mbig){
+             mbig=pvert->getmass()/pvert->getmom();
+             pcand=pvert;
+           }
+         }
+       }
+        if(pcand){
+          ppart=new AMSParticle(pcand);
+          pcand->setstatus(AMSDBc::USED);
+          ppart->pid();
+          AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
+//          cout <<"   cont number "<<ppart->contnumber()<<endl;
+          partfound++;
+       }
+       //
+       //  change here if other particles after vtx particles should be allowed
+       //
+      if(!partfound){      
       while(pcharge) {
         {
           AMSBeta * pbeta=pcharge->getpbeta();
@@ -84,27 +111,7 @@ out:
        pcharge=pcharge->next();
       }
 
-//   Make vertex particle
-
-      number mbig=100000;
-      AMSVtx *pcand=0;
-      for( AMSVtx *pvert=(AMSVtx*)AMSEvent::gethead()->getheadC("AMSVtx",0);pvert!=NULL;pvert=pvert->next()){   
-// VC pvert
-         if(abs(pvert->getcharge()<2) && !pvert->checkstatus(AMSDBc::BAD)){    
-           if(pvert->getmass()/pvert->getmom()<mbig){
-             mbig=pvert->getmass()/pvert->getmom();
-             pcand=pvert;
-           }
-         }
-       }
-        if(pcand){
-          ppart=new AMSParticle(pcand);
-          pcand->setstatus(AMSDBc::USED);
-          ppart->pid();
-          AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
-          partfound++;
-       }
-
+      }
 
       if(!partfound){
 //      Make ECAL Particle if exists from the highest available ecals
@@ -726,7 +733,7 @@ void AMSParticle::pid(){
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
     geant chi2=f;
     prob[i]=PROB(chi2,1);
-    prob[i]*=_pcharge->getprobcharge(int(chrg));
+    if(_pcharge)prob[i]*=_pcharge->getprobcharge(int(chrg));   // work around case when charge defined by rich
     //linux bug
     if(ifail)prob[i]=0;
     if(fabs(prob[i])>2.){
@@ -1037,7 +1044,6 @@ _ptrd(0),_prich(0),_pShower(0),_pcharge(0),_pbeta(0){
 //   find beta
   _Beta=0;
   _ErrBeta=1;
-         
   number betamin = 999.;
   for(int patb=0; patb<npatb; patb++){
     AMSBeta *pbeta=(AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
@@ -1050,9 +1056,9 @@ _ptrd(0),_prich(0),_pShower(0),_pcharge(0),_pbeta(0){
                   break;
             }
         }
-        if (ptr && pbeta->getbeta()<betamin) { 
-            betamin = pbeta->getbeta();
-            _Beta = betamin;
+        if (ptr && fabs(pbeta->getbeta())<betamin) { 
+            betamin = fabs(pbeta->getbeta());
+            _Beta = pbeta->getbeta();
             _pbeta = pbeta;
             _ErrBeta = pbeta->getebeta()*_Beta*_Beta;
         }
@@ -1076,6 +1082,43 @@ _ptrd(0),_prich(0),_pShower(0),_pcharge(0),_pbeta(0){
     }
   }
 
+    //try to find richring beta
+    number oldbeta=_Beta;
+    number oldebeta=_ErrBeta;
+   _Beta=0;
+   _ErrBeta=0;
+  number beta=0;
+  number beta2=0;
+  number nbfound=0;
+    for(int i=0;i<pvert->getntracks();i++){
+     for(AMSRichRing* ptr=(AMSRichRing*)AMSEvent::gethead()->getheadC("AMSRichRing",0);ptr;ptr=ptr->next()){
+     if(ptr->gettrack()==pvert->gettrack(i) && ptr->getused()>2){
+     // found beta
+       nbfound++;
+       beta+=ptr->getbeta();
+       beta2+=ptr->getbeta()*ptr->getbeta();
+       number err=1./ptr->geterrorbeta()/ptr->geterrorbeta();
+      _Beta+=ptr->getbeta()*err;
+      _ErrBeta+=err;
+      break;
+     }
+    }
+   }
+   if(_ErrBeta!=0){
+     beta/=nbfound;
+     beta2/=nbfound;
+     beta2=sqrt(beta2-beta*beta)/sqrt(nbfound);
+     
+    _Beta/=_ErrBeta;
+    if(oldbeta<0)_Beta=-_Beta;
+    _ErrBeta=1/sqrt(_ErrBeta);
+    if(_ErrBeta<beta2)_ErrBeta=beta2;
+//     cout <<" rich beta found "<<_Beta<<" "<<_ErrBeta<<" "<<beta2<<" "<<nbfound<<endl;
+   }
+   else{
+    _Beta=oldbeta;
+    _ErrBeta=oldebeta; 
+   } 
 // make false track
   _ptrack=new AMSTrTrack(_Theta,_Phi,_Coo);
   _ptrack->setstatus(AMSDBc::TOFFORGAMMA); 

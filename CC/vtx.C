@@ -113,6 +113,12 @@ void AMSVtx::set_vertex(){
 
 // Find minimum distance in the case of 2 tracks
 //  if (_Ntracks==2) {
+
+//  VC 12-18-2003
+//  Correct vertex coordinates
+//
+  int number_of_pairs = 0;
+  float maxz=200;
   for (int i0=0; i0<_Ntracks-1; i0++){ 
    for (int i1=i0+1; i1<_Ntracks; i1++){ 
 
@@ -133,17 +139,23 @@ void AMSVtx::set_vertex(){
        poi[0] = AMSPoint(_Ptrack[i0]->getpiP0()+dir[0]*lambda[0]);
        poi[1] = AMSPoint(_Ptrack[i1]->getpiP0()+dir[1]*lambda[1]);
        number mom=fabs(_Ptrack[i0]->getpirid())+fabs(_Ptrack[i1]->getpirid());
-       for (int j=0; j<3; j++) {
-         _Vertex[j] += poi[0][j] * fabs(_Ptrack[i0]->getpirid())/mom;
-         _Vertex[j] += poi[1][j] * fabs(_Ptrack[i1]->getpirid())/mom;
+//       cout <<" poi0 "<<poi[0]<<endl;
+//       cout <<" poi1 "<<poi[1]<<endl;
+       if(fabs(poi[0][2])<maxz && fabs(poi[1][2])<maxz){
+         number_of_pairs++;
+        for (int j=0; j<3; j++) {
+          _Vertex[j] += poi[0][j] * fabs(_Ptrack[i0]->getpirid())/mom;
+          _Vertex[j] += poi[1][j] * fabs(_Ptrack[i1]->getpirid())/mom;
+        }
        }
     }
-   }
+   
   }
-  int number_of_pairs = (_Ntracks*(_Ntracks-1))/2;
+  }
   for (int j=0; j<3; j++) {
       _Vertex[j] = _Vertex[j]/number_of_pairs;
   }
+//  cout <<" vertex "<<_Vertex<<endl;
   
 
 }

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.327 2003/12/10 15:54:41 choutko Exp $
+//  $Id: event.C,v 1.328 2003/12/18 12:21:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1724,9 +1724,6 @@ void AMSEvent::_rerichevent(){
 void AMSEvent::_reaxevent(){
   AMSgObj::BookTimer.start("REAXEVENT");
 
-  AMSgObj::BookTimer.start("Vtx");
-  buildC("AMSVtx");
-  AMSgObj::BookTimer.stop("Vtx");
 
   buildC("AMSBeta");
 #ifdef __AMSDEBUG__
@@ -1737,6 +1734,11 @@ void AMSEvent::_reaxevent(){
 #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSCharge::print();
 #endif
+
+  AMSgObj::BookTimer.start("Vtx");
+  buildC("AMSVtx");
+  AMSgObj::BookTimer.stop("Vtx");
+
 
   buildC("AMSParticle");
 #ifdef __AMSDEBUG__
