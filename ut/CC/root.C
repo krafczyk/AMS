@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.55 2003/08/05 13:53:41 mdelgado Exp $
+//  $Id: root.C,v 1.56 2003/09/19 14:23:12 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2219,6 +2219,11 @@ void AMSEventR::Init(TTree *tree){
    
 }
 
+void AMSEventR::ProcessFill(int entry){ 
+   if (!UProcessCut()) return; 
+   UProcessFill();
+}
+ 
 
 
 
@@ -2239,6 +2244,8 @@ void AMSEventR::Terminate()
 }
 
 void AMSEventR::UBegin(){
+}
+void AMSEventR::UProcessFill(){
 }
 void AMSEventR::UTerminate(){
 }
