@@ -5,7 +5,7 @@ PROJECT_NAME     = "AMS Offline Root Event Format"
 PROJECT_NUMBER         = 
 OUTPUT_DIRECTORY = /amsdat1/amswebserver/WWW/AMS/Analysis/hpl3itp1/root02
 OUTPUT_LANGUAGE        = English
-GENERATE_LATEX   = NO
+GENERATE_LATEX   = YES
 GENERATE_MAN     = NO
 GENERATE_RTF     = NO
 CASE_SENSE_NAMES = NO
@@ -15,13 +15,13 @@ INCLUDE_FILE_PATTERNS  = *.h *.doc
 EXAMPLE_PATH            = /afs/cern.ch/user/c/choutko/AMS/examples
 
 EXTRACT_ALL            = NO
-EXTRACT_PRIVATE        = NO
+EXTRACT_PRIVATE        = YES
 EXTRACT_STATIC         = NO
 EXTRACT_LOCAL_CLASSES  = YES
 HIDE_UNDOC_MEMBERS     = YES
 HIDE_UNDOC_CLASSES     = NO
 BRIEF_MEMBER_DESC      = YES
-REPEAT_BRIEF           = NO
+REPEAT_BRIEF           = YES
 ALWAYS_DETAILED_SEC    = NO
 INLINE_INHERITED_MEMB  = NO
 FULL_PATH_NAMES        = NO
@@ -103,12 +103,12 @@ TREEVIEW_WIDTH         = 250
 #---------------------------------------------------------------------------
 LATEX_OUTPUT           = latex
 COMPACT_LATEX          = NO
-PAPER_TYPE             = a4wide
+PAPER_TYPE             = a4
 EXTRA_PACKAGES         = 
 LATEX_HEADER           = 
-PDF_HYPERLINKS         = NO
-USE_PDFLATEX           = NO
-LATEX_BATCHMODE        = NO
+PDF_HYPERLINKS         = YES
+USE_PDFLATEX           = YES
+LATEX_BATCHMODE        = YES
 #---------------------------------------------------------------------------
 # configuration options related to the RTF output
 #---------------------------------------------------------------------------

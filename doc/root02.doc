@@ -1,9 +1,10 @@
-#  $Id: root02.doc,v 1.3 2003/05/12 13:11:24 choutko Exp $
+#  $Id: root02.doc,v 1.4 2003/05/16 22:10:38 choutko Exp $
 This is AMS02 Root File Description 
 
 see http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html
 
+or
 
- to edit documentation see also
+http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/latex/refman.pdf  (browsable pdf)
 
- http://www.stack.nl/~dimitri/doxygen/index.html
+
