@@ -1,14 +1,17 @@
-#  $Id: charge.doc,v 1.5 2001/01/22 17:00:55 vitali Exp $
+#  $Id: charge.doc,v 1.6 2003/01/07 18:33:53 jorgec Exp $
 const integer ncharge=10; // e,p,He... F
 class AMSCharge: public AMSlink{   // Charge calculation
 protected:
   AMSBeta * _pbeta;      // pointer to beta --> then to track & tof 
  integer _ChargeTOF;     // Charge from TOF
- integer _ChargeTracker;  // Charge from tracker
+ integer _ChargeTracker; // Charge from tracker
+ integer _ChargeRich;    // Charge from rich
  number  _ProbTOF[ncharge];      //(prob) to be e, p, He,... F
  integer _IndxTOF[ncharge];      //(index) 0,...,9 from most to least prob charge
  number  _ProbTracker[ncharge];  // (prob) to be e, p, He,... F
  integer _IndxTracker[ncharge];  //(index) 0,...,9 from most to least prob charge
+ number  _ProbRich[ncharge];  // (prob) to be e, p, He,... F
+ integer _IndxRich[ncharge];  //(index) 0,...,9 from most to least prob charge
 
  static number _lkhdTracker[ncharge][100];
 
