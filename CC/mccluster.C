@@ -445,40 +445,32 @@ void AMSRichMCHit::noisyhit(integer channel){
 geant AMSRichMCHit::adc_hit(){ // ADC counts fo a hit
   geant u1,u2,dummy,r;
  
-  do{do{
-    u1=2*RNDM(dummy)-1;
-    u2=2*RNDM(dummy)-1;
-    r=(u1*u1+u2*u2);
-  }while(r>1.);
-  u2=u1*sqrt(-2*log(r)/r)*RICHDB::sigma_peak+RICHDB::peak;
-  }while(u2<-2.);
-  return u2;
+  r=sqrt(-2.*log(1.-RNDM(dummy)));
+  u1=r*sin(RNDM(dummy)*6.28318595886);   // This constant should be moved
+  return u1*RICHDB::sigma_peak+RICHDB::peak;
 }
 
 geant AMSRichMCHit::adc_empty(){ // ADC count without a hit
   geant u1,u2,dummy,r;
  
-  do{
-    u1=2*RNDM(dummy)-1;
-    u2=2*RNDM(dummy)-1;
-    r=(u1*u1+u2*u2);
-  }while(r>1.);
-  return u1*sqrt(-2*log(r)/r)*RICHDB::sigma_ped+RICHDB::ped;
+  r=sqrt(-2.*log(1.-RNDM(dummy)));
+  u1=r*sin(RNDM(dummy)*6.28318595886);
+  return u1*RICHDB::sigma_ped+RICHDB::ped;
 }
 
 
 geant AMSRichMCHit::noise(){ // ADC counts above the pedestal
   geant u1,u2,dummy,r;
+
+  r=sqrt(RICHDB::c_ped*RICHDB::c_ped-2.*log(1.-RNDM(dummy)));
  
-  do{do{
-    u1=2*RNDM(dummy)-1;
-    u2=2*RNDM(dummy)-1;
-    r=(u1*u1+u2*u2);
-  }while(r>1.);
-  u2=u1*sqrt(-2*log(r)/r);
-  }while(u2<RICHDB::c_ped);
-  return u2*RICHDB::sigma_ped+RICHDB::ped;
+  do{
+    u1=r*sin(RNDM(dummy)*6.28318595886);
+  }while(u1<RICHDB::c_ped);
+ 
+  return u1*RICHDB::sigma_ped+RICHDB::ped;
 }
+
 
 
 void AMSRichMCHit::_writeEl(){
