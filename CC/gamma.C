@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.16 2002/11/29 20:04:39 choutko Exp $
+//  $Id: gamma.C,v 1.17 2002/11/30 10:29:31 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -1188,7 +1188,7 @@ RoadXZ.Lines_Top_Bottom(out);
  if (out==1){
 RoadXZ.getParRoadXZ(fbotf,ftopf,x_starf,z_starf,SLOPEf,INTERf);
 RoadXZ.LastCheckTRDX(slo,inte,chit);
- if (chit <= 0.1 && chit > 0.001 ) {
+ if (chit <= 0.2 && chit > 0.001 ) {
    ftopf=1;
    fbotf=0;
    SLOPEf=slo;
@@ -1388,7 +1388,7 @@ cout<< "*$$$$$$$ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<end
     plusminus=0;
     pntLR->PAIR2GAMMA(counting,plusminus);
       
-      if (pntLR->_VE1[2] <= 52 || pntLR->_VE2[2] <= 52  ){
+      if (pntLR->_VE1[2] <= 47 || pntLR->_VE2[2] <= 47  ){
 	refitting+=100;
       }
     }
@@ -2463,7 +2463,7 @@ AMSPoint p_hi;
  
  MinDX2L=10000;
  MinDX3L=10000;
- int conL_w=-1;
+ double conL_w=0;
  double firLX;
  double lasLX;
  int conL_f=-1;
@@ -2702,6 +2702,13 @@ AMSPoint bo_hi;
  double A11,B11,VA11;
  dlinearme(laa,za,xa,A11,B11,VA11);         // linear fit
 
+
+ if (VA11 < 0.01){
+   FIXMl=B11;
+   FIXQl=A11;
+   FIXVAl=VA11;
+  
+}
 
   if (refitting >=100 && VA11 >1){
 
@@ -2967,7 +2974,7 @@ if (higcou != 0 && (li-higcou2) >= 3 && li > 3){
   cout << "x2l = "<<DeltaRecoTop<< " x3l = "<<DeltaRecoBottom<<endl;
 #endif
 
-   int conR_w=-1;
+   double conR_w=0;
    double firRX;
    double lasRX;
    int conR_f=-1;
@@ -3191,7 +3198,15 @@ lhi=0;
  //*****************
 
  dlinearme(laa,za,xa,A11,B11,VA11);         // linear fit
+if (VA11 < 0.01){
+   FIXMr=B11;
+   FIXQr=A11;
+   FIXVAr=VA11;
+ }
+
  if (refitting >=100  && VA11 >1){
+ 
+
 
 double z_tkl[trconst::maxlay];
  for(int i=0;i<TKDBc::nlay();i++){
