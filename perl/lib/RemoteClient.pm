@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.276 2004/09/21 11:54:24 choutko Exp $
+# $Id: RemoteClient.pm,v 1.277 2004/09/22 18:52:50 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -64,6 +64,8 @@
 #
 # July  2, 2004  : prepareCastorCopyScript, updateDSTPath subr
 #
+# Sep  22, 2004   : AMS01 production, add $ProductionStartTime in quaries
+#
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
 
@@ -123,7 +125,9 @@ my     $rmprompt        = 1; # prompt before files removal
  my $copyCalls    = 0;
 #-
  my $ActiveProductionSet   = undef;
- my $UNKNOWN               = 'unknown';
+ my $ProductionStartTime   = 0;
+
+  my $UNKNOWN               = 'unknown';
 
  my $nBadCopiesInRow = 0;   # counter of doCopy errors
  my $MAX_FAILED_COPIES = 5; # max number of allowed errors (in row)
@@ -5593,8 +5597,12 @@ sub checkJobsTimeout {
       if ($tmoutflag == 1) {
        my $timenow    = time();
        my $deletetime = localtime($timenow+60*60);
+
+       my $exptime    = $timestamp+$timeout;
+
+       $exptime       = localtime($exptime);
        my $sujet = "Job : $jid - expired";
-       my $message    = "Job $jid, Submitted : $submittime, Timeout : $timeout sec. 
+       my $message    = "Job $jid, Submitted : $submittime, Expired : $exptime; 
                          \n Job will be removed from database (Not earlier than  : $deletetime).
                          \n MC Production Team.
                          \n ----------------------------------------------
@@ -5861,6 +5869,7 @@ sub listAll {
      $self -> colorLegend();
     }
     
+    $self->  setActiveProductionSet();
     $self -> listProductionSetPeriods();
     $self -> listStat();
      $self -> listCites();
@@ -5882,6 +5891,7 @@ sub listShort {
      $self -> colorLegend();
     }
     
+    $self->  setActiveProductionSet();
     $self -> listProductionSetPeriods();
     $self -> listStat();
      $self -> listCites();
@@ -6111,7 +6121,7 @@ sub listStat {
 
 # first job timestamp
       $sql="SELECT MIN(Jobs.time), MAX(Jobs.timestamp) FROM Jobs, Cites 
-                WHERE Jobs.cid=Cites.cid and Cites.name!='test'";
+                WHERE Jobs.cid=Cites.cid and Cites.name!='test' and Jobs.timestamp > $ProductionStartTime";
       $ret=$self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
        $timestart = $ret->[0][0];
@@ -6123,7 +6133,8 @@ sub listStat {
 # running (active jobs)
       $sql = "SELECT COUNT(jobs.jid), SUM(triggers) FROM Jobs, Cites WHERE 
                      (Jobs.cid != Cites.cid AND
-                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
+                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) AND 
+                      Jobs.timestamp > $ProductionStartTime";
       $ret = $self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
          $jobsreq = $ret->[0][0];
@@ -6132,7 +6143,8 @@ sub listStat {
      $sql = "SELECT COUNT(runs.jid) FROM Jobs, Runs, Cites   
               WHERE  runs.jid = jobs.jid AND
                      (Jobs.cid != Cites.cid AND
-                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
+                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) AND
+                      Jobs.timestamp > $ProductionStartTime";
       $ret = $self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
          $jobsreq = $jobsreq - $ret->[0][0];
@@ -6141,7 +6153,8 @@ sub listStat {
               WHERE  runs.jid = jobs.jid AND 
                      (runs.status='Foreign' OR runs.status='Processing') AND
                      (Jobs.cid != Cites.cid AND
-                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
+                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) AND
+                      Jobs.timestamp > $ProductionStartTime";
     $ret = $self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
          $jobsreq += $ret->[0][0];
@@ -6149,7 +6162,9 @@ sub listStat {
 
 # finished/completed jobs
     $sql = "SELECT COUNT(jid), sum(fevent), sum(levent) FROM Runs 
-                WHERE status='Finished' OR status='Completed'";
+                WHERE status='Finished' OR status='Completed' AND 
+                Runs.submit > $ProductionStartTime";
+
     $ret = $self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
          $jobsdone = $ret->[0][0];
@@ -6158,21 +6173,24 @@ sub listStat {
 
 # failed/unchecked jobs
     $sql = "SELECT COUNT(jid) FROM Runs 
-                WHERE status='Failed' OR status='Unchecked'";
+                WHERE status='Failed' OR status='Unchecked' AND 
+                Runs.submit > $ProductionStartTime";
+
+
     $ret = $self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
          $jobsfailed = $ret->[0][0];
      }
 
 # timeout jobs
-    $sql = "SELECT COUNT(jid) FROM Runs WHERE status='TimeOut'";
+    $sql = "SELECT COUNT(jid) FROM Runs WHERE status='TimeOut' AND Runs.submit > $ProductionStartTime";
     $ret = $self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
          $jobstimeout = $ret->[0][0];
      }
 
 # ntuples, runs
-               $sql="SELECT COUNT(run), SUM(SIZEMB) from ntuples";
+               $sql="SELECT COUNT(run), SUM(SIZEMB) from ntuples WHERE ntuples.timestamp> $ProductionStartTime";
                $ret=$self->{sqlserver}->Query($sql);
                my $nntuples=0;
                my $nsizegb =0;
@@ -6181,7 +6199,8 @@ sub listStat {
                 $nsizegb = sprintf("%.1f",$ret->[0][1]/1000);
                }
 # GB on CASTOR
-               $sql="SELECT COUNT(run), SUM(SIZEMB) from ntuples where castortime !=0";
+               $sql="SELECT COUNT(run), SUM(SIZEMB) from ntuples 
+                     where castortime !=0 AND ntuples.timestamp> $ProductionStartTime";
                $ret=$self->{sqlserver}->Query($sql);
                my $cntuples=0;
                my $csizegb =0;
@@ -6280,7 +6299,8 @@ sub listStat {
                     Jobs.jid = Runs.jid AND  
                     (Runs.status='Completed' OR Runs.status='Finished') AND 
                     (Jobs.cid != Cites.cid AND
-                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
+                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) 
+                      AND Jobs.timestamp> $ProductionStartTime";
            my $r6=$self->{sqlserver}->Query($sql);
            my $events = 0;
            if(defined $r6->[0][0]){
@@ -6294,7 +6314,8 @@ sub listStat {
           $sql = "SELECT SUM(triggers) FROM Jobs, Cites   
                   WHERE Jobs.did = $did AND
                     (Jobs.cid != Cites.cid AND
-                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
+                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) 
+                      AND Jobs.timestamp> $ProductionStartTime";
           my $r7=$self->{sqlserver}->Query($sql);
           my $triggers = 0;
            if(defined $r7->[0][0]){
@@ -6356,7 +6377,7 @@ sub listCites {
 
           my $laststarttime = 0;
           my $starttime     = "---";
-          $sql = "SELECT MAX(TIME) FROM Jobs WHERE cid=$cid";
+          $sql = "SELECT MAX(TIME) FROM Jobs WHERE cid=$cid AND Jobs.timestamp> $ProductionStartTime";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {
             $laststarttime = $r4->[0][0];
@@ -6370,7 +6391,7 @@ sub listCites {
                      (Runs.Status = 'Finished'  OR 
                       Runs.Status = 'Completed' OR
                       Runs.Status = 'Failed'    OR
-                      Runs.Status = 'Unchecked')";
+                      Runs.Status = 'Unchecked') AND Jobs.timestamp> $ProductionStartTime";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {
            $lastendtime = $r4->[0][0];
@@ -6378,18 +6399,19 @@ sub listCites {
           };
 
           my $jobs = 0;   # total jobs
-          $sql = "SELECT COUNT(jid) FROM Jobs WHERE cid=$cid";
+          $sql = "SELECT COUNT(jid) FROM Jobs WHERE cid=$cid AND Jobs.timestamp> $ProductionStartTime";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobs = $r4->[0][0]};
 
           my $jobsa = 0;  # processing jobs
-          $sql = "SELECT COUNT(jobs.jid)  FROM Jobs, Runs where jobs.jid=runs.jid and cid=$cid";
+          $sql = "SELECT COUNT(jobs.jid)  FROM Jobs, Runs 
+                   where (jobs.jid=runs.jid and cid=$cid) AND Jobs.timestamp> $ProductionStartTime";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobsa = $jobs - $r4->[0][0]};
           $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs WHERE 
                      Jobs.jid=Runs.jid AND cid=$cid AND 
                      (Runs.Status = 'Foreign' OR 
-                      Runs.Status = 'Processing')";
+                      Runs.Status = 'Processing') AND Jobs.timestamp> $ProductionStartTime";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobsa += $r4->[0][0]};
 
@@ -6397,7 +6419,7 @@ sub listCites {
           $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs WHERE 
                      Jobs.jid=Runs.jid AND cid=$cid AND 
                      (Runs.Status = 'Finished' OR 
-                      Runs.Status = 'Completed')";
+                      Runs.Status = 'Completed') AND Jobs.timestamp> $ProductionStartTime";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobsc = $r4->[0][0]};
 
@@ -6407,7 +6429,7 @@ sub listCites {
                      Jobs.jid=Runs.jid AND cid=$cid AND 
                      (Runs.Status = 'Failed' OR 
                       Runs.Status = 'TimeOut' OR 
-                      Runs.Status = 'Unchecked')";
+                      Runs.Status = 'Unchecked') AND Jobs.timestamp> $ProductionStartTime";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobsf = $r4->[0][0]};
 
@@ -6654,7 +6676,8 @@ sub listJobs {
            FROM   Jobs, Cites, Mails  
             WHERE  Jobs.cid=Cites.cid AND 
                      Jobs.mid=Mails.mid AND
-                      Jobs.timestamp > $timelate 
+                      Jobs.timestamp > $timelate AND
+                       Jobs.timestamp > $ProductionStartTime 
              ORDER  BY Cites.name, Jobs.jid DESC";
 
      my $r3=$self->{sqlserver}->Query($sql);
@@ -6699,7 +6722,8 @@ sub listJobs {
                @runId =();
                @runStatus = ();
                $sql="SELECT Runs.jid, Runs.status from Runs, Jobs 
-                     WHERE Jobs.cid=$cid AND Runs.jid=Jobs.jid";
+                     WHERE (Jobs.cid=$cid AND Runs.jid=Jobs.jid) AND 
+                           Jobs.timestamp > $ProductionStartTime";
                $r3=$self->{sqlserver}->Query($sql);
                if (defined $r3->[0][0]) {
                 foreach my $r (@{$r3}){
@@ -6769,7 +6793,7 @@ sub listRuns {
 
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT Runs.run, Runs.jid, Runs.submit, Runs.status 
-              FROM   Runs 
+              FROM   Runs WHERE Runs.submit > $ProductionStartTime 
               ORDER  BY Runs.submit DESC, Runs.jid";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td><b><font color=\"blue\" >JobId </font></b></td>";
@@ -9580,12 +9604,14 @@ sub setActiveProductionSet {
      my $sql  = undef;
      my $ret  = undef;
 
-      $sql = "SELECT NAME FROM ProductionSet WHERE STATUS='Active'";
+      $sql = "SELECT NAME, BEGIN  FROM ProductionSet WHERE STATUS='Active'";
       $ret = $self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
        $ActiveProductionSet=trimblanks($ret->[0][0]);
+       $ProductionStartTime = $ret->[0][1];
       } else {
         $ActiveProductionSet = $UNKNOWN;
+        $ProductionStartTime = 0;
       }
  }
 
@@ -11124,7 +11150,7 @@ sub updateDSTPath {
      -v    - verbose mode
      -u    - update mode
 
-     ./updatedstpath.cgi -v -d:/d0dah1/MC/AMS02/2004 
+     ./updateDSTPath.cgi -v -d:/d0dah1/MC/AMS02/2004 
 ";
 
   my $self         = shift;
@@ -11133,6 +11159,11 @@ sub updateDSTPath {
   my $checkCRC     = 0;
   my $topdir       = undef;
   my $update       = 0;
+
+  my @ErrFileSize;
+  my @ErrCRC;
+  my @ErrNotFound; 
+  my @ErrMultFound;
 
   my $whoami = getlogin();
   if ($whoami =~ 'ams') {
@@ -11175,13 +11206,20 @@ sub updateDSTPath {
       } else {
        my $n = 0;
        my $filename = trimblanks($inputFiles[$i]);
-       $sql = "SELECT COUNT(PATH) FROM ntuples WHERE PATH LIKE '%$filename'";
-       my $ret=$self->{sqlserver}->Query($sql);
-       if (not defined $ret->[0][0]) {
+       my $dbpath = undef;
+       my @junk = split ("AMS02",$filename);
+       if ($#junk > 0) {
+           $dbpath = $junk[1];
+       }
+
+       if (defined $dbpath) {
+        $sql = "SELECT COUNT(PATH) FROM ntuples WHERE PATH LIKE '%$dbpath'";
+        my $ret=$self->{sqlserver}->Query($sql);
+        if (not defined $ret->[0][0]) {
            print "File : $filename \n";
            print "$sql \n";
            print "N O T     F O U N D   I N     D B \n";
-           print "correct it and rerun. Bye \n";
+           push @ErrNotFound, $filename;
            $notfound++;
            $skipfile = 1;
        } else {
@@ -11191,49 +11229,65 @@ sub updateDSTPath {
            print "$sql \n";
            print "F O U N D   I N     D B, $n times \n";
            print "DO NOTHING \n";
+           push @ErrMultFound, $filename;
            $foundtwice++;
            $skipfile = 1;
          }
        }
        if ($skipfile == 0) {
 # check file size
-        $sql = "SELECT sizemb  FROM ntuples WHERE PATH LIKE '%$filename'";
+        $sql = "SELECT sizemb, crc  FROM ntuples WHERE PATH LIKE '%$dbpath'";
+        if ($verbose ==1) { print "$sql \n";}
         $ret=$self->{sqlserver}->Query($sql);
         my $sizemb = $ret->[0][0];
-        my $inputfile = $cdir."/".$filename;
+        my $crc    = $ret->[0][1];
+        my $inputfile = $filename;
         my $filesize    = (stat($inputfile))[7];
-        $filesize = sprintf("%.0",$filesize/1000);
-        if ($filesize == $sizemb) { 
+        $filesize = $filesize/1000/1000;
+        $filesize = sprintf("%.f",$filesize);
+        if ($verbose == 1) {print "$inputfile $filesize/$sizemb [MB] \n";}
+        if ($sizemb - $filesize < 2 ) { 
          $sql = "UPDATE ntuples set path='$filename', timestamp=$timenow ";
          if ($checkCRC == 1) {
-          my $sqlcrc = "SELECT CRC FROM ntuples WHERE PATH like '# $filename'";
-          my $rc=$self->{sqlserver}->Query($sqlcrc);
-          my $crc = $rc->[0][0];
           my $rstatus = $self->calculateCRC($filename,$crc);
           if ($rstatus != 1) {
             print "restoreDST -ERROR- CRC error for $filename \n";
             $ncrcerr++;
             $skipfile = 1;
+            push @ErrCRC, $filename;
           } else {
             $sql = $sql.", crctime=$timenow ";
           }
+      }
+       $sql = $sql."WHERE PATH LIKE '%$dbpath'";
+       if ($update == 1  && $skipfile==0) {
+         $self->{sqlserver}->Update($sql);
+         if ($verbose)  {print "$sql \n";}
         }
-       $sql = $sql."WHERE PATH LIKE '%$filename'";
-       if ($update && $skipfile==0) {$self->{sqlserver}->Update($sql);}
-       if ($verbose)  {print "$sql \n";}
    } else {
        $nsizemm++;
-       print "$inputfile - $filesize MB, DB $filename $sizemb MB \n";
+       push @ErrFileSize, $filename;
+       print "Error - $inputfile : $filesize MB, DB $dbpath : $sizemb MB \n";
    }
+    }
+  } 
+  else {
+   print "File : $filename \n";
+   print "Error - cannot get DB Path, AMS02 pattern not found \n";
+  } 
+ }
+ $i++;
   }
-   }
-   $i++;
-  }
+
      print "Files checked : $#inputFiles \n";
      print "CRC error     : $ncrcerr \n";
-     print "File size mismathc : $nsizemm \n";
+     foreach my $f (@ErrCRC) { print "$f \n";}
+     print "File size mismatch : $nsizemm \n";
+     foreach my $f (@ErrFileSize) { print "$f \n";}
      print "File not found in DB : $notfound \n";
+     foreach my $f (@ErrNotFound) { print "$f \n";}
      print "File found twice     : $foundtwice \n";
+     foreach my $f (@ErrMultFound) { print "$f \n";}
 }
 
 
