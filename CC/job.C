@@ -38,8 +38,9 @@ void AMSJob::data(){
   AMSFFKEY.Write=1;
   VBLANK(AMSFFKEY.Jobname,40);
   VBLANK(AMSFFKEY.Setupname,40);
+  AMSFFKEY.ZeroSetupOk=0;
   // Set Defaults
-FFKEY("AMSJOB",(float*)(&AMSFFKEY.Jobtype),83,"MIXED");
+FFKEY("AMSJOB",(float*)(&AMSFFKEY.Jobtype),87,"MIXED");
 _siamsdata();
 _reamsdata();
 }
@@ -508,7 +509,7 @@ AMSgtmed * AMSJob::getmed(AMSID id){
 }
 
 void AMSJob::setsetup(char *setup){
-  if(setup)strcpy(_Setup,setup);
+  if(setup && (strlen(setup)>1 || AMSFFKEY.ZeroSetupOk))strcpy(_Setup,setup);
   else strcpy(_Setup,"AMSSHUTTLE STRPLANES CTCHor");   //defaults
   
 }

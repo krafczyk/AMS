@@ -27,8 +27,8 @@ class AMSgvolume : public AMSNode
    geant  _par[6];      //   ! geant volume par
    AMSPoint _coo;       //   ! geant volume relative coord
    AMSPoint _cooA;     //    ! geant volume abs coordinate
-   number  _nrm[3][3];  //   ! normales  with resp to mother
-   number  _inrm[3][3]; //   ! norm absolute
+   number  _nrm[3][3];  //   ! normales  with resp to mother (1st index 1st)
+   number  _inrm[3][3]; //   ! norm absolute (1st index 1st)
    char    _gonly[5];   //   ! should be 'MANY' or 'ONLY'
    char    _shape[5];   //   ! geant voulme shape
 
@@ -50,6 +50,13 @@ class AMSgvolume : public AMSNode
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
            integer posp,integer gid);
+
+  AMSgvolume (char matter[], integer rotmno,const char name[], 
+           const char shape[] ,   geant par[] , integer npar, 
+           geant coo[] ,  number nrm1[3] , number nrm2[3], number nrm3[3],
+           const char gonly[] , 
+           integer posp,integer gid);
+
   number getinrm(integer i ,integer j)const{return _inrm[i][j];}
   number getcoo(integer i) {return _coo[i];}
   number getcooA(integer i){return _cooA[i];}

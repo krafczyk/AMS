@@ -39,6 +39,7 @@ integer Read;
 integer Write;
 integer Jobname[40];
 integer Setupname[40];
+integer ZeroSetupOk;
 };
 #define AMSFFKEY COMMON_BLOCK(AMSFFKEY,amsffkey)
 COMMON_BLOCK_DEF(AMSFFKEY_DEF,AMSFFKEY);

@@ -8,6 +8,12 @@
            geant coo[] ,  number nrm[][3] , const char gonly[] ,
            integer posp,integer gid)       // constructor
 
+  AMSgvolume (char matter[],integer rotmno,const char name[],
+           const char shape[] ,   geant par[] , integer npar,
+           geant coo[] ,  number nrm1[3] number nrm2[3],number nrm3[3],
+         , const char gonly[] ,
+           integer posp,integer gid)       // constructor
+
 private:
 
    integer _matter;    //   ! geant tracking med
@@ -17,10 +23,10 @@ private:
    integer _posp;      //   ! Pos by posp(1) or by pos(0)
    char  _shape[5];    //   ! geant voulme shape
    geant  _par[6];     //   ! geant volume par
-   AMSPoint _coo;      //   ! geant volume absolute coord
-                       //   ! NB Should be absolute in constructor 
-   number  _nrm[3][3]; //   ! normales  with resp to mother
-   number  _inrm[3][3];//   ! norm absolute
+   AMSPoint _coo;      //   ! geant volume relative coo
+   AMSPoint _cooA;     //   ! geant volume abs coordinate
+   number  _nrm[3][3]; //   ! normales  with resp to mother (1st index 1st)
+   number  _inrm[3][3];//   ! norm absolute (1st index 1st)
    char _gonly[5];     //   ! 'MANY' or 'ONLY'
 
 

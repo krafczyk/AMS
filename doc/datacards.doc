@@ -11,6 +11,7 @@ I 5  Write(1)        //  0 - Off   ; 1 - On
 I 6  Jobname(' ')    // Jobname == "DBFILE name"(<160 bytes)
 I46  Setupname(' ')  // Setupname == Setup Name (<160 bytes)
                      // see setup.doc for details
+I87  ZeroSetupOK(0)  // Internal
 
 //IO
 

@@ -28,7 +28,8 @@ void AMSBeta::build(){
   AMSPoint SearchReg(BETAFITFFKEY.SearchReg[0],BETAFITFFKEY.SearchReg[1],
   BETAFITFFKEY.SearchReg[2]);
   int patt;
-  number theta,td;
+  number theta=0;
+  number td;
   for( patt=0;patt<npat;patt++){
    AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->
    getheadC("AMSTrTrack",patt);

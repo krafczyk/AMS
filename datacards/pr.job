@@ -35,17 +35,17 @@ TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03
 C npars ims 
   5     1   
 C          Nparticles 
-MCGEN  1=-150. 2=-50. 4=150. 5=50. 12=-0.7 15=1 18=1 19=100
+MCGEN  1=-150. 2=-50. 4=150. 5=50. 12=-0.7 15=1 18=1 19=102
 TOFMC 1=90.0e-12
 TRMC 12=10. 13=10.
 TRCL 21=1       
 TRFIT 6=1 7=1 8=1 9=1 10=1 11=1 12=1 13=1 14=1 15=1 16=1 17=0 18=1 19=1
 C TRFIT 6=1 7=1 8=1 
 IOPA 1=3 2='pr.hbk'
-RNDM 378697991 979972996
+RNDM 1241309313 136819389
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=0   2=0      3=50.   4=0  5=0   6='v201 Protons '
-46='AMSSTATION'
+46=''
 C Special HP-UX
 TIME 3=10000000
 END

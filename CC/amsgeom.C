@@ -107,7 +107,7 @@ number pr[3]={0.,0.,0.};
 geant par[6]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};
 number nrm1[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};
-number nrm2[3][3]={0.,1.,0.,-1.,0.,0., 0.,0.,1.};// for rotated layers (90degr)
+number nrm2[3][3]={0.,-1.,0.,1.,0.,0., 0.,0.,1.};// for rotated layers (90degr)
 number inrm[3][3];
 number dz,dz1,dz2,zc,dx,dxt;
 integer nbm,nrot;
