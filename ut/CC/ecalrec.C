@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.68 2002/10/23 13:49:04 choutko Exp $
+//  $Id: ecalrec.C,v 1.69 2002/11/08 15:43:10 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -1853,8 +1853,13 @@ void EcalShower::EnergyFit(){
 //    cout <<" case 1 "<<_EnergyC<<" "<<_RearLeak<<endl;
    }
    else{
+/*
     _RearLeak= ECREFFKEY.SimpleRearLeak[1]*ec*(_Edep[Maxrow-1]*ECREFFKEY.SimpleRearLeak[2]*_Edep[Maxrow-1]/ECREFFKEY.SimpleRearLeak[0]);
     _EnergyC= ECREFFKEY.SimpleRearLeak[3]*ec+_RearLeak;
+*/
+    _EnergyC=ECREFFKEY.SimpleRearLeak[3]*ec;
+    _RearLeak= _EnergyC-ECREFFKEY.SimpleRearLeak[1]*ec;
+   
 //    cout <<" case 2 "<<_EnergyC<<" "<<_RearLeak<<endl;
    }
     _SideLeak=ECREFFKEY.SimpleRearLeak[3]*_SideLeak;

@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.76 2002/11/06 18:20:47 delgadom Exp $
+//  $Id: gmat.C,v 1.77 2002/11/08 15:43:10 choutko Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -381,6 +381,20 @@ mat.add (new AMSgmat( "TRDHCWall",26.98, 13., rho, 24./rho, 106/rho));
  // CF  (2.25 % X0)
 rho=1.65;
 mat.add (new AMSgmat("TRDCarbonFiber", 12.01, 6., rho , 42.7/rho, 86.3/rho));
+
+// FiberGlass  
+{
+geant a[]={28.08,16.};
+geant z[]={14.,8.};
+geant w[]={1,2};
+rho =1.3 ;  //probably wrong one, needs check with Joe
+mat.add (new AMSgmat("TRDFiberGlass",a,z,w,2,rho));
+}
+ // RohaCell
+rho=0.04;
+mat.add (new AMSgmat("TRDRohaCell", 12.01, 6., rho , 42.7/rho, 86.3/rho));
+
+  mat.add (new AMSgmat("TRDALUMINIUM",26.98, 13., 2.7, 8.9, 39.4));
 
 // Gas (Xe/CO2) (80/20) 1.1% X0
 
@@ -790,6 +804,9 @@ uwbuf[4]=0;
 tmed.add (new AMSgtmed("TRDHC","TRDHC",0));
 tmed.add (new AMSgtmed("TRDHCWall","TRDHCWall",0));
 tmed.add (new AMSgtmed("TRDCarbonFiber","TRDCarbonFiber",0));
+tmed.add (new AMSgtmed("TRDFiberGlass","TRDFiberGlass",0));
+tmed.add (new AMSgtmed("TRDALUMINIUM","TRDALUMINIUM",0));
+tmed.add (new AMSgtmed("TRDRohaCell","TRDRohaCell",0));
 
 
 uwbuf[2]=3;

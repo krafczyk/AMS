@@ -1,22 +1,273 @@
-//  $Id: trddbc.C,v 1.19 2001/05/24 08:31:39 kscholbe Exp $
+//  $Id: trddbc.C,v 1.20 2002/11/08 15:43:11 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
 #include <tkdbc.h>
 using namespace trdconst;
 char * TRDDBc::_OctagonMedia[maxo]={"TRDCarbonFiber", "TRDCarbonFiber",
-"TRDCarbonFiber","TRDCarbonFiber","TRDCarbonFiber","TRDHC","TRDHC",
-"TRDHCWall","TRDRadiator"};
+"TRDCarbonFiber","TRDCarbonFiber","TRDCarbonFiber","VACUUM","TRDHC","TRDHC",
+"TRDHCWall","TRDRadiator","TRDALUMINIUM","TRDRohaCell","TRDALUMINIUM"};
 char * TRDDBc::_BulkheadsMedia="TRDCarbonFiber";
+char * TRDDBc::_XeRadSpikesMedia="TRDFiberGlass"; 
+char * TRDDBc::_PipesMedia="TRDALUMINIUM"; 
 char * TRDDBc::_CutoutsMedia="VACUUM";
 char * TRDDBc::_TubesMedia="TRDCapton";
 char * TRDDBc::_ITubesMedia="TRDGas";
 char * TRDDBc::_RadiatorMedia="VACUUM";  // Really hole in radiator
 char * TRDDBc::_TubesBoxMedia="TRDFoam";
 
-uinteger TRDDBc::_NoTRDOctagons[mtrdo]={8};
-uinteger TRDDBc::_PrimaryOctagon[maxo]={0,1,2,3,4,3,4,1,1};
-uinteger TRDDBc::_PrimaryOctagonNo=5;
+//
+//      NB
+//      some spikes & pipes parameters are correlated with xe rad octagons
+//      ones, so change them in case of changing the latter.
+//
+
+float TRDDBc::_SpikesPar[trdconst::maxspikes][4][6]={
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          4.,   -102.,-1.19/2,0.,0.125,1.75,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          4,    -62., -1.19/2,0.,0.125,1.75,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          8.33, -6.15,-1.19/2,0.,0.125,1.75,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          62.,  -4.,  -1.19/2,0.,0.125,1.75,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          102., -4.,  -1.19/2,0.,0.125,1.75,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          42., -42.,  -1.19/2,0.,0.125,1.75,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          42., -82.,  -1.19/2,0.,0.125,1.75,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          82., -42.,  -1.19/2,0.,0.125,1.75,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          0,0,0,0,0,0,
+                          68.5,-86.,  -1.19/2,0.,0.125,1.75
+                                                       };
+
+float TRDDBc::_PipesPar[trdconst::maxpipes][4][7]={
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+
+                 115./10., -65.750+55./20, (11.9-1.8-0.3)/20., 0.1, 0.15, 1030./20., 13./20.,
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+
+                 115./10.+15./10.+885./20., -115./10.+15./10., (11.9-1.8-0.3)/20., 0.1, 0.15, 885./20., 13./20.,
+
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+
+                 0, 0, (11.9-1.8-0.3)/20., 0.1, 0.15, 0, 13./20.,
+
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+
+                 930./10.-600./20., -330./10., (11.9-1.8-0.3)/20., 0.1, 0.15, 600./20., 13./20.,
+
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+
+                 930./10-600./10.-15./10, -330./10-15./10-600./20., (11.9-1.8-0.3)/20., 0.1, 0.15, 600./20., 13./20.,
+
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+
+                 0, 0, (11.9-1.8-0.3)/20., 0.1, 0.15, 300./20., 13./20.,
+
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+
+                 715./10-250./20-15./10., -540./10-300./20.-15./10., (11.9-1.8-0.3)/20., 0.1, 0.15, 300./20, 13./20.,
+
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+
+                 715./10., -540./10., (11.9-1.8-0.3)/20., 0.1, 0.15, 250./20., 13./20.,
+
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+
+                 715./10+250./20+15./10., -540./10-220./20-15./10., (11.9-1.8-0.3)/20., 0.1, 0.15, 220./20., 13./20.,
+
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+                 0,0,0,0,0,0,0,
+
+                 0, 0, (11.9-1.8-0.3)/20., 0.1, 0.15, 0, 13./20.,
+                            };
+number TRDDBc::_PipesNRM[trdconst::maxpipes][4][3][3]={
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+
+                 1, 0, 0,
+                 0, 0, 1,
+                 0,-1, 0,
+ 
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+
+                  0, 0,1,
+                 -1,0,0,
+                  0,-1,0,
+
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+
+
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+
+                  0, 0,1,
+                 -1,0,0,
+                  0,-1,0,
+
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+
+                 1, 0, 0,
+                 0, 0, 1,
+                 0,-1, 0,
+
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+
+                 1, 0, 0,
+                 0, 0, 1,
+                 0,-1, 0,
+
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+
+                  0, 0,1,
+                 -1,0,0,
+                  0,-1,0,
+
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+
+                 1, 0, 0,
+                 0, 0, 1,
+                 0,-1, 0,
+
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+
+                 0,0,0,
+                 0,0,0,
+                 0,0,0,
+
+
+                            };
+uinteger TRDDBc::_NoTRDOctagons[mtrdo]={9};
+uinteger TRDDBc::_PrimaryOctagon[maxo]={0,1,2,3,4,5,3,4,1,1,5,5,5};
+uinteger TRDDBc::_PrimaryOctagonNo=6;
 uinteger TRDDBc::_TRDOctagonNo=1;
 uinteger TRDDBc::_OctagonNo=maxo;
 uinteger TRDDBc::_BulkheadsNo[mtrdo]={maxbulk};
@@ -224,60 +475,115 @@ void TRDDBc::init(){
       OctagonDimensions(4,8)=0;         // rmin
       OctagonDimensions(4,9)=1550./20.;  // rmax
 
+// Xe Radiator  Octagon
+
+
+      OctagonDimensions(5,4)=-(35+11.9)/20.;   // z coord
+
+   // Bottom edge
+
+      OctagonDimensions(5,5)=0;         // rmin
+      OctagonDimensions(5,6)=1110./10.; // rmax
+
+      // Top edge
+      OctagonDimensions(5,8)=0;         // rmin
+      OctagonDimensions(5,9)=1110./10.;  // rmax
+
+     
+
+
   // Now the non-primary octagons
 
   //   Inner honeycomb part on top, inside octagon 3 (leaving
   //            1 mm skin of carbon fiber on top and bottom)
 
-      OctagonDimensions(5,4)=OctagonDimensions(3,4)+2./20.;  //z coord
+      OctagonDimensions(6,4)=OctagonDimensions(3,4)+2./20.;  //z coord
 
       // Bottom edge
-      OctagonDimensions(5,5)=0;   // rmin
-      OctagonDimensions(5,6)=OctagonDimensions(3,6);  // rmax
+      OctagonDimensions(6,5)=0;   // rmin
+      OctagonDimensions(6,6)=OctagonDimensions(3,6);  // rmax
 
       // Top edge
-      OctagonDimensions(5,8)=0;  // rmin
-      OctagonDimensions(5,9)=OctagonDimensions(3,9); // rmax
+      OctagonDimensions(6,8)=0;  // rmin
+      OctagonDimensions(6,9)=OctagonDimensions(3,9); // rmax
 
   //   Inner honeycomb part on bottom, inside octagon 4 (leaving
   //            0.5 mm skin of carbon fiber on top and bottom)
       
-      OctagonDimensions(6,4)=OctagonDimensions(4,4)+1./20.;  //z coord
+      OctagonDimensions(7,4)=OctagonDimensions(4,4)+1./20.;  //z coord
 
       // Bottom edge
-      OctagonDimensions(6,5)=0;   // rmin
-      OctagonDimensions(6,6)=OctagonDimensions(4,6);  // rmax
+      OctagonDimensions(7,5)=0;   // rmin
+      OctagonDimensions(7,6)=OctagonDimensions(4,6);  // rmax
                     
       // Top edge
-      OctagonDimensions(6,8)=0;  // rmin
-      OctagonDimensions(6,9)=OctagonDimensions(4,9); // rmax
+      OctagonDimensions(7,8)=0;  // rmin
+      OctagonDimensions(7,9)=OctagonDimensions(4,9); // rmax
 
   //  Honeycomb inside sides of TRD structure
 
-      OctagonDimensions(7,4)=OctagonDimensions(1,4)+ 4./20.;  // z coord
+      OctagonDimensions(8,4)=OctagonDimensions(1,4)+ 4./20.;  // z coord
 
       // Bottom edge
-      OctagonDimensions(7,5)= OctagonDimensions(1,6)-30./10./cos(ang)
+      OctagonDimensions(8,5)= OctagonDimensions(1,6)-30./10./cos(ang)
                                    +2./10./cos(ang);
-      OctagonDimensions(7,6)=OctagonDimensions(1,6)-2./10./cos(ang);  // rmax
+      OctagonDimensions(8,6)=OctagonDimensions(1,6)-2./10./cos(ang);  // rmax
 
       // Top edge
-      OctagonDimensions(7,8)=OctagonDimensions(1,9)-30./10./cos(ang)
+      OctagonDimensions(8,8)=OctagonDimensions(1,9)-30./10./cos(ang)
                       +2./10./cos(ang);                             // rmin
-      OctagonDimensions(7,9)=OctagonDimensions(1,9)-2./10./cos(ang); // rmax
+      OctagonDimensions(8,9)=OctagonDimensions(1,9)-2./10./cos(ang); // rmax
 
 
   // Inner part... this is where ladders and tubes go
 
-      OctagonDimensions(8,4)=OctagonDimensions(1,4)+8./20.;  // z coord
+      OctagonDimensions(9,4)=OctagonDimensions(1,4)+8./20.;  // z coord
 
       // Bottom edge
-      OctagonDimensions(8,5)=0;
-      OctagonDimensions(8,6)=OctagonDimensions(7,5)-2./10./cos(ang);
+      OctagonDimensions(9,5)=0;
+      OctagonDimensions(9,6)=OctagonDimensions(8,5)-2./10./cos(ang);
 
       // Top edge
-      OctagonDimensions(8,8)=0;
-      OctagonDimensions(8,9)=OctagonDimensions(7,8)-2./10./cos(ang);
+      OctagonDimensions(9,8)=0;
+      OctagonDimensions(9,9)=OctagonDimensions(8,8)-2./10./cos(ang);
+
+
+//  Top Alum cover of Xe radiator
+      
+      OctagonDimensions(10,4)=-1.8/20.;  // z coord
+
+      // Bottom edge
+      OctagonDimensions(10,5)=0;
+      OctagonDimensions(10,6)=OctagonDimensions(5,6);
+
+      // Top edge
+      OctagonDimensions(10,8)=0;
+      OctagonDimensions(10,9)=OctagonDimensions(5,9);
+
+//  Rohacell of Xe radiator
+      
+      OctagonDimensions(11,4)=-(11.9-1.8-0.3)/20.;  // z coord
+
+      // Bottom edge
+      OctagonDimensions(11,5)=0;
+      OctagonDimensions(11,6)=OctagonDimensions(5,6);
+
+      // Top edge
+      OctagonDimensions(11,8)=0;
+      OctagonDimensions(11,9)=OctagonDimensions(5,9);
+
+//  Bottom Alum cover of Xe radiator
+      
+      OctagonDimensions(12,4)=-0.3/20.;  // z coord
+
+      // Bottom edge
+      OctagonDimensions(12,5)=0;
+      OctagonDimensions(12,6)=OctagonDimensions(5,6);
+
+      // Top edge
+      OctagonDimensions(12,8)=0;
+      OctagonDimensions(12,9)=OctagonDimensions(5,9);
+
 
       
       for(i=0;i<OctagonNo();i++){
@@ -303,6 +609,9 @@ void TRDDBc::init(){
      // 835. is position of bottom of bottom carbon fiber ring
 
        switch(i){
+       case 5:    // Xe Radiator octagon  (up from hc)
+          coo[2]= (1476+94.+6.+35+11.9)/10.+OctagonDimensions(i,4);
+          break;
        case 4:    // bottom honeycomb... starts 1.5 mm below carbon
 	 //  fiber ring
           coo[2]= (835.-1.5)/10.+OctagonDimensions(i,4);
@@ -331,6 +640,17 @@ void TRDDBc::init(){
        for(j=0;j<3;j++){
         coo[j]=0;
        }
+       switch(i){
+        case 10:  // top alu of Xe rad
+         coo[2]=OctagonDimensions(GetPrimaryOctagon(i),7)+OctagonDimensions(i,4);
+        break;
+        case 11:  // rohacell
+         coo[2]=OctagonDimensions(GetPrimaryOctagon(i),7)+2*OctagonDimensions(i-1,4)+OctagonDimensions(i,4);
+        break;
+        case 12:  // bot alu of Xe rad
+         coo[2]=OctagonDimensions(GetPrimaryOctagon(i),7)+2*OctagonDimensions(i-2,4)+2*OctagonDimensions(i-1,4)+OctagonDimensions(i,4);
+        break;
+       }       
        SetOctagon(i,status,coo,unitnrm,gid); 
       }
 
@@ -896,6 +1216,154 @@ void TRDDBc::init(){
         }
        }
       }
+
+
+//   Now Final Set for Pipes & Spikes
+
+//  Assuming Mirroring of 4 quadrants  for spikes
+
+    for (int is=0;is<trdconst::maxspikes;is++){
+     for(int i=0;i<4;i++){
+       for(int k=0;k<6;k++)_SpikesPar[is][i][k]=_SpikesPar[is][3][k];
+       switch(i){
+         case 0:
+         _SpikesPar[is][i][0]=-_SpikesPar[is][i][0];
+         _SpikesPar[is][i][1]=-_SpikesPar[is][i][1];
+         break;
+         case 1:
+         _SpikesPar[is][i][1]=-_SpikesPar[is][i][1];
+         break;
+         case 2:
+         _SpikesPar[is][i][0]=-_SpikesPar[is][i][0];
+         break;
+       }
+    }
+  } 
+{
+
+// Rotatate spikes by 22.5 deg
+  number cr=cos(-22.5/180.*AMSDBc::pi);
+  number sr=sin(-22.5/180.*AMSDBc::pi);
+  number nrmr[3][3]={cr,sr,0,-sr,cr,0,0,0,1};
+  for (int i=0;i<trdconst::maxspikes;i++){
+  for (int iq=0;iq<4;iq++){
+   geant coo[3]={0,0,0};  
+   for (int j=0;j<3;j++){
+    for (int k=0;k<3;k++){
+     coo[j]+=_SpikesPar[i][iq][k]*nrmr[j][k];
+    }
+   }
+   for (int j=0;j<3;j++)_SpikesPar[i][iq][j]=coo[j];
+  }
+} 
+}
+
+
+
+
+    
+
+ // Pipe 3
+    
+{
+    _PipesPar[2][3][0]=(93+101.5)/2+1.5;
+    _PipesPar[2][3][1]=(-10-33)/2-0.75;
+    number a=atan2(33-10,101.5-93);
+    number ca=sin(a);
+    number sa=cos(a);
+    _PipesPar[2][3][5]=23/2./ca-1.5;
+    _PipesNRM[2][3][0][0]=ca;
+    _PipesNRM[2][3][0][1]=0;
+    _PipesNRM[2][3][0][2]=sa;
+    _PipesNRM[2][3][1][0]=-sa;
+    _PipesNRM[2][3][1][1]=0;
+    _PipesNRM[2][3][1][2]=ca;
+    _PipesNRM[2][3][2][0]=0;
+    _PipesNRM[2][3][2][1]=-1;
+    _PipesNRM[2][3][2][2]=0;
+
+}
+ // Pipe 5
+    
+    _PipesPar[5][3][0]=(31.5+57.5)/2;
+    _PipesPar[5][3][1]=(-94.5-85.5)/2;
+    number a=atan2(94.5-85.5,57.5-31.5);
+    number ca=sin(a);
+    number sa=cos(a);
+    _PipesPar[5][3][5]=(57.5-31.5)/sa/2.-1.5;
+    _PipesNRM[5][3][0][0]=ca;
+    _PipesNRM[5][3][0][1]=0;
+    _PipesNRM[5][3][0][2]=sa;
+    _PipesNRM[5][3][1][0]=-sa;
+    _PipesNRM[5][3][1][1]=0;
+    _PipesNRM[5][3][1][2]=ca;
+    _PipesNRM[5][3][2][0]=0;
+    _PipesNRM[5][3][2][1]=-1;
+    _PipesNRM[5][3][2][2]=0;
+
+
+
+//  Assuming Mirroring of 4 quadrants  for pipes
+
+    for (int is=0;is<trdconst::maxpipes;is++){
+     for(int i=0;i<4;i++){
+       for(int k=0;k<7;k++)_PipesPar[is][i][k]=_PipesPar[is][3][k];
+       for (int k=0;k<3;k++){
+         for (int l=0;l<3;l++)_PipesNRM[is][i][k][l]=_PipesNRM[is][3][k][l];
+       }
+       switch(i){
+         case 0:
+         _PipesPar[is][i][0]=-_PipesPar[is][i][0];
+         _PipesPar[is][i][1]=-_PipesPar[is][i][1];
+         break;
+         case 1:
+         _PipesPar[is][i][1]=-_PipesPar[is][i][1];
+         _PipesNRM[is][i][0][2]=-_PipesNRM[is][i][0][2];
+         _PipesNRM[is][i][1][0]=-_PipesNRM[is][i][1][0];
+         break;
+         case 2:
+         _PipesPar[is][i][0]=-_PipesPar[is][i][0];
+         _PipesNRM[is][i][0][2]=-_PipesNRM[is][i][0][2];
+         _PipesNRM[is][i][1][0]=-_PipesNRM[is][i][1][0];
+         break;
+       }
+    }
+  } 
+
+
+{
+
+// Rotatate pipes by 22.5 deg
+  number cr=cos(-22.5/180.*AMSDBc::pi);
+  number sr=sin(-22.5/180.*AMSDBc::pi);
+  number nrmr[3][3]={cr,sr,0,-sr,cr,0,0,0,1};
+  for (int i=0;i<trdconst::maxpipes;i++){
+  for (int iq=0;iq<4;iq++){
+   geant coo[3]={0,0,0};  
+   number nrm[3][3]={0,0,0,0,0,0,0,0,0};
+   for (int j=0;j<3;j++){
+    for (int k=0;k<3;k++){
+     coo[j]+=_PipesPar[i][iq][k]*nrmr[j][k];
+    }
+   }
+   for (int j=0;j<3;j++)_PipesPar[i][iq][j]=coo[j];
+   for (int i1=0;i1<3;i1++){
+    for(int i2=0;i2<3;i2++){
+     for (int j=0;j<3;j++){
+       nrm[i1][i2]=nrm[i1][i2]+nrmr[i1][j]*_PipesNRM[i][iq][j][i2];
+     }
+    }
+   }
+   for (int i1=0;i1<3;i1++){
+    for(int i2=0;i2<3;i2++){
+     _PipesNRM[i][iq][i1][i2]=nrm[i1][i2];
+    }
+   }
+  }
+}
+}
+
+
       InitPattern();
 }
 

@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.141 2002/09/09 08:28:30 choumilo Exp $
+//  $Id: amsgeom.C,v 1.142 2002/11/08 15:43:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -25,7 +25,6 @@
 #include <job.h>
 #include <commons.h>
 #include <tkdbc.h>
-#include <trdid.h>
 extern "C" void mtx_(geant nrm[][3],geant vect[]);
 extern "C" void mtx2_(number nrm[][3],geant  xnrm[][3]);
 #define MTX mtx_
@@ -1836,7 +1835,7 @@ cout <<"TKGeom-I-"<<nhalfL<<" Active halfladders initialized"<<endl;
 
 }
 
-#include <trddbc.h>
+#include <trdid.h>
 void amsgeom::trdgeom02(AMSgvolume & mother){
 using trdconst::maxco;
 using trdconst::maxbulk;
@@ -1865,7 +1864,8 @@ AMSNode * oct[maxo];
  ostrstream ost(name,sizeof(name));
 
 int i;
-for ( i=0;i<TRDDBc::PrimaryOctagonNo();i++){
+// changed by VC 11-nov-2002  (removed trd radiator (i==0))
+for ( i=1;i<TRDDBc::PrimaryOctagonNo();i++){
  ost.seekp(0);  
  ost << "TRD"<<i<<ends;
  TRDDBc::GetOctagon(i,status,coo,nrm,rgid);
@@ -1882,11 +1882,21 @@ for ( i=0;i<TRDDBc::PrimaryOctagonNo();i++){
 
 for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo();i++){
  ost.seekp(0);  
- ost << "TRD"<<i<<ends;
+ if(i<10){
+  ost << "TRD"<<i<<ends;
+ }
+ else if(i==10) ost << "TRDa"<<ends;
+ else if(i==11) ost << "TRDb"<<ends;
+ else if(i==12) ost << "TRDc"<<ends;
+ else{
+  cerr <<"Add some more octagons in trdgeom02 here"<<endl;
+  abort();
+ }
  TRDDBc::GetOctagon(i,status,coo,nrm,rgid);
  gid=i+1;
  int ip;
  int po=TRDDBc::GetPrimaryOctagon(i);
+
 
  for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
        oct[i]=oct[po]->add(new AMSgvolume(TRDDBc::OctagonMedia(i),
@@ -2039,6 +2049,62 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
   }
  }
 }
+
+{
+//  Now Xe Rad Spikes
+    
+   number nrml[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+    gid=0;
+    for (int i=0;i<4;i++){
+     for (int j=0;j<trdconst::maxspikes;j++){
+      // spikes go to 6th primary octagon directly
+       for(int ip=0;ip<3;ip++)coo[ip]=TRDDBc::getSpikesPar(j,i,ip);
+       for(int ip=0;ip<3;ip++)par[ip]=TRDDBc::getSpikesPar(j,i,ip+3);
+       oct[5]->add(new AMSgvolume(TRDDBc::XeRadSpikesMedia(),
+       nrot++,"TRDS","TUBE",par,3,coo,nrml, "ONLY",1,++gid,1));
+    }
+   }
+}
+{
+//  Now Xe Rad pipes
+    
+//  Assuming Mirroring of 4 quadrants  
+    gid=0;
+    for (int i=0;i<4;i++){
+     for (int j=0;j<trdconst::maxpipes;j++){
+       for(int ip=0;ip<3;ip++)coo[ip]=TRDDBc::getPipesPar(j,i,ip);
+       for(int ip=0;ip<3;ip++)par[ip]=TRDDBc::getPipesPar(j,i,ip+3);
+       coo[2]-=par[1];
+       geant hdist=TRDDBc::getPipesPar(j,i,6);
+       TRDDBc::getPipesNRM(j,i,nrm);
+
+/*
+         cout <<"  coo ini "<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<endl;
+         cout <<"  par "<<par[0]<<" "<<par[1]<<" "<<par[2]<<endl;
+         cout <<"  hdist "<<hdist<<endl;
+         for(int il=0;il<3;il++){
+           for (int jl=0;jl<3;jl++)cout <<nrm[il][jl]<<" ";
+           cout <<endl;
+       }    
+*/
+
+//      now add two parallel pipes  with half dist hdist
+
+      // pipes go to 12th octagon  
+
+       if(nrm[0][0] || nrm[1][0] ){
+         geant cool[3];
+         for (int ip=0;ip<3;ip++)cool[ip]=coo[ip]-hdist*nrm[ip][0];
+         oct[11]->add(new AMSgvolume(TRDDBc::PipesMedia(),
+         nrot++,"TRDP","TUBE",par,3,cool,nrm, "ONLY",1,++gid,1));
+         for (int ip=0;ip<3;ip++)cool[ip]=coo[ip]+hdist*nrm[ip][0];
+         oct[11]->add(new AMSgvolume(TRDDBc::PipesMedia(),
+         nrot++,"TRDP","TUBE",par,3,cool,nrm, "ONLY",1,++gid,1));
+       }
+    }
+   }
+}
+
 cout <<"amsgeom::trdgeom02-I-TRDGeometryDone"<<endl;
 
 }

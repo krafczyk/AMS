@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.426 2002/10/30 14:57:09 mdelgado Exp $
+// $Id: job.C,v 1.427 2002/11/08 15:43:10 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -677,10 +677,10 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.PosError1D=0.1;
   ECREFFKEY.Chi2Change2D=0.33;
   ECREFFKEY.TransShowerSize2D=10;
-  ECREFFKEY.SimpleRearLeak[0]=-0.02;
+  ECREFFKEY.SimpleRearLeak[0]=-0.015;
   ECREFFKEY.SimpleRearLeak[1]=1.00e-3/1.015;
-  ECREFFKEY.SimpleRearLeak[2]=3.3;
-  ECREFFKEY.SimpleRearLeak[3]=1.00e-3/1.0;
+  ECREFFKEY.SimpleRearLeak[2]=3.2;
+  ECREFFKEY.SimpleRearLeak[3]=1.035e-3;
   ECREFFKEY.CalorTransSize=32;
   ECREFFKEY.EMDirCorrection=1.03;
 //  
@@ -1979,13 +1979,14 @@ if(isRealData() ){
   ECREFFKEY.SimpleRearLeak[0]=0.02;
   ECREFFKEY.SimpleRearLeak[1]=0.99e-3;
   ECREFFKEY.SimpleRearLeak[2]=3.6;
-  ECREFFKEY.SimpleRearLeak[3]=1.01e-3;
+  ECREFFKEY.SimpleRearLeak[3]=1.04e-3;
   for (int i=0;i<4;i++)cout <<" RearLeak["<<i<<"]="<<ECREFFKEY.SimpleRearLeak[i]<<endl;
 }
 else{
 for(int k=0;k<4;k++){
  if( ECREFFKEY.SimpleRearLeak[k]<0) ECREFFKEY.SimpleRearLeak[k]*=-1;
 }
+  for (int i=0;i<4;i++)cout <<" RearLeak["<<i<<"]="<<ECREFFKEY.SimpleRearLeak[i]<<endl;
 }
 }
 
