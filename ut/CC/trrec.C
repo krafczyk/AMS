@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.149 2003/05/14 17:00:26 choutko Exp $
+//  $Id: trrec.C,v 1.150 2003/07/25 16:46:52 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2125,6 +2125,7 @@ _PIRigidity=out[5];
 _PITheta=out[3];
 _PIPhi=out[4];
 _PIP0=AMSPoint(out[0],out[1],out[2]);
+_PIChi2=out[6];
 }
 
 return _Chi2FastFit;

@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.47 2003/07/08 16:28:19 choutko Exp $
+//  $Id: particle.h,v 1.48 2003/07/25 16:47:48 alcaraz Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -19,7 +19,7 @@
 #include <charge.h>
 #include <trdrec.h>
 #include <richrec.h>
-class AMSTrTrackGamma;
+class AMSVtx;
 class AntiMatter: public AMSlink{
 protected: 
  integer _pid;
@@ -38,7 +38,7 @@ protected:
   AMSCharge * _pcharge;      // pointer to charge
   AMSTrTrack * _ptrack;      // pointer to track;
   AMSTRDTrack * _ptrd;       // pointer to trd track 
-  AMSTrTrackGamma * _pvert;       // pointer to vertex
+  AMSVtx * _pvert;           // pointer to vertex
   AMSRichRing * _prich;      // pointer to rich ring
   AMSEcalShower  *_pShower;     // pointer to shower;
   integer _GPart;        // Geant particle ID
@@ -105,7 +105,7 @@ public:
   static number trdespect[30];
   static number trdpspect[30];
   AMSParticle *  next(){return (AMSParticle*)_next;}
-  AMSParticle(AMSTrTrackGamma *pvert);
+  AMSParticle(AMSVtx *pvert);
   AMSParticle():   _pbeta(0), _pcharge(0), _ptrack(0),_ptrd(0),_pvert(0),_prich(0),_pShower(0),AMSlink()
  {
     int i;
@@ -166,9 +166,9 @@ public:
 AMSBeta*       getpbeta()    const   { return _pbeta;}
 AMSCharge*     getpcharge()  const   { return _pcharge;}
 AMSTrTrack*    getptrack()   const   { return _ptrack;}
-AMSTRDTrack*    getptrd()    const  { return _ptrd;}
-AMSTrTrackGamma*    getvert()    const  { return _pvert;}
-AMSRichRing * getprich()     const {return  _prich;}
+AMSTRDTrack*   getptrd()     const   { return _ptrd;}
+AMSVtx*        getvert()     const   { return _pvert;}
+AMSRichRing *  getprich()    const   { return  _prich;}
 
 number  getmass() const {return _Mass;}
 number  getmomentum() const {return _Momentum;}

@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.51 2003/05/14 17:00:22 choutko Exp $
+//  $Id: beta.C,v 1.52 2003/07/25 16:46:50 alcaraz Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -36,13 +36,17 @@ integer AMSBeta::build(integer refit){
  AMSPoint SearchReg(BETAFITFFKEY.SearchReg[0],BETAFITFFKEY.SearchReg[1],
  BETAFITFFKEY.SearchReg[2]);
 
-    int bfound=0;
-// Loop first on tracks with K-hits, second on FalseTOFX
-   for( int Sonly=0; Sonly<2; Sonly++){
+// Decide the order here
+// Sonly = 0 => vertex tracks (TOFFORGAMMA)
+// Sonly = 1 => tracks with K hits (!FalseTOFX && !TOFFORGAMMA)
+// Sonly = 2 => tracks without K hits (FalseTOFX && !TOFFORGAMMA)
+
+ int bfound=0;
+ for( int Sonly=0; Sonly<2; Sonly++){
 
 
 // Loop on TOF patterns
- for ( int patb=0; patb<npatb; patb++){
+  for ( int patb=0; patb<npatb; patb++){
    if(!BETAFITFFKEY.pattern[patb]) continue;
    number td;
 
@@ -53,8 +57,16 @@ integer AMSBeta::build(integer refit){
      AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,1);
      for ( ; ptrack ; ptrack=ptrack->next()) {
 
-       if (Sonly==0 && ptrack->checkstatus(AMSDBc::FalseTOFX)) continue;
-       if (Sonly==1 && !ptrack->checkstatus(AMSDBc::FalseTOFX)) continue;
+       if (Sonly==0) {
+            if (!ptrack->checkstatus(AMSDBc::TOFFORGAMMA)) continue;
+       } else if (Sonly==1) {
+            if (ptrack->checkstatus(AMSDBc::TOFFORGAMMA)) continue;
+            if (ptrack->checkstatus(AMSDBc::FalseTOFX)) continue;
+       } else if (Sonly==2) {
+            if (ptrack->checkstatus(AMSDBc::TOFFORGAMMA)) continue;
+            if (!ptrack->checkstatus(AMSDBc::FalseTOFX)) continue;
+       }
+
        if(!BETAFITFFKEY.FullReco && ptrack->checkstatus(AMSDBc::USED)) continue;
        AMSTOFCluster * phit[4]={0,0,0,0};
        number sleng[4];
@@ -136,7 +148,7 @@ integer AMSBeta::build(integer refit){
 nexttrack: 
        continue;
      }
-   }
+  }
  }
 
 
@@ -144,7 +156,7 @@ nexttrack:
 
 // get beta from TRD info (eventually if TriggerLVL302 is ok)
 
-if(   !bfound    ){
+if( !bfound ){
 // Loop on TOF patterns
  for ( int patb=0; patb<npatb; patb++){
    if(!BETAFITFFKEY.pattern[patb]) continue;

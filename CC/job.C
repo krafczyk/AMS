@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.455 2003/07/08 16:30:27 choutko Exp $
+// $Id: job.C,v 1.456 2003/07/25 16:46:50 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1825,7 +1825,7 @@ void AMSJob::_sisrdinitjob(){
 void AMSJob::_reamsinitjob(){
  AMSgObj::BookTimer.book("WriteEvent");
  AMSgObj::BookTimer.book("REAMSEVENT"); 
- AMSgObj::BookTimer.book("TrTrackGamma"); 
+ AMSgObj::BookTimer.book("Vtx"); 
 
  _remfinitjob();
 

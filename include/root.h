@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.102 2003/07/20 11:14:27 choutko Exp $
+//  $Id: root.h,v 1.103 2003/07/25 16:47:48 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -45,7 +45,7 @@ class AMSTrCluster;
 class AMSTrMCCluster;
 class AMSTrRawCluster;
 class AMSTrTrack;
-class AMSTrTrackGamma;
+class AMSVtx;
 class AMSTrRecHit;
 class Ecal1DCluster;
 class AMSEcal2DCluster;
@@ -79,7 +79,7 @@ class AMSTrCluster{};
 class AMSTrMCCluster{};
 class AMSTrRawCluster{};
 class AMSTrTrack{};
-class AMSTrTrackGamma{};
+class AMSVtx{};
 class AMSTrRecHit{};
 class Ecal1DCluster{};
 class AMSEcal2DCluster{};
@@ -1176,40 +1176,42 @@ ClassDef(ChargeR,1)       //ChargeR
 
 /*!
   \class VertexR
-  \brief converted gamma class
+  \brief Vertex class
 
-   \sa gamma.h gamma.C
-   \author g.lamanna@cern.ch
+   \sa vtx.h vtx.C
+   \author juan.alcaraz@cern.ch
 */
 class VertexR {
- public:
 public:
-  int   Status;       //
-  float Mass;       ///< rec gamma mass
-  float Momentum;     ///< Momentum (gev/c)
-  float ErrMomentum;  ///< Error to Momentum 
+  int   Status;      ///< Status
+  float Mass;        ///< Rec mass at vertex (GeV)
+  float Momentum;    ///< Momentum sum (GeV)
+  float ErrMomentum; ///< Error in Momentum Sum (GeV)
   float Theta;       ///< Theta (rad)
-  float Phi;        ///< Phi  (rad)
-  float Vertex[3];    ///< reconstructed vertex cm)
-  float Distance;   ///< min distance between tracks (cm)
+  float Phi;         ///< Phi  (rad)
+  float Vertex[3];   ///< reconstructed vertex (cm)
+  int   Charge;      ///< Charge at vertex
+  float Chi2;        ///< Chi2
+  int   Ndof;        ///< Number of degrees of freedom
 protected:
-  int   fTrTrackL;    ///< index to left TrTrack used
-  int   fTrTrackR;    ///< index to right TrTrack used
+  vector<int> fTrTrack; ///< indexes of associated tracks
 public:
-  /// access function to  TrTrackR objects used
-  /// \param ptr 0 -> Left Track, 1++ -> RightTrack
+  /// access function to TrTrackR objects used
+  /// \return number of TrTrackR used
+  int NTrTrack()const {return fTrTrack.size();}
+  /// access function to TrTrackR objects used
+  /// \param i index of fTrTrackR vector
   /// \return index of TrTrackR object in collection or -1
-  int iTrTrack(unsigned int ptr)const {return ptr==0?fTrTrackL:fTrTrackR;}
-  /// access function to  TrTrackR objects used
-  /// \param ptr 0 -> Left Track, 1++ -> RightTrack
-  /// \return pointer to  TrTrackR object or 0
-  TrTrackR * pTrTrack(unsigned int ptr);
-   VertexR(){};
-   VertexR(AMSTrTrackGamma *ptr);
-   friend class AMSTrTrackGamma;
-   ClassDef(VertexR,1)         //VertexR
+  int iTrTrack(unsigned int i)const {return i<fTrTrack.size()? fTrTrack[i]:-1;}
+  /// access function to TrTrackR objects   
+  /// \param i index of fTrTrackR vector
+  /// \return pointer to TrTrackR object  or 0
+  TrTrackR * pTrTrack(unsigned int i);
+  VertexR(){};
+  VertexR(AMSVtx *ptr);
+  friend class AMSVtx;
+  ClassDef(VertexR,2)         //VertexR
 };
-
 
 
 
@@ -2543,7 +2545,6 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
         return l<fVertex.size()?&(fVertex[l]):0;
       }
 
-
        ///  ParticleR accessor
       ///  \return number of ParticleR
       unsigned int   NParticle()  {
@@ -2824,7 +2825,7 @@ void         AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[],
 void         AddAMSObject(AMSEcalHit *ptr);
 void         AddAMSObject(AMSmceventg *ptr);
 void         AddAMSObject(AMSmctrack *ptr);
-void         AddAMSObject(AMSTrTrackGamma *ptr);
+void         AddAMSObject(AMSVtx *ptr);
 void         AddAMSObject(AMSParticle *ptr, float phi, float phigl);
 void         AddAMSObject(AMSRichMCHit *ptr, int numgen);
 void         AddAMSObject(AMSRichRing *ptr);

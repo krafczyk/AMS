@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.88 2003/06/23 14:19:15 isevilla Exp $
+//  $Id: ntuple.h,v 1.89 2003/07/25 16:47:47 alcaraz Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -20,7 +20,7 @@ const int MAXTRRAW   =   300;
 const int MAXTRCLMC  =   200;
 const int MAXTRRH02    =   666;
 const int MAXTRTR02    =   100;
-const int MAXPAIR02    =   3;
+const int MAXVTX02    =   3;
 const int MAXMCG02     =    100;
 const int MAXECSHOW =    5;
 const int MAXECCLUST =    60;
@@ -443,31 +443,24 @@ friend class AMSTrRecHit;
 friend class AMSNtuple;
 };
 
-class TrGamma{
+class VtxNtuple{
 public:
-  int Ngam;
-  float Pgam[MAXPAIR02];
-  float ErrPgam[MAXPAIR02];
-  float Thetagam[MAXPAIR02];
-  float Phigam[MAXPAIR02];
-  float Massgam[MAXPAIR02];
-  float Vert[MAXPAIR02][3];
-  float Distance[MAXPAIR02];
-  int   Charge[MAXPAIR02];
-  int GammaStatus[MAXPAIR02];
-  int PtrLeft[MAXPAIR02];
-  int PtrRight[MAXPAIR02];
-  float Jthetal[MAXPAIR02];
-  float Jphil[MAXPAIR02];
-  float Jthetar[MAXPAIR02];
-  float Jphir[MAXPAIR02];
-  float JChi2l[MAXPAIR02];
-  float JChi2r[MAXPAIR02];
-  float Jp0l[MAXPAIR02][3];
-  float Jp0r[MAXPAIR02][3];
+  int Nvtx;
+  float Momvtx[MAXVTX02];
+  float ErrMomvtx[MAXVTX02];
+  float Thetavtx[MAXVTX02];
+  float Phivtx[MAXVTX02];
+  float Massvtx[MAXVTX02];
+  int Chargevtx[MAXVTX02];
+  int Statusvtx[MAXVTX02];
+  float Chi2vtx[MAXVTX02];
+  int Ndofvtx[MAXVTX02];
+  int Ntrkvtx[MAXVTX02];
+  int PtrTrack[MAXVTX02][3];
+  float Vertex[MAXVTX02][3];
 
-
-friend class AMSTrTrackGamma;
+friend class AMSVtx;
+friend class AMSTrTrack;
 friend class AMSNtuple;
 };
 
@@ -708,7 +701,7 @@ protected:
   TRDTrackNtuple _trdtrk;
   TRDRawHitNtuple _trdht;
   TrRecHitNtuple02 _trrh02;
-  TrGamma _tpai02;
+  VtxNtuple _vtx02;
   TrTrackNtuple02 _trtr02;
   MCTrackNtuple _mct;// tempor 02??
   MCEventGNtuple02 _mcg02;
@@ -759,7 +752,7 @@ public:
   TRDTrackNtuple* Get_trdtrk() {return &_trdtrk;}
   TRDRawHitNtuple* Get_trdht() {return &_trdht;}
   TrRecHitNtuple02* Get_trrh02() {return &_trrh02;}
-  TrGamma* Get_tpai02() {return &_tpai02;}
+  VtxNtuple* Get_vtx02() {return &_vtx02;}
   TrTrackNtuple02* Get_trtr02() {return &_trtr02;}
   MCTrackNtuple* Get_mct() {return &_mct;}
   MCEventGNtuple02* Get_mcg02() {return &_mcg02;}

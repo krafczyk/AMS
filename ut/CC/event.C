@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.317 2003/06/26 13:13:22 choumilo Exp $
+//  $Id: event.C,v 1.318 2003/07/25 16:46:50 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -51,7 +51,7 @@
 #include <status.h>
 #include <trdsim.h>
 #include <trdrec.h>
-#include <gamma.h>
+#include <vtx.h>
 #ifdef __G4AMS__
 #include <g4util.h>
 #endif
@@ -967,9 +967,10 @@ void AMSEvent::_retkinitevent(){
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseX",i),&AMSTrTrack::buildFalseX,0));
   for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseTOFX",i),&AMSTrTrack::buildFalseTOFX,0));
-  // G.Lamanna
-  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSTrTrackGamma",i),&AMSTrTrackGamma::build,0));
+
+  ptr = AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSVtx",0),&AMSVtx::build,0));
+
 }
 
 void  AMSEvent::write(int trig){
@@ -1400,6 +1401,13 @@ AMSgObj::BookTimer.start("RETKEVENT");
     }
   }
 
+// TEMPORARY....
+  if (!veto) {
+    AMSgObj::BookTimer.stop("TrTrack");
+    return;
+  }
+// TEMPORARY....
+
 //   cout <<" ptrd "<<hmul<<endl;
   Trigger2LVL1 * ptr12= dynamic_cast<Trigger2LVL1*>(ptr1);
   if(ptr12 && (ptr12->IsECHighEnergy() || ptr12->IsECEMagEnergy() || TRFITFFKEY.LowMargin || hmul  || veto)){
@@ -1669,55 +1677,46 @@ void AMSEvent::_rerichevent(){
 }
 //========================================================================
 void AMSEvent::_reaxevent(){
-AMSgObj::BookTimer.start("REAXEVENT");
+  AMSgObj::BookTimer.start("REAXEVENT");
 
-buildC("AMSBeta");
-#ifdef __AMSDEBUG__
-if(AMSEvent::debug)AMSBeta::print();
-#endif
-
-
-//
-  AMSTRDTrack *ptrd=(AMSTRDTrack*)getheadC("AMSTRDTrack",0); 
-  bool veto=true;
-  while(ptrd){
-    if(!(veto=ptrd->Veto(trdconst::maxlad-1))){
-     break;
-    }
-    ptrd=ptrd->next();
+  AMSTRDTrack *ptrd = (AMSTRDTrack*)getheadC("AMSTRDTrack",0); 
+  bool veto = true;
+  while (ptrd){
+    veto = ptrd->Veto(trdconst::maxlad-1);
+    if (!veto) break;
+    ptrd = ptrd->next();
   }
-if(veto){
- AMSgObj::BookTimer.start("TrTrackGamma");
-  int found=buildC("AMSTrTrackGamma");
- AMSgObj::BookTimer.stop("TrTrackGamma");
-  if(found){
-    buildC("AMSBeta");
+
+  if (veto) {
+    AMSgObj::BookTimer.start("Vtx");
+    buildC("AMSVtx");
+#ifdef __AMSDEBUG__
+    AMSVtx* pvtx;
+    for(int i=0;;i++){
+       pvtx = (AMSVtx*)AMSEvent::gethead()->getheadC("AMSVtx",i,1);
+                     if (!ptr) break;
+   }
+#endif
+    AMSgObj::BookTimer.stop("Vtx");
   }
-}
+
+  buildC("AMSBeta");
 #ifdef __AMSDEBUG__
-//if(AMSEvent::debug)AMSTrTrackGamma::print();
+  if(AMSEvent::debug)AMSBeta::print();
 #endif
-//
 
-//buildC("AMSBeta");
-//#ifdef __AMSDEBUG__
-//if(AMSEvent::debug)AMSBeta::print();
-//#endif
-
-
-buildC("AMSCharge");
+  buildC("AMSCharge");
 #ifdef __AMSDEBUG__
-if(AMSEvent::debug)AMSCharge::print();
+  if(AMSEvent::debug)AMSCharge::print();
 #endif
-buildC("AMSParticle");
+
+  buildC("AMSParticle");
 #ifdef __AMSDEBUG__
-if(AMSEvent::debug)AMSParticle::print();
+  if(AMSEvent::debug)AMSParticle::print();
 #endif
-//
 
 
-
-AMSgObj::BookTimer.stop("REAXEVENT");
+  AMSgObj::BookTimer.stop("REAXEVENT");
 }
 
 

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.135 2003/07/09 14:54:36 choutko Exp $
+//  $Id: particle.C,v 1.136 2003/07/25 16:46:51 alcaraz Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -22,7 +22,7 @@
 #include <ecalrec.h>
 #include <mceventg.h>
 #include <ecalrec.h>
-#include <gamma.h> 
+#include <vtx.h> 
 
 // Normalized TRD probabilities (preliminary)
 number AMSParticle::trdpspect[30]={
@@ -84,12 +84,11 @@ out:
        pcharge=pcharge->next();
       }
 
-//    Make vertex particle(gamma) only if charge==0
-//   find vetex with minmal relative mass 
+//   Make vertex particle
 
       number mbig=100000;
-      AMSTrTrackGamma *pcand=0;
-      for( AMSTrTrackGamma *pvert=(AMSTrTrackGamma*)AMSEvent::gethead()->getheadC("AMSTrTrackGamma",0);pvert!=NULL;pvert=pvert->next()){   
+      AMSVtx *pcand=0;
+      for( AMSVtx *pvert=(AMSVtx*)AMSEvent::gethead()->getheadC("AMSVtx",0);pvert!=NULL;pvert=pvert->next()){   
 // VC pvert
          if(pvert->getcharge()==0 && !pvert->checkstatus(AMSDBc::BAD)){    
            if(pvert->getmass()/pvert->getmom()<mbig){
@@ -103,11 +102,8 @@ out:
           pcand->setstatus(AMSDBc::USED);
           ppart->pid();
           AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
-           partfound++;
+          partfound++;
        }
-
-
-
 
 
       if(!partfound){
@@ -551,7 +547,6 @@ break;
   if(_ptrack->checkstatus(AMSDBc::NOTRACK))PN->TrackP[PN->Npart]=-1;
   else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))PN->TrackP[PN->Npart]=-1;
   else if(_ptrack->checkstatus(AMSDBc::ECALTRACK))PN->TrackP[PN->Npart]=-1;
-  else if(_ptrack->checkstatus(AMSDBc::GAMMALEFT) && _ptrack->checkstatus(AMSDBc::GAMMARIGHT))PN->TrackP[PN->Npart]=-1;
   else PN->TrackP[PN->Npart]=_ptrack->getpos();
   PN->Particle[PN->Npart]=_gpart[0];
   PN->ParticleVice[PN->Npart]=_gpart[1];
@@ -804,11 +799,15 @@ AMSgObj::BookTimer.start("ReTKRefit");
           }
       }
     }
-    if(fast || _ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK) || _ptrack->checkstatus(AMSDBc::ECALTRACK) || (_ptrack->checkstatus(AMSDBc::GAMMALEFT) && _ptrack->checkstatus(AMSDBc::GAMMARIGHT))){
+    if(fast || _ptrack->checkstatus(AMSDBc::NOTRACK) 
+            || _ptrack->checkstatus(AMSDBc::TRDTRACK) 
+            || _ptrack->checkstatus(AMSDBc::ECALTRACK)
+            || _ptrack->checkstatus(AMSDBc::TOFFORGAMMA)){
       _loc2gl();
        AMSgObj::BookTimer.stop("ReTKRefit");  
       return;
     }
+
       geant dummy;
       integer dorefit=TRFITFFKEY.ForceAdvancedFit==1 ||
       (TRFITFFKEY.ForceAdvancedFit==2  &&
@@ -977,7 +976,7 @@ void AMSParticle::alfun(integer & n , number xc[], number &fc, AMSParticle *p){
 }
 
 
-AMSParticle::AMSParticle(AMSTrTrackGamma *pvert):_pvert(pvert),_ptrack(0),
+AMSParticle::AMSParticle(AMSVtx *pvert):_pvert(pvert),_ptrack(0),
 _ptrd(0),_prich(0),_pShower(0),_pcharge(0),_pbeta(0){
     int i;
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
@@ -1009,44 +1008,35 @@ _ptrd(0),_prich(0),_pShower(0),_pcharge(0),_pbeta(0){
   for(int patb=0; patb<npatb; patb++){
     AMSBeta *pbeta=(AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
     while(pbeta){
-      if(pbeta->getptrack()->checkstatus(AMSDBc::GAMMALEFT)){
+      if (pbeta->getptrack()->checkstatus(AMSDBc::TOFFORGAMMA)) {
         _Beta=pbeta->getbeta();
         _pbeta=pbeta;
         _ErrBeta=pbeta->getebeta()*_Beta*_Beta;
         break;
       }
-      else if(pbeta->getptrack()->checkstatus(AMSDBc::GAMMARIGHT)){
-        _Beta=pbeta->getbeta();
-        _pbeta=pbeta;
-        _ErrBeta=pbeta->getebeta()*_Beta*_Beta;
-        break;
-      }
-      
       pbeta=pbeta->next();
     }
     if(_pbeta)break;
   }
 
   if(!_pbeta){
-  for(int patb=0; patb<npatb; patb++){
-    AMSBeta *pbeta=(AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
-    while(pbeta){
-      if(pbeta->getptrack()->checkstatus(AMSDBc::NOTRACK)){
-        _Beta=pbeta->getbeta();
-        _pbeta=pbeta;
-        _ErrBeta=pbeta->getebeta()*_Beta*_Beta;
-        break;
+    for(int patb=0; patb<npatb; patb++){
+      AMSBeta *pbeta=(AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
+      while(pbeta){
+        if(pbeta->getptrack()->checkstatus(AMSDBc::NOTRACK)){
+          _Beta=pbeta->getbeta();
+          _pbeta=pbeta;
+          _ErrBeta=pbeta->getebeta()*_Beta*_Beta;
+          break;
+        }
+        pbeta=pbeta->next();
       }
-      
-      pbeta=pbeta->next();
+      if(_pbeta)break;
     }
-    if(_pbeta)break;
   }
- }
 
 // make false track
-           _ptrack=new AMSTrTrack(_Theta,_Phi,_Coo);
-           _ptrack->setstatus(AMSDBc::GAMMALEFT); 
-           _ptrack->setstatus(AMSDBc::GAMMARIGHT); 
+  _ptrack=new AMSTrTrack(_Theta,_Phi,_Coo);
+  _ptrack->setstatus(AMSDBc::TOFFORGAMMA); 
 
 }

@@ -1,4 +1,4 @@
-//  $Id: extC.h,v 1.12 2001/01/22 17:32:43 choutko Exp $
+//  $Id: extC.h,v 1.13 2003/07/25 16:47:47 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Oct 06, 1996. ak. add readDB 
@@ -26,6 +26,13 @@ extern "C" void trafit_(integer & ifit, geant x[],  geant y[], geant wxy[],
 extern "C" void tkfitg_(integer &npt,geant hits[][3], geant sigma[][3],
 geant normal[][3], integer &ipart,  integer &ialgo, integer &ims, integer layer[], geant out[]);
 #define TKFITG tkfitg_
+
+extern "C" void dinv_(int &ndim, double matrix[], int &ndim2, 
+		          double ridaux[], int &ifail);
+#define DINV dinv_
+
+extern "C" void invertmatrix_(double matrix[], int & dim0, int & dim1, int &ifail);
+#define INVERTMATRIX invertmatrix_
 
 extern "C" void tkfini_();
 #define TKFINI tkfini_

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.52 2003/07/22 09:21:18 delgadom Exp $
+//  $Id: root.C,v 1.53 2003/07/25 16:46:51 alcaraz Exp $
 //
 
 #include <root.h>
@@ -20,7 +20,7 @@
 #include <trrec.h>
 #include <astro.h>
 #include <amsdbc.h>
-#include <gamma.h>
+#include <vtx.h>
 #endif
 using namespace root;
 #ifdef __WRITEROOT__
@@ -321,8 +321,6 @@ void AMSEventR::SetBranchA(TTree *fChain){
      fChain->SetBranchAddress(tmp,&fVertex);
     }
 
-
-
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fParticle");
@@ -535,8 +533,6 @@ void AMSEventR::ReSetBranchA(TTree *fChain){
      strcat(tmp,"fVertex");
      fChain->SetBranchAddress(tmp,vVertex);
     }
-
-
 
    {
      strcpy(tmp,_Name);
@@ -1200,11 +1196,10 @@ void AMSEventR::AddAMSObject(AMSRichRing *ptr)
 }
 
 
-void AMSEventR::AddAMSObject(AMSTrTrackGamma *ptr){
+void AMSEventR::AddAMSObject(AMSVtx *ptr){
   fVertex.push_back(VertexR(ptr));
   ptr->SetClonePointer(fVertex.size()-1);
 }
-
 
 void AMSEventR::AddAMSObject(AMSTOFCluster *ptr){
   if (ptr) {
@@ -1690,21 +1685,20 @@ MCTrackR::MCTrackR(AMSmctrack *ptr){
 #endif
 }
 
-
-VertexR::VertexR(AMSTrTrackGamma *ptr){
-fTrTrackL=-1;
-fTrTrackR=-1;
+VertexR::VertexR(AMSVtx *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
- Status=ptr->_status;
  Momentum=ptr->getmom();
+ ErrMomentum=ptr->geterrmom();
  Theta=ptr->gettheta();
  Phi=ptr->getphi();
- for(int i=0;i<3;i++)Vertex[i]=ptr->getvert()[i];
- Distance=ptr->_TrackDistance;
  Mass=ptr->getmass();
+ Status=ptr->getstatus();
+ Charge=ptr->getcharge();
+ Chi2=ptr->getchi2();
+ Ndof=ptr->getndof();
+ for(int i=0;i<3;i++)Vertex[i]=ptr->getvert()[i];
 #endif
 }
-
 
 
 ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
@@ -2160,11 +2154,9 @@ EcalHitR::EcalHitR(AMSEcalHit *ptr) {
      return (AMSEventR::Head() )?AMSEventR::Head()->pCharge(fCharge):0;
    }
 
-
-   TrTrackR* VertexR::pTrTrack(unsigned int ptr){
-     return (AMSEventR::Head() )?AMSEventR::Head()->pTrTrack(ptr==0?fTrTrackL:fTrTrackR):0;
+   TrTrackR* VertexR::pTrTrack(unsigned int i){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pTrTrack((i>=0 and i<fTrTrack.size())?fTrTrack[i]:0):0;
    }
-
 
    TrTrackR* ParticleR::pTrTrack(){
      return (AMSEventR::Head() )?AMSEventR::Head()->pTrTrack(fTrTrack):0;

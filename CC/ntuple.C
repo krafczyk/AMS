@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.148 2003/06/23 14:20:03 isevilla Exp $
+//  $Id: ntuple.C,v 1.149 2003/07/25 16:46:51 alcaraz Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -121,9 +121,8 @@ void AMSNtuple::init(){
   HBNAME(_lun,"TrRecHit",&_trrh02.Ntrrh,
   "ntrrh[0,666],px(ntrrh)[-1,30000]:I,py(ntrrh)[-1,30000]:I,statusr(ntrrh):I,Layer(ntrrh)[1,10]:I,hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh),cofgx(ntrrh),cofgy(ntrrh)");
 
-
-   HBNAME(_lun,"Vertex",&_tpai02.Ngam,
-   "ngam[0,3],trgmom(ngam):R,trgerrmom(ngam),trgTheta(ngam):R,trgPhi(ngam):R,trgmass(ngam),trgVert(3,ngam):R,trgdist(ngam),trgcharge(ngam)[-2,2]:I,trgStatus(ngam):I,trgpLeft(ngam)[-1,254]:I,trgpRight(ngam)[-1,254]:I,Jthetal(ngam):R,Jphil(ngam):R,Jthetar(ngam):R,Jphir(ngam):R,JChi2l(ngam):R,JChi2r(ngam):R,Jp0l(3,ngam):R,Jp0r(3,ngam):R");
+  HBNAME(_lun,"Vertex",&_vtx02.Nvtx,
+  "nvtx[0,3],vtxMomentum(nvtx):R,vtxErrMomentum(nvtx):R,vtxTheta(nvtx):R,vtxPhi(nvtx):R,vtxMass(nvtx):R,vtxCharge(nvtx)[-7,7]:I,vtxStatus(nvtx):I,vtxChi2(nvtx):R,vtxNdof(nvtx):I,vtxNtracks(nvtx)[0,7]:I,vtxPtrTrack(3,nvtx):I,vtxVertex(3,nvtx):R");
 
   HBNAME(_lun,"TrTrack",&_trtr02.Ntrtr,
   "ntrtr[0,100],trstatus(ntrtr):I,pattern(ntrtr)[-1,100]:I,address(ntrtr):I,nhits(ntrtr)[0,8],phits(8,ntrtr)[-1,30000]:I,LocDBAver(ntrtr):R,GeaneFitDone(ntrtr)[0,1000]:I,AdvFitDone(ntrtr)[0,1000]:I,Chi2StrLine(ntrtr),Chi2Circle(ntrtr),CircleRig(ntrtr),Chi2FastFit(ntrtr),Rigidity(ntrtr),ErrRig(ntrtr),Theta(ntrtr),phi(ntrtr),p0(3,ntrtr),gchi2(ntrtr),grig(ntrtr),gerrrig(ntrtr),hchi2(2,ntrtr),HRigidity(2,ntrtr),HErrRigidity(2,ntrtr),htheta(2,ntrtr),hphi(2,ntrtr),hp0(3,2,ntrtr),fchi2ms(ntrtr),pirigerr(ntrtr),rigms(ntrtr),pirig(ntrtr)");
@@ -204,7 +203,7 @@ void AMSNtuple::reset(int full){
    _richmc.NMC=0;
    _richevent.Nhits=0;
    _ring.NRings=0;
-   _tpai02.Ngam=0;   
+   _vtx02.Nvtx=0;
 }
 
 void AMSNtuple::write(integer addentry){
