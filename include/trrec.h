@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.76 2003/12/10 15:06:48 alcaraz Exp $
+//  $Id: trrec.h,v 1.77 2003/12/19 10:55:04 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -363,6 +363,7 @@ public:
   static geant & TimeLimit(){return _TimeLimit;}
   integer intercept(AMSPoint &P1, integer layer, number &theta, number &phi, number &local, integer icase=0);
 static integer & RefitIsNeeded(){return _RefitIsNeeded;}
+bool GenuineTrack(){return _Pattern>=0;}
 integer operator < (AMSlink & o) const {
   AMSTrTrack * p= (AMSTrTrack*)(&o);
 
