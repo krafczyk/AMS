@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.21 2002/12/05 14:16:09 choutko Exp $
+//  $Id: trddbc.C,v 1.22 2003/03/11 15:14:35 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -10,7 +10,8 @@ char * TRDDBc::_OctagonMedia[maxo]={"TRDCarbonFiber", "TRDCarbonFiber",
 char * TRDDBc::_BulkheadsMedia="TRDCarbonFiber";
 char * TRDDBc::_XeRadSpikesMedia="TRDFiberGlass"; 
 char * TRDDBc::_PipesMedia="TRDALUMINIUM"; 
-char * TRDDBc::_CutoutsMedia="VACUUM";
+//char * TRDDBc::_CutoutsMedia="VACUUM";
+char * TRDDBc::_CutoutsMedia="TRDRadiator";
 char * TRDDBc::_TubesMedia="TRDCapton";
 char * TRDDBc::_ITubesMedia="TRDGas";
 char * TRDDBc::_RadiatorMedia="VACUUM";  // Really hole in radiator

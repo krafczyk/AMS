@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.147 2003/03/06 15:25:31 choumilo Exp $
+//  $Id: amsgeom.C,v 1.148 2003/03/11 15:14:35 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2102,7 +2102,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 		  daug4->addboolean("BOX",par,3,coo,nrm,'-');
                  else
 #endif
-		  dau->add(new AMSgvolume(TRDDBc::CutoutsMedia(),
+		  oct[itrd]->add(new AMSgvolume(TRDDBc::CutoutsMedia(),
 			 0,name,"BOX",par,3,coo,nrm,"ONLY", 
 			 j==4 && b==0 && k==0 && l==0 ?1:-1,gid,1));
 
