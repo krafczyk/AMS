@@ -168,7 +168,7 @@
       integer events(ndet),eof(ndet)
       common /quest/iquest(100)
       integer runold
-      logical newrun
+      logical newrun,truth/.true./
 *
 *--   Enter user code here
 *
@@ -308,7 +308,9 @@ c       iquest(10)=128000
 c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
         idet=2
         lun=40+idet
-        do nbeta=1,maxbeta
+         nbeta=1
+        do while(truth)
+          nbeta=min(nbeta+1,maxbeta)
           if(eof(idet).eq.0)read(lun,end=25)
      +    ne,betapattern(nbeta),
      +    beta(nbeta),betaerror(nbeta),betachi2(nbeta)
@@ -333,10 +335,11 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
           endif
         enddo   
  10     continue
-        nbeta=nbeta-1
         idet=3
         lun=40+idet
-        do ncharge=1,maxch
+        ncharge=1
+        do while (truth)
+          ncharge=min(ncharge+1,maxch)
            if(eof(idet).eq.0)read(lun,end=35)
      +     ne,chargebetap(ncharge),chargetof(ncharge),
      +     chargetracker(ncharge),(probtof(k,ncharge),k=1,7),
@@ -359,10 +362,11 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
          endif
         enddo   
  20     continue
-          ncharge=ncharge-1
         idet=4
         lun=40+idet
-        do npart=1,maxpa
+        npart=1
+        do while(truth)
+           npart=min(npart+1,maxpa)
            if(eof(idet).eq.0)read(lun,end=45)
      +     ne,(pctcpointer(kk,npart),kk=1,2),
      +     pbetapointer(npart),pchargepointer(npart),
@@ -391,10 +395,11 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
          endif
         enddo   
  30     continue
-          npart=npart-1
         idet=5
         lun=40+idet
-        do ntof=1,maxtof
+        ntof=1
+        do while(truth)
+           ntof=min(ntof+1,maxtof)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=55)
      +     ne,TOFStatus(ntof),Plane(ntof),bar(ntof),TOFEdep(ntof),
@@ -418,10 +423,11 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
          endif
         enddo   
  40     continue
-          ntof=ntof-1
         idet=6
         lun=40+idet
-        do ntofmc=1,maxtofmc
+        ntofmc=1
+        do while(truth)
+           ntofmc=min(ntofmc+1,maxtofmc)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=65)
      +     ne,TOFMCIdsoft(ntofmc),
@@ -445,10 +451,11 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
          endif
         enddo   
  50     continue
-        ntofmc=ntofmc-1
         idet=7
         lun=40+idet
-        do ntrcl=1,maxtrcl
+        ntrcl=1
+        do while(truth)
+           ntrcl=min(ntrcl+1,maxtrcl)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=75)
      +    ne,Idsoft(ntrcl),Statust(ntrcl),NelemL(ntrcl),
@@ -473,10 +480,11 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
          endif
         enddo   
  60     continue
-        ntrcl=ntrcl-1
         idet=8
         lun=40+idet
-        do ntrclmc=1,maxtrclmc
+        ntrclmc=1
+        do while(truth)
+           ntrclmc=min(ntrclmc+1,maxtrclmc)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=85)
      +     ne,IdsoftMC(ntrclmc),Itra(ntrclmc),
@@ -505,10 +513,11 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
          endif
         enddo   
  70     continue
-          ntrclmc=ntrclmc-1
         idet=9
         lun=40+idet
-        do ntrrh=1,maxtrrh
+        ntrrh=1
+        do while(truth) 
+           ntrrh=min(ntrrh+1,maxtrrh)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=95)
      +     ne,px(ntrrh),py(ntrrh),statusr(ntrrh),Layer(ntrrh),
@@ -532,10 +541,15 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
          endif
         enddo   
  80     continue
-          ntrrh=ntrrh-1
+          if(ntrrh.eq.0)then
+c            write(*,*)' ntrrh eq 0 ', events
+          endif
+
         idet=10
         lun=40+idet
-        do ntrtr=1,maxtrtr
+        ntrtr=1
+        do while(truth)
+           ntrtr=min(ntrtr+1,maxtrtr)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=105)
      +     ne,trstatus(ntrtr),pattern(ntrtr),nhits(ntrtr),
@@ -570,10 +584,11 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
          endif
         enddo   
  90     continue
-          ntrtr=ntrtr-1
         idet=11
         lun=40+idet
-        do nmcg=1,maxmcg
+        nmcg=1
+        do while(truth)
+           nmcg=min(nmcg+1,maxmcg)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=115)
      +     ne,Particle(nmcg),(coo(k,nmcg),k=1,3),
@@ -597,10 +612,11 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
          endif
         enddo   
  100     continue
-          nmcg=nmcg-1
         idet=12
         lun=40+idet
-        do nctccl=1,maxctccl
+        nctccl=1
+        do while(truth)
+           nctccl=min(nctccl+1,maxctccl)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=125)
      +     ne,CTCStatus(nctccl),ctclayer(nctccl),
@@ -625,10 +641,11 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
          endif
         enddo   
  110     continue
-          nctccl=nctccl-1
         idet=13
         lun=40+idet
-        do nctcclmc=1,maxctcclmc
+        nctcclmc=1
+        do while(truth)
+           nctcclmc=min(nctcclmc+1,maxctcclmc)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=135)
      +     ne, CTCMCIdsoft(nctcclmc),(CTCMCXcoo(k,nctcclmc),k=1,3),
