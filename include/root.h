@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.89 2003/05/16 22:10:50 choutko Exp $
+//  $Id: root.h,v 1.90 2003/05/20 09:06:53 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 #include <TObject.h>
@@ -235,7 +235,7 @@ public:
   /// access function to EcalHitR objects used
   /// \param i index of fEcalHit vector
   /// \return index of EcalHitR object in collection or -1
-  int EcalHit(unsigned int i){return i<fEcalHit.size()?fEcalHit[i]:-1;}
+  int iEcalHit(unsigned int i){return i<fEcalHit.size()?fEcalHit[i]:-1;}
   /// access function to EcalHitR collection   
   /// \param i index of fEcalHit vector
   /// \return pointer to EcalHitR object or 0
@@ -273,7 +273,7 @@ public:
   /// access function to EcalClusterR collection  
   /// \param i index of fEcalCluster vector  
   /// \return index of EcalClusterR collection or -1
-  int EcalCluster(unsigned int i){return i<fEcalCluster.size()?fEcalCluster[i]:-1;}
+  int iEcalCluster(unsigned int i){return i<fEcalCluster.size()?fEcalCluster[i]:-1;}
   /// access function to EcalClusterR collection   
   /// \param i index of fEcalCluster vector 
   /// \return pointer to EcalClusterR collection or 0
@@ -331,7 +331,7 @@ public:
   /// access function to Ecal2DClusterR objects
   /// \param i index of fEcal2DCluster vector
   /// \return index of Ecal2DClusterR object in collection or -1
-  int Ecal2DCluster(unsigned int i){return i<fEcal2DCluster.size()?fEcal2DCluster[i]:-1;}
+  int iEcal2DCluster(unsigned int i){return i<fEcal2DCluster.size()?fEcal2DCluster[i]:-1;}
   /// access function to Ecal2DClusterR objects   
   /// \param i index of fEcal2DCluster vector
   /// \return pointer to Ecal2DClusterR object  or 0
@@ -428,7 +428,7 @@ public:
   public:
   /// access function to TrTrackR object used
   /// \return index of TrTrackR object in collection or -1
-  int TrTrack()const {return fTrTrack;}
+  int iTrTrack()const {return fTrTrack;}
   /// access function to TrTrackR object used
   /// \return pointer to TrTrackR object or 0
   TrTrackR * pTrTrack();
@@ -500,7 +500,7 @@ public:
   /// access function to TofRawClusterR    used
   /// \param i index of fTofRawCluster vector
   /// \return index of TofRawClusterR object in TofRawCluster collection or -1
-  int TofRawCluster(unsigned int i){return i<fTofRawCluster.size()?fTofRawCluster[i]:-1;}
+  int iTofRawCluster(unsigned int i){return i<fTofRawCluster.size()?fTofRawCluster[i]:-1;}
   /// access function to TofRawClusterR's   current object is made of.
   /// \param i index of fTofRawCluster vector
   /// \return pointer to TofRawClusterR object or 0
@@ -641,7 +641,7 @@ public:
   /// access function to TrClusterR object used
   /// \param  xy = 'x' for x projection, any other for y projection
   /// \return index of TrClusterR object in TrClusterR collection or -1
-  int TrCluster(char xy)const {return xy=='x'?fTrClusterX:fTrClusterY;}
+  int iTrCluster(char xy)const {return xy=='x'?fTrClusterX:fTrClusterY;}
   /// access function to TrClusterR object used
   /// \param  xy = 'x' for x projection, any other for y projection
   /// \return pointer to TrClusterR TrClusterR object in TrClusterR collection or 0
@@ -702,7 +702,7 @@ public:
   /// access function to TrRecHitR objects used
   /// \param i index of fTrRecHit vector
   /// \return index of TrRecHitR object in collection or -1
-  int TrRecHit(unsigned int i){return i<fTrRecHit.size()?fTrRecHit[i]:-1;}
+  int iTrRecHit(unsigned int i){return i<fTrRecHit.size()?fTrRecHit[i]:-1;}
   /// access function to TrRecHitR objects   
   /// \param i index of fTrRecHit vector
   /// \return pointer to TrRecHitR object  or 0
@@ -750,7 +750,7 @@ public:
   public:
   /// access function to TrdRawHitR object used
   /// \return index of TrdRawHitR object in collection or -1
-  int TrdRawHit()const {return fTrdRawHit;}
+  int iTrdRawHit()const {return fTrdRawHit;}
   /// access function to TrdRawHitR object used
   /// \return pointer to TrdRawHitR object or 0
   TrdRawHitR * pTrdRawHit();
@@ -784,7 +784,7 @@ public:
   /// access function to TrdClusterR objects used
   /// \param i index of fTrdCluster vector
   /// \return index of TrdClusterR object in collection or -1
-  int TrdCluster(unsigned int i){return i<fTrdCluster.size()?fTrdCluster[i]:-1;}
+  int iTrdCluster(unsigned int i){return i<fTrdCluster.size()?fTrdCluster[i]:-1;}
   /// access function to TrdClusterR collection   
   /// \param i index of fTrdCluster vector
   /// \return pointer to TrdClusterR object or 0
@@ -821,7 +821,7 @@ public:
   /// access function to TrdSegmentR objects used
   /// \param i index of fTrdSegment vector
   /// \return index of TrdSegmentR object in collection or -1
-  int TrdSegment(unsigned int i){return i<fTrdSegment.size()?fTrdSegment[i]:-1;}
+  int iTrdSegment(unsigned int i){return i<fTrdSegment.size()?fTrdSegment[i]:-1;}
   /// access function to TrdSegmentR collection   
   /// \param i index of fTrdSegment vector
   /// \return pointer to TrdSegmentR object or 0
@@ -973,7 +973,7 @@ protected:
 public:
   /// access function to TrTrackR object used
   /// \return index of TrTrackR object in collection or -1
-  int TrTrack()const {return fTrTrack;}
+  int iTrTrack()const {return fTrTrack;}
   /// access function to TrTrackR object used
   /// \return pointer to TrTrackR object or 0
   TrTrackR * pTrTrack();
@@ -983,7 +983,7 @@ public:
   /// access function to TofClusterR objects used
   /// \param i index of fTofCluster vector < NTofCluster()
   /// \return index of TofClusterR object in collection or -1
-  int TofCluster(unsigned int i){return i<fTofCluster.size()?fTofCluster[i]:-1;}
+  int iTofCluster(unsigned int i){return i<fTofCluster.size()?fTofCluster[i]:-1;}
   /// access function to TofClusterR objects   
   /// \param i index of fTofCluster vector  < NTofCluster()
   /// \return pointer to TofClusterR object  or 0
@@ -1030,13 +1030,13 @@ protected:
 public:
   /// access function to BetaR object used
   /// \return index of BetaR object in collection or -1
-  int Beta()const {return fBeta;}
+  int iBeta()const {return fBeta;}
   /// access function to BetaR object used
   /// \return pointer to BetaR object or 0
   BetaR * pBeta();
   /// access function to RichRingR object used
   /// \return index of RichRingR object in collection or -1
-  int RichRing()const {return fRichRing;}
+  int iRichRing()const {return fRichRing;}
   /// access function to RichRingR object used
   /// \return pointer to RichRingR object or 0
   RichRingR * pRichRing();
@@ -1075,7 +1075,7 @@ public:
   /// access function to  TrTrackR objects used
   /// \param ptr 0 -> Left Track, 1++ -> RightTrack
   /// \return index of TrTrackR object in collection or -1
-  int TrTrack(unsigned int ptr)const {return ptr==0?fTrTrackL:fTrTrackR;}
+  int iTrTrack(unsigned int ptr)const {return ptr==0?fTrTrackL:fTrTrackR;}
   /// access function to  TrTrackR objects used
   /// \param ptr 0 -> Left Track, 1++ -> RightTrack
   /// \return pointer to  TrTrackR object or 0
@@ -1193,35 +1193,35 @@ public:
 
   /// access function to TrTrackR object used
   /// \return index of TrTrackR object in collection or -1
-  int TrTrack()const {return fTrTrack;}
+  int iTrTrack()const {return fTrTrack;}
   /// access function to TrTrackR object used
   /// \return pointer to TrTrackR object or 0
   TrTrackR * pTrTrack();
 
   /// access function to TrdTrackR object used
   /// \return index of TrdTrackR object in collection or -1
-  int TrdTrack()const {return fTrdTrack;}
+  int iTrdTrack()const {return fTrdTrack;}
   /// access function to TrdTrackR object used
   /// \return pointer to TrdTrackR object or 0
   TrdTrackR * pTrdTrack();
 
   /// access function to RichRingR object used
   /// \return index of RichRingR object in collection or -1
-  int RichRing()const {return fRichRing;}
+  int iRichRing()const {return fRichRing;}
   /// access function to RichRingR object used
   /// \return pointer to RichRingR object or 0
   RichRingR * pRichRing();
 
   /// access function to EcalShowerR object used
   /// \return index of EcalShowerR object in collection or -1
-  int EcalShower()const {return fEcalShower;}
+  int iEcalShower()const {return fEcalShower;}
   /// access function to EcalShowerR object used
   /// \return pointer to EcalShowerR object or 0
   EcalShowerR * pEcalShower();
 
   /// access function to VertexR object used
   /// \return index of VertexR object in collection or -1
-  int Vertex()const {return fVertex;}
+  int iVertex()const {return fVertex;}
   /// access function to VertexR object used
   /// \return pointer to VertexR object or 0
       VertexR * pVertex();
@@ -1421,7 +1421,7 @@ ClassDef(MCEventgR,1)       //MCEventgR
 ///   AMS Event Root Class 
 /*!   Contains instance of HeaderR class and containers
     (stl vectors) of all other AMS related classes.
-    Access to HeaderR elements are public, while
+    Access to most HeaderR elements are public, while
      access to any vectors are via access function only. \n
      For any class XYZR  5 (five) functions are provided: \n
       - int nXYZ() - returns number of XYZ objects (via HeaderR counters, fast).  \n
@@ -1432,12 +1432,13 @@ ClassDef(MCEventgR,1)       //MCEventgR
       - XYZ * pXYZ(unsigned int i) - same as XYZ but returns pointer instead of reference. For advanced users only.  \n
 
     For some classes having references to other XYZR classes the following functions are (optionally) provided
-      - int XYZ(int i=0) const  returns index of i-th used XYZR element in
-        corresponding  collection. This element may be later accessed by functions described above.
+      - int iXYZ(int i=0) const  returns index of i-th used XYZR element in
+        corresponding  collection or -1. This element may be later accessed by functions described above.
       - XYZ* pXYZ(int i=0) return pointer to i-th used XYZR element or 0.
         For advanced users only.
       -  (optionally)  int NXYZ() const returns number of XYZR objects used
 
+    \sa stlv
     \author v.choutko@cern.ch
 */
 class AMSEventR: public  TSelector {   
