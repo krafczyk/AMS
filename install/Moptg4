@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.65 2003/02/04 15:44:57 choutko Exp $
+#  $Id: Moptg4,v 1.66 2003/02/05 11:24:26 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -132,13 +132,13 @@ endif
 DFLAGS=    -g   -I/usr/local/include/g++  -I../include 
 XLDFLAGS=   -static  -L/cern/pro/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
 ifdef LinuxBUG
-CC=/usr/bin/g++  -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
-FF=/usr/bin/g77
-LD=/usr/bin/g++
+CC=/usr/local/bin/g++  -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
+FF=/usr/local/bin/g77
+LD=/usr/local/bin/g++
 else
-CC=g++  -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
-FF=g77
-LD=g++
+CC=/usr/local/bin/g++  -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
+FF=/usr/local/bin/g77
+LD=/usr/local/bin/g++
 endif
 TIMEL=
 
@@ -153,11 +153,7 @@ SCC=../CC/
 SHLD=..$(LIB)/ntuple.so$
 INCS= $(wildcard ../include/*.h)
 #$(SCC)G4PropagatorInField.cc $(SCC)G4MagIntegratorDriver.cc $(SCC)G4ChordFinder.cc 
-ifdef GEANT4NEW
  G4XRAY=$(SCC)g4xray.C
-else
- G4XRAY=$(SCC)g4xray.old.C
-endif
 FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C $(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C $(SCC)gsen.C $(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C ../F/fint_my.F $(SCC)amsgeom.C $(SCC)geant.C $(SCC)geant3.C $(SCC)geant4.C  $(SCC)g4physics.C $(SCC)mceventg.C ../F/tkmccl.F ../F/geocoor.F  $(SCC)rnormx.C  $(SCC)trid.C $(SCC)trdid.C $(SCC)link.C $(SCC)trrec.C $(SCC)trdsim.C $(SCC)trdrec.C $(SCC)uzstat.C ../F/amstkshc++.F  ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F $(SCC)job.C $(SCC)event.C $(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F $(SCC)tofrec02.C $(SCC)tofonline02.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C $(SCC)commons.C $(SCC)apool.C $(SCC)tofid.C $(SCC)timeid.C $(SCC)io.C $(SCC)trcalib.C $(SCC)tralig.C ../F/mtx2.F ../F/e04ccf.f $(SCC)trigger302.C $(SCC)daqevt.C $(SCC)astring.C ../F/mfield.F  ../F/egzav.F  ../F/tkfit.F  $(SCC)tkdbc.C $(SCC)trddbc.C  $(SCC)ntuple.C $(SCC)root.C $(SCC)user.C $(SCC)gamma.C $(SCC)status.C $(SCC)bcorr.C $(SCC)ecaldbc.C $(SCC)ecid.C $(SCC)ecalrec.C $(SCC)richdbc.C $(SCC)richrec.C $(SCC)richid.C $(SCC)richgeom.C ../F/gtckov.F ../F/graylc.F ../F/cerenkov.F $(SCC)tofsim02.C $(SCC)tofdbc02.C $(SCC)tofcalib02.C $(SCC)trigger102.C $(SCC)antidbc02.C $(SCC)tofuser02.C $(SCC)antirec02.C $(SCC)daqs2block.C $(SCC)g4util.C $(G4XRAY) $(SCC)ecalcalib.C
 #$(BIN)G4PropagatorInField.o $(BIN)G4ChordFinder.o $(BIN)G4MagIntegratorDriver.o  $(BIN)G4EnergyLossTables.o  
 OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)geant4.o   $(BIN)g4physics.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o $(BIN)tofonline02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofid.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger302.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)root.o  $(BIN)user.o $(BIN)gamma.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)tofsim02.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)trigger102.o $(BIN)antidbc02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)daqs2block.o $(BIN)g4util.o $(BIN)g4xray.o $(BIN)ecalcalib.o $(BIN)fint_my.o

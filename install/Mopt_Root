@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.35 2003/01/21 16:37:36 alexei Exp $
+#  $Id: Mopt_Root,v 1.36 2003/02/05 11:24:26 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -97,7 +97,7 @@ BINMT=$(AMSWD)/bin/linux/icc/mt/
 BIN=$(AMSWD)/bin/linuxr/icc/
 EXE=$(AMSWD)/exe/linux/icc/
 LIB=$(AMSWD)/lib/linux/icc/
-CC=g++
+CC=g++ -Wno-deprecated -mcpu=i686
 LD=g++
 else
 #CERN_LEVEL=2000
@@ -106,7 +106,7 @@ else
 NAGDIR = /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
 # Copy lib to private AFS area for remote link, example:
 #NAGDIR = /afs/cern.ch/user/k/kscholbe/private/
-CC=g++ 
+CC=g++ -Wno-deprecated -mcpu=i686 
 FF=g77
 LD=g++
 BIN=$(AMSWD)/bin/linuxr/
@@ -119,7 +119,7 @@ LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit -lglib -lIIOP -lORBitutil -lglib
 IDL=orbit-idl
 IDLMT=orbit-idl-mt
 IDLCPP=orbit-idl -l c++
-CPP=g++  -I/usr/include/orbit-1.0
+CPP=g++  -I/usr/include/orbit-1.0 -Wno-deprecated -mcpu=i686
 CCC=gcc -I/usr/include/orbit-1.0
 CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT  -I/usr/include/orbit-mt-1.0 -fpermissive 
 SRC=$(BIN)
@@ -184,7 +184,11 @@ DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include  -I$(SR
 ifdef AMSICC
 LDFLAGS=      -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lcxa  -lPEPCF90 -lPOSF90 -limf -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut  $(ROOTLIBS)   $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf -ldl
 #LDFLAGS=    -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib -L../lib/linux/icc  $(ROOTLIBS) -lamsut -ldl
+ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
 LDFLAGSSTATIC=  -static  -L$(ROOTSYS)/lib -lRoot   -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -lmy2  -lPEPCF90 -lPOSF90 -lmy -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut     $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins   -L$(ROOTSYS)/lib -lRoot   -ldl
+else
+LDFLAGSSTATIC=  -static  -L$(ROOTSYS)/lib -lRoot   -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90    -lPEPCF90 -lPOSF90  -limf -lirc  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut     $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90  -lF90 -limf -lPEPCF90 -lPOSF90 -lintrins   -L$(ROOTSYS)/lib -lRoot   -ldl
+endif
 #LDFLAGSSTATIC=  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L../lib/linux/icc  -lamsut -ldl
 #LDFLAGSSTATIC=  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L../lib/linux/icc  -lamsut -ldl
 else

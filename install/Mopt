@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.238 2003/01/21 16:37:32 alexei Exp $
+#  $Id: Mopt,v 1.239 2003/02/05 11:24:23 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -290,8 +290,11 @@ endif
 
 DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include  -I$(SRC)
 ifdef AMSICC
+ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
 LDFLAGS=  -static    -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lmy2  -lPEPCF90 -lPOSF90 -limf -lirc -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut    $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf
-#LDFLAGS=  -static   -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/lib -L/usr/local/lib -L../lib/linux/icc -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut 
+else
+LDFLAGS=  -static    -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90 -limf -lirc -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut    $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf
+endif
 else
 LDFLAGS=  -static   -L$(CERNDIR)/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut  -lg2c  $(PFLAGS)
 endif

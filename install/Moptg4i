@@ -1,4 +1,4 @@
-#  $Id: Moptg4i,v 1.35 2003/01/06 15:51:26 choutko Exp $
+#  $Id: Moptg4i,v 1.36 2003/02/05 11:24:26 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -96,13 +96,13 @@ endif
 DFLAGS=    -g   -I/usr/local/include/g++  -I../include 
 XLDFLAGS=   -static  -L/cern/pro/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -ldl -L/usr/local/lib   -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
 ifdef LinuxBUG
-CC=/usr/bin/g++ -D__NAMESPACE__ -D__G4AMS__
-FF=/usr/bin/g77
-LD=/usr/bin/g++
+CC=/usr/local/bin/g++ -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
+FF=/usr/local/bin/g77
+LD=/usr/local/bin/g++
 else
-CC=g++ -D__NAMESPACE__ -D__G4AMS__
-FF=g77
-LD=g++
+CC=/usr/local/bin/g++ -D__NAMESPACE__ -D__G4AMS__ -Wno-deprecated -mcpu=i686
+FF=/usr/local/bin/g77
+LD=/usr/local/bin/g++
 endif
 TIMEL=
 endif
