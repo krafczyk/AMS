@@ -44,6 +44,7 @@
 #include <new.h>
 #include <limits.h>
 #include <extC.h>
+#include <trigger3.h>
 #include <job.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -352,6 +353,9 @@ extern "C" void guout_(){
      AMSEvent::sethead(0);
       UPool.erase(0);
       return;
+   }
+   catch (AMSLVL3Error e){
+     // No LVL3
    }
       if(GCFLAG.IEVENT%GCFLAG.ITEST==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
          GCFLAG.IEVENT==GCFLAG.NEVENT)

@@ -1105,3 +1105,12 @@ integer TriggerLVL3::LVL3OK(){
      )return 0;
   else return 1;
 }
+
+AMSLVL3Error::AMSLVL3Error(char * name){
+  if(name){
+    integer n=strlen(name)+1;
+    if(n>255)n=255;
+    strncpy(msg,name,n);
+  }
+}
+char * AMSLVL3Error::getmessage(){return msg;}

@@ -1114,7 +1114,6 @@ void AMSEvent::_retkevent(integer refit){
 
 
 
-AMSgObj::BookTimer.start("RETKEVENT");
 
 // do not reconstruct events without lvl3 if 
 // LVL3FFKEY.Accept 
@@ -1122,6 +1121,7 @@ TriggerLVL3 *ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
 TriggerLVL3 *ptr1=(TriggerLVL3*)getheadC("TriggerLVL1",0);
 
 if(!LVL3FFKEY.Accept || (ptr1 && ptr && ptr->LVL3OK())){
+AMSgObj::BookTimer.start("RETKEVENT");
   AMSgObj::BookTimer.start("TrCluster");
   buildC("AMSTrCluster",refit);
   AMSgObj::BookTimer.stop("TrCluster");
@@ -1177,8 +1177,9 @@ if(!LVL3FFKEY.Accept || (ptr1 && ptr && ptr->LVL3OK())){
 #endif
   
   //if(refit==0 && AMSTrTrack::RefitIsNeeded())_retkevent(1);
-}  
   AMSgObj::BookTimer.stop("RETKEVENT");
+}
+else throw AMSLVL3Error("LVL3NotCreated");  
 }
 //----------------------------------------------------------
 void AMSEvent::_reantievent(){

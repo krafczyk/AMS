@@ -528,7 +528,7 @@ I65 EventsPerRun(1001)
 I66 LayersOnly(0)                     // ladder(0) or layer(1) based alig
 R67 GlobalGoodLimit(0.06)             // invoke local db if beyond
 I68 SingleLadderEntryLimit(10000)     
-
+R69 One(1.025)
 LVL1    // LVL1 Trigger 
 
 I 1 ntof(3)                           // min number of tof planes in trig
