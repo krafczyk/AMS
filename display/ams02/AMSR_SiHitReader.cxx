@@ -1,4 +1,4 @@
-//  $Id: AMSR_SiHitReader.cxx,v 1.2 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_SiHitReader.cxx,v 1.3 2001/08/04 21:25:12 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -129,6 +129,7 @@ hitA[2]=hit[2];
  // in the operators new and delete.
 
    TClonesArray &clusters = *(TClonesArray*)m_Fruits;
+   debugger.Print("--- AMSR_SiHitReader: will add a cluster at %0lx\n", clusters[m_Nclusters]);
    new(clusters[m_Nclusters++]) AMSR_SiHit(status, plane, px, py, 
 	hitA, errhitA, ampl, asym, tracks);
 }

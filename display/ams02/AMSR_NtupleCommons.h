@@ -1,4 +1,4 @@
-//  $Id: AMSR_NtupleCommons.h,v 1.7 2001/08/02 22:34:18 kscholbe Exp $
+//  $Id: AMSR_NtupleCommons.h,v 1.8 2001/08/04 21:25:12 kscholbe Exp $
 #ifndef AMSR_NtupleCommons_H
 #define AMSR_NtupleCommons_H
 
@@ -110,6 +110,7 @@ struct PARTICLE_DEF {
    int   ptrackp[NPART];
    int   ptrd[NPART];
    int   prich[NPART];
+   int   pecal[NPART];
    int   pid[NPART];
    int   pidvice[NPART];
    int   probpid[NPART][2];

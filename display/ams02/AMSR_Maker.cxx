@@ -1,4 +1,4 @@
-//  $Id: AMSR_Maker.cxx,v 1.2 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_Maker.cxx,v 1.3 2001/08/04 21:25:12 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -81,6 +81,7 @@ void AMSR_Maker::Draw(Option_t *option)
   if (! DrawFruits) return;
 
   TObject *obj;
+  char* info=0;
 
 // If m_Fruits is a ClonesArray, insert all the objects in the list
 // of objects to be painted
@@ -90,11 +91,16 @@ void AMSR_Maker::Draw(Option_t *option)
      debugger.Print("AMSR_Maker::Draw():  nobjects = %d\n", nobjects);
      for (Int_t i=0;i<nobjects;i++) {
         obj = clones->At(i);
-	if (obj && i==0){ debugger.Print("obj class = %s\n", obj->ClassName());}
+	if (obj && i==0){ debugger.Print("AMSR_Maker::Draw obj class = %s\n", obj->ClassName());}
         // kludge to skip tracks
 	// TString name(obj->ClassName());
         // if (name != TString("AMSR_Track") && obj) obj->AppendPad();
-        if (obj && Enabled(obj)) obj->AppendPad();
+        if (obj && Enabled(obj)) 
+	{
+	   info = obj->GetObjectInfo(0,0);
+//	     debugger.Print("AMSR_Maker::Draw():  info = %s\n", info);
+	   obj->AppendPad();
+	}
      }
 // m_Fruits points to an object in general. Insert this object in the pad
   } else {

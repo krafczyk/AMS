@@ -1,4 +1,4 @@
-//  $Id: AMSR_ParticleReader.cxx,v 1.3 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_ParticleReader.cxx,v 1.4 2001/08/04 21:25:12 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -97,7 +97,7 @@ void AMSR_ParticleReader::Make()
    debugger.Print("AMSR_ParticleReader::Make(): making %d particles.\n", m_NParticles);
    TClonesArray &particles = *(TClonesArray*)m_Fruits;
    for (k=0; k<m_NParticles; k++) {
-      debugger.Print("Making particle #%d:\n");
+      debugger.Print("Making particle #%d:\n",k);
 
       new(particles[k]) AMSR_Particle();
       AMSR_Particle * t = (AMSR_Particle *) particles[k];
@@ -120,7 +120,12 @@ void AMSR_ParticleReader::Make()
       t->m_pattern          = track_ntp->pattern[t->m_PTrack-1];
       t->m_trstatus         = track_ntp->trstatus[t->m_PTrack-1];
       for (i=0; i<3; i++)
+	{
           t->m_Position[i]  = _ntuple->pcoo[k][i];
+	}
+      debugger.Print("Theta, phi,pos %f %f %f %f %f:\n",
+              t->m_Theta, t->m_Phi, t->m_Position[0],
+              t->m_Position[1],t->m_Position[2]);
 
       t->SetHelix();
    }

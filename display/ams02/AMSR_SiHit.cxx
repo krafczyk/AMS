@@ -1,4 +1,4 @@
-//  $Id: AMSR_SiHit.cxx,v 1.2 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_SiHit.cxx,v 1.3 2001/08/04 21:25:12 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -46,6 +46,9 @@ AMSR_SiHit::AMSR_SiHit(Int_t status, Int_t plane, Int_t px, Int_t py,
    SetLineColor(4);		// dark blue
    SetFillColor(4);
    SetFillStyle(1001);		// solid filling (not working now....)
+
+   debugger.Print("AMSR_SiHit(%lx,%d bytes): position (%f,%f,%f)+-(%f,%f,%f)\n",
+	this, sizeof(*this), hit[0], hit[1], hit[2], errhit[0], errhit[1], errhit[2]);
 
 }
 

@@ -1,4 +1,4 @@
-//  $Id: AMSR_TrackReader.cxx,v 1.3 2001/01/23 19:03:20 kscholbe Exp $
+//  $Id: AMSR_TrackReader.cxx,v 1.4 2001/08/04 21:25:12 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -147,6 +147,11 @@ void AMSR_TrackReader::Make()
       // t->m_GChi2MS         = _ntuple->gchi2ms[k];
       t->m_RigidityMS      = _ntuple->ridgidityms[k];
       //      t->m_GRigidityMS     = _ntuple->gridgidityms[k];
+
+      debugger.Print("Theta, phi,pos %f %f %f %f %f:\n",
+              t->m_FTheta, t->m_FPhi, t->m_FP0[0],
+              t->m_FP0[1],t->m_FP0[2]);
+
 
       t->SetHelix();
    }

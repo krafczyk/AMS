@@ -1,4 +1,4 @@
-//  $Id: AMSR_Canvas.cxx,v 1.3 2001/06/25 20:10:24 kscholbe Exp $
+//  $Id: AMSR_Canvas.cxx,v 1.4 2001/08/04 21:25:12 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -131,7 +131,6 @@ void AMSR_Canvas::DrawEventStatus(Int_t event, Int_t px, Int_t py, TObject *sele
 
 #if ! defined(WIN32)
    gPad->SetDoubleBuffer(0);           // Turn off double buffer mode
-
    TVirtualPad * gPadSave = gPad;
    AMSR_Display * disp = (AMSR_Display *) gAMSR_Root->Display();
    TPad * pad = disp->GetObjInfoPad();
@@ -532,7 +531,7 @@ void AMSR_Canvas::AddParticleInfo()
      for (Int_t i=0;i<nobjects;i++) {
         obj = clones->At(i);
         if (obj && i==0){ 
-           debugger.Print("obj class = %s\n", obj->ClassName());}
+           debugger.Print("AMSR_Canvas::AddParticleInfo obj class = %s\n", obj->ClassName());}
         if (obj && p->Enabled(obj)) 
            info = obj->GetObjectInfo(0,0);
      }
@@ -542,7 +541,7 @@ void AMSR_Canvas::AddParticleInfo()
      info = fruits->GetObjectInfo(0,0);
   }
 
-  debugger.Print("get particle info: %s\n", info);
+  debugger.Print("AMSR_Canvas::AddParticleInfo get particle info: %s\n", info);
   char info1[80];
   cout <<" u "<<info<<endl;
   sprintf(info1, "Particle: %s", info);

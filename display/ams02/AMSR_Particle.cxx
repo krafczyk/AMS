@@ -1,4 +1,4 @@
-//  $Id: AMSR_Particle.cxx,v 1.3 2001/01/24 09:33:16 choutko Exp $
+//  $Id: AMSR_Particle.cxx,v 1.4 2001/08/04 21:25:12 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -84,6 +84,7 @@ char * AMSR_Particle::GetObjectInfo(Int_t px, Int_t py)
 		 m_GeantID, m_Mass, m_ErrMass, m_Momentum, m_ErrMomentum,
                  m_pattern,m_trstatus,m_beta,m_errbeta,m_betapattern,m_Charge);
 
+   debugger.Print("AMSR_Particle::GetObjectInfo():  %s\n", info);
    return info;
 
 }

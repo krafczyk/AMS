@@ -1,4 +1,4 @@
-//  $Id: AMSR_MCParticleReader.cxx,v 1.2 2001/01/22 17:32:34 choutko Exp $
+//  $Id: AMSR_MCParticleReader.cxx,v 1.3 2001/08/04 21:25:12 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -95,7 +95,7 @@ void AMSR_MCParticleReader::Make()
    debugger.Print("AMSR_MCParticleReader::Make(): making %d particles.\n", m_NParticles);
    TClonesArray &particles = *(TClonesArray*)m_Fruits;
    for (k=0; k<m_NParticles; k++) {
-      debugger.Print("Making particle #%d:\n");
+      debugger.Print("Making particle #%d:\n",k);
 
       new(particles[k]) AMSR_MCParticle();
       AMSR_MCParticle * t = (AMSR_MCParticle *) particles[k];

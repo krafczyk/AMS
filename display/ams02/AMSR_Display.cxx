@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.cxx,v 1.6 2001/06/25 20:14:05 kscholbe Exp $
+//  $Id: AMSR_Display.cxx,v 1.7 2001/08/04 21:25:12 kscholbe Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSR_Display                                                           //
@@ -772,9 +772,6 @@ void AMSR_Display::AddParticleInfo()
    static TText * text=0;
    static char  atext[255] = "Alpha Magnetic Spectrometer";
 
-   
-
-
    TVirtualPad * gPadSave = gPad;
    pad->cd();
    pad->Clear();
@@ -794,9 +791,12 @@ void AMSR_Display::AddParticleInfo()
      for (Int_t i=0;i<nobjects;i++) {
         obj = clones->At(i);
         if (obj && i==0){ 
-           debugger.Print("obj class = %s\n", obj->ClassName());}
+           debugger.Print("AMSR_Display::AddParticleInfo obj class = %s\n", 
+                           obj->ClassName());}
         if (obj && p->Enabled(obj)) 
+	{
            info = obj->GetObjectInfo(0,0);
+        }
      }
 // m_Fruits points to an object in general. Insert this object in the pad
   }
@@ -804,10 +804,9 @@ void AMSR_Display::AddParticleInfo()
      info = fruits->GetObjectInfo(0,0);
   }
 
-  debugger.Print("get particle info: %s\n", info);
+  debugger.Print("AMSR_Display::AddParticleInfo get particle info: %s\n", info);
   atext[0]=0;
   sprintf(atext, "Particle: %s", info);
-
 
 
    if (! text) {

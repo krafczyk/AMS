@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.9 2001/08/02 22:34:17 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.10 2001/08/04 21:25:12 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -251,6 +251,7 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("ptrackp", m_BlkParticle->ptrackp, "ptrackp[npart]/I");
    m_Tree->Branch("ptrdp", m_BlkParticle->ptrd, "ptrdp[npart]/I");
    m_Tree->Branch("prichp", m_BlkParticle->prich, "prichp[npart]/I");
+   m_Tree->Branch("pecalp", m_BlkParticle->pecal, "pecalp[npart]/I");
    m_Tree->Branch("pid", m_BlkParticle->pid, "pid[npart]/i");
    m_Tree->Branch("pidvice", m_BlkParticle->pidvice, "pidvice[npart]/i");
    m_Tree->Branch("probpid", m_BlkParticle->probpid, "probpid[npart][2]/F");
@@ -283,11 +284,13 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("Tofetime", m_BlkTofclust->Tofetime, "Tofetime[ntof]/F");
    m_Tree->Branch("Tofcoo", m_BlkTofclust->Tofcoo, "Tofcoo[ntof][3]/F");
    m_Tree->Branch("Tofercoo", m_BlkTofclust->Tofercoo, "Tofercoo[ntof][3]/F");
+
    m_Tree->Branch("ntofmc", &m_BlkTofmcclu->ntofmc, "ntofmc/I");
    m_Tree->Branch("Tofmcidsoft", m_BlkTofmcclu->Tofmcidsoft, "Tofmcidsoft[ntofmc]/I");
    m_Tree->Branch("Tofmcxcoo", m_BlkTofmcclu->Tofmcxcoo, "Tofmcxcoo[ntofmc][3]/F");
    m_Tree->Branch("Tofmctof", m_BlkTofmcclu->Tofmctof, "Tofmctof[ntofmc]/F");
    m_Tree->Branch("Tofmcedep", m_BlkTofmcclu->Tofmcedep, "Tofmcedep[ntofmc]/F");
+
    m_Tree->Branch("Ntrcl", &m_BlkTrcluste->Ntrcl, "Ntrcl/I");
    m_Tree->Branch("Idsoft", m_BlkTrcluste->Idsoft, "Idsoft[Ntrcl]/I");
    m_Tree->Branch("Statust", m_BlkTrcluste->Statust, "Statust[Ntrcl]/I");
@@ -299,6 +302,7 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("Rmst", m_BlkTrcluste->Rmst, "Rmst[Ntrcl]/F");
    m_Tree->Branch("Errormeant", m_BlkTrcluste->Errormeant, "Errormeant[Ntrcl]/F");
    m_Tree->Branch("Amplitude", m_BlkTrcluste->Amplitude, "Amplitude[Ntrcl][5]/F");
+
    m_Tree->Branch("ntrclmc", &m_BlkTrmcclus->ntrclmc, "ntrclmc/I");
    m_Tree->Branch("Idsoftmc", m_BlkTrmcclus->Idsoftmc, "Idsoftmc[ntrclmc]/I");
    m_Tree->Branch("Itra", m_BlkTrmcclus->Itra, "Itra[ntrclmc]/I");
@@ -310,6 +314,7 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("xcb", m_BlkTrmcclus->xcb, "xcb[ntrclmc][3]/F");
    m_Tree->Branch("xgl", m_BlkTrmcclus->xgl, "xgl[ntrclmc][3]/F");
    m_Tree->Branch("summc", m_BlkTrmcclus->summc, "summc[ntrclmc]/F");
+
    m_Tree->Branch("ntrrh", &m_BlkTrrechit->ntrrh, "ntrrh/I");
    m_Tree->Branch("px", m_BlkTrrechit->px, "px[ntrrh]/I");
    m_Tree->Branch("py", m_BlkTrrechit->py, "py[ntrrh]/I");
@@ -321,6 +326,7 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("difosum", m_BlkTrrechit->difosum, "difosum[ntrrh]/F");
    m_Tree->Branch("cofgx", m_BlkTrrechit->cofgx, "cofgx[ntrrh]/F");
    m_Tree->Branch("cofgy", m_BlkTrrechit->cofgy, "cofgy[ntrrh]/F");
+
    m_Tree->Branch("ntrtr", &m_BlkTrtrack->ntrtr, "ntrtr/I");
    m_Tree->Branch("trstatus", m_BlkTrtrack->trstatus, "trstatus[ntrtr]/I");
    m_Tree->Branch("pattern", m_BlkTrtrack->pattern, "pattern[ntrtr]/i");
@@ -355,6 +361,7 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("pierrrig", m_BlkTrtrack->pierrrig, "pierrrig[ntrtr]/F");
    m_Tree->Branch("ridgidityms", m_BlkTrtrack->ridgidityms, "ridgidityms[ntrtr]/F");
    m_Tree->Branch("piridgidity", m_BlkTrtrack->piridgidity, "piridgidity[ntrtr]/F");
+
    m_Tree->Branch("nmcg", &m_BlkMceventg->nmcg, "nmcg/I");
    m_Tree->Branch("nskip", m_BlkMceventg->nskip, "nskip[nmcg]/I");
    m_Tree->Branch("Particle", m_BlkMceventg->Particle, "Particle[nmcg]/I");
@@ -363,17 +370,20 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("momentum", m_BlkMceventg->momentum, "momentum[nmcg]/F");
    m_Tree->Branch("mass", m_BlkMceventg->mass, "mass[nmcg]/F");
    m_Tree->Branch("charge", m_BlkMceventg->charge, "charge[nmcg]/F");
+
    m_Tree->Branch("nanti", &m_BlkAnticlus->nanti, "nanti/I");
    m_Tree->Branch("Antistatus", m_BlkAnticlus->Antistatus, "Antistatus[nanti]/I");
    m_Tree->Branch("Antisector", m_BlkAnticlus->Antisector, "Antisector[nanti]/i");
    m_Tree->Branch("Antiedep", m_BlkAnticlus->Antiedep, "Antiedep[nanti]/F");
    m_Tree->Branch("Anticoo", m_BlkAnticlus->Anticoo, "Anticoo[nanti][3]/F");
    m_Tree->Branch("Antiercoo", m_BlkAnticlus->Antiercoo, "Antiercoo[nanti][3]/F");
+
    m_Tree->Branch("nantimc", &m_BlkAntimccl->nantimc, "nantimc/I");
    m_Tree->Branch("Antimcidsoft", m_BlkAntimccl->Antimcidsoft, "Antimcidsoft[nantimc]/I");
    m_Tree->Branch("Antimcxcoo", m_BlkAntimccl->Antimcxcoo, "Antimcxcoo[nantimc][3]/F");
    m_Tree->Branch("Antimctof", m_BlkAntimccl->Antimctof, "Antimctof[nantimc]/F");
    m_Tree->Branch("Antimcedep", m_BlkAntimccl->Antimcedep, "Antimcedep[nantimc]/F");
+
    m_Tree->Branch("nlvl3", &m_BlkLvl3->nlvl3, "nlvl3/I");
    m_Tree->Branch("Lvl3toftr", m_BlkLvl3->Lvl3toftr, "Lvl3toftr[nlvl3]/i");
    m_Tree->Branch("Lvl3antitr", m_BlkLvl3->Lvl3antitr, "Lvl3antitr[nlvl3]/i");
@@ -384,22 +394,28 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("Lvl3residual", m_BlkLvl3->Lvl3residual, "Lvl3residual[nlvl3][2]/F");
    m_Tree->Branch("Lvl3time", m_BlkLvl3->Lvl3time, "Lvl3time[nlvl3]/F");
    m_Tree->Branch("Lvl3eloss", m_BlkLvl3->Lvl3eloss, "Lvl3eloss[nlvl3]/F");
+
    m_Tree->Branch("nlvl1", &m_BlkLvl1->nlvl1, "nlvl1/I");
-   m_Tree->Branch("mode", m_BlkLvl1->mode, "mode[nlvl1]/I");
-   m_Tree->Branch("Lvl1tofflag", m_BlkLvl1->Lvl1tofflag, "Lvl1tofflag[nlvl1]/I");
+   m_Tree->Branch("Lvl1lifetime", m_BlkLvl1->mode, "lvl1lifetime[nlvl1]/I");
+
+   m_Tree->Branch("Lvl1tofflag", m_BlkLvl1->Lvl1tofflag, "Lvl1flag[nlvl1]/I");
    m_Tree->Branch("Lvl1tofpatt", m_BlkLvl1->Lvl1tofpatt, "Lvl1tofpatt[nlvl1][4]/I");
    m_Tree->Branch("Lvl1tofpatt1", m_BlkLvl1->Lvl1tofpatt1, "Lvl1tofpatt1[nlvl1][4]/I");
    m_Tree->Branch("Lvl1antipatt", m_BlkLvl1->Lvl1antipatt, "Lvl1antipatt[nlvl1]/I");
-   m_Tree->Branch("ecalflag", m_BlkLvl1->ecalflag, "ecalflag[nlvl1]/I");
+   m_Tree->Branch("ecalflag", m_BlkLvl1->ecalflag, "Lvl1ecalflag[nlvl1]/I");
+
    m_Tree->Branch("ntrraw", &m_BlkTrrawcl->ntrraw, "ntrraw/I");
    m_Tree->Branch("rawaddress", m_BlkTrrawcl->rawaddress, "rawaddress[ntrraw]/I");
    m_Tree->Branch("rawlength", m_BlkTrrawcl->rawlength, "rawlength[ntrraw]/I");
    m_Tree->Branch("s2n", m_BlkTrrawcl->s2n, "s2n[ntrraw]/F");
+
    m_Tree->Branch("nantiraw", &m_BlkAntirawc->nantiraw, "nantiraw/I");
    m_Tree->Branch("antirawstatus", m_BlkAntirawc->antirawstatus, "antirawstatus[nantiraw]/I");
    m_Tree->Branch("antirawsector", m_BlkAntirawc->antirawsector, "antirawsector[nantiraw]/i");
    m_Tree->Branch("antirawupdown", m_BlkAntirawc->antirawupdown, "antirawupdown[nantiraw]/i");
    m_Tree->Branch("antirawsignal", m_BlkAntirawc->antirawsignal, "antirawsignal[nantiraw]/F");
+
+
    m_Tree->Branch("ntofraw", &m_BlkTofrawcl->ntofraw, "ntofraw/I");
    m_Tree->Branch("tofrstatus", m_BlkTofrawcl->tofrstatus, "tofrstatus[ntofraw]/I");
    m_Tree->Branch("tofrplane", m_BlkTofrawcl->tofrplane, "tofrplane[ntofraw]/i");
