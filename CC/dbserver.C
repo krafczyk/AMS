@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.8 2001/02/19 13:48:53 choutko Exp $
+//  $Id: dbserver.C,v 1.9 2001/02/25 16:46:58 choutko Exp $
 #include <dbserver.h>
 
 
@@ -224,6 +224,28 @@ void  DBServer_impl::_init(){
 
   void  DBServer_impl::sendRunEvInfo(const  RunEvInfo & ne,DPS::Client::RecordChange rc){
 }
+
+
+    void DBServer_impl::clearACS( DPS::Client::ClientType type){
+    }
+
+    void DBServer_impl::clearNCS( DPS::Client::ClientType type){
+     }
+
+    void DBServer_impl::clearAHS( DPS::Client::ClientType type){
+    }
+    void DBServer_impl::clearNHS(){
+    }
+    void DBServer_impl::clearDST( DSTType type){
+    }
+    void DBServer_impl::clearDSTI(){
+    }
+
+    void DBServer_impl::clearRunEvInfo( RunStatus status){
+     }
+
+
+
 
 
 

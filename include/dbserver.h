@@ -1,4 +1,4 @@
-//  $Id: dbserver.h,v 1.3 2001/02/07 14:17:01 choutko Exp $
+//  $Id: dbserver.h,v 1.4 2001/02/25 16:46:59 choutko Exp $
 #ifndef __AMSDBSERVER__
 #define __AMSDBSERVER__
 #include <server.h>
@@ -59,9 +59,15 @@ public:
   void sendCurrentInfo(const DPS::Client::CID & ci, const  CurrentInfo &ci, int propagate);
   void sendDSTEnd(const DPS::Client::CID & ci, const  DST & ne, DPS::Client::RecordChange rc);
    int  getFreeHost(const DPS::Client::CID & ci, DPS::Client::ActiveHost_out host);
+
+    void clearACS( DPS::Client::ClientType type);
+    void clearNCS( DPS::Client::ClientType type);
+    void clearAHS( DPS::Client::ClientType type);
+    void clearNHS();
+    void clearDST( DPS::Producer::DSTType type);
+    void clearDSTI();
+    void clearRunEvInfo( DPS::Producer::RunStatus status);
   }; 
-
-
 
 
 

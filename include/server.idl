@@ -3,7 +3,7 @@ module DPS{
    typedef unsigned long time;
   interface Client{
    enum AccessType{Any,LessThan,Self,AnyButSelf,GreaterThan};
-   enum RecordChange{Delete,Update,Create,ClearCreate};
+   enum RecordChange{Delete,Update,Create};
    enum ErrorType{Info,Warning,Error,Severe};
    enum ClientStatus{Lost,Unknown,Submitted,Registered,Active,TimeOut,Killed};
    enum ClientType{Generic,Server,Consumer,Producer,Monitor,Killer,DBServer,ODBServer};
@@ -265,5 +265,13 @@ module DPS{
     long getRunEvInfoSPerl(in CID id, out RES res, in unsigned long maxr,out unsigned long maxro)raises(DBProblem); 
     void sendACPerl(in CID id, in ActiveClient ac,in RecordChange rc)raises(DBProblem);
     long getFreeHost(in CID id, out ActiveHost host)raises(DBProblem);
+    void clearACS(in ClientType type)raises(DBProblem);
+    void clearNCS(in ClientType type)raises(DBProblem);
+    void clearAHS(in ClientType type)raises(DBProblem);
+    void clearNHS()raises(DBProblem);
+    void clearDST(in DSTType type)raises(DBProblem);
+    void clearDSTI()raises(DBProblem);
+    void clearRunEvInfo(in RunStatus status)raises(DBProblem);
+
   };
 };

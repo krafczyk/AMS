@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.50 2001/02/23 17:58:08 choutko Exp $
+//  $Id: server.C,v 1.51 2001/02/25 16:46:59 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -271,13 +271,18 @@ else{
    }
      for (AMSServerI* pcur=_pser;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
      if(pcur->getType()!=DPS::Client::DBServer){
-      if(InitOracle())pcur->ReWriteTables(_dbsvar);
-      else pcur->ReReadTables(_svar);
+      if(InitOracle()){
+        pcur->ReWriteTables(_dbsvar);
+        pser->StartSelf(_pid,DPS::Client::Create);
+      }
+      else{
+        pser->StartSelf(_pid,DPS::Client::Create);
+        pcur->ReReadTables(_svar);
+     }
    }
    }
    }
 
-  pser->StartSelf(_pid,DPS::Client::Create);
   
  }
  else{
@@ -4145,8 +4150,10 @@ void AMSServerI::ReWriteTables( DPS::DBServer_ptr _pvar){
 
 //NominalClient
 
+_pvar->clearNCS(getType());
+
 for (NCLI li=_ncl.begin();li!=_ncl.end();++li){
- DPS::Client::RecordChange rc= li==_ncl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::RecordChange rc= DPS::Client::Create;
  DPS::Client::CID cid=_parent->getcid();
  cid.Type=getType();
  _pvar->sendNC(cid,*li,rc);
@@ -4154,16 +4161,18 @@ for (NCLI li=_ncl.begin();li!=_ncl.end();++li){
 
 //ActiveClient
 
+_pvar->clearACS(getType());
 for (ACLI li=_acl.begin();li!=_acl.end();++li){
- DPS::Client::RecordChange rc= li==_acl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::RecordChange rc= DPS::Client::Create;
  DPS::Client::CID cid=(*li)->id;
  _pvar->sendAC(cid,*li,rc);
 }  
 
 //ActiveHost
 
+_pvar->clearAHS(getType());
 for (AHLI li=_ahl.begin();li!=_ahl.end();++li){
- DPS::Client::RecordChange rc= li==_ahl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::RecordChange rc= DPS::Client::Create;
  DPS::Client::CID cid=_parent->getcid();
  cid.Type=getType();
  _pvar->sendAH(cid,*li,rc);
@@ -4247,42 +4256,46 @@ for(int i=0;i<length;i++){
 void Server_impl::ReWriteTables( DPS::DBServer_ptr _pvar){
 
 //NominalClient
-
+_pvar->clearNCS(getType());
 for (NCLI li=_ncl.begin();li!=_ncl.end();++li){
- DPS::Client::RecordChange rc= li==_ncl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::RecordChange rc= DPS::Client::Create;
  DPS::Client::CID cid=_parent->getcid();
  cid.Type=getType();
  _pvar->sendNC(cid,*li,rc);
 }  
 //NominalKiller
 
+_pvar->clearNCS(DPS::Client::Killer);
 for (NCLI li=_nki.begin();li!=_nki.end();++li){
- DPS::Client::RecordChange rc= li==_nki.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::RecordChange rc= DPS::Client::Create;
  DPS::Client::CID cid=_parent->getcid();
  cid.Type=getType();
  _pvar->sendNK(cid,*li,rc);
 }  
 
 //ActiveClient
+_pvar->clearACS(getType());
 
 for (ACLI li=_acl.begin();li!=_acl.end();++li){
- DPS::Client::RecordChange rc= li==_acl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::RecordChange rc= DPS::Client::Create;
  DPS::Client::CID cid=(*li)->id;
  _pvar->sendAC(cid,*li,rc);
 }  
 
 //ActiveHost
 
+_pvar->clearAHS(getType());
 for (AHLI li=_ahl.begin();li!=_ahl.end();++li){
- DPS::Client::RecordChange rc= li==_ahl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::RecordChange rc= DPS::Client::Create;
  DPS::Client::CID cid=_parent->getcid();
  cid.Type=getType();
  _pvar->sendAH(cid,*li,rc);
 }  
 //NominalHost
+_pvar->clearNHS();
 
 for (NHLI li=_nhl.begin();li!=_nhl.end();++li){
- DPS::Client::RecordChange rc= li==_nhl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::RecordChange rc= DPS::Client::Create;
  DPS::Client::CID cid=_parent->getcid();
  cid.Type=getType();
  _pvar->sendNH(cid,*li,rc);
@@ -4390,25 +4403,28 @@ void Producer_impl::ReWriteTables( DPS::DBServer_ptr _pvar){
 
 //NominalClient
 
+_pvar->clearNCS(getType());
 for (NCLI li=_ncl.begin();li!=_ncl.end();++li){
- DPS::Client::RecordChange rc= li==_ncl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::RecordChange rc=DPS::Client::Create;
  DPS::Client::CID cid=_parent->getcid();
  cid.Type=getType();
  _pvar->sendNC(cid,*li,rc);
 }  
 
 //ActiveClient
+_pvar->clearACS(getType());
 
 for (ACLI li=_acl.begin();li!=_acl.end();++li){
- DPS::Client::RecordChange rc= li==_acl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::RecordChange rc=DPS::Client::Create;
  DPS::Client::CID cid=(*li)->id;
  _pvar->sendAC(cid,*li,rc);
 }  
 
 //ActiveHost
+_pvar->clearAHS(getType());
 
 for (AHLI li=_ahl.begin();li!=_ahl.end();++li){
- DPS::Client::RecordChange rc= li==_ahl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::RecordChange rc=DPS::Client::Create;
  DPS::Client::CID cid=_parent->getcid();
  cid.Type=getType();
  _pvar->sendAH(cid,*li,rc);
@@ -4416,11 +4432,36 @@ for (AHLI li=_ahl.begin();li!=_ahl.end();++li){
 
 //DSTInfo
 
+_pvar->clearDSTI();
 for (DSTILI li=_dstinfo.begin();li!=_dstinfo.end();++li){
- DPS::Client::RecordChange rc= li==_dstinfo.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::RecordChange rc=DPS::Client::Create;
  DPS::Client::CID cid=_parent->getcid();
  cid.Type=getType();
  _pvar->sendDSTInfo(*li,rc);
+}  
+
+//DST
+
+_pvar->clearDST(DPS::Producer::Ntuple);
+_pvar->clearDST(DPS::Producer::EventTag);
+_pvar->clearDST(DPS::Producer::RootFile);
+for (DSTLI li=_dst.begin();li!=_dst.end();++li){
+ DPS::Client::RecordChange rc=DPS::Client::Create;
+ DPS::Client::CID cid=_parent->getcid();
+ cid.Type=getType();
+ _pvar->sendDSTEnd(cid,(*li).second,rc);
+}  
+
+//REInfo
+
+_pvar->clearRunEvInfo(DPS::Producer::ToBeRerun);
+_pvar->clearRunEvInfo(DPS::Producer::Failed);
+_pvar->clearRunEvInfo(DPS::Producer::Processing);
+_pvar->clearRunEvInfo(DPS::Producer::Finished);
+for (RLI li=_rl.begin();li!=_rl.end();++li){
+ DPS::Client::RecordChange rc=DPS::Client::Create;
+ DPS::Client::CID cid=_parent->getcid();
+ _pvar->sendRunEvInfo(*li,rc);
 }  
 
 
