@@ -1918,7 +1918,7 @@ _findC(id);
 
 AMSContainer * AMSEvent::_getC( AMSID  id){
 _findC(id);  
-  AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+  AMSContainer *p = dynamic_cast<AMSContainer*>(AMSEvent::gethead()->getp(id));
   return p;
 }
 

@@ -365,7 +365,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 if(!_pv){
   cout << "AMSG4DetectorInterface::Construct-I-Building Geometry "<<endl;
   AMSJob::gethead()->getgeom()->MakeG4Volumes();
-  cout << "AMSG4DetectorInterface::Construct-I-"<<AMSgvolume::getNpv()<<" Physical volumes, "<<AMSgvolume::getNlv()<<" logical volumes and "<<AMSgvolume::getNrm()<<" rotation matrixes have beem created "<<endl;
+  cout << "AMSG4DetectorInterface::Construct-I-"<<AMSgvolume::getNpv()<<" Physical volumes, "<<AMSgvolume::getNlv()<<" logical volumes and "<<AMSgvolume::getNrm()<<" rotation matrixes have been created "<<endl;
  _pv=AMSJob::gethead()->getgeom()->pg4v();
 }
  

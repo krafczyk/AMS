@@ -87,7 +87,7 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  trdgeom02(mother);
  srdgeom02(mother);
  ecalgeom02(mother);
-// richgeom02(mother);
+ richgeom02(mother);
 #else
  trdgeom02(mother);
  srdgeom02(mother);
@@ -2858,6 +2858,7 @@ void ecalgeom02(AMSgvolume & mother){
 //
 #ifndef __G4AMS__
           if(isupl==0 && ifibl==0 && ifib==0){
+
 #else
           if(MISCFFKEY.G4On || (isupl==0 && ifibl==0 && ifib==0)){
 #endif
@@ -2867,6 +2868,9 @@ void ecalgeom02(AMSgvolume & mother){
 //	    gid=1;
 	    pECfsen=pECfib->add(new AMSgvolume(
             "EC_FCORE",0,"ECFC","TUBE",par,3,coo,nrm0,"ONLY",0,gid,1));
+#ifdef __G4AMS__
+           ((AMSgvolume*)pECfsen )->Smartless()=-2;
+#endif            
 	  }	 
 	} // ---> end of fiber loop
 //-----------
@@ -2990,7 +2994,6 @@ AMSgtmed *p;
 
 }
 #endif
-
 
 
 #define SQR(x) ((x)*(x))
@@ -3519,7 +3522,7 @@ void richgeom02(AMSgvolume & mother)
 #ifdef __G4AMS__
     if(MISCFFKEY.G4On){
 
-      AMSNode *mirror;
+      AMSgvolume *mirror;
 
       par[0]=RICGEOM.light_guides_height/2;
       par[1]=a1;
