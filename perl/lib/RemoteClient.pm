@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.236 2004/01/16 12:24:43 alexei Exp $
+# $Id: RemoteClient.pm,v 1.237 2004/01/22 16:29:13 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3931,7 +3931,7 @@ print qq`
           print "<BR>";
    print qq`
 <INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 168=120000000 2=" CHECKED>Ntuple
-<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=200000000 127=2 128=" >RootFile<BR>
+<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=500000000 127=2 128=" >RootFile<BR>
 `;
                 print "Root/Ntuple Write Mode ";
           print "<BR>";
@@ -4750,7 +4750,9 @@ print qq`
              }
          }
 #change file size
+         $tmpb=~ s/168=500000000//;         
          $tmpb=~ s/168=120000000//;         
+         $tmpb=~ s/126=50000/126=99999/;         
          print FILE $tmpb;
          if($self->{CCT} eq "local"){
              print FILE 'rm  /tmp/gbatch-orbit.exe.$RUN'."\n";
@@ -4763,7 +4765,7 @@ print qq`
               $self->ErrorPlus("Unable to tar $script to $file2tar ");
           }
           unlink $root;
-         }
+          }
          $buf=~s/\$/\\\$/g;
          $buf=~s/\"/\\\"/g;
          $buf=~s/\(/\\\(/g;
@@ -8627,7 +8629,7 @@ sub printJobParamFormatDST {
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=200000000 127=2 128=\" CHECKED><b> RootFile </b><BR>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=500000000 127=2 128=\" CHECKED><b> RootFile </b><BR>\n";
             print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000000 2=\"><b> NTUPLE </b>\n";
             print "</b></font></td></tr>\n";
            htmlTableEnd();
