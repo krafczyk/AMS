@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.41 2003/04/20 10:01:20 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.42 2003/04/22 11:22:05 alexei Exp $
 
 #
 #
@@ -22,6 +22,7 @@
 # Apr  2, 2003 a.k. create indecies for RNDM table (it takes a while)
 #                   insert CITES and MAILS info from ../doc/mc.cites.mails
 #                          FILESYSTEMS          from ../doc/mc.filesystems
+# Apr 21, 2003 a.k.        JournalFiles         from ../doc/mc.journals
 # to add  - standalone/client type,
 #          CPU, elapsed time, cite and host info into Job table
 #
@@ -138,7 +139,7 @@ sub Create{
     my $dbh=$self->{dbhandler};
 
 
-    my @tables=("Filesystems", "Cites","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment");
+    my @tables=("Filesystems", "Cites","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment", "Journals");
     my @createtables=("    CREATE TABLE Filesystems
      (fid         CHAR(4) NOT NULL,   
      host    VARCHAR(40),            
@@ -151,6 +152,7 @@ sub Create{
      status   CHAR(40),              
      priority     INT,               
      timestamp    INT)",             
+
      "CREATE TABLE Cites
      (cid      INT NOT NULL ,
       name     VARCHAR(64),
@@ -160,6 +162,13 @@ sub Create{
       state    INT,
       descr    VARCHAR(255),
       timestamp INT)",
+
+     "CREATE TABLE Journals
+     (cid       INT NOT NULL ,
+      dirpath   VARCHAR(255),
+      lastfile  VARCHAR(255),
+      timestamp INT)",
+
       "CREATE TABLE Mails
       (mid INT NOT NULL ,
        address VARCHAR(255),
@@ -356,6 +365,7 @@ my $sql;
     }
 }
   if ($cnt == 0) {
+   $dbh->do("delete journals") or die "cannot do: ".$dbh->errstr();    
    my $time=time();
    my $run=110;
    my $n  =  0;
@@ -376,14 +386,18 @@ my $sql;
      } 
    } else {
      if ($cites == 1) {
-       my ($description,$name,$cid,$stat,$status,@junk) = split ":",$line;
+       my ($description,$name,$cid,$stat,$status,$journal,@junk) = split ":",$line;
        if (defined $description and defined $status) {
          $description = trimblanks($description);
          $name        = trimblanks($name);
          $cid         = strtod($cid);
          $stat        = strtod($stat);
          $status      = trimblanks($status);
+         $journal     = trimblanks($journal);
          $dbh->do("insert into Cites values($cid,$name,0,$status,$run,$stat,$description,$time)")
+         or die "cannot do: ".$dbh->errstr();
+         my $dirpath=$journal."/".$name    
+         $dbh->do("insert into journals values($cid,$dirpath,' ',$time)          
          or die "cannot do: ".$dbh->errstr();    
          $n++;
          $run=($n<<27)+1;

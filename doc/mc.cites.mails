@@ -1,0 +1,52 @@
+# 
+#                                                                         Last Edit : Apr 9, 2003
+# MAILS
+#
+# address                          : name                    : R : CID: RS  : alias
+#-----------------------------------------------------------------------------
+v.choutko@cern.ch                  : Vitali Choutko          : 1 :  1 : 1 : vitali.choutko@cern.ch   :
+vitali@afl3u1.cern.ch              : Vitali Choutko          : 1 :  2 : 0 :                      : 
+a.klimentov@cern.ch                : Alexei Klimentov        : 1 :  1 : 1 : alexei.klimentov@cern.ch :
+biland@particle.phys.ethz.ch       : Adrian Biland           : 1 :  4 : 0 : adrian.biland@cern.ch    :
+diego.casadei@bo.infn.it           : Diego Casadei           : 1 :  3 : 0 : diego.casadei@cern.ch    :
+davide.grandi@mib.infn.it          : Davide Grandi           : 1 :  5 : 0 : davide.grandi@cern.ch    :
+evgueni.choumilov@cern.ch          : Eugeni Choumilov        : 0 :  2 : 0 : e.choumilov@cern.ch      :
+jwshin@hep.knu.ac.k                : Jungwook Shin           : 1 :  6 : 0 : :
+alexei@mail.cern.ch                : Alexei Klimentov        : 0 :  2 : 0 : :
+jorge.casaus@cern.ch               : Jorge Casaus            : 1 :  7 : 0 : :
+michele.bourgeat@gamum2.in2p3.fr   : Michele Bourgeat        : 1 :  8 : 0 : :
+zhukov@ekp.physik.uni-karlsruhe.de : Valery Zhukov           : 1 :  9 : 0 : :
+barao@lip.pt                       : Fernando Barao          : 1 : 10 : 0 : :
+schol@mit.edu                      : Kate Scholberg          : 1 : 11 : 0 : :
+paolo.zuccon@pg.infn.it            : Paolo Zuccon            : 1 : 12 : 0 : :
+piersimone.marrocchesi@pi.infn.it  : Pier Simone Marrocchesi : 1 : 13 : 0 : :
+zhongliang.ren@cern.ch             : Zhongliang Ren          : 1 : 14 : 0 : :
+corinne.goy@cern.ch                : Corinne Goy             : 1 : 15 : 0 : :
+diego.caraffini@pg.infn.it         : Diego Caraffini         : 0 : 12 : 0 : :
+#----------------------------------------------------------------------------
+#                                                                         Last Edit : Apr 23, 2003
+# CITES
+#
+# description                          : name     : CID : STAT : STATUS : Journal File Path
+#-----------------------------------------------------------------------------
+CERN                                   : cern     :  1  :  0   : local  : /f2users/scratch/MC :
+Test                                   : test     :  2  :  0   : remote : /f2users/scratch/MC :
+INFN Bologna                           : bolo     :  3  :  0   : remote : /f2users/scratch/MC : 
+ETH Zurich                             : ethz     :  4  :  0   : remote : /f2users/scratch/MC :
+INFN Milano                            : mila     :  5  :  0   : remote : /f2users/scratch/MC :
+Kyungpook Nat. Univ.                   : knu      :  6  :  0   : remote : /f2users/scratch/MC :
+CIEMAT Madrid                          : ciemat   :  7  :  0   : remote : /f2users/scratch/MC :
+Groupe d Astroparticules de Montpellier : gam     :  8  :  0   : remote : /f2users/scratch/MC :
+Universitaet  Karlsruhe                 : ekp     :  9  :  0   : remote : /f2users/scratch/MC :
+LIP Lisbon                              : lip     : 10  :  0   : remote : /f2users/scratch/MC :
+MIT                                     : mit     : 11  :  0   : remote : /f2users/scratch/MC :
+INFN and Univ. Perugia                  : perugia : 12  :  0   : remote : /f2users/scratch/MC :
+INFN and Univ. Siena                    : siena   : 13  :  0   : remote : /f2users/scratch/MC :
+Academia Sinica Taiwan                  : taiwan  : 14  :  0   : remote : /f2users/scratch/MC :
+IN2P3 Annecy                            : lyon    : 15  :  0   : remote : /f2users/scratch/MC :
+#----------------------------------------------------------------------------
+#
+# FILESYSTEMS
+#
+# End of file
+#------------------------------------------------------------------------------

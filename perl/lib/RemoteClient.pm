@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.111 2003/04/22 10:29:42 choutko Exp $
+# $Id: RemoteClient.pm,v 1.112 2003/04/22 11:22:05 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -17,7 +17,7 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout);
 
 my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
 my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
@@ -432,7 +432,8 @@ my %mv=(
                }
                $did++;
                $dataset->{did}=$did;
-             $sql="insert into DataSets values($did,'$dataset->{name}')";
+               my $timestamp = time();
+             $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
              $self->{sqlserver}->Update($sql); 
            }
           
@@ -931,6 +932,7 @@ sub Connect{
         $self->{read}=0;
     my $q=$self->{q};
     my $sql=>undef;
+    my $color;
 # db query
     if ($self->{q}->param("getJobID")) {
      $self->{read}=1;
@@ -938,13 +940,32 @@ sub Connect{
         htmlTop();
         my $title = "Job : ";
         my $jobid = 0;
+        my $jobmin= 0;
+        my $jobmax= 0;
         if (defined $q->param("JobID")) {
-          $jobid =  trimblanks($q->param("JobID"));
+            if ($q->param("JobID") =~ /-/) {
+                ($jobmin,$jobmax) = split '-',$q->param("JobID");
+                $title = $title.$q->param("JobID");
+                $sql = "SELECT jobname, triggers, host, events, errors, cputime, 
+                               elapsed, cites.name, jobs.did, jobs.timestamp, jobs.jid   
+                          FROM jobs, cites 
+                          WHERE jobs.jid>$jobmin AND jobs.jid<$jobmax 
+                                AND jobs.cid=cites.cid ORDER BY jobs.jid";
+            } else {
+             $jobid =  trimblanks($q->param("JobID"));
+             $title = $title.$jobid;
+             $sql = "SELECT jobname, triggers , host, events, errors, cputime, 
+                            elapsed, cites.name, content, jobs.timestamp, jobs.jid 
+                          FROM jobs, cites 
+                          WHERE jobs.jid=$jobid AND jobs.cid=cites.cid";
+            }
         }
-        $title = $title.$jobid;
         my $content = " ";
         $self->htmlTemplateTable($title);
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+        if ($jobmax > 0) {
+               print "<td align=center><b><font color=\"blue\">JID </font></b></td>";
+        }
                print "<td align=center><b><font color=\"blue\">Name </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Triggers</font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Cite </font></b></td>";
@@ -956,10 +977,7 @@ sub Connect{
                print "<td align=center><b><font color=\"blue\" >Status </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Timestamp </font></b></td>";
               print "</tr>\n";
-        my $sql = "SELECT jobname, triggers, host, events, errors, cputime, elapsed,  
-                          cites.name, content, jobs.timestamp  
-                          FROM jobs, cites 
-                          WHERE jobs.jid=$jobid AND jobs.cid=cites.cid";
+        
         my $ret=$self->{sqlserver}->Query($sql);
         if (defined $ret->[0][0]) {
          foreach my $r (@{$ret}){
@@ -974,8 +992,9 @@ sub Connect{
              my $cite    =trimblanks($r->[7]);
              $content    =$r->[8];
              my $timestamp=$r->[9];
+             my $jid      =$r->[10];
              my $status = "Submitted";
-             $sql = "SELECT status, submit FROM runs WHERE jid=$jobid";
+             $sql = "SELECT status, submit FROM runs WHERE jid=$jid";
              $ret=$self->{sqlserver}->Query($sql);
              if (defined $ret->[0][0]) {
               foreach my $r (@{$ret}){
@@ -983,7 +1002,16 @@ sub Connect{
                   $timestamp = $r->[1];
               }
              }
-           my $color="black";
+             $color="black";
+             if ($status eq 'Finished') {
+                 $color = "green";
+             } elsif ($status eq 'Failed') {
+                 $color = "red";
+             }
+             if ($jobmax > 0) {
+              print "
+                  <td align=left><b><font color=$color> $jid </font></td></b>";
+          }
            print "
                   <td align=left><b><font color=$color> $jobname </font></td></b>
                   <td align=center><b><font color=$color> $triggers </font></b></td>
@@ -995,13 +1023,15 @@ sub Connect{
                   <td align=center><b><font color=$color> $elapsed </font></b></td>
                   <td align=center><b><font color=$color> $status </font></b></td>
                   <td align=center><b><font color=$color> $timestamp </font></b></td>\n";
+              print "</tr>\n";
+
          }
-        print "</tr>\n"
        } 
        htmlTableEnd();
+        if ($jobid > 0) {
           print "<p></p>\n";
           print $q->textarea(-name=>"CCA",-default=>"$content",-rows=>30,-columns=>80);
-   
+        }   
         htmlBottom();
      }
     }
@@ -1521,7 +1551,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
       print "<tr></tr>\n";
       print "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\" width=\"100%\">\n";
       print "<tr><td valign=\"middle\" bgcolor=\"whitesmoke\"><font size=\"+2\"><B>\n";
-      print "Find Job : (eg 805306383) </B></font></td></tr></table> \n";
+      print "Find Job : (eg 805306383 or From-To) </B></font></td></tr></table> \n";
       print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
       print "<b>JobID : </b> <input type =\"text\" name=\"JobID\">\n";
       print "<input type=\"submit\" name=\"getJobID\" value=\"Submit\"> \n";
@@ -3145,14 +3175,14 @@ print qq`
         else{
          print FILE  $self->{tsyntax}->{headers}->{readmecorba};
         }
-        my $sql = "SELECT dirpath FROM journals WHERE cid=$self->{cid}";
-        my $note="please contact alexei.klimentov@cern.ch for details"; 
-        my $ret = $self->Query($sql);
-  
-        if (defined $ret->[0][0]) {
-         $note ="DST directory path : $ret->[0][0]/nt \n Journal files directory path : $ret->[0][0]/jou \n";
-         }         
-        print FILE  $note;
+         my $sql = "SELECT dirpath FROM journals WHERE cid=$self->{cid}";
+         my $note="please contact alexei.klimentov@cern.ch for details"; 
+         my $ret = $self->Query($sql);
+         if (defined $ret->[0][0]) {
+          $note =
+           "DST directory path : $ret->[0][0]/nt \n Journal files directory path : $ret->[0][0]/jou \n";
+          }         
+         print FILE  $note;
         close FILE;
          $file2tar="$self->{UploadsDir}/ams02mcscript.$run.tar";
         my $i=system("tar -C$self->{UploadsDir} -cf  $file2tar README.$run"); 
@@ -3222,11 +3252,13 @@ print qq`
          $buf=~ s/CPULIM=/CPULIM=$cputf/;         
          $buf=~ s/PMIN=/PMIN=$pminf/;         
          $buf=~ s/PMAX=/PMAX=$pmaxf/;         
+         $buf= $buf."CLOCK=$clock \n";
          my $cputype=$q->param("QCPUType");
+
          $buf=~ s/PART=/CLOCK=$clock \nPART=/;         
-         $buf=~ s/PART=/CPUTYPE=$cputype\nPART=/;         
          my $ctime=time();
-         $buf=~ s/PART=/SUBMITTIME=$ctime\nPART=/;         
+         $buf=~ s/PART=/SUBMITTIME=$ctime\nPART=/;    
+         $buf= $buf."CPUTYPE=$cputype\n";
          if($self->{CCT} eq "local"){
            $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;         
          }       
@@ -3317,20 +3349,16 @@ print qq`
     if($self->{sqlserver}->{dbdriver} =~ m/Oracle/){
          $tmpb =~ s/'/''/g;
     }
+         my $ctime=time();
          my $nickname = $q->param("QNick");
          my $stalone  = "STANDALONE";
          if ($q->param("STALONE") eq "No") {
           my $stalone  = "CLIENT";
          }
          my $sql="insert into Jobs values
-                  ($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb',
+         ($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb',
                    $ctime,'$nickname',' ',' ',0,0,0,0,'$stalone')";
-#         my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},
-#                                          $did,$ctime,$evts,$timeout,'$buf$tmpb',$ctime,'$nickname')";
          $self->{sqlserver}->Update($sql);
-#
-#         $sql="insert into JobsNick values($run,'$nickname')";
-#         $self->{sqlserver}->Update($sql);
 #
 #creat corresponding runevinfo
          my $ri={};
@@ -4006,6 +4034,38 @@ sub trimblanks {
     return wantarray ? @inp_string : $inp_string[0];
 }
 
+sub checkJobsTimeout {
+    my $self = shift;
+    my $lastupd=>undef; 
+    my $sql;
+    my $timenow = time();
+    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid FROM jobs 
+          WHERE jobs.timestamp+jobs.timeout < $timenow"; 
+    my $r4=$self->{sqlserver}->Query($sql);
+    if( defined $r4->[0][0]){
+     foreach my $job (@{$r4}){
+         my $jid          = $job->[0];
+         my $timestamp    = $job->[1];
+         my $timeout      = $job->[2];
+         my $mid          = $job->[3];
+         $sql="SELECT run FROM runs WHERE jid = $jid AND status != 'Finished'";
+         my $r3=$self->{sqlserver}->Query($sql); 
+         if (not defined $r3->[0][0]) {
+          $sql="SELECT address FROM mails WHERE mid = $mid";
+          my $r2=$self->{sqlserver}->Query($sql);
+          if (defined $r2->[0][0]) {
+              my $address = $r2->[0][0];
+              my $submittime = localtime($timestamp);
+              my $timeouttime= localtime($timestamp+$timeout);
+              my $message    = "Job $jid, Submitted : $submittime, Timeout : $timeout sec. \n Job will be removed from database : $timeouttime. MC Production Team \n";
+#              $self->sendmailmessage($address,$subject,$message);
+              print "$message\n";
+          }
+      }
+     }
+ }
+}
+
 sub listAll {
     my $self = shift;
     my $show = shift;
@@ -4368,6 +4428,7 @@ sub listCites {
      print_bar($bluebar,3);
      print "<p></p>\n";
 }
+
 sub listDisksAMS {
     my $self = shift;
     my $lastupd=>undef; 
