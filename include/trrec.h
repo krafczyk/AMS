@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.53 2001/07/13 16:25:35 choutko Exp $
+//  $Id: trrec.h,v 1.54 2001/07/13 17:07:01 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -372,7 +372,7 @@ static integer buildFalseX(integer refit=0);
 static integer makeFalseTOFXHits();
 static integer buildFalseTOFX(integer refit=0);
 static integer _MarginPatternsNeeded;
-static integer setMargin(int margin){_MarginPatternsNeeded= margin>0?1:0;}
+static void setMargin(int margin){_MarginPatternsNeeded= margin>0?1:0;}
 static void print();
 AMSTrRecHit * getphit(integer i){return i>=0 && i<trconst::maxlay? _Pthit[i]:0;}
 void interpolate(AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 

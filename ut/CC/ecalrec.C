@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.23 2001/07/13 16:25:26 choutko Exp $
+//  $Id: ecalrec.C,v 1.24 2001/07/13 17:06:55 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -642,10 +642,11 @@ return (WriteAll || status);
 //---------------------------------------------------
 void AMSEcalHit::_writeEl(){
   EcalHitNtuple* TN = AMSJob::gethead()->getntuple()->Get_ecalhit();
-  if (TN->Necht>=MAXECHITS || ECREFFKEY.relogic[0]==0) return;
+  if (TN->Necht>=MAXECHITS ) return;
 
 // Fill the ntuple
-  if(AMSEcalHit::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+//  if(AMSEcalHit::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+  if(AMSEcalHit::Out( IOPA.WriteAll%10==1 )){
     TN->Status[TN->Necht]=_status;
     TN->Idsoft[TN->Necht]=_idsoft;
     TN->Proj[TN->Necht]=_proj;
@@ -670,7 +671,7 @@ void AMSEcalHit::_copyEl(){
 //---------------------------------------------------
 integer AMSEcalHit::Out(integer status){
 static integer init=0;
-static integer WriteAll=1;
+static integer WriteAll=0;
 if(init == 0){
  init=1;
  integer ntrig=AMSJob::gethead()->gettriggerN();
