@@ -1626,7 +1626,8 @@ void AMSTOFRawEvent::mc_build(int &status)
       for(i=0;i<SCLRS;i++)trpatt[i]=trpatt3[i];
     }
   }
-// 
+//
+  if(trcode==0)trflag+=10;// mark 4-layer trigger 
   AMSTOFRawEvent::settrfl(trflag);// set final trigger flag
   AMSTOFRawEvent::setpatt(trpatt);// set trigger pattern
   ftrig=ttrig1+tofvpar.ftdelf();// FTrigger abs time (fixed delay added)

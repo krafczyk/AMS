@@ -1,7 +1,7 @@
 class TriggerLVL1: public AMSlink{
 protected:
  integer _TriggerMode;
- integer _tofflag;   // =1/2/3 -> "z>=1"/"z>1"/"z>2" 
+ integer _tofflag;   // =1/2/3 -> "z>=1"/"z>1"/"z>2"(+10 if it was 4-layer trigger) 
  integer _tofpatt[SCLRS];// TOF:  triggered paddles/layer pattern
  integer _antipatt;  // ANTI: triggered sectors pattern 
  void _copyEl(){}
