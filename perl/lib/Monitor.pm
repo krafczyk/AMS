@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.23 2001/01/23 11:50:38 choutko Exp $
+# $Id: Monitor.pm,v 1.24 2001/02/02 16:22:49 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -8,6 +8,7 @@ use strict;
 use lib::CID;
 use lib::ActiveClient;
 use lib::POAMonitor;
+use lib::DBServer;
 @Monitor::EXPORT= qw(new Update Connect);
 
 my %fields=(
@@ -21,22 +22,30 @@ my %fields=(
      myior=>undef,
      arsref=>[],
      arpref=>[],
+     ardref=>[],
      nhl=>undef,
      ahls=>undef,
      ahlp=>undef,
      acl=>undef,
      asl=>undef,
+     adbsl=>undef,
+     acl_maxc=>undef,
+     asl_maxc=>undef,
+     adbsl_maxc=>undef,
      nsl=>undef,
      ncl=>undef,
      nkl=>undef,
      rtb=>undef,
+     rtb_maxr=>undef,
      dsti=>undef,
      dsts=>undef,
+     dbfile=>undef,
      db=>undef,
      env=>undef,
      rn=>undef,
      ok=>0,
      registered=>0,
+     updatesviadb=>0,
             );
 
 sub new{
@@ -118,6 +127,7 @@ sub UpdateEverything{
          }
          else {
              $ref->{asl}=$ahl;
+             $ref->{asl_maxc}=$maxc;
          }
       ($length,$ahl)=$arsref->getNHS(\%cid);
          if($length==0){
@@ -162,6 +172,7 @@ sub UpdateEverything{
          }
          else {
              $ref->{acl}=$ahl;
+             $ref->{asl_maxc}=$maxc;
          }
        ($length,$ahl)=$arsref->getAHS(\%cid);
          if($length==0){
@@ -176,6 +187,15 @@ sub UpdateEverything{
          }
          else {
              $ref->{ncl}=$ahl;
+         }
+         $cid{Type}="DBServer";
+      ($length,$ahl)=$arsref->getACS(\%cid,\$maxc);
+         if($length==0){
+             $ref->{adbsl}=undef;
+         }
+         else {
+             $ref->{adbsl}=$ahl;
+             $ref->{adbsl_maxc}=$maxc;
          }
          goto NEXT;
      }
@@ -198,6 +218,7 @@ NEXT:
          }
          else {
              $ref->{rtb}=$ahl;
+             $ref->{rtb_maxr}=$maxr;
          }
 
 
@@ -225,6 +246,15 @@ NEXT:
 
   return 0; 
 LAST:
+ foreach $arsref (@{$ref->{ardref}}){
+     try{
+         my %cid=%{$ref->{cid}};
+         $ref->{dbfile}=$arsref->getDBFilePath(\%cid);
+         return 1;
+     }
+     catch CORBA::SystemException with{
+     };
+ }
  return 1;
 }
 sub DESTROY{
@@ -306,6 +336,40 @@ sub UpdateARS{
 
          }   
 
+         $cid{Type}="DBServer";
+         ($length,$pars)=$arsref->getARS(\%cid,"Any",0);
+
+         if($length==0 ){
+            carp "updars returns zero \n";
+            return 1;
+        }
+        for(;;){
+             my $old=shift @{$ref->{ardref}};
+          if(ref($old)){
+            undef $old;
+          }
+          else{
+            last;
+          }
+         }
+         foreach $ior (@$pars){
+             try{
+              my $newref=$ref->{orb}->string_to_object($ior->{IOR});
+              if(rand >0.5){
+#                  warn "unshift"; 
+                  unshift @{$ref->{ardref}}, $newref;
+              }
+              else{
+#                  warn "push"; 
+                  push @{$ref->{ardref}}, $newref;
+              }
+             }
+             catch CORBA::SystemException with{
+               carp "getars 3 oops SystemException Error "."\n";
+             };
+
+         }   
+
          last;
      }
     catch CORBA::SystemException with{
@@ -318,11 +382,16 @@ sub UpdateARS{
 sub Update{
     my  $ref=$Monitor::Singleton;
     my $ok=$ref->UpdateARS();
-    if (not $ok){
+    if($ref->{updatesviadb}){
+      $ok=DBServer::InitDBFile(" ",$ref);
+    }
+    else{
+     if (not $ok){
         $ref->Connect() or return ($ref, 0);
         $ref->UpdateARS() or return ($ref, 0);
+     }
+     $ok=$ref->UpdateEverything();
     }
-    $ok=$ref->UpdateEverything();
     return ($ref,$ok);
 }
 
@@ -541,15 +610,19 @@ sub getactiveclients{
     my $xmax;
     if($producer eq "Producer"){
         $xmax=$#{$Monitor::Singleton->{acl}};
- }else{
+ }elsif($producer eq "Server"){
         $xmax=$#{$Monitor::Singleton->{asl}};
+ }else{
+        $xmax=$#{$Monitor::Singleton->{adbsl}};
  }
     for my $i (0 ... $xmax){
         $#text=-1;
     if($producer eq "Producer"){
         $hash=$Monitor::Singleton->{acl}[$i];
- }else{
+ }elsif($producer eq "Server"){
         $hash=$Monitor::Singleton->{asl}[$i];
+ }else{
+        $hash=$Monitor::Singleton->{adbsl}[$i];
  }
         push @text, $hash->{id}->{uid};
         push @text, $hash->{id}->{HostName};
@@ -783,7 +856,7 @@ int($hash->{CPUNeeded}*10)/10,
          push @output, [@text];   
      }
  }elsif( $name eq "setEnv"){
-     for my $i (0 ... $#{$Monitor::Singleton->{nkl}}){
+     for my $i (0 ... $#{$Monitor::Singleton->{env}}){
          $#text=-1;
          my $hash=$Monitor::Singleton->{env}[$i];
          my @text = split '\=',$hash;

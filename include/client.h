@@ -1,4 +1,4 @@
-//  $Id: client.h,v 1.10 2001/01/22 17:32:42 choutko Exp $
+//  $Id: client.h,v 1.11 2001/02/02 16:22:48 choutko Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
 #include <typedefs.h>
@@ -23,6 +23,8 @@ protected:
  bool _ExitInProgress;
  AMSClientError  _error;
  int _debug;
+ char * _DBFileName;
+ int _MaxDBProcesses;
  CORBA::ORB_var _orb;
  fstream _fbin;
  DPS::Client::CID _pid;
@@ -32,9 +34,13 @@ protected:
  static char _streambuffer[1024]; 
  static ostrstream _ost;
 public:
-AMSClient(int debug=0):_debug(debug),_error(" "),_ExitInProgress(false)
+AMSClient(int debug=0):_debug(debug),_DBFileName(0),_MaxDBProcesses(0),_error(" "),_ExitInProgress(false)
 {_pid.Status=DPS::Client::NOP;}
 virtual ~AMSClient(){};
+const char * getdbfile() const {return _DBFileName;}
+void setdbfile(const char * db);
+int getmaxdb()const{return _MaxDBProcesses;}
+bool DBServerExists() const{return _MaxDBProcesses!=0;}
 AMSClientError & Error(){return _error;}
 int  Debug() const{return _debug;}
 const DPS::Client::CID & getcid()const {return _pid;}
@@ -71,11 +77,15 @@ static char * OPS2string(DPS::Server::OpType a);
 
 class Less{
 protected:
-
+DPS::Client::CID _cid;
 public:
 
-
-bool operator () (const DPS::Client::ActiveClient & a,const DPS::Client::ActiveClient & b){return a.id.uid<b.id.uid;}
+Less(){};
+Less(DPS::Client::CID cid):_cid(cid){};
+bool operator () (const DPS::Client::ActiveClient & a,const DPS::Client::ActiveClient & b){
+if(!strstr((const char*)_cid.HostName,(const char *)a.id.HostName) && strstr((const char*)_cid.HostName,(const char *)b.id.HostName))return 0;
+else return (a.id.uid<b.id.uid);
+}
 
 bool operator()(const DPS::Producer::RunEvInfo &a,const DPS::Producer::RunEvInfo &b){
 if(a.Priority!=b.Priority)return a.Priority>b.Priority;

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.27 2001/01/26 10:08:00 choutko Exp $
+//  $Id: producer.C,v 1.28 2001/02/02 16:22:47 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -682,7 +682,7 @@ return false;
 }
 
 bool AMSProducer::sendTDV(const AMSTimeID * tdv){
-cout <<" Sendt dv get for "<<tdv->getname()<<endl;
+cout <<" Send tdv get for "<<tdv->getname()<<endl;
 
 DPS::Producer::TDVName name;
 name.Name=tdv->getname();
@@ -723,7 +723,7 @@ if(!suc && !transienterror){
  FMessage("AMSProducer::sendTDV-F-UnableTosendTDV",DPS::Client::CInAbort);
  return false;
 }
-else{
+else if(!suc){
 transienterror=false;
 goto AGAIN;
 }
@@ -831,15 +831,23 @@ void AMSProducer::sendDSTInfo(){
 bool AMSProducer::Progressing(){
 static integer total=-1;
 static float xt=0;
+static double xte=0;
 float lt;
+    struct timeb  ft;
+    ftime(&ft);
+    double st=ft.time+ft.millitm/1000.;
+cerr <<"AMSPRoducer::Progressing "<<total<<" "<<lt<<" "<<xt<<" "<<AMSFFKEY.CpuLimit*2<<" "<<_cinfo.EventsProcessed<<" "<<st<<" "<<xte<<endl;
 TIMEX(lt);
- if(total>=0 && lt-xt>AMSFFKEY.CpuLimit*2){
+ if(total>=0 && (lt-xt>AMSFFKEY.CpuLimit*2 || st-xte>AMSFFKEY.CpuLimit*100)){
    total=-1;   
    return false;
  }
  else if(total<0){
   total=_cinfo.EventsProcessed;
   TIMEX(xt);
+    struct timeb  ft;
+    ftime(&ft);
+    xte=ft.time+ft.millitm/1000.;
   return true;
  }
  else if(total != _cinfo.EventsProcessed){

@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.19 2001/01/23 11:50:38 choutko Exp $
+#  $Id: monitorUI.pm,v 1.20 2001/02/02 16:22:49 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -337,6 +337,7 @@ my @item_factory_entries = (
 	},
       ["/_Preferences",	undef,	0,	"<Branch>"],
       ["/Preferences/_RegisteredToServers", "<alt>R",	2,	"<ToggleItem>"],
+      ["/Preferences/_UpdatesViaDB", "<alt>D",	3,	"<ToggleItem>"],
       ["/_Help",	undef,	0,	"<Item>"],
       ["/_About",	undef,	0,	"<Item>"],
                         );
@@ -617,6 +618,20 @@ sub notebook_create_pages {
         $policy_y='automatic';
                 $buffer="Server_ActiveClients";
                 create_frame ($child,$self,$buffer,$policy_x,$policy_y,20,@titles);
+                        $#titles=-1;
+                	@titles = (
+	    "ID",
+	    "HostName",
+	    "Process ID",
+	    "Start Time",
+	    "LastUpdate Time",
+            "Status",
+	);
+
+        $policy_x='automatic';
+        $policy_y='automatic';
+                $buffer="DBServer_ActiveClients";
+                create_frame ($child,$self,$buffer,$policy_x,$policy_y,20,@titles);
               }elsif($i==3){
 	@titles = (
 	    "FileSystem",
@@ -734,7 +749,12 @@ sub create_clist {
 
 
 sub Update{
-    $monitorUI::Singleton->{statusbar}->push(1," Retreiving Server Information");
+    if( $Monitor::Singleton->{updatesviadb}){
+     $monitorUI::Singleton->{statusbar}->push(1," Retreiving DB Information");
+    }
+    else{
+     $monitorUI::Singleton->{statusbar}->push(1," Retreiving Server Information");
+    }
     while (Gtk->events_pending()){
            Gtk->main_iteration();
        }
@@ -745,7 +765,12 @@ sub Update{
          return;
      }else{
        if($Monitor::Singleton->{registered}==0){      
+    if( $Monitor::Singleton->{updatesviadb}){
+        $monitorUI::Singleton->{statusbar}->push(1," Connected to DB");
+    }
+    else{
         $monitorUI::Singleton->{statusbar}->push(1," Connected to Servers");
+    }
        }
        else{
         $monitorUI::Singleton->{statusbar}->push(1," Connected and Registered to Servers");
@@ -836,6 +861,26 @@ sub Update{
      $clist->freeze();   
      $clist->clear();
      my @output=$monitor->getactiveclients("Server");     
+     my $i;
+     $monitorUI::Singleton->{notebook}[2]=0;
+     for $i (0 ... $#output){
+         my @text=@{$output[$i]};
+     $clist->append(@text);
+         my $pmc=$#text-1;
+     $clist->set_pixtext($i, $pmc, $text[$pmc], 5, $monitorUI::Singleton->{pixmap}[$text[$pmc+1]], $monitorUI::Singleton->{mask}[$text[$pmc+1]]);
+         if($text[$pmc+1]>$monitorUI::Singleton->{notebook}[2]){
+             $monitorUI::Singleton->{notebook}[2]=$text[$pmc+1];
+         }
+     }
+     $clist->thaw();
+
+}
+
+{
+     my $clist=$monitorUI::Singleton->{clist}->{DBServer_ActiveClients};
+     $clist->freeze();   
+     $clist->clear();
+     my @output=$monitor->getactiveclients("DBServer");     
      my $i;
      $monitorUI::Singleton->{notebook}[2]=0;
      for $i (0 ... $#output){
@@ -1038,8 +1083,10 @@ sub item_factory_cb {
                  Monitor::Exiting();
                }
            }
-         }
-}
+         }elsif($action==3){
+           $Monitor::Singleton->{updatesviadb}=$Monitor::Singleton->{updatesviadb}==0?1:0;
+       }
+    }
 
 sub create_frame{
     my ($boxa,$self,$buffer,$policy_x, $policy_y, $size,@titles )= @_;

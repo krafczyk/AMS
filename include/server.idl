@@ -6,7 +6,7 @@ module DPS{
    enum RecordChange{Delete,Update,Create};
    enum ErrorType{Info,Warning,Error,Severe};
    enum ClientStatus{Lost,Unknown,Submitted,Registered,Active,TimeOut,Killed};
-   enum ClientType{Generic,Server,Consumer,Producer,Monitor,Killer};
+   enum ClientType{Generic,Server,Consumer,Producer,Monitor,Killer,DBServer};
    enum ClientExiting{NOP,CInExit,SInExit,CInAbort,SInAbort,SInKill};
    enum HostStatus{NoResponse,InActive,LastClientFailed,OK};
 
@@ -253,4 +253,14 @@ module DPS{
     void ping();
   };
   
+  interface DBServer: Server, Producer{
+    exception DBProblem{
+     string message;
+    };
+
+    string getDBFilePath(in CID id);
+    long getRunEvInfoSPerl(in CID id, out RES res, in unsigned long maxr,out unsigned long maxro)raises(DBProblem); 
+    void sendACPerl(in CID id, in ActiveClient ac,in RecordChange rc)raises(DBProblem);
+  };
 };
+   

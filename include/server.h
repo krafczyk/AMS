@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.26 2001/01/22 17:32:44 choutko Exp $
+//  $Id: server.h,v 1.27 2001/02/02 16:22:48 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -131,7 +131,9 @@ CORBA::ORB_ptr  getdefaultorb()const {return _defaultorb;}
  virtual AMSServerI * getServer()=0;
 
   void PropagateAC( DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc, DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0);
+  bool PropagateACDB( DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc);
   void PropagateAH(const DPS::Client::CID & cid, DPS::Client::ActiveHost & ah, DPS::Client::RecordChange rc, DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0);
+  bool PropagateAHDB(const DPS::Client::CID & cid, DPS::Client::ActiveHost & ah, DPS::Client::RecordChange rc);
 
   bool InactiveClientExists();
   void RegisteredClientExists();
@@ -177,7 +179,7 @@ protected:
   void _init();
   void _PurgeQueue(){};
 public:
-  Client_impl(DPS::Client::ClientType type=DPS::Client::Generic, const char* ctype="Generic",AMSClient * parent=0):POA_DPS::Client(),AMSServerI(AMSID(ctype,0),parent,type){}
+  Client_impl(DPS::Client::ClientType type=DPS::Client::Generic, const char* ctype="Generic",AMSClient * parent=0);
   Client_impl(DPS::Client::ClientType type, const char* ctype,DPS::Server_ptr _svar, DPS::Client::CID  cid,AMSClient * parent);
   void UpdateDB(bool force){};
   void StartClients(const DPS::Client::CID &cid);
@@ -210,6 +212,7 @@ public:
  integer Kill(const DPS::Client::ActiveClient & ac, int signal, bool self);
  bool PingServer(const DPS::Client::ActiveClient & ac);
  bool Lock(const DPS::Client::CID & cid, OpType op, DPS::Client::ClientType type, int Time);
+ void UpdateDBFileName();
  void setInterface(const char * iface){_iface=iface;}
  AMSServerI * getServer(){return this;}
  virtual void UpdateDB(bool force=false);
@@ -304,6 +307,8 @@ DSTAL _dstqueue;
 
 
 public:
+ bool getRunEvInfoSDB(const DPS::Client::CID & cid, RunEvInfo_var & rv, DSTInfo_var &dv);
+ bool NotAllServersAlive();
  bool Master();
  AMSServerI * getServer(){return up();}
 
@@ -350,7 +355,10 @@ public:
 uinteger getSmartFirst(uinteger run);
 
 void PropagateRun(const RunEvInfo & ri, DPS::Client::RecordChange rc,  DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0);
+bool PropagateRunDB(const RunEvInfo & ri, DPS::Client::RecordChange rc);
 void PropagateDST(const DST & ri, DPS::Client::RecordChange rc,  DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0);
+bool PropagateDSTDB(const DST & ri, DPS::Client::RecordChange rc);
+bool PropagateDSTInfoDB(const DSTInfo & ri, DPS::Client::RecordChange rc);
 
 class DSTInfo_find: public unary_function<DSTInfo,bool>{
 DPS::Client::CID _cid;

@@ -1,4 +1,4 @@
-#  $Id: ActiveClient.pm,v 1.3 2001/01/23 11:50:38 choutko Exp $
+#  $Id: ActiveClient.pm,v 1.4 2001/02/02 16:22:48 choutko Exp $
 package ActiveClient;
 use strict;
 @ActiveClient::EXPORT = qw(new);
@@ -18,6 +18,7 @@ sub new{
       IOR=>$ior,
       Interface=>$cid->{Interface},
       Type=>$cid->{Type},
+      uid=>$cid->{uid},
   };
     $self->{ars}=[$arf];
     

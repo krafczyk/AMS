@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.11 2001/01/22 17:32:19 choutko Exp $
+//  $Id: client.C,v 1.12 2001/02/02 16:22:46 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -14,6 +14,10 @@ char * logdir=getenv("ProductionLogDir");
 if(!logdir){
  cerr<<"AMSClient::_openLogFile-W-ProductionLogDirNotDefined:$AMSDataDir/prod.log will be used"<<endl;
  logdir=getenv("AMSDataDir");
+ if(!logdir){
+  AString a("AMSDataDirNotDefined ");
+    FMessage((char *) a,DPS::Client::CInAbort);
+ }
  fnam=logdir;
  fnam+="/prod.log";
 }
@@ -30,7 +34,6 @@ else fnam=logdir;
  sprintf(time,"%s.%d.%d",(const char *)_pid.HostName,_pid.uid,_pid.pid);
  fnam+=time;
  _fbin.open(fnam,ios::out);
- AString a("AMSClient::_openLogFile-F-UnableOpenLogFile ");
  if(!_fbin){
     AString a("AMSClient::_openLogFile-F-UnableOpenLogFile ");
      a+=fnam; 
@@ -250,6 +253,8 @@ case DPS::Client::Producer:
 return "Producer";
 case DPS::Client::Monitor:
 return "Monitor";
+case DPS::Client::DBServer:
+return "DBServer";
 case DPS::Client::Killer:
 return "Killer";
 }
@@ -357,3 +362,11 @@ return "ClearKillClient";
 return " ";
 }
 
+
+void AMSClient::setdbfile(const char * dbf){
+ if(dbf && strlen(dbf)>0){
+  if(_DBFileName)delete [] _DBFileName;
+  _DBFileName= new char[strlen(dbf)+1];
+  strcpy(_DBFileName,dbf);
+ }
+}

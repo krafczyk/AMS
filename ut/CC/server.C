@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.35 2001/01/26 10:08:00 choutko Exp $
+//  $Id: server.C,v 1.36 2001/02/02 16:22:47 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -84,6 +84,7 @@ int main(int argc, char * argv[]){
 
 
 AMSServer::AMSServer(int argc, char* argv[]):_GlobalError(false){
+ char *dbfilename=0;
  char *iface=0;
  char *niface=0;
  char * ior=0;
@@ -97,6 +98,7 @@ AMSServer::AMSServer(int argc, char* argv[]):_GlobalError(false){
  char *eventtagstring=0;
  char *amsd=0;
  char *amsp=0;
+ char *amsperl=0;
  
  for (char *pchar=0; argc>1 &&(pchar=argv[1],*pchar=='-'); (argv++,argc--)){
     pchar++;
@@ -112,11 +114,21 @@ AMSServer::AMSServer(int argc, char* argv[]):_GlobalError(false){
      amsp=++pchar;
       setenv("AMSProdOutputDir",amsp,1);
      break;
+    case 'p':   //AMSProdPerl
+     amsperl=++pchar;
+      setenv("AMSProdPerl",amsperl,1);
+     break;
     case 'I':   //Interface
      iface=++pchar;
      break;
     case 'C':   //corba ior
      ior=++pchar;
+     break;
+    case 'B':   //DBfile name
+     dbfilename=++pchar;
+     break;
+    case 'b':   //DBfile name
+     _MaxDBProcesses=atoi(++pchar);
      break;
     case 'R':   //RunFileName
      rfile=++pchar;
@@ -147,6 +159,7 @@ AMSServer::AMSServer(int argc, char* argv[]):_GlobalError(false){
      break;
   }
  }
+setdbfile(dbfilename);
 _getpidhost(uid,iface);
 if(_debug)_openLogFile("Server");
 _pid.Type=DPS::Client::Server;
@@ -166,9 +179,12 @@ if(niface){
  ifstream fbin;
  fbin.open(niface);
  if(fbin){
-   if(fbin.get()=='#')fbin.ignore(1024,'\n');
-   else fbin.seekg(fbin.tellg()-sizeof(char));
   while(!fbin.eof() && fbin.good()){ 
+   if(fbin.get()=='#'){
+      fbin.ignore(1024,'\n');
+      continue;
+   }
+   else fbin.seekg(fbin.tellg()-sizeof(char));
    char tmpbuf[1024];
    fbin>>tmpbuf;
    if(fbin.good()){
@@ -217,6 +233,7 @@ else{
 
  if(ior==0){      //  Primary
   _pser= new Server_impl(_orbmap,_pid,this,nserver,nhost,nkiller);
+  _pser->add(new Client_impl(DPS::Client::DBServer,"DBServer",this));
   if(rfile){  
    _pser->add(new Producer_impl(_orbmap,_pid,this,nproducer,rfile,ntuplestring,eventtagstring));
   }  
@@ -244,6 +261,7 @@ else{
               _pser->add(new Producer_impl(_orbmap,_svar,_pid,this));
           }
            _pser->add(new Client_impl(DPS::Client::Monitor,"Monitor",_svar,_pid,this));
+           _pser->add(new Client_impl(DPS::Client::DBServer,"DBServer",_svar,_pid,this));
 
   Server_impl * pser=dynamic_cast<Server_impl*>(_pser);
   pser->setInterface(niface);
@@ -331,6 +349,9 @@ void AMSServerI::_UpdateACT(const DPS::Client::CID & cid, DPS::Client::ClientSta
 }
 
 void AMSServerI::PropagateAC(DPS::Client::ActiveClient & ac,DPS::Client::RecordChange rc,DPS::Client::AccessType type, uinteger uid){
+
+  PropagateACDB(ac,rc);
+
   if(_ActivateQueue)_acqueue.push_back(ACA(ac,rc));
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
   DPS::Client::CID cid;
@@ -372,6 +393,7 @@ nd"));
   }   
 
 void AMSServerI::PropagateAH(const DPS::Client::CID & pid,DPS::Client::ActiveHost & ah,DPS::Client::RecordChange rc,DPS::Client::AccessType type, uinteger uid){
+  PropagateAHDB(pid,ah,rc);
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
   DPS::Client::CID cid;
   cid.Type=_pser->getType();
@@ -618,7 +640,10 @@ for(int i=0;i<length;i++){
 void Server_impl::StartClients(const DPS::Client::CID & pid){
 if(!Master())return;
 RegisteredClientExists();
-if(InactiveClientExists())return;
+for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+if(pcur->InactiveClientExists())return;
+ 
+}
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 
 
@@ -661,6 +686,14 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
     submit+=" -I";
     submit+=(const char*)(*i)->Interface;
     if(_parent->Debug())submit+=" -D1";
+    UpdateDBFileName(); 
+    if(_parent->getdbfile()){
+     submit+=" -B";
+     submit+=_parent->getdbfile();
+    }
+    submit+=" -b";
+    sprintf(tmp,"%d",_parent->getmaxdb());
+    submit+=tmp;
     submit+=" -A";
      submit+=getenv("AMSDataDir");
      if(getenv("AMSProdOutputDir")){
@@ -884,6 +917,14 @@ else if(cid.Type==DPS::Client::Monitor){
     }
 }
 }
+else if(cid.Type==DPS::Client::DBServer){
+  for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+    if(pcur->getType()==cid.Type){
+      (dynamic_cast<Client_impl*>(pcur))->sendId(cid,timeout);
+      break;
+    }
+}
+}
 }
 
 int Server_impl::getNC(const DPS::Client::CID &cid, NCS_out acs)throw (CORBA::SystemException){
@@ -953,7 +994,20 @@ bool Server_impl::ARSaux(DPS::Client::AccessType type,uint id, uint compare){
 int Server_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out  arf,DPS::Client::AccessType type,uinteger maxcid)throw (CORBA::SystemException){
 DPS::Client::ARS_var arv=new ARS();
 int length=0;
-for (ACLI li=_acl.begin();li!=_acl.end();++li){
+AMSServerI * _pser=getServer();
+AMSServerI *  pser=0;
+if(cid.Type == DPS::Client::Server || cid.Type == DPS::Client::Producer){
+ pser=_pser;
+}
+else{
+ for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+  if(pcur->getType() == cid.Type){
+    pser=pcur;
+  }
+}
+}
+if(!pser)pser=_pser;
+for (ACLI li=pser->getacl().begin();li!=pser->getacl().end();++li){
     bool pred=ARSaux(type,maxcid,(*li)->id.uid);
   if(pred){
    for (int i=0;i<((*li)->ars).length();i++){
@@ -973,7 +1027,7 @@ if(length==0){
 }
 else arv->length(length);
 length=0;
-for (ACLI li=_acl.begin();li!=_acl.end();++li){
+for (ACLI li=pser->getacl().begin();li!=pser->getacl().end();++li){
     bool pred=ARSaux(type,maxcid,(*li)->id.uid);
   if(pred){
   for (int i=0;i<((*li)->ars).length();i++){
@@ -1399,10 +1453,13 @@ if(NS){
  if(fbin){
    unsigned int uid=0;
    DSTInfo_var ncl= new DSTInfo();
-   if(fbin.get()=='#')fbin.ignore(1024,'\n');
-   else fbin.seekg(fbin.tellg()-sizeof(char));
     char tmpbuf[1024];
   while(!fbin.eof() && fbin.good()){ 
+   if(fbin.get()=='#'){
+      fbin.ignore(1024,'\n');
+      continue;
+   }
+   else fbin.seekg(fbin.tellg()-sizeof(char));
    fbin>>tmpbuf;
    ncl->HostName=(const char*)tmpbuf;
    ncl->uid=++uid;
@@ -1449,9 +1506,12 @@ if(RF){
  fbin.open(RF);
  if(fbin){
    int cur=0;
-   if(fbin.get()=='#')fbin.ignore(1024,'\n');
-   else fbin.seekg(fbin.tellg()-sizeof(char));
   while(!fbin.eof() && fbin.good()){ 
+   if(fbin.get()=='#'){
+      fbin.ignore(1024,'\n');
+      continue;
+   }
+   else fbin.seekg(fbin.tellg()-sizeof(char));
    DPS::Producer::RunEvInfo  re;
    re.uid=_RunID++;
     char tmpbuf[1024];
@@ -1648,8 +1708,11 @@ else{
 void Producer_impl::StartClients(const DPS::Client::CID & pid){
 if(!Master())return;
 RegisteredClientExists();
-if(InactiveClientExists())return;
-if(getServer()->InactiveClientExists())return;
+for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+if(pcur->InactiveClientExists())return;
+ 
+}
+
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
   if(!_pser->Lock(pid,DPS::Server::StartClient,getType(),_StartTimeOut))return;
  // Check if there are some hosts to run on
@@ -1851,10 +1914,10 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
        (*j)->LastUpdate=tt;
 #ifdef __AMSDEBUG__
        _parent->IMessage(AMSClient::print(cid,"Producer_impl::sendId-I-RegClient "));
+#endif 
        DPS::Client::ActiveClient_var acv=*j;
        PropagateAC(acv,DPS::Client::Update);
 //       return false;
-#endif 
        return true;
       }
      }
@@ -1867,6 +1930,7 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
 
 int Producer_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out arf, DPS::Client::AccessType type, uinteger id)throw (CORBA::SystemException){
 
+_UpdateACT(cid,DPS::Client::Active);
 
 
  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
@@ -1919,6 +1983,7 @@ for( ACLI li=_acl.begin();li!=_acl.end();++li){
 
 
 int Producer_impl::getTDV(const DPS::Client::CID & cid,  TDVName & tdvname, TDVbody_out body)throw (CORBA::SystemException){
+_UpdateACT(cid,DPS::Client::Active);
 int length=0;
 TIDI li=_findTDV(tdvname);
 tdvname.Success=false;
@@ -1945,6 +2010,7 @@ li->second->gettime(i,b,e);
 }
 
 int Producer_impl::getSplitTDV(const DPS::Client::CID & cid,  unsigned int & pos,TDVName & tdvname, TDVbody_out body, TransferStatus & st)throw (CORBA::SystemException){
+_UpdateACT(cid,DPS::Client::Active);
 st=Continue;
 int length=0;
 TIDI li=_findTDV(tdvname);
@@ -1984,6 +2050,7 @@ li->second->gettime(i,b,e);
 
 
 void Producer_impl::sendTDV(const DPS::Client::CID & cid, const TDVbody & tdv, TDVName & tdvname )throw (CORBA::SystemException){
+_UpdateACT(cid,DPS::Client::Active);
 TIDI li=_findTDV(tdvname);
 tdvname.Success=false;
 if(li!=_tid.end()){
@@ -2037,6 +2104,7 @@ catch (bad_alloc aba){
 
   
 int Producer_impl::getTDVTable(const DPS::Client::CID & cid, TDVName & tdvname, unsigned int id, TDVTable_out table)throw (CORBA::SystemException){
+_UpdateACT(cid,DPS::Client::Active);
 
 TIDI li=_findTDV(tdvname);
 tdvname.Success=false;
@@ -2141,12 +2209,32 @@ return length;
 
 
 void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out ro,DSTInfo_out dso)throw (CORBA::SystemException){
-DPS::Client::CID pid;
-pid.Interface=(const char *)" ";
-pid.Type=getType();
-DPS::Client::ARS * pars;      
-int length=getARS(pid,pars,DPS::Client::LessThan,_parent->getcid().uid);
-DPS::Client::ARS_var arf=pars; 
+
+
+  DSTInfo_var dv =new DSTInfo();
+  RunEvInfo_var rv=new RunEvInfo(); 
+
+ if(_parent->DBServerExists()){
+
+  bool succ=getRunEvInfoSDB(cid,rv,dv);
+  if(! succ){
+     _parent->EMessage(AMSClient::print(_parent->getcid(),"getRunEvInfoSDBFailed"));
+   dv->DieHard=1;
+   ro=rv._retn();
+   dso=dv._retn();
+   return;
+ }
+ 
+}
+else{
+
+
+ DPS::Client::CID pid;
+ pid.Interface=(const char *)" ";
+ pid.Type=getType();
+ DPS::Client::ARS * pars;      
+ int length=getARS(pid,pars,DPS::Client::LessThan,_parent->getcid().uid);
+ DPS::Client::ARS_var arf=pars; 
  for(int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
@@ -2173,14 +2261,13 @@ DPS::Client::ARS_var arf=pars;
    }
  }
  cout <<" Master getrunevinfo "<<_parent->getcid().uid<<endl;
-_rl.sort(Less());
-RunEvInfo_var rv=new RunEvInfo(); 
-DSTInfo_var dv;
+ _UpdateACT(cid,DPS::Client::Active);
 {
-DSTILI li=find_if(_dstinfo.begin(),_dstinfo.end(),DSTInfo_find(cid));
-if(li==_dstinfo.end())li=_dstinfo.begin();
-dv= *li;
-}
+ DSTILI li=find_if(_dstinfo.begin(),_dstinfo.end(),DSTInfo_find(cid));
+ if(li==_dstinfo.end())li=_dstinfo.begin();
+ dv= *li;
+ }
+_rl.sort(Less());
 RLI li=find_if(_rl.begin(),_rl.end(),REInfo_find(cid,ToBeRerun));
 if(li==_rl.end()){
  li=find_if(_rl.begin(),_rl.end(),REInfo_find(cid,Failed));
@@ -2200,15 +2287,19 @@ else if( find_if(_rl.begin(),_rl.end(),REInfo_EqsClient(cid))!=_rl.end()){
 }
 else {
  rv=*li;
+}
+}
+if(dv->DieHard !=1){
  rv->Status=Processing;
  rv->cuid=cid.uid;
+ time_t tt;
+ time(&tt);
+ rv->SubmitTime=tt; 
   if(_parent->Debug()){
    _parent->IMessage(AMSClient::print (cid,"New Run Asked by"));  
    _parent->IMessage(AMSClient::print(rv));
   }
  PropagateRun(rv, DPS::Client::Update);
-}
-if(dv->DieHard !=1){
   uinteger smartfirst=getSmartFirst(rv->Run);
  if( smartfirst>rv->FirstEvent){
    rv->FirstEvent=smartfirst;
@@ -2216,13 +2307,13 @@ if(dv->DieHard !=1){
    _parent->EMessage(AMSClient::print(rv,"***SMART PROBLEM***"));
     
    }
+  }
  }
-}
 ro=rv._retn();
 dso=dv._retn();
 _UpdateACT(cid,DPS::Client::Active);
-}
 
+}
 
 
 
@@ -2252,7 +2343,7 @@ void Producer_impl::sendRunEvInfo(const  RunEvInfo & ne, DPS::Client::RecordChan
 }
 
 void Producer_impl::sendDSTInfo(const  DSTInfo & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
-
+ PropagateDSTInfoDB(ne,rc);
  DSTILI li=find_if(_dstinfo.begin(),_dstinfo.end(),DSTInfo_Eqs(ne));
  switch (rc){
  case DPS::Client::Update:
@@ -2338,6 +2429,7 @@ else{
 
 
 void Producer_impl::sendDSTEnd(const DPS::Client::CID & ci, const  DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
+_UpdateACT(ci,DPS::Client::Active);
 if(_parent->Debug()){
   _parent->IMessage(AMSClient::print(ci,"senddstinfo get from "));
   _parent->IMessage(AMSClient::print(ne));
@@ -2391,8 +2483,13 @@ if(_parent->Debug()){
 
 
 void Producer_impl::PropagateRun(const RunEvInfo & ri, DPS::Client::RecordChange rc, DPS::Client::AccessType type, uinteger uid){
+
+  PropagateRunDB(ri,rc);
+
   if(_ActivateQueue)_runqueue.push_back(RA(ri,rc));
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+
+
   DPS::Client::CID cid;
   cid.Type=getType();
   cid.Interface= (const char *) " ";
@@ -2413,6 +2510,9 @@ void Producer_impl::PropagateRun(const RunEvInfo & ri, DPS::Client::RecordChange
 }
 
 void Producer_impl::PropagateDST(const DST & ri, DPS::Client::RecordChange rc, DPS::Client::AccessType type,uinteger uid){
+
+  PropagateDSTDB(ri,rc);
+
   if(_ActivateQueue)_dstqueue.push_back(DSTA(ri,rc));
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
   DPS::Client::CID cid;
@@ -2687,6 +2787,28 @@ bool Server_impl::PingServer(const DPS::Client::ActiveClient & ac){
   return false;
 }
 
+bool Producer_impl::NotAllServersAlive(){
+    DPS::Client::CID cid=_parent->getcid();
+    cid.Type=getServer()->getType();
+    cid.Interface= (const char *)" ";
+    DPS::Client::ARS * pars;
+    int length=getARS(cid,pars);
+    DPS::Client::ARS_var arf=pars;
+  for(int i=0;i<length;i++){
+  try{
+    CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+    DPS::Server_var _pvar=DPS::Server::_narrow(obj);
+     if(!CORBA::is_nil(_pvar)){
+     _pvar->ping();
+     }
+   }
+   catch (CORBA::SystemException &ex){
+     return false;
+   }
+  } 
+  return true;
+}
+
 
 void Server_impl::_PurgeQueue(){
 for(ACALI li=_acqueue.begin();li!=_acqueue.end();++li){
@@ -2789,6 +2911,7 @@ uinteger Producer_impl::getSmartFirst(uinteger run){
 
 int Producer_impl::getRun(const DPS::Client::CID &cid, const FPath & fpath ,RUN_out run,TransferStatus & st)throw (CORBA::SystemException,FailedOp){
 const int maxs=16000000;
+_UpdateACT(cid,DPS::Client::Active);
  ifstream fbin;
  struct stat statbuf;
  st=Continue;
@@ -2816,6 +2939,7 @@ vrun->length(last);
 
 int Producer_impl::sendFile(const DPS::Client::CID &cid, const FPath & fpath ,const  RUN & run,TransferStatus & st)throw (CORBA::SystemException,FailedOp){
 const int maxs=16000000;
+_UpdateACT(cid,DPS::Client::Active);
    AString fname;
    char* gtv=getenv("AMSProdOutputDir");
    if(gtv && strlen(gtv)>0){
@@ -2991,13 +3115,42 @@ return _pser->getARS(cid, arf,type,id);
 #endif 
          _acl.push_front(vac);
        return true;
+     }
+    else if(cid.Type==DPS::Client::DBServer){
+     for(ACLI j=_acl.begin();j!=_acl.end();++j){
+      if(((*j)->id).uid==cid.uid){
+        cid.ppid=((*j)->id).pid;
+       ((*j)->id).pid=cid.pid;
+       ((*j)->id).ppid=cid.ppid;
+       cid.Interface=CORBA::string_dup(((*j)->id).Interface);
+       cid.Type=((*j)->id).Type;
+       (*j)->Status=DPS::Client::Registered;
+       time_t tt;
+       time(&tt);
+       (*j)->LastUpdate=tt;
+#ifdef __AMSDEBUG__
+       _parent->IMessage(AMSClient::print(cid,"Producer_impl::sendId-I-RegClient "));
+#endif 
+//       DPS::Client::ActiveClient_var acv=*j;
+//       PropagateAC(acv,DPS::Client::Update);
+       return true;
       }
+      }
+       _parent->EMessage(AMSClient::print(cid,"Producer_impl::sendId-E-RegClientNotFound "));
+     return false;
+
+    }
   }
 
 void Client_impl::getId(DPS::Client::CID_out  cid)throw (CORBA::SystemException){
 
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
    _pser->getId(cid);
+}
+
+  Client_impl::Client_impl(DPS::Client::ClientType type, const char* ctype,AMSClient * parent):POA_DPS::Client(),AMSServerI(AMSID(ctype,0),parent,type){
+ if(type==DBServer){
+ }
 }
 
 Client_impl::Client_impl(DPS::Client::ClientType type, const char* ctype,DPS::Server_ptr _svar,DPS::Client::CID  cid,AMSClient * parent):POA_DPS::Client(),AMSServerI(AMSID(ctype,0),parent,type){
@@ -3021,7 +3174,96 @@ void Client_impl::_init(){
 
 
 void Client_impl::StartClients(const DPS::Client::CID & pid){
+ if(getType() == DBServer){
+  RegisteredClientExists();
+    for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+    if(pcur->InactiveClientExists())return;
+ 
 }
+  if(getServer()->InactiveClientExists())return;
+  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+  if(!_pser->Lock(pid,DPS::Server::StartClient,getType(),_StartTimeOut))return;
+  bool freeslot=true;
+    for(ACLI li=_acl.begin();li!=_acl.end();++li){
+     if(strstr((const char*)_parent->getcid().HostName,(const char*)(*li)->id.HostName)){
+       freeslot=false;
+       break;
+     }
+    } 
+  if(_acl.size()<_parent->getmaxdb() && freeslot){
+   char * perldir=getenv("AMSProdPerl");
+     if(!perldir){
+      _parent->EMessage("AMSProdPerl not defined");
+     }
+     else{
+               AString submit(perldir);
+               submit+="/dbserver.start -U";
+               char tmp[80];
+               sprintf(tmp,"%d",_Submit+1);
+               submit+=tmp;
+               _pser->UpdateDBFileName();
+               if(_parent->getdbfile()){
+                 submit+=" -F";
+                 submit+=_parent->getdbfile();
+               }
+               else{
+                submit+=" -A";
+                submit+=getenv("AMSDataDir");
+                submit+="/prod.log/";
+               }
+               submit+=" -I";
+               submit+=perldir;
+               submit+=" -D1";
+               submit+=" -i";
+   CORBA::String_var _refstring=_pser->getrefmap().find((const char*)_parent->getcid().Interface)->second;
+               submit+=(const char*) _refstring;
+           cout <<" submit "<<submit<<endl;
+      int pid=fork();
+//       int pid=1000;
+      if(pid==-1){
+       _parent->EMessage("Unable to fork DBServer");
+      }
+      else if(pid==0){
+        //Child
+               char *argv[4];
+               argv[0] = "";
+               argv[1] = "-c";
+               char *arg = new char[submit.length()+1];
+               strcpy(arg,(const char*)submit);
+               argv[2] = arg;
+               argv[3] = 0;
+               execve("/bin/sh", argv, __environ);
+               exit(127);
+      }
+      else{
+     // Add New Active Client
+       DPS::Client::ActiveClient ac;
+       ac.id=_parent->getcid();
+       ac.id.uid=_Submit+1;
+     ac.id.Type=getType();
+     ac.id.ppid=ac.id.pid;
+     ac.id.pid=pid;;
+     ac.id.Status=DPS::Client::NOP;
+     ac.Status=DPS::Client::Submitted;
+     time_t tt;
+     time(&tt);
+     ac.LastUpdate=tt;     
+     ac.Start=tt;
+     (ac.ars).length(1);
+     ((ac.ars)[0]).Interface=(const char *)("Dummy");
+     ((ac.ars)[0]).IOR=(const char *)(" ");
+     ((ac.ars)[0]).Type=DPS::Client::Generic;
+     ((ac.ars)[0]).uid=0;
+     DPS::Client::ActiveClient_var acv=new DPS::Client::ActiveClient(ac);
+     PropagateAC(acv,DPS::Client::Create);
+
+      }
+     }
+   } 
+   _pser->Lock(pid,DPS::Server::ClearStartClient,getType(),_StartTimeOut);
+  }
+
+ }
 
 void Client_impl::CheckClients(const DPS::Client::CID & cid){
 if(!Master())return;
@@ -3143,11 +3385,32 @@ void Server_impl::MonInfo(const char * message, DPS::Client::ErrorType error){
 }
 
 bool Client_impl::PingClient(const DPS::Client::ActiveClient & ac){
-       if(ac.id.Type==DPS::Client::Monitor){
+       if(ac.id.Type==DPS::Client::Monitor ){
         try{
         CORBA::Object_var obj=_defaultorb->string_to_object((ac.ars)[0].IOR);
         if(!CORBA::is_nil(obj)){
         DPS::Monitor_var _mvar=DPS::Monitor::_narrow(obj);
+        if(!CORBA::is_nil(_mvar)){
+         try{
+          _mvar->ping();
+          return true;
+         }
+         catch (CORBA::SystemException &ex){
+         cerr<<" oops corba exc talking monitor"<<endl;
+         }
+        }
+       }
+      }
+      catch (CORBA::SystemException &ex){
+         cerr<<" oops corba exc init monitor"<<endl;
+      }
+      return false;
+   }
+       if(ac.id.Type==DPS::Client::DBServer ){
+        try{
+        CORBA::Object_var obj=_defaultorb->string_to_object((ac.ars)[0].IOR);
+        if(!CORBA::is_nil(obj)){
+        DPS::DBServer_var _mvar=DPS::DBServer::_narrow(obj);
         if(!CORBA::is_nil(_mvar)){
          try{
           _mvar->ping();
@@ -3214,3 +3477,254 @@ for (e1=__environ;*e1;e1++){
  ss=vss._retn();
  return length;
 }
+
+void Server_impl::UpdateDBFileName(){
+for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+ if(pcur->getType()==DPS::Client::DBServer){
+   pcur->getacl().sort(Less(_parent->getcid()));
+   for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+   for (int i=0;i<((*li)->ars).length();i++){
+    try{
+      CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
+      DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
+      CORBA::String_var filepath=dvar->getDBFilePath(_parent->getcid());
+      _parent->setdbfile(filepath);
+      break;
+     }
+     catch (CORBA::SystemException &ex){
+      cerr<<" oops corba error during dbserver" <<endl;
+     }
+    }
+   }
+ }
+}
+}
+
+bool Producer_impl::getRunEvInfoSDB(const DPS::Client::CID & cid, RunEvInfo_var & prv, DSTInfo_var & pdv){
+for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+ if(pcur->getType()==DPS::Client::DBServer){
+   bool done=false;
+   bool retry=false;
+   pcur->getacl().sort(Less(_parent->getcid()));
+   for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+   while( ! done){
+   for (int i=0;i<((*li)->ars).length();i++){
+    try{
+      CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
+      DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
+      CORBA::String_var filepath=dvar->getDBFilePath(_parent->getcid());
+      _parent->setdbfile(filepath);
+      RES * pres;
+      int length=dvar->getRunEvInfoSPerl(_parent->getcid(), pres,_RunID,_RunID);
+      RES_var res=pres; 
+      if(length){
+       _rl.clear();
+       for(int i=0;i<length;i++){
+        RunEvInfo_var vre= new RunEvInfo(res[i]);
+        _rl.push_back(vre);
+       }
+      }
+      else{
+       _parent->EMessage(" UpdateRunTable-UnableToUpdate"); 
+        return 0;
+      }
+      RunEvInfo *pre;
+      DSTInfo *pde;
+      dvar->getRunEvInfo(cid,pre,pde);     
+      prv=pre;
+      pdv=pde;
+      return 1;
+     }
+     catch(DPS::DBServer::DBProblem &dbl){
+       _parent->EMessage((const char*)dbl.message); 
+       sleep (2);
+       retry=! retry;    
+     }
+     catch (CORBA::SystemException &ex){
+      cerr<<" oops corba error during dbserver" <<endl;
+     }
+    }
+    if(!retry)return 0;
+   }
+  }
+break;
+}
+}
+return 0;
+
+}
+
+bool Producer_impl::PropagateRunDB(const RunEvInfo & ri, DPS::Client::RecordChange rc){
+for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+ if(pcur->getType()==DPS::Client::DBServer){
+   bool done=false;
+   bool retry=false;
+   pcur->getacl().sort(Less(_parent->getcid()));
+   for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+   while( ! done){
+   for (int i=0;i<((*li)->ars).length();i++){
+    try{
+      CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
+      DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
+      dvar->sendRunEvInfo(ri,rc);
+      return 1;
+     }
+     catch(DPS::DBServer::DBProblem &dbl){
+       _parent->EMessage((const char*)dbl.message); 
+       sleep (2);
+       retry=! retry;    
+     }
+     catch (CORBA::SystemException &ex){
+      cerr<<" oops corba error during dbserver" <<endl;
+     }
+    }
+    if(!retry)return 0;
+   }
+  }
+break;
+}
+}
+return 0;
+
+}
+
+bool Producer_impl::PropagateDSTDB(const DST & ri, DPS::Client::RecordChange rc){
+for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+ if(pcur->getType()==DPS::Client::DBServer){
+   bool done=false;
+   bool retry=false;
+   pcur->getacl().sort(Less(_parent->getcid()));
+   for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+   while( ! done){
+   for (int i=0;i<((*li)->ars).length();i++){
+    try{
+      CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
+      DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
+      dvar->sendDSTEnd(_parent->getcid(),ri,rc);
+      return 1;
+     }
+     catch(DPS::DBServer::DBProblem &dbl){
+       _parent->EMessage((const char*)dbl.message); 
+       sleep (2);
+       retry=! retry;    
+     }
+     catch (CORBA::SystemException &ex){
+      cerr<<" oops corba error during dbserver" <<endl;
+     }
+    }
+    if(!retry)return 0;
+   }
+  }
+break;
+}
+}
+return 0;
+
+}
+bool Producer_impl::PropagateDSTInfoDB(const DSTInfo & ri, DPS::Client::RecordChange rc){
+for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+ if(pcur->getType()==DPS::Client::DBServer){
+   bool done=false;
+   bool retry=false;
+   pcur->getacl().sort(Less(_parent->getcid()));
+   for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+   while( ! done){
+   for (int i=0;i<((*li)->ars).length();i++){
+    try{
+      CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
+      DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
+      dvar->sendDSTInfo(ri,rc);
+      return 1;
+     }
+     catch(DPS::DBServer::DBProblem &dbl){
+       _parent->EMessage((const char*)dbl.message); 
+       sleep (2);
+       retry=! retry;    
+     }
+     catch (CORBA::SystemException &ex){
+      cerr<<" oops corba error during dbserver" <<endl;
+     }
+    }
+    if(!retry)return 0;
+   }
+  }
+break;
+}
+}
+return 0;
+
+}
+
+bool AMSServerI::PropagateACDB(DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc){
+for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+ if(pcur->getType()==DPS::Client::DBServer){
+   bool done=false;
+   bool retry=false;
+   pcur->getacl().sort(Less(_parent->getcid()));
+   for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+   while( ! done){
+   for (int i=0;i<((*li)->ars).length();i++){
+    try{
+      CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
+      DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
+      DPS::Client::CID acid=ac.id;
+      dvar->sendACPerl(acid,ac,rc);
+      return 1;
+     }
+     catch(DPS::DBServer::DBProblem &dbl){
+       _parent->EMessage((const char*)dbl.message); 
+       sleep (2);
+       retry=! retry;    
+     }
+     catch (CORBA::SystemException &ex){
+      cerr<<" oops corba error during dbserver" <<endl;
+     }
+    }
+    if(!retry)return 0;
+   }
+  }
+break;
+}
+}
+return 0;
+
+}
+
+
+
+bool AMSServerI::PropagateAHDB(const DPS::Client::CID & pid,DPS::Client::ActiveHost & ah,DPS::Client::RecordChange rc){
+for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+ if(pcur->getType()==DPS::Client::DBServer){
+   bool done=false;
+   bool retry=false;
+   pcur->getacl().sort(Less(_parent->getcid()));
+   for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+   while( ! done){
+   for (int i=0;i<((*li)->ars).length();i++){
+    try{
+      CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
+      DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
+      dvar->sendAH(pid,ah,rc);
+      return 1;
+     }
+     catch(DPS::DBServer::DBProblem &dbl){
+       _parent->EMessage((const char*)dbl.message); 
+       sleep (2);
+       retry=! retry;    
+     }
+     catch (CORBA::SystemException &ex){
+      cerr<<" oops corba error during dbserver" <<endl;
+     }
+    }
+    if(!retry)return 0;
+   }
+  }
+break;
+}
+}
+return 0;
+
+}
+
+
+

@@ -1,5 +1,5 @@
-//  $Id: monitor.cgi,v 1.4 2001/01/22 17:32:53 choutko Exp $
 #!/usr/bin/perl -w
+#  $Id: monitor.cgi,v 1.5 2001/02/02 16:22:48 choutko Exp $
 use Gtk;
 use strict;
 
