@@ -30,8 +30,12 @@ b) Constructors:
 //  integer gid           ! geant volume id
 //  integer rel           ! See above for coo & nrm
 
-// Important restriction:
+// Important restriction I:
 // The combination of name[] and gid should be unique thru all AMS.
+
+// Important restriction II (geant3 only):
+// All volumes which have daughters must have different name(1:4) [Geant3 recursion
+feauture]
 
 
 c) member functions:
