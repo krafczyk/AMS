@@ -1764,3 +1764,107 @@ void TOFJobStat::outpmc(){
 }
 //==========================================================================
 
+
+geant TOFVarp::getmeantoftemp(int crate){
+
+switch (crate){
+case 1:
+return float(tftt.tofav[0])/10.;
+break;
+case 31:
+return float(tftt.tofav[1])/10.;
+break;
+case 41:
+return float(tftt.tofav[2])/10.;
+break;
+case 71:
+return float(tftt.tofav[3])/10.;
+break;
+case 3:
+return float(tftt.tofav[4])/10.;
+break;
+case 33:
+return float(tftt.tofav[5])/10.;
+break;
+case 43:
+return float(tftt.tofav[6])/10.;
+break;
+case 73:
+return float(tftt.tofav[7])/10.;
+break;
+default:
+cerr <<"TOFVarp::getmeantoftemp-E-NoCrateFound "<<crate<<endl;
+return 0;
+}
+
+}
+
+void TOFVarp::init(geant daqth[5], geant cuts[10]){
+
+    int i;
+    for(i=0;i<5;i++)_daqthr[i]=daqth[i];
+    for(i=0;i<10;i++)_cuts[i]=cuts[i];
+}
+
+
+  void TOFJobStat::clear(){
+    int i,j;
+    for(i=0;i<SCJSTA;i++)mccount[i]=0;
+    for(i=0;i<SCJSTA;i++)recount[i]=0;
+    for(i=0;i<SCCHMX;i++)
+                  for(j=0;j<SCCSTA;j++)
+                                       chcount[i][j]=0;
+    for(i=0;i<SCBLMX;i++)
+                  for(j=0;j<SCCSTA;j++)
+                                       brcount[i][j]=0;
+    for(j=0;j<2;j++){
+      for(i=0;i<SCCRAT;i++)scdaqbc1[i][j]=0;
+      for(i=0;i<SCCRAT;i++)scdaqbc2[i][j]=0;
+      for(i=0;i<SCCRAT;i++)scdaqbc3[i][j]=0;
+    }
+  }
+
+
+  TOFBrcal::TOFBrcal(integer sid, integer sta[2], geant gna[2], geant gnd[2],
+           geant a2dr[2], geant asl, geant tth,  
+           geant stra[2][2], geant fstd, geant t0, geant sl, geant sls[2],
+            geant tdiff, geant td2p[2], geant mip, geant ysc[], geant relo[],
+           geant aip[2][SCIPAR], geant dip[2][SCIPAR]){
+    softid=sid;
+    status[0]=sta[0];
+    status[1]=sta[1];
+    gaina[0]=gna[0];
+    gaina[1]=gna[1];
+    gaind[0]=gnd[0];
+    gaind[1]=gnd[1];
+    an2dir[0]=a2dr[0];
+    an2dir[1]=a2dr[1];
+    asatl=asl;
+    tthr=tth;
+    strat[0][0]=stra[0][0];
+    strat[0][1]=stra[0][1];
+    strat[1][0]=stra[1][0];
+    strat[1][1]=stra[1][1];
+    fstrd=fstd;
+    tzero=t0;
+    slope=sl;
+    slops[0]=sls[0];
+    slops[1]=sls[1];
+    yctdif=tdiff;
+    td2pos[0]=td2p[0];
+    td2pos[1]=td2p[1];
+    mip2q=mip;
+    int i;
+    for(i=0;i<SCANPNT;i++){
+      yscanp[i]=ysc[i];
+      relout[i]=relo[i];
+    }
+    for(i=0;i<SCIPAR;i++){
+      aipar[0][i]=aip[0][i];
+      aipar[1][i]=aip[1][i];
+      dipar[0][i]=dip[0][i];
+      dipar[1][i]=dip[1][i];
+    }
+  }
+
+TOFVarp::TOFTemperature TOFVarp::tftt;

@@ -431,6 +431,7 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
        
     }
     else {
+      cout <<"AMSTimeID::_fillDB-I-UpdatingDataBase"<<endl;
       AString fnam(getname());
       fnam+= getid()==0?".0":".1";
       _selectEntry=&fnam;
@@ -471,8 +472,8 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
         // sort
         //AMSsortNAGa(_pDataBaseEntries[0],_DataBaseSize);
         
-        uinteger **padd= new uinteger*[_DataBaseSize];
-        uinteger *tmp=  new uinteger[_DataBaseSize];
+        uinteger **padd= new uinteger*[_DataBaseSize+1];
+        uinteger *tmp=  new uinteger[_DataBaseSize+1];
 #ifdef __AMSDEBUG__
         assert(padd!=NULL && tmp!=NULL);
 #endif

@@ -12,29 +12,36 @@ class AMSStatus : public AMSNode {
 protected:
   time_t _Begin;
   time_t _End;
+  integer _Hint;
   uinteger _Run;
   integer  _Nelem;
-  uinteger _Status[2][STATUSSIZE+MAXDAQRATE];
-  void _init();
+  uinteger _Status[3][STATUSSIZE+MAXDAQRATE];  //eventno, status, offset
+   void _init();
   AMSStatus (const AMSStatus&);   // do not want cc
   AMSStatus &operator=(const AMSStatus&); // do not          
   virtual ostream & print(ostream &)const;
-  static integer _Mode;
+  static integer _Mode;   // 0 initial state; 1 read ; 2 write; 3 update
+  integer _statusok(uinteger status);
 public:
   AMSStatus (): AMSNode(0),_Nelem(0){};
-  AMSStatus (const char name[]): AMSNode(0),_Nelem(0),_Begin(0),_End(0),_Run(0){setname(name);setid(0);}
+  AMSStatus (const char name[]): AMSNode(0),_Hint(0),_Nelem(0),_Begin(0),_End(0),_Run(0){setname(name);setid(0);}
   AMSStatus * next(){return (AMSStatus *)AMSNode::next();}
   AMSStatus * prev(){return (AMSStatus *)AMSNode::prev();}
   AMSStatus * up(){return   (AMSStatus *)AMSNode::up();}
   AMSStatus * down(){return (AMSStatus *)AMSNode::down();}
-  integer getsize(){return sizeof(_Nelem)+sizeof(_Status);}
-  void * getptr(){return &_Nelem;}
-  void update(uinteger run, uinteger evt, uinteger status, time_t time=0);
-  uinteger getstatus(uinteger evt);
+  integer getsize(){return sizeof(_Run)+sizeof(_Nelem)+sizeof(_Status);}
+  void * getptr(){return &_Run;}
+  void updates(uinteger run, uinteger evt, uinteger status, time_t time=0);
+  void adds(uinteger run, uinteger evt, uinteger status, time_t time=0);
+  integer statusok(uinteger evt,uinteger run);
+  void    getnextok();
+  static void UpdateStatusTableDB();
+  uinteger getstatus(uinteger evt, uinteger run);
   static void create();
   static void init();
   void setmode(integer mode){_Mode=mode;}
-  static integer isDBUpdate(){return _Mode==2;}
+  static integer isDBWriteR(){return _Mode==2;}
+  static integer isDBUpdateR(){return _Mode==3;}
   integer isFull(uinteger run, uinteger evt, time_t time);
   time_t getbegin(){return _Begin;}
   time_t getend(){return _End;}

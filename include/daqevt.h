@@ -95,6 +95,8 @@ void buildDAQ(uinteger btype=0);
 void buildRawStructures();
 void write();
 integer read();
+integer getoffset();
+void setoffset(uinteger offset);
 void shrink();
 integer getlength() const {return _Length*sizeof(_pData[0]);}
 void close(){ fbin.close();fbout.close();}

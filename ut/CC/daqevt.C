@@ -296,6 +296,17 @@ void DAQEvent::write(){
 
 }
 
+integer DAQEvent::getoffset(){
+   if(fbin)return fbin.tellg()-sizeof(_pData[0])*(_Length);
+   else {
+    cerr<<"DAQEvent::getoffset-E-fbinNotOPened"<<endl;
+    return -1;
+   }
+}
+
+void DAQEvent::setoffset(uinteger offset){
+   if(fbin)fbin.seekg(offset);
+}
 
 integer DAQEvent::read(){
   enum open_mode{binary=0x80};

@@ -1688,9 +1688,20 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd6",isRealData()),
 }
 
 {
+  // TOF Temperature data
+
+   tm begin=AMSmceventg::Orbit.End;
+   tm end=AMSmceventg::Orbit.Begin;
+   TID.add (new AMSTimeID(AMSID("TOFTemperature",isRealData()),
+                         begin,end,
+                         tofvpar.gettoftsize(),(void*)tofvpar.gettoftp()));
+   
+}
+
+{
   tm begin=AMSmceventg::Orbit.Begin;
   tm end;
-  if(AMSFFKEY.Update){
+  if(AMSFFKEY.Update==87){
     end=AMSmceventg::Orbit.End;
     AMSEvent::SetShuttlePar();
   }
@@ -1703,7 +1714,7 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd6",isRealData()),
 {
   tm begin=AMSmceventg::Orbit.Begin;
   tm end;
-  if(AMSFFKEY.Update){
+  if(AMSFFKEY.Update==88){
     end=AMSmceventg::Orbit.End;
   }
   else end=AMSmceventg::Orbit.Begin;
@@ -1901,7 +1912,7 @@ void AMSJob::_dbendjob(){
 
   //Status Stuff
 
-  if( AMSFFKEY.Update && AMSStatus::isDBUpdate()){
+  if( AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::getTDVStatus());
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
@@ -1915,6 +1926,10 @@ void AMSJob::_dbendjob(){
       cout <<" Time Insert "<<ctime(&insert);
       cout <<" Time Begin "<<ctime(&begin);
       cout <<" Time End "<<ctime(&end);
+  }
+
+  if( AMSFFKEY.Update && AMSStatus::isDBUpdateR()   ){
+    AMSStatus::UpdateStatusTableDB();
   }
 
 

@@ -1,5 +1,4 @@
 // Author V.Choutko.
-// modified by E.Choumilov 20.06.96. - add some TOF materials.
 #include <status.h>
 #include <snode.h>
 #include <amsgobj.h>
@@ -37,44 +36,57 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time){
   return (_Nelem>=STATUSSIZE && timechanged ) || (run!=_Run && _Nelem>0) ;
 }
 
-void AMSStatus::update(uinteger run, uinteger evt, uinteger status, time_t time){
+void AMSStatus::adds(uinteger run, uinteger evt, uinteger status, time_t time){
   if(_Nelem==0  || isFull(run,evt,time)){
     _Nelem=0;
     _Run=run;
     _Begin=time;
     if(_Begin==0){
-      cerr <<"AMSStatus::update-E-BeginTimeIsZeroForRun"<<" "<<_Run<<endl;
+      cerr <<"AMSStatus::adds-E-BeginTimeIsZeroForRun"<<" "<<_Run<<endl;
     }
   }
   _End=time;
   _Status[0][_Nelem]=evt;
   _Status[1][_Nelem]=status;
+  _Status[2][_Nelem]=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset();
   _Nelem++;
 }
 
-uinteger AMSStatus::getstatus(uinteger evt){
-  AMSgObj::BookTimer.start("EventStatus");
+void AMSStatus::updates(uinteger run, uinteger evt, uinteger status, time_t time){
   int out= AMSbins(_Status[0],evt,_Nelem);
+  if(out>0)_Status[1][out-1]=status;
+  else cerr<<"AMSStatus::updates-E--NoMatchFoundRun "<<run<<" " <<evt<<endl;
+  if(out==_Nelem && AMSFFKEY.Update && isDBUpdateR()){
+   UpdateStatusTableDB();
+  }
+}
+
+uinteger AMSStatus::getstatus(uinteger evt, uinteger run){
+  if(_Run && run != _Run){
+   cerr<<"AMSStatus::getstatus-E-WrongRun "<<run<<" Expected "<<_Run<<endl;
+   return (1<<31);
+  }
+  // try hint +
+  int out;
+  if(_Hint>=_Nelem || evt!=_Status[0][_Hint])out= AMSbins(_Status[0],evt,_Nelem);
+  else out=_Hint+1;
   static int repeat=0;
  if (out>0){
+   _Hint=out;
    repeat=0;
-   AMSgObj::BookTimer.stop("EventStatus");
    return _Status[1][out-1]  ;
  }
  else if(repeat<10  ){
-   cerr<<"AMSStatus::getstatus-E-NoMatchFound "<<out<<" "<<evt<<" "<<_Nelem<<endl;
+   cerr<<"AMSStatus::getstatus-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<endl;
    repeat++;
-   AMSgObj::BookTimer.stop("EventStatus");
    return (1<<31);
  }
  else if(repeat==10 ){
    cerr<<"AMSStatus::getstatus-E-NoMatchFoundLastMessage"<<out<<" "<<evt<<endl;
    repeat++;
-   AMSgObj::BookTimer.stop("EventStatus");
    return (1<<31);
  }
  else {
-   AMSgObj::BookTimer.stop("EventStatus");
    return (1<<31);
 }
 }
@@ -86,11 +98,102 @@ void AMSStatus::init(){
     AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::gethead()->getTDVStatus());
     for(int i=0;i<AMSJob::gethead()->gettdvn();i++){
       if( strcmp(AMSJob::gethead()->gettdvc(i),ptdv->getname())==0 ){
-        _Mode=2;
-        cout <<"AMSStatus::init-I-UpdataStatusDBRequested"<<endl;
+       if(!STATUSFFKEY.status[32]){   
+         _Mode=2;
+         cout <<"AMSStatus::init-I-WriteStatusDBRequested"<<endl;
+       }
+       else {
+         _Mode=3;
+         cout <<"AMSStatus::init-I-UpdateStatusDBRequested"<<endl;
+       }
       }
     }
   }
 }
+
+
+integer AMSStatus::statusok(uinteger event, uinteger run){
+    uinteger status=getstatus(event,run);
+    return _statusok(status);
+}
+
+integer AMSStatus::_statusok(uinteger status){
+    if(!(status & (1<<31))){    // Status exists
+      const int nsta=13;
+      uinteger Status[nsta];
+      Status[0]=((status & ((1<<4)-1)))+1;
+      Status[1]=((status>>4) & ((1<<1)-1))+1;
+      Status[2]=((status>>5) & ((1<<3)-1))+1;
+      Status[3]=((status>>8) & ((1<<1)-1))+1;
+      Status[4]=((status>>9) & ((1<<1)-1))+1;
+      Status[5]=((status>>10) & ((1<<5)-1))+1;
+      Status[6]=((status>>15) & ((1<<2)-1))+1;
+      Status[7]=((status>>17) & ((1<<2)-1))+1;
+      Status[8]=((status>>19) & ((1<<2)-1))+1;
+      Status[9]=((status>>21) & ((1<<2)-1))+1;
+      Status[10]=((status>>23) & ((1<<2)-1))+1;
+      Status[11]=((status>>25) & ((1<<2)-1))+1;
+      Status[12]=((status>>27) & ((1<<2)-1))+1;
+
+        uinteger local=0;
+      for(int i=0;i<nsta;i++){
+        local=0;
+        if(STATUSFFKEY.status[i]==0)continue;
+        else {
+          uinteger st=STATUSFFKEY.status[i];
+          for (int j=0;j<10;j++){
+            uinteger stbit=(st%10)>0?1:0;
+            //            cout <<stbit <<" "<<j<<" "<<Status[i]<<" "<<i<<endl;
+            if((stbit<<j) & Status[i]){
+              local=1;
+              break; 
+            }
+            st=st/10;
+          }
+        }
+        if(!local){
+          return 0;
+        }
+      }
+    }
+    return 1;
+
+}
+
+
+void AMSStatus::getnextok(){
+  
+ for(int i=_Hint;i<_Nelem;i++){
+   if(_statusok(_Status[1][i])){
+     ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][i]);
+     _Hint=i;
+     return;
+   }
+ }
+ if(_Hint<_Nelem)((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][i]);
+ else  if(AMSFFKEY.Update && isDBUpdateR()){
+   UpdateStatusTableDB();
+ }
+}
+
+void AMSStatus::UpdateStatusTableDB(){
+      AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::getTDVStatus());
+      uinteger crcold=ptdv->getCRC();
+      ptdv->UpdCRC();
+      if(crcold!=ptdv->getCRC()){
+       ptdv->UpdateMe()=1;
+       time_t begin,end,insert;
+       ptdv->gettime(insert,begin,end);
+       time(&insert);
+       ptdv->SetTime(insert,begin,end);
+       cout <<" Event Status info  info has been updated for "<<*ptdv;
+       cout <<" Time Insert "<<ctime(&insert);
+       cout <<" Time Begin "<<ctime(&begin);
+       cout <<" Time End "<<ctime(&end);
+       cout << " Starting to update "<<*ptdv; 
+       if(  !ptdv->write(AMSDATADIR.amsdatabase))
+        cerr <<"AMSStatus::UpdateStatusTableDB-S-ProblemtoUpdate "<<*ptdv;
+      }
+  }
 
 

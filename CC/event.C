@@ -55,7 +55,7 @@ integer AMSEvent::PosGlobal=0;
 void AMSEvent::_init(){
   SetTimeCoo(0);
   // Status stuff
-  if( AMSFFKEY.Update && AMSStatus::isDBUpdate()){
+  if( AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
     if(AMSJob::gethead()->getstatustable()->isFull(getrun(),getid(),gettime())){
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVStatus());
       ptdv->UpdateMe()=1;
@@ -595,60 +595,27 @@ for (int i=0;;){
 //------------------------------------------------------------------
 void AMSEvent::event(){
     AMSgObj::BookTimer.start("EventStatus");
-  if(!AMSStatus::isDBUpdate() && STATUSFFKEY.status[32]){
-    uinteger status=AMSJob::gethead()->getstatustable()->getstatus(getid());
-    // compare status 
-    if(!(status & (1<<32))){    // Status exists
-      const int nsta=13;
-      uinteger Status[nsta];
-      Status[0]=((status & ((1<<4)-1)))+1;
-      Status[1]=((status>>4) & ((1<<1)-1))+1;
-      Status[2]=((status>>5) & ((1<<3)-1))+1;
-      Status[3]=((status>>8) & ((1<<1)-1))+1;
-      Status[4]=((status>>9) & ((1<<1)-1))+1;
-      Status[5]=((status>>10) & ((1<<5)-1))+1;
-      Status[6]=((status>>15) & ((1<<2)-1))+1;
-      Status[7]=((status>>17) & ((1<<2)-1))+1;
-      Status[8]=((status>>19) & ((1<<2)-1))+1;
-      Status[9]=((status>>21) & ((1<<2)-1))+1;
-      Status[10]=((status>>23) & ((1<<2)-1))+1;
-      Status[11]=((status>>25) & ((1<<2)-1))+1;
-      Status[12]=((status>>27) & ((1<<2)-1))+1;
-
-        uinteger local=0;
-      for(int i=0;i<nsta;i++){
-        local=0;
-        if(STATUSFFKEY.status[i]==0)continue;
-        else {
-          uinteger st=STATUSFFKEY.status[i];
-          for (int j=0;j<10;j++){
-            uinteger stbit=(st%10)>0?1:0;
-            //            cout <<stbit <<" "<<j<<" "<<Status[i]<<" "<<i<<endl;
-            if((stbit<<j) & Status[i]){
-              local=1;
-              break; 
-            }
-            st=st/10;
-          }
-        }
-        if(!local){
-          AMSgObj::BookTimer.stop("EventStatus");
-          return;
-        }
-      }
+  if(STATUSFFKEY.status[32]){
+    integer ok=AMSJob::gethead()->getstatustable()->statusok(getid(),getrun());
+    if(!ok){
+      AMSJob::gethead()->getstatustable()->getnextok();
+      AMSgObj::BookTimer.stop("EventStatus");
+      return;
     }
-    }
-    AMSgObj::BookTimer.stop("EventStatus");
-    
+   }
+   AMSgObj::BookTimer.stop("EventStatus");
     AMSUser::InitEvent();
     if(AMSJob::gethead()->isSimulation())_siamsevent();
     _reamsevent();
     if(AMSJob::gethead()->isCalibration())_caamsevent();
     _collectstatus();
-    if(AMSStatus::isDBUpdate()){
-      AMSJob::gethead()->getstatustable()->update(getrun(),getid(),getstatus(),gettime());
+    if(AMSStatus::isDBWriteR()){
+      AMSJob::gethead()->getstatustable()->adds(getrun(),getid(),getstatus(),gettime());
     }
-  }
+    else if(AMSStatus::isDBUpdateR()){
+      AMSJob::gethead()->getstatustable()->updates(getrun(),getid(),getstatus(),gettime());
+    }
+}
   //------------------------------------------------------------------
   void AMSEvent::_siamsevent(){
     _sitkevent(); 
@@ -1327,6 +1294,15 @@ void AMSEvent::_printEl(ostream & stream){
  stream << "Run "<<_run<<" "<<getname()<<" "<< getid()<<" Time "<< 
    ctime(&_time)<<"."<<_usec<<" R "<<_StationRad<<" Theta "<<_StationTheta*AMSDBc::raddeg<<" Phi "<<_StationPhi*AMSDBc::raddeg<<" Speed "<<_StationSpeed<<
    " Pole "<<_NorthPolePhi*AMSDBc::raddeg<<endl;
+ stream <<" TOFTemperature (dC) crates 01,31,41,71,03,33,43,73 ";
+ stream <<TOFVarp::getmeantoftemp(01)<<" ";
+ stream <<TOFVarp::getmeantoftemp(31)<<" ";
+ stream <<TOFVarp::getmeantoftemp(41)<<" ";
+ stream <<TOFVarp::getmeantoftemp(71)<<" ";
+ stream <<TOFVarp::getmeantoftemp(03)<<" ";
+ stream <<TOFVarp::getmeantoftemp(33)<<" ";
+ stream <<TOFVarp::getmeantoftemp(43)<<" ";
+ stream <<TOFVarp::getmeantoftemp(73)<<endl;
 }
 
 void AMSEvent::_writeEl(){
