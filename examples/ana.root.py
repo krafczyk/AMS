@@ -1,6 +1,8 @@
 #!/usr/bin/env python2.2
 
 import sys, os
+# The following line is not necessary if the AMS module is
+# already installed as a general Python module 
 sys.path.append(os.environ['AMSWD'] + '/python')
 
 from AMS import *

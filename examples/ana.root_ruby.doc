@@ -1,0 +1,12 @@
+/*! \example ana.root_ruby.doc
+ *
+ *    - Installation of the AMS Ruby library (only on LINUX for the moment):
+ *       - cd $AMSDir/ruby; gmake
+ *
+ *    - Example of AMS analysis with python. Run it simply as:
+ *                 - ana.root.rb
+ *
+ *    - You can find few other examples in $AMSDir/ruby
+ *
+ *  \include ana.root.rb
+ */ 

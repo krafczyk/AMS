@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+# The following line is not necessary if the AMS library is
+# already installed as a general Ruby library 
 $LOAD_PATH << ENV['AMSWD'] + "/ruby"
 
 require 'AMS'
