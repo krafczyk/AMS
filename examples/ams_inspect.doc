@@ -1,6 +1,6 @@
 /*! \example ams_inspect.doc
- *    - SCRIPT ams_inspect.rb, to plot interactively variables from AMS root fil
- *                 - ams_inspect [files]
+ *    - SCRIPT ams_inspect.rb, to plot interactively variables from AMS root files:
+ *                 - ams_inspect.rb [files]
  *
  *    - EXAMPLES:
  *       - ams_inspect.rb &

@@ -4,7 +4,10 @@
 
 require "tk"
 
-ENV["AMSDir"] = "/afs/ams.cern.ch/Offline/vdev"
+if FileTest.exists?("/afs/ams.cern.ch/Offline/vdev")
+      ENV["AMSDir"] = "/afs/ams.cern.ch/Offline/vdev"
+end
+
 if !ENV["AMSDir"]
       puts "\tPlease set the $AMSDir environment variable before using the script."
       puts "\tExample on tcsh:\tsetenv AMSDir /afs/ams.cern.ch/Offline/vdev"
