@@ -594,7 +594,7 @@ void AMSParticle::refit(int fast){
         if(!_ptrack->AdvancedFitDone()){
           _ptrack->AdvancedFit();
         }
-     _ptrack->Fit(0,_GPart);
+     if(_GPart!=14)_ptrack->Fit(0,_GPart);
 // Changed - never use geanerigidity to build mom
      if(TRFITFFKEY.ForceAdvancedFit==1 && MISCFFKEY.G3On)_ptrack->Fit(_pbeta->getbeta()>0?3:-3,_GPart);
      if(0 && _ptrack->GeaneFitDone() && fabs(_ptrack->getgrid())>TRFITFFKEY.RidgidityMin/2 ){

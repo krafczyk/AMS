@@ -73,6 +73,10 @@ void AMSmceventg::gener(){
    if(_fixedmom)_mom=_momrange[0];
    else if(CCFFKEY.low==4){
     _mom=_momrange[0]+(_momrange[1]-_momrange[0])*RNDM(d);
+    if(_momrange[1]>1000000){
+      cerr<<"AMSmceventg::gener-F-MomentumRangeIsLimitiedTo 1000 TeV "<<_momrange[1]<<endl;
+      exit(1);
+    }
    }
    else if(CCFFKEY.low==5 ){
     if(_momrange[0]<=0 ){
