@@ -24,7 +24,8 @@ tm begin - start validity time
 tm end   - end   validity time
 nbytes   - sizeof data in bytes
 pdata     - pointer to first element of the data 
-
+            data should consist of 32 bit words ( so no double please) 
+            to be portable between bend/lend machines
 tm structure is defined in sys <time.h>
 
 relevant elements:

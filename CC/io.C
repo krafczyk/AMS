@@ -39,6 +39,10 @@ void AMSIO::init(integer mode,integer format){
              if(iposr>0)cout <<"AMSIO::init-I-Run "<<runold<<" has "<<iposr<<
                           " events with pid = "<<pidold<<endl;
              //            if(ok)cout <<io<<endl;
+             if(io.getrun()<0){
+               cout <<"AMSIO::init-F-Negative run number "<< io.getrun()<<endl;
+               exit(1);
+             }
              iposr=0;
              pidold=io.getpid();
              runold=io.getrun();
@@ -53,9 +57,14 @@ void AMSIO::init(integer mode,integer format){
             fbin.seekg(fbin.tellg()-sizeof(io));
             cout<<"AMSIO::init-I-Selected Run = "<<SELECTFFKEY.Run<<
               " Event = "<<io.getevent()<< " Position = "<<ipos<<endl;
-          }
-          if(format==1)cout<<"AMSIO::init-I-Total of "<<ipos-1
+          
+          if(format==1){
+             cout<<"AMSIO::init-I-Total of "<<ipos-1
              <<" events have been read."<<endl;
+             cout << " Last Random Number "<<io.getseed(0)<<" "<<io.getseed(1)
+                  <<endl;
+          }
+          }
           else {
             if(format==0)cerr <<"AMSIO::init-F-Failed to select Run = "<<SELECTFFKEY.Run<<
               " Event >= "<<SELECTFFKEY.Event<<endl;
@@ -102,7 +111,7 @@ ostream & operator << (ostream &o, const AMSIO &b ){
 
 void AMSIO::convert(){
 #ifndef __ALPHA__
-  // Dec alpha has no convert to big endian...
+  // Dec alpha has to be converted to big endian...
   unsigned char tmp;
   unsigned char *pc = (unsigned char*)this;
   int i;

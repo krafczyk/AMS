@@ -16,7 +16,8 @@ PROTOCCALLSFSUB0(GBATCH,gbatch)
 //
 void (handler)(int);
 main(){
-     *signal(SIGFPE, handler);
+  //     *signal(SIGFPE, handler);
+     *signal(SIGTERM, handler);
   //  cout << "Debug ?";
   AMSgvolume::debug=0;
     GZEBRA(NWGEAN);
@@ -29,5 +30,10 @@ return 0;
 }
 void (handler)(int sig){
   if(sig==SIGFPE)cerr <<" FPE intercepted"<<endl;
+  else if (sig==SIGTERM){
+    cerr <<" SIGTERM intercepted"<<endl;
+    GCFLAG.IEORUN=1;
+    GCFLAG.IEOTRI=1;
+  }
 }
 

@@ -1,13 +1,13 @@
 #include <timeid.h>
 #include <job.h>
-uinteger * AMSTimeID::Table=0;
+uinteger * AMSTimeID::_Table=0;
 const uinteger AMSTimeID::CRC32=0x04c11db7;
 AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0, 
                      void *pdata=0):
-           AMSNode(id),_pData(pdata),_UpdateMe(0){
+           AMSNode(id),_pData((uinteger*)pdata),_UpdateMe(0){
       _Nbytes=nbytes;
 #ifdef __AMSDEBUG__
-      if(_Nbytes%sizeof(integer)!=0){
+      if(_Nbytes%sizeof(uinteger)!=0){
         cerr <<"AMSTimeID-ctor-F-Nbytes not aligned "<<_Nbytes<<endl;
         exit(1);
       }
@@ -58,10 +58,10 @@ _End=end;
 
 integer AMSTimeID::CopyIn(void *pdata){
   if(pdata && _pData){
-    integer n=_Nbytes/sizeof(integer)-1;
+    integer n=_Nbytes/sizeof(uinteger)-1;
     integer i;
     for(i=0;i<n;i++){
-     *((integer*)_pData+i)=*((integer*)pdata+i);
+     *(_pData+i)=*((uinteger*)pdata+i);
     }
     _CRC=*((uinteger*)pdata+n);
     return _Nbytes;
@@ -71,10 +71,10 @@ integer AMSTimeID::CopyIn(void *pdata){
 
 integer AMSTimeID::CopyOut(void *pdata){
   if(pdata && _pData){
-    integer n=_Nbytes/sizeof(integer)-1;
+    integer n=_Nbytes/sizeof(uinteger)-1;
     integer i;
     for(i=0;i<n;i++){
-     *((integer*)pdata+i)=*((integer*)_pData+i);
+     *((uinteger*)pdata+i)=*(_pData+i);
     }
     *((uinteger*)pdata+n)=_CRC;
     return _Nbytes;
@@ -98,25 +98,30 @@ else return 0;
 
 uinteger AMSTimeID::_CalcCRC(){
  _InitTable();
- uinteger crc=0xffffffff;;
- int i;
-    integer n=_Nbytes-sizeof(uinteger);
-    for(i=0;i<n;i++){
-      crc=(crc<<8) ^ Table[crc>>24] ^ *((unsigned char*)_pData+i);
+  int i,j,k;
+  integer n=_Nbytes/sizeof(uinteger)-1;
+  uinteger crc;
+  if( n < 1) return 0;
+  uinteger *pu=(uinteger *)_pData; 
+    crc=~pu[0];
+    for(i=1;i<n;i++){
+      for(j=0;j<3;j++)crc=_Table[crc>>24]^(crc<<8);
+     crc=crc^pu[i];  
     }
   return ~crc;
 }
 
 void AMSTimeID::_InitTable(){
-  if(!Table){
-    Table=new uinteger[255];
-    assert(Table!=NULL);
+  if(!_Table){
+    _Table=new uinteger[255];
+    assert(_Table!=NULL);
     integer i,j;
     uinteger crc;
     for(i=0;i<256;i++){
       crc=i<<24;
-      for(j=0;j<8;j++)crc=crc&0x80000000 ? (crc<<1)^CRC32: crc<<1;
-      Table[i]=crc;
+      for(j=0;j<8;j++)crc=crc&0x80000000 ? (crc<<1)^CRC32 : crc<<1;
+      _Table[i]=crc;
+      //cout << i<<" "<<_Table[i]<<endl;
     }  
   }
 }

@@ -57,7 +57,7 @@ AMSID AMSCTCRawCluster::crgid(integer i){
       }
     }
     }
-    else{
+    else if (geom==1){    // Vertical one
       integer ia;
       for(ia=1;ia<CTCDBc::getnagel()+1;ia++){
         (_pMap+ia-1)->l=(ia+1)/2;
@@ -65,7 +65,19 @@ AMSID AMSCTCRawCluster::crgid(integer i){
         (_pMap+ia-1)->a=1;
         (_pMap+ia-1)->b=0;
       }
-
+    }
+     else if(geom==2){    //AG one
+      integer ia;
+      for(ia=1;ia<CTCDBc::getnagel()+1;ia++){
+        (_pMap+ia-1)->l=ia;
+        (_pMap+ia-1)->r=ia;
+        (_pMap+ia-1)->a=1;
+        (_pMap+ia-1)->b=0;
+      }
+     }
+    else {
+     cerr <<"AMSCTCRawCluster::init-F-Geom "<<geom<<" is not supported."<<endl;
+     exit(1);
     }
   }
 
@@ -117,7 +129,7 @@ void AMSCTCRawCluster::sictcdigi(){
 
          else  Response=z*exp(-fabs(z1)/CTCMCFFKEY.AbsLength[det]);
         }
-        else{
+        else if(CTCDBc::getgeom()==1){ 
           number z1,z2;
           number wls=p->getpar(0);
           if(ptr->getbarno()%2 ==0){
@@ -140,6 +152,10 @@ void AMSCTCRawCluster::sictcdigi(){
            exp(-z1/CTCMCFFKEY.AbsLength[det]))/(z1-z2);
 
          else  Response=z*exp(-fabs(z1)/CTCMCFFKEY.AbsLength[det]);
+        }
+        else {    // Reconstruction for AG geometry
+          // Uniform at the moment
+          Response=z;
         }
       }
       else {
@@ -287,11 +303,18 @@ for (int i=0;i<maxpl;i++){
   // GetTypical Error Size - max (aerogel,wls)
     AMSCTCRawCluster d(0,1,1,0);
     AMSgvolume *p0= AMSJob::gethead()->getgeomvolume(d.crgid(0));
-    AMSgvolume *p1= AMSJob::gethead()->getgeomvolume(d.crgid(0));
-    if(p0 && p1 )xsize=max(p0->getpar(0),p1->getpar(0));
-    if(p0 && p1 )ysize=max(p0->getpar(1),p1->getpar(1));
-    if(p0 && p1 )zsize=max(p0->getpar(2),p1->getpar(2));
-    
+    AMSgvolume *p1= AMSJob::gethead()->getgeomvolume(d.crgid(1));
+    if(p0 && p1 ){
+          xsize=max(p0->getpar(0),p1->getpar(0));
+          ysize=max(p0->getpar(1),p1->getpar(1));
+          zsize=max(p0->getpar(2),p1->getpar(2));
+    }
+    else if (p0){
+      // now WLS Probably  Annecy setup
+          xsize=p0->getpar(0);
+          ysize=p0->getpar(1);
+          zsize=p0->getpar(2);
+    }
   AMSPoint ecoo(xsize,ysize,zsize);
   if(edep>TOFRECFFKEY.ThrS){
     //    cout << cofg <<endl;

@@ -5,6 +5,7 @@
 #include <cern.h>
 #include <commons.h>
 #include <amsstl.h>
+#include <stdio.h>
 AMSID AMSTrIdGeom::crgid(){
          static char name[5];
          static ostrstream ost(name,sizeof(name));
@@ -84,10 +85,10 @@ geant * AMSTrIdSoft::peds=0;
 integer * AMSTrIdSoft::status=0;
 geant * AMSTrIdSoft::sigmas=0;
 geant * AMSTrIdSoft:: cmnnoise=0;
-number * AMSTrIdSoft:: indnoise=0;
+geant * AMSTrIdSoft:: indnoise=0;
 integer AMSTrIdSoft::_numel=0;
 integer AMSTrIdSoft::idsoft2linear[ms];
-integer AMSTrIdSoft::getprob (number r){
+integer AMSTrIdSoft::getprob (geant r){
 integer iad=_strip+AMSbiel(&(indnoise[idsoft2linear[_addr]+_strip]),
 _strip>0? r+getindnoise(): r ,getmaxstrips()-_strip );
 if(iad<getmaxstrips())_strip=iad;
@@ -264,7 +265,8 @@ void AMSTrIdSoft::init(){
      gains=new geant[num];
      sigmas=new geant[num];
      cmnnoise= new geant[ms];
-     indnoise=new number[num];
+     for(i=0;i<ms;i++)cmnnoise[i]=0;
+     indnoise=new geant[num];
      _numel=num;
      assert(status && peds && gains && sigmas && cmnnoise && indnoise);
 
@@ -338,6 +340,27 @@ AMSTrIdSoftI::AMSTrIdSoftI(){
   if(_Count++==0){
        AMSTrIdSoft::init();
        AMSTrIdGeom::init();
+       if(sizeof(int) <= sizeof(short int)){
+         cerr<<"AMSTrIdSoftI-F-16 bit machine is not supported."<<endl;
+         exit(1);
+       }
+       integer b64=0;
+       if(sizeof(ulong)>sizeof(uinteger))b64=1;
+       uinteger test1,test2;
+       test1=1;
+       test1+=2<<8;
+       test1+=4<<16;
+       test1+=8<<24;
+       unsigned char *pt= (unsigned char*)&test1;
+       test2=pt[0];
+       test2+=pt[1]<<8;
+       test2+=pt[2]<<16;
+       test2+=pt[3]<<24;
+       integer lend = test1==test2;
+       if(lend)cout <<"AMSTrIdSoftI-I-Identified as LittleEndian";
+       else cout <<"AMSTrIdSoftI-I-Identified as BigEndian";
+       if(b64)cout <<" 64 bit machine."<<endl;
+       else cout <<" 32 bit machine."<<endl;
   }
 }
 integer AMSTrIdSoftI::_Count=0;

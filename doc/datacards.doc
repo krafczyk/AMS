@@ -102,7 +102,7 @@ R 8   sigma[2](4.2,3.)      // noise for x & y
 R10   gain[2](1,1)          // gains for x & y
 R12   thr[2](17,12)         // threshold to save cluster
 I14   neib[2)(2,2)          // number of neibours from one side
-I16   cmn[2](50,50)         // common noise for x & y
+R16   cmn[2](50,50)         // common noise for x & y
 I18   adcoverflow(32767)    // 16 bit adc
 I19   NoiseOn(1)            // Generate(1) do not generate(0) noise in tracker
 I20   sec[2](0,0)           // 

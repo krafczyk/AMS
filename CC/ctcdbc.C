@@ -9,7 +9,10 @@ return CTCGEOMFFKEY.agsize[index];
 }
   number CTCDBc::getwlsth()  {return CTCGEOMFFKEY.wlsth;}
   integer CTCDBc::getnblk()   {return CTCGEOMFFKEY.nblk;}
-  integer CTCDBc::getnwls()   {return CTCGEOMFFKEY.nwls;}
+  integer CTCDBc::getnwls()   {
+    if(_geomId <2)return CTCGEOMFFKEY.nwls;
+    else return getnagel();
+  }
   void CTCDBc::setnwls(integer nwls)   {CTCGEOMFFKEY.nwls=nwls;}
   number CTCDBc::getwallth()   {return CTCGEOMFFKEY.wallth;}
   number CTCDBc::getsupzc()   {return CTCGEOMFFKEY.supzc;}
@@ -24,7 +27,11 @@ return CTCGEOMFFKEY.hcsize[index];
 
 void CTCDBc::setgeom(integer iflag){
 _geomId=iflag;
-  if(iflag==1){
+  if(iflag==2){
+   CTCDBc::setnlay(1);
+   CTCMCFFKEY.Edep2Phel[1]=0;
+  }
+  else if(iflag==1){
     CTCDBc::setnwls(CTCDBc::getnblk());
     CTCDBc::setnlay(2);     // Hardwired no of layers
   }
@@ -36,6 +43,7 @@ _geomId=iflag;
 
   integer CTCDBc::getnagel()   {
    if(_geomId==0)return getnblk();
-   else return 2*getnblk();
+   else if(_geomId==1)return 2*getnblk();
+   else return getnblk();
   }
 

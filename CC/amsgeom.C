@@ -347,6 +347,7 @@ void ctcgeom(AMSgvolume & mother){
 extern void ctcgeomV(AMSgvolume &);
 extern void ctcgeomE(AMSgvolume &, integer iflag);
 extern void ctcgeomEOld(AMSgvolume &, integer iflag);
+extern void ctcgeomAG(AMSgvolume& );
   // steering for ctc geom
 if(strstr(AMSJob::gethead()->getsetup(),"CTCSimple")){
   ctcgeomV(mother);
@@ -355,6 +356,10 @@ if(strstr(AMSJob::gethead()->getsetup(),"CTCSimple")){
 else if(strstr(AMSJob::gethead()->getsetup(),"CTCVer")){
 ctcgeomE(mother,1);
   cout<<" CTCGeom-I-Vertical readout for CTC selected"<<endl;
+}
+else if(strstr(AMSJob::gethead()->getsetup(),"CTCAnnecy")){
+ctcgeomAG(mother);
+  cout<<" CTCGeom-I-Annecy setup for CTC selected"<<endl;
 }
 else {
   ctcgeomE(mother,0);
@@ -880,7 +885,10 @@ if(iflag==1){
 //-----
 
 }
-
+void ctcgeomAG(AMSgvolume & mother){
+  // A. Gougas version   
+  CTCDBc::setgeom(2);
+}
 
 
 void tkgeom(AMSgvolume &mother){

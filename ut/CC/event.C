@@ -843,15 +843,16 @@ AMSTimeID * offspring=(AMSTimeID*)ptid->down();
 while(offspring){
   integer nb=offspring->GetNbytes();
 #ifdef __AMSDEBUG__
-  //    char * tmp =new char[nb];
-  //    assert(tmp !=NULL);
-  //    integer ncp=offspring->CopyOut((void*)tmp);
-  //    ncp=offspring->CopyIn((void*)tmp);
-  //    delete[] tmp;
+  //        char * tmp =new char[nb];
+  //        assert(tmp !=NULL);
+  //        integer ncp=offspring->CopyOut((uinteger*)tmp);
+  //        ncp=offspring->CopyIn((uinteger*)tmp);
+  //        delete[] tmp;
 #endif
   if(offspring->validate(_time)){
     cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<
-      " validated. ("<<nb-sizeof(uinteger)<<" bytes )"<<endl;
+      " validated. ("<<nb-sizeof(uinteger)<<" bytes ) CRC = "<<
+      offspring->getCRC()<<endl;                                                      
   }
     else {
       cerr<<"AMSEvent::_validate-F-"<<offspring->getname()<<" not validated."<<endl;

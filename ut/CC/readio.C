@@ -1,5 +1,6 @@
 #include <io.h>
 #include <commons.h>
+AMSDATADIR_DEF AMSDATADIR;
 int main(int argc, char* argv[]){ 
   char *fnam=0;
   switch (argc) {

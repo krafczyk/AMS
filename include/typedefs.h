@@ -10,6 +10,7 @@ typedef double float_d;
 typedef unsigned short int int16u;
 typedef long int_L;
 typedef unsigned int uinteger;
+typedef unsigned long int ulong;
 #include <assert.h>
 #include <iostream.h>
 #endif

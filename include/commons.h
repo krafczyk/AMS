@@ -136,7 +136,7 @@ geant sigma[2];
 geant gain[2];
 geant thr[2];
 integer neib[2];
-integer cmn[2];
+geant   cmn[2];
 integer adcoverflow;
 integer NoiseOn;
 integer sec[2];

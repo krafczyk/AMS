@@ -31,6 +31,7 @@ STR:
 STRPLANES(Default)/STRTUBES          -  planes/tubes   
 
 CTC:
-CTCHor(Default)/CTCVer/CTCSimple     - horizontal/vertical/simplified  CTC readout
+CTCHor(Default)/CTCVer/CTCSimple/CTCAnnecy   
+  - horizontal/vertical/simplified/last  CTC readout
 
  

@@ -35,10 +35,10 @@ _ProbTOF[1]<<" "<<_ProbTOF[2]<<" "<<_ProbTOF[3]<<" "<<_ProbTOF[4]<<" "<<_ProbTOF
    static integer _day[2];
    static integer _mon[2];
    static integer _year[2];
-   static number _lkhdTracker[ncharge][100];
-   static number _lkhdTOF[ncharge][100];
-   static number _lkhdStepTracker[ncharge];
-   static number _lkhdStepTOF[ncharge];
+   static geant _lkhdTracker[ncharge][100];
+   static geant _lkhdTOF[ncharge][100];
+   static geant _lkhdStepTracker[ncharge];
+   static geant _lkhdStepTOF[ncharge];
    static integer _chargeTracker[ncharge];
    static integer _chargeTOF[ncharge];
 public:

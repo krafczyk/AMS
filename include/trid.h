@@ -78,7 +78,7 @@ static geant *peds;
 static geant *gains;
 static geant *sigmas;
 static geant *cmnnoise;
-static number *indnoise;
+static geant *indnoise;
 static integer _numel;
 void _check();
 public:
@@ -94,13 +94,13 @@ inline integer getstatus(integer checker) const
 inline geant getped() const {return peds[idsoft2linear[_addr]+_strip];}
 inline geant getsig() const {return sigmas[idsoft2linear[_addr]+_strip];}
 inline geant getgain() const {return gains[idsoft2linear[_addr]+_strip];}
-inline number getindnoise() const{return indnoise[idsoft2linear[_addr]+_strip];}
-integer getprob(number r);
+inline geant getindnoise() const{return indnoise[idsoft2linear[_addr]+_strip];}
+integer getprob(geant r);
 inline geant getcmnnoise() const {return cmnnoise[_addr];}
 geant & setped()  {return peds[idsoft2linear[_addr]+_strip];}
 geant & setsig()  {return sigmas[idsoft2linear[_addr]+_strip];}
 geant & setgain() {return gains[idsoft2linear[_addr]+_strip];}
-number & setindnoise() {return indnoise[idsoft2linear[_addr]+_strip];}
+geant & setindnoise() {return indnoise[idsoft2linear[_addr]+_strip];}
 geant & setcmnnoise()  {return cmnnoise[_addr];}
 void  setstatus(integer changer)  
 {status[idsoft2linear[_addr]+_strip]=status[idsoft2linear[_addr]+_strip] & changer;}

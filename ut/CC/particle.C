@@ -108,7 +108,7 @@ void AMSParticle::ctcfit(){
   AMSPoint SearchReg(BETAFITFFKEY.SearchReg[0],BETAFITFFKEY.SearchReg[1],
   BETAFITFFKEY.SearchReg[2]);
 AMSDir dir(0,0,1.);
-AMSPoint outp;
+AMSPoint outp(0,0,0);
 number theta, phi, sleng;
 number signal,beta,ebeta;
   // Find CTC hits 
@@ -142,7 +142,7 @@ assert (p != NULL);
  number N1=CTCMCFFKEY.Refraction[0];
  number N2=CTCMCFFKEY.Refraction[1];
  number L1=CTCDBc::getagsize(2);
- number L2=CTCDBc::getwlsth()*(1-CTCDBc::getgeom()); 
+ number L2=CTCDBc::getgeom()? 0 : CTCDBc::getwlsth(); 
 // no wls in vertical readout
  number b2=(A1*L1/N1/N1+A2*L2/N2/N2)/(A1*L1+A2*L2-signal);
    if(b2 < 0){
@@ -164,7 +164,10 @@ assert (p != NULL);
    AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(0));
    if(p)
    _ptrack->interpolate(p->loc2gl(AMSPoint(0,0,0)),dir,outp,theta,phi,sleng);
-   else cerr << " ctcfit-S- No layer no " << kk+1<<endl ;
+   else {
+   cerr << " ctcfit-S- No layer no " << kk+1<<endl ;
+   outp=AMSPoint(0,0,0);
+   }
 }
     _Value[kk]=CTC(signal,beta,ebeta, outp);
     _pctc[kk]=pctc;
