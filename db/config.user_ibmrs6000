@@ -2,5 +2,4 @@ INSTALL_DIR	= /afs/cern.ch/rd45/objectivity
 ARCH		= ibmrs6000
 LS_HOST		= sp056.cern.ch
 FDID		= 19267
-BOOT		= ../db/boot/LOM
 PAGESIZE	= 8192
