@@ -37,7 +37,7 @@ C
       EMININ=0.1
       EMINOU=0.1
       ZMIN=360
-      RADIUS=110
+      RADIUS=190
       CALL INCONS
 *
 ***   Decode character option
