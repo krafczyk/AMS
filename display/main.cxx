@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.24 2004/01/30 13:02:50 choutko Exp $
+//  $Id: main.cxx,v 1.25 2004/02/11 13:24:59 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -18,7 +18,7 @@
 #include "main.h"
 #include <dirent.h>
 #include <TString.h>
-#include <TCastorFile.h>
+#include <TRFIOFile.h>
 TString * Selector;
 extern void * gAMSUserFunction;
 void OpenChain(TChain & chain, char * filename);
@@ -152,7 +152,7 @@ void OpenChain(TChain & chain, char * filenam){
    TRegexp f("^/castor",false);
    bool wildsubdir=false;
    if(a.Contains(b)){
-    TCastorFile f;
+    TRFIOFile f("");
     strcpy(filename,filenam);
    }
    else if(a.Contains(c)){
