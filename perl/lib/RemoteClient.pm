@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.99 2003/04/14 09:14:16 alexei Exp $
+# $Id: RemoteClient.pm,v 1.100 2003/04/17 10:15:30 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2780,7 +2780,12 @@ print qq`
         if($cput > 3000 ){
             $cput=3000;
         }
-        $cput=50+$pmax*1000/$cput;
+        my $corr=1;
+            if (defined $q->param("QCPUType")){
+              $corr=$self->{cputypes}->{$q->param("QCPUType")};
+            }
+
+        $cput=50+$pmax*1000/$cput/$corr;
         
         my $evno=$q->param("QEv");
         my $runno=$q->param("QRun");
