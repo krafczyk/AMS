@@ -2445,6 +2445,7 @@ void ecalgeom02(AMSgvolume & mother){
 //------------------------------------------------------------
 void srdgeom02(AMSgvolume & mother){
 }
+
 void richgeom02(AMSgvolume & mother)
 {
   // RICH geometry by Carlos Delgado (CIEMAT) based on the official RICH 
@@ -2464,20 +2465,23 @@ void richgeom02(AMSgvolume & mother)
   // Now I define all the parameters here so any further modification may be
   // performed fast and easily
 
-  geant offset=-83.999-0.5; // Distance from the coordinates origin to top of
+  //geant offset=-83.999-0.5; // Distance from the coordinates origin to top of
                             // rich... I don't know this value yet.
+  
+  geant offset=-91.500;
+
   // -83.999 from 0 to radiator -.5 because there is a black wall 
-  // The omnipresent - is due to the reference system Z grows form the PMT to 
+  // The omnipresent - is due to the reference system Z grows from the PMT to 
   // the radiator
 
 
 
-  geant thk=0.5; // Anything thickness
+  geant thk=0.5; // Everything thickness
 
   geant hrad=2;  //Radiator height
   geant rrad=50; //Radiator radius
   
-  geant h=55;    // Cone height
+  geant h=50;    // Cone height
   geant R=80;    // Larger radius
   geant r=40;    // smaller radius
 
@@ -2664,3 +2668,9 @@ void richgeom02(AMSgvolume & mother)
 				flag)); 
   
 }
+
+
+
+
+
+
