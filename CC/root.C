@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.86 2005/04/07 13:41:38 alcaraz Exp $
+//  $Id: root.C,v 1.87 2005/04/07 14:27:24 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2416,8 +2416,7 @@ void AMSEventList::Write(TTree* chain, TFile* file){
         AMSEventR* amsevent = new AMSEventR;
         chain->SetBranchAddress("ev.",&amsevent);
         TTree *amsnew = chain->CloneTree(0);
-        for (int i=0; i<chain->GetEntries(); i++) {
-                if (!chain->GetEntry(i)) break;
+        for (int i=0; chain->GetEntry(i)>0; i++) {
                 bool found = false;
                 for (int j=0; j<_RUNs.size(); j++) {
                   if (amsevent->Run()==_RUNs[j] && amsevent->Event()==_EVENTs[j]) {
