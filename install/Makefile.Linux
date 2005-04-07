@@ -102,7 +102,7 @@ endif
 LDFLAGSI=    -static  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib  -lgeant321  -lpawlib -llapack3 -l$(PACKLIB) -lgraflib -lgrafX11  -lmathlib -l$(PACKLIB) -lkernlib -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib   -lcrypt -lcrypto -ldl   -L$(AMSLIB) -lamsut -lkernlib -lg2c $(RH9add)
 
 LDFLAGSIDL=    -pthread -lORBit-2-cpp  
-LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 -lgmodule-2.0 -ldl -lglib-2.0 -lORBit-imodule-2  -lnsl  
+LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 -lgmodule-2.0 -ldl -lglib-2.0 -lORBit-imodule-2  -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
 IDL=orbit-idl-2
 IDLCPP=orbit-idl-2 -l cpp
 CPP=g++  -I/usr/include/orbit-2.0 -I/usr/include/glib-2.0 -Wno-deprecated -mcpu=i686 -fpermissive -I/usr/include/orbitcpp-2.0
