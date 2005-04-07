@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.85 2004/09/27 15:00:31 choumilo Exp $
+//  $Id: root.C,v 1.86 2005/04/07 13:41:38 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2305,15 +2305,23 @@ AMSEventR* AMSChain::GetEvent(){
 };
 
 AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
-      for (Int_t entry=0; entry<GetEntries(); entry++) {
-            if (GetEvent(entry)==NULL) break;
-            if (_EVENT->Run()==run && _EVENT->Event()==ev) {
-                  _ENTRY = entry;
-                  break;
-            }
-      }
-      return _EVENT;
+      //Reimplemented by Caraffini Diego --INFN Perugia-- 07/04/2005
+                                                                                
+      //The cycle does nothing but read events in turn
+      //The cycle terminates whenever
+        //_EVENT->Run() and _EVENT->Event() match the args.
+        //If last event is reached without matching,
+        //GetEvent() returns NULL (end of chain reached) on the
+        //next call terminating the cycle and setting _EVENT=NULL
+                                                                                
+      Rewind();//Go to start of chain
+      // Get events in turn
+      while  (GetEvent() &&
+         !(_EVENT->Run()==run && _EVENT->Event()==ev) ) ;
+                                                                                
+      return _EVENT; 
 };
+
 
 Int_t AMSChain::Entry() {return _ENTRY;};
 AMSEventR* AMSChain::pEvent() {return _EVENT;};
