@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.151 2005/03/05 17:25:29 alcaraz Exp $
+//  $Id: root.h,v 1.152 2005/04/20 15:31:46 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -3167,51 +3167,6 @@ public:
       int GetEvent(int i); ///<Retrieve event number for entry i
 
       ClassDef(AMSEventList,2)       //AMSEventList
-};
-
-//!  AMSMyTrackConst namespace
-
-namespace AMSMyTrackConst {
-        const int MAXLAY = 8; ///< Maximum number of hits in track
-}
-
-//!  AMSMyTrack class
-/*! 
-  Utility class, to define and fit your own tracks directly on the ROOT 
-  file, with your own selected hits and optionally without magnetic field
-  (straight line fit). No multiple scattering is included for the moment.
-  Example of usage:
-
-  \include my_tracks.C
-   
-  \author juan.alcaraz@cern.ch
-  
-*/
-
-class AMSMyTrack {
-private:
-      TrRecHitR* pHit[AMSMyTrackConst::MAXLAY];
-public:
-      AMSMyTrack(bool bflag=1); ///< Constructor (bflag=0 => straight line fitting)
-      virtual ~AMSMyTrack(){};
-
-      bool BFieldOn; ///< Fit with Magnetic field? (default = true)
-      int NHits; ///< Number of track hits in use
-      float Chi2StrLine; ///< Chi2/ndof in the XZ plane from fit
-      float Chi2; ///< Chi2/ndof in 3D from fit
-      float Rigidity; ///< Rigidity from fit (GV)
-      float ErrRigidity; ///< Error on 1/Rigidity (1/GV) from fit
-      float Theta; ///< Theta from fit
-      float Phi; ///< Phi from fit
-      float P0[3]; ///< Reference point from fit (cm)
-
-      void add_hit(TrRecHitR* phit); ///< Add hit pointed by phit
-      void del_hit(TrRecHitR* phit); ///< Remove hit pointed by phit
-      void reset(); ///< Reset track (NHits=0)
-      void use_hits_from(TrTrackR* ptrack); ///< Reset and add hits from track at ptrack
-      bool Fit(); ///< Perform the fit (return true if succesful)
-
-      ClassDef(AMSMyTrack,1) //AMSMyTrack
 };
 
 #endif

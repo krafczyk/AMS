@@ -23,8 +23,6 @@ public :
       AMSEventList* select_list;
       AMSEventList* badrun_list;
 
-      AMSMyTrack* my_track;
-
       TFile* outfile;
       TH1F* h_ang;
       TH1F* h_ang2;
@@ -44,12 +42,9 @@ void MyAnal::UBegin(){
       }
 
       h_ang = new TH1F("h_ang","Angular difference (rad)",100,0.0,0.05);
-      h_ang2 = new TH1F("h_ang2","Angular difference 2 (rad)",100,0.0,0.05);
 
       select_list = new AMSEventList;
       badrun_list = new AMSEventList("my_badruns.list");
-
-      my_track = new AMSMyTrack();
 
 }
 
@@ -82,18 +77,6 @@ void MyAnal::UProcessFill() {
 
       // Select events which are better than 0.01 rad accurate
       if (delta_ang<0.01) select_list->Add(this);
-
-      // Angular difference with respect to refitted track
-      my_track->use_hits_from(Particle(0).pTrTrack());
-      my_track->Fit();
-
-      phi = my_track->Phi;
-      theta = my_track->Theta;
-      dotprod = sin(theta)*cos(phi)*mcevent.Dir[0]
-                    + sin(theta)*sin(phi)*mcevent.Dir[1]
-                    + cos(theta)         *mcevent.Dir[2];
-      delta_ang = acos(dotprod);
-      h_ang2->Fill(delta_ang);
 
       // Write out selected entries "as we go"
       if (select_list->Contains(this)) Fill();

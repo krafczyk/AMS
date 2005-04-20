@@ -1,4 +1,4 @@
-//  $Id: LinkDef.h,v 1.8 2004/02/22 15:39:40 choutko Exp $
+//  $Id: LinkDef.h,v 1.9 2005/04/20 15:31:48 alcaraz Exp $
 #ifdef __CINT__
 
 #pragma link off all globals;
@@ -16,7 +16,6 @@
 #pragma link C++ class HeaderR+;
 #pragma link C++ class AMSNtupleHelper+;
 #pragma link C++ class AMSChain+;
-#pragma link C++ class AMSMyTrack+;
 #pragma link C++ class AMSEventList+;
 #pragma link C++ class BetaR+;
 #pragma link C++ class ChargeR+;
