@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.152 2005/04/20 15:31:46 alcaraz Exp $
+//  $Id: root.h,v 1.153 2005/04/27 17:56:52 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -3119,7 +3119,7 @@ public:
       AMSEventR* GetEvent(); ///<Get next AMSEventR object in the chain
       AMSEventR* GetEvent(Int_t entry); ///<Get AMSEventR in entry number "entry"
       AMSEventR* GetEvent(Int_t run, Int_t ev); ///<Get AMSEventR with run number "run" and event number "ev"
-      void Rewind() {_ENTRY=0;}; ///<Rewind the chain (go back to first entry)
+      void Rewind() {_ENTRY=-1;}; ///<Rewind the chain (go back before first entry)
 
       Int_t Entry(); ///<Get the current entry number
       AMSEventR* pEvent(); ///<Get the current event pointer

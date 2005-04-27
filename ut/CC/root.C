@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.88 2005/04/20 15:31:41 alcaraz Exp $
+//  $Id: root.C,v 1.89 2005/04/27 17:56:49 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2275,7 +2275,7 @@ void AMSEventR::UProcessFill(){
 void AMSEventR::UTerminate(){
 }
 
-AMSChain::AMSChain(const char* name):TChain(name),_ENTRY(0),_NAME(name),_EVENT(NULL),_TREENUMBER(-1){
+AMSChain::AMSChain(const char* name):TChain(name),_ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1){
 }
 
 AMSEventR* AMSChain::GetEvent(Int_t entry){
@@ -2294,12 +2294,13 @@ AMSEventR* AMSChain::GetEvent(Int_t entry){
       }
       if (_EVENT->ReadHeader(tree_entry)==false) {
               delete _EVENT; _EVENT = NULL;
+              _ENTRY = -1;
       }
       return _EVENT;
 };
 
 AMSEventR* AMSChain::GetEvent(){ 
-        if (GetEvent(_ENTRY)) _ENTRY++;
+        if (GetEvent(_ENTRY+1)) _ENTRY++;
         return _EVENT;
 };
 
