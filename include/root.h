@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.153 2005/04/27 17:56:52 alcaraz Exp $
+//  $Id: root.h,v 1.154 2005/05/04 10:27:48 choumilo Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -523,7 +523,7 @@ ClassDef(TofClusterR,1)       //TofClusterR
 class AntiClusterR {
 static char _Info[255];
 public:
-  unsigned int   Status;   ///< Statusword Bit"256"->1sideSector;"1024"->s2  missing if set,  s1 missing if not
+  unsigned int   Status;   ///< Bit"128"->No FT-coinc. on 2 sides;"256"->1sideSector;"1024"->miss.side#
   int   Sector;   ///< //Sector number(1-8)
   int   Ntimes;  ///<Number of time-hits(1st come paired ones)
   int   Npairs;   ///<Numb.of time-hits, made of 2 side-times(paired)
@@ -1032,13 +1032,13 @@ public:
 			bit2: unbiased trig#2(EC only, i.e. EcalFlag>0)                           \n
 			bit3: unbiased trig#3(TOF && EC, i.e. TofFlag>=0 && EcalFlag>0)           \n
 			bit4: unbiased trig#4(TOF || EC, i.e. TofFlag>=0 || EcalFlag>0)           \n
-			bit5: Z>=1 trig(TOF && func(ANTI), i.e. TofFlag>=0 && NAntiSect<Nmax)     \n
+			bit5: Z=1 trig(i.e. TofFlag>=0 & TofFlag%10=0 & NAntiSect<Nmax)           \n
 			bit6: Z>=2 trig(TOF above HiZThresh, i.e. TofFlag/10>0)                   \n
 		        bit7: e+-  trig(TOF && EC-Em,i.e. TofFlag>=0 && ECEtot>LowThr && ShWid=em)\n
 			bit8: phot trig(EC-hiEm, i.e. ECEtot>HiThr && ShWid=em)                   \n
 			if bit9 set - external trigger                                            \n
 		    */
-  int   TofFlag;   ///< <0->noTOF,=0->4planes,(1-8)->miss.pln.code(at least 1top+1bot required), +10->Z>=2
+  int   TofFlag;   ///< <0->noTOF,=0->4planes,(1-8)->miss.planes-code;+10->Z=1&Z>=2,+20->Z>=2 only
   int   TofPatt[4]; ///< 4-layers TOF pattern for Z>=1(separately for each side): 
 
                     /*!<
@@ -1046,7 +1046,7 @@ public:
                                                        17-26      Side-2  \n
                    */
   int   TofPatt1[4]; ///< same tof pattern for Z>=2 trigger
-  int   AntiPatt;   ///< Antipatt:(1-8)/(9-16)bits->s1(bot)/s2(top), (17-24)-> fired sector-ends counters(x,z><0)  
+  int   AntiPatt;   ///< Antipatt:(1-8)bits->sectors in coincidence with FastTrigger  
   int   EcalFlag;   ///< =MN, where 
                     /*!< 
                           M=0/1/2/3->Etot<MipThr / Etot>MipThr / Etot>LowThr / Etot>HighThr; \n

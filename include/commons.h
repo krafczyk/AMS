@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.202 2005/03/11 11:16:28 choumilo Exp $
+//  $Id: commons.h,v 1.203 2005/05/04 10:27:47 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -413,7 +413,7 @@ public:
   geant Edthr; // threshold (mev) to create Cluster-object
   geant zcerr1;// long.coo error(when 2-sides times are known) 
   geant daqthr; //DAQ-readout threshold(SigmaPed units) 
-  geant dathr; // Amplitude discr.threshold fir hist-TDC branch (p.e.)
+  geant ftdel; // FT-delay wrt hist-TDC hit 
   geant ftwin; // t-window(ns) for Hist-TDC hit coinc.with FT 
 //
   integer ReadConstFiles;
@@ -501,6 +501,7 @@ geant MaxScalersRate;
 geant MinLifeTime;
 geant TheMagCut;
 integer ectrlog;
+integer antisc;
 };
 #define TGL1FFKEY COMMON_BLOCK(TGL1FFKEY,tgl1ffkey)
 COMMON_BLOCK_DEF(TGL1FFKEY_DEF,TGL1FFKEY);

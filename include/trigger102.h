@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.10 2003/06/26 13:13:43 choumilo Exp $
+//  $Id: trigger102.h,v 1.11 2005/05/04 10:27:48 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include <link.h>
@@ -35,7 +35,7 @@ protected:
  integer _tofflag;   //  
  uinteger _tofpatt[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern for z>=1
  uinteger _tofpatt1[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern for z>=2
- uinteger _antipatt; //ANTI: triggered sectors pattern
+ uinteger _antipatt; //ANTI: triggered sectors(logical) pattern
  uinteger _ecalflag; //
  geant   _ectrsum;//"EC tot.energy"(total sum of all dynode channels used for trigger,gev) 
  void _copyEl(){}

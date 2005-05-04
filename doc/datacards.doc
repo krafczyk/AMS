@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.241 2005/03/11 11:16:28 choumilo Exp $
+#  $Id: datacards.doc,v 1.242 2005/05/04 10:27:47 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -338,13 +338,13 @@ I12 PdfNorm(1)           // don't need now this variable due to autom.normalizat
 I13 TrMeanRes(1)         // 0/1 n-1/modified*) truncated mean 
 R14 ProbMin(0.01)        // minimum value for TOF and trk charge probs to be combined
                             into particle charge
-I15 TrackerOnly(8)       // use only tracker charge if TOF charge is above this value
+I15 TrackerOnly(9)       // use only tracker charge if TOF charge is above this value
 I16 ChrgMaxAnode(9)      // not used now(dynodes are already used in TOF Edep calc)
 I17 BetaPowAnode(1)      // not used now(TOF beta-dependence does not Z-dep. at least in MC) 
 I18 TrackerForceSK(0)    // if<>0 force tracker hit energies to be x+y (overwrites
                             Tracker datacard defined above)
 R19 TrackerKSRatio(0.67) // average x/y tracker energy ratio (used if TrackerForceSK<>0)
-I20 TrackerProbOnly(3)   // use only tracker probs for pid if charge is above this value
+I20 TrackerProbOnly(9)   // use only tracker probs for pid if charge is above this value
 I21 TrkPDFileMCVers(1)   //MC vers.number of Trk-ElosPDFFile(trkpdffNNNmc.dat)
 I22 TrkPDFileRDVers(1)   //RD vers.number of Trk-ElosPDFFile(trkpdffNNNrl.dat)
 I23 TrkPDFileRead(0)     //read TrkPDF-info from DB(0) OR RawFile (1)
@@ -600,7 +600,7 @@ I 1 trtype(8)          //9 lsbits->LVL1-branches(pattern) requested in global OR
 		       //bit(=2)->unbiased#2 trigger (EC(ectrflag>0) only)
 		       //bit(=4)->inbiased#3 trigger (TOF && EC(ectrflag>0,i.e.Et>MipThr))
 		       //bit(=8)->unbiased#4 trigger (TOF || EC(ectrflag>0))
-		       //bit(=16)->Z>=1 particles trigger (TOF& function(ANTI))
+		       //bit(=16)->Z=1 particles trigger (TOF(tofflag/10=0) & function(ANTI))
 		       //bit(=32)->Z>=2 particles trigger  TOF(tofflag/10>0)
 		       //bit(=64)->e+- particles trigger (TOF && EC(Et>LoThr && ShowWidth=em))
 		       //bit(=128)->Photon trigger EC(Et>HiThr && ShowWidth=em) 
@@ -929,8 +929,8 @@ I 3       [2] (0)         // spare
 R 4 Edthr(0.1)            // Threshold(mev) for Cluster(Sector) creation
 R 5 zcerr1(10.)           // ZCoordError(cm) for "paired" sector
 R 6 daqthr(3)             // DAQ-readout theshold(in PedSigmas)
-R 7 dathr(2)              // History-discriminator theshold(pe)
-R 8 ftwin(50)            //  time-window(+-ns) to have coincidence with FastTrig
+R 7 ftdel(50)             // FT-delay wrt history-pulse
+R 8 ftwin(70)             // time-window(+-ns) to check hist-pulse coincidence with FT
 //
 I 9 ReadConstFiles(00));  //PC(Peds,CalibConst), P(C)=0/1-> read from DB/RawFiles
 //  

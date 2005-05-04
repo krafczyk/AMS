@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.66 2004/09/27 15:00:58 choumilo Exp $
+#  $Id: ntuple02.doc,v 1.67 2005/05/04 10:27:47 choumilo Exp $
 
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
@@ -318,8 +318,9 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 
 
 * I*4  * [0,8]     * ANTICLUS * nanti              //Number of active sectors(0-8)
-* I*4  *           * ANTICLUS * AntiStatus(nanti)  //Bit"256"->1sideSector;"1024"->s2 missing if set
-* U*4  * [0,8]     * ANTICLUS * AntiSector(nanti)  //Sector number(1-8)   |        s1 missing if not
+* I*4  *           * ANTICLUS * AntiStatus(nanti)  //Bit"256"->1sideSector;"1024"->s2 missing if set,
+                                                   //s1 missing if not; Bit"128"->NoFTCoinc on 2sides
+* U*4  * [0,8]     * ANTICLUS * AntiSector(nanti)  //Sector number(1-8)           
 * U*4  * [0,16]    * ANTICLUS * AnNtimes(nanti)    //Number of time-hits(1st come paired ones)
 * U*4  * [0,8]     * ANTICLUS * AnNpairs(nanti)    //Numb.of time-hits, made of 2 side-times(paired)
 * R*4  *           * ANTICLUS * AnTimes(16,nanti)  //Time-hits(ns, wrt LEV1trig-time)
@@ -495,21 +496,21 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 			     // bit2: unbiased trig#2(EC only, i.e. EcalFlag>0)                           
 			     // bit3: unbiased trig#3(TOF && EC, i.e. TofFlag>=0 && EcalFlag>0)           
 			     // bit4: unbiased trig#4(TOF || EC, i.e. TofFlag>=0 || EcalFlag>0)           
-			     // bit5: Z>=1 trig(TOF && func(ANTI), i.e. TofFlag>=0 && NAntiSect<Nmax)     
+			     // bit5: Z=1 trig(i.e. TofFlag>=0 & TofFlag%10=0 && NAntiSect<Nmax)     
 			     // bit6: Z>=2 trig(TOF above HiZThresh, i.e. TofFlag/10>0)                   
 		             // bit7: e+-  trig(TOF && EC-Em,i.e. TofFlag>=0 && ECEtot>LowThr && ShWid=em)
 			     // bit8: phot trig(EC-hiEm, i.e. ECEtot>HiThr && ShWid=em)                   
 			     // if bit9 set - external trigger
- * I*4  *          * LVL1     * LVL1Flag(nlvl1)       // -1/0/(1-8)->NoTof/4planes_coinc/
-                                                      //  /MissPlanesCode, +10->Z>=2 
- * I*4  *          * LVL1     * LVL1TOFPatt(4,nlvl1)  // tof pattern
+ * I*4  *          * LVL1     * LVL1Flag(nlvl1)       // -1/(0-8)->NoTof/miss.layer.code(was Z>=1 trig)
+                                                      //  +10->(Z>=1&Z>=2), +20->(only Z>=2) 
+ * I*4  *          * LVL1     * LVL1TOFPatt(4,nlvl1)  // tof pattern(Z>=1)
                                                       // 1-10 bits : paddles of Side-1 
                                                       // 17-26     : paddles of Side-2
- * I*4  *          * LVL1     * LVL1TOFPatt1(4,nlvl1) // Tof pattern z>=2
+ * I*4  *          * LVL1     * LVL1TOFPatt1(4,nlvl1) // Tof pattern (Z>=2)
                                                       // -------------
  * I*4  *          * LVL1     * LVL1AntiPatt(nlvl1)   // antipattern
-                                                      // bits (1-8)/(9-16)-> s1(top)/s2(bot) pattern   
-                                                      // 17-24->fired-ends counters(4) x>/<0,z>/<0 
+                                                      // bits (1-8)-> pattern of sectors in    
+                                                      // coincidence with FastTrig 
  * I*4  *          * LVL1     * LVL1ECALflag(nlvl1)   // =MN, where M=0/1/2/3->Etot<MipThr/
  *                                                    // >MipThr/>LowThr/>HighThr;
  *                                                    //  N=2/1/0->ShowerWidthTest=OK(em)/Bad/Unknown

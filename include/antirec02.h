@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.6 2004/09/27 15:00:59 choumilo Exp $
+//  $Id: antirec02.h,v 1.7 2005/05/04 10:27:47 choumilo Exp $
 //
 // May 29   1997. V. Choutko primitive version
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
@@ -14,7 +14,8 @@
 //---------------------------------------
 class Anti2RawEvent: public AMSlink{
 private:
-  static integer trpatt; // bits 1-16-> 2-side-AND, bits 17-32-> 2-side-OR
+  static integer nscoinc;//# of logic sectors in coinc.with FT
+  static uinteger trpatt; //bits 1-8 => log.sect# in coinc.with FT
   int16u idsoft; // BBS (Bar/Side)
   int16u status; // status (0/1/... -> alive/dead/...)
   int16u nadca; // number of anode pulse-charge hits 
@@ -62,12 +63,14 @@ public:
   }
 //
 //
-  static void setpatt(integer patt){
+  static void setpatt(uinteger patt){
     trpatt=patt;
   }
-  static integer getpatt(){
+  static void setncoinc(integer nc){nscoinc=nc;}
+  static uinteger getpatt(){
     return trpatt;
   }
+  static integer getncoinc(){return nscoinc;}
   static void mc_build(int &stat);
   static void validate(int &stat);
 //
@@ -144,7 +147,7 @@ public:
  number getetime(int i){return _etimes[i];}
  integer getnpairs(){return _npairs;}
 //
- static void build2(); 
+ static void build2(int &stat); 
  static void print();
 #ifdef __WRITEROOT__
  friend class AntiClusterR;

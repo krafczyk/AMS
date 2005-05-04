@@ -23,14 +23,14 @@ class AMSSCIds{
   int16u _layer; //0,1,...
   int16u _bar;   //0,1,...
   int16u _side;  //0,1
-  int16u _mtyp;  //Meas.type:0/1/2/3->FastTDC/SlowTDC(hist)/HGainAmp/LowGainAmp
+  int16u _mtyp;  //Meas.type:0/1/2/3->SlowTDC/FastTDC(hist)/HGainAmp/LowGainAmp
   int16u _pmt; // 0->anode, 1-3 ->dynodes
   int16u _swch;//sequential s/w-channels numbering, for TOF:S=1->LBBSP(0)M(0),LBBSP(0)M(1),
 //LBBSP(0)M(2),LBBSP(0)M(3),LBBSP(1)M(2),LBBSP(1)M(3),LBBSP(2)M(2),LBBSP(2)M(3),(for P(3) if any);
 //                                                     next S=2->.....the same sequence.......
 //
 //                                                 for ANTI:S=1->BSP(0)M(1),BSP(0)M(2),BSP(0)M(3),
-//                                                     next S=2->...the same sequiense                                                        
+//                                                     next S=2->...the same sequense                                                        
 //---
   int _hwid;//hardware ID is CSRR(Crate|Slot|SlotReadout_channel)
   int16u _crate; //0,1,...

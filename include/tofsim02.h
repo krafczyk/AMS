@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.9 2004/09/27 15:01:00 choumilo Exp $
+//  $Id: tofsim02.h,v 1.10 2005/05/04 10:27:48 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 #ifndef __AMSTOF2SIM__
 #define __AMSTOF2SIM__
@@ -325,6 +325,7 @@ void _copyEl(){};
 class AMSBitstr{
 //
 private:
+  static geant clkfas;//trig.electronics clock phase(0-1 random, but the same for whole event)
   unsigned short int bitstr[TOFGC::SCWORM]; // max. length in 16-bit words
   int bslen; // real length in 16-bits words (<=def=TOFGC::SCWORM)
 //
@@ -353,7 +354,9 @@ public:
   }
   void bitset(const int il, const int ih);
   void bitclr(const int il, const int ih);
+  void clatch();
   void testbit(int &i1, int &i2);
+  static void setclkphase();
   int getbslen() const{return (bslen);}
   inline void getbsarr(unsigned short int arr[]) const{
     for(int i=0;i<bslen;i++)arr[i]=bitstr[i];
@@ -384,7 +387,8 @@ class TOF2RawEvent: public AMSlink{
 private:
  static uinteger StartRun;//first run of the job
  static time_t StartTime;//first run time
- static integer trflag; //layer-pattern code(<0 ->noFT, >=0 -> as trcode, +10 if z>=2
+ static integer trflag; //layer-pattern code(<0 ->noFT, >=0 -> as trcode, z>=1
+ static integer trflag1; //layer-pattern code(<0 ->noFT, >=0 -> as trcode, z>=2
  static uinteger trpatt[TOF2GC::SCLRS];// Fired bars pattern(z>=1)
  static uinteger trpatt1[TOF2GC::SCLRS];// Fired bars pattern(z>=2)
  static number trtime; //  abs. FTrigger time (ns) 
@@ -457,7 +461,9 @@ public:
    for(int i=0;i<TOF2GC::SCLRS;i++)patt[i]=trpatt1[i];
  }
  static void settrfl(integer trfl){trflag=trfl;}
+ static void settrfl1(integer trfl){trflag1=trfl;}
  static integer gettrfl(){return trflag;}
+ static integer gettrfl1(){return trflag1;}
  static number gettrtime(){return trtime;}
  static void settrtime(number trt){trtime=trt;}
  static uinteger getsrun(){return StartRun;}

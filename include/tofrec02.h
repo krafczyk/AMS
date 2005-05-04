@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.12 2005/03/11 11:16:28 choumilo Exp $
+//  $Id: tofrec02.h,v 1.13 2005/05/04 10:27:48 choumilo Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -20,6 +20,7 @@ protected:
  static integer trflag; // =1/2/3 -> "z>=1"/"z>1"/"z>2", =0->no trig.
  static uinteger trpatt[TOF2GC::SCLRS]; // triggered bars pattern(z>=1)
  static uinteger trpatt1[TOF2GC::SCLRS]; // triggered bars pattern(z>=2)
+ static geant fttime[TOF2GC::SCCRAT];//FTtime(wrt ComStop) extracted from TOF stretcher data
  integer _ntof;    // number of TOF-plane(layer) (1-top,...,4-bot)
  integer _plane;   //  number of sc. bar in given plane(1->...)
  number _z;        // z coord of sc.bar
@@ -106,6 +107,7 @@ public:
  }
  static void settrfl(integer trfl){trflag=trfl;}
  static integer gettrfl(){return trflag;}
+ static geant getfttime(int icr){return fttime[icr];} 
  static void build(int &);   // RawEvent->RawCluster
 #ifdef __WRITEROOT__
  friend class TofRawClusterR;

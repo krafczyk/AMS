@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.21 2005/03/11 11:16:28 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.22 2005/05/04 10:27:48 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -25,7 +25,7 @@ namespace TOFGC{
   const integer AMSDISL=500;//max length of distributions in AMSDistr class
   const integer SCWORM=256;// Max.length (in 16-bits words) in bit-stream class
   const integer SCBITM=SCWORM*16;// same in bits(-> 2.048 mks with 0.5 ns binning)
-  const integer SCBADB1=128; // status bit to mark counter with bad "history"
+  const integer SCBADB1=128; // status bit to mark counter with bad "history"(for ANTI - NoFTCoinc.on 2sides)
   const integer SCBADB2=256; // status bit to mark counter with only one_side measurement
   const integer SCBADB3=512; // ... bad for t-meas.based on DB(don't use for tzcalibr/beta-meas)
   const integer SCBADB4=1024; // missing side number(s1->no_bit,s2->set_bit, IF B2 is set !)
@@ -142,7 +142,7 @@ private:
   static geant _ftdelm;      // FT max delay (allowed by stretcher logic) (ns)
   static geant _accdel;      // "Lev-1"(Common stop) signal delay wrt FT (ns)
   static geant _fstdcd;      // Same hit(up-edge) relative delay of slow- wrt hist-TDC
-  static geant _fatdcd;      // not used
+  static geant _clkper;      // Trig.electronics clock period(ns)
   static integer _pbonup;    // set phase bit "on" for leading(up) edge (yes/no->1/0)
 //
 public:  
@@ -199,7 +199,7 @@ public:
   static geant ftdelf();
   static geant ftdelm();
   static geant fstdcd();
-  static geant fatdcd();
+  static geant clkper();
   static geant seresp();
   static geant seresv();
   static geant adc2q();
@@ -251,7 +251,7 @@ class TOF2Temperature{
           //  (2) hiscuta -> "after"-cut in time history (ns)
           //  (3) lcoerr  -> "err. in longit.coord. measurement
           //  (4) ftdelf  -> FT fixed delay
-          //  (5) sftdcd  -> s/f-TDC delay (s- wrt f-TDC)
+          //  (5) sftdcd  -> spare 
           //  (6) eclass  -> assim.cut for TOFCluster energy calc.
           //  (7) eclmat  -> internal long.coo matching cut ....
           //  (8) satdcg  -> 
