@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.312 2005/04/04 10:03:12 alexei Exp $
+# $Id: RemoteClient.pm,v 1.313 2005/05/04 08:10:21 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -85,6 +85,9 @@
 # Mar 22, 2005.   : use views instead of table (see listStat sub)
 # Mar 28, 2005.   : checkJobsTimeOut performance is improved
 #                   deleteTimeoutJobs  - ditto
+#
+# May  4, 2005    : listStat, listRuns, listJobs - queries are modified to 
+#                   improve performance
 #
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
@@ -1175,9 +1178,17 @@ sub ValidateRuns {
    $validateStartTime = $timenow;
 
 # get list of runs from DataBase
+    $sql = "SELECT begin FROM productionset WHERE STATUS='Active' ORDER BY begin";
+    $ret = $self->{sqlserver}->Query($sql);
+    if(not defined $ret->[0][0]){
+      $self->amsprint("validateRuns -ERROR- cannot find 'Active' production set",0);
+      die "exit\n";
+    } 
+    my $firstjobtime = $ret->[0][0] - 24*60*60;
     if ($webmode ==0  and $verbose ==1) { print "ValidateRuns -I- select list of runs from DB \n";}
-    $sql="SELECT run,submit FROM Runs";
+    $sql="SELECT run,submit FROM Runs WHERE submit > $firstjobtime";
     $ret=$self->{sqlserver}->Query($sql);
+
 # get list of runs from Server
     if ($webmode ==0  and $verbose ==1) { 
        print "ValidateRuns -I- get list of runs from server \n";
@@ -6487,9 +6498,6 @@ sub listProductionSetPeriods {
 sub listStat {
     my $self = shift;
 
-#   $self->  getProductionPeriods(0);
-#   $self -> listProductionSetPeriods();
-
     my $jobsreq;     # active jobs
     my $jobsdone;    # successfully finished
     my $jobsfailed;  # failed
@@ -6531,48 +6539,67 @@ sub listStat {
        my $datasetName      = $ds->{name};
 # first job timestamp and running (active jobs)
        $td[0] = time();
-       if ($ds->{name} =~ /2005A/) {
-         $sql="SELECT 
+       $sql="SELECT COUNT(Runs.run),SUM(Runs.fevent), SUM(Runs.levent)
+                FROM Jobs, Runs 
+                  WHERE Runs.submit>= $datasetStartTime 
+                     AND (Runs.status='Completed' OR Runs.Status='Finished') 
+                     AND Jobs.pid=$datasetId AND Jobs.cid != $TestCiteId 
+                      AND Runs.jid=Jobs.jid";
+       $ret=$self->{sqlserver}->Query($sql);
+       if (defined $ret->[0][0]) {
+           $jobsdone  =$ret->[0][0];
+           if ($jobsdone > 0) {
+            $trigdone    = $ret->[0][2] - $ret->[0][1] + $jobsdone;
+       }
+       $sql="SELECT COUNT(Runs.run),SUM(Runs.fevent), SUM(Runs.levent)
+                FROM Jobs, Runs 
+                  WHERE Runs.submit>= $datasetStartTime 
+                     AND (Runs.status='Failed' OR Runs.Status='Unchecked') 
+                     AND Jobs.pid=$datasetId AND Jobs.cid != $TestCiteId 
+                      AND Runs.jid=Jobs.jid";
+       $ret=$self->{sqlserver}->Query($sql);
+       if (defined $ret->[0][0]) {
+           $jobsfailed  =$ret->[0][0];
+       }
+
+       if ($jobsdone > 0 || $jobsfailed >0) {
+        if ($ds->{name} =~ /2005A/) {
+          $sql="SELECT 
                 stat_2005A_Jobs.firstjobtime,stat_2005A_Jobs.lastjobtime,
                 stat_2005A_Jobs.totaljobs,stat_2005A_Jobs.totaltriggers,
-                stat_2005A_EndRuns.TotalRuns,stat_2005A_EndRuns.SumFEvent,stat_2005A_EndRuns.SumLEvent,
-                stat_2005A_FailedRuns.TotalRuns,
                 stat_2005A_TimeoutRuns.TotalRuns,
                 stat_2005A_NTuples.TotalFiles, stat_2005A_NTuples.SizeMB,    
                 stat_2005A_CastorNTuples.TotalFiles, stat_2005A_CastorNTuples.SizeMB
                FROM 
-                  stat_2005A_Jobs, stat_2005A_EndRuns, stat_2005A_FailedRuns, stat_2005A_TimeoutRuns, 
+                  stat_2005A_Jobs, stat_2005A_TimeoutRuns, 
                   stat_2005A_NTuples,stat_2005A_CastorNTuples";
-         } elsif ($ds->{name} =~ /2005B/) {
-         $sql="SELECT 
-                 stat_2005B_Jobs.firstjobtime,stat_2005B_Jobs.lastjobtime,
-                 stat_2005B_Jobs.totaljobs,stat_2005B_Jobs.totaltriggers,
-                 stat_2005B_EndRuns.TotalRuns,stat_2005B_EndRuns.SumFEvent,stat_2005B_EndRuns.SumLEvent,
-                 stat_2005B_FailedRuns.TotalRuns,
-                 stat_2005B_TimeoutRuns.TotalRuns,
-                 stat_2005B_NTuples.TotalFiles, stat_2005B_NTuples.SizeMB,    
-                 stat_2005B_CastorNTuples.TotalFiles, stat_2005B_CastorNTuples.SizeMB
-                FROM 
-                  stat_2005B_Jobs, stat_2005B_EndRuns, stat_2005B_FailedRuns, stat_2005B_TimeoutRuns, 
-                  stat_2005B_NTuples,stat_2005B_CastorNTuples";
-
         }
-       $ret=$self->{sqlserver}->Query($sql);
-       if (defined $ret->[0][0]) {
-        $timestart = $ret->[0][0];
-        $lastupd=localtime($ret->[0][1]);
-        $jobsreq     = $ret->[0][2];
-        $trigreq     = $ret->[0][3];
-        $jobsdone    = $ret->[0][4];
-        $trigdone    = $ret->[0][6] - $ret->[0][5] + $jobsdone;
-        $jobsfailed  = $ret->[0][7];
-        $jobstimeout = $ret->[0][8];
-        $nntuples    = $ret->[0][9];
-        $nsizegb     = sprintf("%.1f",$ret->[0][10]/1000);
-        $cntuples    = $ret->[0][11];
-        $csizegb     = sprintf("%.1f",$ret->[0][12]/1000);
-        $jobsreq     = $jobsreq - $jobsdone - $jobsfailed;
+        if ($ds->{name} =~ /2005B/) {
+          $sql="SELECT 
+                stat_2005B_Jobs.firstjobtime,stat_2005B_Jobs.lastjobtime,
+                stat_2005B_Jobs.totaljobs,stat_2005B_Jobs.totaltriggers,
+                stat_2005B_TimeoutRuns.TotalRuns,
+                stat_2005B_NTuples.TotalFiles, stat_2005B_NTuples.SizeMB,    
+                stat_2005B_CastorNTuples.TotalFiles, stat_2005B_CastorNTuples.SizeMB
+               FROM 
+                  stat_2005B_Jobs, stat_2005B_TimeoutRuns, 
+                  stat_2005B_NTuples,stat_2005B_CastorNTuples";
+      }
+        $ret=$self->{sqlserver}->Query($sql);
+        if (defined $ret->[0][0]) {
+         $timestart = $ret->[0][0];
+         $lastupd=localtime($ret->[0][1]);
+         $jobsreq     = $ret->[0][2];
+         $trigreq     = $ret->[0][3];
+         $jobstimeout = $ret->[0][4];
+         $nntuples    = $ret->[0][5];
+         $nsizegb     = sprintf("%.1f",$ret->[0][6]/1000);
+         $cntuples    = $ret->[0][7];
+         $csizegb     = sprintf("%.1f",$ret->[0][8]/1000);
+         $jobsreq     = $jobsreq - $jobsdone - $jobsfailed;
+       }
     }
+   }
 #
                my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($datasetStartTime);
                
@@ -6635,15 +6662,8 @@ sub listStat {
      htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
-    }
+   }
        $td[8] = time();
-#-       for my $j (0..7) {
-#           my $n = $j+1;
-#           my $d = $td[$n] - $td[$j];
-#           print "$n - $j :   $td[$n] - $td[$j] = $d secs \n"; 
-#       }
-#     my $d = $td[8] - $td[0];
-#-     print "Jobs : $td[8] - $td[0] = $d secs\n";
  }
 
      htmlTable("Datasets");
@@ -6677,17 +6697,16 @@ sub listStat {
            my $dataset   = trimblanks($ds->[1]);
            $td[0] = time();
            $sql = "SELECT SUM(levent), SUM(fevent), COUNT(fevent) FROM Jobs, Runs 
-                  WHERE 
-                    Jobs.did = $did AND
-                    Jobs.jid = Runs.jid AND  
-                    (Runs.status='Completed' OR Runs.status='Finished') AND 
-                      Jobs.cid != $TestCiteId AND
-                       Jobs.pid = $periodId";
+                    WHERE 
+                     Runs.submit > $periodStartTime AND 
+                      Jobs.pid = $periodId AND 
+                       Jobs.did = $did AND
+                        Jobs.jid = Runs.jid AND  
+                        (Runs.status='Completed' OR Runs.status='Finished') AND 
+                          Jobs.cid != $TestCiteId 
+                       ";
            my $r6=$self->{sqlserver}->Query($sql);
            $td[1] = time();
-#           my $d = $td[1] - $td[0];
-#           print "$sql \n";
-#           print "******** $did, $d secs \n";
            my $events = 0;
            if(defined $r6->[0][0]){
              $events = $r6->[0][0] - $r6->[0][1] + $r6->[0][2];
@@ -6698,9 +6717,11 @@ sub listStat {
              }
            }            
            $sql = "SELECT SUM(triggers) FROM Jobs 
-                  WHERE Jobs.did = $did AND
-                     Jobs.cid != $TestCiteId
-                      AND Jobs.pid = $periodId";
+                    WHERE 
+                     Jobs.timestamp > $periodStartTime AND 
+                     Jobs.did = $did AND
+                      Jobs.cid != $TestCiteId
+                       AND Jobs.pid = $periodId";
            my $r7=$self->{sqlserver}->Query($sql);
            my $triggers = 0;
            if(defined $r7->[0][0]){
@@ -6768,7 +6789,7 @@ sub listCites {
 
           my $laststarttime = 0;
           my $starttime     = "---";
-          $sql = "SELECT MAX(TIME) FROM Jobs WHERE cid=$cid AND Jobs.timestamp> $periodStartTime";
+          $sql = "SELECT MAX(TIME) FROM Jobs WHERE Jobs.timestamp> $periodStartTime AND cid=$cid";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {
             $laststarttime = $r4->[0][0];
@@ -6777,12 +6798,13 @@ sub listCites {
           my $lastendtime = 0;
           my $endtime       = "---";
           $sql = "SELECT MAX(jobs.time) FROM Jobs, Runs WHERE 
+                     Jobs.timestamp> $periodStartTime AND 
                      jobs.cid = $cid AND
                      jobs.jid = runs.jid AND           
                      (Runs.Status = 'Finished'  OR 
                       Runs.Status = 'Completed' OR
                       Runs.Status = 'Failed'    OR
-                      Runs.Status = 'Unchecked') AND Jobs.timestamp> $periodStartTime";
+                      Runs.Status = 'Unchecked')";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {
            $lastendtime = $r4->[0][0];
@@ -6796,31 +6818,37 @@ sub listCites {
 
           my $jobsa = 0;  # processing jobs
           $sql = "SELECT COUNT(jobs.jid)  FROM Jobs, Runs 
-                   where (jobs.jid=runs.jid and cid=$cid) AND Jobs.timestamp> $periodStartTime";
+                   where Jobs.timestamp> $periodStartTime AND (jobs.jid=runs.jid and cid=$cid)";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobsa = $jobs - $r4->[0][0]};
-          $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs WHERE 
+          $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs 
+                    WHERE 
+                     Jobs.timestamp> $periodStartTime AND 
                      Jobs.jid=Runs.jid AND cid=$cid AND 
                      (Runs.Status = 'Foreign' OR 
-                      Runs.Status = 'Processing') AND Jobs.timestamp> $periodStartTime";
+                      Runs.Status = 'Processing') ";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobsa += $r4->[0][0]};
 
           my $jobsc = 0;
-          $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs WHERE 
+          $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs 
+                    WHERE 
+                     Jobs.timestamp> $periodStartTime AND 
                      Jobs.jid=Runs.jid AND cid=$cid AND 
                      (Runs.Status = 'Finished' OR 
-                      Runs.Status = 'Completed') AND Jobs.timestamp> $periodStartTime";
+                      Runs.Status = 'Completed')";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobsc = $r4->[0][0]};
 
 
           my $jobsf = 0;
-          $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs WHERE 
+          $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs 
+                    WHERE 
+                     Jobs.timestamp> $periodStartTime AND 
                      Jobs.jid=Runs.jid AND cid=$cid AND 
                      (Runs.Status = 'Failed' OR 
                       Runs.Status = 'TimeOut' OR 
-                      Runs.Status = 'Unchecked') AND Jobs.timestamp> $periodStartTime";
+                      Runs.Status = 'Unchecked')";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobsf = $r4->[0][0]};
 
@@ -7070,10 +7098,11 @@ sub listJobs {
                  Cites.cid, Cites.name, Cites.descr,
                  Mails.name  
            FROM   Jobs, Cites, Mails  
-            WHERE  Jobs.cid=Cites.cid AND 
-                     Jobs.mid=Mails.mid AND
-                      Jobs.timestamp > $timelate AND
-                       Jobs.pid = $periodId  
+            WHERE  
+                  Jobs.timestamp > $timelate AND
+                   Jobs.pid = $periodId  AND 
+                    Jobs.cid=Cites.cid AND 
+                     Jobs.mid=Mails.mid 
              ORDER  BY Cites.name, Jobs.jid DESC";
 
      my $r3=$self->{sqlserver}->Query($sql);
@@ -7191,8 +7220,9 @@ sub listRuns {
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT Runs.run, Runs.jid, Runs.submit, Runs.status 
                FROM   Runs, Jobs 
-                 WHERE Runs.jid=Jobs.jid AND 
-                   (Runs.submit> $time24h OR Jobs.timestamp > $time24h)
+                 WHERE 
+                  (Runs.submit> $time24h OR Jobs.timestamp > $time24h) AND
+                   Runs.jid=Jobs.jid 
                     ORDER  BY Runs.submit DESC, Runs.jid";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td><b><font color=\"blue\" >JobId </font></b></td>";
@@ -7820,7 +7850,7 @@ sub parseJournalFiles {
     $self->getProductionPeriods(0);
 #--    $self->getProductionVersion();
 
- $sql = "SELECT begin FROM productionset WHERE STATUS='Active'";
+ $sql = "SELECT begin FROM productionset WHERE STATUS='Active' ORDER BY begin";
  $ret = $self->{sqlserver}->Query($sql);
  if(not defined $ret->[0][0]){
      $self->amsprint("parseJournalFiles -ERROR- cannot find 'Active' production set",0);
