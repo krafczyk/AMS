@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.30 2005/03/11 11:16:14 choumilo Exp $
+//  $Id: tofrec02.C,v 1.31 2005/05/04 10:27:36 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -28,7 +28,9 @@
 // mem.reservation for some static arrays:
 //
 uinteger TOF2RawCluster::trpatt[TOF2GC::SCLRS]={0,0,0,0};//just init. of static var.
+uinteger TOF2RawCluster::trpatt1[TOF2GC::SCLRS]={0,0,0,0};//just init. of static var.
 integer TOF2RawCluster::trflag=0;
+geant TOF2RawCluster::fttime[TOF2GC::SCCRAT]={0.,0.,0.,0.};
 uinteger TOF2RawEvent::StartRun(0);
 time_t TOF2RawEvent::StartTime(0);
 AMSTOFCluster * AMSTOFCluster::_Head[4]={0,0,0,0};
@@ -328,6 +330,7 @@ void TOF2RawCluster::build(int &ostatus){
   ostatus=1;// event output status(init. as bad)
   isds=0;
   for(i=0;i<TOF2GC::SCLRS;i++)nbrl[i]=0;
+  for(i=0;i<TOF2GC::SCCRAT;i++)fttime[i]=0;//reset abs.FT-time(stat.memb.of RawCluster class) 
 //
 //                             <---- loop over TOF RawEvent hits -----
   while(ptr){
@@ -338,7 +341,11 @@ void TOF2RawCluster::build(int &ostatus){
     isid=idd%10-1;
     mtyp=0;
     otyp=0;
-    AMSSCIds tofid(ilay,ibar,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(time)
+    AMSSCIds tofid(ilay,ibar,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(precise time(=slow_TDC))
+    crat=tofid.getcrate();
+#ifdef __AMSDEBUG__
+    assert(crat<TOF2GC::SCCRAT);
+#endif
 //    edep=ptr->getedep();
     chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isid;//channel numbering for job-stat counters
     brnum=ilay*TOF2GC::SCMXBR+ibar;//bar numbering ...
@@ -350,7 +357,6 @@ void TOF2RawCluster::build(int &ostatus){
                                                      ){//<--- check hit DB(cal+ped)-status
 //      hwid=TOF2RawEvent::sw2hwid(ilay,ibar,isid);//tempor(no tofid !)
 //      crat=hwid/100-1;
-        crat=0;
 //      slnu=1;//sequential number of slot with temp. (only 1 exists) 
 //       fill working arrays for given side:
       isds+=1;
@@ -358,6 +364,7 @@ void TOF2RawCluster::build(int &ostatus){
         charg[isid]=ptr->getcharg();
         nftdc[isid]=ptr->getftdc(ftdc1);
         nstdc[isid]=ptr->getstdc(stdc1);
+	fttime[crat]=geant((stdc1[2]&pbanti)*TOF2DBc::tdcbin(1));//FT-edge from s-tdc hit(last "4")
         adca1=ptr->getadca();
 	if(adca1>0)nadca[isid]+=1;
         adcal1=ptr->getadcal();
@@ -375,6 +382,7 @@ void TOF2RawCluster::build(int &ostatus){
         charg[isid]=ptr->getcharg();
         nftdc[isid]=ptr->getftdc(ftdc2);
         nstdc[isid]=ptr->getstdc(stdc2);
+	fttime[crat]=geant((stdc2[2]&pbanti)*TOF2DBc::tdcbin(1));//FT-edge from s-tdc hit(last "4")
         adca2=ptr->getadca();
 	if(adca2>0)nadca[isid]+=1;
         adcal2=ptr->getadcal();
@@ -400,7 +408,6 @@ void TOF2RawCluster::build(int &ostatus){
       if(nftdc[isid]>=2 && nstdc[isid]>=4 && (nadca[isid]>0 || nadcal[isid]>0))TOF2JobStat::addch(chnum,8);
       if(TFREFFKEY.reprtf[2]>1){
         HF1(1120+crat,geant(treads[isid]),1.);
-        HF1(1130+crat,geant(treada[isid]),1.);
       }
     }// endof DB-status check ---> 
 //
@@ -451,7 +458,7 @@ void TOF2RawCluster::build(int &ostatus){
 //
 //--------------> identify "corresponding"(to sTDC) hit in fast TDC :
 //
-// --> calculate s-TDC "start"-edge (each-side) times tm[2] (wrt lev1):
+// --> calculate s-TDC "start"-edge (each-side) times tm[2] (wrt ComStop=FT+1mksec):
           if(smty[0]>0)tm[0]=number((stdc1[3]&pbanti)*TOF2DBc::tdcbin(1));//last(in real time) s-tdc hit
           else tm[0]=0; 
           if(smty[1]>0)tm[1]=number((stdc2[3]&pbanti)*TOF2DBc::tdcbin(1));
@@ -878,6 +885,12 @@ void TOF2RawCluster::build(int &ostatus){
   }
 //
   if(ostatus!=0)return;//remove bad events
+//
+  if(TFREFFKEY.reprtf[2]>0){//hist.FT abs.time(-ComStop delay)
+    for(i=0;i<TOF2GC::SCCRAT;i++){
+      if(fttime[i]>0)HF1(1130+i,geant(fttime[i]-TOF2DBc::accdel()),1.);
+    }
+  }
 //
   if(conf != 5)return;//use only 1bar/layer,4-layer events for next processing
 //

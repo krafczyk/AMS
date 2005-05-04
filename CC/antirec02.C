@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.17 2004/10/08 12:02:42 choumilo Exp $
+//  $Id: antirec02.C,v 1.18 2005/05/04 10:27:34 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -18,7 +18,9 @@
 #include <math.h>
 #include <extC.h>
 #include <tofdbc02.h>
+#include <tofrec02.h>
 #include <tofsim02.h>
+#include <tofid.h>
 #include <antidbc02.h>
 #include <daqs2block.h>
 #include <antirec02.h>
@@ -28,7 +30,8 @@
 using namespace std;
 //
 //
- integer Anti2RawEvent::trpatt=0;
+ uinteger Anti2RawEvent::trpatt=0;
+ integer Anti2RawEvent::nscoinc=0;
 //----------------------------------------------------
 void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   int16u nadca[2],adca1[ANTI2C::ANAHMX];
@@ -123,7 +126,8 @@ void Anti2RawEvent::mc_build(int &stat){
   geant up(0),down(0),slope[2],athr[2],tau,q2pe;
   geant eup(0),edown(0),tup(0),tdown(0);
   geant thresh[2];
-  int i,ii,nup,ndown,nupt,ndownt,sector,sectorN,ierr,trflag(0),it,sta[2];
+  int i,ii,nup,ndown,nupt,ndownt,sector,sectorN,ierr,it,sta[2];
+  int trflag(0),trflag1(0);
   uinteger j,ibmn[2],ibmx[2],nsides(0);
   uinteger ectrfl(0),trpatt(0),hcount[4],cbit,lsbit(1);
   int16u atrpat[2]={0,0};
@@ -145,6 +149,11 @@ void Anti2RawEvent::mc_build(int &stat){
   AMSAntiMCCluster * ptr;
   AMSAntiMCCluster * ptrN;
   geant * parr;
+  AMSBitstr trbs[ANTI2C::MAXANTI][2];
+  AMSBitstr trbi;
+  AMSBitstr trbl[ANTI2C::MAXANTI];
+  geant trigb=TOF2DBc::trigtb();
+  integer i1,i2;
 //
   static integer first=0;
   static integer nshap;//real length of (light+PMT)-pulse(in bins=ANTI2DBc::fadcbw())
@@ -160,16 +169,18 @@ void Anti2RawEvent::mc_build(int &stat){
   htdcb=ANTI2DBc::htdcbw();//hist-tdc bin width
   htdpr=ANTI2DBc::htdcdr();//h-tdc double pulse resol.
   hdmn=ANTI2DBc::hdpdmn();//h-discr. min. pulse-duration
-  pwid=ANTI2DBc::ppfwid();//"pattern" pulse fixed width
+  pwid=ANTI2DBc::ppfwid();//logic pulse width used for "paddles-in-FTcoinc" pattern  
   pdbr=ANTI2DBc::pbdblr();// .............. dbl-resol(dead time)
-  pgate=ANTI2DBc::pbgate();// gate, applied to "pattern" pulse
-  trflag=TOF2RawEvent::gettrfl();
+  pgate=ANTI2DBc::pbgate();// FT-gate, applied to "pattern" pulses
+  trflag=TOF2RawEvent::gettrfl();//FT
+  trflag1=TOF2RawEvent::gettrfl1();//FTZ
   Anti2RawEvent::setpatt(trpatt);// reset trigger-pattern in Anti2RawEvent::
+  Anti2RawEvent::setncoinc(ncoinct);// reset # of coinc.sectors  to Anti2RawEvent::
 //
   if(TGL1FFKEY.trtype<256){//<==== NotExternalTrigger"
 //
-    if(trflag>=0){// use FT from TOF
-      ftrig=TOF2RawEvent::gettrtime();//Time when FT came to S-crate(incl. fixed delay)
+    if(trflag>=0 || trflag1>=0){// use FT from TOF
+      ftrig=TOF2RawEvent::gettrtime();//abs. Time when FT came to S-crate(INCL. fixed delay !)
       tlev1=ftrig+TOF2DBc::accdel();// "common_stop"-signal abs.time
     }
     else{// have to use FT from ECAL
@@ -205,6 +216,11 @@ void Anti2RawEvent::mc_build(int &stat){
   ibmn[1]=ANTI2C::ANFADC;
   ibmx[0]=0;
   ibmx[1]=0;
+  for(i=0;i<ANTI2C::MAXANTI;i++){
+    trbs[i][0].bitclr(1,0);
+    trbs[i][1].bitclr(1,0);
+    trbl[i].bitclr(1,0);
+  }
 //-------------
   AMSContainer *cptr;
   cptr=AMSEvent::gethead()->getC("AMSAntiMCCluster",0);//MC container-pointer
@@ -215,7 +231,6 @@ void Anti2RawEvent::mc_build(int &stat){
   while(ptr){ // <--- geant-hits loop:
     sector=ptr->getid();//physical sector number(1-16)
     nphys=1-sector%2;   //internal index phys.sect as member of logical(0-1)
-//    nlogs=floor(0.5*(sector-1)); //logical(readout) sector number(0-7)
     nlogs=(sector-1)/2; //logical(readout) sector number(0-7)
     ede=ptr->getedep();
     edep=ede*1000;
@@ -360,9 +375,9 @@ void Anti2RawEvent::mc_build(int &stat){
               td1b1u=tmark;//store up-time
             }
           }
-//"pattern-branch" :
+//"trig-pattern branch" :
             if(upd12==0){
-              if((tm-td1b2u)>(pwid+pdbr)){//buzy time(pwid+dead) check for "pattern"
+              if((tm-td1b2u)>(pwid+pdbr)){//buzy time(pwid+dead) check for "trig-pattern"
                 upd12=1;  // set flag 
 		td1b2u=tm;//store up-time to use as previous in next "up" set
                 if(nptr<ANTI2C::ANTHMX){//store upto ANTHMX(=8) up-edges
@@ -405,8 +420,8 @@ void Anti2RawEvent::mc_build(int &stat){
             }
           }
         }
-//"pattern branch":
-        if(upd12==1){// "pattern pulse" self-reset(independ.of discr-1 state)
+//"trig-pattern branch":
+        if(upd12==1){// "trig-pattern pulse" self-reset(independ.of discr-1 state)
             if((tm-td1b2u)>pwid){//min duration (fixed pulse width) check
               upd12=0;                    // for self-clear
             }
@@ -438,7 +453,7 @@ void Anti2RawEvent::mc_build(int &stat){
       if(ATMCFFKEY.mcprtf)HF1(2634+j,amp,1.);
       nadca=0;
       if(amp>daqthr*sig){// DAQ readout threshold check
-	iamp=floor(amp*ANTI2DBc::daqscf()+0.5);// floatADC -> internal DAQ bins
+	iamp=integer(floor(amp*ANTI2DBc::daqscf()+0.5));// floatADC -> internal DAQ bins
         itt=int16u(iamp);
         adca[nadca]=itt;
         nadca+=1;
@@ -449,7 +464,7 @@ void Anti2RawEvent::mc_build(int &stat){
       if(ATMCFFKEY.mcprtf)HF1(2636,geant(nhtdc),1.);
       nhtdch=0;
       for(i=0;i<nhtdc;i++){//        <--- htdc-hits loop ---
-        ii=i;// htup/dw have LIFO readout order(1st elem = last stored(first read))
+        ii=i;// htup/dw ALREADY(!) have LIFO readout order(1st elem = last stored(first read))
         t1=htup[ii]; 
         t2=htdw[ii];
         dt=tlev1-t2;// follow LIFO mode of readout : down-edge - first hit
@@ -488,24 +503,35 @@ void Anti2RawEvent::mc_build(int &stat){
 //cout<<endl;
         AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
                        new Anti2RawEvent(id,chsta,nadca,adca,nhtdch,htdc));
-        tg1=ftrig-ATREFFKEY.ftwin;//GateUpTime~FTime(subtr. some adjustment-delay because pattern
-//                                             is made in TgBox and FTtime is time at S-crate)
+//
+        tg1=ftrig;//GateUpTime=FTime+delay(decision+ pass to S-crate)
         tg2=tg1+pgate;//gate_end_time
-	for(i=0;i<nptr;i++){// check up-time of each "pattern" pulse for coinc.with FT
-          t1=ptup[i];//"pattern" pulse up-time
-	  t2=t1+pwid;//"pattern" pulse down-time
+	ncoinc=0;
+	for(i=0;i<nptr;i++){//all 1-side "trig-pattern" pulses -> 1-side bitstream pattern
+          trbi.bitclr(1,0);
+          t1=ptup[i];//"trig-pattern" pulse up-time
+	  t2=t1+pwid;//.............. pulse down-time
 	  dt=tg1-t1;
-	  if(nptr==1 && ATMCFFKEY.mcprtf>0)HF1(2631,geant(dt),1.);
-	  if(tg2<=t1 || tg1>=t2)continue;
-	  ncoinc+=1;
+//	  if(nptr==1 && ATMCFFKEY.mcprtf>0)HF1(2631,geant(dt),1.);
+	  if(ATMCFFKEY.mcprtf>0)HF1(2631,geant(dt),1.);
+          i1=integer(t1/trigb);
+          i2=integer(t2/trigb);
+          if(i1>=TOFGC::SCBITM)i1=TOFGC::SCBITM-1;
+          if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+          trbi.bitset(i1,i2);//set bits according to hit-time and pulse width
+	  trbs[nlogs][j]=trbs[nlogs][j] | trbi;//make side-OR of all trig-pulses
+          if(!(tg2<=t1 || tg1>=t2))ncoinc+=1;//count side-overlaps with gate
 	}
-	if(ncoinc){
-	  atrpat[j]|=1<<(sector-1);//set bit
-	  ncoinct+=1;
-	}
+	if(ncoinc)atrpat[j]|=1<<nlogs;//set single-side coincidence bit(not used now)
       }
 //------------
     }//--->endof side loop
+//
+    if(TGL1FFKEY.antisc == 0)
+                                trbl[nlogs]=trbs[nlogs][0] & trbs[nlogs][1];// 2-sides AND
+    else
+                                trbl[nlogs]=trbs[nlogs][0] | trbs[nlogs][1];// 2-sides OR
+    trbl[nlogs].clatch();//25MHz-clock latch of 2-sides OR(AND) signal trbl
 //
     edepts=0;
     nupt=0;
@@ -525,34 +551,52 @@ void Anti2RawEvent::mc_build(int &stat){
   } // ---> end of geant-hits loop
 //
   if(ATMCFFKEY.mcprtf)HF1(2630,edept,1.);
-  if(ncoinct>0)ANTI2JobStat::addmc(5);
-//----------------------
-//----> create Anti-trigger pattern:
-//(bits 1-8->sector's s1, 8-16-> s2; 17-24-> 4 trig.counters)
-//                         
-  for(i=0;i<4;i++)hcount[i]=0;
+//--------------------------------------
+//------> create Anti-trigger pattern, count sectors:
+//(bits 1-8->sectors in coinc.with FT)
+//
+  tg1=ftrig;//GateUpTime=FTime+delay(decision+ pass to S-crate)
+  tg2=tg1+pgate;//gate_end_time
   trpatt=0;//reset patt.
-  for(i=0;i<ANTI2C::MAXANTI;i++){
-    cbit=lsbit<<i;
-    if((i<2)||(i>5)){ // <-- x>0
-      if(atrpat[1]&cbit)hcount[3]+=1; // z>0
-      if(atrpat[0]&cbit)hcount[2]+=1; // z<0
+//-->count FT-coincided sectors,create sector's pattern :
+  for(i=0;i<ANTI2C::MAXANTI;i++){//apply 240ns gate
+    trbl[i].testbit(i1,i2);
+    if(i2>=i1){
+      t1=i1*trigb;
+      t2=i2*trigb;
+      if(!(tg2<=t1 || tg1>=t2)){
+        ncoinct+=1;//overlap -> incr. counter
+	trpatt|=1<<i;//mark sector
+      }
     }
-    else{              // <-- x<0
-      if(atrpat[1]&cbit)hcount[1]+=1; // z>0
-      if(atrpat[0]&cbit)hcount[0]+=1; // z<0
-    }
-//    if(atrpat[0]&cbit>0 || atrpat[1]&cbit>0)trpatt|=cbit;//two side OR
   }
+  if(ncoinct>0)ANTI2JobStat::addmc(5);
 //
-  trpatt=(atrpat[0] | (atrpat[1]<<8));//1-8=>s1(bot), 9-16=>s2(top)
-  for(i=0;i<4;i++){//add 4 trig.counters
-    if(hcount[i]>3)hcount[i]=3;
-    trpatt|=hcount[i]<<(16+i*2);
-  }
+//-->make side patterns(does not exists now according Lin)                       
+//  for(i=0;i<4;i++)hcount[i]=0;
+//  if(ncoinct>0){
+//    for(i=0;i<ANTI2C::MAXANTI;i++){
+//      cbit=lsbit<<i;
+//      if((i<2)||(i>5)){ // <-- x>0
+//        if(atrpat[1]&cbit)hcount[3]+=1; // z>0
+//        if(atrpat[0]&cbit)hcount[2]+=1; // z<0
+//      }
+//      else{              // <-- x<0
+//        if(atrpat[1]&cbit)hcount[1]+=1; // z>0
+//        if(atrpat[0]&cbit)hcount[0]+=1; // z<0
+//      }
+//    }
 //
+//    trpatt=(atrpat[0] | (atrpat[1]<<8));//1-8=>s1(bot), 9-16=>s2(top)
+//    for(i=0;i<4;i++){//add 4 trig.counters
+//      if(hcount[i]>3)hcount[i]=3;
+//      trpatt|=hcount[i]<<(16+i*2);
+//    }
+//  }
+//
+  Anti2RawEvent::setncoinc(ncoinct);// add # of coinc.sectors  to Anti2RawEvent::
   Anti2RawEvent::setpatt(trpatt);// add trigger-pattern to Anti2RawEvent::
-  if(trpatt!=0 || edept>0)stat=0;//found anti activity
+  if(ncoinct>0 || edept>0)stat=0;//found anti activity
 //
 }
 //
@@ -599,7 +643,7 @@ AMSContainer *p =AMSEvent::gethead()->getC("AMSAntiCluster",0);
 //
 //=============================
 //
-void AMSAntiCluster::build2(){
+void AMSAntiCluster::build2(int &statt){
 //(combine 2-sides of single paddle)
   bool anchok;
   int16u nadca,adca[ANTI2C::ANAHMX],ntdct,tdct[ANTI2C::ANTHMX*2];
@@ -608,34 +652,73 @@ void AMSAntiCluster::build2(){
   int16u pbanti;
   number edep[2],uptm[2][ANTI2C::ANTHMX],edep2,ass,zc,erz,erfi,err;
   integer nuptm[2];
+  integer ftc,ftcin[2];
   integer i,j,jmax,sector,isid,nsds,isdn[2],stat,chnum,n1,n2,i1min,i2min;
   number zcoo[2*ANTI2C::ANTHMX],times[2*ANTI2C::ANTHMX],etimes[2*ANTI2C::ANTHMX];
   number edept,t1,t2,t1mn,t2mn,dt,z1,z2;
-  integer ntimes,npairs,nclust(0),nclustp(0),status(0);
-  geant ftdel[2],padlen,padrad,padfi,paddfi,zcer1,zcer2,ped,sig,dtmin,attlen,tzer;
+  integer ntimes,npairs,nclust(0),nclustc(0),nclustp(0),status(0);
+  geant padlen,padrad,padfi,paddfi,zcer1,zcer2,ped,sig,dtmin,attlen,tzer;
+  int16u mtyp(0),otyp(0),crat(0);
+  geant fttim,ftsum,ftnum;
+  geant ftdel,ftwin;
   int nphsok;
+  integer ftcoinc(0);
+  uinteger lspatt(0);
   Anti2RawEvent *ptr;
   Anti2RawEvent *ptrN;
 //
   ptr=(Anti2RawEvent*)AMSEvent::gethead()
                   ->getheadC("Anti2RawEvent",0);// already sorted after validation
 //
+  statt=1;//bad
+  ftcoinc=Anti2RawEvent::getncoinc();//log.sectors in coinc.with FT
+  lspatt=Anti2RawEvent::getpatt();//Coinc.sect.pattern
+  if(ATREFFKEY.reprtf[0]>0){
+    HF1(2510,geant(ftcoinc),1.);
+    if(lspatt<=0)HF1(2511,0.,1.);
+    for(i=0;i<ANTI2C::MAXANTI;i++)if(lspatt & 1<<i)HF1(2511,geant(i+1),1.);
+  }
   pbitn=TOF2GC::SCPHBP;//phase bit position as for TOF
   pbanti=pbitn-1;// mask to avoid it.
   padlen=ANTI2DBc::scleng();
   padrad=ANTI2DBc::scradi()+0.5*ANTI2DBc::scinth();
   paddfi=360./ANTI2C::MAXANTI;
   zcer1=ATREFFKEY.zcerr1;//Z-coo err. for true pair case
+  ftdel=ATREFFKEY.ftdel;
+  ftwin=ATREFFKEY.ftwin;
   nsds=0;
   nadca=0;
   ntdct=0;
   edept=0.;
   edep[0]=0;
   edep[1]=0;
+  ftcin[0]=0;
+  ftcin[1]=0;
   while(ptr){ // <------ RawEvent hits loop
     id=ptr->getid();//BBS
     sector=id/10-1;//Readout(logical) sector number (0-7)
     isid=id%10-1;
+    mtyp=1;
+    otyp=0;
+    AMSSCIds antid(sector,isid,otyp,mtyp);//otyp=0(anode),mtyp=1(hist. time(=fast_TDC))
+    crat=antid.getcrate();
+#ifdef __AMSDEBUG__
+    assert(crat<TOF2GC::SCCRAT);
+#endif
+    fttim=TOF2RawCluster::getfttime(crat);//CS-FT=6mks from TOF-stretcher(may be diff. in each crate)
+//(it may be missing in case of absent of TOF-hits in given crate !!!)
+    if(fttim<=0){//find aver. over non empty crates)
+      ftsum=0;
+      ftnum=0;
+      for(i=0;i<TOF2GC::SCCRAT;i++){
+        fttim=TOF2RawCluster::getfttime(i);
+	if(fttim>0){
+	  ftsum+=fttim;
+	  ftnum+=1;
+	}
+      }
+      if(ftnum>0)fttim=ftsum/ftnum;
+    }
     chnum=sector*2+isid;//channels numbering
     anchok=(ANTIPeds::anscped[sector].PedStOK(isid) &&
                   ANTI2VPcal::antivpcal[sector].CalStOK(isid));//Chan-DBStat OK
@@ -662,14 +745,22 @@ void AMSAntiCluster::build2(){
       nphsok=ANTI2VPcal::antivpcal[sector].NPhysSecOK();
       if(nphsok==2)tzer=ANTI2SPcal::antispcal[sector].gettzerc();
       else tzer=ANTI2SPcal::antispcal[sector].gettzer(nphsok);
-      for(i=0;i<ntdct;i++){
+      ftc=0;
+      for(i=0;i<ntdct;i++){//<-- hist-hits loop
         if(i%2==1){//use up-edges (i=1,3,...)
-         uptm[nsds][nuptm[nsds]]=(pbanti&tdct[i])*ANTI2DBc::htdcbw()   
+	  t1=(pbanti&tdct[i])*ANTI2DBc::htdcbw()
 	                                + tzer;//TDC-ch-->ns + compens.tzero
-//cout<<"    decoded Up-time="<<uptm[nsds][nuptm[nsds]]<<endl;
-         nuptm[nsds]+=1;
+	  if(fttim>0){//check coinc.with FT
+	    dt=t1-fttim;
+            if(ATREFFKEY.reprtf[0]>0)HF1(2509,geant(dt),1.);
+            if(fabs(dt-ftdel)<ftwin)ftc+=1;//count coinc.
+	  }
+          uptm[nsds][nuptm[nsds]]=t1;   
+//cout<<"    decoded Up-time="<<t1<<endl;
+          nuptm[nsds]+=1;
         }
       }
+      if(ftc>0)ftcin[nsds]+=ftc;//store nFTcoinc/side 
 //
       nsds+=1;
     }//--->endof alive-check
@@ -683,6 +774,7 @@ void AMSAntiCluster::build2(){
       padfi=paddfi*(0.5+sector);//current paddle phi
       erfi=paddfi/sqrt(12.);
       err=ANTI2DBc::scinth()/sqrt(12.);
+      status=0;//sector ok
       ntimes=0;
       npairs=0;
       edep2=0;
@@ -728,7 +820,7 @@ void AMSAntiCluster::build2(){
 //
 	}//-->endof "try next pair" 
 //
-        if(npairs==1){//imply, that single Edep correlated with this single pair
+        if(npairs==1){//imply, that single existing Edep correlates with this single pair
 	  zc=zcoo[0];
 	  edep2=(edep[0]+edep[1])
                *2/(exp(zc/attlen)+exp(-zc/attlen));
@@ -785,6 +877,9 @@ void AMSAntiCluster::build2(){
 //cout<<"   FillClustSect="<<sector+1<<" nsds/ntimes/npair="<<nsds<<" "<<ntimes<<" "<<npairs<<endl;
 //cout<<"     edep2="<<edep2<<" coo="<<coo<<" err="<<ecoo<<endl;
 //for(i=0;i<ntimes;i++)cout<<" times="<<times[i]<<" err="<<etimes[i]<<endl;
+        if(ftcin[0]>0 || ftcin[1]>0)nclustc+=1;//count clust.with FT-coinc on any side
+	else status|=TOFGC::SCBADB1;//set "missing FTcoinc on both sides"
+	
         AMSEvent::gethead()->addnext(AMSID("AMSAntiCluster",0),
          new AMSAntiCluster(status,sector+1,ntimes,npairs,times,etimes,edep2,coo,ecoo));
 //
@@ -806,6 +901,8 @@ void AMSAntiCluster::build2(){
       ntdct=0;
       edep[0]=0;
       edep[1]=0;
+      ftcin[0]=0;
+      ftcin[1]=0;
     }//--->endof next sector check
 //---
     ptr=ptr->next();// take next RawEvent hit
@@ -814,8 +911,10 @@ void AMSAntiCluster::build2(){
   if(ATREFFKEY.reprtf[0]){
     HF1(2500,geant(edept),1.);
     HF1(2501,geant(nclust),1.);
+    HF1(2512,geant(nclustc),1.);
     HF1(2507,geant(nclustp),1.);
   }
+  if(edept>0)statt=0;//ok
 //
 }
 

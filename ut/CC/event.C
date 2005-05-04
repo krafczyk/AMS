@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.334 2005/04/06 14:55:46 alcaraz Exp $
+//  $Id: event.C,v 1.335 2005/05/04 10:27:35 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -411,6 +411,7 @@ AMSUser::InitRun();
 
 
 void AMSEvent::_siamsinitevent(){
+ AMSBitstr::setclkphase();//set trig.electronics clock-pulse phase
  _sitofinitevent();
  _siantiinitevent();
  _siecalinitevent();
@@ -1542,8 +1543,12 @@ void AMSEvent::_reanti2event(){
     ANTI2JobStat::addre(2);
 //
 //
-  AMSAntiCluster::build2();// RawEvent->Cluster
-  ANTI2JobStat::addre(3);
+    AMSAntiCluster::build2(stat);// RawEvent->Cluster
+    if(stat!=0){
+      AMSgObj::BookTimer.stop("REANTIEVENT");
+      return;
+    }
+    ANTI2JobStat::addre(3);
 // 
   #ifdef __AMSDEBUG__
    if(AMSEvent::debug)AMSAntiCluster::print();

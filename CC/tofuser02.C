@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.11 2005/03/11 11:16:14 choumilo Exp $
+//  $Id: tofuser02.C,v 1.12 2005/05/04 10:27:36 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <event.h>
@@ -22,7 +22,8 @@
 //
 //=======================================================================
 void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
-  integer i,ilay,ibar,nbrl[TOF2GC::SCLRS],brnl[TOF2GC::SCLRS],bad,status,sector,nanti(0);
+  integer i,ilay,ibar,nbrl[TOF2GC::SCLRS],brnl[TOF2GC::SCLRS],bad,status,sector;
+  integer nanti(0),nantit(0);
   integer il,ib,ix,iy,chan,nbrlc[TOF2GC::SCLRS],brnlc[TOF2GC::SCLRS];
   geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cost,cosc;
   number coo[TOF2GC::SCLRS],coot[TOF2GC::SCLRS],cstr[TOF2GC::SCLRS],dx,dy;
@@ -122,7 +123,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   nanti=0;
   while (ptra){ // <--- loop over AMSANTIRawCluster hits
     status=ptra->getstatus();
-    if(status==0){ //select only good hits
+    if((status & TOFGC::SCBADB1)==0){ //select only important(=FTCoincident) hits
       sector=(ptra->getsector())-1;
       eacl=ptra->getedep();
       eanti=eanti+(ptra->getedep());
@@ -135,6 +136,8 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     HF1(1505,geant(nanti),1.);
     if(bad==0)HF1(1514,geant(nanti),1.);
   }
+  nantit=Anti2RawEvent::getncoinc();//same from trigger
+  if(TFREFFKEY.reprtf[2]>0)HF1(1517,geant(nantit),1.);
 //
   if(nanti>1)return;// remove events with >1 sector(e>ecut) in Anti
   TOF2JobStat::addre(22);
@@ -356,59 +359,60 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 void TOF2User::InitJob(){
   int i;
   if(TFREFFKEY.reprtf[2]>0){
-    HBOOK1(1500,"Part.rigidity from tracker(gv)",100,0.,25.,0.);
-    HBOOK1(1501,"Particle beta",80,-1.2,1.2,0.);
-    HBOOK1(1511,"Particle betachi2",80,0.,16.,0.);
-    HBOOK1(1512,"Particle betachi2S",80,0.,16.,0.);
-    HBOOK1(1513,"Particle trackchi2",80,0.,16.,0.);
-    HBOOK1(1514,"Number of AntiClusters(TOFmult OK)",20,0.,20.,0.);
-    HBOOK1(1515,"Number of AntiClusters(trk found)",20,0.,20.,0.);
-    HBOOK1(1502,"MyBeta(tof)",80,0.7,1.2,0.);
-    HBOOK1(1504,"TofClust T13-T24(ns,high momentum)",80,-4.,4.,0.);
-    HBOOK1(1503,"AntiRawCluster energy(mev)",80,0.,20.,0.);
-    HBOOK1(1505,"Number of AntiClusters",20,0.,20.,0.);
-    HBOOK1(1506,"Part. multipl. ",10,0.,10.,0.);
-    HBOOK1(1507,"TOF-charge",10,0.,10.,0.);
-    HBOOK1(1508,"Tracker-charge",10,0.,10.,0.);
-    HBOOK2(1509,"TOF-ch vs Tracker-ch",10,0.,10.,10,0.,10.,0.);
-    HBOOK1(1510,"Anti-hit part.index",50,0.,50.,0.);
-    HBOOK1(1516,"Part.rigidity from tracker(gv)",100,0.,1000.,0.);
+    HBOOK1(1500,"TofUser:Part.rigidity from tracker(gv)",100,0.,40.,0.);
+    HBOOK1(1501,"TofUser:Particle beta",80,-1.2,1.2,0.);
+    HBOOK1(1511,"TofUser:Particle betachi2",80,0.,16.,0.);
+    HBOOK1(1512,"TofUser:Particle betachi2S",80,0.,16.,0.);
+    HBOOK1(1513,"TofUser:Particle trackchi2",80,0.,16.,0.);
+    HBOOK1(1514,"TofUser:Number of Sectors(FTCoinc,E>Thr,TOFmultOK)",20,0.,20.,0.);
+    HBOOK1(1515,"TofUser:Number of Sectors(FTCoinc,E>Thr,TOF/ANTImultOK,TrkOK)",20,0.,20.,0.);
+    HBOOK1(1502,"TofUser:MyBeta(tof)",80,0.7,1.2,0.);
+    HBOOK1(1504,"TofUser:TofClust T13-T24(ns,high momentum)",80,-4.,4.,0.);
+    HBOOK1(1503,"TofUser:Sector energy(mev,FTCoinc)",80,0.,20.,0.);
+    HBOOK1(1505,"TofUser:Number of Sectors(FTCoinc,E>Thr)",20,0.,20.,0.);
+    HBOOK1(1506,"TofUser:Part. multipl. ",10,0.,10.,0.);
+    HBOOK1(1507,"TofUser:TOF-charge",10,0.,10.,0.);
+    HBOOK1(1508,"TofUser:Tracker-charge",10,0.,10.,0.);
+    HBOOK2(1509,"TofUser:TOF-ch vs Tracker-ch",10,0.,10.,10,0.,10.,0.);
+    HBOOK1(1510,"TofUser:Anti-hit part.index",50,0.,50.,0.);
+    HBOOK1(1516,"TofUser:Part.rigidity from tracker(gv)",100,0.,1500.,0.);
+    HBOOK1(1517,"TofUser:Number of Sectors(FTCoincAccordingToTrigPatt)",20,0.,20.,0.);
     
-    HBOOK1(1200,"LongCooDiff(Track-TofCl),L=1,Nmem=1",50,-10.,10.,0.);
-    HBOOK1(1201,"LongCooDiff(Track-TofCl),L=2,Nmem=1",50,-10.,10.,0.);
-    HBOOK1(1202,"LongCooDiff(Track-TofCl),L=3,Nmem=1",50,-10.,10.,0.);
-    HBOOK1(1203,"LongCooDiff(Track-TofCl),L=4,Nmem=1",50,-10.,10.,0.);
-    HBOOK1(1204,"LongCooDiff(Track-TofCl),L=1,Nmem=2",50,-10.,10.,0.);
-    HBOOK1(1205,"LongCooDiff(Track-TofCl),L=2,Nmem=2",50,-10.,10.,0.);
-    HBOOK1(1206,"LongCooDiff(Track-TofCl),L=3,Nmem=2",50,-10.,10.,0.);
-    HBOOK1(1207,"LongCooDiff(Track-TofCl),L=4,Nmem=2",50,-10.,10.,0.);
+    HBOOK1(1200,"TofUser:LongCooDiff(Track-TofCl),L=1,Nmem=1",50,-10.,10.,0.);
+    HBOOK1(1201,"TofUser:LongCooDiff(Track-TofCl),L=2,Nmem=1",50,-10.,10.,0.);
+    HBOOK1(1202,"TofUser:LongCooDiff(Track-TofCl),L=3,Nmem=1",50,-10.,10.,0.);
+    HBOOK1(1203,"TofUser:LongCooDiff(Track-TofCl),L=4,Nmem=1",50,-10.,10.,0.);
+    HBOOK1(1204,"TofUser:LongCooDiff(Track-TofCl),L=1,Nmem=2",50,-10.,10.,0.);
+    HBOOK1(1205,"TofUser:LongCooDiff(Track-TofCl),L=2,Nmem=2",50,-10.,10.,0.);
+    HBOOK1(1206,"TofUser:LongCooDiff(Track-TofCl),L=3,Nmem=2",50,-10.,10.,0.);
+    HBOOK1(1207,"TofUser:LongCooDiff(Track-TofCl),L=4,Nmem=2",50,-10.,10.,0.);
     
-    HBOOK1(1210,"TranCooDiff(Track-TofCl),L=1,Nmem=1",50,-20.,20.,0.);
-    HBOOK1(1211,"TranCooDiff(Track-TofCl),L=2,Nmem=1",50,-20.,20.,0.);
-    HBOOK1(1212,"TranCooDiff(Track-TofCl),L=3,Nmem=1",50,-20.,20.,0.);
-    HBOOK1(1213,"TranCooDiff(Track-TofCl),L=4,Nmem=1",50,-20.,20.,0.);
-    HBOOK1(1214,"TranCooDiff(Track-TofCl),L=1,Nmem=2",50,-20.,20.,0.);
-    HBOOK1(1215,"TranCooDiff(Track-TofCl),L=2,Nmem=2",50,-20.,20.,0.);
-    HBOOK1(1216,"TranCooDiff(Track-TofCl),L=3,Nmem=2",50,-20.,20.,0.);
-    HBOOK1(1217,"TranCooDiff(Track-TofCl),L=4,Nmem=2",50,-20.,20.,0.);
+    HBOOK1(1210,"TofUser:TranCooDiff(Track-TofCl),L=1,Nmem=1",50,-20.,20.,0.);
+    HBOOK1(1211,"TofUser:TranCooDiff(Track-TofCl),L=2,Nmem=1",50,-20.,20.,0.);
+    HBOOK1(1212,"TofUser:TranCooDiff(Track-TofCl),L=3,Nmem=1",50,-20.,20.,0.);
+    HBOOK1(1213,"TofUser:TranCooDiff(Track-TofCl),L=4,Nmem=1",50,-20.,20.,0.);
+    HBOOK1(1214,"TofUser:TranCooDiff(Track-TofCl),L=1,Nmem=2",50,-20.,20.,0.);
+    HBOOK1(1215,"TofUser:TranCooDiff(Track-TofCl),L=2,Nmem=2",50,-20.,20.,0.);
+    HBOOK1(1216,"TofUser:TranCooDiff(Track-TofCl),L=3,Nmem=2",50,-20.,20.,0.);
+    HBOOK1(1217,"TofUser:TranCooDiff(Track-TofCl),L=4,Nmem=2",50,-20.,20.,0.);
     
-    HBOOK1(1208,"Chisq(beta-fit with TofCl)",50,0.,10.,0.);
-    HBOOK1(1209,"Tzer (beta-fit with TofCl)",50,-2.5,2.5,0.);
+    HBOOK1(1208,"TofUser:Chisq(beta-fit with TofCl)",50,0.,10.,0.);
+    HBOOK1(1209,"TofUser:Tzer (beta-fit with TofCl)",50,-2.5,2.5,0.);
     
-    HBOOK1(5001,"TofCl EdepNormInc(mev),AverTrunc1of4",80,0.,32.,0.);
-    HBOOK1(5002,"TofCl EdepNormInc(mev),AverTrunc2of4",80,0.,32.,0.);
-    HBOOK1(5003,"TofCl EdepNormInc(mev),AverTrunc3of4",80,0.,32.,0.);
-    HBOOK1(5004,"TofCl EdepNormInc(mev),AverTrunc4of4",80,0.,32.,0.);
+    HBOOK1(5001,"TofUser:TofCl EdepNormInc(mev),AverTrunc1of4",80,0.,32.,0.);
+    HBOOK1(5002,"TofUser:TofCl EdepNormInc(mev),AverTrunc2of4",80,0.,32.,0.);
+    HBOOK1(5003,"TofUser:TofCl EdepNormInc(mev),AverTrunc3of4",80,0.,32.,0.);
+    HBOOK1(5004,"TofUser:TofCl EdepNormInc(mev),AverTrunc4of4",80,0.,32.,0.);
     
-    HBOOK1(5010,"TofCl Sqrt(AverTrunc1of4/MIP)",80,0.,32.,0.);
-    HBOOK1(5011,"TofCl Sqrt(AverTrunc2of4/MIP)",80,0.,32.,0.);
-    HBOOK1(5012,"TofCl Sqrt(AverTrunc3of4/MIP)",80,0.,32.,0.);
-    HBOOK1(5013,"TofCl Sqrt(AverTrunc4of4/MIP)",80,0.,32.,0.);
+    HBOOK1(5010,"TofUser:TofCl Sqrt(AverTrunc1of4/MIP)",80,0.,32.,0.);
+    HBOOK1(5011,"TofUser:TofCl Sqrt(AverTrunc2of4/MIP)",80,0.,32.,0.);
+    HBOOK1(5012,"TofUser:TofCl Sqrt(AverTrunc3of4/MIP)",80,0.,32.,0.);
+    HBOOK1(5013,"TofUser:TofCl Sqrt(AverTrunc4of4/MIP)",80,0.,32.,0.);
     
-    HBOOK1(5040,"L=1,Fired bar number",14,1.,15.,0.);
-    HBOOK1(5041,"L=2,Fired bar number",14,1.,15.,0.);
-    HBOOK1(5042,"L=3,Fired bar number",14,1.,15.,0.);
-    HBOOK1(5043,"L=4,Fired bar number",14,1.,15.,0.);
+    HBOOK1(5040,"TofUser:L=1,Fired bar number",14,1.,15.,0.);
+    HBOOK1(5041,"TofUser:L=2,Fired bar number",14,1.,15.,0.);
+    HBOOK1(5042,"TofUser:L=3,Fired bar number",14,1.,15.,0.);
+    HBOOK1(5043,"TofUser:L=4,Fired bar number",14,1.,15.,0.);
   }
   return;
 }
@@ -461,8 +465,13 @@ void TOF2User::EndJob(){
   HPRINT(1511);
   HPRINT(1512);
   HPRINT(1513);
+  
+  HPRINT(1503);
+  HPRINT(1505);
   HPRINT(1514);
+  HPRINT(1517);
   HPRINT(1515);
+  
   HPRINT(1506);
   HPRINT(1507);
   HPRINT(1508);
@@ -485,8 +494,6 @@ void TOF2User::EndJob(){
   HPRINT(1217);
   HPRINT(1208);
   HPRINT(1209);
-  HPRINT(1503);
-  HPRINT(1505);
   HPRINT(1510);
   for(i=0;i<TOF2GC::SCLRS;i++)HPRINT(5040+i);
   for(i=0;i<TOF2GC::SCLRS;i++)HPRINT(5001+i);

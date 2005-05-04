@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.11 2004/09/27 15:00:30 choumilo Exp $
+//  $Id: antidbc02.C,v 1.12 2005/05/04 10:27:34 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -37,9 +37,9 @@ ANTIPeds ANTIPeds::anscped[ANTI2C::MAXANTI];//mem.reserv. for ANTI-ReadoutPaddle
   integer ANTI2DBc::_daqscf=2; //daq scaling factor for charge
   geant ANTI2DBc::_ftcoinw=50.;//not used
   geant ANTI2DBc::_hdpdmn=2.5; // hist-discrim. min pulse duration
-  geant ANTI2DBc::_ppfwid=120.;//"pattern" pulse fixed width(ns)
+  geant ANTI2DBc::_ppfwid=120.;//"pattern" pulses width(ns) for coinc.with FT(confirmed 30.04.2005)
   geant ANTI2DBc::_pbdblr=5.;  //"pattern" branche dbl-resol(dead time,ns)
-  geant ANTI2DBc::_pbgate=120.;//TgBox gate for "pattern" branche to check FT coinc.
+  geant ANTI2DBc::_pbgate=240.;//TgBox gate width to latch "pattern" pulses
 //
 //  ANTI2DBc class member functions :
 //
@@ -844,7 +844,7 @@ void ANTI2JobStat::printstat(){
 void ANTI2JobStat::bookmch(){
 //
   HBOOK1(2630,"ANTI-MC: Counters Etot (geant,Mev)",60,0.,30.,0.); 
-  HBOOK1(2631,"ANTI-MC: FTime-SideTime(SingleHits,ns)",80,-160.,160.,0.); 
+  HBOOK1(2631,"ANTI-MC: AbsFTime-AbsSideTime(SingleHits,ns)",80,-160.,160.,0.); 
   HBOOK1(2632,"ANTI-MC: DownSideEdep (pe,FillRawEvent)",80,0.,80.,0.); 
   HBOOK1(2633,"ANTI-MC: UpSideEdep (pe,FillRawEvent)",80,0.,80.,0.); 
   HBOOK1(2634,"ANTI-MC: DownSideEdep (ADCch-ped,FillRawEvent)",80,0.,80.,0.); 
@@ -857,15 +857,19 @@ void ANTI2JobStat::bookmch(){
 }
 void ANTI2JobStat::bookh(){
 //
-  HBOOK1(2500,"ANTI-REC: EtotSectors(Mev)",80,0.,40.,0.);
-  HBOOK1(2501,"ANTI-REC: NumbOfSectors",16,0.,16.,0.);
+  HBOOK1(2500,"ANTI-REC: EtotSectors(Mev,Esect>thr)",80,0.,40.,0.);
+  HBOOK1(2501,"ANTI-REC: NumbOfSectors(Esect>thr)",16,0.,16.,0.);
+  HBOOK1(2512,"ANTI-REC: NumbOfSectors(Esect>thr, + FT-coinc)",16,0.,16.,0.);
   HBOOK1(2502,"ANTI-REC: Total Time-hits per sector",16,0.,16.,0.);
   HBOOK1(2503,"ANTI-REC: MadeOfPair-TimeHits per sector",16,0.,16.,0.);
   HBOOK1(2504,"ANTI-REC: Sector Z-coo(cm,1Pair)",60,-60.,60.,0.);
   HBOOK1(2505,"ANTI-REC: Sector Z-coo(cm, 2sided but pairs!=1)",60,-60.,60.,0.);
-  HBOOK1(2506,"ANTI-REC: Sector appearance frequency",16,1.,17.,0.);
-  HBOOK1(2507,"ANTI-REC: NumbOfPairedSectors",16,0.,16.,0.);
+  HBOOK1(2506,"ANTI-REC: Sector appearance frequency(Esect>Thr)",16,1.,17.,0.);
+  HBOOK1(2507,"ANTI-REC: NumbOfPairedSectors(Esect>thr)",16,0.,16.,0.);
   HBOOK1(2508,"ANTI-REC: Edep per sector(mev,2sided)",80,0.,20.,0.);
+  HBOOK1(2509,"ANTI-REC: SectorSideHistTime-FTtime(2nd edge in tof_str)",80,-160.,160.,0.);
+  HBOOK1(2510,"ANTI-REC: Total FTCoincSectors(fromTrig)",10,0.,10.,0.);
+  HBOOK1(2511,"ANTI-REC: FTCoincSector frequency(0 when patt=0)",10,1.,11.,0.);
   if(ATREFFKEY.relogic>0){//book calib.hist
     HBOOK1(2530,"AntiCalib:Nfired/Nmatched sectors",20,0.,20.,0.);//spare
     HBOOK1(2531,"AntiCalib:Cyl-track Zcross(noCuts,both dirs)",75,-75.,75.,0.);
@@ -925,6 +929,7 @@ void ANTI2JobStat::outp(){
   if(ATREFFKEY.reprtf[0]>0){
     HPRINT(2500);
     HPRINT(2501);
+    HPRINT(2512);
     HPRINT(2507);
     HPRINT(2502);
     HPRINT(2503);
@@ -932,6 +937,9 @@ void ANTI2JobStat::outp(){
     HPRINT(2505);
     HPRINT(2506);
     HPRINT(2508);
+    HPRINT(2509);
+    HPRINT(2510);
+    HPRINT(2511);
   }
   if(ATREFFKEY.relogic>0){
     HPRINT(2626);

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.473 2005/03/11 11:16:14 choumilo Exp $
+// $Id: job.C,v 1.474 2005/05/04 10:27:35 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -295,7 +295,7 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.tfhzlc=1;//(4)TOF_HiZ_FT 2-top(2-bot)fired layers configurations(0/1/2/3-> 
 //                                              ->top(bot)OR/topAND/botAND/top(bot)AND 
 // ANTI :
-  TGL1FFKEY.nanti=1;//(5) max. fired ANTI-paddles(logical) in equat.region 
+  TGL1FFKEY.nanti=1;//(5) max. fired ANTI-paddles(logical) (in equat.region if it may be controlled)
 //
   TGL1FFKEY.RebuildLVL1=0;//(6)
 // 
@@ -305,6 +305,9 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.TheMagCut=0.7;//(9)geom.latitude cut when anti-cut is used(below-#5, above-0)
 // Ecal
   TGL1FFKEY.ectrlog=3;//(10) EC-trigger logic type(1->MyOld,2->MyNew+ANSI,3->Pisa)
+//
+  TGL1FFKEY.antisc=1;//(11)required ANTI-FastTrigger SIDE configuration
+//                                 (=0/1-> two-sides-AND/OR selection)
 //
   FFKEY("TGL1",(float*)&TGL1FFKEY,sizeof(TGL1FFKEY_DEF)/sizeof(integer),"MIXED");
 //----
@@ -1060,14 +1063,14 @@ void AMSJob::_retof2data(){
   TFREFFKEY.daqthr[1]=100.;//(14)tempor Anode high discr.thresh(100mV) for FT-trigger (z>=1)  
   TFREFFKEY.daqthr[2]=250.;//(15)tempor Anode superhigh discr.thresh(mV) for  "z>=2"-trig  
   TFREFFKEY.daqthr[3]=2.5;//(16)A/D(H/L)-ADC-readout threshold in DAQ (in PedSigmas)    
-  TFREFFKEY.daqthr[4]=1.;//(17)Thresh(pC) for anode-integrator
+  TFREFFKEY.daqthr[4]=1.;//(17)spare
 //
-  TFREFFKEY.cuts[0]=40.;//(18)t-window(ns) for "the same hit" search in f/s_tdc
+  TFREFFKEY.cuts[0]=40.;//(18) window(ns) to check sTDC/fTDC-coinc.(after fixed delay subtr.)
   TFREFFKEY.cuts[1]=15.;//(19)"befor"-cut in time history (ns)(max.PMT-pulse length?)
   TFREFFKEY.cuts[2]=400.;//(20)"after"-cut in time history (ns)(max. shaper integr.time?)
   TFREFFKEY.cuts[3]=2.8; //(21) error(cm) in longitudinal coordinate (single TOF bar)
-  TFREFFKEY.cuts[4]=80.;//(22) FT delay(min), for me is constant now
-  TFREFFKEY.cuts[5]=40.;//(23) sTDC-delay wrt fTDC
+  TFREFFKEY.cuts[4]=50.;//(22) FT delay(min), for me is constant now
+  TFREFFKEY.cuts[5]=40.;//(23) spare 
   TFREFFKEY.cuts[6]=0.6;//(24) 2-bars assim.cut in TOFCluster energy calculation
   TFREFFKEY.cuts[7]=8.;// (25) internal longit.coo matching cut ...Not used (spare)
   TFREFFKEY.cuts[8]=50.;//(26) spare 
@@ -1142,8 +1145,8 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.Edthr=0.1;  //(4) threshold to create Cluster(Paddle) object (mev)
   ATREFFKEY.zcerr1=10.; //(5) Err(cm).in longit.coord. when 2-sides times are known 
   ATREFFKEY.daqthr=3.;  //(6) spare
-  ATREFFKEY.dathr=2.;   //(7) spare
-  ATREFFKEY.ftwin=50.;  //(8) Tof FT-pulse <-> Anti "pattern"-pulse t-adjustment(ns)(used now in MC!) 
+  ATREFFKEY.ftdel=50.;  //(7) FT-delay wrt Anti history pulse
+  ATREFFKEY.ftwin=70.;  //(8) window to check Hist-hit/FT coincidence(+- around FT-delay corrected value)
 //
   ATREFFKEY.ReadConstFiles=0;//(9)PVS(Peds,VarCalPar,StabCalPar), P(V,S)=0/1-> read from DB/RawFiles
 //  
@@ -1189,19 +1192,19 @@ CHARGEFITFFKEY.EtaMin[1]=0.00;
 CHARGEFITFFKEY.EtaMax[0]=0.95;
 CHARGEFITFFKEY.EtaMax[1]=1.00;
 CHARGEFITFFKEY.ProbTrkRefit=0.01;
-CHARGEFITFFKEY.ResCut[0]=4.;
-CHARGEFITFFKEY.ResCut[1]=4.;
+CHARGEFITFFKEY.ResCut[0]=4.;//-1. to switch OFF incomp.clus.exclusion
+CHARGEFITFFKEY.ResCut[1]=4.;//
 CHARGEFITFFKEY.SigMin=0.1;
 CHARGEFITFFKEY.SigMax=0.3;
 CHARGEFITFFKEY.PdfNorm=1;//not used now (pdf's are normalized automatically)
-CHARGEFITFFKEY.TrMeanRes=1;
+CHARGEFITFFKEY.TrMeanRes=1;//(13) use normal(0)/"-incomp.hit"(1)truncated mean
 CHARGEFITFFKEY.ProbMin=0.01;
-CHARGEFITFFKEY.TrackerOnly=8;
+CHARGEFITFFKEY.TrackerOnly=9;
 CHARGEFITFFKEY.ChrgMaxAnode=9;//not used now
 CHARGEFITFFKEY.BetaPowAnode=0;//not used now
-CHARGEFITFFKEY.TrackerForceSK=0;
-CHARGEFITFFKEY.TrackerKSRatio=0.67;
-CHARGEFITFFKEY.TrackerProbOnly=3;
+CHARGEFITFFKEY.TrackerForceSK=0;//(18)
+CHARGEFITFFKEY.TrackerKSRatio=0.67;//(19)
+CHARGEFITFFKEY.TrackerProbOnly=9;
 CHARGEFITFFKEY.TrkPDFileMCVers=1;//MC vers.number of Trk-ElosPDFFile(trkpdffNNNmc.dat)
 CHARGEFITFFKEY.TrkPDFileRDVers=1;//RD vers.number of Trk-ElosPDFFile(trkpdffNNNrl.dat)
 CHARGEFITFFKEY.TrkPDFileRead=0;//read TrkPDF-info from DB(0) OR RawFile (1)

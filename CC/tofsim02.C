@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.28 2005/01/04 16:48:01 choumilo Exp $
+//  $Id: tofsim02.C,v 1.29 2005/05/04 10:27:36 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 #include <tofdbc02.h>
@@ -25,10 +25,12 @@ TOFWScan TOFWScan::scmcscan[TOF2GC::SCBTPN];
 uinteger TOF2RawEvent::trpatt[TOF2GC::SCLRS]={0,0,0,0};
 uinteger TOF2RawEvent::trpatt1[TOF2GC::SCLRS]={0,0,0,0};
 integer TOF2RawEvent::trflag=0;
+integer TOF2RawEvent::trflag1=0;
 number TOF2RawEvent::trtime=0.;
 number TOF2Tovt::itovts[TOF2GC::SCMCIEVM];
 number TOF2Tovt::icharg[TOF2GC::SCMCIEVM];
 integer TOF2Tovt::ievent;
+geant AMSBitstr::clkfas=0;
 //============================================================
 AMSDistr::AMSDistr(int _nbin, geant _bnl, geant _bnw, geant arr[]){// constructor
   nbin=_nbin;
@@ -1150,7 +1152,7 @@ number TOF2Tovt::tr1time(int &trcode, uinteger toftrp[]){
   TOF2Tovt *ptr;
 //
   geant trigb=TOF2DBc::trigtb();
-  geant pwid=TOF2DBc::daqpwd(0);
+  geant pwid=TOF2DBc::daqpwd(0);//pulse-width for Z>=1(HT) logic signals(going to SPT2)
   for(i=0;i<TOF2GC::SCLRS;i++)toftrp[i]=0;
 //
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
@@ -1169,7 +1171,7 @@ number TOF2Tovt::tr1time(int &trcode, uinteger toftrp[]){
       intrig=TriggerLVL302::TOFInFastTrigger(uinteger(ibar),uinteger(ilay));
       if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//<--bar/side in trigger(not masked)
 //
-        ntr=ptr->gettr1(ttr);// get number and times of trig1 ("z>=1")
+        ntr=ptr->gettr1(ttr);// get number and times of "z>=1"==HT
         for(j=0;j<ntr;j++){// <--- trig-hits loop ---
           t1=geant(ttr[j]);
           t2=t1+pwid;
@@ -1186,12 +1188,13 @@ number TOF2Tovt::tr1time(int &trcode, uinteger toftrp[]){
       ptr=ptr->next();// take next Tovt-hit
 // 
     }//--- end of Tovt-hits loop in layer --->
-//
 // Now create both side  bit pattern for CURRENT layer
+// (trbs[isd]-pulses are not width-formatted)
     if(TGL1FFKEY.tofsc == 0)
                                 trbl[ilay]=trbs[0] & trbs[1];// 2-sides AND
     else
                                 trbl[ilay]=trbs[0] | trbs[1];// 2-sides OR
+    trbl[ilay].clatch();//25MHz-clock latch of 2-sides OR(AND) signal trbl
 //
   } //--- end of layer loop --->
 //
@@ -1354,7 +1357,7 @@ number TOF2Tovt::tr2time(int &trcode, uinteger toftrp[]){
   TOF2Tovt *ptr;
 //
   geant trigb=TOF2DBc::trigtb();
-  geant pwid=TOF2DBc::daqpwd(2);//pulse-width for top(bot)-layers coincidence
+  geant pwid=TOF2DBc::daqpwd(2);//pulse width of "Z>=2(SHT)" logic signals(going to SPT2)
   geant pwext=TOF2DBc::daqpwd(13);//pulse-width for top/bot-sum coincidence
   for(i=0;i<TOF2GC::SCLRS;i++)toftrp[i]=0;
 //
@@ -1393,10 +1396,12 @@ number TOF2Tovt::tr2time(int &trcode, uinteger toftrp[]){
     }//--- end of Tovt-hits loop in layer --->
 //
 // Now create both side  bit pattern for CURRENT layer
+// (trbs[isd]-pulses are not width-formatted)
     if(TGL1FFKEY.tofsc == 0)
                                 trbl[ilay]=trbs[0] & trbs[1];// 2-sides AND
     else
                                 trbl[ilay]=trbs[0] | trbs[1];// 2-sides OR
+    trbl[ilay].clatch();//25MHz-clock latch of 2-sides OR(AND) signal trbl
 //
   } //--- end of layer loop --->
 //
@@ -1645,7 +1650,7 @@ Exit1:
       ncoins=0;
       intrig=TriggerLVL302::TOFInFastTrigger(uinteger(ibar),uinteger(ilay));
       if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//bar/side in trigger(not masked)
-        ntr=ptr->gettr3(ttr);// get number and times of trig3 ("z>=2")
+        ntr=ptr->gettr3(ttr);// get number and times of "z>=2"==SHT
         for(j=0;j<ntr;j++){// <--- trig-hits loop ---
           t1=geant(ttr[j]);
           t2=t1+pwid;
@@ -1821,6 +1826,51 @@ void AMSBitstr::display(char comment[]){
     }
     if(bslen%10 !=0)printf("\n");
   }
+//-----------------------------------------------------------------------
+void AMSBitstr::clatch(){
+//---> make latching with trig.electronics clock: 
+  static unsigned short int allzer(0x0000);
+  static unsigned short int allone(0xFFFF);
+  static unsigned short int setone[16]={
+       0x8000,0x4000,0x2000,0x1000,0x0800,0x0400,0x0200,0x0100,
+       0x0080,0x0040,0x0020,0x0010,0x0008,0x0004,0x0002,0x0001};
+  int cbl=int(floor(TOF2DBc::clkper()/TOF2DBc::trigtb()));//clock periond length (bits)
+  unsigned short int bstr[TOFGC::SCWORM]; // max. length in 16-bit words
+  unsigned short int bv;
+  int i,iw,iwn,jw,nw,ibln,ib,ibl,blmn,blmx(16*bslen);
+//
+  for(iw=0;iw<TOFGC::SCWORM;iw++)bstr[iw]=0;
+  blmn=int(floor(clkfas*TOF2DBc::clkper()/TOF2DBc::trigtb()));//1st clock-pulse position
+  for(ib=blmn;ib<blmx;ib+=cbl){
+    iw=ib/16;//current word(begg.of period)
+    ibl=ib-16*iw;//local bit(in current word)
+    bv=bitstr[iw]&setone[ibl];//local bit value of original bitstream
+    if(bv!=0){//set next cbl bits starting from current
+      iwn=(ib+cbl)/16;//next word(where the new clock period starts)
+      ibln=(ib+cbl)-16*iwn;//next loc.bit(in next period word)
+      if(iwn>=bslen){
+        iwn=bslen-1;
+	ibln=15;
+      }
+      nw=iwn-iw+1;//words to fill(incl.uncomplete ones) bef the start of the next period
+      if(nw==0){
+        for(i=ibl;i<ibln;i++)bstr[iw]|=setone[i];//set needed 1's in current word
+      } 
+      else{
+        for(i=ibl;i<16;i++)bstr[iw]|=setone[i];//set 1's upto the end of the 1st word of curr. period
+	for(jw=0;jw<nw-2;jw++)bstr[iw+1+jw]=allone;//fill middle nw-2 complete words of curr.period
+	for(i=0;i<ibln;i++)bstr[iw+nw-1]|=setone[i];//set 1's at the beg. of the last word of curr.period  
+      }
+    }
+  }
+  for(iw=0;iw<bslen;iw++)bitstr[iw]=bstr[iw];//refill original bitstream
+}
+//-----------------------------------------------------------------------
+void AMSBitstr::setclkphase(){
+//randomly sets trig.electronics clock-pulse phase(called once per event !!!)
+  geant dummy(-1);
+  clkfas=RNDM(dummy);
+}
 //
 //=====================================================================
 //
@@ -1837,7 +1887,7 @@ void TOF2RawEvent::mc_build(int &status)
   int16u  ftdc[TOF2GC::SCTHMX2*2],stdc[TOF2GC::SCTHMX3*4];
   int16u adca,adcal;
   int16u adcd[TOF2GC::PMTSMX],adcdl[TOF2GC::PMTSMX];
-  number t,t1,t2,t3,t4,tprev,ttrig1,ttrig2,dt,tlev1,tl1d,ftrig,ecftrig;
+  number t,t1,t2,t3,t4,tprev,ttrig,ttrig1,ttrig2,dt,tlev1,tl1d,ftrig,ecftrig;
   geant charge,edep,strr[2][2],str,offs;
   geant daqt1,rrr;
   number pedv,peds,amp;
@@ -1858,33 +1908,40 @@ void TOF2RawEvent::mc_build(int &status)
   daqt1=TOF2Varp::tofvpar.daqthr(3);//daq readout thr (ped sigmas)
 //
   trflag=-1;
-  TOF2RawEvent::settrfl(trflag);// reset  TOF-trigger flag
+  TOF2RawEvent::settrfl(trflag);// reset  TOF-trigger flag(z>=1)
+  TOF2RawEvent::settrfl1(trflag);// reset  TOF-trigger flag(z>=2)
   TOF2RawEvent::setpatt(trpatt1);// reset  TOF-trigger pattern(z>=1)
   TOF2RawEvent::setpatt1(trpatt2);// reset  TOF-trigger pattern(z>=2)
 //-----
   if(TGL1FFKEY.trtype<256){//<=== not external trigger
 //
   ttrig1=TOF2Tovt::tr1time(trcode1,trpatt1);//get abs.trig1(FT"z>=1") signal time/patt
-  if(TFMCFFKEY.mcprtf[2]!=0)HF1(1069,geant(trcode1),1.);
-  if(trcode1>=0){// <---- use own(TOF) FT 
-    status=0;
-    trflag=trcode1;// ok: h/w trigger(z>=1) present -> do digitization:
-    TOF2RawEvent::setpatt(trpatt1);// set trigger pattern(z>=1)
-    if(TFMCFFKEY.mcprtf[2]!=0){
-      for(int il=0;il<TOF2GC::SCLRS;il++){// pattern histogr
-      for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
-        if((trpatt1[il]&(1<<ib)) > 0)HF1(1065,geant(il*20+ib),1.);
-        if((trpatt1[il]&(1<<(16+ib))) > 0)HF1(1066,geant(il*20+ib),1.);
-      }
+  ttrig2=TOF2Tovt::tr2time(trcode2,trpatt2);//get abs.trig2(FT"z>=2") signal time/patt
+  if(TFMCFFKEY.mcprtf[2]!=0){
+    HF1(1069,geant(trcode1),1.);
+    HF1(1069,geant(trcode2)+30.,1.);
+  }
+  if(trcode1>=0 || trcode2>=0){// <---- use own(TOF) (FT/FTZ) 
+    if(trcode1>=0){//was z>=1(FT)
+      trflag=trcode1;// ok: h/w trigger(z>=1) present -> do digitization:
+      ttrig=ttrig1;
+      TOF2RawEvent::settrfl(trflag);// set trigger flag(z>=1)
+      TOF2RawEvent::setpatt(trpatt1);// set trigger pattern(z>=1)
+      if(TFMCFFKEY.mcprtf[2]!=0){
+        for(int il=0;il<TOF2GC::SCLRS;il++){// pattern histogr
+        for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
+          if((trpatt1[il]&(1<<ib)) > 0)HF1(1065,geant(il*20+ib),1.);
+          if((trpatt1[il]&(1<<(16+ib))) > 0)HF1(1066,geant(il*20+ib),1.);
+        }
+        }
       }
     }    
-//
-    ttrig2=TOF2Tovt::tr2time(trcode2,trpatt2);//get abs.trig3("z>=2") signal time/patt
-    if(trcode2>=0){
-      if(TFMCFFKEY.mcprtf[2]!=0)HF1(1069,geant(trcode2)+10.,1.);
-      trflag=10+trcode2;//mark z>=2
+//  
+    if(trcode2>=0){//was z>=2(FTZ)
+      trflag=trcode2;
+      TOF2RawEvent::settrfl1(trflag);// set trigger flag(z>=2)
       TOF2RawEvent::setpatt1(trpatt2);// set trigger pattern(z>=2)
-      if(TFMCFFKEY.mcprtf[2]!=0){
+      if(TFMCFFKEY.mcprtf[2]!=0 && trcode1<0){
         for(int il=0;il<TOF2GC::SCLRS;il++){// pattern histogr
         for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
           if((trpatt2[il]&(1<<ib)) > 0)HF1(1067,geant(il*20+ib),1.);
@@ -1892,13 +1949,10 @@ void TOF2RawEvent::mc_build(int &status)
         }
         }
       }    
-      if(ttrig2<ttrig1){//should not be a real case, but not forbidden in principle(jitters) 
-        ttrig1=ttrig2; // because FT z>=1 and z>=2 (+ECFT) are ORed on "TrigBox" output
-      }
+      if(trcode1<0)ttrig=ttrig2; // use FTZ-time only if FT missing(when both OK - use FT-time)
     }
 //
-    TOF2RawEvent::settrfl(trflag);// set final trigger flag
-    ftrig=ttrig1+TOF2Varp::tofvpar.ftdelf();//FT abs time(+fixed delay) as it came to SFET from "TrBox"
+    ftrig=ttrig+TOF2Varp::tofvpar.ftdelf();//FT abs time(+fixed delay) as it came to SFET from "TrBox"
     TOF2RawEvent::settrtime(ftrig);// store FTrigger time 
     tlev1=ftrig+TOF2DBc::accdel();// "common stop"-signal abs.time
     if(TFMCFFKEY.mcprtf[2]!=0){
@@ -1926,6 +1980,7 @@ void TOF2RawEvent::mc_build(int &status)
   }
 //-----  
 //
+  status=0;
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(TOF2Tovt*)AMSEvent::gethead()->
                                getheadC("TOF2Tovt",ilay,0);
@@ -2055,7 +2110,7 @@ void TOF2RawEvent::mc_build(int &status)
 	amp=number(iamp)-pedv;// subtract pedestal (loose "integerization" !)
 //cout<<"    Ah: ped/sig="<<pedv<<" "<<peds<<" iamp/-ped="<<iamp<<" "<<amp<<endl;
 	if(amp>daqt1*peds){// DAQ readout threshold
-	  iamp=floor(amp/TOF2DBc::tdcbin(2)+0.5);// floatADC -> int DAQ bins
+	  iamp=integer(floor(amp/TOF2DBc::tdcbin(2)+0.5));// floatADC -> int DAQ bins
           itt=int16u(iamp);
           adca=itt;
 	}
@@ -2081,7 +2136,7 @@ void TOF2RawEvent::mc_build(int &status)
       amp=number(iamp)-pedv;// subtract pedestal (loose "integerization" !)
 //cout<<"    Al: ped/sig="<<pedv<<" "<<peds<<" iamp/-ped="<<iamp<<" "<<amp<<endl;
       if(amp>daqt1*peds){// DAQ readout threshold 
-	iamp=floor(amp/TOF2DBc::tdcbin(2)+0.5);// floatADC -> int DAQ bins
+	iamp=integer(floor(amp/TOF2DBc::tdcbin(2)+0.5));// floatADC -> int DAQ bins
         itt=int16u(iamp);
         adcal=itt;
       }
@@ -2108,7 +2163,7 @@ void TOF2RawEvent::mc_build(int &status)
 	  amp=number(iamp)-pedv;// subtract pedestal (loose "integerization" !)
 //cout<<"    Dh: pm/ped/sig="<<j<<" "<<pedv<<" "<<peds<<" iamp/-ped="<<iamp<<" "<<amp<<endl;
 	  if(amp>daqt1*peds){// DAQ readout threshold
-	    iamp=floor(amp/TOF2DBc::tdcbin(2)+0.5);// floatADC -> DAQ bins
+	    iamp=integer(floor(amp/TOF2DBc::tdcbin(2)+0.5));// floatADC -> DAQ bins
             itt=int16u(iamp);
             adcd[j]=itt;
             _nadcd+=1;//number of nonzero(>thr) pmts !!!
@@ -2138,7 +2193,7 @@ void TOF2RawEvent::mc_build(int &status)
 	amp=number(iamp)-pedv;// subtract pedestal (loose "integerization" !)
 //cout<<"    Dl: pm/ped/sig="<<j<<" "<<pedv<<" "<<peds<<" iamp/-ped="<<iamp<<" "<<amp<<endl;
 	if(amp>daqt1*peds){// DAQ readout threshold
-	  iamp=floor(amp/TOF2DBc::tdcbin(2)+0.5);// floatADC -> DAQ bins
+	  iamp=integer(floor(amp/TOF2DBc::tdcbin(2)+0.5));// floatADC -> DAQ bins
           itt=int16u(iamp);
           adcdl[j]=itt;
           _nadcdl+=1;

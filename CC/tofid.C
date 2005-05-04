@@ -59,7 +59,7 @@ AMSSCIds::AMSSCIds(int16u layer, int16u bar, int16u side, int16u pmt, int16u mty
   _bar=bar;//0,1,...
   _side=side;
   _pmt=pmt;//0,1,2,3(Anode,Dyn1,Dyn2,Dyn3)
-  _mtyp=mtyp;//0,1,2,3(fTDC,sTDC,Qh,Ql)
+  _mtyp=mtyp;//0,1,2,3(sTDC,fTDC(hist),Qh,Ql)
   
 //_swch => glogal sequential sw-channel(TOF+ANTI, incl pmts and mtyps)
   _swch=swseqn(_dtype,_layer,_bar,_side,_pmt,_mtyp);
@@ -88,7 +88,7 @@ AMSSCIds::AMSSCIds(int16u bar, int16u side, int16u pmt, int16u mtyp):_dummy(0){
   _bar=bar;//0,1,...
   _side=side;//0,1
   _pmt=pmt;//0(Anode only)
-  _mtyp=mtyp;//1,2,3(no 0==fTDC)
+  _mtyp=mtyp;//1,2,3(no 0==sTDC)
   
 //_swch => glogal sequential sw-channel(TOF+ANTI, incl pmts and mtyps)
   _swch=swseqn(_dtype,_layer,_bar,_side,_pmt,_mtyp);
@@ -105,6 +105,7 @@ AMSSCIds::AMSSCIds(int16u bar, int16u side, int16u pmt, int16u mtyp):_dummy(0){
   else{
     _dummy=1;
     cout<<"AntiConstructor:non-phys. s/w-chan: bar/side/pm/mtyp="<<bar<<"/"<<side<<"/"<<pmt<<"/"<<mtyp<<endl;
+    cout<<"   swid="<<_swid<<" swch="<<_swch<<" hwid="<<_hwid<<endl;
   }
 }
 //------
@@ -855,7 +856,7 @@ void AMSSCIds::inittable(){
   sidlst[bias+38]=0;//              empty  
   sidlst[bias+39]=0;//              empty  
   bias+=40;
-  cout<<"AMSSCIds::init: total TOF+ANTI h/w-channels initialized: "<<bias<<endl;
+  cout<<"AMSSCIds::init: total TOF+ANTI h/w-channels initialized(incl.empty): "<<bias<<endl;
 //
 //---> prepare hwch->hwid table:
 //
@@ -872,7 +873,7 @@ void AMSSCIds::inittable(){
       }
     }
   }
-  cout<<"AMSSCIds::init: S-crates capacity="<<hwch<<" h/w-channels"<<endl;
+  cout<<"AMSSCIds::init: S-crates capacity="<<hwch<<" h/w-channels(incl.empty)"<<endl;
 //
 //--->create invers table (hwid=F(swch)):
 //
@@ -913,7 +914,7 @@ Found1:
     for(int is=0;is<2;is++){
       mtmn=1;
       pmt=0;
-      for(int mt=mtmn;mt<ANAMTS;mt++){
+      for(int mt=mtmn;mt<=ANAMTS;mt++){
         swid=1000*(ib+1)+100*(is+1)+10*pmt+mt;//BSPM
 	for(int hc=0;hc<bias;hc++){//<-search in sidlst
 	  if(swid==sidlst[hc]){
@@ -931,6 +932,10 @@ Found2:
     }//side
   }//logic-sector
 //  
+  if(swch!=(totswch[0]+totswch[1])){
+    cout<<"AMSSCIds::init:Error in ANTI-swch counting !!!"<<endl;
+    exit(1);
+  }
 }
 //---------------
 int16u AMSSCIds::swseqn(int dtype, int16u layer, int16u bar, int16u side,

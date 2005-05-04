@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.26 2005/03/11 11:16:14 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.27 2005/05/04 10:27:35 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -74,7 +74,7 @@ geant TOF2DBc::_plnstr[20]={
 };
 //---> Initialize TOF MC/RECO "time-stable" parameters :
 //
-  geant TOF2DBc::_edep2ph={10000.};//(was 8k for old scint)edep(Mev)-to-Photons convertion
+  geant TOF2DBc::_edep2ph=10000.;//(was 8k for old scint)edep(Mev)-to-Photons convertion
   geant TOF2DBc::_seresp=1.16;    // PMT Sing.elec.responce(MP=Mean,mV), was 1.45 for ams01
   geant TOF2DBc::_seresv=0.87;     // PMT Sing.elec.responce sigma(rel. to Mean)
   geant TOF2DBc::_adc2q=1.;       // not used (now taken from TFCA #21)
@@ -91,16 +91,16 @@ geant TOF2DBc::_plnstr[20]={
     0.                             // spare
   };
   geant TOF2DBc::_daqpwd[15]={
-    250.,   // (0)pulse width of "z>=1(FT)" indiv.paddle signal(going to SFET OR) (ns) 
+    250.,   // (0)pulse width of "z>=1(HT)" indiv.paddle signal(going to SPT2) (ns) 
     5500.,  // (1)max.pulse(triang) duration of sTDC(charge+discharge) signal
-    250.,   // (2)pulse width of "z>=2" indiv.paddle signal (going to SFET OR)
+    250.,   // (2)pulse width of "z>=2(SHT)" indiv.paddle signal (going to SPT2)
     10.,    // (3)double pulse resolution of fast(history) TDC (ns)
     5600.,  // (4)max.buzy time of sTDC-system(charge+discarge+dead) (ns)
-    80.,    // (5) gate-width for z>=1 tof-trig-pattern creation(in SFET)
-    120.,   // (6) gate-width for z>=2 tof-trig-pattern creation
-    2.,     // (7)dead time(min.dist last_down<->next_up) of "z>=1(FT)" branch of HiThr-discr
+    250.,   // (5) gate-width for z>=1 tof-trig-pattern creation(in SPT2)
+    250.,   // (6) gate-width for z>=2 tof-trig-pattern creation(in SPT2)
+    2.,     // (7)dead time(min.dist last_down<->next_up) of "z>=1(HT)" branch of HiThr-discr
     2.,     // (8)dead time of discr.itself(ns)
-    2.,     // (9)dead time of "z>=2" branch of SuperHiThr-discr
+    2.,     // (9)dead time of "z>=2" branch of SuperHiThr(SHT)-discr
     0.02,   // (10)fast discr. internal accuracy(ns) + (?) to have exp.resolution
     2.,     // (11)min. pulse duration (ns) of fast discr.(comparator) 
     18.,    // (12)(as dummy gap in s-TDC pulse,ns) 
@@ -112,11 +112,11 @@ geant TOF2DBc::_plnstr[20]={
   geant TOF2DBc::_strrat=25.;  // spare
   geant TOF2DBc::_strjit1=0.;  // "start"-pulse jitter at stretcher input
   geant TOF2DBc::_strjit2=0.;  // "stop"(FT)-pulse jitter at stretcher input
-  geant TOF2DBc::_accdel=6000.;// "Lev-1"(CommonStop) signal delay with respect to FT (ns)
+  geant TOF2DBc::_accdel=6000.;// "CommonStop" signal delay with respect to FT (ns)
   geant TOF2DBc::_ftdelf=0.;   // spare       (because now taken from DC/DB)
-  geant TOF2DBc::_ftdelm=220.; // FT max delay (allowed by stretcher logic) (ns)
+  geant TOF2DBc::_ftdelm=250.; // FT max delay (allowed by stretcher logic) (ns)
   geant TOF2DBc::_fstdcd=28.;  // spare       (because now taken from DC/DB)
-  geant TOF2DBc::_fatdcd=5.;   // spare
+  geant TOF2DBc::_clkper=40.;  // Trig.electronics clock period(ns)
   integer TOF2DBc::_pbonup=1;  // set phase-bit for leading(up) edge (yes/no->1/0) 
 //
 //  member functions :
@@ -369,7 +369,7 @@ geant TOF2DBc::_plnstr[20]={
   geant TOF2DBc::ftdelf(){return _ftdelf;}
   geant TOF2DBc::ftdelm(){return _ftdelm;}
   geant TOF2DBc::fstdcd(){return _fstdcd;}
-  geant TOF2DBc::fatdcd(){return _fatdcd;}
+  geant TOF2DBc::clkper(){return _clkper;}
   geant TOF2DBc::seresp(){return _seresp;}
   geant TOF2DBc::seresv(){return _seresv;}
   geant TOF2DBc::adc2q(){return _adc2q;}
@@ -2459,15 +2459,13 @@ void TOF2JobStat::bookhist(){
       HBOOK1(1125,"STR-tmp-reference in Crate-6",50,4030.,4080.,0.);
       HBOOK1(1126,"STR-tmp-reference in Crate-7",50,1970.,2020.,0.);
       HBOOK1(1127,"STR-tmp-reference in Crate-8",50,1980.,2030.,0.);
-      HBOOK1(1130,"ANODE-tmp-reference in Crate-1",50,0.,100.,0.);
-      HBOOK1(1131,"ANODE-tmp-reference in Crate-2",50,0.,100.,0.);
-      HBOOK1(1132,"ANODE-tmp-reference in Crate-3",50,0.,100.,0.);
-      HBOOK1(1133,"ANODE-tmp-reference in Crate-4",50,0.,100.,0.);
-      HBOOK1(1134,"ANODE-tmp-reference in Crate-5",50,0.,100.,0.);
-      HBOOK1(1135,"ANODE-tmp-reference in Crate-6",50,0.,100.,0.);
-      HBOOK1(1136,"ANODE-tmp-reference in Crate-7",50,0.,100.,0.);
-      HBOOK1(1137,"ANODE-tmp-reference in Crate-8",50,0.,100.,0.);
     }
+    
+    HBOOK1(1130,"RawCluster:AbsFTTime(-6mks,cr1)",80,-50.,50.,0.);
+    HBOOK1(1131,"RawCluster:AbsFTTime(-6mks,cr2)",80,-50.,50.,0.);
+    HBOOK1(1132,"RawCluster:AbsFTTime(-6mks,cr3)",80,-50.,50.,0.);
+    HBOOK1(1133,"RawCluster:AbsFTTime(-6mks,cr4)",80,-50.,50.,0.);
+    
     if(TFREFFKEY.reprtf[4]>0){ // Str.pulse width for selected channel
       ich=TFREFFKEY.reprtf[4];// LBBS
       ic=ich/10;//LBB
@@ -2676,11 +2674,11 @@ void TOF2JobStat::bookhistmc(){
       HBOOK1(1064,"SIMU: Dl-adc(eq.sum/npm, id=104,s1,NoPeds)",100,0.,100.,0.);
       HBOOK1(1065,"SIMU: LZTrigPat:S1-frequence(L=1,4)",80,0.,80.,0.);
       HBOOK1(1066,"SIMU: LZTrigPat:S2-frequence(L=1,4)",80,0.,80.,0.);
-      HBOOK1(1067,"SIMU: HZTrigPat:S1-frequence(L=1,4)",80,0.,80.,0.);
-      HBOOK1(1068,"SIMU: HZTrigPat:S2-frequence(L=1,4)",80,0.,80.,0.);
-      HBOOK1(1069,"SIMU: TofFtCode(<0/0-8/+10->Rej/LZ/HZ)",30,-10.,20.,0.);
+      HBOOK1(1067,"SIMU: HZTrigPat(NoLZ):S1-frequence(L=1,4)",80,0.,80.,0.);
+      HBOOK1(1068,"SIMU: HZTrigPat(NoLZ):S2-frequence(L=1,4)",80,0.,80.,0.);
+      HBOOK1(1069,"SIMU: TofFtCodes(<0/0-8/+30->RejLZ/LZ +RejHZ/HZ)",50,-10.,40.,0.);
       HBOOK1(1076,"SIMU: ECTrigFlag when TOFTrflag OK",40,0.,40.,0.);
-      HBOOK1(1077,"SIMU: TOFFTTime-ECFTTime",100,-50.,50.,0.);
+      HBOOK1(1077,"SIMU: TOFFTTime-ECFTTime",80,-80.,80.,0.);
       HBOOK1(1078,"SIMU: Out-of-width hit",50,0.,5.,0.);
       HBOOK1(1079,"SIMU: Out-of-thickness hit",50,0.,5.,0.);
       HBOOK1(1080,"SIMU: GHitTime",100,0.,1000.,0.);
@@ -2719,6 +2717,12 @@ void TOF2JobStat::outp(){
          HPRINT(1112);
          HPRINT(1113);
          HPRINT(1114);
+	 
+         HPRINT(1130);
+         HPRINT(1131);
+         HPRINT(1132);
+         HPRINT(1133);
+	 
 //         HPRINT(1095);
 //         HPRINT(1096);
 //         HPRINT(1097);
@@ -2754,14 +2758,6 @@ void TOF2JobStat::outp(){
              HPRINT(1125);
              HPRINT(1126);
              HPRINT(1127);
-             HPRINT(1130);
-             HPRINT(1131);
-             HPRINT(1132);
-             HPRINT(1133);
-             HPRINT(1134);
-             HPRINT(1135);
-             HPRINT(1136);
-             HPRINT(1137);
            }
          if(TFREFFKEY.reprtf[4]>0){
            HPRINT(1138);

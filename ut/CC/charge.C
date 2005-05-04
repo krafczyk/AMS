@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.70 2005/03/11 11:16:14 choumilo Exp $
+//  $Id: charge.C,v 1.71 2005/05/04 10:27:34 choumilo Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -97,7 +97,7 @@ integer AMSCharge::build(integer refit){
     CHARGEFITFFKEY.ResCut[0]=-1.;     // no incompatible TOF clus exclusion
     CHARGEFITFFKEY.ResCut[1]=-1.;     // no incompatible Tracker clus exclusion
     CHARGEFITFFKEY.TrMeanRes=0;       // use normal(0)/"-incomp.hit"(1)truncated mean
-    CHARGEFITFFKEY.ChrgMaxAnode=10;   // spare 
+    CHARGEFITFFKEY.ChrgMaxAnode=9;   // spare 
     CHARGEFITFFKEY.BetaPowAnode=0;    // no corr. on anode beta dependence for z>1
     CHARGEFITFFKEY.TrackerForceSK=1;  // force tracker hit energies to be x+y
     CHARGEFITFFKEY.TrackerKSRatio=1.; // average x/y tracker energy ratio
@@ -311,6 +311,7 @@ integer AMSCharge::FitTOF(int refit, number beta, int bstatus, int nhitTOF, AMST
   nhittoftyp=0;
   for(i=0; i<nhitTOF; i++){
     typetof[i]=-1;
+    etofh[i]=0;
     if(refit<=0 && etof[i]>0){
       typetof[i]=0;//mark good(not_incomp) hits with "0"
       etofh[i]=etof[i];//store hits for lkhc-calc(incomp.hits with etof=0 will be mark typetof=-1) 

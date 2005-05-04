@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.24 2005/01/04 16:48:01 choumilo Exp $
+//  $Id: trigger102.C,v 1.25 2005/05/04 10:27:36 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -24,12 +24,13 @@ void Trigger2LVL1::build(){
 // TOF : 
   int i,il,ib,ibmx,ns1,ns2;
   integer ntof=0;
-  uinteger tofpatt[TOF2GC::SCLRS]={0,0,0,0};//new: all sides,corresp.to real z>=?
-  uinteger tofpatt1[TOF2GC::SCLRS]={0,0,0,0};//new: all sides,z>=1
-  uinteger tofpatt2[TOF2GC::SCLRS]={0,0,0,0};//new: all sides,z>=2
+  uinteger tofpatt[TOF2GC::SCLRS]={0,0,0,0};
+  uinteger tofpatt1[TOF2GC::SCLRS]={0,0,0,0};//all sides,z>=1
+  uinteger tofpatt2[TOF2GC::SCLRS]={0,0,0,0};//all sides,z>=2
   uinteger LVL1Mode(0);//1st 9bits -> (fired & requested)-branche pattern
-  integer tflg(0);
-  integer tofflag(0);//new: 0->4planes, (1-4)->3plns, (5-8)->2plns, <0->noFT, +10->Z>=2
+  integer tflg(-1);
+  integer tofflag(-1);//0->4planes,(1-4)->3plns,(5-8)->2plns, <0->noAnyFT, +10->alsoFTZ>=0,+20->onlyFTZ>=0
+  integer tofflag1(0),tofflag2(0);
   integer nanti=0;
   uinteger antipatt=0;
   uinteger ectrigfl=0;
@@ -42,11 +43,21 @@ void Trigger2LVL1::build(){
   if(!AMSJob::gethead()->isReconstruction()){// <---- MC
 //
 //-->TOF:
-    tofflag=TOF2RawEvent::gettrfl();//<0 ->noFT, >=0 ->OK
+    tofflag1=TOF2RawEvent::gettrfl();//<0 ->noFT(z>=1), >=0 ->OK
+    tofflag2=TOF2RawEvent::gettrfl1();//<0 ->noFTZ(z>=2), >=0 ->OK
+    
+    if(tofflag1>=0){//tempor.solution(with only 1 tofflag-variable in lvl1-class)
+      tofflag=tofflag1;
+      if(tofflag2>=0)tofflag=10+tofflag1;
+    }
+    else{
+      if(tofflag2>=0)tofflag=20+tofflag2;
+    }
+    
     TOF2RawEvent::getpatt(tofpatt1);//z>=1
     TOF2RawEvent::getpatt1(tofpatt2);//z>=2
     if(tofflag>=0){
-      if(tofflag/10>0)TOF2RawEvent::getpatt1(tofpatt);//z>=2
+      if(tofflag/10>1)TOF2RawEvent::getpatt1(tofpatt);//z>=2
       else TOF2RawEvent::getpatt(tofpatt);//z>=1
       tflg=tofflag%10;//0->4planes, (1-4)->3plns, (5-8)->2plns, <0->noFT
       if(tflg==0)ntof=4;
@@ -66,11 +77,8 @@ void Trigger2LVL1::build(){
 //   
 //-->ANTI:
     
-    antipatt=Anti2RawEvent::getpatt();//bits (1-8)->s1(bot), (9-16)->s2(top)
-    for(i=0;i<ANTI2C::MAXANTI;i++){
-      cbt=1<<i;
-      if((antipatt&cbt)>0 || (antipatt&(cbt<<8))>0)nanti+=1;//counts FTcoinc-paddles(2 OR-ed ends)
-    }
+    antipatt=Anti2RawEvent::getpatt();//bits (1-8)->sectors in coinc.with FT
+    nanti=Anti2RawEvent::getncoinc();
 //
 //-->ECAL:
     ectrigfl=AMSEcalRawEvent::gettrfl();
@@ -125,24 +133,26 @@ void Trigger2LVL1::build(){
 // check combined (tof+anti+ecal)trigger flag:
 //
   bool BranchOK[8]={0,0,0,0,0,0,0,0};
-  bool tofok(0),antiok(0),ecok(0),ec1ok(0),ec2ok(0),comtrok(0);
+  bool tofok(0),tofbzok(0),antiok(0),ecok(0),ec1ok(0),ec2ok(0),comtrok(0);
 //
   if(tofflag>=0)tofok=1;
-  if(fabs(gmaglat)>TGL1FFKEY.TheMagCut && nanti==0)antiok=1;
-  if(fabs(gmaglat)<TGL1FFKEY.TheMagCut && nanti <= TGL1FFKEY.nanti)antiok=1;
+  if(tofflag/10>0)tofbzok=1;
+//  if(fabs(gmaglat)>TGL1FFKEY.TheMagCut && nanti==0)antiok=1;
+//  if(fabs(gmaglat)<TGL1FFKEY.TheMagCut && nanti <= TGL1FFKEY.nanti)antiok=1;
+  if(nanti <= TGL1FFKEY.nanti)antiok=1;
   if(ectrigfl>0)ecok=1;//"at least MIP" activity in ECAL
 //
-  BranchOK[0]=tofok;                       //(1) unbiased#1 (TOF(anyZ) only (equiv TOFFT))
-  BranchOK[1]=ecok;                        //(2) unbiased#2 (EC(ectrigfl>0) only)
-  BranchOK[2]=tofok && ecok;               //(3) unbiased#3 trigger (TOF && EC(ectrigfl>0))
-  BranchOK[3]=tofok || ecok;               //(4) unbiased#4 trigger (TOF || EC(ectrigfl>0))
-  BranchOK[4]=tofok && antiok;             //(5) Z>=1 particle trigger
-  BranchOK[5]=tofok && (tofflag/10>0);     //(6) Z>=2 particle trigger
+  BranchOK[0]=tofok;                        //(1) unbiased#1 (TOF(anyZ) only (equiv TOFFT))
+  BranchOK[1]=ecok;                         //(2) unbiased#2 (EC(ectrigfl>0) only)
+  BranchOK[2]=tofok && ecok;                //(3) unbiased#3 trigger (TOF && EC(ectrigfl>0))
+  BranchOK[3]=tofok || ecok;                //(4) unbiased#4 trigger (TOF || EC(ectrigfl>0))
+  BranchOK[4]=tofok && !tofbzok && antiok;  //(5) Z=1 particle trigger(no Z>=2 trig !!!)
+  BranchOK[5]=tofbzok;                      //(6) Z>=2 particle trigger(BZ) 
   BranchOK[6]=(tofok && (ectrigfl/10>=2)
                      && (ectrigfl%10==2)
-		                       );  //(7) e+- trigger(TOF & ECEt>LowThr & ECWd=em)
+		                       );   //(7) e+- trigger(TOF & ECEt>LowThr & ECWd=em)
   BranchOK[7]=(ectrigfl/10>=3 
-               && ectrigfl%10==2);         //(8) photon trigger (ECEt>HiThr & ECWd=em)
+               && ectrigfl%10==2);          //(8) photon trigger (ECEt>HiThr & ECWd=em)
 //
   int nbreq(0);
   HF1(ECHIST+25,0.,1.);
