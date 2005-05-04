@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.12 2005/05/04 10:27:36 choumilo Exp $
+//  $Id: tofuser02.C,v 1.13 2005/05/04 12:46:12 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <event.h>
@@ -495,6 +495,7 @@ void TOF2User::EndJob(){
   HPRINT(1208);
   HPRINT(1209);
   HPRINT(1510);
+  
   for(i=0;i<TOF2GC::SCLRS;i++)HPRINT(5040+i);
   for(i=0;i<TOF2GC::SCLRS;i++)HPRINT(5001+i);
   for(i=0;i<TOF2GC::SCLRS;i++)HPRINT(5010+i);
