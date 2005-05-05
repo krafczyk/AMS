@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.313 2005/05/04 08:10:21 alexei Exp $
+# $Id: RemoteClient.pm,v 1.314 2005/05/05 13:18:30 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -109,7 +109,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming);
 
 # debugging
 my $benchmarking = 0;
@@ -6457,6 +6457,7 @@ sub listProductionSetPeriods {
     my $self  = shift;
 
 #
+    if ($webmode == 1) {
      print "<b><h2><A Name = \"mc02sets\"> </a></h2></b> \n";
      htmlTable("Production Sets");
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -6467,6 +6468,7 @@ sub listProductionSetPeriods {
                print "<td align=center><b><font color=\"blue\" >Status</font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Versions (db, exec, os)</font></b></td>";
                print "</tr>\n";
+      }
       foreach my $mc (@productionPeriods) {
 
           my $tbegin = EpochToDDMMYYHHMMSS($mc->{begin});
@@ -6477,7 +6479,7 @@ sub listProductionSetPeriods {
 
           my $color='orange';
           if ($mc->{status} =~ /Active/) {$color='green';}
-
+            if ($webmode == 1) {
                print "<td align=center><b><font color=$color>$mc->{id} </font></b></td>";
                print "<td align=center><b><font color=$color >$mc->{name}</font></b></td>";
                print "<td align=center><b><font color=$color >$tbegin </font></b></td>";
@@ -6486,13 +6488,15 @@ sub listProductionSetPeriods {
                print "<td align=center><b><font color=$color >$mc->{vdb}/$mc->{vgbatch}/$mc->{vos} </font></b></td>";
                print "</tr>\n";
 
-
+           }
       }
 
+    if ($webmode == 1) {
      htmlTableEnd();
      htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
+ }
 }
 
 sub listStat {
@@ -6514,9 +6518,10 @@ sub listStat {
     my $sql        = undef;
     my $ret        = undef;
 
+    if ($webmode == 1) {
      print "<b><h2><A Name = \"stat\"> </a></h2></b> \n";
      htmlTable("Jobs");
-
+    }
     foreach my $ds (@productionPeriods) {
      if ($ds->{status} =~ 'Active') {
 
@@ -6602,7 +6607,7 @@ sub listStat {
    }
 #
                my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($datasetStartTime);
-               
+    if ($webmode == 1) {
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
                print "<td align=center><b><font color=\"blue\">Jobs </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Jobs</font></b></td>";
@@ -6628,6 +6633,7 @@ sub listStat {
                print "<td align=center><b><font color=\"blue\" > [GB]     </font></b></td>";
                print "<td align=center><b><font color=\"green\" > $totaldays days</font></b></td>";
               print "</tr>\n";
+           }
            my $color="black";
            if ($trigreq <= 1000000) {
              $trigreq = sprintf("%.2fK",$trigreq/1000);
@@ -6642,6 +6648,7 @@ sub listStat {
 	   }
 
  
+          if ($webmode == 1) {
            print "
                   <td align=center><b><font color=$color> $jobsreq </font></td></b>
                   <td align=center><b><font color=$color> $jobsdone </font></b></td>
@@ -6657,19 +6664,23 @@ sub listStat {
 
           print "</font></tr>\n";
  
-
+       
        htmlTableEnd();
      htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
+    }
    }
        $td[8] = time();
  }
 
+    if ($webmode == 1) {
      htmlTable("Datasets");
+    }
      foreach my $prodperiod (@productionPeriods) {
       if ($prodperiod->{status} =~ 'Active') {
 
+    if ($webmode == 1) {
 # table per active production period
       print "<TR><B><font color=red size= 3> $prodperiod->{name} ($prodperiod->{vdb}) </font>";
       print "<p>\n";
@@ -6684,13 +6695,13 @@ sub listStat {
       print "<td align=center><b><font color=\"blue\"> Requested </font></b></td>";
       print "<td align=center><b><font color=\"blue\" >Processed</font></b></td>";
       print "</tr>\n";
-
+     }
          my $vdb               = $prodperiod->{vdb};
          my $periodStartTime   = $prodperiod->{begin};
          my $periodId          = $prodperiod->{id};
          $sql = "SELECT did, name FROM datasets where did > 111 and version='$vdb'";
          my $r5=$self->{sqlserver}->Query($sql);
-         print_bar($bluebar,3);
+         if ($webmode == 1) {print_bar($bluebar,3);}
          if(defined $r5->[0][0]){
          foreach my $ds (@{$r5}){
            my $did       = $ds->[0];
@@ -6732,20 +6743,26 @@ sub listStat {
                  $triggers=sprintf("%.2fM",$triggers/1000000);
              }
            }            
+       if ($webmode == 1) {
         print "<td align=left><b><font color=\"black\"> $dataset </font></b></td>";
         print "<td align=center><b><font color=\"black\"> $triggers </font></b></td>";
         print "<td align=center><b><font color=\"black\" >$events</font></b></td>";
         print "</tr>\n";
+        }
        }
-      htmlTableEnd();
+       if ($webmode == 1) {htmlTableEnd();}
      }
-     htmlTableEnd();
-     print_bar($bluebar,3);
+         if ($webmode == 1) {
+          htmlTableEnd();
+          print_bar($bluebar,3);
+          }
     } # Active production sets
   }  # all production sets             
+    if ($webmode == 1) {
      htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
+    }
 }
     
 sub listCites {
@@ -6753,11 +6770,14 @@ sub listCites {
 
     my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
 
-    print "<b><h2><A Name = \"cites\"> </a></h2></b> \n";
+    if ($webmode == 1) {
+     print "<b><h2><A Name = \"cites\"> </a></h2></b> \n";
      htmlTable("Cites ");
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-     my $sql="SELECT cid,descr, name, status, maxrun FROM Cites ORDER by name";
+    }
+     my $sql="SELECT cid,descr, name, status  FROM Cites ORDER by name";
      my $r3=$self->{sqlserver}->Query($sql);
+        if ($webmode == 1) {
               print "<td><b><font color=\"blue\">Cite </font></b></td>";
               print "<td><b><font color=\"blue\" >Cite</font></b></td>";
               print "<td><b><font color=\"blue\" >Jobs</font></b></td>";
@@ -6774,86 +6794,79 @@ sub listCites {
               print "<td><b><font color=\"blue\" >Start Time</font></b></td>";
               print "<td><b><font color=\"blue\" >End Time</font></b></td>";
               print "<tr>\n";
-     print_bar($bluebar,3);
+              print_bar($bluebar,3);
+          }
      if(defined $r3->[0][0]){
       foreach my $cite (@{$r3}){
           my $cid    = $cite->[0];
           my $descr  = $cite->[1];
           my $name   = $cite->[2];
           my $status = $cite->[3];
-          my $maxrun = $cite->[4];
-# 4.12.03          my $run=(($cid-1)<<27)+1;
-          my $run=(($cid-1)<<$MAX_RUN_POWER)+1;
       
           my $r4 = undef;
 
-          my $laststarttime = 0;
-          my $starttime     = "---";
-          $sql = "SELECT MAX(TIME) FROM Jobs WHERE Jobs.timestamp> $periodStartTime AND cid=$cid";
+          my $laststarttime = 0;     # latest job start time
+          my $starttime     = "---"; #                       ASCII
+          my $lastendtime   = 0;
+          my $endtime       = "---";
+          my $jobs          = 0;     # total jobs
+          my $jobsa         = 0;     #  active jobs
+          my $jobsc         = 0;     #   completed jobs
+          my $jobsf         = 0;     #     failed jobs
+
+          $sql = "SELECT MAX(TIME), COUNT(jid) FROM Jobs WHERE Jobs.timestamp>= $periodStartTime AND cid=$cid";
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {
             $laststarttime = $r4->[0][0];
-            $starttime = EpochToDDMMYYHHMMSS($laststarttime);
+            $starttime     = EpochToDDMMYYHHMMSS($laststarttime);
+            $jobs          = $r4->[0][1];
           };
-          my $lastendtime = 0;
-          my $endtime       = "---";
-          $sql = "SELECT MAX(jobs.time) FROM Jobs, Runs WHERE 
-                     Jobs.timestamp> $periodStartTime AND 
-                     jobs.cid = $cid AND
-                     jobs.jid = runs.jid AND           
-                     (Runs.Status = 'Finished'  OR 
-                      Runs.Status = 'Completed' OR
-                      Runs.Status = 'Failed'    OR
-                      Runs.Status = 'Unchecked')";
-          $r4=$self->{sqlserver}->Query($sql);
-          if (defined $r4->[0][0]) {
-           $lastendtime = $r4->[0][0];
-           $endtime = EpochToDDMMYYHHMMSS($lastendtime);
-          };
-
-          my $jobs = 0;   # total jobs
-          $sql = "SELECT COUNT(jid) FROM Jobs WHERE cid=$cid AND Jobs.timestamp> $periodStartTime";
-          $r4=$self->{sqlserver}->Query($sql);
-          if (defined $r4->[0][0]) {$jobs = $r4->[0][0]};
-
-          my $jobsa = 0;  # processing jobs
-          $sql = "SELECT COUNT(jobs.jid)  FROM Jobs, Runs 
-                   where Jobs.timestamp> $periodStartTime AND (jobs.jid=runs.jid and cid=$cid)";
-          $r4=$self->{sqlserver}->Query($sql);
-          if (defined $r4->[0][0]) {$jobsa = $jobs - $r4->[0][0]};
-          $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs 
+          if ($laststarttime != 0 ) {
+#           $sql = "SELECT MAX(runs.submit) From Runs, Jobs
+#                     WHERE
+#                       Runs.submit >= $periodStartTime AND 
+#                        jobs.jid = runs.jid AND 
+#                         jobs.cid = $cid";
+#
+#           $r4=$self->{sqlserver}->Query($sql);
+#           if (defined $r4->[0][0]) {
+#            $lastendtime = $r4->[0][0];
+#            $endtime = EpochToDDMMYYHHMMSS($lastendtime);
+#           };
+          $sql = "SELECT COUNT(Runs.run), MAX(Runs.submit) FROM Jobs, Runs 
                     WHERE 
-                     Jobs.timestamp> $periodStartTime AND 
-                     Jobs.jid=Runs.jid AND cid=$cid AND 
-                     (Runs.Status = 'Foreign' OR 
-                      Runs.Status = 'Processing') ";
-          $r4=$self->{sqlserver}->Query($sql);
-          if (defined $r4->[0][0]) {$jobsa += $r4->[0][0]};
-
-          my $jobsc = 0;
-          $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs 
-                    WHERE 
-                     Jobs.timestamp> $periodStartTime AND 
-                     Jobs.jid=Runs.jid AND cid=$cid AND 
+                     Runs.submit>= $periodStartTime AND 
+                     Jobs.jid=Runs.jid AND Jobs.cid=$cid AND 
                      (Runs.Status = 'Finished' OR 
                       Runs.Status = 'Completed')";
           $r4=$self->{sqlserver}->Query($sql);
-          if (defined $r4->[0][0]) {$jobsc = $r4->[0][0]};
+          if (defined $r4->[0][0]) {
+               $jobsc = $r4->[0][0];
+               if ($jobsc > 0) {$lastendtime = $r4->[0][1];}
+           };
 
 
-          my $jobsf = 0;
-          $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs 
+          $sql = "SELECT COUNT(Runs.run), MAX(Runs.submit) FROM Jobs, Runs 
                     WHERE 
-                     Jobs.timestamp> $periodStartTime AND 
+                     Runs.submit>= $periodStartTime AND 
                      Jobs.jid=Runs.jid AND cid=$cid AND 
                      (Runs.Status = 'Failed' OR 
                       Runs.Status = 'TimeOut' OR 
                       Runs.Status = 'Unchecked')";
           $r4=$self->{sqlserver}->Query($sql);
-          if (defined $r4->[0][0]) {$jobsf = $r4->[0][0]};
+          if (defined $r4->[0][0]) {
+              $jobsf = $r4->[0][0];
+              if ($jobsf > 0) {
+               if ($r4->[0][1] > $lastendtime) {$lastendtime = $r4->[0][1];}
+              }
+           };
 
-          print "<tr><font size=\"2\">\n";
-          print "<td><b> $descr ($name) </td>
+          $endtime = EpochToDDMMYYHHMMSS($lastendtime);
+          $jobsa = $jobs - $jobsf - $jobsc;
+       }
+          if ($webmode == 1) {
+           print "<tr><font size=\"2\">\n";
+           print "<td><b> $descr ($name) </td>
                  <td><b> $status </td>
                  <td><b> $jobsa </td></b>
                  <td><b> $jobsc </b></td>
@@ -6861,14 +6874,17 @@ sub listCites {
                  <td><b> $starttime </b></td>
                  <td><b> $endtime </b></td>
                  \n";
-          print "</font></tr><p></p>\n";
+           print "</font></tr><p></p>\n";
+          }
       }
   }
 
+    if ($webmode == 1) {
        htmlTableEnd();
       htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
+   }
 }
 
 
@@ -6889,20 +6905,22 @@ sub listDisks {
     if( defined $r0->[0][0]){
       $lastupd=localtime($r0->[0][0]);
      }
-     print "<b><h2><A Name = \"disks\"> </a></h2></b> \n";
-     print "<TR><B><font color=green size= 5><b><font color=green> Disks and Filesystems </font></b>";
-     if (defined $lastupd) {
-      print "<font color=green size=3><b><i> (Checked : $lastupd) </i></b></font>";
-     }
-     print "<p>\n";
-     print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+     if ($webmode == 1) {
+      print "<b><h2><A Name = \"disks\"> </a></h2></b> \n";
+      print "<TR><B><font color=green size= 5><b><font color=green> Disks and Filesystems </font></b>";
+      if (defined $lastupd) {
+       print "<font color=green size=3><b><i> (Checked : $lastupd) </i></b></font>";
+      }
+      print "<p>\n";
+      print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
               print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
               print "<td><b><font color=\"blue\" >Filesystem </font></b></td>";
               print "<td><b><font color=\"blue\" >GBytes </font></b></td>";
               print "<td><b><font color=\"blue\" >MC [GB] </font></b></td>";
               print "<td><b><font color=\"blue\" >Free [GB] </font></b></td>";
               print "<td><b><font color=\"blue\" >Status </font></b></td>";
-     print_bar($bluebar,3);
+      print_bar($bluebar,3);
+     }
      $sql="SELECT host, disk, path, totalsize, occupied, available, status, 
            timestamp FROM Filesystems ORDER BY available DESC";
      my $r3=$self->{sqlserver}->Query($sql);
@@ -6921,7 +6939,8 @@ sub listDisks {
           foreach my $p (@productionPeriods) {
            if ($p->{status} =~ 'Active') {
             my $ppath = $dpath."/".$p->{name};
-            $sql = "SELECT SUM(sizemb) FROM ntuples WHERE PATH like '$ppath%'";
+            my $periodStartTime = $p->{begin};
+            $sql = "SELECT SUM(sizemb) FROM ntuples WHERE timestamp >= $periodStartTime AND PATH like '$ppath%'";
             my $r4=$self->{sqlserver}->Query($sql);
             if (defined $r4->[0][0]) {
              $totalGBMC = $totalGBMC + $r4->[0][0];
@@ -6933,14 +6952,16 @@ sub listDisks {
            $avail  = $avail+ $dd->[5];
            $status   = trimblanks($dd->[6]);
            $usedGBMC = sprintf("%6.1f",$used/1000);
+           my $color=statusColor($status);
+            if ($webmode == 1) {
             print "<tr><font size=\"2\">\n";
-            my $color=statusColor($status);
-            print "<td><b> $fs </b></td>
+             print "<td><b> $fs </b></td>
                  <td align=middle><b> $size </td>
                  <td align=middle><b> $usedGBMC </td>
                  <td align=middle><b> $avail </b></td>
                  <td><font color=$color><b> $status </font></b></td>\n";
-            print "</font></tr>\n";
+             print "</font></tr>\n";
+           }
       }
     }
     $sql="SELECT SUM(totalsize), SUM(occupied), SUM(available) FROM Filesystems";
@@ -6956,41 +6977,49 @@ sub listDisks {
           if ($free < $total*0.1) {
             $color="magenta";
             $status=" no space";}
-          print "<tr><font size=\"2\">\n";
-          print "<td><font color=$color><b> Total </b></td>
-                 <td align=middle><b> $total </td>
-                 <td align=middle><b> $totalGB </td>
-                 <td align=middle><b> $free </b></td>
-                 <td><font color=$color><b> $status </font></b></td>\n";
-          print "</font></tr>\n";
+            if ($webmode == 1) {
+             print "<tr><font size=\"2\">\n";
+             print "<td><font color=$color><b> Total </b></td>
+                    <td align=middle><b> $total </td>
+                    <td align=middle><b> $totalGB </td>
+                    <td align=middle><b> $free </b></td>
+                    <td><font color=$color><b> $status </font></b></td>\n";
+             print "</font></tr>\n";
+         }
       }
      }
 
+    if ($webmode == 1) {
        htmlTableEnd();
       htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
+   }
 }
 
 
 sub listMails {
     my $self = shift;
+    if ($webmode == 1) {
      print "<b><h2><A Name = \"mails\"> </a></h2></b> \n";
      htmlTable("MC02 Authorized Users");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+    }
      my $sql="SELECT address, Mails.name, rsite, requests, Mails.cid, Cites.cid, 
               Cites.name, Mails.status FROM  Mails, Cites WHERE Cites.cid=Mails.cid 
               ORDER BY Cites.name, Mails.name";
 
      my $r3=$self->{sqlserver}->Query($sql);
+     if ($webmode == 1) {
               print "<tr><td><b><font color=\"blue\">Cite </font></b></td>";
               print "<td><b><font color=\"blue\" >User </font></b></td>";
               print "<td><b><font color=\"blue\" >e-mail </font></b></td>";
               print "<td><b><font color=\"blue\" >Responsible </font></b></td>";
               print "<td><b><font color=\"blue\" >Requests </font></b></td>";
               print "<td><b><font color=\"blue\" >Status </font></b></td>";
-     print_bar($bluebar,3);
-     if(defined $r3->[0][0]){
+              print_bar($bluebar,3);
+          }
+    if(defined $r3->[0][0]){
       foreach my $mail (@{$r3}){
           my $name   = $mail->[1];
           my $email  = $mail->[0];
@@ -6999,33 +7028,41 @@ sub listMails {
           my $status   = $mail->[7];
           my $resp   = 'no';
           if ($mail->[2] == 1) { $resp = 'yes';}
-          print "<tr><font size=\"2\">\n";
-          print "<td><b> $cite </td><td><b> $name </b></td><td><b> [$email] </td><td><b> $resp </td><td><b> $req </b></td><td><b> $status </b></td>\n";
-          print "</font></tr>\n";
+          if ($webmode == 1) {
+           print "<tr><font size=\"2\">\n";
+           print "<td><b> $cite </td><td><b> $name </b></td><td><b> [$email] </td><td><b> $resp </td><td><b> $req </b></td><td><b> $status </b></td>\n";
+           print "</font></tr>\n";
+       }
       }
   }
 
+    if ($webmode == 1) {
        htmlTableEnd();
       htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
+   }
 }
 
 
 sub listServers {
     my $self = shift;
-    print "<b><h2><A Name = \"servers\"> </a></h2></b> \n";
+    if ($webmode == 1) {
+     print "<b><h2><A Name = \"servers\"> </a></h2></b> \n";
      print "<TR><B><font color=green size= 5><a href=$monmcdb><b><font color=blue> MC Servers </font></a><font size=3><i>(Click  servers to check current production status)</font></i></font>";
-    print "<p>\n";
-    print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
-    print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     print "<p>\n";
+     print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+    }
     my $sql="SELECT dbfilename, status, createtime, lastupdate FROM Servers ORDER BY lastupdate DESC";
     my $r3=$self->{sqlserver}->Query($sql);
-    print "<tr><td><b><font color=\"blue\">Server </font></b></td>";
-    print "<td><b><font color=\"blue\" >Started </font></b></td>";
-    print "<td><b><font color=\"blue\" >LastUpdate </font></b></td>";
-    print "<td><b><font color=\"blue\" >Status </font></b></td>";
-    print_bar($bluebar,3);
+    if ($webmode == 1) {
+     print "<tr><td><b><font color=\"blue\">Server </font></b></td>";
+     print "<td><b><font color=\"blue\" >Started </font></b></td>";
+     print "<td><b><font color=\"blue\" >LastUpdate </font></b></td>";
+     print "<td><b><font color=\"blue\" >Status </font></b></td>";
+     print_bar($bluebar,3);
+    }
     my $deadserver = 0;
     if(defined $r3->[0][0]){
         foreach my $srv (@{$r3}){
@@ -7036,22 +7073,26 @@ sub listServers {
             my $lasttime  = EpochToDDMMYYHHMMSS($lastupd);
             my $time      = time();
             if ($status eq 'Active' or $deadserver == 0) {
-             if ($time - $lastupd < $srvtimeout) {
-             print "<td><b> $name </td><td><b> $starttime </td><td><b> $lasttime </td><td><b> $status </td> </b>\n";
-             } else {
-             my $color = statusColor($status);
-             print "<td><b> $name </td><td><b> $starttime </td><td><b><font color=$color> $lasttime </font></td><td><b><font color=$color> $status </font></td> </b>\n";
-           }
-             print "</font></tr>\n";
-             if ($status eq 'Dead') { $deadserver++;}
+             if ($webmode == 1) {
+              if ($time - $lastupd < $srvtimeout) {
+               print "<td><b> $name </td><td><b> $starttime </td><td><b> $lasttime </td><td><b> $status </td> </b>\n";
+              } else {
+               my $color = statusColor($status);
+               print "<td><b> $name </td><td><b> $starttime </td><td><b><font color=$color> $lasttime </font></td><td><b><font color=$color> $status </font></td> </b>\n";
+             }
+              print "</font></tr>\n";
+          }
+            if ($status eq 'Dead') { $deadserver++;}
          }
         }
     }
-    htmlTableEnd();
-    htmlTableEnd();
-    print_bar($bluebar,3);
-    print "<p></p>\n";
-}
+    if ($webmode == 1) {
+     htmlTableEnd();
+     htmlTableEnd();
+     print_bar($bluebar,3);
+     print "<p></p>\n";
+    }
+} 
 
 
 
@@ -7071,23 +7112,28 @@ sub listJobs {
 
     my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
 
-    print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
-    htmlTable("MC02 Jobs (25 latest jobs per cite submitted earlier than 30 days ago)");
-    print_bar($bluebar,3);
-
+    if ($webmode == 1) {
+     print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
+     htmlTable("MC02 Jobs (25 latest jobs per cite submitted earlier than 30 days ago)");
+     print_bar($bluebar,3);
+    }
 
     $sql = "SELECT name FROM cites ORDER BY name";
     $ret=$self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
-     print " <Table> \n";
-     print " <TR><TH rowspan=2>MC Production Cites : <br> \n";
+     if ($webmode == 1) {
+      print " <Table> \n";
+      print " <TR><TH rowspan=2>MC Production Cites : <br> \n";
+     }
      foreach my $cite (@{$ret}) {
       my $rc = $cite->[0];
-      print "</th> <th><small> \n";
-      $href = $self->{HTTPcgi}."/rc.dsp.cgi\#jobs-".$rc;
-      print "<a href= $href target=\"status\"> <b><font color=tomato>$rc</b></font></a>\n";
+      if ($webmode == 1) {
+       print "</th> <th><small> \n";
+       $href = $self->{HTTPcgi}."/rc.dsp.cgi\#jobs-".$rc;
+       print "<a href= $href target=\"status\"> <b><font color=tomato>$rc</b></font></a>\n";
+      }
      }
-     print "</TR></TABLE> \n";
+     if ($webmode == 1) {print "</TR></TABLE> \n";}
     }
 
 
@@ -7107,7 +7153,7 @@ sub listJobs {
 
      my $r3=$self->{sqlserver}->Query($sql);
 
-     print_bar($bluebar,3);
+     if ($webmode == 1) {print_bar($bluebar,3);}
      my $newline = " ";
      my $savcite = "unknown";
      my $njobs   = 0;    
@@ -7147,8 +7193,9 @@ sub listJobs {
                @runId =();
                @runStatus = ();
                $sql="SELECT Runs.jid, Runs.status from Runs, Jobs 
-                     WHERE (Jobs.cid=$cid AND Runs.jid=Jobs.jid) AND 
-                           Jobs.timestamp > $periodStartTime";
+                     WHERE 
+                           Runs.submit >= $periodStartTime AND
+                          (Jobs.cid=$cid AND Runs.jid=Jobs.jid)"; 
                $r3=$self->{sqlserver}->Query($sql);
                if (defined $r3->[0][0]) {
                 foreach my $r (@{$r3}){
@@ -7158,7 +7205,7 @@ sub listJobs {
                }
 
 
-
+             if ($webmode == 1) {
                print "</table></p> \n";
                print "<p>";
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -7166,7 +7213,7 @@ sub listJobs {
                print "</table>\n";
                my $citename="jobs-".$cite;
                print "<A Name = $citename> </a>\n";
-                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
                  print "<td><b><font color=\"blue\">JobId </font></b></td>";
                  print "<td><b><font color=\"blue\" >Owner </font></b></td>"; 
                  print "<td><b><font color=\"blue\" >JobName </font></b></td>";
@@ -7175,6 +7222,7 @@ sub listJobs {
                  print "<td><b><font color=\"blue\" >Triggers </font></b></td>";
                  print "<td><b><font color=\"blue\" >Status </font></b></td>";
                  print "</tr>\n";
+           }
           }
           if ($njobs < $PrintMaxJobsPerCite) {
            $status = "Submitted";
@@ -7186,6 +7234,7 @@ sub listJobs {
                  last;
                }
             }
+            if ($webmode == 1) {
                  print "
                   <td><b><font color=$color> $jid </font></td></b>
                   <td><b><font color=$color> $user </font></b></td>
@@ -7194,15 +7243,17 @@ sub listJobs {
                   <td><b><font color=$color> $expiretime </font></b></td>
                   <td><b><font color=$color> $trig </font></b></td>
                   <td><b><font color=$color> $status </font></b></td>\n";
-
                  print "</font></tr>\n";
              }
+           }
           $njobs++;
       }
     }  
+    if ($webmode == 1) {
      htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
+    }
 }
 
 sub listRuns {
@@ -7210,6 +7261,7 @@ sub listRuns {
     my $rr   = 0;
     my $time24h = time() - 24*60*60;
 
+    if ($webmode == 1) {
      print "<b><h2><A Name = \"runs\"> </a></h2></b> \n";
      htmlTable("MC02 Runs");
      my $href=$self->{HTTPcgi}."/rc.o.cgi?queryDB04=Form";
@@ -7218,19 +7270,21 @@ sub listRuns {
             </b><i></font></tr>\n";
 
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     }
      my $sql="SELECT Runs.run, Runs.jid, Runs.submit, Runs.status 
-               FROM   Runs, Jobs 
+               FROM   Runs
                  WHERE 
-                  (Runs.submit> $time24h OR Jobs.timestamp > $time24h) AND
-                   Runs.jid=Jobs.jid 
+                  Runs.submit> $time24h 
                     ORDER  BY Runs.submit DESC, Runs.jid";
      my $r3=$self->{sqlserver}->Query($sql);
+     if ($webmode == 1) {
               print "<tr><td><b><font color=\"blue\" >JobId </font></b></td>";
               print "<td><b><font color=\"blue\">Run </font></b></td>";
               print "<td><b><font color=\"blue\" >Started </font></b></td>";
               print "<td><b><font color=\"blue\" >Status </font></b></td>";
-             print "</tr>\n";
-     print_bar($bluebar,3);
+              print "</tr>\n";
+             print_bar($bluebar,3);
+          }
      if(defined $r3->[0][0]){
       foreach my $run (@{$r3}){
           my $nn        = $run->[0];
@@ -7238,18 +7292,22 @@ sub listRuns {
           my $starttime = EpochToDDMMYYHHMMSS($run->[2]); 
           my $status    = $run->[3];
           my $color = statusColor($status);
+          if ($webmode == 1) {
            print "<td><b><font color=$color> $jid       </font></td></b><td><b> $nn </td>
                   <td><b><font color=$color> $starttime </font></b></td>
                   <td><b><font color=$color> $status    </font></b></td> \n";
-          print "</font></tr>\n";
+           print "</font></tr>\n";
+          }
           $rr++;
           if ($rr > 50) { last;}
       }
   }
+    if ($webmode == 1) {
        htmlTableEnd();
       htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
+   }
 }
 
 sub listNtuples {
@@ -7258,6 +7316,7 @@ sub listNtuples {
 
     my $time24h = time() - 24*60*60;
 
+    if ($webmode == 1) {
      print "<b><h2><A Name = \"ntuples\"> </a></h2></b> \n";
      print "<TR><B><font color=green size= 5><b>MC NTuples </font></b>";
      my $href = $self->{HTTPcgi}."/rc.o.cgi?queryDB04=Form";
@@ -7269,12 +7328,14 @@ sub listNtuples {
 
      print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
               print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+    }
      my $sql="SELECT Ntuples.run, Ntuples.jid, Ntuples.nevents, Ntuples.neventserr, 
                      Ntuples.timestamp, Ntuples.status, Ntuples.path
               FROM   Ntuples
               WHERE  Ntuples.timestamp > $time24h AND Ntuples.path NOT LIKE '/castor/cern.ch%'   
               ORDER  BY Ntuples.timestamp DESC, Ntuples.jid";
      my $r3=$self->{sqlserver}->Query($sql);
+     if ($webmode == 1) {
               print "<tr><td width=10% align=left><b><font color=\"blue\" > JobId </font></b></td>";
               print "<td width=10%><b><font color=\"blue\"> Run </font></b></td>";
               print "<td width=15%><b><font color=\"blue\" > LastUpdate </font></b></td>";
@@ -7282,8 +7343,9 @@ sub listNtuples {
               print "<td width=10%><b><font color=\"blue\" > Events </font></b></td>";
               print "<td width=10%><b><font color=\"blue\" > Errors </font></b></td>";
               print "<td width=10%><b><font color=\"blue\" > Status </font></b></td>";
-             print "</tr>\n";
-     print_bar($bluebar,3);
+              print "</tr>\n";
+              print_bar($bluebar,3);
+          }
      if(defined $r3->[0][0]){
       foreach my $nt (@{$r3}){
           my $run       = $nt->[0];
@@ -7294,21 +7356,25 @@ sub listNtuples {
           my $status    = $nt->[5];
           my $color     = statusColor($status);
           my $path      = $nt->[6];
+          if ($webmode == 1) {
            print "<td><b> $jid </td></b><td><b> $run </td>
                   <td><b> $starttime </b></td>
                   <td><b> $path </b></td> 
                   <td align=middle><b> $nevents </b></td> 
                   <td align=middle><b> $nerrors </b></td> 
                   <td align=middle><b><font color=$color> $status </font></b></td> \n";
-          print "</font></tr>\n";
+           print "</font></tr>\n";
+          }
           $nn++;
           if ($nn > 100) { last;}
       }
   }
+    if ($webmode == 1) {
        htmlTableEnd();
       htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
+   }
 }
 
 sub AllDone{
@@ -12025,7 +12091,7 @@ sub castorPath {
      print "DSTs matched $dbpath     : $nFiles \n";
      print "DSTs records updated     : $nUpdated \n";
      print "DST path error           : $nError \n";
-     print "DST NO UPDATE            : $notCopied \n";
+     print "DST NOT UPDATED            : $notCopied \n";
 }
 
 
@@ -12403,3 +12469,56 @@ sub getTestCiteId() {
   }
      return $tid;
  }
+
+sub checkTiming() {
+    my $self= shift;
+  $webmode = -1;
+   my $TTT = 0;   # nchecks
+   my @T = ("ProdPeriod","Stat","Cites","Mails","Servers","Jobs","Runs","NTuples","Disks");
+   $td[$TTT] = time();
+   $TTT++;
+     $self->  getProductionPeriods(0);
+     $self -> listProductionSetPeriods();
+     $td[$TTT] = time();
+     $TTT++;
+
+      $self -> listStat();
+      $td[$TTT] = time();
+      $TTT++;
+
+        $self -> listCites();
+        $td[$TTT] = time();
+        $TTT++;
+
+         $self -> listMails();
+         $td[$TTT] = time();
+         $TTT++;
+
+          $self -> listServers();
+          $td[$TTT] = time();
+          $TTT++;
+
+           $self -> listJobs();
+           $td[$TTT] = time();
+           $TTT++;
+
+            $self -> listRuns();
+            $td[$TTT] = time();
+            $TTT++;
+
+             $self -> listNtuples();
+             $td[$TTT] = time();
+             $TTT++;
+
+              $self -> listDisks();
+              $td[$TTT] = time();
+
+     my $elapsed = $td[$TTT] - $td[0];
+     print "Total time [s].... $elapsed \n";
+     $TTT++;
+     for my $i (0..$TTT-2) {
+      $elapsed = $td[$i+1] - $td[$i];
+      print "$T[$i].... $elapsed [sec]\n";
+     }
+
+}
