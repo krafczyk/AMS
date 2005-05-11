@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.154 2005/05/04 10:27:48 choumilo Exp $
+//  $Id: root.h,v 1.155 2005/05/11 12:57:47 choumilo Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -1038,18 +1038,18 @@ public:
 			bit8: phot trig(EC-hiEm, i.e. ECEtot>HiThr && ShWid=em)                   \n
 			if bit9 set - external trigger                                            \n
 		    */
-  int   TofFlag;   ///< <0->noTOF,=0->4planes,(1-8)->miss.planes-code;+10->Z=1&Z>=2,+20->Z>=2 only
-  int   TofPatt[4]; ///< 4-layers TOF pattern for Z>=1(separately for each side): 
+  int   TofFlag;   ///< <0->noTOF,>=0->(0-8)->miss.planes-code;+0->Z=1,+10->normalZ>=2,+20->slowZ>=2
+  int   TofPatt[4]; ///< 4-layers TOF pattern for Z>=1(+0 or +10 in tof-flag)(separately for each side): 
 
                     /*!<
                                                        1-10 bits  Side-1  \n
                                                        17-26      Side-2  \n
                    */
-  int   TofPatt1[4]; ///< same tof pattern for Z>=2 trigger
+  int   TofPatt1[4]; ///< same tof pattern for Z>=2(slow) trigger(+20 in tof-flag)
   int   AntiPatt;   ///< Antipatt:(1-8)bits->sectors in coincidence with FastTrigger  
   int   EcalFlag;   ///< =MN, where 
                     /*!< 
-                          M=0/1/2/3->Etot<MipThr / Etot>MipThr / Etot>LowThr / Etot>HighThr; \n
+                          M=0/1/2/3->Etot<MipThr / Etot>=MipThr / Etot>LowThr / Etot>HighThr; \n
                           N=2/1/0->ShowerWidthTest=OK(em)/Bad(nonem)/Unknown                 \n
                     */
   float EcalTrSum; ///< EC-energy trig.sum(Gev)                    

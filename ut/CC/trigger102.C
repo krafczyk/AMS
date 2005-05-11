@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.25 2005/05/04 10:27:36 choumilo Exp $
+//  $Id: trigger102.C,v 1.26 2005/05/11 12:57:02 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -51,13 +51,13 @@ void Trigger2LVL1::build(){
       if(tofflag2>=0)tofflag=10+tofflag1;
     }
     else{
-      if(tofflag2>=0)tofflag=20+tofflag2;
+      if(tofflag2>=0)tofflag=20+tofflag2;//abnormal(slow) Z>=2
     }
     
     TOF2RawEvent::getpatt(tofpatt1);//z>=1
     TOF2RawEvent::getpatt1(tofpatt2);//z>=2
     if(tofflag>=0){
-      if(tofflag/10>1)TOF2RawEvent::getpatt1(tofpatt);//z>=2
+      if(tofflag/10>1)TOF2RawEvent::getpatt1(tofpatt);//z>=2slow(z>=1 = 0 !)
       else TOF2RawEvent::getpatt(tofpatt);//z>=1
       tflg=tofflag%10;//0->4planes, (1-4)->3plns, (5-8)->2plns, <0->noFT
       if(tflg==0)ntof=4;
