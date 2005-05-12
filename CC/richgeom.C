@@ -1,13 +1,6 @@
-//  $Id: richgeom.C,v 1.23 2004/11/10 10:10:15 mdelgado Exp $
-#include <typedefs.h>
-#include <node.h>
-#include <snode.h>
+//  $Id: richgeom.C,v 1.24 2005/05/12 12:33:38 mdelgado Exp $
 #include <gmat.h>
-#include <extC.h>
-#include <stdlib.h>
 #include <gvolume.h>
-#include <amsgobj.h>
-#include <job.h>
 #include <commons.h>
 #include <richdbc.h>
 #include <richid.h>

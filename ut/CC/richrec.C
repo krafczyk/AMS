@@ -1,21 +1,9 @@
-//  $Id: richrec.C,v 1.64 2004/11/10 10:10:15 mdelgado Exp $
-#include <stdio.h>
-#include <typedefs.h>
-#include <cern.h>
-#include <extC.h>
+//  $Id: richrec.C,v 1.65 2005/05/12 12:33:38 mdelgado Exp $
 #include <math.h>
-#include <point.h>
-#include <amsgobj.h>
-#include <event.h>
 #include <commons.h>
 #include <ntuple.h>
-#include <richdbc.h>
 #include <richrec.h>
 #include <mccluster.h>
-#include <iostream>
-#include <trrec.h>
-#include <richid.h>
-#include <mceventg.h>
 #ifdef __WRITEROOT__
 #include <root.h> 
 #endif

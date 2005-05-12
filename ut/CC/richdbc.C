@@ -1,8 +1,6 @@
-//  $Id: richdbc.C,v 1.40 2004/11/10 10:10:15 mdelgado Exp $
+//  $Id: richdbc.C,v 1.41 2005/05/12 12:33:37 mdelgado Exp $
 #include<richdbc.h>
-#include<cern.h>
 #include<math.h>
-#include<mceventg.h>
 #include<iostream.h>
 #include<richid.h>
 
