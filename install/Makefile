@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.18 2005/03/23 17:19:55 choutko Exp $
+#  $Id: Makefile,v 1.19 2005/05/13 09:12:48 pzuccon Exp $
 
 #rl october 2003
 
@@ -110,7 +110,7 @@ FILES= \
  ../F/tkmccl.F      ../F/fint_my.F    ../F/geocoor.F      $(SCC)rnormx.C\
  $(SCC)trid.C       $(SCC)trdid.C    $(SCC)link.C         $(SCC)trrec.C\
  $(SCC)vtx.C        $(SCC)trdsim.C   $(SCC)trdrec.C       $(SCC)uzstat.C\
- ../F/amstkshc++.F ../F/rkms.F  ../F/mtx.F        ../F/tptcir.F      ../F/trafit.F\
+ ../F/Geant3_utils.F ../F/TrackFit_utils.F ../F/rkms.F  ../F/mtx.F        ../F/tptcir.F      ../F/trafit.F\
  ../F/tcircf.F      ../F/tszfit.F     ../F/txyfit.F       $(SCC)job.C\
  $(SCC)event.C      $(SCC)cont.C      $(SCC)mccluster.C   $(SCC)trrawcluster.C\
  ../F/rndm.F        ../F/timel.F        ../F/sgif.F        $(SCC)tofrec02.C\
@@ -132,7 +132,7 @@ FILES= \
 OBJECTS=\
  $(BIN)gbatch.o     $(BIN)commons.o    $(BIN)gvolume.o   $(BIN)id.o\
  $(BIN)node.o       $(BIN)snode.o      $(BIN)cern.o      $(BIN)amsdbc.o\
- $(BIN)gsen.o       $(BIN)mtx.o        $(BIN)point.o     $(BIN)amstkshc++.o $(BIN)rkms.o\
+ $(BIN)gsen.o       $(BIN)mtx.o        $(BIN)point.o     $(BIN)Geant3_utils.o $(BIN)TrackFit_utils.o $(BIN)rkms.o\
  $(BIN)sgif.o       $(BIN)upool.o      $(BIN)gmat.o      $(BIN)amsgobj.o\
  $(BIN)amsgeom.o    $(BIN)geant.o      $(BIN)geant3.o    $(BIN)mceventg.o\
  $(BIN)tkmccl.o     $(BIN)geocoor.o    $(BIN)rnormx.o    $(BIN)trid.o\
@@ -156,13 +156,13 @@ OBJECTS=\
  $(BIN)fint_my.o    $(BIN)astro.o      $(BIN)richlikebeta_lip.o $(BIN)richpatt_lip.o\
  $(BIN)richrec_lip.o $(BIN)hadevv.o  $(BIN)anticalib02.o $(BIN)richpmtlib.o
 
-OBJECTSI= $(BIN)gxint.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)rkms.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geanti.o $(BIN)geant3i.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)vtx.o $(BIN)trdrec.o $(BIN)trdsim.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o   $(BIN)tofrec02.o  $(BIN)tofonline02.o $(BIN)antirec02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o  $(BIN)gi.o $(BIN)gi2.o $(BIN)e04ccf.o $(BIN)tofdbc02.o $(BIN)apool.o $(BIN)tofsim02.o $(BIN)tofcalib02.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)mtx2.o $(BIN)trigger102.o  $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)user.o  $(BIN)tofid.o $(BIN)status.o $(BIN)bcorr.o $(BIN)tralig.o  $(BIN)tofuser02.o $(BIN)geocoor.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o  $(BIN)tkfit.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)ecalcalib.o $(BIN)fint_my.o $(BIN)root.o $(BIN)rootdict.o $(BIN)astro.o $(BIN)richlikebeta_lip.o $(BIN)richpatt_lip.o $(BIN)richrec_lip.o $(BIN)hadevv.o $(BIN)anticalib02.o $(BIN)richpmtlib.o
+OBJECTSI= $(BIN)gxint.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)Geant3_utils.o $(BIN)TrackFit_utils.o $(BIN)rkms.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geanti.o $(BIN)geant3i.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)vtx.o $(BIN)trdrec.o $(BIN)trdsim.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o   $(BIN)tofrec02.o  $(BIN)tofonline02.o $(BIN)antirec02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o  $(BIN)gi.o $(BIN)gi2.o $(BIN)e04ccf.o $(BIN)tofdbc02.o $(BIN)apool.o $(BIN)tofsim02.o $(BIN)tofcalib02.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)mtx2.o $(BIN)trigger102.o  $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)user.o  $(BIN)tofid.o $(BIN)status.o $(BIN)bcorr.o $(BIN)tralig.o  $(BIN)tofuser02.o $(BIN)geocoor.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o  $(BIN)tkfit.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)ecalcalib.o $(BIN)fint_my.o $(BIN)root.o $(BIN)rootdict.o $(BIN)astro.o $(BIN)richlikebeta_lip.o $(BIN)richpatt_lip.o $(BIN)richrec_lip.o $(BIN)hadevv.o $(BIN)anticalib02.o $(BIN)richpmtlib.o
 
 
 OBJECTSC= \
  $(BIN)gbatch_c.o   $(BIN)commons.o     $(BIN)gvolume.o   $(BIN)id.o\
  $(BIN)node.o       $(BIN)snode.o       $(BIN)cern.o      $(BIN)amsdbc.o\
- $(BIN)gsen.o       $(BIN)mtx.o         $(BIN)point.o     $(BIN)amstkshc++.o $(BIN)rkms.o\
+ $(BIN)gsen.o       $(BIN)mtx.o         $(BIN)point.o     $(BIN)Geant3_utils.o $(BIN)TrackFit_utils.o $(BIN)rkms.o\
  $(BIN)sgif.o       $(BIN)upool.o       $(BIN)gmat.o      $(BIN)amsgobj.o\
  $(BIN)amsgeom.o    $(BIN)geant_c.o     $(BIN)geant3_c.o  $(BIN)mceventg.o\
  $(BIN)tkmccl.o     $(BIN)geocoor.o     $(BIN)rnormx.o    $(BIN)trid.o\
