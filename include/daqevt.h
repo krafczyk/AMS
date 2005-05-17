@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.29 2001/12/10 18:24:32 choutko Exp $
+//  $Id: daqevt.h,v 1.30 2005/05/17 09:56:34 pzuccon Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -9,10 +9,10 @@
 //
 #ifndef __AMSDAQEVT__
 #define __AMSDAQEVT__
-#include <id.h>
-#include <typedefs.h>
+#include "id.h"
+#include "typedefs.h"
 #include <iostream.h>
-#include <link.h>
+#include "link.h"
 #include <fstream.h>
 #include <time.h>
 #include <dirent.h>

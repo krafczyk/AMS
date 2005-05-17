@@ -1,8 +1,8 @@
-//  $Id: client.h,v 1.25 2004/12/18 17:38:46 choutko Exp $
+//  $Id: client.h,v 1.26 2005/05/17 09:56:34 pzuccon Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
-#include <typedefs.h>
-#include <astring.h>
+#include "typedefs.h"
+#include "astring.h"
 #include <list>
 #include <fstream.h>
 #include <server-cpp-stubs.h>

@@ -1,14 +1,14 @@
-//  $Id: trcalib.h,v 1.27 2001/01/22 17:32:45 choutko Exp $
+//  $Id: trcalib.h,v 1.28 2005/05/17 09:56:36 pzuccon Exp $
 // Author V. Choutko 4-mar-1997
 
 #ifndef __AMSTRCALIB__
 #define __AMSTRCALIB__
-#include <typedefs.h>
-#include  <commons.h>
-#include <link.h>
-#include <point.h>
-#include <particle.h>
-#include <trid.h>
+#include "typedefs.h"
+#include  "commons.h"
+#include "link.h"
+#include "point.h"
+#include "particle.h"
+#include "trid.h"
 class AMSmceventg;
 using namespace amsprotected;
 const integer nrho=64;

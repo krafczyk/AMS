@@ -1,5 +1,5 @@
-//  $Id: client.C,v 1.33 2005/03/29 10:11:25 choutko Exp $
-#include <client.h>
+//  $Id: client.C,v 1.34 2005/05/17 09:54:03 pzuccon Exp $
+#include "client.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <iostream.h>

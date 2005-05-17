@@ -1,5 +1,5 @@
-//  $Id: gi2.C,v 1.4 2001/01/22 17:32:20 choutko Exp $
-#include <geantnamespace.h>
+//  $Id: gi2.C,v 1.5 2005/05/17 09:54:04 pzuccon Exp $
+#include "geantnamespace.h"
 int Error;
 extern "C" void shl_getsymbols(){
 }

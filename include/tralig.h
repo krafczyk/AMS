@@ -1,15 +1,15 @@
-//  $Id: tralig.h,v 1.14 2005/02/23 15:45:57 choutko Exp $
+//  $Id: tralig.h,v 1.15 2005/05/17 09:56:36 pzuccon Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
 #define __AMSTRALIG__
-#include <typedefs.h>
-#include  <commons.h>
-#include <link.h>
-#include <point.h>
-#include <particle.h>
-#include <trid.h>
-#include <mceventg.h>
+#include "typedefs.h"
+#include  "commons.h"
+#include "link.h"
+#include "point.h"
+#include "particle.h"
+#include "trid.h"
+#include "mceventg.h"
 using namespace amsprotected;
 class AMSTrAligDB;
 class AMSTrAligPar{

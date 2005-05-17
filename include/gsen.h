@@ -1,9 +1,9 @@
-//  $Id: gsen.h,v 1.2 2001/01/22 17:32:44 choutko Exp $
+//  $Id: gsen.h,v 1.3 2005/05/17 09:56:35 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSGSEN__
 #define __AMSGSEN__
-#include <gvolume.h>
+#include "gvolume.h"
 class AMSgSen : public AMSgvolume{
 public:
 integer getsenstrip(AMSPoint&);  

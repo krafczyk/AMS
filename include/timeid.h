@@ -1,9 +1,9 @@
-//  $Id: timeid.h,v 1.30 2002/09/24 07:15:51 choutko Exp $
+//  $Id: timeid.h,v 1.31 2005/05/17 09:56:36 pzuccon Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 #include <time.h>
-#include <node.h>
-#include <astring.h>
+#include "node.h"
+#include "astring.h"
 #include <list>
 using namespace std;
 struct dirent;

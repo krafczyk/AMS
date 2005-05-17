@@ -1,4 +1,4 @@
-//  $Id: beta.h,v 1.13 2003/05/08 16:42:12 choutko Exp $
+//  $Id: beta.h,v 1.14 2005/05/17 09:56:34 pzuccon Exp $
 // V. Choutko 5-june-96
 //
 // July 10, 1996.  ak  add _ContPos and functions get/setNumbers;
@@ -7,11 +7,11 @@
 //
 #ifndef __AMSBETA__
 #define __AMSBETA__
-#include <link.h>
-#include <tofrec02.h>
-#include <trrec.h>
-#include <point.h>
-#include <commons.h>
+#include "link.h"
+#include "tofrec02.h"
+#include "trrec.h"
+#include "point.h"
+#include "commons.h"
 class AMSBeta: public AMSlink{
 protected:
  AMSTOFCluster * _pcluster[4];

@@ -1,19 +1,19 @@
-//  $Id: trigger102.C,v 1.26 2005/05/11 12:57:02 choumilo Exp $
+//  $Id: trigger102.C,v 1.27 2005/05/17 09:54:07 pzuccon Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
-#include <commons.h> 
-#include <trigger102.h>
-#include <event.h>
-#include <mccluster.h>
-#include <tofdbc02.h>
-#include <antidbc02.h>
-#include <ecaldbc.h>
-#include <tofrec02.h>
-#include <tofsim02.h>
-#include <antirec02.h>
-#include <ecalrec.h>
-#include <ntuple.h>
+#include "commons.h" 
+#include "trigger102.h"
+#include "event.h"
+#include "mccluster.h"
+#include "tofdbc02.h"
+#include "antidbc02.h"
+#include "ecaldbc.h"
+#include "tofrec02.h"
+#include "tofsim02.h"
+#include "antirec02.h"
+#include "ecalrec.h"
+#include "ntuple.h"
 using namespace std;
 using namespace ecalconst;
 //

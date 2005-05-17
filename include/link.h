@@ -1,4 +1,4 @@
-//  $Id: link.h,v 1.17 2003/05/16 16:54:12 choutko Exp $
+//  $Id: link.h,v 1.18 2005/05/17 09:56:35 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 04, 1996. add _ContPos
@@ -8,10 +8,10 @@
 
 #ifndef __AMSlink__
 #define __AMSlink__
-#include <typedefs.h>
-#include <upool.h>
-#include <apool.h>
-#include <id.h>
+#include "typedefs.h"
+#include "upool.h"
+#include "apool.h"
+#include "id.h"
 class TObject;
 class AMSlink {
 protected:

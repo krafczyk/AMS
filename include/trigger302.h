@@ -1,16 +1,16 @@
-//  $Id: trigger302.h,v 1.16 2003/05/08 16:42:14 choutko Exp $
+//  $Id: trigger302.h,v 1.17 2005/05/17 09:56:37 pzuccon Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
-#include <link.h>
-#include <tofdbc02.h>
-#include <tkdbc.h>
-#include <trddbc.h>
-#include <ecaldbc.h>
-#include <amsdbc.h>
-#include <amsstl.h>
-#include <trid.h>
-#include <trdid.h>
-#include <commons.h>
+#include "link.h"
+#include "tofdbc02.h"
+#include "tkdbc.h"
+#include "trddbc.h"
+#include "ecaldbc.h"
+#include "amsdbc.h"
+#include "amsstl.h"
+#include "trid.h"
+#include "trdid.h"
+#include "commons.h"
 //
 namespace trigger302const{
 const integer NTRHDRP=trid::ntdr;

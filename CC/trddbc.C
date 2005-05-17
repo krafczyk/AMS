@@ -1,9 +1,9 @@
-//  $Id: trddbc.C,v 1.48 2003/12/19 10:49:24 choutko Exp $
-#include <trddbc.h>
-#include <amsdbc.h>
+//  $Id: trddbc.C,v 1.49 2005/05/17 09:54:07 pzuccon Exp $
+#include "trddbc.h"
+#include "amsdbc.h"
 #include <math.h>
-#include <tkdbc.h>
-#include <commons.h>
+#include "tkdbc.h"
+#include "commons.h"
 using namespace trdconst;
 char * TRDDBc::_OctagonMedia[maxo]={"TRDCarbonFiber", "TRDCarbonFiber",
 "TRDCarbonFiber","TRDCarbonFiber","TRDCarbonFiber","VACUUM","TRDHC","TRDHC",

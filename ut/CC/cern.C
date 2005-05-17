@@ -1,8 +1,8 @@
-//  $Id: cern.C,v 1.5 2001/01/22 17:32:18 choutko Exp $
+//  $Id: cern.C,v 1.6 2005/05/17 09:54:03 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
-#include <typedefs.h>
-#include <cern.h>
+#include "typedefs.h"
+#include "cern.h"
 using namespace amsprotected;
 void amsprotected::mm3(  number m1[3][3],  number m2[3][3], int choise){
   const int s=3;

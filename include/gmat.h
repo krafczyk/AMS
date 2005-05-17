@@ -1,4 +1,4 @@
-//  $Id: gmat.h,v 1.11 2001/01/22 17:32:44 choutko Exp $
+//  $Id: gmat.h,v 1.12 2005/05/17 09:56:35 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //
 // Sep 06, 1996 ak. add getnpar and getNumbers functions
@@ -7,13 +7,13 @@
 //
 #ifndef __AMSGMAT__
 #define __AMSGMAT__ 
-#include <node.h>
-#include <typedefs.h>
+#include "node.h"
+#include "typedefs.h"
 #include <string.h>
-#include <cern.h>
-#include <amsdbc.h>
-#include <amsgobj.h>
-#include <geantnamespace.h>
+#include "cern.h"
+#include "amsdbc.h"
+#include "amsgobj.h"
+#include "geantnamespace.h"
 class AMSgmat : public AMSNode 
 {
  

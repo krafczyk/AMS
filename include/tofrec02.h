@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.13 2005/05/04 10:27:48 choumilo Exp $
+//  $Id: tofrec02.h,v 1.14 2005/05/17 09:56:36 pzuccon Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -8,12 +8,12 @@
 //
 #ifndef __AMSTOF2REC__
 #define __AMSTOF2REC__
-#include <tofdbc02.h>
-#include <typedefs.h>
-#include <point.h>
-#include <link.h>
-#include <event.h>
-#include <trrec.h>
+#include "tofdbc02.h"
+#include "typedefs.h"
+#include "point.h"
+#include "link.h"
+#include "event.h"
+#include "trrec.h"
 //
 class TOF2RawCluster: public AMSlink{
 protected:

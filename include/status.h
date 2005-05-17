@@ -1,11 +1,11 @@
-//  $Id: status.h,v 1.10 2001/01/22 17:32:44 choutko Exp $
+//  $Id: status.h,v 1.11 2005/05/17 09:56:36 pzuccon Exp $
 #ifndef __AMSSTATUS__
 #define __AMSSTATUS__ 
-#include <node.h>
-#include <typedefs.h>
+#include "node.h"
+#include "typedefs.h"
 #include <string.h>
-#include <cern.h>
-#include <amsdbc.h>
+#include "cern.h"
+#include "amsdbc.h"
 #include <time.h>
 const integer STATUSSIZE=48500;
 const integer MAXDAQRATE=1500;

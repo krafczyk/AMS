@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.182 2005/03/01 17:46:52 choutko Exp $
+//  $Id: amsgeom.C,v 1.183 2005/05/17 09:54:02 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -11,21 +11,21 @@
 // New ANTI design (AMS-02). E.Choumilov 24.03.03.
 // 
 //
-#include <typedefs.h>
-#include <node.h>
-#include <snode.h>
-#include <amsdbc.h>
-#include <tofdbc02.h>
-#include <antidbc02.h>
-#include <ecaldbc.h>
-#include <gmat.h>
-#include <extC.h>
+#include "typedefs.h"
+#include "node.h"
+#include "snode.h"
+#include "amsdbc.h"
+#include "tofdbc02.h"
+#include "antidbc02.h"
+#include "ecaldbc.h"
+#include "gmat.h"
+#include "extC.h"
 #include <stdlib.h>
-#include <gvolume.h>
-#include <amsgobj.h>
-#include <job.h>
-#include <commons.h>
-#include <tkdbc.h>
+#include "gvolume.h"
+#include "amsgobj.h"
+#include "job.h"
+#include "commons.h"
+#include "tkdbc.h"
 extern "C" void mtx_(geant nrm[][3],geant vect[]);
 extern "C" void mtx2_(number nrm[][3],geant  xnrm[][3]);
 #define MTX mtx_
@@ -2048,7 +2048,7 @@ cout <<"TKGeom-I-"<<nhalfL<<" Active halfladders initialized"<<endl;
 
 }
 
-#include <trdid.h>
+#include "trdid.h"
 void amsgeom::trdgeom02(AMSgvolume & mother){
 using trdconst::maxco;
 using trdconst::maxbulk;

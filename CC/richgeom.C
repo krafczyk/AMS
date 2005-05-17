@@ -1,10 +1,10 @@
-//  $Id: richgeom.C,v 1.24 2005/05/12 12:33:38 mdelgado Exp $
-#include <gmat.h>
-#include <gvolume.h>
-#include <commons.h>
-#include <richdbc.h>
-#include <richid.h>
-#include <richrec.h>
+//  $Id: richgeom.C,v 1.25 2005/05/17 09:54:05 pzuccon Exp $
+#include "gmat.h"
+#include "gvolume.h"
+#include "commons.h"
+#include "richdbc.h"
+#include "richid.h"
+#include "richrec.h"
 
 #define SQR(x) ((x)*(x))
 

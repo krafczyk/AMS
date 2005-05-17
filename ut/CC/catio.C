@@ -1,6 +1,6 @@
-//  $Id: catio.C,v 1.3 2001/01/22 17:32:18 choutko Exp $
-#include <io.h>
-#include <commons.h>
+//  $Id: catio.C,v 1.4 2005/05/17 09:54:03 pzuccon Exp $
+#include "io.h"
+#include "commons.h"
 AMSDATADIR_DEF AMSDATADIR;
 int main(int argc, char* argv[]){ 
   char *fnam=0;

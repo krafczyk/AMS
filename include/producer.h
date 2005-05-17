@@ -1,11 +1,11 @@
-//  $Id: producer.h,v 1.18 2004/03/10 10:17:47 choutko Exp $
+//  $Id: producer.h,v 1.19 2005/05/17 09:56:35 pzuccon Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__
-#include <daqevt.h>
-#include <client.h>
-#include <node.h>
-#include <timeid.h>
+#include "daqevt.h"
+#include "client.h"
+#include "node.h"
+#include "timeid.h"
 #include <sys/time.h>
 class AMSProducer: public AMSClient, public AMSNode{
 protected:

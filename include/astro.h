@@ -1,15 +1,15 @@
-//  $Id: astro.h,v 1.1 2003/06/19 15:25:00 isevilla Exp $
+//  $Id: astro.h,v 1.2 2005/05/17 09:56:34 pzuccon Exp $
 
 #ifndef __ASTRO__
 #define __ASTRO__
 
-#include <cern.h>
+#include "cern.h"
 #include <time.h>
-#include <io.h>
+#include "io.h"
 #include <math.h>
-#include <event.h>
-#include <mceventg.h> 
-#include <amsdbc.h>
+#include "event.h"
+#include "mceventg.h" 
+#include "amsdbc.h"
 
 
 class skyposition{

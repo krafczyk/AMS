@@ -1,7 +1,7 @@
-//  $Id: readio.C,v 1.5 2001/01/22 17:32:21 choutko Exp $
-#include <io.h>
-#include <trid.h>
-#include <commons.h>
+//  $Id: readio.C,v 1.6 2005/05/17 09:54:05 pzuccon Exp $
+#include "io.h"
+#include "trid.h"
+#include "commons.h"
 AMSDATADIR_DEF AMSDATADIR;
 int main(int argc, char* argv[]){ 
   char *fnam=0;

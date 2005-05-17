@@ -1,6 +1,6 @@
-//  $Id: gsen.C,v 1.4 2001/01/22 17:32:20 choutko Exp $
-#include <gsen.h>
-#include <trid.h>
+//  $Id: gsen.C,v 1.5 2005/05/17 09:54:04 pzuccon Exp $
+#include "gsen.h"
+#include "trid.h"
 integer AMSgSen::getsenstrip(AMSPoint & loc){
 #ifdef __AMSDEBUG__
   AMSPoint tmp=loc;

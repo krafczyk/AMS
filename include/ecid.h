@@ -1,14 +1,14 @@
-//  $Id: ecid.h,v 1.11 2002/12/06 14:43:39 choumilo Exp $
+//  $Id: ecid.h,v 1.12 2005/05/17 09:56:34 pzuccon Exp $
 #ifndef __AMSECID__
 #define __AMSECID__
-#include <typedefs.h>
-#include <amsdbc.h>
+#include "typedefs.h"
+#include "amsdbc.h"
 #include <iostream.h>
-#include <amsstl.h>
-#include <commons.h>
-#include <link.h>
-#include <job.h>
-#include <ecaldbc.h>
+#include "amsstl.h"
+#include "commons.h"
+#include "link.h"
+#include "job.h"
+#include "ecaldbc.h"
 class AMSECIdGeom{
 protected:
 integer _pmt;

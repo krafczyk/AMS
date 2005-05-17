@@ -1,12 +1,12 @@
-//  $Id: cont.h,v 1.13 2003/05/02 09:28:13 choutko Exp $
+//  $Id: cont.h,v 1.14 2005/05/17 09:56:34 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSCONTAINER__
 #define __AMSCONTAINER__
-#include <typedefs.h>
-#include <link.h>
-#include <node.h>
-#include <upool.h>
+#include "typedefs.h"
+#include "link.h"
+#include "node.h"
+#include "upool.h"
 
 typedef integer  (*pBuilder)(integer refit);
 class AMSContainer: public AMSNode{

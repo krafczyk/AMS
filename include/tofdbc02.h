@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.22 2005/05/04 10:27:48 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.23 2005/05/17 09:56:36 pzuccon Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -7,16 +7,16 @@
 //
 #ifndef __TOF2DBC__
 #define __TOF2DBC__
-#include <typedefs.h>
-#include <cern.h>
-#include <commons.h>
-#include <amsdbc.h>
-#include <extC.h>
+#include "typedefs.h"
+#include "cern.h"
+#include "commons.h"
+#include "amsdbc.h"
+#include "extC.h"
 #include <string.h>
 #include <stdlib.h>
 #include <iostream.h>
 #include <fstream.h>
-#include <job.h>
+#include "job.h"
 // #include <daqblock.h>
 //
 //

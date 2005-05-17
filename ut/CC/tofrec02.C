@@ -1,28 +1,28 @@
-//  $Id: tofrec02.C,v 1.31 2005/05/04 10:27:36 choumilo Exp $
+//  $Id: tofrec02.C,v 1.32 2005/05/17 09:54:06 pzuccon Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
 //                                       TOF2RawCluster::sitofdigi modified for trigg.
 //              26.06.97   E.Choumilov - DAQ decoding/encoding added
 //
-#include <tofdbc02.h>
-#include <point.h>
-#include <event.h>
-#include <amsgobj.h>
-#include <commons.h>
-#include <cern.h>
-#include <mccluster.h>
+#include "tofdbc02.h"
+#include "point.h"
+#include "event.h"
+#include "amsgobj.h"
+#include "commons.h"
+#include "cern.h"
+#include "mccluster.h"
 #include <math.h>
-#include <extC.h>
-#include <tofsim02.h>
-#include <trrec.h>
-#include <tofid.h>
-#include <tofrec02.h>
-#include <antirec02.h>
-#include <particle.h>
-#include <daqs2block.h>
-#include <tofcalib02.h>
-#include <ntuple.h>
+#include "extC.h"
+#include "tofsim02.h"
+#include "trrec.h"
+#include "tofid.h"
+#include "tofrec02.h"
+#include "antirec02.h"
+#include "particle.h"
+#include "daqs2block.h"
+#include "tofcalib02.h"
+#include "ntuple.h"
 #include <time.h>
 //
 // mem.reservation for some static arrays:

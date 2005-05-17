@@ -1,12 +1,12 @@
-//  $Id: gmat.C,v 1.86 2005/03/01 17:46:53 choutko Exp $
+//  $Id: gmat.C,v 1.87 2005/05/17 09:54:04 pzuccon Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
-#include <gmat.h>
-#include <snode.h>
-#include <amsgobj.h>
-#include <job.h>
-#include <richdbc.h>
+#include "gmat.h"
+#include "snode.h"
+#include "amsgobj.h"
+#include "job.h"
+#include "richdbc.h"
 #ifdef __G4AMS__
 #include "G4Material.hh"
 #include "G4Element.hh"

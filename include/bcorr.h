@@ -1,7 +1,7 @@
-//  $Id: bcorr.h,v 1.3 2002/01/11 16:09:45 choutko Exp $
+//  $Id: bcorr.h,v 1.4 2005/05/17 09:56:34 pzuccon Exp $
 #ifndef __AMSMFIELD__
 #define __AMSMFIELD__
-#include <typedefs.h>
+#include "typedefs.h"
 
 extern "C" void btempcor();
 #define BTEMPCOR btempcor_

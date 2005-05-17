@@ -1,19 +1,19 @@
-//  $Id: daqs2block.C,v 1.5 2004/09/27 15:00:30 choumilo Exp $
+//  $Id: daqs2block.C,v 1.6 2005/05/17 09:54:03 pzuccon Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
-#include <typedefs.h>
+#include "typedefs.h"
 #include <iostream.h>
-#include <link.h>
+#include "link.h"
 #include <fstream.h>
-#include <cern.h>
-#include <commons.h>
-#include <event.h>
-#include <tofdbc02.h>
-#include <daqs2block.h>
-#include <tofrec02.h>
-#include <tofsim02.h>
-#include <antidbc02.h>
-#include <antirec02.h>
+#include "cern.h"
+#include "commons.h"
+#include "event.h"
+#include "tofdbc02.h"
+#include "daqs2block.h"
+#include "tofrec02.h"
+#include "tofsim02.h"
+#include "antidbc02.h"
+#include "antirec02.h"
 //
 integer DAQS2Block::format=1; // default format (reduced), redefined by data card
 //

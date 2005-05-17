@@ -1,16 +1,16 @@
-//  $Id: server.C,v 1.119 2005/02/23 15:45:43 choutko Exp $
+//  $Id: server.C,v 1.120 2005/05/17 09:54:06 pzuccon Exp $
 //
 #include <stdlib.h>
-#include <server.h>
+#include "server.h"
 #include <fstream.h>
 #include <iostream.h>
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
 #include <algorithm>
-#include <amsdbc.h>
+#include "amsdbc.h"
 #include <signal.h>    
-#include <dbserver.h>
+#include "dbserver.h"
 #include <glib.h>
 static GMainLoop* gloop[2]={0,0};
 static GThread* gthread[2]={0,0};

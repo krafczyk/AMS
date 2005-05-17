@@ -1,5 +1,5 @@
-//  $Id: tkgeom.h,v 1.2 2001/01/22 17:32:44 choutko Exp $
+//  $Id: tkgeom.h,v 1.3 2005/05/17 09:56:36 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
-#include <typedefs.h>
-#include <extC.h>
+#include "typedefs.h"
+#include "extC.h"

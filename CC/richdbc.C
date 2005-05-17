@@ -1,8 +1,8 @@
-//  $Id: richdbc.C,v 1.41 2005/05/12 12:33:37 mdelgado Exp $
-#include<richdbc.h>
+//  $Id: richdbc.C,v 1.42 2005/05/17 09:54:05 pzuccon Exp $
+#include"richdbc.h"
 #include<math.h>
 #include<iostream.h>
-#include<richid.h>
+#include"richid.h"
 
 
 integer RICHDB::_Nph=0;
@@ -519,8 +519,8 @@ geant RICHDB::mean_height(){
 
 
 
-#include <trrec.h>
-#include <richrec.h>
+#include "trrec.h"
+#include "richrec.h"
 geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 			    geant &length,geant beta){
 

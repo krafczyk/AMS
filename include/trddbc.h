@@ -1,7 +1,7 @@
-//  $Id: trddbc.h,v 1.21 2003/04/20 16:54:10 schol Exp $
+//  $Id: trddbc.h,v 1.22 2005/05/17 09:56:36 pzuccon Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
-#include <typedefs.h>
+#include "typedefs.h"
 
 #include <iostream.h>
 #include <fstream.h>

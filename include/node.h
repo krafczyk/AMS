@@ -1,13 +1,13 @@
-//  $Id: node.h,v 1.6 2001/01/22 17:32:44 choutko Exp $
+//  $Id: node.h,v 1.7 2005/05/17 09:56:35 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // 
 // September 03, 1996. ak. add set pointers functions
 //
 #ifndef __AMSNODE__
 #define __AMSNODE__
-#include <typedefs.h>
-#include <id.h>
-#include <astring.h>
+#include "typedefs.h"
+#include "id.h"
+#include "astring.h"
 class AMSNode : public AMSID{
 // Simple Node Class V.Choutko 3/20/96
  protected:

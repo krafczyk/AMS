@@ -1,15 +1,15 @@
-//  $Id: trrawcluster.C,v 1.64 2004/06/28 13:25:10 choutko Exp $
-#include <trid.h>
-#include <trrawcluster.h>
-#include <extC.h>
-#include <commons.h>
+//  $Id: trrawcluster.C,v 1.65 2005/05/17 09:54:07 pzuccon Exp $
+#include "trid.h"
+#include "trrawcluster.h"
+#include "extC.h"
+#include "commons.h"
 #include <math.h>
-#include <amsgobj.h>
-#include <mccluster.h>
-#include <timeid.h>
-#include <trid.h>
-#include <ntuple.h>
-#include <event.h>
+#include "amsgobj.h"
+#include "mccluster.h"
+#include "timeid.h"
+#include "trid.h"
+#include "ntuple.h"
+#include "event.h"
 using trid::ntdr;
 const integer AMSTrRawCluster::MATCHED=1;
 integer AMSTrRawCluster::TestRawMode(){

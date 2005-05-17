@@ -1,7 +1,7 @@
 #ifndef __AMSECCALIB__
 #define __AMSECCALIB__
-#include <typedefs.h>
-#include <ecaldbc.h>
+#include "typedefs.h"
+#include "ecaldbc.h"
 
 //  
 // v1.0 E.Choumilov 08.12.2000
@@ -59,7 +59,7 @@ class ECREUNcalib {
     static void mfite();
 }; 
 
-#include <ecid.h>
+#include "ecid.h"
 
 
 class AMSECIdCalib: public AMSECIdSoft{

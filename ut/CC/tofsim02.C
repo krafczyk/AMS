@@ -1,24 +1,24 @@
-//  $Id: tofsim02.C,v 1.29 2005/05/04 10:27:36 choumilo Exp $
+//  $Id: tofsim02.C,v 1.30 2005/05/17 09:54:06 pzuccon Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
-#include <tofdbc02.h>
+#include "tofdbc02.h"
 #include <iostream.h>
 #include <stdio.h>
-#include <typedefs.h>
-#include <cern.h>
-#include <extC.h>
+#include "typedefs.h"
+#include "cern.h"
+#include "extC.h"
 #include <math.h>
-#include <point.h>
-#include <amsgobj.h>
-#include <event.h>
-#include <amsstl.h>
-#include <commons.h>
-#include <tofsim02.h>
-#include <mccluster.h>
-#include <trigger302.h>
-#include <mceventg.h>
-#include <ecalrec.h>
-#include <tofid.h>
+#include "point.h"
+#include "amsgobj.h"
+#include "event.h"
+#include "amsstl.h"
+#include "commons.h"
+#include "tofsim02.h"
+#include "mccluster.h"
+#include "trigger302.h"
+#include "mceventg.h"
+#include "ecalrec.h"
+#include "tofid.h"
 //
 TOFWScan TOFWScan::scmcscan[TOF2GC::SCBTPN];
 //

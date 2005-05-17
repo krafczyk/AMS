@@ -1,17 +1,17 @@
-//  $Id: user.C,v 1.13 2004/09/27 15:00:32 choumilo Exp $
-#include <typedefs.h>
+//  $Id: user.C,v 1.14 2005/05/17 09:54:07 pzuccon Exp $
+#include "typedefs.h"
 #include <stdlib.h>
 #include <iostream.h>
 #include <fstream.h>
-#include <cern.h>
+#include "cern.h"
 #include <stdio.h>
-#include <user.h>
-#include <trrec.h>
-#include <tofrec02.h>
-#include <ecalrec.h>
-#include <event.h>
-#include <trigger102.h>
-#include <daqevt.h>
+#include "user.h"
+#include "trrec.h"
+#include "tofrec02.h"
+#include "ecalrec.h"
+#include "event.h"
+#include "trigger102.h"
+#include "daqevt.h"
 void AMSUser::InitJob(){
   if(!AMSJob::gethead()->isCalibration()){
     TOF2User::InitJob();

@@ -1,16 +1,16 @@
-//  $Id: geant4.h,v 1.9 2001/01/22 17:32:43 choutko Exp $
+//  $Id: geant4.h,v 1.10 2005/05/17 09:56:35 pzuccon Exp $
 #ifndef __GEANT4H__
 #define __GEANT4H__
-#include <cern.h>
-#include <geantnamespace.h>
-#include <point.h>
+#include "cern.h"
+#include "geantnamespace.h"
+#include "point.h"
 #include "G4RunManager.hh"
 #include "G4VUserDetectorConstruction.hh"
 
 #include "G4MagneticField.hh"
 #include "G4VUserPhysicsList.hh"
 
-#include <node.h>
+#include "node.h"
 
 class G4VPhysicalVolume;
 class AMSG4DetectorInterface: public G4VUserDetectorConstruction{

@@ -1,17 +1,17 @@
 #ifndef __SC2ID__
 #define __SC2ID__
-#include <cern.h>
-#include <commons.h>
-#include <amsdbc.h>
-#include <extC.h>
+#include "cern.h"
+#include "commons.h"
+#include "amsdbc.h"
+#include "extC.h"
 #include <string.h>
-#include <typedefs.h>
+#include "typedefs.h"
 #include <stdlib.h>
 #include <iostream.h>
 #include <fstream.h>
-#include <tofdbc02.h>
-#include <antidbc02.h>
-#include <job.h>
+#include "tofdbc02.h"
+#include "antidbc02.h"
+#include "job.h"
 //
 //
 class AMSSCIds{

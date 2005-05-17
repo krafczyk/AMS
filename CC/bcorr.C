@@ -1,7 +1,7 @@
-//  $Id: bcorr.C,v 1.5 2002/01/11 16:09:33 choutko Exp $
-#include <event.h>
-#include <bcorr.h>
-#include <commons.h>
+//  $Id: bcorr.C,v 1.6 2005/05/17 09:54:03 pzuccon Exp $
+#include "event.h"
+#include "bcorr.h"
+#include "commons.h"
 extern "C" void bzcorr_(float& factor){
  factor=MISCFFKEY.BZCorr;
 }

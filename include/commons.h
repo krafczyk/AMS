@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.203 2005/05/04 10:27:47 choumilo Exp $
+//  $Id: commons.h,v 1.204 2005/05/17 09:56:34 pzuccon Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -7,14 +7,14 @@
 
 #ifndef __AMSCOMMONS__
 #define __AMSCOMMONS__
-#include <typedefs.h>
+#include "typedefs.h"
 // GEANT part
 #ifdef __ALPHA__
 #define DECFortran
 #else
 #define mipsFortran
 #endif
-#include <cfortran.h>
+#include "cfortran.h"
 
 
 

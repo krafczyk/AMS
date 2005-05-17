@@ -1,12 +1,12 @@
-//  $Id: trdsim.h,v 1.6 2003/05/08 16:42:14 choutko Exp $
+//  $Id: trdsim.h,v 1.7 2005/05/17 09:56:36 pzuccon Exp $
 #ifndef __AMSTRDSIM__
 #define __AMSTRDSIM__
 
-#include <trdid.h>
-#include <mccluster.h>
-#include <commons.h>
-#include <link.h>
-#include <cont.h>
+#include "trdid.h"
+#include "mccluster.h"
+#include "commons.h"
+#include "link.h"
+#include "cont.h"
 
 namespace trdsim{
 const uinteger numvawf=32;

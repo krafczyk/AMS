@@ -1,14 +1,14 @@
-//  $Id: gbatch.C,v 1.80 2004/10/08 09:11:45 choutko Exp $
+//  $Id: gbatch.C,v 1.81 2005/05/17 09:54:04 pzuccon Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
 #include <new.h>
-#include <upool.h>
-#include <apool.h>
-#include <status.h>
-#include <commons.h>
-#include <geantnamespace.h>
-#include <producer.h>
+#include "upool.h"
+#include "apool.h"
+#include "status.h"
+#include "commons.h"
+#include "geantnamespace.h"
+#include "producer.h"
 const int NWGEAN=13000000;
 const int NWPAW=1200000;
 

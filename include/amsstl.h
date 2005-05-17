@@ -1,12 +1,12 @@
-//  $Id: amsstl.h,v 1.12 2001/01/22 17:32:42 choutko Exp $
+//  $Id: amsstl.h,v 1.13 2005/05/17 09:56:33 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // 11.07.96 modified by E.Choumilov.(AMSbins added) 
 #ifndef __AMSSTL__
 #define __AMSSTL__
 #include <math.h>
 #include <stdlib.h>
-#include <typedefs.h>  
-#include <upool.h>
+#include "typedefs.h"  
+#include "upool.h"
 #include <algorithm>
 //template <class T> int    cmp( const T* keyval,  const T* datum){
 //// for bsearch; isnot really a template;

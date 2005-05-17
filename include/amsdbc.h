@@ -1,9 +1,9 @@
-//  $Id: amsdbc.h,v 1.36 2005/04/06 11:04:13 alcaraz Exp $
+//  $Id: amsdbc.h,v 1.37 2005/05/17 09:56:33 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSDBC__
 #define __AMSDBC__
-#include <typedefs.h> 
-#include <astring.h>
+#include "typedefs.h" 
+#include "astring.h"
 
 class amsglobalerror{
 private:

@@ -1,7 +1,7 @@
-//  $Id: convert.C,v 1.6 2001/01/22 17:32:19 choutko Exp $
+//  $Id: convert.C,v 1.7 2005/05/17 09:54:03 pzuccon Exp $
 #include <iostream.h>
 #include <stdio.h>
-#include <cern.h>
+#include "cern.h"
 PROTOCCALLSFSUB1(CONVERT,convert,STRING)
 #define CONVERT(A1) CCALLSFSUB1(CONVERT,convert,STRING,A1)
 PROTOCCALLSFSUB1(PREPARE,prepare,STRING)

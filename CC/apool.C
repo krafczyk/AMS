@@ -1,9 +1,9 @@
-//  $Id: apool.C,v 1.10 2004/06/28 13:25:08 choutko Exp $
+//  $Id: apool.C,v 1.11 2005/05/17 09:54:02 pzuccon Exp $
 // Author V. Choutko 19-jul-1996
  
-#include <apool.h>
-#include <amsstl.h>
-//#include <amsgobj.h>
+#include "apool.h"
+#include "amsstl.h"
+//#include "amsgobj.h"
 #include <new.h>
     AMSaPool APool(512000);
 #ifndef __UPOOL__

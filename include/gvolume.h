@@ -1,4 +1,4 @@
-//  $Id: gvolume.h,v 1.22 2001/01/22 17:32:44 choutko Exp $
+//  $Id: gvolume.h,v 1.23 2005/05/17 09:56:35 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //
 // Aug 08, 1996. ak.  First try with Objectivity.
@@ -7,14 +7,14 @@
 // 
 #ifndef __AMSGVOLUME__
 #define __AMSGVOLUME__
-#include <node.h>
-#include <typedefs.h>
+#include "node.h"
+#include "typedefs.h"
 #include <string.h>
-#include <cern.h>
-#include <amsdbc.h>
-#include <point.h>
-#include <gmat.h>
-#include <geantnamespace.h>
+#include "cern.h"
+#include "amsdbc.h"
+#include "point.h"
+#include "gmat.h"
+#include "geantnamespace.h"
 class G4VSolid;
 class AMSgvolume : public AMSNode {
  protected:

@@ -1,14 +1,14 @@
-//  $Id: tralig.C,v 1.30 2005/02/23 15:45:43 choutko Exp $
-#include <tralig.h>
-#include <event.h>
+//  $Id: tralig.C,v 1.31 2005/05/17 09:54:06 pzuccon Exp $
+#include "tralig.h"
+#include "event.h"
 #include <math.h>
-#include <timeid.h>
-#include <trrawcluster.h>
+#include "timeid.h"
+#include "trrawcluster.h"
 #include <float.h>
-#include <mccluster.h>
-#include <tkdbc.h>
-#include <amsstl.h>
-#include <event.h>
+#include "mccluster.h"
+#include "tkdbc.h"
+#include "amsstl.h"
+#include "event.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/stat.h>

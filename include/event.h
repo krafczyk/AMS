@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.70 2003/06/23 14:19:14 isevilla Exp $
+//  $Id: event.h,v 1.71 2005/05/17 09:56:34 pzuccon Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -11,15 +11,15 @@
 #ifndef __AMSEVENT__
 #define __AMSEVENT__
 #include <fstream.h>
-#include <job.h>
-#include <typedefs.h>
-#include <upool.h>
-#include <node.h>
-#include <snode.h>
-#include <link.h>
-#include <cont.h>
-#include <daqevt.h>
-#include <astro.h> // ISN 
+#include "job.h"
+#include "typedefs.h"
+#include "upool.h"
+#include "node.h"
+#include "snode.h"
+#include "link.h"
+#include "cont.h"
+#include "daqevt.h"
+#include "astro.h" // ISN 
 class AMSEvent: public AMSNode{
 private:
   class ShuttlePar{

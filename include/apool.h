@@ -1,4 +1,4 @@
-//  $Id: apool.h,v 1.8 2001/01/22 17:32:42 choutko Exp $
+//  $Id: apool.h,v 1.9 2005/05/17 09:56:34 pzuccon Exp $
 // Author V. Choutko 19-jul-1996
  
 #ifndef __AMSAPOOL__
@@ -7,7 +7,7 @@
 //  Universal  linear memory pool for any/all class(es).
 // Do NOT requires redefinition of new/delete operators.
 // To use it include the following  line in your .h or .C file:
-//#include <apool.h>
+//#include "apool.h"
 //
 // There is predefined instance of AMSaPool called APool(512000), 
 // compiled in apool.o
@@ -37,13 +37,13 @@
 // Performance measured at cernsp 1.7 sec first then 0.9 sec for 60 mbytes alloc
 // prompt new[60 mbytes] 0.5 sec
 //
-#include <typedefs.h>
+#include "typedefs.h"
 #include <stddef.h>
 #include <iostream.h>
 #include <new.h>
 #include <string.h>
-#include <node.h>
-#include <snode.h>
+#include "node.h"
+#include "snode.h"
 class AMSNodePool: public AMSNode{
 private:
 void * _address;

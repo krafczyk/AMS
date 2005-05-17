@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.111 2003/06/20 14:47:59 choutko Exp $
+//  $Id: geant.C,v 1.112 2005/05/17 09:54:04 pzuccon Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -34,35 +34,35 @@
 //  Last Edit: Nov 20, 1997. ak
 //
 
-#include <typedefs.h>
+#include "typedefs.h"
 
-#include <cern.h>
-#include <mceventg.h>
-#include <amsgobj.h>
-#include <commons.h>
+#include "cern.h"
+#include "mceventg.h"
+#include "amsgobj.h"
+#include "commons.h"
 #include <math.h>
-#include <trid.h>
+#include "trid.h"
 #include <new.h>
 #include <limits.h>
-#include <extC.h>
+#include "extC.h"
 //#include <trigger3.h>
-#include <job.h>
+#include "job.h"
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/times.h>
 #include <unistd.h>
 #include <time.h>
-#include <gvolume.h>
-#include <gmat.h>
-#include <mccluster.h>
-#include <event.h>
-#include <cont.h>
-#include <trrec.h>
-#include <daqevt.h>
+#include "gvolume.h"
+#include "gmat.h"
+#include "mccluster.h"
+#include "event.h"
+#include "cont.h"
+#include "trrec.h"
+#include "daqevt.h"
 #include <iostream.h>
-#include <status.h>
-#include <geantnamespace.h>
-#include <timeid.h>
+#include "status.h"
+#include "geantnamespace.h"
+#include "timeid.h"
 #ifdef __DB__
 #include <db_comm.h>
 integer trigEvents;               // number of events written to the DBase
@@ -119,7 +119,7 @@ LMS*                   lms;
 extern "C" void npq_();
 extern "C" void timest_(float & t);
 extern "C" void gstran_(int & itrt,float & ch, float &mas);
-#include <producer.h>
+#include "producer.h"
 
 void gams::UGINIT(int argc,  char * argv[]){
   float zero=0;

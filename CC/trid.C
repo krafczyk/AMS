@@ -1,11 +1,11 @@
-//  $Id: trid.C,v 1.36 2005/03/01 17:46:53 choutko Exp $
+//  $Id: trid.C,v 1.37 2005/05/17 09:54:07 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
-#include <trid.h>
-#include <cern.h>
-#include <commons.h>
-#include <amsstl.h>
+#include "trid.h"
+#include "cern.h"
+#include "commons.h"
+#include "amsstl.h"
 #include <stdio.h>
 using trid::ms;
 using trid::ncrt;

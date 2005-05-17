@@ -1,18 +1,18 @@
-//  $Id: trid.h,v 1.27 2001/01/22 17:32:45 choutko Exp $
+//  $Id: trid.h,v 1.28 2005/05/17 09:56:36 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //
 // Last edit : Mar 19, 1997. ak. add AMSTrIdSoft::getidgeom() function 
 //
 #ifndef __AMSTRID__
 #define __AMSTRID__
-#include <typedefs.h>
-#include <amsdbc.h>
+#include "typedefs.h"
+#include "amsdbc.h"
 #include <iostream.h>
-#include <amsstl.h>
-#include <commons.h>
-#include <link.h>
-#include <job.h>
-#include <tkdbc.h>
+#include "amsstl.h"
+#include "commons.h"
+#include "link.h"
+#include "job.h"
+#include "tkdbc.h"
 namespace trid{
 const integer ms=4000;
 const int ncrt=8;

@@ -3,7 +3,7 @@
 #else
 #define mipsFortran
 #endif
-#include <cfortran.h>
+#include "cfortran.h"
 #include <stdio.h>
 #include <iostream.h>
 #include <fstream.h>

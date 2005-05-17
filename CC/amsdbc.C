@@ -1,9 +1,9 @@
-//  $Id: amsdbc.C,v 1.47 2005/04/06 11:04:11 alcaraz Exp $
+//  $Id: amsdbc.C,v 1.48 2005/05/17 09:54:02 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #include <math.h>
-#include <amsdbc.h>
-#include <amsstl.h>
+#include "amsdbc.h"
+#include "amsstl.h"
 //
 
 char* AMSDBc::amsdatabase=0;

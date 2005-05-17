@@ -1,7 +1,7 @@
-//  $Id: duplic.C,v 1.2 2001/01/22 17:32:19 choutko Exp $
-#include <io.h>
-#include <commons.h>
-#include <amsstl.h>
+//  $Id: duplic.C,v 1.3 2005/05/17 09:54:04 pzuccon Exp $
+#include "io.h"
+#include "commons.h"
+#include "amsstl.h"
 int cmpt (const void * p1, const void *p2);
 AMSDATADIR_DEF AMSDATADIR;
 int main(int argc, char* argv[]){ 

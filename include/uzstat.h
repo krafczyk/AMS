@@ -1,4 +1,4 @@
-//  $Id: uzstat.h,v 1.10 2003/03/04 13:09:25 choutko Exp $
+//  $Id: uzstat.h,v 1.11 2005/05/17 09:56:37 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 // The "uztime L3" like package
@@ -12,12 +12,12 @@
 
 #ifndef __AMSUZSTAT__
 #define __AMSUZSTAT__
-#include <cern.h>
-#include <typedefs.h>
+#include "cern.h"
+#include "typedefs.h"
 #include <limits.h>
 #include <math.h>
-#include <node.h>
-#include <snode.h>
+#include "node.h"
+#include "snode.h"
 #include <float.h>
 
 // High granularity time

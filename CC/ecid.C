@@ -1,4 +1,4 @@
-#include <ecid.h>
+#include "ecid.h"
 using namespace ecalconst;
  integer AMSECIdSoft::_GetGeo[ecalconst::ECRT][ecalconst::ECPMSL][2];   // slayer,pmtno
  integer AMSECIdSoft::_GetHard[ecalconst::ECSLMX][ecalconst::ECPMSMX][2];     // crate, hchan

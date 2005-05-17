@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <fstream.h>
 #include <dirent.h>
-#include <astring.h>
+#include "astring.h"
 #include <sys/stat.h>
 #include <stdio.h>
 unsigned int * _Table=0;

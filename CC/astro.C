@@ -1,16 +1,16 @@
-//  $Id: astro.C,v 1.1 2003/06/19 15:21:16 isevilla Exp $
+//  $Id: astro.C,v 1.2 2005/05/17 09:54:03 pzuccon Exp $
 
 
-#include <typedefs.h> 
-#include <astro.h>
-#include <io.h>
-#include <cern.h>
+#include "typedefs.h" 
+#include "astro.h"
+#include "io.h"
+#include "cern.h"
 #include <time.h>
 #include <math.h>
-#include <event.h>
-#include <mceventg.h> 
-#include <amsdbc.h>
-#include <ntuple.h>
+#include "event.h"
+#include "mceventg.h" 
+#include "amsdbc.h"
+#include "ntuple.h"
 
 number skyposition::Sidtime(time_t sec){  
   number tu = (floor(float(sec)/86400)+25567.5)/36525; // julian centuries since 1900 Epoch until beginning of julian day. sec is seconds since UNIX Epoch 1970

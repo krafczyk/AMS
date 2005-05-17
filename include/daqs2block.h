@@ -1,13 +1,13 @@
-//  $Id: daqs2block.h,v 1.2 2001/01/22 17:32:42 choutko Exp $
+//  $Id: daqs2block.h,v 1.3 2005/05/17 09:56:34 pzuccon Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
 #ifndef __AMSDAQS2BLOCK__
 #define __AMSDAQS2BLOCK__
-#include <typedefs.h>
+#include "typedefs.h"
 #include <iostream.h>
-#include <link.h>
+#include "link.h"
 #include <fstream.h>
-#include <tofdbc02.h>
+#include "tofdbc02.h"
 //
 // 
 //

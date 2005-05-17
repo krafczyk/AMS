@@ -1,13 +1,13 @@
-//  $Id: trcalib.C,v 1.54 2003/11/07 17:35:07 alcaraz Exp $
-#include <trcalib.h>
-#include <event.h>
+//  $Id: trcalib.C,v 1.55 2005/05/17 09:54:07 pzuccon Exp $
+#include "trcalib.h"
+#include "event.h"
 #include <math.h>
-#include <timeid.h>
-#include <trrawcluster.h>
+#include "timeid.h"
+#include "trrawcluster.h"
 #include <float.h>
-#include <mccluster.h>
-#include <tkdbc.h>
-#include <mceventg.h>
+#include "mccluster.h"
+#include "tkdbc.h"
+#include "mceventg.h"
 using trid::ms;
 //PROTOCCALLSFSUB15(E04CCF,e04ccf,INT,DOUBLEV,DOUBLE,DOUBLE,INT,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,ROUTINE,ROUTINE,INT,INT)
 //#define E04CCF(N,X,F,TOL,IW,W1,W2,W3,W4,W5,W6,ALFUN1,MONIT,MAXCAL,IFAIL) CCALLSFSUB15(E04CCF,e04ccf,INT,DOUBLEV,DOUBLE,DOUBLE,INT,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,ROUTINE,ROUTINE,INT,INT,N,X,F,TOL,IW,W1,W2,W3,W4,W5,W6,ALFUN1,MONIT,MAXCAL,IFAIL)

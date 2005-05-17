@@ -1,7 +1,7 @@
-//  $Id: id.C,v 1.17 2005/02/25 10:58:55 choutko Exp $
+//  $Id: id.C,v 1.18 2005/05/17 09:54:05 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
-#include <id.h>
+#include "id.h"
 #include <string.h>
 // Static initialization
  char * AMSID::_error=0;

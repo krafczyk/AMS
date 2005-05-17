@@ -1,14 +1,14 @@
-//  $Id: commons.C,v 1.282 2005/03/29 10:11:25 choutko Exp $
+//  $Id: commons.C,v 1.283 2005/05/17 09:54:03 pzuccon Exp $
 
 
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/time.h>
-#include <commons.h>
+#include "commons.h"
 #include <stdlib.h>
 #include <iostream.h>
-#include <cern.h>
-#include <amsdbc.h>
+#include "cern.h"
+#include "amsdbc.h"
 #include <fstream.h>
 //
 STATUSFFKEY_DEF STATUSFFKEY;

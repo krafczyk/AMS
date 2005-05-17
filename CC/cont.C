@@ -1,8 +1,8 @@
-//  $Id: cont.C,v 1.9 2003/05/02 09:28:07 choutko Exp $
+//  $Id: cont.C,v 1.10 2005/05/17 09:54:03 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
-#include <cont.h>
-#include <amsstl.h>
+#include "cont.h"
+#include "amsstl.h"
 void AMSContainer::runbuilder(integer par){
  if(_pb)_BuildSuccess=_pb(par);
 #ifdef __AMSDEBUG__

@@ -1,4 +1,4 @@
-//  $Id: upool.h,v 1.6 2001/01/22 17:32:45 choutko Exp $
+//  $Id: upool.h,v 1.7 2005/05/17 09:56:37 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSUPOOL__
@@ -7,7 +7,7 @@
 //  Universal  linear memory pool for any/all class(es).
 // Do NOT requires redefinition of new/delete operators.
 // To use it include the following  line in your .h or .C file:
-//#include <upool.h>
+//#include "upool.h"
 //
 // There is predefined instance of AMSuPool called UPool(512000), 
 // compiled in upool.o
@@ -34,7 +34,7 @@
 // Performance measured at cernsp 1.7 sec first then 0.9 sec for 60 mbytes alloc
 // prompt new[60 mbytes] 0.5 sec
 //
-#include <typedefs.h>
+#include "typedefs.h"
 #include <stddef.h>
 #include <iostream.h>
 #include <new.h>

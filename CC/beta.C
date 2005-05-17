@@ -1,20 +1,20 @@
-//  $Id: beta.C,v 1.54 2003/11/07 17:35:05 alcaraz Exp $
+//  $Id: beta.C,v 1.55 2005/05/17 09:54:03 pzuccon Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
-#include <tofdbc02.h>
-#include <tofrec02.h>
-#include <beta.h>
-#include <commons.h>
+#include "tofdbc02.h"
+#include "tofrec02.h"
+#include "beta.h"
+#include "commons.h"
 #include <math.h>
 #include <limits.h>
-#include <amsgobj.h>
-#include <extC.h>
-#include <upool.h>
-#include <ntuple.h>
-#include <trigger302.h>
-#include <event.h>
-#include <trdrec.h>
+#include "amsgobj.h"
+#include "extC.h"
+#include "upool.h"
+#include "ntuple.h"
+#include "trigger302.h"
+#include "event.h"
+#include "trdrec.h"
 extern "C" void rzerowrapper_(number & z0, number & zb, number & x0, number & zmin,int & ierr);
 
 integer AMSBeta::patconf[npatb][4]={  1,2,3,4,        // 1234  0

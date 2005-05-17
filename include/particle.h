@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.49 2003/12/18 12:22:07 choutko Exp $
+//  $Id: particle.h,v 1.50 2005/05/17 09:56:35 pzuccon Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -11,14 +11,14 @@
 //
 #ifndef __AMSPARTICLE__
 #define __AMSPARTICLE__
-#include <link.h>
-#include <trrec.h>
-#include <tofrec02.h>
-#include <ecaldbc.h>
-#include <beta.h>
-#include <charge.h>
-#include <trdrec.h>
-#include <richrec.h>
+#include "link.h"
+#include "trrec.h"
+#include "tofrec02.h"
+#include "ecaldbc.h"
+#include "beta.h"
+#include "charge.h"
+#include "trdrec.h"
+#include "richrec.h"
 class AMSVtx;
 class AntiMatter: public AMSlink{
 protected: 

@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.93 2004/09/27 15:00:59 choumilo Exp $
+//  $Id: ntuple.h,v 1.94 2005/05/17 09:56:35 pzuccon Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -42,13 +42,13 @@ const int MAXMCVOL   =   200;
 using namespace root;
 
 #ifndef __ROOTSHAREDLIBRARY__
-#include <node.h>
-#include <tkdbc.h>
-#include <trddbc.h>
-#include <ecaldbc.h>
-#include <antidbc02.h>
+#include "node.h"
+#include "tkdbc.h"
+#include "trddbc.h"
+#include "ecaldbc.h"
+#include "antidbc02.h"
 #ifdef __WRITEROOT__
-#include <root.h>
+#include "root.h"
 #endif
 
 class BetaNtuple02 {

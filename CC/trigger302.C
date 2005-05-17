@@ -1,17 +1,17 @@
-//  $Id: trigger302.C,v 1.28 2005/01/04 16:48:01 choumilo Exp $
-#include <tofdbc02.h>
-#include <tofrec02.h>
-#include <tofsim02.h>
-#include <trigger102.h>
-#include <trigger302.h>
-#include <ecaldbc.h>
-#include <ecalrec.h>
-#include <event.h>
-#include <mccluster.h>
-#include <amsdbc.h>
-#include <trrawcluster.h>
-#include <trdsim.h>
-#include <ntuple.h>
+//  $Id: trigger302.C,v 1.29 2005/05/17 09:54:07 pzuccon Exp $
+#include "tofdbc02.h"
+#include "tofrec02.h"
+#include "tofsim02.h"
+#include "trigger102.h"
+#include "trigger302.h"
+#include "ecaldbc.h"
+#include "ecalrec.h"
+#include "event.h"
+#include "mccluster.h"
+#include "amsdbc.h"
+#include "trrawcluster.h"
+#include "trdsim.h"
+#include "ntuple.h"
 using namespace std;
 using namespace trconst;
 using namespace trigger302const;

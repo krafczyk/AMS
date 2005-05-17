@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.34 2003/05/08 16:42:13 choutko Exp $
+//  $Id: mccluster.h,v 1.35 2005/05/17 09:56:35 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -11,14 +11,14 @@
 
 #ifndef __AMSMCCLUSTER__
 #define __AMSMCCLUSTER__
-#include <upool.h>
-#include <apool.h>
-#include <gsen.h>
-#include <trid.h>
-#include <link.h>
-#include <commons.h>
+#include "upool.h"
+#include "apool.h"
+#include "gsen.h"
+#include "trid.h"
+#include "link.h"
+#include "commons.h"
 #include <stdlib.h>
-#include <trdid.h>
+#include "trdid.h"
 //========================================================  
 class AMSTOFMCCluster: public AMSlink{
 public:

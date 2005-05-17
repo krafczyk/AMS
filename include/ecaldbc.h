@@ -1,13 +1,13 @@
-//  $Id: ecaldbc.h,v 1.30 2003/05/22 08:36:39 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.31 2005/05/17 09:56:34 pzuccon Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
 #ifndef __ECALDBC__
 #define __ECALDBC__
-#include <cern.h>
-#include <extC.h>
+#include "cern.h"
+#include "extC.h"
 #include <math.h>
-#include <amsdbc.h>
+#include "amsdbc.h"
 //
 // ECAL global constants definition
 //

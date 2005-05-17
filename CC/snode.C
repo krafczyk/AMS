@@ -1,10 +1,10 @@
-//  $Id: snode.C,v 1.12 2001/01/22 17:32:21 choutko Exp $
+//  $Id: snode.C,v 1.13 2005/05/17 09:54:06 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 
 #include <typeinfo> 
-#include <node.h>
-#include <snode.h>
-#include <amsstl.h>
+#include "node.h"
+#include "snode.h"
+#include "amsstl.h"
 integer AMSNodeMap::debug=1;
 const integer AMSNodeMap::_tols=10000;
   void AMSNodeMap::_count(AMSNode *const  ptr){

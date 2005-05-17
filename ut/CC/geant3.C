@@ -1,36 +1,36 @@
-//  $Id: geant3.C,v 1.90 2005/02/23 15:45:43 choutko Exp $
+//  $Id: geant3.C,v 1.91 2005/05/17 09:54:04 pzuccon Exp $
 
-#include <typedefs.h>
-#include <cern.h>
-#include <mceventg.h>
-#include <amsgobj.h>
-#include <commons.h>
+#include "typedefs.h"
+#include "cern.h"
+#include "mceventg.h"
+#include "amsgobj.h"
+#include "commons.h"
 #include <math.h>
-#include <trid.h>
+#include "trid.h"
 //#include <new.h>
 #include <limits.h>
-#include <extC.h>
+#include "extC.h"
 //#include <trigger3.h>
-#include <job.h>
+#include "job.h"
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/times.h>
 #include <unistd.h>
 #include <time.h>
-#include <gvolume.h>
-#include <gmat.h>
-#include <mccluster.h>
-#include <event.h>
-#include <cont.h>
-#include <trrec.h>
-#include <daqevt.h>
+#include "gvolume.h"
+#include "gmat.h"
+#include "mccluster.h"
+#include "event.h"
+#include "cont.h"
+#include "trrec.h"
+#include "daqevt.h"
 #include <iostream.h>
-#include <richdbc.h>
-#include <richid.h>
-#include <producer.h>
-#include <geantnamespace.h>         
-#include <status.h>
-#include <ntuple.h>
+#include "richdbc.h"
+#include "richid.h"
+#include "producer.h"
+#include "geantnamespace.h"         
+#include "status.h"
+#include "ntuple.h"
 #ifdef __AMSDEBUG__
 static integer globalbadthinghappened=0;
 

@@ -1,12 +1,12 @@
-//  $Id: io.C,v 1.28 2002/07/10 14:54:02 alexei Exp $
+//  $Id: io.C,v 1.29 2005/05/17 09:54:05 pzuccon Exp $
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <io.h>
+#include "io.h"
 #include <sys/time.h>
 #include <sys/times.h>
-#include <commons.h>
-#include <amsdbc.h>
-#include <mceventg.h>
+#include "commons.h"
+#include "amsdbc.h"
+#include "mceventg.h"
 #ifdef __G4AMS__
 #include "CLHEP/Random/Random.h"
 #endif

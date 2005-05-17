@@ -1,17 +1,17 @@
-//  $Id: ecalrec.h,v 1.40 2004/06/16 09:39:57 choutko Exp $
+//  $Id: ecalrec.h,v 1.41 2005/05/17 09:56:34 pzuccon Exp $
 //
 // 28.09.1999 E.Choumilov
 //
 #ifndef __AMSECALREC__
 #define __AMSECALREC__
-#include <typedefs.h>
-#include <point.h>
-#include <link.h>
-#include <event.h>
+#include "typedefs.h"
+#include "point.h"
+#include "link.h"
+#include "event.h"
 #include <stdlib.h>
 #include <time.h>
-#include <ecaldbc.h>
-#include <ecid.h>
+#include "ecaldbc.h"
+#include "ecid.h"
 //
 //---------------------------------------
 class AMSEcalRawEvent: public AMSlink{

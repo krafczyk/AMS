@@ -1,14 +1,14 @@
-//  $Id: trdid.h,v 1.7 2001/11/30 16:47:13 choutko Exp $
+//  $Id: trdid.h,v 1.8 2005/05/17 09:56:36 pzuccon Exp $
 #ifndef __AMSTRDID__
 #define __AMSTRDID__
-#include <typedefs.h>
-#include <amsdbc.h>
+#include "typedefs.h"
+#include "amsdbc.h"
 #include <iostream.h>
-#include <amsstl.h>
-#include <commons.h>
-#include <link.h>
-#include <job.h>
-#include <trddbc.h>
+#include "amsstl.h"
+#include "commons.h"
+#include "link.h"
+#include "job.h"
+#include "trddbc.h"
 using trdconst::maxo;
 using trdconst::mtrdo;
 using trdconst::maxtube;

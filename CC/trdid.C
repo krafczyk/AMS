@@ -1,13 +1,13 @@
-//  $Id: trdid.C,v 1.8 2001/11/30 16:47:04 choutko Exp $
+//  $Id: trdid.C,v 1.9 2005/05/17 09:54:07 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
-#include <trdid.h>
-#include <cern.h>
-#include <commons.h>
-#include <amsstl.h>
+#include "trdid.h"
+#include "cern.h"
+#include "commons.h"
+#include "amsstl.h"
 #include <stdio.h>
-#include <trddbc.h>
+#include "trddbc.h"
 using namespace trdconst;
 
 uinteger AMSTRDIdSoft::_CrateNo[trdid::ncrt];

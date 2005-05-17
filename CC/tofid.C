@@ -1,4 +1,4 @@
-#include <tofid.h>
+#include "tofid.h"
 using namespace TOF2GC;
 using namespace ANTI2C;
   int AMSSCIds::totswch[2];//total s/w-channels for TOF and ANTI

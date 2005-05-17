@@ -1,9 +1,9 @@
-//  $Id: utpool.h,v 1.2 2001/01/22 17:32:45 choutko Exp $
+//  $Id: utpool.h,v 1.3 2005/05/17 09:56:37 pzuccon Exp $
 //
 // Template for linear memory pool for class T.
 // Derived from T classes CAN use the new/delete operators from  T.
 // To use template include the following three lines in your class <T> .h file:
-//#include <utpool.h>
+//#include "utpool.h"
 // void * operator new(size_t t) {return AMSutPool<T>::insert(t);}
 // void operator delete(void *p){AMSutPool<T>::udelete(p);}
 //
@@ -24,7 +24,7 @@
 // Performance measured at cernsp 1.8 sec first then 1.0 sec for 60 mbytes alloc
 // prompt new[60 mbytes] 0.5 sec
 //
-#include <typedefs.h> 
+#include "typedefs.h" 
 #include <stddef.h>
  template <class T> 
 class AMSutPool {

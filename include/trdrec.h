@@ -1,11 +1,11 @@
-//  $Id: trdrec.h,v 1.12 2003/07/11 07:39:37 choutko Exp $
+//  $Id: trdrec.h,v 1.13 2005/05/17 09:56:36 pzuccon Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
-#include <trdid.h>
-#include <commons.h>
-#include <link.h>
-#include <cont.h>
-#include <trdsim.h>
+#include "trdid.h"
+#include "commons.h"
+#include "link.h"
+#include "cont.h"
+#include "trdsim.h"
 
 class AMSTRDCluster: public AMSlink{
 protected:

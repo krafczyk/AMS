@@ -1,5 +1,5 @@
-//  $Id: checktdv.C,v 1.3 2001/01/22 17:32:18 choutko Exp $
-#include <typedefs.h>
+//  $Id: checktdv.C,v 1.4 2005/05/17 09:54:03 pzuccon Exp $
+#include "typedefs.h"
 #include <ctype.h>
 #include <iostream.h>
 #include <fstream.h>
@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <iomanip.h>
 #include <dirent.h>                   
-#include <astring.h>
+#include "astring.h"
 
 
    static integer total=0;

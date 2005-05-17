@@ -1,4 +1,4 @@
-//  $Id: job.h,v 1.55 2002/03/20 09:43:10 choumilo Exp $
+//  $Id: job.h,v 1.56 2005/05/17 09:56:35 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 24, 1997. ak. add _eventRtype 
@@ -13,14 +13,14 @@
 // 21 Feb 1998: D. Casadei added AMSJob::_retofonlineinitjob();
 #ifndef __AMSJOB__
 #define __AMSJOB__
-#include <typedefs.h>
-#include <node.h>
-#include <snode.h>
-#include <gvolume.h>
-#include <gmat.h>
+#include "typedefs.h"
+#include "node.h"
+#include "snode.h"
+#include "gvolume.h"
+#include "gmat.h"
 #include <iomanip.h>
-#include <amsgobj.h>
-#include <commons.h>
+#include "amsgobj.h"
+#include "commons.h"
 #ifdef __DB__
 #include <db_comm.h>
 #endif

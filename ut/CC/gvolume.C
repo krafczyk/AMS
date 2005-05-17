@@ -1,8 +1,8 @@
-//  $Id: gvolume.C,v 1.51 2002/09/06 15:40:56 choutko Exp $
-#include <gvolume.h>
+//  $Id: gvolume.C,v 1.52 2005/05/17 09:54:05 pzuccon Exp $
+#include "gvolume.h"
 #include <math.h>
-#include <amsgobj.h>
-#include <gmat.h>
+#include "amsgobj.h"
+#include "gmat.h"
 #ifdef __G4AMS__
 #include "G4MaterialPropertyVector.hh"
 #include "G4Material.hh"
@@ -10,8 +10,8 @@
 #include "G4LogicalSkinSurface.hh"
 #include "G4LogicalBorderSurface.hh"
 #include <new.h>
-#include <commons.h>
-#include <astring.h>
+#include "commons.h"
+#include "astring.h"
 #include "G4LogicalVolume.hh"
 #include "G4ThreeVector.hh"
 #include "G4VSolid.hh"
@@ -29,8 +29,8 @@
 #include "G4BREPSolidPolyhedra.hh"
 #include "G4Polycone.hh"
 #include "G4PVPlacement.hh"
-#include <geant4.h>
-#include <g4physics.h>
+#include "geant4.h"
+#include "g4physics.h"
 #include "G4VisAttributes.hh"
 #include "G4PVReplica.hh"
 #include "G4Assembly.hh"

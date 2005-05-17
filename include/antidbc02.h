@@ -1,10 +1,10 @@
-//  $Id: antidbc02.h,v 1.9 2004/09/27 15:00:59 choumilo Exp $
+//  $Id: antidbc02.h,v 1.10 2005/05/17 09:56:34 pzuccon Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
 #define __ANTI2DBC__
 //
-#include <typedefs.h>
+#include "typedefs.h"
 //
 // Constants for Anti-Counters :
 namespace ANTI2C{

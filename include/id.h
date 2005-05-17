@@ -1,9 +1,9 @@
-//  $Id: id.h,v 1.8 2004/05/13 08:51:14 choutko Exp $
+//  $Id: id.h,v 1.9 2005/05/17 09:56:35 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSID__
 #define __AMSID__
-#include <typedefs.h>
+#include "typedefs.h"
 #include <strstream>
 #include <stddef.h>
 #include <stdlib.h>

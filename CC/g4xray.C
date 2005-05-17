@@ -22,7 +22,7 @@
 // ********************************************************************
 //
 //
-// $Id: g4xray.C,v 1.4 2002/01/09 18:38:11 choutko Exp $
+// $Id: g4xray.C,v 1.5 2005/05/17 09:54:04 pzuccon Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -43,9 +43,9 @@
 #include "g4std/fstream"
 #include "g4std/iomanip"
  
-#include <g4xray.h>
-#include <geant4.h>
-#include <mceventg.h>
+#include "g4xray.h"
+#include "geant4.h"
+#include "mceventg.h"
 
 // ######################################################################
 // ###                            GAMMA                               ###

@@ -1,7 +1,7 @@
-//  $Id: dbserver.h,v 1.12 2003/11/12 15:22:31 choutko Exp $
+//  $Id: dbserver.h,v 1.13 2005/05/17 09:56:34 pzuccon Exp $
 #ifndef __AMSDBSERVER__
 #define __AMSDBSERVER__
-#include <server.h>
+#include "server.h"
 
 class DBServer_impl : public virtual POA_DPS::DBServer, public AMSServerI{
 protected:

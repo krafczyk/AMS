@@ -1,15 +1,15 @@
-//  $Id: ctc.h,v 1.3 2001/01/22 17:32:42 choutko Exp $
+//  $Id: ctc.h,v 1.4 2005/05/17 09:56:34 pzuccon Exp $
 // V. Choutko 26-sep-96
 //
 // Sep  26, 1996.  ak.  V1.27a, CTC extract from the file particle.h
 //
 #ifndef __AMSCTC__
 #define __AMSCTC__
-#include <link.h>
-#include <trrec.h>
+#include "link.h"
+#include "trrec.h"
 #include <tofrec.h>
-#include <beta.h>
-#include <charge.h>
+#include "beta.h"
+#include "charge.h"
 
 class CTC {
 

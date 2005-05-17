@@ -1,4 +1,4 @@
-//  $Id: updtdv.C,v 1.2 2001/01/22 17:32:24 choutko Exp $
+//  $Id: updtdv.C,v 1.3 2005/05/17 09:54:07 pzuccon Exp $
 #include <iostream.h>
 #include <fstream.h>
 #include <stdlib.h>
@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/file.h>
-#include <cern.h>
+#include "cern.h"
 #include <stdio.h>
 #include <iomanip.h>
 void _InitTable();

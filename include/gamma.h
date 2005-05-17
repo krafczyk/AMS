@@ -1,21 +1,21 @@
-//  $Id: gamma.h,v 1.15 2003/05/12 13:11:24 choutko Exp $
+//  $Id: gamma.h,v 1.16 2005/05/17 09:56:35 pzuccon Exp $
 // Author G.LAMANNA 13-Sept-2002
 
 #ifndef __AMSTRGAMMA__
 #define __AMSTRGAMMA__
 
 
-#include <typedefs.h>
+#include "typedefs.h"
 #include <iostream.h>
 #include <math.h>
-#include <upool.h>
-#include <apool.h>
-#include <gsen.h>
-#include <trid.h>
-#include <link.h>
-#include <commons.h>
-#include <cont.h>
-#include <event.h>
+#include "upool.h"
+#include "apool.h"
+#include "gsen.h"
+#include "trid.h"
+#include "link.h"
+#include "commons.h"
+#include "cont.h"
+#include "event.h"
 #include <iomanip>
 #include <vector>
 

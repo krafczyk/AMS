@@ -1,12 +1,12 @@
-//  $Id: tofsim02.h,v 1.10 2005/05/04 10:27:48 choumilo Exp $
+//  $Id: tofsim02.h,v 1.11 2005/05/17 09:56:36 pzuccon Exp $
 // Author Choumilov.E. 10.07.96.
 #ifndef __AMSTOF2SIM__
 #define __AMSTOF2SIM__
-#include <upool.h>
-#include <apool.h>
-#include <link.h>
-#include <typedefs.h>
-#include <tofdbc02.h>
+#include "upool.h"
+#include "apool.h"
+#include "link.h"
+#include "typedefs.h"
+#include "tofdbc02.h"
 #include <stdlib.h>
 #include <time.h>
 //=======================================================================

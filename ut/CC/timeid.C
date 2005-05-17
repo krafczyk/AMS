@@ -1,23 +1,23 @@
-//  $Id: timeid.C,v 1.82 2004/12/18 17:34:54 choutko Exp $
+//  $Id: timeid.C,v 1.83 2005/05/17 09:54:06 pzuccon Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
-#include <timeid.h>
-#include <astring.h>
+#include "timeid.h"
+#include "astring.h"
 #include <fstream.h>
 #include <sys/types.h>
 #include <ctype.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/file.h>
-#include <amsdbc.h>
-#include <amsstl.h>
+#include "amsdbc.h"
+#include "amsstl.h"
 #include <stdio.h>
 #ifndef __CORBASERVER__
-#include <commons.h>
+#include "commons.h"
 #endif
 #ifdef __CORBA__
-#include <producer.h>
+#include "producer.h"
 #endif
 #if !defined( __IBMAIX__) && !defined(sun) 
 #include <dirent.h>
@@ -663,7 +663,7 @@ void AMSTimeID::_fillfromDB()
          <<getname()<<endl; 
 }
 
-#include <event.h>
+#include "event.h"
 integer AMSTimeID::readDB(integer reenter){
 
   integer rec = -1;

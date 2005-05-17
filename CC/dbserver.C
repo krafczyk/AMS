@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.28 2003/11/12 15:22:23 choutko Exp $
+//  $Id: dbserver.C,v 1.29 2005/05/17 09:54:03 pzuccon Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
@@ -9,18 +9,18 @@
 //
 
 #include <stdlib.h>
-#include <server.h>
+#include "server.h"
 #include <fstream.h>
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
 #include <algorithm>
-#include <amsdbc.h>
+#include "amsdbc.h"
 #include <signal.h>
-#include <dbserver.h>
+#include "dbserver.h"
 
 #ifdef __AMSORACLE__
-#include <oracle.h>
+#include "oracle.h"
 #endif
 unsigned int TDVBufferLength = 50000000;
 

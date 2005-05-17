@@ -1,7 +1,7 @@
-//  $Id: link.C,v 1.5 2003/05/02 09:28:07 choutko Exp $
+//  $Id: link.C,v 1.6 2005/05/17 09:54:05 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
-#include <link.h>
+#include "link.h"
 
 integer AMSlink::testlast( ){
  if ( _next==0 || (*this < *_next) || (*_next < *this))return 1;

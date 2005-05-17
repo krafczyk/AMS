@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.84 2005/04/06 14:55:48 alcaraz Exp $
+//  $Id: trrec.h,v 1.85 2005/05/17 09:56:37 pzuccon Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -19,14 +19,14 @@
 //
 #ifndef __AMSTRBANK__
 #define __AMSTRBANK__
-#include <upool.h>
-#include <apool.h>
-#include <gsen.h>
-#include <trid.h>
-#include <link.h>
-#include <commons.h>
-#include <cont.h>
-#include <event.h>
+#include "upool.h"
+#include "apool.h"
+#include "gsen.h"
+#include "trid.h"
+#include "link.h"
+#include "commons.h"
+#include "cont.h"
+#include "event.h"
 #include <vector>
 
 using namespace std;

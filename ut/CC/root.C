@@ -1,27 +1,27 @@
-//  $Id: root.C,v 1.90 2005/04/30 11:27:38 alcaraz Exp $
+//  $Id: root.C,v 1.91 2005/05/17 09:54:06 pzuccon Exp $
 //
 
-#include <root.h>
-#include <ntuple.h>
+#include "root.h"
+#include "ntuple.h"
 #ifndef __ROOTSHAREDLIBRARY__
-#include <antirec02.h>
-#include <beta.h>
-#include <ecalrec.h>
-#include <mccluster.h>
-#include <mceventg.h>
-#include <particle.h>
-#include <richrec.h>
-#include <tofdbc02.h>
-#include <tofrec02.h>
-#include <antirec02.h>
-#include <trdrec.h>
-#include <trigger102.h>
-#include <trigger302.h>
-#include <trrawcluster.h>
-#include <trrec.h>
-#include <astro.h>
-#include <amsdbc.h>
-#include <vtx.h>
+#include "antirec02.h"
+#include "beta.h"
+#include "ecalrec.h"
+#include "mccluster.h"
+#include "mceventg.h"
+#include "particle.h"
+#include "richrec.h"
+#include "tofdbc02.h"
+#include "tofrec02.h"
+#include "antirec02.h"
+#include "trdrec.h"
+#include "trigger102.h"
+#include "trigger302.h"
+#include "trrawcluster.h"
+#include "trrec.h"
+#include "astro.h"
+#include "amsdbc.h"
+#include "vtx.h"
 #include <values.h>
 #endif
 using namespace root;

@@ -1,7 +1,7 @@
-//  $Id: server.h,v 1.50 2005/01/04 20:57:16 choutko Exp $
+//  $Id: server.h,v 1.51 2005/05/17 09:56:36 pzuccon Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
-#include <typedefs.h>
+#include "typedefs.h"
 #include <time.h>
 #include <iostream.h>
 #include <unistd.h>
@@ -10,10 +10,10 @@
 #include <queue>
 #include <server-cpp-common.h> 
 #include <server-cpp-skels.h>
-#include <node.h>
-#include <astring.h>
-#include <client.h>
-#include <timeid.h>
+#include "node.h"
+#include "astring.h"
+#include "client.h"
+#include "timeid.h"
 
 class AMSServerI : public AMSNode{
 public:

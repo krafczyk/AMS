@@ -1,27 +1,27 @@
-//  $Id: gamma.C,v 1.50 2003/07/10 17:27:50 choutko Exp $
+//  $Id: gamma.C,v 1.51 2005/05/17 09:54:04 pzuccon Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
 //
 //
-#include <trrec.h>
-#include <commons.h>
+#include "trrec.h"
+#include "commons.h"
 #include <math.h>
 #include <limits.h>
-#include <job.h>
-#include <amsstl.h>
-#include <trrawcluster.h>
-#include <extC.h>
-#include <upool.h>
+#include "job.h"
+#include "amsstl.h"
+#include "trrawcluster.h"
+#include "extC.h"
+#include "upool.h"
 #include <string.h>
-#include <tofrec02.h>
-#include <ntuple.h>
-#include <cont.h>
-#include <tkdbc.h>
-#include <trigger302.h>
-#include <tralig.h>
-#include <mccluster.h>
-#include <trdrec.h>
+#include "tofrec02.h"
+#include "ntuple.h"
+#include "cont.h"
+#include "tkdbc.h"
+#include "trigger302.h"
+#include "tralig.h"
+#include "mccluster.h"
+#include "trdrec.h"
 #include <iomanip>
 #include <string>
 #include <vector>
@@ -29,14 +29,14 @@
 #include <assert.h>
 #include <time.h>
 #include <algorithm>
-#include <gamma.h>
-#include <ecalrec.h>
-#include <event.h>
-#include <link.h>
-#include <ecaldbc.h>
-#include <ecalcalib.h>
-#include <cern.h>
-#include <point.h>
+#include "gamma.h"
+#include "ecalrec.h"
+#include "event.h"
+#include "link.h"
+#include "ecaldbc.h"
+#include "ecalcalib.h"
+#include "cern.h"
+#include "point.h"
 using namespace std;
 using namespace ecalconst;
 

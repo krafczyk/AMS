@@ -1,10 +1,10 @@
-//  $Id: snode.h,v 1.2 2001/01/22 17:32:44 choutko Exp $
+//  $Id: snode.h,v 1.3 2005/05/17 09:56:36 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSNODEMAP__
 #define __AMSNODEMAP__
-#include <typedefs.h>
-#include <upool.h>
+#include "typedefs.h"
+#include "upool.h"
 class AMSNodeMap 
 {
  protected:

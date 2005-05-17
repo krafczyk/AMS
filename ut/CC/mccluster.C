@@ -1,20 +1,20 @@
-//  $Id: mccluster.C,v 1.65 2004/12/13 13:50:11 mdelgado Exp $
+//  $Id: mccluster.C,v 1.66 2005/05/17 09:54:05 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
-#include <trid.h>
-#include <mccluster.h>
-#include <extC.h>
-#include <commons.h>
+#include "trid.h"
+#include "mccluster.h"
+#include "extC.h"
+#include "commons.h"
 #include <math.h>
-#include <job.h>
-#include <event.h>
-#include <amsstl.h>
-#include <cont.h>
-#include <ntuple.h>
-#include <richid.h>
-#include <richdbc.h>
+#include "job.h"
+#include "event.h"
+#include "amsstl.h"
+#include "cont.h"
+#include "ntuple.h"
+#include "richid.h"
+#include "richdbc.h"
 #ifdef __G4AMS__
-#include <g4util.h>
+#include "g4util.h"
 #endif
 using namespace std;
 extern "C" void indetra_();

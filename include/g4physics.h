@@ -1,10 +1,10 @@
-//  $Id: g4physics.h,v 1.7 2001/01/22 17:32:43 choutko Exp $
+//  $Id: g4physics.h,v 1.8 2005/05/17 09:56:35 pzuccon Exp $
 #ifndef __G4PHYSICS__
 #define __G4PHYSICS__
 
 #include "G4VUserPhysicsList.hh"
 #include "globals.hh"
-#include <node.h>
+#include "node.h"
 class AMSG4Physics: public AMSNode, public G4VUserPhysicsList
 {
 public:

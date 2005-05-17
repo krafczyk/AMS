@@ -1,10 +1,10 @@
-//  $Id: arr.h,v 1.2 2001/01/22 17:32:42 choutko Exp $
+//  $Id: arr.h,v 1.3 2005/05/17 09:56:34 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
-#include <typedefs.h>
+#include "typedefs.h"
 #include <iostream.h>
 #include <iomanip.h>
-#include <cern.h>
+#include "cern.h"
 #include <stdlib.h>
 #include <math.h>
 template <class T> class AMSArr{

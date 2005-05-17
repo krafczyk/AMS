@@ -1,12 +1,12 @@
-//  $Id: daqevt.C,v 1.76 2005/02/18 11:02:21 alcaraz Exp $
+//  $Id: daqevt.C,v 1.77 2005/05/17 09:54:03 pzuccon Exp $
 #include <stdio.h>
-#include <daqevt.h>
-#include <event.h>
-#include <commons.h>
+#include "daqevt.h"
+#include "event.h"
+#include "commons.h"
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <ctype.h>
-#include <astring.h>
+#include "astring.h"
 #include <fstream.h>
 #ifndef __ALPHA__
 using std::ostrstream;

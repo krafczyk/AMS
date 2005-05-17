@@ -1,9 +1,9 @@
-//  $Id: point.h,v 1.13 2002/06/03 14:53:43 alexei Exp $
+//  $Id: point.h,v 1.14 2005/05/17 09:56:35 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSPOINT__
 #define __AMSPOINT__
-#include <typedefs.h>
+#include "typedefs.h"
 #include <iostream.h>
 #include <math.h>
 class AMSPoint {

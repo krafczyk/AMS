@@ -1,8 +1,8 @@
-//  $Id: upool.C,v 1.4 2001/01/22 17:32:24 choutko Exp $
+//  $Id: upool.C,v 1.5 2005/05/17 09:54:07 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
-#include <upool.h>
-#include <apool.h>
+#include "upool.h"
+#include "apool.h"
 #ifdef __UPOOL__
     AMSuPool UPool(512000);
 #endif

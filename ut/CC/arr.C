@@ -1,8 +1,8 @@
-//  $Id: arr.C,v 1.2 2001/01/22 17:32:18 choutko Exp $
+//  $Id: arr.C,v 1.3 2005/05/17 09:54:03 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
-#include <arr.h>
-#include <id.h>
+#include "arr.h"
+#include "id.h"
 const integer ncharge=7;
 integer AMSArr<int>::debug=1;
 integer AMSArr<double>::debug=1;

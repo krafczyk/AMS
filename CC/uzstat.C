@@ -1,14 +1,14 @@
-//  $Id: uzstat.C,v 1.13 2004/12/02 13:42:44 choutko Exp $
+//  $Id: uzstat.C,v 1.14 2005/05/17 09:54:07 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
-#include <uzstat.h>
+#include "uzstat.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
 #include <fstream.h>
-#include <commons.h>
+#include "commons.h"
  extern "C" float etime_(float ar[]);
 
 AMSStat::AMSStat():AMSNodeMap(){

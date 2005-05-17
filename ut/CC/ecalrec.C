@@ -1,26 +1,26 @@
-//  $Id: ecalrec.C,v 1.93 2005/01/04 16:48:00 choumilo Exp $
+//  $Id: ecalrec.C,v 1.94 2005/05/17 09:54:04 pzuccon Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
 #include <stdio.h>
-#include <typedefs.h>
-#include <cern.h>
-#include <extC.h>
+#include "typedefs.h"
+#include "cern.h"
+#include "extC.h"
 #include <math.h>
-#include <point.h>
-#include <amsgobj.h>
-#include <event.h>
-#include <amsstl.h>
-#include <commons.h>
-#include <ntuple.h>
-#include <tofsim02.h>
-#include <ecaldbc.h>
-#include <ecalrec.h>
-#include <ecalcalib.h>
-#include <mccluster.h>
-#include <trigger102.h>
-#include <trigger302.h>
-#include <timeid.h>
+#include "point.h"
+#include "amsgobj.h"
+#include "event.h"
+#include "amsstl.h"
+#include "commons.h"
+#include "ntuple.h"
+#include "tofsim02.h"
+#include "ecaldbc.h"
+#include "ecalrec.h"
+#include "ecalcalib.h"
+#include "mccluster.h"
+#include "trigger102.h"
+#include "trigger302.h"
+#include "timeid.h"
 using namespace std;
 using namespace ecalconst;
 //

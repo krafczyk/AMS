@@ -1,9 +1,9 @@
-//  $Id: daq2off.C,v 1.3 2001/01/22 17:32:19 choutko Exp $
+//  $Id: daq2off.C,v 1.4 2005/05/17 09:54:03 pzuccon Exp $
 #include <iostream.h>
 #include <fstream.h>
-#include <astring.h>
+#include "astring.h"
 #include <stdlib.h>
-#include <typedefs.h>
+#include "typedefs.h"
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/times.h>

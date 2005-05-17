@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.34 2004/11/10 10:10:19 mdelgado Exp $
+//  $Id: richdbc.h,v 1.35 2005/05/17 09:56:35 pzuccon Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -9,9 +9,9 @@
 // Undefine next one to use solid guides with opaque walls separating each section 
 #undef __HOLLOW__
 
-#include<job.h>
-#include<commons.h> 
-#include<trrec.h>
+#include"job.h"
+#include"commons.h" 
+#include"trrec.h"
 
 // Constants
 namespace richconst{

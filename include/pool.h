@@ -1,4 +1,4 @@
-//  $Id: pool.h,v 1.2 2001/01/22 17:32:44 choutko Exp $
+//  $Id: pool.h,v 1.3 2005/05/17 09:56:35 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
 //
@@ -6,7 +6,7 @@
 // In the contrary to utpool.h, 
 // EVERY derived from T class SHOULD HAS its own new/delete operators!!!!
 // To use template include the following three lines in your class <T> .h file:
-//#include <pool.h>
+//#include "pool.h"
 // void * operator new(size_t t) {return AMSPool<T>::insert();}
 // void operator delete(void *p){AMSPool<T>::udelete(p);}
 //
@@ -28,7 +28,7 @@
 // 
 // pool.h has about same performance as utpool.h
 //
-#include <link.h>
+#include "link.h"
  template <class T> 
 class AMSPool {
 private: 

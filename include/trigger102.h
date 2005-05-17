@@ -1,8 +1,8 @@
-//  $Id: trigger102.h,v 1.11 2005/05/04 10:27:48 choumilo Exp $
+//  $Id: trigger102.h,v 1.12 2005/05/17 09:56:36 pzuccon Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
-#include <link.h>
-#include <tofdbc02.h>
+#include "link.h"
+#include "tofdbc02.h"
 //
 class Trigger2LVL1: public AMSlink{
 protected:

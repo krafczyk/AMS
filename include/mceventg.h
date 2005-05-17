@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.41 2004/02/26 07:18:16 choutko Exp $
+//  $Id: mceventg.h,v 1.42 2005/05/17 09:56:35 pzuccon Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -12,12 +12,12 @@
 
 #ifndef __AMSMCEVENTG__
 #define __AMSMCEVENTG__
-#include <point.h>
-#include <cern.h>
-#include <link.h>
-#include <io.h>
+#include "point.h"
+#include "cern.h"
+#include "link.h"
+#include "io.h"
 #include <time.h>
-#include <astro.h>
+#include "astro.h"
 class orbit{
 public:
 integer Nskip;

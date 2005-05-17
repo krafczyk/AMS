@@ -1,5 +1,5 @@
-//  $Id: astring.C,v 1.4 2001/01/22 17:32:18 choutko Exp $
-#include <astring.h>
+//  $Id: astring.C,v 1.5 2005/05/17 09:54:03 pzuccon Exp $
+#include "astring.h"
 
 
 

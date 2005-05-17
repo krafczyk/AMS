@@ -1,8 +1,8 @@
-//  $Id: node.C,v 1.3 2001/01/22 17:32:21 choutko Exp $
+//  $Id: node.C,v 1.4 2005/05/17 09:54:05 pzuccon Exp $
 // Author V. Choutko 24-may-1996
  
-#include <typedefs.h>
-#include <node.h>
+#include "typedefs.h"
+#include "node.h"
  AMSNode * AMSNode::add(  AMSNode *ptr){
 //
 // Add new node

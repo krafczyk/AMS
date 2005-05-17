@@ -1,8 +1,8 @@
-//  $Id: cdaq.C,v 1.10 2001/01/22 17:32:18 choutko Exp $
+//  $Id: cdaq.C,v 1.11 2005/05/17 09:54:03 pzuccon Exp $
 #include <iostream.h>
 #include <fstream.h>
 #include <stdlib.h>
-#include <typedefs.h>
+#include "typedefs.h"
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/times.h>

@@ -1,4 +1,4 @@
-//  $Id: io.h,v 1.13 2001/08/10 12:59:46 choutko Exp $
+//  $Id: io.h,v 1.14 2005/05/17 09:56:35 pzuccon Exp $
 // Author V. Choutko 2-feb-1997
 //
 // Feb  10, 1997.  ak.  implement friend class
@@ -8,9 +8,9 @@
 
 #ifndef __AMSIO__
 #define __AMSIO__
-#include <point.h>
-#include <cern.h>
-#include <link.h>
+#include "point.h"
+#include "cern.h"
+#include "link.h"
 #include <iostream.h>
 #include <fstream.h>
 #include <stdlib.h>
