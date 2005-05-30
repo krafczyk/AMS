@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.314 2005/05/05 13:18:30 alexei Exp $
+# $Id: RemoteClient.pm,v 1.315 2005/05/30 08:44:12 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -89,6 +89,9 @@
 # May  4, 2005    : listStat, listRuns, listJobs - queries are modified to 
 #                   improve performance
 #
+# May 30, 2005    : last_24h_html (O.Kounina) - production statistics for the 
+#                   last 24 hours
+#
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
 
@@ -109,7 +112,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html);
 
 # debugging
 my $benchmarking = 0;
@@ -6280,6 +6283,7 @@ sub listMCStatus {
     $self->  getProductionPeriods(0);
     $self -> listProductionSetPeriods();
     $self -> listStat();
+    $self -> list_24h_html();
 
      htmlTableEnd();
      print_bar($bluebar,3);
@@ -6822,44 +6826,35 @@ sub listCites {
             $jobs          = $r4->[0][1];
           };
           if ($laststarttime != 0 ) {
-#           $sql = "SELECT MAX(runs.submit) From Runs, Jobs
-#                     WHERE
-#                       Runs.submit >= $periodStartTime AND 
-#                        jobs.jid = runs.jid AND 
-#                         jobs.cid = $cid";
-#
-#           $r4=$self->{sqlserver}->Query($sql);
-#           if (defined $r4->[0][0]) {
-#            $lastendtime = $r4->[0][0];
-#            $endtime = EpochToDDMMYYHHMMSS($lastendtime);
-#           };
-          $sql = "SELECT COUNT(Runs.run), MAX(Runs.submit) FROM Jobs, Runs 
-                    WHERE 
-                     Runs.submit>= $periodStartTime AND 
-                     Jobs.jid=Runs.jid AND Jobs.cid=$cid AND 
-                     (Runs.Status = 'Finished' OR 
-                      Runs.Status = 'Completed')";
-          $r4=$self->{sqlserver}->Query($sql);
-          if (defined $r4->[0][0]) {
+           $sql = "SELECT COUNT(Runs.run), MAX(Runs.submit) 
+                    FROM Jobs, Runs 
+                     WHERE 
+                      Runs.submit>= $periodStartTime AND 
+                      Jobs.jid=Runs.jid AND Jobs.cid=$cid AND 
+                      (Runs.Status = 'Finished' OR 
+                        Runs.Status = 'Completed')";
+           $r4=$self->{sqlserver}->Query($sql);
+           if (defined $r4->[0][0]) {
                $jobsc = $r4->[0][0];
                if ($jobsc > 0) {$lastendtime = $r4->[0][1];}
-           };
+            };
 
 
-          $sql = "SELECT COUNT(Runs.run), MAX(Runs.submit) FROM Jobs, Runs 
-                    WHERE 
-                     Runs.submit>= $periodStartTime AND 
-                     Jobs.jid=Runs.jid AND cid=$cid AND 
-                     (Runs.Status = 'Failed' OR 
-                      Runs.Status = 'TimeOut' OR 
-                      Runs.Status = 'Unchecked')";
-          $r4=$self->{sqlserver}->Query($sql);
-          if (defined $r4->[0][0]) {
+           $sql = "SELECT COUNT(Runs.run), MAX(Runs.submit) 
+                    FROM Jobs, Runs 
+                     WHERE 
+                      Runs.submit>= $periodStartTime AND 
+                       Jobs.jid=Runs.jid AND cid=$cid AND 
+                        (Runs.Status = 'Failed' OR 
+                          Runs.Status = 'TimeOut' OR 
+                           Runs.Status = 'Unchecked')";
+           $r4=$self->{sqlserver}->Query($sql);
+           if (defined $r4->[0][0]) {
               $jobsf = $r4->[0][0];
               if ($jobsf > 0) {
                if ($r4->[0][1] > $lastendtime) {$lastendtime = $r4->[0][1];}
               }
-           };
+            };
 
           $endtime = EpochToDDMMYYHHMMSS($lastendtime);
           $jobsa = $jobs - $jobsf - $jobsc;
@@ -6967,10 +6962,10 @@ sub listDisks {
     $sql="SELECT SUM(totalsize), SUM(occupied), SUM(available) FROM Filesystems";
     my $r4=$self->{sqlserver}->Query($sql);
     if(defined $r4->[0][0]){
-      foreach my $tt (@{$r4}){
-          my $total = $tt->[0];
-          my $occup = $tt->[1];
-          my $free  = $tt->[2];
+#      foreach my $tt (@{$r4}){
+          my $total = $r4->[0][0];
+          my $occup = $r4->[0][1];
+          my $free  = $r4->[0][2];
           my $color="green";
           my $status="ok";
           my $totalGB = sprintf("%6.1f",$totalGBMC/1000);
@@ -6986,8 +6981,8 @@ sub listDisks {
                     <td><font color=$color><b> $status </font></b></td>\n";
              print "</font></tr>\n";
          }
+#      }
       }
-     }
 
     if ($webmode == 1) {
        htmlTableEnd();
@@ -7107,8 +7102,6 @@ sub listJobs {
     my $timenow = time();
     my $timelate= $timenow - 30*24*60*60 +1; # list jobs submitted 30 days ago or earlier
 
-    my @runId     = ();
-    my @runStatus = ();
 
     my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
 
@@ -7137,6 +7130,22 @@ sub listJobs {
     }
 
 
+    my @runId     = ();
+    my @runStatus = ();
+
+    $sql="SELECT Runs.jid, Runs.status from Runs 
+                  WHERE 
+                    Runs.submit >= $timelate ORDER BY Runs.jid";
+    my $r3=$self->{sqlserver}->Query($sql);
+    if (defined $r3->[0][0]) {
+      foreach my $r (@{$r3}){
+         push @runId, $r->[0];
+                 push @runStatus, $r->[1];
+       }
+     }
+
+
+
     $sql="SELECT 
                  Jobs.jid, Jobs.jobname,
                  Jobs.time, Jobs.timeout, 
@@ -7151,7 +7160,7 @@ sub listJobs {
                      Jobs.mid=Mails.mid 
              ORDER  BY Cites.name, Jobs.jid DESC";
 
-     my $r3=$self->{sqlserver}->Query($sql);
+    $r3=$self->{sqlserver}->Query($sql);
 
      if ($webmode == 1) {print_bar($bluebar,3);}
      my $newline = " ";
@@ -7180,31 +7189,12 @@ sub listJobs {
           my $user      = $job->[8];
 
           my $status    = "Submitted";
-
           my $color     = "black";
-          if (defined $job->[9]) {
-              $status = $job->[9];
-              $color  = statusColor($status);
-          }
+
+
 
           if ($newline ne $cite) { 
-               $newline = $cite;
-
-               @runId =();
-               @runStatus = ();
-               $sql="SELECT Runs.jid, Runs.status from Runs, Jobs 
-                     WHERE 
-                           Runs.submit >= $periodStartTime AND
-                          (Jobs.cid=$cid AND Runs.jid=Jobs.jid)"; 
-               $r3=$self->{sqlserver}->Query($sql);
-               if (defined $r3->[0][0]) {
-                foreach my $r (@{$r3}){
-                 push @runId, $r->[0];
-                 push @runStatus, $r->[1];
-                }
-               }
-
-
+             $newline = $cite;
              if ($webmode == 1) {
                print "</table></p> \n";
                print "<p>";
@@ -7232,8 +7222,10 @@ sub listJobs {
                  $status = $runStatus[$i];
                  $color  = statusColor($status);
                  last;
+               } elsif ($runId[$i] > $jid) {
+                   last;
                }
-            }
+           }
             if ($webmode == 1) {
                  print "
                   <td><b><font color=$color> $jid </font></td></b>
@@ -12518,7 +12510,88 @@ sub checkTiming() {
      $TTT++;
      for my $i (0..$TTT-2) {
       $elapsed = $td[$i+1] - $td[$i];
-      print "$T[$i].... $elapsed [sec]\n";
+      my $sss = sprintf("%10s : %.0f [sec]\n",$T[$i],$elapsed);
+      print $sss;
      }
 
+}
+
+
+sub list_24h_html {
+    my $self = shift;
+    my $time24h = time() - 24*60*60;
+	   my  $jid       =0;
+           my  $processed=0;
+           my  $processtime =0;
+           my  $starttime=0;
+           my  $sizegb   =0;
+
+    my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
+
+    print "<b><h2><A Name = \"last_24h\"> </a></h2></b> \n";
+    htmlTable("MC Production Statistics (24 hours)");
+#    my $href=$self->{HTTPcgi}."/rc.o.cgi?queryDB04=Form";
+               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+                
+               my $sql = "SELECT COUNT(jid), MAX(time)
+                            FROM jobs
+                             WHERE Jobs.timestamp>$time24h";
+               my $r3=$self->{sqlserver}->Query($sql);
+                  print "<td align=center><b><font color=\"blue\">Jobs</font></b></td>";
+                  print "<td align=center><b><font color=\"blue\" >Last Job</font></b></td>";
+                  print "<td align=center><b><font color=\"blue\" >Jobs</font></b></td>";
+                 print "<td align=center><b><font color=\"blue\" >Last Job</font></b></td>";
+                  print "<td align=center><b><font color=\"blue\" >Size</font></b></td>";
+                  print "</tr>\n";
+                  print "<td align=center><b><font color=\"blue\">Started</font></b></td>";
+                  print "<td align=center><b><font color=\"blue\" >Start Time</font></b></td>";
+                  print "<td align=center><b><font color=\"blue\" >Processed</font></b></td>";
+                  print "<td align=center><b><font color=\"blue\" >Process Time</font></b></td>";
+                  print "<td align=center><b><font color=\"blue\" >GBytes</font></b></td>";
+                  print "</tr>\n";
+                  print_bar($bluebar,3);
+             if(defined $r3->[0][0]){
+		 $jid = $r3->[0][0];
+                 $starttime = EpochToDDMMYYHHMMSS($r3->[0][1]);
+}
+	   
+		 $sql = "SELECT COUNT(Jobs.timestamp), MAX(Jobs.timestamp)         
+                            FROM jobs, runs                                                 
+                              WHERE
+                                   Jobs.timestamp > $time24h AND
+                                   Runs.submit > $periodStartTime AND
+                                   Runs.jid=Jobs.jid AND
+                                   (Runs.status != 'Processing' OR
+				   Runs.status != 'Timeout')";   
+                $processed = 0;
+                $processtime = EpochToDDMMYYHHMMSS($time24h);    
+                $processtime = " no jobs since ".$processtime;
+                 my $r4=$self->{sqlserver}->Query($sql);
+		 if (defined $r4->[0][0]) {
+                   if ($r4->[0][0] > 0) {
+		     $processed = $r4->[0][0];     
+                     $processtime = EpochToDDMMYYHHMMSS($r4->[0][1]);    
+                   }
+		 } 
+                  $sql = "SELECT SUM(sizemb)
+                            FROM ntuples
+			    WHERE timestamp>$time24h AND path NOT LIKE '/castor/cern.ch%'";
+                  my $r5=$self->{sqlserver}->Query($sql);
+                  if (defined $r5->[0][0]) {
+		   $sizegb = sprintf("%.1f",$r5->[0][0]/1000);
+                  }
+
+    my $color=" black";
+     print "<td align=center><b><font color=$color> $jid </font></td></b><td align=center><b><font color=$color> $starttime </font></td>
+                  <td align=center><b><font color=$color> $processed </font></b></td>
+                  <td align=center><b><font color=$color> $processtime </font></b></td>
+                  <td align=center><b><font color=$color> $sizegb </font></b></td> \n";
+           print "</font></tr>\n";
+
+
+
+      htmlTableEnd();
+      htmlTableEnd();
+#      print_bar($bluebar,3);
+      print "<p></p>\n";
 }
