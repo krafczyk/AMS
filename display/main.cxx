@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.26 2004/02/22 15:27:17 choutko Exp $
+//  $Id: main.cxx,v 1.27 2005/06/03 10:06:24 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]){
   char geoFile[256];
   strcpy(geoFile,geo_dir);
 
-  char *geoFile_new = "ams02.root";
+  char *geoFile_new = "ams02.geom";
   strcat(geoFile,geoFile_new);
   TFile fgeo(geoFile);
 

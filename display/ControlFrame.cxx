@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.9 2003/07/28 17:00:46 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.10 2005/06/03 10:06:23 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -497,8 +497,8 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
 				 -fWidth-12,0,
 				 ax, ay, wdum);
     }
-    Move(ax,ay-26);
-    
+//    Move(ax,ay-26);
     SetWindowName("ControlFrame");
     MapWindow();
+    gVirtualX->MoveWindow(fId,ax,ay-26);
 }
