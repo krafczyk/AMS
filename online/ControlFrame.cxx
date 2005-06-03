@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.8 2004/02/22 15:39:40 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.9 2005/06/03 10:08:00 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSTOFHist.h"
@@ -380,8 +380,9 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
 				 -fWidth-12,0,
 				 ax, ay, wdum);
     }
-    Move(ax,ay-26);
+    //Move(ax,ay-26);
     
     SetWindowName("Control");
     MapWindow();
+    gVirtualX->MoveWindow(fId,ax,ay-26);
 }
