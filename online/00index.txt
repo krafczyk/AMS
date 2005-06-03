@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.15 2004/02/22 15:39:39 choutko Exp $
+#  $Id: 00index.txt,v 1.16 2005/06/03 16:12:48 choutko Exp $
 
 =========================================================================
 
@@ -25,7 +25,9 @@ of AMS offline monitor into it.
 2. Making the program
 ---------------------
 
-   Required:  Linux rh7.2++, gcc3.2.2++, root 3.05.05++
+   Required:  Linux rh7.2++, gcc3.2.2++, root 4.xx++
+              Macosx 10.4 gcc4.0
+              win32gcc (cygwin)
 
         setenv AMSWD  {your scratch dir}
         mkdir $AMSWD/online

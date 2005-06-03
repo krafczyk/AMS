@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.15 2005/02/23 15:33:29 choutko Exp $
+#  $Id: Makefile,v 1.16 2005/06/03 16:12:48 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
@@ -41,6 +41,19 @@ NOOPT         = -g
 LD            = g++
 LDFLAGS       = -g 
 ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift
+
+LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
+LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
+endif
+ifeq ($(ARCH),macosx)
+CXX           =  g++ -Wno-deprecated
+CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+OPT           = -O2
+OPTC          = -O0
+NOOPT         = -g
+LD            = g++
+LDFLAGS       = -g 
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  
 
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
@@ -140,6 +153,13 @@ AMSPRGC       = $(PREFIX)offmonc
 ifeq ($(ARCH),win32)
 AMSPRG       = $(PREFIX)offmon.exe
 endif
+LDS	= 	$(LD) -static
+LDD	= 	$(LD) -rdynamic
+ifeq ($(ARCH),macosx)
+AMSPRG       = nothing
+LDS =  @echo "  Static Linking not supported in macosx!!! Use 'make osdepend' instead"
+LDD	= 	$(LD) -dynamic
+endif
 
 
 
@@ -151,17 +171,17 @@ osdepend:  $(AMSPRGC)
 
 
 $(AMSPRG):      $(ALLOBJS) $(DICTO) $(MAINH) $(OBJSR) $(OBJSC)
-		$(LD)  -static  $(LDFLAGS) $(ALLOBJS) $(OBJSR)  $(OBJSC) $(DICTO)  $(LIBSA)  \
+		$(LDS)    $(LDFLAGS) $(ALLOBJS) $(OBJSR)  $(OBJSC) $(DICTO)  $(LIBSA)  \
 		-o $(@) 
 		@echo "$(AMSPRG) done"
 
 $(AMSPRGC):	$(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)
-		$(LD) -rdynamic $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)   $(LIBS) -o $(AMSPRGC) 
+		$(LDD)  $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)   $(LIBS) -o $(AMSPRGC) 
 
 
 $(DICT):        $(HDRS)
 		@echo "Generating dictionary ..."
-		rootcint -f $(DICT) -c $(ROOTH) $(HDRS)
+		$(ROOTSYS)/bin/rootcint -f $(DICT) -c $(ROOTH) $(HDRS)
 
 
 

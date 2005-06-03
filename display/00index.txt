@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.18 2005/02/23 15:45:52 choutko Exp $
+#  $Id: 00index.txt,v 1.19 2005/06/03 16:12:31 choutko Exp $
 =========================================================================
 
      Introduction  to  AMS    Event  Display  Based  on  ROOT
@@ -17,7 +17,8 @@
 
    Requirements: X-window, ROOT, CERNLIB.
 
-   System: Linux 7.3,fc1,slc3 & root 3.10 or 4.xx gcc3.(2)3.x || and/or icc v7.1
+   System: Linux 7.3,fc1,slc3 & root  4.xx gcc3.(2)3.x || and/or icc v7.1           Macosx 10.4 gcc4.0
+           Win32gcc
 
    Attention: TPad.h, TPad.cxx & TRootCanvas.h TView.cxx 
    need to be modified

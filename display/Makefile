@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.22 2005/02/23 15:33:14 choutko Exp $
+#  $Id: Makefile,v 1.23 2005/06/03 16:12:36 choutko Exp $
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 PLATFORM      =  Linux
@@ -45,6 +45,19 @@ ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R
 ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift
 LIBS          =  $(ROOTLIBS) -lm -ldl
 LIBSA          =  $(ROOTLIBSA) -lm -ldl
+endif
+ifeq ($(ARCH),macosx)
+CXX           =  g++ -Wno-deprecated
+CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+OPT           = -O2
+OPTC          = -O0
+NOOPT         = -g
+LD            = g++
+LDFLAGS       = -g 
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  
+
+LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
+LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
 endif
 ifeq ($(ARCH),win32gcc)
 PREFIX        = $(AMSWD)/display/cygwin/
@@ -127,6 +140,13 @@ AMSPRGC       = $(PREFIX)amsedc
 ifeq ($(ARCH),win32)
 AMSPRG       = $(PREFIX)amsed.exe
 endif
+LDS	= 	$(LD) -static
+LDD	= 	$(LD) -rdynamic
+ifeq ($(ARCH),macosx)
+AMSPRG       = nothing
+LDS =  @echo "  Static Linking not supported in macosx!!! Use 'make osdepend' instead"
+LDD	= 	$(LD) -dynamic
+endif
 
 
 
@@ -138,16 +158,16 @@ osdepend:  $(AMSPRGC)
 
 
 $(AMSPRG):      $(ALLOBJS) $(DICTO) $(MAINH) $(OBJSR) $(OBJSN)  $(OBJSC)  
-		$(LD)  -static  $(LDFLAGS) $(ALLOBJS) $(OBJSR) $(OBJSN)  $(OBJSC)  $(DICTO)  $(LIBSA)  -o $(@) 
+		$(LDS)    $(LDFLAGS) $(ALLOBJS) $(OBJSR) $(OBJSN)  $(OBJSC)  $(DICTO)  $(LIBSA)  -o $(@) 
 		@echo "$(AMSPRG) done"
 
 $(AMSPRGC):	$(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSN) $(OBJSC)  
-		$(LD) -rdynamic $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSN) $(OBJSC)     $(LIBS) -o $(@)  
+		$(LDD)  $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSN) $(OBJSC)     $(LIBS) -o $(@)  
 
 
 $(DICT):        $(HDRS)
 		@echo "Generating dictionary ..."
-		rootcint -f $(DICT) -c $(ROOTH) $(HDRS)
+		$(ROOTSYS)/bin/rootcint -f $(DICT) -c $(ROOTH) $(HDRS)
 
 
 

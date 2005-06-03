@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.25 2004/02/24 13:41:33 choutko Exp $
+//  $Id: main.cxx,v 1.26 2005/06/03 16:12:48 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -32,12 +32,20 @@
 #include <dirent.h>
 #endif
 #include <TString.h>
+#ifndef __APPLE__
 #include <TRFIOFile.h>
+#endif
 TString * Selector;
 extern void * gAMSUserFunction;
 void OpenChain(TChain & chain, char * filename);
 #ifndef WIN32
-static int Selectsdir( const dirent * entry=0);
+static int Selectsdir(
+#ifndef __APPLE__
+const dirent *entry
+#else
+dirent *entry
+#endif
+=0);
 #endif
 void Myapp::HandleIdleTimer(){
   StopIdleing();
@@ -77,7 +85,7 @@ int main(int argc, char *argv[])
   }
   int err=0;
   int argcc=1;
-#ifdef WIN32
+#if defined(WIN32) || defined(__APPLE__)
 Myapp *theApp = new Myapp("App", &argcc, argv);
 #else
   gVirtualX=new TGX11("X11","Root Interface to X11");
@@ -176,7 +184,7 @@ void OpenChain(TChain & chain, char * filenam){
    TRegexp f("^/castor",false);
    bool wildsubdir=false;
    if(a.Contains(b)){
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__APPLE__)
     TRFIOFile f("");
 #endif
     strcpy(filename,filenam);
@@ -251,7 +259,12 @@ void OpenChain(TChain & chain, char * filenam){
 
 
 #ifndef WIN32
-int Selectsdir(const dirent *entry){
+int Selectsdir(
+#ifndef __APPLE__
+const dirent *entry){
+#else
+dirent *entry){
+#endif
 if(Selector){
  TString a(entry->d_name);
  TRegexp b(Selector->Data(),true);
