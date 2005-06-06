@@ -5,7 +5,7 @@
       gROOT->Reset();
 
 // Set AMSWD directory
-      gSystem->Setenv("AMSWD","/afs/ams.cern.ch/Offline/vdev");
+      gSystem->Setenv("AMSWD","/f2users/choutko/AMS");
 
 // Set include path
       gInterpreter->AddIncludePath(gSystem->ExpandPathName("$AMSWD/include"));
@@ -20,7 +20,7 @@
       TChain chain("AMSRoot");
 // Usual ROOT file
 //      chain.Add("/f2users/choutko/g3v1g3.2.root");
-      chain.Add("/f2users/choutko/g3v1g3.3.root");
+      chain.Add("/f2users/choutko/g3v1g3.3.root101.0090036.root");
 
 // Add a ROOT file on the WeB
       //chain.Add("http://pcamsf0.cern.ch/f2dah1/MC/AMS02/2004A/protons/el.pl1.10200/738197524.0000001.root");
