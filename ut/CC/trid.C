@@ -1,4 +1,4 @@
-//  $Id: trid.C,v 1.37 2005/05/17 09:54:07 pzuccon Exp $
+//  $Id: trid.C,v 1.38 2005/06/06 11:44:02 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -331,7 +331,7 @@ integer  AMSTrIdGeom::_R2Gy(integer stripy)const {
 integer AMSTrIdGeom::_R2Gx(integer stripx)const {
    integer __stripx;
    if(AMSJob::gethead()->isRealData()){
-     if(_layer == 1 || _layer ==TKDBc::nlay()){
+     if(_layer == 1 || _layer ==TKDBc::nlay()){  // still old bonding scheme!!
        //K7
        if(stripx<64)__stripx=3*stripx;
        else if (stripx<64+97)__stripx=63*3+(stripx-63)*4;
@@ -339,9 +339,7 @@ integer AMSTrIdGeom::_R2Gx(integer stripx)const {
      }
      else{
        //K5
-       if(stripx== TKDBc::NStripsSen(_layer,0)-1)
-        __stripx=TKDBc::NStripsSenR(_layer,0)-1;
-       else __stripx=4*stripx;  
+        __stripx=4*stripx+1;   // new bonding scheme !!!  
        
      }
    }

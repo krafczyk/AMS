@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.49 2005/05/17 09:54:07 pzuccon Exp $
+//  $Id: trddbc.C,v 1.50 2005/06/06 11:44:02 choutko Exp $
 #include "trddbc.h"
 #include "amsdbc.h"
 #include <math.h>
@@ -1779,7 +1779,21 @@ void TRDDBc::init(){
          }
         }
 
-
+// VC 06-06-2005 
+// try to fix KS bug 
+        for(i=0;i<TRDOctagonNo();i++){
+         for(int h=0;h<TRDDBc::SideHolesNo(i);h++){
+          for (int hp=0;hp<TRDDBc::SideHolesPieceNo(i,h);hp++){
+           for(int ip=0;ip<11;ip++){
+              if(RadiatorSideHolePieceDimensions(i,h,hp,ip)<0 && ip!=1 && ip!=2 && ip!=6 && ip!=10){
+               cerr <<"TRDDBc::init-W-RadiatorSideHolePieceDimensions<0 "<<RadiatorSideHolePieceDimensions(i,h,hp,ip)<<" "<<ip<<endl;
+                RadiatorSideHolePieceDimensions(i,h,hp,ip)=0;
+               }
+           }
+          }
+         }
+        }
+     
       // Tube sizes
 
       for(i=0;i<TRDOctagonNo();i++){

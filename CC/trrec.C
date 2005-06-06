@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.181 2005/05/17 09:54:07 pzuccon Exp $
+//  $Id: trrec.C,v 1.182 2005/06/06 11:44:02 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1139,7 +1139,6 @@ integer AMSTrRecHit::markAwayTOFHits(){
 
 
 void AMSTrRecHit::_writeEl(){
-
   integer flag =    (IOPA.WriteAll%10==1)
                  || (IOPA.WriteAll%10==0 && checkstatus(AMSDBc::USED))
                  || (IOPA.WriteAll%10==2 && !checkstatus(AMSDBc::AwayTOF));
