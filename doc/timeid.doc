@@ -1,5 +1,12 @@
-#  $Id: timeid.doc,v 1.10 2001/01/22 17:00:58 vitali Exp $
+#  $Id: timeid.doc,v 1.11 2005/06/10 12:51:30 choutko Exp $
 this is $AMSOffline/vdev/doc/timeid.C
+
+
+NB  !!!
+
+
+Only 32bit words are allowed in timeid records to avoid introducing
+array maps for be/le 32/64 archs. 
 
 class AMSTimeID: public AMSNode {               
 ...
