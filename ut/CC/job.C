@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.475 2005/05/17 09:54:05 pzuccon Exp $
+// $Id: job.C,v 1.476 2005/06/10 14:55:10 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2452,7 +2452,7 @@ if((TFREFFKEY.ReadConstFiles%1000)/100==0)end.tm_year=TFREFFKEY.year[0]-1;//Thre
 if((TFREFFKEY.ReadConstFiles/1000)==0)end.tm_year=TFREFFKEY.year[0]-1;//ChargeCalibPDFs from DB
 
   TID.add (new AMSTimeID(AMSID("Tofcpdfs",isRealData()),
-    begin,end,MaxZTypes*sizeof(TofElosPDF::TofEPDFs[0]),
+    begin,end,sizeof(TofElosPDF::TofEPDFs),
     (void*)&TofElosPDF::TofEPDFs[0],server,NeededByDefault));
     
   TID.add (new AMSTimeID(AMSID("ChargeIndxTof",isRealData()),
@@ -2716,7 +2716,7 @@ end.tm_year=CHARGEFITFFKEY.year[1];
 if(CHARGEFITFFKEY.TrkPDFileRead==0)end.tm_year=CHARGEFITFFKEY.year[0]-1;//ChargeCalibPDFs from DB
 
   TID.add (new AMSTimeID(AMSID("Trkcpdfs",isRealData()),
-    begin,end,MaxZTypes*sizeof(TrkElosPDF::TrkEPDFs[0]),
+    begin,end,sizeof(TrkElosPDF::TrkEPDFs),
     (void*)&TrkElosPDF::TrkEPDFs[0],server,NeededByDefault));
     
   TID.add (new AMSTimeID(AMSID("ChargeIndxTrk",isRealData()),

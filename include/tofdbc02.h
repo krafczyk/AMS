@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.23 2005/05/17 09:56:36 pzuccon Exp $
+//  $Id: tofdbc02.h,v 1.24 2005/06/10 14:55:36 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -770,18 +770,18 @@ private:
   int ichar;//0,1,...index of particle(e,p,he,..)
   int charge;//charge(1,1,2,...)
   int nbins;//distribution_length(without 2ovfl)
-  number stpx;//bin width(MeV)
-  number xmin;//1st bin low edge(MeV)
-  number slope;//exp.slope to calc. pdf in ovfl-region
-  number unpdf;//const.level of pdf in undf-region 
-  number elpdf[TOF2GC::SCPDFBM];//PDF-array 
+  geant stpx;//bin width(MeV)
+  geant xmin;//1st bin low edge(MeV)
+  geant slope;//exp.slope to calc. pdf in ovfl-region
+  geant unpdf;//const.level of pdf in undf-region 
+  geant elpdf[TOF2GC::SCPDFBM];//PDF-array 
 public:
   static TofElosPDF TofEPDFs[AMSChargConst::MaxZTypes];
   TofElosPDF(){};
   TofElosPDF(int ich, int ch, int nb, geant stp, geant bnl, geant undf, geant ovfl, geant distr[]);
   int getnbins(){return nbins;}
   int getcharge(){return charge;}
-  number getstep(){return stpx;}
+  geant getstep(){return stpx;}
   number getlkhd(int nhits, int hstat[], number ehit[], number beta);
   static void build();  
 }; 

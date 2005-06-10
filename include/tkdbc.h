@@ -1,4 +1,4 @@
-//  $Id: tkdbc.h,v 1.14 2005/05/17 09:56:36 pzuccon Exp $
+//  $Id: tkdbc.h,v 1.15 2005/06/10 14:55:36 choumilo Exp $
 //      Add Eloss PDF's handling class, 31.01.2005, E.Choumilov
 #ifndef __TKDBC__
 #define __TKDBC__
@@ -246,11 +246,11 @@ private:
   int ichar;//0,1,...index of particle(e,p,he,..)
   int charge;//charge(1,1,2,...)
   int nbins[trconst::TrkTypes];//distribution_length
-  number stpx[trconst::TrkTypes];//bin width(MeV)
-  number xmin[trconst::TrkTypes];//1st bin low edge(MeV)
-  number slope[trconst::TrkTypes];//exp.slope to calc. pdf in ovfl-region
-  number norm[trconst::TrkTypes];//norm.factor=dx*Ntot/Npeak 
-  number elpdf[trconst::TrkTypes][trconst::TrkPdfBins];//PDF-array 
+  geant stpx[trconst::TrkTypes];//bin width(MeV)
+  geant xmin[trconst::TrkTypes];//1st bin low edge(MeV)
+  geant slope[trconst::TrkTypes];//exp.slope to calc. pdf in ovfl-region
+  geant norm[trconst::TrkTypes];//norm.factor=dx*Ntot/Npeak 
+  geant elpdf[trconst::TrkTypes][trconst::TrkPdfBins];//PDF-array 
 public:
   static TrkElosPDF TrkEPDFs[AMSChargConst::MaxZTypes];
   TrkElosPDF(){};
@@ -258,7 +258,7 @@ public:
                      geant norm[], geant slop[], geant distr[trconst::TrkTypes][trconst::TrkPdfBins]);
   int getnbins(int itp){return nbins[itp];}
   int getcharge(){return charge;}
-  number getstep(int itp){return stpx[itp];}
+  geant getstep(int itp){return stpx[itp];}
   number getlkhd(int nhits, int htype[], number ehit[], number beta);
   static void build();  
 }; 

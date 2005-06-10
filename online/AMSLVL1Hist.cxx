@@ -1,4 +1,4 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.13 2005/05/11 12:57:49 choumilo Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.14 2005/06/10 14:55:36 choumilo Exp $
 //      v1.0/E.Choumilov/20.06.2003
 #include <iostream>
 #include "AMSDisplay.h"
@@ -18,11 +18,11 @@ void AMSLVL1Hist::Book(){
   AddSet("LVL1 BranchSharing");
   
   _filled.push_back(new TH1F("FTBranches","FastTrigger Branch Sharing",5,0.,5.));
-  _filled[_filled.size()-1]->SetXTitle("Index:Unkn(0)/Z=1/Z>=2/Z>=2slow/ECAL(4))");
+  _filled[_filled.size()-1]->SetXTitle("Index:Unkn(0)/Z=1/Z>=2/Z>=2slow/ECAL(4)");
   _filled[_filled.size()-1]->SetFillColor(41);//1
   
   _filled.push_back(new TH1F("LVL1Branches","LVL1 Branch Sharing",10,0.,10.));
-  _filled[_filled.size()-1]->SetXTitle("Index: unb(1:4)/Z=1/Z>=2/el/ph(8))");
+  _filled[_filled.size()-1]->SetXTitle("Index: unb(1:4)/Z=1/Z>=2/el/ph(8)");
   _filled[_filled.size()-1]->SetFillColor(44);
    
   
