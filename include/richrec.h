@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.30 2005/05/17 09:56:35 pzuccon Exp $
+//  $Id: richrec.h,v 1.31 2005/06/10 10:53:24 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -84,6 +84,7 @@ public:
   }
 
   static void mc_build();
+  static void build();
   void reconstruct(AMSPoint,AMSPoint,AMSDir,AMSDir,geant,
 		   geant,
                    geant *,geant,int);

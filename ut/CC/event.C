@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.336 2005/05/17 09:54:04 pzuccon Exp $
+//  $Id: event.C,v 1.337 2005/06/10 10:53:17 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1716,6 +1716,9 @@ void AMSEvent::_rerichevent(){
   int stat;
 //
   AMSgObj::BookTimer.start("RERICH");
+
+  AMSRichRawEvent::build(); // Preprocess the hits
+
 //
   ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptr)trflag=ptr->gettoflg();

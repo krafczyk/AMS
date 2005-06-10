@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.66 2005/05/17 09:54:05 pzuccon Exp $
+//  $Id: richrec.C,v 1.67 2005/06/10 10:53:17 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -116,6 +116,7 @@ void AMSRichRawEvent::mc_build(){
       }
    }
 
+   /*******************************************************************
 
    // Flag the PMTs which are likely to be crossed by a charged particle using the
    // bit number 31
@@ -139,7 +140,70 @@ void AMSRichRawEvent::mc_build(){
        }
      }
    }
+
+
+   ***********************************************************************/
 }
+
+
+
+
+void AMSRichRawEvent::build(){
+  // Flag the PMTs which are likely to be crossed by a charged particle using the
+  // bit number 'bit_crosse_pmt'
+
+  double PMTSignal[RICmaxpmts];
+
+  for(int i=0;i<RICHDB::total;PMTSignal[i++]=0);
+  
+  int nhits=0;
+  for(AMSRichRawEvent* current=(AMSRichRawEvent *)AMSEvent::gethead()->
+	getheadC("AMSRichRawEvent",0);current;current=current->next()){
+    current->unsetbit(crossed_pmt_bit);
+    int pmt=current->getchannel()/16;
+    nhits++;
+    if(pmt>=RICHDB::total){
+      cerr<< "AMSRichRawEvent::build-ChannelNoError "<<pmt<<endl;
+      return;
+    }
+    PMTSignal[pmt]+=current->getnpe();
+  }
+  
+  double mean=0;
+  double mean2=0;
+  double rms=0;
+  double threshold;
+  int total=0;
+  
+  for(int i=0;i<RICHDB::total;i++)
+    if(PMTSignal[i]>0){
+      total++;
+      mean+=PMTSignal[i];
+      mean2+=PMTSignal[i]*PMTSignal[i];
+    }
+  
+  if(total>0){
+    mean/=total;
+    mean2/=total;
+    rms=sqrt(mean2-mean*mean);
+    threshold=mean+3*rms;
+  }
+  
+  for(AMSRichRawEvent* current=(AMSRichRawEvent *)AMSEvent::gethead()->
+	getheadC("AMSRichRawEvent",0);current;current=current->next()){
+    int pmt_number=current->getchannel()/16;
+    if(PMTSignal[pmt_number]>threshold)
+      current->setbit(crossed_pmt_bit);
+  }
+
+}
+
+
+
+
+
+
+
 
 
 
