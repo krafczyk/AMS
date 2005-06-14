@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.91 2005/05/17 09:54:06 pzuccon Exp $
+//  $Id: root.C,v 1.92 2005/06/14 11:06:58 alcaraz Exp $
 //
 
 #include "root.h"
@@ -2278,13 +2278,17 @@ void AMSEventR::UTerminate(){
 AMSChain::AMSChain(const char* name):TChain(name),_ENTRY(-1),_NAME(name),_EVENT(NULL),_TREENUMBER(-1){
 }
 
-AMSEventR* AMSChain::GetEvent(Int_t entry){
+void AMSChain::Init(){
       if (_EVENT==NULL) {
-           _EVENT = new AMSEventR;
-           this->SetBranchAddress("ev.",&_EVENT);
-           _EVENT->Head() = _EVENT;
-           _EVENT->Tree() = NULL;
+            _EVENT = new AMSEventR;
+            this->SetBranchAddress("ev.",&_EVENT);
+            _EVENT->Head() = _EVENT;
+            _EVENT->Tree() = NULL;
       }
+}
+
+AMSEventR* AMSChain::GetEvent(Int_t entry){
+      Init();
       _ENTRY = entry;
       Int_t tree_entry = LoadTree(_ENTRY);
       if (GetTreeNumber()!=_TREENUMBER) {
@@ -2305,15 +2309,6 @@ AMSEventR* AMSChain::GetEvent(){
 };
 
 AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
-      //Reimplemented by Caraffini Diego --INFN Perugia-- 07/04/2005
-                                                                                
-      //The cycle does nothing but read events in turn
-      //The cycle terminates whenever
-        //_EVENT->Run() and _EVENT->Event() match the args.
-        //If last event is reached without matching,
-        //GetEvent() returns NULL (end of chain reached) on the
-        //next call terminating the cycle and setting _EVENT=NULL
-                                                                                
       Rewind();//Go to start of chain
       // Get events in turn
       while  (GetEvent() &&
@@ -2321,7 +2316,6 @@ AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
                                                                                 
       return _EVENT; 
 };
-
 
 Int_t AMSChain::Entry() {return _ENTRY;};
 AMSEventR* AMSChain::pEvent() {return _EVENT;};

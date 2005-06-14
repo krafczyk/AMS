@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.156 2005/05/17 09:56:35 pzuccon Exp $
+//  $Id: root.h,v 1.157 2005/06/14 11:07:00 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -3116,6 +3116,7 @@ public:
       AMSChain(const char* name="AMSRoot"); ///< Default constructor
       virtual ~AMSChain(){ if (_EVENT) delete _EVENT; };
 
+      void Init(); ///<Set event branch and links; called after reading of all trees; called automatically in GetEvent
       AMSEventR* GetEvent(); ///<Get next AMSEventR object in the chain
       AMSEventR* GetEvent(Int_t entry); ///<Get AMSEventR in entry number "entry"
       AMSEventR* GetEvent(Int_t run, Int_t ev); ///<Get AMSEventR with run number "run" and event number "ev"
