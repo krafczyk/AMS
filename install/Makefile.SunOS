@@ -1,4 +1,13 @@
+#pz june 2005 
+# Genaral clean up and reorganization
+# !!!!! TO BE TESTED !!!!
+
 #ifeq  "$(shell uname)"  "SunOS" 
+CXX=CC
+CC=CC
+FF=f77
+LD=CC
+
 
 CERN_LEVEL = pro
 CERNDIR = /cern/$(CERN_LEVEL)
@@ -6,16 +15,13 @@ CERNSRCDIR = /afs/cern.ch/asis/share/cern/2002
 AMSLIB =   /afs/cern.ch/exp/ams/Offline/lib/sunos
 NAGDIR = /afs/cern.ch/sw/nag/mark18/sun/flsol18da
 
-CC_gxint=CC
-
-CC=CC
-FF=f77
-LD=CC
 BIN=$(AMSWD)/bin/sunos/
 EXE=$(AMSWD)/exe/sunos/
 LIB=$(AMSWD)/lib/sunos/
+
 INCLUDE=../include/
 IFLAGS= -I/usr/include -I$(SRC)  -I$(ROOTSYS)/include
+
 ifdef AMSDEBUG
 CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include   -I../db  -D__WRITEROOT__  -I$(ROOTSYS)/include
 CFLAGS_gxint=$(CFLAGS)
@@ -36,9 +42,9 @@ CFLAGS=      $(CFLAGSB)
 FFLAGS=   -O4 -xarch=v8plusa -I../include
 FFLAGSn=    -I../include
 endif
-DFLAGS=       -I/usr/include  -I../include   -I$(SRC)
 
-CFLAGS_gxint = $(CFLAGS)
+
+
 LDFLAGSSTATIC=   -O4 -xarch=v8plusa -Bstatic  -library=f77,Cstd,Crun -lm -L$(ROOTSYS)/lib -lcrypt -L$(CERNDIR)/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/usr/local/lib -lshift -L$(NAGDIR) -lnag - -L/usr/lib -lm -lsocket  -L/usr/lib   -lnsl  -lm      -L$(AMSLIB) -lamsut -lkernlib -Bdynamic -L$(ROOTSYS)/lib -lCore -lCint -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lm -ldl -lnsl -lsocket
 
 

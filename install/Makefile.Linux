@@ -1,238 +1,233 @@
+# P.Zuccon june 2005
+# General clean up and reorganization
+#
 
 #ifeq  "$(shell uname)"  "Linux"
 
-# DEFAULTS 
-RH9add=
-ifdef RH9
- RH9add=-pthread  /usr/lib/ctype-info.o
-endif
-
-ifneq "$(shell uname -r )" "2.4.20-24.7.cernsmp"
- RH9add=-pthread  /usr/lib/ctype-info.o
-endif
-
-ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
- RH9add=
-endif
+ARCH         := $(shell root-config --arch)
 
 SLC3system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC3system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN")
 endif
 
-ifdef SLC3system
- CERN_LEVEL = 2004
- ifdef AMSICC
-   RH9add=-pthread  /usr/lib/ctype-info.o
- else 
-   RH9add=-pthread
- endif
- PACKLIB = packlib -lshift
-else
- CERN_LEVEL = 2001
- PACKLIB = packlib
+RH9=1
+RH9add=
+ifdef RH9
+ RH9add=-pthread  $(BIN)ctype.o
 endif
 
+ifdef SLC3system
+ RH9add=-pthread  $(BIN)ctype.o
+endif
+
+
+
+
+########################################################################
+#Compilers
+########################################################################
+CC  = gcc
+CXX = g++
+FF  = g77
+LD  = g++
+
+
+INTELDIR=/opt/intel/
+
+IDL=orbit-idl-2
+IDLCPP=orbit-idl-2 -l cpp
+
+
+ifdef AMSICC
+    FF=$(INTELDIR)/compiler70/ia32/bin/ifc
+endif
+
+
+ifeq ($(ARCH),linuxicc)
+  FF=$(INTELDIR)/compiler70/ia32/bin/ifc
+  CXX=$(INTELDIR)/compiler70/ia32/bin/icc  
+  CC=$(INTELDIR)/compiler70/ia32/bin/icc  
+  LD=$(INTELDIR)/compiler70/ia32/bin/icc
+endif
+
+ifeq "$(shell $(CXX) -v 2>&1 | grep -c 2.95)" "2"
+$(shell echo "WARINING your g++ compiler seems to be too old! Use at least g++ 3.2.3")
+endif
+
+########################################################################
+# Libraries
+########################################################################
+CERN_LEVEL = pro
+
+CERNLIBS= -lgeant321 -lpacklib -lmathlib -lkernlib -L/usr/local/lib -lshift
 CERNDIR = /cern/$(CERN_LEVEL)
 CERNSRCDIR = /cern/$(CERN_LEVEL)
 
-AMSLIB =   /afs/cern.ch/exp/ams/Offline/lib/linux
-AMSICCLIB = /afs/cern.ch/exp/ams/Offline/lib/linux/icc
-CERNICC = /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
-NAGDIR = /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
+AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux
+NAGDIR =  /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
 
 # change defaults if intel compiler 
 ifdef AMSICC
   CERN_LEVEL = pro
   CERNSRCDIR = /cern/$(CERN_LEVEL)
-  CERNDIR = $(CERNICC)
+  CERNDIR =  /afs/cern.ch/exp/ams/Offline/CERN/2002/icc
+  AMSLIB =  /afs/cern.ch/exp/ams/Offline/lib/linux/icc
   NAGDIR  = /afs/cern.ch/exp/ams/Offline/CERN/NagLib
 endif
-#----------------------------------------------------
+########################################################################
+# Compilers FLAGS
+########################################################################
 
-
-ifdef AMSICC
-  ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
-    FF=/opt/intel/compiler60/ia32/bin/ifc
-  else
-    FF=/opt/intel/compiler70/ia32/bin/ifc
-  endif
-  BINMT=$(AMSWD)/bin/linux/icc/mt/
-  BIN=$(AMSWD)/bin/linux/icc/
-  EXE=$(AMSWD)/exe/linux/icc/
-  LIB=$(AMSWD)/lib/linux
-  CC=g++ -Wno-deprecated -mcpu=i686
-  LD=g++
-  SHLD=$(LIB)/ntuple.so
-
-else
-  CERNLIBS = -l$(PACKLIB) -lmathlib -lkernlib
-  SHIFTLIB = 
-  CC=g++ -Wno-deprecated -mcpu=i686 
-  FF=g77
-  LD=g++
-  BIN=$(AMSWD)/bin/linux/
-  EXE=$(AMSWD)/exe/linux/
-  LIB=$(AMSWD)/lib/linux/
-  SHLD=$(LIB)/ntuple.so
-endif
-ARCH         := $(shell root-config --arch)
-ifeq ($(ARCH),linuxicc)
-  FF=/opt/intel/compiler70/ia32/bin/ifc
-  BIN=$(AMSWD)/bin/linux/icc2/
-  EXE=$(AMSWD)/exe/linux/icc2/
-  LIB=$(AMSWD)/lib/linux/icc
-  CC=/opt/intel/compiler70/ia32/bin/icc  
-  LD=/opt/intel/compiler70/ia32/bin/icc
-  SHLD=$(LIB)/ntuple.so
-endif
-
-ifdef AMSINT
-  CERNLIBS = -l$(PACKLIB) -lmathlib -lkernlib
-  SHIFTLIB = 
-  CC=g++ -Wno-deprecated -mcpu=i686 
-  FF=g77
-  LD=g++
-  BIN=$(AMSWD)/bin/linux/
-  EXE=$(AMSWD)/exe/linux/
-  LIB=$(AMSWD)/lib/linux/
-  SHLD=$(LIB)/ntuple.so
-endif
-
-LDFLAGSI=    -static  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib  -lgeant321  -lpawlib -llapack3 -l$(PACKLIB) -lgraflib -lgrafX11  -lmathlib -l$(PACKLIB) -lkernlib -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib   -lcrypt -lcrypto -ldl   -L$(AMSLIB) -lamsut -lkernlib -lg2c $(RH9add)
-
-LDFLAGSIDL=    -pthread -lORBit-2-cpp  
-LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 -lgmodule-2.0 -ldl -lglib-2.0 -lORBit-imodule-2  -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
-IDL=orbit-idl-2
-IDLCPP=orbit-idl-2 -l cpp
-CPP=g++  -I/usr/include/orbit-2.0 -I/usr/include/glib-2.0 -Wno-deprecated -mcpu=i686 -fpermissive -I/usr/include/orbitcpp-2.0
-CCC=gcc -I/usr/include/orbit-2.0 -I/usr/include/glib-2.0
-SRC=$(BIN)
-INCLUDE=../include/
-IFLAGS= -I/usr/include -I$(SRC)
-PFLAGS=
-
-ifdef AMSPROFILE
-  PFLAGS+=-pg
-endif
 
 ifdef AMSDEBUG
-  CFLAGSB=    -D__AMSDEBUG__  -D__BATCH__ -g    -I../include  -I../db  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include $(PFLAGS)
-else
-  CFLAGSB=      -D__BATCH__ -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include  $(PFLAGS)
+CPPFLAGS+=  -D__AMSDEBUG__
 endif
 
 ifdef SLC3system
-  CFLAGSB+= -D__SLC3__ -D__LINUXGNU__
+  CPPFLAGS+= -D__SLC3__ -D__LINUXGNU__
 endif
+
+
+
+CFLAGSB= -Wno-deprecated -mcpu=i686
+
+ifdef AMSPROFILE
+  CFLAGSB+=-pg
+endif
+
+ CFLAGS=       $(CFLAGSB)   
+ CFLAGSTOFSIM= $(CFLAGSB) 
+ CFLAGSn=      $(CFLAGSB) 
+ CFLAGSDAQ=    $(CFLAGSB) 
+ FFLAGS=       -fno-automatic 
+ FFLAGSn=      -fno-automatic 
+
+ifdef AMSDEBUG
+    CFLAGS       += -g      
+    CFLAGSTOFSIM += -g
+    CFLAGSn      += -g     
+    CFLAGSDAQ    += -g  
+    FFLAGS       += -g     
+    FFLAGSn      += -g    
+else
+    CFLAGS       += -O3      
+    CFLAGSTOFSIM += -O1
+    CFLAGSn      += -O2    
+    CFLAGSDAQ    += -O2 
+    FFLAGS       += -O3    
+    FFLAGSn      += -O2  
+endif
+
 
 ifdef AMSICC
-  ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
-    CFLAGS+= -D_GCCIFC_
-    CFLAGSB+= -D_GCCIFC_
-  endif
-
-#PFLAGS+=  -D__ICC__ -tpp6 -mp1 -xi
   ifdef AMSDEBUG
-    CFLAGS=      $(CFLAGSB)  
-    CFLAGSTOFSIM= $(CFLAGSB)
-    CFLAGSDAQ=    $(CFLAGSB)
-    CFLAGSn=      $(CFLAGSB)
-    FFLAGS=     -fp_port  -g -I../include   $(PFLAGS)
-    FFLAGSn=    -fp_port   -g -I../include   $(PFLAGS)
-    FFLAGS=     -D__ICC__ -tpp6 -mp1 -xi -fp_port  -g -I../include   $(PFLAGS)
-    FFLAGSn=    -D__ICC__ -tpp6 -mp1 -xi -fp_port   -g -I../include   $(PFLAGS)
+    FFLAGS=     -D__ICC__ -tpp6 -mp1 -xi -fp_port  -g 
+    FFLAGSn=    -D__ICC__ -tpp6 -mp1 -xi -fp_port   -g 
   else
-    CFLAGSTOFSIM= $(CFLAGSB)     -O1 
-    CFLAGSDAQ=    $(CFLAGSB) -O2
-    CFLAGSn=      $(CFLAGSB) -O2
-    CFLAGS=      $(CFLAGSB) -O3
-    FFLAGS=    -fp_port  -O3 -I../include  $(PFLAGS)
-    FFLAGSn=   -fp_port  -O   -I../include  $(PFLAGS)
-    FFLAGS=    -D__ICC__ -tpp6 -mp1 -xi -fp_port  -O3 -I../include  $(PFLAGS)
-    FFLAGSn=   -D__ICC__ -tpp6 -mp1 -xi -fp_port  -O   -I../include  $(PFLAGS)
-  endif
-else
-#AMSICC not set
-  ifdef AMSDEBUG
-    CFLAGS=      $(CFLAGSB)  
-    CFLAGSTOFSIM= $(CFLAGSB)
-    CFLAGSn=      $(CFLAGSB)
-    CFLAGSDAQ=    $(CFLAGSB)
-    FFLAGS=   -fno-automatic -g -I../include  $(PFLAGS)
-    FFLAGSn=   -fno-automatic -g -I../include $(PFLAGS) 
-  else
-    CFLAGSTOFSIM= $(CFLAGSB)     -O1   
-    CFLAGSDAQ=    $(CFLAGSB) -O2 
-    CFLAGSn=      $(CFLAGSB) -O2
-    CFLAGS=      $(CFLAGSB) -O3
-    FFLAGS=   -fno-automatic -O3 -I../include $(PFLAGS)
-   FFLAGSn=   -fno-automatic  -I../include
+    FFLAGS=    -D__ICC__ -tpp6 -mp1 -xi -fp_port  -O 
+    FFLAGSn=   -D__ICC__ -tpp6 -mp1 -xi -fp_port  -O  
   endif
 endif
 
-DFLAGS=        -I../include    -I$(SRC)
 
 SOFLAGS = -shared
+
 ifdef SLC3system
  SOFLAGS+= -L/usr/lib/i386-redhat-linux7/lib
 endif
 
  SHLDFLAGS=   
 
-###
+########################################################################
+# Output dirs
+########################################################################
+
+  BINMT=$(AMSWD)/bin/linux/icc/mt/
+  BIN=$(AMSWD)/bin/linux/
+  EXE=$(AMSWD)/exe/linux/
+  LIB=$(AMSWD)/lib/linux/
+  SHLD=$(LIB)/ntuple.so
+
 ifdef AMSICC
 
-  #LDFLAGS=    -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm  -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib -L../lib/linux/icc  $(ROOTLIBS) -lamsut  -lkernlib -ldl
-  ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
-
-     LDFLAGS=      -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lcxa  -lPEPCF90 -lPOSF90 -limf -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSICCLIB) -lamsut  -lkernlib  $(ROOTLIBS)   $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf -ldl
-
-     LDFLAGSSTATIC=  -static  -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -lmy2  -lPEPCF90 -lPOSF90 -lmy -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSICCLIB) -lamsut   -lkernlib   $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins   -L$(ROOTSYS)/lib -lRoot -lcrypt  -lcrypto -ldl
-
-  else
-    # not 2.95
-
-    LDFLAGS=      -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lcxa  -lPEPCF90 -lPOSF90 -limf -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSICCLIB) -lamsut  -lkernlib  $(ROOTLIBS)   $(PFLAGS) -L/opt/intel/compiler70/ia32/lib    -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf -ldl
-
-    LDFLAGSSTATIC=  -static  -L/opt/intel/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321 -l$(PACKLIB) -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L$(AMSICCLIB) -lamsut  -lkernlib $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90  -lF90  -lPEPCF90 -lPOSF90 -lintrins -limf -L$(ROOTSYS)/lib -lRoot -lcrypt  -lcrypto -ldl -lfreetype $(RH9add)
-
-  endif
-
-  #LDFLAGSSTATIC=  -static  -L$(ROOTSYS)/lib -lRoot   -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90    -lPEPCF90 -lPOSF90  -limf -lirc  -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl   -L$(AMSICCLIB) -lamsut   -lkernlib   $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90  -lF90 -limf -lPEPCF90 -lPOSF90 -lintrins   -L$(ROOTSYS)/lib -lRoot   -ldl
-
-  #LDFLAGSSTATIC=  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L../lib/linux/icc  -lamsut  -lkernlib -ldl
-
-  #LDFLAGSSTATIC=  -L$(ROOTSYS)/lib -lRoot -lcrypt  -lcrypto -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L../lib/linux/icc  -lamsut  -lkernlib -ldl
-
-else
-# not AMSICC case
-
-# Need ROOTLIBS
-  LDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  $(CERNLIBS) -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB) $(ROOTLIBS) -lamsut  -lkernlib -lg2c -ldl $(SHIFTLIB) -lcrypt -lcrypto $(PFLAGS)
-
-  #LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -lamsut  -lkernlib -lg2c -ldl $(SHIFTLIB) -lfreetype  $(RH9add)
-
-  LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -L$(CERNDIR)/lib   -lgeant321  $(CERNLIBS) -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -lamsut  -lkernlib -lg2c -ldl -lfreetype $(PFLAGS) $(RH9add)
-
+  BINMT=$(AMSWD)/bin/linux/icc/mt/
+  BIN=$(AMSWD)/bin/linux/icc/
+  EXE=$(AMSWD)/exe/linux/icc/
+  LIB=$(AMSWD)/lib/linux
+  SHLD=$(LIB)/ntuple.so
 endif
 
+ifeq ($(ARCH),linuxicc)
+  BINMT=$(AMSWD)/bin/linux/icc2/mt/
+  BIN=$(AMSWD)/bin/linux/icc2/
+  EXE=$(AMSWD)/exe/linux/icc2/
+  LIB=$(AMSWD)/lib/linux/icc
+  SHLD=$(LIB)/ntuple.so
+endif
+
+#----------------------------------------------------
+
+
+# Library list 
+
+ifdef AMSICC
+FORTRAN_LIBS=-L$(INTELDIR)/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -lintrins
+else
+# not AMSICC case
+FORTRAN_LIBS=-lg2c
+endif
+
+LDFLAGSI=    -static  \
+-L$(NAGDIR) -lnag \
+-L$(AMSLIB) -lamsut \
+-L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
+-L$(ROOTSYS)/lib -lRoot \
+ -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
+-lcrypt -lcrypto -ldl   \
+ $(FORTRAN_LIBS) $(RH9add)
+
+LDFLAGS=       \
+-L$(NAGDIR) -lnag   \
+-L$(AMSLIB)  -lamsut   \
+-L$(CERNDIR)/lib   $(CERNLIBS) \
+-L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl \
+$(FORTRAN_LIBS)  $(PFLAGS) 
+
+LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add)
+
+
+ifdef AMSICC 
+LDFLAGS+= -lcxa -lcprts
+endif
+
+
+
+#--------------------------------------------------------------------------------------------------
+#------- Client/server ORbIt/CORBA part
+#--------------------------------------------------------------------------------------------------
+
 TIMEL=
-INCS= $(wildcard $(SRC)*.*h)
-INCSCPP= $(SRC)server-cpp-stubs.h $(SRC)server-cpp-skels.h $(SRC)server-cpp-common.h
-SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c
-SRCSMT= $(SRCMT)server-stubs.c $(SRCMT)server-skels.c $(SRCMT)server-common.c
-SRCSCPP= $(SRC)server-cpp-stubs.cc $(SRC)server-cpp-skels.cc $(SRC)server-cpp-common.cc
-SRCSCPPMT= $(SRCMT)server-cpp-stubs.cc $(SRCMT)server-cpp-skels.cc $(SRCMT)server-cpp-common.cc
-OBJECTCO=$(BIN)server-stubs.o $(BIN)server-skels.o $(BIN)server-common.o
-OBJECTCOMT=$(BINMT)server-stubs.o $(BINMT)server-skels.o $(BINMT)server-common.o
-OBJECTCL= $(BIN)server-cpp-stubs.o $(BIN)server-cpp-common.o
-OBJECTCLMT= $(BINMT)server-cpp-stubs.o $(BINMT)server-cpp-common.o
-OBJECTSEAUX=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client.o  $(BIN)amsdbc.o $(BIN)timeid_s.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver.o 
-OBJECTSEAUXMT=$(BIN)id_mt.o $(BIN)node_mt.o $(BIN)astring_mt.o $(BIN)client_mt.o  $(BIN)amsdbc_mt.o $(BIN)timeid_mt.o  $(BIN)apool_mt.o $(BIN)snode_mt.o $(BIN)dbserver_mt.o
-OBJECTSEAUXMT=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client_mt.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver_mt.o
-OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL)
-OBJECTSEMT=  $(BINMT)server-cpp-skels.o   $(OBJECTCLMT)
+
+LDFLAGSIDL=    -pthread -lORBit-2-cpp  
+
+LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
+-lgmodule-2.0 -ldl -lglib-2.0 -lORBit-imodule-2  -lnsl \
+/usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
+
+CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/usr/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/include/orbitcpp-2.0 -I$(BIN)
+
+CC_ORBIT=$(CC) -I/usr/include/orbit-2.0 -I/usr/include/glib-2.0 -I$(BIN)
+
+
+ifdef AMSDEBUG
+CXX_ORBIT+= -g
+CCC_ORBIT+= -g
+else
+CXX_ORBIT+= -O3
+CCC_ORBIT+= -O3
+endif
+
 
 #endif
 

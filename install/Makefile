@@ -1,4 +1,17 @@
-#  $Id: Makefile,v 1.20 2005/05/16 18:44:49 pzuccon Exp $
+#  $Id: Makefile,v 1.21 2005/06/16 18:01:44 pzuccon Exp $
+
+#P.Zuccon june 2005
+
+# definition of cppflags and inc paths within Makefile
+# avoid multiple listings of files, using where possible the generation
+#      of objects names from the source names
+#
+# tentative classification of source files
+# 
+# renaming of some variable to avoid conficts with the gmake 
+#          implicit variables (ex CPP is C pre processor)
+#
+# many comments added
 
 #rl october 2003
 
@@ -48,8 +61,6 @@ CERNDIR = /cern/$(CERN_LEVEL)
 CERNSRCDIR =  /afs/cern.ch/asis/share/cern/$(CERN_LEVEL)
 
 
-
-
 ifndef AMSWD
 AMSWD := ..
 endif
@@ -60,6 +71,11 @@ SFF = ../F/
 
 ROOTLIBS      = -L$(ROOTSYS)/lib  -lRoot
 
+CPPFLAGS=      -D__BATCH__     -D__WRITEROOT__ -D__ROOTPOINTERS__ 
+INCPATHS= -I../include -I$(CERNDIR)/include -I$(ROOTSYS)/include
+CPPFLAGS+= $(INCPATHS)
+
+IDLFLAGS=-D__CORBA__ -I$(BIN)
 
 #-- CALL OS SPECIFIC FILE-------------------------------------------
 
@@ -72,6 +88,14 @@ ifeq ($(origin local_makefile), undefined)
         local_makefile = Makefile.$(MY_OS)
 endif
 include $(shell echo ${local_makefile})
+
+
+
+CFLAGSB+= $(CPPFLAGS)
+
+
+
+
 #------------------------------------------------------------------------------
 
 # Setup rules to compile source from $SFF or $SCC and put objects in $BIN
@@ -89,142 +113,213 @@ $(BIN)%.o : $(SFF)%.f
 	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $< -o $@
 
 $(BIN)%.o : $(SCC)%.C
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CXX) -c $(CFLAGS) $< -o $@
 
 $(BIN)%.o : $(SCC)%.c
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CXX) -c $(CFLAGS) $< -o $@
 
 #------------------------------------------------------------------------------
+# gbatch source files
 
-
-IDLFLAGS=-D__CORBA__ -I$(BIN)
 
 INCS= $(wildcard ../include/*.h)    
 
 
-FILES= \
- $(SCC)id.C         $(SCC)node.C     $(SCC)snode.C        $(SCC)gbatch.C \
- $(SCC)gvolume.C    $(SCC)amsdbc.C   $(SCC)cern.C         $(SCC)gsen.C\
- $(SCC)point.C      $(SCC)upool.C    $(SCC)gmat.C         $(SCC)amsgobj.C\
- $(SCC)amsgeom.C    $(SCC)geant.C    $(SCC)geant3.C       $(SCC)mceventg.C\
- ../F/tkmccl.F      ../F/fint_my.F    ../F/geocoor.F      $(SCC)rnormx.C\
- $(SCC)trid.C       $(SCC)trdid.C    $(SCC)link.C         $(SCC)trrec.C\
- $(SCC)vtx.C        $(SCC)trdsim.C   $(SCC)trdrec.C       $(SCC)uzstat.C\
- ../F/Geant3_utils.F ../F/TrackFit_utils.F ../F/rkms.F  ../F/mtx.F        ../F/tptcir.F      ../F/trafit.F\
- ../F/tcircf.F      ../F/tszfit.F     ../F/txyfit.F       $(SCC)job.C\
- $(SCC)event.C      $(SCC)cont.C      $(SCC)mccluster.C   $(SCC)trrawcluster.C\
- ../F/rndm.F        ../F/timel.F        ../F/sgif.F        $(SCC)tofrec02.C\
- $(SCC)tofonline02.C $(SCC)tofuser02.C  $(SCC)antirec02.C  $(SCC)tofsim02.C\
- $(SCC)beta.C        $(SCC)charge.C     $(SCC)particle.C   $(SCC)commons.C\
- $(SCC)apool.C       $(SCC)tofdbc02.C   $(SCC)tofcalib02.C $(SCC)tofid.C\
- $(SCC)timeid.C      $(SCC)io.C         $(SCC)trcalib.C    $(SCC)tralig.C\
- ../F/mtx2.F          ../F/e04ccf.f     $(SCC)trigger102.C $(SCC)trigger302.C\
- $(SCC)antidbc02.C   $(SCC)daqevt.C     $(SCC)astring.C    $(SCC)daqs2block.C\
- ../F/mfield.F       ../F/egzav.F        ../F/tkfit.F      $(SCC)tkdbc.C\
- $(SCC)trddbc.C      $(SCC)ntuple.C     $(SCC)root.C       $(BIN)rootdict.C\
- $(SCC)user.C        $(SCC)status.C    $(SCC)bcorr.C       $(SCC)ecaldbc.C\
- $(SCC)ecid.C        $(SCC)ecalrec.C   $(SCC)ecalcalib.C   $(SCC)richdbc.C\
- $(SCC)richrec.C     $(SCC)richid.C    $(SCC)richgeom.C    ../F/gtckov.F\
- ../F/graylc.F      ../F/cerenkov.F    $(SCC)producer.C   $(SCC)client.C\
- $(SCC)server.C    $(SCC)dbserver.C    $(SCC)astro.C      ../F/richlikebeta_lip.F\
- ../F/richpatt_lip.F ../F/richrec_lip.F $(SCC)anticalib02.C ../F/richpmtlib.F
-
-OBJECTS=\
- $(BIN)gbatch.o     $(BIN)commons.o    $(BIN)gvolume.o   $(BIN)id.o\
- $(BIN)node.o       $(BIN)snode.o      $(BIN)cern.o      $(BIN)amsdbc.o\
- $(BIN)gsen.o       $(BIN)mtx.o        $(BIN)point.o     $(BIN)Geant3_utils.o $(BIN)TrackFit_utils.o $(BIN)rkms.o\
- $(BIN)sgif.o       $(BIN)upool.o      $(BIN)gmat.o      $(BIN)amsgobj.o\
- $(BIN)amsgeom.o    $(BIN)geant.o      $(BIN)geant3.o    $(BIN)mceventg.o\
- $(BIN)tkmccl.o     $(BIN)geocoor.o    $(BIN)rnormx.o    $(BIN)trid.o\
- $(BIN)trdid.o      $(BIN)link.o       $(BIN)trrec.o     $(BIN)vtx.o\
- $(BIN)trdsim.o     $(BIN)trdrec.o     $(BIN)uzstat.o    $(BIN)tptcir.o\
- $(BIN)trafit.o     $(BIN)tcircf.o     $(BIN)tszfit.o    $(BIN)txyfit.o\
- $(BIN)job.o        $(BIN)event.o      $(BIN)cont.o      $(BIN)trrawcluster.o\
- $(BIN)mccluster.o  $(BIN)rndm.o       $(BIN)tofrec02.o  $(BIN)tofonline02.o\
- $(BIN)tofuser02.o  $(BIN)antirec02.o  $(BIN)tofsim02.o  $(BIN)beta.o\
- $(BIN)charge.o     $(BIN)particle.o   $(BIN)apool.o     $(BIN)tofdbc02.o\
- $(BIN)tofcalib02.o $(BIN)tofid.o      $(BIN)timeid.o    $(BIN)io.o\
- $(BIN)trcalib.o    $(BIN)tralig.o     $(BIN)mtx2.o      $(BIN)e04ccf.o\
- $(BIN)trigger102.o $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o\
- $(BIN)astring.o    $(BIN)daqs2block.o $(BIN)mfield.o    $(BIN)egzav.o\
- $(BIN)tkfit.o      $(BIN)tkdbc.o      $(BIN)trddbc.o    $(BIN)ntuple.o\
- $(BIN)root.o       $(BIN)rootdict.o   $(BIN)user.o      $(BIN)status.o\
- $(BIN)bcorr.o      $(BIN)ecaldbc.o    $(BIN)ecid.o      $(BIN)ecalrec.o\
- $(BIN)ecalcalib.o  $(BIN)richdbc.o    $(BIN)richrec.o   $(BIN)richid.o\
- $(BIN)richgeom.o   $(BIN)gtckov.o     $(BIN)graylc.o    $(BIN)cerenkov.o\
- $(BIN)grfile.o     $(BIN)sbcomp.o     $(BIN)gskpho.o    $(BIN)flinit.o\
- $(BIN)fint_my.o    $(BIN)astro.o      $(BIN)richlikebeta_lip.o $(BIN)richpatt_lip.o\
- $(BIN)richrec_lip.o $(BIN)hadevv.o  $(BIN)anticalib02.o $(BIN)richpmtlib.o
-
-OBJECTSI= $(BIN)gxint.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)Geant3_utils.o $(BIN)TrackFit_utils.o $(BIN)rkms.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geanti.o $(BIN)geant3i.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)vtx.o $(BIN)trdrec.o $(BIN)trdsim.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o   $(BIN)tofrec02.o  $(BIN)tofonline02.o $(BIN)antirec02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o  $(BIN)gi.o $(BIN)gi2.o $(BIN)e04ccf.o $(BIN)tofdbc02.o $(BIN)apool.o $(BIN)tofsim02.o $(BIN)tofcalib02.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)mtx2.o $(BIN)trigger102.o  $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)user.o  $(BIN)tofid.o $(BIN)status.o $(BIN)bcorr.o $(BIN)tralig.o  $(BIN)tofuser02.o $(BIN)geocoor.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o  $(BIN)tkfit.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)ecalcalib.o $(BIN)fint_my.o $(BIN)root.o $(BIN)rootdict.o $(BIN)astro.o $(BIN)richlikebeta_lip.o $(BIN)richpatt_lip.o $(BIN)richrec_lip.o $(BIN)hadevv.o $(BIN)anticalib02.o $(BIN)richpmtlib.o
+# Base AMS Classes
+COMMON_FILES= 	$(SCC)node.C       $(SCC)snode.C   $(SCC)upool.C   $(SCC)link.C     \
+		$(SCC)cont.C       $(SCC)apool.C   $(SCC)io.C      $(SCC)astring.C  \
+		$(SCC)id.C         $(SCC)point.C   $(SCC)amsdbc.C  $(SCC)amsgobj.C  \
+		$(SCC)uzstat.C     $(SCC)user.C    $(SCC)status.C
 
 
-OBJECTSC= \
- $(BIN)gbatch_c.o   $(BIN)commons.o     $(BIN)gvolume.o   $(BIN)id.o\
- $(BIN)node.o       $(BIN)snode.o       $(BIN)cern.o      $(BIN)amsdbc.o\
- $(BIN)gsen.o       $(BIN)mtx.o         $(BIN)point.o     $(BIN)Geant3_utils.o $(BIN)TrackFit_utils.o $(BIN)rkms.o\
- $(BIN)sgif.o       $(BIN)upool.o       $(BIN)gmat.o      $(BIN)amsgobj.o\
- $(BIN)amsgeom.o    $(BIN)geant_c.o     $(BIN)geant3_c.o  $(BIN)mceventg.o\
- $(BIN)tkmccl.o     $(BIN)geocoor.o     $(BIN)rnormx.o    $(BIN)trid.o\
- $(BIN)trdid.o      $(BIN)link.o        $(BIN)trrec.o     $(BIN)vtx.o\
- $(BIN)trdsim.o     $(BIN)trdrec.o      $(BIN)uzstat.o    $(BIN)tptcir.o\
- $(BIN)trafit.o     $(BIN)tcircf.o      $(BIN)tszfit.o    $(BIN)txyfit.o\
- $(BIN)job_c.o      $(BIN)event_c.o     $(BIN)cont.o      $(BIN)trrawcluster.o\
- $(BIN)mccluster.o  $(BIN)rndm.o        $(BIN)tofrec02.o  $(BIN)tofonline02.o\
- $(BIN)tofuser02.o  $(BIN)antirec02.o   $(BIN)tofsim02.o  $(BIN)beta.o\
- $(BIN)charge.o     $(BIN)particle.o    $(BIN)apool.o     $(BIN)tofdbc02.o\
- $(BIN)tofcalib02.o $(BIN)tofid.o       $(BIN)timeid_c.o  $(BIN)io.o\
- $(BIN)trcalib.o    $(BIN)tralig.o      $(BIN)mtx2.o      $(BIN)e04ccf.o\
- $(BIN)trigger102.o $(BIN)trigger302.o  $(BIN)antidbc02.o $(BIN)daqevt.o\
- $(BIN)astring.o    $(BIN)daqs2block.o  $(BIN)mfield.o    $(BIN)egzav.o\
- $(BIN)tkfit.o      $(BIN)tkdbc.o       $(BIN)trddbc.o    $(BIN)ntuple.o\
- $(BIN)root.o       $(BIN)rootdict.o    $(BIN)user.o      $(BIN)status.o\
- $(BIN)bcorr.o      $(BIN)ecaldbc.o     $(BIN)ecid.o      $(BIN)ecalrec.o\
- $(BIN)ecalcalib.o  $(BIN)richdbc.o     $(BIN)richrec.o   $(BIN)richid.o\
- $(BIN)richgeom.o   $(BIN)gtckov.o      $(BIN)graylc.o    $(BIN)cerenkov.o\
- $(BIN)grfile.o     $(BIN)flinit.o      $(BIN)producer.o  $(BIN)client.o\
- $(BIN)fint_my.o    $(BIN)ins_dummy.o   $(BIN)astro.o     $(BIN)sbcomp.o\
- $(BIN)gskpho.o     $(BIN)richlikebeta_lip.o $(BIN)richpatt_lip.o $(BIN)richrec_lip.o $(BIN)hadevv.o $(BIN)anticalib02.o $(BIN)richpmtlib.o
+#Geant Interface
+COMMON_FILES +=	$(SCC)commons.C    $(SCC)gvolume.C $(SCC)amsgeom.C $(SFF)Geant3_utils.F  \
+		$(SCC)gmat.C       $(SCC)mceventg.C                $(SCC)mccluster.C     \
+		$(SFF)mfield.F     $(SFF)egzav.F    \
+		$(SFF)hadevv.F        
 
 
 
-gbatch: $(EXE)gbatch.exe
+#Utils
+COMMON_FILES += $(SCC)cern.C       $(SFF)sgif.F    $(SCC)rnormx.C  $(SFF)geocoor.F     \
+		$(SFF)grfile.F     $(SCC)bcorr.C   $(SFF)mtx2.F    $(SFF)e04ccf.f  \
+		$(SFF)fint_my.F
 
-$(EXE)gbatch.exe:	$(OBJECTS)
+
+
+#Tracker
+COMMON_FILES += $(SCC)trid.C       $(SCC)trrec.C   $(SCC)trcalib.C $(SCC)tralig.C  \
+	 	$(SFF)tkfit.F      $(SCC)tkdbc.C   $(SFF)trafit.F  $(SFF)tcircf.F  \
+		$(SFF)tszfit.F     $(SFF)txyfit.F  $(SCC)trrawcluster.C	         \
+		$(SFF)tptcir.F     $(SCC)gsen.C    $(SFF)TrackFit_utils.F \
+		$(SFF)rkms.F       $(SFF)tkmccl.F 
+
+#TRD 
+COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trddbc.C 
+
+
+#TOF + ACC
+COMMON_FILES += $(SCC)tofrec02.C   $(SCC)tofonline02.C             $(SCC)tofuser02.C \
+		$(SCC)tofsim02.C   $(SCC)tofdbc02.C   $(SCC)tofcalib02.C \
+		$(SCC)tofid.C      $(SCC)antidbc02.C  $(SCC)antirec02.C \
+		$(SCC)anticalib02.C 
+
+
+#ECAL
+COMMON_FILES += $(SCC)ecaldbc.C    $(SCC)ecid.C       $(SCC)ecalrec.C\
+		$(SCC)ecalcalib.C
+
+#RICH
+COMMON_FILES += $(SCC)richdbc.C    $(SCC)richrec.C    $(SCC)richid.C  $(SCC)richgeom.C  \
+		$(SFF)richlikebeta_lip.F      $(SFF)richpatt_lip.F   $(SFF)richrec_lip.F \
+		$(SFF)richpmtlib.F $(SFF)gtckov.F     $(SFF)graylc.F    $(SFF)cerenkov.F
+
+# High level reconstruction
+COMMON_FILES += $(SCC)vtx.C        $(SCC)beta.C       $(SCC)charge.C   $(SCC)particle.C   \
+		$(SCC)astro.C    
+
+#Trigger
+COMMON_FILES += $(SCC)trigger102.C $(SCC)trigger302.C  
+
+
+#DAQ Interface
+COMMON_FILES += $(SCC)daqevt.C $(SCC)daqs2block.C 
+
+#HBOOK interface
+COMMON_FILES += $(SCC)ntuple.C
+
+#Root Interface
+COMMON_FILES += $(SCC)root.C   $(SCC)rootdict.C   
+
+
+
+#------------------------------------------------------------------------------
+# File list for standard gbatch compilation
+
+FILES= $(COMMON_FILES) $(SCC)gbatch.C  $(SCC)geant.C  	$(SCC)geant3.C      \
+		$(SCC)job.C     $(SCC)event.C   $(SFF)sbcomp.F  $(SFF)gskpho.F  \
+		$(SFF)flinit.F $(SFF)rndm.F $(SCC)timeid.C
+
+MYOBJS1:=$(FILES:$(SFF)%.F=$(BIN)%.o) 
+MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
+OBJECTS:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
+
+OBJECTS+= $(BIN)mtx.o
+
+#------------------------------------------------------------------------------
+# File list for interactive gbatch compilation
+
+FILESI= $(COMMON_FILES) $(SCC)gxint.C $(SFF)gi.F $(SCC)gi2.C   $(SCC)job.C $(SCC)event.C $(SCC)timeid.C
+
+MYOBJS1:=$(FILESI:$(SFF)%.F=$(BIN)%.o) 
+MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
+OBJECTSI:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
+
+OBJECTSI+=       $(BIN)geanti.o 	$(BIN)geant3i.o  
+
+#------------------------------------------------------------------------------
+# File list for client(production) gbatch compilation
+
+FILESC= $(COMMON_FILES)     $(SCC)producer.C $(SCC)client.C \
+		$(SCC)ins_dummy.C $(SFF)sbcomp.F   $(SFF)gskpho.F   $(SFF)flinit.F $(SFF)rndm.F 
+
+MYOBJS1:=$(FILESC:$(SFF)%.F=$(BIN)%.o) 
+MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
+OBJECTSC:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
+
+OBJECTSC+= 	$(BIN)gbatch_c.o  $(BIN)geant_c.o  $(BIN)geant3_c.o $(BIN)job_c.o \
+		$(BIN)event_c.o   $(BIN)timeid_c.o
+
+
+#------------------------------------------------------------------------------
+#----   Files list for the ORBiT/CORBA client/server 
+#------------------------------------------------------------------------------
+
+SRC=$(BIN)
+INCLUDE=../include/
+
+INCSCPP= $(SRC)server-cpp-stubs.h $(SRC)server-cpp-skels.h $(SRC)server-cpp-common.h
+
+SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c
+OBJECTCO=$(BIN)server-stubs.o $(BIN)server-skels.o $(BIN)server-common.o
+
+
+SRCSCPP= $(SRC)server-cpp-stubs.cc $(SRC)server-cpp-skels.cc $(SRC)server-cpp-common.cc
+OBJECTCL= $(BIN)server-cpp-stubs.o                           $(BIN)server-cpp-common.o
+OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL)
+
+OBJECTSEAUX=    $(BIN)id.o         $(BIN)node.o     $(BIN)astring.o \
+		$(BIN)client.o     $(BIN)amsdbc.o   $(BIN)timeid_s.o \
+		$(BIN)apool.o      $(BIN)snode.o    $(BIN)dbserver.o  
+
+#--------------------------------------------------------------------------------------------------
+
+SRCSMT= $(SRCMT)server-stubs.c $(SRCMT)server-skels.c $(SRCMT)server-common.c
+OBJECTCOMT=$(BINMT)server-stubs.o $(BINMT)server-skels.o $(BINMT)server-common.o
+
+SRCSCPPMT= $(SRCMT)server-cpp-stubs.cc $(SRCMT)server-cpp-skels.cc $(SRCMT)server-cpp-common.cc
+OBJECTCLMT= $(BINMT)server-cpp-stubs.o                             $(BINMT)server-cpp-common.o
+OBJECTSEMT=  $(BINMT)server-cpp-skels.o   $(OBJECTCLMT)
+
+OBJECTSEAUXMT=	$(BIN)id.o 	   $(BIN)node.o      $(BIN)astring.o  \
+		$(BIN)client_mt.o  $(BIN)amsdbc.o    $(BIN)timeid.o    \
+		$(BIN)apool.o      $(BIN)snode.o     $(BIN)dbserver_mt.o
+
+
+
+#------------------------------------------------------------------------------
+#----   TARGETS
+#------------------------------------------------------------------------------
+
+
+#------------------------------------------------------------------------------
+#  Gbatch standalone batch processing
+
+gbatch: $(EXE)gbatch.exe 
+
+$(EXE)gbatch.exe:	$(OBJECTS) $(BIN)ctype.o
 	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch.exe $(OBJECTS)\
          $(TIMEL) $(LDFLAGSSTATIC)
+
+
+#------------------------------------------------------------------------------
+#  Gbatch standalone interactive session
+
+gxint :	$(EXE)gxint.exe 
+
+
+$(EXE)gxint.exe:	$(OBJECTSI) $(BIN)ctype.o
+	$(LD) -v -o $(EXE)/gxint.exe  $(OBJECTSI) $(LDFLAGSI)
+
+
+$(BIN)geanti.o:      $(SCC)geant.C
+	$(CXX) -c $(CFLAGS) $(SCC)geant.C -o $(BIN)/geanti.o
+
+$(BIN)geant3i.o:      $(SCC)geant3.C
+	$(CXX) -c $(CFLAGS) $(SCC)geant3.C -o $(BIN)/geant3i.o
+
+#------------------------------------------------------------------------------
+#   Libraries to read the ROOT output
+
 
 shared :	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o 
 	$(LD) -O  $(SOFLAGS) $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(SHLDFLAGS) -o  $(SHLD)
 
 static :	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o
-	ar rv $(LIB)/libntuple.a $(BIN)/root_rs.o $(BIN)/rootdict_s.o
-
-gxint :	$(EXE)gxint.exe
-
-$(EXE)gxint.exe:	$(OBJECTSI)
-	$(LD) -v -o $(EXE)/gxint.exe  $(OBJECTSI) $(LDFLAGSI)
-	chmod +x  $(EXE)/gxint.exe
-
-$(BIN)gxint.o:	../CC/gxint.C
-	$(CC) -c $(CFLAGS) ../CC/gxint.C -o $(BIN)/gxint.o
-
-$(BIN)geanti.o:      ../CC/geant.C
-	$(CC) -c $(CFLAGS) ../CC/geant.C -o $(BIN)/geanti.o
-
-$(BIN)geant3i.o:      ../CC/geant3.C
-	$(CC) -c $(CFLAGS) ../CC/geant3.C -o $(BIN)/geant3i.o
-
-$(BIN)gi2.o:      ../CC/gi2.C
-	$(CC) -c $(CFLAGS) ../CC/gi2.C -o $(BIN)/gi2.o
-
-
-$(BIN)gi.o:      ../F/gi.F
-	$(FF) -c $(FFLAGS) ../F/gi.F -o $(BIN)/gi.o
+	$(AR) rv $(LIB)/libntuple.a $(BIN)/root_rs.o $(BIN)/rootdict_s.o
 
 
 #-------------------------------------------------------------------------------
 # these files do not use the default rules
+
+$(BIN)ctype.o: $(SCC)ctype.c
+ifeq  "$(shell uname)"  "Linux" 
+	$(CC) -c $< -o$@
+else 
+	cp $(SCC)ctype.c $(BIN)ctype.o
+endif
+../include/root_methods.h:      ../perl/root.perl
+	perl ../perl/root.perl
 
 $(BIN)rootdict.C:    ../include/linkdef.h  ../include/root_RV.h ../include/root.h
 	@echo "Generating dictionary"
@@ -237,119 +332,129 @@ $(BIN)rootdict_s.C:    ../include/linkdef.h  ../include/root_RVS.h ../include/ro
 	@echo "OK"
 
 $(BIN)rootdict.o:         $(BIN)rootdict.C
-	$(CC) -c $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o 
- 
+	$(CXX) -c $(CFLAGS) $(BIN)rootdict.C -o $(BIN)rootdict.o 
+
 $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
-	$(CC) -c $(CFLAGS) $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 
- 
+	$(CXX) -c $(CFLAGS) $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 
+
+$(BIN)root_rs.o:    	 $(SCC)root.C ../include/root_methods.h
+	$(CXX) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
+
 $(BIN)ntuple.o:    	 $(SCC)ntuple.C
 
 ifdef AMSMEMMONITOR
-	$(CC) -c -D__MEMMONITOR__ $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
+	$(CXX) -c -D__MEMMONITOR__ $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
 else
-	$(CC) -c $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
+	$(CXX) -c $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
 endif
 
-$(BIN)root_rs.o:    	 $(SCC)root.C ../include/root_methods.h
-	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
 
 
 ifeq  "$(shell uname)"  "SunOS" 
 
-$(BIN)mtx.o:                   ../F/mtx77.F
-	f77 -c $(FFLAGS)      ../F/mtx77.F -o $(BIN)mtx.o
+$(BIN)mtx.o:                   $(SFF)mtx77.F
+	f77 -c $(FFLAGS)      $(SFF)mtx77.F -o $(BIN)mtx.o
 endif
 ifeq  "$(shell uname)"  "HP-UX" 
 
-$(BIN)mtx.o:                   ../F/mtx77.F
-	f77 -c $(FFLAGS)      ../F/mtx77.F -o $(BIN)mtx.o
+$(BIN)mtx.o:                   $(SFF)mtx77.F
+	f77 -c $(FFLAGS)      $(SFF)mtx77.F -o $(BIN)mtx.o
 endif
 ifeq  "$(shell uname)"  "Linux" 
 
-$(BIN)mtx.o:                   ../F/mtx77.F
-	$(FF) -c $(FFLAGS)      ../F/mtx77.F -o $(BIN)mtx.o
+$(BIN)mtx.o:                   $(SFF)mtx77.F
+	$(FF) -c $(FFLAGS)      $(SFF)mtx77.F -o $(BIN)mtx.o
 endif
 ifeq  "$(shell uname)"  "AIX" 
 
-$(BIN)mtx.o:                   ../F/mtx.F
-	xlf90 -c $(FFLAGS)      ../F/mtx.F -o $(BIN)mtx.o
+$(BIN)mtx.o:                   $(SFF)mtx.F
+	xlf90 -c $(FFLAGS)      $(SFF)mtx.F -o $(BIN)mtx.o
 endif
 ifeq  "$(shell uname)"  "AIXold" 
 
-$(BIN)mtx.o:                   ../F/mtx.F
-	xlf90 -c $(FFLAGS)      ../F/mtx.F -o $(BIN)mtx.o
+$(BIN)mtx.o:                   $(SFF)mtx.F
+	xlf90 -c $(FFLAGS)      $(SFF)mtx.F -o $(BIN)mtx.o
 endif
 
 ifeq  "$(shell uname)"  "OSF1" 
 
-$(BIN)mtx.o:                   ../F/mtx.F
-	f90 -c -free $(FFLAGS)      ../F/mtx.F -o $(BIN)mtx.o
+$(BIN)mtx.o:                   $(SFF)mtx.F
+	f90 -c -free $(FFLAGS)      $(SFF)mtx.F -o $(BIN)mtx.o
 endif
 
+#===============================================================================
+#  Rules to customize  and compile some  GEANT3 files
+#===============================================================================
 
-../F/flinit.F:      $(CERNSRCDIR)/src/geant321/fiface/flinit.F
-	sed  "s/      OPEN(UNIT=LUNERR,FILE='flukaerr.dat',STATUS='UNKNOWN')/#if defined __IFC\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',shared,STATUS='UNKNOWN')\n#else\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',STATUS='UNKNOWN')\n#endif/g"  $(CERNSRCDIR)/src/geant321/fiface/flinit.F > ../F/flinit.F
-
-../include/root_methods.h:      ../perl/root.perl
-	perl ../perl/root.perl
-
-../F/grfile.F:      $(CERNSRCDIR)/src/geant321/giopa/grfile.F
-	sed  "s/NQUOT=1000/NQUOT=32000/g"  /$(CERNSRCDIR)/src/geant321/giopa/grfile.F > ../F/grfile.F
-
-$(BIN)grfile.o:      ../F/grfile.F
-	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include ../F/grfile.F -o $(BIN)grfile.o
-
-../F/gskpho.F:      $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F
-	sed  "s/N2-N1/NGPHOT\*10/g;s/MISSNG.GT.0/MISSNG.GT.NGPHOT\*10/g;s/MSSPOL.GT.0/MSSPOL.GT.NGPHOT\*10/g"  $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F > ../F/gskpho.F
-
-$(BIN)gskpho.o:      ../F/gskpho.F
-	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include ../F/gskpho.F -o $(BIN)gskpho.o
-
-../F/hadevv.F:      $(CERNSRCDIR)/src/geant321/fluka/hadevv.F
-	sed  "0,/AMCH2 .LT. AMB8/ s/AMCH2 .LT. AMB8/AMCH2 .LT. AMB8 .AND. AMB8 .LT. UMO*0.5/"  $(CERNSRCDIR)/src/geant321/fluka/hadevv.F > ../F/hadevv.F.tmp
-	sed  "s/ACH1.LE./ACH1.LT./;s/ACH2.LE./ACH2.LT./"  ../F/hadevv.F.tmp > ../F/hadevv.F
-	rm -rf ../F/hadevv.F.tmp 
-
-$(BIN)hadevv.o:      ../F/hadevv.F
-	$(FF) -c $(FFLAGS) -DCERNLIB_DOUBLE -I$(CERNDIR)/include ../F/hadevv.F -o $(BIN)hadevv.o
-
-../F/sbcomp.F:      $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F
-	sed  "s/STOP 'BIMPCT'/write(*,*)'****SBCOMP BIMPCT STOP ****',R0TRAJ,BIMPCT,R1TRAJ/g"  $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F > ../F/sbcomp.F
-
-$(BIN)sbcomp.o:      ../F/sbcomp.F
-	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include -DCERNLIB_DOUBLE ../F/sbcomp.F -o $(BIN)sbcomp.o
+$(SFF)flinit.F:      $(CERNSRCDIR)/src/geant321/fiface/flinit.F
+	sed  "s/      OPEN(UNIT=LUNERR,FILE='flukaerr.dat',STATUS='UNKNOWN')/#if defined __IFC\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',shared,STATUS='UNKNOWN')\n#else\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',STATUS='UNKNOWN')\n#endif/g"  $(CERNSRCDIR)/src/geant321/fiface/flinit.F > $(SFF)flinit.F
 
 
-$(BIN)flinit.o:      ../F/flinit.F
-	$(FF) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include ../F/flinit.F -o $(BIN)flinit.o
+$(SFF)grfile.F:      $(CERNSRCDIR)/src/geant321/giopa/grfile.F
+	sed  "s/NQUOT=1000/NQUOT=32000/g"  /$(CERNSRCDIR)/src/geant321/giopa/grfile.F > $(SFF)grfile.F
 
-$(BIN)richpmtlibo.o:	../F/richpmtlib.F
-	$(FF) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include ../F/richpmtlib.F -o $(BIN)richpmtlib.o
+$(BIN)grfile.o:      $(SFF)grfile.F
+	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)grfile.F -o $(BIN)grfile.o
+
+$(SFF)gskpho.F:      $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F
+	sed  "s/N2-N1/NGPHOT\*10/g;s/MISSNG.GT.0/MISSNG.GT.NGPHOT\*10/g;s/MSSPOL.GT.0/MSSPOL.GT.NGPHOT\*10/g"  $(CERNSRCDIR)/src/geant321/gtrak/gskpho.F > $(SFF)gskpho.F
+
+$(BIN)gskpho.o:      $(SFF)gskpho.F
+	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include $(SFF)gskpho.F -o $(BIN)gskpho.o
+
+$(SFF)hadevv.F:      $(CERNSRCDIR)/src/geant321/fluka/hadevv.F
+	sed  "0,/AMCH2 .LT. AMB8/ s/AMCH2 .LT. AMB8/AMCH2 .LT. AMB8 .AND. AMB8 .LT. UMO*0.5/"  $(CERNSRCDIR)/src/geant321/fluka/hadevv.F > $(SFF)hadevv.F.tmp
+	sed  "s/ACH1.LE./ACH1.LT./;s/ACH2.LE./ACH2.LT./"  $(SFF)hadevv.F.tmp > $(SFF)hadevv.F
+	rm -rf $(SFF)hadevv.F.tmp 
+
+$(BIN)hadevv.o:      $(SFF)hadevv.F
+	$(FF) -c $(FFLAGS) -DCERNLIB_DOUBLE -I$(CERNDIR)/include $(SFF)hadevv.F -o $(BIN)hadevv.o
+
+$(SFF)sbcomp.F:      $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F
+	sed  "s/STOP 'BIMPCT'/write(*,*)'****SBCOMP BIMPCT STOP ****',R0TRAJ,BIMPCT,R1TRAJ/g"  $(CERNSRCDIR)/src/geant321/peanut/sbcomp.F > $(SFF)sbcomp.F
+
+$(BIN)sbcomp.o:      $(SFF)sbcomp.F
+	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include -DCERNLIB_DOUBLE $(SFF)sbcomp.F -o $(BIN)sbcomp.o
+
+
+$(BIN)flinit.o:      $(SFF)flinit.F
+	$(FF) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include $(SFF)flinit.F -o $(BIN)flinit.o
+
+$(BIN)richpmtlibo.o:	$(SFF)richpmtlib.F
+	$(FF) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include $(SFF)richpmtlib.F -o $(BIN)richpmtlib.o
+
 #---------------------------------------------------------------------------------
+#  Server TARGET (server)
 
 SERVER=$(EXE)amsprodserver.exe
 
 server:	$(SERVER)
 
-$(SERVER):          $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX) $(BIN)server.o
+$(SERVER):          $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX) $(BIN)server.o $(BIN)ctype.o
 	$(LD) -v -o $(SERVER) $(BIN)server.o  $(OBJECTSE) $(OBJECTSEAUX) $(OBJECTCO)  $(LDFLAGSSTATICIDL) 
 
 
+
+#---------------------------------------------------------------------------------
+# Client TARGET (producer)
 
 CLIENT=$(EXE)gbatch-orbit.exe
 
 producer:	$(CLIENT)
 
 
-$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC)
+$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC) $(BIN)ctype.o
 	$(LD) $(FLAGSSTATIC) -v -o $(CLIENT) $(OBJECTSC)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
 
+#---------------------------------------------------------------------------------
+# Additional Rules for client/server 
+
 $(OBJECTSE):         $(SRCSCPP)
-	$(CPP)  -c $(CFLAGS) $(SRCSCPP) 
+	$(CXX_ORBIT)  -c  $(SRCSCPP) 
 	mv *.o $(BIN)
 
 $(OBJECTCO):         $(SRCS)
-	$(CCC)  -c $(CFLAGS) $(SRCS) 
+	$(CC_ORBIT)  -c  $(SRCS) 
 	mv *.o $(BIN)
 
 
@@ -367,42 +472,45 @@ $(SRCSCPP):   $(SRCS) 	 $(INCLUDE)server.idl
 
 
 $(BIN)gbatch_c.o:         $(SCC)gbatch.C
-	$(CPP) -c $(CFLAGS) -D__ROOTA__ $(SCC)gbatch.C $(IDLFLAGS)  -o $(BIN)gbatch_c.o
+	$(CXX_ORBIT) -c $(CFLAGS) -D__ROOTA__ $(SCC)gbatch.C $(IDLFLAGS)  -o $(BIN)gbatch_c.o
 
 $(BIN)geant_c.o: 	 $(SCC)geant.C
-	$(CPP) -c $(CFLAGSB) $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
+	$(CXX_ORBIT) -c $(CFLAGSB) $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
 
 $(BIN)job_c.o: 	 $(SCC)job.C
-	$(CPP) -c $(CFLAGS) $(IDLFLAGS) $(SCC)job.C -o $(BIN)job_c.o
+	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)job.C -o $(BIN)job_c.o
 
 $(BIN)geant3_c.o: 	 $(SCC)geant3.C
-	$(CPP) -c $(CFLAGS) $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
+	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
 
 $(BIN)event_c.o: 	 $(SCC)event.C
-	$(CPP) -c $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
+	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
 
 $(BIN)timeid_c.o:        $(SCC)timeid.C
-	$(CPP) -c $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
-           
+	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
+
 $(BIN)timeid_s.o:        $(SCC)timeid.C
-	$(CPP) -c $(CFLAGS) -D__CORBASERVER__ $(SCC)timeid.C -o $(BIN)timeid_s.o
+	$(CXX_ORBIT) -c $(CFLAGS) -D__CORBASERVER__ $(SCC)timeid.C -o $(BIN)timeid_s.o
 
 $(BIN)producer.o: 	 $(SCC)producer.C
-	$(CPP) -c -w $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
+	$(CXX_ORBIT) -c -w $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
 
 $(BIN)client.o: 	 $(SCC)client.C
-	$(CPP) -fpermissive -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o
+	$(CXX_ORBIT) -fpermissive -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o
 
 $(BIN)server.o: 	 $(SCC)server.C
-	$(CPP)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
+	$(CXX_ORBIT)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
 
 $(BIN)dbserver.o: 	 $(SCC)dbserver.C
-	$(CPP)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
+	$(CXX_ORBIT)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
+
 
 
 depend:         $(BIN)Make-depend
+
 touch_depend:
 		touch $(BIN)Make-depend
+
 $(BIN)Make-depend:    $(INCS)
 ifneq "$(shell du -a  $(BIN)Make-depend | grep -c  ake)" "1"
 		touch $(BIN)Make-depend
