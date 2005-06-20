@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.315 2005/05/30 08:44:12 alexei Exp $
+# $Id: RemoteClient.pm,v 1.316 2005/06/20 08:13:57 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -91,6 +91,8 @@
 #
 # May 30, 2005    : last_24h_html (O.Kounina) - production statistics for the 
 #                   last 24 hours
+#
+# Jun 20, 2005    : Add Production Period key in Daatabase Query
 #
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
@@ -2273,10 +2275,17 @@ CheckCite:            if (defined $q->param("QCite")) {
 
     if ($self->{q}->param("queryDB04") eq "DoQuery") {
 
-      my $sql     = undef;
-      my $sqlNT   = undef; # will be used to get NT paths for ROOT file
-      my $dataset = undef;
-      my $particle= undef;
+      my $sql        = undef;
+      my $sqlNT      = undef; # will be used to get NT paths for ROOT file
+      my $dataset    = undef;
+      my $particle   = undef;
+      my $prodPID    = 0;
+      my $prodperiod = " jobs.pid != 0 ";
+#
+      if (defined $q->param("QTempPeriod")) {
+          $prodPID = $q->param("QTempPeriod");
+          if ($prodPID > 0) {$prodperiod = "jobs.pid = $prodPID";}
+      }
 #
 # Template is defined explicitly
 #
@@ -2284,15 +2293,17 @@ CheckCite:            if (defined $q->param("QCite")) {
        $dataset = $q->param("QTempDataset");
        $dataset = trimblanks($dataset);
        $qtemplate = $dataset;
-       $dataset =~ s/ /\% /g;
+#- 20.06.05 a.k.       $dataset =~ s/ /\% /g;
        $sql = "SELECT runs.run, jobs.jobname, runs.submit FROM runs, jobs, runcatalog  
-                   WHERE runs.jid=jobs.jid AND 
+                   WHERE ".$prodperiod." AND 
                         (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND 
-                        runs.status='Completed'";
+                        runs.status='Completed' AND  runs.jid=jobs.jid 
+                        ";
+
        $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr, 
                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime 
                  FROM runs, jobs, runcatalog, ntuples   
-                   WHERE runs.jid=jobs.jid AND 
+                   WHERE ".$prodperiod." AND runs.jid=jobs.jid AND 
                         (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND 
                         runs.run = ntuples.run AND 
                         runs.status='Completed'";
@@ -2331,12 +2342,12 @@ CheckCite:            if (defined $q->param("QCite")) {
            my $did = $r->[0];
            $sql  = "SELECT Runs.Run, Jobs.JOBNAME, Runs.SUBMIT 
                     FROM Runs, Jobs, runcatalog  
-                     WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
+                     WHERE ".$prodperiod." AND Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
                             Runs.run=runcatalog.run AND Runs.Status='Completed'";
            $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr, 
                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime 
                     FROM Runs, Jobs, runcatalog, NTuples   
-                     WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
+                     WHERE ".$prodperiod." AND Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
                             Runs.run=Ntuples.run AND  
                             Runs.run=runcatalog.run AND Runs.Status='Completed'";
 # check TriggerType
@@ -2375,11 +2386,12 @@ CheckCite:            if (defined $q->param("QCite")) {
      } else {
         $sql = "SELECT Runs.RUN, Jobs.JOBNAME, Runs.SUBMIT 
                     FROM Runs, Jobs, runcatalog  
-                     WHERE Runs.JID=Jobs.JID AND Runs.Status='Completed' and Runs.run = runcatalog.run ";
+                     WHERE ".$prodperiod.
+               " AND Runs.JID=Jobs.JID AND Runs.Status='Completed' and Runs.run = runcatalog.run ";
         $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr, 
                          Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime 
                     FROM Runs, Jobs, runcatalog, Ntuples   
-                     WHERE 
+                     WHERE ".$prodperiod." 
                         Runs.JID=Jobs.JID AND 
                          Runs.Status='Completed' AND 
                           Runs.run = runcatalog.run AND 
@@ -2841,6 +2853,23 @@ CheckCite:            if (defined $q->param("QCite")) {
        print "<tr valign=middle><td align=left><b><font size=3 color=green> $query</b></td> <td colspan=1>\n";
        print "<INPUT TYPE=\"hidden\" NAME=\"QPart\" VALUE=\"$query\">\n"; 
       htmlTableEnd();
+# Production Period
+      print "<tr><td><b><font color=\"green\">Production Period</font></b>\n";
+      print "</td><td>\n";
+      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+       print "<tr valign=middle><td align=left><b><font size=\"-1\"> </b></td> <td colspan=1>\n";
+       print "<select name=\"QTempPeriod\" >\n";
+       print "<option value=0> ALL </option>\n";
+       my $sql = "SELECT name, did FROM ProductionSet ORDER BY begin DESC";
+       my $r5=$self->{sqlserver}->Query($sql);
+       if(defined $r5->[0][0]){
+        foreach my $pp (@{$r5}){   
+         print "<option value=\"$pp->[1]\">$pp->[0] </option>\n";
+        } 
+       }
+        print "</select>\n";
+        print "</b></td></tr>\n";
+      htmlTableEnd();
      if ($query ne "Any" and $query ne "ANY" and $query ne "any") {
 # Job Template
       print "<tr><td><b><font color=\"green\">Template</font></b>\n";
@@ -2866,7 +2895,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         print "</select>\n";
         print "</b></td></tr>\n";
       htmlTableEnd();
-   }
+  }
 # Trigger Type
      print "<tr><td><b><font color=\"green\">Job Parameters</font></b>\n";
      print "</td><td>\n";
