@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.316 2005/06/20 08:13:57 alexei Exp $
+# $Id: RemoteClient.pm,v 1.317 2005/06/21 13:29:37 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -92,8 +92,6 @@
 # May 30, 2005    : last_24h_html (O.Kounina) - production statistics for the 
 #                   last 24 hours
 #
-# Jun 20, 2005    : Add Production Period key in Daatabase Query
-#
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
 
@@ -114,7 +112,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00);
 
 # debugging
 my $benchmarking = 0;
@@ -2275,17 +2273,10 @@ CheckCite:            if (defined $q->param("QCite")) {
 
     if ($self->{q}->param("queryDB04") eq "DoQuery") {
 
-      my $sql        = undef;
-      my $sqlNT      = undef; # will be used to get NT paths for ROOT file
-      my $dataset    = undef;
-      my $particle   = undef;
-      my $prodPID    = 0;
-      my $prodperiod = " jobs.pid != 0 ";
-#
-      if (defined $q->param("QTempPeriod")) {
-          $prodPID = $q->param("QTempPeriod");
-          if ($prodPID > 0) {$prodperiod = "jobs.pid = $prodPID";}
-      }
+      my $sql     = undef;
+      my $sqlNT   = undef; # will be used to get NT paths for ROOT file
+      my $dataset = undef;
+      my $particle= undef;
 #
 # Template is defined explicitly
 #
@@ -2295,15 +2286,14 @@ CheckCite:            if (defined $q->param("QCite")) {
        $qtemplate = $dataset;
 #- 20.06.05 a.k.       $dataset =~ s/ /\% /g;
        $sql = "SELECT runs.run, jobs.jobname, runs.submit FROM runs, jobs, runcatalog  
-                   WHERE ".$prodperiod." AND 
+                   WHERE runs.jid=jobs.jid AND 
                         (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND 
-                        runs.status='Completed' AND  runs.jid=jobs.jid 
-                        ";
+                        runs.status='Completed'";
 
        $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr, 
                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime 
                  FROM runs, jobs, runcatalog, ntuples   
-                   WHERE ".$prodperiod." AND runs.jid=jobs.jid AND 
+                   WHERE runs.jid=jobs.jid AND 
                         (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND 
                         runs.run = ntuples.run AND 
                         runs.status='Completed'";
@@ -2342,12 +2332,12 @@ CheckCite:            if (defined $q->param("QCite")) {
            my $did = $r->[0];
            $sql  = "SELECT Runs.Run, Jobs.JOBNAME, Runs.SUBMIT 
                     FROM Runs, Jobs, runcatalog  
-                     WHERE ".$prodperiod." AND Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
+                     WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
                             Runs.run=runcatalog.run AND Runs.Status='Completed'";
            $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr, 
                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime 
                     FROM Runs, Jobs, runcatalog, NTuples   
-                     WHERE ".$prodperiod." AND Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
+                     WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
                             Runs.run=Ntuples.run AND  
                             Runs.run=runcatalog.run AND Runs.Status='Completed'";
 # check TriggerType
@@ -2386,12 +2376,11 @@ CheckCite:            if (defined $q->param("QCite")) {
      } else {
         $sql = "SELECT Runs.RUN, Jobs.JOBNAME, Runs.SUBMIT 
                     FROM Runs, Jobs, runcatalog  
-                     WHERE ".$prodperiod.
-               " AND Runs.JID=Jobs.JID AND Runs.Status='Completed' and Runs.run = runcatalog.run ";
+                     WHERE Runs.JID=Jobs.JID AND Runs.Status='Completed' and Runs.run = runcatalog.run ";
         $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr, 
                          Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime 
                     FROM Runs, Jobs, runcatalog, Ntuples   
-                     WHERE ".$prodperiod." 
+                     WHERE 
                         Runs.JID=Jobs.JID AND 
                          Runs.Status='Completed' AND 
                           Runs.run = runcatalog.run AND 
@@ -2632,6 +2621,14 @@ CheckCite:            if (defined $q->param("QCite")) {
       my $nevents   = 0;
 
       my $i =0;
+      if ($#runs > 5000) {
+          $nruns = $#runs+1;
+          $gigabytes = $nruns*1.5*0.5/1000;
+          $ndsts  = int($nruns*1.5);
+          print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  Jobs Completed : $nruns </b></font></td></tr>\n";
+          print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   Approx DSTs : $ndsts ($gigabytes GB) </b></font></td></tr>\n";
+          print "<tr><td><b><font size=\"4\" color=\"blue\"><i><ul>  You requested too wide range, please specify Production period at least  </i></b></font></td></tr>\n";
+      } else{ 
        foreach my $run (@runs){
          my $jobname = $jobnames[$i];
          my $submit  = $submits[$i];
@@ -2647,14 +2644,15 @@ CheckCite:            if (defined $q->param("QCite")) {
               $nevents   = $nevents   + $s->[2];
           }
      }
-    $gigabytes = $gigabytes/1000;
-    my $from=localtime($starttime);
-    my $to  =localtime($endtime);
+     $gigabytes = $gigabytes/1000;
+     my $from=localtime($starttime);
+     my $to  =localtime($endtime);
     print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  Jobs Completed : $nruns </b></font></td></tr>\n";
     print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  $from Run : $firstrun  </b></font></td></tr>\n";
     print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  $to   Run   $lastrun   </b></font></td></tr>\n";
     print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   DSTs : $ndsts ($gigabytes GB) </b></font></td></tr>\n";
     print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   Events : $nevents  </b></font></td></tr>\n";
+   }
 
   } elsif ($q->param("NTOUT") eq "ROOT") {
 #... write RootAnalysisTemplate
@@ -2853,23 +2851,6 @@ CheckCite:            if (defined $q->param("QCite")) {
        print "<tr valign=middle><td align=left><b><font size=3 color=green> $query</b></td> <td colspan=1>\n";
        print "<INPUT TYPE=\"hidden\" NAME=\"QPart\" VALUE=\"$query\">\n"; 
       htmlTableEnd();
-# Production Period
-      print "<tr><td><b><font color=\"green\">Production Period</font></b>\n";
-      print "</td><td>\n";
-      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-       print "<tr valign=middle><td align=left><b><font size=\"-1\"> </b></td> <td colspan=1>\n";
-       print "<select name=\"QTempPeriod\" >\n";
-       print "<option value=0> ALL </option>\n";
-       my $sql = "SELECT name, did FROM ProductionSet ORDER BY begin DESC";
-       my $r5=$self->{sqlserver}->Query($sql);
-       if(defined $r5->[0][0]){
-        foreach my $pp (@{$r5}){   
-         print "<option value=\"$pp->[1]\">$pp->[0] </option>\n";
-        } 
-       }
-        print "</select>\n";
-        print "</b></td></tr>\n";
-      htmlTableEnd();
      if ($query ne "Any" and $query ne "ANY" and $query ne "any") {
 # Job Template
       print "<tr><td><b><font color=\"green\">Template</font></b>\n";
@@ -2895,7 +2876,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         print "</select>\n";
         print "</b></td></tr>\n";
       htmlTableEnd();
-  }
+   }
 # Trigger Type
      print "<tr><td><b><font color=\"green\">Job Parameters</font></b>\n";
      print "</td><td>\n";
@@ -12623,4 +12604,69 @@ sub list_24h_html {
       htmlTableEnd();
 #      print_bar($bluebar,3);
       print "<p></p>\n";
+}
+
+sub test00 {
+    my $self = shift;
+      my $firstrun  = 0;
+      my $lastrun   = 0;
+      my $starttime = time();
+      my $endtime   = 0;
+      my $gigabytes = 0;
+      my $nruns     = 0;
+      my $ndsts     = 0;
+      my $nevents   = 0;
+    my $t0 = time();
+    my $sql  = "SELECT Runs.Run, Jobs.JOBNAME, Runs.SUBMIT 
+                  FROM Runs, Jobs, runcatalog 
+                   WHERE Runs.Status='Completed' AND 
+                     jobs.pid != 0 AND Jobs.DID=112 AND 
+                       Jobs.JID=Runs.JID AND 
+                         (runs.run = runcatalog.run AND runcatalog.trtype='TriggerLVL1') ORDER BY Runs.Run";
+    my $r0=$self->{sqlserver}->Query($sql);
+    my $t1 = time();
+
+     my $runold = 0;
+     my $nRunsDB = 0;
+     my $sqltmp = "SELECT count(run) FROM Ntuples";
+     my $r1=$self->{sqlserver}->Query($sqltmp);
+     if (defined $r1->[0][0]) {
+      $nRunsDB = $r1->[0][0];
+     }
+    my $iterAv = 0; 
+    my $N      = 0;
+    if ($nRunsDB > 0) {
+      $sqltmp = "SELECT run, sizemb, nevents FROM Ntuples ORDER BY run";
+      $r1=$self->{sqlserver}->Query($sqltmp);
+      foreach my $run (@{$r0}) {
+        my $found = 0;
+        my $n = $nRunsDB/2;
+#        print "$run->[0] \n";
+        my $iter = 0;
+        while ($found == 0 && $iter <= $nRunsDB) {
+          my $rr= $r1->[$n][0];
+#          print "$iter, $rr, $run->[0], $n $found\n";
+          if ($rr == $run->[0]) {
+           $ndsts++;
+           $gigabytes = $gigabytes + $r1->[$n][1];
+           $nevents   = $nevents   + $r1->[$n][2];
+           if ($runold != $rr) { $nruns++; $runold=$rr;}
+           $found = 1;
+          } elsif ($rr > $run->[0]) {
+                  $n = $n/2;
+                  
+          } elsif ($rr < $run->[0]) {
+                  $n = $n + $n/2;
+                  if ($n > $nRunsDB-1) {$n = $nRunsDB-1;}
+          }
+          $iter++;
+      }
+#        print "$N : $found : $run->[0]...$r1->[$n][0], $iter, $n \n";
+        $iterAv = $iterAv+$iter;
+        $N++;
+    }
+  }
+    my $t2 = time();
+    $iterAv = $iterAv/$N;
+    print "$t0, $t1, $t2, $N, $iterAv \n";
 }
