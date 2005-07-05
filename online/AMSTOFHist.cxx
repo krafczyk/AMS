@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.15 2005/06/10 14:55:36 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.16 2005/07/05 08:23:16 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // 
 #include <iostream>
@@ -61,7 +61,7 @@ void AMSTOFHist::Book(){
 //
   AddSet("TOFMultiplicity");
   
-  _filled.push_back(new TH1F("tofh0","TOF:TotaPaddles",40,0.,40.));
+  _filled.push_back(new TH1F("tofh0","TOF:TotalPaddles",40,0.,40.));
   _filled[_filled.size()-1]->SetXTitle("Paddles per event");
   _filled[_filled.size()-1]->SetFillColor(41);
   

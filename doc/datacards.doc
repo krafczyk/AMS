@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.242 2005/05/04 10:27:47 choumilo Exp $
+#  $Id: datacards.doc,v 1.243 2005/07/05 08:23:05 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -644,7 +644,7 @@ I 13   fast(0)             //  0/1/2(for fast gener. in mceventg.C),0->off; 1->r
                                (Don't use fast mode for Acceptance calculation !)
 I 14   daqfmt(1)           // Raw/Reduced(0/1) TDC format for DAQ simulation
 I 15   birks(1)            // apply or not birks correction
-I 16   mcseedo(0)          // 1/0->Use RealDataCalib_Copy/MCCalib files as MCSeed
+I 16   mcseedo(0)          // 1/0->Use RealDataCalib_Copy(*sd.dat)/MCCalib(*mc.dat) files as MCSeed
 R 17   blshift(0.)         // base line shift at fast discr.input (mv)
 R 18   hfnoise(5.)         // high freq. noise .......   
 //     

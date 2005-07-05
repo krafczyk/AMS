@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.21 2005/06/16 18:01:44 pzuccon Exp $
+#  $Id: Makefile,v 1.22 2005/07/05 08:23:07 choumilo Exp $
 
 #P.Zuccon june 2005
 
@@ -159,7 +159,7 @@ COMMON_FILES += $(SCC)trdid.C      $(SCC)trdsim.C  $(SCC)trdrec.C  $(SCC)trddbc.
 
 
 #TOF + ACC
-COMMON_FILES += $(SCC)tofrec02.C   $(SCC)tofonline02.C             $(SCC)tofuser02.C \
+COMMON_FILES += $(SCC)tofrec02.C               $(SCC)tofuser02.C \
 		$(SCC)tofsim02.C   $(SCC)tofdbc02.C   $(SCC)tofcalib02.C \
 		$(SCC)tofid.C      $(SCC)antidbc02.C  $(SCC)antirec02.C \
 		$(SCC)anticalib02.C 

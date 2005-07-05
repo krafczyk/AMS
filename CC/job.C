@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.476 2005/06/10 14:55:10 choumilo Exp $
+// $Id: job.C,v 1.477 2005/07/05 08:22:43 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1988,9 +1988,6 @@ void AMSJob::_retof2initjob(){
     AMSgObj::BookTimer.book("TOF:RwEv->RwCl");
     AMSgObj::BookTimer.book("TOF:RwCl->Cl");
 
-      if(isMonitoring() & (AMSJob::MTOF | AMSJob::MAll)){ // TOF Online histograms
-        _retof2onlineinitjob();      // (see tofonline02.C)
-      }
 //
 // ===> Clear JOB-statistics counters for SIM/REC :
 //
