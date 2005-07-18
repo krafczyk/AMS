@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.156 2005/05/17 09:54:05 pzuccon Exp $
+//  $Id: ntuple.C,v 1.157 2005/07/18 08:56:21 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -29,7 +29,7 @@
 
 TTree* AMSNtuple::_tree=0;
 TFile* AMSNtuple::_rfile=0;
-const int branchSplit=2;
+const int branchSplit=1;
 
 #endif
 

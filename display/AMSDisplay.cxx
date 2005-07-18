@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.37 2005/06/03 16:12:32 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.38 2005/07/18 08:56:25 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -385,6 +385,7 @@ void AMSDisplay::DrawAxis(Int_t index, Option_t * option)
 
 
    TView * axisView = new TView(1);
+   axisView->Hack=kTRUE;
    m_AxisPadP[index] = (TPad*)gPadSave;
    m_AxisPad[index] = axisPad;
    axisView->SetRange(-2.,-2.,-2., 2.,2.,2.);
@@ -456,6 +457,7 @@ void AMSDisplay::DrawView(Double_t theta, Double_t phi, Int_t index){
    m_ntuple->Draw();
    AppendPad();
    view = new TView(1);
+   view->Hack=kTRUE;
    // add the geomtry to the pad
     if(DrawGeometry())m_Geometry->Draw("same");
     view->SetRange(fCooCur[0][0], fCooCur[0][1],fCooCur[0][2],fCooCur[1][0],fCooCur[1][1],fCooCur[1][2]);
