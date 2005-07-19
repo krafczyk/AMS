@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.22 2005/07/05 08:23:07 choumilo Exp $
+#  $Id: Makefile,v 1.23 2005/07/19 15:58:07 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -198,7 +198,7 @@ COMMON_FILES += $(SCC)root.C   $(SCC)rootdict.C
 
 FILES= $(COMMON_FILES) $(SCC)gbatch.C  $(SCC)geant.C  	$(SCC)geant3.C      \
 		$(SCC)job.C     $(SCC)event.C   $(SFF)sbcomp.F  $(SFF)gskpho.F  \
-		$(SFF)flinit.F $(SFF)rndm.F $(SCC)timeid.C
+		$(SFF)flinit.F $(SFF)gbirk.F $(SFF)rndm.F $(SCC)timeid.C
 
 MYOBJS1:=$(FILES:$(SFF)%.F=$(BIN)%.o) 
 MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
@@ -221,7 +221,7 @@ OBJECTSI+=       $(BIN)geanti.o 	$(BIN)geant3i.o
 # File list for client(production) gbatch compilation
 
 FILESC= $(COMMON_FILES)     $(SCC)producer.C $(SCC)client.C \
-		$(SCC)ins_dummy.C $(SFF)sbcomp.F   $(SFF)gskpho.F   $(SFF)flinit.F $(SFF)rndm.F 
+		$(SCC)ins_dummy.C $(SFF)sbcomp.F   $(SFF)gskpho.F   $(SFF)flinit.F $(SFF)gbirk.F $(SFF)rndm.F 
 
 MYOBJS1:=$(FILESC:$(SFF)%.F=$(BIN)%.o) 
 MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
@@ -390,6 +390,10 @@ $(SFF)flinit.F:      $(CERNSRCDIR)/src/geant321/fiface/flinit.F
 	sed  "s/      OPEN(UNIT=LUNERR,FILE='flukaerr.dat',STATUS='UNKNOWN')/#if defined __IFC\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',shared,STATUS='UNKNOWN')\n#else\n       OPEN(UNIT=LUNERR,FILE='\/dev\/null',STATUS='UNKNOWN')\n#endif/g"  $(CERNSRCDIR)/src/geant321/fiface/flinit.F > $(SFF)flinit.F
 
 
+$(SFF)gbirk.F:      $(CERNSRCDIR)/src/geant321/gphys/gbirk.F
+	sed  "s/      DEDXCM=1000.*Q(JLOSS+IEKBIN)/      DEDXCM=1000.*DESTEP\/STEP\n       IF(ABS(CHARGE).GE.2..AND.MODEL.EQ.1)C=0/g"  $(CERNSRCDIR)/src/geant321/gphys/gbirk.F > $(SFF)gbirk.F
+
+
 $(SFF)grfile.F:      $(CERNSRCDIR)/src/geant321/giopa/grfile.F
 	sed  "s/NQUOT=1000/NQUOT=32000/g"  /$(CERNSRCDIR)/src/geant321/giopa/grfile.F > $(SFF)grfile.F
 
@@ -419,6 +423,9 @@ $(BIN)sbcomp.o:      $(SFF)sbcomp.F
 
 $(BIN)flinit.o:      $(SFF)flinit.F
 	$(FF) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include $(SFF)flinit.F -o $(BIN)flinit.o
+
+$(BIN)gbirk.o:      $(SFF)gbirk.F
+	$(FF) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include $(SFF)gbirk.F -o $(BIN)gbirk.o
 
 $(BIN)richpmtlibo.o:	$(SFF)richpmtlib.F
 	$(FF) -c $(FFLAGS) -DCERNLIB_UNIX -I$(CERNDIR)/include $(SFF)richpmtlib.F -o $(BIN)richpmtlib.o
