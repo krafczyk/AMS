@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.243 2005/07/05 08:23:05 choumilo Exp $
+#  $Id: datacards.doc,v 1.244 2005/07/20 15:41:10 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -402,9 +402,9 @@ I5     MinEventsPerFit(999);
 I6     MaxPatternsPerJob(99);
 R7     Cuts[10][2];    // Cuts (left - right), not yet completely defined
 I27 Algorithm(0)    // 0 - exect mom, 1 - mom from beta
-I28 ActiveParameters[6][6](all 1); //   for each plane: x,y,z, pitch, yaw, roll
-I64 GlobalFit(0)                   // global fit (1) local(0)
-I65 EventsPerRun(1001)            
+I28 ActiveParameters[8][6](all 1); //   for each plane: x,y,z, pitch, yaw, roll
+I76 GlobalFit(0)                   // global fit (1) local(0)
+I77 EventsPerRun(1001)            
 I66 LayersOnly(0)                     // ladder(0) or layer(1) based alig
 R67 GlobalGoodLimit(0.06)             // invoke local db if beyond
 I68 SingleLadderEntryLimit(10000)     

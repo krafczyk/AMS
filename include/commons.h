@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.204 2005/05/17 09:56:34 pzuccon Exp $
+//  $Id: commons.h,v 1.205 2005/07/20 15:41:13 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -836,8 +836,8 @@ geant HitsRatioCut[nalg];           // Hit Ratio  // cos(pred,fitted) for alg 3
                                  // Global fit cuts
 geant MomentumCut[nalg][2];         // momentum ----------
 geant Chi2Cut[nalg];                // chi2 --------------- 
-integer ActiveParameters[6][6]; //   for each plane: x,y,z, pitch, yaw, roll
-integer Ladder[6];            // ladder*10+half no for each plane 0 == all
+integer ActiveParameters[8][6]; //   for each plane: x,y,z, pitch, yaw, roll
+integer Ladder[8];            // ladder*10+half no for each plane 0 == all
 integer PatStart;
 integer MultiRun;
 integer EventsPerRun;
@@ -858,7 +858,7 @@ integer MinEventsPerFit;
 integer MaxPatternsPerJob;
 geant Cuts[10][2];  
 integer Algorithm;     
-integer ActiveParameters[6][6]; //   for each plane: x,y,z, pitch, yaw, roll
+integer ActiveParameters[8][6]; //   for each plane: x,y,z, pitch, yaw, roll
 integer GlobalFit;
 integer EventsPerRun;
 integer LayersOnly;

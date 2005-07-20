@@ -1,4 +1,4 @@
-//  $Id: tralig.h,v 1.15 2005/05/17 09:56:36 pzuccon Exp $
+//  $Id: tralig.h,v 1.16 2005/07/20 15:41:13 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
@@ -54,7 +54,7 @@ AMSDir _Dir[3];
 void _a2m();
 void _m2a();
 static AMSTrAligDB _traldb;
-static AMSTrAligPar par[6];
+static AMSTrAligPar par[8];
 public:
 AMSTrAligPar():_Coo(0,0,0),_Angles(0,0,0),_NEntries(0){};
 AMSTrAligPar(const AMSPoint & coo, const AMSPoint & angles);
@@ -148,8 +148,8 @@ geant FCN;
 geant FCNI;
 geant Pfit;
 geant Pfitsig;
-geant Coo[6][3];
-geant Angle[6][3];
+geant Coo[8][3];
+geant Angle[8][3];
 };
 class gldb_def{
 public:
@@ -165,6 +165,9 @@ int Ladder;
 int Side;
 geant FCN;
 geant FCNI;
+geant CHI2[1000];
+geant CHI2I[1000];
+int ndata;
 geant Pfit;
 geant Pfitsig;
 geant Coo[3];
@@ -192,6 +195,8 @@ number _fcnI;   // pointer to fcns;
 number _pfit;  //pointer to fitterd mom
 number _pfitbefore;  //pointer to fitterd mom before
 number _pfits;  //pointer to fitterd mom sigma
+number chi2[1000];
+number chi2i[1000];
 AMSTrAligPar _pParC[8];
 static AMSTrAligPar _pPargl[17][2][8];
 static gldb_def _gldb[trconst::maxlad][2][8];
