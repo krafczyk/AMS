@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.23 2005/07/19 15:58:07 choutko Exp $
+#  $Id: Makefile,v 1.24 2005/07/22 08:35:57 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -391,7 +391,7 @@ $(SFF)flinit.F:      $(CERNSRCDIR)/src/geant321/fiface/flinit.F
 
 
 $(SFF)gbirk.F:      $(CERNSRCDIR)/src/geant321/gphys/gbirk.F
-	sed  "s/      DEDXCM=1000.*Q(JLOSS+IEKBIN)/      DEDXCM=1000.*DESTEP\/STEP\n       IF(ABS(CHARGE).GE.2..AND.MODEL.EQ.1)C=0/g"  $(CERNSRCDIR)/src/geant321/gphys/gbirk.F > $(SFF)gbirk.F
+	sed  "s/      DEDXCM=1000.*Q(JLOSS+IEKBIN)/      DEDXCM=1000.*Q(JLOSS+IEKBIN)\n             IF(ABS(CHARGE).GE.2..AND.MODEL.EQ.1)C=0\n      IF(ABS(CHARGE).GE.2)THEN\n       GAMASS=GETOT+AMASS\n       BET2=GEKIN*GAMASS\/(GETOT*GETOT)\n        BET=SQRT(BET2)\n       W1=1.034-0.1777*EXP(-0.08114*CHARGE)\n       W2=BET*CHAR23\n       W3=121.4139*W2+0.0378*SIN(190.7165*W2)\n       CHARG1=CHARGE*(1.-W1*EXP(-W3))\n       IF(CHARG1.LT.0)CHARG1=1\n       CHARG2=CHARG1**2\n       DEDXCM=DEDXCM*CHARG2\n      ENDIF/g"  $(CERNSRCDIR)/src/geant321/gphys/gbirk.F > $(SFF)gbirk.F
 
 
 $(SFF)grfile.F:      $(CERNSRCDIR)/src/geant321/giopa/grfile.F
