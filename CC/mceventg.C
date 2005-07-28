@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.135 2005/05/17 09:54:05 pzuccon Exp $
+//  $Id: mceventg.C,v 1.136 2005/07/28 16:52:58 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -65,7 +65,10 @@ void AMSmceventg::gener(){
   char hpawc[256]="//PAWC/GEN";
   char *BLANK=" ";
   HCDIR (hpawc,BLANK);
-  if(CCFFKEY.low ==2){
+  if(CCFFKEY.low==-2){
+//
+//  wrong method do not use  (VC)
+//
     geant mom,themu,phimu,chmu,xmu,ymu,zmu;
     while(1){
       CMGENE(mom,themu,phimu,chmu,xmu,ymu,zmu);
@@ -84,12 +87,23 @@ void AMSmceventg::gener(){
     init(_ipart);
   }
   else {
+    number _gamma=0;
     static integer ini=0;
     integer curp=0;
     number phi;
     number theta;
     geant d(-1);
     if(_fixedmom)_mom=_momrange[0];
+    else if(CCFFKEY.low==2){
+     geant mom,gamma,chmu;
+      CMGENE2(mom,gamma,chmu);
+      _mom=mom;
+      _gamma=gamma; 
+      if(chmu < 0)_ipart=6;
+      else _ipart=5;
+//      cout <<"  mom "<<_mom<<" "<<_gamma<<" "<<_ipart<<endl;
+      init(_ipart);
+  }
     else if(CCFFKEY.low==4){
       _mom=_momrange[0]+(_momrange[1]-_momrange[0])*RNDM(d);
       if(_momrange[1]>1000000){
@@ -133,11 +147,12 @@ void AMSmceventg::gener(){
         _mom=HRNDM1(_hid)/1000.;  // momentum in GeV
 //cout<<"mom="<<_mom<<" hid="<<_hid<<endl;
     }
+again:
     geant th,ph; // photon incidence angle (normal to gamma source generation plane)
-    number ra,dec;  // AMS zenithal pointing direction
-    number rai,deci; //ISS zenithal pointing direction (AMS not tilted)
     if(_fixeddir){ // when GammaSource>0 -> fixeddir=1 (this is done elsewhere)
       if(!(GMFFKEY.GammaSource==0)){  
+    number ra,dec;  // AMS zenithal pointing direction
+    number rai,deci; //ISS zenithal pointing direction (AMS not tilted)
         AMSEvent::gethead()->GetISSCoo(rai,deci); //non-tilted case      
         AMSEvent::gethead()->GetAMSCoo(ra,dec);
         skyposition isspos(rai,deci); //non-tilted case
@@ -339,6 +354,16 @@ void AMSmceventg::gener(){
         abort();
       }//<--- end of switch
       //if(_fixedplane == 0)_coo=_coo/2;
+//
+// add cmuouns (low==2)
+//
+    if(CCFFKEY.low==2){
+     if(_dir[2]>0)goto again;
+     geant dummy;
+     number u=RNDM(dummy);
+     if(u>=pow(fabs(_dir[2]),_gamma))goto again;
+//      cout <<"accepted  mom "<<_mom<<" "<<_gamma<<" "<<_ipart<<endl;
+    }
     }//--->endof "random dir"
   }//--->endof "low!=2"
   char hp[9]="//PAWC";

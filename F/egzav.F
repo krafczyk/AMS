@@ -1,4 +1,4 @@
-*  $Id: egzav.F,v 1.10 2002/09/06 15:40:56 choutko Exp $
+*  $Id: egzav.F,v 1.11 2005/07/28 16:53:05 choutko Exp $
       SUBROUTINE CMINIT
 *     =================================================================
 *
@@ -38,7 +38,7 @@ C
       EMININ=0.1
       EMINOU=0.1
       ZMIN=360
-      RADIUS=190
+      RADIUS=300
       CALL INCONS
 *
 ***   Decode character option
@@ -50,7 +50,7 @@ C
       READ = .FALSE.
       WRITE1 = .FALSE.
       WRITE2 = .FALSE.
-      NOWEGH = .FALSE.
+      NOWEGH = .TRUE.
       IWRIT = 0
       CHOPT='GN'
       LOPT = LEN(CHOPT)
@@ -390,6 +390,136 @@ c      CALL HFILL(203,YMU,ZMU,1.)
 *      IF (WRITE1)
 *     W    WRITE(LUN1,100) PMU,COSTMU,PHIMU,CHARMU,XMU,YMU,ZMU,WEIMU
 100   FORMAT(3E14.6,F5.1,4E14.6)
+*
+      END
+      SUBROUTINE CMGENE2(PMU,gamma,charmu)
+*     =================================================================
+*
+*
+*      
+*
+************************************************************************
+*                                                                      *
+*     Routine to Generate Cosmic Muons                                 *
+*                                                                      *
+*        Output : PMU - momentum of the muon                           *
+*                 COSTMU - cosine of the muon zenith angle             *
+*                 PHIMU - azimuthal angle of the muon                  *
+*                 CHARMU - charge of the muon                          *
+*                 XMU,YMU,ZMU - coordinates of the muon on the sphere  *
+*                               ZMU is pointing to the vertical        *
+*                 WEIMU - weight of the muon                           *
+*                                                                      *
+************************************************************************
+C
+C --- Generation of cosmic muons according to dN/dE/dO = dN/dE.dN/dO
+C     where E is the energy, O is the solid angle: dO = d(cos(TH))dFI
+C     TH is the zenith angle, i.e. angle w.r.t. vertical direction
+C     FI is the azimuth
+C --- dN/dE is taken from the measured vertical flux (see e.g.
+C     O.C.Allkofer et al, Phys.Letters 36B (1971) 425)
+C --- dN/dO is approximated by - (cos(TH))**gam(E), where gam(E) is
+C     a decreasing funtion of E (2.0 at 10 Gev, -0.7 at 1000 GeV)
+C
+C --- This generation is fairly close to the flux parametrized by
+C     A.Dar, Phys.Rev.Letters 51 (1983) 227. The difference is taken
+C     into account by the associated weight-factor
+C
+C --- The above parametrization (A.Dar) is close to the measured
+C     cosmic muon spectrum within 10-20 % at small TH but it may
+C     differ from it considerably at high TH (even 30-50%). However,
+C     at high zenith angles different measurements differ about the
+C     same amount (see e.g. O.C.Allkofer et al. Cosmic Rays on
+C     Earth, Fachinformations-Zentrum GMBH Karlsruhe, ISSN 0344-
+C     8401, 1984, Nr 25-1) so the uncertainty of the parametrisation
+C     does not exceed that of the experimental knowledge.
+C
+      COMMON / MEVENT / NUMBEV
+      COMMON / ABSFLU / DLCTAB,DELEAB,NENEAB,NCTHAB,FLUFAB,ICLOAB
+      COMMON / COSTRA / PTRA, ETRA(3), XTRA(3)
+      COMMON / INTENS / FLUXIN, TOTMIN
+      COMMON / MUSPEC / ENERMU(30), FLUDMU(30), FLUIMU(30),
+     .   FLUNMU(30), NFLUMU, ISTRMU, FALKMU
+      PARAMETER (NENER = 22)
+      COMMON / MUFLUX / DINT(NENER), DARIN2(NENER)
+      DIMENSION ENER(NENER), DDIF(NENER), DARIN1(NENER)
+      PARAMETER (NTH = 10, NGAMM = 10)
+      COMMON / MUANG / XGAMM(NGAMM), YGAMM(NGAMM), WEIGMU(NTH,NGAMM),
+     .                 COSTH(NTH)
+      COMMON / NUMCON / PI, TWOPI, PIBY2, DEGRAD, RADDEG
+      COMMON / RUNCON / EMINRU, RSURRU, NGENRU, TIMERU,
+     .                  NACCRU, EMNARU, ANGCRU
+      COMMON / SIGELI / XCMUSI(3), PCMUSI(3), CHMUSI, WEIGSI, IACCSI
+      COMMON / STATIS / MGENST, MANGST, MENEST, MDETST
+      LOGICAL GENER,TRACK,READ,WRITE1,WRITE2,NOWEGH,STAND
+      COMMON / SWITCH /GENER,TRACK,READ,WRITE1,WRITE2,NOWEGH,STAND
+*      COMMON / UNITS / LUN1, LUN2
+
+      PARAMETER (NARG=2)
+      DIMENSION WG(NARG),NA(NARG),AWG(100)
+      DOUBLE PRECISION XLNOR,YLNOR,ZLNOR
+*   Data to decide which charge of the muon
+      DATA CHMIN /0.4386/
+*   Data to be used for generation without weight
+      DATA WMAX/2./
+*
+***   Event number
+*
+      NUMBEV = numbev+1
+*
+*
+***   Generate energy EMU
+*
+
+         R = RNDM(Q)
+*
+**    Energy is greater than the highest grid-value
+*
+      IF (R.LE.FLUNMU(NFLUMU)) THEN
+         ALF = ENERMU(NFLUMU)*FLUDMU(NFLUMU)/FLUIMU(NFLUMU)+1.
+         ALF1 = 1./(1.-ALF)
+         DR = 1. - R / FLUNMU(NFLUMU)
+         EMU = ENERMU(NFLUMU)*DR**ALF1
+         GOTO 6
+      ENDIF
+*
+         DO 1 I = 2,NFLUMU
+         J = NFLUMU - I + 1
+         DR = FLUNMU(J) - R
+         IF (DR.GT.0.) THEN
+            GOTO 2
+         ELSEIF (DR.EQ.0.) THEN
+            GOTO 4
+         ENDIF
+1        CONTINUE
+2        CONTINUE
+         DR = DR/(FLUNMU(J)-FLUNMU(J+1))
+         ALF1 = 1. + ALOG(FLUDMU(J)/FLUDMU(J+1))/
+     .               ALOG(ENERMU(J)/ENERMU(J+1))
+         EN1 = ENERMU(J+1)**ALF1
+         EN2 = ENERMU( J )**ALF1
+         EMU = (EN1-(EN1-EN2)*DR)**(1./ALF1)
+         GOTO 6
+4     CONTINUE
+*
+**    Energy is at the grid-point
+*
+      EMU = ENERMU(J)
+6     CONTINUE
+*
+**    Linear interpolation of the logarithm of the energy
+*        to find the exponent
+*
+      AEMU = ALOG10(EMU)
+      CALL LININT(XGAMM,YGAMM,NGAMM,AEMU,GAMMA)
+*
+***   Now generate the charge of the muon
+*        It is assumed, that the +/- ratio is constant = 1.28
+*
+      NCHMU = 1
+      IF (RNDM(Q).LT.CHMIN) NCHMU = -1
+      CHARMU = NCHMU
+      PMU=EMU
 *
       END
 CCDECK,DNDPTH.
@@ -1263,7 +1393,7 @@ CDECK,ABSEAR.
       DATA RCH/1070./,YOFCH/500./,ZCH/-1890./
 **    Shafts - offsets of centre, radius
       DATA ZOFS1/2290./,RS1/1150./
-      DATA XOFS2/-370./,ZOFS2/-4880./RS2/600./
+      DATA XOFS2/-370./,ZOFS2/-4880./,RS2/600./
       DATA XOFS3/2100./,RS3/450./
 **    Concrete layer in shaft 1 - lower and upper level
       DATA YCON1/2010./,YCON2/2180./

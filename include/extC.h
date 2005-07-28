@@ -1,4 +1,4 @@
-//  $Id: extC.h,v 1.14 2005/05/17 09:56:34 pzuccon Exp $
+//  $Id: extC.h,v 1.15 2005/07/28 16:53:15 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Oct 06, 1996. ak. add readDB 
@@ -55,9 +55,11 @@ extern "C" void readmfield_();
 extern "C" void cminit_();
 extern "C" void cmgene_(geant & pmu, geant & themu, geant & phimu, 
                        geant & chargemu, geant & xmu, geant & ymu, geant &zmu);
+extern "C" void cmgene2_(geant & pmu, geant & gamma, geant & chmu);
 extern "C" void cmend_();
 #define CMEND cmend_
 #define CMGENE cmgene_
+#define CMGENE2 cmgene2_
 #define CMINIT cminit_
 
 extern "C" void btempcor();
