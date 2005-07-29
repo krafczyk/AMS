@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.27 2005/07/22 14:34:41 choutko Exp $
+#  $Id: Makefile,v 1.28 2005/07/29 12:28:28 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -391,7 +391,7 @@ $(SFF)flinit.F:      $(CERNSRCDIR)/src/geant321/fiface/flinit.F
 
 
 $(SFF)gbirk.F:      $(CERNSRCDIR)/src/geant321/gphys/gbirk.F
-	sed  "s/  99  RETURN/             IF(ABS(CHARGE).GE.2..AND.MODEL.EQ.1)C=0\n      IF(ABS(CHARGE).GE.2)THEN\n       GAMASS=GETOT+AMASS\n       BET2=GEKIN*GAMASS\/(GETOT*GETOT)\n        BET=SQRT(BET2)\n       W1=1.034-0.1777*EXP(-0.08114*CHARGE)\n       W2=BET\/ABS(CHARGE)**(2.\/3.)\n       W3=121.4139*W2+0.0378*SIN(190.7165*W2)\n       CHARG1=CHARGE*(1.-W1*EXP(-W3))\n       IF(CHARG1.LT.0)CHARG1=1\n       CHARG2=CHARG1**2\n       DEDXCM=DEDXCM*CHARG2\n      ENDIF\n        IF(MODEL.EQ.0)THEN\n        EDEP=DESTEP\/(1.+C*ATAN(RKB\/C*DEDXCM))\n      ELSE\n      EDEP=DESTEP\/(1.+RKB*DEDXCM+C*DEDXCM**2)\n       ENDIF\n  99  RETURN/g"  $(CERNSRCDIR)/src/geant321/gphys/gbirk.F > $(SFF)gbirk.F
+	sed  "s/  99  RETURN/             IF(ABS(CHARGE).GE.2..AND.MODEL.EQ.1)C=0\n      IF(ABS(CHARGE).GE.2)THEN\n       GAMASS=GETOT+AMASS\n       BET2=GEKIN*GAMASS\/(GETOT*GETOT)\n        BET=SQRT(BET2)\n       W1=1.034-0.1777*EXP(-0.08114*CHARGE)\n       W2=BET\/ABS(CHARGE)**(2.\/3.)\n       W3=121.4139*W2+0.0378*SIN(190.7165*W2)\n       CHARG1=CHARGE*(1.-W1*EXP(-W3))\n       IF(CHARG1.LT.0)CHARG1=1\n       CHARG2=CHARG1**2\n       DEDXCM=DEDXCM*CHARG2\n      ENDIF\n        IF(MODEL.EQ.0)THEN\n        EDEP=DESTEP\/(1.+C*ATAN(RKB\/C*1000*DESTEP\/STEP))\n      ELSE\n      EDEP=DESTEP\/(1.+RKB*DEDXCM+C*DEDXCM**2)\n       ENDIF\n  99  RETURN/g"  $(CERNSRCDIR)/src/geant321/gphys/gbirk.F > $(SFF)gbirk.F
 
 
 $(SFF)grfile.F:      $(CERNSRCDIR)/src/geant321/giopa/grfile.F
