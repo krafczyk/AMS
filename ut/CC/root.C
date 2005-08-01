@@ -1,4 +1,3 @@
-//  $Id: root.C,v 1.92 2005/06/14 11:06:58 alcaraz Exp $
 //
 
 #include "root.h"
@@ -2406,19 +2405,22 @@ void AMSEventList::Write(const char* filename){
         fclose(listfile);
 };
 
-void AMSEventList::Write(TTree* chain, TFile* file){
-        AMSEventR* amsevent = new AMSEventR;
-        chain->SetBranchAddress("ev.",&amsevent);
+void AMSEventList::Write(AMSChain* chain, TFile* file){
         TTree *amsnew = chain->CloneTree(0);
-        for (int i=0; chain->GetEntry(i)>0; i++) {
+        chain->Rewind();
+        AMSEventR* ev = NULL;
+        while ((ev=chain->GetEvent())) {
                 bool found = false;
                 for (int j=0; j<_RUNs.size(); j++) {
-                  if (amsevent->Run()==_RUNs[j] && amsevent->Event()==_EVENTs[j]) {
+                  if (ev->Run()==_RUNs[j] && ev->Event()==_EVENTs[j]) {
                         found=true;
                         break;
                   }
                 }
                 if (!found) continue;
+                printf("AMSEventList::Writing event ............ %12d %12d\n"
+                                    , ev->Run(), ev->Event());
+                ev->GetAllContents();
                 amsnew->Fill();
         }
         cout << "AMSEventList::Writing AMS ROOT file \"";

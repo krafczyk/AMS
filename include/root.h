@@ -1,5 +1,3 @@
-//  $Id: root.h,v 1.157 2005/06/14 11:07:00 alcaraz Exp $
-
 //
 //  NB Please increase the version number in corr classdef 
 //  for any class modification
@@ -3161,7 +3159,7 @@ public:
       void Read(const char* filename); ///<Read "run event" list from ASCII file
       void Write(); ///<Write "run event" list to standard output
       void Write(const char* filename); ///<Write "run event" list to ASCII file
-      void Write(TTree* chain, TFile* file); ///<Write/Add selected events from a chain into a ROOT file
+      void Write(AMSChain* chain, TFile* file); ///<Write/Add selected events from a chain into a ROOT file
 
       int GetEntries(); ///<Number of events in the list
       int GetRun(int i); ///<Retrieve run number for entry i
