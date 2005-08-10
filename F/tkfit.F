@@ -51,7 +51,18 @@
       DOUBLE PRECISION ER2(2*NHITS,2*NHITS),DD(5,5), DX(5)
  
       DIMENSION WLEN(NHITS)
-      DATA WLEN /0.,3.2E-3,6.4E-3,3.2E-3,6.4E-3,3.2E-3,6.4E-3, 0./
+C OLD, underestimaed
+C      DATA WLEN /0.,3.2E-3,6.4E-3,3.2E-3,6.4E-3,3.2E-3,6.4E-3, 0./
+C From test beam:
+C        Ladder:    300 um silicon + 50 um kapton + ~3 um de metal: 3.74e-3 X0
+C        Shielding: 100 um kapton + ~12 um metal: 1.88e-3 X0
+C        Support:  1mm carbon fiber + 9mm carton: 6.35e-3 X0
+C      DATA WLEN /0.,11.97e-3,17.59e-3,0.0,17.59e-3,0.0,17.59e-3,11.97e-3/
+C AMS02:
+C        Ladder:    300 um silicon + 50 um kapton + ~3 um de metal: 3.74e-3 X0
+C        Shielding: 100 um kapton + ~12 um metal: 1.88e-3 X0
+C        Support:   10mm Al Honeycomb: 1.67e-3 X0
+      DATA WLEN /0.,7.29e-3,12.91e-3,0.0,12.91e-3,0.0,12.91e-3,7.29e-3/
       data tol/1.e-5/
       data prec /5.e-3/ ! precision of the algorithm in MV
 *
