@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.317 2005/06/21 13:29:37 alexei Exp $
+# $Id: RemoteClient.pm,v 1.318 2005/09/05 16:35:07 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4719,11 +4719,15 @@ print qq`
 #        $filedb_att=~s/ams02/$dataset->{version}/;
         @sta = stat $filedb_att;
           
-         my @stag3=stat "$self->{AMSDataDir}/DataBase";
-        if($#stag3<0){
-              $self->ErrorPlus("Unable to find $self->{AMSDataDir}/DataBase on the Server ");
-        }
-        if(($#sta<0 or $sta[9]-time() >86400*7  or $stag3[9] > $sta[9] ) and $self->{dwldaddon}==1){
+#         my @stag3=stat "$self->{AMSDataDir}/DataBase";
+#        if($#stag3<0){
+#              $self->ErrorPlus("Unable to find $self->{AMSDataDir}/DataBase on the Server ");
+#        }
+#        if(($#sta<0 or time()-$sta[9] >86400*180  or $stag3[9] > $sta[9] ) and $self->{dwldaddon}==1){
+
+         my $dte=stat_adv ("$self->{AMSDataDir}/DataBase",0,0,1);
+        if(($#sta<0 or time()-$sta[9] >86400*180  or $dte > $sta[9] ) and $self->{dwldaddon}==1){
+
            $self->{sendaddon}=2;
         my $filen="$self->{UploadsDir}/ams02mcdb.addon.tar.$run";
         my $i=system "mkdir -p $self->{UploadsDir}/DataBase";
@@ -12669,4 +12673,40 @@ sub test00 {
     my $t2 = time();
     $iterAv = $iterAv/$N;
     print "$t0, $t1, $t2, $N, $iterAv \n";
+}
+
+sub stat_adv{
+my $dir=shift;
+my $dte=shift;
+my $level=shift;
+my $mxl=shift;
+my @sta=stat $dir;
+if($#sta<0){
+  return time();
+}
+if($sta[9]>$dte){
+ $dte=$sta[9];
+}
+opendir THISDIR ,$dir or return time();
+my @allfiles= readdir THISDIR;
+closedir THISDIR;
+foreach my $file (@allfiles){
+    if ($file =~/^\./){
+       next;
+    }
+    my $newfile=$dir."/".$file;
+    if(readlink $newfile){
+        next;
+    }
+    my @sts = stat $newfile;
+    if($#sts>0 && $sta[9]>$dte){
+        $dte=$sta[9];
+    }
+    if($level<$mxl){
+       if($sts[2]<32000){
+        $dte=stat_adv($newfile,$dte,$level+1,$mxl);
+       }
+    }
+}
+return $dte;
 }
