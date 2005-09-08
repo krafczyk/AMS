@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.318 2005/09/05 16:35:07 choutko Exp $
+# $Id: RemoteClient.pm,v 1.319 2005/09/08 09:23:02 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5624,24 +5624,12 @@ sub getRID() {
         my $sql="select rid from RNDM WHERE rid<0";
         my $res=$self->{sqlserver}->Query($sql);
         if(not defined $res->[0][0]){
-           Warning::error($self->{q},"unable to find RID<0");
-           $maxrun = -1;
+        $sql="UPDATE RNDM SET rid=-rid where rid=1";
+             $self->{sqlserver}->Update($sql);
+             return -1;
        } else {
-           $maxrun=$res->[0][0];
+           return $res->[0][0];
         }
-        $sql="select rid,rndm1,rndm2 from RNDM where rid=$maxrun";
-        $res=$self->{sqlserver}->Query($sql);
-        if( not defined $res->[0][0] ){
-          my $big=2147483647;
-          my $rndm1=int (rand $big);
-          my $rndm2=int (rand $big);
-          my $rid  = 0;
-          Warning::error($self->{q},"unable to read rndm table $maxrun");
-          return $rid;
-      }
-      my $rid  =$res->[0][0];
-
-      return $rid;
 
 }  
 
@@ -5679,9 +5667,10 @@ sub getrndm(){
     my $rid  =$res->[0][0];
     my $rndm1=$res->[0][1];
     my $rndm2=$res->[0][2];
-             $sql="UPDATE RNDM SET rid=-rid where rid=$maxrun";
+           if( not defined $res->[1][0]){
+             $sql="UPDATE RNDM SET rid=-rid where rid=-$maxrun+1";
              $self->{sqlserver}->Update($sql);
-             $maxrun=-$maxrun+1;
+            }   
              $sql="UPDATE RNDM SET rid=-rid where rid=$maxrun";
              $self->{sqlserver}->Update($sql);
              return ($rid,$rndm1,$rndm2);
