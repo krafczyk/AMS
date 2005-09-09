@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.53 2005/05/17 09:54:04 pzuccon Exp $
+//  $Id: ecaldbc.C,v 1.54 2005/09/09 07:55:12 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -426,11 +426,11 @@ integer EcalJobStat::mccount[ECJSTA];
 integer EcalJobStat::recount[ECJSTA];
 integer EcalJobStat::cacount[ECJSTA];
 integer EcalJobStat::srcount[20];
-geant EcalJobStat::zprmc1[ECSLMX];// mc-hit average Z-profile(SL-layers) 
-geant EcalJobStat::zprmc2[ECSLMX];// mc-hit(+att) average Z-profile(SL(PM-assigned)-layers) 
-geant EcalJobStat::zprofa[2*ECSLMX];// average Z-profile(scPlanes) 
-geant EcalJobStat::zprofapm[ECSLMX];// average Z-profile(pm-layers) 
-geant EcalJobStat::zprofac[ECSLMX];// SL Edep profile (punch-through events)
+number EcalJobStat::zprmc1[ECSLMX];// mc-hit average Z-profile(SL-layers) 
+number EcalJobStat::zprmc2[ECSLMX];// mc-hit(+att) average Z-profile(SL(PM-assigned)-layers) 
+number EcalJobStat::zprofa[2*ECSLMX];// average Z-profile(scPlanes) 
+number EcalJobStat::zprofapm[ECSLMX];// average Z-profile(pm-layers) 
+number EcalJobStat::zprofac[ECSLMX];// SL Edep profile (punch-through events)
 geant EcalJobStat::nprofac[ECSLMX];// SL profile (punch-through events)
 //
 //------------------------------------------
@@ -442,9 +442,9 @@ void EcalJobStat::clear(){
   for(i=0;i<20;i++)srcount[i]=0;
   for(i=0;i<ECSLMX;i++)zprmc1[i]=0;
   for(i=0;i<ECSLMX;i++)zprmc2[i]=0;
-  for(i=0;i<2*ECSLMX;i++)zprofa[i]=0;
-  for(i=0;i<ECSLMX;i++)zprofapm[i]=0;
-  for(i=0;i<ECSLMX;i++)zprofac[i]=0;
+  for(i=0;i<2*ECSLMX;i++)zprofa[i]=0.;
+  for(i=0;i<ECSLMX;i++)zprofapm[i]=0.;
+  for(i=0;i<ECSLMX;i++)zprofac[i]=0.;
   for(i=0;i<ECSLMX;i++)nprofac[i]=0;
 }
 //------------------------------------------
@@ -798,6 +798,7 @@ void EcalJobStat::bookhistmc(){
 }
 //----------------------------
 void EcalJobStat::outp(){
+  geant rzprofa[2*ecalconst::ECSLMX],rzprofapm[ecalconst::ECSLMX],rzprofac[ecalconst::ECSLMX];
     if(ECREFFKEY.reprtf[0]!=0){ // print RECO-hists
       HPRINT(ECHISTR+10);
       HPRINT(ECHISTR+11);
@@ -811,12 +812,14 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTR+18);
       HPRINT(ECHISTR+22);
       HPRINT(ECHISTR+23);
-      if(recount[2]>0)for(int i=0;i<2*ECSLMX;i++)zprofa[i]/=geant(recount[2]);
-      if(recount[2]>0)for(int i=0;i<ECSLMX;i++)zprofapm[i]/=geant(recount[2]);
-      HPAK(ECHISTR+24,zprofa);
-      HPAK(ECHISTR+25,zprofapm);
-      HPRINT(ECHISTR+24);
-      HPRINT(ECHISTR+25);
+      if(recount[2]>0){
+        for(int i=0;i<2*ECSLMX;i++)rzprofa[i]=geant(zprofa[i]/recount[2]);
+        for(int i=0;i<ECSLMX;i++)rzprofapm[i]=geant(zprofapm[i]/recount[2]);
+        HPAK(ECHISTR+24,rzprofa);
+        HPAK(ECHISTR+25,rzprofapm);
+        HPRINT(ECHISTR+24);
+        HPRINT(ECHISTR+25);
+      }
       HPRINT(ECHISTR+30);
       HPRINT(ECHISTR+31);
       HPRINT(ECHISTR+32);
@@ -866,8 +869,11 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTC+15);
       HPRINT(ECHISTC+16);
       HPRINT(ECHISTC+17);
-      for(int i=0;i<ECSLMX;i++)if(nprofac[i]>0)zprofac[i]/=nprofac[i];
-      HPAK(ECHISTC+18,zprofac);
+      for(int i=0;i<ECSLMX;i++){
+        if(nprofac[i]>0)rzprofac[i]=geant(zprofac[i]/nprofac[i]);
+	else rzprofac[i]=0;
+      }
+      HPAK(ECHISTC+18,rzprofac);
       HPRINT(ECHISTC+18);
       HPRINT(ECHISTC+28);
       HPRINT(ECHISTC+19);
@@ -1024,6 +1030,7 @@ void EcalJobStat::outp(){
 }
 //----------------------------
 void EcalJobStat::outpmc(){
+  geant rzprmc1[ecalconst::ECSLMX],rzprmc2[ecalconst::ECSLMX];
     if(ECMCFFKEY.mcprtf!=0){ // print MC-hists
       HPRINT(ECHIST+1);
       HPRINT(ECHIST+2);
@@ -1038,14 +1045,14 @@ void EcalJobStat::outpmc(){
       HPRINT(ECHIST+6);
       if(mccount[1]>0){
         for(int i=0;i<ECSLMX;i++){
-          zprmc1[i]/=geant(mccount[1]);
-          zprmc2[i]/=geant(mccount[1]);
+          rzprmc1[i]=geant(zprmc1[i]/mccount[1]);
+          rzprmc2[i]=geant(zprmc2[i]/mccount[1]);
 	}
+        HPAK(ECHIST+7,rzprmc1);
+        HPAK(ECHIST+8,rzprmc2);
+        HPRINT(ECHIST+7);
+        HPRINT(ECHIST+8);
       }
-      HPAK(ECHIST+7,zprmc1);
-      HPAK(ECHIST+8,zprmc2);
-      HPRINT(ECHIST+7);
-      HPRINT(ECHIST+8);
       HPRINT(ECHIST+9);
       HPRINT(ECHIST+10);
       HPRINT(ECHIST+11);

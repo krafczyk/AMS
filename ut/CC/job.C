@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.477 2005/07/05 08:22:43 choumilo Exp $
+// $Id: job.C,v 1.478 2005/09/09 07:55:13 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1081,7 +1081,7 @@ void AMSJob::_retof2data(){
 // Q=1/0->Take ChargeCalibDensFunctions from RawFiles/DB
 // D=1/0->Take ThreshCuts-set from DataCards/DB,
 // P=1/0->Take Peds(rd) from RawFiles/DB,
-// C=1/0->Take PaddleCalibrCont from RawFiles/DB
+// C=1/0->Take PaddleCalibrConst from RawFiles/DB
 //
   TFREFFKEY.sec[0]=0;//(29) 
   TFREFFKEY.sec[1]=0;
@@ -1131,7 +1131,7 @@ void AMSJob::_retof2data(){
 //
   TFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TFCAFFKEY.dynflg=0; // (27)  not used now
-  TFCAFFKEY.cfvers=8; // (28) 1-999 -> vers.number for tof2cvlistNNN.dat file
+  TFCAFFKEY.cfvers=1; // (28) 1-999 -> vers.number for tof2cvlistNNN.dat file
   TFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
   TFCAFFKEY.mcainc=0;// (30) =1->Anode-integrators calibration(MC only)(not used now)
   TFCAFFKEY.tofbetac=0.5;// (31) if nonzero->low beta cut (own TOF measurements !!!)
@@ -1192,14 +1192,14 @@ CHARGEFITFFKEY.EtaMin[1]=0.00;
 CHARGEFITFFKEY.EtaMax[0]=0.95;
 CHARGEFITFFKEY.EtaMax[1]=1.00;
 CHARGEFITFFKEY.ProbTrkRefit=0.01;
-CHARGEFITFFKEY.ResCut[0]=4.;//-1. to switch OFF incomp.clus.exclusion
-CHARGEFITFFKEY.ResCut[1]=4.;//
+CHARGEFITFFKEY.ResCut[0]=4.;//-1. to switch OFF incomp.clus.exclusion(as for simulation default,
+CHARGEFITFFKEY.ResCut[1]=4.;//  see charge.C code with tempor. MC settings
 CHARGEFITFFKEY.SigMin=0.1;
 CHARGEFITFFKEY.SigMax=0.3;
 CHARGEFITFFKEY.PdfNorm=1;//not used now (pdf's are normalized automatically)
 CHARGEFITFFKEY.TrMeanRes=1;//(13) use normal(0)/"-incomp.hit"(1)truncated mean
-CHARGEFITFFKEY.ProbMin=0.01;
-CHARGEFITFFKEY.TrackerOnly=9;
+CHARGEFITFFKEY.ProbMin=0.0001;
+CHARGEFITFFKEY.TrackerOnly=9;//above this value use Tracker only
 CHARGEFITFFKEY.ChrgMaxAnode=9;//not used now
 CHARGEFITFFKEY.BetaPowAnode=0;//not used now
 CHARGEFITFFKEY.TrackerForceSK=0;//(18)
@@ -1926,8 +1926,8 @@ void AMSJob::_catof2initjob(){
  if(TFREFFKEY.relogic[0]==4){
    TOF2AMPLcalib::init();// TOF AMPL-calibr.
    cout<<"TOF2AMPLcalib-init done !!!"<<'\n';
-   TOF2AVSDcalib::init();// TOF AVSD-calibr.
-   cout<<"TOF2AVSDcalib-init done !!!"<<'\n';
+//   TOF2AVSDcalib::init();// TOF AVSD-calibr.
+//   cout<<"TOF2AVSDcalib-init done !!!"<<'\n';
  }
 //
 }

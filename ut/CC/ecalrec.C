@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.94 2005/05/17 09:54:04 pzuccon Exp $
+//  $Id: ecalrec.C,v 1.95 2005/09/09 07:55:12 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -162,7 +162,10 @@ void AMSEcalRawEvent::mc_build(int &stat){
 //      if(il==0 && (fid%100000)/1000>=1 &&
 //                    (fid%100000)/1000<=5 && (fid%1000)==254)edep=0.;//tempor test(in pl/sc=1/38 )
       edept+=edep;
-      EcalJobStat::zprmc1[il]+=edep;//geant SL-profile
+      if(edep<=0){
+        cout<<"======>ECEdep<0::il="<<il<<" edep="<<edep<<endl;
+      }
+      EcalJobStat::addzprmc1(il,edep);//geant SL-profile
       time=(1.e+9)*(ptr->gettime());// geant-hit time in ns
       timet+=edep*time;
       x=ptr->getcoo(0);// global coord.
@@ -256,7 +259,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       anen=0.;
       dyen=0.;
       for(k=0;k<4;k++){//<--- loop over 4-subcells in PM to fill ADC's
-        EcalJobStat::zprmc2[il]+=sum[i][k];//geant SL(PM-assigned)-profile
+        EcalJobStat::addzprmc2(il,sum[i][k]);//geant SL(PM-assigned)-profile
         h2lr=ECcalibMS::ecpmcal[il][i].hi2lowr(k);//PM subcell high/low ratio from DB
 	scgn=ECcalibMS::ecpmcal[il][i].pmscgain(k);//SubCell gain(really 1/pmrg/scgn)
 	edepr=pmedepr[k];//Evis(incl.Npe-fluct, mev)

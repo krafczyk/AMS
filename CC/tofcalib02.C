@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.14 2005/05/17 09:54:06 pzuccon Exp $
+//  $Id: tofcalib02.C,v 1.15 2005/09/09 07:55:14 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "typedefs.h"
@@ -404,7 +404,7 @@ void TOF2TZSLcalib::select(){  // calibr. event selection
 	  (TFCAFFKEY.idref[1]==1 && (ibar>0 && (ibar+1)<TOF2DBc::getbppl(ilay)))){//ignore trapez.c
           ptr->getadca(ama);
           if(ama[0]>0 && ama[1]>0){// require anode signal
-            TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);//A(h)_adc->charge(from prev.calib !!)
+            TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);//Anode_adc->charge(from prev.calib !!)
             qtotl[ilay]=am[0]+am[1];
             qsd1[ilay]=am[0];//side q(pC)
             qsd2[ilay]=am[1];
@@ -891,15 +891,15 @@ void TOF2TDIFcalib::select(){ // ------> event selection for TDIF-calibration
       ibar=(ptr->getplane())-1;
       nbrl[ilay]+=1;
       brnl[ilay]=ibar;
-      ptr->getadca(ama);//use  AnodeHiADC for calibr.(Most are mu or Pr)
+      ptr->getadca(ama);//use  AnodeADC for calibr.(Most are mu or Pr)
       if(ama[0]>0 && ama[1]>0){
-        TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);//A(h)_adc->charge(from prev.calib !!)
+        TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);//Anode_adc->charge(from prev.calib !!)
         qsd1[ilay]=am[0];
         qsd2[ilay]=am[1];
         ptr->getsdtm(sdtm);// get raw side-times(ns)
         tmsd[ilay]=0.5*(sdtm[0]-sdtm[1]);// side time difference
         tmss[ilay]=0.5*(sdtm[0]+sdtm[1]);// side time sum
-        TOF2Brcal::scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,0,tmsdc[ilay]);//slew-corr times(from A-high-ch)
+        TOF2Brcal::scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,0,tmsdc[ilay]);//slew-corr times(from Anode-ch)
 //        tmsdc[ilay]=tmsd[ilay];// use raw side-times(running first time,when slop unknown)
         }
       }
@@ -1308,17 +1308,10 @@ geant TOF2AMPLcalib::profb[TOF2GC::SCBTPN][TOF2GC::SCPRBM];// bin width for each
 geant TOF2AMPLcalib::profp[TOF2GC::SCBTPN][TOF2GC::SCPRBM];// middle of the bin .........
 integer TOF2AMPLcalib::nprbn[TOF2GC::SCBTPN]={16,16,16,16,15,16,16,14,15,16,16};//profile-bins vs bar-type
 
-number TOF2AMPLcalib::ah2lr[TOF2GC::SCCHMX];// sum of Anode h/l-ratios for each LBBS
-number TOF2AMPLcalib::ah2lr2[TOF2GC::SCCHMX];// sum of Anode h/l-ratios**2 
-integer TOF2AMPLcalib::nevenar[TOF2GC::SCCHMX];// number of accumulated events for above sums
-number TOF2AMPLcalib::dh2lr[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of Dyn-pms h/l-ratios for each LBBS
-number TOF2AMPLcalib::dh2lr2[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of Dyn-pms h/l-ratios**2 
-integer TOF2AMPLcalib::nevendr[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//number of events for above sums
-
-number TOF2AMPLcalib::a2dr[TOF2GC::SCCHMX];//sum of Ah/Sum(Dh(pmt))-ratios for each channel
+number TOF2AMPLcalib::a2dr[TOF2GC::SCCHMX];//sum of An/Sum(Dyn(pmt))-ratios for each channel
 number TOF2AMPLcalib::a2dr2[TOF2GC::SCCHMX];//sum of ratios**2 for each channel
 integer TOF2AMPLcalib::neva2d[TOF2GC::SCCHMX];//number of events/channel for above sum
-number TOF2AMPLcalib::d2sdr[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of Dh(pm)/Sum(Dh(pm))-gains for LBBS
+number TOF2AMPLcalib::d2sdr[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of Dyn(pm)/Sum(Dyn(pm))-gains for LBBS
 number TOF2AMPLcalib::d2sdr2[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of ratios**2 
 integer TOF2AMPLcalib::nevdgn[TOF2GC::SCCHMX];//number of events/channel for above sum
   
@@ -1368,17 +1361,11 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
   for(i=0;i<TOF2GC::SCCHMX;i++){
     nevenc[i]=0;
     gains[i]=0.;
-    nevenar[i]=0;
-    ah2lr[i]=0.;
-    ah2lr2[i]=0.;
     a2dr[i]=0;
     a2dr2[i]=0;
     neva2d[i]=0;
     nevdgn[i]=0;
     for(int ip=0;ip<TOF2GC::PMTSMX;ip++){
-      nevendr[i][ip]=0;
-      dh2lr[i][ip]=0;
-      dh2lr2[i][ip]=0;
       d2sdr[i][ip]=0;
       d2sdr2[i][ip]=0;
     }
@@ -1542,10 +1529,10 @@ void TOF2AMPLcalib::select(){ // ------> event selection for AMPL-calibration
   integer i,ilay,ibar,nbrl[TOF2GC::SCLRS],brnl[TOF2GC::SCLRS],bad,status,sector,nanti(0);
   integer il,ib,ix,iy,chan,chnum;
   geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cost,cosc,eacl,edepa,edepd,edep[TOF2GC::SCLRS];
-  number ama[2],amd[2],amal[2],amdl[2];
+  number ama[2],amd[2];
   number coo[TOF2GC::SCLRS],coot[TOF2GC::SCLRS],cstr[TOF2GC::SCLRS],dx,dy;
   number am1[TOF2GC::SCLRS],am2[TOF2GC::SCLRS],am1d[TOF2GC::SCLRS],am2d[TOF2GC::SCLRS],am[2],eanti(0);
-  number amdr[TOF2GC::PMTSMX],amdlr[TOF2GC::PMTSMX];
+  number amdr[TOF2GC::PMTSMX];
   geant ainp[2],dinp[2][TOF2GC::PMTSMX],cinp,trlen[TOF2GC::SCLRS];
   int ip,npmf,npmts,nzpm;
   number adca[TOF2GC::SCLRS][2],adcd[TOF2GC::SCLRS][2];
@@ -1577,44 +1564,25 @@ void TOF2AMPLcalib::select(){ // ------> event selection for AMPL-calibration
     ilay=(ptr->getntof())-1;
     ibar=(ptr->getplane())-1;
     npmts=TOF2Brcal::scbrcal[ilay][ibar].getnpm();
-    ptr->getadca(ama);//Ah-adc(raw,s1/2)
-    ptr->getadcal(amal);//Al-adc (raw,s1/2)
-    ptr->getadcd(amd);//Dh-adc(equil.sum,h/l-combined,s1/2, use prev.cal. for gaind,dh2l)
-    TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);//side Ah-adcs->charges(use adc2qf only)
-    am1[ilay]=am[0];//store A(h)-charge(pC) for Ah rel.gains, abs.norm
+    ptr->getadca(ama);//Anode-adc(raw,s1/2)
+    ptr->getadcd(amd);//Dynode-adc(equiliz.sum,s1/2, use prev.cal. for gaind)
+    TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);//side Anode_adcs->charges(use adc2qf only)
+    am1[ilay]=am[0];//store Anode-charge(pC) for Anode rel.gains, abs.norm
     am2[ilay]=am[1];
-    edepa=ptr->getedepa();//energy in Anode(h) channel(prev calibration !)
-    edepd=ptr->getedepd();//energy in Dynode(h) channel
+    edepa=ptr->getedepa();//energy in Anode channel(prev calibration !)
+    edepd=ptr->getedepd();//energy in Dynode channel
     edep[ilay]+=edepa;
     chnum=2*TOF2DBc::barseqn(ilay,ibar);//sequential channels numbering (s=1)
 //
-// ===> fill arrays for Dynode-pmts hi/low ratious:
-//
-    ptr->getadcdr(0,amdr);//Dh-pmts ampls, s1
-    ptr->getadcdlr(0,amdlr);//Dl-pmts ampls, s1
-    nzpm=0;
-    for(ip=0;ip<npmts;ip++)if(amdr[ip]>0 && amdlr[ip]>0)nzpm+=1;
-    if(nzpm>0)TOF2AMPLcalib::filldh2l(chnum,npmts,amdr,amdlr);
-    ptr->getadcdr(1,amdr);//Dh-pmts ampls, s2
-    ptr->getadcdlr(1,amdlr);//Dl-pmts ampls, s2
-    nzpm=0;
-    for(ip=0;ip<npmts;ip++)if(amdr[ip]>0 && amdlr[ip]>0)nzpm+=1;
-    if(nzpm>0)TOF2AMPLcalib::filldh2l(chnum+1,npmts,amdr,amdlr);
-//
-// ===> store Anode(h)-adcs and Dynode(h)_pmts-adcs(to select later centr.bin for a2dr-calc
+// ===> store Anode-adcs and Dynode_pmts-adcs(to select later centr.bin for a2dr-calc
 //                                                                  and for gaind[ipm]-calc):
     adca[ilay][0]=ama[0];
     adca[ilay][1]=ama[1];
     
-    ptr->getadcdr(0,amdr);//Dh-pmts ampls, s1
+    ptr->getadcdr(0,amdr);//Dyn-pmts ampls, s1
     for(ip=0;ip<TOF2GC::PMTSMX;ip++)dpma1[ilay][ip]=amdr[ip];
-    ptr->getadcdr(1,amdr);//Dh-pmts ampls, s2
+    ptr->getadcdr(1,amdr);//Dyn-pmts ampls, s2
     for(ip=0;ip<TOF2GC::PMTSMX;ip++)dpma2[ilay][ip]=amdr[ip];
-//
-// ===> fill arrays for Anode hi/low ratious:
-//    
-    if(amal[0]>0)TOF2AMPLcalib::fillah2l(chnum,ama[0],amal[0]);    
-    if(amal[1]>0)TOF2AMPLcalib::fillah2l(chnum+1,ama[1],amal[1]);    
 //------
     if((status&TOFGC::SCBADB1)==0 &&
                   (status&TOFGC::SCBADB3)==0){ //select "good_history/good_strr" hits
@@ -1835,7 +1803,7 @@ void TOF2AMPLcalib::select(){ // ------> event selection for AMPL-calibration
 	  dinp[1][ip]=dpma2[il][ip];
 	}
         if(ainp[0]>0 && ainp[1]>0){
-	  TOF2AMPLcalib::filla2dg(il,ib,cinp,ainp,dinp);//for Ah/Sum(Dh(ip)), Dgain(ip) 
+	  TOF2AMPLcalib::filla2dg(il,ib,cinp,ainp,dinp);//for Anode/Sum(Dynode(ip)), Dgain(ip) 
 	}
       }
       else{
@@ -1847,7 +1815,7 @@ void TOF2AMPLcalib::select(){ // ------> event selection for AMPL-calibration
 	  dinp[1][ip]=dpma2[il][ip];
 	}
         if(ainp[0]>0 && ainp[1]>0){
-          TOF2AMPLcalib::filla2dg(il,ib,cinp,ainp,dinp);//for Ah/Sum(Dh(ip)), Dgain(ip)
+          TOF2AMPLcalib::filla2dg(il,ib,cinp,ainp,dinp);//for Anode/Sum(Dynode(ip)), Dgain(ip)
 	}
       }
     }
@@ -1923,8 +1891,8 @@ void TOF2AMPLcalib::select(){ // ------> event selection for AMPL-calibration
       if(TFCAFFKEY.truse == 1){
         cinp=coot[il];// loc.r.s.!!!
         if(ainp[0]>0. && ainp[1]>0.){
-	  TOF2AMPLcalib::fill(il,ib,ainp,cinp);//for relat.gains(using Ah) 
-          TOF2AMPLcalib::fillabs(il,ib,ainp,cinp,massq,betg);//for abs.normalization(using Ah)
+	  TOF2AMPLcalib::fill(il,ib,ainp,cinp);//for relat.gains(using Anode) 
+          TOF2AMPLcalib::fillabs(il,ib,ainp,cinp,massq,betg);//for abs.normalization(using Anode)
 	}
       }
       else{
@@ -2054,48 +2022,6 @@ void TOF2AMPLcalib::fillabs(integer il, integer ib, geant am[2], geant coo,
   }
 }
 //
-//-------------------------------------------
-//            ---> program to fill Ah/Al ratio arrays:
-void TOF2AMPLcalib::fillah2l(int chnum, number ama, number amal){
-  geant r;
-//
-  r=0;
-  if(amal>20 && ama>0 && nevenar[chnum]<2000){//"20" to avoid LowChan readout thresh.infl.
-    ama+=0.5;// tempor  +0.5 to be at the middle of ADC-bin=1
-    amal+=0.5;// tempor  +0.5 to be at the middle of ADC-bin=1
-    r=ama/amal;
-    ah2lr[chnum]+=r;
-    ah2lr2[chnum]+=(r*r);
-    nevenar[chnum]+=1;
-      if(chnum==6)HF1(1244,r,1.);//inst.Ah/Al for LBBS=1041
-//    if(chnum==16)HF1(1244,r,1.);//inst.Ah/Al for LBBS=2011
-  }
-}
-//--------------------------------------
-// (prog.to fill arrays for Dh2l[ip] ratios calculation)
-//
-void TOF2AMPLcalib::filldh2l(int chnum, int np, number amd[TOF2GC::PMTSMX],number amdl[TOF2GC::PMTSMX]){
-//
-  integer i;
-  geant r,cbin(10);
-//
-//                             ---> fill arrays for h/l ratios:
-  for(i=0;i<np;i++){//pmts loop
-    r=0;
-    if(amdl[i]>20 && amd[i]>1 && nevendr[chnum][i]<2000){
-      amd[i]+=0.5;
-      amdl[i]+=0.5;
-      r=amd[i]/amdl[i];
-      dh2lr[chnum][i]+=r;
-      dh2lr2[chnum][i]+=(r*r);
-      nevendr[chnum][i]+=1;
-      if(chnum==6 && i==0)HF1(1245,r,1.);//inst.Dh(pm)/Dl(pm) for LBBS=1041, pm=1
-      if(chnum==7 && i==0)HF1(1243,r,1.);//inst.Dh(pm)/Dl(pm) for LBBS=1042, pm=1
-      if(r<4.)
-         cout<<"wrong r="<<r<<" chnum="<<chnum<<" pm="<<i<<" Dh/l="<<amd[i]<<" "<<amdl[i]<<endl;
-    }
-  }
-}
 //--------------------------------------
 // (prog.to fill arrays for a2dr and Dgain[ip] calculations)
 //
@@ -2950,7 +2876,7 @@ void TOF2AMPLcalib::fit(){
   }
 //-------------------------------------------------------
 //
-// ---> calculate/print Anode(h)/Dynode(h) chan.gain ratios:
+// ---> calculate/print Anode/Dynode chan.gain ratios:
 //
   number a2d[TOF2GC::SCCHMX],a2ds[TOF2GC::SCCHMX],avr,avr2,a2dsig,rsig;
 //
@@ -2987,12 +2913,12 @@ void TOF2AMPLcalib::fit(){
     }
   }
   printf("\n");
-  printf(" =================> Ah/Dh(pm-sum)  distributions :\n");
+  printf(" =================> An/Dyn(pm-sum)  distributions :\n");
   printf("\n");
 //
 //
   printf("\n");
-  printf(" ------->  Ah/Dh  nevents/ratios/sigmas :\n");
+  printf(" ------->  An/Dyn  nevents/ratios/sigmas :\n");
   printf("\n");
   ich=0;
   for(il=0;il<TOF2DBc::getnplns();il++){
@@ -3037,13 +2963,13 @@ void TOF2AMPLcalib::fit(){
     
 //-------------------------------------------------------
 //
-// ---> calculate/print DynodeH-pmts relat(to side aver) gains:
+// ---> calculate/print Dynode-pmts relat(to side aver) gains:
 //
   number dpmg[TOF2GC::SCCHMX][TOF2GC::PMTSMX],dpmgs[TOF2GC::SCCHMX][TOF2GC::PMTSMX];
   number dpmsig,dnor;
   integer npmts;
 //
-// ---> calculate/print Dh rel.gains:
+// ---> calculate/print Dyn rel.gains:
 //
 //
   chan=0;
@@ -3091,7 +3017,7 @@ void TOF2AMPLcalib::fit(){
   }//-->endof layer-loop
 //
   printf("\n");
-  printf(" =================> Dh(pm) rel.gains distributions :\n");
+  printf(" =================> Dynode(pm) rel.gains distributions :\n");
   printf("\n");
 //
 //-----
@@ -3144,183 +3070,11 @@ void TOF2AMPLcalib::fit(){
   }
   printf("\n");
   printf("\n");
-//-------------------------------------------------------
-//
-// ---> calculate/print AnodeHi2Low and DynodeHi2Low gain ratios:
-//
-  number ah2l[TOF2GC::SCCHMX],dh2l[TOF2GC::SCCHMX][TOF2GC::PMTSMX];
-  number ah2ls[TOF2GC::SCCHMX],dh2ls[TOF2GC::SCCHMX][TOF2GC::PMTSMX];
-  number h2lav,h2lsig,h2ls;
-//
-  chan=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      npmts=TOF2Brcal::scbrcal[il][ib].getnpm();
-      for(i=0;i<2;i++){
-        for(int ip=0;ip<TOF2GC::PMTSMX;ip++){
-	  dh2l[chan][ip]=0;
-	  dh2ls[chan][ip]=0;
-	}
-//
-        ah2l[chan]=0;
-	ah2ls[chan]=0;
-        if(nevenar[chan]>5){//anode
-	  h2lav=ah2lr[chan]/nevenar[chan];//aver x
-	  h2ls=ah2lr2[chan]/nevenar[chan];//aver x**2
-	  h2lsig=h2ls-h2lav*h2lav;
-	  if(h2lsig>0){
-	    h2lsig=sqrt(h2lsig);//rms
-	    rsig=h2lsig/h2lav;//rel. rms
-	    HF1(1276,geant(h2lav),1.);
-	    HF1(1277,geant(rsig),1.);
-	    if(rsig<2){//good measurement
-	      ah2l[chan]=h2lav;
-	      ah2ls[chan]=h2lsig;
-	    }
-	    else{
-	      ah2l[chan]=0;
-	      ah2ls[chan]=99;
-	    }
-	  }
-	  else{
-	    ah2l[chan]=0;
-	    ah2ls[chan]=99;
-	  }
-	}
-//
-        for(int ip=0;ip<npmts;ip++){//pmt-loop
-          if(nevendr[chan][ip]>5){//dynode
-	    h2lav=dh2lr[chan][ip]/nevendr[chan][ip];
-	    h2ls=dh2lr2[chan][ip]/nevendr[chan][ip];
-	    h2lsig=h2ls-h2lav*h2lav;
-	    if(h2lsig>0){
-	      h2lsig=sqrt(h2lsig);
-	      rsig=h2lsig/h2lav;
-	      HF1(1278,geant(h2lav),1.);
-	      HF1(1279,geant(rsig),1.);
-	      if(rsig<2){//good measurement
-	        dh2l[chan][ip]=h2lav;
-	        dh2ls[chan][ip]=h2lsig;
-	      }
-	      else{
-	        dh2l[chan][ip]=0;
-	        dh2ls[chan][ip]=99;
-	      }
-	    }
-	    else{
-	      dh2l[chan][ip]=0;
-	      dh2ls[chan][ip]=99;
-	    }
-	  }
-	}
-//
-	chan+=1;//seq.numbering of bar sides
-      }
-    }
-  }
-  printf("\n");
-  printf(" ===============> Anode(Dynode) Hi/Low ratio  distributions :\n");
-  printf("\n");
-//
-//
-  printf("\n");
-  printf(" ------->  Anode Hi/Low-channel gain ratio :\n");
-  printf("\n");
-  ich=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    printf("Layer= %2d\n",(il+1));
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib;
-      printf("%6d",nevenar[chan]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib+1;
-      printf("%6d",nevenar[chan]);
-    }
-    printf("\n");
-    printf("\n");
-    
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib;
-      printf("%6.2f",ah2l[chan]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib+1;
-      printf("%6.2f",ah2l[chan]);
-    }
-    printf("\n");
-    printf("\n");
-    
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib;
-      printf("%6.2f",ah2ls[chan]);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib+1;
-      printf("%6.2f",ah2ls[chan]);
-    }
-    printf("\n");
-    printf("\n");
-    ich+=2*TOF2DBc::getbppl(il);
-  }
-//
-  printf("\n");
-  printf(" ------->  Dynode Hi/Low-channel gain ratio :\n");
-  printf("\n");
-  ich=0;
-  for(il=0;il<TOF2DBc::getnplns();il++){
-    printf("Layer= %2d\n",(il+1));
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){//s1
-      chan=ich+2*ib;
-      for(ip=0;ip<TOF2GC::PMTSMX;ip++)printf("%6d",nevendr[chan][ip]);
-      printf(" ");
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){//s2
-      chan=ich+2*ib+1;
-      for(ip=0;ip<TOF2GC::PMTSMX;ip++)printf("%6d",nevendr[chan][ip]);
-      printf(" ");
-    }
-    printf("\n");
-    printf("\n");
-    
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib;
-      for(ip=0;ip<TOF2GC::PMTSMX;ip++)printf("%5.2f",dh2l[chan][ip]);
-      printf(" ");
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib+1;
-      for(ip=0;ip<TOF2GC::PMTSMX;ip++)printf("%5.2f",dh2l[chan][ip]);
-      printf(" ");
-    }
-    printf("\n");
-    printf("\n");
-    
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib;
-      for(ip=0;ip<TOF2GC::PMTSMX;ip++)printf("%5.2f",dh2ls[chan][ip]);
-      printf(" ");
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-      chan=ich+2*ib+1;
-      for(ip=0;ip<TOF2GC::PMTSMX;ip++)printf("%5.2f",dh2ls[chan][ip]);
-      printf(" ");
-    }
-    printf("\n");
-    printf("\n");
-    ich+=(2*TOF2DBc::getbppl(il));
-  }
 //
 //------------------------------------------------------
 //
   printf("\n");
-  printf(" ===============>  Anode(h) relative gains :\n");
+  printf(" ===============>  Anode relative gains :\n");
   printf("\n");
   ic=0;
   for(il=0;il<TOF2DBc::getnplns();il++){
@@ -3368,7 +3122,7 @@ void TOF2AMPLcalib::fit(){
   cout<<endl;
 // ------------------------------------------------------------- 
 //
-// ---> write A(h)-gains,A/D slops/offs,Ah2l-ratios,Dh2l-ratios,A(h)-mip2q's to file:
+// ---> write Anode-gains,A/D slops/offs,Anode-mip2q's to file:
 //
   ofstream tcfile(fname,ios::out|ios::trunc);
   if(!tcfile){
@@ -3382,7 +3136,7 @@ void TOF2AMPLcalib::fit(){
 //
   tcfile.setf(ios::fixed);
   tcfile.width(6);
-//                       <------- write AnodeH relat. gains:
+//                       <------- write Anode relat. gains:
 //
   tcfile.precision(3);// precision for gains
   ic=0;
@@ -3401,7 +3155,7 @@ void TOF2AMPLcalib::fit(){
   }
   tcfile << endl;
 //
-//                      <------ write Ah/Sum(Dh(ipm))-ratios 
+//                      <------ write Anode/Sum(Dynode(ipm))-ratios 
 //
     tcfile.precision(2);// precision for A/D ratio
     ic=0;
@@ -3420,28 +3174,9 @@ void TOF2AMPLcalib::fit(){
     }
     tcfile << endl;
 //
-//                      <------ write Anode Hi/Low-ratios :
+//                      <------ write Dynode-pmts rel.gains :
 //
-    tcfile.precision(2);// precision for h2l ratio
-    ic=0;
-    for(il=0;il<TOF2DBc::getnplns();il++){
-      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-        chan=ic+2*ib;
-        tcfile << ah2l[chan]<<" ";
-      }
-      tcfile << endl;
-      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-        chan=ic+2*ib+1;
-        tcfile << ah2l[chan]<<" ";
-      }
-      tcfile << endl;
-      ic+=2*TOF2DBc::getbppl(il);
-    }
-    tcfile << endl;
-//
-//                      <------ write DynodeH-pmts rel.gains :
-//
-    tcfile.precision(2);// precision for  Dh-gainns
+    tcfile.precision(2);// precision for  D-gains
     ic=0;
     for(il=0;il<TOF2DBc::getnplns();il++){
       for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
@@ -3453,27 +3188,6 @@ void TOF2AMPLcalib::fit(){
       for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
         chan=ic+2*ib+1;
         for(ip=0;ip<TOF2GC::PMTSMX;ip++)tcfile << dpmg[chan][ip]<<" ";
-	tcfile << " ";
-      }
-      tcfile << endl;
-      ic+=2*TOF2DBc::getbppl(il);
-    }
-    tcfile << endl;
-//
-//                      <------ write Dynode-pmts Hi/Low-ratios :
-//
-    tcfile.precision(2);// precision for h2l ratio
-    ic=0;
-    for(il=0;il<TOF2DBc::getnplns();il++){
-      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-        chan=ic+2*ib;
-        for(ip=0;ip<TOF2GC::PMTSMX;ip++)tcfile << dh2l[chan][ip]<<" ";
-	tcfile << " ";
-      }
-      tcfile << endl;
-      for(ib=0;ib<TOF2DBc::getbppl(il);ib++){
-        chan=ic+2*ib+1;
-        for(ip=0;ip<TOF2GC::PMTSMX;ip++)tcfile << dh2l[chan][ip]<<" ";
 	tcfile << " ";
       }
       tcfile << endl;

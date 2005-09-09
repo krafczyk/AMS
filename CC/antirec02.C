@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.19 2005/05/17 09:54:02 pzuccon Exp $
+//  $Id: antirec02.C,v 1.20 2005/09/09 07:55:12 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -78,11 +78,9 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //
 //-----> check Charge-ADC :
 //
-      nadca[isid]=ptr->getadca(adca1);
-      im=nadca[isid];
-      if(im==0)ANTI2JobStat::addch(chnum,6);
-      if(im>1)ANTI2JobStat::addch(chnum,7);
-      nhit=im;
+      nhit=0;
+      if(ptr->getadca() > 0)nhit=1;
+      if(nhit==0)ANTI2JobStat::addch(chnum,6);
       if(nhit>0)bad=0;//found charge measurement
 //
 //-----> check Hist-TDC :
@@ -123,7 +121,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 }
 //----------------------------------------------------
 void Anti2RawEvent::mc_build(int &stat){
-  geant up(0),down(0),slope[2],athr[2],tau,q2pe;
+  geant up(0),down(0),slope[2],athr[2],tau,q2pe,temp;
   geant eup(0),edown(0),tup(0),tdown(0);
   geant thresh[2];
   int i,ii,nup,ndown,nupt,ndownt,sector,sectorN,ierr,it,sta[2];
@@ -131,7 +129,7 @@ void Anti2RawEvent::mc_build(int &stat){
   uinteger j,ibmn[2],ibmx[2],nsides(0);
   uinteger ectrfl(0),trpatt(0),hcount[4],cbit,lsbit(1);
   int16u atrpat[2]={0,0};
-  int16u phbit,maxv,id,chsta,nadca,adca[ANTI2C::ANAHMX];
+  int16u phbit,maxv,id,chsta,adca;
   int16u nhtdch,htdc[2*ANTI2C::ANTHMX],itt;
   number edep,ede,edept(0),time,z,tlev1,ftrig,t1,t2,dt;
   geant fadcb[2][ANTI2C::ANFADC+1];
@@ -440,6 +438,7 @@ void Anti2RawEvent::mc_build(int &stat){
       sig=ANTIPeds::anscped[nlogs].asiga(j);
       if(ATMCFFKEY.mcprtf)HF1(2632+j,geant(esignal[j][nlogs]),1.);
       amp=esignal[j][nlogs]/adc2pe;//pe -> ADC-ch
+      if(amp>TOF2GC::SCPUXMX)amp=TOF2GC::SCPUXMX;//PUX-chip saturation
       amp=amp+ped+sig*rnormx();// adc+ped(no "integerization")
       iamp=integer(floor(amp));//go to real ADC-channels("integerization")
       if(iamp>TOF2GC::SCADCMX){//check ADC-overflow
@@ -451,12 +450,11 @@ void Anti2RawEvent::mc_build(int &stat){
       }
       amp=number(iamp)-ped;// subtract pedestal (loose "integerization" !)
       if(ATMCFFKEY.mcprtf)HF1(2634+j,amp,1.);
-      nadca=0;
+      adca=0;
       if(amp>daqthr*sig){// DAQ readout threshold check
 	iamp=integer(floor(amp*ANTI2DBc::daqscf()+0.5));// floatADC -> internal DAQ bins
         itt=int16u(iamp);
-        adca[nadca]=itt;
-        nadca+=1;
+        adca=itt;
       }
 //
 //---> Create history raw-hits:
@@ -493,7 +491,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //
 //----> create RawEvent-object and store trig-patt:
 //
-      if(anchok && nadca>0 && nhtdch>0){
+      if(anchok && adca>0 && nhtdch>0){
         chsta=0;// good
 	id=(nlogs+1)*10+j+1;//BBarSide(BBS)
 //cout<<"MCFillRaw:id="<<id<<" nadc/ntdc="<<nadca<<" "<<nhtdch<<" nhtdc="<<nhtdc<<endl;
@@ -501,8 +499,9 @@ void Anti2RawEvent::mc_build(int &stat){
 //cout<<endl;
 //for(int ih=0;ih<nhtdch;ih++)cout<<htdc[ih]<<" ";
 //cout<<endl;
+        temp=0;//no temp.meausrement in MC
         AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
-                       new Anti2RawEvent(id,chsta,nadca,adca,nhtdch,htdc));
+                       new Anti2RawEvent(id,chsta,temp,adca,nhtdch,htdc));
 //
         tg1=ftrig;//GateUpTime=FTime+delay(decision+ pass to S-crate)
         tg2=tg1+pgate;//gate_end_time
@@ -646,7 +645,7 @@ AMSContainer *p =AMSEvent::gethead()->getC("AMSAntiCluster",0);
 void AMSAntiCluster::build2(int &statt){
 //(combine 2-sides of single paddle)
   bool anchok;
-  int16u nadca,adca[ANTI2C::ANAHMX],ntdct,tdct[ANTI2C::ANTHMX*2];
+  int16u adca,ntdct,tdct[ANTI2C::ANTHMX*2];
   int16u id,idN,sta;
   int16u pbitn;
   int16u pbanti;
@@ -687,7 +686,6 @@ void AMSAntiCluster::build2(int &statt){
   ftdel=ATREFFKEY.ftdel;
   ftwin=ATREFFKEY.ftwin;
   nsds=0;
-  nadca=0;
   ntdct=0;
   edept=0.;
   edep[0]=0;
@@ -725,9 +723,8 @@ void AMSAntiCluster::build2(int &statt){
     if(anchok){// <--- channel alive
 //channel statistics :
       ANTI2JobStat::addch(chnum,0); 
-      nadca=ptr->getadca(adca);
-      if(nadca>0)ANTI2JobStat::addch(chnum,1);
-      if(nadca==1)ANTI2JobStat::addch(chnum,2);
+      adca=ptr->getadca();
+      if(adca>0)ANTI2JobStat::addch(chnum,1);
 //
       ntdct=ptr->gettdct(tdct);
       if(ntdct>0)ANTI2JobStat::addch(chnum,3);
@@ -736,7 +733,7 @@ void AMSAntiCluster::build2(int &statt){
 //DAQ-ch-->edep(mev):
       ped=ANTIPeds::anscped[sector].apeda(isid);//adc-chan
       sig=ANTIPeds::anscped[sector].asiga(isid);//adc-ch sigmas
-      edep[nsds]=number(adca[0])/ANTI2DBc::daqscf()       //DAQ-ch-->ADC-ch
+      edep[nsds]=number(adca)/ANTI2DBc::daqscf()       //DAQ-ch-->ADC-ch
                 *ANTI2SPcal::antispcal[sector].getadc2pe() //ADC-ch-->p.e.
                 /ANTI2VPcal::antivpcal[sector].getmev2pec(isid); //p.e.-->Edep(Mev)
 //cout<<"    decoded edep="<<edep[nsds]<<endl; 
@@ -897,7 +894,6 @@ void AMSAntiCluster::build2(int &statt){
       
 //
       nsds=0;
-      nadca=0;
       ntdct=0;
       edep[0]=0;
       edep[1]=0;
@@ -962,7 +958,7 @@ integer Anti2RawEvent::calcdaqlength(int16u blid){
     antic=hwid%100-1;
     crate=hwid/100-1;
     if(crate==rcrat){
-      nhits+=ptr->getnadca();// counts hits (edges) of TDCA
+//      nhits+=ptr->getnadca();// counts hits (edges) of TDCA
       nzchn+=ptr->getnzchn();// counts nonzero TDC-channels (only TDCA)
     } 
 //

@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.6 2005/05/17 09:54:03 pzuccon Exp $
+//  $Id: daqs2block.C,v 1.7 2005/09/09 07:55:12 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
 #include "typedefs.h"
@@ -14,6 +14,9 @@
 #include "tofsim02.h"
 #include "antidbc02.h"
 #include "antirec02.h"
+//
+using namespace TOF2GC;
+using namespace ANTI2C;
 //
 integer DAQS2Block::format=1; // default format (reduced), redefined by data card
 //
@@ -101,10 +104,12 @@ void DAQS2Block::buildraw(integer len, int16u *p){
 // on input: len=tot_block_length as given at the beginning of block
 //           *p=pointer_to_beggining_of_block_data (block-id word address)
 //
-  integer i,j,lent,dlen,im;
-  int16u blid,btyp,ntyp,naddr,dtyp,msk,chan;
+  integer i,j,il,ib,is,ic,icn,nh,lent,dlen,im;
+  int swid,sswid,swidn,sswidn,pmmx;
+  int16u blid,btyp,ntyp,mt,pmt,naddr,mtyp,dtyp,msk,chan,slot,crat,cardid,tsens;
+  geant temp,charge;
 //
-  blid=(*p) & ~60;       // New genial idea
+  blid=(*p) & ~60;      
   btyp=blid>>13;// block_type ("0" for event data)
   ntyp=(blid>>9)&15;// node_type ("10" for TOF/ANTI/CTC)
   naddr=(blid>>6)&7;// node_address (0-7 -> DAQ crate #)
@@ -140,6 +145,115 @@ void DAQS2Block::buildraw(integer len, int16u *p){
 //
   lent=1;//initial block length (block_id word was read)
 //
+/*
+  int16u swcbuf[SCRCMX][SCTHMX2],swnbuf[SCRCMX],swibuf[SCRCMX],swtbuf[SCRCMX];
+  for(i=0;i<SCRCMX;i++){
+    swnbuf[i]=0;
+    swibuf[i]=0;
+    for(j=0;j<SCTHMX2;j++)swcbuf[i][j]=0;
+  }
+// fill here buffers with TOF/ANTI sw-channels hits and temperature 
+// in current crate as arrays of sequential sw-channel:
+// (number of hits in each channel should be verified here !!!)
+//
+  slot=AMSSCIds::crdid2sl(crat,cardid);//0,1,...
+  tsens=AMSSCIds::gettsn(slot);//1,2,...,5
+  temp=...;
+  TOF2JobStat::puttemp(crat,tsens-1);
+//..................................................
+//
+// Now scan buffers and create tof/anti raw-event obj.:
+//
+  int16u nftdc;         // number of fast "tdc" hits
+  int16u ftdc[SCTHMX2*2]; // fast "tdc" hits (2 edges, in TDC channels)
+  int16u nstdc;         // number of slow "tdc" hits
+  int16u stdc[SCTHMX3*4]; // slow "tdc" hits (4 edges,in TDC channels)
+  int16u adca; // Anode-channel ADC hit (in DAQ-bin units !)
+  int16u nadcd;         // number of NONZERO Dynode-channels(max PMTSMX)
+  int16u adcd[PMTSMX]; // ALL Dynodes ADC hits(positional, in DAQ-bin units !)
+//  
+  adca=0;
+  nftdc=0;
+  nstdc=0;
+  nadcd=0;
+  for(i=0;i<PMTSMX;i++){
+    adcd[i]=0;
+  }
+  sswid=0;
+  sswidn=0;
+  for(ic=0;ic<SCRCMX;ic++){//scan
+    swid=swibuf[ic];//LBBSPM
+    if(swid>0){//!=0 LBBSPM found
+      temp=swtbuf[ic];
+      sswid=swid/100;//LBBS
+      for(icn=ic+1;icn<SCRCMX;icn++){//find next !=0 LBBSPM
+        swidn=swibuf[icn];
+        if(swidn>0)break;
+      }
+      if(swidn>0)sswidn=swidn/100;//next LBBS
+      else sswidn=9999;//means all icn>ic are "0"
+      il=swid/100000;
+      mtyp=swid%10;
+      if(il==0)dtyp=2;//anti
+      else{
+        dtyp=1;//tof
+        il-=1;
+      }
+      ib=(swid%100000)/1000-1;
+      is=(swid%1000)/100-1;
+      pmt=(swid%100)/10;
+      if(dtyp==1)pmmx=TOF2DBc::npmtps(il,ib);
+      if(dtyp==2)pmmx=0;
+      nh=swnbuf[ic];
+      switch(mtyp){//fill RawEvent buffer
+        case 0:
+	  for(i=0;i<nh;i++)stdc[i]=swcbuf[ic][i];
+	  nstdc=nh;
+	  break;
+        case 1:
+	  for(i=0;i<nh;i++)ftdc[i]=swcbuf[ic][i];
+	  nftdc=nh;
+	  break;
+        case 2:
+	  if(pmt>pmmx)cout<<"scan: Npm>Max in ADC-h, swid="<<swid<<endl;
+	  else{
+	    if(pmt==0)adca=swcbuf[ic][0];//anode
+	    else adcd[pmt-1]=swcbuf[ic][0];//dynode
+	  }
+	  break;
+        default:
+	  cout<<"scan:unknown measurement type ! swid="<<swid<<endl;
+      }//-->endof switch
+    }//-->endof "!=0 LBBSPM found"
+//
+    if(sswid!=sswidn){//new/last LBBS found -> create RawEvent-obj for current LBBS
+// (after 1st swid>0 sswid is = last filled LBBS, sswidn is = LBBS of next nonempty channel or =9999)
+      if(dtyp==1){//TOF
+	if(nftdc>0 || nstdc>0 || adca>0 || adcal>0 || nadcd>0 || nadcdl>0){//create tof-raw-event obj
+          AMSEvent::gethead()->addnext(AMSID("TOF2RawEvent",0),
+                 new TOF2RawEvent(sswid,0,charge,temp,nftdc,ftdc,nstdc,stdc,
+                                                                   adca,
+			                                           nadcd,adcd));
+	}
+      }
+      else{//ANTI 
+        AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
+                                    new Anti2RawEvent(sswid,0,temp,adca,nftdc,ftdc));
+      }
+      adca=0;//reset RawEvent buffer
+      nftdc=0;
+      nstdc=0;
+      nadcd=0;
+      for(i=0;i<PMTSMX;i++){
+        adcd[i]=0;
+      }
+    }//-->endof next/last LBBS check
+  }//-->endof scan
+	
+      
+    
+  
+*/  
 //---> TOF decoding:
   if(lent<len && (msk&1)>0){
     dlen=lent;// bias to first TOF_data_word (=1 here)
@@ -225,11 +339,6 @@ void DAQS2Block::buildblock(integer ibl, integer len, int16u *p){
   lent+=dlen;
   next+=dlen;
 //---------------
-//  dlen=0;
-//  if((msk&4)>0)AMSCTCRawEvent::builddaq(blid, dlen, next);
-//  lent+=dlen;
-//  next+=dlen;
-//---------------
   dlen=0;
   if((msk&2)>0)Anti2RawEvent::builddaq(blid, dlen, next);
   lent+=dlen;
@@ -253,10 +362,6 @@ void DAQS2Block::buildblock(integer ibl, integer len, int16u *p){
 //    if(ptr3)ptr3->eraseC();
 //
 #endif
-//    for(i=0;i<2;i++){
-//      AMSContainer *ptr4=AMSEvent::gethead()->getC("AMSCTCRawHit",i);
-//      if(ptr4)ptr4->eraseC();
-//    }
   }
 //--------------
 }

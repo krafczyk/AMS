@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.13 2005/05/17 09:54:02 pzuccon Exp $
+//  $Id: antidbc02.C,v 1.14 2005/09/09 07:55:12 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -721,23 +721,6 @@ void ANTI2JobStat::printstat(){
     }
     printf("\n\n");
 //
-  printf("Multiple Charge-ADC Hits(percentage) :\n");
-  printf("\n");
-    for(ib=0;ib<ANTI2C::MAXANTI;ib++){
-      ic=ib*2;
-      rc=geant(chcount[ic][5]);
-      if(rc>0.)rc=100.*geant(chcount[ic][7])/rc;
-      printf("% 5.2f",rc);
-    }
-    printf("\n");
-    for(ib=0;ib<ANTI2C::MAXANTI;ib++){
-      ic=ib*2+1;
-      rc=geant(chcount[ic][5]);
-      if(rc>0.)rc=100.*geant(chcount[ic][7])/rc;
-      printf("% 5.2f",rc);
-    }
-    printf("\n\n");
-//
   printf("Hist-TDC wrong up/down sequence (percentage) :\n");
   printf("\n");
     for(ib=0;ib<ANTI2C::MAXANTI;ib++){
@@ -782,23 +765,6 @@ void ANTI2JobStat::printstat(){
       ic=ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][1])/rc;
-      printf("% 5.3f",rc);
-    }
-    printf("\n\n");
-//
-  printf("ADC-ch '1 hit' (wrt total):\n");
-  printf("\n");
-    for(ib=0;ib<ANTI2C::MAXANTI;ib++){
-      ic=ib*2;
-      rc=geant(chcount[ic][0]);
-      if(rc>0.)rc=geant(chcount[ic][2])/rc;
-      printf("% 5.3f",rc);
-    }
-    printf("\n");
-    for(ib=0;ib<ANTI2C::MAXANTI;ib++){
-      ic=ib*2+1;
-      rc=geant(chcount[ic][0]);
-      if(rc>0.)rc=geant(chcount[ic][2])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n\n");

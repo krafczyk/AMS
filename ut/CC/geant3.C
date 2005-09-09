@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.91 2005/05/17 09:54:04 pzuccon Exp $
+//  $Id: geant3.C,v 1.92 2005/09/09 07:55:13 choumilo Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -267,6 +267,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
             dz=dz/geant(nd);
             dt=dt/geant(nd);
             GCTRAK.destep=de/geant(nd);
+            GCTRAK.step=pstep/geant(nd);
             for(i=1;i<=nd;i++){//loop over subdivisions
               coo[0]=xpr+dx*(i-0.5);
               coo[1]=ypr+dy*(i-0.5);
@@ -287,7 +288,11 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
             tof=tpr+0.5*dt;
             dee=GCTRAK.destep;
 //  if(tfprf)cout<<"-->WrSmalTrsHit:numv="<<numv<<"x/y/z="<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" de="<<dee<<endl;
-            if(TFMCFFKEY.birks)GBIRK(dee);
+            if(TFMCFFKEY.birks){
+//	      cout<<"----->Bef.Birks:Edep="<<dee<<"  Q="<<GCKINE.charge<<" step="<<GCTRAK.step<<endl;
+	      GBIRK(dee);
+//	      cout<<"----->Aft.Birks:Edep="<<dee<<endl;
+	    }
             AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
           }// ---> endof "small transv.shift"
 //
@@ -298,6 +303,8 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 	    sstime/=geant(nsmstps);
 //  if(tfprf)cout<<"-->WrSmalStepAHits:numv="<<numv<<"x/y/z="<<sscoo[0]<<" "<<sscoo[1]<<" "<<sscoo[2]
 //                                                   <<" de/nst="<<estepsum<<" "<<nsmstps<<endl;
+            GCTRAK.destep=estepsum;
+            GCTRAK.step=stepsum;
             if(TFMCFFKEY.birks)GBIRK(estepsum);
             AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
 	    stepsum=0.;
@@ -326,6 +333,8 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 	    sstime/=geant(nsmstps);
 //  if(tfprf)cout<<"-->WrSmalStepHits:numv="<<numv<<"x/y/z="<<sscoo[0]<<" "<<sscoo[1]<<" "<<sscoo[2]
 //                                                   <<" de/nst="<<estepsum<<" "<<nsmstps<<endl;
+            GCTRAK.destep=estepsum;
+            GCTRAK.step=stepsum;
             if(TFMCFFKEY.birks)GBIRK(estepsum);
             AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
 	    stepsum=0.;
@@ -345,6 +354,8 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 	  sstime/=geant(nsmstps);
 //  if(tfprf)cout<<"-->WrSmalStepLHits:numv="<<numv<<"x/y/z="<<sscoo[0]<<" "<<sscoo[1]<<" "<<sscoo[2]
 //                                                   <<" de/nst="<<estepsum<<" "<<nsmstps<<endl;
+          GCTRAK.destep=estepsum;
+          GCTRAK.step=stepsum;
           if(TFMCFFKEY.birks)GBIRK(estepsum);
           AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
 	}//---> endof "on leave" actions
@@ -357,6 +368,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
           coo[2]=z;
           tof=t;
           dee=GCTRAK.destep;
+          GCTRAK.step=0.02;//point-like Edep ??
 //  if(tfprf)cout<<"-->WrZ=0Hit:numv="<<numv<<"x/y/z="<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" de="<<dee<<endl;
             if(TFMCFFKEY.birks)GBIRK(dee);
             AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
@@ -441,9 +453,13 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 //       for(i=0;i<4;i++)name[i]=GCVOLU.names[numl-2][i];
 //       cout<<"vol(lev-1)="<<numvp<<" name="<<name<<endl;
         if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
-        dee=GCTRAK.destep; 
+        dee=GCTRAK.destep;
+	if(GCTRAK.destep<0)cout<<"----> destep<0 "<<GCTRAK.destep<<endl;
         if(TFMCFFKEY.birks)GBIRK(dee);
+	if(dee<=0)cout<<"---->Birks:dee<0 "<<dee<<" step="<<GCTRAK.step<<" destep="<<GCTRAK.destep
+	<<" ipart="<<GCKINE.ipart<<endl;
         AMSEcalMCHit::siecalhits(GCVOLU.number[lvl-1],GCTRAK.vect,dee,GCTRAK.tofg);
+
         if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
       }
     }

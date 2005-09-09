@@ -1,4 +1,4 @@
-//  $Id: antidbc02.h,v 1.10 2005/05/17 09:56:34 pzuccon Exp $
+//  $Id: antidbc02.h,v 1.11 2005/09/09 07:55:26 choumilo Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
@@ -11,7 +11,7 @@ namespace ANTI2C{
  const integer ANTISRS=16;// number of physical sectors 
  const integer MAXANTI=ANTISRS/2; // number of logical(readout) sectors(8)
  const integer ANCHMX=2*MAXANTI;// number of readout channels(inputs)
- const integer ANAMTS=3;// number of Anode measurements types(hist/qh/ql) 
+ const integer ANAMTS=2;// number of Anode measurements types(hist/charge) 
  const integer ANAHMX=1; // max. number of anode-charge hits  per chan.
  const integer ANTHMX=8; // max. number of time-history hits (pairs of edges) per channel
  const integer ANFADC=100;//Flash-ADC channels
@@ -243,12 +243,12 @@ private:
   static integer chcount[ANTI2C::ANCHMX][ANTI2C::ANCSTA];//channel statistics
 //                              [0] -> h/w-status="ON" frequency 
 //                              [1] -> "ADCA-ON"  (Nadch>0)
-//                              [2] -> "ADCA-1hit"  (Nadch=1)
+//                              [2] -> spare
 //
-//                             [5] -> "h/w-ok frequency (validate)"
-//                             [6] -> "No ADC hits"
-//                             [7] -> "Multiple ADC Hits"
-//                             [8] -> "bad up/down sequence in TDC"
+//                              [5] -> "h/w-ok frequency (validate)"
+//                              [6] -> "No ADC hit"
+//                              [7] -> spare
+//                              [8] -> "bad up/down sequence in TDC"
 //------
   static integer brcount[ANTI2C::MAXANTI][ANTI2C::ANCSTA];// bar statistics
 //                               [0] -> h/w-status="ON" frequency

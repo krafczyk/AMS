@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.40 2005/05/17 09:54:06 pzuccon Exp $
+//  $Id: tkdbc.C,v 1.41 2005/09/09 07:55:14 choumilo Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -3539,7 +3539,7 @@ integer TKDBc::ambig(uinteger pat){
 TrkElosPDF::TrkElosPDF(int ich, int ch, int nb[], geant stp[],
                         geant nrm[], geant slop[], 
 			       geant distr[trconst::TrkTypes][trconst::TrkPdfBins]){
-//valid only for current(inconvenient) format if input Elos-files
+//valid only for current(inconvenient) format of input Elos-files
   ichar=ich;
   charge=ch;
   for(int itp=0;itp<TrkTypes;itp++)nbins[itp]=nb[itp];

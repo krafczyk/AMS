@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.87 2005/05/17 09:54:04 pzuccon Exp $
+//  $Id: gmat.C,v 1.88 2005/09/09 07:55:13 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -588,7 +588,9 @@ tmed.add (new AMSgtmed("ELECTRONICS","CARBON",0));
 //
 tmed.add (new AMSgtmed("TOF_VAC","VACUUMTOFA",0));// fill all gaps
 {
-geant birks[]={1.,0.013,9.6e-6};
+//geant birks[]={1.,0.013,9.6e-6};
+//geant birks[]={2.,0.0012,-6.4e-7};
+geant birks[]={0.,0.0011,0.52};//model "0" - pars from TOF test-beam; using atan
 //tmed.add (new AMSgtmed("TOF_SCINT","TOFSCINT",1,'Y',birks));
 tmed.add (new AMSgtmed("TOF_SCINT","TOFSCINT",1,'Y',birks,1,5,10,
                        -0.25, -1, 0.001, -0.05));
@@ -596,7 +598,9 @@ tmed.add (new AMSgtmed("TOF_SCINT","TOFSCINT",1,'Y',birks,1,5,10,
 //(for tof_scint.: max_step=0.25cm/autom, min_step=0.05cm/autom )
 //
 {
-geant birks[]={1.,0.013,9.6e-6};
+//geant birks[]={1.,0.013,9.6e-6};
+//geant birks[]={2.,0.0012,-6.4e-7};
+geant birks[]={0.,0.0011,0.52};
 tmed.add (new AMSgtmed("ANTI_SCINT","TOFSCINT",1,'Y',birks));
 }
 //
@@ -774,7 +778,9 @@ pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR","RICH_MIRROR",0));
 //  ECAL media
 //
 {
-geant birks[]={1.,0.013,9.6e-6};
+//geant birks[]={1.,0.013,9.6e-6};
+//geant birks[]={2.,0.0012,-6.4e-7};
+geant birks[]={0.,0.0011,0.52};
 tmed.add (new AMSgtmed("EC_EFFRAD","LIGHTLEAD",0));// eff.radiator for fast sim(not sens !!!)
 //
 AMSgtmed * pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("EC_RADIATOR","ECLEAD",0,'N',birks,2,20.,10.,1000.,

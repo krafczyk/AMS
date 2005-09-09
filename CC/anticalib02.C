@@ -104,7 +104,7 @@ void AntiCalib::init(){ // ----> initialization for AMPL-calibration
 //
 void AntiCalib::select(){ // ------> event selection for AMPL-calibration
   bool anchok;
-  int16u nadca,adca[ANTI2C::ANAHMX],ntdct,tdct[ANTI2C::ANTHMX*2];
+  int16u adca,ntdct,tdct[ANTI2C::ANTHMX*2];
   int16u id,idN,sta;
   int16u pbitn;
   int16u pbanti;
@@ -132,7 +132,6 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
   paddfi=360./ANTI2C::MAXANTI;//per logical sector
   frsect=0;
   nsds=0;
-  nadca=0;
   ntdct=0;
   uptm[0]=0;
   uptm[1]=0;
@@ -143,13 +142,13 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     sector=id/10-1;//Readout(logical) sector number (0-7)
     isid=id%10-1;
     chnum=sector*2+isid;//channels numbering
-    nadca=ptr->getadca(adca);
+    adca=ptr->getadca();
     ntdct=ptr->gettdct(tdct);
-    if(nadca==1 && ntdct==2){//select only 1-hit events
+    if(ntdct==2){//select only 1 Hist-hit events
 //DAQ-ch-->p.e's:
       ped=ANTIPeds::anscped[sector].apeda(isid);//adc-chan
       sig=ANTIPeds::anscped[sector].asiga(isid);//adc-ch sigmas
-      ampe[nsds]=number(adca[0])/ANTI2DBc::daqscf()       //DAQ-ch-->ADC-ch
+      ampe[nsds]=number(adca)/ANTI2DBc::daqscf()       //DAQ-ch-->ADC-ch
               *ANTI2SPcal::antispcal[sector].getadc2pe(); //ADC-ch-->p.e.
 //cout<<"    decoded signal="<<ampe[nsds]<<endl; 
 //TDC-ch-->time(ns):
@@ -178,7 +177,6 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
       }//--->endof good sector check
 //
       nsds=0;
-      nadca=0;
       ntdct=0;
       ampe[0]=0;
       ampe[1]=0;

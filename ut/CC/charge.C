@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.72 2005/05/17 09:54:03 pzuccon Exp $
+//  $Id: charge.C,v 1.73 2005/09/09 07:55:12 choumilo Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -48,13 +48,13 @@ if(charge>_chargeTracker[MaxZTypes-1]){
      return _ProbTOF[i]*_ProbTracker[i]/_ProbTOF[index]/_ProbTracker[index];
    }
    else return _ProbTracker[i]/_ProbTracker[_iTracker];
- } else return _ProbTOF[i]/_ProbTOF[_iTOF];
+ }
+ else return _ProbTOF[i]/_ProbTOF[_iTOF];
 }
 
 integer AMSCharge::getvotedcharge(int & index){
   int i;
   int charge=0;
-
 // Only tracker above this value
   if (_ChargeTOF>CHARGEFITFFKEY.TrackerOnly && _ChargeTracker){
     index=_iTracker;
@@ -69,12 +69,22 @@ integer AMSCharge::getvotedcharge(int & index){
     usetof=1;
     usetrk=1;
   }
-
-  number minlkhd=FLT_MAX;
+//--- codes below are suspicous to me (TOF and TRK Lkhd's have differente normalization !)
+//  number minlkhd=FLT_MAX;
+//  for(i=0; i<MaxZTypes; i++){
+//    number lkhdall=(usetof?_LkhdTOF[i]:0)+(usetrk?_LkhdTracker[i]:0);
+//    if(lkhdall<minlkhd){
+//      minlkhd=lkhdall;
+//      charge=_chargeTracker[i];
+//      index=i;
+//    }
+//  }
+//--- so i propose below the replacement codes(each of TOF and TRK prob's are normalized to SUMprob(i)=1)   
+  number maxprob=0;
   for(i=0; i<MaxZTypes; i++){
-    number lkhdall=(usetof?_LkhdTOF[i]:0)+(usetrk?_LkhdTracker[i]:0);
-    if(lkhdall<minlkhd){
-      minlkhd=lkhdall;
+    number proball=(usetof?_ProbTOF[i]:0)*(usetrk?_ProbTracker[i]:0);
+    if(proball>maxprob){
+      maxprob=proball;
       charge=_chargeTracker[i];
       index=i;
     }
@@ -460,11 +470,13 @@ integer AMSCharge::FitRich(int ricfit, number expRich, number useRich){
   }
 
   if(expRich>0){
-   for (i=0; i<MaxZTypes; i++){
-    number zz=_chargeRich[i]*_chargeRich[i];
-    lkhrich[i]=expRich*zz-useRich*log(expRich*zz);}
-   probrich=_probrich(expRich,useRich,lkhrich);
-   _ChargeRich=_chargeRich[_iRich];}
+    for (i=0; i<MaxZTypes; i++){
+     number zz=_chargeRich[i]*_chargeRich[i];
+     lkhrich[i]=expRich*zz-useRich*log(expRich*zz);
+    }
+    probrich=_probrich(expRich,useRich,lkhrich);
+    _ChargeRich=_chargeRich[_iRich];
+  }
   else failrich=1;
 
   return !failrich;
@@ -476,7 +488,6 @@ void AMSCharge::lkhcalc(int mode, number beta, int nhit, number ehit[], int type
     if(mode==0)lkh[i]+=TofElosPDF::TofEPDFs[i].getlkhd(nhit,typeh,ehit,beta);//TOF
     else if(mode==1)lkh[i]+=TrkElosPDF::TrkEPDFs[i].getlkhd(nhit,typeh,ehit,beta);//TRK
   }
-
 }
 
 
@@ -519,7 +530,7 @@ number AMSCharge::resmax(number x[],int ntot,int refit,number rescut,int &imax,n
     }
   }
 
-  int cut=(rsmx>rescut&&rescut>=0)?1:0;
+  int cut=(rsmx>rescut&&rescut>=0)?1:0;//=0, if incomp.hit removal was not requested
   imax=cut?imax:-1;//imax =-1 if incomp.hit removal was not requested
 
   mean=0;
@@ -556,37 +567,47 @@ number AMSCharge::_probcalc(int mode, int fit, int nhittyp[],number lkhd[]){
   int i;
   if(fit>=0){
     if(!mode){ 
-      for(i=0; i<MaxZTypes; i++) _LkhdTOF[i]=lkhd[i];
+      for(i=0; i<MaxZTypes; i++)_LkhdTOF[i]=lkhd[i];
       _iTOF=_sortlkhd(mode);//Z-index with max prob.
     }
     else{ 
-      for(i=0; i<MaxZTypes; i++) _LkhdTracker[i]=lkhd[i];
+      for(i=0; i<MaxZTypes; i++)_LkhdTracker[i]=lkhd[i];
       _iTracker=_sortlkhd(mode);
     }
   }
 
   int types=mode?TrkTypes:1;
-
+  
   int nhit=0;
   for(i=0; i<types; i++) nhit+=nhittyp[i];
 
   number probmx=1;
-//  if (CHARGEFITFFKEY.PdfNorm && mode>0){//commented, because now all pdf's are normalized automatically Integr=1
-//    probmx=0.;
-//    for(i=0; i<types; i++){
-//      number lkhdnorm=mode?_lkhdNormTracker[i][_iTracker]:1;
-//      if (nhittyp[i]>0) probmx+=nhittyp[i]*log(lkhdnorm);
-//    }
-//    probmx=1./exp(min(probmx/nhit,powmx));
+//  probmx=0.;
+//  for(i=0; i<types; i++){
+//    number lkhdnorm=mode?TrkElosPDF::TrkEPDFs[_iTracker].getstep(i):TofElosPDF::TofEPDFs[_iTOF].getstep();
+//    if (nhittyp[i]>0) probmx+=nhittyp[i]*log(lkhdnorm);
 //  }
+//  probmx=1./exp(min(probmx/nhit,powmx));
 
-  for(i=0; i<MaxZTypes; i++) prob[i]=1./exp(min(lkhd[i]/nhit,powmx))/probmx;
+  number probs(0);
+  for(i=0; i<MaxZTypes; i++){
+    prob[i]=1./exp(min(lkhd[i]/nhit,powmx))/probmx;
+    probs+=prob[i];
+  }
+  for(i=0; i<MaxZTypes; i++)prob[i]/=probs;// to have total(all charges) prob =1
 
   if(fit>=0){
-    if(!mode){ for(i=0; i<MaxZTypes; i++) _ProbTOF[i]=prob[i];}
-    else{ for(i=0; i<MaxZTypes; i++) _ProbTracker[i]=prob[i];}
+    if(!mode){
+      for(i=0; i<MaxZTypes; i++){
+        _ProbTOF[i]=prob[i];
+      }
+    }
+    else{ 
+      for(i=0; i<MaxZTypes; i++){
+        _ProbTracker[i]=prob[i];
+      }
+    }
   }
-
   int index=mode?_iTracker:_iTOF;
   return prob[index];
 } 

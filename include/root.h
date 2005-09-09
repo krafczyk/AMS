@@ -440,21 +440,19 @@ public:
    */
   int   Layer;   ///< Tof plane 1(top)...4
   int   Bar;     ///< Tof Bar number 1...14
-  float adca[2]; ///< Anode(high gain) raw signal(adc), side=1-2
-  float adcal[2]; ///< Anode(low gain) raw signal(adc)
-  float adcd[2]; ///< Dynode(equilized sum of pmts, h/l-gain corrected) raw signal(adc) 
-  float adcdr[2][3]; ///< Dynode(pm=1-3, high gain) raw signals(adc) 
-  float adcdlr[2][3]; ///< Dynode(pm=1-3, low gain) raw signals(adc) 
+  float adca[2]; ///< Anode raw signal(adc), side=1-2
+  float adcd[2]; ///< Dynode(equilized sum of pmts) raw signal(adc) 
+  float adcdr[2][3]; ///< Dynode(pm=1-3) raw signals(adc) 
   float sdtm[2];  ///< A-noncorrected side times
-  float edepa;   ///< Anode(hi/low combined) Edep (mev)
-  float edepd;   ///< Dynode(hi/low combined) Edep (mev)
+  float edepa;   ///< Anode Edep (mev)
+  float edepd;   ///< Dynode Edep (mev)
   float time;    ///< Time (ns)
   float cool;     ///< Long.coord.(cm)
   TofRawClusterR(){};
   TofRawClusterR(TOF2RawCluster *ptr);
 
   virtual ~TofRawClusterR(){};
-  ClassDef(TofRawClusterR ,3)       //TofRawClusterR
+  ClassDef(TofRawClusterR ,4)       //TofRawClusterR
 };
 
 

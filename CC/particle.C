@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.152 2005/05/17 09:54:05 pzuccon Exp $
+//  $Id: particle.C,v 1.153 2005/09/09 07:55:13 choumilo Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -679,8 +679,7 @@ void AMSParticle::pid(){
  &AMSParticle::alfun;
  void (*pmonit)(number &a, number &b, number sim[], int &n, int &s, int &nca)=
  &AMSParticle::monit;
-   if(_Charge==0){
-    
+   if(_Charge==0){    
     _GPart=1;  // photon
     _gpart[0]=1;  // photon
     _gpart[1]=0;  // nothing
@@ -735,11 +734,14 @@ void AMSParticle::pid(){
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
     geant chi2=f;
     prob[i]=PROB(chi2,1);
-    if(_pcharge)prob[i]*=_pcharge->getprobcharge(int(chrg));   // work around case when charge defined by rich
+    if(_pcharge){
+      prob[i]*=_pcharge->getprobcharge(int(chrg));   // work around case when charge defined by rich
+//      cout<<" probCharge="<<_pcharge->getprobcharge(int(chrg))<<" chrg="<<chrg<<endl;
+    }
     //linux bug
     if(ifail)prob[i]=0;
     if(fabs(prob[i])>2.){
-      cerr<<"AMSPArticle::pid-E-Proberror " <<chi2<<" " <<prob[i]<<endl;
+      cout<<"AMSPArticle::pid-E-Proberror " <<chi2<<" " <<prob[i]<<endl;
      prob[i]=0;
     }
     if(x[0]!=0)pfit[i]=1./fabs(x[0]);

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.157 2005/07/18 08:56:21 choutko Exp $
+//  $Id: ntuple.C,v 1.158 2005/09/09 07:55:13 choumilo Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -150,7 +150,7 @@ void AMSNtuple::init(){
   "ntrraw[0,300],rawaddress(ntrraw):I,rawlength(ntrraw)[-1,30000]:I,s2n(ntrraw):R");
 
 
-  HBNAME(_lun,"TOFRawCl",&_tofraw.Ntofraw,"ntofraw[0,48],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,4]:I,tofrbar(ntofraw)[0,12]:I,tofradca(2,ntofraw),tofradcal(2,ntofraw),tofradcd(2,ntofraw),tofradcdr(3,2,ntofraw),tofradcdlr(3,2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
+  HBNAME(_lun,"TOFRawCl",&_tofraw.Ntofraw,"ntofraw[0,48],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,4]:I,tofrbar(ntofraw)[0,12]:I,tofradca(2,ntofraw),tofradcd(2,ntofraw),tofradcdr(3,2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
  
   HBNAME(_lun,"RICMCCl",&_richmc.NMC,
   	 "nsignals[0,250],sid(nsignals):I,"

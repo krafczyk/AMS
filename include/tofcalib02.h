@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.7 2005/05/17 09:56:36 pzuccon Exp $
+//  $Id: tofcalib02.h,v 1.8 2005/09/09 07:55:27 choumilo Exp $
 #include "typedefs.h"
 #include "tofdbc02.h"  
 //  Some classes for calibrations. E.Choumilov
@@ -96,17 +96,10 @@ private:
   static geant profp[TOF2GC::SCBTPN][TOF2GC::SCPRBM];// bin middle-point values
   static integer nprbn[TOF2GC::SCBTPN];// real number of prof.bins according to bar-type
   
-  static number ah2lr[TOF2GC::SCCHMX];//sum of Anode h/l-ratios for each channel
-  static number ah2lr2[TOF2GC::SCCHMX];// sum of Anode h/l-ratios**2
-  static integer nevenar[TOF2GC::SCCHMX];//number of events/channel for above sum
-  static number dh2lr[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of Dynode h/l-ratios for each LBBS
-  static number dh2lr2[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of Dynode h/l-ratios**2 ...
-  static integer nevendr[TOF2GC::SCCHMX][TOF2GC::PMTSMX];// number of events/channel for above sum
-  
-  static number a2dr[TOF2GC::SCCHMX];//sum of Ah/Sum(Dh(pmt))-ratios for each channel
+  static number a2dr[TOF2GC::SCCHMX];//sum of An/Sum(Dyn(pmt))-ratios for each channel
   static number a2dr2[TOF2GC::SCCHMX];//sum of ratios**2 for each channel
   static integer neva2d[TOF2GC::SCCHMX];//number of events/channel for above sum
-  static number d2sdr[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of Dh(pm)/Sum(Dh(pm))-gains for LBBS
+  static number d2sdr[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of Dyn(pm)/Sum(Dyn(pm))-gains for LBBS
   static number d2sdr2[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of ratios**2 for each LBBS
   static integer nevdgn[TOF2GC::SCCHMX];//number of events/channel for above sum
   
@@ -136,8 +129,6 @@ public:
   static void fill(integer il, integer ib, geant ama[2], geant coo);
   static void fillabs(integer il, integer ib, geant ama[2], geant coo, number mom,
                                                                      number btof);
-  static void fillah2l(integer chan, number ama,number amal);
-  static void filldh2l(int chan, int np, number amd[TOF2GC::PMTSMX], number amdl[TOF2GC::PMTSMX]);
   static void filla2dg(int il, int ib, geant cin, geant ama[2], geant amd[2][TOF2GC::PMTSMX]);
   
   static void mfun(int &np, number grad[],number &f,number x[],int &flg,int &dum);

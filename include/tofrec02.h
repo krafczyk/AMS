@@ -1,10 +1,11 @@
-//  $Id: tofrec02.h,v 1.14 2005/05/17 09:56:36 pzuccon Exp $
+//  $Id: tofrec02.h,v 1.15 2005/09/09 07:55:27 choumilo Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
 //
 // Last Edit Oct 04, 1996. ak.
 // Last edit 8.1.97 EC (raw cluster format changed)
+// Removed gain-5 logic, E.Choumilov 22.08.2005
 //
 #ifndef __AMSTOF2REC__
 #define __AMSTOF2REC__
@@ -24,12 +25,10 @@ protected:
  integer _ntof;    // number of TOF-plane(layer) (1-top,...,4-bot)
  integer _plane;   //  number of sc. bar in given plane(1->...)
  number _z;        // z coord of sc.bar
- number _adca[2]; // Anode(h) ADC for 2 sides (ADC-chan in float)
- number _adcal[2]; // Anode(l) ADC for 2 sides (ADC-chan in float)
- number _adcd[2]; // Dynode(pmt/h/l-combined) ADC(s1/2, float adc-chan))
- number _adcdr[2][TOF2GC::PMTSMX];// Dh-pmts ADC(s1/2, float adc-chan)
- number _adcdlr[2][TOF2GC::PMTSMX];// Dl-pmts ADC(s1/2, float adc-chan)
- number _edepa;    // reco. via Anode channel(h/l-combined,no angle correction)
+ number _adca[2]; // Anode ADC for 2 sides (ADC-chan in float)
+ number _adcd[2]; // Dynode(pmts-combined, i.e. equilized sum) ADC(s1/2, float adc-chan))
+ number _adcdr[2][TOF2GC::PMTSMX];// separate Dynode-pmts ADC(s1/2, float adc-chan)
+ number _edepa;    // reco. via Anode channel(no angle correction)
  number _edepd;    // reco. via Dynode channel (..................)
  number _sdtm[2];  // A-noncorrected side times (ns, for TZSL-calibr) 
  number _time;   // A-corrected time=0.5*(t1+t2) (ns);
@@ -51,8 +50,8 @@ public:
  number getedepd()const {return _edepd;}
  number getz()const {return _z;}
  TOF2RawCluster(integer status, integer xy, integer plane, 
-   number z, number adca[2], number adcal[2], number adcd[2],
-   number adcdr[2][TOF2GC::PMTSMX], number adcdlr[2][TOF2GC::PMTSMX],
+   number z, number adca[2], number adcd[2],
+   number adcdr[2][TOF2GC::PMTSMX],
    number de, number ded, 
    number sdtm[2], number time, number timed, number etimed):
    AMSlink(status,0), _ntof(xy),_plane(plane),_z(z),
@@ -60,10 +59,8 @@ public:
    _time(time), _timeD(timed), _etimeD(etimed){
    for(int i=0;i<2;i++){
      _adca[i]=adca[i];
-     _adcal[i]=adcal[i];
      _adcd[i]=adcd[i];
      for(int ip=0;ip<TOF2GC::PMTSMX;ip++)_adcdr[i][ip]=adcdr[i][ip];
-     for(int ip=0;ip<TOF2GC::PMTSMX;ip++)_adcdlr[i][ip]=adcdlr[i][ip];
      _sdtm[i]=sdtm[i];
    }
  }
@@ -71,19 +68,12 @@ public:
    adc[0]=_adca[0];
    adc[1]=_adca[1];
  }
- void getadcal(number adc[2]){
-   adc[0]=_adcal[0];
-   adc[1]=_adcal[1];
- }
  void getadcd(number adc[2]){
    adc[0]=_adcd[0];
    adc[1]=_adcd[1];
  }
  void getadcdr(int is, number adc[TOF2GC::PMTSMX]){
    for(int ipm=0;ipm<TOF2GC::PMTSMX;ipm++)adc[ipm]=_adcdr[is][ipm];
- }
- void getadcdlr(int is, number adc[TOF2GC::PMTSMX]){
-   for(int ipm=0;ipm<TOF2GC::PMTSMX;ipm++)adc[ipm]=_adcdlr[is][ipm];
  }
  void getsdtm(number sdtm[2]){
    sdtm[0]=_sdtm[0];

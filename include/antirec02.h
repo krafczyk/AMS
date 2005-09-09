@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.8 2005/05/17 09:56:34 pzuccon Exp $
+//  $Id: antirec02.h,v 1.9 2005/09/09 07:55:26 choumilo Exp $
 //
 // May 29   1997. V. Choutko primitive version
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
@@ -18,17 +18,17 @@ private:
   static uinteger trpatt; //bits 1-8 => log.sect# in coinc.with FT
   int16u idsoft; // BBS (Bar/Side)
   int16u status; // status (0/1/... -> alive/dead/...)
-  int16u nadca; // number of anode pulse-charge hits 
-  int16u adca[ANTI2C::ANAHMX];// anode pulse-charge hits(ADC-chan)
+  geant temp;//temperature
+  int16u adca;// anode pulse-charge hit(ADC-chan)
   int16u ntdct; // number of History-TDC hits (edges)
   int16u tdct[ANTI2C::ANTHMX*2];// Hist-TDC edges (edge time is in TDC-channels)
 public:
-  Anti2RawEvent(int16u _idsoft, int16u _status, int16u _nadca, int16u _adca[],
+  Anti2RawEvent(int16u _idsoft, int16u _status, geant _temp,  int16u _adca,
                   int16u _ntdct, int16u _tdct[]):idsoft(_idsoft),status(_status)
   {
     int i;
-    nadca=_nadca;
-    for(i=0;i<nadca;i++)adca[i]=_adca[i];
+    temp=_temp;
+    adca=_adca;
     ntdct=_ntdct;
     for(i=0;i<ntdct;i++)tdct[i]=_tdct[i];
   };
@@ -40,17 +40,14 @@ public:
 //
   int16u getid() const {return idsoft;}
   int16u getstat() const {return status;}
-  int16u getnadca(){return nadca;}
-  int16u getnzchn(){if(nadca>0)return(1);
+  int16u getnzchn(){if(adca>0)return(1);
                           else return(0);}
 //
-  int16u getadca(int16u arr[]){
-  for(int i=0;i<nadca;i++)arr[i]=adca[i];
-  return nadca;
+  int16u getadca(){
+    return adca;
   }
-  void putadca(int16u nelem, int16u arr[]){
-    nadca=nelem;
-    for(int i=0;i<nadca;i++)adca[i]=arr[i];
+  void putadca(int16u arr){
+    adca=arr;
   }
 //
   int16u gettdct(int16u arr[]){
@@ -85,8 +82,7 @@ protected:
 void _printEl(ostream &stream){
   int i;
   stream <<"Anti2RawEvent: id="<<dec<<idsoft<<endl;
-  stream <<"nadca="<<dec<<nadca<<endl;
-  for(i=0;i<nadca;i++)stream <<hex<<adca[i]<<endl;
+  stream <<hex<<adca<<endl;
   stream <<"ntdct="<<dec<<ntdct<<endl;
   for(i=0;i<ntdct;i++)stream <<hex<<tdct[i]<<endl;
   stream <<dec<<endl<<endl;

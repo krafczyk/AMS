@@ -1808,12 +1808,10 @@ TofRawClusterR::TofRawClusterR(TOF2RawCluster *ptr){
   Layer  = ptr->_ntof;
   Bar    = ptr->_plane;
   for (int i=0; i<2; i++) adca[i]=ptr->_adca[i];
-  for (int i=0; i<2; i++) adcal[i]=ptr->_adcal[i];
   for (int i=0; i<2; i++) adcd[i]=ptr->_adcd[i];
   for (int i=0; i<2; i++){
      for(int ip=0;ip<TOF2GC::PMTSMX;ip++){
        adcdr[i][ip]=ptr->_adcdr[i][ip];
-       adcdlr[i][ip]=ptr->_adcdlr[i][ip];
      }
   }
   for (int i=0; i<2; i++) sdtm[i] =ptr->_sdtm[i];

@@ -1,9 +1,10 @@
-//  $Id: tofrec02.C,v 1.32 2005/05/17 09:54:06 pzuccon Exp $
+//  $Id: tofrec02.C,v 1.33 2005/09/09 07:55:14 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
 //                                       TOF2RawCluster::sitofdigi modified for trigg.
 //              26.06.97   E.Choumilov - DAQ decoding/encoding added
+//              22.08.05   E.Choumilov - gain5 logic removed
 //
 #include "tofdbc02.h"
 #include "point.h"
@@ -42,23 +43,23 @@ integer AMSTOFCluster::_padspl[TOF2GC::SCLRS]={0,0,0,0};
 void TOF2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   int16u nftdc,nstdc,nadcd,nadcdl;
   int16u ftdc1[TOF2GC::SCTHMX2*2],stdc1[TOF2GC::SCTHMX3*4];
-  int16u adca1,adcal1;
-  int16u adcd1[TOF2GC::PMTSMX],adcdl1[TOF2GC::PMTSMX];
+  int16u adca1;
+  int16u adcd1[TOF2GC::PMTSMX];
   int16u ftdc2[TOF2GC::SCTHMX2*2],stdc2[TOF2GC::SCTHMX3*4];
-  int16u adca2,adcal2;
-  int16u adcd2[TOF2GC::PMTSMX],adcdl2[TOF2GC::PMTSMX];
+  int16u adca2;
+  int16u adcd2[TOF2GC::PMTSMX];
   integer ilay,last,ibar,isid,isds;
   integer i,j,im,nhit,chnum,brnum,am[2],tmi[2],itmf[2],sta,st;
   int16u pbitn;
   int16u pbanti;
   int16u pbup,pbdn,pbup1,pbdn1;
   int16u id,idd,idN,stat[2],idr;
-  number tsr[3],ths[2],fstd,t1,t2,t3,t4,dt,adca,adcal,adcd,adcdl;
+  number tsr[3],ths[2],fstd,t1,t2,t3,t4,dt,adca,adcd;
   geant mtma[2],mtmd[2];
-  geant peda,pedd,peddl;
+  geant peda,pedd;
   int bad(1);
   static int first(0);
-  geant charge,edep;
+  geant charge,temp;
   TOF2RawEvent *ptr;
   TOF2RawEvent *ptrN;
 //
@@ -107,7 +108,7 @@ void TOF2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
     chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isid;//channels numbering
     brnum=ilay*TOF2GC::SCMXBR+ibar;//bar numbering
     stat[isid]=ptr->getstat();
-    edep=ptr->getedep();//tempor
+    temp=ptr->gettemp();//
     charge=ptr->getcharg();
 //
     if(stat[isid] == 0){ // still no sense(?) ( =0 upto now by definition)
@@ -116,9 +117,7 @@ void TOF2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
       nftdc=ptr->getftdc(ftdc1);
       nstdc=ptr->getstdc(stdc1);
       adca1=ptr->getadca();
-      adcal1=ptr->getadcal();
       nadcd=ptr->getadcd(adcd1);
-      nadcdl=ptr->getadcdl(adcdl1);
       TOF2JobStat::addch(chnum,12);
 //---> check hist-TDC :
       nhit=0;
@@ -190,30 +189,23 @@ void TOF2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
       }
       if(TFREFFKEY.reprtf[3]>0)HF1(1300+chnum,geant(im+20),1.);
 //
-//---> check Anode(h/l)-adc :
+//---> check Anode-adc :
       im=0;
       if(adca1>0)im=1;
       if(TFREFFKEY.reprtf[3]>0)HF1(1300+chnum,geant(im+40),1.);
-      im=0;
-      if(adcal1>0)im=1;
-      if(TFREFFKEY.reprtf[3]>0)HF1(1300+chnum,geant(im+50),1.);
-      if(adca1==0 && adcal1==0)TOF2JobStat::addch(chnum,15);//something wrong
 //
-//---> check Dynode(h)-adc :
+//---> check Dynode-adc :
       im=nadcd;
       if(TFREFFKEY.reprtf[3]>0)HF1(1300+chnum,geant(im+60),1.);
-      im=nadcdl;
-      if(TFREFFKEY.reprtf[3]>0)HF1(1300+chnum,geant(im+70),1.);
   number pedv,peds;
-      pedv=TOFBPeds::scbrped[ilay][ibar].apedal(isid);
-      peds=TOFBPeds::scbrped[ilay][ibar].asigal(isid);
-      if(adca1==0 && 
-         (adcal1*TOF2DBc::tdcbin(2)+pedv+peds)>=number(TOF2GC::SCADCMX)){
-//                                      +peds to be sure in high value of A(l)(close to ovfl)
-        if(nadcd==0 && nadcdl==0)TOF2JobStat::addch(chnum,16);//miss D(h/l)-something wrong
+      pedv=TOFBPeds::scbrped[ilay][ibar].apeda(isid);
+      peds=TOFBPeds::scbrped[ilay][ibar].asiga(isid);
+      if((adca1*TOF2DBc::tdcbin(2)+3*peds)>=number(TOF2GC::SCPUXMX)){
+//                                     +3*peds to be sure in high value of Anode(close to PUX-ovfl)
+        if(nadcd==0)TOF2JobStat::addch(chnum,16);//miss Dynode at Anode ovfl - something wrong
       }
 //
-      if(nhit>0 && (adca1>0 || adcal1>0 || nadcd>0 || nadcdl>0))bad=0;//at least one
+      if(nhit>0 && (adca1>0 || nadcd>0))bad=0;//at least one
 //                                                        t+amp measurement per event
 //
 //-----      
@@ -241,6 +233,7 @@ void TOF2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
       isid=idd%10-1;
       chnum=2*TOF2DBc::barseqn(ilay,ibar)+isid;//sequential solid numbering
       stat[isid]=ptr->getstat();
+      temp=ptr->gettemp();//
       if(stat[isid] == 0){  
         isds+=1;
 //
@@ -249,13 +242,12 @@ void TOF2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
         nftdc=ptr->getftdc(ftdc1);
         nstdc=ptr->getstdc(stdc1);
         adca1=ptr->getadca();
-        adcal1=ptr->getadcal();
         if(nstdc==4){ // require only one "4-edge" sTDC-hit
           tsr[0]=number((stdc1[3]&pbanti)*TOF2DBc::tdcbin(1));
           tsr[1]=number((stdc1[2]&pbanti)*TOF2DBc::tdcbin(1));
           tsr[2]=number((stdc1[0]&pbanti)*TOF2DBc::tdcbin(1));
           TOF2STRRcalib::fill(chnum,tsr);
-          if(nftdc==2 && (adca1>0 || adcal1>0)){// 1 "2-edge" fTDC and anode>0
+          if(nftdc==2 && adca1>0){// 1 "2-edge" fTDC and anode>0
             ths[0]=(ftdc1[1]&pbanti)*TOF2DBc::tdcbin(0);
             ths[1]=(ftdc1[0]&pbanti)*TOF2DBc::tdcbin(0);
             fstd=ths[0]-tsr[0];//fTDC-sTDC time-shift
@@ -276,15 +268,13 @@ void TOF2RawCluster::build(int &ostatus){
   int16u nftdc[2]={0,0};
   int16u nstdc[2]={0,0};
   int16u nadca[2]={0,0};
-  int16u nadcal[2]={0,0};
   int16u nadcd[2]={0,0};
-  int16u nadcdl[2]={0,0};
   int16u ftdc1[TOF2GC::SCTHMX2*2],stdc1[TOF2GC::SCTHMX3*4];
-  int16u adca1,adcal1;
-  int16u adcd1[TOF2GC::PMTSMX],adcdl1[TOF2GC::PMTSMX];
+  int16u adca1;
+  int16u adcd1[TOF2GC::PMTSMX];
   int16u ftdc2[TOF2GC::SCTHMX2*2],stdc2[TOF2GC::SCTHMX3*4];
-  int16u adca2,adcal2;
-  int16u adcd2[TOF2GC::PMTSMX],adcdl2[TOF2GC::PMTSMX];
+  int16u adca2;
+  int16u adcd2[TOF2GC::PMTSMX];
   integer ilay,last,ibar,isid,isds,isd,isdsl[TOF2GC::SCLRS],hwid,tchan,crat,sfet,slnu,tdcc;
   integer i,j,k,chnum,brnum,am[2],tmi[2],itmf[2],sta,st,smty[2],ftdcfl,reject;
   integer nmpts;
@@ -295,8 +285,8 @@ void TOF2RawCluster::build(int &ostatus){
   int16u pbanti;
   int16u id,idd,idN,stat[2],amf[2];
   int16u mtyp(0),otyp(0);
-  number ama[2],amal[2],amd[2],amdl[2],amc[2];
-  geant peds[2];
+  number ama[2],amd[2],amc[2];
+  geant peds[2],sigs[2];
   number zc,elosa,elosal,elosd,elosdl,tmf[2],time,coo,ecoo;//input to RawCluster Constr
   number aedep,dedep;
   number tm[2],tf,tff,dt,fstd,tmr[2];
@@ -313,14 +303,14 @@ void TOF2RawCluster::build(int &ostatus){
   int bad,tsfl(0),anchok,anlchok,dychok,dylchok,hlf;
 // some variables for histogramming:
   geant gdt,tch,pch1[TOF2GC::SCLRS],pch2[TOF2GC::SCLRS],rrr[2];
-  geant edepa[TOF2GC::SCLRS],edepd[TOF2GC::SCLRS],edepdl[TOF2GC::SCLRS];
+  geant edepa[TOF2GC::SCLRS],edepd[TOF2GC::SCLRS];
   geant tcorr[TOF2GC::SCLRS],elosn;
   geant tuncorr[TOF2GC::SCLRS],tdiff[TOF2GC::SCLRS],td13,td24,td14;
   geant gnd,dh2l,a2d;
   number aaa,ddd;
   int dovfl,dlovfl;
   integer npmts;
-  number adcdr[2][TOF2GC::PMTSMX],adcdlr[2][TOF2GC::PMTSMX];
+  number adcdr[2][TOF2GC::PMTSMX];
 //
   ptr=(TOF2RawEvent*)AMSEvent::gethead()
                                     ->getheadC("TOF2RawEvent",0);
@@ -352,8 +342,8 @@ void TOF2RawCluster::build(int &ostatus){
     stat[isid]=ptr->getstat();
 //
     if(TOF2Brcal::scbrcal[ilay][ibar].SideOK(isid)
-      && TOFBPeds::scbrped[ilay][ibar].PedAHchOK(isid)
-      && TOFBPeds::scbrped[ilay][ibar].PedDHchOK(isid)
+      && TOFBPeds::scbrped[ilay][ibar].PedAchOK(isid)
+      && TOFBPeds::scbrped[ilay][ibar].PedDchOK(isid)
                                                      ){//<--- check hit DB(cal+ped)-status
 //      hwid=TOF2RawEvent::sw2hwid(ilay,ibar,isid);//tempor(no tofid !)
 //      crat=hwid/100-1;
@@ -367,10 +357,7 @@ void TOF2RawCluster::build(int &ostatus){
 	fttime[crat]=geant((stdc1[2]&pbanti)*TOF2DBc::tdcbin(1));//FT-edge from s-tdc hit(last "4")
         adca1=ptr->getadca();
 	if(adca1>0)nadca[isid]+=1;
-        adcal1=ptr->getadcal();
-	if(adcal1>0)nadcal[isid]+=1;
         nadcd[isid]=ptr->getadcd(adcd1);
-        nadcdl[isid]=ptr->getadcdl(adcdl1);
 //        tdcc=12;//temper. reading for anode
 //        tchan=TOF2GC::DAQSTSC*TOF2GC::DAQSTCS*crat+TOF2GC::DAQSTCS*(slnu-1)+(tdcc%4);
 //        treada[isid]=DAQS2Block::gettemp(tchan);// get "temperature" for anode chain
@@ -385,10 +372,7 @@ void TOF2RawCluster::build(int &ostatus){
 	fttime[crat]=geant((stdc2[2]&pbanti)*TOF2DBc::tdcbin(1));//FT-edge from s-tdc hit(last "4")
         adca2=ptr->getadca();
 	if(adca2>0)nadca[isid]+=1;
-        adcal2=ptr->getadcal();
-	if(adcal2>0)nadcal[isid]+=1;
         nadcd[isid]=ptr->getadcd(adcd2);
-        nadcdl[isid]=ptr->getadcdl(adcdl2);
 //        tdcc=12;//temper. reading for anode
 //        tchan=TOF2GC::DAQSTSC*TOF2GC::DAQSTCS*crat+TOF2GC::DAQSTCS*(slnu-1)+(tdcc%4);
 //        treada[isid]=DAQS2Block::gettemp(tchan);// get "temperature" for anode chain
@@ -400,12 +384,10 @@ void TOF2RawCluster::build(int &ostatus){
       if(nftdc[isid]>0)TOF2JobStat::addch(chnum,1);
       if(nstdc[isid]>0)TOF2JobStat::addch(chnum,2);
       if(nadca[isid]>0)TOF2JobStat::addch(chnum,3);
-      if(nadcal[isid]>0)TOF2JobStat::addch(chnum,18);
       if(nadcd[isid]>0)TOF2JobStat::addch(chnum,4);
-      if(nadcdl[isid]>0)TOF2JobStat::addch(chnum,5);
       if(nftdc[isid]==2)TOF2JobStat::addch(chnum,6);
       if(nstdc[isid]==4)TOF2JobStat::addch(chnum,7);
-      if(nftdc[isid]>=2 && nstdc[isid]>=4 && (nadca[isid]>0 || nadcal[isid]>0))TOF2JobStat::addch(chnum,8);
+      if(nftdc[isid]>=2 && nstdc[isid]>=4 && (nadca[isid]>0 || nadcd[isid]>0))TOF2JobStat::addch(chnum,8);
       if(TFREFFKEY.reprtf[2]>1){
         HF1(1120+crat,geant(treads[isid]),1.);
       }
@@ -431,10 +413,10 @@ void TOF2RawCluster::build(int &ostatus){
         smty[1]=0;
         ftdcfl=TFREFFKEY.relogic[1];// use/not flag for f-TDC 
         if(nstdc[0]>=4  
-	    && (nadca[0]>0 || nadcal[0]>0 || nadcd[0]>0 || nadcdl[0]>0)
+	    && (nadca[0]>0 || nadcd[0]>0)
 	    && (nftdc[0] >=2 || ftdcfl==2))smty[0]=1;//
         if(nstdc[1]>=4  
-	    && (nadca[1]>0 || nadcal[1]>0 || nadcd[1]>0 || nadcdl[1]>0)
+	    && (nadca[1]>0 || nadcd[1]>0)
 	    && (nftdc[1] >=2 || ftdcfl==2))smty[1]=1;//
 //----------------------
 //bbb--->
@@ -570,9 +552,8 @@ void TOF2RawCluster::build(int &ostatus){
             chnum=ilay*TOF2GC::SCMXBR*2+ibar*2;//s1-channel number 
             tm[0]=0;
             ama[0]=0.;
-            amal[0]=0.;
             tmr[0]=0.;
-            TOFBPeds::scbrped[ilay][ibar].getpedal(peds);// get anode(l)-adc peds(s1/2)
+            TOFBPeds::scbrped[ilay][ibar].getsiga(sigs);// get anode-adc sig(s1/2)
             if(smty[0]==1){// good S1(3-measurement) side, but matching/history may not be good
               t4=(stdc1[0]&pbanti)*TOF2DBc::tdcbin(1);// 4-th edge of str-info
               t2=(stdc1[2]&pbanti)*TOF2DBc::tdcbin(1);// 2-nd edge of str-info
@@ -580,23 +561,18 @@ void TOF2RawCluster::build(int &ostatus){
               tm[0]=((t2-t4)-srof[0])/strr[0];// s-1 time (ns,A-noncorr)
               tmf[0]=tm[0];
               tmr[0]=t1-t2;
-	      if(nadca[0]>0){//Anode(h),s1
-                ama[0]=number(adca1*TOF2DBc::tdcbin(2));//DAQ-units-->ADC(float)(anodeH s1)
+	      if(nadca[0]>0){//Anode,s1
+                ama[0]=number(adca1*TOF2DBc::tdcbin(2));//DAQ-units-->ADC(float)(anode s1)
                 if(TFREFFKEY.reprtf[2]>0 && id==104)HF1(1104,geant(ama[0]),1.);
-//              don't check here ovfl because Ah-ovfl is not read out by ADC-chip
-	      }
-	      if(nadcal[0]>0){//Anode(l),s1
-                amal[0]=number(adcal1*TOF2DBc::tdcbin(2));//DAQ-units-->ADC(float)(anodeL s1)
-                if(TFREFFKEY.reprtf[2]>0 && id==104)HF1(1109,geant(amal[0]),1.);
-	        if((amal[0]+peds[0])>=number(TOF2GC::SCADCMX-1))amal[0]=0.;//mark overflow by "0"
-                if(amal[0]==0.)TOF2JobStat::addch(chnum,19);//counts Al-cnan. overflows
-		if(nadca[0]==0)TOF2JobStat::addch(chnum,9);//counts Ah-cnan. overflows
+		if((ama[0]+3*sigs[0])>=number(TOF2GC::SCPUXMX)){//check PUX-ovfl
+		  ama[0]=0;//mark ovfl
+		  TOF2JobStat::addch(chnum,9);//counts Anode-cnan. overflows
+		}
 	      }
             }
 //
             tm[1]=0;
             ama[1]=0.;
-            amal[1]=0.;
             tmr[1]=0.;
             if(smty[1]==1){// good S2(3-measurement) side, but matching/hist may not be good
               t4=(stdc2[0]&pbanti)*TOF2DBc::tdcbin(1);// 4-th edge of str-info
@@ -605,38 +581,27 @@ void TOF2RawCluster::build(int &ostatus){
               tm[1]=((t2-t4)-srof[1])/strr[1];// s-2 time (ns,A-noncorr)
               tmf[1]=tm[1];
               tmr[1]=t1-t2;
-	      if(nadca[1]>0){//Anode(h),s2
-                ama[1]=number(adca2*TOF2DBc::tdcbin(2));//DAQ-units-->ADC(float)(anodeH s2)
-//              don't check here ovfl because Ah-ovfl is not read out by ADC-chip
-	      }
-	      if(nadcal[1]>0){//Anode(l),s2
-                amal[1]=number(adcal2*TOF2DBc::tdcbin(2));//DAQ-units-->ADC(float)(anodeL s2)
-	        if((amal[1]+peds[1])>=number(TOF2GC::SCADCMX-1))amal[1]=0.;//mark overflow by "0"
-                if(amal[1]==0.)TOF2JobStat::addch(chnum+1,19);//counts Al-cnan. overflows
-		if(nadca[1]==0)TOF2JobStat::addch(chnum+1,9);//counts Ah-cnan. overflows
+	      if(nadca[1]>0){//Anode,s2
+                ama[1]=number(adca2*TOF2DBc::tdcbin(2));//DAQ-units-->ADC(float)(anode s2)
+		if((ama[1]+3*sigs[1])>=number(TOF2GC::SCPUXMX)){//check PUX-ovfl
+		  ama[1]=0;//mark ovfl
+		  TOF2JobStat::addch(chnum+1,9);//counts Anode-cnan. overflows
+		}
 	      }
             }
             if(smty[0]==0){ //set "=" s1&s2 times and ampl. for 1-sided case:
               tmf[0]=tmf[1];
               ama[0]=ama[1];
-              amal[0]=amal[1];
             }
             if(smty[1]==0){
               tmf[1]=tmf[0];
               ama[1]=ama[0];
-              amal[1]=amal[0];
             }
 	    anchok=1;
-	    if(ama[0]==0.|| ama[1]==0.){//set s1&s2->0(no Ah info) if any side-overflow
+	    if(ama[0]==0.|| ama[1]==0.){//set s1&s2->0(no Anode info) if any side-overflow
 	      ama[0]=0.;
 	      ama[1]=0.;
 	      anchok=0;
-	    }
-	    anlchok=1;
-	    if(amal[0]==0.|| amal[1]==0.){//set s1&s2->0(no Al info) if any side-overflow
-	      amal[0]=0.;
-	      amal[1]=0.;
-	      anlchok=0;
 	    }
 //
 //---> Dynode-charge reconstruction:
@@ -645,65 +610,41 @@ void TOF2RawCluster::build(int &ostatus){
 	    for(int is=0;is<2;is++){
 	      for(int ip=0;ip<TOF2GC::PMTSMX;ip++){
 		adcdr[is][ip]=0;
-		adcdlr[is][ip]=0;
 	      }
 	    }
 //
             amd[0]=0.;
-            amdl[0]=0.;
 	    dovfl=0;
-	    dlovfl=0;
             if(smty[0]>0){// <===S1
-	      if(nadcd[0]>0 || nadcdl[0]>0){//combine D(h/l) pm-signals into S1 joined Dh-signal
+	      if(nadcd[0]>0){//combine Dynode pm-signals into S1 joined Dyn-signal
 	        for(int ip=0;ip<npmts;ip++){//<--s1 pm-loop
-		  if(adcd1[ip]>0){//use only Dh(pm) if >0
-		    dh2l=TOF2Brcal::scbrcal[ilay][ibar].getdh2l(0,ip);
+		  if(adcd1[ip]>0){
+                    TOFBPeds::scbrped[ilay][ibar].getsigd(ip,sigs);//Dyn sig(s1/2)
 		    gnd=TOF2Brcal::scbrcal[ilay][ibar].getgnd(0,ip);
-		    aaa=number(adcd1[ip]*TOF2DBc::tdcbin(2));//Daq->Dh(pm)
-		    amd[0]+=(aaa/gnd);//Daq->Dh(equilised)
+		    aaa=number(adcd1[ip]*TOF2DBc::tdcbin(2));//Daq->adc(pm)
+		    if((aaa+sigs[0])>=number(TOF2GC::SCPUXMX))dovfl=1;//Dyn(pm) s1-overflow
+		    amd[0]+=(aaa/gnd);//Dyn(equilised)
                     if(TFREFFKEY.reprtf[2]>0 && id==104)HF1(1105,geant(aaa),1.);
 		  }
-		  else if(adcdl1[ip]>0){//try use Dl(pm) since Dh(pm) is missing(ovfl)
-                    TOFBPeds::scbrped[ilay][ibar].getpeddl(ip,peds);//Dl peds(s1/2)
-		    dh2l=TOF2Brcal::scbrcal[ilay][ibar].getdh2l(0,ip);
-		    gnd=TOF2Brcal::scbrcal[ilay][ibar].getgnd(0,ip);
-		    ddd=number(adcdl1[ip]*TOF2DBc::tdcbin(2));//Daq->Dl(pm)
-                    if(TFREFFKEY.reprtf[2]>0 && id==104)HF1(1106,geant(ddd),1.);
-		    amd[0]+=(ddd*dh2l/gnd);//Dl->Dh->Dh(eq)
-	            if((ddd+peds[0])>=number(TOF2GC::SCADCMX-1))dlovfl=1;//Dl s1-overflow
-		    dovfl=1;//Dh s1-overflow
-		  }
 		}//-->endof pm-loop
-		if(dovfl>0)TOF2JobStat::addch(chnum,10);//counts s1 Dh-cnan. overflows
-		if(dlovfl>0)TOF2JobStat::addch(chnum,11);//counts s1 Dl-cnan. overflows
+		if(dovfl>0)TOF2JobStat::addch(chnum,10);//counts s1 Dyn-cnan. overflows
 	      }
 	    }
 //
             amd[1]=0.;
-            amdl[1]=0.;
 	    dovfl=0;
-	    dlovfl=0;
             if(smty[1]>0){// <===S2
-	      if(nadcd[1]>0 || nadcdl[1]>0){//combine D(h/l) pm-signals into S2 joined Dh-signal
+	      if(nadcd[1]>0){//combine Dynode pm-signals into S2 joined Dyn-signal
 	        for(int ip=0;ip<npmts;ip++){//<--s2 pm-loop
-		  if(adcd2[ip]>0){//use only Dh(pm) if >0
-		    dh2l=TOF2Brcal::scbrcal[ilay][ibar].getdh2l(1,ip);
+		  if(adcd2[ip]>0){
+                    TOFBPeds::scbrped[ilay][ibar].getsigd(ip,sigs);//Dyn sig(s1/2)
 		    gnd=TOF2Brcal::scbrcal[ilay][ibar].getgnd(1,ip);
-		    aaa=number(adcd2[ip]*TOF2DBc::tdcbin(2));//Daq->Dh(pm)
-		    amd[1]+=(aaa/gnd);//Daq->Dh(equilised)
-		  }
-		  else if(adcdl2[ip]>0){//try use Dl(pm) since Dh(pm) is missing(ovfl)
-                    TOFBPeds::scbrped[ilay][ibar].getpeddl(ip,peds);//Dl peds(s1/2)
-		    dh2l=TOF2Brcal::scbrcal[ilay][ibar].getdh2l(1,ip);
-		    gnd=TOF2Brcal::scbrcal[ilay][ibar].getgnd(1,ip);
-		    ddd=number(adcdl2[ip]*TOF2DBc::tdcbin(2));//Daq->Dl(pm)
-		    amd[1]+=(ddd*dh2l/gnd);//Dl->Dh->Dh(eq)
-	            if((ddd+peds[1])>=number(TOF2GC::SCADCMX-1))dlovfl=1;//Dl s2-overflow
-		    dovfl=1;//Dh s2-overflow
+		    aaa=number(adcd2[ip]*TOF2DBc::tdcbin(2));//Daq->adc(pm)
+		    if((aaa+sigs[1])>=number(TOF2GC::SCPUXMX))dovfl=1;//Dyn(pm) s2-overflow
+		    amd[1]+=(aaa/gnd);//Dyn(equilised)
 		  }
 		}//-->endof pm-loop
-		if(dovfl>0)TOF2JobStat::addch(chnum+1,10);//counts s2 Dh-cnan. overflows
-		if(dlovfl>0)TOF2JobStat::addch(chnum+1,11);//counts s2 Dl-cnan. overflows
+		if(dovfl>0)TOF2JobStat::addch(chnum+1,10);//counts s2 Dyn-cnan. overflows
 	      }
             }
 //
@@ -720,21 +661,16 @@ void TOF2RawCluster::build(int &ostatus){
             blen=TOF2DBc::brlen(ilay,ibar);
 //ccc------->
             if(TFREFFKEY.relogic[0] != 1
-	      && (anchok+anlchok+dychok)>0){//<--require any signal>0(nonovfl) and NOT SRS-calib
+	              && (anchok+dychok)>0){//<--require any signal>0(nonovfl) and NOT SRS-calib
 	      if(anchok){
 	        amc[0]=ama[0];
 	        amc[1]=ama[1];
 		hlf=0;
 	      }
-	      else if(anlchok){
-	        amc[0]=amal[0];
-	        amc[1]=amal[1];
-		hlf=1;
-	      }
-	      else if(dychok){
+	      else{
 	        amc[0]=amd[0];
 	        amc[1]=amd[1];
-		hlf=2;
+		hlf=1;
 	      }
 //
 //--> Calc. longit. coord/err and position correction to charge-signal :
@@ -755,33 +691,23 @@ void TOF2RawCluster::build(int &ostatus){
 //
               time=TOF2Brcal::scbrcal[ilay][ibar].tm2t(tmf,amc,hlf); // time with corrections
 //
-//--> Find Eloss from Anode(h)-adc(if present) :
+//--> Find Eloss from Anode-adc(if present) :
 //
               elosa=0.;
               if(anchok)elosa=TOF2Brcal::scbrcal[ilay][ibar].adc2mip(0,ama)
-                                             /pcorr; //A(h) Edep(mev)(normalized to center)
-//
-//--> Find Eloss from Anode(l)-adc(if present) :
-//
-              elosal=0.;
-              if(anlchok)elosal=TOF2Brcal::scbrcal[ilay][ibar].adc2mip(1,amal)
-                                             /pcorr; //A(l) Edep(mev)(normalized to center)
-//--> Combined Anode edep:
-              if(elosa>0)aedep=elosa;
-	      else aedep=elosal;
+                                             /pcorr; //Anode Edep(mev)(normalized to center)
+              aedep=elosa;
 //
 //--> Find Eloss from combined Dynode(h+l)-adc :
 //
               elosd=0.;
-              if(dychok)elosd=TOF2Brcal::scbrcal[ilay][ibar].adc2mip(2,amd)
-                                            /pcorr;//D(h+l) Edep(mev)(normalized to center)
+              if(dychok)elosd=TOF2Brcal::scbrcal[ilay][ibar].adc2mip(1,amd)
+                                            /pcorr;//Dynode Edep(mev)(normalized to center)
               dedep=elosd;
 //---> store raw(but converted from daq-format) ADCs in RawCl-obj for calibr.purpose:
 	      for(int ip=0;ip<npmts;ip++){
 		if(nadcd[0]>0)adcdr[0][ip]=number(adcd1[ip]*TOF2DBc::tdcbin(2));
-		if(nadcdl[0]>0)adcdlr[0][ip]=number(adcdl1[ip]*TOF2DBc::tdcbin(2));
 		if(nadcd[1]>0)adcdr[1][ip]=number(adcd2[ip]*TOF2DBc::tdcbin(2));
-		if(nadcdl[1]>0)adcdlr[1][ip]=number(adcdl2[ip]*TOF2DBc::tdcbin(2));
               }
 //
 //-->
@@ -801,7 +727,7 @@ void TOF2RawCluster::build(int &ostatus){
               ecoo=eco;
               if(isds==1)ecoo=blen/sqrt(12.);//for single-sided counters
               if(AMSEvent::gethead()->addnext(AMSID("TOF2RawCluster",0)
-              ,new TOF2RawCluster(sta,ilay+1,ibar+1,zc,ama,amal,amd,adcdr,adcdlr,
+              ,new TOF2RawCluster(sta,ilay+1,ibar+1,zc,ama,amd,adcdr,
                               aedep,dedep,tm,time,coo,ecoo)))st=1;;//store value
 //	      cout<<"StoreNewRawCl(il/ib)="<<ilay+1<<" "<<ibar+1<<" time="<<time<<endl;
 //	      cout<<"      sta/Aedep/coo="<<sta<<" "<<aedep<<" "<<coo<<endl;
@@ -817,12 +743,8 @@ void TOF2RawCluster::build(int &ostatus){
       nstdc[1]=0;
       nadca[0]=0;
       nadca[1]=0;
-      nadcal[0]=0;
-      nadcal[1]=0;
       nadcd[0]=0;
       nadcd[1]=0;
-      nadcdl[0]=0;
-      nadcdl[1]=0;
       treads[0]=0.;
       treads[1]=0.;
       treada[0]=0.;
@@ -1027,7 +949,7 @@ void TOF2RawCluster::build(int &ostatus){
 }
 //-----------------------------------------------------------------------
 void TOF2RawCluster::recovers(number x){ // function to recover missing side
-  geant gn[2],gnd[2],csl,sl[2],dt0,upr[5],vel,xerr,sqr,hclen,co,eco,pcorr;
+  geant gn[2],gnd[2],csl,sl[2],dt0,upr[2*TOF2GC::SCPROFP],vel,xerr,sqr,hclen,co,eco,pcorr;
   number q[2],tm[2],tcor;
   number tot[2],adc[2];
   int il,ib,hlf;
@@ -1053,37 +975,39 @@ void TOF2RawCluster::recovers(number x){ // function to recover missing side
     pcorr=TOF2Brcal::scbrcal[il][ib].poscor(geant(x));
   }
 // ---> recover Anode-signal for bad side :
-  if(_edepa>0.){
-    if(_adca[isg]>0){
-      tot[isg]=_adca[isg];
-      hlf=0;
-    }
-    else{
-      tot[isg]=_adcal[isg];
-      hlf=1;
-    }
+  if(_edepa>0. && _adca[isg]>0){
+    hlf=0;
+    tot[isg]=_adca[isg];
     TOF2Brcal::scbrcal[il][ib].q2a2q(1,isg,hlf,tot[isg],q[isg]);//ADC->Q
     q[isg]/=gn[isg];// Q->Qref
-    sqr=upr[0]*(exp(-(hclen+x)/upr[3])+upr[2]*exp(-(hclen+x)/upr[4]))/
-      upr[1]/(exp(-(hclen-x)/upr[3])+upr[2]*exp(-(hclen-x)/upr[4]));//Qr1/Qr2
+    sqr=(upr[0]*((1-upr[2])*exp(-(hclen+x)/upr[1])+upr[2]*exp(-(hclen+x)/upr[3]))+
+         upr[4]*exp(-(hclen-x)/upr[5]))/
+	(upr[6]*((1-upr[8])*exp(-(hclen-x)/upr[7])+upr[8]*exp(-(hclen-x)/upr[9]))+ 
+         upr[10]*exp(-(hclen+x)/upr[11]));//Qr1/Qr2
     if(isb==1)sqr=1./sqr;
-    q[isb]=q[isg]*sqr;
+    q[isb]=q[isg]*sqr;//s1/s2 ratio correction(vs imp.point)
     q[isb]*=gn[isb];//Qref->Q
     TOF2Brcal::scbrcal[il][ib].q2a2q(0,isb,hlf,tot[isb],q[isb]);//Q->ADC
-    if(hlf==0)_adca[isb]=tot[isb]; // recovered ADC for bad side
-    else _adcal[isb]=tot[isb];
+    _adca[isb]=tot[isb]; // recovered ADC for bad side
     _edepa=TOF2Brcal::scbrcal[il][ib].adc2mip(hlf,tot)/pcorr; //recowered anode-Eloss
     tcor=2.*csl*(sl[0]/sqrt(q[0])-sl[1]/sqrt(q[1]));//slewing corrections for time
     adc[0]=tot[0];
     adc[1]=tot[1];
   }
 //
-// ---> recover Dynode(pm/h/l-combined)-signal for bad side :
+// ---> recover Dynode(pm-combined)-signal for bad side :
   if(_edepd>0 && _adcd[isg]>0){
     tot[isg]=_adcd[isg];
-    hlf=2;
+    hlf=1;
     TOF2Brcal::scbrcal[il][ib].q2a2q(1,isg,hlf,tot[isg],q[isg]);//ADC(isg)->Q(pmt-comb,equilized)
+    q[isg]/=gn[isg];// Q->Qref
+    sqr=(upr[0]*((1-upr[2])*exp(-(hclen+x)/upr[1])+upr[2]*exp(-(hclen+x)/upr[3]))+
+         upr[4]*exp(-(hclen-x)/upr[5]))/
+	(upr[6]*((1-upr[8])*exp(-(hclen-x)/upr[7])+upr[8]*exp(-(hclen-x)/upr[9]))+ 
+         upr[10]*exp(-(hclen+x)/upr[11]));//Qr1/Qr2
+    if(isb==1)sqr=1./sqr;
     q[isb]=q[isg]*sqr;//s1/s2 ratio correction(vs imp.point)
+    q[isb]*=gn[isb];//Qref->Q
     TOF2Brcal::scbrcal[il][ib].q2a2q(0,isb,hlf,tot[isb],q[isb]);//Q->ADC(isb)
     _adcd[isb]=tot[isb]; // recovered ADC for bad side
     _edepd=TOF2Brcal::scbrcal[il][ib].adc2mip(hlf,tot)/pcorr; //recowered dinode-Eloss
@@ -1120,10 +1044,8 @@ void TOF2RawCluster::_writeEl(){
     TN->Bar[TN->Ntofraw]=_plane;
     for(int i=0;i<2;i++){
       TN->adca[TN->Ntofraw][i]=_adca[i];
-      TN->adcal[TN->Ntofraw][i]=_adcal[i];
       TN->adcd[TN->Ntofraw][i]=_adcd[i];
       for(int ip=0;ip<TOF2GC::PMTSMX;ip++)TN->adcdr[TN->Ntofraw][i][ip]=_adcdr[i][ip];
-      for(int ip=0;ip<TOF2GC::PMTSMX;ip++)TN->adcdlr[TN->Ntofraw][i][ip]=_adcdlr[i][ip];
       TN->sdtm[TN->Ntofraw][i]=_sdtm[i];
     }
     TN->edepa[TN->Ntofraw]=_edepa;
@@ -1262,7 +1184,7 @@ void AMSTOFCluster::build2(int &stat){
 	else edep=edepd; //  --> use Dynode otherwise
 //
         eplane[ib-1]=edep;//store full range Edep(An/Dyn-combined)
-        if(edepd>0)edplane[ib-1]=edepd;//store separately dynode(h/l-combined) Edep
+        if(edepd>0)edplane[ib-1]=edepd;//store separately dynode Edep
         xptr[ib-1]=ptr;
       }
       ptr=ptr->next();
@@ -1437,6 +1359,7 @@ void AMSTOFCluster::build2(int &stat){
 void AMSTOFCluster::recovers2(AMSTrTrack * ptr){ // recreate TOFCluster
 //  time through recovering(using tracker) of 1-sided TOFRawCluster-members
 // (only for 1-member clusters: 2-memb.clusters are 2-sided by definition(creation))
+// called from beta.C
   integer status,nm,mib,mil;
   AMSDir dir(0,0,1.);
   AMSPoint coo;

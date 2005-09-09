@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.31 2005/05/17 09:56:34 pzuccon Exp $
+//  $Id: ecaldbc.h,v 1.32 2005/09/09 07:55:27 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -103,15 +103,25 @@ private:
   static integer cacount[ecalconst::ECJSTA];// event passed CALIB-cut "i"
 //          i=0 -> entries
 //          i=1 ->
-  static integer srcount[20];// service counters 
+  static integer srcount[20];// service counters
+// 
+  static number zprmc1[ecalconst::ECSLMX];// mc-hit average Z-profile(SL-layers) 
+  static number zprmc2[ecalconst::ECSLMX];// mc-hit(+att) average Z-profile(SL(PM-assigned)-layers) 
 public:
-  static geant zprmc1[ecalconst::ECSLMX];// mc-hit average Z-profile(SL-layers) 
-  static geant zprmc2[ecalconst::ECSLMX];// mc-hit(+att) average Z-profile(SL(PM-assigned)-layers) 
-  static geant zprofa[2*ecalconst::ECSLMX];//  SubCellPlanes  profile
-  static geant zprofapm[ecalconst::ECSLMX];// SL profile
-  static geant zprofac[ecalconst::ECSLMX];// SuperLayers Edep profile for calib.events(punch-through)
+  static number zprofa[2*ecalconst::ECSLMX];//  SubCellPlanes  profile
+  static number zprofapm[ecalconst::ECSLMX];// SL profile
+  static number zprofac[ecalconst::ECSLMX];// SuperLayers Edep profile for calib.events(punch-through)
   static geant nprofac[ecalconst::ECSLMX];// SuperLayers profile for calib.events(punch-through)
   static void clear();
+  static void addzprmc1(int i, number ed){
+    zprmc1[i]+=ed;
+  }
+  static number getzprmc1(int i){
+    return zprmc1[i];
+  }
+  static void addzprmc2(int i, number ed){
+    zprmc2[i]+=ed;
+  }
   static void addmc(int i){
     #ifdef __AMSDEBUG__
       assert(i>=0 && i< ecalconst::ECJSTA);

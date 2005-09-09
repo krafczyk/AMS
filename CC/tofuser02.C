@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.14 2005/05/17 09:54:06 pzuccon Exp $
+//  $Id: tofuser02.C,v 1.15 2005/09/09 07:55:14 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -27,13 +27,11 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   integer il,ib,ix,iy,chan,nbrlc[TOF2GC::SCLRS],brnlc[TOF2GC::SCLRS];
   geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cost,cosc;
   number coo[TOF2GC::SCLRS],coot[TOF2GC::SCLRS],cstr[TOF2GC::SCLRS],dx,dy;
-  number ama[2],amal[2],amd[2],amdl[2];
+  number ama[2],amd[2];
   number adca1[TOF2GC::SCLRS],adca2[TOF2GC::SCLRS];
-  number adcal1[TOF2GC::SCLRS],adcal2[TOF2GC::SCLRS];
   number adcd1[TOF2GC::SCLRS],adcd2[TOF2GC::SCLRS];
   geant elosa[TOF2GC::SCLRS],elosd[TOF2GC::SCLRS],elosc[TOF2GC::SCLRS];
   number am1[TOF2GC::SCLRS],am2[TOF2GC::SCLRS];
-  number am1l[TOF2GC::SCLRS],am2l[TOF2GC::SCLRS];
   number am[2],eanti(0),eacl;
   number am1d[TOF2GC::SCLRS],am2d[TOF2GC::SCLRS];
   geant ainp[2],dinp[2],cinp;
@@ -68,21 +66,15 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     if((status&TOFGC::SCBADB1)==0 && (status&TOFGC::SCBADB3)==0){ //"good_history/good_strr" hits
       if((status&TOFGC::SCBADB2)==0 || (status&TOFGC::SCBADB5)!=0){// 2-sided or recovered
         ptr->getadca(ama);// Anode(h)-ampl(ADC-ch)
-        ptr->getadcal(amal);// Anode(l)-ampl(ADC-ch)
-        ptr->getadcd(amd);// Dynode(equiliz.sum,h+l combined)-ampl(ADC-ch)
+        ptr->getadcd(amd);// Dynode(equiliz.sum)-ampl(ADC-ch)
         adca1[ilay]=ama[0];
         adca2[ilay]=ama[1];
-        adcal1[ilay]=amal[0];
-        adcal2[ilay]=amal[1];
         adcd1[ilay]=amd[0];
         adcd2[ilay]=amd[1];
-        TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// Anode(h)-ADC convert to charge
+        TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// Anode-ADC convert to charge
         am1[ilay]=am[0];
         am2[ilay]=am[1];
-        TOF2Brcal::scbrcal[ilay][ibar].adc2q(1,amal,am);// Anode(l)-ADC convert to charge
-        am1l[ilay]=am[0];
-        am2l[ilay]=am[1];
-        TOF2Brcal::scbrcal[ilay][ibar].adc2q(2,amd,am);// dynode(sum,h+l)-ADC convert to charge
+        TOF2Brcal::scbrcal[ilay][ibar].adc2q(2,amd,am);// dynode(sum)-ADC convert to charge
         am1d[ilay]=am[0];
         am2d[ilay]=am[1];
         nbrl[ilay]+=1;
@@ -152,7 +144,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //
     static number pmas(0.938),mumas(0.1057),imass;
     number pmom,mom,bet,chi2,betm,pcut[2],massq,beta,chi2t,chi2s;
-    number the,phi,trl,rid,err,ctran;
+    number the,phi,trl,rid,err,ctran,charge,partq;
     integer chargeTOF,chargeTracker,betpatt,trpatt;
     AMSPoint C0,Cout;
     AMSDir dir(0,0,1.);
@@ -166,12 +158,13 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get pointer to part-envelop
     if(cptr)
            npart+=cptr->getnelem();
-    if(TFREFFKEY.reprtf[2]>0)HF1(1506,geant(npart),1.);
+    if(TFREFFKEY.reprtf[2]>0)HF1(1518,geant(npart),1.);
     if(npart<1)return;// require events with 1 particle at least 
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",0);
     bad=1;			      
     while(ppart){
+      partq=ppart->getcharge();
       ptrack=ppart->getptrack();//get pointer of the TRK-track, used in given particle
       if(ptrack){
         trpatt=ptrack->getpattern();//TRK-track pattern
@@ -186,6 +179,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
           chi2s=pbeta->getchi2S();
           chargeTracker=pcharge->getchargeTracker();
           chargeTOF=pcharge->getchargeTOF();
+	  charge=partq;
 	  bad=0;
 	}
       }
@@ -327,6 +321,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     if(TFREFFKEY.reprtf[2]>0){
       HF1(1507,geant(chargeTOF),1.);
       HF1(1508,geant(chargeTracker),1.);
+      HF1(1506,geant(charge),1.);
       HF2(1509,geant(chargeTracker),geant(chargeTOF),1.);
     }
 //
@@ -370,13 +365,14 @@ void TOF2User::InitJob(){
     HBOOK1(1504,"TofUser:TofClust T13-T24(ns,high momentum)",80,-4.,4.,0.);
     HBOOK1(1503,"TofUser:Sector energy(mev,FTCoinc)",80,0.,20.,0.);
     HBOOK1(1505,"TofUser:Number of Sectors(FTCoinc,E>Thr)",20,0.,20.,0.);
-    HBOOK1(1506,"TofUser:Part. multipl. ",10,0.,10.,0.);
-    HBOOK1(1507,"TofUser:TOF-charge",10,0.,10.,0.);
-    HBOOK1(1508,"TofUser:Tracker-charge",10,0.,10.,0.);
+    HBOOK1(1506,"TofUser:Part.charge",20,0.,20.,0.);
+    HBOOK1(1507,"TofUser:TOF-charge",20,0.,20.,0.);
+    HBOOK1(1508,"TofUser:Tracker-charge",20,0.,20.,0.);
     HBOOK2(1509,"TofUser:TOF-ch vs Tracker-ch",10,0.,10.,10,0.,10.,0.);
     HBOOK1(1510,"TofUser:Anti-hit part.index",50,0.,50.,0.);
     HBOOK1(1516,"TofUser:Part.rigidity from tracker(gv)",100,0.,1500.,0.);
     HBOOK1(1517,"TofUser:Number of Sectors(FTCoincAccordingToTrigPatt)",20,0.,20.,0.);
+    HBOOK1(1518,"TofUser:Number of patrucle",20,0.,20.,0.);
     
     HBOOK1(1200,"TofUser:LongCooDiff(Track-TofCl),L=1,Nmem=1",50,-10.,10.,0.);
     HBOOK1(1201,"TofUser:LongCooDiff(Track-TofCl),L=2,Nmem=1",50,-10.,10.,0.);
@@ -472,9 +468,10 @@ void TOF2User::EndJob(){
   HPRINT(1517);
   HPRINT(1515);
   
-  HPRINT(1506);
+  HPRINT(1518);
   HPRINT(1507);
   HPRINT(1508);
+  HPRINT(1506);
   HPRINT(1509);
   HPRINT(1200);
   HPRINT(1201);
