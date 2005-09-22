@@ -25,7 +25,7 @@ my $help = "
 # March 22, 2002. A.Klimentov
 ";
 
-use CORBA::ORBit idl => [ '../include/server.idl'];
+ use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
 use Carp;
 use strict;
@@ -76,6 +76,9 @@ my %fields=(
 
 
 sub new {
+    if($ENV{MOD_PERL} and ref($Mover::Singleton)){
+        return $Mover::Singleton;
+    }
 #
 my $input;
 my $output;

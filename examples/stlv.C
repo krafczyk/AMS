@@ -137,7 +137,9 @@ void stlv::UProcessFill()
        int ng=nEcalHit();
       if(ng>0){
         EcalHitR ec=EcalHit(ng-1);
-                                                                                         //cout <<" ne "<<ng<<" "<<ec.Edep<<endl;
+          for(int kk=0;kk<10000000;kk++){
+              acc[1]->Fill(xm,1);
+           }                                                                                      //cout <<" ne "<<ng<<" "<<ec.Edep<<endl;
 }
      if(nParticle()>0){
        int ptrack = Particle(0).iTrTrack();

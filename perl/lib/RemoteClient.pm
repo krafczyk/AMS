@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.319 2005/09/08 09:23:02 choutko Exp $
+# $Id: RemoteClient.pm,v 1.320 2005/09/22 09:09:25 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -96,7 +96,7 @@ my $nTopDirFiles = 0;     # number of files in (input/output) dir
 my @inputFiles;           # list of file names in input dir
 
 package RemoteClient;
-use CORBA::ORBit idl => [ '../include/server.idl'];
+ use CORBA::ORBit idl => [ '/var/www/cgi-bin/mon/include/server.idl'];
 use Error qw(:try);
 use CGI qw(-unique_headers);
 use Carp;
@@ -121,6 +121,7 @@ my $tsInit = 0;
 my $teInit = 0;
 my $tdInit = 0;
 my @td;
+$#td=10;
 #
 
 struct ProductionPeriod => { 
@@ -227,6 +228,9 @@ my     $MIN_DISK_SPACE  = 10; # if available disk space <  MIN_DISK_SPACE
 #
 
 sub new{
+    if($ENV{MOD_PERL} and ref($RemoteClient::Singleton)){
+        return $RemoteClient::Singleton;
+    }
     my $type=shift;
 my %fields=(
         FinalMessage=>undef,
@@ -5668,7 +5672,8 @@ sub getrndm(){
     my $rndm1=$res->[0][1];
     my $rndm2=$res->[0][2];
            if( not defined $res->[1][0]){
-             $sql="UPDATE RNDM SET rid=-rid where rid=-$maxrun+1";
+               my $mxr=-$maxrun+1;
+             $sql="UPDATE RNDM SET rid=-rid where rid=$mxr";
              $self->{sqlserver}->Update($sql);
             }   
              $sql="UPDATE RNDM SET rid=-rid where rid=$maxrun";

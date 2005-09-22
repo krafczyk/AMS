@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.71 2005/03/21 08:18:36 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.72 2005/09/22 09:09:25 choutko Exp $
 
 #
 #
@@ -68,6 +68,11 @@ my %fields=(
 my $MAX_RUN_POWER = 26;
 
 sub new{
+    if($ENV{MOD_PERL} and ref($DBSQLServer::Singleton)){
+        return $DBSQLServer::Singleton;
+    }
+
+
     my $type=shift;
     my $self={
         %fields,

@@ -1,4 +1,4 @@
-//  $Id: getior.pc,v 1.6 2004/01/30 23:11:12 choutko Exp $
+//  $Id: getior.pc,v 1.7 2005/09/22 09:09:10 choutko Exp $
 //
 // Subroutines to get IOR from AMS ORACLE database
 //
@@ -16,7 +16,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <sys/times.h>
-#include <strstream.h>
+#include <strstream>
 #include <iomanip.h>
 #include <math.h>
 

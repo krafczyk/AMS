@@ -1,7 +1,7 @@
-# $Id: DBServer.pm,v 1.16 2004/10/22 14:55:53 alexei Exp $
+# $Id: DBServer.pm,v 1.17 2005/09/22 09:09:25 choutko Exp $
 
 package DBServer;
-use CORBA::ORBit idl => [ '../include/server.idl'];
+ use CORBA::ORBit idl => [ '/var/www/cgi-bin/mon/include/server.idl'];
 use Error qw(:try);
 use Carp;
 use strict;
@@ -59,6 +59,9 @@ my %fields=(
              );
 
 sub new{
+    if($ENV{MOD_PERL} and ref($DBServer::Singleton)){
+        return $DBServer::Singleton;
+    }
     my $type=shift;
     my $self={
         %fields,
