@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.320 2005/09/22 09:09:25 choutko Exp $
+# $Id: RemoteClient.pm,v 1.321 2005/10/04 21:35:43 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -96,6 +96,7 @@ my $nTopDirFiles = 0;     # number of files in (input/output) dir
 my @inputFiles;           # list of file names in input dir
 
 package RemoteClient;
+use Storable;
  use CORBA::ORBit idl => [ '/var/www/cgi-bin/mon/include/server.idl'];
 use Error qw(:try);
 use CGI qw(-unique_headers);
@@ -276,6 +277,7 @@ my %fields=(
         IORP=>undef,
         ok=>0,
         q=>undef,
+        initdone=>0,
        read=>0,
        debug=>0,
        CEM=>undef,
@@ -312,7 +314,6 @@ foreach my $chop  (@ARGV){
 
 
 }
-    $self->{q}=new CGI;
     my $mybless=bless $self,$type;
     if(ref($RemoteClient::Singleton)){
         croak "Only Single RemoteClient Allowed\n";
@@ -322,7 +323,7 @@ return $mybless;
 }
 
 sub Init{
-    my $self = shift;
+     my $self = shift;
 #
     my $sql  = undef;
     my $ret  = undef;
@@ -331,9 +332,17 @@ sub Init{
 
 #just temporary skeleton to check basic princ
 #should be replaced by real db servers
-
+      if(defined $self->{q}){
+        delete $self->{q};
+      }
+      $self->{q}=new CGI;
 #cpu types
-
+      my $cachetime=900;
+     if(defined $self->{initdone} ){
+      if(time()-$self->{initdone}<$cachetime){
+        return 1;
+      }
+     } 
     my %cputypes=(
      'Pentium II'=>1.07,
      'Pentium III'=>1.0,
@@ -452,12 +461,10 @@ my %mv=(
      $self->{AMSDataDir}="/afs/ams.cern.ch/AMSDataDir";
      $ENV{AMSDataDir}=$self->{AMSDataDir};
  }
-
 #sqlserver
     $self->{sqlserver}=new DBSQLServer();
     $self->{sqlserver}->Connect();
     $tsInit = time();
-
 #
    $sql = "SELECT myvalue from Environment where mykey='HTTPserver'";
    $ret=$self->{sqlserver}->Query($sql);
@@ -527,6 +534,7 @@ my %mv=(
 # Feb 15.02.2004 More than 1 Active Production set is allowed
 # More than 1 FileDB, FileAttDB, etc can be available
     $key='FileDB';
+    $#{$self->{FileDB}}=-1;
     $sql="select myvalue from Environment where mykey='".$key."'";
     $ret=$self->{sqlserver}->Query($sql);
     if( defined $ret->[0][0]){
@@ -538,7 +546,7 @@ my %mv=(
      push @{$self->{FileDB}}, "v3.00mcdb.tar.gz"; 
      push @{$self->{FileDB}}, "v4.00mcdb.tar.gz"; 
     }
-
+     $#{$self->{FileAttDB}}=-1;
     $key='FileAttDB';
     $sql="select myvalue from Environment where mykey='".$key."'";
     $ret=$self->{sqlserver}->Query($sql);
@@ -605,47 +613,90 @@ my %mv=(
     }
     $ENV{$key}=$self->{$key};
     $teInit = time();
+#cites table
+     $sql="select * from Cites";
+      $#{$self->{CiteT}}=-1;
+    my ($values, $fields)=$self->{sqlserver}->QueryAll($sql);
+    foreach my $row (@{$values})  {
+     my $cite={};
+     my $i=0;
+     foreach my $field (@{$fields}){
+      $cite->{lc($field)}=$row->[$i++];
+     }
+     push @{$self->{CiteT}}, $cite;
+    }
+    
+#mail table        
+    $sql="select * from Mails";
+     $#{$self->{MailT}}=-1;
+     ($values, $fields)=$self->{sqlserver}->QueryAll($sql);
+    foreach my $row (@{$values})  {
+            
+     my $cite={};
+     my $i=0;
+     foreach my $field (@{$fields}){
+#         warn " fileds $field $row->[$i] \n";
+      $cite->{lc($field)}=$row->[$i++];
+     }     
+     push @{$self->{MailT}}, $cite; 
+ }
 
- 
 #datasets
-{
+
+        $#{$self->{DataSetsT}}=-1;
+        my $cem=lc($self->{q}->param("CEM"));
+        if(defined $cem){
+         if(not $self->findemail($cem)){
+            $self->ErrorPlus("Client $cem Not Found. Please Register...");
+          }
+          else{
+           my $save="$self->{UploadsDir}/$self->{CEMID}.save2";
+             my  @sta = stat $save;
+            if($#sta>0 and time()-$sta[9] <$cachetime){
+             my $dsref=retrieve($save);
+             if(defined $dsref){
+              foreach my $dss (@{$dsref}){
+               push @{$self->{DataSetsT}},$dss;
+              }
+             } 
+            }
+          }
+        }
+
+
+
+
+if($#{$self->{DataSetsT}}==-1){
    my $ndatasets  =0; # total datasets scanned
    my $nfiles     =0; # total jobs scanned
    my $totalcpu   =0;
    my $restcpu    =0;
 
    $dir="$self->{AMSSoftwareDir}/DataSets";
- 
 #
 # get DB info :
 #               All datasets 
-  my  $ndatasetsDB = 0;   # datasets defined in DB
-  my  $njobsDB     = 0;   # jobs in DB started since $ProductionStartTime
   my  $datasetsDB  = undef;
   my  $jobsDB      = undef;
-
   my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
-
 # get list of datasets (names and dids)
-  my  $sql="select count(did) from DataSets";
-  my $ret=$self->{sqlserver}->Query($sql);
-  if (defined $ret->[0][0]) {$ndatasetsDB = $ret->[0][0];}
-  if ($ndatasetsDB > 0) {
+#  my  $sql="select count(did) from DataSets";
+#  my $ret=$self->{sqlserver}->Query($sql);
+#  if (defined $ret->[0][0]) {$ndatasetsDB = $ret->[0][0];}
+#  if ($ndatasetsDB > 0) {
    $sql="select did, name from DataSets";
    $datasetsDB =$self->{sqlserver}->Query($sql);
-
-
-   $sql="select count(jid) from Jobs where pid = $periodId";
-   $ret=$self->{sqlserver}->Query($sql);
-   if (defined $ret->[0][0]) {
-    $njobsDB = $ret->[0][0];
+   if(defined $datasetsDB->[0][0]){
+#   $sql="select count(jid) from Jobs where pid = $periodId";
+#   $ret=$self->{sqlserver}->Query($sql);
+#   if (defined $ret->[0][0]) {
+#    $njobsDB = $ret->[0][0];
     $sql="select jid,time,triggers,timeout, did, jobname from Jobs 
          where Jobs.pid = $periodId";
     $jobsDB= $self->{sqlserver}->Query($sql);
-   }
+#   }
   }
   
-
 # read list of datasets dirs from $dir
    opendir THISDIR ,$dir or die "unable to open $dir";
    my @allfiles= readdir THISDIR;
@@ -666,7 +717,7 @@ my %mv=(
 
 
 # scan all dataset dirs
-
+  $#{$self->{DataSetsT}}=-1; 
    foreach my $file (@allfiles){
     my $newfile="$dir/$file";
     if(readlink $newfile or  $file =~/^\./){
@@ -680,13 +731,15 @@ my %mv=(
      my $dataset={};
      $dataset->{name}=$file;
      $dataset->{jobs}=[];
+     $#{$dataset->{jobs}}=-1;
      $dataset->{eventstodo} = 0;
      $dataset->{version}="v5";
      my @tmpa;
+     $#tmpa=-1;
      opendir THISDIR, $newfile or die "unable to open $newfile";
      my @jobs=readdir THISDIR;
      closedir THISDIR;
-     push @{$self->{DataSetsT}}, $dataset;
+#     push @{$self->{DataSetsT}}, $dataset;
      foreach my $job (@jobs){
          if($job=~/^version=/){
              my @vrs= split '=',$job;
@@ -733,18 +786,18 @@ my %mv=(
 # get no of events
 #
               my $datasetfound = 0;
-              for my $i (0..$ndatasetsDB-1) {
-               my $datasetsDidDB  = $datasetsDB->[$i][0];
-               my $datasetsNameDB = $datasetsDB->[$i][1];
+              foreach my $ds (@{$datasetsDB}){
+               my $datasetsDidDB  = $ds->[0];
+               my $datasetsNameDB = $ds->[1];
                if ($datasetsNameDB eq $dataset->{name}) {
                  $dataset->{did}=$datasetsDidDB;
-                 for my $j (0...$njobsDB-1) {
-                   my $jobsJidDB     = $jobsDB->[$j][0];
-                   my $jobsTimeDB    = $jobsDB->[$j][1];
-                   my $jobsTrigDB    = $jobsDB->[$j][2];
-                   my $jobsTimeOutDB = $jobsDB->[$j][3];
-                   my $jobsDidDB     = $jobsDB->[$j][4];
-                   my $jobsNameDB    = $jobsDB->[$j][5];
+                 foreach my $job (@{$jobsDB}){
+                   my $jobsJidDB     = $job->[0];
+                   my $jobsTimeDB    = $job->[1];
+                   my $jobsTrigDB    = $job->[2];
+                   my $jobsTimeOutDB = $job->[3];
+                   my $jobsDidDB     = $job->[4];
+                   my $jobsNameDB    = $job->[5];
                    if ($jobsDidDB == $dataset->{did}) {
                      my @junk     = split '\.',$jobsNameDB;
                      my $jobname = $junk[2];
@@ -808,6 +861,7 @@ my %mv=(
     foreach my $tmp (@tmpb){
      push @{$dataset->{jobs}},$tmp;     
     }
+    push @{$self->{DataSetsT}}, $dataset;
    }
   } # end files of allfiles
 }
@@ -817,7 +871,8 @@ my %mv=(
      $dir="$self->{AMSSoftwareDir}/Templates";
     opendir THISDIR ,$dir or die "unable to open $dir";
     my @allfiles= readdir THISDIR;
-    closedir THISDIR;    
+    closedir THISDIR; 
+    $#{$self->{TempT}}=-1;   
 foreach my $file (@allfiles){
     if($file =~ /\.job$/){
         my $temp={};
@@ -865,33 +920,8 @@ foreach my $file (@allfiles){
         die "No Basic Templates Available";
     }
 
-#cites table
-     $sql="select * from Cites";
-    my ($values, $fields)=$self->{sqlserver}->QueryAll($sql);
-    foreach my $row (@{$values})  {
-     my $cite={};
-     my $i=0;
-     foreach my $field (@{$fields}){
-      $cite->{lc($field)}=$row->[$i++];
-     }
-     push @{$self->{CiteT}}, $cite; 
-    }
-
-
-#mail table
-    $sql="select * from Mails";
-     ($values, $fields)=$self->{sqlserver}->QueryAll($sql);
-    foreach my $row (@{$values})  {
-     
-     my $cite={};
-     my $i=0;
-     foreach my $field (@{$fields}){
-#         warn " fileds $field $row->[$i] \n";
-      $cite->{lc($field)}=$row->[$i++];
-     }
-     push @{$self->{MailT}}, $cite; 
- }
 # filesystems table
+     $#{$self->{FilesystemT}}=-1;
      $sql="select * from Filesystems WHERE status='Active'";
      ($values, $fields)=$self->{sqlserver}->QueryAll($sql);
      foreach my $row (@{$values}) {
@@ -936,7 +966,7 @@ foreach my $file (@allfiles){
         $self->{IORP}=undef;
       }
   }
-
+    $self->{initdone}=time();
  if( not defined $self->{IOR}){
   return $self->{ok};
  } 
@@ -964,7 +994,7 @@ $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
 
 #get db server id
 
-
+     $#{$ref->{ardref}}=-1;
      try{
          my %cid=%{$ref->{cid}};
          $cid{Type}="DBServer";
@@ -1242,7 +1272,9 @@ sub ValidateRuns {
      $timenow = time();
      $CheckedRuns[0]++;
      my @cpntuples   =();
+      $#cpntuples=-1;
      my @mvntuples   =();
+     $#mvntuples=-1;
      my $runupdate   = "UPDATE runs SET ";
      my $copyfailed  = 0;
 # check if run is registered in database
@@ -1934,7 +1966,6 @@ sub ConnectDB{
 }
 
 sub Connect{
-
     my $t0 = time();
 
     my $self = shift;
@@ -1944,9 +1975,20 @@ sub Connect{
     else{
         $self->{ok}=1;
     }
+         my $cem=lc($self->{q}->param("CEM"));
+         if (defined $cem){
+          if(not $self->findemail($cem)){
+            $self->ErrorPlus("Client $cem Not Found. Please Register...");
+          }
+          else{
+             my $save="$self->{UploadsDir}/$self->{CEMID}.save2";
+              store(\@{$self->{DataSetsT}},$save);
+              $self->{FEM2}=$save;
+          }
+         }
+
  ; 
     my $ti = time();
-
     $self->getProductionPeriods(0);
     my $ProductionPeriod = 'tmp';
 #
@@ -2261,14 +2303,19 @@ CheckCite:            if (defined $q->param("QCite")) {
      $self->{read}=1;
 
      my @tempnam=();
+     $#tempnam=-1;
      my $hash={};
      my @desc=();
+     $#desc=-1;
      my $cite={};
      my @runs=();
      my @submits=();
      my @jobnames=();
      my @datasets=();
-
+     $#datasets=-1;
+     $#jobnames=-1;
+     $#submits=-1;
+     $#runs=-1;
      my $qtemplate  = undef;
      my $qparticle  = undef;
      my $qmomentumI = undef;
@@ -2703,6 +2750,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 
     my $buff=undef;
     my @dirs=[];
+    $#{dirs} =-1;
       if ($rootfileaccess eq "HTTP") {
          $buff = $RootAnalysisTextHTTP;
          print "<tr><td>$RootAnalysisTextHTTP</td></tr>\n";
@@ -4297,6 +4345,7 @@ print qq`
 #
         my $aft=$q->param("AFT");
         my $templatebuffer=undef;
+         my $tmps="";
         my $template=undef;
         my $did=$q->param("DID");
         my $timeout=3600*24*35;
@@ -4372,8 +4421,9 @@ print qq`
             }
         }
      }
-        else{  
+        else{
          foreach my $tmp (@{$self->{TempT}}){
+              $tmps=$tmps." ".$tmp->{filename}; 
             if($template eq $tmp->{filename}){
                 $templatebuffer=$tmp->{filebody};
                 last;
@@ -4381,7 +4431,7 @@ print qq`
          }
      }
         if(not defined $templatebuffer){
-            $self->ErrorPlus("Could not find file for $template template.");
+            $self->ErrorPlus("Could not find file for $template template. $tmps");
         }
         
         my $a=1;
@@ -4667,28 +4717,28 @@ print qq`
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/ri* $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.flux $self->{UploadsDir}/$dbversion";
        }
-        $i=system "tar -C$self->{UploadsDir} -h -cf $filen $dbversion";
+        $i=system "tar -C$self->{UploadsDir} -h -cf $filen $dbversion 1>/dev/null 2>&1";
         if($i){
               $self->ErrorPlus("Unable to tar $self->{UploadsDir} $dbversion to $filen");
          }
-         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatch") ;
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatch  1>/dev/null 2>&1") ;
           if($i){
               $self->ErrorPlus("Unable to tar gbatch-orbit to $filen ");
           }
-         $i=system("tar -C$self->{CERN_ROOT} -uf $filen lib/flukaaf.dat") ;
+         $i=system("tar -C$self->{CERN_ROOT} -uf $filen lib/flukaaf.dat  1>/dev/null 2>&1") ;
           if($i){
               $self->ErrorPlus("Unable to tar flukaaf.dat to $filen ");
           }
 
-         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv") ;
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv  1>/dev/null 2>&1") ;
           if($i){
-              $self->ErrorPlus("Unable to tar $nv to $filen ");
+              $self->ErrorPlus("Unable to tar $nv to $filen  ");
           }
-         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gr") ;
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gr  1>/dev/null 2>&1") ;
           if($i){
               $self->ErrorPlus("Unable to tar $gr to $filen ");
           }
-         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen prod/tnsnames.ora") ;
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen prod/tnsnames.ora  1>/dev/null 2>&1") ;
           if($i){
               $self->ErrorPlus("Unable to tar prod/tnsnames.ora to $filen ");
           }
@@ -4744,7 +4794,8 @@ print qq`
         }
 #
 #        my $dbversion=$ret->[0][0];
-         my $dbversion=$dataset->{version};       
+         my $dbversion=$dataset->{version};   
+          my $rtn=0;  
            if($dbversion =~/v4/){
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*.2* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*2 $self->{UploadsDir}/DataBase";
@@ -4758,7 +4809,15 @@ print qq`
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Ecal* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/TRD* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Cha* $self->{UploadsDir}/DataBase";
-        $i=system "tar -C$self->{UploadsDir} -h -cf $filen DataBase";
+        $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerCmnNoise";
+        $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerSigmas.r";
+        $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerSigmas.l";
+        $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerPedestals.r";
+        $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerPedestals.l";
+        $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerStatus.r";
+        $i=system "rm -rf $self->{UploadsDir}/DataBase/TrackerStatus.l";
+
+        $rtn=system "tar -C$self->{UploadsDir} -h -czf $filen.gz DataBase  1>/dev/null 2>&1";
     }
            else{
         $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerCmnNoise";
@@ -4802,15 +4861,15 @@ print qq`
         $i=system "ln -s $self->{AMSDataDir}/DataBase/C* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/.*0 $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/.TrA*1 $self->{UploadsDir}/DataBase"; 
-        $i=system "tar -C$self->{UploadsDir} -h -cf $filen DataBase";
+        $rtn=system "tar -C$self->{UploadsDir} -h -czf $filen.gz DataBase  1>/dev/null 2>&1";
            }
-        if($i){
-              $self->ErrorPlus("Unable to tar $self->{UploadsDir} DataBase to $filen");
-         }
-          $i=system("gzip -f $filen");
-                      if($i){
-              $self->ErrorPlus("Unable to gzip  $filen");
-          }
+        if($rtn){
+        #      $self->ErrorPlus("Unable to tar $self->{UploadsDir} DataBase to $filen.gz $rtn");
+        }
+#          $i=system("gzip -f $filen");
+#                      if($i){
+#              $self->ErrorPlus("Unable to gzip  $filen");
+#          }
           $i=system("mv $filedb_att $filedb_att.o");
           $i=system("mv $filen.gz $filedb_att");
           unlink "$filedb_att.o";
@@ -4844,7 +4903,7 @@ print qq`
         print FILE  $note;
         close FILE;
          $file2tar="$self->{UploadsDir}/$dataset->{version}script.$run.tar";
-        my $i=system("tar -C$self->{UploadsDir} -cf  $file2tar README.$run"); 
+        my $i=system("tar -C$self->{UploadsDir} -cf  $file2tar README.$run  1>/dev/null 2>&1"); 
           if($i){
               $self->ErrorPlus("Unable to tar readme to $file2tar ");
           }
@@ -5047,7 +5106,7 @@ print qq`
          close FILE;
          my $j=system("chmod +x  $root"); 
          if($self->{CCT} eq "remote"){
-         $j=system("tar -C$self->{UploadsDir} -uf  $file2tar $script"); 
+         $j=system("tar -C$self->{UploadsDir} -uf  $file2tar $script  1>/dev/null 2>&1"); 
           if($j){
               $self->ErrorPlus("Unable to tar $script to $file2tar ");
           }
@@ -5160,6 +5219,9 @@ print qq`
 #        }
 
         my $address=$self->{CEM};
+        if($address eq 'vitali@afl3u1.cern.ch'){
+          $address='vitali.choutko@cern.ch';
+        }
         my $frun=$run-$runno;
         my $lrun=$run-1;
         my $subject="AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
@@ -5296,13 +5358,15 @@ print qq`
          } elsif ($uplt0 < $timeFileDB || $uplt1 < $timeFileAttDB) {
             $self->Download($vvv, $vdb);
          } else {  
-          $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
+          $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}"; 
+    
          } 
        } else {
          $self->Download($vvv, $vdb);
         }
      } else { 
       $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
+
      }
 }
 #here the default action
@@ -5348,6 +5412,9 @@ print qq`
 } # default action
     elsif($self->{read}==1){
         if(defined $self->{FinalMessage}){
+                if(defined $self->{FEM2}){
+                 unlink $self->{FEM2};
+                }
            $self->InfoPlus($self->{FinalMessage});
        }
     }
@@ -7380,6 +7447,10 @@ sub listNtuples {
 sub AllDone{
     htmlTop();
      my $self = shift;
+               if(defined $self->{FEM2}){
+                 unlink $self->{FEM2};
+                }
+
      print "<font size=\"5\" color=\"green\">Download finished. Your request was successfully sent to $self->{CEM}";       htmlReturnToMain();
     htmlBottom();
 }
@@ -7545,7 +7616,7 @@ sub PrintDownloadTable {
        print "<br><br>";
      } else {
       print "<br><font size=\"4\">
-            $vvv.filedb files (tar.gz)</a>
+       <a href=load.cgi?$self->{UploadsHREF}/$filedb> $filedb</a>
            </font>";
      $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp}->[$i]);
      print "<font size=\"3\" color=\"green\"><i><b>       ( Up to date : $dtime)</b></i></font>\n";
@@ -7576,7 +7647,7 @@ sub PrintDownloadTable {
        print "<br><br>\n";
       } else {
        print "<br><font size=\"4\">
-           $vvv.filedb att.files (tar.gz)</a>
+         <a href=load.cgi?$self->{UploadsHREF}/$filedb>   $filedb </a>
            </font>\n";
        $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp}->[$i]);
        print "<font size=\"3\" color=\"green\"><i><b>       ( Up to date : $dtime)</b></i></font>\n";
