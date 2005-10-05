@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.321 2005/10/04 21:35:43 choutko Exp $
+# $Id: RemoteClient.pm,v 1.322 2005/10/05 08:33:52 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -324,6 +324,7 @@ return $mybless;
 
 sub Init{
      my $self = shift;
+     my $forceret=shift;
 #
     my $sql  = undef;
     my $ret  = undef;
@@ -640,14 +641,18 @@ my %mv=(
      }     
      push @{$self->{MailT}}, $cite; 
  }
-
+    if($self->{q}->param("queryDB04")){
+       $forceret=1;
+    }
 #datasets
-
+        if(defined $forceret and $forceret>0){
+         return 1;
+        }
         $#{$self->{DataSetsT}}=-1;
         my $cem=lc($self->{q}->param("CEM"));
         if(defined $cem){
          if(not $self->findemail($cem)){
-            $self->ErrorPlus("Client $cem Not Found. Please Register...");
+            $self->ErrorPlus("Client $cem Not Found.  Please Register...");
           }
           else{
            my $save="$self->{UploadsDir}/$self->{CEMID}.save2";
@@ -1956,7 +1961,7 @@ sub ConnectOnlyDB{
 sub ConnectDB{
 
     my $self = shift;
-    if( not $self->Init()){
+    if( not $self->Init(1)){
         return 0;
     }
     else{
@@ -1976,9 +1981,9 @@ sub Connect{
         $self->{ok}=1;
     }
          my $cem=lc($self->{q}->param("CEM"));
-         if (defined $cem){
+         if (defined $cem and not ($self->{q}->param("queryDB04"))){
           if(not $self->findemail($cem)){
-            $self->ErrorPlus("Client $cem Not Found. Please Register...");
+           $self->ErrorPlus("Client $cem Not Found. Please Register...");
           }
           else{
              my $save="$self->{UploadsDir}/$self->{CEMID}.save2";
@@ -2749,7 +2754,7 @@ CheckCite:            if (defined $q->param("QCite")) {
       }
 
     my $buff=undef;
-    my @dirs=[];
+    my @dirs=();
     $#{dirs} =-1;
       if ($rootfileaccess eq "HTTP") {
          $buff = $RootAnalysisTextHTTP;
@@ -2799,7 +2804,7 @@ CheckCite:            if (defined $q->param("QCite")) {
          if ($dirfound == 1) {
 # skip it
          } else {
-          $dirs[$#dirs] = $tdir;
+          #$dirs[$#dirs] = $tdir;
           my $s = "chain.Add(\"".$tdir."/*.root\");";
           print "<tr><td> $s </tr></td>\n";
           $buff = $buff.$s."\n";
@@ -2859,7 +2864,7 @@ CheckCite:            if (defined $q->param("QCite")) {
           if ($dirfound == 1) {
 # skip it
           } else {
-           $dirs[$#dirs] = $tdir;
+           #$dirs[$#dirs] = $tdir;
            my $s = "chain.Add(\"".$prefix.$tdir."/*.root\");";
            print "<tr><td> $s </tr></td>\n";
            $buff = $buff.$s."\n";
