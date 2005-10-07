@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.82 2004/11/23 17:30:14 choutko Exp $
+# $Id: Monitor.pm,v 1.83 2005/10/07 18:29:02 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -762,7 +762,7 @@ sub getactivehosts{
     my $total_pr=$final_text[2]==0?1:$final_text[2];
    my $cpuper=int ($total_cpu*1000/($total_ev+1)/$total_pr);
    $final_text[10]= $cpuper/1000.;
-   $final_text[11]= int($total_cpu/$totcpu*$totproc/($total_time+0.001)*100)/100.;
+   $final_text[11]= int($total_cpu/($totcpu+0.001)*$totproc/($total_time+0.001)*100)/100.;
     
     push @output, [@final_text];
 

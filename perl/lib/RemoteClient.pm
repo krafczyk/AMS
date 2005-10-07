@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.322 2005/10/05 08:33:52 choutko Exp $
+# $Id: RemoteClient.pm,v 1.323 2005/10/07 18:29:02 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -676,6 +676,11 @@ if($#{$self->{DataSetsT}}==-1){
    my $nfiles     =0; # total jobs scanned
    my $totalcpu   =0;
    my $restcpu    =0;
+  my @st=();
+    $st[0]=0;
+    $st[1]=0;
+    $st[2]=0;
+    $st[3]=0;
 
    $dir="$self->{AMSSoftwareDir}/DataSets";
 #
@@ -691,17 +696,18 @@ if($#{$self->{DataSetsT}}==-1){
 #  if ($ndatasetsDB > 0) {
    $sql="select did, name from DataSets";
    $datasetsDB =$self->{sqlserver}->Query($sql);
+   $st[0]=$st[0]+1;
    if(defined $datasetsDB->[0][0]){
 #   $sql="select count(jid) from Jobs where pid = $periodId";
 #   $ret=$self->{sqlserver}->Query($sql);
 #   if (defined $ret->[0][0]) {
 #    $njobsDB = $ret->[0][0];
-    $sql="select jid,time,triggers,timeout, did, jobname from Jobs 
+    $sql="select jid, time,triggers,timeout, did, jobname, realtriggers from Jobs 
          where Jobs.pid = $periodId";
     $jobsDB= $self->{sqlserver}->Query($sql);
+    $st[1]=$st[1]+1;
 #   }
   }
-  
 # read list of datasets dirs from $dir
    opendir THISDIR ,$dir or die "unable to open $dir";
    my @allfiles= readdir THISDIR;
@@ -718,7 +724,6 @@ if($#{$self->{DataSetsT}}==-1){
       last;
      }
     }
-
 
 
 # scan all dataset dirs
@@ -792,8 +797,8 @@ if($#{$self->{DataSetsT}}==-1){
 #
               my $datasetfound = 0;
               foreach my $ds (@{$datasetsDB}){
-               my $datasetsDidDB  = $ds->[0];
-               my $datasetsNameDB = $ds->[1];
+                my $datasetsDidDB  = $ds->[0];
+                my $datasetsNameDB = $ds->[1];
                if ($datasetsNameDB eq $dataset->{name}) {
                  $dataset->{did}=$datasetsDidDB;
                  foreach my $job (@{$jobsDB}){
@@ -803,6 +808,7 @@ if($#{$self->{DataSetsT}}==-1){
                    my $jobsTimeOutDB = $job->[3];
                    my $jobsDidDB     = $job->[4];
                    my $jobsNameDB    = $job->[5];
+                   my $rtrig=$job->[6];
                    if ($jobsDidDB == $dataset->{did}) {
                      my @junk     = split '\.',$jobsNameDB;
                      my $jobname = $junk[2];
@@ -810,15 +816,29 @@ if($#{$self->{DataSetsT}}==-1){
                          $jobname = $jobname.".".$junk[$n];
                      }
                          if ($jobname eq $template->{filename}) {
-                            if ($jobsTimeDB - time() > $jobsTimeOutDB) {
-                              $sql="select FEvent,LEvent from Runs where jid=$jobsJidDB and status='Finished'";
+                            if (time()-$jobsTimeDB > $jobsTimeOutDB) {
+                             if(not defined $rtrig or $rtrig<0){
+                                    $rtrig=0;
+                              $sql="select FEvent,LEvent from Runs where jid=$jobsJidDB and (status='Finished' or status='Completed')";
                               $ret=$self->{sqlserver}->Query($sql);
+                              $st[2]=$st[2]+1;
                               if(defined $ret->[0][0]){
                                foreach my $run (@{$ret}){
-                                $template->{TOTALEVENTS}-=$run->[0];
+                                $rtrig+=$run->[1]-$run->[0]+1;
                                } 
                               }
-                             } else {
+                               $template->{TOTALEVENTS}-=$rtrig;
+                                    $sql="UPDATE Jobs SET realtriggers=$rtrig WHERE jid=$jobsJidDB";
+                             # die "$sql {$job} $rtrig";  
+                              $self->{sqlserver}->Update($sql);
+                             # die " @{$job} $rtrig";                             
+                           }
+                           else{
+                              $template->{TOTALEVENTS}-=$rtrig;
+                           }                               
+                          }
+                             else {
+                             $st[3]+=1;
 #
 # subtract allocated events
                              $template->{TOTALEVENTS}-=$jobsTrigDB;
@@ -869,6 +889,8 @@ if($#{$self->{DataSetsT}}==-1){
     push @{$self->{DataSetsT}}, $dataset;
    }
   } # end files of allfiles
+ #die "  query:  @st ";
+
 }
 
 #templates
@@ -1370,7 +1392,6 @@ sub ValidateRuns {
            my $cputime = sprintf("%.2f",$run->{cinfo}->{CPUTimeSpent});
            my $elapsed = sprintf("%.2f",$run->{cinfo}->{TimeSpent});
            my $host    = $self->gethostname($run->{cinfo}->{HostName});
-           
            if ($events == 0 && $errors == 0 && $run->{Status} eq 'Finished') {
                if ($webmode == 0 && $verbose == 1) {
                 print "Run ... $run->{Run}, Status ... $run->{Status}, Events... $events, Errors... $errors \n";
@@ -5153,7 +5174,7 @@ print qq`
                               $ctime,
                               '$nickname',
                                'host',0,0,0,0,'$stalone',
-                              -1, $pid)";
+                              -1, $pid,-1)";
          $self->{sqlserver}->Update($insertjobsql);
 #         $self->{sqlserver}->Update($sql);
 #
@@ -10737,7 +10758,7 @@ sub calculateMipsVC {
                              my $r3=$self->{sqlserver}->Query($sql);
                              if(defined $r3->[0][0]){
                               foreach my $run (@{$r3}){
-                               $template->{TOTALEVENTS}-=$run->[0];
+                               $template->{TOTALEVENTS}-=$run->[1]-$run->[0]+1;
                               } 
                              }
                          }
@@ -11055,7 +11076,7 @@ warn "  total/rest  $totalcpu  $restcpu \n";
                              my $r3=$self->{sqlserver}->Query($sql);
                              if(defined $r3->[0][0]){
                               foreach my $run (@{$r3}){
-                               $template->{TOTALEVENTS}-=$run->[0];
+                               $template->{TOTALEVENTS}-=$run->[1]-$run->[0]+1;
                               } 
                              }
                          }
