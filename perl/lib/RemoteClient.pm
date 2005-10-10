@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.323 2005/10/07 18:29:02 choutko Exp $
+# $Id: RemoteClient.pm,v 1.324 2005/10/10 11:56:42 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -652,7 +652,7 @@ my %mv=(
         my $cem=lc($self->{q}->param("CEM"));
         if(defined $cem){
          if(not $self->findemail($cem)){
-            $self->ErrorPlus("Client $cem Not Found.  Please Register...");
+#            $self->ErrorPlus("Client $cem Not Found.  Please Register...");
           }
           else{
            my $save="$self->{UploadsDir}/$self->{CEMID}.save2";
@@ -688,12 +688,25 @@ if($#{$self->{DataSetsT}}==-1){
 #               All datasets 
   my  $datasetsDB  = undef;
   my  $jobsDB      = undef;
-  my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
+#  my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
 # get list of datasets (names and dids)
 #  my  $sql="select count(did) from DataSets";
 #  my $ret=$self->{sqlserver}->Query($sql);
 #  if (defined $ret->[0][0]) {$ndatasetsDB = $ret->[0][0];}
 #  if ($ndatasetsDB > 0) {
+      $sql = "SELECT  DID  FROM ProductionSet WHERE STATUS='Active' ORDER BY DID";
+      $ret = $self->{sqlserver}->Query($sql);
+   my $pps=undef;
+   foreach my $pp  (@{$ret}){
+       if(defined $pps){
+           $pps=$pps." or pid =";
+       }
+       else{
+           $pps=" where pid = ";
+       }
+       $pps=$pps." $pp->[0] ";
+   }
+    
    $sql="select did, name from DataSets";
    $datasetsDB =$self->{sqlserver}->Query($sql);
    $st[0]=$st[0]+1;
@@ -702,8 +715,9 @@ if($#{$self->{DataSetsT}}==-1){
 #   $ret=$self->{sqlserver}->Query($sql);
 #   if (defined $ret->[0][0]) {
 #    $njobsDB = $ret->[0][0];
-    $sql="select jid, time,triggers,timeout, did, jobname, realtriggers from Jobs 
-         where Jobs.pid = $periodId";
+       $sql="select jid, time,triggers,timeout, did, jobname, realtriggers from Jobs" ;
+#         where Jobs.pid = $periodId";
+        $sql=$sql.$pps;
     $jobsDB= $self->{sqlserver}->Query($sql);
     $st[1]=$st[1]+1;
 #   }
