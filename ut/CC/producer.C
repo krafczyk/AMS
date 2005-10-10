@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.91 2005/05/17 09:54:05 pzuccon Exp $
+//  $Id: producer.C,v 1.92 2005/10/10 20:41:25 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -110,6 +110,7 @@ FMessage("AMSProducer::AMSProducer-F-UnableToInitCorba",DPS::Client::CInAbort);
 
 void AMSProducer::sendid(){
     _pid.Mips=AMSCommonsI::getmips();
+    cout <<"  Mips:  "<<_pid.Mips;
 if (_Solo){
       _pid.Type=DPS::Producer::Standalone;
       _pid.StatusType=DPS::Producer::OneRunOnly;
@@ -533,12 +534,12 @@ if(destdir && strcmp(destdir,getenv("NtupleDir"))){
      struct statfs buffer;
      int fail=statfs((const char*)destdir, &buffer);
     if(fail){
-      _ntend->FreeSpace=-1;
-      _ntend->TotalSpace=-1;
+      ntend->FreeSpace=-1;
+      ntend->TotalSpace=-1;
     }
     else{
-     _ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
-     _ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
+     ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
+     ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
     }
     AString b="";
     for(int k=0;k<bstart;k++)b+=a[k];
@@ -793,7 +794,6 @@ FMessage("AMSProducer::sendNtupleEnd-F-UNknownDSTType ",DPS::Client::CInAbort);
 
 
 void AMSProducer::sendNtupleStart(DPS::Producer::DSTType type,const char * name, int run, int first,time_t begin){
-cout <<" sendntuplestart start "<<endl;
 DPS::Producer::DST *ntend=getdst(type);
 if(ntend){
 AString a=(const char*)_pid.HostName;
@@ -826,13 +826,14 @@ ntend->size=0;
      struct statfs buffer;
      int fail=statfs((const char *)name, &buffer);
     if(fail){
-      _ntend->FreeSpace=-1;
-      _ntend->TotalSpace=-1;
+      ntend->FreeSpace=-1;
+      ntend->TotalSpace=-1;
     }
     else{
-     _ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
-     _ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
+     ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
+     ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
     }
+cout <<" sendntuplestart start "<<name<<" "<<ntend->FreeSpace<<" "<<ntend->TotalSpace<<endl;
 
 
 
@@ -866,7 +867,6 @@ FMessage("AMSProducer::sendNtupleEnd-F-UNknownDSTType ",DPS::Client::CInAbort);
 
 void AMSProducer::sendNtupleUpdate(DPS::Producer::DSTType type){
 if(_Solo)return;
-cout <<" sendntupleupdate start "<<endl;
 DPS::Producer::DST *ntend=getdst(type);
 if(ntend){
 ntend->Status=DPS::Producer::InProgress;
@@ -889,14 +889,15 @@ ntend->size=statbuf.st_size/1024./1024.+0.5;
      struct statfs buffer;
      int fail=statfs((const char*)a(bstart), &buffer);
     if(fail){
-      _ntend->FreeSpace=-1;
-      _ntend->TotalSpace=-1;
+      ntend->FreeSpace=-1;
+      ntend->TotalSpace=-1;
     }
     else{
-     _ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
-     _ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
+     ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
+     ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
     }
 
+cout <<" sendntupleupdate start "<<a(bstart)<<" "<<ntend->FreeSpace<<" "<<ntend->TotalSpace<<endl;
 
 UpdateARS();
 

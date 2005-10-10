@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.324 2005/10/10 11:56:42 choutko Exp $
+# $Id: RemoteClient.pm,v 1.325 2005/10/10 20:41:27 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5175,7 +5175,17 @@ print qq`
           my $stalone  = "CLIENT";
          }
          my $pid = $self->getProductionSetIdByDatasetId($did);
-         $insertjobsql="INSERT INTO Jobs VALUES
+#check run alrdy exist
+ $sql="select FEvent from Runs where jid=$run";
+ $ret=$self->{sqlserver}->Query($sql);
+ while(defined $ret->[0][0]){
+ $run++;
+ $sql="select FEvent from Runs where jid=$run";
+ $ret=$self->{sqlserver}->Query($sql);
+}
+
+
+            $insertjobsql="INSERT INTO Jobs VALUES
                              ($run,
                               '$script',
                               $self->{CEMID},
@@ -5189,6 +5199,7 @@ print qq`
                               '$nickname',
                                'host',0,0,0,0,'$stalone',
                               -1, $pid,-1)";
+ 
          $self->{sqlserver}->Update($insertjobsql);
 #         $self->{sqlserver}->Update($sql);
 #

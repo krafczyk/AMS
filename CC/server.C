@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.120 2005/05/17 09:54:06 pzuccon Exp $
+//  $Id: server.C,v 1.121 2005/10/10 20:41:25 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -53,6 +53,8 @@ int main(int argc, char * argv[]){
      *signal(SIGUSR1, handler);
      *signal(SIGUSR2, handler);
      *signal(SIGHUP, handler);
+//     *signal(SIGFPE, handler);
+
  try{
     AMSServer::Singleton()=new AMSServer(argc,argv);
  }
@@ -3251,10 +3253,12 @@ if(_parent->Debug() && ne.Status!=DPS::Producer::InProgress){
  for(DSTLI li=b.first;li!=b.second;++li){
   if(!strcmp((const char *)(li->second)->Name,(const char *)ne.Name)){
    _parent->EMessage(AMSClient::print(li->second,"Create:DST Already exists"));
-   return;
+     _dst.erase(li);
+//   return;
   }
  }
  _dst.insert(make_pair(ne.Type,vne));
+ _parent->EMessage(AMSClient::print(vne,"Creating DST"));
   if(ci.Type!=DPS::Client::Server)PropagateDST(ne,DPS::Client::Create,DPS::Client::AnyButSelf,_parent->getcid().uid);
 //         cout <<" exiting Producer_impl::sendDSTEnd create"<<endl;
  break;

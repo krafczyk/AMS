@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.478 2005/09/09 07:55:13 choumilo Exp $
+// $Id: job.C,v 1.479 2005/10/10 20:41:25 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1035,7 +1035,7 @@ TRFITFFKEY.ThrClR[1]=0.;
 TRFITFFKEY.MaxTrRecHitsPerLayer=250;
 TRFITFFKEY.LowMargin=0;
 TRFITFFKEY.OnlyGammaVtx=0;
-TRFITFFKEY.UseGeaneFitting=1;
+TRFITFFKEY.UseGeaneFitting=0;
 TRFITFFKEY.OldTracking=0;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
@@ -2278,7 +2278,7 @@ end.tm_mday=TKFIELD.iday[1];
 end.tm_mon=TKFIELD.imon[1];
 end.tm_year=TKFIELD.iyear[1];
 TID.add (new AMSTimeID(AMSID("MagneticFieldMap",isRealData()),
-   begin,end,sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile),(void*)&TKFIELD.iniok,server));
+   begin,end,sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile),(void*)&TKFIELD.iniok,server,0));
 
 //TID.add (new AMSTimeID(AMSID("MagneticFieldMapAddOn",isRealData()),
 //   begin,end,sizeof(TKFIELDADDON_DEF),(void*)&TKFIELDADDON.iqx,server));

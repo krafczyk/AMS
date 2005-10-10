@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.34 2005/05/17 09:54:03 pzuccon Exp $
+//  $Id: client.C,v 1.35 2005/10/10 20:41:24 choutko Exp $
 #include "client.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -277,7 +277,7 @@ return _streambuffer;
 char * AMSClient::print(const DPS::Producer::DST & a,const char * mes){
 _ost.clear();
 _ost.seekp(0);
-_ost<<mes<<" "<<" , Status "<<DSTS2string(a.Status)<<" , Type "<<DSTT2string(a.Type)<<" , Name "<<(a.Name?a.Name:" ")<<" , Version "<<a.Version<<" , Size "<<a.size<<" , crc "<<a.crc<<" , Insert "<<a.Insert<<" , Begin "<<a.Begin<<" , End "<<a.End<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , EventNumber "<<a.EventNumber<<" , ErrorNumber "<<a.ErrorNumber<<ends;
+_ost<<mes<<" "<<" , Status "<<DSTS2string(a.Status)<<" , Type "<<DSTT2string(a.Type)<<" , Name "<<(a.Name?a.Name:" ")<<" , Version "<<a.Version<<" , Size "<<a.size<<" , crc "<<a.crc<<" , Insert "<<a.Insert<<" , Begin "<<a.Begin<<" , End "<<a.End<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , EventNumber "<<a.EventNumber<<" , ErrorNumber "<<a.ErrorNumber<<" , FrreSpace "<<a.FreeSpace<<" , TotalSpace "<<a.TotalSpace<<ends;
 return _streambuffer;
 }
 

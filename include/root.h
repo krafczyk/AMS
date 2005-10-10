@@ -1857,7 +1857,8 @@ static char      * _Name;
 public:
  static AMSEventR* & Head()  {return _Head;}
  static char *  BranchName() {return _Name;}
- void SetBranchA(TTree *tree);
+ void SetBranchA(TTree *tree);   // don;t use it anymore use Init
+ void    Init(TTree *tree);   ///< InitTree
  void CreateBranch(TTree *tree, int brs);
  void ReSetBranchA(TTree *tree);
  void GetBranch(TTree *tree);
@@ -1888,7 +1889,6 @@ protected:
    /// System function called when loading a new file.
    /// Get branch pointers.
    bool  Notify(){GetBranch(_Tree);return true;}
-   void    Init(TTree *tree);   ///< InitTree
 
 
    void    SetOption(const char *option) { fOption = option; }

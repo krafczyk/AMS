@@ -30,7 +30,7 @@ int firstevent=-1;
  else if(nev<nevents)return -4;
   AMSEventR *pev = new AMSEventR();
 //  tree->SetMakeClass(1);
-  pev->SetBranchA(tree);
+  pev->Init(tree);
   pev->GetBranch(tree);
   int nbadev=0;
   int nevread=0;

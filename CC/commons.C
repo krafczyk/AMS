@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.287 2005/09/22 09:09:09 choutko Exp $
+//  $Id: commons.C,v 1.288 2005/10/10 20:41:24 choutko Exp $
 
 
 #include <unistd.h>
@@ -224,7 +224,7 @@ void AMSCommonsI::init(){
           _mips*=_cor;
         }
        }
-       cout <<"AMSCommonsI-I-ComputerEvaluatedAsMips "<<_mips<<endl;  
+       cout <<"AMSCommonsI-I-ComputerEvaluatedAsMips "<<getmips()<<endl;  
 }
 
 

@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.83 2005/10/07 18:29:02 choutko Exp $
+# $Id: Monitor.pm,v 1.84 2005/10/10 20:41:27 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -612,14 +612,14 @@ sub getdbok{
      my $string;
      if($spar[1]=~/^f/){
       $string="/".$spar[1];
-#      warn "  $tring $hash->{TotalSpace}; \n"
+      warn "  $tring $hash->{TotalSpace}; \n"
   }
      else{
       $string=$spar[0]."/".$spar[1];
  }
      $fsf{$string}=$hash->{FreeSpace};
      $fst{$string}=$hash->{TotalSpace};
-#     warn "  string in crt $string $hash->{Version} $hash->{TotalSpace}\n";
+     warn  "$tring $string $hash->{TotalSpace}\n";
     }
     foreach my $string (sort keys %fst){
      $#text=-1;

@@ -46,7 +46,7 @@
       verbose=true;
       iver=1;
      }
-//     cout<<"Requested file: "<<fname<<" imply "<<nevents<<" events"<<endl;
+     if(iver)cout<<"Requested file: "<<fname<<" imply "<<nevents<<" events"<<endl;
       if(root){
        iflg=rootread(fname,nevents,iver,lastevent);
       }
