@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.84 2005/10/10 20:41:27 choutko Exp $
+# $Id: Monitor.pm,v 1.85 2005/10/11 09:20:03 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -869,9 +869,10 @@ if ($producer eq "Producer"){
     }
     push @output, [@text];
 }
-#    sub prio {$a[0] <=> $b[0]};
-#    my @sortedoutput= sort prio @output;
-    return @output;
+    sub prio1 {$a->[0] <=> $b->[0]};
+    my @sortedoutput= sort prio1 @output;
+    return @sortedoutput;
+ #   return @output;
 
 }
 

@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.1 2005/05/13 09:12:47 pzuccon Exp $
+* $Id: TrackFit_utils.F,v 1.2 2005/10/11 09:19:59 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.2  2005/10/11 09:19:59  choutko
+* *** empty log message ***
+*
 * Revision 1.1  2005/05/13 09:12:47  pzuccon
 * Split the file amstkshc++.F in the two files Geant3_utils.F TkFit_utils.F
 *
@@ -92,7 +95,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.1 2005/05/13 09:12:47 pzuccon Exp $
+*  $Id: TrackFit_utils.F,v 1.2 2005/10/11 09:19:59 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -4671,7 +4674,7 @@ c                xms(i)=fact(i)*(xp(3,i)-xp(3,i-1))**2*(i-2)*2  ! last 2 - tubes
            endif
            call dsinv(5,gg(1,1),5,ifail)
            if(ifail.ne.0)then
-             write(*,*) 'sinv gg ',ifail
+c             write(*,*) 'sinv gg ',ifail
              goto 999
            endif
            er=sqrt(2*gg(5,5))

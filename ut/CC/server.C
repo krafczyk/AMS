@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.121 2005/10/10 20:41:25 choutko Exp $
+//  $Id: server.C,v 1.122 2005/10/11 09:19:54 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2300,7 +2300,7 @@ if(pcur->InactiveClientExists(getType()))return;
     submit+=uid;
     if(_parent->MT())submit+=" -M";
     if(_parent->Debug())submit+=" -D1";
-    int corfac=70000/(ahlv)->Clock;
+    int corfac=70000/((ahlv)->Clock>0?(ahlv)->Clock:1000);
     char cuid[80];
     sprintf(cuid," -C%d",corfac);
     submit+=cuid;
