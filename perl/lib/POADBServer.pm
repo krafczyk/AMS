@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.24 2004/10/22 14:24:11 choutko Exp $
+#  $Id: POADBServer.pm,v 1.25 2005/10/11 15:56:50 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -131,7 +131,18 @@ OUT:
            $dv->{DieHard}=0;
            my $i=-1;
            sub prio { $b->{Priority}  <=> $a->{Priority};}
-           my @sortedrtb=sort prio @{$ref->{rtb}};
+           sub prio1 { $b->{Run}  <=> $a->{Run};}
+           my @sortedrtb1=sort prio1 @{$ref->{rtb}};
+            my $run=-1;
+            foreach my $rtb (@sortedrtb1){
+             $i=$i+1;
+             if($rtb->{Run} == $run){
+              $sortedrtb1[$i]->{Status}='Canceled';
+             }
+             $run=$rtb->{Run};  
+            }          
+           my @sortedrtb=sort prio @sortedrtb1;
+           $i=-1;
             foreach my $rtb (@sortedrtb){
                 $i=$i+1;
              if ($rtb->{Status} eq "ToBeRerun" or $cid->{StatusType} eq "OneRunOnly" ){

@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.85 2005/10/11 09:20:03 choutko Exp $
+# $Id: Monitor.pm,v 1.86 2005/10/11 15:56:50 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -1100,7 +1100,7 @@ sub PNtupleSort{
           }
           }
          }
-         push @text,  $hash->{uid},$hash->{Run},$hash->{FirstEvent}, 
+         push @text,  $hash->{uid},$hash->{cuid},$hash->{Run},$hash->{FirstEvent}, 
         $hash->{LastEvent}, $hash->{Priority}, $hash->{FilePath}, 
          $hash->{Status}, $hash->{History},$st,$hash->{CounterFail},;
          push @output, [@text];   
@@ -1349,6 +1349,7 @@ warn " sent via arpref\n";
         my $ref=$Monitor::Singleton;
         my %nc=%{${$ref->{rtb}}[$row]};
         $nc{uid}=shift @data;
+        $nc{cuid}=shift @data;
         $nc{Run}=shift @data;
         $nc{FirstEvent}=shift @data;
         $nc{LastEvent}=shift @data;
@@ -1356,6 +1357,7 @@ warn " sent via arpref\n";
         $nc{FilePath}=shift @data;
         $nc{Status}=shift @data;
         $nc{History}=shift @data;
+        shift @data;
         $nc{CounterFail}=shift @data;
         if($nc{History} eq "ToBeRerun"){
          my $rdstc=$nc{cinfo};

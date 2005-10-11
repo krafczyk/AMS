@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.122 2005/10/11 09:19:54 choutko Exp $
+//  $Id: server.C,v 1.123 2005/10/11 15:56:47 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -1495,6 +1495,7 @@ return 0;
         DPS::Client::ActiveHost_var vac= new DPS::Client::ActiveHost(ah);
         cout <<" SendAH-I-"<<" "<<cid.Type<<" "<<ah.HostName<<" "<<(*li)->HostName<<endl;
         replace_if(li,pcur->getahl().end(),Eqs_h(ah),vac);
+       
        }
        break;
        case DPS::Client::Delete:
@@ -1517,7 +1518,7 @@ return 0;
     break;
     }
 }
-//cout <<" exiting Server_impl::sendAH"<<endl;
+cout <<" exiting Server_impl::sendAH"<<endl;
 }
 
 
@@ -2398,7 +2399,7 @@ if(li!=_acl.end() && TimeCheckValue<tt){
     if(iret){
      _parent->EMessage(AMSClient::print(*li,"Producer::Unable To Kill Client"));
     }
-
+    
     DPS::Client::ActiveClient_var acv=*li;
     PropagateAC(acv,DPS::Client::Delete);
   }
@@ -3231,6 +3232,26 @@ if(li !=_rl.end()){
 else{
  _parent->EMessage(AMSClient::print(cid,"sendCurrentInfo-EUnable to find Run Record for Client"));
  _parent->EMessage(AMSClient::print(ci));
+
+// try to kill nasty client
+//
+     DPS::Client::ActiveClient_var vac=new DPS::Client::ActiveClient();
+     vac->id=cid;
+     Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+     int iret=_pser->Kill(vac,SIGKILL,true);
+    if(iret){
+     _parent->EMessage(AMSClient::print(cid,"Producer::Unable To Kill Client"));
+    }
+  for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+    if(pcur->getType()==cid.Type){
+    ACLI li=find_if(pcur->getacl().begin(),pcur->getacl().end(),Eqs(vac));
+    if(li!=pcur->getacl().end()){
+         DPS::Client::ActiveClient_var acv=*li;
+         PropagateAC(acv,DPS::Client::Delete);
+    }
+     break;
+    }
+  }
 }
 //         cout <<" exiting Producer_impl::sendCurrentInfo"<<endl;
 }
