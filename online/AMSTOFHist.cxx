@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.16 2005/07/05 08:23:16 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.17 2005/10/11 12:34:13 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // 
 #include <iostream>
@@ -138,12 +138,68 @@ void AMSTOFHist::Book(){
 //------------------------------------
 
 void AMSTOFHist::ShowSet(Int_t Set){
+  gPad->Clear();
+  TVirtualPad * gPadSave = gPad;
+  int i;
+  switch(Set){
+case 0:
+  gPad->Divide(2,2);
+  for(i=0;i<4;i++){
+    gPad->cd(i+1);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled[i]->Draw();//TOF multiplicities
+    gPadSave->cd();
+  }
+  break;
+case 1:
+  gPad->Divide(2,2);
+  for(i=0;i<4;i++){
+    gPad->cd(i+1);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled[i+4]->Draw();//TOF beta-parameters
+    gPadSave->cd();
+  }
+  break;
+case 2:
+  gPad->Divide(3,2);
+  for(i=0;i<6;i++){
+    gPad->cd(i+1);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled[i+8]->Draw();//TRK-tracks parameters
+    gPadSave->cd();
+  }
+  break;
+case 3:
+  gPad->Divide(2,2);
+  for(i=0;i<4;i++){
+    gPad->cd(i+1);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled[i+14]->SetMinimum(-2.5);
+    _filled[i+14]->SetMaximum(2.5);
+    _filled[i+14]->SetMarkerStyle(21);
+    _filled[i+14]->SetMarkerColor(2);
+    _filled[i+14]->Draw("P");//TOF-TRK matching pars
+    gPadSave->cd();
+  }
+//
+  }
+//
 }
 
 //------------------------------------
 
 void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 // 
+  Bool_t cutf[20];
+//
   RunPar::addsev(0);//<--counts inputs
   if(ntuple->nMCEventg()>0)RunPar::SetMCF1();//MC data
   else RunPar::SetMCF0();//Real data
@@ -196,32 +252,32 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     _filled[1]->Fill(ntofcls,1);
 //
 //
-    tofbet=ntuple->p2beta->Beta;
-    nbetofc=ntuple->p2beta->NTofCluster();//number of Beta-used tof-clusters
+    tofbet=p2beta->Beta;
+    nbetofc=p2beta->NTofCluster();//number of Beta-used tof-clusters
     for(int i=0;i<nbetofc;i++){//loop over beta-used tof-clusters
-      xtof[i]=ntuple->p2beta->pTofCluster(i)->Coo[0];
-      ytof[i]=ntuple->p2beta->pTofCluster(i)->Coo[1];
-      ltof[i]=ntuple->p2beta->pTofCluster(i)->Layer;//1:4
-      btof[i]=ntuple->p2beta->pTofCluster(i)->Bar;//1:8(10)
+      xtof[i]=p2beta->pTofCluster(i)->Coo[0];
+      ytof[i]=p2beta->pTofCluster(i)->Coo[1];
+      ltof[i]=p2beta->pTofCluster(i)->Layer;//1:4
+      btof[i]=p2beta->pTofCluster(i)->Bar;//1:8(10)
       bltof[ltof[i]-1]=btof[i];//bar(1:10) vs layer
-      ntofp[ltof[i]-1]=ntuple->p2beta->pTofCluster(i)->NTofRawCluster();//# cluster members(paddles)
-      etof[ltof[i]-1]=ntuple->p2beta->pTofCluster(i)->Edep;
-      ttof[ltof[i]-1]=ntuple->p2beta->pTofCluster(i)->Time;
-      for(int j=0;j<ntofp[ltof[i]-1];j++)p2tofrc[ltof[i]-1][j]=ntuple->p2beta->pTofCluster(i)
+      ntofp[ltof[i]-1]=p2beta->pTofCluster(i)->NTofRawCluster();//# cluster members(paddles)
+      etof[ltof[i]-1]=p2beta->pTofCluster(i)->Edep;
+      ttof[ltof[i]-1]=p2beta->pTofCluster(i)->Time;
+      for(int j=0;j<ntofp[ltof[i]-1];j++)p2tofrc[ltof[i]-1][j]=p2beta->pTofCluster(i)
                                                                    ->pTofRawCluster(j);//RawCl-pointers
       _filled[2]->Fill(btof[i]+(ltof[i]-1)*10,1);
       _filled[3]->Fill(ntofp[i],1);
     }
 //
-    _filled[4]->Fill(ntuple->p2beta->Beta,1);
-    _filled[5]->Fill(ntuple->p2beta->Chi2,1);
-    _filled[6]->Fill(ntuple->p2beta->Chi2S,1);
-    _filled[7]->Fill(ntuple->p2beta->Pattern,1);
+    _filled[4]->Fill(p2beta->Beta,1);
+    _filled[5]->Fill(p2beta->Chi2,1);
+    _filled[6]->Fill(p2beta->Chi2S,1);
+    _filled[7]->Fill(p2beta->Pattern,1);
     if(fabs(p2beta->Beta) < 2.
-	                 && ntuple->p2beta->Chi2 < 5.
-	                 && ntuple->p2beta->Chi2S < 5.
-	                 && ntuple->p2beta->Pattern <= 4
-		         && ntuple->ntofcls < 10
+	                 && p2beta->Chi2 < 5.
+	                 && p2beta->Chi2S < 5.
+	                 && p2beta->Pattern <= 4
+		         && ntofcls < 10
 	                                                ){//<---- TOF-beta quality check
 //
       TOFBetaOK=1;
@@ -234,7 +290,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   Bool_t TRKtrOK(0);
 //
 //cout<<"  itrktr="<<itrktr<<endl;
-  TrTrackR *p2trktr = Particle(pindex).pTrTrack();//pointer to TRK-track used by Part.
+  TrTrackR *p2trktr = ntuple->Particle(pindex).pTrTrack();//pointer to TRK-track used by Part.
   Float_t trkthe(0);
   Float_t trkphi(0);
 //
@@ -288,7 +344,6 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     }
 //
     if(cutf[4] && cutf[5]){//<---- true X
-//    if(trkisGood){
       RunPar::addsev(6);//<--passed "trueX" test
 //
       _filled[8]->Fill(trkch2,1);
@@ -301,7 +356,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 //
         if(trkafd)_filled[11]->Fill(hrigass,1);
         _filled[12]->Fill(rerig,1);
-        if(trkrigpe>=0)_filled[13]Fill(rerigp,1);
+        if(trkrigpe>=0)_filled[13]->Fill(rerigp,1);
 //
         TRKtrOK=1;
         RunPar::addsev(7);//<--passed "Chi2's" check
@@ -317,12 +372,13 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
   Int_t Ntoftrmatch(0);
   Float_t ztof[4]={0,0,0,0};
   Float_t tofcro[4][3]={0,0,0,0,0,0,0,0,0,0,0,0};
+  Float_t dx,dy;
 //
   if(TOFBetaOK && TRKtrOK){//<---- TOFbeta/TRKtr presence check
     RunPar::addsev(8);//<-- count matching tests 
     for(int i=0;i<4;i++){
       for(int j=0;j<3;j++){
-        tofcro[i][j]=pParticle(pindex)->TOFCoo[i][j];//TOFpln/TRKtrack cross.points
+        tofcro[i][j]=ntuple->pParticle(pindex)->TOFCoo[i][j];//TOFpln/TRKtrack cross.points
         if(j==2)ztof[i]=tofcro[i][j];//store Zcr vs Layer
       }
     }
@@ -337,14 +393,14 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
       if(il==0 || il==3){
         dclg[ic]=dx;
         dctr[ic]=dy;
-        if(il==0)_filled[14+il]->Fill(ib,dx,1.);
-        if(il==3)_filled[14+il]->Fill(ib,dx,1.);
+        if(il==0)((TProfile*)_filled[14+il])->Fill(ib,dx,1.);
+        if(il==3)((TProfile*)_filled[14+il])->Fill(ib,dx,1.);
       }
       else{
         dclg[ic]=dy;
         dctr[ic]=dx;
-        if(il==1)_filled[14+il]->Fill(ib,dy,1.);
-        if(il==2)_filled[14+il]->Fill(ib,dy,1.);
+        if(il==1)((TProfile*)_filled[14+il])->Fill(ib,dy,1.);
+        if(il==2)((TProfile*)_filled[14+il])->Fill(ib,dy,1.);
       }
     }
 //
@@ -364,24 +420,23 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
       }
 //
       if(ib>1 && ib<kNtofb[il]){//central counters
-        tofh4[il]->Fill(dclg[ic],1);
+//        tofh4[il]->Fill(dclg[ic],1);
       }
       else{//outer counters
-        if(ib==1)tofh5[il]->Fill(dclg[ic],1);
-        else tofh5[il+4]->Fill(dclg[ic],1);
+//        if(ib==1)tofh5[il]->Fill(dclg[ic],1);
+//        else tofh5[il+4]->Fill(dclg[ic],1);
       }
 //
       if(fabs(dclg[ic])>toflc){
         cutf[6]=false;//bad long. tof/trk-matching
         bltofb[il]=ib;
       }
-      tofh4[il+4]->Fill(dctr[ic],1);
+//      tofh4[il+4]->Fill(dctr[ic],1);
       if(fabs(dctr[ic])>toftc){
         cutf[6]=false;//bad transv. tof/trk-matching
         bltofb[il]=ib;
       }
       if(fabs(dclg[ic])<toflc && fabs(dctr[ic])<toftc)Ntoftrmatch+=1;
-      if(bltofb[il]==0)tofh1a->Fill(ib+il*10,1);
     }//--->endof beta-used cluster loop
     
     if(cutf[6]){//<---- Good Tof-TrkTrack matching in ALL!!! beta-used tof-layers  
