@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.205 2005/07/20 15:41:13 choutko Exp $
+//  $Id: commons.h,v 1.206 2005/10/13 09:01:52 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -494,7 +494,7 @@ public:
 integer trtype;
 integer toflc;
 integer tofsc;
-integer tfhzlc;
+integer tofzlc;
 integer nanti;
 integer RebuildLVL1;
 geant MaxScalersRate;
@@ -502,6 +502,16 @@ geant MinLifeTime;
 geant TheMagCut;
 integer ectrlog;
 integer antisc;
+integer Lvl1ConfMCVers;
+integer Lvl1ConfRDVers;
+integer Lvl1ConfRead;
+//
+integer sec[2];
+integer min[2];
+integer hour[2];
+integer day[2];
+integer mon[2];
+integer year[2];
 };
 #define TGL1FFKEY COMMON_BLOCK(TGL1FFKEY,tgl1ffkey)
 COMMON_BLOCK_DEF(TGL1FFKEY_DEF,TGL1FFKEY);

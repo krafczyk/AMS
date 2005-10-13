@@ -1,4 +1,4 @@
-//  $Id: trigger102.h,v 1.12 2005/05/17 09:56:36 pzuccon Exp $
+//  $Id: trigger102.h,v 1.13 2005/10/13 09:01:52 choumilo Exp $
 #ifndef __AMS2TRIGGER__
 #define __AMS2TRIGGER__
 #include "link.h"
@@ -21,6 +21,22 @@ protected:
   geant getsum() const;
  };
 */
+ class Lvl1TrigConfig {
+  protected:
+   integer intrigmask[TOF2GC::SCLRS][TOF2GC::SCMXBR];//=0/1/2/3=>Not_in_trig/both/s1/s2 in_trigger
+   integer orandmask[TOF2GC::SCLRS][TOF2GC::SCMXBR];//=0/1=>And/Or of two paddle sides
+   integer strigmask;//involved sub-triggers
+   integer lconf;//accepted tof-layers config (z>=1)
+   integer zlconf;//accepted tof-layers config (z>1)
+  public:
+   integer tofinmask(int il, int ib){return intrigmask[il][ib];}
+   integer toforandmask(int il, int ib){return orandmask[il][ib];}
+   integer subtrigmask(){return strigmask;}
+   integer toflconf(){return lconf;}
+   integer tofzlconf(){return zlconf;}
+   void init();
+ };
+//
  class Scalers{
   protected:
    uinteger _Nentries;
@@ -42,6 +58,7 @@ protected:
  void _printEl(ostream & stream){ stream << " LifeTime " << float(_LifeTime)/1000.<<endl;}
  void _writeEl();
 public:
+ static Lvl1TrigConfig l1trigconf;
  Trigger2LVL1(integer lifetime, integer tofflag, uinteger tofpatt[], uinteger antipatt,
              uinteger ecflg, geant ectrsum):
 	     _LifeTime(lifetime),_tofflag(tofflag), _ecalflag(ecflg), _ectrsum(ectrsum){
@@ -69,6 +86,7 @@ public:
  integer checktofpattand(integer tofc, integer paddle);
  integer checkantipatt(integer counter){return _antipatt & (1<<counter);}
  static void build();
+ static void init();
 
  // Interface with DAQ
       static int16u getdaqid(){return ( 2<<9 | 1<<6 );}      

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.29 2005/09/09 07:55:14 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.30 2005/10/13 09:01:33 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -173,12 +173,12 @@ geant TOF2DBc::_plnstr[20]={
   }
 //---
   integer TOF2DBc::brtype(integer ilay, integer ibar){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(ilay>=0 && ilay < _planes);
         assert(ibar>=0 && ibar < _bperpl[ilay]);
       }
-    #endif
+#endif
     int cnum=0;
     for(int i=0;i<ilay;i++)cnum+=_bperpl[i];
     cnum+=ibar;
@@ -186,12 +186,12 @@ geant TOF2DBc::_plnstr[20]={
   }
 //
  integer TOF2DBc::npmtps(integer ilay, integer ibar){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(ilay>=0 && ilay < _planes);
         assert(ibar>=0 && ibar < _bperpl[ilay]);
       }
-    #endif
+#endif
     int cnum=0;
     for(int i=0;i<ilay;i++)cnum+=_bperpl[i];
     cnum+=ibar;
@@ -200,12 +200,12 @@ geant TOF2DBc::_plnstr[20]={
   }
 //
   integer TOF2DBc::barseqn(integer ilay, integer ibar){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(ilay>=0 && ilay < _planes);
         assert(ibar>=0 && ibar < _bperpl[ilay]);
       }
-    #endif
+#endif
     int cnum=0;
     for(int i=0;i<ilay;i++)cnum+=_bperpl[i];
     cnum+=ibar;
@@ -218,11 +218,11 @@ geant TOF2DBc::_plnstr[20]={
     for(int i=0;i<ilay;i++)cnum+=_bperpl[i];
     cnum+=ibar;
     btyp=_brtype[cnum];
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(btyp>0 && btyp <= TOF2GC::SCBTPN);
       }
-    #endif
+#endif
     return _brlen[btyp-1];
   }
 //
@@ -231,68 +231,68 @@ geant TOF2DBc::_plnstr[20]={
     for(int i=0;i<ilay;i++)cnum+=_bperpl[i];
     cnum+=ibar;
     int btyp=_brtype[cnum];
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(btyp>0 && btyp <= TOF2GC::SCBTPN);
       }
-    #endif
+#endif
     return _lglen[btyp-1];
   }
 //
   integer TOF2DBc::plrotm(integer ilay){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(ilay>=0 && ilay < _planes);
       }
-    #endif
+#endif
     return _plrotm[ilay];
   }
 //
   integer TOF2DBc::getbppl(integer ilay){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(ilay>=0 && ilay < _planes);
       }
-    #endif
+#endif
     return _bperpl[ilay];
   }
 //
   geant TOF2DBc::outcp(int ilay, int ipr){//ipr=1:4->wd/xc/yc/exwd
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(ilay>=0 && ilay < _planes);
 	assert(ipr>0 && ipr<=4);
       }
-    #endif
+#endif
     return _outcp[ilay][ipr-1];
   }
 //
   geant TOF2DBc::supstr(int i){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(i>0 && i <= 12);
       }
-    #endif
+#endif
     return _supstr[i-1];
   }
 //
   geant TOF2DBc::plnstr(int i){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(i>0 && i <= 20);
       }
-    #endif
+#endif
     return _plnstr[i-1];
   }
 // ===> function to get Z-position of scint. bar=ib in layer=il
 //
   geant TOF2DBc::getzsc(integer il, integer ib){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(il>=0 && il < _planes);
         assert(ib>=0 && ib < _bperpl[il]);
       }
-    #endif
+#endif
   geant dz,zc;
   dz=_plnstr[5];// counter thickness
   if(il==0)
@@ -312,12 +312,12 @@ geant TOF2DBc::_plnstr[20]={
 // ===> function to get transv. position of scint. bar=ib in layer=il
 //
   geant TOF2DBc::gettsc(integer il, integer ib){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(il>=0 && il < _planes);
         assert(ib>=0 && ib < _bperpl[il]);
       }
-    #endif
+#endif
   static geant dxi,dxo;
   geant x,co[2],dxti,dxto;
   dxi=_plnstr[4];//sc.paddle width(inner="normal" counters)
@@ -376,19 +376,19 @@ geant TOF2DBc::_plnstr[20]={
   integer TOF2DBc::pbonup(){return _pbonup;}
 //
   geant TOF2DBc::tdcbin(int i){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(i>=0 && i<4);
       }
-    #endif
+#endif
     return _tdcbin[i];}
 //
   geant TOF2DBc::daqpwd(int i){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(i>=0 && i<15);
       }
-    #endif
+#endif
     return _daqpwd[i];}
 //
   geant TOF2DBc::trigtb(){return _trigtb;}

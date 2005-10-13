@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.20 2005/09/09 07:55:12 choumilo Exp $
+//  $Id: antirec02.C,v 1.21 2005/10/13 09:01:30 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -17,6 +17,7 @@
 #include "mccluster.h"
 #include <math.h>
 #include "extC.h"
+#include "trigger102.h"
 #include "tofdbc02.h"
 #include "tofrec02.h"
 #include "tofsim02.h"
@@ -175,7 +176,11 @@ void Anti2RawEvent::mc_build(int &stat){
   Anti2RawEvent::setpatt(trpatt);// reset trigger-pattern in Anti2RawEvent::
   Anti2RawEvent::setncoinc(ncoinct);// reset # of coinc.sectors  to Anti2RawEvent::
 //
-  if(TGL1FFKEY.trtype<256){//<==== NotExternalTrigger"
+  integer trtype(0);
+  if(TGL1FFKEY.trtype>0)trtype=TGL1FFKEY.trtype;
+  else trtype=Trigger2LVL1::l1trigconf.subtrigmask();
+//
+  if(trtype<256){//<==== NotExternalTrigger"
 //
     if(trflag>=0 || trflag1>=0){// use FT from TOF
       ftrig=TOF2RawEvent::gettrtime();//abs. Time when FT came to S-crate(INCL. fixed delay !)

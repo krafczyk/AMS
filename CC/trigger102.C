@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.27 2005/05/17 09:54:07 pzuccon Exp $
+//  $Id: trigger102.C,v 1.28 2005/10/13 09:01:33 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -17,7 +17,9 @@
 using namespace std;
 using namespace ecalconst;
 //
-Trigger2LVL1::Scalers Trigger2LVL1::_scaler;
+ Trigger2LVL1::Scalers Trigger2LVL1::_scaler;
+ Trigger2LVL1::Lvl1TrigConfig Trigger2LVL1::l1trigconf;
+//
 void Trigger2LVL1::build(){
 //
   uinteger trigflag(0);//glob trig.patt
@@ -155,28 +157,31 @@ void Trigger2LVL1::build(){
                && ectrigfl%10==2);          //(8) photon trigger (ECEt>HiThr & ECWd=em)
 //
   int nbreq(0);
+  integer trtype(0);
+  if(TGL1FFKEY.trtype>0)trtype=TGL1FFKEY.trtype;
+  else trtype=Trigger2LVL1::l1trigconf.subtrigmask();
   HF1(ECHIST+25,0.,1.);
   for(i=0;i<8;i++){
     if(BranchOK[i]){
       HF1(ECHIST+25,geant(i+1),1.);
     }
-    if(TGL1FFKEY.trtype & 1<<i)nbreq+=1;//count requested branches
+    if(trtype & 1<<i)nbreq+=1;//count requested branches
   }
 //
-  if((nbreq==0 && TGL1FFKEY.trtype !=256) || TGL1FFKEY.trtype>256){
-    cout<<"Trigger2LVL1::build Error: unknown trigger type requested ! "<<TGL1FFKEY.trtype<<endl;
+  if((nbreq==0 && trtype !=256) || trtype>256){
+    cout<<"Trigger2LVL1::build Error: unknown trigger type requested ! "<<trtype<<endl;
     exit(10);
   }
 //
 //                         <---- check OR of requested branches(trigger type):
   int nbchk(0);
-  if(TGL1FFKEY.trtype ==256){
+  if(trtype ==256){
     comtrok=1;
     LVL1Mode=256;
   }
   else{
     for(i=0;i<8;i++){
-      if((TGL1FFKEY.trtype & 1<<i)>0 && BranchOK[i]){
+      if((trtype & 1<<i)>0 && BranchOK[i]){
         nbchk+=1;
 	LVL1Mode|=(1<<i);//create (fired&requested)-branch pattern
       }
@@ -192,13 +197,125 @@ void Trigger2LVL1::build(){
 	                                                antipatt,ectrigfl,ectrsum));
   }
   else if(AMSJob::gethead()->isRealData() && sumsc>=TGL1FFKEY.MaxScalersRate && lifetime<=TGL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
-  
-
-
 }
-
-
-
+//--------------------
+void Trigger2LVL1::init(){
+}
+//--------------------
+void Trigger2LVL1::Lvl1TrigConfig::init(){//read needed lvl1trig-masks
+  char fname[80];
+  char name[80];
+  char vers1[3]="mc";
+  char vers2[3]="rl";
+  int mrfp;
+  char in[2]="0";
+  char inum[11];
+  int mcvn,rlvn,dig,endflab(0);
+//
+  strcpy(inum,"0123456789");
+//reset:
+ strigmask=1;
+ lconf=0;
+ zlconf=1;
+ for(int il=0;il<TOF2GC::SCLRS;il++){
+   for(int ib=0;ib<TOF2GC::SCMXBR;ib++){
+     intrigmask[il][ib]=0;//reset mask
+     orandmask[il][ib]=0;//reset mask
+   }
+ }
+//
+ strcpy(name,"lvl1conf");//generic Lvl1ConfData file name
+ if(AMSJob::gethead()->isMCData())           // for MC-data
+ {
+   cout <<" Trigger2LVL1::Init: LVL1TrigConf-data for MC are requested"<<endl;
+   mcvn=TGL1FFKEY.Lvl1ConfMCVers%1000;
+   dig=mcvn/100;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=(mcvn%100)/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=mcvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers1);
+ }
+ else                                       // for Real-data
+ {
+   cout <<" Trigger2LVL1::Init: LVL1TrigConf-data for RealData are requested"<<endl;
+   rlvn=TGL1FFKEY.Lvl1ConfRDVers%1000;
+   dig=rlvn/100;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=(rlvn%100)/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=rlvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers2);
+ }
+   strcat(name,".dat");
+   strcpy(fname,AMSDATADIR.amsdatadir);
+   if(TGL1FFKEY.Lvl1ConfRead==1)strcpy(fname,"");
+   strcat(fname,name);
+   cout<<"Open file : "<<fname<<'\n';
+   ifstream tgfile(fname,ios::in); // open file for reading
+   if(!tgfile){
+     cerr <<"Trigger2LVL1::Init: Missing Lvl1ConfData file "<<fname<<endl;
+     exit(1);
+   }
+//
+  for(int il=0;il<TOF2DBc::getnplns();il++){
+    for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      tgfile >> intrigmask[il][ib];
+      if(tgfile.eof()){
+        cerr<<"Trigger2LVL1::Init:Unexpected EOF reading TofInTrigMask !!!"<<endl;
+	exit(1);
+      }
+    }
+  }  
+  for(int il=0;il<TOF2DBc::getnplns();il++){
+    for(int ib=0;ib<TOF2DBc::getbppl(il);ib++){
+      tgfile >> orandmask[il][ib];
+      if(tgfile.eof()){
+        cerr<<"Trigger2LVL1::Init:Unexpected EOF reading TofSidesOrAndMask !!!"<<endl;
+	exit(1);
+      }
+    }
+  }
+//  
+  tgfile >> strigmask;
+  if(tgfile.eof()){
+    cerr<<"Trigger2LVL1::Init:Unexpected EOF reading Lvl1SubTrigMask !!!"<<endl;
+    exit(1);
+  }
+//  
+  tgfile >> lconf;
+  if(tgfile.eof()){
+    cerr<<"Trigger2LVL1::Init:Unexpected EOF reading Lvl1LayerConf !!!"<<endl;
+    exit(1);
+  }
+//
+  tgfile >> zlconf;
+  if(tgfile.eof()){
+    cerr<<"Trigger2LVL1::Init:Unexpected EOF reading Lvl1Z>1LayerConf !!!"<<endl;
+    exit(1);
+  }
+//
+  tgfile>>endflab;
+//
+  tgfile.close();
+//
+  if(endflab==12345){
+    cout<<"Trigger2LVL1::Init: Lvl1TrigConf-data are successfully read !"<<endl;
+  }
+  else{cout<<"Trigger2LVL1::Init: Error reading Lvl1TrigConf-data !"<<endl;
+    exit(1);
+  }
+//
+}
+//------
 integer Trigger2LVL1::checktofpattor(integer tof, integer paddle){
 #ifdef __AMSDEBUG__
  assert(tof >=0 && tof <TOF2GC::SCLRS);

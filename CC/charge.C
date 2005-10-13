@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.73 2005/09/09 07:55:12 choumilo Exp $
+//  $Id: charge.C,v 1.74 2005/10/13 09:01:31 choumilo Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -64,6 +64,7 @@ integer AMSCharge::getvotedcharge(int & index){
   number probmin=CHARGEFITFFKEY.ProbMin;
   int usetof=_ProbTOF[_iTOF]>probmin?1:0;
   int usetrk=_ProbTracker[_iTracker]>probmin?1:0;
+  int userich= _ProbRich[_iRich]>probmin?1:0;
   if(!_ChargeTracker) usetof=1;
   else if(!usetof && !usetrk){
     usetof=1;
@@ -82,7 +83,8 @@ integer AMSCharge::getvotedcharge(int & index){
 //--- so i propose below the replacement codes(each of TOF and TRK prob's are normalized to SUMprob(i)=1)   
   number maxprob=0;
   for(i=0; i<MaxZTypes; i++){
-    number proball=(usetof?_ProbTOF[i]:0)*(usetrk?_ProbTracker[i]:0);
+    number proball=(usetof?_ProbTOF[i]:1)*(usetrk?_ProbTracker[i]:1);
+//    cout<<"IZ="<<i<<" prTOF="<<_ProbTOF[i]<<" prTRK="<<_ProbTracker[i]<<" prRIC="<<_ProbRich[i]<<endl;
     if(proball>maxprob){
       maxprob=proball;
       charge=_chargeTracker[i];

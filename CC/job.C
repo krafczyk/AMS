@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.480 2005/10/11 15:56:47 choutko Exp $
+// $Id: job.C,v 1.481 2005/10/13 09:01:32 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -284,7 +284,7 @@ void AMSJob::_sirichdata(){
 
 //------------------------------------------------------
 void AMSJob::_sitrig2data(){
-  TGL1FFKEY.trtype=8; //(1) Requested branches(pattern) for LVL1 global OR(see datacards.doc)
+  TGL1FFKEY.trtype=1; //(1) Requested branches(pattern) for LVL1 global OR(see datacards.doc)
 //exapmles: 1->unbTOF;2->unbEC;4->unb(TOF&EC);8->unb(TOF|EC);240->GlobPhys;256->extern
 // TOF :
 // 
@@ -292,7 +292,7 @@ void AMSJob::_sitrig2data(){
 //                 (=0/1/2-> accept at least ANY3of4/ALL4/ANYTopBot2of4 layer coincidence)
   TGL1FFKEY.tofsc=1;//(3)required TOF-FastTrigger SIDE configuration
 //                                 (=0/1-> two-sides-AND/OR selection)
-  TGL1FFKEY.tfhzlc=1;//(4)TOF_HiZ_FT 2-top(2-bot)fired layers configurations(0/1/2/3-> 
+  TGL1FFKEY.tofzlc=1;//(4)TOF_HiZ_FT 2-top(2-bot)fired layers configurations(0/1/2/3-> 
 //                                              ->top(bot)OR/topAND/botAND/top(bot)AND 
 // ANTI :
   TGL1FFKEY.nanti=1;//(5) max. fired ANTI-paddles(logical) (in equat.region if it may be controlled)
@@ -302,12 +302,28 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.MaxScalersRate=20000;//(7)
   TGL1FFKEY.MinLifeTime=0.015;//(8)
 // orbit:
-  TGL1FFKEY.TheMagCut=0.7;//(9)geom.latitude cut when anti-cut is used(below-#5, above-0)
+  TGL1FFKEY.TheMagCut=0.7;//   (9)geom.latitude cut when anti-cut is used(below-#5, above-0)
 // Ecal
-  TGL1FFKEY.ectrlog=3;//(10) EC-trigger logic type(1->MyOld,2->MyNew+ANSI,3->Pisa)
+  TGL1FFKEY.ectrlog=3;//      (10) EC-trigger logic type(1->MyOld,2->MyNew+ANSI,3->Pisa)
 //
-  TGL1FFKEY.antisc=1;//(11)required ANTI-FastTrigger SIDE configuration
+  TGL1FFKEY.antisc=1;//       (11)required ANTI-FastTrigger SIDE configuration
 //                                 (=0/1-> two-sides-AND/OR selection)
+  TGL1FFKEY.Lvl1ConfMCVers=1;//(12)MC def.version number of "toftrigf***mc" -file
+  TGL1FFKEY.Lvl1ConfRDVers=1;//(13)RD def.version number of "toftrigf***rl" -file
+  TGL1FFKEY.Lvl1ConfRead=0;  //(14) M(ask)=0/1->read Lvl1ConfMasks-data from DB/raw_file
+//
+  TGL1FFKEY.sec[0]=0;//(15) 
+  TGL1FFKEY.sec[1]=0;
+  TGL1FFKEY.min[0]=0;
+  TGL1FFKEY.min[1]=0;
+  TGL1FFKEY.hour[0]=0;
+  TGL1FFKEY.hour[1]=0;
+  TGL1FFKEY.day[0]=1;
+  TGL1FFKEY.day[1]=1;
+  TGL1FFKEY.mon[0]=0;
+  TGL1FFKEY.mon[1]=0;
+  TGL1FFKEY.year[0]=101;
+  TGL1FFKEY.year[1]=110;//(26)
 //
   FFKEY("TGL1",(float*)&TGL1FFKEY,sizeof(TGL1FFKEY_DEF)/sizeof(integer),"MIXED");
 //----
@@ -1998,28 +2014,29 @@ void AMSJob::_retof2initjob(){
     TOF2JobStat::bookhist();
 //
 //-------------------------
-// 
   if((TFREFFKEY.ReadConstFiles%1000)/100>0){//(QDPC) Take ThreshCuts-set from Data-Cards
-//
     TOF2Varp::tofvpar.init(TFREFFKEY.daqthr, TFREFFKEY.cuts);//create ThrCuts-obj from Data-Cards
   }
 //--------
   if(TFREFFKEY.ReadConstFiles%10>0){//(QDPC) Take Paddles CalibConst from CalibFiles
-//
     TOF2Brcal::build();//create scbrcal-objects from CalibFiles
   }
 //--------
 //
   if((TFREFFKEY.ReadConstFiles%100)/10>0 && isRealData()){//(QDPC) Take RealData Peds from files
-//
     TOFBPeds::build();//create RealData scbrped-objects from peds-file
   }
 // 
 //--------
   if(TFREFFKEY.ReadConstFiles/1000>0){//(QDPC) Take ChargeCalibPDFs(mc|rd) from files
-//
-    TofElosPDF::build();//create scbrcal-objects from CalibFiles
+    TofElosPDF::build();//create PDF-objects from CalibFiles
   }
+//
+//--------
+  if(TGL1FFKEY.Lvl1ConfRead%10>0){//(M) Take TrigConfig(mc|rd) from raw files
+    Trigger2LVL1::l1trigconf.init();
+  }
+//
 //-----------
   AMSTOFCluster::init();
   AMSSCIds::inittable();
@@ -2430,6 +2447,7 @@ end.tm_year=TRDMCFFKEY.year[1];
   end.tm_year=TFREFFKEY.year[1];
 //-----
 //tfre->QDPC,tfmc->PTS
+//-----
 if(TFREFFKEY.ReadConstFiles%10==0)end.tm_year=TFREFFKEY.year[0]-1;//CalibConst from DB
   
   TID.add (new AMSTimeID(AMSID("Tofbarcal2",isRealData()),
@@ -2489,6 +2507,41 @@ if(!isRealData()){
  
 //
    
+}
+//---------------------------------------
+//
+//   LVL1 : TDV-reservation for Lvl1Masks data
+//
+{
+ tm begin;
+ tm end;
+ begin.tm_isdst=0;
+ end.tm_isdst=0;
+
+
+  begin.tm_sec=TGL1FFKEY.sec[0];
+  begin.tm_min=TGL1FFKEY.min[0];
+  begin.tm_hour=TGL1FFKEY.hour[0];
+  begin.tm_mday=TGL1FFKEY.day[0];
+  begin.tm_mon=TGL1FFKEY.mon[0];
+  begin.tm_year=TGL1FFKEY.year[0];
+
+  end.tm_sec=TGL1FFKEY.sec[1];
+  end.tm_min=TGL1FFKEY.min[1];
+  end.tm_hour=TGL1FFKEY.hour[1];
+  end.tm_mday=TGL1FFKEY.day[1];
+  end.tm_mon=TGL1FFKEY.mon[1];
+  end.tm_year=TGL1FFKEY.year[1];
+//-----
+//tgl1->M
+//-----
+if(TGL1FFKEY.Lvl1ConfRead%10==0)end.tm_year=TGL1FFKEY.year[0]-1;//Lvl1Config-data from DB
+  
+  TID.add (new AMSTimeID(AMSID("Lvl1Config",isRealData()),
+    begin,end,sizeof(Trigger2LVL1::l1trigconf),
+    (void*)&Trigger2LVL1::l1trigconf,server,NeededByDefault));
+   
+  end.tm_year=TGL1FFKEY.year[1];
 }
 //---------------------------------------
 //

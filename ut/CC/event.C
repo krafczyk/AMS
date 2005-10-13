@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.337 2005/06/10 10:53:17 mdelgado Exp $
+//  $Id: event.C,v 1.338 2005/10/13 09:01:31 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1515,6 +1515,10 @@ void AMSEvent::_reanti2event(){
   integer toftrigfl(-1);
   uinteger ectrigfl(0);
   int stat;
+  integer trtype(0);
+//
+  if(TGL1FFKEY.trtype>0)trtype=TGL1FFKEY.trtype;
+  else trtype=Trigger2LVL1::l1trigconf.subtrigmask();
 //
   AMSgObj::BookTimer.start("REANTIEVENT");
 //
@@ -1527,7 +1531,7 @@ void AMSEvent::_reanti2event(){
       toftrigfl=ptr->gettoflg();
       ectrigfl=ptr->getecflg();
     }
-    if(toftrigfl<0 && ectrigfl<=0 && TGL1FFKEY.trtype!=256){
+    if(toftrigfl<0 && ectrigfl<=0 && trtype!=256){
       AMSgObj::BookTimer.stop("REANTIEVENT");
       return;// "no TOF/EC in LVL1-trigger(FastTrig)"
     }
@@ -1560,6 +1564,10 @@ void AMSEvent::_reanti2event(){
 void AMSEvent::_retof2event(){
 integer toftrigfl(-1),ectrigfl(0);
 int stat;
+integer trtype(0);
+//
+  if(TGL1FFKEY.trtype>0)trtype=TGL1FFKEY.trtype;
+  else trtype=Trigger2LVL1::l1trigconf.subtrigmask();
 //
   AMSgObj::BookTimer.start("RETOFEVENT");
     TOF2JobStat::addre(0);
@@ -1568,7 +1576,7 @@ int stat;
       toftrigfl=ptr->gettoflg();
       ectrigfl=ptr->getecflg();
     }
-    if(toftrigfl<0 && ectrigfl<=0 && TGL1FFKEY.trtype!=256){
+    if(toftrigfl<0 && ectrigfl<=0 && trtype!=256){
       AMSgObj::BookTimer.stop("RETOFEVENT");
       return;// "no TOF/EC in LVL1-trigger(FastTrig)"
     }   

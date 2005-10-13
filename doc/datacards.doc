@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.244 2005/07/20 15:41:10 choutko Exp $
+#  $Id: datacards.doc,v 1.245 2005/10/13 09:01:51 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -612,7 +612,7 @@ I 2 toflc(0)               // required TOF-FastTrigger LAYER configuration
 //                 (=0/1/2-> accept at least ANY3of4/ALL4/ANYTopBot2of4 layer coincidence)
 I 3 tofsc(1)               //required TOF-FastTrigger SIDE configuration
 //                                 (=0/1-> two-sides-AND/OR selection)
-I 4 tfhzlc(1)              //TOF_HiZ_FT 2-top(2-bot)fired layers configurations(0/1/2/3-> 
+I 4 tofzlc(1)              //TOF_HiZ_FT 2-top(2-bot)fired layers configurations(0/1/2/3-> 
 //                                              ->top(bot)OR/topAND/botAND/top(bot)AND 
 I 5 nanti(20)              // max. fired ANTI-paddles 
 I 6 RebuildLVL1(0)         // Rebuild or not lvl1 if reconstruction
@@ -620,6 +620,16 @@ R 7 MaxScalersRate(20k)    // max acceptable av scalers rate
 R 8 MinLifeTime   (0.015)  // min acceptable lifetime
 R 9 TheMagCut(0.7)         // mag.latitude boundary when anti-cut nanti=0 change to <=1
 I 10 ectrlog(2)            // EC-trigger logic type(1->MyOld,2->MyNew+ANSI,3->Pisa)
+I 11 antisc(1)             // required ANTI-FastTrigger SIDE configuration
+//                                               (=0/1-> two-sides-AND/OR selection)
+I 12 Lvl1ConfMCVers(1)     // MC def.version number of "toftrigf***mc" -file
+I 13 Lvl1ConfRDVers(1)     // RD def.version number of "toftrigf***rl" -file
+I 14 Lvl1ConfRead(0)       // M(ask)=0/1->read Lvl1ConfMasks-data from DB/raw_file
+
+    Important: if tofsc(#3) <0 ==> TofOrAnd data are counter-individual and taken from DB
+                  trtype(#1)<0 ==> Lvl1SubTrigMask is taken from DB
+		  toflc(#2) <0 ==> TofLayersConf is taken from DB
+		  tofzlc(#4)<0 ==> TofZ>1LayersConf is taken from DB
 //-----------------------------------------------------------------------------
 
 // AMS02 TOF  Simulation

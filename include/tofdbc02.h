@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.25 2005/09/09 07:55:27 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.26 2005/10/13 09:01:52 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -436,7 +436,7 @@ private:
   integer softid;  // LBB
   integer npmts;   // Npmts per side
   integer status[2]; //2-sides calib.status F|S|A|D -> Anode(FastTDC/SlowTDC)/
-//                                                  Anode/Dynode ADC channels, =0/1->OK/Bad
+//                                                  Anode/Dynode ADC, dec.bit=0/1->OK/Bad
   geant gaina[2]; // Anode-gain(PMT mainly)(S1/2; relative to some ref. bar of given type)
   geant gaind[2][TOF2GC::PMTSMX];//Dynode rel.gain(S1/2; for each PMT wrt aver. side-signal)       
   geant a2dr[2];  // A to D(equilized sum) ratio (in unsatur. region)

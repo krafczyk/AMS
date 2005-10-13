@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.31 2005/09/09 07:55:14 choumilo Exp $
+//  $Id: tofsim02.C,v 1.32 2005/10/13 09:01:33 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-55 logic, E.Choumilov 22.08.2005
@@ -16,6 +16,7 @@
 #include "commons.h"
 #include "tofsim02.h"
 #include "mccluster.h"
+#include "trigger102.h"
 #include "trigger302.h"
 #include "mceventg.h"
 #include "ecalrec.h"
@@ -1117,7 +1118,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 //
 number TOF2Tovt::tr1time(int &trcode, uinteger toftrp[]){
   integer i1,i2,isd,isds(0),first(0);
-  integer i,j,ilay,ibar,ntr,idd,id,idN,stat,intrig;
+  integer i,j,ilay,ibar,ntr,idd,id,idN,stat,intrig,sorand,toflc;
   uinteger sbt,lsbit(1);
   number ftime,ttr[TOF2GC::SCTHMX1];
   geant t1,t2;
@@ -1129,6 +1130,8 @@ number TOF2Tovt::tr1time(int &trcode, uinteger toftrp[]){
   geant trigb=TOF2DBc::trigtb();
   geant pwid=TOF2DBc::daqpwd(0);//pulse-width for Z>=1(HT) logic signals(going to SPT2)
   for(i=0;i<TOF2GC::SCLRS;i++)toftrp[i]=0;
+  if(TGL1FFKEY.toflc>=0)toflc=TGL1FFKEY.toflc;
+  else toflc=Trigger2LVL1::l1trigconf.toflconf();
 //
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(TOF2Tovt*)AMSEvent::gethead()->
@@ -1143,7 +1146,10 @@ number TOF2Tovt::tr1time(int &trcode, uinteger toftrp[]){
       isd=idd%10-1;
       id=idd/10;// short id=LBB
       ibar=id%100-1;
-      intrig=TriggerLVL302::TOFInFastTrigger(uinteger(ibar),uinteger(ilay));
+      ilay=id/100-1;
+      intrig=Trigger2LVL1::l1trigconf.tofinmask(int(ilay),int(ibar));//TofInTrig from DB
+      if(TGL1FFKEY.tofsc>=0)sorand=TGL1FFKEY.tofsc;//TofSidesOrAnd from data-card
+      else sorand=Trigger2LVL1::l1trigconf.toforandmask(int(ilay),int(ibar));//TofSidesOrAnd for DB
       if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//<--bar/side in trigger(not masked)
 //
         ntr=ptr->gettr1(ttr);// get number and times of "z>=1"==HT
@@ -1165,7 +1171,7 @@ number TOF2Tovt::tr1time(int &trcode, uinteger toftrp[]){
     }//--- end of Tovt-hits loop in layer --->
 // Now create both side  bit pattern for CURRENT layer
 // (trbs[isd]-pulses are not width-formatted)
-    if(TGL1FFKEY.tofsc == 0)
+    if(sorand == 0)
                                 trbl[ilay]=trbs[0] & trbs[1];// 2-sides AND
     else
                                 trbl[ilay]=trbs[0] | trbs[1];// 2-sides OR
@@ -1268,10 +1274,10 @@ Exit1:
   ftime=t1;
   if(trcode==-99)return ftime;//NoFT: fail of any request
   trcode=-trcode;//invert code
-  if(TGL1FFKEY.toflc==1 && trcode<=-1)return ftime;//NoFT: fail of "4of4" request
-  if(TGL1FFKEY.toflc==0 && trcode<=-5)return ftime;//NoFT: fail of "at least 3of4" request
-  if(TGL1FFKEY.toflc==2 && trcode<-8)return ftime;//NoFT: fail of "at least 2of4" request  
-  if(TGL1FFKEY.toflc==3 && trcode<-9)return ftime;//NoFT: fail of "at least 2top" request  
+  if(toflc==1 && trcode<=-1)return ftime;//NoFT: fail of "4of4" request
+  if(toflc==0 && trcode<=-5)return ftime;//NoFT: fail of "at least 3of4" request
+  if(toflc==2 && trcode<-8)return ftime;//NoFT: fail of "at least 2of4" request  
+  if(toflc==3 && trcode<-9)return ftime;//NoFT: fail of "at least 2top" request  
   trcode=-trcode;//back to normal(>=0)
 //
   geant cgate=TOF2DBc::daqpwd(5);//gate for tof-pattern creation(z>=1)
@@ -1289,8 +1295,9 @@ Exit1:
       isd=idd%10-1;
       id=idd/10;// short id=LBB
       ibar=id%100-1;
+      ilay=id/100-1;
       ncoins=0;
-      intrig=TriggerLVL302::TOFInFastTrigger(uinteger(ibar),uinteger(ilay));
+      intrig=Trigger2LVL1::l1trigconf.tofinmask(int(ilay),int(ibar));
       if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//bar/side in trigger(not masked)
         ntr=ptr->gettr1(ttr);// get number and times of trig1 ("z>=1")
         for(j=0;j<ntr;j++){// <--- trig-hits loop ---
@@ -1322,7 +1329,7 @@ Exit1:
 //
 number TOF2Tovt::tr2time(int &trcode, uinteger toftrp[]){
   integer i1,i2,isd,isds(0),first(0);
-  integer i,j,ilay,ibar,ntr,idd,id,idN,stat,intrig;
+  integer i,j,ilay,ibar,ntr,idd,id,idN,stat,intrig,sorand,tofzlc;
   uinteger sbt,lsbit(1);
   number ftime,ttr[TOF2GC::SCTHMX1];
   geant t1,t2;
@@ -1335,6 +1342,8 @@ number TOF2Tovt::tr2time(int &trcode, uinteger toftrp[]){
   geant pwid=TOF2DBc::daqpwd(2);//pulse width of "Z>=2(SHT)" logic signals(going to SPT2)
   geant pwext=TOF2DBc::daqpwd(13);//pulse-width for top/bot-sum coincidence
   for(i=0;i<TOF2GC::SCLRS;i++)toftrp[i]=0;
+  if(TGL1FFKEY.tofzlc>=0)tofzlc=TGL1FFKEY.tofzlc;
+  else tofzlc=Trigger2LVL1::l1trigconf.tofzlconf();
 //
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(TOF2Tovt*)AMSEvent::gethead()->
@@ -1349,7 +1358,10 @@ number TOF2Tovt::tr2time(int &trcode, uinteger toftrp[]){
       isd=idd%10-1;
       id=idd/10;// short id=LBB
       ibar=id%100-1;
-      intrig=TriggerLVL302::TOFInFastTrigger(uinteger(ibar),uinteger(ilay));
+      ilay=id/100-1;
+      intrig=Trigger2LVL1::l1trigconf.tofinmask(int(ilay),int(ibar));//TofInTrig from DB
+      if(TGL1FFKEY.tofsc>=0)sorand=TGL1FFKEY.tofsc;//TofSidesOrAnd from data-card
+      else sorand=Trigger2LVL1::l1trigconf.toforandmask(int(ilay),int(ibar));//TofSidesOrAnd for DB
       if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//<--bar/side in trigger(not masked)
 //
         ntr=ptr->gettr3(ttr);// get number and times of trig3 ("z>=2")
@@ -1372,7 +1384,7 @@ number TOF2Tovt::tr2time(int &trcode, uinteger toftrp[]){
 //
 // Now create both side  bit pattern for CURRENT layer
 // (trbs[isd]-pulses are not width-formatted)
-    if(TGL1FFKEY.tofsc == 0)
+    if(sorand == 0)
                                 trbl[ilay]=trbs[0] & trbs[1];// 2-sides AND
     else
                                 trbl[ilay]=trbs[0] | trbs[1];// 2-sides OR
@@ -1596,13 +1608,13 @@ Exit1:
   ftime=t1;
   if(trcode==-99)return ftime;//NoFT: fail of any request
   trcode=-trcode;//invert code
-  if(TGL1FFKEY.tfhzlc==1){//"top-AND" requested
+  if(tofzlc==1){//"top-AND" requested
     if(!(trcode==0 || trcode==-3 || trcode==-4))return ftime;//NoFT: fail of "top-AND" request
   }
-  if(TGL1FFKEY.tfhzlc==2){//"bot-AND" requested
+  if(tofzlc==2){//"bot-AND" requested
     if(!(trcode==0 || trcode==-1 || trcode==-2))return ftime;//NoFT: fail of "bot-AND" request
   }
-  if(TGL1FFKEY.tfhzlc==3){//"top-AND && bot-AND" request
+  if(tofzlc==3){//"top-AND && bot-AND" request
     if(trcode!=0)return ftime;//NoFT: fail of "4of4" request
   }  
   trcode=-trcode;//back to normal(>=0)
@@ -1622,8 +1634,9 @@ Exit1:
       isd=idd%10-1;
       id=idd/10;// short id=LBB
       ibar=id%100-1;
+      ilay=id/100-1;
       ncoins=0;
-      intrig=TriggerLVL302::TOFInFastTrigger(uinteger(ibar),uinteger(ilay));
+      intrig=Trigger2LVL1::l1trigconf.tofinmask(int(ilay),int(ibar));//TofInTrig from DB
       if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//bar/side in trigger(not masked)
         ntr=ptr->gettr3(ttr);// get number and times of "z>=2"==SHT
         for(j=0;j<ntr;j++){// <--- trig-hits loop ---
@@ -1874,6 +1887,7 @@ void TOF2RawEvent::mc_build(int &status)
   uinteger trpatt2[TOF2GC::SCLRS]={0,0,0,0};
   integer it,it1,it2,it3,it4,it0;
   int16u phbit,maxv;
+  integer trtype(0);
   static geant ftpw=TOF2DBc::daqpwd(12);// dummy gap in stretcher sequence (ns)
   TOF2Tovt *ptr;
   TOF2Tovt *ptrN;
@@ -1887,8 +1901,11 @@ void TOF2RawEvent::mc_build(int &status)
   TOF2RawEvent::settrfl1(trflag);// reset  TOF-trigger flag(z>=2)
   TOF2RawEvent::setpatt(trpatt1);// reset  TOF-trigger pattern(z>=1)
   TOF2RawEvent::setpatt1(trpatt2);// reset  TOF-trigger pattern(z>=2)
+//
+  if(TGL1FFKEY.trtype>0)trtype=TGL1FFKEY.trtype;
+  else trtype=Trigger2LVL1::l1trigconf.subtrigmask();
 //-----
-  if(TGL1FFKEY.trtype<256){//<=== not external trigger
+  if(trtype<256){//<=== not external trigger
 //
   ttrig1=TOF2Tovt::tr1time(trcode1,trpatt1);//get abs.trig1(FT"z>=1") signal time/patt
   ttrig2=TOF2Tovt::tr2time(trcode2,trpatt2);//get abs.trig2(FT"z>=2") signal time/patt
