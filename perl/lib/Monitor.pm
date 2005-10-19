@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.86 2005/10/11 15:56:50 choutko Exp $
+# $Id: Monitor.pm,v 1.87 2005/10/19 08:53:55 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -522,7 +522,8 @@ sub getior{
     my $pid=$Monitor::Singleton->{cid}->{pid};
     my $file ="/tmp/o."."$pid";
     my $fileo ="/tmp/oo."."$pid";
-    my $i=system "/usr/local/lsf/bin/bjobs -q linux_server -u all>$file" ;
+#    my $i=system "/usr/local/lsf/bin/bjobs -q linux_server -u all>$file" ;
+    my $i=1;
     if($i){
         unlink $file;
         return getior2();

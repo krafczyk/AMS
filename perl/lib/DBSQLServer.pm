@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.73 2005/10/07 18:29:01 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.74 2005/10/19 08:53:55 choutko Exp $
 
 #
 #
@@ -861,8 +861,11 @@ sub Update{
 # this function sets up the necessary environement variables
 # to be able to connect to Oracle
 sub set_oracle_env {
-    $ENV{"ORACLE_HOME"}='/afs/cern.ch/project/oracle/@sys/prod';
-    $ENV{"TNS_ADMIN"}='/afs/cern.ch/project/oracle/admin';
+#    $ENV{"ORACLE_HOME"}='/afs/cern.ch/project/oracle/@sys/prod';
+#    $ENV{"TNS_ADMIN"}='/afs/cern.ch/project/oracle/admin';
+     $ENV{"ORACLE_HOME"}='/opt/oracle/10g';
+     $ENV{"TNS_ADMIN"}='/opt/oracle/10g/network/admin';
+
     $ENV{"LD_LIBRARY_PATH"}=$ENV{"ORACLE_HOME"}."/lib";
     1;
 }

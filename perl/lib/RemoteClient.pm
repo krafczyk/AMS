@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.325 2005/10/10 20:41:27 choutko Exp $
+# $Id: RemoteClient.pm,v 1.326 2005/10/19 08:53:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -641,7 +641,8 @@ my %mv=(
      }     
      push @{$self->{MailT}}, $cite; 
  }
-    if($self->{q}->param("queryDB04")){
+    if($self->{q}->param("queryDB04") or $self->{q}->param("getRunID") or
+    $self->{q}->param("getJobID") or $self->{q}->param("getDSTID")){
        $forceret=1;
     }
 #datasets
@@ -667,7 +668,6 @@ my %mv=(
             }
           }
         }
-
 
 
 
@@ -986,7 +986,6 @@ foreach my $file (@allfiles){
             $self->{IORP}=$upd->[3];
         }        
     } 
-
  if ($webmode == 0 && $verbose == 1) {print "Init -I- get IOR from Server or DB \n";}
  my $ior=$self->getior();
  if(not defined $ior){ 
@@ -1278,11 +1277,11 @@ sub ValidateRuns {
       DBServer::InitDBFile($self->{dbserver});
     }
     if ($webmode ==0  and $verbose ==1) { print "ValidateRuns -I- set active production set \n";}
-    my ($period,$ptime,$periodId) = $self->getActiveProductionPeriod();
-    if (not defined $period || $period eq $UNKNOWN || $ptime==0) {
-      $self->amsprint("parseJournalFiles -ERROR- cannot get active production set",0);
-      die "bye";
-   }
+#    my ($period,$ptime,$periodId) = $self->getActiveProductionPeriod();
+#    if (not defined $period || $period eq $UNKNOWN || $ptime==0) {
+#      $self->amsprint("parseJournalFiles -ERROR- cannot get active production set",0);
+#      die "bye";
+#   }
 
    $CheckedRuns[0] = 0;
    $FailedRuns[0]  = 0;  # failed runs
@@ -2018,7 +2017,7 @@ sub Connect{
          my $cem=lc($self->{q}->param("CEM"));
          if (defined $cem and not ($self->{q}->param("queryDB04"))){
           if(not $self->findemail($cem)){
-           $self->ErrorPlus("Client $cem Not Found. Please Register...");
+ #          $self->ErrorPlus("Client $cem Not Found. Please Register...");
           }
           else{
              my $save="$self->{UploadsDir}/$self->{CEMID}.save2";
@@ -2369,9 +2368,44 @@ CheckCite:            if (defined $q->param("QCite")) {
       my $dataset = undef;
       my $particle= undef;
 #
+#   vc   -  remove monstrous loop in summary
+#
+      my $sqlsum=  "SELECT COUNT(ntuples.RUN), SUM(ntuples.SIZEMB), SUM(ntuples.NEVENTS) FROM Ntuples, runs,jobs,runcatalog ";
+      my $rsum=undef;
+#
 # Template is defined explicitly
 #
+       my $qpp=$q->param("QPPer");
+       my $pps="";
+       if($qpp>0){
+         $pps=$pps." and jobs.pid=$qpp ";
+       }
+       elsif($qpp==-1){
+#         active
+         my $sqlaa = "SELECT  DID  FROM ProductionSet WHERE STATUS='Active' ORDER BY DID";
+         my $ret = $self->{sqlserver}->Query($sqlaa);
+         $pps=undef;
+         foreach my $pp  (@{$ret}){
+          if(defined $pps){
+            $pps=$pps." or jobs.pid =";
+          }
+          else{
+           $pps=" and ( jobs.pid =";
+          }
+         $pps=$pps." $pp->[0] ";
+        }
+       if(defined $pps){
+        $pps=$pps." ) ";
+       }
+       else{
+        $pps="";
+       }
+  }                                                                              
+
+                                                                                
+
       if (defined $q->param("QTempDataset") and $q->param("QTempDataset") ne "Any") {
+
        $dataset = $q->param("QTempDataset");
        $dataset = trimblanks($dataset);
        $qtemplate = $dataset;
@@ -2398,8 +2432,17 @@ CheckCite:            if (defined $q->param("QCite")) {
 
        }
 #
-       $sql = $sql."ORDER BY Runs.Run";
-       $sqlNT = $sqlNT."ORDER BY Runs.Run";
+                                                                                
+      my @garbage= split /WHERE/,$sql;   
+      if($#garbage>0){     
+        $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";
+           $rsum=$self->{sqlserver}->Query($sqlsum);  
+        # die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";  
+     }
+ 
+       $sql = $sql.$pps."ORDER BY Runs.Run";
+       $sqlNT = $sqlNT.$pps."ORDER BY Runs.Run";
+
        my $r1=$self->{sqlserver}->Query($sql);
         if (defined $r1->[0][0]) {
          foreach my $r (@{$r1}){
@@ -2423,9 +2466,9 @@ CheckCite:            if (defined $q->param("QCite")) {
            my $did = $r->[0];
            $sql  = "SELECT Runs.Run, Jobs.JOBNAME, Runs.SUBMIT 
                     FROM Runs, Jobs, runcatalog  
-                     WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
+                     WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID and 
                             Runs.run=runcatalog.run AND Runs.Status='Completed'";
-           $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr, 
+      $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr, 
                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime 
                     FROM Runs, Jobs, runcatalog, NTuples   
                      WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
@@ -2452,8 +2495,13 @@ CheckCite:            if (defined $q->param("QCite")) {
                }
            }
 #
-            $sql = $sql." ORDER BY Runs.Run";
-            $sqlNT = $sqlNT." ORDER BY Runs.Run";
+       my @garbage= split /WHERE/,$sql;
+        if($#garbage>0){   
+         $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";           $rsum=$self->{sqlserver}->Query($sqlsum);
+         # die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
+      } 
+            $sql = $sql.$pps." ORDER BY Runs.Run";
+            $sqlNT = $sqlNT.$pps." ORDER BY Runs.Run";
             my $r1=$self->{sqlserver}->Query($sql);
             if (defined $r1->[0][0]) {
              foreach my $r (@{$r1}){
@@ -2493,9 +2541,15 @@ CheckCite:            if (defined $q->param("QCite")) {
                  $sqlNT = $sqlNT." AND (runs.run = runcatalog.run AND PMIN >= $momentumMin AND PMAX <= $momentumMax) ";
                }
            }
-#
-            $sql = $sql." ORDER BY Runs.Run";
-            $sqlNT = $sql." ORDER BY Runs.Run";
+#       
+            my @garbage= split /WHERE/,$sql;
+             if($#garbage>0){   
+              $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";  
+              $rsum=$self->{sqlserver}->Query($sqlsum);
+#             die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
+          } 
+            $sql = $sql.$pps." ORDER BY Runs.Run";
+            $sqlNT = $sqlNT.$pps." ORDER BY Runs.Run";
             my $r1=$self->{sqlserver}->Query($sql);
             if (defined $r1->[0][0]) {
              foreach my $r (@{$r1}){
@@ -2712,7 +2766,7 @@ CheckCite:            if (defined $q->param("QCite")) {
       my $nevents   = 0;
 
       my $i =0;
-      if ($#runs > 5000) {
+      if ($#runs > 500000) {
           $nruns = $#runs+1;
           $gigabytes = $nruns*1.5*0.5/1000;
           $ndsts  = int($nruns*1.5);
@@ -2727,13 +2781,16 @@ CheckCite:            if (defined $q->param("QCite")) {
           if ($submit < $starttime) { $starttime = $submit; $firstrun = $run;}
           if ($submit > $endtime)   { $endtime   = $submit; $lastrun  = $run;}
           $nruns++;
-          $sql = "SELECT COUNT(RUN), SUM(SIZEMB), SUM(NEVENTS) FROM Ntuples WHERE RUN=$run";
-          my $r1=$self->{sqlserver}->Query($sql);
-          foreach my $s (@{$r1}) {
-              $ndsts = $ndsts + $s->[0];
-              $gigabytes = $gigabytes + $s->[1];
-              $nevents   = $nevents   + $s->[2];
-          }
+#          $sql = "SELECT COUNT(RUN), SUM(SIZEMB), SUM(NEVENTS) FROM Ntuples WHERE RUN=$run";
+#          my $r1=$self->{sqlserver}->Query($sql);
+#          foreach my $s (@{$r1}) {
+#              $ndsts = $ndsts + $s->[0];
+#              $gigabytes = $gigabytes + $s->[1];
+#              $nevents   = $nevents   + $s->[2];
+#          }
+ $ndsts = $rsum->[0][0];
+ $gigabytes= $rsum->[0][1];
+  $nevents=$rsum->[0][2];
      }
      $gigabytes = $gigabytes/1000;
      my $from=localtime($starttime);
@@ -2919,6 +2976,8 @@ CheckCite:            if (defined $q->param("QCite")) {
 # queryDB04 / doQuery ends here
   } elsif ($self->{q}->param("queryDB04") eq "Continue") {
      my $query=$q->param("QPart");
+    my $qpp=$q->param("QPPer");  
+
      foreach my $dataset (@{$self->{DataSetsT}}){
       if($dataset->{name} eq $query){
                  foreach $cite (@{$dataset->{jobs}}){
@@ -2930,7 +2989,6 @@ CheckCite:            if (defined $q->param("QCite")) {
            }
         }
       }
-
    htmlTop();
     $self->htmlAMSHeader("AMS-02 MC Database Query Form");
     print "<ul>\n";
@@ -2942,6 +3000,7 @@ CheckCite:            if (defined $q->param("QCite")) {
       print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
        print "<tr valign=middle><td align=left><b><font size=3 color=green> $query</b></td> <td colspan=1>\n";
        print "<INPUT TYPE=\"hidden\" NAME=\"QPart\" VALUE=\"$query\">\n"; 
+       print "<INPUT TYPE=\"hidden\" NAME=\"QPPer\" VALUE=\"$qpp\">\n";
       htmlTableEnd();
      if ($query ne "Any" and $query ne "ANY" and $query ne "any") {
 # Job Template
@@ -2989,10 +3048,10 @@ CheckCite:            if (defined $q->param("QCite")) {
      htmlTableEnd();
     htmlTableEnd();
 # Output format
-   print "<b><font color=green> Output :  </font><INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ALL\" CHECKED> Full Listing\n";
+   print "<b><font color=green> Output :  </font><INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ALL\" > Full Listing\n";
    print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"RUNS\"> Only run numbers;\n";
    print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"FILES\"> Only file names;\n";
-   print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"SUMM\"> Summary \n";
+   print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"SUMM\" CHECKED> Summary \n";
    print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ROOT\"> ROOT Analysis Filename <INPUT TYPE=\"text\" name=\"ROOT\">";
 
    print "<br><TR></TR>";
@@ -3029,7 +3088,34 @@ CheckCite:            if (defined $q->param("QCite")) {
     print "<p>\n";
     print "<TR><B><font color=green size= 4> Select <i>Dataset</i> and click <font color=red> Continue </font> or <i> Run/Job/DST  ID </i> and click <font color=red> Submit </font> </font>";
     print "<p>\n";
+#    print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
+
+      $sql     = "SELECT NAME, DID   FROM ProductionSet  ORDER BY DID";
+      my $ret = $self->{sqlserver}->Query($sql);
+       my @period=();
+       my @periodid=();
+       $period[0]="Any";
+       $periodid[0]=0;
+      $period[1]="Any Active"; 
+       $periodid[1]=-1;
+        foreach my $pp  (@{$ret}){
+       push @period, trimblanks($pp->[0]);
+       push @periodid, $pp->[1];
+      }
+
+        
     print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
+ print "<tr valign=middle><td align=left><b><font size=\"-1\"> Production Period : </b></td> <td colspan=1>\n";
+             print "<select name=\"QPPer\" >\n";
+             my $ii=0;
+             foreach my  $template (@periodid) {
+              print "<option value=\"$template\">$period[$ii] </option>\n";
+              $ii++;
+            }
+            print "</select>\n";
+      print "</b></td></tr>\n";
+
+
     print "<TABLE BORDER=\"1\" WIDTH=\"50%\">";
      print "<tr><td valign=\"middle\"><b><font color=\"blue\" size=\"3\">Datasets (MC Production)</font></b></tr>\n";
      print "</td><td>\n";
@@ -3045,7 +3131,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             foreach my $ds (@{$r5}){   
                 my $dsexist = 0;
                 foreach my $d (@datasets) {
-                    if ($d =~ $ds->[0]) {
+                    if ($d eq $ds->[0]) {
                         $dsexist = 1;
                         next;
                     } 
@@ -5505,7 +5591,8 @@ sub getior{
     my $pid=$$;
     my $file ="/tmp/o."."$pid";
     my $fileo ="/tmp/oo."."$pid";
-    my $i=system "/usr/local/lsf/bin/bjobs -q linux_server -u all>$file" ;
+#    my $i=system "/usr/local/lsf/bin/bjobs -q linux_server -u all>$file" ;
+     my $i=1;     
     if($i){
      if($ref->{debug}){
           $ref->WarningPlus("unable to bjobs");
@@ -6032,8 +6119,14 @@ sub checkJobsTimeout {
 
 
 
-   my ($period, $periodStartTime, $periodId) = $self -> getActiveProductionPeriod();
-   if ($webmode == 1) {
+   my (@period, @periodStartTime, @periodId) = $self -> getActiveProductionPeriod();
+   my $periodStartTime=2147483647;
+   foreach my $periodst  (@periodStartTime){
+     if($periodst < $periodStartTime){
+       $periodStartTime=$periodst;
+     }
+    }
+  if ($webmode == 1) {
     $self->htmlTop();
 #
     htmlTable("Jobs below will be deleted from the database");
@@ -6052,8 +6145,9 @@ sub checkJobsTimeout {
 # at least one DST is copied to final destination 
 #
 # get production set path
-    if (not defined $period || $period eq $UNKNOWN || $periodStartTime == 0) {
-    } else {
+    if (0) {
+    } 
+    else {
      $sql = "SELECT ntuples.run
               FROM runs, ntuples  
                WHERE 
@@ -6898,7 +6992,13 @@ sub listStat {
 sub listCites {
     my $self = shift;
 
-    my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
+   my (@period, @periodStartTime, @periodId) = $self -> getActiveProductionPeriod();
+   my $periodStartTime=2147483647;
+   foreach my $periodst  (@periodStartTime){
+     if($periodst < $periodStartTime){
+       $periodStartTime=$periodst;
+     }
+    }
 
     if ($webmode == 1) {
      print "<b><h2><A Name = \"cites\"> </a></h2></b> \n";
@@ -7229,7 +7329,18 @@ sub listJobs {
     my $timelate= $timenow - 30*24*60*60 +1; # list jobs submitted 30 days ago or earlier
 
 
-    my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
+#    my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
+      $sql = "SELECT  DID  FROM ProductionSet WHERE STATUS='Active' ORDER BY DID";
+      $ret = $self->{sqlserver}->Query($sql);    
+      my $pps=undef;
+   foreach my $pp  (@{$ret}){
+       if(defined $pps){            $pps=$pps." or pid =";
+       }
+       else{
+           $pps=" where pid = ";
+       }
+       $pps=$pps." $pp->[0] ";
+   }
 
     if ($webmode == 1) {
      print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
@@ -7281,7 +7392,7 @@ sub listJobs {
            FROM   Jobs, Cites, Mails  
             WHERE  
                   Jobs.timestamp > $timelate AND
-                   Jobs.pid = $periodId  AND 
+                   $pps  AND 
                     Jobs.cid=Cites.cid AND 
                      Jobs.mid=Mails.mid 
              ORDER  BY Cites.name, Jobs.jid DESC";
@@ -8025,8 +8136,13 @@ sub parseJournalFiles {
      }
      $self->initFilesProcessingFlag();
 #
-   my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
-   if (not defined $period || $period eq $UNKNOWN || $periodStartTime == 0) {
+#   my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
+   my (@period, @periodStartTime, @periodId) = $self -> getActiveProductionPeriod();    my $periodStartTime=2147483647;    foreach my $periodst  (@periodStartTime){
+     if($periodst < $periodStartTime){        $periodStartTime=$periodst;
+     } 
+    }
+
+   if ($#period<0 ) {
       $self->amsprint("parseJournalFiles -ERROR- cannot get active production set",0);
       die "bye";
   }
@@ -10230,8 +10346,13 @@ sub getHostsList {
     }
    }
 
-    my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
-    my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($periodStartTime);
+      my (@period, @periodStartTime, @periodId) = $self -> getActiveProductionPeriod();
+   my $periodStartTime=2147483647;
+   foreach my $periodst  (@periodStartTime){      if($periodst < $periodStartTime){
+       $periodStartTime=$periodst;
+     }
+    } 
+my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($periodStartTime);
     my $lt = localtime($prodstart);
     my $lu = localtime($prodlastupd);
     my $ld = sprintf("%3.1f",$totaldays);
@@ -10382,7 +10503,9 @@ sub getHostsList {
 
 sub getActiveProductionPeriod {
      my $self = shift;
-     
+     my @period=();
+     my @begin=();
+     my @pid=(); 
 
      my $sql  = undef; 
      my $ret  = undef;
@@ -10393,12 +10516,12 @@ sub getActiveProductionPeriod {
 
       $sql = "SELECT NAME, BEGIN, DID  FROM ProductionSet WHERE STATUS='Active' ORDER BY DID";
       $ret = $self->{sqlserver}->Query($sql);
-      if (defined $ret->[0][0]) {
-       $period=trimblanks($ret->[0][0]);
-       $begin = $ret->[0][1];
-       $pid   = $ret->[0][2];
+        foreach my $pp  (@{$ret}){
+       push @period, trimblanks($pp->[0]);
+       push @begin ,$pp->[1];
+       push @pid,    $pp->[2];
       }
-  return $period, $begin, $pid; 
+  return @period, @begin, @pid; 
  }
 
 sub getActiveProductionPeriodByVersion {
