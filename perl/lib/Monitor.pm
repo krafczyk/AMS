@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.87 2005/10/19 08:53:55 choutko Exp $
+# $Id: Monitor.pm,v 1.88 2005/10/19 13:50:04 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -63,6 +63,9 @@ sub new{
     my $self={
         %fields,
     };
+    if($ENV{MOD_PERL} and ref($Monitor::Singleton)){
+        return $Monitor::Singleton;     }
+
 $self->{start}=time();
 $self->{cid}=new CID;    
 $self->{orb} = CORBA::ORB_init("orbit-local-orb");
