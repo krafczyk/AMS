@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.326 2005/10/19 08:53:55 choutko Exp $
+# $Id: RemoteClient.pm,v 1.327 2005/10/19 13:33:59 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7337,9 +7337,12 @@ sub listJobs {
        if(defined $pps){            $pps=$pps." or pid =";
        }
        else{
-           $pps=" where pid = ";
+           $pps=" where ( pid = ";
        }
        $pps=$pps." $pp->[0] ";
+   }
+   if(defined  $pps){
+      $pps=$pps." ) ";
    }
 
     if ($webmode == 1) {
