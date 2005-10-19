@@ -1,11 +1,14 @@
 #!/usr/bin/perl -w
-#  $Id: monmcdb.cgi,v 1.2 2002/03/14 14:13:32 choutko Exp $
+#  $Id: monmcdb.cgi,v 1.3 2005/10/19 14:26:26 choutko Exp $
 use Gtk;
 use strict;
 
 
 use lib::Monitor;
 use lib::monitorHTML;
+if($ENV{MOD_PERL}){
+  $#ARGV=-1;
+}
 
 my $mc="-m ";
 unshift @ARGV, $mc;

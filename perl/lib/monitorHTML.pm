@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.21 2003/12/12 10:07:10 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.22 2005/10/19 14:27:45 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -22,6 +22,10 @@ my %fields=(
             Control=>undef,
             Name=>"/cgi-bin/mon/monitor.cgi",
             );
+   if($ENV{MOD_PERL} and ref($monitorHTML::Singleton)){
+         return $monitorHTML::Singleton;
+    }
+
     my $type=shift;
     my $self={
         %fields,
