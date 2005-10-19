@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.88 2005/10/19 13:50:04 choutko Exp $
+# $Id: Monitor.pm,v 1.89 2005/10/19 15:36:26 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2432,5 +2432,28 @@ closedir THISDIR;
     }
     }
 return; 
+}
+
+
+
+
+
+
+
+
+sub DeleteFailedDST{
+ my $ref=shift;
+
+
+
+    for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
+     my %nc=%{$Monitor::Singleton->{dsts}[$i]};
+     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile"){
+         if($nc{Status} eq "Failure"){
+            warn " $nc{Name} \n";           
+         }
+     }
+ }
+
 }
 

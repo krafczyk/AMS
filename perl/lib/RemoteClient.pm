@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.327 2005/10/19 13:33:59 choutko Exp $
+# $Id: RemoteClient.pm,v 1.328 2005/10/19 15:36:26 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -699,10 +699,10 @@ if($#{$self->{DataSetsT}}==-1){
    my $pps=undef;
    foreach my $pp  (@{$ret}){
        if(defined $pps){
-           $pps=$pps." or pid =";
+           $pps=$pps." or jobs.pid =";
        }
        else{
-           $pps=" where pid = ";
+           $pps=" where jobs.pid = ";
        }
        $pps=$pps." $pp->[0] ";
    }
@@ -7334,10 +7334,10 @@ sub listJobs {
       $ret = $self->{sqlserver}->Query($sql);    
       my $pps=undef;
    foreach my $pp  (@{$ret}){
-       if(defined $pps){            $pps=$pps." or pid =";
+       if(defined $pps){            $pps=$pps." or jobs.pid =";
        }
        else{
-           $pps=" where ( pid = ";
+           $pps="  ( jobs.pid = ";
        }
        $pps=$pps." $pp->[0] ";
    }
