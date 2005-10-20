@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.25 2005/10/11 15:56:50 choutko Exp $
+#  $Id: POADBServer.pm,v 1.26 2005/10/20 11:35:38 ams Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -219,6 +219,7 @@ else {
             foreach my $rtb (@sortedrtb){ 
             warn "  problem with run allocation   $rtb->{Run} $rtb->{History} $rtb->{Status} $rtb->{cinfo}->{HostName} $cid->{uid} $cid->{StatusType}\n"; 
             }
+                   $hash{rtb}=\@sortedrtb;
                    $dv->{DieHard}=1;
                     untie %hash;
                     close(LOCK);

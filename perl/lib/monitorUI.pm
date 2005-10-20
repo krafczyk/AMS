@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.41 2005/10/19 15:36:27 choutko Exp $
+#  $Id: monitorUI.pm,v 1.42 2005/10/20 11:35:38 ams Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -428,7 +428,7 @@ if (not $Monitor::Singleton->{ok}){
 }else{
     $statusbar->push(1," Connected to Servers");
 }		
-Gtk->timeout_add(90000,\&Update);
+Gtk->timeout_add(900000,\&Update);
 return $mybless;
 }
 
