@@ -1,7 +1,10 @@
 *
-* $Id: Geant3_utils.F,v 1.2 2005/10/20 12:25:25 choutko Exp $
+* $Id: Geant3_utils.F,v 1.3 2005/10/20 14:21:03 choutko Exp $
 *
 * $Log: Geant3_utils.F,v $
+* Revision 1.3  2005/10/20 14:21:03  choutko
+* *** empty log message ***
+*
 * Revision 1.2  2005/10/20 12:25:25  choutko
 * *** empty log message ***
 *
@@ -95,7 +98,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: Geant3_utils.F,v 1.2 2005/10/20 12:25:25 choutko Exp $
+*  $Id: Geant3_utils.F,v 1.3 2005/10/20 14:21:03 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -426,7 +429,6 @@ c
 *     IPART.EQ.145 =>Anti Deuteron
 *       
       IFLAG=1
-       write(*,*)'ANTID' 
 * ****** FINALLY THE TOTAL CROSS SECTION sigma_T in  "mbarn" :
  
       sigma_T=10*PI*(r0**2)*((A_P**(1./3.))+(A_T**(1./3.))-

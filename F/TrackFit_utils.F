@@ -1,7 +1,10 @@
 *
-* $Id: TrackFit_utils.F,v 1.2 2005/10/11 09:19:59 choutko Exp $
+* $Id: TrackFit_utils.F,v 1.3 2005/10/20 14:21:03 choutko Exp $
 *
 * $Log: TrackFit_utils.F,v $
+* Revision 1.3  2005/10/20 14:21:03  choutko
+* *** empty log message ***
+*
 * Revision 1.2  2005/10/11 09:19:59  choutko
 * *** empty log message ***
 *
@@ -95,7 +98,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: TrackFit_utils.F,v 1.2 2005/10/11 09:19:59 choutko Exp $
+*  $Id: TrackFit_utils.F,v 1.3 2005/10/20 14:21:03 choutko Exp $
 
 
 CDECK  ID>, ERTRAK. 
@@ -4006,7 +4009,7 @@ C
 CDECK  ID>, TKFINI. 
           subroutine tkfini
               common /hvsec/ihvse(2)
-              data ihvse/1,2/
+              data ihvse/2,2/
 
               common /tkgdefC/tmaxf,smax,fieldmm,cconv,
      +        maxcal,nitm,xtol,iver,ialg,steps,npars,ims,
