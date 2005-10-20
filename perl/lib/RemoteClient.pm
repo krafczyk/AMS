@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.328 2005/10/19 15:36:26 choutko Exp $
+# $Id: RemoteClient.pm,v 1.329 2005/10/20 12:21:13 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -874,8 +874,8 @@ if($#{$self->{DataSetsT}}==-1){
                } 
                $dataset->{did}=$did;
                my $timestamp = time();
-               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
-               $ret->{sqlserver}->Update($sql);
+               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}')";
+               $self->{sqlserver}->Update($sql);
            }
    
            $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
@@ -10936,8 +10936,8 @@ sub calculateMipsVC {
                $did++;
                $dataset->{did}=$did;
                my $timestamp = time();
-             $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
-             $self->{sqlserver}->Update($sql); 
+#             $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
+#             $self->{sqlserver}->Update($sql); 
            }
         $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
           
@@ -11254,8 +11254,8 @@ warn "  total/rest  $totalcpu  $restcpu \n";
                $did++;
                $dataset->{did}=$did;
                my $timestamp = time();
-             $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
-             $self->{sqlserver}->Update($sql); 
+#             $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
+#             $self->{sqlserver}->Update($sql); 
            }
         $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
         $rcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};

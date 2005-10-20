@@ -1,7 +1,10 @@
 *
-* $Id: Geant3_utils.F,v 1.1 2005/05/13 09:12:47 pzuccon Exp $
+* $Id: Geant3_utils.F,v 1.2 2005/10/20 12:25:25 choutko Exp $
 *
 * $Log: Geant3_utils.F,v $
+* Revision 1.2  2005/10/20 12:25:25  choutko
+* *** empty log message ***
+*
 * Revision 1.1  2005/05/13 09:12:47  pzuccon
 * Split the file amstkshc++.F in the two files Geant3_utils.F TkFit_utils.F
 *
@@ -92,7 +95,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: Geant3_utils.F,v 1.1 2005/05/13 09:12:47 pzuccon Exp $
+*  $Id: Geant3_utils.F,v 1.2 2005/10/20 12:25:25 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -376,7 +379,11 @@ CDECK  ID>, ABCR2.
              sigma_q(1,i)=0
              sigma_t(i)=TRIPA_T*xfac
             ENDIF
-
+         CALL ANTID(ipart,A_P,A_T,BESS_T,IFLAG_T)         
+         IF (IFLAG_T.EQ.1) THEN  
+            sigma_q(1,i)=0
+            sigma_t(i)=BESS_T*xfac
+         ENDIF
           endif ! ihvse(1).eq.2
 *
 ****************************
@@ -391,6 +398,46 @@ c     +  sigma_q(1,i),sigma_el(1,i)
 
 
         end
+
+CDECK  ID>, ANTID
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c                                                  17/5/2005
+c AntiDeuteron total cross section
+c                                           by F.Giovacchini  
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      SUBROUTINE ANTID(ipart,A_P,A_T,SIGMA_T,IFLAG)
+c
+      real A_P,A_T
+      integer IFLAG       
+      real *4 sigma_t
+      DATA PI / 3.1415927 /
+      DATA r0 / 1.45 /
+*
+*     Input:
+*     a_p,a_t[mass number projectile & target]
+
+*     Output:
+*     sigma_T=total inelastic cr_sec [mbarn]
+
+      sigma_T=0.      
+      IFLAG=0      
+      IF (IPART.NE.145) GOTO 65
+*     IPART.EQ.145 =>Anti Deuteron
+*       
+      IFLAG=1
+       write(*,*)'ANTID' 
+* ****** FINALLY THE TOTAL CROSS SECTION sigma_T in  "mbarn" :
+ 
+      sigma_T=10*PI*(r0**2)*((A_P**(1./3.))+(A_T**(1./3.))-
+     +0.71*((A_P**(-1./3.))+(A_T**(-1./3.))))**2      
+      if (sigma_T.lt.0.) sigma_T=0.
+      if (sigma_T.eq.0.) IFLAG=0           
+ 65   CONTINUE
+      RETURN
+      END
+
+
 
 CDECK  ID>, TRIPA. 
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

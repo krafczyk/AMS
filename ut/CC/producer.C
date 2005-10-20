@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.92 2005/10/10 20:41:25 choutko Exp $
+//  $Id: producer.C,v 1.93 2005/10/20 12:25:21 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -833,7 +833,7 @@ ntend->size=0;
      ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
      ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
     }
-cout <<" sendntuplestart start "<<name<<" "<<ntend->FreeSpace<<" "<<ntend->TotalSpace<<endl;
+//cout <<" sendntuplestart start "<<name<<" "<<ntend->FreeSpace<<" "<<ntend->TotalSpace<<endl;
 
 
 
@@ -850,7 +850,7 @@ again:
     _OnAir=true;
     (*li)->sendDSTEnd(_pid,*ntend,DPS::Client::Create);
     _OnAir=false;
-    return;
+     goto checkdd;
    }
   }
   catch  (CORBA::SystemException & a){
@@ -862,6 +862,73 @@ else FMessage("AMSProducer::sendNtupleStart-F-UnableToSendNtupleStartInfo ",DPS:
 }
 else{
 FMessage("AMSProducer::sendNtupleEnd-F-UNknownDSTType ",DPS::Client::CInAbort);
+}
+
+
+checkdd:
+{
+   AString a=(const char*)ntend->Name;
+   int bstart=0;
+   for (int i=0;i<a.length();i++){
+    if(a[i]==':'){
+     bstart=i+1;
+     break;
+    }
+   }
+   int bend=0;
+   for (int i=a.length()-1;i>=0;i--){
+    if(a[i]=='/'){
+     bend=i+1;
+     break;
+    }
+   }
+   int bnt=bstart+strlen(getenv("NtupleDir"));
+   if(a.length()>bnt && a[bnt]=='/')bnt++;
+   
+
+
+
+// check if dd writeable 
+
+char *destdir=getenv("NtupleDestDir");
+if(destdir && strcmp(destdir,getenv("NtupleDir"))){
+
+   AString a=(const char*)ntend->Name;
+   int bstart=0;
+   for (int i=0;i<a.length();i++){
+    if(a[i]==':'){
+     bstart=i+1;
+     break;
+    }
+   }
+   int bend=0;
+   for (int i=a.length()-1;i>=0;i--){
+    if(a[i]=='/'){
+     bend=i+1;
+     break;
+    }
+   }
+   int bnt=bstart+strlen(getenv("NtupleDir"));
+   if(a.length()>bnt && a[bnt]=='/')bnt++;
+   
+
+ char *means=getenv("TransferBy");
+ AString fmake;
+ if(means && means[0]=='r' && means[1]=='f'){
+  fmake="rfmkdir -p -m 775 ";
+ }
+ else{
+  fmake="mkdir -p ";
+ }
+ fmake+=destdir;
+ fmake+='/';
+ for (int k=bnt;k<bend;k++)fmake+=a[k];
+   cout <<"SendNtupleStart-I-MakingDestDir "<<(const char*)fmake<<endl;
+
+ if(system((const char*)fmake)){
+       FMessage("Unable create dst dest  dir ", DPS::Client::CInAbort); 
+ }
+}
 }
 }
 
@@ -897,7 +964,7 @@ ntend->size=statbuf.st_size/1024./1024.+0.5;
      ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
     }
 
-cout <<" sendntupleupdate start "<<a(bstart)<<" "<<ntend->FreeSpace<<" "<<ntend->TotalSpace<<endl;
+//cout <<" sendntupleupdate start "<<a(bstart)<<" "<<ntend->FreeSpace<<" "<<ntend->TotalSpace<<endl;
 
 UpdateARS();
 

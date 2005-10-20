@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.123 2005/10/11 15:56:47 choutko Exp $
+//  $Id: server.C,v 1.124 2005/10/20 12:25:21 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3822,15 +3822,16 @@ uinteger Producer_impl::getSmartFirst(uinteger run, uinteger rndm[2]){
    }
   }
  }
+ 
  uinteger veryfirst=INT_MAX;
  for(int i=0;i<3;i++){
-  if(veryfirst>first[i]){
+  if(veryfirst>first[i] && first[i]>0){
     veryfirst=first[i];
     rndm[0]=rndmm[i][0];
     rndm[1]=rndmm[i][1];
   }
  }
- 
+if(veryfirst== INT_MAX)veryfirst=0;
  return veryfirst;
 }
 
