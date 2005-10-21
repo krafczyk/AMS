@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.75 2005/10/19 13:33:59 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.76 2005/10/21 14:17:36 ams Exp $
 
 #
 #
@@ -281,7 +281,8 @@ sub Create{
          crc        INT,
          crctime    INT,
          crcflag    INT,
-         castortime INT)",
+         castortime INT,
+         buildno    INT)",
         "CREATE TABLE MC_DST_Copy
           (
            run       int not null,

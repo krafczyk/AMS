@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.329 2005/10/20 12:21:13 choutko Exp $
+# $Id: RemoteClient.pm,v 1.330 2005/10/21 14:17:37 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2370,7 +2370,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 #
 #   vc   -  remove monstrous loop in summary
 #
-      my $sqlsum=  "SELECT COUNT(ntuples.RUN), SUM(ntuples.SIZEMB), SUM(ntuples.NEVENTS) FROM Ntuples, runs,jobs,runcatalog ";
+      my $sqlsum=  "SELECT COUNT(ntuples.RUN), SUM(ntuples.SIZEMB), SUM(ntuples.NEVENTS), sum(ntuples.LEvent-ntuples.FEvent+1) FROM Ntuples, runs,jobs,runcatalog ";
       my $rsum=undef;
 #
 # Template is defined explicitly
@@ -2800,6 +2800,8 @@ CheckCite:            if (defined $q->param("QCite")) {
     print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  $to   Run   $lastrun   </b></font></td></tr>\n";
     print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   DSTs : $ndsts ($gigabytes GB) </b></font></td></tr>\n";
     print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   Events : $nevents  </b></font></td></tr>\n";
+   print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   Triggers : $rsum->[0][3] </b></font></td></tr>\n";
+
    }
 
   } elsif ($q->param("NTOUT") eq "ROOT") {
@@ -12951,4 +12953,23 @@ foreach my $file (@allfiles){
     }
 }
 return $dte;
+}
+
+sub adda{
+    my $sql=" select version, run, buildno from ntuples";
+    my $ref=shift;
+    my $ret=$ref->{sqlserver}->Query($sql);
+    my $upd=0;
+          foreach my $entry (@{$ret}) {
+              my @sp1=split 'build',$entry->[0];
+              my @sp2=split '\/',$sp1[1];
+              $sql="update ntuples set buildno=$sp2[0] where run=$entry->[1]";
+              if(not defined $entry->[2]){
+               $ref->{sqlserver}->Update($sql);
+               $upd++;
+              }
+              if($upd%100 ==1 ){
+                  warn"  Updated:  $upd $sql \n";
+              }
+          }
 }

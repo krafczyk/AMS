@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.90 2005/10/20 11:35:38 ams Exp $
+# $Id: Monitor.pm,v 1.91 2005/10/21 14:17:37 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2453,6 +2453,7 @@ sub DeleteFailedDST{
      my @ncrun=();
      my @nctime=();
      my @ncname=();
+     my @nchost=();
     for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
      my %nc=%{$Monitor::Singleton->{dsts}[$i]};
      if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile"){
@@ -2533,6 +2534,7 @@ sub DeleteFailedDST{
                my @fh=split '\.',$host[0];
                if($host[0] eq $hash->{id}->{HostName} or
                   ($fh[1] eq 'om' and ($hash->{id}->{HostName} =~ /$fh[0]/))){
+                   push @nchost , $hash->{id}->{HostName} ;
                    push @ncname , $nc{Name};
                    push @ncrun, $nc{Run};
                    push @nctime, $nc{Insert};
@@ -2545,6 +2547,8 @@ sub DeleteFailedDST{
 }
     my $good=0;
      my @ncgood=();
+     my @ncgh=();
+     my @ncgr=();
     for my $i (0 ... $#ncrun){
        if($ncrun[$i] == 0){
          next;
@@ -2562,6 +2566,8 @@ sub DeleteFailedDST{
       }
       warn " $ncname[$idef] ok \n";
        push @ncgood,  $ncname[$idef];
+       push @ncgh,  $nchost[$idef];
+       push @ncgr,  $ncrun[$i];
       $good++; 
      } 
   warn "  in progress good $good \n";
@@ -2593,5 +2599,27 @@ sub DeleteFailedDST{
          }
       }
     }
+ my $ok=1;
+   for my $i (0 ... $#ncgr){
+    my $move="ssh -x $ncgh[$i] mv /dat0/local/logs/MCProducer.".$ncgr[$i].".log /dat0/local/logs/aMCProducer.".$ncgr[$i].".log";
+    if(system($move)){
+        $ok=0;
+        last;
+    }
+   }
+ if($ok){
+   for my $i (0 ... $#ncgr){
+    my $rm="ssh -x $ncgh[$i] rm  -rf '/dat0/local/logs/MCProducer*.log'";
+    system($rm);
+     $rm="ssh -x $ncgh[$i] rm  -rf '/dat0/local/logs/Killer*.log'";
+    system($rm);
+   }
+ }
+   for my $i (0 ... $#ncgr){
+    my $move="ssh -x $ncgh[$i] mv /dat0/local/logs/aMCProducer.".$ncgr[$i].".log /dat0/local/logs/MCProducer.".$ncgr[$i].".log";
+    system($move);
+   }
+
+ warn "   ***evrthing finished***\n";
 }
 
