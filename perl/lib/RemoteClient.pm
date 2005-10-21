@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.330 2005/10/21 14:17:37 ams Exp $
+# $Id: RemoteClient.pm,v 1.331 2005/10/21 14:27:03 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -863,7 +863,7 @@ if($#{$self->{DataSetsT}}==-1){
                $datasetfound = 1;
                last;
              } # $datasetsNameDB eq $dataset->{name}
-           }
+            }
 
            if ($datasetfound == 0) {  # new dataset
                my $did = 1;
@@ -876,6 +876,9 @@ if($#{$self->{DataSetsT}}==-1){
                my $timestamp = time();
                $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}')";
                $self->{sqlserver}->Update($sql);
+               $sql="select did, name from DataSets";
+               $datasetsDB =$self->{sqlserver}->Query($sql);
+
            }
    
            $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
@@ -889,10 +892,9 @@ if($#{$self->{DataSetsT}}==-1){
             $dataset->{eventstodo} += $template->{TOTALEVENTS};
             if($template->{TOTALEVENTS}>100){
              push @tmpa, $template; 
-           }
-          
+         }
           }
-      }
+   }
      } # end jobs of jobs
  
     sub prio { $b->{TOTALEVENTS}*$b->{CPUPEREVENTPERGHZ}  <=> $a->{TOTALEVENTS}*$a->{CPUPEREVENTPERGHZ};}
