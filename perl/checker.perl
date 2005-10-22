@@ -11,23 +11,24 @@ foreach my $chop  (@ARGV){
 }
    my $checkfile=$amsprodlogdir."systemC";
     while(1){ 
-      sleep 3;
+      sleep 10;
       open(FILE,"<".$checkfile) or next;
       my $line=<FILE>;
       close(FILE);
       my @spbuf=split "; ",$line;
       if($#spbuf>1){
          $spbuf[2]=~s/\'//g;
+         $spbuf[1]=~ s/ +$//;
          #print  " $spbuf[0] $spbuf[1] $spbuf[2]\n"; 
        if(time()-$spbuf[0]>120){
-        unlink $checkfile.$spbuf[1];
+        unlink "$checkfile.$spbuf[1]";
         my $cmd="ps -elf  >$checkfile.$spbuf[1]";
         system($cmd);
         #print " $cmd \n";
              open(FILE,"<".$checkfile.".".$spbuf[1]) or next;
              my @buf=<FILE>;
              close(FILE);
-             unlink $checkfile.$spbuf[1];
+             unlink "$checkfile.$spbuf[1]";
              foreach $line (@buf){
                $line=~s/\'//g;
                if($line=~$spbuf[1]){
