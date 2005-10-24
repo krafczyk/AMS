@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.331 2005/10/21 14:27:03 ams Exp $
+# $Id: RemoteClient.pm,v 1.332 2005/10/24 21:26:20 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14,7 +14,7 @@
 # Aug 2003      : remove explicit server name, e.g. pcamsf0.cern.ch
 #                 from scripts names
 # Sep 2003      : outputpath and $ntdir = /disk/dir   for local disks
-#                                         /dir        for afs 
+#                                         /dir        for afs
 #                 add MIPS column into Jobs table
 # Oct 2003      : updateHostInfo and calculateMips functions
 #                 validateRuns is modified - add clock for local hosts
@@ -29,7 +29,7 @@
 #                              -crc do CRC check
 #                              -u   update DB
 #                              -o   print output to file
-# Feb    2004    : $webmode, subs : printParserStat and amsprint 
+# Feb    2004    : $webmode, subs : printParserStat and amsprint
 #                  print statistics for each cite
 #                  parser : verbose, cmd, web modes
 #                           username and nFailedCopiesInRow check
@@ -40,7 +40,7 @@
 #
 # Mar     2004   : if DST status is not 'Validated' in CloseDTS block, skip it
 #                  if CRC=0 didn't check it either
-#                : getHostsList sub, getDisks add MC[GB] - GB for MC's DSTs 
+#                : getHostsList sub, getDisks add MC[GB] - GB for MC's DSTs
 #                : listJobs, listNtuples, listRuns - modified to speed up output
 #                : getHostsMips & updateHostsMips subs
 #                  2 new tables cern_hosts and cpu_coeff
@@ -53,11 +53,11 @@
 #                : mark run as 'Unchecked', even if server's status is 'Finished'
 #
 # May 11, 2004   : check CRC in validateRuns before file copying
-#                : don't validate run if status != 'Finished' 
+#                : don't validate run if status != 'Finished'
 #                : journal files : CRC/crc
-#                 
+#
 # June 2, 2004   : Jean Jacquemier & Alexei Klimentov : updateCopyStatus
-#                  functions to keep and update information about DSTs 
+#                  functions to keep and update information about DSTs
 #                  copied to remote cites.
 #
 # June 16, 2004  : pcamss0.cern.ch is a primary HTTP server
@@ -86,13 +86,13 @@
 # Mar 28, 2005.   : checkJobsTimeOut performance is improved
 #                   deleteTimeoutJobs  - ditto
 #
-# May  4, 2005    : listStat, listRuns, listJobs - queries are modified to 
+# May  4, 2005    : listStat, listRuns, listJobs - queries are modified to
 #                   improve performance
 #
-# May 30, 2005    : last_24h_html (O.Kounina) - production statistics for the 
+# May 30, 2005    : last_24h_html (O.Kounina) - production statistics for the
 #                   last 24 hours
 #
-my $nTopDirFiles = 0;     # number of files in (input/output) dir 
+my $nTopDirFiles = 0;     # number of files in (input/output) dir
 my @inputFiles;           # list of file names in input dir
 
 package RemoteClient;
@@ -108,7 +108,7 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
-use POSIX  qw(strtod);             
+use POSIX  qw(strtod);
 use File::Find;
 use Benchmark;
 use Class::Struct;
@@ -125,7 +125,7 @@ my @td;
 $#td=10;
 #
 
-struct ProductionPeriod => { 
+struct ProductionPeriod => {
                               id      => '$',
                               name    => '$',
                               begin   => '$',
@@ -139,7 +139,7 @@ struct ProductionPeriod => {
 
 my @productionPeriods = ProductionPeriod->new();
 
-my     $webmode         = 1; # 1- cgi is executed from Web interface and 
+my     $webmode         = 1; # 1- cgi is executed from Web interface and
                              # expects Web like output
                              # 0- cgi is executed from command line
 my     $verbose         = 0; # verbose mode
@@ -150,7 +150,7 @@ my     $rmprompt        = 1; # prompt before files removal
  my $validateStartTime   = 0; # start runs validation
 
  my $nCheckedCite = 0;  # cites dirs checked
- my $nActiveCites = 0;  # cites with new dsts 
+ my $nActiveCites = 0;  # cites with new dsts
  my @JouDirPath   = [];
  my @JouLastCheck = [];
  my @JournalFiles = [];  # number of journal files
@@ -221,10 +221,10 @@ my     $validatecgiMySQL  ='/cgi-bin/mon/validate.mysql.cgi';
 my     $PrintMaxJobsPerCite = 25;
 
 my     $MAX_CITES       = 32; # maximum number of allowed cites
-my     $MAX_RUN_POWER   = 26; # 
+my     $MAX_RUN_POWER   = 26; #
 
 #
-my     $MIN_DISK_SPACE  = 10; # if available disk space <  MIN_DISK_SPACE 
+my     $MIN_DISK_SPACE  = 10; # if available disk space <  MIN_DISK_SPACE
                               # do not use disk to store DSTs
 #
 
@@ -257,7 +257,7 @@ my %fields=(
         ProductionSetName=>[],
         ProductionSetStatus=>[],
         ProductionSetBegin=>[],
-        
+
         FileDB   =>[],
         FileAttDB=>[],
         FileCRC=>undef,
@@ -328,7 +328,7 @@ sub Init{
 #
     my $sql  = undef;
     my $ret  = undef;
-  
+
     $t0Init = time();
 
 #just temporary skeleton to check basic princ
@@ -343,7 +343,7 @@ sub Init{
       if(time()-$self->{initdone}<$cachetime){
         return 1;
       }
-     } 
+     }
     my %cputypes=(
      'Pentium II'=>1.07,
      'Pentium III'=>1.0,
@@ -396,7 +396,7 @@ my %triggertypes=(
      'Fe56'=>87,
                    );
     $tsyntax->{particles}=\%particles;
-   
+
 
 
     my %spectra=(
@@ -422,10 +422,10 @@ uniformlog=>5,
                  );
 
     $tsyntax->{planes}=\%planes;
-    
+
 
 my %default=(
-     triggers=>10000000,     
+     triggers=>10000000,
      particle=>"proton",
      spectrum=>"cosmic",
      pmin=>0.1,
@@ -438,7 +438,7 @@ my %default=(
     $tsyntax->{default}=\%default;
 
 my %mv=(
-     triggers=>" ",     
+     triggers=>" ",
      particle=>" ",
      spectrum=>" ",
      pmin=>"GeV/c",
@@ -471,17 +471,17 @@ my %mv=(
    $ret=$self->{sqlserver}->Query($sql);
      if( defined $ret->[0][0]){
        $self->{HTTPserver}=$ret->[0][0];
-     } 
+     }
    $self->set_URL();
 
-# mySQL/Oracle 
+# mySQL/Oracle
     if($self->{sqlserver}->{dbdriver} =~ m/mysql/){
         $downloadcgi = $downloadcgiMySQL;
         $monmcdb     = $monmcdbMySQL;
         $rccgi       = $rccgiMySQL;
         $rchtml      = $rchtmlMySQL;
         $validatecgi = $validatecgiMySQL;
-    } 
+    }
 #
  $dir=$ENV{CERN_ROOT};
  if (defined $dir){
@@ -518,7 +518,7 @@ my %mv=(
     if( defined $ret->[0][0]){
      $self->{$key}=$ret->[0][0];
     }
-    else{    
+    else{
      $self->{$key}="/var/www/cgi-bin/AMS02MCUploads";
     }
 
@@ -528,7 +528,7 @@ my %mv=(
     if( defined $ret->[0][0]){
      $self->{$key}=$ret->[0][0];
     }
-    else{    
+    else{
      $self->{$key}="AMS02MCUploads";
     }
 #+
@@ -540,12 +540,12 @@ my %mv=(
     $ret=$self->{sqlserver}->Query($sql);
     if( defined $ret->[0][0]){
      foreach my $file (@{$ret}){
-      push @{$self->{FileDB}}, $file; 
+      push @{$self->{FileDB}}, $file;
      }
     }
-    else{    
-     push @{$self->{FileDB}}, "v3.00mcdb.tar.gz"; 
-     push @{$self->{FileDB}}, "v4.00mcdb.tar.gz"; 
+    else{
+     push @{$self->{FileDB}}, "v3.00mcdb.tar.gz";
+     push @{$self->{FileDB}}, "v4.00mcdb.tar.gz";
     }
      $#{$self->{FileAttDB}}=-1;
     $key='FileAttDB';
@@ -553,10 +553,10 @@ my %mv=(
     $ret=$self->{sqlserver}->Query($sql);
     if( defined $ret->[0][0]){
      foreach my $file (@{$ret}){
-      push @{$self->{FileAttDB}}, $file; 
+      push @{$self->{FileAttDB}}, $file;
      }
     }
-    else{    
+    else{
       push @{$self->{FileAttDB}}, "v3.00mcdb.addon.tar.gz";
       push @{$self->{FileAttDB}}, "v4.00mcdb.addon.tar.gz";
     }
@@ -568,7 +568,7 @@ my %mv=(
     if( defined $ret->[0][0]){
      $self->{$key}=$ret->[0][0];
     }
-    else{    
+    else{
      $self->{$key}="ams02bbftp.tar.gz";
     }
 
@@ -579,7 +579,7 @@ my %mv=(
     if( defined $ret->[0][0]){
      $self->{$key}=$ret->[0][0];
     }
-    else{    
+    else{
      $self->{$key}="ams02bookkeeping.tar.gz";
     }
 
@@ -589,7 +589,7 @@ my %mv=(
     if( defined $ret->[0][0]){
      $self->{$key}=$ret->[0][0];
     }
-    else{    
+    else{
      $self->{$key}="ams02crc.tar.gz";
     }
 
@@ -600,7 +600,7 @@ my %mv=(
     if( defined $ret->[0][0]){
      $self->{$key}="$self->{AMSDataDir}/".$ret->[0][0];
  }
-    else{    
+    else{
      $self->{$key}="$self->{AMSDataDir}/DataManagement";
     }
      $key='AMSProdDir';
@@ -609,7 +609,7 @@ my %mv=(
     if( defined $ret->[0][0]){
      $self->{$key}="$self->{AMSSoftwareDir}/".$ret->[0][0];
  }
-    else{    
+    else{
      $self->{$key}="$self->{AMSSoftwareDir}/prod";
     }
     $ENV{$key}=$self->{$key};
@@ -626,20 +626,20 @@ my %mv=(
      }
      push @{$self->{CiteT}}, $cite;
     }
-    
-#mail table        
+
+#mail table
     $sql="select * from Mails";
      $#{$self->{MailT}}=-1;
      ($values, $fields)=$self->{sqlserver}->QueryAll($sql);
     foreach my $row (@{$values})  {
-            
+
      my $cite={};
      my $i=0;
      foreach my $field (@{$fields}){
 #         warn " fileds $field $row->[$i] \n";
       $cite->{lc($field)}=$row->[$i++];
-     }     
-     push @{$self->{MailT}}, $cite; 
+     }
+     push @{$self->{MailT}}, $cite;
  }
     if($self->{q}->param("queryDB04") or $self->{q}->param("getRunID") or
     $self->{q}->param("getJobID") or $self->{q}->param("getDSTID")){
@@ -664,7 +664,7 @@ my %mv=(
               foreach my $dss (@{$dsref}){
                push @{$self->{DataSetsT}},$dss;
               }
-             } 
+             }
             }
           }
         }
@@ -685,7 +685,7 @@ if($#{$self->{DataSetsT}}==-1){
    $dir="$self->{AMSSoftwareDir}/DataSets";
 #
 # get DB info :
-#               All datasets 
+#               All datasets
   my  $datasetsDB  = undef;
   my  $jobsDB      = undef;
 #  my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
@@ -706,7 +706,7 @@ if($#{$self->{DataSetsT}}==-1){
        }
        $pps=$pps." $pp->[0] ";
    }
-    
+
    $sql="select did, name from DataSets";
    $datasetsDB =$self->{sqlserver}->Query($sql);
    $st[0]=$st[0]+1;
@@ -725,7 +725,7 @@ if($#{$self->{DataSetsT}}==-1){
 # read list of datasets dirs from $dir
    opendir THISDIR ,$dir or die "unable to open $dir";
    my @allfiles= readdir THISDIR;
-   closedir THISDIR;    
+   closedir THISDIR;
 
    foreach my $file (@allfiles){
     my $newfile="$dir/$file";
@@ -734,14 +734,14 @@ if($#{$self->{DataSetsT}}==-1){
       my $buf;
       read(FILE,$buf,16384);
       close FILE;
-      $self->{TrialRun}=$buf;          
+      $self->{TrialRun}=$buf;
       last;
      }
     }
 
 
 # scan all dataset dirs
-  $#{$self->{DataSetsT}}=-1; 
+  $#{$self->{DataSetsT}}=-1;
    foreach my $file (@allfiles){
     my $newfile="$dir/$file";
     if(readlink $newfile or  $file =~/^\./){
@@ -787,12 +787,12 @@ if($#{$self->{DataSetsT}}==-1){
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
-                   my @junk=split "$ent=",$line;                 
+                   my @junk=split "$ent=",$line;
                    $template->{$ent}=$junk[$#junk];
                    $buf=~ s/$ent=/C $ent=/;
                    last;
                }
-            }         
+            }
         }
         if(defined $self->{TrialRun}){
             $template->{TOTALEVENTS}*=$self->{TrialRun};
@@ -839,18 +839,18 @@ if($#{$self->{DataSetsT}}==-1){
                               if(defined $ret->[0][0]){
                                foreach my $run (@{$ret}){
                                 $rtrig+=$run->[1]-$run->[0]+1;
-                               } 
+                               }
                               }
                                $template->{TOTALEVENTS}-=$rtrig;
                                     $sql="UPDATE Jobs SET realtriggers=$rtrig WHERE jid=$jobsJidDB";
-                             # die "$sql {$job} $rtrig";  
+                             # die "$sql {$job} $rtrig";
                               $self->{sqlserver}->Update($sql);
-                             # die " @{$job} $rtrig";                             
+                             # die " @{$job} $rtrig";
                            }
                            else{
                               $template->{TOTALEVENTS}-=$rtrig;
-                           }                               
-                          }
+                           }
+                         }
                              else {
                              $st[3]+=1;
 #
@@ -869,9 +869,9 @@ if($#{$self->{DataSetsT}}==-1){
                my $did = 1;
                $sql = "SELECT MAX(did) From DataSets";
                my $ret=$self->{sqlserver}->Query($sql);
-               if (defined $ret->[0][0]) { 
+               if (defined $ret->[0][0]) {
                    $did = $ret->[0][0]+1;
-               } 
+               }
                $dataset->{did}=$did;
                my $timestamp = time();
                $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp, '$dataset->{version}')";
@@ -880,9 +880,9 @@ if($#{$self->{DataSetsT}}==-1){
                $datasetsDB =$self->{sqlserver}->Query($sql);
 
            }
-   
+
            $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
-   
+
            if($sbuf[0] =~/^#/ && defined $template->{initok}){
             $buf=~ s/#/C /;
             $template->{filebody}=$buf;
@@ -891,16 +891,16 @@ if($#{$self->{DataSetsT}}==-1){
             $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
             $dataset->{eventstodo} += $template->{TOTALEVENTS};
             if($template->{TOTALEVENTS}>100){
-             push @tmpa, $template; 
+             push @tmpa, $template;
          }
           }
    }
      } # end jobs of jobs
- 
+
     sub prio { $b->{TOTALEVENTS}*$b->{CPUPEREVENTPERGHZ}  <=> $a->{TOTALEVENTS}*$a->{CPUPEREVENTPERGHZ};}
     my @tmpb=sort prio @tmpa;
     foreach my $tmp (@tmpb){
-     push @{$dataset->{jobs}},$tmp;     
+     push @{$dataset->{jobs}},$tmp;
     }
     push @{$self->{DataSetsT}}, $dataset;
    }
@@ -914,8 +914,8 @@ if($#{$self->{DataSetsT}}==-1){
      $dir="$self->{AMSSoftwareDir}/Templates";
     opendir THISDIR ,$dir or die "unable to open $dir";
     my @allfiles= readdir THISDIR;
-    closedir THISDIR; 
-    $#{$self->{TempT}}=-1;   
+    closedir THISDIR;
+    $#{$self->{TempT}}=-1;
 foreach my $file (@allfiles){
     if($file =~ /\.job$/){
         my $temp={};
@@ -932,10 +932,10 @@ foreach my $file (@allfiles){
            my $desc=$sbuf[0];
            substr($desc,0,1)=" ";
            $temp->{filedesc}=$desc;
-           push @{$self->{TempT}}, $temp; 
-        }        
+           push @{$self->{TempT}}, $temp;
+        }
     }
-    
+
         if($file =~/^\.Help/ ){
          my $full=$dir."/$file";
          open(FILE,"<".$full) or die "Unable to open file $full \n";
@@ -958,7 +958,7 @@ foreach my $file (@allfiles){
             next;
         }
 }
-} 
+}
     if (not defined $self->{TempT}){
         die "No Basic Templates Available";
     }
@@ -986,11 +986,11 @@ foreach my $file (@allfiles){
             $self->{dbfile}=$upd->[0];
             $self->{IOR}=$upd->[2];
             $self->{IORP}=$upd->[3];
-        }        
-    } 
+        }
+    }
  if ($webmode == 0 && $verbose == 1) {print "Init -I- get IOR from Server or DB \n";}
  my $ior=$self->getior();
- if(not defined $ior){ 
+ if(not defined $ior){
     if ($webmode == 0 && $verbose == 1) {print "Init -I- IOR not defined \n";}
 
   foreach my $chop  (@ARGV){
@@ -1011,13 +1011,13 @@ foreach my $file (@allfiles){
     $self->{initdone}=time();
  if( not defined $self->{IOR}){
   return $self->{ok};
- } 
-    return 1; 
+ }
+    return 1;
 }
 
 sub ServerConnect{
     my $ref = shift;
-$ref->{cid}=new CID;    
+$ref->{cid}=new CID;
 $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
     my $tm={};
  try{
@@ -1083,18 +1083,18 @@ $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
          my %cid=%{$ref->{cid}};
              try{
                my $dbfile=$ard->getDBFilePath(\%cid);
-               
+
                if(not defined $ref->{dbfile} or $ref->{dbfile} ne $dbfile){
-# put another server into dead mode 
+# put another server into dead mode
                    my $sql="update Servers set status='Dead' where dbfilename !=  '$dbfile'";
                    $ref->{sqlserver}->Update($sql);
                    $ref->{dbfile}=$dbfile;
                    $ref->{IORP}=undef;
-               }  
+               }
              }
              catch CORBA::SystemException with{
              };
-        
+
 }
 if( defined $ref->{dbfile}){
      my $dbserver=blessdb();
@@ -1146,8 +1146,8 @@ sub RestartServer{
             if($upd->[1]> $updlast){
              $updlast=$upd->[1];
              $self->{dbfile}=$upd->[0];
-           }        
-          } 
+           }
+          }
           if(defined $self->{dbfile}){
               my $full="$self->{UploadsDir}/ServerRestart";
            open(FILE,">".$full) or die "Unable to open file $full \n";
@@ -1176,8 +1176,8 @@ sub ValidateRuns {
    my $thrusted =0;
    my $copied   =0;
    my $failedcp =0;
-   my $bad      =0; 
-   my $unchecked=0; 
+   my $bad      =0;
+   my $unchecked=0;
 #
    my $warn= undef;
    my $sql = undef;
@@ -1191,7 +1191,7 @@ sub ValidateRuns {
 #
 
  my $HelpTxt = "
-     validateRuns gets list of runs from production server 
+     validateRuns gets list of runs from production server
                   validates DSTs and copies them to final destination
                   update Runs and NTuples DB tables
      -c    - output will be produced as ASCII page (default)
@@ -1227,7 +1227,7 @@ sub ValidateRuns {
 
     if( not $self->Init()){
         die "ValidateRuns -F- Unable To Init";
-        
+
     }
     if ($verbose && $webmode == 0) {print "ValidateRuns -I- Connect to Server \n";}
     if (not $self->ServerConnect()){
@@ -1248,7 +1248,7 @@ sub ValidateRuns {
     if (not defined $vdir) {
       die " ValidateRuns -F- cannot get path to ValidationDir \n";
      }
-    $vlog = $vdir."/validateRuns.log.".$timenow;   
+    $vlog = $vdir."/validateRuns.log.".$timenow;
 
     open(FILEV,">".$vlog) or die "Unable to open file $vlog\n";
     if ($webmode ==0  and $verbose ==1) { print "ValidateRuns -I- open $vlog \n";}
@@ -1262,18 +1262,18 @@ sub ValidateRuns {
     if(not defined $ret->[0][0]){
       $self->amsprint("validateRuns -ERROR- cannot find 'Active' production set",0);
       die "exit\n";
-    } 
+    }
     my $firstjobtime = $ret->[0][0] - 24*60*60;
     if ($webmode ==0  and $verbose ==1) { print "ValidateRuns -I- select list of runs from DB \n";}
     $sql="SELECT run,submit FROM Runs WHERE submit > $firstjobtime";
     $ret=$self->{sqlserver}->Query($sql);
 
 # get list of runs from Server
-    if ($webmode ==0  and $verbose ==1) { 
+    if ($webmode ==0  and $verbose ==1) {
        print "ValidateRuns -I- get list of runs from server \n";
     }
     if( not defined $self->{dbserver}->{rtb}){
-     if ($webmode ==0  and $verbose ==1) { 
+     if ($webmode ==0  and $verbose ==1) {
        print "ValidateRuns -I- call DBServer:InitDBFile \n";
      }
       DBServer::InitDBFile($self->{dbserver});
@@ -1298,7 +1298,7 @@ sub ValidateRuns {
    $BadCRCi[0]     = 0;  #                 dsts with crc error (before copying)
    $gbDST[0]       = 0;
 
-    if ($webmode ==0  and $verbose ==1) { 
+    if ($webmode ==0  and $verbose ==1) {
        print "ValidateRuns -I- got from server :  $#{$self->{dbserver}->{rtb}} runs \n";
     }
 
@@ -1333,7 +1333,7 @@ sub ValidateRuns {
        print "<td><b><font color=\"blue\" >Status</font></b></td>";
        print "</tr>\n";
       }
-      print FILEV "INSERT $run->{Run}, 
+      print FILEV "INSERT $run->{Run},
                          $run->{Run},
                          $run->{Run},
                          $run->{FirstEvent},
@@ -1367,28 +1367,28 @@ sub ValidateRuns {
         print "$run->{Run},$run->{FirstEvent},$run->{LastEvent},$run->{SubmitTime},$run->{Status} \n";
        }
   }
-#--     if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") && 
+#--     if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") &&
 #--     (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked" && $r0->[0][1] ne "TimeOut"))
-     if(($run->{Status} eq "Finished") && 
+     if(($run->{Status} eq "Finished") &&
       (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "TimeOut"))
         ){
-# 
+#
         print "Check Run : $run->{Run} Status : $run->{Status}, DB Status : $r0->[0][1] \n";
         print FILEV "Check Run : $run->{Run} Status : $run->{Status} DB Status -> $r0->[0][1] \n";
         my $fevent =  1;
         my $levent =  0;
 # check if corresponding job exist
-         $sql   = "SELECT runs.status, jobs.content, cites.status  
-                    FROM runs,jobs,cites 
+         $sql   = "SELECT runs.status, jobs.content, cites.status
+                    FROM runs,jobs,cites
                      WHERE jobs.jid=$run->{Run} AND runs.jid=jobs.jid AND cites.cid=jobs.cid";
          my $r1 = $self->{sqlserver}->Query($sql);
-         if (not defined $r1->[0][0]) { 
-          $sql = "UPDATE runs SET status='Failed' WHERE run=$run->{Run}"; 
+         if (not defined $r1->[0][0]) {
+          $sql = "UPDATE runs SET status='Failed' WHERE run=$run->{Run}";
           $self->{sqlserver}->Update($sql);
           $warn = "cannot find status, content in Jobs for JID=$run->{Run}. *TRY* Delete Run=$run->{Run} from server \n";
           if ($verbose == 1) {$self->printWarn($warn);}
           print FILEV "$warn \n";
-#          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
+#          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete");
           print "--- done --- \n";
           print FILEV "--- done --- \n";
          } else {
@@ -1396,7 +1396,7 @@ sub ValidateRuns {
           my $jobcontent = $r1->[0][1];
           my $citestatus = $r1->[0][2];
 # Jul 25, 2003 ak.
-# validate cite 'local' runs on the same way as 
+# validate cite 'local' runs on the same way as
 # '-GR' runs
           if ($jobcontent =~ m/-GR/ || $citestatus eq "local") {
 #
@@ -1418,14 +1418,14 @@ sub ValidateRuns {
                $self->{sqlserver}->Update($sql);
            } else {  # events && errors != 0
 # get list of local hosts
-            $sql = "UPDATE jobs SET 
+            $sql = "UPDATE jobs SET
                                      EVENTS=$events,
                                      ERRORS=$errors,
                                      CPUTIME=$cputime,
                                      ELAPSED=$elapsed,
                                      HOST='$host',
                                      MIPS=(SELECT mips FROM cern_hosts WHERE  cern_hosts.host LIKE '$host%'),
-                                     TIMESTAMP=$timenow  
+                                     TIMESTAMP=$timenow
                             WHERE JID = $run->{Run}";
           $self->{sqlserver}->Update($sql);
           print FILEV "$sql \n";
@@ -1436,17 +1436,17 @@ sub ValidateRuns {
                   ntuple->{Run}== $run->{Run}){
                   $CheckedDSTs[0]++;
                   $levent += $ntuple->{LastEvent}-$ntuple->{FirstEvent}+1;
-                  $ntuple->{Name}=~s/\/\//\//;                  
+                  $ntuple->{Name}=~s/\/\//\//;
                   my @fpatha=split ':', $ntuple->{Name};
                   my $fpath=$fpatha[$#fpatha];
                   if ($webmode == 0 and $verbose==1) {print "$fpath \n";}
                   my $suc=open(FILE,"<".$fpath);
                   my $badevents=$ntuple->{ErrorNumber};
                   my $events=$ntuple->{EventNumber};
-                  my $status="OK";                     
+                  my $status="OK";
                   if(not $suc){
                       if($ntuple->{Status} ne "Validated"){
-                         $status="Unchecked";                     
+                         $status="Unchecked";
                          $events=$ntuple->{EventNumber};
                          $badevents="NULL";
                          $unchecked++;
@@ -1456,7 +1456,7 @@ sub ValidateRuns {
                       else{
                         $thrusted++;
                       }
-                  }  
+                  }
                   else{
 
                    my  $retcrc = $self->calculateCRC($fpath,$ntuple->{crc});
@@ -1469,11 +1469,11 @@ sub ValidateRuns {
                        $bad++;
                    } else { # CRCi - correct
                    close FILE;
-                   my ($ret,$i) = 
+                   my ($ret,$i) =
                        $self->validateDST($fpath,$ntuple->{EventNumber},$ntuple->{Type},$ntuple->{LastEvent});
                    if( ($i == 0xff00) or ($i & 0xff)){
                     if($ntuple->{Status} ne "Validated"){
-                     $status="Unchecked";                     
+                     $status="Unchecked";
                      $events=$ntuple->{EventNumber};
                      $badevents="NULL";
                      $unchecked++;
@@ -1489,8 +1489,8 @@ sub ValidateRuns {
                          if(int($i/128)){
                           $events=0;
                           $badevents="NULL";
-                          $status="Bad".($i-128);  
-                          $bad++;                   
+                          $status="Bad".($i-128);
+                          $bad++;
                           $levent -= $ntuple->{LastEvent}-$ntuple->{FirstEvent}+1;
                          }
                           else{
@@ -1501,7 +1501,7 @@ sub ValidateRuns {
                            my $jobid = $run->{Run};
                            my ($outputpath,$rstatus) = $self->doCopy($jobid,$fpath,$ntuple->{crc},$ntuple->{Version});
                            if(defined $outputpath){
-                              push @mvntuples, $outputpath; 
+                              push @mvntuples, $outputpath;
                           }
                           if ($rstatus == 1) {
                            $GoodDSTs[0]++;
@@ -1555,7 +1555,7 @@ sub ValidateRuns {
                        }  # ntuple status 'OK'
                      }
                } # passed CRCi
-              } 
+              }
              } # ntuple ->{Status} == "Validated"
          } #loop for ntuples
          my $status='Failed';
@@ -1563,7 +1563,7 @@ sub ValidateRuns {
           $warn = "Validation done : *TRY* send Delete to DBServer, Run =$run->{Run} \n";
           print FILEV "$warn \n";
           $self->printWarn($warn);
-#--          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
+#--          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete");
           foreach my $ntuple (@cpntuples) {
            my $cmd="rm $ntuple";
            if ($rmprompt == 1) {$cmd = "rm -i $ntuple";}
@@ -1619,11 +1619,11 @@ sub ValidateRuns {
            print FILEV $warn;
           }
       }# events != 0 && errors != 0
-     } # remote job             
+     } # remote job
     }  # job found
    }   # run->{Status} == 'Finished' || 'Failed'
   }    # loop for runs from 'server'
-      
+
   if ($webmode == 1) {
    $self->htmlBottom();
   }
@@ -1649,7 +1649,7 @@ sub doCopy {
      my $inputfile = shift;
      my $crc       = shift;
      my $version   = shift;
-# 
+#
      my $sql   = undef;
      my $cmd   = undef;
      my $cmdstatus = undef;
@@ -1687,14 +1687,14 @@ sub doCopy {
              }
          } else {
 # find job
-          $sql = "SELECT cites.name,jobname  FROM jobs,cites 
+          $sql = "SELECT cites.name,jobname  FROM jobs,cites
                            WHERE jid =$jid AND cites.cid=jobs.cid";
           my $r1 = $self->{sqlserver}->Query($sql);
           if (defined $r1->[0][0]) {
             my $cite    = $r1->[0][0];
             my $jobname = $r1->[0][1];
             my $dataset = "unknown";
-            $sql = "SELECT jobs.jid, datasets.name  FROM datasets, jobs   
+            $sql = "SELECT jobs.jid, datasets.name  FROM datasets, jobs
                            WHERE jid =$jid AND jobs.did=datasets.did";
             my $r2 = $self->{sqlserver}->Query($sql);
             if (defined $r2->[0][0]) {
@@ -1744,7 +1744,7 @@ sub doCopy {
   } else {
       if ($webmode == 1) {htmlWarning("doCopy","cannot stat $inputfile");}
       $BadDSTs[$nCheckedCite]++;
-  } 
+  }
 
   return undef,0;
  }
@@ -1768,7 +1768,7 @@ sub Validate{
          print $self->{q}->header( "text/html" ),
          $self->{q}->start_html( "Welcome");
          print $self->{q}->h1( "Welcome to the AMS02 Validation Form" );
-         print $self->{q}->start_form(-method=>"GET", 
+         print $self->{q}->start_form(-method=>"GET",
           -action=>$self->{Name});
    print qq`
 Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
@@ -1779,11 +1779,11 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
      }
    my $validated=0;
    my $thrusted=0;
-   my $bad=0; 
-   my $unchecked=0; 
+   my $bad=0;
+   my $unchecked=0;
     if( not $self->Init()){
         die "Unable To Init";
-        
+
     }
     if (not $self->ServerConnect()){
         die "Unable To Connect To Server";
@@ -1803,7 +1803,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
      die " Validate -F- cannot get path to ValidationDir \n";
    }
    my $timenow = time();
-   $vlog = $vdir."/validateDST.log.".$timenow;   
+   $vlog = $vdir."/validateDST.log.".$timenow;
 
    open(LOGFILE,">".$vlog) or die "Unable to open file $vlog\n";
 
@@ -1834,20 +1834,20 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
          }
 # Find corresponding ntuples
           foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
-              if($ntuple->{Type} eq "Ntuple" and 
-                ($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and 
+              if($ntuple->{Type} eq "Ntuple" and
+                ($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and
                  $ntuple->{Run}== $run->{Run}){
 # suppress double //
-                  $ntuple->{Name}=~s/\/\//\//;                  
+                  $ntuple->{Name}=~s/\/\//\//;
                   my @fpatha=split ':', $ntuple->{Name};
                   my $fpath=$fpatha[$#fpatha];
                   my $suc=open(FILE,"<".$fpath);
                   my $badevents=$ntuple->{ErrorNumber};
                   my $events=$ntuple->{EventNumber};
-                  $status="OK";                     
+                  $status="OK";
                   if(not $suc){
                       if($ntuple->{Status} ne "Validated"){
-                         $status="Unchecked";                     
+                         $status="Unchecked";
                          $events=$ntuple->{EventNumber};
                          $badevents="NULL";
                          $unchecked++;
@@ -1855,13 +1855,13 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                       else{
                         $thrusted++;
                       }
-                  }  
+                  }
                   else{
                       close FILE;
                       my ($ret,$i) = $self->validateDST($fpath,$ntuple->{EventNumber},$ntuple->{Type},$ntuple->{LastEvent});
                       if( ($i == 0xff00) or ($i & 0xff)){
                       if($ntuple->{Status} ne "Validated"){
-                       $status="Unchecked";                     
+                       $status="Unchecked";
                        $events=$ntuple->{EventNumber};
                        $badevents="NULL";
                        $unchecked++;
@@ -1875,8 +1875,8 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                           if(int($i/128)){
                             $events=0;
                             $badevents="NULL";
-                            $status="Bad".($i-128);  
-                            $bad++;                   
+                            $status="Bad".($i-128);
+                            $bad++;
                           }
                           else{
                            $status="OK";
@@ -1913,9 +1913,9 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                  foreach my $uc (@{$rts}){
                      my $path=$uc->[0];
                      foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
-                     if($ntuple->{Type} eq "Ntuple" and 
+                     if($ntuple->{Type} eq "Ntuple" and
                         $ntuple->{Status} eq "Success" and $ntuple->{Run}== $run->{Run} ){
-                     $ntuple->{Name}=~s/\/\//\//;                  
+                     $ntuple->{Name}=~s/\/\//\//;
                      if($path eq $ntuple->{Name}){
                      my @fpatha=split ':', $ntuple->{Name};
                      my $fpath=$fpatha[$#fpatha];
@@ -1923,7 +1923,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                      my ($events,$badevents);
                      if(not $suc){
                          $unchecked++;
-                     }  
+                     }
                      else{
                       close FILE;
                       my ($ret,$i) = $self->validateDST($fpath,$ntuple->{EventNumber},$ntuple->{Type},$ntuple->{LastEvent});
@@ -1935,8 +1935,8 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                           if(int($i/128)){
                             $events=0;
                             $badevents="NULL";
-                            $status="Bad".($i-128);  
-                            $bad++;                   
+                            $status="Bad".($i-128);
+                            $bad++;
                           }
                           else{
                            $status="OK";
@@ -1951,7 +1951,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
 
 
 
-                     }                     
+                     }
                      }
                      }
                  }
@@ -2028,7 +2028,7 @@ sub Connect{
           }
          }
 
- ; 
+ ;
     my $ti = time();
     $self->getProductionPeriods(0);
     my $ProductionPeriod = 'tmp';
@@ -2056,10 +2056,10 @@ sub Connect{
             if ($q->param("JobID") =~ /-/) {
                 ($jobmin,$jobmax) = split '-',$q->param("JobID");
                 $title = $title.$q->param("JobID");
-                $sql = "SELECT jobname, triggers, host, events, errors, cputime, 
-                               elapsed, cites.name, jobs.did, jobs.timestamp, jobs.jid   
-                          FROM jobs, cites 
-                          WHERE jobs.jid>$jobmin AND jobs.jid<$jobmax 
+                $sql = "SELECT jobname, triggers, host, events, errors, cputime,
+                               elapsed, cites.name, jobs.did, jobs.timestamp, jobs.jid
+                          FROM jobs, cites
+                          WHERE jobs.jid>$jobmin AND jobs.jid<$jobmax
                                 AND jobs.cid=cites.cid ";
                 if ($q->param("QCite")) {
                  $cite = trimblanks($q->param("QCite"));
@@ -2073,9 +2073,9 @@ sub Connect{
              $jobid =  trimblanks($q->param("JobID"));
              if ($jobid > 0) {
               $title = $title.$jobid;
-              $sql = "SELECT jobname, triggers , host, events, errors, cputime, 
-                            elapsed, cites.name, content, jobs.timestamp, jobs.jid 
-                          FROM jobs, cites 
+              $sql = "SELECT jobname, triggers , host, events, errors, cputime,
+                            elapsed, cites.name, content, jobs.timestamp, jobs.jid
+                          FROM jobs, cites
                           WHERE jobs.jid=$jobid AND jobs.cid=cites.cid ORDER BY jobs.jid DESC";
              } else {
                  goto CheckCite;
@@ -2085,10 +2085,10 @@ sub Connect{
 CheckCite:            if (defined $q->param("QCite")) {
              $cite = trimblanks($q->param("QCite"));
              if ($cite ne 'Any') {
-              $sql = "SELECT jobname, triggers , host, events, errors, cputime, 
-                            elapsed, cites.name, content, jobs.timestamp, jobs.jid 
-                          FROM jobs, cites 
-                          WHERE cites.name='$cite' AND jobs.cid=cites.cid 
+              $sql = "SELECT jobname, triggers , host, events, errors, cputime,
+                            elapsed, cites.name, content, jobs.timestamp, jobs.jid
+                          FROM jobs, cites
+                          WHERE cites.name='$cite' AND jobs.cid=cites.cid
                           ORDER BY jobs.jid DESC";
               $title=$title." for Cite : $cite";
              }
@@ -2111,14 +2111,14 @@ CheckCite:            if (defined $q->param("QCite")) {
                print "<td align=center><b><font color=\"blue\" >Status </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Timestamp </font></b></td>";
               print "</tr>\n";
-        
+
         my $ret=$self->{sqlserver}->Query($sql);
         if (defined $ret->[0][0]) {
          foreach my $r (@{$ret}){
              my $jobname =trimblanks($r->[0]);
              my $triggers=$r->[1];
              my $host    =trimblanks($r->[2]);
-             
+
              my $events  =$r->[3];
              my $errors  =$r->[4];
              my $cputime =$r->[5];
@@ -2159,7 +2159,7 @@ CheckCite:            if (defined $q->param("QCite")) {
               print "<td align=center><b><font color=$color> $timestamp </font></b></td>\n";
               print "</tr>\n";
          }
-       } 
+       }
        htmlTableEnd();
         if ($jobid > 0) {
           print "<p></p>\n";
@@ -2182,7 +2182,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                print "<td align=center><b><font color=\"black\" >$stime</font></b></td>";
                print "</tr>\n";
               htmlTableEnd();
-              $sql = "SELECT path, nevents, neventserr, sizemb, status FROM ntuples 
+              $sql = "SELECT path, nevents, neventserr, sizemb, status FROM ntuples
                        WHERE  run = $run";
               my $r0=$self->{sqlserver}->Query($sql);
               if (defined $r0->[0][0]) {
@@ -2235,14 +2235,14 @@ CheckCite:            if (defined $q->param("QCite")) {
             if ($q->param("RunID") =~ /-/) {
                 ($runmin,$runmax) = split '-',$q->param("RunID");
                 $title = $title.$q->param("RunID");
-                $sql = "SELECT run, jid, fevent, levent, submit, status FROM Runs 
-                          WHERE run>$runmin AND run<$runmax 
+                $sql = "SELECT run, jid, fevent, levent, submit, status FROM Runs
+                          WHERE run>$runmin AND run<$runmax
                           ORDER BY run";
             } else {
              $runid =  trimblanks($q->param("RunID"));
              $title = $title.$runid;
-              $sql = "SELECT run, jid, fevent, levent, submit, status FROM Runs 
-                          WHERE run=$runid"; 
+              $sql = "SELECT run, jid, fevent, levent, submit, status FROM Runs
+                          WHERE run=$runid";
             }
          my $ret=$self->{sqlserver}->Query($sql);
          if (defined $ret->[0][0]) {
@@ -2300,15 +2300,15 @@ CheckCite:            if (defined $q->param("QCite")) {
             if ($q->param("DSTID") =~ /-/) {
                 ($runmin,$runmax) = split '-',$q->param("DSTID");
                 $title = $title.$q->param("RunID");
-                $sql = "SELECT jid, run, timestamp, nevents, neventserr, status 
-                          FROM ntuples  
-                          WHERE run>$runmin AND run<$runmax 
+                $sql = "SELECT jid, run, timestamp, nevents, neventserr, status
+                          FROM ntuples
+                          WHERE run>$runmin AND run<$runmax
                           ORDER BY run";
             } else {
              $runid =  trimblanks($q->param("DSTID"));
              $title = $title.$runid;
-             $sql = "SELECT jid, run, path, timestamp, nevents, neventserr, status 
-                      FROM ntuples  WHERE run=$runid"; 
+             $sql = "SELECT jid, run, path, timestamp, nevents, neventserr, status
+                      FROM ntuples  WHERE run=$runid";
             }
          my $ret=$self->{sqlserver}->Query($sql);
          if (defined $ret->[0][0]) {
@@ -2316,7 +2316,7 @@ CheckCite:            if (defined $q->param("QCite")) {
              my $jid       = $r->[0];
              my $run       = $r->[1];
              my $path      = trimblanks($r->[2]);
-             my $starttime = EpochToDDMMYYHHMMSS($r->[3]); 
+             my $starttime = EpochToDDMMYYHHMMSS($r->[3]);
              my $nevents   = $r->[4];
              my $nerrors   = $r->[5];
              my $status    = trimblanks($r->[6]);
@@ -2324,9 +2324,9 @@ CheckCite:            if (defined $q->param("QCite")) {
              print "<td><b> $jid </td></b>
                     <td><b> $run </td>
                     <td><b> $starttime </b></td>
-                    <td><b> $path </b></td> 
-                    <td align=middle><b> $nevents </b></td> 
-                    <td align=middle><b> $nerrors </b></td> 
+                    <td><b> $path </b></td>
+                    <td align=middle><b> $nevents </b></td>
+                    <td align=middle><b> $nerrors </b></td>
                     <td align=middle><b><font color=$color> $status </font></b></td> \n";
              print "</font></tr>\n";
          }
@@ -2402,9 +2402,9 @@ CheckCite:            if (defined $q->param("QCite")) {
        else{
         $pps="";
        }
-  }                                                                              
+  }
 
-                                                                                
+
 
       if (defined $q->param("QTempDataset") and $q->param("QTempDataset") ne "Any") {
 
@@ -2412,17 +2412,17 @@ CheckCite:            if (defined $q->param("QCite")) {
        $dataset = trimblanks($dataset);
        $qtemplate = $dataset;
 #- 20.06.05 a.k.       $dataset =~ s/ /\% /g;
-       $sql = "SELECT runs.run, jobs.jobname, runs.submit FROM runs, jobs, runcatalog  
-                   WHERE runs.jid=jobs.jid AND 
-                        (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND 
+       $sql = "SELECT runs.run, jobs.jobname, runs.submit FROM runs, jobs, runcatalog
+                   WHERE runs.jid=jobs.jid AND
+                        (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND
                         runs.status='Completed'";
 
-       $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr, 
-                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime 
-                 FROM runs, jobs, runcatalog, ntuples   
-                   WHERE runs.jid=jobs.jid AND 
-                        (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND 
-                        runs.run = ntuples.run AND 
+       $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
+                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime
+                 FROM runs, jobs, runcatalog, ntuples
+                   WHERE runs.jid=jobs.jid AND
+                        (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND
+                        runs.run = ntuples.run AND
                         runs.status='Completed'";
 
 # check TriggerType
@@ -2434,14 +2434,14 @@ CheckCite:            if (defined $q->param("QCite")) {
 
        }
 #
-                                                                                
-      my @garbage= split /WHERE/,$sql;   
-      if($#garbage>0){     
+
+      my @garbage= split /WHERE/,$sql;
+      if($#garbage>0){
         $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";
-           $rsum=$self->{sqlserver}->Query($sqlsum);  
-        # die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";  
+           $rsum=$self->{sqlserver}->Query($sqlsum);
+        # die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
      }
- 
+
        $sql = $sql.$pps."ORDER BY Runs.Run";
        $sqlNT = $sqlNT.$pps."ORDER BY Runs.Run";
 
@@ -2456,8 +2456,8 @@ CheckCite:            if (defined $q->param("QCite")) {
 #
 # Template 'Any', particle (dataset) is defined
 #
-      } elsif (defined $q->param("QPart") and 
-                   ($q->param("QPart") ne "Any" and 
+      } elsif (defined $q->param("QPart") and
+                   ($q->param("QPart") ne "Any" and
                     $q->param("QPart") ne "ANY" and $q->param("QPart") ne "any"))  {
          $particle = $q->param("QPart");
          $qparticle = $particle;
@@ -2466,15 +2466,15 @@ CheckCite:            if (defined $q->param("QCite")) {
          if (defined $r0->[0][0]) {
           foreach my $r (@{$r0}){
            my $did = $r->[0];
-           $sql  = "SELECT Runs.Run, Jobs.JOBNAME, Runs.SUBMIT 
-                    FROM Runs, Jobs, runcatalog  
-                     WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID and 
+           $sql  = "SELECT Runs.Run, Jobs.JOBNAME, Runs.SUBMIT
+                    FROM Runs, Jobs, runcatalog
+                     WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID and
                             Runs.run=runcatalog.run AND Runs.Status='Completed'";
-      $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr, 
-                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime 
-                    FROM Runs, Jobs, runcatalog, NTuples   
-                     WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
-                            Runs.run=Ntuples.run AND  
+      $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
+                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime
+                    FROM Runs, Jobs, runcatalog, NTuples
+                     WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND
+                            Runs.run=Ntuples.run AND
                             Runs.run=runcatalog.run AND Runs.Status='Completed'";
 # check TriggerType
            if (defined $q->param("QTrType") and $q->param("QTrType") ne "Any") {
@@ -2498,10 +2498,10 @@ CheckCite:            if (defined $q->param("QCite")) {
            }
 #
        my @garbage= split /WHERE/,$sql;
-        if($#garbage>0){   
+        if($#garbage>0){
          $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";           $rsum=$self->{sqlserver}->Query($sqlsum);
          # die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
-      } 
+      }
             $sql = $sql.$pps." ORDER BY Runs.Run";
             $sqlNT = $sqlNT.$pps." ORDER BY Runs.Run";
             my $r1=$self->{sqlserver}->Query($sql);
@@ -2515,16 +2515,16 @@ CheckCite:            if (defined $q->param("QCite")) {
             }
       }
      } else {
-        $sql = "SELECT Runs.RUN, Jobs.JOBNAME, Runs.SUBMIT 
-                    FROM Runs, Jobs, runcatalog  
+        $sql = "SELECT Runs.RUN, Jobs.JOBNAME, Runs.SUBMIT
+                    FROM Runs, Jobs, runcatalog
                      WHERE Runs.JID=Jobs.JID AND Runs.Status='Completed' and Runs.run = runcatalog.run ";
-        $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr, 
-                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime 
-                    FROM Runs, Jobs, runcatalog, Ntuples   
-                     WHERE 
-                        Runs.JID=Jobs.JID AND 
-                         Runs.Status='Completed' AND 
-                          Runs.run = runcatalog.run AND 
+        $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
+                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime
+                    FROM Runs, Jobs, runcatalog, Ntuples
+                     WHERE
+                        Runs.JID=Jobs.JID AND
+                         Runs.Status='Completed' AND
+                          Runs.run = runcatalog.run AND
                            Runs.run = Ntuples.run ";
 # check TriggerType
            if (defined $q->param("QTrType") and $q->param("QTrType") ne "Any") {
@@ -2543,13 +2543,13 @@ CheckCite:            if (defined $q->param("QCite")) {
                  $sqlNT = $sqlNT." AND (runs.run = runcatalog.run AND PMIN >= $momentumMin AND PMAX <= $momentumMax) ";
                }
            }
-#       
+#
             my @garbage= split /WHERE/,$sql;
-             if($#garbage>0){   
-              $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";  
+             if($#garbage>0){
+              $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";
               $rsum=$self->{sqlserver}->Query($sqlsum);
 #             die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
-          } 
+          }
             $sql = $sql.$pps." ORDER BY Runs.Run";
             $sqlNT = $sqlNT.$pps." ORDER BY Runs.Run";
             my $r1=$self->{sqlserver}->Query($sql);
@@ -2693,7 +2693,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                   print "<td width=50%><b> $path    </td></b><td><b> $nt->[2] </td>
                         <td align=middle width=5%><b> $nt->[3] </b></td>
                         <td align=middle width=5%><b> $nt->[6] </b></td>
-                        <td align=middle width=25%><b> $mon $day, $time, $year </b></td> 
+                        <td align=middle width=25%><b> $mon $day, $time, $year </b></td>
                         <td align=middle width=10%><b><font color=$color> $status </font></b></td> \n";
                  print "</font></tr>\n";
               }
@@ -2701,7 +2701,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             htmlTableEnd();
             print "<BR><BR>\n";
            }
-   } elsif ($q->param("NTOUT") eq "RUNS") {  
+   } elsif ($q->param("NTOUT") eq "RUNS") {
 # ... print Runs
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      print "<td><b><font color=\"blue\">Job </font></b></td>";
@@ -2775,7 +2775,7 @@ CheckCite:            if (defined $q->param("QCite")) {
           print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  Jobs Completed : $nruns </b></font></td></tr>\n";
           print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   Approx DSTs : $ndsts ($gigabytes GB) </b></font></td></tr>\n";
           print "<tr><td><b><font size=\"4\" color=\"blue\"><i><ul>  You requested too wide range, please specify Production period at least  </i></b></font></td></tr>\n";
-      } else{ 
+      } else{
        foreach my $run (@runs){
          my $jobname = $jobnames[$i];
          my $submit  = $submits[$i];
@@ -2808,29 +2808,29 @@ CheckCite:            if (defined $q->param("QCite")) {
 
   } elsif ($q->param("NTOUT") eq "ROOT") {
 #... write RootAnalysisTemplate
-      my $RootAnalysisTextNFS = 
+      my $RootAnalysisTextNFS =
          "// ROOT files accessed via NFS
-         "; 
-      my $RootAnalysisTextCastor = 
-         "// it is assumed that CASTOR directory 
+         ";
+      my $RootAnalysisTextCastor =
+         "// it is assumed that CASTOR directory
              structure is similar to one on AMS disks.
              /castor/cern.ch/MC/AMS02/ProductionPeriod/...
          ";
-      my $RootAnalysisTextHTTP = 
-         "// wildcards are not implemented yet in ROOT. 
+      my $RootAnalysisTextHTTP =
+         "// wildcards are not implemented yet in ROOT.
              still  have to check what is the HTTPD protocol for
              getting a list of files.
          ";
-     
-      my $RootAnalysisTextRemote = 
+
+      my $RootAnalysisTextRemote =
          "// it is assumed that REMOTE directory structure and lib(s) path are similar to one on AMS disks.
          ";
-      my $RootAnalysisTemplateTxt = 
-         "gROOT->Reset(); 
+      my $RootAnalysisTemplateTxt =
+         "gROOT->Reset();
           // for linux load
           gSystem->Load(\"/offline/vdev/lib/linux/icc/ntuple.so\");
           //
-          //  for dunix aka ams.cern.ch load 
+          //  for dunix aka ams.cern.ch load
           //  gSystem->Load(\"/offline/vdev/lib/osf1/ntuple.so\");
           //
           TChain chain(\"AMSRoot\");
@@ -2875,7 +2875,7 @@ CheckCite:            if (defined $q->param("QCite")) {
          print "<tr><td>//  gSystem->Load(\"/offline/vdev/lib/osf1/ntuple.so\");</tr></td>\n";
          print "<tr><td>//</tr></td>\n";
          print "<tr><td>TChain chain(\"AMSRoot\");</tr></td>\n";
-# 
+#
       my $sql = $sqlNT;
       my $r1=$self->{sqlserver}->Query($sql);
       if ($rootfileaccess eq "NFS") {
@@ -2895,7 +2895,7 @@ CheckCite:            if (defined $q->param("QCite")) {
              if ($dir eq $tdir) {
               $dirfound = 1;
               last;
-          } 
+          }
          }
          if ($dirfound == 1) {
 # skip it
@@ -2921,10 +2921,10 @@ CheckCite:            if (defined $q->param("QCite")) {
        }
       }
      } elsif ($rootfileaccess eq "REMOTE") {
-        my $rrun = 0; # run 
+        my $rrun = 0; # run
         foreach my $nt (@{$r1}) {
          if ($rrun != $nt->[1]) {
-           $rrun = $nt->[1]; # run 
+           $rrun = $nt->[1]; # run
            my $sql = "SELECT prefix,path From MC_DST_COPY WHERE Run=$rrun AND Cite='$remotecite'";
            my $r1=$self->{sqlserver}->Query($sql);
            if (defined $r1->[0][0]) {
@@ -2955,7 +2955,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            if ($dir eq $tdir) {
             $dirfound = 1;
             last;
-           } 
+           }
           }
           if ($dirfound == 1) {
 # skip it
@@ -2980,7 +2980,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 # queryDB04 / doQuery ends here
   } elsif ($self->{q}->param("queryDB04") eq "Continue") {
      my $query=$q->param("QPart");
-    my $qpp=$q->param("QPPer");  
+    my $qpp=$q->param("QPPer");
 
      foreach my $dataset (@{$self->{DataSetsT}}){
       if($dataset->{name} eq $query){
@@ -2997,13 +2997,13 @@ CheckCite:            if (defined $q->param("QCite")) {
     $self->htmlAMSHeader("AMS-02 MC Database Query Form");
     print "<ul>\n";
     htmlMCWelcome();
-    print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n"; 
+    print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
      print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
       print "<tr><td><b><font color=\"green\">Datasets </font></b>\n";
       print "</td><td>\n";
       print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
        print "<tr valign=middle><td align=left><b><font size=3 color=green> $query</b></td> <td colspan=1>\n";
-       print "<INPUT TYPE=\"hidden\" NAME=\"QPart\" VALUE=\"$query\">\n"; 
+       print "<INPUT TYPE=\"hidden\" NAME=\"QPart\" VALUE=\"$query\">\n";
        print "<INPUT TYPE=\"hidden\" NAME=\"QPPer\" VALUE=\"$qpp\">\n";
       htmlTableEnd();
      if ($query ne "Any" and $query ne "ANY" and $query ne "any") {
@@ -3021,9 +3021,9 @@ CheckCite:            if (defined $q->param("QCite")) {
        my $sql = "SELECT jobdesc FROM DatasetsDesc WHERE dataset='$query'";
        my $r5=$self->{sqlserver}->Query($sql);
        if(defined $r5->[0][0]){
-        foreach my $template (@{$r5}){   
+        foreach my $template (@{$r5}){
          print "<option value=\"$template->[0]\">$template->[0] </option>\n";
-        } 
+        }
        } else {
          print "<option value=\"Any\">ANY </option>\n";
        }
@@ -3047,8 +3047,8 @@ CheckCite:            if (defined $q->param("QCite")) {
       print "</select>\n";
       print "</b></td></tr>\n";
 # Momentum
-      htmlTextField("Momentum min >=","number",7,1.,"QMomI","[GeV/c] :  valuable only if template ");  
-      htmlTextField("Momentum max =<","number",7,10000.,"QMomA","[GeV/c] : type is ANY");  
+      htmlTextField("Momentum min >=","number",7,1.,"QMomI","[GeV/c] :  valuable only if template ");
+      htmlTextField("Momentum max =<","number",7,10000.,"QMomA","[GeV/c] : type is ANY");
      htmlTableEnd();
     htmlTableEnd();
 # Output format
@@ -3078,7 +3078,7 @@ CheckCite:            if (defined $q->param("QCite")) {
    print "<TR></TR>\n";
 
      print "<p><br>\n";
-     print "<INPUT TYPE=\"hidden\" NAME=\"SQLQUERY\" VALUE=\"$sql\">\n"; 
+     print "<INPUT TYPE=\"hidden\" NAME=\"SQLQUERY\" VALUE=\"$sql\">\n";
      print "<input type=\"submit\" name=\"queryDB04\" value=\"DoQuery\">        ";
      print "</form>\n";
 
@@ -3100,14 +3100,14 @@ CheckCite:            if (defined $q->param("QCite")) {
        my @periodid=();
        $period[0]="Any";
        $periodid[0]=0;
-      $period[1]="Any Active"; 
+      $period[1]="Any Active";
        $periodid[1]=-1;
         foreach my $pp  (@{$ret}){
        push @period, trimblanks($pp->[0]);
        push @periodid, $pp->[1];
       }
 
-        
+
     print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
  print "<tr valign=middle><td align=left><b><font size=\"-1\"> Production Period : </b></td> <td colspan=1>\n";
              print "<select name=\"QPPer\" >\n";
@@ -3132,13 +3132,13 @@ CheckCite:            if (defined $q->param("QCite")) {
            my $sql = "SELECT dataset FROM DatasetsDesc";
            my $r5=$self->{sqlserver}->Query($sql);
            if(defined $r5->[0][0]){
-            foreach my $ds (@{$r5}){   
+            foreach my $ds (@{$r5}){
                 my $dsexist = 0;
                 foreach my $d (@datasets) {
                     if ($d eq $ds->[0]) {
                         $dsexist = 1;
                         next;
-                    } 
+                    }
                 }
                 if ($dsexist == 0) {push @datasets, $ds->[0];}
             }
@@ -3203,7 +3203,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 
 
 #Initial Request (just e-mail)
-# UserRegistration 
+# UserRegistration
     if ($self->{q}->param("UserRegistration")){
      $self->{read}=1;
       htmlTop();
@@ -3211,8 +3211,8 @@ CheckCite:            if (defined $q->param("QCite")) {
           print "<tr><td><b><font color=\"red\">User Info</font></b>\n";
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-           htmlTextField("First and Last Name","text",24,"' '","CNA","(Santa Klaus)");  
-           htmlTextField("e-mail address","text",24,"' '","CEM","(name\@mail.domain)");  
+           htmlTextField("First and Last Name","text",24,"' '","CNA","(Santa Klaus)");
+           htmlTextField("e-mail address","text",24,"' '","CEM","(name\@mail.domain)");
            print "<tr valign=middle><td align=left><b><font size=\"-1\"> Cite : </b></td> <td colspan=1>\n";
           print "<select name=\"CCA\" >\n";
           my @cite=();
@@ -3253,11 +3253,11 @@ CheckCite:            if (defined $q->param("QCite")) {
             htmlTop();
             if ($resp == 1) {
              print "<TR><B><font color=green size= 5> Select Template or Production DataSet: </font>";
-            } else { 
+            } else {
              print "<TR><B><font color=green size= 5> Select Template : </font>";
             }
             print "<p>\n";
-# User's and cite info 
+# User's and cite info
            $self->  getProductionPeriods(0);
            print "<FORM METHOD=\"POST\" action=\"$self->{Name}\">\n";
             print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
@@ -3291,7 +3291,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                 print "</b>\n";
                  if ($dataset->{eventstodo} == 0) {
                   print "<tr><td><b><font color=\"tomato\"><i> $dataset->{name} </i></font></b></td></tr>\n";
-                 } elsif ($dataset->{eventstodo} < 5000) {                  
+                 } elsif ($dataset->{eventstodo} < 5000) {
                    print "<tr><td><b><font color=\"tomato\"> $dataset->{name} </font><b></td></tr><BR>\n";
                  } else {
                     print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE= $dataset->{name} $checked>$dataset->{name} <BR>\n";
@@ -3335,8 +3335,8 @@ CheckCite:            if (defined $q->param("QCite")) {
                  $tstrelapsed = timestr($elapsed);
                  print "<TR><TD><font color=green size= 2> parse ALL jobs for ALL datasets: $tstrelapsed</font></TD></TR>\n";
                  print "<TR><TD><font color=green size= 2> parse ALL jobs for ALL datasets: $tstrelapsed</font></TD></TR>\n";
-             } 
-          
+             }
+
           print "<p>\n";
           print "<br>\n";
           print "<td><input type=\"submit\" name=\"FormType\" value=\"Continue\">       ";
@@ -3377,12 +3377,12 @@ CheckCite:            if (defined $q->param("QCite")) {
               if($chop->{rserver}==1){
                   my $address=$chop->{address};
                   my $subject="AMS02 MC User Registration Request ";
-                  my $message=" E-Mail: $cem \n Name: $name \n Cite: $cite \n Responsible: $responsible"; 
+                  my $message=" E-Mail: $cem \n Name: $name \n Cite: $cite \n Responsible: $responsible";
                   $self->sendmailmessage($address,$subject,$message);
                   $sendsuc=$address;
                   last;
               }
-        }          
+        }
         if(not defined $sendsuc){
             $self->ErrorPlus("Unable to find responsible for the server. Please try again later..");
         }
@@ -3396,7 +3396,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                  return;
             }
 # build up the corr entries in the database
-            
+
 # check if cite exist
             $sql="select cid from Cites where name='$cite'";
             $ret=$self->{sqlserver}->Query($sql);
@@ -3433,12 +3433,12 @@ CheckCite:            if (defined $q->param("QCite")) {
                 $sql="update Cites set mid=$mid where cid=$cid";
                 $self->{sqlserver}->Update($sql);
             }
-         $self->{FinalMessage}=" Your request to register was succesfully sent to $sendsuc. Your account will be enabled soon.";     
+         $self->{FinalMessage}=" Your request to register was succesfully sent to $sendsuc. Your account will be enabled soon.";
         }
     }else{
             $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid. (2)");
         }
-       }  
+       }
     }
 
 # cite registration
@@ -3478,7 +3478,7 @@ CheckCite:            if (defined $q->param("QCite")) {
               $self->sendmailmessage($address,$subject,$message);
               $sendsuc=$address;
           }
-        }        
+        }
         if(not defined $sendsuc){
             $self->ErrorPlus("Unable to find responsible for the server. Please try again later..");
         }
@@ -3515,14 +3515,14 @@ CheckCite:            if (defined $q->param("QCite")) {
              $sql="UPDATE Cites SET mid=$mid WHERE cid=$cid";
              $self->{sqlserver}->Update($sql);
              $self->{FinalMessage}=
-             " Your request to register was succesfully sent to $sendsuc. Your account and cite registration will be done soon.";     
+             " Your request to register was succesfully sent to $sendsuc. Your account and cite registration will be done soon.";
          } else {
             $self->ErrorPlus("Seems $addcite is already registered.");
         }
        }else{
             $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid. (3)");
         }
-       }  
+       }
     }
 # CiteRegistration ends here
 
@@ -3539,7 +3539,7 @@ CheckCite:            if (defined $q->param("QCite")) {
          print $q->header( "text/html" ),
          $q->start_html( "Welcome");
          print $q->h1( "Welcome to the AMS02 RemoteClient  Registration Form" );
-         print $q->start_form(-method=>"GET", 
+         print $q->start_form(-method=>"GET",
           -action=>$self->{Name});
          print "E-Mail Address";
          print $q->textfield(-name=>"CEM",-default=>"$cem");
@@ -3569,7 +3569,7 @@ CheckCite:            if (defined $q->param("QCite")) {
          print $q->submit(-name=>"MyRegister", -value=>"Submit");
          print $q->reset(-name=>"Reset");
          print $q->end_form;
-# real registration            
+# real registration
         }elsif($self->{q}->param("MyRegister") eq "Submit"){
             my $name=$self->{q}->param("CNA");
             if(not defined $name or $name eq ""){
@@ -3585,18 +3585,18 @@ CheckCite:            if (defined $q->param("QCite")) {
               if($chop->{rserver}==1){
                   my $address=$chop->{address};
                   my $subject="AMS02 MC User Registration Request ";
-                  my $message=" E-Mail: $cem \n Name: $name \n Cite: $cite \n Responsible: $responsible"; 
+                  my $message=" E-Mail: $cem \n Name: $name \n Cite: $cite \n Responsible: $responsible";
                   $self->sendmailmessage($address,$subject,$message);
                   $sendsuc=$address;
                   last;
               }
-        }          
+        }
         if(not defined $sendsuc){
             $self->ErrorPlus("Unable to find responsible for the server. Please try again later..");
         }
 
 # build up the corr entries in the database
-                        
+
 # check if cite exist
             my $sql="select cid from Cites where name='$cite'";
             my $ret=$self->{sqlserver}->Query($sql);
@@ -3612,12 +3612,12 @@ CheckCite:            if (defined $q->param("QCite")) {
             my $time=time();
             $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time,0,0,'v0.00')";
             $self->{sqlserver}->Update($sql);
-         $self->{FinalMessage}=" Your request to register was succesfully sent to $sendsuc. Your account will be enabled soon.";     
+         $self->{FinalMessage}=" Your request to register was succesfully sent to $sendsuc. Your account will be enabled soon.";
         }
     }else{
             $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid.(4)");
         }
-       }  
+       }
     }
 #MyRegister ends here
 
@@ -3635,11 +3635,11 @@ CheckCite:            if (defined $q->param("QCite")) {
      } else {
       $sql=
       "update Mails set timeu1=$upl0, timestamp=$time WHERE address='$self->{CEM}'";
-     } 
+     }
      $self->{sqlserver}->Update($sql);
      $self->AllDone();
    }
-#Download ends here 
+#Download ends here
 
     if ($self->{q}->param("FormType")){
         $self->{read}=1;
@@ -3652,7 +3652,7 @@ CheckCite:            if (defined $q->param("QCite")) {
          print "<BR><TR>";
 #         print $q->submit(-name=>"FormType", -value=>"Return");
          print htmlBottom();
-         return 1;   
+         return 1;
         }
 # check e-mail
         my $cem=lc($self->{q}->param("CEM"));
@@ -3687,7 +3687,7 @@ CheckCite:            if (defined $q->param("QCite")) {
           }
           print "</select>\n";
           print "</b></td></tr>\n";
-          htmlTextField("Nick Name","text",24,"MC02-basic","QNick"," ");  
+          htmlTextField("Nick Name","text",24,"MC02-basic","QNick"," ");
           print "</TABLE>\n";
 # Cite Parameters
               print "<tr><td><b><font color=\"blue\">Cite HW Parameters</font></b>\n";
@@ -3702,7 +3702,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                   print "<option value=\"$cputype\">$cputype </option>\n";
               }
               print "</select>\n";
-              htmlTextField("CPU clock","number",10,1000,"QCPU"," [MHz]");  
+              htmlTextField("CPU clock","number",10,1000,"QCPU"," [MHz]");
               htmlTableEnd();
 # Job Parameters
           print "<tr><td><b><font color=\"blue\">Job Parameters</font><font color=\"black\">
@@ -3719,23 +3719,23 @@ CheckCite:            if (defined $q->param("QCite")) {
               }
           print "</select>\n";
           print "</b></td></tr>\n";
-            htmlTextField("Momentum min","number",7,1.,"QMomI","[GeV/c]");  
-            htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
-            htmlTextField("Total Events","number",9,1000000.,"QEv"," ");  
-            htmlTextField("Total Runs","number",7,3.,"QRun"," ");  
+            htmlTextField("Momentum min","number",7,1.,"QMomI","[GeV/c]");
+            htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");
+            htmlTextField("Total Events","number",9,1000000.,"QEv"," ");
+            htmlTextField("Total Runs","number",7,3.,"QRun"," ");
 
             my ($rid,$rndm1,$rndm2) = $self->getrndm();
-            htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");  
-            htmlHiddenTextField("rndm1","hidden",12,$rndm1,"QRNDM1"," ");  
-            htmlHiddenTextField("rndm2","hidden",12,$rndm2,"QRNDM2"," ");  
+            htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");
+            htmlHiddenTextField("rndm1","hidden",12,$rndm1,"QRNDM1"," ");
+            htmlHiddenTextField("rndm2","hidden",12,$rndm2,"QRNDM2"," ");
 
             htmlText("<i>rndm sequence number </i>",abs($rid));
             htmlText("<i>rndm1 </i>",$rndm1);
             htmlText("<i>rndm2 </i>",$rndm2);
 
-            htmlTextField("Begin Time","text",8,"01062005","QTimeB"," (ddmmyyyy)");  
+            htmlTextField("Begin Time","text",8,"01062005","QTimeB"," (ddmmyyyy)");
 
-            htmlTextField("End Time","text",8,"01062008","QTimeE"," (ddmmyyyy)");  
+            htmlTextField("End Time","text",8,"01062008","QTimeE"," (ddmmyyyy)");
            htmlTableEnd();
             print "<tr><td><b><font color=\"green\">Automatic DST files transfer to Server</font></b>\n";
             print "</td><td>\n";
@@ -3743,7 +3743,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             print "<tr><td><font size=\"-1\"<b>\n";
             if ($self->{CCT} eq "remote") {
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
-            } 
+            }
 
 else {
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Yes </b><BR>\n";
@@ -3793,15 +3793,15 @@ DDTAB:         $self->htmlTemplateTable(" ");
                print "</tr></td><td>\n";
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
                print "<tr><td><font size=\"-1\"<b>\n";
-               htmlTextField(" ","text",80,$ntdir,"NTDIR"," ");  
+               htmlTextField(" ","text",80,$ntdir,"NTDIR"," ");
               print "</b></font></td></tr>\n";
             htmlTableEnd();
             htmlTableEnd();
            }
 
 
-            print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
-            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=-1>\n"; 
+            print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n";
+            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=-1>\n";
           print "<br>\n";
           print "<input type=\"submit\" name=\"BasicQuery\" value=\"Submit Request\"></br><br>        ";
           htmlReturnToMain();
@@ -3815,7 +3815,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
           print "<tr><td><b><font color=\"red\">Job Nick Name</font></b>\n";
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-          htmlTextField("Nick Name","text",24,"MC02-advanced","QNick"," ");  
+          htmlTextField("Nick Name","text",24,"MC02-advanced","QNick"," ");
           print "</TABLE>\n";
 # Cite Parameters
               print "<tr><td><b><font color=\"blue\">Cite HW Parameters</font></b>\n";
@@ -3830,7 +3830,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
                   print "<option value=\"$cputype\">$cputype </option>\n";
               }
               print "</select>\n";
-              htmlTextField("CPU clock","number",10,1000,"QCPU"," [MHz]");  
+              htmlTextField("CPU clock","number",10,1000,"QCPU"," [MHz]");
               htmlTableEnd();
 # Job Parameters
               print "<tr><td><b><font color=\"blue\">Job Parameters</font></b>\n";
@@ -3846,22 +3846,22 @@ DDTAB:         $self->htmlTemplateTable(" ");
               }
               print "</select>\n";
               print "</b></td></tr>\n";
-              htmlTextField("Momentum min","number",7,1.,"QMomI","[GeV/c]");  
-              htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
-              htmlTextField("Total Events","number",12,1000000.,"QEv"," ");  
-              htmlTextField("Total Runs","number",12,3.,"QRun"," ");  
+              htmlTextField("Momentum min","number",7,1.,"QMomI","[GeV/c]");
+              htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");
+              htmlTextField("Total Events","number",12,1000000.,"QEv"," ");
+              htmlTextField("Total Runs","number",12,3.,"QRun"," ");
               my ($rid,$rndm1,$rndm2) = $self->getrndm();
 
-              htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");  
-              htmlHiddenTextField("rndm1","hidden",12,$rndm1,"QRNDM1"," ");  
-              htmlHiddenTextField("rndm2","hidden",12,$rndm2,"QRNDM2"," ");  
+              htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");
+              htmlHiddenTextField("rndm1","hidden",12,$rndm1,"QRNDM1"," ");
+              htmlHiddenTextField("rndm2","hidden",12,$rndm2,"QRNDM2"," ");
 
               htmlText("<i>rndm sequence number </i>",abs($rid));
               htmlText("<i>rndm1 </i>",$rndm1);
               htmlText("<i>rndm2 </i>",$rndm2);
 
-              htmlTextField("Begin Time","text",11,"01062005","QTimeB"," (ddmmyyyy)");  
-              htmlTextField("End Time","text",11,"01062008","QTimeE"," (ddmmyyyy)");  
+              htmlTextField("Begin Time","text",11,"01062005","QTimeB"," (ddmmyyyy)");
+              htmlTextField("End Time","text",11,"01062008","QTimeE"," (ddmmyyyy)");
               htmlTextField("Setup","text",20,"AMS02","QSetup"," ");
               htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
            htmlTableEnd();
@@ -3932,18 +3932,18 @@ DDTAB:         $self->htmlTemplateTable(" ");
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Min : X : <input type=\"number\" size=5 value=-195 name=\"QXL\"></td>\n";  
+            print "<b> Min : X : <input type=\"number\" size=5 value=-195 name=\"QXL\"></td>\n";
             print "<td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYL\"></td>\n";  
+            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYL\"></td>\n";
             print "<td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZL\"> (cm)</td>\n";  
+            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZL\"> (cm)</td>\n";
             print "</b></font></tr>\n";
             print "<tr><td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Max : X : <input type=\"number\" size=5 value=-195 name=\"QXU\"></td>\n";  
+            print "<b> Max : X : <input type=\"number\" size=5 value=-195 name=\"QXU\"></td>\n";
             print "<td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYU\"></td>\n";  
+            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYU\"></td>\n";
             print "<td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZU\"> (cm)</td>\n";  
+            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZU\"> (cm)</td>\n";
             print "</b></font></tr>\n";
             htmlTextField("Cos Theta Max ","number",5,0.25,"QCos"," ");
             @keysa=sort keys %{$ts->{planes}};
@@ -3976,20 +3976,20 @@ DDTAB:          $self->htmlTemplateTable(" ");
                print "</tr></td><td>\n";
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
                print "<tr><td><font size=\"-1\"<b>\n";
-               htmlTextField(" ","text",80,$ntdir,"NTDIR"," ");  
+               htmlTextField(" ","text",80,$ntdir,"NTDIR"," ");
               print "</b></font></td></tr>\n";
             htmlTableEnd();
            htmlTableEnd();
            }
-            print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
-            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=0>\n"; 
+            print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n";
+            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=0>\n";
           print "<br>\n";
 #          print "<input type=\"submit\" name=\"AdvancedForm\" value=\"Continue\"></br><br>        ";
           print "<input type=\"submit\" name=\"AdvancedQuery\" value=\"Submit Request\"></br><br>        ";
           htmlReturnToMain();
           htmlFormEnd();
          htmlBottom();
-         } 
+         }
 # Advanced Query ends here
           else{
            my $query=$self->{q}->param("CTT");
@@ -4004,7 +4004,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
                if(not $self->{CCR}){
                  $self->{FinalMessage}=" Sorry Only Cite Responsible Is allowed to Request Production DataSets";
                }
-                 else{                   
+                 else{
                  foreach $cite (@{$dataset->{jobs}}){
                  if(not ($cite->{filename} =~/^\./)){
                   push @tempnam, $cite->{filename};
@@ -4036,7 +4036,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
                  print "<option value=\"$p->{name}\">$p->{name} </option>\n";
                  $ProductionPeriod = $p->{name};
                  if ($p->{vdb} =~ /v3.00/) {
-                    $defROOT = ""; 
+                    $defROOT = "";
                     $defNTUPLE = "CHECKED";
                 } else {
                     $defROOT    = "CHECKED";
@@ -4047,7 +4047,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
             }
             print "</select>\n";
             print "</b></td></tr>\n";
-             
+
             print "</TABLE>\n";
 # Cite Parameters
               print "<tr><td><b><font color=\"blue\">Cite HW Parameters</font></b>\n";
@@ -4063,31 +4063,31 @@ DDTAB:          $self->htmlTemplateTable(" ");
               }
               print "</select>\n";
               if ($self->{CCT} eq "remote") {
-               htmlTextField("CPU clock","number",8,100,"QCPU"," [MHz]");  
+               htmlTextField("CPU clock","number",8,100,"QCPU"," [MHz]");
               } else {
-               htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
-              } 
+               htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");
+              }
             htmlTableEnd();
 # Job Parameters
               print "<tr><td><b><font color=\"blue\">Job Parameters</font></b>\n";
               print "</td><td>\n";
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
               $q->param("QEv",0);
-              htmlTextField("CPU Time Limit Per Job","number",9,80000,"QCPUTime"," seconds (Native).");  
-              htmlTextField("Total Jobs Requested","number",7,5.,"QRun"," ");  
+              htmlTextField("CPU Time Limit Per Job","number",9,80000,"QCPUTime"," seconds (Native).");
+              htmlTextField("Total Jobs Requested","number",7,5.,"QRun"," ");
                  if($self->{CCT} eq "local"){
    print qq`
-<INPUT TYPE="checkbox" NAME="ForceCpuLimit" VALUE="FCL" >Force CPULimit<BR> 
+<INPUT TYPE="checkbox" NAME="ForceCpuLimit" VALUE="FCL" >Force CPULimit<BR>
 `;
 }
                  else{
    print qq`
-<INPUT TYPE="checkbox" NAME="ForceCpuLimit" VALUE="FCL" CHECKED>Force CPULimit (Untick for NON-BATCH jobs)<BR> 
+<INPUT TYPE="checkbox" NAME="ForceCpuLimit" VALUE="FCL" CHECKED>Force CPULimit (Untick for NON-BATCH jobs)<BR>
 `;
                  }
-              htmlTextField("Total  Real Time Required","number",3,15,"QTimeOut"," (days)");  
+              htmlTextField("Total  Real Time Required","number",3,15,"QTimeOut"," (days)");
               my ($rid) = $self->getRID();
-              htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");  
+              htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");
               htmlText("<i>rndm sequence number </i>",abs($rid));
             htmlTableEnd();
             if ($self->{CCT} eq "remote") {
@@ -4135,13 +4135,13 @@ DDTAB:         $self->htmlTemplateTable(" ");
                print "</tr></td><td>\n";
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
                print "<tr><td><font size=\"-1\"<b>\n";
-               htmlTextField(" ","text",80,$ntdir,"NTDIR"," ");  
+               htmlTextField(" ","text",80,$ntdir,"NTDIR"," ");
               print "</b></font></td></tr>\n";
             htmlTableEnd();
            htmlTableEnd();
            }
-           print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
-           print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=$dataset->{did}>\n"; 
+           print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n";
+           print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=$dataset->{did}>\n";
            print "<br>\n";
            print "<input type=\"submit\" name=\"ProductionQuery\" value=\"Submit Request\"> <b>(it will take a while to tar DB and execs)</b></br><br>";
            print "<b><a href=load.cgi?$self->{UploadsHREF}/Help.txt target=\"_blank\">H E L P </b>\n";
@@ -4152,12 +4152,12 @@ DDTAB:         $self->htmlTemplateTable(" ");
            }
          }
          if(not $found){
-          $self->{FinalMessage}=" Sorry  $query Query Not Yet Implemented";     
+          $self->{FinalMessage}=" Sorry  $query Query Not Yet Implemented";
          }
        }
       }
     }
-#MyQuery ends here    
+#MyQuery ends here
     if ($self->{q}->param("MyQuery")){
         $self->{read}=1;
         my $cem=lc($self->{q}->param("CEM"));
@@ -4174,11 +4174,11 @@ DDTAB:         $self->htmlTemplateTable(" ");
                 print $q->header( "text/html" ),
                 $q->start_html( "Welcome");
                 print $q->h1( "Welcome   $self->{CEM}. How are you today?");
-                print $q->start_form(-method=>"GET", 
+                print $q->start_form(-method=>"GET",
                 -action=>$self->{Name});
 print qq`
-         <INPUT TYPE="hidden" NAME="CEM" VALUE=$cem> 
-         <INPUT TYPE="hidden" NAME="DID" VALUE=0> 
+         <INPUT TYPE="hidden" NAME="CEM" VALUE=$cem>
+         <INPUT TYPE="hidden" NAME="DID" VALUE=0>
 `;
          print "<BR>Basic Templates";
          my @tempnam=();
@@ -4241,11 +4241,11 @@ print qq`
                 print $q->header( "text/html" ),
                 $q->start_html( "Welcome");
                 print $q->h1( "Welcome   $self->{CEM}. How are you today?");
-                print $q->start_form(-method=>"GET", 
+                print $q->start_form(-method=>"GET",
                 -action=>$self->{Name});
 print qq`
-         <INPUT TYPE="hidden" NAME="CEM" VALUE=$cem> 
-         <INPUT TYPE="hidden" NAME="DID" VALUE=0> 
+         <INPUT TYPE="hidden" NAME="CEM" VALUE=$cem>
+         <INPUT TYPE="hidden" NAME="DID" VALUE=0>
 `;
          my $ts=$self->{tsyntax};
          my %hash=%{$ts->{particles}};
@@ -4346,27 +4346,27 @@ print qq`
           print $q->submit(-name=>"AdvancedQuery", -value=>"Submit");
           print $q->reset(-name=>"Reset");
 # Advanced form ends here
-            } 
+            }
           else{
-            
+
               my $query=$self->{q}->param("CTT");
               my $found=0;
-           
+
          foreach my $dataset (@{$self->{DataSetsT}}){
              if($dataset->{name} eq $query){
                  $found=1;
                  if(not $self->{CCR}){
                    $self->{FinalMessage}=" Sorry Only Cite Responsible Is allowed to Request Production DataSets";
                  }
-                 else{                   
+                 else{
                 print $q->header( "text/html" ),
                 $q->start_html( "Welcome");
                 print $q->h1( "Welcome   $self->{CEM}. How are you today?");
-                print $q->start_form(-method=>"GET", 
+                print $q->start_form(-method=>"GET",
                 -action=>$self->{Name});
 print qq`
-         <INPUT TYPE="hidden" NAME="CEM" VALUE=$cem> 
-         <INPUT TYPE="hidden" NAME="DID" VALUE=$dataset->{did}> 
+         <INPUT TYPE="hidden" NAME="CEM" VALUE=$cem>
+         <INPUT TYPE="hidden" NAME="DID" VALUE=$dataset->{did}>
 `;
               print "<BR>Templates";
          my @tempnam=();
@@ -4409,17 +4409,17 @@ print qq`
              }
          }
               if(not $found){
-            $self->{FinalMessage}=" Sorry  $query Query Not Yet Implemented";     
+            $self->{FinalMessage}=" Sorry  $query Query Not Yet Implemented";
         }
           }
         }
     }
 #MyQuery ends here
-    if ($self->{q}->param("BasicQuery")      or 
-        $self->{q}->param("AdvancedQuery")   or 
+    if ($self->{q}->param("BasicQuery")      or
+        $self->{q}->param("AdvancedQuery")   or
         $self->{q}->param("ProductionQuery") or
-        $self->{q}->param("BasicForm")       or 
-        $self->{q}->param("AdvancedForm")    or 
+        $self->{q}->param("BasicForm")       or
+        $self->{q}->param("AdvancedForm")    or
         $self->{q}->param("ProductionForm")){
         $self->{read}=1;
 #  check par
@@ -4431,8 +4431,8 @@ print qq`
             $self->ErrorPlus("Welcome $cem. Your account is not yet set up.
             Please try again later.");
         }
-        if($self->{q}->param("BasicQuery") eq "Save"     or 
-           $self->{q}->param("AdvancedQuery") eq "Save"  or 
+        if($self->{q}->param("BasicQuery") eq "Save"     or
+           $self->{q}->param("AdvancedQuery") eq "Save"  or
            $self->{q}->param("ProductionQuery") eq "Save"){
             my $pass=$q->param("password");
             if($self->{CCT} ne "remote" or defined $pass){
@@ -4445,7 +4445,7 @@ print qq`
              }
          }
          my $filename=$q->param("FEM");
-         $q=get_state($filename);          
+         $q=get_state($filename);
          if(not defined $q){
           $self->ErrorPlus("Save State Expired. Please Start From the Very Beginning");
          }
@@ -4534,10 +4534,10 @@ print qq`
                     if($evno<10000){
                        $evno=10000;
                     }
-                    $evno=int($evno/1000)*1000*$q->param("QRun");     
+                    $evno=int($evno/1000)*1000*$q->param("QRun");
                     if($evno>$tmp->{TOTALEVENTS}){
-                        #  make runno correction 
-                        my $evperrun=$evno/$q->param("QRun");     
+                        #  make runno correction
+                        my $evperrun=$evno/$q->param("QRun");
                         $evno=$tmp->{TOTALEVENTS};
                         my $runno=int($evno/$evperrun+0.5);
                         if($runno le 0){
@@ -4553,7 +4553,7 @@ print qq`
      }
         else{
          foreach my $tmp (@{$self->{TempT}}){
-              $tmps=$tmps." ".$tmp->{filename}; 
+              $tmps=$tmps." ".$tmp->{filename};
             if($template eq $tmp->{filename}){
                 $templatebuffer=$tmp->{filebody};
                 last;
@@ -4563,18 +4563,18 @@ print qq`
         if(not defined $templatebuffer){
             $self->ErrorPlus("Could not find file for $template template. $tmps");
         }
-        
+
         my $a=1;
         my $b=2147483647;
         my $rndm1=$q->param("QRNDM1");
         my $rndm2=$q->param("QRNDM2");
         if(not $rndm1 =~/^\d+$/ or $rndm1 <$a or $rndm1>$b){
              $self->ErrorPlus("RNDM1 $rndm1 is out of range ($a,$b)");
-         
+
         }
         if(not $rndm2 =~/^\d+$/ or $rndm2 <$a or $rndm2>$b){
              $self->ErrorPlus("RNDM2 $rndm1 is out of range ($a,$b)");
-         
+
         }
         if ($self->{CCT} ne "remote") {
          my $ntdir=$q->param("NTDIR");
@@ -4600,7 +4600,7 @@ print qq`
         if($pmin>$pmax){
              $self->ErrorPlus("pmin $pmin greater than pmax $pmax ");
         }
-                
+
         my $cput=$q->param("QCPU");
         if(not $cput =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/){
              $self->ErrorPlus("Computer Clock $cput  is not a  number ");
@@ -4620,8 +4620,8 @@ print qq`
         $cput=50+$pmax*1000/$cput/$corr;
         if($cput >7200){
          $cput=7200;
-        } 
-        
+        }
+
         my $evno=$q->param("QEv");
         my $runno=$q->param("QRun");
         if(not $evno =~/^\d+$/ or $evno <$a or $evno>$b){
@@ -4630,14 +4630,14 @@ print qq`
         if(not $runno =~/^\d+$/ or $runno <$a or $runno>100){
              $self->ErrorPlus("Runs no $runno is out of range ($a,100)");
         }
-         
+
         if($evno < $runno){
              $self->ErrorPlus("Runs no $runno greater than events no $evno");
          }
         my $evperrun=int ($evno/$runno);
         if($evperrun > (1<<31)-1){
             $self->ErrorPlus('EventsPerRun Exceeds 2^31-1 :'."$evperrun");
-        } 
+        }
         my $lastrunev=$evno-$evperrun*($runno-1);
         my ($particleid,$timbeg,$timend,$timbegu,$timendu);
          $timbeg=$q->param("QTimeB");
@@ -4726,7 +4726,7 @@ print qq`
                   $self->sendmailmessage($address,$mes,$message);
                   last;
               }
-            }          
+            }
             $self->ErrorPlus($mes);
         }
         else{
@@ -4737,7 +4737,7 @@ print qq`
         }
 # 4.12.03             my $switch=1<<27;
              my $switch=1<<$MAX_RUN_POWER;
-             my $max=$switch-1;    
+             my $max=$switch-1;
              if (($run%$switch)+$runno >$max){
               foreach my $chop (@{$self->{MailT}}) {
               if($chop->{rserver}==1){
@@ -4747,18 +4747,18 @@ print qq`
                $self->sendmailmessage($address,$subject,$message);
                last;
               }
-             }          
+             }
              $self->ErrorPlus("Run Capacity Exceeds.");
              return;
           }
-             
+
 #       now everything is o.k except server check
 
         if (not $self->ServerConnect()){
         foreach my $chop (@{$self->{MailT}}) {
               if($chop->{rserver}==1){
                   my $address=$chop->{address};
-                  $self->sendmessage($address,"unable to connect to servers by $self->{CEM}"," "); 
+                  $self->sendmessage($address,"unable to connect to servers by $self->{CEM}"," ");
                   last;
               }
           }
@@ -4838,7 +4838,7 @@ print qq`
 #        }
 #
 #        my $dbversion=$ret->[0][0];
-        my $dbversion=$dataset->{version};       
+        my $dbversion=$dataset->{version};
         my $i=system "mkdir -p $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.dat $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/t* $self->{UploadsDir}/$dbversion";
@@ -4902,7 +4902,7 @@ print qq`
 #         die $filedb, $filedb_att;
 #        $filedb_att=~s/ams02/$dataset->{version}/;
         @sta = stat $filedb_att;
-          
+
 #         my @stag3=stat "$self->{AMSDataDir}/DataBase";
 #        if($#stag3<0){
 #              $self->ErrorPlus("Unable to find $self->{AMSDataDir}/DataBase on the Server ");
@@ -4924,8 +4924,8 @@ print qq`
         }
 #
 #        my $dbversion=$ret->[0][0];
-         my $dbversion=$dataset->{version};   
-          my $rtn=0;  
+         my $dbversion=$dataset->{version};
+          my $rtn=0;
            if($dbversion =~/v4/){
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*.2* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*2 $self->{UploadsDir}/DataBase";
@@ -4935,7 +4935,7 @@ print qq`
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tofpeds* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tof*MS $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/.*0 $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/.TrA*1 $self->{UploadsDir}/DataBase"; 
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/.TrA*1 $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Ecal* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/TRD* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Cha* $self->{UploadsDir}/DataBase";
@@ -4990,7 +4990,7 @@ print qq`
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tof* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/C* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/.*0 $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/.TrA*1 $self->{UploadsDir}/DataBase"; 
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/.TrA*1 $self->{UploadsDir}/DataBase";
         $rtn=system "tar -C$self->{UploadsDir} -h -czf $filen.gz DataBase  1>/dev/null 2>&1";
            }
         if($rtn){
@@ -5008,86 +5008,86 @@ print qq`
             $self->{sendaddon}=2;
         }
 
-    
+
 # write readme file
         my $readme="$self->{UploadsDir}/README.$run";
         open(FILE,">".$readme) or die "Unable to open file $readme (specify the exact path and/or check dir protection)\n";
         if($self->{dwldaddon}==1){
-         $self->{tsyntax}->{headers}->{readmestandalone}=~s/ams02/$dataset->{version}/g;                
+         $self->{tsyntax}->{headers}->{readmestandalone}=~s/ams02/$dataset->{version}/g;
          print FILE  $self->{tsyntax}->{headers}->{readmestandalone};
         }
         else{
-         $self->{tsyntax}->{headers}->{readmecorba}=~s/ams02/$dataset->{version}/g;                
+         $self->{tsyntax}->{headers}->{readmecorba}=~s/ams02/$dataset->{version}/g;
          print FILE  $self->{tsyntax}->{headers}->{readmecorba};
         }
         my $sql = "SELECT dirpath FROM journals WHERE cid=$self->{CCID}";
-        my $note='please contact alexei.klimentov@cern.ch for details'; 
+        my $note='please contact alexei.klimentov@cern.ch for details';
         my $ret = $self->{sqlserver}->Query($sql);
-  
+
         if (defined $ret->[0][0]) {
-         $note ="DST directory path : $ret->[0][0]/nt 
-                \n Journal files directory path : $ret->[0][0]/jou 
+         $note ="DST directory path : $ret->[0][0]/nt
+                \n Journal files directory path : $ret->[0][0]/jou
                 \n Validation log files directory path : $ret->[0][0]/log
                 \n";
-         }         
+         }
         print FILE  $note;
         close FILE;
          $file2tar="$self->{UploadsDir}/$dataset->{version}script.$run.tar";
-        my $i=system("tar -C$self->{UploadsDir} -cf  $file2tar README.$run  1>/dev/null 2>&1"); 
+        my $i=system("tar -C$self->{UploadsDir} -cf  $file2tar README.$run  1>/dev/null 2>&1");
           if($i){
               $self->ErrorPlus("Unable to tar readme to $file2tar ");
           }
         unlink $readme;
     }
-        
+
         for my $i (1 ... $runno){
          #find buffer and patch it accordingly
          my $evts=$evperrun;
          if($i eq $runno){
              $evts=$lastrunev;
-         }              
+         }
 #read header
          my $buf=$self->{tsyntax}->{headers}->{$self->{CCT}};
          my $tmpb=$templatebuffer;
          if(not defined $buf){
              $self->ErrorPlus("Unable to find   header file. ");
-         } 
+         }
          my $start=$timbegu+int(($timendu-$timbegu)/$runno)*($i-1);
              my $end=$start+int(($timendu-$timbegu)/$runno);
              my ($s,$m,$h,$date,$mon,$year)=localtime($start);
          my $timstart=($year+1900)+10000*($mon+1)+1000000*($date);
          ($s,$m,$h,$date,$mon,$year)=localtime($end);
          my $timfin=($year+1900)+10000*($mon+1)+1000000*($date);
-         $buf=~ s/TIMBEG=/TIMBEG=$timstart/;         
-         $buf=~ s/TIMEND=/TIMEND=$timfin/;         
-         $buf=~ s/PART=/PART=$particleid/;         
-         $buf=~ s/RUN=/RUN=$run/;         
+         $buf=~ s/TIMBEG=/TIMBEG=$timstart/;
+         $buf=~ s/TIMEND=/TIMEND=$timfin/;
+         $buf=~ s/PART=/PART=$particleid/;
+         $buf=~ s/RUN=/RUN=$run/;
          if($self->{q}->param("AdvancedQuery")){
-           $buf=~ s/SPECTRUM=/SPECTRUM=$spectrum/;         
-           $buf=~ s/GEOCUTOFF=/GEOCUTOFF=$geocutoff/;         
-           $buf=~ s/COSMAX=/COSMAX=$cosmax/;         
-           $buf=~ s/FOCUS=/FOCUS=$focus/;         
-           $buf=~ s/PLANENO=/PLANENO=$plane/;         
-#           $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
-           $buf=~ s/TRIGGER=/TRIGGER=$trtype/;         
-           $buf=~ s/SETUP=/SETUP=$setup/;         
-           $buf=~ s/OUPUTMODE=/OUPUTMODE=$rno/;         
+           $buf=~ s/SPECTRUM=/SPECTRUM=$spectrum/;
+           $buf=~ s/GEOCUTOFF=/GEOCUTOFF=$geocutoff/;
+           $buf=~ s/COSMAX=/COSMAX=$cosmax/;
+           $buf=~ s/FOCUS=/FOCUS=$focus/;
+           $buf=~ s/PLANENO=/PLANENO=$plane/;
+#           $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;
+           $buf=~ s/TRIGGER=/TRIGGER=$trtype/;
+           $buf=~ s/SETUP=/SETUP=$setup/;
+           $buf=~ s/OUPUTMODE=/OUPUTMODE=$rno/;
            for my $l (1...6){
                my $cn="COOCUB$l=";
                my $ccc=sprintf("%.3f",$cubes[$l-1]);
-               $buf=~ s/$cn/$cn$ccc/;         
+               $buf=~ s/$cn/$cn$ccc/;
            }
        }
          if (defined $rootntuple && $i<2) {
-          $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
+          $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;
          }
          if($i > 1){
-            my $rid=1; 
+            my $rid=1;
             ($rid,$rndm1,$rndm2) = $self->getrndm($dataset);
          }
-          $buf=~ s/RNDM1=/RNDM1=$rndm1/;         
-          $buf=~ s/RNDM2=/RNDM2=$rndm2/;         
-          $buf=~ s/TRIG=/TRIG=$evts/;         
+          $buf=~ s/RNDM1=/RNDM1=$rndm1/;
+          $buf=~ s/RNDM2=/RNDM2=$rndm2/;
+          $buf=~ s/TRIG=/TRIG=$evts/;
           my $r1=rand;
           my $r2=rand;
           my $pminr=$pmin*(1-0.01*$r1);
@@ -5101,36 +5101,36 @@ print qq`
          my $cputf=sprintf("%.3f",$cput);
          my $pminf=sprintf("%.3f",$pminr);
          my $pmaxf=sprintf("%.3f",$pmaxr);
-      
-         $buf=~ s/CPULIM=/CPULIM=$cputf/;         
-         $buf=~ s/PMIN=/PMIN=$pminf/;         
-         $buf=~ s/PMAX=/PMAX=$pmaxf/;         
-         my $cpus=$q->param("QCPUTime");         
+
+         $buf=~ s/CPULIM=/CPULIM=$cputf/;
+         $buf=~ s/PMIN=/PMIN=$pminf/;
+         $buf=~ s/PMAX=/PMAX=$pmaxf/;
+         my $cpus=$q->param("QCPUTime");
          my $cpusf=sprintf("%.3f",$cpus);
          if(defined  $q->param("QCPUTime")){
           my $cpus=$q->param("QCPUTime");
           my $cpusf=sprintf("%.3f",$cpus);
           if($q->param("ForceCpuLimit")){
-           $tmpb=~ s/TIME 3=/TIME 1=$cpusf TIME 3=/; 
+           $tmpb=~ s/TIME 3=/TIME 1=$cpusf TIME 3=/;
           }
          }
-         $buf=~ s/PART=/CPUTIME=$cpus \nPART=/; 
+         $buf=~ s/PART=/CPUTIME=$cpus \nPART=/;
          $rootntuple=$q->param("RootNtuple");
-         $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
+         $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;
          $tmpb=~ s/ROOTNTUPLE=/C ROOTNTUPLE/g;
          $tmpb=~ s/IOPA \$ROOTNTUPLE\'/IOPA \$ROOTNTUPLE\'\n/;
          $tmpb=~ s/TERM/TGL1 1=8 \nTERM/;
          my $cputype=$q->param("QCPUType");
-         $buf=~ s/PART=/CPUTYPE=\"$cputype\" \nPART=/; 
-         $buf=~ s/PART=/CLOCK=$clock \nPART=/;         
+         $buf=~ s/PART=/CPUTYPE=\"$cputype\" \nPART=/;
+         $buf=~ s/PART=/CLOCK=$clock \nPART=/;
          my $ctime=time();
-         $buf=~ s/PART=/SUBMITTIME=$ctime\nPART=/;    
+         $buf=~ s/PART=/SUBMITTIME=$ctime\nPART=/;
          if($self->{CCT} eq "local"){
-           $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;         
-         }       
+           $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;
+         }
          else{
              my @gbc=split "\/", $gbatch;
-             
+
           $buf=~ s/gbatch-orbit.exe/$gbc[$#gbc] -$self->{IORP} -U$run -M -D1 -G$aft -S$stalone/;
       }
          my $script="$self->{CCA}.$run.$template";
@@ -5164,9 +5164,9 @@ print qq`
          }
          print $q->submit(-name=>$param, -value=>"Save");
          print htmlBottom();
-         return 1;   
+         return 1;
         }
-         open(FILE,">".$root) or die "Unable to open file $root\n";  
+         open(FILE,">".$root) or die "Unable to open file $root\n";
          if($self->{CCT} eq "local"){
           if(defined $self->{AMSDSTOutputDir} and $self->{AMSDSTOutputDir} ne ""){
  print FILE "export NtupleDestDir=$self->{AMSDSTOutputDir} \n";
@@ -5196,16 +5196,16 @@ print qq`
 #
          if(defined $q->param("JST") and  $q->param("JST") eq 'C'){
              my $sdir="$self->{AMSSoftwareDir}/scripts/";
-             my $newfile=$sdir."$self->{CCA}"; 
+             my $newfile=$sdir."$self->{CCA}";
              open(FILEI,"<".$newfile) or die " Unable to find script file $newfile.  Please make sure you did send your custom script requirements to ams production team. ";
              my $sbuf;
              read(FILEI,$sbuf,16384);
-             close FILEI; 
+             close FILEI;
              my @ssbuf = split ',;',$sbuf;
              if($#ssbuf ne 1){
               die " Could not parse script $newfile $#ssbuf";
              }
-              
+
              $buf=~ s/export/$ssbuf[0]\nexport/;
              $tmpb =~ s/\!/\!\n$ssbuf[1]/;
          }
@@ -5216,7 +5216,7 @@ print qq`
              if($tmpb =~/34=1/){
                  $tmpb=~ s/pl1/ecal/;
              }
-             else{ 
+             else{
                  $tmpb=~ s/pl1/none/;
              }
          }
@@ -5226,17 +5226,17 @@ print qq`
              }
          }
 #change file size
-         $tmpb=~ s/168=500000000//;         
-         $tmpb=~ s/168=120000000//;         
-         $tmpb=~ s/126=50000/126=99999/;         
+         $tmpb=~ s/168=500000000//;
+         $tmpb=~ s/168=120000000//;
+         $tmpb=~ s/126=50000/126=99999/;
          print FILE $tmpb;
          if($self->{CCT} eq "local"){
              print FILE 'rm  /tmp/gbatch-orbit.exe.$RUN'."\n";
          }
          close FILE;
-         my $j=system("chmod +x  $root"); 
+         my $j=system("chmod +x  $root");
          if($self->{CCT} eq "remote"){
-         $j=system("tar -C$self->{UploadsDir} -uf  $file2tar $script  1>/dev/null 2>&1"); 
+         $j=system("tar -C$self->{UploadsDir} -uf  $file2tar $script  1>/dev/null 2>&1");
           if($j){
               $self->ErrorPlus("Unable to tar $script to $file2tar ");
           }
@@ -5289,7 +5289,7 @@ print qq`
                               '$nickname',
                                'host',0,0,0,0,'$stalone',
                               -1, $pid,-1)";
- 
+
          $self->{sqlserver}->Update($insertjobsql);
 #         $self->{sqlserver}->Update($sql);
 #
@@ -5303,14 +5303,14 @@ print qq`
          $ri->{TLEvent}=$timendu;
          $ri->{Priority}=0;
          $ri->{FilePath}=$script;
-         $ri->{rndm1}=0;       
-         $ri->{rndm2}=0;       
+         $ri->{rndm1}=0;
+         $ri->{rndm2}=0;
             if ($self->{CCT} eq "remote"){
              $ri->{Status}="Foreign";
              $ri->{History}="Foreign";
              $ri->{CounterFail}=0;
              $ri->{cuid}=$ri->{Run};
-            } 
+            }
             else{
              $ri->{Status}="ToBeRerun";
              $ri->{History}="ToBeRerun";
@@ -5328,7 +5328,7 @@ print qq`
          $ri->{cinfo}->{TimeSpent}=0;
          $ri->{cinfo}->{Status}=$ri->{Status};
          $ri->{cinfo}->{HostName}=" ";
-         push @{$self->{Runs}}, $ri; 
+         push @{$self->{Runs}}, $ri;
          $run=$run+1;
         }
 
@@ -5353,7 +5353,7 @@ print qq`
           if($i){
               $self->ErrorPlus("Unable to gzip  $file2tar");
           }
-        }     
+        }
 # insert into Jobs
 #        if (defined $insertjobsql) {
 #         $self->{sqlserver}->Update($insertjobsql);
@@ -5372,14 +5372,14 @@ print qq`
                  }
                  else{
                    $message=$self->{tsyntax}->{headers}->{readmecorba};
-                 }                
+                 }
         $sql = "SELECT dirpath FROM journals WHERE cid=$self->{CCID}";
-        my $note='please contact alexei.klimentov@cern.ch for details'; 
+        my $note='please contact alexei.klimentov@cern.ch for details';
         $ret = $self->{sqlserver}->Query($sql);
-  
+
         if (defined $ret->[0][0]) {
          $note ="DST directory path : $ret->[0][0]/nt \n Journal files directory path : $ret->[0][0]/jou \n";
-         }         
+         }
          $message=$message.$note;
                   my $attach;
        if ($self->{CCT} eq "remote"){
@@ -5407,7 +5407,7 @@ print qq`
          my $totalreq=$self->{CEMR}+$runno;
          my $time=time();
          $sql="Update Mails set requests=$totalreq, timeu1=$self->{TU1}, timeu2=$self->{TU2}, timestamp=$time where mid=$self->{CEMID}";
-         $self->{sqlserver}->Update($sql);              
+         $self->{sqlserver}->Update($sql);
          $subject="MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
          $self->sendmailerror($subject," ");
          $sql="SELECT mid FROM Cites WHERE cid=$self->{CCID}";
@@ -5419,33 +5419,33 @@ print qq`
              $self->sendmailmessage($ret->[0][0],$subject," ");
            } else {
             $self->ErrorPlus("Unable to obtain mail address for MailId = $ret->[0][0] and Cite=$self->{CCID}");
-           }           
+           }
        }
            $time=time();
            $sql="update Cites set state=0, maxrun=$run, timestamp=$time where name='$self->{CCA}'";
             $self->{sqlserver}->Update($sql);
-            
+
         foreach my $cite (@{$self->{CiteT}}){
             if($self->{CCA} eq $cite->{name}){
               $cite->{maxrun}=$run;
-              last;                          
+              last;
           }
         }
 
                   my $dir=$self->{UploadsDir};
                   open DIR,$dir;
                   my @allfiles= readdir THISDIR;
-                  closedir DIR;    
+                  closedir DIR;
                   foreach my $file (@allfiles){
                      my $pat='/$\.'."$self->{CEMID}.save/";
                      if($file =~$pat){
                        unlink $file;
                      }
-                  }                      
+                  }
 # check last download time
 # but first check local/remote cite
       my $cite_status="remote";
-      $sql="SELECT Cites.status FROM Cites, Mails WHERE Cites.cid=Mails.cid  AND ADDRESS='$self->{CEM}'"; 
+      $sql="SELECT Cites.status FROM Cites, Mails WHERE Cites.cid=Mails.cid  AND ADDRESS='$self->{CEM}'";
       my $recites=$self->{sqlserver}->Query($sql);
       if(defined $ret->[0][0]){
         $cite_status= $recites->[0][0];
@@ -5463,7 +5463,7 @@ print qq`
            $uplt0    = $retime->[0][0];
            $uplt1    = $retime->[0][1];
           }
- 
+
        $self->DownloadTime();
 
         my $timeFileDB     = 0; # file xyzmcdb.tar.gz time
@@ -5498,15 +5498,15 @@ print qq`
             $self->Download($vvv, $vdb);
          } elsif ($uplt0 < $timeFileDB || $uplt1 < $timeFileAttDB) {
             $self->Download($vvv, $vdb);
-         } else {  
-          $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}"; 
-    
-         } 
+         } else {
+          $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";
+
+         }
        } else {
          $self->Download($vvv, $vdb);
         }
-     } else { 
-      $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
+     } else {
+      $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";
 
      }
 }
@@ -5523,7 +5523,7 @@ print qq`
 #<hr>
 #`;
     print $q->h1( "Welcome to the AMS02 RemoteClient MC Request Form" );
-        print $q->start_form(-method=>"GET", 
+        print $q->start_form(-method=>"GET",
           -action=>$self->{Name});
     print qq`
  Client E-Mail Address<INPUT TYPE="text" NAME="CEM" VALUE="" SIZE=32>
@@ -5596,7 +5596,7 @@ sub getior{
     my $file ="/tmp/o."."$pid";
     my $fileo ="/tmp/oo."."$pid";
 #    my $i=system "/usr/local/lsf/bin/bjobs -q linux_server -u all>$file" ;
-     my $i=1;     
+     my $i=1;
     if($i){
      if($ref->{debug}){
           $ref->WarningPlus("unable to bjobs");
@@ -5622,7 +5622,7 @@ sub getior{
                     if($tag eq $ref->{DataMC}){
                         $datamc=1;
                     }
-                }  
+                }
                 if ($datamc and /^IOR:/){
                     close (FILEO);
                     unlink $file,$fileo;
@@ -5642,7 +5642,7 @@ sub getior{
            print "getior -Warning - unable to bpeek \n";
        }
      }
-    return $ref->getior2();      
+    return $ref->getior2();
 }
 sub getior2{
     my $ref=shift;
@@ -5710,7 +5710,7 @@ sub findemail(){
                         $self->{CCID}=$cite->{cid};
                         last;
                     }
-                }  
+                }
                 last;
             }
             elsif (defined $chop->{alias} and $chop->{status} eq "Active"){
@@ -5730,7 +5730,7 @@ sub findemail(){
                         $self->{CCID}=$cite->{cid};
                         last;
                     }
-                }  
+                }
                 last;
             }
          }
@@ -5787,7 +5787,7 @@ sub sendmailerror{
                   last;
               }
         }
-}          
+}
 sub sendmailmessage{
     my $self=shift;
     my $add=shift;
@@ -5805,7 +5805,7 @@ sub sendmailmessage{
                      Data     =>$mes,
                      );
         my @files = split ';', $att;
-        foreach my $file (@files){ 
+        foreach my $file (@files){
             my @f=split ',', $file;
          $msg->attach(Type     =>'octet/stream',
                      Path     =>$f[0],
@@ -5827,7 +5827,7 @@ Subject: $sub
 
 $mes
 END_OF_MESSAGE2
-    close MAIL or die "Error closing sendmail: $!";  
+    close MAIL or die "Error closing sendmail: $!";
     }
  }
 
@@ -5844,7 +5844,7 @@ sub getRID() {
            return $res->[0][0];
         }
 
-}  
+}
 
 sub getrndm(){
     my $self=shift;
@@ -5884,11 +5884,11 @@ sub getrndm(){
                my $mxr=-$maxrun+1;
              $sql="UPDATE RNDM SET rid=-rid where rid=$mxr";
              $self->{sqlserver}->Update($sql);
-            }   
+            }
              $sql="UPDATE RNDM SET rid=-rid where rid=$maxrun";
              $self->{sqlserver}->Update($sql);
              return ($rid,$rndm1,$rndm2);
- 
+
     }
 
 
@@ -5907,9 +5907,9 @@ sub Exiting{
 # Reads a saved CGI object from disk and return its params as a hash ref
 sub get_state {
     my $cart = shift;
-    
+
     local *FILE;
-    
+
     -e $cart or return;
     open FILE, $cart or die "Cannot open $cart: $!";
     my $q_saved = new CGI( \*FILE ) or
@@ -5925,8 +5925,8 @@ sub save_state {
     my $q = shift;
     my $cart = shift;
     local( *FILE, *DIR );
-    
-    
+
+
     # Save the current CGI object to disk
     open FILE, "> $cart" or return die "Cannot write to $cart: $!";
     $q->save( \*FILE );
@@ -5942,7 +5942,7 @@ sub htmlTop {
 }
 
 sub htmlBottom {
-    my $version="1.01";    
+    my $version="1.01";
     print "</TABLE>\n";
     print "<HR>\n<TABLE WIDTH=\"100%\"><TR>\n<TD WIDTH=\"33%\" ALIGN=\"Left\">";
     print "</TD>\n<TD ALIGN=\"center\"><FONT SIZE=2>jobt.pl V$version</FONT></TD>\n";
@@ -5983,7 +5983,7 @@ sub htmlMCWelcome {
    print "<font size=\"3\"><TR><TD><b>\n";
    print " This is an interface to the AMS MC02 Remote/Client Database </TD></TR> \n";
    print "<TR><TD> \n";
-   print "All comments (to <font color=\"green\"> alexei.klimentov\@cern.ch, vitali.choutko\@cern.ch </font>) appreciated (items in <font color=\"tomato\"> tomato </font> are not implemented yet). Basic query keys are 
+   print "All comments (to <font color=\"green\"> alexei.klimentov\@cern.ch, vitali.choutko\@cern.ch </font>) appreciated (items in <font color=\"tomato\"> tomato </font> are not implemented yet). Basic query keys are
 in <font color=\"green\"> green </font>, advanced query keys are in <font color=\"blue\"> blue.</TD></TR>\n";
    print "</ul>\n";
    print "<font size=\"2\" color=\"black\">\n";
@@ -6075,7 +6075,7 @@ sub getPathNoDisk {
 sub trimblanks {
     my @inp_string = @_;
     for (@inp_string) {
-        s/^\s+//;        
+        s/^\s+//;
         s/\s+$//;
     }
     return wantarray ? @inp_string : $inp_string[0];
@@ -6086,7 +6086,7 @@ sub checkJobsTimeout {
 # give extra 24 hourse to timeout jobs
 #
     my $self   = shift;
-    my $lastupd= undef; 
+    my $lastupd= undef;
     my $update = 0;
 
     my $sql;
@@ -6145,35 +6145,35 @@ sub checkJobsTimeout {
      print_bar($bluebar,3);
    }
 #
-# 1st update runs.status from 'Finished'/'Failed' to 'Completed' if 
-# at least one DST is copied to final destination 
+# 1st update runs.status from 'Finished'/'Failed' to 'Completed' if
+# at least one DST is copied to final destination
 #
 # get production set path
     if (0) {
-    } 
+    }
     else {
      $sql = "SELECT ntuples.run
-              FROM runs, ntuples  
-               WHERE 
-                     (runs.run = ntuples.run) AND 
-                     (runs.submit > $periodStartTime) AND 
+              FROM runs, ntuples
+               WHERE
+                     (runs.run = ntuples.run) AND
+                     (runs.submit > $periodStartTime) AND
                      (
-                      runs.status != 'Completed' AND 
-                      runs.status != 'TimeOut'   AND 
-                      runs.status != 'Finished'  AND 
-                      runs.status != 'Foreign'  AND 
+                      runs.status != 'Completed' AND
+                      runs.status != 'TimeOut'   AND
+                      runs.status != 'Finished'  AND
+                      runs.status != 'Foreign'  AND
                       runs.status != 'Processing')";
       my $r1=$self->{sqlserver}->Query($sql);
       if( defined $r1->[0][0]){
        foreach my $r (@{$r1}){
          my $run= $r -> [0];
            $sql="UPDATE runs SET runs.status='Completed' WHERE run=$run";
-           $self->{sqlserver}->Update($sql); 
+           $self->{sqlserver}->Update($sql);
        }
    }
   } # Active Production Set
 #
-    $sql="SELECT jobs.jid, jobs.time, jobs.timeout, jobs.mid, jobs.cid 
+    $sql="SELECT jobs.jid, jobs.time, jobs.timeout, jobs.mid, jobs.cid
             FROM jobs
              WHERE jobs.time+jobs.timeout <  $timenow AND (jobs.mips = 0 OR jobs.events=0)";
     my $r3=$self->{sqlserver}->Query($sql);
@@ -6184,10 +6184,10 @@ sub checkJobsTimeout {
        my $jobstatus    ="unknown";
        my $owner        ="xyz";
        my $address      = "alexei.klimentov\@cern.ch";
-       $sql="SELECT runs.run, runs.status 
-              FROM runs 
+       $sql="SELECT runs.run, runs.status
+              FROM runs
                 WHERE (runs.status = 'Failed' OR runs.status = 'Unchecked') AND runs.jid=$jid";
-       my $r4=$self->{sqlserver}->Query($sql); 
+       my $r4=$self->{sqlserver}->Query($sql);
        if (defined $r4->[0][0]) {
         $sql= "UPDATE runs SET status='TimeOut' WHERE run=$jid";
         if ($update == 1) {$self->{sqlserver}->Update($sql); }
@@ -6203,7 +6203,7 @@ sub checkJobsTimeout {
          my $mid          = $job->[3];
          my $cid          = $job->[4];
          my $cite         = "xyz";
-         $sql = "SELECT mails.name, mails.address, cites.name 
+         $sql = "SELECT mails.name, mails.address, cites.name
                     FROM Mails, Cites  WHERE mails.mid=$mid and mails.cid=cites.cid";
          my $r4 = $self->{sqlserver}->Query($sql);
          if (defined $r4->[0][0]) {
@@ -6216,7 +6216,7 @@ sub checkJobsTimeout {
          my $exptime    = $timestamp+$timeout;
          $exptime       = localtime($exptime);
          my $sujet = "Job : $jid - expired";
-         my $message    = "Job $jid, Submitted : $submittime, Expired : $exptime; 
+         my $message    = "Job $jid, Submitted : $submittime, Expired : $exptime;
                          \n Job will be removed from database (Not earlier than  : $deletetime).
                          \n MC Production Team.
                          \n ----------------------------------------------
@@ -6282,7 +6282,7 @@ sub updateHostInfo {
         $mem   = $h->{Memory};
         $face  = $h->{Interface};
         $os    = $h->{OS};
-        
+
         $sql   = "INSERT INTO LocalHosts VALUES (
                    $hid,
                    '$name',
@@ -6352,16 +6352,16 @@ sub updateHostsMips {
     my $self     = shift;
 
   my $HelpTxt = "
-     updateHostsMips updates MIPS column in cern_hosts DB table 
-                     using host clock and coefficient from 
+     updateHostsMips updates MIPS column in cern_hosts DB table
+                     using host clock and coefficient from
                      cpu_coeff table.
 
 
      -p    - print list of known hosts
      -h    - print help
      -v    - verbose mode
-     -u    - update table 
-     
+     -u    - update table
+
      from pcamsf0 and pcamss0 only :
 
      ./updatemips.cgi -p -v -u
@@ -6374,7 +6374,7 @@ sub updateHostsMips {
   foreach my $chop  (@ARGV){
     if($chop =~/^-p/){
      $printOut = 1;
-    } 
+    }
     if ($chop =~/^-v/) {
      $verbose = 1;
     }
@@ -6484,7 +6484,7 @@ sub listAll {
 #     $self->ht_Menus();
      $self -> colorLegend();
     }
-    
+
     $self->  getProductionPeriods(0);
     $self -> listProductionSetPeriods();
     $self -> listStat();
@@ -6503,7 +6503,7 @@ sub listMCStatus {
     my $show = shift;
     htmlTop();
     $self->ht_init();
-    
+
     $self->  getProductionPeriods(0);
     $self -> listProductionSetPeriods();
     $self -> listStat();
@@ -6533,7 +6533,7 @@ sub listShort {
     if ($show eq 'all') {
      $self -> colorLegend();
     }
-    
+
     $self->  getProductionPeriods(0);
     $self -> listProductionSetPeriods();
     $self -> listStat();
@@ -6552,7 +6552,7 @@ sub listMin {
     if ($show eq 'all') {
      $self -> colorLegend();
     }
-    
+
     $self -> listCites();
     $self -> listMails();
 
@@ -6666,8 +6666,8 @@ sub queryDB {
               }
           print "</select>\n";
           print "</b></td></tr>\n";
-            htmlTextField("Momentum min","number",7,1.,"QMomI","[GeV/c]");  
-            htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
+            htmlTextField("Momentum min","number",7,1.,"QMomI","[GeV/c]");
+            htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");
             htmlTextField("Setup","text",20,"AMS02","QSetup"," ");
             htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
            htmlTableEnd();
@@ -6700,8 +6700,8 @@ sub listProductionSetPeriods {
       foreach my $mc (@productionPeriods) {
 
           my $tbegin = EpochToDDMMYYHHMMSS($mc->{begin});
-          my $tend   = '->'; 
-          if ($mc->{end} != 0) { 
+          my $tend   = '->';
+          if ($mc->{end} != 0) {
               $tend = EpochToDDMMYYHHMMSS($mc->{end});
           }
 
@@ -6773,10 +6773,10 @@ sub listStat {
 # first job timestamp and running (active jobs)
        $td[0] = time();
        $sql="SELECT COUNT(Runs.run),SUM(Runs.fevent), SUM(Runs.levent)
-                FROM Jobs, Runs 
-                  WHERE Runs.submit>= $datasetStartTime 
-                     AND (Runs.status='Completed' OR Runs.Status='Finished') 
-                     AND Jobs.pid=$datasetId AND Jobs.cid != $TestCiteId 
+                FROM Jobs, Runs
+                  WHERE Runs.submit>= $datasetStartTime
+                     AND (Runs.status='Completed' OR Runs.Status='Finished')
+                     AND Jobs.pid=$datasetId AND Jobs.cid != $TestCiteId
                       AND Runs.jid=Jobs.jid";
        $ret=$self->{sqlserver}->Query($sql);
        if (defined $ret->[0][0]) {
@@ -6785,10 +6785,10 @@ sub listStat {
             $trigdone    = $ret->[0][2] - $ret->[0][1] + $jobsdone;
        }
        $sql="SELECT COUNT(Runs.run),SUM(Runs.fevent), SUM(Runs.levent)
-                FROM Jobs, Runs 
-                  WHERE Runs.submit>= $datasetStartTime 
-                     AND (Runs.status='Failed' OR Runs.Status='Unchecked') 
-                     AND Jobs.pid=$datasetId AND Jobs.cid != $TestCiteId 
+                FROM Jobs, Runs
+                  WHERE Runs.submit>= $datasetStartTime
+                     AND (Runs.status='Failed' OR Runs.Status='Unchecked')
+                     AND Jobs.pid=$datasetId AND Jobs.cid != $TestCiteId
                       AND Runs.jid=Jobs.jid";
        $ret=$self->{sqlserver}->Query($sql);
        if (defined $ret->[0][0]) {
@@ -6797,25 +6797,25 @@ sub listStat {
 
        if ($jobsdone > 0 || $jobsfailed >0) {
         if ($ds->{name} =~ /2005A/) {
-          $sql="SELECT 
+          $sql="SELECT
                 stat_2005A_Jobs.firstjobtime,stat_2005A_Jobs.lastjobtime,
                 stat_2005A_Jobs.totaljobs,stat_2005A_Jobs.totaltriggers,
                 stat_2005A_TimeoutRuns.TotalRuns,
-                stat_2005A_NTuples.TotalFiles, stat_2005A_NTuples.SizeMB,    
+                stat_2005A_NTuples.TotalFiles, stat_2005A_NTuples.SizeMB,
                 stat_2005A_CastorNTuples.TotalFiles, stat_2005A_CastorNTuples.SizeMB
-               FROM 
-                  stat_2005A_Jobs, stat_2005A_TimeoutRuns, 
+               FROM
+                  stat_2005A_Jobs, stat_2005A_TimeoutRuns,
                   stat_2005A_NTuples,stat_2005A_CastorNTuples";
         }
         if ($ds->{name} =~ /2005B/) {
-          $sql="SELECT 
+          $sql="SELECT
                 stat_2005B_Jobs.firstjobtime,stat_2005B_Jobs.lastjobtime,
                 stat_2005B_Jobs.totaljobs,stat_2005B_Jobs.totaltriggers,
                 stat_2005B_TimeoutRuns.TotalRuns,
-                stat_2005B_NTuples.TotalFiles, stat_2005B_NTuples.SizeMB,    
+                stat_2005B_NTuples.TotalFiles, stat_2005B_NTuples.SizeMB,
                 stat_2005B_CastorNTuples.TotalFiles, stat_2005B_CastorNTuples.SizeMB
-               FROM 
-                  stat_2005B_Jobs, stat_2005B_TimeoutRuns, 
+               FROM
+                  stat_2005B_Jobs, stat_2005B_TimeoutRuns,
                   stat_2005B_NTuples,stat_2005B_CastorNTuples";
       }
         $ret=$self->{sqlserver}->Query($sql);
@@ -6875,7 +6875,7 @@ sub listStat {
                $trigdone = sprintf("%.2fM",$trigdone/1000000);
 	   }
 
- 
+
           if ($webmode == 1) {
            print "
                   <td align=center><b><font color=$color> $jobsreq </font></td></b>
@@ -6891,8 +6891,8 @@ sub listStat {
                   <td align=center><b><font color=$color> $ds->{name} </font></b></td>\n";
 
           print "</font></tr>\n";
- 
-       
+
+
        htmlTableEnd();
      htmlTableEnd();
      print_bar($bluebar,3);
@@ -6905,9 +6905,23 @@ sub listStat {
     if ($webmode == 1) {
      htmlTable("Datasets");
     }
+            my @output=();
+            my $save="$self->{UploadsDir}/CalculatesMips";
+             my  @sta = stat $save;
+            if($#sta>0 and time()-$sta[9] <900){
+             my $dsref=retrieve($save);
+             if(defined $dsref){
+              foreach my $dss (@{$dsref}){
+               push @output,$dss;
+              }
+              }
+             }
+             else{  
+              @output=$self->calculateMipsVC(1,0);
+              store(\@output,$save);
+             }
      foreach my $prodperiod (@productionPeriods) {
       if ($prodperiod->{status} =~ 'Active') {
-
     if ($webmode == 1) {
 # table per active production period
       print "<TR><B><font color=red size= 3> $prodperiod->{name} ($prodperiod->{vdb}) </font>";
@@ -6918,10 +6932,14 @@ sub listStat {
       print "<td align=center><b><font color=\"blue\">Dataset </font></b></td>";
       print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
       print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
+ print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
+ print "<td align=center><b><font color=\"blue\" >CPU Days </font></b></td>";
       print "</tr>\n";
       print "<td align=center><b><font color=\"blue\">           </font></b></td>";
-      print "<td align=center><b><font color=\"blue\"> Requested </font></b></td>";
+      print "<td align=center><b><font color=\"blue\"> Total </font></b></td>";
       print "<td align=center><b><font color=\"blue\" >Processed</font></b></td>";
+      print "<td align=center><b><font color=\"blue\" >Pending</font></b></td>";
+print "<td align=center><b><font color=\"blue\" >Required</font></b></td>";
       print "</tr>\n";
      }
          my $vdb               = $prodperiod->{vdb};
@@ -6934,47 +6952,64 @@ sub listStat {
          foreach my $ds (@{$r5}){
            my $did       = $ds->[0];
            my $dataset   = trimblanks($ds->[1]);
-           $td[0] = time();
-           $sql = "SELECT SUM(levent), SUM(fevent), COUNT(fevent) FROM Jobs, Runs 
-                    WHERE 
-                     Runs.submit > $periodStartTime AND 
-                      Jobs.pid = $periodId AND 
-                       Jobs.did = $did AND
-                        Jobs.jid = Runs.jid AND  
-                        (Runs.status='Completed' OR Runs.status='Finished') AND 
-                          Jobs.cid != $TestCiteId 
-                       ";
-           my $r6=$self->{sqlserver}->Query($sql);
-           $td[1] = time();
-           my $events = 0;
-           if(defined $r6->[0][0]){
-             $events = $r6->[0][0] - $r6->[0][1] + $r6->[0][2];
+#
+#           $td[0] = time();
+#           $sql = "SELECT SUM(levent), SUM(fevent), COUNT(fevent) FROM Jobs, Runs
+#                    WHERE
+#                     Runs.submit > $periodStartTime AND
+#                      Jobs.pid = $periodId AND
+#                       Jobs.did = $did AND
+#                        Jobs.jid = Runs.jid AND
+#                        (Runs.status='Completed' OR Runs.status='Finished') AND
+#                          Jobs.cid != $TestCiteId
+#                       ";
+#           my $r6=$self->{sqlserver}->Query($sql);
+#           $td[1] = time();
+#           my $events = 0;
+#           if(defined $r6->[0][0]){
+#             $events = $r6->[0][0] - $r6->[0][1] + $r6->[0][2];
+              my $ggot=-1;
+             for my $got (0...$#output) {
+               my $hash=$output[$got];
+                if($dataset eq $hash->[0]){
+                 $ggot=$got;
+                 last;
+                }
+             }
+             if($ggot<0){
+                  next;
+             }
+              my $hash=$output[$ggot];
+               my $events=$hash->[1]; 
              if ($events > 1000 && $events <= 1000000) {
                  $events=sprintf("%.2fK",$events/1000);
              } elsif ($events > 1000000) {
                  $events=sprintf("%.2fM",$events/1000000);
              }
-           }            
-           $sql = "SELECT SUM(triggers) FROM Jobs 
-                    WHERE 
-                     Jobs.timestamp > $periodStartTime AND 
-                     Jobs.did = $did AND
-                      Jobs.cid != $TestCiteId
-                       AND Jobs.pid = $periodId";
-           my $r7=$self->{sqlserver}->Query($sql);
-           my $triggers = 0;
-           if(defined $r7->[0][0]){
-             $triggers = $r7->[0][0];
-             if ($triggers > 1000 && $triggers <= 1000000) {
-                 $triggers=sprintf("%.2fK",$triggers/1000);
-             } elsif ($triggers > 1000000) {
-                 $triggers=sprintf("%.2fM",$triggers/1000000);
-             }
-           }            
+#           }
+#           $sql = "SELECT SUM(triggers) FROM Jobs
+#                    WHERE
+#                     Jobs.timestamp > $periodStartTime AND
+#                     Jobs.did = $did AND
+#                      Jobs.cid != $TestCiteId
+#                       AND Jobs.pid = $periodId";
+#           my $r7=$self->{sqlserver}->Query($sql);
+#           my $triggers = 0;
+#           if(defined $r7->[0][0]){
+#             $triggers = $r7->[0][0];
+#             if ($triggers > 1000 && $triggers <= 1000000) {
+#                 $triggers=sprintf("%.2fK",$triggers/1000);
+#             } elsif ($triggers > 1000000) {
+#                 $triggers=sprintf("%.2fM",$triggers/1000000);
+#             }
+#           }
        if ($webmode == 1) {
         print "<td align=left><b><font color=\"black\"> $dataset </font></b></td>";
-        print "<td align=center><b><font color=\"black\"> $triggers </font></b></td>";
-        print "<td align=center><b><font color=\"black\" >$events</font></b></td>";
+        print "<td align=center><b><font color=\"black\"> $events </font></b></td>";
+        print "<td align=center><b><font color=\"black\" >$hash->[3]\%</font></b></td>";
+       print "<td align=center><b><font color=\"black\" >$hash->[2]</font></b></td>";
+       print "<td align=center><b><font color=\"black\" >$hash->[5]</font></b></td>";
+
         print "</tr>\n";
         }
        }
@@ -6985,14 +7020,14 @@ sub listStat {
           print_bar($bluebar,3);
           }
     } # Active production sets
-  }  # all production sets             
+  }  # all production sets
     if ($webmode == 1) {
      htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
     }
 }
-    
+
 sub listCites {
     my $self = shift;
 
@@ -7036,7 +7071,7 @@ sub listCites {
           my $descr  = $cite->[1];
           my $name   = $cite->[2];
           my $status = $cite->[3];
-      
+
           my $r4 = undef;
 
           my $laststarttime = 0;     # latest job start time
@@ -7056,12 +7091,12 @@ sub listCites {
             $jobs          = $r4->[0][1];
           };
           if ($laststarttime != 0 ) {
-           $sql = "SELECT COUNT(Runs.run), MAX(Runs.submit) 
-                    FROM Jobs, Runs 
-                     WHERE 
-                      Runs.submit>= $periodStartTime AND 
-                      Jobs.jid=Runs.jid AND Jobs.cid=$cid AND 
-                      (Runs.Status = 'Finished' OR 
+           $sql = "SELECT COUNT(Runs.run), MAX(Runs.submit)
+                    FROM Jobs, Runs
+                     WHERE
+                      Runs.submit>= $periodStartTime AND
+                      Jobs.jid=Runs.jid AND Jobs.cid=$cid AND
+                      (Runs.Status = 'Finished' OR
                         Runs.Status = 'Completed')";
            $r4=$self->{sqlserver}->Query($sql);
            if (defined $r4->[0][0]) {
@@ -7070,13 +7105,13 @@ sub listCites {
             };
 
 
-           $sql = "SELECT COUNT(Runs.run), MAX(Runs.submit) 
-                    FROM Jobs, Runs 
-                     WHERE 
-                      Runs.submit>= $periodStartTime AND 
-                       Jobs.jid=Runs.jid AND cid=$cid AND 
-                        (Runs.Status = 'Failed' OR 
-                          Runs.Status = 'TimeOut' OR 
+           $sql = "SELECT COUNT(Runs.run), MAX(Runs.submit)
+                    FROM Jobs, Runs
+                     WHERE
+                      Runs.submit>= $periodStartTime AND
+                       Jobs.jid=Runs.jid AND cid=$cid AND
+                        (Runs.Status = 'Failed' OR
+                          Runs.Status = 'TimeOut' OR
                            Runs.Status = 'Unchecked')";
            $r4=$self->{sqlserver}->Query($sql);
            if (defined $r4->[0][0]) {
@@ -7115,7 +7150,7 @@ sub listCites {
 
 sub listDisks {
     my $self    = shift;
-    my $lastupd = undef; 
+    my $lastupd = undef;
     my $sql     = undef;
 
     my $dpath = undef;
@@ -7146,7 +7181,7 @@ sub listDisks {
               print "<td><b><font color=\"blue\" >Status </font></b></td>";
       print_bar($bluebar,3);
      }
-     $sql="SELECT host, disk, path, totalsize, occupied, available, status, 
+     $sql="SELECT host, disk, path, totalsize, occupied, available, status,
            timestamp FROM Filesystems ORDER BY available DESC";
      my $r3=$self->{sqlserver}->Query($sql);
      if(defined $r3->[0][0]){
@@ -7170,7 +7205,7 @@ sub listDisks {
             if (defined $r4->[0][0]) {
              $totalGBMC = $totalGBMC + $r4->[0][0];
              $used   = $used + $r4->[0][0];
-            }    
+            }
            }
           }
            $size   = $size + $dd->[3];
@@ -7230,8 +7265,8 @@ sub listMails {
      htmlTable("MC02 Authorized Users");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
     }
-     my $sql="SELECT address, Mails.name, rsite, requests, Mails.cid, Cites.cid, 
-              Cites.name, Mails.status FROM  Mails, Cites WHERE Cites.cid=Mails.cid 
+     my $sql="SELECT address, Mails.name, rsite, requests, Mails.cid, Cites.cid,
+              Cites.name, Mails.status FROM  Mails, Cites WHERE Cites.cid=Mails.cid
               ORDER BY Cites.name, Mails.name";
 
      my $r3=$self->{sqlserver}->Query($sql);
@@ -7317,17 +7352,17 @@ sub listServers {
      print_bar($bluebar,3);
      print "<p></p>\n";
     }
-} 
+}
 
 
 
 
 sub listJobs {
     my $self = shift;
-    
+
     my $ret  = undef;
     my $sql  = undef;
-    my $href = undef;    
+    my $href = undef;
 
     my $timenow = time();
     my $timelate= $timenow - 30*24*60*60 +1; # list jobs submitted 30 days ago or earlier
@@ -7335,7 +7370,7 @@ sub listJobs {
 
 #    my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
       $sql = "SELECT  DID  FROM ProductionSet WHERE STATUS='Active' ORDER BY DID";
-      $ret = $self->{sqlserver}->Query($sql);    
+      $ret = $self->{sqlserver}->Query($sql);
       my $pps=undef;
    foreach my $pp  (@{$ret}){
        if(defined $pps){            $pps=$pps." or jobs.pid =";
@@ -7377,8 +7412,8 @@ sub listJobs {
     my @runId     = ();
     my @runStatus = ();
 
-    $sql="SELECT Runs.jid, Runs.status from Runs 
-                  WHERE 
+    $sql="SELECT Runs.jid, Runs.status from Runs
+                  WHERE
                     Runs.submit >= $timelate ORDER BY Runs.jid";
     my $r3=$self->{sqlserver}->Query($sql);
     if (defined $r3->[0][0]) {
@@ -7390,18 +7425,18 @@ sub listJobs {
 
 
 
-    $sql="SELECT 
+    $sql="SELECT
                  Jobs.jid, Jobs.jobname,
-                 Jobs.time, Jobs.timeout, 
+                 Jobs.time, Jobs.timeout,
                  Jobs.triggers,
                  Cites.cid, Cites.name, Cites.descr,
-                 Mails.name  
-           FROM   Jobs, Cites, Mails  
-            WHERE  
+                 Mails.name
+           FROM   Jobs, Cites, Mails
+            WHERE
                   Jobs.timestamp > $timelate AND
-                   $pps  AND 
-                    Jobs.cid=Cites.cid AND 
-                     Jobs.mid=Mails.mid 
+                   $pps  AND
+                    Jobs.cid=Cites.cid AND
+                     Jobs.mid=Mails.mid
              ORDER  BY Cites.name, Jobs.jid DESC";
 
     $r3=$self->{sqlserver}->Query($sql);
@@ -7409,7 +7444,7 @@ sub listJobs {
      if ($webmode == 1) {print_bar($bluebar,3);}
      my $newline = " ";
      my $savcite = "unknown";
-     my $njobs   = 0;    
+     my $njobs   = 0;
 
      if(defined $r3->[0][0]){
       foreach my $job (@{$r3}){
@@ -7418,10 +7453,10 @@ sub listJobs {
           my $starttime = EpochToDDMMYYHHMMSS($job->[2]);
 
           my $texpire = 0;
-          if (defined $job->[2]) { $texpire = $job->[2]}; 
+          if (defined $job->[2]) { $texpire = $job->[2]};
           if (defined $job->[3]) {$texpire  += $job->[3]};
 
-          my $expiretime= EpochToDDMMYYHHMMSS($texpire); 
+          my $expiretime= EpochToDDMMYYHHMMSS($texpire);
           my $trig      = $job->[4];
           my $cid       = $job->[5];
           my $cite      = $job->[6];
@@ -7437,7 +7472,7 @@ sub listJobs {
 
 
 
-          if ($newline ne $cite) { 
+          if ($newline ne $cite) {
              $newline = $cite;
              if ($webmode == 1) {
                print "</table></p> \n";
@@ -7449,7 +7484,7 @@ sub listJobs {
                print "<A Name = $citename> </a>\n";
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
                  print "<td><b><font color=\"blue\">JobId </font></b></td>";
-                 print "<td><b><font color=\"blue\" >Owner </font></b></td>"; 
+                 print "<td><b><font color=\"blue\" >Owner </font></b></td>";
                  print "<td><b><font color=\"blue\" >JobName </font></b></td>";
                  print "<td><b><font color=\"blue\" >Submit Time </font></b></td>";
                  print "<td><b><font color=\"blue\" >Expire Time </font></b></td>";
@@ -7484,7 +7519,7 @@ sub listJobs {
            }
           $njobs++;
       }
-    }  
+    }
     if ($webmode == 1) {
      htmlTableEnd();
      print_bar($bluebar,3);
@@ -7501,16 +7536,16 @@ sub listRuns {
      print "<b><h2><A Name = \"runs\"> </a></h2></b> \n";
      htmlTable("MC02 Runs");
      my $href=$self->{HTTPcgi}."/rc.o.cgi?queryDB04=Form";
-     print "<tr><font color=blue><b><i> Only 50 runs submitted/finished during last 24h are listed,  to get complete list 
+     print "<tr><font color=blue><b><i> Only 50 runs submitted/finished during last 24h are listed,  to get complete list
             <a href=$href> click here</a>
             </b><i></font></tr>\n";
 
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      }
-     my $sql="SELECT Runs.run, Runs.jid, Runs.submit, Runs.status 
+     my $sql="SELECT Runs.run, Runs.jid, Runs.submit, Runs.status
                FROM   Runs
-                 WHERE 
-                  Runs.submit> $time24h 
+                 WHERE
+                  Runs.submit> $time24h
                     ORDER  BY Runs.submit DESC, Runs.jid";
      my $r3=$self->{sqlserver}->Query($sql);
      if ($webmode == 1) {
@@ -7525,7 +7560,7 @@ sub listRuns {
       foreach my $run (@{$r3}){
           my $nn        = $run->[0];
           my $jid       = $run->[1];
-          my $starttime = EpochToDDMMYYHHMMSS($run->[2]); 
+          my $starttime = EpochToDDMMYYHHMMSS($run->[2]);
           my $status    = $run->[3];
           my $color = statusColor($status);
           if ($webmode == 1) {
@@ -7556,7 +7591,7 @@ sub listNtuples {
      print "<b><h2><A Name = \"ntuples\"> </a></h2></b> \n";
      print "<TR><B><font color=green size= 5><b>MC NTuples </font></b>";
      my $href = $self->{HTTPcgi}."/rc.o.cgi?queryDB04=Form";
-     print "<tr><font color=blue><b><i> DSTs produced in last 24h, to get complete list 
+     print "<tr><font color=blue><b><i> DSTs produced in last 24h, to get complete list
             <a href=$href> click here</a>
             </b><i></font></tr>\n";
      print "<p>\n";
@@ -7565,10 +7600,10 @@ sub listNtuples {
      print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
               print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
     }
-     my $sql="SELECT Ntuples.run, Ntuples.jid, Ntuples.nevents, Ntuples.neventserr, 
+     my $sql="SELECT Ntuples.run, Ntuples.jid, Ntuples.nevents, Ntuples.neventserr,
                      Ntuples.timestamp, Ntuples.status, Ntuples.path
               FROM   Ntuples
-              WHERE  Ntuples.timestamp > $time24h AND Ntuples.path NOT LIKE '/castor/cern.ch%'   
+              WHERE  Ntuples.timestamp > $time24h AND Ntuples.path NOT LIKE '/castor/cern.ch%'
               ORDER  BY Ntuples.timestamp DESC, Ntuples.jid";
      my $r3=$self->{sqlserver}->Query($sql);
      if ($webmode == 1) {
@@ -7588,16 +7623,16 @@ sub listNtuples {
           my $jid       = $nt->[1];
           my $nevents   = $nt->[2];
           my $nerrors   = $nt->[3];
-          my $starttime = EpochToDDMMYYHHMMSS($nt->[4]); 
+          my $starttime = EpochToDDMMYYHHMMSS($nt->[4]);
           my $status    = $nt->[5];
           my $color     = statusColor($status);
           my $path      = $nt->[6];
           if ($webmode == 1) {
            print "<td><b> $jid </td></b><td><b> $run </td>
                   <td><b> $starttime </b></td>
-                  <td><b> $path </b></td> 
-                  <td align=middle><b> $nevents </b></td> 
-                  <td align=middle><b> $nerrors </b></td> 
+                  <td><b> $path </b></td>
+                  <td align=middle><b> $nevents </b></td>
+                  <td align=middle><b> $nerrors </b></td>
                   <td align=middle><b><font color=$color> $status </font></b></td> \n";
            print "</font></tr>\n";
           }
@@ -7698,7 +7733,7 @@ sub Download {
     $self->PrintDownloadTable($vvv);
     print "</TABLE>\n";
     print "<p>\n";
-          my $time; 
+          my $time;
           $time = time();
           print "<input type=\"hidden\" name=\"CEM\" value=$self->{CEM}>\n";
           print "<input type=\"hidden\" name=\"UPL0\" value=$time>\n";
@@ -7720,8 +7755,8 @@ sub DownloadSA {
     $self->{UploadsHREF}="AMS02MCUploads";
     $self->{UploadsDir} ="/var/www/cgi-bin/AMS02MCUploads";
 
-    push @{$self->{FileDB}}, "v3.00mcdb.tar.gz"; 
-    push @{$self->{FileDB}}, "v4.00mcdb.tar.gz"; 
+    push @{$self->{FileDB}}, "v3.00mcdb.tar.gz";
+    push @{$self->{FileDB}}, "v4.00mcdb.tar.gz";
 
     push @{$self->{FileAttDB}}, "v3.00mcdb.addon.tar.gz";
     push @{$self->{FileAttDB}}, "v4.00mcdb.addon.tar.gz";
@@ -7761,7 +7796,7 @@ sub PrintDownloadTable {
     print "<TR><br>\n";
     if ($vvv =~ 'ALL') {
      print "<TD><font color=#8b1a1a size=\"6\"><b>The following files are avaialable for download</b></font>:\n";
-    } else { 
+    } else {
      print "<TD><font color=#8b1a1a size=\"6\"><b>The following files are avaialable for download ($vvv)</b></font>:\n";
     }
     print "<br><br>\n";
@@ -7805,7 +7840,7 @@ sub PrintDownloadTable {
             $download = 0;
         }
       }
-    
+
       if ($self->{dwldaddon} == 1) {
        if ($download == 1) {
         print "<br><font size=\"4\">
@@ -7834,7 +7869,7 @@ sub PrintDownloadTable {
            </font>";
      $dtime=EpochToDDMMYYHHMMSS($self->{FileBBFTPTimestamp});
      print "<font size=\"3\" color=\"green\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
-     print "<br><br>";   
+     print "<br><br>";
 #
 ## crc tar
      $file= $self->{FileCRC};
@@ -7852,8 +7887,8 @@ sub PrintDownloadTable {
            </font>";
      $dtime=EpochToDDMMYYHHMMSS($self->{FileBookKeepingTimestamp});
      print "<font size=\"3\" color=\"green\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
-     print "<br><br>";   
- 
+     print "<br><br>";
+
     print "</TD></TR>\n";
     print "</TABLE>\n";
     print "</td></tr>\n";
@@ -7886,15 +7921,15 @@ sub ht_init{
    print "</font></td></tr>\n";
   print "</table>\n";
   print "<table border=0 width=\"100%\">";
-   my $time; 
+   my $time;
    $time = localtime;
    print "<tr><td><font size=\"-1\"><b>Page Update : $time</b></td>\n";
    my $dbtime = $self->lastDBUpdate();
-   $time= EpochToDDMMYYHHMMSS($dbtime); 
+   $time= EpochToDDMMYYHHMMSS($dbtime);
    print "<td align=right><font size=\"-1\"><b>Last DB Update : $time </b></td></tr>\n";
    print "</TR></TABLE>\n";
    print "<p></p>\n";
-  
+
 #
 #
 }
@@ -7906,12 +7941,12 @@ sub print_bar {
 
 sub EpochToDDMMYYHHMMSS {
     my $time = shift;
-    my ($sec, $min, $hour, $mday, $month, $year, $wday, $yday, $isdst) = 
+    my ($sec, $min, $hour, $mday, $month, $year, $wday, $yday, $isdst) =
           localtime($time);
 
     $month++;
     $year = $year + 1900;
-           
+
     if ($sec < 10) {$sec = "0".$sec;}
     if ($min < 10) {$min = "0".$min};
     if ($hour< 10) {$hour= "0".$hour};
@@ -7973,22 +8008,14 @@ sub lastDBUpdate {
      my $lastupd =0;
      my $sql;
      my $ret;
-      $sql="SELECT MAX(Cites.timestamp) FROM Cites"; 
+      $sql="SELECT MAX(Cites.timestamp) FROM Cites";
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){
           $lastupd=$ret->[0][0];
       }
     }
-      $sql="SELECT MAX(Mails.timestamp) FROM Mails"; 
-      $ret=$self->{sqlserver}->Query($sql);
-     if(defined $ret->[0][0]){
-        if($ret->[0][0]>$lastupd){
-          $lastupd=$ret->[0][0];
-      }
-    }
-
-      $sql="SELECT MAX(Servers.lastupdate) FROM Servers"; 
+      $sql="SELECT MAX(Mails.timestamp) FROM Mails";
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){
@@ -7996,7 +8023,7 @@ sub lastDBUpdate {
       }
     }
 
-      $sql="SELECT MAX(Jobs.time) FROM Jobs"; 
+      $sql="SELECT MAX(Servers.lastupdate) FROM Servers";
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){
@@ -8004,7 +8031,7 @@ sub lastDBUpdate {
       }
     }
 
-      $sql="SELECT MAX(Runs.submit) FROM Runs"; 
+      $sql="SELECT MAX(Jobs.time) FROM Jobs";
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){
@@ -8012,7 +8039,15 @@ sub lastDBUpdate {
       }
     }
 
-      $sql="SELECT MAX(Ntuples.timestamp) FROM Ntuples"; 
+      $sql="SELECT MAX(Runs.submit) FROM Runs";
+      $ret=$self->{sqlserver}->Query($sql);
+     if(defined $ret->[0][0]){
+        if($ret->[0][0]>$lastupd){
+          $lastupd=$ret->[0][0];
+      }
+    }
+
+      $sql="SELECT MAX(Ntuples.timestamp) FROM Ntuples";
       $ret=$self->{sqlserver}->Query($sql);
      if(defined $ret->[0][0]){
         if($ret->[0][0]>$lastupd){
@@ -8040,13 +8075,13 @@ sub statusColor {
     }
     elsif ($status eq "Processing") {
                $color = "blue";
-    } 
+    }
     elsif ($status eq "Active") {
                $color = "green";
-    } 
+    }
     elsif ($status eq "Dead" or $status eq "Unknown" or $status eq "ToBeRerun") {
                $color = "magenta";
-    } 
+    }
     return $color;
 }
 
@@ -8074,11 +8109,11 @@ sub parseJournalFiles {
  my $procstarttime= 0;     # files processing start time from  FilesProcessing Table
 
  my $HelpTxt = "
-     parseJournalFiles check journal file directory for all cites 
+     parseJournalFiles check journal file directory for all cites
      -c      - output will be produced as ASCII page (default)
      -dbonly - do not connect to server
      -h      - print help
-     -i      - prompt before files removal 
+     -i      - prompt before files removal
      -v      - verbose mode
      -w      - output will be produced as HTML page
      ./parseJournalFiles.o.cgi -c
@@ -8106,7 +8141,7 @@ sub parseJournalFiles {
       return 1;
     }
    }
- 
+
     if( not $self->Init()){
       die "parseJournalFiles -F- Unable To Init";
     } else {
@@ -8133,7 +8168,7 @@ sub parseJournalFiles {
      ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
      if ($rflag == 1) {
          my $timenow = time();
-         if ($timenow - $procstarttime < 60*60*2) { 
+         if ($timenow - $procstarttime < 60*60*2) {
           $self->amsprint("Processing flag = $rflag, $procstarttime. Stop parseJournalFiles.",0);
           return 1;
          } else {
@@ -8146,7 +8181,7 @@ sub parseJournalFiles {
 #   my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
    my (@period, @periodStartTime, @periodId) = $self -> getActiveProductionPeriod();    my $periodStartTime=2147483647;    foreach my $periodst  (@periodStartTime){
      if($periodst < $periodStartTime){        $periodStartTime=$periodst;
-     } 
+     }
     }
 
    if ($#period<0 ) {
@@ -8166,7 +8201,7 @@ sub parseJournalFiles {
  if(not defined $ret->[0][0]){
      $self->amsprint("parseJournalFiles -ERROR- cannot find 'Active' production set",0);
      die "exit\n";
- } 
+ }
 
  $firstjobtime = $ret->[0][0] - 24*60*60;
  $lastjobtime  = time() + 24*60*60;
@@ -8181,9 +8216,9 @@ sub parseJournalFiles {
  if (not defined $ret->[0][0] || $ret->[0][0]<1) {
      $self->amsprint("parseJournalFiles - ERROR - wrong MAX(CID)",0);
      die "exit\n";
- } 
+ }
  $nCheckedCite  = -1;
- $nActiveCites  = 0;  # cites with new dsts 
+ $nActiveCites  = 0;  # cites with new dsts
  for (my $i=0; $i<$ret->[0][0]; $i++) {
 #+ parser statistics
  $JournalFiles[$i] = 0;  # number of journal files
@@ -8206,14 +8241,14 @@ sub parseJournalFiles {
 
  $parserStartTime=time();# start journal files check
  my $minJobID    = 0;
- 
- 
 
- $sql = "SELECT dirpath,journals.timelast,name,journals.cid  
+
+
+ $sql = "SELECT dirpath,journals.timelast,name,journals.cid
               FROM journals,cites WHERE journals.cid=cites.cid";
  $ret = $self->{sqlserver}->Query($sql);
 
- 
+
  if(defined $ret->[0][0]){
   foreach my $jou (@{$ret}){
    $nCheckedCite++;
@@ -8244,7 +8279,7 @@ sub parseJournalFiles {
     htmlTable($title);
    } else {
        if ($verbose == 1) {$self->amsprint($title,0);}
-   }  
+   }
    my $newfile   = "./";
    my $lastfile  = "./";
    my $writelast = 0;
@@ -8260,7 +8295,7 @@ sub parseJournalFiles {
        print "<td><b><font color=\"blue\" >Write Time</font></b></td>";
        print "<td><b><font color=\"blue\" >Status</font></b></td>";
        print "</tr>\n";
-     } 
+     }
       foreach my $file (@allfiles) {
        if ($file =~/^\./){
          next;
@@ -8286,8 +8321,8 @@ sub parseJournalFiles {
         if ($webmode == 0) {
            $self->amsprint("ParseJournalFiles -W- skip $joudir/$file invalid JID \n",0);
         }
-        $BadRunID[$cite]++;        
-        next; 
+        $BadRunID[$cite]++;
+        next;
        }
 
 
@@ -8313,7 +8348,7 @@ sub parseJournalFiles {
 #
 # $timestamp - latest time of journal file during previous validation
 # all files produced $timestamp- 24h -> pass automatic validation
-# it is possible that some files been transmitted with delay > 24h, so they 
+# it is possible that some files been transmitted with delay > 24h, so they
 # pass manual validation
 #
         if ($writetime > $timestamp - 24*60*60) {
@@ -8339,21 +8374,21 @@ sub parseJournalFiles {
    }
    if (defined $cid) {
     if ($writelast > 0) {
-     $sql = "UPDATE journals 
-             SET timestamp=$timenow, 
-                 timelast=$writelast, 
-                 lastfile = '$lastfile' 
+     $sql = "UPDATE journals
+             SET timestamp=$timenow,
+                 timelast=$writelast,
+                 lastfile = '$lastfile'
               WHERE cid=$cid";
       $nActiveCites++;
      } else {
       $sql = "UPDATE journals SET timestamp=$timenow WHERE cid=$cid";
      }
-    $self->{sqlserver}->Update($sql); 
+    $self->{sqlserver}->Update($sql);
   }
   ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
   if ($rflag == -1)  { goto END_PARSE;}
  }
-END_PARSE : 
+END_PARSE :
     $self->amsprint("parseJournalFile -I- stop",0);
  } else {
      $self->amsprint("parseJournalFile - Warning - table Journals is empty",0);
@@ -8393,7 +8428,7 @@ sub parseJournalFile {
  my $fevent =  1;
  my $levent =  0;
 
- my $patternsmatched  = 0; 
+ my $patternsmatched  = 0;
 
 my @startingjob   =();
 my @startingrun   =();
@@ -8402,7 +8437,7 @@ my @closedst      =();;
 my @runfinished   =();
 my @runincomplete =();
 
-my $timestamp = time();    # unix time 
+my $timestamp = time();    # unix time
 my $lastjobid = 0;
 
 my $startingjobR = 0; # StartingJob record found and parsed
@@ -8418,8 +8453,8 @@ my $jobmips = -1;
    my $thrusted =0;
    my $copied   =0;
    my $failedcp =0;
-   my $bad      =0; 
-   my $unchecked=0; 
+   my $bad      =0;
+   my $unchecked=0;
 
 
     my $run  = 0;
@@ -8438,7 +8473,7 @@ my $jobmips = -1;
      my $copyfailed  = 0;
 
  my $timenow = time();
- 
+
  my @jj      = split '/', $inputfile;
 
  my $joufile  = $jj[$#jj];
@@ -8453,16 +8488,16 @@ foreach my $block (@blocks) {
     for (my $i=0; $i<$#junk+1; $i++) {
       $junk[$i] = trimblanks($junk[$i]);
     }
-#    
+#
     my ($utime,@jj) = split " ",$block;
     if (defined $utime) {
      if ($utime > $firstjobtime && $utime < $lastjobtime) {
 #
-# find one of the following : RunIncomplete StartingJob, StartingRun, 
+# find one of the following : RunIncomplete StartingJob, StartingRun,
 #                             OpenDST, CloseDST, RunFinished
 #
 #-I-TimeStamp 1051668098 Wed Apr 30 04:01:38 2003
-#,  RunIncomplete CInfo  , Host ccwall43 , EventsProcessed 162892 , LastEvent 319737 
+#,  RunIncomplete CInfo  , Host ccwall43 , EventsProcessed 162892 , LastEvent 319737
 #, Errors 4364 , CPU 100271 , Elapsed 126696 , CPU/Event 0.615564 , Status Failed
 
       if ($block =~/RunIncomplete/) {
@@ -8471,7 +8506,7 @@ foreach my $block (@blocks) {
               print FILE "$block \n";
 
           $patternsmatched  = 0;
-          my @RunIncompletePatterns = 
+          my @RunIncompletePatterns =
                 ("RunIncomplete","Host","Run","EventsProcessed","LastEvent","Errors",
                               "CPU","Elapsed","CPU/Event","Status");
           for (my $i=0; $i<$#junk+1; $i++) {
@@ -8479,7 +8514,7 @@ foreach my $block (@blocks) {
            if ($#jj > 0) {
             my $found = 0;
             my $j     = 0;
-            while ($j<$#RunIncompletePatterns+1 && $found == 0) { 
+            while ($j<$#RunIncompletePatterns+1 && $found == 0) {
             if ($jj[0] eq $RunIncompletePatterns[$j]) {
              $runincomplete[$j] = trimblanks($jj[1]);
              $patternsmatched++;
@@ -8492,7 +8527,7 @@ foreach my $block (@blocks) {
    if ($patternsmatched == $#RunIncompletePatterns+1) { #RunIncomplete has a pair CInfo
     $runincomplete[0] = "RunIncomplete";
     $run              = $runincomplete[2];
-    
+
     $runfinishedR   = 1;
     my $sql = "SELECT run FROM runs WHERE run = $run AND levent=$runincomplete[4]";
     my $ret = $self->{sqlserver}->Query($sql);
@@ -8500,9 +8535,9 @@ foreach my $block (@blocks) {
      my $cputime = sprintf("%.0f",$runincomplete[6]);
      my $elapsed = sprintf("%.0f",$runincomplete[7]);
      $host = $runincomplete[1];
-     $sql = "UPDATE Jobs SET EVENTS=$runincomplete[3], ERRORS=$runincomplete[5], 
+     $sql = "UPDATE Jobs SET EVENTS=$runincomplete[3], ERRORS=$runincomplete[5],
                                    CPUTIME=$cputime, ELAPSED=$elapsed,
-                                   HOST='$host', TIMESTAMP = $timestamp 
+                                   HOST='$host', TIMESTAMP = $timestamp
                    WHERE JID = (SELECT Runs.jid FROM Runs WHERE Runs.jid = $run)";
      print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
@@ -8532,7 +8567,7 @@ foreach my $block (@blocks) {
                          $inputfile." file. ".
                          "\n Please provide job log file to V.Choutko".
                          "\n MC production team";
-          $sql = "SELECT Mails.address FROM Jobs, Mails 
+          $sql = "SELECT Mails.address FROM Jobs, Mails
                   WHERE Jobs.jid=$jobid AND Mails.mid = Jobs.mid";
           my $ret = $self->{sqlserver}->Query($sql);
           if(defined $ret->[0][0]){
@@ -8545,20 +8580,20 @@ foreach my $block (@blocks) {
       elsif ($block =~/StartingJob/) {
 
 #
-# , JobStarted HostName gcie01 default , UID 805306385 , PID 3578 3573 , Type Producer , 
+# , JobStarted HostName gcie01 default , UID 805306385 , PID 3578 3573 , Type Producer ,
 #   ExitStatus NOP , StatusType OneRunOnly
-#              HostName pcamsvc  , UID 134217740 , PID 11894 11891 , Type Standalone , 
-# ExitStatus NOP ,StatusType OneRunOnly   
+#              HostName pcamsvc  , UID 134217740 , PID 11894 11891 , Type Standalone ,
+# ExitStatus NOP ,StatusType OneRunOnly
 #
       $patternsmatched = 0;
       my @StartingJobPatterns = ("StartingJob", "HostName","UID","PID","Type",
                                   "ExitStatus","StatusType");
-      for (my $i=0; $i<$#junk+1; $i++) { 
+      for (my $i=0; $i<$#junk+1; $i++) {
         my @jj = split " ",$junk[$i];
         if ($#jj > 0) {
          my $found = 0;
          my $j     = 0;
-         while ($j<$#StartingJobPatterns+1 && $found == 0) { 
+         while ($j<$#StartingJobPatterns+1 && $found == 0) {
           if ($jj[0]  eq $StartingJobPatterns[$j]) {
               $startingjob[$j] = trimblanks($jj[1]);
               $patternsmatched++;
@@ -8575,15 +8610,15 @@ foreach my $block (@blocks) {
     }
   } else {
        print FILE "Fatal - cannot find JobInfo in file $inputfile\n";
-       system("mv $inputfile $inputfile.0"); 
+       system("mv $inputfile $inputfile.0");
        return;
    }
    if ($self->getRunStatus($jobid,0) eq 'Completed') {
        print FILE "Job : $jobid Status : Completed. Return \n";
        return;
-   }  
+   }
 
-   if ($patternsmatched == $#StartingJobPatterns) { 
+   if ($patternsmatched == $#StartingJobPatterns) {
     $startingjob[0] = "StartingJob";
     $lastjobid = $startingjob[2];
     $startingjobR   = 1;
@@ -8595,19 +8630,19 @@ foreach my $block (@blocks) {
    } elsif (($block =~/JobStarted/)) {
 # 19.09.03
 #
-#, JobStarted HostName pcamsf6 hrdl , UID 116 , PID 5751 5746 , Type 
+#, JobStarted HostName pcamsf6 hrdl , UID 116 , PID 5751 5746 , Type
 # Producer , ExitStatus NOP , StatusType OneRunOnly , Mips 2445
 #                                                     ^^^^
 #
       $patternsmatched = 0;
       my @StartingJobPatterns = ("JobStarted", "HostName","UID","PID","Type",
                                   "ExitStatus","StatusType","Mips");
-      for (my $i=0; $i<$#junk+1; $i++) { 
+      for (my $i=0; $i<$#junk+1; $i++) {
         my @jj = split " ",$junk[$i];
         if ($#jj > 0) {
          my $found = 0;
          my $j     = 0;
-         while ($j<$#StartingJobPatterns+1 && $found == 0) { 
+         while ($j<$#StartingJobPatterns+1 && $found == 0) {
           if ($jj[0]  eq $StartingJobPatterns[$j]) {
               $startingjob[$j] = trimblanks($jj[1]);
               $patternsmatched++;
@@ -8625,16 +8660,16 @@ foreach my $block (@blocks) {
     $jobid = $startingjob[2];
     if ($self->findJob($jobid) != $jobid) {
        print FILE "Fatal - cannot find JobInfo for $jobid \n";
-       system("mv $inputfile $inputfile.0"); 
+       system("mv $inputfile $inputfile.0");
        $BadRuns[$nCheckedCite]++;
        return;
     }
    } else {
        print FILE "Fatal - cannot find JobInfo in file $inputfile\n";
-       system("mv $inputfile $inputfile.0"); 
+       system("mv $inputfile $inputfile.0");
        return;
    }
-   if ($patternsmatched == $#StartingJobPatterns || $patternsmatched == $#StartingJobPatterns-1) { 
+   if ($patternsmatched == $#StartingJobPatterns || $patternsmatched == $#StartingJobPatterns-1) {
     $startingjob[0] = "StartingJob";
     $startingjobR   = 1;
     $lastjobid = $startingjob[2];
@@ -8645,19 +8680,19 @@ foreach my $block (@blocks) {
     #
    } elsif (($block =~/StartingRun/)) {
 #
-# StartingRun REI, ID 0 , Run 134217740 , FirstEvent 1 , LastEvent 21000 , Prio 0 , Path  , 
-# Status Allocated , History Foreign , ClientID 134217740 , SubmitTimeU 1049456649, 
-# SubmitTime Fri Apr  4 13:44:09 2003, Host pcamsvc , Run 0, EventsProcessed 0 , 
+# StartingRun REI, ID 0 , Run 134217740 , FirstEvent 1 , LastEvent 21000 , Prio 0 , Path  ,
+# Status Allocated , History Foreign , ClientID 134217740 , SubmitTimeU 1049456649,
+# SubmitTime Fri Apr  4 13:44:09 2003, Host pcamsvc , Run 0, EventsProcessed 0 ,
 # LastEvent 0 , Errors 0 , CPU 0 , Elapsed 0 , CPU/Event 0 , Status Processing
 #
-   
+
 
       $patternsmatched = 0;
       my @StartingRunPatterns = ("StartingRun","ID","Run","FirstEvent","LastEvent",
                                  "Prio","Path","Status","History","CounterFail", "ClientID",
                                  "SubmitTime","SubmitTimeU","Host","EventsProcessed","LastEvent",
                                  "Errors","CPU","Elapsed","CPU/Event","Status");
-  
+
       my $j = 0;
       foreach my $pat (@StartingRunPatterns) {
         foreach my $xyz (@junk) {
@@ -8674,8 +8709,8 @@ foreach my $block (@blocks) {
      }
 
 
-   
-   if ($patternsmatched == $#StartingRunPatterns+3 || $patternsmatched == $#StartingRunPatterns+4) { 
+
+   if ($patternsmatched == $#StartingRunPatterns+3 || $patternsmatched == $#StartingRunPatterns+4) {
     $run = $startingrun[2];
     $startingrun[0] = "StartingRun";
     $startingrunR   = 1;
@@ -8694,11 +8729,11 @@ foreach my $block (@blocks) {
      if (defined $startingrun[13]) {
       $host=$startingrun[13];
      }
-     $sql = "UPDATE Jobs SET 
+     $sql = "UPDATE Jobs SET
                  host='$host',
                  events=$startingrun[14], errors=$startingrun[16],
                  cputime=$startingrun[17], elapsed=$startingrun[18],
-                 timestamp=$timestamp, mips = $jobmips  
+                 timestamp=$timestamp, mips = $jobmips
                 where jid=$lastjobid";
      print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
@@ -8706,25 +8741,25 @@ foreach my $block (@blocks) {
        print FILE "StartingRun - cannot find all patterns $patternsmatched/$#StartingRunPatterns \n";
        print "StartingRun -W- cannot find all patterns $patternsmatched/$#StartingRunPatterns \n";
    }
-   # end StartingRun 
+   # end StartingRun
    #
-   } elsif ($block =~/OpenDST/) { 
+   } elsif ($block =~/OpenDST/) {
 #
-# OpenDST  , Status InProgress , Type Ntuple , Name pcamsvc:/tmp/14/pl1/14/134217740.1.hbk , 
-# Version v4.00/build56/os2 , Size 0 , CRC 0 , Insert 1049456665 , Begin 1177173455 , End 0 , 
+# OpenDST  , Status InProgress , Type Ntuple , Name pcamsvc:/tmp/14/pl1/14/134217740.1.hbk ,
+# Version v4.00/build56/os2 , Size 0 , CRC 0 , Insert 1049456665 , Begin 1177173455 , End 0 ,
 # Run 134217740 , FirstEvent 1 , LastEvent 0 , EventNumber 0 , ErrorNumber 0
 #
     $patternsmatched = 0;
     my @OpenDSTPatterns = ("OpenDST","Status","Type","Name","Version",
                            "Size","CRC","Insert","Begin","End",
                           "Run","FirstEvent","LastEvent","EventNumber","ErrorNumber");
-     for (my $i=0; $i<$#junk+1; $i++) { 
+     for (my $i=0; $i<$#junk+1; $i++) {
       my @jj = split " ",$junk[$i];
       if ($#jj > 0) {
        my $found = 0;
        my $j     = 0;
-        while ($j<$#OpenDSTPatterns+1 && $found == 0) { 
-         my $pattern = lc($OpenDSTPatterns[$j]); 
+        while ($j<$#OpenDSTPatterns+1 && $found == 0) {
+         my $pattern = lc($OpenDSTPatterns[$j]);
          if ($jj[0] eq $OpenDSTPatterns[$j] || $jj[0] eq $pattern) {
             $opendst[$j] = trimblanks($jj[1]);
             $patternsmatched++;
@@ -8740,13 +8775,13 @@ foreach my $block (@blocks) {
    } else  {
      print FILE "OpenDST - cannot find all patterns \n";
    }
-   # end OpenDST 
-   # 
-   } elsif ($block =~/CloseDST/) { 
+   # end OpenDST
+   #
+   } elsif ($block =~/CloseDST/) {
 #
-# CloseDST  , Status Validated , Type Ntuple , Name pcamsvc:/tmp/14/pl1/14/134217740.1.hbk , 
-# Version v4.00/build56/os2 , Size 3 , CRC 2453001786 , 
-# Insert 1049457375 , Begin 1177173455 , End 1224534144 , 
+# CloseDST  , Status Validated , Type Ntuple , Name pcamsvc:/tmp/14/pl1/14/134217740.1.hbk ,
+# Version v4.00/build56/os2 , Size 3 , CRC 2453001786 ,
+# Insert 1049457375 , Begin 1177173455 , End 1224534144 ,
 # Run 134217740 , FirstEvent 1 , LastEvent 21000 , EventNumber 312 , ErrorNumber 0
 #
     $patternsmatched  = 0;
@@ -8758,13 +8793,13 @@ foreach my $block (@blocks) {
     my @CloseDSTPatterns = ("CloseDST","Status","Type","Name","Version",
                             "Size","CRC","Insert","Begin","End",
                             "Run","FirstEvent","LastEvent","EventNumber","ErrorNumber");
-     for (my $i=0; $i<$#junk+1; $i++) { 
+     for (my $i=0; $i<$#junk+1; $i++) {
       my @jj = split " ",$junk[$i];
       if ($#jj > 0) {
        my $found = 0;
        my $j     = 0;
-       while ($j<$#CloseDSTPatterns+1 && $found == 0) { 
-        my $pattern = lc($CloseDSTPatterns[$j]); 
+       while ($j<$#CloseDSTPatterns+1 && $found == 0) {
+        my $pattern = lc($CloseDSTPatterns[$j]);
         if ($jj[0] eq $CloseDSTPatterns[$j] || $jj[0] eq $pattern) {
           $closedst[$j] = trimblanks($jj[1]);
           $patternsmatched++;
@@ -8777,12 +8812,12 @@ foreach my $block (@blocks) {
    if ($patternsmatched == $#CloseDSTPatterns) { #CloseDST has no pair
 #
 # Check CRC
-# 
+#
    if ($closedst[$crcIndx] == 0) {
     print FILE "Status : $closedst[$statusIndx], CRC $closedst[$crcIndx]. Skip file : : $closedst[$fileIndx] \n";
     if ($verbose == 1 && $webmode == 0) {
      print "Status : $closedst[$statusIndx], CRC $closedst[$crcIndx]. Skip file : $closedst[$fileIndx] \n";
-    }   
+    }
    }  else {
 #
 # find ntuple
@@ -8802,7 +8837,7 @@ foreach my $block (@blocks) {
     } else {
      if ($closedst[1] ne "Validated" and $closedst[1] ne "Success" and $closedst[1] ne "OK") {
       print FILE "parseJournalFile -W- CloseDST block : $dstfile,  DST status  $closedst[1]. Check anyway.\n";
-     } 
+     }
       $dstsize = sprintf("%.1f",$dstsize/1000/1000);
       $closedst[0] = "CloseDST";
        print FILE "$dstfile.... \n";
@@ -8849,7 +8884,7 @@ foreach my $block (@blocks) {
 
       if( ($i == 0xff00) or ($i & 0xff)){
        if($ntstatus ne "Validated"){
-         $ntstatus="Unchecked";                     
+         $ntstatus="Unchecked";
          $badevents="NULL";
          $unchecked++;
          $copyfailed = 1;
@@ -8864,8 +8899,8 @@ foreach my $block (@blocks) {
           if(int($i/128)){
            $ntevents=0;
            $badevents="NULL";
-           $ntstatus="Bad".($i-128);  
-           $bad++;                   
+           $ntstatus="Bad".($i-128);
+           $bad++;
            $levent -= $dstlevent-$dstfevent+1;
           }
            else{
@@ -8876,7 +8911,7 @@ foreach my $block (@blocks) {
             $ntstatus = "Validated";
             my ($outputpath,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc,$version);
             if(defined $outputpath){
-              push @mvntuples, $outputpath; 
+              push @mvntuples, $outputpath;
             }
             print FILE "doCopy return status : $rstatus \n";
             if ($rstatus == 1) {
@@ -8894,7 +8929,7 @@ foreach my $block (@blocks) {
                                $ntstatus,
                                $outputpath,
                                $ntcrc,
-                               $timestamp, 1, 0); 
+                               $timestamp, 1, 0);
 
              print FILE "insert ntuple : $run, $outputpath, $closedst[1]\n";
              $gbDST[$nCheckedCite] = $gbDST[$nCheckedCite] + $dstsize;
@@ -8909,13 +8944,13 @@ foreach my $block (@blocks) {
    } else  {
      print FILE "parseJournalFiles -W- CloseDST - cannot find all patterns \n";
    }
-  
-   # end CloseDST 
-   # 
 
-  } elsif ($block =~/RunFinished/) { 
+   # end CloseDST
+   #
+
+  } elsif ($block =~/RunFinished/) {
 #
-# RunFinished CInfo  , Host pcamsvc , EventsProcessed 10796 , LastEvent 21000 , 
+# RunFinished CInfo  , Host pcamsvc , EventsProcessed 10796 , LastEvent 21000 ,
 # Errors 3 , CPU 712.62 , Elapsed 725.923 , CPU/Event 0.0660017 , Status Finished
 #
     $patternsmatched  = 0;
@@ -8926,7 +8961,7 @@ foreach my $block (@blocks) {
       if ($#jj > 0) {
         my $found = 0;
         my $j     = 0;
-        while ($j<$#RunFinishedPatterns+1 && $found == 0) { 
+        while ($j<$#RunFinishedPatterns+1 && $found == 0) {
          if ($jj[0] eq $RunFinishedPatterns[$j]) {
           $runfinished[$j] = trimblanks($jj[1]);
           $patternsmatched++;
@@ -8947,9 +8982,9 @@ foreach my $block (@blocks) {
     my $cputime = sprintf("%.0f",$runfinished[6]);
     my $elapsed = sprintf("%.0f",$runfinished[7]);
     $host= $runfinished[1];
-    $sql = "update jobs set events=$runfinished[3], errors=$runfinished[5], 
+    $sql = "update jobs set events=$runfinished[3], errors=$runfinished[5],
                                    cputime=$cputime, elapsed=$elapsed,
-                                   host='$host',timestamp = $timestamp 
+                                   host='$host',timestamp = $timestamp
                                where jid = (select runs.jid from runs where runs.jid = $run)";
      print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
@@ -8958,15 +8993,15 @@ foreach my $block (@blocks) {
    }
    #
    # end RunFinished
-   # 
+   #
    }
   } else {
     $BadRuns[$nCheckedCite]++;
     print FILE "*********** wrong timestamp : $utime ($firstjobtime,$lastjobtime)\n";
-    system("mv $inputfile $inputfile.0"); 
-    return; 
+    system("mv $inputfile $inputfile.0");
+    return;
    }
-  } #if defined $utime 
+  } #if defined $utime
 }
 
  if ($startingrunR == 1 || $runfinishedR == 1) {
@@ -8982,17 +9017,17 @@ foreach my $block (@blocks) {
       print FILE "Validation done : system command $cmd \n";
       $GoodDSTs[$nCheckedCite]++;
     }
-   if ($#cpntuples >= 0) { 
+   if ($#cpntuples >= 0) {
     $status = 'Completed';
     $inputfileLink = $inputfile.".1";
     $GoodRuns[$nCheckedCite]++;
     if ($runfinishedR != 1) {
       print FILE "End of Run not found update Jobs \n";
-      $sql = "UPDATE Jobs SET 
+      $sql = "UPDATE Jobs SET
                  host='$host',
                  events=$tevents, errors=$terrors,
                  cputime=-1, elapsed=-1,
-                 timestamp=$timestamp 
+                 timestamp=$timestamp
                 where jid=$lastjobid";
       print FILE "$sql \n";
       $self->{sqlserver}->Update($sql);
@@ -9026,15 +9061,15 @@ foreach my $block (@blocks) {
     $sql = "SELECT dirpath FROM journals WHERE cid=-1";
     my $ret=$self->{sqlserver}->Query($sql);
      if( defined $ret->[0][0]){
-      my $junkdir = $ret->[0][0];   
+      my $junkdir = $ret->[0][0];
       $cmd = "mv $dirpath/*$run* $junkdir/";
       print FILE "$cmd\n";
       system($cmd);
       print FILE "Validation/copy failed : mv ntuples to $junkdir \n";
      }
    }
-} 
-  system("mv $inputfile $inputfileLink"); 
+}
+  system("mv $inputfile $inputfileLink");
   print FILE "mv $inputfile $inputfileLink\n";
   if ($webmode == 0 && $verbose == 1) {print "mv $inputfile $inputfileLink \n";}
   if ($status eq "Completed") {
@@ -9050,15 +9085,15 @@ sub updateAllRunCatalog {
 #
     if( not $self->Init()){
         die "updateAllRunCatalog -F- Unable To Init";
-        
+
     }
     if (not $self->ServerConnect()){
         die "updateAllRunCatalog -F- Unable To Connect To Server";
     }
 #
 
-    
-    my $sql = "SELECT Jobs.jid FROM Jobs, Runs 
+
+    my $sql = "SELECT Jobs.jid FROM Jobs, Runs
                WHERE Jobs.jid=Runs.jid AND Runs.status='Completed'";
     my $r0 = $self->{sqlserver}->Query($sql);
     if(defined $r0->[0][0]){
@@ -9085,7 +9120,7 @@ sub updateRunCatalog {
     my $r0 = $self->{sqlserver}->Query($sql);
     if(defined $r0->[0][0] && defined $r0->[0][1]){
       $runstatus = $r0->[0][0];
-      $jobcontent = $r0->[0][1];       
+      $jobcontent = $r0->[0][1];
       if ($runstatus eq 'Completed') {
           $sql = "DELETE runcatalog WHERE run=$jid";
           if ($verbose == 1 && $webmode == 1) {print "$sql \n";}
@@ -9105,7 +9140,7 @@ sub updateRunCatalog {
             foreach my $ent (@farray){
              foreach my $line (@sbuf){
                if($line =~/$ent=/){
-                my @junk=split "$ent=",$line;       
+                my @junk=split "$ent=",$line;
                 if (defined $junk[$#junk]) {
                  if ($ent=~/TRIGGER/) {
                   $sql0=$sql0.", TRTYPE";
@@ -9113,20 +9148,20 @@ sub updateRunCatalog {
                   $sql0=$sql0.",".$ent;
                  }
                  if ($narray[$i] == 0) {
-                  $sql1=$sql1."," ."'$junk[$#junk]'";         
+                  $sql1=$sql1."," ."'$junk[$#junk]'";
                  } else {
-                  $sql1=$sql1."," .$junk[$#junk];         
+                  $sql1=$sql1."," .$junk[$#junk];
                  }
-               } else { 
+               } else {
                 if ($ent=~/SETUP/) {
                  $sql0=$sql0.", SETUP";
                  $sql1=$sql1.", 'AMS02'";
-                }              
+                }
                 if ($ent=~/TRIGGER/) {
                  $sql0=$sql0.", TRTYPE";
                  $sql1=$sql1.", 'TriggerLVL1'";
                 }
-              }              
+              }
               last;
             }
            }
@@ -9142,7 +9177,7 @@ sub updateRunCatalog {
                        $sql1=$sql1.","."'$line'";
                        last;
                }
-         
+
             }
             $sql0=$sql0.", TIMESTAMP) ";
             $sql1=$sql1.",".$timestamp.")";
@@ -9205,7 +9240,7 @@ sub deleteTimeOutJobs {
     if (not defined $vdir) {
       die " deleteTimeOurJobs -F- cannot get path to ValidationDir \n";
      }
-    $vlog = $vdir."/deleteTimeOutJobs.log.".$timenow;   
+    $vlog = $vdir."/deleteTimeOutJobs.log.".$timenow;
 
     open(FILE,">".$vlog) or die "Unable to open file $vlog\n";
 #
@@ -9220,11 +9255,11 @@ sub deleteTimeOutJobs {
 
     my $time1 = time();
     my $sql  = undef;
-    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid, 
-                 cites.name, mails.name FROM jobs, cites, mails, runs  
-               WHERE Jobs.jid = Runs.jid AND  
-                     Jobs.cid = Cites.cid AND 
-                     Jobs.mid = Mails.mid AND 
+    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid,
+                 cites.name, mails.name FROM jobs, cites, mails, runs
+               WHERE Jobs.jid = Runs.jid AND
+                     Jobs.cid = Cites.cid AND
+                     Jobs.mid = Mails.mid AND
                      Runs.status = 'TimeOut'";
     my $ret = $self->{sqlserver}->Query($sql);
     my $time2 = time();
@@ -9250,7 +9285,7 @@ sub deleteTimeOutJobs {
             my $cid          = $job->[4];
             my $cite         = $job->[5];
             my $owner        = $job->[6];
-           if ($update == 1) {           
+           if ($update == 1) {
             $sql = "DELETE Ntuples WHERE jid=$jid";
             $self->{sqlserver}->Update($sql);
             $sql = "DELETE Jobs WHERE jid=$jid";
@@ -9259,7 +9294,7 @@ sub deleteTimeOutJobs {
            }
             foreach my $runinfo (@{$self->{dbserver}->{rtb}}){
              if($runinfo->{Run}=$jid) {
-#--              DBServer::sendRunEvInfo($self->{dbserver},$runinfo,"Delete"); 
+#--              DBServer::sendRunEvInfo($self->{dbserver},$runinfo,"Delete");
               print FILE "*TRY* send Delete to DBServer, run=$runinfo->{Run} \n";
               last;
              }
@@ -9282,13 +9317,13 @@ sub deleteTimeOutJobs {
 #
 
     my $timedelete = time() - 4*60*60;
-    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid 
+    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid
             FROM jobs
              WHERE jobs.time+jobs.timeout <  $timedelete AND (jobs.mips = 0 OR jobs.events=0)";
-#    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid, 
-#                 cites.name FROM jobs, cites 
-#          WHERE jobs.timestamp+jobs.timeout < $timedelete  AND 
-#                jobs.cid=cites.cid"; 
+#    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid,
+#                 cites.name FROM jobs, cites
+#          WHERE jobs.timestamp+jobs.timeout < $timedelete  AND
+#                jobs.cid=cites.cid";
     my $r3=$self->{sqlserver}->Query($sql);
     my $time4 = time();
     if( defined $r3->[0][0]){
@@ -9300,7 +9335,7 @@ sub deleteTimeOutJobs {
       print "<td><b><font color=\"blue\" >Expired</font></b></td>";
       print "<td><b><font color=\"blue\" >Owner</font></b></td>";
       print "</tr>\n";
-    } 
+    }
       foreach my $job (@{$r3}){
             my $jid          = $job->[0];
             my $timestamp    = $job->[1];
@@ -9308,15 +9343,15 @@ sub deleteTimeOutJobs {
             my $tsubmit      = EpochToDDMMYYHHMMSS($timestamp);
             my $texpire      = EpochToDDMMYYHHMMSS($timestamp+$timeout);
             my $mid          = $job->[3];
-            my $cid          = $job->[4];    
+            my $cid          = $job->[4];
             my $cite         = "XYZ";
 
         $sql="SELECT run  FROM runs WHERE jid = $jid";
-        my $r4=$self->{sqlserver}->Query($sql); 
+        my $r4=$self->{sqlserver}->Query($sql);
          if ($update == 1) {
           if (not defined $r4->[0][0]) {
             $sql = "SELECT name FROM Cites where cid = $cid";
-            my $r5=$self->{sqlserver}->Query($sql); 
+            my $r5=$self->{sqlserver}->Query($sql);
             $cite = $r5->[0][0];
             $sql = "DELETE Ntuples WHERE jid=$jid";
             $self->{sqlserver}->Update($sql);
@@ -9325,12 +9360,12 @@ sub deleteTimeOutJobs {
             print FILE "$sql \n";
             foreach my $runinfo (@{$self->{dbserver}->{rtb}}){
              if($runinfo->{Run}=$jid) {
-              DBServer::sendRunEvInfo($self->{dbserver},$runinfo,"Delete"); 
+              DBServer::sendRunEvInfo($self->{dbserver},$runinfo,"Delete");
               print FILE "send Delete to DBServer, run=$runinfo->{Run}\n";
               last;
              }
          }
-        
+
         $self->amsprint($cite,666);
         $self->amsprint($jid,666);
         $self->amsprint($tsubmit,666);
@@ -9375,7 +9410,7 @@ sub insertRun {
     my $doinsert = 0;
     my $sql      = undef;
 
-    $sql="SELECT run, jid, fevent, levent, status 
+    $sql="SELECT run, jid, fevent, levent, status
           FROM Runs WHERE run=$run";
     my $ret = $self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
@@ -9457,7 +9492,7 @@ sub getRunStatus {
         $sql = "SELECT status FROM Runs WHERE jid=$jid";
     } elsif ($run > 0) {
         $sql = "SELECT status FROM Runs WHERE run=$run";
-    }    
+    }
 
     my $ret = $self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
@@ -9480,7 +9515,7 @@ sub insertNtuple {
   my $events   = shift;   # total events
   my $errors   = shift;   # total errors
   my $timestamp= shift;   # insert time
-  my $ntsize   = shift;   # size MB 
+  my $ntsize   = shift;   # size MB
   my $status   = shift;   # status
   my $path     = shift;   # full file path
   my $crc      = shift;   # crc
@@ -9494,7 +9529,7 @@ sub insertNtuple {
   my @junk    = split "/",$path;
   my $filename = trimblanks($junk[$#junk]);
 
-  $sql = "SELECT run, path FROM ntuples 
+  $sql = "SELECT run, path FROM ntuples
           WHERE run=$run AND path like '%$filename%'";
   $ret = $self->{sqlserver}->Query($sql);
   if (defined $ret->[0][0]) {
@@ -9508,7 +9543,7 @@ sub insertNtuple {
     $ntsize = $ntsize/1024/1024;
     $sizemb = sprintf("%.f",$ntsize);
   }
-#              
+#
   $sql = "INSERT INTO ntuples VALUES( $run,
                                          '$version',
                                          '$type',
@@ -9521,8 +9556,8 @@ sub insertNtuple {
                                           $sizemb,
                                           '$status',
                                           '$path',
-                                           $crc, 
-                                           $crctime,$crcflag,$castortime)"; 
+                                           $crc,
+                                           $crctime,$crcflag,$castortime)";
   $self->{sqlserver}->Update($sql);
 
 }
@@ -9537,9 +9572,9 @@ sub printMC02GammaTest {
     open(FILE,"<".$mc02gammafile) or die "Unable to open $mc02gammafile \n";
     read(FILE,$buf,1638400);
     close FILE;
-  
+
     my @lines=split "\n",$buf;
-  
+
     htmlTop();
       print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
       print "<td><b><font color=\"blue\">Dataset </font></b></td>";
@@ -9636,7 +9671,7 @@ sub getProductionVersion {
 # v4.00/build78/os2
 #
     my $self = shift;
-   
+
     my $sql     = undef;
     my $ret     = undef;
     my $version = 0;
@@ -9648,7 +9683,7 @@ sub getProductionVersion {
     if (defined $r0->[0][0]) {
       my @junk = split '/',$r0->[0][0];
       $junk[0] =~ s/v//;
-      $junk[1] =~ s/build//;      
+      $junk[1] =~ s/build//;
       $junk[2] =~ s/os//;
       $self->{ProductionVersion}=$r0->[0][0];
       $self->{Version}=strtod($junk[0]);
@@ -9659,18 +9694,18 @@ sub getProductionVersion {
 
 sub checkDSTVersion  {
 #
-# compare DST version with min allowed 
+# compare DST version with min allowed
 # version for the 'Active' productionset
 # send '0' if DST version < MIN
 #
     my $self = shift;
     my $dstv = shift;
 
-    my $rstatus = 1; 
+    my $rstatus = 1;
 
     my @junk = split '/',$dstv;
     $junk[0]    =~ s/v//;
-    $junk[1] =~ s/build//;      
+    $junk[1] =~ s/build//;
     my $version=strtod($junk[0]);
     my $build  =strtod($junk[1]);
 
@@ -9681,13 +9716,13 @@ sub checkDSTVersion  {
        my $vvv  = strtod($vdb);
        if ($vvv == $version) {
            my $pbuild = $p->{vgbatch};
-           $pbuild =~ s/build//;      
+           $pbuild =~ s/build//;
            my $bbb =  strtod($pbuild);
            if ($build   < $self->{Build}) {
              $rstatus = 0;
              last;
          }
-      }      
+      }
    }
   }
     return $rstatus;
@@ -9696,7 +9731,7 @@ sub checkDSTVersion  {
 
 sub getDSTVersion  {
 #
-# split DST version to : db / build/ os versions 
+# split DST version to : db / build/ os versions
 #
     my $self = shift;
     my $vvv = shift;
@@ -9748,16 +9783,16 @@ sub checkDB {
      -d    - directory path (d:directory)
      -i    - internal content of db, that none appears twice
      -p    - DST query word for Database (p:query)
-     -crc  - calculate CRC and compare them 
+     -crc  - calculate CRC and compare them
      -o    - write output to file
      -h    - print help
      -u    - update DB (valid only with -crc)
      -v    - verbose mode
-     -Vldt - run DST validation program 
+     -Vldt - run DST validation program
 
      ./checkdb.cgi -d:/f2dah1/MC/AMS02/2004A/protons -crc
-     ./checkdb.cgi -p:/f2dat1/MC/AMS02/2004A -i 
-     ./checkdb.cgi -d:/f2dat1/MC/AMS02/2004A/protons -Vldt 
+     ./checkdb.cgi -p:/f2dat1/MC/AMS02/2004A -i
+     ./checkdb.cgi -d:/f2dat1/MC/AMS02/2004A/protons -Vldt
 ";
 #
 
@@ -9767,12 +9802,12 @@ sub checkDB {
   my $correct    = 0; # found in DB and on disk
   my $vldterror  = 0; # validation error
   my $ferror     = 0; # file access error
-  my $crcerror   = 0; # CRC doesn't match 
+  my $crcerror   = 0; # CRC doesn't match
   my $notindb    = 0; # not found in db
   my $nfiles     = 0;
   my $nupdate    = 100; # print statistics when $nupdate files are checked
   $nTopDirFiles = 0;
-  
+
   foreach my $chop  (@ARGV){
     if($chop =~/^-d:/){
        $topdir=unpack("x3 A*",$chop);
@@ -9808,7 +9843,7 @@ sub checkDB {
       return 1;
     }
    }
-   
+
    if ((not defined $topdir) && (not defined $ntpath) && $content==0) {
     print "$HelpTxt \n";
     return 1;
@@ -9866,7 +9901,7 @@ sub checkDB {
                 if ($ret == 1) {
                  $i=($i>>8);
                  if(int($i/128)){
-                   print "validateDST -E- $filename : STATUS=Bad.($i-128) \n";  
+                   print "validateDST -E- $filename : STATUS=Bad.($i-128) \n";
                    $vldterror++;
                    $skip = 1;
                  }
@@ -9886,10 +9921,10 @@ sub checkDB {
                }
                if ($updateDB == 1) {
                  my $timenow = time();
-                 $sql = "UPDATE ntuples SET crctime = $timenow, crcflag=$rstatus  
+                 $sql = "UPDATE ntuples SET crctime = $timenow, crcflag=$rstatus
                            WHERE path='$filename'";
                  if ($verbose == 1) {print "$sql \n";}
-                 $self->{sqlserver}->Update($sql); 
+                 $self->{sqlserver}->Update($sql);
                }
               }
              } else {
@@ -9934,7 +9969,7 @@ sub checkDB {
                 if ($ret == 1) {
                  $i=($i>>8);
                  if(int($i/128)){
-                   print "validateDST -E- $filename : STATUS=Bad.($i-128) \n";  
+                   print "validateDST -E- $filename : STATUS=Bad.($i-128) \n";
                    $vldterror++;
                    $skip = 1;
                  }
@@ -9954,10 +9989,10 @@ sub checkDB {
               }
              if ($updateDB == 1) {
               my $timenow = time();
-              $sql = "UPDATE ntuples SET crctime = $timenow, crcflag=$rstatus  
+              $sql = "UPDATE ntuples SET crctime = $timenow, crcflag=$rstatus
                            WHERE path='$filename'";
               if ($verbose == 1) {print "$sql \n";}
-              $self->{sqlserver}->Update($sql); 
+              $self->{sqlserver}->Update($sql);
              }
           }
        $nprint++;
@@ -10001,11 +10036,11 @@ sub checkDB {
         foreach my $nt1 (@{$ret}) {
           my $path1 = trimblanks($nt1->[0]);
           $t1    = $nt1->[1];
-          if ($path1 =~ $path0) { 
+          if ($path1 =~ $path0) {
               $nn++;}
         }
         if ($nn == 0) {
-         print "check your program - $path0 ?? $nn \n";        
+         print "check your program - $path0 ?? $nn \n";
         } elsif ($nn > 1) {
           print "$path0 found $nn times. Timestamps : $t0, $t1 \n";
           $Nd++;
@@ -10068,7 +10103,7 @@ sub printParserStat {
     if (not defined $vdir) {
         $vdir = "/tmp";
      }
-    my $vlog = $vdir."/parseRunsSummary.log.".$timenow;   
+    my $vlog = $vdir."/parseRunsSummary.log.".$timenow;
     open(FILEV,">".$vlog) or die "Unable to open file $vlog\n";
     if ($webmode ==0  and $verbose ==1) { print "printParserStat -I- open $vlog \n";}
 
@@ -10092,7 +10127,7 @@ sub printParserStat {
 
    for (my $i=0; $i<$nCheckedCite+1; $i++) {
      print " \n";
-     my $cj = 
+     my $cj =
               sprintf ("%-20.15s %-20.40s %-50.30s",
                        "Cite : $JouDirPath[$i]", "Latest Journal : $JouLastCheck[$i]", "New Files : $JournalFiles[$i]");
      print $cj;
@@ -10117,7 +10152,7 @@ sub printParserStat {
  print "\n",$summ;
  my $ch0   = sprintf("Total Time %3.1f hours \n",$hours);
  my $mbits = 0;
- if ($doCopyTime > 0) { 
+ if ($doCopyTime > 0) {
      $mbits = $chGB*8*1000/$doCopyTime;}
  my $ch1 = sprintf(" doCopy (calls, time, Mbit/s) : %5d %3.1fh %3.1f [cp file :%5d %3.1fh]; \n",$doCopyCalls, $doCopyTime/60/60, $mbits, $copyCalls, $copyTime/60/60);
  my $ch2 = sprintf(" CRC (calls,time) : %5d, %3.1fh ; Validate (calls,time) : %5d, %3.3fh \n",
@@ -10130,7 +10165,7 @@ sub printParserStat {
 sub updateFilesProcessing {
     my $self = shift;
     my $timenow = time();
-    
+
     my $nCites = $nCheckedCite+1;
 
     my $nJournalFiles = 0;
@@ -10150,7 +10185,7 @@ sub updateFilesProcessing {
     my $sql = "UPDATE FilesProcessing SET Cites=$nCites, Active=$nActiveCites, JOU=$nJournalFiles,
                                           GOOD=$nGoodRuns, Failed=$nFailedRuns, GoodDSTS=$nGoodDSTs,
                                           BadDSTS = $nBadDSTs, Flag = 0, Timestamp=$timenow";
-    $self->{sqlserver}->Update($sql); 
+    $self->{sqlserver}->Update($sql);
 }
 
 sub printWarn {
@@ -10165,7 +10200,7 @@ sub printWarn {
 }
 
 sub getFilesProcessingFlag {
-# 
+#
 # set flag in DB showed that Parcing/Validation is in progress
 #
 # return  = -1   - error
@@ -10185,7 +10220,7 @@ sub getFilesProcessingFlag {
    my $timenow = time();
    my $sql = "SELECT flag, timestamp from FilesProcessing";
    my $ret = $self->{sqlserver}->Query($sql);
-   if (defined $ret) { 
+   if (defined $ret) {
       $flag      = $ret->[0][0];
       $starttime = $ret->[0][1];}
 
@@ -10194,7 +10229,7 @@ sub getFilesProcessingFlag {
 
 
 sub setFilesProcessingFlag {
-# 
+#
 # set flag in DB showed that Parcing/Validation is in progress
 #
     my $self = shift;
@@ -10209,12 +10244,12 @@ sub setFilesProcessingFlag {
 
    my $timenow = time();
    my $sql = "update FilesProcessing set flag = 1, timestamp=$timenow";
-   $self->{sqlserver}->Update($sql); 
+   $self->{sqlserver}->Update($sql);
 }
 
 sub resetFilesProcessingFlag {
 #
-# set flag in DB to stop journal 
+# set flag in DB to stop journal
 # file processing or runs validation
 #
     my $self = shift;
@@ -10229,23 +10264,23 @@ sub resetFilesProcessingFlag {
 
    my $timenow = time();
    my $sql = "update FilesProcessing set flag = -1, timestamp=$timenow";
-   $self->{sqlserver}->Update($sql); 
+   $self->{sqlserver}->Update($sql);
 
 }
 
 sub initFilesProcessingFlag {
 #
-# set flag in DB to stop journal 
+# set flag in DB to stop journal
 # file processing or runs validation
 #
     my $self = shift;
- 
+
     my $timenow = time();
 
     my $sql = "delete FilesProcessing";
-    $self->{sqlserver}->Update($sql); 
+    $self->{sqlserver}->Update($sql);
     $sql = "insert into FilesProcessing values(0,0,0,0,0,0,0,1,$timenow)";
-    $self->{sqlserver}->Update($sql); 
+    $self->{sqlserver}->Update($sql);
 }
 
 sub getOutputPath {
@@ -10329,7 +10364,7 @@ sub getHostsList {
      -h    - print help
      -s    - print short list (no hosts info per cite)
      -v    - verbose mode
-     
+
      from pcamsf0 and pcamss0 only :
 
      ./gethostslist.cgi -c:ciemat -v
@@ -10340,7 +10375,7 @@ sub getHostsList {
     if($chop =~/^-c:/){
        $CiteName=unpack("x3 A*",$chop);
        $CiteName=trimblanks($CiteName);
-    } 
+    }
     if ($chop =~/^-v/) {
      $verbose = 1;
     }
@@ -10358,7 +10393,7 @@ sub getHostsList {
    foreach my $periodst  (@periodStartTime){      if($periodst < $periodStartTime){
        $periodStartTime=$periodst;
      }
-    } 
+    }
 my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($periodStartTime);
     my $lt = localtime($prodstart);
     my $lu = localtime($prodlastupd);
@@ -10371,14 +10406,14 @@ my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($periodStartTime
      $sql = "SELECT cid, descr FROM CITES ORDER BY cid";
     }
     $cl   =$self->{sqlserver}->Query($sql);
-    
-    if (defined $cl->[0][0]) {    
+
+    if (defined $cl->[0][0]) {
         foreach my $cite (@{$cl}) {
          $kCites++;
          my $cid = $cite->[0];
          $cnames[$cid] = $cite->[1];
 
-         $sql = "SELECT SUM(sizemb)  FROM jobs, ntuples 
+         $sql = "SELECT SUM(sizemb)  FROM jobs, ntuples
                   WHERE ntuples.jid=jobs.jid AND cid=$cid AND jobs.timestamp > $periodStartTime";
          my $r = $self->{sqlserver}->Query($sql);
          if (defined $r->[0][0]) {
@@ -10391,8 +10426,8 @@ my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($periodStartTime
          $totaljobs  = 0;
          $totalmips  = 0;
 
-         $sql  = "SELECT host, mips, cputime FROM Jobs 
-                   WHERE host != 'host' and cid=$cid and jobs.timestamp>$periodStartTime 
+         $sql  = "SELECT host, mips, cputime FROM Jobs
+                   WHERE host != 'host' and cid=$cid and jobs.timestamp>$periodStartTime
                     ORDER BY host";
          $hl=$self->{sqlserver}->Query($sql);
          if (defined $hl->[0][0]) {
@@ -10411,7 +10446,7 @@ my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($periodStartTime
             foreach my $comp (@hostlist) {
                 if ($comp =~ $hostname) {
                   $newcomp = 0;
-                  $njobs[$#hostlist]++;   
+                  $njobs[$#hostlist]++;
                   $nmips[$#hostlist] += $totalmips/60/60/24.;
                 }
             }
@@ -10503,7 +10538,7 @@ my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($periodStartTime
         } else {
             print "Warning - Table cites is empty \n";
         }
-   }         
+   }
     return 1;
 }
 
@@ -10512,9 +10547,9 @@ sub getActiveProductionPeriod {
      my $self = shift;
      my @period=();
      my @begin=();
-     my @pid=(); 
+     my @pid=();
 
-     my $sql  = undef; 
+     my $sql  = undef;
      my $ret  = undef;
 
      my $period = $UNKNOWN;
@@ -10528,7 +10563,7 @@ sub getActiveProductionPeriod {
        push @begin ,$pp->[1];
        push @pid,    $pp->[2];
       }
-  return @period, @begin, @pid; 
+  return @period, @begin, @pid;
  }
 
 sub getActiveProductionPeriodByVersion {
@@ -10549,7 +10584,7 @@ sub getActiveProductionPeriodByVersion {
        $begin = $ret->[0][1];
        $pid   = $ret->[0][2];
       }
-  return $period, $begin, $pid; 
+  return $period, $begin, $pid;
  }
 
 
@@ -10578,7 +10613,7 @@ sub getProductionPeriods {
            if ($flag == 1) {
              my $ch  = sprintf(" %5d %15s %10d %10d %12s %6s %6d %6s\n",
                        $productionPeriods[$i]->{id}, $productionPeriods[$i]->{name},$productionPeriods[$i]->{begin},
-                       $productionPeriods[$i]->{end}, $productionPeriods[$i]->{status}, 
+                       $productionPeriods[$i]->{end}, $productionPeriods[$i]->{status},
                        $productionPeriods[$i]->{vdb}, $productionPeriods[$i]->{vgbatch}, $productionPeriods[$i]->{vos});
              print $ch;
         }
@@ -10619,7 +10654,7 @@ sub validateDST {
 
      my $time1 = time();
      $fastntTime += $time1 - $time0;
-     return $ret,$vcode; 
+     return $ret,$vcode;
  }
 
 sub copyFile {
@@ -10647,7 +10682,7 @@ sub gethostname {
     my $hostname = shift;
 
     my $name     = $hostname;
- 
+
     my @junk     = split '\.',$hostname;
     if ($#junk > 0) { $name = $junk[0];}
 
@@ -10666,7 +10701,7 @@ sub getRunningDays {
     my $timepassed= 0;
     my $timenow   = time();
 # first job timestamp
-      $sql="SELECT MIN(Jobs.time), MAX(Jobs.timestamp) FROM Jobs  
+      $sql="SELECT MIN(Jobs.time), MAX(Jobs.timestamp) FROM Jobs
                 WHERE Jobs.cid != $TestCiteId and Jobs.time >= $periodStartTime";
       $ret=$self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
@@ -10691,7 +10726,7 @@ sub printValidateStat {
     if (not defined $vdir) {
         $vdir = "/tmp";
      }
-    my $vlog = $vdir."/validateRunsSummary.log.".$timenow;   
+    my $vlog = $vdir."/validateRunsSummary.log.".$timenow;
     open(FILEV,">".$vlog) or die "Unable to open file $vlog\n";
     if ($webmode ==0  and $verbose ==1) { print "printParserStat -I- open $vlog \n";}
 
@@ -10748,7 +10783,7 @@ sub getRunInfo {
 
 
  my $HelpTxt = "
-     validateRuns gets list of runs from production server 
+     validateRuns gets list of runs from production server
                   validates DSTs and copies them to final destination
                   update Runs and NTuples DB tables
      -c    - output will be produced as ASCII page (default)
@@ -10774,7 +10809,7 @@ sub getRunInfo {
     }
     if($chop =~/^-r:/){
        $Run=unpack("x3 A*",$chop);
-    } 
+    }
     if ($chop =~/^-v/) {
         $verbose = 1;
     }
@@ -10793,10 +10828,10 @@ sub getRunInfo {
     print "getRunInfo -E- -r flag should be defined \n";
      return 1;
  }
- 
+
     if( not $self->Init()){
         die "getRunInfo -F- Unable To Init";
-        
+
     }
     if ($verbose) {print "getRunInfo -I- Connect to Server \n";}
     if (not $self->ServerConnect()){
@@ -10820,7 +10855,7 @@ sub getRunInfo {
             print "CPUTime... $run->{cinfo}->{CPUTimeSpent} \n";
             print "Elapsed... $run->{cinfo}->{TimeSpent} \n";
             print "Host...    $run->{cinfo}->{HostName} \n";
-            last; 
+            last;
       }
     }
 }
@@ -10829,13 +10864,23 @@ sub getRunInfo {
 sub calculateMipsVC {
 
     my $self=shift;
-{
+    my $fast=shift;
+    my $vrb=shift;
+    if(not defined $vrb){
+        $vrb=0;
+    }
+
+
+
         my $totalcpu=0;
         my $restcpu=0;
      my $dir="/afs/ams.cern.ch/AMSDataDir/DataManagement/DataSets";
+      if(defined $self->{AMSSoftwareDir}){
+        $dir="$self->{AMSSoftwareDir}/DataSets";
+      }
      opendir THISDIR ,$dir or die "unable to open $dir";
      my @allfiles= readdir THISDIR;
-     closedir THISDIR;    
+     closedir THISDIR;
     foreach my $file (@allfiles){
         my $newfile="$dir/$file";
        if($file =~/^\.Trial/){
@@ -10844,12 +10889,36 @@ sub calculateMipsVC {
            my $buf;
            read(FILE,$buf,16384);
            close FILE;
-           $self->{TrialRun}=$buf;          
+           $self->{TrialRun}=$buf;
            last;
        }
     }
+
+      my $sql = "SELECT  DID  FROM ProductionSet WHERE STATUS='Active' ORDER BY DID";
+      my $ret = $self->{sqlserver}->Query($sql);
+    my $pps=undef;
+         foreach my $pp  (@{$ret}){
+          if(defined $pps){
+            $pps=$pps." or jobs.pid =";
+          }
+          else{
+           $pps=" and ( jobs.pid =";
+          }
+         $pps=$pps." $pp->[0] ";
+        }
+       if(defined $pps){
+        $pps=$pps." ) ";
+       }
+       else{
+        $pps="";
+       }
+
+
+
+    my @output=();
     foreach my $file (@allfiles){
         my $newfile="$dir/$file";
+        my @tmpa=();
         if(readlink $newfile or  $file =~/^\./){
          next;
         }
@@ -10858,7 +10927,11 @@ sub calculateMipsVC {
           my $dataset={};
           $dataset->{name}=$file;
           $dataset->{jobs}=[];
-          my @tmpa;
+          my $totevt=0;
+          my $submitted=0;
+           my $completed=0;
+           my $totcpu=0;
+           my $rcpu=0;
        opendir THISDIR, $newfile or die "unable to open $newfile";
        my @jobs=readdir THISDIR;
        closedir THISDIR;
@@ -10873,6 +10946,8 @@ sub calculateMipsVC {
            my $buf;
            open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
            read(FILE,$buf,1638400) or next;
+           $template->{bufi}=$buf;
+           $template->{full}=$full;
            close FILE;
            $template->{filename}=$job;
            my @sbuf=split "\n",$buf;
@@ -10880,16 +10955,18 @@ sub calculateMipsVC {
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
-                   my @junk=split "$ent=",$line;                 
+                   my @junk=split "$ent=",$line;
                    $template->{$ent}=$junk[$#junk];
                    $buf=~ s/$ent=/C $ent=/;
                    last;
                }
-            }         
+            }
         }
         if(defined $self->{TrialRun}){
             $template->{TOTALEVENTS}*=$self->{TrialRun};
         }
+        $totevt+=$template->{TOTALEVENTS};
+        $totcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
         $totalcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
            $template->{initok}=1;
            foreach my $ent (@farray){
@@ -10900,405 +10977,132 @@ sub calculateMipsVC {
 #
 # get no of events
 #
-              my $sql="select did from DataSets where name='$dataset->{name}'";
-              my $ret=$self->{sqlserver}->Query($sql);
+        my $sql="select did from DataSets where name='$dataset->{name}'";
+               my $ret=$self->{sqlserver}->Query($sql);
               if( defined $ret->[0][0]){
-                 $dataset->{did}=$ret->[0][0];    
-                 $sql="select jid,time,triggers,timeout from Jobs where did=$ret->[0][0] and jobname like '%$template->{filename}'";
-                 my $r2= $self->{sqlserver}->Query($sql);
+              if($vrb){
+               print "  template $dataset->{name} $template->{filename} $template->{TOTALEVENTS} $template->{CPUPEREVENTPERGHZ} total \n";
+               }
+                 $dataset->{did}=$ret->[0][0];
+                 my $sqlsum="select sum(cputime*1000/mips/realtriggers) from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}' and realtriggers>0 and mips>0".$pps;
+              my $r2= $self->{sqlserver}->Query($sqlsum);
+              my $sum=$r2->[0][0];
+                  $sqlsum="select count(cputime*1000/mips/realtriggers) from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}' and realtriggers>0 and mips>0".$pps;
+              $r2= $self->{sqlserver}->Query($sqlsum);
+              my $count=$r2->[0][0];
+               $sqlsum="select sum(cputime*1000/mips/realtriggers*cputime*1000/mips/realtriggers) from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}' and realtriggers>0 and mips>0".$pps;
+              $r2= $self->{sqlserver}->Query($sqlsum);
+              my $sum2=$r2->[0][0];
+#              print " $sum $count $sum2 \n";
+              if(defined $count and $count>0){
+                  $sum/=$count;
+                  $sum2/=$count;
+                  $sum2=sqrt(abs($sum2-$sum*$sum))/sqrt($count);
+              if($vrb){
+                  print " Sum/Sigma  $sum $sum2 \n";
+              }
+                  if($sum2/$sum<0.001){
+                      $sum2=$sum*0.001;
+                  }
+                  $template->{SUM}=$sum;
+                      $template->{SUM2}=$sum2;
+              }
+                 $sql="select jid,time,triggers,timeout,realtriggers from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}'".$pps;
+                  $r2= $self->{sqlserver}->Query($sql);
                  if(defined $r2->[0][0]){
                      foreach my $job (@{$r2}){
-                         if ($job->[1]-time()>$job->[3]){
-                             $sql="select FEvent,LEvent from Runs where jid=$job->[0] and status='Finished'";
+                       if (time()-$job->[1]>$job->[3]){
+                         my $rtrig=$job->[4];
+                         if(not defined $rtrig or $rtrig<0){
+                             if($vrb){
+                             warn " real trig not defined for $job->[0] \n";
+                             }
+                             $rtrig=0;
+                             $sql="select sum(LEvent-FEvent+1) from Runs where jid=$job->[0] and  (status='Finished' or status='Completed')";
                              my $r3=$self->{sqlserver}->Query($sql);
                              if(defined $r3->[0][0]){
-                              foreach my $run (@{$r3}){
-                               $template->{TOTALEVENTS}-=$run->[1]-$run->[0]+1;
-                              } 
+                                 $rtrig=$r3->[0][0];
                              }
+                             $sql="UPDATE Jobs SET realtriggers=$rtrig WHERE jid=$job->[0]";
+                              $self->{sqlserver}->Update($sql);
+
                          }
+#
+# take same from ntuples
+#
+                         if(!$fast){
+                         $sql="select sum(ntuples.levent-ntuples.fevent+1) from ntuples,runs where ntuples.run=runs.run and runs.jid=$job->[0]";
+                          my $r4=$self->{sqlserver}->Query($sql);
+                         my $ntevt=$r4->[0][0];
+                         if(not defined $ntevt){
+                             $ntevt=0;
+                         }
+                          if( $ntevt ne $rtrig  ){
+                           warn "  ntuples/run mismatch $r4->[0][0] $rtrig $job->[0] \n";
+                       }
+                         if($ntevt!=$rtrig and $ntevt>0){
+                           $sql="select  LEvent from Runs where jid=$job->[0]";
+                           my $qq=$self->{sqlserver}->Query($sql);
+                           my $levent=$qq->[0][0]+$ntevt-$rtrig;
+#                           warn "$levent $ntevt $rtrig $qq->[0][0] \n";
+                             $sql="UPDATE Runs SET Levent=$levent WHERE jid=$job->[0]";
+                              $self->{sqlserver}->Update($sql);
+                                    $sql="UPDATE Jobs SET realtriggers=-1 WHERE jid=$job->[0]";
+                              $self->{sqlserver}->Update($sql);
+#                           die "qq \n";
+                       }
+                          $rtrig=$ntevt;
+                      }
+                         $completed+=$rtrig;
+                         $template->{TOTALEVENTS}-=$rtrig;
+
+                     }
+
                          else {
 #
 # subtract allocated events
                              $template->{TOTALEVENTS}-=$job->[2];
-
+                              $submitted+=$job->[2]; 
                          }
-                     }
-                 }
-             }
-           else{
-               $sql="select did from DataSets";
-               $ret=$self->{sqlserver}->Query($sql);
-               my $did=0;
-               if(defined $ret->[0][0]){
-                   foreach my $ds (@{$ret}){
-                       if($ds->[0]>$did){
-                           $did=$ds->[0];
-                       }
                    }
-               }
-               $did++;
-               $dataset->{did}=$did;
-               my $timestamp = time();
-#             $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
-#             $self->{sqlserver}->Update($sql); 
-           }
-        $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
-          
-           if($sbuf[0] =~/^#/ && defined $template->{initok}){
-
-            $buf=~ s/#/C /;
-            $template->{filebody}=$buf;
-            my $desc=$sbuf[0];
-            substr($desc,0,1)=" ";
-            $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
-           if($template->{TOTALEVENTS}>100){
-             push @tmpa, $template; 
-         }
-           }        
-       }        
-    }
-      }
-    }
-warn "  total/rest  $totalcpu  $restcpu \n";
-}
-#datasets
-
-
-
-    my @directories=(
-     'aprotons',
-     'deuterons',
-     'electrons',
-     'electrons.nomf',
-     'gamma',
-     'nuclei',
-     'positrons',
-     'protons',
-     'C',
-     'He');
-     
-
-    my $sql    = undef;
-    my $jobname= undef;
-
-    my @names;
-    my @cpus;
-    my @elapsed;
-    my @events;
-    my @mips;
-    my @cpumean;
-    my @elapsedmean;
-    my @cpusigma;
-    my @elapsedsigma;
-    my @mipsmean;
-    my @mipssigma;
-    my @njobs;
-    my @particle;
-
-    my $n  = 0;
-#
-    my $timenow = time();
-    my $ltime   = localtime($timenow);
-#
-    print "Start calculateMips : $ltime \n";
- 
-# get jobname and mips
-#
-    $sql = "SELECT 
-              jobs.jobname, jobs.events, jobs.cputime, jobs.elapsed, jobs.mips, jobs.jid, 
-              runs.fevent, runs.levent, ntuples.path     
-              FROM Jobs, Runs, Ntuples  
-              WHERE jobs.jid=runs.jid AND runs.status='Completed' AND jobs.mips>0 AND runs.run=ntuples.run  
-              ORDER BY jid";
-    my $r0 = $self->{sqlserver}->Query($sql);
-    my $jidOld = 0;
-    if (defined $r0->[0][0]) {
-     foreach my $job (@{$r0}){
-      $jobname=trimblanks($job->[0]);
-      my $cite    = undef;
-      my $jid     = undef;
-      my $jobtype = undef;
-      my $eventsj = undef;
-      my $cpusj   = undef;
-      my $elapsedj= undef;
-      my $mipsj   = undef;
-      my $fevent  = undef;
-      my $levent  = undef;
-      my $path    = undef;
-      my $partj   = 'xyz';
-      my $newjob  = 1;
-      my @junk    = split '\.',$jobname;
-      if ($#junk > 0) {
-         $cite        = $junk[0];
-         $jid         = $junk[1];
-         if ($jid != $jidOld) { 
-          $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];     
-          $jobtype=trimblanks($jobtype);
-          $eventsj     = $job->[1];
-          $cpusj       = $job->[2];
-          $elapsedj    = $job->[3];
-          $mipsj       = $job->[4];
-          $jid         = $job->[5];
-          $fevent      = $job->[6];
-          $levent      = $job->[7];
-          $path        = $job->[8];
-
-          $eventsj    = $levent - $fevent + 1;
-
-
-          my $partj= $self->getJobParticleFromDSTPath($path);
-          my $i        = 0;
-          for ($i=0; $i<$#names+1; $i++) {
-             if ($names[$i] eq $jobtype && $particle[$i] eq $partj) {
-                 $events[$i] = $events[$i] + $eventsj;
-                 $cpus[$i]   = $cpus[$i]   + $cpusj;
-                 $elapsed[$i]= $elapsed[$i]+ $elapsedj;
-                 $mips[$i]   = $mips[$i]   + $mipsj;
-                 if ($eventsj > 0 && $mipsj > 0) {
-                  $mipsmean[$i]     = $mipsmean[$i] + ($cpusj*1000/$eventsj)/$mipsj;
                  }
-                 if ($njobs[$i] > 0) {$njobs[$i]++;}
-                 $newjob  = 0;
-                 last;
-             }
           }
-          if ($newjob == 1) {
-                 $names[$n]     = $jobtype;
-                 $events[$n]    = $eventsj;
-                 $cpus[$n]      = $cpusj;
-                 $elapsed[$n]   = $elapsedj;
-                 $mips[$n]      = $mipsj;
-                 $particle[$n]  = $partj;
-                 $njobs[$n]  = 1;
-                 if ($events[$n]>0 && $mipsj > 0) {
-                  $mipsmean[$n]     = ($cpusj/($events[$n]))*1000/$mipsj;
-                 }
-                 $n++;
-             }
-      }
-      $jidOld=$jid;
-     }
-  }
-    my $totaljobs = 0;
-    for (my $j=0; $j<$#names+1; $j++) {
-     $mipsmean[$j]    = $mipsmean[$j]/$njobs[$j];
-     $mipssigma[$j]   = 0;
- 
-     if ($events[$j] > 0) {
-      if ($njobs[$j]>1) {
-       $totaljobs = $totaljobs + $njobs[$j];
-       foreach my $job (@{$r0}){
-        $jobname=trimblanks($job->[0]);
-        my @junk    = split '\.',$jobname;
-        if ($#junk > 0) {
-         my $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];     
-         $jobtype=trimblanks($jobtype);
-         my $path = $job->[8];
-         my $partj= $self->getJobParticleFromDSTPath($path);
-         if ($jobtype eq $names[$j] && $partj eq $particle[$j]) {
-           my $eventsj     = $job->[1];
-           my $cpusj       = $job->[2];
-           my $elapsedj    = $job->[3];
-           my $mipsj       = $job->[4];
-           my $jid         = $job->[5];
-           my $fevent      = $job->[6];
-           my $levent      = $job->[7];
-           $eventsj        = $levent - $fevent + 1;
-           if ($eventsj > 0 && $mipsj >0) {
-               $mipssigma[$j]    = ($mipsmean[$j] - ($cpusj*1000/$eventsj)/$mipsj)**2;
-           }
-       }
-     }
-    }
-   }
-  }
- }
- 
-    my $header =  sprintf("Jobs     Events     CPU[s]   Elapsed[s]   MIPS       <MIPS>       Particle        JobName\n");
-    print "$header";
-        my $totalcpu=0;
-        my $restcpu=0;
-    foreach my $p (@directories) {
-
-
-
-{
-     my $dir="/afs/ams.cern.ch/AMSDataDir/DataManagement/DataSets";
-#     opendir THISDIR ,$dir or die "unable to open $dir";
-#     my @allfiles= readdir THISDIR;
-#     closedir THISDIR;    
-    my $file=$p;
-#    foreach my $file (@allfiles){
-#        my $newfile="$dir/$file";
-#       if($file =~/^\.Trial/){
-#
-#           open(FILE,"<".$newfile) or die "Unable to open dataset control file $newfile \n";
-#           my $buf;
-#           read(FILE,$buf,16384);
-#           close FILE;
-#           $self->{TrialRun}=$buf;          
-#           last;
-#       }
-#}
-#    foreach my $file (@allfiles){
-     my $tcpu=0;
-     my $rcpu=0;
-        my $newfile="$dir/$file";
-        if(readlink $newfile or  $file =~/^\./){
-         next;
-        }
-       my @sta = stat $newfile;
-      if($sta[2]<32000){
-          my $dataset={};
-          $dataset->{name}=$file;
-          $dataset->{jobs}=[];
-          my @tmpa;
-       opendir THISDIR, $newfile or die "unable to open $newfile";
-       my @jobs=readdir THISDIR;
-       closedir THISDIR;
-          push @{$self->{DataSetsT}}, $dataset;
-       foreach my $job (@jobs){
-        if($job =~ /\.job$/){
-        if($job =~ /^\./){
-            next;
-        }
-           my $template={};
-           my $full="$newfile/$job";
-           my $buf;
-           open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
-           read(FILE,$buf,1638400) or next;
-        $template->{bufi}=$buf;
-        $template->{full}=$full;
-           close FILE;
-           $template->{filename}=$job;
-           my @sbuf=split "\n",$buf;
-           my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ");
-           foreach my $ent (@farray){
-            foreach my $line (@sbuf){
-               if($line =~/$ent=/){
-                   my @junk=split "$ent=",$line;                 
-                   $template->{$ent}=$junk[$#junk];
-                   $buf=~ s/$ent=/C $ent=/;
-                   last;
+           else{
+               if($vrb){
+               warn "Dataset $dataset->{name}  not defined, skipped \n";
                }
-            }         
+           }
+              if($vrb){
+        print "  template $dataset->{name} $template->{filename} $template->{TOTALEVENTS} rest \n";
+    }
+        if ( $template->{TOTALEVENTS} <0){
+            $template->{TOTALEVENTS}=0;
         }
-        if(defined $self->{TrialRun}){
-            $template->{TOTALEVENTS}*=$self->{TrialRun};
-        }
-        my $fac=$template->{CPUPEREVENTPERGHZ};
-     for (my $j=0; $j<$#names+1; $j++) {
-         my $entry =$names[$j];
-         if ($particle[$j] eq $p) { 
-             $entry=$entry.".job";
-            if($template->{filename} eq $entry and $mipsmean[$j]>0){
-                if($fac/$mipsmean[$j]<0.8 or $fac/$mipsmean[$j]>1.25){
-                    my $newfac=int($mipsmean[$j]*1000+0.5)/1000;
-                 warn " ***change*** fac $fac $newfac $entry $p \n";
+       $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
+        if(!$fast){
+        if(defined $template->{SUM} and abs( $template->{CPUPEREVENTPERGHZ} - $template->{SUM}) >3*$template->{SUM2}){
+                 warn " ***change*** $full  $template->{CPUPEREVENTPERGHZ} $template->{SUM} \n";
            open(FILE,">".$full) or die "Unable to open dataset file $full \n";
+                 my $fac=$template->{CPUPEREVENTPERGHZ};
+                 my $newfac=int($template->{SUM}*100000)/100000.;
                  $template->{bufi}=~ s/CPUPEREVENTPERGHZ=$fac/CPUPEREVENTPERGHZ=$newfac/;
                  print FILE $template->{bufi};
            close(FILE)
-                }                 
-              $fac=$mipsmean[$j];
-                $template->{CPUPEREVENTPERGHZ}=$fac;
-                last;
-            }
-        }
-     }
-        $totalcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
-        $tcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
-           $template->{initok}=1;
-           foreach my $ent (@farray){
-             if(not defined $template->{$ent}){
-               $template->{initok}=undef;
-             }
            }
-#
-# get no of events
-#
-              my $sql="select did from DataSets where name='$dataset->{name}'";
-              my $ret=$self->{sqlserver}->Query($sql);
-              if( defined $ret->[0][0]){
-                 $dataset->{did}=$ret->[0][0];    
-                 $sql="select jid,time,triggers,timeout from Jobs where did=$ret->[0][0] and jobname like '%$template->{filename}'";
-                 my $r2= $self->{sqlserver}->Query($sql);
-                 if(defined $r2->[0][0]){
-                     foreach my $job (@{$r2}){
-                         if ($job->[1]-time()>$job->[3]){
-                             $sql="select FEvent,LEvent from Runs where jid=$job->[0] and status='Finished'";
-                             my $r3=$self->{sqlserver}->Query($sql);
-                             if(defined $r3->[0][0]){
-                              foreach my $run (@{$r3}){
-                               $template->{TOTALEVENTS}-=$run->[1]-$run->[0]+1;
-                              } 
-                             }
-                         }
-                         else {
-#
-# subtract allocated events
-                             $template->{TOTALEVENTS}-=$job->[2];
-
-                         }
-                     }
-                 }
-             }
-           else{
-               $sql="select did from DataSets";
-               $ret=$self->{sqlserver}->Query($sql);
-               my $did=0;
-               if(defined $ret->[0][0]){
-                   foreach my $ds (@{$ret}){
-                       if($ds->[0]>$did){
-                           $did=$ds->[0];
-                       }
-                   }
-               }
-               $did++;
-               $dataset->{did}=$did;
-               my $timestamp = time();
-#             $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
-#             $self->{sqlserver}->Update($sql); 
-           }
-        $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
-        $rcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
-          
-           if($sbuf[0] =~/^#/ && defined $template->{initok}){
-
-            $buf=~ s/#/C /;
-            $template->{filebody}=$buf;
-            my $desc=$sbuf[0];
-            substr($desc,0,1)=" ";
-            $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
-           if($template->{TOTALEVENTS}>100){
-             push @tmpa, $template; 
          }
-           }        
-       }        
+     
+        $rcpu+=$template->{CPUPEREVENTPERGHZ}*$template->{TOTALEVENTS};
+         }
+       }
+       push @tmpa, $dataset->{name},$totevt,int(1000*$submitted/($totevt+1))/10.,int(1000*$completed/($totevt+1))/10,$totcpu/86400,int(10*$rcpu/86400)/10.;
+       push @output, [@tmpa];
     }
       }
-#    }
-     my $res=int(($tcpu-$rcpu)/$tcpu*100);
-      print "  total/rest  $totalcpu  $restcpu done:  $res  $p \n";
-    }
+              if($vrb){
+                warn "  total/rest  $totalcpu  $restcpu \n";
+              }
+return @output;
 
-
-
-
-     for (my $j=0; $j<$#names+1; $j++) {
-      if ($particle[$j] eq $p) { 
-       if ($events[$j] > 0 && $njobs[$j]>1) {
-         $mipssigma[$j] = sqrt($mipssigma[$j])/($njobs[$j]-1);
-       }
-       my $line = sprintf("%5.f %11.f %9.f %9.f %9.f %6.2f +/- %2.4f %12s  %20s \n",
-                        $njobs[$j],$events[$j],$cpus[$j],$elapsed[$j],$mips[$j],$mipsmean[$j],$mipssigma[$j],$particle[$j],$names[$j]);
-       print "$line";
-    }
-  }
-  }
-     print "\n Total Jobs : $totaljobs \n";
- }
 }
 
 sub getEventsLeft {
@@ -11360,9 +11164,9 @@ sub getEventsLeft {
     my $dir="$self->{AMSSoftwareDir}/DataSets";
     opendir THISDIR ,$dir or die "unable to open $dir";
     my @allfiles= readdir THISDIR;
-    closedir THISDIR;    
+    closedir THISDIR;
 #     if ($verbose) {print "Directory... $dir \n";}
- 
+
    foreach my $file (@allfiles){
        $totalevents    = 0;
        $totalrequested = 0;
@@ -11412,12 +11216,12 @@ sub getEventsLeft {
            foreach my $e (@ent) {
             foreach my $line (@sbuf){
                if($line =~/$e=/){
-                   my @junk=split "$e=",$line;                 
+                   my @junk=split "$e=",$line;
                    if ($e eq "TOTALEVENTS") {$totalevents=$junk[$#junk];}
                    if ($e eq "CPUPEREVENTPERGHZ") {$cpuperevent = $junk[$#junk]};
                    last;
                }
-            }         
+            }
         }
 #
 # get no of events
@@ -11425,15 +11229,15 @@ sub getEventsLeft {
               my $sql="SELECT did FROM DataSets WHERE name='$dataset->{name}'";
               my $ret=$self->{sqlserver}->Query($sql);
               if( defined $ret->[0][0]){
-                 my $did=$ret->[0][0];    
+                 my $did=$ret->[0][0];
                  my $secperevent = $self->getMips($did,$job);
                  if ($secperevent == 0) {$secperevent = $cpuperevent;}
-                 $sql = "SELECT SUM(triggers)   FROM Jobs, Runs, Cites  
-                  WHERE 
-                    Jobs.did  = $did AND 
-                    Jobs.jobname like '%$job' AND 
-                    Jobs.jid = Runs.jid AND  
-                    (Runs.status='Completed' OR Runs.status='Finished') AND 
+                 $sql = "SELECT SUM(triggers)   FROM Jobs, Runs, Cites
+                  WHERE
+                    Jobs.did  = $did AND
+                    Jobs.jobname like '%$job' AND
+                    Jobs.jid = Runs.jid AND
+                    (Runs.status='Completed' OR Runs.status='Finished') AND
                      Jobs.cid != $TestCiteId ";
 #                 print "$sql \n";
                  my $r2= $self->{sqlserver}->Query($sql);
@@ -11463,8 +11267,8 @@ sub getEventsLeft {
                  print "$line";
              }
     }
-          
-    }           
+
+    }
    }
    my $perc = 0;
     if ($TotalDataset != 0) {
@@ -11475,7 +11279,7 @@ sub getEventsLeft {
        my $perccpu = sprintf("%3.1f",($cpud*100/($cpum+$cpud)));
        print "$dataset->{name} : Events : $TotalDataset , Processed : $TotalDatasetP , % Events : $perc, CPU : $cpud , $cpum, % CPU : $perccpu \n\n";
    }
-   
+
   my $perc = 0;
   if ($TotalTotal != 0) {
    $perc = sprintf("%2.1f",($TotalProcessed*100/$TotalTotal));
@@ -11486,7 +11290,7 @@ sub getEventsLeft {
   my $perccpu = sprintf("%3.1f",($TotalCPU*100/($TotalMore+$TotalCPU)));
   print "Total Events : $TotalTotal, Processed : $TotalProcessed, % Events : $perc\n";
   print "CPU : $cpud days,  CPU more  : $cpum CPU days, % CPU : $perccpu \n";
-  
+
 }
 
 
@@ -11503,7 +11307,7 @@ sub calculateMips {
      'protons',
      'C',
      'He');
-     
+
     my $self   = shift;
 
     my $sql    = undef;
@@ -11529,14 +11333,14 @@ sub calculateMips {
     my $ltime   = localtime($timenow);
 #
     print "Start calculateMips : $ltime \n";
- 
+
 # get jobname and mips
 #
-    $sql = "SELECT 
-              jobs.jobname, jobs.events, jobs.cputime, jobs.elapsed, jobs.mips, jobs.jid, 
-              runs.fevent, runs.levent, ntuples.path     
-              FROM Jobs, Runs, Ntuples  
-              WHERE jobs.jid=runs.jid AND runs.status='Completed' AND jobs.mips>0 AND runs.run=ntuples.run  
+    $sql = "SELECT
+              jobs.jobname, jobs.events, jobs.cputime, jobs.elapsed, jobs.mips, jobs.jid,
+              runs.fevent, runs.levent, ntuples.path
+              FROM Jobs, Runs, Ntuples
+              WHERE jobs.jid=runs.jid AND runs.status='Completed' AND jobs.mips>0 AND runs.run=ntuples.run
               ORDER BY jid";
     my $r0 = $self->{sqlserver}->Query($sql);
     my $jidOld = 0;
@@ -11559,8 +11363,8 @@ sub calculateMips {
       if ($#junk > 0) {
          $cite        = $junk[0];
          $jid         = $junk[1];
-         if ($jid != $jidOld) { 
-          $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];     
+         if ($jid != $jidOld) {
+          $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];
           $jobtype=trimblanks($jobtype);
           $eventsj     = $job->[1];
           $cpusj       = $job->[2];
@@ -11611,7 +11415,7 @@ sub calculateMips {
     for (my $j=0; $j<$#names+1; $j++) {
      $mipsmean[$j]    = $mipsmean[$j]/$njobs[$j];
      $mipssigma[$j]   = 0;
- 
+
      if ($events[$j] > 0) {
       if ($njobs[$j]>1) {
        $totaljobs = $totaljobs + $njobs[$j];
@@ -11619,7 +11423,7 @@ sub calculateMips {
         $jobname=trimblanks($job->[0]);
         my @junk    = split '\.',$jobname;
         if ($#junk > 0) {
-         my $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];     
+         my $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];
          $jobtype=trimblanks($jobtype);
          my $path = $job->[8];
          my $partj= $self->getJobParticleFromDSTPath($path);
@@ -11641,12 +11445,12 @@ sub calculateMips {
    }
   }
  }
- 
+
     my $header =  sprintf("Jobs     Events     CPU[s]   Elapsed[s]   MIPS       <MIPS>       Particle        JobName\n");
     print "$header";
     foreach my $p (@directories) {
      for (my $j=0; $j<$#names+1; $j++) {
-      if ($particle[$j] eq $p) { 
+      if ($particle[$j] eq $p) {
        if ($events[$j] > 0 && $njobs[$j]>1) {
          $mipssigma[$j] = sqrt($mipssigma[$j])/($njobs[$j]-1);
        }
@@ -11673,11 +11477,11 @@ sub getMips {
     my $mipsmean = 0;
     my $njobs    = 0;
 
- 
+
     my $sql = "SELECT jobs.triggers, jobs.cputime, jobs.mips
               FROM Jobs, Runs
-              WHERE jobs.did = $did AND jobs.jobname like '%$dataset' AND 
-                    jobs.jid=runs.jid AND 
+              WHERE jobs.did = $did AND jobs.jobname like '%$dataset' AND
+                    jobs.jid=runs.jid AND
                     runs.status='Completed' AND jobs.mips>0 ";
     my $r0 = $self->{sqlserver}->Query($sql);
     if (defined $r0->[0][0]) {
@@ -11699,8 +11503,8 @@ sub getMips {
 sub updateCopyStatus {
 
 #
-# v1.0 :MC DST copy update Data Base 
-# Features: Update CERN data base with 
+# v1.0 :MC DST copy update Data Base
+# Features: Update CERN data base with
 # copied DST to other AMS site (AMS02 MC simulation)
 #
 # May 2004.
@@ -11710,8 +11514,8 @@ sub updateCopyStatus {
 
 
 my $HelpTxt = "
-     updateCopyStatus updates information about DST's copied to 
-                      from CERN 
+     updateCopyStatus updates information about DST's copied to
+                      from CERN
      -c    - cite nickname, like in  ~MC/scratch directory tree
      -d    - debug mode
      -f    - full path to ASCII file
@@ -11789,7 +11593,7 @@ if (not defined $filename && not defined $run) {
 if (not defined $timestamp) {
     $timestamp = time();
  }
-if ($verbose) { 
+if ($verbose) {
  print "Unix time ... $timestamp \n";
 
  if ($update) {
@@ -11797,7 +11601,7 @@ if ($verbose) {
  } else {
     print "----- NO DB UPDATE --------------\n";
  }
-}   
+}
 
 if (defined $filename) {
  open(HISTORY,"$filename");
@@ -11842,7 +11646,7 @@ sub updateMCDSTCopyRun {
     $cite     = trimblanks($cite);
     my $timestamp = time();
 
-    my $sql = "UPDATE MC_DST_Copy SET copytime=$unixtime, timestamp=$timestamp 
+    my $sql = "UPDATE MC_DST_Copy SET copytime=$unixtime, timestamp=$timestamp
                WHERE run=$run and cite='$cite'";
      $self->{sqlserver}->Update($sql);
 
@@ -11862,7 +11666,7 @@ sub updateMCDSTCopy {
 
     my $sql = "SELECT path FROM NTUPLES WHERE PATH like '%$filepath'";
     my $ret=$self->{sqlserver}->Query($sql);
- 
+
     if( defined $ret->[0][0]){
      $sql = "DELETE MC_DST_Copy WHERE PATH='$filepath' AND CITE='$cite'";
      $self->{sqlserver}->Update($sql);
@@ -11875,7 +11679,7 @@ sub updateMCDSTCopy {
                                             $unixtime,
                                             '$cite',
                                             $timestamp)";
-    $self->{sqlserver}->Update($sql); 
+    $self->{sqlserver}->Update($sql);
   } else {
      print "updateRemoteCopy -W- could not find DST with path : $filepath \n";
      print "updateRemoteCopy -W- NO DB UPDATE \n";
@@ -11912,7 +11716,7 @@ sub deleteDST {
   foreach my $chop  (@ARGV){
     if($chop =~/^-d:/){
        $topdir=unpack("x3 A*",$chop);
-    } 
+    }
 
     if ($chop =~/^-u/) {
      $updateDB = 1;
@@ -11926,7 +11730,7 @@ sub deleteDST {
     }
    }
 
-  
+
    if (not defined $topdir) {
        print "deleteDST -E- -d option is mandatory. Quit.\n";
    }
@@ -11937,7 +11741,7 @@ sub deleteDST {
   if (not defined $vdir) {
    die " deleteDST -F- cannot get path to ValidationDir \n";
   }
-  my $vlog = $vdir."/deleteDST.log.".$timenow;   
+  my $vlog = $vdir."/deleteDST.log.".$timenow;
   open(FILE,">".$vlog) or die "Unable to open file $vlog\n";
 }
 #
@@ -11976,9 +11780,9 @@ sub deleteDST {
        }
        if ($updateDB) {
          $self->{sqlserver}->Update($sql);
-         print FILE "$sql \n";         
+         print FILE "$sql \n";
          $nupd++;
-       }         
+       }
    }
       $i++;
   }
@@ -12002,7 +11806,7 @@ sub prepareCastorCopyScript {
      -a    - overwrite existing files
      -d    - directory path. -d:dir
      -o    - output file. -o:/tmp/c.rfcp
-     -p    - pattern to search in DB 
+     -p    - pattern to search in DB
      -v    - verbose mode
 
      ./preparecastorscript.cgi -v -p:/s0dah1/MC/AMS02/2004A/C/c.pl1.12005366 -d:/f0dah1/MC/AMS02/2004 -o:/tmp/t.t
@@ -12031,15 +11835,15 @@ sub prepareCastorCopyScript {
 
     if($chop =~/^-o:/){
        $outputfile=unpack("x3 A*",$chop);
-    } 
+    }
 
     if($chop =~/^-d:/){
        $topdir=unpack("x3 A*",$chop);
-    } 
+    }
 
     if($chop =~/^-p:/){
        $pattern=unpack("x3 A*",$chop);
-    } 
+    }
 
     if ($chop =~/^-v/) {
      $verbose = 1;
@@ -12050,7 +11854,7 @@ sub prepareCastorCopyScript {
     }
    }
 
-  
+
    if (not defined $pattern) {print "ERROR - -p option is mandatory. Quit.\n"; return 1;}
    if (not defined $outputfile) {print "ERROR - -o option is mandatory. Quit.\n"; return 1;}
    if (not defined $topdir) {print "ERROR - -d option is mandatory. Quit.\n"; return 1;}
@@ -12061,7 +11865,7 @@ sub prepareCastorCopyScript {
    }
 
    my $timenow = time();
-   
+
    $pattern = "# ".$pattern;
    $sql = "SELECT path FROM ntuples WHERE path like '$pattern%'";
    my $ret=$self->{sqlserver}->Query($sql);
@@ -12102,7 +11906,7 @@ sub prepareCastorCopyScript {
       }
     print FILEV $rfcp;
    }
-   close FILEV; 
+   close FILEV;
   } else {
     print "$sql \n";
     print "INFO - cannot find any record \n";
@@ -12123,19 +11927,19 @@ sub updateDSTPath {
      -v    - verbose mode
      -u    - update mode
 
-     ./updateDSTPath.cgi -v -d:/d0dah1/MC/AMS02/2004 
+     ./updateDSTPath.cgi -v -d:/d0dah1/MC/AMS02/2004
 ";
 
   my $self         = shift;
   my $sql          = undef;
- 
+
   my $checkCRC     = 0;
   my $topdir       = undef;
   my $update       = 0;
 
   my @ErrFileSize;
   my @ErrCRC;
-  my @ErrNotFound; 
+  my @ErrNotFound;
   my @ErrMultFound;
 
   my $whoami = getlogin();
@@ -12219,7 +12023,7 @@ sub updateDSTPath {
         $filesize = $filesize/1000/1000;
         $filesize = sprintf("%.f",$filesize);
         if ($verbose == 1) {print "$inputfile $filesize/$sizemb [MB] \n";}
-        if ($sizemb - $filesize < 2 ) { 
+        if ($sizemb - $filesize < 2 ) {
          $sql = "UPDATE ntuples set path='$filename', timestamp=$timenow ";
          if ($checkCRC == 1) {
           my $rstatus = $self->calculateCRC($filename,$crc);
@@ -12243,11 +12047,11 @@ sub updateDSTPath {
        print "Error - $inputfile : $filesize MB, DB $dbpath : $sizemb MB \n";
    }
     }
-  } 
+  }
   else {
    print "File : $filename \n";
    print "Error - cannot get DB Path, AMS02 pattern not found \n";
-  } 
+  }
  }
  $i++;
   }
@@ -12272,7 +12076,7 @@ sub castorPath {
      -v    - verbose mode
      -u    - update mode
 
-     ./castorPath.cgi -v -d:/d0dah1/MC/AMS02/2004 
+     ./castorPath.cgi -v -d:/d0dah1/MC/AMS02/2004
 ";
 
   my $self         = shift;
@@ -12323,7 +12127,7 @@ sub castorPath {
          if ($ctime > 0) {
           my @junk = split("MC",$dst);
           if (defined $junk[1]) {
-           my $castorpath = $castorPrefix."/MC".$junk[1];    
+           my $castorpath = $castorPrefix."/MC".$junk[1];
            if ($verbose) {print "$castorpath \n";}
            $nUpdated++;
            if ($update == 1) {
@@ -12337,7 +12141,7 @@ sub castorPath {
        } else {
            $notCopied++;
            print "NO UPDATE (castorflag = 0) : $dst \n ";
-       } 
+       }
      }
     }
      print "DSTs matched $dbpath     : $nFiles \n";
@@ -12367,7 +12171,7 @@ sub updateDataSetsDescription {
   my $self         = shift;
   my $sql          = undef;
   my $topdir       = undef;
- 
+
   my $update       = 0;
 
   my $whoami = getlogin();
@@ -12426,7 +12230,7 @@ sub updateDataSetsDescription {
       my @sbuf=split "\n",$buf;
       my $desc=$sbuf[0];
       substr($desc,0,1)=" ";
-      $sql = "SELECT dirpath, timeupdate FROM DatasetsDesc 
+      $sql = "SELECT dirpath, timeupdate FROM DatasetsDesc
                 WHERE dataset = '$dataset' and jobname = '$job'";
      my $ret = $self->{sqlserver}->Query($sql);
      if (defined $ret->[0][0]) {
@@ -12454,7 +12258,7 @@ sub updateDataSetsDescription {
 
 sub readDataSets() {
 #
-# Read and parse datasets from the predefined 
+# Read and parse datasets from the predefined
 # directory
 # default path : /afs/ams.cern.ch/AMSDataDir/DataManagement/DataSets
 #
@@ -12475,7 +12279,7 @@ sub readDataSets() {
      ./readDataSets.cgi -v -d:/offline/AMSDataDir/DataManagement/DataSets
 ";
 
-  
+
   foreach my $chop  (@ARGV){
 
 
@@ -12492,10 +12296,10 @@ sub readDataSets() {
    my $ndatasets  =0; # total datasets scanned
    my $nfiles  =0; # total jobs scanned
 
- 
+
 #
 # get DB info :
-#               All datasets 
+#               All datasets
   my  $ndatasetsDB = 0;   # datasets defined in DB
   my  $njobsDB     = 0;   # jobs in DB started since $ProductionStartTime
   my  $datasetsDB  = undef;
@@ -12514,17 +12318,17 @@ sub readDataSets() {
    $ret=$self->{sqlserver}->Query($sql);
    if (defined $ret->[0][0]) {
     $njobsDB = $ret->[0][0];
-    $sql="select jid,time,triggers,timeout, did, jobname from Jobs 
+    $sql="select jid,time,triggers,timeout, did, jobname from Jobs
          where timestamp > $periodStartTime";
     $jobsDB= $self->{sqlserver}->Query($sql);
    }
   }
-  
+
 
 # read list of datasets dirs from $topdir
    opendir THISDIR ,$topdir or die "unable to open $topdir";
    my @allfiles= readdir THISDIR;
-   closedir THISDIR;    
+   closedir THISDIR;
 
    foreach my $file (@allfiles){
     my $newfile="$topdir/$file";
@@ -12533,7 +12337,7 @@ sub readDataSets() {
       my $buf;
       read(FILE,$buf,16384);
       close FILE;
-      $self->{TrialRun}=$buf;          
+      $self->{TrialRun}=$buf;
       last;
      }
     }
@@ -12582,12 +12386,12 @@ sub readDataSets() {
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
-                   my @junk=split "$ent=",$line;                 
+                   my @junk=split "$ent=",$line;
                    $template->{$ent}=$junk[$#junk];
                    $buf=~ s/$ent=/C $ent=/;
                    last;
                }
-            }         
+            }
         }
         if(defined $self->{TrialRun}){
             $template->{TOTALEVENTS}*=$self->{TrialRun};
@@ -12630,7 +12434,7 @@ sub readDataSets() {
                               if(defined $ret->[0][0]){
                                foreach my $run (@{$ret}){
                                 $template->{TOTALEVENTS}-=$run->[0];
-                               } 
+                               }
                               }
                              } else {
 #
@@ -12649,17 +12453,17 @@ sub readDataSets() {
                my $did = 1;
                $sql = "SELECT MAX(did) From DataSets";
                my $ret=$self->{sqlserver}->Query($sql);
-               if (defined $ret->[0][0]) { 
+               if (defined $ret->[0][0]) {
                    $did = $ret->[0][0]+1;
-               } 
+               }
                $dataset->{did}=$did;
                my $timestamp = time();
                $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
                print "SKIP : $sql \n";
            }
-   
+
            $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
-   
+
            if($sbuf[0] =~/^#/ && defined $template->{initok}){
             $buf=~ s/#/C /;
             $template->{filebody}=$buf;
@@ -12668,17 +12472,17 @@ sub readDataSets() {
             $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
             $dataset->{eventstodo} += $template->{TOTALEVENTS};
             if($template->{TOTALEVENTS}>100){
-             push @tmpa, $template; 
+             push @tmpa, $template;
              if ($verbose == 1) {print "$template->{filedesc} \n"; }
            }
-          
+
           }
       }
      } # end jobs of jobs
 
     my @tmpb=sort prio @tmpa;
     foreach my $tmp (@tmpb){
-     push @{$dataset->{jobs}},$tmp;     
+     push @{$dataset->{jobs}},$tmp;
     }
    }
   } # end files of allfiles
@@ -12696,13 +12500,13 @@ sub getProductionSetIdByDatasetId() {
      my $did  = shift;
      my $pid  = -1;
 
-     my $sql="SELECT productionset.did FROM productionset 
-                 WHERE vdb=(SELECT datasets.version FROM datasets WHERE datasets.did=$did) 
+     my $sql="SELECT productionset.did FROM productionset
+                 WHERE vdb=(SELECT datasets.version FROM datasets WHERE datasets.did=$did)
                               AND productionset.status='Active'";
      my $ret=$self->{sqlserver}->Query($sql);
-     if (defined $ret->[0][0]) { 
+     if (defined $ret->[0][0]) {
       $pid = $ret->[0][0];
-     } 
+     }
 
      return $pid;
  }
@@ -12714,7 +12518,7 @@ sub getTestCiteId() {
 
      my $sql = "SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'";
      my $ret=$self->{sqlserver}->Query($sql);
-     if (defined $ret->[0][0]) { 
+     if (defined $ret->[0][0]) {
       $tid = $ret->[0][0];
   }  else {
       $tid = -1;
@@ -12792,7 +12596,7 @@ sub list_24h_html {
     htmlTable("MC Production Statistics (24 hours)");
 #    my $href=$self->{HTTPcgi}."/rc.o.cgi?queryDB04=Form";
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-                
+
                my $sql = "SELECT COUNT(jid), MAX(time)
                             FROM jobs
                              WHERE Jobs.timestamp>$time24h";
@@ -12814,25 +12618,25 @@ sub list_24h_html {
 		 $jid = $r3->[0][0];
                  $starttime = EpochToDDMMYYHHMMSS($r3->[0][1]);
 }
-	   
-		 $sql = "SELECT COUNT(Jobs.timestamp), MAX(Jobs.timestamp)         
-                            FROM jobs, runs                                                 
+
+		 $sql = "SELECT COUNT(Jobs.timestamp), MAX(Jobs.timestamp)
+                            FROM jobs, runs
                               WHERE
                                    Jobs.timestamp > $time24h AND
                                    Runs.submit > $periodStartTime AND
                                    Runs.jid=Jobs.jid AND
                                    (Runs.status != 'Processing' OR
-				   Runs.status != 'Timeout')";   
+				   Runs.status != 'Timeout')";
                 $processed = 0;
-                $processtime = EpochToDDMMYYHHMMSS($time24h);    
+                $processtime = EpochToDDMMYYHHMMSS($time24h);
                 $processtime = " no jobs since ".$processtime;
                  my $r4=$self->{sqlserver}->Query($sql);
 		 if (defined $r4->[0][0]) {
                    if ($r4->[0][0] > 0) {
-		     $processed = $r4->[0][0];     
-                     $processtime = EpochToDDMMYYHHMMSS($r4->[0][1]);    
+		     $processed = $r4->[0][0];
+                     $processtime = EpochToDDMMYYHHMMSS($r4->[0][1]);
                    }
-		 } 
+		 }
                   $sql = "SELECT SUM(sizemb)
                             FROM ntuples
 			    WHERE timestamp>$time24h AND path NOT LIKE '/castor/cern.ch%'";
@@ -12867,11 +12671,11 @@ sub test00 {
       my $ndsts     = 0;
       my $nevents   = 0;
     my $t0 = time();
-    my $sql  = "SELECT Runs.Run, Jobs.JOBNAME, Runs.SUBMIT 
-                  FROM Runs, Jobs, runcatalog 
-                   WHERE Runs.Status='Completed' AND 
-                     jobs.pid != 0 AND Jobs.DID=112 AND 
-                       Jobs.JID=Runs.JID AND 
+    my $sql  = "SELECT Runs.Run, Jobs.JOBNAME, Runs.SUBMIT
+                  FROM Runs, Jobs, runcatalog
+                   WHERE Runs.Status='Completed' AND
+                     jobs.pid != 0 AND Jobs.DID=112 AND
+                       Jobs.JID=Runs.JID AND
                          (runs.run = runcatalog.run AND runcatalog.trtype='TriggerLVL1') ORDER BY Runs.Run";
     my $r0=$self->{sqlserver}->Query($sql);
     my $t1 = time();
@@ -12883,7 +12687,7 @@ sub test00 {
      if (defined $r1->[0][0]) {
       $nRunsDB = $r1->[0][0];
      }
-    my $iterAv = 0; 
+    my $iterAv = 0;
     my $N      = 0;
     if ($nRunsDB > 0) {
       $sqltmp = "SELECT run, sizemb, nevents FROM Ntuples ORDER BY run";
@@ -12904,7 +12708,7 @@ sub test00 {
            $found = 1;
           } elsif ($rr > $run->[0]) {
                   $n = $n/2;
-                  
+
           } elsif ($rr < $run->[0]) {
                   $n = $n + $n/2;
                   if ($n > $nRunsDB-1) {$n = $nRunsDB-1;}

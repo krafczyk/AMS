@@ -37,6 +37,7 @@ foreach my $chop  (@ARGV){
                if($line=~$spbuf[2] && $line=~$spbuf[1]){
                 my @goal=split " ",$line;
                  if($#goal>3){
+                  print "checker.perl-W-FoundStickyProcess $line \n";
                   system("kill -9 $goal[3]");
                  }
                }
