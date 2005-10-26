@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.332 2005/10/24 21:26:20 choutko Exp $
+# $Id: RemoteClient.pm,v 1.333 2005/10/26 08:25:06 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6123,7 +6123,7 @@ sub checkJobsTimeout {
 
 
 
-   my (@period, @periodStartTime, @periodId) = $self -> getActiveProductionPeriod();
+   my  @periodStartTime = $self -> getActiveProductionPeriod(1);
    my $periodStartTime=2147483647;
    foreach my $periodst  (@periodStartTime){
      if($periodst < $periodStartTime){
@@ -6907,8 +6907,30 @@ sub listStat {
     }
             my @output=();
             my $save="$self->{UploadsDir}/CalculatesMips";
+             my $part=0;
+             $sql="select systimestamp from dual";
+             my $got=$self->{sqlserver}->Query($sql);
+             if(defined $got->[0][0]){
+              my @shift= split ' ',$got->[0][0]; 
+              my @sh1=split ':',$shift[$#shift];
+              if($#sh1>0){
+                $part=($sh1[0]+$sh1[1]/60.)/24.
+              }
+             }
+             $sql="select max(date_to_unixts(modtime-$part)) as u_modtime from mods"; 
+             my $rdt=$self->{sqlserver}->Query($sql);
+             my $lupdate=-1;
+             if(defined $rdt->[0][0]){
+                 $lupdate=$rdt->[0][0];
+             } 
+             my $dte=stat_adv("$self->{AMSSoftwareDir}/DataSets",0,0,1);
              my  @sta = stat $save;
-            if($#sta>0 and time()-$sta[9] <900){
+             my $dtime=3600;
+             if($lupdate>0){
+               $dtime=3600*24;
+             }
+             #die "  $part $dtime $lupdate $sta[9] $dte) \n";
+            if($#sta>0 and time()-$sta[9] <$dtime and $lupdate<$sta[9] and $dte<$sta[9]){
              my $dsref=retrieve($save);
              if(defined $dsref){
               foreach my $dss (@{$dsref}){
@@ -6949,7 +6971,20 @@ print "<td align=center><b><font color=\"blue\" >Required</font></b></td>";
          my $r5=$self->{sqlserver}->Query($sql);
          if ($webmode == 1) {print_bar($bluebar,3);}
          if(defined $r5->[0][0]){
-         foreach my $ds (@{$r5}){
+#         ${$r5}[$#{$r5}+1]=${$r5}[0];
+#        ${$r5}[$#{$r5}]->[1]=$tmpa[0];
+             for my $kk (1...5){
+                 $output[$#output]->[$kk]=0;
+             }
+         for my $kk (0...$#{$r5}+1){
+             my $ds={}; 
+             if($kk<=$#{$r5}){
+                 $ds=${$r5}[$kk];
+             }
+             else{
+                 $ds=${$r5}[0];
+                  $ds->[1]=$output[$#output]->[0];
+             }
            my $did       = $ds->[0];
            my $dataset   = trimblanks($ds->[1]);
 #
@@ -6969,6 +7004,7 @@ print "<td align=center><b><font color=\"blue\" >Required</font></b></td>";
 #           if(defined $r6->[0][0]){
 #             $events = $r6->[0][0] - $r6->[0][1] + $r6->[0][2];
               my $ggot=-1;
+              
              for my $got (0...$#output) {
                my $hash=$output[$got];
                 if($dataset eq $hash->[0]){
@@ -6980,6 +7016,22 @@ print "<td align=center><b><font color=\"blue\" >Required</font></b></td>";
                   next;
              }
               my $hash=$output[$ggot];
+               if($ggot<$#output){
+               for my $k (1...5) {
+                 my $fac=1;
+                 if($k==2 or $k==3){
+                    $fac=$hash->[1];
+                 }
+                 $output[$#output]->[$k]+=$hash->[$k]*$fac;
+               }
+               
+              }
+    elsif ($output[$#output]->[1]>1){
+        $output[$#output]->[2]/=$output[$#output]->[1];
+        $output[$#output]->[3]/=$output[$#output]->[1];
+        $output[$#output]->[2]=int(10* $output[$#output]->[2])/10;
+        $output[$#output]->[3]=int(10* $output[$#output]->[3])/10;
+    }
                my $events=$hash->[1]; 
              if ($events > 1000 && $events <= 1000000) {
                  $events=sprintf("%.2fK",$events/1000);
@@ -7007,7 +7059,7 @@ print "<td align=center><b><font color=\"blue\" >Required</font></b></td>";
         print "<td align=left><b><font color=\"black\"> $dataset </font></b></td>";
         print "<td align=center><b><font color=\"black\"> $events </font></b></td>";
         print "<td align=center><b><font color=\"black\" >$hash->[3]\%</font></b></td>";
-       print "<td align=center><b><font color=\"black\" >$hash->[2]</font></b></td>";
+       print "<td align=center><b><font color=\"black\" >$hash->[2]\%</font></b></td>";
        print "<td align=center><b><font color=\"black\" >$hash->[5]</font></b></td>";
 
         print "</tr>\n";
@@ -7031,14 +7083,13 @@ print "<td align=center><b><font color=\"blue\" >Required</font></b></td>";
 sub listCites {
     my $self = shift;
 
-   my (@period, @periodStartTime, @periodId) = $self -> getActiveProductionPeriod();
+   my @periodSt = $self -> getActiveProductionPeriod(1);
    my $periodStartTime=2147483647;
-   foreach my $periodst  (@periodStartTime){
+   foreach my $periodst  (@periodSt){
      if($periodst < $periodStartTime){
        $periodStartTime=$periodst;
      }
     }
-
     if ($webmode == 1) {
      print "<b><h2><A Name = \"cites\"> </a></h2></b> \n";
      htmlTable("Cites ");
@@ -8179,7 +8230,9 @@ sub parseJournalFiles {
      $self->initFilesProcessingFlag();
 #
 #   my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
-   my (@period, @periodStartTime, @periodId) = $self -> getActiveProductionPeriod();    my $periodStartTime=2147483647;    foreach my $periodst  (@periodStartTime){
+   my  @period = $self -> getActiveProductionPeriod(0);
+   my  @periodStartTime = $self -> getActiveProductionPeriod(1);
+    my $periodStartTime=2147483647;    foreach my $periodst  (@periodStartTime){
      if($periodst < $periodStartTime){        $periodStartTime=$periodst;
      }
     }
@@ -10388,7 +10441,7 @@ sub getHostsList {
     }
    }
 
-      my (@period, @periodStartTime, @periodId) = $self -> getActiveProductionPeriod();
+      my  @periodStartTime = $self -> getActiveProductionPeriod(1);
    my $periodStartTime=2147483647;
    foreach my $periodst  (@periodStartTime){      if($periodst < $periodStartTime){
        $periodStartTime=$periodst;
@@ -10545,16 +10598,14 @@ my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($periodStartTime
 
 sub getActiveProductionPeriod {
      my $self = shift;
+     my $var=shift;
      my @period=();
      my @begin=();
      my @pid=();
 
      my $sql  = undef;
      my $ret  = undef;
-
-     my $period = $UNKNOWN;
-     my $begin  = 0;
-     my $pid    = -1;
+      my $d=0;
 
       $sql = "SELECT NAME, BEGIN, DID  FROM ProductionSet WHERE STATUS='Active' ORDER BY DID";
       $ret = $self->{sqlserver}->Query($sql);
@@ -10563,7 +10614,15 @@ sub getActiveProductionPeriod {
        push @begin ,$pp->[1];
        push @pid,    $pp->[2];
       }
-  return @period, @begin, @pid;
+     if($var==1){ 
+        return @begin;
+     }
+     elsif($var==2){
+       return @pid;
+     }
+      else{
+         return @period;
+      }
  }
 
 sub getActiveProductionPeriodByVersion {
@@ -11101,6 +11160,14 @@ sub calculateMipsVC {
               if($vrb){
                 warn "  total/rest  $totalcpu  $restcpu \n";
               }
+         my @tmpa=();
+         $tmpa[0]="Overall";
+         $tmpa[1]=0;
+         $tmpa[2]=0;
+         $tmpa[3]=0;
+         $tmpa[4]=0;
+         $tmpa[5]=0;
+    push @output,[@tmpa];
 return @output;
 
 }
