@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.9 2004/06/02 09:16:24 alexei Exp $
+#  $Id: 00index.txt,v 1.10 2005/10/26 12:46:52 choutko Exp $
 #
 castor.cmp                  //  compare content of two directories
 castor.cp                   //  copy local directory tree to CASTOR
@@ -11,7 +11,7 @@ geteventsleft.cgi           //  get processed events and CPUs statistics and est
                             //  more events and CPU will be needed
 gethostslist.cgi            //  get list of hosts, jobs and GBs for each cite
 getoutputdisk.cgi           //  get disk will be used to store DSTs
-monitor.perl                //  standalone gtk based monitor
+monitor.perl (-m)               //  standalone gtk based monitor
 monitor.cgi                 //  cgi monitor script
 parseJournalFiles.o.cgi     //  parse Journal files for jobs running in StandAlone
 rc.dsp.cgi                  //  remote client start

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.333 2005/10/26 08:25:06 choutko Exp $
+# $Id: RemoteClient.pm,v 1.334 2005/10/26 12:46:54 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1199,14 +1199,17 @@ sub ValidateRuns {
      -i    - prompt before files removal
      -v    - verbose mode
      -w    - output will be produced as HTML page
+     -rRun    -  perfom op only for run  Run;
      ./validateRuns.o.cgi -c -v
 ";
-
+   my $Run=0;
   $rmprompt = 0;
-
    foreach my $chop  (@ARGV){
     if ($chop =~/^-c/) {
         $webmode = 0;
+    }
+    if ($chop =~/^-r/) {
+        $Run=unpack("x2 A*",$chop);
     }
     if ($chop =~/^-v/) {
         $verbose = 1;
@@ -1257,7 +1260,7 @@ sub ValidateRuns {
    $validateStartTime = $timenow;
 
 # get list of runs from DataBase
-    $sql = "SELECT begin FROM productionset WHERE STATUS='Active' ORDER BY begin";
+    $sql = "SELECT min(begin) FROM productionset WHERE STATUS='Active' ORDER BY begin";
     $ret = $self->{sqlserver}->Query($sql);
     if(not defined $ret->[0][0]){
       $self->amsprint("validateRuns -ERROR- cannot find 'Active' production set",0);
@@ -1303,6 +1306,10 @@ sub ValidateRuns {
     }
 
     foreach my $run (@{$self->{dbserver}->{rtb}}){
+        if($run->{Run}== $Run and $Run>0){
+            next;
+        }
+        die " $run->{Run} "; 
 #
 # check jobs processing flag if -1 stop processing
      ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
@@ -1362,10 +1369,10 @@ sub ValidateRuns {
         print "<td><b><font color=\"black\" >$run->{Status}</font></b></td>";
         print "</tr>\n";
         htmlTableEnd();
-       } else {
+       } else { #-1
         print "Run,FirstEvent,LastEvent,Submitted,Status...";
         print "$run->{Run},$run->{FirstEvent},$run->{LastEvent},$run->{SubmitTime},$run->{Status} \n";
-       }
+    }
   }
 #--     if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") &&
 #--     (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked" && $r0->[0][1] ne "TimeOut"))
@@ -1391,7 +1398,7 @@ sub ValidateRuns {
 #          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete");
           print "--- done --- \n";
           print FILEV "--- done --- \n";
-         } else {
+         } else { #0
           my $jobstatus  = $r1->[0][0];
           my $jobcontent = $r1->[0][1];
           my $citestatus = $r1->[0][2];
@@ -1445,20 +1452,49 @@ sub ValidateRuns {
                   my $events=$ntuple->{EventNumber};
                   my $status="OK";
                   if(not $suc){
-                      if($ntuple->{Status} ne "Validated"){
-                         $status="Unchecked";
-                         $events=$ntuple->{EventNumber};
-                         $badevents="NULL";
-                         $unchecked++;
-                         $copyfailed = 1;
-                         last;
-                      }
-                      else{
-                        $thrusted++;
-                      }
-                  }
-                  else{
-
+#
+# try to copy to to local directory
+#
+                     
+                my @parser=split ':',$ntuple->{Name};
+            if($#parser>0){
+                my $host=$parser[0];
+                my $hostok=0;
+                if($host =~ /cern.ch/ ){
+#                   ok
+                    $hostok=1;
+                }
+                else{   #1
+                 my @hparser=split '\.',$host;
+                 if($#hparser>0 and $hparser[1] eq 'om'){
+                     $host=$hparser[0].'.cern.ch';
+                     $hostok=1;
+                 }
+                 else { #2 
+#                   warn "Host Bizarre $host \n";
+                 }
+               }
+                if($hostok){
+                    my $cmd="scp $host:$fpath $fpath ";
+                    my $i=system($cmd);
+                    if($i){              
+                       warn "$cmd failed \n";
+                   }
+                    else{ #3
+                             $cmd="ssh -x $host rm $fpath";
+                         }
+                  } 
+                } 
+                   $suc=open(FILE,"<".$fpath);
+                   $ntuple->{Status}="Success";
+                     if(not $suc){
+                         die "  unable to open file  $fpath \n";
+                     }
+            }
+#
+# Only do copy if not validated
+#
+                   if($ntuple->{Status} ne "Validated"){
                    my  $retcrc = $self->calculateCRC($fpath,$ntuple->{crc});
                    print FILEV "calculateCRC($fpath, $ntuple->{crc}) : Status : $retcrc \n";
                    if ($retcrc != 1) {
@@ -1484,7 +1520,7 @@ sub ValidateRuns {
                       $thrusted++;
                      }
                    }
-                    else{
+                    else{ #4
                          $i=($i>>8);
                          if(int($i/128)){
                           $events=0;
@@ -1493,7 +1529,7 @@ sub ValidateRuns {
                           $bad++;
                           $levent -= $ntuple->{LastEvent}-$ntuple->{FirstEvent}+1;
                          }
-                          else{
+                          else{ #5
                            $status="OK";
                            $events=$ntuple->{EventNumber};
                            $badevents=int($i*$ntuple->{EventNumber}/100);
@@ -1526,8 +1562,8 @@ sub ValidateRuns {
                            $copied++;
                            $gbDST[0] = $gbDST[0] + $ntuple->{size};
                            push @cpntuples, $fpath;
-                           $runupdate = "UPDATE runs SET FEVENT = $fevent, LEVENT=$levent, ";
-                         } else {
+#                           $runupdate = "UPDATE runs SET FEVENT = $fevent, LEVENT=$levent, ";
+                         } else { #6
                            $BadDSTs[0]++;
                            $BadDSTCopy[0]++;
                            print FILEV "failed to copy or wrong CRC for : $fpath\n";
@@ -1555,7 +1591,32 @@ sub ValidateRuns {
                        }  # ntuple status 'OK'
                      }
                } # passed CRCi
-              }
+               }
+                      else{ #7
+
+                           $self->insertNtuple(
+                                               $run->{Run},
+                                               $ntuple->{Version},
+                                               $ntuple->{Type},
+                                               $run->{Run},
+                                               $ntuple->{FirstEvent},
+                                               $ntuple->{LastEvent},
+                                               $events,
+                                               $badevents,
+                                               $ntuple->{Insert},
+                                               $ntuple->{size},
+                                               $status,
+                                               $fpath,
+                                               $ntuple->{crc},
+                                               $ntuple->{Insert},
+                                               1,0);
+                           print FILEV "insert : $run->{Run}, $fpath, $status, $ntuple->{size} \n";
+                           $copied++;
+                           $gbDST[0] = $gbDST[0] + $ntuple->{size};
+#                           $runupdate = "UPDATE runs SET FEVENT = $fevent, LEVENT=$levent, ";
+
+
+                       }
              } # ntuple ->{Status} == "Validated"
          } #loop for ntuples
          my $status='Failed';
@@ -1571,10 +1632,10 @@ sub ValidateRuns {
            $warn = "Validation done : $cmd \n";
            print FILEV $warn;
            $self->printWarn($warn);
-         }
+       }
+      
           if ($#cpntuples >= 0) { $status = "Completed";}
-      }
-           else{
+           elsif($#mvntuples>=0){
 
                $warn="Validation/copy failed : Run =$run->{Run} \n";
                print FILEV $warn;
@@ -1597,32 +1658,50 @@ sub ValidateRuns {
                $self->{sqlserver}->Update($sql);
                $runupdate = "UPDATE runs SET ";
            }
-
+                 else{
+                   $status = "Completed";
+               }
            if ($status eq "Completed") {
                $GoodRuns[0]++;
            } elsif ($status eq "Failed") {
                $BadRuns[0]++;
            }
 
-          $sql = $runupdate." STATUS='$status' WHERE run=$run->{Run}";
-          $self->{sqlserver}->Update($sql);
+          $sql = "update runs set STATUS='$status' WHERE run=$run->{Run}";
+#
+# Check run lastevent
+#
+
+                         $sql="select sum(ntuples.levent-ntuples.fevent+1) from ntuples,runs where ntuples.run=runs.run and runs.run=$run->{Run}";
+                          my $r4=$self->{sqlserver}->Query($sql);
+                          my $ntevt=$r4->[0][0];
+                          if(not defined $ntevt){
+                              $ntevt=0;
+                          }
+                          if( $ntevt ne $run->{LastEvent}-$run->{FirstEvent}+1  ){
+                           warn "  ntuples/run mismatch $r4->[0][0] $run->{LastEvent}-$run->{FirstEvent}+1 $run->{Run} \n";
+                             $sql="UPDATE Runs SET Levent=$ntevt+1+$run->{FirstEvent} WHERE jid=$run->{run}";
+
+                             $self->{sqlserver}->Update($sql);
+                       }
           $warn = "Update Runs : $sql\n";
           print FILEV $warn;
            if ($webmode == 1) {
               htmlWarning("validateRuns",$warn);
-          } else {
+          } else { #8 
            $self->printWarn($warn);
           }
           if ($status eq "Completed") {
            $self->updateRunCatalog($run->{Run});
            $warn = "Update RunCatalog table : $run->{Run}\n";
            print FILEV $warn;
-          }
+       }
+      }
       }# events != 0 && errors != 0
      } # remote job
     }  # job found
-   }   # run->{Status} == 'Finished' || 'Failed'
-  }    # loop for runs from 'server'
+    }
+  }   # loop for runs from 'server'
 
   if ($webmode == 1) {
    $self->htmlBottom();
@@ -1641,7 +1720,7 @@ sub ValidateRuns {
  if ($webmode == 1) {$self->InfoPlus($warn);}
  $self->{ok}=1;
 
-}
+    }
 
 sub doCopy {
      my $self = shift;
@@ -10264,7 +10343,7 @@ sub getFilesProcessingFlag {
     my $flag      = -1;
     my $starttime = 0;
     my $whoami = getlogin();
-    if ($whoami =~ 'ams' || $whoami =~ 'alexei') {
+    if ($whoami =~ 'ams' || $whoami =~ 'choutko') {
     } else {
       $self->amsprint(" -ERROR- script cannot be run from account : $whoami",0);
       die "bye";

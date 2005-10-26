@@ -1,5 +1,5 @@
 #!/bin/sh
-sqlplus amsdes/@@amsdb  <<!
+sqlplus amsdes/@@@@@amsdb  <<!
 set echo on
 drop table mods;
 create  table mods (
@@ -10,12 +10,40 @@ modtime date
 insert into mods values('jobs', '24-oct-05');
 insert into mods values('runs', '25-oct-05');
 insert into mods values('datasets','25-oct-05');
+insert into mods values('ntuples','25-oct-05');
  
 create or replace trigger jobs_biu
 after insert or update on jobs
 for each row
 begin
 update mods set modtime=sysdate where tabname='jobs';
+end ;
+/
+show errors
+
+create or replace trigger runs_biu
+after insert or update on runs
+for each row
+begin
+update mods set modtime=sysdate where tabname='runs';
+end ;
+/
+show errors
+
+create or replace trigger ntuples_biu
+after insert or update on ntuples
+for each row
+begin
+update mods set modtime=sysdate where tabname='ntuples';
+end ;
+/
+show errors
+
+create or replace trigger datasets_biu
+after insert or update on datasets
+for each row
+begin
+update mods set modtime=sysdate where tabname='datasets';
 end ;
 /
 show errors
