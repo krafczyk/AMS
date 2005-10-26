@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.334 2005/10/26 12:46:54 choutko Exp $
+# $Id: RemoteClient.pm,v 1.335 2005/10/26 16:54:42 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1300,16 +1300,16 @@ sub ValidateRuns {
    $BadCRCo[0]     = 0;  #                 dsts with crc error (after copying)
    $BadCRCi[0]     = 0;  #                 dsts with crc error (before copying)
    $gbDST[0]       = 0;
-
+   my @rmcmd=();
     if ($webmode ==0  and $verbose ==1) {
        print "ValidateRuns -I- got from server :  $#{$self->{dbserver}->{rtb}} runs \n";
     }
 
     foreach my $run (@{$self->{dbserver}->{rtb}}){
-        if($run->{Run}== $Run and $Run>0){
+        if($run->{Run} ne $Run and $Run>0){
             next;
         }
-        die " $run->{Run} "; 
+#        die " $Run $run->{Run} "; 
 #
 # check jobs processing flag if -1 stop processing
      ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
@@ -1373,6 +1373,9 @@ sub ValidateRuns {
         print "Run,FirstEvent,LastEvent,Submitted,Status...";
         print "$run->{Run},$run->{FirstEvent},$run->{LastEvent},$run->{SubmitTime},$run->{Status} \n";
     }
+     $sql   = "SELECT run, status FROM runs WHERE run=$run->{Run}";
+     $r0 = $self->{sqlserver}->Query($sql);
+
   }
 #--     if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") &&
 #--     (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked" && $r0->[0][1] ne "TimeOut"))
@@ -1438,9 +1441,37 @@ sub ValidateRuns {
           print FILEV "$sql \n";
 # validate ntuples
 # Find corresponding ntuples from server
+               $sql = "DELETE ntuples WHERE run=$run->{Run}";
+               $self->{sqlserver}->Update($sql);
+            my @ntuplelist=();
              foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
-              if(($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and $
-                  ntuple->{Run}== $run->{Run}){
+              if(($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and $ntuple->{Run}== $run->{Run}){
+                  $ntuple->{OK}=1;
+                  push @ntuplelist, $ntuple;
+              }
+          }
+sub nprio{ $b->{Insert} <=> $a->{Insert};}
+my @sntl = sort nprio @ntuplelist;
+my $fevt=-1;
+            my $dat0=0;
+ foreach my $ntuple (@sntl){
+     if($fevt>=0 and $ntuple->{LastEvent} > $fevt){
+         $ntuple->{OK}=0;
+         warn "  problems with $run->{Run} $ntuple->{Name} \n";
+     }
+     else{
+         $fevt=$ntuple->{FirstEvent};
+                  if($ntuple->{Name}=~/:\/dat0/){
+                      $dat0=1;
+                  }
+
+     } 
+ }
+            foreach my $ntuple (@sntl){
+                if($ntuple->{OK}==1){
+                    if($dat0){
+                        $ntuple->{Status}="Success";
+                    }
                   $CheckedDSTs[0]++;
                   $levent += $ntuple->{LastEvent}-$ntuple->{FirstEvent}+1;
                   $ntuple->{Name}=~s/\/\//\//;
@@ -1475,13 +1506,17 @@ sub ValidateRuns {
                  }
                }
                 if($hostok){
-                    my $cmd="scp $host:$fpath $fpath ";
+                    my @dir=split $run->{Run},$fpath;
+                    my $cmd="mkdir -p $dir[0]";
                     my $i=system($cmd);
+                    $cmd="scp $host:$fpath $fpath ";
+                    $i=system($cmd);
                     if($i){              
                        warn "$cmd failed \n";
                    }
                     else{ #3
                              $cmd="ssh -x $host rm $fpath";
+                             push @rmcmd,$cmd;
                          }
                   } 
                 } 
@@ -1493,7 +1528,7 @@ sub ValidateRuns {
             }
 #
 # Only do copy if not validated
-#
+# 
                    if($ntuple->{Status} ne "Validated"){
                    my  $retcrc = $self->calculateCRC($fpath,$ntuple->{crc});
                    print FILEV "calculateCRC($fpath, $ntuple->{crc}) : Status : $retcrc \n";
@@ -1625,14 +1660,6 @@ sub ValidateRuns {
           print FILEV "$warn \n";
           $self->printWarn($warn);
 #--          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete");
-          foreach my $ntuple (@cpntuples) {
-           my $cmd="rm $ntuple";
-           if ($rmprompt == 1) {$cmd = "rm -i $ntuple";}
-           system($cmd);
-           $warn = "Validation done : $cmd \n";
-           print FILEV $warn;
-           $self->printWarn($warn);
-       }
       
           if ($#cpntuples >= 0) { $status = "Completed";}
            elsif($#mvntuples>=0){
@@ -1668,6 +1695,7 @@ sub ValidateRuns {
            }
 
           $sql = "update runs set STATUS='$status' WHERE run=$run->{Run}";
+               $self->{sqlserver}->Update($sql);
 #
 # Check run lastevent
 #
@@ -1680,11 +1708,27 @@ sub ValidateRuns {
                           }
                           if( $ntevt ne $run->{LastEvent}-$run->{FirstEvent}+1  ){
                            warn "  ntuples/run mismatch $r4->[0][0] $run->{LastEvent}-$run->{FirstEvent}+1 $run->{Run} \n";
-                             $sql="UPDATE Runs SET Levent=$ntevt+1+$run->{FirstEvent} WHERE jid=$run->{run}";
+                             $sql="UPDATE Runs SET fevent=$fevt, Levent=$ntevt-1+$fevt WHERE jid=$run->{Run}";
 
                              $self->{sqlserver}->Update($sql);
                        }
+          if($ntevt>0){
+                      $sql="UPDATE Jobs SET realtriggers=$ntevt WHERE jid=$run->{Run}";
+                      $self->{sqlserver}->Update($sql);
+                  }
+
           $warn = "Update Runs : $sql\n";
+
+          foreach my $ntuple (@cpntuples) {
+           my $cmd="rm $ntuple";
+           if ($rmprompt == 1) {$cmd = "rm -i $ntuple";}
+           system($cmd);
+           $warn = "Validation done : $cmd \n";
+           print FILEV $warn;
+           $self->printWarn($warn);
+       }
+
+
           print FILEV $warn;
            if ($webmode == 1) {
               htmlWarning("validateRuns",$warn);
@@ -1694,6 +1738,13 @@ sub ValidateRuns {
           if ($status eq "Completed") {
            $self->updateRunCatalog($run->{Run});
            $warn = "Update RunCatalog table : $run->{Run}\n";
+           foreach my $cmd (@rmcmd){
+               my $i=system($cmd);
+               if($i){
+                   warn " Remote command $cmd failed \n";
+               }
+           }
+           $#rmcmd=-1;
            print FILEV $warn;
        }
       }
@@ -1717,6 +1768,7 @@ sub ValidateRuns {
  close FILEV;
  print "$warn \n";
  $self->printValidateStat();
+          $self->resetFilesProcessingFlag();
  if ($webmode == 1) {$self->InfoPlus($warn);}
  $self->{ok}=1;
 
@@ -9660,6 +9712,9 @@ sub insertNtuple {
 #
   my @junk    = split "/",$path;
   my $filename = trimblanks($junk[$#junk]);
+              my @sp1=split 'build',$version;
+              my @sp2=split '\/',$sp1[1];
+              my $buildno=$sp2[0];
 
   $sql = "SELECT run, path FROM ntuples
           WHERE run=$run AND path like '%$filename%'";
@@ -9689,7 +9744,7 @@ sub insertNtuple {
                                           '$status',
                                           '$path',
                                            $crc,
-                                           $crctime,$crcflag,$castortime)";
+                                           $crctime,$crcflag,$castortime,$buildno)";
   $self->{sqlserver}->Update($sql);
 
 }
@@ -11151,7 +11206,7 @@ sub calculateMipsVC {
                      foreach my $job (@{$r2}){
                        if (time()-$job->[1]>$job->[3]){
                          my $rtrig=$job->[4];
-                         if(not defined $rtrig or $rtrig<0){
+                         if(not defined $rtrig or $rtrig<=0){
                              if($vrb){
                              warn " real trig not defined for $job->[0] \n";
                              }
