@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.337 2005/10/27 12:54:30 choutko Exp $
+# $Id: RemoteClient.pm,v 1.338 2005/10/27 15:02:58 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -12987,14 +12987,13 @@ sub adda{
 }
 require "syscall.ph";
 sub CheckFS{
-#  called from liststat
-#  check  filesystems, update the tables accordingly
+#
+#  check  filesystems, update the tables accordingly if $updatedb is set
 #  status: Active  :  May be used 
 #          Reserved :  Set manually, may not be reseting
-#          Full     :  if < 10 GB left
-#          
-#  Offline  0, Online 1;
-#          
+#          Full     :  if < 20 GB left
+#         
+#  isonline: 1/0 
 #
            my $self=shift; 
            my $updatedb=shift;  
@@ -13014,7 +13013,7 @@ sub CheckFS{
                  my $ava=$bavail*$fac;
                  my $ava1=$tot*$fs->[3]/100-$occ;
                  if($fs->[2]=~'Reserved'){
-                  $status=$fs->[2];
+                  $status='Reserved';
                  }
                  elsif( $ava1<0 or $ava<20000){
                   $status='Full';
