@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.76 2005/10/21 14:17:36 ams Exp $
+# $Id: DBSQLServer.pm,v 1.77 2005/10/27 12:07:42 choutko Exp $
 
 #
 #
@@ -157,7 +157,7 @@ sub Create{
 
     my @tables=("Filesystems", "Cites","LocalHosts","Journals","Mails" ,"Jobs", "DatasetDesc", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment","ProductionSet","FilesProcessing","RemoteCopy");
     my @createtables=("    CREATE TABLE Filesystems
-     (fid         CHAR(4) NOT NULL,   
+     (   
      host    VARCHAR(40),            
      disk    VARCHAR(20),            
      path    VARCHAR(255),           
@@ -167,7 +167,8 @@ sub Create{
      allowed      INT,               
      status   CHAR(40),              
      priority     INT,               
-     timestamp    INT)",             
+     timestamp    INT,
+     isonline       INT)",             
 
      "CREATE TABLE Cites
      (cid      INT NOT NULL ,
@@ -562,7 +563,6 @@ my $sql;
      if ($fs == 1) {
          my ($host,$disk,$path,$total,$occup,$avail,$allow,$status,$prio,@junk) = split ":",$line;
          if (defined $host and defined $prio) {
-          $fid++;
           $host    = trimblanks($host);
           $disk    = trimblanks($disk);
           $path    = trimblanks($path);
@@ -574,7 +574,7 @@ my $sql;
           $prio    = strtod($prio);
           print "$host,$disk,$path,$total,$occup,$avail,$allow,$status\n";
           $dbh->do("INSERT INTO Filesystems VALUES
-           ($fid,'$host','$disk','$path',$total,$occup,$avail,$allow,'$status',$prio,$time)")
+           ('$host','$disk','$path',$total,$occup,$avail,$allow,'$status',$prio,$time,1)")
            or die "cannot do: ".$dbh->errstr();    
       }
      }

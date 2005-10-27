@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.335 2005/10/26 16:54:42 ams Exp $
+# $Id: RemoteClient.pm,v 1.336 2005/10/27 12:07:42 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -962,10 +962,10 @@ foreach my $file (@allfiles){
     if (not defined $self->{TempT}){
         die "No Basic Templates Available";
     }
-
+     $self->CheckFS(1);
 # filesystems table
      $#{$self->{FilesystemT}}=-1;
-     $sql="select * from Filesystems WHERE status='Active'";
+     $sql="select * from Filesystems WHERE status='Active' and isonline=1";
      ($values, $fields)=$self->{sqlserver}->QueryAll($sql);
      foreach my $row (@{$values}) {
          my $fs={};
@@ -7340,7 +7340,7 @@ sub listDisks {
     my $usedGBMC = 0;
     my $totalGBMC= 0;
 
-
+    $self->CheckFS(1);
     $self->getProductionPeriods(0);
     $sql="SELECT MAX(timestamp) FROM Filesystems";
     my $r0=$self->{sqlserver}->Query($sql);
@@ -7364,7 +7364,7 @@ sub listDisks {
       print_bar($bluebar,3);
      }
      $sql="SELECT host, disk, path, totalsize, occupied, available, status,
-           timestamp FROM Filesystems ORDER BY available DESC";
+           timestamp, isonline FROM Filesystems ORDER BY available DESC";
      my $r3=$self->{sqlserver}->Query($sql);
      if(defined $r3->[0][0]){
       foreach my $dd (@{$r3}){
@@ -7393,6 +7393,10 @@ sub listDisks {
            $size   = $size + $dd->[3];
            $avail  = $avail+ $dd->[5];
            $status   = trimblanks($dd->[6]);
+           $size/=1024;
+           $avail/=1024;
+            $size=int($size*10)/10;
+            $avail=int($avail*10)/10;
            $usedGBMC = sprintf("%6.1f",$used/1000);
            my $color=statusColor($status);
             if ($webmode == 1) {
@@ -7410,9 +7414,9 @@ sub listDisks {
     my $r4=$self->{sqlserver}->Query($sql);
     if(defined $r4->[0][0]){
 #      foreach my $tt (@{$r4}){
-          my $total = $r4->[0][0];
-          my $occup = $r4->[0][1];
-          my $free  = $r4->[0][2];
+          my $total = int(10*$r4->[0][0]/1024)/10;
+          my $occup = int(10*$r4->[0][1]/1024)/10;
+          my $free  = int(10*$r4->[0][2]/1024)/10;
           my $color="green";
           my $status="ok";
           my $totalGB = sprintf("%6.1f",$totalGBMC/1000);
@@ -10484,10 +10488,10 @@ sub getOutputPath {
     my $mtime      = 0;
     my $gb         = 0;
 #
-
+$self->CheckFS(1);
 # get production set path
-     $sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE AVAILABLE > $MIN_DISK_SPACE
-                  AND allowed > occupied+10 AND status='Active' ORDER BY priority DESC, available DESC";
+     $sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE 
+                   status='Active' and isonline=1 ORDER BY priority DESC, available DESC";
      $ret = $self->{sqlserver}->Query($sql);
      foreach my $disk (@{$ret}) {
       $outputdisk = trimblanks($disk->[0]);
@@ -11211,7 +11215,7 @@ sub calculateMipsVC {
                              warn " real trig not defined for $job->[0] \n";
                              }
                              $rtrig=0;
-                             $sql="select sum(LEvent-FEvent+1) from Runs where jid=$job->[0] and  (status='Finished' or status='Completed')";
+                             $sql="select sum(LEvent-FEvent+1) from Runs where jid=$job->[0] and  (status='Completed')";
                              my $r3=$self->{sqlserver}->Query($sql);
                              if(defined $r3->[0][0]){
                                  $rtrig=$r3->[0][0];
@@ -12979,4 +12983,57 @@ sub adda{
                   warn"  Updated:  $upd $sql \n";
               }
           }
+}
+require "syscall.ph";
+sub CheckFS{
+#  called from liststat
+#  check  filesystems, update the tables accordingly
+#  status: Active  :  May be used 
+#          Reserved :  Set manually, may not be reseting
+#          Full     :  if < 10 GB left
+#          
+#  Offline  0, Online 1;
+#          
+#
+           my $self=shift; 
+           my $updatedb=shift;  
+           my $sql="select disk,host,status,allowed  from filesystems";
+           my $ret=$self->{sqlserver}->Query($sql);
+           foreach my $fs (@{$ret}){
+            my $buf = "\0"x64;
+            my $res=syscall(&SYS_statfs, $fs->[0], $buf);
+            my ($bsize, $blocks, $bfree, $bavail, $files, $ffree, $namelen) = unpack  "x4 L6 x8 L", $buf;
+              my $isonline = ($res==0);
+              if($isonline){
+                my $timestamp=time();
+                my $status="Active";
+                my $fac=$bsize/1024/1024;
+                 my $tot=$blocks*$fac;
+                 my $occ=($blocks-$bfree)*$fac;
+                 my $ava=$bavail*$fac;
+                 my $ava1=$tot*$fs->[3]/100-$occ;
+                 if($fs->[2]=~'Reserved'){
+                  $status=$fs->[2];
+                 }
+                 elsif( $ava1<0 or $ava<20000){
+                  $status='Full';
+                 }
+                 if($ava1<$ava){
+                   $ava=$ava1;
+                 }
+                 if($ava<0){
+                   $ava=0;
+                 }
+                $sql="update filesystems set isonline=1, totalsize=$tot, status='$status',occupied=$occ,available=$ava,timestamp=$timestamp where disk='$fs->[0]'";
+             }
+             else{
+              $sql="update filesystems set isonline=0 where disk='$fs->[0]'";
+              if(not defined $updatedb or $updatedb==0){
+                print " $fs->[1]:$fs->[0] is not online \n";
+              }
+             }
+             if(defined $updatedb and $updatedb>0 ){
+               $self->{sqlserver}->Update($sql);
+             }
+            }
 }
