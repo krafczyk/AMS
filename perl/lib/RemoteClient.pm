@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.338 2005/10/27 15:02:58 choutko Exp $
+# $Id: RemoteClient.pm,v 1.339 2005/10/27 16:24:03 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5419,7 +5419,7 @@ print qq`
                               $ctime,
                               '$nickname',
                                'host',0,0,0,0,'$stalone',
-                              -1, $pid,-1)";
+                              -1, $pid,-1,0)";
 
          $self->{sqlserver}->Update($insertjobsql);
 #         $self->{sqlserver}->Update($sql);

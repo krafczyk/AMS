@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.77 2005/10/27 12:07:42 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.78 2005/10/27 16:24:03 choutko Exp $
 
 #
 #
@@ -232,7 +232,8 @@ sub Create{
         jobtype   VARCHAR(20),
         mips      number,
         pid       number,
-        realtriggers int)",
+        realtriggers int,
+        timekill int)",
 
       "CREATE TABLE  DataSetsDesc 
        (did        int not null,
