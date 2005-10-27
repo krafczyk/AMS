@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.336 2005/10/27 12:07:42 choutko Exp $
+# $Id: RemoteClient.pm,v 1.337 2005/10/27 12:54:30 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -965,7 +965,7 @@ foreach my $file (@allfiles){
      $self->CheckFS(1);
 # filesystems table
      $#{$self->{FilesystemT}}=-1;
-     $sql="select * from Filesystems WHERE status='Active' and isonline=1";
+     $sql="select * from Filesystems WHERE status='Active' and isonline=1 ";
      ($values, $fields)=$self->{sqlserver}->QueryAll($sql);
      foreach my $row (@{$values}) {
          my $fs={};
@@ -10501,6 +10501,7 @@ $self->CheckFS(1);
       } else {
        $outputpath = $outputdisk.$outputpath."/".$period;
       }
+      system("mkdir -p $outputpath");
       $mtime = (stat $outputpath)[9];
  #     print "$outputpath, mtime ... $mtime \n";
       if (defined $mtime) {
