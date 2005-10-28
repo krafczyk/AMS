@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.339 2005/10/27 16:24:03 choutko Exp $
+# $Id: RemoteClient.pm,v 1.340 2005/10/28 14:28:24 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6221,7 +6221,6 @@ sub checkJobsTimeout {
     my $update = 0;
 
     my $sql;
-#    my $timenow = time() - 24*60*60;
     my $timenow = time();
 
  my $HelpTxt = "
@@ -6280,33 +6279,164 @@ sub checkJobsTimeout {
 # at least one DST is copied to final destination
 #
 # get production set path
-    if (0) {
-    }
-    else {
-     $sql = "SELECT ntuples.run
-              FROM runs, ntuples
-               WHERE
-                     (runs.run = ntuples.run) AND
-                     (runs.submit > $periodStartTime) AND
-                     (
-                      runs.status != 'Completed' AND
-                      runs.status != 'TimeOut'   AND
-                      runs.status != 'Finished'  AND
-                      runs.status != 'Foreign'  AND
-                      runs.status != 'Processing')";
-      my $r1=$self->{sqlserver}->Query($sql);
-      if( defined $r1->[0][0]){
-       foreach my $r (@{$r1}){
-         my $run= $r -> [0];
-           $sql="UPDATE runs SET runs.status='Completed' WHERE run=$run";
-           $self->{sqlserver}->Update($sql);
-       }
-   }
-  } # Active Production Set
+#    if (0) {
+#    }
+#    else {
+#     $sql = "SELECT ntuples.run,
+#              FROM runs, ntuples
+#               WHERE
+#                     (runs.run = ntuples.run) AND
+#                     (runs.submit > $periodStartTime) AND
+#                     (
+#                      runs.status != 'Completed' AND
+#                      runs.status != 'TimeOut'   AND
+#
+#                      runs.status != 'Finished'  AND
+#                      runs.status != 'Foreign'  AND
+#                      runs.status != 'Processing')";
+#      my $r1=$self->{sqlserver}->Query($sql);
+#      if( defined $r1->[0][0]){
+#       foreach my $r (@{$r1}){
+#         my $run= $r -> [0];
+#          
+#           $sql="UPDATE runs SET runs.status='Completed' WHERE run=$run";
+#           $self->{sqlserver}->Update($sql);
+#       }
+#   }
+#  } # Active Production Set
+#
+
+#
+#    First Select Jobsto be kille\d
+#
+    my $jobkilled=0;
+    my $jobsaved=0;
+    my $jobpostponed=0;
+    $sql="SELECT jobs.jid,jobs.events,jobs.time,jobs.cid from jobs where jobs.timekill<$timenow and jobs.timekill>0";
+     my $rtokill=$self->{sqlserver}->Query($sql);
+
+
+    if( defined $rtokill->[0][0]){
+        foreach my $jtokill (@{$rtokill}){
+            if($jtokill->[1]>0){
+                $sql="update jobs set timekill=0 where jid=$jtokill->[0]";
+            if ($update == 1){
+                $self->{sqlserver}->Update($sql);
+            }
+                next;
+                 $jobsaved++;              
+            }
+          my $sql="select sum(ntuples.levent-ntuples.fevent+1),min(ntuples.fevent),sum(nevents),sum(neventserr) from ntuples where run=$jtokill->[0]";
+          my $q=$self->{sqlserver}->Query($sql);
+          if(defined $q->[0][0] and $q->[0][0]>0){
+              $sql="select status from runs where jid=$jtokill->[0]";
+              my $q1=$self->{sqlserver}->Query($sql);
+              if(defined $q1->[0][0]){
+                $sql="update runs set fevent=$q->[0][1], levent=$q->[0][1]+$q->[0][0]-1,status='Completed' where jid=$jtokill->[0]";
+              }
+              else{
+                  $sql="insert into runs values($jtokill->[0],$jtokill->[0],$q->[0][1],$q->[0][1]+$q->[0][0]-1,$jtokill->[2],$jtokill->[2],$jtokill->[2],'Completed')";
+              }
+            if ($update == 1){
+              $self->{sqlserver}->Update($sql);  
+            }
+                $sql="update jobs set timekill=0,events=$q->[0][2],error=$q->[0][3],mips=0 where jid=$jtokill->[0]";
+            if ($update == 1){
+                $self->{sqlserver}->Update($sql);
+            }
+                next;
+                $jobsaved++;              
+                           
+          }
+          else{
+#
+# Any run processing?
+#
+              $sql="select status from runs where jid=$jtokill->[0]";
+              my $q1=$self->{sqlserver}->Query($sql);
+              if(defined $q1->[0][0] and $q1->[0][0]=~/'Processing'/){
+                $sql="update jobs set timekill=0 where jid=$jtokill->[0]";
+                if ($update == 1){
+                 $self->{sqlserver}->Update($sql);
+                }              
+                 next;
+                $jobsaved++;              
+            }
+
+#
+# Last Hope - journal file ready?
+#
+    $sql = "SELECT dirpath FROM journals WHERE cid=$jtokill->[3]";
+               $q1=$self->{sqlserver}->Query($sql);
+              my $dir=$q1->[0][0]."/jou";
+              $sql="select name from cites where cid=$jtokill->[3]";
+               my $q2=$self->{sqlserver}->Query($sql);
+               if($q2->[0][0]=~/test/ or $q2->[0][0]=~/cern/){
+                 $dir=$dir."/MCProducer";       
+             }
+              opendir MYDIR,  $dir or die " CheckTimeInitJob: unable to open dir $dir  \n";
+              my @allfiles=readdir MYDIR;
+              closedir MYDIR;
+               if($q2->[0][0]=~/test/ or $q2->[0][0]=~/cern/){
+                 $dir=~ s/MCProducer/Producer/;
+                opendir MYDIR,  $dir or die " CheckTimeInitJob: unable to open dir $dir  \n";
+                 my @allf2=readdir MYDIR;
+                 foreach my $file (@allf2){
+                     push @allfiles,$file;
+                 }
+                closedir MYDIR;
+               }
+              my $jfound=0;
+              foreach my $file (@allfiles){
+                if($file =~ /\.journal$/){
+                    if($file=~/$jtokill->[0]/){
+                        warn "  journal file $file found for $jtokill->[0]. cowardly refuses to kill the job \n";
+                        $jfound=1;
+                        last;
+                    }
+                }
+            }
+              if($jfound){
+                  next;
+                 $jobpostponed++;              
+              }
+
+
+          }
+
+
+#
+# Here actually kill the job
+#                          
+            
+            $sql="delete from jobs where jid=$jtokill->[0]";
+            if ($update == 1){
+                $self->{sqlserver}->Update($sql);
+            }
+            $sql="delete from runs where jid=$jtokill->[0]";
+            if ($update == 1){
+                $self->{sqlserver}->Update($sql);
+            }
+            $jobkilled++;              
+
+        }
+    }      
+
+
+    print "  killed/saved/posponed jobs $jobkilled,$jobpostponed,$jobsaved \n";
+#
+
+#  convert jobs with ntuples or runs with "Processing" status to good ones
+#  refuse to kill jobs if corr journal file exists
+#
+
+    my $jobstimeout=0;
+#
+# Select timeout jobs, mark them to kill in 24h and mail owners about
 #
     $sql="SELECT jobs.jid, jobs.time, jobs.timeout, jobs.mid, jobs.cid
             FROM jobs
-             WHERE jobs.time+jobs.timeout <  $timenow AND (jobs.mips = 0 OR jobs.events=0)";
+             WHERE jobs.time+jobs.timeout <  $timenow AND (jobs.mips <=0 OR jobs.events=0)";
     my $r3=$self->{sqlserver}->Query($sql);
     if( defined $r3->[0][0]){
      foreach my $job (@{$r3}){
@@ -6314,7 +6444,7 @@ sub checkJobsTimeout {
        my $tmoutflag    = 0;
        my $jobstatus    ="unknown";
        my $owner        ="xyz";
-       my $address      = "alexei.klimentov\@cern.ch";
+       my $address      = "vitali.choutko\@cern.ch";
        $sql="SELECT runs.run, runs.status
               FROM runs
                 WHERE (runs.status = 'Failed' OR runs.status = 'Unchecked') AND runs.jid=$jid";
@@ -6325,7 +6455,15 @@ sub checkJobsTimeout {
         $tmoutflag = 1;
         $jobstatus = $r4->[0][1];
        }
+        else{
+        $sql="SELECT runs.run from runs where runs.jid=$jid";
+        my $r5=$self->{sqlserver}->Query($sql);
+        if(not defined $r5->[0][0]){
+        $tmoutflag = 1;
+        $jobstatus = 'Timeout';
+      }
        if ($tmoutflag == 1) {
+           $jobstimeout++;
          my $timestamp    = $job->[1];
          my $submittime = localtime($timestamp);
          my $timeout      = $job->[2];
@@ -6343,7 +6481,7 @@ sub checkJobsTimeout {
             $cite         = $r4->[0][2];
           }
          my $timenow    = time();
-         my $deletetime = localtime($timenow+60*60);
+         my $deletetime = localtime($timenow+24*60*60);
          my $exptime    = $timestamp+$timeout;
          $exptime       = localtime($exptime);
          my $sujet = "Job : $jid - expired";
@@ -6354,8 +6492,13 @@ sub checkJobsTimeout {
                          \n This message was generated by program.
                          \n DO NOT reply using REPLY option of your mailer";
          if ($update == 1) {
+          $sql=" update jobs set timekill=$timenow+3600*24, timeout=$timenow+3600*24*7-$job->[1] where jid=$jid";
+          $self->{sqlserver}->Update($sql); 
           $self->sendmailmessage($address,$sujet,$message);
          }
+           else{
+               print "$jid \n";
+           }
          $self->amsprint($cite,666);
          $self->amsprint($jid,666);
          $self->amsprint($tsubmit,666);
@@ -6365,12 +6508,13 @@ sub checkJobsTimeout {
          if ($webmode == 1) {print "</tr>\n";}
      }
    }
+   }
  }
-
+     print " jobstimeout $jobstimeout \n";
  if ($webmode == 1) {
   $self->htmlTableEnd();
   $self->htmlBottom();
- }
+}
 }
 
 sub updateHostInfo {
@@ -9378,7 +9522,7 @@ sub updateRunCatalog {
 }
 
 sub deleteTimeOutJobs {
-
+   return; 
     my $self = shift;
 
     my $vdir = undef;
@@ -9507,7 +9651,7 @@ sub deleteTimeOutJobs {
     my $timedelete = time() - 4*60*60;
     $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid
             FROM jobs
-             WHERE jobs.time+jobs.timeout <  $timedelete AND (jobs.mips = 0 OR jobs.events=0)";
+             WHERE jobs.time+jobs.timeout <  $timedelete AND (jobs.mips <=0 OR jobs.events=0)";
 #    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid,
 #                 cites.name FROM jobs, cites
 #          WHERE jobs.timestamp+jobs.timeout < $timedelete  AND

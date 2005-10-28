@@ -25,11 +25,7 @@ my $html=new RemoteClient();
     $ok=$html->checkJobsTimeout();
 
  
-#work
  
-if (not $ok){
-  $html->Warning();
-}
 
 
 
