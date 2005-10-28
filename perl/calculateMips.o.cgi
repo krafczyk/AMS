@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: calculateMips.o.cgi,v 1.5 2005/10/26 16:54:21 ams Exp $
+#  $Id: calculateMips.o.cgi,v 1.6 2005/10/28 19:48:38 choutko Exp $
 use Gtk;
 use strict;
 
@@ -19,7 +19,8 @@ my $nocgi=1;
 my $html=new RemoteClient($nocgi);
 my $ok=$html->ConnectOnlyDB();
 my $fast=0;
-   my @output=$html->calculateMipsVC($fast,0);
+my $verbose=1;
+   my @output=$html->calculateMipsVC($fast,$verbose);
     my $tcpu=0;
     my $rcpu=0;
    foreach my $arr (@output){
