@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.342 2005/10/31 10:23:21 choutko Exp $
+# $Id: RemoteClient.pm,v 1.343 2005/10/31 14:36:35 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1465,7 +1465,7 @@ my $fevt=-1;
          warn "  problems with $run->{Run} $ntuple->{Name} \n";
      }
      else{
-         $fevt=$ntuple->{FirstEvent};
+                  $fevt=$ntuple->{FirstEvent};
                   if($ntuple->{Name}=~/:\/dat0/){
                       $dat0=1;
                   }
@@ -1543,6 +1543,7 @@ my $fevt=-1;
                        $BadCRCi[0]++;
                        $BadDSTs[0]++;
                        $bad++;
+                       die "  bad crc \n";
                    } else { # CRCi - correct
                    close FILE;
                    my ($ret,$i) =
@@ -1559,7 +1560,7 @@ my $fevt=-1;
                      else{
                       $thrusted++;
                      }
-                   }
+                }
                     else{ #4
                          $i=($i>>8);
                          if(int($i/128)){
@@ -1705,9 +1706,10 @@ my $fevt=-1;
 # Check run lastevent
 #
 
-                         $sql="select sum(ntuples.levent-ntuples.fevent+1) from ntuples,runs where ntuples.run=runs.run and runs.run=$run->{Run}";
+                         $sql="select sum(ntuples.levent-ntuples.fevent+1),min(ntuples.fevent)  from ntuples,runs where ntuples.run=runs.run and runs.run=$run->{Run}";
                           my $r4=$self->{sqlserver}->Query($sql);
                           my $ntevt=$r4->[0][0];
+                          $fevt=$r4->[0][1];
                           if(not defined $ntevt){
                               $ntevt=0;
                           }
@@ -4261,7 +4263,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
                    $maxavail = $fs->{available};
                    $ntdir = $fs->{disk}.$fs->{path}."/".$ProductionPeriod;
                    if ($fs->{disk} =~ /vice/) {
-                    $ntdir = $fs->{path}."/".$ProductionPeriod;
+                    $ntdir = $fs->{path}."/".$ProductionPeriod."/$dataset->{name}";
                    }
                  }
                }
@@ -5306,7 +5308,7 @@ print qq`
          open(FILE,">".$root) or die "Unable to open file $root\n";
          if($self->{CCT} eq "local"){
           if(defined $self->{AMSDSTOutputDir} and $self->{AMSDSTOutputDir} ne ""){
- print FILE "export NtupleDestDir=$self->{AMSDSTOutputDir} \n";
+ print FILE "export NtupleDestDir=$self->{AMSDSTOutputDir}/$template \n";
  print FILE "export NtupleDir=/dat0/local/logs/nt \n";
 }
         my $key='ntuplevalidator';
@@ -8588,7 +8590,9 @@ sub parseJournalFiles {
    my $cite       = trimblanks($jou->[2]);  # cite
    my $timestamp  = trimblanks($jou->[1]);  # time of latest processed file
    my $lastcheck  = EpochToDDMMYYHHMMSS($timestamp);
-
+   if($jou->[3]==1){
+        next;
+   }   
    if ( $cid != $jou->[3]) {
     $cid        = $jou->[3];
 #+ get min JID for cite and given production period
@@ -8787,6 +8791,8 @@ my $jobmips = -1;
    my $bad      =0;
    my $unchecked=0;
 
+ my $leti=0;
+ my $feti=2000000000;
 
     my $run  = 0;
 
@@ -8878,7 +8884,7 @@ foreach my $block (@blocks) {
     }
    } else {
     print FILE "parseJournalFile -W- RunIncomplete - cannot find all patterns \n";
-   }
+}
    #
    # end RunIncomplete - normal
    # if no NTuples produced
@@ -8906,8 +8912,11 @@ foreach my $block (@blocks) {
           }
 #          $self->sendmailmessage($mailto,$subject,$text);
        last;
+   }
+
+
+
       }
-     }
       elsif ($block =~/StartingJob/) {
 
 #
@@ -9044,6 +9053,12 @@ foreach my $block (@blocks) {
    if ($patternsmatched == $#StartingRunPatterns+3 || $patternsmatched == $#StartingRunPatterns+4) {
     $run = $startingrun[2];
     $startingrun[0] = "StartingRun";
+    my $sql=" select status from runs where jid=$run";
+        my $rq=$self->{sqlserver}->Query($sql);
+    if(defined $rq->[0][0] and $rq->[0][0] =~/Completed/){
+        warn "  Run $ run already completed in database do nothing \n";
+        return;
+    }
     $startingrunR   = 1;
 # insert run : run #, $jid, $fevent, $levent, $fetime, $letime, $submit, $status;
     $CheckedRuns[$nCheckedCite]++;
@@ -9052,8 +9067,8 @@ foreach my $block (@blocks) {
              $lastjobid,
              $startingrun[3],
              $startingrun[4],
-             0,
-             0,
+             $feti,
+             $leti,
              $startingrun[12],
              $startingrun[7]);
 
@@ -9124,7 +9139,10 @@ foreach my $block (@blocks) {
     my @CloseDSTPatterns = ("CloseDST","Status","Type","Name","Version",
                             "Size","CRC","Insert","Begin","End",
                             "Run","FirstEvent","LastEvent","EventNumber","ErrorNumber");
-     for (my $i=0; $i<$#junk+1; $i++) {
+    for my $icl  (0...$#CloseDSTPatterns){
+        $closedst[$icl]=0;
+    }
+    for (my $i=0; $i<$#junk+1; $i++) {
       my @jj = split " ",$junk[$i];
       if ($#jj > 0) {
        my $found = 0;
@@ -9138,8 +9156,14 @@ foreach my $block (@blocks) {
          }
         $j++;
        }
-     }
    }
+  }
+    if($feti>$closedst[8] && $closedst[8]>0){
+        $feti=$closedst[8];
+    }
+    if($leti<$closedst[9]){
+        $leti=$closedst[9];
+    }
    if ($patternsmatched == $#CloseDSTPatterns) { #CloseDST has no pair
 #
 # Check CRC
@@ -9301,7 +9325,7 @@ foreach my $block (@blocks) {
          $j++;
        }
      }
-   }
+  }
    if ($patternsmatched == $#RunFinishedPatterns+1 ||
        $patternsmatched == $#RunFinishedPatterns) { #RunFinsihed has a pair CInfo
     $runfinished[0] = "RunFinished";
@@ -9319,13 +9343,16 @@ foreach my $block (@blocks) {
                                where jid = (select runs.jid from runs where runs.jid = $run)";
      print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
+ 
    } else {
      print FILE "parseJournalFile -W- RunFinished - cannot find all patterns $patternsmatched/$#RunFinishedPatterns\n";
-   }
+ }
    #
    # end RunFinished
    #
-   }
+
+
+}
   } else {
     $BadRuns[$nCheckedCite]++;
     print FILE "*********** wrong timestamp : $utime ($firstjobtime,$lastjobtime)\n";
@@ -9362,7 +9389,22 @@ foreach my $block (@blocks) {
                 where jid=$lastjobid";
       print FILE "$sql \n";
       $self->{sqlserver}->Update($sql);
-     }
+  }
+
+                         $sql="select sum(ntuples.levent-ntuples.fevent+1),min(ntuples.fevent)  from ntuples,runs where ntuples.run=runs.run and runs.run=$run";
+                          my $r4=$self->{sqlserver}->Query($sql);
+                          my $ntevt=$r4->[0][0];
+                          my $fevt=$r4->[0][1];
+                          if(not defined $ntevt){
+                              $ntevt=0;
+                          }
+    if($ntevt>0){
+                             $sql="UPDATE Runs SET fevent=$fevt, Levent=$ntevt-1+$fevt, fetime=$feti, letime=$leti WHERE jid=$run";
+                             $self->{sqlserver}->Update($sql);
+    $sql=" update jobs set realtriggers=$ntevt where jid=$run";
+                             $self->{sqlserver}->Update($sql);
+                         }
+
  } else {
      $BadRuns[$nCheckedCite]++;
  }
