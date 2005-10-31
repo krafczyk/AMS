@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.343 2005/10/31 14:36:35 ams Exp $
+# $Id: RemoteClient.pm,v 1.344 2005/10/31 15:13:19 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4261,7 +4261,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
                foreach my $fs (@{$self->{FilesystemT}}){
                 if ($fs->{available} > $maxavail) {
                    $maxavail = $fs->{available};
-                   $ntdir = $fs->{disk}.$fs->{path}."/".$ProductionPeriod;
+                   $ntdir = $fs->{disk}.$fs->{path}."/".$ProductionPeriod."/$dataset->{name}";
                    if ($fs->{disk} =~ /vice/) {
                     $ntdir = $fs->{path}."/".$ProductionPeriod."/$dataset->{name}";
                    }
@@ -5305,10 +5305,12 @@ print qq`
          print htmlBottom();
          return 1;
         }
+         my $adddst=$template; 
+         $adddst=~ s/\.job//;
          open(FILE,">".$root) or die "Unable to open file $root\n";
          if($self->{CCT} eq "local"){
           if(defined $self->{AMSDSTOutputDir} and $self->{AMSDSTOutputDir} ne ""){
- print FILE "export NtupleDestDir=$self->{AMSDSTOutputDir}/$template \n";
+ print FILE "export NtupleDestDir=$self->{AMSDSTOutputDir}/$adddst \n";
  print FILE "export NtupleDir=/dat0/local/logs/nt \n";
 }
         my $key='ntuplevalidator';

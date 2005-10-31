@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.93 2005/10/20 12:25:21 choutko Exp $
+//  $Id: producer.C,v 1.94 2005/10/31 15:09:54 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -511,14 +511,14 @@ if(destdir && strcmp(destdir,getenv("NtupleDir"))){
   fcopy="cp ";
  }
  fmake+=destdir;
- fmake+='/';
- for (int k=bnt;k<bend;k++)fmake+=a[k];
+// fmake+='/';
+// for (int k=bnt;k<bend;k++)fmake+=a[k];
  system((const char*)fmake);
  fcopy+=(const char*)a(bstart);
  fcopy+="  ";
  fcopy+=destdir; 
- fcopy+='/';
- for (int k=bnt;k<bend;k++)fcopy+=a[k];
+// fcopy+='/';
+// for (int k=bnt;k<bend;k++)fcopy+=a[k];
  int ntry=5;
  for(int j=0;j<ntry;j++){
   sleep(1<<(j+1));
@@ -545,7 +545,8 @@ if(destdir && strcmp(destdir,getenv("NtupleDir"))){
     for(int k=0;k<bstart;k++)b+=a[k];
     b+=destdir;
     b+="/";
-    b+=a(bnt);
+    //b+=a(bnt);
+    b+=a(bend);
     a=b;
     ntend->Name=(const char*)a;
    }
@@ -921,8 +922,8 @@ if(destdir && strcmp(destdir,getenv("NtupleDir"))){
   fmake="mkdir -p ";
  }
  fmake+=destdir;
- fmake+='/';
- for (int k=bnt;k<bend;k++)fmake+=a[k];
+// fmake+='/';
+// for (int k=bnt;k<bend;k++)fmake+=a[k];
    cout <<"SendNtupleStart-I-MakingDestDir "<<(const char*)fmake<<endl;
 
  if(system((const char*)fmake)){

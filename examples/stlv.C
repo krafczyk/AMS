@@ -77,7 +77,13 @@ vector<TH1F*>   stlv::h1A;
 //create here pointers to histos and/or array of histos
 
     TH1F * acc[20]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; 
-    TH1F * h1=0; 
+     TH1F * h1=0;
+     TH1F * h2=0;
+      TH1F * h3=0;
+       TH1F *h4=0;
+       TH1F *h5=0;
+
+       
 
 
 
@@ -109,6 +115,15 @@ void stlv::UBegin(){
     char *name="Layers";
    if(h1)delete h1;
    h1=new TH1F(name,name,10,-0.5,9.5);
+   if(h2)delete h2;
+    h2=new TH1F("a","a",200,0.,1);
+    if(h4)delete h4;
+    h4=new TH1F("a","a",200,0.,0.5);
+  if(h3)delete h3;
+    h3=new TH1F("a","a",300,135,165.);
+  if(h5)delete h5;
+    h5=new TH1F("a","a",200,0.,1);
+
     cout << " Begin called now"<<endl;
     
    
@@ -134,6 +149,15 @@ void stlv::UProcessFill()
       xm = log(mc_ev.Momentum);
       acc[0]->Fill(xm,1);
       h1A[0]-> Fill(xm,1);
+      cout <<Run()<< "  " <<Event()<< "  "<<mc_ev.Momentum<<"  "<<MCEventg(1).Momentum<<"  "<< MCEventg(1).Coo[2]<<" ";
+      cout <<Particle(0).Momentum<<"  ";
+      h2->Fill(Particle(0).Momentum/mc_ev.Momentum,1);
+      float xx=pow(float(Particle(0).Momentum/mc_ev.Momentum),float(2.7));
+      h4->Fill(xx,1);
+     h5->Fill(Particle(0).Momentum/mc_ev.Momentum,xx);
+       cout << xx<<endl;
+      h3->Fill(MCEventg(1).Coo[2],1);
+/*
        int ng=nEcalHit();
       if(ng>0){
         EcalHitR ec=EcalHit(ng-1);
@@ -141,6 +165,7 @@ void stlv::UProcessFill()
               acc[1]->Fill(xm,1);
            }                                                                                      //cout <<" ne "<<ng<<" "<<ec.Edep<<endl;
 }
+*/
      if(nParticle()>0){
        int ptrack = Particle(0).iTrTrack();
        int ptrd = Particle(0).iTrdTrack();

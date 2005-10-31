@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.124 2005/10/20 12:25:21 choutko Exp $
+//  $Id: server.C,v 1.125 2005/10/31 15:09:54 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -888,7 +888,7 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
     }
     if(_parent->Debug())_parent->IMessage(submit);
     submit+=" &";
-    int out=system(submit);
+    int out=systemC(submit);
      time_t tt;
      time(&tt);
      (ahlv)->LastUpdate=tt;     
@@ -1765,7 +1765,7 @@ return length;
    char tmpbuf[1024];
    strcpy(tmpbuf,"ping -c 1 -w 9 ");
    strcat(tmpbuf,host);
-   return system(tmpbuf)==0;
+   return systemC(tmpbuf)==0;
 
 
 }
@@ -2317,7 +2317,7 @@ if(pcur->InactiveClientExists(getType()))return;
     }
     if(_parent->Debug())_parent->IMessage(submit);
     submit+=" &";
-    int out=system(submit);
+    int out=systemC(submit);
      time(&tt);
      (ahlv)->LastUpdate=tt;     
     if(out==0){
@@ -3547,9 +3547,8 @@ integer Server_impl::Kill(const DPS::Client::ActiveClient & ac, int signal, bool
      submit+=tmp;
      submit+=".log ";
     }
-
-    cout <<"kill "<<submit<<endl;
-    return system(submit);
+    cout << "  kill: " <<submit<<endl;
+    return systemC(submit);
 }
 
 
@@ -5340,4 +5339,33 @@ extern "C" gpointer myrun(gpointer data){
 //g_main_loop_new(NULL,TRUE);
 ((CORBA::ORB_ptr)data)->run();
 return NULL;
+}
+
+int AMSServerI::systemC(const char * cmd){
+static char *dir=0;
+if(!dir){
+AString fnam;
+ char *logdir=getenv("AMSDataDir");
+ if(!logdir){
+   cerr<<":AMSServerI::systemC-E-AMSDataDirNotDefined"<<endl;
+   return;
+ }
+ fnam=logdir;
+ fnam+="/prod.log/systemC";
+
+dir=new char[fnam.length()+1];
+strcpy(dir,(const char *)fnam);
+}
+ofstream fbin;
+fbin.open(dir);
+if(fbin){
+ DPS::Client::CID cid=_parent->getcid();
+time_t ct;
+time(&ct);
+ fbin <<ct<<" ; "<<cid.pid<<" ; "<<cmd;
+ fbin.close();
+}
+ int i=system(cmd);
+ unlink(dir);
+ return i;
 }
