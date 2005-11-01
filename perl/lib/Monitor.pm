@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.91 2005/10/21 14:17:37 ams Exp $
+# $Id: Monitor.pm,v 1.92 2005/11/01 12:17:02 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2457,7 +2457,7 @@ sub DeleteFailedDST{
     for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
      my %nc=%{$Monitor::Singleton->{dsts}[$i]};
      if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile"){
-         if($nc{Status} eq "Failure"){
+         if($nc{Status} eq "Failure" and 0){
 #            warn " $nc{Name} \n";           
                 my @parser=split ':',$nc{Name};
             if($#parser>0){
@@ -2579,7 +2579,7 @@ sub DeleteFailedDST{
           foreach my $ncg (@ncgood){
            if($nc{Name} eq $ncg){
              $ifg=1;
-             last;
+#             last;
            }
           }
           if(!$ifg ){
@@ -2598,7 +2598,101 @@ sub DeleteFailedDST{
           }
          }
       }
-    }
+ }
+
+
+
+
+
+    for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
+     my %nc=%{$Monitor::Singleton->{dsts}[$i]};
+     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile"){
+         if($nc{Status} eq "Failure"){
+#            warn " $nc{Name} \n";           
+                my @parser=split ':',$nc{Name};
+            if($#parser>0){
+                my $host=$parser[0];
+                my $hostok=0;
+                if($host =~ /cern.ch/ ){
+#                   ok
+                    $hostok=1;
+                }
+                else{
+                 my @hparser=split '\.',$host;
+                 if($#hparser>0 and $hparser[1] eq 'om'){
+                     $host=$hparser[0].'.cern.ch';
+                     $hostok=1;
+                 }
+                 else {
+#                   warn "Host Bizarre $host \n";           
+                 }
+               }
+                if($hostok){
+                    my $rm = "rm ";
+                    my $cmd="ssh -x $host $rm $parser[1]";
+                    my $ifg=0;
+                    foreach my $ncg (@ncgood){
+                    if($nc{Name} eq $ncg){
+                     $ifg=1;
+      #             last;
+                   }
+                }
+                    my $i=1;
+                    if(!$ifg){
+                    $i=system($cmd);
+                    }
+                    if($i){
+                        warn "$cmd failed \n";
+                      my $force=1;
+                     if($force){
+                     my $arsref;
+                     my %cid=%{$ref->{cid}};
+                     foreach $arsref (@{$ref->{arpref}}){
+                      try{
+                       $arsref->sendDSTEnd(\%cid,\%nc,"Delete");
+                      }
+                      catch CORBA::SystemException with{
+                       warn "sendback corba exc";
+                      };
+                     }
+                    }
+                    }
+                    else{
+                        warn " $cmd ok \n";
+                     my $arsref;
+                     my %cid=%{$ref->{cid}};
+                     foreach $arsref (@{$ref->{arpref}}){
+                      try{
+                       $arsref->sendDSTEnd(\%cid,\%nc,"Delete");
+                      }
+                      catch CORBA::SystemException with{
+                       warn "sendback corba exc";
+                      };
+                     }
+                     foreach $arsref (@{$ref->{ardref}}){
+                     try{
+                      $arsref->sendDSTEnd(\%cid,\%nc,"Delete");
+                      last;
+                     }
+            catch DPS::DBProblem   with{
+                my $e=shift;
+                warn "DBProblem: $e->{message}\n";
+            }
+                    catch CORBA::SystemException with{
+                    warn "sendback corba exc";
+                   };
+                 }
+                    }
+            }
+            }
+     }
+            }
+ }
+ 
+
+
+
+
  my $ok=1;
    for my $i (0 ... $#ncgr){
     my $move="ssh -x $ncgh[$i] mv /dat0/local/logs/MCProducer.".$ncgr[$i].".log /dat0/local/logs/aMCProducer.".$ncgr[$i].".log";
