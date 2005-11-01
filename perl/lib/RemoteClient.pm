@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.345 2005/11/01 14:47:24 ams Exp $
+# $Id: RemoteClient.pm,v 1.346 2005/11/01 19:58:43 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5218,6 +5218,14 @@ print qq`
          if(not defined $buf){
              $self->ErrorPlus("Unable to find   header file. ");
          }
+         my $sql = "SELECT dirpath FROM journals WHERE cid=$self->{CCID}";
+         my $ret=$self->{sqlserver}->Query($sql);
+         if(defined $ret->[0][0] && $self->{CCT} ne 'remote'){
+             my $subs=$ret->[0][0]."/jou";
+           #  $subs=~s/\//\\\//g;
+           $buf=~s/ProductionLogDir/ProductionLogDir=$subs/;
+             #die " $subs $buf \n";
+          }
          my $start=$timbegu+int(($timendu-$timbegu)/$runno)*($i-1);
              my $end=$start+int(($timendu-$timbegu)/$runno);
              my ($s,$m,$h,$date,$mon,$year)=localtime($start);
@@ -6479,7 +6487,7 @@ sub checkJobsTimeout {
 #
     $sql="SELECT jobs.jid, jobs.time, jobs.timeout, jobs.mid, jobs.cid
             FROM jobs
-             WHERE jobs.time+jobs.timeout <  $timenow AND (jobs.mips <=0 OR jobs.events=0 or jobs.realtriggers=0)";
+             WHERE jobs.time+jobs.timeout <  $timenow AND (jobs.mips <=0 OR jobs.events=0 or jobs.realtriggers<=0)";
     my $r3=$self->{sqlserver}->Query($sql);
     if( defined $r3->[0][0]){
      foreach my $job (@{$r3}){
@@ -6490,7 +6498,7 @@ sub checkJobsTimeout {
        my $address      = "vitali.choutko\@cern.ch";
        $sql="SELECT runs.run, runs.status
               FROM runs
-                WHERE (runs.status = 'Failed' OR runs.status = 'Unchecked') AND runs.jid=$jid";
+                WHERE (runs.status = 'Failed' OR runs.status = 'Unchecked' OR runs.status='Foreign') AND runs.jid=$jid";
        my $r4=$self->{sqlserver}->Query($sql);
        if (defined $r4->[0][0]) {
         $sql= "UPDATE runs SET status='TimeOut' WHERE run=$jid";
