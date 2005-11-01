@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.344 2005/10/31 15:13:19 choutko Exp $
+# $Id: RemoteClient.pm,v 1.345 2005/11/01 14:47:24 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1205,9 +1205,11 @@ sub ValidateRuns {
      -v    - verbose mode
      -w    - output will be produced as HTML page
      -rRun    -  perfom op only for run  Run;
+     -d     -  delete completed runs/ntuiples from server
      ./validateRuns.o.cgi -c -v
 ";
    my $Run=0;
+   my $delete=0;
   $rmprompt = 0;
    foreach my $chop  (@ARGV){
     if ($chop =~/^-c/) {
@@ -1224,6 +1226,9 @@ sub ValidateRuns {
     }
     if ($chop =~/^-w/) {
      $webmode = 1;
+    }
+    if ($chop =~/^-d/) {
+     $delete = 1;
     }
     if ($chop =~/^-h/) {
       print "$HelpTxt \n";
@@ -1534,7 +1539,7 @@ my $fevt=-1;
 #
 # Only do copy if not validated
 # 
-                   if($ntuple->{Status} ne "Validated"){
+                   if($ntuple->{Status} ne "Validated" or 1){
                    my  $retcrc = $self->calculateCRC($fpath,$ntuple->{crc});
                    print FILEV "calculateCRC($fpath, $ntuple->{crc}) : Status : $retcrc \n";
                    if ($retcrc != 1) {
@@ -1779,7 +1784,29 @@ my $fevt=-1;
  if ($webmode == 1) {$self->InfoPlus($warn);}
  $self->{ok}=1;
 
-    }
+
+if($delete){
+    foreach my $run (@{$self->{dbserver}->{rtb}}){
+           if($run->{Status} eq 'Finished'){
+               my $sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=$run->{Run}";
+               my $ret=$self->{sqlserver}->Query($sql);
+               if(defined $ret->[0][0]){
+                   my %rdst=%{$run};
+                   my %cid=$self->{cid};
+        foreach my $arsref (@{$self->{arssef}}){
+            try{
+                $arsref->sendRunEvInfo(\%rdst,"Delete");
+            }
+            catch CORBA::SystemException with{
+                warn "sendback p corba exc";
+            };
+}
+                   
+               }           
+}
+}
+}
+}
 
 sub doCopy {
      my $self = shift;
@@ -11046,7 +11073,12 @@ sub copyFile {
     my $self         = shift;
     my $inputfile    = shift;
     my $outputpath   = shift;
-
+    if($inputfile eq $outputpath){
+    if ($verbose == 1 && $webmode == 0)  {
+      $self->amsprint("*** docopy - ",666);
+    }
+        return 0;
+    }
     my $time0 = time();
     $copyCalls++;
     my $cmd = "cp -pi -d -v $inputfile  $outputpath ";

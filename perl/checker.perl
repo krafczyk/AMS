@@ -18,11 +18,17 @@ foreach my $chop  (@ARGV){
       my @spbuf=split "; ",$line;
       if($#spbuf>1){
          $spbuf[2]=~s/\'//g;
+         $spbuf[2]=~s/\"//g;
          $spbuf[1]=~ s/ +$//;
+         my @sb4=split ' ',$spbuf[2];
+          $spbuf[2]="";
+         foreach my  $chlen  (@sb4){
+          $spbuf[2]=$spbuf[2]." ".$chlen;
+         }
          #print  " $spbuf[0] $spbuf[1] $spbuf[2]\n"; 
        if(time()-$spbuf[0]>120){
         unlink "$checkfile.$spbuf[1]";
-        my $cmd="ps -elf  >$checkfile.$spbuf[1]";
+        my $cmd="ps -elf | grep $spbuf[1] >$checkfile.$spbuf[1]";
         system($cmd);
         #print " $cmd \n";
              open(FILE,"<".$checkfile.".".$spbuf[1]) or next;
@@ -32,7 +38,7 @@ foreach my $chop  (@ARGV){
              foreach $line (@buf){
                $line=~s/\'//g;
                if($line=~$spbuf[1]){
-                  # print "$line \n";
+                   print "$line \n";
                 }
                if($line=~$spbuf[2] && $line=~$spbuf[1]){
                 my @goal=split " ",$line;

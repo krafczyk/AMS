@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.92 2005/11/01 12:17:02 ams Exp $
+# $Id: Monitor.pm,v 1.93 2005/11/01 14:47:24 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2713,7 +2713,58 @@ sub DeleteFailedDST{
     my $move="ssh -x $ncgh[$i] mv /dat0/local/logs/aMCProducer.".$ncgr[$i].".log /dat0/local/logs/MCProducer.".$ncgr[$i].".log";
     system($move);
    }
+warn "   ***evrthing finished***\n";
+}
 
- warn "   ***evrthing finished***\n";
+sub DeleteValidatedDst{
+ my $ref=shift;
+
+#
+# Find ntuples without runs and delete them
+#
+    for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
+     my %nc=%{$Monitor::Singleton->{dsts}[$i]};
+     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile"){
+         my $run=$nc{Run};
+         my $rfound=0;  
+    foreach my $run(@{$ref->{rtb}}){
+          if($run->{Run} eq $run){
+              $rfound=1;
+              last;
+          }
+
+      }
+
+         if(!$rfound){
+
+                     my $arsref;
+                     my %cid=%{$ref->{cid}};
+                     foreach $arsref (@{$ref->{arpref}}){
+                      try{
+                       $arsref->sendDSTEnd(\%cid,\%nc,"Delete");
+                      }
+                      catch CORBA::SystemException with{
+                       warn "sendback corba exc";
+                      };
+                  }
+                     foreach $arsref (@{$ref->{ardref}}){
+                     try{
+                      $arsref->sendDSTEnd(\%cid,\%nc,"Delete");
+                      last;
+                     }
+            catch DPS::DBProblem   with{
+                my $e=shift;
+                warn "DBProblem: $e->{message}\n";
+            }
+                    catch CORBA::SystemException with{
+                    warn "sendback corba exc";
+                   };
+                 }
+
+
+         }
+     }
+ }
+
 }
 
