@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.43 2005/11/01 14:47:26 ams Exp $
+#  $Id: monitorUI.pm,v 1.44 2005/11/01 15:43:03 ams Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -1152,7 +1152,7 @@ sub item_factory_cb {
          }elsif($action==12){
              $Monitor::Singleton->DeleteFailedDST();
          }elsif($action==13){
-             $Monitor::Singleton->DeleteValidatedDST();
+             $Monitor::Singleton->DeleteValidatedDst();
          }
     }
 

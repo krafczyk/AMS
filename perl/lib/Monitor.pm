@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.93 2005/11/01 14:47:24 ams Exp $
+# $Id: Monitor.pm,v 1.94 2005/11/01 15:43:03 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2725,10 +2725,10 @@ sub DeleteValidatedDst{
     for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
      my %nc=%{$Monitor::Singleton->{dsts}[$i]};
      if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile"){
-         my $run=$nc{Run};
+         my $Run=$nc{Run};
          my $rfound=0;  
-    foreach my $run(@{$ref->{rtb}}){
-          if($run->{Run} eq $run){
+    foreach my $run (@{$Monitor::Singleton->{rtb}}){
+          if($run->{Run} eq $Run){
               $rfound=1;
               last;
           }
