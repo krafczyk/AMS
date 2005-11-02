@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.22 2005/10/19 14:27:45 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.23 2005/11/02 15:19:24 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -6,7 +6,7 @@ use Carp;
 use strict;
 use lib::Warning;
 use lib::Monitor;
-@monitorHTML::EXPORT =qw(new);
+@monitorHTML::EXPORT =qw(new print_table);
 
 sub new{
 my %fields=(
@@ -214,6 +214,7 @@ sub Update{
             "First Event",
             "Last Event",
 	    "Name",
+            "CRC",
             "Size(MB)",
             "Status ",
                                    );
@@ -792,7 +793,11 @@ sub print_table{
          my @text=@{$output[$i]};
          my $string="<TR>";
          for my $j (0 ...$#text-1){
-          $string=$string."<TD>$color[$text[$#text]]$text[$j]</TD>";
+          my $alig="";
+          if($j>0){
+            $alig="align=right";
+          }
+          $string=$string."<TD $alig>$color[$text[$#text]]$text[$j]</TD>";
          }         
          $string=$string."</TR>\n";
          print $string;

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.346 2005/11/01 19:58:43 choutko Exp $
+# $Id: RemoteClient.pm,v 1.347 2005/11/02 15:19:24 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -106,6 +106,7 @@ use lib::Warning;
 use MIME::Lite;
 use lib::CID;
 use lib::DBServer;
+use lib::monitorHTML;
 use Time::Local;
 use lib::DBSQLServer;
 use POSIX  qw(strtod);
@@ -1311,6 +1312,7 @@ sub ValidateRuns {
    $BadCRCi[0]     = 0;  #                 dsts with crc error (before copying)
    $gbDST[0]       = 0;
    my @rmcmd=();
+   my @rmbad=();
     if ($webmode ==0  and $verbose ==1) {
        print "ValidateRuns -I- got from server :  $#{$self->{dbserver}->{rtb}} runs \n";
     }
@@ -1478,7 +1480,13 @@ my $fevt=-1;
      } 
  }
             foreach my $ntuple (@sntl){
-                if($ntuple->{OK}==1){
+                if($ntuple->{OK}==0){
+                  $ntuple->{Name}=~s/\/\//\//;
+                  my @fpatha=split ':', $ntuple->{Name};
+                  my $fpath=$fpatha[$#fpatha];
+                  push @rmbad,"rm $fpath"; 
+                }
+                else{
                     if($dat0){
                         $ntuple->{Status}="Success";
                     }
@@ -1757,6 +1765,13 @@ my $fevt=-1;
                }
            }
            $#rmcmd=-1;
+           foreach my $cmd (@rmbad){
+               my $i=system($cmd);
+               if($i){
+                   warn " Remove bad ntuples command $cmd failed \n";
+               }
+           }
+           $#rmbad=-1;
            print FILEV $warn;
        }
       }
@@ -2583,7 +2598,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                         runs.status='Completed'";
 
        $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
-                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime
+                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
                  FROM runs, jobs, runcatalog, ntuples
                    WHERE runs.jid=jobs.jid AND
                         (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND
@@ -2636,7 +2651,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                      WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID and
                             Runs.run=runcatalog.run AND Runs.Status='Completed'";
       $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
-                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime
+                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
                     FROM Runs, Jobs, runcatalog, NTuples
                      WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND
                             Runs.run=Ntuples.run AND
@@ -2684,7 +2699,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                     FROM Runs, Jobs, runcatalog
                      WHERE Runs.JID=Jobs.JID AND Runs.Status='Completed' and Runs.run = runcatalog.run ";
         $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
-                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime
+                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
                     FROM Runs, Jobs, runcatalog, Ntuples
                      WHERE
                         Runs.JID=Jobs.JID AND
@@ -2718,6 +2733,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             $sql = $sql.$pps." ORDER BY Runs.Run";
             $sqlNT = $sqlNT.$pps." ORDER BY Runs.Run";
             my $r1=$self->{sqlserver}->Query($sql);
+            #die " $sql $#{$r1} ";
             if (defined $r1->[0][0]) {
              foreach my $r (@{$r1}){
                push @runs,$r->[0];
@@ -2923,53 +2939,72 @@ CheckCite:            if (defined $q->param("QCite")) {
       htmlTableEnd();
    } elsif ($q->param("NTOUT") eq "SUMM") {
 # ... print summary
-      my $firstrun  = 0;
-      my $lastrun   = 0;
-      my $starttime = time();
-      my $endtime   = 0;
-      my $gigabytes = 0;
-      my $nruns     = 0;
-      my $ndsts     = 0;
-      my $nevents   = 0;
+        my @titles= (
+        "Template",
+        "Jobs",
+        "DSTs",
+        "DSTs GB",
+        "Events",
+        "Triggers",);
+        my $query= $q->param('QPart');
+        my $q2= $q->param("QTempDataset");
+        if($q2 eq "Any"){
+          $q2=undef;
+        }
+        my $buffer="Summary for $query  ";
+        my @output=();
+        my @temp=();
+         my $sql;
+        if($query eq "Any"){
+          $titles[0]="Dataset";
+           $sql = "SELECT dataset,did FROM DatasetsDesc order by did";
+        }
+        else{
+         $sql="SELECT jobdesc FROM DatasetsDesc WHERE dataset='$query'"; 
+        }
+         my $rquery=$self->{sqlserver}->Query($sql);
+         my $nruns=0;
+         my $prev="";
+         foreach my $templat (@{$rquery}){
+          $#temp=-1;
+           my $like=trimblanks($templat->[0]);
+           if($like eq $prev or  (defined $q2 and  $q2 ne $templat->[0])){
+              next;
+           }
+           if($query eq "Any"){
+             $sql=$sqlsum." and (jobs.did=$templat->[1]) ";
+           }
+           else{
+            $sql=$sqlsum." and (runcatalog.jobname LIKE '%$like%' AND runcatalog.run=runs.run)";
+           }
+          my $rsump=$self->{sqlserver}->Query($sql);
+           my @sqla=split 'where',$sql;
+           $sqla[1]=~s/and ntuples.run=runs.run//;
+           $sql="select count(jobs.jid) from jobs,runcatalog,runs where ".$sqla[1];
+          my $rsuma=$self->{sqlserver}->Query($sql);
+          push @temp,$like;
+          push @temp,$rsuma->[0][0];
+          $nruns+=$rsuma->[0][0];
+          push @temp,$rsump->[0][0];
+          push @temp,int($rsump->[0][1]/100)/10; 
+          push @temp,$rsump->[0][2];
+           push @temp,$rsump->[0][3];
+            push @temp,"dum";
+           push @output,[@temp];
+           $prev=$like;
+         }
+          $#temp=-1;
+           push @temp,"Total of";
+          push @temp,$nruns;
+          push @temp,$rsum->[0][0];
+         push @temp,int($rsum->[0][1]/100)/10;  
+          push @temp,$rsum->[0][2];
+           push @temp,$rsum->[0][3];
+           push @temp,"dum";
+           push @output,[@temp];
 
-      my $i =0;
-      if ($#runs > 500000) {
-          $nruns = $#runs+1;
-          $gigabytes = $nruns*1.5*0.5/1000;
-          $ndsts  = int($nruns*1.5);
-          print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  Jobs Completed : $nruns </b></font></td></tr>\n";
-          print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   Approx DSTs : $ndsts ($gigabytes GB) </b></font></td></tr>\n";
-          print "<tr><td><b><font size=\"4\" color=\"blue\"><i><ul>  You requested too wide range, please specify Production period at least  </i></b></font></td></tr>\n";
-      } else{
-       foreach my $run (@runs){
-         my $jobname = $jobnames[$i];
-         my $submit  = $submits[$i];
-         $i++;
-          if ($submit < $starttime) { $starttime = $submit; $firstrun = $run;}
-          if ($submit > $endtime)   { $endtime   = $submit; $lastrun  = $run;}
-          $nruns++;
-#          $sql = "SELECT COUNT(RUN), SUM(SIZEMB), SUM(NEVENTS) FROM Ntuples WHERE RUN=$run";
-#          my $r1=$self->{sqlserver}->Query($sql);
-#          foreach my $s (@{$r1}) {
-#              $ndsts = $ndsts + $s->[0];
-#              $gigabytes = $gigabytes + $s->[1];
-#              $nevents   = $nevents   + $s->[2];
-#          }
- $ndsts = $rsum->[0][0];
- $gigabytes= $rsum->[0][1];
-  $nevents=$rsum->[0][2];
-     }
-     $gigabytes = $gigabytes/1000;
-     my $from=localtime($starttime);
-     my $to  =localtime($endtime);
-    print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  Jobs Completed : $nruns </b></font></td></tr>\n";
-    print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  $from Run : $firstrun  </b></font></td></tr>\n";
-    print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  $to   Run   $lastrun   </b></font></td></tr>\n";
-    print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   DSTs : $ndsts ($gigabytes GB) </b></font></td></tr>\n";
-    print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   Events : $nevents  </b></font></td></tr>\n";
-   print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   Triggers : $rsum->[0][3] </b></font></td></tr>\n";
-
-   }
+         monitorHTML::print_table($q,$buffer,$#titles,@titles,@output);
+       
 
   } elsif ($q->param("NTOUT") eq "ROOT") {
 #... write RootAnalysisTemplate
@@ -2978,35 +3013,36 @@ CheckCite:            if (defined $q->param("QCite")) {
          ";
       my $RootAnalysisTextCastor =
          "// it is assumed that CASTOR directory
-             structure is similar to one on AMS disks.
-             /castor/cern.ch/MC/AMS02/ProductionPeriod/...
+          //   structure is similar to one on AMS disks.
+          //   /castor/cern.ch/MC/AMS02/ProductionPeriod/...
          ";
       my $RootAnalysisTextHTTP =
          "// wildcards are not implemented yet in ROOT.
-             still  have to check what is the HTTPD protocol for
-             getting a list of files.
+          //   still  have to check what is the HTTPD protocol for
+          //   getting a list of files.
          ";
 
       my $RootAnalysisTextRemote =
          "// it is assumed that REMOTE directory structure and lib(s) path are similar to one on AMS disks.
          ";
       my $RootAnalysisTemplateTxt =
-         "gROOT->Reset();
+         "  gROOT->Reset();
           // for linux load
-          gSystem->Load(\"/offline/vdev/lib/linux/icc/ntuple.so\");
+          gSystem->Load(\"/Offline/vdev/lib/linux/icc/ntuple.so\");
           //
           //  for dunix aka ams.cern.ch load
-          //  gSystem->Load(\"/offline/vdev/lib/osf1/ntuple.so\");
+          //  gSystem->Load(\"/Offline/vdev/lib/osf1/ntuple.so\");
           //
           TChain chain(\"AMSRoot\");
       ";
+        
 #...... check files access option
       my $prefix     = "xyz";
           if ($rootfileaccess eq "HTTP") {
               $prefix     = "http://$self->{HTTPserver}";
           }
           if ($rootfileaccess eq "CASTOR") {
-              $prefix     = "rfio:/castor/cern.ch/ams/";
+              $prefix     = "rfio:/castor/cern.ch/ams";
           }
 #..... remote cite (if any)
       if (defined $q->param("REMOTEACCESS")) {
@@ -3017,62 +3053,119 @@ CheckCite:            if (defined $q->param("QCite")) {
     my $buff=undef;
     my @dirs=();
     $#{dirs} =-1;
+    my @dirs_runs=();
+    $#{dirs_runs} =-1;
+    my @dirs_ntuples=();
+    $#dirs_ntuples =-1;
+    my @dirs_triggers=();
+    $#{dirs_triggers} =-1;
       if ($rootfileaccess eq "HTTP") {
          $buff = $RootAnalysisTextHTTP;
-         print "<tr><td>$RootAnalysisTextHTTP</td></tr>\n";
+         print "<tr><td>$RootAnalysisTextHTTP</td></tr><br>";
      } elsif ($rootfileaccess eq "CASTOR") {
          $buff = $RootAnalysisTextCastor;
-         print "<tr><td>$RootAnalysisTextCastor</td></tr>\n";
+         $RootAnalysisTextCastor=~s/\n/<br>/g;
+         print "<tr><td>$RootAnalysisTextCastor</td></tr><br>";
      } elsif ($rootfileaccess eq "REMOTE") {
          $buff = $RootAnalysisTextRemote;
-         print "<tr><td>$RootAnalysisTextRemote</td></tr>\n";
+         print "<tr><td>$RootAnalysisTextRemote</td></tr><br>";
      } else {
          $buff = $RootAnalysisTextNFS;
+         $RootAnalysisTextNFS=~s/\n/<br>/g;
          print "<tr><td>$RootAnalysisTextNFS</td></tr>\n";
      }
-         $buff=$buff."\n";
+        
+        $buff=$buff."\n";
          $buff=$buff.$RootAnalysisTemplateTxt."\n";
-         print "<tr><td>gROOT->Reset();</td></tr>\n";
-         print "<tr><td>// for linux load</td></tr>\n";
-         print "<tr><td>gSystem->Load(\"/offline/vdev/lib/linux/icc/ntuple.so\");</tr></td>\n";
-         print "<tr><td>//</tr></td>\n";
-         print "<tr><td>//  for dunix aka ams.cern.ch load </tr></td>\n";
-         print "<tr><td>//  gSystem->Load(\"/offline/vdev/lib/osf1/ntuple.so\");</tr></td>\n";
-         print "<tr><td>//</tr></td>\n";
-         print "<tr><td>TChain chain(\"AMSRoot\");</tr></td>\n";
+         $RootAnalysisTemplateTxt=~s/\n/<br>/g;
+         print "<tr><td>$RootAnalysisTemplateTxt</td></tr>\n";
 #
       my $sql = $sqlNT;
       my $r1=$self->{sqlserver}->Query($sql);
-      if ($rootfileaccess eq "NFS") {
+      if ($rootfileaccess eq "NFS" or $rootfileaccess eq "CASTOR") {
+          my $oldrun=0;
           foreach my $nt (@{$r1}) {
            my $path=trimblanks($nt->[0]);
-           if ($path =~ m/castor/) {
+           if ($path =~ m/castor/ and $rootfileaccess eq "NFS") {
 #           skip it, file has only archived copy only
-           } else {
+           } elsif($rootfileaccess eq "NFS" or ($nt->[7] > 0)) {
             my @junk = split '/',$path;
             my $tdir ="";
+            my @jrun=split '\.',$junk[$#junk];
+            my $run=$jrun[0]; 
+            if($rootfileaccess eq "CASTOR"){
+                $junk[1]=$prefix;
+            }
             for (my $i=1; $i<$#junk; $i++) {
              $tdir = $tdir."/".$junk[$i];
             }
             $tdir = trimblanks($tdir);
-            my $dirfound = 0;
-            foreach my $dir (@dirs) {
-             if ($dir eq $tdir) {
-              $dirfound = 1;
+            my $dirfound = -1;
+
+            for my $i(0...$#dirs){
+                
+             if ($dirs[$i] eq $tdir) {
+              $dirfound = $i;
               last;
           }
          }
-         if ($dirfound == 1) {
+         if ($dirfound >=0) {
 # skip it
-         } else {
-          #$dirs[$#dirs] = $tdir;
-          my $s = "chain.Add(\"".$tdir."/*.root\");";
-          print "<tr><td> $s </tr></td>\n";
-          $buff = $buff.$s."\n";
-          push @dirs, $tdir;
+             $dirs_ntuples[$dirfound]++;
+          $dirs_triggers[$dirfound]+=$nt->[8]-$nt->[9]+1;
+             if($run != $oldrun){
+                 $dirs_runs[$dirfound]++;
+                 $oldrun=$run;
+             }
+                
+         } 
+         else {
+          $dirs[$#dirs+1] = $tdir;
+          $dirs_ntuples[$#dirs]=1;
+          $dirs_runs[$#dirs]=1;
+          $dirs_triggers[$#dirs]=$nt->[8]-$nt->[9]+1;
+          $oldrun=$run;
+          }
         }
        }
-      }
+          my $rs=0;
+          my $ns=0;
+          my $ntr=0;
+          for my $ind (0...$#dirs){
+              $rs+=$dirs_runs[$ind];
+              $ns+=$dirs_ntuples[$ind];
+              $ntr+=$dirs_triggers[$ind];
+          }
+          my $s="  // Total Of  runs: $rs  ntuples: $ns   triggers: $ntr";
+          print "<tr><td> $s </tr></td><br>";
+          $buff = $buff.$s."\n";
+          for my $ind (0...$#dirs){
+#//
+#// to be sure everything is o.k.
+#// try to open dir and check all the files are in place
+#//
+           my $ntd=0;
+           if($rootfileaccess eq "NFS"){
+               opendir THISDIR, $dirs[$ind];
+               my @files=readdir THISDIR;
+               closedir THISDIR;
+               foreach my $file (@files){
+                if($file =~ /\.root$/){
+                    $ntd++;
+               }
+           }        
+           if($ntd != $dirs_ntuples[$ind]){
+             $s=" // Database and Linux Disagree \n   // Database says $dirs[$ind] contains $dirs_ntuples[$ind]  ntuples \n  //  Linux sys it has $ntd ntuples \n //  please inform vitali.choutko\@cern.ch about discrepancy \n";         
+          $buff = $buff.$s."\n";
+          $s=~s/\n/<br>/g;
+          print "<tr><td> $s </tr></td>";
+         }
+           }
+           $s = "chain.Add(\"".$dirs[$ind]."/*.root\"); //    runs: $dirs_runs[$ind]  ntuples: $dirs_ntuples[$ind]  triggers: $dirs_triggers[$ind]";
+          print "<tr><td> $s </tr></td><br>";
+          $buff = $buff.$s."\n";
+            
+          }
      } elsif ($rootfileaccess eq "HTTP") {
        foreach my $nt (@{$r1}) {
           my $path=trimblanks($nt->[0]);
@@ -3104,7 +3197,7 @@ CheckCite:            if (defined $q->param("QCite")) {
         }
        }
       }
-     } elsif ($rootfileaccess eq "CASTOR") {
+     } elsif ($rootfileaccess eq "CASTOR obsolete") {
           foreach my $nt (@{$r1}) {
 # check castortime
            if ($nt->[7] > 0) {
@@ -3228,7 +3321,7 @@ CheckCite:            if (defined $q->param("QCite")) {
    print "<b><font color=blue> ROOT Files \@CERN  </font>\n";
    print "<br><TR></TR>";
    print "<b><font color=blue> Access Mode  </font>\n";
-   print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"NFS\">  NFS \n";
+   print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"NFS\" CHECKED> NFS \n";
    print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"HTTP\"> via WebServer \n";
    print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"CASTOR\">  rfio CASTOR\n";
    print "<i><font color=green> (Note : files are copied to CASTOR weekly, access via HTTP is slow) </font><i>\n";
