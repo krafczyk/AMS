@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.347 2005/11/02 15:19:24 choutko Exp $
+# $Id: RemoteClient.pm,v 1.348 2005/11/02 22:20:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2641,7 +2641,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                     $q->param("QPart") ne "ANY" and $q->param("QPart") ne "any"))  {
          $particle = $q->param("QPart");
          $qparticle = $particle;
-         $sql = " SELECT DID FROM Datasets WHERE NAME LIKE '$particle%'";
+         $sql = " SELECT DID FROM Datasets WHERE NAME LIKE '$particle'";
          my $r0=$self->{sqlserver}->Query($sql);
          if (defined $r0->[0][0]) {
           foreach my $r (@{$r0}){
@@ -3059,6 +3059,8 @@ CheckCite:            if (defined $q->param("QCite")) {
     $#dirs_ntuples =-1;
     my @dirs_triggers=();
     $#{dirs_triggers} =-1;
+    my @dirs_hr=();
+     $#dirs_hr=-1;
       if ($rootfileaccess eq "HTTP") {
          $buff = $RootAnalysisTextHTTP;
          print "<tr><td>$RootAnalysisTextHTTP</td></tr><br>";
@@ -3125,6 +3127,11 @@ CheckCite:            if (defined $q->param("QCite")) {
           $dirs_runs[$#dirs]=1;
           $dirs_triggers[$#dirs]=$nt->[8]-$nt->[9]+1;
           $oldrun=$run;
+           $dirs_hr[$#dirs]="root";
+           if($path=~/\.hbk$/){
+               $dirs_hr[$#dirs]="hbk";
+             }
+
           }
         }
        }
@@ -3150,18 +3157,81 @@ CheckCite:            if (defined $q->param("QCite")) {
                my @files=readdir THISDIR;
                closedir THISDIR;
                foreach my $file (@files){
-                if($file =~ /\.root$/){
+                if($file =~ /\.root$/ or $file=~ /\.hbk/){
                     $ntd++;
                }
-           }        
+              }        
            if($ntd != $dirs_ntuples[$ind]){
-             $s=" // Database and Linux Disagree \n   // Database says $dirs[$ind] contains $dirs_ntuples[$ind]  ntuples \n  //  Linux sys it has $ntd ntuples \n //  please inform vitali.choutko\@cern.ch about discrepancy \n";         
+             $s=" // Database and Linux Disagree \n   // Database says $dirs[$ind] contains $dirs_ntuples[$ind]  ntuples \n  //  Linux says it has $ntd ntuples \n //  please inform vitali.choutko\@cern.ch about discrepancy \n";         
           $buff = $buff.$s."\n";
           $s=~s/\n/<br>/g;
-          print "<tr><td> $s </tr></td>";
+          print "<tr><td><font color=red> $s </tr></td><font color=black>";
+          opendir THISDIR, $dirs[$ind];
+          my @files = readdir THISDIR;
+          closedir THISDIR;
+          if($ntd>$dirs_ntuples[$ind]){
+            foreach my $file (@files){
+              if($file=~/\.root$/ or $file=~/\.hbk/){
+               my $found=0;
+               foreach my $nt (@{$r1}){
+                 my $path=trimblanks($nt->[0]);
+                 if($path=~/$dirs[$ind]/){
+                   if($path=~/$file/){
+                    $found=1;
+                    last;
+                  }
+                 }
+               }
+               if($found==0){
+                print " <tr><td> $dirs[$ind]/$file is not in database </td></tr><br>";         
+               }
+               }
+             }                  
+          }
+          else{
+          my $ok=0;
+          my $patho="";
+          my $runo=0;
+          foreach my $nt (@{$r1}) {
+           my $path=trimblanks($nt->[0]);
+            if(not $path=~/$dirs[$ind]/ ){
+               next;
+            }
+            my $found=0;
+            foreach my $file (@files){
+               if($file =~ /\.root$/ or $file=~/\.hbk$/){ 
+             if($path=~/$file/){
+              $found=1;
+              last;
+             }
+             }
+            }
+             if($path eq $patho){
+              #die "$sqlNT"; 
+           print "<tr><td><font color=red> //$ok $found $path is duplicated for runs $runo $nt->[1]</tr></td><font color=black><br>";
+             }
+              $patho=$path;
+              $runo=$nt->[1];
+	      if($found==0){
+             print "<tr><td><font color=red> // $path is absent on disk</tr></td><font color=black><br>";
+            }
+            else{
+             $ok++;
+             #print "<tr><td><font color=green> //$ok $path is ok</tr></td><font color=black><br>";
+
+            }
+          }
+
          }
+         }
+         }
+           if($dirs_hr[$ind] eq "root"){ 
+            $s = "chain.Add(\"".$dirs[$ind]."/*.$dirs_hr[$ind]\");";
            }
-           $s = "chain.Add(\"".$dirs[$ind]."/*.root\"); //    runs: $dirs_runs[$ind]  ntuples: $dirs_ntuples[$ind]  triggers: $dirs_triggers[$ind]";
+           else{
+            $s="nt/chain chain $dirs[$ind]/*.$dirs_hr[$ind]"
+           } 
+# //_runs:$dirs_runs[$ind]_ntuples:$dirs_ntuples[$ind]_triggers:$dirs_triggers[$ind]";
           print "<tr><td> $s </tr></td><br>";
           $buff = $buff.$s."\n";
             
@@ -5438,7 +5508,7 @@ print qq`
          open(FILE,">".$root) or die "Unable to open file $root\n";
          if($self->{CCT} eq "local"){
           if(defined $self->{AMSDSTOutputDir} and $self->{AMSDSTOutputDir} ne ""){
- print FILE "export NtupleDestDir=$self->{AMSDSTOutputDir}/$adddst \n";
+ print FILE "export NtupleDestDir=$self->{AMSDSTOutputDir}/$adddst/$run \n";
  print FILE "export NtupleDir=/dat0/local/logs/nt \n";
 }
         my $key='ntuplevalidator';
