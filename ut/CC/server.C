@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.125 2005/10/31 15:09:54 choutko Exp $
+//  $Id: server.C,v 1.126 2005/11/03 15:59:49 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -1462,6 +1462,9 @@ return 0;
         pcur->addone();
         if(_parent->Debug())_parent->IMessage(AMSClient::print(ac,"added client "));
         DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(ac);
+       if(ac.Status == DPS::Client::Killed){
+         vac->Status= DPS::Client::TimeOut;
+        }
        pcur->getacl().push_back(vac);
        cout <<pcur->getacl().size()<<endl;
 //     Here find the corr ahost and update it

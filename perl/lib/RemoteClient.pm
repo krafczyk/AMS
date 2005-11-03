@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.348 2005/11/02 22:20:45 choutko Exp $
+# $Id: RemoteClient.pm,v 1.349 2005/11/03 15:59:51 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6618,7 +6618,16 @@ sub checkJobsTimeout {
 #
 # Here actually kill the job
 #                          
-            
+# in fact move it into jobs_deleted
+            $sql="insert into jobs_deleted select * from jobs where jobs.jid=$jtokill->[0]";
+            if ($verbose){
+               print " $sql \n";
+            }
+            if ($update == 1){
+                $self->{sqlserver}->Update($sql);
+                $sql="update jobs_deleted set timekill=0 where jid=$jtokill->[0]";
+                $self->{sqlserver}->Update($sql);
+            }
             $sql="delete from jobs where jid=$jtokill->[0]";
             if ($verbose){
                print " $sql \n";
