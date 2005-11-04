@@ -1,12 +1,13 @@
 #!/usr/bin/perl -w
-#  $Id: parseJournalFiles.o.cgi,v 1.5 2005/10/27 12:54:17 choutko Exp $
+#  $Id: parseJournalFiles.o.cgi,v 1.6 2005/11/04 20:10:02 ams Exp $
 use Gtk;
 use strict;
 
 
 use lib::RemoteClient;
 
-
+$SIG{INT}=sub{exit()};
+$SIG{QUIT}=sub{exit()}; 
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
 unshift @ARGV, "-Famsdb";

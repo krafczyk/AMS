@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.350 2005/11/04 12:18:38 choutko Exp $
+# $Id: RemoteClient.pm,v 1.351 2005/11/04 20:10:06 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1175,7 +1175,6 @@ sub RestartServer{
      }
 
 sub ValidateRuns {
-
    my $self = shift;
 #ntuples
    my $validated=0;
@@ -1318,6 +1317,8 @@ sub ValidateRuns {
     }
 
     foreach my $run (@{$self->{dbserver}->{rtb}}){
+     my $outputpath=undef;
+
         if($run->{Run} ne $Run and $Run>0){
             next;
         }
@@ -1589,7 +1590,8 @@ my $fevt=-1;
                            $badevents=int($i*$ntuple->{EventNumber}/100);
                            $validated++;
                            my $jobid = $run->{Run};
-                           my ($outputpath,$rstatus) = $self->doCopy($jobid,$fpath,$ntuple->{crc},$ntuple->{Version});
+                           my($outputpatha,$rstatus) = $self->doCopy($jobid,$fpath,$ntuple->{crc},$ntuple->{Version},$outputpath);
+                           $outputpath=$outputpatha;   
                            if(defined $outputpath){
                               push @mvntuples, $outputpath;
                           }
@@ -1829,6 +1831,7 @@ sub doCopy {
      my $inputfile = shift;
      my $crc       = shift;
      my $version   = shift;
+     my $outputpath=shift;
 #
      my $sql   = undef;
      my $cmd   = undef;
@@ -1854,18 +1857,29 @@ sub doCopy {
      my $file = $junk[$#junk];
 
      my $outputdisk => undef;
-     my $outputpath => undef;
-
      my $filesize    = (stat($inputfile))[7];
      if ($filesize > 0) {
 # get output disk
-      my ($outputpath, $gb) = $self->getOutputPath($period);
+         if(not defined $outputpath){
+      my($outputpatha, $gb) = $self->getOutputPath($period);
+      $outputpath=$outputpatha;
          if ($outputpath =~ 'xyz' || $gb == 0) {
              if ($webmode == 0) {
               print "doCopy -E- Cannot find any disk to store DSTs. Exit";
               die;
              }
-         } else {
+         }
+     }
+         else{
+             my @junk=split '/',$outputpath;
+             $outputpath="";
+             for my $i (0...$#junk-3){
+                 if($i>0){
+                     $outputpath=$outputpath."/";
+                 }
+                 $outputpath=$outputpath."$junk[$i]";
+             }
+         }
 # find job
           $sql = "SELECT cites.name,jobname  FROM jobs,cites
                            WHERE jid =$jid AND cites.cid=jobs.cid";
@@ -1920,7 +1934,7 @@ sub doCopy {
            } else {
               if ($webmode == 1) {htmlWarning("doCopy","cannot get info for JID=$jid");}
            }
-        }
+        
   } else {
       if ($webmode == 1) {htmlWarning("doCopy","cannot stat $inputfile");}
       $BadDSTs[$nCheckedCite]++;
@@ -8648,6 +8662,7 @@ sub parseJournalFiles {
  my $sql          = undef;
  my $ret          = undef;
  my $dbonly       = 0;
+ my $single=0;
  my $rflag        = 0;     # processing flag from FilesProcessing Table
  my $procstarttime= 0;     # files processing start time from  FilesProcessing Table
 
@@ -8659,6 +8674,7 @@ sub parseJournalFiles {
      -i      - prompt before files removal
      -v      - verbose mode
      -w      - output will be produced as HTML page
+     -s      -  Only one journal file then quit
      ./parseJournalFiles.o.cgi -c
 ";
 
@@ -8675,6 +8691,9 @@ sub parseJournalFiles {
     }
     if ($chop =~/^-i/) {
         $rmprompt = 1;
+    }
+    if ($chop =~/^-s/) {
+        $single = 1;
     }
     if ($chop =~/^-w/) {
      $webmode = 1;
@@ -8834,7 +8853,7 @@ sub parseJournalFiles {
       my $joudir = $dir."/jou";
       my $ntdir  = $dir."/nt";
       opendir THISDIR ,$joudir or die "unable to open $joudir";
-      my @allfiles= readdir THISDIR;
+      my @allfiles= sort {$a cmp $b}  readdir THISDIR;
       closedir THISDIR;
       if ($webmode == 1) {
        print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -8856,11 +8875,10 @@ sub parseJournalFiles {
 #
        my @junk = split "journal.",$file;
        if (defined $junk[1]) {
-        if ($junk[1] == 1 || $junk[1] == 0) {
+        if ($junk[1] == 1 || $junk[1] == 0 || $junk[1]==2) {
            next;
         }
        }
-
 
        my $fid  = $junk[0];
        $fid  =~ s/.journal//;
@@ -8872,7 +8890,7 @@ sub parseJournalFiles {
         next;
        }
 
-
+        
         $newfile=$joudir."/".$file;
         my $writetime = 0;
         $writetime = (stat($newfile)) [9];
@@ -8898,13 +8916,20 @@ sub parseJournalFiles {
 # it is possible that some files been transmitted with delay > 24h, so they
 # pass manual validation
 #
-        if ($writetime > $timestamp - 24*60*60) {
-          $self->parseJournalFile($firstjobtime,
+       my $outputpath="";
+       if($verbose){
+        print " parsejournal file  $writetime $timestamp $newfile \n";
+       }
+        if ($writetime > $timestamp - 24*60*60*30) {
+          $outputpath=$self->parseJournalFile($firstjobtime,
                                  $lastjobtime,
                                  $logdir,
                                  $newfile,
                                  $ntdir);
           $JournalFiles[$nCheckedCite]++;
+          if($single){
+              last;
+          }
         }
 #
 # check jobs processing flag if -1 stop processing
@@ -8957,6 +8982,7 @@ sub parseJournalFile {
 #         copy to final destination
 #
 
+    my $outputpath=undef;
  my $self         = shift;
  my $firstjobtime = shift;
  my $lastjobtime  = shift;
@@ -9030,7 +9056,19 @@ my $jobmips = -1;
  my $copylog = $logdir."/copyValidateCRC.".$joufile.".log";
 
  open(FILE,">".$copylog) or die "Unable to open file $copylog\n";
-
+foreach my $block (@blocks) {
+      if ($block =~/RunValidated/) {
+       my @junk = split ",",$block;
+        for (my $i=0; $i<$#junk+1; $i++) {
+        $junk[$i] = trimblanks($junk[$i]);
+         if($junk[$i]=~/Path/){
+             my @path=split ' ',  $junk[$i];
+             $dirpath=trimblanks($path[1]);
+             last;
+         }
+       }
+   }
+  }
 foreach my $block (@blocks) {
     my @junk;
     @junk = split ",",$block;
@@ -9269,6 +9307,7 @@ foreach my $block (@blocks) {
         my $rq=$self->{sqlserver}->Query($sql);
     if(defined $rq->[0][0] and $rq->[0][0] =~/Completed/){
         warn "  Run $ run already completed in database do nothing \n";
+         system("mv $inputfile $inputfile.1");
         return;
     }
     $startingrunR   = 1;
@@ -9476,7 +9515,8 @@ foreach my $block (@blocks) {
             $terrors += $badevents;
             $validated++;
             $ntstatus = "Validated";
-            my ($outputpath,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc,$version);
+             my ($outputpatha,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc,$version,$outputpath);
+            $outputpath=$outputpatha;
             if(defined $outputpath){
               push @mvntuples, $outputpath;
             }
@@ -9578,18 +9618,27 @@ foreach my $block (@blocks) {
   $status="Failed";
   my $cmd = undef;
   my $inputfileLink = $inputfile.".0";
+  my $inputfileAdd=$inputfile.".2";
   if ($copyfailed == 0) {
-    foreach my $ntuple (@cpntuples) {
-      $cmd="rm  $ntuple";
-      if ($rmprompt == 1) {$cmd = "rm -i $ntuple";}
-      print FILE "$cmd\n";
-      system($cmd);
-      print FILE "Validation done : system command $cmd \n";
-      $GoodDSTs[$nCheckedCite]++;
-    }
    if ($#cpntuples >= 0) {
     $status = 'Completed';
     $inputfileLink = $inputfile.".1";
+    open (FILEO,">".$inputfileAdd) or die "Unable to open $inputfileAdd \n";
+    my $t=time();
+    my $tl=localtime($t);
+    print FILEO " \n";
+    print FILEO "-I-TimeStamp $t $tl\n";      
+    my $dst=$#cpntuples+1;
+             my @junk=split '/',$outputpath;
+             my $outp="";
+             for my $i (0...$#junk-1){
+                 if($i>0){
+                     $outp=$outp."/";
+                 }
+                 $outp=$outp."$junk[$i]";
+             }
+    print FILEO ", RunValidated , Run $run , DST $dst , Path $outp  \n";
+    close(FILEO);
     $GoodRuns[$nCheckedCite]++;
     if ($runfinishedR != 1) {
       print FILE "End of Run not found update Jobs \n";
@@ -9602,6 +9651,7 @@ foreach my $block (@blocks) {
       print FILE "$sql \n";
       $self->{sqlserver}->Update($sql);
   }
+
 
                          $sql="select sum(ntuples.levent-ntuples.fevent+1),min(ntuples.fevent)  from ntuples,runs where ntuples.run=runs.run and runs.run=$run";
                           my $r4=$self->{sqlserver}->Query($sql);
@@ -9616,6 +9666,14 @@ foreach my $block (@blocks) {
     $sql=" update jobs set realtriggers=$ntevt where jid=$run";
                              $self->{sqlserver}->Update($sql);
                          }
+    foreach my $ntuple (@cpntuples) {
+      $cmd="rm  $ntuple";
+      if ($rmprompt == 1) {$cmd = "rm -i $ntuple";}
+      print FILE "$cmd\n";
+      system($cmd);
+      print FILE "Validation done : system command $cmd \n";
+      $GoodDSTs[$nCheckedCite]++;
+    }
 
  } else {
      $BadRuns[$nCheckedCite]++;
@@ -9647,14 +9705,22 @@ foreach my $block (@blocks) {
     my $ret=$self->{sqlserver}->Query($sql);
      if( defined $ret->[0][0]){
       my $junkdir = $ret->[0][0];
-      $cmd = "mv $dirpath/*$run* $junkdir/";
-      print FILE "$cmd\n";
-      system($cmd);
+      if($verbose){
+          print "run status $status  moving mv $dirpath/*$run* $junkdir \n";
+      }
+      #$cmd = "mkdir $dirpath/bad";
+      #system($cmd);
+      #$cmd = "mv -v $dirpath/*$run* $dirpath/bad";
+      #print FILE "$cmd\n";
+      #system($cmd);
       print FILE "Validation/copy failed : mv ntuples to $junkdir \n";
      }
    }
 }
+
   system("mv $inputfile $inputfileLink");
+  system("cat $inputfileAdd >> $inputfileLink");
+  unlink $inputfileAdd;
   print FILE "mv $inputfile $inputfileLink\n";
   if ($webmode == 0 && $verbose == 1) {print "mv $inputfile $inputfileLink \n";}
   if ($status eq "Completed") {
@@ -9663,6 +9729,7 @@ foreach my $block (@blocks) {
   }
 }
  close FILE;
+ return $outputpath;
 }
 
 sub updateAllRunCatalog {
@@ -10008,7 +10075,7 @@ sub insertRun {
           $dbfevent == $fevent &&
           $dblevent == $levent &&
           $dbstatus eq $status) {
-            print "InsertRun -W- Run $run already exists do nothing \n";
+            print "InsertRun -W- Run $run already exists  \n";
            } else {
             $sql="DELETE runs WHERE run=$run";
             $self->{sqlserver}->Update($sql);

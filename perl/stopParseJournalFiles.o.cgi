@@ -1,6 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: stopParseJournalFiles.o.cgi,v 1.3 2004/03/18 12:35:41 alexei Exp $
-use Gtk;
+#  $Id: stopParseJournalFiles.o.cgi,v 1.4 2005/11/04 20:10:03 ams Exp $
 use strict;
 
 
