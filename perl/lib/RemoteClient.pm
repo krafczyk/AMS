@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.349 2005/11/03 15:59:51 choutko Exp $
+# $Id: RemoteClient.pm,v 1.350 2005/11/04 12:18:38 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7752,6 +7752,9 @@ sub listDisks {
             $size=int($size*10)/10;
             $avail=int($avail*10)/10;
            $usedGBMC = sprintf("%6.1f",$used/1000);
+          if($dd->[8]==0){
+              $status="Unknown";
+          }
            my $color=statusColor($status);
             if ($webmode == 1) {
             print "<tr><font size=\"2\">\n";
@@ -13407,6 +13410,27 @@ sub CheckFS{
            my $sql="select disk,host,status,allowed  from filesystems";
            my $ret=$self->{sqlserver}->Query($sql);
            foreach my $fs (@{$ret}){
+#
+#          check to see if it is can be readed
+#
+               my $stf="$fs->[0].o";
+               $stf=~s/\///g;
+               $stf="/tmp/$stf";
+               system("ls $fs->[0] 1>$stf 2>&1 &");
+               sleep (1);
+               my @stat =stat("$stf");
+               unlink "$stf";
+               if($stat[7]==0){
+                $sql="update filesystems set isonline=0 where disk='$fs->[0]'";
+                if(not defined $updatedb or $updatedb==0){
+                 print " $fs->[1]:$fs->[0] is not online \n";
+             }
+                else{
+                $self->{sqlserver}->Update($sql);
+             }
+
+                next;
+            }
             my $buf = "\0"x64;
             my $res=syscall(&SYS_statfs, $fs->[0], $buf);
             my ($bsize, $blocks, $bfree, $bavail, $files, $ffree, $namelen) = unpack  "x4 L6 x8 L", $buf;
@@ -13432,7 +13456,7 @@ sub CheckFS{
                    $ava=0;
                  }
                 $sql="update filesystems set isonline=1, totalsize=$tot, status='$status',occupied=$occ,available=$ava,timestamp=$timestamp where disk='$fs->[0]'";
-             }
+            }
              else{
               $sql="update filesystems set isonline=0 where disk='$fs->[0]'";
               if(not defined $updatedb or $updatedb==0){
