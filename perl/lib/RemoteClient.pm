@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.354 2005/11/05 12:54:58 choutko Exp $
+# $Id: RemoteClient.pm,v 1.353 2005/11/05 12:53:22 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4345,10 +4345,9 @@ DDTAB:          $self->htmlTemplateTable(" ");
            my $query=$self->{q}->param("CTT");
            my $found=0;
            my @tempnam=();
-  #          push @tempnam,"Any";
+            push @tempnam,"Any";
            my $hash={};
            my @desc=();
-  #         push @desc," Any";
            my $cite={};
            foreach my $dataset (@{$self->{DataSetsT}}){
              if($dataset->{name} eq $query){
