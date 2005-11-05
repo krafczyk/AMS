@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.351 2005/11/04 20:10:06 ams Exp $
+# $Id: RemoteClient.pm,v 1.352 2005/11/05 12:52:47 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1557,7 +1557,9 @@ my $fevt=-1;
                        $BadCRCi[0]++;
                        $BadDSTs[0]++;
                        $bad++;
-                       die "  bad crc \n";
+                    #   die "  bad crc \n";
+                        push @cpntuples, $fpath;
+                        
                    } else { # CRCi - correct
                    close FILE;
                    my ($ret,$i) =
@@ -1682,7 +1684,7 @@ my $fevt=-1;
           $self->printWarn($warn);
 #--          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete");
       
-          if ($#cpntuples >= 0) { $status = "Completed";}
+          if ($#cpntuples >= 0 && $#mvntuples>=0) { $status = "Completed";}
            elsif($#mvntuples>=0){
 
                $warn="Validation/copy failed : Run =$run->{Run} \n";
@@ -1728,7 +1730,7 @@ my $fevt=-1;
                           if(not defined $ntevt){
                               $ntevt=0;
                           }
-                          if( $ntevt ne $run->{LastEvent}-$run->{FirstEvent}+1  ){
+                          if( $ntevt ne $run->{LastEvent}-$run->{FirstEvent}+1   and $ntevt>0){
                            warn "  ntuples/run mismatch $r4->[0][0] $run->{LastEvent}-$run->{FirstEvent}+1 $run->{Run} \n";
                              $sql="UPDATE Runs SET fevent=$fevt, Levent=$ntevt-1+$fevt WHERE jid=$run->{Run}";
 
@@ -1742,8 +1744,14 @@ my $fevt=-1;
           $warn = "Update Runs : $sql\n";
 
           foreach my $ntuple (@cpntuples) {
-           my $cmd="rm $ntuple";
+           my $cmd="rm  $ntuple";
            if ($rmprompt == 1) {$cmd = "rm -i $ntuple";}
+            foreach my $mn (@mvntuples){
+              if($ntuple eq $mn){
+                $cmd=" ";
+                 last;
+              }
+            }
            system($cmd);
            $warn = "Validation done : $cmd \n";
            print FILEV $warn;
