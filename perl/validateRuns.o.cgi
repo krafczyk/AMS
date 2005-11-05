@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: validateRuns.o.cgi,v 1.2 2005/10/26 16:54:21 ams Exp $
+#  $Id: validateRuns.o.cgi,v 1.3 2005/11/05 12:53:19 choutko Exp $
 use Gtk;
 use strict;
 
@@ -11,7 +11,7 @@ my $debug="-d";
 unshift @ARGV, "-DOracle:";
 unshift @ARGV, "-Famsdb";
 unshift @ARGV, "-N/cgi-bin/mon/validateRuns.o.cgi";
-unshift @ARGV, "-r0";
+unshift @ARGV, "-r1358";
 
 
 

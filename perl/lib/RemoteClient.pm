@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.352 2005/11/05 12:52:47 ams Exp $
+# $Id: RemoteClient.pm,v 1.354 2005/11/05 12:54:58 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3234,7 +3234,7 @@ CheckCite:            if (defined $q->param("QCite")) {
              }
               $patho=$path;
               $runo=$nt->[1];
-	      if($found==0){
+	      if($found==0 && $ntd>0){
              print "<tr><td><font color=red> // $path is absent on disk</tr></td><font color=black><br>";
             }
             else{
@@ -3448,10 +3448,10 @@ CheckCite:            if (defined $q->param("QCite")) {
       my $ret = $self->{sqlserver}->Query($sql);
        my @period=();
        my @periodid=();
-       $period[0]="Any";
-       $periodid[0]=0;
-      $period[1]="Any Active";
-       $periodid[1]=-1;
+       $period[1]="Any";
+       $periodid[1]=0;
+      $period[0]="Any Active";
+       $periodid[0]=-1;
         foreach my $pp  (@{$ret}){
        push @period, trimblanks($pp->[0]);
        push @periodid, $pp->[1];
@@ -4345,8 +4345,10 @@ DDTAB:          $self->htmlTemplateTable(" ");
            my $query=$self->{q}->param("CTT");
            my $found=0;
            my @tempnam=();
+  #          push @tempnam,"Any";
            my $hash={};
            my @desc=();
+  #         push @desc," Any";
            my $cite={};
            foreach my $dataset (@{$self->{DataSetsT}}){
              if($dataset->{name} eq $query){
@@ -13515,6 +13517,11 @@ sub CheckFS{
                 my $status="Active";
                 my $fac=$bsize/1024/1024;
                  my $tot=$blocks*$fac;
+                 if($tot>1000000000){
+                   $status="Unknown";
+                    $isonline=0;
+                    goto offline;
+                 }
                  my $occ=($blocks-$bfree)*$fac;
                  my $ava=$bavail*$fac;
                  my $ava1=$tot*$fs->[3]/100-$occ;
@@ -13533,6 +13540,7 @@ sub CheckFS{
                 $sql="update filesystems set isonline=1, totalsize=$tot, status='$status',occupied=$occ,available=$ava,timestamp=$timestamp where disk='$fs->[0]'";
             }
              else{
+offline:
               $sql="update filesystems set isonline=0 where disk='$fs->[0]'";
               if(not defined $updatedb or $updatedb==0){
                 print " $fs->[1]:$fs->[0] is not online \n";
