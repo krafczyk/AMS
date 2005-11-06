@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
-#  $Id: rc.dsp.cgi,v 1.3 2002/08/07 13:27:15 alexei Exp $
+#  $Id: rc.dsp.cgi,v 1.4 2005/11/06 21:03:46 choutko Exp $
 use Gtk;
 use strict;
-
-
 use lib::RemoteClient;
+if($ENV{MOD_PERL}){
+  $#ARGV=-1;
+}
 
 
 my $debug="-d";

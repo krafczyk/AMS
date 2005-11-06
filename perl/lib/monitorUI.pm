@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.44 2005/11/01 15:43:03 ams Exp $
+#  $Id: monitorUI.pm,v 1.45 2005/11/06 21:03:49 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -1146,7 +1146,7 @@ sub item_factory_cb {
          }elsif($action==9){
              $Monitor::Singleton->RemoveRuns();
          }elsif($action==10){
-             $Monitor::Singleton->RestoreRuns();
+             $Monitor::Singleton->RestoreRuns1();
          }elsif($action==11){
              DBServer::InitDBFileNew(undef,$Monitor::Singleton);
          }elsif($action==12){

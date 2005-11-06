@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.353 2005/11/05 12:53:22 choutko Exp $
+# $Id: RemoteClient.pm,v 1.355 2005/11/06 21:03:49 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -339,7 +339,7 @@ sub Init{
       }
       $self->{q}=new CGI;
 #cpu types
-      my $cachetime=900;
+      my $cachetime=1800;
      if(defined $self->{initdone} ){
       if(time()-$self->{initdone}<$cachetime and $self->{initdone} >$self->dblupdate()){
         return 1;
@@ -836,29 +836,11 @@ if($#{$self->{DataSetsT}}==-1){
                          $jobname = $jobname.".".$junk[$n];
                      }
                          if ($jobname eq $template->{filename}) {
-                            if (time()-$jobsTimeDB > $jobsTimeOutDB or $rtrig>0) {
-                             if(not defined $rtrig or $rtrig<0){
-                                    $rtrig=0;
-                              $sql="select FEvent,LEvent from Runs where jid=$jobsJidDB and (status='Finished' or status='Completed')";
-                              $ret=$self->{sqlserver}->Query($sql);
-                              $st[2]=$st[2]+1;
-                              if(defined $ret->[0][0]){
-                               foreach my $run (@{$ret}){
-                                $rtrig+=$run->[1]-$run->[0]+1;
-                               }
-                              }
+                            if(defined  $rtrig and $rtrig>0 ) {
                                $template->{TOTALEVENTS}-=$rtrig;
-                                    $sql="UPDATE Jobs SET realtriggers=$rtrig WHERE jid=$jobsJidDB";
-                             # die "$sql {$job} $rtrig";
-                              $self->{sqlserver}->Update($sql);
-                             # die " @{$job} $rtrig";
-                           }
-                           else{
-                              $template->{TOTALEVENTS}-=$rtrig;
-                           }
-                         }
-                             else {
-                             $st[3]+=1;
+                              }
+                             elsif(time()-$jobsTimeDB < $jobsTimeOutDB){
+                             #$st[3]+=1;
 #
 # subtract allocated events
                              $template->{TOTALEVENTS}-=$jobsTrigDB;
@@ -968,7 +950,7 @@ foreach my $file (@allfiles){
     if (not defined $self->{TempT}){
         die "No Basic Templates Available";
     }
-     $self->CheckFS(1);
+     $self->CheckFS(1,86400);
 # filesystems table
      $#{$self->{FilesystemT}}=-1;
      $sql="select * from Filesystems WHERE status='Active' and isonline=1 ";
@@ -3338,7 +3320,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                  if(not ($cite->{filename} =~/^\./)){
                   push @tempnam, $cite->{filename};
                   $hash->{$cite->{filename}}=$cite->{filedesc};
-                  push @desc, $hash -> {$cite->{filename}}=$cite->{filedesc};
+                  push @desc, $hash ->{$cite->{filename}};
               }
            }
         }
@@ -4345,9 +4327,10 @@ DDTAB:          $self->htmlTemplateTable(" ");
            my $query=$self->{q}->param("CTT");
            my $found=0;
            my @tempnam=();
-            push @tempnam,"Any";
+  #          push @tempnam,"Any";
            my $hash={};
            my @desc=();
+  #         push @desc," Any";
            my $cite={};
            foreach my $dataset (@{$self->{DataSetsT}}){
              if($dataset->{name} eq $query){
@@ -4360,7 +4343,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
                  if(not ($cite->{filename} =~/^\./)){
                   push @tempnam, $cite->{filename};
                   $hash->{$cite->{filename}}=$cite->{filedesc};
-                  push @desc, $hash -> {$cite->{filename}}=$cite->{filedesc};
+                  push @desc, $hash ->{$cite->{filename}};
               }
              }
              htmlTop();
@@ -4814,7 +4797,7 @@ print qq`
 #
 # Second file for download only in StanAlone mode
         my $stalone = $q->param("STALONE");
-        if ($stalone eq "Yes") {
+        if (defined $stalone and $stalone eq "Yes") {
           $self->{dwldaddon}=1;
         } else {
           $self->{dwldaddon}=0;
@@ -7159,7 +7142,7 @@ sub queryDB {
                  if(not ($cite->{filename} =~/^\./)){
                   push @tempnam, $cite->{filename};
                   $hash->{$cite->{filename}}=$cite->{filedesc};
-                  push @desc, $hash -> {$cite->{filename}}=$cite->{filedesc};
+                  push @desc, $hash -> {$cite->{filename}};
                  }
              }
             }
@@ -13483,6 +13466,13 @@ sub CheckFS{
 #
            my $self=shift; 
            my $updatedb=shift;  
+           my $cachetime=shift;
+           if(not defined $cachetime){
+             $cachetime=60;
+           }
+           if(time()-$cachetime < $self->dbfsupdate()){
+              return;
+            }
            my $sql="select disk,host,status,allowed  from filesystems";
            my $ret=$self->{sqlserver}->Query($sql);
            foreach my $fs (@{$ret}){
@@ -13563,7 +13553,27 @@ my $self=shift;
                 $part=($sh1[0]+$sh1[1]/60.)/24.
               }
              }
-             $sql="select max(date_to_unixts(modtime-$part)) as u_modtime from mods";
+             $sql="select max(date_to_unixts(modtime-$part)) as u_modtime from mods where tabname != 'fs'";
+             my $rdt=$self->{sqlserver}->Query($sql);
+             my $lupdate=-1;
+             if(defined $rdt->[0][0]){
+                 $lupdate=$rdt->[0][0];
+             }
+             return $lupdate;
+}
+sub dbfsupdate{
+my $self=shift;
+            my $part=0;
+             my $sql="select systimestamp from dual";
+             my $got=$self->{sqlserver}->Query($sql);
+             if(defined $got->[0][0]){
+              my @shift= split ' ',$got->[0][0];
+              my @sh1=split ':',$shift[$#shift];
+              if($#sh1>0){
+                $part=($sh1[0]+$sh1[1]/60.)/24.
+              }
+             }
+             $sql="select max(date_to_unixts(modtime-$part)) as u_modtime from mods where tabname = 'fs'";
              my $rdt=$self->{sqlserver}->Query($sql);
              my $lupdate=-1;
              if(defined $rdt->[0][0]){

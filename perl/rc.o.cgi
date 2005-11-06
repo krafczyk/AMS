@@ -1,10 +1,13 @@
 #!/usr/bin/perl -w
-#  $Id: rc.o.cgi,v 1.1 2002/03/13 08:42:23 alexei Exp $
+#  $Id: rc.o.cgi,v 1.2 2005/11/06 21:03:46 choutko Exp $
 use Gtk;
 use strict;
 
 
 use lib::RemoteClient;
+if($ENV{MOD_PERL}){
+  $#ARGV=-1;
+}
 
 
 my $debug="-d";

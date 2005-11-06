@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.94 2005/11/01 15:43:03 ams Exp $
+# $Id: Monitor.pm,v 1.95 2005/11/06 21:03:49 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -1777,7 +1777,7 @@ sub RestoreRuns{
     }
   }
 }
-return;
+#return;
 
 
 
@@ -1801,7 +1801,7 @@ return;
      my %client=%{${$ref->{acl}}[$i]};
      my %cid=%{$client{id}};
      my $id=$cid{uid};
-     if($id<100000){
+     if($id<1000000){
       my %rdst; 
       for my $j (0 ... $#{$ref->{rtb}}){
         %rdst=%{${$ref->{rtb}}[$j]};
@@ -1810,7 +1810,8 @@ return;
       }
      if($rdst{Run} eq $id){
          warn "  Found $id \n";
-         goto FoundRun;
+         #goto FoundRun;
+         next;
 
 
     }
@@ -1836,7 +1837,7 @@ foreach my $file (@allfiles){
         $rdst{FirstEvent}=1;
         $rdst{FilePath}=$file;
         $rdst{History}="ToBeRerun";
-        $rdst{Status}="Processing";
+        $rdst{Status}="ToBeRerun";
         $rdst{cuid}=$id;
         $rdst{SubmitTime}=$client{Start};
            my @sbuf=split "\n",$buf;
@@ -2034,7 +2035,7 @@ foreach my $file (@allfiles){
     if($file=~/\.journal$/){
         my @junk=split '\.', $file;
         my $run=int($junk[0]);
-        if($run>1218 && $run<12000){
+        if($run>1391 && $run<1392){
             my $full=$joudir.$file;
             open(FILE,"<".$full) or die "Unable to open journal file $full \n";
             my $buf;
@@ -2219,12 +2220,11 @@ FoundRun:
            last;
          }
      }
-return
 opendir THISDIR ,$dir or die "unable to open $dir";
 @allfiles= readdir THISDIR;
 closedir THISDIR;
 
-for my $run (1220...100000){
+for my $run (1393...1396){
 foreach my $file (@allfiles){
     if ($file =~/^cern\.$run/){
                my %rdst; 
