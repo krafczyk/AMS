@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.355 2005/11/06 21:03:49 choutko Exp $
+# $Id: RemoteClient.pm,v 1.356 2005/11/07 15:19:04 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -693,7 +693,7 @@ if($#{$self->{DataSetsT}}==-1){
 # get DB info :
 #               All datasets
   my  $datasetsDB  = undef;
-  my  $jobsDB      = undef;
+#  my  $jobsDB      = undef;
 #  my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
 # get list of datasets (names and dids)
 #  my  $sql="select count(did) from DataSets";
@@ -724,8 +724,8 @@ if($#{$self->{DataSetsT}}==-1){
        $sql="select jid, time,triggers,timeout, did, jobname, realtriggers from Jobs" ;
 #         where Jobs.pid = $periodId";
         $sql=$sql.$pps;
-    $jobsDB= $self->{sqlserver}->Query($sql);
-    $st[1]=$st[1]+1;
+#    $jobsDB= $self->{sqlserver}->Query($sql);
+#    $st[1]=$st[1]+1;
 #   }
   }
 # read list of datasets dirs from $dir
@@ -745,6 +745,24 @@ if($#{$self->{DataSetsT}}==-1){
      }
     }
 
+          $sql = "SELECT  DID  FROM ProductionSet WHERE STATUS='Active' ORDER BY DID";
+         my $ret = $self->{sqlserver}->Query($sql);
+         $pps=undef;
+         foreach my $pp  (@{$ret}){
+          if(defined $pps){
+            $pps=$pps." or jobs.pid =";
+          }
+          else{
+           $pps=" and ( jobs.pid =";
+          }
+         $pps=$pps." $pp->[0] ";
+        }
+       if(defined $pps){
+        $pps=$pps." ) ";
+       }
+       else{
+        $pps="";
+       }
 
 # scan all dataset dirs
   $#{$self->{DataSetsT}}=-1;
@@ -821,34 +839,41 @@ if($#{$self->{DataSetsT}}==-1){
                 my $datasetsNameDB = $ds->[1];
                if ($datasetsNameDB eq $dataset->{name}) {
                  $dataset->{did}=$datasetsDidDB;
-                 foreach my $job (@{$jobsDB}){
-                   my $jobsJidDB     = $job->[0];
-                   my $jobsTimeDB    = $job->[1];
-                   my $jobsTrigDB    = $job->[2];
-                   my $jobsTimeOutDB = $job->[3];
-                   my $jobsDidDB     = $job->[4];
-                   my $jobsNameDB    = $job->[5];
-                   my $rtrig=$job->[6];
-                   if ($jobsDidDB == $dataset->{did}) {
-                     my @junk     = split '\.',$jobsNameDB;
-                     my $jobname = $junk[2];
-                     for my $n (3..$#junk) {
-                         $jobname = $jobname.".".$junk[$n];
-                     }
-                         if ($jobname eq $template->{filename}) {
-                            if(defined  $rtrig and $rtrig>0 ) {
-                               $template->{TOTALEVENTS}-=$rtrig;
-                              }
-                             elsif(time()-$jobsTimeDB < $jobsTimeOutDB){
-                             #$st[3]+=1;
-#
-# subtract allocated events
-                             $template->{TOTALEVENTS}-=$jobsTrigDB;
-                         }
-                        } # $jobname eq %$template->{filename}
-                  } # $jobsDidDB == $dataset->{did)
-                 } # loop for all jobs started after ProductionSetStartTime
+                  $sql="select sum(realtriggers) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers>0".$pps;
+                  my $rtn1=$self->{sqlserver}->Query($sql);
+                   my $tm=time();
+                  $sql="select sum(Triggers) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm".$pps;
+                  my $rtn2=$self->{sqlserver}->Query($sql);
+#                 foreach my $job (@{$jobsDB}){
+#                   my $jobsJidDB     = $job->[0];
+#                   my $jobsTimeDB    = $job->[1];
+#                   my $jobsTrigDB    = $job->[2];
+#                   my $jobsTimeOutDB = $job->[3];
+#                   my $jobsDidDB     = $job->[4];
+#                   my $jobsNameDB    = $job->[5];
+#                   my $rtrig=$job->[6];
+#                   if ($jobsDidDB == $dataset->{did}) {
+#                     my @junk     = split '\.',$jobsNameDB;
+#                     my $jobname = $junk[2];
+#                     for my $n (3..$#junk) {
+#                         $jobname = $jobname.".".$junk[$n];
+#                     }
+#                         if ($jobname eq $template->{filename}) {
+#                            if(defined  $rtrig and $rtrig>0 ) {
+#                               $template->{TOTALEVENTS}-=$rtrig;
+#                              }
+#                             elsif(time()-$jobsTimeDB < $jobsTimeOutDB){
+#                             #$st[3]+=1;
+##
+## subtract allocated events
+#                             $template->{TOTALEVENTS}-=$jobsTrigDB;
+#                         }
+#                        } # $jobname eq %$template->{filename}
+#                  } # $jobsDidDB == $dataset->{did)
+#                 } # loop for all jobs started after ProductionSetStartTime
                $datasetfound = 1;
+                $template->{TOTALEVENTS}-= $rtn1->[0][0]+$rtn2->[0][0];
+#               die "  $template->{TOTALEVENTS} $rtn1->[0][0]+$rtn2->[0][0] $dataset->{name} $template->{filename} \n";
                last;
              } # $datasetsNameDB eq $dataset->{name}
             }
@@ -3166,7 +3191,17 @@ CheckCite:            if (defined $q->param("QCite")) {
                }
               }        
            if($ntd != $dirs_ntuples[$ind]){
-             $s=" // Database and Linux Disagree \n   // Database says $dirs[$ind] contains $dirs_ntuples[$ind]  ntuples \n  //  Linux says it has $ntd ntuples \n //  please inform vitali.choutko\@cern.ch about discrepancy \n";         
+             $s=" // Database and Linux Disagree \n   // Database says $dirs[$ind] contains $dirs_ntuples[$ind]  ntuples \n  //  Linux says it has $ntd ntuples \n";
+              my @junk=split '/',$dirs[$ind];
+              $sql="select isonline from filesystems where disk='/$junk[1]'";
+              #die "  $sql $dirs[$ind] ";
+              my $rtn=$self->{sqlserver}->Query($sql);
+              if(defined  $rtn and $rtn->[0][0]==0){
+                $s=$s."//   Because /$junk[1]  is Offline \n"; 
+           }
+           else{
+            $s=$s." //  please inform vitali.choutko\@cern.ch about discrepancy \n"; 
+          }        
           $buff = $buff.$s."\n";
           $s=~s/\n/<br>/g;
           print "<tr><td><font color=red> $s </tr></td><font color=black>";
@@ -4327,10 +4362,14 @@ DDTAB:          $self->htmlTemplateTable(" ");
            my $query=$self->{q}->param("CTT");
            my $found=0;
            my @tempnam=();
-  #          push @tempnam,"Any";
+        if ($self->{CCT} eq "remote"){
+            push @tempnam,"Any";
+        }
            my $hash={};
            my @desc=();
-  #         push @desc," Any";
+        if ($self->{CCT} eq "remote"){
+           push @desc," Any";
+       }
            my $cite={};
            foreach my $dataset (@{$self->{DataSetsT}}){
              if($dataset->{name} eq $query){
@@ -4826,9 +4865,19 @@ print qq`
         else{
          $template=$q->param("QTemp");
         }
-        if(defined $dataset){
+        my $Any=-1;
+        my $qrunno=$q->param("QRun");
+        my $srunno=$q->param("QRun");
+        my $runsave=undef;
+        if($template eq "Any"){
+          $Any=0;
+          $q->param("QRun",1);
+          $template= ${$dataset->{jobs}}[$Any]->{filename};
+        }
+anyagain:
+       if(defined $dataset){
          foreach my $tmp (@{$dataset->{jobs}}) {
-            if($template eq $tmp->{filename}){
+            if($template eq $tmp->{filename} and $tmp->{TOTALEVENTS}>0){
                 $templatebuffer=$tmp->{filebody};
                 my ($rid,$rndm1,$rndm2) = $self->getrndm($dataset);
                 if(not defined $q->param("QRNDM1")){
@@ -4859,7 +4908,7 @@ print qq`
                     $q->param("QCPUPEREVENT",$tmp->{CPUPEREVENTPERGHZ});
                 }
                 my $evno=$q->param("QEv");
-                if(not $evno =~/^\d+$/ or $evno <1 or $evno>$tmp->{TOTALEVENTS}){
+                if(not $evno =~/^\d+$/ or $evno <1 or $evno>$tmp->{TOTALEVENTS} ){
                     my $corr=1;
                     if (defined $q->param("QCPUType")){
                         $corr=$self->{cputypes}->{$q->param("QCPUType")};
@@ -4880,6 +4929,8 @@ print qq`
                        $q->param("QRun",$runno);
                     }
                     $q->param("QEv",$evno);
+                    $tmp->{TOTLALEVENTS}-=$evno;
+                   
                 }
                 last;
             }
@@ -5048,7 +5099,8 @@ print qq`
             }
          }
             #get run
-        my $run=undef;
+       my $run=$runsave;
+    if(not defined $run){
         my $sql="select maxrun from Cites where name='$self->{CCA}' and state=0";
         my $res=$self->{sqlserver}->Query($sql);
         if( not defined $res->[0][0]){
@@ -5069,6 +5121,7 @@ print qq`
             $self->{sqlserver}->Update($sql);
             $run=$res->[0][0];
         }
+    }
 # 4.12.03             my $switch=1<<27;
              my $switch=1<<$MAX_RUN_POWER;
              my $max=$switch-1;
@@ -5183,7 +5236,7 @@ print qq`
        }
         $i=system "tar -C$self->{UploadsDir} -h -cf $filen $dbversion 1>/dev/null 2>&1";
         if($i){
-              $self->ErrorPlus("Unable to tar $self->{UploadsDir} $dbversion to $filen");
+              $self->ErrorPlus("Unable to tar $self->{UploadsDir} $dbversion to $filen  $i    tar -C$self->{UploadsDir} -h -cf $filen $dbversion 1>/dev/null 2>&1");
          }
          $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatch  1>/dev/null 2>&1") ;
           if($i){
@@ -5367,13 +5420,19 @@ print qq`
          }
         print FILE  $note;
         close FILE;
+         my $i;
+         if($Any<0 or $srunno eq $qrunno){
          $file2tar="$self->{UploadsDir}/$dataset->{version}script.$run.tar";
-        my $i=system("tar -C$self->{UploadsDir} -cf  $file2tar README.$run  1>/dev/null 2>&1");
+           $i=system("tar -C$self->{UploadsDir} -cf  $file2tar README.$run  1>/dev/null 2>&1");
+     }
+         else{
+           $i=system("tar -C$self->{UploadsDir} -uf  $file2tar README.$run  1>/dev/null 2>&1");
+         }
           if($i){
               $self->ErrorPlus("Unable to tar readme to $file2tar ");
           }
         unlink $readme;
-    }
+     }
 
         for my $i (1 ... $runno){
          #find buffer and patch it accordingly
@@ -5421,7 +5480,7 @@ print qq`
                $buf=~ s/$cn/$cn$ccc/;
            }
        }
-         if (defined $rootntuple && $i<2) {
+         if (defined $rootntuple && $i<2 && ($Any<0 or $srunno eq $qrunno)) {
           $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;
          }
          if($i > 1){
@@ -5676,6 +5735,41 @@ print qq`
          push @{$self->{Runs}}, $ri;
          $run=$run+1;
         }
+       
+       if($Any>=0 and defined $dataset){
+         my $evtl=0;
+         foreach my $tmp (@{$dataset->{jobs}}) {
+             if($tmp->{TOTALEVENTS}>0){
+              $evtl+=$tmp->{TOTALEVENTS};
+          }
+         }
+       if($evtl>0){
+anynext:
+         $Any+=1;
+         $Any=$Any%($#{$dataset->{jobs}}+1);
+         if(${$dataset->{jobs}}[$Any]->{TOTALEVENTS}<=0){
+           goto anynext;
+         }
+         if($qrunno>1){
+           $template= ${$dataset->{jobs}}[$Any]->{filename};
+           $qrunno--;
+                    $q->delete("QRNDM1");
+                    $q->delete("QRNDM2");
+                    $q->delete("QTimeB");
+                    $q->delete("QTimeE");
+                    $q->delete("QMomI");
+                    $q->delete("QMomA");
+                    $q->delete("QPart");
+                    $q->delete("QCPUPEREVENT");
+                    $q->delete("QEv");
+                    $runsave=$run;
+            goto anyagain;
+}
+}
+}
+        if($Any>=0){
+         $runno=$srunno-$qrunno+1;
+        }
 
 #
 # Add files to server
@@ -5684,7 +5778,7 @@ print qq`
             if($self->{dwldaddon}==0){
             foreach my $ri (@{$self->{Runs}}){
               DBServer::sendRunEvInfo($self->{dbserver},$ri,"Create");
-            }
+           }
             my $lu=time();
             my $sqll="update Servers set lastupdate=$lu where dbfilename='$self->{dbfile}'";
             $self->{sqlserver}->Update($sqll);
