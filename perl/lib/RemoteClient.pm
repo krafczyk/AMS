@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.357 2005/11/08 13:15:49 choutko Exp $
+# $Id: RemoteClient.pm,v 1.358 2005/11/08 13:26:29 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -872,7 +872,15 @@ if($#{$self->{DataSetsT}}==-1){
 #                  } # $jobsDidDB == $dataset->{did)
 #                 } # loop for all jobs started after ProductionSetStartTime
                $datasetfound = 1;
-                $template->{TOTALEVENTS}-= $rtn1->[0][0]+$rtn2->[0][0];
+                 my $rtrig=$rtn1->[0][0];
+                 my $subm= $rtn2->[0][0];
+                 if(not defined $rtrig){
+                  $rtrig=0;
+                 }              
+                 if(not defined $subm){
+                  $subm=0;
+                 }              
+                 $template->{TOTALEVENTS}-= $rtrig+$subm;
 #               die "  $template->{TOTALEVENTS} $rtn1->[0][0]+$rtn2->[0][0] $dataset->{name} $template->{filename} \n";
                last;
              } # $datasetsNameDB eq $dataset->{name}
@@ -9025,7 +9033,7 @@ sub parseJournalFiles {
              my $address="vitali.choutko\@cern.ch";
             if (defined $r4->[0][0]) {
              my   $owner   = $r4->[0][0];
-#             $address = $r4->[0][1];
+             $address = $r4->[0][1];
              my $cite         = $r4->[0][2];
               my $sujet = "Validation Failed for Job:  $suc $r4->[0][1]";
              my $message="";
@@ -9830,6 +9838,7 @@ foreach my $block (@blocks) {
       #system($cmd);
       print FILE "Validation/copy failed : mv ntuples to $junkdir \n";
       close FILE;
+      system("mv $inputfile $inputfileLink");
       return $jobid,$copylog; 
     }
    }
