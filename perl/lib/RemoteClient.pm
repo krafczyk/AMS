@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.358 2005/11/08 13:26:29 ams Exp $
+# $Id: RemoteClient.pm,v 1.359 2005/11/08 16:03:18 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -881,6 +881,9 @@ if($#{$self->{DataSetsT}}==-1){
                   $subm=0;
                  }              
                  $template->{TOTALEVENTS}-= $rtrig+$subm;
+                 if($template->{TOTALEVENTS}<0){
+                     $template->{TOTALEVENTS}=0;
+                 }
 #               die "  $template->{TOTALEVENTS} $rtn1->[0][0]+$rtn2->[0][0] $dataset->{name} $template->{filename} \n";
                last;
              } # $datasetsNameDB eq $dataset->{name}
@@ -4937,7 +4940,7 @@ anyagain:
                        $q->param("QRun",$runno);
                     }
                     $q->param("QEv",$evno);
-                    $tmp->{TOTLALEVENTS}-=$evno;
+                    $tmp->{TOTALEVENTS}-=$evno;
                    
                 }
                 last;
