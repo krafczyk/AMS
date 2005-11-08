@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.356 2005/11/07 15:19:04 choutko Exp $
+# $Id: RemoteClient.pm,v 1.357 2005/11/08 13:15:49 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8748,6 +8748,7 @@ sub parseJournalFiles {
  my $sql          = undef;
  my $ret          = undef;
  my $dbonly       = 0;
+ my $mail=0;
  my $single=0;
  my $rflag        = 0;     # processing flag from FilesProcessing Table
  my $procstarttime= 0;     # files processing start time from  FilesProcessing Table
@@ -8761,6 +8762,7 @@ sub parseJournalFiles {
      -v      - verbose mode
      -w      - output will be produced as HTML page
      -s      -  Only one journal file then quit
+     -m      -  Mail owner if failed
      ./parseJournalFiles.o.cgi -c
 ";
 
@@ -8783,6 +8785,9 @@ sub parseJournalFiles {
     }
     if ($chop =~/^-w/) {
      $webmode = 1;
+    }
+    if ($chop =~/^-m/) {
+     $mail = 1;
     }
     if ($chop =~/^-h/) {
       print "$HelpTxt \n";
@@ -9002,16 +9007,39 @@ sub parseJournalFiles {
 # it is possible that some files been transmitted with delay > 24h, so they
 # pass manual validation
 #
-       my $outputpath="";
        if($verbose){
         print " parsejournal file  $writetime $timestamp $newfile \n";
        }
         if ($writetime > $timestamp - 24*60*60*30) {
-          $outputpath=$self->parseJournalFile($firstjobtime,
+          my ($suc,$logfile)=$self->parseJournalFile($firstjobtime,
                                  $lastjobtime,
                                  $logdir,
                                  $newfile,
                                  $ntdir);
+          if($suc>0 && $mail){
+             my $sql = "SELECT jid,mid FROM Jobs WHERE jid=$suc";
+             my $ret = $self->{sqlserver}->Query($sql);
+             $sql = "SELECT mails.name, mails.address, cites.name
+                    FROM Mails, Cites  WHERE mails.mid=$ret->[0][1] and mails.cid=cites.cid";
+             my $r4 = $self->{sqlserver}->Query($sql);
+             my $address="vitali.choutko\@cern.ch";
+            if (defined $r4->[0][0]) {
+             my   $owner   = $r4->[0][0];
+#             $address = $r4->[0][1];
+             my $cite         = $r4->[0][2];
+              my $sujet = "Validation Failed for Job:  $suc $r4->[0][1]";
+             my $message="";
+              if(defined $logfile){
+                  if(open(FILE,"<",$logfile)){
+                   read(FILE,$message,16384);
+                   close FILE;
+                  }
+              }
+                     
+             $self->sendmailmessage($address,$sujet,$message);
+           }
+
+          }
           $JournalFiles[$nCheckedCite]++;
           if($single){
               last;
@@ -9287,11 +9315,11 @@ foreach my $block (@blocks) {
   } else {
        print FILE "Fatal - cannot find JobInfo in file $inputfile\n";
        system("mv $inputfile $inputfile.0");
-       return;
+       return 0;
    }
    if ($self->getRunStatus($jobid,0) eq 'Completed') {
        print FILE "Job : $jobid Status : Completed. Return \n";
-       return;
+       return 0;
    }
 
    if ($patternsmatched == $#StartingJobPatterns) {
@@ -9338,12 +9366,12 @@ foreach my $block (@blocks) {
        print FILE "Fatal - cannot find JobInfo for $jobid \n";
        system("mv $inputfile $inputfile.0");
        $BadRuns[$nCheckedCite]++;
-       return;
+       return 0;
     }
    } else {
        print FILE "Fatal - cannot find JobInfo in file $inputfile\n";
        system("mv $inputfile $inputfile.0");
-       return;
+       return 0;
    }
    if ($patternsmatched == $#StartingJobPatterns || $patternsmatched == $#StartingJobPatterns-1) {
     $startingjob[0] = "StartingJob";
@@ -9394,7 +9422,7 @@ foreach my $block (@blocks) {
     if(defined $rq->[0][0] and $rq->[0][0] =~/Completed/){
         warn "  Run $ run already completed in database do nothing \n";
          system("mv $inputfile $inputfile.1");
-        return;
+        return 0;
     }
     $startingrunR   = 1;
 # insert run : run #, $jid, $fevent, $levent, $fetime, $letime, $submit, $status;
@@ -9695,7 +9723,8 @@ foreach my $block (@blocks) {
     $BadRuns[$nCheckedCite]++;
     print FILE "*********** wrong timestamp : $utime ($firstjobtime,$lastjobtime)\n";
     system("mv $inputfile $inputfile.0");
-    return;
+    close FILE;
+    return $jobid,$copylog;
    }
   } #if defined $utime
 }
@@ -9800,7 +9829,9 @@ foreach my $block (@blocks) {
       #print FILE "$cmd\n";
       #system($cmd);
       print FILE "Validation/copy failed : mv ntuples to $junkdir \n";
-     }
+      close FILE;
+      return $jobid,$copylog; 
+    }
    }
 }
 
@@ -9812,10 +9843,11 @@ foreach my $block (@blocks) {
   if ($status eq "Completed") {
     $self->updateRunCatalog($run);
     if ($verbose == 1) {print "Update RunCatalog table : $run\n";}
+    return 0;
   }
 }
  close FILE;
- return $outputpath;
+    return 0;
 }
 
 sub updateAllRunCatalog {
@@ -10208,7 +10240,7 @@ sub findJob {
 
     my $rstatus = 0;
 
-    my $sql = "SELECT jid FROM Jobs WHERE jid=$jid";
+    my $sql = "SELECT jid,mid FROM Jobs WHERE jid=$jid";
     my $ret = $self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
         $rstatus = $ret->[0][0];
@@ -11765,6 +11797,18 @@ sub calculateMipsVC {
                   $template->{SUM}=$sum;
                       $template->{SUM2}=$sum2;
               }
+              if($fast){
+                  $sql="select sum(realtriggers) from jobs where did=$ret->[0][0] and  jobname like '%$template->{filename}' and realtriggers>0".$pps;
+                  my $rtn1=$self->{sqlserver}->Query($sql);
+                   my $tm=time();
+                  $sql="select sum(Triggers) from jobs where did=$ret->[0][0] and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm".$pps;
+                  my $rtn2=$self->{sqlserver}->Query($sql);
+                  $completed+=$rtn1->[0][0];
+                  $template->{TOTALEVENTS}-=$rtn1->[0][0];
+                  $submitted+=$rtn2->[0][0];
+                  $template->{TOTALEVENTS}-=$rtn2->[0][0];
+              }
+              else{
                  $sql="select jid,time,triggers,timeout,realtriggers from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}'".$pps;
                   $r2= $self->{sqlserver}->Query($sql);
                  if(defined $r2->[0][0]){
@@ -11788,7 +11832,6 @@ sub calculateMipsVC {
 #
 # take same from ntuples
 #
-                         if(!$fast){
                          $sql="select sum(ntuples.levent-ntuples.fevent+1) from ntuples,runs where ntuples.run=runs.run and runs.jid=$job->[0]";
                           my $r4=$self->{sqlserver}->Query($sql);
                          my $ntevt=$r4->[0][0];
@@ -11810,7 +11853,6 @@ sub calculateMipsVC {
 #                           die "qq \n";
                        }
                           $rtrig=$ntevt;
-                     }
                          $completed+=$rtrig;
                          $template->{TOTALEVENTS}-=$rtrig;
 
@@ -11824,6 +11866,7 @@ sub calculateMipsVC {
                          }
                    }
                  }
+             }
           }
            else{
                if($vrb){
