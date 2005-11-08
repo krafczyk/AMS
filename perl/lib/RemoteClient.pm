@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.359 2005/11/08 16:03:18 choutko Exp $
+# $Id: RemoteClient.pm,v 1.360 2005/11/08 21:42:39 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8799,6 +8799,7 @@ sub parseJournalFiles {
     }
     if ($chop =~/^-m/) {
      $mail = 1;
+      print "  Mail sending option on \n";
     }
     if ($chop =~/^-h/) {
       print "$HelpTxt \n";
@@ -8822,7 +8823,7 @@ sub parseJournalFiles {
      }
     }
     my $whoami = getlogin();
-    if ($whoami =~ 'ams') {
+    if ($whoami =~ 'ams' ) {
     } else {
       $self->amsprint("parseJournalFiles -ERROR- script cannot be run from account : $whoami",0);
       die "bye";
@@ -9096,7 +9097,17 @@ END_PARSE :
  } else {
      $self -> printParserStat();
  }
- $self->updateFilesProcessing();
+ my ($good,$bad) = $self->updateFilesProcessing();
+if($mail && $bad>1){
+           $sql="select address from mails where rserver=1";
+            my $rmail=$self->{sqlserver}->Query($sql);
+             if(defined $rmail->[0][0]){
+              my $address=$rmail->[0][0];
+              my $sujet = "parseJournalFile: Good: $good Bad: $bad";
+              my $message="";
+              $self->sendmailmessage($address,$sujet,$message);
+              }
+} 
  return 1;
 }
 
@@ -10971,6 +10982,7 @@ sub updateFilesProcessing {
                                           GOOD=$nGoodRuns, Failed=$nFailedRuns, GoodDSTS=$nGoodDSTs,
                                           BadDSTS = $nBadDSTs, Flag = 0, Timestamp=$timenow";
     $self->{sqlserver}->Update($sql);
+    return $nGoodRuns,$nFailedRuns;
 }
 
 sub printWarn {
