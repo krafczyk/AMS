@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.360 2005/11/08 21:42:39 ams Exp $
+# $Id: RemoteClient.pm,v 1.361 2005/11/08 22:00:41 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9097,14 +9097,13 @@ END_PARSE :
  } else {
      $self -> printParserStat();
  }
- my ($good,$bad) = $self->updateFilesProcessing();
+ my ($good,$bad, $message) = $self->updateFilesProcessing();
 if($mail && $bad>1){
            $sql="select address from mails where rserver=1";
             my $rmail=$self->{sqlserver}->Query($sql);
              if(defined $rmail->[0][0]){
               my $address=$rmail->[0][0];
               my $sujet = "parseJournalFile: Good: $good Bad: $bad";
-              my $message="";
               $self->sendmailmessage($address,$sujet,$message);
               }
 } 
@@ -10970,8 +10969,9 @@ sub updateFilesProcessing {
     my $nFailedRuns   = 0;
     my $nGoodDSTs     = 0;
     my $nBadDSTs      = 0;
-
+    my $message=" ";
     for (my $i=0; $i<$nCites; $i++) {
+        $message=$message." CiteNo: $i JournalFiles:  $JournalFiles[$i] GoodRuns:  $GoodRuns[$i] BadRuns: $FailedRuns[$i] + $BadRuns[$i] \n";
         $nJournalFiles =  $nJournalFiles + $JournalFiles[$i];
         $nGoodRuns     =  $nGoodRuns     + $GoodRuns[$i];
         $nFailedRuns   =  $nFailedRuns   + $FailedRuns[$i] + $BadRuns[$i];
@@ -10982,7 +10982,7 @@ sub updateFilesProcessing {
                                           GOOD=$nGoodRuns, Failed=$nFailedRuns, GoodDSTS=$nGoodDSTs,
                                           BadDSTS = $nBadDSTs, Flag = 0, Timestamp=$timenow";
     $self->{sqlserver}->Update($sql);
-    return $nGoodRuns,$nFailedRuns;
+    return $nGoodRuns,$nFailedRuns,$message;
 }
 
 sub printWarn {
