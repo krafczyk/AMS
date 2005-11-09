@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.361 2005/11/08 22:00:41 ams Exp $
+# $Id: RemoteClient.pm,v 1.362 2005/11/09 12:38:11 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1408,10 +1408,17 @@ sub ValidateRuns {
      $r0 = $self->{sqlserver}->Query($sql);
 
   }
+     $sql   = "SELECT count(path)  FROM ntuples WHERE run=$run->{Run}";
+     my $r1 = $self->{sqlserver}->Query($sql);
+      my $status=$r0->[0][1];
+      if(defined $status && $status eq 'Completed' && $r1->[0][0]==0){
+          $status='UnChecked';
+      }
+
 #--     if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") &&
 #--     (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked" && $r0->[0][1] ne "TimeOut"))
      if(($run->{Status} eq "Finished") &&
-      (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "TimeOut"))
+      (defined $status && ($status ne "Completed" && $status ne "TimeOut"))
         ){
 #
         print "Check Run : $run->{Run} Status : $run->{Status}, DB Status : $r0->[0][1] \n";
@@ -1748,13 +1755,13 @@ my $fevt=-1;
                           if(not defined $ntevt){
                               $ntevt=0;
                           }
-                          if( $ntevt ne $run->{LastEvent}-$run->{FirstEvent}+1   and $ntevt>0){
+                          if( $ntevt ne $run->{LastEvent}-$run->{FirstEvent}+1){
                            warn "  ntuples/run mismatch $r4->[0][0] $run->{LastEvent}-$run->{FirstEvent}+1 $run->{Run} \n";
+                       }
+          if($ntevt>0){
                              $sql="UPDATE Runs SET fevent=$fevt, Levent=$ntevt-1+$fevt WHERE jid=$run->{Run}";
 
                              $self->{sqlserver}->Update($sql);
-                       }
-          if($ntevt>0){
                       $sql="UPDATE Jobs SET realtriggers=$ntevt WHERE jid=$run->{Run}";
                       $self->{sqlserver}->Update($sql);
                   }

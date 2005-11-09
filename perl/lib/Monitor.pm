@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.95 2005/11/06 21:03:49 choutko Exp $
+# $Id: Monitor.pm,v 1.96 2005/11/09 12:38:11 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2436,7 +2436,7 @@ closedir THISDIR;
         }
        }
     }
-    }
+}
 return; 
 }
 
@@ -2457,7 +2457,7 @@ sub DeleteFailedDST{
     for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
      my %nc=%{$Monitor::Singleton->{dsts}[$i]};
      if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile"){
-         if($nc{Status} eq "Failure" and 0){
+         if($nc{Status} eq "Failure"){
 #            warn " $nc{Name} \n";           
                 my @parser=split ':',$nc{Name};
             if($#parser>0){
@@ -2478,9 +2478,21 @@ sub DeleteFailedDST{
                  }
                }
                 if($hostok){
+                    my $ifg=0;
                     my $rm = "rm ";
                     my $cmd="ssh -x $host $rm $parser[1]";
-                    my $i=system($cmd);
+                    foreach my $ntuple (@{$Monitor::Singleton->{dsts}}){
+                        if($ntuple->{Name} eq $nc{Name} and 
+                           $ntuple->{Status} ne $nc{Status}){
+                            $ifg=1;
+                            last;
+                        }
+                    }
+                        
+                    my $i=0;
+                    if(!$ifg){
+                          $i=system($cmd);
+                      }
                     if($i){
                         warn "$cmd failed \n";
                       my $force=1;
@@ -2604,91 +2616,6 @@ sub DeleteFailedDST{
 
 
 
-    for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
-     my %nc=%{$Monitor::Singleton->{dsts}[$i]};
-     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile"){
-         if($nc{Status} eq "Failure"){
-#            warn " $nc{Name} \n";           
-                my @parser=split ':',$nc{Name};
-            if($#parser>0){
-                my $host=$parser[0];
-                my $hostok=0;
-                if($host =~ /cern.ch/ ){
-#                   ok
-                    $hostok=1;
-                }
-                else{
-                 my @hparser=split '\.',$host;
-                 if($#hparser>0 and $hparser[1] eq 'om'){
-                     $host=$hparser[0].'.cern.ch';
-                     $hostok=1;
-                 }
-                 else {
-#                   warn "Host Bizarre $host \n";           
-                 }
-               }
-                if($hostok){
-                    my $rm = "rm ";
-                    my $cmd="ssh -x $host $rm $parser[1]";
-                    my $ifg=0;
-                    foreach my $ncg (@ncgood){
-                    if($nc{Name} eq $ncg){
-                     $ifg=1;
-      #             last;
-                   }
-                }
-                    my $i=1;
-                    if(!$ifg){
-                    $i=system($cmd);
-                    }
-                    if($i){
-                        warn "$cmd failed \n";
-                      my $force=1;
-                     if($force){
-                     my $arsref;
-                     my %cid=%{$ref->{cid}};
-                     foreach $arsref (@{$ref->{arpref}}){
-                      try{
-                       $arsref->sendDSTEnd(\%cid,\%nc,"Delete");
-                      }
-                      catch CORBA::SystemException with{
-                       warn "sendback corba exc";
-                      };
-                     }
-                    }
-                    }
-                    else{
-                        warn " $cmd ok \n";
-                     my $arsref;
-                     my %cid=%{$ref->{cid}};
-                     foreach $arsref (@{$ref->{arpref}}){
-                      try{
-                       $arsref->sendDSTEnd(\%cid,\%nc,"Delete");
-                      }
-                      catch CORBA::SystemException with{
-                       warn "sendback corba exc";
-                      };
-                     }
-                     foreach $arsref (@{$ref->{ardref}}){
-                     try{
-                      $arsref->sendDSTEnd(\%cid,\%nc,"Delete");
-                      last;
-                     }
-            catch DPS::DBProblem   with{
-                my $e=shift;
-                warn "DBProblem: $e->{message}\n";
-            }
-                    catch CORBA::SystemException with{
-                    warn "sendback corba exc";
-                   };
-                 }
-                    }
-            }
-            }
-     }
-            }
- }
- 
 
 
 
