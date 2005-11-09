@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.363 2005/11/09 15:12:58 ams Exp $
+# $Id: RemoteClient.pm,v 1.364 2005/11/09 17:23:41 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6792,7 +6792,7 @@ sub checkJobsTimeout {
        my $address      = "vitali.choutko\@cern.ch";
        $sql="SELECT runs.run, runs.status
               FROM runs
-                WHERE (runs.status = 'Failed' OR runs.status = 'Unchecked' OR runs.status='Foreign') AND runs.jid=$jid";
+              WHERE (runs.status = 'Failed' OR runs.status = 'Unchecked' OR runs.status='Foreign' )  AND runs.jid=$jid";
        my $r4=$self->{sqlserver}->Query($sql);
        if (defined $r4->[0][0]) {
         $sql= "UPDATE runs SET status='TimeOut' WHERE run=$jid";
@@ -6801,9 +6801,9 @@ sub checkJobsTimeout {
         $jobstatus = $r4->[0][1];
        }
         else{
-        $sql="SELECT runs.run from runs where runs.jid=$jid";
+        $sql="SELECT runs.status,jobs.timekill from runs,jobs where runs.jid=jobs.jid and runs.jid=$jid";
         my $r5=$self->{sqlserver}->Query($sql);
-        if(not defined $r5->[0][0]){
+        if(not defined $r5->[0][0] or ($r5->[0][0] eq 'TimeOut' and $r5->[0][1] <=0)){
         $tmoutflag = 1;
         $jobstatus = 'Timeout';
        }
