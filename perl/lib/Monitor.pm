@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.96 2005/11/09 12:38:11 ams Exp $
+# $Id: Monitor.pm,v 1.97 2005/11/09 15:12:58 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -1636,6 +1636,9 @@ sub RemoveRuns{
 }
 
 
+
+
+
 sub ResetFailedRuns{
  my $ref=shift;
 
@@ -2695,3 +2698,71 @@ sub DeleteValidatedDst{
 
 }
 
+
+
+
+
+sub FinishFailedRuns{
+ my $ref=shift;
+
+
+      for my $j (0 ... $#{$ref->{rtb}}){
+        my %rdst=%{${$ref->{rtb}}[$j]};
+
+ if($rdst{Status} eq "Processing"){
+     my $found=0;
+     foreach my $ac (@{$ref->{acl}}){
+         if($ac->{id}->{uid} eq $rdst{cuid}){
+             $found=1;
+             last;
+         }
+     }
+     if($found eq 0){
+         $rdst{Status} ="Failed";
+         $rdst{History}="Failed";
+     }
+ }
+       if($rdst{Status} eq "Failed"){
+
+    for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
+     my %nc=%{$Monitor::Singleton->{dsts}[$i]};
+     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile"){
+         if($nc{Status} eq "Validated" or $nc{Status} eq "Success"){
+             $rdst{Status}="Finished";
+             last;
+         }
+     }
+    }
+         if($rdst{Run}>(1<<26)){
+          $rdst{Status}="Foreign";
+          }
+     }
+       if($rdst{Status} eq "Allocated"){
+      
+         $rdst{Status}="Finished";
+     }
+
+        my $arsref;
+        foreach $arsref (@{$ref->{arpref}}){
+            try{
+                $arsref->sendRunEvInfo(\%rdst,"Update");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                $arsref->sendRunEvInfo(\%rdst,"Update");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        
+        }
+
+}
+
+}

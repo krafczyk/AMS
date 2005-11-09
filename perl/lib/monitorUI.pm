@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.45 2005/11/06 21:03:49 choutko Exp $
+#  $Id: monitorUI.pm,v 1.46 2005/11/09 15:12:58 ams Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -338,6 +338,7 @@ my @item_factory_entries = (
 	["/File/R_ebuild DB",	"<alt>E",	11],
 	["/File/Dele_te Failed DST",	"<alt>T",	12],
 	["/File/Delete _Validated DST",	"<alt>V",	13],
+	["/File/F_inish Failed Runs",	"<alt>I",	14],
 	["/File/sep1",	undef,	0,	"<Separator>"],
 	{
 		'path' => "/File/_Quit", 
@@ -1153,6 +1154,8 @@ sub item_factory_cb {
              $Monitor::Singleton->DeleteFailedDST();
          }elsif($action==13){
              $Monitor::Singleton->DeleteValidatedDst();
+         }elsif($action==14){
+             $Monitor::Singleton->FinishFailedRuns();
          }
     }
 

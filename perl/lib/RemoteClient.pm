@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.362 2005/11/09 12:38:11 ams Exp $
+# $Id: RemoteClient.pm,v 1.363 2005/11/09 15:12:58 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3249,7 +3249,11 @@ CheckCite:            if (defined $q->param("QCite")) {
           my $ok=0;
           my $patho="";
           my $runo=0;
-          foreach my $nt (@{$r1}) {
+         
+           sub nprio1{ $b->[0] cmp $a->[0];}
+           my @ntsorted=sort nprio1 @{$r1}; 
+#          foreach my $nt (@{$r1}) {
+          foreach my $nt (@ntsorted) {
            my $path=trimblanks($nt->[0]);
             if(not $path=~/$dirs[$ind]/ ){
                next;
