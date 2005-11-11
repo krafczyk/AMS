@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.366 2005/11/11 12:38:03 choutko Exp $
+# $Id: RemoteClient.pm,v 1.367 2005/11/11 14:30:21 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3131,13 +3131,16 @@ CheckCite:            if (defined $q->param("QCite")) {
 #
       my $sql = $sqlNT;
       my $r1=$self->{sqlserver}->Query($sql);
-      if ($rootfileaccess eq "NFS" or $rootfileaccess eq "CASTOR") {
+      if ($rootfileaccess=~/^NFS/ or $rootfileaccess eq "CASTOR") {
           my $oldrun=0;
           foreach my $nt (@{$r1}) {
            my $path=trimblanks($nt->[0]);
-           if ($path =~ m/castor/ and $rootfileaccess eq "NFS") {
+           if ($path =~ m/castor/ and $rootfileaccess=~/^NFS/) {
 #           skip it, file has only archived copy only
-           } elsif($rootfileaccess eq "NFS" or ($nt->[7] > 0)) {
+           }
+           elsif($rootfileaccess eq "NFSONLY" and $nt->[7]>0){
+#           skip it, file has only archived copy only
+           } elsif($rootfileaccess=~/^NFS/ or $nt->[7] > 0){
             my @junk = split '/',$path;
             my $tdir ="";
             my @jrun=split '\.',$junk[$#junk];
@@ -3199,7 +3202,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 #// try to open dir and check all the files are in place
 #//
            my $ntd=0;
-           if($rootfileaccess eq "NFS"){
+           if($rootfileaccess=~/^NFS/){
                opendir THISDIR, $dirs[$ind];
                my @files=readdir THISDIR;
                closedir THISDIR;
@@ -3453,6 +3456,7 @@ CheckCite:            if (defined $q->param("QCite")) {
    print "<br><TR></TR>";
    print "<b><font color=blue> Access Mode  </font>\n";
    print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"NFS\" CHECKED> NFS \n";
+   print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"NFSONLY\" > NFSONLY \n";
    print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"HTTP\"> via WebServer \n";
    print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"CASTOR\">  rfio CASTOR\n";
    print "<i><font color=green> (Note : files are copied to CASTOR weekly, access via HTTP is slow) </font><i>\n";
