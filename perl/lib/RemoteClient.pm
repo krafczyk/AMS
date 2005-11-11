@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.367 2005/11/11 14:30:21 choutko Exp $
+# $Id: RemoteClient.pm,v 1.368 2005/11/11 15:39:14 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1841,18 +1841,10 @@ if($delete){
                my $sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=$run->{Run}";
                my $ret=$self->{sqlserver}->Query($sql);
                if(defined $ret->[0][0]){
-                   my %rdst=%{$run};
-                   my %cid=$self->{cid};
-        foreach my $arsref (@{$self->{arssef}}){
-            try{
-                $arsref->sendRunEvInfo(\%rdst,"Delete");
-            }
-            catch CORBA::SystemException with{
-                warn "sendback p corba exc";
-            };
-}
+                  print "  deleting  $run->{Run} \n";
+                  DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete");
+              }
                    
-               }           
 }
 }
 }

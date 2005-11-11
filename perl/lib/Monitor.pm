@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.97 2005/11/09 15:12:58 ams Exp $
+# $Id: Monitor.pm,v 1.98 2005/11/11 15:39:14 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -582,7 +582,7 @@ sub getdbok{
     push @text, $Monitor::Singleton->{db}->{fs};
     push @text, int $Monitor::Singleton->{db}->{dbtotal};
     push @text, int $Monitor::Singleton->{db}->{dbfree};
-    push @text, int $Monitor::Singleton->{db}->{dbfree}/$Monitor::Singleton->{db}->{dbtotal}*100;
+    push @text, int $Monitor::Singleton->{db}->{dbfree}/($Monitor::Singleton->{db}->{dbtotal}+1)*100;
     if($text[1]<0 or $text[2]<0 or $text[2]<200){
       push @text ,1;
   }elsif($text[2]<100){
