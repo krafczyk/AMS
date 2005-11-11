@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.368 2005/11/11 15:39:14 ams Exp $
+# $Id: RemoteClient.pm,v 1.369 2005/11/11 17:39:26 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4886,6 +4886,16 @@ print qq`
         my $Any=-1;
         my $qrunno=$q->param("QRun");
         my $srunno=$q->param("QRun");
+        if($qrunno<1){
+           $qrunno=1;
+        }elsif($qrunno>200){
+         $qrunno=200;
+        }
+       if($srunno<1){
+           $srunno=1;
+        }elsif($srunno>200){
+         $srunno=200;
+        }
         my $runsave=undef;
         if($template eq "Any"){
           $Any=0;
@@ -5033,6 +5043,7 @@ anyagain:
         if(not $runno =~/^\d+$/ or $runno <$a or $runno>100){
              $self->ErrorPlus("Runs no $runno is out of range ($a,100)");
         }
+
 
         if($evno < $runno){
              $self->ErrorPlus("Runs no $runno greater than events no $evno");
