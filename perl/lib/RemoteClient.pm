@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.364 2005/11/09 17:23:41 choutko Exp $
+# $Id: RemoteClient.pm,v 1.365 2005/11/11 12:26:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4384,12 +4384,12 @@ DDTAB:          $self->htmlTemplateTable(" ");
            my $query=$self->{q}->param("CTT");
            my $found=0;
            my @tempnam=();
-        if ($self->{CCT} eq "remote"){
+        if (1 or $self->{CCT} eq "remote"){
             push @tempnam,"Any";
         }
            my $hash={};
            my @desc=();
-        if ($self->{CCT} eq "remote"){
+        if (1 or $self->{CCT} eq "remote"){
            push @desc," Any";
        }
            my $cite={};
@@ -6642,7 +6642,7 @@ sub checkJobsTimeout {
     my $jobkilled=0;
     my $jobsaved=0;
     my $jobpostponed=0;
-    $sql="SELECT jobs.jid,jobs.events,jobs.time,jobs.cid from jobs where jobs.timekill<$timenow and jobs.timekill>0";
+    $sql="SELECT jobs.jid,jobs.realtriggers,jobs.time,jobs.cid from jobs where jobs.timekill<$timenow and jobs.timekill>0";
      my $rtokill=$self->{sqlserver}->Query($sql);
 
 
