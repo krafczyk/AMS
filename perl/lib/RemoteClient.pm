@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.370 2005/11/15 09:28:50 ams Exp $
+# $Id: RemoteClient.pm,v 1.371 2005/11/15 17:29:24 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -114,7 +114,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks UploadToCastor);
 
 # debugging
 my $benchmarking = 0;
@@ -13764,9 +13764,178 @@ my $self=shift;
              return $lupdate;
 }
 
+sub UploadToCastor{
+#
+#  uploads file to castor
+#  input paramaters
+#  $dir:   path to local files like /disk/MC/AMS02/2005A/dir
+#                                   /disk /MC  /dir are optional ones
+#  $verbose   verbose if 1 
+#  $update    do sql/file rm  if 1
+#  $cmp       compare castor sizes with local if 1 
+#  $run2p   only process run $run2p if not 0
+#
+#  output par:
+#   1 if ok  0 otherwise
+#
 
+    my ($self,$dir,$verbose,$update,$cmp, $run2p)= @_;
 
-sub uploadToDisks{
+  my $castorPrefix = '/castor/cern.ch/ams/MC';
+
+  my $rfcp="/usr/local/bin/rfcp ";
+
+  my $whoami = getlogin();
+  if ($whoami =~ 'ams' ) {
+  } else {
+   print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
+   return 0;
+  }
+   my $runs=0;
+   my $bad_runs=0;
+   my $sql ="select name,did from productionset";
+   my $ret =$self->{sqlserver}->Query($sql);
+    my $did=-1;
+    my $name="";
+   foreach my $ds (@{$ret}){
+    if($dir=~/$ds->[0]/){
+        $did=$ds->[1];
+        $name=$ds->[0];
+        last;
+    }
+   }
+  my $name_s=$name;
+    $name_s=~s/\//\\\//g;
+    if($did<0){
+        if($verbose){
+            print "No dasets found for $dir \n";
+        }
+        return 0;
+    }
+
+    $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '%$dir%'";
+   $ret =$self->{sqlserver}->Query($sql);
+   foreach my $run (@{$ret}){
+    my $timenow = time();
+    if($run2p ne 0 and $run2p ne $run->[0]){
+      next;
+    }
+        $sql="select path,crc from ntuples where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%'";
+      my $ret_nt =$self->{sqlserver}->Query($sql);
+      my $suc=1;
+      if(not defined $ret_nt->[0][0]){
+        next;
+      }
+      else{
+               my @junk=split $name_s,$ret_nt->[0][0];
+               my @junk2=split '\/',$junk[1];
+               my $dir=$castorPrefix."/$name";
+               for my $i (0...$#junk2-1) {
+                $dir=$dir."/$junk2[$i]";
+               }
+               my $sys="/usr/local/bin/rfmkdir -p $dir";
+               my $i=system($sys);
+               if($i){
+                if($verbose){
+                 print " Unable to $sys $i \n";
+                }
+                next;
+               }
+          }
+      $runs++;
+      foreach my $ntuple (@{$ret_nt}){
+         if($ntuple->[0]=~/^#/){
+          next;
+         }
+         my @junk=split $name_s,$ntuple->[0];
+         my $castor=$castorPrefix."/$name$junk[1]";
+         my @junk2=split /\//,$ntuple->[0];
+         my $sys=$rfcp.$ntuple->[0]." $castor";
+         my $i=system($sys);
+         if($i){
+          $suc=0;
+          if($verbose){
+            print " $sys failed \n";
+          }
+          last;
+         }
+      }
+      if(!$suc){
+       if($verbose){
+          print " Run $run->[0]  failed \n";
+       }
+       $bad_runs++;
+      }
+      else{
+#
+# run successfully copied
+# 
+
+              if($update){
+              foreach my $ntuple (@{$ret_nt}){
+                my @junk=split $name_s,$ntuple->[0];
+                my $castor=$castorPrefix."/$name$junk[1]";
+                my $tms=time(); 
+                $sql="update ntuples set castortime=$timenow, timestamp=$tms where path='$ntuple->[0]'";
+                $self->{sqlserver}->Update($sql);
+              }
+               my $res=$self->{sqlserver}->Commit();
+               if(!$res){
+                 if($verbose){
+                   print " Commit failed for run $run->[0] \n";
+                 }
+               }
+               if($verbose){
+                 print " Run $run->[0]  processed \n";
+               }
+              }
+        } 
+    }
+    print "Total Of $runs Selected.  Total Of $bad_runs  Failed \n";
+#
+# now optionally compare castorfiles with data
+#
+   if($cmp){
+      $self->CheckFS(1);
+      $sql="select path from ntuples where   path like '%$dir%' and castortime>0 and path not like '/castor%'";
+      my $ret_nt =$self->{sqlserver}->Query($sql);
+       foreach my $ntuple (@{$ret_nt}){
+         if($ntuple->[0]=~/^#/){
+          next;
+         }
+         my @j1=split '/',$ntuple->[0];
+         $sql="select isonline from filesystems where disk='/$j1[1]'";
+         my $rtn=$self->{sqlserver}->Query($sql);
+         if(defined  $rtn and $rtn->[0][0]==1){
+          my @junk=split $name_s,$ntuple->[0];
+          my $castor=$castorPrefix."/$name$junk[1]";
+          my $ctmp="/tmp/castor.tmp";
+          my $ltmp="/tmp/local.tmp";
+          my $sys="nsls -l $castor 1> $ctmp 2>\&1";
+          system($sys);
+          $sys="ls -l $ntuple->[0] 1> $ltmp 2>\&1";
+          system($sys);
+                 open(FILE,"<$ctmp") or die "Unable to open $ctmp \n";
+                 my $line_c = <FILE>;
+                 close FILE;
+               open(FILE,"<$ltmp") or die "Unable to open $ltmp \n";
+                 my $line_l = <FILE>;
+                 close FILE;
+                 unlink $ctmp;
+                 unlink $ltmp;
+                 my @size_l= split ' ',$line_l;
+                 my @size_c= split ' ',$line_c;
+                 if($size_l[4] != $size_c[4]){
+                  print "Problems with $ntuple->[0] castorsize: $size_c[4] localsize: $size_l[4] \n"
+                 }
+
+         }
+      }
+   }
+
+}
+
+sub UploadToDisks{
 }
 
 sub RemoveFromDisks{
@@ -13810,7 +13979,6 @@ sub RemoveFromDisks{
    print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
    return 0;
   }
-   my $timenow = time();
    my $runs=0;
    my $bad_runs=0;
    my $sql ="select name,did from productionset";
@@ -13836,6 +14004,7 @@ sub RemoveFromDisks{
     $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '%$dir%'";
    $ret =$self->{sqlserver}->Query($sql);
     foreach my $run (@{$ret}){
+       my $timenow = time();
     if($run2p ne 0 and $run2p ne $run->[0]){
       next;
     }
