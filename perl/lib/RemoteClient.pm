@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.374 2005/11/15 19:21:19 choutko Exp $
+# $Id: RemoteClient.pm,v 1.375 2005/11/15 20:25:04 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13671,7 +13671,7 @@ sub CheckFS{
                if($stat[7]==0){
                 $sql="update filesystems set isonline=0 where disk='$fs->[0]'";
                 if(not defined $updatedb or $updatedb==0){
-                 print " $fs->[1]:$fs->[0] is not online \n";
+#                 print " $fs->[1]:$fs->[0] is not online \n";
              }
                 else{
                 $self->{sqlserver}->Update($sql);
@@ -13714,7 +13714,7 @@ sub CheckFS{
 offline:
               $sql="update filesystems set isonline=0 where disk='$fs->[0]'";
               if(not defined $updatedb or $updatedb==0){
-                print " $fs->[1]:$fs->[0] is not online \n";
+#                print " $fs->[1]:$fs->[0] is not online \n";
               }
              }
              if(defined $updatedb and $updatedb>0 ){
@@ -13774,12 +13774,12 @@ sub UploadToCastor{
 #  $update    do sql/file rm  if 1
 #  $cmp       compare castor sizes with local if 1 
 #  $run2p   only process run $run2p if not 0
-#
+#  $mb      max upload in mbytes
 #  output par:
 #   1 if ok  0 otherwise
 #
 
-    my ($self,$dir,$verbose,$update,$cmp, $run2p)= @_;
+    my ($self,$dir,$verbose,$update,$cmp, $run2p,$mb)= @_;
 
   my $castorPrefix = '/castor/cern.ch/ams/MC';
 
@@ -13815,12 +13815,16 @@ sub UploadToCastor{
 
     $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '%$dir%'";
    $ret =$self->{sqlserver}->Query($sql);
+   my $uplsize=0;
    foreach my $run (@{$ret}){
     my $timenow = time();
     if($run2p ne 0 and $run2p ne $run->[0]){
       next;
     }
-        $sql="select path,crc from ntuples where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%'";
+    if($uplsize>$mb){
+      last;
+    }
+        $sql="select path,sizemb from ntuples where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%'";
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
       if(not defined $ret_nt->[0][0]){
@@ -13859,6 +13863,7 @@ sub UploadToCastor{
           }
           last;
          }
+         $uplsize+=$ntuple->[1];
       }
       if(!$suc){
        if($verbose){
@@ -13886,7 +13891,7 @@ sub UploadToCastor{
                  }
                }
                if($verbose){
-                 print " Run $run->[0]  processed \n";
+                 print " Run $run->[0]  processed. Total of $uplsize mbytes uploaded\n";
                }
               }
         } 

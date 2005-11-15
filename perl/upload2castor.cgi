@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: upload2castor.cgi,v 1.3 2005/11/15 19:21:17 choutko Exp $
+#  $Id: upload2castor.cgi,v 1.4 2005/11/15 20:23:27 ams Exp $
 use strict;
 
 
@@ -20,7 +20,8 @@ my $v=1;
 my $upd=1;
 my $run2p=0;
 my $cmp=1;
-my $dir="AMS01/2004B";
+my $dir="AMS02/2005A";
+my $mb=100000;
  my $HelpTxt = "
      RemoteClient::UploadToCastor
 #
@@ -33,7 +34,7 @@ my $dir="AMS01/2004B";
 #  -u     do sql  if 1
 #  -c       compare castor sizes with local if 1 
 #  -r   only process run $run2p if not 0
-#
+#  -mxxx process up to xxx   mbytes
 #  output par:
 #   1 if ok  0 otherwise
 #
@@ -45,8 +46,11 @@ my $dir="AMS01/2004B";
     if($chop =~/^-d/){
       $dir=unpack("x2 A*",$chop);
     }
+       if($chop =~/^-m/){
+      $mb=unpack("x2 A*",$chop);
+    }
     if($chop =~/^-c/){
-      $cmp=unpack("x2 A*",$chop);
+      $cmp=1;
     }
 
     if ($chop =~/^-r/) {
@@ -65,7 +69,7 @@ my $dir="AMS01/2004B";
     }
  }
 
-$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p);
+$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb);
 
 
 
