@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.372 2005/11/15 18:04:57 ams Exp $
+# $Id: RemoteClient.pm,v 1.373 2005/11/15 19:18:34 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13835,12 +13835,12 @@ sub UploadToCastor{
                }
                my $sys="/usr/local/bin/rfmkdir -p $dir";
                my $i=system($sys);
-               if($i){
-                if($verbose){
-                 print " Unable to $sys $i \n";
-                }
-                next;
-               }
+#               if($i){
+#                if($verbose){
+#                 print " Unable to $sys $i \n";
+#                }
+#                next;
+#               }
           }
       $runs++;
       foreach my $ntuple (@{$ret_nt}){
@@ -13926,7 +13926,7 @@ sub UploadToCastor{
                  my @size_l= split ' ',$line_l;
                  my @size_c= split ' ',$line_c;
                  if($size_l[4] != $size_c[4]){
-                  print "Problems with $ntuple->[0] castorsize: $size_c[4] localsize: $size_l[4] \n"
+                  print "Problems with $ntuple->[0] castorsize: $size_c[4] localsize: $size_l[4] \n";
                  }
 
          }

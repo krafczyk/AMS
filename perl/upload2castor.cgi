@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: upload2castor.cgi,v 1.1 2005/11/15 17:29:37 ams Exp $
+#  $Id: upload2castor.cgi,v 1.2 2005/11/15 19:18:26 ams Exp $
 use strict;
 
 
@@ -18,7 +18,7 @@ my $html=new RemoteClient($nocgi);
 my $ok=$html->ConnectDB();
 my $v=1;
 my $upd=1;
-my $run2p=1387;
+my $run2p=0;
 my $cmp=1;
 my $dir="AMS01/2004B";
  my $HelpTxt = "
