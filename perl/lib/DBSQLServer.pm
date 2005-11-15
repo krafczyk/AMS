@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.78 2005/10/27 16:24:03 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.79 2005/11/15 09:28:50 ams Exp $
 
 #
 #
@@ -11,6 +11,7 @@
 #                   -Fdbfile   - database name or databasefile
 #                                (can also include host name)
 #                                for mysql : AMSMC02:pcamsf0
+#                   -zero      - optional parameter to not autocommit
 # example :
 #          mySQL
 #           ./dbsqlserver.perl -Iforce -Dmysql -F:AMSMC02:pcamsf0
@@ -53,7 +54,7 @@ use Time::localtime;
 my $MCCitesMailsFile = "../doc/mc.cites.mails"; # file with cites and mails definitions
 my $MCFilesystems="../doc/mc.filesystems";      # file with filesystems definitions
 
-@DBSQLServer::EXPORT= qw(new Connect QueryAll Query Update set_oracle_env);
+@DBSQLServer::EXPORT= qw(new Connect QueryAll Query Update Commit set_oracle_env);
 my %fields=(
      start=>undef,
      cid=>undef,
@@ -79,13 +80,16 @@ sub new{
     };
 $self->{start}=time();
 $self->{cid}=new CID("DBSQLServer");    
-
+$self->{one}=1;
 foreach my $chop  (@ARGV){
     if($chop =~/^-F/){
      $self->{dbfile}=unpack("x2 A*",$chop);
     }
     if($chop =~/^-D/){
      $self->{dbdriver}=unpack("x2 A*",$chop);
+    }
+    if($chop=~/^-zero/){
+     $self->{one}=0;
     }
     if($chop =~/^-I/){
         $self->{dbinit}=unpack("x2 A*",$chop);
@@ -140,11 +144,11 @@ sub Connect{
 #    print "init level...$self->{dbinit}\n";
 #-
     if($self->{dbinit}){
-    $self->{dbhandler}=DBI->connect('DBI:'.$self->{dbdriver}.$self->{dbfile},$user,$pwd,{PrintError => 0, AutoCommit => 1}) or die "Cannot connect: ".$DBI::errstr;
+    $self->{dbhandler}=DBI->connect('DBI:'.$self->{dbdriver}.$self->{dbfile},$user,$pwd,{PrintError => 0, AutoCommit => $self->{one}}) or die "Cannot connect: ".$DBI::errstr;
       $self->Create();
     }
     else{
-    $self->{dbhandler}=DBI->connect('DBI:'.$self->{dbdriver}.$self->{dbfile},$user,$pwd,{PrintError => 1, AutoCommit => 1}) or die "Cannot connect: ".$DBI::errstr;
+    $self->{dbhandler}=DBI->connect('DBI:'.$self->{dbdriver}.$self->{dbfile},$user,$pwd,{PrintError => 1, AutoCommit => $self->{one}}) or die "Cannot connect: ".$DBI::errstr;
         return 1;
     }
 }
@@ -857,8 +861,26 @@ sub Update{
     my $query=shift;
     my $dbh=$self->{dbhandler};
     $dbh->do($query) or die "Cannot do query : $query ".$dbh->errstr();
+    return 1;
 }
-
+sub Commit{
+     my $self=shift;
+     my $success=shift;
+   if($self->{one}){
+     return 1;
+   }
+   else{
+     if(not defined $success){
+       $success=1;
+      }
+        my $dbh=$self->{dbhandler};
+        my $result= ($success ? $dbh->commit : $dbh->rollback);
+          unless ($result) { 
+            die "Couldn't finish transaction: " . $dbh->errstr; 
+          }
+          return $success;  
+    }
+} 
 
 # this function sets up the necessary environement variables
 # to be able to connect to Oracle

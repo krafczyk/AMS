@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.369 2005/11/11 17:39:26 choutko Exp $
+# $Id: RemoteClient.pm,v 1.370 2005/11/15 09:28:50 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -114,7 +114,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks);
 
 # debugging
 my $benchmarking = 0;
@@ -12553,7 +12553,7 @@ sub deleteDST {
 
      ./deleteDST.cgi -v -u -d:/s0dah1/MC/AMS02/2004A/C/c.pl1.12005366
 ";
-
+   return;
   my $self         = shift;
   my $topdir       = undef;
   my $updateDB     = 0;
@@ -12665,7 +12665,7 @@ sub prepareCastorCopyScript {
 
      ./preparecastorscript.cgi -v -p:/s0dah1/MC/AMS02/2004A/C/c.pl1.12005366 -d:/f0dah1/MC/AMS02/2004 -o:/tmp/t.t
 ";
-
+  return;
   my $self         = shift;
   my $sql          = undef;
   my $pattern      = undef;
@@ -12932,7 +12932,7 @@ sub castorPath {
 
      ./castorPath.cgi -v -d:/d0dah1/MC/AMS02/2004
 ";
-
+  return;
   my $self         = shift;
   my $sql          = undef;
   my $nFiles          = 0;   # files matched DST path
@@ -13764,3 +13764,175 @@ my $self=shift;
              return $lupdate;
 }
 
+
+
+sub uploadToDisks{
+}
+
+sub RemoveFromDisks{
+#
+# check castor files compare them with local ones
+# update ntuple table
+# remove files from disks disks
+# 
+# input par:
+#  $dir:   path to local files like /disk/MC/AMS02/2005A/dir
+#                                   /disk /MC  /dir are optional ones
+#  $verbose   verbose if 1 
+#  $update    do sql/file rm  if 1
+#  $irm       rm -i      if 1
+#  $tmp  path to temporarily storage castorfiles
+#  $run2p   only process run $run2p if not 0
+#  output par:
+#   1 if ok  0 otherwise
+#
+    my ($self,$dir,$verbose,$update,$irm, $tmp,$run2p)= @_;
+    if(system("mkdir -p $tmp;touch $tmp/qq")){
+      if($verbose){
+        print " Unable to write $tmp \n "
+      }
+      return 0;
+    } 
+    if($irm){
+        $irm="rm -i ";
+    }
+    else{
+        $irm="rm ";
+    }
+
+  my $castorPrefix = '/castor/cern.ch/ams/MC';
+  
+  my $rfcp="/usr/local/bin/rfcp ";    
+
+  my $whoami = getlogin();
+  if ($whoami =~ 'ams' ) {
+  } else {
+   print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
+   return 0;
+  }
+   my $timenow = time();
+   my $runs=0;
+   my $bad_runs=0;
+   my $sql ="select name,did from productionset";
+   my $ret =$self->{sqlserver}->Query($sql);
+    my $did=-1;
+    my $name="";
+   foreach my $ds (@{$ret}){
+    if($dir=~/$ds->[0]/){
+        $did=$ds->[1];
+        $name=$ds->[0];
+        last;
+    }
+   } 
+    my $name_s=$name;
+    $name_s=~s/\//\\\//g;
+    if($did<0){
+        if($verbose){
+            print "No dasets found for $dir \n";
+        }
+        return 0;
+    }
+    
+    $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '%$dir%'";
+   $ret =$self->{sqlserver}->Query($sql);
+    foreach my $run (@{$ret}){
+    if($run2p ne 0 and $run2p ne $run->[0]){
+      next;
+    }
+        $sql="select path,crc from ntuples where  run=$run->[0] and path like '%$dir%' and castortime>0 and path not like '/castor%'";
+      my $ret_nt =$self->{sqlserver}->Query($sql);
+      my $suc=1;
+      if(not defined $ret_nt->[0][0]){
+        next;
+      }
+      $runs++;
+      my $sys="$irm $tmp/*";
+      my $i=system($sys);
+      foreach my $ntuple (@{$ret_nt}){
+         if($ntuple->[0]=~/^#/){
+          next;
+         }
+         my @junk=split $name_s,$ntuple->[0];
+         my $castor=$castorPrefix."/$name$junk[1]";
+         my @junk2=split /\//,$ntuple->[0];
+         $sys=$rfcp.$castor." $tmp";
+         $i=system($sys);
+         if($i){
+          $suc=0;
+          if($verbose){
+            print " $sys failed \n";
+          }
+          last;     
+         }
+         else{
+          my $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $tmp/$junk2[$#junk2]  $ntuple->[1]";
+          my $rstatus   = system($crccmd);
+          $rstatus=($rstatus>>8);
+          if($rstatus!=1){
+           if($verbose){
+              print "$castor crc error:  $rstatus \n";
+           }  
+           $suc=0;
+           last;
+          }
+         }
+      }
+      if(!$suc){
+       if($verbose){
+          print " Run $run->[0]  failed \n";
+       }
+       $bad_runs++;
+      }
+      else{
+#
+# run successfully copied
+# 
+              
+              if($update){
+               $sql="insert into ntuples_deleted select * from ntuples where ntuples.run=$run->[0]";
+               $self->{sqlserver}->Update($sql);
+               $sql="update ntuples_deleted set timestamp=$timenow where run=$run->[0]";
+               $self->{sqlserver}->Update($sql);
+               foreach my $ntuple (@{$ret_nt}){
+                my @junk=split $name_s,$ntuple->[0];
+                my $castor=$castorPrefix."/$name$junk[1]";
+                $sql="update ntuples set path='$castor', timestamp=$timenow where path='$ntuple->[0]'";
+                $self->{sqlserver}->Update($sql);
+                $sys=$irm." $ntuple->[0]";
+                if($ntuple->[0]=~/^#/){
+                 $sys="sleep 1";
+                 my $newp=$ntuple->[0];
+                 $newp=~s/^# //;
+                 $sql="update ntuples_deleted set path='$newp' where path='$ntuple->[0]'";
+ 
+                }
+                $i=system($sys);
+                if(!$i){
+                  $self->{sqlserver}->Update($sql);
+                }
+                else{
+                 if($verbose){
+                  print " Unable to $sys \n";
+                 }
+                 $bad_runs++;
+                 last;
+                }
+
+               }
+               my $res=$self->{sqlserver}->Commit();
+               if(!$res){
+                 if($verbose){
+                   print " Commit failed for run $run->[0] \n";
+                 }
+               }
+              }
+      if($verbose){
+          print " Run $run->[0]  processed \n";
+       }
+     }
+    }
+    my $sys="$irm $tmp/*";
+    system($sys);
+    print "Total Of $runs Selected.  Total Of $bad_runs  Failed \n";
+
+}
