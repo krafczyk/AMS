@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.376 2005/11/15 22:13:59 ams Exp $
+# $Id: RemoteClient.pm,v 1.377 2005/11/15 22:21:31 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13941,6 +13941,11 @@ sub UploadToCastor{
 }
 
 sub UploadToDisks{
+#
+#  Copy castor files to disks
+#  Updates catalogs
+# 
+
 }
 
 sub RemoveFromDisks{
