@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.373 2005/11/15 19:18:34 ams Exp $
+# $Id: RemoteClient.pm,v 1.374 2005/11/15 19:21:19 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3128,10 +3128,10 @@ CheckCite:            if (defined $q->param("QCite")) {
           foreach my $nt (@{$r1}) {
            my $path=trimblanks($nt->[0]);
            if ($path =~ m/castor/ and $rootfileaccess=~/^NFS/) {
-#           skip it, file has only archived copy only
+#           skip it, file has only archived copy 
            }
            elsif($rootfileaccess eq "NFSONLY" and $nt->[7]>0){
-#           skip it, file has only archived copy only
+#           skip it, file has  archived copy 
            } elsif($rootfileaccess=~/^NFS/ or $nt->[7] > 0){
             my @junk = split '/',$path;
             my $tdir ="";

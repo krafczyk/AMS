@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: upload2castor.cgi,v 1.2 2005/11/15 19:18:26 ams Exp $
+#  $Id: upload2castor.cgi,v 1.3 2005/11/15 19:21:17 choutko Exp $
 use strict;
 
 
@@ -61,7 +61,7 @@ my $dir="AMS01/2004B";
 
     if ($chop =~/^-h/) {
       print "$HelpTxt \n";
-      return 1;
+      exit();
     }
  }
 
