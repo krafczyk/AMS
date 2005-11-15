@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.371 2005/11/15 17:29:24 ams Exp $
+# $Id: RemoteClient.pm,v 1.372 2005/11/15 18:04:57 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13786,7 +13786,7 @@ sub UploadToCastor{
   my $rfcp="/usr/local/bin/rfcp ";
 
   my $whoami = getlogin();
-  if ($whoami =~ 'ams' ) {
+  if ($whoami =~ 'casadmva' ) {
   } else {
    print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
    return 0;
