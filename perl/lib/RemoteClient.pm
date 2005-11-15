@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.375 2005/11/15 20:25:04 ams Exp $
+# $Id: RemoteClient.pm,v 1.376 2005/11/15 22:13:59 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -114,7 +114,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks UploadToCastor);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks UploadToCastor GroupRuns);
 
 # debugging
 my $benchmarking = 0;
@@ -14109,4 +14109,103 @@ sub RemoveFromDisks{
     system($sys);
     print "Total Of $runs Selected.  Total Of $bad_runs  Failed \n";
 
+}
+sub GroupRuns{
+#
+# Ensures all ntuples from single run reside in the same directory
+#
+#  input parameters
+#  $verbose  
+#  $update  do sql/mv
+#  $run2p   update only $run2p if not 0 
+#
+#
+    my ($self,$verbose,$update,$run2p)= @_;
+    my $sql= "select path,sizemb,run from ntuples where path not like '/castor%' and castortime>0 order by run";
+    my $ret_nt=$self->{sqlserver}->Query($sql);
+    my $runo=-1;
+    my @path=();
+     my @disk=();
+      my $tots=0;
+    foreach my $ntuple (@{$ret_nt}){
+     if($runo ne $ntuple->[2]){
+#     new run 
+      if($#path>0){
+       if($verbose){
+        print "found splitted run $runo \n";
+       }
+       my $ind=-1;
+       my $maxa=$tots+1;
+       for my $i (0...$#disk){
+         $sql="select available from filesystems where disk='$disk[$i]' and isonline=1";
+         my $ret_fs=$self->{sqlserver}->Query($sql);
+         if(not defined $ret_fs->[0][0]){
+          if($verbose){
+           print "disk $disk[$i] is offline \n";
+          }
+           $ind=-1;
+           last;
+         }
+     
+         if(defined $ret_fs->[0][0] and $ret_fs->[0][0]>$maxa){
+          $maxa=$ret_fs->[0][0];
+          $ind=$i;
+         }
+       }
+       if($ind>=0){
+        my $pat=$path[$ind];
+        $pat=~s/\//\\\//g;
+        $sql="select path from ntuples where run=$runo";
+        my $ret=$self->{sqlserver}->Query($sql);
+        foreach my $file (@{$ret}){
+         if($file->[0]=~/$pat/){
+         }
+         else{
+          my @junk=split '\/',$file->[0];
+          my $newfile=$path[$ind]."/$junk[$#junk]";
+          my $sys="mv $file->[0] $newfile";
+           if($update){
+            my $i=system($sys);
+            if(!$i){
+             $sql="update ntuples set path='$newfile' where path='$file->[0]'";
+             $self->{sqlserver}->Update($sql);
+            }
+            elsif($verbose){
+             print " Unable to $sys \n";
+            }
+           }
+
+         }
+        }
+       }
+       elsif($verbose){
+         print " Unable to move run $runo because disk space is too low $maxa \n";
+       }
+      } 
+      $#path=-1;
+      $#disk=-1;
+      $tots=0;
+     }
+     if($run2p ne 0 and $ntuple->[2] ne $run2p){
+      next;
+     }
+     my @junk=split '\/',$ntuple->[0];
+     my $dir="";
+     for my $i (1...$#junk-1){
+      $dir=$dir."/$junk[$i]";
+     }
+      my $found=0;
+     foreach my $p (@path){
+      if($dir eq $p){
+        $found=1;
+        last;
+       }
+     }
+     if(!$found){
+      push @path,$dir;
+      push @disk,"/$junk[1]";
+      $tots+=$ntuple->[1];
+     }
+     $runo=$ntuple->[2];
+   } 
 }
