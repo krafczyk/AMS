@@ -1,11 +1,8 @@
 #!/usr/bin/perl -w
 use Gtk;
 use strict;
-
-
+use lib qw(/var/www/cgi-bin/mon); 
 use lib::RemoteClient;
-
-
 my $debug="-d";
 #unshift @ARGV, $debug;
 

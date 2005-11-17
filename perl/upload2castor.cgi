@@ -1,11 +1,8 @@
 #!/usr/bin/perl -w
-#  $Id: upload2castor.cgi,v 1.4 2005/11/15 20:23:27 ams Exp $
+#  $Id: upload2castor.cgi,v 1.5 2005/11/17 14:51:24 choutko Exp $
 use strict;
-
-
+use lib qw(/var/www/cgi-bin/mon); 
 use lib::RemoteClient;
-
-
 my $debug="-d";
 unshift @ARGV, "-DOracle:";
 unshift @ARGV, "-Famsdb";
