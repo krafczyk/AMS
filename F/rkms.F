@@ -1,4 +1,4 @@
-*  $Id: rkms.F,v 1.3 2005/09/22 09:09:15 choutko Exp $
+*  $Id: rkms.F,v 1.4 2005/11/17 14:29:32 choutko Exp $
 *--------1---------2---------3---------4---------5---------6---------7--
       subroutine rkms_rig(npo,npl,xyz,dxyz,ipa,Rini ,Out)
 *---------------------------------------------------------------------
@@ -110,7 +110,7 @@ c      real     FunMi !!! Required by STUPID PAW, but doesn't like it !!!????
       integer ipa,iflag
       real x(npo),y(npo),z(npo),dx(npo),dy(npo)
       integer lun8
-      data    lun8/66/
+      data    lun8/67/
 *---------------------------------------------
 #include "rkms.h"
 c#include "geant321/iounit.inc"
@@ -130,7 +130,7 @@ c there is no type definition (integer ...) in  iounit.inc
         first = .false.
         open(unit=lun8,form='formatted',file='/dev/null',
 c        open(unit=lunerr,form='formatted',file='/dev/null',
-     +  status='unknown',err=100)
+     +  status='unknown',shared,err=100)
  100    continue
         Call MNINIT(5,lun8,lun8) ! Read, Write, Save
         na = 1             ! # of arguments
@@ -1041,8 +1041,11 @@ c      cfit = utcfit(z,y,w1,min(npo,4),sgn,Rad,Rx,Ry,Chi2)   ! CIRCLE fit
 *===========================================================================
 
 
-* $Id: rkms.F,v 1.3 2005/09/22 09:09:15 choutko Exp $
+* $Id: rkms.F,v 1.4 2005/11/17 14:29:32 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.4  2005/11/17 14:29:32  choutko
+* correct /dev/null statement
+*
 * Revision 1.3  2005/09/22 09:09:15  choutko
 * :
 *
@@ -1193,8 +1196,11 @@ C          write(6,*) 'Problems in the UTCFIT' ! Ch
         RETURN
         END
 
-* $Id: rkms.F,v 1.3 2005/09/22 09:09:15 choutko Exp $
+* $Id: rkms.F,v 1.4 2005/11/17 14:29:32 choutko Exp $
 * $Log: rkms.F,v $
+* Revision 1.4  2005/11/17 14:29:32  choutko
+* correct /dev/null statement
+*
 * Revision 1.3  2005/09/22 09:09:15  choutko
 * :
 *
