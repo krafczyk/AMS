@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.126 2005/11/03 15:59:49 choutko Exp $
+//  $Id: server.C,v 1.127 2005/11/17 14:29:15 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3551,7 +3551,12 @@ integer Server_impl::Kill(const DPS::Client::ActiveClient & ac, int signal, bool
      submit+=".log ";
     }
     cout << "  kill: " <<submit<<endl;
-    return systemC(submit);
+    int i=systemC(submit);
+    if(signal != SIGKILL and !i){
+       system("sleep 10");
+     }
+
+    return i;
 }
 
 
@@ -5351,7 +5356,7 @@ AString fnam;
  char *logdir=getenv("AMSDataDir");
  if(!logdir){
    cerr<<":AMSServerI::systemC-E-AMSDataDirNotDefined"<<endl;
-   return;
+   return 1;
  }
  fnam=logdir;
  fnam+="/prod.log/systemC";
