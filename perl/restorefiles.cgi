@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: restorefiles.cgi,v 1.1 2005/11/18 10:46:23 choutko Exp $
+#  $Id: restorefiles.cgi,v 1.2 2005/11/18 15:32:39 ams Exp $
 use Gtk;
 use strict;
 
@@ -20,7 +20,7 @@ my $ok=$html->ConnectDB();
 my $v=1;
 my $upd=0;
 my $run2p=0;
-my $dir="AMS02/2004A";
+my $dir="MC/AMS02/2004A";
  my $HelpTxt = "
      RemoteClient::UploadToDisks
 #

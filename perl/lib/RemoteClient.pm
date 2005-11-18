@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.378 2005/11/18 10:46:27 choutko Exp $
+# $Id: RemoteClient.pm,v 1.379 2005/11/18 15:32:41 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13949,7 +13949,7 @@ sub UploadToDisks{
 #  Copy castor files to disks
 #  Updates catalogs
 #
-# input par: #  $dir:   path to castor files like AMS02/2005A/dir
+# input par: #  $dir:   path to castor files like MC/AMS02/2005A/dir
 #                                     /dir are optional ones
 #  $verbose   verbose if 1
 #  $update    do sql/file rm  if 1
@@ -13960,11 +13960,11 @@ sub UploadToDisks{
 # 
     my ($self,$dir,$verbose,$update,$run2p)= @_;
                                                                                 
-  my $castorPrefix = '/castor/cern.ch/ams/MC';
+  my $castorPrefix = '/castor/cern.ch/ams';
                                                                                 
   my $rfcp="/usr/local/bin/rfcp ";
   my $whoami = getlogin();
-  if ($whoami =~ 'ams' ) {
+  if ($whoami =~ 'ams' or $whoami =~'casadmva') {
   } elsif(defined $whoami) {
    print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
    return 0;
@@ -13990,7 +13990,7 @@ sub UploadToDisks{
         }
         return 0;
     }
-    $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '$castorPrefix/$dir%'";
+    $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '$castorPrefix/%$dir%'";
    $ret =$self->{sqlserver}->Query($sql);
     foreach my $run (@{$ret}){
        my $timenow = time();
@@ -14012,11 +14012,27 @@ sub UploadToDisks{
        $sql="select path,crc from ntuples where  run=$run->[0] and path like '$castorPrefix/$dir%' and castortime>0 "; 
        $ret_nt =$self->{sqlserver}->Query($sql);
        my $disk=undef;
+        my $dir=undef;
        if(defined $ret_nt->[0][0]){
-        $disk=CheckFS(1);
+        $disk=$self->CheckFS(1,300);
         if(not defined $disk){
          if($verbose){
            print "  No FileSystem Available, Exiting \n ";
+         }
+         last;
+        }
+         my $cp=$castorPrefix;
+        $cp=~s/\//\\\//g;
+        my @junk=split "$cp",$ret_nt->[0][0];
+        $dir=$disk;
+        my @j2=split '\/',$junk[1];
+        for my $i (1...$#j2-1){
+         $dir=$dir."/$j2[$i]";
+        }
+        my $i=system("mkdir -p $dir");
+        if($i){
+          if($verbose){
+           print "  FileSystem $dir is not writeable, Exiting \n ";
          }
          last;
         }
@@ -14024,8 +14040,8 @@ sub UploadToDisks{
        my @files=();
        $#files=-1;
        foreach my $ntuple (@{$ret_nt}){
-         my @junk=split $name_s,$ntuple->[0];
-         my $local=$disk."/$name$junk[1]";
+         my @junk=split '\/',$ntuple->[0];
+         my $local=$dir."/$junk[$#junk]";
          my $sys=$rfcp.$ntuple->[0]." $local";
          my $i=system($sys);
          push @files,$local; 
@@ -14063,9 +14079,9 @@ sub UploadToDisks{
 # run successfully copied
 #
               if($update){
-               foreach my $ntuple (@{$ret_nt}){
-                my @junk=split $name_s,$ntuple->[0];
-                my $local=$disk."/$name$junk[1]";
+       foreach my $ntuple (@{$ret_nt}){
+         my @junk=split '\/',$ntuple->[0];
+         my $local=$dir."/$junk[$#junk]";
                 $sql="update ntuples set path='$local', timestamp=$timenow where path='$ntuple->[0]'";
                 $self->{sqlserver}->Update($sql);
                }
