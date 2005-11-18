@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.377 2005/11/15 22:21:31 choutko Exp $
+# $Id: RemoteClient.pm,v 1.378 2005/11/18 10:46:27 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8842,7 +8842,7 @@ sub parseJournalFiles {
     }
     my $whoami = getlogin();
     if ($whoami =~ 'ams' ) {
-    } else {
+    } elsif(defined $whoami) {
       $self->amsprint("parseJournalFiles -ERROR- script cannot be run from account : $whoami",0);
       die "bye";
     }
@@ -11027,7 +11027,7 @@ sub getFilesProcessingFlag {
     my $starttime = 0;
     my $whoami = getlogin();
     if ($whoami =~ 'ams' || $whoami =~ 'choutko') {
-    } else {
+    } elsif(defined $whoami){
       $self->amsprint(" -ERROR- script cannot be run from account : $whoami",0);
       die "bye";
     }
@@ -11052,7 +11052,7 @@ sub setFilesProcessingFlag {
 
     my $whoami = getlogin();
     if ($whoami =~ 'ams' || $whoami =~ 'alexei') {
-    } else {
+    } elsif(defined $whoami) {
       $self->amsprint(" -ERROR- script cannot be run from account : $whoami",0);
       die "bye";
     }
@@ -11072,7 +11072,7 @@ sub resetFilesProcessingFlag {
 
     my $whoami = getlogin();
     if ($whoami =~ 'ams' || $whoami =~ 'alexei') {
-    } else {
+    } elsif(defined $whoami) {
       $self->amsprint("-ERROR- script cannot be run from account : $whoami",0);
       die "-ERROR- script cannot be run from account : $whoami. bye";
     }
@@ -12676,7 +12676,7 @@ sub prepareCastorCopyScript {
 
   my $whoami = getlogin();
   if ($whoami =~ 'casadmva' || $whoami =~ 'ams') {
-  } else {
+  } elsif(defined $whoami) {
    print  "restoreDST -ERROR- script cannot be run from account : $whoami \n";
    return 1;
   }
@@ -12798,7 +12798,7 @@ sub updateDSTPath {
 
   my $whoami = getlogin();
   if ($whoami =~ 'ams') {
-  } else {
+  } elsif(defined $whoami) {
    print  "restoreDST -ERROR- script cannot be run from account : $whoami \n";
    return 1;
   }
@@ -13642,6 +13642,7 @@ sub CheckFS{
 #          Full     :  if < 20 GB left
 #         
 #  isonline: 1/0 
+#  return disk with highest available and online=1
 #
            my $self=shift; 
            my $updatedb=shift;  
@@ -13649,11 +13650,10 @@ sub CheckFS{
            if(not defined $cachetime){
              $cachetime=60;
            }
-           my $sql="select disk from filesystems where isonline=1";
+           my $sql="select disk from filesystems where isonline=1 and status='Active' order by available desc";
            my $ret=$self->{sqlserver}->Query($sql);
-           
            if(time()-$cachetime < $self->dbfsupdate() and defined $ret->[0][0]){
-              return;
+              return $ret->[0][0];
             }
             $sql="select disk,host,status,allowed  from filesystems";
             $ret=$self->{sqlserver}->Query($sql);
@@ -13721,6 +13721,10 @@ offline:
                $self->{sqlserver}->Update($sql);
              }
             }
+          $sql="select disk from filesystems where isonline=1 and status='Active' order by available desc";
+           $ret=$self->{sqlserver}->Query($sql);
+           return $ret->[0][0];
+
 }
 
 sub dblupdate{
@@ -13787,7 +13791,7 @@ sub UploadToCastor{
 
   my $whoami = getlogin();
   if ($whoami =~ 'casadmva' ) {
-  } else {
+  } elsif(defined $whoami) {
    print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
    return 0;
   }
@@ -13930,8 +13934,8 @@ sub UploadToCastor{
                  unlink $ltmp;
                  my @size_l= split ' ',$line_l;
                  my @size_c= split ' ',$line_c;
-                 if($size_l[4] != $size_c[4]){
-                  print "Problems with $ntuple->[0] castorsize: $size_c[4] localsize: $size_l[4] \n";
+                 if((not $size_c[4] =~/^\d+$/) or (not $size_l[4] =~/^\d+$/) or $size_l[4] != $size_c[4]){
+                  print "Problems with $ntuple->[0] castorsize: $size_c[4] localsize: $size_l[4] $castor \n";
                  }
 
          }
@@ -13944,8 +13948,148 @@ sub UploadToDisks{
 #
 #  Copy castor files to disks
 #  Updates catalogs
+#
+# input par: #  $dir:   path to castor files like AMS02/2005A/dir
+#                                     /dir are optional ones
+#  $verbose   verbose if 1
+#  $update    do sql/file rm  if 1
+#  $run2p   only process run $run2p if not 0
+#  output par:
+#   1 if ok  0 otherwise
+#
 # 
-
+    my ($self,$dir,$verbose,$update,$run2p)= @_;
+                                                                                
+  my $castorPrefix = '/castor/cern.ch/ams/MC';
+                                                                                
+  my $rfcp="/usr/local/bin/rfcp ";
+  my $whoami = getlogin();
+  if ($whoami =~ 'ams' ) {
+  } elsif(defined $whoami) {
+   print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
+   return 0;
+  }
+   my $runs=0;
+   my $bad_runs=0;
+   my $sql ="select name,did from productionset";
+   my $ret =$self->{sqlserver}->Query($sql);
+    my $did=-1;
+    my $name="";
+   foreach my $ds (@{$ret}){
+    if($dir=~/$ds->[0]/){
+        $did=$ds->[1];
+        $name=$ds->[0];
+        last;
+    }
+   }
+    my $name_s=$name;
+    $name_s=~s/\//\\\//g;
+    if($did<0){
+        if($verbose){
+            print "No datasets found for $dir \n";
+        }
+        return 0;
+    }
+    $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '$castorPrefix/$dir%'";
+   $ret =$self->{sqlserver}->Query($sql);
+    foreach my $run (@{$ret}){
+       my $timenow = time();
+    if($run2p ne 0 and $run2p ne $run->[0]){
+      next;
+    }
+        $sql="select path,crc from ntuples where  run=$run->[0] and path like '%$dir%' and castortime>0 and path not like '/castor%'";
+      my $ret_nt =$self->{sqlserver}->Query($sql);
+      my $suc=1;
+      $runs++;
+      if(defined $ret_nt->[0][0]){
+       if($verbose){
+        print "  Run $run->[0] has non-castor ntuples, ignored \n";
+       }
+       $suc=0;
+       $bad_runs++;  
+       next;
+      }
+       $sql="select path,crc from ntuples where  run=$run->[0] and path like '$castorPrefix/$dir%' and castortime>0 "; 
+       $ret_nt =$self->{sqlserver}->Query($sql);
+       my $disk=undef;
+       if(defined $ret_nt->[0][0]){
+        $disk=CheckFS(1);
+        if(not defined $disk){
+         if($verbose){
+           print "  No FileSystem Available, Exiting \n ";
+         }
+         last;
+        }
+       }
+       my @files=();
+       $#files=-1;
+       foreach my $ntuple (@{$ret_nt}){
+         my @junk=split $name_s,$ntuple->[0];
+         my $local=$disk."/$name$junk[1]";
+         my $sys=$rfcp.$ntuple->[0]." $local";
+         my $i=system($sys);
+         push @files,$local; 
+         if($i){
+          $suc=0;
+          if($verbose){
+            print " $sys failed \n";
+          }
+          last;
+         }
+         else{
+          my $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $local  $ntuple->[1]";
+          my $rstatus   = system($crccmd);
+          $rstatus=($rstatus>>8);
+          if($rstatus!=1){
+           if($verbose){
+              print "$local crc error:  $rstatus \n";
+           }     
+           $suc=0;
+           last;
+          }
+         }
+      }
+      if(!$suc){
+       if($verbose){
+          print " Run $run->[0]  failed \n";
+       }
+       $bad_runs++;
+       foreach my $file (@files){
+        system("rm $file");
+       }
+      }
+      else{
+#
+# run successfully copied
+#
+              if($update){
+               foreach my $ntuple (@{$ret_nt}){
+                my @junk=split $name_s,$ntuple->[0];
+                my $local=$disk."/$name$junk[1]";
+                $sql="update ntuples set path='$local', timestamp=$timenow where path='$ntuple->[0]'";
+                $self->{sqlserver}->Update($sql);
+               }
+               my $res=$self->{sqlserver}->Commit();
+               if(!$res){
+                 if($verbose){
+                   print " Commit failed for run $run->[0] \n";                                 }
+                 $bad_runs++;
+                foreach my $file (@files){
+                 system("rm $file");
+                }
+               }
+               $#files=-1;
+              }
+              else{
+               foreach my $file (@files){ 
+                 system("rm $file");
+               }
+              } 
+              if($verbose){
+                print " Run $run->[0]  processed \n";
+              }
+          }
+       }
 }
 
 sub RemoveFromDisks{
@@ -13985,7 +14129,7 @@ sub RemoveFromDisks{
 
   my $whoami = getlogin();
   if ($whoami =~ 'ams' ) {
-  } else {
+  } elsif(defined $whoami) {
    print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
    return 0;
   }
@@ -14006,7 +14150,7 @@ sub RemoveFromDisks{
     $name_s=~s/\//\\\//g;
     if($did<0){
         if($verbose){
-            print "No dasets found for $dir \n";
+            print "No datasets found for $dir \n";
         }
         return 0;
     }
