@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.380 2005/11/21 14:20:44 ams Exp $
+# $Id: RemoteClient.pm,v 1.381 2005/11/21 14:21:28 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13932,7 +13932,7 @@ sub UploadToCastor{
           my $castor=$castorPrefix."/$name$junk[1]";
           my $ctmp="/tmp/castor.tmp";
           my $ltmp="/tmp/local.tmp";
-          my $sys="nsls -l $castor 1> $ctmp 2>\&1";
+          my $sys="/usr/local/bin/nsls -l $castor 1> $ctmp 2>\&1";
           system($sys);
           $sys="ls -l $ntuple->[0] 1> $ltmp 2>\&1";
           system($sys);
@@ -13947,7 +13947,7 @@ sub UploadToCastor{
                  my @size_l= split ' ',$line_l;
                  my @size_c= split ' ',$line_c;
                  if((not $size_c[4] =~/^\d+$/) or (not $size_l[4] =~/^\d+$/) or $size_l[4] != $size_c[4]){
-                  print "Problems with $ntuple->[0] castorsize: $size_c[4] localsize: $size_l[4] $castor \n";
+                  print "Problems with $ntuple->[0] castorsize: $size_c[4] localsize: $size_l[4] $castor $line_c $line_l \n";
                  }
 
          }

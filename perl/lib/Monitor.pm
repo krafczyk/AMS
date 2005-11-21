@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.98 2005/11/11 15:39:14 ams Exp $
+# $Id: Monitor.pm,v 1.99 2005/11/21 14:21:28 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -614,9 +614,13 @@ sub getdbok{
      my $tring=$hash->{Name};
      my @spar= split /\//,$tring;
      my $string;
-     if($spar[1]=~/^f/){
+     if($#spar<1){
+      warn "  problem with  ntuple $tring \n" ;
+      next;
+     }
+     elsif($spar[1]=~/^f/){
       $string="/".$spar[1];
-      warn "  $tring $hash->{TotalSpace}; \n"
+      warn "  $tring $hash->{TotalSpace} \n";
   }
      else{
       $string=$spar[0]."/".$spar[1];
