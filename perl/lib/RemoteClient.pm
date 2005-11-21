@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.379 2005/11/18 15:32:41 ams Exp $
+# $Id: RemoteClient.pm,v 1.380 2005/11/21 14:20:44 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -10285,7 +10285,19 @@ sub findJob {
     if (defined $ret->[0][0]) {
         $rstatus = $ret->[0][0];
     }
-
+    else{
+     $sql= "SELECT jid,mid FROM Jobs_deleted WHERE jid=$jid";
+      $ret = $self->{sqlserver}->Query($sql);
+        if (defined $ret->[0][0]) {
+         $rstatus = $ret->[0][0]; 
+         print "Job $jid   Restored from jobs_deleted \n"; 
+         $sql="insert into jobs select * from jobs_deleted where jobs_deleted.jid=$jid";
+         $self->{sqlserver}->Update($sql);
+         $sql="delete from jobs_deleted where jid=$jid";
+         $self->{sqlserver}->Update($sql);
+         $self->{sqlserver}->Commit();
+        }
+    }
     return $rstatus;
 }
 
