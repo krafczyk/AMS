@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.99 2005/11/21 14:21:28 choutko Exp $
+# $Id: Monitor.pm,v 1.100 2005/11/22 14:03:50 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2670,7 +2670,7 @@ sub DeleteValidatedDst{
       }
 
          if(!$rfound){
-
+                     print "deleting $Run $nc{Name}\n";
                      my $arsref;
                      my %cid=%{$ref->{cid}};
                      foreach $arsref (@{$ref->{arpref}}){
