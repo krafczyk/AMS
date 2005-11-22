@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.382 2005/11/22 10:58:36 ams Exp $
+# $Id: RemoteClient.pm,v 1.383 2005/11/22 12:38:27 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13651,7 +13651,7 @@ sub CheckFS{
 #  check  filesystems, update the tables accordingly if $updatedb is set
 #  status: Active  :  May be used 
 #          Reserved :  Set manually, may not be reseting
-#          Full     :  if < 20 GB left
+#          Full     :  if < 10 GB left
 #         
 #  isonline: 1/0 
 #  return disk with highest available and online=1
@@ -13711,7 +13711,7 @@ sub CheckFS{
                  if($fs->[2]=~'Reserved'){
                   $status='Reserved';
                  }
-                 elsif( $ava1<0 or $ava<20000){
+                 elsif( $ava1<0 or $ava<10000){
                   $status='Full';
                  }
                  if($ava1<$ava){
