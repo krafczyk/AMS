@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: removefiles.cgi,v 1.1 2005/11/15 09:28:49 ams Exp $
+#  $Id: removefiles.cgi,v 1.2 2005/11/22 10:58:32 ams Exp $
 use Gtk;
 use strict;
 
@@ -23,6 +23,7 @@ my $run2p=0;
 my $tmp="/tmp/castor";
 my $irm=0;
 my $dir="AMS02/2004A";
+my $notverify=0;
  my $HelpTxt = "
      RemoteClient::RemoveFromDisks
 #
@@ -61,6 +62,9 @@ my $dir="AMS02/2004A";
       if ($chop =~/^-i/) {
         $irm=1;
       }
+      if($chop =~/^-notverify/){
+        $notverify=1;
+      } 
 
     if ($chop =~/^-h/) {
       print "$HelpTxt \n";
@@ -68,7 +72,7 @@ my $dir="AMS02/2004A";
     }
  }
 
-$html->RemoveFromDisks($dir,$v,$upd,$irm,$tmp,$run2p);
+$html->RemoveFromDisks($dir,$v,$upd,$irm,$tmp,$run2p,$notverify);
 
 
 

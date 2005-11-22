@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.381 2005/11/21 14:21:28 choutko Exp $
+# $Id: RemoteClient.pm,v 1.382 2005/11/22 10:58:36 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14134,10 +14134,11 @@ sub RemoveFromDisks{
 #  $irm       rm -i      if 1
 #  $tmp  path to temporarily storage castorfiles
 #  $run2p   only process run $run2p if not 0
+#  $notverify do not verify cstor file exists (only to be used to remove useless data!!!!)
 #  output par:
 #   1 if ok  0 otherwise
 #
-    my ($self,$dir,$verbose,$update,$irm, $tmp,$run2p)= @_;
+    my ($self,$dir,$verbose,$update,$irm, $tmp,$run2p,$notverify)= @_;
     if(system("mkdir -p $tmp;touch $tmp/qq")){
       if($verbose){
         print " Unable to write $tmp \n "
@@ -14207,7 +14208,12 @@ sub RemoveFromDisks{
          my $castor=$castorPrefix."/$name$junk[1]";
          my @junk2=split /\//,$ntuple->[0];
          $sys=$rfcp.$castor." $tmp";
-         $i=system($sys);
+         if($notverify){
+          $i=0;
+         }
+         else{
+          $i=system($sys);
+         }
          if($i){
           $suc=0;
           if($verbose){
@@ -14219,6 +14225,9 @@ sub RemoveFromDisks{
           my $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $tmp/$junk2[$#junk2]  $ntuple->[1]";
           my $rstatus   = system($crccmd);
           $rstatus=($rstatus>>8);
+          if($notverify){
+           $rstatus=1;
+          }
           if($rstatus!=1){
            if($verbose){
               print "$castor crc error:  $rstatus \n";

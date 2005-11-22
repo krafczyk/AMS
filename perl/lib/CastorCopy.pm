@@ -464,6 +464,7 @@ sub doCopy {
 #   castor   castor
 #  ----------------
 #
+    return;
     my $status =>undef;
     my $cmd    =>undef;
     my $self = shift;
