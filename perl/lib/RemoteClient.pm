@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.383 2005/11/22 12:38:27 ams Exp $
+# $Id: RemoteClient.pm,v 1.384 2005/11/22 13:53:06 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5567,7 +5567,7 @@ anyagain:
          my $script="$self->{CCA}.$run.$template";
          my $root=$self->{CCT} eq "remote"?"$self->{UploadsDir}/$script":
          "$self->{AMSDataDir}/$self->{LocalClientsDir}/$script";
-         if($self->{q}->param("ProductionQuery") eq "Submit Request" and $self->{CCT} eq "local" ){
+         if($self->{q}->param("ProductionQuery") eq "Submit Request" and $self->{CCT} eq "local"   and ($Any<0 or $srunno eq $qrunno)){
 # add one more check here using save state
             my $time = time();
             $sql="update Cites set state=0, timestamp=$time  where name='$self->{CCA}'";
@@ -5576,6 +5576,9 @@ anyagain:
              my $param=$self->{q}->param("AdvancedQuery")?"AdvancedQuery":($self->{q}->param("ProductionQuery")?"ProductionQuery":"BasicQuery");
             $q->param($param,"Save");
             $q->param("FEM",$save);
+            if($Any>=0){
+             $q->param("QRun",$srunno); 
+            }
              save_state($q,$save);
              htmlTop();
             $self->htmlTemplateTable("Job Submit Script (click [Save] to continue)");
