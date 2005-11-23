@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.385 2005/11/22 14:03:50 ams Exp $
+# $Id: RemoteClient.pm,v 1.386 2005/11/23 16:05:32 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9195,7 +9195,16 @@ my $jobmips = -1;
     my $buf;
     read(FILE,$buf,16384);
     close FILE;
-
+#    check  journal filename run match
+     my @sp1=split '\, UID ',$buf;
+     if($#sp1>0){  
+      my @sp2=split ' \, ', $sp1[1]; 
+      if(not $inputfile=~/^$sp2[0]/){
+       print "Fatal - Run $sp1[1] does not match file  $inputfile\n";
+         system("mv $inputfile $inputfile.0");
+        return 0;
+      }
+     }   
     my @blocks =  split "-I-TimeStamp",$buf;
 
 
