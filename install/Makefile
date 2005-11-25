@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.29 2005/08/01 09:34:40 choutko Exp $
+#  $Id: Makefile,v 1.30 2005/11/25 15:31:04 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -186,7 +186,7 @@ COMMON_FILES += $(SCC)trigger102.C $(SCC)trigger302.C
 COMMON_FILES += $(SCC)daqevt.C $(SCC)daqs2block.C 
 
 #HBOOK interface
-COMMON_FILES += $(SCC)ntuple.C
+#COMMON_FILES += $(SCC)ntuple.C
 
 #Root Interface
 COMMON_FILES += $(SCC)root.C   $(SCC)rootdict.C   
@@ -198,7 +198,7 @@ COMMON_FILES += $(SCC)root.C   $(SCC)rootdict.C
 
 FILES= $(COMMON_FILES) $(SCC)gbatch.C  $(SCC)geant.C  	$(SCC)geant3.C      \
 		$(SCC)job.C     $(SCC)event.C   $(SFF)sbcomp.F  $(SFF)gskpho.F  \
-		$(SFF)flinit.F $(SFF)gbirk.F $(SFF)rndm.F $(SCC)timeid.C
+		$(SFF)flinit.F $(SFF)gbirk.F $(SFF)rndm.F $(SCC)timeid.C $(SCC)ntuple.C
 
 MYOBJS1:=$(FILES:$(SFF)%.F=$(BIN)%.o) 
 MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o) 
@@ -228,7 +228,7 @@ MYOBJS:=$(MYOBJS1:$(SCC)%.C=$(BIN)%.o)
 OBJECTSC:=$(MYOBJS:$(SFF)%.f=$(BIN)%.o) 
 
 OBJECTSC+= 	$(BIN)gbatch_c.o  $(BIN)geant_c.o  $(BIN)geant3_c.o $(BIN)job_c.o \
-		$(BIN)event_c.o   $(BIN)timeid_c.o
+		$(BIN)event_c.o   $(BIN)timeid_c.o $(BIN)ntuple_c.o
 
 
 #------------------------------------------------------------------------------
@@ -348,7 +348,8 @@ else
 	$(CXX) -c $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
 endif
 
-
+$(BIN)ntuple_c.o:   $(SCC)ntuple.C
+	$(CXX_ORBIT) -c $(CFLAGS) $(IDLFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple_c.o                                                                                  
 
 ifeq  "$(shell uname)"  "SunOS" 
 

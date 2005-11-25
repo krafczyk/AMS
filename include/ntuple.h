@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.95 2005/09/09 07:55:27 choumilo Exp $
+//  $Id: ntuple.h,v 1.96 2005/11/25 15:31:00 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -49,6 +49,7 @@ using namespace root;
 #include "antidbc02.h"
 #ifdef __WRITEROOT__
 #include "root.h"
+#include <TObjString.h>
 #endif
 
 class BetaNtuple02 {
@@ -735,6 +736,7 @@ protected:
   AMSEventR   _evroot02;
   static TTree* _tree;  
   static TFile* _rfile;
+  static TObjString _dc; 
 #endif
   virtual void _init(){};
 
@@ -744,6 +746,7 @@ public:
   ~AMSNtuple();
   AMSNtuple(integer lun, char* name);
   void init();
+  static TString & DataCards()  {return _dc.String();}
   uinteger getrun();
   void reset(int i=0);
   void write(integer addentry=0);

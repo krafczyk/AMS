@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.94 2005/10/31 15:09:54 choutko Exp $
+//  $Id: producer.C,v 1.95 2005/11/25 15:30:56 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 AMSProducer * AMSProducer::_Head=0;
+AString * AMSProducer::_dc=0; 
 AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)),_RemoteDST(false),_OnAir(false),_FreshMan(true),_Local(true),_Solo(false),_Transfer(false){
 DPS::Producer_var pnill=DPS::Producer::_nil();
 _plist.push_back(pnill);
@@ -110,12 +111,25 @@ FMessage("AMSProducer::AMSProducer-F-UnableToInitCorba",DPS::Client::CInAbort);
 
 void AMSProducer::sendid(){
     _pid.Mips=AMSCommonsI::getmips();
-    cout <<"  Mips:  "<<_pid.Mips;
+    cout <<"  Mips:  "<<_pid.Mips<<endl;
+    bool ok=SetDataCards();
 if (_Solo){
       _pid.Type=DPS::Producer::Standalone;
       _pid.StatusType=DPS::Producer::OneRunOnly;
       LMessage(AMSClient::print(_pid,"JobStarted"));
+      if(!ok ){
+       cerr<<" AMSProducer::sendid-F-UnableToSetDataCards "<<endl;
+       abort();
+      } 
+      else{
+             LMessage(AMSClient::print(_pid,"MetaDataAdded")); 
+      }
       return;
+}
+else if(!ok){
+        AString pc="AMSProducer::sendid-F-UnableToSetDataCards ";
+        pc+=(const char*)_pid.Interface;
+        FMessage((const char*)pc,DPS::Client::CInAbort);
 }
 
 
@@ -1685,3 +1699,63 @@ else{
 }
 return false;
 }
+
+bool AMSProducer::SetDataCards(){
+  _dc=new AString(" ");
+  char tmp[80];
+  char tmpp[80];
+  char tmpu[80];
+  sprintf(tmpp,"%d",_pid.ppid);
+  sprintf(tmp,"%d",_pid.pid);
+  sprintf(tmpu,"%d",_pid.uid);
+  AString fout="/tmp/";
+  fout+=tmp;
+  fout+=".dc"; 
+  AString cmd="ps -elf | grep ";
+  cmd+=tmpp;
+  cmd+=" 1>";
+  cmd+=(const char*)fout;
+  cmd+=" 2>&1 ";
+  AString dc="";
+  int i=system((const char*)cmd);
+  if(i==0){
+   ifstream fbin;
+   fbin.open((const char*)fout);
+   AString fscript="";
+    while(fbin.good() && !fbin.eof()){
+     fbin.ignore(1024,' ');
+     char tmpbuf[256];
+     fbin>>tmpbuf;
+     if(strstr(tmpbuf,tmpu) && strstr(tmpbuf,".job")){
+      //cout <<"   Founf!!!!!! "<<tmpbuf<<endl;
+      fscript+=tmpbuf;
+      break;
+     } 
+    }
+    fbin.close();
+    cmd="unlink ";
+    cmd+=(const char*)fout;
+    system((const char*)cmd);
+    ifstream f1;
+    f1.open((const char *)fscript);
+    if(f1){
+    char tmpbuf[1024];
+    while(f1.good() && !f1.eof()){ 
+     f1.getline(tmpbuf,1023);
+     (*_dc)+=tmpbuf;
+     (*_dc)+='\n';
+     //cout <<"  *************************8  ******************8"<<endl;
+     //cout<<(const char *)(*_dc)<<endl;
+    }
+    }
+    else{
+     cerr<<" AMSProducer::SetDatacards-S-UnableToOpenFile "<<(const char *)fscript<<endl;
+     return false; 
+    }
+  }
+  else{
+   cerr <<" AMSProducer::SetDataCards-S-UnableToSys "<<(const char *)cmd<<endl;  
+    return false;
+  }
+  return true;
+} 

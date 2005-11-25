@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.158 2005/09/09 07:55:13 choumilo Exp $
+//  $Id: ntuple.C,v 1.159 2005/11/25 15:30:56 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -20,7 +20,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-
+#ifdef __CORBA__
+#include "producer.h"
+#endif
 
 #ifdef __WRITEROOT__
 #include "TBranch.h"
@@ -29,6 +31,7 @@
 
 TTree* AMSNtuple::_tree=0;
 TFile* AMSNtuple::_rfile=0;
+TObjString AMSNtuple::_dc("");
 const int branchSplit=1;
 
 #endif
@@ -240,6 +243,11 @@ void AMSNtuple::initR(char* fname){
      delete _rfile;
    }
    _rfile= new TFile(fname,"RECREATE");
+#ifdef __CORBA__
+   _dc.SetString(AMSProducer::GetDataCards());
+   //cout <<_dc.GetString()<<endl;
+#endif
+   _dc.Write("DataCards");
    if(!_rfile || _rfile->IsZombie())throw amsglobalerror("UnableToOpenRootFile",3);
 
    cout<<"Set Compress Level ..."<<IOPA.WriteRoot-1<<endl;

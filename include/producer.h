@@ -1,4 +1,4 @@
-//  $Id: producer.h,v 1.19 2005/05/17 09:56:35 pzuccon Exp $
+//  $Id: producer.h,v 1.20 2005/11/25 15:31:00 choutko Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__
@@ -13,6 +13,7 @@ protected:
 typedef list<DPS::Producer_var> PList;
 PList _plist;
 static AMSProducer * _Head;
+static AString * _dc;
 bool _OnAir;
 bool _FreshMan;
 bool _Local;
@@ -32,6 +33,8 @@ public:
 AMSProducer(int argc,  char * argv[], int debug) throw (AMSClientError);
 ~AMSProducer();
 static AMSProducer* gethead(){return _Head;}
+static  const char* GetDataCards()  {return (const char*)(*_dc);}
+bool SetDataCards(); 
 DPS::Producer::DST * getdst(DPS::Producer::DSTType type);
 bool & OnAir(){return _OnAir;}
 bool  IsLocal(){return _Local;}
