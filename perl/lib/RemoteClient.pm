@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.388 2005/11/25 09:13:18 ams Exp $
+# $Id: RemoteClient.pm,v 1.389 2005/11/25 10:43:15 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -11031,7 +11031,7 @@ sub updateFilesProcessing {
     my $nBadDSTs      = 0;
     my $message=" ";
     for (my $i=0; $i<$nCites; $i++) {
-        my $cid=$i+1;
+        my $cid=$i+2;
         my $sql="select name from cites where cid=$cid";
         my $ret=$self->{sqlserver}->Query($sql);
         $message=$message." CiteNo: $ret->[0][0] JournalFiles:  $JournalFiles[$i] GoodRuns:  $GoodRuns[$i] BadRuns: $FailedRuns[$i] + $BadRuns[$i] \n";
