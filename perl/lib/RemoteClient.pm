@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.387 2005/11/25 08:57:30 ams Exp $
+# $Id: RemoteClient.pm,v 1.388 2005/11/25 09:13:18 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -842,7 +842,7 @@ if($#{$self->{DataSetsT}}==-1){
                   $sql="select sum(realtriggers) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers>0".$pps;
                   my $rtn1=$self->{sqlserver}->Query($sql);
                    my $tm=time();
-                  $sql="select sum(Triggers) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm".$pps;
+                  $sql="select sum(Triggers) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm and timekill=0".$pps;
                   my $rtn2=$self->{sqlserver}->Query($sql);
 #                 foreach my $job (@{$jobsDB}){
 #                   my $jobsJidDB     = $job->[0];
@@ -11888,7 +11888,7 @@ sub calculateMipsVC {
                   $sql="select sum(realtriggers) from jobs where did=$ret->[0][0] and  jobname like '%$template->{filename}' and realtriggers>0".$pps;
                   my $rtn1=$self->{sqlserver}->Query($sql);
                    my $tm=time();
-                  $sql="select sum(Triggers) from jobs where did=$ret->[0][0] and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm".$pps;
+                  $sql="select sum(Triggers) from jobs where did=$ret->[0][0] and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm and timekill=0".$pps;
                   my $rtn2=$self->{sqlserver}->Query($sql);
                   $completed+=$rtn1->[0][0];
                   $template->{TOTALEVENTS}-=$rtn1->[0][0];
