@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.391 2005/11/28 11:07:04 choutko Exp $
+# $Id: RemoteClient.pm,v 1.392 2005/11/28 11:11:14 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -11168,8 +11168,15 @@ sub getOutputPath {
 #
 $self->CheckFS(1);
 # get production set path
-     $sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE 
+     my $tme=time();
+     if($tme%2 ==0){ 
+      $sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE 
                    status='Active' and isonline=1 ORDER BY priority DESC, available ";
+     }
+     else{
+     $sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE                    status='Active' and isonline=1 ORDER BY priority DESC, available DESC";
+
+     }
      $ret = $self->{sqlserver}->Query($sql);
      foreach my $disk (@{$ret}) {
       $outputdisk = trimblanks($disk->[0]);
