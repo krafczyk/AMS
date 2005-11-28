@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.390 2005/11/25 16:16:39 ams Exp $
+# $Id: RemoteClient.pm,v 1.391 2005/11/28 11:07:04 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4937,7 +4937,7 @@ anyagain:
                 }
                 my $evno=$q->param("QEv");
                 if(not $evno =~/^\d+$/ or $evno <1 or $evno>$tmp->{TOTALEVENTS} ){
-                    my $corr=1;
+                    my $corr=1.00;
                     if (defined $q->param("QCPUType")){
                         $corr=$self->{cputypes}->{$q->param("QCPUType")};
                     }
@@ -5025,7 +5025,7 @@ anyagain:
         if($cput > 3000 ){
             $cput=3000;
         }
-        my $corr=1;
+        my $corr=1.00;
             if (defined $q->param("QCPUType")){
               $corr=$self->{cputypes}->{$q->param("QCPUType")};
             }
@@ -7574,12 +7574,16 @@ sub listStat {
       print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
  print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
  print "<td align=center><b><font color=\"blue\" >CPU Days </font></b></td>";
+ print "<td align=center><b><font color=\"blue\" >CPU Days </font></b></td>";
+
       print "</tr>\n";
       print "<td align=center><b><font color=\"blue\">           </font></b></td>";
       print "<td align=center><b><font color=\"blue\"> Total </font></b></td>";
       print "<td align=center><b><font color=\"blue\" >Processed</font></b></td>";
       print "<td align=center><b><font color=\"blue\" >Pending</font></b></td>";
+print "<td align=center><b><font color=\"blue\" >Total</font></b></td>";
 print "<td align=center><b><font color=\"blue\" >Required</font></b></td>";
+
       print "</tr>\n";
      }
          my $vdb               = $prodperiod->{vdb};
@@ -7678,7 +7682,10 @@ print "<td align=center><b><font color=\"blue\" >Required</font></b></td>";
         print "<td align=center><b><font color=\"black\"> $events </font></b></td>";
         print "<td align=center><b><font color=\"black\" >$hash->[3]\%</font></b></td>";
        print "<td align=center><b><font color=\"black\" >$hash->[2]\%</font></b></td>";
+       print "<td align=center><b><font color=\"black\" >$hash->[4]</font></b></td>";
        print "<td align=center><b><font color=\"black\" >$hash->[5]</font></b></td>";
+
+
 
         print "</tr>\n";
         }
@@ -11863,13 +11870,13 @@ sub calculateMipsVC {
                print "  template $dataset->{name} $template->{filename} $template->{TOTALEVENTS} $template->{CPUPEREVENTPERGHZ} total \n";
                }
                  $dataset->{did}=$ret->[0][0];
-                 my $sqlsum="select sum(cputime*1000/mips/realtriggers) from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}' and realtriggers>0 and mips>0".$pps;
+                 my $sqlsum="select sum(cputime*mips/1000/realtriggers) from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}' and realtriggers>0 and mips>0".$pps;
               my $r2= $self->{sqlserver}->Query($sqlsum);
               my $sum=$r2->[0][0];
-                  $sqlsum="select count(cputime*1000/mips/realtriggers) from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}' and realtriggers>0 and mips>0".$pps;
+                  $sqlsum="select count(cputime*mips/1000/realtriggers) from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}' and realtriggers>0 and mips>0".$pps;
               $r2= $self->{sqlserver}->Query($sqlsum);
               my $count=$r2->[0][0];
-               $sqlsum="select sum(cputime*1000/mips/realtriggers*cputime*1000/mips/realtriggers) from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}' and realtriggers>0 and mips>0".$pps;
+               $sqlsum="select sum(cputime*mips/1000/realtriggers*cputime*mips/1000/realtriggers) from Jobs where did=$ret->[0][0]  and jobname like '%$template->{filename}' and realtriggers>0 and mips>0".$pps;
               $r2= $self->{sqlserver}->Query($sqlsum);
               my $sum2=$r2->[0][0];
 #              print " $sum $count $sum2 \n";
@@ -11904,9 +11911,9 @@ sub calculateMipsVC {
                      foreach my $job (@{$r2}){
                        if (time()-$job->[1]>$job->[3] or $job->[4]>0){
                          my $rtrig=$job->[4];
-                         if(not defined $rtrig or $rtrig<=0){
+                         if(not defined $rtrig ){
                              if($vrb){
-                             warn " real trig not defined for $job->[0] \n";
+                             warn " real trig not defined or 0 for $job->[0] \n";
                              }
                              $rtrig=0;
                              $sql="select sum(LEvent-FEvent+1) from Runs where jid=$job->[0] and  (status='Completed')";
@@ -11930,7 +11937,7 @@ sub calculateMipsVC {
                           if( $ntevt ne $rtrig  ){
                            warn "  ntuples/run mismatch $r4->[0][0] $rtrig $job->[0] \n";
                        }
-                         if($ntevt!=$rtrig and $ntevt>0){
+                         if(defined $rtrig and $ntevt!=$rtrig and $ntevt>0){
                            $sql="select  LEvent from Runs where jid=$job->[0]";
                            my $qq=$self->{sqlserver}->Query($sql);
                            my $levent=$qq->[0][0]+$ntevt-$rtrig;
@@ -11984,7 +11991,7 @@ sub calculateMipsVC {
         $rcpu+=$template->{CPUPEREVENTPERGHZ}*$template->{TOTALEVENTS};
          }
        }
-       push @tmpa, $dataset->{name},$totevt,int(1000*$submitted/($totevt+1))/10.,int(1000*$completed/($totevt+1))/10,$totcpu/86400,int(10*$rcpu/86400)/10.;
+       push @tmpa, $dataset->{name},$totevt,int(1000*$submitted/($totevt+1))/10.,int(1000*$completed/($totevt+1))/10,int(10*$totcpu/86400,)/10.,int(10*$rcpu/86400)/10.;
        push @output, [@tmpa];
         if($vrb){
             print "  $dataset->{name} $totevt $submitted $completed \n";

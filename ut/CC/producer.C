@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.95 2005/11/25 15:30:56 choutko Exp $
+//  $Id: producer.C,v 1.96 2005/11/28 11:04:54 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1711,7 +1711,7 @@ bool AMSProducer::SetDataCards(){
   AString fout="/tmp/";
   fout+=tmp;
   fout+=".dc"; 
-  AString cmd="ps -elf | grep ";
+  AString cmd="ps -elfw --cols 200 | grep ";
   cmd+=tmpp;
   cmd+=" 1>";
   cmd+=(const char*)fout;
@@ -1733,9 +1733,7 @@ bool AMSProducer::SetDataCards(){
      } 
     }
     fbin.close();
-    cmd="unlink ";
-    cmd+=(const char*)fout;
-    system((const char*)cmd);
+    unlink((const char*)fout);
     ifstream f1;
     f1.open((const char *)fscript);
     if(f1){
