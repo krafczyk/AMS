@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.392 2005/11/28 11:11:14 choutko Exp $
+# $Id: RemoteClient.pm,v 1.393 2005/11/29 13:55:23 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7833,7 +7833,7 @@ sub listDisks {
     my $fs    = undef;
     my $usedGBMC = 0;
     my $totalGBMC= 0;
-
+    my $tall=0;
     $self->CheckFS(1);
     $self->getProductionPeriods(0);
     $sql="SELECT MAX(timestamp) FROM Filesystems";
@@ -7851,14 +7851,15 @@ sub listDisks {
       print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
               print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
               print "<td><b><font color=\"blue\" >Filesystem </font></b></td>";
-              print "<td><b><font color=\"blue\" >GBytes </font></b></td>";
+              print "<td><b><font color=\"blue\" >Size [GB] </font></b></td>";
+              print "<td><b><font color=\"blue\" >Allowed [GB]</font></b></td>";
               print "<td><b><font color=\"blue\" >MC [GB] </font></b></td>";
-              print "<td><b><font color=\"blue\" >Free [GB] </font></b></td>";
+              print "<td><b><font color=\"blue\" >Available [GB] </font></b></td>";
               print "<td><b><font color=\"blue\" >Status </font></b></td>";
       print_bar($bluebar,3);
      }
      $sql="SELECT host, disk, path, totalsize, occupied, available, status,
-           timestamp, isonline FROM Filesystems ORDER BY available DESC";
+           timestamp, isonline,allowed FROM Filesystems ORDER BY available DESC";
      my $r3=$self->{sqlserver}->Query($sql);
      if(defined $r3->[0][0]){
       foreach my $dd (@{$r3}){
@@ -7873,25 +7874,27 @@ sub listDisks {
           my $avail  = 0;
           my $status   = trimblanks($dd->[6]);
           foreach my $p (@productionPeriods) {
-           if ($p->{status} =~ 'Active') {
+            if ( (not $p->{status} =~ 'Active') or 1) {
             my $ppath = $dpath."/".$p->{name};
             my $periodStartTime = $p->{begin};
-            $sql = "SELECT SUM(sizemb) FROM ntuples WHERE timestamp >= $periodStartTime AND PATH like '$ppath%'";
+            $sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '$ppath%'";
             my $r4=$self->{sqlserver}->Query($sql);
             if (defined $r4->[0][0]) {
              $totalGBMC = $totalGBMC + $r4->[0][0];
              $used   = $used + $r4->[0][0];
             }
-           }
+            }
           }
            $size   = $size + $dd->[3];
            $avail  = $avail+ $dd->[5];
            $status   = trimblanks($dd->[6]);
            $size/=1024;
            $avail/=1024;
+           $tall+=$dd->[9]*$size;
+           my $all=int($dd->[9]*$size/10)/10;
             $size=int($size*10)/10;
             $avail=int($avail*10)/10;
-           $usedGBMC = sprintf("%6.1f",$used/1000);
+           $usedGBMC = sprintf("%6.1f",$used/1024);
           if($dd->[8]==0){
               $status="Unknown";
           }
@@ -7900,6 +7903,7 @@ sub listDisks {
             print "<tr><font size=\"2\">\n";
              print "<td><b> $fs </b></td>
                  <td align=middle><b> $size </td>
+                 <td align=middle><b> $all</td>
                  <td align=middle><b> $usedGBMC </td>
                  <td align=middle><b> $avail </b></td>
                  <td><font color=$color><b> $status </font></b></td>\n";
@@ -7916,7 +7920,8 @@ sub listDisks {
           my $free  = int(10*$r4->[0][2]/1024)/10;
           my $color="green";
           my $status="ok";
-          my $totalGB = sprintf("%6.1f",$totalGBMC/1000);
+          my $totalGB = sprintf("%6.1f",$totalGBMC/1024);
+          $tall=int($tall/10)/10;
           if ($free < $total*0.1) {
             $color="magenta";
             $status=" no space";}
@@ -7924,6 +7929,7 @@ sub listDisks {
              print "<tr><font size=\"2\">\n";
              print "<td><font color=$color><b> Total </b></td>
                     <td align=middle><b> $total </td>
+                    <td align=middle><b> $tall </td>
                     <td align=middle><b> $totalGB </td>
                     <td align=middle><b> $free </b></td>
                     <td><font color=$color><b> $status </font></b></td>\n";
@@ -13755,12 +13761,18 @@ sub CheckFS{
                     goto offline;
                  }
                  my $occ=($blocks-$bfree)*$fac;
+                 $sql = "SELECT SUM(sizemb) FROM ntuples WHERE  PATH like '$fs->[0]%'";
+                 my $sizemb=$self->{sqlserver}->Query($sql);
+                 my $rused=0;
+                 if(defined $sizemb->[0][0]){
+                  $rused=$sizemb->[0][0];
+                 } 
                  my $ava=$bavail*$fac;
-                 my $ava1=$tot*$fs->[3]/100-$occ;
+                 my $ava1=$tot*$fs->[3]/100-$rused;
                  if($fs->[2]=~'Reserved'){
                   $status='Reserved';
                  }
-                 elsif( $ava1<0 or $ava<10000){
+                 elsif( $ava1<0 or $ava<7000){
                   $status='Full';
                  }
                  if($ava1<$ava){
