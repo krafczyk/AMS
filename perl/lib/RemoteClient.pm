@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.393 2005/11/29 13:55:23 choutko Exp $
+# $Id: RemoteClient.pm,v 1.394 2005/11/29 14:58:39 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2258,7 +2258,7 @@ sub Connect{
 
     $self->{read}=0;
     my $q=$self->{q};
-    my $sql=>undef;
+    my $sql="";
     my $color;
     my $cite = 'Any';
 
@@ -3195,6 +3195,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 #//
            my $ntd=0;
            if($rootfileaccess=~/^NFS/){
+                #print "<tr><td> $dirs[$ind] </tr></td><br>";
                opendir THISDIR, $dirs[$ind];
                my @files=readdir THISDIR;
                closedir THISDIR;
@@ -3202,7 +3203,8 @@ CheckCite:            if (defined $q->param("QCite")) {
                 if($file =~ /\.root$/ or $file=~ /\.hbk/){
                     $ntd++;
                }
-              }        
+              }       
+           my $offline=0; 
            if($ntd != $dirs_ntuples[$ind]){
              $s=" // Database and Linux Disagree \n   // Database says $dirs[$ind] contains $dirs_ntuples[$ind]  ntuples \n  //  Linux says it has $ntd ntuples \n";
               my @junk=split '/',$dirs[$ind];
@@ -3210,6 +3212,7 @@ CheckCite:            if (defined $q->param("QCite")) {
               #die "  $sql $dirs[$ind] ";
               my $rtn=$self->{sqlserver}->Query($sql);
               if(defined  $rtn and $rtn->[0][0]==0){
+                $offline=1;
                 $s=$s."//   Because /$junk[1]  is Offline \n"; 
            }
            else{
@@ -3218,6 +3221,7 @@ CheckCite:            if (defined $q->param("QCite")) {
           $buff = $buff.$s."\n";
           $s=~s/\n/<br>/g;
           print "<tr><td><font color=red> $s </tr></td><font color=black>";
+          if(not $offline){
           opendir THISDIR, $dirs[$ind];
           my @files = readdir THISDIR;
           closedir THISDIR;
@@ -3277,7 +3281,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 
             }
           }
-
+          }
          }
          }
          }
