@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.395 2005/11/30 10:35:51 choutko Exp $
+# $Id: RemoteClient.pm,v 1.396 2005/11/30 13:50:30 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -11089,7 +11089,7 @@ sub getFilesProcessingFlag {
     my $flag      = -1;
     my $starttime = 0;
     my $whoami = getlogin();
-    if ($whoami =~ 'ams' || $whoami =~ 'choutko') {
+    if ($whoami =~ 'ams' || $whoami =~ 'casadmva') {
     } elsif(defined $whoami){
       $self->amsprint(" -ERROR- script cannot be run from account : $whoami",0);
       die "bye";
@@ -11114,7 +11114,7 @@ sub setFilesProcessingFlag {
 
 
     my $whoami = getlogin();
-    if ($whoami =~ 'ams' || $whoami =~ 'alexei') {
+    if ($whoami =~ 'ams' || $whoami =~ 'casadmva') {
     } elsif(defined $whoami) {
       $self->amsprint(" -ERROR- script cannot be run from account : $whoami",0);
       die "bye";
@@ -11134,7 +11134,7 @@ sub resetFilesProcessingFlag {
 
 
     my $whoami = getlogin();
-    if ($whoami =~ 'ams' || $whoami =~ 'alexei') {
+    if ($whoami =~ 'ams' || $whoami =~ 'casadmva') {
     } elsif(defined $whoami) {
       $self->amsprint("-ERROR- script cannot be run from account : $whoami",0);
       die "-ERROR- script cannot be run from account : $whoami. bye";
