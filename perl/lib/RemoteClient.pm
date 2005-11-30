@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.394 2005/11/29 14:58:39 choutko Exp $
+# $Id: RemoteClient.pm,v 1.395 2005/11/30 10:35:51 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3667,9 +3667,9 @@ CheckCite:            if (defined $q->param("QCite")) {
             foreach my $mc (@productionPeriods) {
              if ($mc->{status} =~ 'Active') {
               print "<tr><td><b><font color=\"blue\" size=\"3\">Dataset </font><font color=\"tomato\" size=\"3\"> ($mc->{name} $mc->{vdb})";
-              print "</font></b></td><td>\n";
-              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-              print "<tr><td><font size=\"-1\"<b>\n";
+              print "</font></b></td><td>";
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>";
+              print "<tr><td><font size=\"-1\"<b>";
               my $firstdataset = 1;
               my $checked="CHECKED";
               foreach my $dataset (@{$self->{DataSetsT}}){
@@ -3677,15 +3677,14 @@ CheckCite:            if (defined $q->param("QCite")) {
                 if ($firstdataset++ != 1) {
                    $checked="";
                 }
-                print "</b>\n";
-                 if ($dataset->{eventstodo} == 0) {
-                  print "<tr><td><b><font color=\"tomato\"><i> $dataset->{name} </i></font></b></td></tr>\n";
-                 } elsif ($dataset->{eventstodo} < 5000) {
-                   print "<tr><td><b><font color=\"tomato\"> $dataset->{name} </font><b></td></tr><BR>\n";
-                 } else {
-                    print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE= $dataset->{name} $checked>$dataset->{name} <BR>\n";
+#                print "</b>";
+                 if ($dataset->{eventstodo} <1000  ){
+                  print "<tr><td><b><font color=\"tomato\"> $dataset->{name} </font></b></td></tr>";
+#                  print "</b></font></td></tr>";
+                 } elsif($dataset->{eventstodo} >1000)  {
+                    print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE= $dataset->{name} $checked>$dataset->{name} ";
                  }
-                print "</b></font></td></tr>\n";
+#                print "</b></font></td></tr>";
              }
            }
             print "</TABLE>\n";
