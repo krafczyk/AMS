@@ -2,8 +2,10 @@
 #include "TBranch.h"
 #include "root.h"
 #include <stdio.h>
-
-int rootread(char * fname, int nev, int iver,  int & lastevent){
+#include "TObjString.h"
+#include <fstream.h>
+using namespace std;
+int rootread(char * fname, int nev, int iver,  int & lastevent,bool jou){
  int LastEvent=lastevent;
  int diff=0;
  lastevent=0;
@@ -23,6 +25,27 @@ int firstevent=-1;
         if(iver>0)cout <<"problem to find tree AMSRoot "<<endl;
 	return -1;
  }
+ if(jou){
+   TObjString s("");
+   s.Read("DataCards");
+   if(s.String().Length()>1){
+     TString fnam(fname);
+     fnam+=".jou";
+     ofstream fout;
+     fout.open((const char*)fnam);
+     if(fout){
+       fout <<s.String();
+       fout.close();
+     }
+     else if(iver){
+      cerr<<" Unable to open jou file "<<(const char*)fnam<<endl; 
+     }  
+   }
+   else if(iver){
+    cerr<<" Unable to find datacards in "<<fname<<endl;
+   }
+   
+ } 
  int nevents=tree->GetEntries();
  if(iver)cout <<"  entries "<<nevents<<" "<<nev<<endl;
  if(nevents<=0)return -2;

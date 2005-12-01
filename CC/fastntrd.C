@@ -10,6 +10,12 @@
 //
  PROTOCCALLSFFUN3(INT,IFNTREAD,ifntread,STRING,INT,INT)
 #define IFNTREAD(A2,A3,A4)  CCALLSFFUN3(IFNTREAD,ifntread,STRING,INT,INT,A2,A3,A4)
+//input
+//  filename
+//  nevents
+//  0/1/>1   ntuple,root,root+jou
+//  lastevent
+//  verbose
 //
 //-----------------------------------------------------------------|
 //output:a) Bit 8 is set -> bad ntuple(+bits (1-7)=1->open problem;|
@@ -20,7 +26,7 @@
 //          EventStatus=bad;                                     |
 //-----------------------------------------------------------------|
 //
- int rootread(char * fname,int nevents,int iver, int& lastevent);
+ int rootread(char * fname,int nevents,int iver, int& lastevent,bool jou);
  int main(int argc, char * argv[])
  {
 //
@@ -30,6 +36,7 @@
    int lastevent=0;
    bool verbose=false;
    bool root=false; 
+   bool jou=false;
    int iver=0;
    iflg=0;
    if(argc>2){
@@ -38,6 +45,7 @@
       if(argc>3){
        int iot=atoi(argv[3]);
         if(iot)root=true;
+        if(iot>1)jou=true; 
       }
      if(argc>4){
       lastevent=atoi(argv[4]);
@@ -48,7 +56,7 @@
      }
      if(iver)cout<<"Requested file: "<<fname<<" imply "<<nevents<<" events"<<endl;
       if(root){
-       iflg=rootread(fname,nevents,iver,lastevent);
+       iflg=rootread(fname,nevents,iver,lastevent,jou);
       }
       else {
        iflg=IFNTREAD(fname,nevents,iver);
