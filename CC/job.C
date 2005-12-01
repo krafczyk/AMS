@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.481 2005/10/13 09:01:32 choumilo Exp $
+// $Id: job.C,v 1.482 2005/12/01 09:45:23 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -86,6 +86,15 @@ long AMSJob::GetNtupleFileSize(){
  long size_r=stat(_rootfilename,&buffer)? 0:buffer.st_size;
  return size_n>size_r?size_n:size_r;
 }
+time_t AMSJob::GetNtupleFileTime(){
+ struct stat buffer;
+  time_t timenow=0;
+  time(&timenow);
+ time_t size_n=stat(_ntuplefilename,&buffer)? 0:buffer.st_atime;
+ time_t size_r=stat(_rootfilename,&buffer)? 0:buffer.st_atime;
+ return size_n>size_r?timenow-size_n:timenow-size_r;
+}
+
 AMSNtuple* AMSJob::_pntuple=0;
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
@@ -198,6 +207,7 @@ IOPA.mode=0;
 VBLANK(IOPA.ffile,40);
 IOPA.MaxNtupleEntries=100000;
 IOPA.MaxFileSize=180000000;
+IOPA.MaxFileTime=86400*3;
 IOPA.WriteRoot=0;
 VBLANK(IOPA.rfile,40);
 FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");

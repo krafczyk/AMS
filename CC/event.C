@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.338 2005/10/13 09:01:31 choumilo Exp $
+//  $Id: event.C,v 1.339 2005/12/01 09:45:23 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1058,7 +1058,8 @@ for(int il=0;il<2;il++){
     if( IOPA.MaxNtupleEntries){
       //cout <<"qq "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<endl;
       // cout <<"op "<<AMSJob::gethead()->GetNtupleFileSize()<<" "<<IOPA.MaxFileSize<<endl;
-       if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0 || AMSJob::gethead()->GetNtupleFileSize()>IOPA.MaxFileSize){
+       if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0 || AMSJob::gethead()->GetNtupleFileSize()>IOPA.MaxFileSize
+      || AMSJob::gethead()->GetNtupleFileTime()>IOPA.MaxFileTime){
         if(GCFLAG.ITEST<0)GCFLAG.ITEST=-GCFLAG.ITEST;
         AMSJob::gethead()->uhend();
         AMSJob::gethead()->uhinit(_run,getid()+1,gettime());

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.396 2005/11/30 13:50:30 choutko Exp $
+# $Id: RemoteClient.pm,v 1.397 2005/12/01 09:45:38 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3535,7 +3535,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            foreach my $dataset (@datasets) {
              print "</b>
                      <INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=$dataset>$dataset<BR>\n";
-              print "</b></font></td></tr>\n";
+#              print "</b></font></td></tr>\n";
            }
         htmlTableEnd();
       htmlTableEnd();
@@ -3682,7 +3682,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                   print "<tr><td><b><font color=\"tomato\"> $dataset->{name} </font></b></td></tr>";
 #                  print "</b></font></td></tr>";
                  } elsif($dataset->{eventstodo} >1000)  {
-                    print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE= $dataset->{name} $checked>$dataset->{name} ";
+                    print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE= $dataset->{name} $checked>$dataset->{name}<BR>";
                  }
 #                print "</b></font></td></tr>";
              }

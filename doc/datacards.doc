@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.245 2005/10/13 09:01:51 choumilo Exp $
+#  $Id: datacards.doc,v 1.246 2005/12/01 09:45:28 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -75,6 +75,7 @@ I127  WriteRoot(0)               // write (!0) or not write(0) root file
                                  // the value is used to set Root Compression Level-1
 I128  rfile(160*' ')             // root file name
 I168 MaxFileSize(150000000)      // max ntuplefilesize (bytes)
+I169 MaxFileTime(86400*3)         //  max ntuple time (sec)
 
 //-------------------------------------------------------------------------------
 
