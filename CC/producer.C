@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.96 2005/11/28 11:04:54 choutko Exp $
+//  $Id: producer.C,v 1.97 2005/12/01 17:38:38 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1701,7 +1701,7 @@ return false;
 }
 
 bool AMSProducer::SetDataCards(){
-  _dc=new AString(" ");
+  _dc=new AString("");
   char tmp[80];
   char tmpp[80];
   char tmpu[80];
@@ -1738,6 +1738,9 @@ bool AMSProducer::SetDataCards(){
     f1.open((const char *)fscript);
     if(f1){
     char tmpbuf[1024];
+     (*_dc)+="ScriptName=";
+     (*_dc)+=(const char *)fscript;
+     (*_dc)+='\n';
     while(f1.good() && !f1.eof()){ 
      f1.getline(tmpbuf,1023);
      (*_dc)+=tmpbuf;
