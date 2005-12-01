@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.397 2005/12/01 09:45:38 choutko Exp $
+# $Id: RemoteClient.pm,v 1.398 2005/12/01 17:37:03 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9065,7 +9065,7 @@ sub parseJournalFiles {
                                  $lastjobtime,
                                  $logdir,
                                  $newfile,
-                                 $ntdir);
+                                 $ntdir,$cid);
           if($suc>0 && $mail){
              my $sql = "SELECT jid,mid FROM Jobs WHERE jid=$suc";
              my $ret = $self->{sqlserver}->Query($sql);
@@ -9162,7 +9162,7 @@ sub parseJournalFile {
  my $logdir       = shift;
  my $inputfile    = shift;
  my $dirpath      = shift;
-
+ my$cid=shift; 
  my $host         = "unknown";
  my $tevents      = 0;
  my $terrors      = 0;
@@ -9393,11 +9393,7 @@ foreach my $block (@blocks) {
        }
     }
 
-   if (defined $startingjob[2]) {
-    $jobid = $startingjob[2];
-    if ($self->findJob($jobid) != $jobid) {
-    }
-  } else {
+   if (not defined $startingjob[2]) {
        print FILE "Fatal - cannot find JobInfo in file $inputfile\n";
        system("mv $inputfile $inputfile.0");
        return 0;
@@ -9447,7 +9443,7 @@ foreach my $block (@blocks) {
 
    if (defined $startingjob[2]) {
     $jobid = $startingjob[2];
-    if ($self->findJob($jobid) != $jobid) {
+    if ($self->findJob($jobid,$buf,$dirpath,$cid) != $jobid) {
        print FILE "Fatal - cannot find JobInfo for $jobid \n";
        system("mv $inputfile $inputfile.0");
        $BadRuns[$nCheckedCite]++;
@@ -10323,9 +10319,10 @@ sub findJob {
 
     my $self = shift;
     my $jid  = shift;
-
+    my $buf=shift;
+    my $dir=shift;
+    my $cid=shift;
     my $rstatus = 0;
-
     my $sql = "SELECT jid,mid FROM Jobs WHERE jid=$jid";
     my $ret = $self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
@@ -10342,6 +10339,130 @@ sub findJob {
          $sql="delete from jobs_deleted where jid=$jid";
          $self->{sqlserver}->Update($sql);
          $self->{sqlserver}->Commit();
+        }
+        else{
+#
+#        got things from root file itself
+#
+my %CloseDSTPatterns = (
+  CloseDST=>undef,
+  Status=>undef,
+  Type=>undef,
+  Name=>undef,
+  Version=>0,
+  Size=>0,
+  crc=>0,
+  Insert=>0,
+  Begin=>0,
+  End=>0,
+  Run=>0,
+  FirstEvent=>0,
+  LastEvent=>0,
+  EventNumber=>0,
+  ErrorNumber=>0
+                );
+    my $cpat={
+      %CloseDSTPatterns,
+    };
+            my @blocks =  split "-I-TimeStamp ",$buf;
+            my @junk=split ' ',$blocks[1];
+            my $ctime=$junk[0];
+            foreach my $line (@blocks){
+             if($line=~/CloseDST/){
+              my @pat=split ' \, ',$line;
+              foreach my $entry (@pat){
+               my @kv=split ' ',$entry;
+               if($#kv>0){
+                $cpat->{$kv[0]}=$kv[1];
+               }
+              } 
+              last;
+             } 
+            }
+        if(defined $cpat->{Type} and $cpat->{Type} eq 'RootFile'){
+           if(defined $cpat->{Name}){
+            my @jhost=split ':',$cpat->{Name};
+            my $host=$jhost[0];
+            my @junk=split '\/', $cpat->{Name};
+            my $fnam=$dir.'/'.$junk[$#junk];
+            my $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fnam 0 2 0 1";
+            system($validatecmd);
+             $fnam=$fnam.'.jou'; 
+             my $bufj="";
+             if(open(FILEJ,"<".$fnam)){
+               read(FILEJ,$bufj,32768);
+               close FILEJ;
+             }
+             unlink $fnam;
+             my $job={};
+             my @cont=split '\n',$bufj;
+             my @pats=("DATASETNAME","ScriptName","TRIG","NICKNAME","SUBMITTIME");
+             foreach my $line (@cont){
+              foreach my $pat (@pats){
+                if($line =~/$pat=/){
+                  my @junk=split '=',$line;
+                  if($pat eq "ScriptName"){
+                   my @j2=split '\/',$junk[1];
+                   $job->{$pat}=trimblanks($j2[$#j2]);
+                  }
+                  else{
+                   $job->{$pat}=trimblanks($junk[1]);
+                  }
+                }
+              }
+             }
+             my $ok=1; 
+             foreach my $pat (@pats){
+              if(not defined $job->{$pat}){
+                $ok=0;
+                last;
+              }
+             }
+             if(not $ctime =~/^\d+$/ ){
+               $ctime=$job->{SUBMITTIME};
+             }
+             $sql="select did from datasets where name='$job->{DATASETNAME}'";
+             $ret=$self->{sqlserver}->Query($sql);
+             if($ok and defined $ret->[0][0]){
+              my $did=$ret->[0][0];
+              $sql="select mid from mails where cid=$cid";
+              $ret=$self->{sqlserver}->Query($sql);
+              my $pid = $self->getProductionSetIdByDatasetId($did);
+              $bufj=~s/\$/\\\$/g;    
+              $bufj=~s/\"/\\\"/g;
+              $bufj=~s/\(/\\\(/g;
+              $bufj=~s/\)/\\\)/g;
+              $bufj=~s/\'/\\'/g;  
+              if($self->{sqlserver}->{dbdriver} =~ m/Oracle/){
+               $bufj =~ s/'/''/g;
+              }
+              my $insertjobsql="INSERT INTO Jobs VALUES
+                             ($jid,
+                              '$job->{ScriptName}',
+                              $ret->[0][0],
+                              $cid,
+                              $did,
+                              $job->{SUBMITTIME},
+                              $job->{TRIG},
+                              864000,
+                              '$bufj',
+                              $ctime,
+                              '$job->{NICKNAME}',
+                               '$host',0,0,0,0,'STANDALONE',
+                              -1, $pid,-1,0)";
+               $self->{sqlserver}->Update($insertjobsql);
+               $self->{sqlserver}->Commit();    
+               $sql = "SELECT jid,mid FROM Jobs WHERE jid=$jid";
+               $ret = $self->{sqlserver}->Query($sql);
+               if (defined $ret->[0][0]) {
+                $rstatus = $ret->[0][0];
+                print "  Job $jid restored from ntuple\n";
+               }                                               
+              }
+           }
+            
+        }
+
         }
     }
     return $rstatus;
