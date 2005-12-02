@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.399 2005/12/01 17:38:42 choutko Exp $
+# $Id: RemoteClient.pm,v 1.400 2005/12/02 10:14:05 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5701,7 +5701,7 @@ anyagain:
          $tmpb =~ s/'/''/g;
     }
          $ctime=time();
-         my $nickname = $q->param("QNick");
+         $nickname = $q->param("QNick");
          my $stalone  = "STANDALONE";
          if ($q->param("STALONE") eq "No") {
           my $stalone  = "CLIENT";
@@ -7433,7 +7433,6 @@ sub listStat {
        if (defined $ret->[0][0]) {
            $jobsfailed  =$ret->[0][0];
        }
-
        if ($jobsdone > 0 || $jobsfailed >0) {
         if ($ds->{name} =~ /2005A/) {
           $sql="SELECT
@@ -7469,9 +7468,21 @@ sub listStat {
          $cntuples    = $ret->[0][7];
          $csizegb     = sprintf("%.1f",$ret->[0][8]/1000);
          $jobsreq     = $jobsreq - $jobsdone - $jobsfailed;
+      $sql="select count(jid) from jobs_deleted where  pid=$datasetId AND cid != $TestCiteId";
+       my $jbs=$self->{sqlserver}->Query($sql);
+       if(defined $jbs->[0][0]){
+         $jobsfailed+=$jbs->[0][0];
+        }
+        $sql="select count(jid) from jobs where realtriggers<0 and pid=$datasetId and timekill=0";
+        $jbs=$self->{sqlserver}->Query($sql);
+      if(defined $jbs->[0][0]){
+         $jobsreq=$jbs->[0][0];
+        }
+
        }
     }
    }
+    
 #
                my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($datasetStartTime);
     if ($webmode == 1) {
