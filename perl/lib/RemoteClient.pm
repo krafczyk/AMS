@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.400 2005/12/02 10:14:05 choutko Exp $
+# $Id: RemoteClient.pm,v 1.401 2005/12/06 09:30:51 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8120,7 +8120,7 @@ sub listJobs {
 
     $sql="SELECT Runs.jid, Runs.status from Runs
                   WHERE
-                    Runs.submit >= $timelate ORDER BY Runs.jid";
+                    Runs.submit >= $timelate-86400*30 ORDER BY Runs.jid";
     my $r3=$self->{sqlserver}->Query($sql);
     if (defined $r3->[0][0]) {
       foreach my $r (@{$r3}){
@@ -13978,6 +13978,17 @@ my $self=shift;
              }
              return $lupdate;
 }
+sub DiskIsOnline{
+my $self=shift;
+my $disk=shift;
+$self->CheckFS(1,300);
+my $sql="select disk from filesystems where isonline=1 and disk like '$disk'";
+my $ret=$self->{sqlserver}->Query($sql);
+if(defined $ret->[0][0]){
+   return 1;
+}
+return 0;
+}
 
 sub UploadToCastor{
 #
@@ -14066,7 +14077,16 @@ sub UploadToCastor{
          if($ntuple->[0]=~/^#/){
           next;
          }
-         my @junk=split $name_s,$ntuple->[0];
+#
+#         check fs is active
+#
+         my @junk=split '\/',$ntuple->[0];
+         if(not $self->DiskIsOnline("/$junk[1]")){
+          print " Disk $junk[1] is Offline, skipped \n";
+          $suc=0;
+          last;
+         }  
+         @junk=split $name_s,$ntuple->[0];
          my $castor=$castorPrefix."/$name$junk[1]";
          my @junk2=split /\//,$ntuple->[0];
          my $sys=$rfcp.$ntuple->[0]." $castor";
