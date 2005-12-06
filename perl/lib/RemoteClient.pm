@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.402 2005/12/06 12:07:42 choutko Exp $
+# $Id: RemoteClient.pm,v 1.403 2005/12/06 14:38:50 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4958,6 +4958,9 @@ anyagain:
                             $runno=1;
                         }
                        $q->param("QRun",$runno);
+                    }
+                    if($evno<10000){
+                      $evno=10000;
                     }
                     $q->param("QEv",$evno);
                     $tmp->{TOTALEVENTS}-=$evno;
