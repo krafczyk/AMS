@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.401 2005/12/06 09:30:51 choutko Exp $
+# $Id: RemoteClient.pm,v 1.402 2005/12/06 12:07:42 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6720,17 +6720,26 @@ sub checkJobsTimeout {
                if($q2->[0][0]=~/test/ or $q2->[0][0]=~/cern/){
                  $dir=$dir."/MCProducer";       
              }
-              opendir MYDIR,  $dir or die " CheckTimeInitJob: unable to open dir $dir  \n";
-              my @allfiles=readdir MYDIR;
-              closedir MYDIR;
+              my @allfiles=();
+              my @allf2=();
+              $#allfiles=-1;
+              $#allf2=-1;
+              if(opendir MYDIR,  $dir){ 
+               @allfiles=readdir MYDIR;
+               closedir MYDIR;
+              }
+              else{
+                print " unable to open dir $dir cid =$jtokill->[3] \n";
+              }
                if($q2->[0][0]=~/test/ or $q2->[0][0]=~/cern/){
                  $dir=~ s/MCProducer/Producer/;
-                opendir MYDIR,  $dir or die " CheckTimeInitJob: unable to open dir $dir  \n";
-                 my @allf2=readdir MYDIR;
+                if(opendir MYDIR, $dir){
+                  @allf2=readdir MYDIR;
                  foreach my $file (@allf2){
                      push @allfiles,$file;
                  }
-                closedir MYDIR;
+                 closedir MYDIR;
+               }
                }
               my $jfound=0;
               foreach my $file (@allfiles){
