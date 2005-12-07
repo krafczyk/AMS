@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.403 2005/12/06 14:38:50 choutko Exp $
+# $Id: RemoteClient.pm,v 1.404 2005/12/07 15:53:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7863,7 +7863,7 @@ sub listDisks {
     my $usedGBMC = 0;
     my $totalGBMC= 0;
     my $tall=0;
-    $self->CheckFS(1);
+    my $disk=$self->CheckFS(1);
     $self->getProductionPeriods(0);
     $sql="SELECT MAX(timestamp) FROM Filesystems";
     my $r0=$self->{sqlserver}->Query($sql);
@@ -7925,7 +7925,7 @@ sub listDisks {
             $avail=int($avail*10)/10;
            $usedGBMC = sprintf("%6.1f",$used/1024);
           if($dd->[8]==0){
-              $status="Unknown";
+              $status="Offline";
           }
            my $color=statusColor($status);
             if ($webmode == 1) {
@@ -7947,13 +7947,31 @@ sub listDisks {
           my $total = int(10*$r4->[0][0]/1024)/10;
           my $occup = int(10*$r4->[0][1]/1024)/10;
           my $free  = int(10*$r4->[0][2]/1024)/10;
+          my $status="OK";
           my $color="green";
-          my $status="ok";
+          if(not defined $disk){
+           $sql="select disk from filesystems where isonline=1";
+           my $ret=$self->{sqlserver}->Query($sql);
+           if(defined $ret->[0][0]){
+            $status='Full';
+           }
+          else{ 
+           $status='Collapse';
+          } 
+          }
+          else{
+           $sql="select disk from filesystems where isonline=0";
+           my $deg=$self->{sqlserver}->Query($sql);
+           if(defined $deg->[0][0]){
+            $status='Degraded';
+           }
+          }
+          $color=statusColor($status);
           my $totalGB = sprintf("%6.1f",$totalGBMC/1024);
           $tall=int($tall/10)/10;
-          if ($free < $total*0.1) {
-            $color="magenta";
-            $status=" no space";}
+          if ($free < $total*0.01) {
+            $color="blue";
+            $status="Full";}
             if ($webmode == 1) {
              print "<tr><font size=\"2\">\n";
              print "<td><font color=$color><b> Total </b></td>
@@ -8782,22 +8800,22 @@ sub statusColor {
     if ($status eq "Finished" or $status eq "OK" or $status eq "Validated" or $status eq "Completed") {
                $color  = "green";
     }
-    elsif ($status eq "TimeOut" or $status eq "Pending") {
+    elsif ($status eq "TimeOut" or $status eq "Pending" or $status eq "Degraded") {
          $color="magenta";
     }
     elsif ($status eq "Success") {
         $color  = "green";
     }
-    elsif ($status eq "Foreign") {
+    elsif ($status eq "Foreign" or $status eq "Reserved") {
                $color = "black";
     }
-    elsif ($status eq "Processing") {
+    elsif ($status eq "Processing" or $status eq "Full") {
                $color = "blue";
     }
     elsif ($status eq "Active") {
                $color = "green";
     }
-    elsif ($status eq "Dead" or $status eq "Unknown" or $status eq "ToBeRerun") {
+    elsif ($status eq "Dead" or $status eq "Unknown" or $status eq "ToBeRerun" ) {
                $color = "magenta";
     }
     return $color;

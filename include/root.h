@@ -673,7 +673,7 @@ ClassDef(TrRecHitR,2)       //TrRecHitR
 
 /// TrTrackR structure 
 /*!
- \author v.choutko@cern.ch
+ \author j.alcaraz@cern.ch v.choutko@cern.ch
 
 */
 
@@ -687,8 +687,8 @@ public:
   int   GeaneFitDone; ///<  != 0 if done
   int   AdvancedFitDone;  ///< != 0 if done
   float Chi2StrLine;  ///< chi2 sz fit
-  float Chi2WithoutMS;  ///< chi2 circular fit
-  float RigidityWithoutMS;  ///< circular rigidity
+  float Chi2WithoutMS;  ///< chi2 circular fit OR pathint chi2  without ms
+  float RigidityWithoutMS;  ///< circular rigidity OR pathint rigidity without ms
   float Chi2FastFit;    ///< chi2 fast nonl fit
   float Rigidity;  ///< fast nonl rigidity
   float ErrRigidity;  ///<err to 1/above
