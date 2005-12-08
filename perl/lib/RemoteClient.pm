@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.404 2005/12/07 15:53:45 choutko Exp $
+# $Id: RemoteClient.pm,v 1.405 2005/12/08 10:58:32 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1762,7 +1762,7 @@ my $fevt=-1;
                              $sql="UPDATE Runs SET fevent=$fevt, Levent=$ntevt-1+$fevt WHERE jid=$run->{Run}";
 
                              $self->{sqlserver}->Update($sql);
-                      $sql="UPDATE Jobs SET realtriggers=$ntevt WHERE jid=$run->{Run}";
+                      $sql="UPDATE Jobs SET realtriggers=$ntevt,timekill=0 WHERE jid=$run->{Run}";
                       $self->{sqlserver}->Update($sql);
                   }
 
@@ -9903,7 +9903,7 @@ foreach my $block (@blocks) {
     if($ntevt>0){
                              $sql="UPDATE Runs SET fevent=$fevt, Levent=$ntevt-1+$fevt, fetime=$feti, letime=$leti WHERE jid=$run";
                              $self->{sqlserver}->Update($sql);
-    $sql=" update jobs set realtriggers=$ntevt where jid=$run";
+    $sql=" update jobs set realtriggers=$ntevt, timekill=0 where jid=$run";
                              $self->{sqlserver}->Update($sql);
                          }
     foreach my $ntuple (@cpntuples) {
@@ -12101,7 +12101,7 @@ sub calculateMipsVC {
                              my $r3=$self->{sqlserver}->Query($sql);
                              if(defined $r3->[0][0]){
                                  $rtrig=$r3->[0][0];
-                                 $sql="UPDATE Jobs SET realtriggers=$rtrig WHERE jid=$job->[0]";
+                                 $sql="UPDATE Jobs SET realtriggers=$rtrig, timekill=0 WHERE jid=$job->[0]";
                                  $self->{sqlserver}->Update($sql);
                              }
 
