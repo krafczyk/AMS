@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.55 2005/05/17 09:54:03 pzuccon Exp $
+//  $Id: beta.C,v 1.56 2005/12/09 11:12:32 choutko Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -42,7 +42,7 @@ integer AMSBeta::build(integer refit){
 // Sonly = 2 => tracks without K hits (FalseTOFX && !TOFFORGAMMA)
 
  int bfound=0;
- for( int Sonly=0; Sonly<2; Sonly++){
+ for( int Sonly=0; Sonly<3; Sonly++){
 
 
 // Loop on TOF patterns
