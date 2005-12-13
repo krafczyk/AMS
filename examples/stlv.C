@@ -149,10 +149,14 @@ void stlv::UProcessFill()
       xm = log(mc_ev.Momentum);
       acc[0]->Fill(xm,1);
       h1A[0]-> Fill(xm,1);
-      cout <<Run()<< "  " <<Event()<< "  "<<mc_ev.Momentum<<"  "<<MCEventg(1).Momentum<<"  "<< MCEventg(1).Coo[2]<<" ";
-      cout <<Particle(0).Momentum<<"  ";
+      cout <<Run()<< "  " <<Event()<< "  "<<mc_ev.Momentum<<"  "<<MCEventg(1).Momentum<<"  "<< MCEventg(1).Coo[2]<<" "<<endl;
+      cout <<"  Particle "<<Particle(0).Momentum<<"  "<<NBeta()<<endl;
+      for (int k=0;k<nTrTrack();k++){
+         cout <<"  tracke "<<k<<" "<<TrTrack(k).IsGood()<<endl;
+      }
+
       h2->Fill(Particle(0).Momentum/mc_ev.Momentum,1);
-      float xx=pow(float(Particle(0).Momentum/mc_ev.Momentum),float(2.7));
+      float xx=pow(float(fabs(Particle(0).Momentum/mc_ev.Momentum)),float(2.7));
       h4->Fill(xx,1);
      h5->Fill(Particle(0).Momentum/mc_ev.Momentum,xx);
        cout << xx<<endl;

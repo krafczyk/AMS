@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.127 2005/11/17 14:29:15 choutko Exp $
+//  $Id: server.C,v 1.128 2005/12/13 16:34:39 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -2845,6 +2845,7 @@ DPS::Producer::TDVTable_var vtable=new DPS::Producer::TDVTable();
 if(li!=_tid.end()){
   RLI ri=find_if(_rl.begin(),_rl.end(),REInfo_Eqs(id));
   if(ri!=_rl.end()){
+    li->second->rereaddb();
     tdvname.Success=true;
     AMSTimeID::IBE ibe=li->second->findsubtable((*ri)->TFEvent,(*ri)->TLEvent);
     vtable->length(ibe.size());

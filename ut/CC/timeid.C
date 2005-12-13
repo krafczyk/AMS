@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.83 2005/05/17 09:54:06 pzuccon Exp $
+//  $Id: timeid.C,v 1.84 2005/12/13 16:34:39 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -465,8 +465,12 @@ dirent *entry){
 return (entry->d_name)[0] != '.';   
 }
 
+void AMSTimeID::rereaddb(bool force){
+       for(int i=0;i<5;i++)delete _pDataBaseEntries[i]; 
+      _fillDB((const char*)AMSDBc::amsdatabase,0,force); 
+}
 
-void AMSTimeID::_fillDB(const char *dir, int reenter){
+void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
 int everythingok=1;
 int i;
 for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
@@ -481,9 +485,9 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
     fstream fbin;
     struct stat statbuf_map;
     struct stat statbuf_dir;
-    if(!stat((const char *)fmap,&statbuf_map) && 
+    if((!stat((const char *)fmap,&statbuf_map) && 
         !stat((const char *)fdir,&statbuf_dir) &&
-              statbuf_dir.st_mtime < statbuf_map.st_mtime ){
+              statbuf_dir.st_mtime < statbuf_map.st_mtime) && !force ){
        fbin.open(fmap,ios::in);
        if(fbin){
          fbin>>_DataBaseSize;

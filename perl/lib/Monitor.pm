@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.100 2005/11/22 14:03:50 ams Exp $
+# $Id: Monitor.pm,v 1.101 2005/12/13 16:34:52 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -151,7 +151,7 @@ sub Connect{
  }
 }
  if(not defined $ior) { 
-  $ior=getior();
+  $ior=getior($ref);
 }
  if( not defined $ior){
   return $ref->{ok};
@@ -522,6 +522,18 @@ sub Update2{
 
 
 sub getior{
+#
+# new method based on oracle
+#
+    my $sqls=new DBSQLServer();
+    if($sqls->Connect()){
+     my $sql="select IORS,IORP from Servers where status='Active' order by lastupdate desc";
+     my $ret=$sqls->Query($sql);
+     if(defined $ret->[0][0]){
+         return $ret->[0][0];
+     } 
+    }    
+    warn "  no sql server connect \n";
     my $pid=$Monitor::Singleton->{cid}->{pid};
     my $file ="/tmp/o."."$pid";
     my $fileo ="/tmp/oo."."$pid";
