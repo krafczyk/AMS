@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.26 2005/06/03 16:12:48 choutko Exp $
+//  $Id: main.cxx,v 1.27 2005/12/13 14:09:07 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -34,6 +34,7 @@
 #include <TString.h>
 #ifndef __APPLE__
 #include <TRFIOFile.h>
+#include <TXNetFile.h>
 #endif
 TString * Selector;
 extern void * gAMSUserFunction;
@@ -186,6 +187,7 @@ void OpenChain(TChain & chain, char * filenam){
    if(a.Contains(b)){
 #if !defined(WIN32) && !defined(__APPLE__)
     TRFIOFile f("");
+    TXNetFile g("");
 #endif
     strcpy(filename,filenam);
    }

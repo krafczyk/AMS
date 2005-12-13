@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.23 2005/06/03 16:12:36 choutko Exp $
+#  $Id: Makefile,v 1.24 2005/12/13 14:08:42 choutko Exp $
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 PLATFORM      =  Linux
@@ -41,8 +41,8 @@ NOOPT         = -g
 NOOPTC         = -g
 LD            = g++
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift
+ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift
 LIBS          =  $(ROOTLIBS) -lm -ldl
 LIBSA          =  $(ROOTLIBSA) -lm -ldl
 endif

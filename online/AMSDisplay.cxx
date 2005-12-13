@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.23 2005/10/31 15:10:06 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.24 2005/12/13 14:09:07 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -493,7 +493,7 @@ int  AMSOnDisplay::ReLoad(){
 void AMSOnDisplay::SaveParticleCB()
 {
    char fnam[255];
-   sprintf(fnam, "%s.%s.ps",getCurSubDet()->GetName(),getGrSet());
+   sprintf(fnam, "%s.%s.pdf",getCurSubDet()->GetName(),getGrSet());
    GetCanvas()->SaveAs(fnam);
    GetCanvas()->Update();          // refresh the screen
 }

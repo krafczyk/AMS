@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.9 2005/06/03 10:08:00 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.10 2005/12/13 14:09:07 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSTOFHist.h"
@@ -176,7 +176,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
 
 
     fSaveAsMenu=new TGPopupMenu(fClient->GetRoot());
-    fSaveAsMenu->AddEntry("Save As SubDetector.Set.&ps",1);
+    fSaveAsMenu->AddEntry("Save As SubDetector.Set.&pdf",1);
     fSaveAsMenu->AddEntry("Save As SubDetector.Set.&gif",2);
     fSaveAsMenu->AddSeparator();
     fSaveAsMenu->AddEntry("P&rint",3);

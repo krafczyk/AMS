@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.38 2005/07/18 08:56:25 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.39 2005/12/13 14:08:42 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -632,7 +632,7 @@ void AMSDisplay::DrawEvent()
 
 void AMSDisplay::SaveParticleCB(){
    char fnam[255];
-   sprintf(fnam, "%d.%d.ps",m_ntuple->Run(),m_ntuple->Event());
+   sprintf(fnam, "%d.%d.pdf",m_ntuple->Run(),m_ntuple->Event());
    GetCanvas()->SaveAs(fnam);
    GetCanvas()->Update();          // refresh the screen
 }
@@ -640,7 +640,7 @@ void AMSDisplay::SaveParticleCB(){
 
 void AMSDisplay::SaveParticleGIF(){
    char fnam[255];
-   sprintf(fnam, "%d.%d.gif",m_ntuple->Run(),m_ntuple->Event());
+   sprintf(fnam, "%d.%d.png",m_ntuple->Run(),m_ntuple->Event());
    GetCanvas()->SaveAs(fnam);
    GetCanvas()->Update();          // refresh the screen
 }

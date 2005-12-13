@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.16 2005/06/03 16:12:48 choutko Exp $
+#  $Id: Makefile,v 1.17 2005/12/13 14:09:07 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
@@ -40,7 +40,7 @@ OPTC          = -O0
 NOOPT         = -g
 LD            = g++
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lAfterImage -ljpeg -lpng -ltiff -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift
 
 LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
 LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
