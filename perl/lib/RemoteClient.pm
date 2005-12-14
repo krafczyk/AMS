@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.405 2005/12/08 10:58:32 choutko Exp $
+# $Id: RemoteClient.pm,v 1.406 2005/12/14 13:06:22 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1403,10 +1403,10 @@ sub ValidateRuns {
        } else { #-1
         print "Run,FirstEvent,LastEvent,Submitted,Status...";
         print "$run->{Run},$run->{FirstEvent},$run->{LastEvent},$run->{SubmitTime},$run->{Status} \n";
-    }
+   }
      $sql   = "SELECT run, status FROM runs WHERE run=$run->{Run}";
      $r0 = $self->{sqlserver}->Query($sql);
-
+      
   }
      $sql   = "SELECT count(path)  FROM ntuples WHERE run=$run->{Run}";
      my $r1 = $self->{sqlserver}->Query($sql);
@@ -1414,7 +1414,10 @@ sub ValidateRuns {
       if(defined $status && $status eq 'Completed' && $r1->[0][0]==0){
           $status='UnChecked';
       }
-
+        if(defined $status and $status eq "ToBeRerun"){
+         $sql="update runs set Status=$run->{Status} where WHERE run=$run->{Run}";
+         $self->{sqlserver}->Update($sql);
+         }
 #--     if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") &&
 #--     (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked" && $r0->[0][1] ne "TimeOut"))
      if(($run->{Status} eq "Finished") &&
@@ -8122,7 +8125,7 @@ sub listJobs {
 
     if ($webmode == 1) {
      print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
-     htmlTable("MC02 Jobs (25 latest jobs per cite submitted earlier than 30 days ago)");
+     htmlTable("MC Jobs ( $PrintMaxJobsPerCite  jobs per cite submitted  earlier than 30 days ago and not completed)");
      print_bar($bluebar,3);
     }
 
@@ -8173,7 +8176,7 @@ sub listJobs {
                    $pps  AND
                     Jobs.cid=Cites.cid AND
                      Jobs.mid=Mails.mid
-             ORDER  BY Cites.name, Jobs.jid DESC";
+             ORDER  BY Cites.name,  Jobs.timestamp+jobs.timeout ";
 
     $r3=$self->{sqlserver}->Query($sql);
 
@@ -8241,6 +8244,10 @@ sub listJobs {
                    last;
                }
            }
+                if($status eq 'Completed'){
+                   next;
+                 }
+
             if ($webmode == 1) {
                  print "
                   <td><b><font color=$color> $jid </font></td></b>
