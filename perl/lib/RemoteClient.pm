@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.408 2005/12/16 12:57:16 choutko Exp $
+# $Id: RemoteClient.pm,v 1.409 2005/12/16 13:31:06 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -350,7 +350,7 @@ sub Init{
      'Pentium III'=>1.0,
      'Pentium III Xeon'=>1.05,
      'Pentium IV Xeon'=>0.8,
-     'Pentium IV'=>0.7,
+     'Pentium IV'=>0.8,
      'AMD Duron'=>1.0,
      'AMD Athlon'=>1.15
                    );
@@ -4093,7 +4093,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                   print "<option value=\"$cputype\">$cputype </option>\n";
               }
               print "</select>\n";
-              htmlTextField("CPU clock","number",10,1000,"QCPU"," [MHz]");
+              htmlTextField("CPU clock","number",10,2000,"QCPU"," [MHz]");
               htmlTableEnd();
 # Job Parameters
           print "<tr><td><b><font color=\"blue\">Job Parameters</font><font color=\"black\">
@@ -4221,7 +4221,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
                   print "<option value=\"$cputype\">$cputype </option>\n";
               }
               print "</select>\n";
-              htmlTextField("CPU clock","number",10,1000,"QCPU"," [MHz]");
+              htmlTextField("CPU clock","number",10,2000,"QCPU"," [MHz]");
               htmlTableEnd();
 # Job Parameters
               print "<tr><td><b><font color=\"blue\">Job Parameters</font></b>\n";
@@ -4460,9 +4460,9 @@ DDTAB:          $self->htmlTemplateTable(" ");
               }
               print "</select>\n";
               if ($self->{CCT} eq "remote") {
-               htmlTextField("CPU clock","number",8,100,"QCPU"," [MHz]");
+               htmlTextField("CPU clock","number",8,200,"QCPU"," [MHz]");
               } else {
-               htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");
+               htmlTextField("CPU clock","number",8,2000,"QCPU"," [MHz]");
               }
             htmlTableEnd();
 # Job Parameters
@@ -4470,7 +4470,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
               print "</td><td>\n";
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
               $q->param("QEv",0);
-              htmlTextField("CPU Time Limit Per Job","number",9,86400,"QCPUTime"," seconds (Native).");
+              htmlTextField("CPU Time Limit Per Job","number",9,100000,"QCPUTime"," seconds (Native).");
               htmlTextField("Total Jobs Requested","number",7,5.,"QRun"," ");
                  if($self->{CCT} eq "local"){
    print qq`
@@ -4606,7 +4606,7 @@ print qq`
           print $q->textfield(-name=>"QMomA",-default=>200.);
           print "<BR>";
                 print "Remote Computer Clock (MhZ)";
-          print $q->textfield(-name=>"QCPU",-default=>1000);
+          print $q->textfield(-name=>"QCPU",-default=>2000);
           print "<BR>";
                 print "Total Number of Events ";
           print $q->textfield(-name=>"QEv",-default=>1000000);
@@ -4659,7 +4659,7 @@ print qq`
           print $q->textfield(-name=>"QMomA",-default=>200.);
           print "<BR>";
                 print "Remote Computer Clock (MhZ)";
-          print $q->textfield(-name=>"QCPU",-default=>1000);
+          print $q->textfield(-name=>"QCPU",-default=>2000);
           print "<BR>";
                 print "Total Number of Events ";
           print $q->textfield(-name=>"QEv",-default=>1000000);
@@ -4781,7 +4781,7 @@ print qq`
           -labels=>$hash);
           print "<BR>";
                 print "Remote Computer Clock (MhZ)";
-          print $q->textfield(-name=>"QCPU",-default=>1000);
+          print $q->textfield(-name=>"QCPU",-default=>2000);
           print "<BR>";
                 print "Total Number of Events ";
           print $q->textfield(-name=>"QEv",-default=>1000000);
@@ -5036,13 +5036,17 @@ anyagain:
         }
 
         my $clock=$cput;
-        if($cput > 3000 ){
-            $cput=3000;
+        if($cput > 4000 ){
+            $cput=4000;
         }
+
         my $corr=1.00;
             if (defined $q->param("QCPUType")){
               $corr=$self->{cputypes}->{$q->param("QCPUType")};
             }
+        if($cputime*$cput*$corr < 100000000  and $self->{CCA} ne 'test'){
+             $self->ErrorPlus("CPU Time Limit Per Job $cputime*$cput*$corr/1000 is too low for the AMS02 MC (min 100000 secGHz) ");
+        }
 
         $cput=50+$pmax*1000/$cput/$corr;
         if($cput >7200){
@@ -12136,8 +12140,8 @@ sub calculateMipsVC {
                          if(not defined $ntevt){
                              $ntevt=0;
                          }
-                          if( $ntevt ne $rtrig  ){
-                           warn "  ntuples/run mismatch $r4->[0][0] $rtrig $job->[0] \n";
+                          if( $ntevt ne $rtrig  and $rtrig>0){
+                           warn "  ntuples/run mismatch $ntevt $rtrig $job->[0] \n";
                        }
                          if(defined $rtrig and $ntevt!=$rtrig and $ntevt>0){
                            $sql="select  LEvent from Runs where jid=$job->[0]";
