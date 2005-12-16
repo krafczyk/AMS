@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.32 2005/12/13 16:34:46 choutko Exp $
+//  $Id: timeid.h,v 1.33 2005/12/16 12:30:02 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 #include <time.h>
@@ -38,6 +38,7 @@ void _init(){};
 static void _InitTable();
 static uinteger * _Table;
 void _convert(uinteger *pdata, integer nw);
+time_t _stat_adv(const char * dir);
 void _fillDB(const char * dir,int reenter, bool force=false);
 void _fillDBaux();
 integer _getDBRecord(time_t & time, int & index);

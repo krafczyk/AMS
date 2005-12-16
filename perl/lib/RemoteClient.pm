@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.406 2005/12/14 13:06:22 choutko Exp $
+# $Id: RemoteClient.pm,v 1.407 2005/12/16 12:30:07 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1414,8 +1414,8 @@ sub ValidateRuns {
       if(defined $status && $status eq 'Completed' && $r1->[0][0]==0){
           $status='UnChecked';
       }
-        if(defined $status and $status eq "ToBeRerun"){
-         $sql="update runs set Status=$run->{Status} where WHERE run=$run->{Run}";
+        if(defined $status and $status eq "ToBeRerun" and $status ne $run->{Status}){
+         $sql="update runs set Status='$run->{Status}'  WHERE run=$run->{Run}";
          $self->{sqlserver}->Update($sql);
          }
 #--     if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") &&
@@ -5266,11 +5266,16 @@ anyagain:
         my $dbversion=$dataset->{version};
         my $i=system "mkdir -p $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.dat $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/\*.dat";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/t* $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/t\*";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/T* $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/T\*";
        if($dbversion=~/v4/){
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/ri* $self->{UploadsDir}/$dbversion";
+           unlink "$self->{AMSDataDir}/$dbversion/ri\*";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.flux $self->{UploadsDir}/$dbversion";
+        unlink "$self->{AMSDataDir}/$dbversion/\*.flux";
        }
         $i=system "tar -C$self->{UploadsDir} -h -cf $filen $dbversion 1>/dev/null 2>&1";
         if($i){
@@ -7833,6 +7838,7 @@ sub listCites {
           $jobsa = $jobs - $jobsf - $jobsc;
        }
           if ($webmode == 1) {
+           if($starttime     ne "---"){
            print "<tr><font size=\"2\">\n";
            print "<td><b> $descr ($name) </td>
                  <td><b> $status </td>
@@ -7843,6 +7849,7 @@ sub listCites {
                  <td><b> $endtime </b></td>
                  \n";
            print "</font></tr><p></p>\n";
+           }
           }
       }
   }
@@ -8028,9 +8035,11 @@ sub listMails {
           my $resp   = 'no';
           if ($mail->[2] == 1) { $resp = 'yes';}
           if ($webmode == 1) {
+           if($req>0){
            print "<tr><font size=\"2\">\n";
            print "<td><b> $cite </td><td><b> $name </b></td><td><b> [$email] </td><td><b> $resp </td><td><b> $req </b></td><td><b> $status </b></td>\n";
            print "</font></tr>\n";
+           }
        }
       }
   }

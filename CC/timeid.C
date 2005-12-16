@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.84 2005/12/13 16:34:39 choutko Exp $
+//  $Id: timeid.C,v 1.85 2005/12/16 12:29:55 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -470,6 +470,37 @@ void AMSTimeID::rereaddb(bool force){
       _fillDB((const char*)AMSDBc::amsdatabase,0,force); 
 }
 
+time_t AMSTimeID::_stat_adv(const char *dir){
+    struct stat statbuf_dir;
+    time_t tm=0;
+    if(stat (dir,&statbuf_dir)){
+     time(&tm);
+     return tm;
+    } 
+    if(statbuf_dir.st_mtime>tm){
+      tm=statbuf_dir.st_mtime;
+    }
+      dirent ** namelistsubdir;
+      int nptrdir=scandir(dir,&namelistsubdir,NULL,NULL);
+      for(int is=0;is<nptrdir;is++){
+       AString fsdir(dir);
+       fsdir+=namelistsubdir[is]->d_name;
+       if(namelistsubdir[is]->d_name[0]!= '.' && !stat ((const char*)fsdir,&statbuf_dir)){
+        if(S_ISDIR(statbuf_dir.st_mode)){
+//          cout <<"  dirs "<<fsdir<<endl;
+         if(statbuf_dir.st_mtime>tm){
+          tm=statbuf_dir.st_mtime;
+         }
+        
+        }
+       }
+        free( namelistsubdir[is]);
+      }
+      if(nptrdir>0){
+        free (namelistsubdir);
+      }
+      return tm;
+}
 void AMSTimeID::_fillDB(const char *dir, int reenter, bool force){
 int everythingok=1;
 int i;
@@ -484,10 +515,14 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
     fmap+=getid()==0?".0.map":".1.map";
     fstream fbin;
     struct stat statbuf_map;
-    struct stat statbuf_dir;
+//    struct stat statbuf_dir;
+    time_t mtime=_stat_adv((const char*)fdir);
+//    cout <<"  fdir "<<fdir<<" " <<mtime<<endl;
+//    if((!stat((const char *)fmap,&statbuf_map) && 
+//        !stat((const char *)fdir,&statbuf_dir) &&
+//              statbuf_dir.st_mtime < statbuf_map.st_mtime) && !force ){
     if((!stat((const char *)fmap,&statbuf_map) && 
-        !stat((const char *)fdir,&statbuf_dir) &&
-              statbuf_dir.st_mtime < statbuf_map.st_mtime) && !force ){
+              mtime < statbuf_map.st_mtime) && !force ){
        fbin.open(fmap,ios::in);
        if(fbin){
          fbin>>_DataBaseSize;
