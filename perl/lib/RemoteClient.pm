@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.409 2005/12/16 13:31:06 choutko Exp $
+# $Id: RemoteClient.pm,v 1.410 2005/12/16 13:45:31 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5688,9 +5688,9 @@ anyagain:
              }
          }
 #change file size
-         $tmpb=~ s/168=900000000//;
+         $tmpb=~ s/168=500000000//;
          $tmpb=~ s/168=120000000//;
-         $tmpb=~ s/126=50000/126=99999/;
+         $tmpb=~ s/126=50000/126=199999/;
          print FILE $tmpb;
          if($self->{CCT} eq "local"){
              print FILE 'rm  /tmp/gbatch-orbit.exe.$RUN'."\n";
