@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.407 2005/12/16 12:30:07 choutko Exp $
+# $Id: RemoteClient.pm,v 1.408 2005/12/16 12:57:16 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4470,7 +4470,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
               print "</td><td>\n";
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
               $q->param("QEv",0);
-              htmlTextField("CPU Time Limit Per Job","number",9,80000,"QCPUTime"," seconds (Native).");
+              htmlTextField("CPU Time Limit Per Job","number",9,86400,"QCPUTime"," seconds (Native).");
               htmlTextField("Total Jobs Requested","number",7,5.,"QRun"," ");
                  if($self->{CCT} eq "local"){
    print qq`
@@ -4686,7 +4686,7 @@ print qq`
           print "<BR>";
    print qq`
 <INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 168=120000000 2=" $defNTUPLE>Ntuple
-<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=500000000 127=2 128=" $defROOT>RootFile<BR>
+<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=900000000 127=2 128=" $defROOT>RootFile<BR>
 `;
                 print "Root/Ntuple Write Mode ";
           print "<BR>";
@@ -5027,9 +5027,14 @@ anyagain:
         if(not $cput =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/){
              $self->ErrorPlus("Computer Clock $cput  is not a  number ");
         }
-        if($cput < 300 ){
-             $self->ErrorPlus("Computer Clock $cput  is too low for the AMS02 MC ");
+        if($cput < 600 ){
+             $self->ErrorPlus("Computer Clock $cput  is too low for the AMS02 MC (min 600)");
         }
+         my $cputime=$q->param("QCPUTime");
+        if($cputime < 86400  and $self->{CCA} ne 'test'){
+             $self->ErrorPlus("CPU Time Limit Per Job $cputime is too low for the AMS02 MC (min 86400 sec) ");
+        }
+
         my $clock=$cput;
         if($cput > 3000 ){
             $cput=3000;
@@ -5679,7 +5684,7 @@ anyagain:
              }
          }
 #change file size
-         $tmpb=~ s/168=500000000//;
+         $tmpb=~ s/168=900000000//;
          $tmpb=~ s/168=120000000//;
          $tmpb=~ s/126=50000/126=99999/;
          print FILE $tmpb;
@@ -10659,7 +10664,7 @@ sub printJobParamFormatDST {
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=500000000 127=2 128=\" $defROOT><b> RootFile </b><BR>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=900000000 127=2 128=\" $defROOT><b> RootFile </b><BR>\n";
             print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000000 2=\" $defNTUPLE><b> NTUPLE </b>\n";
             print "</b></font></td></tr>\n";
            htmlTableEnd();
