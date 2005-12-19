@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: checkfs.cgi,v 1.2 2005/10/27 12:54:17 choutko Exp $
+#  $Id: checkfs.cgi,v 1.3 2005/12/19 10:22:44 ams Exp $
 #use Gtk;
 use strict;
 
@@ -23,7 +23,7 @@ my $html=new RemoteClient(1);
 #get number of used hosts for each site
 
  my $ok=$html->ConnectOnlyDB();
-    $ok=$html->CheckFS(0);
+    $ok=$html->CheckFS(1);
 
  
 #work

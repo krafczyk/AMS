@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.410 2005/12/16 13:45:31 choutko Exp $
+# $Id: RemoteClient.pm,v 1.411 2005/12/19 10:22:47 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1840,7 +1840,7 @@ my $fevt=-1;
 
 if($delete){
     foreach my $run (@{$self->{dbserver}->{rtb}}){
-           if($run->{Status} eq 'Finished'){
+           if($run->{Status} eq 'Finished' or $run->{Status} eq 'Foreign'){
                my $sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=$run->{Run}";
                my $ret=$self->{sqlserver}->Query($sql);
                if(defined $ret->[0][0]){
