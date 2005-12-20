@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.411 2005/12/19 10:22:47 ams Exp $
+# $Id: RemoteClient.pm,v 1.412 2005/12/20 16:50:43 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -114,7 +114,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks UploadToCastor GroupRuns);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks UploadToCastor GroupRuns);
 
 # debugging
 my $benchmarking = 0;
@@ -1840,7 +1840,7 @@ my $fevt=-1;
 
 if($delete){
     foreach my $run (@{$self->{dbserver}->{rtb}}){
-           if($run->{Status} eq 'Finished' or $run->{Status} eq 'Foreign'){
+           if($run->{Status} eq 'Finished' or $run->{Status} eq 'Foreign' or $run->{Status} eq 'Canceled'){
                my $sql=" select ntuples.path from ntuples,runs where ntuples.run=runs.run and runs.status='Completed' and runs.jid=$run->{Run}";
                my $ret=$self->{sqlserver}->Query($sql);
                if(defined $ret->[0][0]){
@@ -8187,14 +8187,14 @@ sub listJobs {
                  Jobs.time, Jobs.timeout,
                  Jobs.triggers,
                  Cites.cid, Cites.name, Cites.descr,
-                 Mails.name
+                 Mails.name,jobs.timekill
            FROM   Jobs, Cites, Mails
             WHERE
                   Jobs.timestamp > $timelate AND
                    $pps  AND
                     Jobs.cid=Cites.cid AND
                      Jobs.mid=Mails.mid
-             ORDER  BY Cites.name,  Jobs.timestamp+jobs.timeout ";
+             ORDER  BY Cites.name,  jobs.timekill desc, Jobs.timestamp+jobs.timeout ";
 
     $r3=$self->{sqlserver}->Query($sql);
 
@@ -8212,7 +8212,9 @@ sub listJobs {
           my $texpire = 0;
           if (defined $job->[2]) { $texpire = $job->[2]};
           if (defined $job->[3]) {$texpire  += $job->[3]};
-
+          if($job->[9]>0){
+             $texpire=$job->[9];
+          }
           my $expiretime= EpochToDDMMYYHHMMSS($texpire);
           my $trig      = $job->[4];
           my $cid       = $job->[5];
@@ -8265,6 +8267,10 @@ sub listJobs {
                 if($status eq 'Completed'){
                    next;
                  }
+                elsif($status eq "Submitted" and $job->[9] >0 ) {
+                  $status='TimeOut';
+                  $color  = statusColor($status);
+                }
 
             if ($webmode == 1) {
                  print "
@@ -13907,6 +13913,7 @@ sub CheckFS{
            my $self=shift; 
            my $updatedb=shift;  
            my $cachetime=shift;
+           my $vrb=shift;
            if(not defined $cachetime){
              $cachetime=60;
            }
@@ -13924,6 +13931,9 @@ sub CheckFS{
                my $stf="$fs->[0].o";
                $stf=~s/\///g;
                $stf="/tmp/$stf";
+               if(defined $vrb and $vrb eq 1){
+               print " $stf \n";
+               }
                system("ls $fs->[0] 1>$stf 2>&1 &");
                sleep (1);
                my @stat =stat("$stf");
@@ -14394,6 +14404,8 @@ sub UploadToDisks{
        }
 }
 
+
+
 sub RemoveFromDisks{
 #
 # check castor files compare them with local ones
@@ -14570,6 +14582,11 @@ sub RemoveFromDisks{
     print "Total Of $runs Selected.  Total Of $bad_runs  Failed \n";
 
 }
+
+
+
+
+
 sub GroupRuns{
 #
 # Ensures all ntuples from single run reside in the same directory
