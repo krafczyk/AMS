@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.412 2005/12/20 16:50:43 choutko Exp $
+# $Id: RemoteClient.pm,v 1.413 2005/12/20 17:05:47 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14286,7 +14286,7 @@ sub UploadToDisks{
         }
         return 0;
     }
-    $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '$castorPrefix/%$dir%'";
+    $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '$castorPrefix%$dir%'";
    $ret =$self->{sqlserver}->Query($sql);
     foreach my $run (@{$ret}){
        my $timenow = time();
@@ -14305,7 +14305,7 @@ sub UploadToDisks{
        $bad_runs++;  
        next;
       }
-       $sql="select path,crc from ntuples where  run=$run->[0] and path like '$castorPrefix/$dir%' and castortime>0 "; 
+       $sql="select path,crc from ntuples where  run=$run->[0] and path like '$castorPrefix%$dir%' and castortime>0 "; 
        $ret_nt =$self->{sqlserver}->Query($sql);
        my $disk=undef;
         my $dir=undef;
