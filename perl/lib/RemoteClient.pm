@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.413 2005/12/20 17:05:47 choutko Exp $
+# $Id: RemoteClient.pm,v 1.414 2005/12/20 19:13:21 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13997,6 +13997,8 @@ offline:
                $self->{sqlserver}->Update($sql);
              }
             }
+             $self->{sqlserver}->Commit();
+
           $sql="select disk from filesystems where isonline=1 and status='Active' order by available desc";
            $ret=$self->{sqlserver}->Query($sql);
            return $ret->[0][0];
@@ -14604,6 +14606,7 @@ sub GroupRuns{
     my @path=();
      my @disk=();
       my $tots=0;
+      print " $#{$ret_nt} ntuples to check \n";
     foreach my $ntuple (@{$ret_nt}){
      if($runo ne $ntuple->[2]){
 #     new run 
