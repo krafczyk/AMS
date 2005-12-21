@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.414 2005/12/20 19:13:21 choutko Exp $
+# $Id: RemoteClient.pm,v 1.415 2005/12/21 10:36:56 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4279,7 +4279,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
            htmlTableEnd();
          }
 
-            $self->printJobParamTransferDST();
+#            $self->printJobParamTransferDST();
 
 # Script Custom/Generic
              print "<tr><td><b><font color=\"green\">Script  </font></b>\n";
@@ -4330,11 +4330,11 @@ DDTAB:         $self->htmlTemplateTable(" ");
             print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZL\"> (cm)</td>\n";
             print "</b></font></tr>\n";
             print "<tr><td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Max : X : <input type=\"number\" size=5 value=-195 name=\"QXU\"></td>\n";
+            print "<b> Max : X : <input type=\"number\" size=5 value=195 name=\"QXU\"></td>\n";
             print "<td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYU\"></td>\n";
+            print "<b> Y : <input type=\"number\" size=5 value=195 name=\"QYU\"></td>\n";
             print "<td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZU\"> (cm)</td>\n";
+            print "<b> Z : <input type=\"number\" size=5 value=195 name=\"QZU\"> (cm)</td>\n";
             print "</b></font></tr>\n";
             htmlTextField("Cos Theta Max ","number",5,0.25,"QCos"," ");
             @keysa=sort keys %{$ts->{planes}};
@@ -5206,6 +5206,26 @@ anyagain:
         if( not defined $ret->[0][0]){
             $self->ErrorPlus("unable to retreive gbatch name from db");
         }
+    if(not defined $dataset){
+        my $setup=$q->param("QSetup");
+        if(defined $setup){
+        if($setup =~/AMS02/){
+            $dataset->{version}='v4.00';
+        }
+        elsif($setup =~/AMSSHUTTLE/){
+            $dataset->{version}='v3.00';
+        }
+    }
+        else{
+         my $setup=$q->param("QTemp");
+         if($setup =~/mc02/){
+            $dataset->{version}='v4.00';
+        }
+        elsif($setup =~/mc01/){
+            $dataset->{version}='v3.00';
+        }
+        }
+    }
         my $gbatch=$ret->[0][0].".$dataset->{version}";
         my @stag=stat "$self->{AMSSoftwareDir}/$gbatch";
         if($#stag<0){
@@ -5736,7 +5756,7 @@ anyagain:
  $ret=$self->{sqlserver}->Query($sql);
 }
 
-
+            
             $insertjobsql="INSERT INTO Jobs VALUES
                              ($run,
                               '$script',
@@ -5751,8 +5771,9 @@ anyagain:
                               '$nickname',
                                'host',0,0,0,0,'$stalone',
                               -1, $pid,-1,0)";
-
-         $self->{sqlserver}->Update($insertjobsql);
+         if($pid>0){          
+           $self->{sqlserver}->Update($insertjobsql);
+         }
 #         $self->{sqlserver}->Update($sql);
 #
 #creat corresponding runevinfo
@@ -5833,7 +5854,7 @@ anynext:
 # Add files to server
 #
         if(defined $self->{dbserver} ){
-            if($self->{dwldaddon}==0){
+            if($self->{dwldaddon}==0 ){
             foreach my $ri (@{$self->{Runs}}){
               DBServer::sendRunEvInfo($self->{dbserver},$ri,"Create");
            }
