@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.416 2005/12/21 13:22:32 choutko Exp $
+# $Id: RemoteClient.pm,v 1.417 2006/01/12 12:33:13 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1414,7 +1414,7 @@ sub ValidateRuns {
       if(defined $status && $status eq 'Completed' && $r1->[0][0]==0){
           $status='UnChecked';
       }
-        if(defined $status and $status eq "ToBeRerun" and $status ne $run->{Status}){
+        if(defined $status and $status ne "Completed" and $status ne $run->{Status}){
          $sql="update runs set Status='$run->{Status}'  WHERE run=$run->{Run}";
          $self->{sqlserver}->Update($sql);
          }
@@ -5481,7 +5481,7 @@ anyagain:
          print FILE  $self->{tsyntax}->{headers}->{readmecorba};
         }
         my $sql = "SELECT dirpath FROM journals WHERE cid=$self->{CCID}";
-        my $note='please contact alexei.klimentov@cern.ch for details';
+        my $note='please contact vitali.choutko@cern.ch for details';
         my $ret = $self->{sqlserver}->Query($sql);
 
         if (defined $ret->[0][0]) {
@@ -5892,7 +5892,7 @@ anynext:
                    $message=$self->{tsyntax}->{headers}->{readmecorba};
                  }
         $sql = "SELECT dirpath FROM journals WHERE cid=$self->{CCID}";
-        my $note='please contact alexei.klimentov@cern.ch for details';
+        my $note='please contact vitali.choutko@cern.ch for details';
         $ret = $self->{sqlserver}->Query($sql);
 
         if (defined $ret->[0][0]) {
@@ -6499,10 +6499,10 @@ sub htmlAMSHeader {
 
 sub htmlMCWelcome {
    print "<font size=\"3\"><TR><TD><b>\n";
-   print " This is an interface to the AMS MC02 Remote/Client Database </TD></TR> \n";
-   print "<TR><TD> \n";
-   print "All comments (to <font color=\"green\"> alexei.klimentov\@cern.ch, vitali.choutko\@cern.ch </font>) appreciated (items in <font color=\"tomato\"> tomato </font> are not implemented yet). Basic query keys are
-in <font color=\"green\"> green </font>, advanced query keys are in <font color=\"blue\"> blue.</TD></TR>\n";
+   print " This is an interface to the AMS MC02 Remote/Client Database. </TD></TR> \n";
+   print "<BR>";
+   print "All comments (to <font color=\"green\">  vitali.choutko\@cern.ch </font>) appreciated. 
+</TD></TR>\n";
    print "</ul>\n";
    print "<font size=\"2\" color=\"black\">\n";
    print "<li> Catalogues are updated nightly.\n";
@@ -7286,7 +7286,7 @@ sub queryDB {
   print "<font size=\"3\"><TR><TD><b>\n";
   print " This is an interface to the AMS MC02 Remote/Client Database </TD></TR> \n";
   print "<TR><TD> \n";
-  print "All comments (to <font color=\"green\"> alexei.klimentov\@cern.ch, vitali.choutko\@cern.ch </font>) appreciated. </TD></TR>\n";
+  print "All comments (to <font color=\"green\">  vitali.choutko\@cern.ch </font>) appreciated. </TD></TR>\n";
   print "</ul>\n";
   print "<font size=\"2\">\n";
   print "<li> Catalogues are updated nightly.\n";
@@ -8858,7 +8858,7 @@ sub statusColor {
     elsif ($status eq "Success") {
         $color  = "green";
     }
-    elsif ($status eq "Foreign" or $status eq "Reserved") {
+    elsif ($status eq "Foreign" or $status eq "Reserved" or $status eq "ToBeRerun" ) {
                $color = "black";
     }
     elsif ($status eq "Processing" or $status eq "Full") {
@@ -8867,7 +8867,7 @@ sub statusColor {
     elsif ($status eq "Active") {
                $color = "green";
     }
-    elsif ($status eq "Dead" or $status eq "Unknown" or $status eq "ToBeRerun" ) {
+    elsif ($status eq "Dead" or $status eq "Unknown"  ) {
                $color = "magenta";
     }
     return $color;
@@ -9443,7 +9443,7 @@ foreach my $block (@blocks) {
        $runfinishedR   = 1;
           my @jj = split ".journal",$joufile;
           $jobid = $jj[0];
-          my $mailto = "vitali.choutko\@cern.ch,alexei.klimentov\@cern.ch";
+          my $mailto = "vitali.choutko\@cern.ch";
           my $subject = "RunIncomplet : ".$inputfile;
           my $text    = " Program found RunIncomplete status in ".
                          $inputfile." file. ".
