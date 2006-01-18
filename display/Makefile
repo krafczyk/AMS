@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.24 2005/12/13 14:08:42 choutko Exp $
+#  $Id: Makefile,v 1.25 2006/01/18 13:16:53 choutko Exp $
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 PLATFORM      =  Linux
@@ -28,10 +28,10 @@ NOOPT         = -g
 NOOPTC         = -g
 LD            = /opt/intel/compiler80/bin/icc
 LDFLAGS       = 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift
-LIBS          =  $(ROOTLIBS) -lm -ldl
-LIBSA          =  $(ROOTLIBSA) -lm -ldl
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift -lpcre
+ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift -lpcre
+LIBS          =  $(ROOTLIBS) -lm -ldl 
+LIBSA          =  $(ROOTLIBSA) -lm -ldl 
 else
 CXX           =  g++ -Wno-deprecated
 CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
@@ -41,8 +41,8 @@ NOOPT         = -g
 NOOPTC         = -g
 LD            = g++
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift
-ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift -lpcre -lXrdClient -lXrd -lXrdOuc -lXrdNet
+ROOTLIBSA      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lAfterImage -ljpeg -lpng -ltiff -lcrypt -lcrypto -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9adda) -lshift -lpcre  -lXrdClient -lXrd -lXrdOuc -lXrdNet
 LIBS          =  $(ROOTLIBS) -lm -ldl
 LIBSA          =  $(ROOTLIBSA) -lm -ldl
 endif
