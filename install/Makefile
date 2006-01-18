@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.30 2005/11/25 15:31:04 choutko Exp $
+#  $Id: Makefile,v 1.31 2006/01/18 13:18:08 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -69,7 +69,7 @@ SCC=../CC/
 # rl add SFF so it can be used in the default compile rules
 SFF = ../F/
 
-ROOTLIBS      = -L$(ROOTSYS)/lib  -lRoot
+ROOTLIBS      = -L$(ROOTSYS)/lib  -lRoot 
 
 CPPFLAGS=      -D__BATCH__     -D__WRITEROOT__ -D__ROOTPOINTERS__ 
 INCPATHS= -I../include -I$(CERNDIR)/include -I$(ROOTSYS)/include

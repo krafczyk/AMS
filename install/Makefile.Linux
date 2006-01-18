@@ -184,14 +184,14 @@ LDFLAGSI=    -static  \
 -L$(CERNDIR)/lib     $(CERNLIBS) -lpawlib -llapack3 -lblas -lgraflib  -lgrafX11 $(CERNLIBS)  \
 -L$(ROOTSYS)/lib -lRoot \
  -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
--lcrypt -lcrypto -ldl   \
+-lcrypt -lcrypto -ldl -lpcre   \
  $(FORTRAN_LIBS) $(RH9add)
 
 LDFLAGS=       \
 -L$(NAGDIR) -lnag   \
 -L$(AMSLIB)  -lamsut   \
 -L$(CERNDIR)/lib   $(CERNLIBS) \
--L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl \
+-L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl -lpcre\
 $(FORTRAN_LIBS)  $(PFLAGS) 
 
 LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add)
@@ -212,7 +212,7 @@ TIMEL=
 LDFLAGSIDL=    -pthread -lORBit-2-cpp  
 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
--lgmodule-2.0 -ldl -lglib-2.0 -lORBit-imodule-2  -lnsl \
+-lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  -lnsl \
 /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
 
 CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/usr/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/include/orbitcpp-2.0 -I$(BIN)
