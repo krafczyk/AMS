@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.97 2005/12/01 17:38:38 choutko Exp $
+//  $Id: producer.C,v 1.98 2006/01/23 17:09:01 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -211,6 +211,7 @@ if (_Solo){
     //SELECTFFKEY.Event=_reinfo->FirstEvent;
     SELECTFFKEY.RunE=_reinfo->Run;
     //SELECTFFKEY.EventE=_reinfo->LastEvent;    
+    _cinfo.Mips=AMSCommonsI::getmips();
     _cinfo.EventsProcessed=0;
     _cinfo.ErrorsFound=0;
     _cinfo.Status=DPS::Producer::Processing;
@@ -249,6 +250,7 @@ again:
     //SELECTFFKEY.Event=_reinfo->FirstEvent;
     SELECTFFKEY.RunE=_reinfo->Run;
     //SELECTFFKEY.EventE=_reinfo->LastEvent;    
+    _cinfo.Mips=AMSCommonsI::getmips();
     _cinfo.EventsProcessed=0;
     _cinfo.ErrorsFound=0;
     _cinfo.Status=DPS::Producer::Processing;

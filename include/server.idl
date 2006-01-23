@@ -153,6 +153,8 @@ module DPS{
       long ErrorsFound;
       float CPUTimeSpent;
       float TimeSpent;
+      float Mips;
+      float CPUMipsTimeSpent;
       RunStatus Status;
       string HostName;
     }; 

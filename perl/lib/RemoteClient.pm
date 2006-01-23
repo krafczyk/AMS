@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.417 2006/01/12 12:33:13 ams Exp $
+# $Id: RemoteClient.pm,v 1.418 2006/01/23 17:09:07 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1453,11 +1453,16 @@ sub ValidateRuns {
 #
 # remote job
 #            update jobinfo first
+           my $mips  = $run->{cinfo}->{Mips};
            my $events  = $run->{cinfo}->{EventsProcessed};
            my $errors  = $run->{cinfo}->{CriticalErrorsFound};
            my $cputime = sprintf("%.2f",$run->{cinfo}->{CPUTimeSpent});
            my $elapsed = sprintf("%.2f",$run->{cinfo}->{TimeSpent});
            my $host    = $self->gethostname($run->{cinfo}->{HostName});
+           if($mips<=0){
+               print "  Mips Problem $mips $run->{cinfo}->{HostName} \n";
+               $mips=1000;
+           }
            if ($events == 0 && $errors == 0 && $run->{Status} eq 'Finished') {
                if ($webmode == 0 && $verbose == 1) {
                 print "Run ... $run->{Run}, Status ... $run->{Status}, Events... $events, Errors... $errors \n";
@@ -1475,7 +1480,7 @@ sub ValidateRuns {
                                      CPUTIME=$cputime,
                                      ELAPSED=$elapsed,
                                      HOST='$host',
-                                     MIPS=(SELECT mips FROM cern_hosts WHERE  cern_hosts.host LIKE '$host%'),
+                                     MIPS=$mips,
                                      TIMESTAMP=$timenow
                             WHERE JID = $run->{Run}";
           $self->{sqlserver}->Update($sql);
@@ -7791,20 +7796,20 @@ sub listCites {
      my $r3=$self->{sqlserver}->Query($sql);
         if ($webmode == 1) {
               print "<td><b><font color=\"blue\">Cite </font></b></td>";
-              print "<td><b><font color=\"blue\" >Cite</font></b></td>";
-              print "<td><b><font color=\"blue\" >Jobs</font></b></td>";
-              print "<td><b><font color=\"blue\" >Jobs</font></b></td>";
-              print "<td><b><font color=\"blue\" >Jobs</font></b></td>";
-              print "<td><b><font color=\"blue\" >Last Job</font></b></td>";
-              print "<td><b><font color=\"blue\" >Last Job</font></b></td>";
+              print "<td><b><font color=\"blue\" >CPU </font></b></td>";
+              print "<td><b><font color=\"blue\" >Jobs </font></b></td>";
+              print "<td><b><font color=\"blue\" >Jobs </font></b></td>";
+              print "<td><b><font color=\"blue\" >Jobs </font></b></td>";
+              print "<td><b><font color=\"blue\" >LastJob </font></b></td>";
+              print "<td><b><font color=\"blue\" >LastJob </font></b></td>";
               print "<tr>\n";
               print "<td><b><font color=\"blue\">   </font></b></td>";
-              print "<td><b><font color=\"blue\" >Type  </font></b></td>";
-              print "<td><b><font color=\"blue\" >Act.</font></b></td>";
+              print "<td><b><font color=\"blue\" >DaysSpent  </font></b></td>";
+              print "<td><b><font color=\"blue\" >Active</font></b></td>";
               print "<td><b><font color=\"blue\" >Ends</font></b></td>";
               print "<td><b><font color=\"blue\" >Failed</font></b></td>";
-              print "<td><b><font color=\"blue\" >Start Time</font></b></td>";
-              print "<td><b><font color=\"blue\" >End Time</font></b></td>";
+              print "<td><b><font color=\"blue\" >StartTime</font></b></td>";
+              print "<td><b><font color=\"blue\" >EndTime</font></b></td>";
               print "<tr>\n";
               print_bar($bluebar,3);
           }
@@ -7814,7 +7819,10 @@ sub listCites {
           my $descr  = $cite->[1];
           my $name   = $cite->[2];
           my $status = $cite->[3];
-
+          
+          $sql="select sum(cputime*mips/1000/86400) from jobs,productionset where jobs.mips>0 and jobs.cid=$cid and productionset.status='Active' and jobs.pid=productionset.did";
+           my $ans=$self->{sqlserver}->Query($sql); 
+           $status=int($ans->[0][0]*10)/10;
           my $r4 = undef;
 
           my $laststarttime = 0;     # latest job start time
@@ -7867,9 +7875,10 @@ sub listCites {
           $endtime = EpochToDDMMYYHHMMSS($lastendtime);
           $jobsa = $jobs - $jobsf - $jobsc;
        }
+           
           if ($webmode == 1) {
            if($starttime     ne "---"){
-           print "<tr><font size=\"2\">\n";
+           print "<tr><font size=\"1\">\n";
            print "<td><b> $descr ($name) </td>
                  <td><b> $status </td>
                  <td><b> $jobsa </td></b>
