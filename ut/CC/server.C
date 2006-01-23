@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.128 2005/12/13 16:34:39 choutko Exp $
+//  $Id: server.C,v 1.129 2006/01/23 20:00:54 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3121,7 +3121,14 @@ void Producer_impl::sendRunEvInfo(const  DPS::Producer::RunEvInfo & ne, DPS::Cli
  switch (rc){
  case DPS::Client::Update:
   if(li==_rl.end())_parent->EMessage(AMSClient::print(ne,"RunEv not found for editing"));
-  else *li=new DPS::Producer::RunEvInfo(ne);
+  else {
+    DPS::Producer::RunEvInfo * pinfo=new DPS::Producer::RunEvInfo(ne);
+    (pinfo->cinfo).CPUMipsTimeSpent=((*li)->cinfo).CPUMipsTimeSpent;
+    (pinfo->cinfo).EventsProcessed=((*li)->cinfo).EventsProcessed;
+(pinfo->cinfo).CriticalErrorsFound=((*li)->cinfo).CriticalErrorsFound;
+(pinfo->cinfo).ErrorsFound=((*li)->cinfo).ErrorsFound;
+   *li=pinfo;
+  }
   break;
  case DPS::Client::Delete:
   if(li==_rl.end())_parent->EMessage(AMSClient::print(ne,"runEv not found for deleting"));
@@ -3134,6 +3141,11 @@ void Producer_impl::sendRunEvInfo(const  DPS::Producer::RunEvInfo & ne, DPS::Cli
   else {
    _RunID++;
    DPS::Producer::RunEvInfo_var rv=new DPS::Producer::RunEvInfo(ne);
+    (rv->cinfo).CPUMipsTimeSpent=0;
+(rv->cinfo).EventsProcessed=0;
+(rv->cinfo).CriticalErrorsFound=0;
+(rv->cinfo).ErrorsFound=0;
+
   _rl.push_back(rv); 
   }
   break;
