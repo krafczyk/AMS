@@ -1,4 +1,4 @@
-//  $Id: producer.h,v 1.20 2005/11/25 15:31:00 choutko Exp $
+//  $Id: producer.h,v 1.21 2006/01/23 21:56:03 choutko Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__
@@ -20,6 +20,7 @@ bool _Local;
 bool _Solo;
 bool _RemoteDST;
 bool _Transfer;
+float _CPUMipsTimeSpent;
 DPS::Producer::CurrentInfo _cinfo;
 DPS::Producer::DST   _ntend[2];  // 0 - ntuple 1 -root
 DPS::Producer::DST   _evtag;

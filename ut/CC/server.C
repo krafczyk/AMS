@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.129 2006/01/23 20:00:54 choutko Exp $
+//  $Id: server.C,v 1.130 2006/01/23 21:56:02 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -3128,6 +3128,7 @@ void Producer_impl::sendRunEvInfo(const  DPS::Producer::RunEvInfo & ne, DPS::Cli
 (pinfo->cinfo).CriticalErrorsFound=((*li)->cinfo).CriticalErrorsFound;
 (pinfo->cinfo).ErrorsFound=((*li)->cinfo).ErrorsFound;
    *li=pinfo;
+   cout <<"  replaCING run with "<< (pinfo->cinfo).EventsProcessed<<endl;
   }
   break;
  case DPS::Client::Delete:
@@ -3218,6 +3219,7 @@ if(li !=_rl.end()){
    DPS::Producer::RunEvInfo_var rv=*li; 
    rv->cinfo=ci;
    rv->Status=ci.Status;
+   (*li)->cinfo=ci;
     if(ci.Status ==DPS::Producer::Finished || ci.Status==DPS::Producer::Failed){
 //  lets check it is finished normally
      if(!_parent->IsMC() && rv->LastEvent && rv->LastEvent != ci.LastEventProcessed){

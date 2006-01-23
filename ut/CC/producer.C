@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.98 2006/01/23 17:09:01 choutko Exp $
+//  $Id: producer.C,v 1.99 2006/01/23 21:56:02 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -216,6 +216,8 @@ if (_Solo){
     _cinfo.ErrorsFound=0;
     _cinfo.Status=DPS::Producer::Processing;
     _cinfo.CPUTimeSpent=0;
+    _cinfo.CPUMipsTimeSpent=0;
+    _CPUMipsTimeSpent=0;
     _cinfo.TimeSpent=0;
     _cinfo.HostName=_pid.HostName; 
     _cinfo.Run=_reinfo->Run;
@@ -251,10 +253,14 @@ again:
     SELECTFFKEY.RunE=_reinfo->Run;
     //SELECTFFKEY.EventE=_reinfo->LastEvent;    
     _cinfo.Mips=AMSCommonsI::getmips();
-    _cinfo.EventsProcessed=0;
-    _cinfo.ErrorsFound=0;
+    _cinfo.EventsProcessed=(_reinfo->cinfo).EventsProcessed;
+    _cinfo.ErrorsFound=(_reinfo->cinfo).ErrorsFound;
+    _cinfo.CriticalErrorsFound=(_reinfo->cinfo).CriticalErrorsFound;
     _cinfo.Status=DPS::Producer::Processing;
     _cinfo.CPUTimeSpent=0;
+    _cinfo.CPUMipsTimeSpent=(_reinfo->cinfo).CPUMipsTimeSpent;
+    _CPUMipsTimeSpent=_cinfo.CPUMipsTimeSpent;
+    cout << "  _cinfo CPUMIPS "<<_cinfo.CPUMipsTimeSpent<<" "<<_cinfo.EventsProcessed<<endl;
     _cinfo.TimeSpent=0;
 
    if(AMSJob::gethead()->isSimulation()){
@@ -1125,6 +1131,8 @@ _cinfo.TimeSpent=st-_ST0;
 
 TIMEX(_cinfo.CPUTimeSpent);
 _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
+_cinfo.CPUMipsTimeSpent=_CPUMipsTimeSpent+(_cinfo.CPUTimeSpent)*_cinfo.Mips/1000;
+
 UpdateARS();
 again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
@@ -1162,6 +1170,8 @@ _cinfo.TimeSpent=st-_ST0;
 
 TIMEX(_cinfo.CPUTimeSpent);
 _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
+_cinfo.CPUMipsTimeSpent=_CPUMipsTimeSpent+(_cinfo.CPUTimeSpent)*_cinfo.Mips/1000;
+
         if(_cinfo.Status!= DPS::Producer::Finished){
          LMessage(AMSClient::print(_cinfo," RunIncomplete"));
          FMessage("RunIncomplete ", DPS::Client::CInAbort); 
@@ -1207,6 +1217,7 @@ if(AMSEvent::gethead()->HasFatalErrors()){
 else if(!(AMSEvent::gethead()->HasNoCriticalErrors())){
   TIMEX(_cinfo.CPUTimeSpent);
   _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
+_cinfo.CPUMipsTimeSpent=_CPUMipsTimeSpent+(_cinfo.CPUTimeSpent)*_cinfo.Mips/1000;
 
     _cinfo.TimeSpent=st-_ST0;
 
@@ -1215,6 +1226,7 @@ else if(!(AMSEvent::gethead()->HasNoCriticalErrors())){
 else if(_cinfo.EventsProcessed%_dstinfo->UpdateFreq==1 || st-_ST0-_cinfo.TimeSpent>AMSFFKEY.CpuLimit){
   TIMEX(_cinfo.CPUTimeSpent);
   _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
+_cinfo.CPUMipsTimeSpent=_CPUMipsTimeSpent+(_cinfo.CPUTimeSpent)*_cinfo.Mips/1000;
 
     _cinfo.TimeSpent=st-_ST0;
 
