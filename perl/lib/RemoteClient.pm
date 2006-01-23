@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.420 2006/01/23 20:05:30 choutko Exp $
+# $Id: RemoteClient.pm,v 1.419 2006/01/23 20:00:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1456,14 +1456,13 @@ sub ValidateRuns {
            my $mips  = $run->{cinfo}->{Mips};
            my $events  = $run->{cinfo}->{EventsProcessed};
            my $errors  = $run->{cinfo}->{CriticalErrorsFound};
-           my $cputime = sprintf("%.2f",$run->{cinfo}->{CPUMipsTimeSpent});
+           my $cputime = sprintf("%.2f",$run->{cinfo}->{CPUTimeSpent});
            my $elapsed = sprintf("%.2f",$run->{cinfo}->{TimeSpent});
            my $host    = $self->gethostname($run->{cinfo}->{HostName});
            if($mips<=0){
                print "  Mips Problem $mips $run->{cinfo}->{HostName} \n";
                $mips=1000;
            }
-           $cputime=$cputime/$mips*1000;
            if ($events == 0 && $errors == 0 && $run->{Status} eq 'Finished') {
                if ($webmode == 0 && $verbose == 1) {
                 print "Run ... $run->{Run}, Status ... $run->{Status}, Events... $events, Errors... $errors \n";
