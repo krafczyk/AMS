@@ -35,6 +35,7 @@ using namespace root;
   ClassImp(RichHitR)
   ClassImp(RichRingR)
   ClassImp(TofRawClusterR)
+  ClassImp(TofRawSideR)
   ClassImp(TofClusterR)
   ClassImp(AntiClusterR)
   ClassImp(TrRawClusterR)
@@ -76,6 +77,7 @@ TBranch* AMSEventR::bEcalShower;
 TBranch* AMSEventR::bRichHit;
 TBranch* AMSEventR::bRichRing;
 TBranch* AMSEventR::bTofRawCluster;
+TBranch* AMSEventR::bTofRawSide;
 TBranch* AMSEventR::bTofCluster;
 TBranch* AMSEventR::bAntiCluster;
 TBranch* AMSEventR::bTrRawCluster;
@@ -109,6 +111,7 @@ void* AMSEventR::vEcalShower=0;
 void* AMSEventR::vRichHit=0;
 void* AMSEventR::vRichRing=0;
 void* AMSEventR::vTofRawCluster=0;
+void* AMSEventR::vTofRawSide=0;
 void* AMSEventR::vTofCluster=0;
 void* AMSEventR::vAntiCluster=0;
 void* AMSEventR::vTrRawCluster=0;
@@ -220,6 +223,13 @@ void AMSEventR::SetBranchA(TTree *fChain){
      strcat(tmp,"fTofRawCluster");
      vTofRawCluster=&fTofRawCluster;
      fChain->SetBranchAddress(tmp,&fTofRawCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTofRawSide");
+     vTofRawSide=&fTofRawSide;
+     fChain->SetBranchAddress(tmp,&fTofRawSide);
     }
 
    {
@@ -452,6 +462,12 @@ void AMSEventR::ReSetBranchA(TTree *fChain){
 
    {
      strcpy(tmp,_Name);
+     strcat(tmp,"fTofRawSide");
+     fChain->SetBranchAddress(tmp,vTofRawSide);
+    }
+
+   {
+     strcpy(tmp,_Name);
      strcat(tmp,"fTofCluster");
      fChain->SetBranchAddress(tmp,vTofCluster);
     }
@@ -649,6 +665,12 @@ void AMSEventR::GetBranch(TTree *fChain){
      strcpy(tmp,_Name);
      strcat(tmp,"fTofRawCluster");
      bTofRawCluster=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTofRawSide");
+     bTofRawSide=fChain->GetBranch(tmp);
     }
 
    {
@@ -854,6 +876,12 @@ void AMSEventR::GetBranchA(TTree *fChain){
 
    {
      strcpy(tmp,_Name);
+     strcat(tmp,"fTofRawSide");
+     vTofRawSide=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
      strcat(tmp,"fTofCluster");
      vTofCluster=fChain->GetBranch(tmp)->GetAddress();
     }
@@ -1007,6 +1035,7 @@ void AMSEventR::SetCont(){
  fHeader.RichHits=fRichHit.size();
  fHeader.RichRings=fRichRing.size();
  fHeader.TofRawClusters=fTofRawCluster.size();
+ fHeader.TofRawSides=fTofRawSide.size();
  fHeader.TofClusters=fTofCluster.size();
  fHeader.AntiClusters=fAntiCluster.size();
  fHeader.TrRawClusters=fTrRawCluster.size();
@@ -1072,6 +1101,7 @@ fRichHit.reserve(MAXRICHITS);
 fRichRing.reserve(MAXRICHRIN);
 
 fTofRawCluster.reserve(MAXTOFRAW);
+fTofRawSide.reserve(MAXTOFRAWS);
 fTofCluster.reserve(MAXTOF);
 fAntiCluster.reserve(MAXANTICL);
 
@@ -1113,6 +1143,7 @@ fRichHit.clear();
 fRichRing.clear();
 
 fTofRawCluster.clear();
+fTofRawSide.clear();
 fTofCluster.clear();
 fAntiCluster.clear();
 
@@ -1225,6 +1256,16 @@ void AMSEventR::AddAMSObject(TOF2RawCluster *ptr)
   ptr->SetClonePointer(fTofRawCluster.size()-1);
   }  else {
    cout<<"AddAMSObject -E- AMSTOF2RawCluster ptr is NULL"<<endl;
+  }
+}
+
+void AMSEventR::AddAMSObject(TOF2RawSide *ptr)
+{
+  if (ptr) {
+  fTofRawSide.push_back(TofRawSideR(ptr));
+  ptr->SetClonePointer(fTofRawSide.size()-1);
+  }  else {
+   cout<<"AddAMSObject -E- TOF2RawSide ptr is NULL"<<endl;
   }
 }
 
@@ -1636,15 +1677,22 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
 
 Level1R::Level1R(Trigger2LVL1 *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
-  Mode   = ptr->_LifeTime;
-  TofFlag = ptr->_tofflag;
+  PhysBPatt = ptr->_PhysBPatt;
+  JMembPatt = ptr->_JMembPatt;
+  TofFlag1 = ptr->_tofflag1;
+  TofFlag2 = ptr->_tofflag1;
   for (int i=0; i<4; i++) {
-    TofPatt[i]  = ptr->_tofpatt[i];
     TofPatt1[i] = ptr->_tofpatt1[i];
+    TofPatt2[i] = ptr->_tofpatt2[i];
   }
   AntiPatt = ptr->_antipatt;
   EcalFlag = ptr->_ecalflag;
+  for(int i=0;i<6;i++){
+    for(int j=0;j<3;j++)EcalPatt[i][j] = ptr->_ectrpatt[i][j];
+  }
   EcalTrSum= ptr->_ectrsum;
+  LiveTime   = ptr->_LiveTime;
+  for(int i=0; i<6; i++)TrigRates[i]  = ptr->_TrigRates[i];
 #endif
 }
 
@@ -1803,7 +1851,6 @@ TofMCClusterR::TofMCClusterR(AMSTOFMCCluster *ptr){
 
 TofRawClusterR::TofRawClusterR(TOF2RawCluster *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
-
   Status = ptr->_status;
   Layer  = ptr->_ntof;
   Bar    = ptr->_plane;
@@ -1819,6 +1866,21 @@ TofRawClusterR::TofRawClusterR(TOF2RawCluster *ptr){
   edepd  = ptr->_edepd;
   time   = ptr->_time;
   cool   = ptr->_timeD;
+#endif
+}
+
+TofRawSideR::TofRawSideR(TOF2RawSide *ptr){
+#ifndef __ROOTSHAREDLIBRARY__
+
+  swid=ptr->_swid;
+  hwid=ptr->_hwid;
+  nftdc=ptr->_nftdc;
+  for(int i=0; i<nftdc; i++)ftdc[i]=ptr->_ftdc[i];
+  for(int i=0; i<4; i++)stdc[i]=ptr->_stdc[i];
+  adca=ptr->_adca;
+  nadcd=ptr->_nadcd;
+  for(int ip=0;ip<TOF2GC::PMTSMX;ip++)adcd[ip]=ptr->_adcd[ip];
+  temp=ptr->_temp;
 #endif
 }
 

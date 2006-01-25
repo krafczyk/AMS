@@ -1,4 +1,4 @@
-//  $Id: antidbc02.h,v 1.11 2005/09/09 07:55:26 choumilo Exp $
+//  $Id: antidbc02.h,v 1.12 2006/01/25 11:21:33 choumilo Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
@@ -221,6 +221,7 @@ private:
 //          i=4 -> H-TDC range ovfl
 //          i=5 -> FT/Anti-trig Coinc
 //          i=6 => Ghits->RawEvent OK
+//          i=7 => Common FT exist
   static integer recount[ANTI2C::ANJSTA];// event passed RECO-cut "i"
 //          i=0 -> entries
 //          i=1 -> Lev-1 trigger OK

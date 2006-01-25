@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.21 2005/10/13 09:01:30 choumilo Exp $
+//  $Id: antirec02.C,v 1.22 2006/01/25 11:21:07 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -43,6 +43,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   int16u id,idN,stat[2];
   integer sector,isid,isds;
   integer i,j,im,nhit,chnum,am[2],sta,st;
+  int16u mtyp(0),otyp(0),crat(0),slot(0),tsens(0);
   int bad;
   Anti2RawEvent *ptr;
   Anti2RawEvent *ptrN;
@@ -55,7 +56,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 // =============> check/correct logical "up/down" sequence :
 //
   ptr=(Anti2RawEvent*)AMSEvent::gethead()
-                        ->getheadC("Anti2RawEvent",0,1);//last 1 to sort
+                        ->getheadC("Anti2RawEvent",0,1);//last "1" to sort
   isds=0;
 //
 #ifdef __AMSDEBUG__
@@ -70,6 +71,13 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
     id=ptr->getid();// BBarSide
     sector=id/10-1;//bar 0-7
     isid=id%10-1;//0-1 (top/bot)
+    mtyp=1;
+    otyp=0;
+    AMSSCIds antid(sector,isid,otyp,mtyp);//otyp=0(anode),mtyp=1(hist. time(=fast_TDC))
+    crat=antid.getcrate();
+    slot=antid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
+    tsens=antid.gettempsn();//... sensor#(1,2,...,5)(not all slots have temp-sensor!)
+    ptr->settemp(TOF2JobStat::gettemp(crat,tsens-1));//put latest temper. from static array
     chnum=sector*2+isid;//channels numbering
     stat[isid]=ptr->getstat();
     if(stat[isid] == 0){ // still no sense(?) ( =0 upto now by definition)
@@ -118,7 +126,7 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   }//----> endof RawEvent hits loop
 //
 //
-  if(bad==0)status=0;//good anti-event(were ADC+TDC measurements)
+  if(bad==0)status=0;//good anti-event(were ADC or TDC measurements)
 }
 //----------------------------------------------------
 void Anti2RawEvent::mc_build(int &stat){
@@ -126,7 +134,6 @@ void Anti2RawEvent::mc_build(int &stat){
   geant eup(0),edown(0),tup(0),tdown(0);
   geant thresh[2];
   int i,ii,nup,ndown,nupt,ndownt,sector,sectorN,ierr,it,sta[2];
-  int trflag(0),trflag1(0);
   uinteger j,ibmn[2],ibmx[2],nsides(0);
   uinteger ectrfl(0),trpatt(0),hcount[4],cbit,lsbit(1);
   int16u atrpat[2]={0,0};
@@ -152,7 +159,8 @@ void Anti2RawEvent::mc_build(int &stat){
   AMSBitstr trbi;
   AMSBitstr trbl[ANTI2C::MAXANTI];
   geant trigb=TOF2DBc::trigtb();
-  integer i1,i2;
+  integer i1,i2,intrig,sorand;
+  integer fmask[ANTI2C::MAXANTI][2];
 //
   static integer first=0;
   static integer nshap;//real length of (light+PMT)-pulse(in bins=ANTI2DBc::fadcbw())
@@ -171,35 +179,17 @@ void Anti2RawEvent::mc_build(int &stat){
   pwid=ANTI2DBc::ppfwid();//logic pulse width used for "paddles-in-FTcoinc" pattern  
   pdbr=ANTI2DBc::pbdblr();// .............. dbl-resol(dead time)
   pgate=ANTI2DBc::pbgate();// FT-gate, applied to "pattern" pulses
-  trflag=TOF2RawEvent::gettrfl();//FT
-  trflag1=TOF2RawEvent::gettrfl1();//FTZ
   Anti2RawEvent::setpatt(trpatt);// reset trigger-pattern in Anti2RawEvent::
   Anti2RawEvent::setncoinc(ncoinct);// reset # of coinc.sectors  to Anti2RawEvent::
 //
-  integer trtype(0);
-  if(TGL1FFKEY.trtype>0)trtype=TGL1FFKEY.trtype;
-  else trtype=Trigger2LVL1::l1trigconf.subtrigmask();
+//-----
 //
-  if(trtype<256){//<==== NotExternalTrigger"
-//
-    if(trflag>=0 || trflag1>=0){// use FT from TOF
-      ftrig=TOF2RawEvent::gettrtime();//abs. Time when FT came to S-crate(INCL. fixed delay !)
-      tlev1=ftrig+TOF2DBc::accdel();// "common_stop"-signal abs.time
-    }
-    else{// have to use FT from ECAL
-      ectrfl=AMSEcalRawEvent::gettrfl(); 
-      if(ectrfl<=0)return;//no EC trigger also -> no chance to digitize ANTI
-      ftrig=AMSEcalRawEvent::gettrtm();
-      tlev1=ftrig+TOF2DBc::accdel();// "common_stop"-signal abs.time
-    }
-//
-  }//===>endof "NotExtTrig" check
-//
-  else{//<=== ExtTrigger
-    geant ttrig1=0.;//tempor (true ExtTrigSignal-time)
-    ftrig=ttrig1+TOF2Varp::tofvpar.ftdelf();// FTrigger abs time (fixed delay added)
-    tlev1=ftrig+TOF2DBc::accdel();// "common_stop"-signal abs.time
-  }
+  integer ftpatt(0);
+  ftrig=TOF2RawEvent::gettrtime();//get FTrigger time (at SPT2 !) 
+  ftpatt=TOF2RawEvent::getftpatt();//get globFT members pattern (after masking)
+  if(ftpatt==0)return;//<=== no globFT and ExtTrig
+  ANTI2JobStat::addmc(7);//count FT existance
+  tlev1=ftrig+TOF2DBc::accdel();// "common_stop"-signal abs.time
 //-----------
   geant padl=0.5*ANTI2DBc::scleng();
   phbit=TOF2GC::SCPHBP;// phase bit position as for TOF !!!
@@ -223,6 +213,8 @@ void Anti2RawEvent::mc_build(int &stat){
     trbs[i][0].bitclr(1,0);
     trbs[i][1].bitclr(1,0);
     trbl[i].bitclr(1,0);
+    fmask[i][0]=0;
+    fmask[i][1]=0;
   }
 //-------------
   AMSContainer *cptr;
@@ -438,7 +430,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //---> Create charge raw-hits:
 //
       geant adc2pe=ANTI2SPcal::antispcal[nlogs].getadc2pe();
-      geant daqthr=ANTI2SPcal::antispcal[nlogs].getdqthr();//DAQ-readout thresh(adc-ch)    
+      geant daqthr=ANTI2SPcal::antispcal[nlogs].getdqthr();//DAQ-readout thresh(pedsig-units)    
       ped=ANTIPeds::anscped[nlogs].apeda(j);// in adc-chan. units(float)
       sig=ANTIPeds::anscped[nlogs].asiga(j);
       if(ATMCFFKEY.mcprtf)HF1(2632+j,geant(esignal[j][nlogs]),1.);
@@ -453,14 +445,16 @@ void Anti2RawEvent::mc_build(int &stat){
 #endif
         iamp=TOF2GC::SCADCMX;
       }
-      amp=number(iamp)-ped;// subtract pedestal (loose "integerization" !)
-      if(ATMCFFKEY.mcprtf)HF1(2634+j,amp,1.);
+//---
       adca=0;
-      if(amp>daqthr*sig){// DAQ readout threshold check
-	iamp=integer(floor(amp*ANTI2DBc::daqscf()+0.5));// floatADC -> internal DAQ bins
-        itt=int16u(iamp);
-        adca=itt;
-      }
+//      amp=number(iamp)-ped;// subtract pedestal (loose "integerization" !)
+//      if(ATMCFFKEY.mcprtf)HF1(2634+j,amp,1.);
+//      if(amp>daqthr*sig){// DAQ readout threshold check
+//	iamp=integer(floor(amp*ANTI2DBc::daqscf()+0.5));// floatADC -> internal DAQ bins
+//        itt=int16u(iamp);
+//        adca=itt;
+//      }
+      adca=int16u(iamp);//Raw mode !!!(when 7 above line are commented, decided 24.10.05 at TIM)
 //
 //---> Create history raw-hits:
 //
@@ -496,7 +490,7 @@ void Anti2RawEvent::mc_build(int &stat){
 //
 //----> create RawEvent-object and store trig-patt:
 //
-      if(anchok && adca>0 && nhtdch>0){
+      if(anchok && (adca>0 || nhtdch>0)){
         chsta=0;// good
 	id=(nlogs+1)*10+j+1;//BBarSide(BBS)
 //cout<<"MCFillRaw:id="<<id<<" nadc/ntdc="<<nadca<<" "<<nhtdch<<" nhtdc="<<nhtdc<<endl;
@@ -504,38 +498,44 @@ void Anti2RawEvent::mc_build(int &stat){
 //cout<<endl;
 //for(int ih=0;ih<nhtdch;ih++)cout<<htdc[ih]<<" ";
 //cout<<endl;
-        temp=0;//no temp.meausrement in MC
+        temp=20;//dummy(real will be set at validation stage from static store)
         AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
-                       new Anti2RawEvent(id,chsta,temp,adca,nhtdch,htdc));
+                       new Anti2RawEvent(id,chsta,temp,adca,nhtdch,htdc));//write object
+        fmask[nlogs][j]=1;//mark fired channels(created RawEvent-objects)
 //
-        tg1=ftrig;//GateUpTime=FTime+delay(decision+ pass to S-crate)
-        tg2=tg1+pgate;//gate_end_time
-	ncoinc=0;
-	for(i=0;i<nptr;i++){//all 1-side "trig-pattern" pulses -> 1-side bitstream pattern
-          trbi.bitclr(1,0);
-          t1=ptup[i];//"trig-pattern" pulse up-time
-	  t2=t1+pwid;//.............. pulse down-time
-	  dt=tg1-t1;
-//	  if(nptr==1 && ATMCFFKEY.mcprtf>0)HF1(2631,geant(dt),1.);
-	  if(ATMCFFKEY.mcprtf>0)HF1(2631,geant(dt),1.);
-          i1=integer(t1/trigb);
-          i2=integer(t2/trigb);
-          if(i1>=TOFGC::SCBITM)i1=TOFGC::SCBITM-1;
-          if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
-          trbi.bitset(i1,i2);//set bits according to hit-time and pulse width
-	  trbs[nlogs][j]=trbs[nlogs][j] | trbi;//make side-OR of all trig-pulses
-          if(!(tg2<=t1 || tg1>=t2))ncoinc+=1;//count side-overlaps with gate
-	}
+        intrig=Trigger2LVL1::l1trigconf.antinmask(int(nlogs));//AntiInTrig from DB
+        if(intrig==1 || (intrig>1 && (intrig-2)!=j)){//<--sector/side is in trigger(not masked)
+          tg1=ftrig;//GateUpTime=FTime+delay(decision + transm. to S-crate)
+          tg2=tg1+pgate;//gate_end_time
+	  ncoinc=0;
+	  for(i=0;i<nptr;i++){// 1-side "trig-pattern" pulses -> 1-side bitstream pattern
+            trbi.bitclr(1,0);
+            t1=ptup[i];//"trig-pattern" pulse up-time
+	    t2=t1+pwid;//.............. pulse down-time
+	    dt=tg1-t1;
+//	    if(nptr==1 && ATMCFFKEY.mcprtf>0)HF1(2631,geant(dt),1.);
+	    if(ATMCFFKEY.mcprtf>0)HF1(2631,geant(dt),1.);
+            i1=integer(t1/trigb);
+            i2=integer(t2/trigb);
+            if(i1>=TOFGC::SCBITM)i1=TOFGC::SCBITM-1;
+            if(i2>=TOFGC::SCBITM)i2=TOFGC::SCBITM-1;
+            trbi.bitset(i1,i2);//set bits according to hit-time and pulse width
+	    trbs[nlogs][j]=trbs[nlogs][j] | trbi;//make side-OR of all trig-pulses
+            if(!(tg2<=t1 || tg1>=t2))ncoinc+=1;//count side-overlaps with gate
+	  }
+	}//--->endof "InTrig" check
 	if(ncoinc)atrpat[j]|=1<<nlogs;//set single-side coincidence bit(not used now)
       }
 //------------
     }//--->endof side loop
 //
-    if(TGL1FFKEY.antisc == 0)
-                                trbl[nlogs]=trbs[nlogs][0] & trbs[nlogs][1];// 2-sides AND
+    if(TGL1FFKEY.antisc >= 0)sorand=TGL1FFKEY.antisc;//AntiSidesOrAnd from data-card
+    else sorand=Trigger2LVL1::l1trigconf.antoamask(int(nlogs));//AntiSidesOrAnd for DB
+    if(sorand == 0)
+                   trbl[nlogs]=trbs[nlogs][0] & trbs[nlogs][1];// 2-sides AND
     else
-                                trbl[nlogs]=trbs[nlogs][0] | trbs[nlogs][1];// 2-sides OR
-    trbl[nlogs].clatch();//25MHz-clock latch of 2-sides OR(AND) signal trbl
+                   trbl[nlogs]=trbs[nlogs][0] | trbs[nlogs][1];// 2-sides OR
+    trbl[nlogs].clatch();//25MHz-clock latch of 2-sides OR(AND) signal "trbl"
 //
     edepts=0;
     nupt=0;
@@ -549,7 +549,7 @@ void Anti2RawEvent::mc_build(int &stat){
       fadcb[1][i]=0.;
     }
     nmchts=0;
-    }//------------------> endof next(last) ReadoutSector check 
+    }//------------------> endof next(last) ReadOutSector check 
     ptr=ptr->next();
 //  
   } // ---> end of geant-hits loop
@@ -575,6 +575,7 @@ void Anti2RawEvent::mc_build(int &stat){
     }
   }
   if(ncoinct>0)ANTI2JobStat::addmc(5);
+
 //
 //-->make side patterns(does not exists now according Lin)                       
 //  for(i=0;i<4;i++)hcount[i]=0;
@@ -598,6 +599,26 @@ void Anti2RawEvent::mc_build(int &stat){
 //    }
 //  }
 //
+//---> filling of empty channels with peds (raw mode readout):
+//
+  for(int side=0;side<2;side++){
+    for(int lsec=0;lsec<ANTI2C::MAXANTI;lsec++){
+      if(fmask[lsec][side]==0){//<--empty channel
+        ped=ANTIPeds::anscped[lsec].apeda(side);// in adc-chan. units(float)
+        sig=ANTIPeds::anscped[lsec].asiga(side);
+        amp=ped+sig*rnormx();
+	adca=int16u(floor(amp));//go to real ADC-channels("integerization")
+        chsta=0;// good
+	id=(lsec+1)*10+side+1;//BBarSide(BBS)
+	nhtdch=0;//no time-history measurement for "peds" channels
+	htdc[nhtdch]=0;
+        temp=0;//no temp.meausrement in MC
+        AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
+                       new Anti2RawEvent(id,chsta,temp,adca,nhtdch,htdc));//write object
+      }
+    }
+  }
+//----
   Anti2RawEvent::setncoinc(ncoinct);// add # of coinc.sectors  to Anti2RawEvent::
   Anti2RawEvent::setpatt(trpatt);// add trigger-pattern to Anti2RawEvent::
   if(ncoinct>0 || edept>0)stat=0;//found anti activity
@@ -654,7 +675,7 @@ void AMSAntiCluster::build2(int &statt){
   int16u id,idN,sta;
   int16u pbitn;
   int16u pbanti;
-  number edep[2],uptm[2][ANTI2C::ANTHMX],edep2,ass,zc,erz,erfi,err;
+  number adcf,edep[2],uptm[2][ANTI2C::ANTHMX],edep2,ass,zc,erz,erfi,err;
   integer nuptm[2];
   integer ftc,ftcin[2];
   integer i,j,jmax,sector,isid,nsds,isdn[2],stat,chnum,n1,n2,i1min,i2min;
@@ -665,6 +686,7 @@ void AMSAntiCluster::build2(int &statt){
   int16u mtyp(0),otyp(0),crat(0);
   geant fttim,ftsum,ftnum;
   geant ftdel,ftwin;
+  geant rdthr;
   int nphsok;
   integer ftcoinc(0);
   uinteger lspatt(0);
@@ -675,7 +697,7 @@ void AMSAntiCluster::build2(int &statt){
                   ->getheadC("Anti2RawEvent",0);// already sorted after validation
 //
   statt=1;//bad
-  ftcoinc=Anti2RawEvent::getncoinc();//log.sectors in coinc.with FT
+  ftcoinc=Anti2RawEvent::getncoinc();//total log.sectors in coinc.with FT
   lspatt=Anti2RawEvent::getpatt();//Coinc.sect.pattern
   if(ATREFFKEY.reprtf[0]>0){
     HF1(2510,geant(ftcoinc),1.);
@@ -688,7 +710,7 @@ void AMSAntiCluster::build2(int &statt){
   padrad=ANTI2DBc::scradi()+0.5*ANTI2DBc::scinth();
   paddfi=360./ANTI2C::MAXANTI;
   zcer1=ATREFFKEY.zcerr1;//Z-coo err. for true pair case
-  ftdel=ATREFFKEY.ftdel;
+  ftdel=ATREFFKEY.ftdel;//aver. FT-delay wrt Anti time-hit
   ftwin=ATREFFKEY.ftwin;
   nsds=0;
   ntdct=0;
@@ -708,7 +730,7 @@ void AMSAntiCluster::build2(int &statt){
 #ifdef __AMSDEBUG__
     assert(crat<TOF2GC::SCCRAT);
 #endif
-    fttim=TOF2RawCluster::getfttime(crat);//CS-FT=6mks from TOF-stretcher(may be diff. in each crate)
+    fttim=TOF2RawCluster::getfttime(crat);//ComStop-FT=6mks from TOF-stretcher(diff. in each crate ?)
 //(it may be missing in case of absent of TOF-hits in given crate !!!)
     if(fttim<=0){//find aver. over non empty crates)
       ftsum=0;
@@ -725,46 +747,53 @@ void AMSAntiCluster::build2(int &statt){
     chnum=sector*2+isid;//channels numbering
     anchok=(ANTIPeds::anscped[sector].PedStOK(isid) &&
                   ANTI2VPcal::antivpcal[sector].CalStOK(isid));//Chan-DBStat OK
-    if(anchok){// <--- channel alive
+    if(anchok){// <--- channel alive according DB
 //channel statistics :
       ANTI2JobStat::addch(chnum,0); 
       adca=ptr->getadca();
       if(adca>0)ANTI2JobStat::addch(chnum,1);
-//
-      ntdct=ptr->gettdct(tdct);
-      if(ntdct>0)ANTI2JobStat::addch(chnum,3);
-      if(ntdct==2)ANTI2JobStat::addch(chnum,4);//1hit=2edges
-      isdn[nsds]=isid+1;
-//DAQ-ch-->edep(mev):
       ped=ANTIPeds::anscped[sector].apeda(isid);//adc-chan
       sig=ANTIPeds::anscped[sector].asiga(isid);//adc-ch sigmas
-      edep[nsds]=number(adca)/ANTI2DBc::daqscf()       //DAQ-ch-->ADC-ch
-                *ANTI2SPcal::antispcal[sector].getadc2pe() //ADC-ch-->p.e.
-                /ANTI2VPcal::antivpcal[sector].getmev2pec(isid); //p.e.-->Edep(Mev)
+      adcf=number(adca)-ped;//<========= subtract pedestal
+//---
+      rdthr=ANTI2SPcal::antispcal[sector].getdqthr();//readout(former DAQ) thresh(ped-sigmas)    
+      if(adcf>rdthr*sig){//----> Above ped
+        ANTI2JobStat::addch(chnum,2);
+        ntdct=ptr->gettdct(tdct);
+        if(ntdct>0)ANTI2JobStat::addch(chnum,3);
+        if(ntdct==2)ANTI2JobStat::addch(chnum,4);//1hit=2edges
+        isdn[nsds]=isid+1;
+//DAQ-ch-->edep(mev):
+        edep[nsds]=adcf
+                  *ANTI2SPcal::antispcal[sector].getadc2pe() //ADC-ch-->p.e.
+                  /ANTI2VPcal::antivpcal[sector].getmev2pec(isid); //p.e.-->Edep(Mev)
 //cout<<"    decoded edep="<<edep[nsds]<<endl; 
 //TDC-ch-->time(ns):
-      nuptm[nsds]=0;
-      nphsok=ANTI2VPcal::antivpcal[sector].NPhysSecOK();
-      if(nphsok==2)tzer=ANTI2SPcal::antispcal[sector].gettzerc();
-      else tzer=ANTI2SPcal::antispcal[sector].gettzer(nphsok);
-      ftc=0;
-      for(i=0;i<ntdct;i++){//<-- hist-hits loop
-        if(i%2==1){//use up-edges (i=1,3,...)
-	  t1=(pbanti&tdct[i])*ANTI2DBc::htdcbw()
-	                                + tzer;//TDC-ch-->ns + compens.tzero
-	  if(fttim>0){//check coinc.with FT
-	    dt=t1-fttim;
-            if(ATREFFKEY.reprtf[0]>0)HF1(2509,geant(dt),1.);
-            if(fabs(dt-ftdel)<ftwin)ftc+=1;//count coinc.
-	  }
-          uptm[nsds][nuptm[nsds]]=t1;   
+        nuptm[nsds]=0;
+        nphsok=ANTI2VPcal::antivpcal[sector].NPhysSecOK();
+        if(nphsok==2)tzer=ANTI2SPcal::antispcal[sector].gettzerc();
+        else tzer=ANTI2SPcal::antispcal[sector].gettzer(nphsok);
+        ftc=0;
+        for(i=0;i<ntdct;i++){//<-- history-hits loop
+          if(i%2==1){//use up-edges (i=1,3,...)
+	    t1=(pbanti&tdct[i])*ANTI2DBc::htdcbw()
+	                                  + tzer;//TDC-ch-->ns + compens.tzero
+	    if(fttim>0){//check coinc.with FT
+	      dt=t1-fttim;
+              if(ATREFFKEY.reprtf[0]>0)HF1(2509,geant(dt),1.);
+              if(fabs(dt-ftdel)<ftwin)ftc+=1;//count coinc.
+	    }
+            uptm[nsds][nuptm[nsds]]=t1;//tempor keep all hits(really need FTcoinc only ?)   
 //cout<<"    decoded Up-time="<<t1<<endl;
-          nuptm[nsds]+=1;
+            nuptm[nsds]+=1;
+          }
         }
-      }
-      if(ftc>0)ftcin[nsds]+=ftc;//store nFTcoinc/side 
+        if(ftc>0)ftcin[nsds]+=ftc;//store nFTcoinc/side
 //
-      nsds+=1;
+        nsds+=1;
+//---
+      }//---> endof "AbovePed" check 
+//
     }//--->endof alive-check
 //--------
     ptrN=ptr->next();
@@ -959,7 +988,8 @@ integer Anti2RawEvent::calcdaqlength(int16u blid){
     id=ptr->getid();// BBS
     ibar=id/10-1;
     isid=id%10-1;
-    hwid=Anti2RawEvent::sw2hwid(ibar,isid);// CAA, always >0 here
+//    hwid=Anti2RawEvent::sw2hwid(ibar,isid);// CAA, always >0 here
+    hwid=101;//tempor
     antic=hwid%100-1;
     crate=hwid/100-1;
     if(crate==rcrat){
@@ -1088,33 +1118,4 @@ void Anti2RawEvent::buildraw(int16u blid, integer &len, int16u *p){
 //    }
   }
 #endif
-}
-//------------------------------------------------------------------------------
-//  function to get sofrware-id (BBS) for given hardware-channel (crate,antich):
-//  (imply only one (max) SFEA card per crate)                    0-7   0-15
-//
-int16u Anti2RawEvent::hw2swid(int16u a1, int16u a2){
-  int16u swid,hwch;
-//
-  swid=0;
-  return swid;
-}
-//-----------------------------------------------------------------------
-//  function to get hardware-id (CAA) for given software-chan (bar, side)
-//                                                             0-15  0-1
-//
-int16u Anti2RawEvent::sw2hwid(int16u a1, int16u a2){
-  static int16u first(0);
-  integer i;
-  int16u ibar,isid,swch,swid,hwid,crate,antic;
-  static int16u hidlst[ANTI2C::MAXANTI*2]; // hardw.id list
-//
-#ifdef __AMSDEBUG__
-  assert(a1>=0 && a1<ANTI2C::MAXANTI);// bar(0-15)
-  assert(a2>=0 && a2<2); // side(0-1)
-#endif
-//
-//  cout<<"swch->hwid: "<<swch<<" "<<hwid<<endl;
-  hwid=0;
-  return hwid;
 }

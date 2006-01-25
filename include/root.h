@@ -55,6 +55,7 @@ class Ecal1DCluster;
 class AMSEcal2DCluster;
 class AMSEcalShower;
 class TOF2RawCluster;
+class TOF2RawSide;
 class Trigger2LVL1;
 class TriggerLVL302;
 class EventNtuple02;
@@ -89,6 +90,7 @@ class Ecal1DCluster{};
 class AMSEcal2DCluster{};
 class AMSEcalShower{};
 class TOF2RawCluster{};
+class TOF2RawSide{};
 class Trigger2LVL1{};
 class TriggerLVL302{};
 class EventNtuple02{};
@@ -166,6 +168,7 @@ int   EcalShowers;
 int   RichHits;
 int   RichRings;
 int   TofRawClusters;
+int   TofRawSides;
 int   TofClusters;  
 int   AntiClusters;
 int   TrRawClusters;
@@ -454,6 +457,36 @@ public:
   virtual ~TofRawClusterR(){};
   ClassDef(TofRawClusterR ,4)       //TofRawClusterR
 };
+
+/// TofRawSideR structure
+
+/*!
+ \author e.choumilov@cern.ch
+
+*/
+
+class TofRawSideR {
+public:
+  int swid;//short softw-id(LBBS)
+  int hwid;//short hardw-id(C(rate)S(lot), applcable to SFET-type measurements:stdc,ftdc,adca)
+  int nftdc;//numb.of fast(hist) tdc-hits(only front-edges now, different from RawEvent one !!!)
+  float ftdc[8];//fast(history)-tdc front edges(already converted to ns)
+  float stdc[4];//stretcher-tdc hit(only last(in real time) "4edges" set, already in ns)
+  float adca;//Anode signal(already converted from DAQ- to ADC-chan units)
+  int nadcd;//number of Dynode nonzero(!) signals
+  float adcd[3];//Dynode signals(converted, positional(keep "0"s))
+  float temp;//temperature(given by probe in SFET/SFEA slots)  
+
+  TofRawSideR(){};
+  TofRawSideR(TOF2RawSide *ptr);
+  friend class TOF2RawSide;
+  friend class AMSEventR;
+  virtual ~TofRawSideR(){};
+  
+  ClassDef(TofRawSideR ,1)       //TofRawSideR
+};
+
+
 
 
 /// TofClusterR structure
@@ -1018,37 +1051,42 @@ ClassDef(TrdTrackR,1)       //TrdTrackR
 
 class Level1R {
 static char _Info[255];
- bool IsECHighEnergy()const {return EcalFlag/10>0;}
- bool IsECEMagEnergy()const {return EcalFlag%10==2;}
+ bool IsECHighMultipl()const {return EcalFlag/10>2;}
+ bool IsECShowAngleOK()const {return EcalFlag%10==2;}
 public:
-  int   Mode;   ///< 9 lsbits-> pattern of (requested & fired)-branches
-                    /*!<
-		           list of branches(preliminary):                                         \n                    \n
-		        bit1: unbiased trig#1(TOF only, i.e. TofFlag>=0)                          \n
-			bit2: unbiased trig#2(EC only, i.e. EcalFlag>0)                           \n
-			bit3: unbiased trig#3(TOF && EC, i.e. TofFlag>=0 && EcalFlag>0)           \n
-			bit4: unbiased trig#4(TOF || EC, i.e. TofFlag>=0 || EcalFlag>0)           \n
-			bit5: Z=1 trig(i.e. TofFlag>=0 & TofFlag%10=0 & NAntiSect<Nmax)           \n
-			bit6: Z>=2 trig(TOF above HiZThresh, i.e. TofFlag/10>0)                   \n
-		        bit7: e+-  trig(TOF && EC-Em,i.e. TofFlag>=0 && ECEtot>LowThr && ShWid=em)\n
-			bit8: phot trig(EC-hiEm, i.e. ECEtot>HiThr && ShWid=em)                   \n
-			if bit9 set - external trigger                                            \n
+  int   PhysBPatt;   ///< 8 lsbits-> pattern of LVL1 sub-triggers ("predefined physics" branches) 
+                    /*!<        LVL1 is (masked) OR of above branches.		         
+		           The list of predefined branches(preliminary):                                         \n                    \n
+		        bit1: unbiased TOF-trig(i.e. FTC= z>=1)  \n
+			bit2: Z>=1(FTC+anti)                     \n
+			bit3: Z>=2(FTC & BZ)                     \n
+			bit4: SlowZ>=2(FTZ)                      \n
+			bit5: electrons(FTC & FTE & ecFand)      \n
+			bit6: gammas(FTE & ecFand & ecAand)      \n
+		        bit7: unbECAL(FTE)                       \n
+			bit8: External                           \n
 		    */
-  int   TofFlag;   ///< <0->noTOF,>=0->(0-8)->miss.planes-code;+0->Z=1,+10->normalZ>=2,+20->slowZ>=2
-  int   TofPatt[4]; ///< 4-layers TOF pattern for Z>=1(+0 or +10 in tof-flag)(separately for each side): 
+  int   JMembPatt; ///< 16 lsbits-> pattern of trig.members(FTC,FTE,CP,...) defined in single phys. branch 
+  int   TofFlag1;   ///< FTC(z>=1) layers pattern code, <0->noFTC,>=0->(0-8)->miss.planes-code;
+  int   TofFlag2;   ///< BZ(z>=2) layers pattern code, <0->noFTC,>=0->(0-8)->miss.planes-code;
+  int   TofPatt1[4]; ///< 4-layers TOF paddles pattern for FTC(z>=1)(separately for each side) 
+  int   TofPatt2[4]; ///< the same for BZ(z>=2)(separately for each side): 
 
                     /*!<
                                                        1-10 bits  Side-1  \n
                                                        17-26      Side-2  \n
                    */
-  int   TofPatt1[4]; ///< same tof pattern for Z>=2(slow) trigger(+20 in tof-flag)
   int   AntiPatt;   ///< Antipatt:(1-8)bits->sectors in coincidence with FastTrigger  
   int   EcalFlag;   ///< =MN, where 
                     /*!< 
-                          M=0/1/2/3->Etot<MipThr / Etot>=MipThr / Etot>LowThr / Etot>HighThr; \n
-                          N=2/1/0->ShowerWidthTest=OK(em)/Bad(nonem)/Unknown                 \n
+                          M=0/1/2/3->Etot<MipThr / Etot>=MipThr / !=0_LayerMultipl/LayerMultiplOK=>EM  \n
+			(this is valid for MC only, for RD 0/3->LowLayersMultipl/LayerMultiplOK=>EM)   \n
+                          N=2/1/0->ShowerAngle(width)Test=OK/Bad/Unknown                              \n
                     */
-  float EcalTrSum; ///< EC-energy trig.sum(Gev)                    
+  unsigned short int EcalPatt[6][3];///< EC DynodesPattern for 6 "trigger"-SupLayers(36dynodes use 36of(3x16)lsbits)
+  float EcalTrSum; ///< EC-energy trig.sum(Gev, MC only)
+  float LiveTime;  ///< Fraction of "nonBusy" time
+  float TrigRates[6]; ///< TrigComponentsRates(Hz):FT,FTC,LVL1,TOFmx,ECFTmx,ANTImx                    
 
   Level1R(){};
   Level1R(Trigger2LVL1 *ptr);
@@ -1057,16 +1095,16 @@ public:
   char * Info(int number=-1){
     int antif=0;
     for(int k=0;k<8;k++){
-     if( (AntiPatt & (1<<(k))) && (AntiPatt & (1<<(k+8)))){
+     if(AntiPatt & (1<<(k))){
        antif++;
      }
     }
     
-    sprintf(_Info,"TrLevel1: TofFlag %s, Z %d, AntiFired %d, EcalFlag  %s %s, EcalSum %5.1f GeV",TofFlag%10==0?"4/4":"3/4",TofFlag/10>0?2:1,antif,IsECHighEnergy()?"High":"Low",IsECEMagEnergy()?" EMag ":" ",EcalTrSum);
+    sprintf(_Info,"TrLevel1: TofFlag %s, Z %s, AntiFired %d, ECMult  %s, ECShowAngle %s, EcalSum %5.1f GeV",TofFlag1%10==0?"4/4":"3/4",TofFlag2>0?">1":"=1",antif,IsECHighMultipl()?"High":"Low",IsECShowAngleOK()?"OK":"Bad",EcalTrSum);
   return _Info;
   }
   virtual ~Level1R(){};
-ClassDef(Level1R,1)       //Level1R
+ClassDef(Level1R,2)       //Level1R
 };
 
 
@@ -1788,6 +1826,7 @@ static TBranch*  bEcalShower;
 static TBranch*  bRichHit;
 static TBranch*  bRichRing;
 static TBranch*  bTofRawCluster;
+static TBranch*  bTofRawSide;
 static TBranch*  bTofCluster;
 static TBranch*  bAntiCluster;
 static TBranch*  bTrRawCluster;
@@ -1822,6 +1861,7 @@ static void*  vEcalShower;
 static void*  vRichHit;
 static void*  vRichRing;
 static void*  vTofRawCluster;
+static void*  vTofRawSide;
 static void*  vTofCluster;
 static void*  vAntiCluster;
 static void*  vTrRawCluster;
@@ -1977,6 +2017,7 @@ int   nEcalShower()const { return fHeader.EcalShowers;} ///< \return number of E
 int   nRichHit()const { return fHeader.RichHits;} ///< \return number of RichHitR elements (fast)
 int   nRichRing()const { return fHeader.RichRings;} ///< \return number of RichRingR elements (fast)
 int   nTofRawCluster()const { return fHeader.TofRawClusters;} ///< \return number of TofRawClusterR elements (fast)
+int   nTofRawSide()const { return fHeader.TofRawSides;} ///< \return number of TofRawSideR elements (fast)
 int   nTofCluster()const { return fHeader.TofClusters;} ///< \return number of TofClusterR elements (fast)  
 int   nAntiCluster()const { return fHeader.AntiClusters;} ///< \return number of AntiClusterR elements (fast)
 int   nTrRawCluster()const { return fHeader.TrRawClusters;} ///< \return number of TrRawClusterR elements (fast)
@@ -2022,11 +2063,11 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
   //TOF
   vector<TofRawClusterR> fTofRawCluster;
+  vector<TofRawSideR> fTofRawSide;
   vector<TofClusterR> fTofCluster;  
 
 
   //Anti
-
   vector<AntiClusterR> fAntiCluster;
 
 
@@ -2089,6 +2130,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
             bRichHit->GetEntry(_Entry);
             bRichRing->GetEntry(_Entry);
             bTofRawCluster->GetEntry(_Entry);
+            bTofRawSide->GetEntry(_Entry);
             bTofCluster->GetEntry(_Entry);
             bAntiCluster->GetEntry(_Entry);
             bTrRawCluster->GetEntry(_Entry);
@@ -2316,6 +2358,38 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
       TofRawClusterR *   pTofRawCluster(unsigned int l) {
         if(fHeader.TofRawClusters && fTofRawCluster.size()==0)bTofRawCluster->GetEntry(_Entry);
         return l<fTofRawCluster.size()?&(fTofRawCluster[l]):0;
+      }
+
+
+
+
+
+
+      ///  \return number of TofRawSideR
+      unsigned int   NTofRawSide()  {
+        if(fHeader.TofRawSides && fTofRawSide.size()==0)bTofRawSide->GetEntry(_Entry);
+        return fTofRawSide.size();
+      }
+      ///  \return reference of TofRawSideR Collection
+      vector<TofRawSideR> & TofRawSide()  {
+        if(fHeader.TofRawSides && fTofRawSide.size()==0)bTofRawSide->GetEntry(_Entry);
+         return  fTofRawSide;
+       }
+
+       ///  TofRawSideR accessor
+       /// \param l index of TofRawSideR Collection
+      ///  \return reference to corresponding TofRawSideR element
+       TofRawSideR &   TofRawSide(unsigned int l) {
+        if(fHeader.TofRawSides && fTofRawSide.size()==0)bTofRawSide->GetEntry(_Entry);
+         return fTofRawSide.at(l);
+      }
+
+       ///  TofRawSideR accessor
+       /// \param l index of TofRawSideR Collection
+      ///  \return pointer to corresponding TofRawSideR element
+      TofRawSideR *   pTofRawSide(unsigned int l) {
+        if(fHeader.TofRawSides && fTofRawSide.size()==0)bTofRawSide->GetEntry(_Entry);
+        return l<fTofRawSide.size()?&(fTofRawSide[l]):0;
       }
 
 
@@ -3083,11 +3157,12 @@ void         AddAMSObject(Ecal1DCluster *ptr);
 void         AddAMSObject(AMSEcal2DCluster  *ptr);
 void         AddAMSObject(AMSEcalShower  *ptr);
 void         AddAMSObject(TOF2RawCluster *ptr);
+void         AddAMSObject(TOF2RawSide *ptr);
 void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 
-ClassDef(AMSEventR,2)       //AMSEventR
+ClassDef(AMSEventR,3)       //AMSEventR
 };
 
 //!  AMSChain class

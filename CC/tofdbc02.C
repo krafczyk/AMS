@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.30 2005/10/13 09:01:33 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.31 2006/01/25 11:21:10 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -104,7 +104,7 @@ geant TOF2DBc::_plnstr[20]={
     0.02,   // (10)fast discr. internal accuracy(ns) + (?) to have exp.resolution
     2.,     // (11)min. pulse duration (ns) of fast discr.(comparator) 
     18.,    // (12)(as dummy gap in s-TDC pulse,ns) 
-    640.,   // (13)Pulse width for top/bot-coinc. in TOF Z>=2 FastTrigger logic 
+    640.,   // (13)spare 
     10.36   // (14)spare 
   };
   geant TOF2DBc::_trigtb=0.5;  // MC time-bin in logic(trig) pulse handling (ns)
@@ -1740,26 +1740,38 @@ void TOF2JobStat::printstat(){
   printf("\n");
   printf("    ====================== JOB TOF-statistics ======================\n");
   printf("\n");
-  printf(" MC: entries                : % 6d\n",mccount[0]);
-  printf("   MC: TovT->RawEvent OK    : % 6d\n",mccount[1]);
-  printf("   MC: Ghits->RawCluster OK : % 6d\n",mccount[2]);
-  printf("   MC: GHitTime > FADC range: % 6d\n",mccount[11]);
-  printf("   MC: out of total GHits   : % 6d\n",mccount[12]);
-  printf("   MC: Bars with OutOfHits  : % 6d\n",mccount[3]);
-  printf("   MC: Bars fired           : % 6d\n",mccount[4]);
-  printf("   MC: Flash-ADC overflows  : % 6d\n",mccount[5]);
-  printf("   MC: fTDC stack overflows : % 6d\n",mccount[9]);
-  printf("   MC: Stretch-TDC overflows: % 6d\n",mccount[6]);
-  printf("   MC: Anode-ADC overflows : % 6d\n",mccount[7]);
-  printf("   MC: Dynode-ADC overflows: % 6d\n",mccount[8]);
-  printf("   MC: MCGen FastSel OK     : % 6d\n",mccount[14]);
-  printf(" RECO-entries               : % 6d\n",recount[0]);
-  printf("   LVL1-trig OK             : % 6d\n",recount[1]);
-  printf("   LVL1 with TOF flag       : % 6d\n",recount[33]);
-  printf("   LVL1 with only ECAL flag : % 6d\n",recount[34]);
-  printf("   RawEvent-validation OK   : % 6d\n",recount[2]);
-  printf("   RawEvent->RawCluster  OK : % 6d\n",recount[3]);
-  printf("   RawCluster->Cluster OK   : % 6d\n",recount[4]);
+  printf(" MC: entries                                : % 6d\n",mccount[0]);
+  printf("   MCGen FastSel OK                         : % 6d\n",mccount[14]);
+  printf("   Ghits->TovT OK(err.stat.follow)          : % 6d\n",mccount[1]);
+  printf("        GHitTime > FADC range               : % 6d\n",mccount[11]);
+  printf("        out of total GHits                  : % 6d\n",mccount[12]);
+  printf("        Bars with OutOfHits                 : % 6d\n",mccount[3]);
+  printf("        out of bars fired                   : % 6d\n",mccount[4]);
+  printf("        Flash-ADC overflows                 : % 6d\n",mccount[5]);
+  printf("        fTDC stack overflows                : % 6d\n",mccount[9]);
+  printf("   TovT->RawEvent(FT) OK(err.stat.follow)   : % 6d\n",mccount[2]);
+  printf("        Stretch-TDC overflows               : % 6d\n",mccount[6]);
+  printf("        Anode-ADC overflows                 : % 6d\n",mccount[7]);
+  printf("        Dynode-ADC overflows                : % 6d\n",mccount[8]);
+  printf("   FastTrigStatistics :\n");
+  printf("        ParticleTrigger requests             : % 6d\n",mccount[15]);
+  printf("        found TOF-FTC(Z>=1)                  : % 6d\n",mccount[16]);
+  printf("        found TOF-BZ(Z>=2 when FTC)          : % 6d\n",mccount[17]);
+  printf("        found TOF-FTZ(SlowZ>=2)              : % 6d\n",mccount[18]);
+  printf("        found TOF-FTZ when FTC missing       : % 6d\n",mccount[23]);
+  printf("        found EC-FTE                         : % 6d\n",mccount[19]);
+  printf("        found EC-FTE when TOF-FT missing     : % 6d\n",mccount[20]);
+  printf("        found globFT(after masking)          : % 6d\n",mccount[21]);
+  printf("        ExternalTrigger requests             : % 6d\n",mccount[22]);
+  
+  
+  printf(" RECO-entries                               : % 6d\n",recount[0]);
+  printf("   LVL1-trig OK                             : % 6d\n",recount[1]);
+  printf("   LVL1 with TOF flag                       : % 6d\n",recount[33]);
+  printf("   LVL1 with only ECAL flag                 : % 6d\n",recount[34]);
+  printf("   RawEvent-validation OK                   : % 6d\n",recount[2]);
+  printf("   RawEvent->RawCluster  OK                 : % 6d\n",recount[3]);
+  printf("   RawCluster->Cluster OK                   : % 6d\n",recount[4]);
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF){
     printf(" Entries to TZSl-calibr.   : % 6d\n",recount[6]);
     printf(" TZSl: multiplicity OK     : % 6d\n",recount[7]);
@@ -2135,10 +2147,8 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1117,"dEdX vs bar (norm.inc.,L=2)",10,0.,10.,0.);
     HBOOK1(1118,"dEdX vs bar (norm.inc.,L=3)",10,0.,10.,0.);
     HBOOK1(1119,"dEdX vs bar (norm.inc.,L=4)",10,0.,10.,0.);
-//    HBOOK1(1095,"Side time diff",50,-5.,5.,0.);// 1095-8 are not used now
-//    HBOOK1(1096,"Time diff",50,-5.,5.,0.);
-//    HBOOK1(1097,"Coord. diff",50,-15.,15.,0.);
-//    HBOOK1(1098,"Edep. diff",50,-5.,5.,0.);
+//    HBOOK1(1095-1098 are used for trigger-hists in trigger102.C  !!!!)
+//    HBOOK1(1099,...    reserved for tofsim02.C internal use !!!!
     HBOOK1(1092,"TOF:Ttop-Tbot(LVL3)",50,-12.5,12.5,0.);
     if(TFREFFKEY.reprtf[2]>1){
       HBOOK1(1526,"L=1,Ed_anode(mev),pcorr,1b/lay evnt",80,0.,24.,0.);
@@ -2163,15 +2173,10 @@ void TOF2JobStat::bookhist(){
         }
       }
     }
-    if(TFREFFKEY.reprtf[2]>2){
-      HBOOK1(1120,"STR-tmp-reference in Crate-1",50,1980.,2030.,0.);
-      HBOOK1(1121,"STR-tmp-reference in Crate-2",50,1940.,1990.,0.);
-      HBOOK1(1122,"STR-tmp-reference in Crate-3",50,1940.,1990.,0.);
-      HBOOK1(1123,"STR-tmp-reference in Crate-4",50,1950.,2000.,0.);
-      HBOOK1(1124,"STR-tmp-reference in Crate-5",50,1940.,1990.,0.);
-      HBOOK1(1125,"STR-tmp-reference in Crate-6",50,4030.,4080.,0.);
-      HBOOK1(1126,"STR-tmp-reference in Crate-7",50,1970.,2020.,0.);
-      HBOOK1(1127,"STR-tmp-reference in Crate-8",50,1980.,2030.,0.);
+    if(TFREFFKEY.reprtf[2]>0){
+      HBOOK2(1120,"LBBS=1041 Tout vs Tinp(all temper)",50,10.,110.,50,2000.,4000.,0.);
+      HBOOK2(1121,"LBBS=1041 STRR vs temper",50,-25.,25.,50,0.,50.,0.);
+      HBOOK2(1122,"LBBS=1041 OFFS vs temper",50,-25.,25.,50,300.,1800.,0.);
     }
     
     HBOOK1(1130,"RawCluster:AbsFTTime(-6mks,cr1)",80,-50.,50.,0.);
@@ -2383,13 +2388,13 @@ void TOF2JobStat::bookhistmc(){
       HBOOK1(1073,"SIMU: Anode pulse-hight(mV,id=104,s1)",80,0.,1600.,0.);
       HBOOK1(1074,"SIMU: Anode-adc(id=104,s1,NoPeds)",100,0.,500.,0.);
       HBOOK1(1075,"SIMU: Dynode-adc(eq.sum/npm, id=104,s1,NoPeds)",100,0.,100.,0.);
-      HBOOK1(1065,"SIMU: LZTrigPat:S1-frequence(L=1,4)",80,0.,80.,0.);
-      HBOOK1(1066,"SIMU: LZTrigPat:S2-frequence(L=1,4)",80,0.,80.,0.);
-      HBOOK1(1067,"SIMU: HZTrigPat(NoLZ):S1-frequence(L=1,4)",80,0.,80.,0.);
-      HBOOK1(1068,"SIMU: HZTrigPat(NoLZ):S2-frequence(L=1,4)",80,0.,80.,0.);
-      HBOOK1(1069,"SIMU: TofFtCodes(<0/0-8/+30->RejLZ/LZ +RejHZ/HZ)",50,-10.,40.,0.);
+      HBOOK1(1065,"SIMU: FTCTrigPat(z>=1):S1-frequence(L=1,4)",80,0.,80.,0.);
+      HBOOK1(1066,"SIMU: FTCTrigPat(z>=1):S2-frequence(L=1,4)",80,0.,80.,0.);
+      HBOOK1(1067,"SIMU: BZTrigPat(z>=2):S1-frequence(L=1,4)",80,0.,80.,0.);
+      HBOOK1(1068,"SIMU: BZTrigPat(z>=2):S2-frequence(L=1,4)",80,0.,80.,0.);
+      HBOOK1(1069,"SIMU: TofFtCodes(/0-14/+20/+40->FTC/BZ-inp/BZ-accepted)",60,0.,60.,0.);
       HBOOK1(1076,"SIMU: ECTrigFlag when TOFTrflag OK",40,0.,40.,0.);
-      HBOOK1(1077,"SIMU: TOFFTTime-ECFTTime",80,-80.,80.,0.);
+      HBOOK1(1077,"SIMU: TOFFTTime-ECFTTime(when FTC&FTE)",80,-80.,80.,0.);
       HBOOK1(1078,"SIMU: Out-of-width-hit X-excess",50,0.,5.,0.);
       HBOOK1(1079,"SIMU: Out-of-thickness-hit Z-excess",50,0.,5.,0.);
       HBOOK1(1080,"SIMU: GHitTime",100,0.,1000.,0.);
@@ -2458,15 +2463,10 @@ void TOF2JobStat::outp(){
              HPRINT(1116+i);
            }
          }
-           if(TFREFFKEY.reprtf[2]>2){
+           if(TFREFFKEY.reprtf[2]>0){
              HPRINT(1120);
              HPRINT(1121);
              HPRINT(1122);
-             HPRINT(1123);
-             HPRINT(1124);
-             HPRINT(1125);
-             HPRINT(1126);
-             HPRINT(1127);
            }
          if(TFREFFKEY.reprtf[4]>0){
            HPRINT(1138);
@@ -2630,9 +2630,9 @@ void TOF2JobStat::outpmc(){
          HPRINT(1072);
          HPRINT(1073);
          HPRINT(1074);
-         HPRINT(1054);
+//         HPRINT(1054);
          HPRINT(1075);
-         HPRINT(1064);
+//         HPRINT(1064);
          HPRINT(1065);
          HPRINT(1066);
          HPRINT(1067);
@@ -2705,7 +2705,7 @@ void TOF2Varp::init(geant daqth[5], geant cuts[10]){
       for(i=0;i<TOF2GC::SCCRAT;i++)scdaqbc3[i][j]=0;
     }
     for(i=0;i<TOF2GC::SCCRAT;i++)
-                for(j=0;j<TOF2GC::SCFETA;j++)tofantemp[i][j];
+                for(j=0;j<TOF2GC::SCFETA;j++)tofantemp[i][j]=20;//tempor default temperature(degrees)
   }
 //--------------------------------------------------
 TofElosPDF::TofElosPDF(int ich, int ch, geant bp, int nb, geant stp, geant bnl, geant undf, geant ovfl, geant distr[]){

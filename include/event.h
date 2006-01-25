@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.71 2005/05/17 09:56:34 pzuccon Exp $
+//  $Id: event.h,v 1.72 2006/01/25 11:21:36 choumilo Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -150,7 +150,7 @@ void _reamsevent();
 void _regnevent();
 void _sitrigevent();
 void _sitkevent();
-void _sitof2event();
+void _sitof2event(int &cftr);
 void _sianti2event();
 void _sitrdevent();
 void _siecalevent();

@@ -1,5 +1,6 @@
-//  $Id: AMSTOFHist.cxx,v 1.18 2005/10/19 07:14:49 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.19 2006/01/25 11:21:40 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
+// v1.1 E.Choumilov, 19.01.2006
 // 
 #include <iostream>
 #include "AMSDisplay.h"
@@ -24,6 +25,9 @@ private:
 //
   static Bool_t mcdata;
 //
+  static Char_t dat1[30];
+  static Char_t dat2[30];
+  static Char_t dat3[30];
 public:
 //
   static void SetMCF1(){
@@ -47,11 +51,21 @@ public:
     return evsel[i];;
   }
 //
+  inline static void setdat1(Char_t *d){strcpy(dat1,d);}
+  inline static void setdat2(Char_t *d){strcpy(dat2,d);}
+  inline static void setdat3(Char_t *d){strcpy(dat3,d);}
+  inline static Char_t* getdat1(){return dat1;}
+  inline static Char_t* getdat2(){return dat2;}
+  inline static Char_t* getdat3(){return dat3;}
 };
 //------------------------------------
   Int_t RunPar::evsel[80];//events, selected by particular cuts
 //
   Bool_t RunPar::mcdata;
+//
+  Char_t RunPar::dat1[30];
+  Char_t RunPar::dat2[30];
+  Char_t RunPar::dat3[30];
 //
 //------------------------------------
 
@@ -172,10 +186,20 @@ void AMSTOFHist::Book(){
   _filled.push_back(new TH1F("tofh24","RecoStagesEfficiency",21,1.,22.));
   _filled[_filled.size()-1]->SetYTitle("efficiency");
   _filled[_filled.size()-1]->SetFillColor(44);
+//
+  AddSet("TofTimeStability");
+  
+  _filled.push_back(new TProfile("tofh25","LBBS=1041 Stretcher vs Time",120,0,toftrange[2],10,40));
+  _filled[_filled.size()-1]->SetYTitle("Stretch_Factor");
+  _filled.push_back(new TProfile("tofh26","LBBS=1041 Offset vs Time",120,0,toftrange[2],600,1600));
+  _filled[_filled.size()-1]->SetYTitle("Stretcher_Offset");
+  _filled.push_back(new TProfile("tofh27","LBBS=1041 temperature vs Time",120,0,toftrange[2],-40,40));
+  _filled[_filled.size()-1]->SetYTitle("SFETTemperature(degree)");
 }
 //------------------------------------
 
 void AMSTOFHist::ShowSet(Int_t Set){
+  TAxis *xax;
   Float_t binc[30]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   Int_t nentr;
@@ -183,6 +207,8 @@ void AMSTOFHist::ShowSet(Int_t Set){
   gPad->Clear();
   TVirtualPad * gPadSave = gPad;
   int i;
+  Char_t name[60],dat[30];
+//
   switch(Set){
 case 0:
   gPad->Divide(2,2);
@@ -301,9 +327,9 @@ case 5:
     binc[20]=Float_t(RunPar::getsev(17))/nentr;// + Transv.matching OK
     binc[21]=Float_t(RunPar::getsev(18))/nentr;// + Longit.matching OK
   }
-  TAxis *xax=_filled[24]->GetXaxis();
+  xax=_filled[24]->GetXaxis();
   
-  xax->SetBinLabel(1,"Lvl1-trigger");
+  xax->SetBinLabel(1,"Lvl1-trigg");
   _filled[24]->SetBinContent(1,binc[1]);
   
   xax->SetBinLabel(2,"TofRClMult");
@@ -321,10 +347,10 @@ case 5:
   _filled[24]->SetBinContent(6,binc[6]);
   
   
-  xax->SetBinLabel(7,"Part+TofBet");
+  xax->SetBinLabel(7,"Part+TfBet");
   _filled[24]->SetBinContent(7,binc[7]);
   
-  xax->SetBinLabel(8,"+TofFitHi2Sp");
+  xax->SetBinLabel(8,"+..FitHi2Sp");
   _filled[24]->SetBinContent(8,binc[8]);
   
   xax->SetBinLabel(9,"+...Hi2Time");
@@ -351,26 +377,71 @@ case 5:
   xax->SetBinLabel(16,"+ AdvFitOk");
   _filled[24]->SetBinContent(16,binc[16]);
   
-  xax->SetBinLabel(17,"+ HRigAssim");
+  xax->SetBinLabel(17,"+ HRigAss");
   _filled[24]->SetBinContent(17,binc[17]);
   
   _filled[24]->SetBinContent(18,binc[18]);
   
   
-  xax->SetBinLabel(19,"(Tof+Trk)Fit");
+  xax->SetBinLabel(19,"Tof/TrkFit");
   _filled[24]->SetBinContent(19,binc[19]);
   
   xax->SetBinLabel(20,"+tranMatch");
   _filled[24]->SetBinContent(20,binc[20]);
   
-  xax->SetBinLabel(21,"+longMatch");
+  xax->SetBinLabel(21,"longMatch");
   _filled[24]->SetBinContent(21,binc[21]);
   
   _filled[24]->SetStats(kFALSE);
   _filled[24]->Draw("hbar2");  
   gPadSave->cd();
+  break;
 //
-  }
+case 6:
+  gPad->Divide(1,3);
+  for(i=0;i<3;i++){
+    gPad->cd(i+1);
+    gPad->SetGrid();
+    gStyle->SetOptStat(100010);
+    gPad->SetLogx(gAMSDisplay->IsLogX());
+    gPad->SetLogy(gAMSDisplay->IsLogY());
+    gPad->SetLogz(gAMSDisplay->IsLogZ());
+    _filled[i+25]->SetMarkerStyle(20);
+    _filled[i+25]->SetMarkerColor(2);
+    _filled[i+25]->SetMarkerSize(0.5);
+    if(i==0){
+      _filled[i+25]->SetMinimum(10);
+      _filled[i+25]->SetMaximum(40);
+//      strcpy(name,"Last 120mins since ");
+//      strcpy(dat,RunPar::getdat1());
+      strcpy(name,"Last 120days since ");
+      strcpy(dat,RunPar::getdat3());
+    }
+    if(i==1){
+      _filled[i+25]->SetMinimum(400);
+      _filled[i+25]->SetMaximum(1600);
+//      strcpy(name,"Last 120mins since ");
+//      strcpy(dat,RunPar::getdat1());
+      strcpy(name,"Last 120days since ");
+      strcpy(dat,RunPar::getdat3());
+    }
+    if(i==2){
+      _filled[i+25]->SetMinimum(-40);
+      _filled[i+25]->SetMaximum(40);
+//      strcpy(name,"Last 120mins since ");
+//      strcpy(dat,RunPar::getdat1());
+      strcpy(name,"Last 120days since ");
+      strcpy(dat,RunPar::getdat3());
+    }
+    strcat(name,dat);
+    xax=_filled[i+25]->GetXaxis();
+    xax->SetTitle(name);
+    xax->SetTitleSize(0.05);
+    _filled[i+25]->Draw("P");//STRR/OFFS/TEMP vs Time
+    gPadSave->cd();
+  }//--->endof loop
+//
+  }//--->endof switch
 //
 }
 
@@ -379,25 +450,121 @@ case 5:
 void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 // 
   Bool_t cutf[20];
+  Int_t etime[2],evnum,runum;
+  Char_t date[30];
+  static Float_t range[3],timez[3];
+  static Int_t first(1),etime0(0),evnloc;
+  Float_t time[3];
+  static Float_t tinpp,toutp;
 //
   RunPar::addsev(0);//<--counts inputs
   if(ntuple->nMCEventg()>0)RunPar::SetMCF1();//MC data
   else RunPar::SetMCF0();//Real data
 //
+  etime[0]=ntuple->fHeader.Time[0];//unix-time(sec)
+  etime[1]=ntuple->fHeader.Time[1];
+  evnum=ntuple->fHeader.Event;
+  runum=ntuple->fHeader.Run;
+  strcpy(date,ntuple->GetTime());
+//
+  if(first==1){
+    first=0;
+    etime0=etime[0];
+    cout<<"TOF: 1st event Run/event:"<<runum<<" "<<evnum<<" date:"<<date<<" evloc="<<evnloc<<endl;
+    for(int i=0;i<3;i++){
+      timez[i]=0;
+    }
+    evnloc=0;
+    tinpp=-9999;
+    toutp=-9999;
+    RunPar::setdat1(ntuple->GetTime());
+    RunPar::setdat2(ntuple->GetTime());
+    RunPar::setdat3(ntuple->GetTime());
+  }
+  time[0]=(etime[0]-etime0)/60;//ev.time starting from beg.of.run(min)
+  time[1]=(etime[0]-etime0)/3600;//ev.time starting from beg.of.run(hour)
+  time[2]=(etime[0]-etime0)/86400;//ev.time starting from beg.of.run(day)
+//
+//--->short Time-range histogr. resets:
+  if((time[0]-timez[0])>=toftrange[0]){
+//    ((TProfile*)_filled[25])->Reset("");
+//    ((TProfile*)_filled[26])->Reset("");
+//    ((TProfile*)_filled[27])->Reset("");
+    timez[0]=time[0];
+    RunPar::setdat1(ntuple->GetTime());
+  }
+//
+//--->mid Time-range histogr. resets:
+  if((time[1]-timez[1])>=toftrange[1]){
+//    ((TProfile*)_filled[25])->Reset("");
+//    ((TProfile*)_filled[26])->Reset("");
+//    ((TProfile*)_filled[27])->Reset("");
+    timez[1]=time[1];
+    RunPar::setdat2(ntuple->GetTime());
+  }
+//
+//--->long Time-range histogr. resets:
+//
+  if((time[2]-timez[2])>=toftrange[2]){
+  cout<<"---->Reset"<<endl;
+    ((TProfile*)_filled[25])->Reset("");
+    ((TProfile*)_filled[26])->Reset("");
+    ((TProfile*)_filled[27])->Reset("");
+    timez[2]=time[2];
+    RunPar::setdat3(ntuple->GetTime());
+  }
+//<-------------
+//
 //---> LVL-1 params:
   Level1R *p2lev1(0);
   Bool_t LVL1OK(0);
   Int_t ECTrigFl(0);
-  Int_t TOFTrigFl(0);
+  Int_t TOFTrigFl1(0);
+  Int_t TOFTrigFl2(0);
   if(ntuple->nLevel1()>0){
     p2lev1=ntuple->pLevel1(0);
     LVL1OK=1;
-    TOFTrigFl=p2lev1->TofFlag;
+    TOFTrigFl1=p2lev1->TofFlag1;
+    TOFTrigFl2=p2lev1->TofFlag2;
     ECTrigFl=p2lev1->EcalFlag;
   }
   if(!LVL1OK)return;//=====> no LVL1-trig
   RunPar::addsev(1);//<--passed lvl1 check
 //
+//--------> StrRatio temperature behaviour study(based on TofRawSide-Obj):
+//
+  Int_t swid,hwid,crat,slot;
+  Float_t tinp,tout,temper,strr,offs;
+  Float_t strtms[4];
+  Int_t ntofrs=ntuple->NTofRawSide();//total tof-raw_sides
+  TofRawSideR * p2raws;//pointer to raw-side members
+  for(int i=0;i<ntofrs;i++){ // <--- loop over TOF2RawSide hits
+    p2raws=ntuple->pTofRawSide(i);
+    swid=p2raws->swid;//LBBS
+    hwid=p2raws->hwid;//CS
+    crat=hwid/10;
+    slot=hwid%10;
+    for(int j=0;j<4;j++)strtms[j]=p2raws->stdc[j];
+    tinp=strtms[0]-strtms[1];
+    tout=strtms[1]-strtms[3];
+    temper=p2raws->temp;
+    if(swid==1041){
+      if(fabs(tinp-tinpp)>5 && fabs(tinp-tinpp)<200){//curr-prev. meas. ok
+	strr=(tout-toutp)/(tinp-tinpp);
+	offs=tout-strr*tinp;
+	if(strr==0 || offs==0 || temper==0)cout<<" ***>pars=0!"<<endl;
+//        ((TProfile*)_filled[25])->Fill(time[0]-timez[0],strr,1.);
+//        ((TProfile*)_filled[26])->Fill(time[0]-timez[0],offs,1.);
+//        ((TProfile*)_filled[27])->Fill(time[0]-timez[0],temper,1.);
+        ((TProfile*)_filled[25])->Fill(time[2]-timez[2],strr,1.);
+        ((TProfile*)_filled[26])->Fill(time[2]-timez[2],offs,1.);
+        ((TProfile*)_filled[27])->Fill(time[2]-timez[2],temper,1.);
+      }
+      tinpp=tinp;
+      toutp=tout;
+    }
+  }// --- end of hits loop --->
+//<--------
 //
   Int_t ntofrcls=ntuple->NTofRawCluster();//total tof-raw_clusters(paddles)
   Int_t ntrkrcls=ntuple->NTrRawCluster();//total trk-raw_clusters
@@ -737,6 +904,8 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     RunPar::addsev(19);//<--good TOF/TRK-normalization
   }//<--- endof TOFUnif.block
 //---
+  evnloc+=1;
+// 
 }
 
 

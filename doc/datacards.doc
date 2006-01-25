@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.246 2005/12/01 09:45:28 choutko Exp $
+#  $Id: datacards.doc,v 1.247 2006/01/25 11:21:33 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -594,43 +594,66 @@ R1 time        // max time allowd for prog execution
 
 //-----------------------------------------------------------------
 
-TGL1    // LVL1 Trigger
+TGL1    // FT/LVL1 Trigger (see remarks about some parameters(*))
  
-I 1 trtype(8)          //9 lsbits->LVL1-branches(pattern) requested in global OR 
-                       //bit(=1)->unbiased#1 trigger (TOF only)
-		       //bit(=2)->unbiased#2 trigger (EC(ectrflag>0) only)
-		       //bit(=4)->inbiased#3 trigger (TOF && EC(ectrflag>0,i.e.Et>MipThr))
-		       //bit(=8)->unbiased#4 trigger (TOF || EC(ectrflag>0))
-		       //bit(=16)->Z=1 particles trigger (TOF(tofflag/10=0) & function(ANTI))
-		       //bit(=32)->Z>=2 particles trigger  TOF(tofflag/10>0)
-		       //bit(=64)->e+- particles trigger (TOF && EC(Et>LoThr && ShowWidth=em))
-		       //bit(=128)->Photon trigger EC(Et>HiThr && ShowWidth=em) 
-		       //bit(=256->External (Replace FT(TOF/EC)-signal, under construction...) 
-			   // ECflag=MN, where M=0/1/2/3->EnerFlag, N=0/1/2->WidthFlag
-			   // M=1->Etot>MipThr; =2->Etot>LoThr(ECRE #12); =3->Etot>HiThr(ECRE #14); 
-			   // N=2->WidthCheckOK(em); N=1->WidthCheckFailed; N=0->unknown 
-I 2 toflc(0)               // required TOF-FastTrigger LAYER configuration
-//                 (=0/1/2-> accept at least ANY3of4/ALL4/ANYTopBot2of4 layer coincidence)
-I 3 tofsc(1)               //required TOF-FastTrigger SIDE configuration
-//                                 (=0/1-> two-sides-AND/OR selection)
-I 4 tofzlc(1)              //TOF_HiZ_FT 2-top(2-bot)fired layers configurations(0/1/2/3-> 
-//                                              ->top(bot)OR/topAND/botAND/top(bot)AND 
-I 5 nanti(20)              // max. fired ANTI-paddles 
-I 6 RebuildLVL1(0)         // Rebuild or not lvl1 if reconstruction
-R 7 MaxScalersRate(20k)    // max acceptable av scalers rate
-R 8 MinLifeTime   (0.015)  // min acceptable lifetime
-R 9 TheMagCut(0.7)         // mag.latitude boundary when anti-cut nanti=0 change to <=1
-I 10 ectrlog(2)            // EC-trigger logic type(1->MyOld,2->MyNew+ANSI,3->Pisa)
-I 11 antisc(1)             // required ANTI-FastTrigger SIDE configuration
-//                                               (=0/1-> two-sides-AND/OR selection)
-I 12 Lvl1ConfMCVers(1)     // MC def.version number of "toftrigf***mc" -file
-I 13 Lvl1ConfRDVers(1)     // RD def.version number of "toftrigf***rl" -file
-I 14 Lvl1ConfRead(0)       // M(ask)=0/1->read Lvl1ConfMasks-data from DB/raw_file
+I 1 trtype(1)*         //8 lsbits->LVL1-branches(pattern) requested in global OR 
+                       //bit(=1)->unbiased TOFtrigger ((TOF "FTC" only)
+		       //bit(=2)->Z>=1("FTC",anti_in)
+		       //bit(=4)->Z>=2("FTC",anti_out)
+		       //bit(=8)->SlowZ>=2("FTZ", anti_out)
+		       //bit(=16)->electrons("FTC","FTE", anti_out, "ecFand")
+		       //bit(=32)->gammas("FTC","FTE", anti_out, "ecFand", "ecAand")
+		       //bit(=64)->ecalFT(just "FTE")
+		       //bit(=128->External (Replace FT(TOF/EC)-signal, under construction...)
+		       // !!! ***** Real Lvl1-trig is OR of above bits ***** !!! 
+			    
+I 2 toflc(0)*              // required TOF-FTCtrig(Z>=1) LAYER configuration
+                              (=0/1/2-> accept at least ANY3of4/ALL4/ANYTopBot2of4 layer coincidence)
+I 3 tofsc(11)*             //required TOF-FTrig Plane-SIDES configuration MN
+                                   (m(n)=0/1-> two-sides-AND/OR selection, n->Z>=1, m->Z>=2
+I 4 toflcsz(0);            //(4)required TOF-FTZ(slowZ>=2) LAYERS configuration IJ(J=0/1/2/3-> 
+                           //     ->topAND*botAND/topAND*botOR/topOR*botAND/topOR*botOR;
+                           //      I=0/1 => "*"=AND/OR. 
+I 5 toflcz(0)*             //required TOF-BZtrig(Z>=2) LAYERS (2-top(2-bot)) configuration(0/1/2/3-> 
+                                                ->top&bot_OR/topAND/botAND/top&bot_AND
+I 6 tifextwid(640)*        //ext.width(ns,top&bot) in SlowZ>=2 logic
+ 
+I 7 antismx[0](1)*         //max. acceptable fired ANTI-paddles(logical, in equat.region)
+I 8 antismx[1](0)*         //max. acceptable fired ANTI-paddles(logical, in polar.region)
+I 9 antisc(1)*              //required ANTI-trigger SIDE configuration(=0/1-> two-sides-AND/OR selection)
 
-    Important: if tofsc(#3) <0 ==> TofOrAnd data are counter-individual and taken from DB
-                  trtype(#1)<0 ==> Lvl1SubTrigMask is taken from DB
-		  toflc(#2) <0 ==> TofLayersConf is taken from DB
-		  tofzlc(#4)<0 ==> TofZ>1LayersConf is taken from DB
+I 10 cftmask(111)*          //GlobalFTMask (i|j|k=>FTE|FTZ>=2|FTZ>=1; i(j,k)=1(active)/0(disabled))
+ 
+I 11  RebuildLVL1(0)         // Rebuild/not lvl1 (for RealData) from subdet.RawEvent objects
+R 12 MaxScalersRate(20k)    // max acceptable aver scalers rate
+R 13 MinLifeTime   (0.015)  // min acceptable lifetime
+R 14 TheMagCut(0.7)         // geom.latitude cut for anti-cut selection(below-#7, above-#8)
+
+I 15 ecorand(2)*           // 1/2=>OR/END of 2 proj. requirement on min.multiplicity
+I 16 ecprjmask (1111)*     // proj.mask(lkji: ij=1/0->XYproj act/disab in FT; kl=same for LVL1(angle)
+
+I 17 Lvl1ConfMCVers(1)     // MC def.version number of "lvl1conf***mc" -file
+I 18 Lvl1ConfRDVers(1)     // RD def.version number of "lvl1conf***rl" -file
+I 19 Lvl1ConfRead(0)       // MN, N=0/1->read Lvl1Config-data from DB/raw_file
+                           //     M=0/1->read Lvl1Config raw file from official/private directory
+
+I 20 printfl(0);           // PrintControl=0/>0 -> noPrint/Print event-by-event FT/LVL1 info
+
+I 21->                     // Begin/End dates for trigger TDVs
+
+ *** <--- For these parameters the default values are recomendations in case of manual control.
+     By default all these params. are set to -99 to use more detailed and up-to-date DB-settings :  
+                  trtype (#1)   <0 ==> Lvl1SubTrigMask is taken from DB
+		  toflc  (#2)   <0 ==> TofLayersConf(FTC=>Z>=1) is taken from DB
+                  tofsc  (#3)   <0 ==> TofPlaneSidesOrAndConf is Z/Plane-dependent and taken from DB
+		  toflcsz(#4)   <0 ==> TOF-FTZ(slowZ>=2) layers configuration is taken from DB
+		  toflcz (#5)   <0 ==> TofLayersConf(BZ=>Z>=2) is taken from DB
+		  tofextwid(6)  <0 ==> TofExtWidth(FTZ-logic) is top/bot individual and taken from DB
+		  antismx(#7-8) <0 ==> Max acceptable ANTI-sectors numbers are taken from DB
+		  antisc (#9)   <0 ==> AntiSides_Or/And-Config is logsector-dependent and taken from DB
+		  cftmask(#10)  <0 ==> GlobalFTMask is taken from DB
+		  ecorand(#15)  <0 ==> EcalProj_Or/And flag is taken from DB
+		  ecprjmask(#16)<0 ==> EcalProjMask is taken from DB
 //-----------------------------------------------------------------------------
 
 // AMS02 TOF  Simulation
@@ -675,21 +698,20 @@ I 7   Print-flag(0)       // if nonzero(=LBBS) permits fill stretcher w1/w3 hist
 I 8   RECO logic-flag(0)  // Normal/STRR+AVSD/TDIF/TZSL/AMPL-calibr_run(if=0/1/2/3/4)
 I 9   RECO logic-flag(0)  // full_fTDC_usage/presence(noMatching)/do_not_use (if =0/1/2)
 I 10  RECO logic-flag(0)  // if ==1 -> switch off side 2 in counters of layer 4.
-I 11  RECO logic-flag(0)  // 0/1-> use new/old parametrization for TOF integrators.
-                             old mode can't use DB (use only raw calib.files(28=1) !) 
-I 12  RECO logic-flag(0)  // spare
-R 13  DAQ-thresh-1 (40)     // thresh.(mv) for fast t-discriminator (z>=1 trig)
-R 14  DAQ-thresh-2 (100)    // thresh.(mv) for z>1-trig. discr.
-R 15  DAQ-thresh-3 (250)    // thresh.(mv) for z>2-trig. discr.
-R 16  DAQ-thresh-4 (1)     //H(L)-ADC-readout threshold in DAQ (in ADC-channels) 
-R 17  DAQ-thresh-5 (1)     //Thresh(pC) for anode-integrator 
+I 11  RECO logic-flag(0)  // do/not recovering of missing side 
+I 12  RECO logic-flag(1)  // 1/0->create(+write)/not TOF2RawSideObject-info into ntuple 
+R 13  DAQ-thresh-1 (40)   // thresh.(mv) for fast t-discriminator (z>=1 trig)
+R 14  DAQ-thresh-2 (100)  // thresh.(mv) for z>1-trig. discr.
+R 15  DAQ-thresh-3 (250)  // thresh.(mv) for z>2-trig. discr.
+R 16  DAQ-thresh-4 (2.5)  // An/Dyn-ADC readout threshold in DAQ(in ped's rms units) 
+R 17  DAQ-thresh-5 (1)    // spare 
 //
-R 18  cuts[0] (40)      //t-window(ns) for "the same hit" search in f/s_tdc 
-R 19  cuts[1] (15)      // cut on min. distance of "befor"-hit in time history TDC
-R 20  cuts[2] (400)     // ........................"after"-hit in time history TDC
-R 21  cuts[3] (2.8)     // error in longitudinal coordinate (cm, single TOF bar)
-R 22  cuts[4] (50)      // FT delay constant term (ns)
-R 23  cuts[5] (40)      // sTDC-delay wrt fTDC (ns)
+R 18  cuts[0] (40)      // time-window(ns) for "the same hit" search in fast/slow_tdc 
+R 19  cuts[1] (15)      // cut on min. distance of "befor"-hit in time-history TDC
+R 20  cuts[2] (400)     // ........................"after"-hit in time-history TDC
+R 21  cuts[3] (2.8)     // error in longitudinal coordinate (cm, for mip in single TOF-paddle)
+R 22  cuts[4] (40)      // min FT delay (ns)
+R 23  cuts[5] (40)      // spare
 R 24  cuts[6] (0.6)     // 2-bars assim.cut in TOFCluster energy calculation 
 R 25  cuts[7] (8)       // internal longit.coo matching cut ...Not used (spare) 
 R 26  cuts[8] (26)      // spare
@@ -796,28 +818,27 @@ I 7,8................        //    spares
 
 R 9    thresh[0](3)        // HighGain-chan. readout threshold(in PEDsigma units)    
 R 10   thresh[1](120)      // Anode(high-ch,tot) "mip"-trig.thresh(mev tempor)     
-R 11   thresh[2](450)      // ............ ,1st 3sl) "elec"-trig.thresh(mev tempor) spare    
-R 12   thresh[3](3000)     // "LowEnergy"-trig.thresh(mev tempor)     
+R 11   thresh[2](450)      // spare    
+R 12   thresh[3](3000)     // spare     
 R 13   thresh[4](3)        // LowGain-chan. readout thershold(in PEDsigma units)    
-R 14   thresh[5](10000)    // "HighEnergy"-trig.thresh(mev tempor)  
-R 15   thresh[6](3.5)      // min Epeak/Ebase (add. to #11 for "electromagneticity") spare
-R 16   thresh[7](1.)       // min Epeak/Efron ..................................... spare
-R 17   thresh[8](25.)      // Anode(high) chan.threshold for width calc.(mev tempor) 
-R 18   thresh[9](12.)      // trig. width cut(columns, bending plane)
-R 19   thresh[10](0.)      // Trig. PMDynThr sl1(y) not used (mev, for italian algorithm)
-R 20   thresh[11](80.)     // Trig. PMDynThr sl2(x)
-R 21   thresh[12](180.)    // Trig. PMDynThr sl3(y)
-R 22   thresh[13](140.)    // Trig. PMDynThr sl4(x)
-R 23   thresh[14](60.)     // Trig. PMDynThr sl5(y)
-R 24   thresh[15](100.)    // Trig. PMDynThr sl6(x)
-R 25   thresh[16](100.)    // Trig. PMDynThr sl7(y)
-R 26   thresh[17](0.)      // Trig. PMDynThr sl8(x) not used 
-R 27   thresh[18](0.)      // Trig. PMDynThr sl9(y) not used
-R 28   thresh[19](0.)      // spare 
+R 14   thresh[5](0.)       // Trig. PMDynThr sl1(y) not used (mev, for Pisa algorithm)
+R 15   thresh[6](80.)      // Trig. PMDynThr sl2(x)
+R 16   thresh[7](180.)     // Trig. PMDynThr sl3(y)
+R 17   thresh[8](140.)     // Trig. PMDynThr sl4(x)
+R 18   thresh[9](60.)      // Trig. PMDynThr sl5(y)
+R 19   thresh[10](100.)    // Trig. PMDynThr sl6(x)
+R 20   thresh[11](100.)    // Trig. PMDynThr sl7(y)
+R 21   thresh[12](0.)      // Trig. PMDynThr sl8(x) not used 
+R 22   thresh[13](0.)      // Trig. PMDynThr sl9(y) not used
+R 23   thresh[14](0.)      // spare 
 
-R 29   cuts[0](5)          // mev/cell threshold for cluster search(~2adc)
-R 30-32.................   // spares
-R 33   cuts[4](0.65)       // LVL3-trig. EC-algorithm: "peak"/"average" methode boundary
+R 24   cuts[0](1.15)       // FT/LVL1-trig cuts: AngleCut-1
+R 25   cuts[1](2.15)       // FT/LVL1-trig cuts: AngleCut-2
+R 26   cuts[2](5)          // FT/LVL1-trig cuts: Xmult-boundary
+R 27   cuts[3](6)          // FT/LVL1-trig cuts: Ymult-boundary
+R 28   cuts[4](2)          // FT/LVL1-trig cuts: Nof3(min.Slayers per proj)
+R 29-32.................   // spares
+R 33   cuts[9](0.65)       // LVL3-trig. EC-algorithm: "peak"/"average" methode boundary
 
 I 34   ReadConstFiles(00)  // DC(RecoThresCuts|CalibConst),C=0/1->Take CalibConst(RD/MC) from DB/RawFiles
                            // D=0/1->Take ThreshCuts-set from DB/DataCards

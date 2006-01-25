@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.29 2005/05/17 09:54:07 pzuccon Exp $
+//  $Id: trigger302.C,v 1.30 2006/01/25 11:21:13 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofrec02.h"
 #include "tofsim02.h"
@@ -1226,7 +1226,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
    int npmcl[ECSLMX],npmmx,pmin,pmax,pmngb;
    geant ecnoisl(5);//to discrim. from noise(mev)
    geant eshcut;
-   eshcut=ECALVarp::ecalvpar.rtcuts(4);//boundary-cut between "aver" and "peak" methods
+   eshcut=ECALVarp::ecalvpar.rtcuts(9);//boundary-cut between "aver" and "peak" methods
 //
    ectrackok=0;
    if(plvl3->UseECMATinfo()){//use EC-Match info

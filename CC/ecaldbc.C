@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.54 2005/09/09 07:55:12 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.55 2006/01/25 11:21:08 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -456,32 +456,13 @@ void EcalJobStat::printstat(){
   printf("\n");
   printf(" MC: entries                       : % 6d\n",mccount[0]);
   printf(" MC: MCHit->RawEven(ECTrigfl>0) OK : % 6d\n",mccount[1]);
-  if(TGL1FFKEY.ectrlog==1){
-    printf(" MCTrigBuild:  entries(>=MIP)      : % 6d\n",srcount[0]);
-    printf("               Efront OK           : % 6d\n",srcount[1]);
-    printf("               Epk/Ebs OK          : % 6d\n",srcount[2]);
-    printf("               Epk/Efr OK          : % 6d\n",srcount[3]);
-    printf("               TrWidth OK          : % 6d\n",srcount[4]);
-  }
-  else if(TGL1FFKEY.ectrlog==2){
-    printf(" MCTrigBuild:  entries             : % 6d\n",srcount[0]);
-    printf("               Etot>=MIP           : % 6d\n",srcount[1]);
-    printf("               EtotIn1stRange      : % 6d\n",srcount[2]);
-    printf("               EmWidth(1stRange)   : % 6d\n",srcount[3]);
-    printf("               EtotIn2ndRange      : % 6d\n",srcount[4]);
-    printf("               EmWidth(2ndRange)   : % 6d\n",srcount[5]);
-    printf("               EtotIn3rdRange      : % 6d\n",srcount[6]);
-    printf("               EmWidth(3rdRange)   : % 6d\n",srcount[7]);
-  }
-  else{
-    printf(" MCTrigBuild:  entries             : % 6d\n",srcount[0]);
-    printf("               Etot>=MIP           : % 6d\n",srcount[1]);
-    printf("               Mult>=Low           : % 6d\n",srcount[2]);
-    printf("               Mult=High           : % 6d\n",srcount[3]);
-    printf("               EmWidth(Mult=High)  : % 6d\n",srcount[4]);
-  }
+  printf(" MCTrigBuild: entries              : % 6d\n",srcount[0]);
+  printf("              Etot>=MIP            : % 6d\n",srcount[1]);
+  printf("              Mult>=Low            : % 6d\n",srcount[2]);
+  printf("              Mult>=EM(FT OK)      : % 6d\n",srcount[3]);
+  printf("              Angle(whenFT) OK     : % 6d\n",srcount[4]);
   printf(" RECO-entries                      : % 6d\n",recount[0]);
-  printf(" LVL1-trigs with ECAL flag         : % 6d\n",recount[1]);
+  printf(" LVL1-trigs(TOF-FT || EC-FT || Ext): % 6d\n",recount[1]);
   printf(" Validation OK                     : % 6d\n",recount[2]);
   printf(" RawEvent->EcalHit OK              : % 6d\n",recount[3]);
   printf(" EcalHit->EcalCluster OK           : % 6d\n",recount[4]);
@@ -540,17 +521,19 @@ void EcalJobStat::bookhist(){
       HBOOK1(ECHISTR+15,"ECRE: EcalHit-hits DyCorrectionEn(tot,Mev)",100,0.,100000,0.);
       HBOOK1(ECHISTR+16,"ECRE: RawEvent-hits value(adc,gain-corr)",200,0.,10000.,0.);
       HBOOK1(ECHISTR+17,"ECRE: RawEvent-hits value(adc,gain-corr)",100,0.,100.,0.);
-      HBOOK1(ECHISTR+18,"ECRE: EcalClust per event",60,0.,120.,0.);
+//      HBOOK1(ECHISTR+18,"ECRE: EcalClust per event",60,0.,120.,0.);
       if(ECREFFKEY.reprtf[1]==1){//<--- to store t-profiles, z-prof
         HBOOK1(ECHISTR+19,"ECRE: T-prof in plane 8(X)",maxcl,1.,geant(maxcl+1),0.);
         HBOOK1(ECHISTR+20,"ECRE: T-prof in plane 9(Y)",maxcl,1.,geant(maxcl+1),0.);
         HBOOK1(ECHISTR+21,"ECRE: Z-profile",maxpl,1.,geant(maxpl+1),0.);
       }
-      HBOOK1(ECHISTR+22,"ECRE: EcalClust value(tot,Mev)",200,0.,1000000,0.);
-      HBOOK1(ECHISTR+23,"ECRE: EcalClust value(tot,Mev)",100,0.,50000,0.);
-      HBOOK1(ECHISTR+24,"ECRE: SubCelLayer En-profile(ECHits)",maxpl,1.,geant(maxpl+1),0.);
-      HBOOK1(ECHISTR+25,"ECRE: SuperLayer En-profile(ECHits)",maxsl,1.,geant(maxsl+1),0.);
-      HBOOK1(ECHISTR+30,"ECRE: Trigger flag(validate)",40,0.,40.,0.);
+//      HBOOK1(ECHISTR+22,"ECRE: EcalClust value(tot,Mev)",200,0.,1000000,0.);//now not my responsib.
+//      HBOOK1(ECHISTR+23,"ECRE: EcalClust value(tot,Mev)",100,0.,50000,0.);
+//      HBOOK1(ECHISTR+24,"ECRE: SubCelLayer En-profile(ECHits)",maxpl,1.,geant(maxpl+1),0.);//not implemented
+//      HBOOK1(ECHISTR+25,"ECRE: SuperLayer En-profile(ECHits)",maxsl,1.,geant(maxsl+1),0.);
+      HBOOK1(ECHISTR+28,"ECRE: TriggerPatternProjX(validate,whenLVL1)",120,1.,121.,0.);
+      HBOOK1(ECHISTR+29,"ECRE: TriggerPatternProjY(validate,whenLVL1)",120,1.,121.,0.);
+      HBOOK1(ECHISTR+30,"ECRE: Trigger flag(validate,whenLVL1)",40,0.,40.,0.);
       HBOOK1(ECHISTR+31,"ECLVL3: Etot(mev)",100,0.,100000.,0.);
       HBOOK1(ECHISTR+32,"ECLVL3: Efront",80,0.,1600.,0.);
       HBOOK1(ECHISTR+33,"ECLVL3: Epeak/Ebase",80,0.,40.,0.);
@@ -760,25 +743,13 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+7,"ECMC: EmcHits SL-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
       HBOOK1(ECHIST+8,"ECMC: EmcHits SL(PM-assigned)-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
       HBOOK1(ECHIST+9,"ECMC: Etot(DynodeTrigSum,mev)",200,0.,100000.,0.);
-      HBOOK1(ECHIST+10,"ECMC: 1ST 3SL signal(mev)",80,0.,1600.,0.);
-      HBOOK1(ECHIST+11,"ECMC: Epk/Ebase Ratio(F,LE)",80,0.,40.,0.);
-      HBOOK1(ECHIST+12,"ECMC: Ebase",80,0.,800.,0.);
-      HBOOK1(ECHIST+13,"ECMC: Epk/Efr Ratio(F+P2B,HE)",50,0.,10.,0.);
-      HBOOK1(ECHIST+14,"ECMC: Pm-signals(sl1,7,2;L-cuts)",100,0.,300.,0.);
-      HBOOK1(ECHIST+15,"ECMC: Transv.Width(proj1,LE)",80,0.,80.,0.);
-      HBOOK1(ECHIST+16,"ECMC: Pm-signals(sl2,8,2;L-cuts)",100,0.,300.,0.);
-      HBOOK1(ECHIST+17,"ECMC: Transv.Width(proj2,LE)",80,0.,80.,0.);
-      HBOOK1(ECHIST+18,"ECMC: Etot(trig.sum,L-cuts,mev)",100,0.,20000.,0.);
-      HBOOK1(ECHIST+19,"ECMC: ECTriggerFlag",40,0.,40.,0.);
+      HBOOK1(ECHIST+10,"ECMC: ECTriggerConf(IJ->Energ|Angle Proj-Or(1)/And(2))",30,0.,30.,0.);
+      HBOOK1(ECHIST+19,"ECMC: ECTriggerFlag(IJ->Mult(0-3)|Angle(0-2))",40,0.,40.,0.);
       HBOOK1(ECHIST+20,"ECMC: Tot.Anode charge(4subc.sum, pC)",100,0.,20.,0.);
       HBOOK1(ECHIST+21,"ECMC: Max TotAnodeCharge(4subc.sum, pC)",100,0.,1000.,0.);
       HBOOK1(ECHIST+22,"ECMC: Max ADC-H(incl.ped, No ovfl.limit)",100,0.,4100.,0.);
       HBOOK1(ECHIST+23,"ECMC: Max ADC-L(incl.ped, No ovfl.limit)",100,0.,4100.,0.);
       HBOOK1(ECHIST+24,"ECMC: Max ADC-D(incl.ped, No ovfl.limit)",100,0.,4100.,0.);
-      HBOOK1(ECHIST+26,"ECMC: Transv.Width(proj1,ME)",80,0.,80.,0.);
-      HBOOK1(ECHIST+27,"ECMC: Transv.Width(proj2,ME)",80,0.,80.,0.);
-      HBOOK1(ECHIST+28,"ECMC: Transv.Width(proj1,HE)",80,0.,80.,0.);
-      HBOOK1(ECHIST+29,"ECMC: Transv.Width(proj2,HE)",80,0.,80.,0.);
       HBOOK1(ECHIST+30,"ECMC: TrgDynSignalsMax(mev),SL1",80,0.,400.,0.);
       HBOOK1(ECHIST+31,"ECMC: TrgDynSignalsMax(mev),SL2",80,0.,400.,0.);
       HBOOK1(ECHIST+32,"ECMC: TrgDynSignalsMax(mev),SL3",80,0.,400.,0.);
@@ -794,7 +765,6 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+42,"ECMC: MaxCOGShift(Xproj)",50,0.,10.,0.);
       HBOOK1(ECHIST+43,"ECMC: DyTrigEnerTot(mev)",80,0.,2000.,0.);
     }
-    HBOOK1(ECHIST+25,"LVL1: TrigType(entr,unb1-4,z1,z2,elec,phot,",10,0.,10.,0.);
 }
 //----------------------------
 void EcalJobStat::outp(){
@@ -809,17 +779,19 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTR+15);
       HPRINT(ECHISTR+16);
       HPRINT(ECHISTR+17);
-      HPRINT(ECHISTR+18);
-      HPRINT(ECHISTR+22);
-      HPRINT(ECHISTR+23);
+//      HPRINT(ECHISTR+18);
+//      HPRINT(ECHISTR+22);
+//      HPRINT(ECHISTR+23);
       if(recount[2]>0){
-        for(int i=0;i<2*ECSLMX;i++)rzprofa[i]=geant(zprofa[i]/recount[2]);
-        for(int i=0;i<ECSLMX;i++)rzprofapm[i]=geant(zprofapm[i]/recount[2]);
-        HPAK(ECHISTR+24,rzprofa);
-        HPAK(ECHISTR+25,rzprofapm);
-        HPRINT(ECHISTR+24);
-        HPRINT(ECHISTR+25);
+//        for(int i=0;i<2*ECSLMX;i++)rzprofa[i]=geant(zprofa[i]/recount[2]);
+//        for(int i=0;i<ECSLMX;i++)rzprofapm[i]=geant(zprofapm[i]/recount[2]);
+//        HPAK(ECHISTR+24,rzprofa);
+//        HPAK(ECHISTR+25,rzprofapm);
+//        HPRINT(ECHISTR+24);
+//        HPRINT(ECHISTR+25);
       }
+      HPRINT(ECHISTR+28);
+      HPRINT(ECHISTR+29);
       HPRINT(ECHISTR+30);
       HPRINT(ECHISTR+31);
       HPRINT(ECHISTR+32);
@@ -1054,18 +1026,6 @@ void EcalJobStat::outpmc(){
         HPRINT(ECHIST+8);
       }
       HPRINT(ECHIST+9);
-      HPRINT(ECHIST+10);
-      HPRINT(ECHIST+11);
-      HPRINT(ECHIST+12);
-      HPRINT(ECHIST+13);
-      HPRINT(ECHIST+14);
-      HPRINT(ECHIST+16);
-      HPRINT(ECHIST+15);
-      HPRINT(ECHIST+17);
-      HPRINT(ECHIST+26);
-      HPRINT(ECHIST+27);
-      HPRINT(ECHIST+28);
-      HPRINT(ECHIST+29);
       HPRINT(ECHIST+30);
       HPRINT(ECHIST+31);
       HPRINT(ECHIST+32);
@@ -1080,10 +1040,9 @@ void EcalJobStat::outpmc(){
       HPRINT(ECHIST+41);
       HPRINT(ECHIST+42);
       HPRINT(ECHIST+43);
-      HPRINT(ECHIST+18);
+      HPRINT(ECHIST+10);
       HPRINT(ECHIST+19);
     }
-    HPRINT(ECHIST+25);
 }
 //==========================================================================
 //  ECcalib class functions :

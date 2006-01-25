@@ -1,4 +1,4 @@
-//  $Id: user.C,v 1.14 2005/05/17 09:54:07 pzuccon Exp $
+//  $Id: user.C,v 1.15 2006/01/25 11:21:14 choumilo Exp $
 #include "typedefs.h"
 #include <stdlib.h>
 #include <iostream.h>
@@ -25,18 +25,12 @@ void AMSUser::InitEvent(){
 }
 
 void AMSUser::Event(){
-  integer toftrigfl(-1);
-  uinteger ectrigfl(0);
+  bool glft(0);
 //
   if(!AMSJob::gethead()->isCalibration()){
       Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-      if(ptr){
-        toftrigfl=ptr->gettoflg();
-        ectrigfl=ptr->getecflg();
-      }
-      if(toftrigfl<0 && ectrigfl<=0){
-        return;// "no TOF/EC in LVL1-trigger"
-      }
+      if(ptr)glft=ptr->GlobFasTrigOK();
+      if(!glft)return;// "no globFT in LVL1-trigger"
       TOF2User::Event();
   }
 }

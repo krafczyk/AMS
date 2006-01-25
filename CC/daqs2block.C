@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.7 2005/09/09 07:55:12 choumilo Exp $
+//  $Id: daqs2block.C,v 1.8 2006/01/25 11:21:08 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
 #include "typedefs.h"
@@ -106,7 +106,7 @@ void DAQS2Block::buildraw(integer len, int16u *p){
 //
   integer i,j,il,ib,is,ic,icn,nh,lent,dlen,im;
   int swid,sswid,swidn,sswidn,pmmx;
-  int16u blid,btyp,ntyp,mt,pmt,naddr,mtyp,dtyp,msk,chan,slot,crat,cardid,tsens;
+  int16u blid,btyp,ntyp,mt,pmt,naddr,mtyp,dtyp,msk,chan,slot,crat,rdch,cardid,tsens;
   geant temp,charge;
 //
   blid=(*p) & ~60;      
@@ -147,6 +147,8 @@ void DAQS2Block::buildraw(integer len, int16u *p){
 //
 /*
   int16u swcbuf[SCRCMX][SCTHMX2],swnbuf[SCRCMX],swibuf[SCRCMX],swtbuf[SCRCMX];
+//they keep:   s/f-tdc hits       s/f hits #        LBBSPMs
+// here SCRCMX is used as max. number(even higher) of sw-channels
   for(i=0;i<SCRCMX;i++){
     swnbuf[i]=0;
     swibuf[i]=0;
@@ -156,11 +158,23 @@ void DAQS2Block::buildraw(integer len, int16u *p){
 // in current crate as arrays of sequential sw-channel:
 // (number of hits in each channel should be verified here !!!)
 //
-  slot=AMSSCIds::crdid2sl(crat,cardid);//0,1,...
-  tsens=AMSSCIds::gettsn(slot);//1,2,...,5
-  temp=...;
-  TOF2JobStat::puttemp(crat,tsens-1);
-//..................................................
+  AMSSCIds tofid(crat,slot,rdch);//otyp=0(anode),mtyp=0(precise time(=slow_TDC))
+  mtyp=tofid.getmtyp();//0->sTDC(stretcher)
+  pmt=tofid.getpmt();//0->anode
+  chan=tofid.getswch();//seq. sw-channel
+//  slot=tofid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
+  if(mtyp==0 && pmt==0){//<--slot has temp-measurement
+    tsens=tofid.gettempsn();//sequential sensor#(1,2,...,5)(not all slots have temp-sensor!)
+    if(tsens>0){
+      temp=...;
+      TOF2JobStat::puttemp(crat,tsens-1,temp);
+    }
+    else{
+      cout<<"DAQS2Block::buildraw-Fatal- wrong tsens# for crate/slot="<<crat<<" "<<slot<<endl;
+      exit(1);
+    }
+  }
+//.......................filling_vs_chan.......................
 //
 // Now scan buffers and create tof/anti raw-event obj.:
 //
@@ -181,10 +195,10 @@ void DAQS2Block::buildraw(integer len, int16u *p){
   }
   sswid=0;
   sswidn=0;
-  for(ic=0;ic<SCRCMX;ic++){//scan
+  for(ic=0;ic<SCRCMX;ic++){//1-pass scan
     swid=swibuf[ic];//LBBSPM
     if(swid>0){//!=0 LBBSPM found
-      temp=swtbuf[ic];
+      temp=swtbuf[ic];//may be empty if it is readout occasionally(this will be cured at valid.stage)
       sswid=swid/100;//LBBS
       for(icn=ic+1;icn<SCRCMX;icn++){//find next !=0 LBBSPM
         swidn=swibuf[icn];
@@ -204,8 +218,8 @@ void DAQS2Block::buildraw(integer len, int16u *p){
       pmt=(swid%100)/10;
       if(dtyp==1)pmmx=TOF2DBc::npmtps(il,ib);
       if(dtyp==2)pmmx=0;
-      nh=swnbuf[ic];
-      switch(mtyp){//fill RawEvent buffer
+      nh=swnbuf[ic];//#of hits fir given sw-chan(in accordance with mtyp)
+      switch(mtyp){//fill RawEvent arrays
         case 0:
 	  for(i=0;i<nh;i++)stdc[i]=swcbuf[ic][i];
 	  nstdc=nh;
@@ -228,6 +242,7 @@ void DAQS2Block::buildraw(integer len, int16u *p){
 //
     if(sswid!=sswidn){//new/last LBBS found -> create RawEvent-obj for current LBBS
 // (after 1st swid>0 sswid is = last filled LBBS, sswidn is = LBBS of next nonempty channel or =9999)
+//  at this stage temp may be not defined, it will be redefined at validation-stage using static job-store)
       if(dtyp==1){//TOF
 	if(nftdc>0 || nstdc>0 || adca>0 || adcal>0 || nadcd>0 || nadcdl>0){//create tof-raw-event obj
           AMSEvent::gethead()->addnext(AMSID("TOF2RawEvent",0),

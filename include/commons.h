@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.207 2005/12/01 09:45:33 choutko Exp $
+//  $Id: commons.h,v 1.208 2006/01/25 11:21:34 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -286,8 +286,8 @@ class ECREFFKEY_DEF {
 public:
   integer reprtf[3];   //reco print-flags
   integer relogic[5];  //reco logic-flags
-  geant thresh[20];       //Time dependent DAQ/Trig-thresholds
-  geant cuts[5];       // ........ RECO cuts (clust.thr.,...)
+  geant thresh[15];       //Time dependent DAQ/Trig-thresholds
+  geant cuts[10];       // ........ RECO cuts (clust.thr.,...)
   integer ReadConstFiles;
 //
   float Thr1DSeed;        // Threshold for 1d cluster search
@@ -495,17 +495,22 @@ public:
 integer trtype;
 integer toflc;
 integer tofsc;
-integer tofzlc;
-integer nanti;
+integer toflcsz;
+integer toflcz;
+integer tofextwid;
+integer antismx[2];
+integer antisc;
+integer cftmask;
 integer RebuildLVL1;
 geant MaxScalersRate;
 geant MinLifeTime;
 geant TheMagCut;
-integer ectrlog;
-integer antisc;
+integer ecorand;
+integer ecprjmask;
 integer Lvl1ConfMCVers;
 integer Lvl1ConfRDVers;
 integer Lvl1ConfRead;
+integer printfl;
 //
 integer sec[2];
 integer min[2];

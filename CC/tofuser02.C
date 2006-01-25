@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.15 2005/09/09 07:55:14 choumilo Exp $
+//  $Id: tofuser02.C,v 1.16 2006/01/25 11:21:12 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -43,11 +43,18 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   number cvel(29.979);// light velocity
   number eacut=0.3;// cut on E-anti (mev)
   number dscut=8.;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
+  int16u crat,slot,tsens;
+  integer swid,hwid;
+  number temper,stimes[4],strr,offs,tinp,tout;
+  static number tinpp,toutp,first(0);
+  TOF2RawSide *ptrt;
   TOF2RawCluster *ptr;
   AMSTOFCluster *ptrc;
   AMSAntiCluster *ptra;
   AMSPoint clco[TOF2GC::SCLRS];
   uinteger Runum(0);
+  ptrt=(TOF2RawSide*)AMSEvent::gethead()->
+                           getheadC("TOF2RawSide",0);
   ptr=(TOF2RawCluster*)AMSEvent::gethead()->
                            getheadC("TOF2RawCluster",0);
   ptra=(AMSAntiCluster*)AMSEvent::gethead()->
@@ -58,6 +65,40 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   TOF2JobStat::addre(21);
   for(i=0;i<TOF2GC::SCLRS;i++)nbrl[i]=0;
   for(i=0;i<TOF2GC::SCLRS;i++)nbrlc[i]=0;
+  if(first==0){//clear 1st tinp/tout-measurements
+    tinpp=-9999;
+    toutp=-9999;
+    first+=1;
+  }
+//
+//-----> look at TOF2RawSide-hits(test for temper.study):
+  while(ptrt){ // <--- loop over TOF2RawSide hits
+    swid=ptrt->getswid();//LBBS
+    hwid=ptrt->gethwid();//CS
+    crat=hwid/10;
+    slot=hwid%10;
+    ptrt->getstdc(stimes);
+    tinp=stimes[0]-stimes[1];
+    tout=stimes[1]-stimes[3];
+    temper=ptrt->gettemp();
+//    cout<<"swid/hwid="<<swid<<" "<<hwid<<"  tin/out="<<tinp<<" "<<tout<<"  temp="<<temper<<endl;
+    if(TFREFFKEY.reprtf[2]>0){
+      if(swid==1041){
+//        cout<<"swidOK, dti/dto="<<fabs(tinp-tinpp)<<" "<<fabs(tinp-tinpp)<<endl;
+	if(fabs(tinp-tinpp)>5 && fabs(tinp-tinpp)<200){//curr-prev. meas. ok
+	  strr=(tout-toutp)/(tinp-tinpp);
+	  offs=tout-strr*tinp;
+          HF2(1120,geant(tinp),geant(tout),1.);
+          HF2(1121,geant(temper),geant(strr),1.);
+          HF2(1122,geant(temper),geant(offs),1.);
+	}
+	tinpp=tinp;
+	toutp=tout;
+      }
+    }
+    ptrt=ptrt->next();
+  }// --- end of hits loop --->
+//
 //-----> take Tof RawCluster-hits :
   while(ptr){ // <--- loop over TOF2RawCluster hits
     status=ptr->getstatus();

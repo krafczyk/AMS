@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.41 2005/05/17 09:56:34 pzuccon Exp $
+//  $Id: ecalrec.h,v 1.42 2006/01/25 11:21:35 choumilo Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -16,10 +16,12 @@
 //---------------------------------------
 class AMSEcalRawEvent: public AMSlink{
 private:
-  static uinteger trigfl; // =MN, where M=0/1/2/3->EnerFlag, N=0/1/2->WidthFlag
+  static uinteger trigfl; // =MN, where M=0/1/2/3->EnerFlag, N=0/1/2->Width(Angle)Flag
+  static uinteger trigconf;//proj. or/and flag for FTEnergy/LVL1Angle(MN, M(N)=2/1=> AND/OR of proj) 
   static number trigtm; // ECAL FT abs. time
   static geant trsum;// Trigger sum(dynodes,tempor in gev)
   static integer dynadc[ecalconst::ECSLMX][ecalconst::ECPMSMX];//dynode adc's (ped-subtracted, daq-scale)
+  static int16u trpatt[6][3];//dyn.trig.patt([6]=>suplayers:2-7; [3]=>3x16bits used for triggered dynodes)
   AMSECIdSoft _id;  // real id soft
   integer _gain; // 0: High, 1: Low, 2: Both  3:Dynode 
   integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
@@ -67,12 +69,21 @@ public:
   static void validate(int &stat);
   static void settrfl(uinteger trfl){trigfl=trfl;}
   static uinteger gettrfl(){return trigfl;}
+  static uinteger gettrconf(){return trigconf;}
   static number gettrtm(){return trigtm;}
   static geant gettrsum(){return trsum;}
+  static void gettrpatt(int16u patt[6][3]){
+    for(int i=0;i<6;i++)for(int j=0;j<3;j++)patt[i][j]=trpatt[i][j];
+  }
   static integer getadcd(int is, int pm){return dynadc[is][pm];}
-  static void init(){for(int i=0;i<ecalconst::ECSLMX;i++)
-                     for(int j=0;j<ecalconst::ECPMSMX;j++)
-		     dynadc[i][j]=0;}
+  static void init(){
+    for(int i=0;i<ecalconst::ECSLMX;i++)for(int j=0;j<ecalconst::ECPMSMX;j++)dynadc[i][j]=0;
+    for(int i=0;i<6;i++)for(int j=0;j<3;j++)trpatt[i][j]=0;
+    trigfl=0;
+    trsum=0;
+    trigtm=0;
+    trigconf=0;
+  }
 //
 // interface with DAQ :
 //

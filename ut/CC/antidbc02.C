@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.14 2005/09/09 07:55:12 choumilo Exp $
+//  $Id: antidbc02.C,v 1.15 2006/01/25 11:21:07 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -642,13 +642,15 @@ void ANTI2JobStat::printstat(){
   printf("\n");
   printf("    ============ JOB ANTI2-statistics =============\n");
   printf("\n");
-  printf(" MC: entries             : % 6d\n",mccount[0]);
-  printf(" MC: Ghits->RawEvent OK  : % 6d\n",mccount[6]);
-  printf(" MC: Flash-ADC buff.ovfl : % 6d\n",mccount[1]);
-  printf(" MC: Hist-TDC stack ovfl : % 6d\n",mccount[2]);
-  printf(" MC: ADC range ovfl      : % 6d\n",mccount[3]);
-  printf(" MC: H-TDC range ovfl    : % 6d\n",mccount[4]);
-  printf(" MC: FT/Anti coincidence : % 6d\n",mccount[5]);
+  printf(" MC: entries                           : % 6d\n",mccount[0]);
+  printf(" MC: Have FastTrig to digitize anti    : % 6d\n",mccount[7]);
+  printf(" MC: RawEvent created(err.report below): % 6d\n",mccount[6]);
+  printf(" MC:     Flash-ADC buff.ovfl           : % 6d\n",mccount[1]);
+  printf(" MC:     Hist-TDC stack ovfl           : % 6d\n",mccount[2]);
+  printf(" MC:     ADC range ovfl                : % 6d\n",mccount[3]);
+  printf(" MC:     H-TDC range ovfl              : % 6d\n",mccount[4]);
+  printf(" MC: FT/Anti coincidence               : % 6d\n",mccount[5]);
+  printf("--------\n");
   printf(" RECO-entries            : % 6d\n",recount[0]);
   printf(" Lev-1 trigger OK        : % 6d\n",recount[1]);
   printf(" Usage of TOF in LVL1    : % 6d\n",recount[5]);
@@ -769,36 +771,53 @@ void ANTI2JobStat::printstat(){
     }
     printf("\n\n");
 //
-  printf("TDC-ch 'ON' (wrt total):\n");
+  printf("ADC-ch 'AbovePed' (wrt total):\n");
   printf("\n");
     for(ib=0;ib<ANTI2C::MAXANTI;ib++){
       ic=ib*2;
       rc=geant(chcount[ic][0]);
-      if(rc>0.)rc=geant(chcount[ic][3])/rc;
+      if(rc>0.)rc=geant(chcount[ic][2])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n");
     for(ib=0;ib<ANTI2C::MAXANTI;ib++){
       ic=ib*2+1;
       rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][2])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n\n");
+//
+  printf("TDC-ch 'ON' (wrt AbovePed):\n");
+  printf("\n");
+    for(ib=0;ib<ANTI2C::MAXANTI;ib++){
+      ic=ib*2;
+      rc=geant(chcount[ic][2]);
+      if(rc>0.)rc=geant(chcount[ic][3])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<ANTI2C::MAXANTI;ib++){
+      ic=ib*2+1;
+      rc=geant(chcount[ic][2]);
       if(rc>0.)rc=geant(chcount[ic][3])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n\n");
 //
 //
-  printf("TDC-ch '1 hit' (wrt total):\n");
+  printf("TDC-ch '1 hit' (wrt AbovePed):\n");
   printf("\n");
     for(ib=0;ib<ANTI2C::MAXANTI;ib++){
       ic=ib*2;
-      rc=geant(chcount[ic][0]);
+      rc=geant(chcount[ic][2]);
       if(rc>0.)rc=geant(chcount[ic][4])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n");
     for(ib=0;ib<ANTI2C::MAXANTI;ib++){
       ic=ib*2+1;
-      rc=geant(chcount[ic][0]);
+      rc=geant(chcount[ic][2]);
       if(rc>0.)rc=geant(chcount[ic][4])/rc;
       printf("% 5.3f",rc);
     }

@@ -52,13 +52,13 @@ class AMSSCIds{
   static int16u cardids[TOF2GC::SCCRAT][TOF2GC::SCSLTM];
   static int16u ochpsty[TOF2GC::SCSLTY];//outp.channels per slot-type
   static int totswch[2];//total s/w-channels for TOF, ANTI
-  static int tmpsln[TOF2GC::SCSLTM];//map of temp-sensor numbers in slots
+  static int16u tmpsln[TOF2GC::SCSLTM];//map of temp-sensor numbers in slots
  public:
   AMSSCIds():_dummy(1){};
-  AMSSCIds(int16u crate, int16u slot, int16u rdch);//used for tof,anti or temperature
+  AMSSCIds(int16u crate, int16u slot, int16u rdch);//used for tof,anti
   AMSSCIds(int16u layer, int16u bar, int16u side, int16u pmt, int16u mtyp);//used for tof
   AMSSCIds(int16u bar, int16u side, int16u pmt, int16u mtyp);//used for anti
-  AMSSCIds(int swid);//used for tof,anti or temper
+  AMSSCIds(int swid);//used for tof,anti
   static void inittable();
   bool dummy(){return _dummy==1;}
   bool AchOK(){return TOF2Brcal::scbrcal[_layer][_bar].AchOK(_side) &&
@@ -69,6 +69,7 @@ class AMSSCIds{
 		 
 		 
   integer getshortid()const {return (_layer+1)*1000+(_bar+1)*10+_side+1;}
+  int16u getswch(){return _swch;}
   int16u getcrate(){return _crate;}
   int16u getslot(){return _slot;}
   int16u getsltyp(){return _sltyp;}
@@ -76,7 +77,8 @@ class AMSSCIds{
   int16u getrdch(){return _rdch;}
   int16u getinpch(){return _inpch;}
   int16u getpmt(){return _pmt;}
-  int16u gettsn(int16u slot){return tmpsln[slot];}//1,...5, or "0" if not temper. slot(0,1,...)
+  int16u getmtyp(){return _mtyp;}
+  int16u gettempsn(){return tmpsln[_slot];}//1,...5, or "0" if not temper. slot(0,1,...)
   int gethwid(){return _hwid;}
   static int16u swseqn(int dt, int16u il, int16u ib, int16u is, int16u ip, int16u im);
   static int16u hwseqn(int16u cr, int16u sl, int16u ch);

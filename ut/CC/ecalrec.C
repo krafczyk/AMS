@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.95 2005/09/09 07:55:12 choumilo Exp $
+//  $Id: ecalrec.C,v 1.96 2006/01/25 11:21:09 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -25,9 +25,11 @@ using namespace std;
 using namespace ecalconst;
 //
 uinteger AMSEcalRawEvent::trigfl=0;// just memory reservation/initialization for static
+uinteger AMSEcalRawEvent::trigconf=0;// just memory reservation/initialization for static
 number AMSEcalRawEvent::trigtm=0.;// just memory reservation/initialization for static
 geant AMSEcalRawEvent::trsum=0.;// just memory reservation/initialization for static
 integer AMSEcalRawEvent::dynadc[ECSLMX][ECPMSMX];
+int16u AMSEcalRawEvent::trpatt[6][3];
 //----------------------------------------------------
 void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   int i,j,k;
@@ -36,15 +38,28 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl;
   integer ovfl[2];
   AMSEcalRawEvent * ptr;
-  uinteger ecalflg;
+  integer ecalflg;
   integer tofflg;
   Trigger2LVL1 *ptrt;
 //
   ptrt=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  if(ECREFFKEY.reprtf[0]>0){
   if(ptrt){
-    tofflg=ptrt->gettoflg();
-    ecalflg=ptrt->getecflg();
+    for(int sl=0;sl<6;sl+=2){
+      for(int pm=0;pm<36;pm++){
+        k=floor(geant(sl)/2);
+        if(ptrt->EcalDynON(sl,pm))HF1(ecalconst::ECHISTR+28,geant(pm+1+40*k),1.);
+      }
+    }
+    for(int sl=1;sl<6;sl+=2){
+      for(int pm=0;pm<36;pm++){
+        k=floor(geant(sl)/2);
+        if(ptrt->EcalDynON(sl,pm))HF1(ecalconst::ECHISTR+29,geant(pm+1+40*k),1.);
+      }
+    }
+    ecalflg=ptrt->getecflag();
     HF1(ecalconst::ECHISTR+30,geant(ecalflg),1.);
+  }
   }
 //
 //
@@ -122,8 +137,6 @@ void AMSEcalRawEvent::mc_build(int &stat){
   nslmx=ECALDBc::slstruc(3);
   npmmx=ECALDBc::slstruc(4);
   stat=1;//bad
-  trigfl=0;//reset trigger-flag
-  trsum=0;//reset tot.energy(trig.sum)
   edept=0.;
   edeprt=0.;
   emeast=0.;
@@ -251,7 +264,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       saturf=1.;
       if(an4qin>0){
         saturf=ECcalib::pmsatf1(0,an4qin);//saturation due to 4xAnodes current(divider)
-        if(ECMCFFKEY.mcprtf>1)HF1(ECHIST+20,geant(an4qin),1.);
+        if(ECMCFFKEY.mcprtf>0)HF1(ECHIST+20,geant(an4qin),1.);
       }
 //---
       an4resp=0;//PM Anode-resp(4cells,tempor in mev)
@@ -364,7 +377,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       dyresp=dyen*pmrgn;//Tempor dyn.signal for EC_FT in AnodeMevs ~ real mV !!!
       an4respt+=an4resp;
       dyrespt+=dyresp;
-      if(ECMCFFKEY.mcprtf>1){
+      if(ECMCFFKEY.mcprtf>0){
         if(dyresp>0)HF1(ECHIST+5,geant(dyresp),1.);
         if(dyresp>0 && an4resp<5000.)HF1(ECHIST+6,geant(an4resp/dyresp),1.);
       }
@@ -388,168 +401,18 @@ void AMSEcalRawEvent::mc_build(int &stat){
     if(adcdmx>0)HF1(ECHIST+24,geant(adcdmx),1.);
   }
 //
-//===> Create EC-trigger:
+//===> Create FT/LVL1 parts of EC-trigger(now Pisa-algorithm only):
 //
   uinteger trflen(0),trflwd(0);
-  geant rrr,efrnt,efrnta,ebase,epeak,epeaka,p2brat,p2frat,trwid1,trwid2;
-  geant esep1,esep2,esep3,p2bcut,p2fcut;
-  geant wdcut1,wdcut2,wdthr,ethrsoft,ethrhard,ethrmip,ethrfront;
-  geant etrsum1[ECPMSMX],etrsum2[ECPMSMX];
-// trflen(ener.trig.flag)=0/1/2/3->Etot<mip/>mip/>Ethrsoft/>Ethrhard
-// trflwd(width trig.flag)=0/1/2->unknown/nonEM/EM
-//
-// width calculationfor logic-1/2(not fixed yet):
-  wdthr=ECALVarp::ecalvpar.daqthr(8);//Ecolumn threshold
-  trwid1=0.;
-  for(pm=0;pm<npmmx;pm++){ // get summed over depth transv.profile(proj=1)
-    etrsum1[pm]=0.;
-    for(il=0;il<7;il+=2)etrsum1[pm]+=pmtmap[il][pm];
-    if(etrsum1[pm]>wdthr)trwid1+=1.;
-  }
-  trwid2=0.;
-  for(pm=0;pm<npmmx;pm++){ // get summed over depth transv.profile(proj=2)
-    etrsum2[pm]=0.;
-    for(il=1;il<8;il+=2)etrsum2[pm]+=pmtmap[il][pm];
-    if(etrsum2[pm]>wdthr)trwid2+=1.;
-  }
-//-----
-if(TGL1FFKEY.ectrlog==1){//<===== logic-type-1:my old
-//
-//
-//
-  esep1=8000.;// separation.energy for p2b,p2f cuts
-  esep2=15000;//Etot 1st up-limit for width-cut action(mev, tempor)
-  p2bcut=ECALVarp::ecalvpar.daqthr(6);
-  p2fcut=ECALVarp::ecalvpar.daqthr(7);
-  wdcut1=ECALVarp::ecalvpar.daqthr(9);//L=1,7,2(bend.proj)
-  wdcut2=ECALVarp::ecalvpar.daqthr(9)-2;//L=2,8,2(nonbend)
-  ethrmip=ECALVarp::ecalvpar.daqthr(1);//Etot mip-thr
-  ethrfront=ECALVarp::ecalvpar.daqthr(2);//Efront-thr
-  ethrsoft=ECALVarp::ecalvpar.daqthr(3);//Etot soft-thr
-  ethrhard=ECALVarp::ecalvpar.daqthr(5);//Etot hard-thr
-//
-  efrnt=pmlprof[0]+pmlprof[1]+pmlprof[2];//energy in 1st 3SL's(~5X0)
-  efrnta=(pmlprof[0]+pmlprof[1]+pmlprof[2])/3.;//aver.energy/sl in 1st 3SL's(~5X0)
-  ebase=pmlprof[0]+pmlprof[nslmx-1];//esum in 1st+last SL's
-  epeak=pmlprof[1]+pmlprof[2]+pmlprof[3];//esum aroud peak(low energies)
-  epeaka=(pmlprof[2]+pmlprof[3]+pmlprof[4])/3.;//aver.energy/sl aroud peak(high energies)
-//
-  if(ebase>0.)p2brat=epeak/ebase;
-  else p2brat=39.5;
-  if(p2brat>39.5)p2brat=39.5;
-//
-  if(efrnta>0.)p2frat=epeaka/efrnta;
-  else p2frat=9.8;
-  if(p2frat>9.8)p2frat=9.8;
-//
-//  ---> create ECAL H/W-trigger(0->non;1->MIP+nonEM;2->softEM;3->hardEM(req.for Phot);
-//                               prev+10->HighEn):
-//
-  if(dyrespt>ethrmip){// mip thr.cut(means "ec-activity")
-    EcalJobStat::addsr(0);
-    trigfl=1;// at least MIP (some non-zero activity in EC)
-//
-    if(ECMCFFKEY.mcprtf>0)HF1(ECHIST+10,efrnt,1.);
-    if(efrnt>ethrfront){ //<--- Efront cut
-      trigfl=2;// softEM 
-      EcalJobStat::addsr(1);
-      if(ECMCFFKEY.mcprtf>0 && an4respt<esep1){
-        HF1(ECHIST+11,p2brat,1.);
-        HF1(ECHIST+12,ebase,1.);
-      }
-      if(dyrespt<esep1 && p2brat<p2bcut)goto TrExit1;// ---> too low Peak/base(LE)
-      EcalJobStat::addsr(2);
-//
-      if(ECMCFFKEY.mcprtf>0 && an4respt>esep1)HF1(ECHIST+13,p2frat,1.);
-      if(dyrespt>esep1 && p2frat<p2fcut)goto TrExit1;// ---> too low Peak/front(HE)
-      EcalJobStat::addsr(3);
-//
-      for(pm=0;pm<npmmx;pm++)if(etrsum1[pm]>0.)HF1(ECHIST+14,etrsum1[pm],1.);
-      for(pm=0;pm<npmmx;pm++)if(etrsum2[pm]>0.)HF1(ECHIST+16,etrsum2[pm],1.);
-      if(ECMCFFKEY.mcprtf>0 && dyrespt<esep2){
-        HF1(ECHIST+15,trwid1,1.);
-        HF1(ECHIST+17,trwid2,1.);
-      }
-      if(ECMCFFKEY.mcprtf>0)HF1(ECHIST+18,geant(dyrespt),1.);
-      if(dyrespt<esep2 && (trwid1>=wdcut1 || trwid2>=wdcut2))goto TrExit1;// ---> too high width(LE)
-      EcalJobStat::addsr(4);
-      trigfl=3;// hardEM 
-TrExit1:
-        rrr=0;    
-    }
-    if(an4respt>ethrhard)trigfl+=10;//high energy
-  }
-}
-//-----
-else if(TGL1FFKEY.ectrlog==2){//<===== logic-type-2:new my_simple+ansi
-//
-  ethrmip=ECALVarp::ecalvpar.daqthr(1);//Etot mip-thr
-  ethrsoft=ECALVarp::ecalvpar.daqthr(3);//Etot soft-thr
-  ethrhard=ECALVarp::ecalvpar.daqthr(5);//Etot hard-thr
-  esep1=8000.;//Etot 1st up-limit for width-cut action(mev, tempor) 
-  esep2=30000;//Etot 2nd up-limit for width-cut action(mev, tempor)
-  wdcut1=ECALVarp::ecalvpar.daqthr(9);//L=1,7,2(bend.proj)
-  wdcut2=ECALVarp::ecalvpar.daqthr(9)-3;//L=2,8,2(nonbend)
-  trigfl=0;
-  EcalJobStat::addsr(0);
-  if(dyrespt>ethrmip){
-    trflen=1;//at least MIP
-  }
-  if(dyrespt>ethrsoft){
-    trflen=2;//at least EtotSoft
-  }
-  if(dyrespt>ethrhard){
-    trflen=3;//at least EtotHard
-  }
-//
-  if(dyrespt>ethrmip){
-    EcalJobStat::addsr(1);
-    if(dyrespt<=esep1){//width-cut 1st energy range
-      EcalJobStat::addsr(2);
-      if(ECMCFFKEY.mcprtf>0){
-        HF1(ECHIST+15,trwid1,1.);
-        HF1(ECHIST+17,trwid2,1.);
-      }
-      if(trwid1<wdcut1 && trwid2<wdcut2){
-        trflwd=2;//width EM
-        EcalJobStat::addsr(3);
-      }
-      else trflwd=1;//nonEM
-    }
-    else if(dyrespt>esep1 && dyresp<=esep2){//width-cut 2nd energy range
-      EcalJobStat::addsr(4);
-      if(ECMCFFKEY.mcprtf>0){
-        HF1(ECHIST+26,trwid1,1.);
-        HF1(ECHIST+27,trwid2,1.);
-      }
-      if(trwid1<1.2*wdcut1 && trwid2<1.2*wdcut2){
-        trflwd=2;//width EM
-        EcalJobStat::addsr(5);
-      }
-      else trflwd=1;//nonEM
-    }
-    else{
-      EcalJobStat::addsr(6);
-      if(ECMCFFKEY.mcprtf>0){
-        HF1(ECHIST+28,trwid1,1.);
-        HF1(ECHIST+29,trwid2,1.);
-      }
-      if(trwid1<1.4*wdcut1 && trwid2<1.4*wdcut2){
-        trflwd=2;//width EM
-        EcalJobStat::addsr(7);
-      }
-      else trflwd=1;//nonEM
-    }
-  }
-  trigfl=10*trflen+trflwd;//MN, M->EnergyFlag,N->WidthFlag
-}
-//-----
-else if(TGL1FFKEY.ectrlog==3){//<===== logic-type-3: Pisa
-//
-  int nprx(0),npry(0);
+  geant ethrmip;
+// trflen(energy(mult).trig.flag)=0/1/2/3->Etot<mip/>=mip/multLow/multOK
+// trflwd(angle(width) trig.flag)=0/1/2->unknown/bad/OK
+  integer nprx(0),npry(0);
+  integer nlmin;
   number dyslmx[ECSLMX]={0.,0.,0.,0.,0.,0.,0.,0.,0.};
   number dytrsum(0),dysl;
   geant trwr;
+  int word,bit;
   ethrmip=ECALVarp::ecalvpar.daqthr(1);//Etot mip-thr
   trigfl=0;
   for(il=0;il<nslmx;il++){//prepare trigger Dynode map(variab.thr vs layer)
@@ -561,10 +424,15 @@ else if(TGL1FFKEY.ectrlog==3){//<===== logic-type-3: Pisa
 //        if(dysl>0)HF1(ECHIST+30+il,geant(dysl),1.);
 //      }
       
-      if(dysl>ECALVarp::ecalvpar.daqthr(10+il)){
+      if(dysl>ECALVarp::ecalvpar.daqthr(5+il) && !ECcalib::ecpmcal[il][pm].DCHisBad()){//incl."in-trig" check
         dytmap[il][pm]=1;
-	dytrc[il]+=1;
+	dytrc[il]+=1;//count PMs>thr per layer
 	dycog[il]+=(pm+1);
+	if(il>=1 && il<=6){//set trig.pattern bits for 6 "trigger" sup-layers
+	  word=pm/16;//0-2
+	  bit=pm%16;//0-15
+	  trpatt[il-1][word]|=(1<<bit);
+	}
       }
     }
     if(dytrc[il]>0){
@@ -577,22 +445,47 @@ else if(TGL1FFKEY.ectrlog==3){//<===== logic-type-3: Pisa
     for(il=0;il<nslmx;il++)if(dyslmx[il]>0)HF1(ECHIST+30+il,geant(dyslmx[il]),1.);
   }
 //
-  for(il=0;il<5;il+=2){//count fired PMs in SL 2:7
-    if(dytrc[il+1]>0)nprx+=1;//counts SLs with PMs above threshold
+  for(il=0;il<5;il+=2){//count in SL 2:7
+    if(dytrc[il+1]>0)nprx+=1;//counts SLs with at least 1 PMs above threshold in each proj
     if(dytrc[il+2]>0)npry+=1;
   }
   EcalJobStat::addsr(0);
   if(dytrsum>ethrmip){
-    trflen=1;//at least MIP
+    trflen=1;//at least MIP(MC only)
     EcalJobStat::addsr(1);
   }
   if(nprx>0 && npry>0){
-    trflen=2;//tempor
+    trflen=2;//intermediate state(MC only)
     EcalJobStat::addsr(2);
   }
-  if(nprx>=2 && npry>=2){
-    trflen=3;//tempor
-    EcalJobStat::addsr(3);
+//
+//---> check FT conditions:
+//
+  nlmin=integer(ECALVarp::ecalvpar.rtcuts(4));//min layers/proj (with at least 1 PM>thr in layer)
+  integer orand;
+  if(TGL1FFKEY.ecorand>=0)orand=TGL1FFKEY.ecorand;//proj-or/and according to  data-card
+  else orand=Trigger2LVL1::l1trigconf.ecorand();//.............................. DB
+  integer prjmsk;
+  if(TGL1FFKEY.ecprjmask>=0)prjmsk=TGL1FFKEY.ecprjmask;//active proj.mask from data-card (mlki)
+  else prjmsk=Trigger2LVL1::l1trigconf.ecprjmask();//.............................DB
+  integer ftmsk=prjmsk%100;//(ki->yx)proj.mask for FT-check
+  if(orand==1){//<-OR 
+    if((nprx>=nlmin && ftmsk%10==1) || (npry>=nlmin && ftmsk/10==1)){
+      trflen=3;//ElectroMagneticityFound( =FastTrigger)
+      trigconf=10;
+      EcalJobStat::addsr(3);
+    }
+  }
+  else if(orand==2){//<- AND
+    if((nprx>=nlmin && ftmsk%10==1) && (npry>=nlmin && ftmsk/10==1)){
+      trflen=3;//ElectroMagneticityFound( =FastTrigger)
+      trigconf=20;
+      EcalJobStat::addsr(3);
+    }
+  }
+  else{
+    cerr<<"AMSEcalRawEvent::mc_build:Error - Wrong projOR/AND-param. definition!!! "<<orand<<endl;
+    exit(1);
   }
   if(ECMCFFKEY.mcprtf>0){
     HF1(ECHIST+39,geant(npry),1.);
@@ -600,11 +493,13 @@ else if(TGL1FFKEY.ectrlog==3){//<===== logic-type-3: Pisa
     if(dytrsum>0)HF1(ECHIST+43,geant(dytrsum),1.);
   }
 //
+//---> check Angle(width) conditions if FT found:
+//
+  integer l1msk=prjmsk/100;//(ml->yx)proj.mask for Angle-check
   number dbx24(-99),dbx46(-99),dbx26(-99),dbxm(-99);
   number dby35(-99),dby57(-99),dby37(-99),dbym(-99);
-//  geant wdxcut,wdycut;
   int wdxcut,wdycut;//to follow the real electronics logic
-  if(trflen==3){
+  if(trflen==3){//<-- FT OK
     if(dytrc[1]>0 && dytrc[3]>0)dbx24=abs(dycog[1]-dycog[3]);
     if(dytrc[3]>0 && dytrc[5]>0)dbx46=abs(dycog[3]-dycog[5]);
     if(dytrc[1]>0 && dytrc[5]>0)dbx26=abs(dycog[1]-dycog[5])/2;
@@ -633,30 +528,36 @@ else if(TGL1FFKEY.ectrlog==3){//<===== logic-type-3: Pisa
       HF1(ECHIST+41,geant(dbym/64),1.);//"64" to view variables in the logic scale
       HF1(ECHIST+42,geant(dbxm/64),1.);
     }
-    if(dbxm<wdxcut && dbym<wdycut){
-      trflwd=2;//EM
-      EcalJobStat::addsr(4);
+    if(orand==1){//<-OR
+      if((dbxm<wdxcut && l1msk%10==1) || (dbym<wdycut && l1msk/10==1)){
+        trflwd=2;//EM
+	trigconf+=1;
+        EcalJobStat::addsr(4);
+      }
+      else trflwd=1;//nonEM
     }
-    else trflwd=1;//nonEM
-  }
+    else{//<-AND 
+      if((dbxm<wdxcut && l1msk%10==1) && (dbym<wdycut && l1msk/10==1)){
+        trflwd=2;//EM
+	trigconf+=2;
+        EcalJobStat::addsr(4);
+      }
+      else trflwd=1;//nonEM
+    }
+  }//->endof "FT" check
 //
   trigfl=10*trflen+trflwd;//MN, M->EnergyFlag, N->WidthFlag
-}
-//-----
-else{
-  cerr<<"EcalRawEvent::mc_build: Unknown trig-logic requested!"<<TGL1FFKEY.ectrlog<<endl;
-  exit(10);
-}
 //
 //-------> create ECAL fast trigger(FT)-time:
 //
   if(trigfl>0){
     trigtm=timet/edept;// FT abs.time(ns) (stored in AMSEcalRawEvent object)
-    trigtm+=TOF2Varp::tofvpar.ftdelf();// add the same fixed delay as for TOF-FT
+    trigtm+=TOF2Varp::tofvpar.ftdelf();// add some fixed delay to achieve LVL1-crate(tempor as for TOF-FT) 
     trsum=geant(dyrespt/1000.);//dynode signal (gev tempor)
   }
 //---
   if(ECMCFFKEY.mcprtf>0){
+    HF1(ECHIST+10,geant(trigconf),1.);
     HF1(ECHIST+19,geant(trigfl),1.);
   }
   if(trigfl>0)stat=0;
@@ -2744,7 +2645,7 @@ void AMSEcalRawEvent::buildrawRaw(integer n, int16u *p){
   int dynode=0;
   int dead=0;
   static geant sum_dynode=0;
-  uinteger ecalflag;
+  integer ecalflag;
   if(ic==0)sum_dynode=0;
   for(int16u* ptr=p+1;ptr<p+n;ptr++){//<--- daq-words loop  
    int16u pmt=count%36;
@@ -2814,9 +2715,11 @@ void AMSEcalRawEvent::buildrawRaw(integer n, int16u *p){
 
 // build lvl1 trigger
       if(ic==getmaxblocks()-1){
-       uinteger tofpatt[4]={0,0,0,0};
+       integer tofpatt[4]={0,0,0,0};
+       int16u ecpatt[6][3]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+       geant rates[6]={0,0,0,0,0,0};
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-          new Trigger2LVL1(999,0,tofpatt,0,ecalflag,sum_dynode/1000));
+          new Trigger2LVL1(1,1<<6,0,0,tofpatt,0,0,ecalflag,ecpatt,sum_dynode/1000,1,rates));
 
       }
 }

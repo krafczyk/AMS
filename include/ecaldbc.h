@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.32 2005/09/09 07:55:27 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.33 2006/01/25 11:21:35 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -123,33 +123,33 @@ public:
     zprmc2[i]+=ed;
   }
   static void addmc(int i){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       assert(i>=0 && i< ecalconst::ECJSTA);
-    #endif
+#endif
     mccount[i]+=1;
   }
   static void addre(int i){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       assert(i>=0 && i< ecalconst::ECJSTA);
-    #endif
+#endif
     recount[i]+=1;
   }
   static void addca(int i){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       assert(i>=0 && i<  ecalconst::ECJSTA);
-    #endif
+#endif
     cacount[i]+=1;
   }
   static void addsr(int i){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       assert(i>=0 && i< 20);
-    #endif
+#endif
     srcount[i]+=1;
   }
   static integer getca(int i){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       assert(i>=0 && i<  ecalconst::ECJSTA);
-    #endif
+#endif
     return cacount[i];
   }
   static void printstat();
@@ -259,47 +259,45 @@ class ECALVarp {
 //
 private:
 // ---> ECAL DAQ-system thresholds :
-  geant _daqthr[20];   // DAQ-system thresholds
+  geant _daqthr[15];   // DAQ-system thresholds
           // (0) -> anode readout DAQ-threshold(ped sigmas)
 	  // (1) -> Dynode Etot cut for "MIP"-trigger(mev tempor)  
-	  // (2) ->                      high cut for "MIP"-trigger(mev tempor)  
-	  // (3) -> Dynode Etot soft thresh(mev tempor)
+	  // (2) ->                     
+	  // (3) -> 
 	  // (4) -> Dynode readout DAQ-threshold(ped.sigmas)  
-	  // (5) -> Dynode Etot hard thresh(mev tempor)  
-	  // (6) -> s  
-	  // (7) ->   
-	  // (8) ->   
-	  // (9) -> Thresh for columns number(bending plane)
-          // (10)-> LayerTrigThresholds 
+          // (5-13)-> LayerTrigThresholds
+	  // (14)-> spare 
 //   
 // ---> RECO Run-Time Cuts :
-  geant _cuts[5];                    
-          //  (0)  -> spare
-          //  (1)  -> spare 
-          //  (2)  -> spare 
-          //  (3)  -> spare 
-          //  (4)  -> LVL3-trig. EC-algorithm: "peak"/"average" methode boundary 
+  geant _cuts[10];                    
+          //  (0)  -> FT-algorithm cuts
+          //  (1)  -> ................. 
+          //  (2)  -> ................. 
+          //  (3)  -> ................. 
+          //  (4)  -> ................. 
+          //  (5)  -> spare 
+          //  (9)  -> LVL3-trig. EC-algorithm: "peak"/"average" methode boundary 
 public:
   static ECALVarp ecalvpar;
   ECALVarp(){};
 // member functions :
 //
-  void init(geant daqthr[20], geant cuts[5]);
+  void init(geant daqthr[15], geant cuts[10]);
 //
   geant daqthr(int i){;
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(ECALDBc::debug){
-        assert(i>=0 && i<20);
+        assert(i>=0 && i<15);
       }
-    #endif
+#endif
     return _daqthr[i];}
 //
   geant rtcuts(int i){;
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(ECALDBc::debug){
-        assert(i>=0 && i<5);
+        assert(i>=0 && i<10);
       }
-    #endif
+#endif
     return _cuts[i];}
 //
 //

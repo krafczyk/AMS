@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.482 2005/12/01 09:45:23 choutko Exp $
+// $Id: job.C,v 1.483 2006/01/25 11:21:09 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -7,7 +7,8 @@
 // Nov   , 1997. ak. FindTheBestTDV, check id's
 // Dec   , 1997. ak. dbendjob is modified
 //
-// Last Edit : Dec 27, 1997. ak. 
+// Last Edit : Dec 27, 1997. ak.
+// Dec 27, 2005 and befor: lots of changes for TOF,ANTI,ECAL,TrigLVL1,...by E.Choumilov. 
 //
 
 #include "tofdbc02.h"
@@ -294,35 +295,56 @@ void AMSJob::_sirichdata(){
 
 //------------------------------------------------------
 void AMSJob::_sitrig2data(){
-  TGL1FFKEY.trtype=1; //(1) Requested branches(pattern) for LVL1 global OR(see datacards.doc)
-//exapmles: 1->unbTOF;2->unbEC;4->unb(TOF&EC);8->unb(TOF|EC);240->GlobPhys;256->extern
-// TOF :
+//
+  TGL1FFKEY.trtype=-99; //(1) Requested PhysBranches(pattern) for LVL1 global OR(see datacards.doc)
+//exapmles: 1->unbTOF;2->Z>=1;4->Z>=2;8->SlowZ>=2;16->e;32->gamma;64->EC(FTE);128->ext
+// --> TOF :
 // 
-  TGL1FFKEY.toflc=0;//(2)required TOF-FastTrigger LAYER configuration
-//                 (=0/1/2-> accept at least ANY3of4/ALL4/ANYTopBot2of4 layer coincidence)
-  TGL1FFKEY.tofsc=1;//(3)required TOF-FastTrigger SIDE configuration
-//                                 (=0/1-> two-sides-AND/OR selection)
-  TGL1FFKEY.tofzlc=1;//(4)TOF_HiZ_FT 2-top(2-bot)fired layers configurations(0/1/2/3-> 
-//                                              ->top(bot)OR/topAND/botAND/top(bot)AND 
-// ANTI :
-  TGL1FFKEY.nanti=1;//(5) max. fired ANTI-paddles(logical) (in equat.region if it may be controlled)
-//
-  TGL1FFKEY.RebuildLVL1=0;//(6)
+  TGL1FFKEY.toflc=-99; //(2)required TOF-FastTrigger(Z>=1) LAYERS configuration
+//                     (=0/1/2-> accept at least ANY3of4/ALL4/ANYTopBot2of4 layer coincidence)
+//                      Logically define(if>=0) short set of possible LUT1+LUT2 settings; "-" means
+//                      usage of exactly defined DB settings of LUT1+LUT2
+  TGL1FFKEY.tofsc=-99; //(3)required TOF-FT Plane-SIDEs configuration MN
+//                                 (m(n)=0/1-> plane two-sides-AND/OR selection, n->Z>=1, m->Z>=2)
+  TGL1FFKEY.toflcsz=-99;//(4)required TOF-FTZ(slowZ>=2) LAYERS configuration IJ(J=0/1/2/3-> 
+//                        ->topAND*botAND/topAND*botOR/topOR*botAND/topOR*botOR;
+//                        I=0/1 => "*"=AND/OR. "-" means usage of DB setting 
+  TGL1FFKEY.toflcz=-99;//(5)required TOF-BZ(Z>=2 flag for LVL1) LAYERS configuration 
+//                     (=0/1/2-> accept at least ANY3of4/ALL4/ANYTopBot2of4 layer coincidence)
+//                      Logically define(if>=0) short set of possible LUT-BZ settings; "-" means
+//                      usage of exactly defined DB settings of LUT-BZ
+  TGL1FFKEY.tofextwid=-99;//(6) ext.width(ns,top&bot) in SlowZ>=2 logic(if <0 => take indiv.values from DB)
 // 
-  TGL1FFKEY.MaxScalersRate=20000;//(7)
-  TGL1FFKEY.MinLifeTime=0.015;//(8)
-// orbit:
-  TGL1FFKEY.TheMagCut=0.7;//   (9)geom.latitude cut when anti-cut is used(below-#5, above-0)
-// Ecal
-  TGL1FFKEY.ectrlog=3;//      (10) EC-trigger logic type(1->MyOld,2->MyNew+ANSI,3->Pisa)
-//
-  TGL1FFKEY.antisc=1;//       (11)required ANTI-FastTrigger SIDE configuration
+// --> ANTI :
+  TGL1FFKEY.antismx[0]=-99; //(7) max. acceptable fired ANTI-paddles(logical, in equat.region)
+  TGL1FFKEY.antismx[1]=-99; //(8) max. acceptable fired ANTI-paddles(logical, in polar.region)
+  TGL1FFKEY.antisc=-99;     //(9) required ANTI-trigger SIDE configuration
 //                                 (=0/1-> two-sides-AND/OR selection)
-  TGL1FFKEY.Lvl1ConfMCVers=1;//(12)MC def.version number of "toftrigf***mc" -file
-  TGL1FFKEY.Lvl1ConfRDVers=1;//(13)RD def.version number of "toftrigf***rl" -file
-  TGL1FFKEY.Lvl1ConfRead=0;  //(14) M(ask)=0/1->read Lvl1ConfMasks-data from DB/raw_file
+// --> FastTrigger :
+  TGL1FFKEY.cftmask=-99;//(10) GlobalFTMask(i|j|k=>FTE|FTZ>=2|FTC>=1; i(j,k)=1(active)/0(disabled))
 //
-  TGL1FFKEY.sec[0]=0;//(15) 
+// For all above cards "-99" means usage of more detailed and up-to-date DB-settings
+//   To use manual(through data-card) control put necessary >=0 value !!! 
+//
+  TGL1FFKEY.RebuildLVL1=0;//(11) (for RealData) rebuil lvl1-obj from subdet.RawEvent objects
+// 
+  TGL1FFKEY.MaxScalersRate=20000;//(12)
+  TGL1FFKEY.MinLifeTime=0.015;//(13)
+//
+// --> orbit:
+  TGL1FFKEY.TheMagCut=0.7;// (14)geom.latitude cut for anti-cut selection(below-#5, above-#6)
+//
+// --> Ecal
+  TGL1FFKEY.ecorand=-99;   //(15) 1/2=>OR/END of 2 proj. requirements on min. layer multiplicity
+  TGL1FFKEY.ecprjmask=-99; //(16) proj.mask(lkji: ij=1/0->XYproj active/disabled in FTE; kl=same for LVL1(angle)
+//
+  TGL1FFKEY.Lvl1ConfMCVers=1;//(17)MC def.version number of "lvl1conf***mc" -file
+  TGL1FFKEY.Lvl1ConfRDVers=1;//(18)RD def.version number of "lvl1conf***rl" -file
+  TGL1FFKEY.Lvl1ConfRead=0;  //(19) MN, N=0/1->read Lvl1Config-data from DB/raw_file
+//                                      M=0/1->read Lvl1Config raw-file from official/private dir
+  TGL1FFKEY.printfl=0;      // (20) PrintControl=0/n>0 -> noPrint/PrintWithPriority(n=1 ->max)
+//
+  TGL1FFKEY.sec[0]=0;//(21) 
   TGL1FFKEY.sec[1]=0;
   TGL1FFKEY.min[0]=0;
   TGL1FFKEY.min[1]=0;
@@ -333,7 +355,7 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.mon[0]=0;
   TGL1FFKEY.mon[1]=0;
   TGL1FFKEY.year[0]=101;
-  TGL1FFKEY.year[1]=110;//(26)
+  TGL1FFKEY.year[1]=110;//(32)
 //
   FFKEY("TGL1",(float*)&TGL1FFKEY,sizeof(TGL1FFKEY_DEF)/sizeof(integer),"MIXED");
 //----
@@ -687,33 +709,33 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.relogic[3]=0;    // (7) 
   ECREFFKEY.relogic[4]=0;    // (8) spare
 //
-// Run-time DAQ/trig-thresholds(time dependent):
+// Run-time DAQ/trig/RECO-thresholds/cuts(time dependent):
   ECREFFKEY.thresh[0]=3.;     // (9)  Anode(High-chan) readout threshold(in sigmas)
   ECREFFKEY.thresh[1]=120.;   // (10) Etot "mip"-trig.thresh(mev tempor)
-  ECREFFKEY.thresh[2]=500.;   // (11) ... 1st 3SL "em"-trig.thresh(mev tempor)
-  ECREFFKEY.thresh[3]=3000.;  // (12) Etot thresh-1(soft, mev tempor)
+  ECREFFKEY.thresh[2]=0.;     // (11) spare
+  ECREFFKEY.thresh[3]=0.;     // (12) spare
   ECREFFKEY.thresh[4]=3.;     // (13) Low-chan. readout thershold(in sigmas)
-  ECREFFKEY.thresh[5]=8000.;  // (14) Etot thresh-2(hard, mev tempor)  
-  ECREFFKEY.thresh[6]=3.5;    // (15) min Epeak/Ebase (add. to #11 for "electromagneticity")
-  ECREFFKEY.thresh[7]=1.;     // (16) min Epeak/Efron .....................................
-  ECREFFKEY.thresh[8]=25.;    // (17) PM-dynode threshold for width calc.(mev tempor) 
-  ECREFFKEY.thresh[9]=13.;    // (18) trig. width cut(columns, bending plane)
-  ECREFFKEY.thresh[10]=1.;    // (19) Trig. PMDynThr sl1(y)
-  ECREFFKEY.thresh[11]=70.;   // (20) Trig. PMDynThr sl2(x)
-  ECREFFKEY.thresh[12]=100.;  // (21) Trig. PMDynThr sl3(y)
-  ECREFFKEY.thresh[13]=80.;  // (22) Trig. PMDynThr sl4(x)
-  ECREFFKEY.thresh[14]=60.;   // (23) Trig. PMDynThr sl5(y)
-  ECREFFKEY.thresh[15]=40.;  // (24) Trig. PMDynThr sl6(x)
-  ECREFFKEY.thresh[16]=40.;  // (25) Trig. PMDynThr sl7(y)
-  ECREFFKEY.thresh[17]=1.;   // (26) Trig. PMDynThr sl8(x) 
-  ECREFFKEY.thresh[18]=1.;   // (27) Trig. PMDynThr sl9(y) 
-  ECREFFKEY.thresh[19]=0.;   // (28) 
-// Run-time RECO-thresholds(time dependent):
-  ECREFFKEY.cuts[0]=1.15;   // (29) Italy Trig-algor: WidthCut1 
-  ECREFFKEY.cuts[1]=2.15;   // (30)                   WidthCut1
-  ECREFFKEY.cuts[2]=5.;     // (31)                   Xmult-boundary
-  ECREFFKEY.cuts[3]=6.;     // (32)                    Ymult-boundary
-  ECREFFKEY.cuts[4]=0.65;//  (33) LVL3-trig. EC-algorithm: "peak"/"average" methode boundary
+  ECREFFKEY.thresh[5]=1.;     // (14) Trig. PMDynThr sl1(y)
+  ECREFFKEY.thresh[6]=70.;    // (15) Trig. PMDynThr sl2(x)
+  ECREFFKEY.thresh[7]=100.;   // (16) Trig. PMDynThr sl3(y)
+  ECREFFKEY.thresh[8]=80.;    // (17) Trig. PMDynThr sl4(x)
+  ECREFFKEY.thresh[9]=60.;    // (18) Trig. PMDynThr sl5(y)
+  ECREFFKEY.thresh[10]=40.;   // (19) Trig. PMDynThr sl6(x)
+  ECREFFKEY.thresh[11]=40.;   // (20) Trig. PMDynThr sl7(y)
+  ECREFFKEY.thresh[12]=1.;    // (21) Trig. PMDynThr sl8(x) 
+  ECREFFKEY.thresh[13]=1.;    // (22) Trig. PMDynThr sl9(y) 
+  ECREFFKEY.thresh[14]=0.;    // (23) spare
+// 
+  ECREFFKEY.cuts[0]=1.15;   // (24) Pisa Trig-algorithm: AngleCut1 
+  ECREFFKEY.cuts[1]=2.15;   // (25)                      AngleCut1
+  ECREFFKEY.cuts[2]=5.;     // (26)                      Xmult-boundary
+  ECREFFKEY.cuts[3]=6.;     // (27)                      Ymult-boundary
+  ECREFFKEY.cuts[4]=2.;     // (28) min.layers(out of 3 per proj) with at least 1 pm having Adynode > thr
+  ECREFFKEY.cuts[5]=0.;     // (29)
+  ECREFFKEY.cuts[6]=0.;     // (30)
+  ECREFFKEY.cuts[7]=0.;     // (31)
+  ECREFFKEY.cuts[8]=0.;     // (32)
+  ECREFFKEY.cuts[9]=0.65;   // (33) LVL3-trig. EC-algorithm: "peak"/"average" methode boundary
 //
   ECREFFKEY.ReadConstFiles=10;//(34)DC (ThreshCuts-set | Calib.const(MC/RD))
 //                            D=1/0-> Take from DataCards/DB
@@ -1083,19 +1105,19 @@ void AMSJob::_retof2data(){
   TFREFFKEY.relogic[1]=2;//(9) 0/1/2-> full_fTDC_use/no_time_matching/not_use 
   TFREFFKEY.relogic[2]=0;//(10) 0/1-> force 1-side suppression(useful for MC processing)
   TFREFFKEY.relogic[3]=0;//(11) 1/0->Do/not recovering of missing side 
-  TFREFFKEY.relogic[4]=0;//(12) spare RECO logic flag
+  TFREFFKEY.relogic[4]=1;//(12) 1/0->create(+write)/not TOF2RawSideObject-info into ntuple
 //
   TFREFFKEY.daqthr[0]=30.;//(13)tempor Anode low discr.thresh(30mV) for fast/slow_TDC 
   TFREFFKEY.daqthr[1]=100.;//(14)tempor Anode high discr.thresh(100mV) for FT-trigger (z>=1)  
   TFREFFKEY.daqthr[2]=250.;//(15)tempor Anode superhigh discr.thresh(mV) for  "z>=2"-trig  
-  TFREFFKEY.daqthr[3]=2.5;//(16)A/D(H/L)-ADC-readout threshold in DAQ (in PedSigmas)    
+  TFREFFKEY.daqthr[3]=2.5;//(16) An/Dyn-ADC-readout threshold in DAQ (in PedSigmas)    
   TFREFFKEY.daqthr[4]=1.;//(17)spare
 //
   TFREFFKEY.cuts[0]=40.;//(18) window(ns) to check sTDC/fTDC-coinc.(after fixed delay subtr.)
   TFREFFKEY.cuts[1]=15.;//(19)"befor"-cut in time history (ns)(max.PMT-pulse length?)
   TFREFFKEY.cuts[2]=400.;//(20)"after"-cut in time history (ns)(max. shaper integr.time?)
-  TFREFFKEY.cuts[3]=2.8; //(21) error(cm) in longitudinal coordinate (single TOF bar)
-  TFREFFKEY.cuts[4]=50.;//(22) FT delay(min), for me is constant now
+  TFREFFKEY.cuts[3]=2.8; //(21) error(cm) in longitudinal coordinate (for mip in single TOF bar)
+  TFREFFKEY.cuts[4]=40.;//(22) min FT delay(ns)
   TFREFFKEY.cuts[5]=40.;//(23) spare 
   TFREFFKEY.cuts[6]=0.6;//(24) 2-bars assim.cut in TOFCluster energy calculation
   TFREFFKEY.cuts[7]=8.;// (25) internal longit.coo matching cut ...Not used (spare)
@@ -1606,6 +1628,13 @@ void AMSJob::_dbinitjob(){
 
 //-------------------------------------------------------------------------------------------
 void AMSJob::_sitrig2initjob(){
+//
+  Trigger2LVL1::init();
+  if(TGL1FFKEY.Lvl1ConfRead%10>0){//(N) Take TrigConfig(mc|rd) from raw files
+    Trigger2LVL1::l1trigconf.read();
+  }
+  Trigger2LVL1::scalmon.setdefs();//set scalmon(static) defaults for rd/mc
+//--------
   if(TGL1FFKEY.RebuildLVL1)cout <<"AMSJob::_sitrig2initjob-W-TriggerLvl1 Will be rebuild from TOF data; Original Trigger info will be lost"<<endl;
   if(LVL3FFKEY.RebuildLVL3==1)cout <<"AMSJob::_sitrig2initjob-W-TriggerLvl3 will be rebuild from TOF/Tracker data; Original Trigger info will be lost"<<endl;
   else if(LVL3FFKEY.RebuildLVL3)cout <<"AMSJob::_sitrig2initjob-W-TriggerLvl3 will be rebuild from TOF/Trigger data Original Trigger info will be kept"<<endl;
@@ -1747,7 +1776,6 @@ void AMSJob::_signinitjob(){
 }
 //----------------------------------------------------------------------------------------
 void AMSJob::_sitof2initjob(){
-  cout <<"_sitof2init-I-Slow(Accurate) simulation algorithm selected."<<endl;
 //
   if(TFMCFFKEY.daqfmt==0)cout<<"_sitof2init-I-Raw TDC_Format selected"<<endl;
   else if(TFMCFFKEY.daqfmt==1)cout<<"_sitof2init-I-Reduced TDC_Format selected"<<endl;
@@ -2040,11 +2068,6 @@ void AMSJob::_retof2initjob(){
 //--------
   if(TFREFFKEY.ReadConstFiles/1000>0){//(QDPC) Take ChargeCalibPDFs(mc|rd) from files
     TofElosPDF::build();//create PDF-objects from CalibFiles
-  }
-//
-//--------
-  if(TGL1FFKEY.Lvl1ConfRead%10>0){//(M) Take TrigConfig(mc|rd) from raw files
-    Trigger2LVL1::l1trigconf.init();
   }
 //
 //-----------
@@ -2520,7 +2543,7 @@ if(!isRealData()){
 }
 //---------------------------------------
 //
-//   LVL1 : TDV-reservation for Lvl1Masks data
+//   LVL1 : TDV-reservation for Lvl1Config data
 //
 {
  tm begin;
@@ -2543,9 +2566,9 @@ if(!isRealData()){
   end.tm_mon=TGL1FFKEY.mon[1];
   end.tm_year=TGL1FFKEY.year[1];
 //-----
-//tgl1->M
+//tgl1->MN
 //-----
-if(TGL1FFKEY.Lvl1ConfRead%10==0)end.tm_year=TGL1FFKEY.year[0]-1;//Lvl1Config-data from DB
+if(TGL1FFKEY.Lvl1ConfRead%10==0)end.tm_year=TGL1FFKEY.year[0]-1;//(N)Lvl1Config-data from DB
   
   TID.add (new AMSTimeID(AMSID("Lvl1Config",isRealData()),
     begin,end,sizeof(Trigger2LVL1::l1trigconf),
@@ -3001,6 +3024,7 @@ _dbendjob();
 _axendjob();
   cout <<"axendjob finished"<<endl;
   
+ TGL1JobStat::printstat();
  TriggerLVL302::printfc();
  
 #ifdef __CORBA__

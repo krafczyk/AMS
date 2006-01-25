@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.339 2005/12/01 09:45:23 choutko Exp $
+//  $Id: event.C,v 1.340 2006/01/25 11:21:09 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -763,7 +763,7 @@ void AMSEvent::_siecalinitevent(){
     ptr = AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalMCHit",i),0));
   }
-  AMSEcalRawEvent::settrfl(0);//reset EC-trig. flag 
+  AMSEcalRawEvent::init();//reset EC-trig. patts.,flags...
 }
 
 void AMSEvent::_sirichinitevent(){
@@ -786,7 +786,7 @@ void AMSEvent::_sitrdinitevent(){
 void AMSEvent::_sitofinitevent(){
   int il;
   AMSNode *ptr;
-  uinteger trpatt[TOF2GC::SCLRS]={0,0,0,0};
+  integer trpatt[TOF2GC::SCLRS]={0,0,0,0};
 //
 //           declare some TOF containers for MC:
 //
@@ -801,9 +801,13 @@ void AMSEvent::_sitofinitevent(){
     ptr=AMSEvent::gethead()->add(
         new AMSContainer(AMSID("AMSContainer:TOF2Tovt",il),0));
   }
-  TOF2RawEvent::settrfl(0);// reset  TOF-trigger flag
+  TOF2RawEvent::settrcode(-1);// reset  TOF-trigger flag
+  TOF2RawEvent::settrcodez(-1);// reset  TOF-trigger flag
+  TOF2RawEvent::setcpcode(0);// reset  TOF-trigger flag
+  TOF2RawEvent::setbzflag(-1);// reset  TOF-trigger flag
+  TOF2RawEvent::setftpatt(0);// reset TOF-trigger pattern
   TOF2RawEvent::setpatt(trpatt);// reset TOF-trigger pattern
-  TOF2RawEvent::setpatt1(trpatt);// reset TOF-trigger pattern
+  TOF2RawEvent::setpattz(trpatt);// reset TOF-trigger pattern
 }
 
 
@@ -815,6 +819,10 @@ void AMSEvent::_reantiinitevent(){
 
       AMSEvent::gethead()->add(
       new AMSContainer(AMSID("AMSContainer:Anti2RawEvent",0),0));
+      
+      AMSEvent::gethead()->add(
+      new AMSContainer(AMSID("AMSContainer:AntiRawSide",0),0));
+      
       AMSEvent::gethead()->add(
       new AMSContainer(AMSID("AMSContainer:AMSAntiRawCluster",0),0));
 
@@ -834,6 +842,11 @@ void AMSEvent::_retof2initevent(){
 //
    ptr=AMSEvent::gethead()->add(
        new AMSContainer(AMSID("AMSContainer:TOF2RawEvent",0),0));
+//---
+// container for TOF2RawSide hits(same structure for MC/REAL events) : 
+//
+   ptr=AMSEvent::gethead()->add(
+       new AMSContainer(AMSID("AMSContainer:TOF2RawSide",0),0));
 //---
 //  container for RawCluster hits :
 //
@@ -867,7 +880,6 @@ void AMSEvent::_reecalinitevent(){
   }
 
 
-  AMSEcalRawEvent::init();
 
   for(i=0;i<2;i++){// <-- book  proj
       AMSEvent::gethead()->add (
@@ -1168,12 +1180,12 @@ void AMSEvent::event(){
     AMSmceventg *ptr=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
     
 
-    if(!CCFFKEY.Fast && !(!IOPA.hlun && !IOPA.WriteRoot && (DAQCFFKEY.mode/10)%10)){
+      if(!CCFFKEY.Fast && !(!IOPA.hlun && !IOPA.WriteRoot && (DAQCFFKEY.mode/10)%10)){
 
-    _reamsevent();
-    if(AMSJob::gethead()->isCalibration())_caamsevent();
-    _collectstatus();
-}
+        _reamsevent();
+        if(AMSJob::gethead()->isCalibration())_caamsevent();
+        _collectstatus();
+      }
    }
    catch (AMSLVL3Error e){
     _collectstatus();
@@ -1181,7 +1193,7 @@ void AMSEvent::event(){
 //   if(AMSStatus::isDBWriteR() || AMSStatus::isDBUpdateR()){
 //    setstatus((AMSJob::gethead()->getstatustable()->getstatus(getid(),getrun())).getp());
 //   }
-  }
+   }
     if(AMSStatus::isDBWriteR()){
       AMSJob::gethead()->getstatustable()->adds(getrun(),getid(),getstatus(),gettime());
     }
@@ -1191,7 +1203,8 @@ void AMSEvent::event(){
 }
   //------------------------------------------------------------------
   void AMSEvent::_siamsevent(){
-  AMSgObj::BookTimer.start("SIAMSEVENT");  
+  AMSgObj::BookTimer.start("SIAMSEVENT");
+  int cftr;  
     AMSmceventg *ptr=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
     if(ptr){
      int iset;
@@ -1205,10 +1218,12 @@ void AMSEvent::event(){
      }
     }
     _siecalevent();
+    _sitof2event(cftr);//important to call after _siecalevent to use FT from EC
+//                       in case of absence FT from TOF; cftr=1/0 ==> was/not  
+//                       (TOF+ECAL)-combined FastTrigger(FT), this flag may be used by other subr.
+    _sianti2event();//Anti(as TOF) is digitized only by combined FT (checked inside of subr.!)
     _sitrdevent(); 
     _sirichevent();
-    _sitof2event();//important to call after siecalevent to have FT from EC
-    _sianti2event();//                           in case of absence FT from TOF
     _sitkevent(); 
     _sitrigevent();//create lev1/lev3 trig.object
     _sidaqevent(); //DAQ-simulation 
@@ -1240,7 +1255,8 @@ void AMSEvent::_reamsevent(){
 
 
 #ifndef __AMSDEBUG__  
-  if(AMSJob::gethead()->isReconstruction() )_redaqevent();
+  if(AMSJob::gethead()->isReconstruction() )_redaqevent();//create subdetectors RawEvent-Objects
+//                                                         +lvl1(but some det.trig.patt still missing!)
 #else
  // temporary : no daq for ams02 yet
   if(AMSJob::gethead()->isReconstruction() || !strstr(AMSJob::gethead()->getsetup(),"AMS02")) _redaqevent();
@@ -1250,15 +1266,16 @@ void AMSEvent::_reamsevent(){
     AMSgObj::BookTimer.stop("REAMSEVENT");  
     return;
   }
-  _retof2event();
-  if(AMSJob::gethead()->isReconstruction() )_retrigevent();
+  if(AMSJob::gethead()->isReconstruction() )_retrigevent();//add missing parts to existing(!) lvl1-obj
+//                              using subdet.RawEvent objects, created at simu-stage or DAQ reco-stage 
   if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){
+    _retof2event();
+    _reanti2event();
     _retrdevent();
     _retkevent(); 
     _rerichevent();
-   _reecalevent();
+    _reecalevent();
   }
-  _reanti2event();
   _reaxevent();
    AMSUser::Event();
    AMSgObj::BookTimer.stop("REAMSEVENT");  
@@ -1331,12 +1348,12 @@ for(i=0;i<nalg;i++){
 
 //---------------------------------------------------------------------------
 void AMSEvent::_catofevent(){
-  integer trflag(-1);
+  bool tofft(0);
   Trigger2LVL1 *ptr2;
 //
     ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-    if(ptr2)trflag=ptr2->gettoflg();
-    if(trflag < 0)return;// use only H/W-triggered event tempor
+    if(ptr2)tofft=ptr2->TofFasTrigOK();
+    if(!tofft)return;// use only H/W-triggered event
     if(TFREFFKEY.relogic[0]==2)
              TOF2TDIFcalib::select();// event selection for TOF TDIF-calibration
     if(TFREFFKEY.relogic[0]==3){
@@ -1348,25 +1365,24 @@ void AMSEvent::_catofevent(){
 //---------------------------------------------------------------------------
 
 void AMSEvent::_cantievent(){
-  integer trflag(-1);
+  bool globft(0);
   Trigger2LVL1 *ptr2;
 //
     ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-    if(ptr2)trflag=ptr2->gettoflg();
-    if(trflag < 0)return;// use only H/W-triggered event tempor
+    if(ptr2)globft=ptr2->GlobFasTrigOK();
+    if(!globft)return;// use only H/W-triggered event
     AntiCalib::select();
 }
 //--------------------------------------------------------------------------
 void AMSEvent::_caecevent(){
-  integer toflag(-1),ecflag(0);
+  bool globft(0);
   Trigger2LVL1 *ptr;
 //
     ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr){
-      toflag=ptr->gettoflg();
-      ecflag=ptr->getecflg();
+      globft=ptr->GlobFasTrigOK();
     }
-    if(toflag < 0 || ecflag<=0)return;// use only TOF+ECAL-triggered event
+    if(!globft)return;// use only H/W-triggered event
     if(ECREFFKEY.relogic[1]>0){
       if(ECREFFKEY.relogic[1]<=2)ECREUNcalib::select();// RLGA/FIAT part of REUN-calibration
       if(ECREFFKEY.relogic[1]==3)ECREUNcalib::selecte();// ANOR part of REUN-calibration
@@ -1513,13 +1529,9 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
 }
 //----------------------------------------
 void AMSEvent::_reanti2event(){
-  integer toftrigfl(-1);
-  uinteger ectrigfl(0);
   int stat;
-  integer trtype(0);
+  bool tofftok(0),ecalftok(0),extrigok(0);
 //
-  if(TGL1FFKEY.trtype>0)trtype=TGL1FFKEY.trtype;
-  else trtype=Trigger2LVL1::l1trigconf.subtrigmask();
 //
   AMSgObj::BookTimer.start("REANTIEVENT");
 //
@@ -1529,16 +1541,17 @@ void AMSEvent::_reanti2event(){
 //
     Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr){
-      toftrigfl=ptr->gettoflg();
-      ectrigfl=ptr->getecflg();
+      tofftok=ptr->TofFasTrigOK();
+      ecalftok=ptr->EcalFasTrigOK();
+      extrigok=ptr->ExternTrigOK();
     }
-    if(toftrigfl<0 && ectrigfl<=0 && trtype!=256){
+    if(!tofftok && !ecalftok && !extrigok){
       AMSgObj::BookTimer.stop("REANTIEVENT");
-      return;// "no TOF/EC in LVL1-trigger(FastTrig)"
+      return;// "no TOF/EC/Ext in LVL1-trigger"
     }
     ANTI2JobStat::addre(1);
-    if(toftrigfl>=0)ANTI2JobStat::addre(5);
-    if(toftrigfl<0 && ectrigfl>0)ANTI2JobStat::addre(6);
+    if(tofftok)ANTI2JobStat::addre(5);
+    if(!tofftok && ecalftok)ANTI2JobStat::addre(6);
 //
     Anti2RawEvent::validate(stat);// RawEvent-->RawEvent
     if(stat!=0){
@@ -1563,27 +1576,25 @@ void AMSEvent::_reanti2event(){
 }
 //===============================================================================
 void AMSEvent::_retof2event(){
-integer toftrigfl(-1),ectrigfl(0);
 int stat;
-integer trtype(0);
+bool tofftok(0),ecalftok(0),extrigok(0);
 //
-  if(TGL1FFKEY.trtype>0)trtype=TGL1FFKEY.trtype;
-  else trtype=Trigger2LVL1::l1trigconf.subtrigmask();
 //
   AMSgObj::BookTimer.start("RETOFEVENT");
     TOF2JobStat::addre(0);
     Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr){
-      toftrigfl=ptr->gettoflg();
-      ectrigfl=ptr->getecflg();
+      tofftok=ptr->TofFasTrigOK();
+      ecalftok=ptr->EcalFasTrigOK();
+      extrigok=ptr->ExternTrigOK();
     }
-    if(toftrigfl<0 && ectrigfl<=0 && trtype!=256){
+    if(!tofftok && !ecalftok && !extrigok){
       AMSgObj::BookTimer.stop("RETOFEVENT");
-      return;// "no TOF/EC in LVL1-trigger(FastTrig)"
+      return;// "no TOF/EC/Ext in LVL1-trigger"
     }   
     TOF2JobStat::addre(1);
-    if(toftrigfl>=0)TOF2JobStat::addre(33);
-    if(toftrigfl<0 && ectrigfl>0)TOF2JobStat::addre(34);
+    if(tofftok)TOF2JobStat::addre(33);
+    if(!tofftok && ecalftok)TOF2JobStat::addre(34);
 //
 //                   ===> reco of real or MC events :
 //
@@ -1624,22 +1635,22 @@ integer trtype(0);
 }
 //========================================================================
 void AMSEvent::_reecalevent(){
-  integer tofflg(-1);
-  uinteger ecalflg(0);
   Trigger2LVL1 *ptr;
   int stat(0),nsuc(0);
+  bool tofftok(0),ecalftok(0),extrigok(0);
 //
   AMSgObj::BookTimer.start("REECALEVENT");
 //
   EcalJobStat::addre(0);
   ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptr){
-    tofflg=ptr->gettoflg();
-    ecalflg=ptr->getecflg();
+    tofftok=ptr->TofFasTrigOK();
+    ecalftok=ptr->EcalFasTrigOK();
+    extrigok=ptr->ExternTrigOK();
   }
-  if(ecalflg<=0){
+  if(!tofftok && !ecalftok && !extrigok){
     AMSgObj::BookTimer.stop("REECALEVENT");
-    return;// "no ECAL-flag set in LVL1-trigger"   
+    return;// "no FT/Ext-trig in LVL1"   
   }
   EcalJobStat::addre(1);
   if(ECMCFFKEY.fastsim==0){//           ===> slow algorithm:
@@ -1720,9 +1731,9 @@ void AMSEvent::_retrdevent(){
   AMSgObj::BookTimer.stop("RETRDEVENT");
 }
 void AMSEvent::_rerichevent(){
-  integer trflag(-1);
   Trigger2LVL1 *ptr;
   int stat;
+  bool globftok(0),extrigok(0);
 //
   AMSgObj::BookTimer.start("RERICH");
 
@@ -1730,10 +1741,13 @@ void AMSEvent::_rerichevent(){
 
 //
   ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-  if(ptr)trflag=ptr->gettoflg();
-  if(trflag<0){
+  if(ptr){
+    globftok=ptr->GlobFasTrigOK();
+    extrigok=ptr->ExternTrigOK();
+  }
+  if(!globftok && !extrigok){
     AMSgObj::BookTimer.stop("RERICH");
-    return;// "no TOF in LVL1 trigger"   
+    return;// "no FT/Ext-trig in LVL1 trigger"   
   }
   // Reconstruction CJD
   if(RICRECFFKEY.recon[0])
@@ -1918,8 +1932,8 @@ void AMSEvent::_reaxinitrun(){
 }
 
 void AMSEvent:: _sitkevent(){
-bool hastrigger= TOF2RawEvent::gettrfl();
-  if(TRMCFFKEY.NoiseOn &&hastrigger )AMSTrMCCluster::sitknoise();
+bool fastrigger= TOF2RawEvent::GlobFasTrigOK();
+  if(TRMCFFKEY.NoiseOn && fastrigger )AMSTrMCCluster::sitknoise();
   AMSTrMCCluster::sitkcrosstalk();
 #ifdef __AMSDEBUG__
   AMSContainer *p =getC("AMSTrMCCluster",0);
@@ -2012,22 +2026,22 @@ void AMSEvent::_sirichevent(){
 
 //---------------------------------------------------------------
 void AMSEvent:: _sitrigevent(){
-    Trigger2LVL1::build();
+    Trigger2LVL1::build();//build complete(!) lvl1-obj 
     TriggerLVL302::build();
 
 }
 
 //---------------------------------------------------------------
 void AMSEvent:: _retrigevent(){
-  // Backup solution to "simulate" trigger 1 & 3 for rec data
+//Add missing info to HW-created(in redaqevent) lvl1-obj; can "simulate" trigger 1 & 3 for rec data
   
-//   if(TGL1FFKEY.RebuildLVL1)Trigger2LVL1::build();
+   Trigger2LVL1::build();
 //   if(LVL3FFKEY.RebuildLVL3)TriggerLVL302::build();
 }
 
 
 //===============================================================
-void AMSEvent:: _sitof2event(){
+void AMSEvent:: _sitof2event(int &cftr){
   AMSContainer *p;
   int stat;
 //
@@ -2046,9 +2060,11 @@ void AMSEvent:: _sitof2event(){
    TOF2RawEvent::mc_build(stat);//Tovt_hit->RawEv_hit
    AMSgObj::BookTimer.stop("TOF:Tovt->RwEv");
    if(stat!=0){
+     cftr=0;//no (TOF+ECAL)-combined fast trigger
      AMSgObj::BookTimer.stop("SITOFDIGI");
-     return; // no FTrigger from TOF
+     return; // no FTrigger from TOF or ECAL
    }
+   cftr=1;//found (TOF+ECAL)-combined fast trigger
    TOF2JobStat::addmc(2);
   AMSgObj::BookTimer.stop("SITOFDIGI");
 //
@@ -2183,12 +2199,16 @@ void AMSEvent::_copyEl(){
 }
 
 void AMSEvent::_printEl(ostream & stream){
- stream << "Run "<<_run<<" "<<getname()<<" "<< getid()<<" Time "<< 
+  stream << "Run "<<_run<<" "<<getname()<<" "<< getid()<<" Time "<< 
    ctime(&_time)<<"."<<_usec<<" R "<<_StationRad<<" Theta "<<_StationTheta*AMSDBc::raddeg<<" Phi "<<_StationPhi*AMSDBc::raddeg<<" Speed "<<_StationSpeed<<
    " Pole "<<_NorthPolePhi*AMSDBc::raddeg<<endl;
-   stream <<" TOF2Temperature : No structure yet !!! ";
-   stream <<" Average Scaler Rate & LifeTime "<<Trigger2LVL1::getscalersp()->getsum(gettime())<<"  "<<Trigger2LVL1::getscalersp()->getlifetime(gettime())<<endl;
-   stream <<" Average Magnet Temperature "<<MagnetVarp::getmeanmagnetmtemp()<<endl;
+  stream <<"TOFTemperature(crate_1,sensor_1): "<<TOF2JobStat::gettemp(0,0);
+  Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  if(ptr){
+    stream <<" FastTrigRate/LiveTime "<<Trigger2LVL1::scalmon.FTrate()<<"  "<<ptr->getlivetime()<<endl;
+//   stream <<" Average Scaler Rate & LifeTime "<<Trigger2LVL1::getscalersp()->getsum(gettime())<<"  "<<Trigger2LVL1::getscalersp()->getlifetime(gettime())<<endl;
+  }
+  stream <<" Average Magnet Temperature "<<MagnetVarp::getmeanmagnetmtemp()<<endl;
 }
 //=====================================================================
 void AMSEvent::_writeEl(){

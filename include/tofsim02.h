@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.12 2005/09/09 07:55:27 choumilo Exp $
+//  $Id: tofsim02.h,v 1.13 2006/01/25 11:21:38 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -303,8 +303,10 @@ integer getstat(){return status;}
 static void inipsh(integer &nbn, geant arr[]);
 static geant pmsatur(const geant am);
 static void displ_a(const int id, const int mf, const geant arr[]);
-static number tr1time(int &trcode,uinteger arr[]);//to get "z>=1" trigger time/code/patt 
-static number tr2time(int &trcode,uinteger arr[]);//to get "z>=2" trigger time/code/patt 
+static number ftctime(int &trcode,int &cpcode);//to get FTC("z>=1") trigger time/code/lutcode 
+static number ftztime(int &trcode);//to get FTZ("SlowZ>=2") trigger time/code
+static void spt2patt(number ftime, integer patt1[], integer patt2[]);//to get z>=1/z>=2 tof-patterns of SPT2
+static bool bztrig(number gftime, int &trcode);//to get BZ-flag for LVL1 and BZ(z>=2) layers patt. 
 static void build();
 static void totovt(integer id, geant edep, geant tslice[],geant shar[]);//flash_ADC_array->Tovt
 //
@@ -381,11 +383,14 @@ class TOF2RawEvent: public AMSlink{
 private:
  static uinteger StartRun;//first run of the job
  static time_t StartTime;//first run time
- static integer trflag; //layer-pattern code(<0 ->noFT, >=0 -> as trcode, z>=1
- static integer trflag1; //layer-pattern code(<0 ->noFT, >=0 -> as trcode, z>=2
- static uinteger trpatt[TOF2GC::SCLRS];// Fired bars pattern(z>=1)
- static uinteger trpatt1[TOF2GC::SCLRS];// Fired bars pattern(z>=2)
- static number trtime; //  abs. FTrigger time (ns) 
+ static integer _trcode; //CP's layer-pattern code(<0 ->noFTC, >=0 -> as trcode, z>=1)
+ static integer _trcodez; //BZ's layer-pattern code(<0-> >=0 -> as trcode, z>=2)
+ static integer _trpatt[TOF2GC::SCLRS];// Fired bars pattern(z>=1)
+ static integer _trpattz[TOF2GC::SCLRS];// Fired bars pattern(z>=2)
+ static integer _ftpatt;//general FT components pattern(starting from lsbit:FTC/FTZ/FTE/EXT)
+ static integer _cpcode;//MN-> FTCP1|FTCP0 flags for lvl1(m(n)=0/1)
+ static integer _bzflag;//1/0->BZtrigOK/not
+ static number _trtime; //  abs. FTrigger time (ns) 
  int16u idsoft;        // LayBarBarSide: LBBS (as in Phel,Tovt MC-obj)
  int16u status;        // channel status (alive/dead/ ... --> 0/1/...)
  int16u nftdc;         // number of fast "tdc" hits
@@ -396,7 +401,7 @@ private:
  int16u nadcd;         // number of NONZERO Dynode-channels(max PMTSMX)
  int16u adcd[TOF2GC::PMTSMX]; // ALL Dynodes PMTs ADC-hits(positional, in DAQ-bin units !)
  geant charge;         // for MC : tot. anode charge (pC)
- geant temp;           // temperature from SFET
+ geant temp;           // temperature from SFET(A), corresponding to idsoft LBBS
 //
 public:
  TOF2RawEvent(int16u _ids, int16u _sta, geant _charge, geant _temp,
@@ -414,6 +419,7 @@ public:
  int16u getstat() const {return status;}
  geant getcharg(){return charge;}
  geant gettemp(){return temp;}
+ void settemp(geant tmp){temp=tmp;}
  integer gettoth(){return integer(nftdc+nstdc+1+nadcd);}
 
 
@@ -433,24 +439,32 @@ public:
 
 
 
- static void setpatt(uinteger patt[]){
-   for(int i=0;i<TOF2GC::SCLRS;i++)trpatt[i]=patt[i];
+ static void setpatt(integer patt[]){
+   for(int i=0;i<TOF2GC::SCLRS;i++)_trpatt[i]=patt[i];
  }
- static void setpatt1(uinteger patt[]){
-   for(int i=0;i<TOF2GC::SCLRS;i++)trpatt1[i]=patt[i];
+ static void setpattz(integer patt[]){
+   for(int i=0;i<TOF2GC::SCLRS;i++)_trpattz[i]=patt[i];
  }
- static void getpatt(uinteger patt[]){
-   for(int i=0;i<TOF2GC::SCLRS;i++)patt[i]=trpatt[i];
+ static void getpatt(integer patt[]){
+   for(int i=0;i<TOF2GC::SCLRS;i++)patt[i]=_trpatt[i];
  }
- static void getpatt1(uinteger patt[]){
-   for(int i=0;i<TOF2GC::SCLRS;i++)patt[i]=trpatt1[i];
+ static void getpattz(integer patt[]){
+   for(int i=0;i<TOF2GC::SCLRS;i++)patt[i]=_trpattz[i];
  }
- static void settrfl(integer trfl){trflag=trfl;}
- static void settrfl1(integer trfl){trflag1=trfl;}
- static integer gettrfl(){return trflag;}
- static integer gettrfl1(){return trflag1;}
- static number gettrtime(){return trtime;}
- static void settrtime(number trt){trtime=trt;}
+ static void settrcode(integer trfl){_trcode=trfl;}
+ static void settrcodez(integer trfl){_trcodez=trfl;}
+ static void setftpatt(integer ftp){_ftpatt=ftp;}
+ static void setftpbit(integer ftp){_ftpatt|=ftp;}
+ static void setcpcode(integer cpc){_cpcode=cpc;}
+ static void setbzflag(integer flg){_bzflag=flg;}
+ static integer gettrcode(){return _trcode;}
+ static integer gettrcodez(){return _trcodez;}
+ static integer getftpatt(){return _ftpatt;}
+ static integer getcpcode(){return _cpcode;}
+ static integer getbzflag(){return _bzflag;}
+ static bool GlobFasTrigOK(){return _ftpatt>0;}
+ static number gettrtime(){return _trtime;}
+ static void settrtime(number trt){_trtime=trt;}
  static uinteger getsrun(){return StartRun;}
  static time_t getstime(){return StartTime;}
 //

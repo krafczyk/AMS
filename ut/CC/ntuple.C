@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.159 2005/11/25 15:30:56 choutko Exp $
+//  $Id: ntuple.C,v 1.160 2006/01/25 11:21:09 choumilo Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -147,13 +147,18 @@ void AMSNtuple::init(){
 "nlvl3[0,2],LVL3TOF(nlvl3)[-1,255],LVL3TRD(nlvl3)[0,15],LVL3Tr(nlvl3)[0,15],LVL3Main(nlvl3),LVL3Dir(nlvl3)[-1,1],LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pat(2,nlvl3)[-1,250],LVL3Res(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R,LVL3TRDHits(nlvl3)[0,63],LVL3HMult(nlvl3)[0,31],LVL3TRDPar(2,nlvl3):R,LVL3emag(nlvl3)[-1,1],LVL3ECmat(nlvl3)[-1,1],LVL3ECTRKcr(4,nlvl3):R");
 
   HBNAME(_lun,"LVL1",&_lvl102.Nlvl1,
-  "nlvl1[0,2],mode(nlvl1),LVL1Flag(nlvl1)[-10,20],LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1),LVL1ECALflag(nlvl1),LVL1ECtrsum(nlvl1):R");
+
+"nlvl1[0,2],LVL1PhysBPatt(nlvl1),LVL1JMembPatt(nlvl1),LVL1Flag1(nlvl1)[-10,20],LVL1Flag2(nlvl1)[-10,20],LVL1TOFPatt1(4,nlvl1),LVL1TOFPatt2(4,nlvl1),LVL1AntiPatt(nlvl1),LVL1ECALflag(nlvl1),LVL1ECALpatt(3,6,nlvl1),LVL1ECtrsum(nlvl1):R,LVL1LiveTime(nlvl1):R,LVL1TrigRates(6,nlvl1):R");
 
   HBNAME(_lun,"TrRawCl",&_trraw.Ntrraw,
   "ntrraw[0,300],rawaddress(ntrraw):I,rawlength(ntrraw)[-1,30000]:I,s2n(ntrraw):R");
 
 
   HBNAME(_lun,"TOFRawCl",&_tofraw.Ntofraw,"ntofraw[0,48],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,4]:I,tofrbar(ntofraw)[0,12]:I,tofradca(2,ntofraw),tofradcd(2,ntofraw),tofradcdr(3,2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
+ 
+ 
+ 
+  HBNAME(_lun,"TofRawSd",&_tofraws.Ntofraws,"ntofraws[0,70],tofrsswid(ntofraws):I,tofrshwid(ntofraws):I,tofrsnftdc(ntofraws)[0,8]:I,tofrsftdc(8,ntofraws),tofrsstdc(4,ntofraws),tofrsadca(ntofraws),tofrsnadcd(ntofraws)[0,3]:I,tofrsadcd(3,ntofraws),tofrstemp(ntofraws)");
  
   HBNAME(_lun,"RICMCCl",&_richmc.NMC,
   	 "nsignals[0,250],sid(nsignals):I,"
@@ -206,6 +211,7 @@ void AMSNtuple::reset(int full){
    _lvl102.Nlvl1 = 0;
    _trraw.Ntrraw = 0;
    _tofraw.Ntofraw = 0;
+   _tofraws.Ntofraws = 0;
    _richmc.NMC=0;
    _richevent.Nhits=0;
    _ring.NRings=0;

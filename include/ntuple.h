@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.96 2005/11/25 15:31:00 choutko Exp $
+//  $Id: ntuple.h,v 1.97 2006/01/25 11:21:38 choumilo Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -12,6 +12,7 @@ const int MAXCHARGE02  = 20;
 const int MAXPART02    =  10;
 const int MAXTOF     =    48;
 const int MAXTOFRAW  =    48;
+const int MAXTOFRAWS  =   70;
 const int MAXTOFMC   =   100;
 const int MAXANTICL  =    8;
 const int MAXANTIMC  =   100;
@@ -47,6 +48,7 @@ using namespace root;
 #include "trddbc.h"
 #include "ecaldbc.h"
 #include "antidbc02.h"
+#include "tofdbc02.h"
 #ifdef __WRITEROOT__
 #include "root.h"
 #include <TObjString.h>
@@ -591,13 +593,18 @@ friend class AMSNtuple;
 class LVL1Ntuple02 {
 public:
   int Nlvl1;
-  int Mode[MAXLVL1];
-  int TOFlag[MAXLVL1];
-  int TOFPatt[MAXLVL1][4];
+  int PhysBPatt[MAXLVL1];
+  int JMembPatt[MAXLVL1];
+  int TOFlag1[MAXLVL1];
+  int TOFlag2[MAXLVL1];
   int TOFPatt1[MAXLVL1][4];
+  int TOFPatt2[MAXLVL1][4];
   int AntiPatt[MAXLVL1];
   int ECALflag[MAXLVL1];
+  int ECALpatt[MAXLVL1][6][3];
   float ECALtrsum[MAXLVL1];
+  float LiveTime[MAXLVL1];
+  float TrigRates[MAXLVL1][6];
 
 friend class Trigger2LVL1;
 friend class AMSNtuple;
@@ -630,6 +637,24 @@ public:
   float cool[MAXTOFRAW];
 
 friend class TOF2RawCluster;
+friend class AMSNtuple;
+};
+
+
+class TofRawSideNtuple {
+public:
+  int Ntofraws;
+  int swid[MAXTOFRAWS];
+  int hwid[MAXTOFRAWS];
+  int nftdc[MAXTOFRAWS];
+  float ftdc[MAXTOFRAWS][TOF2GC::SCTHMX2];
+  float stdc[MAXTOFRAWS][4];
+  float adca[MAXTOFRAWS];
+  int nadcd[MAXTOFRAWS];
+  float adcd[MAXTOFRAWS][TOF2GC::PMTSMX];
+  float temp[MAXTOFRAWS];
+
+friend class TOF2RawSide;
 friend class AMSNtuple;
 };
 
@@ -725,6 +750,7 @@ protected:
   LVL1Ntuple02 _lvl102;
   TrRawClusterNtuple _trraw;
   TOFRawClusterNtuple _tofraw;
+  TofRawSideNtuple _tofraws;
   EcalClusterNtuple _ecclust;
   Ecal2DClusterNtuple _ec2dclust;
   EcalShowerNtuple _ecshow;
@@ -778,6 +804,7 @@ public:
   LVL1Ntuple02* Get_lvl102() {return &_lvl102;}
   TrRawClusterNtuple* Get_trraw() {return &_trraw;}
   TOFRawClusterNtuple* Get_tofraw() {return &_tofraw;}
+  TofRawSideNtuple* Get_tofraws() {return &_tofraws;}
   EcalClusterNtuple* Get_ecclust() {return &_ecclust;}
   Ecal2DClusterNtuple* Get_ec2dclust() {return &_ec2dclust;}
   EcalShowerNtuple* Get_ecshow() {return &_ecshow;}

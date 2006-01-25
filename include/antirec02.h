@@ -1,7 +1,7 @@
-//  $Id: antirec02.h,v 1.9 2005/09/09 07:55:26 choumilo Exp $
+//  $Id: antirec02.h,v 1.10 2006/01/25 11:21:33 choumilo Exp $
 //
-// May 29   1997. V. Choutko primitive version
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
+// 10.11.2005 E.Choumilov, complete revision
 //
 #ifndef __AMSANTI2REC__
 #define __AMSANTI2REC__
@@ -59,6 +59,8 @@ public:
     for(int i=0;i<ntdct;i++)tdct[i]=arr[i];
   }
 //
+ geant gettemp(){return temp;}
+ void settemp(geant tmp){temp=tmp;}
 //
   static void setpatt(uinteger patt){
     trpatt=patt;
@@ -75,8 +77,6 @@ public:
 static integer calcdaqlength(int16u blid);
 static void builddaq(int16u blid, integer &len, int16u *p);
 static void buildraw(int16u blid, integer &len, int16u *p);
-static int16u hw2swid(int16u a1, int16u a2);
-static int16u sw2hwid(int16u a1, int16u a2); 
 //
 protected:
 void _printEl(ostream &stream){

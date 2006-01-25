@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.26 2005/10/13 09:01:52 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.27 2006/01/25 11:21:38 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -62,12 +62,12 @@ const integer SCCRAT=4; // number of crates with TOF(+ANTI)-channels (S-crates)
 const integer SCSLTM=9;// number of slots(all types) per crate(max)
 const integer SCSLTY=6;// slot(card) types(real:sdr,spt,sfet,sfea1,sfea2,sfec) 
 const integer SCRCHM=40;// number of readout channels (outputs) per slot(card)(max)
-const integer SCRCMX=SCCRAT*SCSLTM*SCRCHM;//total readout-channels(max)
+const integer SCRCMX=SCCRAT*SCSLTM*SCRCHM;//total hw-readout-channels(max)
 const integer SCPMOU=4;//  number pm-outputs per side (max)(anode+3dynodes)
 //const integer SCMTYP=4;// number of measurement types(max)(fTDC,sTDC,ampl,Temperature)
 const integer SCAMTS=3;// number of Anode measurements types(actual)(t,h,q)
 const integer SCDMTS=1;// number of Dynode measurements types(actual)(q)
-const integer SCFETA=5;// number of FFET+SFEA card per crate(actual)
+const integer SCFETA=5;// number of FFET+SFEA card per crate(having temp-sensors)(actual)
 //old: should be revised
 const integer SCSFET=4; // SFETs per crate
 const integer SCTOFC=4; // max. TOF-channels (each =4 TDC-channels) per SFET
@@ -141,7 +141,7 @@ private:
   static geant _strrat;      // not used
   static geant _strjit1;     // "start" signal jitter at stretcher input(ns) 
   static geant _strjit2;     // "stop"(FT) signal jitter at stretcher input(ns)
-  static geant _ftdelf;      // FastTrigger (FT) fixed (by h/w) delay (ns)
+  static geant _ftdelf;      // not used 
   static geant _ftdelm;      // FT max delay (allowed by stretcher logic) (ns)
   static geant _accdel;      // "Lev-1"(Common stop) signal delay wrt FT (ns)
   static geant _fstdcd;      // Same hit(up-edge) relative delay of slow- wrt hist-TDC
@@ -284,11 +284,11 @@ public:
   geant sdtdcg(){return _cuts[9];}
 // 
   geant daqthr(int i){;
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
         assert(i>=0 && i<5);
       }
-    #endif
+#endif
     return _daqthr[i];}
 //
 };
@@ -313,6 +313,7 @@ private:
 //          i=12=> MC GHitT total
 //          i=13=> spare
 //          i=14=> OK in MCgen fast selection
+//          i=15-22=> FT-trig.finder statistics
   static integer recount[TOF2GC::SCJSTA];// event passed RECO-cut "i"
 //          i=0 -> entries
 //          i=1 -> H/W TOF-trigger OK
@@ -379,7 +380,7 @@ private:
   static integer scdaqbc3[TOF2GC::SCCRAT][2];// scDAQ-block "length mismatch" appear.frequency
   static integer scdaqbc4[TOF2GC::SCCRAT][2];// scDAQ-block "cr/sf/tofc in contradiction with map" appear.frequency
 //
-  static geant tofantemp[TOF2GC::SCCRAT][TOF2GC::SCFETA];//TOF+ANTI temperatures in crates 
+  static geant tofantemp[TOF2GC::SCCRAT][TOF2GC::SCFETA];//TOF+ANTI temperatures in crates/temp_slots 
 //
 public:
   static void clear();
@@ -387,6 +388,11 @@ public:
     assert(crt<TOF2GC::SCCRAT);
     assert(sen<TOF2GC::SCFETA);
     tofantemp[crt][sen]=t;
+  }
+  inline static geant gettemp(int16u crt, int16u sen){
+    assert(crt<TOF2GC::SCCRAT);
+    assert(sen<TOF2GC::SCFETA);
+    return tofantemp[crt][sen];
   }
   inline static void addmc(int i){
     assert(i>=0 && i< TOF2GC::SCJSTA);
