@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.34 2006/01/25 11:21:10 choumilo Exp $
+//  $Id: tofrec02.C,v 1.35 2006/01/27 14:24:37 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -67,7 +67,7 @@ void TOF2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   pbitn=TOF2GC::SCPHBP;
   pbanti=pbitn-1;
   status=1;//bad
-  idr=TFREFFKEY.reprtf[4];// chan-id for histogramming of stretcher w1/w3
+  idr=TFREFFKEY.reprtf[4];// chan-id for histogramming of stretcher sequence params
 //
 // =============> check/correct logical "up/down" sequence :
 //
@@ -164,7 +164,7 @@ void TOF2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
         pbdn1=(stdc1[i+2]&pbitn);//check p-bit of 1-st down-edge (come third)
         pbup1=(stdc1[i+3]&pbitn);//check p-bit of 1-st up-edge (come fourth)
         if(TOF2DBc::pbonup()==1){
-          if(pbup==0||pbup1==0||pbdn!=0||pbdn1!=0)continue;//wrong sequence, take next "4" 
+          if(pbup==0||pbup1==0||pbdn!=0||pbdn1!=0)continue;//wrong sequence, take next "4"
         }
         else{
           if(pbup!=0||pbup1!=0||pbdn==0||pbdn1==0)continue;//wrong  sequence, take next "4" 
@@ -175,13 +175,14 @@ void TOF2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
         t3=(stdc1[i+1]&pbanti)*TOF2DBc::tdcbin(1);//2-nd up-edge
         t4=(stdc1[i]&pbanti)*TOF2DBc::tdcbin(1);//2-nd down-edge
         dt=t2-t3;
+        if(idr==idd)HF1(1137,geant(dt),1.);
         if(dt<5. || dt>24.)continue;//wrong "hole" width(w2), take next "4"
         dt=t1-t2;
         if(idr==idd)HF1(1138,geant(dt),1.);
-        if(dt<10. || dt>200.)continue;//wrong "1st_pulse" width(w1), ...
+        if(dt<10. || dt>240.)continue;//wrong "1st_pulse" width(w1), ...
         dt=t2-t4;
         if(idr==idd)HF1(1139,geant(dt),1.);
-        if(dt<2000. || dt>6000.)continue;//wrong "2nd_pulse" width(w3), ...
+        if(dt<1000. || dt>7500.)continue;//wrong "2nd_pulse" width(w3), ...
 //
         stdc2[nhit]=stdc1[i];
         nhit+=1;
@@ -194,6 +195,7 @@ void TOF2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
         i+=3;// to bypass current 4 good edges
       }
       if(nhit<im){//something was wrong
+        if(idr==idd)cout<<"TOFValidation-W-BadStdcSequence:LBBS="<<idd<<" NhitsIN/OUT="<<im<<" "<<nhit<<endl;
         ptr->putstdc(int16u(nhit),stdc2);// refill object with corrected data
         TOF2JobStat::addch(chnum,14);
       }

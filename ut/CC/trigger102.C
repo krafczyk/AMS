@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.29 2006/01/25 11:21:13 choumilo Exp $
+//  $Id: trigger102.C,v 1.30 2006/01/27 14:24:38 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 // deep modifications Nov.2005 by E.Choumilov
@@ -268,7 +268,7 @@ void Trigger2LVL1::build(){
     integer brand[8];//ANDs of current and preset patterns of phys.branches
     integer brreq[8]; 
     for(i=0;i<8;i++){
-      brreq[i]=(Trigger2LVL1::l1trigconf.physbrmemb(i)<<1);//"<<1" due to miss.FTC in memb-request 
+      brreq[i]=(Trigger2LVL1::l1trigconf.physbrmemb(i)<<1);//"<<1" due to miss.FTC-bit in JMemb-request 
       brand[i]=(JMembPatt & brreq[i]);
     }
 //

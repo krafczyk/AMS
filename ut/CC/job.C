@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.483 2006/01/25 11:21:09 choumilo Exp $
+// $Id: job.C,v 1.484 2006/01/27 14:24:37 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1099,7 +1099,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.reprtf[1]=0; //(4) print flag for DAQ (1/2-> print for decoding/dec+encoding)
   TFREFFKEY.reprtf[2]=0; //(5) print flag for histograms
   TFREFFKEY.reprtf[3]=0; //(6) print flag for TDC-hit multiplicity histograms 
-  TFREFFKEY.reprtf[4]=0; //(7) if non-zero (LBBS) print stretcher T1/T2 for LBBS
+  TFREFFKEY.reprtf[4]=0; //(7) if non-zero (LBBS) print stretcher params for LBBS
 //
   TFREFFKEY.relogic[0]=0;//(8) 0/1/2/3/4 ->normal/STRR+AVSD-/TDIF-/TZSL-/AMPL-calibr. run. 
   TFREFFKEY.relogic[1]=2;//(9) 0/1/2-> full_fTDC_use/no_time_matching/not_use 

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.31 2006/01/25 11:21:10 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.32 2006/01/27 14:24:37 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -92,10 +92,10 @@ geant TOF2DBc::_plnstr[20]={
   };
   geant TOF2DBc::_daqpwd[15]={
     250.,   // (0)pulse width of "z>=1(HT)" indiv.paddle signal(going to SPT2) (ns) 
-    5500.,  // (1)max.pulse(triang) duration of sTDC(charge+discharge) signal
+    5500.,  // (1)spare
     250.,   // (2)pulse width of "z>=2(SHT)" indiv.paddle signal (going to SPT2)
     10.,    // (3)double pulse resolution of fast(history) TDC (ns)
-    5600.,  // (4)max.buzy time of sTDC-system(charge+discarge+dead) (ns)
+    2500.,  // (4)aver.buzy time of sTDC-system(charge+discarge+dead) (ns)
     250.,   // (5) gate-width for z>=1 tof-trig-pattern creation(in SPT2)
     250.,   // (6) gate-width for z>=2 tof-trig-pattern creation(in SPT2)
     2.,     // (7)dead time(min.dist last_down<->next_up) of "z>=1(HT)" branch of HiThr-discr
@@ -2190,7 +2190,7 @@ void TOF2JobStat::bookhist(){
       il=ic/100;
       ib=ic%100;
       is=ich%10;
-      strcpy(htit1,"Stretcher pulse width-1 for LBBS=");
+      strcpy(htit1,"Stretcher hole-width for LBBS=");
       in[0]=inum[il];
       strcat(htit1,in);
       in[0]=inum[ib/10];
@@ -2199,8 +2199,18 @@ void TOF2JobStat::bookhist(){
       strcat(htit1,in);
       in[0]=inum[is];
       strcat(htit1,in);
-      HBOOK1(1138,htit1,50,0.,200.,0.);
-      strcpy(htit1,"Stretcher pulse width-3 for LBBS=");
+      HBOOK1(1137,htit1,50,0.,200.,0.);
+      strcpy(htit1,"Stretcher 1st pulse-width for LBBS=");
+      in[0]=inum[il];
+      strcat(htit1,in);
+      in[0]=inum[ib/10];
+      strcat(htit1,in);
+      in[0]=inum[ib%10];
+      strcat(htit1,in);
+      in[0]=inum[is];
+      strcat(htit1,in);
+      HBOOK1(1138,htit1,50,0.,250.,0.);
+      strcpy(htit1,"Stretcher 2nd pulse-width for LBBS=");
       in[0]=inum[il];
       strcat(htit1,in);
       in[0]=inum[ib/10];
@@ -2469,6 +2479,7 @@ void TOF2JobStat::outp(){
              HPRINT(1122);
            }
          if(TFREFFKEY.reprtf[4]>0){
+           HPRINT(1137);
            HPRINT(1138);
            HPRINT(1139);
          }

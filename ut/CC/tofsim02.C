@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.33 2006/01/25 11:21:10 choumilo Exp $
+//  $Id: tofsim02.C,v 1.34 2006/01/27 14:24:38 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 // Removed gain-55 logic, E.Choumilov 22.08.2005
@@ -764,6 +764,8 @@ void TOF2Tovt::displ_a(const int id, const int mf, const geant arr[]){
 //
 void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 {
+//!!! Logic is preliminary:wait for detailed SFET slecrtrical logic from Diego(Guido)
+//
   integer i,ii,j,ij,ilay,ibar,isid,id,_sta,stat(0);
   geant tm,a,am,am0,amd,tmp,amp,amx,amxq;
   geant iq0,it0,itau;
@@ -802,7 +804,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
     shapb=TOF2DBc::shaptb();
     cconv=fladcb/50.; // for mV->pC (50 Ohm load)
     daqp0=TOF2DBc::daqpwd(0);// fixed duration of FT(Z>=1) pulse
-    daqp1=TOF2DBc::daqpwd(1);// max "duration" of sTDC triang. pulse
+    daqp1=TOF2DBc::daqpwd(1);//not used
     daqp2=TOF2DBc::daqpwd(2);// fixed duration of Z>2 pulse 
     daqp3=TOF2DBc::daqpwd(3);//dead time(dbl-pulse resol) for fast-TDC(history) signals 
     daqp4=TOF2DBc::daqpwd(4);//sTDC buzy time(from previous "up" till  possible next "up")
@@ -850,7 +852,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
         upd1=0; //up/down flag for discr-1(LowThr, has 1 branch: sTDC)
 	tmd1u=-9999.;//up-time of discr-1 
         tmd1d=-9999.;// down-time of discr-1
-	upd11=0;//up/down flag for branche-1
+	upd11=0;//up/down(buzy) flag for branche-1
         td1b1=-9999.;//branche-1 previous "up"-time
 //
         upd2=0; //up/down flag for discr-2(HiThr, has 2 branches: FT/fTDC(Hist))
@@ -938,19 +940,19 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
           if(upd1>0){
 //--------
 // branch-1 "slow TDC logic" :        
-            if(upd11==0){
-              if((tmd1u-td1b1)>daqp4){ // "buzy" check for s-TDC channel
-                upd11=1;  // set flag for branch s-TDC 
-                td1b1=tm;//store up-time to use as previous in next "up" set
+            if(upd11==0){//stretcher is not buzy:start sequence
+//              if((tmd1u-td1b1)>daqp4){ // "buzy" check for s-TDC channel
+                upd11=1;  // set buzy flag for branch s-TDC 
+                td1b1=tm;//store up-time to use as previous in the next step "up" set
                 if(_nstdc<TOF2GC::SCTHMX3){//store upto SCTHMX3(=4) up-edges
                   _tstdc[_nstdc]=tmark;//store precise(interpolated) up-time
                   _nstdc+=1;
                 }
                 else{
                   cerr<<"TOF2Tovt::build-W: sTDC ovfl(hits number) "<<_nstdc<<endl;
-                  upd11=2;//blockade on overflow
+                  upd11=2;
                 }
-              } 
+//              } 
             }
           }//<-- end of discr-1 up-check
 //--------
@@ -968,7 +970,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
                 }
                 else{
                   cerr<<"TOF2Tovt::build-W: FT ovfl(hits number)"<<_ntr1<<endl;
-                  upd21=2;//blockade on overflow for safety
+                  upd21=2;
                 }
               } 
             }
@@ -1003,8 +1005,8 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 // try reset all branches:
 //--------
 // s-tdc
-          if(upd11==1){ // sTDC self-reset in daqp1(ns) after prev."up"
-            if((tm-td1b1)>daqp1)upd11=0;
+          if(upd11==1){ // sTDC self-reset in daqp4(ns) after prev."up"
+            if((tm-td1b1)>daqp4)upd11=0;
           }
 //--------
 // "z>=1(FT)"
@@ -2124,18 +2126,16 @@ void TOF2RawEvent::mc_build(int &status)
         t4=t2+offs+(t2-t1)*str;//"end-mark"_signal + offs
         t4+=+rnormx()*TOF2DBc::strflu();// + end-mark fluct
         dt=ftrig-t1;// total FT-delay wrt t1
-        if(dt<=TOF2DBc::ftdelm()){ // check max. delay of "FT" signal
+        if(dt<=TOF2DBc::ftdelm()){ // check max. delay of "FT" signal (timeout)
           it0=integer(floor(cstopt/TOF2DBc::tdcbin(1)));//"C.stop" abs.time (integer)  
 //follow LIFO mode of readout: stretcher "end-mark" edge - first hit; "start" - last:
 //  prepare 4-th component("end-mark") of "4-edge" TOF-hit:
-          it4=integer(floor(t4/TOF2DBc::tdcbin(1)));
+          it4=integer(floor(t4/TOF2DBc::tdcbin(1)));//ns->TDCch
           it=it0-it4;// time wrt "C.stop" signal
           if(it>maxv){
             TOF2JobStat::addmc(6);
-#ifdef __AMSDEBUG__
-            cout<<"TOF2RawEvent_mc-W: Stretcher-TDC overflow(4th edge) !!!"<<'\n';
-#endif
-            it=maxv;
+            cout<<"TOF2RawEvent_mcbuild-W: Stretcher-TDC overflow(4th edge) !!!"<<'\n';
+            it=maxv-3;
           }
           itt=int16u(it);
           if(!TOF2DBc::pbonup())itt=itt|phbit;//add phase bit on down-edge,if necessary
@@ -2145,8 +2145,8 @@ void TOF2RawEvent::mc_build(int &status)
           it3=integer(floor(t3/TOF2DBc::tdcbin(1)));
           it=it0-it3;// time wrt "C.stop" signal
           if(it>maxv){
-            cout<<"TOF2RawEvent_mc-W: Stretcher-TDC overflow(3rd edge) !!!"<<'\n';
-            it=maxv;
+            cout<<"TOF2RawEvent_mcbuild-W: Stretcher-TDC overflow(3rd edge) !!!"<<'\n';
+            it=maxv-2;
           }
           itt=int16u(it);
           if(TOF2DBc::pbonup())itt=itt|phbit;//add phase bit on up-edge,if necessary
@@ -2156,8 +2156,8 @@ void TOF2RawEvent::mc_build(int &status)
           it2=integer(floor(t2/TOF2DBc::tdcbin(1)));
           it=it0-it2;// time wrt "C.stop" signal
           if(it>maxv){
-            cout<<"TOF2RawEvent_mc-W: Stretcher-TDC overflow(2nd edge) !!!"<<'\n';
-            it=maxv;
+            cout<<"TOF2RawEvent_mcbuild-W: Stretcher-TDC overflow(2nd edge) !!!"<<'\n';
+            it=maxv-1;
           }
           itt=int16u(it);
           if(!TOF2DBc::pbonup())itt=itt|phbit;//add phase bit on down-edge,if necessary
@@ -2167,14 +2167,14 @@ void TOF2RawEvent::mc_build(int &status)
           it1=integer(floor(t1/TOF2DBc::tdcbin(1)));
           it=it0-it1;// time wrt "C.stop" signal
           if(it>maxv){
-            cout<<"TOF2RawEvent_mc-W: Stretcher-TDC overflow(1st edge) !!!"<<'\n';
+            cout<<"TOF2RawEvent_mcbuild-W: Stretcher-TDC overflow(1st edge) !!!"<<'\n';
             it=maxv;
           }
           itt=int16u(it);
           if(TOF2DBc::pbonup())itt=itt|phbit;//add phase bit on up-edge,if necessary
           stdc[_nstdc]=itt;
           _nstdc+=1;
-        }//--endof max.delay check-->
+        }//--endof max.FTdelay(timeout) check-->
       }//--- end of stdc-hits loop --->
     }//--> end of alive check
 //----------------
