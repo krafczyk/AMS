@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.24 2005/12/13 14:09:07 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.25 2006/02/01 17:13:56 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -181,7 +181,6 @@ void AMSOnDisplay::DrawTitle(Option_t *option)
 
    sprintf(atext, "Alpha Magnetic Spectrometer Online Display    %s.Set_%d",gAMSDisplay->getCurSubDet()->GetName(),gAMSDisplay->getCurSubDet()->getCSet());
    sprintf(_grset,"%d",gAMSDisplay->getCurSubDet()->getCSet());
-
    TVirtualPad * gPadSave = gPad;
    m_TitlePad->cd();
 
@@ -494,6 +493,15 @@ void AMSOnDisplay::SaveParticleCB()
 {
    char fnam[255];
    sprintf(fnam, "%s.%s.pdf",getCurSubDet()->GetName(),getGrSet());
+   for(int i=0;i<strlen(fnam);i++){
+     if(fnam[i] =='&'){
+       for(int j=i;j<strlen(fnam);j++){
+         fnam[j]=fnam[j+1];
+       }
+       i--;
+     }
+    }
+
    GetCanvas()->SaveAs(fnam);
    GetCanvas()->Update();          // refresh the screen
 }
@@ -503,6 +511,14 @@ void AMSOnDisplay::SaveParticleGIF()
 {
    char fnam[255];
    sprintf(fnam, "%s.%s.gif",getCurSubDet()->GetName(),getGrSet());
+   for(int i=0;i<strlen(fnam);i++){
+     if(fnam[i] =='&'){
+       for(int j=i;j<strlen(fnam);j++){
+         fnam[j]=fnam[j+1];
+       }
+       i--;
+     }
+    }
    GetCanvas()->SaveAs(fnam);
    GetCanvas()->Update();          // refresh the screen
 }

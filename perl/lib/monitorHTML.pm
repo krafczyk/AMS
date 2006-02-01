@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.23 2005/11/02 15:19:24 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.24 2006/02/01 17:14:18 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -139,10 +139,10 @@ sub Update{
           -action=>$monitorHTML::Singleton->{Name});
         print $q->p ("Monitor:");
    print qq`
-<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="PAH" >Local Producer Active Hosts<BR>
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="PAH" CHECKED>Local Producer Active Hosts<BR>
 <INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="PAC" CHECKED>Producer Active Clients<BR>
 <INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="Runs" CHECKED>Runs Table<BR>
-<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="Ntuples" CHECKED>Ntuples Table<BR>
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="Ntuples" >Ntuples Table<BR>
 <INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="CAC" CHECKED>Server Active Clients<BR>
 <INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="DBAC" CHECKED>DBServer Active Clients<BR>
 <INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="DB" CHECKED>Disk Space<BR>
