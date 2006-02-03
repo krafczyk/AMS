@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.419 2006/01/23 20:00:55 choutko Exp $
+# $Id: RemoteClient.pm,v 1.421 2006/02/03 13:34:10 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -842,7 +842,7 @@ if($#{$self->{DataSetsT}}==-1){
                   $sql="select sum(realtriggers) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers>0".$pps;
                   my $rtn1=$self->{sqlserver}->Query($sql);
                    my $tm=time();
-                  $sql="select sum(Triggers) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm and timekill=0".$pps;
+                  $sql="select sum(calcevents(time+timeout-$tm,Triggers)) from jobs where did=$dataset->{did} and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm and timekill=0".$pps;
                   my $rtn2=$self->{sqlserver}->Query($sql);
 #                 foreach my $job (@{$jobsDB}){
 #                   my $jobsJidDB     = $job->[0];
@@ -1456,13 +1456,14 @@ sub ValidateRuns {
            my $mips  = $run->{cinfo}->{Mips};
            my $events  = $run->{cinfo}->{EventsProcessed};
            my $errors  = $run->{cinfo}->{CriticalErrorsFound};
-           my $cputime = sprintf("%.2f",$run->{cinfo}->{CPUTimeSpent});
+           my $cputime = sprintf("%.2f",$run->{cinfo}->{CPUMipsTimeSpent});
            my $elapsed = sprintf("%.2f",$run->{cinfo}->{TimeSpent});
            my $host    = $self->gethostname($run->{cinfo}->{HostName});
            if($mips<=0){
                print "  Mips Problem $mips $run->{cinfo}->{HostName} \n";
                $mips=1000;
            }
+           $cputime=$cputime/$mips*1000;
            if ($events == 0 && $errors == 0 && $run->{Status} eq 'Finished') {
                if ($webmode == 0 && $verbose == 1) {
                 print "Run ... $run->{Run}, Status ... $run->{Status}, Events... $events, Errors... $errors \n";
@@ -12141,7 +12142,7 @@ sub calculateMipsVC {
                   $sql="select sum(realtriggers) from jobs where did=$ret->[0][0] and  jobname like '%$template->{filename}' and realtriggers>0".$pps;
                   my $rtn1=$self->{sqlserver}->Query($sql);
                    my $tm=time();
-                  $sql="select sum(Triggers) from jobs where did=$ret->[0][0] and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm and timekill=0".$pps;
+                  $sql="select sum(calcevents(time+timeout-$tm,Triggers)) from jobs where did=$ret->[0][0] and  jobname like '%$template->{filename}' and realtriggers<0 and time+timeout>=$tm and timekill=0".$pps;
                   my $rtn2=$self->{sqlserver}->Query($sql);
                   $completed+=$rtn1->[0][0];
                   $template->{TOTALEVENTS}-=$rtn1->[0][0];

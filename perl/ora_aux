@@ -83,4 +83,34 @@ CREATE OR REPLACE
         END;
 /
    show errors
+
+
+CREATE OR REPLACE
+    FUNCTION calcevents (timeleft IN pls_integer, triggers in pls_integer) RETURN pls_integer IS
+        /**
+         *  funny function to calculate  events number
+         */
+        factor NUMBER ;
+        days NUMBER ;
+        eventsleft PLS_INTEGER;
+        
+        BEGIN
+            days := timeleft/86400;            
+            IF days > 14 THEN
+                eventsleft := 0;
+            ELSIF days <0 THEN
+                eventsleft := 0;
+            ELSE
+                factor := exp(-days);
+                eventsleft := triggers*factor;
+                 IF eventsleft < 100 THEN 
+                  eventsleft := 0;
+                 END IF; 
+            END IF;
+            
+            RETURN (triggers-eventsleft);
+        
+        END;
+/
+   show errors
 !
