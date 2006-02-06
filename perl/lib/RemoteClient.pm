@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.421 2006/02/03 13:34:10 choutko Exp $
+# $Id: RemoteClient.pm,v 1.422 2006/02/06 10:13:47 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2597,6 +2597,8 @@ CheckCite:            if (defined $q->param("QCite")) {
       my $sqlNT   = undef; # will be used to get NT paths for ROOT file
       my $dataset = undef;
       my $particle= undef;
+      my $sqlmom="";
+      my $sqlamom="";
 #
 #   vc   -  remove monstrous loop in summary
 #
@@ -2717,11 +2719,14 @@ CheckCite:            if (defined $q->param("QCite")) {
                $qmomentumA = $q->param("QMomA");
                if ($q->param("QMomI") == 1 and $q->param("QMomA") == 10000) {
 #              do nothing - defaults
+               
                } else {
                  my $momentumMin = $q->param("QMomI");
                  my $momentumMax = $q->param("QMomA");
-                 $sql = $sql." AND (runs.run = runcatalog.run AND PMIN >= $momentumMin AND PMAX <= $momentumMax) ";
-                 $sqlNT = $sqlNT." AND (runs.run = runcatalog.run AND PMIN >= $momentumMin AND PMAX <= $momentumMax) ";
+                 $sqlmom = " and (runs.run = runcatalog.run AND runcatalog.PMIN >= $momentumMin AND runcatalog.PMAX <= $momentumMax) ";
+                 $sqlamom=" and (runs.run = runcatalog.run AND (runcatalog.pmin< $momentumMin OR runcatalog.PMAX > $momentumMax))";
+                 $sql=$sql.$sqlmom; 
+                 $sqlNT = $sqlNT.$sqlmom;
                }
            }
 #
@@ -2767,8 +2772,11 @@ CheckCite:            if (defined $q->param("QCite")) {
                } else {
                  my $momentumMin = $q->param("QMomI");
                  my $momentumMax = $q->param("QMomA");
-                 $sql = $sql." AND (runs.run = runcatalog.run AND PMIN >= $momentumMin AND PMAX <= $momentumMax) ";
-                 $sqlNT = $sqlNT." AND (runs.run = runcatalog.run AND PMIN >= $momentumMin AND PMAX <= $momentumMax) ";
+                 $sqlmom = " and (runs.run = runcatalog.run AND runcatalog.PMIN >= $momentumMin AND runcatalog.PMAX <= $momentumMax) ";
+                 $sqlamom=" and (runs.run = runcatalog.run AND (runcatalog.pmin< $momentumMin OR runcatalog.PMAX > $momentumMax))";
+                 $sql=$sql.$sqlmom;
+                 $sqlNT = $sqlNT.$sqlmom;
+
                }
            }
 #
@@ -3214,7 +3222,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                }
               }       
            my $offline=0; 
-           if($ntd != $dirs_ntuples[$ind]){
+           if($ntd != $dirs_ntuples[$ind] and $sqlmom eq ""){
              $s=" // Database and Linux Disagree \n   // Database says $dirs[$ind] contains $dirs_ntuples[$ind]  ntuples \n  //  Linux says it has $ntd ntuples \n";
               my @junk=split '/',$dirs[$ind];
               $sql="select isonline from filesystems where disk='/$junk[1]'";
@@ -3247,7 +3255,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                   }
                  }
                }
-               if($found==0){
+               if($found==0 and $sqlmom eq ""){
                 print " <tr><td> $dirs[$ind]/$file is not in database </td></tr><br>";         
                }
                }
@@ -3294,19 +3302,41 @@ CheckCite:            if (defined $q->param("QCite")) {
          }
          }
          }
+           $sqlmom=~s/runs\.run/ntuples\.run/;
+           $sqlamom=~s/runs\.run/ntuples\.run/;
+           my $negative= "SELECT ntuples.run From Ntuples,runcatalog WHERE Path like '%$dirs[$ind]/%'   $sqlamom group by ntuples.run ";
+            my $r4=undef;
+            if($sqlmom ne ""){
+              $r4=$self->{sqlserver}->Query($negative);
+            }
+          if($sqlmom eq "" or $#{$r4} ==-1 ){
            if($dirs_hr[$ind] eq "root"){ 
             $s = "chain.Add(\"".$dirs[$ind]."/*.$dirs_hr[$ind]\");";
            }
            else{
             $s="nt/chain chain $dirs[$ind]/*.$dirs_hr[$ind]"
            } 
-# //_runs:$dirs_runs[$ind]_ntuples:$dirs_ntuples[$ind]_triggers:$dirs_triggers[$ind]";
           print "<tr><td> $s </tr></td><br>";
           $buff = $buff.$s."\n";
-            
           }
-     } elsif ($rootfileaccess eq "HTTP") {
-       foreach my $nt (@{$r1}) {
+          else{
+            my $positive= "SELECT ntuples.run From Ntuples,runcatalog WHERE Path like '%$dirs[$ind]/%'  $sqlmom group by ntuples.run ";
+            my $r3=$self->{sqlserver}->Query($positive);
+            foreach my $path (@{$r3}) {
+                  my $pth =$path->[0];
+                  if($dirs_hr[$ind] eq "root"){
+                     $s = "chain.Add(\"".$dirs[$ind]."/$pth.*.$dirs_hr[$ind]\");";
+                  }
+                   else {
+                       $s="nt/chain chain $dirs[$ind]/$pth.*.$dirs_hr[$ind]"; 
+                   }
+          print "<tr><td> $s </tr></td><br>";
+          $buff = $buff.$s."\n";
+	   }
+          }
+          }
+            } elsif ($rootfileaccess eq "HTTP") {
+          foreach my $nt (@{$r1}) {
           my $path=trimblanks($nt->[0]);
           if ($path =~ m/castor/) {
 #          skip it, file has only archived copy only
