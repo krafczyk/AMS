@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.423 2006/02/08 08:54:21 choutko Exp $
+# $Id: RemoteClient.pm,v 1.424 2006/02/08 13:02:26 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8101,6 +8101,7 @@ sub listMails {
       foreach my $mail (@{$r3}){
           my $name   = $mail->[1];
           my $email  = $mail->[0];
+          $email=~s/\@/\_/;
           my $req    = $mail->[3];
           my $cite   = $mail->[6];
           my $status   = $mail->[7];
