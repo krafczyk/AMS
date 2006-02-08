@@ -95,7 +95,7 @@ CREATE OR REPLACE
         eventsleft PLS_INTEGER;
         
         BEGIN
-            days := timeleft/86400;            
+            days := timeleft/86400.;            
             IF days > 14 THEN
                 eventsleft := 0;
             ELSIF days <0 THEN

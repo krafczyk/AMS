@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.422 2006/02/06 10:13:47 choutko Exp $
+# $Id: RemoteClient.pm,v 1.423 2006/02/08 08:54:21 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7866,8 +7866,22 @@ sub listCites {
           my $jobsa         = 0;     #  active jobs
           my $jobsc         = 0;     #   completed jobs
           my $jobsf         = 0;     #     failed jobs
-
-          $sql = "SELECT MAX(TIME), COUNT(jid) FROM Jobs WHERE Jobs.timestamp>= $periodStartTime AND cid=$cid";
+      $sql = "SELECT  DID  FROM ProductionSet WHERE STATUS='Active' ORDER BY DID";
+      my $ret = $self->{sqlserver}->Query($sql);
+      my $pps=undef;
+   foreach my $pp  (@{$ret}){
+       if(defined $pps){            $pps=$pps." or pid =";
+       }
+       else{
+           $pps="  ( pid = ";
+       }
+       $pps=$pps." $pp->[0] ";
+   }
+   if(defined  $pps){
+      $pps=$pps." ) ";
+   }
+          if(defined $pps){
+          $sql = "SELECT MAX(TIME), COUNT(jid) FROM Jobs WHERE cid=$cid and ".$pps;
           $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {
             $laststarttime = $r4->[0][0];
@@ -7875,13 +7889,7 @@ sub listCites {
             $jobs          = $r4->[0][1];
           };
           if ($laststarttime != 0 ) {
-           $sql = "SELECT COUNT(Runs.run), MAX(Runs.submit)
-                    FROM Jobs, Runs
-                     WHERE
-                      Runs.submit>= $periodStartTime AND
-                      Jobs.jid=Runs.jid AND Jobs.cid=$cid AND
-                      (Runs.Status = 'Finished' OR
-                        Runs.Status = 'Completed')";
+           $sql = "SELECT COUNT(jid), max(timestamp) from jobs where cid=$cid and realtriggers>0 and ".$pps;
            $r4=$self->{sqlserver}->Query($sql);
            if (defined $r4->[0][0]) {
                $jobsc = $r4->[0][0];
@@ -7889,26 +7897,18 @@ sub listCites {
             };
 
 
-           $sql = "SELECT COUNT(Runs.run), MAX(Runs.submit)
-                    FROM Jobs, Runs
-                     WHERE
-                      Runs.submit>= $periodStartTime AND
-                       Jobs.jid=Runs.jid AND cid=$cid AND
-                        (Runs.Status = 'Failed' OR
-                          Runs.Status = 'TimeOut' OR
-                           Runs.Status = 'Unchecked')";
+           $sql = "SELECT COUNT(jid) from jobs where cid=$cid and ( realtriggers<=0 or realtriggers=null ) and ".$pps; 
            $r4=$self->{sqlserver}->Query($sql);
            if (defined $r4->[0][0]) {
               $jobsf = $r4->[0][0];
-              if ($jobsf > 0) {
-               if ($r4->[0][1] > $lastendtime) {$lastendtime = $r4->[0][1];}
-              }
             };
-
+           $sql="select count(jid) from jobs_deleted where cid=$cid and ".$pps;
+           $r4=$self->{sqlserver}->Query($sql);
           $endtime = EpochToDDMMYYHHMMSS($lastendtime);
           $jobsa = $jobs - $jobsf - $jobsc;
+          $jobsf+=$r4->[0][0];
        }
-           
+          } 
           if ($webmode == 1) {
            if($starttime     ne "---"){
            print "<tr><font size=\"1\">\n";
@@ -8245,7 +8245,7 @@ sub listJobs {
 
 
 
-    $sql="SELECT
+    $sql=defined $pps?"SELECT
                  Jobs.jid, Jobs.jobname,
                  Jobs.time, Jobs.timeout,
                  Jobs.triggers,
@@ -8255,6 +8255,18 @@ sub listJobs {
             WHERE
                   Jobs.timestamp > $timelate AND
                    $pps  AND
+                    Jobs.cid=Cites.cid AND
+                     Jobs.mid=Mails.mid
+             ORDER  BY Cites.name,  jobs.timekill desc, Jobs.timestamp+jobs.timeout ":"SELECT
+                 Jobs.jid, Jobs.jobname,
+                 Jobs.time, Jobs.timeout,
+                 Jobs.triggers,
+                 Cites.cid, Cites.name, Cites.descr,
+                 Mails.name,jobs.timekill
+           FROM   Jobs, Cites, Mails
+            WHERE
+                  Jobs.timestamp > $timelate 
+                     AND
                     Jobs.cid=Cites.cid AND
                      Jobs.mid=Mails.mid
              ORDER  BY Cites.name,  jobs.timekill desc, Jobs.timestamp+jobs.timeout ";
