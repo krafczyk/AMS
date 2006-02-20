@@ -67,7 +67,303 @@ using namespace root;
 
 //------------------- constructors -----------------------
 
+AMSEventR::Service::hb1_d AMSEventR::Service::hb1;
+AMSEventR::Service::hb2_d AMSEventR::Service::hb2;
+AMSEventR::Service::hbp_d AMSEventR::Service::hbp;
 
+void AMSEventR::hbook1(int id,char title[], int ncha, float  a, float b){
+ if(Service::hb1.find(id) == Service::hb1.end()){
+  char hid[1025];
+  sprintf(hid,"hb1_%d_%s",id,title); 
+  TH1F * p= new TH1F(hid,title,ncha,a,b);
+  (Service::hb1).insert(make_pair(id,p));
+ }
+ else{
+  cerr<<"  AMSEventR::hbook1-S-Histogram "<<id<<" AlreadyExistsResetting "<<endl;
+  Service::hb1.find(id)->second->Reset();
+ }
+}
+
+void AMSEventR::hbookp(int id,char title[], int ncha, float  a, float b){
+ if(Service::hbp.find(id) == Service::hbp.end()){
+  char hid[1025];
+  sprintf(hid,"hbp_%d_%s",id,title); 
+  TProfile * p= new TProfile(hid,title,ncha,a,b);
+  Service::hbp.insert(make_pair(id,p));
+ }
+ else{
+  cerr<<"  AMSEventR::hbookp-S-Histogram "<<id<<" AlreadyExistsResetting "<<endl;
+  Service::hbp.find(id)->second->Reset();
+ }
+}
+
+void AMSEventR::hbook2(int id,char title[], int ncha, float  a, float b, int nchaa, float aa, float ba){
+ if(Service::hb2.find(id) == Service::hb2.end()){
+  char hid[1025];
+  sprintf(hid,"hb2_%d_%s",id,title); 
+  TH2F * p= new TH2F(hid,title,ncha,a,b,nchaa,aa,ba);
+  Service::hb2.insert(make_pair(id,p));
+ }
+ else{
+  cerr<<"  AMSEventR::hbook2-S-Histogram "<<id<<" AlreadyExists "<<endl;
+  Service::hb2.find(id)->second->Reset();
+ }
+}
+void AMSEventR::hfill(int id, float a, float b=0, float w=1){
+   Service::hb1i i1=Service::hb1.find(id);
+ if(i1 != Service::hb1.end()){
+  i1->second->Fill(a,w);
+ }
+ else{
+  Service::hb2i i2=Service::hb2.find(id);
+  if(i2 != Service::hb2.end()){
+    i2->second->Fill(a,b,w);
+  }
+  else{
+   Service::hbpi ip=Service::hbp.find(id);
+    if(ip != Service::hbp.end()){
+     ip->second->Fill(a,w);
+   }
+ }
+ }
+}
+
+void AMSEventR::hprint(int id){
+   Service::hb1i i1=Service::hb1.find(id);
+ if(i1 != Service::hb1.end()){
+  i1->second->Draw();
+ }
+ else{
+  Service::hb2i i2=Service::hb2.find(id);
+  if(i2 != Service::hb2.end()){
+    i2->second->Draw();
+  }
+  else{
+   Service::hbpi ip=Service::hbp.find(id);
+    if(ip != Service::hbp.end()){
+     ip->second->Draw();
+   }
+ }
+ }
+}
+
+
+void AMSEventR::hlist(){
+for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
+cout<<" 1D "<<i->first<<" "<<i->second->GetTitle()<<endl;
+}
+for( Service::hb2i i=Service::hb2.begin();i!=Service::hb2.end();i++){
+cout<<" 2D "<<i->first<<" "<<i->second->GetTitle()<<endl;
+}
+for( Service::hbpi i=Service::hbp.begin();i!=Service::hbp.end();i++){
+ cout<<" Profile "<<i->first<<" "<<i->second->GetTitle()<<endl;
+}
+
+}
+
+
+void AMSEventR::hdelete(int id){
+if(id ==0){
+for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
+delete i->second;
+}
+Service::hb1.clear();
+for( Service::hb2i i=Service::hb2.begin();i!=Service::hb2.end();i++){
+delete i->second;
+}
+Service::hb2.clear();
+for( Service::hbpi i=Service::hbp.begin();i!=Service::hbp.end();i++){
+delete i->second;
+}
+Service::hbp.clear();
+
+}
+else{
+   Service::hb1i i1=Service::hb1.find(id);
+ if(i1 != Service::hb1.end()){
+  delete i1->second;
+  Service::hb1.erase(i1);
+ }
+ else{
+  Service::hb2i i2=Service::hb2.find(id);
+  if(i2 != Service::hb2.end()){
+  delete i2->second;
+  Service::hb2.erase(i2);
+
+  }
+  else{
+   Service::hbpi ip=Service::hbp.find(id);
+    if(ip != Service::hbp.end()){
+  delete ip->second;
+  Service::hbp.erase(ip);
+
+   }
+ }
+ }
+
+}
+}
+#include <TKey.h>
+void AMSEventR::hfetch(TFile &f){
+   int fetch1=0;
+   int fetch2=0;
+   int fetchp=0;
+   TIter nextkey(f.GetListOfKeys());
+   TKey *key;
+   while (key = (TKey*)nextkey()) {
+      TH1F * f1 = dynamic_cast<TH1F*>(key->ReadObj());
+      if(f1){
+       TString t(f1->GetName());
+       if(t.BeginsWith("hb1")){
+        for(int i=4;i<strlen(f1->GetName());i++){
+          if(i>4 && f1->GetName()[i] =='_'){
+             TString st(f1->GetName()+4,i-4);
+             if(st.IsDigit()){
+              int id=st.Atoi(); 
+              fetch1++;
+              if(Service::hb1.find(id) == Service::hb1.end()){
+              }
+              else{
+               cerr<<"  AMSEventR::hfetch-S-Histogram "<<id<<" AlreadyExistsReplacing "<<endl;
+               Service::hb1.erase((Service::hb1.find(id)));
+              }
+              (Service::hb1).insert(make_pair(id,f1));
+             }
+             else cerr<<"TH1F "<<t<<" IdNotDigitalSkipped"<<endl;
+           }
+        }
+       }
+       else cerr<<"TH1F "<<t<<" NotCreatedByHBOOK1Skipped"<<endl;
+      }
+      else{
+       TH2F * f1 = dynamic_cast<TH2F*>(key->ReadObj());
+      if(f1){
+       TString t(f1->GetName());
+       if(t.BeginsWith("hb2")){
+        for(int i=4;i<strlen(f1->GetName());i++){
+          if(i>4 && f1->GetName()[i] =='_'){
+             TString st(f1->GetName()+4,i-4);
+             if(st.IsDigit()){
+              int id=st.Atoi(); 
+              fetch2++;
+              if(Service::hb2.find(id) == Service::hb2.end()){
+              }
+              else{
+               cerr<<"  AMSEventR::hfetch-S-Histogram "<<id<<" AlreadyExistsReplacing "<<endl;
+               Service::hb2.erase((Service::hb2.find(id)));
+              }
+              (Service::hb2).insert(make_pair(id,f1));
+             }
+             else cerr<<"TH2F "<<t<<" IdNotDigitalSkipped"<<endl;
+           }
+        }
+       }
+       else cerr<<"TH2F "<<t<<" NotCreatedByHBOOK1Skipped"<<endl;
+      }
+      else{
+       TProfile * f1 = dynamic_cast<TProfile*>(key->ReadObj());
+      if(f1){
+       TString t(f1->GetName());
+       if(t.BeginsWith("hbp")){
+        for(int i=4;i<strlen(f1->GetName());i++){
+          if(i>4 && f1->GetName()[i] =='_'){
+             TString st(f1->GetName()+4,i-4);
+             if(st.IsDigit()){
+              int id=st.Atoi(); 
+              fetchp++;
+              if(Service::hbp.find(id) == Service::hbp.end()){
+              }
+              else{
+               cerr<<"  AMSEventR::hfetch-S-Histogram "<<id<<" AlreadyExistsReplacing "<<endl;
+               Service::hbp.erase((Service::hbp.find(id)));
+              }
+              (Service::hbp).insert(make_pair(id,f1));
+             }
+             else cerr<<"TProfile "<<t<<" IdNotDigitalSkipped"<<endl;
+           }
+        }
+       }
+       else cerr<<"TProfile "<<t<<" NotCreatedByHBOOK1Skipped"<<endl;
+      }
+
+
+      }
+
+
+      }
+   } 
+   if(fetch1>0)cout <<fetch1<<" 1D Histos fetched"<<endl;
+   if(fetch2>0)cout <<fetch2<<" 2D Histos fetched"<<endl;
+   if(fetchp>0)cout <<fetchp<<" Profile Histos fetched"<<endl;
+}
+
+TH1F * AMSEventR::h1(int id){
+   Service::hb1i i1=Service::hb1.find(id);
+   if(i1 != Service::hb1.end())return i1->second;
+   else return 0; 
+}
+
+TH2F * AMSEventR::h2(int id){
+   Service::hb2i i1=Service::hb2.find(id);
+   if(i1 != Service::hb2.end())return i1->second;
+   else return 0; 
+}
+
+
+TProfile * AMSEventR::hp(int id){
+   Service::hbpi i1=Service::hbp.find(id);
+   if(i1 != Service::hbp.end())return i1->second;
+   else return 0; 
+}
+
+void AMSEventR::hreset(int id){
+if(id ==0){
+ for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++)i->second->Reset();
+ for( Service::hb2i i=Service::hb2.begin();i!=Service::hb2.end();i++)i->second->Reset();
+ for( Service::hbpi i=Service::hbp.begin();i!=Service::hbp.end();i++)i->second->Reset();
+}
+else{
+   Service::hb1i i1=Service::hb1.find(id);
+ if(i1 != Service::hb1.end()){
+  i1->second->Reset();
+ }
+ else{
+  Service::hb2i i2=Service::hb2.find(id);
+  if(i2 != Service::hb2.end()){
+    i2->second->Reset();
+  }
+  else{
+   Service::hbpi ip=Service::hbp.find(id);
+    if(ip != Service::hbp.end()){
+     ip->second->Reset();
+   }
+ }
+ }
+}
+}
+
+
+void AMSEventR::hf1(int id, float a, float w=1){
+   Service::hb1i i1=Service::hb1.find(id);
+ if(i1 != Service::hb1.end()){
+  i1->second->Fill(a,w);
+ }
+}
+
+void AMSEventR::hfp(int id, float a, float w=1){
+   Service::hbpi i1=Service::hbp.find(id);
+ if(i1 != Service::hbp.end()){
+  i1->second->Fill(a,w);
+ }
+}
+
+
+void AMSEventR::hf2(int id, float a, float b, float w=1){
+   Service::hb2i i1=Service::hb2.find(id);
+ if(i1 != Service::hb2.end()){
+  i1->second->Fill(a,b,w);
+ }
+}
 
 TBranch* AMSEventR::bHeader;
 TBranch* AMSEventR::bEcalHit;
@@ -2316,6 +2612,20 @@ void AMSEventR::Terminate()
    if(fService._pOut){
      fService._pOut->Write();
      fService._pOut->Close();
+     fService._pOut=0;
+//for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
+//delete i->second;
+//}
+Service::hb1.clear();
+//for( Service::hb2i i=Service::hb2.begin();i!=Service::hb2.end();i++){
+//delete i->second;
+//}
+Service::hb2.clear();
+//for( Service::hbpi i=Service::hbp.begin();i!=Service::hbp.end();i++){
+//delete i->second;
+//}
+Service::hbp.clear();
+
    cout <<"AMSEventR::Terminate-I-WriteFileClosed "<<GetOption()<<endl;
    }
   

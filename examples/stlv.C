@@ -141,8 +141,7 @@ void stlv::UProcessFill()
    // User Function called for all entries .
    // Entry is the entry number in the current tree.
    // Fills histograms.
-   
-//    cout <<"  entry "<<entry<<endl;
+    //cout << "Event "<<Event()<<endl;
     Float_t xm=0;
     if(nMCEventg()>0){		
      MCEventgR mc_ev=MCEventg(0);

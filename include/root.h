@@ -20,6 +20,9 @@
 #include "TMatrixD.h"
 #include "TStopwatch.h"
 #include <time.h>
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TProfile.h"
 using namespace std;
 #ifdef __SLC3__
 char* operator+( std::streampos&, char* );
@@ -215,7 +218,7 @@ public:
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,2)       //HeaderR
+  ClassDef(HeaderR,3)       //HeaderR
 };
 
 
@@ -1807,16 +1810,45 @@ ClassDef(MCEventgR,1)       //MCEventgR
     \sa stlv
     \author v.choutko@cern.ch
 */
+#include <map>
 class AMSEventR: public  TSelector {   
 protected:
 class Service{
 public:
  TFile *            _pOut;
+typedef map<int,TH1F*> hb1_d;
+typedef map<int,TH1F*>::iterator hb1i;
+typedef map<int,TH2F*> hb2_d;
+typedef map<int,TH2F*>::iterator hb2i;
+typedef map<int,TProfile*> hbp_d;
+typedef map<int,TProfile*>::iterator hbpi;
+static  hb1_d hb1;
+static  hb2_d hb2;
+static  hbp_d hbp;
  TStopwatch         _w;
  unsigned int       TotalEv;
  unsigned int       BadEv;
 Service():_pOut(0),TotalEv(0),BadEv(0){}
+~Service(){
+}
 };
+public:
+static void hbook1(int id,char title[], int ncha, float  a, float b);   
+static void hbook2(int id,char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba);   
+static void hbookp(int id,char title[], int ncha, float  a, float b);   
+static  TH1F *h1(int id);
+static  TH2F *h2(int id);
+static  TProfile *hp(int id);
+static  void hprint(int id);
+static  void hlist();
+static  void hreset(int id);
+static  void hfetch(TFile & f);
+static  void hdelete(int id);
+static  void hfill(int id, float a,float b, float w);
+static  void hf1(int id,float a, float w);
+static  void hfp(int id,float a, float w);
+static  void hf2(int id,float a, float b,float w);
+protected:
 Service  fService;
 static TBranch*  bHeader;
 static TBranch*  bEcalHit;

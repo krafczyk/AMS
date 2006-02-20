@@ -5,7 +5,8 @@
       gROOT->Reset();
 
 // Set AMSWD directory
-      gSystem->Setenv("AMSWD","/f2users/choutko/AMS");
+      gSystem->Setenv("AMSWD","/Offline/vdev");
+    //gSystem->Setenv("AMSWD","/f2users/choutko/AMS");
 
 // Set include path
       gInterpreter->AddIncludePath(gSystem->ExpandPathName("$AMSWD/include"));
@@ -19,7 +20,8 @@
 // Add all AMS Root files to be analyzed 
       TChain chain("AMSRoot");
 // Usual ROOT file
-      chain.Add("/f2users/choutko/g3v1g3.5.root");
+chain.Add("/f0dah3/MC/AMS02/2005A/deuterons/el.pl1.0510/1355.0*.root");
+//      chain.Add("/f2users/choutko/g3v1g3.5.root");
 //      chain.Add("/f2users/alcaraz/ams/gamma/protons_el.pl1.10200.root");
 
 // Add a ROOT file on the WeB

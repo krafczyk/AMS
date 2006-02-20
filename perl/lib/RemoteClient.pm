@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.424 2006/02/08 13:02:26 choutko Exp $
+# $Id: RemoteClient.pm,v 1.425 2006/02/20 13:20:32 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8207,7 +8207,7 @@ sub listJobs {
 
     if ($webmode == 1) {
      print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
-     htmlTable("MC Jobs ( $PrintMaxJobsPerCite  jobs per cite submitted  earlier than 30 days ago and not completed)");
+     htmlTable("MC Jobs ( $PrintMaxJobsPerCite  jobs per cite submitted  earlier than 30 days ago or not completed)");
      print_bar($bluebar,3);
     }
 
