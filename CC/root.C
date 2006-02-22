@@ -71,17 +71,22 @@ AMSEventR::Service::hb1_d AMSEventR::Service::hb1;
 AMSEventR::Service::hb2_d AMSEventR::Service::hb2;
 AMSEventR::Service::hbp_d AMSEventR::Service::hbp;
 
+void AMSEventR::hbook1s(int id,char title[], int ncha, float  a, float b,int howmany,int shift){
+  for (int i=0;i<howmany;i++){
+   hbook1(id+shift*i,title,ncha,a,b);
+  }
+}
+
 void AMSEventR::hbook1(int id,char title[], int ncha, float  a, float b){
- if(Service::hb1.find(id) == Service::hb1.end()){
+ if(Service::hb1.find(id) != Service::hb1.end()){
+  delete Service::hb1.find(id)->second;
+  Service::hb1.erase((Service::hb1.find(id)));
+  cerr<<"  AMSEventR::hbook1-S-Histogram "<<id<<" AlreadyExistsReplacing "<<endl;
+ }
   char hid[1025];
   sprintf(hid,"hb1_%d_%s",id,title); 
   TH1F * p= new TH1F(hid,title,ncha,a,b);
   (Service::hb1).insert(make_pair(id,p));
- }
- else{
-  cerr<<"  AMSEventR::hbook1-S-Histogram "<<id<<" AlreadyExistsResetting "<<endl;
-  Service::hb1.find(id)->second->Reset();
- }
 }
 
 void AMSEventR::hbookp(int id,char title[], int ncha, float  a, float b){
@@ -97,18 +102,23 @@ void AMSEventR::hbookp(int id,char title[], int ncha, float  a, float b){
  }
 }
 
+void AMSEventR::hbook2s(int id,char title[], int ncha, float  a, float b, int nchaa, float aa, float ba,int howmany,int shift){
+  for (int i=0;i<howmany;i++){
+   hbook2(id+shift*i,title,ncha,a,b,nchaa,aa,ba);
+  }
+}
 void AMSEventR::hbook2(int id,char title[], int ncha, float  a, float b, int nchaa, float aa, float ba){
- if(Service::hb2.find(id) == Service::hb2.end()){
+ if(Service::hb2.find(id) != Service::hb2.end()){
+  delete Service::hb2.find(id)->second;
+  Service::hb2.erase((Service::hb2.find(id)));
+  cerr<<"  AMSEventR::hbook2-S-Histogram "<<id<<" AlreadyExistsReplacing "<<endl;
+ }
   char hid[1025];
   sprintf(hid,"hb2_%d_%s",id,title); 
   TH2F * p= new TH2F(hid,title,ncha,a,b,nchaa,aa,ba);
   Service::hb2.insert(make_pair(id,p));
- }
- else{
-  cerr<<"  AMSEventR::hbook2-S-Histogram "<<id<<" AlreadyExists "<<endl;
-  Service::hb2.find(id)->second->Reset();
- }
 }
+
 void AMSEventR::hfill(int id, float a, float b=0, float w=1){
    Service::hb1i i1=Service::hb1.find(id);
  if(i1 != Service::hb1.end()){
@@ -298,6 +308,9 @@ void AMSEventR::hfetch(TFile &f){
 }
 
 TH1F * AMSEventR::h1(int id){
+//
+// must be used with care as may be changed after map update operation
+//
    Service::hb1i i1=Service::hb1.find(id);
    if(i1 != Service::hb1.end())return i1->second;
    else return 0; 
@@ -343,7 +356,7 @@ else{
 }
 
 
-void AMSEventR::hf1(int id, float a, float w=1){
+void AMSEventR::hf1(int id, float a, float w){
    Service::hb1i i1=Service::hb1.find(id);
  if(i1 != Service::hb1.end()){
   i1->second->Fill(a,w);
@@ -1360,6 +1373,11 @@ void AMSEventR::SetCont(){
 
 bool AMSEventR::ReadHeader(int entry){
     static unsigned int runo=0;
+    static unsigned int evento=0;
+    static const int probe=100;
+    static double dif;
+    static double difm;
+    static double dif2;
     if(this!=_Head){
        cerr<<" AMSEventR::ReadHeader-S-WrongHeadPointer"<<endl;
       _Entry=entry;
@@ -1374,10 +1392,43 @@ bool AMSEventR::ReadHeader(int entry){
     if(fHeader.Run!=runo){
      cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
      runo=fHeader.Run;
+     if(evento>0){
+      fService.TotalTrig+=(int)dif/2; 
+     }
+     dif=0;
+     difm=0;
+     dif2=0;
     }
+    else if(_Entry<probe){
+     if(difm==0){
+      fService.TotalTrig+=Event()-evento;
+     }
+     if(Event()-evento>difm)difm=Event()-evento;
+     dif+=Event()-evento;
+     dif2+=(Event()-evento)*(Event()-evento);
+     fService.TotalTrig+=Event()-evento;
+    }
+    else if(_Entry==probe){
+     dif/=probe-1;
+     dif2/=probe-1;
+     dif2=sqrt(dif2-dif*dif);
+     dif2=difm+12*dif2+1;
+     fService.TotalTrig+=Event()-evento;
+    }
+    else{
+     if(Event()-evento<dif2){
+      fService.TotalTrig+=Event()-evento;
+     }
+     else{
+      cerr<<"HeaderR-W-EventSeqSeemsToBeBroken "<<Event()<<" "<<evento<<" "<<dif2<<endl;
+      fService.TotalTrig++;
+     }
+    }
+    evento=Event();
    }
    else fService.BadEv++;    
     fService.TotalEv++;
+  
     return i>0;
 }
 
@@ -2611,6 +2662,7 @@ void AMSEventR::Terminate()
    fService._w.Stop();
    cout <<"AMSEventR::Terminate-I-CputimeSpent "<<fService._w.CpuTime()<<" sec"<<endl;
    cout <<"AMSEventR::Terminate-I-Total/Bad "<<fService.TotalEv<<"/"<<fService.BadEv<<" events processed "<<endl;
+   cout <<"AMSEventR::Terminate-I-ApproxTotal of "<<fService.TotalTrig<<" triggers processed "<<endl;
    if(fService._pOut){
      fService._pOut->Write();
      fService._pOut->Close();

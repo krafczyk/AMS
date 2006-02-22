@@ -1835,13 +1835,16 @@ static  hbp_d hbp;
  TStopwatch         _w;
  unsigned int       TotalEv;
  unsigned int       BadEv;
-Service():_pOut(0),TotalEv(0),BadEv(0){}
+ unsigned int       TotalTrig;
+Service():_pOut(0),TotalEv(0),BadEv(0),TotalTrig(0){}
 ~Service(){
 }
 };
 public:
 static void hbook1(int id,char title[], int ncha, float  a, float b);   
+static void hbook1s(int id,char title[], int ncha, float  a, float bi, int howmany=5,int shift=100000);
 static void hbook2(int id,char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba);   
+static void hbook2s(int id,char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba,int howmany=5,int shift=100000);   
 static void hbookp(int id,char title[], int ncha, float  a, float b);   
 static  TH1F *h1(int id);
 static  TH2F *h2(int id);
@@ -1852,7 +1855,7 @@ static  void hreset(int id);
 static  void hfetch(TFile & f);
 static  void hdelete(int id);
 static  void hfill(int id, float a,float b, float w);
-static  void hf1(int id,float a, float w);
+static  void hf1(int id,float a, float w=1);
 static  void hfp(int id,float a, float w);
 static  void hf2(int id,float a, float b,float w);
 protected:
