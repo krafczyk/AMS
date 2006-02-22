@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.31 2005/06/10 10:53:24 mdelgado Exp $
+//  $Id: richrec.h,v 1.32 2006/02/22 12:16:59 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -113,7 +113,7 @@ public:
     return _beta_hit[1];
   } 
   
-
+  static int Npart();
 
 
 // interface with DAQ :
@@ -157,8 +157,10 @@ static geant _Time;
   number  _errorbeta;   // Estimated error in beta
   number  _quality;     // Chi2  
   number  _npexp;       // Number of expected photons for Z=1
-  number  _collected_npe;  // Number of collected photoelectrons
-  number  _probkl;      // kolgomorov probability of the ring
+  number  _collected_npe;  // Number of collected photoelectrons: the rich charge is estimated as sqrt(npexp/collected_npe)
+  number  _probkl;      // Kolgomorov test probability of the reconstructed ring azimuthal distribution being correct
+  number  _kdist;       // Leibler-Kullback distance between the reconstructed ring and the hits for the azimuthal marginal distribution
+
 
   number _theta;
   number _errortheta;
@@ -263,7 +265,7 @@ public:
     _npexp=0;
     _collected_npe=0;
     _probkl=0;
-
+    _kdist=1e6;
 
     if(build_charge){
       if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHZ");
@@ -313,6 +315,11 @@ public:
   number getnpexp(){return _npexp;}
   number getprob(){return _probkl;}
   number getcollnpe(){return _collected_npe;}
+
+  // lipaccesors
+  integer getlipused(){return _liphused;}
+  number getlipprob(){return _liprprob;}
+
 #ifdef __WRITEROOT__
 friend class RichRingR;
 #endif

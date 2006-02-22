@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.67 2005/06/10 10:53:17 mdelgado Exp $
+//  $Id: richrec.C,v 1.68 2006/02/22 12:18:01 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -59,6 +59,7 @@ void AMSRichRawEvent::mc_build(){
    for(AMSRichMCHit* hits=(AMSRichMCHit *)AMSEvent::gethead()->getheadC("AMSRichMCHit",0,1);hits;hits=hits->next()){ // loop on signals
 
       integer channel=hits->getchannel();
+      if(channel==-1) continue;  //SKIP charged particles
 
       if(channel>=RICnwindows*RICHDB::total){
          cerr<< "AMSRichRawEvent::mc_build-ChannelNoError "<<channel<<endl;
@@ -200,10 +201,18 @@ void AMSRichRawEvent::build(){
 
 
 
-
-
-
-
+int AMSRichRawEvent::Npart(){
+  int PMTFlagged[RICmaxpmts];
+  for(int i=0;i<RICmaxpmts;i++) PMTFlagged[i]=0;
+  for(AMSRichRawEvent* current=(AMSRichRawEvent *)AMSEvent::gethead()->
+        getheadC("AMSRichRawEvent",0);current;current=current->next()){
+    int pmt_number=current->getchannel()/16;
+    PMTFlagged[pmt_number]+=current->getbit(crossed_pmt_bit);
+  }
+  int npart=0;
+  for(int i=0;i<RICmaxpmts;i++) if(PMTFlagged[i]) npart++;
+  return npart;
+}
 
 
 
@@ -826,52 +835,57 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
     current_ring_status&=~dirty_ring;
 
     
-    if(best_prob>0){
+    //    if(best_prob>0){
+    if(best_prob>0 || LIPVAR.liphused>2){
       // This piece is a bit redundant: computes chi2 and weighted beta
       geant wsum=0,wbeta=0;      
       geant chi2=0.;
-      geant beta_track=
-	recs[best_cluster[0]][best_cluster[1]];
-      
-      for(integer i=0;i<actual;i++){
-	hitp[i]->unsetbit(bit);
-	if(recs[i][0]==-2.) continue;
-	if(cleanup && cleaning&dirty_ring)
-	  if(hitp[i]->getbit(crossed_pmt_bit)) continue;
+      geant beta_track=0;
+      integer beta_used=0;
+      integer mirrored_used=0;
 
-
-	integer closest=
-	  AMSRichRing::closest(beta_track,recs[i]);
+      if(best_prob>0){
+	beta_track=recs[best_cluster[0]][best_cluster[1]];
 	
-	if(recs[i][closest]<betamin) continue;
-	geant prob=(recs[i][closest]-beta_track)*
-	  (recs[i][closest]-beta_track)/
-	  AMSRichRing::Sigma(beta_track,A,B)/
-	  AMSRichRing::Sigma(beta_track,A,B);
-	// Store resolution per hit
+	for(integer i=0;i<actual;i++){
+	  hitp[i]->unsetbit(bit);
+	  if(recs[i][0]==-2.) continue;
+	  if(cleanup && cleaning&dirty_ring)
+	    if(hitp[i]->getbit(crossed_pmt_bit)) continue;
+	  
+	  integer closest=
+	    AMSRichRing::closest(beta_track,recs[i]);
+	  
+	  if(recs[i][closest]<betamin) continue;
+	  geant prob=(recs[i][closest]-beta_track)*
+	    (recs[i][closest]-beta_track)/
+	    AMSRichRing::Sigma(beta_track,A,B)/
+	    AMSRichRing::Sigma(beta_track,A,B);
+	  // Store resolution per hit
 #ifdef __AMSDEBUG__
-	{
-	  AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
-	  number mass=pmcg->getmass();
-	  number mom=pmcg->getmom();
-	  number beta=mom/sqrt(mom*mom+mass*mass);
-	  HF1(123456+(closest>0),100.*(recs[i][closest]/beta-1),1.);
-	}
+	  {
+	    AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
+	    number mass=pmcg->getmass();
+	    number mom=pmcg->getmom();
+	    number beta=mom/sqrt(mom*mom+mass*mass);
+	    HF1(123456+(closest>0),100.*(recs[i][closest]/beta-1),1.);
+	  }
 #endif
-	if(prob>=9) continue;
-	hitp[i]->setbit(bit);
-	if(cleanup) current_ring_status|=hitp[i]->getbit(crossed_pmt_bit)?dirty_ring:0; 
-	chi2+=prob;
-	wsum+=hitp[i]->getnpe();
-	wbeta+=recs[i][closest]*hitp[i]->getnpe();
+	  if(prob>=9) continue;
+	  hitp[i]->setbit(bit);
+	  if(cleanup) current_ring_status|=hitp[i]->getbit(crossed_pmt_bit)?dirty_ring:0; 
+	  chi2+=prob;
+	  wsum+=hitp[i]->getnpe();
+	  wbeta+=recs[i][closest]*hitp[i]->getnpe();
+	}
+	
+	beta_used=size[best_cluster[0]][best_cluster[1]];
+	mirrored_used=mirrored[best_cluster[0]][best_cluster[1]];
+	beta_track=mean[best_cluster[0]][best_cluster[1]]/geant(beta_used);
+	
+	if(wsum>0) wbeta/=wsum; else wbeta=0.;       
       }
-      
-      integer beta_used=size[best_cluster[0]][best_cluster[1]];
-      integer mirrored_used=mirrored[best_cluster[0]][best_cluster[1]];
-      beta_track=mean[best_cluster[0]][best_cluster[1]]/geant(beta_used);
 
-      if(wsum>0) wbeta/=wsum; else wbeta=0.;       
-      
       // Event quality numbers:
       // 0-> Number of used hits
       // 1-> chi2/Ndof
@@ -1375,6 +1389,24 @@ trig=(trig+1)%freq;
     dfnrmh+=dfphih[i];
   }
   
+
+  // Compute Kullbak distance
+  double KullbackD=0;
+  if(dfnrmh)
+    for(int i=0;i<NSTP;i++){
+      if(!dfphih[i]) continue;
+      if(!dfphi[i]){
+	KullbackD=1e5;
+	break;
+      }
+      KullbackD+=dfphih[i]/dfnrmh*log(dfphih[i]*dfnrm/dfnrmh/dfphi[i])+
+	0.5/dfnrmh*log(2*PI*dfphih[i]);  // Correction for low n
+      //      KullbackD+=dfphi[i]/dfnrm*log(dfphi[i]*(dfnrmh+1)/dfnrm/(dfphih[i]+1.0/NSTP));
+    }else KullbackD=1e5;
+
+  if(KullbackD!=1e5) KullbackD-=0.5/dfnrmh*log(2*PI*dfnrmh); // Correction for low n
+  _kdist=KullbackD;
+
 
   if(dfnrm>0 && dfnrmh>0){
     dfphi[0]/=dfnrm;

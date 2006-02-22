@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.66 2005/05/17 09:54:05 pzuccon Exp $
+//  $Id: mccluster.C,v 1.67 2006/02/22 12:18:01 mdelgado Exp $
 // Author V. Choutko 24-may-1996
  
 #include "trid.h"
@@ -529,7 +529,10 @@ void AMSRichMCHit::sirichhits(integer id,
 			      geant origin[],geant momentum[],integer status)
 {
   AMSPoint r(origin[0],origin[1],origin[2]);
-  AMSPoint u(momentum[0],momentum[1],momentum[2]);
+  double norma=sqrt(momentum[0]*momentum[0]+
+		    momentum[1]*momentum[1]+
+		    momentum[2]*momentum[2]);
+  AMSPoint u(momentum[0]/norma,momentum[1]/norma,momentum[2]/norma);
   geant adc;
 
   adc=0;

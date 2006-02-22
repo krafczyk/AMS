@@ -789,13 +789,13 @@ public:
 
 *********) Status bits (counting from 1 to 32)
 
-1- Hit used in a larger (ring number 1) object
-2- Hit used in a larger (ring number 2) object 
-3- Hit used in a larger (ring number 3) object
+1- Hit used in the ring number 1
+2- Hit used in the ring number 2
+3- Hit used in the ring number 3
 .
 .
 .
-10- Hit used in a larger (ring number 10) object 
+10- Hit used in the ring number 10 (no more than 10 rings currently flagged)
 11- Unused
 .
 .
@@ -803,6 +803,7 @@ public:
 29- Unused
 30- Gain mode chosen for the hit: 0=x1(low)  1=x5(high)
 31- Hit belongs to a PMT apparently crossed by a charged particle
+
           
 */
 
@@ -840,15 +841,15 @@ public:
 
 **********) Ring status bits (counting from 1 to 32)
 1- Ring has been rebuild after cleaning PMTs apparently crossed by a charged particle.
-   If the rebuilding has been succesful it is stored in the next ring.  
-   To confirm that the next ring is a rebuilding of the current one check
-   if both fTrTrack are pointing to the same track number.   
+   If the rebuilding has been succesful it is stored in the next ring in the rings container.
+   However to confirm that next ring is indeed a rebuilt one, both tracks, the one from the
+   current and the one from the next, should be the same. Otherwise the rebuilding was unsuccesful.    
 	    
-2- Rins reconstructed using the NaF radiator in the double radiator configuration
+2- Ring reconstructed using the NaF radiator in the double radiator configuration
 
-14 - used in a particle
+14 - Associated to a particle
 
-31 - associated to a track used in a gamma
+31 - Associated to a track used in a gamma reconstruction.
 
 */
 
@@ -858,9 +859,10 @@ public:
   float ErrorBeta;  ///< Error in the velocity
   float Chi2;       ///< chi2/ndof for the beta fit
   float BetaRefit;  ///< Beta refitted
-  float Prob;       ///< probability to be a good ring
+  float Prob;       ///< Kolmogorov test probability to be a good ring based on azimuthal distribution
+  float KDist;
   float NpExp;      ///< number of expected photoelectrons for Z=1 charge
-  float NpCol;      ///< number of collected photoelectrons 
+  float NpCol;      ///< number of collected photoelectrons. The rich charge reconstruction is estimated as sqrt(NpCol/NPExp) 
   float Theta;      ///< Recontructed emission angle
   float ErrorTheta; ///< Error of the reconstructed emission angle
   float TrRadPos[3];///< Mean emission point of the Cerenkov photons
@@ -895,7 +897,7 @@ public:
     return _Info;
   } 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,6)           // RichRingR
+  ClassDef(RichRingR,7)           // RichRingR
 }; 
 
 /// TRDRawHitR structure
@@ -1492,6 +1494,7 @@ endif
   float RichPath[2];    ///<  Estimated fraction  of ring photons  within RICH acceptance (direct and reflected ones  respectively) for beta=1
   float RichPathBeta[2]; ///<  Estimated fraction  of ring photons  within RICH acceptance (direct and reflected ones  respectively) for beta Beta
   float RichLength; ///< Estimated pathlength of particle within rich radiator (cm)
+  int   RichParticles; ///< Estimated number of particles crossing the RICH radiator
   float Local[8];  ///< contains the minimal distance to sensor edge in sensor length units ;
   float TRDLikelihood; ///< TRD likelihood  (whatever is it)
 protected: 
@@ -1577,7 +1580,7 @@ public:
   friend class AMSParticle;
   friend class AMSEventR;
   virtual ~ParticleR(){};
-  ClassDef(ParticleR,2)       //ParticleR
+  ClassDef(ParticleR,3)       //ParticleR
 };
 
 /// AntiMCCluster structure
@@ -1685,10 +1688,11 @@ class RichMCClusterR {
 public:
   int   Id;            ///< Particle id, -666 if noise
   float Origin[3];     ///< Particle origin coo
-  float Direction[3];  ///< Particle direction cos
-  unsigned int   Status;        ///< Status=10*number of reflections+(have it rayleigh?1:0)
+  float Direction[3];  ///< Particle direction coo
+  int   Status;        ///< *******) 
+
                        /*!<
-*******) For geant4 this value is 0. For geant 3it has several meanings:
+*******) For geant4 this value is 0. For geant 3 it has several meanings:
 
 Cerenkov photon generated in radiator:
 
@@ -1715,6 +1719,9 @@ No Cerenkov photon:
     ricstatus = -(3+100*(mother of Cerenkov if secondary?1:0))
 
 
+Downward charged particle crossing the radiator
+
+    ricstatus = -7
 
 NOTE: The information of the mother is only available if RICCONT=1 in
       the datacards
@@ -1725,7 +1732,7 @@ NOTE: The information of the mother is only available if RICCONT=1 in
   RichMCClusterR(){};
   RichMCClusterR(AMSRichMCHit *ptr, int _numgen);
   virtual ~RichMCClusterR(){};
-  ClassDef(RichMCClusterR,1)       // RichMCClusterR
+  ClassDef(RichMCClusterR,2)       // RichMCClusterR
 };
 
 

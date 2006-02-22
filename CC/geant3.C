@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.92 2005/09/09 07:55:13 choumilo Exp $
+//  $Id: geant3.C,v 1.93 2006/02/22 12:18:01 mdelgado Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -648,30 +648,45 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 
    
     // More RICH information added for MC
-
-    if(RICCONTROLFFKEY.iflgk_flag){  // This to be checked
-
-    if(GCKINE.itra==1 &&GCVOLU.names[lvl][0]=='R' && 
-       GCVOLU.names[lvl][1]=='A' &&GCVOLU.names[lvl][2]=='D' && 
-       GCVOLU.names[lvl][3]==' ' && GCKINE.ipart!=50 &&
-       GCTRAK.inwvol==1){
+    if(GCKINE.itra==1 && GCVOLU.names[lvl][0]=='R' && 
+      GCVOLU.names[lvl][1]=='A' &&GCVOLU.names[lvl][2]=='D' && 
+      GCVOLU.names[lvl][3]==' ' && GCKINE.ipart!=50 &&
+      GCTRAK.inwvol==1 && GCKINE.charge!=0 && GCTRAK.vect[5]<0)
       AMSRichMCHit::sirichhits(GCKINE.ipart,
                                0,
                                GCTRAK.vect,
                                GCTRAK.vect,
                                GCTRAK.vect+3,
                                Status_primary_rad);
-    } else if(GCKINE.itra==1 &&GCVOLU.names[lvl][0]=='R' && 
-              GCVOLU.names[lvl][1]=='A' &&GCVOLU.names[lvl][2]=='D' && 
-              GCVOLU.names[lvl][3]=='B' && GCKINE.ipart!=50 &&
-              GCTRAK.inwvol==1){
+
+
+
+    if(GCKINE.itra==1 && GCVOLU.names[lvl][0]=='N' && 
+      GCVOLU.names[lvl][1]=='A' &&GCVOLU.names[lvl][2]=='F' && 
+      GCVOLU.names[lvl][3]==' ' && GCKINE.ipart!=50 &&
+      GCTRAK.inwvol==1 && GCKINE.charge!=0 && GCTRAK.vect[5]<0)
       AMSRichMCHit::sirichhits(GCKINE.ipart,
                                0,
                                GCTRAK.vect,
                                GCTRAK.vect,
                                GCTRAK.vect+3,
-                               Status_primary_radb);
-    }
+                               Status_primary_rad);
+
+
+    if(RICCONTROLFFKEY.iflgk_flag){  // This to be checked
+
+
+      if(GCKINE.itra==1 &&GCVOLU.names[lvl][0]=='R' && 
+	 GCVOLU.names[lvl][1]=='A' &&GCVOLU.names[lvl][2]=='D' && 
+	 GCVOLU.names[lvl][3]=='B' && GCKINE.ipart!=50 &&
+	 GCTRAK.inwvol==1){
+	AMSRichMCHit::sirichhits(GCKINE.ipart,
+				 0,
+				 GCTRAK.vect,
+				 GCTRAK.vect,
+				 GCTRAK.vect+3,
+				 Status_primary_radb);
+      }
     
     if(GCKINE.itra==1 &&GCVOLU.names[lvl][0]=='S' && 
        GCVOLU.names[lvl][1]=='T' &&GCVOLU.names[lvl][2]=='K' 

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.153 2005/09/09 07:55:13 choumilo Exp $
+//  $Id: particle.C,v 1.154 2006/02/22 12:18:01 mdelgado Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -462,7 +462,7 @@ void AMSParticle::richfit(){
  _RichPath[0]=direct;
  _RichPath[1]=reflected;
  _RichLength=length;
-
+ _RichParticles=AMSRichRawEvent::Npart();
 
  if(real_track->checkstatus(AMSDBc::TOFFORGAMMA)){ // MAKE RICH VTX PARTICLE AWARE
    _prich=0;
@@ -509,11 +509,16 @@ void AMSParticle::richfit(){
 
   while(ptr){
     if(ptr->gettrack()==real_track){
-      if(ptr->getused()>2) _prich=ptr;
+      //      if(ptr->getused()>2) _prich=ptr;
+      if(ptr->getused()>2 || ptr->getlipused()>2) _prich=ptr;
       if(! ptr->IsGood() && ptr->next())
-	if(ptr->next()->gettrack()==real_track && ptr->next()->getused()>2)
+	//	if(ptr->next()->gettrack()==real_track && ptr->next()->getused()>2)
+	if(ptr->next()->gettrack()==real_track && (ptr->next()->getused()>2 || ptr->next()->getlipused()>2))
 	  if(RICRECFFKEY.recon[1]%10){
-	    if(ptr->next()->getprob()>ptr->getprob())_prich=ptr->next();
+	    //	    if(ptr->next()->getprob()>ptr->getprob())_prich=ptr->next();
+	    if((ptr->next()->getprob()>ptr->getprob() && ptr->next()->getused()>2) || 
+	       (ptr->next()->getlipprob()>ptr->getprob() && ptr->next()->getlipused()>2))
+	      _prich=ptr->next();
 	  }else _prich=ptr->next();
       //	  if(ptr->getused()>2 & ptr->IsGood())_prich=ptr;
     break;

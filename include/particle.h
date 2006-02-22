@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.50 2005/05/17 09:56:35 pzuccon Exp $
+//  $Id: particle.h,v 1.51 2006/02/22 12:16:59 mdelgado Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -66,6 +66,7 @@ protected:
   number   _RichPath[2];
   number   _RichPathBeta[2];
   number   _RichLength;
+  integer  _RichParticles;
   number   _Local[trconst::maxlay];
   number _TRDLikelihood;
 

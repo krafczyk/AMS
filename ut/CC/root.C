@@ -2112,6 +2112,7 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   for (int i=0; i<2; i++) {RichPath[i] = ptr->_RichPath[i];
                            RichPathBeta[i] = ptr->_RichPathBeta[i];}
   RichLength = ptr->_RichLength;
+  RichParticles= ptr->_RichParticles;
 
   TRDLikelihood = ptr->_TRDLikelihood;
 #endif
@@ -2356,7 +2357,7 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
 RichMCClusterR::RichMCClusterR(AMSRichMCHit *ptr, int _numgen){
 #ifndef __ROOTSHAREDLIBRARY__
   Id        = ptr->_id;
-  for (int i=0; i<i; i++) {
+  for (int i=0; i<3; i++) {
    Origin[i]    = ptr->_origin[i];
    Direction[i] = ptr->_direction[i];
   }
@@ -2396,6 +2397,7 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
     NpCol= ptr->_collected_npe;
     NpExp     = ptr->_npexp;
     Prob    = ptr->_probkl;
+    KDist   = ptr->_kdist;  
     Theta   =ptr->_theta;
     ErrorTheta  =ptr->_errortheta;
     for(int i=0;i<3;i++){
