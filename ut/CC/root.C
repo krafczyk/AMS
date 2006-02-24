@@ -138,6 +138,21 @@ void AMSEventR::hfill(int id, float a, float b=0, float w=1){
  }
 }
 
+void AMSEventR::hfit1(int id, char func[]){
+   char fit[100];
+   Service::hb1i i1=Service::hb1.find(id);
+ if(i1 != Service::hb1.end()){
+  if(func[0] == 'g')strcpy(fit,"gaus");
+  else if(func[0] =='e')strcpy(fit,"expo");
+  else if(func[0]=='p'){
+   strcpy(fit,"pol");
+   strcat(fit,func+1);
+  }
+  else return;
+  i1->second->Fit(fit);
+ }
+}
+
 void AMSEventR::hprint(int id){
    Service::hb1i i1=Service::hb1.find(id);
  if(i1 != Service::hb1.end()){

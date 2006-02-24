@@ -1,4 +1,4 @@
-doxygen do.config.txt
+doxygen  do.config.txt
 cd /amsdat1/amswebserver/WWW/AMS/Analysis/hpl3itp1/root02
 cd latex
 make

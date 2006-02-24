@@ -1814,6 +1814,17 @@ ClassDef(MCEventgR,1)       //MCEventgR
         For advanced users only.
       -  (optionally)  int NXYZ() const returns number of XYZR objects used
 
+    Contains set of routines for (old fashioned) hbook like histograms manipulation: \n
+- hbook(1,2,p)
+- hlist   
+- hfit1
+- hftetch 
+- hreset 
+- hdelete 
+- hfill 
+- hf(1,2,p)
+ 
+
     \sa stlv
     \author v.choutko@cern.ch
 */
@@ -1840,24 +1851,6 @@ Service():_pOut(0),TotalEv(0),BadEv(0),TotalTrig(0){}
 ~Service(){
 }
 };
-public:
-static void hbook1(int id,char title[], int ncha, float  a, float b);   
-static void hbook1s(int id,char title[], int ncha, float  a, float bi, int howmany=5,int shift=100000);
-static void hbook2(int id,char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba);   
-static void hbook2s(int id,char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba,int howmany=5,int shift=100000);   
-static void hbookp(int id,char title[], int ncha, float  a, float b);   
-static  TH1F *h1(int id);
-static  TH2F *h2(int id);
-static  TProfile *hp(int id);
-static  void hprint(int id);
-static  void hlist();
-static  void hreset(int id);
-static  void hfetch(TFile & f);
-static  void hdelete(int id);
-static  void hfill(int id, float a,float b, float w);
-static  void hf1(int id,float a, float w=1);
-static  void hfp(int id,float a, float w);
-static  void hf2(int id,float a, float b,float w);
 protected:
 Service  fService;
 static TBranch*  bHeader;
@@ -1940,6 +1933,54 @@ public:
  static AMSEventR* & Head()  {return _Head;}
  static char *  BranchName() {return _Name;}
  void SetBranchA(TTree *tree);   // don;t use it anymore use Init
+
+
+
+public:
+   /// hbook like 1d histgoram booking by int id \n parameres like in classical hbook1
+static void hbook1(int id,char title[], int ncha, float  a, float b);  
+   ///  few identical 1d histos booking in one call \n parameter howmany  number of histograms to be booked \n parameter shift    shift in id in subs hiistos
+static void hbook1s(int id,char title[], int ncha, float  a, float bi, int howmany=5,int shift=100000);
+   ///  hbook like 2d histgoram booking by int id \n parameters like in classical hbook2
+static void hbook2(int id,char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba);   
+   ///  few identical 2d histos booking in one call \n  parameter howmany  number of histograms to be booked \n parameter shift    shift in id in subs histos
+static void hbook2s(int id,char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba,int howmany=5,int shift=100000);   
+   ///  hbook like profile histgoram booking by int id \n  parameters like in classical hbook1
+static void hbookp(int id,char title[], int ncha, float  a, float b);   
+ /// expert only TH1F* accessor
+ /// returns pointer to TH1F* by id
+static  TH1F *h1(int id);
+ /// expert only TH2F* accessor
+ /// returns pointer to TH2F* by id
+static  TH2F *h2(int id);
+ /// expert only TProfile* accessor
+ /// returns pointer to TH1F* by id
+static  TProfile *hp(int id);
+/// print histogram (eg from root session)
+/// AMSEventR::hprint(id);
+static  void hprint(int id);
+/// list all histos 
+/// AMSEventr::hlist();
+static  void hlist();
+/// reset histogram by  id or all if id==0
+static  void hreset(int id);
+/// fit 1d histogram by   func = "g" "e" "pN"
+static  void hfit1(int id,char func[]);
+/// fetch histos from TFile
+static  void hfetch(TFile & f);
+/// delete histogram by  id or all if id==0
+static  void hdelete(int id);
+/// general fill for 1d,2d or profile
+static  void hfill(int id, float a,float b, float w);
+/// fast fill for 1d histos
+static  void hf1(int id,float a, float w=1);
+/// fast fill for profile histos
+static  void hfp(int id,float a, float w);
+/// fast fill for 2d histos
+static  void hf2(int id,float a, float b,float w);
+
+
+
  void    Init(TTree *tree);   ///< InitTree
  void CreateBranch(TTree *tree, int brs);
  void ReSetBranchA(TTree *tree);
