@@ -1974,6 +1974,8 @@ static  void hdelete(int id);
 static  void hfill(int id, float a,float b, float w);
 /// fast fill for 1d histos
 static  void hf1(int id,float a, float w=1);
+///  fill acc to cuts for 1d histos
+static  void hf1s(int id,float a, bool cuts[], int ncuts,int icut, int shift=100000,float w=1);
 /// fast fill for profile histos
 static  void hfp(int id,float a, float w);
 /// fast fill for 2d histos

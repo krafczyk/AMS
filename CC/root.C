@@ -370,6 +370,19 @@ else{
 }
 }
 
+void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift,float w){
+//  Fill the series of histos 
+//  1st before cuts
+//  before cut icut-1
+//  before icut as last cut
+    hf1(id,a,w);
+     bool cut=true;
+    for(int k=0;k<icut-1;k++)cut=cut && cuts[k];
+    if(cut)hf1(id+shift,a,w);
+    for(int k=icut;k<ncuts;k++)cut=cut && cuts[k];
+    if(cut)hf1(id+shift+shift,a,w);
+                 
+}
 
 void AMSEventR::hf1(int id, float a, float w){
    Service::hb1i i1=Service::hb1.find(id);
