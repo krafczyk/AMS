@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.425 2006/02/20 13:20:32 choutko Exp $
+# $Id: RemoteClient.pm,v 1.426 2006/03/01 14:04:56 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2643,17 +2643,18 @@ CheckCite:            if (defined $q->param("QCite")) {
        $qtemplate = $dataset;
 #- 20.06.05 a.k.       $dataset =~ s/ /\% /g;
        $sql = "SELECT runs.run, jobs.jobname, runs.submit FROM runs, jobs, runcatalog
-                   WHERE runs.jid=jobs.jid AND
-                        (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND
-                        runs.status='Completed'";
+                   WHERE runs.jid=jobs.jid  AND runs.status='Completed'";
+                   $sqlmom=" AND
+                        (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) ";
+                   $sqlamom=" AND
+                        (runcatalog.jobname not LIKE '%$dataset%' AND runcatalog.run=runs.run)";
 
        $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
                  FROM runs, jobs, runcatalog, ntuples
-                   WHERE runs.jid=jobs.jid AND
-                        (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND
-                        runs.run = ntuples.run AND
-                        runs.status='Completed'";
+                   WHERE runs.jid=jobs.jid and runs.run=ntuples.run  AND runs.status='Completed'";
+       $sql=$sql.$sqlmom;
+       $sqlNT=$sqlNT.$sqlmom;
 
 # check TriggerType
        if (defined $q->param("QTrType") and $q->param("QTrType") ne "Any") {
