@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.426 2006/03/01 14:04:56 choutko Exp $
+# $Id: RemoteClient.pm,v 1.427 2006/03/02 17:31:26 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2302,7 +2302,7 @@ sub Connect{
              if ($jobid > 0) {
               $title = $title.$jobid;
               $sql = "SELECT jobname, triggers , host, events, errors, cputime,
-                            elapsed, cites.name, content, jobs.timestamp, jobs.jid
+                            elapsed, cites.name, content, jobs.timestamp, jobs.jid, jobs.realtriggers
                           FROM jobs, cites
                           WHERE jobs.jid=$jobid AND jobs.cid=cites.cid ORDER BY jobs.jid DESC";
              } else {
@@ -2314,7 +2314,7 @@ CheckCite:            if (defined $q->param("QCite")) {
              $cite = trimblanks($q->param("QCite"));
              if ($cite ne 'Any') {
               $sql = "SELECT jobname, triggers , host, events, errors, cputime,
-                            elapsed, cites.name, content, jobs.timestamp, jobs.jid
+                            elapsed, cites.name, content, jobs.timestamp, jobs.jid, jobs.realtriggers
                           FROM jobs, cites
                           WHERE cites.name='$cite' AND jobs.cid=cites.cid
                           ORDER BY jobs.jid DESC";
@@ -2345,8 +2345,11 @@ CheckCite:            if (defined $q->param("QCite")) {
          foreach my $r (@{$ret}){
              my $jobname =trimblanks($r->[0]);
              my $triggers=$r->[1];
+              if($r->[11]>0){
+               $triggers=$r->[11];
+                 
+              }
              my $host    =trimblanks($r->[2]);
-
              my $events  =$r->[3];
              my $errors  =$r->[4];
              my $cputime =$r->[5];
