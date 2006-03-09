@@ -218,7 +218,7 @@ public:
   }
 
   virtual ~HeaderR(){};
-  ClassDef(HeaderR,3)       //HeaderR
+  ClassDef(HeaderR,4)       //HeaderR
 };
 
 
@@ -1557,15 +1557,15 @@ public:
 
   char * pType(){
    static char type[63];
-   if(pTrTrack()){
+   if(iTrTrack()>=0){
      strcpy(type,"Tr");
    }
    else strcpy(type,"");
-      if(pBeta())strcat(type,"Tof");
-      if(pTrdTrack())strcat(type,"Trd");
-      if(pRichRing())strcat(type,"Rich");
-      if(pEcalShower())strcat(type,"Ecal");
-      if(pVertex())strcat(type,"Vertex");
+      if(iBeta()>=0)strcat(type,"Tof");
+      if(iTrdTrack()>=0)strcat(type,"Trd");
+      if(iRichRing()>=0)strcat(type,"Rich");
+      if(iEcalShower()>=0)strcat(type,"Ecal");
+      if(iVertex()>=0)strcat(type,"Vertex");
    return type;
   }
 
@@ -1823,6 +1823,8 @@ ClassDef(MCEventgR,1)       //MCEventgR
 - hdelete 
 - hfill 
 - hf(1,2,p)
+- hcopy
+- hdivide
  
 
     \sa stlv
@@ -1938,15 +1940,15 @@ public:
 
 public:
    /// hbook like 1d histgoram booking by int id \n parameres like in classical hbook1
-static void hbook1(int id,char title[], int ncha, float  a, float b);  
+static void hbook1(int id,const char title[], int ncha, float  a, float b);  
    ///  few identical 1d histos booking in one call \n parameter howmany  number of histograms to be booked \n parameter shift    shift in id in subs hiistos
-static void hbook1s(int id,char title[], int ncha, float  a, float bi, int howmany=5,int shift=100000);
+static void hbook1s(int id,const char title[], int ncha, float  a, float bi, int howmany=5,int shift=100000);
    ///  hbook like 2d histgoram booking by int id \n parameters like in classical hbook2
-static void hbook2(int id,char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba);   
+static void hbook2(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba);   
    ///  few identical 2d histos booking in one call \n  parameter howmany  number of histograms to be booked \n parameter shift    shift in id in subs histos
-static void hbook2s(int id,char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba,int howmany=5,int shift=100000);   
+static void hbook2s(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba,int howmany=5,int shift=100000);   
    ///  hbook like profile histgoram booking by int id \n  parameters like in classical hbook1
-static void hbookp(int id,char title[], int ncha, float  a, float b);   
+static void hbookp(int id,const char title[], int ncha, float  a, float b);   
  /// expert only TH1F* accessor
  /// returns pointer to TH1F* by id
 static  TH1F *h1(int id);
@@ -1957,8 +1959,8 @@ static  TH2F *h2(int id);
  /// returns pointer to TH1F* by id
 static  TProfile *hp(int id);
 /// print histogram (eg from root session)
-/// AMSEventR::hprint(id);
-static  void hprint(int id);
+/// AMSEventR::hprint(id,"same");
+static  void hprint(int id, char opt[]="");
 /// list all histos 
 /// AMSEventr::hlist();
 static  void hlist();
@@ -1970,6 +1972,10 @@ static  void hfit1(int id,char func[]);
 static  void hfetch(TFile & f);
 /// delete histogram by  id or all if id==0
 static  void hdelete(int id);
+/// copy hist id1 to id2
+static void hcopy(int id1,int id2);
+/// divide hist id1 by id2 and put the result into id3
+static void hdivide(int id1,int id2,int id3);
 /// general fill for 1d,2d or profile
 static  void hfill(int id, float a,float b, float w);
 /// fast fill for 1d histos
@@ -1994,7 +2000,6 @@ static  void hf2(int id,float a, float b,float w);
  static TTree* & ClonedTree()  {return _ClonedTree;}
  Int_t Fill();
  TFile* & OutputFile(){return fService._pOut;};
-
 #ifdef  __CINT__ 
 public:
 #elif  defined WIN32
@@ -2206,40 +2211,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
    public:
 
      /// Get into memory contents for all branches 
-     void GetAllContents() {
-            bHeader->GetEntry(_Entry);
-            bEcalHit->GetEntry(_Entry);
-            bEcalCluster->GetEntry(_Entry);
-            bEcal2DCluster->GetEntry(_Entry);
-            bEcalShower->GetEntry(_Entry);
-            bRichHit->GetEntry(_Entry);
-            bRichRing->GetEntry(_Entry);
-            bTofRawCluster->GetEntry(_Entry);
-            bTofRawSide->GetEntry(_Entry);
-            bTofCluster->GetEntry(_Entry);
-            bAntiCluster->GetEntry(_Entry);
-            bTrRawCluster->GetEntry(_Entry);
-            bTrCluster->GetEntry(_Entry);
-            bTrRecHit->GetEntry(_Entry);
-            bTrTrack->GetEntry(_Entry);
-            bTrdRawHit->GetEntry(_Entry);
-            bTrdCluster->GetEntry(_Entry);
-            bTrdSegment->GetEntry(_Entry);
-            bTrdTrack->GetEntry(_Entry);
-            bLevel1->GetEntry(_Entry);
-            bLevel3->GetEntry(_Entry);
-            bBeta->GetEntry(_Entry);
-            bVertex->GetEntry(_Entry);
-            bCharge->GetEntry(_Entry);
-            bParticle->GetEntry(_Entry);
-            bAntiMCCluster->GetEntry(_Entry);
-            bTrMCCluster->GetEntry(_Entry);
-            bTofMCCluster->GetEntry(_Entry);
-            bTrdMCCluster->GetEntry(_Entry);
-            bRichMCCluster->GetEntry(_Entry);
-            bMCTrack->GetEntry(_Entry);
-            bMCEventg->GetEntry(_Entry);
-      }
+     void GetAllContents();
 
       ///  \return number of EcalHitR
       unsigned int   NEcalHit()  {
@@ -2452,8 +2424,10 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
       ///  \return number of TofRawSideR
       unsigned int   NTofRawSide()  {
-        if(fHeader.TofRawSides && fTofRawSide.size()==0)bTofRawSide->GetEntry(_Entry);
-        return fTofRawSide.size();
+        if(fHeader.TofRawSides  && fTofRawSide.size()==0){
+          bTofRawSide->GetEntry(_Entry);
+        }
+          return fTofRawSide.size();
       }
       ///  \return reference of TofRawSideR Collection
       vector<TofRawSideR> & TofRawSide()  {
