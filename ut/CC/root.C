@@ -71,13 +71,52 @@ AMSEventR::Service::hb1_d AMSEventR::Service::hb1;
 AMSEventR::Service::hb2_d AMSEventR::Service::hb2;
 AMSEventR::Service::hbp_d AMSEventR::Service::hbp;
 
-void AMSEventR::hbook1s(int id,char title[], int ncha, float  a, float b,int howmany,int shift){
+void AMSEventR::hcopy(int id1,int id2){
+  TH1F *h1p = h1(id1);
+  if(h1p){
+    float a=h1p->GetBinLowEdge(1); 
+    int n=h1p->GetNbinsX();
+    float b=h1p->GetBinLowEdge(n)+h1p->GetBinWidth(n); 
+    const char *title=h1p->GetTitle();
+    hbook1(id2,title,n,a,b);
+    TH1F *h2p = h1(id2);
+    if(h2p){
+    for (int i=0;i<n+2;i++){
+     h2p->SetBinContent(i,h1p->GetBinContent(i));
+      
+    }
+    }
+  }
+  else{
+   TH2F *h2p = h2(id1);
+   if(h2p){
+   }
+   else{
+    TProfile *hpp=hp(id1);
+    if(hpp){
+    }
+   }
+  }
+}
+void AMSEventR::hdivide(int id1,int id2,int id3){
+  TH1F *h2p = h1(id2);
+  if(h2p){
+   h2p->Sumw2();
+   hcopy(id1,id3);
+   TH1F *h1p = h1(id3);
+   if(h1p){
+    h1p->Sumw2();
+    h1p->Divide(h2p);
+   }   
+  }
+}
+void AMSEventR::hbook1s(int id,const char title[], int ncha, float  a, float b,int howmany,int shift){
   for (int i=0;i<howmany;i++){
    hbook1(id+shift*i,title,ncha,a,b);
   }
 }
 
-void AMSEventR::hbook1(int id,char title[], int ncha, float  a, float b){
+void AMSEventR::hbook1(int id,const char title[], int ncha, float  a, float b){
  if(Service::hb1.find(id) != Service::hb1.end()){
   delete Service::hb1.find(id)->second;
   Service::hb1.erase((Service::hb1.find(id)));
@@ -89,7 +128,7 @@ void AMSEventR::hbook1(int id,char title[], int ncha, float  a, float b){
   (Service::hb1).insert(make_pair(id,p));
 }
 
-void AMSEventR::hbookp(int id,char title[], int ncha, float  a, float b){
+void AMSEventR::hbookp(int id,const char title[], int ncha, float  a, float b){
  if(Service::hbp.find(id) == Service::hbp.end()){
   char hid[1025];
   sprintf(hid,"hbp_%d_%s",id,title); 
@@ -102,12 +141,12 @@ void AMSEventR::hbookp(int id,char title[], int ncha, float  a, float b){
  }
 }
 
-void AMSEventR::hbook2s(int id,char title[], int ncha, float  a, float b, int nchaa, float aa, float ba,int howmany,int shift){
+void AMSEventR::hbook2s(int id, const char title[], int ncha, float  a, float b, int nchaa, float aa, float ba,int howmany,int shift){
   for (int i=0;i<howmany;i++){
    hbook2(id+shift*i,title,ncha,a,b,nchaa,aa,ba);
   }
 }
-void AMSEventR::hbook2(int id,char title[], int ncha, float  a, float b, int nchaa, float aa, float ba){
+void AMSEventR::hbook2(int id,const char title[], int ncha, float  a, float b, int nchaa, float aa, float ba){
  if(Service::hb2.find(id) != Service::hb2.end()){
   delete Service::hb2.find(id)->second;
   Service::hb2.erase((Service::hb2.find(id)));
@@ -153,20 +192,20 @@ void AMSEventR::hfit1(int id, char func[]){
  }
 }
 
-void AMSEventR::hprint(int id){
+void AMSEventR::hprint(int id, char opt[]){
    Service::hb1i i1=Service::hb1.find(id);
  if(i1 != Service::hb1.end()){
-  i1->second->Draw();
+  i1->second->Draw(opt);
  }
  else{
   Service::hb2i i2=Service::hb2.find(id);
   if(i2 != Service::hb2.end()){
-    i2->second->Draw();
+    i2->second->Draw(opt);
   }
   else{
    Service::hbpi ip=Service::hbp.find(id);
     if(ip != Service::hbp.end()){
-     ip->second->Draw();
+     ip->second->Draw(opt);
    }
  }
  }
@@ -1398,7 +1437,6 @@ void AMSEventR::SetCont(){
  fHeader.MCEventgs=fMCEventg.size();
 // cout <<" fHeader.TrRecHits "<<fHeader.TrRecHits<<endl;
 }
-
 bool AMSEventR::ReadHeader(int entry){
     static unsigned int runo=0;
     static unsigned int evento=0;
@@ -1413,6 +1451,7 @@ bool AMSEventR::ReadHeader(int entry){
        return false;
      }
    _Entry=entry;
+    memset((char*)(&fHeader)+sizeof(void*),0,sizeof(fHeader)-sizeof(void*));
     int i=bHeader->GetEntry(entry);
     clear();
    if(i>0){
@@ -2695,6 +2734,7 @@ void AMSEventR::Terminate()
      fService._pOut->Write();
      fService._pOut->Close();
      fService._pOut=0;
+           
 //for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
 //delete i->second;
 //}
@@ -2857,6 +2897,7 @@ void AMSEventList::Write(const char* filename){
         fclose(listfile);
 };
 
+
 void AMSEventList::Write(AMSChain* chain, TFile* file){
         TTree *amsnew = chain->CloneTree(0);
         chain->Rewind();
@@ -2884,5 +2925,44 @@ void AMSEventList::Write(AMSChain* chain, TFile* file){
 int AMSEventList::GetEntries(){return _RUNs.size();};
 int AMSEventList::GetRun(int i){return _RUNs[i];};
 int AMSEventList::GetEvent(int i){return _EVENTs[i];};
+
+
+void AMSEventR::GetAllContents() {
+            clear();
+            bHeader->GetEntry(_Entry);
+            bEcalHit->GetEntry(_Entry);
+            bEcalCluster->GetEntry(_Entry);
+            bEcal2DCluster->GetEntry(_Entry);
+            bEcalShower->GetEntry(_Entry);
+            bRichHit->GetEntry(_Entry);
+            bRichRing->GetEntry(_Entry);
+            bTofRawCluster->GetEntry(_Entry);
+            NTofRawSide();
+            //bTofRawSide->GetEntry(_Entry);
+            bTofCluster->GetEntry(_Entry);
+            bAntiCluster->GetEntry(_Entry);
+            bTrRawCluster->GetEntry(_Entry);
+            bTrCluster->GetEntry(_Entry);
+            bTrRecHit->GetEntry(_Entry);
+            bTrTrack->GetEntry(_Entry);
+            bTrdRawHit->GetEntry(_Entry);
+            bTrdCluster->GetEntry(_Entry);
+            bTrdSegment->GetEntry(_Entry);
+            bTrdTrack->GetEntry(_Entry);
+            bLevel1->GetEntry(_Entry);
+            bLevel3->GetEntry(_Entry);
+            bBeta->GetEntry(_Entry);
+            bVertex->GetEntry(_Entry);
+            bCharge->GetEntry(_Entry);
+            bParticle->GetEntry(_Entry);
+            bAntiMCCluster->GetEntry(_Entry);
+            bTrMCCluster->GetEntry(_Entry);
+            bTofMCCluster->GetEntry(_Entry);
+            bTrdMCCluster->GetEntry(_Entry);
+            bRichMCCluster->GetEntry(_Entry);
+            bMCTrack->GetEntry(_Entry);
+            bMCEventg->GetEntry(_Entry);
+      }
+
 
 #endif
