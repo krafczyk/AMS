@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.31 2006/01/18 13:18:08 choutko Exp $
+#  $Id: Makefile,v 1.32 2006/03/14 11:01:04 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -302,8 +302,8 @@ $(BIN)geant3i.o:      $(SCC)geant3.C
 #   Libraries to read the ROOT output
 
 
-shared :	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o 
-	$(LD) -O  $(SOFLAGS) $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(SHLDFLAGS) -o  $(SHLD)
+shared :	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)id.o 
+	$(LD) -O  $(SOFLAGS) $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(BIN)id.o $(SHLDFLAGS) -o  $(SHLD)
 
 static :	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o
 	$(AR) rv $(LIB)/libntuple.a $(BIN)/root_rs.o $(BIN)/rootdict_s.o

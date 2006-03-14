@@ -379,6 +379,7 @@ FILE_PATTERNS          = root.h \
                          root.C \
                          stlv.h \
                          stlv.C \
+                         ad.C    \
                          run.stlv.C \
                          plot.root.doc \
                          plot.root.C \

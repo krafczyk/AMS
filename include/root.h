@@ -23,6 +23,7 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TProfile.h"
+#include "id.h"
 using namespace std;
 #ifdef __SLC3__
 char* operator+( std::streampos&, char* );
@@ -98,7 +99,6 @@ class Trigger2LVL1{};
 class TriggerLVL302{};
 class EventNtuple02{};
 #endif
-
 
 //!  Root Header class
 /*!
@@ -1827,7 +1827,7 @@ ClassDef(MCEventgR,1)       //MCEventgR
 - hdivide
  
 
-    \sa stlv
+    \sa ad.C stlv
     \author v.choutko@cern.ch
 */
 #include <map>
@@ -1836,15 +1836,16 @@ protected:
 class Service{
 public:
  TFile *            _pOut;
-typedef map<int,TH1F*> hb1_d;
-typedef map<int,TH1F*>::iterator hb1i;
-typedef map<int,TH2F*> hb2_d;
-typedef map<int,TH2F*>::iterator hb2i;
-typedef map<int,TProfile*> hbp_d;
-typedef map<int,TProfile*>::iterator hbpi;
+typedef map<AMSID,TH1F*> hb1_d;
+typedef map<AMSID,TH1F*>::iterator hb1i;
+typedef map<AMSID,TH2F*> hb2_d;
+typedef map<AMSID,TH2F*>::iterator hb2i;
+typedef map<AMSID,TProfile*> hbp_d;
+typedef map<AMSID,TProfile*>::iterator hbpi;
 static  hb1_d hb1;
 static  hb2_d hb2;
 static  hbp_d hbp;
+static  char Dir[1024];
  TStopwatch         _w;
  unsigned int       TotalEv;
  unsigned int       BadEv;
@@ -1968,8 +1969,14 @@ static  void hlist();
 static  void hreset(int id);
 /// fit 1d histogram by   func = "g" "e" "pN"
 static  void hfit1(int id,char func[]);
-/// fetch histos from TFile
-static  void hfetch(TFile & f);
+///  change dir to dir
+static void chdir(const char dir[]="");
+/// list current dir
+static void ldir(){cout<<" Current Dir: "<<Service::Dir<<endl;}
+/// fetch histos from TFile (to the dir dir)
+static  void hfetch(TFile & f,const char dir[]="");
+/// fetch histos from TFile file (to the dir file)
+static  void hfetch(const char file[]);
 /// delete histogram by  id or all if id==0
 static  void hdelete(int id);
 /// copy hist id1 to id2
@@ -3300,4 +3307,5 @@ public:
       ClassDef(AMSEventList,2)       //AMSEventList
 };
 
+typedef AMSEventR  ams;
 #endif

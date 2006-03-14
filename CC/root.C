@@ -70,6 +70,7 @@ using namespace root;
 AMSEventR::Service::hb1_d AMSEventR::Service::hb1;
 AMSEventR::Service::hb2_d AMSEventR::Service::hb2;
 AMSEventR::Service::hbp_d AMSEventR::Service::hbp;
+char AMSEventR::Service::Dir[1024]="";
 
 void AMSEventR::hcopy(int id1,int id2){
   TH1F *h1p = h1(id1);
@@ -116,22 +117,24 @@ void AMSEventR::hbook1s(int id,const char title[], int ncha, float  a, float b,i
   }
 }
 
-void AMSEventR::hbook1(int id,const char title[], int ncha, float  a, float b){
+void AMSEventR::hbook1(int idd,const char title[], int ncha, float  a, float b){ 
+AMSID id(idd,Service::Dir);
  if(Service::hb1.find(id) != Service::hb1.end()){
   delete Service::hb1.find(id)->second;
   Service::hb1.erase((Service::hb1.find(id)));
   cerr<<"  AMSEventR::hbook1-S-Histogram "<<id<<" AlreadyExistsReplacing "<<endl;
  }
   char hid[1025];
-  sprintf(hid,"hb1_%d_%s",id,title); 
+  sprintf(hid,"hb1_%d_%s",idd,title); 
   TH1F * p= new TH1F(hid,title,ncha,a,b);
   (Service::hb1).insert(make_pair(id,p));
 }
 
-void AMSEventR::hbookp(int id,const char title[], int ncha, float  a, float b){
+void AMSEventR::hbookp(int idd,const char title[], int ncha, float  a, float b){
+   AMSID id(idd,Service::Dir);
  if(Service::hbp.find(id) == Service::hbp.end()){
   char hid[1025];
-  sprintf(hid,"hbp_%d_%s",id,title); 
+  sprintf(hid,"hbp_%d_%s",idd,title); 
   TProfile * p= new TProfile(hid,title,ncha,a,b);
   Service::hbp.insert(make_pair(id,p));
  }
@@ -146,19 +149,21 @@ void AMSEventR::hbook2s(int id, const char title[], int ncha, float  a, float b,
    hbook2(id+shift*i,title,ncha,a,b,nchaa,aa,ba);
   }
 }
-void AMSEventR::hbook2(int id,const char title[], int ncha, float  a, float b, int nchaa, float aa, float ba){
+void AMSEventR::hbook2(int idd,const char title[], int ncha, float  a, float b, int nchaa, float aa, float ba){
+AMSID id(idd,Service::Dir);
  if(Service::hb2.find(id) != Service::hb2.end()){
   delete Service::hb2.find(id)->second;
   Service::hb2.erase((Service::hb2.find(id)));
   cerr<<"  AMSEventR::hbook2-S-Histogram "<<id<<" AlreadyExistsReplacing "<<endl;
  }
   char hid[1025];
-  sprintf(hid,"hb2_%d_%s",id,title); 
+  sprintf(hid,"hb2_%d_%s",idd,title); 
   TH2F * p= new TH2F(hid,title,ncha,a,b,nchaa,aa,ba);
   Service::hb2.insert(make_pair(id,p));
 }
 
-void AMSEventR::hfill(int id, float a, float b=0, float w=1){
+void AMSEventR::hfill(int idd, float a, float b=0, float w=1){
+AMSID id(idd,Service::Dir);
    Service::hb1i i1=Service::hb1.find(id);
  if(i1 != Service::hb1.end()){
   i1->second->Fill(a,w);
@@ -178,8 +183,9 @@ void AMSEventR::hfill(int id, float a, float b=0, float w=1){
 }
 
 void AMSEventR::hfit1(int id, char func[]){
+   AMSID idd(id,Service::Dir);
    char fit[100];
-   Service::hb1i i1=Service::hb1.find(id);
+   Service::hb1i i1=Service::hb1.find(idd);
  if(i1 != Service::hb1.end()){
   if(func[0] == 'g')strcpy(fit,"gaus");
   else if(func[0] =='e')strcpy(fit,"expo");
@@ -192,7 +198,8 @@ void AMSEventR::hfit1(int id, char func[]){
  }
 }
 
-void AMSEventR::hprint(int id, char opt[]){
+void AMSEventR::hprint(int idd, char opt[]){
+   AMSID id(idd,Service::Dir);
    Service::hb1i i1=Service::hb1.find(id);
  if(i1 != Service::hb1.end()){
   i1->second->Draw(opt);
@@ -226,8 +233,8 @@ for( Service::hbpi i=Service::hbp.begin();i!=Service::hbp.end();i++){
 }
 
 
-void AMSEventR::hdelete(int id){
-if(id ==0){
+void AMSEventR::hdelete(int idd){
+if(idd ==0){
 for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
 delete i->second;
 }
@@ -243,7 +250,8 @@ Service::hbp.clear();
 
 }
 else{
-   Service::hb1i i1=Service::hb1.find(id);
+   AMSID id(idd,Service::Dir);
+   Service::hb1i i1=Service::hb1.find(idd);
  if(i1 != Service::hb1.end()){
   delete i1->second;
   Service::hb1.erase(i1);
@@ -267,8 +275,17 @@ else{
 
 }
 }
+void AMSEventR::chdir(const char dir[]){
+  strcpy(Service::Dir,dir);
+}
+
+void AMSEventR::hfetch(const char file[]){
+ TFile *f= new TFile(file);
+ hfetch(*f,file);
+ }
 #include <TKey.h>
-void AMSEventR::hfetch(TFile &f){
+void AMSEventR::hfetch(TFile &f, const char dir[]){
+   chdir(dir);
    int fetch1=0;
    int fetch2=0;
    int fetchp=0;
@@ -283,7 +300,8 @@ void AMSEventR::hfetch(TFile &f){
           if(i>4 && f1->GetName()[i] =='_'){
              TString st(f1->GetName()+4,i-4);
              if(st.IsDigit()){
-              int id=st.Atoi(); 
+              int idd=st.Atoi(); 
+              AMSID id(idd,Service::Dir);
               fetch1++;
               if(Service::hb1.find(id) == Service::hb1.end()){
               }
@@ -308,7 +326,8 @@ void AMSEventR::hfetch(TFile &f){
           if(i>4 && f1->GetName()[i] =='_'){
              TString st(f1->GetName()+4,i-4);
              if(st.IsDigit()){
-              int id=st.Atoi(); 
+              int idd=st.Atoi(); 
+              AMSID id(idd,Service::Dir);
               fetch2++;
               if(Service::hb2.find(id) == Service::hb2.end()){
               }
@@ -333,7 +352,8 @@ void AMSEventR::hfetch(TFile &f){
           if(i>4 && f1->GetName()[i] =='_'){
              TString st(f1->GetName()+4,i-4);
              if(st.IsDigit()){
-              int id=st.Atoi(); 
+              int idd=st.Atoi(); 
+              AMSID id(idd,Service::Dir);
               fetchp++;
               if(Service::hbp.find(id) == Service::hbp.end()){
               }
@@ -361,35 +381,39 @@ void AMSEventR::hfetch(TFile &f){
    if(fetchp>0)cout <<fetchp<<" Profile Histos fetched"<<endl;
 }
 
-TH1F * AMSEventR::h1(int id){
+TH1F * AMSEventR::h1(int idd){
 //
 // must be used with care as may be changed after map update operation
 //
+   AMSID id(idd,Service::Dir);
    Service::hb1i i1=Service::hb1.find(id);
    if(i1 != Service::hb1.end())return i1->second;
    else return 0; 
 }
 
-TH2F * AMSEventR::h2(int id){
+TH2F * AMSEventR::h2(int idd){
+   AMSID id(idd,Service::Dir);
    Service::hb2i i1=Service::hb2.find(id);
    if(i1 != Service::hb2.end())return i1->second;
    else return 0; 
 }
 
 
-TProfile * AMSEventR::hp(int id){
+TProfile * AMSEventR::hp(int idd){
+   AMSID id(idd,Service::Dir);
    Service::hbpi i1=Service::hbp.find(id);
    if(i1 != Service::hbp.end())return i1->second;
    else return 0; 
 }
 
-void AMSEventR::hreset(int id){
-if(id ==0){
+void AMSEventR::hreset(int idd){
+if(idd ==0){
  for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++)i->second->Reset();
  for( Service::hb2i i=Service::hb2.begin();i!=Service::hb2.end();i++)i->second->Reset();
  for( Service::hbpi i=Service::hbp.begin();i!=Service::hbp.end();i++)i->second->Reset();
 }
 else{
+   AMSID id(idd,Service::Dir);
    Service::hb1i i1=Service::hb1.find(id);
  if(i1 != Service::hb1.end()){
   i1->second->Reset();
@@ -423,14 +447,16 @@ void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift
     if(cut && cuts[icut-1])hf1(id+shift+shift+shift,a,w);             
 }
 
-void AMSEventR::hf1(int id, float a, float w){
+void AMSEventR::hf1(int idd, float a, float w){
+   AMSID id(idd,Service::Dir);
    Service::hb1i i1=Service::hb1.find(id);
  if(i1 != Service::hb1.end()){
   i1->second->Fill(a,w);
  }
 }
 
-void AMSEventR::hfp(int id, float a, float w=1){
+void AMSEventR::hfp(int idd, float a, float w=1){
+   AMSID id(idd,Service::Dir);
    Service::hbpi i1=Service::hbp.find(id);
  if(i1 != Service::hbp.end()){
   i1->second->Fill(a,w);
@@ -438,7 +464,8 @@ void AMSEventR::hfp(int id, float a, float w=1){
 }
 
 
-void AMSEventR::hf2(int id, float a, float b, float w=1){
+void AMSEventR::hf2(int idd, float a, float b, float w=1){
+   AMSID id(idd,Service::Dir);
    Service::hb2i i1=Service::hb2.find(id);
  if(i1 != Service::hb2.end()){
   i1->second->Fill(a,b,w);
@@ -1479,11 +1506,11 @@ bool AMSEventR::ReadHeader(int entry){
      dif/=probe-1;
      dif2/=probe-1;
      dif2=sqrt(dif2-dif*dif);
-     dif2=difm+12*dif2+1;
+     dif2=difm+20*dif2+1;
      fService.TotalTrig+=Event()-evento;
     }
     else{
-     if(Event()-evento<dif2){
+     if(Event()-evento<dif2 || dif2!=dif2){
       fService.TotalTrig+=Event()-evento;
      }
      else{
