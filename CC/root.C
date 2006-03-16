@@ -111,6 +111,18 @@ void AMSEventR::hdivide(int id1,int id2,int id3){
    }   
   }
 }
+void AMSEventR::hsub(int id1,int id2,int id3){
+  TH1F *h2p = h1(id2);
+  if(h2p){
+   h2p->Sumw2();
+   hcopy(id1,id3);
+   TH1F *h1p = h1(id3);
+   if(h1p){
+    h1p->Sumw2();
+    h1p->Add(h2p,-1);
+   }   
+  }
+}
 void AMSEventR::hbook1s(int id,const char title[], int ncha, float  a, float b,int howmany,int shift){
   for (int i=0;i<howmany;i++){
    hbook1(id+shift*i,title,ncha,a,b);
@@ -219,17 +231,16 @@ void AMSEventR::hprint(int idd, char opt[]){
 }
 
 
-void AMSEventR::hlist(){
+void AMSEventR::hlist(char ptit[]){
 for( Service::hb1i i=Service::hb1.begin();i!=Service::hb1.end();i++){
-cout<<" 1D "<<i->first<<" "<<i->second->GetTitle()<<endl;
+if(strlen(ptit)<1 || strstr(i->second->GetTitle(),ptit))cout<<" 1D "<<i->first<<" "<<i->second->GetTitle()<<endl;
 }
 for( Service::hb2i i=Service::hb2.begin();i!=Service::hb2.end();i++){
-cout<<" 2D "<<i->first<<" "<<i->second->GetTitle()<<endl;
+if(strlen(ptit)<1 || strstr(i->second->GetTitle(),ptit))cout<<" 2D "<<i->first<<" "<<i->second->GetTitle()<<endl;
 }
 for( Service::hbpi i=Service::hbp.begin();i!=Service::hbp.end();i++){
- cout<<" Profile "<<i->first<<" "<<i->second->GetTitle()<<endl;
+ if(strlen(ptit)<1 || strstr(i->second->GetTitle(),ptit))cout<<" Profile "<<i->first<<" "<<i->second->GetTitle()<<endl;
 }
-
 }
 
 

@@ -1825,7 +1825,7 @@ ClassDef(MCEventgR,1)       //MCEventgR
 - hf(1,2,p)
 - hcopy
 - hdivide
- 
+- hsub 
 
     \sa ad.C stlv
     \author v.choutko@cern.ch
@@ -1962,9 +1962,9 @@ static  TProfile *hp(int id);
 /// print histogram (eg from root session)
 /// AMSEventR::hprint(id,"same");
 static  void hprint(int id, char opt[]="");
-/// list all histos 
-/// AMSEventr::hlist();
-static  void hlist();
+/// list histos with title contains ptit or all if ptit="" 
+/// AMSEventr::hlist("xyz");
+static  void hlist(char ptit[]="");
 /// reset histogram by  id or all if id==0
 static  void hreset(int id);
 /// fit 1d histogram by   func = "g" "e" "pN"
@@ -1983,6 +1983,8 @@ static  void hdelete(int id);
 static void hcopy(int id1,int id2);
 /// divide hist id1 by id2 and put the result into id3
 static void hdivide(int id1,int id2,int id3);
+/// sub hist id1 by id2 and put the result into id3
+static void hsub(int id1,int id2,int id3);
 /// general fill for 1d,2d or profile
 static  void hfill(int id, float a,float b, float w);
 /// fast fill for 1d histos

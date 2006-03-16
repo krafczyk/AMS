@@ -127,7 +127,7 @@ void ad::UBegin(){
     hbook1s(33,"trd hmax",200,5.8,55.8);
     hbook1s(34,"trd stray",21,-0.5,20.5);
     hbook1s(35,"betarich",400,0.7,1.1);
-    hbook1s(36,"ecalenratio",200,0.,10.,0.);
+    hbook1s(36,"ecalenratio",200,0.,10.);
     hbook1s(1001,"mass",2000,-2.,12.,50,1);
     hbook1s(2000,"sliced mass k 0.1 to 1.2 ",2000,-2.,12.,20,1);
     hbook2(2100,"mass vs k ",400,-2.,4.,15,0.,1.5);
@@ -340,7 +340,7 @@ nah:
     cuts[0]=nTofCluster()<5;
     cuts[1]=nAntiCluster()<1;
     cuts[2]=beta.Pattern==0;
-    cuts[3]=fabs(fabs(beta.Beta)-1)>0.13 && abs(rig)<8;
+    cuts[3]=fabs(fabs(beta.Beta)-1)>0.12 && abs(rig)<8;
     cuts[4]=beta.Chi2S<8;
     cuts[5]=beta.Chi2<12;
     cuts[6]=track.FChi2MS*beta.Beta*beta.Beta<1000;
