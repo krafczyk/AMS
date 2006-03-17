@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.68 2006/02/22 12:18:01 mdelgado Exp $
+//  $Id: richrec.C,v 1.69 2006/03/17 13:08:57 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1001,6 +1001,13 @@ void AMSRichRing::_copyEl(){
  RichRingR & ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->RichRing(_vpos);
    if (_ptrack) ptr.fTrTrack= _ptrack->GetClonePointer();
    else ptr.fTrTrack=-1;
+
+   // Add the hit used status
+   for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->getheadC("AMSRichRawEvent",0);hit;hit=hit->next())
+     if((hit->getstatus()>>_vpos)%2){
+       ptr.fRichHit.push_back(hit->GetClonePointer());   
+     }
+   
 #endif
 }
 void AMSRichRing::CalcBetaError(){
