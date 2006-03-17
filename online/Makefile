@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.18 2006/01/18 13:17:05 choutko Exp $
+#  $Id: Makefile,v 1.19 2006/03/17 15:02:08 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
@@ -121,6 +121,7 @@ HDRS          =   \
                 AMSAxAMSHist.h\
                 AMSGenHist.h\
                 AMSNtuple.h\
+                ../include/id.h \
                 LinkDef.h
 DICT          = AMSCint_$(ARCH).cxx
 DICTH         = $(DICT:.cxx=.h)
@@ -135,7 +136,7 @@ MAINC          = mainc.cxx
 MAINOC         = $(MAINC:.cxx=.o)
 
 OBJS          = $(SRCS:%.cxx=$(PREFIX)%.o) 
-OBJSR          = $(PREFIX)root.o
+OBJSR          = $(PREFIX)root.o $(PREFIX)id.o
 OBJSC          = $(PREFIX)ControlFrame.o
 
 ALLDICT       = $(DICT) $(DICTH) 

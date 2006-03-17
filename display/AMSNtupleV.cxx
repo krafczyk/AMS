@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.17 2005/01/27 09:44:15 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.18 2006/03/17 15:02:02 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -502,7 +502,15 @@ static TNode *rich=gAMSDisplay->GetGeometry()->GetNode("RICH1");
            double tc=(r1-r2)/2/dz;
            zc+=rich->GetZ();
            double  z2=zc-dz;
-//           cout <<" tc "<<tc<<" "<<z2<<endl;           
+/*           cout <<" tc "<<tc<<" "<<z2<<endl;
+             cout <<r1<<endl;           
+             cout <<r2<<endl;           
+             cout <<dz<<endl;           
+             cout <<xc<<endl;           
+             cout <<yc<<endl;           
+             cout <<zc<<endl;           
+             cout <<tc<<endl;           
+*/
   const int npointm=360/5+1;
   int npoint=npointm;
   float array[3*npointm];

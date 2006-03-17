@@ -901,7 +901,7 @@ public:
     return _Info;
   } 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,7)           // RichRingR
+  ClassDef(RichRingR,8)           // RichRingR
 }; 
 
 /// TRDRawHitR structure

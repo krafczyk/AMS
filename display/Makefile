@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.25 2006/01/18 13:16:53 choutko Exp $
+#  $Id: Makefile,v 1.26 2006/03/17 15:02:02 choutko Exp $
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 PLATFORM      =  Linux
@@ -101,7 +101,7 @@ SRCS          = TGRunEventDialog.cxx \
 SRCSN          = AMSR_GeometrySetter.cxx \
                  AMSDisplay.cxx \
                 TMarker3DCl.cxx \
-                AMSR_Axis.cxx  
+                AMSR_Axis.cxx 
 
 HDRS          =  ../include/root_RVS.h\
 		ControlFrame.h \
@@ -111,6 +111,7 @@ HDRS          =  ../include/root_RVS.h\
                 AMSR_Axis.h \
                 TGRunEventDialog.h \
                 TMarker3DCl.h \
+                ../include/id.h \
                 LinkDef.h
 DICT          = AMSCint_$(ARCH).cxx
 DICTH         = $(DICT:.cxx=.h)
@@ -125,7 +126,7 @@ MAINC          = mainc.cxx
 MAINOC         = $(MAINC:.cxx=.o)
 
 OBJS          = $(SRCS:%.cxx=$(PREFIX)%.o) 
-OBJSR          = $(PREFIX)root.o 
+OBJSR          = $(PREFIX)root.o $(PREFIX)id.o
 OBJSN          = $(SRCSN:%.cxx=$(PREFIX)%.o) 
 OBJSC         =   $(PREFIX)AMSNtuple.o
 
