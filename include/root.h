@@ -878,6 +878,8 @@ public:
 
   protected:
   int fTrTrack;   ///< index of  TrTrackR  in collection
+   vector<int> fRichHit; ///< indexes of RichHitR in collection
+   void FillRichHits(int m);
   public:
   /// access function to TrTrackR object used
   /// \return index of TrTrackR object in collection or -1
@@ -885,8 +887,10 @@ public:
   /// access function to TrTrackR object used
   /// \return pointer to TrTrackR object or 0
   TrTrackR * pTrTrack();
-
-  RichRingR(){};
+  /// access function to RichHitR objects used
+  /// \return index of RichHitR object in collection or -1
+  int iRichHit(unsigned int i){return i<fRichHit.size()?fRichHit[i]:-1;}
+   RichRingR(){};
   RichRingR(AMSRichRing *ptr);
   friend class AMSRichRing;
   friend class AMSEventR;
@@ -1962,8 +1966,8 @@ static  TProfile *hp(int id);
 /// print histogram (eg from root session)
 /// AMSEventR::hprint(id,"same");
 static  void hprint(int id, char opt[]="");
-/// list histos with title contains ptit or all if ptit="" 
-/// AMSEventr::hlist("xyz");
+/// list histos with title contains ptit or all if ptit=="" 
+/// AMSEventR::hlist("xyz");
 static  void hlist(char ptit[]="");
 /// reset histogram by  id or all if id==0
 static  void hreset(int id);
@@ -2369,7 +2373,9 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
       ///  \return number of RichRingR
       unsigned int   NRichRing()  {
-        if(fHeader.RichRings && fRichRing.size()==0)bRichRing->GetEntry(_Entry);
+        if(fHeader.RichRings && fRichRing.size()==0){
+           bRichRing->GetEntry(_Entry);
+        }
         return fRichRing.size();
       }
       ///  \return reference of RichRingR Collection
