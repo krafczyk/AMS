@@ -1494,6 +1494,14 @@ bool AMSEventR::ReadHeader(int entry){
     clear();
    if(i>0){
     if(_Entry==0)cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<endl;
+     if(Version()<160){
+// Fix rich rings
+      NRichHit();
+      for(int i=0;i<NRichRing();i++){
+        RichRingR *ring=pRichRing(i);
+        ring->FillRichHits(i);
+      }
+     }
     if(fHeader.Run!=runo){
      cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
      runo=fHeader.Run;
@@ -2539,6 +2547,17 @@ RichHitR::RichHitR(AMSRichRawEvent *ptr, float x, float y, float z){
 #endif
 }
 
+void RichRingR::FillRichHits(int ring){
+  fRichHit.clear();
+  for(int i=0;i<AMSEventR::Head()->NRichHit();i++){
+   RichHitR hit=AMSEventR::Head()->RichHit(i);
+   if((hit.Status>>ring)%2){
+    fRichHit.push_back(i);
+   }
+  }
+  if(Used!=fRichHit.size())cerr<<" problem hits for ring "<<ring<<" "<<Used<<" "<<fRichHit.size()<<endl;
+}
+
 RichRingR::RichRingR(AMSRichRing *ptr) {
 #ifndef __ROOTSHAREDLIBRARY__
   fTrTrack = -1;
@@ -2569,7 +2588,6 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
     lipChi2               = ptr->_lipchi2;
     lipRecProb            = ptr->_liprprob;
     //ENDofLIP    
-
   } else {
     cout<<"RICRingR -E- AMSRichRing ptr is NULL"<<endl;
   }
