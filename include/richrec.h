@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.32 2006/02/22 12:16:59 mdelgado Exp $
+//  $Id: richrec.h,v 1.33 2006/03/17 16:55:00 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -286,7 +286,8 @@ public:
     _theta=acos(1/_beta/_index);
     _errortheta=_errorbeta/_beta/tan(_theta);
 
-    track->interpolate(AMSPoint(0,0,RICradpos-RICHDB::pmt_pos()),AMSDir(0.,0.,-1.),pnt,theta,phi,length);
+    track->interpolate(AMSPoint(0,0,RICradpos-RICHDB::pmt_pos()+RICHDB::pmtb_height()/2.),
+		       AMSDir(0.,0.,-1.),pnt,theta,phi,length);
     
     _pmtpos[0]=pnt[0];
     _pmtpos[1]=pnt[1];
