@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.33 2006/03/17 16:55:00 mdelgado Exp $
+//  $Id: richrec.h,v 1.34 2006/03/20 15:49:04 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -293,6 +293,11 @@ public:
     _pmtpos[1]=pnt[1];
     _pmtpos[2]=pnt[2];
 
+    if(fabs(RICradpos-RICHDB::pmt_pos()+RICHDB::pmtb_height()/2.-_pmtpos[2])>0.01){
+      _pmtpos[0]=0;
+      _pmtpos[1]=0;
+      _pmtpos[2]=0;
+    }
 
   };
   ~AMSRichRing(){};

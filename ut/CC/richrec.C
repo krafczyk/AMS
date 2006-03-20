@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.69 2006/03/17 13:08:57 mdelgado Exp $
+//  $Id: richrec.C,v 1.70 2006/03/20 15:48:57 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -532,7 +532,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 
   AMSPoint point;
   number theta,phi,length;
-  AMSPoint pnt(0.,0.,RICradpos);
+  AMSPoint pnt(0.,0.,RICradpos-RICHDB::rad_height);
   AMSDir dir(0.,0.,-1.);
 
   int bit=(AMSEvent::gethead()->getC("AMSRichRing",0))->getnelem();
@@ -544,6 +544,8 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 
 
   track->interpolate(pnt,dir,point,theta,phi,length);
+
+  if(fabs(point[2]-pnt[2])>0.01) return 0; // Interpolation failed
       
   //============================================================
   // Here we should check if the track goes through the radiator
