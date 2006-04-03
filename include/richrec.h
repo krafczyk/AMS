@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.34 2006/03/20 15:49:04 mdelgado Exp $
+//  $Id: richrec.h,v 1.35 2006/04/03 10:28:27 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -160,7 +160,8 @@ static geant _Time;
   number  _collected_npe;  // Number of collected photoelectrons: the rich charge is estimated as sqrt(npexp/collected_npe)
   number  _probkl;      // Kolgomorov test probability of the reconstructed ring azimuthal distribution being correct
   number  _kdist;       // Leibler-Kullback distance between the reconstructed ring and the hits for the azimuthal marginal distribution
-
+  number _phi_spread;   //(\sum_i (phi_i-\phi_0)^2)/N_{hits} for used hits
+  number _unused_dist;   //(\sum_i 1/\dist_i^2) for unused hits which do not belong to PMTs crossed by a charged particle
 
   number _theta;
   number _errortheta;
@@ -266,6 +267,8 @@ public:
     _collected_npe=0;
     _probkl=0;
     _kdist=1e6;
+    _phi_spread=1e6;
+    _unused_dist=-1;
 
     if(build_charge){
       if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHZ");

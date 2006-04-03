@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.70 2006/03/20 15:48:57 mdelgado Exp $
+//  $Id: richrec.C,v 1.71 2006/04/03 10:28:34 mdelgado Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -1303,7 +1303,9 @@ trig=(trig+1)%freq;
   static geant dfphi[NSTP],dfphih[NSTP];
   static geant hitd[RICmaxpmts*RICnwindows/2],hitp[RICmaxpmts*RICnwindows/2];
   static AMSRichRawEvent *used_hits[RICmaxpmts*RICnwindows/2];
-  
+
+  static geant unused_hitd[RICmaxpmts*RICnwindows/2];
+  static AMSRichRawEvent *unused_hits[RICmaxpmts*RICnwindows/2];
 
 
   for(int i=0;i<NSTP;i++)
@@ -1312,6 +1314,7 @@ trig=(trig+1)%freq;
   // For the probkl stuff
   integer nh=0,nu=0;
   geant dmax=0.;
+  integer nh_unused=0;
 
   for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
 	getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){
@@ -1319,7 +1322,11 @@ trig=(trig+1)%freq;
 		   getnelem())){
       used_hits[nh]=hit;
       hitd[nh++]=1.e5;
-    }
+    }else
+      if(!(hit->getbit(crossed_pmt_bit))){
+	unused_hits[nh_unused]=hit;
+	unused_hitd[nh_unused++]=1.e5;
+      }
   }
   
 
@@ -1361,6 +1368,13 @@ trig=(trig+1)%freq;
 	nexpb+=beftr*dL/NSTP*bgen;
       }
 
+      for(k=0;k<nh_unused;k++){
+	geant d=sqrt(SQR(xb-unused_hits[k]->getpos(0))+
+		     SQR(yb-unused_hits[k]->getpos(1)));
+	if(d<unused_hitd[k])  unused_hitd[k]=d;
+      }
+
+
       for(k=0;k<nh;k++){
 	geant d=sqrt(SQR(xb-used_hits[k]->getpos(0))+
 		     SQR(yb-used_hits[k]->getpos(1)));
@@ -1398,6 +1412,18 @@ trig=(trig+1)%freq;
     dfnrmh+=dfphih[i];
   }
   
+  // Compute the spread on azimuthal distance for used hits
+  Double_t sum2=0;
+  for(k=0;k<nh;k++)
+    sum2+=(hitp[k]-hitp[0])*(hitp[k]-hitp[0]);
+  if(nh>0) _phi_spread=sum2/nh; else _phi_spread=0;
+
+
+  // Compute the mean of the distribution of 1/distance**2 for not used hits
+  sum2=0;
+  for(k=0;k<nh_unused;k++)
+    sum2+=1/unused_hitd[k]/unused_hitd[k];
+  _unused_dist=sum2;
 
   // Compute Kullbak distance
   double KullbackD=0;

@@ -860,7 +860,9 @@ public:
   float Chi2;       ///< chi2/ndof for the beta fit
   float BetaRefit;  ///< Beta refitted
   float Prob;       ///< Kolmogorov test probability to be a good ring based on azimuthal distribution
-  float KDist;
+  float KDist;      ///< Kullback-Leibler distance between the expected azimuthal distribution of hits and the observed one. The smaller the closer are both  
+  float PhiSpread;  ///< Spread on the azimuthal emission angle of the hits associated to the reconstructed ring: (\sum_i (phi_i-\phi_0)^2)/N_{hits} 
+  float UDist;      ///< (\sum_i 1/\dist_i^2) for unused hits which do not belong to PMTs crossed by a charged particle
   float NpExp;      ///< number of expected photoelectrons for Z=1 charge
   float NpCol;      ///< number of collected photoelectrons. The rich charge reconstruction is estimated as sqrt(NpCol/NPExp) 
   float Theta;      ///< Recontructed emission angle
@@ -901,7 +903,7 @@ public:
     return _Info;
   } 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,8)           // RichRingR
+  ClassDef(RichRingR,9)           // RichRingR
 }; 
 
 /// TRDRawHitR structure
