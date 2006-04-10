@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.427 2006/03/02 17:31:26 choutko Exp $
+# $Id: RemoteClient.pm,v 1.428 2006/04/10 08:22:46 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7537,7 +7537,7 @@ sub listStat {
                   stat_2005A_Jobs, stat_2005A_TimeoutRuns,
                   stat_2005A_NTuples,stat_2005A_CastorNTuples";
         }
-        if ($ds->{name} =~ /2005B/) {
+        elsif ($ds->{name} =~ /2005B/) {
           $sql="SELECT
                 stat_2005B_Jobs.firstjobtime,stat_2005B_Jobs.lastjobtime,
                 stat_2005B_Jobs.totaljobs,stat_2005B_Jobs.totaltriggers,
@@ -7548,6 +7548,18 @@ sub listStat {
                   stat_2005B_Jobs, stat_2005B_TimeoutRuns,
                   stat_2005B_NTuples,stat_2005B_CastorNTuples";
       }
+      elsif  ($ds->{name} =~ /2006B/) {
+          $sql="SELECT
+                stat_2006B_Jobs.firstjobtime,stat_2006B_Jobs.lastjobtime,
+                stat_2006B_Jobs.totaljobs,stat_2006B_Jobs.totaltriggers,
+                stat_2006B_TimeoutRuns.TotalRuns,
+                stat_2006B_NTuples.TotalFiles, stat_2006B_NTuples.SizeMB,
+                stat_2006B_CastorNTuples.TotalFiles, stat_2006B_CastorNTuples.SizeMB
+               FROM
+                  stat_2006B_Jobs, stat_2006B_TimeoutRuns,
+                  stat_2006B_NTuples,stat_2006B_CastorNTuples";
+      }
+
         $ret=$self->{sqlserver}->Query($sql);
         if (defined $ret->[0][0]) {
          $timestart = $ret->[0][0];
@@ -7901,7 +7913,7 @@ sub listCites {
             };
 
 
-           $sql = "SELECT COUNT(jid) from jobs where cid=$cid and ( realtriggers<=0 or realtriggers=null ) and ".$pps; 
+           $sql = "SELECT COUNT(jid) from jobs where cid=$cid and ( realtriggers<=0 or realtriggers=null ) and timekill>0 and ".$pps; 
            $r4=$self->{sqlserver}->Query($sql);
            if (defined $r4->[0][0]) {
               $jobsf = $r4->[0][0];
