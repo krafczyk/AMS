@@ -72,6 +72,39 @@ AMSEventR::Service::hb2_d AMSEventR::Service::hb2;
 AMSEventR::Service::hbp_d AMSEventR::Service::hbp;
 char AMSEventR::Service::Dir[1024]="";
 
+void AMSEventR::hcopy(char dir[],int id1,int id2){
+ char save[1024];
+ strcpy(save,Service::Dir);
+ hcdir(dir);
+  TH1F *h1p = h1(id1);
+  if(h1p){
+    float a=h1p->GetBinLowEdge(1); 
+    int n=h1p->GetNbinsX();
+    float b=h1p->GetBinLowEdge(n)+h1p->GetBinWidth(n); 
+    const char *title=h1p->GetTitle();
+    hcdir(save);
+    hbook1(id2,title,n,a,b);
+    TH1F *h2p = h1(id2);
+    if(h2p){
+    for (int i=0;i<n+2;i++){
+     h2p->SetBinContent(i,h1p->GetBinContent(i));
+      
+    }
+    }
+  }
+  else{
+   TH2F *h2p = h2(id1);
+   if(h2p){
+   }
+   else{
+    TProfile *hpp=hp(id1);
+    if(hpp){
+    }
+   }
+  }
+ 
+}
+
 void AMSEventR::hcopy(int id1,int id2){
   TH1F *h1p = h1(id1);
   if(h1p){
@@ -120,6 +153,18 @@ void AMSEventR::hsub(int id1,int id2,int id3){
    if(h1p){
     h1p->Sumw2();
     h1p->Add(h2p,-1);
+   }   
+  }
+}
+void AMSEventR::hadd(int id1,int id2,int id3){
+  TH1F *h2p = h1(id2);
+  if(h2p){
+   h2p->Sumw2();
+   hcopy(id1,id3);
+   TH1F *h1p = h1(id3);
+   if(h1p){
+    h1p->Sumw2();
+    h1p->Add(h2p,1);
    }   
   }
 }
@@ -290,6 +335,10 @@ void AMSEventR::chdir(const char dir[]){
   strcpy(Service::Dir,dir);
 }
 
+void AMSEventR::hcdir(const char dir[]){
+  strcpy(Service::Dir,dir);
+}
+
 void AMSEventR::hfetch(const char file[]){
  TFile *f= new TFile(file);
  hfetch(*f,file);
@@ -449,6 +498,8 @@ void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift
 //  1st before cuts
 //  before cut icut-1
 //  before icut as last cut
+//  after last cut
+//  after last cut as first cut
     hf1(id,a,w);
      bool cut=true;
     if(icut-1>0)for(int k=0;k<icut-1;k++)cut=cut && cuts[k];
@@ -456,6 +507,7 @@ void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift
     for(int k=icut;k<ncuts;k++)cut=cut && cuts[k];
     if(cut)hf1(id+shift+shift,a,w);
     if(cut && cuts[icut-1])hf1(id+shift+shift+shift,a,w);             
+    if(cuts[ncuts-1])hf1(id+shift+shift+shift+shift,a,w);             
 }
 
 void AMSEventR::hf1(int idd, float a, float w){
