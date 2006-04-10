@@ -83,9 +83,9 @@ void ad::UBegin(){
    //here create histograms
 
    float al1=log(0.5);
-   float al2=log(253.);
-   int nch=18;
-      for(int i=0;i<20;i++){
+   float al2=log(382.54);
+   int nch=36;
+      for(int i=0;i<40;i++){
        hbook1(100+i,"Acceptance",nch,al1,al2);
       }
     hbook1s(1,"ntof",10,-0.5,9.5);
@@ -97,7 +97,7 @@ void ad::UBegin(){
     hbook1s(7,"chi2 beta space",200,0.,10.);
     hbook1s(8,"chi2 beta",200,0.,100.);
     hbook1s(9,"chi2ms",200,0.,1000.);
-    hbook1s(10,"rig",200,0.,200.);
+    hbook1s(10,"rig",200,0.,20.);
     hbook1s(11,"rig/rigpath",200,-1.,3.);
     hbook1s(12,"rig/rigtof",200,-1.,3.);
     hbook1s(13,"rig/rigyale",200,-1.,3.);
@@ -115,9 +115,12 @@ void ad::UBegin(){
     hbook1s(23,"dedx tr",80,0.3,1.1);           
     hbook2s(24,"dedx tr",40,0.3,1.1,40,0.,100.);           
     hbook1s(25,"dedx tof max",200,0.,20);
-    hbook1s(125,"dedx tof up",200,0.,20);
-    hbook1s(126,"dedx tof down",200,0.,20);
+    hbook1s(145,"dedx tof up",200,0.,20);
+    hbook1s(146,"dedx tof down",200,0.,20);
     hbook2s(26,"dedx tof",100,0.,10.,100,0.3,1.3);
+    hbook1s(226,"tof distx",100,0,10.);
+    hbook1s(227,"tof disty",100,0,10.);
+    hbook1s(228,"tof distx+disty",100,0,10.);
     hbook1s(27,"trd hav",200,5.,25.);
     hbook1s(28,"trd tracks",10,-0.5,9.5);
     hbook1s(29,"trd seg",20,-0.5,19.5);
@@ -151,8 +154,8 @@ void ad::UProcessFill()
 
      static int written=0;
      const int maxw=200;
-     bool cuts[20];
-     if(Particle(0).Charge==1 && fabs(Particle(0).Momentum)<10 && fabs(Particle(0).Momentum)>0 && Particle(0).Beta>0){
+     bool cuts[21];
+     if(Particle(0).Charge==1 && fabs(Particle(0).Momentum)<20 && fabs(Particle(0).Momentum)>0 && Particle(0).Beta>0){
 
 
 
@@ -277,9 +280,21 @@ nah:
     float tofmax=0;
     float tofup=0;
     float tofdown=0;
+    float distx=0;
+    float disty=0;
     for(int i=0;i<beta.NTofCluster();i++){
      TofClusterR tofc=TofCluster(beta.iTofCluster(i));
      ntofav++;
+    if(tofc.Layer==2 or tofc.Layer==3){
+     if(disty<fabs(Particle(0).TOFCoo[tofc.Layer-1][1]-tofc.Coo[1])){
+        disty=fabs(Particle(0).TOFCoo[tofc.Layer-1][1]-tofc.Coo[1]);
+    }
+    }
+    else{
+     if(distx<fabs(Particle(0).TOFCoo[tofc.Layer-1][0]-tofc.Coo[0])){
+        distx=fabs(Particle(0).TOFCoo[tofc.Layer-1][0]-tofc.Coo[0]);
+    }
+    }
      if(tofc.Layer<3){
       tofup+=tofc.Edep;
      }
@@ -326,7 +341,14 @@ nah:
         RichRingR rich=RichRing(Particle(0).iRichRing());
         betarich=rich.Beta;
       }
-
+     else{
+        for(int k=0;k<nRichRing();k++){
+          RichRingR rich=RichRing(k);
+          if(rich.Beta>betarich){
+            betarich=rich.Beta;
+          }
+        }
+     }
 //Ecal vars
 
       float ecalen=0;
@@ -340,30 +362,34 @@ nah:
     cuts[0]=nTofCluster()<5;
     cuts[1]=nAntiCluster()<1;
     cuts[2]=beta.Pattern==0;
-    cuts[3]=fabs(fabs(beta.Beta)-1)>0.12 && abs(rig)<8;
+    cuts[3]=fabs(fabs(beta.Beta)-1)>0.16 && fabs(rig)<8;
     cuts[4]=beta.Chi2S<8;
     cuts[5]=beta.Chi2<12;
     cuts[6]=track.FChi2MS*beta.Beta*beta.Beta<1000;
     cuts[7]=rtofotr>0.6 && rtofotr<1.5;
     cuts[7]=cuts[7] && rtofopi>0.6 && rtofopi<1.5;
     cuts[8]=r1>0.4 && r1<2.5;
-    cuts[9]=r2>0.44 && r2<2.5;
+    cuts[9]=r2>0.4 && r2<2.5;
     cuts[10]=ktofonly ==0;
     cuts[11]=nTrdTrack()==1;
     cuts[12]=nTrdSegment()<5;
     cuts[13]=tofmax*pow(xbeta,a166)<6 and tofmax*pow(xbeta,a166)>1;
-    cuts[13]=cuts[13] && tofup*pow(xbeta,a166)<6.5;
+    cuts[13]=cuts[13] && tofup*pow(xbeta,a166)<6.;
+    cuts[13]=cuts[13] && tofdown*pow(xbeta,a166)<6.;
     cuts[14]=summis<20;
-    cuts[15]=summis1<40;
+    cuts[15]=summis1<400;
     cuts[16]=htrdmul<6;
     cuts[17]=fabs(betarich-1)>0.1;
     cuts[18]=ecalen/fabs(Particle(0).Momentum)<1;
-    for(int k=19;k<sizeof(cuts)/sizeof(cuts[0]);k++)cuts[k]=true;
+    cuts[19]=distx<3.9;
+    cuts[20]=fabs(mass)>1.71 && fabs(mass)<2.2;
+    for(int k=21;k<sizeof(cuts)/sizeof(cuts[0]);k++)cuts[k]=true;
     int nc=sizeof(cuts)/sizeof(cuts[0]);
     hf1s(1,nTofCluster(),cuts,nc,1);
     hf1s(2,nAntiCluster(),cuts,nc,2);
     hf1s(3,beta.Pattern,cuts,nc,3);
     hf1s(4,fabs(beta.Beta),cuts,nc,4);
+    hf1s(10,fabs(rig),cuts,nc,4);
     hf1s(7,beta.Chi2S,cuts,nc,5);
     hf1s(8,beta.Chi2,cuts,nc,6);
     hf1s(9,track.FChi2MS*beta.Beta*beta.Beta,cuts,nc,7);
@@ -383,12 +409,15 @@ nah:
     hf1s(35,betarich,cuts,nc,18);
     hf1s(36,ecalen/fabs(Particle(0).Momentum),cuts,nc,19);
     hf1s(25,tofmax*pow(xbeta,a166),cuts,nc,14);
-    hf1s(125,tofup*pow(xbeta,a166),cuts,nc,14);
-    hf1s(126,tofdown*pow(xbeta,a166),cuts,nc,14);
+    hf1s(145,tofup*pow(xbeta,a166),cuts,nc,14);
+    hf1s(146,tofdown*pow(xbeta,a166),cuts,nc,14);
     hf1s(19,summis,cuts,nc,15);
     hf1s(219,summis1,cuts,nc,16);
     hf1s(220,summis2,cuts,nc,16);
     hf2(26,tofav*pow(xbeta,a166),fabs(beta.Beta),1);
+    hf1s(226,distx,cuts,nc,20);
+    hf1s(227,disty,cuts,nc,20);
+    hf1s(228,distx+disty,cuts,nc,20);
     hf1s(16,mass,cuts,nc,21);
     float xm=0;
     if(nMCEventg()>0){		
@@ -414,8 +443,8 @@ nah:
       }    
           
         hf1(100+sizeof(cuts)/sizeof(cuts[0])+1,xm);
-        if(fabs(mass)>1.5 && written++<maxw){
-            cout<<Run()<<" "<<Event()<<" "<<mass<<" "<<beta.Chi2S<<" "<<tofmax<<" "<<xbeta<<" "<<Particle(0).Beta<<" "<<Particle(0).iRichRing()<<" "<<nTofRawSide()<<" "<<nRichRing()<<endl;
+        if(fabs(mass)>1.65 && written++<maxw){
+            cout<<Run()<<" "<<Event()<<" "<<mass<<" "<<beta.Chi2S<<" "<<tofmax<<" "<<xbeta<<" "<<Particle(0).Beta<<" "<<Particle(0).iRichRing()<<" "<<nTofRawSide()<<" "<<nRichRing()<<" "<<distx<<" "<<disty<<endl;
               GetAllContents();
               Fill();
         }

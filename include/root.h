@@ -1978,6 +1978,8 @@ static  void hfit1(int id,char func[]);
 ///  change dir to dir
 static void chdir(const char dir[]="");
 /// list current dir
+static void hcdir(const char dir[]="");
+/// list current dir
 static void ldir(){cout<<" Current Dir: "<<Service::Dir<<endl;}
 /// fetch histos from TFile (to the dir dir)
 static  void hfetch(TFile & f,const char dir[]="");
@@ -1987,10 +1989,14 @@ static  void hfetch(const char file[]);
 static  void hdelete(int id);
 /// copy hist id1 to id2
 static void hcopy(int id1,int id2);
+/// copy hist id1 for the dir dir []to id2 to current dir
+static void hcopy(char dir[],int id1, int id2);
 /// divide hist id1 by id2 and put the result into id3
 static void hdivide(int id1,int id2,int id3);
 /// sub hist id1 by id2 and put the result into id3
 static void hsub(int id1,int id2,int id3);
+/// add hist id1 by id2 and put the result into id3
+static void hadd(int id1,int id2,int id3);
 /// general fill for 1d,2d or profile
 static  void hfill(int id, float a,float b, float w);
 /// fast fill for 1d histos
@@ -3319,3 +3325,4 @@ public:
 
 typedef AMSEventR  ams;
 #endif
+

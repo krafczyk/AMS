@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: upload2castor.cgi,v 1.6 2005/11/22 13:53:01 choutko Exp $
+#  $Id: upload2castor.cgi,v 1.7 2006/04/10 08:22:36 choutko Exp $
 use strict;
 use lib qw(/var/www/cgi-bin/mon); 
 use lib::RemoteClient;
@@ -17,7 +17,7 @@ my $v=1;
 my $upd=1;
 my $run2p=0;
 my $cmp=1;
-my $dir="AMS02/2005A";
+my $dir="AMS01/2006B";
 my $mb=100000;
  my $HelpTxt = "
      RemoteClient::UploadToCastor
@@ -67,8 +67,8 @@ my $mb=100000;
  }
 
 $html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb);
-$dir="AMS01/2005B";
-$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb);
+#$dir="AMS01/2005B";
+#$html->UploadToCastor($dir,$v,$upd,$cmp,$run2p,$mb);
 
 
 
