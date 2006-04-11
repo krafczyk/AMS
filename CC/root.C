@@ -1546,7 +1546,6 @@ bool AMSEventR::ReadHeader(int entry){
     clear();
    if(i>0){
     if(_Entry==0)cout <<"AMSEventR::ReadHeader-I-Version/OS "<<Version()<<"/"<<OS()<<endl;
-    /*
      if(Version()<160){
 // Fix rich rings
       NRichHit();
@@ -1555,7 +1554,6 @@ bool AMSEventR::ReadHeader(int entry){
         ring->FillRichHits(i);
       }
      }
-    */
     if(fHeader.Run!=runo){
      cout <<"AMSEventR::ReadHeader-I-NewRun "<<fHeader.Run<<endl;
      runo=fHeader.Run;
