@@ -2838,6 +2838,7 @@ void AMSEventR::Terminate()
    // Function called at the end of the event loop.
    //_Tree->SetMakeClass(0);
    UTerminate();
+   _ClonedTree=0; 
    fService._w.Stop();
    cout <<"AMSEventR::Terminate-I-CputimeSpent "<<fService._w.CpuTime()<<" sec"<<endl;
    cout <<"AMSEventR::Terminate-I-Total/Bad "<<fService.TotalEv<<"/"<<fService.BadEv<<" events processed "<<endl;
