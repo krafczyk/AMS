@@ -497,9 +497,10 @@ void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift
 //  Fill the series of histos 
 //  1st before cuts
 //  before cut icut-1
-//  before icut as last cut
-//  after last cut
+//  before icut-1 as last cut
+//  after icut-1 as last cut
 //  after last cut as first cut
+//  after cut icut-1 as first cut
     hf1(id,a,w);
      bool cut=true;
     if(icut-1>0)for(int k=0;k<icut-1;k++)cut=cut && cuts[k];
@@ -508,6 +509,7 @@ void AMSEventR::hf1s(int id, float a, bool cuts[], int ncuts, int icut,int shift
     if(cut)hf1(id+shift+shift,a,w);
     if(cut && cuts[icut-1])hf1(id+shift+shift+shift,a,w);             
     if(cuts[ncuts-1])hf1(id+shift+shift+shift+shift,a,w);             
+    if(icut-1>=0 && cuts[icut-1])hf1(id+shift+shift+shift+shift+shift,a,w);             
 }
 
 void AMSEventR::hf1(int idd, float a, float w){

@@ -84,7 +84,7 @@ void ad::UBegin(){
 
    float al1=log(0.5);
    float al2=log(382.54);
-   int nch=36;
+   int nch=72;
       for(int i=0;i<40;i++){
        hbook1(100+i,"Acceptance",nch,al1,al2);
       }
@@ -97,6 +97,7 @@ void ad::UBegin(){
     hbook1s(7,"chi2 beta space",200,0.,10.);
     hbook1s(8,"chi2 beta",200,0.,100.);
     hbook1s(9,"chi2ms",200,0.,1000.);
+    hbook1s(229,"chi2",200,0.,1000.);
     hbook1s(10,"rig",200,0.,20.);
     hbook1s(11,"rig/rigpath",200,-1.,3.);
     hbook1s(12,"rig/rigtof",200,-1.,3.);
@@ -131,9 +132,13 @@ void ad::UBegin(){
     hbook1s(34,"trd stray",21,-0.5,20.5);
     hbook1s(35,"betarich",400,0.7,1.1);
     hbook1s(36,"ecalenratio",200,0.,10.);
+    hbook1s(37,"momentum",400,-20,20);
+    hbook1s(38,"proballtracker",200,0,1);
     hbook1s(1001,"mass",2000,-2.,12.,50,1);
     hbook1s(2000,"sliced mass k 0.1 to 1.2 ",2000,-2.,12.,20,1);
     hbook2(2100,"mass vs k ",400,-2.,4.,15,0.,1.5);
+    hbook1(51,"Ekin ",100,0.,5.);
+    hbook1(52,"Ekin ",100,0.,5.);
     cout << " Begin called now"<<endl;
     
    
@@ -154,7 +159,7 @@ void ad::UProcessFill()
 
      static int written=0;
      const int maxw=200;
-     bool cuts[21];
+     bool cuts[23];
      if(Particle(0).Charge==1 && fabs(Particle(0).Momentum)<20 && fabs(Particle(0).Momentum)>0 && Particle(0).Beta>0){
 
 
@@ -360,30 +365,34 @@ nah:
 
 //  Tof Cuts
     cuts[0]=nTofCluster()<5;
-    cuts[1]=nAntiCluster()<1;
+    cuts[1]=nAntiCluster()<1 || (ecalen>0.5 && nAntiCluster()<2);
     cuts[2]=beta.Pattern==0;
-    cuts[3]=fabs(fabs(beta.Beta)-1)>0.16 && fabs(rig)<8;
+    cuts[3]=fabs(fabs(beta.Beta)-1)>0.166 && fabs(rig)<8;
     cuts[4]=beta.Chi2S<8;
     cuts[5]=beta.Chi2<12;
-    cuts[6]=track.FChi2MS*beta.Beta*beta.Beta<1000;
+    cuts[6]=track.FChi2MS*beta.Beta*beta.Beta<10000;
+    cuts[6]=track.Chi2FastFit<500;
     cuts[7]=rtofotr>0.6 && rtofotr<1.5;
     cuts[7]=cuts[7] && rtofopi>0.6 && rtofopi<1.5;
     cuts[8]=r1>0.4 && r1<2.5;
     cuts[9]=r2>0.4 && r2<2.5;
     cuts[10]=ktofonly ==0;
     cuts[11]=nTrdTrack()==1;
-    cuts[12]=nTrdSegment()<5;
+    cuts[12]=nTrdSegment()<6;
     cuts[13]=tofmax*pow(xbeta,a166)<6 and tofmax*pow(xbeta,a166)>1;
     cuts[13]=cuts[13] && tofup*pow(xbeta,a166)<6.;
-    cuts[13]=cuts[13] && tofdown*pow(xbeta,a166)<6.;
-    cuts[14]=summis<20;
+    cuts[21]=tofdown*pow(xbeta,a166)<6.;
+    cuts[14]=summis<60;
     cuts[15]=summis1<400;
-    cuts[16]=htrdmul<6;
+    cuts[16]=htrdmul<4;
     cuts[17]=fabs(betarich-1)>0.1;
     cuts[18]=ecalen/fabs(Particle(0).Momentum)<1;
     cuts[19]=distx<3.9;
-    cuts[20]=fabs(mass)>1.71 && fabs(mass)<2.2;
-    for(int k=21;k<sizeof(cuts)/sizeof(cuts[0]);k++)cuts[k]=true;
+    cuts[20]=Particle(0).Momentum>0;
+//    cuts[21]=Charge(Particle(0).iCharge()).ProbAllTracker>0.05;
+//    cuts[21]=true;
+    cuts[22]=fabs(mass)>1.71 && fabs(mass)<2.2;
+    //for(int k=21;k<sizeof(cuts)/sizeof(cuts[0]);k++)cuts[k]=true;
     int nc=sizeof(cuts)/sizeof(cuts[0]);
     hf1s(1,nTofCluster(),cuts,nc,1);
     hf1s(2,nAntiCluster(),cuts,nc,2);
@@ -393,6 +402,7 @@ nah:
     hf1s(7,beta.Chi2S,cuts,nc,5);
     hf1s(8,beta.Chi2,cuts,nc,6);
     hf1s(9,track.FChi2MS*beta.Beta*beta.Beta,cuts,nc,7);
+    hf1s(229,track.Chi2FastFit,cuts,nc,7);
     hf1s(11,track.Rigidity/track.PiRigidity,cuts,nc,8);
     hf1s(12,rtofotr,cuts,nc,8);
     hf1s(13,rig/rigy,cuts,nc,8);
@@ -410,7 +420,7 @@ nah:
     hf1s(36,ecalen/fabs(Particle(0).Momentum),cuts,nc,19);
     hf1s(25,tofmax*pow(xbeta,a166),cuts,nc,14);
     hf1s(145,tofup*pow(xbeta,a166),cuts,nc,14);
-    hf1s(146,tofdown*pow(xbeta,a166),cuts,nc,14);
+    hf1s(146,tofdown*pow(xbeta,a166),cuts,nc,22);
     hf1s(19,summis,cuts,nc,15);
     hf1s(219,summis1,cuts,nc,16);
     hf1s(220,summis2,cuts,nc,16);
@@ -418,11 +428,17 @@ nah:
     hf1s(226,distx,cuts,nc,20);
     hf1s(227,disty,cuts,nc,20);
     hf1s(228,distx+disty,cuts,nc,20);
-    hf1s(16,mass,cuts,nc,21);
+    hf1s(37,Particle(0).Momentum,cuts,nc,21);
+//    hf1s(38,Charge(Particle(0).iCharge()).ProbAllTracker,cuts,nc,22);
+    hf1s(16,mass,cuts,nc,23);
     float xm=0;
+   float ekin=0;
     if(nMCEventg()>0){		
      MCEventgR mc_ev=MCEventg(0);
       xm = log(mc_ev.Momentum);
+      double betagen=mc_ev.Momentum/sqrt(mc_ev.Momentum*mc_ev.Momentum+mc_ev.Mass*mc_ev.Mass);
+      ekin=1/sqrt(1-betagen*betagen)-1;
+      
     }
     bool cut=true;
     for (int k=0;k<sizeof(cuts)/sizeof(cuts[0]);k++){
@@ -431,6 +447,7 @@ nah:
      }
       cut=cut && cuts[k];       
     }
+ 
     if(cut){
       if(xbeta>0){
        float ebeta=1/xbeta;
@@ -455,7 +472,13 @@ nah:
        if(k !=l)cut=cut && cuts[l];
       }
       if(cut)hf1(1000+k+1,mass);
-   } 
+   }
+   bool xcut=true;
+    for (int k=0;k<sizeof(cuts)/sizeof(cuts[0])-1;k++){
+      if(k!=3)xcut=xcut && cuts[k];       
+    }
+    if(xcut)hf1(51,ekin,1.);
+    if(xcut && cuts[sizeof(cuts)/sizeof(cuts[0])-1])hf1(52,ekin,1.);
 }
 }
 

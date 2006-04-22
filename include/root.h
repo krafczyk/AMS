@@ -903,7 +903,7 @@ public:
     return _Info;
   } 
   virtual ~RichRingR(){};
-  ClassDef(RichRingR,9)           // RichRingR
+  ClassDef(RichRingR,10)           // RichRingR
 }; 
 
 /// TRDRawHitR structure
@@ -1949,7 +1949,7 @@ public:
    /// hbook like 1d histgoram booking by int id \n parameres like in classical hbook1
 static void hbook1(int id,const char title[], int ncha, float  a, float b);  
    ///  few identical 1d histos booking in one call \n parameter howmany  number of histograms to be booked \n parameter shift    shift in id in subs hiistos
-static void hbook1s(int id,const char title[], int ncha, float  a, float bi, int howmany=5,int shift=100000);
+static void hbook1s(int id,const char title[], int ncha, float  a, float bi, int howmany=6,int shift=100000);
    ///  hbook like 2d histgoram booking by int id \n parameters like in classical hbook2
 static void hbook2(int id,const char title[], int ncha, float  a, float b,int nchaa, float  aa, float ba);   
    ///  few identical 2d histos booking in one call \n  parameter howmany  number of histograms to be booked \n parameter shift    shift in id in subs histos
