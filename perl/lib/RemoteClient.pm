@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.428 2006/04/10 08:22:46 choutko Exp $
+# $Id: RemoteClient.pm,v 1.429 2006/05/03 15:06:29 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7513,7 +7513,7 @@ sub listStat {
        if (defined $ret->[0][0]) {
            $jobsdone  =$ret->[0][0];
            if ($jobsdone > 0) {
-            $trigdone    = $ret->[0][2] - $ret->[0][1] + $jobsdone;
+            #$trigdone    = $ret->[0][2] - $ret->[0][1] + $jobsdone;
        }
        $sql="SELECT COUNT(Runs.run),SUM(Runs.fevent), SUM(Runs.levent)
                 FROM Jobs, Runs
@@ -7525,7 +7525,7 @@ sub listStat {
        if (defined $ret->[0][0]) {
            $jobsfailed  =$ret->[0][0];
        }
-       if ($jobsdone > 0 || $jobsfailed >0) {
+       if ($jobsdone > 0 || $jobsfailed >0 || 1) {
         if ($ds->{name} =~ /2005A/) {
           $sql="SELECT
                 stat_2005A_Jobs.firstjobtime,stat_2005A_Jobs.lastjobtime,
@@ -7547,6 +7547,18 @@ sub listStat {
                FROM
                   stat_2005B_Jobs, stat_2005B_TimeoutRuns,
                   stat_2005B_NTuples,stat_2005B_CastorNTuples";
+      }
+      elsif  ($ds->{name} =~ /2006A/) {
+          my $target="2006A";
+          $sql="SELECT
+                stat_".$target."_Jobs_A.firstjobtime,stat_".$target."_Jobs_A.lastjobtime,
+                stat_".$target."_Jobs_A.totaljobs,stat_".$target."_Jobs_A.totaltriggers,
+                stat_".$target."_TimeoutRuns.TotalRuns,
+                stat_".$target."_NTuples.TotalFiles, stat_".$target."_NTuples.SizeMB,
+                stat_".$target."_CastorNTuples.TotalFiles, stat_".$target."_CastorNTuples.SizeMB, stat_".$target."_Jobs.totaltriggers
+               FROM
+                  stat_".$target."_Jobs_A,stat_".$target."_Jobs, stat_".$target."_TimeoutRuns,
+                  stat_".$target."_NTuples,stat_".$target."_CastorNTuples";
       }
       elsif  ($ds->{name} =~ /2006B/) {
           $sql="SELECT
@@ -7572,6 +7584,7 @@ sub listStat {
          $cntuples    = $ret->[0][7];
          $csizegb     = sprintf("%.1f",$ret->[0][8]/1000);
          $jobsreq     = $jobsreq - $jobsdone - $jobsfailed;
+         $trigdone    = $ret->[0][9];
       $sql="select count(jid) from jobs_deleted where  pid=$datasetId AND cid != $TestCiteId";
        my $jbs=$self->{sqlserver}->Query($sql);
        if(defined $jbs->[0][0]){
