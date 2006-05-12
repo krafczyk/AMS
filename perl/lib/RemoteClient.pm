@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.429 2006/05/03 15:06:29 choutko Exp $
+# $Id: RemoteClient.pm,v 1.430 2006/05/12 12:40:54 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -781,6 +781,7 @@ if($#{$self->{DataSetsT}}==-1){
      $dataset->{jobs}=[];
      $#{$dataset->{jobs}}=-1;
      $dataset->{eventstodo} = 0;
+     $dataset->{eventstotal} = 0;
      $dataset->{version}="v5";
      my @tmpa;
      $#tmpa=-1;
@@ -821,6 +822,7 @@ if($#{$self->{DataSetsT}}==-1){
         if(defined $self->{TrialRun}){
             $template->{TOTALEVENTS}*=$self->{TrialRun};
         }
+        $template->{TOTALEVENTSC}=$template->{TOTALEVENTS};
         $totalcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
            $template->{initok}=1;
            foreach my $ent (@farray){
@@ -914,7 +916,8 @@ if($#{$self->{DataSetsT}}==-1){
             substr($desc,0,1)=" ";
             $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
             $dataset->{eventstodo} += $template->{TOTALEVENTS};
-            if($template->{TOTALEVENTS}>100){
+            $dataset->{eventstotal} += $template->{TOTALEVENTSC};
+            if($template->{TOTALEVENTS}>1000){
              push @tmpa, $template;
          }
           }
@@ -3721,10 +3724,10 @@ CheckCite:            if (defined $q->param("QCite")) {
                    $checked="";
                 }
 #                print "</b>";
-                 if ($dataset->{eventstodo} <1000  ){
+                 if ($dataset->{eventstodo}/($dataset->{eventstotal}+1) <0.001  ){
                   print "<tr><td><b><font color=\"tomato\"> $dataset->{name} </font></b></td></tr>";
 #                  print "</b></font></td></tr>";
-                 } elsif($dataset->{eventstodo} >1000)  {
+                 } else {
                     print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE= $dataset->{name} $checked>$dataset->{name}<BR>";
                  }
 #                print "</b></font></td></tr>";
@@ -13586,6 +13589,7 @@ sub readDataSets() {
      $dataset->{name}=$file;
      $dataset->{jobs}=[];
      $dataset->{eventstodo} = 0;
+     $dataset->{eventstotal} = 0;
 
      my @tmpa;
      opendir THISDIR, $newfile or die "unable to open $newfile";
@@ -13696,7 +13700,8 @@ sub readDataSets() {
             substr($desc,0,1)=" ";
             $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
             $dataset->{eventstodo} += $template->{TOTALEVENTS};
-            if($template->{TOTALEVENTS}>100){
+            $dataset->{eventstotal} += $template->{TOTALEVENTSC};
+            if($template->{TOTALEVENTS}>1000){
              push @tmpa, $template;
              if ($verbose == 1) {print "$template->{filedesc} \n"; }
            }
