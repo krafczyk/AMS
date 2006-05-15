@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.1 2006/05/15 14:29:05 choutko Exp $
+# $Id: NetMonitor.pm,v 1.2 2006/05/15 14:45:37 choutko Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -50,12 +50,14 @@ if(not open(FILE,"<".$self->{hostfile})){
     goto again;
 }
        my $buf;
+    $self->sendmailpolicy("NetMonitor-I-Opened File $self->{hostfile} \n");
     if(not read(FILE,$buf,1638400)){
       close FILE;
       $self->sendmailpolicy("NetMonitor-S-ProblemsToReadFile $self->{hostfile} \n");
       sleep $self->{sleep};
       goto again;
     }     
+      $self->sendmailpolicy("NetMonitor-I-ReadFile $self->{hostfile} \n");
     close FILE;
     my @sbuf=split "\n",$buf;
     $#{$self->{hosts}}=-1;
@@ -137,7 +139,7 @@ sub sendmailpolicy{
        my $firstsent=0;
        for my $i (0..$#{$self->{sendmail}}){
            my $hash=${$self->{sendmail}}[$i];
-           if($hash->{first} ==1 and $hash->{sent}>0){
+           if($hash->{first} ==1 and $hash->{sent}>1){
             $firstsent=1;
             last;
            }
