@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.430 2006/05/12 12:40:54 choutko Exp $
+# $Id: RemoteClient.pm,v 1.431 2006/05/15 14:29:05 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3724,7 +3724,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                    $checked="";
                 }
 #                print "</b>";
-                 if ($dataset->{eventstodo}/($dataset->{eventstotal}+1) <0.001  ){
+                 if ($dataset->{eventstodo}/($dataset->{eventstotal}+1) <0.001 or  $dataset->{eventstodo}<1000){
                   print "<tr><td><b><font color=\"tomato\"> $dataset->{name} </font></b></td></tr>";
 #                  print "</b></font></td></tr>";
                  } else {
