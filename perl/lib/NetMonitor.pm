@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.2 2006/05/15 14:45:37 choutko Exp $
+# $Id: NetMonitor.pm,v 1.3 2006/05/16 08:40:13 choutko Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -124,14 +124,17 @@ sub sendmailpolicy{
    if($subj=~/-I-/){
        for my $i (0..$#{$self->{sendmail}}){
            my $hash=${$self->{sendmail}}[$i];
+           my $ok=0;
            if($hash->{sent}>0){
                my @sadd=split ' ',$hash->{address};
                foreach my $add (@sadd){
-                $self->sendmailmessage($add,$subj," ");
+                $ok+=$self->sendmailmessage($add,$subj," ");
                }
            } 
-           $hash->{sent}=0;
-           $hash->{timesent}=0;
+           if($ok<2){
+            $hash->{sent}=0;
+            $hash->{timesent}=0;
+           }
        }
    } 
    else{
@@ -153,11 +156,14 @@ sub sendmailpolicy{
                foreach my $bad (@{$self->{bad}}){
                    $mes=$mes."$bad \n";
                }
+               my $ok=0;
                foreach my $add (@sadd){
-                $self->sendmailmessage($add,$subj,$mes);
+                $ok+=$self->sendmailmessage($add,$subj,$mes);
                }
-              $hash->{sent}++;
-              $hash->{timesent}=$curtim;
+              if($ok<2){
+               $hash->{sent}++;
+               $hash->{timesent}=$curtim;
+              }
            } 
        }
    }
@@ -203,7 +209,7 @@ Subject: $sub
 
 $mes
 END_OF_MESSAGE2
-    close MAIL or return 2;
+    close MAIL or return 1;
     }
     return 0;
 }
