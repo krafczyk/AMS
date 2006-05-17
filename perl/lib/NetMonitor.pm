@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.4 2006/05/17 12:43:42 ams Exp $
+# $Id: NetMonitor.pm,v 1.5 2006/05/17 12:49:25 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -182,13 +182,13 @@ sub sendmailpolicy{
        for my $i (0..$#{$self->{sendmail}}){
            my $hash=${$self->{sendmail}}[$i];
            my $ok=0;
+           my @sadd=split ' ',$hash->{address};
            if($hash->{sent}>0){
-               my @sadd=split ' ',$hash->{address};
                foreach my $add (@sadd){
                 $ok+=$self->sendmailmessage($add,$subj," ");
                }
            } 
-           if($ok<2){
+           if($ok<$#sadd+1){
             $hash->{sent}=0;
             $hash->{timesent}=0;
            }
@@ -239,9 +239,9 @@ sub sendmailpolicy{
                 $ok+=$self->sendmailmessage($add,$subj,$badh{$subj});
                }
                }
-               my $min=2;
-               if($min<2*scalar(keys(%badh))){
-                  $min=2*scalar(keys(%badh));
+               my $min=$#sadd+1;
+               if($min<($#sadd+1)*scalar(keys(%badh))){
+                  $min=($#sadd+1)*scalar(keys(%badh));
                }
               if($ok<$min){
                $hash->{sent}++;
