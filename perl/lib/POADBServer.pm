@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.26 2005/10/20 11:35:38 ams Exp $
+#  $Id: POADBServer.pm,v 1.27 2006/05/17 12:43:42 ams Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -131,7 +131,7 @@ OUT:
            $dv->{DieHard}=0;
            my $i=-1;
            sub prio { $b->{Priority}  <=> $a->{Priority};}
-           sub prio1 { $b->{Run}  <=> $a->{Run};}
+           sub prio1 { $a->{Run}  <=> $b->{Run};}
            my @sortedrtb1=sort prio1 @{$ref->{rtb}};
             my $run=-1;
             foreach my $rtb (@sortedrtb1){
