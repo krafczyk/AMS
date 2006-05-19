@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.5 2006/05/17 12:49:25 ams Exp $
+# $Id: NetMonitor.pm,v 1.6 2006/05/19 07:49:30 choutko Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -125,10 +125,10 @@ if(not open(FILE,"<".$self->{hostfile})){
              }
              close FILE;
              my @sbuf= split ' ',$buf;
-             if($#sbuf>3 and $sbuf[2] eq $mday){
-               my $xtl=$hr*3600+$min*60+$sec;
+             if($#sbuf>3){
+               my $xtl=($mday-1)*24*3600+$hr*3600+$min*60+$sec;
                my @ssbuf=split ':',$sbuf[3];
-               my $xt=$ssbuf[0]*3600+$ssbuf[1]*60+$ssbuf[2];
+               my $xt=($sbuf[2]-1)*3600*24+$ssbuf[0]*3600+$ssbuf[1]*60+$ssbuf[2];
                if(abs($xt-$xtl)>360){
                   push @{$self->{bad}}, $host." NetMonitor-W-ClockProblems";
                }
