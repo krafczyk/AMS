@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.6 2006/05/19 07:49:30 choutko Exp $
+# $Id: NetMonitor.pm,v 1.7 2006/05/19 07:56:09 choutko Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -97,7 +97,7 @@ if(not open(FILE,"<".$self->{hostfile})){
 
     $mes="NetMonitor-W-SomeHostsHaveWrongTime";
     my $command="ssh -x -o \'StrictHostKeyChecking no \' ";
-    my ($sec,$min,$hr,$mday,$mon,$y,$w,$yd,$isdst)=localtime(time());
+#    my ($sec,$min,$hr,$mday,$mon,$y,$w,$yd,$isdst)=localtime(time());
     foreach my $host (@{$self->{hosts}}) {
         my $gonext=0;
         foreach my $bad (@{$self->{bad}}){
@@ -111,7 +111,8 @@ if(not open(FILE,"<".$self->{hostfile})){
             next;
         }
         unlink "/tmp/xtime";
-        my $i=system($command.$host." date > /tmp/xtime ");
+        my $i=system($command.$host.' date +%s > /tmp/xtime ');
+        my $curtime=time();
         if(not $i){
           if(not open(FILE,"<"."/tmp/xtime")){
                  push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
@@ -124,12 +125,12 @@ if(not open(FILE,"<".$self->{hostfile})){
                next;
              }
              close FILE;
-             my @sbuf= split ' ',$buf;
-             if($#sbuf>3){
-               my $xtl=($mday-1)*24*3600+$hr*3600+$min*60+$sec;
-               my @ssbuf=split ':',$sbuf[3];
-               my $xt=($sbuf[2]-1)*3600*24+$ssbuf[0]*3600+$ssbuf[1]*60+$ssbuf[2];
-               if(abs($xt-$xtl)>360){
+#             my @sbuf= split ' ',$buf;
+#             if($#sbuf>3){
+#               my $xtl=($mday-1)*24*3600+$hr*3600+$min*60+$sec;
+#               my @ssbuf=split ':',$sbuf[3];
+#               my $xt=($sbuf[2]-1)*3600*24+$ssbuf[0]*3600+$ssbuf[1]*60+$ssbuf[2];
+               if(abs($curtime-$buf)>360){
                   push @{$self->{bad}}, $host." NetMonitor-W-ClockProblems";
                }
                next;
