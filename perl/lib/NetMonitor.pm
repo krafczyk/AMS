@@ -1,10 +1,10 @@
-# $Id: NetMonitor.pm,v 1.7 2006/05/19 07:56:09 choutko Exp $
+# $Id: NetMonitor.pm,v 1.8 2006/05/19 14:28:30 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
 use strict;
 use Carp;
-use MIME::Lite;
+#use MIME::Lite;
 use POSIX  qw(strtod);
 @NetMonitor::EXPORT=qw(new Run); 
 
@@ -134,18 +134,61 @@ if(not open(FILE,"<".$self->{hostfile})){
                   push @{$self->{bad}}, $host." NetMonitor-W-ClockProblems";
                }
                next;
-             }  
+#             }  
                 push @{$self->{bad}}, $host." NetMonitor-W-ClockReadProblems";
-         }
+            }
         else{
             push @{$self->{bad}}, $host." NetMonitor-W-sshFailed";
             next;
         }
     }
-
-
-
-
+#
+# df
+#
+    $mes="NetMonitor-W-SomeHostsHaveDiskSpaceProblems";
+     $command="ssh -x -o \'StrictHostKeyChecking no \' ";
+    foreach my $host (@{$self->{hosts}}) {
+        my $gonext=0;
+        foreach my $bad (@{$self->{bad}}){
+            my @sbad=split ' ',$bad;
+            if($sbad[0] eq $host){
+                $gonext=1;
+                last;
+            }
+        }
+        if($gonext){
+            next;
+        }
+        unlink "/tmp/xspace";
+         my $i=system($command.$host." df > /tmp/xspace ");
+        if(not $i){
+            if(not open(FILE,"<"."/tmp/xspace")){
+                push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
+                next;
+            }
+            my @words=<FILE>;
+            close FILE;
+              foreach my $word (@words) {
+                if($word =~/\/$/){
+                    my @sword= split ' ',$word;
+                    if($#sword>1){
+                        my $pc=$sword[$#sword-1];
+                        my $ava=$sword[$#sword-2];
+                        $pc=~ s/\%//;
+                        if($ava < 1000000 or $pc<2){
+                            push @{$self->{bad}}, $host." NetMonitor-W-DiskSpaceProblems";
+                       }
+                        last;
+                    }
+                }
+            }
+        }
+         else{
+                push @{$self->{bad}}, $host." NetMonitor-W-sshFailed";
+                next;
+            }
+        }
+###
     if($#{$self->{bad}}>-1){
         my $found=0;
         foreach my $bad (@{$self->{bad}}){
@@ -258,32 +301,6 @@ sub sendmailmessage{
     my $add=shift;
     my $sub=shift;
     my $mes=shift;
-    my $att=shift;
-    if(defined $att){
-        my $msg = MIME::Lite->new(
-                     To      =>$add,
-                     Subject =>$sub,
-                     Type    =>'multipart/mixed'
-                               );
-
-        $msg->attach(Type     =>'TEXT',
-                     Data     =>$mes,
-                     );
-        my @files = split ';', $att;
-        foreach my $file (@files){
-            my @f=split ',', $file;
-         $msg->attach(Type     =>'octet/stream',
-                     Path     =>$f[0],
-                     Filename =>$f[1],
-                     Disposition => 'attachment'
-                     );
-        }
-      #  $msg->as_string;
-
-      #  $msg->print(\*SENDMAIL);
-        $msg->send();
-    }
-    else{
     open MAIL, "| /usr/lib/sendmail -t -i"
 #        or die "could not open sendmail: $!";
         or return 1;
@@ -294,7 +311,6 @@ Subject: $sub
 $mes
 END_OF_MESSAGE2
     close MAIL or return 1;
-    }
     return 0;
 }
 
