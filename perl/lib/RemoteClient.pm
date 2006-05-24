@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.431 2006/05/15 14:29:05 choutko Exp $
+# $Id: RemoteClient.pm,v 1.432 2006/05/24 13:08:40 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7224,6 +7224,7 @@ sub listAll {
     $self -> listStat();
      $self -> listCites();
       $self -> listMails();
+      $self -> listNetMonitor();
        $self -> listServers();
         $self -> listJobs();
          $self -> listRuns();
@@ -8205,6 +8206,69 @@ sub listServers {
      print_bar($bluebar,3);
      print "<p></p>\n";
     }
+}
+
+
+
+
+sub listNetMonitor {
+    my $self = shift;
+    if ($webmode == 1) {
+     print "<b><h2><A Name = \"netmon\"> </a></h2></b> \n";
+     htmlTable("NetMonitor Messages");
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+    }
+     my $sql="SELECT message, hosts, category,  timestamp FROM  netmon
+              ORDER BY timestamp DESC";
+
+     my $r3=$self->{sqlserver}->Query($sql);
+     if ($webmode == 1) {
+         print "<tr><td><b><font color=\"blue\">Category </font></b></td>";
+              print "<td><b><font color=\"blue\" >Message </font></b></td>";
+              print "<td><b><font color=\"blue\" >Hosts </font></b></td>";
+              print "<td><b><font color=\"blue\" >Time </font></b></td>";
+              print_bar($bluebar,3);
+          }
+    if(defined $r3->[0][0]){
+        my $i=0;
+      foreach my $msg (@{$r3}){
+          my $mes   = $msg->[0];
+          my $hosts   = $msg->[1];
+          my $cat   = $msg->[2];
+          my $stime = EpochToDDMMYYHHMMSS($msg->[3]);
+          my  $color="black";
+          if($cat =~/I/){
+              $color="green";
+          }
+          elsif($cat =~/W/){
+              $color="magenta";
+          }
+          elsif($cat =~/E/){
+              $color="tomato";
+          }
+          elsif($cat =~/S/){
+              $color="red";
+          }
+           print "<tr><font size=\"2\">\n";
+           print "<td><b><font color=$color> $cat </td><td><b><font color=$color> $mes </b></td><td><b><font color=$color> $hosts </td><td><b><font color=$color> $stime  </b></td>\n";
+           print "</font></tr>\n";
+          $i++;
+          if($i>10){
+              last;
+          }
+      }
+  }
+    else{
+      $self->sendmailmessage('41764874733@mail2sms.cern.ch',"-S-NetMonitorNotResponded"," ");
+      $self->sendmailmessage('Alexandre.Eline@cern.ch',"-S-NetMonitorNotResponded"," ");
+    }
+
+    if ($webmode == 1) {
+       htmlTableEnd();
+      htmlTableEnd();
+     print_bar($bluebar,3);
+     print "<p></p>\n";
+   }
 }
 
 
