@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.102 2006/01/23 21:56:03 choutko Exp $
+# $Id: Monitor.pm,v 1.103 2006/05/24 13:09:05 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -85,7 +85,7 @@ foreach my $chop  (@ARGV){
         $self->{updatesviadb}=1;
 #amsdatadir
 
-        my $dir=$ENV{AMSDataDir};
+        my $dir=$ENV{AMSataDir};
         if (defined $dir){
             $self->{AMSDataDir}=$dir;
         }
@@ -288,7 +288,7 @@ sub UpdateEverything{
          my $addpath="/DataBase/";
          my ($ok, $dhl)=$arsref->getDBSpace(\%cid,$path,$addpath);
          $ref->{db}=$dhl;
-         $path="AMSProdOutputDir";
+         $path="AMSProdOutDir";
          $addpath="/";
           ($ok, $dhl)=$arsref->getDBSpace(\%cid,$path,$addpath);
          $ref->{rn}=$dhl;

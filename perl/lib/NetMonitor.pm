@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.9 2006/05/23 09:16:49 choutko Exp $
+# $Id: NetMonitor.pm,v 1.10 2006/05/24 13:09:06 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -269,6 +269,7 @@ sub sendmailpolicy{
    if(not defined $force){
        $force=0;
    }
+   my $f2=$force;
    if($subj=~/-I-/){
        for my $i (0..$#{$self->{sendmail}}){
            my $hash=${$self->{sendmail}}[$i];
@@ -277,19 +278,21 @@ sub sendmailpolicy{
            if($hash->{sent}>0  or $force){
                foreach my $add (@sadd){
                 $ok+=$self->sendmailmessage($add,$subj," ");
+                if(!$ok){
+                  $f2=1;
+                }
                }
            } 
            if($ok<$#sadd+1){
             $hash->{sent}=0;
             $hash->{timesent}=0;
-            $force=1;
            }
    }
 
 #
 #   Oracle
 #
-       if($force or $curtim-$self->{sqlserver}->{lastupdate}>$self->{sqlserver}->{repet}){
+       if($f2 or $curtim-$self->{sqlserver}->{lastupdate}>$self->{sqlserver}->{repet}){
            if($self->updateoracle($subj," ")){
                 $self->{sqlserver}->{lastupdate}=$curtim;
            }              
@@ -341,6 +344,9 @@ sub sendmailpolicy{
                foreach my $subj (keys %badh){
                foreach my $add (@sadd){
                 $ok+=$self->sendmailmessage($add,$subj,$badh{$subj});
+                if(!$ok){
+                 $f2=1;
+                }
                }
                }
                my $min=$#sadd+1;
@@ -350,14 +356,13 @@ sub sendmailpolicy{
               if($ok<$min){
                $hash->{sent}++;
                $hash->{timesent}=$curtim;
-               $force=1;
               }
            } 
        }
 #
 #   Oracle
 #
-       if($force or $curtim-$self->{sqlserver}->{lastupdate}>$self->{sqlserver}->{repet}){
+       if($f2 or $curtim-$self->{sqlserver}->{lastupdate}>$self->{sqlserver}->{repet}){
         foreach my $subj (keys %badh){
            if($self->updateoracle($subj,,$badh{$subj})){
                 $self->{sqlserver}->{lastupdate}=$curtim;
