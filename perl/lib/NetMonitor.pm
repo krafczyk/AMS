@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.10 2006/05/24 13:09:06 ams Exp $
+# $Id: NetMonitor.pm,v 1.11 2006/05/31 09:08:29 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -171,6 +171,7 @@ if(not open(FILE,"<".$self->{hostfile})){
                next;
              }
              close FILE;
+             unlink "/tmp/xtime";
 #             my @sbuf= split ' ',$buf;
 #             if($#sbuf>3){
 #               my $xtl=($mday-1)*24*3600+$hr*3600+$min*60+$sec;
@@ -214,6 +215,7 @@ if(not open(FILE,"<".$self->{hostfile})){
             }
             my @words=<FILE>;
             close FILE;
+            unlink "/tmp/xspace";
               foreach my $word (@words) {
                 if($word =~/\/$/){
                     my @sword= split ' ',$word;
@@ -265,7 +267,11 @@ sub sendmailpolicy{
    my $self=shift; 
    my $subj=shift;
    my $force=shift;
+   my $nooracle=shift;
    my $curtim=time();
+   if(not defined $nooracle){
+     $nooracle=0;
+   } 
    if(not defined $force){
        $force=0;
    }
@@ -293,9 +299,12 @@ sub sendmailpolicy{
 #   Oracle
 #
        if($f2 or $curtim-$self->{sqlserver}->{lastupdate}>$self->{sqlserver}->{repet}){
-           if($self->updateoracle($subj," ")){
+           if($nooracle or $self->updateoracle($subj," ")){
                 $self->{sqlserver}->{lastupdate}=$curtim;
-           }              
+           }   
+           else{
+            $self->sendmailpolicy("NetMonitor-E-UnableToConnectOracle",0,1);
+           }            
        }    
 
    } 
@@ -364,9 +373,13 @@ sub sendmailpolicy{
 #
        if($f2 or $curtim-$self->{sqlserver}->{lastupdate}>$self->{sqlserver}->{repet}){
         foreach my $subj (keys %badh){
-           if($self->updateoracle($subj,,$badh{$subj})){
+           if($nooracle or $self->updateoracle($subj,,$badh{$subj})){
                 $self->{sqlserver}->{lastupdate}=$curtim;
            }              
+           else{
+            $self->sendmailpolicy("NetMonitor-E-UnableToConnectOracle",0,1);
+ 
+           }
        }
        }    
 
