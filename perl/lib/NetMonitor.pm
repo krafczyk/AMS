@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.11 2006/05/31 09:08:29 ams Exp $
+# $Id: NetMonitor.pm,v 1.12 2006/05/31 09:39:55 choutko Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -48,9 +48,8 @@ push @{$self->{sendmail}},{first=>0,repet=>21600,address=>'vitali.choutko@cern.c
 }
 
 
-sub Run{
+sub InitOracle{
     my $self=shift;
-
 
    set_oracle_env();
     my $pwd="";
@@ -59,7 +58,7 @@ sub Run{
     my $oracle="/afs/cern.ch/user/a/ams/.oracle/.oracle.oracle";
   aga2:
     if(not open(FILE,"<".$oracle)){
-      $self->sendmailpolicy("NetMonitor-S-UnableToOpenFile $oracle \n");
+      $self->sendmailpolicy("NetMonitor-S-UnableToOpenFile $oracle \n",0,1);
       sleep $self->{sleep};
       goto aga2;
                         }
@@ -68,12 +67,19 @@ sub Run{
     }
     close FILE;
       if(not $self->{sqlserver}->{dbhandler}=DBI->connect('DBI:'.$self->{sqlserver}->{dbdriver}.$self->{sqlserver}->{dbfile},$user,$pwd,{PrintError => 1, AutoCommit => 1})){
-      $self->sendmailpolicy("NetMonitor-S-CannotConnectToOracle $DBI::errstr \n");
+      $self->sendmailpolicy("NetMonitor-S-CannotConnectToOracle $DBI::errstr \n",0,1);
       sleep $self->{sleep};
       goto aga2;
      
   }
 
+
+}
+
+sub Run{
+    my $self=shift;
+
+    $self->InitOracle();
 
 
 
@@ -277,6 +283,9 @@ sub sendmailpolicy{
    }
    my $f2=$force;
    if($subj=~/-I-/){
+
+
+
        for my $i (0..$#{$self->{sendmail}}){
            my $hash=${$self->{sendmail}}[$i];
            my $ok=0;
@@ -295,19 +304,27 @@ sub sendmailpolicy{
            }
    }
 
+
 #
 #   Oracle
 #
+
        if($f2 or $curtim-$self->{sqlserver}->{lastupdate}>$self->{sqlserver}->{repet}){
            if($nooracle or $self->updateoracle($subj," ")){
-                $self->{sqlserver}->{lastupdate}=$curtim;
            }   
            else{
-            $self->sendmailpolicy("NetMonitor-E-UnableToConnectOracle",0,1);
+            $self->InitOracle();
+            if(not $self->updateoracle($subj," ")){
+             $self->sendmailpolicy("NetMonitor-E-UnableToConnectOracle",0,1);
            }            
-       }    
+          }    
+       }
 
-   } 
+
+
+
+
+   }
    else{
 #  error
        my $firstsent=0;
@@ -367,25 +384,36 @@ sub sendmailpolicy{
                $hash->{timesent}=$curtim;
               }
            } 
-       }
 #
 #   Oracle
 #
        if($f2 or $curtim-$self->{sqlserver}->{lastupdate}>$self->{sqlserver}->{repet}){
-        foreach my $subj (keys %badh){
-           if($nooracle or $self->updateoracle($subj,,$badh{$subj})){
-                $self->{sqlserver}->{lastupdate}=$curtim;
+    if(scalar(keys(%badh)) ==0){
+          if($nooracle or $self->updateoracle($subj,$badh{$subj})){
            }              
            else{
-            $self->sendmailpolicy("NetMonitor-E-UnableToConnectOracle",0,1);
- 
-           }
+            $self->InitOracle();
+            if(not $self->updateoracle($subj,$badh{$subj})){
+             $self->sendmailpolicy("NetMonitor-E-UnableToConnectOracle",0,1);
+           }            
+        }
+      }
+         foreach my $subj (keys %badh){
+           if($nooracle or $self->updateoracle($subj,$badh{$subj})){
+           }              
+           else{
+            $self->InitOracle();
+            if(not $self->updateoracle($subj,$badh{$subj})){
+             $self->sendmailpolicy("NetMonitor-E-UnableToConnectOracle",0,1);
+           }            
        }
-       }    
+        }    
 
+}}
 
-     }
 }
+}
+
 
 sub sendmailmessage{
     my $self=shift;
@@ -446,5 +474,6 @@ sub updateoracle{
     if(not $self->{sqlserver}->{dbhandler}->do($sql)){
         return 0;
     }
+    $self->{sqlserver}->{lastupdate}=$curtim;
     return 1;
 }
