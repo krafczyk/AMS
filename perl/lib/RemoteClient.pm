@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.432 2006/05/24 13:08:40 choutko Exp $
+# $Id: RemoteClient.pm,v 1.433 2006/05/31 09:09:06 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8231,12 +8231,17 @@ sub listNetMonitor {
           }
     if(defined $r3->[0][0]){
         my $i=0;
+        my $curtime=time();
       foreach my $msg (@{$r3}){
           my $mes   = $msg->[0];
           my $hosts   = $msg->[1];
           my $cat   = $msg->[2];
           my $stime = EpochToDDMMYYHHMMSS($msg->[3]);
           my  $color="black";
+          if($i==0 and $curtime-$msg->[3]>3600*6){
+            $self->sendmailmessage('41764874733@mail2sms.cern.ch',"-S-NetMonitorNotResponded"," ");
+      $self->sendmailmessage('Alexandre.Eline@cern.ch',"-S-NetMonitorNotResponded"," ");
+           } 
           if($cat =~/I/){
               $color="green";
           }
@@ -8249,13 +8254,12 @@ sub listNetMonitor {
           elsif($cat =~/S/){
               $color="red";
           }
+          if($i++>1 and $cat =~/I/){
+              next;
+          }
            print "<tr><font size=\"2\">\n";
            print "<td><b><font color=$color> $cat </td><td><b><font color=$color> $mes </b></td><td><b><font color=$color> $hosts </td><td><b><font color=$color> $stime  </b></td>\n";
            print "</font></tr>\n";
-          $i++;
-          if($i>10){
-              last;
-          }
       }
   }
     else{
