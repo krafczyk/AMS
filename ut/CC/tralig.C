@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.32 2005/07/20 15:41:06 choutko Exp $
+//  $Id: tralig.C,v 1.33 2006/07/06 14:48:34 choutko Exp $
 #include "tralig.h"
 #include "event.h"
 #include <math.h>
@@ -795,7 +795,7 @@ cout <<" AMSTrAligFit::Anal called for pattern "<<_Pattern<<" "<<_Address<<endl;
         }
       }
       cooN=cooN+coov.mm3(nrmN);
-      mm3(nrmN,coom,0);
+      amsprotected::mm3(nrmN,coom,0);
       _pParC[il].setcoo(cooN);
       for( j=0;j<3;j++){
        _pParC[il].setmtx(j)= AMSDir(coom[j][0],coom[j][1],coom[j][2]);  
@@ -1562,7 +1562,7 @@ if(TRALIG.LayersOnly){
          for(j=0;j<3;j++){
           coo[j]=_pPargl[0][0][i].getcoo()[j]+(_pPargl[0][0][i].getmtx(j)).prod(Coo);
          }
-         mm3(nrmN,nrm,0);
+         amsprotected::mm3(nrmN,nrm,0);
          TKDBc::SetLayer(i+1,status,coo,nrm,rgid);
       }
          TKDBc::write(4);
@@ -1600,10 +1600,10 @@ for(i=0;i<maxlay;i++){
        number nrmz0[3][3];
        number nrmz1[3][3];
        UCOPY(nrmN,nrmz0,sizeof(nrmz0)/sizeof(integer));
-       mm3(nrmyT,nrmz0,0);
+       amsprotected::mm3(nrmyT,nrmz0,0);
        UCOPY(nrmy,nrmz1,sizeof(nrmz0)/sizeof(integer));
-       mm3(nrmN,nrmz1,0);
-       mm3(nrmyT,nrmz1,0);
+       amsprotected::mm3(nrmN,nrmz1,0);
+       amsprotected::mm3(nrmyT,nrmz1,0);
         
        for(j=0;j<3;j++){
           AMSDir d0(nrmyT[j][0],nrmyT[j][1],nrmyT[j][2]);
@@ -1611,9 +1611,9 @@ for(i=0;i<maxlay;i++){
           AMSDir d2(nrmz1[j][0],nrmz1[j][1],nrmz1[j][2]);
           coo[j]=d0.prod(_pPargl[nlad][side][i].getcoo()-Cooy)+d1.prod(Cooy)+d2.prod(Coo);
        }
-       mm3(nrmy,nrm,0);
-       mm3(nrmN,nrm,0);
-       mm3(nrmyT,nrm,0);
+       amsprotected::mm3(nrmy,nrm,0);
+       amsprotected::mm3(nrmN,nrm,0);
+       amsprotected::mm3(nrmyT,nrm,0);
        if(_pPargl[nlad][side][i].NEntries()>TRALIG.MinEventsPerFit){
          TKDBc::SetLadder(i,nlad,side,status,coo,nrm,rgid);
          _pPargl[nlad][side][i].NEntries()=-_pPargl[nlad][side][i].NEntries(); 

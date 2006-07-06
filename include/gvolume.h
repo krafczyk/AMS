@@ -1,4 +1,4 @@
-//  $Id: gvolume.h,v 1.23 2005/05/17 09:56:35 pzuccon Exp $
+//  $Id: gvolume.h,v 1.24 2006/07/06 14:48:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Aug 08, 1996. ak.  First try with Objectivity.
@@ -15,6 +15,9 @@
 #include "point.h"
 #include "gmat.h"
 #include "geantnamespace.h"
+#ifdef __G4AMS__
+using namespace CLHEP;
+#endif
 class G4VSolid;
 class AMSgvolume : public AMSNode {
  protected:
@@ -89,7 +92,7 @@ class AMSgvolume : public AMSNode {
     AMSgtmed* getpgtmed() const {return _pgtmed;}
 #ifdef __G4AMS__
  void MakeG4Volumes();
-void ReadG4StepVolumes(char * fnam);
+//void ReadG4StepVolumes(char * fnam);
 
   AMSgvolume* offspring(){return _offspring;}
   integer & Smartless(){return _smartless;}

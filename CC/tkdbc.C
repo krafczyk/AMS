@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.41 2005/09/09 07:55:14 choumilo Exp $
+//  $Id: tkdbc.C,v 1.42 2006/07/06 14:48:33 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -2707,7 +2707,7 @@ if(TKGEOMFFKEY.UpdateGeomFile!=1)return;
          nrm[0][2]=matrix[2][0];
          nrm[1][2]=matrix[2][1];
          nrm[2][2]=matrix[2][2];
-         mm3(LayerNrm[il],nrm,0);
+         amsprotected::mm3(LayerNrm[il],nrm,0);
          //cout <<nrm[0][0]<< " "<<nrm[0][1]<< " "<<nrm[0][2]<<endl;
          //cout <<nrm[1][0]<< " "<<nrm[1][1]<< " "<<nrm[1][2]<<endl;
          //cout <<nrm[2][0]<< " "<<nrm[2][1]<< " "<<nrm[2][2]<<endl;
@@ -2818,7 +2818,7 @@ if(ifile){
          for(j=0;j<3;j++){
           coo[j]=x[i].getcoo()[j]+(x[i].getmtx(j)).prod(Coo);
          }
-         mm3(nrmN,nrm,0);
+         amsprotected::mm3(nrmN,nrm,0);
          TKDBc::SetLayer(i+1,status,coo,nrm,rgid);
      }
 
@@ -3201,7 +3201,7 @@ void TKDBc::fitting(int il,int nls, int meas, integer StaLadders[17][2],
          nrm[1][2]=matrix[2][1];
          nrm[2][2]=matrix[2][2];
          
-         mm3(LadderNrm[i][j],nrm,0);
+         amsprotected::mm3(LadderNrm[i][j],nrm,0);
          if(j==1){
           // rotate x & by 180 degrees
            nrm[0][0]=-nrm[0][0];

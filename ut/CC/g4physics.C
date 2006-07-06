@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.25 2005/05/17 09:54:04 pzuccon Exp $
+//  $Id: g4physics.C,v 1.26 2006/07/06 14:48:31 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.25 2005/05/17 09:54:04 pzuccon Exp $
+// $Id: g4physics.C,v 1.26 2006/07/06 14:48:31 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -37,12 +37,12 @@
 #include <iomanip.h>   
 #include "G4UserSpecialCuts.hh"
 #include "G4FastSimulationManagerProcess.hh"
-#include "GeneralPhysics.hh"
-#include "EMPhysics.hh"
-#include "MuonPhysics.hh"
+//#include "GeneralPhysics.hh"
+#include "PhysicsList.hh"
+//#include "MuonPhysics.hh"
 #include "HadronPhysicsQGSP.hh"
 #include "HadronPhysicsQGSC.hh"
-#include "IonPhysics.hh"
+#include "G4IonPhysics.hh"
 
 AMSG4Physics::AMSG4Physics():  AMSNode(AMSID("AMSG4Physics",0)),G4VUserPhysicsList(),_pg3tog4(0),_pg4tog3(0),_Ng3tog4(0)
 {
@@ -104,15 +104,13 @@ void AMSG4Physics::ConstructProcess()
     cout<<"QGSP Physics List will be used. "<<endl;
     
     if(GCPHYS.ILOSS){
-     EMPhysics*    pem=new EMPhysics("standard EM");
+     PhysicsList*    pem=new PhysicsList();
      pem->ConstructProcess();
-     MuonPhysics*    pmu=new MuonPhysics("muon");
-     pmu->ConstructProcess();
     }
     if(GCPHYS.IHADR){
      HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
      pqgsp->ConstructProcess();    
-     IonPhysics *pion=new IonPhysics("ion");
+     G4IonPhysics *pion=new G4IonPhysics("ion");
      pion->ConstructProcess();
     }
    }
@@ -120,15 +118,13 @@ void AMSG4Physics::ConstructProcess()
     cout<<"QGSC Physics List will be used. "<<endl;
     
     if(GCPHYS.ILOSS){
-     EMPhysics*    pem=new EMPhysics("standard EM");
+     PhysicsList*    pem=new PhysicsList();
      pem->ConstructProcess();
-     MuonPhysics*    pmu=new MuonPhysics("muon");
-     pmu->ConstructProcess();
     }
     if(GCPHYS.IHADR){
      HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
      pqgsp->ConstructProcess();    
-     IonPhysics *pion=new IonPhysics("ion");
+     G4IonPhysics *pion=new G4IonPhysics("ion");
      pion->ConstructProcess();
     }
    }
@@ -850,7 +846,7 @@ void AMSG4Physics::SetCuts()
   SetCutValue(cut, "proton");
   SetCutValue(cut, "anti_proton");
  
-  SetCutValueForOthers(cut);
+  //SetCutValueForOthers(cut);
 
 
 
@@ -1209,9 +1205,9 @@ G4VParticleChange* AMSUserSpecialCuts::PostStepDoIt(
         cout <<"stopped: "<< particleName<<" "<<ParticleDef->GetAntiPDGEncoding()<<" "<<  Ekine<<" "<<Particle->GetKineticEnergy()<<" at "<<Material->GetName()<<endl;
 #endif
    aParticleChange.Initialize(aTrack);
-   aParticleChange.SetEnergyChange(0.) ;
-   aParticleChange.SetLocalEnergyDeposit (aTrack.GetKineticEnergy()) ;
+   aParticleChange.ProposeEnergy(0.) ;
+   aParticleChange.ProposeLocalEnergyDeposit (aTrack.GetKineticEnergy()) ;
 //   aParticleChange.SetStatusChange(fStopButAlive);
-   aParticleChange.SetStatusChange(fStopAndKill);
+   aParticleChange.ProposeTrackStatus(fStopAndKill);
    return &aParticleChange;
 }

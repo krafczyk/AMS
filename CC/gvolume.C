@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.52 2005/05/17 09:54:05 pzuccon Exp $
+//  $Id: gvolume.C,v 1.53 2006/07/06 14:48:33 choutko Exp $
 #include "gvolume.h"
 #include <math.h>
 #include "amsgobj.h"
@@ -34,7 +34,7 @@
 #include "G4VisAttributes.hh"
 #include "G4PVReplica.hh"
 #include "G4Assembly.hh"
-#include "G4AssemblyCreator.hh"
+//#include "G4AssemblyCreator.hh"
 #include "G4OpBoundaryProcess.hh"
 #endif
 integer AMSgvolume::debug=0;
@@ -639,7 +639,7 @@ if(strstr(_gonly,"BOO")){
 return 1;
 }
 
-
+/*
 void AMSgvolume::ReadG4StepVolumes(char *fnam){
   G4AssemblyCreator MyAC(fnam);
    MyAC.ReadStepFile();
@@ -675,7 +675,7 @@ void AMSgvolume::ReadG4StepVolumes(char *fnam){
 
 
 }
-
+*/
 #endif
 
 int AMSgvolume::VolumeHasSameRotationMatrixAs(AMSgvolume * o ){

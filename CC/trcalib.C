@@ -1,4 +1,4 @@
-//  $Id: trcalib.C,v 1.55 2005/05/17 09:54:07 pzuccon Exp $
+//  $Id: trcalib.C,v 1.56 2006/07/06 14:48:34 choutko Exp $
 #include "trcalib.h"
 #include "event.h"
 #include <math.h>
@@ -8,7 +8,6 @@
 #include "mccluster.h"
 #include "tkdbc.h"
 #include "mceventg.h"
-using trid::ms;
 //PROTOCCALLSFSUB15(E04CCF,e04ccf,INT,DOUBLEV,DOUBLE,DOUBLE,INT,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,ROUTINE,ROUTINE,INT,INT)
 //#define E04CCF(N,X,F,TOL,IW,W1,W2,W3,W4,W5,W6,ALFUN1,MONIT,MAXCAL,IFAIL) CCALLSFSUB15(E04CCF,e04ccf,INT,DOUBLEV,DOUBLE,DOUBLE,INT,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,DOUBLEV,ROUTINE,ROUTINE,INT,INT,N,X,F,TOL,IW,W1,W2,W3,W4,W5,W6,ALFUN1,MONIT,MAXCAL,IFAIL)
 
@@ -484,7 +483,7 @@ cout <<" AMSTrCalibFit::Anal called for pattern "<<_Pattern<<" "<<_Algorithm<<en
          for(j=0;j<3;j++){
           coo[j]=x[i].getcoo()[j]+(x[i].getmtx(j)).prod(Coo);
          }
-         mm3(nrmN,nrm,0);
+         amsprotected::mm3(nrmN,nrm,0);
          TKDBc::SetLayer(i+1,status,coo,nrm,rgid);
      }
      else {
@@ -508,7 +507,7 @@ cout <<" AMSTrCalibFit::Anal called for pattern "<<_Pattern<<" "<<_Algorithm<<en
          for(j=0;j<3;j++){
           coo[j]=x[i].getcoo()[j]+(x[i].getmtx(j)).prod(Coo);
          }
-         mm3(nrmN,nrm,0);
+         amsprotected::mm3(nrmN,nrm,0);
         TKDBc::SetLadder(i,TRCALIB.Ladder[i]/10-1,TRCALIB.Ladder[i]%10,status,
         coo,nrm,rgid);
 
@@ -685,8 +684,8 @@ for(i=0;i<getnchan();i++){
 
 for(i=0;i<10;i++){
  int j;
- for(j=0;j<ms;j++)_CmnNoiseC[i][j]=0;
- for(j=0;j<ms;j++)_CmnNoise[i][j]=0;
+ for(j=0;j<trid::ms;j++)_CmnNoiseC[i][j]=0;
+ for(j=0;j<trid::ms;j++)_CmnNoise[i][j]=0;
 }
 }
 
@@ -948,7 +947,7 @@ if(TRCALIB.Pass ==2){
  integer bad3[2]={0,0};
  integer bad4[2]={0,0};
  for(i=0;i<10;i++){
-   for(j=0;j<ms;j++){
+   for(j=0;j<trid::ms;j++){
      if(_CmnNoiseC[i][j]>0){
       _CmnNoise[i][j]=_CmnNoise[i][j]/_CmnNoiseC[i][j];
      }
@@ -1310,8 +1309,8 @@ number  *  AMSTrIdCalib::_ADCRaw=0;
 number *  AMSTrIdCalib::_ADC2Raw=0;
 number * AMSTrIdCalib::_ADCRho[nrho];
 number *  AMSTrIdCalib::_ADCMax=0;
-integer  AMSTrIdCalib::_CmnNoiseC[10][ms];
-geant  AMSTrIdCalib::_CmnNoise[10][ms];
+integer  AMSTrIdCalib::_CmnNoiseC[10][trid::ms];
+geant  AMSTrIdCalib::_CmnNoise[10][trid::ms];
 
 
 void AMSTrIdCalib::initcalib(){
@@ -1536,7 +1535,7 @@ void AMSTrIdCalib::buildSigmaPed(integer n, int16u *p){
   integer const mss=640;
   static geant id[mss];
   static geant idlocal[maxva];
-  VZERO(id,ms*sizeof(id[0])/sizeof(integer));
+  VZERO(id,trid::ms*sizeof(id[0])/sizeof(integer));
   int i,j,k,l;
   integer ic=AMSTrRawCluster::checkdaqidRaw(*p)-1;
   int16u * ptr=p+1;
@@ -1632,7 +1631,7 @@ void AMSTrIdCalib::buildSigmaPedA(integer n, int16u *p){
   integer const mss=640;
   static geant id[mss];
   static geant idlocal[maxva];
-  VZERO(id,ms*sizeof(id[0])/sizeof(integer));
+  VZERO(id,trid::ms*sizeof(id[0])/sizeof(integer));
   int i,j,k,l;
   integer ic=AMSTrRawCluster::checkdaqidRaw(*p)-1;
   int16u * ptr=p+1;
@@ -1813,7 +1812,7 @@ void AMSTrIdCalib::getaverage(){
    int i,j,k,l,m;
 
     for(i=0;i<10;i++){
-      for(j=0;j<ms;j++){
+      for(j=0;j<trid::ms;j++){
        if(_CmnNoiseC[i][j]>0){
         _CmnNoise[i][j]=sqrt(_CmnNoise[i][j]/_CmnNoiseC[i][j]);
        }

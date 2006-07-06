@@ -1,4 +1,4 @@
-//  $Id: trid.C,v 1.38 2005/06/06 11:44:02 choutko Exp $
+//  $Id: trid.C,v 1.39 2006/07/06 14:48:34 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -135,11 +135,11 @@ integer * AMSTrIdSoft::status=0;
 geant * AMSTrIdSoft::sigmas=0;
 geant * AMSTrIdSoft::sigmaraws=0;
 uinteger * AMSTrIdSoft::rhomatrix=0;
-geant  AMSTrIdSoft:: cmnnoise[10][ms];
+geant  AMSTrIdSoft:: cmnnoise[10][trid::ms];
 geant * AMSTrIdSoft:: indnoise=0;
 integer AMSTrIdSoft::_numel=0;
 integer AMSTrIdSoft::_numell=0;
-integer AMSTrIdSoft::idsoft2linear[ms];
+integer AMSTrIdSoft::idsoft2linear[trid::ms];
 const integer AMSTrIdSoft::_VAChannels=64;
 integer AMSTrIdSoft::getprob (geant r){
 integer iad=_strip+AMSbiel(&(indnoise[idsoft2linear[_addr]+_strip]),
@@ -412,7 +412,7 @@ void AMSTrIdSoft::init(){
      integer num=0;
      integer nc=0;
      integer idsoft;
-     VZERO(idsoft2linear,ms*sizeof(integer)/4);
+     VZERO(idsoft2linear,trid::ms*sizeof(integer)/4);
      int i,k;
        int j;
      for(k=0;k<2;k++){
@@ -451,7 +451,7 @@ void AMSTrIdSoft::init(){
      for(i=0;i<2*num;i++)rhomatrix[i]=~0;     
 
      for(i=0;i<10;i++){
-      for( k=0;k<ms;k++)cmnnoise[i][k]=0;
+      for( k=0;k<trid::ms;k++)cmnnoise[i][k]=0;
      }     
      indnoise=new geant[num];
      assert(status && peds && gains && sigmas && sigmaraws && indnoise);

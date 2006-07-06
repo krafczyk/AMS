@@ -127,6 +127,7 @@ void ad::UBegin(){
     hbook1s(29,"trd seg",20,-0.5,19.5);
     hbook1s(30,"trd mul",21,-0.5,20.5);
     hbook1s(31,"trd hmul",21,-0.5,20.5);
+    hbook1s(231,"trd hmul2",21,-0.5,20.5);
     hbook1s(32,"trd dedx",200,0.,20.);
     hbook1s(33,"trd hmax",200,5.8,55.8);
     hbook1s(34,"trd stray",21,-0.5,20.5);
@@ -324,10 +325,18 @@ nah:
      float ntrdav=0;
      float xtrdhm=0;
      float xtrdhmax=0;
+     float xtrdh2=0;
+     double xbeta=fabs(Particle(0).Beta);
+     double a166=1.66;
+     float xf=pow(1./(xbeta+0.03),a166);
+     if(xf<1)xf=1;
+     float xthr=5.7+0.3*log(fabs(Particle(0).Momentum));
+     xthr*=xf;
      for(int i=0;i<trdt.NTrdSegment();i++){
       for(int j=0;j<TrdSegment(trdt.iTrdSegment(i)).NTrdCluster();j++){
        TrdClusterR trdc=TrdCluster(TrdSegment(trdt.iTrdSegment(i)).iTrdCluster(j));
        if(trdc.EDep>xtrdhmax)xtrdhmax=trdc.EDep;
+       if(trdc.EDep>xthr)xtrdh2++;
        if(trdc.Multip>1)xtrdhm++;
        xtrdhm+=trdc.HMultip;
        htrdmul+=trdc.HMultip;
@@ -337,8 +346,6 @@ nah:
       }
      }
      if(ntrdav>0)trdav/=ntrdav;
-     double xbeta=fabs(beta.Beta);
-     double a166=1.66;
 
 // Rich vars
      float betarich=0;
@@ -368,6 +375,7 @@ nah:
     cuts[1]=nAntiCluster()<1 || (ecalen>0.5 && nAntiCluster()<2);
     cuts[2]=beta.Pattern==0;
     cuts[3]=fabs(fabs(beta.Beta)-1)>0.166 && fabs(rig)<8;
+//    cuts[3]=true;
     cuts[4]=beta.Chi2S<8;
     cuts[5]=beta.Chi2<12;
     cuts[6]=track.FChi2MS*beta.Beta*beta.Beta<10000;
@@ -384,7 +392,7 @@ nah:
     cuts[21]=tofdown*pow(xbeta,a166)<6.;
     cuts[14]=summis<60;
     cuts[15]=summis1<400;
-    cuts[16]=htrdmul<4;
+    cuts[16]=xtrdh2<4;
     cuts[17]=fabs(betarich-1)>0.1;
     cuts[18]=ecalen/fabs(Particle(0).Momentum)<1;
     cuts[19]=distx<3.9;
@@ -413,6 +421,7 @@ nah:
     hf1s(29,nTrdSegment(),cuts,nc,13);
     hf1s(30,trdmul,cuts,nc,17);
     hf1s(31,htrdmul,cuts,nc,17);
+    hf1s(231,xtrdh2,cuts,nc,17);
     hf1s(32,trdav,cuts,nc,17);
     hf1s(33,xtrdhmax,cuts,nc,17);
     hf1s(34,xtrdhm,cuts,nc,17);
