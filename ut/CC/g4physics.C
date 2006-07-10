@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.26 2006/07/06 14:48:31 choutko Exp $
+//  $Id: g4physics.C,v 1.27 2006/07/10 15:04:46 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.26 2006/07/06 14:48:31 choutko Exp $
+// $Id: g4physics.C,v 1.27 2006/07/10 15:04:46 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -37,9 +37,7 @@
 #include <iomanip.h>   
 #include "G4UserSpecialCuts.hh"
 #include "G4FastSimulationManagerProcess.hh"
-//#include "GeneralPhysics.hh"
-#include "PhysicsList.hh"
-//#include "MuonPhysics.hh"
+#include "G4EmStandardPhysics.hh"
 #include "HadronPhysicsQGSP.hh"
 #include "HadronPhysicsQGSC.hh"
 #include "G4IonPhysics.hh"
@@ -97,14 +95,16 @@ void AMSG4Physics::ConstructProcess()
 
    if(G4FFKEY.PhysicsListUsed==0){
     cout<<"Old Physics List will be used. "<<endl;
-   if(GCPHYS.ILOSS)ConstructEM();
+   if(GCPHYS.ILOSS){
+     ConstructEM();
+    }
    if(GCPHYS.IHADR)ConstructHad();
    }
    else if(G4FFKEY.PhysicsListUsed==1){
     cout<<"QGSP Physics List will be used. "<<endl;
     
     if(GCPHYS.ILOSS){
-     PhysicsList*    pem=new PhysicsList();
+     G4EmStandardPhysics*    pem=new G4EmStandardPhysics();
      pem->ConstructProcess();
     }
     if(GCPHYS.IHADR){
@@ -118,11 +118,11 @@ void AMSG4Physics::ConstructProcess()
     cout<<"QGSC Physics List will be used. "<<endl;
     
     if(GCPHYS.ILOSS){
-     PhysicsList*    pem=new PhysicsList();
+     G4EmStandardPhysics*    pem=new G4EmStandardPhysics();
      pem->ConstructProcess();
     }
     if(GCPHYS.IHADR){
-     HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
+     HadronPhysicsQGSC* pqgsp=new HadronPhysicsQGSC();
      pqgsp->ConstructProcess();    
      G4IonPhysics *pion=new G4IonPhysics("ion");
      pion->ConstructProcess();
@@ -169,7 +169,7 @@ void AMSG4Physics::ConstructEM()
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
     G4String particleName = particle->GetParticleName();
-     
+    //cout <<"  particle "<<particleName<<" "<<G4FFKEY.LowEMagProcUsed<<endl; 
     if (particleName == "gamma") {
     // gamma
     if(!G4FFKEY.LowEMagProcUsed){
@@ -829,7 +829,7 @@ void AMSG4Physics::SetCuts()
 {
   //  " G4VUserPhysicsList::SetCutsWithDefault" method sets 
   //   the default cut value for all particle types 
-//  SetCutsWithDefault();   
+         SetCutsWithDefault();   
 
    G4double cut = defaultCutValue;
    cout <<"AMSG4Physics::SetCuts-I-DefaultCut "<<cut<<endl;
@@ -846,7 +846,6 @@ void AMSG4Physics::SetCuts()
   SetCutValue(cut, "proton");
   SetCutValue(cut, "anti_proton");
  
-  //SetCutValueForOthers(cut);
 
 
 
@@ -1207,7 +1206,6 @@ G4VParticleChange* AMSUserSpecialCuts::PostStepDoIt(
    aParticleChange.Initialize(aTrack);
    aParticleChange.ProposeEnergy(0.) ;
    aParticleChange.ProposeLocalEnergyDeposit (aTrack.GetKineticEnergy()) ;
-//   aParticleChange.SetStatusChange(fStopButAlive);
    aParticleChange.ProposeTrackStatus(fStopAndKill);
    return &aParticleChange;
 }

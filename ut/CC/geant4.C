@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.57 2005/05/17 09:54:04 pzuccon Exp $
+//  $Id: geant4.C,v 1.58 2006/07/10 15:04:47 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -632,7 +632,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      G4StepPoint * PrePoint = Step->GetPreStepPoint();
      G4VPhysicalVolume * PrePV = PrePoint->GetPhysicalVolume();
     if(PostPV && PrePV){
-//      cout << "Stepping Pre "<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
+  //cout << "Stepping Pre "<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
 //      cout << "Stepping  Post"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<PostPoint->GetKineticEnergy()/GeV<<" "<<Step->GetStepLength()/cm<<endl;
 
     GCTMED.isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0 ||
@@ -644,7 +644,10 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      G4Track * Track = Step->GetTrack();
    GCTRAK.nstep=Track->GetCurrentStepNumber()-1;
    GCKINE.itra=Track->GetParentID();
-//   cout << " track id "<<GCKINE.itra<<" "<<GCTRAK.nstep<<endl;
+   cout << " track id "<<GCKINE.itra<<" "<<GCTRAK.nstep<<endl;
+   G4ParticleDefinition* particle =Track->GetDefinition();
+   GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
+   GCKINE.charge=particle->GetPDGCharge();
 
     if(GCKINE.ipart==Cerenkov_photon){
       if((PrePV->GetName())(0)=='R' && (PrePV->GetName())(1)=='I' &&
