@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.96 2006/01/25 11:21:09 choumilo Exp $
+//  $Id: ecalrec.C,v 1.97 2006/07/11 10:44:46 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -798,6 +798,7 @@ void AMSEcalHit::build(int &stat){
           AMSEvent::gethead()->addnext(AMSID("AMSEcalHit",icont), new
                        AMSEcalHit(sta,id,padc,proj,plane,cell,edep,edepc,coot,cool,cooz));
 //               (conv. from padc(in daq_scale) to ADC is done inside of constructor)
+//       cout <<"  edep "<<edep<<endl;
 	}
 	nsubc=0;//clear buffer arrays
 	qmeas=0;

@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.58 2006/07/10 15:04:47 choutko Exp $
+//  $Id: geant4.C,v 1.59 2006/07/11 10:44:47 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -644,7 +644,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      G4Track * Track = Step->GetTrack();
    GCTRAK.nstep=Track->GetCurrentStepNumber()-1;
    GCKINE.itra=Track->GetParentID();
-   cout << " track id "<<GCKINE.itra<<" "<<GCTRAK.nstep<<endl;
+   //cout << " track id "<<GCKINE.itra<<" "<<GCTRAK.nstep<<endl;
    G4ParticleDefinition* particle =Track->GetDefinition();
    GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
    GCKINE.charge=particle->GetPDGCharge();
@@ -975,12 +975,12 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 //------------------------------------------------------------------
 //  ECAL :
 //
-     if(PrePV->GetName()(0)== 'E' && PrePV->GetName()(1)=='C' &&
+     if(PrePV->GetName()(0)== 'E' && PrePV->GetName()(1)=='C' && 
        PrePV->GetName()(2)=='F' && PrePV->GetName()(3)=='C'){
        if(GCTRAK.destep>0.){
        dee=GCTRAK.destep;
-//cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<" "<<dee<<endl;
-//       GBIRK(dee);
+//cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<" "<<dee<<" "<<PrePV->GetMother()->GetCopyNo()<<" "<<PrePV->GetName()<<" "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<" "<<PrePV->GetMother()->GetName()<<" "<<PrePV->GetMother()->GetLogicalVolume()<<endl;
+       GBIRK(dee);
        AMSEcalMCHit::siecalhits(PrePV->GetMother()->GetCopyNo(),GCTRAK.vect,dee,GCTRAK.tofg);
        }
      }

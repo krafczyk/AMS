@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.55 2006/01/25 11:21:08 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.56 2006/07/11 10:44:45 choutko Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -198,7 +198,8 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
     tleft=-npm*pmsiz/2.;//     low-edge PM-bin transv.position in ECAL r.s.
     dist=ct-tleft;//           fiber-center dist from the 1st PM (its left edge)
     pm=integer(floor(dist/pmsiz));//   number of fired PM  0-(npm-1)   (IMPLY pmpit=pmsiz !!!)
-    if(pm<0 || pm>=npm)return;//    (out of sensitive area - no signal is readout)
+//    cout <<fid<<" "<<pm<<endl;
+     if(pm<0 || pm>=npm)return;//    (out of sensitive area - no signal is readout)
 //
     if(cz>fr)tbc=0;// below i imply no sharing in Z (even number of f-layers/s-layer)
     else if(cz<-fr)tbc=2;

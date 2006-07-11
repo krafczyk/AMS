@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.67 2006/02/22 12:18:01 mdelgado Exp $
+//  $Id: mccluster.C,v 1.68 2006/07/11 10:44:47 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include "trid.h"
@@ -517,6 +517,7 @@ void AMSEcalMCHit::siecalhits(integer idsoft , geant vect[],geant edep,
   isl=idsoft/100000;//s-layer(1-9)  
   AMSEvent::gethead()->addnext(AMSID("AMSEcalMCHit",isl-1),
                       new AMSEcalMCHit(idsoft,pnt,edep,tofg));
+  //cout <<isl<<" "<<pnt<<endl;
 }
 void AMSEcalMCHit::_writeEl(){
 }

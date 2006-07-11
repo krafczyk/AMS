@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.433 2006/05/31 09:09:06 choutko Exp $
+# $Id: RemoteClient.pm,v 1.434 2006/07/11 10:44:51 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3724,7 +3724,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                    $checked="";
                 }
 #                print "</b>";
-                 if ($dataset->{eventstodo}/($dataset->{eventstotal}+1) <0.001 or  $dataset->{eventstodo}<1000){
+                 if ($dataset->{eventstodo}/($dataset->{eventstotal}+1) <0.00002 or  $dataset->{eventstodo}<1000){
                   print "<tr><td><b><font color=\"tomato\"> $dataset->{name} </font></b></td></tr>";
 #                  print "</b></font></td></tr>";
                  } else {
@@ -14083,7 +14083,7 @@ sub CheckFS{
 #  check  filesystems, update the tables accordingly if $updatedb is set
 #  status: Active  :  May be used 
 #          Reserved :  Set manually, may not be reseting
-#          Full     :  if < 10 GB left
+#          Full     :  if < 3 GB left
 #         
 #  isonline: 1/0 
 #  return disk with highest available and online=1
@@ -14153,7 +14153,7 @@ sub CheckFS{
                  if($fs->[2]=~'Reserved'){
                   $status='Reserved';
                  }
-                 elsif( $ava1<0 or $ava<7000){
+                 elsif( $ava1<0 or $ava<3000){
                   $status='Full';
                  }
                  if($ava1<$ava){

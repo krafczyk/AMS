@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.93 2006/02/22 12:18:01 mdelgado Exp $
+//  $Id: geant3.C,v 1.94 2006/07/11 10:44:46 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -458,6 +458,8 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
         if(TFMCFFKEY.birks)GBIRK(dee);
 	if(dee<=0)cout<<"---->Birks:dee<0 "<<dee<<" step="<<GCTRAK.step<<" destep="<<GCTRAK.destep
 	<<" ipart="<<GCKINE.ipart<<endl;
+        //cout << GCVOLU.names[lvl][0]<< GCVOLU.names[lvl][1]<< GCVOLU.names[lvl][2]<< GCVOLU.names[lvl][3]<<endl;
+        //cout <<" ecal "<<GCVOLU.number[lvl-1]<< " "<<dee<<endl;
         AMSEcalMCHit::siecalhits(GCVOLU.number[lvl-1],GCTRAK.vect,dee,GCTRAK.tofg);
 
         if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");

@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.53 2006/07/06 14:48:33 choutko Exp $
+//  $Id: gvolume.C,v 1.54 2006/07/11 10:44:47 choutko Exp $
 #include "gvolume.h"
 #include <math.h>
 #include "amsgobj.h"
@@ -273,6 +273,9 @@ integer AMSgvolume::_Norp=0;
 
     number maxstep=DBL_MAX;
      G4VSolid * psolid=0;
+//    if(_name[0] == 'E' && _name[1] == 'C' &&_name[2] == 'F' &&_name[3] == 'W'){
+//       cout <<"  _coo "<<_gid<<" "<<_coo[0]<<" "<<_coo[1]<<" "<<_coo[2]<<" "<<_pg4l<<endl;    
+//     } 
     if(!_pg4l){
      G4String shape(_shape);
      if( shape == "BOX "){
@@ -620,6 +623,7 @@ void AMSgvolume::MakeG4Volumes(){
 }
 
 int AMSgvolume::VolumeHasSameG4AttributesAs(AMSgvolume* o ){
+return 0;
 if(strcmp(getname(),o->getname()))return 0;
 if(strcmp(_shape,o->_shape))return 0;
 if(_npar!=o->_npar)return 0;
