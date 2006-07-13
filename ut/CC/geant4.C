@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.59 2006/07/11 10:44:47 choutko Exp $
+//  $Id: geant4.C,v 1.60 2006/07/13 15:16:04 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -70,6 +70,7 @@ G4RunManager * pmgr = new G4RunManager();
      pmgr->SetUserAction(ppg);
      pmgr->SetUserAction(new AMSG4EventAction);
      pmgr->SetUserAction(new AMSG4SteppingAction);
+     pmgr->SetUserAction(new AMSG4StackingAction);
 //    pmgr->SetUserAction(new AMSG4RunAction);
 
 
@@ -648,8 +649,11 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
    G4ParticleDefinition* particle =Track->GetDefinition();
    GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
    GCKINE.charge=particle->GetPDGCharge();
-
+//    if(GCKINE.ipart==51){
+//       cout <<" xray "<<PrePV->GetName()<<" "<<PostPV->GetName()<<" "<<PostPoint->GetPosition()<<endl;
+//    }
     if(GCKINE.ipart==Cerenkov_photon){
+//       cout <<" cerenkov "<<PrePV->GetName()<<" "<<PostPV->GetName()<<" "<<PostPoint->GetPosition()<<endl;
       if((PrePV->GetName())(0)=='R' && (PrePV->GetName())(1)=='I' &&
         (PrePV->GetName())(2)=='C' && (PrePV->GetName())(3)=='H'){
         if(PostPoint->GetProcessDefinedStep() && PostPoint->GetProcessDefinedStep()->GetProcessName() == "Boundary")RICHDB::numrefm++;
@@ -663,7 +667,9 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
          RICHDB::numrayl=0;
 	 RICHDB::numrefm=0;
 //          RICHDB::nphgen++;  
-         if(!RICHDB::detcer(GCTRAK.vect[6])) GCTRAK.istop=1; else RICHDB::nphgen++;
+         if(!RICHDB::detcer(GCTRAK.vect[6])) {
+          }
+           else RICHDB::nphgen++;
         }
 
         }
@@ -776,7 +782,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 // TRD
      if(GCTRAK.destep && PrePV->GetName()(0)=='T' && PrePV->GetName()(1)=='R' 
      &&  PrePV->GetName()(2)=='D' && PrePV->GetName()(3)=='T'){
-//       cout <<" trd "<<GCKINE.itra<<" "<<GCKINE.ipart<<endl;
+       //cout <<" trd "<<GCKINE.itra<<" "<<GCKINE.ipart<<endl;
         AMSTRDMCCluster::sitrdhits(PrePV->GetCopyNo(),GCTRAK.vect,
         GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart,GCKINE.itra);   
      }
@@ -1038,10 +1044,12 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      }
 
 
-    if(PrePV->GetName()(0)=='C' && PrePV->GetName()(1)=='A' &&
-       PrePV->GetName()(2)=='T' && PrePV->GetName()(3)=='O' && 
+//    if(PrePV->GetName()(0)=='C' && PrePV->GetName()(1)=='A' &&
+//       PrePV->GetName()(2)=='T' && PrePV->GetName()(3)=='O' && 
+//       GCTRAK.inwvol==1){
+    if(PostPV->GetName()(0)=='C' && PostPV->GetName()(1)=='A' &&
+       PostPV->GetName()(2)=='T' && PostPV->GetName()(3)=='O' && 
        GCTRAK.inwvol==1){
-
 
       if(GCKINE.ipart==Cerenkov_photon){
         geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICradpos-RICotherthk/2-
@@ -1051,13 +1059,16 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
         vect[0]=GCTRAK.vect[0]+xl*GCTRAK.vect[3];
         vect[1]=GCTRAK.vect[1]+xl*GCTRAK.vect[4];
         vect[2]=GCTRAK.vect[2]+xl*GCTRAK.vect[5];
+        //cout <<" get ipart "<<GCKINE.ipart <<" "<<GCTRAK.nstep<<" "<<GCTRAK.istop<<endl;
+        if(!RICHDB::detcer(GCTRAK.vect[6])){
+           GCTRAK.istop=1;
+        }
 
-        if( GCTRAK.nstep==0){
-//        GCTRAK.istop=1;
-         if(RICHDB::detcer(GCTRAK.vect[6])) {
-//          GCTRAK.istop=2;
+        if( GCTRAK.nstep==0 && GCTRAK.istop==0){
+         if(1 || RICHDB::detcer(GCTRAK.vect[6])) {
+          GCTRAK.istop=2;
           AMSRichMCHit::sirichhits(GCKINE.ipart,
-                                   Mother->GetCopyNo()-1,
+                                   PostPV->GetMother()->GetCopyNo()-1,
                                    //GCTRAK.vect,
                                    vect,
                                    GCKINE.vert,
@@ -1066,15 +1077,15 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
                                    (GCKINE.itra!=1?100:0));
          }
        }
-       else{
-	 //        GCTRAK.istop=2; // Absorb it
+       else if(GCTRAK.istop==0 ){
+	         GCTRAK.istop=2; // Absorb it
 //	 if(GCKINE.vert[2]<RICradpos-RICHDB::rad_height-RICHDB::height)
          if(GCKINE.vert[2]<RICradpos-RICHDB::rad_height-RICHDB::rich_height-
            RICHDB::foil_height-RICradmirgap-RIClgdmirgap // in LG
            || (GCKINE.vert[2]<RICradpos-RICHDB::rad_height &&
                GCKINE.vert[2]>RICradpos-RICHDB::rad_height-RICHDB::foil_height))
 	   AMSRichMCHit::sirichhits(GCKINE.ipart,
-				    Mother->GetCopyNo()-1,
+				    PostPV->GetMother()->GetCopyNo()-1,
 				    //GCTRAK.vect,
                                     vect,
 				    GCKINE.vert,
@@ -1083,7 +1094,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 				    (GCKINE.itra!=1?100:0));	  
 	 else
 	   AMSRichMCHit::sirichhits(GCKINE.ipart,
-				    Mother->GetCopyNo()-1,
+				    PostPV->GetMother()->GetCopyNo()-1,
 				    //GCTRAK.vect,
    				    vect,
 				    GCKINE.vert,
@@ -1095,7 +1106,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
       }
       else if(GCTRAK.nstep!=0){	 
         AMSRichMCHit::sirichhits(GCKINE.ipart,
-				 Mother->GetCopyNo()-1,
+				 PostPV->GetMother()->GetCopyNo()-1,
 				 GCTRAK.vect,
 				 GCKINE.vert,
 				 GCKINE.pvert,
@@ -1135,7 +1146,19 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 
 }
 
-
-
+G4ClassificationOfNewTrack AMSG4StackingAction::ClassifyNewTrack(const G4Track * aTrack)
+{ 
+   return fWaiting;
+   G4ParticleDefinition* particle =aTrack->GetDefinition();
+   GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
+//  cerenkov photons should be properly stopped here (via detcer function)
+    if(0 &&GCKINE.ipart==Cerenkov_photon){
+     return fKill;
+    }
+    else if(GCKINE.ipart==51){
+      return fWaiting;
+    }
+    else return fWaiting;
+}
 
 

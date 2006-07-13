@@ -1,4 +1,4 @@
-//  $Id: geant4.h,v 1.10 2005/05/17 09:56:35 pzuccon Exp $
+//  $Id: geant4.h,v 1.11 2006/07/13 15:16:07 choutko Exp $
 #ifndef __GEANT4H__
 #define __GEANT4H__
 #include "cern.h"
@@ -117,10 +117,17 @@ static AMSG4DummySDI AMSG4DummySDI;
 
 
 
+#include "G4UserStackingAction.hh"
 
+class AMSG4StackingAction: public G4UserStackingAction{
 
+public:
+ AMSG4StackingAction(){};
+ virtual ~AMSG4StackingAction(){};
+   virtual G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track* aTrack);
+    virtual void NewStage(){};
+    virtual void PrepareNewEvent(){};
 
-
-
+};
 #endif
 

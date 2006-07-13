@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.88 2005/09/09 07:55:13 choumilo Exp $
+//  $Id: gmat.C,v 1.89 2006/07/13 15:16:04 choutko Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -683,7 +683,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
   
 //  my_step*=(1-1/1.458/1.458)/(1-1/RICHDB::rad_index/RICHDB::rad_index); // To be moved to RICH common
     pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH PMTS",
-    "PMT_WINDOW",0)); //35 
+    "PMT_WINDOW",1)); //35 
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       abs_l[iw]=1.e-10;     //changed by VC 7-sep-2000
@@ -717,10 +717,10 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
   pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH VACUUM","VACUUM",0));  // absorber
   for(iw=0;iw<RICHDB::entries;iw++)
     {
-      abs_l[iw]=1e5;
+      abs_l[iw]=1e10;
       index[iw]=1;
     }
-//  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
+    pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
     rich_pvac->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 
 
@@ -768,7 +768,7 @@ pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR","RICH_MIRROR",0));
 
   for(iw=0;iw<RICHDB::entries;iw++)
     {
-      abs_l[iw]=1e5;
+      abs_l[iw]=1e10;
       index[iw]=1;
     }
   rich_pvac->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);  
@@ -815,7 +815,7 @@ geant uwbuf[5];
 integer nwbuf=5;
 #ifdef __G4AMS__
 if (MISCFFKEY.G4On){
- uwbuf[0]=0;
+ uwbuf[0]=TRDMCFFKEY.g3trd;
 }
 else{
 #endif

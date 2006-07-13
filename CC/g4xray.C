@@ -22,7 +22,7 @@
 // ********************************************************************
 //
 //
-// $Id: g4xray.C,v 1.6 2006/07/06 14:48:33 choutko Exp $
+// $Id: g4xray.C,v 1.7 2006/07/13 15:16:03 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -143,6 +143,7 @@ G4VParticleChange* G4XRayTRCP::AlongStepDoIt( const G4Track& Track, const G4Step
           for(i=0;i<ntr;i++){
            G4DynamicParticle* ap =
            new G4DynamicParticle(G4XRay::XRay(),dir);
+//           new G4DynamicParticle(G4Gamma::Gamma(),dir);
            ap->SetKineticEnergy(etr[i]*GeV);
            G4ThreeVector pos(PostPoint->GetPosition()-(str[i]*cm)*dir);
            G4double t=PrePoint->GetGlobalTime()+str[i]/step*

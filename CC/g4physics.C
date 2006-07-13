@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.27 2006/07/10 15:04:46 choutko Exp $
+//  $Id: g4physics.C,v 1.28 2006/07/13 15:16:02 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.27 2006/07/10 15:04:46 choutko Exp $
+// $Id: g4physics.C,v 1.28 2006/07/13 15:16:02 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -756,7 +756,7 @@ void AMSG4Physics::ConstructOp()
   theRayleighScatteringProcess->SetVerboseLevel(AMSFFKEY.Debug);
   theBoundaryProcess->SetVerboseLevel(AMSFFKEY.Debug);
 #endif
-  G4int MaxNumPhotons = 300;
+  G4int MaxNumPhotons = 3000;
 
   theCerenkovProcess->SetTrackSecondariesFirst(true);
   theCerenkovProcess->SetMaxNumPhotonsPerStep(MaxNumPhotons);
@@ -792,15 +792,19 @@ void AMSG4Physics::ConstructXRay()
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
     G4String particleName = particle->GetParticleName();
-    if (pd->IsApplicable(*particle))pmanager->AddDiscreteProcess(pd);
+//    if (pd->IsApplicable(*particle))pmanager->AddDiscreteProcess(pd);
     if (pc->IsApplicable(*particle))pmanager->AddContinuousProcess(pc);
       if (particleName == "xrayphoton") {
       cout <<" Add Discrete Procs to xrayphoton "<<endl; 
       pmanager->AddDiscreteProcess(new G4LowEnergyPhotoElectric() );
       pmanager->AddDiscreteProcess(new G4LowEnergyCompton());
-      pmanager->AddDiscreteProcess(new G4LowEnergyRayleigh());
+//      pmanager->AddDiscreteProcess(new G4LowEnergyRayleigh());
       pmanager->AddDiscreteProcess(new G4LowEnergyGammaConversion());
-
+/*
+      pmanager->AddDiscreteProcess(new G4PhotoElectricEffect() );
+      pmanager->AddDiscreteProcess(new G4ComptonScattering());
+      pmanager->AddDiscreteProcess(new G4GammaConversion());
+*/
     } 
   }
 }
@@ -989,8 +993,9 @@ for(ipart=0;ipart<1000;ipart++){
       if(g3pid[ipart]==13){
           g3tog4p[ipart]=ppart->FindParticle("neutron");
       }  
-      else g3tog4p[ipart]=cand;
-//       cout <<" a "<<g3pid[ipart]<<" "<<g3tog4p[ipart]->GetParticleName()<<endl;
+      else {
+       g3tog4p[ipart]=cand;
+     }
      }
      else if (fdelta==0){
         if(g3pid[ipart]==1){
@@ -1004,7 +1009,7 @@ for(ipart=0;ipart<1000;ipart++){
         }
         else{
           g3tog4p[ipart]=ppart->FindParticle("xrayphoton");
-        } 
+         } 
 //       cout <<" b "<<g3pid[ipart]<<" "<<g3tog4p[ipart]->GetParticleName()<<endl;
      }
      else{

@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.54 2006/07/11 10:44:47 choutko Exp $
+//  $Id: gvolume.C,v 1.55 2006/07/13 15:16:04 choutko Exp $
 #include "gvolume.h"
 #include <math.h>
 #include "amsgobj.h"
@@ -438,7 +438,7 @@ integer AMSgvolume::_Norp=0;
      if(_pgtmed->IsSensitive()){
       _pg4l->SetUserLimits(new AMSUserLimits());
       if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==1){
-       _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(1));  // Radiator
+        _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(1));  // Radiator
       }
       else if(_pgtmed->getubuf(0)==TRDMCFFKEY.g3trd && _pgtmed->getubuf(2)==3){
        _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD(2));  //Gas

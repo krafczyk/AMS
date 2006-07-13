@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.18 2006/03/17 15:02:02 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.19 2006/07/13 15:16:05 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -734,7 +734,9 @@ for(int i=0;i<ev->nParticle();i++){
     double w1=-sqrt(1-st*st);
      ray=TVector3(u1,v1,w1);
      double addon=4;
-
+     if(ev->Version()>160){
+        addon=0;
+     }
     double rp=sqrt(rcoo[0]*rcoo[0]+rcoo[1]*rcoo[1]);
     double rc=sqrt(xc*xc+yc*yc)+r2+(rcoo[2]-z2)*tc;
     if(rp>rc){
@@ -793,7 +795,7 @@ for(int i=0;i<ev->nParticle();i++){
       if(!(npoint--))break;
       else continue;
      }
-    //cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
+//    cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
    }   
 }
    SetPolyLine(npoint,array);

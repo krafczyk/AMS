@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.68 2006/07/11 10:44:47 choutko Exp $
+//  $Id: mccluster.C,v 1.69 2006/07/13 15:16:04 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include "trid.h"
@@ -573,10 +573,11 @@ void AMSRichMCHit::sirichhits(integer id,
   else
     
     
-    if(channel.getchannel()>=0)
+    if(channel.getchannel()>=0){
       AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
 				   new AMSRichMCHit(id,channel.getchannel(),adc,
 						    r,u,status));
+}
 }
 
 
