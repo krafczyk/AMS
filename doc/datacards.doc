@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.247 2006/01/25 11:21:33 choumilo Exp $
+#  $Id: datacards.doc,v 1.248 2006/07/14 13:23:17 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -602,7 +602,7 @@ I 1 trtype(1)*         //8 lsbits->LVL1-branches(pattern) requested in global OR
 		       //bit(=4)->Z>=2("FTC",anti_out)
 		       //bit(=8)->SlowZ>=2("FTZ", anti_out)
 		       //bit(=16)->electrons("FTC","FTE", anti_out, "ecFand")
-		       //bit(=32)->gammas("FTC","FTE", anti_out, "ecFand", "ecAand")
+		       //bit(=32)->gammas("FTE", anti_out, "ecFand", "ecAand")
 		       //bit(=64)->ecalFT(just "FTE")
 		       //bit(=128->External (Replace FT(TOF/EC)-signal, under construction...)
 		       // !!! ***** Real Lvl1-trig is OR of above bits ***** !!! 
