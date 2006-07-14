@@ -92,7 +92,7 @@ void AMSTRDRawHit::sitrddigi(){
     }
     int cl=AMSEvent::gethead()->getC("AMSTRDRawHit",0)->getnelem();
 
-  if(TRDMCFFKEY.NoiseOn && TOF2RawEvent::GlobFasTrigOK())AMSTRDRawHit::sitrdnoise();
+  if(TRDMCFFKEY.NoiseOn && TOF2RawSide::GlobFasTrigOK())AMSTRDRawHit::sitrdnoise();
 
 
 }

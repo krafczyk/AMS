@@ -11,6 +11,7 @@
 #include "particle.h"
 #include "richrec.h"
 #include "tofdbc02.h"
+#include "tofsim02.h"
 #include "tofrec02.h"
 #include "antirec02.h"
 #include "trdrec.h"
@@ -2391,7 +2392,12 @@ TofRawSideR::TofRawSideR(TOF2RawSide *ptr){
   hwid=ptr->_hwid;
   nftdc=ptr->_nftdc;
   for(int i=0; i<nftdc; i++)ftdc[i]=ptr->_ftdc[i];
-  for(int i=0; i<4; i++)stdc[i]=ptr->_stdc[i];
+  nstdc=ptr->_nstdc;
+  for(int i=0; i<nstdc; i++)stdc[i]=ptr->_stdc[i];
+  nsumh=ptr->_nsumh;
+  for(int i=0; i<nsumh; i++)sumht[i]=ptr->_sumht[i];
+  nsumsh=ptr->_nsumsh;
+  for(int i=0; i<nsumsh; i++)sumsht[i]=ptr->_sumsht[i];
   adca=ptr->_adca;
   nadcd=ptr->_nadcd;
   for(int ip=0;ip<TOF2GC::PMTSMX;ip++)adcd[ip]=ptr->_adcd[ip];

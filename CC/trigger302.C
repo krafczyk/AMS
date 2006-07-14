@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.30 2006/01/25 11:21:13 choumilo Exp $
+//  $Id: trigger302.C,v 1.31 2006/07/14 13:17:18 choumilo Exp $
 #include "tofdbc02.h"
 #include "tofrec02.h"
 #include "tofsim02.h"
@@ -94,11 +94,11 @@ void TriggerAuxLVL302::filltof(){
 //
 // fill TOF
 //
-  TOF2RawEvent *ptr;
+  TOF2RawSide *ptr;
 //
-  ptr=(TOF2RawEvent*)AMSEvent::gethead()
-                        ->getheadC("TOF2RawEvent",0,1);//last 1 to sort
-//(for MC i use "daq-decoded" class TOF2RawEvent as input)  
+  ptr=(TOF2RawSide*)AMSEvent::gethead()
+                        ->getheadC("TOF2RawSide",0,1);//last 1 to sort
+//(for MC i use "daq-decoded" class TOF2RawSide as input)  
   while(ptr){
     _ltr+=ptr->lvl3format(_ptr+_ltr,maxtr-_ltr);//filling TriggerAuxLVL3
     ptr=ptr->next();
@@ -347,7 +347,7 @@ void TriggerLVL302::init(){
  }
 //
  char setu1[4]="12b";
- char setu2[4]="8b";
+ char setu2[4]="8p";
  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
    if(strstr(AMSJob::gethead()->getsetup(),"TOF:12PAD")){
      cout <<" T0LVL3-I-TOF:12PAD setup selected."<<endl;
@@ -1050,21 +1050,21 @@ int TriggerLVL302::eccrosscheck(geant ect){
       il=id/100-1;
       ib=id%100-1;
       is=idd%10-1;
-      tofrt[il][ib]+=(*(ptr+2))*TOF2DBc::tdcbin(1);//raw side-time(ns)
+      tofrt[il][ib]+=(*(ptr+2))*TOF2DBc::tdcbin(1);//sum raw side-time, TDCch->ns
       ntofrt[il][ib]+=1;
       ptr=auxtof.readtof();//to take next
     }
-//       
+//
     for(i=0;i<AMSTOFCluster::planes();i++){
       toft[i]=0;
       for(j=0;j<AMSTOFCluster::padspl(i);j++){
         if(ntofrt[i][j]==2){
-	  tofrt[i][j]/=2;
+	  tofrt[i][j]/=2;//(t1+t2)/2
 	  tofrt[i][j]+=_TOFTzero[i][j];//add calibration
 	}
 	else tofrt[i][j]=0;
 	if(plvl1->checktofpattand(i,j)){//look at "lvl1-fired" paddles only
-	  if(tofrt[i][j]>toft[i])toft[i]=tofrt[i][j];//take max time (first in real time)
+	  if(tofrt[i][j]>toft[i])toft[i]=tofrt[i][j];//select max time in layer(first in real time)
 	}
       }
     }

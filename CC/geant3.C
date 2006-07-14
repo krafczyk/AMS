@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.94 2006/07/11 10:44:46 choutko Exp $
+//  $Id: geant3.C,v 1.95 2006/07/14 13:17:16 choumilo Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -200,25 +200,26 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
   static geant sscoo[3]={0.,0.,0.};
   static geant sstime(0.);
   static int nsmstps(0);
+  static geant ssbx(0),ssby(0),ssbz(0);
   geant trcut2(0.25);// Max. transv.shift (0.5cm)**2
   geant stepmin(0.25);//(cm) min. step/cumul.step to store hit(0.5cm/2)
-  geant estepmin(1.e-5);
-  geant coo[3],dx,dy,dz,dt;
+  geant estepmin(1.e-5);//"small steps" buffer is considered as empty when Eaccumulated below 10kev
+  geant coo[3],dx,dy,dz,dt,stepel;
   geant wvect[6],snext,safety;
   int i,nd,numv,iprt,numl,numvp,tfprf(0);
   static int numvo(-999),iprto(-999);
   tflv=GCVOLU.nlevel-1;  
 //---> print some GEANT standard values(for debugging):
-  tfprf=0;
-//  if(GCFLAG.IEVENT==4442)tfprf=1;
-//  numl=GCVOLU.nlevel;
-//  numv=GCVOLU.number[numl-1];
-//  numvp=GCVOLU.number[numl-2];
+//  if(GCFLAG.IEVENT==3118)tfprf=1;
+//  if(GCFLAG.IEVENT==3118)TOF2DBc::debug=1;
+  numl=GCVOLU.nlevel;
+  numv=GCVOLU.number[numl-1];
+  numvp=GCVOLU.number[numl-2];
 //  for(i=0;i<4;i++)name[i]=GCVOLU.names[numl-1][i];
 //  UHTOC(GCTMED.natmed,4,media,20);
 //
-  if(GCVOLU.nlevel==3 && GCTMED.isvol != 0
-            && GCVOLU.names[tflv][0]=='T' && GCVOLU.names[tflv][1]=='F'){// <=== in "TFnn"
+  if(GCVOLU.nlevel==3 && GCTMED.isvol != 0 && GCKINE.charge !=0
+            && GCVOLU.names[tflv][0]=='T' && GCVOLU.names[tflv][1]=='F'){// <=== charged part. in "TFnn"
     if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
     iprt=GCKINE.ipart;
     prtq=GCKINE.charge;
@@ -229,6 +230,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
     z=GCTRAK.vect[2];
     t=GCTRAK.tofg;
     de=GCTRAK.destep;
+// cout<<"=====>In TOFsensvol: part="<<iprt<<" numv="<<numv<<" z="<<z<<" t/de="<<t<<" "<<de<<endl;
 //
     if(GCTRAK.inwvol==1){// <--- new volume or track : store param.
       iprto=iprt;
@@ -244,18 +246,19 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
       ypr=y;
       zpr=z;
       tpr=t;
+//      if(tfprf)cout<<"---> 1st entry in vol#:"<<numv<<" part="<<iprt<<" time="<<t<<" z="<<z<<endl;
     }
 //
-    else{// <--- inwvol!=1(still running through given volume)
+    else{// <--- inwvol!=1(still running through given volume or leaving it)
 //
       if(iprt==iprto && numv==numvo && de!=0.){// <-- same part. in the same volume, de!=0
+//if(tfprf)cout<<"--->The same vol#/part:"<<numv<<" "<<iprt<<" time="<<t<<" z="<<z<<" de="<<de<<" step="<<
+//                                                        pstep<<" stop="<<GCTRAK.istop<<endl;
         dx=(x-xpr);
         dy=(y-ypr);
         dz=(z-zpr);
         dt=(t-tpr);
         dtr2=dx*dx+dy*dy;
-//
-        if(prtq!=0.){// <--- char!=0
 //
         if(pstep>=stepmin){ // <------ big step
 //
@@ -274,7 +277,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
               coo[2]=zpr+dz*(i-0.5);
               tof=tpr+dt*(i-0.5);
               dee=GCTRAK.destep;
-//  if(tfprf)cout<<"-->WrBigTrsHit:numv="<<numv<<"x/y/z="<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" de="<<dee<<endl;
+//  if(tfprf)cout<<"-->WroBigTrsHit:numv="<<numv<<"x/y/z="<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" de="<<dee<<" tof="<<tof<<endl;
               if(TFMCFFKEY.birks)GBIRK(dee);
               AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
             }
@@ -287,7 +290,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
             coo[2]=zpr+0.5*dz;
             tof=tpr+0.5*dt;
             dee=GCTRAK.destep;
-//  if(tfprf)cout<<"-->WrSmalTrsHit:numv="<<numv<<"x/y/z="<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" de="<<dee<<endl;
+//  if(tfprf)cout<<"-->WroSmalTrsHit:numv="<<numv<<"x/y/z="<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" de="<<dee<<" tof="<<tof<<endl;
             if(TFMCFFKEY.birks){
 //	      cout<<"----->Bef.Birks:Edep="<<dee<<"  Q="<<GCKINE.charge<<" step="<<GCTRAK.step<<endl;
 	      GBIRK(dee);
@@ -296,84 +299,108 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
             AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
           }// ---> endof "small transv.shift"
 //
-          if(estepsum>estepmin){// on "AfterBigStep": write "small steps" buffer if not empty
-	    sscoo[0]/=geant(nsmstps);
-	    sscoo[1]/=geant(nsmstps);
-	    sscoo[2]/=geant(nsmstps);
-	    sstime/=geant(nsmstps);
-//  if(tfprf)cout<<"-->WrSmalStepAHits:numv="<<numv<<"x/y/z="<<sscoo[0]<<" "<<sscoo[1]<<" "<<sscoo[2]
-//                                                   <<" de/nst="<<estepsum<<" "<<nsmstps<<endl;
-            GCTRAK.destep=estepsum;
-            GCTRAK.step=stepsum;
-            if(TFMCFFKEY.birks)GBIRK(estepsum);
-            AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
-	    stepsum=0.;
-	    estepsum=0.;
-            nsmstps=0;
-            sstime=0;
-            sscoo[0]=0;
-            sscoo[1]=0;
-            sscoo[2]=0;
-	  }//---> endof "AfterBigStep" actions
-//
         }// ------> endof "big step"
-//
-	else{//      <--- small step
-	  stepsum+=pstep;
-	  estepsum+=GCTRAK.destep;
-	  nsmstps+=1;
-	  sscoo[0]+=x;
-	  sscoo[1]+=y;
-	  sscoo[2]+=z;
-	  sstime+=t;
-	  if(stepsum>=stepmin){
-	    sscoo[0]/=geant(nsmstps);
-	    sscoo[1]/=geant(nsmstps);
-	    sscoo[2]/=geant(nsmstps);
-	    sstime/=geant(nsmstps);
-//  if(tfprf)cout<<"-->WrSmalStepHits:numv="<<numv<<"x/y/z="<<sscoo[0]<<" "<<sscoo[1]<<" "<<sscoo[2]
-//                                                   <<" de/nst="<<estepsum<<" "<<nsmstps<<endl;
-            GCTRAK.destep=estepsum;
-            GCTRAK.step=stepsum;
-            if(TFMCFFKEY.birks)GBIRK(estepsum);
-            AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
-	    stepsum=0.;
-	    estepsum=0.;
-            nsmstps=0;
-            sstime=0;
-            sscoo[0]=0;
-            sscoo[1]=0;
-            sscoo[2]=0;
+//--------
+	else{//      <--- small step - accumulate in buffer
+          if(pstep==0 && GCTRAK.istop>0){//abnorm.case: step=0(stop/decay/inel_inter)->just write hit 
+//	    if(tfprf)cout<<"WroStep=0:numv="<<numv<<" de="<<de<<" z/t="<<z<<" "<<t<<" stop="<<GCTRAK.istop<<endl;
+	    GCTRAK.step=0.005;//fict.step
+	    coo[0]=x;
+	    coo[1]=y;
+	    coo[2]=z;
+	    tof=t;
+	    dee=GCTRAK.destep;
+            if(TFMCFFKEY.birks)GBIRK(dee);
+            AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
 	  }
-	}//---> endof "small step" 
-//
-        if(GCTRAK.inwvol>=2 && estepsum>estepmin){// on leave: write "small steps" buffer if not empty
+	  else{//normal case (step>0)
+	    if(nsmstps>0){//buffer is not empty, check on broken sequence
+	      if(ssbx!=xpr || ssby!=ypr || ssbz!=zpr){//broken sequence: flush buffer and fill with current step
+	        sscoo[0]/=geant(nsmstps);
+	        sscoo[1]/=geant(nsmstps);
+	        sscoo[2]/=geant(nsmstps);
+	        sstime/=geant(nsmstps);
+  if(tfprf){
+    cout<<"-->WroSSBufBrokenSeq:numv="<<numv<<"SSB_last:x/y/z="<<ssbx<<" "<<ssby<<" "<<ssbz<<endl;
+    cout<<" CurrentStepBegin:x/y/z="<<xpr<<" "<<ypr<<" "<<zpr<<" SSB:x/y/z="<<sscoo[0]<<" "<<sscoo[1]<<" "<<sscoo[2]<<endl;
+    cout<<" Eacc/nst="<<estepsum<<" "<<nsmstps<<" tof:ssb/curr="<<sstime<<" "<<t<<endl;
+  }
+                GCTRAK.destep=estepsum;
+                GCTRAK.step=stepsum;
+                if(TFMCFFKEY.birks)GBIRK(estepsum);
+                AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
+	        stepsum=pstep;//fill with current small step...
+	        estepsum=de;
+                nsmstps=1;
+                sstime=t;
+                sscoo[0]=x;
+                sscoo[1]=y;
+                sscoo[2]=z;
+	        ssbx=x;
+	        ssby=y;
+	        ssbz=z;
+	      }
+	      else{//continious sequence: add current small step
+	        stepsum+=pstep;
+	        estepsum+=GCTRAK.destep;
+	        nsmstps+=1;
+	        sscoo[0]+=x;
+	        sscoo[1]+=y;
+	        sscoo[2]+=z;
+	        sstime+=t;
+	        ssbx=x;
+	        ssby=y;
+	        ssbz=z;
+	        if(stepsum>=stepmin){//flush buffer if accumulated enough small steps 
+	          sscoo[0]/=geant(nsmstps);
+	          sscoo[1]/=geant(nsmstps);
+	          sscoo[2]/=geant(nsmstps);
+	          sstime/=geant(nsmstps);
+//  if(tfprf)cout<<"-->WroSSBufContSeq:numv="<<numv<<"SSB:x/y/z="<<sscoo[0]<<" "<<sscoo[1]<<" "<<sscoo[2]
+//                        <<" Eacc/nst="<<estepsum<<" "<<nsmstps<<" SSB:tof="<<sstime<<endl;
+                  GCTRAK.destep=estepsum;
+                  GCTRAK.step=stepsum;
+                  if(TFMCFFKEY.birks)GBIRK(estepsum);
+                  AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
+	          stepsum=0.;
+	          estepsum=0.;
+                  nsmstps=0;
+                  sstime=0;
+                  sscoo[0]=0;
+                  sscoo[1]=0;
+                  sscoo[2]=0;
+	        }
+	      }//--->endof "cont.sequence"
+	    }//--->endof "non-empty buffer"
+	    else{//buffer is empty: fill with current smal step
+	      stepsum=pstep;//fill with current small step...
+	      estepsum=GCTRAK.destep;
+              nsmstps=1;
+              sstime=t;
+              sscoo[0]=x;
+              sscoo[1]=y;
+              sscoo[2]=z;
+	      ssbx=x;
+	      ssby=y;
+	      ssbz=z;
+	    }//--->endof "buffer is empty"
+	  }//---> endof "normal case step>0" 
+	}//---> endof "small step"
+//--------
+        if((GCTRAK.inwvol>=2 || GCTRAK.istop>0)  && estepsum>estepmin){// on leave/stop: write "small steps" buffer if not empty
 	  sscoo[0]/=geant(nsmstps);
 	  sscoo[1]/=geant(nsmstps);
 	  sscoo[2]/=geant(nsmstps);
 	  sstime/=geant(nsmstps);
-//  if(tfprf)cout<<"-->WrSmalStepLHits:numv="<<numv<<"x/y/z="<<sscoo[0]<<" "<<sscoo[1]<<" "<<sscoo[2]
-//                                                   <<" de/nst="<<estepsum<<" "<<nsmstps<<endl;
+//  if(tfprf){
+//    cout<<"-->WroSSBufOnLeaveStop:numv="<<numv<<"SSB:x/y/z="<<sscoo[0]<<" "<<sscoo[1]<<" "<<sscoo[2]<<endl;
+//    cout<<" STacc/Eacc/nst="<<stepsum<<" "<<estepsum<<" "<<nsmstps<<" SSB:tof="<<sstime<<" stop="<<GCTRAK.istop<<endl;
+//  }
           GCTRAK.destep=estepsum;
           GCTRAK.step=stepsum;
           if(TFMCFFKEY.birks)GBIRK(estepsum);
           AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
-	}//---> endof "on leave" actions
-//
-	}// ---> endof "char!=0"
-// 
-	else{//<--- charge=0(use end-of-step coo)
-          coo[0]=x;
-          coo[1]=y;
-          coo[2]=z;
-          tof=t;
-          dee=GCTRAK.destep;
-          GCTRAK.step=0.02;//point-like Edep ??
-//  if(tfprf)cout<<"-->WrZ=0Hit:numv="<<numv<<"x/y/z="<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" de="<<dee<<endl;
-            if(TFMCFFKEY.birks)GBIRK(dee);
-            AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
-//
-	}// ===> endof "char=0" 
+	}//---> endof "on leave/stop" actions
 //
         xpr=x;
         ypr=y;
@@ -381,7 +408,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
         tpr=t;
       }// ===> end of "same part/vol, de>0"
 //
-    }// ===> endof "inwvol!=0"(still running throuhg given volume)
+    }// ===> endof "inwvol!=0"(still running throuhg given volume or leave it)
 //
   if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
 //

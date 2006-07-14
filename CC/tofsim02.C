@@ -1,7 +1,8 @@
-//  $Id: tofsim02.C,v 1.34 2006/01/27 14:24:38 choumilo Exp $
+//  $Id: tofsim02.C,v 1.35 2006/07/14 13:17:17 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
-// Removed gain-55 logic, E.Choumilov 22.08.2005
+// Removed gain-5 logic, E.Choumilov 22.08.2005
+//  !!!!! 15.03.06   E.Choumilov - complete rebuild caused by new readout(new TDC)
 #include "tofdbc02.h"
 #include <iostream.h>
 #include <stdio.h>
@@ -22,19 +23,25 @@
 #include "ecalrec.h"
 #include "tofid.h"
 //
+using namespace std;
+//
 TOFWScan TOFWScan::scmcscan[TOF2GC::SCBTPN];
 //
-integer TOF2RawEvent::_trpatt[TOF2GC::SCLRS]={0,0,0,0};
-integer TOF2RawEvent::_trpattz[TOF2GC::SCLRS]={0,0,0,0};
-integer TOF2RawEvent::_trcode=0;
-integer TOF2RawEvent::_trcodez=0;
-integer TOF2RawEvent::_ftpatt=0;
-integer TOF2RawEvent::_cpcode=0;
-integer TOF2RawEvent::_bzflag=0;
-number TOF2RawEvent::_trtime=0.;
+integer TOF2RawSide::_trpatt[TOF2GC::SCLRS]={0,0,0,0};
+integer TOF2RawSide::_trpattz[TOF2GC::SCLRS]={0,0,0,0};
+integer TOF2RawSide::_trcode=0;
+integer TOF2RawSide::_trcodez=0;
+integer TOF2RawSide::_ftpatt=0;
+integer TOF2RawSide::_cpcode=0;
+integer TOF2RawSide::_bzflag=0;
+number TOF2RawSide::_trtime=0.;
 number TOF2Tovt::itovts[TOF2GC::SCMCIEVM];
 number TOF2Tovt::icharg[TOF2GC::SCMCIEVM];
 integer TOF2Tovt::ievent;
+geant TOF2Tovt::SumHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];//TDC SumHT(SHT)-channel mem.reserv.
+int TOF2Tovt::SumHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1]; 
+geant TOF2Tovt::SumSHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];
+int TOF2Tovt::SumSHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];
 geant AMSBitstr::clkfas=0;
 //============================================================
 AMSDistr::AMSDistr(int _nbin, geant _bnl, geant _bnw, geant arr[]){// constructor
@@ -245,7 +252,7 @@ void TOFWScan::build(){
         dnumm=dnumm%mult;
         mult=mult/10;
       }
-      strcat(name,".tsfn");
+      strcat(name,".tsf");
       if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
       if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
       strcat(fname,name);
@@ -317,11 +324,11 @@ void TOF2Tovt::build()
   static AMSDistr scpmsesp(19,0.,0.279,arr);// p/h spectrum ready
 //                   ( scale in mV@50ohm to have 1.5mV as m.p. value!!!)
 //
-  integer id,idN,idd,ibar,ilay,ibtyp,cnum;
+  integer id,idN,idd,ibar,ilay,ibtyp,cnum,is;
   static integer cnumo;
-  static geant tslice1[TOF2GC::SCTBMX+1]; //  flash ADC array for side-1
-  static geant tslice2[TOF2GC::SCTBMX+1]; //  flash ADC array for side-2
-  static geant tslice[TOF2GC::SCTBMX+1]; //  flash ADC array
+  geant tslice1[TOF2GC::SCTBMX+1]; //  flash ADC array for side-1
+  geant tslice2[TOF2GC::SCTBMX+1]; //  flash ADC array for side-2
+  geant tslice[TOF2GC::SCTBMX+1]; //  flash ADC array
   geant bnw,bwid; 
   integer warr[TOFGC::AMSDISL]; 
   int i,i0,j,jj,ij,jm,k,stat(0),nelec,ierr(0),lbn,nbm;
@@ -344,54 +351,93 @@ void TOF2Tovt::build()
   static integer first=0;
   static integer npshbn;
   static geant pmplsh[1000];  // PM s.e. pulse shape
-  static geant fadcb,ifadcb,trts,tmax,zlmx,convr,seres,sesig,sesave,sessig,sesrat;
+  static geant fadcb,ifadcb,trts,tmax,zlmx,convr;
+  static geant sesmp[TOF2GC::SCBTPN],sesig[TOF2GC::SCBTPN];
+  static geant sesav[TOF2GC::SCBTPN],sesas[TOF2GC::SCBTPN],sesrat;
+  int nsebnd(30);//use asimptotic spectrum if Nse/bin >= nsebnd
+  geant amm,amm2;
+  geant corrg;
+  int npess[2];
 //
   int ii,kk;
   char inum[11];
   char in[2]="0";
   char vname[5];
   strcpy(inum,"0123456789");
+  char hmod[2]=" ";
 //
-  if(first++==0){
+  if(first++==0){//<---prepare some time-stable params
     AMSmceventg::SaveSeeds();
 //    AMSmceventg::PrintSeeds(cout);
     AMSmceventg::SetSeed(0);
 //    cout <<" first in"<<endl;
     bthick=0.5*TOF2DBc::plnstr(6);//half bar-thickness
     cnumo=0;
-    seres=TOF2DBc::seresp();
-    sesig=seres*TOF2DBc::seresv();
-    TOF2Tovt::inipsh(npshbn,pmplsh); // prepare PM sing.electron PulseShape array
+    TOF2Tovt::inipsh(npshbn,pmplsh); // <---prepare PM sing.electron PulseShape array
     HBOOK1(1099,"Single electron spectrum,mV",65,0.,13.,0.);
-    am=0.;
-    am2=0.;
-    for(i=0;i<5000;i++){
+    HBOOK1(1094,"Spectrum of Sum(Ntest_el) ,mV",80,0.,80.,0.);
+    cout<<"=====> TOF2Tovt::build: Prepare some SE-spectrum related data..."<<endl;
+    bool bprint(0);
+    for(int ibt=0;ibt<TOF2GC::SCBTPN;ibt++){//<---prepare SES-params vs Btyp
+      bprint=(((ibt+1)==2 || (ibt+1)==6 || (ibt+1)==7) && (TFMCFFKEY.mcprtf[0]==1));
+      sesmp[ibt]=TOF2DBc::sespar(ibt,0);
+      sesig[ibt]=sesmp[ibt]*TOF2DBc::sespar(ibt,1);//SigRelat->SigAbs(mv)
+      if(bprint){
+        cout<<"  BarType="<<ibt+1<<"  SE-spectrum: gaussian mp/sig="<<sesmp[ibt]
+                                                                  <<" "<<sesig[ibt]<<endl;
+      }
+      am=0.;
+      am2=0.;
+      for(i=0;i<5000;i++){
 //      rnd=RNDM(dummy);
-//      am0=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
-      am0=seres+sesig*rnormx();// tempor use simple goussian
-      if(am0<0.)am0=0.;
-      am+=am0;
-      am2+=am0*am0;
-      HF1(1099,am0,1.);
-    }
-    if(TFMCFFKEY.mcprtf[2]!=0)HPRINT(1099);
-    am/=5000.;
-    am2/=5000.;
-    sesave=am;//asimptotic average(MP of "gaussized" sum of 5000 s.e.spectra)
-    sessig=sqrt(am2-am*am);
-    sesrat=sessig/sesave;
-    cout<<"S.E. Specrtum Aver/Sigm="<<sesave<<" "<<sessig<<" ratio="<<sesrat<<endl;
-    HDELET(1099);
+//      am0=scpmsesp.getrand(rnd);//amplitude from "Live" single elect. spectrum
+        am0=sesmp[ibt]+sesig[ibt]*rnormx();// tempor use simple gaussian
+        if(am0<0.)am0=0.;
+        am+=am0;
+        am2+=am0*am0;
+        if(bprint)HF1(1099,am0,1.);
+      }
+      if(bprint)HPRINT(1099);
+      am/=5000.;
+      am2/=5000.;
+      sesav[ibt]=am;//SE-spectrum average(Ase)
+      sesas[ibt]=sqrt(am2-am*am);//SE-spectrum rms(Sse)
+      sesrat=sesas[ibt]/sesav[ibt];
+      if(bprint)cout<<"Original SE-specrtum Aver/Sigm="<<sesav[ibt]<<" "<<sesas[ibt]<<" ratio="<<sesrat<<endl;
+      if(bprint)HRESET(1099,hmod);
+      if(bprint)cout<<"Asimpt.spectrum for "<<nsebnd<<" electrons has Aver/Sig="<<
+                            (nsebnd*sesav[ibt])<<" "<<(sqrt(geant(nsebnd))*sesas[ibt])<<endl;
+      amm=0;
+      amm2=0;
+      for(int j=0;j<2000;j++){
+        am=0.;
+        for(i=0;i<nsebnd;i++){
+          am0=sesmp[ibt]+sesig[ibt]*rnormx();
+          if(am0<0.)am0=0.;
+          am+=am0;
+        }
+        if(bprint)HF1(1094,am,1.);
+        amm+=am;
+        amm2+=am*am;
+      }
+      if(bprint)HPRINT(1094);
+      amm/=2000;
+      amm2/=2000;
+      amm2=sqrt(amm2-amm*amm);
+      if(bprint)cout<<"True spectrum for "<<nsebnd<<" electrond has Aver/Sig="<<amm<<" "<<amm2<<endl;
+      if(bprint){
+        HRESET(1094,hmod);
+        cout<<"--------------"<<endl;
+      }
+    }//--->endof bar-type loop
 //
-    for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice1[i]=0.;// clear flash ADC arrays
-    for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice2[i]=0.;
-    for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice[i]=0.;
     fadcb=TOF2DBc::fladctb();
     ifadcb=1./fadcb;
     tmax=TOF2GC::SCTBMX*fadcb-1.;// ns
     zlmx=TOF2DBc::plnstr(6)/2.+eps;
     convr=1000.*TOF2DBc::edep2ph();
     AMSmceventg::RestoreSeeds();
+    cout<<"<===== TOF2Tovt::build: SE-spectrum related data prepared !"<<endl;
     
 //    cout <<"first out "<<endl;
   }
@@ -410,14 +456,27 @@ void TOF2Tovt::build()
     wshar1[i]=0;
     wshar2[i]=0;
   }
+  for(i=0;i<TOF2GC::SCTBMX+1;i++){
+    tslice1[i]=0.;// clear s1/s2 flash ADC arrays
+    tslice2[i]=0.;
+  }
 //
   edepb=0.;// Edep in given bar
+  npess[0]=0;
+  npess[1]=0;
   while(ptr){//       <------------- loop over geant hits
     id=ptr->idsoft; 
     ilay=id/100-1;
     nhitl[ilay]+=1;
     ibar=id%100-1;
     ibtyp=TOF2DBc::brtype(ilay,ibar)-1;//0->10
+    if((ilay==1 && ibtyp!=4) ||
+       (ilay==2 && ibtyp!=8))corrg=1.065;//tempor fix to compensate higher gain(1/0.939) for B+T counters set in 
+// LTRANS because now i want to equilize count.signals in tofsim02-part only (using SingleElectrSpectrum MostProb value)
+//, by this trick i still keep (patrially) effect of HV influence on PM transition time (really missing in current
+// setup with equal HV/gains on PMs of one side, difference in TTS between sides/counters is not important due to
+// offline T0-calibration) 
+    else corrg=1;
     de=ptr->edep;
     edepl[ilay]+=de;
     edepb+=de;
@@ -425,7 +484,7 @@ void TOF2Tovt::build()
     x=ptr->xcoo[0];
     y=ptr->xcoo[1];
     z=ptr->xcoo[2];
-//  cout<<"MChit id="<<id<<" edep="<<de<<" /x/y/z="<<x<<" "<<y<<" "<<z<<endl;
+//  if(TOF2DBc::debug)cout<<"MChit id="<<id<<" edep="<<de<<" /x/y/z="<<x<<" "<<y<<" "<<z<<" time="<<time<<endl;
     AMSPoint cglo(x,y,z);
     strcpy(vname,"TF");
     kk=ilay*TOF2GC::SCMXBR+ibar+1;//bar ID used in the volume name
@@ -452,7 +511,7 @@ void TOF2Tovt::build()
       ptr=ptr->next(); // take next hit
       continue;
     }
-    qtime=time*ifadcb;
+    qtime=time*ifadcb;//G-hit abs.time in FADC-channel units
     cnum=TOF2DBc::barseqn(ilay,ibar);// solid sequential numbering(0->33)
     nwdivs=TOFWScan::scmcscan[ibtyp].getndivs();//real # of wdivs
     npmts=TOFWScan::scmcscan[ibtyp].getnpmts();//real # of pmts per side
@@ -489,12 +548,15 @@ void TOF2Tovt::build()
 //
     eff=TOFWScan::scmcscan[ibtyp].getef1(idivx,r,i1,i2);//eff for PM-1
     rgn=TOFWScan::scmcscan[ibtyp].getgn1(idivx,r,i1,i2);//gain for PM-1
+    rgn/=corrg;//remove B+T Lg efficiency compensation(by gain) made in LTRANS
     for(i=0;i<npmts;i++){//to calc.later average(hit-energy-weighted) Dpms signals sharing
       shar1[i]+=(de*TOFWScan::scmcscan[ibtyp].getps1(i,idivx,r,i1,i2));//dyn.sharing
       wshar1[i]+=de;
     }
     nel=nel0*eff;// mean total number of photoelectrons
+//cout<<" PMsid=1"<<" eff/gn="<<eff<<" "<<rgn<<" nel="<<nel<<endl;
     POISSN(nel,nelec,ierr);// fluctuations
+    npess[0]+=nelec;
     for(i=0;i<TOFGC::AMSDISL;i++)warr[i]=0;
 //    <-------- create phel. arrival-time distribution(PM-1) ---<<<
     for(i=0;i<nelec;i++){
@@ -507,19 +569,19 @@ void TOF2Tovt::build()
 //    <-------- Loop over distr.bins ---<<<
     for(i=0;i<TOFGC::AMSDISL;i++){
       uinteger ii=i0+i;
-      if(ii>TOF2GC::SCTBMX)break;//ignore "out of range"(above last=safety bin) 
+      if(ii>TOF2GC::SCTBMX)break;//ignore "out of FADC time-range" 
       nelec=warr[i];
       if(nelec!=0){
-        if(nelec<30){
-          for(k=0;k<nelec;k++){//<-- summing of all amplitudes from photoelectrons 
-            am=seres+sesig*rnormx();//amplitude from single elect. spectrum
+        if(nelec<nsebnd){//direct simulation of Atot of nelec(if low statistics)
+          for(k=0;k<nelec;k++){//<-- summing of all amplitudes from nelec photoelectrons 
+            am=sesmp[ibtyp]+sesig[ibtyp]*rnormx();//amplitude from SE-spectrum
             if(am>0.)tslice1[ii]+=am*rgn;
           }
         }
-        else{
-          am=sesave*nelec;
-          sig=sessig*sqrt(geant(nelec));
-          tslice1[ii]+=(am+sig*rnormx())*rgn;
+        else{//asimptotics(suppose gaussian:Atot=nelec*Ase; Stot=sqrt(nelec)*Sse)
+          am=sesav[ibtyp]*nelec;
+          sig=sesas[ibtyp]*sqrt(geant(nelec));
+          tslice1[ii]+=(am+sig*rnormx())*rgn;//now rgn=1 if all PMs of 1 side are OK
         }
       }
     } // >>>----- end of PM-1 loop ------>
@@ -528,12 +590,15 @@ void TOF2Tovt::build()
 //
     eff=TOFWScan::scmcscan[ibtyp].getef2(idivx,r,i1,i2);//eff for PM-2
     rgn=TOFWScan::scmcscan[ibtyp].getgn2(idivx,r,i1,i2);//gain for PM-2
+    rgn/=corrg;
     for(i=0;i<npmts;i++){//to calc.later average(hit-energy-weighted) Dpms signals sharing
       shar2[i]+=(de*TOFWScan::scmcscan[ibtyp].getps2(i,idivx,r,i1,i2));//dyn.sharing
       wshar2[i]+=de;
     } 
     nel=nel0*eff;// mean total number of photoelectrons
+//cout<<" PMsid=2"<<" eff/gn="<<eff<<" "<<rgn<<" nel="<<nel<<endl;
     POISSN(nel,nelec,ierr);// fluctuations
+    npess[1]+=nelec;
     for(i=0;i<TOFGC::AMSDISL;i++)warr[i]=0;
 //    <-------- create phel. arrival-time distribution(PM-2) ---<<<
     for(i=0;i<nelec;i++){
@@ -546,74 +611,89 @@ void TOF2Tovt::build()
 //    <-------- Loop over distr.bins ---<<<
     for(i=0;i<TOFGC::AMSDISL;i++){
       uinteger ii=i0+i;
-      if(ii>TOF2GC::SCTBMX)break;//ignore "out of range"
+      if(ii>TOF2GC::SCTBMX)break;//ignore "out of FADC time-range"
       nelec=warr[i];
       if(nelec!=0){
-        if(nelec<30){
+        if(nelec<nsebnd){
           for(k=0;k<nelec;k++){//<-- summing of all amplitudes from photoelectrons 
-            am=seres+sesig*rnormx();//amplitude from single elect. spectrum
+            am=sesmp[ibtyp]+sesig[ibtyp]*rnormx();//amplitude from SE-spectrum
             if(am>0.)tslice2[ii]+=am*rgn;
           }
         }
         else{
-          am=sesave*nelec;
-          sig=sessig*sqrt(geant(nelec));
+          am=sesav[ibtyp]*nelec;
+          sig=sesas[ibtyp]*sqrt(geant(nelec));
           tslice2[ii]+=(am+sig*rnormx())*rgn;
         }
       }
     } // >>>----- end of PM-2 loop ------>
 //-----------------------------------
-//      ptrN=ptr->next();
-//      idN=0; 
-//      if(ptrN)idN=ptrN->getid();// id of the next G-hit
-//      if(idN != id){ // <---- last or new bar -> create Tovt-objects :
-//
       if(ptr->testlast()){ // <---- last or new bar -> create Tovt-objects :
         edepb*=1000.;// --->MeV
 	if(edepb>0.)TOF2JobStat::addmc(4);//count fired bars
         if(edepb>TFMCFFKEY.Thr){// process only bar with Edep>Ethr
-// PM(side=1) loop to apply pulse shape :
-          am0=fabs(TFMCFFKEY.blshift*rnormx());//base line shift simulation
+// PM(side=1) loop to apply pulse shape to each tslice-bin :
           idd=id*10+1;//LBBS
+          if(TFMCFFKEY.mcprtf[2]!=0){
+            if(idd==1011)HF1(1031,geant(npess[0]),1.);// pe's per side for ref.bar
+            if(idd==1041)HF1(1032,geant(npess[0]),1.);
+            if(id==104 && npess[0]>10 && npess[1]>10){
+	      HF1(1042,geant((npess[0]-npess[1]))/geant((npess[0]+npess[1])),1.);
+              HF1(1043,geant(npess[0]+npess[1]),1.);
+	    }
+            if(idd==4011)HF1(1033,geant(npess[0]),1.);
+            if(idd==4041)HF1(1034,geant(npess[0]),1.);
+            if(idd==2011)HF1(1035,geant(npess[0]),1.);
+            if(idd==2021)HF1(1036,geant(npess[0]),1.);
+            if(idd==2041)HF1(1037,geant(npess[0]),1.);
+            if(idd==3011)HF1(1038,geant(npess[0]),1.);
+            if(idd==3021)HF1(1039,geant(npess[0]),1.);
+            if(idd==3031)HF1(1040,geant(npess[0]),1.);
+            if(idd==3051)HF1(1041,geant(npess[0]),1.);
+	  }
+          am0=fabs(TFMCFFKEY.blshift*rnormx());//base line shift simulation
           for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice[i]=am0;
-          for(i=0;i<TOF2GC::SCTBMX;i++){
+          for(i=0;i<=TOF2GC::SCTBMX;i++){
             am=tslice1[i];
             if(am>0){
 	      for(j=0;j<npshbn;j++){
 	        ij=i+j;
-                if(ij>TOF2GC::SCTBMX)break;
+                if(ij>TOF2GC::SCTBMX)break;//ignore FADC time-range ovfl
                 tslice[ij]+=am*pmplsh[j];
 	      }
             }
           }        
           for(i=0;i<npmts;i++)shar1[i]/=wshar1[i];//calc. average Dpms-signals sharing
           TOF2Tovt::totovt(idd,edepb,tslice,shar1);// Tovt-obj for side(PM)-1
-          if(TFMCFFKEY.mcprtf[1] != 0)
-                        TOF2Tovt::displ_a(idd,20,tslice);//print PMT pulse
+          if(TFMCFFKEY.mcprtf[1] > 0){
+                   TOF2Tovt::displ_a("Side-1 PM pulse, id=",idd,20,tslice);//print PMT pulse
+	  }
 //        
 // PM(side=2) loop to apply pulse shape :
           am0=fabs(TFMCFFKEY.blshift*rnormx());//base line shift simulation
           idd=id*10+2;
           for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice[i]=am0;
-          for(i=0;i<TOF2GC::SCTBMX;i++){
+          for(i=0;i<=TOF2GC::SCTBMX;i++){
             am=tslice2[i];
             if(am>0){
 	      for(j=0;j<npshbn;j++){
 	        ij=i+j;
-                if(ij>TOF2GC::SCTBMX)break;
+                if(ij>TOF2GC::SCTBMX)break;//ignore FADC time-range ovfl
                 tslice[ij]+=am*pmplsh[j];
 	      }
             }
           }        
           for(i=0;i<npmts;i++)shar2[i]/=wshar2[i];//calc. average Dpms-signals sharing
           TOF2Tovt::totovt(idd,edepb,tslice,shar2);// Tovt-obj for side(PM)-2
-          if(TFMCFFKEY.mcprtf[1] != 0)
-                        TOF2Tovt::displ_a(idd,20,tslice);//print PMT pulse
+          if(TFMCFFKEY.mcprtf[1] > 0)
+                   TOF2Tovt::displ_a("Side-2 PM pulse, id=",idd,20,tslice);//print PMT pulse
         }// ---> end of counter Edep check
 //
         for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice1[i]=0.;//clear flash ADC arrays for next bar
         for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice2[i]=0.;
         edepb=0.;// clear Edep
+        npess[0]=0;
+        npess[1]=0;
         for(i=0;i<TOF2GC::PMTSMX;i++){//clear Dpms-sharing arrays
           shar1[i]=0;
           shar2[i]=0;
@@ -624,6 +704,31 @@ void TOF2Tovt::build()
 //
     ptr=ptr->next();
   }// ------ end of geant hits loop ---->
+//-------
+//
+// <--- arrange in incr.order TOF2Tovt::SumHT/SumSHT-arrays,created by all calls to TOF2Tovt::totovt(...)-routine:
+  int nhth;
+  for(int ic=0;ic<TOF2GC::SCCRAT;ic++){
+    for(int sl=0;sl<TOF2GC::SCFETA-1;sl++){
+      nhth=TOF2Tovt::SumHTh[ic][sl];
+      if(nhth>0){//<-- non-empty slot with SumHTt-hits
+	AMSsortNAGa(TOF2Tovt::SumHTt[ic][sl],nhth);
+	if(TFMCFFKEY.mcprtf[3]>0){
+          cout<<"     TOF2TovT:SumHT>0:cr/sl_seq="<<ic<<" "<<sl<<" Nhits="<<nhth<<endl;
+          for(int ih=0;ih<nhth;ih++)cout<<"       "<<TOF2Tovt::SumHTt[ic][sl][ih]<<endl;
+	}
+      }
+      nhth=TOF2Tovt::SumSHTh[ic][sl];
+      if(nhth>0){//<-- non-empty slot with SumSHTt-hits
+	AMSsortNAGa(TOF2Tovt::SumSHTt[ic][sl],nhth);
+	if(TFMCFFKEY.mcprtf[3]>0){
+          cout<<"     TOF2TovT:SumSHT>0:cr/ssl="<<ic<<" "<<sl<<" Nhits="<<nhth<<endl;
+          for(int ih=0;ih<nhth;ih++)cout<<"       "<<TOF2Tovt::SumSHTt[ic][sl][ih]<<endl;
+	}
+      }
+    }
+  }
+
 //
   if(TFMCFFKEY.mcprtf[2]!=0){
     for(i=0;i<TOF2GC::SCLRS;i++)HF1(1050+i,geant(nhitl[i]),1.);
@@ -703,7 +808,7 @@ void TOF2Tovt::inipsh(integer &nbn, geant arr[])
       }
     }
     if(lastiob){//<-- last iobin test
-      if(TFMCFFKEY.mcprtf[0] != 0){
+      if(TFMCFFKEY.mcprtf[0] == 2){
         tota=tota*TOF2DBc::fladctb()/50.;
         printf("TOF-PM pulse shape:nbins=% 3d, Integral(pC) = %4.2e\n",nbn,tota);
         for(i=1;i<=nbn;i++){
@@ -718,7 +823,7 @@ void TOF2Tovt::inipsh(integer &nbn, geant arr[])
     }//--->endof last iobin test
   }//--->endof ib loop
 //
-  cerr<<"TOF2Tovt-inipulsh-Fatal: PM-pulse length exeeds Flash-ADC range !?"<<'\n';
+  cerr<<"TOF2Tovt:inipsh-Err: PM-pulse length exeeds Flash-ADC range !?"<<'\n';
   cerr<<"                 nbn="<<nbn<<endl;
   exit(1);
 }
@@ -734,18 +839,17 @@ geant TOF2Tovt::pmsatur(const geant am){
 //
 // function to display PMT pulse (flash-ADC array arr[]) :
 //
-void TOF2Tovt::displ_a(const int id, const int mf, const geant arr[]){
+void TOF2Tovt::displ_a(char comm[], int id, int mf, const geant arr[]){
   integer i;
-  static integer ifrs(0);
   geant tm,a(0.);
-  static geant tb,tbi;
-  if(ifrs++==0){
-    tb=geant(mf)*TOF2DBc::fladctb();
-    tbi=TOF2DBc::fladctb();
-    HBOOK1(1000,"PMT flash-ADC pulse (MC)",100,0.,100*tb,0.);
-  }
-  HRESET(1000," ");
-  cout<<"PMT:counter-id = "<<id<<" (LBBS, L-layer, BB-bar, S-side)"<<'\n';
+  geant tb,tbi;
+  char name[80], buf[10];
+  sprintf(buf, "%4d\n",id);
+  strcpy(name,comm);
+  strcat(name,buf);
+  tb=geant(mf)*TOF2DBc::fladctb();
+  tbi=TOF2DBc::fladctb();
+  HBOOK1(1000,name,100,0.,100*tb,0.);
   for(i=1;i<=TOF2GC::SCTBMX;i++){
     if(i%mf==0){
       a+=arr[i-1];
@@ -758,6 +862,7 @@ void TOF2Tovt::displ_a(const int id, const int mf, const geant arr[]){
     }
   }
   HPRINT(1000);
+  HDELET(1000);
   return ;
 }
 //--------------------------------------------------------------------------
@@ -770,105 +875,132 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
   geant tm,a,am,am0,amd,tmp,amp,amx,amxq;
   geant iq0,it0,itau;
   integer _ntr1,_ntr2,_ntr3,_nftdc,_nstdc,_nadca,_nadcd;
-  number _ttr1[TOF2GC::SCTHMX1],_ttr2[TOF2GC::SCTHMX1],_ttr3[TOF2GC::SCTHMX1];
+  number _ttr1u[TOF2GC::SCTHMX1],_ttr2u[TOF2GC::SCTHMX1],_ttr3u[TOF2GC::SCTHMX1];
+  number _ttr1d[TOF2GC::SCTHMX1],_ttr2d[TOF2GC::SCTHMX1],_ttr3d[TOF2GC::SCTHMX1];
   number _tftdc[TOF2GC::SCTHMX2],_tftdcd[TOF2GC::SCTHMX2];
   number _tstdc[TOF2GC::SCTHMX3];
   number _adca;
   number _adcd[TOF2GC::PMTSMX];
   number tovt,aqin;
-  int upd1,upd2,upd3; // up/down flags for 3 fast discr. (z>=1;z>1;z>2)
-  int upd11,upd21,upd22,upd31;
   int updsh;
   int imax,imin;
   geant a2dr[2],adc2q;
   static geant a2ds[2],adc2qs;
   geant tshd,tshup,charge,saturf;
-  geant td1b1,td2b1,td2b2,td2b2d,td3b1;
-  geant tmd1u,tmd1d,tmd2u,tmd2d,tmd3u,tmd3d,tbn,w,bo1,bo2,bn1,bn2,tmark;
+  geant tbn,w,bo1,bo2,bn1,bn2,tmark;
   static integer first=0;
   static integer nshbn,mxcon,mxshc,mxshcg;
-  static geant fladcb,shapb,cconv;
+  static geant fladcb,cconv;
   geant daqt0,daqt1,daqt2,daqt3,daqt4,fdaqt0;
   static geant daqp0,daqp1,daqp2,daqp3,daqp4,daqp5,daqp6,daqp7,daqp8,daqp9,daqp10;
   static geant daqp11,daqp12;
   number adcs;
-  int stackof;
+  int16u otyp,mtyp,crat,slot,tsens;
 //
+//cout<<"======>Enter TOF2Tovt::totovt with id="<<idd<<endl;
   id=idd/10;// LBB
   isid=idd%10-1;// side
   ilay=id/100-1;
   ibar=id%100-1;
+  mtyp=0;
+  otyp=0;
+  AMSSCIds tofid(ilay,ibar,isid,otyp,mtyp);//otyp=0(anode),mtyp=0(LT-time)
+  crat=tofid.getcrate();//current crate#
+  slot=tofid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
+  tsens=tofid.gettempsn();//... sensor#(1,2,...,5 == sequential SFET(A)'s number !!!)
 //
   if(first++==0){
     fladcb=TOF2DBc::fladctb();          //prepare some time-stable parameters
-    shapb=TOF2DBc::shaptb();
     cconv=fladcb/50.; // for mV->pC (50 Ohm load)
-    daqp0=TOF2DBc::daqpwd(0);// fixed duration of FT(Z>=1) pulse
-    daqp1=TOF2DBc::daqpwd(1);//not used
-    daqp2=TOF2DBc::daqpwd(2);// fixed duration of Z>2 pulse 
-    daqp3=TOF2DBc::daqpwd(3);//dead time(dbl-pulse resol) for fast-TDC(history) signals 
-    daqp4=TOF2DBc::daqpwd(4);//sTDC buzy time(from previous "up" till  possible next "up")
-    daqp7=TOF2DBc::daqpwd(0)
-         +TOF2DBc::daqpwd(7);// buzy time(pwid+dead) for z>=1(FT) branch of discr-2(HiThr)
-    daqp8=TOF2DBc::daqpwd(8);//dead time of discr.itself(any discr)
-    daqp9=TOF2DBc::daqpwd(2)
-         +TOF2DBc::daqpwd(9);// buzy time(pwid+dead) for z>2 branch of discr-3(SHiThr) 
-    daqp10=TOF2DBc::daqpwd(10);// intrinsic t-dispersion of comparator(on low thr.outp)
-    daqp11=TOF2DBc::daqpwd(11);// min.duration time of discriminator pulse
+    daqp0=TOF2DBc::daqpwd(0);// fixed PW of "FTC(HT)"-branch output pulse(ACTEL-outp going to SPT)
+    daqp1=TOF2DBc::daqpwd(1);// minimal inp.pulse width(TovT) to fire discr.(its rise time)
+    daqp2=TOF2DBc::daqpwd(2);// fixed PW of "FTZ(SHT)"-branch output pulse(ACTEL-outp going to SPT) 
+    daqp3=TOF2DBc::daqpwd(3);// min.outPW of discr.(outPW=inpTovT-daqp1 when outPW>daqp3)
+    daqp4=TOF2DBc::daqpwd(4);// inp dead time of generic discr(outpDT=daqp4+daqp1)
+    daqp7=TOF2DBc::daqpwd(7);// dead time of TDC-inputs(ns,the same for LT-/FT-/Sum-inputs) 
+    daqp8=TOF2DBc::daqpwd(8);// dead time of "HT/SHT-trig"-branch on ACTEL-output(going to SPT-inp)
+//                                      (Guido: ACTEL-inp is faster than Discr, so no ACTEL-inp DT check)
+    daqp9=TOF2DBc::daqpwd(9);// dead time of "SumHT(SHT)"-branch on ACTEL-output(going to TDC-inp) 
+//                                      (Guido: ACTEL-inp is faster than Discr, so no ACTEL-inp DT check)
+    daqp10=TOF2DBc::daqpwd(10);// generic discr. intrinsic accuracy
+    daqp11=TOF2DBc::daqpwd(11);// fixed PW of "SumHT(SHT)"-branch on ACTEL-output(going to TDC)
   }
 // time-dependent parameters(thresholds mainly) !!! :
-  daqt0=TOF2Varp::tofvpar.daqthr(0); //discr-1 thresh(Low) for sTDC(stretcher) channel 
+  daqt0=TOF2Varp::tofvpar.daqthr(0); //discr-1 thresh(Low) for LT-channel 
   fdaqt0=0.1*daqt0;// lowered threshold to select "working" part of pulse(m.b. loose some charge !!!)
-  daqt1=TOF2Varp::tofvpar.daqthr(1); //discr-2 thresh(High) for FT(Z>=1)/History channel
-  daqt2=TOF2Varp::tofvpar.daqthr(2);//discr-3 thresh(VeryHigh) for "Z>2" channel  
+  daqt1=TOF2Varp::tofvpar.daqthr(1); //discr-2 threshold(High) for HT-channel(FTC)
+  daqt2=TOF2Varp::tofvpar.daqthr(2); //discr-3 threshold(VeryHigh) for SHT-channel(FTZ)  
 //
 // -----> create/fill summary Tovt-object for idsoft=idd :
 //
-        if(tslice[TOF2GC::SCTBMX]>daqt0){//test last bin(i.e.ovfl) of flash-ADC
+        if(tslice[TOF2GC::SCTBMX]>daqt0){//test last bin of flash-ADC ("FADC")
           TOF2JobStat::addmc(5);
 //#ifdef __AMSDEBUG__
-          cout<<"SITOFTovt-W: MC_flash-ADC range overflow, id="<<idd<<
-             "  AmpLastBin(ovfl)= "<<tslice[TOF2GC::SCTBMX]<<'\n';
-          if(TFMCFFKEY.mcprtf[2]>1)TOF2Tovt::displ_a(idd,100,tslice);//print PMT pulse
+          cout<<"SITOFTovt-W: MC_FADC time-range overflow, id="<<idd<<
+             "  AmplOfLastBin(mV)= "<<tslice[TOF2GC::SCTBMX]<<'\n';
+          if(TFMCFFKEY.mcprtf[1]>1)TOF2Tovt::displ_a("FADC-ovfl, PM-pulse id=",idd,100,tslice);//print PMT pulse
 //#endif
         }
-        for(i=TOF2GC::SCTBMX-1;i>0;i--){
+        for(i=TOF2GC::SCTBMX;i>0;i--){
 	  imax=i;
-          if(tslice[i]>fdaqt0 && tslice[i-1]>fdaqt0)break;//find high limit
+          if(tslice[i]>fdaqt0 && tslice[i-1]>fdaqt0)break;//find high limit as highest 2bins above thresh.
 	}
-        imax=imax+1;
         for(i=0;i<TOF2GC::SCTBMX;i++){
 	  imin=i;
 	  if(tslice[i]>fdaqt0)break;//find low limit
 	}
+// max possible index range: 0,1,...,TOF2GC::SCTBMX !!!
 //
+//cout<<"---->InTovT:id/imax="<<idd<<" "<<imax<<endl;
         charge=0.;
         _ntr1=0;
         _ntr2=0;
         _ntr3=0;
         _nftdc=0;
         _nstdc=0;
+//--->
+//   Based on available from Guido information, i created the following logic of
+//      SFET front part(simple and fast but may be wrong a little):
+//    1) for each logical channel(LT,HT,SHT,SumHT) there is a generic discriminator(fast core)
+//      which require: min input pulse duration(~5ns) to go UP, have small dead time(~10ns),
+//      have extending (proportional to input TovT) outp. pulse duration with some small 
+//      minimum pulse width(~7ns)
+//    2) the core is followed by slower output branch(s) where its own dead time(buzy) state
+//      is controlled, core up-times are stored in the FIFO buffer. Branch up-setting is driven
+//      by discriminator, but is branch's own dead time controlled !. Branch may be self-resetted to
+//      prowide nesessary outp.pulse width(independently on discr. state !). 
+//<---
+     int upd1=0; //up-flag for discr-1(LowThr, followed by 1 branch: LT-time)
+     geant tmd1u=-9999.;//up-time of discr-1 
+     geant tmd1d=-9999.;// down-time of discr-1
+     int pupd1=0;//pre_up-flag (to manage minimal inp.pulse duration(rise time) requirement)
+     geant tpupd1=0;//time of the 1st pre_up (.................................)
+     geant td1ref=-9999;
+     
+     int upd11=0;//up-flag for branche-1
+     geant tmd11u=-9999.;//branche-1 up-time
+     geant tmd11d=-9999.;//branche-1 down-time
 //
-        upd1=0; //up/down flag for discr-1(LowThr, has 1 branch: sTDC)
-	tmd1u=-9999.;//up-time of discr-1 
-        tmd1d=-9999.;// down-time of discr-1
-	upd11=0;//up/down(buzy) flag for branche-1
-        td1b1=-9999.;//branche-1 previous "up"-time
+     int upd2=0; //up-flag for discr-2(HiThr, followed by 1 branche: Z>=1(FTC)-trig)
+     geant tmd2u=-9999.;//up-time of discr-2 
+     geant tmd2d=-9999.;//down-time of discr-2 
+     int pupd2=0;//pre_up-flag (to manage minimal inp.pulse duration(rise time) requirement)
+     geant tpupd2=0;//time of the 1st pre_up (...........................................)
+     
+     int upd21=0;// up-flag for FTC(z>=1) branch(#1) of discr-2
+     geant tmd21u=-9999;//branche-1 up-time
+     geant tmd21d=-9999;//branche-1 down-time
 //
-        upd2=0; //up/down flag for discr-2(HiThr, has 2 branches: FT/fTDC(Hist))
-	tmd2u=-9999.;//up-time of discr-2 
-        tmd2d=-9999.;// down-time of discr-2
-        upd21=0;// up/down flag for FT(z>=1) branch of discr-2
-        td2b1=-9999.;//branch-1 previous "up"-time
-        upd22=0;// up/down flag for fTDC branch of discr-2
-        td2b2=-9999.;//branch-2  "up"-time
-        td2b2d=-9999.;//branch-2 previous "down"-time
-//
-        upd3=0;//up/down flag for discr-3(SHiThr, has 1 branch: Z>=2 trig)
-	tmd3u=-9999.;//up-time of discr-3 
-        tmd3d=-9999.;//down-time of discr-3
-        upd31=0;// up/down flag for z>2 branch of discr.3 (dinode)
-        td3b1=-9999.;// branch-1 previous up-time of  duscr-3(z>2)
+     int upd3=0;//up-flag for discr-3(SHiThr,  followed by 1 branch: Z>=2 trig(FTZ))
+     geant tmd3u=-9999.;//up-time of discr-3 
+     geant tmd3d=-9999.;//down-time of discr-3
+     int pupd3=0;//pre_up-flag (to manage minimal inp.pulse duration requirement)
+     geant tpupd3=0;//time of the 1st pre_up (.................................)
+     
+     int upd31=0;// up-flag for FTZ(z>=2) branch of discr.3
+     geant tmd31u=-9999.;// branch-1 up-time
+     geant tmd31d=-9999.;// branch-1 up-time
+     geant maxtu;
 //	 
 //      _
 //    _| |_
@@ -876,186 +1008,224 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 //   ^tmp
 //     ^tm
 //
-        stackof=0;//LIFO stack overfl.flag(for fTDC barnch)
         amx=0.;
         amp=0.;
-        tmp=fladcb*imin;
+        tmp=fladcb*imin;//low edge of imin-bin
         tm=tmp;
-        for(i=imin;i<imax;i++){  //  <--- time bin loop for time measurements ---
-          tm+=fladcb;
+        for(i=imin;i<=imax;i++){  //  <--- time bin loop to simulate time measurements ---
+          tm+=fladcb;//high edge of the current bin
           am=tslice[i];
           if(am>amx)amx=am;//to find max amplitude
           am=am+TFMCFFKEY.hfnoise*rnormx();//tempor high freq. noise
           charge+=am;
-//--------------------------          
-// discr-1(anode comparator(LowThr) up/down setting for slowTDC(stretcher) branch:
-          if(am>=daqt0){
-            if(upd1 ==0 && (tm-tmd1d)>daqp8){// up-time( + dead-time check)
-              tmd1u=tmp+fladcb*(daqt0-amp)/(am-amp);// up time of discr.1(bin-width compencated)
-              tmark=tmd1u+daqp10*rnormx();// add intrinsic t-dispersion
-              upd1=1;
-            }
+//-------------------          
+// generic discr-1 up/down setting (used by LT-time branch):
+          if(am>=daqt0){// <=== Am>LTthr
+	    if(pupd1==0 && (tm-tmd1d)>daqp4){// try set D1 pre-up state(inp. dead time check)
+	      pupd1=1;
+	      tpupd1=tm;
+	      tmark=tmp+fladcb*(daqt0-amp)/(am-amp);//precise pre-up time (bin-width compencated)
+	    }
+	    if(pupd1==1 && upd1==0){// try set d1 "up" if it is "down" and pre-up state OK 
+              if((tm-tpupd1)>daqp1){//min inpTovT check
+                upd1=1;
+                tmd1u=tm;// up time of discr.1(delayed wrt tpupd1 according to min inpTovT (rise time))
+		td1ref=tmark+daqp1;//D1 "precise time"(when pre-up state was 1st time UP + FIXED rise-time)
+              }
+	    }
           }
-          else{
-            if(upd1!=0 && (tm-tmd1u)>daqp11){ // down time (+min.duration check)
+          else{//Am<LTthr
+	    pupd1=0;//reset pre-up state
+            if(upd1!=0 && (tm-tmd1u)>daqp3){ //try reset D1 (min. outPW check)
               upd1=0;
-              tmd1d=tm;
+              tmd1d=tm;//down time of discr.1
             }
           }
-//----------
-// discr-2( anode comparator(HiThr) up/down setting for FT(z>=1)/History branch  :
-          if(am>=daqt1){
-            if(upd2 ==0 && (tm-tmd2d)>daqp8){// up-time( + dead-time check)
-              tmd2u=tm;// up time of discr.2 (FT/History)
-              upd2=1;
-            }
+//------------------
+// generic discr-2 up/down setting (used by z>=1(FTC)-trig branch):
+          if(am>=daqt1){// <=== Am>HTthr
+	    if(pupd2==0 && (tm-tmd2d)>daqp4){// try set D2 pre-up state(inp dead time check)
+	      pupd2=1;
+	      tpupd2=tm;
+	    }
+	    if(pupd2==1 && upd2==0){// try set D2 "up" if it is "down" and pre-up state OK 
+              if((tm-tpupd2)>daqp1){// min inpTovT check
+                upd2=1;
+                tmd2u=tm;// up time of discr-2(delayed wrt tpupd2 according to min inpTovT (rise time))
+//		cout<<"D2up:tmd2u/d="<<tmd2u<<" "<<tmd2d<<endl;
+              }
+	    }
           }
-          else{
-            if(upd2!=0 && (tm-tmd2u)>daqp11){ // down time (+min.duration) check
+          else{//Am<HTthr
+	    pupd2=0;//reset pre-up state
+            if(upd2!=0 && (tm-tmd2u)>daqp3){ // try reset D2 (min. outPW check)
               upd2=0;
               tmd2d=tm;
+//		cout<<"D2down:tmd2u/d="<<tmd2u<<" "<<tmd2d<<endl;
             }
           }
-//----------
-// discr-3( anode comparator(SHiThr) up/down setting for "z>=2" branch:
-          if(am>=daqt2){
-            if(upd3 ==0 && (tm-tmd3d)>daqp8){// up-time( + dead-time check)
-              tmd3u=tm;// up time of discr.3 ("Z>=2")
-              upd3=1;
-            }
+//------------------
+// generic discr-3 up/down setting (used by "z>=2(FTZ)" branch:
+          if(am>=daqt2){// <=== Am>SHTthr
+	    if(pupd3==0 && (tm-tmd3d)>daqp4){// try set D3 pre-up state(inp dead time check)
+	      pupd3=1;
+	      tpupd3=tm;
+	    }
+	    if(pupd3==1 && upd3==0){// try set D3 "up" if it is "down" and pre-up state OK 
+              if((tm-tpupd3)>daqp1){// min inpTovT check
+                upd3=1;
+                tmd3u=tm;// up time of discr-3(delayed wrt tpupd3 according to min inpTovT (rise time))
+              }
+	    }
           }
-          else{
-            if(upd3!=0 && (tm-tmd3u)>daqp11){ // down time (+min.duration check)
+          else{//Am<SHTthr
+	    pupd3=0;//reset pre-up state
+            if(upd3!=0 && (tm-tmd2u)>daqp3){ // try reset D3 (min. outPW check)
               upd3=0;
               tmd3d=tm;
             }
           }
 //----------
-          amp=am;// store ampl to use as "previous" one in next i-loop
-          tmp=tm;// .......
+          amp=am;// store ampl to use as "previous" one in next i-loop(for interpolation)
+          tmp=tm;// ......time .........................................................
 //
-//-------------------------
+//------------------------------------
 //
-// ===> try set branch-1 of discr-1  when it is up: 
-          if(upd1>0){
-//--------
-// branch-1 "slow TDC logic" :        
-            if(upd11==0){//stretcher is not buzy:start sequence
-//              if((tmd1u-td1b1)>daqp4){ // "buzy" check for s-TDC channel
-                upd11=1;  // set buzy flag for branch s-TDC 
-                td1b1=tm;//store up-time to use as previous in the next step "up" set
-                if(_nstdc<TOF2GC::SCTHMX3){//store upto SCTHMX3(=4) up-edges
-                  _tstdc[_nstdc]=tmark;//store precise(interpolated) up-time
+// =========> try set branch-1 of discr-1(LT)  just on discr. up-edge: 
+          if(upd1>0 && tm==tmd1u){//<-- D1-up moment
+// ---> D1,branch-1(LT-time TDC) :        
+            if(upd11==0){//try to set branch up
+              if((tm-tmd11d)>daqp7){ // branch-1(TDC-input itself) dead time(buzy) check
+                upd11=1;  // set up-state 
+                tmd11u=tm;//store up-time 
+                if(_nstdc<TOF2GC::SCTHMX3){//store upto SCTHMX3 up-edges
+                  _tstdc[_nstdc]=td1ref+daqp10*rnormx();//store precise up-time + intrinsic fluct.
                   _nstdc+=1;
                 }
                 else{
-                  cerr<<"TOF2Tovt::build-W: sTDC ovfl(hits number) "<<_nstdc<<endl;
-                  upd11=2;
-                }
-//              } 
-            }
-          }//<-- end of discr-1 up-check
-//--------
-// ===> try set branch-1/2 of discr-2  when it is up: 
-          if(upd2>0){
-//
-// branch-1 "z>=1(FT)" logic (with HIGH thresh.!!!) :
-            if(upd21==0){
-              if((tm-td2b1)>daqp7){//buzy time(pw+dead) check for z>=1(FT) signal
-                upd21=1;  // set flag for branch z>=1
-		td2b1=tm;//store up-time to use as previous in next "up" set
-                if(_ntr1<TOF2GC::SCTHMX1){//store upto SCTHMX1(=8) up-edges
-                  _ttr1[_ntr1]=tm;//don't need accurate up-time for trigger
-                  _ntr1+=1;
-                }
-                else{
-                  cerr<<"TOF2Tovt::build-W: FT ovfl(hits number)"<<_ntr1<<endl;
-                  upd21=2;
+                  TOF2JobStat::addmc(25);
+                  cout<<"TOF2Tovt::build-W: LT-time buffer ovfl, nhits="<<_nstdc<<endl;
+                  upd11=2;//to block buffer input
                 }
               } 
             }
-//        
-// branch-2 "fast(history) TDC logic" :        
-            if(upd22==0){
-              if((tm-td2b2d)>daqp3){ //dead-time(=fTDC dbl.resol ?)-check
-                upd22=1;  // set flag for branch fTDC
-                td2b2=tm;//
-              }
+          }//<-- end of discr-1 up-check
+//
+// =========> try set branch-1 of discr-2(HT)  when it is up:
+// 
+          if(upd2>0 && tm==tmd2u){//<-- D2-up moment
+            if(TOF2Tovt::SumHTh[crat][tsens-1]<TOF2GC::SCTHMX2){//store upto SCTHMX2 D2 up-edges
+	      TOF2Tovt::SumHTt[crat][tsens-1][TOF2Tovt::SumHTh[crat][tsens-1]]=tmd2u;//store D2 up-times
+	      TOF2Tovt::SumHTh[crat][tsens-1]+=1;// for later simulation of SumHT-time channel
+	    }
+            else{
+              TOF2JobStat::addmc(26);
+              cout<<"TOF2Tovt::build-W: SumHT-time buffer ovfl, nhits="<<TOF2Tovt::SumHTh[crat][tsens-1]<<endl;
             }
-          }//--->endof discr-2 up-check 
+// ---> D2,branch-1(FTC-trig) :
+            if(upd21==0){
+              if((tm-tmd21d)>daqp8){//ACTELoutp=SPTinp dead time check, imply that Actel can go UP only on D2 front edge !
+                upd21=1;  // set up-state
+		tmd21u=tm;//store up-time to use at self-reset(outpPW) check
+//		cout<<"D2B1up:tmd21u/d="<<tmd21u<<" "<<tmd21d<<endl;
+              } 
+            }
+	  }
 //--------
-// ===> try set branch-1(Z>=2 trig) of discr-3  when it is up: 
-          if(upd3>0){
-            if(upd31==0){
-              if((tm-td3b1)>daqp9){//buzy time check 
-                upd31=1;  // set flag for branch z>=2
-		td3b1=tm;//store up-time to use as previous in next "up" set
-                if(_ntr3<TOF2GC::SCTHMX1){//store upto SCTHMX1(=8) up-edges
-                  _ttr3[_ntr3]=tm;//up-time
-                  _ntr3+=1;
-                }
-                else{
-                  cerr<<"TOF2Tovt::build-W: Z>2 ovfl(hits number) "<<_ntr3<<endl;
-                  upd31=2;//blockade on overflow  for safety
-                }
+// ========> try set branch-1 of discr-3(SHT)  when it is up: 
+          if(upd3>0 && tm==tmd3u){//<-- D3-up moment
+            if(TOF2Tovt::SumSHTh[crat][tsens-1]<TOF2GC::SCTHMX2){//store upto SCTHMX2 D3 up-edges
+	      TOF2Tovt::SumSHTt[crat][tsens-1][TOF2Tovt::SumSHTh[crat][tsens-1]]=tmd3u;//store D3 up-times
+	      TOF2Tovt::SumSHTh[crat][tsens-1]+=1;// for later simulation of SumSHT-time channel
+	    }
+            else{
+              TOF2JobStat::addmc(27);
+              cout<<"TOF2Tovt::build-W: SumSHT-time buffer ovfl, nhits="<<TOF2Tovt::SumSHTh[crat][tsens-1]<<endl;
+            }
+// ---> D3,branch-1(FTZ-trig) :        
+            if(upd31==0){// try set branch up
+              if((tm-tmd31d)>daqp8){//ACTELoutp=SPTinp dead time check 
+                upd31=1;  // set up state
+		tmd31u=tm;//store up-time to use at self-reset(outpPW) check
               } 
             }
           }
 //------------------------------------------
 // try reset all branches:
 //--------
-// s-tdc
-          if(upd11==1){ // sTDC self-reset in daqp4(ns) after prev."up"
-            if((tm-td1b1)>daqp4)upd11=0;
+// "LT-time TDC"-branche(#1) of Discr1
+          if(upd11==1){ // branch is up - try reset it
+            if(tm==tmd1d || i==imax){//reset(go-to-ready) on D1 "down"-edge or on "time-out"
+	      upd11=0;
+	      tmd11d=tm;//store down-time to use in next i-loop set-up (DT) check
+	    }
           }
 //--------
-// "z>=1(FT)"
-          if(upd21==1){// "z>=1 logic" self-reset(independ.of discr-2 state)
-            if((tm-_ttr1[_ntr1-1])>daqp0){//min duration (fixed pulse width) check
-              upd21=0;                    // for self-clear
+// "FTC-trig"-branch(#1) of Discr2(imply fixed outp.pulse width made by ACTEL)
+          if(upd21==1){// branch is up - try reset it(check also discr-2 extra pulse during branch "up"-state)
+	    maxtu=max(tmd21u,tmd2u);//latest between br21-up and d2-up
+            if((tm-maxtu)>daqp0 || i==imax){//self-reset in daqp0 after the latest event: d2-up or br21-up
+              upd21=0;
+	      tmd21d=tm;//store down-time to use in next i-loop set-up stage
+              if(_ntr1<TOF2GC::SCTHMX1){//store upto SCTHMX1 up/down-edges pairs
+                _ttr1u[_ntr1]=tmd21u;//don't need accurate up-time for trigger
+                if(i<imax)_ttr1d[_ntr1]=tmd21d;
+		else _ttr1d[_ntr1]=maxtu+daqp0;//"internal time-out" case, use fixed pwid starting from
+//                                         max(tmd21u,tmd2u)(if there is exra D2up during bran21 "up"state, tmd2u > tmd21u)
+                _ntr1+=1;
+              }
+              else{
+                cerr<<"TOF2Tovt::build-W: HT(FTC)-buffer ovfl, nhits="<<_ntr1<<endl;
+                upd21=2;//to block buffer input
+              }
             }
           }
 //--------
-// f-tdc 
-          if(upd22==1){ 
-            if(upd2 ==0 || i==imax-1){//"f-TDC" clear when discr-2 goes down, or out of time 
-              upd22=0;
-              td2b2d=tm;//store down-time to use it  for next "up" check
-	      for(ii=_nftdc-1;ii>=0;ii--){//move up/down-times in the LIFO-stack
-	        if(ii+1<TOF2GC::SCTHMX2){
-	          _tftdc[ii+1]=_tftdc[ii];
-	          _tftdcd[ii+1]=_tftdcd[ii];
-	        }
-	      }
-	      _tftdc[0]=td2b2;//write latest(current) up-time
-	      _tftdcd[0]=td2b2d;//write latest down-time
-              if(_nftdc<TOF2GC::SCTHMX2)_nftdc+=1;//LIFO stack store upto SCTHMX2(=8) up(d)-edges
-              else{
-                if(stackof==0){//1st stack ovfl for given id
-                  TOF2JobStat::addmc(9);
-#ifdef __AMSDEBUG__
-	        cout<<"TOF2Tovt::build-W: fTDC(hist) stack ovfl,id="<<idd<<endl;
-#endif
-	        }
-	        stackof=1;
+// "FTZ-trig"-branch(#1) of Discr3(imply fixed outp.pulse width made by ACTEL)
+          if(upd31==1){// branch is up - try reset it(check also discr-3 extra pulse during branch "up"-state)
+	    maxtu=max(tmd31u,tmd3u);//latest between br21-up and d2-up
+            if((tm-maxtu)>daqp2 || i==imax){//self-reset in daqp0 after the latest event: d3-up or br31-up
+              upd31=0;
+	      tmd31d=tm;//store down-time to use in next i-loop set-up stage
+              if(_ntr3<TOF2GC::SCTHMX1){//store upto SCTHMX1(=8) up/down-edges pairs
+                _ttr3u[_ntr3]=tmd31u;//up-time
+                if(i<imax)_ttr3d[_ntr3]=tmd31d;//down-time
+		else _ttr3d[_ntr3]=maxtu+daqp2;//"internal time-out" case, use fixed pwid starting from
+//                                         max(tmd31u,tmd3u)(if there is exra D3up during bran31 "up"state, tmd3u > tmd31u)
+                _ntr3+=1;
               }
-            }//--->endof "clear ?" check
-          }//--->endof "branch-2 is up" check
-//--------
-// Z>2
-          if(upd31==1){// "z>2 logic" self-reset
-            if((tm-_ttr3[_ntr3-1])>daqp2){//min duration(fixed pulse width) check
-              upd31=0;                    // for self-clear
+              else{
+                cerr<<"TOF2Tovt::build-W: FTZ-buffer ovfl, nhits="<<_ntr3<<endl;
+                upd31=2;//to block buffer input
+              }
             }
           }
 //---------------------------        
         } //      --- end of time bin loop for time measurements --->
-//         
+//---------------------------         
         charge=charge*fladcb/50.; // get total charge (pC)
         saturf=TOF2Tovt::pmsatur(charge);//true charge reduction fact. due to satur.
         if(TFMCFFKEY.mcprtf[2]!=0){
-          if(idd==1041)HF1(1073,amx,1.);// ampl.spectrum for ref.bar
+          if(idd==1011)HF1(1081,amx,1.);// ampl.spectrum for ref.bar
+          if(idd==1041)HF1(1082,amx,1.);// ampl.spectrum for ref.bar
+          if(idd==4011)HF1(1083,amx,1.);// ampl.spectrum for ref.bar
+          if(idd==4041)HF1(1084,amx,1.);// ampl.spectrum for ref.bar
+          if(idd==2011)HF1(1085,amx,1.);// ampl.spectrum for ref.bar
+          if(idd==2021)HF1(1086,amx,1.);// ampl.spectrum for ref.bar
+          if(idd==2041)HF1(1087,amx,1.);// ampl.spectrum for ref.bar
+          if(idd==3011)HF1(1088,amx,1.);// ampl.spectrum for ref.bar
+          if(idd==3021)HF1(1089,amx,1.);// ampl.spectrum for ref.bar
+          if(idd==3031)HF1(1090,amx,1.);// ampl.spectrum for ref.bar
+          if(idd==3051)HF1(1091,amx,1.);// ampl.spectrum for ref.bar
 	  if(idd==1041)HF1(1070,float(charge),1.);
+	  for(i=0;i<_ntr1;i++){
+	    HF1(1072,geant(_ttr1d[i]-_ttr1u[i]),1.);
+	  }
+	  for(i=0;i<_ntr3;i++){
+	    HF1(1073,geant(_ttr3d[i]-_ttr3u[i]),1.);
+	  }
+	  HF1(1071,geant(_ntr1),1.);
+	  HF1(1071,geant(_ntr3+10),1.);
 	}
 //**************************************************************************
         number ped,sig,gain,eqs;
@@ -1073,6 +1243,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 //anode:
 	ped=TOFBPeds::scbrped[ilay][ibar].apeda(isid);// aver.ped in adc-chann. units(float)
 	sig=TOFBPeds::scbrped[ilay][ibar].asiga(isid);// .... sig
+//	sig=0.1;
         TOFBrcalMS::scbrcal[ilay][ibar].q2a2q(0,isid,0,adcs,aqin);// Qa(pC)->Anode(adc,float) 
 	if(adcs>TOF2GC::SCPUXMX)adcs=TOF2GC::SCPUXMX;//PUX-chip saturation
 	if(TFMCFFKEY.mcprtf[2]!=0)
@@ -1100,13 +1271,24 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 //
 //------------------------------
 // now create/fill TOF2Tovt object (id=idd) with above digi-data:
-      if(_ntr1>0){// if counter_side FT-signal exists->create object 
+//      if(_ntr1>0){// if counter_side FT-signal(HT) exists->create object
+      if(_nstdc>0){//if counter_side LT-signal exists->create object 
         _sta=0;    
         stat=0;
+	if(TFMCFFKEY.mcprtf[3]>0){
+          cout<<"  --->TOFTovT-obj created for id="<<idd<<endl;
+          cout<<"      nLThits="<<_nstdc<<endl;
+          for(int ih=0;ih<_nstdc;ih++)cout<<"      "<<_tstdc[ih]<<endl;;
+          cout<<"      nFThits="<<_ntr1<<endl;
+          for(int ih=0;ih<_ntr1;ih++)cout<<"Tup/down="<<_ttr1u[ih]<<" "<<_ttr1d[ih]<<endl;
+          cout<<"      nFTZhits="<<_ntr3<<endl;
+          for(int ih=0;ih<_ntr3;ih++)cout<<"Tup/down="<<_ttr3u[ih]<<" "<<_ttr1d[ih]<<endl;
+          cout<<"      adca="<<_adca<<" nadcd="<<_nadcd<<" "<<_adcd[0]<<" "<<_adcd[1]<<" "<<_adcd[2]<<endl;
+	}
         if(AMSEvent::gethead()->addnext(AMSID("TOF2Tovt",ilay), new
              TOF2Tovt(idd,_sta,charge,edepb,
-             _ntr1,_ttr1,_ntr3,_ttr3,
-             _nftdc,_tftdc,_tftdcd,_nstdc,_tstdc,
+             _ntr1,_ttr1u,_ttr1d,_ntr3,_ttr3u,_ttr3d,
+             _nstdc,_tstdc,
              _adca,
 	     _nadcd,_adcd)))stat=1;
       }
@@ -1129,7 +1311,7 @@ number TOF2Tovt::ftctime(int &trcode, int &cpcode){
   integer i,j,ilay,ibar,ntr,idd,id,idN,stat,intrig,sorand,toflc(-1);
   integer lut1,lut2;
   uinteger sbt,lsbit(1);
-  number ftime(-1),ttr[TOF2GC::SCTHMX1];
+  number ftime(-1),ttru[TOF2GC::SCTHMX1],ttrd[TOF2GC::SCTHMX1];
   geant t1,t2;
   AMSBitstr trbs[2];
   AMSBitstr trbi;
@@ -1137,7 +1319,6 @@ number TOF2Tovt::ftctime(int &trcode, int &cpcode){
   TOF2Tovt *ptr;
 //
   geant trigb=TOF2DBc::trigtb();
-  geant pwid=TOF2DBc::daqpwd(0);//pulse-width for Z>=1(HT) logic signals(going to SPT2)
   geant cgate=TOF2DBc::daqpwd(5);//gate for tof-pattern creation(z>=1)(i.e. FTC-pulse width)
   trcode=-1;
   cpcode=0;
@@ -1180,10 +1361,10 @@ number TOF2Tovt::ftctime(int &trcode, int &cpcode){
       intrig=Trigger2LVL1::l1trigconf.tofinmask(int(ilay),int(ibar));//TofInTrig from DB
       if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//<--bar/side in trigger(not masked)
 //
-        ntr=ptr->gettr1(ttr);// get number and times of "z>=1"==HT
+        ntr=ptr->gettr1(ttru,ttrd);// get number and up/down times of "z>=1"==HT branch 
         for(j=0;j<ntr;j++){// <--- trig-hits loop ---
-          t1=geant(ttr[j]);
-          t2=t1+pwid;
+          t1=geant(ttru[j]);
+          t2=geant(ttrd[j]);
           i1=integer(t1/trigb);
           i2=integer(t2/trigb);
           if(i1>=TOFGC::SCBITM)i1=TOFGC::SCBITM-1;
@@ -1200,7 +1381,7 @@ number TOF2Tovt::ftctime(int &trcode, int &cpcode){
 // Now create both side  bit pattern for CURRENT layer
 // (trbs[isd]-pulses are not width-formatted)
     if((TGL1FFKEY.tofsc%10)>=0)sorand=TGL1FFKEY.tofsc;//TofPlaneSidesOrAnd from data-card(z>=1)
-    else sorand=Trigger2LVL1::l1trigconf.tofoamask(int(ilay));//TofPlaneSidesOrAnd for DB (indivL)
+    else sorand=Trigger2LVL1::l1trigconf.tofoamask(int(ilay));//TofPlaneSidesOrAnd from DB (indivL)
     if(sorand == 0)
                                 trbl[ilay]=trbs[0] & trbs[1];// Plane 2-sides AND
     else
@@ -1372,7 +1553,7 @@ number TOF2Tovt::ftztime(int &trcode){
   integer i,j,ilay,ibar,ntr,idd,id,idN,stat,intrig,sorand,toflcsz(-1);
   uinteger sbt,lsbit(1);
   integer ewcode,lutbz;
-  number ftime(-1),ttr[TOF2GC::SCTHMX1];
+  number ftime(-1),ttru[TOF2GC::SCTHMX1],ttrd[TOF2GC::SCTHMX1];
   geant t1,t2;
   geant pwextt,pwextb;
   AMSBitstr trbs[2];
@@ -1381,7 +1562,6 @@ number TOF2Tovt::ftztime(int &trcode){
   TOF2Tovt *ptr;
 //
   geant trigb=TOF2DBc::trigtb();
-  geant pwid=TOF2DBc::daqpwd(2);//pulse width of "Z>=2(SHT)" logic signals(going to SPT2)
   ewcode=Trigger2LVL1::l1trigconf.tofextwid();//5bits|5bits code for top/bot ext.width
   if(TGL1FFKEY.tofextwid>0){
     pwextt=geant(TGL1FFKEY.tofextwid);
@@ -1414,10 +1594,10 @@ number TOF2Tovt::ftztime(int &trcode){
       intrig=Trigger2LVL1::l1trigconf.tofinzmask(int(ilay),int(ibar));//TofInTrig from DB 
       if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//<--bar/side in trigger(not masked)
 //
-        ntr=ptr->gettr3(ttr);// get number and times of trig3 ("z>=2")
+        ntr=ptr->gettr3(ttru,ttrd);// get number and times of trig3 ("z>=2")
         for(j=0;j<ntr;j++){// <--- trig-hits loop ---
-          t1=geant(ttr[j]);
-          t2=t1+pwid;
+          t1=geant(ttru[j]);
+          t2=geant(ttrd[j]);
           i1=integer(t1/trigb);
           i2=integer(t2/trigb);
           if(i1>=TOFGC::SCBITM)i1=TOFGC::SCBITM-1;
@@ -1498,7 +1678,7 @@ bool TOF2Tovt::bztrig(number ftime, int &trcode){
   integer i1,i2,j,isd,isds(0),first(0);
   integer ilay,ibar,ntr,idd,id,stat,intrig,sorand,toflcz(-1);
   integer lutbz,lut(0);
-  number ttr[TOF2GC::SCTHMX1];
+  number ttru[TOF2GC::SCTHMX1],ttrd[TOF2GC::SCTHMX1];
   geant t1,t2;
   AMSBitstr trbs[2];
   AMSBitstr trbi;
@@ -1506,7 +1686,6 @@ bool TOF2Tovt::bztrig(number ftime, int &trcode){
   TOF2Tovt *ptr;
 //
   geant trigb=TOF2DBc::trigtb();
-  geant pwid=TOF2DBc::daqpwd(2);//pulse width of "Z>=2(SHT)" logic signals(going to SPT2)
   geant cgate=TOF2DBc::daqpwd(5);//gate(FTC-pulse width)
   trcode=-1;
   lutbz=Trigger2LVL1::l1trigconf.toflutbz();//lvl1 lutbz from DB
@@ -1544,10 +1723,10 @@ bool TOF2Tovt::bztrig(number ftime, int &trcode){
       intrig=Trigger2LVL1::l1trigconf.tofinzmask(int(ilay),int(ibar));//TofInTrigBZ from DB 
       if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//<--bar/side in trigger(not masked)
 //
-        ntr=ptr->gettr3(ttr);// get number and times of trig3 ("z>=2")
+        ntr=ptr->gettr3(ttru,ttrd);// get number and times of trig3 ("z>=2")
         for(j=0;j<ntr;j++){// <--- trig-hits loop ---
-          t1=geant(ttr[j]);
-          t2=t1+pwid;
+          t1=geant(ttru[j]);
+          t2=geant(ttrd[j]);
           i1=integer(t1/trigb);
           i2=integer(t2/trigb);
           if(i1>=TOFGC::SCBITM)i1=TOFGC::SCBITM-1;
@@ -1625,8 +1804,8 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
 //  
   integer ilay,ibar,j,ntr,idd,id,isd,intrig,ncoins;
   uinteger sbt,lsbit(1);
-  number ttr[TOF2GC::SCTHMX1];
-  geant cgate,pwid,t1,t2,tg1,tg2;
+  number ttru[TOF2GC::SCTHMX1],ttrd[TOF2GC::SCTHMX1];
+  geant cgate,t1,t2,tg1,tg2;
   geant trigb=TOF2DBc::trigtb();
   TOF2Tovt *ptr;
 //
@@ -1638,7 +1817,6 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
 //-----> create counters sides pattern(HT(z>=1):
 //
   cgate=TOF2DBc::daqpwd(5);//gate for tof-pattern creation, tempor use FTC-pulse width
-  pwid=TOF2DBc::daqpwd(0);//pulse width of "Z>=1(HT)" logic signals(going to SPT2)
   tg1=gftime;//gate_start_time=FTime+fix.delay(from lvl1 to SPT2)
   tg2=tg1+cgate;//gate_end_time
 // 
@@ -1654,10 +1832,10 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
       ncoins=0;
       intrig=Trigger2LVL1::l1trigconf.tofinmask(int(ilay),int(ibar));
       if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//bar/side in trigger(not masked)
-        ntr=ptr->gettr1(ttr);// get number and times of "z>=1"==HT hits
+        ntr=ptr->gettr1(ttru,ttrd);// get number and times of "z>=1"==HT hits
         for(j=0;j<ntr;j++){// <--- trig-hits loop ---
-          t1=geant(ttr[j]);
-          t2=t1+pwid;
+          t1=geant(ttru[j]);
+          t2=geant(ttrd[j]);
 	  if(tg2<=t1 || tg1>=t2)continue;
 	  ncoins+=1;
         }// --- end of trig-hits loop --->
@@ -1677,7 +1855,6 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
 // ---> create counters sides pattern(SHT(z>=2)):
 //
   cgate=TOF2DBc::daqpwd(6);//gate for tof-pattern creation(z>=2)
-  pwid=TOF2DBc::daqpwd(2);//pulse width of "Z>=2(SHT)" logic signals(going to SPT2)
   tg1=gftime;//gate_start_time=FTime+fix.delay(from lvl1 to SPT2)
   tg2=tg1+cgate;//gate_end_time
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
@@ -1692,10 +1869,10 @@ void TOF2Tovt::spt2patt(number gftime, integer toftrp1[], integer toftrp2[]){
       ncoins=0;
       intrig=Trigger2LVL1::l1trigconf.tofinzmask(int(ilay),int(ibar));//TofInTrig from DB
       if(intrig==1 || (intrig>1 && (intrig-2)!=isd)){//bar/side in trigger(not masked)
-        ntr=ptr->gettr3(ttr);// get number and times of "z>=2"==SHT hits
+        ntr=ptr->gettr3(ttru,ttrd);// get number and times of "z>=2"==SHT hits
         for(j=0;j<ntr;j++){// <--- trig-hits loop ---
-          t1=geant(ttr[j]);
-          t2=t1+pwid;
+          t1=geant(ttru[j]);
+          t2=geant(ttrd[j]);
 	  if(tg2<=t1 || tg1>=t2)continue;
 	  ncoins+=1;
         }// --- end of trig-hits loop --->
@@ -1917,18 +2094,16 @@ void AMSBitstr::setclkphase(){
 //
 //  function to build RawEvent-objects from MC Tovt-objects
 //               
-void TOF2RawEvent::mc_build(int &status)
+void TOF2RawSide::mc_build(int &status)
 {
-  integer i,j,jj,ilay,last,ibar,id,idd,iddN,isd,_sta,stat(0);
-  integer nftdc,nstdc,nadca,nadcal,nadcd,nadcdl;
-  int16u _nftdc,_nstdc,_nadcd,_nadcdl,itt;
-  number  tftdc[TOF2GC::SCTHMX2],tftdcd[TOF2GC::SCTHMX2],tstdc[TOF2GC::SCTHMX3];
-  number tadca,tadcal;
-  number tadcd[TOF2GC::PMTSMX],tadcdl[TOF2GC::PMTSMX];
-  int16u  ftdc[TOF2GC::SCTHMX2*2],stdc[TOF2GC::SCTHMX3*4];
-  int16u adca,adcal;
-  int16u adcd[TOF2GC::PMTSMX],adcdl[TOF2GC::PMTSMX];
-  number t,t1,t2,t3,t4,tprev,ttrig,dt,cstopt,tl1d,ftrig,ecftrig;
+  integer i,j,jj,ilay,last,ibar,isd,stat(0);
+  int16u id,idd,_sta,hid;
+  integer nftdc,nstdc,nsumh,nsumsh,nadcd,itt,ntstdc,ntadcd;
+  number tstdc[TOF2GC::SCTHMX3];
+  number tadca,tadcd[TOF2GC::PMTSMX];
+  integer  ftdc[TOF2GC::SCTHMX1],stdc[TOF2GC::SCTHMX3],sumht[TOF2GC::SCTHMX2],sumsht[TOF2GC::SCTHMX2];
+  integer adca,adcd[TOF2GC::PMTSMX];
+  number t,t1,t2,t3,t4,ttrig,dt,cstopt,tl1d,ftrig,ecftrig;
   number ftctime,ftztime,ftetime,ftmin;
   geant charge,edep,strr[2][2],str,offs,temp;
   geant daqt1,rrr;
@@ -1940,28 +2115,28 @@ void TOF2RawEvent::mc_build(int &status)
   integer trpatt[TOF2GC::SCLRS]={0,0,0,0};
   integer trpattz[TOF2GC::SCLRS]={0,0,0,0};
   integer it,it1,it2,it3,it4,it0;
-  int16u phbit,maxv;
+  integer phbit,maxv;
   integer ftpatt(0),ftpatreq(0);
   integer trtype(0);
   integer cftmask(0);
-  static geant ftpw=TOF2DBc::daqpwd(12);// dummy gap in stretcher sequence (ns)
-  geant trtmax=TOF2DBc::trigtb()*(1+TOFGC::SCBITM);//max abs. trig-time
+  geant trtmax=TOF2DBc::trigtb()*(1+TOFGC::SCBITM);//max possible abs.trig-time(=myTrigTimeScale)
   TOF2Tovt *ptr;
   TOF2Tovt *ptrN;
   status=1;// bad(=> no_globFT)
   phbit=TOF2GC::SCPHBP;
   maxv=phbit-1;//max possible TDC value (16383)
   daqt1=TOF2Varp::tofvpar.daqthr(3);//daq readout thr (ped sigmas)
+  if(TFMCFFKEY.mcprtf[3]>0)cout<<"======>Enter TOF2RawSide::mc_build"<<endl;
 //
   trcode=-1;
   trcodez=-1;
-  TOF2RawEvent::settrcode(trcode);// reset  TOF-layers CP-code(z>=1)
-  TOF2RawEvent::settrcodez(trcodez);// reset  TOF-layers BZ-code(z>=2)
-  TOF2RawEvent::setftpatt(ftpatt);// reset  globFT members pattern
-  TOF2RawEvent::setcpcode(cpcode);// reset  CP0/CP1 flags
-  TOF2RawEvent::setpatt(trpatt);// reset  SPT2 TOF(HT) pattern(z>=1)
-  TOF2RawEvent::setpattz(trpattz);// reset  SPT2 TOF(SHT) pattern(z>=2)
-  TOF2RawEvent::setbzflag(0);// reset  BZ-flag
+  TOF2RawSide::settrcode(trcode);// reset  TOF-layers CP-code(z>=1)
+  TOF2RawSide::settrcodez(trcodez);// reset  TOF-layers BZ-code(z>=2)
+  TOF2RawSide::setftpatt(ftpatt);// reset  globFT members pattern
+  TOF2RawSide::setcpcode(cpcode);// reset  CP0/CP1 flags
+  TOF2RawSide::setpatt(trpatt);// reset  SPT2 TOF(HT) pattern(z>=1)
+  TOF2RawSide::setpattz(trpattz);// reset  SPT2 TOF(SHT) pattern(z>=2)
+  TOF2RawSide::setbzflag(0);// reset  BZ-flag
 //
   if(TGL1FFKEY.trtype>0)trtype=TGL1FFKEY.trtype;//active lvl1trig-branches
   else trtype=Trigger2LVL1::l1trigconf.globl1mask();
@@ -1984,15 +2159,15 @@ void TOF2RawEvent::mc_build(int &status)
     ftctime=TOF2Tovt::ftctime(trcode,cpcode);//get abs.FTC("z>=1") signal time/L-patt/cpcode
     if(trcode>=0){
       TOF2JobStat::addmc(16);
-      TOF2RawEvent::settrcode(trcode);// set tof-layers CP-code(z>=1)
-      TOF2RawEvent::setcpcode(cpcode);// set tof-layers CP0/CP1-flag(z>=1)
+      TOF2RawSide::settrcode(trcode);// set tof-layers CP-code(z>=1)
+      TOF2RawSide::setcpcode(cpcode);// set tof-layers CP0/CP1-flag(z>=1)
       ftpatt|=1;
       if(TFMCFFKEY.mcprtf[2]!=0)HF1(1069,geant(trcode),1.);
       bztr=TOF2Tovt::bztrig(ftctime,trcodez);//get BZ-flag/Lpatt
-      if(trcodez>=0)TOF2RawEvent::settrcodez(trcodez);//set TOF-layers BZ-code(z>=2), bztr may be even fals!!!
+      if(trcodez>=0)TOF2RawSide::settrcodez(trcodez);//set TOF-layers BZ-code(z>=2), bztr may be even fals!!!
       if(bztr){
         TOF2JobStat::addmc(17);
-        TOF2RawEvent::setbzflag(1);//set  BZ-flag
+        TOF2RawSide::setbzflag(1);//set  BZ-flag
       }
       if(TFMCFFKEY.mcprtf[2]!=0){
         if(trcodez>=0)HF1(1069,geant(trcodez)+20,1.);
@@ -2030,7 +2205,7 @@ void TOF2RawEvent::mc_build(int &status)
     TOF2JobStat::addmc(21);//<=== found non-masked globFT
 //
     ftpatt=(ftpatt&ftpatreq);//<=== globFT-members pattern (masked)
-    TOF2RawEvent::setftpatt(ftpatt);//set  globFT members pattern
+    TOF2RawSide::setftpatt(ftpatt);//set  globFT members pattern
     ftmin=trtmax;
     if((ftpatt&1)>0 && ftctime<ftmin)ftmin=ftctime;
     if((ftpatt&(1<<1))>0 && ftztime<ftmin)ftmin=ftztime;
@@ -2050,24 +2225,39 @@ void TOF2RawEvent::mc_build(int &status)
       }
     }
 //
-    TOF2RawEvent::setpatt(trpatt);// set SPT2 TOF(HT) pattern(z>=1)
-    TOF2RawEvent::setpattz(trpattz);// set SPT2 TOF(SHT) pattern(z>=2)
-    TOF2RawEvent::settrtime(ftrig);// store FTrigger time (at SPT2 !) 
-    cstopt=ftrig+TOF2DBc::accdel();// "common stop"-signal abs.time
-    if(TGL1FFKEY.printfl>0)cout<<"   FTAbsTime="<<ttrig<<"(inSPT2:"<<ftrig<<")"<<" CommStopTime:"<<cstopt<<endl;
+    TOF2RawSide::setpatt(trpatt);// set SPT2 TOF(HT) pattern(z>=1)
+    TOF2RawSide::setpattz(trpattz);// set SPT2 TOF(SHT) pattern(z>=2)
+    TOF2RawSide::settrtime(ftrig);// store abs FTrigger time (at SPT2 !) 
+//    cstopt=ftrig+TOF2DBc::accdel();// "common stop"-signal abs.time
+    if(TGL1FFKEY.printfl>0)cout<<"   FTAbsTime="<<ttrig<<"(inSPT2:"<<ftrig<<")"<<endl;
   }//===> endof "NotExtTrigger" check
 //-----
   else{//<==== external trigger
     ftpatt|=(1<<3);
     ttrig=0.;//tempor (true ExtTrigSignal-time)
     ftrig=ttrig+TOF2Varp::tofvpar.ftdelf();// FTrigger abs time (fixed delay added)
-    TOF2RawEvent::settrtime(ftrig);// store FTrigger time (at SPT2 !) 
-    TOF2RawEvent::setftpatt(ftpatt);//set  globFT members pattern
+    TOF2RawSide::settrtime(ftrig);// store abs FTrigger time (at SPT2 !) 
+    TOF2RawSide::setftpatt(ftpatt);//set  globFT members pattern
     cstopt=ftrig+TOF2DBc::accdel();// "common stop"-signal abs.time
     TOF2JobStat::addmc(22);
   }
-//-----  
-//
+  if(TFMCFFKEY.mcprtf[3]>0)cout<<"    FTabsTime="<<ttrig<<" inSPT2(delayed)="<<ftrig<<endl;
+//  
+//<---- create TOFRawSide static FTtime-channels arrays(digitization of FT-time, INCLUDING Anti-slots ):
+  number ftcrat,ftslot;
+  if(TFMCFFKEY.mcprtf[3]>0)cout<<"    Generated FT-signals in crates/slots:"<<endl;
+  for(int cr=0;cr<TOF2GC::SCCRAT;cr++){
+    ftcrat=ftrig+rnormx()*TOF2DBc::ftc2cj();//actual FT-time in crate(cr-2-cr jitter)
+    if(TFMCFFKEY.mcprtf[3]>0)cout<<"      cr="<<cr<<" CrateFTtime="<<ftcrat<<endl;
+    for(int sl=0;sl<TOF2GC::SCFETA;sl++){
+      ftslot=ftcrat+rnormx()*TOF2DBc::fts2sj();//actual FT-time in slot(sl-2-sl jitter)
+      if(TFMCFFKEY.mcprtf[3]>0)cout<<"      ssl="<<sl<<" SlotFTtime="<<ftslot<<endl;
+      TOF2RawSide::FTtime[cr][sl][0]=integer(floor(ftslot/TOF2DBc::tdcbin(1)));//digitization
+      TOF2RawSide::FThits[cr][sl]=1;//only one hit for MC
+    }
+  }
+//---->
+  int16u mtyp(0),otyp(0),crat,slot;
   status=0;
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(TOF2Tovt*)AMSEvent::gethead()->
@@ -2076,109 +2266,41 @@ void TOF2RawEvent::mc_build(int &status)
       idd=ptr->getid();// LBBS
       id=idd/10;// short id=LBB
       ibar=id%100-1;
-      TOFBrcalMS::scbrcal[ilay][ibar].gtstrat(strr);// get "MC Seed"str-ratios for two sides
       isd=idd%10-1;
-      str=strr[isd][0];// str-ratio for given TovT-hit
-      offs=strr[isd][1];// offset in str-ratio for given TovT-hit
+      mtyp=0;
+      otyp=0;
+      AMSSCIds tofid(ilay,ibar,isd,otyp,mtyp);//otyp=0(anode),mtyp=0(TimeTDC))
+      crat=tofid.getcrate();//current crate#
+      slot=tofid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
+      hid=tofid.gethwid()/100;//s1 CS(Crate|Slot=>shorthwid) 
       _sta=ptr->getstat();
       charge=ptr->getcharg();
       edep=ptr->getedep();
-//
-      nftdc=ptr->getftdc(tftdc,tftdcd);// get number and times of fast-TDC hits
-      _nftdc=0;
-    if(TOFBrcalMS::scbrcal[ilay][ibar].FchOK(isd)){//Fast-ch alive in "MC Seeds" DB
-      tl1d=cstopt+TOF2Varp::tofvpar.sftdcd();// just to simulate sTDC delay wrt fTDC
-      for(j=0;j<nftdc;j++){//        <--- ftdc-hits loop ---
-        jj=nftdc-j-1;// LIFO readout mode (last stored - first read out)
-        t1=tftdc[jj];
-        t2=tftdcd[jj];
-        dt=tl1d-t2;// follow LIFO mode of readout : down-edge - first hit
-        it=integer(floor(dt/TOF2DBc::tdcbin(0))); // conv. to fast-TDC (history) t-binning
-        if(it>maxv){
-          cout<<"TOF2RawEvent_mc: warning : Hist-TDC overflow(down edge) !!!"<<'\n';
-          it=maxv;
-        }
-        itt=int16u(it);
-        if(!TOF2DBc::pbonup())itt=itt|phbit;//add phase bit if necessary
-        ftdc[_nftdc]=itt;
-        _nftdc+=1;
-        dt=tl1d-t1;// follow LIFO mode of readout : leading(up) edge - second
-        it=integer(floor(dt/TOF2DBc::tdcbin(0))); // conv. to fast-TDC (history) t-binning
-        if(it>maxv){
-          cout<<"TOF2RawEvent_mc: warning : Hist-TDC overflow(up edge) !!!"<<'\n';
-          it=maxv;
-        }
-        itt=int16u(it);
-        if(TOF2DBc::pbonup())itt=itt|phbit;//add phase bit if necessary
-        ftdc[_nftdc]=itt;
-        _nftdc+=1;
-      }//--- end of ftdc-hits loop --->
-    }//--> end of alive check
-//------------
-      nstdc=ptr->getstdc(tstdc);// get number and times of slow-TDC hits
-      _nstdc=0;
-    if(TOFBrcalMS::scbrcal[ilay][ibar].SchOK(isd)){//Slow-ch alive in "MC Seeds" DB
-      for(j=0;j<nstdc;j++){//       <--- stdc-hits loop ---
-        jj=nstdc-j-1;// LIFO readout mode (last stored - first read)
-        t1=tstdc[jj]+rnormx()*TOF2DBc::strjit1();//"start"-signal time + jitter
-        t2=ftrig+rnormx()*TOF2DBc::strjit2();//"stop"-signal = ftrig + jitter
-        t3=t2+ftpw;//"dummy"-signal time (fixed delay = FT_coinc-pulse width)
-        t4=t2+offs+(t2-t1)*str;//"end-mark"_signal + offs
-        t4+=+rnormx()*TOF2DBc::strflu();// + end-mark fluct
-        dt=ftrig-t1;// total FT-delay wrt t1
-        if(dt<=TOF2DBc::ftdelm()){ // check max. delay of "FT" signal (timeout)
-          it0=integer(floor(cstopt/TOF2DBc::tdcbin(1)));//"C.stop" abs.time (integer)  
-//follow LIFO mode of readout: stretcher "end-mark" edge - first hit; "start" - last:
-//  prepare 4-th component("end-mark") of "4-edge" TOF-hit:
-          it4=integer(floor(t4/TOF2DBc::tdcbin(1)));//ns->TDCch
-          it=it0-it4;// time wrt "C.stop" signal
-          if(it>maxv){
-            TOF2JobStat::addmc(6);
-            cout<<"TOF2RawEvent_mcbuild-W: Stretcher-TDC overflow(4th edge) !!!"<<'\n';
-            it=maxv-3;
-          }
-          itt=int16u(it);
-          if(!TOF2DBc::pbonup())itt=itt|phbit;//add phase bit on down-edge,if necessary
-          stdc[_nstdc]=itt;
-          _nstdc+=1;
-//  prepare 3-d component("dummy"):
-          it3=integer(floor(t3/TOF2DBc::tdcbin(1)));
-          it=it0-it3;// time wrt "C.stop" signal
-          if(it>maxv){
-            cout<<"TOF2RawEvent_mcbuild-W: Stretcher-TDC overflow(3rd edge) !!!"<<'\n';
-            it=maxv-2;
-          }
-          itt=int16u(it);
-          if(TOF2DBc::pbonup())itt=itt|phbit;//add phase bit on up-edge,if necessary
-          stdc[_nstdc]=itt;
-          _nstdc+=1;
-//  prepare 2-nd component("stop"):
-          it2=integer(floor(t2/TOF2DBc::tdcbin(1)));
-          it=it0-it2;// time wrt "C.stop" signal
-          if(it>maxv){
-            cout<<"TOF2RawEvent_mcbuild-W: Stretcher-TDC overflow(2nd edge) !!!"<<'\n';
-            it=maxv-1;
-          }
-          itt=int16u(it);
-          if(!TOF2DBc::pbonup())itt=itt|phbit;//add phase bit on down-edge,if necessary
-          stdc[_nstdc]=itt;
-          _nstdc+=1;
-//  prepare 1-st component("start") of "4-edge" TOF-hit:
-          it1=integer(floor(t1/TOF2DBc::tdcbin(1)));
-          it=it0-it1;// time wrt "C.stop" signal
-          if(it>maxv){
-            cout<<"TOF2RawEvent_mcbuild-W: Stretcher-TDC overflow(1st edge) !!!"<<'\n';
-            it=maxv;
-          }
-          itt=int16u(it);
-          if(TOF2DBc::pbonup())itt=itt|phbit;//add phase bit on up-edge,if necessary
-          stdc[_nstdc]=itt;
-          _nstdc+=1;
-        }//--endof max.FTdelay(timeout) check-->
-      }//--- end of stdc-hits loop --->
-    }//--> end of alive check
 //----------------
-//anode:
+//AnodeTime(LTchan):
+      ntstdc=ptr->getstdc(tstdc);// get number and times of TDC LTtime-hits
+      nstdc=0;
+      if(TOFBrcalMS::scbrcal[ilay][ibar].SchOK(isd)){//LTtime-ch alive in "MC Seeds" DB
+      if(TFMCFFKEY.mcprtf[3]>0)cout<<"    Check/digitize LT-hits for id="<<idd<<" cr/sl="<<crat
+                                                             <<" "<<slot<<" hid="<<hid<<endl;
+// 0---- young_hits......FT...old_hits ----->time
+        for(j=0;j<ntstdc;j++){//       <--- stdc-hits loop ---
+          t1=tstdc[j];//LTtime-channle abs.time
+	  it1=integer(floor(t1/TOF2DBc::tdcbin(1)));//ns->TDCch
+          dt=t1-ftrig;// Time-hit(t1) age wrt FT("-"==>younger, "+"==>older)
+          if(TFMCFFKEY.mcprtf[3]>0)cout<<"      Hit="<<j+1<<" AbsTime/dig="<<t1<<" "<<it1
+                                                    <<" t-ttrig="<<dt<<" lims="<<
+                                                    TOF2DBc::hagemn()<<" "<<TOF2DBc::hagemx()<<endl;
+          if(dt<TOF2DBc::hagemn())TOF2JobStat::addmc(7);//too young hit	    
+          else if(dt>TOF2DBc::hagemx())TOF2JobStat::addmc(8);//too old	    
+	  else{//ok(no check on maxv because of age check)unirun.job
+            stdc[nstdc]=it1;
+            nstdc+=1;
+          }//--endof hit-age check-->
+        }//--- end of stdc-hits loop --->
+      }//--> end of alive check
+//----------------
+//Qanode:
     adca=0;
     if(TOFBrcalMS::scbrcal[ilay][ibar].AchOK(isd)){//A(h)-ch alive in "MC Seeds" DB
       pedv=TOFBPeds::scbrped[ilay][ibar].apeda(isd);
@@ -2187,10 +2309,10 @@ void TOF2RawEvent::mc_build(int &status)
       amp=tadca;// here charge is quantized by "adc2q" but not "integerized"
       iamp=integer(floor(amp));//go to real ADC-channels("integerization")
       if(iamp>TOF2GC::SCADCMX){//Anode-ADC overflow
-        TOF2JobStat::addmc(7);
+        TOF2JobStat::addmc(9);
 	iamp=TOF2GC::SCADCMX;
 #ifdef __AMSDEBUG__
-        cout<<"TOF2RawEvent_mc-W: Anode-ADC overflow,id="<<idd<<'\n';
+        cout<<"TOF2RawSide_mc-W: Anode-ADC overflow,id="<<idd<<'\n';
 #endif
       }
       amp=number(iamp)-pedv;// subtract pedestal (loose "integerization" !)
@@ -2203,19 +2325,19 @@ void TOF2RawEvent::mc_build(int &status)
 //cout<<"      Anode: adca="<<adca<<endl;
     }//--> end of alive check
 //--------------------
-//dynode:
-    _nadcd=0;
+//Qdynode:
+    nadcd=0;
     for(j=0;j<TOF2GC::PMTSMX;j++)adcd[j]=0;
-    nadcd=ptr->getadcd(tadcd);// get number of Dynode-pmts(upto PMTSMX) and its ADCs(incl=0)
-    for(j=0;j<nadcd;j++){// <--- Dyn-pmts loop ---
+    ntadcd=ptr->getadcd(tadcd);// get number of Dynode-pmts(upto PMTSMX) and its ADCs(incl=0)
+    for(j=0;j<ntadcd;j++){// <--- Dyn-pmts loop ---
       if(TOFBrcalMS::scbrcal[ilay][ibar].DchOK(isd,j)){//Dyn-PMch alive in "MC Seeds" DB
 	amp=tadcd[j];// here charge is quantized by "adc2q" but not "integerized"
         iamp=integer(floor(amp));//go to real ADC-channels("integerization")
         if(iamp>TOF2GC::SCADCMX){
-          TOF2JobStat::addmc(8);
+          TOF2JobStat::addmc(10);
 	  iamp=TOF2GC::SCADCMX;
 #ifdef __AMSDEBUG__
-          cout<<"TOF2RawEvent::mc_build warning: Dynode-ADC overflow,id="<<idd<<'\n';
+          cout<<"TOF2RawSide::mc_build warning: Dynode-ADC overflow,id="<<idd<<'\n';
 #endif
         }
         pedv=TOFBPeds::scbrped[ilay][ibar].apedd(isd,j);
@@ -2226,7 +2348,7 @@ void TOF2RawEvent::mc_build(int &status)
 	  iamp=integer(floor(amp/TOF2DBc::tdcbin(2)+0.5));// floatADC -> DAQ bins
           itt=int16u(iamp);
           adcd[j]=itt;
-          _nadcd+=1;//number of nonzero(>thr) pmts !!!
+          nadcd+=1;//number of nonzero(>thr) pmts !!!
 	}
       }//--> end of alive check
 //cout<<"       adcd="<<adcd[j]<<endl;
@@ -2234,18 +2356,73 @@ void TOF2RawEvent::mc_build(int &status)
 //---------------------
 //     ---> create/fill RawEvent-object :
       stat=0;
-      temp=0;//dummy(will be set at validation stage using static job temp-store !!!)
+      temp=0;//now dummy(will be set at validation stage using static JobStat temp-store !!!)
+      nftdc=0;//now dummy(will be set at validation stage using static RawEvent FTtime-store !!!)
+      nsumh=0;//now dummy(will be set at validation stage using static RawEvent SumHTtime-store !!!)
+      nsumsh=0;//now dummy(will be set at validation stage using static RawEvent SumSHTtime-store !!!)
 //
-      if(AMSEvent::gethead()->addnext(AMSID("TOF2RawEvent",0), new
-           TOF2RawEvent(idd,_sta,charge,temp,_nftdc,ftdc,_nstdc,stdc,
-                                                        adca,
-			                                _nadcd,adcd)))stat=1;
+      if(AMSEvent::gethead()->addnext(AMSID("TOF2RawSide",0), new
+           TOF2RawSide(idd,hid,_sta,charge,temp,
+	                                          nftdc,ftdc,
+				                  nstdc,stdc,
+						 nsumh,sumht,
+					       nsumsh,sumsht,
+                                                         adca,
+			                          nadcd,adcd)))stat=1;
 //
       ptr=ptr->next();// take next Tovt-hit
 // 
     }//         --- end of Tovt-hits loop in layer --->
 //
   } //                               --- end of layer loop --->
+//-----------------------------
+// <--- create static TOF2RawSide::SumHTt/SumSHTt-arrays(selection of good(out-of-tdcDT) hits in TOF2Tovt):
+//      (TOF2TovT::sumHTt/sumSHT-hits are already arranged in incr.order at the end of TOF2TovT::build()) 
+  int nhits,phn,nhn,nhnmin;
+  geant tprev,tnext;
+  integer itprev;
+  geant apw=TOF2DBc::daqpwd(11);//PW>=tdcDT for SumHT-ch on ACTEL-output(= TDC-input) 
+  for(int ic=0;ic<TOF2GC::SCCRAT;ic++){
+    for(int sl=0;sl<TOF2GC::SCFETA-1;sl++){
+      nhits=TOF2Tovt::SumHTh[ic][sl];
+      if(nhits>0){//<====== non-empty slot with SumHTt-hits
+        for(phn=0;phn<nhits;phn++){//<---TOF2Tovt prev.hit loop
+	  tprev=TOF2Tovt::SumHTt[ic][sl][phn];
+	  itprev=integer(floor(tprev/TOF2DBc::tdcbin(1)));//digitization
+	  TOF2RawSide::SumHTt[ic][sl][TOF2RawSide::SumHTh[ic][sl]]=itprev;//store digitized current "prev"
+	  TOF2RawSide::SumHTh[ic][sl]+=1;
+	  nhnmin=phn+1;
+	  for(nhn=nhnmin;nhn<nhits;nhn++){//<---TOF2Tovt next hit loop
+	    tnext=TOF2Tovt::SumHTt[ic][sl][nhn];
+	    if((tnext-tprev-apw)<=0)continue;//bad(fall in tdcDT) "next"-hit, try next one
+	    break;//good next hit
+	  }
+	  if(nhn>=nhits)break;//no good "next"-hit found - stop selection
+	  phn=nhn-1;//use found good "next"-hit as "prev" in prev-loop
+	}//endof "prev"-loop--->
+      }//endof non-empty slot check--->
+//
+      nhits=TOF2Tovt::SumSHTh[ic][sl];
+      if(nhits>0){//<-- non-empty slot with SumSHTt-hits
+        for(phn=0;phn<nhits;phn++){//<---TOF2Tovt prev.hit loop
+	  tprev=TOF2Tovt::SumSHTt[ic][sl][phn];
+	  itprev=integer(floor(tprev/TOF2DBc::tdcbin(1)));//digitization
+	  TOF2RawSide::SumSHTt[ic][sl][TOF2RawSide::SumSHTh[ic][sl]]=itprev;//store digitized current "prev"
+	  TOF2RawSide::SumSHTh[ic][sl]+=1;
+	  nhnmin=phn+1;
+	  for(nhn=nhnmin;nhn<nhits;nhn++){//<---TOF2Tovt next hit loop
+	    tnext=TOF2Tovt::SumSHTt[ic][sl][nhn];
+	    if((tnext-tprev-apw)<=0)continue;//bad(fall in tdcDT) "next"-hit, try next one
+	    break;//good next hit
+	  }
+	  if(nhn>=nhits)break;//no good "next"-hit found - stop selection
+	  phn=nhn-1;//use found good "next"-hit as "prev" in prev-loop
+	}//endof "prev"-loop--->
+      }//endof non-empty slot check--->
+//
+    }//endof sfet-loop--->
+  }//endof crate-loop--->
+  
 }
 //================================================================
 
@@ -2254,23 +2431,25 @@ void TOF2RawEvent::mc_build(int &status)
 
 
 TOF2Tovt::TOF2Tovt(integer _ids, integer _sta, number _charga, number _tedep,
-  integer _ntr1, number _ttr1[], integer _ntr3, number _ttr3[],
-  integer _nftdc, number _tftdc[], number _tftdcd[], integer _nstdc, number _tstdc[],
+  integer _ntr1, number _ttr1u[], number _ttr1d[],
+  integer _ntr3, number _ttr3u[], number _ttr3d[],
+  integer _nstdc, number _tstdc[],
   number _adca,
   integer _nadcd, number _adcd[]):idsoft(_ids),status(_sta)
   {
     int i;
     ntr1=_ntr1;
-    for(i=0;i<ntr1;i++)ttr1[i]=_ttr1[i];
+    for(i=0;i<ntr1;i++){
+      ttr1u[i]=_ttr1u[i];
+      ttr1d[i]=_ttr1d[i];
+    }
     ntr3=_ntr3;
-    for(i=0;i<ntr3;i++)ttr3[i]=_ttr3[i];
+    for(i=0;i<ntr3;i++){
+      ttr3u[i]=_ttr3u[i];
+      ttr3d[i]=_ttr3d[i];
+    }
     charga=_charga;
     tedep=_tedep;
-    nftdc=_nftdc;
-    for(i=0;i<nftdc;i++){
-      tftdc[i]=_tftdc[i];
-      tftdcd[i]=_tftdcd[i];
-    }
     nstdc=_nstdc;
     for(i=0;i<nstdc;i++)tstdc[i]=_tstdc[i];
     adca=_adca;
@@ -2280,21 +2459,19 @@ TOF2Tovt::TOF2Tovt(integer _ids, integer _sta, number _charga, number _tedep,
     }
   }
 
-integer TOF2Tovt::gettr1(number arr[]){
-  for(int i=0;i<ntr1;i++)arr[i]=ttr1[i];
+integer TOF2Tovt::gettr1(number arru[], number arrd[]){
+  for(int i=0;i<ntr1;i++){
+    arru[i]=ttr1u[i];
+    arrd[i]=ttr1d[i];
+  }
   return ntr1;
 }
-integer TOF2Tovt::gettr3(number arr[]){
-  for(int i=0;i<ntr3;i++)arr[i]=ttr3[i];
-  return ntr3;
-}
-integer TOF2Tovt::getftdc(number arr1[], number arr2[]){
-  int i;
-  for(i=0;i<nftdc;i++){
-    arr1[i]=tftdc[i];
-    arr2[i]=tftdcd[i];
+integer TOF2Tovt::gettr3(number arru[], number arrd[]){
+  for(int i=0;i<ntr3;i++){
+    arru[i]=ttr3u[i];
+    arrd[i]=ttr3d[i];
   }
-  return nftdc;
+  return ntr3;
 }
 integer TOF2Tovt::getstdc(number arr[]){
   for(int i=0;i<nstdc;i++)arr[i]=tstdc[i];
@@ -2314,113 +2491,136 @@ integer TOF2Tovt::getadcd(number arr[]){
 
 
 
-TOF2RawEvent::TOF2RawEvent(int16u _ids, int16u _sta, geant _charge, geant _temp,
-   int16u _nftdc, int16u _ftdc[],
-   int16u _nstdc, int16u _stdc[],
-   int16u _adca,
-   int16u _nadcd, int16u _adcd[]):idsoft(_ids),status(_sta)
+TOF2RawSide::TOF2RawSide(int16u sid, int16u hid, int16u sta, geant charge, geant temp,
+   integer nftdc, integer ftdc[],
+   integer nstdc, integer stdc[],
+   integer nsumh, integer sumht[],
+   integer nsumsh, integer sumsht[],
+   integer adca,
+   integer nadcd, integer adcd[]):_swid(sid),_hwid(hid),_status(sta)
    {
-     int i;
-     nftdc=_nftdc;
-     for(i=0;i<nftdc;i++)ftdc[i]=_ftdc[i];
-     nstdc=_nstdc;
-     for(i=0;i<nstdc;i++)stdc[i]=_stdc[i];
-     adca=_adca;
-     nadcd=_nadcd;
+     integer i;
+     _nftdc=nftdc;
+     for(i=0;i<nftdc;i++)_ftdc[i]=ftdc[i];
+     _nstdc=nstdc;
+     for(i=0;i<nstdc;i++)_stdc[i]=stdc[i];
+     _nsumh=nsumh;
+     for(i=0;i<nsumh;i++)_sumht[i]=sumht[i];
+     _nsumsh=nsumsh;
+     for(i=0;i<nsumsh;i++)_sumsht[i]=sumsht[i];
+     _adca=adca;
+     _nadcd=nadcd;
      for(i=0;i<TOF2GC::PMTSMX;i++){
-       adcd[i]=_adcd[i];
+       _adcd[i]=adcd[i];
      }
-     charge=_charge;
-     temp=_temp;
+     _charge=charge;
+     _temp=temp;
    }
 
-integer TOF2RawEvent::getnztdc(){
+integer TOF2RawSide::getnztdc(){
   integer nz(0);
-  if(nftdc>0)nz+=1;
-  if(nstdc>0)nz+=1;
-  if(adca>0)nz+=1;
-  if(nadcd>0)nz+=nadcd;
+  if(_nftdc>0)nz+=_nftdc;
+  if(_nstdc>0)nz+=_nstdc;
+  if(_nsumh>0)nz+=_nsumh;
+  if(_nsumsh>0)nz+=_nsumsh;
+  if(_adca>0)nz+=1;
+  if(_nadcd>0)nz+=_nadcd;
   return nz+1;//+temper.measurement
 }
 
-int16u TOF2RawEvent::getftdc(int16u arr[]){
-  for(int i=0;i<nftdc;i++)arr[i]=ftdc[i];
-  return nftdc;
+
+integer TOF2RawSide::getstdc(integer arr[]){
+  for(int i=0;i<_nstdc;i++)arr[i]=_stdc[i];
+  return _nstdc;
+}
+void TOF2RawSide::putstdc(integer nelem, integer arr[]){
+  _nstdc=nelem;
+  for(int i=0;i<_nstdc;i++)_stdc[i]=arr[i];
 }
 
-void TOF2RawEvent::putftdc(int16u nelem, int16u arr[]){
-  nftdc=nelem;
-  for(int i=0;i<nftdc;i++)ftdc[i]=arr[i];
+integer TOF2RawSide::getftdc(integer arr[]){
+  for(int i=0;i<_nftdc;i++)arr[i]=_ftdc[i];
+  return _nftdc;
+}
+void TOF2RawSide::putftdc(integer nelem, integer arr[]){
+  _nftdc=nelem;
+  for(int i=0;i<_nftdc;i++)_ftdc[i]=arr[i];
 }
 
-int16u TOF2RawEvent::getstdc(int16u arr[]){
-  for(int i=0;i<nstdc;i++)arr[i]=stdc[i];
-  return nstdc;
+integer TOF2RawSide::getsumh(integer arr[]){
+  for(int i=0;i<_nsumh;i++)arr[i]=_sumht[i];
+  return _nsumh;
+}
+void TOF2RawSide::putsumh(integer nelem, integer arr[]){
+  _nsumh=nelem;
+  for(int i=0;i<_nsumh;i++)_sumht[i]=arr[i];
 }
 
-void TOF2RawEvent::putstdc(int16u nelem, int16u arr[]){
-  nstdc=nelem;
-  for(int i=0;i<nstdc;i++)stdc[i]=arr[i];
+integer TOF2RawSide::getsumsh(integer arr[]){
+  for(int i=0;i<_nsumsh;i++)arr[i]=_sumsht[i];
+  return _nsumsh;
+}
+void TOF2RawSide::putsumsh(integer nelem, integer arr[]){
+  _nsumsh=nelem;
+  for(int i=0;i<_nsumsh;i++)_sumsht[i]=arr[i];
 }
 
 
-int16u TOF2RawEvent::getadcd(int16u arr[]){
-  for(int i=0;i<TOF2GC::PMTSMX;i++)arr[i]=adcd[i];
-  return nadcd;
+integer TOF2RawSide::getadcd(int arr[]){
+  for(int i=0;i<TOF2GC::PMTSMX;i++)arr[i]=_adcd[i];
+  return _nadcd;
 }
 
-void TOF2RawEvent::putadcd(int16u nelem, int16u arr[]){
-  nadcd=nelem;
-  for(int i=0;i<nadcd;i++)adcd[i]=arr[i];
+void TOF2RawSide::putadcd(integer nelem, integer arr[]){
+  _nadcd=nelem;
+  for(int i=0;i<_nadcd;i++)_adcd[i]=arr[i];
 }
 
 //--------------
-integer TOF2RawEvent::lvl3format(int16 *ptr, integer rest){
+integer TOF2RawSide::lvl3format(int16 *ptr, integer rest){
+// Note: at the moment of call FT-time is still not attached to RawSide-obj, so i need to take FT
+// from static store, where FT-times stored after decoding as crat/slot arrays !!!
   integer ilay,ibar,isid;
   int i,j,nrwt;
   int statdb[2];
-  int16u pbitn,pbanti,pbup,pbdn,pbup1,pbdn1,hwid,crat,otyp(0),mtyp(1);
-  int16u id,rwt[10],rwtn[10];
+  int16u hwid,crat,otyp(0),mtyp(0),slot,tsens;
+  int16u id,rwt[10];
   int16 rawt;
+  integer nftt,ftt[TOF2GC::SCTHMX1];
+  number dt;
 //
-  pbitn=TOF2GC::SCPHBP;//phase bit position
-  pbanti=pbitn-1;// mask to avoid it.
-  id=idsoft/10;// short id=LBB, where L=1,4 BB=1,12
+  id=_swid/10;// short id=LBB, where L=1,4 BB=1,8(10)
   ilay=id/100-1;
   ibar=id%100-1;
-  isid=idsoft%10-1;
+  isid=_swid%10-1;
   AMSSCIds tofid(ilay,ibar,isid,otyp,mtyp);//mtyp=0 to find crate/slot for needed slowTDC
   nrwt=0;
   if(TOF2Brcal::scbrcal[ilay][ibar].SideOK(isid)){ // side OK(F&S&A), read out it
     hwid=tofid.gethwid();//CSRR(Crate|Slot|Readout_channel)
-    crat=hwid/1000-1;
-    for(i=0;i<nstdc-3;i++){// <--- find all correct 4's of up/down bits settings
-      pbdn=(stdc[i]&pbitn);//check p-bit of 2-nd down-edge (come first, LIFO mode !!!)
-      pbup=(stdc[i+1]&pbitn);//check p-bit of 2-nd up-edge (come second)
-      pbdn1=(stdc[i+2]&pbitn);//check p-bit of 1-st down-edge (come third)
-      pbup1=(stdc[i+3]&pbitn);//check p-bit of 1-st up-edge (come fourth)
-      if(TOF2DBc::pbonup()==1){
-        if(pbup==0||pbup1==0||pbdn!=0||pbdn1!=0)continue;//wrong sequence, take next "4" 
-      }
-      else{
-        if(pbup!=0||pbup1!=0||pbdn==0||pbdn1==0)continue;//wrong  sequence, take next "4" 
-      }
-      if(nrwt<10){
-        rwt[nrwt]=(stdc[i+3]&pbanti);//1-st (up)-edge (in real time)
-        rwtn[nrwt]=(stdc[i+2]&pbanti);//2nd (down=FT)-edge (in real time)
-      }
-      nrwt+=1;
-//
-      i+=3;// to go to next 4 good edges
-    }//--->endof correct 4's of up/down bits settings search
+    crat=tofid.getcrate();//current crate#(0,1,..)
+    slot=tofid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
+    tsens=tofid.gettempsn();//... sensor#(1,2,...,5),coinsides with SFET(A) seq.slot number!
+    nftt=TOF2RawSide::FThits[crat][tsens-1];
+    if(nftt>0)for(i=0;i<nftt;i++)ftt[i]=TOF2RawSide::FTtime[crat][tsens-1][i];
+    if(nftt==1){//require single FT-hit
+      for(i=0;i<_nstdc;i++){//<---LT-hits loop
+        dt=(ftt[0]-_stdc[i])*TOF2DBc::tdcbin(1);//LT-time wrt FT-time[ns]
+	if(dt>TOF2DBc::ltagew(0) && dt<TOF2DBc::ltagew(1)){//notTooOld(>40ns befFT), notTooYoung(<640 befFT)
+	  if(nrwt<10){
+            rwt[nrwt]=int16u(ftt[0]-_stdc[i]);//store all LT-time hits(calc. wrt FT-time)  [tdc-channels]
+            nrwt+=1;
+	  }
+	}//--->endof "FT-correlation" check
+      }//--->endof LT-hits loop
+    }//--->endof single FT-hit check
 //---  
   }// --->endof DBstat check
 //---
   if(nrwt>0){
     if (rest < 3) return 0;
-    rawt=rwt[0]-rwtn[0];//t1-t2(FT) from last(real time) "4's"
+    rawt=rwt[nrwt-1];//tempor choose last LT-hit
     *(ptr)=hwid;
-    *(ptr+1)=idsoft;
+    *(ptr+1)=_swid;
     *(ptr+2)=rawt;
     return 3; 
   }

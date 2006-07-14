@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.60 2006/07/13 15:16:04 choutko Exp $
+//  $Id: geant4.C,v 1.61 2006/07/14 13:17:16 choumilo Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -811,7 +811,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      static int nsmstps(0);
      geant trcut2(0.25);// Max. transv.shift (0.5cm)**2
      geant stepmin(0.25);//(cm) min. step/cumul.step to store hit(0.5cm/2)
-     geant estepmin(1.e-5);
+     geant estepmin(1.e-5);//10kev
      geant coo[3],dx,dy,dz,dt;
      geant wvect[6],snext,safety;
      int i,nd,numv,iprt,numl,numvp,tfprf(0);

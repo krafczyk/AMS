@@ -437,11 +437,12 @@ class TofRawClusterR {
 public:
   unsigned int   Status;  ///< statusword
                 /*!<
-                                              // bit8(128)  -> time-history/matching problems on any side
+                                              // bit8(128)  -> bad time-history on any side
                                               // bit9(256)  -> "1-sided" counter(1-side meas. is missing)
-                                              // bit10(512) -> time-chan.problems(any side, according to DB info)
+                                              // bit10(512) -> ignore time-measurement(as known from DB),not used
 					      // bit11(1024)-> missing side number(0->s1,1->s2)
                                               // bit12(2048)-> recovered from 1-sided (bit256 also set)
+                                              // bit13(4096)-> no bestLT/sumHT-hit matching(when requested) on any side
 					      // bit6(32)   -> used for TofCluster 
    */
   int   Layer;   ///< Tof plane 1(top)...4
@@ -471,13 +472,19 @@ public:
 class TofRawSideR {
 public:
   int swid;//short softw-id(LBBS)
-  int hwid;//short hardw-id(C(rate)S(lot), applcable to SFET-type measurements:stdc,ftdc,adca)
-  int nftdc;//numb.of fast(hist) tdc-hits(only front-edges now, different from RawEvent one !!!)
-  float ftdc[8];//fast(history)-tdc front edges(already converted to ns)
-  float stdc[4];//stretcher-tdc hit(only last(in real time) "4edges" set, already in ns)
-  float adca;//Anode signal(already converted from DAQ- to ADC-chan units)
+  int hwid;//short hardw-id(C(rate)S(lot), for SFET(C)-type measurements:stdc,ftdc,adca,adcd
+  int stat;// 0/1->ok/bad
+  int nftdc;//numb.of FTtime-hits
+  int ftdc[8];//FTtime-hits(FastTrigger-channel time, ns)
+  int nstdc;//numb.of LTtime-hits
+  int stdc[16];//LTtime-hits(LowThreshold-channel time. ns)
+  int nsumh;//numb.of SumHTtime-hits
+  int sumht[16];//SumHTtime-hits(half_plane_sum of HighThreshold-channel time history, ns)
+  int nsumsh;//numb.of SumSHTtime-hits
+  int sumsht[16];//SumSHTtime-hits(half_plane_sum of SuperHighThreshold-channel time history, ns)
+  int adca;//Anode signal(DAQ-units)
   int nadcd;//number of Dynode nonzero(!) signals
-  float adcd[3];//Dynode signals(converted, positional(keep "0"s))
+  int adcd[3];//Dynode signals(DAQ-units, positional(keep "0"s))
   float temp;//temperature(given by probe in SFET/SFEA slots)  
 
   TofRawSideR(){};
@@ -486,7 +493,7 @@ public:
   friend class AMSEventR;
   virtual ~TofRawSideR(){};
   
-  ClassDef(TofRawSideR ,1)       //TofRawSideR
+  ClassDef(TofRawSideR ,2)       //TofRawSideR
 };
 
 
@@ -559,7 +566,7 @@ public:
   int   Sector;   ///< //Sector number(1-8)
   int   Ntimes;  ///<Number of time-hits(1st come paired ones)
   int   Npairs;   ///<Numb.of time-hits, made of 2 side-times(paired)
-  float Times[16];  ///<Time-hits(ns, wrt LEV1trig-time)
+  float Times[16];  ///<Time-hits(ns, wrt FT-time, "+" means younger hit)
   float Timese[16]; ///<Time-hits errors(ns)
   float Edep;    ///<Edep(mev)
   float Coo[3];   ///<R(cm),Phi(degr),Z(cm)-coordinates
@@ -624,9 +631,9 @@ public:
  5 - BAD                                                 (status&16    !=0) \n
  6 - USED as a component of a larger object              (status&32    !=0) \n
  7 - DELETED object                                      (status&64    !=0) \n
- 8 - BADHIStory (TOF)                                    (status&128   !=0) \n
+ 8 - BADTimeHistory (TOF)                                (status&128   !=0) \n
  9 - ONESIDE measurement (TOF)                           (status&256   !=0) \n
-10 - BADTIME information (TOF)                           (status&512   !=0) \n
+10 - BADTIME information (TOF), not used now             (status&512   !=0) \n
 11 - NEAR, close to another object (Trck)                (status&1024  !=0) \n
 12 - WEAK, defined with looser criteria (Trck)           (status&2046  !=0) \n
 13 - AwayTOF, away from TOF predictions (Trck)           (status&4096  !=0) \n

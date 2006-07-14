@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.13 2006/01/25 11:21:38 choumilo Exp $
+//  $Id: tofsim02.h,v 1.14 2006/07/14 13:21:53 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Removed gain5 logic, E.Choumilov 22.08.2005
 #ifndef __AMSTOF2SIM__
@@ -270,39 +270,41 @@ integer status; // channel is alive/dead/ ... --> 0/1/...
 number charga;  // total anode charge (pC)
 number tedep;   // total Edep(mev)
 integer ntr1;
-number ttr1[TOF2GC::SCTHMX1];   // store up-times of "z>=1(FT)" trigger signals 
+number ttr1u[TOF2GC::SCTHMX1];   // store up-times of "z>=1(FT)" trigger signals 
+number ttr1d[TOF2GC::SCTHMX1];   // store down-times of "z>=1(FT)" trigger signals 
 integer ntr3;
-number ttr3[TOF2GC::SCTHMX1];   // store up-times of "z>2" trigger signals 
-integer nftdc;
-number tftdc[TOF2GC::SCTHMX2];  // up-time of pulses going to fast(history) TDC
-number tftdcd[TOF2GC::SCTHMX2]; // down-time ..., TDC dbl. resol. already taken into account
+number ttr3u[TOF2GC::SCTHMX1];   // store up-times of "z>=2" trigger signals 
+number ttr3d[TOF2GC::SCTHMX1];   // store down-times of "z>=2" trigger signals 
 integer nstdc;
-number tstdc[TOF2GC::SCTHMX3];  // store up-times of pulses going to slow(stretcher) TDC
+number tstdc[TOF2GC::SCTHMX3];  // store up-times of pulses of TDC LT-time channel 
 number adca;  // store ADC-counts(float) for Anode channel
 integer nadcd;
 number adcd[TOF2GC::PMTSMX];  // store ADC-counts(float) for Dynodes channels
 //
 public:
+static geant SumHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];//TDC SumHT-channel time-hits(vs CRATE/SFET)
+static int SumHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];// number of TDC SumHT-channel time-hits 
+static geant SumSHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];//TDC SumSHT-channel time-hits(vs CRATE/SFET)
+static int SumSHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];// number of TDC SumSHT-channel time-hits
+// 
 TOF2Tovt(integer _ids, integer _sta, number _charga, number _tedep,
-  integer _ntr1, number _ttr1[], integer _ntr3, number _ttr3[],
-  integer _nftdc, number _tftdc[], number _tftdcd[], integer _nstdc, number _tstdc[],
-  number _adca, integer _nadcd, number _adcd[]);
+  integer _ntr1, number _ttr1u[], number _ttr1d[], integer _ntr3, number _ttr3u[], number _ttr3d[],
+  integer _nstdc, number _tstdc[], number _adca, integer _nadcd, number _adcd[]);
 //
 ~TOF2Tovt(){};
 TOF2Tovt * next(){return (TOF2Tovt*)_next;}
 integer getid() const {return idsoft;}
 number getcharg(){return charga;}
 number getedep(){return tedep;}
-integer gettr1(number arr[]);
-integer gettr3(number arr[]);
-integer getftdc(number arr1[], number arr2[]);
+integer gettr1(number arru[], number arrd[]);
+integer gettr3(number arru[], number arrd[]);
 integer getstdc(number arr[]);
 number  getadca();
 integer getadcd(number arr[]);
 integer getstat(){return status;}
 static void inipsh(integer &nbn, geant arr[]);
 static geant pmsatur(const geant am);
-static void displ_a(const int id, const int mf, const geant arr[]);
+static void displ_a(char comm[], int id, int mf, const geant arr[]);
 static number ftctime(int &trcode,int &cpcode);//to get FTC("z>=1") trigger time/code/lutcode 
 static number ftztime(int &trcode);//to get FTZ("SlowZ>=2") trigger time/code
 static void spt2patt(number ftime, integer patt1[], integer patt2[]);//to get z>=1/z>=2 tof-patterns of SPT2
@@ -376,9 +378,9 @@ public:
   friend AMSBitstr operator | (const AMSBitstr &, const AMSBitstr &);
 };
 //====================================================================
-//  class for RawEvent hits (all digital data for given id are groupped)
+//  class for TOF RawSide hits (all digital data for given id(LBBS) are groupped)
 //
-class TOF2RawEvent: public AMSlink{
+class TOF2RawSide: public AMSlink{
 //
 private:
  static uinteger StartRun;//first run of the job
@@ -390,51 +392,82 @@ private:
  static integer _ftpatt;//general FT components pattern(starting from lsbit:FTC/FTZ/FTE/EXT)
  static integer _cpcode;//MN-> FTCP1|FTCP0 flags for lvl1(m(n)=0/1)
  static integer _bzflag;//1/0->BZtrigOK/not
- static number _trtime; //  abs. FTrigger time (ns) 
- int16u idsoft;        // LayBarBarSide: LBBS (as in Phel,Tovt MC-obj)
- int16u status;        // channel status (alive/dead/ ... --> 0/1/...)
- int16u nftdc;         // number of fast "tdc" hits
- int16u ftdc[TOF2GC::SCTHMX2*2]; // fast "tdc" hits (2 edges, in TDC channels)
- int16u nstdc;         // number of slow "tdc" hits
- int16u stdc[TOF2GC::SCTHMX3*4]; // slow "tdc" hits (4 edges,in TDC channels)
- int16u adca; // Anode ADC-hit (in DAQ-bin units !)
- int16u nadcd;         // number of NONZERO Dynode-channels(max PMTSMX)
- int16u adcd[TOF2GC::PMTSMX]; // ALL Dynodes PMTs ADC-hits(positional, in DAQ-bin units !)
- geant charge;         // for MC : tot. anode charge (pC)
- geant temp;           // temperature from SFET(A), corresponding to idsoft LBBS
+ static number _trtime; //  abs. FTrigger time(ns, input to SFET(A), fix decision-delay included) 
+ int16u _swid;        // short SW-id(LBBS->Lay|BarBar|Side (as in Tovt MC-obj))
+ int16u _hwid;          // short HW-id(CS->crate|slot)
+ int16u _status;        // channel status (usable/not/ ... --> 0/1/...)
+ 
+ integer _nftdc;//number of FastTrig(FT)-TDC hits, =1 in MC(filled at validation stage !!)
+ integer _ftdc[TOF2GC::SCTHMX1]; // FastTrig(FT)-TDC hits(TDC-chan),half-plane specific, but stored for each pad.
+ integer _nstdc;         // number of LTTime-TDC hits
+ integer _stdc[TOF2GC::SCTHMX3]; // Time-TDC hits ("LT-time",TDC channels)
+ integer _nsumh;//number of SumHT time-hits(filled at validation stage !!)
+ integer _sumht[TOF2GC::SCTHMX2];//SumHT time-hits(TDC-channelss) 
+ integer _nsumsh;//number of SumSHT time hits(filled at validation stage !!)
+ integer _sumsht[TOF2GC::SCTHMX2];//SumSHT time-hits(TDC-channelss)
+  
+ integer _adca; // Anode ADC-hit (in DAQ-bin units !)
+ integer _nadcd;         // number of NONZERO Dynode-channels(max PMTSMX)
+ integer _adcd[TOF2GC::PMTSMX]; // ALL Dynodes PMTs ADC-hits(positional, in DAQ-bin units !)
+ 
+ geant _charge;         // for MC : tot. anode charge (pC)
+ geant _temp;           // SFET(A) temperature corresponding to LBBS(filled at validation stage !!)
 //
 public:
- TOF2RawEvent(int16u _ids, int16u _sta, geant _charge, geant _temp,
-   int16u _nftdc, int16u _ftdc[],
-   int16u _nstdc, int16u _stdc[],
-   int16u _adca,
-   int16u _nadcd, int16u _adcd[TOF2GC::PMTSMX]);
- ~TOF2RawEvent(){};
- TOF2RawEvent * next(){return (TOF2RawEvent*)_next;}
+ static integer FTtime[TOF2GC::SCCRAT][TOF2GC::SCFETA][TOF2GC::SCTHMX1];//FT-channel time-hits(incl.ANTI)
+ static integer FThits[TOF2GC::SCCRAT][TOF2GC::SCFETA];//number of FT-channel hits ....... 
+ static integer SumHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];//TOF SumHT-channel time-hits
+ static integer SumHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];// number of SumHT-channel time-hits 
+ static integer SumSHTt[TOF2GC::SCCRAT][TOF2GC::SCFETA-1][TOF2GC::SCTHMX2];//TOF SumSHT-channel time-hits
+ static integer SumSHTh[TOF2GC::SCCRAT][TOF2GC::SCFETA-1];// number of SumSHT-channel time-hits
+ static integer Out(integer);
+// 
+ TOF2RawSide(int16u swid, int16u hwid, int16u sta, geant charge, geant temp,
+   integer nftdc, integer ftdc[],
+   integer nstdc, integer stdc[],
+   integer nsumh, integer sumht[],
+   integer nsumsh, integer sumsht[],
+   integer adca,
+   integer nadcd, integer adcd[TOF2GC::PMTSMX]);
+ ~TOF2RawSide(){};
+ TOF2RawSide * next(){return (TOF2RawSide*)_next;}
+
+#ifdef __WRITEROOT__
+   friend class TofRawSideR;
+#endif
 
  integer operator < (AMSlink & o)const{
-  return idsoft<((TOF2RawEvent*)(&o))->idsoft;}
+  return _swid<((TOF2RawSide*)(&o))->_swid;}
 
- int16u getid() const {return idsoft;}
- int16u getstat() const {return status;}
- geant getcharg(){return charge;}
- geant gettemp(){return temp;}
- void settemp(geant tmp){temp=tmp;}
- integer gettoth(){return integer(nftdc+nstdc+1+nadcd);}
+ int16u getsid(){return _swid;}
+ int16u gethid(){return _hwid;}
+ int16u getstat(){return _status;}
+ void updstat(int16u sta){_status=sta;}
+ geant getcharg(){return _charge;}
+ geant gettemp(){return _temp;}
+ void settemp(geant tmp){_temp=tmp;}
+ integer gettoth(){return integer(_nftdc+_nstdc+_nsumh+_nsumsh+1+_nadcd);}
 
 
  integer getnztdc();
- int16u getftdc(int16u arr[]);
- int16u getnftdc(){return nftdc;}
- void putftdc(int16u nelem, int16u arr[]);
- int16u getstdc(int16u arr[]);
- int16u getnstdc(){return nstdc;}
- void putstdc(int16u nelem, int16u arr[]);
- int16u getadca(){return adca;}
- void putadca(int16u _adca){adca=_adca;}
- int16u getadcd(int16u arr[]);
- int16u getnadcd(){return nadcd;}
- void putadcd(int16u nelem, int16u arr[]);
+ 
+ integer getftdc(integer arr[]);
+ void putftdc(integer nelem, integer arr[]);
+ 
+ integer getstdc(integer arr[]);
+ integer getnstdc(){return _nstdc;}
+ void putstdc(integer nelem, integer arr[]);
+ 
+ integer getsumh(integer arr[]);
+ void putsumh(integer nelem, integer arr[]);
+ integer getsumsh(integer arr[]);
+ void putsumsh(integer nelem, integer arr[]);
+  
+ integer getadca(){return _adca;}
+ void putadca(integer adca){_adca=adca;}
+ integer getadcd(integer arr[]);
+ integer getnadcd(){return _nadcd;}
+ void putadcd(integer nelem, integer arr[]);
  integer lvl3format(int16 * ptr, integer rest);
 
 
@@ -481,18 +514,25 @@ public:
 protected:
  void _printEl(ostream &stream){
   int i;
-  stream <<"TOF2RawEvent: id="<<dec<<idsoft<<endl;
-  stream <<"nftdc="<<nftdc<<endl;
-  for(i=0;i<nftdc;i++)stream <<hex<<ftdc[i]<<endl;
-  stream <<"nstdc="<<dec<<nstdc<<endl;
-  for(i=0;i<nstdc;i++)stream <<hex<<stdc[i]<<endl;
-  stream <<"adca="<<hex<<adca<<endl;
-  stream <<"nadcd="<<dec<<nadcd<<endl;
-  for(i=0;i<nadcd;i++)stream <<hex<<adcd[i]<<endl;
+  stream <<"TOF2RawSide: swid="<<dec<<_swid<<endl;
+  stream <<"hwid="<<dec<<_hwid<<endl;
+  stream <<"stat="<<dec<<_status<<endl;
+  stream <<"nftdc="<<dec<<_nftdc<<endl;
+  for(i=0;i<_nftdc;i++)stream <<hex<<_ftdc[i]<<endl;
+  stream <<"nstdc="<<dec<<_nstdc<<endl;
+  for(i=0;i<_nstdc;i++)stream <<hex<<_stdc[i]<<endl;
+  stream <<"nsumh="<<dec<<_nsumh<<endl;
+  for(i=0;i<_nsumh;i++)stream <<hex<<_sumht[i]<<endl;
+  stream <<"nsumsh="<<dec<<_nsumsh<<endl;
+  for(i=0;i<_nsumsh;i++)stream <<hex<<_sumsht[i]<<endl;
+  stream <<"adca="<<hex<<_adca<<endl;
+  stream <<"nadcd="<<dec<<_nadcd<<endl;
+  for(i=0;i<_nadcd;i++)stream <<hex<<_adcd[i]<<endl;
+  stream <<"temper="<<dec<<_temp<<endl;
   stream <<dec<<endl<<endl;
  }
- void _writeEl(){};
- void _copyEl(){};
+ void _writeEl();
+ void _copyEl();
 };
 //
 

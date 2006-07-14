@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.8 2006/01/25 11:21:08 choumilo Exp $
+//  $Id: daqs2block.C,v 1.9 2006/07/14 13:17:16 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
 #include "typedefs.h"
@@ -146,8 +146,16 @@ void DAQS2Block::buildraw(integer len, int16u *p){
   lent=1;//initial block length (block_id word was read)
 //
 /*
-  int16u swcbuf[SCRCMX][SCTHMX2],swnbuf[SCRCMX],swibuf[SCRCMX],swtbuf[SCRCMX];
-//they keep:   s/f-tdc hits       s/f hits #        LBBSPMs
+  int16u swcbuf[SCRCMX][SCTHMX2],  swnbuf[SCRCMX],   swibuf[SCRCMX],hwibuf[SCRCMX];
+//keep:  LT/FT/HT-time+ampl hits   LT/FT/HT hits#       LBBSPMs       hwid=CSRR
+//also filled static arrays:
+// TOF2RawSide::FTtime[SCCRAT][SCFETA][SCTHMX1];//FT-channel time-hits(incl.ANTI)
+// TOF2RawSide::FThits[SCCRAT][SCFETA];//number of FT-channel hits ....... 
+// TOF2RawSide::SumHTt[SCCRAT][SCFETA-1][SCTHMX2];//TOF SumHT-channel time-hits
+// TOF2RawSide::SumHTh[SCCRAT][SCFETA-1];// number of SumHT-channel time-hits 
+// TOF2RawSide::SumSHTt[SCCRAT][SCFETA-1][TOF2GC::SCTHMX2];//TOF SumSHT-channel time-hits
+// TOF2RawSide::SumSHTh[SCCRAT][SCFETA-1];// number of SumSHT-channel time-hits
+//
 // here SCRCMX is used as max. number(even higher) of sw-channels
   for(i=0;i<SCRCMX;i++){
     swnbuf[i]=0;
@@ -158,16 +166,16 @@ void DAQS2Block::buildraw(integer len, int16u *p){
 // in current crate as arrays of sequential sw-channel:
 // (number of hits in each channel should be verified here !!!)
 //
-  AMSSCIds tofid(crat,slot,rdch);//otyp=0(anode),mtyp=0(precise time(=slow_TDC))
-  mtyp=tofid.getmtyp();//0->sTDC(stretcher)
-  pmt=tofid.getpmt();//0->anode
-  chan=tofid.getswch();//seq. sw-channel
-//  slot=tofid.getslot();//sequential slot#(0,1,...9)(2 last are fictitious for d-adcs)
-  if(mtyp==0 && pmt==0){//<--slot has temp-measurement
-    tsens=tofid.gettempsn();//sequential sensor#(1,2,...,5)(not all slots have temp-sensor!)
+  AMSSCIds scinid(crat,slot,rdch);
+  mtyp=scinid.getmtyp();//0->LTtime
+  pmt=scinid.getpmt();//0->anode
+  chan=scinid.getswch();//seq. sw-channel
+//  slot=scinid.getslot();//sequential slot#(0,1,...8)(2 last are fictitious for d-adcs)
+  if(mtyp==0 && pmt==0){//<--SFET(A) slot which have to have one temp-sensor
+    tsens=scinid.gettempsn();//sequential sensor#(1,2,...,5)(not all slots have temp-sensor!)
     if(tsens>0){
       temp=...;
-      TOF2JobStat::puttemp(crat,tsens-1,temp);
+      if(temp>0)TOF2JobStat::puttemp(crat,tsens-1,temp);
     }
     else{
       cout<<"DAQS2Block::buildraw-Fatal- wrong tsens# for crate/slot="<<crat<<" "<<slot<<endl;
@@ -178,10 +186,10 @@ void DAQS2Block::buildraw(integer len, int16u *p){
 //
 // Now scan buffers and create tof/anti raw-event obj.:
 //
-  int16u nftdc;         // number of fast "tdc" hits
-  int16u ftdc[SCTHMX2*2]; // fast "tdc" hits (2 edges, in TDC channels)
-  int16u nstdc;         // number of slow "tdc" hits
-  int16u stdc[SCTHMX3*4]; // slow "tdc" hits (4 edges,in TDC channels)
+  int16u nftdc;         // number of FT-tdc hits
+  int16u ftdc[SCTHMX2]; // FT-tdc" hits (in TDC channels)
+  int16u nstdc;         // number of LT-tdc hits
+  int16u stdc[SCTHMX3]; // LT-tdc" hit (in TDC channels)
   int16u adca; // Anode-channel ADC hit (in DAQ-bin units !)
   int16u nadcd;         // number of NONZERO Dynode-channels(max PMTSMX)
   int16u adcd[PMTSMX]; // ALL Dynodes ADC hits(positional, in DAQ-bin units !)
@@ -198,7 +206,6 @@ void DAQS2Block::buildraw(integer len, int16u *p){
   for(ic=0;ic<SCRCMX;ic++){//1-pass scan
     swid=swibuf[ic];//LBBSPM
     if(swid>0){//!=0 LBBSPM found
-      temp=swtbuf[ic];//may be empty if it is readout occasionally(this will be cured at valid.stage)
       sswid=swid/100;//LBBS
       for(icn=ic+1;icn<SCRCMX;icn++){//find next !=0 LBBSPM
         swidn=swibuf[icn];
@@ -219,21 +226,34 @@ void DAQS2Block::buildraw(integer len, int16u *p){
       if(dtyp==1)pmmx=TOF2DBc::npmtps(il,ib);
       if(dtyp==2)pmmx=0;
       nh=swnbuf[ic];//#of hits fir given sw-chan(in accordance with mtyp)
+      hwid=hwibuf[ic];//CSRR
+      aslt=(hwid/100)%10;//abs. Slot #(1,2,...9)
+      sslt=AMSSCIds::sl2tsid(aslt-1);//temp.sens.id=seq.slot#(or 0)(should be 1,2,3,4,5)
+      assert(sslot>0 && sslot<=SCFETA);
+//
       switch(mtyp){//fill RawEvent arrays
         case 0:
 	  for(i=0;i<nh;i++)stdc[i]=swcbuf[ic][i];
 	  nstdc=nh;
 	  break;
         case 1:
-	  for(i=0;i<nh;i++)ftdc[i]=swcbuf[ic][i];
-	  nftdc=nh;
-	  break;
-        case 2:
 	  if(pmt>pmmx)cout<<"scan: Npm>Max in ADC-h, swid="<<swid<<endl;
 	  else{
 	    if(pmt==0)adca=swcbuf[ic][0];//anode
 	    else adcd[pmt-1]=swcbuf[ic][0];//dynode
 	  }
+	  break;
+        case 2:
+	  TOF2RawSide::FThits[crat][sslt-1]=nh;
+	  for(i=0;i<nh;i++)TOF2RawSide::FTtime[crat][sslt-1][i]=swcbuf[ic][i];
+	  break;
+	case 3:
+          TOF2RawSide::SumHTh[crat][sslt-1]=nh; 
+          for(i=0;i<nh;i++)TOF2RawSide::SumHTt[crat][sslt-1][i]=swcbuf[ic][i];
+	  break;
+	case 4:
+          TOF2RawSide::SumSHTh[crat][sslt-1]=nh; 
+          for(i=0;i<nh;i++)TOF2RawSide::SumSHTt[crat][sslt-1][i]=swcbuf[ic][i];
 	  break;
         default:
 	  cout<<"scan:unknown measurement type ! swid="<<swid<<endl;
@@ -244,16 +264,21 @@ void DAQS2Block::buildraw(integer len, int16u *p){
 // (after 1st swid>0 sswid is = last filled LBBS, sswidn is = LBBS of next nonempty channel or =9999)
 //  at this stage temp may be not defined, it will be redefined at validation-stage using static job-store)
       if(dtyp==1){//TOF
-	if(nftdc>0 || nstdc>0 || adca>0 || adcal>0 || nadcd>0 || nadcdl>0){//create tof-raw-event obj
+	if(nstdc>0 || adca>0 || nadcd>0){//create tof-raw-event obj
+	  nftdc=0;//dummy(filled later at valid. stage from [cr][sl] static stores)
+	  nsumh=0;
+	  nsumsh=0;
           AMSEvent::gethead()->addnext(AMSID("TOF2RawEvent",0),
                  new TOF2RawEvent(sswid,0,charge,temp,nftdc,ftdc,nstdc,stdc,
+		                                                   nsumh,sumht,
+								   nsumsh,sumsht,
                                                                    adca,
 			                                           nadcd,adcd));
 	}
       }
       else{//ANTI 
         AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
-                                    new Anti2RawEvent(sswid,0,temp,adca,nftdc,ftdc));
+                                    new Anti2RawEvent(sswid,0,temp,adca,nftdc,ftdc,nstdc,stdc));
       }
       adca=0;//reset RawEvent buffer
       nftdc=0;
@@ -272,7 +297,7 @@ void DAQS2Block::buildraw(integer len, int16u *p){
 //---> TOF decoding:
   if(lent<len && (msk&1)>0){
     dlen=lent;// bias to first TOF_data_word (=1 here)
-    TOF2RawEvent::buildraw(blid, dlen, p);
+    TOF2RawSide::buildraw(blid, dlen, p);
     lent+=dlen;
   }
 //---> Print TOF Crate temperatures:
@@ -322,7 +347,7 @@ integer DAQS2Block::calcblocklength(integer ibl){
   format=fmt;// class variable is redefined by data card 
   blid=sblids[format][ibl];// valid block_id
   msk=subdmsk[ibl];// subdetectors in crate (mask)
-  if((msk&1)>0)tofl=TOF2RawEvent::calcdaqlength(blid);
+  if((msk&1)>0)tofl=TOF2RawSide::calcdaqlength(blid);
   if((msk&2)>0)antil=Anti2RawEvent::calcdaqlength(blid);
 //  if((msk&4)>0)ctcl=AMSCTCRawEvent::calcdaqlength(blid);
   lent=(1+tofl+antil+ctcl);//"1" for block-id word.
@@ -349,7 +374,7 @@ void DAQS2Block::buildblock(integer ibl, integer len, int16u *p){
   msk=subdmsk[ibl];
 //--------------
   dlen=0;
-  if((msk&1)>0)TOF2RawEvent::builddaq(blid, dlen, next);
+  if((msk&1)>0)TOF2RawSide::builddaq(blid, dlen, next);
 //
   lent+=dlen;
   next+=dlen;
@@ -367,7 +392,7 @@ void DAQS2Block::buildblock(integer ibl, integer len, int16u *p){
   {
 #ifdef __AMSDEBUG__
 
-    AMSContainer *ptr1=AMSEvent::gethead()->getC("TOF2RawEvent",0);
+    AMSContainer *ptr1=AMSEvent::gethead()->getC("TOF2RawSide",0);
     if(ptr1)ptr1->eraseC();
 //
     AMSContainer *ptr2=AMSEvent::gethead()->getC("Anti2RawEvent",0);

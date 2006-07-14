@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.16 2006/01/25 11:21:12 choumilo Exp $
+//  $Id: tofuser02.C,v 1.17 2006/07/14 13:17:18 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "event.h"
@@ -65,6 +65,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   TOF2JobStat::addre(21);
   for(i=0;i<TOF2GC::SCLRS;i++)nbrl[i]=0;
   for(i=0;i<TOF2GC::SCLRS;i++)nbrlc[i]=0;
+  for(i=0;i<TOF2GC::SCLRS;i++)brnl[i]=-1;
   if(first==0){//clear 1st tinp/tout-measurements
     tinpp=-9999;
     toutp=-9999;
@@ -73,27 +74,27 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //
 //-----> look at TOF2RawSide-hits(test for temper.study):
   while(ptrt){ // <--- loop over TOF2RawSide hits
-    swid=ptrt->getswid();//LBBS
-    hwid=ptrt->gethwid();//CS
+    swid=ptrt->getsid();//LBBS
+    hwid=ptrt->gethid();//CS
     crat=hwid/10;
     slot=hwid%10;
-    ptrt->getstdc(stimes);
-    tinp=stimes[0]-stimes[1];
-    tout=stimes[1]-stimes[3];
+//    ptrt->getstdc(stimes);
     temper=ptrt->gettemp();
+//    tinp=stimes[0]-stimes[1];
+//    tout=stimes[1]-stimes[3];
 //    cout<<"swid/hwid="<<swid<<" "<<hwid<<"  tin/out="<<tinp<<" "<<tout<<"  temp="<<temper<<endl;
     if(TFREFFKEY.reprtf[2]>0){
       if(swid==1041){
 //        cout<<"swidOK, dti/dto="<<fabs(tinp-tinpp)<<" "<<fabs(tinp-tinpp)<<endl;
-	if(fabs(tinp-tinpp)>5 && fabs(tinp-tinpp)<200){//curr-prev. meas. ok
-	  strr=(tout-toutp)/(tinp-tinpp);
-	  offs=tout-strr*tinp;
-          HF2(1120,geant(tinp),geant(tout),1.);
-          HF2(1121,geant(temper),geant(strr),1.);
-          HF2(1122,geant(temper),geant(offs),1.);
-	}
-	tinpp=tinp;
-	toutp=tout;
+//	if(fabs(tinp-tinpp)>5 && fabs(tinp-tinpp)<200){//curr-prev. meas. ok
+//	  strr=(tout-toutp)/(tinp-tinpp);
+//	  offs=tout-strr*tinp;
+//          HF2(1120,geant(tinp),geant(tout),1.);
+//          HF2(1121,geant(temper),geant(strr),1.);
+//          HF2(1122,geant(temper),geant(offs),1.);
+//	}
+//	tinpp=tinp;
+//	toutp=tout;
       }
     }
     ptrt=ptrt->next();
@@ -104,9 +105,9 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     status=ptr->getstatus();
     ilay=(ptr->getntof())-1;
     ibar=(ptr->getplane())-1;
-    if((status&TOFGC::SCBADB1)==0 && (status&TOFGC::SCBADB3)==0){ //"good_history/good_strr" hits
+    if((status&TOFGC::SCBADB1)==0 && (status&TOFGC::SCBADB3)==0){ //"good_history/good_in_DB
       if((status&TOFGC::SCBADB2)==0 || (status&TOFGC::SCBADB5)!=0){// 2-sided or recovered
-        ptr->getadca(ama);// Anode(h)-ampl(ADC-ch)
+        ptr->getadca(ama);// Anode-ampl(ADC-ch)
         ptr->getadcd(amd);// Dynode(equiliz.sum)-ampl(ADC-ch)
         adca1[ilay]=ama[0];
         adca2[ilay]=ama[1];
@@ -120,8 +121,8 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
         am2d[ilay]=am[1];
         nbrl[ilay]+=1;
         brnl[ilay]=ibar;
-        elosa[ilay]=ptr->getedepa();//h/l-gain combined
-        elosd[ilay]=ptr->getedepd();//h/l-gain combined
+        elosa[ilay]=ptr->getedepa();
+        elosd[ilay]=ptr->getedepd();
         coo[ilay]=ptr->gettimeD();// get local Y-coord., got from time-diff
         ltim[ilay]=ptr->gettime();// get ampl-corrected time
       }
@@ -178,7 +179,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   TOF2JobStat::addre(23);
 //
   for(i=0;i<TOF2GC::SCLRS;i++){
-    HF1(5040+i,geant(brnl[i]+1),1.);
+    if(brnl[i]>=0)HF1(5040+i,geant(brnl[i]+1),1.);
   }
 //
 //------> get parameters from tracker:
@@ -274,6 +275,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     for(il=0;il<TOF2GC::SCLRS;il++){
       crd=clco[il];
       ib=brnl[il];
+      if(ib<0)continue;
       zc[il]=TOF2DBc::getzsc(il,ib);
       C0[2]=zc[il];
       ptrack->interpolate(C0,dir,Cout,the,phi,trl);
@@ -304,6 +306,8 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       if(fabs(dx)>dscut || fabs(dy)>dscut)bad=1;//too big dist. of tof-tracker
 //
       elosc[il]*=geant(fabs(cos(the)));// angle correction for dE/dX(to norm.inc)
+      adca1[il]*=geant(fabs(cos(the)));// .....................adca
+      adca2[il]*=geant(fabs(cos(the)));
     }//--> endof tof-layer loop
     cost=geant((fabs(cstr[0])+fabs(cstr[1])+fabs(cstr[2])+fabs(cstr[3]))/4);//average cos from track
 //
@@ -360,10 +364,20 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     if(TFREFFKEY.reprtf[2]>0)HF1(1504,(td13-td24),1.);
 //
     if(TFREFFKEY.reprtf[2]>0){
-      HF1(1507,geant(chargeTOF),1.);
-      HF1(1508,geant(chargeTracker),1.);
-      HF1(1506,geant(charge),1.);
-      HF2(1509,geant(chargeTracker),geant(chargeTOF),1.);
+      bad=0;
+      for(il=0;il<TOF2GC::SCLRS;il++){
+        if(nbrl[il]>1)bad=1;
+	if((il==0) && (brnl[il]==0 || brnl[il]==7))bad+=1;
+	if((il==3) && (brnl[il]==0 || brnl[il]==7))bad+=1;
+	if(il==1 && (brnl[il]==0 || brnl[il]==7))bad+=1;
+	if(il==2 && (brnl[il]==0 || brnl[il]==9))bad+=1;
+      }
+      if(bad<2){
+        HF1(1507,geant(chargeTOF),1.);//accept max one trapez.counter
+        HF1(1508,geant(chargeTracker),1.);
+        HF1(1506,geant(charge),1.);
+        HF2(1509,geant(chargeTracker),geant(chargeTOF),1.);
+      }
     }
 //
     geant *pntr[TOF2GC::SCLRS];
@@ -388,6 +402,36 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       }
     }
 //
+//-----> look at angle-corrected anode amplitudes(adc-chan) for all bar-types:
+//
+    integer ibtyp,nbrs;
+    for(il=0;il<TOF2GC::SCLRS;il++){
+      ib=brnl[il];
+      if(ib<0)continue;
+      nbrs=nbrl[il];
+      if(nbrl[il]==1 && fabs(coot[il])<10){//select counter center crossing
+        ibtyp=TOF2DBc::brtype(il,ib)-1;
+	HF1(1220+ibtyp,geant(adca1[il]),1.);
+      }
+    } 
+//
+//-----> simulate TOF-group Npe measurement procedure for some counter (used in Bologna DB)
+    number varr,amp1,amp2,sig,noise;
+    if(TFREFFKEY.reprtf[2]>0 && brnl[0]>=2 && brnl[0]<=5){//use counters 103-106(type=2) for the moment
+//    if(TFREFFKEY.reprtf[2]>0 && brnl[0]==3){//use counter 104(type=2) for the moment
+      if(fabs(coot[0])<2.5){//use narrow area at the counter center
+//        sig=3.5;//(adc-ch, 10% of of prot mprob.ampl=35)
+	sig=0;
+        noise=sig*rnormx(); 
+        amp1=adca1[0]+noise;
+        noise=sig*rnormx(); 
+	amp2=adca2[0]+noise;
+        varr=(amp1-amp2)/(amp1+amp2);
+        HF1(1519,geant(varr),1.);
+      }
+    }
+//
+//
     return;
 //
 }
@@ -406,14 +450,15 @@ void TOF2User::InitJob(){
     HBOOK1(1504,"TofUser:TofClust T13-T24(ns,high momentum)",80,-4.,4.,0.);
     HBOOK1(1503,"TofUser:Sector energy(mev,FTCoinc)",80,0.,20.,0.);
     HBOOK1(1505,"TofUser:Number of Sectors(FTCoinc,E>Thr)",20,0.,20.,0.);
-    HBOOK1(1506,"TofUser:Part.charge",20,0.,20.,0.);
-    HBOOK1(1507,"TofUser:TOF-charge",20,0.,20.,0.);
-    HBOOK1(1508,"TofUser:Tracker-charge",20,0.,20.,0.);
-    HBOOK2(1509,"TofUser:TOF-ch vs Tracker-ch",10,0.,10.,10,0.,10.,0.);
+    HBOOK1(1506,"TofUser:Part.charge(trapez.c <=1)",20,0.,20.,0.);
+    HBOOK1(1507,"TofUser:TOF-charge(trapez.c <=1)",20,0.,20.,0.);
+    HBOOK1(1508,"TofUser:Tracker-charge(trapez.c <=1)",20,0.,20.,0.);
+    HBOOK2(1509,"TofUser:TOF-ch vs Tracker-ch(trapez.c <=1)",10,0.,10.,10,0.,10.,0.);
     HBOOK1(1510,"TofUser:Anti-hit part.index",50,0.,50.,0.);
     HBOOK1(1516,"TofUser:Part.rigidity from tracker(gv)",100,0.,1500.,0.);
     HBOOK1(1517,"TofUser:Number of Sectors(FTCoincAccordingToTrigPatt)",20,0.,20.,0.);
-    HBOOK1(1518,"TofUser:Number of patrucle",20,0.,20.,0.);
+    HBOOK1(1518,"TofUser:Number of particles",20,0.,20.,0.);
+    HBOOK1(1519,"TofUser:(As1-As2)/(As1+As2)(Ampl.in adc-ch, cid=104)",80,-0.6,0.6,0.);
     
     HBOOK1(1200,"TofUser:LongCooDiff(Track-TofCl),L=1,Nmem=1",50,-10.,10.,0.);
     HBOOK1(1201,"TofUser:LongCooDiff(Track-TofCl),L=2,Nmem=1",50,-10.,10.,0.);
@@ -435,6 +480,18 @@ void TOF2User::InitJob(){
     
     HBOOK1(1208,"TofUser:Chisq(beta-fit with TofCl)",50,0.,10.,0.);
     HBOOK1(1209,"TofUser:Tzer (beta-fit with TofCl)",50,-2.5,2.5,0.);
+    
+    HBOOK1(1220,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-1)",80,0.,160.,0.);
+    HBOOK1(1221,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-2)",80,0.,160.,0.);
+    HBOOK1(1222,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-3)",80,0.,160.,0.);
+    HBOOK1(1223,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-4)",80,0.,160.,0.);
+    HBOOK1(1224,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-5)",80,0.,160.,0.);
+    HBOOK1(1225,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-6)",80,0.,160.,0.);
+    HBOOK1(1226,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-7)",80,0.,160.,0.);
+    HBOOK1(1227,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-8)",80,0.,160.,0.);
+    HBOOK1(1228,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-9)",80,0.,160.,0.);
+    HBOOK1(1229,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-10)",80,0.,160.,0.);
+    HBOOK1(1230,"TofUser:S1AnodeRawAmpl(adc-ch, angl.corr,bt-11)",80,0.,160.,0.);
     
     HBOOK1(5001,"TofUser:TofCl EdepNormInc(mev),AverTrunc1of4",80,0.,32.,0.);
     HBOOK1(5002,"TofUser:TofCl EdepNormInc(mev),AverTrunc2of4",80,0.,32.,0.);
@@ -510,6 +567,7 @@ void TOF2User::EndJob(){
   HPRINT(1515);
   
   HPRINT(1518);
+  HPRINT(1519);
   HPRINT(1507);
   HPRINT(1508);
   HPRINT(1506);
@@ -533,6 +591,18 @@ void TOF2User::EndJob(){
   HPRINT(1208);
   HPRINT(1209);
   HPRINT(1510);
+  
+  HPRINT(1220);
+  HPRINT(1221);
+  HPRINT(1222);
+  HPRINT(1223);
+  HPRINT(1224);
+  HPRINT(1225);
+  HPRINT(1226);
+  HPRINT(1227);
+  HPRINT(1228);
+  HPRINT(1229);
+  HPRINT(1230);
   
   for(i=0;i<TOF2GC::SCLRS;i++)HPRINT(5040+i);
   for(i=0;i<TOF2GC::SCLRS;i++)HPRINT(5001+i);

@@ -1,4 +1,4 @@
-//  $Id: extC.h,v 1.15 2005/07/28 16:53:15 choutko Exp $
+//  $Id: extC.h,v 1.16 2006/07/14 13:21:52 choumilo Exp $
 // Author V. Choutko 24-may-1996
 //
 // Oct 06, 1996. ak. add readDB 
@@ -8,6 +8,7 @@
 // Last Edit :  Oct 3, 1997. ak.
 //
 #include "typedefs.h"
+//
 extern "C" number rnormx();
 extern "C" number sitkfints_(number &,number &);
 extern "C" number sitkfint2_(number&,number&,number&,number&,number&);

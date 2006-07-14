@@ -1,4 +1,4 @@
-//  $Id: amsstl.h,v 1.13 2005/05/17 09:56:33 pzuccon Exp $
+//  $Id: amsstl.h,v 1.14 2006/07/14 13:21:52 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // 11.07.96 modified by E.Choumilov.(AMSbins added) 
 #ifndef __AMSSTL__
@@ -705,7 +705,7 @@ inline  T max(const T& a, const T& b) {
 //
 template <class T> integer AMSbins(T a[],  T obj, integer i){
 // Modified analog of FORTRAN's LOCATF/LOKATI binary search functions.
-// Array a[] is implied sorted in increasing oder (equal values are allowed). 
+// Array a[] is implied sorted in increasing order (equal values are allowed). 
 //return value: =   0, if obj < a[0];
 //              = - m, where m points to nearest a[m-1] smaller than obj,
 //                     (m is NOT array C++ index, it is position (1,2,...,i);

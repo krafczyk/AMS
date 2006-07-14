@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.485 2006/04/22 13:30:25 choutko Exp $
+// $Id: job.C,v 1.486 2006/07/14 13:17:16 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -638,10 +638,10 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.padl=11.5;        //(4) not used now (spare)
   TFMCFFKEY.Thr=0.1;          //(5) Sc.bar Edep-thresh.(Mev) to participate in Simul.   
 //
-  TFMCFFKEY.mcprtf[0]=0;     //(6) TOF MC print flag for init arrays
-  TFMCFFKEY.mcprtf[1]=0;     //(7) TOF MC print flag for MC pulses
+  TFMCFFKEY.mcprtf[0]=0;     //(6) TOF MC print flag for init arrays(=1/2-> SEspecra/PMpulseShape)
+  TFMCFFKEY.mcprtf[1]=0;     //(7) TOF MC print flag for MC PM-pulses(1/2-> fine/coarse scale)
   TFMCFFKEY.mcprtf[2]=0;     //(8) ...................... histograms
-  TFMCFFKEY.mcprtf[3]=0;     //(9) spare
+  TFMCFFKEY.mcprtf[3]=0;     //(9) Debug-printing
   TFMCFFKEY.mcprtf[4]=0;     //(10) spare
   TFMCFFKEY.trlogic[0]=1; //(11) spare 
   TFMCFFKEY.trlogic[1]=0; //(12) spare 
@@ -652,7 +652,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.blshift=0.;   //(17) base line shift at fast discr.input (mv)
   TFMCFFKEY.hfnoise=5.;   //(18) high freq. noise .......   
 //     
-  TFMCFFKEY.ReadConstFiles=0;//(19)PTS(P=PedsMC,T=TimeDistr,S=MCCalibSeeds);P(T,S)=0/1->DB/RawFiles
+  TFMCFFKEY.ReadConstFiles=11;//(19)PTS(P=PedsMC,T=TimeDistr,S=MCCalibSeeds);P(T,S)=0/1->DB/RawFiles
 //
 FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -864,7 +864,7 @@ void AMSJob::_sianti2data(){
 //---
   ATMCFFKEY.mcprtf=0;//(1)print-flag(0/1/2/3->print:no/histogr/PulseSh_arr/print_pulse)
   ATMCFFKEY.LZero=0; // (2)spare
-  ATMCFFKEY.LSpeed=17.;// (3)Eff. light speed in anti-paddle (cm/ns)
+  ATMCFFKEY.LSpeed=14.7;// (3)Eff. light speed in anti-paddle (cm/ns)
   ATMCFFKEY.ReadConstFiles=0;//(4)P(PedsMC), P=0/1-> read from DB/RawFiles
 //---
   FFKEY("ATGE",(float*)&ATGEFFKEY,sizeof(ATGEFFKEY_DEF)/sizeof(integer),
@@ -1099,32 +1099,32 @@ void AMSJob::_retof2data(){
   TFREFFKEY.reprtf[1]=0; //(4) print flag for DAQ (1/2-> print for decoding/dec+encoding)
   TFREFFKEY.reprtf[2]=0; //(5) print flag for histograms
   TFREFFKEY.reprtf[3]=0; //(6) print flag for TDC-hit multiplicity histograms 
-  TFREFFKEY.reprtf[4]=0; //(7) if non-zero (LBBS) print stretcher params for LBBS
+  TFREFFKEY.reprtf[4]=0; //(7) print flag for Debug needs  
 //
   TFREFFKEY.relogic[0]=0;//(8) 0/1/2/3/4 ->normal/STRR+AVSD-/TDIF-/TZSL-/AMPL-calibr. run. 
-  TFREFFKEY.relogic[1]=2;//(9) 0/1/2-> full_fTDC_use/no_time_matching/not_use 
+  TFREFFKEY.relogic[1]=1;//(9) 1/0-> use/not SumHTchannel for matching with LTtime-channel 
   TFREFFKEY.relogic[2]=0;//(10) 0/1-> force 1-side suppression(useful for MC processing)
   TFREFFKEY.relogic[3]=0;//(11) 1/0->Do/not recovering of missing side 
   TFREFFKEY.relogic[4]=1;//(12) 1/0->create(+write)/not TOF2RawSideObject-info into ntuple
 //
   TFREFFKEY.daqthr[0]=30.;//(13)tempor Anode low discr.thresh(30mV) for fast/slow_TDC 
-  TFREFFKEY.daqthr[1]=100.;//(14)tempor Anode high discr.thresh(100mV) for FT-trigger (z>=1)  
+  TFREFFKEY.daqthr[1]=70.;//(14)tempor Anode high discr.thresh(100mV) for FT-trigger (z>=1)  
   TFREFFKEY.daqthr[2]=250.;//(15)tempor Anode superhigh discr.thresh(mV) for  "z>=2"-trig  
   TFREFFKEY.daqthr[3]=2.5;//(16) An/Dyn-ADC-readout threshold in DAQ (in PedSigmas)    
   TFREFFKEY.daqthr[4]=1.;//(17)spare
 //
-  TFREFFKEY.cuts[0]=40.;//(18) window(ns) to check sTDC/fTDC-coinc.(after fixed delay subtr.)
-  TFREFFKEY.cuts[1]=15.;//(19)"befor"-cut in time history (ns)(max.PMT-pulse length?)
-  TFREFFKEY.cuts[2]=400.;//(20)"after"-cut in time history (ns)(max. shaper integr.time?)
+  TFREFFKEY.cuts[0]=10.;//(18) window(ns) to find "corresponding" hits in LT-/sumHT-channels
+  TFREFFKEY.cuts[1]=2000.;//(19)"befor"-cut in time history (ns)(max. integr.time?)
+  TFREFFKEY.cuts[2]=100.;//(20)"after"-cut in time history (ns)
   TFREFFKEY.cuts[3]=2.8; //(21) error(cm) in longitudinal coordinate (for mip in single TOF bar)
-  TFREFFKEY.cuts[4]=40.;//(22) min FT delay(ns)
+  TFREFFKEY.cuts[4]=40.;//(22) min(fixed) FT delay(ns)
   TFREFFKEY.cuts[5]=40.;//(23) spare 
   TFREFFKEY.cuts[6]=0.6;//(24) 2-bars assim.cut in TOFCluster energy calculation
   TFREFFKEY.cuts[7]=8.;// (25) internal longit.coo matching cut ...Not used (spare)
   TFREFFKEY.cuts[8]=50.;//(26) spare 
   TFREFFKEY.cuts[9]=0.;// (27) 
 //
-  TFREFFKEY.ReadConstFiles=100;//(28) QDPC(Q->ChargeCalib(mc/rd),D->ThreshCuts-set,P->Peds(rd),
+  TFREFFKEY.ReadConstFiles=101;//(28) QDPC(Q->ChargeCalib(mc/rd),D->ThreshCuts-set,P->Peds(rd),
 //                                                                       C->CalibConst(rd/mc));
 // Q=1/0->Take ChargeCalibDensFunctions from RawFiles/DB
 // D=1/0->Take ThreshCuts-set from DataCards/DB,
@@ -1173,13 +1173,13 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.spares[3]=0;//spare integers
   TFCAFFKEY.adc2q=1.;//(21)adc->charge conv.factor(pC/ADCch, hope = for all ADC chips)
   TFCAFFKEY.plhec[0]=0.5;//(22)plow-cut for earth calibration
-  TFCAFFKEY.plhec[1]=7.;  //(23)phigh-cut ...................
+  TFCAFFKEY.plhec[1]=10.;//(23)phigh-cut ...................
   TFCAFFKEY.bgcut[0]=0.58; //(24) beta*gamma low-cut to be around mip-region(abs.calib)
   TFCAFFKEY.bgcut[1]=50.;//(25) beta*gamma high-cut ..............................
 //
   TFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TFCAFFKEY.dynflg=0; // (27)  not used now
-  TFCAFFKEY.cfvers=1; // (28) 1-999 -> vers.number for tof2cvlistNNN.dat file
+  TFCAFFKEY.cfvers=2; // (28) 1-999 -> vers.number for tof2cvlistNNN.dat file
   TFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
   TFCAFFKEY.mcainc=0;// (30) =1->Anode-integrators calibration(MC only)(not used now)
   TFCAFFKEY.tofbetac=0.5;// (31) if nonzero->low beta cut (own TOF measurements !!!)
@@ -1193,7 +1193,7 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.Edthr=0.1;  //(4) threshold to create Cluster(Paddle) object (mev)
   ATREFFKEY.zcerr1=10.; //(5) Err(cm).in longit.coord. when 2-sides times are known 
   ATREFFKEY.daqthr=3.;  //(6) spare
-  ATREFFKEY.ftdel=50.;  //(7) FT-delay wrt Anti history pulse
+  ATREFFKEY.ftdel=50.;  //(7) FT-delay wrt correlated Anti history-pulse
   ATREFFKEY.ftwin=70.;  //(8) window to check Hist-hit/FT coincidence(+- around FT-delay corrected value)
 //
   ATREFFKEY.ReadConstFiles=0;//(9)PVS(Peds,VarCalPar,StabCalPar), P(V,S)=0/1-> read from DB/RawFiles
@@ -1617,7 +1617,6 @@ AMSgObj::BookTimer.book("SIAMSEVENT");
     _sitrdinitjob();
     _sisrdinitjob();
     _sitrig2initjob();
-  
 }
 
 
@@ -1912,7 +1911,7 @@ void AMSJob::_sisrdinitjob(){
 void AMSJob::_reamsinitjob(){
  AMSgObj::BookTimer.book("WriteEvent");
  AMSgObj::BookTimer.book("REAMSEVENT"); 
- AMSgObj::BookTimer.book("Vtx"); 
+ AMSgObj::BookTimer.book("Vtx");
 
  _remfinitjob();
 

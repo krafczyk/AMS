@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.16 2006/01/25 11:21:38 choumilo Exp $
+//  $Id: tofrec02.h,v 1.17 2006/07/14 13:21:53 choumilo Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -16,56 +16,6 @@
 #include "event.h"
 #include "trrec.h"
 //========================================================
-class TOF2RawSide: public AMSlink{// <--- for some calibrations(namely to study temp-dependence)
-  protected:
-    integer _swid;//short softw-id(LBBS)
-    integer _hwid;//short hardw-id(C(rate)S(lot), applcable to SFET-type measurements:stdc,ftdc,adca)
-    integer _nftdc;//numb.of fast(hist) tdc-hits(only front-edges now, different from RawEvent one !!!)
-    number _ftdc[TOF2GC::SCTHMX2];//fast(history)-tdc front edges(already converted to ns)
-    number _stdc[4];//stretcher-tdc hit(only last(in real time) "4edges" set, already in ns)
-    number _adca;//Anode signal(already converted from DAQ- to ADC-chan units)
-    integer _nadcd;//number of Dynode nonzero(!) signals
-    number _adcd[TOF2GC::PMTSMX];//Dynode signals(converted, positional(keep "0"s))
-    number _temp;//temperature(given by probe in SFET/SFEA slots)  
-    void _copyEl();
-    void _printEl(ostream & stream);
-    void _writeEl();
-  public:
-    static integer Out(integer);
-    
-    TOF2RawSide(integer swid, integer hwid, integer nftdc, number ftdc[TOF2GC::SCTHMX2],
-               number stdc[4], number adca, integer nadcd, number adcd[TOF2GC::PMTSMX],
-	       number temp):_swid(swid),_hwid(hwid),_nftdc(nftdc),_adca(adca),_temp(temp){
-      for(int i=0;i<nftdc;i++)_ftdc[i]=ftdc[i];
-      for(int i=0;i<4;i++)_stdc[i]=stdc[i];
-      for(int ip=0;ip<TOF2GC::PMTSMX;ip++)_adcd[ip]=adcd[ip];
-    }
-        
-    ~TOF2RawSide(){};
-    
-    integer getftdc(number ftdc[]){
-      for(int i=0;i<_nftdc;i++)ftdc[i]=_ftdc[i];
-      return _nftdc;
-    }
-    void getstdc(number stdc[4]){
-      for(int i=0;i<4;i++)stdc[i]=_stdc[i];
-    }
-    number getadca(){return _adca;}
-    integer getadcd(number adcd[]){
-      for(int i=0;i<TOF2GC::PMTSMX;i++)adcd[i]=_adcd[i];
-      return _nadcd;
-    }
-    number gettemp(){return _temp;}
-    integer getswid(){return _swid;}
-    integer gethwid(){return _hwid;}
-    
-    TOF2RawSide *  next(){return (TOF2RawSide*)_next;}
-    
-#ifdef __WRITEROOT__
-   friend class TofRawSideR;
-#endif
-};
-//==================================================================
 class TOF2RawCluster: public AMSlink{
 protected:
  static integer trflag; // =1/2/3 -> "z>=1"/"z>1"/"z>2", =0->no trig.

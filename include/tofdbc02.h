@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.27 2006/01/25 11:21:38 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.28 2006/07/14 13:21:52 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -31,8 +31,8 @@ namespace TOFGC{
   const integer SCBADB3=512; // ... bad for t-meas.based on DB(don't use for tzcalibr/beta-meas)
   const integer SCBADB4=1024; // missing side number(s1->no_bit,s2->set_bit, IF B2 is set !)
   const integer SCBADB5=2048; // set if missing side was recovered (when B2 is set)
-  const integer SCBADB6=4096; // set if no aTDC/sTDC matching on any alive side
-  const integer SCBADB7=8192; // set if no dTDC/sTDC matching .................
+  const integer SCBADB6=4096; // set if no "best"_LT-hit/SumHT matching on, at least, one of the alive side
+  const integer SCBADB7=8192; // 
 }
 //-----
 // TOF2 global constants definition
@@ -42,7 +42,7 @@ const integer SCMXBR=10; // max nmb of bars/layer
 const integer SCLRS=4; // max nmb of layers in TOF-systems
 const integer SCROTN=2; // start nmb of abs. numbering of TOF rot. matrixes
 const integer SCBTPN=11; //Real nmb of sc. bar types (different by length now)
-const integer SCCHMX=SCLRS*SCMXBR*2; //MAX scint. channels
+const integer SCCHMX=SCLRS*SCMXBR*2; //MAX scint. channels(layers*bars*sides)
 const integer SCBLMX=SCLRS*SCMXBR;   //MAX scint. bars*layers
 const integer PMTSMX=3; // MAX number of PMTs per side
 //MC
@@ -51,6 +51,7 @@ const integer SCANPNT=15; //max scan points in MC/REC t/a-calibration
 const integer SCANTDL=400;//scan time distribution max.length(should be SCANTDL<AMSDISL) 
 const integer SCANWDS=4; //max. width-divisions in the sc.paddle scan
 const integer SCTBMX=10000;//length of MC "flash-ADC" buffer(-> 1mks with 0.1ns binning)
+const integer SESPMX=3;//Max number of PMT single elecr.spectrum parameters
 // 
 //DAQ
 const int16u SCPHBP=16384; // phase bit position in Reduced-format TDC word (15th bit)
@@ -60,13 +61,14 @@ const int16u SCPUXMX=3700;// MAX. value provided by PUX-chip(adc chan)
 
 const integer SCCRAT=4; // number of crates with TOF(+ANTI)-channels (S-crates)
 const integer SCSLTM=9;// number of slots(all types) per crate(max)
-const integer SCSLTY=6;// slot(card) types(real:sdr,spt,sfet,sfea1,sfea2,sfec) 
+const integer SCSLTY=5;// slot(card) types(real: sfet,sfea,sfec,sdr,spt) 
 const integer SCRCHM=40;// number of readout channels (outputs) per slot(card)(max)
 const integer SCRCMX=SCCRAT*SCSLTM*SCRCHM;//total hw-readout-channels(max)
 const integer SCPMOU=4;//  number pm-outputs per side (max)(anode+3dynodes)
-//const integer SCMTYP=4;// number of measurement types(max)(fTDC,sTDC,ampl,Temperature)
-const integer SCAMTS=3;// number of Anode measurements types(actual)(t,h,q)
-const integer SCDMTS=1;// number of Dynode measurements types(actual)(q)
+//const integer SCMTYP=4;// number of measurement types(max)(t,q,FTt,SumHTt)
+const integer SCAMTS=2;// number of Anode measurements types(actualy t,q) per normal bar/side
+const integer SCHPMTS=3;// number of half-plane measurement types(actually FT,SumHT,sumSHT) per side
+const integer SCDMTS=1;// number of Dynode measurement types(actualy q)
 const integer SCFETA=5;// number of FFET+SFEA card per crate(having temp-sensors)(actual)
 //old: should be revised
 const integer SCSFET=4; // SFETs per crate
@@ -79,10 +81,10 @@ const integer DAQSTSC=1;// number of slots with Temp-info per crate
 const integer DAQSTCS=4;// number of temp-channel(tdcc) per slot(if present)
 const integer DAQSTMX=DAQSBLK*DAQSTSC*DAQSTCS;// max. temp. channels
 //RECO
-const integer SCTHMX1=8;//max trigger hits( multpl.factor=2 for trig/ftdc, =4 for stdc)
-const integer SCTHMX2=8;//max fast TDC (history) hits  
-const integer SCTHMX3=4;//max slow TDC (stretcher) hits
-const integer SCTHMX4=1;//max adca(anode)/adcd(dynode) hits  
+const integer SCTHMX1=8;//max trigger hits
+const integer SCTHMX2=16;//max TDC SumHT(SHT)-channel (history) hits  
+const integer SCTHMX3=16;//max TDC LTtime-channel hits
+const integer SCTHMX4=1;//max adca(anode) hits  
 const integer SCJSTA=35;   //size of Job-statistics array
 const integer SCCSTA=25;   //size of Channel-statistics array
 const integer SCPROFP=6;//max. parameters/side in A-profile(Apm<->Yloc) fit
@@ -125,28 +127,26 @@ private:
   static geant _plnstr[20]; // sc. plane structure parameters
 // MC/RECO constants:
   static geant _edep2ph;     // MC edep(Mev)-to-Photons convertion
-  static geant _seresp;      // PMT single elec.responce (mV on 50 Ohm, MP=MEAN)
-  static geant _seresv;      // ........................ variations (relat to MP)
   static geant _adc2q;       // not used (now taken from TFCA card #21) 
   static geant _fladctb;     // MC flash-ADC time-binning (ns)
-  static geant _shaptb;      // not used
-  static geant _shrtim;      // not used
-  static geant _shftim;      // not used
-  static geant _shctim;      // not used
-  static geant _tdcbin[4];   // TDC binning for ftdc/stdc, supl.DAQ binning for ADC
+  static geant _tdcscl;      // max TDC-scale
+  static geant _tdcbin[4];   // TDC binning for Time(FT)TDC, supl.DAQ binning for ADC
   static geant _trigtb;      // MC time-binning in logic(trig) pulse handling
   static geant _strflu;      // Stretcher "end-mark" time fluctuations (ns)
-  static geant _daqpwd[15];  // MC DAQ-system pulse_widths/dead_times/...
-  static geant _di2anr;      // not used
-  static geant _strrat;      // not used
-  static geant _strjit1;     // "start" signal jitter at stretcher input(ns) 
-  static geant _strjit2;     // "stop"(FT) signal jitter at stretcher input(ns)
-  static geant _ftdelf;      // not used 
+  static geant _daqpwd[15];  // DAQ-system pulse_widths/dead_times/...
+  static geant _hagemx;      // TimeTDC-hit max.age wrt FT(accepted by Actel buffer)
+  static geant _hagemn;      // TimeTDC-hit min.age wrt FT(accepted by Actel buffer)
+  static geant _ftc2cj;      // FT signal crate-to-crate jitter(ns)  
+  static geant _fts2sj;      // .......... slot-to-slot  jitter(ns)
+  static geant _ltagew[2];   // true LTtime-hit wrt FT age-window(ns) 
   static geant _ftdelm;      // FT max delay (allowed by stretcher logic) (ns)
   static geant _accdel;      // "Lev-1"(Common stop) signal delay wrt FT (ns)
   static geant _fstdcd;      // Same hit(up-edge) relative delay of slow- wrt hist-TDC
   static geant _clkper;      // Trig.electronics clock period(ns)
   static integer _pbonup;    // set phase bit "on" for leading(up) edge (yes/no->1/0)
+  static integer _nsespar;   // number of PMT SingleElectrSpectrum(SES) parameters
+  static geant _sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX];//SES params for each btyp
+//                       (for now: 1st par->(MostProb,mV on 50 Ohm);2nd->rms(relat to MP))
 //
 public:  
 
@@ -193,30 +193,27 @@ public:
 //
   static geant edep2ph();
   static geant fladctb();
-  static geant shaptb();
-  static geant shrtim();
-  static geant shftim();
-  static geant shctim();
+  static geant tdcscl();
 //
   static geant accdel();
-  static geant ftdelf();
+  static geant ltagew(int i);
   static geant ftdelm();
   static geant fstdcd();
   static geant clkper();
-  static geant seresp();
-  static geant seresv();
+  static geant sespar(int ibt, int ipar);
+  static int nsespar();
   static geant adc2q();
   static integer pbonup();
 //
-  static geant strrat();
-//
-  static geant strjit1();
+  static geant ftc2cj();
+  static geant fts2sj();
 //
   static geant strjit2();
 //
   static geant strflu();
 //
-  static geant di2anr();
+  static geant hagemx();
+  static geant hagemn();
 //
   static geant tdcbin(int i);
 //
@@ -249,9 +246,9 @@ class TOF2Temperature{
   geant _daqthr[5];   // DAQ-system thresholds (defaults)
 // ---> Cuts :
   geant _cuts[10];                    
-          //  (0) fstdw   -> t-window to identify same hit in fast/slow_tdc
-          //  (1) hiscutb -> "befor"-cut in time history (ns)
-          //  (2) hiscuta -> "after"-cut in time history (ns)
+          //  (0) fstdw   -> t-window to identify same hit in LT/sumHT-tdc
+          //  (1) hiscutb -> "befor"-cut in time history(sumHT-ch) (ns)
+          //  (2) hiscuta -> "after"-cut in time history(sumHT-ch) (ns)
           //  (3) lcoerr  -> "err. in longit.coord. measurement
           //  (4) ftdelf  -> FT fixed delay
           //  (5) sftdcd  -> spare 
@@ -346,28 +343,26 @@ private:
 //          =34 -> TOF reco with EC in LVL1
 //------
   static integer chcount[TOF2GC::SCCHMX][TOF2GC::SCCSTA];//channel statistics
-//                              [0] -> RawEvent channel entries  
-//                              [1] -> "FTDC-ON"  (Nftdc>0)
-//                              [2] -> "STDC-ON"  (Nstdc>0)
-//                              [3] -> "ADCA-ON"  (Nadca>0)
-//                             [18] -> spare
-//                              [4] -> "ADCD-ON"  (Nadcd>0)
-//                              [5] -> spare
-//                              [6] -> "FTDC-1hit"  (Nftdc=1)
-//                              [7] -> "STDC-1hit"  (Nstdc=1)
-//                              [8] -> "(F&S&A)-ON "
+//                              [0] -> RawSide channel entries(with FT-time!)  
+//                              [1] -> "LTtdc-ON"     (Nstdc>0)
+//                              [2] -> "SumHTtdc-ON"  (Nhtdc>0)
+//                              [3] -> "SumSHTtdc-ON" (Nshtdc>0)
+//                              [4] -> "AnodeADC-ON"  (Nadca>0)
+//                              [5] -> "DynodeADC-ON" (Nadcd>0)
+//                              [6] -> "FTtdc-1hit"   (Nftdc=1)
+//                              [7] -> "LTtdc-1hit"   (Nstdc=1)
+//                              [8] -> "(LTtdc&(Aadc|Dadc)-ON "
 //                              [9] -> "Anode-adc overflow "
-//                             [19] -> spare
-//                              [10] -> "Dynode-adc overflow "
-//                              [11] -> spare
+//                              [10]-> "Dynode-adc overflow "
+//                              [11]-> "Miss.SumHT when LT and Aadc"
 //
 //                             [12] -> "Validate entries/channel"
-//                             [13] -> "bad up/down sequence in hist-TDC"
-//                             [14] -> "bad up/down sequence in slow-TDC"
-//                             [15] -> "problems in AnodeADC(h)"
-//                             [20] -> "problems in AnodeADC(l)"
-//                             [16] -> "problems in DynodeADC(h)"
-//                             [17] -> "problems in DynodeADC(l)"
+//                             [13] -> "Missing FTtdc(unrecoverable)"
+//                             [14] -> "Multy FTtdc-hits case"
+//                             [15] -> "Missing LTtdc"
+//                             [16] -> "Missing Anode"
+//                             [17] -> "Missing Dynode when Anode-ovfl"
+//                             [18] -> "Missing SumHT info"
 //------
   static integer brcount[TOF2GC::SCBLMX][TOF2GC::SCCSTA];// bar statistics
 //                               [0] -> RawEvent Bar(at least 1side) entries
@@ -441,7 +436,7 @@ class TOF2Brcal{
 private:
   integer softid;  // LBB
   integer npmts;   // Npmts per side
-  integer status[2]; //2-sides calib.status F|S|A|D -> Anode(FastTDC/SlowTDC)/
+  integer status[2]; //2-sides calib.status F|S|A|D -> Anode(sumHT/LTchan)/
 //                                                  Anode/Dynode ADC, dec.bit=0/1->OK/Bad
   geant gaina[2]; // Anode-gain(PMT mainly)(S1/2; relative to some ref. bar of given type)
   geant gaind[2][TOF2GC::PMTSMX];//Dynode rel.gain(S1/2; for each PMT wrt aver. side-signal)       
@@ -450,7 +445,7 @@ private:
 //                  (i.e. below use anode data, above  - dinode data)
   geant tthr;   // Time-discr. threshold (mV)
   geant strat[2][2];  // Stretcher param.[side 1/2][par.1(ratio)/2(offs)]
-  geant fstrd;  // same hit time difference between fast/slow TDC (ns)
+  geant fstrd;  // <===Don't need now ! same hit time difference between fast/slow TDC (ns)
   geant tzero;  // T0 (ns)
   geant slope; // slope for T vs (1/sqrt(Qa1)+1/sqrt(Qa2))
   geant slops[2];// indiv.slopes for Ts vs 1/Qs
@@ -485,10 +480,10 @@ public:
 // status(is)=F*100000+S*10000+A*1000+D(kji); i/j/k=1->PMDyn1/2/3 bad
 //                              
   bool FchOK(int isd){
-    return(status[isd]/100000==0);// means good FastTDC chan(anode)
+    return(status[isd]/100000==0);// means good sumHT-chan(anode)
   }
   bool SchOK(int isd){
-    return((status[isd]%100000)/10000==0);// means good SlowTDC chan(anode)
+    return((status[isd]%100000)/10000==0);// means good LTtime-chan(anode)
   }
   bool AchOK(int isd){
     return((status[isd]%10000)/1000==0);// means good Anode channel

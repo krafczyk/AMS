@@ -1,4 +1,4 @@
-//  $Id: antidbc02.h,v 1.12 2006/01/25 11:21:33 choumilo Exp $
+//  $Id: antidbc02.h,v 1.13 2006/07/14 13:21:52 choumilo Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
@@ -11,10 +11,11 @@ namespace ANTI2C{
  const integer ANTISRS=16;// number of physical sectors 
  const integer MAXANTI=ANTISRS/2; // number of logical(readout) sectors(8)
  const integer ANCHMX=2*MAXANTI;// number of readout channels(inputs)
- const integer ANAMTS=2;// number of Anode measurements types(hist/charge) 
+ const integer ANAMTS=2;// number of Anode measurements types for normal sectors(time/charge) 
+ const integer ANAGMTS=1;// number of Anode measurements types for half-cylinder(FT) 
  const integer ANAHMX=1; // max. number of anode-charge hits  per chan.
- const integer ANTHMX=8; // max. number of time-history hits (pairs of edges) per channel
- const integer ANFADC=100;//Flash-ADC channels
+ const integer ANTHMX=16; // max. number of LTtime-hits per channel
+ const integer ANFADC=2000;//Flash-ADC working channels(ovfl not included)
  const integer ANJSTA=20;// size of Job-statistics array 
  const integer ANCSTA=10;// size of Channel-statistics array
  const integer ANCRAT=4; // number of crates with SFEA cards
@@ -44,15 +45,19 @@ private:
   static geant _stleng;   //              length
   static geant _stthic;   //              thickness
 //MC/RECO const:
-  static geant _fadcbw;   // MC:Flash-ADC bin width
-  static geant _htdcdr;   // MC:History-TDC double pulse resolution
-  static geant _htdcbw;   // bin width (ns) in Hist-TDC.
-  static integer _daqscf; // DAQ charge-readout scaling factor 
+  static geant _fadcbw;   //  MC:Flash-ADC bin width
+  static geant _htdcbw;   //  bin width (ns) for LT/FT-TDC.
+  static integer _daqscf; //  DAQ charge-readout scaling factor 
   static geant _ftcoinw;  // not used
-  static geant _hdpdmn;   // MC: Hist-discr. min pulse duration 
-  static geant _ppfwid;   //"pattern" pulse fixed width(ns)
-  static geant _pbdblr;   //"pattern" branche dbl-resol(dead time,ns)
-  static geant _pbgate;   //"pattern" branche gate to check FT coinc.
+  static geant _dopwmn;   //  MC: LT-discr. output pulse min.duration 
+  static geant _dipwmn;   //  MC: LT-discr. input pulse min.duration 
+  static geant _tgpwid;   //  "trig.pattern" pulse fixed width(ns)
+  static geant _tgdtim;   //  "trig.pattern" branch dead time(ns)
+  static geant _didtim;   //  input dead time of generic discr(min dist. of prev_down/next_up edges)[ns]
+ //                        (i neglect by fall-time of generic discr, so DT=(11+5)ns for output signals !!!)
+  static geant _tdcdtm;   //  dead time of TDC-inputs, the same for LT-/FT-inputs[ns]
+  static geant _daccur;   //  generic discr. internal accuracy[ns]
+  static geant _pbgate;   //  TgBox FT-gate width to latch "pattern" pulses 
 public:  
 //
 //  Member functions :
@@ -69,16 +74,20 @@ public:
   static void setgeom();
 //
   static geant fadcbw();
-  static geant htdcdr();
   static geant htdcbw();
   static integer daqscf();
   static geant ftcoinw();
-  static geant hdpdmn();
-  static geant ppfwid();   
-  static geant pbdblr();   
+  static geant dopwmn();
+  static geant dipwmn();
+  static geant tgpwid();   
+  static geant tgdtim();
+  static geant didtim();
+  static geant tdcdtm();
+  static geant daccur();   
   static geant pbgate(); 
   static void inipulsh(int & nbn, geant arr[]);
-  static void displ_a(const int id, const int f, const geant arr[]);
+  static void inipedisp(int & nbn, geant arr[]);
+  static void displ_a(char comm[], int id, int f, const geant arr[]);
 #ifdef __DB__
 friend class AntiDBcD;
 #endif
@@ -215,13 +224,14 @@ class ANTI2JobStat{
 private:
   static integer mccount[ANTI2C::ANJSTA];// event passed MC-cut "i"
 //          i=0 -> entries
-//          i=1 -> F-adc buffer ovfl
-//          i=2 -> H-tdc stack ovfl
+//          i=1 -> Flash-adc buffer ovfl
+//          i=2 -> Hist-tdc stack ovfl
 //          i=3 -> ADC range ovfl
-//          i=4 -> H-TDC range ovfl
+//          i=4 -> Hist-hit is out of search window(wrt FT)
 //          i=5 -> FT/Anti-trig Coinc
 //          i=6 => Ghits->RawEvent OK
 //          i=7 => Common FT exist
+//          i=8 -> trig-tdc stack ovfl
   static integer recount[ANTI2C::ANJSTA];// event passed RECO-cut "i"
 //          i=0 -> entries
 //          i=1 -> Lev-1 trigger OK

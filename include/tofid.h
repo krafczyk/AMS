@@ -19,25 +19,30 @@ class AMSSCIds{
   int _dummy;
   int _dtype;//Detector-type(1-TOF,2-ANTI)
   int _swid;//TOF software ID is LBBSPM(Layer|Bar|Side|Pmt|Meas_type)
-//         or ANTI ..............  BSPM(LogicBar|Side|Pmt=0|Meas_type)
+//         or ANTI .............. BBSPM(LogicBar|Side|Pmt=0|Meas_type)
 //                                                                        
   int16u _layer; //0,1,...
   int16u _bar;   //0,1,...
   int16u _side;  //0,1
-  int16u _mtyp;  //Meas.type:0/1/2->SlowTDC/FastTDC(hist)/Charge
+  int16u _mtyp;  //Meas.type:0/1/2/3/4->LT_Time/Charge/FT_Time/SumHT_Time/SumSHT_time
+                 // Mtyp=0-1 for physical paddles; Mtyp=2-4 for 2 fictitious extra paddles,
+                 // representing odd(paddles 1,3,..)/even(paddles 2,4,..) half-planes 
   int16u _pmt; // 0->anode, 1-3 ->dynodes
-  int16u _swch;//sequential s/w-channels numbering, for TOF:S=1->LBBSP(0)M(0),LBBSP(0)M(1),
-//                                   LBBSP(0)M(2),LBBSP(1)M(2),LBBSP(2)M(2),(for P(3) if any);
-//                                                     next S=2->.....the same sequence.......
+  int16u _swch;//GLOBAL sequential s/w-channels numbering scheme:
+// TOF=> for given BB/S=1 1st come all possible anode-mtypes(0,1,[2,3]),next come dynode-mtype(s)
+// (1) repeated Ndyn-times(missing for half-pl); next - previous structure for S=2 of the same paddle. 
+// Above structure is repeated for each BB of each L.
 //
-//                                                  for ANTI:S=1->BSP(0)M(1),BSP(0)M(2),
-//                                                     next S=2->...the same sequence
+//
+// ANTI=> for given BB(sector): BBS(1)P(0)M(0),BBS(1)P(0)M(1), BBS(2)P(0)M(0),BBS(2)P(0)M(1)
+//        above structure is repeated for each BB.
 //---
   int _hwid;//hardware ID is CSRR(Crate|Slot|SlotReadout_channel)
   int16u _crate; //0,1,...
   int16u _slot;  //slot# 0,1,...
-  int16u _sltyp;  //slot(card) type : 1->SFET/2->SFEA1/3->SFEA2/4->SFEC/5->SDR/6->SPT...
-//                    SFEA1=pureANTI(4inputs), SFEA2=combined(4ANTI-inpts, 2TOF-inpts)
+  int16u _sltyp;  //slot(card) type : 1->SFET(4/5inp)/2->SFEA
+//                                    3->SFEC/4->SDR/5->SPT...
+//                    
   int16u _crdid; //card id(may be different from slot#)
   int16u _rdch;  //readout channel(internal card-output numbering)
   int16u _inpch; //inp.channel(internal card-input numbering)
@@ -84,6 +89,7 @@ class AMSSCIds{
   static int16u hwseqn(int16u cr, int16u sl, int16u ch);
   static int hw2swid(int16u cr, int16u sl, int16u ch);
   static int16  crdid2sl(int16u crate, int16u crdid);
+  static int16u sl2tsid(int slot){return tmpsln[slot];}//abs.slot#->temp.sensor id(sequential slot#)
 };
 
 

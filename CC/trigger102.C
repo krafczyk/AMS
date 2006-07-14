@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.30 2006/01/27 14:24:38 choumilo Exp $
+//  $Id: trigger102.C,v 1.31 2006/07/14 13:17:18 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 // deep modifications Nov.2005 by E.Choumilov
@@ -58,8 +58,8 @@ void Trigger2LVL1::build(){
     Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr){
       TGL1JobStat::addev(15);
-      TOF2RawEvent::getpatt(tofpatt1);
-      TOF2RawEvent::getpattz(tofpatt2);
+      TOF2RawSide::getpatt(tofpatt1);
+      TOF2RawSide::getpattz(tofpatt2);
       AMSEcalRawEvent::gettrpatt(ectrpatt);//masked trpatt[6][3]: max 3x16bits in 6 "trigger" sup.layers
       ectrsum=AMSEcalRawEvent::gettrsum();
       ptr->settofpat1(tofpatt1);
@@ -146,13 +146,13 @@ void Trigger2LVL1::build(){
     ratemx=max(rates[3],rates[4]);
 //
 //-->TOF:
-    toftrcode1=TOF2RawEvent::gettrcode();//<0 ->noFTC(z>=1), >=0 ->OK, masked
-    toftrcode2=TOF2RawEvent::gettrcodez();//<0 ->noBZ(z>=2), >=0 ->OK, masked
-    ftpatt=TOF2RawEvent::getftpatt();//already passed masking in tofsim02.C !!!
-    tofcpcode=TOF2RawEvent::getcpcode();//IJ->lut2|lut1  (i(j)=1/0->used/not)
-    tofbzflag=TOF2RawEvent::getbzflag();//Logically:No BZ-flag if FTC missing
-    TOF2RawEvent::getpatt(tofpatt1);
-    TOF2RawEvent::getpattz(tofpatt2);
+    toftrcode1=TOF2RawSide::gettrcode();//<0 ->noFTC(z>=1), >=0 ->OK, masked
+    toftrcode2=TOF2RawSide::gettrcodez();//<0 ->noBZ(z>=2), >=0 ->OK, masked
+    ftpatt=TOF2RawSide::getftpatt();//already passed masking in tofsim02.C !!!
+    tofcpcode=TOF2RawSide::getcpcode();//IJ->lut2|lut1  (i(j)=1/0->used/not)
+    tofbzflag=TOF2RawSide::getbzflag();//Logically:No BZ-flag if FTC missing
+    TOF2RawSide::getpatt(tofpatt1);
+    TOF2RawSide::getpattz(tofpatt2);
     if(TGL1FFKEY.printfl>0){
       cout<<endl;
       cout<<"===> In TrigLev1Build: FTpatt="<<ftpatt<<" toftrcode/toftrcodez="<<toftrcode1<<" "<<toftrcode2<<endl;

@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.97 2006/01/25 11:21:38 choumilo Exp $
+//  $Id: ntuple.h,v 1.98 2006/07/14 13:21:52 choumilo Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -542,8 +542,8 @@ public:
   int Sector[MAXANTICL];
   int   Ntimes[MAXANTICL];
   int   Npairs[MAXANTICL];
-  float Times[MAXANTICL][2*ANTI2C::ANTHMX];
-  float Timese[MAXANTICL][2*ANTI2C::ANTHMX];
+  float Times[MAXANTICL][32];
+  float Timese[MAXANTICL][32];
   float Edep[MAXANTICL];
   float Coo[MAXANTICL][3];   // R, phi, Z
   float ErrorCoo[MAXANTICL][3];
@@ -646,12 +646,18 @@ public:
   int Ntofraws;
   int swid[MAXTOFRAWS];
   int hwid[MAXTOFRAWS];
+  int stat[MAXTOFRAWS];
   int nftdc[MAXTOFRAWS];
-  float ftdc[MAXTOFRAWS][TOF2GC::SCTHMX2];
-  float stdc[MAXTOFRAWS][4];
-  float adca[MAXTOFRAWS];
+  int ftdc[MAXTOFRAWS][8];
+  int nstdc[MAXTOFRAWS];
+  int stdc[MAXTOFRAWS][16];
+  int nsumh[MAXTOFRAWS];
+  int sumht[MAXTOFRAWS][16]; 
+  int nsumsh[MAXTOFRAWS];
+  int sumsht[MAXTOFRAWS][16];
+  int adca[MAXTOFRAWS];
   int nadcd[MAXTOFRAWS];
-  float adcd[MAXTOFRAWS][TOF2GC::PMTSMX];
+  int adcd[MAXTOFRAWS][3];
   float temp[MAXTOFRAWS];
 
 friend class TOF2RawSide;

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.32 2006/01/27 14:24:37 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.33 2006/07/14 13:17:17 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -72,48 +72,61 @@ geant TOF2DBc::_supstr[12]={
 geant TOF2DBc::_plnstr[20]={
   0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.
 };
+//---> PMT SES-params:
+integer TOF2DBc::_nsespar=0;
+geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
+  0,0,0,
+  0,0,0,
+  0,0,0,
+  0,0,0,
+  0,0,0,
+  0,0,0,
+  0,0,0,
+  0,0,0,
+  0,0,0,
+  0,0,0,
+  0,0,0
+};
 //---> Initialize TOF MC/RECO "time-stable" parameters :
 //
   geant TOF2DBc::_edep2ph=10000.;//(was 8k for old scint)edep(Mev)-to-Photons convertion
-  geant TOF2DBc::_seresp=1.16;    // PMT Sing.elec.responce(MP=Mean,mV), was 1.45 for ams01
-  geant TOF2DBc::_seresv=0.87;     // PMT Sing.elec.responce sigma(rel. to Mean)
   geant TOF2DBc::_adc2q=1.;       // not used (now taken from TFCA #21)
   geant TOF2DBc::_fladctb=0.1;    // MC "flash-ADC" internal time binning (ns)
-  geant TOF2DBc::_shaptb=1.;      // spare
-  geant TOF2DBc::_shrtim=1.0;     // spare
-  geant TOF2DBc::_shctim=400.;    // 
-  geant TOF2DBc::_shftim=63.;     // spare
+  geant TOF2DBc::_tdcscl=50331.;  // max TDC-scale(ns)(21bit*24ps)
   geant TOF2DBc::_strflu=0.36;     // Stretcher "end-mark" time uncertainty (ns)
   geant TOF2DBc::_tdcbin[4]={
-    1.25,                           // pipe/line TDC binning for fast-tdc meas.
-    1.25,                           // pipe/line TDC binning for slow-tdc meas.
+    0.0244,                        // LTtime/FTtime/SumHTtime-TDC binning(ns).
+    0.024,                         // 
     0.5,                           // supl.DAQ binning for charge meas.(in ADC-chan units)
     0.                             // spare
   };
   geant TOF2DBc::_daqpwd[15]={
-    250.,   // (0)pulse width of "z>=1(HT)" indiv.paddle signal(going to SPT2) (ns) 
-    5500.,  // (1)spare
-    250.,   // (2)pulse width of "z>=2(SHT)" indiv.paddle signal (going to SPT2)
-    10.,    // (3)double pulse resolution of fast(history) TDC (ns)
-    2500.,  // (4)aver.buzy time of sTDC-system(charge+discarge+dead) (ns)
-    250.,   // (5) gate-width for z>=1 tof-trig-pattern creation(in SPT2)
-    250.,   // (6) gate-width for z>=2 tof-trig-pattern creation(in SPT2)
-    2.,     // (7)dead time(min.dist last_down<->next_up) of "z>=1(HT)" branch of HiThr-discr
-    2.,     // (8)dead time of discr.itself(ns)
-    2.,     // (9)dead time of "z>=2" branch of SuperHiThr(SHT)-discr
-    0.02,   // (10)fast discr. internal accuracy(ns) + (?) to have exp.resolution
-    2.,     // (11)min. pulse duration (ns) of fast discr.(comparator) 
-    18.,    // (12)(as dummy gap in s-TDC pulse,ns) 
-    640.,   // (13)spare 
+    250.,   // (0)PW of "z>=1(FTC)"(HT-branch) output signal(ACTEL-outp going to SPT)[ns] 
+    5.,     // (1)minimal inp.pulse width(TovT) to fire the generic discriminator[its rise time, ns]
+    250.,   // (2)PW of "z>=2(FTZ)"(SHT-branch) output signal(ACTEL-outp going to SPT)[ns]
+    7.,     // (3)minimal output pulse width[ns] of generic discriminator [i.e. outPW=7ns if
+//                    5<=inpTovT<=(5+7), and outPW=inpTovT-5 if inpTovT>(5+7)]
+    11.,     // (4)input dead time of generic discr(min dist. of prev_down/next_up edges)[ns]
+//                    (i neglect by fall-time of generic discr, so DT=(11+5)ns for output signals !!!)
+    250.,   // (5)gate-width for z>=1 tof-trig-pattern creation(in SPT2)[ns]
+    250.,   // (6)gate-width for z>=2 tof-trig-pattern creation(in SPT2)[ns]
+    20.,    // (7)dead time of TDC-inputs, the same for LT-/FT-/SumHT-inputs[ns]
+    10.,    // (8)dead time of "HT/SHT-trig" branch on ACTEL-outp(SPT-inp)[fall-to-rise min.dist, going to SPT, ns]
+//                    (Guido: ACTEL-input is faster than Discr, so no ACTEL-inp dead time check) 
+    20.,    // (9)dead time of "SumHT(SHT)" branch on ACTEL output going to TDC[ns]
+    0.02,   // (10)generic discr. internal accuracy[ns]
+    25.,    // (11)fixed PW of "SumHT(SHT)" branch on ACTEL-output[going to TDC-input, ns] 
+    0.005,  // (12)TDC differential nonlinearity(rms,ns)(0.21bin) 
+    0.017,  // (13)TDC integral nonlinearity(table-corrected,ns)(0.72bin) 
     10.36   // (14)spare 
   };
   geant TOF2DBc::_trigtb=0.5;  // MC time-bin in logic(trig) pulse handling (ns)
-  geant TOF2DBc::_di2anr=0.2;  // spare
-  geant TOF2DBc::_strrat=25.;  // spare
-  geant TOF2DBc::_strjit1=0.;  // "start"-pulse jitter at stretcher input
-  geant TOF2DBc::_strjit2=0.;  // "stop"(FT)-pulse jitter at stretcher input
+  geant TOF2DBc::_hagemx=6000.;  // max.TimeTDC-hit age(wrt FT,ns) accepted by Actel buffer
+  geant TOF2DBc::_hagemn=-10000.;// min....................................................
+  geant TOF2DBc::_ftc2cj=0.015; // FT-signal crate-to-crate jitter(ns)
+  geant TOF2DBc::_fts2sj=0.005; // FT-signal slot-to-slot jitter(ns)
   geant TOF2DBc::_accdel=6000.;// "CommonStop" signal delay with respect to FT (ns)
-  geant TOF2DBc::_ftdelf=0.;   // spare       (because now taken from DC/DB)
+  geant TOF2DBc::_ltagew[2]={20,640};//LTtime-hit(true) wrt FTtime age-window(ns) 
   geant TOF2DBc::_ftdelm=250.; // FT max delay (allowed by stretcher logic) (ns)
   geant TOF2DBc::_fstdcd=28.;  // spare       (because now taken from DC/DB)
   geant TOF2DBc::_clkper=40.;  // Trig.electronics clock period(ns)
@@ -124,11 +137,11 @@ geant TOF2DBc::_plnstr[20]={
 // ---> function to read geomconfig-files 
 //                  Called from TOFgeom :
   void TOF2DBc::readgconf(){
-    int i;
+    int i,j;
     char fname[80];
-    char name[80]="tof2geom";
+    char name[80]="tof2const";
     char vers1[4]="12p";
-    char vers2[4]="8pn";
+    char vers2[4]="1";
     if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
       cout <<" TOFGeom-I-AMS02 setup selected."<<endl;
       if(strstr(AMSJob::gethead()->getsetup(),"TOF:12PAD")){
@@ -137,7 +150,7 @@ geant TOF2DBc::_plnstr[20]={
 	TFCAFFKEY.cfvers=0;//reset vers.numb. to 0 for old(12pads) setup
       }
       else{
-        cout <<" TOFGeom-I-TOF:8PAD setup selected."<<endl;
+        cout <<" TOFGeom-I-TOF:8/8/10/8-pads setup selected."<<endl;
         strcat(name,vers2);
       }
 	  
@@ -170,6 +183,10 @@ geant TOF2DBc::_plnstr[20]={
     }
     for(i=0;i<12;i++) tcfile >> _supstr[i];
     for(i=0;i<20;i++) tcfile >> _plnstr[i];
+    tcfile >> _nsespar;//# of SES params
+    for(i=0;i<_nsespar;i++){
+      for(j=0;j<TOF2GC::SCBTPN;j++)tcfile >> _sespar[j][i];//SES params. vs btyp
+    }
   }
 //---
   integer TOF2DBc::brtype(integer ilay, integer ibar){
@@ -350,28 +367,32 @@ geant TOF2DBc::_plnstr[20]={
 //
   geant TOF2DBc::edep2ph(){return _edep2ph;}
   geant TOF2DBc::fladctb(){return _fladctb;}
-  geant TOF2DBc::shaptb(){return _shaptb;}
-  geant TOF2DBc::shrtim(){return _shrtim;}
-  geant TOF2DBc::shftim(){return _shftim;}
-  geant TOF2DBc::shctim(){return _shctim;}
+  geant TOF2DBc::tdcscl(){return _tdcscl;}
 //
-  geant TOF2DBc::strrat(){return _strrat;}
+  geant TOF2DBc::hagemn(){return _hagemn;}
+  geant TOF2DBc::hagemx(){return _hagemx;}
 //
   geant TOF2DBc::strflu(){return _strflu;}
 //
-  geant TOF2DBc::strjit1(){return _strjit1;}
+  geant TOF2DBc::ftc2cj(){return _ftc2cj;}
 //
-  geant TOF2DBc::strjit2(){return _strjit2;}
-//
-  geant TOF2DBc::di2anr(){return _di2anr;}
+  geant TOF2DBc::fts2sj(){return _fts2sj;}
 //
   geant TOF2DBc::accdel(){return _accdel;}
-  geant TOF2DBc::ftdelf(){return _ftdelf;}
+  geant TOF2DBc::ltagew(int i){return _ltagew[i];}
   geant TOF2DBc::ftdelm(){return _ftdelm;}
   geant TOF2DBc::fstdcd(){return _fstdcd;}
   geant TOF2DBc::clkper(){return _clkper;}
-  geant TOF2DBc::seresp(){return _seresp;}
-  geant TOF2DBc::seresv(){return _seresv;}
+  
+  int TOF2DBc::nsespar(){return _nsespar;}
+  geant TOF2DBc::sespar(int ibt, int ip){
+#ifdef __AMSDEBUG__
+    assert(ibt>=0 && ibt< TOF2GC::SCBTPN);
+    assert(ip>0=0 && ip< TOF2GC::SESPMX);
+#endif
+    return _sespar[ibt][ip];
+  }
+  
   geant TOF2DBc::adc2q(){return _adc2q;}
   integer TOF2DBc::pbonup(){return _pbonup;}
 //
@@ -583,71 +604,71 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //
 //   --->  Prepare to read stretcher_ratios/offs file :
 //
- ctyp=3;
- strcpy(name,"tof2srcf");
- mcvn=mcvern[ctyp-1]%1000;
- rlvn=rlvern[ctyp-1]%1000;
- if(AMSJob::gethead()->isMCData())           // for MC-data
- {
-   cout <<" TOF2Brcal_build: str_ratio/offs params for MC-data are requested"<<endl;
-   dig=mcvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(mcvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=mcvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers1);
- }
- else                                       // for Real-data
- {
-   cout <<" TOF2Brcal_build: str_ratio/offs params for Real-data are requested"<<endl;
-   dig=rlvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(rlvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=rlvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers2);
- }
-   strcat(name,".dat");
-   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
-   strcat(fname,name);
-   cout<<"Open file : "<<fname<<'\n';
-   ifstream scfile(fname,ios::in); // open file for reading
-   if(!scfile){
-     cerr <<"TOF2Brcal_build: missing str_ratio/offsets file "<<fname<<endl;
-     exit(1);
-   }
+// ctyp=3;
+// strcpy(name,"tof2srcf");
+// mcvn=mcvern[ctyp-1]%1000;
+// rlvn=rlvern[ctyp-1]%1000;
+// if(AMSJob::gethead()->isMCData())           // for MC-data
+// {
+//   cout <<" TOF2Brcal_build: str_ratio/offs params for MC-data are requested"<<endl;
+//   dig=mcvn/100;
+//   in[0]=inum[dig];
+//   strcat(name,in);
+//   dig=(mcvn%100)/10;
+//   in[0]=inum[dig];
+//   strcat(name,in);
+//   dig=mcvn%10;
+//   in[0]=inum[dig];
+//   strcat(name,in);
+//   strcat(name,vers1);
+// }
+// else                                       // for Real-data
+// {
+//   cout <<" TOF2Brcal_build: str_ratio/offs params for Real-data are requested"<<endl;
+//   dig=rlvn/100;
+//   in[0]=inum[dig];
+//   strcat(name,in);
+//   dig=(rlvn%100)/10;
+//   in[0]=inum[dig];
+//   strcat(name,in);
+//   dig=rlvn%10;
+//   in[0]=inum[dig];
+//   strcat(name,in);
+//   strcat(name,vers2);
+// }
+//   strcat(name,".dat");
+//   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+//   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+//   strcat(fname,name);
+//   cout<<"Open file : "<<fname<<'\n';
+//   ifstream scfile(fname,ios::in); // open file for reading
+//   if(!scfile){
+//     cerr <<"TOF2Brcal_build: missing str_ratio/offsets file "<<fname<<endl;
+//     exit(1);
+//   }
 //-----------------> read str_ratios/offsets:
 //
-   cnum=0;
-   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
-   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
-     scfile >> strf[cnum][0];
-     scfile >> strof[cnum][0];
-     scfile >> strf[cnum][1];
-     scfile >> strof[cnum][1];
-     cnum+=1; // sequential counter numbering(0-...)
-   } // --- end of bar loop --->
-   } // --- end of layer loop --->
+//   cnum=0;
+//   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+//   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+//     scfile >> strf[cnum][0];
+//     scfile >> strof[cnum][0];
+//     scfile >> strf[cnum][1];
+//     scfile >> strof[cnum][1];
+//     cnum+=1; // sequential counter numbering(0-...)
+//   } // --- end of bar loop --->
+//   } // --- end of layer loop --->
 //
-   scfile >> endflab;//read endfile-label
+//   scfile >> endflab;//read endfile-label
 //
-   scfile.close();
+//   scfile.close();
 //
-   if(endflab==12345){
-     cout<<"TOF2Brcal_build: TOF-str_ratio/offs file is successfully read !"<<endl;
-   }
-   else{cout<<"TOF2Brcal_build: ERROR(problems with TOF-str_ratio/offs file)"<<endl;
-     exit(1);
-   }
+//   if(endflab==12345){
+//     cout<<"TOF2Brcal_build: TOF-str_ratio/offs file is successfully read !"<<endl;
+//   }
+//   else{cout<<"TOF2Brcal_build: ERROR(problems with TOF-str_ratio/offs file)"<<endl;
+//     exit(1);
+//   }
 //
 //--------------------------------------------------
 //
@@ -965,10 +986,14 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
       }
 //
     sid=100*(ila+1)+(ibr+1);
-    strat[0][0]=strf[cnum][0];//stretcher param. from ext.file
-    strat[1][0]=strf[cnum][1];
-    strat[0][1]=strof[cnum][0];
-    strat[1][1]=strof[cnum][1];
+//    strat[0][0]=strf[cnum][0];//stretcher param. from ext.file
+//    strat[1][0]=strf[cnum][1];
+    strat[0][0]=25;//tempor: put dummy pars(not used now, keep for possible future appl)
+    strat[1][0]=25;
+//    strat[0][1]=strof[cnum][0];
+//    strat[1][1]=strof[cnum][1];
+    strat[0][1]=1100;
+    strat[1][1]=1100;
     sta[0]=stat[cnum][0];
     sta[1]=stat[cnum][1];
     slope=slpf;// common slope from ext. file
@@ -1245,56 +1270,56 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
 //
 //   ---> Prepare to read MCSeed stretcher_ratios/offs file :
 //
- ctyp=3;
- strcpy(name,"tof2srcf");
- mcvn=mcvern[ctyp-1]%1000;
- rlvn=rlvern[ctyp-1]%1000;
-   cout <<" TOFBrcalMS_build: MCSeeds str_ratio/offs params are requested"<<endl;
-   dig=rlvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(rlvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=rlvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   if(TFMCFFKEY.mcseedo==0)strcat(name,vers1);//mc
-   else strcat(name,vers2);//sd = copy of rl
+// ctyp=3;
+// strcpy(name,"tof2srcf");
+// mcvn=mcvern[ctyp-1]%1000;
+// rlvn=rlvern[ctyp-1]%1000;
+//   cout <<" TOFBrcalMS_build: MCSeeds str_ratio/offs params are requested"<<endl;
+//   dig=rlvn/100;
+//   in[0]=inum[dig];
+//   strcat(name,in);
+//   dig=(rlvn%100)/10;
+//   in[0]=inum[dig];
+//   strcat(name,in);
+//   dig=rlvn%10;
+//   in[0]=inum[dig];
+//   strcat(name,in);
+//   if(TFMCFFKEY.mcseedo==0)strcat(name,vers1);//mc
+//   else strcat(name,vers2);//sd = copy of rl
 //
-   strcat(name,".dat");
-   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
-   strcat(fname,name);
-   cout<<"Open file : "<<fname<<'\n';
-   ifstream scfile(fname,ios::in); // open file for reading
-   if(!scfile){
-     cerr <<"TOFBrcalMS_build: missing TOF MCSeed str_ratio/offsets file "<<fname<<endl;
-     exit(1);
-   }
+//   strcat(name,".dat");
+//   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+//   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+//   strcat(fname,name);
+//   cout<<"Open file : "<<fname<<'\n';
+//   ifstream scfile(fname,ios::in); // open file for reading
+//   if(!scfile){
+//     cerr <<"TOFBrcalMS_build: missing TOF MCSeed str_ratio/offsets file "<<fname<<endl;
+//     exit(1);
+//   }
 //-----------------> read str_ratios/offsets:
 //
-   cnum=0;
-   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
-   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
-     scfile >> strf[cnum][0];
-     scfile >> strof[cnum][0];
-     scfile >> strf[cnum][1];
-     scfile >> strof[cnum][1];
-     cnum+=1; // sequential counter numbering(0-...)
-   } // --- end of bar loop --->
-   } // --- end of layer loop --->
+//   cnum=0;
+//   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+//   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+//     scfile >> strf[cnum][0];
+//     scfile >> strof[cnum][0];
+//     scfile >> strf[cnum][1];
+//     scfile >> strof[cnum][1];
+//     cnum+=1; // sequential counter numbering(0-...)
+//   } // --- end of bar loop --->
+//   } // --- end of layer loop --->
 //
-   scfile >> endflab;//read endfile-label
+//   scfile >> endflab;//read endfile-label
 //
-   scfile.close();
+//   scfile.close();
 //
-   if(endflab==12345){
-     cout<<"TOFBrcal_buildMS: MCSeed str_ratio/offs file is successfully read !"<<endl;
-   }
-   else{cout<<"TOFBrcalMS_build: ERROR(problems with MCSeed str_ratio/offs file)"<<endl;
-     exit(1);
-   }
+//   if(endflab==12345){
+//     cout<<"TOFBrcal_buildMS: MCSeed str_ratio/offs file is successfully read !"<<endl;
+//   }
+//   else{cout<<"TOFBrcalMS_build: ERROR(problems with MCSeed str_ratio/offs file)"<<endl;
+//     exit(1);
+//   }
 //
 //-------------------------------------------------------
 //
@@ -1409,10 +1434,14 @@ void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
     gna[1]=gaina[cnum][1];
 //
     sid=100*(ila+1)+(ibr+1);
-    strat[0][0]=strf[cnum][0];//stretcher param. from ext.file
-    strat[1][0]=strf[cnum][1];
-    strat[0][1]=strof[cnum][0];
-    strat[1][1]=strof[cnum][1];
+//    strat[0][0]=strf[cnum][0];//stretcher param. from ext.file
+//    strat[1][0]=strf[cnum][1];
+//    strat[0][1]=strof[cnum][0];
+//    strat[1][1]=strof[cnum][1];
+    strat[0][0]=25;//tempor dummy
+    strat[1][0]=25;
+    strat[0][1]=1100;
+    strat[1][1]=1100;
     sta[0]=stat[cnum][0];
     sta[1]=stat[cnum][1];
     a2dr[0]=a2drf[cnum][0];//an/dyn(hichan) ratios from ext.file
@@ -1743,16 +1772,19 @@ void TOF2JobStat::printstat(){
   printf(" MC: entries                                : % 6d\n",mccount[0]);
   printf("   MCGen FastSel OK                         : % 6d\n",mccount[14]);
   printf("   Ghits->TovT OK(err.stat.follow)          : % 6d\n",mccount[1]);
-  printf("        GHitTime > FADC range               : % 6d\n",mccount[11]);
+  printf("        OutOfTime GHits                     : % 6d\n",mccount[11]);
   printf("        out of total GHits                  : % 6d\n",mccount[12]);
-  printf("        Bars with OutOfHits                 : % 6d\n",mccount[3]);
+  printf("        Bars with OutOfSizeHits             : % 6d\n",mccount[3]);
   printf("        out of bars fired                   : % 6d\n",mccount[4]);
-  printf("        Flash-ADC overflows                 : % 6d\n",mccount[5]);
-  printf("        fTDC stack overflows                : % 6d\n",mccount[9]);
+  printf("        FlashADC time-scale overflows       : % 6d\n",mccount[5]);
+  printf("        LTtime-hits buffer overflows        : % 6d\n",mccount[25]);
+  printf("        SumHTtime-hits buffer overflows     : % 6d\n",mccount[26]);
+  printf("        SumSHTtime-hits buffer overflows    : % 6d\n",mccount[27]);
   printf("   TovT->RawEvent(FT) OK(err.stat.follow)   : % 6d\n",mccount[2]);
-  printf("        Stretch-TDC overflows               : % 6d\n",mccount[6]);
-  printf("        Anode-ADC overflows                 : % 6d\n",mccount[7]);
-  printf("        Dynode-ADC overflows                : % 6d\n",mccount[8]);
+  printf("        TooOld Time-hits                    : % 6d\n",mccount[7]);
+  printf("        TooYoung Time-hits                  : % 6d\n",mccount[8]);
+  printf("        Anode-ADC overflows                 : % 6d\n",mccount[9]);
+  printf("        Dynode-ADC overflows                : % 6d\n",mccount[10]);
   printf("   FastTrigStatistics :\n");
   printf("        ParticleTrigger requests             : % 6d\n",mccount[15]);
   printf("        found TOF-FTC(Z>=1)                  : % 6d\n",mccount[16]);
@@ -1769,8 +1801,8 @@ void TOF2JobStat::printstat(){
   printf("   LVL1-trig OK                             : % 6d\n",recount[1]);
   printf("   LVL1 with TOF flag                       : % 6d\n",recount[33]);
   printf("   LVL1 with only ECAL flag                 : % 6d\n",recount[34]);
-  printf("   RawEvent-validation OK                   : % 6d\n",recount[2]);
-  printf("   RawEvent->RawCluster  OK                 : % 6d\n",recount[3]);
+  printf("   RawSide-validation OK                    : % 6d\n",recount[2]);
+  printf("   RawSide->RawCluster  OK                  : % 6d\n",recount[3]);
   printf("   RawCluster->Cluster OK                   : % 6d\n",recount[4]);
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF){
     printf(" Entries to TZSl-calibr.   : % 6d\n",recount[6]);
@@ -1822,59 +1854,116 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Hist-TDC wrong up/down sequence (percentage) :\n");
+  printf("Missing FTtime info(fatal case)[%]  :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][12]);
       if(rc>0.)rc=100.*geant(chcount[ic][13])/rc;
-      printf("% 5.2f",rc);
+      printf("% 6.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][12]);
       if(rc>0.)rc=100.*geant(chcount[ic][13])/rc;
-      printf("% 5.2f",rc);
+      printf("% 6.2f",rc);
     }
     printf("\n\n");
   }
 //
-  printf("Stretcher-TDC wrong up/down sequence (percentage) :\n");
+  printf("Multiple FTtime info[%]  :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][12]);
       if(rc>0.)rc=100.*geant(chcount[ic][14])/rc;
-      printf("% 5.2f",rc);
+      printf("% 6.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][12]);
       if(rc>0.)rc=100.*geant(chcount[ic][14])/rc;
-      printf("% 5.2f",rc);
+      printf("% 6.2f",rc);
     }
     printf("\n\n");
   }
 //
-  printf("Missing Dynode when Anode is PUX-saturated (percentage) :\n");
+  printf("Missing LTtime info(fatal case)[%] :\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][15])/rc;
+      printf("% 6.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][15])/rc;
+      printf("% 6.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Missing Anode info[%] :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][12]);
       if(rc>0.)rc=100.*geant(chcount[ic][16])/rc;
-      printf("% 5.2f",rc);
+      printf("% 6.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][12]);
       if(rc>0.)rc=100.*geant(chcount[ic][16])/rc;
-      printf("% 5.2f",rc);
+      printf("% 6.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Missing Dynode when Anode is PUX-saturated[%] :\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][17])/rc;
+      printf("% 6.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][17])/rc;
+      printf("% 6.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Missing History(SumHT) info [%] :\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][18])/rc;
+      printf("% 6.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][18])/rc;
+      printf("% 6.2f",rc);
     }
     printf("\n\n");
   }
@@ -1885,7 +1974,7 @@ void TOF2JobStat::printstat(){
 //
   printf("==========> Bars reconstruction report :\n\n");
 //
-  printf("RawEvent bar(at least 1side) entries :\n\n");
+  printf("Bar entries with at least one ALIVE side(having [FTtime+smth] + DBok:\n\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR+ib;
@@ -1894,7 +1983,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Bars fraction with 3meas(Ftdc & Stdc & Aadc) (at least 1 side) :\n\n");
+  printf("Bars fraction with at least 1 side with COMPLETE(LT & Q & [SumHT]) measurement:\n\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR+ib;
@@ -1905,7 +1994,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Bar fraction with at least 1-side history 'OK' (2x3+1x3-meas.bars ) :\n\n");
+  printf("Bars fraction with 'HISTORY-OK' on COMPLETE sides:\n\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR+ib;
@@ -1916,7 +2005,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Bar fraction with 2-sides history 'OK'(2x3meas. bars) :\n\n");
+  printf("Bars fraction with 'bestLT-hit MATCHING'(if required)' on COMPLETE sides :\n\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR+ib;
@@ -1927,10 +2016,21 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
+  printf("Bar fraction with COMPLETE and HISTORY/MATCHING 'OK' measurements on BOTH sides:\n\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR+ib;
+      rc=geant(brcount[ic][0]);
+      if(rc>0.)rc=geant(brcount[ic][4])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
 //---------------------------------------------------------
   printf("============> Channels reconstruction report :\n\n");
 //
-  printf("RawEvent channel entries :\n\n");
+  printf("RawSide channel entries(FTtime is mandatory) :\n\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2;
@@ -1944,7 +2044,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Hist-TDC 'ON' :\n");
+  printf("FT-correlated LTtime-hits found :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -1963,7 +2063,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Slow-TDC 'ON' :\n");
+  printf("SumHTtime-hits found :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -1982,7 +2082,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Anode-ADC 'ON' :\n");
+  printf("SumSHTtime-hits found :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2001,7 +2101,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Dynode-ADC 'ON' :\n");
+  printf("AnodeADC found :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2020,7 +2120,26 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("History-TDC '1 hit' :\n");
+  printf("DynodeADC found :\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][5])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][5])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("FTtdc has '1 hit' :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2039,7 +2158,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Slow-TDC '1 hit' :\n");
+  printf("Single FT-correlated LTtime-hit found :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2058,7 +2177,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("(Stds & Ftdc & Aadc) ON :\n");
+  printf("FT-correlated LTtime-hits AND (Anode|Dynode)-hits found :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -2072,6 +2191,25 @@ void TOF2JobStat::printstat(){
       ic=il*TOF2GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][8])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("As above, but history(SumHT)-channel is also required :\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][11])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][11])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n\n");
@@ -2126,29 +2264,29 @@ void TOF2JobStat::bookhist(){
 //
   strcpy(inum,"0123456789");
 //
-  if(TFREFFKEY.reprtf[2]!=0 || // Reconstruction histograms
-     (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){ // Monitoring Job
+  if(TFREFFKEY.reprtf[2]!=0){// Reconstruction histograms
 // Book reco-hist
-    HBOOK1(1100,"Fast-Slow hit time-difference(SINGLE hist/slow-hit measurements)",80,0.,80.,0.);
+    HBOOK1(1100,"LT/SumHT-time difference(SINGLE LT/SumHT-hit events)",80,-10.,10.,0.);
     HBOOK1(1107,"TOF+CTC+ANTI data length (16-bit words)",80,1.,1001.,0.);
-    HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,160.,0.);
-    HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,160.,0.);
-    HBOOK1(1103,"Time_history: TovT(ns)",80,0.,120.,0.);
+    HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,2400.,0.);
+    HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,400.,0.);
+//    HBOOK1(1103,"Time_history: TovT(ns)",80,0.,120.,0.);
     HBOOK1(1104,"Anode-adc signals(id=104,s1)",100,0.,1000.,0.);
     HBOOK1(1105,"Dynode(pm)-adc signals(id=104,s1)",100,0.,200.,0.);
-    HBOOK1(1108,"Time-hist hit(2edges) multiplicity(all chan)",20,0.,20.,0.);
+    HBOOK1(1108,"SumHTtime-channel hits multiplicity(all chan)",20,0.,20.,0.);
     HBOOK1(1110,"RawCluster:Total fired layers per event",5,0.,5.,0.);
     HBOOK1(1111,"RawCluster:Layer appearence frequency",4,0.5,4.5,0.);
     HBOOK1(1112,"RawCluster:Layer-Config(-1/0/1.../5--> <2/2/missLay#/All4)",10,-1.,9.,0.);
     HBOOK1(1113,"RawCluster:OneBarPerLayer Layer-Config(<2/2/missLay/All4)",10,-1.,9.,0.);
     HBOOK1(1114,"RawCluster:One2SidedBarPerLayer Layer-Config(<2/2/missLay/All4)",10,-1.,9.,0.);
-    HBOOK1(1115,"Fast-Slow hit time-difference(ALL hist/slow-hit meas.",80,-40.,120.,0.);
+    HBOOK1(1115,"BestMatch LT/SumHT-time diff(FTmatched, any multipl.events)",80,-10.,10.,0.);
     HBOOK1(1116,"dEdX vs bar (norm.inc.,L=1)",10,0.,10.,0.);
     HBOOK1(1117,"dEdX vs bar (norm.inc.,L=2)",10,0.,10.,0.);
     HBOOK1(1118,"dEdX vs bar (norm.inc.,L=3)",10,0.,10.,0.);
     HBOOK1(1119,"dEdX vs bar (norm.inc.,L=4)",10,0.,10.,0.);
 //    HBOOK1(1095-1098 are used for trigger-hists in trigger102.C  !!!!)
 //    HBOOK1(1099,...    reserved for tofsim02.C internal use !!!!
+//    HBOOK1(1094,...    reserved for tofsim02.C internal use !!!!
     HBOOK1(1092,"TOF:Ttop-Tbot(LVL3)",50,-12.5,12.5,0.);
     if(TFREFFKEY.reprtf[2]>1){
       HBOOK1(1526,"L=1,Ed_anode(mev),pcorr,1b/lay evnt",80,0.,24.,0.);
@@ -2173,54 +2311,8 @@ void TOF2JobStat::bookhist(){
         }
       }
     }
-    if(TFREFFKEY.reprtf[2]>0){
-      HBOOK2(1120,"LBBS=1041 Tout vs Tinp(all temper)",50,10.,110.,50,2000.,4000.,0.);
-      HBOOK2(1121,"LBBS=1041 STRR vs temper",50,-25.,25.,50,0.,50.,0.);
-      HBOOK2(1122,"LBBS=1041 OFFS vs temper",50,-25.,25.,50,300.,1800.,0.);
-    }
     
-    HBOOK1(1130,"RawCluster:AbsFTTime(-6mks,cr1)",80,-50.,50.,0.);
-    HBOOK1(1131,"RawCluster:AbsFTTime(-6mks,cr2)",80,-50.,50.,0.);
-    HBOOK1(1132,"RawCluster:AbsFTTime(-6mks,cr3)",80,-50.,50.,0.);
-    HBOOK1(1133,"RawCluster:AbsFTTime(-6mks,cr4)",80,-50.,50.,0.);
-    
-    if(TFREFFKEY.reprtf[4]>0){ // Str.pulse width for selected channel
-      ich=TFREFFKEY.reprtf[4];// LBBS
-      ic=ich/10;//LBB
-      il=ic/100;
-      ib=ic%100;
-      is=ich%10;
-      strcpy(htit1,"Stretcher hole-width for LBBS=");
-      in[0]=inum[il];
-      strcat(htit1,in);
-      in[0]=inum[ib/10];
-      strcat(htit1,in);
-      in[0]=inum[ib%10];
-      strcat(htit1,in);
-      in[0]=inum[is];
-      strcat(htit1,in);
-      HBOOK1(1137,htit1,50,0.,200.,0.);
-      strcpy(htit1,"Stretcher 1st pulse-width for LBBS=");
-      in[0]=inum[il];
-      strcat(htit1,in);
-      in[0]=inum[ib/10];
-      strcat(htit1,in);
-      in[0]=inum[ib%10];
-      strcat(htit1,in);
-      in[0]=inum[is];
-      strcat(htit1,in);
-      HBOOK1(1138,htit1,50,0.,250.,0.);
-      strcpy(htit1,"Stretcher 2nd pulse-width for LBBS=");
-      in[0]=inum[il];
-      strcat(htit1,in);
-      in[0]=inum[ib/10];
-      strcat(htit1,in);
-      in[0]=inum[ib%10];
-      strcat(htit1,in);
-      in[0]=inum[is];
-      strcat(htit1,in);
-      HBOOK1(1139,htit1,60,0.,6000.,0.);
-    }
+    HBOOK1(1137,"LTime-FTtime for LBBS=1041",70,-640.,60.,0.);
 //
     HBOOK1(1532,"T1-T3(ns,NormIncidence,1b/L evnt)",80,1.,9.,0.);
 //
@@ -2235,27 +2327,29 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1540,"L=4,TOFClus Edep(mev)",80,0.,24.,0.);
     HBOOK1(1541,"TOFClus,L1XCoo(long)",100,-50.,50.,0.);
     HBOOK1(1542,"TOFClus,L1YCoo(tran)",100,-50.,50.,0.);
+    HBOOK1(1543,"TOFClus,L2XCoo(tran)",100,-50.,50.,0.);
+    HBOOK1(1547,"TOFClus,L2YCoo(long)",100,-50.,50.,0.);
     HBOOK1(1545,"L=1,TOFClus SQRT(Edep(mev))",100,0.,25.,0.);
     HBOOK1(1546,"L=3,TOFClus SQRT(Edep(mev))",100,0.,25.,0.);
     HBOOK1(1548,"TOFClus 2 bars E-ass(dt,dc ok)",44,-1.1,1.1,0.);
     HBOOK1(1549,"TOFClus cand. Y-match(cm, dt ok)",80,-40.,40.,0.);
     HBOOK1(1550,"TOFClus cand. T-match(ns)",80,-10.,10.,0.);
 //
-    if(TFREFFKEY.relogic[0]==1){ // <==================== STRR-calibration
-      HBOOK1(1200,"Stretcher-ratio for indiv. channel,bin.meth",80,35.,55.,0.);
-      HBOOK1(1201,"Offsets for indiv. channels,bin.meth",80,-100.,2300.,0.);
-      HBOOK1(1202,"Chi2 for indiv. channel,bin.meth",50,0.,10.,0.);
-      HBOOK1(1204,"Bin Tin-RMS in Tin-Tout fit,bin.meth",50,0.,10.,0.);
-      HBOOK1(1205,"Stretcher-ratio for indiv. channel,pnt.meth",80,35.,55.,0.);
-      HBOOK1(1206,"Offsets for indiv. channels,pnt.meth",80,-100.,2300.,0.);
-      HBOOK1(1207,"Chi2 for indiv. channel,pnt.meth",50,0.,10.,0.);
-      HBOOK1(1208,"Stretcher-ratio for indiv. channel,comb.meth",80,35.,55.,0.);
-      HBOOK1(1209,"Offsets for indiv. channels,comb.meth",80,-100.,2300.,0.);
-      HBOOK1(1210,"Chi2 for indiv. channel,comb.meth",50,0.,10.,0.);
+//    if(TFREFFKEY.relogic[0]==1){ // <==================== STRR-calibration
+//      HBOOK1(1200,"Stretcher-ratio for indiv. channel,bin.meth",80,35.,55.,0.);
+//      HBOOK1(1201,"Offsets for indiv. channels,bin.meth",80,-100.,2300.,0.);
+//      HBOOK1(1202,"Chi2 for indiv. channel,bin.meth",50,0.,10.,0.);
+//      HBOOK1(1204,"Bin Tin-RMS in Tin-Tout fit,bin.meth",50,0.,10.,0.);
+//      HBOOK1(1205,"Stretcher-ratio for indiv. channel,pnt.meth",80,35.,55.,0.);
+//      HBOOK1(1206,"Offsets for indiv. channels,pnt.meth",80,-100.,2300.,0.);
+//      HBOOK1(1207,"Chi2 for indiv. channel,pnt.meth",50,0.,10.,0.);
+//      HBOOK1(1208,"Stretcher-ratio for indiv. channel,comb.meth",80,35.,55.,0.);
+//      HBOOK1(1209,"Offsets for indiv. channels,comb.meth",80,-100.,2300.,0.);
+//      HBOOK1(1210,"Chi2 for indiv. channel,comb.meth",50,0.,10.,0.);
       
 // hist.1600-1711 are booked in init-function for Tin vs Tout correl.!!!(TDLV)
 // hist.1720-1790 are booked in init-function for BarRawTime histogr.!!!(TDLV)
-    }
+//    }
     if(TFREFFKEY.relogic[0]==2){// <==================== TDIF-calibr. runs
       HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
     }
@@ -2288,7 +2382,7 @@ void TOF2JobStat::bookhist(){
       HBOOK1(1509,"Aver.Q(pC,truncated)",60,0.,600.,0.);
       HBOOK1(1507,"T0-difference inside bar-types 2",80,-0.4,0.4,0.);
       HBOOK1(1508,"T0-difference betw. ref. and bar-types 4",80,-0.4,0.4,0.);
-      HBOOK2(1514,"Layer-1,T vs SUM(1/sqrt(Q))",50,0.,0.5,50,1.,11.,0.);
+      HBOOK2(1514,"Layer-1,T vs SUM(1/sqrt(Q))",50,0.,0.5,50,1.,101.,0.);
       HBOOK1(1524,"TRlen13-TRlen24",80,-4.,4.,0.);
     }
     if(TFREFFKEY.relogic[0]==4){ // <==================== AMPL-calibration
@@ -2358,11 +2452,11 @@ void TOF2JobStat::bookhist(){
       HBOOK1(1274,"Ref.bar A-profile (s1,type-11)",70,-70.,70.,0.);        
       HBOOK1(1275,"Ref.bar A-profile (s2,type-11)",70,-70.,70.,0.);        
     }
-    if(TFREFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
+    if(TFREFFKEY.reprtf[3]!=0){//Validation-stage multiplicity histograms
       for(il=0;il<TOF2GC::SCLRS;il++){
 	for(ib=0;ib<TOF2GC::SCMXBR;ib++){
 	  for(i=0;i<2;i++){
-	    strcpy(htit1,"Htdc/Ttdc/Aadc/Dadc multipl. for chan(LBBS) ");
+	    strcpy(htit1,"Validation::FTtdc/LTtdc/Aadc/Dadc/SumHT/SumSHT multipl. for chan(LBBS) ");
 	    in[0]=inum[il+1];
 	    strcat(htit1,in);
 	    ii=(ib+1)/10;
@@ -2393,9 +2487,9 @@ void TOF2JobStat::bookhistmc(){
       HBOOK1(1062,"SIMU: GHit Edeps(mev) in layer-3",80,0.,24.,0.);
       HBOOK1(1063,"SIMU: GHit Edeps(mev) in layer-4",80,0.,24.,0.);
       HBOOK1(1070,"SIMU: PM-1 charge(pC,id=104,s1)",80,0.,400.,0.);
-      HBOOK1(1071,"SIMU: s1+s2 pulse-charge(pC),L-1",80,0.,160.,0.);
-      HBOOK1(1072,"SIMU: s1+s2 pulse-charge(pC),L-1",80,0.,1600.,0.);
-      HBOOK1(1073,"SIMU: Anode pulse-hight(mV,id=104,s1)",80,0.,1600.,0.);
+      HBOOK1(1071,"SIMU: Number of HT(SHT+10)-trigger pulses(SPT-inp)",20,0.,20.,0.);
+      HBOOK1(1072,"SIMU: HT-trig pulse width(SPT-inp, ns)",80,200.,600.,0.);
+      HBOOK1(1073,"SIMU: SHT-trig pulse width(SPT-inp, ns)",80,200.,600.,0.);
       HBOOK1(1074,"SIMU: Anode-adc(id=104,s1,NoPeds)",100,0.,500.,0.);
       HBOOK1(1075,"SIMU: Dynode-adc(eq.sum/npm, id=104,s1,NoPeds)",100,0.,100.,0.);
       HBOOK1(1065,"SIMU: FTCTrigPat(z>=1):S1-frequence(L=1,4)",80,0.,80.,0.);
@@ -2408,6 +2502,30 @@ void TOF2JobStat::bookhistmc(){
       HBOOK1(1078,"SIMU: Out-of-width-hit X-excess",50,0.,5.,0.);
       HBOOK1(1079,"SIMU: Out-of-thickness-hit Z-excess",50,0.,5.,0.);
       HBOOK1(1080,"SIMU: GHitTime",100,0.,1000.,0.);
+      HBOOK1(1081,"SIMU: Anode pulse-hight(mV,id=101(bt1),s1)",80,0.,1600.,0.);
+      HBOOK1(1082,"SIMU: Anode pulse-hight(mV,id=104(bt2),s1)",80,0.,1600.,0.);
+      HBOOK1(1083,"SIMU: Anode pulse-hight(mV,id=401(bt3),s1)",80,0.,1600.,0.);
+      HBOOK1(1084,"SIMU: Anode pulse-hight(mV,id=404(bt4),s1)",80,0.,1600.,0.);
+      HBOOK1(1085,"SIMU: Anode pulse-hight(mV,id=201(bt5),s1)",80,0.,1600.,0.);
+      HBOOK1(1086,"SIMU: Anode pulse-hight(mV,id=202(bt6),s1)",80,0.,1600.,0.);
+      HBOOK1(1087,"SIMU: Anode pulse-hight(mV,id=204(bt7),s1)",80,0.,1600.,0.);
+      HBOOK1(1088,"SIMU: Anode pulse-hight(mV,id=301(bt8),s1)",80,0.,1600.,0.);
+      HBOOK1(1089,"SIMU: Anode pulse-hight(mV,id=302(bt9),s1)",80,0.,1600.,0.);
+      HBOOK1(1090,"SIMU: Anode pulse-hight(mV,id=303(bt10),s1)",80,0.,1600.,0.);
+      HBOOK1(1091,"SIMU: Anode pulse-hight(mV,id=305(bt11),s1)",80,0.,1600.,0.);
+      HBOOK1(1031,"SIMU: Nphelectrons/side(id=101(bt1),s1)",80,0.,1600.,0.);
+      HBOOK1(1032,"SIMU: Nphelectrons/side(id=104(bt2),s1)",80,0.,3200.,0.);
+      HBOOK1(1033,"SIMU: Nphelectrons/side(id=401(bt3),s1)",80,0.,1600.,0.);
+      HBOOK1(1034,"SIMU: Nphelectrons/side(id=404(bt4),s1)",80,0.,1600.,0.);
+      HBOOK1(1035,"SIMU: Nphelectrons/side(id=201(bt5),s1)",80,0.,1200.,0.);
+      HBOOK1(1036,"SIMU: Nphelectrons/side(id=202(bt6),s1)",80,0.,1200.,0.);
+      HBOOK1(1037,"SIMU: Nphelectrons/side(id=204(bt7),s1)",80,0.,1200.,0.);
+      HBOOK1(1038,"SIMU: Nphelectrons/side(id=301(bt8),s1)",80,0.,1200.,0.);
+      HBOOK1(1039,"SIMU: Nphelectrons/side(id=302(bt9),s1)",80,0.,1200.,0.);
+      HBOOK1(1040,"SIMU: Nphelectrons/side(id=303(bt10),s1)",80,0.,1200.,0.);
+      HBOOK1(1041,"SIMU: Nphelectrons/side(id=305(bt11),s1)",80,0.,1200.,0.);
+      HBOOK1(1042,"SIMU: Npe1-Npe2/Npe1+Npe2(id=104(bt2))",80,-0.6,0.6,0.);
+      HBOOK1(1043,"SIMU: Nphelectrons/counter(id=104(bt2))",80,0.,6400.,0.);
     }
 }
 //----------------------------
@@ -2423,6 +2541,8 @@ void TOF2JobStat::outp(){
 	 HPRINT(1546);
          HPRINT(1541);
          HPRINT(1542);
+         HPRINT(1543);
+         HPRINT(1547);
          HPRINT(1539);
          HPRINT(1540);
          HPRINT(1548);
@@ -2432,7 +2552,7 @@ void TOF2JobStat::outp(){
          HPRINT(1115);
          HPRINT(1101);
          HPRINT(1102);
-         HPRINT(1103);
+//         HPRINT(1103);
          HPRINT(1108);
          HPRINT(1104);
          HPRINT(1105);
@@ -2441,11 +2561,8 @@ void TOF2JobStat::outp(){
          HPRINT(1112);
          HPRINT(1113);
          HPRINT(1114);
+         HPRINT(1137);
 	 
-         HPRINT(1130);
-         HPRINT(1131);
-         HPRINT(1132);
-         HPRINT(1133);
 	 
 //         HPRINT(1095);
 //         HPRINT(1096);
@@ -2472,16 +2589,6 @@ void TOF2JobStat::outp(){
              HPAKE(1116+i,dedxe);
              HPRINT(1116+i);
            }
-         }
-           if(TFREFFKEY.reprtf[2]>0){
-             HPRINT(1120);
-             HPRINT(1121);
-             HPRINT(1122);
-           }
-         if(TFREFFKEY.reprtf[4]>0){
-           HPRINT(1137);
-           HPRINT(1138);
-           HPRINT(1139);
          }
            HPRINT(1532);
            HPRINT(1544);
@@ -2577,9 +2684,6 @@ void TOF2JobStat::outp(){
 	    HPRINT(1278);
 	    HPRINT(1279);
            HPRINT(1252);
-           HPRINT(1252);
-           HPRINT(1252);
-           HPRINT(1252);
            HPRINT(1254);
            HPRINT(1255);
            HPRINT(1256);
@@ -2640,7 +2744,30 @@ void TOF2JobStat::outpmc(){
          HPRINT(1071);
          HPRINT(1072);
          HPRINT(1073);
-         HPRINT(1074);
+	 HPRINT(1031);
+	 HPRINT(1032);
+	 HPRINT(1043);
+	 HPRINT(1033);
+	 HPRINT(1034);
+	 HPRINT(1035);
+	 HPRINT(1036);
+	 HPRINT(1037);
+	 HPRINT(1038);
+	 HPRINT(1039);
+	 HPRINT(1040);
+	 HPRINT(1041);
+	 HPRINT(1042);
+         HPRINT(1081);
+         HPRINT(1082);
+         HPRINT(1083);
+         HPRINT(1084);
+         HPRINT(1085);
+         HPRINT(1086);
+         HPRINT(1087);
+         HPRINT(1088);
+         HPRINT(1089);
+         HPRINT(1090);
+         HPRINT(1091);
 //         HPRINT(1054);
          HPRINT(1075);
 //         HPRINT(1064);

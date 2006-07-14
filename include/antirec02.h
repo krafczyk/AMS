@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.10 2006/01/25 11:21:33 choumilo Exp $
+//  $Id: antirec02.h,v 1.11 2006/07/14 13:21:52 choumilo Exp $
 //
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
 // 10.11.2005 E.Choumilov, complete revision
@@ -16,51 +16,66 @@ class Anti2RawEvent: public AMSlink{
 private:
   static integer nscoinc;//# of logic sectors in coinc.with FT
   static uinteger trpatt; //bits 1-8 => log.sect# in coinc.with FT
-  int16u idsoft; // BBS (Bar/Side)
-  int16u status; // status (0/1/... -> alive/dead/...)
-  geant temp;//temperature
-  int16u adca;// anode pulse-charge hit(ADC-chan)
-  int16u ntdct; // number of History-TDC hits (edges)
-  int16u tdct[ANTI2C::ANTHMX*2];// Hist-TDC edges (edge time is in TDC-channels)
+  int16u _idsoft; // BBS (Bar/Side)
+  int16u _status; // status (0/1/... -> alive/dead/...)
+  geant _temp;//temperature
+  integer _adca;// anode pulse-charge hit(ADC-chan)
+  integer _nftdc;//number of FastTrig(FT) hits, =1 in MC(filled at validation stage !!)
+  integer _ftdc[TOF2GC::SCTHMX1]; // FT-hits(tdc-chan),1/2-plane specific, but stored for each sect
+  integer _ntdct; // number of TimeHist(LT-chan) hits 
+  integer _tdct[ANTI2C::ANTHMX];// TimeHist hits
 public:
-  Anti2RawEvent(int16u _idsoft, int16u _status, geant _temp,  int16u _adca,
-                  int16u _ntdct, int16u _tdct[]):idsoft(_idsoft),status(_status)
+  Anti2RawEvent(int16u idsoft, int16u status, geant temp,  integer adca,
+                  integer nftdc, integer ftdc[], 
+                  integer ntdct, integer tdct[]):_idsoft(idsoft),_status(status)
   {
     int i;
-    temp=_temp;
-    adca=_adca;
-    ntdct=_ntdct;
-    for(i=0;i<ntdct;i++)tdct[i]=_tdct[i];
+    _temp=temp;
+    _adca=adca;
+    _ntdct=ntdct;
+    _nftdc=nftdc;
+    for(i=0;i<_ntdct;i++)_tdct[i]=tdct[i];
+    for(i=0;i<_nftdc;i++)_ftdc[i]=ftdc[i];
   };
   ~Anti2RawEvent(){};
   Anti2RawEvent * next(){return (Anti2RawEvent*)_next;}
 //
   integer operator < (AMSlink & o)const{
-                return idsoft<((Anti2RawEvent*)(&o))->idsoft;}
+                return _idsoft<((Anti2RawEvent*)(&o))->_idsoft;}
 //
-  int16u getid() const {return idsoft;}
-  int16u getstat() const {return status;}
-  int16u getnzchn(){if(adca>0)return(1);
+  int16u getid() const {return _idsoft;}
+  int16u getstat() const {return _status;}
+  void updstat(int16u sta){_status=sta;}
+  int16u getnzchn(){if(_adca>0)return(1);
                           else return(0);}
 //
-  int16u getadca(){
-    return adca;
+  integer getadca(){
+    return _adca;
   }
-  void putadca(int16u arr){
-    adca=arr;
-  }
-//
-  int16u gettdct(int16u arr[]){
-  for(int i=0;i<ntdct;i++)arr[i]=tdct[i];
-  return ntdct;
-  }
-  void puttdct(int16u nelem, int16u arr[]){
-    ntdct=nelem;
-    for(int i=0;i<ntdct;i++)tdct[i]=arr[i];
+  void putadca(integer arr){
+    _adca=arr;
   }
 //
- geant gettemp(){return temp;}
- void settemp(geant tmp){temp=tmp;}
+  integer gettdct(integer arr[]){
+    for(int i=0;i<_ntdct;i++)arr[i]=_tdct[i];
+    return _ntdct;
+  }
+  void puttdct(integer nelem, integer arr[]){
+    _ntdct=nelem;
+    for(int i=0;i<_ntdct;i++)_tdct[i]=arr[i];
+  }
+  
+  integer getftdc(integer arr[]){
+    for(int i=0;i<_nftdc;i++)arr[i]=_ftdc[i];
+    return _nftdc;
+  }
+  void putftdc(integer nelem, integer arr[]){
+    _nftdc=nelem;
+    for(int i=0;i<_nftdc;i++)_ftdc[i]=arr[i];
+  }
+//
+ geant gettemp(){return _temp;}
+ void settemp(geant tmp){_temp=tmp;}
 //
   static void setpatt(uinteger patt){
     trpatt=patt;
@@ -81,10 +96,12 @@ static void buildraw(int16u blid, integer &len, int16u *p);
 protected:
 void _printEl(ostream &stream){
   int i;
-  stream <<"Anti2RawEvent: id="<<dec<<idsoft<<endl;
-  stream <<hex<<adca<<endl;
-  stream <<"ntdct="<<dec<<ntdct<<endl;
-  for(i=0;i<ntdct;i++)stream <<hex<<tdct[i]<<endl;
+  stream <<"Anti2RawEvent: id="<<dec<<_idsoft<<endl;
+  stream <<hex<<_adca<<endl;
+  stream <<"ntdct="<<dec<<_ntdct<<endl;
+  for(i=0;i<_ntdct;i++)stream <<hex<<_tdct[i]<<endl;
+  stream <<"_nftdc="<<dec<<_nftdc<<endl;
+  for(i=0;i<_nftdc;i++)stream <<hex<<_ftdc[i]<<endl;
   stream <<dec<<endl<<endl;
 }
 void _writeEl(){};

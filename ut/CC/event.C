@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.340 2006/01/25 11:21:09 choumilo Exp $
+//  $Id: event.C,v 1.341 2006/07/14 13:17:16 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -411,6 +411,7 @@ AMSUser::InitRun();
 
 
 void AMSEvent::_siamsinitevent(){
+ TOF2DBc::debug=0;
  AMSBitstr::setclkphase();//set trig.electronics clock-pulse phase
  _sitofinitevent();
  _siantiinitevent();
@@ -801,13 +802,18 @@ void AMSEvent::_sitofinitevent(){
     ptr=AMSEvent::gethead()->add(
         new AMSContainer(AMSID("AMSContainer:TOF2Tovt",il),0));
   }
-  TOF2RawEvent::settrcode(-1);// reset  TOF-trigger flag
-  TOF2RawEvent::settrcodez(-1);// reset  TOF-trigger flag
-  TOF2RawEvent::setcpcode(0);// reset  TOF-trigger flag
-  TOF2RawEvent::setbzflag(-1);// reset  TOF-trigger flag
-  TOF2RawEvent::setftpatt(0);// reset TOF-trigger pattern
-  TOF2RawEvent::setpatt(trpatt);// reset TOF-trigger pattern
-  TOF2RawEvent::setpattz(trpatt);// reset TOF-trigger pattern
+//<--- clear arrays for SumHT(SHT)-channel
+  for(int cr=0;cr<TOF2GC::SCCRAT;cr++){
+    for(int sf=0;sf<TOF2GC::SCFETA-1;sf++){
+      TOF2Tovt::SumHTh[cr][sf]=0;
+      TOF2Tovt::SumSHTh[cr][sf]=0;
+      for(int ht=0;ht<TOF2GC::SCTHMX2;ht++){
+        TOF2Tovt::SumHTt[cr][sf][ht]=0;
+        TOF2Tovt::SumSHTt[cr][sf][ht]=0;
+      }
+    }
+  }
+//
 }
 
 
@@ -838,15 +844,40 @@ void AMSEvent::_retof2initevent(){
   integer i;
   AMSNode *ptr;
 //---
-// container for RawEvent hits(same structure for MC/REAL events) : 
-//
-   ptr=AMSEvent::gethead()->add(
-       new AMSContainer(AMSID("AMSContainer:TOF2RawEvent",0),0));
-//---
 // container for TOF2RawSide hits(same structure for MC/REAL events) : 
 //
    ptr=AMSEvent::gethead()->add(
        new AMSContainer(AMSID("AMSContainer:TOF2RawSide",0),0));
+//
+//<--- clear static arrays for SumHT(SHT)-channel:
+  for(int cr=0;cr<TOF2GC::SCCRAT;cr++){
+    for(int sf=0;sf<TOF2GC::SCFETA-1;sf++){
+      TOF2RawSide::SumHTh[cr][sf]=0;
+      TOF2RawSide::SumSHTh[cr][sf]=0;
+      for(int ht=0;ht<TOF2GC::SCTHMX2;ht++){
+        TOF2RawSide::SumHTt[cr][sf][ht]=0;
+        TOF2RawSide::SumSHTt[cr][sf][ht]=0;
+      }
+    }
+  }
+//<--- clear static arrays for FTtime-channel:
+  for(int cr=0;cr<TOF2GC::SCCRAT;cr++){
+    for(int sf=0;sf<TOF2GC::SCFETA;sf++){
+      TOF2RawSide::FThits[cr][sf]=0;
+      for(int ht=0;ht<TOF2GC::SCTHMX1;ht++){
+        TOF2RawSide::FTtime[cr][sf][ht]=0;
+      }
+    }
+  }
+//
+  TOF2RawSide::settrcode(-1);// reset  TOF-trigger flag
+  TOF2RawSide::settrcodez(-1);// reset  TOF-trigger flag
+  TOF2RawSide::setcpcode(0);// reset  TOF-trigger flag
+  TOF2RawSide::setbzflag(-1);// reset  TOF-trigger flag
+  TOF2RawSide::setftpatt(0);// reset glob.FT-trigger pattern
+  int trpatt[TOF2GC::SCLRS]={0,0,0,0};
+  TOF2RawSide::setpatt(trpatt);// reset TOF-trigger pattern
+  TOF2RawSide::setpattz(trpatt);// reset TOF-trigger pattern
 //---
 //  container for RawCluster hits :
 //
@@ -1600,7 +1631,7 @@ bool tofftok(0),ecalftok(0),extrigok(0);
 //
 //
       AMSgObj::BookTimer.start("TOF:validation");
-      TOF2RawEvent::validate(stat);// RawEvent-->RawEvent
+      TOF2RawSide::validate(stat);// RawEvent-->RawEvent
       AMSgObj::BookTimer.stop("TOF:validation");
       if(stat!=0){
         AMSgObj::BookTimer.stop("RETOFEVENT");
@@ -1932,7 +1963,7 @@ void AMSEvent::_reaxinitrun(){
 }
 
 void AMSEvent:: _sitkevent(){
-bool fastrigger= TOF2RawEvent::GlobFasTrigOK();
+bool fastrigger= TOF2RawSide::GlobFasTrigOK();
   if(TRMCFFKEY.NoiseOn && fastrigger )AMSTrMCCluster::sitknoise();
   AMSTrMCCluster::sitkcrosstalk();
 #ifdef __AMSDEBUG__
@@ -2057,7 +2088,7 @@ void AMSEvent:: _sitof2event(int &cftr){
    TOF2JobStat::addmc(1);
 //
    AMSgObj::BookTimer.start("TOF:Tovt->RwEv");
-   TOF2RawEvent::mc_build(stat);//Tovt_hit->RawEv_hit
+   TOF2RawSide::mc_build(stat);//Tovt_hit->RawSide_hit
    AMSgObj::BookTimer.stop("TOF:Tovt->RwEv");
    if(stat!=0){
      cftr=0;//no (TOF+ECAL)-combined fast trigger

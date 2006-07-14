@@ -104,10 +104,8 @@ void AntiCalib::init(){ // ----> initialization for AMPL-calibration
 //
 void AntiCalib::select(){ // ------> event selection for AMPL-calibration
   bool anchok;
-  int16u adca,ntdct,tdct[ANTI2C::ANTHMX*2];
+  integer adca,ntdct,tdct[ANTI2C::ANTHMX],nftdc,ftdc[TOF2GC::SCTHMX1];
   int16u id,idN,sta;
-  int16u pbitn;
-  int16u pbanti;
   number ampe[2],uptm[2];
   number am1[ANTI2C::MAXANTI],am2[ANTI2C::MAXANTI];
   integer frsecn[ANTI2C::MAXANTI],frsect;
@@ -124,8 +122,6 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
 //----
   ANTI2JobStat::addre(11);
   Runum=AMSEvent::gethead()->getrun();// current run number
-  pbitn=TOF2GC::SCPHBP;//phase bit position as for TOF
-  pbanti=pbitn-1;// mask to avoid it.
   padlen=ANTI2DBc::scleng();//z-size
   padrad=ANTI2DBc::scradi();//int radious
   padth=ANTI2DBc::scinth();//thickness
@@ -144,7 +140,8 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
     chnum=sector*2+isid;//channels numbering
     adca=ptr->getadca();
     ntdct=ptr->gettdct(tdct);
-    if(ntdct==2){//select only 1 Hist-hit events
+    nftdc=ptr->getftdc(ftdc);
+    if(ntdct==1 && nftdc==1){//select only 1 Hist/FT-hit events
 //DAQ-ch-->p.e's:
       ped=ANTIPeds::anscped[sector].apeda(isid);//adc-chan
       sig=ANTIPeds::anscped[sector].asiga(isid);//adc-ch sigmas
@@ -156,7 +153,7 @@ void AntiCalib::select(){ // ------> event selection for AMPL-calibration
       nphsok=ANTI2VPcal::antivpcal[sector].NPhysSecOK();
       if(nphsok==2)tzer=ANTI2SPcal::antispcal[sector].gettzerc();
       else tzer=ANTI2SPcal::antispcal[sector].gettzer(nphsok);
-      uptm[nsds]=(pbanti&tdct[i])*ANTI2DBc::htdcbw() + tzer;//TDC-ch-->ns + compens.tzero
+      uptm[nsds]=(ftdc[0]-tdct[0])*ANTI2DBc::htdcbw() + tzer;//TDC-ch-->ns + compens.tzero
 //cout<<"    decoded Up-time="<<uptm[nsds]<<endl;
 //
       nsds+=1;
@@ -544,8 +541,8 @@ void AntiCalib::fit(){
 //
 //--> get run/time of the first event
 //
-  StartRun=TOF2RawEvent::getsrun();
-  StartTime=TOF2RawEvent::getstime();
+  StartRun=TOF2RawSide::getsrun();
+  StartTime=TOF2RawSide::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
 //
   ofstream tcfile(fname,ios::out|ios::trunc);

@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.15 2005/09/09 07:55:14 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.16 2006/07/14 13:17:17 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "typedefs.h"
@@ -230,8 +230,8 @@ void TOF2TZSLcalib::mfun(int &np, number grad[], number &f, number x[]
 //
 //--> get run/time of the first event
 //
-  StartRun=TOF2RawEvent::getsrun();
-  StartTime=TOF2RawEvent::getstime();
+  StartRun=TOF2RawSide::getsrun();
+  StartTime=TOF2RawSide::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
 //
 //
@@ -489,7 +489,7 @@ void TOF2TZSLcalib::select(){  // calibr. event selection
 //------>
   number times[TOF2GC::SCLRS];
 //
-  ftdel=TOF2DBc::ftdelf();
+  ftdel=TOF2Varp::tofvpar.ftdelf();
   for(i=0;i<TOF2DBc::getnplns();i++){
     times[i]=0.;
     if(nbrl[i]==0)continue;//skip missing layers
@@ -885,7 +885,7 @@ void TOF2TDIFcalib::select(){ // ------> event selection for TDIF-calibration
   while (ptr){ // <--- loop over TOF2RawCluster hits
     status=ptr->getstatus();
     if((status&TOFGC::SCBADB1)==0 &&
-       (status&TOFGC::SCBADB3)==0){ //select "good_history/good_strr" hits
+       (status&TOFGC::SCBADB3)==0){ //select "good_history/good_for_time_meas_in_DB
       if((status&TOFGC::SCBADB2)==0 || (status&TOFGC::SCBADB5)!=0){// 2-sided or recovered
       ilay=(ptr->getntof())-1;
       ibar=(ptr->getplane())-1;
@@ -899,15 +899,15 @@ void TOF2TDIFcalib::select(){ // ------> event selection for TDIF-calibration
         ptr->getsdtm(sdtm);// get raw side-times(ns)
         tmsd[ilay]=0.5*(sdtm[0]-sdtm[1]);// side time difference
         tmss[ilay]=0.5*(sdtm[0]+sdtm[1]);// side time sum
-        TOF2Brcal::scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,0,tmsdc[ilay]);//slew-corr times(from Anode-ch)
-//        tmsdc[ilay]=tmsd[ilay];// use raw side-times(running first time,when slop unknown)
+//        TOF2Brcal::scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,0,tmsdc[ilay]);//slew-corr times(from Anode-ch)
+        tmsdc[ilay]=tmsd[ilay];// use raw side-times(running first time,when slop unknown)
         }
       }
     }
     ptr=ptr->next();
   }// --- end of hits loop --->
 //
-//------> Select events with bars/layer=1 and non-empty Anode-hi ch. :
+//------> Select events with bars/layer=1 and non-empty Anode-ch. :
   bad=0;
   for(i=0;i<TOF2GC::SCLRS;i++)if((nbrl[i] != 1) || qsd1[i]==0 || qsd2[i]==0)bad=1;
   if(bad==1)return; // remove events with bars/layer != 1 or empty Ah
@@ -1104,8 +1104,8 @@ void TOF2TDIFcalib::fit(){//---> get the slope,td0,chi2
 //
 //--> get run/time of the first event
 //
-  StartRun=TOF2RawEvent::getsrun();
-  StartTime=TOF2RawEvent::getstime();
+  StartRun=TOF2RawSide::getsrun();
+  StartTime=TOF2RawSide::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
 //
 //
@@ -1862,9 +1862,9 @@ void TOF2AMPLcalib::select(){ // ------> event selection for AMPL-calibration
 // ---> Normalize low beta Edep to MIP(p/m=4) :
 //
     number betnor,absbet;
-    absbet=fabs(betof);  
-    if(absbet<0.97)betnor=pow(absbet,number(5./3))
-                       /pow(number(0.97),number(5./3));//norm.factor to MIP
+    absbet=fabs(betof);// beta from TOF  
+    if(absbet<0.95)betnor=pow(absbet,number(1.82))
+                       /pow(number(0.95),number(1.82));//norm.factor to MIP
     else betnor=1;
 //    
     for(il=0;il<TOF2GC::SCLRS;il++){
@@ -2124,8 +2124,8 @@ void TOF2AMPLcalib::fit(){
 //
 //--> get run/time of the first event
 //
-  StartRun=TOF2RawEvent::getsrun();
-  StartTime=TOF2RawEvent::getstime();
+  StartRun=TOF2RawSide::getsrun();
+  StartTime=TOF2RawSide::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
 //
 //
@@ -3462,8 +3462,8 @@ void TOF2STRRcalib::outp(){
 //
 //--> get run/time of the first event
 //
-  StartRun=TOF2RawEvent::getsrun();
-  StartTime=TOF2RawEvent::getstime();
+  StartRun=TOF2RawSide::getsrun();
+  StartTime=TOF2RawSide::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
 //
   if(AMSJob::gethead()->isRealData()){

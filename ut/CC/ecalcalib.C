@@ -1382,8 +1382,8 @@ void ECREUNcalib::mfit(){
 //
 //--> get run/time of the first event
 //
-  StartRun=TOF2RawEvent::getsrun();
-  StartTime=TOF2RawEvent::getstime();
+  StartRun=TOF2RawSide::getsrun();
+  StartTime=TOF2RawSide::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
 //
     ofstream tcfile(fname,ios::out|ios::trunc);
@@ -2368,8 +2368,8 @@ void ECREUNcalib::mfite(){
 //
 //--> get run/time of the first event
 //
-  StartRun=TOF2RawEvent::getsrun();
-  StartTime=TOF2RawEvent::getstime();
+  StartRun=TOF2RawSide::getsrun();
+  StartTime=TOF2RawSide::getstime();
   strcpy(frdate,asctime(localtime(&StartTime)));
 //
     ofstream tcfile(fname,ios::out|ios::trunc);
