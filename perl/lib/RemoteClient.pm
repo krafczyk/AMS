@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.434 2006/07/11 10:44:51 choutko Exp $
+# $Id: RemoteClient.pm,v 1.435 2006/07/17 08:56:48 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2605,6 +2605,8 @@ CheckCite:            if (defined $q->param("QCite")) {
       my $particle= undef;
       my $sqlmom="";
       my $sqlamom="";
+      my $sqlmom1="";
+      my $sqlamom1="";
 #
 #   vc   -  remove monstrous loop in summary
 #
@@ -2655,6 +2657,16 @@ CheckCite:            if (defined $q->param("QCite")) {
                    $sqlamom=" AND
                         (runcatalog.jobname not LIKE '%$dataset%' AND runcatalog.run=runs.run)";
 
+
+           if ($q->param("QBuildNum")){
+               my @buildNumber= buildnum_string($q->param("QBuildNum"));
+               my $buildnum_min = $buildNumber[0];
+               my $buildnum_max = $buildNumber[1];
+               $sqlmom1=$sqlmom1." AND (Ntuples.buildno>=$buildnum_min AND Ntuples.buildno<=$buildnum_max) ";
+               $sqlamom1=$sqlamom1." AND (Ntuples.buildno<$buildnum_min OR Ntuples.buildno>$buildnum_max) ";
+           }
+
+
        $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr,
                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime,ntuples.levent,ntuples.fevent
                  FROM runs, jobs, runcatalog, ntuples
@@ -2680,7 +2692,9 @@ CheckCite:            if (defined $q->param("QCite")) {
      }
 
        $sql = $sql.$pps."ORDER BY Runs.Run";
-       $sqlNT = $sqlNT.$pps."ORDER BY Runs.Run";
+      $sqlmom=$sqlmom.$sqlmom1;
+      $sqlamom=$sqlamom.$sqlamom1;
+       $sqlNT = $sqlNT.$sqlmom1." ".$pps."ORDER BY Runs.Run";
 
        my $r1=$self->{sqlserver}->Query($sql);
         if (defined $r1->[0][0]) {
@@ -2713,6 +2727,16 @@ CheckCite:            if (defined $q->param("QCite")) {
                      WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND
                             Runs.run=Ntuples.run AND
                             Runs.run=runcatalog.run AND Runs.Status='Completed'";
+           if ($q->param("QBuildNum")){
+               my @buildNumber= buildnum_string($q->param("QBuildNum"));
+               my $buildnum_min = $buildNumber[0];
+               my $buildnum_max = $buildNumber[1];
+               $sqlmom1=$sqlmom1." AND (Ntuples.buildno>=$buildnum_min AND Ntuples.buildno<=$buildnum_max) ";
+               $sqlamom1=$sqlamom1." AND (Ntuples.buildno<$buildnum_min OR Ntuples.buildno>$buildnum_max) ";
+               die " 1 $sqlmom1 $sqlamom1";
+           }
+
+
 # check TriggerType
            if (defined $q->param("QTrType") and $q->param("QTrType") ne "Any") {
             my $trtype = trimblanks($q->param("QTrType"));
@@ -2737,6 +2761,9 @@ CheckCite:            if (defined $q->param("QCite")) {
                }
            }
 #
+       
+
+
        my @garbage= split /WHERE/,$sql;
         if($#garbage>0){
          $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";           $rsum=$self->{sqlserver}->Query($sqlsum);
@@ -2766,6 +2793,17 @@ CheckCite:            if (defined $q->param("QCite")) {
                          Runs.Status='Completed' AND
                           Runs.run = runcatalog.run AND
                            Runs.run = Ntuples.run ";
+
+           if ($q->param("QBuildNum")){
+               my @buildNumber= buildnum_string($q->param("QBuildNum"));
+               my $buildnum_min = $buildNumber[0];
+               my $buildnum_max = $buildNumber[1];
+               $sqlmom1=$sqlmom1." AND (Ntuples.buildno>=$buildnum_min AND Ntuples.buildno<=$buildnum_max) ";
+               $sqlamom1=$sqlamom1." AND (Ntuples.buildno<$buildnum_min OR Ntuples.buildno>$buildnum_max) ";
+               die " 2 $sqlmom1 $sqlamom1";
+           }
+
+
 # check TriggerType
            if (defined $q->param("QTrType") and $q->param("QTrType") ne "Any") {
             my $trtype = trimblanks($q->param("QTrType"));
@@ -3145,7 +3183,7 @@ CheckCite:            if (defined $q->param("QCite")) {
          $RootAnalysisTemplateTxt=~s/\n/<br>/g;
          print "<tr><td>$RootAnalysisTemplateTxt</td></tr>\n";
 #
-      my $sql = $sqlNT;
+      my $sql =$sqlNT;
       my $r1=$self->{sqlserver}->Query($sql);
       if ($rootfileaccess=~/^NFS/ or $rootfileaccess eq "CASTOR") {
           my $oldrun=0;
@@ -3316,7 +3354,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             if($sqlmom ne ""){
               $r4=$self->{sqlserver}->Query($negative);
             }
-          if($sqlmom eq "" or $#{$r4} ==-1 ){
+          if(($sqlmom eq "" or $#{$r4} ==-1) and $sqlmom1 eq "" ){
            if($dirs_hr[$ind] eq "root"){ 
             $s = "chain.Add(\"".$dirs[$ind]."/*.$dirs_hr[$ind]\");";
            }
@@ -3325,7 +3363,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            } 
           print "<tr><td> $s </tr></td><br>";
           $buff = $buff.$s."\n";
-          }
+       }
           else{
             my $positive= "SELECT ntuples.run From Ntuples,runcatalog WHERE Path like '%$dirs[$ind]/%'  $sqlmom group by ntuples.run ";
             my $r3=$self->{sqlserver}->Query($positive);
@@ -3483,8 +3521,13 @@ CheckCite:            if (defined $q->param("QCite")) {
 # Momentum
       htmlTextField("Momentum min >=","number",7,1.,"QMomI","[GeV/c] :  valuable only if template ");
       htmlTextField("Momentum max =<","number",7,10000.,"QMomA","[GeV/c] : type is ANY");
+     htmlTextField("Build Number ","number",14,0.,"QBuildNum");
      htmlTableEnd();
     htmlTableEnd();
+# Build Number
+
+
+
 # Output format
    print "<b><font color=green> Output :  </font><INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ALL\" > Full Listing\n";
    print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"RUNS\"> Only run numbers;\n";
@@ -14867,3 +14910,49 @@ sub GroupRuns{
      $runo=$ntuple->[2];
    } 
 }
+
+sub buildnum_string {
+my @string = @_;
+my $count = 0;
+my $it = 0;
+my $word= "";
+my $tab = "";
+my $buildnum_min = 100000000;
+my $buildnum_max = 0;
+my $string = "@string";
+my @tab = split (//, $string);
+my @result = ();
+
+foreach my $char (@tab) {
+    if ($char =~/[\d]/) {
+        $word = $word.$char;
+        $count++;
+        if (($it == length($string)-1) and ($count != 0)) {
+            push(@result, $word);
+        }
+    } else {
+        if ($count != 0) {
+            push(@result, $word);
+            $word = "";
+            $count = 0;
+        } else {
+# nothing
+        }
+}
+    $it++;
+    }
+
+#print "numbers:\n";
+foreach my $thing (@result) {
+#    print "$thing\n";
+    if ($thing > $buildnum_max) {
+        $buildnum_max = $thing;
+    }
+    if ($thing < $buildnum_min) {
+        $buildnum_min = $thing;
+    }
+
+}
+return  $buildnum_min, $buildnum_max;
+}
+##############################################
