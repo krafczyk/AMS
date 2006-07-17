@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.19 2006/01/25 11:21:40 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.20 2006/07/17 12:25:54 choutko Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -552,7 +552,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
       if(fabs(tinp-tinpp)>5 && fabs(tinp-tinpp)<200){//curr-prev. meas. ok
 	strr=(tout-toutp)/(tinp-tinpp);
 	offs=tout-strr*tinp;
-	if(strr==0 || offs==0 || temper==0)cout<<" ***>pars=0!"<<endl;
+//	if(strr==0 || offs==0 || temper==0)cout<<" ***>pars=0!"<<endl;
 //        ((TProfile*)_filled[25])->Fill(time[0]-timez[0],strr,1.);
 //        ((TProfile*)_filled[26])->Fill(time[0]-timez[0],offs,1.);
 //        ((TProfile*)_filled[27])->Fill(time[0]-timez[0],temper,1.);
