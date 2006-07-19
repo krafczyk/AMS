@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.435 2006/07/17 08:56:48 choutko Exp $
+# $Id: RemoteClient.pm,v 1.436 2006/07/19 08:33:26 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2733,7 +2733,6 @@ CheckCite:            if (defined $q->param("QCite")) {
                my $buildnum_max = $buildNumber[1];
                $sqlmom1=$sqlmom1." AND (Ntuples.buildno>=$buildnum_min AND Ntuples.buildno<=$buildnum_max) ";
                $sqlamom1=$sqlamom1." AND (Ntuples.buildno<$buildnum_min OR Ntuples.buildno>$buildnum_max) ";
-               die " 1 $sqlmom1 $sqlamom1";
            }
 
 
@@ -2800,7 +2799,6 @@ CheckCite:            if (defined $q->param("QCite")) {
                my $buildnum_max = $buildNumber[1];
                $sqlmom1=$sqlmom1." AND (Ntuples.buildno>=$buildnum_min AND Ntuples.buildno<=$buildnum_max) ";
                $sqlamom1=$sqlamom1." AND (Ntuples.buildno<$buildnum_min OR Ntuples.buildno>$buildnum_max) ";
-               die " 2 $sqlmom1 $sqlamom1";
            }
 
 
@@ -3354,7 +3352,8 @@ CheckCite:            if (defined $q->param("QCite")) {
             if($sqlmom ne ""){
               $r4=$self->{sqlserver}->Query($negative);
             }
-          if(($sqlmom eq "" or $#{$r4} ==-1) and $sqlmom1 eq "" ){
+          if(($sqlmom eq "" or $#{$r4} ==-1)  ){
+#          if(($sqlmom eq "" or $#{$r4} ==-1) and $sqlmom1 eq "" ){
            if($dirs_hr[$ind] eq "root"){ 
             $s = "chain.Add(\"".$dirs[$ind]."/*.$dirs_hr[$ind]\");";
            }
@@ -5682,7 +5681,7 @@ anyagain:
          $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;
          $tmpb=~ s/ROOTNTUPLE=/C ROOTNTUPLE/g;
          $tmpb=~ s/IOPA \$ROOTNTUPLE\'/IOPA \$ROOTNTUPLE\'\n/;
-         $tmpb=~ s/TERM/TGL1 1=8 \nTERM/;
+         #$tmpb=~ s/TERM/TGL1 1=8 \nTERM/;
          my $cputype=$q->param("QCPUType");
          $buf=~ s/PART=/CPUTYPE=\"$cputype\" \nPART=/;
          $buf=~ s/PART=/CLOCK=$clock \nPART=/;
