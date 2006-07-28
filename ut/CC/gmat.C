@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.89 2006/07/13 15:16:04 choutko Exp $
+//  $Id: gmat.C,v 1.90 2006/07/28 14:03:26 choutko Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -11,7 +11,7 @@
 #include "G4Material.hh"
 #include "G4Element.hh"
 #include "G4UnitsTable.hh"
-#include <strstream.h>
+#include <strstream>
 #endif
 integer AMSgmat::debug=0;
 void AMSgmat::_init(){
