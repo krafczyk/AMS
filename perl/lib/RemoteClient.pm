@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.436 2006/07/19 08:33:26 choutko Exp $
+# $Id: RemoteClient.pm,v 1.437 2006/07/31 14:33:54 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1538,6 +1538,7 @@ my $fevt=-1;
                   my $badevents=$ntuple->{ErrorNumber};
                   my $events=$ntuple->{EventNumber};
                   my $status="OK";
+                  my $rcp=1;
                   if(not $suc){
 #
 # try to copy to to local directory
@@ -1569,6 +1570,8 @@ my $fevt=-1;
                     $i=system($cmd);
                     if($i){              
                        warn "$cmd failed \n";
+                       $rcp=0;
+                       
                    }
                     else{ #3
                              $cmd="ssh -x $host rm $fpath";
@@ -1579,14 +1582,19 @@ my $fevt=-1;
                    $suc=open(FILE,"<".$fpath);
                    $ntuple->{Status}="Success";
                      if(not $suc){
-                         die "  unable to open file  $fpath \n";
+                         if($rcp){
+                            die "  unabled to open file  $fpath \n";
+                         }
                      }
             }
 #
 # Only do copy if not validated
 # 
                    if($ntuple->{Status} ne "Validated" or 1){
-                   my  $retcrc = $self->calculateCRC($fpath,$ntuple->{crc});
+                   my $retcrc=0;
+                   if($rcp){
+                    $retcrc = $self->calculateCRC($fpath,$ntuple->{crc});
+                   }
                    print FILEV "calculateCRC($fpath, $ntuple->{crc}) : Status : $retcrc \n";
                    if ($retcrc != 1) {
                        $self->amsprint("********* validateRuns - ERROR- crc status :",666);

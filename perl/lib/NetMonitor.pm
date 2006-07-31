@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.12 2006/05/31 09:39:55 choutko Exp $
+# $Id: NetMonitor.pm,v 1.13 2006/07/31 14:33:54 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -204,7 +204,7 @@ if(not open(FILE,"<".$self->{hostfile})){
         my $gonext=0;
         foreach my $bad (@{$self->{bad}}){
             my @sbad=split ' ',$bad;
-            if($sbad[0] eq $host){
+            if($sbad[0] ){
                 $gonext=1;
                 last;
             }
