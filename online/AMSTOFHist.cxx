@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.20 2006/07/17 12:25:54 choutko Exp $
+//  $Id: AMSTOFHist.cxx,v 1.21 2006/09/04 14:10:31 choumilo Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -177,7 +177,7 @@ void AMSTOFHist::Book(){
   _filled[_filled.size()-1]->SetXTitle("TofPadNumber");
   _filled[_filled.size()-1]->SetYTitle("NormEdep(Mev)");
   
-  _filled.push_back(new TProfile("tofh23","Edep(mip)<->longCoo, id=204",13,-65,65,0.1,8));
+  _filled.push_back(new TProfile("tofh23","Edep(aver,mip)<->longCoo, id=204",13,-65,65,0.1,8));
   _filled[_filled.size()-1]->SetXTitle("TofLongCoord(cm)");
   _filled[_filled.size()-1]->SetYTitle("NormEdep(Mev)");
 //
@@ -189,10 +189,14 @@ void AMSTOFHist::Book(){
 //
   AddSet("TofTimeStability");
   
-  _filled.push_back(new TProfile("tofh25","LBBS=1041 Stretcher vs Time",120,0,toftrange[2],10,40));
-  _filled[_filled.size()-1]->SetYTitle("Stretch_Factor");
-  _filled.push_back(new TProfile("tofh26","LBBS=1041 Offset vs Time",120,0,toftrange[2],600,1600));
-  _filled[_filled.size()-1]->SetYTitle("Stretcher_Offset");
+    _filled.push_back(new TProfile("tofh25","LBBS=1041 TimeHits vs Time",120,0,toftrange[2],0,16));
+    _filled[_filled.size()-1]->SetYTitle("Number of hits");
+    _filled.push_back(new TProfile("tofh26","LBBS=1041 HistHits vs Time",120,0,toftrange[2],0,16));
+    _filled[_filled.size()-1]->SetYTitle("Number of hits");
+//    _filled.push_back(new TProfile("tofh25","LBBS=1041 Stretcher vs Time",120,0,toftrange[2],10,40));
+//    _filled[_filled.size()-1]->SetYTitle("Stretch_Factor");
+//    _filled.push_back(new TProfile("tofh26","LBBS=1041 Offset vs Time",120,0,toftrange[2],600,1600));
+//    _filled[_filled.size()-1]->SetYTitle("Stretcher_Offset");
   _filled.push_back(new TProfile("tofh27","LBBS=1041 temperature vs Time",120,0,toftrange[2],-40,40));
   _filled[_filled.size()-1]->SetYTitle("SFETTemperature(degree)");
 }
@@ -203,6 +207,7 @@ void AMSTOFHist::ShowSet(Int_t Set){
   Float_t binc[30]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   Int_t nentr;
+  Float_t p1min,p1max,p2min,p2max;
 //
   gPad->Clear();
   TVirtualPad * gPadSave = gPad;
@@ -399,6 +404,10 @@ case 5:
 //
 case 6:
   gPad->Divide(1,3);
+  p1min=0;
+  p1max=16;
+  p2min=0;
+  p2max=32;
   for(i=0;i<3;i++){
     gPad->cd(i+1);
     gPad->SetGrid();
@@ -410,16 +419,16 @@ case 6:
     _filled[i+25]->SetMarkerColor(2);
     _filled[i+25]->SetMarkerSize(0.5);
     if(i==0){
-      _filled[i+25]->SetMinimum(10);
-      _filled[i+25]->SetMaximum(40);
+      _filled[i+25]->SetMinimum(p1min);
+      _filled[i+25]->SetMaximum(p1max);
 //      strcpy(name,"Last 120mins since ");
 //      strcpy(dat,RunPar::getdat1());
       strcpy(name,"Last 120days since ");
       strcpy(dat,RunPar::getdat3());
     }
     if(i==1){
-      _filled[i+25]->SetMinimum(400);
-      _filled[i+25]->SetMaximum(1600);
+      _filled[i+25]->SetMinimum(p2min);
+      _filled[i+25]->SetMaximum(p2max);
 //      strcpy(name,"Last 120mins since ");
 //      strcpy(dat,RunPar::getdat1());
       strcpy(name,"Last 120days since ");
@@ -533,7 +542,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 //
 //--------> StrRatio temperature behaviour study(based on TofRawSide-Obj):
 //
-  Int_t swid,hwid,crat,slot;
+  Int_t swid,hwid,crat,slot,nfthits,ntmhits,nhihits;
   Float_t tinp,tout,temper,strr,offs;
   Float_t strtms[4];
   Int_t ntofrs=ntuple->NTofRawSide();//total tof-raw_sides
@@ -544,24 +553,37 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
     hwid=p2raws->hwid;//CS
     crat=hwid/10;
     slot=hwid%10;
-    for(int j=0;j<4;j++)strtms[j]=p2raws->stdc[j];
-    tinp=strtms[0]-strtms[1];
-    tout=strtms[1]-strtms[3];
+    if(ntuple->Version()>170){
+      nfthits=p2raws->nftdc;
+      ntmhits=p2raws->nstdc;
+      nhihits=p2raws->nsumh;
+    }
+    else{
+      for(int j=0;j<4;j++)strtms[j]=p2raws->stdc[j];
+      tinp=strtms[0]-strtms[1];
+      tout=strtms[1]-strtms[3];
+    }
     temper=p2raws->temp;
     if(swid==1041){
-      if(fabs(tinp-tinpp)>5 && fabs(tinp-tinpp)<200){//curr-prev. meas. ok
-	strr=(tout-toutp)/(tinp-tinpp);
-	offs=tout-strr*tinp;
-//	if(strr==0 || offs==0 || temper==0)cout<<" ***>pars=0!"<<endl;
+      if(ntuple->Version()>170){
+        ((TProfile*)_filled[25])->Fill(time[2]-timez[2],ntmhits,1.);
+        ((TProfile*)_filled[26])->Fill(time[2]-timez[2],nhihits,1.);
+      }
+      else{
+        if(fabs(tinp-tinpp)>5 && fabs(tinp-tinpp)<200){//curr-prev. meas. ok
+	  strr=(tout-toutp)/(tinp-tinpp);
+	  offs=tout-strr*tinp;
+//	  if(strr==0 || offs==0 || temper==0)cout<<" ***>pars=0!"<<endl;
 //        ((TProfile*)_filled[25])->Fill(time[0]-timez[0],strr,1.);
 //        ((TProfile*)_filled[26])->Fill(time[0]-timez[0],offs,1.);
 //        ((TProfile*)_filled[27])->Fill(time[0]-timez[0],temper,1.);
-        ((TProfile*)_filled[25])->Fill(time[2]-timez[2],strr,1.);
-        ((TProfile*)_filled[26])->Fill(time[2]-timez[2],offs,1.);
-        ((TProfile*)_filled[27])->Fill(time[2]-timez[2],temper,1.);
+          ((TProfile*)_filled[25])->Fill(time[2]-timez[2],strr,1.);
+          ((TProfile*)_filled[26])->Fill(time[2]-timez[2],offs,1.);
+        }
+        tinpp=tinp;
+        toutp=tout;
       }
-      tinpp=tinp;
-      toutp=tout;
+      ((TProfile*)_filled[27])->Fill(time[2]-timez[2],temper,1.);
     }
   }// --- end of hits loop --->
 //<--------

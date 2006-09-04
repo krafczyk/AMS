@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.486 2006/07/14 13:17:16 choumilo Exp $
+// $Id: job.C,v 1.487 2006/09/04 14:10:12 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1124,7 +1124,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[8]=50.;//(26) spare 
   TFREFFKEY.cuts[9]=0.;// (27) 
 //
-  TFREFFKEY.ReadConstFiles=101;//(28) QDPC(Q->ChargeCalib(mc/rd),D->ThreshCuts-set,P->Peds(rd),
+  TFREFFKEY.ReadConstFiles=1101;//(28) QDPC(Q->ChargeCalib(mc/rd),D->ThreshCuts-set,P->Peds(rd),
 //                                                                       C->CalibConst(rd/mc));
 // Q=1/0->Take ChargeCalibDensFunctions from RawFiles/DB
 // D=1/0->Take ThreshCuts-set from DataCards/DB,

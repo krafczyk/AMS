@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.42 2006/07/06 14:48:33 choutko Exp $
+//  $Id: tkdbc.C,v 1.43 2006/09/04 14:10:12 choumilo Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -3657,9 +3657,9 @@ void TrkElosPDF::build(){// create TofElosPDF-objects array for real/mc data
 }
 //---
 number TrkElosPDF::getlkhd(int nhits, int htype[], number ehit[], number beta){
-  number eh,cor,fac,betapow,betacor,betamax(0.95),lkhd(0);
+  number eh,cor,fac,betapow,betacor,betamax(0.94),lkhd(0);
   int ia,htyp;
-  betapow=1.75;//my estimation, works better than 5/3, the same for all nucl.
+  betapow=1.78;//my estimation, works better than 5/3, the same for all nucl<=C12)
   betacor=ichar?pow(min(fabs(beta/betamax),1.),betapow):1;//corr to "mip"(=1 for ichar=0(electrons))
   for(int ih=0;ih<nhits;ih++){//hits loop
     htyp=htype[ih];

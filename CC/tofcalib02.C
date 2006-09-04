@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.16 2006/07/14 13:17:17 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.17 2006/09/04 14:10:13 choumilo Exp $
 #include "tofdbc02.h"
 #include "point.h"
 #include "typedefs.h"
@@ -1863,8 +1863,8 @@ void TOF2AMPLcalib::select(){ // ------> event selection for AMPL-calibration
 //
     number betnor,absbet;
     absbet=fabs(betof);// beta from TOF  
-    if(absbet<0.95)betnor=pow(absbet,number(1.82))
-                       /pow(number(0.95),number(1.82));//norm.factor to MIP
+    if(absbet<0.94)betnor=pow(absbet,number(1.83))
+                       /pow(number(0.94),number(1.83));//norm.factor to MIP(pr)
     else betnor=1;
 //    
     for(il=0;il<TOF2GC::SCLRS;il++){

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.33 2006/07/14 13:17:17 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.34 2006/09/04 14:10:13 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -2999,7 +2999,7 @@ void TofElosPDF::build(){// create TofElosPDF-objects array for real/mc data
 }
 //---
 number TofElosPDF::getlkhd(int nhits, int hstat[], number ehit[], number beta){
-  number eh,xmax,hend,betapow,betacor,betamax(0.95),lkhd(0);
+  number eh,xmax,hend,betapow,betacor,betamax(0.94),lkhd(0);
   int ia;
   betapow=bpow;//now depends on Z-index
   betacor=ichar?pow(min(fabs(beta/betamax),1.),betapow):1;//corr to "mip"(=1 for ichar=0(electrons))
