@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.342 2006/07/28 14:03:26 choutko Exp $
+//  $Id: event.C,v 1.343 2006/09/14 15:34:49 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -376,8 +376,8 @@ _sirichinitrun();
 
 void AMSEvent::_reamsinitrun(){
 if(AMSJob::gethead()->isProduction() ){
- if(!SRun){
-  //HDELET(0);
+ if(SRun){
+  HDELET(0);
   AMSJob::gethead()->uhinit(getrun(),getid(),gettime());
  }
  else if(AMSJob::gethead()->isRealData()){

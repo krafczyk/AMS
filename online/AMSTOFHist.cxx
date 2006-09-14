@@ -1,4 +1,4 @@
-//  $Id: AMSTOFHist.cxx,v 1.21 2006/09/04 14:10:31 choumilo Exp $
+//  $Id: AMSTOFHist.cxx,v 1.22 2006/09/14 15:34:56 choutko Exp $
 // v1.0 E.Choumilov, 12.05.2005
 // v1.1 E.Choumilov, 19.01.2006
 // 
@@ -515,7 +515,7 @@ void AMSTOFHist::Fill(AMSNtupleR *ntuple){
 //--->long Time-range histogr. resets:
 //
   if((time[2]-timez[2])>=toftrange[2]){
-  cout<<"---->Reset"<<endl;
+  //cout<<"---->Reset"<<endl;
     ((TProfile*)_filled[25])->Reset("");
     ((TProfile*)_filled[26])->Reset("");
     ((TProfile*)_filled[27])->Reset("");

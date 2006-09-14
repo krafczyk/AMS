@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.182 2005/06/06 11:44:02 choutko Exp $
+//  $Id: trrec.C,v 1.183 2006/09/14 15:34:50 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -3404,7 +3404,7 @@ void AMSTrTrack::_buildaddress(){
 
 void AMSTrTrack::decodeaddress(integer ladder[2][trconst::maxlay], uinteger _Address){
    for(int i=0;i<TKDBc::nlay();i++){
-    uinteger lad=(_Address/TKDBc::Cumulus(i+1))%(2*TKDBc::nlad(i+1)+1);
+    uinteger lad=(_Address/TKDBc::Cumulus(i+1))%(2*TKDBc::nlad(i+1)+2);
     ladder[0][i]=lad%(TKDBc::nlad(i+1)+1);
     ladder[1][i]=lad/(TKDBc::nlad(i+1)+1);
     //cout <<i+1<< " "<<ladder[0][i]<<" "<<ladder[1][i]<<endl; 

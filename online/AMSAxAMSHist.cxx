@@ -1,4 +1,4 @@
-//  $Id: AMSAxAMSHist.cxx,v 1.10 2005/07/28 16:53:22 choutko Exp $
+//  $Id: AMSAxAMSHist.cxx,v 1.11 2006/09/14 15:34:56 choutko Exp $
 #include <iostream>
 #include "AMSNtuple.h"
 #include "AMSDisplay.h"
@@ -208,12 +208,10 @@ void AMSAxAMSHist::Fill(AMSNtupleR * ntuple){
      if (fabs(ntuple->pParticle(0)->Momentum) !=0)err=err/fabs(ntuple->pParticle(0)->Momentum);
     } 
     ((TProfile*)_filled[6])->Fill(fabs(ntuple->pParticle(0)->Momentum),err,1.);
-     return;
     _filled[7]->Fill(ntuple->pParticle(0)->TOFCoo[0][0],1.);
     _filled[8]->Fill(ntuple->pParticle(0)->TOFCoo[0][1],1.);
     _filled[9]->Fill(ntuple->pParticle(0)->Theta*180./3.1415926,1.);
     _filled[10]->Fill(ntuple->pParticle(0)->Phi*180./3.1415926,1.);
-    cout << "  nmceve "<<ntuple->nMCEventg()<<endl;
      if(ntuple->nMCEventg()>0){		
         MCEventgR mc_ev=ntuple->MCEventg(0);
         double xm = log(mc_ev.Momentum);

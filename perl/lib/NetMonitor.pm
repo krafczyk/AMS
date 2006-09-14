@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.13 2006/07/31 14:33:54 ams Exp $
+# $Id: NetMonitor.pm,v 1.14 2006/09/14 15:34:58 choutko Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -130,6 +130,7 @@ if(not open(FILE,"<".$self->{hostfile})){
     $#{$self->{bad}}=-1; 
     my $mes="NetMonitor-W-SomeHostsAreDown";
     foreach my $host (@{$self->{hosts}}) {
+        print "$host \n";
         if($self->{ping}->ping($host)){
         }
         else{

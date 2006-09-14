@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.161 2006/07/14 13:17:17 choumilo Exp $
+//  $Id: ntuple.C,v 1.162 2006/09/14 15:34:50 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -135,7 +135,7 @@ void AMSNtuple::init(){
   "nmcg[0,100],nskip(nmcg):I,Particle(nmcg)[-200,500]:I,coo(3,nmcg),dir(3,nmcg),momentum(nmcg):R,mass(nmcg):R,charge(nmcg):R");
 
   HBNAME(_lun,"MCTrack",&_mct.Nmct,
-  "nmct[0,200],radl(nmct),absl(nmct),pos(3,nmct),vname(nmct):I");
+  "nmct[0,500],radl(nmct),absl(nmct),pos(3,nmct),vname(nmct):I");
 
   HBNAME(_lun,"AntiClus",&_anti.Nanti,
  "nanti[0,8],AntiStatus(nanti):I,AntiSector(nanti)[0,8]:I,AnNtimes(nanti)[0,16]:I,AnNpairs(nanti)[0,8]:I,AnTimes(16,nanti),AnTimesE(16,nanti),AntiEdep(nanti),AntiCoo(3,nanti),AntiErCoo(3,nanti)");
