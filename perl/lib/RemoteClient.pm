@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.437 2006/07/31 14:33:54 ams Exp $
+# $Id: RemoteClient.pm,v 1.438 2006/10/16 08:56:17 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2693,10 +2693,19 @@ CheckCite:            if (defined $q->param("QCite")) {
 #
 
       my @garbage= split /WHERE/,$sql;
+       my $rf="NFS";
+         if (defined $q->param("ROOTACCESS")) {
+             $rf = $q->param("ROOTACCESS");
+         } 
       if($#garbage>0){
-        $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";
+          my $addf="";
+        if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
+            $addf=" and ntuples.path not like '%castor%'";
+        }
+        $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run".$addf;
            $rsum=$self->{sqlserver}->Query($sqlsum);
         # die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
+
      }
 
        $sql = $sql.$pps."ORDER BY Runs.Run";
@@ -2770,10 +2779,19 @@ CheckCite:            if (defined $q->param("QCite")) {
 #
        
 
+       my $rf="NFS";
+         if (defined $q->param("ROOTACCESS")) {
+             $rf = $q->param("ROOTACCESS");
+         } 
 
        my @garbage= split /WHERE/,$sql;
         if($#garbage>0){
-         $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";           $rsum=$self->{sqlserver}->Query($sqlsum);
+          my $addf="";
+        if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
+            $addf=" and ntuples.path not like '%castor%'";
+        }
+        $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run".$addf;
+#         $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";           $rsum=$self->{sqlserver}->Query($sqlsum);
          # die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
       }
             $sql = $sql.$pps." ORDER BY Runs.Run";
@@ -2832,8 +2850,17 @@ CheckCite:            if (defined $q->param("QCite")) {
            }
 #
             my @garbage= split /WHERE/,$sql;
+       my $rf="NFS";
+         if (defined $q->param("ROOTACCESS")) {
+             $rf = $q->param("ROOTACCESS");
+         } 
              if($#garbage>0){
-              $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";
+          my $addf="";
+        if($rf=~/^NFS/ and $sqlsum=~/ntuples/){
+            $addf=" and ntuples.path not like '%castor%'";
+        }
+        $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run".$addf;
+#              $sqlsum=$sqlsum." where ".$garbage[1].$pps." and ntuples.run=runs.run";
               $rsum=$self->{sqlserver}->Query($sqlsum);
 #             die "$sqlsum $rsum->[0][0] $rsum->[0][1] $rsum->[0][2] ";
           }
@@ -3086,12 +3113,17 @@ CheckCite:            if (defined $q->param("QCite")) {
            }
           my $rsump=$self->{sqlserver}->Query($sql);
            my @sqla=split 'where',$sql;
-           $sqla[1]=~s/and ntuples.run=runs.run//;
-           $sql="select count(jobs.jid) from jobs,runcatalog,runs where ".$sqla[1];
+#           $sqla[1]=~s/and ntuples.run=runs.run//;
+#           $sqla[1]=~s/and ntuples.path not like \'\%castor\%\'//;
+           $sql="select count(jobs.jid) from jobs,runcatalog,runs,ntuples where ".$sqla[1]." group by ntuples.run";
           my $rsuma=$self->{sqlserver}->Query($sql);
+          my $i=0;
+          foreach my $p (@{$rsuma}){
+              $i++;
+          }
           push @temp,$like;
-          push @temp,$rsuma->[0][0];
-          $nruns+=$rsuma->[0][0];
+          push @temp,$i;
+          $nruns+=$i;
           push @temp,$rsump->[0][0];
           push @temp,int($rsump->[0][1]/100)/10; 
           push @temp,$rsump->[0][2];
