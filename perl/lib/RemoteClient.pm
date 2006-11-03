@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.438 2006/10/16 08:56:17 choutko Exp $
+# $Id: RemoteClient.pm,v 1.439 2006/11/03 12:48:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -114,7 +114,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks UploadToCastor GroupRuns);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks MoveBetweenDisks UploadToCastor GroupRuns);
 
 # debugging
 my $benchmarking = 0;
@@ -6854,7 +6854,7 @@ sub checkJobsTimeout {
             if ($update == 1){
               $self->{sqlserver}->Update($sql);  
             }
-                $sql="update jobs set timekill=0,events=$q->[0][2],error=$q->[0][3],mips=0 where jid=$jtokill->[0]";
+                $sql="update jobs set timekill=0,events=$q->[0][2],errors=$q->[0][3],mips=0 where jid=$jtokill->[0]";
             if ($update == 1){
                 $self->{sqlserver}->Update($sql);
             }
@@ -14516,7 +14516,7 @@ sub UploadToDisks{
 #   1 if ok  0 otherwise
 #
 # 
-    my ($self,$dir,$verbose,$update,$run2p)= @_;
+    my ($self,$dir,$verbose,$update,$run2p,$filesystem)= @_;
                                                                                 
   my $castorPrefix = '/castor/cern.ch/ams';
                                                                                 
@@ -14572,7 +14572,12 @@ sub UploadToDisks{
        my $disk=undef;
         my $dir=undef;
        if(defined $ret_nt->[0][0]){
-        $disk=$self->CheckFS(1,300);
+           if(not defined $filesystem){
+            $disk=$self->CheckFS(1,300);
+           }
+           else{
+               $disk=$filesystem;
+           }
         if(not defined $disk){
          if($verbose){
            print "  No FileSystem Available, Exiting \n ";
@@ -14665,6 +14670,106 @@ sub UploadToDisks{
           }
        }
 }
+
+
+sub MoveBetweenDisks{
+#
+#  Move files between disks
+#  Updates catalogs
+#
+# input par: #  $dir:   path to  files like /disk/MC/AMS02/2005A/dir
+#                                     /dir are optional ones
+#  $verbose   verbose if 1
+#  $update    do sql/file rm  if 1
+#  $run2p   only process run $run2p if not 0
+#  $newdisk  (optional)   path to new disk
+#  output par:
+#   1 if ok  0 otherwise
+#
+# 
+    my ($self,$dir,$verbose,$update,$irm,$tmp,$run2p,$newd)= @_;
+                                                                                
+    if($irm){
+        $irm="rm -i ";
+    }
+    else{
+        $irm="rm ";
+    }
+
+  my $castorPrefix = '/castor/cern.ch/ams';
+                                                                                
+  my $rfcp="/usr/local/bin/rfcp ";
+  my $whoami = getlogin();
+  if ($whoami =~ 'ams' or $whoami =~'casadmva') {
+  } elsif(defined $whoami) {
+   print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
+#   return 0;
+  }
+   my $runs=0;
+   my $bad_runs=0;
+    my $sql ="select run,sum(sizemb) from ntuples where path like '$dir%' group by run";
+   my $ret =$self->{sqlserver}->Query($sql);
+   foreach my $ds (@{$ret}){
+       my $run=$ds->[0];
+       if($run2p ne 0 and $run2p ne $run){
+           next;
+       }
+       $sql=" select path,castortime from ntuples where run=$ds->[0]";
+       my $r1=$self->{sqlserver}->Query($sql);
+       my $disk=$self->CheckFS(1,30);
+       if(defined $newd){
+        my $r2=$self->{sqlserver}->Query("select available from filesystems where disk='$newd' and isonline=1");
+        if(defined $r2 and $r2->[0]>$ds->[1]){
+            $disk=$newd;
+        }
+      }
+       foreach my $ds1 (@{$r1}){
+           my $file=$ds1->[0];
+           my @junk=split '\/',$file;
+           my $newfile=$disk;
+           for my $j (2...$#junk){
+               $newfile=$newfile.'/'.$junk[$j];
+           }
+           my $cp="cp -pi $file $newfile";
+           my $i=system($cp);
+           if($i){
+             if($verbose){
+                 print "Problem to $cp";
+             }
+#
+# get the file from castor
+#      
+             if($ds1->[1]>0){
+                 my $ok1=$self->RemoveFromDisks($dir,$verbose,$update,$irm,$tmp,$run,1);
+                 my $ok2=$self->UploadToDisks($dir,$verbose,$update,$run,$disk);
+                 last;
+             }
+         }
+           else{
+#
+# update catalogs and remove files from old location
+#
+              if($update){
+               my $timenow=time();
+                $sql="update ntuples set path='$newfile', timestamp=$timenow where path='$file'";
+                $self->{sqlserver}->Update($sql);
+               }
+               my $res=$self->{sqlserver}->Commit();
+               if(!$res){
+                 if($verbose){
+                     print " Commit failed for $file \n";                                      }
+                 system("$irm  $newfile");
+                 last;
+             }
+              else{
+                  system("$irm  $file");
+              }
+          }
+       }
+   }
+}
+             
+             
 
 
 
