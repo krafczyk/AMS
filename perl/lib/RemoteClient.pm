@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.439 2006/11/03 12:48:45 choutko Exp $
+# $Id: RemoteClient.pm,v 1.440 2006/11/04 17:55:07 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14546,16 +14546,23 @@ sub UploadToDisks{
         if($verbose){
             print "No datasets found for $dir \n";
         }
-        return 0;
+         if($run2p eq 0){
+           return 0;
+       }
     }
+    if($did>0){
     $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '$castorPrefix%$dir%'";
+}
+    else{
+    $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and  runs.run=ntuples.run and jobs.jid=$run2p and ntuples.path like '$castorPrefix%'";
+} 
    $ret =$self->{sqlserver}->Query($sql);
     foreach my $run (@{$ret}){
        my $timenow = time();
     if($run2p ne 0 and $run2p ne $run->[0]){
       next;
     }
-        $sql="select path,crc from ntuples where  run=$run->[0] and path like '%$dir%' and castortime>0 and path not like '/castor%'";
+        $sql="select path,crc from ntuples where  run=$run->[0]  and castortime>0 and path not like '/castor%'";
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
       $runs++;
@@ -14567,7 +14574,8 @@ sub UploadToDisks{
        $bad_runs++;  
        next;
       }
-       $sql="select path,crc from ntuples where  run=$run->[0] and path like '$castorPrefix%$dir%' and castortime>0 "; 
+#       $sql="select path,crc from ntuples where  run=$run->[0] and path like '$castorPrefix%$dir%' and castortime>0 "; 
+       $sql="select path,crc from ntuples where  run=$run->[0] and path like '$castorPrefix%' and castortime>0 "; 
        $ret_nt =$self->{sqlserver}->Query($sql);
        my $disk=undef;
         my $dir=undef;
@@ -14688,22 +14696,20 @@ sub MoveBetweenDisks{
 #
 # 
     my ($self,$dir,$verbose,$update,$irm,$tmp,$run2p,$newd)= @_;
-                                                                                
+    my $rm;                                                                                
     if($irm){
-        $irm="rm -i ";
+        $rm="rm -i ";
     }
     else{
-        $irm="rm ";
+        $rm="rm ";
     }
 
-  my $castorPrefix = '/castor/cern.ch/ams';
                                                                                 
-  my $rfcp="/usr/local/bin/rfcp ";
   my $whoami = getlogin();
   if ($whoami =~ 'ams' or $whoami =~'casadmva') {
   } elsif(defined $whoami) {
    print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
-#   return 0;
+   return 0;
   }
    my $runs=0;
    my $bad_runs=0;
@@ -14718,8 +14724,9 @@ sub MoveBetweenDisks{
        my $r1=$self->{sqlserver}->Query($sql);
        my $disk=$self->CheckFS(1,30);
        if(defined $newd){
-        my $r2=$self->{sqlserver}->Query("select available from filesystems where disk='$newd' and isonline=1");
-        if(defined $r2 and $r2->[0]>$ds->[1]){
+        $sql="select available from filesystems where disk='$newd' and isonline=1";
+        my $r2=$self->{sqlserver}->Query($sql);
+        if(defined $r2 and ${$r2}[0]->[0]>$ds->[1]){
             $disk=$newd;
         }
       }
@@ -14734,7 +14741,7 @@ sub MoveBetweenDisks{
            my $i=system($cp);
            if($i){
              if($verbose){
-                 print "Problem to $cp";
+                 print "Problem to $cp \n";
              }
 #
 # get the file from castor
@@ -14758,11 +14765,11 @@ sub MoveBetweenDisks{
                if(!$res){
                  if($verbose){
                      print " Commit failed for $file \n";                                      }
-                 system("$irm  $newfile");
+                 system("$rm  $newfile");
                  last;
              }
               else{
-                  system("$irm  $file");
+                  system("$rm  $file");
               }
           }
        }
@@ -14834,10 +14841,16 @@ sub RemoveFromDisks{
         if($verbose){
             print "No datasets found for $dir \n";
         }
-        return 0;
+        if($run2p eq 0){
+           return 0;
+       }
     }
-    
+ if($did>0){   
     $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '%$dir%'";
+}
+    else{
+    $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.jid=$run2p and runs.run=ntuples.run and ntuples.path like '%$dir%'";
+    }
    $ret =$self->{sqlserver}->Query($sql);
     foreach my $run (@{$ret}){
        my $timenow = time();
@@ -14907,8 +14920,17 @@ sub RemoveFromDisks{
                $sql="update ntuples_deleted set timestamp=$timenow where run=$run->[0]";
                $self->{sqlserver}->Update($sql);
                foreach my $ntuple (@{$ret_nt}){
-                my @junk=split $name_s,$ntuple->[0];
-                my $castor=$castorPrefix."/$name$junk[1]";
+                   my $castor=$castorPrefix;
+                   if($did<0){
+                       my @junk=split '\/',$ntuple->[0];
+                       for my $j (3...$#junk){
+                        $castor=$castor."/$junk[$j]";
+                    }
+              }
+                   else{
+                    my @junk=split $name_s,$ntuple->[0];
+                     $castor=$castor."/$name$junk[1]";
+                   }
                 $sql="update ntuples set path='$castor', timestamp=$timenow where path='$ntuple->[0]'";
                 $self->{sqlserver}->Update($sql);
                 $sys=$irm." $ntuple->[0]";
