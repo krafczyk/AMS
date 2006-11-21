@@ -1,4 +1,4 @@
-//  $Id: id.C,v 1.18 2005/05/17 09:54:05 pzuccon Exp $
+//  $Id: id.C,v 1.19 2006/11/21 15:57:14 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include "id.h"
@@ -87,3 +87,5 @@ AMSID AMSID::operator *( const AMSID &o){
  return AMSID(_id*o._id,getname());
 }
 
+
+// AMSi64 stuff

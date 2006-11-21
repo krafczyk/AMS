@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.32 2006/03/14 11:01:04 choutko Exp $
+#  $Id: Makefile,v 1.33 2006/11/21 15:57:22 choutko Exp $
 
 #P.Zuccon june 2005
 
@@ -71,7 +71,7 @@ SFF = ../F/
 
 ROOTLIBS      = -L$(ROOTSYS)/lib  -lRoot 
 
-CPPFLAGS=      -D__BATCH__     -D__WRITEROOT__ -D__ROOTPOINTERS__ 
+CPPFLAGS=      -D__AMS02DAQ__ -D__BATCH__     -D__WRITEROOT__ -D__ROOTPOINTERS__ 
 INCPATHS= -I../include -I$(CERNDIR)/include -I$(ROOTSYS)/include
 CPPFLAGS+= $(INCPATHS)
 

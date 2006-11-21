@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.77 2005/05/17 09:54:03 pzuccon Exp $
+//  $Id: daqevt.C,v 1.78 2006/11/21 15:57:14 choutko Exp $
 #include <stdio.h>
 #include "daqevt.h"
 #include "event.h"
@@ -90,8 +90,11 @@ void DAQEvent::addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget,uinteger
   }
 }
 
-
+#ifdef __AMS02DAQ__
+const integer DAQEvent::_OffsetL=0;
+#else
 const integer DAQEvent::_OffsetL=1;
+#endif
 char ** DAQEvent::ifnam=0;
 integer DAQEvent::InputFiles=0;
 integer DAQEvent::KIFiles=0;
@@ -180,7 +183,33 @@ if(_create(btype) ){
  
 
 integer DAQEvent::_EventOK(){
+#ifdef __AMS02DAQ__
+  if(_Length >1 && _pData ){
+     integer ntot=0;
+     _pcur=_pData+2;
+     for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL) {
+      ntot+=*(_pcur)+_OffsetL;
+     }
+    if(ntot != _Length-2){             //  ?  I don't know
+       cerr <<"DAQEvent::_Eventok-E-length mismatch: Header says length is "<<
+         _Length<<" Blocks say length is "<<ntot+2<<endl;
+       cerr <<" SubBlock dump follows"<<endl;
+     _pcur=_pData+2;
+     for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL)
+       cerr <<" ID " <<*(_pcur+1)<<" Length "<< *(_pcur)+_OffsetL<<endl;
+      if(!fbin.good()){
+        cerr<<" DAQEvent::_Eventok-S-HardError,CouldNotReadFile"<<endl;
+      }
+      if(fbin.eof()){
+        cerr<<"DAQEvent::_Eventok-W-UnexpectedEOF"<<endl;
+      }
+       return 0;
+      }
+     else return 1;    
+   }
+   return 0;
 
+#else  
   const int tofidL = 0x1400;
   const int tofidR = 0x15C1;
 
@@ -249,6 +278,7 @@ integer DAQEvent::_EventOK(){
     }
   }
   else return 0;
+#endif
 }
 
 integer DAQEvent::_HeaderOK(){
@@ -283,6 +313,22 @@ integer DAQEvent::_HeaderOK(){
 
 
 void DAQEvent::buildRawStructures(){
+#ifdef __AMS02DAQ__
+  if(_Checked ||(_EventOK()==1 && (_HeaderOK()))){
+   DAQSubDet * fpl=_pSD[_GetBlType()];
+   while(fpl){
+   for(_pcur=_pData+lover;_pcur < _pData+_Length;_pcur=_pcur+*_pcur+_OffsetL){
+    for(int16u * pdown=_pcur+1;pdown<_pcur+*_pcur+_OffsetL;pdown=pdown+*pdown){
+    if(fpl->_pgetid(*(pdown+*(pdown+*pdown-1)))){
+     int16u *psafe=pdown+1;
+     fpl->_pputdata(*pdown,psafe);
+    }
+   }
+   }
+   fpl=fpl->_next; 
+   }
+  }
+#else
   if(_Checked ||(_EventOK()==1 && (_HeaderOK()))){
    DAQSubDet * fpl=_pSD[_GetBlType()];
    while(fpl){
@@ -306,6 +352,7 @@ void DAQEvent::buildRawStructures(){
    fpl=fpl->_next; 
    }
   }
+#endif
 }
 
 

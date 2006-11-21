@@ -53,7 +53,7 @@ FFLAGS=   -fno-automatic -O -I../include
 #FFLAGS=   -fno-automatic -g -I../include
 DFLAGS=    -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
 #LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
-LDFLAGS= -static -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -L/cern/pro/lib    -lpacklib -lmathlib -lkernlib  -lshift -lnsl -L/usr/local/lib    -lm   -lg2c -ldl -lfreetype $(RH9add)
+LDFLAGS= -static -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -L/cern/pro/lib    -lpacklib -lmathlib -lkernlib  -lshift -lnsl -L/usr/local/lib    -lm   -lg2c -ldl -lfreetype -lpcre $(RH9add) -lnsl /usr/lib/nsswitch.o --start-group -lnss_files -lnss_dns -lresolv --end-group
 CC=g++
 FF=g77
 LD=g++
@@ -82,9 +82,9 @@ endif
 #
 SCC=../CC/
 SHLD=..$(LIB)/ntuple.so
-FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)rootread.C
-OBJECTS= $(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o
-..$(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o
+FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)rootread.C $(SCC)id.C
+OBJECTS= $(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o $(BIN)id.o
+..$(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o $(BIN)id.o
 	$(LD) -v -o ..$(EXE)/fastntrd.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
 	chmod +x  ..$(EXE)/fastntrd.exe 
@@ -99,6 +99,9 @@ $(BIN)fntread.o:         ../F/fntread.F
 
 $(BIN)root_rs.o:    	 $(SCC)root.C
 	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
+
+$(BIN)id.o:    	 $(SCC)id.C
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)id.C -o $(BIN)id.o
 
 $(BIN)rootread.o:    	 $(SCC)rootread.C
 	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)rootread.C -o $(BIN)rootread.o

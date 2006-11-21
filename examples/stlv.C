@@ -1,6 +1,6 @@
-///   \example stlv.C
+///   \example tracc.C
 ///
-#define stlv_cxx
+#define tracc_cxx
 #include "../include/root_RVS.h"
 #include "TF1.h"
 #include "TH2.h"
@@ -14,7 +14,7 @@
 #include <TTree.h>
 /** 
  * This is an example of how to work with AMS Root Files. 
- *  \sa stlv
+ *  \sa tracc
  */
 
 
@@ -34,22 +34,22 @@
     bool UProcessCut(): called in the entry loop to accept/reject an event \n
 
    To use this file, try the following session on your Tree T: \n
- Root > T->Process("stlv.C+") -> compile library if not up to date \n
- Root > T->Process("stlv.C++") -> force always compilation \n
- Root > T->Process("stlv.C")  -> non-compiled (interpreted) mode \n
+ Root > T->Process("tracc.C+") -> compile library if not up to date \n
+ Root > T->Process("tracc.C++") -> force always compilation \n
+ Root > T->Process("tracc.C")  -> non-compiled (interpreted) mode \n
 */
 
-class stlv : public AMSEventR {
+class tracc : public AMSEventR {
    public :
 
    static  vector<TH1F*>   h1A;   ///< An (alt) way of having array of histos
-   stlv(TTree *tree=0){ };
+   tracc(TTree *tree=0){ };
 
-   ~stlv()  {
+   ~tracc()  {
    }
 
 /// This is necessary if you want to run without compilation as:
-///     chain.Process("stlv.C");
+///     chain.Process("tracc.C");
 #ifdef __CINT__
 #include <process_cint.h>
 #endif
@@ -72,7 +72,7 @@ class stlv : public AMSEventR {
    virtual void    UTerminate();
 };
 
-vector<TH1F*>   stlv::h1A;
+vector<TH1F*>   tracc::h1A;
 
 //create here pointers to histos and/or array of histos
 
@@ -87,7 +87,7 @@ vector<TH1F*>   stlv::h1A;
 
 
 
-void stlv::UBegin(){
+void tracc::UBegin(){
     cout << " Begin calling"<<endl;
 
    //here create histograms
@@ -131,12 +131,12 @@ void stlv::UBegin(){
 }
 
 // UProcessCut() is not mandatory
-bool stlv::UProcessCut(){
+bool tracc::UProcessCut(){
      if (nParticle()!=1) return false;
      return true;
 }
 
-void stlv::UProcessFill()
+void tracc::UProcessFill()
 {
    // User Function called for all entries .
    // Entry is the entry number in the current tree.
@@ -204,7 +204,7 @@ void stlv::UProcessFill()
 }
 }
 
-void stlv::UTerminate()
+void tracc::UTerminate()
 {
   
 }
