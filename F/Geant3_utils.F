@@ -1,7 +1,10 @@
 *
-* $Id: Geant3_utils.F,v 1.3 2005/10/20 14:21:03 choutko Exp $
+* $Id: Geant3_utils.F,v 1.4 2006/11/24 11:04:59 choutko Exp $
 *
 * $Log: Geant3_utils.F,v $
+* Revision 1.4  2006/11/24 11:04:59  choutko
+* corrected tripati cross section (francesca)
+*
 * Revision 1.3  2005/10/20 14:21:03  choutko
 * *** empty log message ***
 *
@@ -98,7 +101,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: Geant3_utils.F,v 1.3 2005/10/20 14:21:03 choutko Exp $
+*  $Id: Geant3_utils.F,v 1.4 2006/11/24 11:04:59 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -533,7 +536,7 @@ c
       E_lab=(E_k*A_P)+M_P
 *
       
-      E_cm=sqrt((M_P**2)+(M_T**2)+(2.*M_T*E_lab))
+      E_cm=sqrt((M_P**2)+(M_T**2)+(2.*M_T*E_lab))-M_P-M_T
 *
 *
 ***
@@ -613,8 +616,10 @@ c
 * ****** FINALLY THE TOTAL CROSS SECTION sigma_T in  "mbarn" : 
 
 
+c         sigma_T=10.*PI*(r0**2)*(((A_P**(1./3.))+(A_T**(1./3.)
+c     +               )+dE)**2)*(1-(R_C*B/E_cm))*X_m
          sigma_T=10.*PI*(r0**2)*(((A_P**(1./3.))+(A_T**(1./3.)
-     +               )+dE)**2)*(1-(R_C*B/E_cm))*X_m
+     +               )+dE)**2)*(1-(R_C*B/E_cm))
 
           if (sigma_T.lt.0.) sigma_T=0.
           if (sigma_T.eq.0.) IFLAG=0
