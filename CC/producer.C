@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.99 2006/01/23 21:56:02 choutko Exp $
+//  $Id: producer.C,v 1.100 2006/12/20 10:35:00 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -342,9 +342,16 @@ else{
     fbin.close();
 }
 }
+//  Check here CERN_ROOT;  put /cern/2001 if no
 // check if proposed dst file is writeable
    bool writeable=false;
-   
+   if(char  *crnr=getenv("CERN_ROOT")){
+   }
+   else{
+      cerr<<"AMSPRoducer-W-CERN_ROOTNotDefined"<<endl;
+      setenv("CERN_ROOT","/cern/2001",1);
+   }
+  
    if(char *ntd=getenv("NtupleDir")){
      AString cmd=" mkdir -p -v  ";
      cmd+=ntd;
