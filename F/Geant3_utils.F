@@ -1,7 +1,10 @@
 *
-* $Id: Geant3_utils.F,v 1.5 2006/12/07 09:11:42 choutko Exp $
+* $Id: Geant3_utils.F,v 1.6 2007/01/16 15:08:25 choutko Exp $
 *
 * $Log: Geant3_utils.F,v $
+* Revision 1.6  2007/01/16 15:08:25  choutko
+* *** empty log message ***
+*
 * Revision 1.5  2006/12/07 09:11:42  choutko
 * new ad cross section (fg)
 *
@@ -104,7 +107,7 @@
 *
 * Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
 * Geant
-*  $Id: Geant3_utils.F,v 1.5 2006/12/07 09:11:42 choutko Exp $
+*  $Id: Geant3_utils.F,v 1.6 2007/01/16 15:08:25 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -386,7 +389,7 @@ C     DECK  ID>, ABCR2.
             sigma_q(1,i)=0
             sigma_t(i)=TRIPA_T*xfac
          ENDIF
-         CALL ANTID(ipart,A_P,A_T,BESS_T,IFLAG_T)         
+         CALL ANTID2(ipart,A_P,A_T,p_p,BESS_T,IFLAG_T)         
          IF (IFLAG_T.EQ.1) THEN  
             sigma_q(1,i)=0
             sigma_t(i)=BESS_T*xfac
@@ -405,92 +408,24 @@ c     +  sigma_q(1,i),sigma_el(1,i)
       
       
       end
-CDECK  ID>, ANTIP
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c                                                  06/12/2006
-c AntiDeuteron total cross section
-c                                           by F.Giovacchini  
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      SUBROUTINE ANTIP(ipart,x,SIGMA)
-c     
-      PARAMETER NPOINT=138
-      real PLAB(NPOINT),SIGMAR(NPOINT)
-C     
-      
-      DATA PLAB/ 
-     + 0.27, 0.29,  0.31,  0.3275,  0.333,  0.3425,  0.355,  0.3575,
-     + 0.3725, 0.386, 0.3875, 0.395,  0.4025, 0.415,  0.415,  0.425,
-     + 0.435,  0.44,  0.442,  0.445,  0.455,  0.465,  0.466,  0.468,
-     + 0.492,  0.498, 0.516,  0.527,  0.54,   0.545,  0.563,  0.569,
-     + 0.591,  0.608, 0.651,  0.694,  0.737,  0.779,  0.799,  0.82,
-     + 0.862,  0.903,  0.944, 0.985,  1,  1.025,  1.05,  1.066,  1.1, 
-     + 1.13456, 1.15, 1.2, 1.25,  1.3,  1.34297,  1.345,  1.4,  1.45,
-     + 1.48227,1.49,  1.55, 1.6,  1.63636,  1.65,  1.7,  1.75, 
-     + 1.77335,  1.806,  1.85,  1.875, 1.9,  1.925,  1.95,  2,  2.05,
-     + 2.095,  2.15,  2.2,  2.25,  2.3,  2.35,
-     + 2.4, 2.45, 2.5, 2.55, 2.6, 2.65, 2.7, 2.75, 2.8, 2.85, 2.9,
-     + 2.95, 3, 3.05, 3.1, 3.15, 3.2, 3.25, 3.3, 6, 6.65, 8, 10,
-     + 12, 13.3, 14, 15, 16, 18, 20, 20, 25, 25, 30, 30, 30, 35,
-     + 35,  35,  40,  40,  45,  50,  50,  50,  70,  100,  100,
-     + 101.5,  120,  150,  150,  170,  200,  200,  240,  280/
-      DATA SIGMAR/
-     +  466.90, 455.2, 459, 415.3, 366.2, 424.5, 345.6, 372.1, 368.4,
-     + 324.6,  356.3,  346.4,  357.4,  309.7,  341.9,  300.7,  281.3,
-     + 331.3,  297.8,  301.6,  309.1,  322.2,  310.7,  290.4,  280.3,
-     + 287.5,  274.9,  283.4,  267,  282.6,  262.7,  282.9,  271.8,
-     + 251.8,  244.3,  236.2,  229.3,  225.8,  222,  221,  216.6,  213,
-     + 209.4,  208.5,  208.18,  203.1,  203.37,  200.9,  199.84,  210,
-     + 197.14, 195.21, 193.77,  191.71,  189,  190.17,  186.19,  183.51, 
-     +   196,  181.47,  178.8,  176.97,  178,  175.16,  173.75,  172.33, 
-     +  184,  169.88,  168.49,  167.55,  166.59,  165.69,  164.59, 
-     + 162.69,  160.46,  159.99,  157.76,  156.45,  154.53,  153.13,
-     + 152.24,  150.56,  149.46,  148.21,  147.09,  145.93,  145.01,
-     +  143.99,  143.12,141.9,  140.87,  140.03,  139.19,  138.25, 
-     + 137.3,  136.37,  135.7,  134.84,  134.05,  133.23,  106.9,
-     +  109.1,  102.7,  101.3,  96.1,  96.3,  95,  93.3,  93.2,  87.2,
-     +  89.5,  90,  86.5,  88.1,  87,  86.5,  85.3,  85,  85.33,  86.4, 
-     + 82.6, 83.5,  83.6,  81.94,  82.45,  82.21,  81.05,  79.42, 79.32,
-     + 80.02, 79.31, 78.41, 78.24,  78.54,  78.32,  78.77, 78.46, 78.4/
- 
-      REAL          SIGMA,x
-      INTEGER       IMIN
-      INTEGER       I
-      IMIN=0   
-      DO  I=1,NPOINT
-         IF(x.LT.PLAB(I)) THEN 
-            IMIN=1
-            IF(I.EQ.1) THEN
-               SIGMA=SIGMAR(1)
-            ELSE
-               SIGMA=SIGMAR(i-1)+(SIGMAR(i)-SIGMAR(i-1))/
-     +              (PLAB(i)-PLAB(i-1))*(x-PLAB(i-1))
-            ENDIF
-         ENDIF
-      ENDDO      
-      IF(IMIN.EQ.0)  SIGMA=SIGMAR(NPOINT)
-      RETURN
-      END 
 CDECK  ID>, ANTID2
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c                                                  05/12/2006
-c AntiDeuteron total cross section
+c                                                  8/1/2007
+c AntiDeuteron inelastic cross section
 c                                           by F.Giovacchini  
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       SUBROUTINE ANTID2(ipart,A_P,A_T,P_P,SIGMA_T,IFLAG)
       
       real A_P,A_T
-      real P_P,M_T,M_P
+      real P_P
       integer IFLAG       
       real *4 sigma_t
-      DATA PI / 3.1415927 /
-      DATA r0 / 1.45 /
-      
+
 *
-*    Input:
+*     Input:
 *     a_p,a_t,p_p [atom number projectile & target
-*      and momentum of projectile [GeV/c]]
+*     and momentum of projectile [GeV/c]]
 *     Output:
 *     sigma_T=total inelastic cr_sec [mbarn]
 
@@ -501,73 +436,82 @@ c
 *     IPART.EQ.145 =>Anti Deuteron       
 
       IFLAG=1
-      M_T=A_T*0.938 
-      M_P=A_P*0.938
-*     M_AP  is the Antiproton Mass [GeV]
-      M_AP=0.938  
-    
-*     Kinetc Energy of the antideuteron projectile
-*     per NUMBER OF NUCLEONS (dividing by 2=A_P) [GeV/A]
-      E_k=(sqrt((P_PM**2)+(M_P**2))-M_P)/A_P 
  
-*     Energy of the antideuteron projectile [GeV] 
-      E_lab=(E_k*A_P)+M_P
-
-*     Energy in the centre of mass for the antideuteron-proton system [GeV] 
-      E_CM=sqrt((M_P**2)+(M_AP**2)+(2.*M_AP*E_lab))
-
-*     Energy of the antiproton if it would be the projectile [GeV] 
-      E_labp=((E_CM**2)-(M_P**2)-(M_AP**2))/(2*M_P)
-*     Momentum of the antiproton if it would be the projectile [GeV]
-      p_labp=sqrt(E_labp**2-M_AP**2)
-      CALL ANTIP(ipart,p_labp,AP_CROSS)  
-      SIGMA_T=AP_CROSS*A_T**(2/3)
+      CALL ANTIP(ipart,P_P,AP_CROSS)  
+      SIGMA_T=AP_CROSS*A_T**(2./3.)
   
       if (sigma_T.lt.0.) sigma_T=0.
       if (sigma_T.eq.0.) IFLAG=0 
  65   CONTINUE
       RETURN
       END 
-CDECK  ID>, ANTID
+********************************************************+
+CDECK  ID>, ANTIP
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c                                                 17/5/2005
-c AntiDeuteron total cross section
+c                                                  06/12/2006
+c AntiProton-deuteron inelastic cross section
 c                                           by F.Giovacchini  
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      SUBROUTINE ANTID(ipart,A_P,A_T,SIGMA_T,IFLAG)
-      
-      real A_P,A_T
+      SUBROUTINE ANTIP(ipart,P_P,SIGMA)
+      real A_D,A_AP
+      real Z_D,Z_AP,r_t,r_p
+      real P_P,M_D,M_AP,P_PM,E_k,T1,R_C,D,R,E_cm,C_E,S,dE,B,E_lab
       integer IFLAG       
       real *4 sigma_t
       DATA PI / 3.1415927 /
-      DATA r0 / 1.45 /
-*
-*     Input:
-*     a_p,a_t[mass number projectile & target]
-
-*     Output:
-*     sigma_T=total inelastic cr_sec [mbarn]
-
-      sigma_T=0.      
-      IFLAG=0      
-      IF (IPART.NE.145) GOTO 65
-*     IPART.EQ.145 =>Anti Deuteron
-*       
-      IFLAG=1
-
-
-
-* ****** FINALLY THE TOTAL CROSS SECTION sigma_T in  "mbarn" :
- 
-      sigma_T=10*PI*(r0**2)*((A_P**(1./3.))+(A_T**(1./3.))-
-     +0.71*((A_P**(-1./3.))+(A_T**(-1./3.))))**2      
-      if (sigma_T.lt.0.) sigma_T=0.
-      if (sigma_T.eq.0.) IFLAG=0           
- 65   CONTINUE
+      DATA r0 / 1.1 /
+   
+      IF(P_P.LT.10) THEN
+         Z_AP=-1   
+         A_AP=1
+         Z_D=1
+         A_D=2
+      
+*     M_D  is the Deuteron Mass [MeV]
+         M_D=A_D*938 
+*     M_AP  is the Antiproton Mass [MeV]
+         M_AP=938  
+         
+         r_p=RADIUS(A_D)
+         r_t=RADIUS(A_AP)
+         
+*     P_P  is    DEUTERON'S momentum in "MeV/c"     
+         P_PM=P_P*1000.      
+*     Kinetc Energy of the antideuteron projectile
+*     per NUMBER OF NUCLEONS (dividing by 2=A_P) [GeV/A]
+         E_k=(sqrt((P_PM**2)+(M_D**2))-M_D)/A_D 
+         E_lab=(E_k*A_D)+M_D         
+*     Energy in the centre of mass for the antideuteron-proton system [GeV] 
+         E_cm=sqrt((M_AP**2)+(M_D**2)+(2.*M_AP*E_lab))-M_P-M_T
+         
+         R_C=13.5
+         T1=40.
+         D=1.55+(0.16/(1.+(exp((500.-E_k)/200.))));
+*     // Parameter C_E      for D+X systems:+(exp((500.-E_k)/200.))
+         C_E=D*(1-exp(-E_k/T1))-((0.292*exp(-E_k/792.)))
+*     dropped:-(*cos(0.229*(E_k**(0.453))));(D*(1-exp(-E_k/T1))
+*     //Parameter S  
+         S=((A_D**(1./3.))*(A_AP**(1./3.)))/
+     +        ((A_D**(1./3.))+(A_AP**(1./3.)))        
+*     //Parameter dE       for D+X systems:
+         dE=(1.85*S)+(0.16*(S/(E_cm**(1./3.))))-C_E
+*     //    Parameter R for D+X systems: 
+         R=rp+ru+(1.1*((A_D**(1./3.))+(A_AP**(1./3.)))/(E_cm**(1./3.)))
+*     //         Parameter B       for D+X systems:   
+         B=(1.44*Z_D*Z_AP)/R
+         
+         SIGMA=10*PI*(r0**2)*((A_D**(1./3.)+A_AP**(1./3.)+dE)**2)
+     +        *(1.-(R_C*B/E_cm))
+      ELSE
+         IF(P_P.LT.600) THEN
+            SIGMA=76.+200.44/P_P
+         ELSE 
+            SIGMA=76.
+         ENDIF
+      ENDIF
       RETURN
-      END
-
+      END 
 
 
 CDECK  ID>, TRIPA. 
