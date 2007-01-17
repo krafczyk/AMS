@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.26 2006/03/17 15:02:02 choutko Exp $
+#  $Id: Makefile,v 1.27 2007/01/17 07:45:37 choutko Exp $
 
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 PLATFORM      =  Linux
@@ -16,8 +16,8 @@ ifneq "$(shell uname -r )" "2.4.20-24.7.cernsmp"
 endif
 
 ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
- RH9adda=
- RH9add=
+ RH9adda= -pthread
+ RH9add=  -pthread
 endif
 ifeq ($(ARCH),linuxicc)
 CXX           =  /opt/intel/compiler80/bin/icc

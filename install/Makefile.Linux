@@ -10,7 +10,10 @@ SLC3system=
 ifneq "$(wildcard /etc/redhat-release)" ""
  SLC3system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN")
 endif
-
+RAS3system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+RAS3system := $(shell cat /etc/redhat-release | grep "Red Hat Enterprise Linux AS")
+endif
 RH9=1
 RH9add=
 ifdef RH9
@@ -86,6 +89,11 @@ endif
 
 ifdef SLC3system
   CPPFLAGS+= -D__SLC3__ -D__LINUXGNU__
+else
+ ifdef RAS3system
+   CPPFLAGS+= -D__SLC3__ -D__LINUXGNU__
+ endif
+
 endif
 
 
