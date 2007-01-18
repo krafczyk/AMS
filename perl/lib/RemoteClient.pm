@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.440 2006/11/04 17:55:07 choutko Exp $
+# $Id: RemoteClient.pm,v 1.441 2007/01/18 12:02:55 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14140,7 +14140,29 @@ foreach my $file (@allfiles){
 }
 return $dte;
 }
-
+sub ChangeFS{
+    my ($ref,$oldfs, $newfs, $update,$run)=  @_;
+    my $rc="";
+    if($run!=0){
+      $rc=" and run=$run"; 
+    }
+    my $sql ="select path from ntuples where path like'$oldfs%'".$rc;
+    my $ret=$ref->{sqlserver}->Query($sql);
+    my $upd=0;
+          foreach my $entry (@{$ret}) {
+              my $line=$entry->[0];
+              $line=~s/$oldfs/$newfs/;
+              $sql="update ntuples set path='$line'  where path='$entry->[0]'";
+              if($update >= 1){
+                 $ref->{sqlserver}->Update($sql);
+                 $upd++;
+              }
+          } 
+    print "Total of $upd   ntuples updated \n";
+    if($update>=2){
+     $ref->{sqlserver}->Commit(); 
+ }
+ }
 sub adda{
     my $sql=" select version, run, buildno from ntuples";
     my $ref=shift;
