@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.100 2006/12/20 10:35:00 choutko Exp $
+//  $Id: producer.C,v 1.101 2007/01/22 14:19:28 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include "producer.h"
@@ -1653,6 +1653,7 @@ _OnAir=false;
 char iort[1024];
 const char *exedir=getenv("ExeDir");
 const char *nve=getenv(getiorvar);
+const char *nvr=AMSCommonsI::getosversion(); 
 int maxtries=6;
 int delay=1;
 if(exedir && nve && AMSCommonsI::getosname()){
@@ -1668,6 +1669,9 @@ if(exedir && nve && AMSCommonsI::getosname()){
   systemc+=AMSCommonsI::getosname();
   systemc+="/";
   systemc+=nve;
+  if(strstr(nvr,"2.6")){
+   systemc+=".6";
+  }
   systemc+=" > /tmp/getior.";
   char tmp[80];
   sprintf(tmp,"%d",getpid());
@@ -1739,7 +1743,7 @@ bool AMSProducer::SetDataCards(){
   cmd+=" 2>&1 ";
   AString dc="";
   int i=system((const char*)cmd);
-  if(i==0){
+  if(i==0 ){
    ifstream fbin;
    fbin.open((const char*)fout);
    AString fscript="";
@@ -1748,7 +1752,7 @@ bool AMSProducer::SetDataCards(){
      char tmpbuf[256];
      fbin>>tmpbuf;
      if(strstr(tmpbuf,tmpu) && strstr(tmpbuf,".job")){
-      //cout <<"   Founf!!!!!! "<<tmpbuf<<endl;
+      cout <<"   Found job "<<tmpbuf<<endl;
       fscript+=tmpbuf;
       break;
      } 

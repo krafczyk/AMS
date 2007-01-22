@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.308 2007/01/16 15:08:18 choutko Exp $
+//  $Id: commons.C,v 1.309 2007/01/22 14:19:27 choutko Exp $
 
 
 #include <unistd.h>
@@ -76,10 +76,11 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=177;
+uinteger AMSCommonsI::_build=179;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];
+char AMSCommonsI::_osversion[255];
 pid_t AMSCommonsI::_pid=0;
 bool AMSCommonsI::_remote=false;
 AMSCommonsI::AMSCommonsI(){
@@ -90,6 +91,7 @@ void AMSCommonsI::init(){
   if(_Count++==0){
    struct utsname u;
    uname(&u);
+   strcpy(_osversion,"0.0");
      if(strstr(u.sysname,"OSF1")){
       strcpy(_osname,"osf1");
       _os=1;
@@ -97,6 +99,7 @@ void AMSCommonsI::init(){
      else if(strstr(u.sysname,"Linux")){
       strcpy(_osname,"linux");
       _os=2;
+      strcpy(_osversion,u.release);  
      }
      else if(strstr(u.sysname,"SunOS")){
       strcpy(_osname,"sunos");
@@ -107,7 +110,7 @@ void AMSCommonsI::init(){
       _osname[0]='\0';
      }
      if(_os){
-      cout <<"AMSCommonsI-I-HardwareIdentifiedAs "<< u.sysname<<" "<<u.machine<<endl;
+      cout <<"AMSCommonsI-I-HardwareIdentifiedAs "<< u.sysname<<" "<<u.release<<" "<<u.machine<<endl;
      }
      else{
       cerr<<"AMSCommonsI-E-CouldNotMap "<<u.sysname<<" "<<u.machine<<endl;
