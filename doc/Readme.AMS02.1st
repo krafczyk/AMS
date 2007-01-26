@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.51 2004/02/22 15:32:49 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.52 2007/01/26 17:15:47 choutko Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -71,7 +71,7 @@ b) As a developper :
       log in ams.cern.ch
       cat ~ams/cvsams/.cvsams
 
-   iv) Either see http://pcamsf0.cern.ch/cgi-bin/viewcvs.cgi/ 
+   iv) Either see http://pcamss0.cern.ch/cgi-bin/viewcvs.cgi/ 
       with username amscvs and "access from web" password in iii)  or do
       cvs login    (with "interactive access" password)
       cvs checkout AMS  
