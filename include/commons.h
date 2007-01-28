@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.208 2006/01/25 11:21:34 choumilo Exp $
+//  $Id: commons.h,v 1.209 2007/01/28 22:17:03 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -1089,6 +1089,7 @@ private:
  static uinteger _build;
  static uinteger _os;
  static char _osname[255];
+ static char _osversion[255];
  static float _mips;
  static pid_t _pid;
  static bool _remote;
@@ -1103,6 +1104,7 @@ public:
  static bool remote(){return _remote;}
  static integer getosno()  {return _os;}
  static char* getosname()  {return _osname;}
+ static char* getosversion(){return _version;}
 };
 static AMSCommonsI cmnI;
 
