@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.52 2007/01/26 17:15:47 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.53 2007/01/28 15:54:42 choutko Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -73,9 +73,9 @@ b) As a developper :
 
    iv) Either see http://pcamss0.cern.ch/cgi-bin/viewcvs.cgi/ 
       with username amscvs and "access from web" password in iii)  or do
-      cvs login    (with "interactive access" password)
+#      cvs login    (with "interactive access" password)
       cvs checkout AMS  
-                         
+      enter  your afs password if required                   
           To synchronize your local copy with cvs rep:
           cvs update -d 
 
