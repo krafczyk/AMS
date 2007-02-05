@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.103 2006/05/24 13:09:05 ams Exp $
+# $Id: Monitor.pm,v 1.104 2007/02/05 16:26:34 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -855,7 +855,7 @@ if ($producer eq "Producer"){
                my @host=split ":",$rdst->{Name};
                my @fh=split '\.',$host[0];
                if($host[0] eq $hash->{id}->{HostName} or
-                  ($fh[1] eq 'om' and ($hash->{id}->{HostName} =~ /$fh[0]/))){
+                  ($fh[1] eq 'om' and ($hash->{id}->{HostName} =~ /$fh[0]/)) or                   ($host[0] =~/ams/ and $hash->{id}->{HostName} =~ /pcamsf2/)){
 #               warn "runfound $rdst->{FirstEvent} $lastev $rdst->{Name} \n";
                if($rdst->{Insert}>$ltime){
                    $ltime=$rdst->{Insert};
