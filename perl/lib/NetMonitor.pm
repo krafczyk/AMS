@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.14 2006/09/14 15:34:58 choutko Exp $
+# $Id: NetMonitor.pm,v 1.15 2007/02/05 09:28:14 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -17,7 +17,7 @@ my %fields=(
   hostsstat=>[],
   bad=>[],
   badsave=>[],
-  sleep=>30,
+  sleep=>60,
   hostfile=>"/afs/ams.cern.ch/Offline/AMSDataDir/DataManagement/prod/NominalHost",
   ping=>undef,
   sqlserver=>undef,
@@ -85,8 +85,9 @@ sub Run{
 
 
     $self->sendmailpolicy("NetMonitor-I-Started \n",1);
-     $self->{ping} = Net::Ping->new();
-#    $self->{ping} = Net::Ping->new("syn");
+#     $self->{ping} = Net::Ping->new();
+    $self->{ping} = Net::Ping->new("tcp");
+    $self->{ping}->{port_num} =20001;
 #    $self->{ping}->{port_num} = getservbyname("http", "tcp");
 
 
@@ -130,11 +131,13 @@ if(not open(FILE,"<".$self->{hostfile})){
     $#{$self->{bad}}=-1; 
     my $mes="NetMonitor-W-SomeHostsAreDown";
     foreach my $host (@{$self->{hosts}}) {
-        print "$host \n";
+    #    print "$host \n";
         if($self->{ping}->ping($host)){
         }
         else{
             push @{$self->{bad}}, $host." ".$mes;
+         print "bad $host \n";
+
         }
     }
 #    sleep(6);
@@ -149,7 +152,7 @@ if(not open(FILE,"<".$self->{hostfile})){
 #
 
     $mes="NetMonitor-W-SomeHostsHaveWrongTime";
-    my $command="ssh -x -o \'StrictHostKeyChecking no \' ";
+    my $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
 #    my ($sec,$min,$hr,$mday,$mon,$y,$w,$yd,$isdst)=localtime(time());
     foreach my $host (@{$self->{hosts}}) {
         my $gonext=0;
@@ -200,7 +203,7 @@ if(not open(FILE,"<".$self->{hostfile})){
 # df
 #
     $mes="NetMonitor-W-SomeHostsHaveDiskSpaceProblems";
-     $command="ssh -x -o \'StrictHostKeyChecking no \' ";
+     $command="ssh -2 -x -o \'StrictHostKeyChecking no \' ";
     foreach my $host (@{$self->{hosts}}) {
         my $gonext=0;
         foreach my $bad (@{$self->{bad}}){
