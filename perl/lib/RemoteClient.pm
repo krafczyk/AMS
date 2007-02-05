@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.441 2007/01/18 12:02:55 choutko Exp $
+# $Id: RemoteClient.pm,v 1.442 2007/02/05 14:09:41 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -114,7 +114,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks MoveBetweenDisks UploadToCastor GroupRuns);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips checkTiming list_24h_html test00 RemoveFromDisks  UploadToDisks CheckCRC MoveBetweenDisks UploadToCastor GroupRuns);
 
 # debugging
 my $benchmarking = 0;
@@ -14522,6 +14522,224 @@ sub UploadToCastor{
       }
    }
 
+}
+
+
+sub CheckCRC{
+#
+#  check crc of files on disks
+#  copy from castor if bad crc found
+#  remove from disk if castor copy is eq damaged
+#  change ntuple status to 'Bad'
+#  Updates catalogs
+#
+# input par: 
+#                                     /dir are optional ones
+#  $verbose   verbose if 1
+#  $irm    
+#  $update    do sql/file rm  if 1
+#  $run2p   only process run $run2p if not 0
+#  $dir:   path to castor files like MC/AMS02/2005A/dir
+#  output par:
+#   1 if ok  0 otherwise
+#
+# 
+    my ($self,$verbose,$irm,$update,$run2p,$force,$dir)= @_;
+    my $rm;                                                                                
+    if($irm){
+        $rm="rm -i ";
+    }
+    else{
+        $rm="rm ";
+    }
+
+                                                                                
+  my $castorPrefix = '/castor/cern.ch/ams';
+  my $delimiter='MC';                                                                              
+  my $rfcp="/usr/local/bin/rfcp ";
+  my $whoami = getlogin();
+  if ($whoami =~ 'ams' or $whoami =~'casadmva') {
+  } elsif(defined $whoami) {
+   print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
+   return 0;
+  }
+    my $sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.run,ntuples.fevent,ntuples.levent from ntuples where  ntuples.path not like  '$castorPrefix%' "; 
+    if(!$force){
+        $sql=$sql."  and ntuples.status='OK' ";
+    }
+    if(defined $dir){
+     $sql= $sql." and ntuples.path like '%$dir%' ";
+    }
+    if($run2p>0){
+      $sql= $sql." and ntuples.run=$run2p ";
+    } 
+      my $run=0;
+     my $runs=0;
+     my $ntp=0;
+     my $ntpb=0;
+     my $ntpf=0;
+    my $ntna=0;
+      my $ret_nt =$self->{sqlserver}->Query($sql);
+    my @badfs=();
+      if(defined $ret_nt->[0][0]){
+          $self->CheckFS(1);
+          foreach my $ntuple (@{$ret_nt}){
+              if($run ne $ntuple->[3]){
+                          my @junk=split $delimiter,$ntuple->[0];
+                          if($#junk<=0){
+                              print "fatal problem with $delimiter for $ntuple->[0]  do nothing \n";
+                              $ntna++; 
+                              next;
+                          }
+                          my $disk=$junk[0];  
+                          chop $disk;
+                  $sql="select disk from filesystems where disk='$disk' and isonline=1";
+                 my $ret_fs =$self->{sqlserver}->Query($sql);
+                 if(not defined $ret_fs->[0][0]){
+                     my $found=0;
+                     foreach my $bd (@badfs){
+                         if($bd eq $disk){
+                             $found=1;
+                             last;
+                         }
+                     }
+                     if(not $found){
+                       push @badfs,$disk;
+                       if($verbose){
+                          print "$disk  is not online \n";
+                       }
+                      }
+                     $ntna++;
+                     next;
+                 }
+                  $run=$ntuple->[3];
+                  if($verbose){
+                      print "New run $run. $ntp ntuples processed out of $#{$ret_nt}+1\n";
+                  }
+                  $runs++;
+              }
+              $ntp++;
+              my $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $ntuple->[0]  $ntuple->[1]";
+                        my $rstatus   = system($crccmd);
+                        $rstatus=($rstatus>>8);
+                        if($rstatus!=1){
+                         if($verbose){
+                          print "$ntuple->[0] crc error:  $rstatus \n";
+                      }
+                          $ntpb++;           
+                          if($ntuple->[2]>0){
+#
+# copy from castor
+#          
+                          my $suc=1;
+                          my @junk=split $delimiter,$ntuple->[0];
+                          if($#junk>0){
+                          my $castornt=$castorPrefix."/$delimiter".$junk[1];
+                          my $sys=$rfcp." $castornt $ntuple->[0].castor";
+                          my $i=system($sys);
+                          if($i){
+                           $suc=0;
+                           if($verbose){
+                            print " $sys failed for $castornt \n";
+                           }
+                           $ntpf++;
+                           system("rm $ntuple->[0].castor");              
+                           next;
+                          }
+                          else{
+                           $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $ntuple->[0].castor  $ntuple->[1]";
+                            $rstatus   = system($crccmd);
+                            $rstatus=($rstatus>>8);
+                          }
+                            if($rstatus!=1){
+                                $suc=0;
+                              if($verbose){
+                               print "$castornt crc error:  $rstatus \n";
+                             }
+                            }
+                                if($suc){
+                                    if($update){
+                                        system("mv $ntuple->[0].castor $ntuple->[0]");    
+                                 }
+                                    else{
+                                        system("rm $ntuple->[0].castor");
+                                    }
+                                }
+                                else{
+#
+#  castor file bad
+#
+                               system("rm $ntuple->[0].castor");              
+                            $ntpf++;
+                              $sql="update ntuples set ntuples.status='BAD' where ntuples.path='$ntuple->[0]' ";
+                              $self->{sqlserver}->Update($sql);
+                              $sql="update ntuples set ntuples.crcflag=0 where ntuples.path='$ntuple->[0]' ";
+                              $self->{sqlserver}->Update($sql);
+                              $sql="update ntuples set ntuples.path='$castornt' where ntuples.path='$ntuple->[0]' ";
+                              $self->{sqlserver}->Update($sql);
+                              
+                              $sql=" update jobs set realtriggers=realtriggers-$ntuple->[5]+$ntuple->[4]-1 where jid=$ntuple->[3] ";
+                               $self->{sqlserver}->Update($sql);
+                            if($update){
+                            my $res=$self->{sqlserver}->Commit();
+                            if(!$res){
+                            if($verbose){
+                             print " Commit failed for run $ntuple->[0] \n";                                 
+                            }
+                            }
+                              else{
+                                my $sys="$irm $ntuple->[0]";
+                                my $i=system($sys);
+                              }
+                            }
+                            else{
+                             $self->{sqlserver}->Commit(0);
+                            }                                             
+                          }  
+                      }
+                          else{
+                              print "fatal problem with $delimiter for $ntuple->[0]  do nothing \n";
+                              $ntna++; 
+                          }
+                         }      
+                          else{
+                              $ntpf++;
+#
+#  no castor file found and bad crc  remove ntuple;
+#                           
+
+#
+#                               modify ntuple
+#                                
+                              $sql="update ntuples delete where ntuples.path='$ntuple->[0]' ";
+                              $self->{sqlserver}->Update($sql);
+                              
+                              $sql=" update jobs set realtriggers=realtriggers-$ntuple->[5]+$ntuple->[4]-1 where jid=$ntuple->[3] ";
+                               $self->{sqlserver}->Update($sql);
+                              if($update){
+                            my $res=$self->{sqlserver}->Commit();
+                            if(!$res){
+                            if($verbose){
+                             print " Commit failed for run $ntuple->[0] \n";                                 
+                            }
+                            }
+                              else{
+                                my $sys="$irm $ntuple->[0]";
+                                my $i=system($sys);
+                              }
+                        }
+                            else{
+                             $self->{sqlserver}->Commit(0);
+                            }                                             
+                        }     
+                     }
+
+
+          }
+      }
+    if($verbose){
+        print "Total of $runs  runs, $ntp ntuples  processed. \n $ntpb bad ntuples found. \n $ntpf  ntuples could not be repared\n $ntna ntuples could not be verified";
+    }
 }
 
 sub UploadToDisks{
