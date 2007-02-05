@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.104 2007/02/05 16:26:34 choutko Exp $
+# $Id: Monitor.pm,v 1.105 2007/02/05 16:53:16 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -685,12 +685,16 @@ sub getactivehosts{
      my $evtag=0;
      my @dummy=split '\.', $string;
      my $host=$dummy[0];
+     #print "blia  $host \n";
+     if($host =~/pcamsf2/){
+      $host="ams";
+     }
      for my $j (0 ... $#{$Monitor::Singleton->{dsts}}){
      my $hdst=$Monitor::Singleton->{dsts}[$j];
       @dummy=split '\:', $hdst->{Name};
      my $chop=$dummy[0];
                      $chop=~/^(.*?)(\.|$)/;
-                         if($1 eq $host){
+                         if($1 eq $host ){
 #      if ( $chop eq $host){
           if( $hdst->{Type} eq "Ntuple" or $hdst->{Type} eq "RootFile"){
               $ntp++;
@@ -722,7 +726,7 @@ sub getactivehosts{
            $lastevt+=$rdstc->{LastEventProcessed}+1-$rdst->{FirstEvent};
            $tevt+=$rdstc->{EventsProcessed};
                      $rdstc->{HostName}=~/^(.*?)(\.|$)/;
-                         if($1 eq $host){
+                         if(($1 eq $host) ){
 #           if( $rdstc->{HostName} eq $host){
              print "$rdst->{Run}   Host $rdstc->{HostName}  $rdstc->{EventsProcessed} $rdstc->{CPUTimeSpent} $rdstc->{CPUMipsTimeSpent} $rdstc->{Mips} \n";
                $evt+=$rdstc->{EventsProcessed};
