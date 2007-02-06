@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.105 2007/02/05 16:53:16 choutko Exp $
+# $Id: Monitor.pm,v 1.106 2007/02/06 15:49:27 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2569,7 +2569,8 @@ sub DeleteFailedDST{
                my @host=split ":",$nc{Name};
                my @fh=split '\.',$host[0];
                if($host[0] eq $hash->{id}->{HostName} or
-                  ($fh[1] eq 'om' and ($hash->{id}->{HostName} =~ /$fh[0]/))){
+                  ($fh[1] eq 'om' and ($hash->{id}->{HostName} =~ /$fh[0]/))or
+                  ($host[0] =~/ams/ and $hash->{id}->{HostName} =~ /pcamsf2/)){
                    push @nchost , $hash->{id}->{HostName} ;
                    push @ncname , $nc{Name};
                    push @ncrun, $nc{Run};
