@@ -2455,7 +2455,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
       ///  \return number of TofRawSideR
       unsigned int   NTofRawSide()  {
         if(fHeader.TofRawSides  && fTofRawSide.size()==0){
-          bTofRawSide->GetEntry(_Entry);
+          if(bTofRawSide)bTofRawSide->GetEntry(_Entry);
         }
           return fTofRawSide.size();
       }
