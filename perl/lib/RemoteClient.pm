@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.442 2007/02/05 14:09:41 ams Exp $
+# $Id: RemoteClient.pm,v 1.443 2007/02/06 16:36:19 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13609,7 +13609,7 @@ sub updateDataSetsDescription {
       my $desc=$sbuf[0];
       substr($desc,0,1)=" ";
       $sql = "SELECT dirpath, timeupdate FROM DatasetsDesc
-                WHERE dataset = '$dataset' and jobname = '$job'";
+                WHERE dataset = '$dataset' and jobdesc = '$desc'";
      my $ret = $self->{sqlserver}->Query($sql);
      if (defined $ret->[0][0]) {
          print "****Warning dataset : $job with Job : $job Exists \n";
