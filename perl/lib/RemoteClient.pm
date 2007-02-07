@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.443 2007/02/06 16:36:19 ams Exp $
+# $Id: RemoteClient.pm,v 1.444 2007/02/07 07:04:56 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14688,7 +14688,7 @@ sub CheckCRC{
                             }
                             }
                               else{
-                                my $sys="$irm $ntuple->[0]";
+                                my $sys="$rm $ntuple->[0]";
                                 my $i=system($sys);
                               }
                             }
@@ -14738,7 +14738,7 @@ sub CheckCRC{
           }
       }
     if($verbose){
-        print "Total of $runs  runs, $ntp ntuples  processed. \n $ntpb bad ntuples found. \n $ntpf  ntuples could not be repared\n $ntna ntuples could not be verified";
+        print "Total of $runs  runs, $ntp ntuples  processed. \n $ntpb bad ntuples found. \n $ntpf  ntuples could not be repared\n $ntna ntuples could not be verified\n";
     }
 }
 
