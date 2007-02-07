@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.444 2007/02/07 07:04:56 ams Exp $
+# $Id: RemoteClient.pm,v 1.445 2007/02/07 08:44:59 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4532,10 +4532,36 @@ DDTAB:          $self->htmlTemplateTable(" ");
                   push @tempnam, $cite->{filename};
                   $hash->{$cite->{filename}}=$cite->{filedesc};
                   push @desc, $hash ->{$cite->{filename}};
+
+#
+# check if new datasetdescription needed to be inserted into db
+#
+                  my @junk=split 'Total Events',$cite->{filedesc};
+                  if($#junk>0){
+                      my $mdesc=$junk[0];
+                      $mdesc=~s/ /%/g;
+                      
+                  $sql="select dirpath from datasetsdesc where dataset='$dataset->{name}' and jobdesc like '$mdesc'";
+                   
+                     my $ret=$self->{sqlserver}->Query($sql);
+                     if(not defined $ret->[0][0]){
+                         $sql = "SELECT did from Datasets WHERE name='$dataset->{name}'";
+                         $ret=$self->{sqlserver}->Query($sql);
+                         if(defined $ret->[0][0]){
+                         my $timenow = time();
+                         my $buf=$cite->{filebody};
+                         $buf=~ s/#/C /;
+                         $buf =~ s/'/''/g;
+                         $sql = "INSERT INTO DatasetsDesc Values($ret->[0][0],'$dataset->{name}','$self->{AMSSoftwareDir}/DataSet','$cite->{filename}','$junk[0]','$buf',$timenow,$timenow)";
+                        # die "$sql";
+                         $self->{sqlserver}->Update($sql);
+                     }
+                     }
+                }
               }
              }
              htmlTop();
-             $self->htmlTemplateTable("Select Parameters for Dataset Request");
+             $self->htmlTemplateTable("ZSelect Parameters for Dataset Request");
 # Job Template
              print "<tr><td><b><font color=\"red\">Job Template</font></b>\n";
              print "</td><td>\n";
