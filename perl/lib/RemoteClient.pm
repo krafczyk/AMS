@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.445 2007/02/07 08:44:59 choutko Exp $
+# $Id: RemoteClient.pm,v 1.446 2007/02/13 10:57:50 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2535,6 +2535,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                print "<td align=center><b><font color=\"blue\">Run </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Updated</font></b></td>";
                print "<td align=center><b><font color=\"blue\" >FilePath </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >CRC </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Events</font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Errors </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Status </font></b></td>";
@@ -2549,7 +2550,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             } else {
              $runid =  trimblanks($q->param("DSTID"));
              $title = $title.$runid;
-             $sql = "SELECT jid, run, path, timestamp, nevents, neventserr, status
+             $sql = "SELECT jid, run, path, timestamp, nevents, neventserr, status,crc
                       FROM ntuples  WHERE run=$runid";
             }
          my $ret=$self->{sqlserver}->Query($sql);
@@ -2562,11 +2563,13 @@ CheckCite:            if (defined $q->param("QCite")) {
              my $nevents   = $r->[4];
              my $nerrors   = $r->[5];
              my $status    = trimblanks($r->[6]);
+             my $crc=$r->[7];
              my $color     = statusColor($status);
              print "<td><b> $jid </td></b>
                     <td><b> $run </td>
                     <td><b> $starttime </b></td>
                     <td><b> $path </b></td>
+                    <td><b> $crc </b></td>
                     <td align=middle><b> $nevents </b></td>
                     <td align=middle><b> $nerrors </b></td>
                     <td align=middle><b><font color=$color> $status </font></b></td> \n";
@@ -14425,6 +14428,7 @@ sub UploadToCastor{
     if($uplsize>$mb){
       last;
     }
+        $self->CheckCRC($verbose,0,$update,$run->[0],0,undef,1);
         $sql="select path,sizemb from ntuples where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%'";
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
@@ -14565,12 +14569,13 @@ sub CheckCRC{
 #  $irm    
 #  $update    do sql/file rm  if 1
 #  $run2p   only process run $run2p if not 0
-#  $dir:   path to castor files like MC/AMS02/2005A/dir
+#  $dir:   path to  files like /s0dat1
+#  $nocastoronly  only check crc for files without castor
 #  output par:
 #   1 if ok  0 otherwise
 #
 # 
-    my ($self,$verbose,$irm,$update,$run2p,$force,$dir)= @_;
+    my ($self,$verbose,$irm,$update,$run2p,$force,$dir,$nocastoronly)= @_;
     my $rm;                                                                                
     if($irm){
         $rm="rm -i ";
@@ -14584,8 +14589,8 @@ sub CheckCRC{
   my $delimiter='MC';                                                                              
   my $rfcp="/usr/local/bin/rfcp ";
   my $whoami = getlogin();
-  if ($whoami =~ 'ams' or $whoami =~'casadmva') {
-  } elsif(defined $whoami) {
+  if (not defined $whoami or $whoami =~ 'ams' or $whoami =~'casadmva') {
+  } else {
    print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
    return 0;
   }
@@ -14599,6 +14604,9 @@ sub CheckCRC{
     if($run2p>0){
       $sql= $sql." and ntuples.run=$run2p ";
     } 
+    if(defined $nocastoronly and $nocastoronly == 1){
+       $sql=$sql. " and ntuples.castortime=0 ";
+    }
       my $run=0;
      my $runs=0;
      my $ntp=0;
@@ -14763,7 +14771,7 @@ sub CheckCRC{
 
           }
       }
-    if($verbose){
+    if($verbose and $ntp>0){
         print "Total of $runs  runs, $ntp ntuples  processed. \n $ntpb bad ntuples found. \n $ntpf  ntuples could not be repared\n $ntna ntuples could not be verified\n";
     }
 }
