@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.447 2007/02/13 11:09:23 choutko Exp $
+# $Id: RemoteClient.pm,v 1.448 2007/02/13 11:59:14 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14607,6 +14607,7 @@ sub CheckCRC{
     if(defined $nocastoronly and $nocastoronly == 1){
        $sql=$sql. " and ntuples.castortime=0 ";
     }
+    $sql=$sql." order by ntuples.run ";
       my $run=0;
      my $runs=0;
      my $ntp=0;
