@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.446 2007/02/13 10:57:50 choutko Exp $
+# $Id: RemoteClient.pm,v 1.447 2007/02/13 11:09:23 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14596,7 +14596,7 @@ sub CheckCRC{
   }
     my $sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.run,ntuples.fevent,ntuples.levent from ntuples where  ntuples.path not like  '$castorPrefix%' "; 
     if(!$force){
-        $sql=$sql."  and ntuples.status='OK' ";
+       $sql=$sql."  and ( ntuples.status='OK' or ntuples.status='Validated') ";
     }
     if(defined $dir){
      $sql= $sql." and ntuples.path like '%$dir%' ";
