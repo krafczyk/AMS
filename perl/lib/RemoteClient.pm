@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.448 2007/02/13 11:59:14 ams Exp $
+# $Id: RemoteClient.pm,v 1.449 2007/02/27 15:35:45 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14594,7 +14594,7 @@ sub CheckCRC{
    print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
    return 0;
   }
-    my $sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.run,ntuples.fevent,ntuples.levent from ntuples where  ntuples.path not like  '$castorPrefix%' "; 
+    my $sql="select ntuples.path,ntuples.crc,ntuples.castortime,ntuples.run,ntuples.fevent,ntuples.levent,ntuples.sizemb from ntuples where  ntuples.path not like  '$castorPrefix%' "; 
     if(!$force){
        $sql=$sql."  and ( ntuples.status='OK' or ntuples.status='Validated') ";
     }
@@ -14616,7 +14616,14 @@ sub CheckCRC{
     my $ntna=0;
       my $ret_nt =$self->{sqlserver}->Query($sql);
     my @badfs=();
+    my $totmb=0;
+    my $cmb=0;
+      
       if(defined $ret_nt->[0][0]){
+          foreach my $ntuple (@{$ret_nt}){
+            $totmb+=$ntuple->[6];
+          } 
+          my $times=time();
           $self->CheckFS(1);
           foreach my $ntuple (@{$ret_nt}){
               if($run ne $ntuple->[3]){
@@ -14648,12 +14655,24 @@ sub CheckCRC{
                      next;
                  }
                   $run=$ntuple->[3];
+                  my $timec=(time()-$times);
+                  my $speed=$cmb/($timec+1);
+                   my $timest=($totmb-$cmb)/($speed+0.001)/3600;
+                  if($speed == 0){
+                   $timest=0;
+                  }
+                  $timec/=60;
+                  $timec=int($timec*10)/10;
+                  $timest=int($timest*10)/10;
+                  $speed=int($speed*10)/10;
                   if($verbose){
-                      print "New run $run. $ntp ntuples processed out of $#{$ret_nt}+1\n";
+                      my $tn=$#{$ret_nt}+1;
+                      print "New run $run. $ntp ntuples processed out of $tn for $timec min $speed mb/sec out of $timest hrs \n";
                   }
                   $runs++;
               }
               $ntp++;
+              $cmb+=$ntuple->[6];
               my $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $ntuple->[0]  $ntuple->[1]";
                         my $rstatus   = system($crccmd);
                         $rstatus=($rstatus>>8);
