@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.106 2007/02/06 15:49:27 ams Exp $
+# $Id: Monitor.pm,v 1.107 2007/03/15 10:23:53 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -646,9 +646,16 @@ sub getdbok{
      
 #     warn "  string in rd $string \n";
     push @text, $string;
-    push @text, int $fst{$string}/1024;           
+    push @text, int  $fst{$string}/1024;           
     push @text, int $fsf{$string}/1024;           
-    push @text, int $fsf{$string}/($fst{$string}+2)*100;           
+    push @text, int $fsf{$string}/($fst{$string}+2)*100; 
+    if($text[1]<0){
+      $text[1]=4194304+$text[1];
+    }
+    if($text[2]<0){
+      $text[2]=4194304+$text[2];
+    }
+     
     if($text[1]<0 or $text[2]<0 or $text[2]<2000){
       push @text ,1;
   }elsif($text[2]<1000){
