@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.183 2005/05/17 09:54:02 pzuccon Exp $
+//  $Id: amsgeom.C,v 1.184 2007/03/22 11:29:01 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -32,22 +32,25 @@ extern "C" void mtx2_(number nrm[][3],geant  xnrm[][3]);
 #define MTX2 mtx2_
 namespace amsgeom{
 extern void tkgeom02(AMSgvolume &);
+extern void tkgeom02d(AMSgvolume &);
 extern void magnetgeom(AMSgvolume &);
 extern void magnetgeom02(AMSgvolume &);
 extern void ext1structure02(AMSgvolume &);
 extern void magnetgeom02o(AMSgvolume &);
 extern void magnetgeom02Test(AMSgvolume &);
 extern void tofgeom02(AMSgvolume &);
+extern void tofgeom02d(AMSgvolume &);
 extern void antigeom02(AMSgvolume &);
+extern void antigeom02d(AMSgvolume &);
 extern void antigeom002(AMSgvolume &);
 extern void ext2structure(AMSgvolume &);
 #ifdef __G4AMS__
 extern void antigeom02g4(AMSgvolume &);
 extern void testg4geom(AMSgvolume &);
 #endif
-extern void richgeom02(AMSgvolume &);
-extern void ecalgeom02(AMSgvolume &);
-extern void trdgeom02(AMSgvolume &);
+extern void richgeom02(AMSgvolume &,float zshift=0);
+extern void ecalgeom02(AMSgvolume &,float zshift=0);
+extern void trdgeom02(AMSgvolume &, float zshift=0);
 //extern void srdgeom02(AMSgvolume &);
 extern void Put_rad(AMSgvolume *,integer);
 extern void Put_pmt(AMSgvolume *,integer);
@@ -84,6 +87,11 @@ if (strstr(AMSJob::gethead()->getsetup(),"BIG")){
 */
 
 
+}
+else if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
+ cout<<"AMSGeom-I-LongMagnetSetupSelected"<<endl;
+ for(int i=0;i<3;i++)AMSDBc::ams_size[i]*=sqrt(2.);
+ for(int i=0;i<3;i++)amss[i]=AMSDBc::ams_size[i]*sqrt(2.);
 }
 else{
  for(int i=0;i<3;i++)amss[i]=AMSDBc::ams_size[i]*sqrt(2.);
@@ -174,7 +182,22 @@ if(strstr(AMSJob::gethead()->getsetup(),"BIG")){
 }
 //-----
 //
-if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+if (strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
+
+ magnetgeom02o(mother);
+ tofgeom02d(mother);
+// ext1structure02(mother);//should be called after tofgeom02 !!!
+ tkgeom02(mother);
+// ext2structure(mother);
+ antigeom02d(mother);
+
+ trdgeom02(mother,43);
+ ecalgeom02(mother,-43);
+ richgeom02(mother,-43);
+
+
+}
+else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  cout <<" AMSGeom-I-AMS02 setup selected."<<endl;
  magnetgeom02(mother);
  tofgeom02(mother);
@@ -289,6 +312,11 @@ AMSgtmed *p;
       dau=mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT4","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
     
+}
+//-------------------------------------------------------------------
+// AMS02d  /long /+86 cm/  perm magnet  setup:
+//
+void amsgeom::tofgeom02d(AMSgvolume & mother){ 
 }
 //-------------------------------------------------------------------
 // for  final(trapezoidal TOF) AMS02 setup:
@@ -785,7 +813,7 @@ integer gid=0;
 AMSNode * cur;
 AMSgvolume * dau;
 AMSgtmed *p;
-     geant magnetl=86.;
+     geant magnetl=86.+86.;
       gid=1;
       par[0]=113.2/2;
       par[1]=129.6/2;
@@ -2049,7 +2077,7 @@ cout <<"TKGeom-I-"<<nhalfL<<" Active halfladders initialized"<<endl;
 }
 
 #include "trdid.h"
-void amsgeom::trdgeom02(AMSgvolume & mother){
+void amsgeom::trdgeom02(AMSgvolume & mother, float ZShift){
 using trdconst::maxco;
 using trdconst::maxbulk;
 using trdconst::maxlay;
@@ -2085,6 +2113,7 @@ for ( i=0;i<TRDDBc::PrimaryOctagonNo();i++){
  ost.seekp(0);  
  ost << "TRD"<<i<<ends;
  TRDDBc::GetOctagon(i,status,coo,nrm,rgid);
+ coo[2]+=ZShift;
  gid=i+1;
  int ip;
 
@@ -2441,6 +2470,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
  }
 }
 
+if(ZShift==0){
 
 
 {
@@ -2497,11 +2527,17 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
     }
    }
 }
+}
+else{
+ cerr<<"amsgeom::trdgeom02-W-NoZenithRadiatorAdded"<<endl;
+}
 
 cout <<"amsgeom::trdgeom02-I-TRDGeometryDone"<<endl;
 
 }
 //----------------------------------------------------------------
+void amsgeom::antigeom02d(AMSgvolume & mother){
+}
 void amsgeom::antigeom02(AMSgvolume & mother){
 #ifdef __G4AMS__
  if(MISCFFKEY.G4On){
@@ -2666,7 +2702,7 @@ AMSgvolume *dummy;
 }
 #endif
 //---------------------------------------------------------------------
-void amsgeom::ecalgeom02(AMSgvolume & mother){
+void amsgeom::ecalgeom02(AMSgvolume & mother, float ZShift){
 //
 ECALDBc::readgconf();// 
   geant par[6]={0.,0.,0.,0.,0.,0.};
@@ -2706,7 +2742,7 @@ ECALDBc::readgconf();//
   dzh=ECALDBc::gendim(8);// Z-thickness of honeycomb
   xpos=ECALDBc::gendim(5);// x-pos EC-radiator center
   ypos=ECALDBc::gendim(6);// y-pos
-  zpos=ECALDBc::gendim(7)-dz/2.;// z-pos of ECAL-center
+  zpos=ECALDBc::gendim(7)-dz/2.+ZShift;// z-pos of ECAL-center
   fpitx=ECALDBc::fpitch(1);
   fpitz=ECALDBc::fpitch(2);
   fpitzz=dzrad1-(nflpsl-1)*fpitz+2.*alpth;

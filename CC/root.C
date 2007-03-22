@@ -3057,7 +3057,6 @@ void AMSEventR::GetAllContents() {
             bRichRing->GetEntry(_Entry);
             bTofRawCluster->GetEntry(_Entry);
             NTofRawSide();
-            //bTofRawSide->GetEntry(_Entry);
             bTofCluster->GetEntry(_Entry);
             bAntiCluster->GetEntry(_Entry);
             bTrRawCluster->GetEntry(_Entry);

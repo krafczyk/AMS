@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.130 2006/01/23 21:56:02 choutko Exp $
+//  $Id: server.C,v 1.131 2007/03/22 11:29:02 choutko Exp $
 //
 #include <stdlib.h>
 #include "server.h"
@@ -197,6 +197,41 @@ AMSServer::AMSServer(int argc, char* argv[]){
      break;
   }
  }
+if(!_MT){
+// check there is no other 
+
+  AString fout="/tmp/";
+  fout+="server.sc"; 
+  AString cmd="ps -elfw --cols 200  ";
+  cmd+=" 1>";
+  cmd+=(const char*)fout;
+  cmd+=" 2>&1 ";
+  int i=system((const char*)cmd);
+  if(i==0 ){
+   AString dc="";
+   ifstream fbin;
+   fbin.open((const char*)fout);
+   AString fscript="";
+    int count=0;
+    while(fbin.good() && !fbin.eof()){
+     fbin.ignore(1024,' ');
+     char tmpbuf[256];
+     fbin>>tmpbuf;
+     if(strstr(tmpbuf,"amsprodserver.exe")){
+      count++;
+     } 
+    }
+    fbin.close();
+    unlink((const char*)fout);
+    if(count>1){
+      cerr <<"AMSProdserver-F-FoundInstanceWhileNotInMT  "<<endl;
+      abort();
+    }
+   }
+   else{
+    cerr<<"AMSProdserver-E-UnableTo "<<cmd<<endl;
+   }
+}
 setdbfile(dbfilename);
 _getpidhost(uid,iface);
 if(_debug)_openLogFile("Server",false);

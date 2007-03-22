@@ -193,7 +193,8 @@ LDFLAGSI=    -static  \
 -L$(ROOTSYS)/lib -lRoot \
  -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
 -lcrypt -lcrypto -ldl -lpcre   \
- $(FORTRAN_LIBS) $(RH9add)
+ $(FORTRAN_LIBS) $(RH9add) -lnsl \
+/usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
 
 LDFLAGS=       \
 -L$(NAGDIR) -lnag   \
@@ -202,7 +203,8 @@ LDFLAGS=       \
 -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl -lpcre\
 $(FORTRAN_LIBS)  $(PFLAGS) 
 
-LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add)
+LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add) -lnsl \
+/usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
 
 
 ifdef AMSICC 

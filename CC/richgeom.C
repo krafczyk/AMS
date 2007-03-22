@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.25 2005/05/17 09:54:05 pzuccon Exp $
+//  $Id: richgeom.C,v 1.26 2007/03/22 11:29:02 choutko Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -30,10 +30,7 @@ extern void ctcgeom(AMSgvolume &);
 extern void ctcgeomE(AMSgvolume &, integer iflag);
 extern void ctcgeomAG(AMSgvolume& );
 extern void ctcgeomAGPlus(AMSgvolume& );
-extern void richgeom02(AMSgvolume &);
-extern void ecalgeom02(AMSgvolume &);
-extern void trdgeom02(AMSgvolume &);
-extern void srdgeom02(AMSgvolume &);
+extern void richgeom02(AMSgvolume &, float zshift=0);
 extern void Put_rad(AMSgvolume *,integer,int);
 extern void Put_pmt(AMSgvolume *,integer);
 };
@@ -542,7 +539,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 }
 
 
-void amsgeom::richgeom02(AMSgvolume & mother)
+void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 {
   AMSgvolume *rich;
   AMSNode *dummy;
@@ -581,7 +578,7 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 
   coo[0]=0;
   coo[1]=0;
-  coo[2]=RICradpos-RICHDB::total_height()/2;
+  coo[2]=RICradpos+ZShift-RICHDB::total_height()/2;
   rich=dynamic_cast<AMSgvolume*>(mother.add(new AMSgvolume("VACUUM",
 							   0,
 							   "RICH",
