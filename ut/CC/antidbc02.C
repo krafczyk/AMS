@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.16 2006/07/14 13:17:15 choumilo Exp $
+//  $Id: antidbc02.C,v 1.17 2007/03/23 12:22:11 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -70,6 +70,7 @@ ANTIPeds ANTIPeds::anscped[ANTI2C::MAXANTI];//mem.reserv. for ANTI-ReadoutPaddle
   geant ANTI2DBc::pbgate(){return _pbgate;}
 //----
   void ANTI2DBc::setgeom(){ //get parameters from data cards (for now)
+    geant ZShift(0);
     _scradi=ATGEFFKEY.scradi;
     _scinth=ATGEFFKEY.scinth;
     _scleng=ATGEFFKEY.scleng;
@@ -79,13 +80,21 @@ ANTIPeds ANTIPeds::anscped[ANTI2C::MAXANTI];//mem.reserv. for ANTI-ReadoutPaddle
     _stradi=ATGEFFKEY.stradi;
     _stleng=ATGEFFKEY.stleng;
     _stthic=ATGEFFKEY.stthic;
-    if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+//
+    if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
+          cout <<" ANTIGeom-I-AMS02D setup selected."<<endl;
+	  ZShift=AMSDBc::amsdext;
+	  cout<<"      ZShift="<<ZShift<<endl;
+    }
+    else if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
           cout <<" ANTIGeom-I-AMS02 setup selected."<<endl;
     }
     else
     {
           cout <<" ANTIGeom-I-UNKNOWN setup !!!!"<<endl;
     }
+    _scleng+=2*ZShift;
+    _stleng+=2*ZShift;
   }
 //----
 // function below creates PMT pulse shape array arr[] with binning flash-adc :

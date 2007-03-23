@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.35 2007/03/23 08:57:26 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.36 2007/03/23 12:22:11 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -142,11 +142,14 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     char name[80]="tof2const";
     char vers1[4]="12p";
     char vers2[4]="1";
+    geant ZShift(0);
 //
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
       cout <<" TOFGeom-I-AMS02D setup selected."<<endl;
       cout <<" TOFGeom-I-TOF:8/8/10/8-pads setup selected."<<endl;
       strcat(name,vers2);
+      ZShift=AMSDBc::amsdext;
+      cout<<" TOFGeom-I-ZShift="<<ZShift<<endl;
     }
     else if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
       cout <<" TOFGeom-I-AMS02 setup selected."<<endl;
@@ -193,6 +196,8 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     for(i=0;i<_nsespar;i++){
       for(j=0;j<TOF2GC::SCBTPN;j++)tcfile >> _sespar[j][i];//SES params. vs btyp
     }
+    _supstr[0]+=ZShift;//used for AMS02D-setup !!! for normal one ZShift=0 !!!
+    _supstr[1]-=ZShift;
   }
 //---
   integer TOF2DBc::brtype(integer ilay, integer ibar){

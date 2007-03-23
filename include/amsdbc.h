@@ -1,4 +1,4 @@
-//  $Id: amsdbc.h,v 1.37 2005/05/17 09:56:33 pzuccon Exp $
+//  $Id: amsdbc.h,v 1.38 2007/03/23 12:22:22 choumilo Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSDBC__
 #define __AMSDBC__
@@ -39,6 +39,7 @@ static char * amsdatabase;
      static const integer ams_rotmno;
      static const char ams_name[129];
      static  geant ams_coo[3];
+     static const geant amsdext;
 //bits
      static const uinteger AMBIG;
      static const uinteger BAD;

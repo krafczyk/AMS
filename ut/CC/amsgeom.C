@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.186 2007/03/23 10:35:26 choutko Exp $
+//  $Id: amsgeom.C,v 1.187 2007/03/23 12:22:11 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -38,16 +38,16 @@ extern void magnetgeom02(AMSgvolume &);
 extern void ext1structure02(AMSgvolume &);
 extern void magnetgeom02o(AMSgvolume &);
 extern void magnetgeom02Test(AMSgvolume &);
-extern void tofgeom02(AMSgvolume &,float zshift=0);
-extern void antigeom02(AMSgvolume &,float zshift=0);
-extern void antigeom002(AMSgvolume &,float zshift=0);
+extern void tofgeom02(AMSgvolume &);
+extern void antigeom02(AMSgvolume &);
+extern void antigeom002(AMSgvolume &);
 extern void ext2structure(AMSgvolume &);
 #ifdef __G4AMS__
-extern void antigeom02g4(AMSgvolume &,float zshift=0);
+extern void antigeom02g4(AMSgvolume &);
 extern void testg4geom(AMSgvolume &);
 #endif
 extern void richgeom02(AMSgvolume &,float zshift=0);
-extern void ecalgeom02(AMSgvolume &,float zshift=0);
+extern void ecalgeom02(AMSgvolume &);
 extern void trdgeom02(AMSgvolume &, float zshift=0);
 //extern void srdgeom02(AMSgvolume &);
 extern void Put_rad(AMSgvolume *,integer);
@@ -183,15 +183,15 @@ if(strstr(AMSJob::gethead()->getsetup(),"BIG")){
 if (strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
 
  magnetgeom02o(mother);
- tofgeom02(mother,43);
+ tofgeom02(mother);
 // ext1structure02(mother);//should be called after tofgeom02 !!!
  tkgeom02(mother);
 // ext2structure(mother);
- antigeom02(mother,43);
+ antigeom02(mother);
 
- trdgeom02(mother,43);
+ trdgeom02(mother,AMSDBc::amsdext);
  ecalgeom02(mother);
- richgeom02(mother,-43);
+ richgeom02(mother,-AMSDBc::amsdext);
 
 
 }
@@ -317,7 +317,7 @@ AMSgtmed *p;
 //-------------------------------------------------------------------
 // for  final(trapezoidal TOF) AMS02 setup:
 //
-void amsgeom::tofgeom02(AMSgvolume & mother, float ZShift){ 
+void amsgeom::tofgeom02(AMSgvolume & mother){ 
 geant prc[3]={0.,0.,0.};
 geant par[6]={0.,0.,0.,0.,0.,0.};
 geant pard[11]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
@@ -363,7 +363,7 @@ par[1]=TOF2DBc::supstr(8)/2; //dy
 par[2]=TOF2DBc::supstr(9)/2; //Dz
 coo[0]=TOF2DBc::supstr(3);    // x-shift from "0" of mother
 coo[1]=TOF2DBc::supstr(4);    // y-shift ...
-coo[2]=TOF2DBc::supstr(1)+ZShift+TOF2DBc::supstr(9)/2;// z-centre of top supp. honeycomb
+coo[2]=TOF2DBc::supstr(1)+TOF2DBc::supstr(9)/2;// z-centre of top supp. honeycomb
 dau=mother.add(new AMSgvolume(
     "TOF_HONEYCOMB",0,"TOFH","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
 //--------------
@@ -374,7 +374,7 @@ par[1]=TOF2DBc::supstr(11)/2; //dy
 par[2]=TOF2DBc::supstr(12)/2; //Dz
 coo[0]=TOF2DBc::supstr(5);    // x-shift from "0" of mother
 coo[1]=TOF2DBc::supstr(6);    // y-shift ...
-coo[2]=TOF2DBc::supstr(2)-ZShift-TOF2DBc::supstr(12)/2.;// z-centre of bot supp. honeycomb
+coo[2]=TOF2DBc::supstr(2)-TOF2DBc::supstr(12)/2.;// z-centre of bot supp. honeycomb
 dau=mother.add(new AMSgvolume(
     "TOF_HONEYCOMB",0,"TOFH","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
 //----------------------------------------------------------------------
@@ -530,7 +530,7 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     par[2]=TOF2DBc::plnstr(13)/2;  // dz/2
     coo[0]=TOF2DBc::supstr(3)+xbias+TOF2DBc::plnstr(11)/2+0.1;//"0.1" for safety
     coo[1]=TOF2DBc::supstr(4);
-    coo[2]=TOF2DBc::supstr(1)+ZShift-zbias;// box abs. z-center(no overl with Hon - it is shorter)
+    coo[2]=TOF2DBc::supstr(1)-zbias;// box abs. z-center(no overl with Hon - it is shorter)
     gid=1;
     dau=mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPB","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
@@ -551,7 +551,7 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     par[4]=par[3]+TOF2DBc::plnstr(18);    // phi2
     coo[0]=TOF2DBc::supstr(3);     
     coo[1]=TOF2DBc::supstr(4);
-    coo[2]=TOF2DBc::supstr(1)+ZShift-zbias+TOF2DBc::plnstr(17)/2.;// ring Z-center
+    coo[2]=TOF2DBc::supstr(1)-zbias+TOF2DBc::plnstr(17)/2.;// ring Z-center
     gid=1;
     dau=mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPR","TUBS",par,5,coo,nrm1,"ONLY",1,gid,1));
@@ -573,7 +573,7 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     par[2]=TOF2DBc::plnstr(13)/2;  // dz/2
     coo[0]=TOF2DBc::supstr(5)+xbias+TOF2DBc::plnstr(11)/2+0.1;//"0.1" for safety
     coo[1]=TOF2DBc::supstr(6);
-    coo[2]=TOF2DBc::supstr(2)-ZShift+zbias;// z-center
+    coo[2]=TOF2DBc::supstr(2)+zbias;// z-center
     gid=3;
     dau=mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPB","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
@@ -594,7 +594,7 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     par[4]=par[3]+TOF2DBc::plnstr(20);    // phi2
     coo[0]=TOF2DBc::supstr(5);     
     coo[1]=TOF2DBc::supstr(6);
-    coo[2]=TOF2DBc::supstr(2)-ZShift+zbias-TOF2DBc::plnstr(17)/2.;// Z-center
+    coo[2]=TOF2DBc::supstr(2)+zbias-TOF2DBc::plnstr(17)/2.;// Z-center
     gid=3;
     dau=mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPR","TUBS",par,5,coo,nrm1,"ONLY",1,gid,1));
@@ -624,22 +624,22 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     par[2]=TOF2DBc::plnstr(8)/2.;// dz/2
     coo[0]=TOF2DBc::supstr(3);
     coo[1]=TOF2DBc::supstr(4);
-    coo[2]=TOF2DBc::supstr(1)+ZShift-zbias1;// plate-1 z-center
+    coo[2]=TOF2DBc::supstr(1)-zbias1;// plate-1 z-center
     gid=1;
     dau=mother.add(new AMSgvolume(
     "TOF_SC_COVER",0,"TFEN","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//topTOF,plt-1(outer)
-    coo[2]=TOF2DBc::supstr(1)+ZShift-zbias2;// plate-2 z-center
+    coo[2]=TOF2DBc::supstr(1)-zbias2;// plate-2 z-center
     gid=2;
     dau=mother.add(new AMSgvolume(
     "TOF_SC_COVER",0,"TFEN","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//topTOF,plt-2(inner)
 //
     coo[0]=TOF2DBc::supstr(5);
     coo[1]=TOF2DBc::supstr(6);
-    coo[2]=TOF2DBc::supstr(2)-ZShift+zbias1;// plate-1 z-center
+    coo[2]=TOF2DBc::supstr(2)+zbias1;// plate-1 z-center
     gid=3;
     dau=mother.add(new AMSgvolume(
     "TOF_SC_COVER",0,"TFEN","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//botTOF,plt-1
-    coo[2]=TOF2DBc::supstr(2)-ZShift+zbias2;// plate-2 z-center
+    coo[2]=TOF2DBc::supstr(2)+zbias2;// plate-2 z-center
     gid=4;
     dau=mother.add(new AMSgvolume(
     "TOF_SC_COVER",0,"TFEN","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//botTOF,plt-2
@@ -653,7 +653,7 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
 
 
 //---------------------------------------------------------------
-void amsgeom::antigeom002(AMSgvolume & mother, float ZShift){
+void amsgeom::antigeom002(AMSgvolume & mother){
 AMSID amsid;
 geant par[6]={0.,0.,0.,0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
@@ -678,12 +678,12 @@ AMSNode * p;
   nscpad=ANTI2C::ANTISRS;
   scradi=ANTI2DBc::scradi();
   scinth=ANTI2DBc::scinth();
-  scleng=ANTI2DBc::scleng()+2*ZShift;
+  scleng=ANTI2DBc::scleng();
   wrapth=ANTI2DBc::wrapth();
   groovr=ANTI2DBc::groovr();
   pdlgap=ANTI2DBc::pdlgap();
   stradi=ANTI2DBc::stradi();
-  stleng=ANTI2DBc::stleng()+2*ZShift;
+  stleng=ANTI2DBc::stleng();
   stthic=ANTI2DBc::stthic();
   rs=scradi+0.5*scinth;
   dphi=360./float(nscpad);
@@ -2535,14 +2535,14 @@ cout <<"amsgeom::trdgeom02-I-TRDGeometryDone"<<endl;
 
 }
 //----------------------------------------------------------------
-void amsgeom::antigeom02(AMSgvolume & mother, float ZShift){
+void amsgeom::antigeom02(AMSgvolume & mother){
 #ifdef __G4AMS__
  if(MISCFFKEY.G4On){
-   antigeom02g4(mother, ZShift);
+   antigeom02g4(mother);
  }
  else if(MISCFFKEY.G3On){
 #endif
- amsgeom::antigeom002(mother, ZShift);
+ amsgeom::antigeom002(mother);
 #ifdef __G4AMS__
 }
 #endif
@@ -2551,7 +2551,7 @@ void amsgeom::antigeom02(AMSgvolume & mother, float ZShift){
 #ifdef __G4AMS__
 // ANTI AMS02 G4-compatible:
 //
-void amsgeom::antigeom02g4(AMSgvolume & mother, float ZShift){
+void amsgeom::antigeom02g4(AMSgvolume & mother){
 AMSID amsid;
 geant par[6]={0.,0.,0.,0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
@@ -2577,12 +2577,12 @@ AMSgvolume *dummy;
   nscpad=ANTI2C::ANTISRS;
   scradi=ANTI2DBc::scradi();
   scinth=ANTI2DBc::scinth();
-  scleng=ANTI2DBc::scleng()+2*ZShift;
+  scleng=ANTI2DBc::scleng();
   wrapth=ANTI2DBc::wrapth();
   groovr=ANTI2DBc::groovr();
   pdlgap=ANTI2DBc::pdlgap();
   stradi=ANTI2DBc::stradi();
-  stleng=ANTI2DBc::stleng()+2*ZShift;
+  stleng=ANTI2DBc::stleng();
   stthic=ANTI2DBc::stthic();
   rs=scradi+0.5*scinth;
   dphi=360./float(nscpad);
@@ -2699,7 +2699,7 @@ AMSgvolume *dummy;
 }
 #endif
 //---------------------------------------------------------------------
-void amsgeom::ecalgeom02(AMSgvolume & mother, float ZShift){
+void amsgeom::ecalgeom02(AMSgvolume & mother){
 //
 ECALDBc::readgconf();// 
   geant par[6]={0.,0.,0.,0.,0.,0.};

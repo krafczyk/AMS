@@ -1,4 +1,4 @@
-//  $Id: amsdbc.C,v 1.48 2005/05/17 09:54:02 pzuccon Exp $
+//  $Id: amsdbc.C,v 1.49 2007/03/23 12:22:11 choumilo Exp $
 // Author V. Choutko 24-may-1996
  
 #include <math.h>
@@ -50,6 +50,7 @@ const char AMSDBc::ams_name[]="AMSG";
 geant AMSDBc::ams_coo[3]={0.,0.,0.};
 const integer AMSDBc::ams_rotmno=1;
 number AMSDBc::ams_nrm[3][3];
+const geant AMSDBc::amsdext=43.;
 
 void AMSDBc::init(){
  number angle=0;
