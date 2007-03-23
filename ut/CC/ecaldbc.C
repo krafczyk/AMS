@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.56 2006/07/11 10:44:45 choutko Exp $
+//  $Id: ecaldbc.C,v 1.57 2007/03/23 08:57:26 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include "typedefs.h"
 #include "cern.h"
@@ -88,7 +88,14 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
     char vers1[3]="01";
     char vers2[4]="001";
     char vers3[3]="02";
-    if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+    geant ZShift(-43);
+    if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
+          cout <<" ECALGeom-I-AMS02D setup selected."<<endl;
+          strcat(name,vers3);
+	  _gendim[6]+=ZShift;
+	  cout<<"      ZShift="<<ZShift<<endl;
+    }
+    else if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
           cout <<" ECALGeom-I-AMS02 setup selected."<<endl;
           strcat(name,vers3);
     }

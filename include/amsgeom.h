@@ -1,4 +1,4 @@
-//  $Id: amsgeom.h,v 1.8 2007/03/22 11:29:14 choutko Exp $
+//  $Id: amsgeom.h,v 1.9 2007/03/23 08:57:44 choumilo Exp $
 extern "C" void mtx_(geant nrm[][3],geant vect[]);
 extern "C" void mtx2_(number nrm[][3],geant  xnrm[][3]);
 #define MTX mtx_
@@ -10,13 +10,11 @@ extern void magnetgeom02(AMSgvolume &);
 extern void magnetgeom02d(AMSgvolume &);
 extern void magnetgeom02r(AMSgvolume &);
 extern void magnetgeom02Test(AMSgvolume &);
-extern void tofgeom02(AMSgvolume &);
-extern void tofgeom02d(AMSgvolume &);
-extern void antigeom02(AMSgvolume &);
-extern void antigeom02d(AMSgvolume &);
-extern void antigeom002(AMSgvolume &);
+extern void tofgeom02(AMSgvolume &, float );
+extern void antigeom02(AMSgvolume &, float );
+extern void antigeom002(AMSgvolume &, float );
 #ifdef __G4AMS__
- extern void antigeom02g4(AMSgvolume &);
+ extern void antigeom02g4(AMSgvolume &, float );
 extern void testg4geom(AMSgvolume &);
 #endif
 extern void pshgeom02(AMSgvolume &);

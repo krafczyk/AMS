@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.34 2006/09/04 14:10:13 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.35 2007/03/23 08:57:26 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include "typedefs.h"
 #include <math.h>
@@ -142,7 +142,13 @@ geant TOF2DBc::_sespar[TOF2GC::SCBTPN][TOF2GC::SESPMX]={
     char name[80]="tof2const";
     char vers1[4]="12p";
     char vers2[4]="1";
-    if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+//
+    if(strstr(AMSJob::gethead()->getsetup(),"AMS02D")){
+      cout <<" TOFGeom-I-AMS02D setup selected."<<endl;
+      cout <<" TOFGeom-I-TOF:8/8/10/8-pads setup selected."<<endl;
+      strcat(name,vers2);
+    }
+    else if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
       cout <<" TOFGeom-I-AMS02 setup selected."<<endl;
       if(strstr(AMSJob::gethead()->getsetup(),"TOF:12PAD")){
         cout <<" TOFGeom-I-TOF:12PAD setup selected."<<endl;
