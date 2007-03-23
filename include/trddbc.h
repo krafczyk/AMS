@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.22 2005/05/17 09:56:36 pzuccon Exp $
+//  $Id: trddbc.h,v 1.23 2007/03/23 10:35:39 choutko Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include "typedefs.h"
@@ -192,7 +192,7 @@ public:
   static uinteger nlayH(uinteger iseg){return iseg<trdconst::maxseg?_NlayH[iseg]:0;}
 
   TRDDBc(): _status(0){}
-   static void init( );
+   static void init();
    static void InitPattern();
    static void read();
    static void write();

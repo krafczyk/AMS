@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.46 2007/03/23 09:39:13 choutko Exp $
+//  $Id: tkdbc.C,v 1.47 2007/03/23 10:35:28 choutko Exp $
 #include "tkdbc.h"
 #include "amsdbc.h"
 #include "astring.h"
@@ -1711,14 +1711,14 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
                                                384,640,384,640,384,640};
    UCOPY(nstripsdrp,_nstripsdrp,sizeof(nstripsdrp)/sizeof(integer));
    const number layd[_nlay][5]={
-                               5.3,0.,112., 0.,112.,
-                               1.92,0.,94.0,0.,94.0, 
-                               1.92,0.,94.0,0.,94.0, 
-                               1.92,0.,94.0,0.,94.0, 
-                               1.92,0.,94.0,0.,94.0, 
-                               1.92,0.,94.0,0.,94.0, 
-                               1.92,0.,94.0,0.,94.0, 
-                               5.3,0.,112. ,0.,112.};
+                               5.3,0.,72., 0.,72.,
+                               1.92,0.,54.0,0.,54.0, 
+                               1.92,0.,54.0,0.,54.0, 
+                               1.92,0.,54.0,0.,54.0, 
+                               1.92,0.,54.0,0.,54.0, 
+                               1.92,0.,54.0,0.,54.0, 
+                               1.92,0.,54.0,0.,54.0, 
+                               5.3,0.,72. ,0.,72.};
    UCOPY(layd,_layd,sizeof(layd)/sizeof(integer));
    const number halfldist[_nlay]={0.047,0.047,0.047,0.047,0.047,0.047,0.047,0.047};
    UCOPY(halfldist,_halfldist,sizeof(halfldist)/sizeof(integer));
@@ -1726,7 +1726,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
    UCOPY(xposl,_xposl,sizeof(xposl)/sizeof(integer));
    const number  yposl[_nlay]={0,0,0,0,0,0,0};
    UCOPY(yposl,_yposl,sizeof(yposl)/sizeof(integer));
-   const number  zposl[_nlay]={97.515,49.185,45.315,1.685,-2.185,-45.315,-49.185,-97.515};
+   const number  zposl[_nlay]={94.515,49.185,45.315,1.685,-2.185,-45.315,-49.185,-94.515};
 //   const number  zposl[_nlay]={54.515,29.435,25.565,1.935,-1.935,-25.565,-29.435,-54.515};
 //   const number  zposl[_nlay]={51.015,32.,28.,2.,-2.,-28.,-32.,-51.015};
    UCOPY(zposl,_zposl,sizeof(zposl)/sizeof(integer));

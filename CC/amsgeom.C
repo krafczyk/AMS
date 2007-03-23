@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.185 2007/03/23 08:57:25 choumilo Exp $
+//  $Id: amsgeom.C,v 1.186 2007/03/23 10:35:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2133,8 +2133,11 @@ for ( i=0;i<TRDDBc::PrimaryOctagonNo();i++){
    
 }
 
-
-for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo();i++){
+int sub=ZShift!=0?3:0;
+ if(sub!=0){
+  cerr<<"amsgeom::trdgeom02-W-NotAllOctagonsLoaded "<<sub<<endl;
+}
+for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo()-sub;i++){
          ost.clear();
  ost.seekp(0);  
  if(i<10){

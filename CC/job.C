@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.488 2007/01/22 14:19:28 choutko Exp $
+// $Id: job.C,v 1.489 2007/03/23 10:35:27 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2326,9 +2326,16 @@ end.tm_hour=TKFIELD.ihour[1];
 end.tm_mday=TKFIELD.iday[1];
 end.tm_mon=TKFIELD.imon[1];
 end.tm_year=TKFIELD.iyear[1];
-TID.add (new AMSTimeID(AMSID("MagneticFieldMap",isRealData()),
+    if(strstr(getsetup(),"AMS02D") ){    
+
+TID.add (new AMSTimeID(AMSID("MagneticFieldMapD",isRealData()),
    begin,end,sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile),(void*)&TKFIELD.iniok,server,1));
 
+    }
+    else{
+TID.add (new AMSTimeID(AMSID("MagneticFieldMap",isRealData()),
+   begin,end,sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile),(void*)&TKFIELD.iniok,server,1));
+    }
 //TID.add (new AMSTimeID(AMSID("MagneticFieldMapAddOn",isRealData()),
 //   begin,end,sizeof(TKFIELDADDON_DEF),(void*)&TKFIELDADDON.iqx,server));
 }

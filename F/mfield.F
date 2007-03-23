@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.15 2004/01/19 16:39:56 choutko Exp $
+*  $Id: mfield.F,v 1.16 2007/03/23 10:35:37 choutko Exp $
       subroutine readmfield
 #      include "mfield.h"
        real hxy(3,3),x1(3)
@@ -72,6 +72,87 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
                 br=0
               endif
               write(31,*)x1,bx(i,j,k),by(i,j,k),bz(i,j,k),br,brm
+             enddo
+           enddo
+          enddo
+          call timex(st1)
+          write(*,*)'Finished in ',st1-st0, ' sec'
+c          call rmf2
+      else if(iniok.eq.-1)then
+
+*
+*  special procedure for 2L  Permanent Magnet
+*
+*       
+          xlfac=2
+          write(*,*)'Special ...  Opening field file...'
+c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
+          OPEN(21,FILE=amsdatadir(1:amsdlength)//fname,
+     +     STATUS='OLD',form='formatted')
+          fac=1.1
+          do k=1,nz
+           do i=1,nx
+            do j=1,ny
+             read(21,*)x(i),y(j),z(k),bx(i,j,k),by(i,j,k),bz(i,j,k)
+             x(i)=x(i)
+             y(j)=y(j)
+             z(k)=z(k)*xlfac
+             bx(i,j,k)=bx(i,j,k)/1000. *fac
+             by(i,j,k)=by(i,j,k)/1000. *fac
+             bz(i,j,k)=bz(i,j,k)/1000. *fac
+            enddo
+           enddo
+          enddo
+          na(1)=nx
+          na(2)=ny
+          na(3)=nz
+          call ucopy(x(1),xyz(1),nx)
+          call ucopy(y(1),xyz(1+nx),ny)
+          call ucopy(z(1),xyz(1+nx+ny),nz)
+*         read(21,*)isec
+*         read(21,*)imin
+*         read(21,*)ihour
+*         read(21,*)iday
+*         read(21,*)imon
+*         read(21,*)iyear
+          iniok=1
+          close(21)
+          write(*,*)'Closing field file...'
+*
+* Now calculate field derivatives
+*
+          call timex(st0)
+          write(*,*)'Calculating field derivatives...'
+          do i=1,nx
+           do j=1,ny
+             do k=1,nz
+              x1(1)=x(i)
+              x1(2)=y(j)
+              x1(3)=z(k)
+              call tkfldc(x1,hxy)
+              bdx(i,j,k,1)=hxy(1,1)
+              bdy(i,j,k,1)=hxy(2,1)
+              bdz(i,j,k,1)=hxy(3,1)
+              bdx(i,j,k,2)=hxy(1,2)
+              bdy(i,j,k,2)=hxy(2,2)
+              bdz(i,j,k,2)=hxy(3,2)
+              brx=bx(i,j,k)*hxy(1,1)+by(i,j,k)*hxy(1,2)+
+     +        bz(i,j,k)*hxy(1,3)
+              bry=bx(i,j,k)*hxy(2,1)+by(i,j,k)*hxy(2,2)+
+     +        bz(i,j,k)*hxy(2,3)
+              brz=bx(i,j,k)*hxy(3,1)+by(i,j,k)*hxy(3,2)+
+     +        bz(i,j,k)*hxy(3,3)
+              brxm=hxy(1,1)**2+hxy(1,2)**2+hxy(1,3)**2
+              brym=hxy(2,1)**2+hxy(2,2)**2+hxy(2,3)**2
+              brzm=hxy(3,1)**2+hxy(3,2)**2+hxy(3,3)**2
+              bb=sqrt(bx(i,j,k)**2+by(i,j,k)**2+bz(i,j,k)**2)
+              brm=sqrt(brxm+brym+brzm)
+              if(bb.gt.0)then
+                br=sqrt(brx**2+bry**2+brz**2)/bb
+              else
+                br=0
+              endif
+*              write(31,*)x1,bx(i,j,k),by(i,j,k),bz(i,j,k),br,brm
              enddo
            enddo
           enddo
