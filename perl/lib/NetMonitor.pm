@@ -1,4 +1,4 @@
-# $Id: NetMonitor.pm,v 1.15 2007/02/05 09:28:14 ams Exp $
+# $Id: NetMonitor.pm,v 1.16 2007/03/29 09:59:02 ams Exp $
 # May 2006  V. Choutko 
 package NetMonitor;
 use Net::Ping;
@@ -217,7 +217,8 @@ if(not open(FILE,"<".$self->{hostfile})){
             next;
         }
         unlink "/tmp/xspace";
-         my $i=system($command.$host." df > /tmp/xspace ");
+         #print "$command.$host. \n";
+         my $i=system($command.$host." df -x nfs > /tmp/xspace ");
         if(not $i){
             if(not open(FILE,"<"."/tmp/xspace")){
                 push @{$self->{bad}}, $host." NetMonitor-W-ssh1Failed";
