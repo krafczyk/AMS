@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.450 2007/04/03 09:16:24 ams Exp $
+# $Id: RemoteClient.pm,v 1.451 2007/04/03 12:29:21 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14845,7 +14845,13 @@ sub UploadToDisks{
        }
     }
     if($did>0){
+    if($run2p eq 0){
     $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and ntuples.path like '$castorPrefix%$dir%'";
+}
+   else{ 
+   $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and jobs.pid=$did and runs.run=ntuples.run and runs.run=$run2p";
+
+}
 }
     else{
     $sql = "SELECT runs.run from runs,jobs,ntuples where runs.jid=jobs.jid and  runs.run=ntuples.run and jobs.jid=$run2p and ntuples.path like '$castorPrefix%'";
@@ -15024,6 +15030,7 @@ sub MoveBetweenDisks{
             $disk=$newd;
         }
       }
+        my $mkdir=1;
        foreach my $ds1 (@{$r1}){
            my $file=$ds1->[0];
            my @junk=split '\/',$file;
@@ -15031,6 +15038,20 @@ sub MoveBetweenDisks{
            for my $j (2...$#junk){
                $newfile=$newfile.'/'.$junk[$j];
            }
+           if($mkdir eq 1){
+           #  first mkdir    
+              my @j2=split '\/',$newfile;   
+           if($#j2>0){
+              $#j2-=1;
+             }
+             my $mk="mkdir -p ";
+            foreach my $jpart (@j2){
+                $mk=$mk.'/'.$jpart;
+           }
+           system($mk);
+           $mkdir=0;
+          }
+
            my $cp="cp -pi $file $newfile";
            my $i=system($cp);
            if($i){
