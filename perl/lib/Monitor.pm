@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.107 2007/03/15 10:23:53 ams Exp $
+# $Id: Monitor.pm,v 1.108 2007/04/03 09:16:23 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2066,7 +2066,7 @@ foreach my $file (@allfiles){
     if($file=~/\.journal$/){
         my @junk=split '\.', $file;
         my $run=int($junk[0]);
-        if($run>1391 && $run<1392){
+        if($run>=3500 && $run<3453){
             my $full=$joudir.$file;
             open(FILE,"<".$full) or die "Unable to open journal file $full \n";
             my $buf;
@@ -2112,7 +2112,7 @@ foreach my $file (@allfiles){
                 }
             }
             foreach my $sbuf (@rec){
-              @junk=split 'CloseDST  \, Status Validated \, Type Ntuple \, ', $sbuf;
+              @junk=split 'CloseDST  \, Status Validated \, Type RootFile \, ', $sbuf;
               if($#junk<1){
                 warn " no clsed dst found for run $run \n";
                 next;
@@ -2166,6 +2166,7 @@ foreach my $file (@allfiles){
         $rdst{Run}=$run;
         $maxrun=$maxrun+1;
         $rdst{uid}=$maxrun;
+        $rdst{Priority}=0;
         $rdst{FirstEvent}=1;
         $rdst{FilePath}=$file;
         $rdst{History}="ToBeRerun";
@@ -2255,7 +2256,7 @@ opendir THISDIR ,$dir or die "unable to open $dir";
 @allfiles= readdir THISDIR;
 closedir THISDIR;
 
-for my $run (1393...1396){
+for my $run (3350...3551){
 foreach my $file (@allfiles){
     if ($file =~/^cern\.$run/){
                my %rdst; 
@@ -2284,6 +2285,7 @@ foreach my $file (@allfiles){
         $rdst{History}="ToBeRerun";
         $rdst{cuid}=$run;
         $rdst{SubmitTime}=time();
+        $rdst{Priority}=0;
            my @sbuf=split "\n",$buf;
              foreach my $line (@sbuf){
                  if($line=~/^TRIG=/){ 
