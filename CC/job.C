@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.489 2007/03/23 10:35:27 choutko Exp $
+// $Id: job.C,v 1.490 2007/04/04 12:02:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -402,6 +402,7 @@ void AMSJob::_sitkdata(){
 TKGEOMFFKEY.ReadGeomFromFile=1;
 TKGEOMFFKEY.WriteGeomToFile=0;
 TKGEOMFFKEY.UpdateGeomFile=0;
+TKGEOMFFKEY.ZShift=0;
 FFKEY("TKGE",(float*)&TKGEOMFFKEY,sizeof(TKGEOMFFKEY_DEF)/sizeof(integer),
 "MIXED");
 
@@ -1430,7 +1431,7 @@ else{
    DAQCFFKEY.SCrateinDAQ=0;
   }
 
-  TKDBc::init();
+  TKDBc::init(TKGEOMFFKEY.ZShift);
   TRDDBc::init();
 {
 int len=cl-1;

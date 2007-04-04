@@ -222,8 +222,7 @@ TIMEL=
 LDFLAGSIDL=    -pthread -lORBit-2-cpp  
 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 \
--lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  -lnsl \
-/usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
+-lgmodule-2.0 -ldl  -lglib-2.0 -lORBit-imodule-2  
 
 CXX_ORBIT=$(CXX)  -Wno-deprecated -mcpu=i686 -fpermissive -I/usr/include/orbit-2.0 -I/usr/include/glib-2.0  -I/usr/include/orbitcpp-2.0 -I$(BIN)
 

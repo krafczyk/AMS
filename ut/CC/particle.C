@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.154 2006/02/22 12:18:01 mdelgado Exp $
+//  $Id: particle.C,v 1.155 2007/04/04 12:02:04 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -453,8 +453,8 @@ void AMSParticle::richfit(){
  number theta, phi, sleng;
  AMSTrTrack *real_track=_ptrack;
 
- real_track->interpolate(AMSPoint(0,0,RICradpos),dir,_RichCoo[0],theta,phi,sleng);
- real_track->interpolate(AMSPoint(0,0,RICradpos-RICHDB::pmt_pos()-RICHDB::cato_pos()),dir,_RichCoo[1],theta,phi,sleng);
+ real_track->interpolate(AMSPoint(0,0,RICHDB::RICradpos()),dir,_RichCoo[0],theta,phi,sleng);
+ real_track->interpolate(AMSPoint(0,0,RICHDB::RICradpos()-RICHDB::pmt_pos()-RICHDB::cato_pos()),dir,_RichCoo[1],theta,phi,sleng);
 
  geant direct,reflected,length;
  RICHDB::ring_fraction(real_track,direct,reflected,length,1.0);

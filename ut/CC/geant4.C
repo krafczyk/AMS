@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.61 2006/07/14 13:17:16 choumilo Exp $
+//  $Id: geant4.C,v 1.62 2007/04/04 12:02:03 choutko Exp $
 #include "job.h"
 #include "event.h"
 #include "trrec.h"
@@ -1052,7 +1052,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
        GCTRAK.inwvol==1){
 
       if(GCKINE.ipart==Cerenkov_photon){
-        geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICradpos-RICotherthk/2-
+        geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICHDB::RICradpos()-RICotherthk/2-
                    GCTRAK.vect[2])/GCTRAK.vect[5];
                  
         geant vect[3];
@@ -1079,11 +1079,11 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
        }
        else if(GCTRAK.istop==0 ){
 	         GCTRAK.istop=2; // Absorb it
-//	 if(GCKINE.vert[2]<RICradpos-RICHDB::rad_height-RICHDB::height)
-         if(GCKINE.vert[2]<RICradpos-RICHDB::rad_height-RICHDB::rich_height-
+//	 if(GCKINE.vert[2]<RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::height)
+         if(GCKINE.vert[2]<RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::rich_height-
            RICHDB::foil_height-RICradmirgap-RIClgdmirgap // in LG
-           || (GCKINE.vert[2]<RICradpos-RICHDB::rad_height &&
-               GCKINE.vert[2]>RICradpos-RICHDB::rad_height-RICHDB::foil_height))
+           || (GCKINE.vert[2]<RICHDB::RICradpos()-RICHDB::rad_height &&
+               GCKINE.vert[2]>RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::foil_height))
 	   AMSRichMCHit::sirichhits(GCKINE.ipart,
 				    PostPV->GetMother()->GetCopyNo()-1,
 				    //GCTRAK.vect,

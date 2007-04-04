@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.71 2006/04/03 10:28:34 mdelgado Exp $
+//  $Id: richrec.C,v 1.72 2007/04/04 12:02:04 choutko Exp $
 #include <math.h>
 #include "commons.h"
 #include "ntuple.h"
@@ -252,7 +252,7 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
 				  int kind_of_tile=agl_kind){
 
   // Reconstruct the beta values for this hit. Assumes direction as unitary
-  static const geant z=RICradpos-RICHDB::rad_height-RICHDB::foil_height-
+  static const geant z=RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::foil_height-
                        RICradmirgap-RIClgdmirgap-RICHDB::rich_height;
   AMSRICHIdGeom channel(_channel);
   //  geant x=RICHDB::x(_channel);  // TODO:Get them from AMSRICHIdGeom
@@ -290,7 +290,7 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   
   geant R=sqrt((origin[0]-x)*(origin[0]-x)+(origin[1]-y)*(origin[1]-y));
   geant theta=atan2(number(R),fabs(origin[2]-z));
-  geant h=origin[2]-RICradpos+RICHDB::rad_height;
+  geant h=origin[2]-RICHDB::RICradpos()+RICHDB::rad_height;
   geant H=RICHDB::rich_height+RICHDB::foil_height+
                        RICradmirgap+RIClgdmirgap
                        -RICHDB::foil_height;   // Correction due to high index
@@ -397,10 +397,10 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
   //  geant xf=RICHDB::x(_channel);  //TODO: Get them from AMSRICHIdGeom
   //  geant yf=RICHDB::y(_channel);  //TODO: Get them from AMSRICHIdGeom
   double zf=-false_height-RIClgdmirgap;
-  //  geant zf=RICradpos-RICHDB::rad_height-false_height;
+  //  geant zf=RICHDB::RICradpos()-RICHDB::rad_height-false_height;
   double x=origin[0],y=origin[1],
     //    z=origin[3]-false_height+RICHDB::height;
-    z=origin[3]-RICradpos+RICHDB::rad_height-false_height+
+    z=origin[3]-RICHDB::RICradpos()+RICHDB::rad_height-false_height+
                 (RICHDB::rich_height+RICHDB::foil_height
                    +RICradmirgap)
                 -RICHDB::foil_height; // Correction due to high index
@@ -464,9 +464,9 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
 			     (ref_point[good])[1],
 			     (ref_point[good])[2]+false_height-
 //                              RICHDB::rich_height+RICHDB::foil_height+RICradmirgap+
-//                              RIClgdmirgap-RICHDB::rad_height+RICradpos);
+//                              RIClgdmirgap-RICHDB::rad_height+RICHDB::RICradpos());
                               RICHDB::rich_height-RICHDB::foil_height-RICradmirgap-
-                              RICHDB::rad_height+RICradpos);
+                              RICHDB::rad_height+RICHDB::RICradpos());
 
       good++;
     }
@@ -532,7 +532,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 
   AMSPoint point;
   number theta,phi,length;
-  AMSPoint pnt(0.,0.,RICradpos-RICHDB::rad_height);
+  AMSPoint pnt(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height);
   AMSDir dir(0.,0.,-1.);
 
   int bit=(AMSEvent::gethead()->getC("AMSRichRing",0))->getnelem();
@@ -728,7 +728,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
 
   AMSPoint mypnt;
   number myphi,mytheta,mylength;
-  mypnt.setp(0.,0.,RICradpos-_height+height_direct);
+  mypnt.setp(0.,0.,RICHDB::RICradpos()-_height+height_direct);
   AMSDir mydir(0.,0.,-1.);
   
   AMSPoint mydirp,myrefp;
@@ -736,7 +736,7 @@ AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   cout<<"    direct "<<mydirp[0]<<" "<<mydirp[1]<<" "<<mydirp[2]<<endl;
   AMSDir mydird(mytheta,myphi);
 
-  mypnt.setp(0.,0.,RICradpos-_height+height_reflected);
+  mypnt.setp(0.,0.,RICHDB::RICradpos()-_height+height_reflected);
   track->interpolate(mypnt,mydir,myrefp,mytheta,myphi,mylength);
   cout <<"    reflected "<<myrefp[0]<<" "<<myrefp[1]<<" "<<myrefp[2]<<endl;
   //  AMSDir refd(theta,phi); // Reflected case ;)
@@ -1147,7 +1147,7 @@ RichRadiatorTile::RichRadiatorTile(AMSTrTrack *track){
 
   // First decide wich kind of radiator is current
 
-  AMSPoint pnt(0.,0.,RICradpos-RICHDB::rad_height),
+  AMSPoint pnt(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height),
     point;
   AMSDir dir(0.,0.,-1.);
   
@@ -1172,7 +1172,7 @@ RichRadiatorTile::RichRadiatorTile(AMSTrTrack *track){
   _index=_eff_indexes[_kind-1];
   _height=_rad_heights[_kind-1];
 
-  pnt.setp(0.,0.,RICradpos-RICHDB::rad_height+_height);
+  pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+_height);
   track->interpolate(pnt,dir,point,
 		     theta,phi,
 		     length);
@@ -1193,7 +1193,7 @@ RichRadiatorTile::RichRadiatorTile(AMSTrTrack *track){
 
 
   // Direct photons
-  pnt.setp(0.,0.,RICradpos-RICHDB::rad_height+_mean_height[_kind-1][0]);
+  pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+_mean_height[_kind-1][0]);
   track->interpolate(pnt,dir,point,theta,phi,length);
   
   _p_direct=point;
@@ -1201,7 +1201,7 @@ RichRadiatorTile::RichRadiatorTile(AMSTrTrack *track){
   
 
   // Direct photons
-  pnt.setp(0.,0.,RICradpos-RICHDB::rad_height+_mean_height[_kind-1][1]);
+  pnt.setp(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+_mean_height[_kind-1][1]);
   track->interpolate(pnt,dir,point,theta,phi,length);
   
   _p_reflected=point;
@@ -2098,7 +2098,7 @@ void AMSRichRing::buildlip(AMSTrTrack *trk){
 
     // dimensions:
 
-    LIPGEO.ztoprad_ams = RICradpos;   //Z coord at the radiator top in the AMS frame
+    LIPGEO.ztoprad_ams = RICHDB::RICradpos();   //Z coord at the radiator top in the AMS frame
     LIPGEO.zpmtdet_c   = RICHDB::rad_height+RICHDB::foil_height+RICradmirgap+RICHDB::rich_height+RIClgdmirgap;
     LIPGEO.hmir_c      = RICHDB::rich_height;
     LIPGEO.rtmir_c     = RICHDB::top_radius;
@@ -2146,7 +2146,7 @@ void AMSRichRing::buildlip(AMSTrTrack *trk){
 
       LIPDAT.hitscoo_c[actual][0]=hitch.x();
       LIPDAT.hitscoo_c[actual][1]=hitch.y();
-      LIPDAT.hitscoo_c[actual][2]=RICradpos-hitch.z(); // Z : AMS frame -> RICH frame
+      LIPDAT.hitscoo_c[actual][2]=RICHDB::RICradpos()-hitch.z(); // Z : AMS frame -> RICH frame
 
       int hgain=hit->getbit(gain_mode_bit);
 
@@ -2164,7 +2164,7 @@ void AMSRichRing::buildlip(AMSTrTrack *trk){
   // particle ip in radiator
   LIPTRK.pimp_c[0]=_entrance_p[0];
   LIPTRK.pimp_c[1]=_entrance_p[1];           // y.ip(trk) RICH frame
-  LIPTRK.pimp_c[2]=RICradpos-_entrance_p[2];  // z.ip(trk) RICH frame
+  LIPTRK.pimp_c[2]=RICHDB::RICradpos()-_entrance_p[2];  // z.ip(trk) RICH frame
 
   // particle direction
   LIPTRK.pphi_c = atan2(_entrance_d[1],_entrance_d[0]);

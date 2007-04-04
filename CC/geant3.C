@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.95 2006/07/14 13:17:16 choumilo Exp $
+//  $Id: geant3.C,v 1.96 2007/04/04 12:02:03 choutko Exp $
 
 #include "typedefs.h"
 #include "cern.h"
@@ -538,7 +538,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 	//	if(GCTRAK.vect[2]>max){
 	//	  max=GCTRAK.vect[2];
 	//	  cout<<"Current upper limit at "<<max<<endl;
-	//	  cout<<"Interference "<<max-RICradpos<<endl;
+	//	  cout<<"Interference "<<max-RICHDB::RICradpos()<<endl;
 	//	}
 #endif
 
@@ -593,7 +593,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 //        if(RICHDB::detcer(GCTRAK.vect[6])) {
 //          GCTRAK.istop=2;
 
-          geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICradpos-RICotherthk/2-
+          geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICHDB::RICradpos()-RICotherthk/2-
                    GCTRAK.vect[2])/GCTRAK.vect[5];
 
 
@@ -606,7 +606,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 /*
     cout <<"************** vect vs orig vect "<<vect[2]<<" "<<GCTRAK.vect[2]<<endl;
     cout <<"Decompose as "<<AMSRICHIdGeom::pmt_pos(1,2)<<" "<<-RICHDB::cato_pos()<<
-           " "<<RICradpos<<" "<<-RICotherthk<<" compared with "<<GCTRAK.vect[2]<<endl;
+           " "<<RICHDB::RICradpos()<<" "<<-RICotherthk<<" compared with "<<GCTRAK.vect[2]<<endl;
 */
 #endif
 
@@ -626,7 +626,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 
       if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep!=0){
         GCTRAK.istop=2; // Absorb it
-        geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICradpos-RICotherthk/2-
+        geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICHDB::RICradpos()-RICotherthk/2-
                    GCTRAK.vect[2])/GCTRAK.vect[5];
                  
         geant vect[3];
@@ -637,13 +637,13 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 /*
     cout <<"************** vect vs orig vect"<<vect[2]<<" "<<GCTRAK.vect[2]<<endl;
     cout <<"Decompose as "<<AMSRICHIdGeom::pmt_pos(1,2)<<" "<<-RICHDB::cato_pos()<<
-           " "<<RICradpos<<" "<<-RICotherthk<<" compared with "<<GCTRAK.vect[2]<<endl;
+           " "<<RICHDB::RICradpos()<<" "<<-RICotherthk<<" compared with "<<GCTRAK.vect[2]<<endl;
 */
 #endif
-        if(GCKINE.vert[2]<RICradpos-RICHDB::rad_height-RICHDB::rich_height-
+        if(GCKINE.vert[2]<RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::rich_height-
            RICHDB::foil_height-RICradmirgap-RIClgdmirgap // in LG
-           || (GCKINE.vert[2]<RICradpos-RICHDB::rad_height &&
-               GCKINE.vert[2]>RICradpos-RICHDB::rad_height-RICHDB::foil_height))
+           || (GCKINE.vert[2]<RICHDB::RICradpos()-RICHDB::rad_height &&
+               GCKINE.vert[2]>RICHDB::RICradpos()-RICHDB::rad_height-RICHDB::foil_height))
 	  AMSRichMCHit::sirichhits(GCKINE.ipart,
 				   GCVOLU.number[lvl-1]-1,
 				   //GCTRAK.vect,

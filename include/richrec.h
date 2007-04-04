@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.35 2006/04/03 10:28:27 mdelgado Exp $
+//  $Id: richrec.h,v 1.36 2007/04/04 12:02:10 choutko Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -279,7 +279,7 @@ public:
     AMSPoint pnt;
     number theta,phi,length;
     
-    //    track->interpolate(AMSPoint(0.,0.,RICradpos-RICHDB::rad_height+_mean_height[_kind-1][0]),
+    //    track->interpolate(AMSPoint(0.,0.,RICHDB::RICradpos()-RICHDB::rad_height+_mean_height[_kind-1][0]),
     //		       AMSDir(0.,0.,-1.),pnt,theta,phi,length);
 
     _radpos[0]=_emission_p[0];
@@ -289,14 +289,14 @@ public:
     _theta=acos(1/_beta/_index);
     _errortheta=_errorbeta/_beta/tan(_theta);
 
-    track->interpolate(AMSPoint(0,0,RICradpos-RICHDB::pmt_pos()+RICHDB::pmtb_height()/2.),
+    track->interpolate(AMSPoint(0,0,RICHDB::RICradpos()-RICHDB::pmt_pos()+RICHDB::pmtb_height()/2.),
 		       AMSDir(0.,0.,-1.),pnt,theta,phi,length);
     
     _pmtpos[0]=pnt[0];
     _pmtpos[1]=pnt[1];
     _pmtpos[2]=pnt[2];
 
-    if(fabs(RICradpos-RICHDB::pmt_pos()+RICHDB::pmtb_height()/2.-_pmtpos[2])>0.01){
+    if(fabs(RICHDB::RICradpos()-RICHDB::pmt_pos()+RICHDB::pmtb_height()/2.-_pmtpos[2])>0.01){
       _pmtpos[0]=0;
       _pmtpos[1]=0;
       _pmtpos[2]=0;

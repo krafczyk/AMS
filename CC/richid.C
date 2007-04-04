@@ -410,7 +410,7 @@ geant AMSRICHIdGeom::y(){
 
 
 geant AMSRICHIdGeom::z(){
-  geant z=RICradpos+*(_pmt_p[2]+_pmt)+RICHDB::pmtb_height()/2.;
+  geant z=RICHDB::RICradpos()+*(_pmt_p[2]+_pmt)+RICHDB::pmtb_height()/2.;
 
   return z;
 }

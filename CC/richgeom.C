@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.26 2007/03/22 11:29:02 choutko Exp $
+//  $Id: richgeom.C,v 1.27 2007/04/04 12:02:04 choutko Exp $
 #include "gmat.h"
 #include "gvolume.h"
 #include "commons.h"
@@ -578,7 +578,8 @@ void amsgeom::richgeom02(AMSgvolume & mother, float ZShift)
 
   coo[0]=0;
   coo[1]=0;
-  coo[2]=RICradpos+ZShift-RICHDB::total_height()/2;
+  RICHDB::RICradpos()+=ZShift;
+  coo[2]=RICHDB::RICradpos()-RICHDB::total_height()/2;
   rich=dynamic_cast<AMSgvolume*>(mother.add(new AMSgvolume("VACUUM",
 							   0,
 							   "RICH",

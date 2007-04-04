@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.35 2005/05/17 09:56:35 pzuccon Exp $
+//  $Id: richdbc.h,v 1.36 2007/04/04 12:02:10 choutko Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -38,7 +38,7 @@ const geant   RICepsln=0.002;  // Useful to simulate absence of optical contact
 
 
 //const geant      RICradpos=-71.87;     // Top of the radiator position
-const geant      RICradpos=-73.5;
+const geant      RICradposs=-73.5;   //  changed by VC as not allow change the ricxh geo on the fly 
 const geant      RICaethk=0.1;         // Radiator support thickness
 #define RIClgthk (2.5*RIClgthk_top)    // A simple fix in the meanwhile
 const geant      RIClgthk_top=0.02;    // LG    top gap
@@ -229,7 +229,7 @@ public: // To be migrated in the future
   static integer nphrad;
   static integer numrefm; // Nb. of reflections in the mirror
   static integer numrayl; // Nb. of rayleigh scatterings
-
+  static geant _RICradpos;
 public:
   static inline geant x(integer);
   static inline geant y(integer);
@@ -251,6 +251,7 @@ public:
   static geant max_step();
   static geant mean_height();
   static integer _Nph;
+  static geant & RICradpos(){return _RICradpos;}
   static integer & Nph(){return _Nph;}  
   static geant ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 			     geant &length,geant beta);

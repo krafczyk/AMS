@@ -1,4 +1,4 @@
-//  $Id: tkdbc.h,v 1.15 2005/06/10 14:55:36 choumilo Exp $
+//  $Id: tkdbc.h,v 1.16 2007/04/04 12:02:10 choutko Exp $
 //      Add Eloss PDF's handling class, 31.01.2005, E.Choumilov
 #ifndef __TKDBC__
 #define __TKDBC__
@@ -103,7 +103,7 @@ public:
   TKDBc(): _status(0){}
  static integer getnum(integer layer, integer ladder, integer sensor);
  static integer getnumd(integer layer, integer ladder);
- static void init( );
+ static void init(float zshift=0 );
  static void read();
  static void write(integer update = 0);
  static void updatef();

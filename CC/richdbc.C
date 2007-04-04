@@ -1,10 +1,10 @@
-//  $Id: richdbc.C,v 1.42 2005/05/17 09:54:05 pzuccon Exp $
+//  $Id: richdbc.C,v 1.43 2007/04/04 12:02:04 choutko Exp $
 #include"richdbc.h"
 #include<math.h>
 #include<iostream.h>
 #include"richid.h"
 
-
+geant RICHDB::_RICradpos=RICradposs;
 integer RICHDB::_Nph=0;
 // defaults
 
@@ -551,7 +551,7 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 
 
   
-  r[2]=-(r[2]-RICradpos);
+  r[2]=-(r[2]-RICHDB::RICradpos());
   u[2]*=-1;
 
 
@@ -729,7 +729,7 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 void RICHDB::dump(){
   // DUMP constant values
   cout <<"Dimensions:"<<endl<<
-    "  RICradpos:  "<<RICradpos<<endl<<
+    "  RICradpos:  "<<RICHDB::RICradpos()<<endl<<
     "  RICaethk:  "<<RICaethk<<endl<<      
     "  RIClgthk:  "<<RIClgthk<<endl<<
     "  RIClgthk_top:  "<<RIClgthk_top<<endl<<
