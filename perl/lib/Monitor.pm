@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.108 2007/04/03 09:16:23 ams Exp $
+# $Id: Monitor.pm,v 1.109 2007/04/04 12:00:28 ams Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2066,15 +2066,52 @@ foreach my $file (@allfiles){
     if($file=~/\.journal$/){
         my @junk=split '\.', $file;
         my $run=int($junk[0]);
-        if($run>=3500 && $run<3453){
+        my $ctime=time();
             my $full=$joudir.$file;
+        my $mtime=(stat $full)[9];
+        if($ctime-$mtime<48*3600){
             open(FILE,"<".$full) or die "Unable to open journal file $full \n";
             my $buf;
             read(FILE,$buf,1638400) or next;
             close FILE;
+            my $mips=0;
+            my $hname=" ";
+            my $tspent=0;
+            my $cpu=0;
+            my $events=0;
+            my $errors=0;
+            @junk=split 'Mips ',$buf;
+            if($#junk>0){
+                my @jmips=split "\n",$junk[1];
+                $mips=$jmips[0];    
+            }
+            if($buf=~/RunFinished/ && $buf=~/, Status Finished/){
+              @junk=split ' RunFinished CInfo  \, ', $buf;
+              if($#junk<1){
+                  die " no  run finished ??  $buf";
+              }
+              my @jcinfo=split '\, ',$junk[1];
+              $hname=(split ' ',$jcinfo[0])[1];  
+              $events=(split ' ',$jcinfo[2])[1];  
+              $errors=(split ' ',$jcinfo[4])[1];  
+              $tspent=(split ' ',$jcinfo[6])[1];  
+              $cpu=(split ' ',$jcinfo[7])[1];  
+          }
+             elsif($buf=~/RunIncomplete/ && $buf=~/, Status Failed/){
+              @junk=split ' RunIncomplete CInfo  \, ', $buf;
+              if($#junk<1){
+                  die " no  run incomplete ??  $buf";
+              }
+              my @jcinfo=split '\, ',$junk[1];
+              $hname=(split ' ',$jcinfo[0])[1];  
+              $events=(split ' ',$jcinfo[2])[1];  
+              $errors=(split ' ',$jcinfo[4])[1];  
+              $tspent=(split ' ',$jcinfo[6])[1];  
+              $cpu=(split ' ',$jcinfo[7])[1];  
+          }
             if($buf=~/RunFinished1/ && $buf=~/, Status Finished/){
 #              warn "  $run finished "; 
-              @junk=split 'CloseDST  \, Status Validated \, Type Ntuple \, Name ', $buf;
+              @junk=split 'CloseDST  \, Status Validated \, Type RootFile \, Name ', $buf;
               if($#junk<1){
                   die " no  dst found for run $run";
               }
@@ -2163,15 +2200,16 @@ foreach my $file (@allfiles){
         my $buf;
         read(FILE,$buf,16384000) or next;
         close FILE;
-        $rdst{Run}=$run;
         $maxrun=$maxrun+1;
+        $rdst{Run}=$run;
         $rdst{uid}=$maxrun;
-        $rdst{Priority}=0;
         $rdst{FirstEvent}=1;
         $rdst{FilePath}=$file;
         $rdst{History}="ToBeRerun";
         $rdst{cuid}=$run;
         $rdst{SubmitTime}=$stime;
+        $rdst{Priority}=0;
+        $rdst{CounterFail}=0;
            my @sbuf=split "\n",$buf;
              foreach my $line (@sbuf){
                  if($line=~/^TRIG=/){ 
@@ -2183,6 +2221,14 @@ foreach my $file (@allfiles){
                     else{
                      $rdst{Status}="Finished";
                      $rdst{LastEvent}=$lste;
+#                     my $cinfo={};
+#                     $rdst{cinfo}=$cinfo;
+                     $rdst{cinfo}->{Mips}=$mips;
+                     $rdst{cinfo}->{HostName}=$hname;
+                     $rdst{cinfo}->{TimeSpent}=$tspent;
+                     $rdst{cinfo}->{EventsProcessed}=$events;
+                     $rdst{cinfo}->{CriticalErrorsFound}=$errors;
+                     $rdst{cinfo}->{CPUMipsTimeSpent}=$cpu;
                     }
 
                  }
@@ -2256,7 +2302,7 @@ opendir THISDIR ,$dir or die "unable to open $dir";
 @allfiles= readdir THISDIR;
 closedir THISDIR;
 
-for my $run (3350...3551){
+for my $run (3552...3551){
 foreach my $file (@allfiles){
     if ($file =~/^cern\.$run/){
                my %rdst; 
@@ -2286,6 +2332,7 @@ foreach my $file (@allfiles){
         $rdst{cuid}=$run;
         $rdst{SubmitTime}=time();
         $rdst{Priority}=0;
+        $rdst{CounterFail}=0;
            my @sbuf=split "\n",$buf;
              foreach my $line (@sbuf){
                  if($line=~/^TRIG=/){ 

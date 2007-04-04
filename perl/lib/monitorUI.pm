@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.46 2005/11/09 15:12:58 ams Exp $
+#  $Id: monitorUI.pm,v 1.47 2007/04/04 12:00:28 ams Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -431,6 +431,7 @@ if (not $Monitor::Singleton->{ok}){
     $statusbar->push(1," Connected to Servers");
 }		
 Gtk->timeout_add(900000,\&Update);
+Gtk->timeout_add(3600000,\&ReCreate);
 return $mybless;
 }
 
@@ -781,7 +782,9 @@ sub create_clist {
 
     }
 
-
+sub ReCreate{
+             DBServer::InitDBFileNew(undef,$Monitor::Singleton);
+}
 sub Update{
     if( $Monitor::Singleton->{updatesviadb}){
      $monitorUI::Singleton->{statusbar}->push(1," Retreiving DB Information");
