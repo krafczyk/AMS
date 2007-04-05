@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.453 2007/04/05 09:46:47 ams Exp $
+# $Id: RemoteClient.pm,v 1.454 2007/04/05 15:19:09 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14383,10 +14383,13 @@ sub UploadToCastor{
 #   1 if ok  0 otherwise
 #
 
-    my ($self,$dir,$verbose,$update,$cmp, $run2p,$mb)= @_;
+    my ($self,$dir,$verbose,$update,$cmp, $run2p,$mb,$maxer)= @_;
 
   my $castorPrefix = '/castor/cern.ch/ams/MC';
-
+    my $errors=0;
+    if(not defined $maxer){
+        $maxer=2;
+    }
   my $rfcp="/usr/local/bin/rfcp ";
 
   my $whoami = getlogin();
@@ -14428,7 +14431,14 @@ sub UploadToCastor{
     if($uplsize>$mb){
       last;
     }
-        $self->CheckCRC($verbose,0,$update,$run->[0],0,undef,1);
+        my $ok=$self->CheckCRC($verbose,0,$update,$run->[0],0,undef,1);
+        if(!$ok){
+            $errors++;
+            if($errors>=$maxer){
+                print " Too Many Errors, Exiting \n";
+                return 0;
+            }
+        }
         $sql="select path,sizemb from ntuples where  run=$run->[0] and path like '%$dir%' and castortime=0 and path not like '/castor%'";
       my $ret_nt =$self->{sqlserver}->Query($sql);
       my $suc=1;
@@ -14581,7 +14591,7 @@ sub CheckCRC{
         $rm="rm -i ";
     }
     else{
-        $rm="rm ";
+        $rm="rm -f ";
     }
     my $address="";
         foreach my $chop (@{$self->{MailT}}) {
@@ -14776,6 +14786,11 @@ sub CheckCRC{
 #
 #                               modify ntuple
 #                                
+               $sql="insert into ntuples_deleted select * from ntuples where ntuples.path='$ntuple->[0]'";
+               $self->{sqlserver}->Update($sql);
+                              my $timenow=time();
+               $sql="update ntuples_deleted set timestamp=$timenow  where path='$ntuple->[0]'";
+               $self->{sqlserver}->Update($sql);
                               $sql="delete from ntuples where ntuples.path='$ntuple->[0]' ";
                               $self->{sqlserver}->Update($sql);
                               
@@ -14786,7 +14801,7 @@ sub CheckCRC{
                               $sql="select realtriggers from jobs where jid=$ntuple->[3]";
                               my $r3=$self->{sqlserver}->Query($sql);
                               if(not defined $r2->[0] and $r3->[0][0]<1){
-                                 $sql="delete from runs where run=$ntuple->[3]";
+#                                 $sql="delete from runs where run=$ntuple->[3]";
                              }
                               $self->{sqlserver}->Update($sql);
                               if($update){
@@ -14816,6 +14831,12 @@ sub CheckCRC{
       }
     if($verbose and $ntp>0){
         print "Total of $runs  runs, $ntp ntuples  processed. \n $ntpb bad ntuples found. \n $ntpf  ntuples could not be repared\n $ntna ntuples could not be verified\n";
+    }
+    if($ntpf>0){
+        return 0;
+    }
+    else{
+        return 1;
     }
 }
 
