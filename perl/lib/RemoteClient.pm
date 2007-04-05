@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.452 2007/04/05 09:46:23 choutko Exp $
+# $Id: RemoteClient.pm,v 1.453 2007/04/05 09:46:47 ams Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1467,7 +1467,7 @@ sub ValidateRuns {
                $mips=1000;
            }
            $cputime=$cputime/$mips*1000;
-           if ($events == 0 && $errors == 0 && $run->{Status} eq 'Finished' ) {
+           if ($events == 0 && $errors == 0 && $run->{Status} eq 'Finished'  && $run->{Run} eq 0) {
                if ($webmode == 0 && $verbose == 1) {
                 print "Run ... $run->{Run}, Status ... $run->{Status}, Events... $events, Errors... $errors \n";
                 print "Set run=$run->{Run} status to Unchecked, Jobs tables not updated \n";

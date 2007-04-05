@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
-#  $Id: validateRuns.o.cgi,v 1.5 2005/11/30 13:50:18 choutko Exp $
+#  $Id: validateRuns.o.cgi,v 1.6 2007/04/05 09:46:38 ams Exp $
 use Gtk;
 use strict;
 
-use lib qw(/var/www/cgi-bin/mon);
+#use lib qw(/var/www/cgi-bin/mon);
 use lib::RemoteClient;
 
 
