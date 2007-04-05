@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.451 2007/04/03 12:29:21 ams Exp $
+# $Id: RemoteClient.pm,v 1.452 2007/04/05 09:46:23 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -14583,8 +14583,13 @@ sub CheckCRC{
     else{
         $rm="rm ";
     }
-
-                                                                                
+    my $address="";
+        foreach my $chop (@{$self->{MailT}}) {
+              if($chop->{rserver}==1){
+                  $address=$chop->{address};
+                  last;
+               }
+         }                                                                                
   my $castorPrefix = '/castor/cern.ch/ams';
   my $delimiter='MC';                                                                              
   my $rfcp="/usr/local/bin/rfcp ";
@@ -14678,6 +14683,7 @@ sub CheckCRC{
                         $rstatus=($rstatus>>8);
                         if($rstatus!=1){
                          if($verbose){
+                                $self->sendmailmessage($address,"crc   failed $ntuple->[0]"," ");
                           print "$ntuple->[0] crc error:  $rstatus \n";
                       }
                           $ntpb++;           
@@ -14708,6 +14714,7 @@ sub CheckCRC{
                             if($rstatus!=1){
                                 $suc=0;
                               if($verbose){
+                                $self->sendmailmessage($address,"crc castor  failed $castornt"," ");
                                print "$castornt crc error:  $rstatus \n";
                              }
                             }
@@ -14735,6 +14742,7 @@ sub CheckCRC{
                               $sql=" update jobs set realtriggers=realtriggers-$ntuple->[5]+$ntuple->[4]-1 where jid=$ntuple->[3] ";
                                $self->{sqlserver}->Update($sql);
                             if($update){
+                                  my $fname=$ntuple->[0];
                             my $res=$self->{sqlserver}->Commit();
                             if(!$res){
                             if($verbose){
@@ -14742,8 +14750,11 @@ sub CheckCRC{
                             }
                             }
                               else{
-                                my $sys="$rm $ntuple->[0]";
+                                my $sys="$rm $fname";
                                 my $i=system($sys);
+                                if($i){
+                                $self->sendmailmessage($address,"unable to $sys"," ");
+                                }
                               }
                             }
                             else{
@@ -14765,23 +14776,35 @@ sub CheckCRC{
 #
 #                               modify ntuple
 #                                
-                              $sql="update ntuples delete where ntuples.path='$ntuple->[0]' ";
+                              $sql="delete from ntuples where ntuples.path='$ntuple->[0]' ";
                               $self->{sqlserver}->Update($sql);
                               
                               $sql=" update jobs set realtriggers=realtriggers-$ntuple->[5]+$ntuple->[4]-1 where jid=$ntuple->[3] ";
-                               $self->{sqlserver}->Update($sql);
+                              $self->{sqlserver}->Update($sql);
+                              $sql="select path from ntuples where run=$ntuple->[3]";
+                              my $r2=$self->{sqlserver}->Query($sql);
+                              $sql="select realtriggers from jobs where jid=$ntuple->[3]";
+                              my $r3=$self->{sqlserver}->Query($sql);
+                              if(not defined $r2->[0] and $r3->[0][0]<1){
+                                 $sql="delete from runs where run=$ntuple->[3]";
+                             }
+                              $self->{sqlserver}->Update($sql);
                               if($update){
+                                  my $fname=$ntuple->[0];
                             my $res=$self->{sqlserver}->Commit();
                             if(!$res){
                             if($verbose){
-                             print " Commit failed for run $ntuple->[0] \n";                                 
+                             print " Commit failed for file $fname \n";                                 
                             }
-                            }
-                              else{
-                                my $sys="$irm $ntuple->[0]";
-                                my $i=system($sys);
-                              }
                         }
+                              else{
+                                my $sys="$rm $fname";
+                                my $i=system($sys);
+                                if($i){
+                                $self->sendmailmessage($address,"unable to $sys"," ");
+                                }
+                              }
+                         }
                             else{
                              $self->{sqlserver}->Commit(0);
                             }                                             
