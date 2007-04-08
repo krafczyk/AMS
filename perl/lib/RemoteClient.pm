@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.454 2007/04/05 15:19:09 choutko Exp $
+# $Id: RemoteClient.pm,v 1.455 2007/04/08 17:07:13 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6992,6 +6992,19 @@ sub checkJobsTimeout {
       print "  killed/saved/posponed jobs $jobkilled,$jobpostponed,$jobsaved \n";
   }
 #
+
+
+#
+#  Change timeout for the failed runs
+#
+
+             $sql="select run from runs where status='Failed'";
+              my $q1=$self->{sqlserver}->Query($sql);
+              foreach my $runf  (@{$q1}){
+              $sql="update jobs set timeout=$timenow-jobs.time-1 where jid=$runf->[0]"; 
+                $self->{sqlserver}->Update($sql);
+              }
+                       
 
 #  convert jobs with ntuples or runs with "Processing" status to good ones
 #  refuse to kill jobs if corr journal file exists
