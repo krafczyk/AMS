@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.248 2006/07/14 13:23:17 choumilo Exp $
+#  $Id: datacards.doc,v 1.249 2007/04/11 15:27:18 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -76,6 +76,7 @@ I127  WriteRoot(0)               // write (!0) or not write(0) root file
 I128  rfile(160*' ')             // root file name
 I168 MaxFileSize(150000000)      // max ntuplefilesize (bytes)
 I169 MaxFileTime(86400*3)         //  max ntuple time (sec)
+I170 BuildMin(-1)                  // min build version (production only)
 
 //-------------------------------------------------------------------------------
 

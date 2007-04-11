@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.490 2007/04/04 12:02:04 choutko Exp $
+// $Id: job.C,v 1.491 2007/04/11 15:27:13 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -209,6 +209,7 @@ VBLANK(IOPA.ffile,40);
 IOPA.MaxNtupleEntries=100000;
 IOPA.MaxFileSize=180000000;
 IOPA.MaxFileTime=86400*3;
+IOPA.BuildMin=-1;
 IOPA.WriteRoot=0;
 VBLANK(IOPA.rfile,40);
 FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
@@ -1465,7 +1466,18 @@ uinteger imon=(AMSFFKEY.Jobtype/1000)%10;//1-9
 uinteger umon=1;
 if(imon)setjobtype(umon<<(imon+1+9));
 uinteger iprod=(AMSFFKEY.Jobtype/10000)%10;
-if(iprod)setjobtype(Production);
+if(iprod){
+   setjobtype(Production);
+   if(IOPA.BuildMin<0){
+     cerr<<"AMSJob::udata-F-IOPA.BuildNoNotSetWhileInProductionMode "<< IOPA.BuildMin<<" "<<endl;
+     abort();
+   }
+   else if(IOPA.BuildMin>AMSCommonsI::getbuildno()){
+     cerr<<"AMSJob::udata-F-IOPA.MinBuildNoRequired "<< IOPA.BuildMin<<" "<<endl;
+     abort();
+   }
+
+}
 
 if(IOPA.mode && isSimulation()){
    AMSIO::setfile(ffile);

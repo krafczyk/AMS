@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.456 2007/04/11 09:52:23 choutko Exp $
+# $Id: RemoteClient.pm,v 1.457 2007/04/11 15:27:23 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4839,9 +4839,11 @@ print qq`
           print "<BR>";
                 print "Output file Type ";
           print "<BR>";
+    $self->getProductionVersion();
+
    print qq`
 <INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 168=120000000 2=" $defNTUPLE>Ntuple
-<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=900000000 127=2 128=" $defROOT>RootFile<BR>
+<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=1500000000 170=$self->{Build} 127=2 128=" $defROOT>RootFile<BR>
 `;
                 print "Root/Ntuple Write Mode ";
           print "<BR>";
@@ -9275,7 +9277,7 @@ sub parseJournalFiles {
     $self->set_root_env();
 
     $self->getProductionPeriods(0);
-#--    $self->getProductionVersion();
+    $self->getProductionVersion();
 
  $sql = "SELECT begin FROM productionset WHERE STATUS='Active' ORDER BY begin";
  $ret = $self->{sqlserver}->Query($sql);
@@ -10968,6 +10970,7 @@ sub printMC02GammaTest {
 sub printJobParamFormatDST {
 
     my $self=shift;
+    $self->getProductionVersion();
 
 # DST output format
             print "<tr><td><b><font color=\"green\">DST output format</font></b>\n";
@@ -10975,7 +10978,7 @@ sub printJobParamFormatDST {
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=900000000 127=2 128=\" $defROOT><b> RootFile </b><BR>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=1500000000 170=$self->{Build} 127=2 128=\" $defROOT><b> RootFile </b><BR>\n";
             print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000000 2=\" $defNTUPLE><b> NTUPLE </b>\n";
             print "</b></font></td></tr>\n";
            htmlTableEnd();
@@ -11046,10 +11049,10 @@ sub getProductionVersion {
     my $vbuild  = 0;
     my $os      = undef;
 
-    $sql = "SELECT version FROM ProductionSet WHERE STATUS='Active'";
+    $sql = "SELECT version FROM ProductionSet WHERE STATUS='Active' and name like '%AMS02%'";
     my $r0 = $self->{sqlserver}->Query($sql);
     if (defined $r0->[0][0]) {
-      my @junk = split '/',$r0->[0][0];
+      my @junk = split '\/',$r0->[0][0];
       $junk[0] =~ s/v//;
       $junk[1] =~ s/build//;
       $junk[2] =~ s/os//;
