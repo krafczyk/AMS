@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.455 2007/04/08 17:07:13 choutko Exp $
+# $Id: RemoteClient.pm,v 1.456 2007/04/11 09:52:23 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2666,7 +2666,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                    $sqlmom=" AND
                         (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) ";
                    $sqlamom=" AND
-                        (runcatalog.jobname not LIKE '%$dataset%' AND runcatalog.run=runs.run)";
+                        (runcatalog.jobname  LIKE '%$dataset%' AND runcatalog.run=runs.run)";
 
 
            if ($q->param("QBuildNum")){
@@ -3395,7 +3395,8 @@ CheckCite:            if (defined $q->param("QCite")) {
             if($sqlmom ne ""){
               $r4=$self->{sqlserver}->Query($negative);
             }
-          if(($sqlmom eq "" or $#{$r4} ==-1)  ){
+#           die "- $sqlmom - $negative - $#{@{$r4}} \n";
+           if(($sqlmom eq "" or $#{$r4} ==-1)  ){
 #          if(($sqlmom eq "" or $#{$r4} ==-1) and $sqlmom1 eq "" ){
            if($dirs_hr[$ind] eq "root"){ 
             $s = "chain.Add(\"".$dirs[$ind]."/*.$dirs_hr[$ind]\");";
