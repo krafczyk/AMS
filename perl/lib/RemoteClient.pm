@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.457 2007/04/11 15:27:23 choutko Exp $
+# $Id: RemoteClient.pm,v 1.458 2007/04/12 09:00:29 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4839,7 +4839,7 @@ print qq`
           print "<BR>";
                 print "Output file Type ";
           print "<BR>";
-    $self->getProductionVersion();
+#    $self->getProductionVersion();
 
    print qq`
 <INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 168=120000000 2=" $defNTUPLE>Ntuple
@@ -11049,7 +11049,7 @@ sub getProductionVersion {
     my $vbuild  = 0;
     my $os      = undef;
 
-    $sql = "SELECT version FROM ProductionSet WHERE STATUS='Active' and name like '%AMS02%'";
+    $sql = "SELECT version, vgbatch FROM ProductionSet WHERE STATUS='Active' and name like '%AMS02%'";
     my $r0 = $self->{sqlserver}->Query($sql);
     if (defined $r0->[0][0]) {
       my @junk = split '\/',$r0->[0][0];
@@ -11059,6 +11059,9 @@ sub getProductionVersion {
       $self->{ProductionVersion}=$r0->[0][0];
       $self->{Version}=strtod($junk[0]);
       $self->{Build}  =strtod($junk[1]);
+      if(trimblanks($r0->[0][1]) ne $self->{Build}){
+          die "ProductionSet Inconsitency (trimblanks($r0->[0][1])  $self->{Build} \n";
+      }
       $self->{OS}     =strtod($junk[2]);
  }
 }
