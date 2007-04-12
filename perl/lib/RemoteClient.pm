@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.458 2007/04/12 09:00:29 choutko Exp $
+# $Id: RemoteClient.pm,v 1.459 2007/04/12 09:22:23 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2666,7 +2666,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                    $sqlmom=" AND
                         (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) ";
                    $sqlamom=" AND
-                        (runcatalog.jobname  LIKE '%$dataset%' AND runcatalog.run=runs.run)";
+                        (runcatalog.jobname  not LIKE '%$dataset%' AND runcatalog.run=runs.run)";
 
 
            if ($q->param("QBuildNum")){
@@ -2674,7 +2674,7 @@ CheckCite:            if (defined $q->param("QCite")) {
                my $buildnum_min = $buildNumber[0];
                my $buildnum_max = $buildNumber[1];
                $sqlmom1=$sqlmom1." AND (Ntuples.buildno>=$buildnum_min AND Ntuples.buildno<=$buildnum_max) ";
-               $sqlamom1=$sqlamom1." AND (Ntuples.buildno<$buildnum_min OR Ntuples.buildno>$buildnum_max) ";
+               $sqlamom1=$sqlamom1." And (Ntuples.buildno<$buildnum_min OR Ntuples.buildno>$buildnum_max) ";
            }
 
 
@@ -3390,6 +3390,9 @@ CheckCite:            if (defined $q->param("QCite")) {
          }
            $sqlmom=~s/runs\.run/ntuples\.run/;
            $sqlamom=~s/runs\.run/ntuples\.run/;
+           if($sqlamom =~/buildno/ or $sqlamom =~/pmin/){
+               $sqlamom=~s/not LIKE/LIKE/;
+           }
            my $negative= "SELECT ntuples.run From Ntuples,runcatalog WHERE Path like '%$dirs[$ind]/%'   $sqlamom group by ntuples.run ";
             my $r4=undef;
             if($sqlmom ne ""){
