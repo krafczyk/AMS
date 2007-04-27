@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.459 2007/04/12 09:22:23 choutko Exp $
+# $Id: RemoteClient.pm,v 1.460 2007/04/27 15:03:32 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9374,7 +9374,11 @@ sub parseJournalFiles {
       my $logdir = $dir."/log";
       my $joudir = $dir."/jou";
       my $ntdir  = $dir."/nt";
-      opendir THISDIR ,$joudir or die "unable to open $joudir";
+      my $suc=opendir THISDIR ,$joudir; 
+      if(!$suc){
+       warn "unable to open $joudir\n";
+       next;
+      }
       my @allfiles= sort {$a cmp $b}  readdir THISDIR;
       closedir THISDIR;
       if ($webmode == 1) {
