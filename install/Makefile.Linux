@@ -8,7 +8,11 @@ ARCH         := $(shell root-config --arch)
 
 SLC3system=
 ifneq "$(wildcard /etc/redhat-release)" ""
- SLC3system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN")
+ SLC3system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 3")
+endif
+SLC4system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC4system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN SLC release 4")
 endif
 RAS3system=
 ifneq "$(wildcard /etc/redhat-release)" ""
@@ -17,13 +21,15 @@ endif
 RH9=1
 RH9add=
 ifdef RH9
- RH9add=-pthread  $(BIN)ctype.o
+ RH9add=-pthread  $(BIN)ctype.o -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
 endif
 
 ifdef SLC3system
- RH9add=-pthread  $(BIN)ctype.o
+ RH9add=-pthread  $(BIN)ctype.o -lnsl /usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
 endif
-
+ifdef SLC4system
+ RH9add=-pthread $(BIN)ctype.o 
+endif
 
 
 
@@ -92,6 +98,10 @@ ifdef SLC3system
 else
  ifdef RAS3system
    CPPFLAGS+= -D__SLC3__ -D__LINUXGNU__
+ else
+ ifdef SLC4system
+   CPPFLAGS+= -D__LINUXGNU__
+ endif
  endif
 
 endif
@@ -144,6 +154,9 @@ SOFLAGS = -shared
 ifdef SLC3system
  SOFLAGS+= -L/usr/lib/i386-redhat-linux7/lib
 endif
+ifdef SLC4system
+ SOFLAGS+= -L/usr/lib/i386-redhat-linux7/lib
+endif
 
  SHLDFLAGS=   
 
@@ -193,8 +206,7 @@ LDFLAGSI=    -static  \
 -L$(ROOTSYS)/lib -lRoot \
  -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 \
 -lcrypt -lcrypto -ldl -lpcre   \
- $(FORTRAN_LIBS) $(RH9add) -lnsl \
-/usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
+ $(FORTRAN_LIBS) $(RH9add)
 
 LDFLAGS=       \
 -L$(NAGDIR) -lnag   \
@@ -203,8 +215,7 @@ LDFLAGS=       \
 -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -lfreetype  -ldl -lpcre\
 $(FORTRAN_LIBS)  $(PFLAGS) 
 
-LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add) -lnsl \
-/usr/lib/nsswitch.o -Wl,--start-group -lnss_files -lnss_dns -lresolv -Wl,--end-group  
+LDFLAGSSTATIC:=   -static $(LDFLAGS) $(RH9add) 
 
 
 ifdef AMSICC 
